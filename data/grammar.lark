@@ -1,0 +1,211 @@
+file_input: (_NEWLINE | statement)*
+
+// # General statements
+
+statement: compound_stmt | simple_stmt
+
+?simple_stmt: small_stmt _NEWLINE
+?small_stmt: expression
+	| assign_stmt
+	| return_stmt
+	| import_stmt
+	| raise_stmt
+	| pass_stmt
+	| break_stmt
+	| continue_stmt
+
+?compound_stmt: function_def
+	| if_stmt
+	| enum_def
+	| class_def
+	| for_stmt
+	| try_stmt
+	| while_stmt
+
+// # Import statements
+
+// @decl `from module.path.to import *`
+import_stmt: "from" dotted_name "import" "*"
+dotted_name: name ("." name)*
+
+// # Common elements
+
+!block: _NEWLINE _INDENT statement+ _DEDENT | simple_stmt
+
+// @decl `@decorator_name`
+// @decl `@decorator_name(symbol1, symbol2, ...)`
+// @lark decorated: decorators (classdef | funcdef | async_funcdef)
+decorators: decorator+
+decorator: "@" dotted_name ["(" [arguments] ")"] _NEWLINE
+
+// # Enum definitions
+
+// @decl `class enum_name(CEnum):`
+// @note 拡張仕様
+enum_def: "class" name "(" "CEnum" ")" ":" block
+
+// # Class definitions
+
+// @decl `class class_name:`
+// @decl `class class_name(parent1, parent2, ...):`
+// @lark classdef: "class" name ["(" [arguments] ")"] ":" block
+class_def: [decorators] class_def_raw
+class_def_raw: "class" name ["(" [arguments] ")"] ":" block
+
+// # Function definitions
+
+// @decl `def func_name(param1: type1, param2: type2, ...) -> return_type:`
+// @lark funcdef: "def" name "(" [parameters] ")" ["->" test] ":" suite
+function_def: [decorators] function_def_raw
+function_def_raw: "def" name "(" [parameters] ")" "->" primary ":" block // FIXME [func_type_comment] block
+
+// ## Function parameters
+
+// @decl `(param1: type1, ...)`
+// @decl `(param1: type1 = def1, ...)`
+// @decl `(param1: type1.path.to, ...)`
+// @decl `(param1: type1[subtype1, subtype2, ...], ...)`
+// @decl `(param1: 'type1.path.to', ...)`
+// @lark parameters: ("," paramvalue)* ["," SLASH ("," parambalue)*] ["," [starparams | kwparams]] | starparams | kwparams
+// @lark ?paramvalue: typedparam ("=" test)?
+// @lark ?typedparam: name (":" test)?
+parameters: paramvalue ("," paramvalue)*
+?paramvalue: typedparam ["=" expression]
+?typedparam: name [":" primary]
+
+// # Function call argumanets
+
+// @decl `(arg1, arg2, ...)`
+arguments: argvalue ("," argvalue)*
+argvalue: expression
+
+// # If/While/For statement
+
+// @lark while_stmt: "while" test ":" suite ["else" block]
+// @lark for_stmt: "for" exprlist "in" testlist ":" suite ["else" block]
+// XXX elif/elseの構造に一貫性が無い様に感じる
+if_stmt: "if" expression ":" block elifs ["else" ":" block]
+elifs: elif_*
+elif_: "elif" expression ":" block
+while_stmt: "while" expression ":" block
+for_stmt: "for" name "in" expression ":" block
+
+// Try/Except statement
+
+// @lark try_stmt: "try" ":" suite except_clauses ["else" block] [finally] | "try" ":" suite finally
+// @lark except_claus: "except" [test ["as" name]] ":" suite
+try_stmt: "try" ":" block except_clauses
+except_clauses: except_clause+
+except_clause: "except" primary ["as" name] ":" block
+
+// Match statement
+// @note switchの代替。3.10から導入。使わないので不要
+
+// # Simple Statements
+
+// @lark assign_stmt: assign | annassign | augassign
+// @lark assign: test ("=" test)+
+// @lark annassign: testlist_star_expr ":" test ["=" test]
+// @lark augassign: testlist_star_expr augassign_op (yield_expr | testlist)
+assign_stmt: assign | anno_assign | aug_assign
+assign: primary ("=" primary)+
+anno_assign: primary ":" primary ["=" expression]
+aug_assign: primary aug_assign_op primary
+
+!aug_assign_op: "+=" | "-=" | "*=" | "@=" | "/=" | "%=" | "&=" | "|=" | "^=" | "<<=" | ">>=" | "**=" | "//="
+
+// @lark return_stmt: "return" [testlist]
+// @lark raise_stmt: raise [test ["from" test]]
+// @lark break_stmt: "break"
+// @lark continue_stmt: "continue"
+return_stmt: "return" [expression]
+raise_stmt: "raise" primary ["from" name]
+!break_stmt: "break"
+pass_stmt: "pass"
+!continue_stmt: "continue"
+
+// # Expressions
+
+// @note Lark: test, Offical: expression
+// @lark ?test: or_test ("if" or_test "else" test)? | lambdef | assign_expr
+expression: or_test | or_test "if" or_test "else" expression -> tenary_test
+
+// ## Comparison operators
+
+?or_test: and_test ("or" and_test)*
+?and_test: not_test_ ("and" not_test_)*
+?not_test_: "not" not_test_ -> not_test | comparison
+?comparison: expr (comp_op expr)*
+?expr: or_expr
+
+!comp_op: "<" | ">" | "==" | ">=" | "<=" | "<>" | "!="
+	| "in" -> comp_in
+	| "not" "in" -> comp_not_in
+	| "is"  -> comp_is
+	| "is" "not" -> comp_is_not
+
+// ## Bitwise operators
+
+?or_expr: xor_expr ("|" xor_expr)*
+?xor_expr: and_expr ("^" and_expr)*
+?and_expr: shift_expr ("&" shift_expr)*
+?shift_expr: sum (_shift_op sum)*
+
+// ## Arithmetic operators
+
+// @note Lark: arith_expr, Official: sum
+// @lark ?factor: _unary_op factor | power
+?sum: term (_add_op term)*
+?term: factor (_mul_op factor)*
+?factor: _unary_op factor | primary
+
+// @lark !_mul_op: "*" | "/" | "%" | "//"
+!_unary_op: "+" | "-" | "~"
+!_add_op: "+" | "-"
+!_shift_op: "<<" | ">>"
+!_mul_op: "*" | "/" | "%"
+
+// # Primary elements
+
+// @note Lark: atom_expr, Offical: primary
+// @note: Lark: atom: primary "." name -> getattr
+primary: primary "." name
+	| primary "(" [arguments] ")" -> funccall
+	| primary "[" slices "]" -> getitem
+	| atom
+
+slices: slice | slice (("," slice)+ [","] | ",")
+slice: expression
+
+// @note: Lark: atom: name -> var
+atom: name
+	| "True" -> const_true
+	| "False" -> const_false
+	| "None" -> const_none
+	| string
+	| number
+	| group_expr
+	| "[" _exprlist? "]" -> list
+	| "{" _dict_exprlist? "}" -> dict
+
+!group_expr: "(" expression ")"
+
+_exprlist: expression ("," expression)* [","]
+
+_dict_exprlist: key_value ("," key_value)* [","]
+key_value: expression ":" expression
+
+// # Typeing elements
+
+// TODO func_type_comment: LONG_STRING
+
+// Python terminals
+
+%import python (name, string, number, NAME, STRING, LONG_STRING, DEC_NUMBER, FLOAT_NUMBER, HEX_NUMBER, COMMENT, _NEWLINE)
+
+// Other terminals
+
+%ignore /[\t \f]+/ // White Spaces
+%ignore /\\[\t \f]*\r?\n/ // Empty Lines
+%ignore COMMENT
+%declare _INDENT _DEDENT // @note Need for `parse(..., postlex=PythonIndender)`

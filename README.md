@@ -15,7 +15,7 @@ Python to C++
 $ pip install -r requirements.txt -t vendor/
 ```
 
-## Show AST from Lark Tree
+## Interactive Python AST Viewer
 
 ```
 $ bin/ast.sh
@@ -24,7 +24,7 @@ $ bin/ast.sh
 ## Transpile from Python to C++
 
 ```
-$ bin/transpile.sh
+$ bin/transpile.sh path/to/origin.py
 ```
 
 ## Testing via tests/

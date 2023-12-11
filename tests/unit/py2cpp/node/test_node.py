@@ -294,6 +294,15 @@ class TestNode(TestCase):
 		self.assertEqual(type(node.as_a(Terminal)), Terminal)
 
 
+	def test_is_a(self) -> None:
+		nodes = Fixture.nodes()
+		node = nodes.by('fule_input.class')
+		self.assertEqual(type(node), Class)
+		self.assertEqual(node.is_a(Class), True)
+		self.assertEqual(node.is_a(Node), False)
+		self.assertEqual(node.is_a(Terminal), False)
+
+
 	def test_actual(self) -> None:
 		class NodeB(Node):
 			def actual(self) -> Node:

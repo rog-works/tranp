@@ -4,7 +4,7 @@ from unittest import TestCase
 from lark import Token, Tree
 
 from py2cpp.lang.annotation import override
-from py2cpp.node.embed import embed_meta, node_properties
+from py2cpp.node.embed import embed_meta, expansionable
 from py2cpp.node.node import Node
 from py2cpp.node.nodes import NodeResolver, Nodes
 from py2cpp.node.provider import Settings
@@ -39,7 +39,6 @@ class FileInput(Node):
 		return '__main__'
 
 
-@embed_meta(node_properties('statements'))
 class Class(Node):
 	@property
 	@override
@@ -48,11 +47,11 @@ class Class(Node):
 
 
 	@property
+	@embed_meta(Node, expansionable(order=0))
 	def statements(self) -> list[Node]:
 		return self._children('block')
 
 
-@embed_meta(node_properties('variables'))
 class Enum(Node):
 	@property
 	@override
@@ -61,13 +60,14 @@ class Enum(Node):
 
 
 	@property
+	@embed_meta(Node, expansionable(order=0))
 	def variables(self) -> list[Node]:
 		return self._children('block')
 
 
-@embed_meta(node_properties('statements'))
 class Function(Node):
 	@property
+	@embed_meta(Node, expansionable(order=0))
 	def statements(self) -> list[Node]:
 		return self._children('block')
 

@@ -1,13 +1,51 @@
 from importlib import import_module
-from typing import Any
+import sys
+from typing import Any, Callable
+
 
 
 def load_module(path: str, module: str) -> Any:
+	"""モジュールをロード
+
+	Args:
+		path (str): モジュールパス
+		module (str): モジュールパス
+	Returns:
+		Any: モジュール
+	"""
 	return getattr(import_module(path), module)
 
 
 def load_module_path(module_path: str) -> Any:
+	"""モジュールパスからモジュールをロード
+
+	Args:
+		module_path (str): モジュールパス
+	Returns:
+		Any: モジュール
+	"""
 	elems = module_path.split('.')
 	path = '.'.join(elems[:-1])
 	module = elems[-1]
 	return load_module(path, module)
+
+
+def resolve_own_class(method: Callable) -> type:
+	"""メソッドからクラスを解決
+
+	Args:
+		method (Callable): メソッド
+	Returns:
+		type: クラス
+	Raises:
+		ValueError: 解決に失敗
+	Note:
+		メソッドデコレーター内ではクラスが定義中のため、クラスがモジュール内に存在しておらず解決は不可能
+		メソッドデコレーター内でこの関数は使用しないこと
+	"""
+	modules = vars(sys.modules[method.__module__])
+	class_name = method.__qualname__.split('.')[0]
+	if class_name in modules:
+		raise ValueError()
+
+	return modules[class_name]

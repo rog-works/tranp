@@ -3,7 +3,7 @@ from unittest import TestCase
 from lark import Token, Tree
 
 from py2cpp.lang.annotation import override
-from py2cpp.node.embed import embed_meta, node_properties
+from py2cpp.node.embed import embed_meta, expansionable
 from py2cpp.node.node import Node
 from py2cpp.node.nodes import NodeResolver, Nodes
 from py2cpp.node.provider import Settings
@@ -59,7 +59,6 @@ class Assign(Node):
 		return self._at('primary[1]').as_a(Terminal)
 
 
-@embed_meta(node_properties('arguments'))
 class Decorator(Node):
 	@property
 	def symbol(self) -> Symbol:
@@ -67,11 +66,11 @@ class Decorator(Node):
 
 
 	@property
+	@embed_meta(Node, expansionable(order=0))
 	def arguments(self) -> list[Symbol]:
 		return [node.as_a(Symbol) for node in self._leafs('primary')]
 
 
-@embed_meta(node_properties('decorators'))
 class Function(Node):
 	@property
 	def function_name(self) -> Terminal:
@@ -79,6 +78,7 @@ class Function(Node):
 
 
 	@property
+	@embed_meta(Node, expansionable(order=0))
 	def decorators(self) -> list[Decorator]:
 		return [node.as_a(Decorator) for node in self._children('decorators')] if self._exists('decorators') else []
 
@@ -93,7 +93,6 @@ class Function(Node):
 # class ClassMethod(Node, ScopeTrait): pass
 
 
-@embed_meta(node_properties('decorators'))
 class Class(Node):
 	@property
 	@override
@@ -107,6 +106,7 @@ class Class(Node):
 
 
 	@property
+	@embed_meta(Node, expansionable(order=0))
 	def decorators(self) -> list[Decorator]:
 		return [node.as_a(Decorator) for node in self._children('decorators')] if self._exists('decorators') else []
 
@@ -127,7 +127,6 @@ class Class(Node):
 	# 	return [node.as_a(Method) for node in self._leafs('class_raw.block.function') if node.is_a(Method)]
 
 
-@embed_meta(node_properties('variables'))
 class Enum(Node):
 	@property
 	@override
@@ -141,6 +140,7 @@ class Enum(Node):
 
 
 	@property
+	@embed_meta(Node, expansionable(order=0))
 	def variables(self) -> list[Assign]:
 		return [child.as_a(Assign) for child in self._children('block')]
 

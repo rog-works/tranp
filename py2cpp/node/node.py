@@ -4,7 +4,7 @@ from lark import Token
 
 from py2cpp.ast.travarsal import ASTFinder
 from py2cpp.lang.sequence import flatten
-from py2cpp.node.embed import EmbedKeys
+from py2cpp.node.embed import digging_meta_method, EmbedKeys
 from py2cpp.node.provider import Query
 from py2cpp.node.trait import ScopeTrait
 from py2cpp.tp_lark.types import Entry
@@ -113,15 +113,11 @@ class Node:
 		Returns:
 			list[str]: プロパティーのメソッド名リスト
 		Note:
-			@see trans.node.embed.node_properties
+			@see trans.node.embed.expansionable
 		"""
-		candidate_embed_keys = [f'{EmbedKeys.NodeProp}.{key}' for key in self.__class__.__dict__.keys()]
-		prop_keys = {
-			cast(int, getattr(self.__class__, embed_key)): embed_key.split('.')[1]
-			for embed_key in candidate_embed_keys
-			if hasattr(self.__class__, embed_key)
-		}
-		return [prop_key for _, prop_key in sorted(prop_keys.items(), key=lambda index: index)]
+		meta = digging_meta_method(Node, self.__class__, EmbedKeys.Expansionable)
+		order_on_keys = {cast(int, value): name for name, value in meta.items()}
+		return [prop_key for _, prop_key in sorted(order_on_keys.items(), key=lambda index: index)]
 
 
 	def __iter__(self) -> Iterator['Node']:

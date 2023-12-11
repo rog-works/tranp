@@ -68,7 +68,7 @@ class Decorator(Node):
 	@property
 	@embed_meta(Node, expansionable(order=0))
 	def arguments(self) -> list[Symbol]:
-		return [node.as_a(Symbol) for node in self._leafs('primary')]
+		return [node.as_a(Symbol) for node in self._children('arguments')]
 
 
 class Function(Node):
@@ -152,8 +152,10 @@ class Fixture:
 			Tree('class_def', [
 				Tree('decorators', [
 					Tree('decorator', [Tree('dotted_name', [Token('name', 'deco')]),
-						Tree('primary', [Token('name', 'A')]),
-						Tree('primary', [Tree('primary', [Token('name', 'A')]), Token('name', 'B')]),
+						Tree('arguments', [
+							Tree('primary', [Tree('var', [Token('name', 'A') ])]),
+							Tree('getattr', [Tree('primary', [Tree('var', [Token('name', 'A') ])]), Token('name', 'B')]),
+						])
 					]),
 				]),
 				Tree('class_def_raw', [Token('name', 'Hoge'), Tree('block', [

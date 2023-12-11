@@ -1,13 +1,107 @@
 import re
 from typing import Callable
 
-from lark import Tree
+from lark import Token, Tree
 
+from py2cpp.ast.travarsal import ASTFinder, EntryProxy
 from py2cpp.lang.annotation import implements
 from py2cpp.node.node import Node
 from py2cpp.node.provider import Query, Resolver, Settings
-from py2cpp.tp_lark.travarsal import entry_exists, escaped_path, denormalize_tag, find_entries, pluck_entry, tag_by_entry
 from py2cpp.tp_lark.types import Entry
+
+
+class EntryProxyLark(EntryProxy[Entry]):
+	"""エントリーへの要素アクセスを代替するプロクシー"""
+
+	@implements
+	def name(self, entry: Entry) -> str:
+		"""名前を取得
+
+		Args:
+			entry (Entry): エントリー
+		Returns:
+			str: エントリーの名前
+		Note:
+			エントリーが空の場合を考慮すること
+			@see is_empty
+		"""
+		if type(entry) is Tree:
+			return entry.data
+		elif type(entry) is Token:
+			return entry.type
+		else:
+			return self.empty_name
+
+
+	@implements
+	def has_child(self, entry: Entry) -> bool:
+		"""子を持つエントリーか判定
+
+		Args:
+			entry (Entry): エントリー
+		Returns:
+			bool: True = 子を持つエントリー
+		"""
+		return type(entry) is Tree
+
+	@implements
+	def children(self, entry: Entry) -> list[Entry]:
+		"""配下のエントリーを取得
+
+		Args:
+			entry (Entry): エントリー
+		Returns:
+			list[Entry]: 配下のエントリーリスト
+		Raise:
+			ValueError: 子を持たないエントリーで使用
+		"""
+		if type(entry) is not Tree:
+			raise ValueError()
+
+		return entry.children
+
+
+	@implements
+	def is_terminal(self, entry: Entry) -> bool:
+		"""終端記号か判定
+
+		Args:
+			entry (Entry): エントリー
+		Returns:
+			bool: True = 終端記号
+		"""
+		return type(entry) is Token
+
+
+	@implements
+	def value(self, entry: Entry) -> str:
+		"""終端記号の値を取得
+
+		Args:
+			entry (T): エントリー
+		Returns:
+			str: 終端記号の値
+		Raise:
+			ValueError: 終端記号ではないエントリーで使用
+		"""
+		if type(entry) is not Token:
+			raise ValueError()
+
+		return entry.value
+
+
+	@implements
+	def is_empty(self, entry: Entry) -> bool:
+		"""エントリーが空か判定
+
+		Returns:
+			bool: True = 空
+		Note:
+			Grammarの定義上存在するが、構文解析の結果で空になったエントリー
+			例えば以下の様な関数の定義の場合[parameters]が対象となり、引数がない関数の場合、エントリーとしては存在するが内容は空になる
+			例) function_def: "def" name "(" [parameters] ")" "->" ":" block
+		"""
+		return entry is None
 
 
 class NodeResolver:
@@ -74,15 +168,16 @@ class NodeResolver:
 class Nodes(Query[Node]):
 	"""ノードクエリーインターフェイス。ASTを元にノードの探索し、リゾルバーを介してインスタンスを解決"""
 
-	def __init__(self, root: Tree, resolver: NodeResolver) -> None:
+	def __init__(self, root: Entry, resolver: NodeResolver) -> None:
 		"""インスタンスを生成
 
 		Args:
-			root (Tree): AST
+			root (Entry): ASTのルート要素
 			resolver (NodeResolver): ノードリゾルバー
 		"""
 		self.__root = root
 		self.__resolver = resolver
+		self.__finder = ASTFinder(EntryProxyLark())
 
 
 	def __resolve(self, entry: Entry, full_path: str) -> Node:
@@ -94,7 +189,7 @@ class Nodes(Query[Node]):
 		Returns:
 			Node: 解決したノード
 		"""
-		return self.__resolver.resolve(tag_by_entry(entry), full_path, lambda ctor: ctor(self, entry, full_path))
+		return self.__resolver.resolve(self.__finder.tag_by(entry), full_path, lambda ctor: ctor(self, entry, full_path))
 
 
 	@implements
@@ -106,7 +201,7 @@ class Nodes(Query[Node]):
 		Returns:
 			bool: True = 存在
 		"""
-		return entry_exists(self.__root, full_path)
+		return self.__finder.exists(self.__root, full_path)
 
 
 	@implements
@@ -120,7 +215,7 @@ class Nodes(Query[Node]):
 		Raises:
 			ValueError: ノードが存在しない
 		"""
-		entry = pluck_entry(self.__root, full_path)
+		entry = self.__finder.pluck(self.__root, full_path)
 		return self.__resolve(entry, full_path)
 
 
@@ -138,7 +233,7 @@ class Nodes(Query[Node]):
 		forwards = via.split('.')[:-1]
 		while(len(forwards)):
 			org_tag = forwards.pop()
-			tag = denormalize_tag(org_tag)
+			tag = self.__finder.denormalize_tag(org_tag)
 			if self.__resolver.can_resolve(tag):
 				path = '.'.join([*forwards, org_tag])
 				return self.at(path)
@@ -156,9 +251,9 @@ class Nodes(Query[Node]):
 			list[Node]: ノードリスト
 		"""
 		uplayer_path = '.'.join(via.split('.')[:-1])
-		regular = re.compile(rf'{escaped_path(uplayer_path)}\.[^.]+')
+		regular = re.compile(rf'{self.__finder.escaped_path(uplayer_path)}\.[^.]+')
 		tester = lambda _, path: regular.fullmatch(path) is not None
-		entries = find_entries(self.__root, uplayer_path, tester, depth=1)
+		entries = self.__finder.find(self.__root, uplayer_path, tester, depth=1)
 		return [self.__resolve(entry, path) for path, entry in entries.items()]
 
 
@@ -171,9 +266,9 @@ class Nodes(Query[Node]):
 		Returns:
 			list[Node]: ノードリスト
 		"""
-		regular = re.compile(rf'{escaped_path(via)}\.[^.]+')
+		regular = re.compile(rf'{self.__finder.escaped_path(via)}\.[^.]+')
 		tester = lambda _, path: regular.fullmatch(path) is not None
-		entries = find_entries(self.__root, via, tester, depth=1)
+		entries = self.__finder.find(self.__root, via, tester, depth=1)
 		return [self.__resolve(entry, path) for path, entry in entries.items()]
 
 
@@ -187,9 +282,9 @@ class Nodes(Query[Node]):
 		Returns:
 			list[Node]: ノードリスト
 		"""
-		regular = re.compile(rf'{escaped_path(via)}\.(.+\.)?{leaf_tag}(\[\d+\])?')
+		regular = re.compile(rf'{self.__finder.escaped_path(via)}\.(.+\.)?{leaf_tag}(\[\d+\])?')
 		tester = lambda _, path: regular.fullmatch(path) is not None
-		entries = find_entries(self.__root, via, tester)
+		entries = self.__finder.find(self.__root, via, tester)
 		return [self.__resolve(entry, path) for path, entry in entries.items()]
 
 
@@ -212,12 +307,12 @@ class Nodes(Query[Node]):
 				return False
 
 			# XXX 変換対象が存在する場合はそちらに対応を任せる(終端記号か否かは問わない)
-			entry_tag = denormalize_tag(path.split('.').pop())
+			entry_tag = self.__finder.denormalize_tag(path.split('.').pop())
 			if self.__resolver.can_resolve(entry_tag):
 				memo.append(path)
 				return True
 
-			if type(entry) is Tree:
+			if self.__finder.has_child(entry):
 				return False
 
 			# 自身を含む配下のエントリーに変換対象のノードがなく、Terminalにフォールバックされる終端記号が対象
@@ -225,11 +320,11 @@ class Nodes(Query[Node]):
 			in_allows = [
 				index
 				for index, in_org_tag in enumerate(remain.split('.'))
-				if self.__resolver.can_resolve(denormalize_tag(in_org_tag))
+				if self.__resolver.can_resolve(self.__finder.denormalize_tag(in_org_tag))
 			]
 			return len(in_allows) == 0
 
-		entries = find_entries(self.__root, via, tester)
+		entries = self.__finder.find(self.__root, via, tester)
 		return [self.__resolve(entry, path) for path, entry in entries.items()]
 
 
@@ -248,6 +343,6 @@ class Nodes(Query[Node]):
 				* 同じパスのノードが存在するとキャッシュが壊れる
 				* ASTに存在しないため、既存のパス検索で検索出来ない
 		"""
-		entry = pluck_entry(self.__root, via)
+		entry = self.__finder.pluck(self.__root, via)
 		full_path = f'{via}.{entry_tag}'
 		return self.__resolve(entry, full_path)  # FIXME 同じパスのノードがいた場合に壊れる可能性大

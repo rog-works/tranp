@@ -1,18 +1,15 @@
-from itertools import chain
 from typing import Callable, cast, Iterator, TypeVar
 
 from lark import Token
 
+from py2cpp.ast.travarsal import ASTFinder
+from py2cpp.lang.sequence import flatten
 from py2cpp.node.embed import EmbedKeys
 from py2cpp.node.provider import Query
 from py2cpp.node.trait import NamedScopeTrait, ScopeTrait
-from py2cpp.tp_lark.travarsal import denormalize_tag
 from py2cpp.tp_lark.types import Entry
 
 T = TypeVar('T')
-
-
-flatten = chain.from_iterable
 
 
 class Node:
@@ -47,7 +44,7 @@ class Node:
 	@property
 	def tag(self) -> str:
 		"""str: エントリータグ名。具象クラスとのマッピングに用いる"""
-		return denormalize_tag(self.full_path.split('.').pop())
+		return ASTFinder.denormalize_tag(self.full_path.split('.').pop())
 
 
 	@property

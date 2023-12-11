@@ -87,6 +87,26 @@ class TestNodeResolver(TestCase):
 
 class TestNodes(TestCase):
 	@data_provider([
+		('root', True),
+		('root.tree_a', True),
+		('root.tree_a.__empty__', True),
+		('root.tree_a.token_a[1]', True),
+		('root.tree_a.tree_b[2]', True),
+		('root.tree_a.tree_b[3]', True),
+		('root.tree_a.tree_b[3].token_b', True),
+		('root.tree_a.token_a[4]', True),
+		('root.tree_a.token_c', True),
+		('root.term_a', True),
+		('root.tree_c', True),
+		('root.outside', False),
+		('path.to.unknown', False),
+	])
+	def test_exists(self, path: str, expected: bool) -> None:
+		nodes = Fixture.nodes()
+		self.assertEqual(nodes.exists(path), expected)
+
+
+	@data_provider([
 		('root', Root),
 		('root.tree_a', TreeA),
 		('root.tree_a.__empty__', Empty),

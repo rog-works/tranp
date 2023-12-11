@@ -27,7 +27,7 @@ class FileInput(Node):
 	@property
 	@override
 	def scopr_name(self) -> str:
-		return '__main__'  # XXX ファイル名の方が良いのでは
+		return '__main__'
 
 
 	@property

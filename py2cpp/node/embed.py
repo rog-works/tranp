@@ -158,6 +158,8 @@ def digging_meta_class(holder: type, ctor: type, embed_key: str) -> Any:
 		embed_key (str): 抽出対象の埋め込みキー
 	Returns:
 		Any: メタデータ
+	Raises:
+		ValueError: メタデータが存在しない
 	"""
 	if not hasattr(holder, MetaData.key):
 		raise ValueError()
@@ -175,6 +177,8 @@ def digging_meta_method(holder: type, ctor: type, embed_key: str) -> dict[str, A
 		embed_key (str): 抽出対象の埋め込みキー
 	Returns:
 		dict[str, Any]: メソッド毎のメタデータ
+	Raises:
+		ValueError: メタデータが存在しない
 	"""
 	if not hasattr(holder, MetaData.key):
 		raise ValueError()

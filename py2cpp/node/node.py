@@ -165,26 +165,30 @@ class Node:
 		return self.__nodes.at(self._to_full_path(relative_path))
 
 
-	def _siblings(self, relative_path: str) -> list['Node']:
+	def _siblings(self, relative_path: str = '') -> list['Node']:
 		"""指定のパスを基準に同階層のノードをフェッチ
+		パスを省略した場合は自身と同階層を検索し、自身を除いたノードを返却
 
 		Args:
-			relative_path (str): 自身のエントリーからの相対パス
+			relative_path (str): 自身のエントリーからの相対パス(default = '')
 		Returns:
 			list[Node]: ノードリスト
 		"""
-		return self.__nodes.siblings(self._to_full_path(relative_path))
+		via = self._to_full_path(relative_path) if relative_path else self.full_path
+		return [node for node in self.__nodes.siblings(via) if node.full_path != self.full_path]
 
 
-	def _children(self, relative_path: str) -> list['Node']:
+	def _children(self, relative_path: str = '') -> list['Node']:
 		"""指定のパスを基準に1階層下のノードをフェッチ
+		パスを省略した場合は自身と同階層より1階層下を検索
 
 		Args:
-			relative_path (str): 自身のエントリーからの相対パス
+			relative_path (str): 自身のエントリーからの相対パス(default = '')
 		Returns:
 			list[Node]: ノードリスト
 		"""
-		return self.__nodes.children(self._to_full_path(relative_path))
+		via = self._to_full_path(relative_path) if relative_path else self.full_path
+		return self.__nodes.children(via)
 
 
 	def _leafs(self, leaf_tag: str) -> list['Node']:

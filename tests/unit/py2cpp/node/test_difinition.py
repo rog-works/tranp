@@ -95,7 +95,7 @@ class Class(Node, NamedScopeTrait):
 
 
 	@property
-	def class_name(self) -> Terminal:  # XXX strの方が良い？
+	def class_name(self) -> Terminal:
 		return self._at('class_def_raw.name').as_a(Terminal)
 
 
@@ -125,12 +125,12 @@ class Enum(Node, NamedScopeTrait):
 	@property
 	@override
 	def scope_name(self) -> str:
-		return self.enum_name
+		return self.enum_name.value
 
 
 	@property
-	def enum_name(self) -> str:
-		return self._at('name').as_a(Terminal).value
+	def enum_name(self) -> Terminal:
+		return self._at('name').as_a(Terminal)
 
 
 	@property
@@ -214,7 +214,7 @@ class TestDefinitionEnum(TestCase):
 	def test_schema(self) -> None:
 		nodes = Fixture.nodes()
 		node = nodes.at('file_input.class_def.class_def_raw.block.enum_def').as_a(Enum)
-		self.assertEqual(node.enum_name, 'Values')
+		self.assertEqual(node.enum_name.value, 'Values')
 		self.assertEqual(node.variables[0].symbol.symbol_name, 'A')
 		self.assertEqual(node.variables[0].value.value, '0')
 		self.assertEqual(node.variables[1].symbol.symbol_name, 'B')

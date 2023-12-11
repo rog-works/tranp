@@ -1,3 +1,4 @@
+from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass, field
 from typing import cast, Generic, TypeVar
 
@@ -119,13 +120,14 @@ class Resolver(Generic[T]):
 		self.__fallback = None
 
 
-class Query(Generic[T]):
+class Query(Generic[T], metaclass=ABCMeta):
 	"""パスベースのクエリーインターフェイス
 
 	Attributes:
 		T: クエリーによって取得するデータの基底クラス
 	"""
 
+	@abstractmethod
 	def exists(self, full_path: str) -> bool:
 		"""指定のパスに紐づく一意なノードが存在するか判定
 
@@ -134,9 +136,10 @@ class Query(Generic[T]):
 		Returns:
 			bool: True = 存在
 		"""
-		...
+		raise NotImplementedError()
 
 
+	@abstractmethod
 	def at(self, full_path: str) -> T:
 		"""指定のパスに紐づく一意なエントリーをフェッチ
 
@@ -147,9 +150,10 @@ class Query(Generic[T]):
 		Raises:
 			ValueError: エントリーが存在しない
 		"""
-		...
+		raise NotImplementedError()
 
 
+	@abstractmethod
 	def parent(self, via: str) -> T:
 		"""指定のパスを子として親のエントリーをフェッチ
 
@@ -160,9 +164,10 @@ class Query(Generic[T]):
 		Raises:
 			ValueError: 親が存在しない
 		"""
-		...
+		raise NotImplementedError()
 
 
+	@abstractmethod
 	def siblings(self, via: str) -> list[T]:
 		"""指定のパスを基準に同階層のエントリーをフェッチ
 
@@ -171,9 +176,10 @@ class Query(Generic[T]):
 		Returns:
 			list[T]: エントリーリスト
 		"""
-		...
+		raise NotImplementedError()
 
 
+	@abstractmethod
 	def children(self, via: str) -> list[T]:
 		"""指定のパスを基準に1階層下のエントリーをフェッチ
 
@@ -182,9 +188,10 @@ class Query(Generic[T]):
 		Returns:
 			list[T]: エントリーリスト
 		"""
-		...
+		raise NotImplementedError()
 
 
+	@abstractmethod
 	def leafs(self, via: str, leaf_name: str) -> list[T]:
 		"""指定のパスから下に存在する接尾辞が一致するエントリーをフェッチ
 
@@ -194,9 +201,10 @@ class Query(Generic[T]):
 		Returns:
 			list[T]: エントリーリスト
 		"""
-		...
+		raise NotImplementedError()
 
 
+	@abstractmethod
 	def expansion(self, via: str) -> list[T]:
 		"""指定のパスから下に存在する展開が可能なエントリーをフェッチ
 
@@ -205,16 +213,17 @@ class Query(Generic[T]):
 		Returns:
 			list[T]: エントリーリスト
 		"""
-		...
+		raise NotImplementedError()
 
 
-	def embed(self, via: str, name: str) -> T:
-		"""指定のパスの下に仮想のエントリーを生成
+	# @abstractmethod
+	# def embed(self, via: str, name: str) -> T:
+	# 	"""指定のパスの下に仮想のエントリーを生成
 
-		Args:
-			via (str): 基準のパス(フルパス)
-			name (str): 仮想エントリーの名前
-		Returns:
-			T: 生成した仮想エントリー
-		"""
-		...
+	# 	Args:
+	# 		via (str): 基準のパス(フルパス)
+	# 		name (str): 仮想エントリーの名前
+	# 	Returns:
+	# 		T: 生成した仮想エントリー
+	# 	"""
+	# 	raise NotImplementedError()

@@ -1,12 +1,14 @@
+from abc import ABCMeta, abstractmethod
 import re
 from typing import Callable, Generic, TypeVar
 
 T = TypeVar('T')
 
 
-class EntryProxy(Generic[T]):
+class EntryProxy(Generic[T], metaclass=ABCMeta):
 	"""エントリーへの要素アクセスを代替するプロクシー"""
 
+	@abstractmethod
 	def name(self, entry: T) -> str:
 		"""名前を取得
 
@@ -18,9 +20,10 @@ class EntryProxy(Generic[T]):
 			エントリーが空の場合を考慮すること
 			@see is_empty
 		"""
-		...
+		raise NotImplementedError()
 
 
+	@abstractmethod
 	def has_child(self, entry: T) -> bool:
 		"""子を持つエントリーか判定
 
@@ -29,9 +32,10 @@ class EntryProxy(Generic[T]):
 		Returns:
 			bool: True = 子を持つエントリー
 		"""
-		...
+		raise NotImplementedError()
 
 
+	@abstractmethod
 	def children(self, entry: T) -> list[T]:
 		"""配下のエントリーを取得
 
@@ -42,9 +46,10 @@ class EntryProxy(Generic[T]):
 		Raise:
 			ValueError: 子を持たないエントリーで使用
 		"""
-		...
+		raise NotImplementedError()
 
 
+	@abstractmethod
 	def is_terminal(self, entry: T) -> bool:
 		"""終端記号か判定
 
@@ -53,9 +58,10 @@ class EntryProxy(Generic[T]):
 		Returns:
 			bool: True = 終端記号
 		"""
-		...
+		raise NotImplementedError()
 
 
+	@abstractmethod
 	def value(self, entry: T) -> str:
 		"""終端記号の値を取得
 
@@ -66,9 +72,10 @@ class EntryProxy(Generic[T]):
 		Raise:
 			ValueError: 終端記号ではないエントリーで使用
 		"""
-		...
+		raise NotImplementedError()
 
 
+	@abstractmethod
 	def is_empty(self, entry: T) -> bool:
 		"""エントリーが空か判定
 
@@ -79,7 +86,7 @@ class EntryProxy(Generic[T]):
 			例えば以下の様な関数の定義の場合[parameters]が対象となり、引数がない関数の場合、エントリーとしては存在するが内容は空になる
 			例) function_def: "def" name "(" [parameters] ")" "->" ":" block
 		"""
-		...
+		raise NotImplementedError()
 
 
 	@property

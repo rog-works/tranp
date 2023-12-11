@@ -328,21 +328,21 @@ class Nodes(Query[Node]):
 		return [self.__resolve(entry, path) for path, entry in entries.items()]
 
 
-	@implements
-	def embed(self, via: str, entry_tag: str) -> Node:
-		"""指定のパスの下に仮想のノードを生成
+	# @implements
+	# def embed(self, via: str, entry_tag: str) -> Node:
+	# 	"""指定のパスの下に仮想のノードを生成
 
-		Args:
-			via (str): 基準のパス(フルパス)
-			entry_tag (str): 仮想エントリーのタグ名前
-		Returns:
-			Node: 生成した仮想ノード
-		Note:
-			@deprecated
-			理由:
-				* 同じパスのノードが存在するとキャッシュが壊れる
-				* ASTに存在しないため、既存のパス検索で検索出来ない
-		"""
-		entry = self.__finder.pluck(self.__root, via)
-		full_path = f'{via}.{entry_tag}'
-		return self.__resolve(entry, full_path)  # FIXME 同じパスのノードがいた場合に壊れる可能性大
+	# 	Args:
+	# 		via (str): 基準のパス(フルパス)
+	# 		entry_tag (str): 仮想エントリーのタグ名前
+	# 	Returns:
+	# 		Node: 生成した仮想ノード
+	# 	Note:
+	# 		@deprecated
+	# 		理由:
+	# 			* 同じパスのノードが存在するとキャッシュが壊れる
+	# 			* ASTに存在しないため、既存のパス検索で検索出来ない
+	# 	"""
+	# 	entry = self.__finder.pluck(self.__root, via)
+	# 	full_path = f'{via}.{entry_tag}'
+	# 	return self.__resolve(entry, full_path)  # FIXME 同じパスのノードがいた場合に壊れる可能性大

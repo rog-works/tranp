@@ -81,7 +81,7 @@ class TestNodeResolver(TestCase):
 	def test_resolve(self) -> None:
 		class QueryA(Query[Node]):
 			def exists(self, full_path: str) -> bool: ...
-			def at(self, full_path: str) -> Node: ...
+			def by(self, full_path: str) -> Node: ...
 			def parent(self, via: str) -> Node: ...
 			def siblings(self, via: str) -> list[Node]: ...
 			def children(self, via: str) -> list[Node]: ...
@@ -129,9 +129,9 @@ class TestNodes(TestCase):
 		('root.term_a', Terminal),
 		('root.tree_c', TreeC),
 	])
-	def test_at(self, path: str, expected: type[Node]) -> None:
+	def test_by(self, path: str, expected: type[Node]) -> None:
 		nodes = Fixture.nodes()
-		node = nodes.at(path)
+		node = nodes.by(path)
 		self.assertEqual(type(node), expected)
 
 

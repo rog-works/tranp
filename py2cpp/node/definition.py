@@ -37,7 +37,7 @@ class Import(Node):
 class Decorator(Node):
 	@property
 	def symbol(self) -> Terminal:
-		return cast(Terminal, self._at('name'))
+		return cast(Terminal, self._by('name'))
 
 
 	@property
@@ -60,7 +60,7 @@ class Class(Node, NamedScopeTrait):
 
 	@property
 	def class_name(self) -> Terminal:
-		return cast(Terminal, self._at('class_def_row.name'))
+		return cast(Terminal, self._by('class_def_row.name'))
 
 
 	@property

@@ -51,18 +51,18 @@ class Symbol(Node):
 class Assign(Node):
 	@property
 	def symbol(self) -> Symbol:
-		return self._at('primary[0]').as_a(Symbol)
+		return self._at(0).as_a(Symbol)
 
 
 	@property
 	def value(self) -> Terminal:
-		return self._at('primary[1]').as_a(Terminal)
+		return self._at(1).as_a(Terminal)
 
 
 class Decorator(Node):
 	@property
 	def symbol(self) -> Symbol:
-		return self._at('dotted_name').as_a(Symbol)
+		return self._by('dotted_name').as_a(Symbol)
 
 
 	@property
@@ -74,7 +74,7 @@ class Decorator(Node):
 class Function(Node):
 	@property
 	def function_name(self) -> Terminal:
-		return self._at('function_def_raw.name').as_a(Terminal)
+		return self._by('function_def_raw.name').as_a(Terminal)
 
 
 	@property
@@ -102,7 +102,7 @@ class Class(Node):
 
 	@property
 	def class_name(self) -> Terminal:
-		return self._at('class_def_raw.name').as_a(Terminal)
+		return self._by('class_def_raw.name').as_a(Terminal)
 
 
 	@property
@@ -136,7 +136,7 @@ class Enum(Node):
 
 	@property
 	def enum_name(self) -> Terminal:
-		return self._at('name').as_a(Terminal)
+		return self._by('name').as_a(Terminal)
 
 
 	@property
@@ -223,7 +223,7 @@ class Fixture:
 class TestDefinitionEnum(TestCase):
 	def test_schema(self) -> None:
 		nodes = Fixture.nodes()
-		node = nodes.at('file_input.class_def.class_def_raw.block.enum_def').as_a(Enum)
+		node = nodes.by('file_input.class_def.class_def_raw.block.enum_def').as_a(Enum)
 		self.assertEqual(node.enum_name.value, 'Values')
 		self.assertEqual(node.variables[0].symbol.symbol_name, 'A')
 		self.assertEqual(node.variables[0].value.value, '0')
@@ -234,7 +234,7 @@ class TestDefinitionEnum(TestCase):
 class TestDefinitionClass(TestCase):
 	def test_schema(self) -> None:
 		nodes = Fixture.nodes()
-		node = nodes.at('file_input.class_def').as_a(Class)
+		node = nodes.by('file_input.class_def').as_a(Class)
 		self.assertEqual(node.class_name.value, 'Hoge')
 		self.assertEqual(node.decorators[0].symbol.symbol_name, 'deco')
 		self.assertEqual(node.decorators[0].arguments[0].symbol_name, 'A')
@@ -245,6 +245,6 @@ class TestDefinitionClass(TestCase):
 class TestDefinitionFunction(TestCase):
 	def test_schema(self) -> None:
 		nodes = Fixture.nodes()
-		node = nodes.at('file_input.function_def').as_a(Function)
+		node = nodes.by('file_input.function_def').as_a(Function)
 		self.assertEqual(node.function_name.value, 'func3')
 		self.assertEqual(node.decorators, [])

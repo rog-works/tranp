@@ -205,7 +205,7 @@ class Nodes(Query[Node]):
 
 
 	@implements
-	def at(self, full_path: str) -> Node:
+	def by(self, full_path: str) -> Node:
 		"""指定のパスに紐づく一意なノードをフェッチ
 
 		Args:
@@ -236,7 +236,7 @@ class Nodes(Query[Node]):
 			tag = self.__finder.denormalize_tag(org_tag)
 			if self.__resolver.can_resolve(tag):
 				path = '.'.join([*forwards, org_tag])
-				return self.at(path)
+				return self.by(path)
 
 		raise ValueError()
 

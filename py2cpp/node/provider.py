@@ -140,7 +140,7 @@ class Query(Generic[T], metaclass=ABCMeta):
 
 
 	@abstractmethod
-	def at(self, full_path: str) -> T:
+	def by(self, full_path: str) -> T:
 		"""指定のパスに紐づく一意なエントリーをフェッチ
 
 		Args:

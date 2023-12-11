@@ -152,7 +152,7 @@ class Node:
 		return self.__nodes.exists(self._to_full_path(relative_path))
 
 
-	def _at(self, relative_path: str) -> 'Node':
+	def _by(self, relative_path: str) -> 'Node':
 		"""指定のパスに紐づく一意なノードをフェッチ
 
 		Args:
@@ -162,7 +162,24 @@ class Node:
 		Raises:
 			ValueError: ノードが存在しない
 		"""
-		return self.__nodes.at(self._to_full_path(relative_path))
+		return self.__nodes.by(self._to_full_path(relative_path))
+
+
+	def _at(self, index: int) -> 'Node':
+		"""指定のインデックスの子ノードをフェッチ
+
+		Args:
+			index (int): 子のインデックス
+		Returns:
+			Node: ノード
+		Raises:
+			ValueError: ノードが存在しない
+		"""
+		children = self._children()
+		if index < 0 or len(children) <= index:
+			raise ValueError()
+
+		return children[index]
 
 
 	def _siblings(self, relative_path: str = '') -> list['Node']:

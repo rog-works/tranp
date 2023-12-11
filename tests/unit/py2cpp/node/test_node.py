@@ -133,7 +133,7 @@ class Fixture:
 class TestNode(TestCase):
 	def test_full_path(self) -> None:
 		nodes = Fixture.nodes()
-		root = nodes.at('file_input')
+		root = nodes.by('file_input')
 		class_a = nodes.children(root.full_path)[0]
 		empty = nodes.children(class_a.full_path)[0]
 		block_a = nodes.children(class_a.full_path)[1]
@@ -158,7 +158,7 @@ class TestNode(TestCase):
 	])
 	def test_tag(self, full_path: str, expected: str) -> None:
 		nodes = Fixture.nodes()
-		node = nodes.at(full_path)
+		node = nodes.by(full_path)
 		self.assertEqual(node.tag, expected)
 
 
@@ -177,7 +177,7 @@ class TestNode(TestCase):
 	])
 	def test_namespace(self, full_path: str, expected: str) -> None:
 		nodes = Fixture.nodes()
-		node = nodes.at(full_path)
+		node = nodes.by(full_path)
 		self.assertEqual(node.namespace, expected)
 
 
@@ -196,7 +196,7 @@ class TestNode(TestCase):
 	])
 	def test_scope(self, full_path: str, expected: str) -> None:
 		nodes = Fixture.nodes()
-		node = nodes.at(full_path)
+		node = nodes.by(full_path)
 		self.assertEqual(node.scope, expected)
 
 
@@ -215,7 +215,7 @@ class TestNode(TestCase):
 	])
 	def test_nest(self, full_path: str, expected: int) -> None:
 		nodes = Fixture.nodes()
-		node = nodes.at(full_path)
+		node = nodes.by(full_path)
 		self.assertEqual(node.nest, expected)
 
 
@@ -229,7 +229,7 @@ class TestNode(TestCase):
 	])
 	def test_parent(self, full_path: str, expected: str) -> None:
 		nodes = Fixture.nodes()
-		node = nodes.at(full_path)
+		node = nodes.by(full_path)
 		self.assertEqual(node.parent.full_path, expected)
 
 
@@ -252,7 +252,7 @@ class TestNode(TestCase):
 	])
 	def test_prop(self, full_path: str, expected: list[str]) -> None:
 		nodes = Fixture.nodes()
-		self.assertEqual([node.full_path for node in nodes.at(full_path)], expected)
+		self.assertEqual([node.full_path for node in nodes.by(full_path)], expected)
 
 
 	@data_provider([
@@ -284,12 +284,12 @@ class TestNode(TestCase):
 	])
 	def test_flatten(self, full_path: str, expected: list[str]) -> None:
 		nodes = Fixture.nodes()
-		self.assertEqual([node.full_path for node in nodes.at(full_path).flatten()], expected)
+		self.assertEqual([node.full_path for node in nodes.by(full_path).flatten()], expected)
 
 
-	def test_as_(self) -> None:
+	def test_as_a(self) -> None:
 		nodes = Fixture.nodes()
-		node = nodes.at('fule_input.class')
+		node = nodes.by('fule_input.class')
 		self.assertEqual(type(node), Class)
 		self.assertEqual(type(node.as_a(Terminal)), Terminal)
 
@@ -298,6 +298,7 @@ class TestNode(TestCase):
 		class NodeB(Node):
 			def actual(self) -> Node:
 				return self.as_a(Terminal)
+
 
 		nodes = Fixture.nodes()
 		node = NodeB(nodes, Tree('node_b', []), 'node_b')

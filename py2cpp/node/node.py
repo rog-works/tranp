@@ -6,7 +6,7 @@ from py2cpp.ast.travarsal import ASTFinder
 from py2cpp.lang.sequence import flatten
 from py2cpp.node.embed import EmbedKeys
 from py2cpp.node.provider import Query
-from py2cpp.node.trait import NamedScopeTrait, ScopeTrait
+from py2cpp.node.trait import ScopeTrait
 from py2cpp.tp_lark.types import Entry
 
 T = TypeVar('T')
@@ -60,9 +60,15 @@ class Node:
 
 
 	@property
+	def scope_name(self) -> str:
+		"""str: スコープ名を返却。@note: 名前空間を持たないノード以外は空文字"""
+		return ''
+
+
+	@property
 	def namespace(self) -> str:  # FIXME 名前よりノードの方が良い。その場合名前をどう取得するかが課題
 		"""str: 自身が所属する名前空間。@note: 所有する名前空間ではない点に注意"""
-		if isinstance(self.parent, NamedScopeTrait):
+		if isinstance(self, ScopeTrait) and self.parent.scope_name:
 			return f'{self.parent.namespace}.{self.parent.scope_name}'
 		else:
 			return self.parent.namespace
@@ -71,9 +77,7 @@ class Node:
 	@property
 	def scope(self) -> str:  # FIXME 名前よりノードの方が良い。その場合名前をどう取得するかが課題
 		"""str: 自身が所属するスコープ。@note: 所有するスコープではない点に注意"""
-		if isinstance(self.parent, NamedScopeTrait):
-			return f'{self.parent.scope}.{self.parent.scope_name}'
-		elif isinstance(self.parent, ScopeTrait):
+		if isinstance(self, ScopeTrait):
 			return f'{self.parent.scope}.{self.parent.tag}'
 		else:
 			return self.parent.scope
@@ -237,6 +241,13 @@ class Node:
 
 
 	def is_a(self, ctor: type['Node']) -> bool:
+		"""指定のクラスか判定
+
+		Args:
+			ctor (type[Node]): クラス
+		Returns:
+			bool: True = 同じ
+		"""
 		return type(self) is ctor
 
 

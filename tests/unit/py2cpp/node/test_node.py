@@ -8,7 +8,7 @@ from py2cpp.node.embed import embed_meta, node_properties
 from py2cpp.node.node import Node
 from py2cpp.node.nodes import NodeResolver, Nodes
 from py2cpp.node.provider import Settings
-from py2cpp.node.trait import NamedScopeTrait, ScopeTrait
+from py2cpp.node.trait import ScopeTrait
 from tests.test.helper import data_provider
 
 T_Settings = TypedDict('T_Settings', {'nodes': dict[str, type[Node]], 'fallback': type[Node]})
@@ -16,10 +16,17 @@ T_Settings = TypedDict('T_Settings', {'nodes': dict[str, type[Node]], 'fallback'
 
 class Empty(Node): pass
 class Terminal(Node): pass
-class If(Node, ScopeTrait): pass
+class Block(Node, ScopeTrait): pass
+class If(Node): pass
 
 
 class FileInput(Node):
+	@property
+	@override
+	def scope_name(self) -> str:
+		return '__main__'
+
+
 	@property
 	@override
 	def namespace(self) -> str:
@@ -33,7 +40,7 @@ class FileInput(Node):
 
 
 @embed_meta(node_properties('statements'))
-class Class(Node, NamedScopeTrait):
+class Class(Node):
 	@property
 	@override
 	def scope_name(self) -> str:
@@ -46,7 +53,7 @@ class Class(Node, NamedScopeTrait):
 
 
 @embed_meta(node_properties('variables'))
-class Enum(Node, NamedScopeTrait):
+class Enum(Node):
 	@property
 	@override
 	def scope_name(self) -> str:
@@ -59,7 +66,7 @@ class Enum(Node, NamedScopeTrait):
 
 
 @embed_meta(node_properties('statements'))
-class Function(Node, ScopeTrait):
+class Function(Node):
 	@property
 	def statements(self) -> list[Node]:
 		return self._children('block')
@@ -111,6 +118,7 @@ class Fixture:
 				Enum: 'enum',
 				Function: 'function',
 				If: 'if',
+				Block: 'block',
 				Empty: '__empty__',
 			},
 			fallback=Terminal
@@ -157,7 +165,7 @@ class TestNode(TestCase):
 	@data_provider([
 		('file_input', '__main__'),
 		('file_input.class', '__main__'),
-		('file_input.class.__empty__', '__main__.Class'),
+		('file_input.class.__empty__', '__main__'),
 		('file_input.class.block', '__main__.Class'),
 		('file_input.class.block.enum', '__main__.Class'),
 		('file_input.class.block.enum.block', '__main__.Class.Enum'),
@@ -176,14 +184,14 @@ class TestNode(TestCase):
 	@data_provider([
 		('file_input', '__main__'),
 		('file_input.class', '__main__'),
-		('file_input.class.__empty__', '__main__.Class'),
-		('file_input.class.block', '__main__.Class'),
-		('file_input.class.block.enum', '__main__.Class'),
-		('file_input.class.block.enum.block', '__main__.Class.Enum'),
-		('file_input.class.block.function[1]', '__main__.Class'),
-		('file_input.class.block.function[1].block', '__main__.Class.function'),
-		('file_input.class.block.function[1].block.if', '__main__.Class.function'),
-		('file_input.class.block.function[1].block.if.block', '__main__.Class.function.if'),
+		('file_input.class.__empty__', '__main__'),
+		('file_input.class.block', '__main__.class'),
+		('file_input.class.block.enum', '__main__.class'),
+		('file_input.class.block.enum.block', '__main__.class.enum'),
+		('file_input.class.block.function[1]', '__main__.class'),
+		('file_input.class.block.function[1].block', '__main__.class.function'),
+		('file_input.class.block.function[1].block.if', '__main__.class.function'),
+		('file_input.class.block.function[1].block.if.block', '__main__.class.function.if'),
 		('file_input.function.block.term_a', '__main__.function'),
 	])
 	def test_scope(self, full_path: str, expected: str) -> None:
@@ -195,7 +203,7 @@ class TestNode(TestCase):
 	@data_provider([
 		('file_input', 0),
 		('file_input.class', 0),
-		('file_input.class.__empty__', 1),
+		('file_input.class.__empty__', 0),
 		('file_input.class.block', 1),
 		('file_input.class.block.enum', 1),
 		('file_input.class.block.enum.block', 2),
@@ -214,10 +222,10 @@ class TestNode(TestCase):
 	@data_provider([
 		('file_input.class', 'file_input'),
 		('file_input.class.__empty__', 'file_input.class'),
-		('file_input.class.block.enum', 'file_input.class'),
+		('file_input.class.block.enum', 'file_input.class.block'),
 		('file_input.class.block.function[1].block', 'file_input.class.block.function[1]'),
-		('file_input.class.block.function[2]', 'file_input.class'),
-		('file_input.function.block.term_a', 'file_input.function'),
+		('file_input.class.block.function[2]', 'file_input.class.block'),
+		('file_input.function.block.term_a', 'file_input.function.block'),
 	])
 	def test_parent(self, full_path: str, expected: str) -> None:
 		nodes = Fixture.nodes()
@@ -250,20 +258,27 @@ class TestNode(TestCase):
 	@data_provider([
 		('file_input.class', [
 			'file_input.class.__empty__',
+			'file_input.class.block',
 			'file_input.class.block.enum',
+			'file_input.class.block.enum.block',
 			'file_input.class.block.enum.block.term_a[0]',
 			'file_input.class.block.enum.block.term_a[1]',
 			'file_input.class.block.function[1]',
+			'file_input.class.block.function[1].block',
 			'file_input.class.block.function[1].block.if',
+			'file_input.class.block.function[1].block.if.block',
 			'file_input.class.block.function[1].block.if.block.term_a',
 			'file_input.class.block.function[2]',
+			'file_input.class.block.function[2].block',
 			'file_input.class.block.function[2].block.term_a',
 		]),
 		('file_input.class.block.enum', [
+			'file_input.class.block.enum.block',
 			'file_input.class.block.enum.block.term_a[0]',
 			'file_input.class.block.enum.block.term_a[1]',
 		]),
 		('file_input.function', [
+			'file_input.function.block',
 			'file_input.function.block.term_a',
 		]),
 	])

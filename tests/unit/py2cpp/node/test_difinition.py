@@ -7,7 +7,7 @@ from py2cpp.node.embed import embed_meta, node_properties
 from py2cpp.node.node import Node
 from py2cpp.node.nodes import NodeResolver, Nodes
 from py2cpp.node.provider import Settings
-from py2cpp.node.trait import NamedScopeTrait, ScopeTrait
+from py2cpp.node.trait import ScopeTrait
 from tests.test.helper import data_provider
 
 
@@ -19,14 +19,21 @@ class Terminal(Node):
 		return ''.join([node.token for node in [self, *self.flatten()] if type(node) is Terminal])
 
 
-class If(Node, ScopeTrait): pass
+class Block(Node, ScopeTrait): pass
+class If(Node): pass
 
 
 class FileInput(Node):
 	@property
 	@override
-	def namespace(self) -> str:
+	def scopr_name(self) -> str:
 		return '__main__'  # XXX ファイル名の方が良いのでは
+
+
+	@property
+	@override
+	def namespace(self) -> str:
+		return '__main__'
 
 
 	@property
@@ -65,7 +72,7 @@ class Decorator(Node):
 
 
 @embed_meta(node_properties('decorators'))
-class Function(Node, ScopeTrait):
+class Function(Node):
 	@property
 	def function_name(self) -> Terminal:
 		return self._at('function_def_raw.name').as_a(Terminal)
@@ -87,7 +94,7 @@ class Function(Node, ScopeTrait):
 
 
 @embed_meta(node_properties('decorators'))
-class Class(Node, NamedScopeTrait):
+class Class(Node):
 	@property
 	@override
 	def scope_name(self) -> str:
@@ -121,7 +128,7 @@ class Class(Node, NamedScopeTrait):
 
 
 @embed_meta(node_properties('variables'))
-class Enum(Node, NamedScopeTrait):
+class Enum(Node):
 	@property
 	@override
 	def scope_name(self) -> str:
@@ -199,6 +206,7 @@ class Fixture:
 				Function: 'function_def',
 				If: 'if_stmt',
 				Assign: 'assign',
+				Block: 'block',
 				Empty: '__empty__',
 			},
 			fallback=Terminal,
@@ -229,7 +237,7 @@ class TestDefinitionClass(TestCase):
 		self.assertEqual(node.decorators[0].symbol.symbol_name, 'deco')
 		self.assertEqual(node.decorators[0].arguments[0].symbol_name, 'A')
 		self.assertEqual(node.decorators[0].arguments[1].symbol_name, 'A.B')
-		# self.assertEqual(node.decorators[0].namespace, '__main__')  # FIXME __main__.Hogeは誤り
+		self.assertEqual(node.decorators[0].namespace, '__main__')
 
 
 class TestDefinitionFunction(TestCase):

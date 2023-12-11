@@ -108,7 +108,7 @@ except_clause: "except" primary ["as" name] ":" block
 // @lark annassign: testlist_star_expr ":" test ["=" test]
 // @lark augassign: testlist_star_expr augassign_op (yield_expr | testlist)
 assign_stmt: assign | anno_assign | aug_assign
-assign: primary ("=" primary)+
+assign: expression ("=" expression)+
 anno_assign: primary ":" primary ["=" expression]
 aug_assign: primary aug_assign_op primary
 
@@ -128,7 +128,7 @@ pass_stmt: "pass"
 
 // @note Lark: test, Offical: expression
 // @lark ?test: or_test ("if" or_test "else" test)? | lambdef | assign_expr
-expression: or_test | or_test "if" or_test "else" expression -> tenary_test
+?expression: or_test | or_test "if" or_test "else" expression -> tenary_test
 
 // ## Comparison operators
 
@@ -168,8 +168,7 @@ expression: or_test | or_test "if" or_test "else" expression -> tenary_test
 // # Primary elements
 
 // @note Lark: atom_expr, Offical: primary
-// @note: Lark: atom: primary "." name -> getattr
-primary: primary "." name
+primary: primary "." name -> getattr
 	| primary "(" [arguments] ")" -> funccall
 	| primary "[" slices "]" -> getitem
 	| atom
@@ -178,7 +177,7 @@ slices: slice | slice (("," slice)+ [","] | ",")
 slice: expression
 
 // @note: Lark: atom: name -> var
-atom: name
+atom: name -> var
 	| "True" -> const_true
 	| "False" -> const_false
 	| "None" -> const_none

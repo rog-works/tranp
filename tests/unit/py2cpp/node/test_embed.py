@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from py2cpp.node.embed import EmbedKeys, embed_meta, expansionable
+from py2cpp.node.embed import EmbedKeys, embed_meta, expansionable, digging_meta_class, digging_meta_method
 
 
 class TestEmbed(TestCase):
@@ -16,10 +16,10 @@ class TestEmbed(TestCase):
 
 
 		a = A()
-		self.assertEqual(hasattr(MetaHolder, f'__test_class_meta__:{A.__module__}.A'), True)
-		self.assertEqual(getattr(MetaHolder, f'__test_class_meta__:{A.__module__}.A'), 1)
-		self.assertEqual(hasattr(MetaHolder, f'__test_func_meta__:{A.__module__}.A:prop'), True)
-		self.assertEqual(getattr(MetaHolder, f'__test_func_meta__:{A.__module__}.A:prop'), 2)
+		class_meta = digging_meta_class(MetaHolder, A, '__test_class_meta__')
+		method_meta = digging_meta_method(MetaHolder, A, '__test_func_meta__')
+		self.assertEqual(class_meta, 1)
+		self.assertEqual(method_meta['prop'], 2)
 		self.assertEqual(a.prop.__annotations__['v'], int)
 		self.assertEqual(a.prop.__annotations__['return'], str)
 
@@ -41,8 +41,6 @@ class TestEmbed(TestCase):
 				return 1
 
 
-		a = A()
-		self.assertEqual(hasattr(MetaHolder, f'{EmbedKeys.Expansionable}:{A.__module__}.A:prop0'), True)
-		self.assertEqual(getattr(MetaHolder, f'{EmbedKeys.Expansionable}:{A.__module__}.A:prop0'), 0)
-		self.assertEqual(hasattr(MetaHolder, f'{EmbedKeys.Expansionable}:{A.__module__}.A:prop1'), True)
-		self.assertEqual(getattr(MetaHolder, f'{EmbedKeys.Expansionable}:{A.__module__}.A:prop1'), 1)
+		method_meta = digging_meta_method(MetaHolder, A, EmbedKeys.Expansionable)
+		self.assertEqual(method_meta['prop0'], 0)
+		self.assertEqual(method_meta['prop1'], 1)

@@ -1,5 +1,5 @@
 import os
-from typing import Optional
+from typing import Any, Optional
 from unittest import TestCase
 
 from lark import Lark, Tree
@@ -11,6 +11,7 @@ from py2cpp.node.node import Node
 from py2cpp.node.nodes import NodeResolver, Nodes
 from py2cpp.node.provider import Settings
 from py2cpp.node.trait import ScopeTrait
+from tests.test.helper import data_provider
 
 
 class Empty(Node): pass
@@ -65,18 +66,18 @@ class Symbol(Node):
 
 class Parameter(Node):
 	@property
-	def param_name(self) -> Symbol:
+	def param_symbol(self) -> Symbol:
 		return self._by('typedparam.name').as_a(Symbol)
 
 
 	@property
-	def param_type(self) -> Symbol:  # XXX 厳密にいうとシンボル以外も有り得るが、C++互換なら考慮は要らない
-		return self._by('typedparam')._at(1).as_a(Symbol)
+	def param_type(self) -> Symbol | Empty:
+		return self._by('typedparam')._at(1).if_not_a_to_b(Empty, Symbol)
 
 
 	@property
-	def default_value(self) -> Terminal:  # XXX 空を判定する必要あり
-		return self._at(1).as_a(Terminal)
+	def default_value(self) -> Terminal | Empty:
+		return self._at(1).if_not_a_to_b(Empty, Terminal)
 
 
 class Assign(Node):
@@ -117,6 +118,11 @@ class Function(Node):
 	@property
 	def parameters(self) -> list[Parameter]:
 		return [node.as_a(Parameter) for node in self._children('function_def_raw.parameters')]
+
+
+	@property
+	def return_type(self) -> Symbol | Empty:
+		return self._by('function_def_raw')._at(2).if_not_a_to_b(Empty, Symbol)
 
 
 # class Constructor(Node, ScopeTrait): pass
@@ -238,8 +244,8 @@ class Fixture:
 		print(self.__tree.pretty())
 
 
-class TestDefinitionEnum(TestCase):
-	def test_schema(self) -> None:
+class TestDefinition(TestCase):
+	def test_enum(self) -> None:
 		nodes = Fixture.inst.nodes()
 		node = nodes.by('file_input').as_a(FileInput) \
 			.statements[1].as_a(Class).block \
@@ -251,8 +257,7 @@ class TestDefinitionEnum(TestCase):
 		self.assertEqual(node.variables[1].value.value, '1')
 
 
-class TestDefinitionClass(TestCase):
-	def test_schema(self) -> None:
+	def test_class(self) -> None:
 		nodes = Fixture.inst.nodes()
 		node = nodes.by('file_input').as_a(FileInput) \
 			.statements[1].as_a(Class)
@@ -263,13 +268,36 @@ class TestDefinitionClass(TestCase):
 		self.assertEqual(node.decorators[0].namespace, '__main__')
 
 
-class TestDefinitionFunction(TestCase):
-	def test_schema(self) -> None:
+	@data_provider([
+		('file_input.class_def.class_def_raw.block.function_def[1]', {
+			'name': 'func1',
+			'decorators': [],
+			'parameters': [
+				{'name': 'self', 'type': 'Empty', 'default': 'Empty'},
+				{'name': 'value', 'type': 'int', 'default': 'Empty'},
+			],
+			'return': 'Values',
+		}),
+		('file_input.function_def', {
+			'name': 'func3',
+			'decorators': [],
+			'parameters': [
+				{'name': 'ok', 'type': 'bool', 'default': 'Empty'},
+			],
+			'return': 'Empty',
+		}),
+	])
+	def test_function(self, full_path: str, expected: dict[str, Any]) -> None:
 		nodes = Fixture.inst.nodes()
-		node = nodes.by('file_input').as_a(FileInput) \
-			.statements[2].as_a(Function)
-		self.assertEqual(node.function_name.value, 'func3')
-		self.assertEqual(node.decorators, [])
-		self.assertEqual(node.parameters[0].param_name.symbol_name, 'ok')
-		self.assertEqual(node.parameters[0].param_type.symbol_name, 'bool')
-		self.assertEqual(node.parameters[0].default_value.value, '')
+		node = nodes.by(full_path).as_a(Function)
+		self.assertEqual(node.function_name.value, expected['name'])
+		self.assertEqual(len(node.decorators), len(expected['decorators']))
+		for index, decorator in enumerate(node.decorators):
+			self.assertEqual(decorator.symbol.symbol_name, expected['decorators'][index]['name'])
+
+		for index, parameter in enumerate(node.parameters):
+			self.assertEqual(parameter.param_symbol.symbol_name, expected['parameters'][index]['name'])
+			self.assertEqual(parameter.param_type.symbol_name if type(parameter.param_type) is Symbol else 'Empty', expected['parameters'][index]['type'])
+			self.assertEqual(parameter.default_value.value if type(parameter.default_value) is Terminal else 'Empty', expected['parameters'][index]['default'])
+
+		self.assertEqual(node.return_type.symbol_name if type(node.return_type) is Symbol else 'Emptry', expected['return'])

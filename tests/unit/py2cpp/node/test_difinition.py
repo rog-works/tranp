@@ -22,10 +22,6 @@ class Terminal(Node):
 		return ''.join([node.token for node in [self, *self.flatten()] if type(node) is Terminal])
 
 
-class Block(Node, ScopeTrait): pass
-class If(Node): pass
-
-
 class FileInput(Node):
 	@property
 	@override
@@ -43,6 +39,22 @@ class FileInput(Node):
 	@override
 	def scope(self) -> str:
 		return '__main__'
+
+
+	@property
+	@embed_meta(Node, expansionable(order=0))
+	def statements(self) -> list[Node]:
+		return self._children()
+
+
+class Block(Node, ScopeTrait):
+	@property
+	@embed_meta(Node, expansionable(order=0))
+	def statements(self) -> list[Node]:
+		return self._children()
+
+
+class If(Node): pass
 
 
 class Symbol(Node):
@@ -86,9 +98,9 @@ class Function(Node):
 		return [node.as_a(Decorator) for node in self._children('decorators')] if self._exists('decorators') else []
 
 
-	# @property
-	# def parameters(self) -> list[Symbol]:
-	# 	return [node.as_a(Symbol) for node in self._leafs('primary')]
+	@property
+	def parameters(self) -> list[Symbol]:
+		return [node.as_a(Symbol) for node in self._leafs('primary')]
 
 
 # class Constructor(Node, ScopeTrait): pass
@@ -128,6 +140,12 @@ class Class(Node):
 	# @property
 	# def methods(self) -> list[Method]:
 	# 	return [node.as_a(Method) for node in self._leafs('class_raw.block.function') if node.is_a(Method)]
+
+
+	@property
+	@embed_meta(Node, expansionable(order=0))
+	def block(self) -> Block:
+		return self._by('class_def_raw.block').as_a(Block)
 
 
 class Enum(Node):
@@ -206,7 +224,9 @@ class Fixture:
 class TestDefinitionEnum(TestCase):
 	def test_schema(self) -> None:
 		nodes = Fixture.inst.nodes()
-		node = nodes.by('file_input.statement[0].class_def.class_def_raw.block.statement[0].enum_def').as_a(Enum)
+		node = nodes.by('file_input').as_a(FileInput) \
+			.statements[0].as_a(Class).block \
+			.statements[0].as_a(Enum)
 		self.assertEqual(node.enum_name.value, 'Values')
 		self.assertEqual(node.variables[0].symbol.symbol_name, 'A')
 		self.assertEqual(node.variables[0].value.value, '0')
@@ -217,7 +237,8 @@ class TestDefinitionEnum(TestCase):
 class TestDefinitionClass(TestCase):
 	def test_schema(self) -> None:
 		nodes = Fixture.inst.nodes()
-		node = nodes.by('file_input.statement[0].class_def').as_a(Class)
+		node = nodes.by('file_input').as_a(FileInput) \
+			.statements[0].as_a(Class)
 		self.assertEqual(node.class_name.value, 'Hoge')
 		self.assertEqual(node.decorators[0].symbol.symbol_name, 'deco')
 		self.assertEqual(node.decorators[0].arguments[0].symbol_name, 'A')
@@ -228,6 +249,7 @@ class TestDefinitionClass(TestCase):
 class TestDefinitionFunction(TestCase):
 	def test_schema(self) -> None:
 		nodes = Fixture.inst.nodes()
-		node = nodes.by('file_input.statement[1].function_def').as_a(Function)
+		node = nodes.by('file_input').as_a(FileInput) \
+			.statements[1].as_a(Function)
 		self.assertEqual(node.function_name.value, 'func3')
 		self.assertEqual(node.decorators, [])

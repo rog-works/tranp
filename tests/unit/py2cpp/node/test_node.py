@@ -14,10 +14,17 @@ from tests.test.helper import data_provider
 T_Settings = TypedDict('T_Settings', {'nodes': dict[str, type[Node]], 'fallback': type[Node]})
 
 
-class Empty(Node): pass
 class Terminal(Node): pass
+class Empty(Node): pass
+class Assign(Node): pass
 class Block(Node, ScopeTrait): pass
-class If(Node): pass
+
+
+class If(Node):
+	@property
+	@embed_meta(Node, expansionable(order=0))
+	def block(self) -> Block:
+		return self._by('block').as_a(Block)
 
 
 class FileInput(Node):
@@ -48,8 +55,8 @@ class Class(Node):
 
 	@property
 	@embed_meta(Node, expansionable(order=0))
-	def statements(self) -> list[Node]:
-		return self._children('block')
+	def block(self) -> Block:
+		return self._by('block').as_a(Block)
 
 
 class Enum(Node):
@@ -61,15 +68,15 @@ class Enum(Node):
 
 	@property
 	@embed_meta(Node, expansionable(order=0))
-	def variables(self) -> list[Node]:
-		return self._children('block')
+	def variables(self) -> list[Assign]:
+		return [node.as_a(Assign) for node in self._children('block')]
 
 
 class Function(Node):
 	@property
 	@embed_meta(Node, expansionable(order=0))
-	def statements(self) -> list[Node]:
-		return self._children('block')
+	def block(self) -> Block:
+		return self._by('block').as_a(Block)
 
 
 class Fixture:
@@ -81,8 +88,8 @@ class Fixture:
 				Tree('block', [
 					Tree('enum', [
 						Tree('block', [
-							Token('term_a', ''),
-							Token('term_a', ''),
+							Tree('assign', [Token('term_a', '')]),
+							Tree('assign', [Token('term_a', '')]),
 						]),
 					]),
 					Tree('function', [
@@ -118,6 +125,7 @@ class Fixture:
 				Enum: 'enum',
 				Function: 'function',
 				If: 'if',
+				Assign: 'assign',
 				Block: 'block',
 				Empty: '__empty__',
 			},
@@ -235,34 +243,12 @@ class TestNode(TestCase):
 
 	@data_provider([
 		('file_input.class', [
-			'file_input.class.block.enum',
-			'file_input.class.block.function[1]',
-			'file_input.class.block.function[2]',
-		]),
-		('file_input.class.block.enum', [
-			'file_input.class.block.enum.block.term_a[0]',
-			'file_input.class.block.enum.block.term_a[1]',
-		]),
-		('file_input.class.block.function[1]', [
-			'file_input.class.block.function[1].block.if',
-		]),
-		('file_input.class.block.function[2]', [
-			'file_input.class.block.function[2].block.term_a',
-		]),
-	])
-	def test_prop(self, full_path: str, expected: list[str]) -> None:
-		nodes = Fixture.nodes()
-		self.assertEqual([node.full_path for node in nodes.by(full_path)], expected)
-
-
-	@data_provider([
-		('file_input.class', [
-			'file_input.class.__empty__',
 			'file_input.class.block',
 			'file_input.class.block.enum',
-			'file_input.class.block.enum.block',
-			'file_input.class.block.enum.block.term_a[0]',
-			'file_input.class.block.enum.block.term_a[1]',
+			'file_input.class.block.enum.block.assign[0]',
+			'file_input.class.block.enum.block.assign[0].term_a',
+			'file_input.class.block.enum.block.assign[1]',
+			'file_input.class.block.enum.block.assign[1].term_a',
 			'file_input.class.block.function[1]',
 			'file_input.class.block.function[1].block',
 			'file_input.class.block.function[1].block.if',
@@ -273,18 +259,20 @@ class TestNode(TestCase):
 			'file_input.class.block.function[2].block.term_a',
 		]),
 		('file_input.class.block.enum', [
-			'file_input.class.block.enum.block',
-			'file_input.class.block.enum.block.term_a[0]',
-			'file_input.class.block.enum.block.term_a[1]',
+			'file_input.class.block.enum.block.assign[0]',
+			'file_input.class.block.enum.block.assign[0].term_a',
+			'file_input.class.block.enum.block.assign[1]',
+			'file_input.class.block.enum.block.assign[1].term_a',
 		]),
 		('file_input.function', [
 			'file_input.function.block',
 			'file_input.function.block.term_a',
 		]),
 	])
-	def test_flatten(self, full_path: str, expected: list[str]) -> None:
+	def test___iter__(self, full_path: str, expected: list[str]) -> None:
 		nodes = Fixture.nodes()
-		self.assertEqual([node.full_path for node in nodes.by(full_path).flatten()], expected)
+		all = [node.full_path for node in nodes.by(full_path)]
+		self.assertEqual(all, expected)
 
 
 	def test_as_a(self) -> None:

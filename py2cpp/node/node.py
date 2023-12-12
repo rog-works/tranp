@@ -98,19 +98,41 @@ class Node:
 		return self.__nodes.parent(self.full_path)
 
 
-	@property
-	def props(self) -> list['Node']:
+	def __iter__(self) -> Iterator['Node']:
+		"""下位ノードのイテレーター
+
+		Returns:
+			Iterator[Node]: イテレーター
+		"""
+		for node in self._flatten():
+			yield node
+
+
+	def _flatten(self) -> list['Node']:
+		"""下位のノードを再帰的に展開し、1次元に平坦化して取得
+
+		Returns:
+			list[Node]: ノードリスト
+		"""
+		under = self.__props()
+		if len(under) == 0:
+			under = self._expansion()
+
+		return list(flatten([[node, *node._flatten()] for node in under]))
+
+
+	def __props(self) -> list['Node']:
 		"""list[Node]: 自身が所有するノードをプロパティーリストとして取得。@note: AST上の子と必ずしも一致しない点に注意"""
 		nodes: list[Node] = []
-		for key in self.__node_prop_keys():
-			func_or_result = cast(Callable, getattr(self, key))
-			result = func_or_result() if callable(func_or_result) else func_or_result
-			nodes.extend(result if type(result) is list else [result])
+		for key in self.__prop_keys():
+			func_or_result = getattr(self, key)
+			result = cast(Node | list[Node], func_or_result() if callable(func_or_result) else func_or_result)
+			nodes.extend(result if type(result) is list else [cast(Node, result)])
 
 		return nodes
 
 
-	def __node_prop_keys(self) -> list[str]:
+	def __prop_keys(self) -> list[str]:
 		"""派生クラスでプロパティーとして定義されたメソッドの名前を抽出
 
 		Returns:
@@ -121,16 +143,6 @@ class Node:
 		meta = digging_meta_method(Node, self.__class__, EmbedKeys.Expansionable)
 		order_on_keys = {cast(int, value): name for name, value in meta.items()}
 		return [prop_key for _, prop_key in sorted(order_on_keys.items(), key=lambda index: index)]
-
-
-	def __iter__(self) -> Iterator['Node']:
-		"""プロパティーのイテレーター
-
-		Returns:
-			Iterator[Node]: イテレーター
-		"""
-		for prop in self.props:
-			yield prop
 
 
 	def _to_full_path(self, relative_path: str) -> str:
@@ -233,15 +245,6 @@ class Node:
 			list[Node]: ノードリスト
 		"""
 		return self.__nodes.expansion(self.full_path)
-
-
-	def flatten(self) -> list['Node']:
-		"""下位のノードを再帰的に展開し、1次元に平坦化して取得
-
-		Returns:
-			list[Node]: ノードリスト
-		"""
-		return list(flatten([[node, *node.flatten()] for node in self._expansion()]))
 
 
 	def as_a(self, ctor: type[T]) -> T:

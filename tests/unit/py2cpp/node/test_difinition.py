@@ -17,7 +17,10 @@ from tests.test.helper import data_provider
 class Terminal(Node):
 	@property
 	def value(self) -> str:
-		return ''.join([node.token for node in [self, *self.flatten()] if type(node) is Terminal])
+		return ''.join([node.token for node in [self, *self._flatten()] if type(node) is Terminal])
+
+
+class Expression(Node): pass
 
 
 @embed_meta(Node, accept_tags('__empty__', 'const_none'))
@@ -66,7 +69,7 @@ class If(Node): pass
 class Symbol(Node):
 	@property
 	def symbol_name(self) -> str:
-		return '.'.join([node.value for node in self.flatten() if type(node) is Terminal])
+		return '.'.join([node.value for node in self._flatten() if type(node) is Terminal])
 
 
 @embed_meta(Node, accept_tags('paramevalue'))
@@ -89,8 +92,9 @@ class Parameter(Node):
 @embed_meta(Node, accept_tags('argvalue'))
 class Argument(Node):
 	@property
-	def symbol_or_value(self) -> Symbol | Terminal:
-		return self.as_a(Terminal)  # FIXME
+	@embed_meta(Node, expansionable(order=0))
+	def expression(self) -> Expression:
+		return self.as_a(Expression)
 
 
 @embed_meta(Node, accept_tags('assign_stmt'))
@@ -101,7 +105,7 @@ class Assign(Node):
 
 
 	@property
-	def value(self) -> Terminal:
+	def value(self) -> Terminal:  # FIXME Expression?
 		return self._by('assign')._at(1).as_a(Terminal)
 
 
@@ -126,7 +130,6 @@ class Function(Node):
 
 
 	@property
-	@embed_meta(Node, expansionable(order=0))
 	def decorators(self) -> list[Decorator]:
 		return [node.as_a(Decorator) for node in self._children('decorators')] if self._exists('decorators') else []
 
@@ -167,7 +170,6 @@ class Class(Node):
 
 
 	@property
-	@embed_meta(Node, expansionable(order=0))
 	def decorators(self) -> list[Decorator]:
 		return [node.as_a(Decorator) for node in self._children('decorators')] if self._exists('decorators') else []
 

@@ -145,7 +145,7 @@ class Enum(Node):
 	@property
 	@embed_meta(Node, expansionable(order=0))
 	def variables(self) -> list[Assign]:
-		return [child.as_a(Assign) for child in self._children('block')]
+		return [child.as_a(Assign) for child in self._leafs('assign')]
 
 
 class Fixture:
@@ -206,7 +206,7 @@ class Fixture:
 class TestDefinitionEnum(TestCase):
 	def test_schema(self) -> None:
 		nodes = Fixture.inst.nodes()
-		node = nodes.by('file_input.class_def.class_def_raw.block.enum_def').as_a(Enum)
+		node = nodes.by('file_input.statement[0].class_def.class_def_raw.block.statement[0].enum_def').as_a(Enum)
 		self.assertEqual(node.enum_name.value, 'Values')
 		self.assertEqual(node.variables[0].symbol.symbol_name, 'A')
 		self.assertEqual(node.variables[0].value.value, '0')
@@ -217,7 +217,7 @@ class TestDefinitionEnum(TestCase):
 class TestDefinitionClass(TestCase):
 	def test_schema(self) -> None:
 		nodes = Fixture.inst.nodes()
-		node = nodes.by('file_input.class_def').as_a(Class)
+		node = nodes.by('file_input.statement[0].class_def').as_a(Class)
 		self.assertEqual(node.class_name.value, 'Hoge')
 		self.assertEqual(node.decorators[0].symbol.symbol_name, 'deco')
 		self.assertEqual(node.decorators[0].arguments[0].symbol_name, 'A')
@@ -228,6 +228,6 @@ class TestDefinitionClass(TestCase):
 class TestDefinitionFunction(TestCase):
 	def test_schema(self) -> None:
 		nodes = Fixture.inst.nodes()
-		node = nodes.by('file_input.function_def').as_a(Function)
+		node = nodes.by('file_input.statement[1].function_def').as_a(Function)
 		self.assertEqual(node.function_name.value, 'func3')
 		self.assertEqual(node.decorators, [])

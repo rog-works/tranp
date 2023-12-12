@@ -4,6 +4,7 @@ from typing import Callable
 from lark import Token, Tree
 
 from py2cpp.ast.travarsal import ASTFinder, EntryProxy
+from py2cpp.errors import NotFoundError
 from py2cpp.lang.annotation import implements
 from py2cpp.node.node import Node
 from py2cpp.node.provider import Query, Resolver, Settings
@@ -150,7 +151,7 @@ class NodeResolver:
 		Returns:
 			Node: 解決したノード
 		Raises:
-			ValueError: シンボルの解決に失敗
+			LogicError: シンボルの解決に失敗
 		"""
 		if full_path in self.__insts:
 			return self.__insts[full_path]
@@ -213,7 +214,7 @@ class Nodes(Query[Node]):
 		Returns:
 			Node: ノード
 		Raises:
-			ValueError: ノードが存在しない
+			NotFoundError: ノードが存在しない
 		"""
 		entry = self.__finder.pluck(self.__root, full_path)
 		return self.__resolve(entry, full_path)
@@ -228,7 +229,8 @@ class Nodes(Query[Node]):
 		Returns:
 			Node: ノード
 		Raises:
-			ValueError: 親が存在しない
+			LogicError: 基準パスが不正
+			NotFoundError: 親が存在しない
 		"""
 		forwards = via.split('.')[:-1]
 		while(len(forwards)):
@@ -238,7 +240,7 @@ class Nodes(Query[Node]):
 				path = '.'.join([*forwards, org_tag])
 				return self.by(path)
 
-		raise ValueError()
+		raise NotFoundError(via)
 
 
 	@implements
@@ -249,6 +251,8 @@ class Nodes(Query[Node]):
 			via (str): 基準のパス(フルパス)
 		Returns:
 			list[Node]: ノードリスト
+		Raises:
+			LogicError: 基準パスが不正
 		"""
 		uplayer_path = '.'.join(via.split('.')[:-1])
 		regular = re.compile(rf'{self.__finder.escaped_path(uplayer_path)}\.[^.]+')
@@ -265,6 +269,8 @@ class Nodes(Query[Node]):
 			via (str): 基準のパス(フルパス)
 		Returns:
 			list[Node]: ノードリスト
+		Raises:
+			LogicError: 基準パスが不正
 		"""
 		regular = re.compile(rf'{self.__finder.escaped_path(via)}\.[^.]+')
 		tester = lambda _, path: regular.fullmatch(path) is not None
@@ -281,6 +287,8 @@ class Nodes(Query[Node]):
 			leaf_name (str): 接尾辞
 		Returns:
 			list[Node]: ノードリスト
+		Raises:
+			LogicError: 基準パスが不正
 		"""
 		regular = re.compile(rf'{self.__finder.escaped_path(via)}\.(.+\.)?{leaf_tag}(\[\d+\])?')
 		tester = lambda _, path: regular.fullmatch(path) is not None
@@ -296,6 +304,8 @@ class Nodes(Query[Node]):
 			via (str): 基準のパス(フルパス)
 		Returns:
 			list[Node]: ノードリスト
+		Raises:
+			LogicError: 基準パスが不正
 		"""
 		memo: list[str] = []
 		def tester(entry: Entry, path: str) -> bool:

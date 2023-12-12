@@ -1,5 +1,6 @@
 from unittest import TestCase
 
+from py2cpp.errors import LogicError
 from py2cpp.node.provider import Resolver
 
 
@@ -35,7 +36,7 @@ class TestResolver(TestCase):
 		resolver.register('c', C)
 		self.assertEqual(resolver.accepts, ['a', 'b', 'c'])
 
-		with self.assertRaises(ValueError):
+		with self.assertRaises(LogicError):
 			resolver.resolve('d')
 
 

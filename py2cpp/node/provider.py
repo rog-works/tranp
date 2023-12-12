@@ -2,6 +2,8 @@ from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass, field
 from typing import cast, Generic, TypeVar
 
+from py2cpp.errors import LogicError
+
 T = TypeVar('T')
 
 
@@ -103,7 +105,7 @@ class Resolver(Generic[T]):
 		Returns:
 			type[T]: 解決した型
 		Raises:
-			ValueError: シンボルの解決に失敗
+			LogicError: シンボルの解決に失敗
 		"""
 		if self.can_resolve(symbol):
 			return self.__ctors[symbol]
@@ -111,7 +113,7 @@ class Resolver(Generic[T]):
 		if self.__fallback:
 			return self.__fallback
 
-		raise ValueError()
+		raise LogicError(symbol)
 
 
 	def clear(self) -> None:
@@ -148,7 +150,7 @@ class Query(Generic[T], metaclass=ABCMeta):
 		Returns:
 			T: エントリー
 		Raises:
-			ValueError: エントリーが存在しない
+			NotFoundError: エントリーが存在しない
 		"""
 		raise NotImplementedError()
 
@@ -162,7 +164,8 @@ class Query(Generic[T], metaclass=ABCMeta):
 		Returns:
 			T: データ
 		Raises:
-			ValueError: 親が存在しない
+			LogicError: 基準パスが不正
+			NotFoundError: 親が存在しない
 		"""
 		raise NotImplementedError()
 
@@ -175,6 +178,8 @@ class Query(Generic[T], metaclass=ABCMeta):
 			via (str): 基準のパス(フルパス)
 		Returns:
 			list[T]: エントリーリスト
+		Raises:
+			LogicError: 基準パスが不正
 		"""
 		raise NotImplementedError()
 
@@ -187,6 +192,8 @@ class Query(Generic[T], metaclass=ABCMeta):
 			via (str): 基準のパス(フルパス)
 		Returns:
 			list[T]: エントリーリスト
+		Raises:
+			LogicError: 基準パスが不正
 		"""
 		raise NotImplementedError()
 
@@ -200,6 +207,8 @@ class Query(Generic[T], metaclass=ABCMeta):
 			leaf_name (str): 接尾辞
 		Returns:
 			list[T]: エントリーリスト
+		Raises:
+			LogicError: 基準パスが不正
 		"""
 		raise NotImplementedError()
 
@@ -212,6 +221,8 @@ class Query(Generic[T], metaclass=ABCMeta):
 			via (str): 基準のパス(フルパス)
 		Returns:
 			list[T]: エントリーリスト
+		Raises:
+			LogicError: 基準パスが不正
 		"""
 		raise NotImplementedError()
 

@@ -2,6 +2,7 @@ from unittest import TestCase
 
 from lark import Token, Tree
 
+from py2cpp.errors import NotFoundError
 from py2cpp.node.node import Node
 from py2cpp.node.nodes import NodeResolver, Nodes
 from py2cpp.node.provider import Query, Settings
@@ -212,7 +213,7 @@ class TestNodes(TestCase):
 
 
 	@data_provider([
-		('root.__empty__', ValueError),
+		('root.__empty__', NotFoundError),
 	])
 	def test_expansion_error(self, via: str, expected: type[Exception]) -> None:
 		nodes = Fixture.nodes()

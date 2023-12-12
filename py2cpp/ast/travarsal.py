@@ -2,6 +2,8 @@ from abc import ABCMeta, abstractmethod
 import re
 from typing import Callable, Generic, TypeVar
 
+from py2cpp.errors import NotFoundError
+
 T = TypeVar('T')
 
 
@@ -44,7 +46,7 @@ class EntryProxy(Generic[T], metaclass=ABCMeta):
 		Returns:
 			list[T]: 配下のエントリーリスト
 		Raise:
-			ValueError: 子を持たないエントリーで使用
+			LogicError: 子を持たないエントリーで使用
 		"""
 		raise NotImplementedError()
 
@@ -70,7 +72,7 @@ class EntryProxy(Generic[T], metaclass=ABCMeta):
 		Returns:
 			str: 終端記号の値
 		Raise:
-			ValueError: 終端記号ではないエントリーで使用
+			LogicError: 終端記号ではないエントリーで使用
 		"""
 		raise NotImplementedError()
 
@@ -205,7 +207,7 @@ class ASTFinder(Generic[T]):
 		try:
 			self.pluck(root, full_path)
 			return True
-		except ValueError:
+		except NotFoundError:
 			return False
 
 
@@ -218,7 +220,7 @@ class ASTFinder(Generic[T]):
 		Returns:
 			Entry: エントリー
 		Raise:
-			ValueError: エントリーが存在しない
+			NotFoundError: エントリーが存在しない
 		"""
 		if self.tag_by(root) == full_path:
 			return root
@@ -237,7 +239,7 @@ class ASTFinder(Generic[T]):
 		Note:
 			@see pluck
 		Raise:
-			ValueError: エントリーが存在しない
+			NotFoundError: エントリーが存在しない
 		"""
 		if self.__proxy.has_child(entry) and path:
 			org_tag, *remain = path.split('.')
@@ -255,7 +257,7 @@ class ASTFinder(Generic[T]):
 		elif not path:
 			return entry
 
-		raise ValueError()
+		raise NotFoundError(entry, path)
 
 
 	def find(self, root: T, via: str, tester: Callable[[T, str], bool], depth: int = -1) -> dict[str, T]:

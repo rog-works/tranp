@@ -3,6 +3,7 @@ from typing import Callable, cast, Iterator, TypeVar
 from lark import Token
 
 from py2cpp.ast.travarsal import ASTFinder
+from py2cpp.errors import NotFoundError
 from py2cpp.lang.sequence import flatten
 from py2cpp.node.embed import digging_meta_method, EmbedKeys
 from py2cpp.node.provider import Query
@@ -160,7 +161,7 @@ class Node:
 		Returns:
 			Node: ノード
 		Raises:
-			ValueError: ノードが存在しない
+			NotFoundError: ノードが存在しない
 		"""
 		return self.__nodes.by(self._to_full_path(relative_path))
 
@@ -173,11 +174,11 @@ class Node:
 		Returns:
 			Node: ノード
 		Raises:
-			ValueError: ノードが存在しない
+			NotFoundError: ノードが存在しない
 		"""
 		children = self._children()
 		if index < 0 or len(children) <= index:
-			raise ValueError()
+			raise NotFoundError(self, index)
 
 		return children[index]
 
@@ -190,6 +191,8 @@ class Node:
 			relative_path (str): 自身のエントリーからの相対パス(default = '')
 		Returns:
 			list[Node]: ノードリスト
+		Raises:
+			LogicError: 基準パスが不正
 		"""
 		via = self._to_full_path(relative_path) if relative_path else self.full_path
 		return [node for node in self.__nodes.siblings(via) if node.full_path != self.full_path]
@@ -203,6 +206,8 @@ class Node:
 			relative_path (str): 自身のエントリーからの相対パス(default = '')
 		Returns:
 			list[Node]: ノードリスト
+		Raises:
+			LogicError: 基準パスが不正
 		"""
 		via = self._to_full_path(relative_path) if relative_path else self.full_path
 		return self.__nodes.children(via)
@@ -215,6 +220,8 @@ class Node:
 			leaf_name (str): 接尾辞
 		Returns:
 			list[Node]: ノードリスト
+		Raises:
+			LogicError: 基準パスが不正
 		"""
 		return self.__nodes.leafs(self.full_path, leaf_tag)
 
@@ -224,6 +231,8 @@ class Node:
 
 		Returns:
 			list[Node]: ノードリスト
+		Raises:
+			LogicError: 基準パスが不正
 		"""
 		return self.__nodes.expansion(self.full_path)
 
@@ -273,6 +282,11 @@ class Node:
 			基底クラスでは判断できないため、デフォルトでは自分自身を返却
 		"""
 		return self
+
+
+	def __str__(self) -> str:
+		"""str: 文字列表現を取得"""
+		return f'<{self.__class__.__name__}: {self.full_path}>'
 
 
 	# XXX def is_method(self) -> bool: pass

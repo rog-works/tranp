@@ -1,6 +1,8 @@
 from types import FunctionType
 from typing import Any, Callable, cast, NamedTuple, TypeVar, TypeAlias
 
+from py2cpp.errors import LogicError
+
 T_Wrapped = TypeVar('T_Wrapped', type, FunctionType)
 MetaFactory: TypeAlias = Callable[[], dict[str, Any]]
 EmbedMeta: TypeAlias = dict[str, dict[str, Any]]
@@ -159,10 +161,10 @@ def digging_meta_class(holder: type, ctor: type, embed_key: str) -> Any:
 	Returns:
 		Any: メタデータ
 	Raises:
-		ValueError: メタデータが存在しない
+		LogicError: メタデータが存在しない
 	"""
 	if not hasattr(holder, MetaData.key):
-		raise ValueError()
+		raise LogicError(holder, ctor, embed_key)
 
 	meta_data = cast(MetaData, getattr(holder, MetaData.key))
 	return meta_data.fetch_from_class(ctor, embed_key)
@@ -178,10 +180,10 @@ def digging_meta_method(holder: type, ctor: type, embed_key: str) -> dict[str, A
 	Returns:
 		dict[str, Any]: メソッド毎のメタデータ
 	Raises:
-		ValueError: メタデータが存在しない
+		LogicError: メタデータが存在しない
 	"""
 	if not hasattr(holder, MetaData.key):
-		raise ValueError()
+		raise LogicError(holder, ctor, embed_key)
 
 	meta_data = cast(MetaData, getattr(holder, MetaData.key))
 	return meta_data.fetch_from_method(ctor, embed_key)

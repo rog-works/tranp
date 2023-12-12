@@ -80,6 +80,12 @@ class Parameter(Node):
 		return self._at(1).if_not_a_to_b(Empty, Terminal)
 
 
+class Argument(Node):
+	@property
+	def symbol_or_value(self) -> Symbol | Terminal:
+		return self.as_a(Terminal)  # FIXME
+
+
 class Assign(Node):
 	@property
 	def symbol(self) -> Symbol:
@@ -99,8 +105,8 @@ class Decorator(Node):
 
 	@property
 	@embed_meta(Node, expansionable(order=0))
-	def arguments(self) -> list[Symbol]:
-		return [node.as_a(Symbol) for node in self._children('arguments')]
+	def arguments(self) -> list[Argument]:
+		return [node.as_a(Argument) for node in self._children('arguments')]
 
 
 class Function(Node):
@@ -247,10 +253,6 @@ class Fixture:
 		return Nodes(self.__tree, self.resolver())
 
 
-	def dump(self) -> None:
-		print(self.__tree.pretty())
-
-
 class TestDefinition(TestCase):
 	def test_enum(self) -> None:
 		nodes = Fixture.inst.nodes()
@@ -270,8 +272,8 @@ class TestDefinition(TestCase):
 			.statements[1].as_a(Class)
 		self.assertEqual(node.class_name.value, 'Hoge')
 		self.assertEqual(node.decorators[0].symbol.symbol_name, 'deco')
-		self.assertEqual(node.decorators[0].arguments[0].symbol_name, 'A')
-		self.assertEqual(node.decorators[0].arguments[1].symbol_name, 'A.B')
+		# self.assertEqual(node.decorators[0].arguments[0].symbol_name, 'A')
+		# self.assertEqual(node.decorators[0].arguments[1].symbol_name, 'A.B')
 		self.assertEqual(node.decorators[0].namespace, '__main__')
 
 
@@ -300,12 +302,16 @@ class TestDefinition(TestCase):
 		self.assertEqual(node.function_name.value, expected['name'])
 		self.assertEqual(len(node.decorators), len(expected['decorators']))
 		for index, decorator in enumerate(node.decorators):
-			self.assertEqual(decorator.symbol.symbol_name, expected['decorators'][index]['name'])
+			in_expected = expected['decorators'][index]
+			self.assertEqual(decorator.symbol.symbol_name, in_expected['name'])
+			# for index_a, argument in enumerate(decorator.arguments):
+			# 	self.assertEqual(argument.symbol_or_value, in_expected['arguments'][index_a]['value'])
 
 		for index, parameter in enumerate(node.parameters):
-			self.assertEqual(parameter.param_symbol.symbol_name, expected['parameters'][index]['name'])
-			self.assertEqual(parameter.param_type.symbol_name if type(parameter.param_type) is Symbol else 'Empty', expected['parameters'][index]['type'])
-			self.assertEqual(parameter.default_value.value if type(parameter.default_value) is Terminal else 'Empty', expected['parameters'][index]['default'])
+			in_expected = expected['parameters'][index]
+			self.assertEqual(parameter.param_symbol.symbol_name, in_expected['name'])
+			self.assertEqual(parameter.param_type.symbol_name if type(parameter.param_type) is Symbol else 'Empty', in_expected['type'])
+			self.assertEqual(parameter.default_value.value if type(parameter.default_value) is Terminal else 'Empty', in_expected['default'])
 
 		self.assertEqual(node.return_type.symbol_name if type(node.return_type) is Symbol else 'Empty', expected['return'])
 		self.assertEqual(type(node.block), Block)

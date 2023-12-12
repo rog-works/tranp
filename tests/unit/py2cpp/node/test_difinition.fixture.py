@@ -12,6 +12,7 @@ class Hoge:
 		else:
 			return Hoge.Values.B
 
+	@deco_func('hoge')
 	def func2(self, text: str) -> None:
 		if False:
 			b

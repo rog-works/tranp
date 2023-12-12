@@ -11,8 +11,8 @@ from py2cpp.node.trait import ScopeTrait
 from py2cpp.tp_lark.types import Entry
 
 T = TypeVar('T')
-T1 = TypeVar('T1')
-T2 = TypeVar('T2')
+T_A = TypeVar('T_A')
+T_B = TypeVar('T_B')
 
 
 class Node:
@@ -273,16 +273,16 @@ class Node:
 		return type(self) is ctor
 
 
-	def if_not_a_to_b(self, empty_type: type[T1], expect_type: type[T2]) -> T1 | T2:
-		"""A(空の型)でなければB(期待する型)に変換
+	def if_not_a_to_b(self, reject_type: type[T_A], expect_type: type[T_B]) -> T_A | T_B:
+		"""AでなければBに変換
 
 		Args:
-			empty_type (type[T1]): 空の型
-			expect_type (type[T2]): 期待する型
+			reject_type (type[T_A]): 除外する型
+			expect_type (type[T_B]): 期待する型
 		Returns:
-			T1 | T2: 空、または変換後の型
+			T1 | T2: AかBの型
 		"""
-		return cast(empty_type, self) if type(self) is empty_type else self.as_a(expect_type)
+		return cast(reject_type, self) if type(self) is reject_type else self.as_a(expect_type)
 
 
 	def actual(self) -> 'Node':

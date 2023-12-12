@@ -303,6 +303,13 @@ class TestNode(TestCase):
 		self.assertEqual(node.is_a(Terminal), False)
 
 
+	def test_if_not_a_to_b(self) -> None:
+		nodes = Fixture.nodes()
+		empty = nodes.by('fule_input.class.__empty__')
+		self.assertEqual(empty.is_a(Empty), True)
+		self.assertEqual(empty.if_not_a_to_b(Empty, Terminal).is_a(Terminal), False)
+
+
 	def test_actual(self) -> None:
 		class NodeB(Node):
 			def actual(self) -> Node:
@@ -313,3 +320,9 @@ class TestNode(TestCase):
 		node = NodeB(nodes, Tree('node_b', []), 'node_b')
 		self.assertEqual(type(node), NodeB)
 		self.assertEqual(type(node.actual()), Terminal)
+
+
+	def test___str__(self) -> None:
+		nodes = Fixture.nodes()
+		node = nodes.by('file_input')
+		self.assertEqual(str(node), '<FileInput: file_input>')

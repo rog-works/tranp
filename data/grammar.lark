@@ -30,7 +30,7 @@ dotted_name: name ("." name)*
 
 // # Common elements
 
-!block: _NEWLINE _INDENT statement+ _DEDENT | simple_stmt
+block: _NEWLINE _INDENT statement+ _DEDENT | simple_stmt
 
 // @decl `@decorator_name`
 // @decl `@decorator_name(symbol1, symbol2, ...)`
@@ -186,7 +186,7 @@ atom: name -> var
 	| "[" _exprlist? "]" -> list
 	| "{" _dict_exprlist? "}" -> dict
 
-!group_expr: "(" expression ")"
+group_expr: "(" expression ")"
 
 _exprlist: expression ("," expression)* [","]
 

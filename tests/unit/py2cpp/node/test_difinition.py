@@ -93,7 +93,7 @@ class Parameter(Node):
 class Argument(Node):
 	@property
 	@embed_meta(Node, expansionable(order=0))
-	def expression(self) -> Expression:
+	def value(self) -> Expression:
 		return self.as_a(Expression)
 
 
@@ -286,8 +286,8 @@ class TestDefinition(TestCase):
 			.statements[1].as_a(Class)
 		self.assertEqual(node.class_name.value, 'Hoge')
 		self.assertEqual(node.decorators[0].symbol.symbol_name, 'deco')
-		# self.assertEqual(node.decorators[0].arguments[0].symbol_name, 'A')
-		# self.assertEqual(node.decorators[0].arguments[1].symbol_name, 'A.B')
+		self.assertEqual(node.decorators[0].arguments[0].value.is_a(Expression), True)
+		self.assertEqual(node.decorators[0].arguments[1].value.is_a(Expression), True)
 		self.assertEqual(node.decorators[0].namespace, '__main__')
 
 
@@ -318,8 +318,8 @@ class TestDefinition(TestCase):
 		for index, decorator in enumerate(node.decorators):
 			in_expected = expected['decorators'][index]
 			self.assertEqual(decorator.symbol.symbol_name, in_expected['name'])
-			# for index_a, argument in enumerate(decorator.arguments):
-			# 	self.assertEqual(argument.symbol_or_value, in_expected['arguments'][index_a]['value'])
+			for index_a, argument in enumerate(decorator.arguments):
+				self.assertEqual(argument.value.is_a(Expression), True)
 
 		for index, parameter in enumerate(node.parameters):
 			in_expected = expected['parameters'][index]

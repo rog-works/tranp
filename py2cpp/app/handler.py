@@ -43,6 +43,6 @@ class Runner:
 		nodes: list[Node] = [root]
 		while not len(nodes):
 			node = nodes.pop()
-			nodes.extend(reversed(node.__props))
+			nodes.extend(reversed(node.__explicit_expantion))
 
 			ctx.emit('action', node=node, ctx=ctx)

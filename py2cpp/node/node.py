@@ -1,4 +1,4 @@
-from typing import Callable, cast, Iterator, TypeVar
+from typing import cast, Iterator, TypeVar
 
 from lark import Token
 
@@ -99,7 +99,7 @@ class Node:
 
 
 	def __iter__(self) -> Iterator['Node']:
-		"""下位ノードのイテレーター
+		"""下位ノード取得イテレーター
 
 		Returns:
 			Iterator[Node]: イテレーター
@@ -114,17 +114,17 @@ class Node:
 		Returns:
 			list[Node]: ノードリスト
 		"""
-		under = self.__props()
+		under = self.__explicit_expantion()
 		if len(under) == 0:
-			under = self._expansion()
+			under = self.__implicit_expansion()
 
 		return list(flatten([[node, *node._flatten()] for node in under]))
 
 
-	def __props(self) -> list['Node']:
-		"""list[Node]: 自身が所有するノードをプロパティーリストとして取得。@note: AST上の子と必ずしも一致しない点に注意"""
+	def __explicit_expantion(self) -> list['Node']:
+		"""list[Node]: 展開プロパティーからノードリストを取得"""
 		nodes: list[Node] = []
-		for key in self.__prop_keys():
+		for key in self.__expantionable_keys():
 			func_or_result = getattr(self, key)
 			result = cast(Node | list[Node], func_or_result() if callable(func_or_result) else func_or_result)
 			nodes.extend(result if type(result) is list else [cast(Node, result)])
@@ -132,11 +132,11 @@ class Node:
 		return nodes
 
 
-	def __prop_keys(self) -> list[str]:
-		"""派生クラスでプロパティーとして定義されたメソッドの名前を抽出
+	def __expantionable_keys(self) -> list[str]:
+		"""派生クラスに埋め込まれた展開プロパティーのメソッド名を抽出
 
 		Returns:
-			list[str]: プロパティーのメソッド名リスト
+			list[str]: 展開プロパティーのメソッド名リスト
 		Note:
 			@see trans.node.embed.expansionable
 		"""
@@ -238,7 +238,7 @@ class Node:
 		return self.__nodes.leafs(self.full_path, leaf_tag)
 
 
-	def _expansion(self) -> list['Node']:
+	def __implicit_expansion(self) -> list['Node']:
 		"""配下に存在する展開が可能なノードをフェッチ
 
 		Returns:

@@ -2,7 +2,7 @@ file_input: (_NEWLINE | statement)*
 
 // # General statements
 
-statement: compound_stmt | simple_stmt
+?statement: compound_stmt | simple_stmt
 
 ?simple_stmt: small_stmt _NEWLINE
 ?small_stmt: expression

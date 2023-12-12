@@ -2,6 +2,7 @@ file_input: (_NEWLINE | statement)*
 
 // # General statements
 
+// @lark statement: compound_stmt | simple_stmt
 ?statement: compound_stmt | simple_stmt
 
 ?simple_stmt: small_stmt _NEWLINE

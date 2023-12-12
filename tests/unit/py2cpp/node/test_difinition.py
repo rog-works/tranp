@@ -6,15 +6,12 @@ from lark import Lark, Tree
 from lark.indenter import PythonIndenter
 
 from py2cpp.lang.annotation import override
-from py2cpp.node.embed import embed_meta, expansionable
+from py2cpp.node.embed import accept_tags, embed_meta, expansionable
 from py2cpp.node.node import Node
 from py2cpp.node.nodes import NodeResolver, Nodes
 from py2cpp.node.provider import Settings
 from py2cpp.node.trait import ScopeTrait
 from tests.test.helper import data_provider
-
-
-class Empty(Node): pass
 
 
 class Terminal(Node):
@@ -23,6 +20,11 @@ class Terminal(Node):
 		return ''.join([node.token for node in [self, *self.flatten()] if type(node) is Terminal])
 
 
+@embed_meta(Node, accept_tags('__empty__', 'const_none'))
+class Empty(Node): pass
+
+
+@embed_meta(Node, accept_tags('file_input'))
 class FileInput(Node):
 	@property
 	@override
@@ -48,6 +50,7 @@ class FileInput(Node):
 		return self._children()
 
 
+@embed_meta(Node, accept_tags('block'))
 class Block(Node, ScopeTrait):
 	@property
 	@embed_meta(Node, expansionable(order=0))
@@ -55,15 +58,18 @@ class Block(Node, ScopeTrait):
 		return self._children()
 
 
+@embed_meta(Node, accept_tags('if_stmt'))
 class If(Node): pass
 
 
+@embed_meta(Node, accept_tags('getattr', 'primary', 'name', 'dotted_name'))
 class Symbol(Node):
 	@property
 	def symbol_name(self) -> str:
 		return '.'.join([node.value for node in self.flatten() if type(node) is Terminal])
 
 
+@embed_meta(Node, accept_tags('paramevalue'))
 class Parameter(Node):
 	@property
 	def param_symbol(self) -> Symbol:
@@ -80,12 +86,14 @@ class Parameter(Node):
 		return self._at(1).if_not_a_to_b(Empty, Terminal)
 
 
+@embed_meta(Node, accept_tags('argvalue'))
 class Argument(Node):
 	@property
 	def symbol_or_value(self) -> Symbol | Terminal:
 		return self.as_a(Terminal)  # FIXME
 
 
+@embed_meta(Node, accept_tags('assign_stmt'))
 class Assign(Node):
 	@property
 	def symbol(self) -> Symbol:
@@ -97,6 +105,7 @@ class Assign(Node):
 		return self._by('assign')._at(1).as_a(Terminal)
 
 
+@embed_meta(Node, accept_tags('decorator'))
 class Decorator(Node):
 	@property
 	def symbol(self) -> Symbol:
@@ -109,6 +118,7 @@ class Decorator(Node):
 		return [node.as_a(Argument) for node in self._children('arguments')]
 
 
+@embed_meta(Node, accept_tags('function_def'))
 class Function(Node):
 	@property
 	def function_name(self) -> Terminal:
@@ -143,6 +153,7 @@ class Function(Node):
 # class ClassMethod(Node, ScopeTrait): pass
 
 
+@embed_meta(Node, accept_tags('class_def'))
 class Class(Node):
 	@property
 	@override
@@ -183,6 +194,7 @@ class Class(Node):
 		return self._by('class_def_raw.block').as_a(Block)
 
 
+@embed_meta(Node, accept_tags('enum_def'))
 class Enum(Node):
 	@property
 	@override

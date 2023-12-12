@@ -3,6 +3,7 @@ from typing import Any, Callable, cast, NamedTuple, TypeVar, TypeAlias
 
 from py2cpp.errors import LogicError
 
+T = TypeVar('T')
 T_Wrapped = TypeVar('T_Wrapped', type, FunctionType)
 MetaFactory: TypeAlias = Callable[[], dict[str, Any]]
 EmbedMeta: TypeAlias = dict[str, dict[str, Any]]
@@ -11,6 +12,7 @@ EmbedMeta: TypeAlias = dict[str, dict[str, Any]]
 class EmbedKeys(NamedTuple):
 	"""埋め込みキー一覧"""
 
+	AcceptTags = 'allow_tags'
 	Expansionable = 'expansionable'
 
 
@@ -21,7 +23,7 @@ class MetaData:
 	@property
 	def key(cls) -> str:
 		"""str: 保持クラスに追加するメタデータのプロパティ名"""
-		return f'__meta_data_{cls.__hash__}__'
+		return f'__meta_data_{id(cls)}__'
 
 
 	def __init__(self) -> None:
@@ -90,8 +92,16 @@ class MetaData:
 			embed_key (str): メタデータのキー
 		Returns:
 			Any: メタデータの値
+		Note:
+			メタデータが存在しない場合はNoneを返却
 		"""
 		class_path = self.class_path(ctor)
+		if class_path not in self.__classes:
+			return None
+
+		if embed_key not in self.__classes[class_path]:
+			return None
+
 		return self.__classes[class_path][embed_key]
 
 
@@ -151,23 +161,24 @@ def embed_meta(holder: type, *factories: MetaFactory) -> Callable:
 	return decorator
 
 
-def digging_meta_class(holder: type, ctor: type, embed_key: str) -> Any:
+def digging_meta_class(holder: type, ctor: type, embed_key: str, default: T) -> T:
 	"""クラスに埋め込まれたメタデータを抽出(クラス用)
 
 	Args:
 		holder (type): メタデータを保持するクラス
 		ctor (type): 抽出対象のクラス
 		embed_key (str): 抽出対象の埋め込みキー
+		default (T): メタデータが存在しない場合の返却値
 	Returns:
 		Any: メタデータ
 	Raises:
-		LogicError: メタデータが存在しない
+		LogicError: メタデータコンテナーが未定義
 	"""
 	if not hasattr(holder, MetaData.key):
-		raise LogicError(holder, ctor, embed_key)
+		raise LogicError(holder, ctor, embed_key, default)
 
 	meta_data = cast(MetaData, getattr(holder, MetaData.key))
-	return meta_data.fetch_from_class(ctor, embed_key)
+	return meta_data.fetch_from_class(ctor, embed_key) or default
 
 
 def digging_meta_method(holder: type, ctor: type, embed_key: str) -> dict[str, Any]:
@@ -180,7 +191,7 @@ def digging_meta_method(holder: type, ctor: type, embed_key: str) -> dict[str, A
 	Returns:
 		dict[str, Any]: メソッド毎のメタデータ
 	Raises:
-		LogicError: メタデータが存在しない
+		LogicError: メタデータコンテナーが未定義
 	"""
 	if not hasattr(holder, MetaData.key):
 		raise LogicError(holder, ctor, embed_key)
@@ -189,8 +200,23 @@ def digging_meta_method(holder: type, ctor: type, embed_key: str) -> dict[str, A
 	return meta_data.fetch_from_method(ctor, embed_key)
 
 
+def accept_tags(*tags: str) -> MetaFactory:
+	"""ノードに受け入れ対象のタグを埋め込む
+
+	Args:
+		*tags (str): 受け入れ対象のタグリスト
+	Returns:
+		MetaFactory: 埋め込み関数
+	Usage:
+		@embed_meta(Node, accept_tags('class'))
+		class Class:
+			...
+	"""
+	return lambda: {EmbedKeys.AcceptTags: list(tags)}
+
+
 def expansionable(order: int) -> MetaFactory:
-	"""ノードにプロパティーとしてのタグと評価順序を埋め込む
+	"""ノードにプロパティーの評価順序を埋め込む
 
 	Args:
 		order (int): プロパティーの評価順序

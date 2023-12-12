@@ -3,9 +3,9 @@ from typing import Callable, cast, Iterator, TypeVar
 from lark import Token
 
 from py2cpp.ast.travarsal import ASTFinder
-from py2cpp.errors import NotFoundError
+from py2cpp.errors import LogicError, NotFoundError
 from py2cpp.lang.sequence import flatten
-from py2cpp.node.embed import digging_meta_method, EmbedKeys
+from py2cpp.node.embed import digging_meta_class, digging_meta_method, EmbedKeys
 from py2cpp.node.provider import Query
 from py2cpp.node.trait import ScopeTrait
 from py2cpp.tp_lark.types import Entry
@@ -251,13 +251,17 @@ class Node:
 			ctor (type[T]): 具象クラスの型
 		Returns:
 			T: 具象クラスのインスタンス
-		Note:
-			このメソッドで変換の妥当性は検証できないので、使う側が考慮すること
+		Raises:
+			LogicError: 許可されない変換先を指定
 		"""
 		if type(self) is ctor:
 			return cast(T, self)
-		else:
-			return ctor(self.__nodes, self.__entry, self.__full_path)
+
+		accept_tags: list[str] = digging_meta_class(Node, ctor, EmbedKeys.AcceptTags, default=[])
+		if len(accept_tags) and self.tag not in accept_tags:
+			raise LogicError(str(self), ctor)
+
+		return ctor(self.__nodes, self.__entry, self.__full_path)
 
 
 	def is_a(self, ctor: type['Node']) -> bool:

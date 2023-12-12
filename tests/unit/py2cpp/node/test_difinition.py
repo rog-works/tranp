@@ -83,12 +83,12 @@ class Parameter(Node):
 class Assign(Node):
 	@property
 	def symbol(self) -> Symbol:
-		return self._at(0).as_a(Symbol)
+		return self._by('assign')._at(0).as_a(Symbol)
 
 
 	@property
 	def value(self) -> Terminal:
-		return self._at(1).as_a(Terminal)
+		return self._by('assign')._at(1).as_a(Terminal)
 
 
 class Decorator(Node):
@@ -185,7 +185,7 @@ class Enum(Node):
 	@property
 	@embed_meta(Node, expansionable(order=0))
 	def variables(self) -> list[Assign]:
-		return [child.as_a(Assign) for child in self._leafs('assign')]
+		return [child.as_a(Assign) for child in self._leafs('assign_stmt')]
 
 
 class Fixture:
@@ -228,7 +228,7 @@ class Fixture:
 				Function: 'function_def',
 				Parameter: 'paramvalue',
 				If: 'if_stmt',
-				Assign: 'assign',
+				Assign: 'assign_stmt',
 				Block: 'block',
 				Empty: '__empty__',
 			},

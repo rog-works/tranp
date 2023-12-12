@@ -7,7 +7,7 @@ from lark.indenter import PythonIndenter
 
 
 def appdir() -> str:
-	return os.path.dirname(os.path.dirname(__file__))
+	return os.path.join(os.path.dirname(__file__), '../../')
 
 
 def load_file(filename: str) -> str:
@@ -38,9 +38,7 @@ def proc(parser: Lark) -> None:
 		print(traceback.format_exc())
 
 
-def main(args: dict[str, str]) -> None:
-	parser = Lark(load_file(args['grammar']), start='file_input', postlex=PythonIndenter(), parser='lalr')
-
+def run_interactive(parser: Lark) -> None:
 	while True:
 		proc(parser)
 
@@ -49,6 +47,45 @@ def main(args: dict[str, str]) -> None:
 			break
 
 
+def run_parse(parser: Lark, source: str) -> None:
+	print('file:', source)
+	print('==========')
+	print('AST')
+	print('----------')
+	print(parser.parse(load_file(source)).pretty())
+
+
+def main(runner: str, grammar: str, source: str) -> None:
+	parser = Lark(load_file(grammar), start='file_input', postlex=PythonIndenter(), parser='lalr')
+
+	if runner == 'interactive':
+		run_interactive(parser)
+	elif runner == 'file':
+		run_parse(parser, source)
+
+
+def parse_args(argv: list[str]) -> dict[str, str]:
+	runner = 'interactive'
+	grammar = ''
+	source = ''
+
+	while(len(argv)):
+		value = argv.pop(0)
+		if value == '-i':
+			runner = 'interactive'
+		elif value == '-f':
+			runner = 'file'
+			source = argv.pop(0)
+		elif value == '-g':
+			grammar = argv.pop(0)
+
+	return {
+		'runner': runner,
+		'grammar': grammar,
+		'source': source,
+	}
+
+
 if __name__ == '__main__':
-	_, grammar_file = sys.argv
-	main({'grammar': grammar_file})
+	_, *argv = sys.argv
+	main(**parse_args(argv))

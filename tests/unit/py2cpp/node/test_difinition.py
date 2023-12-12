@@ -122,7 +122,8 @@ class Function(Node):
 
 	@property
 	def return_type(self) -> Symbol | Empty:
-		return self._by('function_def_raw')._at(2).if_not_a_to_b(Empty, Symbol)
+		node = self._by('function_def_raw')._at(2)
+		return node._by('const_none').as_a(Empty) if node._exists('const_none') else node.as_a(Symbol)
 
 
 # class Constructor(Node, ScopeTrait): pass
@@ -300,4 +301,4 @@ class TestDefinition(TestCase):
 			self.assertEqual(parameter.param_type.symbol_name if type(parameter.param_type) is Symbol else 'Empty', expected['parameters'][index]['type'])
 			self.assertEqual(parameter.default_value.value if type(parameter.default_value) is Terminal else 'Empty', expected['parameters'][index]['default'])
 
-		self.assertEqual(node.return_type.symbol_name if type(node.return_type) is Symbol else 'Emptry', expected['return'])
+		self.assertEqual(node.return_type.symbol_name if type(node.return_type) is Symbol else 'Empty', expected['return'])

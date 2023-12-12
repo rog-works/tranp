@@ -225,11 +225,10 @@ class Nodes(Query[Node]):
 		"""指定のパスを子として親のノードをフェッチ
 
 		Args:
-			via (str): 基準のパス
+			via (str): 基点のパス
 		Returns:
 			Node: ノード
 		Raises:
-			LogicError: 基準パスが不正
 			NotFoundError: 親が存在しない
 		"""
 		forwards = via.split('.')[:-1]
@@ -248,11 +247,11 @@ class Nodes(Query[Node]):
 		"""指定のパスを基準に同階層のノードをフェッチ
 
 		Args:
-			via (str): 基準のパス(フルパス)
+			via (str): 基点のパス(フルパス)
 		Returns:
 			list[Node]: ノードリスト
 		Raises:
-			LogicError: 基準パスが不正
+			NotFouneError: 基点のノードが存在しない
 		"""
 		uplayer_path = '.'.join(via.split('.')[:-1])
 		regular = re.compile(rf'{self.__finder.escaped_path(uplayer_path)}\.[^.]+')
@@ -266,11 +265,11 @@ class Nodes(Query[Node]):
 		"""指定のパスを基準に1階層下のノードをフェッチ
 
 		Args:
-			via (str): 基準のパス(フルパス)
+			via (str): 基点のパス(フルパス)
 		Returns:
 			list[Node]: ノードリスト
 		Raises:
-			LogicError: 基準パスが不正
+			NotFouneError: 基点のノードが存在しない
 		"""
 		regular = re.compile(rf'{self.__finder.escaped_path(via)}\.[^.]+')
 		tester = lambda _, path: regular.fullmatch(path) is not None
@@ -283,12 +282,12 @@ class Nodes(Query[Node]):
 		"""指定のパスから下に存在する接尾辞が一致するノードをフェッチ
 
 		Args:
-			via (str): 基準のパス(フルパス)
+			via (str): 基点のパス(フルパス)
 			leaf_name (str): 接尾辞
 		Returns:
 			list[Node]: ノードリスト
 		Raises:
-			LogicError: 基準パスが不正
+			NotFouneError: 基点のノードが存在しない
 		"""
 		regular = re.compile(rf'{self.__finder.escaped_path(via)}\.(.+\.)?{leaf_tag}(\[\d+\])?')
 		tester = lambda _, path: regular.fullmatch(path) is not None
@@ -301,11 +300,11 @@ class Nodes(Query[Node]):
 		"""指定のパスから下に存在する展開が可能なノードをフェッチ
 
 		Args:
-			via (str): 基準のパス(フルパス)
+			via (str): 基点のパス(フルパス)
 		Returns:
 			list[Node]: ノードリスト
 		Raises:
-			LogicError: 基準パスが不正
+			NotFouneError: 基点のノードが存在しない
 		"""
 		memo: list[str] = []
 		def tester(entry: Entry, path: str) -> bool:
@@ -343,7 +342,7 @@ class Nodes(Query[Node]):
 	# 	"""指定のパスの下に仮想のノードを生成
 
 	# 	Args:
-	# 		via (str): 基準のパス(フルパス)
+	# 		via (str): 基点のパス(フルパス)
 	# 		entry_tag (str): 仮想エントリーのタグ名前
 	# 	Returns:
 	# 		Node: 生成した仮想ノード

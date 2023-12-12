@@ -160,11 +160,10 @@ class Query(Generic[T], metaclass=ABCMeta):
 		"""指定のパスを子として親のエントリーをフェッチ
 
 		Args:
-			via (str): 基準のパス(フルパス)
+			via (str): 基点のパス(フルパス)
 		Returns:
 			T: データ
 		Raises:
-			LogicError: 基準パスが不正
 			NotFoundError: 親が存在しない
 		"""
 		raise NotImplementedError()
@@ -175,11 +174,11 @@ class Query(Generic[T], metaclass=ABCMeta):
 		"""指定のパスを基準に同階層のエントリーをフェッチ
 
 		Args:
-			via (str): 基準のパス(フルパス)
+			via (str): 基点のパス(フルパス)
 		Returns:
 			list[T]: エントリーリスト
 		Raises:
-			LogicError: 基準パスが不正
+			NotFouneError: 基点のエントリーが存在しない
 		"""
 		raise NotImplementedError()
 
@@ -189,11 +188,11 @@ class Query(Generic[T], metaclass=ABCMeta):
 		"""指定のパスを基準に1階層下のエントリーをフェッチ
 
 		Args:
-			via (str): 基準のパス(フルパス)
+			via (str): 基点のパス(フルパス)
 		Returns:
 			list[T]: エントリーリスト
 		Raises:
-			LogicError: 基準パスが不正
+			NotFouneError: 基点のエントリーが存在しない
 		"""
 		raise NotImplementedError()
 
@@ -203,12 +202,12 @@ class Query(Generic[T], metaclass=ABCMeta):
 		"""指定のパスから下に存在する接尾辞が一致するエントリーをフェッチ
 
 		Args:
-			via (str): 基準のパス(フルパス)
+			via (str): 基点のパス(フルパス)
 			leaf_name (str): 接尾辞
 		Returns:
 			list[T]: エントリーリスト
 		Raises:
-			LogicError: 基準パスが不正
+			NotFouneError: 基点のエントリーが存在しない
 		"""
 		raise NotImplementedError()
 
@@ -218,11 +217,11 @@ class Query(Generic[T], metaclass=ABCMeta):
 		"""指定のパスから下に存在する展開が可能なエントリーをフェッチ
 
 		Args:
-			via (str): 基準のパス(フルパス)
+			via (str): 基点のパス(フルパス)
 		Returns:
 			list[T]: エントリーリスト
 		Raises:
-			LogicError: 基準パスが不正
+			NotFouneError: 基点のエントリーが存在しない
 		"""
 		raise NotImplementedError()
 
@@ -232,7 +231,7 @@ class Query(Generic[T], metaclass=ABCMeta):
 	# 	"""指定のパスの下に仮想のエントリーを生成
 
 	# 	Args:
-	# 		via (str): 基準のパス(フルパス)
+	# 		via (str): 基点のパス(フルパス)
 	# 		name (str): 仮想エントリーの名前
 	# 	Returns:
 	# 		T: 生成した仮想エントリー

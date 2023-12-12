@@ -270,6 +270,8 @@ class ASTFinder(Generic[T]):
 			depth (int): 探索深度(-1: 無制限)
 		Returns:
 			dict[str, Entry]: フルパスとエントリーのマップ
+		Raises:
+			NotFoundError: 基点のエントリーが存在しない
 		"""
 		entry = self.pluck(root, via)
 		all = self.full_pathfy(entry, via, depth)

@@ -192,7 +192,7 @@ class Node:
 		Returns:
 			list[Node]: ノードリスト
 		Raises:
-			LogicError: 基準パスが不正
+			NotFoundError: 基点のノードが存在しない
 		"""
 		via = self._to_full_path(relative_path) if relative_path else self.full_path
 		return [node for node in self.__nodes.siblings(via) if node.full_path != self.full_path]
@@ -207,7 +207,7 @@ class Node:
 		Returns:
 			list[Node]: ノードリスト
 		Raises:
-			LogicError: 基準パスが不正
+			NotFoundError: 基点のノードが存在しない
 		"""
 		via = self._to_full_path(relative_path) if relative_path else self.full_path
 		return self.__nodes.children(via)
@@ -220,8 +220,6 @@ class Node:
 			leaf_name (str): 接尾辞
 		Returns:
 			list[Node]: ノードリスト
-		Raises:
-			LogicError: 基準パスが不正
 		"""
 		return self.__nodes.leafs(self.full_path, leaf_tag)
 
@@ -231,8 +229,6 @@ class Node:
 
 		Returns:
 			list[Node]: ノードリスト
-		Raises:
-			LogicError: 基準パスが不正
 		"""
 		return self.__nodes.expansion(self.full_path)
 
@@ -250,7 +246,7 @@ class Node:
 		"""指定の具象クラスに変換。変換先が同じ場合は何もしない
 
 		Args:
-			cotor (type[T]): 具象クラスの型
+			ctor (type[T]): 具象クラスの型
 		Returns:
 			T: 具象クラスのインスタンス
 		Note:
@@ -263,12 +259,14 @@ class Node:
 
 
 	def is_a(self, ctor: type['Node']) -> bool:
-		"""指定のクラスか判定
+		"""指定のクラスのインスタンスか判定
 
 		Args:
 			ctor (type[Node]): クラス
 		Returns:
 			bool: True = 同じ
+		Note:
+			完全一致を判定するため、サブクラスも偽である点に注意
 		"""
 		return type(self) is ctor
 

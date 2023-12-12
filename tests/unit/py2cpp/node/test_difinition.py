@@ -1,6 +1,9 @@
+import os
+from typing import Optional
 from unittest import TestCase
 
-from lark import Token, Tree
+from lark import Lark, Tree
+from lark.indenter import PythonIndenter
 
 from py2cpp.lang.annotation import override
 from py2cpp.node.embed import embed_meta, expansionable
@@ -8,10 +11,10 @@ from py2cpp.node.node import Node
 from py2cpp.node.nodes import NodeResolver, Nodes
 from py2cpp.node.provider import Settings
 from py2cpp.node.trait import ScopeTrait
-from tests.test.helper import data_provider
 
 
 class Empty(Node): pass
+
 
 class Terminal(Node):
 	@property
@@ -146,60 +149,37 @@ class Enum(Node):
 
 
 class Fixture:
-	@classmethod
-	def tree(cls) -> Tree:
-		return Tree('file_input', [
-			Tree('class_def', [
-				Tree('decorators', [
-					Tree('decorator', [Tree('dotted_name', [Token('name', 'deco')]),
-						Tree('arguments', [
-							Tree('primary', [Tree('var', [Token('name', 'A') ])]),
-							Tree('getattr', [Tree('primary', [Tree('var', [Token('name', 'A') ])]), Token('name', 'B')]),
-						])
-					]),
-				]),
-				Tree('class_def_raw', [Token('name', 'Hoge'), Tree('block', [
-					Tree('enum_def', [Token('name', 'Values'), Tree('block', [
-						Tree('assign', [
-							Tree('primary', [Token('name', 'A')]),
-							Tree('primary', [Token('number', '0')]),
-						]),
-						Tree('assign', [
-							Tree('primary', [Token('name', 'B')]),
-							Tree('primary', [Token('number', '1')]),
-						]),
-					])]),
-					Tree('function_def', [
-						None,
-						Tree('function_def_raw', [Token('name', 'func1'), Tree('block', [
-							Tree('if', [Tree('block', [
-								Token('term_a', ''),
-							])]),
-						])]),
-					]),
-					Tree('function_def', [
-						None,
-						Tree('function_def_raw', [Token('name', 'func2'), Tree('block', [
-							Tree('if_stmt', [Tree('block', [
-								Token('term_a', ''),
-							])]),
-						])]),
-					]),
-				]),
-			])]),
-			Tree('function_def', [
-				None,
-				Tree('function_def_raw', [Token('name', 'func3'), Tree('block', [
-					Tree('if_stmt', [Tree('block', [
-						Token('term_a', ''),
-					])]),
-				])]),
-			]),
-		])
+	__inst: Optional['Fixture'] = None
 
 
 	@classmethod
-	def resolver(cls) -> NodeResolver:
+	@property
+	def inst(cls) -> 'Fixture':
+		if cls.__inst is None:
+			cls.__inst = cls()
+
+		return cls.__inst
+
+
+	def __init__(self) -> None:
+		self.__tree = self.__parse_tree(self.__load_parser())
+
+
+	def __load_parser(self) -> Lark:
+		dir = os.path.join(os.path.dirname(__file__), '../../../../')
+		with open(os.path.join(dir, 'data/grammar.lark')) as f:
+			return Lark(f, start='file_input', postlex=PythonIndenter(), parser='lalr')
+
+
+	def __parse_tree(self, parser: Lark) -> Tree:
+		filepath, _ = __file__.split('.')
+		fixture_path = f'{filepath}.fixture.py'
+		with open(fixture_path) as f:
+			source = '\n'.join(f.readlines())
+			return parser.parse(source)
+
+
+	def resolver(self) -> NodeResolver:
 		return NodeResolver.load(Settings(
 			symbols={
 				FileInput: 'file_input',
@@ -215,14 +195,17 @@ class Fixture:
 		))
 
 
-	@classmethod
-	def nodes(cls) -> Nodes:
-		return Nodes(cls.tree(), cls.resolver())
+	def nodes(self) -> Nodes:
+		return Nodes(self.__tree, self.resolver())
+
+
+	def dump(self) -> None:
+		print(self.__tree.pretty())
 
 
 class TestDefinitionEnum(TestCase):
 	def test_schema(self) -> None:
-		nodes = Fixture.nodes()
+		nodes = Fixture.inst.nodes()
 		node = nodes.by('file_input.class_def.class_def_raw.block.enum_def').as_a(Enum)
 		self.assertEqual(node.enum_name.value, 'Values')
 		self.assertEqual(node.variables[0].symbol.symbol_name, 'A')
@@ -233,7 +216,7 @@ class TestDefinitionEnum(TestCase):
 
 class TestDefinitionClass(TestCase):
 	def test_schema(self) -> None:
-		nodes = Fixture.nodes()
+		nodes = Fixture.inst.nodes()
 		node = nodes.by('file_input.class_def').as_a(Class)
 		self.assertEqual(node.class_name.value, 'Hoge')
 		self.assertEqual(node.decorators[0].symbol.symbol_name, 'deco')
@@ -244,7 +227,7 @@ class TestDefinitionClass(TestCase):
 
 class TestDefinitionFunction(TestCase):
 	def test_schema(self) -> None:
-		nodes = Fixture.nodes()
+		nodes = Fixture.inst.nodes()
 		node = nodes.by('file_input.function_def').as_a(Function)
 		self.assertEqual(node.function_name.value, 'func3')
 		self.assertEqual(node.decorators, [])

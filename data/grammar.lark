@@ -176,7 +176,6 @@ primary: primary "." name -> getattr
 slices: slice | slice (("," slice)+ [","] | ",")
 slice: expression
 
-// @note: Lark: atom: name -> var
 atom: name -> var
 	| "True" -> const_true
 	| "False" -> const_false

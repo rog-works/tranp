@@ -126,6 +126,12 @@ class Function(Node):
 		return node._by('const_none').as_a(Empty) if node._exists('const_none') else node.as_a(Symbol)
 
 
+	@property
+	@embed_meta(Node, expansionable(order=0))
+	def block(self) -> Block:
+		return self._by('function_def_raw.block').as_a(Block)
+
+
 # class Constructor(Node, ScopeTrait): pass
 # class Method(Node, ScopeTrait): pass
 # class ClassMethod(Node, ScopeTrait): pass
@@ -302,3 +308,4 @@ class TestDefinition(TestCase):
 			self.assertEqual(parameter.default_value.value if type(parameter.default_value) is Terminal else 'Empty', expected['parameters'][index]['default'])
 
 		self.assertEqual(node.return_type.symbol_name if type(node.return_type) is Symbol else 'Empty', expected['return'])
+		self.assertEqual(type(node.block), Block)

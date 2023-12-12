@@ -4,13 +4,13 @@ class Hoge:
 		A = 0
 		B = 1
 
-	def func1(self) -> None:
+	def func1(self, value: int) -> None:
 		if True:
 			a
 
-	def func2(self) -> None:
+	def func2(self, text: str) -> None:
 		if False:
 			b
 
-def func3() -> None:
+def func3(ok: bool) -> None:
 	pass

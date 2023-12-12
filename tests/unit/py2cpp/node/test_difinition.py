@@ -63,6 +63,22 @@ class Symbol(Node):
 		return '.'.join([node.value for node in self.flatten() if type(node) is Terminal])
 
 
+class Parameter(Node):
+	@property
+	def param_name(self) -> Symbol:
+		return self._by('typedparam.name').as_a(Symbol)
+
+
+	@property
+	def param_type(self) -> Symbol:  # XXX 厳密にいうとシンボル以外も有り得るが、C++互換なら考慮は要らない
+		return self._by('typedparam')._at(1).as_a(Symbol)
+
+
+	@property
+	def default_value(self) -> Terminal:  # XXX 空を判定する必要あり
+		return self._at(1).as_a(Terminal)
+
+
 class Assign(Node):
 	@property
 	def symbol(self) -> Symbol:
@@ -99,8 +115,8 @@ class Function(Node):
 
 
 	@property
-	def parameters(self) -> list[Symbol]:
-		return [node.as_a(Symbol) for node in self._leafs('primary')]
+	def parameters(self) -> list[Parameter]:
+		return [node.as_a(Parameter) for node in self._children('function_def_raw.parameters')]
 
 
 # class Constructor(Node, ScopeTrait): pass
@@ -204,6 +220,7 @@ class Fixture:
 				Class: 'class_def',
 				Enum: 'enum_def',
 				Function: 'function_def',
+				Parameter: 'paramvalue',
 				If: 'if_stmt',
 				Assign: 'assign',
 				Block: 'block',
@@ -253,3 +270,6 @@ class TestDefinitionFunction(TestCase):
 			.statements[1].as_a(Function)
 		self.assertEqual(node.function_name.value, 'func3')
 		self.assertEqual(node.decorators, [])
+		self.assertEqual(node.parameters[0].param_name.symbol_name, 'ok')
+		self.assertEqual(node.parameters[0].param_type.symbol_name, 'bool')
+		self.assertEqual(node.parameters[0].default_value.value, '')

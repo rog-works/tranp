@@ -242,7 +242,7 @@ class TestDefinitionEnum(TestCase):
 	def test_schema(self) -> None:
 		nodes = Fixture.inst.nodes()
 		node = nodes.by('file_input').as_a(FileInput) \
-			.statements[0].as_a(Class).block \
+			.statements[1].as_a(Class).block \
 			.statements[0].as_a(Enum)
 		self.assertEqual(node.enum_name.value, 'Values')
 		self.assertEqual(node.variables[0].symbol.symbol_name, 'A')
@@ -255,7 +255,7 @@ class TestDefinitionClass(TestCase):
 	def test_schema(self) -> None:
 		nodes = Fixture.inst.nodes()
 		node = nodes.by('file_input').as_a(FileInput) \
-			.statements[0].as_a(Class)
+			.statements[1].as_a(Class)
 		self.assertEqual(node.class_name.value, 'Hoge')
 		self.assertEqual(node.decorators[0].symbol.symbol_name, 'deco')
 		self.assertEqual(node.decorators[0].arguments[0].symbol_name, 'A')
@@ -267,7 +267,7 @@ class TestDefinitionFunction(TestCase):
 	def test_schema(self) -> None:
 		nodes = Fixture.inst.nodes()
 		node = nodes.by('file_input').as_a(FileInput) \
-			.statements[1].as_a(Function)
+			.statements[2].as_a(Function)
 		self.assertEqual(node.function_name.value, 'func3')
 		self.assertEqual(node.decorators, [])
 		self.assertEqual(node.parameters[0].param_name.symbol_name, 'ok')

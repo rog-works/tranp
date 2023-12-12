@@ -38,9 +38,9 @@ class TestEmbed(TestCase):
 
 
 		@embed_meta(MetaHolder, accept_tags('hoge'))
-		class A: pass
+		class B: pass
 
-		class_meta: list[str] = digging_meta_class(MetaHolder, A, EmbedKeys.AcceptTags, default=[])
+		class_meta: list[str] = digging_meta_class(MetaHolder, B, EmbedKeys.AcceptTags, default=[])
 		self.assertEqual(class_meta, ['hoge'])
 
 
@@ -48,7 +48,7 @@ class TestEmbed(TestCase):
 		class MetaHolder: pass
 
 
-		class A:
+		class C:
 			@property
 			@embed_meta(MetaHolder, expansionable(order=0))
 			def prop0(self) -> int:
@@ -61,6 +61,6 @@ class TestEmbed(TestCase):
 				return 1
 
 
-		method_meta = digging_meta_method(MetaHolder, A, EmbedKeys.Expansionable)
+		method_meta = digging_meta_method(MetaHolder, C, EmbedKeys.Expansionable)
 		self.assertEqual(method_meta['prop0'], 0)
 		self.assertEqual(method_meta['prop1'], 1)

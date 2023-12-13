@@ -61,12 +61,30 @@ class Block(Node, ScopeTrait):
 class If(Node): pass
 
 
+@embed_meta(Node, accept_tags('getattr'))
+class SelfSymbol(Node):
+	@override
+	def to_string(self) -> str:
+		return '.'.join([node.to_string() for node in self._flatten()])
+
+
 @embed_meta(Node, accept_tags('dotted_name', 'getattr', 'primary', 'var', 'name', 'argvalue'))
 class Symbol(Node):
 	@override
 	def to_string(self) -> str:
 		return '.'.join([node.to_string() for node in self._flatten()])
 
+
+	@override
+	def actualize(self) -> Node:
+		if self.__feature_self():
+			return self.as_a(SelfSymbol)
+
+		return super().actualize()
+
+
+	def __feature_self(self) -> bool:
+		return self.to_string() == 'self'
 
 
 @embed_meta(Node, accept_tags('paramevalue'))
@@ -122,7 +140,7 @@ class Argument(Node):
 
 
 @embed_meta(Node, accept_tags('assign_stmt'))
-class Assign(Node):
+class MoveAssign(Node):
 	@property
 	def symbol(self) -> Symbol:
 		return self._by('assign')._at(0).as_a(Symbol)
@@ -131,6 +149,68 @@ class Assign(Node):
 	@property
 	def value(self) -> Node:
 		return self._by('assign')._at(1).as_a(Expression).actualize()
+
+
+@embed_meta(Node, accept_tags('assign_stmt'))
+class AnnoAssign(Node):
+	@property
+	def symbol(self) -> Symbol:
+		return self._by('anno_assign')._at(0).as_a(Symbol)
+
+
+	@property
+	def variable_type(self) -> Symbol:
+		return self._by('anno_assign')._at(1).as_a(Symbol)
+
+
+	@property
+	def value(self) -> Node:
+		return self._by('anno_assign')._at(2).as_a(Expression).actualize()
+
+
+@embed_meta(Node, accept_tags('assign_stmt'))
+class AugAssign(Node):
+	@property
+	def symbol(self) -> Symbol:
+		return self._by('aug_assign')._at(0).as_a(Symbol)
+
+
+	@property
+	def operator(self) -> Terminal:
+		return self._by('aug_assign')._at(1).as_a(Terminal)
+
+
+	@property
+	def value(self) -> Node:
+		return self._by('aug_assign')._at(2).as_a(Expression).actualize()
+
+
+@embed_meta(Node, accept_tags('assign_stmt'))
+class Assign(Node):
+	@override
+	def actualize(self) -> Node:
+		features = {
+			MoveAssign: lambda: self._exists('assign'),
+			AnnoAssign: lambda: self._exists('anno_assign'),
+			AugAssign: lambda: self._exists('aug_assign'),
+		}
+		for ctor, feature in features.items():
+			if feature():
+				return self.as_a(ctor)
+
+		return super().actualize()
+
+
+@embed_meta(Node, accept_tags('assign_stmt'))
+class Variable(Node):
+	@property
+	def symbol(self) -> Symbol:
+		return self._by('anno_assign')._at(0).as_a(Symbol)
+
+
+	@property
+	def variable_type(self) -> Symbol:
+		return self._by('anno_assign')._at(1).as_a(Symbol)
 
 
 @embed_meta(Node, accept_tags('decorator'))
@@ -175,9 +255,16 @@ class Function(Node):
 		return self._by('function_def_raw.block').as_a(Block)
 
 
-# class Constructor(Node, ScopeTrait): pass
-# class Method(Node, ScopeTrait): pass
-# class ClassMethod(Node, ScopeTrait): pass
+class Constructor(Function):
+	@property
+	def decl_variables(self) -> list[Variable]:
+		assigns = [node.as_a(AnnoAssign) for node in self.block._children() if node.is_a(AnnoAssign)]
+		variables = [node.as_a(Variable) for node in assigns if node.variable_type.is_a(SelfSymbol)]
+		return list(set(variables))
+
+
+class ClassMethod(Function): pass
+class Method(Function): pass
 
 
 @embed_meta(Node, accept_tags('class_def'))
@@ -198,26 +285,31 @@ class Class(Node):
 		return [node.as_a(Decorator) for node in self._children('decorators')] if self._exists('decorators') else []
 
 
-	# @property
-	# def constructor_exists(self) -> bool:
-	# 	candidates = [node.as_a(Constructor) for node in self._leafs('class_raw.block.function') if node.is_a(Constructor)]
-	# 	return len(candidates) == 1
+	@property
+	def constructor_exists(self) -> bool:
+		candidates = [node.as_a(Constructor) for node in self.block._children() if node.is_a(Constructor)]
+		return len(candidates) == 1
 
 
-	# @property
-	# def constructor(self) -> Constructor:
-	# 	return [node.as_a(Constructor) for node in self._leafs('class_raw.block.function') if node.is_a(Constructor)].pop()
+	@property
+	def constructor(self) -> Constructor:
+		return [node.as_a(Constructor) for node in self.block._children() if node.is_a(Constructor)].pop()
 
 
-	# @property
-	# def methods(self) -> list[Method]:
-	# 	return [node.as_a(Method) for node in self._leafs('class_raw.block.function') if node.is_a(Method)]
+	@property
+	def methods(self) -> list[Method]:
+		return [node.as_a(Method) for node in self.block._children() if node.is_a(Method)]
 
 
 	@property
 	@embed_meta(Node, expansionable(order=0))
 	def block(self) -> Block:
 		return self._by('class_def_raw.block').as_a(Block)
+
+
+	@property
+	def variables(self) -> list[Variable]:
+		return self.constructor.decl_variables if self.constructor_exists else []
 
 
 @embed_meta(Node, accept_tags('enum_def'))
@@ -235,8 +327,8 @@ class Enum(Node):
 
 	@property
 	@embed_meta(Node, expansionable(order=0))
-	def variables(self) -> list[Assign]:
-		return [child.as_a(Assign) for child in self._leafs('assign_stmt')]
+	def variables(self) -> list[MoveAssign]:
+		return [child.as_a(MoveAssign) for child in self._leafs('assign_stmt')]
 
 
 class Fixture:

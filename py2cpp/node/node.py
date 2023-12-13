@@ -3,7 +3,7 @@ from typing import cast, Iterator, TypeVar
 from py2cpp.ast.travarsal import ASTFinder
 from py2cpp.errors import LogicError, NotFoundError
 from py2cpp.lang.sequence import flatten
-from py2cpp.node.embed import digging_meta_class, digging_meta_method, EmbedKeys
+from py2cpp.node.embed import EmbedKeys, Meta
 from py2cpp.node.provider import Query
 from py2cpp.node.trait import ScopeTrait
 
@@ -133,7 +133,7 @@ class Node:
 			@see trans.node.embed.expansionable
 			FIEME クラスの継承ツリーを考慮する必要あり
 		"""
-		meta = digging_meta_method(Node, self.__class__, EmbedKeys.Expansionable)
+		meta = Meta.dig_for_method(Node, self.__class__, EmbedKeys.Expansionable)
 		order_on_keys = {cast(int, value): name for name, value in meta.items()}
 		return [prop_key for _, prop_key in sorted(order_on_keys.items(), key=lambda index: index)]
 
@@ -250,7 +250,7 @@ class Node:
 
 
 	def as_a(self, ctor: type[T]) -> T:
-		"""指定の具象クラスに変換。変換先が同じ場合は何もしない
+		"""指定の具象クラスに変換。変換先が同種の場合はキャストするのみ
 
 		Args:
 			ctor (type[T]): 具象クラスの型
@@ -259,10 +259,11 @@ class Node:
 		Raises:
 			LogicError: 許可されない変換先を指定
 		"""
-		if type(self) is ctor:
+		# 自身が指定のクラスと同種(同じか派生クラス)の場合はキャストのみ
+		if self.is_a(ctor):
 			return cast(T, self)
 
-		accept_tags: list[str] = digging_meta_class(Node, ctor, EmbedKeys.AcceptTags, default=[])
+		accept_tags: list[str] = Meta.dig_for_class(Node, ctor, EmbedKeys.AcceptTags, default=[])
 		if len(accept_tags) and self.tag not in accept_tags:
 			raise LogicError(str(self), ctor)
 
@@ -270,16 +271,14 @@ class Node:
 
 
 	def is_a(self, ctor: type['Node']) -> bool:
-		"""指定のクラスのインスタンスか判定
+		"""指定のクラスと同種(同じか派生クラス)のインスタンスか判定
 
 		Args:
-			ctor (type[Node]): クラス
+			ctor (type[Node]): 判定するクラス
 		Returns:
-			bool: True = 同じ
-		Note:
-			完全一致を判定するため、サブクラスも偽である点に注意
+			bool: True = 同種
 		"""
-		return type(self) is ctor
+		return isinstance(self, ctor)
 
 
 	def if_not_a_to_b(self, reject_type: type[T_A], expect_type: type[T_B]) -> T_A | T_B:
@@ -294,14 +293,42 @@ class Node:
 		return cast(reject_type, self) if type(self) is reject_type else self.as_a(expect_type)
 
 
+	@classmethod
+	def match_feature(cls, via: 'Node') -> bool:
+		"""引数のノードが自身の特徴と一致するか判定
+		一致すると判断されたノードはactualizeにより変換される
+		条件判定は派生クラス側で実装
+
+		Args:
+			via (Node): 変換前のノード
+		Returns:
+			bool: True = 一致
+		Note:
+			@see actualize, _features
+		"""
+		return False
+
+
+	def _features(self) -> list[type['Node']]:
+		"""メタデータより自身に紐づけられた特徴クラス(=派生クラス)を抽出
+
+		Returns:
+			list[type[Node]]: 特徴クラスのリスト
+		"""
+		meta: dict[type, type] = Meta.dig_by_key_for_class(Node, EmbedKeys.Actualized)
+		return [feature_class for feature_class, via in meta.items() if via is self.__class__]
+
+
 	def actualize(self) -> 'Node':
-		"""ASTの相関関係より判断した実体としてより適切な具象クラスのインスタンスに変換。具象側で実装
+		"""ASTの相関関係より判断した実体としてより適切な具象クラスのインスタンスに変換。条件は具象側で実装
 
 		Returns:
 			Node: 具象クラスのインスタンス
-		Note:
-			基底クラスでは判断できないため、デフォルトでは自分自身を返却
 		"""
+		for feature in self._features():
+			if feature.match_feature(self):
+				return self.as_a(feature)
+
 		return self
 
 

@@ -3,10 +3,8 @@ from unittest import TestCase
 from py2cpp.node.embed import (
 	accept_tags,
 	EmbedKeys,
-	embed_meta,
 	expansionable,
-	digging_meta_class,
-	digging_meta_method,
+	Meta,
 )
 
 
@@ -17,16 +15,16 @@ class TestEmbed(TestCase):
 		class MetaHolder: pass
 
 
-		@embed_meta(MetaHolder, lambda: {'__test_class_meta__': 1})
+		@Meta.embed(MetaHolder, lambda: {'__test_class_meta__': 1})
 		class A:
-			@embed_meta(MetaHolder, lambda: {'__test_func_meta__': 2})
+			@Meta.embed(MetaHolder, lambda: {'__test_func_meta__': 2})
 			def prop(self, v: int) -> str:
 				return str(v)
 
 
 		a = A()
-		class_meta = digging_meta_class(MetaHolder, A, '__test_class_meta__', default=-1)
-		method_meta = digging_meta_method(MetaHolder, A, '__test_func_meta__')
+		class_meta = Meta.dig_for_class(MetaHolder, A, '__test_class_meta__', default=-1)
+		method_meta = Meta.dig_for_method(MetaHolder, A, '__test_func_meta__')
 		self.assertEqual(class_meta, 1)
 		self.assertEqual(method_meta['prop'], 2)
 		self.assertEqual(a.prop.__annotations__['v'], int)
@@ -37,10 +35,10 @@ class TestEmbed(TestCase):
 		class MetaHolder: pass
 
 
-		@embed_meta(MetaHolder, accept_tags('hoge'))
+		@Meta.embed(MetaHolder, accept_tags('hoge'))
 		class B: pass
 
-		class_meta: list[str] = digging_meta_class(MetaHolder, B, EmbedKeys.AcceptTags, default=[])
+		class_meta: list[str] = Meta.dig_for_class(MetaHolder, B, EmbedKeys.AcceptTags, default=[])
 		self.assertEqual(class_meta, ['hoge'])
 
 
@@ -50,17 +48,17 @@ class TestEmbed(TestCase):
 
 		class C:
 			@property
-			@embed_meta(MetaHolder, expansionable(order=0))
+			@Meta.embed(MetaHolder, expansionable(order=0))
 			def prop0(self) -> int:
 				return 0
 
 
 			@property
-			@embed_meta(MetaHolder, expansionable(order=1))
+			@Meta.embed(MetaHolder, expansionable(order=1))
 			def prop1(self) -> int:
 				return 1
 
 
-		method_meta = digging_meta_method(MetaHolder, C, EmbedKeys.Expansionable)
+		method_meta = Meta.dig_for_method(MetaHolder, C, EmbedKeys.Expansionable)
 		self.assertEqual(method_meta['prop0'], 0)
 		self.assertEqual(method_meta['prop1'], 1)

@@ -8,7 +8,7 @@ from lark.indenter import PythonIndenter
 from py2cpp.ast.travarsal import ASTFinder
 from py2cpp.lang.annotation import override
 from py2cpp.lang.sequence import flatten
-from py2cpp.node.embed import accept_tags, embed_meta, expansionable
+from py2cpp.node.embed import accept_tags, actualized, expansionable, Meta
 from py2cpp.node.node import Node
 from py2cpp.node.nodes import NodeResolver, Nodes
 from py2cpp.node.provider import Settings
@@ -19,11 +19,11 @@ from tests.test.helper import data_provider
 class Terminal(Node): pass
 
 
-@embed_meta(Node, accept_tags('__empty__', 'const_none'))
+@Meta.embed(Node, accept_tags('__empty__', 'const_none'))
 class Empty(Node): pass
 
 
-@embed_meta(Node, accept_tags('file_input'))
+@Meta.embed(Node, accept_tags('file_input'))
 class FileInput(Node):
 	@property
 	@override
@@ -44,50 +44,39 @@ class FileInput(Node):
 
 
 	@property
-	@embed_meta(Node, expansionable(order=0))
+	@Meta.embed(Node, expansionable(order=0))
 	def statements(self) -> list[Node]:
 		return self._children()
 
 
-@embed_meta(Node, accept_tags('block'))
+@Meta.embed(Node, accept_tags('block'))
 class Block(Node, ScopeTrait):
 	@property
-	@embed_meta(Node, expansionable(order=0))
+	@Meta.embed(Node, expansionable(order=0))
 	def statements(self) -> list[Node]:
 		return self._children()
 
 
-@embed_meta(Node, accept_tags('if_stmt'))
+@Meta.embed(Node, accept_tags('if_stmt'))
 class If(Node): pass
 
 
-@embed_meta(Node, accept_tags('getattr'))
-class SelfSymbol(Node):
-	@override
-	def to_string(self) -> str:
-		return '.'.join([node.to_string() for node in self._flatten()])
-
-
-@embed_meta(Node, accept_tags('dotted_name', 'getattr', 'primary', 'var', 'name', 'argvalue'))
+@Meta.embed(Node, accept_tags('dotted_name', 'getattr', 'primary', 'var', 'name', 'argvalue'))
 class Symbol(Node):
 	@override
 	def to_string(self) -> str:
 		return '.'.join([node.to_string() for node in self._flatten()])
 
 
+@Meta.embed(Node, accept_tags('getattr'), actualized(via=Symbol))
+class SelfSymbol(Symbol):
+	@classmethod
 	@override
-	def actualize(self) -> Node:
-		if self.__feature_self():
-			return self.as_a(SelfSymbol)
-
-		return super().actualize()
+	def match_feature(cls, via: Node) -> bool:
+		return via.to_string() == 'self'
 
 
-	def __feature_self(self) -> bool:
-		return self.to_string() == 'self'
-
-
-@embed_meta(Node, accept_tags('paramevalue'))
+@Meta.embed(Node, accept_tags('paramevalue'))
 class Parameter(Node):
 	@property
 	def param_symbol(self) -> Symbol:
@@ -131,77 +120,86 @@ class Expression(Node):
 		return True
 
 
-@embed_meta(Node, accept_tags('argvalue'))
+@Meta.embed(Node, accept_tags('argvalue'))
 class Argument(Node):
 	@property
-	@embed_meta(Node, expansionable(order=0))
+	@Meta.embed(Node, expansionable(order=0))
 	def value(self) -> Node:
 		return self.as_a(Expression).actualize()
 
 
-@embed_meta(Node, accept_tags('assign_stmt'))
-class MoveAssign(Node):
+@Meta.embed(Node, accept_tags('assign_stmt'))
+class Assign(Node):
+	@property
+	def _elements(self) -> list[Node]:
+		return self._at(0)._children()
+
+
+@Meta.embed(Node, accept_tags('assign_stmt'), actualized(via=Assign))
+class MoveAssign(Assign):
+	@classmethod
+	@override
+	def match_feature(cls, via: Node) -> bool:
+		return via._exists('assign')
+
+
 	@property
 	def symbol(self) -> Symbol:
-		return self._by('assign')._at(0).as_a(Symbol)
+		return self._elements[0].as_a(Symbol)
 
 
 	@property
 	def value(self) -> Node:
-		return self._by('assign')._at(1).as_a(Expression).actualize()
+		return self._elements[1].as_a(Expression).actualize()
 
 
-@embed_meta(Node, accept_tags('assign_stmt'))
-class AnnoAssign(Node):
+@Meta.embed(Node, accept_tags('assign_stmt'), actualized(via=Assign))
+class AnnoAssign(Assign):
+	@classmethod
+	@override
+	def match_feature(cls, via: Node) -> bool:
+		return via._exists('anno_assign')
+
+
 	@property
 	def symbol(self) -> Symbol:
-		return self._by('anno_assign')._at(0).as_a(Symbol)
+		return self._elements[0].as_a(Symbol)
 
 
 	@property
 	def variable_type(self) -> Symbol:
-		return self._by('anno_assign')._at(1).as_a(Symbol)
+		return self._elements[1].as_a(Symbol)
 
 
 	@property
 	def value(self) -> Node:
-		return self._by('anno_assign')._at(2).as_a(Expression).actualize()
+		return self._elements[2].as_a(Expression).actualize()
 
 
-@embed_meta(Node, accept_tags('assign_stmt'))
-class AugAssign(Node):
+@Meta.embed(Node, accept_tags('assign_stmt'), actualized(via=Assign))
+class AugAssign(Assign):
+	@classmethod
+	@override
+	def match_feature(cls, via: Node) -> bool:
+		return via._exists('aug_assign')
+
+
 	@property
 	def symbol(self) -> Symbol:
-		return self._by('aug_assign')._at(0).as_a(Symbol)
+		return self._elements[0].as_a(Symbol)
 
 
 	@property
 	def operator(self) -> Terminal:
-		return self._by('aug_assign')._at(1).as_a(Terminal)
+		return self._elements[1].as_a(Terminal)
 
 
 	@property
 	def value(self) -> Node:
-		return self._by('aug_assign')._at(2).as_a(Expression).actualize()
+		return self._elements[2].as_a(Expression).actualize()
 
 
-@embed_meta(Node, accept_tags('assign_stmt'))
-class Assign(Node):
-	@override
-	def actualize(self) -> Node:
-		features = {
-			MoveAssign: lambda: self._exists('assign'),
-			AnnoAssign: lambda: self._exists('anno_assign'),
-			AugAssign: lambda: self._exists('aug_assign'),
-		}
-		for ctor, feature in features.items():
-			if feature():
-				return self.as_a(ctor)
-
-		return super().actualize()
-
-
-@embed_meta(Node, accept_tags('assign_stmt'))
+@Meta.embed(Node, accept_tags('assign_stmt'))
 class Variable(Node):
 	@property
 	def symbol(self) -> Symbol:
@@ -213,7 +211,7 @@ class Variable(Node):
 		return self._by('anno_assign')._at(1).as_a(Symbol)
 
 
-@embed_meta(Node, accept_tags('decorator'))
+@Meta.embed(Node, accept_tags('decorator'))
 class Decorator(Node):
 	@property
 	def symbol(self) -> Symbol:
@@ -221,12 +219,12 @@ class Decorator(Node):
 
 
 	@property
-	@embed_meta(Node, expansionable(order=0))
+	@Meta.embed(Node, expansionable(order=0))
 	def arguments(self) -> list[Argument]:
 		return [node.as_a(Argument) for node in self._children('arguments')]
 
 
-@embed_meta(Node, accept_tags('function_def'))
+@Meta.embed(Node, accept_tags('function_def'))
 class Function(Node):
 	@property
 	def function_name(self) -> Terminal:
@@ -250,7 +248,7 @@ class Function(Node):
 
 
 	@property
-	@embed_meta(Node, expansionable(order=0))
+	@Meta.embed(Node, expansionable(order=0))
 	def block(self) -> Block:
 		return self._by('function_def_raw.block').as_a(Block)
 
@@ -267,7 +265,7 @@ class ClassMethod(Function): pass
 class Method(Function): pass
 
 
-@embed_meta(Node, accept_tags('class_def'))
+@Meta.embed(Node, accept_tags('class_def'))
 class Class(Node):
 	@property
 	@override
@@ -286,6 +284,15 @@ class Class(Node):
 
 
 	@property
+	def parents(self) -> list[Symbol]:
+		parents = self._by('class_def_raw')._at(1)
+		if parents.is_a(Empty):
+			return []
+
+		return [node.as_a(Symbol) for node in parents if node.is_a(Symbol)]  # FIXME
+
+
+	@property
 	def constructor_exists(self) -> bool:
 		candidates = [node.as_a(Constructor) for node in self.block._children() if node.is_a(Constructor)]
 		return len(candidates) == 1
@@ -297,12 +304,17 @@ class Class(Node):
 
 
 	@property
+	def class_methods(self) -> list[ClassMethod]:
+		return [node.as_a(ClassMethod) for node in self.block._children() if node.is_a(ClassMethod)]
+
+
+	@property
 	def methods(self) -> list[Method]:
 		return [node.as_a(Method) for node in self.block._children() if node.is_a(Method)]
 
 
 	@property
-	@embed_meta(Node, expansionable(order=0))
+	@Meta.embed(Node, expansionable(order=0))
 	def block(self) -> Block:
 		return self._by('class_def_raw.block').as_a(Block)
 
@@ -312,7 +324,7 @@ class Class(Node):
 		return self.constructor.decl_variables if self.constructor_exists else []
 
 
-@embed_meta(Node, accept_tags('enum_def'))
+@Meta.embed(Node, accept_tags('enum_def'))
 class Enum(Node):
 	@property
 	@override
@@ -326,7 +338,7 @@ class Enum(Node):
 
 
 	@property
-	@embed_meta(Node, expansionable(order=0))
+	@Meta.embed(Node, expansionable(order=0))
 	def variables(self) -> list[MoveAssign]:
 		return [child.as_a(MoveAssign) for child in self._leafs('assign_stmt')]
 

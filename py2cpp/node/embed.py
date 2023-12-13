@@ -6,13 +6,13 @@ from py2cpp.errors import LogicError
 T = TypeVar('T')
 T_Wrapped = TypeVar('T_Wrapped', type, FunctionType)
 MetaFactory: TypeAlias = Callable[[], dict[str, Any]]
-EmbedMeta: TypeAlias = dict[str, dict[str, Any]]
 
 
 class EmbedKeys(NamedTuple):
 	"""埋め込みキー一覧"""
 
 	AcceptTags = 'allow_tags'
+	Actualized = 'actualized'
 	Expansionable = 'expansionable'
 
 
@@ -28,8 +28,8 @@ class MetaData:
 
 	def __init__(self) -> None:
 		"""インスタンスを生成"""
-		self.__classes: EmbedMeta = {}
-		self.__methods: EmbedMeta = {}
+		self.__classes: dict[type, dict[str, Any]] = {}
+		self.__methods: dict[FunctionType, dict[str, Any]] = {}
 
 
 	def class_path(self, ctor: type) -> str:
@@ -54,7 +54,7 @@ class MetaData:
 		return f'{method.__module__}.{method.__qualname__.split(".")[-2]}.{method.__name__}'
 
 
-	def for_class(self, ctor: type, embed_key: str, value: Any) -> None:
+	def set_for_class(self, ctor: type, embed_key: str, value: Any) -> None:
 		"""メタデータを設定(クラス用)
 
 		Args:
@@ -62,14 +62,13 @@ class MetaData:
 			embed_key (str): メタデータのキー
 			value (Any): メタデータの値
 		"""
-		path = self.class_path(ctor)
-		if path not in self.__classes:
-			self.__classes[path] = {}
+		if ctor not in self.__classes:
+			self.__classes[ctor] = {}
 
-		self.__classes[path][embed_key] = value
+		self.__classes[ctor][embed_key] = value
 
 
-	def for_method(self, method: FunctionType, embed_key: str, value: Any) -> None:
+	def set_for_method(self, method: FunctionType, embed_key: str, value: Any) -> None:
 		"""メタデータを設定(メソッド用)
 
 		Args:
@@ -77,14 +76,29 @@ class MetaData:
 			embed_key (str): メタデータのキー
 			value (Any): メタデータの値
 		"""
-		path = self.method_path(method)
-		if path not in self.__methods:
-			self.__methods[path] = {}
+		if method not in self.__methods:
+			self.__methods[method] = {}
 
-		self.__methods[path][embed_key] = value
+		self.__methods[method][embed_key] = value
 
 
-	def fetch_from_class(self, ctor: type, embed_key: str) -> Any:
+	def get_by_key_from_class(self, embed_key: str) -> dict[type, Any]:
+		"""メタデータを取得(クラス用)
+
+		Args:
+			method (FunctionType): 対象メソッド
+			embed_key (str): メタデータのキー
+		Returns:
+			dict[type, Any]: 対象クラスとメタデータのマップ
+		"""
+		return {
+			ctor: meta[embed_key]
+			for ctor, meta in self.__classes.items()
+			if embed_key in meta
+		}
+
+
+	def get_from_class(self, ctor: type, embed_key: str) -> Any:
 		"""メタデータを取得(クラス用)
 
 		Args:
@@ -95,27 +109,30 @@ class MetaData:
 		Note:
 			メタデータが存在しない場合はNoneを返却
 		"""
-		class_path = self.class_path(ctor)
-		if class_path not in self.__classes:
+		if ctor not in self.__classes:
 			return None
 
-		if embed_key not in self.__classes[class_path]:
+		if embed_key not in self.__classes[ctor]:
 			return None
 
-		return self.__classes[class_path][embed_key]
+		return self.__classes[ctor][embed_key]
 
 
-	def fetch_from_method(self, ctor: type, embed_key: str) -> dict[str, Any]:
+	def get_from_method(self, ctor: type, embed_key: str) -> dict[str, Any]:
 		"""メタデータを取得(メソッド用)
 
 		Args:
 			method (FunctionType): 対象メソッド
 			embed_key (str): メタデータのキー
 		Returns:
-			Any: メタデータの値
+			dict[str, Any]: 対象メソッドの名前とメタデータの値のマップ
 		"""
 		class_path = self.class_path(ctor)
-		class_in_meta = {in_path: meta for in_path, meta in self.__methods.items() if in_path.startswith(f'{class_path}.')}
+		class_in_meta = {
+			self.method_path(method): meta
+			for method, meta in self.__methods.items()
+			if self.method_path(method).startswith(f'{class_path}.')
+		}
 		return {
 			in_path.split('.')[-1]: meta[embed_key]
 			for in_path, meta in class_in_meta.items()
@@ -123,100 +140,141 @@ class MetaData:
 		}
 
 
-def embed_meta(holder: type, *factories: MetaFactory) -> Callable:
-	"""引数のクラスにメタデータを埋め込む
-	ラップ対象のオブジェクトに関しては何も手を加えずそのまま返却
-	埋め込み関数はメタデータを連想配列として返却する関数であれば何でも良い
+class Meta:
+	@classmethod
+	def embed(cls, holder: type, *factories: MetaFactory) -> Callable:
+		"""引数のクラスにメタデータを埋め込む
+		ラップ対象のオブジェクトに関しては何も手を加えずそのまま返却
+		埋め込み関数はメタデータを連想配列として返却する関数であれば何でも良い
 
-	Args:
-		holder (type): メタデータを保持するクラス
-		*factories (MetaFactory): 埋め込み関数のリスト
-	Returns:
-		Callable: デコレーター
-	Usage:
-		```python
-		@embed_meta(MetaHolder, lambda: {'__embed_class_key__': 1})
-		class A:
-			@embed_meta(MetaHolder, lambda: {'__embed_func_key__': 2})
-			def func(self) -> None:
-				...
-		```
-	"""
-	def decorator(wrapped: T_Wrapped) -> T_Wrapped:
-		for factory in factories:
-			for embed_key, value in factory().items():
-				if not hasattr(holder, MetaData.key):
-					setattr(holder, MetaData.key, MetaData())
+		Args:
+			holder (type): メタデータを保持するクラス
+			*factories (MetaFactory): 埋め込み関数のリスト
+		Returns:
+			Callable: デコレーター
+		Usage:
+			```python
+			@Meta.embed(MetaHolder, lambda: {'__embed_class_key__': 1})
+			class A:
+				@Meta.embed(MetaHolder, lambda: {'__embed_func_key__': 2})
+				def func(self) -> None:
+					...
+			```
+		"""
+		def decorator(wrapped: T_Wrapped) -> T_Wrapped:
+			for factory in factories:
+				for embed_key, value in factory().items():
+					if not hasattr(holder, MetaData.key):
+						setattr(holder, MetaData.key, MetaData())
 
-				meta_data = cast(MetaData, getattr(holder, MetaData.key))
-				if type(wrapped) is FunctionType:
-					meta_data.for_method(wrapped, embed_key, value)
-				else:
-					meta_data.for_class(wrapped, embed_key, value)
+					meta_data = cast(MetaData, getattr(holder, MetaData.key))
+					if type(wrapped) is FunctionType:
+						meta_data.set_for_method(wrapped, embed_key, value)
+					else:
+						meta_data.set_for_class(wrapped, embed_key, value)
 
-				setattr(holder, MetaData.key, meta_data)
+					setattr(holder, MetaData.key, meta_data)
 
-		return wrapped
+			return wrapped
 
-	return decorator
-
-
-def digging_meta_class(holder: type, ctor: type, embed_key: str, default: T) -> T:
-	"""クラスに埋め込まれたメタデータを抽出(クラス用)
-
-	Args:
-		holder (type): メタデータを保持するクラス
-		ctor (type): 抽出対象のクラス
-		embed_key (str): 抽出対象の埋め込みキー
-		default (T): メタデータが存在しない場合の返却値
-	Returns:
-		Any: メタデータ
-	Raises:
-		LogicError: メタデータコンテナーが未定義
-	"""
-	if not hasattr(holder, MetaData.key):
-		raise LogicError(holder, ctor, embed_key, default)
-
-	meta_data = cast(MetaData, getattr(holder, MetaData.key))
-	return meta_data.fetch_from_class(ctor, embed_key) or default
+		return decorator
 
 
-def digging_meta_method(holder: type, ctor: type, embed_key: str) -> dict[str, Any]:
-	"""クラスに埋め込まれたメタデータを抽出(メソッド用)
+	@classmethod
+	def dig_by_key_for_class(cls, holder, embed_key: str) -> dict[type, Any]:
+		"""クラスに埋め込まれたメタデータを抽出(クラス用)
 
-	Args:
-		holder (type): メタデータを保持するクラス
-		ctor (type): 抽出対象のクラス
-		embed_key (str): 抽出対象の埋め込みキー
-	Returns:
-		dict[str, Any]: メソッド毎のメタデータ
-	Raises:
-		LogicError: メタデータコンテナーが未定義
-	"""
-	if not hasattr(holder, MetaData.key):
-		raise LogicError(holder, ctor, embed_key)
+		Args:
+			holder (type): メタデータを保持するクラス
+			embed_key (str): 抽出対象の埋め込みキー
+		Returns:
+			dict[type, Any]: 対象クラスとメタデータのマップ
+		Raises:
+			LogicError: メタデータコンテナーが未定義
+		"""
+		if not hasattr(holder, MetaData.key):
+			raise LogicError(holder, embed_key)
 
-	meta_data = cast(MetaData, getattr(holder, MetaData.key))
-	return meta_data.fetch_from_method(ctor, embed_key)
+		meta_data = cast(MetaData, getattr(holder, MetaData.key))
+		return meta_data.get_by_key_from_class(embed_key)
+
+
+	@classmethod
+	def dig_for_class(cls, holder: type, ctor: type, embed_key: str, default: T) -> T:
+		"""クラスに埋め込まれたメタデータを抽出(クラス用)
+
+		Args:
+			holder (type): メタデータを保持するクラス
+			ctor (type): 抽出対象のクラス
+			embed_key (str): 抽出対象の埋め込みキー
+			default (T): メタデータが存在しない場合の返却値
+		Returns:
+			Any: メタデータ
+		Raises:
+			LogicError: メタデータコンテナーが未定義
+		"""
+		if not hasattr(holder, MetaData.key):
+			raise LogicError(holder, ctor, embed_key, default)
+
+		meta_data = cast(MetaData, getattr(holder, MetaData.key))
+		return meta_data.get_from_class(ctor, embed_key) or default
+
+
+	@classmethod
+	def dig_for_method(cls, holder: type, ctor: type, embed_key: str) -> dict[str, Any]:
+		"""クラスに埋め込まれたメタデータを抽出(メソッド用)
+
+		Args:
+			holder (type): メタデータを保持するクラス
+			ctor (type): 抽出対象のクラス
+			embed_key (str): 抽出対象の埋め込みキー
+		Returns:
+			dict[str, Any]: メソッド毎のメタデータ
+		Raises:
+			LogicError: メタデータコンテナーが未定義
+		"""
+		if not hasattr(holder, MetaData.key):
+			raise LogicError(holder, ctor, embed_key)
+
+		meta_data = cast(MetaData, getattr(holder, MetaData.key))
+		return meta_data.get_from_method(ctor, embed_key)
 
 
 def accept_tags(*tags: str) -> MetaFactory:
-	"""ノードに受け入れ対象のタグを埋め込む
+	"""ノードに受け入れ対象のタグを埋め込む(クラス用)
 
 	Args:
 		*tags (str): 受け入れ対象のタグリスト
 	Returns:
 		MetaFactory: 埋め込み関数
 	Usage:
-		@embed_meta(Node, accept_tags('class'))
+		@Meta.embed(Node, accept_tags('class'))
 		class Class:
 			...
 	"""
 	return lambda: {EmbedKeys.AcceptTags: list(tags)}
 
 
+def actualized(via: type) -> MetaFactory:
+	"""引数の基底クラスからノード生成時に最適化対象としての情報を埋め込む(クラス用)
+
+	Args:
+		via (type): 基底クラス
+	Returns:
+		MetaFactory: 埋め込み関数
+	Usage:
+		class Base:
+			...
+
+		@Meta.embed(Node, actualized(via=Base))
+		class Sub(Base):
+			...
+	"""
+	return lambda: {EmbedKeys.Actualized: via}
+
+
 def expansionable(order: int) -> MetaFactory:
-	"""ノードにプロパティーの評価順序を埋め込む
+	"""ノードにプロパティーの評価順序を埋め込む(メソッド用)
 
 	Args:
 		order (int): プロパティーの評価順序

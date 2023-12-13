@@ -15,7 +15,7 @@ class Settings(Generic[T]):
 		T: マッピング対象の基底クラス
 	"""
 
-	symbols: dict[type[T], str | list[str]] = field(default_factory=dict)
+	symbols: dict[str, type[T]] = field(default_factory=dict)
 	fallback: type[T] | None = None
 
 
@@ -36,10 +36,8 @@ class Resolver(Generic[T]):
 			Resolver[T]: 生成したインスタンス
 		"""
 		inst = cls()
-		for ctor, str_or_list in settings.symbols.items():
-			symbols = str_or_list if type(str_or_list) is list else [cast(str, str_or_list)]
-			for symbol in symbols:
-				inst.register(symbol, ctor)
+		for symbol, ctor in settings.symbols.items():
+			inst.register(symbol, ctor)
 
 		inst.fallback(settings.fallback)
 		return inst

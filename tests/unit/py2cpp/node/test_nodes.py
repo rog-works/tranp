@@ -47,14 +47,14 @@ class Fixture:
 	def resolver(cls) -> NodeResolver:
 		return NodeResolver.load(Settings(
 			symbols={
-				Root: 'root',
-				TreeA: 'tree_a',
-				TreeB: 'tree_b',
-				TreeC: 'tree_c',
-				TokenA: 'token_a',
-				TokenB: 'token_b',
-				TokenC: 'token_c',
-				Empty: '__empty__',
+				'root': Root,
+				'tree_a': TreeA,
+				'tree_b': TreeB,
+				'tree_c': TreeC,
+				'token_a': TokenA,
+				'token_b': TokenB,
+				'token_c': TokenC,
+				'__empty__': Empty,
 			},
 			fallback=Terminal
 		))

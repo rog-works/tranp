@@ -95,7 +95,7 @@ class Expression(Node):
 		return super().actualize()
 
 
-	def __feature_symbol(self) -> bool:
+	def __feature_symbol(self) -> bool:  # XXX 判定方法の改善
 		rel_paths = [node.full_path.split(self.full_path)[1] for node in self._flatten()]
 		pluck_tags = flatten([
 			[
@@ -283,15 +283,15 @@ class Fixture:
 	def resolver(self) -> NodeResolver:
 		return NodeResolver.load(Settings(
 			symbols={
-				FileInput: 'file_input',
-				Class: 'class_def',
-				Enum: 'enum_def',
-				Function: 'function_def',
-				If: 'if_stmt',
-				Assign: 'assign_stmt',
-				Block: 'block',
-				Parameter: 'paramvalue',
-				Empty: '__empty__',
+				'file_input': FileInput,
+				'class_def': Class,
+				'enum_def': Enum,
+				'function_def': Function,
+				'if_stmt': If,
+				'assign_stmt': Assign,
+				'block': Block,
+				'paramvalue': Parameter,
+				'__empty__': Empty,
 			},
 			fallback=Terminal,
 		))

@@ -120,14 +120,14 @@ class Fixture:
 	def resolver(cls) -> NodeResolver:
 		return NodeResolver.load(Settings(
 			symbols={
-				FileInput: 'file_input',
-				Class: 'class',
-				Enum: 'enum',
-				Function: 'function',
-				If: 'if',
-				Assign: 'assign',
-				Block: 'block',
-				Empty: '__empty__',
+				'file_input': FileInput,
+				'class': Class,
+				'enum': Enum,
+				'function': Function,
+				'if': If,
+				'assign': Assign,
+				'block': Block,
+				'__empty__': Empty,
 			},
 			fallback=Terminal
 		))

@@ -131,6 +131,7 @@ class Node:
 			list[str]: 展開プロパティーのメソッド名リスト
 		Note:
 			@see trans.node.embed.expansionable
+			FIEME クラスの継承ツリーを考慮する必要あり
 		"""
 		meta = digging_meta_method(Node, self.__class__, EmbedKeys.Expansionable)
 		order_on_keys = {cast(int, value): name for name, value in meta.items()}

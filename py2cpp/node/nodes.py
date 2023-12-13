@@ -178,7 +178,8 @@ class Nodes(Query[Node]):
 		"""
 		self.__root = root
 		self.__resolver = resolver
-		self.__finder = ASTFinder(EntryProxyLark())
+		self.__proxy = EntryProxyLark()
+		self.__finder = ASTFinder(self.__proxy)
 
 
 	def __resolve(self, entry: Entry, full_path: str) -> Node:
@@ -190,7 +191,7 @@ class Nodes(Query[Node]):
 		Returns:
 			Node: 解決したノード
 		"""
-		return self.__resolver.resolve(self.__finder.tag_by(entry), full_path, lambda ctor: ctor(self, entry, full_path))
+		return self.__resolver.resolve(self.__finder.tag_by(entry), full_path, lambda ctor: ctor(self, full_path))
 
 
 	@implements
@@ -335,6 +336,19 @@ class Nodes(Query[Node]):
 
 		entries = self.__finder.find(self.__root, via, tester)
 		return [self.__resolve(entry, path) for path, entry in entries.items()]
+
+
+	@implements
+	def by_value(self, full_path: str) -> str:
+		"""指定のエントリーの値を取得
+
+		Args:
+			full_path (str): フルパス
+		Returns:
+			str: 値
+		"""
+		entry = self.__finder.pluck(self.__root, full_path)
+		return self.__proxy.value(entry) if self.__proxy.is_terminal(entry) else ''
 
 
 	# @implements

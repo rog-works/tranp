@@ -305,7 +305,7 @@ class TestNode(TestCase):
 
 
 		nodes = Fixture.nodes()
-		node = NodeB(nodes, Tree('node_b', []), 'node_b')
+		node = NodeB(nodes, 'node_b')
 		self.assertEqual(type(node), NodeB)
 		self.assertEqual(type(node.actual()), Terminal)
 

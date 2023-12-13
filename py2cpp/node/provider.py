@@ -226,6 +226,20 @@ class Query(Generic[T], metaclass=ABCMeta):
 		raise NotImplementedError()
 
 
+	@abstractmethod
+	def by_value(self, full_path: str) -> str:
+		"""指定のエントリーの値を取得
+
+		Args:
+			full_path (str): フルパス
+		Returns:
+			str: 値
+		Raises:
+			NotFouneError: エントリーが存在しない
+		"""
+		...
+
+
 	# @abstractmethod
 	# def embed(self, via: str, name: str) -> T:
 	# 	"""指定のパスの下に仮想のエントリーを生成

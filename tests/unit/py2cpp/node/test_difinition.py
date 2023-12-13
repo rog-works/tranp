@@ -14,12 +14,7 @@ from py2cpp.node.trait import ScopeTrait
 from tests.test.helper import data_provider
 
 
-class Terminal(Node):
-	@property
-	def value(self) -> str:
-		return ''.join([node.token for node in [self, *self._flatten()] if type(node) is Terminal])
-
-
+class Terminal(Node): pass
 class Expression(Node): pass
 
 
@@ -66,10 +61,7 @@ class If(Node): pass
 
 
 @embed_meta(Node, accept_tags('getattr', 'primary', 'name', 'dotted_name'))
-class Symbol(Node):
-	@property
-	def symbol_name(self) -> str:
-		return '.'.join([node.value for node in self._flatten() if type(node) is Terminal])
+class Symbol(Node): pass
 
 
 @embed_meta(Node, accept_tags('paramevalue'))
@@ -161,7 +153,7 @@ class Class(Node):
 	@property
 	@override
 	def scope_name(self) -> str:
-		return self.class_name.value
+		return self.class_name.to_string()
 
 
 	@property
@@ -201,7 +193,7 @@ class Enum(Node):
 	@property
 	@override
 	def scope_name(self) -> str:
-		return self.enum_name.value
+		return self.enum_name.to_string()
 
 
 	@property
@@ -280,19 +272,19 @@ class TestDefinition(TestCase):
 		node = nodes.by('file_input').as_a(FileInput) \
 			.statements[1].as_a(Class).block \
 			.statements[0].as_a(Enum)
-		self.assertEqual(node.enum_name.value, 'Values')
-		self.assertEqual(node.variables[0].symbol.symbol_name, 'A')
-		self.assertEqual(node.variables[0].value.value, '0')
-		self.assertEqual(node.variables[1].symbol.symbol_name, 'B')
-		self.assertEqual(node.variables[1].value.value, '1')
+		self.assertEqual(node.enum_name.to_string(), 'Values')
+		self.assertEqual(node.variables[0].symbol.to_string(), 'A')
+		self.assertEqual(node.variables[0].value.to_string(), '0')
+		self.assertEqual(node.variables[1].symbol.to_string(), 'B')
+		self.assertEqual(node.variables[1].value.to_string(), '1')
 
 
 	def test_class(self) -> None:
 		nodes = Fixture.inst.nodes()
 		node = nodes.by('file_input').as_a(FileInput) \
 			.statements[1].as_a(Class)
-		self.assertEqual(node.class_name.value, 'Hoge')
-		self.assertEqual(node.decorators[0].symbol.symbol_name, 'deco')
+		self.assertEqual(node.class_name.to_string(), 'Hoge')
+		self.assertEqual(node.decorators[0].symbol.to_string(), 'deco')
 		self.assertEqual(node.decorators[0].arguments[0].value.is_a(Expression), True)
 		self.assertEqual(node.decorators[0].arguments[1].value.is_a(Expression), True)
 		self.assertEqual(node.decorators[0].namespace, '__main__')
@@ -320,19 +312,19 @@ class TestDefinition(TestCase):
 	def test_function(self, full_path: str, expected: dict[str, Any]) -> None:
 		nodes = Fixture.inst.nodes()
 		node = nodes.by(full_path).as_a(Function)
-		self.assertEqual(node.function_name.value, expected['name'])
+		self.assertEqual(node.function_name.to_string(), expected['name'])
 		self.assertEqual(len(node.decorators), len(expected['decorators']))
 		for index, decorator in enumerate(node.decorators):
 			in_expected = expected['decorators'][index]
-			self.assertEqual(decorator.symbol.symbol_name, in_expected['name'])
+			self.assertEqual(decorator.symbol.to_string(), in_expected['name'])
 			for argument in decorator.arguments:
 				self.assertEqual(argument.value.is_a(Expression), True)
 
 		for index, parameter in enumerate(node.parameters):
 			in_expected = expected['parameters'][index]
-			self.assertEqual(parameter.param_symbol.symbol_name, in_expected['name'])
-			self.assertEqual(parameter.param_type.symbol_name if type(parameter.param_type) is Symbol else 'Empty', in_expected['type'])
-			self.assertEqual(parameter.default_value.value if type(parameter.default_value) is Terminal else 'Empty', in_expected['default'])
+			self.assertEqual(parameter.param_symbol.to_string(), in_expected['name'])
+			self.assertEqual(parameter.param_type.to_string() if type(parameter.param_type) is Symbol else 'Empty', in_expected['type'])
+			self.assertEqual(parameter.default_value.to_string() if type(parameter.default_value) is Terminal else 'Empty', in_expected['default'])
 
-		self.assertEqual(node.return_type.symbol_name if type(node.return_type) is Symbol else 'Empty', expected['return'])
+		self.assertEqual(node.return_type.to_string() if type(node.return_type) is Symbol else 'Empty', expected['return'])
 		self.assertEqual(type(node.block), Block)

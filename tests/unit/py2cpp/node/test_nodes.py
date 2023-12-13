@@ -88,12 +88,12 @@ class TestNodeResolver(TestCase):
 			def children(self, via: str) -> list[Node]: ...
 			def leafs(self, via: str, leaf_name: str) -> list[Node]: ...
 			def expansion(self, via: str) -> list[Node]: ...
+			def by_value(self, full_path: str) -> list[Node]: ...
 
 
 		resolver = Fixture.resolver()
-		dummy_tree = Tree('', [])
 		dummy_query = QueryA()
-		self.assertEqual(resolver.resolve('root', 'root', lambda ctor: ctor(dummy_query, dummy_tree, 'root')).full_path, 'root')
+		self.assertEqual(resolver.resolve('root', 'root', lambda ctor: ctor(dummy_query, 'root')).full_path, 'root')
 
 
 class TestNodes(TestCase):

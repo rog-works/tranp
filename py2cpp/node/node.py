@@ -1,14 +1,11 @@
 from typing import cast, Iterator, TypeVar
 
-from lark import Token
-
 from py2cpp.ast.travarsal import ASTFinder
 from py2cpp.errors import LogicError, NotFoundError
 from py2cpp.lang.sequence import flatten
 from py2cpp.node.embed import digging_meta_class, digging_meta_method, EmbedKeys
 from py2cpp.node.provider import Query
 from py2cpp.node.trait import ScopeTrait
-from py2cpp.tp_lark.types import Entry
 
 T = TypeVar('T')
 T_A = TypeVar('T_A')
@@ -17,7 +14,7 @@ T_B = TypeVar('T_B')
 
 class Node:
 	"""ASTのエントリーと紐づくノードの基底クラス
-	自身を基点に各ノードへJSONPathライクに相対参照が可能
+	自身のエントリーを基点にJSONPathクエリーベースで各ノードへ参照が可能
 	派生クラスではノードの役割をプロパティーとして定義する
 
 	Note:
@@ -25,16 +22,14 @@ class Node:
 		そのため、必ずしもAST上のエントリーとノードのアライメントは一致しない点に注意
 	"""
 
-	def __init__(self, nodes: Query['Node'], entry: Entry, full_path: str) -> None:
+	def __init__(self, nodes: Query['Node'], full_path: str) -> None:
 		"""インスタンスを生成
 
 		Args:
 			nodes (Query[Node]): クエリーインターフェイス
-			entry (Entry): 自身のエントリー
 			full_path (str): ルート要素からのフルパス
 		"""
 		self.__nodes = nodes
-		self.__entry = entry
 		self.__full_path = full_path
 
 
@@ -48,18 +43,6 @@ class Node:
 	def tag(self) -> str:
 		"""str: エントリータグ名。具象クラスとのマッピングに用いる"""
 		return ASTFinder.denormalize_tag(self.full_path.split('.').pop())
-
-
-	@property
-	def token(self) -> str:
-		"""自身に紐づくエントリーから終端記号を取得
-
-		Returns:
-			str: 終端記号
-		Note:
-			XXX エントリーがトークンではない場合、空文字を返す
-		"""
-		return self.__entry.value if type(self.__entry) is Token else ''
 
 
 	@property
@@ -96,6 +79,15 @@ class Node:
 	def parent(self) -> 'Node':
 		"""Node: 親のノード。@note: あくまでもノード上の親であり、AST上の親と必ずしも一致しない点に注意"""
 		return self.__nodes.parent(self.full_path)
+
+
+	def to_string(self) -> str:
+		"""自身を表す文字列表現を取得
+
+		Returns:
+			str: 文字列表現
+		"""
+		return ''.join([self.__nodes.by_value(self.full_path), *[node.to_string() for node in self._flatten()]])
 
 
 	def __iter__(self) -> Iterator['Node']:
@@ -264,7 +256,7 @@ class Node:
 		if len(accept_tags) and self.tag not in accept_tags:
 			raise LogicError(str(self), ctor)
 
-		return ctor(self.__nodes, self.__entry, self.__full_path)
+		return ctor(self.__nodes, self.__full_path)
 
 
 	def is_a(self, ctor: type['Node']) -> bool:

@@ -2,16 +2,15 @@ from unittest import TestCase
 
 from py2cpp.node.embed import (
 	accept_tags,
+	actualized,
 	EmbedKeys,
 	expansionable,
 	Meta,
 )
 
 
-
-
-class TestEmbed(TestCase):
-	def test_embed_meta(self) -> None:
+class TestMeta(TestCase):
+	def test_embed(self) -> None:
 		class MetaHolder: pass
 
 
@@ -40,6 +39,18 @@ class TestEmbed(TestCase):
 
 		class_meta: list[str] = Meta.dig_for_class(MetaHolder, B, EmbedKeys.AcceptTags, default=[])
 		self.assertEqual(class_meta, ['hoge'])
+
+
+	def test_actualized(self) -> None:
+		class MetaHolder: pass
+		class Base: pass
+
+
+		@Meta.embed(MetaHolder, actualized(via=Base))
+		class Sub: pass
+
+		class_meta: dict[type, type] = Meta.dig_by_key_for_class(MetaHolder, EmbedKeys.Actualized)
+		self.assertEqual(class_meta[Sub], Base)
 
 
 	def test_expansionable(self) -> None:

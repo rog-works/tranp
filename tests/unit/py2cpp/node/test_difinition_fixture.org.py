@@ -17,5 +17,9 @@ class Hoge:
 		if False:
 			b
 
+	def __init__(self, v: int, s: str) -> None:
+		self.v: int = v
+		self.s: str = s
+
 def func3(ok: bool) -> None:
 	pass

@@ -69,8 +69,8 @@ def run_parse_to_save(parser: Lark, source: str, output: str) -> None:
 		'# ==========',
 		f'# {pretty}',
 	]
-	with open(os.path.join(appdir(), output), mode='w', encoding='utf-8') as f:
-		f.write('\n'.join(lines))
+	with open(os.path.join(appdir(), output), mode='wb') as f:
+		f.write(('\n'.join(lines)).encode('utf-8'))
 
 
 def main(runner: str, grammar: str, options: T_Options) -> None:

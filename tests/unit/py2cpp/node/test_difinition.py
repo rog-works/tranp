@@ -229,7 +229,8 @@ class Fixture:
 
 
 	def __init__(self) -> None:
-		self.__tree = self.__parse_tree(self.__load_parser())
+		# self.__tree = self.__parse_tree(self.__load_parser())
+		self.__tree = self.__load_prebuild_tree()
 
 
 	def __load_parser(self) -> Lark:
@@ -240,10 +241,16 @@ class Fixture:
 
 	def __parse_tree(self, parser: Lark) -> Tree:
 		filepath, _ = __file__.split('.')
-		fixture_path = f'{filepath}.fixture.py'
+		fixture_path = f'{filepath}_fixture.org.py'
 		with open(fixture_path) as f:
 			source = '\n'.join(f.readlines())
 			return parser.parse(source)
+
+
+	def __load_prebuild_tree(self) -> Tree:
+		from tests.unit.py2cpp.node.test_difinition_fixture import fixture
+
+		return fixture()
 
 
 	def resolver(self) -> NodeResolver:

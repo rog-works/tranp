@@ -260,10 +260,10 @@ class Fixture:
 				Class: 'class_def',
 				Enum: 'enum_def',
 				Function: 'function_def',
-				Parameter: 'paramvalue',
 				If: 'if_stmt',
 				Assign: 'assign_stmt',
 				Block: 'block',
+				Parameter: 'paramvalue',
 				Empty: '__empty__',
 			},
 			fallback=Terminal,
@@ -325,7 +325,7 @@ class TestDefinition(TestCase):
 		for index, decorator in enumerate(node.decorators):
 			in_expected = expected['decorators'][index]
 			self.assertEqual(decorator.symbol.symbol_name, in_expected['name'])
-			for index_a, argument in enumerate(decorator.arguments):
+			for argument in decorator.arguments:
 				self.assertEqual(argument.value.is_a(Expression), True)
 
 		for index, parameter in enumerate(node.parameters):

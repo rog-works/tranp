@@ -97,8 +97,8 @@ class Assign(Node):
 
 
 	@property
-	def value(self) -> Terminal:  # FIXME Expression?
-		return self._by('assign')._at(1).as_a(Terminal)
+	def value(self) -> Expression:
+		return self._by('assign')._at(1).as_a(Expression)
 
 
 @embed_meta(Node, accept_tags('decorator'))
@@ -300,6 +300,17 @@ class TestDefinition(TestCase):
 			],
 			'return': 'Values',
 		}),
+		('file_input.class_def.class_def_raw.block.function_def[2]', {
+			'name': 'func2',
+			'decorators': [
+				{'symbol': 'deco_func', 'arguments': [{'value': "'hoge'"}]},
+			],
+			'parameters': [
+				{'name': 'self', 'type': 'Empty', 'default': 'Empty'},
+				{'name': 'text', 'type': 'str', 'default': 'Empty'},
+			],
+			'return': 'Empty',
+		}),
 		('file_input.function_def', {
 			'name': 'func3',
 			'decorators': [],
@@ -316,9 +327,10 @@ class TestDefinition(TestCase):
 		self.assertEqual(len(node.decorators), len(expected['decorators']))
 		for index, decorator in enumerate(node.decorators):
 			in_expected = expected['decorators'][index]
-			self.assertEqual(decorator.symbol.to_string(), in_expected['name'])
-			for argument in decorator.arguments:
-				self.assertEqual(argument.value.is_a(Expression), True)
+			self.assertEqual(decorator.symbol.to_string(), in_expected['symbol'])
+			for index_arg, argument in enumerate(decorator.arguments):
+				in_arg_expected = in_expected['arguments'][index_arg]
+				self.assertEqual(argument.value.to_string(), in_arg_expected['value'])
 
 		for index, parameter in enumerate(node.parameters):
 			in_expected = expected['parameters'][index]

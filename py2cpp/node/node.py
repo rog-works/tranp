@@ -87,7 +87,7 @@ class Node:
 		Returns:
 			str: 文字列表現
 		"""
-		return ''.join([self.__nodes.by_value(self.full_path), *[node.to_string() for node in self._flatten()]])
+		return ''.join([self._my_value(), *[node.to_string() for node in self._flatten()]])
 
 
 	def __iter__(self) -> Iterator['Node']:
@@ -228,6 +228,15 @@ class Node:
 			list[Node]: ノードリスト
 		"""
 		return self.__nodes.leafs(self.full_path, leaf_tag)
+
+
+	def _my_value(self) -> str:
+		"""自身のエントリーの値を取得
+
+		Returns:
+			str: 値
+		"""
+		return self.__nodes.by_value(self.full_path)
 
 
 	def __implicit_expansion(self) -> list['Node']:

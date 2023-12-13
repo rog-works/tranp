@@ -300,14 +300,14 @@ class TestNode(TestCase):
 
 	def test_actual(self) -> None:
 		class NodeB(Node):
-			def actual(self) -> Node:
+			def actualize(self) -> Node:
 				return self.as_a(Terminal)
 
 
 		nodes = Fixture.nodes()
 		node = NodeB(nodes, 'node_b')
 		self.assertEqual(type(node), NodeB)
-		self.assertEqual(type(node.actual()), Terminal)
+		self.assertEqual(type(node.actualize()), Terminal)
 
 
 	def test___str__(self) -> None:

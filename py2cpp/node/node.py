@@ -293,7 +293,7 @@ class Node:
 		return cast(reject_type, self) if type(self) is reject_type else self.as_a(expect_type)
 
 
-	def actual(self) -> 'Node':
+	def actualize(self) -> 'Node':
 		"""ASTの相関関係より判断した実体としてより適切な具象クラスのインスタンスに変換。具象側で実装
 
 		Returns:

@@ -5,7 +5,9 @@ from unittest import TestCase
 from lark import Lark, Tree
 from lark.indenter import PythonIndenter
 
+from py2cpp.ast.travarsal import ASTFinder
 from py2cpp.lang.annotation import override
+from py2cpp.lang.sequence import flatten
 from py2cpp.node.embed import accept_tags, embed_meta, expansionable
 from py2cpp.node.node import Node
 from py2cpp.node.nodes import NodeResolver, Nodes
@@ -15,7 +17,6 @@ from tests.test.helper import data_provider
 
 
 class Terminal(Node): pass
-class Expression(Node): pass
 
 
 @embed_meta(Node, accept_tags('__empty__', 'const_none'))
@@ -60,8 +61,12 @@ class Block(Node, ScopeTrait):
 class If(Node): pass
 
 
-@embed_meta(Node, accept_tags('getattr', 'primary', 'name', 'dotted_name'))
-class Symbol(Node): pass
+@embed_meta(Node, accept_tags('dotted_name', 'getattr', 'primary', 'var', 'name', 'argvalue'))
+class Symbol(Node):
+	@override
+	def to_string(self) -> str:
+		return '.'.join([node.to_string() for node in self._flatten()])
+
 
 
 @embed_meta(Node, accept_tags('paramevalue'))
@@ -81,12 +86,39 @@ class Parameter(Node):
 		return self._at(1).if_not_a_to_b(Empty, Terminal)
 
 
+class Expression(Node):
+	@override
+	def actualize(self) -> Node:
+		if self.__feature_symbol():
+			return self.as_a(Symbol)
+
+		return super().actualize()
+
+
+	def __feature_symbol(self) -> bool:
+		rel_paths = [node.full_path.split(self.full_path)[1] for node in self._flatten()]
+		pluck_tags = flatten([
+			[
+				ASTFinder.denormalize_tag(tag)
+				for tag in rel_path.split('.')
+				if len(tag)
+			]
+			for rel_path in rel_paths
+		])
+		tags = list(set(pluck_tags))
+		for in_tag in tags:
+			if in_tag not in ['getattr', 'primary', 'var', 'name', 'NAME']:
+				return False
+
+		return True
+
+
 @embed_meta(Node, accept_tags('argvalue'))
 class Argument(Node):
 	@property
 	@embed_meta(Node, expansionable(order=0))
-	def value(self) -> Expression:
-		return self.as_a(Expression)
+	def value(self) -> Node:
+		return self.as_a(Expression).actualize()
 
 
 @embed_meta(Node, accept_tags('assign_stmt'))
@@ -97,8 +129,8 @@ class Assign(Node):
 
 
 	@property
-	def value(self) -> Expression:
-		return self._by('assign')._at(1).as_a(Expression)
+	def value(self) -> Node:
+		return self._by('assign')._at(1).as_a(Expression).actualize()
 
 
 @embed_meta(Node, accept_tags('decorator'))
@@ -209,6 +241,7 @@ class Enum(Node):
 
 class Fixture:
 	__inst: Optional['Fixture'] = None
+	__prebuild = True
 
 
 	@classmethod
@@ -221,8 +254,10 @@ class Fixture:
 
 
 	def __init__(self) -> None:
-		# self.__tree = self.__parse_tree(self.__load_parser())
-		self.__tree = self.__load_prebuild_tree()
+		if self.__prebuild:
+			self.__tree = self.__load_prebuild_tree()
+		else:
+			self.__tree = self.__parse_tree(self.__load_parser())
 
 
 	def __load_parser(self) -> Lark:
@@ -279,15 +314,24 @@ class TestDefinition(TestCase):
 		self.assertEqual(node.variables[1].value.to_string(), '1')
 
 
-	def test_class(self) -> None:
+	@data_provider([
+		('file_input.class_def', {
+			'name': 'Hoge',
+			'decorators': [
+				{'symbol': 'deco', 'arguments': [{'value': 'A'}, {'value': 'A.B'}]},
+			],
+		}),
+	])
+	def test_class(self, full_path: str, expected: dict[str, Any]) -> None:
 		nodes = Fixture.inst.nodes()
-		node = nodes.by('file_input').as_a(FileInput) \
-			.statements[1].as_a(Class)
-		self.assertEqual(node.class_name.to_string(), 'Hoge')
-		self.assertEqual(node.decorators[0].symbol.to_string(), 'deco')
-		self.assertEqual(node.decorators[0].arguments[0].value.is_a(Expression), True)
-		self.assertEqual(node.decorators[0].arguments[1].value.is_a(Expression), True)
-		self.assertEqual(node.decorators[0].namespace, '__main__')
+		node = nodes.by(full_path).as_a(Class)
+		self.assertEqual(node.class_name.to_string(), expected['name'])
+		for index, decorator in enumerate(node.decorators):
+			in_expected = expected['decorators'][index]
+			self.assertEqual(decorator.symbol.to_string(), in_expected['symbol'])
+			for index_arg, argument in enumerate(decorator.arguments):
+				in_arg_expected = in_expected['arguments'][index_arg]
+				self.assertEqual(argument.value.to_string(), in_arg_expected['value'])
 
 
 	@data_provider([

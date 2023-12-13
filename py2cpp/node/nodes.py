@@ -157,7 +157,7 @@ class NodeResolver:
 			return self.__insts[full_path]
 
 		ctor = self.__resolver.resolve(symbol)
-		self.__insts[full_path] = factory(ctor).actual()
+		self.__insts[full_path] = factory(ctor).actualize()
 		return self.__insts[full_path]
 
 

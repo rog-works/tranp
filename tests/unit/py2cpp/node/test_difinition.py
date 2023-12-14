@@ -101,7 +101,10 @@ class Expression(Node):
 		return super().actualize()
 
 
-	def __feature_symbol(self) -> bool:  # XXX 判定方法の改善
+	def __feature_symbol(self) -> bool:
+		if len(self._children()) != 1:
+			return False
+
 		rel_paths = [EntryPath(node.full_path).relativefy(self.full_path) for node in self._flatten()]
 		for rel_path in rel_paths:
 			if not rel_path.consists_of_only('getattr', 'primary', 'var', 'name', 'NAME'):

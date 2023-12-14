@@ -220,6 +220,17 @@ class Decorator(Node):
 @Meta.embed(Node, accept_tags('function_def'))
 class Function(Node):
 	@property
+	def access(self) -> str:
+		name = self.function_name.to_string()
+		if name.startswith('__'):
+			return 'private'
+		elif name.startswith('_'):
+			return 'protected'
+		else:
+			return 'public'
+
+
+	@property
 	def function_name(self) -> Terminal:
 		return self._by('function_def_raw.name').as_a(Terminal)
 
@@ -440,6 +451,7 @@ class TestDefinition(TestCase):
 	@data_provider([
 		('file_input.class_def.class_def_raw.block.function_def[1]', {
 			'name': 'func1',
+			'access': 'public',
 			'decorators': [],
 			'parameters': [
 				{'name': 'self', 'type': 'Empty', 'default': 'Empty'},
@@ -449,6 +461,7 @@ class TestDefinition(TestCase):
 		}),
 		('file_input.class_def.class_def_raw.block.function_def[2]', {
 			'name': 'func2',
+			'access': 'public',
 			'decorators': [
 				{'symbol': 'deco_func', 'arguments': [{'value': "'hoge'"}]},
 			],
@@ -460,6 +473,7 @@ class TestDefinition(TestCase):
 		}),
 		('file_input.function_def', {
 			'name': 'func3',
+			'access': 'public',
 			'decorators': [],
 			'parameters': [
 				{'name': 'ok', 'type': 'bool', 'default': 'Empty'},
@@ -471,6 +485,7 @@ class TestDefinition(TestCase):
 		nodes = Fixture.inst.nodes()
 		node = nodes.by(full_path).as_a(Function)
 		self.assertEqual(node.function_name.to_string(), expected['name'])
+		self.assertEqual(node.access, expected['access'])
 		self.assertEqual(len(node.decorators), len(expected['decorators']))
 		for index, decorator in enumerate(node.decorators):
 			in_expected = expected['decorators'][index]

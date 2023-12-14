@@ -72,7 +72,7 @@ class SelfSymbol(Symbol):
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:
-		return via.to_string() == 'self'
+		return via.to_string().startswith('self')
 
 
 @Meta.embed(Node, accept_tags('paramvalue'))
@@ -269,7 +269,7 @@ class Constructor(Function):
 	@property
 	def decl_variables(self) -> list[Variable]:
 		assigns = [node.as_a(AnnoAssign) for node in self.block._children() if node.is_a(AnnoAssign)]
-		variables = [node.as_a(Variable) for node in assigns if node.variable_type.is_a(SelfSymbol)]
+		variables = [node.as_a(Variable) for node in assigns if node.symbol.is_a(SelfSymbol)]
 		return list(set(variables))
 
 
@@ -287,6 +287,10 @@ class Method(Function):
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:
+		# XXX コンストラクターを除外
+		if via.as_a(Function).function_name.to_string() == '__init__':
+			return False
+
 		parameters = via.as_a(Function).parameters
 		return len(parameters) > 0 and parameters[0].param_symbol.to_string() == 'self'  # XXX 手軽だが不正確
 
@@ -456,6 +460,16 @@ class TestDefinition(TestCase):
 			'decorators': [
 				{'symbol': 'deco', 'arguments': [{'value': 'A'}, {'value': 'A.B'}]},
 			],
+			'constructor': {
+				'decl_variables': [
+					{'symbol': 'v', 'type': 'int'},
+					{'symbol': 's', 'type': 'str'},
+				],
+			},
+			'methods': [
+				{'name': 'func1'},
+				{'name': '_func2'},
+			],
 		}),
 	])
 	def test_class(self, full_path: str, expected: dict[str, Any]) -> None:
@@ -468,6 +482,20 @@ class TestDefinition(TestCase):
 			for index_arg, argument in enumerate(decorator.arguments):
 				in_arg_expected = in_expected['arguments'][index_arg]
 				self.assertEqual(argument.value.to_string(), in_arg_expected['value'])
+
+		if node.constructor_exists:
+			in_expected = expected['constructor']
+			constructor = node.constructor
+			self.assertEqual(type(constructor), Constructor)
+			for index, variable in enumerate(constructor.decl_variables):
+				in_var_expected = in_expected['variables'][index]
+				self.assertEqual(variable.symbol.to_string(), in_var_expected['symbol'])
+				self.assertEqual(variable.variable_type.to_string(), in_var_expected['type'])
+
+		for index, constructor in enumerate(node.methods):
+			in_expected = expected['methods'][index]
+			self.assertEqual(type(constructor), Method)
+			self.assertEqual(constructor.function_name.to_string(), in_expected['name'])
 
 
 	@data_provider([

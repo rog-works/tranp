@@ -287,7 +287,7 @@ class TestNode(TestCase):
 		node = nodes.by('fule_input.class')
 		self.assertEqual(type(node), Class)
 		self.assertEqual(node.is_a(Class), True)
-		self.assertEqual(node.is_a(Node), False)
+		self.assertEqual(node.is_a(Node), True)
 		self.assertEqual(node.is_a(Terminal), False)
 
 
@@ -298,8 +298,9 @@ class TestNode(TestCase):
 		self.assertEqual(empty.if_not_a_to_b(Empty, Terminal).is_a(Terminal), False)
 
 
-	def test_actual(self) -> None:
+	def test_actualize(self) -> None:
 		class NodeB(Node):
+			@override
 			def actualize(self) -> Node:
 				return self.as_a(Terminal)
 

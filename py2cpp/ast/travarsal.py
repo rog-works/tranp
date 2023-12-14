@@ -2,9 +2,64 @@ from abc import ABCMeta, abstractmethod
 import re
 from typing import Callable, Generic, TypeVar
 
-from py2cpp.errors import NotFoundError
+from py2cpp.errors import LogicError, NotFoundError
 
 T = TypeVar('T')
+
+
+class EntryPath:
+	@classmethod
+	def join(cls, path: str, *paths: str) -> 'EntryPath':
+		return cls('.'.join([path, *paths]))
+
+
+	@classmethod
+	def identify(cls, path: str, tag: str, index: int) -> 'EntryPath':
+		return cls('.'.join([path, f'{tag}[{index}]']))
+
+
+	def __init__(self, path: str) -> None:
+		self.__path = path
+
+
+	@property
+	def path(self) -> str:
+		return self.__path
+
+
+	@property
+	def elements(self) -> list[str]:
+		return self.__path.split('.')
+
+
+	@property
+	def head(self) -> str:
+		return self.elements[0]
+
+
+	@property
+	def tail(self) -> str:
+		return self.elements[-1]
+
+
+	def contains(self, tag: str) -> bool:
+		return tag in self.de_identify().elements
+
+
+	def consists_of_only(self, *tags: str) -> bool:
+		return len([tag for tag in self.de_identify().elements if tag not in tags]) == 0
+
+
+	def de_identify(self) -> 'EntryPath':
+		return EntryPath(re.sub(r'\[\d+\]', '', self.__path))
+
+
+	def relativefy(self, before: str) -> 'EntryPath':
+		if not self.path.startswith(before):
+			raise LogicError(self, before)
+
+		elems = [elem for elem in self.path.split(before)[1].split('.') if len(elem)]
+		return EntryPath('.'.join(elems))
 
 
 class EntryProxy(Generic[T], metaclass=ABCMeta):

@@ -5,9 +5,8 @@ from unittest import TestCase
 from lark import Lark, Tree
 from lark.indenter import PythonIndenter
 
-from py2cpp.ast.travarsal import ASTFinder
+from py2cpp.ast.travarsal import EntryPath
 from py2cpp.lang.annotation import override
-from py2cpp.lang.sequence import flatten
 from py2cpp.node.embed import accept_tags, actualized, expansionable, Meta
 from py2cpp.node.node import Node
 from py2cpp.node.nodes import NodeResolver, Nodes
@@ -103,18 +102,9 @@ class Expression(Node):
 
 
 	def __feature_symbol(self) -> bool:  # XXX 判定方法の改善
-		rel_paths = [node.full_path.split(self.full_path)[1] for node in self._flatten()]
-		pluck_tags = flatten([
-			[
-				ASTFinder.denormalize_tag(tag)
-				for tag in rel_path.split('.')
-				if len(tag)
-			]
-			for rel_path in rel_paths
-		])
-		tags = list(set(pluck_tags))
-		for in_tag in tags:
-			if in_tag not in ['getattr', 'primary', 'var', 'name', 'NAME']:
+		rel_paths = [EntryPath(node.full_path).relativefy(self.full_path) for node in self._flatten()]
+		for rel_path in rel_paths:
+			if not rel_path.consists_of_only('getattr', 'primary', 'var', 'name', 'NAME'):
 				return False
 
 		return True

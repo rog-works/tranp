@@ -196,18 +196,6 @@ class ASTFinder(Generic[T]):
 		self.__proxy = proxy
 
 
-	@classmethod
-	def escaped_path(cls, path: str) -> str:
-		"""パスを正規表現用にエスケープ
-
-		Args:
-			pash (str): パス
-		Returns:
-			str: エスケープ後のパス
-		"""
-		return re.sub(r'([.\[\]])', r'\\\1', path)
-
-
 	def has_child(self, entry: T) -> bool:
 		"""子を持つエントリーか判定
 

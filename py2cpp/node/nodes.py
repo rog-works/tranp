@@ -254,10 +254,10 @@ class Nodes(Query[Node]):
 		Raises:
 			NotFouneError: 基点のノードが存在しない
 		"""
-		uplayer_path = '.'.join(via.split('.')[:-1])
-		regular = re.compile(rf'{self.__finder.escaped_path(uplayer_path)}\.[^.]+')
+		uplayer_path = EntryPath(via).shift(-1)
+		regular = re.compile(rf'{uplayer_path.escaped_origin}\.[^.]+')
 		tester = lambda _, path: regular.fullmatch(path) is not None
-		entries = self.__finder.find(self.__root, uplayer_path, tester, depth=1)
+		entries = self.__finder.find(self.__root, uplayer_path.origin, tester, depth=1)
 		return [self.__resolve(entry, path) for path, entry in entries.items()]
 
 
@@ -272,7 +272,7 @@ class Nodes(Query[Node]):
 		Raises:
 			NotFouneError: 基点のノードが存在しない
 		"""
-		regular = re.compile(rf'{self.__finder.escaped_path(via)}\.[^.]+')
+		regular = re.compile(rf'{EntryPath(via).escaped_origin}\.[^.]+')
 		tester = lambda _, path: regular.fullmatch(path) is not None
 		entries = self.__finder.find(self.__root, via, tester, depth=1)
 		return [self.__resolve(entry, path) for path, entry in entries.items()]
@@ -290,7 +290,7 @@ class Nodes(Query[Node]):
 		Raises:
 			NotFouneError: 基点のノードが存在しない
 		"""
-		regular = re.compile(rf'{self.__finder.escaped_path(via)}\.(.+\.)?{leaf_tag}(\[\d+\])?')
+		regular = re.compile(rf'{EntryPath(via).escaped_origin}\.(.+\.)?{leaf_tag}(\[\d+\])?')
 		tester = lambda _, path: regular.fullmatch(path) is not None
 		entries = self.__finder.find(self.__root, via, tester)
 		return [self.__resolve(entry, path) for path, entry in entries.items()]

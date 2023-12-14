@@ -460,8 +460,8 @@ class TestDefinition(TestCase):
 			'return': 'Values',
 		}),
 		('file_input.class_def.class_def_raw.block.function_def[2]', {
-			'name': 'func2',
-			'access': 'public',
+			'name': '_func2',
+			'access': 'protected',
 			'decorators': [
 				{'symbol': 'deco_func', 'arguments': [{'value': "'hoge'"}]},
 			],

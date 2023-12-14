@@ -1,4 +1,4 @@
-from py2cpp.cpp.enum import *
+from py2cpp.cpp.enum import CEnum, A,
 
 @deco(A, A.B)
 class Hoge:

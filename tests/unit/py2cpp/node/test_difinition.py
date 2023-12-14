@@ -17,6 +17,7 @@ from py2cpp.node.definition import (
 	FileInput,
 	Function,
 	If,
+	Import,
 	Method,
 	Parameter,
 	Symbol,
@@ -80,6 +81,7 @@ class Fixture:
 				'file_input': FileInput,
 				'function_def': Function,
 				'if_stmt': If,
+				'import_stmt': Import,
 				'paramvalue': Parameter,
 				'getattr': Symbol,
 				'__empty__': Empty,
@@ -94,6 +96,25 @@ class Fixture:
 
 class TestDefinition(TestCase):
 	@data_provider([
+		('file_input.import_stmt', {
+			'module_path': 'py2cpp.cpp.enum',
+			'import_symbols': [
+				{'symbol': 'CEnum'},
+				{'symbol': 'A'},
+			],
+		}),
+	])
+	def test_import(self, full_path: str, expected: dict[str, Any]) -> None:
+		nodes = Fixture.inst.nodes()
+		node = nodes.by(full_path).as_a(Import)
+		self.assertEqual(node.module_path.to_string(), expected['module_path'])
+		self.assertEqual(len(node.import_symbols), len(expected['import_symbols']))
+		for index, symbol in enumerate(node.import_symbols):
+			in_expected = expected['import_symbols'][index]
+			self.assertEqual(symbol.to_string(), in_expected['symbol'])
+
+
+	@data_provider([
 		('file_input.class_def.class_def_raw.block.enum_def', {
 			'name': 'Values',
 			'variables': [
@@ -106,6 +127,7 @@ class TestDefinition(TestCase):
 		nodes = Fixture.inst.nodes()
 		node = nodes.by(full_path).as_a(Enum)
 		self.assertEqual(node.enum_name.to_string(), expected['name'])
+		self.assertEqual(len(node.variables), len(expected['variables']))
 		for index, variable in enumerate(node.variables):
 			in_expected = expected['variables'][index]
 			self.assertEqual(variable.symbol.to_string(), in_expected['symbol'])
@@ -201,10 +223,12 @@ class TestDefinition(TestCase):
 		for index, decorator in enumerate(node.decorators):
 			in_expected = expected['decorators'][index]
 			self.assertEqual(decorator.symbol.to_string(), in_expected['symbol'])
+			self.assertEqual(len(decorator.arguments), len(in_expected['arguments']))
 			for index_arg, argument in enumerate(decorator.arguments):
 				in_arg_expected = in_expected['arguments'][index_arg]
 				self.assertEqual(argument.value.to_string(), in_arg_expected['value'])
 
+		self.assertEqual(len(node.parameters), len(expected['parameters']))
 		for index, parameter in enumerate(node.parameters):
 			in_expected = expected['parameters'][index]
 			self.assertEqual(parameter.param_symbol.to_string(), in_expected['name'])

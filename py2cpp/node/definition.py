@@ -52,6 +52,7 @@ class If(Node): pass
 
 @Meta.embed(Node, accept_tags('dotted_name', 'getattr', 'primary', 'var', 'name', 'argvalue'))
 class Symbol(Node):
+	@property
 	@override
 	def is_terminal(self) -> bool:  # XXX Terminalへの移設を検討
 		return True
@@ -106,6 +107,18 @@ class Expression(Node):
 				return False
 
 		return True
+
+
+@Meta.embed(Node, accept_tags('import_stmt'))
+class Import(Node):
+	@property
+	def module_path(self) -> Symbol:
+		return self._by('dotted_name').as_a(Symbol)
+
+
+	@property
+	def import_symbols(self) -> list[Symbol]:
+		return [node.as_a(Symbol) for node in self._children('import_names')]
 
 
 @Meta.embed(Node, accept_tags('argvalue'))

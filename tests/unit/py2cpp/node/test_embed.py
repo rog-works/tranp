@@ -23,7 +23,7 @@ class TestMeta(TestCase):
 
 		a = A()
 		class_meta = Meta.dig_for_class(MetaHolder, A, '__test_class_meta__', default=-1)
-		method_meta = Meta.dig_for_method(MetaHolder, A, '__test_func_meta__')
+		method_meta = Meta.dig_for_method(MetaHolder, A, '__test_func_meta__', value_type=int)
 		self.assertEqual(class_meta, 1)
 		self.assertEqual(method_meta['prop'], 2)
 		self.assertEqual(a.prop.__annotations__['v'], int)
@@ -49,7 +49,7 @@ class TestMeta(TestCase):
 		@Meta.embed(MetaHolder, actualized(via=Base))
 		class Sub: pass
 
-		class_meta: dict[type, type] = Meta.dig_by_key_for_class(MetaHolder, EmbedKeys.Actualized)
+		class_meta = Meta.dig_by_key_for_class(MetaHolder, EmbedKeys.Actualized, value_type=type)
 		self.assertEqual(class_meta[Sub], Base)
 
 
@@ -70,6 +70,6 @@ class TestMeta(TestCase):
 				return 1
 
 
-		method_meta = Meta.dig_for_method(MetaHolder, C, EmbedKeys.Expansionable)
+		method_meta = Meta.dig_for_method(MetaHolder, C, EmbedKeys.Expansionable, value_type=int)
 		self.assertEqual(method_meta['prop0'], 0)
 		self.assertEqual(method_meta['prop1'], 1)

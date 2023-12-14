@@ -4,7 +4,7 @@ from unittest import TestCase
 from lark import Token, Tree
 
 from py2cpp.lang.annotation import override
-from py2cpp.node.embed import expansionable, Meta
+from py2cpp.node.embed import actualized, expansionable, Meta
 from py2cpp.node.node import Node
 from py2cpp.node.nodes import NodeResolver, Nodes
 from py2cpp.node.provider import Settings
@@ -294,21 +294,41 @@ class TestNode(TestCase):
 	def test_if_not_a_to_b(self) -> None:
 		nodes = Fixture.nodes()
 		empty = nodes.by('fule_input.class.__empty__')
-		self.assertEqual(empty.is_a(Empty), True)
-		self.assertEqual(empty.if_not_a_to_b(Empty, Terminal).is_a(Terminal), False)
+		self.assertEqual(type(empty), Empty)
+		self.assertEqual(type(empty.if_not_a_to_b(Empty, Terminal)), Empty)
+
+
+	def test_match_feature(self) -> None:
+		class NodeA(Node):
+			@classmethod
+			@override
+			def match_feature(cls, via: Node) -> bool:
+				return via.tag == 'node_a'
+
+
+		dummy_nodes = Nodes(Tree('root', []), NodeResolver.load(Settings()))
+		root = NodeA(dummy_nodes, 'root')
+		node = NodeA(dummy_nodes, 'node_a')
+		self.assertEqual(NodeA.match_feature(root), False)
+		self.assertEqual(NodeA.match_feature(node), True)
 
 
 	def test_actualize(self) -> None:
-		class NodeB(Node):
+		class NodeSet(Node): pass
+
+
+		@Meta.embed(Node, actualized(via=NodeSet))
+		class NodeSubset(NodeSet):
+			@classmethod
 			@override
-			def actualize(self) -> Node:
-				return self.as_a(Terminal)
+			def match_feature(cls, via: Node) -> bool:
+				return via.tag == 'node_subset'
 
 
-		nodes = Fixture.nodes()
-		node = NodeB(nodes, 'node_b')
-		self.assertEqual(type(node), NodeB)
-		self.assertEqual(type(node.actualize()), Terminal)
+		dummy_nodes = Nodes(Tree('root', []), NodeResolver.load(Settings()))
+		node = NodeSet(dummy_nodes, 'node_subset')
+		self.assertEqual(type(node), NodeSet)
+		self.assertEqual(type(node.actualize()), NodeSubset)
 
 
 	def test___str__(self) -> None:

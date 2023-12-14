@@ -133,8 +133,8 @@ class Node:
 			@see trans.node.embed.expansionable
 			FIEME クラスの継承ツリーを考慮する必要あり
 		"""
-		meta = Meta.dig_for_method(Node, self.__class__, EmbedKeys.Expansionable)
-		order_on_keys = {cast(int, value): name for name, value in meta.items()}
+		meta = Meta.dig_for_method(Node, self.__class__, EmbedKeys.Expansionable, value_type=int)
+		order_on_keys = {value: name for name, value in meta.items()}
 		return [prop_key for _, prop_key in sorted(order_on_keys.items(), key=lambda index: index)]
 
 
@@ -309,14 +309,14 @@ class Node:
 		return False
 
 
-	def _features(self) -> list[type['Node']]:
+	def _feature_classes(self) -> list[type['Node']]:
 		"""メタデータより自身に紐づけられた特徴クラス(=派生クラス)を抽出
 
 		Returns:
 			list[type[Node]]: 特徴クラスのリスト
 		"""
-		meta: dict[type, type] = Meta.dig_by_key_for_class(Node, EmbedKeys.Actualized)
-		return [feature_class for feature_class, via in meta.items() if via is self.__class__]
+		meta = Meta.dig_by_key_for_class(Node, EmbedKeys.Actualized, value_type=type)
+		return [feature_class for feature_class, via_class in meta.items() if via_class is self.__class__]
 
 
 	def actualize(self) -> 'Node':
@@ -325,9 +325,9 @@ class Node:
 		Returns:
 			Node: 具象クラスのインスタンス
 		"""
-		for feature in self._features():
-			if feature.match_feature(self):
-				return self.as_a(feature)
+		for feature_class in self._feature_classes():
+			if feature_class.match_feature(self):
+				return self.as_a(feature_class)
 
 		return self
 

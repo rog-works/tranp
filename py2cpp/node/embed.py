@@ -181,19 +181,18 @@ class Meta:
 
 
 	@classmethod
-	def dig_by_key_for_class(cls, holder, embed_key: str) -> dict[type, Any]:
+	def dig_by_key_for_class(cls, holder, embed_key: str, value_type: T) -> dict[type, T]:
 		"""クラスに埋め込まれたメタデータを抽出(クラス用)
 
 		Args:
 			holder (type): メタデータを保持するクラス
 			embed_key (str): 抽出対象の埋め込みキー
+			value_type (T): メタデータの型
 		Returns:
 			dict[type, Any]: 対象クラスとメタデータのマップ
-		Raises:
-			LogicError: メタデータコンテナーが未定義
 		"""
 		if not hasattr(holder, MetaData.key):
-			raise LogicError(holder, embed_key)
+			return {}
 
 		meta_data = cast(MetaData, getattr(holder, MetaData.key))
 		return meta_data.get_by_key_from_class(embed_key)
@@ -210,31 +209,28 @@ class Meta:
 			default (T): メタデータが存在しない場合の返却値
 		Returns:
 			Any: メタデータ
-		Raises:
-			LogicError: メタデータコンテナーが未定義
 		"""
 		if not hasattr(holder, MetaData.key):
-			raise LogicError(holder, ctor, embed_key, default)
+			return default
 
 		meta_data = cast(MetaData, getattr(holder, MetaData.key))
 		return meta_data.get_from_class(ctor, embed_key) or default
 
 
 	@classmethod
-	def dig_for_method(cls, holder: type, ctor: type, embed_key: str) -> dict[str, Any]:
+	def dig_for_method(cls, holder: type, ctor: type, embed_key: str, value_type: T) -> dict[str, T]:
 		"""クラスに埋め込まれたメタデータを抽出(メソッド用)
 
 		Args:
 			holder (type): メタデータを保持するクラス
 			ctor (type): 抽出対象のクラス
 			embed_key (str): 抽出対象の埋め込みキー
+			value_type (T): メタデータの型
 		Returns:
 			dict[str, Any]: メソッド毎のメタデータ
-		Raises:
-			LogicError: メタデータコンテナーが未定義
 		"""
 		if not hasattr(holder, MetaData.key):
-			raise LogicError(holder, ctor, embed_key)
+			return {}
 
 		meta_data = cast(MetaData, getattr(holder, MetaData.key))
 		return meta_data.get_from_method(ctor, embed_key)

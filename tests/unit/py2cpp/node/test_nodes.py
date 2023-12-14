@@ -26,18 +26,18 @@ class Fixture:
 		return Tree('root', [
 			Tree('tree_a', [
 				None,
-				Token('token_a', ''),
+				Token('token_a', 'a.a'),
 				Tree('tree_b', []),
 				Tree('tree_b', [
-					Token('token_b', ''),
+					Token('token_b', 'a.b.b'),
 				]),
-				Token('token_a', ''),
-				Token('token_c', ''),
+				Token('token_a', 'a.a'),
+				Token('token_c', 'a.c'),
 			]),
-			Token('term_a', ''),
+			Token('term_a', 'a'),
 			Tree('tree_c', [
 				Tree('skip_tree_a', [
-					Token('term_a', ''),
+					Token('term_a', 'c.a.a'),
 				]),
 			]),
 		])
@@ -219,3 +219,14 @@ class TestNodes(TestCase):
 		nodes = Fixture.nodes()
 		with self.assertRaises(expected):
 			nodes.expansion(via)
+
+
+	@data_provider([
+		('root.tree_a.token_a', 'a.a'),
+		('root.tree_a.tree_b[3].token_b', 'a.b.b'),
+		('root.term_a', 'a'),
+		('root.tree_c.skip_tree_a.term_a', 'c.a.a'),
+	])
+	def test_by_value(self, full_path: str, expected: str) -> None:
+		nodes = Fixture.nodes()
+		self.assertEqual(nodes.by_value(full_path), expected)

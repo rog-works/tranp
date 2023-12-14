@@ -174,17 +174,6 @@ class Node(NodeBase):
 		return [ctor for ctor in self.__class__.__mro__ if issubclass(ctor, Node) and ctor is not Node]
 
 
-	def _to_full_path(self, relative_path: str) -> str:
-		"""フルパスへ変換
-
-		Args:
-			relative_path (str): 自身のエントリーからの相対パス
-		Returns:
-			str: フルパス
-		"""
-		return f'{self.full_path}.{relative_path}'
-
-
 	def _exists(self, relative_path: str) -> bool:
 		"""指定のパスに紐づく一意なノードが存在するか判定
 
@@ -193,7 +182,7 @@ class Node(NodeBase):
 		Returns:
 			bool: True = 存在
 		"""
-		return self.__nodes.exists(self._to_full_path(relative_path))
+		return self.__nodes.exists(self.__full_path.joined(relative_path))
 
 
 	def _by(self, relative_path: str) -> 'Node':
@@ -206,7 +195,7 @@ class Node(NodeBase):
 		Raises:
 			NotFoundError: ノードが存在しない
 		"""
-		return self.__nodes.by(self._to_full_path(relative_path))
+		return self.__nodes.by(self.__full_path.joined(relative_path))
 
 
 	def _at(self, index: int) -> 'Node':
@@ -237,7 +226,7 @@ class Node(NodeBase):
 		Raises:
 			NotFoundError: 基点のノードが存在しない
 		"""
-		via = self._to_full_path(relative_path) if relative_path else self.full_path
+		via = self.__full_path.joined(relative_path) if relative_path else self.full_path
 		return [node for node in self.__nodes.siblings(via) if node.full_path != self.full_path]
 
 
@@ -252,7 +241,7 @@ class Node(NodeBase):
 		Raises:
 			NotFoundError: 基点のノードが存在しない
 		"""
-		via = self._to_full_path(relative_path) if relative_path else self.full_path
+		via = self.__full_path.joined(relative_path) if relative_path else self.full_path
 		return self.__nodes.children(via)
 
 

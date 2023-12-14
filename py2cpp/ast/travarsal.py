@@ -63,6 +63,17 @@ class EntryPath:
 		return re.sub(r'([.\[\]])', r'\\\1', self.origin)
 
 
+	def joined(self, relative: str) -> str:
+		"""相対パスと連結したパスを返却
+
+		Args:
+			relative (str): 相対パス
+		Returns:
+			str: パス
+		"""
+		return '.'.join([self.origin, relative])
+
+
 	def first(self) -> tuple[str, int]:
 		"""先頭の要素を分解して取得
 

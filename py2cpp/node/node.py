@@ -1,6 +1,6 @@
 from typing import cast, Iterator, TypeVar
 
-from py2cpp.ast.travarsal import ASTFinder
+from py2cpp.ast.travarsal import EntryPath
 from py2cpp.errors import LogicError, NotFoundError
 from py2cpp.lang.sequence import flatten
 from py2cpp.node.embed import EmbedKeys, Meta
@@ -30,19 +30,19 @@ class Node:
 			full_path (str): ルート要素からのフルパス
 		"""
 		self.__nodes = nodes
-		self.__full_path = full_path
+		self.__full_path = EntryPath(full_path)
 
 
 	@property
 	def full_path(self) -> str:
 		"""str: ルート要素からのフルパス"""
-		return self.__full_path
+		return self.__full_path.origin
 
 
 	@property
 	def tag(self) -> str:
 		"""str: エントリータグ名。具象クラスとのマッピングに用いる"""
-		return ASTFinder.denormalize_tag(self.full_path.split('.').pop())
+		return self.__full_path.tail()[0]
 
 
 	@property
@@ -267,7 +267,7 @@ class Node:
 		if len(accept_tags) and self.tag not in accept_tags:
 			raise LogicError(str(self), ctor)
 
-		return ctor(self.__nodes, self.__full_path)
+		return ctor(self.__nodes, self.full_path)
 
 
 	def is_a(self, ctor: type['Node']) -> bool:

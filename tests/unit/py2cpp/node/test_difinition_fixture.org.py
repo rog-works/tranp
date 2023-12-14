@@ -14,8 +14,13 @@ class Hoge:
 
 	@deco_func('hoge')
 	def _func2(self, text: str) -> None:
-		if False:
-			b
+		map = {
+			Hoge.Values.A: 0,
+			Hoge.Values.B: 0,
+		}
+		empty_map = {}
+		arr = [0, 1, 2]
+		empty_arr = []
 
 	def __init__(self, v: int, s: str) -> None:
 		self.v: int = v

@@ -38,18 +38,6 @@ class FileInput(Node):
 		return self._children()
 
 
-@Meta.embed(Node, accept_tags('block'))
-class Block(Node, ScopeTrait):
-	@property
-	@Meta.embed(Node, expansionable(order=0))
-	def statements(self) -> list[Node]:
-		return self._children()
-
-
-@Meta.embed(Node, accept_tags('if_stmt'))
-class If(Node): pass
-
-
 @Meta.embed(Node, accept_tags('dotted_name', 'getattr', 'primary', 'var', 'name', 'argvalue'))
 class Symbol(Node):
 	@property
@@ -109,16 +97,30 @@ class Expression(Node):
 		return True
 
 
-@Meta.embed(Node, accept_tags('import_stmt'))
-class Import(Node):
+@Meta.embed(Node, accept_tags('key_value'))
+class KeyValue(Node):
 	@property
-	def module_path(self) -> Symbol:
-		return self._by('dotted_name').as_a(Symbol)
+	def key(self) -> Node:
+		return self._at(0).as_a(Expression).actualize()
 
 
 	@property
-	def import_symbols(self) -> list[Symbol]:
-		return [node.as_a(Symbol) for node in self._children('import_names')]
+	def value(self) -> Node:
+		return self._at(1).as_a(Expression).actualize()
+
+
+@Meta.embed(Node, accept_tags('dict'))
+class Dict(Node):
+	@property
+	def items(self) -> list[KeyValue]:
+		return [node.as_a(KeyValue) for node in self._children()]
+
+
+@Meta.embed(Node, accept_tags('list'))
+class List(Node):
+	@property
+	def values(self) -> list[Node]:
+		return [node.as_a(Expression).actualize() for node in self._children()]
 
 
 @Meta.embed(Node, accept_tags('argvalue'))
@@ -210,6 +212,30 @@ class Variable(Node):
 	@property
 	def variable_type(self) -> Symbol:
 		return self._by('anno_assign')._at(1).as_a(Symbol)
+
+
+@Meta.embed(Node, accept_tags('import_stmt'))
+class Import(Node):
+	@property
+	def module_path(self) -> Symbol:
+		return self._by('dotted_name').as_a(Symbol)
+
+
+	@property
+	def import_symbols(self) -> list[Symbol]:
+		return [node.as_a(Symbol) for node in self._children('import_names')]
+
+
+@Meta.embed(Node, accept_tags('block'))
+class Block(Node, ScopeTrait):
+	@property
+	@Meta.embed(Node, expansionable(order=0))
+	def statements(self) -> list[Node]:
+		return self._children()
+
+
+@Meta.embed(Node, accept_tags('if_stmt'))
+class If(Node): pass
 
 
 @Meta.embed(Node, accept_tags('decorator'))

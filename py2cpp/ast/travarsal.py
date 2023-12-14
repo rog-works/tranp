@@ -14,12 +14,45 @@ class EntryPath:
 
 
 	@classmethod
-	def identify(cls, path: str, entry_tag: str, index: int) -> 'EntryPath':
-		return cls('.'.join([path, f'{entry_tag}[{index}]']))
+	def identify(cls, origin: str, entry_tag: str, index: int) -> 'EntryPath':
+		return cls('.'.join([origin, f'{entry_tag}[{index}]']))
 
 
-	@classmethod
-	def break_identify(cls, entry_tag: str) -> tuple[str, int]:
+	def __init__(self, origin: str) -> None:
+		self.origin = origin
+
+
+	@property
+	def valid(self) -> bool:
+		return len(self.elements) > 0
+
+
+	@property
+	def elements(self) -> list[str]:
+		return self.origin.split('.') if len(self.origin) > 0 else []
+
+
+	@property
+	def escaped_origin(self) -> str:
+		"""パスを正規表現用にエスケープ
+
+		Args:
+			pash (str): パス
+		Returns:
+			str: エスケープ後のパス
+		"""
+		return re.sub(r'([.\[\]])', r'\\\1', self.origin)
+
+
+	def first(self) -> tuple[str, int]:
+		return self.__break_tag(self.elements[0])
+
+
+	def last(self) -> tuple[str, int]:
+		return self.__break_tag(self.elements[-1])
+
+
+	def __break_tag(self, entry_tag: str) -> tuple[str, int]:
 		"""タグ名から元のタグ名と付与されたインデックスに分解。インデックスがない場合は-1とする
 
 		Args:
@@ -29,26 +62,6 @@ class EntryPath:
 		"""
 		matches = re.fullmatch(r'(\w+)\[(\d+)\]', entry_tag)
 		return (matches[1], int(matches[2])) if matches else (entry_tag, -1)
-
-
-	def __init__(self, path: str) -> None:
-		self.origin = path
-
-	@property
-	def valid(self) -> bool:
-		return len(self.elements) > 0
-
-	@property
-	def elements(self) -> list[str]:
-		return self.origin.split('.') if len(self.origin) > 0 else []
-
-
-	def head(self) -> tuple[str, int]:
-		return self.break_identify(self.elements[0])
-
-
-	def tail(self) -> tuple[str, int]:
-		return self.break_identify(self.elements[-1])
 
 
 	def shift(self, skip: int) -> 'EntryPath':
@@ -264,7 +277,7 @@ class ASTFinder(Generic[T]):
 			NotFoundError: エントリーが存在しない
 		"""
 		if self.__proxy.has_child(entry) and path.valid:
-			tag, index = path.head()
+			tag, index = path.first()
 			remain = path.shift(1)
 			# @see EntryPath.identify
 			if index != -1:

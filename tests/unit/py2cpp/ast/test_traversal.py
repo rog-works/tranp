@@ -3,7 +3,7 @@ from unittest import TestCase
 
 from lark import Token, Tree
 
-from py2cpp.ast.travarsal import ASTFinder
+from py2cpp.ast.travarsal import ASTFinder, EntryPath
 from py2cpp.node.nodes import EntryProxyLark
 from py2cpp.tp_lark.types import Entry
 from tests.test.helper import data_provider
@@ -32,30 +32,54 @@ class Fixture:
 		return ASTFinder(EntryProxyLark())
 
 
+class TestEntryPath(TestCase):
+	@data_provider([
+		('root', 'tree', 0, 'root.tree[0]'),
+		('root.tree', 'token', 1, 'root.tree.token[1]'),
+		('root.tree[1]', 'token', 2, 'root.tree[1].token[2]'),
+	])
+	def test_identify(self, origin: str, entry_tag: str, index: int, expected: str) -> None:
+		self.assertEqual(EntryPath.identify(origin, entry_tag, index).origin, expected)
+
+
+	@data_provider([
+		('root.tree[1]', 'root.tree'),
+		('root.tree.token[1]', 'root.tree.token'),
+		('root.tree[1].token[2]', 'root.tree.token'),
+		('root.tree.token', 'root.tree.token'),
+	])
+	def test_de_identify(self, origin: str, expected: str) -> None:
+		self.assertEqual(EntryPath(origin).de_identify().origin, expected)
+
+
+	@data_provider([
+		('root.tree[1]', ('root', -1)),
+		('root.tree.token[1]', ('root', -1)),
+		('tree[1].token[2]', ('tree', 1)),
+		('token[2]', ('token', 2)),
+	])
+	def test_first(self, origin: str, expected: tuple[str, int]) -> None:
+		self.assertEqual(EntryPath(origin).first(), expected)
+
+
+	@data_provider([
+		('root.tree[1]', ('tree', 1)),
+		('root.tree.token[1]', ('token', 1)),
+		('root.tree[1].token[2]', ('token', 2)),
+		('root.tree.token', ('token', -1)),
+	])
+	def test_last(self, origin: str, expected: tuple[str, int]) -> None:
+		self.assertEqual(EntryPath(origin).last(), expected)
+
+
+	@data_provider([
+		('tree.tree_a[0].token', r'tree\.tree_a\[0\]\.token'),
+	])
+	def test_escaped_path(self, origin: str, expected: str) -> None:
+		self.assertEqual(EntryPath(origin).escaped_origin, expected)
+
+
 class TestASTFinder(TestCase):
-	# def test_normalize_tag(self) -> None:
-	# 	self.assertEqual(ASTFinder.normalize_tag('tree', 0), 'tree[0]')
-	# 	self.assertEqual(ASTFinder.normalize_tag('token', 1), 'token[1]')
-
-
-	# def test_denormalize_tag(self) -> None:
-	# 	self.assertEqual(ASTFinder.denormalize_tag('tree[0]'), 'tree')
-	# 	self.assertEqual(ASTFinder.denormalize_tag('token[1]'), 'token')
-	# 	self.assertEqual(ASTFinder.denormalize_tag('tree'), 'tree')
-	# 	self.assertEqual(ASTFinder.denormalize_tag('token'), 'token')
-
-
-	# def test_break_tag(self) -> None:
-	# 	self.assertEqual(ASTFinder.break_tag('tree[0]'), ('tree', 0))
-	# 	self.assertEqual(ASTFinder.break_tag('token[1]'), ('token', 1))
-	# 	self.assertEqual(ASTFinder.break_tag('tree'), ('tree', -1))
-	# 	self.assertEqual(ASTFinder.break_tag('token'), ('token', -1))
-
-
-	def test_escaped_path(self) -> None:
-		self.assertEqual(ASTFinder.escaped_path('tree.tree_a[0].token'), r'tree\.tree_a\[0\]\.token')
-
-
 	@data_provider([
 		(Tree('0', []), True),
 		(Token('1', ''), False),

@@ -234,7 +234,7 @@ class Nodes(Query[Node]):
 		"""
 		forwards = EntryPath(via).shift(-1)
 		while(forwards.valid):
-			tag, _ = forwards.tail()
+			tag, _ = forwards.last()
 			if self.__resolver.can_resolve(tag):
 				return self.by(forwards.origin)
 
@@ -319,7 +319,7 @@ class Nodes(Query[Node]):
 			entry_path = EntryPath(path)
 
 			# XXX 変換対象が存在する場合はそちらに対応を任せる(終端記号か否かは問わない)
-			entry_tag = entry_path.tail()[0]
+			entry_tag = entry_path.last()[0]
 			if self.__resolver.can_resolve(entry_tag):
 				memo.append(entry_path.origin)
 				return True

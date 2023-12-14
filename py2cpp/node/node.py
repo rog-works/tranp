@@ -42,7 +42,7 @@ class Node:
 	@property
 	def tag(self) -> str:
 		"""str: エントリータグ名。具象クラスとのマッピングに用いる"""
-		return self.__full_path.tail()[0]
+		return self.__full_path.last()[0]
 
 
 	@property

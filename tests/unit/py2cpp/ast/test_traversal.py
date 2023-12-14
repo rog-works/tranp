@@ -33,23 +33,23 @@ class Fixture:
 
 
 class TestASTFinder(TestCase):
-	def test_normalize_tag(self) -> None:
-		self.assertEqual(ASTFinder.normalize_tag('tree', 0), 'tree[0]')
-		self.assertEqual(ASTFinder.normalize_tag('token', 1), 'token[1]')
+	# def test_normalize_tag(self) -> None:
+	# 	self.assertEqual(ASTFinder.normalize_tag('tree', 0), 'tree[0]')
+	# 	self.assertEqual(ASTFinder.normalize_tag('token', 1), 'token[1]')
 
 
-	def test_denormalize_tag(self) -> None:
-		self.assertEqual(ASTFinder.denormalize_tag('tree[0]'), 'tree')
-		self.assertEqual(ASTFinder.denormalize_tag('token[1]'), 'token')
-		self.assertEqual(ASTFinder.denormalize_tag('tree'), 'tree')
-		self.assertEqual(ASTFinder.denormalize_tag('token'), 'token')
+	# def test_denormalize_tag(self) -> None:
+	# 	self.assertEqual(ASTFinder.denormalize_tag('tree[0]'), 'tree')
+	# 	self.assertEqual(ASTFinder.denormalize_tag('token[1]'), 'token')
+	# 	self.assertEqual(ASTFinder.denormalize_tag('tree'), 'tree')
+	# 	self.assertEqual(ASTFinder.denormalize_tag('token'), 'token')
 
 
-	def test_break_tag(self) -> None:
-		self.assertEqual(ASTFinder.break_tag('tree[0]'), ('tree', 0))
-		self.assertEqual(ASTFinder.break_tag('token[1]'), ('token', 1))
-		self.assertEqual(ASTFinder.break_tag('tree'), ('tree', -1))
-		self.assertEqual(ASTFinder.break_tag('token'), ('token', -1))
+	# def test_break_tag(self) -> None:
+	# 	self.assertEqual(ASTFinder.break_tag('tree[0]'), ('tree', 0))
+	# 	self.assertEqual(ASTFinder.break_tag('token[1]'), ('token', 1))
+	# 	self.assertEqual(ASTFinder.break_tag('tree'), ('tree', -1))
+	# 	self.assertEqual(ASTFinder.break_tag('token'), ('token', -1))
 
 
 	def test_escaped_path(self) -> None:

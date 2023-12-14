@@ -3,7 +3,7 @@ from typing import Callable
 
 from lark import Token, Tree
 
-from py2cpp.ast.travarsal import ASTFinder, EntryProxy
+from py2cpp.ast.travarsal import ASTFinder, EntryPath, EntryProxy
 from py2cpp.errors import NotFoundError
 from py2cpp.lang.annotation import implements
 from py2cpp.node.node import Node
@@ -232,13 +232,13 @@ class Nodes(Query[Node]):
 		Raises:
 			NotFoundError: 親が存在しない
 		"""
-		forwards = via.split('.')[:-1]
-		while(len(forwards)):
-			org_tag = forwards.pop()
-			tag = self.__finder.denormalize_tag(org_tag)
+		forwards = EntryPath(via).shift(-1)
+		while(forwards.valid):
+			tag, _ = forwards.tail()
 			if self.__resolver.can_resolve(tag):
-				path = '.'.join([*forwards, org_tag])
-				return self.by(path)
+				return self.by(forwards.origin)
+
+			forwards = forwards.shift(-1)
 
 		raise NotFoundError(via)
 
@@ -316,22 +316,20 @@ class Nodes(Query[Node]):
 			if len([cached for cached in memo if path.startswith(cached)]):
 				return False
 
+			entry_path = EntryPath(path)
+
 			# XXX 変換対象が存在する場合はそちらに対応を任せる(終端記号か否かは問わない)
-			entry_tag = self.__finder.denormalize_tag(path.split('.').pop())
+			entry_tag = entry_path.tail()[0]
 			if self.__resolver.can_resolve(entry_tag):
-				memo.append(path)
+				memo.append(entry_path.origin)
 				return True
 
 			if self.__finder.has_child(entry):
 				return False
 
 			# 自身を含む配下のエントリーに変換対象のノードがなく、Terminalにフォールバックされる終端記号が対象
-			_, remain = path.split(via)
-			in_allows = [
-				index
-				for index, in_org_tag in enumerate(remain.split('.'))
-				if self.__resolver.can_resolve(self.__finder.denormalize_tag(in_org_tag))
-			]
+			entry_tags = entry_path.relativefy(via).de_identify().elements
+			in_allows = [index for index, in_tag in enumerate(entry_tags) if self.__resolver.can_resolve(in_tag)]
 			return len(in_allows) == 0
 
 		entries = self.__finder.find(self.__root, via, tester)

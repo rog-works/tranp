@@ -55,7 +55,7 @@ class EntryPath:
 		elems = self.elements
 		if skip > 0:
 			elems = elems[skip:]
-		elif skip > 1:
+		elif skip < 1:
 			elems = elems[:skip]
 
 		return self.join(*elems)
@@ -184,46 +184,6 @@ class ASTFinder(Generic[T]):
 
 
 	@classmethod
-	def normalize_tag(cls, entry_tag: str, index: int) -> str:
-		"""タグ名にインデックスを付与
-
-		Args:
-			entry_tag (str): エントリータグ名
-			index (int): インデックス
-		Returns:
-			str: 付与後のエントリータグ名
-		Note:
-			書式: ${entry_tag}[${index}]
-		"""
-		return f'{entry_tag}[{index}]'
-
-
-	@classmethod
-	def denormalize_tag(cls, entry_tag: str) -> str:
-		"""タグ名に付与されたインデックスを除外
-
-		Args:
-			entry_tag (str): エントリータグ名
-		Returns:
-			str: 元のエントリータグ名
-		"""
-		return cls.break_tag(entry_tag)[0]
-
-
-	@classmethod
-	def break_tag(cls, entry_tag: str) -> tuple[str, int]:
-		"""タグ名から元のタグ名と付与されたインデックスに分解。インデックスがない場合は-1とする
-
-		Args:
-			entry_tag (str): エントリータグ名
-		Returns:
-			tuple[str, int]: (エントリータグ名, インデックス)
-		"""
-		matches = re.fullmatch(r'(\w+)\[(\d+)\]', entry_tag)
-		return (matches[1], int(matches[2])) if matches else (entry_tag, -1)
-
-
-	@classmethod
 	def escaped_path(cls, path: str) -> str:
 		"""パスを正規表現用にエスケープ
 
@@ -233,18 +193,6 @@ class ASTFinder(Generic[T]):
 			str: エスケープ後のパス
 		"""
 		return re.sub(r'([.\[\]])', r'\\\1', path)
-
-
-	@classmethod
-	def __without_root_path(cls, full_path: str) -> str:
-		"""フルパスからルート要素を除外した相対パスに変換
-
-		Args:
-			full_path (str): フルパス
-		Returns:
-			str: ルート要素からの相対パス
-		"""
-		return '.'.join(full_path.split('.')[1:])
 
 
 	def has_child(self, entry: T) -> bool:

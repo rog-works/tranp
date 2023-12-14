@@ -1,18 +1,31 @@
-from typing import cast, Iterator, TypeVar
+from abc import abstractmethod
+from typing import cast, TypeVar
 
 from py2cpp.ast.travarsal import EntryPath
 from py2cpp.errors import LogicError, NotFoundError
+from py2cpp.lang.annotation import implements
 from py2cpp.lang.sequence import flatten
 from py2cpp.node.embed import EmbedKeys, Meta
 from py2cpp.node.provider import Query
 from py2cpp.node.trait import ScopeTrait
 
-T = TypeVar('T')
-T_A = TypeVar('T_A')
-T_B = TypeVar('T_B')
+
+class NodeBase:
+	"""ノードの抽象基底クラス。役割としては自己参照系のメソッドで型解決に利用"""
+
+	@property
+	@abstractmethod
+	def fill_path(self) -> str:
+		"""str: ルート要素からのフルパス"""
+		...
 
 
-class Node:
+T = TypeVar('T', bound=NodeBase)
+T_A = TypeVar('T_A', bound=NodeBase)
+T_B = TypeVar('T_B', bound=NodeBase)
+
+
+class Node(NodeBase):
 	"""ASTのエントリーと紐づくノードの基底クラス
 	自身のエントリーを基点にJSONPathクエリーベースで各ノードへ参照が可能
 	派生クラスではノードの役割をプロパティーとして定義する
@@ -34,6 +47,7 @@ class Node:
 
 
 	@property
+	@implements
 	def full_path(self) -> str:
 		"""str: ルート要素からのフルパス"""
 		return self.__full_path.origin
@@ -155,7 +169,7 @@ class Node:
 		Returns:
 			list[type[Node]]: クラスリスト
 		Note:
-			NodeとObjectのクラスはメタデータと関わりがないため除外
+			Node以下の基底クラスはメタデータと関わりがないため除外
 		"""
 		return [ctor for ctor in self.__class__.__mro__ if issubclass(ctor, Node) and ctor is not Node]
 
@@ -306,11 +320,11 @@ class Node:
 		return list(accept_tags.keys())
 
 
-	def is_a(self, ctor: type['Node']) -> bool:
+	def is_a(self, ctor: type[NodeBase]) -> bool:
 		"""指定のクラスと同種(同じか派生クラス)のインスタンスか判定
 
 		Args:
-			ctor (type[Node]): 判定するクラス
+			ctor (type[NodeBase]): 判定するクラス
 		Returns:
 			bool: True = 同種
 		"""

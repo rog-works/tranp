@@ -34,18 +34,19 @@ class EntryPath:
 	def __init__(self, path: str) -> None:
 		self.origin = path
 
+	@property
+	def valid(self) -> bool:
+		return len(self.elements) > 0
 
 	@property
 	def elements(self) -> list[str]:
-		return self.origin.split('.')
+		return self.origin.split('.') if len(self.origin) > 0 else []
 
 
-	@property
 	def head(self) -> tuple[str, int]:
 		return self.break_identify(self.elements[0])
 
 
-	@property
 	def tail(self) -> tuple[str, int]:
 		return self.break_identify(self.elements[-1])
 
@@ -298,15 +299,15 @@ class ASTFinder(Generic[T]):
 		if self.tag_by(root) == full_path:
 			return root
 
-		return self.__pluck(root, self.__without_root_path(full_path))
+		return self.__pluck(root, EntryPath(full_path).shift(1))
 
 
-	def __pluck(self, entry: T, path: str) -> T:
+	def __pluck(self, entry: T, path: EntryPath) -> T:
 		"""配下のエントリーから指定のパスに一致するエントリーを抜き出す
 
 		Args:
 			entry (Entry): エントリー
-			path (str): 引数のエントリーからの相対パス
+			path (EntryPath): 引数のエントリーからの相対パス
 		Returns:
 			Entry: エントリー
 		Note:
@@ -314,20 +315,20 @@ class ASTFinder(Generic[T]):
 		Raise:
 			NotFoundError: エントリーが存在しない
 		"""
-		if self.__proxy.has_child(entry) and path:
-			org_tag, *remain = path.split('.')
-			tag, index = self.break_tag(org_tag)
-			# @see break_tag, full_pathfy
+		if self.__proxy.has_child(entry) and path.valid:
+			tag, index = path.head()
+			remain = path.shift(1)
+			# @see EntryPath.identify
 			if index != -1:
 				children = self.__proxy.children(entry)
 				if index >= 0 and index < len(children):
-					return self.__pluck(children[index], '.'.join(remain))
+					return self.__pluck(children[index], remain)
 			else:
 				children = self.__proxy.children(entry)
 				in_entries = [in_entry for in_entry in children if tag == self.tag_by(in_entry)]
 				if len(in_entries):
-					return self.__pluck(in_entries.pop(), '.'.join(remain))
-		elif not path:
+					return self.__pluck(in_entries.pop(), remain)
+		elif not path.valid:
 			return entry
 
 		raise NotFoundError(entry, path)

@@ -16,6 +16,20 @@
 			"justMyCode": true,
 		},
 		{
+			"name": "Python: unittest file",
+			"type": "python",
+			"request": "launch",
+			"module":"unittest",
+			"args": ["tests.unit.py2cpp.node.test_nodes.TestNodes.test_exists"],
+			"cwd": "${workspaceFolder}",
+			"env": {
+				"PYTHONDONTWRITEBYTECODE": "1",
+				"PYTHONPATH": "${workspaceFolder};${workspaceFolder}/vendor",
+			},
+			"console": "integratedTerminal",
+			"justMyCode": true,
+		},
+		{
 			"name": "Python: 現在のファイル",
 			"type": "python",
 			"request": "launch",

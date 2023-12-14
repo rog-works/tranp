@@ -76,7 +76,7 @@ class SelfSymbol(Symbol):
 		return via.to_string() == 'self'
 
 
-@Meta.embed(Node, accept_tags('paramevalue'))
+@Meta.embed(Node, accept_tags('paramvalue'))
 class Parameter(Node):
 	@property
 	def param_symbol(self) -> Symbol:
@@ -394,7 +394,6 @@ class Fixture:
 				'if_stmt': If,
 				'assign_stmt': Assign,
 				'block': Block,
-				'paramvalue': Parameter,
 				'__empty__': Empty,
 			},
 			fallback=Terminal,

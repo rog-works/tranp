@@ -1,5 +1,8 @@
-from py2cpp.cpp.pragma import *
-from py2cpp.cpp.enum import *
+from py2cpp.cpp.directive import pragma
+from py2cpp.cpp.enum import CEnum
+
+
+pragma('once')
 
 
 class IntVector:

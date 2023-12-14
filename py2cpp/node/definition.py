@@ -38,6 +38,14 @@ class FileInput(Node):
 		return self._children()
 
 
+@Meta.embed(Node, accept_tags('primary', 'number'))
+class Number(Node):
+	@property
+	@override
+	def is_terminal(self) -> bool:  # XXX Terminalへの移設を検討
+		return True
+
+
 @Meta.embed(Node, accept_tags('dotted_name', 'getattr', 'primary', 'var', 'name', 'argvalue'))
 class Symbol(Node):
 	@property

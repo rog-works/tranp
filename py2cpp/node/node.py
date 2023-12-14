@@ -81,6 +81,12 @@ class Node:
 		return self.__nodes.parent(self.full_path)
 
 
+	@property
+	def is_terminal(self) -> bool:
+		"""bool: 終端要素。これ以上展開が不要な要素であることを表す。@note: 終端記号とは別"""
+		return False
+
+
 	def to_string(self) -> str:
 		"""自身を表す文字列表現を取得
 
@@ -105,16 +111,30 @@ class Node:
 
 		Returns:
 			list[Node]: ノードリスト
+		Note:
+			# 優先順位
+				1. 終端要素は空を返す
+				2. 展開プロパティーのノードを使う
+				3. 下位ノードを使う
+			# 使い分け
+				* 終端記号に紐づくノードが欲しい場合は_under_expansionを使う
+				* 下位のノードを全て洗い出す場合は_flattenを使う
 		"""
-		under = self.__explicit_expantion()
-		if len(under) == 0:
-			under = self.__implicit_expansion()
+		if self.is_terminal:
+			return []
 
+		under = self._prop_expantion() or self._under_expansion()
 		return list(flatten([[node, *node._flatten()] for node in under]))
 
 
-	def __explicit_expantion(self) -> list['Node']:
-		"""list[Node]: 展開プロパティーからノードリストを取得"""
+	def _prop_expantion(self) -> list['Node']:
+		"""展開プロパティーからノードリストを取得
+
+		Returns:
+			list[Node]: 展開プロパティーのノードリスト
+		Note:
+			このメソッドは単体では使用しない想定
+		"""
 		nodes: list[Node] = []
 		for key in self.__expantionable_keys():
 			func_or_result = getattr(self, key)
@@ -125,30 +145,29 @@ class Node:
 
 
 	def __expantionable_keys(self) -> list[str]:
-		"""派生クラスに埋め込まれた展開プロパティーのメソッド名を抽出
+		"""メタデータより展開プロパティーのメソッド名を抽出
 
 		Returns:
 			list[str]: 展開プロパティーのメソッド名リスト
 		Note:
 			@see trans.node.embed.expansionable
-			FIEME クラスの継承ツリーを考慮する必要あり
 		"""
-		prop_keys: list[str] = []
+		prop_keys: dict[str, bool] = {}
 		for ctor in self.__embed_classes():
 			meta = Meta.dig_for_method(Node, ctor, EmbedKeys.Expansionable, value_type=int)
 			order_on_keys = {value: name for name, value in meta.items()}
-			prop_keys.extend([prop_key for _, prop_key in sorted(order_on_keys.items(), key=lambda index: index)])
+			prop_keys = {**prop_keys, **{prop_key: True for _, prop_key in sorted(order_on_keys.items(), key=lambda index: index)}}
 
-		return list(set(prop_keys))
+		return list(prop_keys.keys())
 
 
 	def __embed_classes(self) -> list[type['Node']]:
-		"""メタデータと関連する自身を含む継承関係のあるクラスを取得
+		"""自身を含む継承関係のあるクラスを取得。取得されるクラスはメタデータと関連する派生クラスに限定
 
 		Returns:
 			list[type[Node]]: クラスリスト
 		Note:
-			NodeとObjectのクラスはメタデータと関わりないため除外する
+			NodeとObjectのクラスはメタデータと関わりがないため除外
 		"""
 		return [ctor for ctor in self.__class__.__mro__ if issubclass(ctor, Node) and ctor is not Node]
 
@@ -246,6 +265,15 @@ class Node:
 		return self.__nodes.leafs(self.full_path, leaf_tag)
 
 
+	def _under_expansion(self) -> list['Node']:
+		"""配下に存在する展開が可能なノードをフェッチ
+
+		Returns:
+			list[Node]: ノードリスト
+		"""
+		return self.__nodes.expansion(self.full_path)
+
+
 	def _my_value(self) -> str:
 		"""自身のエントリーの値を取得
 
@@ -255,17 +283,8 @@ class Node:
 		return self.__nodes.by_value(self.full_path)
 
 
-	def __implicit_expansion(self) -> list['Node']:
-		"""配下に存在する展開が可能なノードをフェッチ
-
-		Returns:
-			list[Node]: ノードリスト
-		"""
-		return self.__nodes.expansion(self.full_path)
-
-
 	def as_a(self, ctor: type[T]) -> T:
-		"""指定の具象クラスに変換。変換先が同種の場合はキャストするのみ
+		"""指定の具象クラスに変換。変換先が同種(同じか派生クラス)の場合はキャストするのみ
 
 		Args:
 			ctor (type[T]): 具象クラスの型
@@ -273,8 +292,9 @@ class Node:
 			T: 具象クラスのインスタンス
 		Raises:
 			LogicError: 許可されない変換先を指定
+		Note:
+			XXX 変換先は継承関係が無くても良い
 		"""
-		# 自身が指定のクラスと同種(同じか派生クラス)の場合はキャストのみ
 		if self.is_a(ctor):
 			return cast(T, self)
 
@@ -286,16 +306,16 @@ class Node:
 
 
 	def __accept_tags(self) -> list[str]:
-		"""派生クラスに埋め込まれた受け入れタグリストを取得
+		"""メタデータより受け入れタグリストを取得
 
 		Returns:
 			list[str]: 受け入れタグリスト
 		"""
-		accept_tags: list[str] = []
+		accept_tags: dict[str, bool] = {}
 		for ctor in self.__embed_classes():
-			accept_tags.extend(Meta.dig_for_class(Node, ctor, EmbedKeys.AcceptTags, default=[]))
+			accept_tags = {**accept_tags, **{in_tag: True for in_tag in Meta.dig_for_class(Node, ctor, EmbedKeys.AcceptTags, default=[])}}
 
-		return list(set(accept_tags))
+		return list(accept_tags.keys())
 
 
 	def is_a(self, ctor: type['Node']) -> bool:
@@ -343,12 +363,12 @@ class Node:
 		Returns:
 			list[type[Node]]: 特徴クラスのリスト
 		"""
-		classes: list[type[Node]] = []
+		classes: dict[type[Node], bool] = {}
 		for ctor in self.__embed_classes():
 			meta = Meta.dig_by_key_for_class(Node, EmbedKeys.Actualized, value_type=type)
-			classes.extend([feature_class for feature_class, via_class in meta.items() if via_class is ctor])
+			classes = {**classes, **{feature_class: True for feature_class, via_class in meta.items() if via_class is ctor}}
 
-		return list(set(classes))
+		return list(classes.keys())
 
 
 	def actualize(self) -> 'Node':
@@ -369,8 +389,5 @@ class Node:
 		return f'<{self.__class__.__name__}: {self.full_path}>'
 
 
-	# XXX def is_method(self) -> bool: pass
 	# XXX def is_statement(self) -> bool: pass
-	# XXX def is_terminal(self) -> bool: pass
-	# XXX def is_token(self) -> bool: pass
 	# XXX def pretty(self) -> str: pass

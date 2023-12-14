@@ -53,15 +53,20 @@ class If(Node): pass
 @Meta.embed(Node, accept_tags('dotted_name', 'getattr', 'primary', 'var', 'name', 'argvalue'))
 class Symbol(Node):
 	@override
+	def is_terminal(self) -> bool:  # XXX Terminalへの移設を検討
+		return True
+
+
+	@override
 	def to_string(self) -> str:
-		return '.'.join([node.to_string() for node in self._flatten()])
+		return '.'.join([node.to_string() for node in self._under_expansion()])
 
 
 @Meta.embed(Node, accept_tags('getattr'), actualized(via=Symbol))
 class SelfSymbol(Symbol):
 	@classmethod
 	@override
-	def match_feature(cls, via: Node) -> bool:  # FIXME SymbolがResolverに未登録なのでacutualizeされるタイミングが無い
+	def match_feature(cls, via: Node) -> bool:
 		return via.to_string().startswith('self')
 
 
@@ -259,8 +264,8 @@ class Constructor(Function):
 	@property
 	def decl_variables(self) -> list[Variable]:
 		assigns = [node.as_a(AnnoAssign) for node in self.block._children() if node.is_a(AnnoAssign)]
-		variables = [node.as_a(Variable) for node in assigns if node.symbol.is_a(SelfSymbol)]
-		return list(set(variables))
+		variables = {node.as_a(Variable): True for node in assigns if node.symbol.is_a(SelfSymbol)}
+		return list(variables.keys())
 
 
 @Meta.embed(Node, actualized(via=Function))

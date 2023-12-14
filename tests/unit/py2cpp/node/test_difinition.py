@@ -120,8 +120,8 @@ class TestDefinition(TestCase):
 			],
 			'constructor': {
 				'decl_variables': [
-					{'symbol': 'v', 'type': 'int'},
-					{'symbol': 's', 'type': 'str'},
+					{'symbol': 'self.v', 'type': 'int'},
+					{'symbol': 'self.s', 'type': 'str'},
 				],
 			},
 			'methods': [
@@ -146,7 +146,7 @@ class TestDefinition(TestCase):
 			constructor = node.constructor
 			self.assertEqual(type(constructor), Constructor)
 			for index, variable in enumerate(constructor.decl_variables):
-				in_var_expected = in_expected['variables'][index]
+				in_var_expected = in_expected['decl_variables'][index]
 				self.assertEqual(variable.symbol.to_string(), in_var_expected['symbol'])
 				self.assertEqual(variable.variable_type.to_string(), in_var_expected['type'])
 

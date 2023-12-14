@@ -381,14 +381,12 @@ class ASTFinder(Generic[T]):
 			children = self.__proxy.children(entry)
 			tag_of_indexs = self.__aligned_children(children)
 			for index, in_entry in enumerate(children):
-				# XXX 同名の要素が並ぶか否かでパスの書式を変更
-				# XXX n == 1: {path}.{tag}
-				# XXX n >= 2: {path}.{tag}[{index}]
-				# XXX @see normalize_tag, pluck
+				# 同名の要素が並ぶか否かでパスの書式を変更
+				# @see EntryPath.identify
 				entry_tag = self.tag_by(in_entry)
 				indivisual = len(tag_of_indexs[entry_tag]) == 1
-				in_path = f'{path}.{entry_tag}' if indivisual else f'{path}.{self.normalize_tag(entry_tag, index)}'
-				in_paths = {**in_paths, **self.full_pathfy(children[index], in_path, depth - 1)}
+				in_path = EntryPath.join(path, entry_tag) if indivisual else EntryPath.identify(path, entry_tag, index)
+				in_paths = {**in_paths, **self.full_pathfy(children[index], in_path.origin, depth - 1)}
 
 		return in_paths
 

@@ -9,56 +9,74 @@ T = TypeVar('T')
 
 class EntryPath:
 	@classmethod
-	def join(cls, path: str, *paths: str) -> 'EntryPath':
-		return cls('.'.join([path, *paths]))
+	def join(cls, *paths: str) -> 'EntryPath':
+		return cls('.'.join([*paths]))
 
 
 	@classmethod
-	def identify(cls, path: str, tag: str, index: int) -> 'EntryPath':
-		return cls('.'.join([path, f'{tag}[{index}]']))
+	def identify(cls, path: str, entry_tag: str, index: int) -> 'EntryPath':
+		return cls('.'.join([path, f'{entry_tag}[{index}]']))
+
+
+	@classmethod
+	def break_identify(cls, entry_tag: str) -> tuple[str, int]:
+		"""タグ名から元のタグ名と付与されたインデックスに分解。インデックスがない場合は-1とする
+
+		Args:
+			entry_tag (str): エントリータグ名
+		Returns:
+			tuple[str, int]: (エントリータグ名, インデックス)
+		"""
+		matches = re.fullmatch(r'(\w+)\[(\d+)\]', entry_tag)
+		return (matches[1], int(matches[2])) if matches else (entry_tag, -1)
 
 
 	def __init__(self, path: str) -> None:
-		self.__path = path
-
-
-	@property
-	def path(self) -> str:
-		return self.__path
+		self.origin = path
 
 
 	@property
 	def elements(self) -> list[str]:
-		return self.__path.split('.')
+		return self.origin.split('.')
 
 
 	@property
-	def head(self) -> str:
-		return self.elements[0]
+	def head(self) -> tuple[str, int]:
+		return self.break_identify(self.elements[0])
 
 
 	@property
-	def tail(self) -> str:
-		return self.elements[-1]
+	def tail(self) -> tuple[str, int]:
+		return self.break_identify(self.elements[-1])
 
 
-	def contains(self, tag: str) -> bool:
-		return tag in self.de_identify().elements
+	def shift(self, skip: int) -> 'EntryPath':
+		elems = self.elements
+		if skip > 0:
+			elems = elems[skip:]
+		elif skip > 1:
+			elems = elems[:skip]
+
+		return self.join(*elems)
 
 
-	def consists_of_only(self, *tags: str) -> bool:
-		return len([tag for tag in self.de_identify().elements if tag not in tags]) == 0
+	def contains(self, entry_tag: str) -> bool:
+		return entry_tag in self.de_identify().elements
+
+
+	def consists_of_only(self, *entry_tags: str) -> bool:
+		return len([entry_tag for entry_tag in self.de_identify().elements if entry_tag not in entry_tags]) == 0
 
 
 	def de_identify(self) -> 'EntryPath':
-		return EntryPath(re.sub(r'\[\d+\]', '', self.__path))
+		return EntryPath(re.sub(r'\[\d+\]', '', self.origin))
 
 
 	def relativefy(self, before: str) -> 'EntryPath':
-		if not self.path.startswith(before):
+		if not self.origin.startswith(before):
 			raise LogicError(self, before)
 
-		elems = [elem for elem in self.path.split(before)[1].split('.') if len(elem)]
+		elems = [elem for elem in self.origin.split(before)[1].split('.') if len(elem)]
 		return EntryPath('.'.join(elems))
 
 

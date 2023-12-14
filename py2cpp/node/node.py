@@ -93,20 +93,10 @@ class Node:
 		Returns:
 			str: 文字列表現
 		"""
-		return ''.join([self._my_value(), *[node.to_string() for node in self._flatten()]])
+		return ''.join([self._my_value(), *[node.to_string() for node in self.flatten()]])
 
 
-	def __iter__(self) -> Iterator['Node']:
-		"""下位ノード取得イテレーター
-
-		Returns:
-			Iterator[Node]: イテレーター
-		"""
-		for node in self._flatten():
-			yield node
-
-
-	def _flatten(self) -> list['Node']:
+	def flatten(self) -> list['Node']:
 		"""下位のノードを再帰的に展開し、1次元に平坦化して取得
 
 		Returns:
@@ -118,22 +108,20 @@ class Node:
 				3. 下位ノードを使う
 			# 使い分け
 				* 終端記号に紐づくノードが欲しい場合は_under_expansionを使う
-				* 下位のノードを全て洗い出す場合は_flattenを使う
+				* 下位のノードを全て洗い出す場合はflattenを使う
 		"""
 		if self.is_terminal:
 			return []
 
-		under = self._prop_expantion() or self._under_expansion()
-		return list(flatten([[node, *node._flatten()] for node in under]))
+		under = self.__prop_expantion() or self._under_expansion()
+		return list(flatten([[node, *node.flatten()] for node in under]))
 
 
-	def _prop_expantion(self) -> list['Node']:
+	def __prop_expantion(self) -> list['Node']:
 		"""展開プロパティーからノードリストを取得
 
 		Returns:
 			list[Node]: 展開プロパティーのノードリスト
-		Note:
-			このメソッドは単体では使用しない想定
 		"""
 		nodes: list[Node] = []
 		for key in self.__expantionable_keys():

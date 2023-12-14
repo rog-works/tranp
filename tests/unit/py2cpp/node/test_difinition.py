@@ -134,6 +134,7 @@ class TestDefinition(TestCase):
 		nodes = Fixture.inst.nodes()
 		node = nodes.by(full_path).as_a(Class)
 		self.assertEqual(node.class_name.to_string(), expected['name'])
+		self.assertEqual(len(node.decorators), len(expected['decorators']))
 		for index, decorator in enumerate(node.decorators):
 			in_expected = expected['decorators'][index]
 			self.assertEqual(decorator.symbol.to_string(), in_expected['symbol'])
@@ -145,11 +146,13 @@ class TestDefinition(TestCase):
 			in_expected = expected['constructor']
 			constructor = node.constructor
 			self.assertEqual(type(constructor), Constructor)
+			self.assertEqual(len(constructor.decl_variables), len(in_expected['decl_variables']))
 			for index, variable in enumerate(constructor.decl_variables):
 				in_var_expected = in_expected['decl_variables'][index]
 				self.assertEqual(variable.symbol.to_string(), in_var_expected['symbol'])
 				self.assertEqual(variable.variable_type.to_string(), in_var_expected['type'])
 
+		self.assertEqual(len(node.methods), len(expected['methods']))
 		for index, constructor in enumerate(node.methods):
 			in_expected = expected['methods'][index]
 			self.assertEqual(type(constructor), Method)

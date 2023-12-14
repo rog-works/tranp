@@ -40,9 +40,5 @@ class Runner:
 		ctx = Context()
 		ctx.on('action', handler.on_action)
 
-		nodes: list[Node] = [root]
-		while not len(nodes):
-			node = nodes.pop()
-			nodes.extend(reversed(node._prop_expantion))
-
+		for node in root.flatten():
 			ctx.emit('action', node=node, ctx=ctx)

@@ -269,9 +269,9 @@ class TestNode(TestCase):
 			'file_input.function.block.term_a',
 		]),
 	])
-	def test___iter__(self, full_path: str, expected: list[str]) -> None:
+	def test_flatten(self, full_path: str, expected: list[str]) -> None:
 		nodes = Fixture.nodes()
-		all = [node.full_path for node in nodes.by(full_path)]
+		all = [node.full_path for node in nodes.by(full_path).flatten()]
 		self.assertEqual(all, expected)
 
 

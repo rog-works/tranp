@@ -100,7 +100,7 @@ class Expression(Node):
 		if len(self._children()) != 1:
 			return False
 
-		rel_paths = [EntryPath(node.full_path).relativefy(self.full_path) for node in self._flatten()]
+		rel_paths = [EntryPath(node.full_path).relativefy(self.full_path) for node in self.flatten()]
 		for rel_path in rel_paths:
 			if not rel_path.consists_of_only('getattr', 'primary', 'var', 'name', 'NAME'):
 				return False
@@ -314,7 +314,7 @@ class Class(Node):
 		if parents.is_a(Empty):
 			return []
 
-		return [node.as_a(Symbol) for node in parents if node.is_a(Symbol)]  # FIXME
+		return [node.as_a(Symbol) for node in parents._children() if node.is_a(Symbol)]
 
 
 	@property

@@ -133,9 +133,24 @@ class Node:
 			@see trans.node.embed.expansionable
 			FIEME クラスの継承ツリーを考慮する必要あり
 		"""
-		meta = Meta.dig_for_method(Node, self.__class__, EmbedKeys.Expansionable, value_type=int)
-		order_on_keys = {value: name for name, value in meta.items()}
-		return [prop_key for _, prop_key in sorted(order_on_keys.items(), key=lambda index: index)]
+		prop_keys: list[str] = []
+		for ctor in self.__embed_classes():
+			meta = Meta.dig_for_method(Node, ctor, EmbedKeys.Expansionable, value_type=int)
+			order_on_keys = {value: name for name, value in meta.items()}
+			prop_keys.extend([prop_key for _, prop_key in sorted(order_on_keys.items(), key=lambda index: index)])
+
+		return list(set(prop_keys))
+
+
+	def __embed_classes(self) -> list[type['Node']]:
+		"""メタデータと関連する自身を含む継承関係のあるクラスを取得
+
+		Returns:
+			list[type[Node]]: クラスリスト
+		Note:
+			NodeとObjectのクラスはメタデータと関わりないため除外する
+		"""
+		return [ctor for ctor in self.__class__.__mro__ if issubclass(ctor, Node) and ctor is not Node]
 
 
 	def _to_full_path(self, relative_path: str) -> str:
@@ -263,11 +278,24 @@ class Node:
 		if self.is_a(ctor):
 			return cast(T, self)
 
-		accept_tags: list[str] = Meta.dig_for_class(Node, ctor, EmbedKeys.AcceptTags, default=[])
+		accept_tags = self.__accept_tags()
 		if len(accept_tags) and self.tag not in accept_tags:
 			raise LogicError(str(self), ctor)
 
 		return ctor(self.__nodes, self.full_path)
+
+
+	def __accept_tags(self) -> list[str]:
+		"""派生クラスに埋め込まれた受け入れタグリストを取得
+
+		Returns:
+			list[str]: 受け入れタグリスト
+		"""
+		accept_tags: list[str] = []
+		for ctor in self.__embed_classes():
+			accept_tags.extend(Meta.dig_for_class(Node, ctor, EmbedKeys.AcceptTags, default=[]))
+
+		return list(set(accept_tags))
 
 
 	def is_a(self, ctor: type['Node']) -> bool:
@@ -315,8 +343,12 @@ class Node:
 		Returns:
 			list[type[Node]]: 特徴クラスのリスト
 		"""
-		meta = Meta.dig_by_key_for_class(Node, EmbedKeys.Actualized, value_type=type)
-		return [feature_class for feature_class, via_class in meta.items() if via_class is self.__class__]
+		classes: list[type[Node]] = []
+		for ctor in self.__embed_classes():
+			meta = Meta.dig_by_key_for_class(Node, EmbedKeys.Actualized, value_type=type)
+			classes.extend([feature_class for feature_class, via_class in meta.items() if via_class is ctor])
+
+		return list(set(classes))
 
 
 	def actualize(self) -> 'Node':

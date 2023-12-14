@@ -222,6 +222,7 @@ class Function(Node):
 	@property
 	def access(self) -> str:
 		name = self.function_name.to_string()
+		# XXX 定数化などが必要
 		if name.startswith('__'):
 			return 'private'
 		elif name.startswith('_'):

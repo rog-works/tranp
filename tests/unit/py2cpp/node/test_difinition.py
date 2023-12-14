@@ -398,16 +398,23 @@ class Fixture:
 
 
 class TestDefinition(TestCase):
-	def test_enum(self) -> None:
+	@data_provider([
+		('file_input.class_def.class_def_raw.block.enum_def', {
+			'name': 'Values',
+			'variables': [
+				{'symbol': 'A', 'value': '0'},
+				{'symbol': 'B', 'value': '1'},
+			],
+		}),
+	])
+	def test_enum(self, full_path: str, expected: dict[str, Any]) -> None:
 		nodes = Fixture.inst.nodes()
-		node = nodes.by('file_input').as_a(FileInput) \
-			.statements[1].as_a(Class).block \
-			.statements[0].as_a(Enum)
-		self.assertEqual(node.enum_name.to_string(), 'Values')
-		self.assertEqual(node.variables[0].symbol.to_string(), 'A')
-		self.assertEqual(node.variables[0].value.to_string(), '0')
-		self.assertEqual(node.variables[1].symbol.to_string(), 'B')
-		self.assertEqual(node.variables[1].value.to_string(), '1')
+		node = nodes.by(full_path).as_a(Enum)
+		self.assertEqual(node.enum_name.to_string(), expected['name'])
+		for index, variable in enumerate(node.variables):
+			in_expected = expected['variables'][index]
+			self.assertEqual(variable.symbol.to_string(), in_expected['symbol'])
+			self.assertEqual(variable.value.to_string(), in_expected['value'])
 
 
 	@data_provider([

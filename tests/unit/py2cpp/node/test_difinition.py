@@ -258,7 +258,14 @@ class Function(Node):
 		return self._by('function_def_raw.block').as_a(Block)
 
 
+@Meta.embed(Node, actualized(via=Function))
 class Constructor(Function):
+	@classmethod
+	@override
+	def match_feature(cls, via: Node) -> bool:
+		return via.as_a(Function).function_name.to_string() == '__init__'
+
+
 	@property
 	def decl_variables(self) -> list[Variable]:
 		assigns = [node.as_a(AnnoAssign) for node in self.block._children() if node.is_a(AnnoAssign)]
@@ -266,8 +273,22 @@ class Constructor(Function):
 		return list(set(variables))
 
 
-class ClassMethod(Function): pass
-class Method(Function): pass
+@Meta.embed(Node, actualized(via=Function))
+class ClassMethod(Function):
+	@classmethod
+	@override
+	def match_feature(cls, via: Node) -> bool:
+		decorators = via.as_a(Function).decorators
+		return len(decorators) > 0 and decorators[0].symbol.to_string() == 'classmethod'
+
+
+@Meta.embed(Node, actualized(via=Function))
+class Method(Function):
+	@classmethod
+	@override
+	def match_feature(cls, via: Node) -> bool:
+		parameters = via.as_a(Function).parameters
+		return len(parameters) > 0 and parameters[0].param_symbol.to_string() == 'self'  # XXX 手軽だが不正確
 
 
 @Meta.embed(Node, accept_tags('class_def'))

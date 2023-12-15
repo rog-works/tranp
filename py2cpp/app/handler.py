@@ -80,8 +80,9 @@ class Handler:
 	def on_action(self, node: Node, ctx: Context) -> None:
 		self.indentation(node, ctx)
 
-		if hasattr(self, node.tag):
-			getattr(self, node.tag)(node, ctx)
+		handler_name = f'on_{node.identifer}'
+		if hasattr(self, handler_name):
+			getattr(self, handler_name)(node, ctx)
 
 
 	def indentation(self, node: Node, ctx: Context) -> None:
@@ -94,7 +95,7 @@ class Handler:
 		ctx.nest = node.nest
 
 
-	def class_def(self, node: Class, ctx: Context) -> None:
+	def on_class(self, node: Class, ctx: Context) -> None:
 		text = ctx.writer.render('class.j2', {
 			'class_name': node.class_name.to_string(),
 			'decorators': [
@@ -114,7 +115,7 @@ class Handler:
 		ctx.writer.seek(cursor)
 
 
-	def enum_def(self, node: Enum, ctx: Context) -> None:
+	def on_enum(self, node: Enum, ctx: Context) -> None:
 		text = ctx.writer.render('enum.j2', {
 			'enum_name': node.enum_name.to_string(),
 			'variables': [
@@ -128,8 +129,20 @@ class Handler:
 		ctx.writer.put(text)
 
 
-	def function_def(self, node: Function, ctx: Context) -> None:
-		template = ''
+	def on_constructor(self, node: Function, ctx: Context) -> None:
+		self.on_function(node, ctx)
+
+
+	def on_class_method(self, node: Function, ctx: Context) -> None:
+		self.on_function(node, ctx)
+
+
+	def on_method(self, node: Function, ctx: Context) -> None:
+		self.on_function(node, ctx)
+
+
+	def on_function(self, node: Function, ctx: Context) -> None:
+		template = 'function.j2'
 		if isinstance(node, Constructor):
 			template = 'constructor.j2'
 		elif isinstance(node, ClassMethod):
@@ -155,7 +168,19 @@ class Handler:
 		ctx.writer.seek(cursor)
 
 
-	def assign_stmt(self, node: Assign, ctx: Context) -> None:
+	def on_move_assign(self, node: Assign, ctx: Context) -> None:
+		self.on_assign(node, ctx)
+
+
+	def on_anno_assign(self, node: Assign, ctx: Context) -> None:
+		self.on_assign(node, ctx)
+
+
+	def on_aug_assign(self, node: Assign, ctx: Context) -> None:
+		self.on_assign(node, ctx)
+
+
+	def on_assign(self, node: Assign, ctx: Context) -> None:
 		text = ''
 		if isinstance(node, MoveAssign):
 			text = ctx.writer.render('move_assign.j2', {
@@ -178,7 +203,7 @@ class Handler:
 		ctx.writer.put(text)
 
 
-	def import_stmt(self, node: Import, ctx: Context) -> None:
+	def on_import(self, node: Import, ctx: Context) -> None:
 		module_path = node.module_path.to_string()
 		if module_path.startswith('py2cpp'):
 			return
@@ -187,7 +212,7 @@ class Handler:
 		ctx.writer.put(text)
 
 
-	def dict_(self, node: Dict, ctx: Context) -> None:
+	def on_dict(self, node: Dict, ctx: Context) -> None:
 		text = ctx.writer.render('dict.j2', {'items': {item.key.to_string(): item.value.to_string() for item in node.items}})
 		ctx.writer.put(text)
 

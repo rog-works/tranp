@@ -171,6 +171,21 @@ class TestNode(TestCase):
 
 
 	@data_provider([
+		('file_input', 'file_input'),
+		('file_input.class.__empty__', 'empty'),
+		('file_input.class.block', 'block'),
+		('file_input.class.block.enum', 'enum'),
+		('file_input.class.block.function[1]', 'function'),
+		('file_input.class.block.function[2]', 'function'),
+		('file_input.function', 'function'),
+	])
+	def test_identifer(self, full_path: str, expected: str) -> None:
+		nodes = Fixture.nodes()
+		node = nodes.by(full_path)
+		self.assertEqual(node.identifer, expected)
+
+
+	@data_provider([
 		('file_input', '__main__'),
 		('file_input.class', '__main__'),
 		('file_input.class.__empty__', '__main__'),

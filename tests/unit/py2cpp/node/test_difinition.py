@@ -12,6 +12,7 @@ from py2cpp.node.definition import (
 	Class,
 	Constructor,
 	Decorator,
+	Dict,
 	Empty,
 	Enum,
 	FileInput,
@@ -95,6 +96,23 @@ class Fixture:
 
 
 class TestDefinition(TestCase):
+	@data_provider([
+		('file_input.class_def[2].class_def_raw.block.function_def[2].function_def_raw.block.assign_stmt[0].assign.primary[1].dict', {
+			'items': [
+				{'key': 'Hoge.Values.A', 'value': '0'},
+				{'key': 'Hoge.Values.B', 'value': '1'},
+			],
+		}),
+	])
+	def test_dict(self, full_path: str, expected: dict[str, Any]) -> None:
+		nodes = Fixture.inst.nodes()
+		node = nodes.by(full_path).as_a(Dict)
+		self.assertEqual(len(node.items), len(expected['items']))
+		for index, item in enumerate(node.items):
+			in_expected = expected['items'][index]
+			self.assertEqual(item.key.to_string(), in_expected['key'])
+			self.assertEqual(item.value.to_string(), in_expected['value'])
+
 	@data_provider([
 		('file_input.import_stmt', {
 			'module_path': 'py2cpp.cpp.enum',

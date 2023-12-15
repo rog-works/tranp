@@ -7,9 +7,6 @@ from py2cpp.node.trait import ScopeTrait
 class Terminal(Node):
 	@classmethod
 	def match_terminal(cls, via: Node, allow_tags: list[str]) -> bool:  # XXX
-		if len(via._children()) != 1:
-			return False
-
 		rel_paths = [node._full_path.relativefy(via.full_path) for node in via.flatten()]
 		for rel_path in rel_paths:
 			if not rel_path.consists_of_only(*allow_tags):

@@ -19,7 +19,7 @@ class Hoge(Base):
 	def _func2(self, text: str) -> None:
 		map = {
 			Hoge.Values.A: 0,
-			Hoge.Values.B: 0,
+			Hoge.Values.B: 1,
 		}
 		empty_map = {}
 		arr = [0, 1, 2]

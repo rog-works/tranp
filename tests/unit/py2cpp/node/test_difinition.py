@@ -19,6 +19,8 @@ from py2cpp.node.definition import (
 	Function,
 	If,
 	Import,
+	Integer,
+	List,
 	Method,
 	Parameter,
 	Symbol,
@@ -97,10 +99,29 @@ class Fixture:
 
 class TestDefinition(TestCase):
 	@data_provider([
+		('file_input.class_def[2].class_def_raw.block.function_def[2].function_def_raw.block.assign_stmt[2].assign.primary[1].list', {
+			'values': [
+				{'value': '0', 'value_type': Integer},
+				{'value': '1', 'value_type': Integer},
+				{'value': '2', 'value_type': Integer},
+			],
+		}),
+	])
+	def test_list(self, full_path: str, expected: dict[str, Any]) -> None:
+		nodes = Fixture.inst.nodes()
+		node = nodes.by(full_path).as_a(List)
+		self.assertEqual(len(node.values), len(expected['values']))
+		for index, value in enumerate(node.values):
+			in_expected = expected['values'][index]
+			self.assertEqual(value.to_string(), in_expected['value'])
+			self.assertEqual(type(value), in_expected['value_type'])
+
+
+	@data_provider([
 		('file_input.class_def[2].class_def_raw.block.function_def[2].function_def_raw.block.assign_stmt[0].assign.primary[1].dict', {
 			'items': [
-				{'key': 'Hoge.Values.A', 'value': '0'},
-				{'key': 'Hoge.Values.B', 'value': '1'},
+				{'key': 'Hoge.Values.A', 'value': '0', 'value_type': Integer},
+				{'key': 'Hoge.Values.B', 'value': '1', 'value_type': Integer},
 			],
 		}),
 	])
@@ -112,6 +133,7 @@ class TestDefinition(TestCase):
 			in_expected = expected['items'][index]
 			self.assertEqual(item.key.to_string(), in_expected['key'])
 			self.assertEqual(item.value.to_string(), in_expected['value'])
+			self.assertEqual(type(item.value), in_expected['value_type'])
 
 	@data_provider([
 		('file_input.import_stmt', {

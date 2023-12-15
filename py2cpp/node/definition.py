@@ -177,12 +177,12 @@ class MoveAssign(Assign):
 
 
 	@property
-	def symbol(self) -> Symbol:
+	def symbol(self) -> Symbol:  # FIXME Symbol | Indexer
 		return self._elements[0].as_a(Symbol)
 
 
 	@property
-	def value(self) -> Node:
+	def value(self) -> Node:  # FIXME Node | Empty
 		return self._elements[1].as_a(Expression).actualize()
 
 
@@ -195,7 +195,7 @@ class AnnoAssign(Assign):
 
 
 	@property
-	def symbol(self) -> Symbol:
+	def symbol(self) -> Symbol:  # FIXME Symbol | Indexer
 		return self._elements[0].as_a(Symbol)
 
 
@@ -205,7 +205,7 @@ class AnnoAssign(Assign):
 
 
 	@property
-	def value(self) -> Node:
+	def value(self) -> Node:  # FIXME Node | Empty
 		return self._elements[2].as_a(Expression).actualize()
 
 
@@ -218,7 +218,7 @@ class AugAssign(Assign):
 
 
 	@property
-	def symbol(self) -> Symbol:
+	def symbol(self) -> Symbol:  # FIXME Symbol | Indexer
 		return self._elements[0].as_a(Symbol)
 
 

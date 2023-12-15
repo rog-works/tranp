@@ -135,6 +135,13 @@ class TestDefinition(TestCase):
 
 
 	@data_provider([
+		('file_input.class_def[1]', {
+			'name': 'Base',
+			'decorators': [],
+			'parents': [],
+			'constructor': {},
+			'methods': [],
+		}),
 		('file_input.class_def[2]', {
 			'name': 'Hoge',
 			'decorators': [
@@ -167,12 +174,12 @@ class TestDefinition(TestCase):
 				in_arg_expected = in_expected['arguments'][index_arg]
 				self.assertEqual(argument.value.to_string(), in_arg_expected['value'])
 
-		pp = node.parents
-		self.assertEqual(len(pp), len(expected['parents']))
+		self.assertEqual(len(node.parents), len(expected['parents']))
 		for index, parent in enumerate(node.parents):
 			in_expected = expected['parents'][index]
 			self.assertEqual(parent.to_string(), in_expected['symbol'])
 
+		self.assertEqual(node.constructor_exists, len(expected['constructor'].keys()) > 0)
 		if node.constructor_exists:
 			in_expected = expected['constructor']
 			constructor = node.constructor

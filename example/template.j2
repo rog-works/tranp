@@ -4,11 +4,11 @@
 {% endfor %}
 {% set delimiter = '' %}
 {% for decorator in decorators %}
-{{ decorator.symbol }}({% for argument in decorator.arguments %}{{ delimiter }}{{argument.value}}{% set delimiter = ', ' %}{% endfor %})
+{{ decorator.symbol }}{{ '(' }}{% for argument in decorator.arguments %}{{ delimiter }}{{ argument.value }}{% set delimiter = ', ' %}{% endfor %}{{ ')' }}
 {% endfor %}
 {% set delimiter = '' %}
 class {{ class_name }}{% if parents %} : public {% for name in parents %}{{ delimiter }}{{ name }}{% set delimiter = ', ' %}{% endfor %}{% endif %} {{ '{' }}
-	@cursor@
+	{{ block }}
 {{ '}' }};
 
 {# move_assign.j2 #}
@@ -29,8 +29,8 @@ enum class {{ enum_name }} {{ '{' }}
 
 {# constructor.j2 #}
 {% set delimiter = '' %}
-{{ access }}: {{ class_name }}({% for parameter in parameters %}{{ delimiter }}{{parameter.variable_type}} {{ parameter.symbol }}{% set delimiter = ', ' %}{% endfor %}) {{ '{' }}
-	@cursor@
+{{ access }}: {{ class_name }}{{ '(' }}{% for parameter in parameters %}{{ delimiter }}{{parameter.variable_type}} {{ parameter.symbol }}{% set delimiter = ', ' %}{% endfor %}{{ ')' }} {{ '{' }}
+	{{ block }}
 {{ '}' }}
 
 {# import.j2 #}

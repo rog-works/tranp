@@ -21,7 +21,7 @@ from py2cpp.lang.eventemitter import EventEmitter, T_Callback
 
 class Writer:
 	@property
-	def cursor(self) -> int:
+	def content(self) -> str:
 		...
 
 
@@ -33,23 +33,11 @@ class Writer:
 		...
 
 
-	def push(self) -> 'Writer':
+	def push(self) -> None:
 		...
 
 
 	def pop(self) -> 'Writer':
-		...
-
-
-	def begin(self, offset: int = 0) -> None:
-		...
-
-
-	def seek(self, offset: int = 0) -> None:
-		...
-
-
-	def end(self, offset: int = 0) -> None:
 		...
 
 
@@ -96,6 +84,7 @@ class Handler:
 
 
 	def on_class(self, node: Class, ctx: Context) -> None:
+		block = ctx.writer.pop()
 		text = ctx.writer.render('class.j2', {
 			'class_name': node.class_name.to_string(),
 			'decorators': [
@@ -109,10 +98,10 @@ class Handler:
 				for decorator in node.decorators
 			],
 			'parents': [parent.to_string() for parent in node.parents],
+			'block': block.content,
 		})
-		cursor = text.find('@cursor@')
+		ctx.writer.push()
 		ctx.writer.put(text)
-		ctx.writer.seek(cursor)
 
 
 	def on_enum(self, node: Enum, ctx: Context) -> None:
@@ -126,6 +115,7 @@ class Handler:
 				for variable in node.variables
 			],
 		})
+		ctx.writer.push()
 		ctx.writer.put(text)
 
 
@@ -150,6 +140,7 @@ class Handler:
 		elif isinstance(node, Method):
 			template = 'method.j2'
 
+		block = ctx.writer.pop()
 		text = ctx.writer.render(template, {
 			'access': node.access,
 			'class_name': '',  # FIXME
@@ -161,45 +152,46 @@ class Handler:
 				}
 				for parameter in node.parameters
 			],
+			'block': block.content,
 		})
-
-		cursor = text.find('@cursor@')
+		ctx.writer.push()
 		ctx.writer.put(text)
-		ctx.writer.seek(cursor)
 
 
 	def on_move_assign(self, node: Assign, ctx: Context) -> None:
-		self.on_assign(node, ctx)
+		symbol = ctx.writer.pop()
+		value = ctx.writer.pop()
+		text = ctx.writer.render('move_assign.j2', {
+			'symbol': symbol.content,
+			'value': value.content,
+		})
+		ctx.writer.push()
+		ctx.writer.put(text)
 
 
 	def on_anno_assign(self, node: Assign, ctx: Context) -> None:
-		self.on_assign(node, ctx)
+		symbol = ctx.writer.pop()
+		variable_type = ctx.writer.pop()
+		value = ctx.writer.pop()
+		text = ctx.writer.render('anno_assign.j2', {
+			'symbol': symbol.content,
+			'variable_type': variable_type.content,
+			'value': value.content,
+		})
+		ctx.writer.push()
+		ctx.writer.put(text)
 
 
 	def on_aug_assign(self, node: Assign, ctx: Context) -> None:
-		self.on_assign(node, ctx)
-
-
-	def on_assign(self, node: Assign, ctx: Context) -> None:
-		text = ''
-		if isinstance(node, MoveAssign):
-			text = ctx.writer.render('move_assign.j2', {
-				'symbol': node.symbol.to_string(),
-				'value': node.value.to_string(),
-			})
-		elif isinstance(node, AnnoAssign):
-			text = ctx.writer.render('anno_assign.j2', {
-				'symbol': node.symbol.to_string(),
-				'variable_type': node.variable_type.to_string(),
-				'value': node.value.to_string(),
-			})
-		elif isinstance(node, AugAssign):
-			text = ctx.writer.render('aug_assign.j2', {
-				'symbol': node.symbol.to_string(),
-				'operator': node.operator.to_string(),
-				'value': node.value.to_string(),
-			})
-
+		symbol = ctx.writer.pop()
+		operator = ctx.writer.pop()
+		value = ctx.writer.pop()
+		text = ctx.writer.render('aug_assign.j2', {
+			'symbol': symbol.content,
+			'operator': operator.content,
+			'value': value.content,
+		})
+		ctx.writer.push()
 		ctx.writer.put(text)
 
 
@@ -209,11 +201,13 @@ class Handler:
 			return
 
 		text = ctx.writer.render('import.j2', {'module_path': module_path})
+		ctx.writer.push()
 		ctx.writer.put(text)
 
 
 	def on_dict(self, node: Dict, ctx: Context) -> None:
 		text = ctx.writer.render('dict.j2', {'items': {item.key.to_string(): item.value.to_string() for item in node.items}})
+		ctx.writer.push()
 		ctx.writer.put(text)
 
 

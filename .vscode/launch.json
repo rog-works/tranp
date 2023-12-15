@@ -20,7 +20,7 @@
 			"type": "python",
 			"request": "launch",
 			"module":"unittest",
-			"args": ["tests.unit.py2cpp.node.test_node.TestNode.test_actualize"],
+			"args": ["tests.unit.py2cpp.node.test_node.TestNode.test_calculated"],
 			"cwd": "${workspaceFolder}",
 			"env": {
 				"PYTHONDONTWRITEBYTECODE": "1",

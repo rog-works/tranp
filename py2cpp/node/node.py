@@ -1,4 +1,5 @@
-from typing import TypeVar, cast
+import functools
+from typing import Iterator, TypeVar, cast
 
 from py2cpp.ast.travarsal import EntryPath
 from py2cpp.errors import LogicError, NotFoundError
@@ -111,14 +112,47 @@ class Node(NodeBase):
 				2. 展開プロパティーのノードを使う
 				3. 下位ノードを使う
 			# 使い分け
-				* 終端記号に紐づくノードが欲しい場合は_under_expansionを使う
-				* 下位のノードを全て洗い出す場合はflattenを使う
+				* 終端記号に紐づくノードが欲しい場合は_under_expansion
+				* 下位のノードを全て洗い出す場合はflatten
+				* ASTの計算順序の並びで欲しい場合はcalculated
 		"""
 		if self.is_terminal:
 			return []
 
 		under = self.__prop_expantion() or self._under_expansion()
 		return list(flatten([[node, *node.flatten()] for node in under]))
+
+
+	def calculated(self) -> list['Node']:
+		"""ASTの計算順序に合わせた順序で配下のノードを1次元に展開
+
+		Returns:
+			list[Node]: ノードリスト
+		Note:
+			flattenとの相違点は並び順のみ
+		"""
+		path_of_nodes = {node.full_path: node for node in self.flatten()}
+		sorted_paths = self.__calclation_order(enumerate(path_of_nodes.keys()))
+		return [path_of_nodes[full_path] for full_path in sorted_paths]
+
+
+	def __calclation_order(self, index_of_paths: Iterator[tuple[int, str]]) -> list[str]:
+		"""インデックスとフルパスを元にツリーの計算順序にソート
+
+		Args:
+			index_of_paths (Iterator[tuple[int, str]]): (インデックス, フルパス)形式のイテレーター
+		Returns:
+			list[str]: 並び替え後のパスリスト
+		"""
+		def order(a: tuple[int, str], b: tuple[int, str]) -> int:
+			aindex, apath = a
+			bindex, bpath = b
+			if apath.startswith(bpath):
+				return -1
+			else:
+				return -1 if aindex < bindex else 1
+
+		return [path for _, path in sorted(index_of_paths, key=functools.cmp_to_key(order))]
 
 
 	def __prop_expantion(self) -> list['Node']:

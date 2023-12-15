@@ -275,6 +275,30 @@ class TestNode(TestCase):
 		self.assertEqual(all, expected)
 
 
+	@data_provider([
+		('file_input.class', [
+			'file_input.class.block.enum.block.assign[0].term_a',
+			'file_input.class.block.enum.block.assign[0]',
+			'file_input.class.block.enum.block.assign[1].term_a',
+			'file_input.class.block.enum.block.assign[1]',
+			'file_input.class.block.enum',
+			'file_input.class.block.function[1].block.if.block.term_a',
+			'file_input.class.block.function[1].block.if.block',
+			'file_input.class.block.function[1].block.if',
+			'file_input.class.block.function[1].block',
+			'file_input.class.block.function[1]',
+			'file_input.class.block.function[2].block.term_a',
+			'file_input.class.block.function[2].block',
+			'file_input.class.block.function[2]',
+			'file_input.class.block',
+		]),
+	])
+	def test_calculated(self, full_path: str, expected: list[str]) -> None:
+		nodes = Fixture.nodes()
+		all = [node.full_path for node in nodes.by(full_path).calculated()]
+		self.assertEqual(all, expected)
+
+
 	def test_as_a(self) -> None:
 		nodes = Fixture.nodes()
 		node = nodes.by('fule_input.class')

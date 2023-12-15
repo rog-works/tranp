@@ -1,11 +1,21 @@
-from py2cpp.ast.travarsal import EntryPath
 from py2cpp.lang.annotation import override
 from py2cpp.node.embed import accept_tags, actualized, expansionable, Meta
 from py2cpp.node.node import Node
 from py2cpp.node.trait import ScopeTrait
 
 
-class Terminal(Node): pass
+class Terminal(Node):
+	@classmethod
+	def match_terminal(cls, via: Node, allow_tags: list[str]) -> bool:  # XXX
+		if len(via._children()) != 1:
+			return False
+
+		rel_paths = [node._full_path.relativefy(via.full_path) for node in via.flatten()]
+		for rel_path in rel_paths:
+			if not rel_path.consists_of_only(*allow_tags):
+				return False
+
+		return True
 
 
 @Meta.embed(Node, accept_tags('__empty__', 'const_none'))
@@ -38,16 +48,52 @@ class FileInput(Node):
 		return self._children()
 
 
-@Meta.embed(Node, accept_tags('primary', 'number'))
-class Number(Node):
+class Expression(Node): pass
+
+
+@Meta.embed(Node, accept_tags('primary', 'number'), actualized(via=Expression))
+class Integer(Node):
+	@classmethod
+	def match_feature(cls, via: Node) -> bool:
+		return Terminal.match_terminal(via, allow_tags=['primary', 'atom', 'number', 'DEC_NUMBER', 'HEX_NUMBER'])
+
+
 	@property
 	@override
 	def is_terminal(self) -> bool:  # XXX Terminalへの移設を検討
 		return True
 
 
-@Meta.embed(Node, accept_tags('dotted_name', 'getattr', 'primary', 'var', 'name', 'argvalue'))
+	@override
+	def to_string(self) -> str:  # XXX Terminalへの移設を検討
+		return '.'.join([node.to_string() for node in self._under_expansion()])
+
+
+@Meta.embed(Node, accept_tags('primary', 'number'), actualized(via=Expression))
+class Float(Node):
+	@classmethod
+	def match_feature(cls, via: Node) -> bool:
+		return Terminal.match_terminal(via, allow_tags=['primary', 'atom', 'number', 'FLOAT_NUMBER'])
+
+
+	@property
+	@override
+	def is_terminal(self) -> bool:  # XXX Terminalへの移設を検討
+		return True
+
+
+	@override
+	def to_string(self) -> str:  # XXX Terminalへの移設を検討
+		return '.'.join([node.to_string() for node in self._under_expansion()])
+
+
+@Meta.embed(Node, accept_tags('dotted_name', 'getattr', 'primary', 'var', 'name', 'argvalue'), actualized(via=Expression))
 class Symbol(Node):
+	@classmethod
+	def match_feature(cls, via: Node) -> bool:
+		return Terminal.match_terminal(via, allow_tags=['getattr', 'primary', 'var', 'name', 'NAME'])
+
+
 	@property
 	@override
 	def is_terminal(self) -> bool:  # XXX Terminalへの移設を検討
@@ -55,7 +101,7 @@ class Symbol(Node):
 
 
 	@override
-	def to_string(self) -> str:
+	def to_string(self) -> str:  # XXX Terminalへの移設を検討
 		return '.'.join([node.to_string() for node in self._under_expansion()])
 
 
@@ -82,27 +128,6 @@ class Parameter(Node):
 	@property
 	def default_value(self) -> Terminal | Empty:
 		return self._at(1).if_not_a_to_b(Empty, Terminal)
-
-
-class Expression(Node):
-	@override
-	def actualize(self) -> Node:
-		if self.__feature_symbol():
-			return self.as_a(Symbol)
-
-		return super().actualize()
-
-
-	def __feature_symbol(self) -> bool:
-		if len(self._children()) != 1:
-			return False
-
-		rel_paths = [EntryPath(node.full_path).relativefy(self.full_path) for node in self.flatten()]
-		for rel_path in rel_paths:
-			if not rel_path.consists_of_only('getattr', 'primary', 'var', 'name', 'NAME'):
-				return False
-
-		return True
 
 
 @Meta.embed(Node, accept_tags('key_value'))

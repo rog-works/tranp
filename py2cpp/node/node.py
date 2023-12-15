@@ -1,23 +1,13 @@
-from abc import abstractmethod
 from typing import cast, TypeVar
 
 from py2cpp.ast.travarsal import EntryPath
 from py2cpp.errors import LogicError, NotFoundError
 from py2cpp.lang.annotation import implements
 from py2cpp.lang.sequence import flatten
+from py2cpp.node.base import NodeBase
 from py2cpp.node.embed import EmbedKeys, Meta
 from py2cpp.node.provider import Query
 from py2cpp.node.trait import ScopeTrait
-
-
-class NodeBase:
-	"""ノードの抽象基底クラス。役割としては自己参照系のメソッドで型解決に利用"""
-
-	@property
-	@abstractmethod
-	def fill_path(self) -> str:
-		"""str: ルート要素からのフルパス"""
-		...
 
 
 T = TypeVar('T', bound=NodeBase)
@@ -43,20 +33,20 @@ class Node(NodeBase):
 			full_path (str): ルート要素からのフルパス
 		"""
 		self.__nodes = nodes
-		self.__full_path = EntryPath(full_path)
+		self._full_path = EntryPath(full_path)
 
 
 	@property
 	@implements
 	def full_path(self) -> str:
 		"""str: ルート要素からのフルパス"""
-		return self.__full_path.origin
+		return self._full_path.origin
 
 
 	@property
 	def tag(self) -> str:
 		"""str: エントリータグ名。具象クラスとのマッピングに用いる"""
-		return self.__full_path.last()[0]
+		return self._full_path.last()[0]
 
 
 	@property
@@ -182,7 +172,7 @@ class Node(NodeBase):
 		Returns:
 			bool: True = 存在
 		"""
-		return self.__nodes.exists(self.__full_path.joined(relative_path))
+		return self.__nodes.exists(self._full_path.joined(relative_path))
 
 
 	def _by(self, relative_path: str) -> 'Node':
@@ -195,7 +185,7 @@ class Node(NodeBase):
 		Raises:
 			NotFoundError: ノードが存在しない
 		"""
-		return self.__nodes.by(self.__full_path.joined(relative_path))
+		return self.__nodes.by(self._full_path.joined(relative_path))
 
 
 	def _at(self, index: int) -> 'Node':
@@ -226,7 +216,7 @@ class Node(NodeBase):
 		Raises:
 			NotFoundError: 基点のノードが存在しない
 		"""
-		via = self.__full_path.joined(relative_path) if relative_path else self.full_path
+		via = self._full_path.joined(relative_path) if relative_path else self.full_path
 		return [node for node in self.__nodes.siblings(via) if node.full_path != self.full_path]
 
 
@@ -241,7 +231,7 @@ class Node(NodeBase):
 		Raises:
 			NotFoundError: 基点のノードが存在しない
 		"""
-		via = self.__full_path.joined(relative_path) if relative_path else self.full_path
+		via = self._full_path.joined(relative_path) if relative_path else self.full_path
 		return self.__nodes.children(via)
 
 

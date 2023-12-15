@@ -5,6 +5,7 @@ from py2cpp.ast.travarsal import EntryPath
 from py2cpp.errors import LogicError, NotFoundError
 from py2cpp.lang.annotation import implements
 from py2cpp.lang.sequence import flatten
+from py2cpp.lang.string import snakelize
 from py2cpp.node.base import NodeBase
 from py2cpp.node.embed import EmbedKeys, Meta
 from py2cpp.node.provider import Query
@@ -46,8 +47,20 @@ class Node(NodeBase):
 
 	@property
 	def tag(self) -> str:
-		"""str: エントリータグ名。具象クラスとのマッピングに用いる"""
+		"""str: エントリータグ。具象クラスとのマッピングに用いる。@note: あくまでもマッチパターンに対するタグであり、必ずしも共通の構造を表さない点に注意"""
 		return self._full_path.last()[0]
+
+
+	@property
+	def identifer(self) -> str:
+		"""str: 構造に対する識別子。実質的に派生クラスに対する識別子"""
+		return snakelize(self.__class__.__name__)
+
+
+	@property
+	def is_terminal(self) -> bool:
+		"""bool: 終端要素。これ以上展開が不要な要素であることを表す。@note: 終端記号とは別"""
+		return False
 
 
 	@property
@@ -84,12 +97,6 @@ class Node(NodeBase):
 	def parent(self) -> 'Node':
 		"""Node: 親のノード。@note: あくまでもノード上の親であり、AST上の親と必ずしも一致しない点に注意"""
 		return self.__nodes.parent(self.full_path)
-
-
-	@property
-	def is_terminal(self) -> bool:
-		"""bool: 終端要素。これ以上展開が不要な要素であることを表す。@note: 終端記号とは別"""
-		return False
 
 
 	def to_string(self) -> str:

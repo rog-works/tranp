@@ -78,7 +78,7 @@ class EntryPath:
 		"""先頭の要素を分解して取得
 
 		Returns:
-			tuple[str, int]: (エントリータグ名, 要素インデックス)
+			tuple[str, int]: (エントリータグ, 要素インデックス)
 		"""
 		return self.__break_tag(self.elements[0])
 
@@ -87,18 +87,18 @@ class EntryPath:
 		"""末尾の要素を分解して取得
 
 		Returns:
-			tuple[str, int]: (エントリータグ名, 要素インデックス)
+			tuple[str, int]: (エントリータグ, 要素インデックス)
 		"""
 		return self.__break_tag(self.elements[-1])
 
 
 	def __break_tag(self, elem: str) -> tuple[str, int]:
-		"""要素から元のタグ名と付与されたインデックスに分解。インデックスがない場合は-1とする
+		"""要素から元のタグと付与されたインデックスに分解。インデックスがない場合は-1とする
 
 		Args:
 			elem (str): 要素
 		Returns:
-			tuple[str, int]: (エントリータグ名, インデックス)
+			tuple[str, int]: (エントリータグ, インデックス)
 		"""
 		matches = re.fullmatch(r'(\w+)\[(\d+)\]', elem)
 		return (matches[1], int(matches[2])) if matches else (elem, -1)
@@ -283,12 +283,12 @@ class ASTFinder(Generic[T]):
 
 
 	def tag_by(self, entry: T) -> str:
-		"""エントリーのタグ名を取得
+		"""エントリータグを取得
 
 		Args:
 			entry (Entry): エントリー
 		Returns:
-			str: タグ名
+			str: エントリータグ
 		"""
 		return self.__proxy.name(entry)
 
@@ -416,12 +416,12 @@ class ASTFinder(Generic[T]):
 
 
 	def __aligned_children(self, children: list[T]) -> dict[str, list[int]]:
-		"""子の要素を元にタグ名毎のインデックスリストに整理する
+		"""子の要素を元にエントリータグ毎のインデックスリストに整理する
 
 		Args:
 			children (list[Entry]): 子の要素リスト
 		Returns:
-			dict[str, list[int]]: タグ名毎のインデックスリスト
+			dict[str, list[int]]: エントリータグ毎のインデックスリスト
 		"""
 		index_of_tags = {index: self.tag_by(in_entry) for index, in_entry in enumerate(children)}
 		tag_of_indexs: dict[str, list[int]]  = {tag: [] for tag in index_of_tags.values()}

@@ -355,7 +355,7 @@ class Nodes(Query[Node]):
 
 	# 	Args:
 	# 		via (str): 基点のパス(フルパス)
-	# 		entry_tag (str): 仮想エントリーのタグ名前
+	# 		entry_tag (str): 仮想エントリータグ
 	# 	Returns:
 	# 		Node: 生成した仮想ノード
 	# 	Note:

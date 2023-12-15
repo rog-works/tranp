@@ -1,7 +1,10 @@
 from py2cpp.cpp.enum import (CEnum, A)
 
+class Base:
+	pass
+
 @deco(A, A.B)
-class Hoge:
+class Hoge(Base):
 	class Values(CEnum):
 		A = 0
 		B = 1

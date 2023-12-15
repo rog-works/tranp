@@ -115,7 +115,7 @@ class TestDefinition(TestCase):
 
 
 	@data_provider([
-		('file_input.class_def.class_def_raw.block.enum_def', {
+		('file_input.class_def[2].class_def_raw.block.enum_def', {
 			'name': 'Values',
 			'variables': [
 				{'symbol': 'A', 'value': '0'},
@@ -135,10 +135,13 @@ class TestDefinition(TestCase):
 
 
 	@data_provider([
-		('file_input.class_def', {
+		('file_input.class_def[2]', {
 			'name': 'Hoge',
 			'decorators': [
 				{'symbol': 'deco', 'arguments': [{'value': 'A'}, {'value': 'A.B'}]},
+			],
+			'parents': [
+				{'symbol': 'Base'},
 			],
 			'constructor': {
 				'decl_variables': [
@@ -164,6 +167,12 @@ class TestDefinition(TestCase):
 				in_arg_expected = in_expected['arguments'][index_arg]
 				self.assertEqual(argument.value.to_string(), in_arg_expected['value'])
 
+		pp = node.parents
+		self.assertEqual(len(pp), len(expected['parents']))
+		for index, parent in enumerate(node.parents):
+			in_expected = expected['parents'][index]
+			self.assertEqual(parent.to_string(), in_expected['symbol'])
+
 		if node.constructor_exists:
 			in_expected = expected['constructor']
 			constructor = node.constructor
@@ -182,7 +191,7 @@ class TestDefinition(TestCase):
 
 
 	@data_provider([
-		('file_input.class_def.class_def_raw.block.function_def[1]', {
+		('file_input.class_def[2].class_def_raw.block.function_def[1]', {
 			'name': 'func1',
 			'access': 'public',
 			'decorators': [],
@@ -192,7 +201,7 @@ class TestDefinition(TestCase):
 			],
 			'return': 'Values',
 		}),
-		('file_input.class_def.class_def_raw.block.function_def[2]', {
+		('file_input.class_def[2].class_def_raw.block.function_def[2]', {
 			'name': '_func2',
 			'access': 'protected',
 			'decorators': [

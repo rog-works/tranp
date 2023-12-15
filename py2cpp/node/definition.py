@@ -386,7 +386,7 @@ class Class(Node):
 		if parents.is_a(Empty):
 			return []
 
-		return [node.as_a(Symbol) for node in parents._children() if node.is_a(Symbol)]
+		return [node.as_a(Argument).value.as_a(Symbol) for node in parents._children()]
 
 
 	@property

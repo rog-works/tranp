@@ -1,5 +1,5 @@
 from types import FunctionType
-from typing import Any, Callable, cast, NamedTuple, TypeVar, TypeAlias
+from typing import Any, Callable, NamedTuple, TypeVar, TypeAlias, cast
 
 from py2cpp.node.base import NodeBase
 

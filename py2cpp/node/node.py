@@ -1,4 +1,4 @@
-from typing import cast, TypeVar
+from typing import TypeVar, cast
 
 from py2cpp.ast.travarsal import EntryPath
 from py2cpp.errors import LogicError, NotFoundError

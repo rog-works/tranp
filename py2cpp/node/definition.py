@@ -1,5 +1,5 @@
 from py2cpp.lang.annotation import override
-from py2cpp.node.embed import accept_tags, actualized, expansionable, Meta
+from py2cpp.node.embed import Meta, accept_tags, actualized, expansionable
 from py2cpp.node.node import Node
 from py2cpp.node.trait import ScopeTrait
 

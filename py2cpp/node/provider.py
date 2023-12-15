@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass, field
-from typing import cast, Generic, TypeVar
+from typing import Generic, TypeVar
 
 from py2cpp.errors import LogicError
 

@@ -4,7 +4,7 @@ from unittest import TestCase
 from lark import Token, Tree
 
 from py2cpp.lang.annotation import override
-from py2cpp.node.embed import actualized, expansionable, Meta
+from py2cpp.node.embed import Meta, actualized, expansionable
 from py2cpp.node.node import Node
 from py2cpp.node.nodes import NodeResolver, Nodes
 from py2cpp.node.provider import Settings

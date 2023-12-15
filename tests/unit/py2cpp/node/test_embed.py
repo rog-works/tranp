@@ -2,11 +2,11 @@ from unittest import TestCase
 
 from py2cpp.node.base import NodeBase
 from py2cpp.node.embed import (
+	EmbedKeys,
+	Meta,
 	accept_tags,
 	actualized,
-	EmbedKeys,
 	expansionable,
-	Meta,
 )
 
 

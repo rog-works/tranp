@@ -26,18 +26,33 @@ class TestSerializer(TestCase):
 				return self._full_path.origin.split('.')[-1]
 
 		class NodeB(Node):
+			@override
+			def to_string(self) -> str:
+				return self._full_path.origin.split('.')[-1]
+
+			@property
+			def b_in_a(self) -> NodeA:
+				return NodeA(nodes, 'root.node_z.tree.node_b.node_a')
+
+		class NodeZ(Node):
 			@property
 			def a(self) -> NodeA:
-				return NodeA(nodes, 'root.node_b.node_a')
+				return NodeA(nodes, 'root.node_z.node_a')
 
 			@property
-			def values(self) -> list[NodeA]:
-				return [NodeA(nodes, 'root.node_b.tree.node_a[0]'), NodeA(nodes, 'root.node_b.tree.node_a[1]')]
-		
-		T_NodeA = TypedDict('T_NodeA', {'a': str, 'values': list[str]})
+			def b(self) -> NodeB:
+				return NodeB(nodes, 'root.node_z.node_b')
 
-		node = NodeB(nodes, 'root.node_b')
-		dump = serialize(node, T_NodeA)
+			@property
+			def values(self) -> list[Node]:
+				return [NodeA(nodes, 'root.node_z.tree.node_a'), NodeB(nodes, 'root.node_z.tree.node_b')]
+
+		T_NodeB = TypedDict('T_NodeB', {'b_in_a': str})
+		T_NodeZ = TypedDict('T_NodeZ', {'a': str, 'b': T_NodeB, 'values': list[str]})
+
+		node = NodeZ(nodes, 'root.node_b')
+		dump = serialize(node, T_NodeZ)
 		self.assertEqual(dump['a'], 'node_a')
-		self.assertEqual(dump['values'][0], 'node_a[0]')
-		self.assertEqual(dump['values'][1], 'node_a[1]')
+		self.assertEqual(dump['b']['b_in_a'], 'node_a')
+		self.assertEqual(dump['values'][0], 'node_a')
+		self.assertEqual(dump['values'][1], 'node_b')

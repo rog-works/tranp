@@ -15,7 +15,9 @@ def serialize(node: Node, schema: type[T]) -> T:
 
 
 def __serialize_value(value: list[Node] | dict[str, Node] | Node, schema: type) -> Any:
-	if hasattr(schema, '__origin__'):
+	if hasattr(schema, '__annotations__') and isinstance(value, Node):
+		return serialize(value, schema)
+	elif hasattr(schema, '__origin__'):
 		origin = getattr(schema, '__origin__')
 		if origin is list and type(value) is list:
 			return [__serialize_value(elem, getattr(schema, '__args__')[0]) for elem in value]

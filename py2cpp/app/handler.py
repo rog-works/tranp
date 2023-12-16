@@ -1,5 +1,6 @@
 from typing import Any, Iterator, TypedDict, TypeVar, cast
 
+from py2cpp.errors import LogicError
 from py2cpp.lang.error import stacktrace
 import py2cpp.node.definition as defs
 from py2cpp.node.node import Node
@@ -22,8 +23,26 @@ T_ListVar = TypedDict('T_DictVar', {'values': list[str]})
 T = TypeVar('T')
 
 
-def serialize(data: Any, schema: type[T]) -> T:
-	...
+def serialize(data: Node, schema: type[T]) -> T:
+	out = {}
+	for prop_key, prop_type in schema.__annotations__.items():
+		prop_schema = schema.__annotations__[prop_key]
+		if prop_type is list:
+			out[prop_key] = []
+			elem_schema = prop_schema.__args__[0]
+			for elem in getattr(data, prop_key):
+				out[prop_key].append(serialize(elem, elem_schema))
+		elif prop_type is dict:
+			out[prop_key] = {}
+			for in_key, in_value in getattr(data, prop_key).items():
+				elem_schema = prop_schema.__annotations__[in_key]
+				out[prop_key][in_key] = serialize(in_value, elem_schema)
+		elif prop_type is str:
+			out[prop_key] = getattr(data, prop_key).to_string()
+		else:
+			raise LogicError(data, schema, prop_key, prop_type)
+
+	return cast(T, out)
 
 
 class Register:
@@ -64,11 +83,11 @@ class View:
 
 
 class Context:
-	def __init__(self) -> None:
+	def __init__(self, register: Register, writer: Writer, view: View) -> None:
 		self.__emitter = EventEmitter()
-		self.register = Register()
-		self.writer = Writer()
-		self.view = View()
+		self.register = register
+		self.writer = writer
+		self.view = view
 
 	def emit(self, action: str, **kwargs) -> None:
 		self.__emitter.emit(action, **kwargs)

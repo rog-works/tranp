@@ -448,7 +448,5 @@ class Enum(Node):
 
 	@property
 	@Meta.embed(Node, expansionable(order=0))
-	def variables(self) -> list[Variable]:
-		assigns = [node.as_a(MoveAssign) for node in self._by('block')._children() if node.is_a(MoveAssign)]
-		variables = {node.as_a(Variable): True for node in assigns}
-		return list(variables.keys())
+	def variables(self) -> list[MoveAssign]:  # XXX 理想としてはVariableだが、Enumの変数に型の定義がないため一旦MoveAssignで妥協
+		return [node.as_a(MoveAssign) for node in self._by('block')._children()]

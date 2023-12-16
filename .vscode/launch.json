@@ -20,7 +20,7 @@
 			"type": "python",
 			"request": "launch",
 			"module":"unittest",
-			"args": ["tests.unit.py2cpp.node.test_node.TestNode.test_calculated"],
+			"args": ["tests.unit.py2cpp.node.test_serializer.TestSerializer.test_serialize"],
 			"cwd": "${workspaceFolder}",
 			"env": {
 				"PYTHONDONTWRITEBYTECODE": "1",

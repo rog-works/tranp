@@ -158,8 +158,8 @@ class TestDefinition(TestCase):
 		('file_input.class_def[2].class_def_raw.block.enum_def', {
 			'name': 'Values',
 			'variables': [
-				{'symbol': 'A', 'value': '0'},
-				{'symbol': 'B', 'value': '1'},
+				{'symbol': 'A', 'initial_value': '0'},
+				{'symbol': 'B', 'initial_value': '1'},
 			],
 		}),
 	])
@@ -171,7 +171,7 @@ class TestDefinition(TestCase):
 		for index, variable in enumerate(node.variables):
 			in_expected = expected['variables'][index]
 			self.assertEqual(variable.symbol.to_string(), in_expected['symbol'])
-			self.assertEqual(variable.value.to_string(), in_expected['value'])
+			self.assertEqual(variable.initial_value.to_string(), in_expected['value'])
 
 
 	@data_provider([

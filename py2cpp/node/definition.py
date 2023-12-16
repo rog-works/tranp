@@ -102,7 +102,7 @@ class Symbol(Node):
 		return '.'.join([node.to_string() for node in self._under_expansion()])
 
 
-@Meta.embed(Node, accept_tags('getattr'), actualized(via=Symbol))
+@Meta.embed(Node, actualized(via=Symbol))
 class Self(Symbol):
 	@classmethod
 	@override
@@ -110,18 +110,14 @@ class Self(Symbol):
 		return via.to_string().startswith('self')
 
 
-class Var(Symbol): pass
-class Type(Symbol): pass
-
-
-# @Meta.embed(Node, accept_tags('getitem'), actualized(via=Expression))
+@Meta.embed(Node, accept_tags('getitem'))
 class GetItem(Node):
 	@property
 	def symbol(self) -> Symbol:
 		return self._at(0).as_a(Symbol)
 
 
-@Meta.embed(Node, actualized(via=GetItem))
+# @Meta.embed(Node, actualized(via=Expression))
 class Indexer(GetItem):
 	@property
 	def key(self) -> Node:
@@ -300,6 +296,11 @@ class Variable(Node):
 	@property
 	def variable_type(self) -> Symbol:
 		return self._by('anno_assign')._at(1).as_a(Symbol)
+
+
+	@property
+	def initial_value(self) -> Node:
+		return self._by('anno_assign')._at(2).as_a(Expression).actualize()
 
 
 @Meta.embed(Node, accept_tags('import_stmt'))
@@ -491,5 +492,7 @@ class Enum(Node):
 
 	@property
 	@Meta.embed(Node, expansionable(order=0))
-	def variables(self) -> list[MoveAssign]:
-		return [child.as_a(MoveAssign) for child in self._leafs('assign_stmt')]
+	def variables(self) -> list[Variable]:
+		assigns = [node.as_a(MoveAssign) for node in self._by('block')._children() if node.is_a(MoveAssign)]
+		variables = {node.as_a(Variable): True for node in assigns}
+		return list(variables.keys())

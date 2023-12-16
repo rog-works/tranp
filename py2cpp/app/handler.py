@@ -1,5 +1,6 @@
-from typing import Any, Iterator, TypedDict, TypeVar
+from typing import Any, Iterator, TypedDict, TypeVar, cast
 
+from py2cpp.lang.error import stacktrace
 import py2cpp.node.definition as defs
 from py2cpp.node.node import Node
 from py2cpp.lang.eventemitter import EventEmitter, T_Callback
@@ -10,7 +11,7 @@ T_Result = TypeVar('T_Result')
 T_ArgumentVar = TypedDict('T_ArgumentVar', {'value': str})
 T_DecoratorVar = TypedDict('T_DecoratorVar', {'symbol': str, 'arguments': list[T_ArgumentVar]})
 T_ClassVar = TypedDict('T_ClassVar', {'class_name': str, 'decorators': list[T_DecoratorVar], 'parants': list[str]})
-T_VariableVar = TypedDict('T_VariableVar', {'symbol': str, 'variable_type': str, 'initial_value': str})
+T_VariableVar = TypedDict('T_VariableVar', {'symbol': str, 'variable_type': str, 'value': str})
 T_EnumVar = TypedDict('T_EnumVar', {'enum_name': str, 'variables': list[T_VariableVar]})
 T_ParameterVar = TypedDict('T_ParameterVar', {'symbol': str, 'variable_type': str, 'default_value': str})
 T_FunctionVar = TypedDict('T_FunctionVar', {'function_name': str, 'class_name': str, 'parameters': list[T_ParameterVar]})
@@ -26,23 +27,35 @@ def serialize(data: Any, schema: type[T]) -> T:
 
 
 class Register:
+	def __init__(self) -> None:
+		self.__stack: list[tuple[Node, Any]] = []
+
 	def push(self, node: Node, result: Any) -> None:
-		...
+		self.__stack.append((node, result))
 
 	def pop(self, node_type: type[T_Node], result_type: type[T_Result]) -> tuple[T_Node, T_Result]:
-		...
+		return cast(tuple[node_type, result_type], self.__stack.pop())
 
 	def __iter__(self) -> Iterator[tuple[Node, Any]]:
-		...
+		for _ in range(len(self.__stack)):
+			yield self.__stack.pop()
 
 
 class Writer:
+	def __init__(self, filepath: str) -> None:
+		self.__filepath = filepath
+		self.__content = ''
+
 	def put(self, text: str) -> None:
-		...
+		self.__content += text
+
+	def flush(self) -> None:
+		with open(self.__filepath, mode='wb') as f:
+			f.write(self.__content.encode('utf-8'))
 
 
 class View:
-	def render(self, template: str, indent: int, vars: TypedDict | dict[str, str], **kwargs: str) -> str:
+	def render(self, template: str, indent: int, vars: TypedDict | dict[str, str], **other_vars: str) -> str:
 		...
 
 	def indentation(self, text: str, indent: int) -> str:
@@ -155,10 +168,18 @@ class Handler:
 
 
 class Runner:
-	def run(self, root: Node) -> None:
-		handler = Handler()
-		ctx = Context()
-		ctx.on('action', handler.on_action)
+	def __init__(self, handler: Handler) -> None:
+		self.__handler = handler
 
-		for node in root.calculated():
-			ctx.emit('action', node=node, ctx=ctx)
+	def run(self, root: Node, ctx: Context) -> None:
+		try:
+			ctx.on('action', self.__handler.on_action)
+
+			for node in root.calculated():
+				ctx.emit('action', node=node, ctx=ctx)
+
+			ctx.writer.flush()
+
+			ctx.off('action', self.__handler.on_action)
+		except Exception as e:
+			print(stacktrace(e))

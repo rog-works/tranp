@@ -11,7 +11,6 @@ from py2cpp.node.embed import EmbedKeys, Meta
 from py2cpp.node.provider import Query
 from py2cpp.node.trait import ScopeTrait
 
-
 T = TypeVar('T', bound=NodeBase)
 T_A = TypeVar('T_A', bound=NodeBase)
 T_B = TypeVar('T_B', bound=NodeBase)
@@ -37,37 +36,31 @@ class Node(NodeBase):
 		self.__nodes = nodes
 		self._full_path = EntryPath(full_path)
 
-
 	@property
 	@implements
 	def full_path(self) -> str:
 		"""str: ルート要素からのフルパス"""
 		return self._full_path.origin
 
-
 	@property
 	def tag(self) -> str:
 		"""str: エントリータグ。具象クラスとのマッピングに用いる。@note: あくまでもマッチパターンに対するタグであり、必ずしも共通の構造を表さない点に注意"""
 		return self._full_path.last()[0]
-
 
 	@property
 	def identifer(self) -> str:
 		"""str: 構造に対する識別子。実質的に派生クラスに対する識別子"""
 		return snakelize(self.__class__.__name__)
 
-
 	@property
 	def is_terminal(self) -> bool:
 		"""bool: 終端要素。これ以上展開が不要な要素であることを表す。@note: 終端記号とは別"""
 		return False
 
-
 	@property
 	def scope_name(self) -> str:
 		"""str: スコープ名を返却。@note: 名前空間を持たないノード以外は空文字"""
 		return ''
-
 
 	@property
 	def namespace(self) -> str:  # FIXME 名前よりノードの方が良い。その場合名前をどう取得するかが課題
@@ -77,7 +70,6 @@ class Node(NodeBase):
 		else:
 			return self.parent.namespace
 
-
 	@property
 	def scope(self) -> str:  # FIXME 名前よりノードの方が良い。その場合名前をどう取得するかが課題
 		"""str: 自身が所属するスコープ。@note: 所有するスコープではない点に注意"""
@@ -86,18 +78,15 @@ class Node(NodeBase):
 		else:
 			return self.parent.scope
 
-
 	@property
 	def nest(self) -> int:
 		"""int: ネストレベル。スコープと同期"""
 		return len(self.scope.split('.')) - 1
 
-
 	@property
 	def parent(self) -> 'Node':
 		"""Node: 親のノード。@note: あくまでもノード上の親であり、AST上の親と必ずしも一致しない点に注意"""
 		return self.__nodes.parent(self.full_path)
-
 
 	def to_string(self) -> str:
 		"""自身を表す文字列表現を取得
@@ -106,7 +95,6 @@ class Node(NodeBase):
 			str: 文字列表現
 		"""
 		return ''.join([self._my_value(), *[node.to_string() for node in self.flatten()]])
-
 
 	def flatten(self) -> list['Node']:
 		"""下位のノードを再帰的に展開し、1次元に平坦化して取得
@@ -129,7 +117,6 @@ class Node(NodeBase):
 		under = self.__prop_expantion() or self._under_expansion()
 		return list(flatten([[node, *node.flatten()] for node in under]))
 
-
 	def calculated(self) -> list['Node']:
 		"""ASTの計算順序に合わせた順序で配下のノードを1次元に展開
 
@@ -141,7 +128,6 @@ class Node(NodeBase):
 		path_of_nodes = {node.full_path: node for node in self.flatten()}
 		sorted_paths = self.__calclation_order(enumerate(path_of_nodes.keys()))
 		return [path_of_nodes[full_path] for full_path in sorted_paths]
-
 
 	def __calclation_order(self, index_of_paths: Iterator[tuple[int, str]]) -> list[str]:
 		"""インデックスとフルパスを元にツリーの計算順序にソート
@@ -161,7 +147,6 @@ class Node(NodeBase):
 
 		return [path for _, path in sorted(index_of_paths, key=functools.cmp_to_key(order))]
 
-
 	def __prop_expantion(self) -> list['Node']:
 		"""展開プロパティーからノードリストを取得
 
@@ -175,7 +160,6 @@ class Node(NodeBase):
 			nodes.extend(result if type(result) is list else [cast(Node, result)])
 
 		return nodes
-
 
 	def __expantionable_keys(self) -> list[str]:
 		"""メタデータより展開プロパティーのメソッド名を抽出
@@ -193,7 +177,6 @@ class Node(NodeBase):
 
 		return list(prop_keys.keys())
 
-
 	def __embed_classes(self) -> list[type['Node']]:
 		"""自身を含む継承関係のあるクラスを取得。取得されるクラスはメタデータと関連する派生クラスに限定
 
@@ -204,7 +187,6 @@ class Node(NodeBase):
 		"""
 		return [ctor for ctor in self.__class__.__mro__ if issubclass(ctor, Node) and ctor is not Node]
 
-
 	def _exists(self, relative_path: str) -> bool:
 		"""指定のパスに紐づく一意なノードが存在するか判定
 
@@ -214,7 +196,6 @@ class Node(NodeBase):
 			bool: True = 存在
 		"""
 		return self.__nodes.exists(self._full_path.joined(relative_path))
-
 
 	def _by(self, relative_path: str) -> 'Node':
 		"""指定のパスに紐づく一意なノードをフェッチ
@@ -227,7 +208,6 @@ class Node(NodeBase):
 			NotFoundError: ノードが存在しない
 		"""
 		return self.__nodes.by(self._full_path.joined(relative_path))
-
 
 	def _at(self, index: int) -> 'Node':
 		"""指定のインデックスの子ノードをフェッチ
@@ -245,7 +225,6 @@ class Node(NodeBase):
 
 		return children[index]
 
-
 	def _siblings(self, relative_path: str = '') -> list['Node']:
 		"""指定のパスを基準に同階層のノードをフェッチ
 		パスを省略した場合は自身と同階層を検索し、自身を除いたノードを返却
@@ -259,7 +238,6 @@ class Node(NodeBase):
 		"""
 		via = self._full_path.joined(relative_path) if relative_path else self.full_path
 		return [node for node in self.__nodes.siblings(via) if node.full_path != self.full_path]
-
 
 	def _children(self, relative_path: str = '') -> list['Node']:
 		"""指定のパスを基準に1階層下のノードをフェッチ
@@ -275,7 +253,6 @@ class Node(NodeBase):
 		via = self._full_path.joined(relative_path) if relative_path else self.full_path
 		return self.__nodes.children(via)
 
-
 	def _leafs(self, leaf_tag: str) -> list['Node']:
 		"""配下に存在する接尾辞が一致するノードをフェッチ
 
@@ -286,7 +263,6 @@ class Node(NodeBase):
 		"""
 		return self.__nodes.leafs(self.full_path, leaf_tag)
 
-
 	def _under_expansion(self) -> list['Node']:
 		"""配下に存在する展開が可能なノードをフェッチ
 
@@ -295,7 +271,6 @@ class Node(NodeBase):
 		"""
 		return self.__nodes.expansion(self.full_path)
 
-
 	def _my_value(self) -> str:
 		"""自身のエントリーの値を取得
 
@@ -303,7 +278,6 @@ class Node(NodeBase):
 			str: 値
 		"""
 		return self.__nodes.by_value(self.full_path)
-
 
 	def as_a(self, ctor: type[T]) -> T:
 		"""指定の具象クラスに変換。変換先が同種(同じか派生クラス)の場合はキャストするのみ
@@ -326,7 +300,6 @@ class Node(NodeBase):
 
 		return ctor(self.__nodes, self.full_path)
 
-
 	def __accept_tags(self) -> list[str]:
 		"""メタデータより受け入れタグリストを取得
 
@@ -339,7 +312,6 @@ class Node(NodeBase):
 
 		return list(accept_tags.keys())
 
-
 	def is_a(self, ctor: type[NodeBase]) -> bool:
 		"""指定のクラスと同種(同じか派生クラス)のインスタンスか判定
 
@@ -349,7 +321,6 @@ class Node(NodeBase):
 			bool: True = 同種
 		"""
 		return isinstance(self, ctor)
-
 
 	def if_not_a_to_b(self, reject_type: type[T_A], expect_type: type[T_B]) -> T_A | T_B:
 		"""AでなければBに変換
@@ -361,7 +332,6 @@ class Node(NodeBase):
 			T1 | T2: AかBの型
 		"""
 		return cast(reject_type, self) if type(self) is reject_type else self.as_a(expect_type)
-
 
 	@classmethod
 	def match_feature(cls, via: 'Node') -> bool:
@@ -378,7 +348,6 @@ class Node(NodeBase):
 		"""
 		return False
 
-
 	def _feature_classes(self) -> list[type['Node']]:
 		"""メタデータより自身に紐づけられた特徴クラス(=派生クラス)を抽出
 
@@ -392,7 +361,6 @@ class Node(NodeBase):
 
 		return list(classes.keys())
 
-
 	def actualize(self) -> 'Node':
 		"""ASTの相関関係より判断した実体としてより適切な具象クラスのインスタンスに変換。条件は具象側で実装
 
@@ -404,7 +372,6 @@ class Node(NodeBase):
 				return self.as_a(feature_class)
 
 		return self
-
 
 	def __str__(self) -> str:
 		"""str: 文字列表現を取得"""

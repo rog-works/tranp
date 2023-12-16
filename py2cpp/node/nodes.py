@@ -33,7 +33,6 @@ class EntryProxyLark(EntryProxy[Entry]):
 		else:
 			return self.empty_name
 
-
 	@implements
 	def has_child(self, entry: Entry) -> bool:
 		"""子を持つエントリーか判定
@@ -61,7 +60,6 @@ class EntryProxyLark(EntryProxy[Entry]):
 
 		return entry.children
 
-
 	@implements
 	def is_terminal(self, entry: Entry) -> bool:
 		"""終端記号か判定
@@ -72,7 +70,6 @@ class EntryProxyLark(EntryProxy[Entry]):
 			bool: True = 終端記号
 		"""
 		return type(entry) is Token
-
 
 	@implements
 	def value(self, entry: Entry) -> str:
@@ -89,7 +86,6 @@ class EntryProxyLark(EntryProxy[Entry]):
 			raise ValueError()
 
 		return entry.value
-
 
 	@implements
 	def is_empty(self, entry: Entry) -> bool:
@@ -119,7 +115,6 @@ class NodeResolver:
 		"""
 		return cls(Resolver[Node].load(settings))
 
-
 	def __init__(self, resolver: Resolver[Node]) -> None:
 		"""インスタンスを生成
 
@@ -128,7 +123,6 @@ class NodeResolver:
 		"""
 		self.__resolver = resolver
 		self.__insts: dict[str, Node] = {}
-
 
 	def can_resolve(self, symbol: str) -> bool:
 		"""解決出来るか確認
@@ -139,7 +133,6 @@ class NodeResolver:
 			bool: True = 解決できる
 		"""
 		return self.__resolver.can_resolve(symbol)
-
 
 	def resolve(self, symbol: str, full_path: str, factory: Callable[[type[Node]], Node]) -> Node:
 		"""ノードのインスタンスを解決
@@ -159,7 +152,6 @@ class NodeResolver:
 		ctor = self.__resolver.resolve(symbol)
 		self.__insts[full_path] = factory(ctor).actualize()
 		return self.__insts[full_path]
-
 
 	def clear(self) -> None:
 		"""インスタンスのマッピング情報を削除"""
@@ -181,7 +173,6 @@ class Nodes(Query[Node]):
 		self.__proxy = EntryProxyLark()
 		self.__finder = ASTFinder(self.__proxy)
 
-
 	def __resolve(self, entry: Entry, full_path: str) -> Node:
 		"""エントリーからノードを解決し、パスとマッピングしてキャッシュ
 
@@ -193,7 +184,6 @@ class Nodes(Query[Node]):
 		"""
 		return self.__resolver.resolve(self.__finder.tag_by(entry), full_path, lambda ctor: ctor(self, full_path))
 
-
 	@implements
 	def exists(self, full_path: str) -> bool:
 		"""指定のパスに紐づく一意なノードが存在するか判定
@@ -204,7 +194,6 @@ class Nodes(Query[Node]):
 			bool: True = 存在
 		"""
 		return self.__finder.exists(self.__root, full_path)
-
 
 	@implements
 	def by(self, full_path: str) -> Node:
@@ -219,7 +208,6 @@ class Nodes(Query[Node]):
 		"""
 		entry = self.__finder.pluck(self.__root, full_path)
 		return self.__resolve(entry, full_path)
-
 
 	@implements
 	def parent(self, via: str) -> Node:
@@ -242,7 +230,6 @@ class Nodes(Query[Node]):
 
 		raise NotFoundError(via)
 
-
 	@implements
 	def siblings(self, via: str) -> list[Node]:
 		"""指定のパスを基準に同階層のノードをフェッチ
@@ -260,7 +247,6 @@ class Nodes(Query[Node]):
 		entries = self.__finder.find(self.__root, uplayer_path.origin, tester, depth=1)
 		return [self.__resolve(entry, path) for path, entry in entries.items()]
 
-
 	@implements
 	def children(self, via: str) -> list[Node]:
 		"""指定のパスを基準に1階層下のノードをフェッチ
@@ -276,7 +262,6 @@ class Nodes(Query[Node]):
 		tester = lambda _, path: regular.fullmatch(path) is not None
 		entries = self.__finder.find(self.__root, via, tester, depth=1)
 		return [self.__resolve(entry, path) for path, entry in entries.items()]
-
 
 	@implements
 	def leafs(self, via: str, leaf_tag: str) -> list[Node]:
@@ -294,7 +279,6 @@ class Nodes(Query[Node]):
 		tester = lambda _, path: regular.fullmatch(path) is not None
 		entries = self.__finder.find(self.__root, via, tester)
 		return [self.__resolve(entry, path) for path, entry in entries.items()]
-
 
 	@implements
 	def expansion(self, via: str) -> list[Node]:
@@ -335,7 +319,6 @@ class Nodes(Query[Node]):
 		entries = self.__finder.find(self.__root, via, tester)
 		return [self.__resolve(entry, path) for path, entry in entries.items()]
 
-
 	@implements
 	def by_value(self, full_path: str) -> str:
 		"""指定のエントリーの値を取得
@@ -347,7 +330,6 @@ class Nodes(Query[Node]):
 		"""
 		entry = self.__finder.pluck(self.__root, full_path)
 		return self.__proxy.value(entry) if self.__proxy.is_terminal(entry) else ''
-
 
 	# @implements
 	# def embed(self, via: str, entry_tag: str) -> Node:

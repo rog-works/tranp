@@ -12,14 +12,11 @@ class Stringify:
 		self.__entry = entry
 		self.__commands: list[Command] = []
 
-
 	def __str__(self) -> str:
 		return self.to_string()
 
-
 	def to_string(self) -> str:
 		return self.__stringify()
-
 
 	def __stringify(self) -> str:
 		ctx = Context(self.__entry)
@@ -28,26 +25,21 @@ class Stringify:
 
 		return ctx.string
 
-
 	def indent(self) -> 'Stringify':
 		self.__commands.append(CommandIndent())
 		return self
-
 
 	def flatten(self) -> 'Stringify':
 		self.__commands.append(CommandFlatten())
 		return self
 
-
 	def insert(self, index: int, string: str) -> 'Stringify':
 		self.__commands.append(CommandInsert(index, string))
 		return self
 
-
 	def join(self, delimiter: str) -> 'Stringify':
 		self.__commands.append(CommandJoin(delimiter))
 		return self
-
 
 	def replace(self, pattern: str, replaced: str) -> 'Stringify':
 		self.__commands.append(CommandReplace(pattern, replaced))
@@ -61,21 +53,17 @@ class Context:
 		self.__string = string or ''
 		self.__strings = strings or []
 
-
 	@property
 	def source(self) -> Entry:
 		return self.__entry
-
 
 	@property
 	def indent(self) -> str:
 		return self.__indent
 
-
 	@property
 	def string(self) -> str:
 		return self.__string
-
 
 	@property
 	def strings(self) -> list[str]:
@@ -92,7 +80,6 @@ class CommandIndent(Command):
 	def exec(self, ctx: Context) -> Context:
 		return Context(ctx.source, indent=self.__indent(ctx.source, ctx.indent), strings=ctx.strings)
 
-
 	def __indent(self, root: Entry, indent: str) -> str:
 		if type(root) is Tree:
 			for entry in root.iter_subtrees_topdown():
@@ -105,7 +92,6 @@ class CommandIndent(Command):
 class CommandFlatten(Command):
 	def exec(self, ctx: Context) -> Context:
 		return Context(ctx.source, strings=self.__flatten(ctx.source))
-
 
 	def __flatten(self, root: Entry) -> list[str]:
 		elems: list[str] = []
@@ -125,10 +111,8 @@ class CommandInsert(Command):
 		self.__index = index
 		self.__string = string
 
-
 	def exec(self, ctx: Context) -> Context:
 		return Context(ctx.source, strings=self.__insert(ctx.strings))
-
 
 	def __insert(self, strings: list[str]) -> list[str]:
 		before = strings[:self.__index]
@@ -140,10 +124,8 @@ class CommandJoin(Command):
 	def __init__(self, delimiter: str) -> None:
 		self.__delimiter = delimiter
 
-
 	def exec(self, ctx: Context) -> Context:
 		return Context(ctx.source, string=self.__join(ctx.strings))
-
 
 	def __join(self, strings: list[str]) -> str:
 		return self.__delimiter.join(strings)
@@ -154,10 +136,8 @@ class CommandReplace(Command):
 		self.__pattern = pattern
 		self.__replaced = replaced
 
-
 	def exec(self, ctx: Context) -> Context:
 		return Context(ctx.source, string=self.__replace(ctx.string))
-
 
 	def __replace(self, string: str) -> str:
 		return re.sub(self.__pattern, self.__replaced, string)

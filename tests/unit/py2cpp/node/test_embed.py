@@ -19,7 +19,6 @@ class TestMeta(TestCase):
 			def prop(self, v: int) -> str:
 				return str(v)
 
-
 		a = A()
 		class_meta = Meta.dig_for_class(MetaHolder, A, '__test_class_meta__', default=-1)
 		method_meta = Meta.dig_for_method(MetaHolder, A, '__test_func_meta__', value_type=int)
@@ -27,7 +26,6 @@ class TestMeta(TestCase):
 		self.assertEqual(method_meta['prop'], 2)
 		self.assertEqual(a.prop.__annotations__['v'], int)
 		self.assertEqual(a.prop.__annotations__['return'], str)
-
 
 	def test_accept_tags(self) -> None:
 		class MetaHolder: pass
@@ -37,17 +35,14 @@ class TestMeta(TestCase):
 		class_meta: list[str] = Meta.dig_for_class(MetaHolder, B, EmbedKeys.AcceptTags, default=[])
 		self.assertEqual(class_meta, ['hoge'])
 
-
 	def test_actualized(self) -> None:
 		class MetaHolder: pass
 		class Base(NodeBase): pass
 		@Meta.embed(MetaHolder, actualized(via=Base))
 		class Sub(Base): pass
 
-
 		class_meta = Meta.dig_by_key_for_class(MetaHolder, EmbedKeys.Actualized, value_type=type)
 		self.assertEqual(class_meta[Sub], Base)
-
 
 	def test_expansionable(self) -> None:
 		class MetaHolder: pass
@@ -57,12 +52,10 @@ class TestMeta(TestCase):
 			def prop0(self) -> int:
 				return 0
 
-
 			@property
 			@Meta.embed(MetaHolder, expansionable(order=1))
 			def prop1(self) -> int:
 				return 1
-
 
 		method_meta = Meta.dig_for_method(MetaHolder, C, EmbedKeys.Expansionable, value_type=int)
 		self.assertEqual(method_meta['prop0'], 0)

@@ -26,18 +26,15 @@ class FileInput(Node):
 	def scopr_name(self) -> str:
 		return '__main__'
 
-
 	@property
 	@override
 	def namespace(self) -> str:
 		return '__main__'
 
-
 	@property
 	@override
 	def scope(self) -> str:
 		return '__main__'
-
 
 	@property
 	@Meta.embed(Node, expansionable(order=0))
@@ -54,12 +51,10 @@ class Integer(Node):
 	def match_feature(cls, via: Node) -> bool:
 		return Terminal.match_terminal(via, allow_tags=['primary', 'atom', 'number', 'DEC_NUMBER', 'HEX_NUMBER'])
 
-
 	@property
 	@override
 	def is_terminal(self) -> bool:  # XXX Terminalへの移設を検討
 		return True
-
 
 	@override
 	def to_string(self) -> str:  # XXX Terminalへの移設を検討
@@ -72,12 +67,10 @@ class Float(Node):
 	def match_feature(cls, via: Node) -> bool:
 		return Terminal.match_terminal(via, allow_tags=['primary', 'atom', 'number', 'FLOAT_NUMBER'])
 
-
 	@property
 	@override
 	def is_terminal(self) -> bool:  # XXX Terminalへの移設を検討
 		return True
-
 
 	@override
 	def to_string(self) -> str:  # XXX Terminalへの移設を検討
@@ -90,12 +83,10 @@ class Symbol(Node):
 	def match_feature(cls, via: Node) -> bool:
 		return Terminal.match_terminal(via, allow_tags=['getattr', 'primary', 'var', 'name', 'NAME'])
 
-
 	@property
 	@override
 	def is_terminal(self) -> bool:  # XXX Terminalへの移設を検討
 		return True
-
 
 	@override
 	def to_string(self) -> str:  # XXX Terminalへの移設を検討
@@ -137,7 +128,6 @@ class ListType(GenericType):
 
 		return len(via._children('slices')) == 1
 
-
 	@property
 	def value_type(self) -> GenericType:
 		return self._by('slices')._at(0).as_a(GenericType)
@@ -153,11 +143,9 @@ class DictType(GenericType):
 
 		return len(via._children('slices')) == 2
 
-
 	@property
 	def key_type(self) -> GenericType:
 		return self._by('slices')._at(0).as_a(GenericType)
-
 
 	@property
 	def value_type(self) -> GenericType:
@@ -170,11 +158,9 @@ class Parameter(Node):
 	def param_symbol(self) -> Symbol:
 		return self._by('typedparam.name').as_a(Symbol)
 
-
 	@property
 	def param_type(self) -> Symbol | Empty:
 		return self._by('typedparam')._at(1).if_not_a_to_b(Empty, Symbol)
-
 
 	@property
 	def default_value(self) -> Terminal | Empty:
@@ -186,7 +172,6 @@ class KeyValue(Node):
 	@property
 	def key(self) -> Node:
 		return self._at(0).as_a(Expression).actualize()
-
 
 	@property
 	def value(self) -> Node:
@@ -229,11 +214,9 @@ class MoveAssign(Assign):
 	def match_feature(cls, via: Node) -> bool:
 		return via._exists('assign')
 
-
 	@property
 	def symbol(self) -> Symbol:  # FIXME Symbol | Indexer
 		return self._elements[0].as_a(Symbol)
-
 
 	@property
 	def value(self) -> Node:  # FIXME Node | Empty
@@ -247,16 +230,13 @@ class AnnoAssign(Assign):
 	def match_feature(cls, via: Node) -> bool:
 		return via._exists('anno_assign')
 
-
 	@property
 	def symbol(self) -> Symbol:  # FIXME Symbol | Indexer
 		return self._elements[0].as_a(Symbol)
 
-
 	@property
 	def variable_type(self) -> Symbol:
 		return self._elements[1].as_a(Symbol)
-
 
 	@property
 	def value(self) -> Node:  # FIXME Node | Empty
@@ -270,16 +250,13 @@ class AugAssign(Assign):
 	def match_feature(cls, via: Node) -> bool:
 		return via._exists('aug_assign')
 
-
 	@property
 	def symbol(self) -> Symbol:  # FIXME Symbol | Indexer
 		return self._elements[0].as_a(Symbol)
 
-
 	@property
 	def operator(self) -> Terminal:
 		return self._elements[1].as_a(Terminal)
-
 
 	@property
 	def value(self) -> Node:
@@ -292,11 +269,9 @@ class Variable(Node):
 	def symbol(self) -> Symbol:
 		return self._by('anno_assign')._at(0).as_a(Symbol)
 
-
 	@property
 	def variable_type(self) -> Symbol:
 		return self._by('anno_assign')._at(1).as_a(Symbol)
-
 
 	@property
 	def initial_value(self) -> Node:
@@ -308,7 +283,6 @@ class Import(Node):
 	@property
 	def module_path(self) -> Symbol:
 		return self._by('dotted_name').as_a(Symbol)
-
 
 	@property
 	def import_symbols(self) -> list[Symbol]:
@@ -333,7 +307,6 @@ class Decorator(Node):
 	def symbol(self) -> Symbol:
 		return self._by('dotted_name').as_a(Symbol)
 
-
 	@property
 	@Meta.embed(Node, expansionable(order=0))
 	def arguments(self) -> list[Argument]:
@@ -353,27 +326,22 @@ class Function(Node):
 		else:
 			return 'public'
 
-
 	@property
 	def function_name(self) -> Terminal:
 		return self._by('function_def_raw.name').as_a(Terminal)
-
 
 	@property
 	def decorators(self) -> list[Decorator]:
 		return [node.as_a(Decorator) for node in self._children('decorators')] if self._exists('decorators') else []
 
-
 	@property
 	def parameters(self) -> list[Parameter]:
 		return [node.as_a(Parameter) for node in self._children('function_def_raw.parameters')]
-
 
 	@property
 	def return_type(self) -> Symbol | Empty:
 		node = self._by('function_def_raw')._at(2)
 		return node._by('const_none').as_a(Empty) if node._exists('const_none') else node.as_a(Symbol)
-
 
 	@property
 	@Meta.embed(Node, expansionable(order=0))
@@ -387,7 +355,6 @@ class Constructor(Function):
 	@override
 	def match_feature(cls, via: Node) -> bool:
 		return via.as_a(Function).function_name.to_string() == '__init__'
-
 
 	@property
 	def decl_variables(self) -> list[Variable]:
@@ -425,16 +392,13 @@ class Class(Node):
 	def scope_name(self) -> str:
 		return self.class_name.to_string()
 
-
 	@property
 	def class_name(self) -> Terminal:
 		return self._by('class_def_raw.name').as_a(Terminal)
 
-
 	@property
 	def decorators(self) -> list[Decorator]:
 		return [node.as_a(Decorator) for node in self._children('decorators')] if self._exists('decorators') else []
-
 
 	@property
 	def parents(self) -> list[Symbol]:
@@ -444,33 +408,27 @@ class Class(Node):
 
 		return [node.as_a(Argument).value.as_a(Symbol) for node in parents._children()]
 
-
 	@property
 	def constructor_exists(self) -> bool:
 		candidates = [node.as_a(Constructor) for node in self.block._children() if node.is_a(Constructor)]
 		return len(candidates) == 1
 
-
 	@property
 	def constructor(self) -> Constructor:
 		return [node.as_a(Constructor) for node in self.block._children() if node.is_a(Constructor)].pop()
-
 
 	@property
 	def class_methods(self) -> list[ClassMethod]:
 		return [node.as_a(ClassMethod) for node in self.block._children() if node.is_a(ClassMethod)]
 
-
 	@property
 	def methods(self) -> list[Method]:
 		return [node.as_a(Method) for node in self.block._children() if node.is_a(Method)]
-
 
 	@property
 	@Meta.embed(Node, expansionable(order=0))
 	def block(self) -> Block:
 		return self._by('class_def_raw.block').as_a(Block)
-
 
 	@property
 	def variables(self) -> list[Variable]:
@@ -484,11 +442,9 @@ class Enum(Node):
 	def scope_name(self) -> str:
 		return self.enum_name.to_string()
 
-
 	@property
 	def enum_name(self) -> Terminal:
 		return self._by('name').as_a(Terminal)
-
 
 	@property
 	@Meta.embed(Node, expansionable(order=0))

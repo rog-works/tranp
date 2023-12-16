@@ -22,7 +22,6 @@ class TestEventEmitter(TestCase):
 		self.assertEqual(result['v'], v)
 		self.assertEqual(result['s'], s)
 
-
 	def test_on(self) -> None:
 		def handler():
 			raise ValueError()
@@ -31,7 +30,6 @@ class TestEventEmitter(TestCase):
 		emitter.on('hoge', handler)
 		with self.assertRaises(ValueError):
 			emitter.emit('hoge')
-
 
 	def test_off(self) -> None:
 		def handler():
@@ -44,7 +42,6 @@ class TestEventEmitter(TestCase):
 			emitter.emit('hoge')
 		except Exception:
 			self.fail()
-
 
 	def test_clear(self) -> None:
 		def handler():

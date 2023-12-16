@@ -20,13 +20,11 @@ class TestResolver(TestCase):
 		resolver.register('c', C)
 		self.assertEqual(resolver.accepts, ['a', 'b', 'c'])
 
-
 	def test_can_resolve(self) -> None:
 		resolver = Resolver[A]()
 		self.assertEqual(resolver.can_resolve('a'), False)
 		resolver.register('a', A)
 		self.assertEqual(resolver.can_resolve('a'), True)
-
 
 	def test_register(self) -> None:
 		resolver = Resolver[A]()
@@ -38,7 +36,6 @@ class TestResolver(TestCase):
 
 		with self.assertRaises(LogicError):
 			resolver.resolve('d')
-
 
 	def test_unregister(self) -> None:
 		resolver = Resolver[A]()
@@ -52,7 +49,6 @@ class TestResolver(TestCase):
 		except Exception:
 			self.fail()
 
-
 	def test_resolve(self) -> None:
 		resolver = Resolver[A]()
 		resolver.register('a', A)
@@ -62,14 +58,12 @@ class TestResolver(TestCase):
 		self.assertEqual(resolver.resolve('b'), B)
 		self.assertEqual(resolver.resolve('c'), C)
 
-
 	def test_fallback(self) -> None:
 		resolver = Resolver[A]()
 		resolver.register('a', A)
 		resolver.fallback(B)
 		self.assertEqual(resolver.resolve('a'), A)
 		self.assertEqual(resolver.resolve('b'), B)
-
 
 	def test_clear(self) -> None:
 		resolver = Resolver[A]()

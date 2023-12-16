@@ -33,12 +33,10 @@ class FileInput(Node):
 	def scope_name(self) -> str:
 		return '__main__'
 
-
 	@property
 	@override
 	def namespace(self) -> str:
 		return '__main__'
-
 
 	@property
 	@override
@@ -52,7 +50,6 @@ class Class(Node):
 	def scope_name(self) -> str:
 		return 'Class'
 
-
 	@property
 	@Meta.embed(Node, expansionable(order=0))
 	def block(self) -> Block:
@@ -64,7 +61,6 @@ class Enum(Node):
 	@override
 	def scope_name(self) -> str:
 		return 'Enum'
-
 
 	@property
 	@Meta.embed(Node, expansionable(order=0))
@@ -115,7 +111,6 @@ class Fixture:
 			]),
 		])
 
-
 	@classmethod
 	def resolver(cls) -> NodeResolver:
 		return NodeResolver.load(Settings(
@@ -131,7 +126,6 @@ class Fixture:
 			},
 			fallback=Terminal
 		))
-
 
 	@classmethod
 	def nodes(cls) -> Nodes:
@@ -154,7 +148,6 @@ class TestNode(TestCase):
 		self.assertEqual(block_a.full_path, 'file_input.class.block')
 		self.assertEqual(block_a.parent.full_path, 'file_input.class')
 
-
 	@data_provider([
 		('file_input', 'file_input'),
 		('file_input.class.__empty__', '__empty__'),
@@ -169,7 +162,6 @@ class TestNode(TestCase):
 		node = nodes.by(full_path)
 		self.assertEqual(node.tag, expected)
 
-
 	@data_provider([
 		('file_input', 'file_input'),
 		('file_input.class.__empty__', 'empty'),
@@ -183,7 +175,6 @@ class TestNode(TestCase):
 		nodes = Fixture.nodes()
 		node = nodes.by(full_path)
 		self.assertEqual(node.identifer, expected)
-
 
 	@data_provider([
 		('file_input', '__main__'),
@@ -203,7 +194,6 @@ class TestNode(TestCase):
 		node = nodes.by(full_path)
 		self.assertEqual(node.namespace, expected)
 
-
 	@data_provider([
 		('file_input', '__main__'),
 		('file_input.class', '__main__'),
@@ -221,7 +211,6 @@ class TestNode(TestCase):
 		nodes = Fixture.nodes()
 		node = nodes.by(full_path)
 		self.assertEqual(node.scope, expected)
-
 
 	@data_provider([
 		('file_input', 0),
@@ -241,7 +230,6 @@ class TestNode(TestCase):
 		node = nodes.by(full_path)
 		self.assertEqual(node.nest, expected)
 
-
 	@data_provider([
 		('file_input.class', 'file_input'),
 		('file_input.class.__empty__', 'file_input.class'),
@@ -254,7 +242,6 @@ class TestNode(TestCase):
 		nodes = Fixture.nodes()
 		node = nodes.by(full_path)
 		self.assertEqual(node.parent.full_path, expected)
-
 
 	@data_provider([
 		('file_input.class', [
@@ -289,7 +276,6 @@ class TestNode(TestCase):
 		all = [node.full_path for node in nodes.by(full_path).flatten()]
 		self.assertEqual(all, expected)
 
-
 	@data_provider([
 		('file_input.class', [
 			'file_input.class.block.enum.block.assign[0].term_a',
@@ -313,13 +299,11 @@ class TestNode(TestCase):
 		all = [node.full_path for node in nodes.by(full_path).calculated()]
 		self.assertEqual(all, expected)
 
-
 	def test_as_a(self) -> None:
 		nodes = Fixture.nodes()
 		node = nodes.by('fule_input.class')
 		self.assertEqual(type(node), Class)
 		self.assertEqual(type(node.as_a(Terminal)), Terminal)
-
 
 	def test_is_a(self) -> None:
 		nodes = Fixture.nodes()
@@ -329,13 +313,11 @@ class TestNode(TestCase):
 		self.assertEqual(node.is_a(Node), True)
 		self.assertEqual(node.is_a(Terminal), False)
 
-
 	def test_if_not_a_to_b(self) -> None:
 		nodes = Fixture.nodes()
 		empty = nodes.by('fule_input.class.__empty__')
 		self.assertEqual(type(empty), Empty)
 		self.assertEqual(type(empty.if_not_a_to_b(Empty, Terminal)), Empty)
-
 
 	def test_match_feature(self) -> None:
 		class NodeA(Node):
@@ -344,17 +326,14 @@ class TestNode(TestCase):
 			def match_feature(cls, via: Node) -> bool:
 				return via.tag == 'node_a'
 
-
 		dummy_nodes = Nodes(Tree('root', []), NodeResolver.load(Settings()))
 		root = NodeA(dummy_nodes, 'root')
 		node = NodeA(dummy_nodes, 'node_a')
 		self.assertEqual(NodeA.match_feature(root), False)
 		self.assertEqual(NodeA.match_feature(node), True)
 
-
 	def test_actualize(self) -> None:
 		class NodeSet(Node): pass
-
 
 		@Meta.embed(Node, actualized(via=NodeSet))
 		class NodeSubset(NodeSet):
@@ -363,12 +342,10 @@ class TestNode(TestCase):
 			def match_feature(cls, via: Node) -> bool:
 				return via.tag == 'node_subset'
 
-
 		dummy_nodes = Nodes(Tree('root', []), NodeResolver.load(Settings()))
 		node = NodeSet(dummy_nodes, 'node_subset')
 		self.assertEqual(type(node), NodeSet)
 		self.assertEqual(type(node.actualize()), NodeSubset)
-
 
 	def test___str__(self) -> None:
 		nodes = Fixture.nodes()

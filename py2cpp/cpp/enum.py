@@ -13,7 +13,6 @@ class CEnum(Enum):
 		"""
 		return int(self.value)
 
-
 	def __eq__(self, other: Any) -> bool:
 		"""比較演算
 
@@ -26,7 +25,6 @@ class CEnum(Enum):
 			return self.value == other
 
 		return super().__eq__(other)
-
 
 	def __hash__(self) -> int:
 		"""インスタンスのハッシュ値を返す

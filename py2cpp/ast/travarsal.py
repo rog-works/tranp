@@ -21,7 +21,6 @@ class EntryPath:
 		"""
 		return cls('.'.join([*elems]))
 
-
 	@classmethod
 	def identify(cls, origin: str, entry_tag: str, index: int) -> 'EntryPath':
 		"""一意性を持つようにパスを構築し、インスタンスを生成
@@ -35,7 +34,6 @@ class EntryPath:
 		"""
 		return cls('.'.join([origin, f'{entry_tag}[{index}]']))
 
-
 	def __init__(self, origin: str) -> None:
 		"""インスタンスを生成
 
@@ -44,24 +42,20 @@ class EntryPath:
 		"""
 		self.origin = origin
 
-
 	@property
 	def valid(self) -> bool:
 		"""bool: True = パスが有効"""
 		return len(self.elements) > 0
-
 
 	@property
 	def elements(self) -> list[str]:
 		"""list[str]: 区切り文字で分解した要素を返却"""
 		return self.origin.split('.') if len(self.origin) > 0 else []
 
-
 	@property
 	def escaped_origin(self) -> str:
 		"""str: 正規表現用にエスケープしたパスを返却"""
 		return re.sub(r'([.\[\]])', r'\\\1', self.origin)
-
 
 	def joined(self, relative: str) -> str:
 		"""相対パスと連結したパスを返却
@@ -73,7 +67,6 @@ class EntryPath:
 		"""
 		return '.'.join([self.origin, relative])
 
-
 	def first(self) -> tuple[str, int]:
 		"""先頭の要素を分解して取得
 
@@ -82,7 +75,6 @@ class EntryPath:
 		"""
 		return self.__break_tag(self.elements[0])
 
-
 	def last(self) -> tuple[str, int]:
 		"""末尾の要素を分解して取得
 
@@ -90,7 +82,6 @@ class EntryPath:
 			tuple[str, int]: (エントリータグ, 要素インデックス)
 		"""
 		return self.__break_tag(self.elements[-1])
-
 
 	def __break_tag(self, elem: str) -> tuple[str, int]:
 		"""要素から元のタグと付与されたインデックスに分解。インデックスがない場合は-1とする
@@ -103,7 +94,6 @@ class EntryPath:
 		matches = re.fullmatch(r'(\w+)\[(\d+)\]', elem)
 		return (matches[1], int(matches[2])) if matches else (elem, -1)
 
-
 	def contains(self, entry_tag: str) -> bool:
 		"""指定のエントリータグが含まれるか判定
 
@@ -113,7 +103,6 @@ class EntryPath:
 			bool: True = 含まれる
 		"""
 		return entry_tag in self.de_identify().elements
-
 
 	def consists_of_only(self, *entry_tags: str) -> bool:
 		"""指定のエントリータグのみでパスが構築されているか判定
@@ -125,7 +114,6 @@ class EntryPath:
 		"""
 		return len([entry_tag for entry_tag in self.de_identify().elements if entry_tag not in entry_tags]) == 0
 
-
 	def de_identify(self) -> 'EntryPath':
 		"""一意性を解除したパスでインスタンスを生成
 
@@ -133,7 +121,6 @@ class EntryPath:
 			EntryPath: インスタンス
 		"""
 		return EntryPath(re.sub(r'\[\d+\]', '', self.origin))
-
 
 	def relativefy(self, starts: str) -> 'EntryPath':
 		"""指定のパスより先の相対パスでインスタンスを生成
@@ -150,7 +137,6 @@ class EntryPath:
 
 		elems = [elem for elem in self.origin.split(f'{starts}.')[1].split('.')]
 		return EntryPath('.'.join(elems))
-
 
 	def shift(self, skip: int) -> 'EntryPath':
 		"""指定方向の要素を除外して再構築したパスでインスタンスを生成
@@ -186,7 +172,6 @@ class EntryProxy(Generic[T], metaclass=ABCMeta):
 		"""
 		raise NotImplementedError()
 
-
 	@abstractmethod
 	def has_child(self, entry: T) -> bool:
 		"""子を持つエントリーか判定
@@ -197,7 +182,6 @@ class EntryProxy(Generic[T], metaclass=ABCMeta):
 			bool: True = 子を持つエントリー
 		"""
 		raise NotImplementedError()
-
 
 	@abstractmethod
 	def children(self, entry: T) -> list[T]:
@@ -212,7 +196,6 @@ class EntryProxy(Generic[T], metaclass=ABCMeta):
 		"""
 		raise NotImplementedError()
 
-
 	@abstractmethod
 	def is_terminal(self, entry: T) -> bool:
 		"""終端記号か判定
@@ -223,7 +206,6 @@ class EntryProxy(Generic[T], metaclass=ABCMeta):
 			bool: True = 終端記号
 		"""
 		raise NotImplementedError()
-
 
 	@abstractmethod
 	def value(self, entry: T) -> str:
@@ -238,7 +220,6 @@ class EntryProxy(Generic[T], metaclass=ABCMeta):
 		"""
 		raise NotImplementedError()
 
-
 	@abstractmethod
 	def is_empty(self, entry: T) -> bool:
 		"""エントリーが空か判定
@@ -251,7 +232,6 @@ class EntryProxy(Generic[T], metaclass=ABCMeta):
 			例) function_def: "def" name "(" [parameters] ")" "->" ":" block
 		"""
 		raise NotImplementedError()
-
 
 	@property
 	def empty_name(self) -> str:
@@ -270,7 +250,6 @@ class ASTFinder(Generic[T]):
 		"""
 		self.__proxy = proxy
 
-
 	def has_child(self, entry: T) -> bool:
 		"""子を持つエントリーか判定
 
@@ -281,7 +260,6 @@ class ASTFinder(Generic[T]):
 		"""
 		return self.__proxy.has_child(entry)
 
-
 	def tag_by(self, entry: T) -> str:
 		"""エントリータグを取得
 
@@ -291,7 +269,6 @@ class ASTFinder(Generic[T]):
 			str: エントリータグ
 		"""
 		return self.__proxy.name(entry)
-
 
 	def exists(self, root: T, full_path: str) -> bool:
 		"""指定のパスに一致するエントリーが存在するか判定
@@ -308,7 +285,6 @@ class ASTFinder(Generic[T]):
 		except NotFoundError:
 			return False
 
-
 	def pluck(self, root: T, full_path: str) -> T:
 		"""指定のパスに一致するエントリーを抜き出す
 
@@ -324,7 +300,6 @@ class ASTFinder(Generic[T]):
 			return root
 
 		return self.__pluck(root, EntryPath(full_path).shift(1))
-
 
 	def __pluck(self, entry: T, path: EntryPath) -> T:
 		"""配下のエントリーから指定のパスに一致するエントリーを抜き出す
@@ -357,7 +332,6 @@ class ASTFinder(Generic[T]):
 
 		raise NotFoundError(entry, path)
 
-
 	def find(self, root: T, via: str, tester: Callable[[T, str], bool], depth: int = -1) -> dict[str, T]:
 		"""基点のパス以下のエントリーを検索
 
@@ -374,7 +348,6 @@ class ASTFinder(Generic[T]):
 		entry = self.pluck(root, via)
 		all = self.full_pathfy(entry, via, depth)
 		return {in_path: in_entry for in_path, in_entry in all.items() if tester(in_entry, in_path)}
-
 
 	def full_pathfy(self, entry: T, path: str = '', depth: int = -1) -> dict[str, T]:
 		"""指定のエントリー以下のフルパスとマッピングを生成
@@ -413,7 +386,6 @@ class ASTFinder(Generic[T]):
 				in_paths = {**in_paths, **self.full_pathfy(children[index], in_path.origin, depth - 1)}
 
 		return in_paths
-
 
 	def __aligned_children(self, children: list[T]) -> dict[str, list[int]]:
 		"""子の要素を元にエントリータグ毎のインデックスリストに整理する

@@ -29,10 +29,8 @@ class Register:
 	def push(self, node: Node, result: Any) -> None:
 		...
 
-
 	def pop(self, node_type: type[T_Node], result_type: type[T_Result]) -> tuple[T_Node, T_Result]:
 		...
-
 
 	def __iter__(self) -> Iterator[tuple[Node, Any]]:
 		...
@@ -47,7 +45,6 @@ class View:
 	def render(self, template: str, indent: int, vars: TypedDict | dict[str, str], **kwargs: str) -> str:
 		...
 
-
 	def indentation(self, text: str, indent: int) -> str:
 		begin = ''.join(['\t' for _ in range(indent)])
 		return f'\n{begin}'.join(text.split('\n'))
@@ -60,14 +57,11 @@ class Context:
 		self.writer = Writer()
 		self.view = View()
 
-
 	def emit(self, action: str, **kwargs) -> None:
 		self.__emitter.emit(action, **kwargs)
 
-
 	def on(self, action: str, callback: T_Callback) -> None:
 		self.__emitter.on(action, callback)
-
 
 	def off(self, action: str, callback: T_Callback) -> None:
 		self.__emitter.off(action, callback)
@@ -79,11 +73,9 @@ class Handler:
 		if hasattr(self, handler_name):
 			getattr(self, handler_name)(node, ctx)
 
-
 	def on_file_input(self, node: defs.FileInput, ctx: Context) -> None:
 		for _, statement in ctx.register:
 			ctx.writer.put(statement)
-
 
 	def on_block(self, node: defs.Block, ctx: Context) -> None:
 		text = ''
@@ -92,41 +84,34 @@ class Handler:
 
 		ctx.register.push(node, text)
 
-
 	def on_class(self, node: defs.Class, ctx: Context) -> None:
 		_, block = ctx.register.pop(defs.Block, str)
 		text = ctx.view.render('class.j2', node.nest, serialize(node, T_ClassVar), block=block)
 		ctx.register.push(node, text)
 
-
 	def on_enum(self, node: defs.Enum, ctx: Context) -> None:
 		text = ctx.view.render('enum.j2', node.nest, serialize(node, T_EnumVar))
 		ctx.register.push(node, text)
-
 
 	def on_constructor(self, node: defs.Constructor, ctx: Context) -> None:
 		_, block = ctx.register.pop(defs.Block, str)
 		text = ctx.view.render('constructur.j2', node.nest, serialize(node, T_FunctionVar), block=block)
 		ctx.register.push(node, text)
 
-
 	def on_class_method(self, node: defs.ClassMethod, ctx: Context) -> None:
 		_, block = ctx.register.pop(defs.Block, str)
 		text = ctx.view.render('class_method.j2', node.nest, serialize(node, T_FunctionVar), block=block)
 		ctx.register.push(node, text)
-
 
 	def on_method(self, node: defs.Method, ctx: Context) -> None:
 		_, block = ctx.register.pop(defs.Block, str)
 		text = ctx.view.render('method.j2', node.nest, serialize(node, T_FunctionVar), block=block)
 		ctx.register.push(node, text)
 
-
 	def on_function(self, node: defs.Function, ctx: Context) -> None:
 		_, block = ctx.register.pop(defs.Block, str)
 		text = ctx.view.render('function.j2', node.nest, serialize(node, T_FunctionVar), block=block)
 		ctx.register.push(node, text)
-
 
 	def on_move_assign(self, node: defs.MoveAssign, ctx: Context) -> None:
 		_, symbol = ctx.register.pop(defs.Symbol, str)
@@ -134,7 +119,6 @@ class Handler:
 		vars = {'symbol': symbol, 'value': value}
 		text = ctx.view.render('move_assign.j2', node.nest, vars)
 		ctx.register.push(node, text)
-
 
 	def on_anno_assign(self, node: defs.AnnoAssign, ctx: Context) -> None:
 		_, symbol = ctx.register.pop(defs.Symbol, str)
@@ -144,7 +128,6 @@ class Handler:
 		text = ctx.view.render('anno_assign.j2', node.nest, vars)
 		ctx.register.push(node, text)
 
-
 	def on_aug_assign(self, node: defs.AugAssign, ctx: Context) -> None:
 		_, symbol = ctx.register.pop(defs.Symbol, str)
 		_, operator = ctx.register.pop(defs.Terminal, str)
@@ -152,7 +135,6 @@ class Handler:
 		vars = {'symbol': symbol, 'operator': operator, 'value': value}
 		text = ctx.view.render('aug_assign.j2', node.nest, vars)
 		ctx.register.push(node, text)
-
 
 	def on_import(self, node: defs.Import, ctx: Context) -> None:
 		module_path = node.module_path.to_string()
@@ -163,11 +145,9 @@ class Handler:
 		text = ctx.view.render('import.j2', node.nest, vars)
 		ctx.register.push(node, text)
 
-
 	def on_dict(self, node: defs.Dict, ctx: Context) -> None:
 		text = ctx.view.render('dict.j2', node.nest, serialize(node, T_DictVar))
 		ctx.register.push(node, text)
-
 
 	def on_list(self, node: defs.List, ctx: Context) -> None:
 		text = ctx.view.render('list.j2', node.nest, serialize(node, T_ListVar))

@@ -26,12 +26,10 @@ class MetaData:
 		"""str: 保持クラスに追加するメタデータのプロパティ名"""
 		return f'__meta_data_{id(cls)}__'
 
-
 	def __init__(self) -> None:
 		"""インスタンスを生成"""
 		self.__classes: dict[T_Node, dict[str, Any]] = {}
 		self.__methods: dict[FunctionType, dict[str, Any]] = {}
-
 
 	def class_path(self, ctor: type) -> str:
 		"""クラスのモジュールパスを取得
@@ -43,7 +41,6 @@ class MetaData:
 		"""
 		return f'{ctor.__module__}.{ctor.__name__}'
 
-
 	def method_path(self, method: FunctionType) -> str:
 		"""メソッドのモジュールパスを取得
 
@@ -53,7 +50,6 @@ class MetaData:
 			str: モジュールパス
 		"""
 		return f'{method.__module__}.{method.__qualname__.split(".")[-2]}.{method.__name__}'
-
 
 	def set_for_class(self, ctor: T_Node, embed_key: str, value: Any) -> None:
 		"""メタデータを設定(クラス用)
@@ -68,7 +64,6 @@ class MetaData:
 
 		self.__classes[ctor][embed_key] = value
 
-
 	def set_for_method(self, method: FunctionType, embed_key: str, value: Any) -> None:
 		"""メタデータを設定(メソッド用)
 
@@ -81,7 +76,6 @@ class MetaData:
 			self.__methods[method] = {}
 
 		self.__methods[method][embed_key] = value
-
 
 	def get_by_key_from_class(self, embed_key: str) -> dict[type, Any]:
 		"""メタデータを取得(クラス用)
@@ -97,7 +91,6 @@ class MetaData:
 			for ctor, meta in self.__classes.items()
 			if embed_key in meta
 		}
-
 
 	def get_from_class(self, ctor: T_Node, embed_key: str) -> Any:
 		"""メタデータを取得(クラス用)
@@ -117,7 +110,6 @@ class MetaData:
 			return None
 
 		return self.__classes[ctor][embed_key]
-
 
 	def get_from_method(self, ctor: T_Node, embed_key: str) -> dict[str, Any]:
 		"""メタデータを取得(メソッド用)
@@ -181,7 +173,6 @@ class Meta:
 
 		return decorator
 
-
 	@classmethod
 	def dig_by_key_for_class(cls, holder, embed_key: str, value_type: T_Data) -> dict[type, T_Data]:
 		"""クラスに埋め込まれたメタデータを抽出(クラス用)
@@ -198,7 +189,6 @@ class Meta:
 
 		meta_data = cast(MetaData, getattr(holder, MetaData.key))
 		return meta_data.get_by_key_from_class(embed_key)
-
 
 	@classmethod
 	def dig_for_class(cls, holder: type, ctor: T_Node, embed_key: str, default: T_Data) -> T_Data:
@@ -217,7 +207,6 @@ class Meta:
 
 		meta_data = cast(MetaData, getattr(holder, MetaData.key))
 		return meta_data.get_from_class(ctor, embed_key) or default
-
 
 	@classmethod
 	def dig_for_method(cls, holder: type, ctor: T_Node, embed_key: str, value_type: T_Data) -> dict[str, T_Data]:

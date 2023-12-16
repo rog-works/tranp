@@ -42,7 +42,6 @@ class Fixture:
 			]),
 		])
 
-
 	@classmethod
 	def resolver(cls) -> NodeResolver:
 		return NodeResolver.load(Settings(
@@ -58,7 +57,6 @@ class Fixture:
 			},
 			fallback=Terminal
 		))
-
 
 	@classmethod
 	def nodes(cls) -> Nodes:
@@ -78,7 +76,6 @@ class TestNodeResolver(TestCase):
 		resolver = Fixture.resolver()
 		self.assertEqual(resolver.can_resolve(tag), expected)
 
-
 	def test_resolve(self) -> None:
 		class QueryA(Query[Node]):
 			def exists(self, full_path: str) -> bool: ...
@@ -89,7 +86,6 @@ class TestNodeResolver(TestCase):
 			def leafs(self, via: str, leaf_name: str) -> list[Node]: ...
 			def expansion(self, via: str) -> list[Node]: ...
 			def by_value(self, full_path: str) -> list[Node]: ...
-
 
 		resolver = Fixture.resolver()
 		dummy_query = QueryA()
@@ -116,7 +112,6 @@ class TestNodes(TestCase):
 		nodes = Fixture.nodes()
 		self.assertEqual(nodes.exists(path), expected)
 
-
 	@data_provider([
 		('root', Root),
 		('root.tree_a', TreeA),
@@ -135,7 +130,6 @@ class TestNodes(TestCase):
 		node = nodes.by(path)
 		self.assertEqual(type(node), expected)
 
-
 	@data_provider([
 		('root.tree_a', Root),
 		('root.tree_a.__empty__', TreeA),
@@ -153,7 +147,6 @@ class TestNodes(TestCase):
 		node = nodes.parent(via)
 		self.assertEqual(type(node), expected)
 
-
 	@data_provider([
 		('root', []),
 		('root.tree_a', [TreeA, Terminal, TreeC]),
@@ -168,7 +161,6 @@ class TestNodes(TestCase):
 		nodes = Fixture.nodes()
 		in_nodes = nodes.siblings(via)
 		self.assertEqual([type(node) for node in in_nodes], expected)
-
 
 	@data_provider([
 		('root', [TreeA, Terminal, TreeC]),
@@ -185,7 +177,6 @@ class TestNodes(TestCase):
 		in_nodes = nodes.children(via)
 		self.assertEqual([type(node) for node in in_nodes], expected)
 
-
 	@data_provider([
 		('root', '__empty__', [Empty]),
 		('root', 'token_b', [TokenB]),
@@ -197,7 +188,6 @@ class TestNodes(TestCase):
 		nodes = Fixture.nodes()
 		in_nodes = nodes.leafs(via, leaf_name)
 		self.assertEqual([type(node) for node in in_nodes], expected)
-
 
 	@data_provider([
 		('root', [TreeA, Terminal, TreeC]),
@@ -211,7 +201,6 @@ class TestNodes(TestCase):
 		in_nodes = nodes.expansion(via)
 		self.assertEqual([type(node) for node in in_nodes], expected)
 
-
 	@data_provider([
 		('root.__empty__', NotFoundError),
 	])
@@ -219,7 +208,6 @@ class TestNodes(TestCase):
 		nodes = Fixture.nodes()
 		with self.assertRaises(expected):
 			nodes.expansion(via)
-
 
 	@data_provider([
 		('root.tree_a.token_a', 'a.a'),

@@ -42,18 +42,15 @@ class Resolver(Generic[T]):
 		inst.fallback(settings.fallback)
 		return inst
 
-
 	def __init__(self) -> None:
 		"""インスタンスを生成"""
 		self.__ctors: dict[str, type[T]] = {}
 		self.__fallback: type[T] | None = None
 
-
 	@property
 	def accepts(self) -> list[str]:
 		"""list[str]: 受け入れ対象のシンボル名リスト"""
 		return list(self.__ctors.keys())
-
 
 	def can_resolve(self, symbol: str) -> bool:
 		"""解決出来るか確認
@@ -65,7 +62,6 @@ class Resolver(Generic[T]):
 		"""
 		return symbol in self.__ctors
 
-
 	def register(self, symbol: str, ctor: type[T]) -> None:
 		"""シンボルと型のマッピングを登録
 
@@ -74,7 +70,6 @@ class Resolver(Generic[T]):
 			ctor (type[T]): 紐づける型
 		"""
 		self.__ctors[symbol] = ctor
-
 
 	def unregister(self, symbol: str) -> None:
 		"""シンボルと型のマッピングを解除
@@ -85,7 +80,6 @@ class Resolver(Generic[T]):
 		if symbol in self.__ctors:
 			del self.__ctors[symbol]
 
-
 	def fallback(self, ctor: type[T] | None) -> None:
 		"""シンボルが解決出来ない場合にフォールバックする型
 
@@ -93,7 +87,6 @@ class Resolver(Generic[T]):
 			ctor (type[T] | None): フォールバック時の型
 		"""
 		self.__fallback = ctor
-
 
 	def resolve(self, symbol: str) -> type[T]:
 		"""シンボルに紐づく型を解決
@@ -112,7 +105,6 @@ class Resolver(Generic[T]):
 			return self.__fallback
 
 		raise LogicError(symbol)
-
 
 	def clear(self) -> None:
 		"""型マッピングを全て解除"""
@@ -138,7 +130,6 @@ class Query(Generic[T], metaclass=ABCMeta):
 		"""
 		raise NotImplementedError()
 
-
 	@abstractmethod
 	def by(self, full_path: str) -> T:
 		"""指定のパスに紐づく一意なエントリーをフェッチ
@@ -151,7 +142,6 @@ class Query(Generic[T], metaclass=ABCMeta):
 			NotFoundError: エントリーが存在しない
 		"""
 		raise NotImplementedError()
-
 
 	@abstractmethod
 	def parent(self, via: str) -> T:
@@ -166,7 +156,6 @@ class Query(Generic[T], metaclass=ABCMeta):
 		"""
 		raise NotImplementedError()
 
-
 	@abstractmethod
 	def siblings(self, via: str) -> list[T]:
 		"""指定のパスを基準に同階層のエントリーをフェッチ
@@ -180,7 +169,6 @@ class Query(Generic[T], metaclass=ABCMeta):
 		"""
 		raise NotImplementedError()
 
-
 	@abstractmethod
 	def children(self, via: str) -> list[T]:
 		"""指定のパスを基準に1階層下のエントリーをフェッチ
@@ -193,7 +181,6 @@ class Query(Generic[T], metaclass=ABCMeta):
 			NotFouneError: 基点のエントリーが存在しない
 		"""
 		raise NotImplementedError()
-
 
 	@abstractmethod
 	def leafs(self, via: str, leaf_name: str) -> list[T]:
@@ -209,7 +196,6 @@ class Query(Generic[T], metaclass=ABCMeta):
 		"""
 		raise NotImplementedError()
 
-
 	@abstractmethod
 	def expansion(self, via: str) -> list[T]:
 		"""指定のパスから下に存在する展開が可能なエントリーをフェッチ
@@ -223,7 +209,6 @@ class Query(Generic[T], metaclass=ABCMeta):
 		"""
 		raise NotImplementedError()
 
-
 	@abstractmethod
 	def by_value(self, full_path: str) -> str:
 		"""指定のエントリーの値を取得
@@ -236,7 +221,6 @@ class Query(Generic[T], metaclass=ABCMeta):
 			NotFouneError: エントリーが存在しない
 		"""
 		...
-
 
 	# @abstractmethod
 	# def embed(self, via: str, name: str) -> T:

@@ -35,7 +35,6 @@ class Fixture:
 	__inst: Optional['Fixture'] = None
 	__prebuild = True
 
-
 	@classmethod
 	@property
 	def inst(cls) -> 'Fixture':
@@ -44,19 +43,16 @@ class Fixture:
 
 		return cls.__inst
 
-
 	def __init__(self) -> None:
 		if self.__prebuild:
 			self.__tree = self.__load_prebuild_tree()
 		else:
 			self.__tree = self.__parse_tree(self.__load_parser())
 
-
 	def __load_parser(self) -> Lark:
 		dir = os.path.join(os.path.dirname(__file__), '../../../../')
 		with open(os.path.join(dir, 'data/grammar.lark')) as f:
 			return Lark(f, start='file_input', postlex=PythonIndenter(), parser='lalr')
-
 
 	def __parse_tree(self, parser: Lark) -> Tree:
 		filepath, _ = __file__.split('.')
@@ -65,12 +61,10 @@ class Fixture:
 			source = '\n'.join(f.readlines())
 			return parser.parse(source)
 
-
 	def __load_prebuild_tree(self) -> Tree:
 		from tests.unit.py2cpp.node.test_difinition_fixture import fixture
 
 		return fixture()
-
 
 	def resolver(self) -> NodeResolver:
 		return NodeResolver.load(Settings(
@@ -91,7 +85,6 @@ class Fixture:
 			},
 			fallback=Terminal,
 		))
-
 
 	def nodes(self) -> Nodes:
 		return Nodes(self.__tree, self.resolver())
@@ -115,7 +108,6 @@ class TestDefinition(TestCase):
 			in_expected = expected['values'][index]
 			self.assertEqual(value.to_string(), in_expected['value'])
 			self.assertEqual(type(value), in_expected['value_type'])
-
 
 	@data_provider([
 		('file_input.class_def[2].class_def_raw.block.function_def[2].function_def_raw.block.assign_stmt[0].assign.primary[1].dict', {
@@ -153,7 +145,6 @@ class TestDefinition(TestCase):
 			in_expected = expected['import_symbols'][index]
 			self.assertEqual(symbol.to_string(), in_expected['symbol'])
 
-
 	@data_provider([
 		('file_input.class_def[2].class_def_raw.block.enum_def', {
 			'name': 'Values',
@@ -172,7 +163,6 @@ class TestDefinition(TestCase):
 			in_expected = expected['variables'][index]
 			self.assertEqual(variable.symbol.to_string(), in_expected['symbol'])
 			self.assertEqual(variable.initial_value.to_string(), in_expected['value'])
-
 
 	@data_provider([
 		('file_input.class_def[1]', {
@@ -235,7 +225,6 @@ class TestDefinition(TestCase):
 			in_expected = expected['methods'][index]
 			self.assertEqual(type(constructor), Method)
 			self.assertEqual(constructor.function_name.to_string(), in_expected['name'])
-
 
 	@data_provider([
 		('file_input.class_def[2].class_def_raw.block.function_def[1]', {

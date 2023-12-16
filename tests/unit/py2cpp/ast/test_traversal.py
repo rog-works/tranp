@@ -25,7 +25,6 @@ class Fixture:
 			Token('token_d', ''),
 		])
 
-
 	@classmethod
 	def finder(cls) -> ASTFinder[Entry]:
 		# XXX 参照違反ではあるが、新たなProxyの実装は無駄な手間なので許容する
@@ -41,7 +40,6 @@ class TestEntryPath(TestCase):
 	def test_identify(self, origin: str, entry_tag: str, index: int, expected: str) -> None:
 		self.assertEqual(EntryPath.identify(origin, entry_tag, index).origin, expected)
 
-
 	@data_provider([
 		('root.tree[1]', 'root.tree'),
 		('root.tree.token[1]', 'root.tree.token'),
@@ -50,7 +48,6 @@ class TestEntryPath(TestCase):
 	])
 	def test_de_identify(self, origin: str, expected: str) -> None:
 		self.assertEqual(EntryPath(origin).de_identify().origin, expected)
-
 
 	@data_provider([
 		('root.tree[1]', ('root', -1)),
@@ -61,7 +58,6 @@ class TestEntryPath(TestCase):
 	def test_first(self, origin: str, expected: tuple[str, int]) -> None:
 		self.assertEqual(EntryPath(origin).first(), expected)
 
-
 	@data_provider([
 		('root.tree[1]', ('tree', 1)),
 		('root.tree.token[1]', ('token', 1)),
@@ -70,7 +66,6 @@ class TestEntryPath(TestCase):
 	])
 	def test_last(self, origin: str, expected: tuple[str, int]) -> None:
 		self.assertEqual(EntryPath(origin).last(), expected)
-
 
 	@data_provider([
 		('tree.tree_a[0].token', r'tree\.tree_a\[0\]\.token'),
@@ -89,7 +84,6 @@ class TestASTFinder(TestCase):
 		finder = Fixture.finder()
 		self.assertEqual(finder.has_child(entry), expected)
 
-
 	@data_provider([
 		(Tree('0', []), '0'),
 		(Token('1', ''), '1'),
@@ -98,7 +92,6 @@ class TestASTFinder(TestCase):
 	def test_tag_by(self, entry: Entry, expected: str) -> None:
 		finder = Fixture.finder()
 		self.assertEqual(finder.tag_by(entry), expected)
-
 
 	@data_provider([
 		('root', True),
@@ -118,7 +111,6 @@ class TestASTFinder(TestCase):
 		finder = Fixture.finder()
 		self.assertEqual(finder.exists(tree, path), expected)
 
-
 	@data_provider([
 		('root', 'root'),
 		('root.tree_a', 'tree_a'),
@@ -135,7 +127,6 @@ class TestASTFinder(TestCase):
 		finder = Fixture.finder()
 		self.assertEqual(finder.tag_by(finder.pluck(tree, path)), expected)
 
-
 	@data_provider([
 		('root', r'.+\.token_b', ['root.tree_a.tree_b[3].token_b']),
 		('root', r'.+\.tree_b\[2\]\.[^.]+', []),
@@ -149,7 +140,6 @@ class TestASTFinder(TestCase):
 		tester = lambda _, in_path: regular.fullmatch(in_path) is not None
 		entries = finder.find(tree, via, tester)
 		self.assertEqual(list(entries.keys()), expected)
-
 
 	@data_provider([
 		('root.tree_a', -1, [

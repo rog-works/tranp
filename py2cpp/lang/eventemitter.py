@@ -10,7 +10,6 @@ class EventEmitter:
 		"""インスタンスを生成"""
 		self.__handlers: dict[str, list[T_Callback]] = {}
 
-
 	def emit(self, action: str, **kwargs) -> None:
 		"""イベントを発火
 
@@ -25,7 +24,6 @@ class EventEmitter:
 			if handler(**kwargs) == False:
 				break
 
-
 	def on(self, action: str, callback: T_Callback) -> None:
 		"""イベントハンドラーを追加
 
@@ -39,7 +37,6 @@ class EventEmitter:
 		if callback not in self.__handlers[action]:
 			self.__handlers[action].append(callback)
 
-
 	def off(self, action: str, callback: T_Callback) -> None:
 		"""イベントハンドラーを解除
 
@@ -51,7 +48,6 @@ class EventEmitter:
 			raise ValueError()
 
 		self.__handlers[action].remove(callback)
-
 
 	def clear(self) -> None:
 		"""イベントハンドラーを全て解除"""

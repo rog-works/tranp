@@ -23,7 +23,6 @@ class CellMesh:
 		Top = 5
 		Max = 6
 
-
 	@classmethod
 	def faceIndexToVector(cls, faceIndex: int) -> IntVector:
 		"""面インデックスからベクトルに変換

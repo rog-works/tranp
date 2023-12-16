@@ -14,7 +14,6 @@ class TestString(TestCase):
 	def test_camelize(self, org: str, expected: str) -> None:
 		self.assertEqual(camelize(org), expected)
 
-
 	@data_provider([
 		('HogeFugaPiyo', 'hoge_fuga_piyo'),
 		('_HogeFugaPiyo', 'hoge_fuga_piyo'),

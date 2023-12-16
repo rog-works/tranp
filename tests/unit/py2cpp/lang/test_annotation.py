@@ -7,7 +7,6 @@ class A:
 	def prop_number(self) -> int:
 		return 0
 
-
 	def number_to_str(self, n: int) -> str:
 		return str(n)
 
@@ -20,7 +19,6 @@ class TestAnnotation(TestCase):
 			def prop_number(self) -> int:
 				return 1
 
-
 			@override
 			def number_to_str(self, n: int) -> str:
 				return super().number_to_str(n)
@@ -32,14 +30,12 @@ class TestAnnotation(TestCase):
 		self.assertEqual(b.number_to_str.__annotations__['n'], int)
 		self.assertEqual(b.number_to_str.__annotations__['return'], str)
 
-
 	def test_implements(self) -> None:
 		class B(A):
 			@property
 			@implements
 			def prop_number(self) -> int:
 				return 1
-
 
 			@implements
 			def number_to_str(self, n: int) -> str:

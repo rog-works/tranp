@@ -84,7 +84,7 @@ class Float(Node):
 		return '.'.join([node.to_string() for node in self._under_expansion()])
 
 
-@Meta.embed(Node, accept_tags('dotted_name', 'getattr', 'primary', 'var', 'name', 'argvalue'), actualized(via=Expression))
+@Meta.embed(Node, accept_tags('getattr', 'primary', 'var', 'name', 'argvalue', 'dotted_name'), actualized(via=Expression))
 class Symbol(Node):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
@@ -103,11 +103,69 @@ class Symbol(Node):
 
 
 @Meta.embed(Node, accept_tags('getattr'), actualized(via=Symbol))
-class SelfSymbol(Symbol):
+class Self(Symbol):
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:
 		return via.to_string().startswith('self')
+
+
+class Var(Symbol): pass
+class Type(Symbol): pass
+
+
+# @Meta.embed(Node, accept_tags('getitem'), actualized(via=Expression))
+class GetItem(Node):
+	@property
+	def symbol(self) -> Symbol:
+		return self._at(0).as_a(Symbol)
+
+
+@Meta.embed(Node, actualized(via=GetItem))
+class Indexer(GetItem):
+	@property
+	def key(self) -> Node:
+		return self._by('slices').as_a(Expression).actualize()
+
+
+class GenericType(GetItem): pass
+
+
+@Meta.embed(Node, actualized(via=GetItem))
+class ListType(GenericType):
+	@classmethod
+	@override
+	def match_feature(cls, via: Node) -> bool:
+		if via._at(0).to_string() != 'list':
+			return False
+
+		return len(via._children('slices')) == 1
+
+
+	@property
+	def value_type(self) -> GenericType:
+		return self._by('slices')._at(0).as_a(GenericType)
+
+
+@Meta.embed(Node, actualized(via=GetItem))
+class DictType(GenericType):
+	@classmethod
+	@override
+	def match_feature(cls, via: Node) -> bool:
+		if via._at(0).to_string() != 'dict':
+			return False
+
+		return len(via._children('slices')) == 2
+
+
+	@property
+	def key_type(self) -> GenericType:
+		return self._by('slices')._at(0).as_a(GenericType)
+
+
+	@property
+	def value_type(self) -> GenericType:
+		return self._by('slices')._at(1).as_a(GenericType)
 
 
 @Meta.embed(Node, accept_tags('paramvalue'))
@@ -333,7 +391,7 @@ class Constructor(Function):
 	@property
 	def decl_variables(self) -> list[Variable]:
 		assigns = [node.as_a(AnnoAssign) for node in self.block._children() if node.is_a(AnnoAssign)]
-		variables = {node.as_a(Variable): True for node in assigns if node.symbol.is_a(SelfSymbol)}
+		variables = {node.as_a(Variable): True for node in assigns if node.symbol.is_a(Self)}
 		return list(variables.keys())
 
 

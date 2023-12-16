@@ -24,22 +24,31 @@ class TestRenderer(TestCase):
 			'decorators': [
 				{'symbol': 'deco', 'arguments': [{'value': 'A'}, {'value': 'A.B'}]}
 			],
-			'parents': ['Base'],
-			'decl_variables': [],
-			'block':
-"""public: Hoge() {
-    hoge = 1234;
-    fuga = 2345;
-}""",
+			'parents': ['Base', 'Interface'],
+			'variables': [
+				{'access': 'private', 'symbol': '__value', 'variable_type': 'int'},
+				{'access': 'private', 'symbol': '__text', 'variable_type': 'string'},
+			],
+			'block': '\n'.join([
+				'public: Hoge() {',
+				'	int hoge = 1234;',
+				'	int fuga = 2345;',
+				'}',
+			]),
 		},
-"""deco(A, A.B)
-class Hoge : public Base {
-    public: Hoge() {
-        hoge = 1234;
-        fuga = 2345;
-    }
-};"""),
-	], includes=[2])
+		'\n'.join([
+			'deco(A, A.B)',
+			'class Hoge : public Base, Interface {',
+			'	private: int __value;',
+			'	private: string __text;',
+			'',
+			'	public: Hoge() {',
+			'		int hoge = 1234;',
+			'		int fuga = 2345;',
+			'	}',
+			'};',
+		])),
+	])
 	def test_render(self, template: str, indent: int, vars: dict[str, Any], expected: str) -> None:
 		renderer = Fixture.renderer()
 		actual = renderer.render(template, indent=indent, vars=vars)

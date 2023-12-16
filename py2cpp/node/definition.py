@@ -266,6 +266,17 @@ class AugAssign(Assign):
 @Meta.embed(Node, accept_tags('assign_stmt'))
 class Variable(Node):
 	@property
+	def access(self) -> str:
+		# XXX
+		symbol = self.symbol.to_string()
+		if symbol.startswith('__'):
+			return 'private'
+		elif symbol.startswith('_'):
+			return 'protected'
+		else:
+			return 'public'
+
+	@property
 	def symbol(self) -> Symbol:
 		return self._by('anno_assign')._at(0).as_a(Symbol)
 

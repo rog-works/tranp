@@ -62,6 +62,8 @@ class Renderer:
 		Returns:
 			str: 変更結果
 		"""
-		# XXX jinja2のインデントがスペース限定のため一旦それに合わせる
-		begin = ''.join(['    ' for _ in range(indent)])
+		if indent == 0:
+			return text
+
+		begin = '\t' * indent
 		return begin + f'\n{begin}'.join(text.split('\n'))

@@ -62,5 +62,6 @@ class Renderer:
 		Returns:
 			str: 変更結果
 		"""
-		begin = ''.join(['\t' for _ in range(indent)])
+		# XXX jinja2のインデントがスペース限定のため一旦それに合わせる
+		begin = ''.join(['    ' for _ in range(indent)])
 		return begin + f'\n{begin}'.join(text.split('\n'))

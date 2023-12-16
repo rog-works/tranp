@@ -1,11 +1,14 @@
-{% for variable in decl_variables %}
-	{{ variable.variable_type }} {{ variable.symbol }};
-{% endfor %}
-{% set delimiter = '' %}
-{% for decorator in decorators %}
-{{ decorator.symbol }}{{ '(' }}{% for argument in decorator.arguments %}{{ delimiter }}{{ argument.value }}{% set delimiter = ', ' %}{% endfor %}{{ ')' }}
-{% endfor %}
-{% set delimiter = '' %}
-class {{ class_name }}{% if parents %} : public {% for name in parents %}{{ delimiter }}{{ name }}{% set delimiter = ', ' %}{% endfor %}{% endif %} {{ '{' }}
-	{{ block }}
+{%- for decorator in decorators %}
+{{- decorator.symbol }}{{ '(' }}{% for argument in decorator.arguments %}{% if loop.index0 > 0 %}{{ ', ' }}{% endif %}{{ argument.value }}{% endfor %}{{ ')' }}
+{%- endfor %}
+class {{ class_name }}{% if parents %} : public {% for name in parents %}{% if loop.index0 > 0 %}{{ ', ' }}{% endif %}{{ name }}{% endfor %}{% endif %} {{ '{' }}
+{%- filter indent(4) %}
+{%- for variable in decl_variables %}
+{{ variable.variable_type }} {{ variable.symbol }};
+{%- endfor %}
+{%- endfilter %}
+
+{%- filter indent(4) %}
+{{ block }}
+{%- endfilter %}
 {{ '}' }};

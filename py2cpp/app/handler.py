@@ -4,6 +4,8 @@ from py2cpp.lang.error import stacktrace
 from py2cpp.lang.eventemitter import EventEmitter, T_Callback
 import py2cpp.node.definition as defs
 from py2cpp.node.node import Node
+from py2cpp.node.nodes import NodeResolver, Nodes
+from py2cpp.node.provider import Resolver, Settings
 from py2cpp.node.serializer import serialize
 from py2cpp.view.render import Renderer, Writer
 
@@ -167,3 +169,66 @@ class Runner:
 			ctx.off('action', self.__handler.on_action)
 		except Exception as e:
 			print(stacktrace(e))
+
+
+import os
+
+
+def appdir() -> str:
+	return os.path.join(os.path.dirname(__file__), '../../')
+
+
+def load_file(filename: str) -> str:
+	filepath = os.path.join(appdir(), filename)
+	with open(filepath) as f:
+		return ''.join(f.readlines())
+
+
+def parse_argv() -> dict[str, str]:
+	import sys
+
+	_, grammar, source = sys.argv
+	return {'grammar': grammar, 'source': source}
+
+
+def make_nodes(grammar: str, source: str) -> Nodes:
+	from lark import Lark
+	from lark.indenter import PythonIndenter
+
+	parser = Lark(load_file(grammar), start='file_input', postlex=PythonIndenter(), parser='lalr')
+	tree = parser.parse(load_file(source))
+	return Nodes(tree, NodeResolver.load(Settings(
+		symbols={
+			'argvalue': defs.Argument,
+			'assign_stmt': defs.Assign,
+			'funccall': defs.FuncCall,
+			'return_stmt': defs.Return,
+			'dict': defs.Dict,
+			'list': defs.List,
+			'block': defs.Block,
+			'class_def': defs.Class,
+			'decorator': defs.Decorator,
+			'enum_def': defs.Enum,
+			'file_input': defs.FileInput,
+			'function_def': defs.Function,
+			'if_stmt': defs.If,
+			'import_stmt': defs.Import,
+			'paramvalue': defs.Parameter,
+			'getattr': defs.Symbol,
+			'__empty__': defs.Empty,
+		},
+		fallback=defs.Terminal
+	)))
+
+
+def make_context(source: str) -> Context:
+	output = os.path.join(appdir(), f'{"/".join(source.split("/")[:-1])}.cpp')
+	template_dir = os.path.join(appdir(), 'example/template')
+	return Context(Register(), Writer(output), Renderer(template_dir))
+
+
+if __name__ == '__main__':
+	args = parse_argv()
+	nodes = make_nodes(args['grammar'], args['source'])
+	ctx = make_context(args['source'])
+	Runner(Handler()).run(nodes.by('file_input'), ctx)

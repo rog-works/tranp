@@ -1,3 +1,5 @@
+import re
+
 from py2cpp.lang.annotation import override
 from py2cpp.node.embed import Meta, accept_tags, actualized, expansionable
 from py2cpp.node.node import Node
@@ -330,7 +332,9 @@ class Function(Node):
 	def access(self) -> str:
 		name = self.function_name.to_string()
 		# XXX 定数化などが必要
-		if name.startswith('__'):
+		if re.fullmatch(r'__.+__', name):
+			return 'public'
+		elif name.startswith('__'):
 			return 'private'
 		elif name.startswith('_'):
 			return 'protected'
@@ -368,6 +372,10 @@ class Constructor(Function):
 		return via.as_a(Function).function_name.to_string() == '__init__'
 
 	@property
+	def class_name(self) -> Terminal:
+		return self.parent.as_a(Block).parent.as_a(Class).class_name  # FIXME 循環参照
+
+	@property
 	def decl_variables(self) -> list[Variable]:
 		assigns = [node.as_a(AnnoAssign) for node in self.block._children() if node.is_a(AnnoAssign)]
 		variables = {node.as_a(Variable): True for node in assigns if node.symbol.is_a(Self)}
@@ -382,6 +390,10 @@ class ClassMethod(Function):
 		decorators = via.as_a(Function).decorators
 		return len(decorators) > 0 and decorators[0].symbol.to_string() == 'classmethod'
 
+	@property
+	def class_name(self) -> Terminal:
+		return self.parent.as_a(Block).parent.as_a(Class).class_name  # FIXME 循環参照
+
 
 @Meta.embed(Node, actualized(via=Function))
 class Method(Function):
@@ -394,6 +406,10 @@ class Method(Function):
 
 		parameters = via.as_a(Function).parameters
 		return len(parameters) > 0 and parameters[0].param_symbol.to_string() == 'self'  # XXX 手軽だが不正確
+
+	@property
+	def class_name(self) -> Terminal:
+		return self.parent.as_a(Block).parent.as_a(Class).class_name  # FIXME 循環参照
 
 
 @Meta.embed(Node, accept_tags('class_def'))

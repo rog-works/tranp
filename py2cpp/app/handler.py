@@ -1,4 +1,4 @@
-from typing import Any, Generic, Iterator, TypedDict, TypeVar, cast
+from typing import Generic, Iterator, TypedDict, TypeVar
 
 from py2cpp.lang.error import stacktrace
 from py2cpp.lang.eventemitter import EventEmitter, T_Callback

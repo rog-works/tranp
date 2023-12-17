@@ -47,8 +47,11 @@ class FileInput(Node):
 class Expression(Node): pass
 
 
+class Literal(Node): pass
+
+
 @Meta.embed(Node, accept_tags('primary', 'number'), actualized(via=Expression))
-class Integer(Node):
+class Integer(Literal):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
 		return Terminal.match_terminal(via, allow_tags=['primary', 'atom', 'number', 'DEC_NUMBER', 'HEX_NUMBER'])
@@ -64,10 +67,26 @@ class Integer(Node):
 
 
 @Meta.embed(Node, accept_tags('primary', 'number'), actualized(via=Expression))
-class Float(Node):
+class Float(Literal):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
 		return Terminal.match_terminal(via, allow_tags=['primary', 'atom', 'number', 'FLOAT_NUMBER'])
+
+	@property
+	@override
+	def is_terminal(self) -> bool:  # XXX Terminalへの移設を検討
+		return True
+
+	@override
+	def to_string(self) -> str:  # XXX Terminalへの移設を検討
+		return '.'.join([node.to_string() for node in self._under_expansion()])
+
+
+@Meta.embed(Node, accept_tags('primary', 'string'), actualized(via=Expression))
+class String(Literal):
+	@classmethod
+	def match_feature(cls, via: Node) -> bool:
+		return Terminal.match_terminal(via, allow_tags=['primary', 'atom', 'string', 'STRING'])
 
 	@property
 	@override
@@ -159,7 +178,7 @@ class Argument(Node):
 	@property
 	@Meta.embed(Node, expansionable(order=0))
 	def value(self) -> Node:
-		return self.as_a(Expression).actualize()
+		return self._at(0).as_a(Expression).actualize()
 
 
 @Meta.embed(Node, accept_tags('funccall'))

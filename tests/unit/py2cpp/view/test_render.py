@@ -48,6 +48,19 @@ class TestRenderer(TestCase):
 			'	}',
 			'};',
 		])),
+		('enum.j2', 0, {
+			'enum_name': 'Values',
+			'variables': [
+				{'symbol': 'A', 'value': '0'},
+				{'symbol': 'B', 'value': '1'},
+			],
+		},
+		'\n'.join([
+			'enum class Values {',
+			'	A = 0,',
+			'	B = 1,',
+			'};',
+		])),
 	])
 	def test_render(self, template: str, indent: int, vars: dict[str, Any], expected: str) -> None:
 		renderer = Fixture.renderer()

@@ -123,6 +123,17 @@ class Handler:
 		text = ctx.view.render('aug_assign.j2', indent=node.nest, vars={'symbol': symbol, 'operator': operator, 'value': value})
 		ctx.register.push((node, text))
 
+	def on_func_call(self, node: defs.FuncCall, ctx: Context) -> None:
+		_, symbol = ctx.register.pop(tuple[defs.Symbol, str])
+		_, arguments = ctx.register.pop(tuple[defs.Node, str])
+		text = ctx.view.render('func_call.j2', indent=node.nest, vars={'symbol': symbol, 'arguments': arguments})
+		ctx.register.push((node, text))
+
+	def on_return(self, node: defs.Return, ctx: Context) -> None:
+		_, return_value = ctx.register.pop(tuple[defs.Expression, str])
+		text = ctx.view.render('return.j2', indent=node.nest, vars={'return_value': return_value})
+		ctx.register.push((node, text))
+
 	def on_import(self, node: defs.Import, ctx: Context) -> None:
 		module_path = node.module_path.to_string()
 		if module_path.startswith('py2cpp'):

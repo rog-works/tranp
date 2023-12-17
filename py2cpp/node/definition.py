@@ -302,6 +302,13 @@ class Variable(Node):
 		return self._by('anno_assign')._at(2).as_a(Expression).actualize()
 
 
+@Meta.embed(Node, accept_tags('return_stmt'))
+class Return(Node):
+	@property
+	def return_value(self) -> Expression | Empty:
+		return self._at(0).if_not_a_to_b(Empty, Expression)
+
+
 @Meta.embed(Node, accept_tags('import_stmt'))
 class Import(Node):
 	@property

@@ -1,0 +1,1 @@
+{{ symbol }}{{ '(' }}{% for argument in arguments %}{% if loop.index0 > 0 %}, {% endif %}{{ argument.value }}{% endfor %}{{ ')' }}

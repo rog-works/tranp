@@ -61,6 +61,24 @@ class TestRenderer(TestCase):
 			'	B = 1,',
 			'};',
 		])),
+		('function.j2', 0, {
+			'function_name': 'func',
+			'decorators': [
+				{'symbol': 'deco', 'arguments': [{'value': 'A'}, {'value': 'B'}]},
+			],
+			'parameters': [
+				{'param_symbol': 'value', 'param_type': 'int', 'default_value': ''},
+				{'param_symbol': 'text', 'param_type': 'string', 'default_value': ''},
+			],
+			'return_type': 'int',
+			'block': 'return 0;',
+		},
+		'\n'.join([
+			'deco(A, B)',
+			'int func(int value, string text) {',
+			'	return 0;',
+			'}',
+		])),
 	])
 	def test_render(self, template: str, indent: int, vars: dict[str, Any], expected: str) -> None:
 		renderer = Fixture.renderer()

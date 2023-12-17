@@ -37,5 +37,7 @@ def __serialize_value(value: list[Node] | Node, schema: type) -> Any:
 		return [__serialize_value(elem, getattr(schema, '__args__')[0]) for elem in value]
 	elif schema is str and isinstance(value, Node):
 		return value.to_string()
+	elif schema is str and type(value) is str:
+		return value
 
 	raise LogicError(value, schema)

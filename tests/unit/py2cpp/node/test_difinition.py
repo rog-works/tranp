@@ -49,22 +49,33 @@ class Fixture:
 	def resolver(self) -> NodeResolver:
 		return NodeResolver.load(Settings(
 			symbols={
-				'argvalue': defs.Argument,
+				# General
+				'file_input': defs.FileInput,
+				# Common
+				'block': defs.Block,
+				'decorator': defs.Decorator,
+				# Statement - simple
 				'assign_stmt': defs.Assign,
-				'funccall': defs.FuncCall,
 				'return_stmt': defs.Return,
+				'import_stmt': defs.Import,
+				# Statement - compound
+				'if_stmt': defs.If,
+				'class_def': defs.Class,
+				'enum_def': defs.Enum,
+				'function_def': defs.Function,
+				# Function/Class Elements
+				'paramvalue': defs.Parameter,
+				'argvalue': defs.Argument,
+				# Primary
+				'getattr': defs.Symbol,
+				'funccall': defs.FuncCall,
+				# Literal
 				'dict': defs.Dict,
 				'list': defs.List,
-				'block': defs.Block,
-				'class_def': defs.Class,
-				'decorator': defs.Decorator,
-				'enum_def': defs.Enum,
-				'file_input': defs.FileInput,
-				'function_def': defs.Function,
-				'if_stmt': defs.If,
-				'import_stmt': defs.Import,
-				'paramvalue': defs.Parameter,
-				'getattr': defs.Symbol,
+				'integer': defs.Integer,
+				'float': defs.Float,
+				'string': defs.List,
+				# Terminal
 				'__empty__': defs.Empty,
 			},
 			fallback=defs.Terminal,
@@ -110,6 +121,30 @@ class TestDifinition(TestCase):
 			self.assertEqual(item.key.to_string(), in_expected['key'])
 			self.assertEqual(item.value.to_string(), in_expected['value'])
 			self.assertEqual(type(item.value), in_expected['value_type'])
+
+	@data_provider([
+		('file_input.funccall', {
+			'caller': 'pragma',
+			'arguments': [
+				{'value': "'once'"},
+			],
+			'calculated': [
+				'<Symbol: file_input.funccall.primary>',
+				'<String: file_input.funccall.arguments.argvalue.primary>',
+				'<Argument: file_input.funccall.arguments.argvalue>',
+			],
+		}),
+	])
+	def test_funccall(self, full_path: str, expected: dict[str, Any]) -> None:
+		nodes = Fixture.inst.nodes()
+		node = nodes.by(full_path).as_a(defs.FuncCall)
+		self.assertEqual(node.caller.to_string(), expected['caller'])
+		self.assertEqual(len(node.arguments), len(expected['arguments']))
+		for index, argument in enumerate(node.arguments):
+			in_expected = expected['arguments'][index]
+			self.assertEqual(argument.value.to_string(), in_expected['value'])
+
+		self.assertEqual([str(node) for node in node.calculated()], expected['calculated'])
 
 	@data_provider([
 		('file_input.import_stmt', {
@@ -260,8 +295,8 @@ class TestDifinition(TestCase):
 		self.assertEqual(len(node.parameters), len(expected['parameters']))
 		for index, parameter in enumerate(node.parameters):
 			in_expected = expected['parameters'][index]
-			self.assertEqual(parameter.param_symbol.to_string(), in_expected['name'])
-			self.assertEqual(parameter.param_type.to_string() if type(parameter.param_type) is defs.Symbol else 'Empty', in_expected['type'])
+			self.assertEqual(parameter.symbol.to_string(), in_expected['name'])
+			self.assertEqual(parameter.variable_type.to_string() if type(parameter.variable_type) is defs.Symbol else 'Empty', in_expected['type'])
 			self.assertEqual(parameter.default_value.to_string() if type(parameter.default_value) is defs.Terminal else 'Empty', in_expected['default'])
 
 		self.assertEqual(node.return_type.to_string() if type(node.return_type) is defs.Symbol else 'Empty', expected['return'])

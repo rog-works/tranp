@@ -5,7 +5,7 @@ from py2cpp.lang.eventemitter import EventEmitter, T_Callback
 import py2cpp.node.definition as defs
 from py2cpp.node.node import Node
 from py2cpp.node.nodes import NodeResolver, Nodes
-from py2cpp.node.provider import Resolver, Settings
+from py2cpp.node.provider import Settings
 from py2cpp.node.serializer import serialize
 from py2cpp.view.render import Renderer, Writer
 
@@ -14,9 +14,10 @@ T_Result = TypeVar('T_Result')
 
 T_ArgumentVar = TypedDict('T_ArgumentVar', {'value': str})
 T_DecoratorVar = TypedDict('T_DecoratorVar', {'symbol': str, 'arguments': list[T_ArgumentVar]})
-T_ClassVar = TypedDict('T_ClassVar', {'class_name': str, 'decorators': list[T_DecoratorVar], 'parants': list[str]})
+T_ClassVar = TypedDict('T_ClassVar', {'class_name': str, 'decorators': list[T_DecoratorVar], 'parents': list[str]})
 T_VariableVar = TypedDict('T_VariableVar', {'symbol': str, 'variable_type': str, 'value': str})
-T_EnumVar = TypedDict('T_EnumVar', {'enum_name': str, 'variables': list[T_VariableVar]})
+T_MoveAssignVar = TypedDict('T_VariableVar', {'symbol': str, 'value': str})
+T_EnumVar = TypedDict('T_EnumVar', {'enum_name': str, 'variables': list[T_MoveAssignVar]})  # XXX 一旦MoveAssignで妥協
 T_ParameterVar = TypedDict('T_ParameterVar', {'symbol': str, 'variable_type': str, 'default_value': str})
 T_FunctionVar = TypedDict('T_FunctionVar', {'function_name': str, 'parameters': list[T_ParameterVar]})
 T_MethodVar = TypedDict('T_MethodVar', {'function_name': str, 'class_name': str, 'parameters': list[T_ParameterVar]})
@@ -64,10 +65,16 @@ class Handler:
 		handler_name = f'on_{node.identifer}'
 		if hasattr(self, handler_name):
 			getattr(self, handler_name)(node, ctx)
+		else:
+			self.on_terminal(node, ctx)
+
+	# General
 
 	def on_file_input(self, node: defs.FileInput, ctx: Context) -> None:
 		for _, statement in ctx.register.each_pop():
 			ctx.writer.put(statement)
+
+	# Common
 
 	def on_block(self, node: defs.Block, ctx: Context) -> None:
 		text = ''
@@ -76,34 +83,7 @@ class Handler:
 
 		ctx.register.push((node, text))
 
-	def on_class(self, node: defs.Class, ctx: Context) -> None:
-		_, block = ctx.register.pop(tuple[defs.Block, str])
-		text = ctx.view.render('class.j2', indent=node.nest, vars={**serialize(node, T_ClassVar), **{'block': block}})
-		ctx.register.push((node, text))
-
-	def on_enum(self, node: defs.Enum, ctx: Context) -> None:
-		text = ctx.view.render('enum.j2', indent=node.nest, vars=serialize(node, T_EnumVar))
-		ctx.register.push((node, text))
-
-	def on_function(self, node: defs.Function, ctx: Context) -> None:
-		_, block = ctx.register.pop(tuple[defs.Block, str])
-		text = ctx.view.render('function.j2', indent=node.nest, vars={**serialize(node, T_FunctionVar), 'block': block})
-		ctx.register.push((node, text))
-
-	def on_constructor(self, node: defs.Constructor, ctx: Context) -> None:
-		_, block = ctx.register.pop(tuple[defs.Block, str])
-		text = ctx.view.render('constructur.j2', indent=node.nest, vars={**serialize(node, T_MethodVar), 'block': block})
-		ctx.register.push((node, text))
-
-	def on_class_method(self, node: defs.ClassMethod, ctx: Context) -> None:
-		_, block = ctx.register.pop(tuple[defs.Block, str])
-		text = ctx.view.render('class_method.j2', indent=node.nest, vars={**serialize(node, T_MethodVar), 'block': block})
-		ctx.register.push((node, text))
-
-	def on_method(self, node: defs.Method, ctx: Context) -> None:
-		_, block = ctx.register.pop(tuple[defs.Block, str])
-		text = ctx.view.render('method.j2', indent=node.nest, vars={**serialize(node, T_MethodVar), 'block': block})
-		ctx.register.push((node, text))
+	# Statement - simple
 
 	def on_move_assign(self, node: defs.MoveAssign, ctx: Context) -> None:
 		_, symbol = ctx.register.pop(tuple[defs.Symbol, str])
@@ -125,12 +105,6 @@ class Handler:
 		text = ctx.view.render('aug_assign.j2', indent=node.nest, vars={'symbol': symbol, 'operator': operator, 'value': value})
 		ctx.register.push((node, text))
 
-	def on_func_call(self, node: defs.FuncCall, ctx: Context) -> None:
-		_, symbol = ctx.register.pop(tuple[defs.Symbol, str])
-		_, arguments = ctx.register.pop(tuple[defs.Node, str])
-		text = ctx.view.render('func_call.j2', indent=node.nest, vars={'symbol': symbol, 'arguments': arguments})
-		ctx.register.push((node, text))
-
 	def on_return(self, node: defs.Return, ctx: Context) -> None:
 		_, return_value = ctx.register.pop(tuple[defs.Expression, str])
 		text = ctx.view.render('return.j2', indent=node.nest, vars={'return_value': return_value})
@@ -144,6 +118,53 @@ class Handler:
 		text = ctx.view.render('import.j2', indent=node.nest, vars={'module_path': module_path})
 		ctx.register.push((node, text))
 
+	# Statement - compound
+
+	def on_class(self, node: defs.Class, ctx: Context) -> None:
+		_, block = ctx.register.pop(tuple[defs.Block, str])
+		text = ctx.view.render('class.j2', indent=node.nest, vars={**serialize(node, T_ClassVar), **{'block': block}})
+		ctx.register.push((node, text))
+
+	def on_enum(self, node: defs.Enum, ctx: Context) -> None:
+		text = ctx.view.render('enum.j2', indent=node.nest, vars=serialize(node, T_EnumVar))
+		ctx.register.push((node, text))
+
+	def on_function(self, node: defs.Function, ctx: Context) -> None:
+		_, block = ctx.register.pop(tuple[defs.Block, str])
+		text = ctx.view.render('function.j2', indent=node.nest, vars={**serialize(node, T_FunctionVar), 'block': block})
+		ctx.register.push((node, text))
+
+	def on_constructor(self, node: defs.Constructor, ctx: Context) -> None:
+		_, block = ctx.register.pop(tuple[defs.Block, str])
+		text = ctx.view.render('constructor.j2', indent=node.nest, vars={**serialize(node, T_MethodVar), 'block': block})
+		ctx.register.push((node, text))
+
+	def on_class_method(self, node: defs.ClassMethod, ctx: Context) -> None:
+		_, block = ctx.register.pop(tuple[defs.Block, str])
+		text = ctx.view.render('class_method.j2', indent=node.nest, vars={**serialize(node, T_MethodVar), 'block': block})
+		ctx.register.push((node, text))
+
+	def on_method(self, node: defs.Method, ctx: Context) -> None:
+		_, block = ctx.register.pop(tuple[defs.Block, str])
+		text = ctx.view.render('method.j2', indent=node.nest, vars={**serialize(node, T_MethodVar), 'block': block})
+		ctx.register.push((node, text))
+
+	# Function/Class Elements
+
+	def on_argument(self, node: defs.Argument, ctx: Context) -> None:
+		_, value = ctx.register.pop(tuple[defs.Expression, str])
+		ctx.register.push((node, value))
+
+	# Primary
+
+	def on_func_call(self, node: defs.FuncCall, ctx: Context) -> None:
+		_, symbol = ctx.register.pop(tuple[defs.Symbol, str])
+		_, arguments = ctx.register.pop(tuple[defs.Node, str])
+		text = ctx.view.render('func_call.j2', indent=node.nest, vars={'symbol': symbol, 'arguments': arguments})
+		ctx.register.push((node, text))
+
+	# Literal
+
 	def on_dict(self, node: defs.Dict, ctx: Context) -> None:
 		text = ctx.view.render('dict.j2', indent=node.nest, vars=serialize(node, T_DictVar))
 		ctx.register.push((node, text))
@@ -151,6 +172,11 @@ class Handler:
 	def on_list(self, node: defs.List, ctx: Context) -> None:
 		text = ctx.view.render('list.j2', indent=node.nest, vars=serialize(node, T_ListVar))
 		ctx.register.push((node, text))
+
+	# Terminal
+
+	def on_terminal(self, node: Node, ctx: Context) -> None:
+		ctx.register.push((node, node.to_string()))
 
 
 class Runner:
@@ -200,22 +226,33 @@ def make_nodes(grammar: str, source: str) -> Nodes:
 	tree = parser.parse(load_file(source))
 	return Nodes(tree, NodeResolver.load(Settings(
 		symbols={
-			'argvalue': defs.Argument,
+			# General
+			'file_input': defs.FileInput,
+			# Common
+			'block': defs.Block,
+			'decorator': defs.Decorator,
+			# Statement - simple
 			'assign_stmt': defs.Assign,
-			'funccall': defs.FuncCall,
 			'return_stmt': defs.Return,
+			'import_stmt': defs.Import,
+			# Statement - compound
+			'if_stmt': defs.If,
+			'class_def': defs.Class,
+			'enum_def': defs.Enum,
+			'function_def': defs.Function,
+			# Function/Class Elements
+			'paramvalue': defs.Parameter,
+			'argvalue': defs.Argument,
+			# Primary
+			'getattr': defs.Symbol,
+			'funccall': defs.FuncCall,
+			# Literal
 			'dict': defs.Dict,
 			'list': defs.List,
-			'block': defs.Block,
-			'class_def': defs.Class,
-			'decorator': defs.Decorator,
-			'enum_def': defs.Enum,
-			'file_input': defs.FileInput,
-			'function_def': defs.Function,
-			'if_stmt': defs.If,
-			'import_stmt': defs.Import,
-			'paramvalue': defs.Parameter,
-			'getattr': defs.Symbol,
+			'integer': defs.Integer,
+			'float': defs.Float,
+			'string': defs.List,
+			# Terminal
 			'__empty__': defs.Empty,
 		},
 		fallback=defs.Terminal
@@ -223,7 +260,7 @@ def make_nodes(grammar: str, source: str) -> Nodes:
 
 
 def make_context(source: str) -> Context:
-	output = os.path.join(appdir(), f'{"/".join(source.split("/")[:-1])}.cpp')
+	output = os.path.join(appdir(), f'{"/".join(source.split(".")[:-1])}.cpp')
 	template_dir = os.path.join(appdir(), 'example/template')
 	return Context(Register(), Writer(output), Renderer(template_dir))
 

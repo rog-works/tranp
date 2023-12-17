@@ -67,8 +67,8 @@ class TestRenderer(TestCase):
 				{'symbol': 'deco', 'arguments': [{'value': 'A'}, {'value': 'B'}]},
 			],
 			'parameters': [
-				{'param_symbol': 'text', 'param_type': 'string', 'default_value': ''},
-				{'param_symbol': 'value', 'param_type': 'int', 'default_value': '1'},
+				{'symbol': 'text', 'variable_type': 'string', 'default_value': ''},
+				{'symbol': 'value', 'variable_type': 'int', 'default_value': '1'},
 			],
 			'return_type': 'int',
 			'block': 'return value + 1;',

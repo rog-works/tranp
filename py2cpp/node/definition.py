@@ -197,11 +197,11 @@ class FuncCall(Node):
 @Meta.embed(Node, accept_tags('paramvalue'))
 class Parameter(Node):
 	@property
-	def param_symbol(self) -> Symbol:
+	def symbol(self) -> Symbol:
 		return self._by('typedparam.name').as_a(Symbol)
 
 	@property
-	def param_type(self) -> Symbol | Empty:
+	def variable_type(self) -> Symbol | Empty:
 		return self._by('typedparam')._at(1).if_not_a_to_b(Empty, Symbol)
 
 	@property
@@ -451,7 +451,7 @@ class Method(Function):
 			return False
 
 		parameters = via.as_a(Function).parameters
-		return len(parameters) > 0 and parameters[0].param_symbol.to_string() == 'self'  # XXX 手軽だが不正確
+		return len(parameters) > 0 and parameters[0].symbol.to_string() == 'self'  # XXX 手軽だが不正確
 
 	@property
 	def class_name(self) -> Terminal:

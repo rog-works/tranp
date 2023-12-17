@@ -162,6 +162,7 @@ class Runner:
 			ctx.on('action', self.__handler.on_action)
 
 			for node in root.calculated():
+				print('action:', str(node))
 				ctx.emit('action', node=node, ctx=ctx)
 
 			ctx.writer.flush()

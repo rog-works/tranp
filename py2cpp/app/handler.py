@@ -1,5 +1,6 @@
 from typing import Generic, Iterator, TypedDict, TypeVar
 
+from py2cpp.errors import LogicError
 from py2cpp.lang.error import stacktrace
 from py2cpp.lang.eventemitter import EventEmitter, T_Callback
 import py2cpp.node.definition as defs
@@ -20,7 +21,7 @@ T_MoveAssignVar = TypedDict('T_VariableVar', {'symbol': str, 'value': str})
 T_EnumVar = TypedDict('T_EnumVar', {'enum_name': str, 'variables': list[T_MoveAssignVar]})  # XXX 一旦MoveAssignで妥協
 T_ParameterVar = TypedDict('T_ParameterVar', {'symbol': str, 'variable_type': str, 'default_value': str})
 T_FunctionVar = TypedDict('T_FunctionVar', {'function_name': str, 'parameters': list[T_ParameterVar]})
-T_MethodVar = TypedDict('T_MethodVar', {'function_name': str, 'class_name': str, 'parameters': list[T_ParameterVar]})
+T_MethodVar = TypedDict('T_MethodVar', {'access': str, 'function_name': str, 'class_name': str, 'parameters': list[T_ParameterVar]})
 T_KeyValueVar = TypedDict('T_KeyValueVar', {'key': str, 'value': str})
 T_DictVar = TypedDict('T_DictVar', {'items': list[T_KeyValueVar]})
 T_ListVar = TypedDict('T_ListVar', {'values': list[str]})
@@ -32,14 +33,21 @@ class Register(Generic[T]):
 	def __init__(self) -> None:
 		self.__stack: list[T] = []
 
+	def __len__(self) -> int:
+		return len(self.__stack)
+
 	def push(self, entry: T) -> None:
 		self.__stack.append(entry)
 
 	def pop(self, entry_type: type[T]) -> T:
 		return self.__stack.pop()
 
-	def each_pop(self) -> Iterator[T]:
-		for _ in range(len(self.__stack)):
+	def each_pop(self, counts: int = 0) -> Iterator[T]:
+		if counts < 0 or len(self) < counts:
+			raise LogicError(counts, len(self))
+
+		loops = len(self) if counts == 0 else counts
+		for _ in range(loops):
 			yield self.__stack.pop()
 
 
@@ -71,37 +79,38 @@ class Handler:
 	# General
 
 	def on_file_input(self, node: defs.FileInput, ctx: Context) -> None:
-		for _, statement in ctx.register.each_pop():
-			ctx.writer.put(statement)
+		statements = [statement for _, statement in ctx.register.each_pop()]
+		statements.reverse()
+		text = '\n'.join(statements)
+		ctx.writer.put(text)
 
 	# Common
 
 	def on_block(self, node: defs.Block, ctx: Context) -> None:
-		text = ''
-		for _, statement in ctx.register.each_pop():
-			text += statement
-
+		statements = [statement for _, statement in ctx.register.each_pop(len(node.statements))]
+		statements.reverse()
+		text = '\n'.join(statements)
 		ctx.register.push((node, text))
 
 	# Statement - simple
 
 	def on_move_assign(self, node: defs.MoveAssign, ctx: Context) -> None:
-		_, symbol = ctx.register.pop(tuple[defs.Symbol, str])
 		_, value = ctx.register.pop(tuple[defs.Expression, str])
+		_, symbol = ctx.register.pop(tuple[defs.Symbol, str])
 		text = ctx.view.render('move_assign.j2', indent=node.nest, vars={'symbol': symbol, 'value': value})
 		ctx.register.push((node, text))
 
 	def on_anno_assign(self, node: defs.AnnoAssign, ctx: Context) -> None:
-		_, symbol = ctx.register.pop(tuple[defs.Symbol, str])
-		_, variable_type = ctx.register.pop(tuple[defs.Symbol, str])
 		_, value = ctx.register.pop(tuple[defs.Expression, str])
+		_, variable_type = ctx.register.pop(tuple[defs.Symbol, str])
+		_, symbol = ctx.register.pop(tuple[defs.Symbol, str])
 		text = ctx.view.render('anno_assign.j2', indent=node.nest, vars={'symbol': symbol, 'variable_type': variable_type, 'value': value})
 		ctx.register.push((node, text))
 
 	def on_aug_assign(self, node: defs.AugAssign, ctx: Context) -> None:
-		_, symbol = ctx.register.pop(tuple[defs.Symbol, str])
-		_, operator = ctx.register.pop(tuple[defs.Terminal, str])
 		_, value = ctx.register.pop(tuple[defs.Expression, str])
+		_, operator = ctx.register.pop(tuple[defs.Terminal, str])
+		_, symbol = ctx.register.pop(tuple[defs.Symbol, str])
 		text = ctx.view.render('aug_assign.j2', indent=node.nest, vars={'symbol': symbol, 'operator': operator, 'value': value})
 		ctx.register.push((node, text))
 
@@ -158,8 +167,8 @@ class Handler:
 	# Primary
 
 	def on_func_call(self, node: defs.FuncCall, ctx: Context) -> None:
+		arguments = [argument for _, argument in ctx.register.each_pop(len(node.arguments))]
 		_, symbol = ctx.register.pop(tuple[defs.Symbol, str])
-		_, arguments = ctx.register.pop(tuple[defs.Node, str])
 		text = ctx.view.render('func_call.j2', indent=node.nest, vars={'symbol': symbol, 'arguments': arguments})
 		ctx.register.push((node, text))
 
@@ -191,6 +200,7 @@ class Runner:
 				print('action:', str(node))
 				ctx.emit('action', node=node, ctx=ctx)
 
+			ctx.emit('action', node=root, ctx=ctx)  # FIXME
 			ctx.writer.flush()
 
 			ctx.off('action', self.__handler.on_action)

@@ -1,7 +1,7 @@
 {%- for decorator in decorators %}
 {{- decorator.symbol }}{{ '(' }}{% for argument in decorator.arguments %}{% if loop.index0 > 0 %}, {% endif %}{{ argument.value }}{% endfor %}{{ ')' }}
 {%- endfor %}
-{{access}}: {{ class_name }}{{ '(' }}{% for parameter in parameters %}{% if loop.index0 > 0 %}, {% endif %}{{ parameter.variable_type }} {{ parameter.symbol }}{% if parameter.default_value %} = {{ parameter.default_value }}{% endif %}{% endfor %}{{ ')' }} {{ '{' }}
+{{ access }}: {{ class_name }}{{ '(' }}{% for parameter in parameters %}{% if loop.index0 > 0 %}, {% endif %}{{ parameter.variable_type }} {{ parameter.symbol }}{% if parameter.default_value %} = {{ parameter.default_value }}{% endif %}{% endfor %}{{ ')' }} {{ '{' }}
 {%- filter indent('\t') %}
 {{ block }}
 {%- endfilter %}

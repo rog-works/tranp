@@ -154,6 +154,25 @@ class DictType(GenericType):
 		return self._by('slices')._at(1).as_a(GenericType)
 
 
+@Meta.embed(Node, accept_tags('argvalue'))
+class Argument(Node):
+	@property
+	@Meta.embed(Node, expansionable(order=0))
+	def value(self) -> Node:
+		return self.as_a(Expression).actualize()
+
+
+@Meta.embed(Node, accept_tags('funccall'))
+class FuncCall(Node):
+	@property
+	def symbol(self) -> Symbol:  # FIXME 厳密に言うとCallable？関数の戻り値でも良いのでSymbolよりExpressionの方に近い
+		return self._at(0).as_a(Symbol)
+
+	@property
+	def arguments(self) -> list[Argument]:
+		return [node.as_a(Argument) for node in self._children('arguments')]
+
+
 @Meta.embed(Node, accept_tags('paramvalue'))
 class Parameter(Node):
 	@property
@@ -192,14 +211,6 @@ class List(Node):
 	@property
 	def values(self) -> list[Node]:
 		return [node.as_a(Expression).actualize() for node in self._children()]
-
-
-@Meta.embed(Node, accept_tags('argvalue'))
-class Argument(Node):
-	@property
-	@Meta.embed(Node, expansionable(order=0))
-	def value(self) -> Node:
-		return self.as_a(Expression).actualize()
 
 
 @Meta.embed(Node, accept_tags('assign_stmt'))
@@ -476,4 +487,4 @@ class Enum(Node):
 	@property
 	@Meta.embed(Node, expansionable(order=0))
 	def variables(self) -> list[MoveAssign]:  # XXX 理想としてはVariableだが、Enumの変数に型の定義がないため一旦MoveAssignで妥協
-		return [node.as_a(MoveAssign) for node in self._by('block')._children()]
+		return [node.as_a(MoveAssign) for node in self._children('block')]

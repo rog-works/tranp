@@ -67,16 +67,16 @@ class TestRenderer(TestCase):
 				{'symbol': 'deco', 'arguments': [{'value': 'A'}, {'value': 'B'}]},
 			],
 			'parameters': [
-				{'param_symbol': 'value', 'param_type': 'int', 'default_value': ''},
 				{'param_symbol': 'text', 'param_type': 'string', 'default_value': ''},
+				{'param_symbol': 'value', 'param_type': 'int', 'default_value': '1'},
 			],
 			'return_type': 'int',
-			'block': 'return 0;',
+			'block': 'return value + 1;',
 		},
 		'\n'.join([
 			'deco(A, B)',
-			'int func(int value, string text) {',
-			'	return 0;',
+			'int func(string text, int value = 1) {',
+			'	return value + 1;',
 			'}',
 		])),
 	])

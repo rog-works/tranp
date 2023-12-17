@@ -9,4 +9,4 @@ if [ "$1" != "" ]; then
 fi
 
 source ${cwd}/.env.sh
-python ${appdir}/py2cpp/app/handler.py ${appdir}/data/grammar.lark ${appdir}/${target}
+python ${appdir}/py2cpp/app/handler.py data/grammar.lark ${target}

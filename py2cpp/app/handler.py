@@ -168,7 +168,7 @@ class Runner:
 
 			ctx.off('action', self.__handler.on_action)
 		except Exception as e:
-			print(stacktrace(e))
+			print(''.join(stacktrace(e)))
 
 
 import os

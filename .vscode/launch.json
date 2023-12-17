@@ -30,6 +30,23 @@
 			"justMyCode": true,
 		},
 		{
+			"name": "Python: py2cpp",
+			"type": "python",
+			"request": "launch",
+			"module":"py2cpp.app.handler",
+			"args": [
+				"data/grammar.lark",
+				"example/example.py",
+			],
+			"cwd": "${workspaceFolder}",
+			"env": {
+				"PYTHONDONTWRITEBYTECODE": "1",
+				"PYTHONPATH": "${workspaceFolder};${workspaceFolder}/vendor",
+			},
+			"console": "integratedTerminal",
+			"justMyCode": true,
+		},
+		{
 			"name": "Python: 現在のファイル",
 			"type": "python",
 			"request": "launch",

@@ -1,4 +1,7 @@
+from py2cpp.cpp.directive import pragma
 from py2cpp.cpp.enum import (CEnum, A)
+
+pragma('once')
 
 class Base:
 	pass

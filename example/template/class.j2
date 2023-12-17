@@ -2,13 +2,13 @@
 {{- decorator.symbol }}{{ '(' }}{% for argument in decorator.arguments %}{% if loop.index0 > 0 %}{{ ', ' }}{% endif %}{{ argument.value }}{% endfor %}{{ ')' }}
 {%- endfor %}
 class {{ class_name }}{% if parents %} : public {% for name in parents %}{% if loop.index0 > 0 %}{{ ', ' }}{% endif %}{{ name }}{% endfor %}{% endif %} {{ '{' }}
-{%- filter indent('	') %}
+{%- filter indent('\t') %}
 {%- for variable in variables %}
 {{variable.access}}: {{ variable.variable_type }} {{ variable.symbol }};
 {%- endfor %}
 {%- endfilter %}
 {# blank line #}
-{%- filter indent('	') %}
+{%- filter indent('\t') %}
 {{ block }}
 {%- endfilter %}
 {{ '}' }};

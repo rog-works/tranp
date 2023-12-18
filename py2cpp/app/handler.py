@@ -41,11 +41,11 @@ class Register(Generic[T]):
 	def pop(self, entry_type: type[T]) -> T:
 		return self.__stack.pop()
 
-	def each_pop(self, counts: int = 0) -> Iterator[T]:
-		if counts < 0 or len(self) < counts:
+	def each_pop(self, counts: int = -1) -> Iterator[T]:
+		if counts < -1 or len(self) < counts:
 			raise LogicError(counts, len(self))
 
-		loops = len(self) if counts == 0 else counts
+		loops =  len(self) if counts == -1 else counts
 		for _ in range(loops):
 			yield self.__stack.pop()
 
@@ -173,6 +173,19 @@ class Handler:
 
 	# Primary
 
+	def on_list_type(self, node: defs.ListType, ctx: Context) -> None:
+		_, value_type = ctx.register.pop(tuple[defs.Symbol, str])
+		_, symbol = ctx.register.pop(tuple[defs.Symbol, str])
+		text = ctx.view.render('list_type.j2', vars={'symbol': symbol, 'value_type': value_type})
+		ctx.register.push((node, text))
+
+	def on_dict_type(self, node: defs.DictType, ctx: Context) -> None:
+		_, value_type = ctx.register.pop(tuple[defs.Symbol, str])
+		_, key_type = ctx.register.pop(tuple[defs.Symbol, str])
+		_, symbol = ctx.register.pop(tuple[defs.Symbol, str])
+		text = ctx.view.render('dict_type.j2', vars={'symbol': symbol, 'key_type': key_type, 'value_type': value_type})
+		ctx.register.push((node, text))
+
 	def on_func_call(self, node: defs.FuncCall, ctx: Context) -> None:
 		arguments = [argument for _, argument in ctx.register.each_pop(len(node.arguments))]
 		_, symbol = ctx.register.pop(tuple[defs.Symbol, str])
@@ -268,6 +281,7 @@ def make_nodes(grammar: str, source: str) -> Nodes:
 			'argvalue': defs.Argument,
 			# Primary
 			'getattr': defs.Symbol,
+			'getitem': defs.GetItem,
 			'funccall': defs.FuncCall,
 			# Literal
 			'dict': defs.Dict,

@@ -17,7 +17,7 @@ class Assign(Node):
 		return self._elements[0].if_not_a_to_b(Indexer, Symbol)
 
 
-@Meta.embed(Node, accept_tags('assign_stmt'), actualized(via=Assign))
+@Meta.embed(Node, actualized(via=Assign))
 class MoveAssign(Assign):
 	@classmethod
 	@override
@@ -32,7 +32,7 @@ class MoveAssign(Assign):
 		return self._elements[1].as_a(Expression).actualize()
 
 
-@Meta.embed(Node, accept_tags('assign_stmt'), actualized(via=Assign))
+@Meta.embed(Node, actualized(via=Assign))
 class AnnoAssign(Assign):
 	@classmethod
 	@override
@@ -51,7 +51,7 @@ class AnnoAssign(Assign):
 		return self._elements[2].as_a(Expression).actualize()
 
 
-@Meta.embed(Node, accept_tags('assign_stmt'), actualized(via=Assign))
+@Meta.embed(Node, actualized(via=Assign))
 class AugAssign(Assign):
 	@classmethod
 	@override

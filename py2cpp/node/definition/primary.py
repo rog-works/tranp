@@ -33,7 +33,7 @@ class Self(Symbol):
 @Meta.embed(Node, accept_tags('getitem'), actualized(via=Expression))
 class GetItem(Node):
 	@property
-	def symbol(self) -> Symbol:  # FIXME 不正確
+	def symbol(self) -> Symbol:  # FIXME シンボル以外も有り得るので不正確
 		return self._at(0).as_a(Symbol)
 
 
@@ -42,9 +42,6 @@ class Indexer(GetItem):
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:
-		if via.tag != 'getitem':  # XXX accept_tagsを使う
-			return False
-
 		# タイプヒントのケースを除外 XXX 定数化
 		if via.parent.identifer in ['anno_assign', 'parameter']:
 			return False
@@ -64,9 +61,6 @@ class ListType(GenericType):
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:
-		if via.tag != 'getitem':  # XXX accept_tagsを使う
-			return False
-
 		# タイプヒントのため、代入か仮引数の場合のみ XXX 定数化
 		if via.parent.identifer not in ['anno_assign', 'parameter']:
 			return False
@@ -86,9 +80,6 @@ class DictType(GenericType):
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:
-		if via.tag != 'getitem':  # XXX accept_tagsを使う
-			return False
-
 		# タイプヒントのため、代入か仮引数の場合のみ XXX 定数化
 		if via.parent.identifer not in ['anno_assign', 'parameter']:
 			return False

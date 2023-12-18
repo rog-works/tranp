@@ -10,9 +10,6 @@ class UnaryOperator(Node):
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:
-		if via.tag != 'factor':  # XXX accept_tagsを使う
-			return False
-
 		if via._at(0).to_string() not in ['+', '-', '~']:
 			return False
 

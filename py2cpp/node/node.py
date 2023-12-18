@@ -170,22 +170,24 @@ class Node(NodeBase):
 			@see trans.node.embed.expansionable
 		"""
 		prop_keys: dict[str, bool] = {}
-		for ctor in self.__embed_classes():
+		for ctor in self.__embed_classes(self.__class__):
 			meta = Meta.dig_for_method(Node, ctor, EmbedKeys.Expansionable, value_type=int)
 			order_on_keys = {value: name for name, value in meta.items()}
 			prop_keys = {**prop_keys, **{prop_key: True for _, prop_key in sorted(order_on_keys.items(), key=lambda index: index)}}
 
 		return list(prop_keys.keys())
 
-	def __embed_classes(self) -> list[type['Node']]:
-		"""自身を含む継承関係のあるクラスを取得。取得されるクラスはメタデータと関連する派生クラスに限定
+	def __embed_classes(self, via: type[NodeBase]) -> list[type['Node']]:
+		"""対象のクラス自身を含む継承関係のあるクラスを取得。取得されるクラスはメタデータと関連する派生クラスに限定
 
+		Args:
+			via (type[NodeBase]): 対象のクラス
 		Returns:
 			list[type[Node]]: クラスリスト
 		Note:
 			Node以下の基底クラスはメタデータと関わりがないため除外
 		"""
-		return [ctor for ctor in self.__class__.__mro__ if issubclass(ctor, Node) and ctor is not Node]
+		return [ctor for ctor in via.__mro__ if issubclass(ctor, Node) and ctor is not Node]
 
 	def _exists(self, relative_path: str) -> bool:
 		"""指定のパスに紐づく一意なノードが存在するか判定
@@ -279,35 +281,38 @@ class Node(NodeBase):
 		"""
 		return self.__nodes.by_value(self.full_path)
 
-	def as_a(self, ctor: type[T]) -> T:
+	def as_a(self, to_class: type[T]) -> T:
 		"""指定の具象クラスに変換。変換先が同種(同じか派生クラス)の場合はキャストするのみ
 
 		Args:
-			ctor (type[T]): 具象クラスの型
+			to_class (type[T]): 変換先の具象クラス
 		Returns:
 			T: 具象クラスのインスタンス
 		Raises:
 			LogicError: 許可されない変換先を指定
 		Note:
 			XXX 変換先は継承関係が無くても良い
+			変換先の受け入れ範囲が広い場合(Expressionなど)、何でも変換できてしまうので注意
 		"""
-		if self.is_a(ctor):
+		if self.is_a(to_class):
 			return cast(T, self)
 
-		accept_tags = self.__accept_tags()
+		accept_tags = self.__accept_tags(to_class)
 		if len(accept_tags) and self.tag not in accept_tags:
-			raise LogicError(str(self), ctor)
+			raise LogicError(str(self), to_class)
 
-		return ctor(self.__nodes, self.full_path)
+		return to_class(self.__nodes, self.full_path)
 
-	def __accept_tags(self) -> list[str]:
-		"""メタデータより受け入れタグリストを取得
+	def __accept_tags(self, to_class: type[NodeBase]) -> list[str]:
+		"""メタデータより変換先の受け入れタグリストを取得
 
+		Args:
+			to_class (type[NodeBase]): 変換先の具象クラス
 		Returns:
 			list[str]: 受け入れタグリスト
 		"""
 		accept_tags: dict[str, bool] = {}
-		for ctor in self.__embed_classes():
+		for ctor in self.__embed_classes(to_class):
 			accept_tags = {**accept_tags, **{in_tag: True for in_tag in Meta.dig_for_class(Node, ctor, EmbedKeys.AcceptTags, default=[])}}
 
 		return list(accept_tags.keys())
@@ -355,7 +360,7 @@ class Node(NodeBase):
 			list[type[Node]]: 特徴クラスのリスト
 		"""
 		classes: dict[type[Node], bool] = {}
-		for ctor in self.__embed_classes():
+		for ctor in self.__embed_classes(self.__class__):
 			meta = Meta.dig_by_key_for_class(Node, EmbedKeys.Actualized, value_type=type)
 			classes = {**classes, **{feature_class: True for feature_class, via_class in meta.items() if via_class is ctor}}
 

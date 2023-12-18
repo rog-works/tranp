@@ -28,7 +28,7 @@ T_ListVar = TypedDict('T_ListVar', {'values': list[str]})
 T = TypeVar('T')
 
 
-class Register(Generic[T]):
+class Registry(Generic[T]):
 	def __init__(self) -> None:
 		self.__stack: list[T] = []
 
@@ -51,9 +51,9 @@ class Register(Generic[T]):
 
 
 class Context:
-	def __init__(self, register: Register[tuple[Node, str]], writer: Writer, view: Renderer) -> None:
+	def __init__(self, registry: Registry[tuple[Node, str]], writer: Writer, view: Renderer) -> None:
 		self.__emitter = EventEmitter()
-		self.register = register
+		self.registry = registry
 		self.writer = writer
 		self.view = view
 
@@ -93,16 +93,16 @@ class Handler:
 	# Hook
 
 	def on_exit_func_call(self, node: defs.FuncCall, ctx: Context) -> None:
-		_, result = ctx.register.pop(tuple[defs.FuncCall, str])
+		_, result = ctx.registry.pop(tuple[defs.FuncCall, str])
 		if result == "pragma('once')":
-			ctx.register.push((node, '#pragma once'))
+			ctx.registry.push((node, '#pragma once'))
 		else:
-			ctx.register.push((node, result))
+			ctx.registry.push((node, result))
 
 	# General
 
 	def on_file_input(self, node: defs.FileInput, ctx: Context) -> None:
-		statements = [statement for _, statement in ctx.register.each_pop()]
+		statements = [statement for _, statement in ctx.registry.each_pop()]
 		statements.reverse()
 		text = ctx.view.render('block.j2', vars={'statements': statements})
 		ctx.writer.put(text)
@@ -110,37 +110,37 @@ class Handler:
 	# Common
 
 	def on_block(self, node: defs.Block, ctx: Context) -> None:
-		statements = [statement for _, statement in ctx.register.each_pop(len(node.statements))]
+		statements = [statement for _, statement in ctx.registry.each_pop(len(node.statements))]
 		statements.reverse()
 		text = ctx.view.render('block.j2', vars={'statements': statements})
-		ctx.register.push((node, text))
+		ctx.registry.push((node, text))
 
 	# Statement - simple
 
 	def on_move_assign(self, node: defs.MoveAssign, ctx: Context) -> None:
-		_, value = ctx.register.pop(tuple[defs.Expression, str])
-		_, symbol = ctx.register.pop(tuple[defs.Symbol, str])
+		_, value = ctx.registry.pop(tuple[defs.Expression, str])
+		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
 		text = ctx.view.render('move_assign.j2', vars={'symbol': symbol, 'value': value})
-		ctx.register.push((node, text))
+		ctx.registry.push((node, text))
 
 	def on_anno_assign(self, node: defs.AnnoAssign, ctx: Context) -> None:
-		_, value = ctx.register.pop(tuple[defs.Expression, str])
-		_, variable_type = ctx.register.pop(tuple[defs.Symbol, str])
-		_, symbol = ctx.register.pop(tuple[defs.Symbol, str])
+		_, value = ctx.registry.pop(tuple[defs.Expression, str])
+		_, variable_type = ctx.registry.pop(tuple[defs.Symbol, str])
+		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
 		text = ctx.view.render('anno_assign.j2', vars={'symbol': symbol, 'variable_type': variable_type, 'value': value})
-		ctx.register.push((node, text))
+		ctx.registry.push((node, text))
 
 	def on_aug_assign(self, node: defs.AugAssign, ctx: Context) -> None:
-		_, value = ctx.register.pop(tuple[defs.Expression, str])
-		_, operator = ctx.register.pop(tuple[defs.Terminal, str])
-		_, symbol = ctx.register.pop(tuple[defs.Symbol, str])
+		_, value = ctx.registry.pop(tuple[defs.Expression, str])
+		_, operator = ctx.registry.pop(tuple[defs.Terminal, str])
+		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
 		text = ctx.view.render('aug_assign.j2', vars={'symbol': symbol, 'operator': operator, 'value': value})
-		ctx.register.push((node, text))
+		ctx.registry.push((node, text))
 
 	def on_return(self, node: defs.Return, ctx: Context) -> None:
-		_, return_value = ctx.register.pop(tuple[defs.Expression, str])
+		_, return_value = ctx.registry.pop(tuple[defs.Expression, str])
 		text = ctx.view.render('return.j2', vars={'return_value': return_value})
-		ctx.register.push((node, text))
+		ctx.registry.push((node, text))
 
 	def on_import(self, node: defs.Import, ctx: Context) -> None:
 		module_path = node.module_path.to_string()
@@ -148,99 +148,99 @@ class Handler:
 			return
 
 		text = ctx.view.render('import.j2', vars={'module_path': module_path})
-		ctx.register.push((node, text))
+		ctx.registry.push((node, text))
 
 	# Statement - compound
 
 	def on_class(self, node: defs.Class, ctx: Context) -> None:
-		_, block = ctx.register.pop(tuple[defs.Block, str])
+		_, block = ctx.registry.pop(tuple[defs.Block, str])
 		text = ctx.view.render('class.j2', vars={**serialize(node, T_ClassVar), **{'block': block}})
-		ctx.register.push((node, text))
+		ctx.registry.push((node, text))
 
 	def on_enum(self, node: defs.Enum, ctx: Context) -> None:
-		variables = [variable for _, variable in ctx.register.each_pop(len(node.variables))]
+		variables = [variable for _, variable in ctx.registry.each_pop(len(node.variables))]
 		text = ctx.view.render('enum.j2', vars={**serialize(node, T_EnumVar), **{'variables': variables}})
-		ctx.register.push((node, text))
+		ctx.registry.push((node, text))
 
 	def on_function(self, node: defs.Function, ctx: Context) -> None:
-		_, block = ctx.register.pop(tuple[defs.Block, str])
+		_, block = ctx.registry.pop(tuple[defs.Block, str])
 		text = ctx.view.render('function.j2', vars={**serialize(node, T_FunctionVar), 'block': block})
-		ctx.register.push((node, text))
+		ctx.registry.push((node, text))
 
 	def on_constructor(self, node: defs.Constructor, ctx: Context) -> None:
-		_, block = ctx.register.pop(tuple[defs.Block, str])
+		_, block = ctx.registry.pop(tuple[defs.Block, str])
 		text = ctx.view.render('constructor.j2', vars={**serialize(node, T_MethodVar), 'block': block})
-		ctx.register.push((node, text))
+		ctx.registry.push((node, text))
 
 	def on_class_method(self, node: defs.ClassMethod, ctx: Context) -> None:
-		_, block = ctx.register.pop(tuple[defs.Block, str])
+		_, block = ctx.registry.pop(tuple[defs.Block, str])
 		text = ctx.view.render('class_method.j2', vars={**serialize(node, T_MethodVar), 'block': block})
-		ctx.register.push((node, text))
+		ctx.registry.push((node, text))
 
 	def on_method(self, node: defs.Method, ctx: Context) -> None:
-		_, block = ctx.register.pop(tuple[defs.Block, str])
+		_, block = ctx.registry.pop(tuple[defs.Block, str])
 		text = ctx.view.render('method.j2', vars={**serialize(node, T_MethodVar), 'block': block})
-		ctx.register.push((node, text))
+		ctx.registry.push((node, text))
 
 	# Function/Class Elements
 
 	def on_argument(self, node: defs.Argument, ctx: Context) -> None:
-		_, value = ctx.register.pop(tuple[defs.Expression, str])
-		ctx.register.push((node, value))
+		_, value = ctx.registry.pop(tuple[defs.Expression, str])
+		ctx.registry.push((node, value))
 
 	# Operator
 
 	def on_unary_operator(self, node: defs.UnaryOperator, ctx: Context) -> None:
-		_, value = ctx.register.pop(tuple[defs.Expression, str])
-		_, operator = ctx.register.pop(tuple[defs.Terminal, str])
+		_, value = ctx.registry.pop(tuple[defs.Expression, str])
+		_, operator = ctx.registry.pop(tuple[defs.Terminal, str])
 		text = f'{operator}{value}'
-		ctx.register.push((node, text))
+		ctx.registry.push((node, text))
 
 	# Primary
 
 	def on_list_type(self, node: defs.ListType, ctx: Context) -> None:
-		_, value_type = ctx.register.pop(tuple[defs.Symbol, str])
-		_, symbol = ctx.register.pop(tuple[defs.Symbol, str])
+		_, value_type = ctx.registry.pop(tuple[defs.Symbol, str])
+		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
 		text = ctx.view.render('list_type.j2', vars={'symbol': symbol, 'value_type': value_type})
-		ctx.register.push((node, text))
+		ctx.registry.push((node, text))
 
 	def on_dict_type(self, node: defs.DictType, ctx: Context) -> None:
-		_, value_type = ctx.register.pop(tuple[defs.Symbol, str])
-		_, key_type = ctx.register.pop(tuple[defs.Symbol, str])
-		_, symbol = ctx.register.pop(tuple[defs.Symbol, str])
+		_, value_type = ctx.registry.pop(tuple[defs.Symbol, str])
+		_, key_type = ctx.registry.pop(tuple[defs.Symbol, str])
+		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
 		text = ctx.view.render('dict_type.j2', vars={'symbol': symbol, 'key_type': key_type, 'value_type': value_type})
-		ctx.register.push((node, text))
+		ctx.registry.push((node, text))
 
 	def on_indexer(self, node: defs.Indexer, ctx: Context) -> None:
-		_, key = ctx.register.pop(tuple[defs.Expression, str])
-		_, symbol = ctx.register.pop(tuple[defs.Symbol, str])
+		_, key = ctx.registry.pop(tuple[defs.Expression, str])
+		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
 		text = f'{symbol}[{key}]'
-		ctx.register.push((node, text))
+		ctx.registry.push((node, text))
 
 	def on_func_call(self, node: defs.FuncCall, ctx: Context) -> None:
-		arguments = [argument for _, argument in ctx.register.each_pop(len(node.arguments))]
-		_, symbol = ctx.register.pop(tuple[defs.Symbol, str])
+		arguments = [argument for _, argument in ctx.registry.each_pop(len(node.arguments))]
+		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
 		text = ctx.view.render('func_call.j2', vars={'symbol': symbol, 'arguments': arguments})
-		ctx.register.push((node, text))
+		ctx.registry.push((node, text))
 
 	# Literal
 
 	def on_dict(self, node: defs.Dict, ctx: Context) -> None:
-		key_or_values = [key_or_value for _, key_or_value in ctx.register.each_pop(len(node.items) * 2)]
+		key_or_values = [key_or_value for _, key_or_value in ctx.registry.each_pop(len(node.items) * 2)]
 		items = [[key_or_values[index * 2 + 1], key_or_values[index * 2]] for index in range(len(node.items))]
 		items.reverse()
 		text = ctx.view.render('dict.j2', vars={**serialize(node, T_DictVar), 'items': items})
-		ctx.register.push((node, text))
+		ctx.registry.push((node, text))
 
 	def on_list(self, node: defs.List, ctx: Context) -> None:
-		values = [value for _, value in ctx.register.each_pop(len(node.values))]
+		values = [value for _, value in ctx.registry.each_pop(len(node.values))]
 		text = ctx.view.render('list.j2', vars={**serialize(node, T_ListVar), **{'values': values}})
-		ctx.register.push((node, text))
+		ctx.registry.push((node, text))
 
 	# Terminal
 
 	def on_terminal(self, node: Node, ctx: Context) -> None:
-		ctx.register.push((node, node.to_string()))
+		ctx.registry.push((node, node.to_string()))
 
 
 class Runner:
@@ -330,7 +330,7 @@ def make_nodes(grammar: str, source: str) -> Nodes:
 def make_context(source: str) -> Context:
 	output = os.path.join(appdir(), f'{"/".join(source.split(".")[:-1])}.cpp')
 	template_dir = os.path.join(appdir(), 'example/template')
-	return Context(Register(), Writer(output), Renderer(template_dir))
+	return Context(Registry(), Writer(output), Renderer(template_dir))
 
 
 if __name__ == '__main__':

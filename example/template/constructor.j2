@@ -3,8 +3,10 @@
 {%- endif -%}
 {{ access }}: {{ class_name }}(
 	{%- for parameter in parameters -%}
-		{%- if loop.index0 > 0 %}, {% endif -%}
-		{{- parameter.variable_type }} {{ parameter.symbol }}{% if parameter.default_value %} = {{ parameter.default_value }}{% endif -%}
+		{%- if loop.index0 > 1 %}, {% endif -%}
+		{%- if parameter.symbol != 'self' -%}
+			{{- parameter.variable_type }} {{ parameter.symbol }}{% if parameter.default_value %} = {{ parameter.default_value }}{% endif -%}
+		{%- endif -%}
 	{%- endfor -%}
 ) {
 {%- filter indent('\t') %}

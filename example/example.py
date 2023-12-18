@@ -33,4 +33,4 @@ class CellMesh:
 			CellMesh.FaceIndexs.Bottom: IntVector(0, 0, -1),
 			CellMesh.FaceIndexs.Top: IntVector(0, 0, 1),
 		}
-		return map[(CellMesh.FaceIndexs)(faceIndex)]
+		return map[CellMesh.FaceIndexs(faceIndex)]

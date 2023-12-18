@@ -331,7 +331,7 @@ class Node(NodeBase):
 		Returns:
 			T1 | T2: AかBの型
 		"""
-		return cast(reject_type, self) if type(self) is reject_type else self.as_a(expect_type)
+		return cast(reject_type, self) if self.is_a(reject_type) else self.as_a(expect_type)
 
 	@classmethod
 	def match_feature(cls, via: 'Node') -> bool:

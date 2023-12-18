@@ -169,7 +169,8 @@ class Handler:
 	def on_unary_operator(self, node: defs.UnaryOperator, ctx: Context) -> None:
 		_, value = ctx.register.pop(tuple[defs.Expression, str])
 		_, operator = ctx.register.pop(tuple[defs.Terminal, str])
-		ctx.register.push((node, f'{operator}{value}'))
+		text = f'{operator}{value}'
+		ctx.register.push((node, text))
 
 	# Primary
 
@@ -184,6 +185,12 @@ class Handler:
 		_, key_type = ctx.register.pop(tuple[defs.Symbol, str])
 		_, symbol = ctx.register.pop(tuple[defs.Symbol, str])
 		text = ctx.view.render('dict_type.j2', vars={'symbol': symbol, 'key_type': key_type, 'value_type': value_type})
+		ctx.register.push((node, text))
+
+	def on_indexer(self, node: defs.Indexer, ctx: Context) -> None:
+		_, key = ctx.register.pop(tuple[defs.Expression, str])
+		_, symbol = ctx.register.pop(tuple[defs.Symbol, str])
+		text = f'{symbol}[{key}]'
 		ctx.register.push((node, text))
 
 	def on_func_call(self, node: defs.FuncCall, ctx: Context) -> None:

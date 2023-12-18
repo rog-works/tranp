@@ -1,6 +1,6 @@
-pragma('once')
+#pragma once
 class IntVector {
-	public: IntVector( self, int x, int y, int z) {
+	public: IntVector(int x, int y, int z) {
 		self.x = x;
 		self.y = y;
 		self.z = z;

@@ -20,12 +20,12 @@ class Hoge(Base):
 
 	@deco_func('hoge')
 	def _func2(self, text: str) -> None:
-		map = {
+		map: dict[Hoge.Values, int] = {
 			Hoge.Values.A: 0,
 			Hoge.Values.B: 1,
 		}
 		empty_map = {}
-		arr = [0, 1, 2]
+		arr: list[int] = [0, 1, 2]
 		empty_arr = []
 
 	def __init__(self, v: int, s: str) -> None:

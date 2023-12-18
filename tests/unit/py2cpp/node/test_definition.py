@@ -87,7 +87,29 @@ class Fixture:
 
 class TestDefinition(TestCase):
 	@data_provider([
-		('file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block.assign_stmt[2].assign.primary[1].list', {
+		('file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block.assign_stmt[2].anno_assign.getitem', {
+			'value_type': 'int',
+		}),
+	])
+	def test_list_type(self, full_path: str, expected: dict[str, Any]) -> None:
+		nodes = Fixture.inst.nodes()
+		node = nodes.by(full_path).as_a(defs.ListType)
+		self.assertEqual(node.value_type.to_string(), expected['value_type'])
+
+	@data_provider([
+		('file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block.assign_stmt[0].anno_assign.getitem', {
+			'key_type': 'Hoge.Values',
+			'value_type': 'int',
+		}),
+	])
+	def test_dict_type(self, full_path: str, expected: dict[str, Any]) -> None:
+		nodes = Fixture.inst.nodes()
+		node = nodes.by(full_path).as_a(defs.DictType)
+		self.assertEqual(node.key_type.to_string(), expected['key_type'])
+		self.assertEqual(node.value_type.to_string(), expected['value_type'])
+
+	@data_provider([
+		('file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block.assign_stmt[2].anno_assign.primary[2].list', {
 			'values': [
 				{'value': '0', 'value_type': defs.Integer},
 				{'value': '1', 'value_type': defs.Integer},
@@ -105,7 +127,7 @@ class TestDefinition(TestCase):
 			self.assertEqual(type(value), in_expected['value_type'])
 
 	@data_provider([
-		('file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block.assign_stmt[0].assign.primary[1].dict', {
+		('file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block.assign_stmt[0].anno_assign.primary[2].dict', {
 			'items': [
 				{'key': 'Hoge.Values.A', 'value': '0', 'value_type': defs.Integer},
 				{'key': 'Hoge.Values.B', 'value': '1', 'value_type': defs.Integer},
@@ -145,6 +167,20 @@ class TestDefinition(TestCase):
 			self.assertEqual(argument.value.to_string(), in_expected['value'])
 
 		self.assertEqual([str(node) for node in node.calculated()], expected['calculated'])
+
+	@data_provider([
+		('file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block.assign_stmt[0]', {
+			'symbol': 'map',
+			'variable_type': defs.DictType,
+			'value': defs.Expression,
+		}),
+	])
+	def test_anno_assign(self, full_path: str, expected: dict[str, Any]) -> None:
+		nodes = Fixture.inst.nodes()
+		node = nodes.by(full_path).as_a(defs.AnnoAssign)
+		self.assertEqual(node.symbol.to_string(), expected['symbol'])
+		self.assertEqual(type(node.variable_type), expected['variable_type'])
+		self.assertEqual(type(node.value), expected['value'])
 
 	@data_provider([
 		('file_input.import_stmt', {

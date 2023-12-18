@@ -141,9 +141,6 @@ class Indexer(GetItem):
 		if via.parent.is_a(AnnoAssign) or via.parent.is_a(Parameter):
 			return False
 
-		if via._at(0).to_string() != 'list':
-			return False
-
 		return len(via._children('slices')) == 1
 
 	@property

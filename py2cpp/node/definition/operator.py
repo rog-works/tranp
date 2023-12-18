@@ -1,5 +1,5 @@
 from py2cpp.lang.annotation import override
-from py2cpp.node.embed import Meta, actualized
+from py2cpp.node.embed import Meta, actualized, expansionable
 from py2cpp.node.node import Node
 from py2cpp.node.definition.expression import Expression
 from py2cpp.node.definition.terminal import Terminal
@@ -16,10 +16,12 @@ class UnaryOperator(Node):
 		return len(via._children()) == 2
 
 	@property
+	@Meta.embed(Node, expansionable(order=0))
 	def operator(self) -> Terminal:
 		return self._at(0).as_a(Terminal)
 
 	@property
+	@Meta.embed(Node, expansionable(order=1))
 	def value(self) -> Node:
 		return self._at(1).as_a(Expression).actualize()
 

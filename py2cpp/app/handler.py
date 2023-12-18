@@ -7,7 +7,6 @@ import py2cpp.node.definition as defs
 from py2cpp.node.definitions import make_settings
 from py2cpp.node.node import Node
 from py2cpp.node.nodes import NodeResolver, Nodes
-from py2cpp.node.provider import Settings
 from py2cpp.node.serializer import serialize
 from py2cpp.view.render import Renderer, Writer
 
@@ -108,14 +107,6 @@ class Handler:
 		text = ctx.view.render('block.j2', vars={'statements': statements})
 		ctx.writer.put(text)
 
-	# Common
-
-	def on_block(self, node: defs.Block, ctx: Context) -> None:
-		statements = [statement for _, statement in ctx.registry.each_pop(len(node.statements))]
-		statements.reverse()
-		text = ctx.view.render('block.j2', vars={'statements': statements})
-		ctx.registry.push((node, text))
-
 	# Statement - simple
 
 	def on_move_assign(self, node: defs.MoveAssign, ctx: Context) -> None:
@@ -184,6 +175,14 @@ class Handler:
 		ctx.registry.push((node, text))
 
 	# Function/Class Elements
+
+	def on_block(self, node: defs.Block, ctx: Context) -> None:
+		statements = [statement for _, statement in ctx.registry.each_pop(len(node.statements))]
+		statements.reverse()
+		text = ctx.view.render('block.j2', vars={'statements': statements})
+		ctx.registry.push((node, text))
+
+	# Common
 
 	def on_argument(self, node: defs.Argument, ctx: Context) -> None:
 		_, value = ctx.registry.pop(tuple[defs.Expression, str])

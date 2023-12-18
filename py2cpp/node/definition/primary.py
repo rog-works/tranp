@@ -42,6 +42,9 @@ class Indexer(GetItem):
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:
+		if via.tag != 'getitem':  # XXX accept_tagsを使う
+			return False
+
 		# タイプヒントのケースを除外 XXX 定数化
 		if via.parent.identifer in ['anno_assign', 'parameter']:
 			return False
@@ -61,6 +64,9 @@ class ListType(GenericType):
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:
+		if via.tag != 'getitem':  # XXX accept_tagsを使う
+			return False
+
 		# タイプヒントのため、代入か仮引数の場合のみ XXX 定数化
 		if via.parent.identifer not in ['anno_assign', 'parameter']:
 			return False
@@ -80,6 +86,9 @@ class DictType(GenericType):
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:
+		if via.tag != 'getitem':  # XXX accept_tagsを使う
+			return False
+
 		# タイプヒントのため、代入か仮引数の場合のみ XXX 定数化
 		if via.parent.identifer not in ['anno_assign', 'parameter']:
 			return False

@@ -1,15 +1,18 @@
 from py2cpp.lang.annotation import override
-from py2cpp.node.embed import Meta, actualized, expansionable
+from py2cpp.node.embed import Meta, accept_tags, actualized, expansionable
 from py2cpp.node.node import Node
 from py2cpp.node.definition.expression import Expression
 from py2cpp.node.definition.terminal import Terminal
 
 
-@Meta.embed(Node, actualized(via=Expression))
+@Meta.embed(Node, accept_tags('factor'), actualized(via=Expression))
 class UnaryOperator(Node):
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:
+		if via.tag != 'factor':  # XXX accept_tagsを使う
+			return False
+
 		if via._at(0).to_string() not in ['+', '-', '~']:
 			return False
 

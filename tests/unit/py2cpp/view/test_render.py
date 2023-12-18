@@ -46,8 +46,8 @@ class TestRenderer(TestCase):
 	@data_provider([
 		(
 			{'items': [
-				{'key': 'hoge', 'value': '1'},
-				{'key': 'fuga', 'value': '2'},
+				['hoge', '1'],
+				['fuga', '2'],
 			]},
 			'\n'.join([
 				'{',

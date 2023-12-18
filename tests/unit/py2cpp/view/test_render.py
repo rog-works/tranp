@@ -91,7 +91,7 @@ class TestRenderer(TestCase):
 		self.assertRender('block.j2', 0, vars, expected)
 
 	@data_provider([
-		({'symbol': 'A.func', 'arguments': [{'value': '1 + 2'}, {'value': 'A.value'}]}, 'A.func(1 + 2, A.value)'),
+		({'symbol': 'A.func', 'arguments': ['1 + 2', 'A.value']}, 'A.func(1 + 2, A.value)'),
 	])
 	def test_render_func_call(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('func_call.j2', 0, vars, expected)
@@ -167,8 +167,8 @@ class TestRenderer(TestCase):
 			{
 				'enum_name': 'Values',
 				'variables': [
-					{'symbol': 'A', 'value': '0'},
-					{'symbol': 'B', 'value': '1'},
+					'A = 0;',
+					'B = 1;',
 				],
 			},
 			'\n'.join([

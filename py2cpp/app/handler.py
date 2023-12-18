@@ -17,8 +17,7 @@ T_ArgumentVar = TypedDict('T_ArgumentVar', {'value': str})
 T_DecoratorVar = TypedDict('T_DecoratorVar', {'symbol': str, 'arguments': list[T_ArgumentVar]})
 T_ClassVar = TypedDict('T_ClassVar', {'class_name': str, 'decorators': list[T_DecoratorVar], 'parents': list[str]})
 T_VariableVar = TypedDict('T_VariableVar', {'symbol': str, 'variable_type': str, 'value': str})
-T_MoveAssignVar = TypedDict('T_VariableVar', {'symbol': str, 'value': str})
-T_EnumVar = TypedDict('T_EnumVar', {'enum_name': str, 'variables': list[T_MoveAssignVar]})  # XXX 一旦MoveAssignで妥協
+T_EnumVar = TypedDict('T_EnumVar', {'enum_name': str})
 T_ParameterVar = TypedDict('T_ParameterVar', {'symbol': str, 'variable_type': str, 'default_value': str})
 T_FunctionVar = TypedDict('T_FunctionVar', {'function_name': str, 'parameters': list[T_ParameterVar]})
 T_MethodVar = TypedDict('T_MethodVar', {'access': str, 'function_name': str, 'class_name': str, 'parameters': list[T_ParameterVar]})
@@ -135,7 +134,8 @@ class Handler:
 		ctx.register.push((node, text))
 
 	def on_enum(self, node: defs.Enum, ctx: Context) -> None:
-		text = ctx.view.render('enum.j2', vars=serialize(node, T_EnumVar))
+		variables = [variable for _, variable in ctx.register.each_pop(len(node.variables))]
+		text = ctx.view.render('enum.j2', vars={**serialize(node, T_EnumVar), **{'variables': variables}})
 		ctx.register.push((node, text))
 
 	def on_function(self, node: defs.Function, ctx: Context) -> None:
@@ -196,11 +196,13 @@ class Runner:
 		try:
 			ctx.on('action', self.__handler.on_action)
 
-			for node in root.calculated():
+			flatted = root.calculated()
+			flatted.append(root)  # XXX
+
+			for node in flatted:
 				print('action:', str(node))
 				ctx.emit('action', node=node, ctx=ctx)
 
-			ctx.emit('action', node=root, ctx=ctx)  # FIXME
 			ctx.writer.flush()
 
 			ctx.off('action', self.__handler.on_action)

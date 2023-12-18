@@ -1,5 +1,5 @@
 enum class {{ enum_name }} {
 {%- for variable in variables %}
-	{{ variable.symbol }} = {{ variable.value }},
+	{{ variable|replace(';', ',') }}
 {%- endfor %}
 };

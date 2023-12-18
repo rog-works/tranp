@@ -122,14 +122,14 @@ class Self(Symbol):
 		return via.to_string().startswith('self')
 
 
-@Meta.embed(Node, accept_tags('getitem'))
+@Meta.embed(Node, accept_tags('getitem'), actualized(via=Expression))
 class GetItem(Node):
 	@property
 	def symbol(self) -> Symbol:  # FIXME 不正確
 		return self._at(0).as_a(Symbol)
 
 
-# @Meta.embed(Node, actualized(via=Expression))
+# @Meta.embed(Node, actualized(via=GetItem))
 class Indexer(GetItem):  # FIXME シンタックス上GenericTypeと区別できない
 	@property
 	def key(self) -> Node:
@@ -139,7 +139,7 @@ class Indexer(GetItem):  # FIXME シンタックス上GenericTypeと区別でき
 class GenericType(GetItem): pass
 
 
-@Meta.embed(Node, actualized(via=Expression))
+@Meta.embed(Node, actualized(via=GetItem))
 class ListType(GenericType):
 	@classmethod
 	@override
@@ -160,7 +160,7 @@ class ListType(GenericType):
 		return self._by('slices')._at(0).as_a(Symbol)
 
 
-@Meta.embed(Node, actualized(via=Expression))
+@Meta.embed(Node, actualized(via=GetItem))
 class DictType(GenericType):
 	@classmethod
 	@override

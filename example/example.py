@@ -25,13 +25,6 @@ class CellMesh:
 
 	@classmethod
 	def faceIndexToVector(cls, faceIndex: int) -> IntVector:
-		"""面インデックスからベクトルに変換
-
-		Args:
-			faceIndex (int): 6面インデックス
-		Returns:
-			IntVector: ベクトル
-		"""
 		map: dict[CellMesh.FaceIndexs, IntVector] = {
 			CellMesh.FaceIndexs.Left: IntVector(-1, 0, 0),
 			CellMesh.FaceIndexs.Right: IntVector(1, 0, 0),

@@ -68,6 +68,7 @@ class Fixture:
 				'argvalue': defs.Argument,
 				# Primary
 				'getattr': defs.Symbol,
+				'getitem': defs.GetItem,
 				'funccall': defs.FuncCall,
 				# Literal
 				'dict': defs.Dict,

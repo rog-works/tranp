@@ -125,12 +125,12 @@ class Self(Symbol):
 @Meta.embed(Node, accept_tags('getitem'))
 class GetItem(Node):
 	@property
-	def symbol(self) -> Symbol:
+	def symbol(self) -> Symbol:  # FIXME 不正確
 		return self._at(0).as_a(Symbol)
 
 
 # @Meta.embed(Node, actualized(via=Expression))
-class Indexer(GetItem):
+class Indexer(GetItem):  # FIXME シンタックス上GenericTypeと区別できない
 	@property
 	def key(self) -> Node:
 		return self._by('slices').as_a(Expression).actualize()
@@ -139,38 +139,50 @@ class Indexer(GetItem):
 class GenericType(GetItem): pass
 
 
-@Meta.embed(Node, actualized(via=GetItem))
+@Meta.embed(Node, actualized(via=Expression))
 class ListType(GenericType):
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:
+		if via.tag != 'getitem':
+			return False
+
+		if not via.parent.is_a(AnnoAssign) and not via.parent.is_a(Parameter):  # XXX 循環参照
+			return False
+
 		if via._at(0).to_string() != 'list':
 			return False
 
 		return len(via._children('slices')) == 1
 
 	@property
-	def value_type(self) -> GenericType:
-		return self._by('slices')._at(0).as_a(GenericType)
+	def value_type(self) -> Symbol:  # FIXME Symbol | GenericType
+		return self._by('slices')._at(0).as_a(Symbol)
 
 
-@Meta.embed(Node, actualized(via=GetItem))
+@Meta.embed(Node, actualized(via=Expression))
 class DictType(GenericType):
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:
+		if via.tag != 'getitem':
+			return False
+
+		if not via.parent.is_a(AnnoAssign) and not via.parent.is_a(Parameter):  # XXX 循環参照
+			return False
+
 		if via._at(0).to_string() != 'dict':
 			return False
 
 		return len(via._children('slices')) == 2
 
 	@property
-	def key_type(self) -> GenericType:
-		return self._by('slices')._at(0).as_a(GenericType)
+	def key_type(self) -> Symbol:  # FIXME Symbol | GenericType
+		return self._by('slices')._at(0).as_a(Symbol)
 
 	@property
-	def value_type(self) -> GenericType:
-		return self._by('slices')._at(1).as_a(GenericType)
+	def value_type(self) -> Symbol:  # FIXME Symbol | GenericType
+		return self._by('slices')._at(1).as_a(Symbol)
 
 
 @Meta.embed(Node, actualized(via=Expression))
@@ -288,8 +300,8 @@ class AnnoAssign(Assign):
 		return self._elements[0].as_a(Symbol)
 
 	@property
-	def variable_type(self) -> Symbol:
-		return self._elements[1].as_a(Symbol)
+	def variable_type(self) -> Node:  # FIXME Symbol | GenericType
+		return self._elements[1].as_a(Expression).actualize()
 
 	@property
 	def value(self) -> Node:  # FIXME Node | Empty

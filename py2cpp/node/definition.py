@@ -249,8 +249,12 @@ class Parameter(Node):
 		return self._by('typedparam.name').as_a(Symbol)
 
 	@property
-	def variable_type(self) -> Symbol | Empty:
-		return self._by('typedparam')._at(1).if_not_a_to_b(Empty, Symbol)
+	def variable_type(self) -> Symbol | GenericType | Empty:
+		typed = self._by('typedparam')._at(1)
+		if typed.is_a(Empty):
+			return typed.as_a(Empty)
+
+		return typed.if_not_a_to_b(GenericType, Symbol)
 
 	@property
 	def default_value(self) -> Terminal | Empty:
@@ -365,8 +369,8 @@ class Variable(Node):
 		return self._by('anno_assign')._at(0).as_a(Symbol)
 
 	@property
-	def variable_type(self) -> Symbol:
-		return self._by('anno_assign')._at(1).as_a(Symbol)
+	def variable_type(self) -> Symbol | GenericType:
+		return self._by('anno_assign')._at(1).if_not_a_to_b(GenericType, Symbol)
 
 	@property
 	def initial_value(self) -> Node:
@@ -407,7 +411,7 @@ class Block(Node, ScopeTrait):
 
 
 @Meta.embed(Node, accept_tags('if_stmt'))
-class If(Node): pass
+class If(Node): pass  # FIXME impl
 
 
 @Meta.embed(Node, accept_tags('decorator'))

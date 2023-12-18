@@ -69,11 +69,35 @@ class Context:
 
 class Handler:
 	def on_action(self, node: Node, ctx: Context) -> None:
+		self.enter(node, ctx)
+		self.action(node, ctx)
+		self.exit(node, ctx)
+
+	def action(self, node: Node, ctx: Context) -> None:
 		handler_name = f'on_{node.identifer}'
 		if hasattr(self, handler_name):
 			getattr(self, handler_name)(node, ctx)
 		else:
 			self.on_terminal(node, ctx)
+
+	def enter(self, node: Node, ctx: Context) -> None:
+		handler_name = f'on_enter_{node.identifer}'
+		if hasattr(self, handler_name):
+			getattr(self, handler_name)(node, ctx)
+
+	def exit(self, node: Node, ctx: Context) -> None:
+		handler_name = f'on_exit_{node.identifer}'
+		if hasattr(self, handler_name):
+			getattr(self, handler_name)(node, ctx)
+
+	# Hook
+
+	def on_exit_func_call(self, node: defs.FuncCall, ctx: Context) -> None:
+		_, result = ctx.register.pop(tuple[defs.FuncCall, str])
+		if result == "pragma('once')":
+			ctx.register.push((node, '#pragma once'))
+		else:
+			ctx.register.push((node, result))
 
 	# General
 

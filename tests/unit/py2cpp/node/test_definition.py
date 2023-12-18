@@ -110,6 +110,18 @@ class TestDefinition(TestCase):
 		self.assertEqual(node.value_type.to_string(), expected['value_type'])
 
 	@data_provider([
+		('file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block.getitem', {
+			'symbol': 'arr',
+			'key': '0',
+		}),
+	])
+	def test_indexer(self, full_path: str, expected: dict[str, Any]) -> None:
+		nodes = Fixture.inst.nodes()
+		node = nodes.by(full_path).as_a(defs.Indexer)
+		self.assertEqual(node.symbol.to_string(), expected['symbol'])
+		self.assertEqual(node.key.to_string(), expected['key'])
+
+	@data_provider([
 		('file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block.assign_stmt[2].anno_assign.primary[2].list', {
 			'values': [
 				{'value': '0', 'value_type': defs.Integer},

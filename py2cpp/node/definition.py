@@ -129,11 +129,26 @@ class GetItem(Node):
 		return self._at(0).as_a(Symbol)
 
 
-# @Meta.embed(Node, actualized(via=GetItem))
-class Indexer(GetItem):  # FIXME シンタックス上GenericTypeと区別できない
+@Meta.embed(Node, actualized(via=GetItem))
+class Indexer(GetItem):
+	@classmethod
+	@override
+	def match_feature(cls, via: Node) -> bool:
+		if via.tag != 'getitem':
+			return False
+
+		# タイプヒントのケースを除外 XXX 循環参照
+		if via.parent.is_a(AnnoAssign) or via.parent.is_a(Parameter):
+			return False
+
+		if via._at(0).to_string() != 'list':
+			return False
+
+		return len(via._children('slices')) == 1
+
 	@property
 	def key(self) -> Node:
-		return self._by('slices').as_a(Expression).actualize()
+		return self._by('slices.slice[0]')._at(0).as_a(Expression).actualize()
 
 
 class GenericType(GetItem): pass
@@ -147,7 +162,8 @@ class ListType(GenericType):
 		if via.tag != 'getitem':
 			return False
 
-		if not via.parent.is_a(AnnoAssign) and not via.parent.is_a(Parameter):  # XXX 循環参照
+		# タイプヒントのため、代入か仮引数の場合のみ XXX 循環参照
+		if not via.parent.is_a(AnnoAssign) and not via.parent.is_a(Parameter):
 			return False
 
 		if via._at(0).to_string() != 'list':
@@ -156,8 +172,8 @@ class ListType(GenericType):
 		return len(via._children('slices')) == 1
 
 	@property
-	def value_type(self) -> Symbol:  # FIXME Symbol | GenericType
-		return self._by('slices')._at(0).as_a(Symbol)
+	def value_type(self) -> Symbol | GenericType:
+		return self._by('slices.slice[0]')._at(0).if_not_a_to_b(GenericType, Symbol)
 
 
 @Meta.embed(Node, actualized(via=GetItem))
@@ -168,7 +184,8 @@ class DictType(GenericType):
 		if via.tag != 'getitem':
 			return False
 
-		if not via.parent.is_a(AnnoAssign) and not via.parent.is_a(Parameter):  # XXX 循環参照
+		# タイプヒントのため、代入か仮引数の場合のみ XXX 循環参照
+		if not via.parent.is_a(AnnoAssign) and not via.parent.is_a(Parameter):
 			return False
 
 		if via._at(0).to_string() != 'dict':
@@ -177,12 +194,12 @@ class DictType(GenericType):
 		return len(via._children('slices')) == 2
 
 	@property
-	def key_type(self) -> Symbol:  # FIXME Symbol | GenericType
-		return self._by('slices')._at(0).as_a(Symbol)
+	def key_type(self) -> Symbol | GenericType:
+		return self._by('slices.slice[0]')._at(0).if_not_a_to_b(GenericType, Symbol)
 
 	@property
-	def value_type(self) -> Symbol:  # FIXME Symbol | GenericType
-		return self._by('slices')._at(1).as_a(Symbol)
+	def value_type(self) -> Symbol | GenericType:
+		return self._by('slices.slice[1]')._at(0).if_not_a_to_b(GenericType, Symbol)
 
 
 @Meta.embed(Node, actualized(via=Expression))
@@ -271,6 +288,10 @@ class Assign(Node):
 	def _elements(self) -> list[Node]:
 		return self._at(0)._children()
 
+	@property
+	def symbol(self) -> Symbol | Indexer:
+		return self._elements[0].if_not_a_to_b(Indexer, Symbol)
+
 
 @Meta.embed(Node, accept_tags('assign_stmt'), actualized(via=Assign))
 class MoveAssign(Assign):
@@ -280,11 +301,10 @@ class MoveAssign(Assign):
 		return via._exists('assign')
 
 	@property
-	def symbol(self) -> Symbol:  # FIXME Symbol | Indexer
-		return self._elements[0].as_a(Symbol)
+	def value(self) -> Node | Empty:
+		if self._elements[1].is_a(Empty):
+			return self._elements[1].as_a(Empty)
 
-	@property
-	def value(self) -> Node:  # FIXME Node | Empty
 		return self._elements[1].as_a(Expression).actualize()
 
 
@@ -296,15 +316,14 @@ class AnnoAssign(Assign):
 		return via._exists('anno_assign')
 
 	@property
-	def symbol(self) -> Symbol:  # FIXME Symbol | Indexer
-		return self._elements[0].as_a(Symbol)
+	def variable_type(self) -> Symbol | GenericType:
+		return self._elements[1].if_not_a_to_b(GenericType, Symbol)
 
 	@property
-	def variable_type(self) -> Node:  # FIXME Symbol | GenericType
-		return self._elements[1].as_a(Expression).actualize()
+	def value(self) -> Node | Empty:
+		if self._elements[2].is_a(Empty):
+			return self._elements[2].as_a(Empty)
 
-	@property
-	def value(self) -> Node:  # FIXME Node | Empty
 		return self._elements[2].as_a(Expression).actualize()
 
 
@@ -316,8 +335,8 @@ class AugAssign(Assign):
 		return via._exists('aug_assign')
 
 	@property
-	def symbol(self) -> Symbol:  # FIXME Symbol | Indexer
-		return self._elements[0].as_a(Symbol)
+	def symbol(self) -> Symbol | Indexer:
+		return self._elements[0].if_not_a_to_b(Indexer, Symbol)
 
 	@property
 	def operator(self) -> Terminal:

@@ -221,6 +221,14 @@ class UnaryOperator(Node):
 		return self._at(1).as_a(Expression).actualize()
 
 
+# @Meta.embed(Node, accept_tags('group_expr'), actualized(via=Expression))
+class Group(Node):  # FIXME impl トランスパイルの性質上必要だが、あると色々と邪魔になる
+	@classmethod
+	@override
+	def match_feature(cls, via: Node) -> bool:
+		return False
+
+
 @Meta.embed(Node, accept_tags('argvalue'))
 class Argument(Node):
 	@property

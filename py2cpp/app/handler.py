@@ -4,6 +4,7 @@ from py2cpp.errors import LogicError
 from py2cpp.lang.error import stacktrace
 from py2cpp.lang.eventemitter import EventEmitter, T_Callback
 import py2cpp.node.definition as defs
+from py2cpp.node.definitions import make_settings
 from py2cpp.node.node import Node
 from py2cpp.node.nodes import NodeResolver, Nodes
 from py2cpp.node.provider import Settings
@@ -291,52 +292,7 @@ def make_nodes(grammar: str, source: str) -> Nodes:
 
 	parser = Lark(load_file(grammar), start='file_input', postlex=PythonIndenter(), parser='lalr')
 	tree = parser.parse(load_file(source))
-	return Nodes(tree, NodeResolver.load(Settings(
-		symbols={
-			# General
-			'file_input': defs.FileInput,
-			# Statement - simple
-			'assign_stmt': defs.Assign,
-			'return_stmt': defs.Return,
-			'import_stmt': defs.Import,
-			# Statement - compound
-			'if_stmt': defs.If,
-			'function_def': defs.Function,
-			'class_def': defs.Class,
-			'enum_def': defs.Enum,
-			# Function/Class Elements
-			'paramvalue': defs.Parameter,
-			# '': defs.Variable
-			'block': defs.Block,
-			'decorator': defs.Decorator,
-			# Primary
-			'getattr': defs.Symbol,
-			# 'getattr': defs.Self,
-			'getitem': defs.GetItem,
-			# 'getitem': defs.Indexer,
-			# 'getitem': defs.ListType,
-			# 'getitem': defs.DictType,
-			'funccall': defs.FuncCall,
-			# Common
-			'argvalue': defs.Argument,
-			# Operator
-			# 'unary_op': defs.UnaryOperator
-			# 'group_expr': defs.Group
-			# Literal
-			'integer': defs.Integer,
-			'float': defs.Float,
-			'string': defs.List,
-			# 'key_value': defs.KeyValue
-			'list': defs.List,
-			'dict': defs.Dict,
-			# Expression
-			# 'expression': defs.Expression
-			# Terminal
-			# '': defs.Terminal
-			'__empty__': defs.Empty,
-		},
-		fallback=defs.Terminal
-	)))
+	return Nodes(tree, NodeResolver.load(make_settings()))
 
 
 def make_context(source: str) -> Context:

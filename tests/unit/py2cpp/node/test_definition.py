@@ -6,8 +6,8 @@ from lark import Lark, Tree
 from lark.indenter import PythonIndenter
 
 import py2cpp.node.definition as defs
+from py2cpp.node.definitions import make_settings
 from py2cpp.node.nodes import NodeResolver, Nodes
-from py2cpp.node.provider import Settings
 from tests.test.helper import data_provider
 
 
@@ -47,52 +47,7 @@ class Fixture:
 		return fixture()
 
 	def resolver(self) -> NodeResolver:
-		return NodeResolver.load(Settings(
-			symbols={
-				# General
-				'file_input': defs.FileInput,
-				# Statement - simple
-				'assign_stmt': defs.Assign,
-				'return_stmt': defs.Return,
-				'import_stmt': defs.Import,
-				# Statement - compound
-				'if_stmt': defs.If,
-				'function_def': defs.Function,
-				'class_def': defs.Class,
-				'enum_def': defs.Enum,
-				# Function/Class Elements
-				'paramvalue': defs.Parameter,
-				# '': defs.Variable
-				'block': defs.Block,
-				'decorator': defs.Decorator,
-				# Primary
-				'getattr': defs.Symbol,
-				# 'getattr': defs.Self,
-				'getitem': defs.GetItem,
-				# 'getitem': defs.Indexer,
-				# 'getitem': defs.ListType,
-				# 'getitem': defs.DictType,
-				'funccall': defs.FuncCall,
-				# Common
-				'argvalue': defs.Argument,
-				# Operator
-				# 'unary_op': defs.UnaryOperator
-				# 'group_expr': defs.Group
-				# Literal
-				'integer': defs.Integer,
-				'float': defs.Float,
-				'string': defs.List,
-				# 'key_value': defs.KeyValue
-				'list': defs.List,
-				'dict': defs.Dict,
-				# Expression
-				# 'expression': defs.Expression
-				# Terminal
-				# '': defs.Terminal
-				'__empty__': defs.Empty,
-			},
-			fallback=defs.Terminal,
-		))
+		return NodeResolver.load(make_settings())
 
 	def nodes(self) -> Nodes:
 		return Nodes(self.__tree, self.resolver())

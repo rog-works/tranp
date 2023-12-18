@@ -18,7 +18,7 @@ def make_settings() -> Settings:
 			'enum_def': defs.Enum,
 			# Function/Class Elements
 			'paramvalue': defs.Parameter,
-			# '': defs.Variable
+			# '': defs.Var
 			'block': defs.Block,
 			'decorator': defs.Decorator,
 			# Primary

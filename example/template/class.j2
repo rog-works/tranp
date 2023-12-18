@@ -7,9 +7,9 @@ class {{ class_name }}
 		{{- name -}}
 	{%- endfor -%}
 {%- endif %} {
-{%- if variables -%}
-{%- for variable in variables %}
-	{{ variable.access }}: {{ variable.variable_type }} {{ variable.symbol }};
+{%- if vars -%}
+{%- for var in vars %}
+	{{ var.access }}: {{ var.var_type }} {{ var.symbol }};
 {%- endfor -%}
 {{ '\n' }}
 {%- endif %}

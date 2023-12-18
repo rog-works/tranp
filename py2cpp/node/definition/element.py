@@ -14,7 +14,7 @@ class Parameter(Node):
 		return self._by('typedparam.name').as_a(Symbol)
 
 	@property
-	def variable_type(self) -> Symbol | GenericType | Empty:
+	def var_type(self) -> Symbol | GenericType | Empty:
 		typed = self._by('typedparam')._at(1)
 		if typed.is_a(Empty):
 			return typed.as_a(Empty)
@@ -27,7 +27,7 @@ class Parameter(Node):
 
 
 @Meta.embed(Node, accept_tags('assign_stmt'))
-class Variable(Node):
+class Var(Node):
 	@property
 	def access(self) -> str:
 		# XXX
@@ -44,7 +44,7 @@ class Variable(Node):
 		return self._by('anno_assign')._at(0).as_a(Symbol)
 
 	@property
-	def variable_type(self) -> Symbol | GenericType:
+	def var_type(self) -> Symbol | GenericType:
 		return self._by('anno_assign')._at(1).if_not_a_to_b(GenericType, Symbol)
 
 	@property

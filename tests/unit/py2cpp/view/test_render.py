@@ -64,8 +64,8 @@ class TestRenderer(TestCase):
 	@data_provider([
 		('move_assign.j2', {'symbol': 'hoge', 'value': '1234'}, 'hoge = 1234;'),
 		('move_assign.j2', {'symbol': 'hoge'}, 'hoge;'),
-		('anno_assign.j2', {'symbol': 'hoge', 'value': '1234', 'variable_type': 'int'}, 'int hoge = 1234;'),
-		('anno_assign.j2', {'symbol': 'hoge', 'variable_type': 'int'}, 'int hoge;'),
+		('anno_assign.j2', {'symbol': 'hoge', 'value': '1234', 'var_type': 'int'}, 'int hoge = 1234;'),
+		('anno_assign.j2', {'symbol': 'hoge', 'var_type': 'int'}, 'int hoge;'),
 		('aug_assign.j2', {'symbol': 'hoge', 'value': '1234', 'operator': '+='}, 'hoge += 1234;'),
 	])
 	def test_render_assign(self, template: str, vars: dict[str, Any], expected: str) -> None:
@@ -116,9 +116,9 @@ class TestRenderer(TestCase):
 					{'symbol': 'deco', 'arguments': [{'value': 'A'}, {'value': 'A.B'}]}
 				],
 				'parents': ['Base', 'Interface'],
-				'variables': [
-					{'access': 'private', 'symbol': '__value', 'variable_type': 'int'},
-					{'access': 'private', 'symbol': '__text', 'variable_type': 'string'},
+				'vars': [
+					{'access': 'private', 'symbol': '__value', 'var_type': 'int'},
+					{'access': 'private', 'symbol': '__text', 'var_type': 'string'},
 				],
 				'block': '\n'.join([
 					'public: Hoge() {',
@@ -145,7 +145,7 @@ class TestRenderer(TestCase):
 				'class_name': 'Hoge',
 				'decorators': [],
 				'parents': [],
-				'variables': [],
+				'vars': [],
 				'block': '\n'.join([
 					'public: Hoge() {',
 					'}',
@@ -166,7 +166,7 @@ class TestRenderer(TestCase):
 		(
 			{
 				'enum_name': 'Values',
-				'variables': [
+				'vars': [
 					'A = 0;',
 					'B = 1;',
 				],
@@ -191,8 +191,8 @@ class TestRenderer(TestCase):
 					{'symbol': 'deco', 'arguments': [{'value': 'A'}, {'value': 'B'}]},
 				],
 				'parameters': [
-					{'symbol': 'text', 'variable_type': 'string', 'default_value': ''},
-					{'symbol': 'value', 'variable_type': 'int', 'default_value': '1'},
+					{'symbol': 'text', 'var_type': 'string', 'default_value': ''},
+					{'symbol': 'value', 'var_type': 'int', 'default_value': '1'},
 				],
 				'return_type': 'int',
 				'block': 'return value + 1;',
@@ -212,7 +212,7 @@ class TestRenderer(TestCase):
 				'class_name': 'Hoge',
 				'decorators': [],
 				'parameters': [
-					{'symbol': 'value', 'variable_type': 'int', 'default_value': '1'},
+					{'symbol': 'value', 'var_type': 'int', 'default_value': '1'},
 				],
 				'return_type': 'void',
 				'block': 'this->x = value;',
@@ -248,7 +248,7 @@ class TestRenderer(TestCase):
 				'class_name': 'Hoge',
 				'decorators': [],
 				'parameters': [
-					{'symbol': 'value', 'variable_type': 'int', 'default_value': '1'},
+					{'symbol': 'value', 'var_type': 'int', 'default_value': '1'},
 				],
 				'return_type': 'void',
 				'block': 'this->x = value;',

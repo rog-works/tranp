@@ -40,7 +40,7 @@ class AnnoAssign(Assign):
 		return via._exists('anno_assign')
 
 	@property
-	def variable_type(self) -> Symbol | GenericType:
+	def var_type(self) -> Symbol | GenericType:
 		return self._elements[1].if_not_a_to_b(GenericType, Symbol)
 
 	@property

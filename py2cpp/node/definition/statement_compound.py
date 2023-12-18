@@ -2,7 +2,7 @@ import re
 
 from py2cpp.lang.annotation import override
 from py2cpp.node.definition.common import Argument
-from py2cpp.node.definition.element import Block, Decorator, Parameter, Variable
+from py2cpp.node.definition.element import Block, Decorator, Parameter, Var
 from py2cpp.node.definition.primary import Self, Symbol
 from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from py2cpp.node.definition.terminal import Empty, Terminal
@@ -64,10 +64,10 @@ class Constructor(Function):
 		return self.parent.as_a(Block).parent.as_a(Class).class_name  # FIXME 循環参照
 
 	@property
-	def decl_variables(self) -> list[Variable]:
+	def decl_vars(self) -> list[Var]:
 		assigns = [node.as_a(AnnoAssign) for node in self.block._children() if node.is_a(AnnoAssign)]
-		variables = {node.as_a(Variable): True for node in assigns if node.symbol.is_a(Self)}
-		return list(variables.keys())
+		vars = {node.as_a(Var): True for node in assigns if node.symbol.is_a(Self)}
+		return list(vars.keys())
 
 
 @Meta.embed(Node, actualized(via=Function))
@@ -146,8 +146,8 @@ class Class(Node):
 		return self._by('class_def_raw.block').as_a(Block)
 
 	@property
-	def variables(self) -> list[Variable]:
-		return self.constructor.decl_variables if self.constructor_exists else []
+	def vars(self) -> list[Var]:
+		return self.constructor.decl_vars if self.constructor_exists else []
 
 
 @Meta.embed(Node, accept_tags('enum_def'))
@@ -163,5 +163,5 @@ class Enum(Node):
 
 	@property
 	@Meta.embed(Node, expansionable(order=0))
-	def variables(self) -> list[MoveAssign]:  # XXX 理想としてはVariableだが、Enumの変数に型の定義がないため一旦MoveAssignで妥協
+	def vars(self) -> list[MoveAssign]:  # XXX 理想としてはVarだが、Enumの変数に型の定義がないため一旦MoveAssignで妥協
 		return [node.as_a(MoveAssign) for node in self._children('block')]

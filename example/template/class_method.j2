@@ -5,7 +5,7 @@
 	{%- for parameter in parameters -%}
 		{%- if loop.index0 > 1 %}, {% endif -%}
 		{%- if parameter.symbol != 'cls' -%}
-			{{- parameter.variable_type }} {{ parameter.symbol }}{% if parameter.default_value %} = {{ parameter.default_value }}{% endif -%}
+			{{- parameter.var_type }} {{ parameter.symbol }}{% if parameter.default_value %} = {{ parameter.default_value }}{% endif -%}
 		{%- endif -%}
 	{%- endfor -%}
 ) {

@@ -64,7 +64,7 @@ class Enum(Node):
 
 	@property
 	@Meta.embed(Node, expansionable(order=0))
-	def variables(self) -> list[Assign]:
+	def vars(self) -> list[Assign]:
 		return [node.as_a(Assign) for node in self._children('block')]
 
 

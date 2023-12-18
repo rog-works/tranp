@@ -17,9 +17,9 @@ T_Result = TypeVar('T_Result')
 T_ArgumentVar = TypedDict('T_ArgumentVar', {'value': str})
 T_DecoratorVar = TypedDict('T_DecoratorVar', {'symbol': str, 'arguments': list[T_ArgumentVar]})
 T_ClassVar = TypedDict('T_ClassVar', {'class_name': str, 'decorators': list[T_DecoratorVar], 'parents': list[str]})
-T_VariableVar = TypedDict('T_VariableVar', {'symbol': str, 'variable_type': str, 'value': str})
+T_VarVar = TypedDict('T_VarVar', {'symbol': str, 'var_type': str, 'value': str})
 T_EnumVar = TypedDict('T_EnumVar', {'enum_name': str})
-T_ParameterVar = TypedDict('T_ParameterVar', {'symbol': str, 'variable_type': str, 'default_value': str})
+T_ParameterVar = TypedDict('T_ParameterVar', {'symbol': str, 'var_type': str, 'default_value': str})
 T_FunctionVar = TypedDict('T_FunctionVar', {'function_name': str, 'parameters': list[T_ParameterVar]})
 T_MethodVar = TypedDict('T_MethodVar', {'access': str, 'function_name': str, 'class_name': str, 'parameters': list[T_ParameterVar], 'return_type': str})
 T_KeyValueVar = TypedDict('T_KeyValueVar', {'key': str, 'value': str})
@@ -126,9 +126,9 @@ class Handler:
 
 	def on_anno_assign(self, node: defs.AnnoAssign, ctx: Context) -> None:
 		_, value = ctx.registry.pop(tuple[defs.Expression, str])
-		_, variable_type = ctx.registry.pop(tuple[defs.Symbol, str])
+		_, var_type = ctx.registry.pop(tuple[defs.Symbol, str])
 		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
-		text = ctx.view.render('anno_assign.j2', vars={'symbol': symbol, 'variable_type': variable_type, 'value': value})
+		text = ctx.view.render('anno_assign.j2', vars={'symbol': symbol, 'var_type': var_type, 'value': value})
 		ctx.registry.push((node, text))
 
 	def on_aug_assign(self, node: defs.AugAssign, ctx: Context) -> None:
@@ -159,8 +159,8 @@ class Handler:
 		ctx.registry.push((node, text))
 
 	def on_enum(self, node: defs.Enum, ctx: Context) -> None:
-		variables = [variable for _, variable in ctx.registry.each_pop(len(node.variables))]
-		text = ctx.view.render('enum.j2', vars={**serialize(node, T_EnumVar), **{'variables': variables}})
+		vars = [var for _, var in ctx.registry.each_pop(len(node.vars))]
+		text = ctx.view.render('enum.j2', vars={**serialize(node, T_EnumVar), **{'vars': vars}})
 		ctx.registry.push((node, text))
 
 	def on_function(self, node: defs.Function, ctx: Context) -> None:

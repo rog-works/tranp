@@ -151,7 +151,7 @@ class TestDefinition(TestCase):
 	@data_provider([
 		('file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block.assign_stmt[0]', {
 			'symbol': 'map',
-			'variable_type': defs.DictType,
+			'var_type': defs.DictType,
 			'value': defs.Expression,
 		}),
 	])
@@ -159,7 +159,7 @@ class TestDefinition(TestCase):
 		nodes = Fixture.inst.nodes()
 		node = nodes.by(full_path).as_a(defs.AnnoAssign)
 		self.assertEqual(node.symbol.to_string(), expected['symbol'])
-		self.assertEqual(type(node.variable_type), expected['variable_type'])
+		self.assertEqual(type(node.var_type), expected['var_type'])
 		self.assertEqual(type(node.value), expected['value'])
 
 	@data_provider([
@@ -183,7 +183,7 @@ class TestDefinition(TestCase):
 	@data_provider([
 		('file_input.class_def[4].class_def_raw.block.enum_def', {
 			'name': 'Values',
-			'variables': [
+			'vars': [
 				{'symbol': 'A', 'value': '0'},
 				{'symbol': 'B', 'value': '1'},
 			],
@@ -193,11 +193,11 @@ class TestDefinition(TestCase):
 		nodes = Fixture.inst.nodes()
 		node = nodes.by(full_path).as_a(defs.Enum)
 		self.assertEqual(node.enum_name.to_string(), expected['name'])
-		self.assertEqual(len(node.variables), len(expected['variables']))
-		for index, variable in enumerate(node.variables):
-			in_expected = expected['variables'][index]
-			self.assertEqual(variable.symbol.to_string(), in_expected['symbol'])
-			self.assertEqual(variable.value.to_string(), in_expected['value'])
+		self.assertEqual(len(node.vars), len(expected['vars']))
+		for index, var in enumerate(node.vars):
+			in_expected = expected['vars'][index]
+			self.assertEqual(var.symbol.to_string(), in_expected['symbol'])
+			self.assertEqual(var.value.to_string(), in_expected['value'])
 
 	@data_provider([
 		('file_input.class_def[3]', {
@@ -216,7 +216,7 @@ class TestDefinition(TestCase):
 				{'symbol': 'Base'},
 			],
 			'constructor': {
-				'decl_variables': [
+				'decl_vars': [
 					{'symbol': 'self.v', 'type': 'int'},
 					{'symbol': 'self.s', 'type': 'str'},
 				],
@@ -249,11 +249,11 @@ class TestDefinition(TestCase):
 			in_expected = expected['constructor']
 			constructor = node.constructor
 			self.assertEqual(type(constructor), defs.Constructor)
-			self.assertEqual(len(constructor.decl_variables), len(in_expected['decl_variables']))
-			for index, variable in enumerate(constructor.decl_variables):
-				in_var_expected = in_expected['decl_variables'][index]
-				self.assertEqual(variable.symbol.to_string(), in_var_expected['symbol'])
-				self.assertEqual(variable.variable_type.to_string(), in_var_expected['type'])
+			self.assertEqual(len(constructor.decl_vars), len(in_expected['decl_vars']))
+			for index, var in enumerate(constructor.decl_vars):
+				in_var_expected = in_expected['decl_vars'][index]
+				self.assertEqual(var.symbol.to_string(), in_var_expected['symbol'])
+				self.assertEqual(var.var_type.to_string(), in_var_expected['type'])
 
 		self.assertEqual(len(node.methods), len(expected['methods']))
 		for index, constructor in enumerate(node.methods):
@@ -312,7 +312,7 @@ class TestDefinition(TestCase):
 		for index, parameter in enumerate(node.parameters):
 			in_expected = expected['parameters'][index]
 			self.assertEqual(parameter.symbol.to_string(), in_expected['name'])
-			self.assertEqual(parameter.variable_type.to_string() if type(parameter.variable_type) is defs.Symbol else 'Empty', in_expected['type'])
+			self.assertEqual(parameter.var_type.to_string() if type(parameter.var_type) is defs.Symbol else 'Empty', in_expected['type'])
 			self.assertEqual(parameter.default_value.to_string() if type(parameter.default_value) is defs.Terminal else 'Empty', in_expected['default'])
 
 		self.assertEqual(node.return_type.to_string() if type(node.return_type) is defs.Symbol else 'Empty', expected['return'])

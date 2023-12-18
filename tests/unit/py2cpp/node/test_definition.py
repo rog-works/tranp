@@ -42,7 +42,7 @@ class Fixture:
 			return parser.parse(source)
 
 	def __load_prebuild_tree(self) -> Tree:
-		from tests.unit.py2cpp.node.test_difinition_fixture import fixture
+		from tests.unit.py2cpp.node.test_definition_fixture import fixture
 
 		return fixture()
 
@@ -85,7 +85,7 @@ class Fixture:
 		return Nodes(self.__tree, self.resolver())
 
 
-class TestDifinition(TestCase):
+class TestDefinition(TestCase):
 	@data_provider([
 		('file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block.assign_stmt[2].assign.primary[1].list', {
 			'values': [

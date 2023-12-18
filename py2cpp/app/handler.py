@@ -20,7 +20,7 @@ T_VariableVar = TypedDict('T_VariableVar', {'symbol': str, 'variable_type': str,
 T_EnumVar = TypedDict('T_EnumVar', {'enum_name': str})
 T_ParameterVar = TypedDict('T_ParameterVar', {'symbol': str, 'variable_type': str, 'default_value': str})
 T_FunctionVar = TypedDict('T_FunctionVar', {'function_name': str, 'parameters': list[T_ParameterVar]})
-T_MethodVar = TypedDict('T_MethodVar', {'access': str, 'function_name': str, 'class_name': str, 'parameters': list[T_ParameterVar]})
+T_MethodVar = TypedDict('T_MethodVar', {'access': str, 'function_name': str, 'class_name': str, 'parameters': list[T_ParameterVar], 'return_type': str})
 T_KeyValueVar = TypedDict('T_KeyValueVar', {'key': str, 'value': str})
 T_DictVar = TypedDict('T_DictVar', {'items': list[T_KeyValueVar]})
 T_ListVar = TypedDict('T_ListVar', {'values': list[str]})
@@ -164,6 +164,13 @@ class Handler:
 		_, value = ctx.register.pop(tuple[defs.Expression, str])
 		ctx.register.push((node, value))
 
+	# Operator
+
+	def on_unary_operator(self, node: defs.UnaryOperator, ctx: Context) -> None:
+		_, value = ctx.register.pop(tuple[defs.Expression, str])
+		_, operator = ctx.register.pop(tuple[defs.Terminal, str])
+		ctx.register.push((node, f'{operator}{value}'))
+
 	# Primary
 
 	def on_func_call(self, node: defs.FuncCall, ctx: Context) -> None:
@@ -175,11 +182,15 @@ class Handler:
 	# Literal
 
 	def on_dict(self, node: defs.Dict, ctx: Context) -> None:
-		text = ctx.view.render('dict.j2', vars=serialize(node, T_DictVar))
+		key_or_values = [key_or_value for _, key_or_value in ctx.register.each_pop(len(node.items) * 2)]
+		items = [[key_or_values[index * 2 + 1], key_or_values[index * 2]] for index in range(len(node.items))]
+		items.reverse()
+		text = ctx.view.render('dict.j2', vars={**serialize(node, T_DictVar), 'items': items})
 		ctx.register.push((node, text))
 
 	def on_list(self, node: defs.List, ctx: Context) -> None:
-		text = ctx.view.render('list.j2', vars=serialize(node, T_ListVar))
+		values = [value for _, value in ctx.register.each_pop(len(node.values))]
+		text = ctx.view.render('list.j2', vars={**serialize(node, T_ListVar), **{'values': values}})
 		ctx.register.push((node, text))
 
 	# Terminal

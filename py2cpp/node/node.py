@@ -317,11 +317,25 @@ class Node(NodeBase):
 		if self.is_a(to_class):
 			return cast(T, self)
 
+		if not self.__acceptable_by(to_class):
+			raise LogicError(str(self), to_class)
+
 		accept_tags = self.__accept_tags(to_class)
 		if len(accept_tags) and self.tag not in accept_tags:
 			raise LogicError(str(self), to_class)
 
 		return to_class(self.__nodes, self.full_path)
+
+	def __acceptable_by(self, to_class: type[NodeBase]) -> bool:
+		"""指定の具象クラスへの変換が受け入れられるか判定
+
+		Args:
+			to_class (type[NodeBase]): 変換先の具象クラス
+		Returns:
+			list[str]: 受け入れタグリスト
+		"""
+		accept_tags = self.__accept_tags(to_class)
+		return len(accept_tags) == 0 or self.tag in accept_tags
 
 	def __accept_tags(self, to_class: type[NodeBase]) -> list[str]:
 		"""メタデータより変換先の受け入れタグリストを取得
@@ -409,6 +423,9 @@ class Node(NodeBase):
 			Node: 具象クラスのインスタンス
 		"""
 		for feature_class in self._feature_classes():
+			if not self.__acceptable_by(feature_class):
+				continue
+
 			if feature_class.match_feature(self):
 				return self.as_a(feature_class)
 

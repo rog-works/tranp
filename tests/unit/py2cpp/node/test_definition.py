@@ -310,6 +310,15 @@ class TestDefinition(TestCase):
 		self.assertEqual(node.to_string(), expected['value'])
 
 	@data_provider([
+		(Tree('file_input', [Tree('string', [Token('STRING', "'abcd'")])]), 'file_input.string', {'type': defs.String, 'value': "'abcd'"}),
+		(Tree('file_input', [Tree('string', [Token('LONG_STRING', '"""abcd\nefgh"""')])]), 'file_input.string', {'type': defs.String, 'value': '"""abcd\nefgh"""'}),
+	])
+	def test_string(self, tree: Tree, full_path: str, expected: dict[str, Any]) -> None:
+		node = Fixture.inst.custom(tree).by(full_path).as_a(defs.String)
+		self.assertEqual(type(node), expected['type'])
+		self.assertEqual(node.to_string(), expected['value'])
+
+	@data_provider([
 		('file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block.assign_stmt[2].anno_assign.list', {
 			'values': [
 				{'value': '0', 'value_type': defs.Integer},

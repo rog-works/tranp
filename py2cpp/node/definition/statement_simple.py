@@ -13,6 +13,7 @@ class Assign(Node):
 		return self._at(0)._children()
 
 	@property
+	@Meta.embed(Node, expansionable(order=0))
 	def symbol(self) -> Symbol | Indexer:
 		return self._elements[0].if_not_a_to_b(Indexer, Symbol)
 
@@ -25,6 +26,7 @@ class MoveAssign(Assign):
 		return via._exists('assign')
 
 	@property
+	@Meta.embed(Node, expansionable(order=1))
 	def value(self) -> Node | Empty:
 		if self._elements[1].is_a(Empty):
 			return self._elements[1].as_a(Empty)
@@ -40,10 +42,12 @@ class AnnoAssign(Assign):
 		return via._exists('anno_assign')
 
 	@property
+	@Meta.embed(Node, expansionable(order=1))
 	def var_type(self) -> Symbol | GenericType:
 		return self._elements[1].if_not_a_to_b(GenericType, Symbol)
 
 	@property
+	@Meta.embed(Node, expansionable(order=2))
 	def value(self) -> Node | Empty:
 		if self._elements[2].is_a(Empty):
 			return self._elements[2].as_a(Empty)
@@ -59,14 +63,12 @@ class AugAssign(Assign):
 		return via._exists('aug_assign')
 
 	@property
-	def symbol(self) -> Symbol | Indexer:
-		return self._elements[0].if_not_a_to_b(Indexer, Symbol)
-
-	@property
+	@Meta.embed(Node, expansionable(order=1))
 	def operator(self) -> Terminal:
 		return self._elements[1].as_a(Terminal)
 
 	@property
+	@Meta.embed(Node, expansionable(order=2))
 	def value(self) -> Node:
 		return self._elements[2].as_a(Expression).actualize()
 

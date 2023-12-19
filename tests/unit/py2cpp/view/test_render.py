@@ -26,7 +26,7 @@ class TestRenderer(TestCase):
 		(2, {'symbol': 'hoge', 'value': '1234'}, '\t\thoge = 1234;'),
 	])
 	def test_render_indent(self, indent: int, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('move_assign.j2', indent, vars, expected)
+		self.assertRender('move_assign', indent, vars, expected)
 
 	@data_provider([
 		(
@@ -41,7 +41,7 @@ class TestRenderer(TestCase):
 		({'values': []}, '{\n}'),
 	])
 	def test_render_list(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('list.j2', 0, vars, expected)
+		self.assertRender('list', 0, vars, expected)
 
 	@data_provider([
 		(
@@ -59,14 +59,14 @@ class TestRenderer(TestCase):
 		({'items': []}, '{\n}'),
 	])
 	def test_render_dict(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('dict.j2', 0, vars, expected)
+		self.assertRender('dict', 0, vars, expected)
 
 	@data_provider([
-		('move_assign.j2', {'symbol': 'hoge', 'value': '1234'}, 'hoge = 1234;'),
-		('move_assign.j2', {'symbol': 'hoge'}, 'hoge;'),
-		('anno_assign.j2', {'symbol': 'hoge', 'value': '1234', 'var_type': 'int'}, 'int hoge = 1234;'),
-		('anno_assign.j2', {'symbol': 'hoge', 'var_type': 'int'}, 'int hoge;'),
-		('aug_assign.j2', {'symbol': 'hoge', 'value': '1234', 'operator': '+='}, 'hoge += 1234;'),
+		('move_assign', {'symbol': 'hoge', 'value': '1234'}, 'hoge = 1234;'),
+		('move_assign', {'symbol': 'hoge'}, 'hoge;'),
+		('anno_assign', {'symbol': 'hoge', 'value': '1234', 'var_type': 'int'}, 'int hoge = 1234;'),
+		('anno_assign', {'symbol': 'hoge', 'var_type': 'int'}, 'int hoge;'),
+		('aug_assign', {'symbol': 'hoge', 'value': '1234', 'operator': '+='}, 'hoge += 1234;'),
 	])
 	def test_render_assign(self, template: str, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender(template, 0, vars, expected)
@@ -88,25 +88,25 @@ class TestRenderer(TestCase):
 		),
 	])
 	def test_render_block(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('block.j2', 0, vars, expected)
+		self.assertRender('block', 0, vars, expected)
 
 	@data_provider([
 		({'symbol': 'A.func', 'arguments': ['1 + 2', 'A.value']}, 'A.func(1 + 2, A.value)'),
 	])
 	def test_render_func_call(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call.j2', 0, vars, expected)
+		self.assertRender('func_call', 0, vars, expected)
 
 	@data_provider([
 		({'return_value': '(1 + 2)'}, 'return (1 + 2);'),
 	])
 	def test_render_return(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('return.j2', 0, vars, expected)
+		self.assertRender('return', 0, vars, expected)
 
 	@data_provider([
 		({'module_path': 'module.path.to'}, '#include "module/path/to.h"'),
 	])
 	def test_render_import(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('import.j2', 0, vars, expected)
+		self.assertRender('import', 0, vars, expected)
 
 	@data_provider([
 		(
@@ -160,7 +160,7 @@ class TestRenderer(TestCase):
 		),
 	])
 	def test_render_class(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('class.j2', 0, vars, expected)
+		self.assertRender('class', 0, vars, expected)
 
 	@data_provider([
 		(
@@ -180,11 +180,11 @@ class TestRenderer(TestCase):
 		),
 	])
 	def test_render_enum(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('enum.j2', 0, vars, expected)
+		self.assertRender('enum', 0, vars, expected)
 
 	@data_provider([
 		(
-			'function.j2',
+			'function',
 			{
 				'function_name': 'func',
 				'decorators': [
@@ -205,7 +205,7 @@ class TestRenderer(TestCase):
 			]),
 		),
 		(
-			'constructor.j2',
+			'constructor',
 			{
 				'access': 'public',
 				'function_name': '__init__',
@@ -224,7 +224,7 @@ class TestRenderer(TestCase):
 			]),
 		),
 		(
-			'class_method.j2',
+			'class_method',
 			{
 				'access': 'public',
 				'function_name': 'static_method',
@@ -241,7 +241,7 @@ class TestRenderer(TestCase):
 			]),
 		),
 		(
-			'method.j2',
+			'method',
 			{
 				'access': 'public',
 				'function_name': 'method',

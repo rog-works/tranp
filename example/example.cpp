@@ -1,9 +1,13 @@
 #pragma once
 class IntVector {
+	public: int self.x;
+	public: int self.y;
+	public: int self.z;
+
 	public: IntVector(int x, int y, int z) {
-		self.x = x;
-		self.y = y;
-		self.z = z;
+		int self.x = x;
+		int self.y = y;
+		int self.z = z;
 	}
 };
 class CellMesh {

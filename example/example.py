@@ -7,9 +7,9 @@ pragma('once')
 
 class IntVector:
 	def __init__(self, x: int, y: int, z: int) -> None:
-		self.x = x
-		self.y = y
-		self.z = z
+		self.x: int = x
+		self.y: int = y
+		self.z: int = z
 
 
 class CellMesh:

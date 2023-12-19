@@ -104,41 +104,6 @@ class Handler:
 		text = ctx.view.render('block', vars={'statements': statements})
 		ctx.writer.put(text)
 
-	# Statement - simple
-
-	def on_move_assign(self, node: defs.MoveAssign, ctx: Context) -> None:
-		_, value = ctx.registry.pop(tuple[defs.Expression, str])
-		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
-		text = ctx.view.render(node.identifer, vars={'symbol': symbol, 'value': value})
-		ctx.registry.push((node, text))
-
-	def on_anno_assign(self, node: defs.AnnoAssign, ctx: Context) -> None:
-		_, value = ctx.registry.pop(tuple[defs.Expression, str])
-		_, var_type = ctx.registry.pop(tuple[defs.Symbol, str])
-		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
-		text = ctx.view.render(node.identifer, vars={'symbol': symbol, 'var_type': var_type, 'value': value})
-		ctx.registry.push((node, text))
-
-	def on_aug_assign(self, node: defs.AugAssign, ctx: Context) -> None:
-		_, value = ctx.registry.pop(tuple[defs.Expression, str])
-		_, operator = ctx.registry.pop(tuple[defs.Terminal, str])
-		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
-		text = ctx.view.render(node.identifer, vars={'symbol': symbol, 'operator': operator, 'value': value})
-		ctx.registry.push((node, text))
-
-	def on_return(self, node: defs.Return, ctx: Context) -> None:
-		_, return_value = ctx.registry.pop(tuple[defs.Expression, str])
-		text = ctx.view.render(node.identifer, vars={'return_value': return_value})
-		ctx.registry.push((node, text))
-
-	def on_import(self, node: defs.Import, ctx: Context) -> None:
-		module_path = node.module_path.to_string()
-		if module_path.startswith('py2cpp'):
-			return
-
-		text = ctx.view.render(node.identifer, vars={'module_path': module_path})
-		ctx.registry.push((node, text))
-
 	# Statement - compound
 
 	def on_class(self, node: defs.Class, ctx: Context) -> None:
@@ -179,25 +144,39 @@ class Handler:
 		text = ctx.view.render(node.identifer, vars={'statements': statements})
 		ctx.registry.push((node, text))
 
-	# Common
+	# Statement - simple
 
-	def on_argument(self, node: defs.Argument, ctx: Context) -> None:
+	def on_move_assign(self, node: defs.MoveAssign, ctx: Context) -> None:
 		_, value = ctx.registry.pop(tuple[defs.Expression, str])
-		ctx.registry.push((node, value))
-
-	# Operator
-
-	def on_unary_operator(self, node: defs.UnaryOperator, ctx: Context) -> None:
-		_, value = ctx.registry.pop(tuple[defs.Expression, str])
-		_, operator = ctx.registry.pop(tuple[defs.Terminal, str])
-		text = f'{operator}{value}'
+		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
+		text = ctx.view.render(node.identifer, vars={'symbol': symbol, 'value': value})
 		ctx.registry.push((node, text))
 
-	def on_binary_operator(self, node: defs.BinaryOperator, ctx: Context) -> None:
-		_, right = ctx.registry.pop(tuple[defs.Expression, str])
+	def on_anno_assign(self, node: defs.AnnoAssign, ctx: Context) -> None:
+		_, value = ctx.registry.pop(tuple[defs.Expression, str])
+		_, var_type = ctx.registry.pop(tuple[defs.Symbol, str])
+		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
+		text = ctx.view.render(node.identifer, vars={'symbol': symbol, 'var_type': var_type, 'value': value})
+		ctx.registry.push((node, text))
+
+	def on_aug_assign(self, node: defs.AugAssign, ctx: Context) -> None:
+		_, value = ctx.registry.pop(tuple[defs.Expression, str])
 		_, operator = ctx.registry.pop(tuple[defs.Terminal, str])
-		_, left = ctx.registry.pop(tuple[defs.Expression, str])
-		text = f'{left} {operator} {right}'
+		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
+		text = ctx.view.render(node.identifer, vars={'symbol': symbol, 'operator': operator, 'value': value})
+		ctx.registry.push((node, text))
+
+	def on_return(self, node: defs.Return, ctx: Context) -> None:
+		_, return_value = ctx.registry.pop(tuple[defs.Expression, str])
+		text = ctx.view.render(node.identifer, vars={'return_value': return_value})
+		ctx.registry.push((node, text))
+
+	def on_import(self, node: defs.Import, ctx: Context) -> None:
+		module_path = node.module_path.to_string()
+		if module_path.startswith('py2cpp'):
+			return
+
+		text = ctx.view.render(node.identifer, vars={'module_path': module_path})
 		ctx.registry.push((node, text))
 
 	# Primary
@@ -225,6 +204,27 @@ class Handler:
 		arguments = [argument for _, argument in ctx.registry.each_pop(len(node.arguments))]
 		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
 		text = ctx.view.render(node.identifer, vars={'symbol': symbol, 'arguments': arguments})
+		ctx.registry.push((node, text))
+
+	# Common
+
+	def on_argument(self, node: defs.Argument, ctx: Context) -> None:
+		_, value = ctx.registry.pop(tuple[defs.Expression, str])
+		ctx.registry.push((node, value))
+
+	# Operator
+
+	def on_unary_operator(self, node: defs.UnaryOperator, ctx: Context) -> None:
+		_, value = ctx.registry.pop(tuple[defs.Expression, str])
+		_, operator = ctx.registry.pop(tuple[defs.Terminal, str])
+		text = f'{operator}{value}'
+		ctx.registry.push((node, text))
+
+	def on_binary_operator(self, node: defs.BinaryOperator, ctx: Context) -> None:
+		_, right = ctx.registry.pop(tuple[defs.Expression, str])
+		_, operator = ctx.registry.pop(tuple[defs.Terminal, str])
+		_, left = ctx.registry.pop(tuple[defs.Expression, str])
+		text = f'{left} {operator} {right}'
 		ctx.registry.push((node, text))
 
 	# Literal

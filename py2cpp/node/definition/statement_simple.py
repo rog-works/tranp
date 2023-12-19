@@ -31,7 +31,7 @@ class MoveAssign(Assign):
 		if self._elements[1].is_a(Empty):
 			return self._elements[1].as_a(Empty)
 
-		return self._elements[1].as_a(Expression).actualize()
+		return self._elements[1].if_a_actualize_from_b(Terminal, Expression)
 
 
 @Meta.embed(Node, actualized(via=Assign))
@@ -52,7 +52,7 @@ class AnnoAssign(Assign):
 		if self._elements[2].is_a(Empty):
 			return self._elements[2].as_a(Empty)
 
-		return self._elements[2].as_a(Expression).actualize()
+		return self._elements[2].if_a_actualize_from_b(Terminal, Expression)
 
 
 @Meta.embed(Node, actualized(via=Assign))
@@ -70,14 +70,18 @@ class AugAssign(Assign):
 	@property
 	@Meta.embed(Node, expansionable(order=2))
 	def value(self) -> Node:
-		return self._elements[2].as_a(Expression).actualize()
+		return self._elements[2].if_a_actualize_from_b(Terminal, Expression)
 
 
 @Meta.embed(Node, accept_tags('return_stmt'))
 class Return(Node):
 	@property
-	def return_value(self) -> Expression | Empty:
-		return self._at(0).if_not_a_to_b(Empty, Expression)
+	@Meta.embed(Node, expansionable(order=0))
+	def return_value(self) -> Node | Empty:
+		if self._at(0).is_a(Empty):
+			return self.as_a(Empty)
+
+		return self._at(0).if_a_actualize_from_b(Terminal, Expression)
 
 
 @Meta.embed(Node, accept_tags('import_stmt'))

@@ -26,7 +26,7 @@ class UnaryOperator(Node):
 		return self._at(1).if_a_actualize_from_b(Terminal, Expression)
 
 
-@Meta.embed(Node, accept_tags('sum', 'term'), actualized(via=Expression))
+@Meta.embed(Node, accept_tags('or_expr', 'xor_expr', 'and_expr', 'shift_expr', 'sum', 'term'), actualized(via=Expression))
 class BinaryOperator(Node):
 	@classmethod
 	@override
@@ -34,7 +34,7 @@ class BinaryOperator(Node):
 		if len(via._children()) != 3:
 			return False
 
-		return via._at(1).to_string() in ['+', '-', '*', '/', '%']
+		return via._at(1).to_string() in ['|', '^', '&', '<<', '>>', '+', '-', '*', '/', '%']
 
 	@property
 	@Meta.embed(Node, expansionable(order=0))

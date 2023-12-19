@@ -2,7 +2,7 @@ import os
 from typing import Any, Optional
 from unittest import TestCase
 
-from lark import Lark, Tree
+from lark import Lark, Tree, Token
 from lark.indenter import PythonIndenter
 
 import py2cpp.node.definition as defs
@@ -25,17 +25,17 @@ class Fixture:
 
 	def __init__(self) -> None:
 		tree = self.__load_prebuild_tree() if self.__prebuild else self.__parse_tree(self.__load_parser())
-		self.nodes = self.__make_nodes(tree)
+		self.__nodes = self.__make_nodes(tree)
 
 	def __load_parser(self) -> Lark:
 		dir = os.path.join(os.path.dirname(__file__), '../../../../')
-		with open(os.path.join(dir, 'data/grammar.lark')) as f:
+		with open(os.path.join(dir, 'data/grammar.lark'), mode='r') as f:
 			return Lark(f, start='file_input', postlex=PythonIndenter(), parser='lalr')
 
 	def __parse_tree(self, parser: Lark) -> Tree:
 		filepath, _ = __file__.split('.')
 		fixture_path = f'{filepath}_fixture.org.py'
-		with open(fixture_path) as f:
+		with open(fixture_path, mode='r') as f:
 			source = '\n'.join(f.readlines())
 			return parser.parse(source)
 
@@ -48,6 +48,13 @@ class Fixture:
 		return NodeResolver.load(make_settings())
 
 	def __make_nodes(self, tree: Tree) -> Nodes:
+		return Nodes(tree, self.__make_resolver())
+
+	@property
+	def shared(self) -> Nodes:
+		return self.__nodes
+
+	def custom(self, tree: Tree) -> Nodes:
 		return Nodes(tree, self.__make_resolver())
 
 
@@ -88,8 +95,7 @@ class TestDefinition(TestCase):
 		}),
 	])
 	def test_function(self, full_path: str, expected: dict[str, Any]) -> None:
-		nodes = Fixture.inst.nodes
-		node = nodes.by(full_path).as_a(defs.Function)
+		node = Fixture.inst.shared.by(full_path).as_a(defs.Function)
 		self.assertEqual(node.function_name.to_string(), expected['name'])
 		self.assertEqual(node.access, expected['access'])
 		self.assertEqual(len(node.decorators), len(expected['decorators']))
@@ -140,8 +146,7 @@ class TestDefinition(TestCase):
 		}),
 	])
 	def test_class(self, full_path: str, expected: dict[str, Any]) -> None:
-		nodes = Fixture.inst.nodes
-		node = nodes.by(full_path).as_a(defs.Class)
+		node = Fixture.inst.shared.by(full_path).as_a(defs.Class)
 		self.assertEqual(node.class_name.to_string(), expected['name'])
 		self.assertEqual(len(node.decorators), len(expected['decorators']))
 		for index, decorator in enumerate(node.decorators):
@@ -183,8 +188,7 @@ class TestDefinition(TestCase):
 		}),
 	])
 	def test_enum(self, full_path: str, expected: dict[str, Any]) -> None:
-		nodes = Fixture.inst.nodes
-		node = nodes.by(full_path).as_a(defs.Enum)
+		node = Fixture.inst.shared.by(full_path).as_a(defs.Enum)
 		self.assertEqual(node.enum_name.to_string(), expected['name'])
 		self.assertEqual(len(node.vars), len(expected['vars']))
 		for index, var in enumerate(node.vars):
@@ -202,8 +206,7 @@ class TestDefinition(TestCase):
 		}),
 	])
 	def test_anno_assign(self, full_path: str, expected: dict[str, Any]) -> None:
-		nodes = Fixture.inst.nodes
-		node = nodes.by(full_path).as_a(defs.AnnoAssign)
+		node = Fixture.inst.shared.by(full_path).as_a(defs.AnnoAssign)
 		self.assertEqual(node.symbol.to_string(), expected['symbol'])
 		self.assertEqual(type(node.var_type), expected['var_type'])
 		self.assertEqual(type(node.value), expected['value'])
@@ -216,8 +219,7 @@ class TestDefinition(TestCase):
 		}),
 	])
 	def test_aug_assign(self, full_path: str, expected: dict[str, Any]) -> None:
-		nodes = Fixture.inst.nodes
-		node = nodes.by(full_path).as_a(defs.AugAssign)
+		node = Fixture.inst.shared.by(full_path).as_a(defs.AugAssign)
 		self.assertEqual(type(node.symbol), expected['symbol'])
 		self.assertEqual(node.operator.to_string(), expected['operator'])
 		self.assertEqual(type(node.value), expected['value'])
@@ -232,8 +234,7 @@ class TestDefinition(TestCase):
 		}),
 	])
 	def test_import(self, full_path: str, expected: dict[str, Any]) -> None:
-		nodes = Fixture.inst.nodes
-		node = nodes.by(full_path).as_a(defs.Import)
+		node = Fixture.inst.shared.by(full_path).as_a(defs.Import)
 		self.assertEqual(node.module_path.to_string(), expected['module_path'])
 		self.assertEqual(len(node.import_symbols), len(expected['import_symbols']))
 		for index, symbol in enumerate(node.import_symbols):
@@ -248,8 +249,7 @@ class TestDefinition(TestCase):
 		}),
 	])
 	def test_list_type(self, full_path: str, expected: dict[str, Any]) -> None:
-		nodes = Fixture.inst.nodes
-		node = nodes.by(full_path).as_a(defs.ListType)
+		node = Fixture.inst.shared.by(full_path).as_a(defs.ListType)
 		self.assertEqual(node.value_type.to_string(), expected['value_type'])
 
 	@data_provider([
@@ -259,8 +259,7 @@ class TestDefinition(TestCase):
 		}),
 	])
 	def test_dict_type(self, full_path: str, expected: dict[str, Any]) -> None:
-		nodes = Fixture.inst.nodes
-		node = nodes.by(full_path).as_a(defs.DictType)
+		node = Fixture.inst.shared.by(full_path).as_a(defs.DictType)
 		self.assertEqual(node.key_type.to_string(), expected['key_type'])
 		self.assertEqual(node.value_type.to_string(), expected['value_type'])
 
@@ -271,8 +270,7 @@ class TestDefinition(TestCase):
 		}),
 	])
 	def test_indexer(self, full_path: str, expected: dict[str, Any]) -> None:
-		nodes = Fixture.inst.nodes
-		node = nodes.by(full_path).as_a(defs.Indexer)
+		node = Fixture.inst.shared.by(full_path).as_a(defs.Indexer)
 		self.assertEqual(node.symbol.to_string(), expected['symbol'])
 		self.assertEqual(node.key.to_string(), expected['key'])
 
@@ -290,8 +288,7 @@ class TestDefinition(TestCase):
 		}),
 	])
 	def test_funccall(self, full_path: str, expected: dict[str, Any]) -> None:
-		nodes = Fixture.inst.nodes
-		node = nodes.by(full_path).as_a(defs.FuncCall)
+		node = Fixture.inst.shared.by(full_path).as_a(defs.FuncCall)
 		self.assertEqual(node.calls.to_string(), expected['caller'])
 		self.assertEqual(len(node.arguments), len(expected['arguments']))
 		for index, argument in enumerate(node.arguments):
@@ -303,6 +300,13 @@ class TestDefinition(TestCase):
 	# Literal
 
 	@data_provider([
+		(Tree('file_input', [Tree('primary', [Tree('atom', [Tree('number', [Token('DEC_NUMBER', '1')])])])]), 'file_input.primary.atom.number', '1'),
+	])
+	def test_integer(self, tree: Tree, full_path: str, expected: dict[str, Any]) -> None:
+		node = Fixture.inst.custom(tree).by(full_path).as_a(defs.Integer)
+		self.assertEqual(node.to_string(), expected)
+
+	@data_provider([
 		('file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block.assign_stmt[2].anno_assign.primary[2].list', {
 			'values': [
 				{'value': '0', 'value_type': defs.Integer},
@@ -312,8 +316,7 @@ class TestDefinition(TestCase):
 		}),
 	])
 	def test_list(self, full_path: str, expected: dict[str, Any]) -> None:
-		nodes = Fixture.inst.nodes
-		node = nodes.by(full_path).as_a(defs.List)
+		node = Fixture.inst.shared.by(full_path).as_a(defs.List)
 		self.assertEqual(len(node.values), len(expected['values']))
 		for index, value in enumerate(node.values):
 			in_expected = expected['values'][index]
@@ -329,8 +332,7 @@ class TestDefinition(TestCase):
 		}),
 	])
 	def test_dict(self, full_path: str, expected: dict[str, Any]) -> None:
-		nodes = Fixture.inst.nodes
-		node = nodes.by(full_path).as_a(defs.Dict)
+		node = Fixture.inst.shared.by(full_path).as_a(defs.Dict)
 		self.assertEqual(len(node.items), len(expected['items']))
 		for index, item in enumerate(node.items):
 			in_expected = expected['items'][index]

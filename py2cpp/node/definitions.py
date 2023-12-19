@@ -36,9 +36,10 @@ def make_settings() -> Settings:
 			# 'binary_op': defs.BinaryOperator
 			# 'group_expr': defs.Group
 			# -- Literal --
-			'integer': defs.Integer,
-			'float': defs.Float,
-			'string': defs.List,
+			# 'number': defs.Number,
+			# 'number': defs.Integer,
+			# 'number': defs.Float,
+			'string': defs.String,
 			# 'key_value': defs.KeyValue
 			'list': defs.List,
 			'dict': defs.Dict,

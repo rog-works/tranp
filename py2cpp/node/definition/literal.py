@@ -8,6 +8,10 @@ from py2cpp.node.node import Node
 class Literal(Node): pass
 
 
+# @Meta.embed(Node, accept_tags('number'))
+# class Number(Literal): pass
+
+
 @Meta.embed(Node, accept_tags('primary', 'number'), actualized(via=Expression))
 class Integer(Literal):
 	@classmethod

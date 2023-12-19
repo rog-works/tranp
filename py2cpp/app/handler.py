@@ -193,6 +193,13 @@ class Handler:
 		text = f'{operator}{value}'
 		ctx.registry.push((node, text))
 
+	def on_binary_operator(self, node: defs.BinaryOperator, ctx: Context) -> None:
+		_, right = ctx.registry.pop(tuple[defs.Expression, str])
+		_, operator = ctx.registry.pop(tuple[defs.Terminal, str])
+		_, left = ctx.registry.pop(tuple[defs.Expression, str])
+		text = f'{left} {operator} {right}'
+		ctx.registry.push((node, text))
+
 	# Primary
 
 	def on_list_type(self, node: defs.ListType, ctx: Context) -> None:

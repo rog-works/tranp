@@ -33,6 +33,7 @@ def make_settings() -> Settings:
 			'argvalue': defs.Argument,
 			# -- Operator --
 			# 'unary_op': defs.UnaryOperator
+			# 'binary_op': defs.BinaryOperator
 			# 'group_expr': defs.Group
 			# -- Literal --
 			'integer': defs.Integer,

@@ -169,16 +169,17 @@ class Node(NodeBase):
 		Note:
 			@see trans.node.embed.expansionable
 		"""
-		prop_keys: dict[str, bool] = {}
+		order_on_keys: dict[int, str] = {}
 		for ctor in self.__embed_classes(self.__class__):
 			meta = Meta.dig_for_method(Node, ctor, EmbedKeys.Expansionable, value_type=int)
-			order_on_keys = {value: name for name, value in meta.items()}
-			prop_keys = {**prop_keys, **{prop_key: True for _, prop_key in sorted(order_on_keys.items(), key=lambda index: index)}}
+			in_order_on_keys = {value: name for name, value in meta.items()}
+			order_on_keys = {**order_on_keys, **in_order_on_keys}
 
+		prop_keys = {prop_key: True for _, prop_key in sorted(order_on_keys.items(), key=lambda index: index)}
 		return list(prop_keys.keys())
 
 	def __embed_classes(self, via: type[NodeBase]) -> list[type['Node']]:
-		"""対象のクラス自身を含む継承関係のあるクラスを取得。取得されるクラスはメタデータと関連する派生クラスに限定
+		"""対象のクラス自身を含む継承関係のあるクラスを基底クラス順に取得。取得されるクラスはメタデータと関連する派生クラスに限定
 
 		Args:
 			via (type[NodeBase]): 対象のクラス
@@ -187,7 +188,8 @@ class Node(NodeBase):
 		Note:
 			Node以下の基底クラスはメタデータと関わりがないため除外
 		"""
-		return [ctor for ctor in via.__mro__ if issubclass(ctor, Node) and ctor is not Node]
+		classes = [ctor for ctor in via.__mro__ if issubclass(ctor, Node) and ctor is not Node]
+		return list(reversed(classes))
 
 	def _exists(self, relative_path: str) -> bool:
 		"""指定のパスに紐づく一意なノードが存在するか判定

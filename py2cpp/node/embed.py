@@ -174,13 +174,13 @@ class Meta:
 		return decorator
 
 	@classmethod
-	def dig_by_key_for_class(cls, holder, embed_key: str, value_type: T_Data) -> dict[type, T_Data]:
+	def dig_by_key_for_class(cls, holder, embed_key: str, value_type: type[T_Data]) -> dict[type, T_Data]:
 		"""クラスに埋め込まれたメタデータを抽出(クラス用)
 
 		Args:
 			holder (type): メタデータを保持するクラス
 			embed_key (str): 抽出対象の埋め込みキー
-			value_type (T_Data): メタデータの型
+			value_type (type[T_Data]): メタデータの型
 		Returns:
 			dict[type, Any]: 対象クラスとメタデータのマップ
 		"""
@@ -209,14 +209,14 @@ class Meta:
 		return meta_data.get_from_class(ctor, embed_key) or default
 
 	@classmethod
-	def dig_for_method(cls, holder: type, ctor: T_Node, embed_key: str, value_type: T_Data) -> dict[str, T_Data]:
+	def dig_for_method(cls, holder: type, ctor: T_Node, embed_key: str, value_type: type[T_Data]) -> dict[str, T_Data]:
 		"""クラスに埋め込まれたメタデータを抽出(メソッド用)
 
 		Args:
 			holder (type): メタデータを保持するクラス
 			ctor (T_Node): 抽出対象のクラス
 			embed_key (str): 抽出対象の埋め込みキー
-			value_type (T_Data): メタデータの型
+			value_type (type[T_Data]): メタデータの型
 		Returns:
 			dict[str, Any]: メソッド毎のメタデータ
 		"""

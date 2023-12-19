@@ -163,7 +163,7 @@ class TestDefinition(TestCase):
 		self.assertEqual(type(node.value), expected['value'])
 
 	@data_provider([
-		('file_input.import_stmt', {
+		('file_input.import_stmt[1]', {
 			'module_path': 'py2cpp.cpp.enum',
 			'import_symbols': [
 				{'symbol': 'CEnum'},

@@ -1,10 +1,11 @@
+from typing import cast
 from unittest import TestCase
 
 from lark import Token, Tree
 
 from py2cpp.errors import NotFoundError
 from py2cpp.node.node import Node
-from py2cpp.node.nodes import NodeResolver, Nodes
+from py2cpp.node.nodes import EntryCache, NodeResolver, Nodes
 from py2cpp.node.provider import Query, Settings
 from tests.test.helper import data_provider
 
@@ -92,6 +93,43 @@ class TestNodeResolver(TestCase):
 		self.assertEqual(resolver.resolve('root', 'root', lambda ctor: ctor(dummy_query, 'root')).full_path, 'root')
 
 
+class TestEntryCache(TestCase):
+	def test_exists(self) -> None:
+		cache = EntryCache()
+		cache.add('root', Tree('root', []))
+		self.assertEqual(cache.exists('root'), True)
+
+	def test_by(self) -> None:
+		cache = EntryCache()
+		root = Tree('root', [])
+		cache.add('root', root)
+		self.assertEqual(cache.by('root'), root)
+
+	def test_group_by(self) -> None:
+		cache = EntryCache()
+		root = Tree('root', [
+			Token('term_a', ''),
+			Tree('tree_a', [
+				Token('term_b', ''),
+			]),
+			Token('term_c', ''),
+		])
+		tree_a = cast(Tree, root.children[1])
+		cache.add('root', root)
+		cache.add('root.term_a', root.children[0])
+		cache.add('root.tree_a', root.children[1])
+		cache.add('root.tree_a.term_b', tree_a.children[0])
+		cache.add('root.term_c', root.children[2])
+		arr = list(cache.group_by('root').values())
+		self.assertEqual(arr, [root, root.children[0], tree_a, tree_a.children[0], root.children[2]])
+		self.assertEqual(list(cache.group_by('root.tree_a').values()), [tree_a, tree_a.children[0]])
+
+	def test_add(self) -> None:
+		cache = EntryCache()
+		cache.add('root', Tree('root', []))
+		self.assertEqual(cache.exists('root'), True)
+
+
 class TestNodes(TestCase):
 	@data_provider([
 		('root', True),
@@ -148,7 +186,6 @@ class TestNodes(TestCase):
 		self.assertEqual(type(node), expected)
 
 	@data_provider([
-		('root', []),
 		('root.tree_a', [TreeA, Terminal, TreeC]),
 		('root.tree_a.__empty__', [Empty, TokenA, TreeB, TreeB, TokenA, TokenC]),
 		('root.tree_a.token_a[1]', [Empty, TokenA, TreeB, TreeB, TokenA, TokenC]),
@@ -210,7 +247,7 @@ class TestNodes(TestCase):
 			nodes.expansion(via)
 
 	@data_provider([
-		('root.tree_a.token_a', 'a.a'),
+		('root.tree_a.token_a[1]', 'a.a'),
 		('root.tree_a.tree_b[3].token_b', 'a.b.b'),
 		('root.term_a', 'a'),
 		('root.tree_c.skip_tree_a.term_a', 'c.a.a'),

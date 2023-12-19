@@ -20,7 +20,9 @@
 			"type": "python",
 			"request": "launch",
 			"module":"unittest",
-			"args": ["tests.unit.py2cpp.node.test_definition.TestDefinition.test_function"],
+			"args": ["tests.unit.py2cpp.node.test_definition.TestDefinition.test_indexer"],
+			// "args": ["tests.unit.py2cpp.node.test_nodes.TestNodes"],
+			// "args": ["tests.unit.py2cpp.node.test_node.TestNode.test_is_a"],
 			"cwd": "${workspaceFolder}",
 			"env": {
 				"PYTHONDONTWRITEBYTECODE": "1",

@@ -158,6 +158,46 @@ class NodeResolver:
 		self.__insts = {}
 
 
+class EntryCache:
+	def __init__(self) -> None:
+		self.__items: list[Entry] = []
+		self.__indexs: dict[str, tuple[int, int]] = {}
+
+	def exists(self, key: str) -> bool:
+		return key in self.__indexs
+
+	def by(self, key: str) -> Entry:
+		if not self.exists(key):
+			raise NotFoundError(key)
+
+		begin, _ = self.__indexs[key]
+		return self.__items[begin]
+
+	def group_by(self, key: str) -> dict[str, Entry]:
+		if not self.exists(key):
+			raise NotFoundError(key)
+
+		begin, end = self.__indexs[key]
+		items = self.__items[begin:end + 1]
+		keys = list(self.__indexs.keys())[begin:end + 1]
+		return {keys[index]: items[index] for index in range((end + 1) - begin)}
+
+	def add(self, key: str, item: Entry) -> None:
+		if self.exists(key):
+			return
+
+		begin = len(self.__items)
+		self.__items.append(item)
+		self.__indexs[key] = (begin, begin)
+
+		remain = key.split('.')[:-1]
+		while len(remain):
+			in_key = '.'.join(remain)
+			begin, end = self.__indexs[in_key]
+			self.__indexs[in_key] = (begin, end + 1)
+			remain.pop()
+
+
 class Nodes(Query[Node]):
 	"""ノードクエリーインターフェイス。ASTを元にノードの探索し、リゾルバーを介してインスタンスを解決"""
 
@@ -172,6 +212,9 @@ class Nodes(Query[Node]):
 		self.__resolver = resolver
 		self.__proxy = EntryProxyLark()
 		self.__finder = ASTFinder(self.__proxy)
+		self.__cache = EntryCache()
+		for full_path, entry in self.__finder.full_pathfy(self.__root).items():
+			self.__cache.add(full_path, entry)
 
 	def __resolve(self, entry: Entry, full_path: str) -> Node:
 		"""エントリーからノードを解決し、パスとマッピングしてキャッシュ
@@ -193,7 +236,7 @@ class Nodes(Query[Node]):
 		Returns:
 			bool: True = 存在
 		"""
-		return self.__finder.exists(self.__root, full_path)
+		return self.__cache.exists(full_path)
 
 	@implements
 	def by(self, full_path: str) -> Node:
@@ -206,7 +249,7 @@ class Nodes(Query[Node]):
 		Raises:
 			NotFoundError: ノードが存在しない
 		"""
-		entry = self.__finder.pluck(self.__root, full_path)
+		entry = self.__cache.by(full_path)
 		return self.__resolve(entry, full_path)
 
 	@implements
@@ -239,12 +282,15 @@ class Nodes(Query[Node]):
 		Returns:
 			list[Node]: ノードリスト
 		Raises:
-			NotFouneError: 基点のノードが存在しない
+			NotFoundError: 基点のノードが存在しない
 		"""
 		uplayer_path = EntryPath(via).shift(-1)
+		if not uplayer_path.valid:
+			raise NotFoundError(via)
+
 		regular = re.compile(rf'{uplayer_path.escaped_origin}\.[^.]+')
 		tester = lambda _, path: regular.fullmatch(path) is not None
-		entries = self.__finder.find(self.__root, uplayer_path.origin, tester, depth=1)
+		entries = {path: entry for path, entry in self.__cache.group_by(uplayer_path.origin).items() if tester(entry, path)}
 		return [self.__resolve(entry, path) for path, entry in entries.items()]
 
 	@implements
@@ -256,11 +302,11 @@ class Nodes(Query[Node]):
 		Returns:
 			list[Node]: ノードリスト
 		Raises:
-			NotFouneError: 基点のノードが存在しない
+			NotFoundError: 基点のノードが存在しない
 		"""
 		regular = re.compile(rf'{EntryPath(via).escaped_origin}\.[^.]+')
 		tester = lambda _, path: regular.fullmatch(path) is not None
-		entries = self.__finder.find(self.__root, via, tester, depth=1)
+		entries = {path: entry for path, entry in self.__cache.group_by(via).items() if tester(entry, path)}
 		return [self.__resolve(entry, path) for path, entry in entries.items()]
 
 	@implements
@@ -273,11 +319,11 @@ class Nodes(Query[Node]):
 		Returns:
 			list[Node]: ノードリスト
 		Raises:
-			NotFouneError: 基点のノードが存在しない
+			NotFoundError: 基点のノードが存在しない
 		"""
 		regular = re.compile(rf'{EntryPath(via).escaped_origin}\.(.+\.)?{leaf_tag}(\[\d+\])?')
 		tester = lambda _, path: regular.fullmatch(path) is not None
-		entries = self.__finder.find(self.__root, via, tester)
+		entries = {path: entry for path, entry in self.__cache.group_by(via).items() if tester(entry, path)}
 		return [self.__resolve(entry, path) for path, entry in entries.items()]
 
 	@implements
@@ -289,7 +335,7 @@ class Nodes(Query[Node]):
 		Returns:
 			list[Node]: ノードリスト
 		Raises:
-			NotFouneError: 基点のノードが存在しない
+			NotFoundError: 基点のノードが存在しない
 		"""
 		memo: list[str] = []
 		def tester(entry: Entry, path: str) -> bool:
@@ -316,7 +362,7 @@ class Nodes(Query[Node]):
 			in_allows = [index for index, in_tag in enumerate(entry_tags) if self.__resolver.can_resolve(in_tag)]
 			return len(in_allows) == 0
 
-		entries = self.__finder.find(self.__root, via, tester)
+		entries = {path: entry for path, entry in self.__cache.group_by(via).items() if tester(entry, path)}
 		return [self.__resolve(entry, path) for path, entry in entries.items()]
 
 	@implements
@@ -328,7 +374,7 @@ class Nodes(Query[Node]):
 		Returns:
 			str: 値
 		"""
-		entry = self.__finder.pluck(self.__root, full_path)
+		entry = self.__cache.by(full_path)
 		return self.__proxy.value(entry) if self.__proxy.is_terminal(entry) else ''
 
 	# @implements

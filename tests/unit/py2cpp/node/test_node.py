@@ -299,7 +299,7 @@ class TestNode(TestCase):
 
 	def test_is_a(self) -> None:
 		nodes = Fixture.nodes()
-		node = nodes.by('fule_input.class')
+		node = nodes.by('file_input.class')
 		self.assertEqual(type(node), Class)
 		self.assertEqual(node.is_a(Class), True)
 		self.assertEqual(node.is_a(Node), True)
@@ -307,19 +307,19 @@ class TestNode(TestCase):
 
 	def test_as_a(self) -> None:
 		nodes = Fixture.nodes()
-		node = nodes.by('fule_input.class')
+		node = nodes.by('file_input.class')
 		self.assertEqual(type(node), Class)
 		self.assertEqual(type(node.as_a(Terminal)), Terminal)
 
 	def test_if_not_a_to_b(self) -> None:
 		nodes = Fixture.nodes()
-		empty = nodes.by('fule_input.class.__empty__')
+		empty = nodes.by('file_input.class.__empty__')
 		self.assertEqual(type(empty), Empty)
 		self.assertEqual(type(empty.if_not_a_to_b(Empty, Terminal)), Empty)
 
 	def test_if_a_actualize_from_b(self) -> None:
 		nodes = Fixture.nodes()
-		empty = nodes.by('fule_input.class.__empty__')
+		empty = nodes.by('file_input.class.__empty__')
 		self.assertEqual(type(empty), Empty)
 		self.assertEqual(type(empty.if_a_actualize_from_b(Terminal, Expression)), Empty)
 

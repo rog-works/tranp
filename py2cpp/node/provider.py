@@ -165,7 +165,7 @@ class Query(Generic[T], metaclass=ABCMeta):
 		Returns:
 			list[T]: エントリーリスト
 		Raises:
-			NotFouneError: 基点のエントリーが存在しない
+			NotFoundError: 基点のエントリーが存在しない
 		"""
 		raise NotImplementedError()
 
@@ -178,7 +178,7 @@ class Query(Generic[T], metaclass=ABCMeta):
 		Returns:
 			list[T]: エントリーリスト
 		Raises:
-			NotFouneError: 基点のエントリーが存在しない
+			NotFoundError: 基点のエントリーが存在しない
 		"""
 		raise NotImplementedError()
 
@@ -192,7 +192,7 @@ class Query(Generic[T], metaclass=ABCMeta):
 		Returns:
 			list[T]: エントリーリスト
 		Raises:
-			NotFouneError: 基点のエントリーが存在しない
+			NotFoundError: 基点のエントリーが存在しない
 		"""
 		raise NotImplementedError()
 
@@ -205,7 +205,7 @@ class Query(Generic[T], metaclass=ABCMeta):
 		Returns:
 			list[T]: エントリーリスト
 		Raises:
-			NotFouneError: 基点のエントリーが存在しない
+			NotFoundError: 基点のエントリーが存在しない
 		"""
 		raise NotImplementedError()
 
@@ -218,7 +218,7 @@ class Query(Generic[T], metaclass=ABCMeta):
 		Returns:
 			str: 値
 		Raises:
-			NotFouneError: エントリーが存在しない
+			NotFoundError: エントリーが存在しない
 		"""
 		...
 

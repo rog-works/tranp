@@ -50,7 +50,7 @@ class Indexer(GetItem):
 
 	@property
 	def key(self) -> Node:
-		return self._by('slices.slice[0]')._at(0).if_a_actualize_from_b(Terminal, Expression)
+		return self._by('slices.slice')._at(0).if_a_actualize_from_b(Terminal, Expression)
 
 
 class GenericType(GetItem): pass
@@ -72,7 +72,7 @@ class ListType(GenericType):
 
 	@property
 	def value_type(self) -> Symbol | GenericType:
-		return self._by('slices.slice[0]')._at(0).if_not_a_to_b(GenericType, Symbol)
+		return self._by('slices.slice')._at(0).if_not_a_to_b(GenericType, Symbol)
 
 
 @Meta.embed(Node, actualized(via=GetItem))

@@ -10,10 +10,12 @@ from py2cpp.node.trait import ScopeTrait
 @Meta.embed(Node, accept_tags('paramvalue'))
 class Parameter(Node):
 	@property
+	@Meta.embed(Node, expansionable(order=0))
 	def symbol(self) -> Symbol:
 		return self._by('typedparam.name').as_a(Symbol)
 
 	@property
+	@Meta.embed(Node, expansionable(order=1))
 	def var_type(self) -> Symbol | GenericType | Empty:
 		typed = self._by('typedparam')._at(1)
 		if typed.is_a(Empty):
@@ -22,6 +24,7 @@ class Parameter(Node):
 		return typed.if_not_a_to_b(GenericType, Symbol)
 
 	@property
+	@Meta.embed(Node, expansionable(order=2))
 	def default_value(self) -> Terminal | Empty:
 		return self._at(1).if_not_a_to_b(Empty, Terminal)
 

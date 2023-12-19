@@ -21,9 +21,6 @@ T_EnumVar = TypedDict('T_EnumVar', {'enum_name': str})
 T_ParameterVar = TypedDict('T_ParameterVar', {'symbol': str, 'var_type': str, 'default_value': str})
 T_FunctionVar = TypedDict('T_FunctionVar', {'function_name': str, 'parameters': list[T_ParameterVar]})
 T_MethodVar = TypedDict('T_MethodVar', {'access': str, 'function_name': str, 'class_name': str, 'parameters': list[T_ParameterVar], 'return_type': str})
-T_KeyValueVar = TypedDict('T_KeyValueVar', {'key': str, 'value': str})
-T_DictVar = TypedDict('T_DictVar', {'items': list[T_KeyValueVar]})
-T_ListVar = TypedDict('T_ListVar', {'values': list[str]})
 
 T = TypeVar('T')
 
@@ -230,13 +227,13 @@ class Handler:
 		key_or_values = [key_or_value for _, key_or_value in ctx.registry.each_pop(len(node.items) * 2)]
 		items = [[key_or_values[index * 2 + 1], key_or_values[index * 2]] for index in range(len(node.items))]
 		items.reverse()
-		text = ctx.view.render(node.identifer, vars={**serialize(node, T_DictVar), 'items': items})
+		text = ctx.view.render(node.identifer, vars={'items': items})
 		ctx.registry.push((node, text))
 
 	def on_list(self, node: defs.List, ctx: Context) -> None:
 		values = [value for _, value in ctx.registry.each_pop(len(node.values))]
 		values.reverse()
-		text = ctx.view.render(node.identifer, vars={**serialize(node, T_ListVar), **{'values': values}})
+		text = ctx.view.render(node.identifer, vars={'values': values})
 		ctx.registry.push((node, text))
 
 	# Expression

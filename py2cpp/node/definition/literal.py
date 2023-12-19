@@ -8,12 +8,12 @@ from py2cpp.node.node import Node
 class Literal(Node): pass
 
 
-# @Meta.embed(Node, accept_tags('number'))
-# class Number(Literal): pass
+@Meta.embed(Node, accept_tags('number'))
+class Number(Literal): pass
 
 
-@Meta.embed(Node, accept_tags('number'), actualized(via=Expression))
-class Integer(Literal):
+@Meta.embed(Node, actualized(via=Number))
+class Integer(Number):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
 		return Terminal.match_terminal(via, allow_tags=['number', 'DEC_NUMBER', 'HEX_NUMBER'])
@@ -28,8 +28,8 @@ class Integer(Literal):
 		return '.'.join([node.to_string() for node in self._under_expansion()])
 
 
-@Meta.embed(Node, accept_tags('number'), actualized(via=Expression))
-class Float(Literal):
+@Meta.embed(Node, actualized(via=Number))
+class Float(Number):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
 		return Terminal.match_terminal(via, allow_tags=['number', 'FLOAT_NUMBER'])
@@ -44,7 +44,7 @@ class Float(Literal):
 		return '.'.join([node.to_string() for node in self._under_expansion()])
 
 
-@Meta.embed(Node, accept_tags('string'), actualized(via=Expression))
+@Meta.embed(Node, accept_tags('string'))
 class String(Literal):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:

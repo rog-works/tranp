@@ -36,7 +36,7 @@ def make_settings() -> Settings:
 			# 'binary_op': defs.BinaryOperator
 			# 'group_expr': defs.Group
 			# -- Literal --
-			# 'number': defs.Number,
+			'number': defs.Number,
 			# 'number': defs.Integer,
 			# 'number': defs.Float,
 			'string': defs.String,

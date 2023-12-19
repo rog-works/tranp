@@ -50,7 +50,7 @@ class Renderer:
 		Returns:
 			str: レンダリング結果
 		"""
-		text = self.__renderer.get_template(template).render(vars)
+		text = self.__renderer.get_template(f'{template}.j2').render(vars)
 		return self.__indentation(text, indent)
 
 	def __indentation(self, text: str, indent: int) -> str:

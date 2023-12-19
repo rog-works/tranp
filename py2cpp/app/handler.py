@@ -235,6 +235,7 @@ class Handler:
 
 	def on_list(self, node: defs.List, ctx: Context) -> None:
 		values = [value for _, value in ctx.registry.each_pop(len(node.values))]
+		values.reverse()
 		text = ctx.view.render('list.j2', vars={**serialize(node, T_ListVar), **{'values': values}})
 		ctx.registry.push((node, text))
 

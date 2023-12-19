@@ -368,6 +368,9 @@ class Node(NodeBase):
 			Node: A以外か、Bから変換した具象クラス
 		Note:
 			変換先のクラスは状況次第のため不明
+			利用例:
+			ノードがタグで解決できない型の時(=フォールバック型)、仲介型(=Expression)を通してactualizeを呼ぶ
+			例) node.if_a_actualize_from_b(Terminal, Expression)
 		"""
 		return cast(Node, self.as_a(through_type)).actualize() if self.is_a(expect_type) else self
 

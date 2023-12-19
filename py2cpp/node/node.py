@@ -227,6 +227,24 @@ class Node(NodeBase):
 
 		return children[index]
 
+	def _at_child(self, index: int) -> 'Node':
+		"""展開できる子ノードをフェッチ
+
+		Args:
+			index (int): 子のインデックス
+		Returns:
+			Node: ノード
+		Raises:
+			NotFoundError: 子が存在しない
+		Note:
+			@deprecated
+		"""
+		under = self._under_expansion()
+		if index < 0 or len(under) <= index:
+			raise NotFoundError(str(self), index)
+
+		return under[index]
+
 	def _siblings(self, relative_path: str = '') -> list['Node']:
 		"""指定のパスを基準に同階層のノードをフェッチ
 		パスを省略した場合は自身と同階層を検索し、自身を除いたノードを返却

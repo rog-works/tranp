@@ -20,7 +20,7 @@
 			"type": "python",
 			"request": "launch",
 			"module":"unittest",
-			"args": ["tests.unit.py2cpp.node.test_definition.TestDefinition.test_anno_assign"],
+			"args": ["tests.unit.py2cpp.node.test_definition.TestDefinition.test_function"],
 			"cwd": "${workspaceFolder}",
 			"env": {
 				"PYTHONDONTWRITEBYTECODE": "1",

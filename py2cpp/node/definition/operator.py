@@ -10,10 +10,10 @@ class UnaryOperator(Node):
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:
-		if via._at(0).to_string() not in ['+', '-', '~']:
+		if len(via._children()) != 2:
 			return False
 
-		return len(via._children()) == 2
+		return via._at(0).to_string() in ['+', '-', '~']
 
 	@property
 	@Meta.embed(Node, expansionable(order=0))

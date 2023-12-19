@@ -15,3 +15,7 @@ class Terminal(Node):
 
 @Meta.embed(Node, accept_tags('__empty__', 'const_none'))
 class Empty(Node): pass
+
+
+@Meta.embed(Node, accept_tags('const_none'))
+class Null(Node): pass

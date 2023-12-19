@@ -1,6 +1,6 @@
 from lark import Tree, Token
 def fixture() -> Tree:
-	return Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'import_stmt'), [Tree(Token('RULE', 'dotted_name'), [Tree(Token('RULE', 'name'), [Token('NAME', 'py2cpp')]), Tree(Token('RULE', 'name'), [Token('NAME', 'cpp')]), Tree(Token('RULE', 'name'), [Token('NAME', 'directive')])]), Tree(Token('RULE', 'import_names'), [Tree(Token('RULE', 'name'), [Token('NAME', 'pragma')])])]), Tree(Token('RULE', 'import_stmt'), [Tree(Token('RULE', 'dotted_name'), [Tree(Token('RULE', 'name'), [Token('NAME', 'py2cpp')]), Tree(Token('RULE', 'name'), [Token('NAME', 'cpp')]), Tree(Token('RULE', 'name'), [Token('NAME', 'enum')])]), Tree(Token('RULE', 'import_names'), [Tree(Token('RULE', 'name'), [Token('NAME', 'CEnum')]), Tree(Token('RULE', 'name'), [Token('NAME', 'A')])])]), Tree('funccall', [Tree(Token('RULE', 'primary'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'pragma')])])]), Tree(Token('RULE', 'arguments'), [Tree(Token('RULE', 'argvalue'), [Tree(Token('RULE', 'primary'), [Tree(Token('RULE', 'atom'), [Tree(Token('RULE', 'string'), [Token('STRING', "'once'")])])])])])]), Tree(Token('RULE', 'class_def'), [None, Tree(Token('RULE', 'class_def_raw'), [Tree(Token('RULE', 'name'), [Token('NAME', 'Base')]), None, Tree(Token('RULE', 'block'), [Tree(Token('RULE', 'pass_stmt'), [])])])]), Tree(Token('RULE', 'class_def'), [Tree(Token('RULE', 'decorators'), [Tree(Token('RULE', 'decorator'), [Tree(Token('RULE', 'dotted_name'), [Tree(Token('RULE', 'name'), [Token('NAME', 'deco')])]), Tree(Token('RULE', 'arguments'), [Tree(Token('RULE', 'argvalue'), [Tree(Token('RULE', 'primary'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'A')])])])]), Tree(Token('RULE', 'argvalue'), [Tree('getattr', [Tree(Token('RULE', 'primary'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'A')])])]), Tree(Token('RULE', 'name'), [Token('NAME', 'B')])])])])])]), Tree(Token('RULE', 'class_def_raw'), [Tree(Token('RULE', 'name'), [Token('NAME', 'Hoge')]), Tree(Token('RULE', 'arguments'), [Tree(Token('RULE', 'argvalue'), [Tree(Token('RULE', 'primary'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'Base')])])])])]), Tree(Token('RULE', 'block'), [Tree(Token('RULE', 'enum_def'), [Tree(Token('RULE', 'name'), [Token('NAME', 'Values')]), Tree(Token('RULE', 'block'), [Tree(Token('RULE', 'assign_stmt'), [Tree(Token('RULE', 'assign'), [Tree(Token('RULE', 'primary'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'A')])])]), Tree(Token('RULE', 'primary'), [Tree(Token('RULE', 'atom'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '0')])])])])]), Tree(Token('RULE', 'assign_stmt'), [Tree(Token('RULE', 'assign'), [Tree(Token('RULE', 'primary'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'B')])])]), Tree(Token('RULE', 'primary'), [Tree(Token('RULE', 'atom'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')])])])])])])]), Tree(Token('RULE', 'function_def'), [None, Tree(Token('RULE', 'function_def_raw'), [Tree(Token('RULE', 'name'), [Token('NAME', 'func1')]), Tree(Token('RULE', 'parameters'), [Tree(Token('RULE', 'paramvalue'), [Tree(Token('RULE', 'typedparam'), [Tree(Token('RULE', 'name'), [Token('NAME', 'self')]), None]), None]), Tree(Token('RULE', 'paramvalue'), [Tree(Token('RULE', 'typedparam'), [Tree(Token('RULE', 'name'), [Token('NAME', 'value')]), Tree(Token('RULE', 'primary'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'int')])])])]), None])]), Tree(Token('RULE', 'primary'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'Values')])])]), Tree(Token('RULE', 'block'), [Tree(Token('RULE', 'if_stmt'), [Tree(Token('RULE', 'comparison'), [Tree(Token('RULE', 'primary'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'value')])])]), Tree(Token('RULE', 'comp_op'), [Token('__ANON_14', '==')]), Tree(Token('RULE', 'primary'), [Tree(Token('RULE', 'atom'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '0')])])])]), Tree(Token('RULE', 'block'), [Tree(Token('RULE', 'return_stmt'), [Tree('getattr', [Tree('getattr', [Tree(Token('RULE', 'primary'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'Hoge')])])]), Tree(Token('RULE', 'name'), [Token('NAME', 'Values')])]), Tree(Token('RULE', 'name'), [Token('NAME', 'A')])])])]), Tree(Token('RULE', 'elifs'), []), Tree(Token('RULE', 'block'), [Tree(Token('RULE', 'return_stmt'), [Tree('getattr', [Tree('getattr', [Tree(Token('RULE', 'primary'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'Hoge')])])]), Tree(Token('RULE', 'name'), [Token('NAME', 'Values')])]), Tree(Token('RULE', 'name'), [Token('NAME', 'B')])])])])])])])]), Tree(Token('RULE', 'function_def'), [Tree(Token('RULE', 'decorators'), [Tree(Token('RULE', 'decorator'), [Tree(Token('RULE', 'dotted_name'), [Tree(Token('RULE', 'name'), [Token('NAME', 'deco_func')])]), Tree(Token('RULE', 'arguments'), [Tree(Token('RULE', 'argvalue'), [Tree(Token('RULE', 'primary'), [Tree(Token('RULE', 'atom'), [Tree(Token('RULE', 'string'), [Token('STRING', "'hoge'")])])])])])])]), Tree(Token('RULE', 'function_def_raw'), [Tree(Token('RULE', 'name'), [Token('NAME', '_func2')]), Tree(Token('RULE', 'parameters'), [Tree(Token('RULE', 'paramvalue'), [Tree(Token('RULE', 'typedparam'), [Tree(Token('RULE', 'name'), [Token('NAME', 'self')]), None]), None]), Tree(Token('RULE', 'paramvalue'), [Tree(Token('RULE', 'typedparam'), [Tree(Token('RULE', 'name'), [Token('NAME', 'text')]), Tree(Token('RULE', 'primary'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'str')])])])]), None])]), Tree(Token('RULE', 'primary'), [Tree('const_none', [])]), Tree(Token('RULE', 'block'), [Tree(Token('RULE', 'assign_stmt'), [Tree(Token('RULE', 'anno_assign'), [Tree(Token('RULE', 'primary'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'map')])])]), Tree('getitem', [Tree(Token('RULE', 'primary'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'dict')])])]), Tree(Token('RULE', 'slices'), [Tree(Token('RULE', 'slice'), [Tree('getattr', [Tree(Token('RULE', 'primary'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'Hoge')])])]), Tree(Token('RULE', 'name'), [Token('NAME', 'Values')])])]), Tree(Token('RULE', 'slice'), [Tree(Token('RULE', 'primary'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'int')])])])])])]), Tree(Token('RULE', 'primary'), [Tree('dict', [Tree(Token('RULE', 'key_value'), [Tree('getattr', [Tree('getattr', [Tree(Token('RULE', 'primary'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'Hoge')])])]), Tree(Token('RULE', 'name'), [Token('NAME', 'Values')])]), Tree(Token('RULE', 'name'), [Token('NAME', 'A')])]), Tree(Token('RULE', 'primary'), [Tree(Token('RULE', 'atom'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '0')])])])]), Tree(Token('RULE', 'key_value'), [Tree('getattr', [Tree('getattr', [Tree(Token('RULE', 'primary'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'Hoge')])])]), Tree(Token('RULE', 'name'), [Token('NAME', 'Values')])]), Tree(Token('RULE', 'name'), [Token('NAME', 'B')])]), Tree(Token('RULE', 'primary'), [Tree(Token('RULE', 'atom'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')])])])])])])])]), Tree(Token('RULE', 'assign_stmt'), [Tree(Token('RULE', 'assign'), [Tree(Token('RULE', 'primary'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'empty_map')])])]), Tree(Token('RULE', 'primary'), [Tree('dict', [])])])]), Tree(Token('RULE', 'assign_stmt'), [Tree(Token('RULE', 'anno_assign'), [Tree(Token('RULE', 'primary'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'arr')])])]), Tree('getitem', [Tree(Token('RULE', 'primary'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'list')])])]), Tree(Token('RULE', 'slices'), [Tree(Token('RULE', 'slice'), [Tree(Token('RULE', 'primary'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'int')])])])])])]), Tree(Token('RULE', 'primary'), [Tree('list', [Tree(Token('RULE', 'primary'), [Tree(Token('RULE', 'atom'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '0')])])]), Tree(Token('RULE', 'primary'), [Tree(Token('RULE', 'atom'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')])])]), Tree(Token('RULE', 'primary'), [Tree(Token('RULE', 'atom'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '2')])])])])])])]), Tree(Token('RULE', 'assign_stmt'), [Tree(Token('RULE', 'assign'), [Tree(Token('RULE', 'primary'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'empty_arr')])])]), Tree(Token('RULE', 'primary'), [Tree('list', [])])])]), Tree('getitem', [Tree(Token('RULE', 'primary'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'arr')])])]), Tree(Token('RULE', 'slices'), [Tree(Token('RULE', 'slice'), [Tree(Token('RULE', 'primary'), [Tree(Token('RULE', 'atom'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '0')])])])])])]), Tree(Token('RULE', 'assign_stmt'), [Tree(Token('RULE', 'aug_assign'), [Tree('getitem', [Tree(Token('RULE', 'primary'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'arr')])])]), Tree(Token('RULE', 'slices'), [Tree(Token('RULE', 'slice'), [Tree(Token('RULE', 'primary'), [Tree(Token('RULE', 'atom'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '0')])])])])])]), Tree(Token('RULE', 'aug_assign_op'), [Token('__ANON_1', '+=')]), Tree('getitem', [Tree(Token('RULE', 'primary'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'arr')])])]), Tree(Token('RULE', 'slices'), [Tree(Token('RULE', 'slice'), [Tree(Token('RULE', 'primary'), [Tree(Token('RULE', 'atom'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')])])])])])])])])])])]), Tree(Token('RULE', 'function_def'), [None, Tree(Token('RULE', 'function_def_raw'), [Tree(Token('RULE', 'name'), [Token('NAME', '__init__')]), Tree(Token('RULE', 'parameters'), [Tree(Token('RULE', 'paramvalue'), [Tree(Token('RULE', 'typedparam'), [Tree(Token('RULE', 'name'), [Token('NAME', 'self')]), None]), None]), Tree(Token('RULE', 'paramvalue'), [Tree(Token('RULE', 'typedparam'), [Tree(Token('RULE', 'name'), [Token('NAME', 'v')]), Tree(Token('RULE', 'primary'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'int')])])])]), None]), Tree(Token('RULE', 'paramvalue'), [Tree(Token('RULE', 'typedparam'), [Tree(Token('RULE', 'name'), [Token('NAME', 's')]), Tree(Token('RULE', 'primary'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'str')])])])]), None])]), Tree(Token('RULE', 'primary'), [Tree('const_none', [])]), Tree(Token('RULE', 'block'), [Tree(Token('RULE', 'assign_stmt'), [Tree(Token('RULE', 'anno_assign'), [Tree('getattr', [Tree(Token('RULE', 'primary'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'self')])])]), Tree(Token('RULE', 'name'), [Token('NAME', 'v')])]), Tree(Token('RULE', 'primary'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'int')])])]), Tree(Token('RULE', 'primary'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'v')])])])])]), Tree(Token('RULE', 'assign_stmt'), [Tree(Token('RULE', 'anno_assign'), [Tree('getattr', [Tree(Token('RULE', 'primary'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'self')])])]), Tree(Token('RULE', 'name'), [Token('NAME', 's')])]), Tree(Token('RULE', 'primary'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'str')])])]), Tree(Token('RULE', 'primary'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 's')])])])])])])])])])])]), Tree(Token('RULE', 'function_def'), [None, Tree(Token('RULE', 'function_def_raw'), [Tree(Token('RULE', 'name'), [Token('NAME', 'func3')]), Tree(Token('RULE', 'parameters'), [Tree(Token('RULE', 'paramvalue'), [Tree(Token('RULE', 'typedparam'), [Tree(Token('RULE', 'name'), [Token('NAME', 'ok')]), Tree(Token('RULE', 'primary'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'bool')])])])]), None])]), Tree(Token('RULE', 'primary'), [Tree('const_none', [])]), Tree(Token('RULE', 'block'), [Tree(Token('RULE', 'pass_stmt'), [])])])])])
+	return Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'import_stmt'), [Tree(Token('RULE', 'dotted_name'), [Tree(Token('RULE', 'name'), [Token('NAME', 'py2cpp')]), Tree(Token('RULE', 'name'), [Token('NAME', 'cpp')]), Tree(Token('RULE', 'name'), [Token('NAME', 'directive')])]), Tree(Token('RULE', 'import_names'), [Tree(Token('RULE', 'name'), [Token('NAME', 'pragma')])])]), Tree(Token('RULE', 'import_stmt'), [Tree(Token('RULE', 'dotted_name'), [Tree(Token('RULE', 'name'), [Token('NAME', 'py2cpp')]), Tree(Token('RULE', 'name'), [Token('NAME', 'cpp')]), Tree(Token('RULE', 'name'), [Token('NAME', 'enum')])]), Tree(Token('RULE', 'import_names'), [Tree(Token('RULE', 'name'), [Token('NAME', 'CEnum')]), Tree(Token('RULE', 'name'), [Token('NAME', 'A')])])]), Tree('funccall', [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'pragma')])]), Tree(Token('RULE', 'arguments'), [Tree(Token('RULE', 'argvalue'), [Tree(Token('RULE', 'string'), [Token('STRING', "'once'")])])])]), Tree(Token('RULE', 'class_def'), [None, Tree(Token('RULE', 'class_def_raw'), [Tree(Token('RULE', 'name'), [Token('NAME', 'Base')]), None, Tree(Token('RULE', 'block'), [Tree(Token('RULE', 'pass_stmt'), [])])])]), Tree(Token('RULE', 'class_def'), [Tree(Token('RULE', 'decorators'), [Tree(Token('RULE', 'decorator'), [Tree(Token('RULE', 'dotted_name'), [Tree(Token('RULE', 'name'), [Token('NAME', 'deco')])]), Tree(Token('RULE', 'arguments'), [Tree(Token('RULE', 'argvalue'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'A')])])]), Tree(Token('RULE', 'argvalue'), [Tree('getattr', [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'A')])]), Tree(Token('RULE', 'name'), [Token('NAME', 'B')])])])])])]), Tree(Token('RULE', 'class_def_raw'), [Tree(Token('RULE', 'name'), [Token('NAME', 'Hoge')]), Tree(Token('RULE', 'arguments'), [Tree(Token('RULE', 'argvalue'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'Base')])])])]), Tree(Token('RULE', 'block'), [Tree(Token('RULE', 'enum_def'), [Tree(Token('RULE', 'name'), [Token('NAME', 'Values')]), Tree(Token('RULE', 'block'), [Tree(Token('RULE', 'assign_stmt'), [Tree(Token('RULE', 'assign'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'A')])]), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '0')])])]), Tree(Token('RULE', 'assign_stmt'), [Tree(Token('RULE', 'assign'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'B')])]), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')])])])])]), Tree(Token('RULE', 'function_def'), [None, Tree(Token('RULE', 'function_def_raw'), [Tree(Token('RULE', 'name'), [Token('NAME', 'func1')]), Tree(Token('RULE', 'parameters'), [Tree(Token('RULE', 'paramvalue'), [Tree(Token('RULE', 'typedparam'), [Tree(Token('RULE', 'name'), [Token('NAME', 'self')]), None]), None]), Tree(Token('RULE', 'paramvalue'), [Tree(Token('RULE', 'typedparam'), [Tree(Token('RULE', 'name'), [Token('NAME', 'value')]), Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'int')])])]), None])]), Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'Values')])]), Tree(Token('RULE', 'block'), [Tree(Token('RULE', 'if_stmt'), [Tree(Token('RULE', 'comparison'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'value')])]), Tree(Token('RULE', 'comp_op'), [Token('__ANON_14', '==')]), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '0')])]), Tree(Token('RULE', 'block'), [Tree(Token('RULE', 'return_stmt'), [Tree('getattr', [Tree('getattr', [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'Hoge')])]), Tree(Token('RULE', 'name'), [Token('NAME', 'Values')])]), Tree(Token('RULE', 'name'), [Token('NAME', 'A')])])])]), Tree(Token('RULE', 'elifs'), []), Tree(Token('RULE', 'block'), [Tree(Token('RULE', 'return_stmt'), [Tree('getattr', [Tree('getattr', [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'Hoge')])]), Tree(Token('RULE', 'name'), [Token('NAME', 'Values')])]), Tree(Token('RULE', 'name'), [Token('NAME', 'B')])])])])])])])]), Tree(Token('RULE', 'function_def'), [Tree(Token('RULE', 'decorators'), [Tree(Token('RULE', 'decorator'), [Tree(Token('RULE', 'dotted_name'), [Tree(Token('RULE', 'name'), [Token('NAME', 'deco_func')])]), Tree(Token('RULE', 'arguments'), [Tree(Token('RULE', 'argvalue'), [Tree(Token('RULE', 'string'), [Token('STRING', "'hoge'")])])])])]), Tree(Token('RULE', 'function_def_raw'), [Tree(Token('RULE', 'name'), [Token('NAME', '_func2')]), Tree(Token('RULE', 'parameters'), [Tree(Token('RULE', 'paramvalue'), [Tree(Token('RULE', 'typedparam'), [Tree(Token('RULE', 'name'), [Token('NAME', 'self')]), None]), None]), Tree(Token('RULE', 'paramvalue'), [Tree(Token('RULE', 'typedparam'), [Tree(Token('RULE', 'name'), [Token('NAME', 'text')]), Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'str')])])]), None])]), Tree('const_none', []), Tree(Token('RULE', 'block'), [Tree(Token('RULE', 'assign_stmt'), [Tree(Token('RULE', 'anno_assign'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'map')])]), Tree('getitem', [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'dict')])]), Tree(Token('RULE', 'slices'), [Tree(Token('RULE', 'slice'), [Tree('getattr', [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'Hoge')])]), Tree(Token('RULE', 'name'), [Token('NAME', 'Values')])])]), Tree(Token('RULE', 'slice'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'int')])])])])]), Tree('dict', [Tree(Token('RULE', 'key_value'), [Tree('getattr', [Tree('getattr', [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'Hoge')])]), Tree(Token('RULE', 'name'), [Token('NAME', 'Values')])]), Tree(Token('RULE', 'name'), [Token('NAME', 'A')])]), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '0')])]), Tree(Token('RULE', 'key_value'), [Tree('getattr', [Tree('getattr', [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'Hoge')])]), Tree(Token('RULE', 'name'), [Token('NAME', 'Values')])]), Tree(Token('RULE', 'name'), [Token('NAME', 'B')])]), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')])])])])]), Tree(Token('RULE', 'assign_stmt'), [Tree(Token('RULE', 'assign'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'empty_map')])]), Tree('dict', [])])]), Tree(Token('RULE', 'assign_stmt'), [Tree(Token('RULE', 'anno_assign'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'arr')])]), Tree('getitem', [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'list')])]), Tree(Token('RULE', 'slices'), [Tree(Token('RULE', 'slice'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'int')])])])])]), Tree('list', [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '0')]), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')]), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '2')])])])]), Tree(Token('RULE', 'assign_stmt'), [Tree(Token('RULE', 'assign'), [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'empty_arr')])]), Tree('list', [])])]), Tree('getitem', [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'arr')])]), Tree(Token('RULE', 'slices'), [Tree(Token('RULE', 'slice'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '0')])])])]), Tree(Token('RULE', 'assign_stmt'), [Tree(Token('RULE', 'aug_assign'), [Tree('getitem', [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'arr')])]), Tree(Token('RULE', 'slices'), [Tree(Token('RULE', 'slice'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '0')])])])]), Tree(Token('RULE', 'aug_assign_op'), [Token('__ANON_1', '+=')]), Tree('getitem', [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'arr')])]), Tree(Token('RULE', 'slices'), [Tree(Token('RULE', 'slice'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')])])])])])])])])]), Tree(Token('RULE', 'function_def'), [None, Tree(Token('RULE', 'function_def_raw'), [Tree(Token('RULE', 'name'), [Token('NAME', '__init__')]), Tree(Token('RULE', 'parameters'), [Tree(Token('RULE', 'paramvalue'), [Tree(Token('RULE', 'typedparam'), [Tree(Token('RULE', 'name'), [Token('NAME', 'self')]), None]), None]), Tree(Token('RULE', 'paramvalue'), [Tree(Token('RULE', 'typedparam'), [Tree(Token('RULE', 'name'), [Token('NAME', 'v')]), Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'int')])])]), None]), Tree(Token('RULE', 'paramvalue'), [Tree(Token('RULE', 'typedparam'), [Tree(Token('RULE', 'name'), [Token('NAME', 's')]), Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'str')])])]), None])]), Tree('const_none', []), Tree(Token('RULE', 'block'), [Tree(Token('RULE', 'assign_stmt'), [Tree(Token('RULE', 'anno_assign'), [Tree('getattr', [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'self')])]), Tree(Token('RULE', 'name'), [Token('NAME', 'v')])]), Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'int')])]), Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'v')])])])]), Tree(Token('RULE', 'assign_stmt'), [Tree(Token('RULE', 'anno_assign'), [Tree('getattr', [Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'self')])]), Tree(Token('RULE', 'name'), [Token('NAME', 's')])]), Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'str')])]), Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 's')])])])])])])])])])]), Tree(Token('RULE', 'function_def'), [None, Tree(Token('RULE', 'function_def_raw'), [Tree(Token('RULE', 'name'), [Token('NAME', 'func3')]), Tree(Token('RULE', 'parameters'), [Tree(Token('RULE', 'paramvalue'), [Tree(Token('RULE', 'typedparam'), [Tree(Token('RULE', 'name'), [Token('NAME', 'ok')]), Tree('var', [Tree(Token('RULE', 'name'), [Token('NAME', 'bool')])])]), None])]), Tree('const_none', []), Tree(Token('RULE', 'block'), [Tree(Token('RULE', 'pass_stmt'), [])])])])])
 # ==========
 # file_input
 #   import_stmt
@@ -19,14 +19,11 @@ def fixture() -> Tree:
 #       name	CEnum
 #       name	A
 #   funccall
-#     primary
-#       var
-#         name	pragma
+#     var
+#       name	pragma
 #     arguments
 #       argvalue
-#         primary
-#           atom
-#             string	'once'
+#         string	'once'
 #   class_def
 #     None
 #     class_def_raw
@@ -41,42 +38,33 @@ def fixture() -> Tree:
 #           name	deco
 #         arguments
 #           argvalue
-#             primary
-#               var
-#                 name	A
+#             var
+#               name	A
 #           argvalue
 #             getattr
-#               primary
-#                 var
-#                   name	A
+#               var
+#                 name	A
 #               name	B
 #     class_def_raw
 #       name	Hoge
 #       arguments
 #         argvalue
-#           primary
-#             var
-#               name	Base
+#           var
+#             name	Base
 #       block
 #         enum_def
 #           name	Values
 #           block
 #             assign_stmt
 #               assign
-#                 primary
-#                   var
-#                     name	A
-#                 primary
-#                   atom
-#                     number	0
+#                 var
+#                   name	A
+#                 number	0
 #             assign_stmt
 #               assign
-#                 primary
-#                   var
-#                     name	B
-#                 primary
-#                   atom
-#                     number	1
+#                 var
+#                   name	B
+#                 number	1
 #         function_def
 #           None
 #           function_def_raw
@@ -90,30 +78,24 @@ def fixture() -> Tree:
 #               paramvalue
 #                 typedparam
 #                   name	value
-#                   primary
-#                     var
-#                       name	int
+#                   var
+#                     name	int
 #                 None
-#             primary
-#               var
-#                 name	Values
+#             var
+#               name	Values
 #             block
 #               if_stmt
 #                 comparison
-#                   primary
-#                     var
-#                       name	value
+#                   var
+#                     name	value
 #                   comp_op	==
-#                   primary
-#                     atom
-#                       number	0
+#                   number	0
 #                 block
 #                   return_stmt
 #                     getattr
 #                       getattr
-#                         primary
-#                           var
-#                             name	Hoge
+#                         var
+#                           name	Hoge
 #                         name	Values
 #                       name	A
 #                 elifs
@@ -121,9 +103,8 @@ def fixture() -> Tree:
 #                   return_stmt
 #                     getattr
 #                       getattr
-#                         primary
-#                           var
-#                             name	Hoge
+#                         var
+#                           name	Hoge
 #                         name	Values
 #                       name	B
 #         function_def
@@ -133,9 +114,7 @@ def fixture() -> Tree:
 #                 name	deco_func
 #               arguments
 #                 argvalue
-#                   primary
-#                     atom
-#                       string	'hoge'
+#                   string	'hoge'
 #           function_def_raw
 #             name	_func2
 #             parameters
@@ -147,126 +126,90 @@ def fixture() -> Tree:
 #               paramvalue
 #                 typedparam
 #                   name	text
-#                   primary
-#                     var
-#                       name	str
+#                   var
+#                     name	str
 #                 None
-#             primary
-#               const_none
+#             const_none
 #             block
 #               assign_stmt
 #                 anno_assign
-#                   primary
-#                     var
-#                       name	map
+#                   var
+#                     name	map
 #                   getitem
-#                     primary
-#                       var
-#                         name	dict
+#                     var
+#                       name	dict
 #                     slices
 #                       slice
 #                         getattr
-#                           primary
-#                             var
-#                               name	Hoge
+#                           var
+#                             name	Hoge
 #                           name	Values
 #                       slice
-#                         primary
+#                         var
+#                           name	int
+#                   dict
+#                     key_value
+#                       getattr
+#                         getattr
 #                           var
-#                             name	int
-#                   primary
-#                     dict
-#                       key_value
+#                             name	Hoge
+#                           name	Values
+#                         name	A
+#                       number	0
+#                     key_value
+#                       getattr
 #                         getattr
-#                           getattr
-#                             primary
-#                               var
-#                                 name	Hoge
-#                             name	Values
-#                           name	A
-#                         primary
-#                           atom
-#                             number	0
-#                       key_value
-#                         getattr
-#                           getattr
-#                             primary
-#                               var
-#                                 name	Hoge
-#                             name	Values
-#                           name	B
-#                         primary
-#                           atom
-#                             number	1
+#                           var
+#                             name	Hoge
+#                           name	Values
+#                         name	B
+#                       number	1
 #               assign_stmt
 #                 assign
-#                   primary
-#                     var
-#                       name	empty_map
-#                   primary
-#                     dict
+#                   var
+#                     name	empty_map
+#                   dict
 #               assign_stmt
 #                 anno_assign
-#                   primary
-#                     var
-#                       name	arr
-#                   getitem
-#                     primary
-#                       var
-#                         name	list
-#                     slices
-#                       slice
-#                         primary
-#                           var
-#                             name	int
-#                   primary
-#                     list
-#                       primary
-#                         atom
-#                           number	0
-#                       primary
-#                         atom
-#                           number	1
-#                       primary
-#                         atom
-#                           number	2
-#               assign_stmt
-#                 assign
-#                   primary
-#                     var
-#                       name	empty_arr
-#                   primary
-#                     list
-#               getitem
-#                 primary
 #                   var
 #                     name	arr
+#                   getitem
+#                     var
+#                       name	list
+#                     slices
+#                       slice
+#                         var
+#                           name	int
+#                   list
+#                     number	0
+#                     number	1
+#                     number	2
+#               assign_stmt
+#                 assign
+#                   var
+#                     name	empty_arr
+#                   list
+#               getitem
+#                 var
+#                   name	arr
 #                 slices
 #                   slice
-#                     primary
-#                       atom
-#                         number	0
+#                     number	0
 #               assign_stmt
 #                 aug_assign
 #                   getitem
-#                     primary
-#                       var
-#                         name	arr
+#                     var
+#                       name	arr
 #                     slices
 #                       slice
-#                         primary
-#                           atom
-#                             number	0
+#                         number	0
 #                   aug_assign_op	+=
 #                   getitem
-#                     primary
-#                       var
-#                         name	arr
+#                     var
+#                       name	arr
 #                     slices
 #                       slice
-#                         primary
-#                           atom
-#                             number	1
+#                         number	1
 #         function_def
 #           None
 #           function_def_raw
@@ -280,46 +223,37 @@ def fixture() -> Tree:
 #               paramvalue
 #                 typedparam
 #                   name	v
-#                   primary
-#                     var
-#                       name	int
+#                   var
+#                     name	int
 #                 None
 #               paramvalue
 #                 typedparam
 #                   name	s
-#                   primary
-#                     var
-#                       name	str
+#                   var
+#                     name	str
 #                 None
-#             primary
-#               const_none
+#             const_none
 #             block
 #               assign_stmt
 #                 anno_assign
 #                   getattr
-#                     primary
-#                       var
-#                         name	self
+#                     var
+#                       name	self
 #                     name	v
-#                   primary
-#                     var
-#                       name	int
-#                   primary
-#                     var
-#                       name	v
+#                   var
+#                     name	int
+#                   var
+#                     name	v
 #               assign_stmt
 #                 anno_assign
 #                   getattr
-#                     primary
-#                       var
-#                         name	self
+#                     var
+#                       name	self
 #                     name	s
-#                   primary
-#                     var
-#                       name	str
-#                   primary
-#                     var
-#                       name	s
+#                   var
+#                     name	str
+#                   var
+#                     name	s
 #   function_def
 #     None
 #     function_def_raw
@@ -328,12 +262,10 @@ def fixture() -> Tree:
 #         paramvalue
 #           typedparam
 #             name	ok
-#             primary
-#               var
-#                 name	bool
+#             var
+#               name	bool
 #           None
-#       primary
-#         const_none
+#       const_none
 #       block
 #         pass_stmt
 # 

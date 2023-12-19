@@ -6,11 +6,11 @@ from py2cpp.node.embed import Meta, accept_tags, actualized, expansionable
 from py2cpp.node.node import Node
 
 
-@Meta.embed(Node, accept_tags('getattr', 'primary', 'var', 'name', 'argvalue', 'dotted_name'), actualized(via=Expression))
+@Meta.embed(Node, accept_tags('getattr', 'var', 'name', 'argvalue', 'dotted_name'), actualized(via=Expression))
 class Symbol(Node):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
-		return Terminal.match_terminal(via, allow_tags=['getattr', 'primary', 'var', 'name', 'NAME'])
+		return Terminal.match_terminal(via, allow_tags=['getattr', 'var', 'name', 'NAME'])
 
 	@property
 	@override

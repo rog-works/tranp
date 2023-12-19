@@ -47,6 +47,7 @@ def make_settings() -> Settings:
 			# 'expression': defs.Expression
 			# -- Terminal --
 			# '': defs.Terminal
+			'const_none': defs.Null,
 			'__empty__': defs.Empty,
 		},
 		fallback=defs.Terminal

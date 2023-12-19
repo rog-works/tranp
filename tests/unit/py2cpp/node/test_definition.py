@@ -202,7 +202,7 @@ class TestDefinition(TestCase):
 		('file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block.assign_stmt[0]', {
 			'symbol': 'map',
 			'var_type': defs.DictType,
-			'value': defs.Expression,
+			'value': defs.Dict,
 		}),
 	])
 	def test_anno_assign(self, full_path: str, expected: dict[str, Any]) -> None:
@@ -281,8 +281,8 @@ class TestDefinition(TestCase):
 				{'value': "'once'"},
 			],
 			'calculated': [
-				'<Symbol: file_input.funccall.primary>',
-				'<String: file_input.funccall.arguments.argvalue.primary>',
+				'<Symbol: file_input.funccall.var>',
+				'<String: file_input.funccall.arguments.argvalue.string>',
 				'<Argument: file_input.funccall.arguments.argvalue>',
 			],
 		}),
@@ -300,14 +300,14 @@ class TestDefinition(TestCase):
 	# Literal
 
 	@data_provider([
-		(Tree('file_input', [Tree('primary', [Tree('atom', [Tree('number', [Token('DEC_NUMBER', '1')])])])]), 'file_input.primary.atom.number', '1'),
+		(Tree('file_input', [Tree('number', [Token('DEC_NUMBER', '1')])]), 'file_input.number', '1'),
 	])
 	def test_integer(self, tree: Tree, full_path: str, expected: dict[str, Any]) -> None:
 		node = Fixture.inst.custom(tree).by(full_path).as_a(defs.Integer)
 		self.assertEqual(node.to_string(), expected)
 
 	@data_provider([
-		('file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block.assign_stmt[2].anno_assign.primary[2].list', {
+		('file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block.assign_stmt[2].anno_assign.list', {
 			'values': [
 				{'value': '0', 'value_type': defs.Integer},
 				{'value': '1', 'value_type': defs.Integer},
@@ -324,7 +324,7 @@ class TestDefinition(TestCase):
 			self.assertEqual(type(value), in_expected['value_type'])
 
 	@data_provider([
-		('file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block.assign_stmt[0].anno_assign.primary[2].dict', {
+		('file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block.assign_stmt[0].anno_assign.dict', {
 			'items': [
 				{'key': 'Hoge.Values.A', 'value': '0', 'value_type': defs.Integer},
 				{'key': 'Hoge.Values.B', 'value': '1', 'value_type': defs.Integer},

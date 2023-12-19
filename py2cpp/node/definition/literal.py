@@ -12,11 +12,11 @@ class Literal(Node): pass
 # class Number(Literal): pass
 
 
-@Meta.embed(Node, accept_tags('primary', 'number'), actualized(via=Expression))
+@Meta.embed(Node, accept_tags('number'), actualized(via=Expression))
 class Integer(Literal):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
-		return Terminal.match_terminal(via, allow_tags=['primary', 'atom', 'number', 'DEC_NUMBER', 'HEX_NUMBER'])
+		return Terminal.match_terminal(via, allow_tags=['number', 'DEC_NUMBER', 'HEX_NUMBER'])
 
 	@property
 	@override
@@ -28,11 +28,11 @@ class Integer(Literal):
 		return '.'.join([node.to_string() for node in self._under_expansion()])
 
 
-@Meta.embed(Node, accept_tags('primary', 'number'), actualized(via=Expression))
+@Meta.embed(Node, accept_tags('number'), actualized(via=Expression))
 class Float(Literal):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
-		return Terminal.match_terminal(via, allow_tags=['primary', 'atom', 'number', 'FLOAT_NUMBER'])
+		return Terminal.match_terminal(via, allow_tags=['number', 'FLOAT_NUMBER'])
 
 	@property
 	@override
@@ -44,11 +44,11 @@ class Float(Literal):
 		return '.'.join([node.to_string() for node in self._under_expansion()])
 
 
-@Meta.embed(Node, accept_tags('primary', 'string'), actualized(via=Expression))
+@Meta.embed(Node, accept_tags('string'), actualized(via=Expression))
 class String(Literal):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
-		return Terminal.match_terminal(via, allow_tags=['primary', 'atom', 'string', 'STRING'])
+		return Terminal.match_terminal(via, allow_tags=['string', 'STRING'])
 
 	@property
 	@override

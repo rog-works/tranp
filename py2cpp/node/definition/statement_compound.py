@@ -3,9 +3,9 @@ import re
 from py2cpp.lang.annotation import override
 from py2cpp.node.definition.common import Argument
 from py2cpp.node.definition.element import Block, Decorator, Parameter, Var
-from py2cpp.node.definition.primary import Self, Symbol
+from py2cpp.node.definition.primary import GenericType, Self, Symbol
 from py2cpp.node.definition.statement_simple import MoveAssign
-from py2cpp.node.definition.terminal import Empty, Terminal
+from py2cpp.node.definition.terminal import Empty, Null, Terminal
 from py2cpp.node.embed import Meta, accept_tags, actualized, expansionable
 from py2cpp.node.node import Node
 
@@ -42,9 +42,9 @@ class Function(Node):
 		return [node.as_a(Parameter) for node in self._children('function_def_raw.parameters')]
 
 	@property
-	def return_type(self) -> Symbol | Empty:
+	def return_type(self) -> Symbol | GenericType | Empty:
 		node = self._by('function_def_raw')._at(2)
-		return node._by('const_none').as_a(Empty) if node._exists('const_none') else node.as_a(Symbol)
+		return node.as_a(Empty) if node.is_a(Null) else node.if_not_a_to_b(GenericType, Symbol)
 
 	@property
 	@Meta.embed(Node, expansionable(order=0))

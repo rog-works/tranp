@@ -220,16 +220,4 @@ class Query(Generic[T], metaclass=ABCMeta):
 		Raises:
 			NotFoundError: エントリーが存在しない
 		"""
-		...
-
-	# @abstractmethod
-	# def embed(self, via: str, name: str) -> T:
-	# 	"""指定のパスの下に仮想のエントリーを生成
-
-	# 	Args:
-	# 		via (str): 基点のパス(フルパス)
-	# 		name (str): 仮想エントリーの名前
-	# 	Returns:
-	# 		T: 生成した仮想エントリー
-	# 	"""
-	# 	raise NotImplementedError()
+		raise NotImplementedError()

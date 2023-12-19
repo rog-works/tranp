@@ -159,38 +159,74 @@ class NodeResolver:
 
 
 class EntryCache:
+	"""エントリーキャッシュ
+
+	Note:
+		グループ検索用のインデックスは、ツリーの先頭から順序通りに登録することが正常動作の必須要件
+		効率よくインデックスを構築出来る反面、シンタックスツリーが静的であることを前提とした実装のため、
+		インデックスを作り替えることは出来ず、登録順序にも強い制限がある
+	"""
+
 	def __init__(self) -> None:
-		self.__items: list[Entry] = []
+		"""インスタンスを生成"""
+		self.__entries: list[Entry] = []
 		self.__indexs: dict[str, tuple[int, int]] = {}
 
-	def exists(self, key: str) -> bool:
-		return key in self.__indexs
+	def exists(self, full_path: str) -> bool:
+		"""指定のパスのエントリーが存在するか判定
 
-	def by(self, key: str) -> Entry:
-		if not self.exists(key):
-			raise NotFoundError(key)
+		Args:
+			full_path (str): フルパス
+		Returns:
+			bool: True = 存在する
+		"""
+		return full_path in self.__indexs
 
-		begin, _ = self.__indexs[key]
-		return self.__items[begin]
+	def by(self, full_path: str) -> Entry:
+		"""指定のパスのエントリーをフェッチ
 
-	def group_by(self, key: str) -> dict[str, Entry]:
-		if not self.exists(key):
-			raise NotFoundError(key)
+		Args:
+			full_path (str): フルパス
+		Returns:
+			Entry: エントリー
+		"""
+		if not self.exists(full_path):
+			raise NotFoundError(full_path)
 
-		begin, end = self.__indexs[key]
-		items = self.__items[begin:end + 1]
+		begin, _ = self.__indexs[full_path]
+		return self.__entries[begin]
+
+	def group_by(self, via: str) -> dict[str, Entry]:
+		"""指定の基準パス以下のエントリーをフェッチ
+
+		Args:
+			via (str): 基準のパス(フルパス)
+		Returns:
+			dict[str, Entry]: (フルパス, エントリー)
+		"""
+		if not self.exists(via):
+			raise NotFoundError(via)
+
+		begin, end = self.__indexs[via]
+		items = self.__entries[begin:end + 1]
 		keys = list(self.__indexs.keys())[begin:end + 1]
 		return {keys[index]: items[index] for index in range((end + 1) - begin)}
 
-	def add(self, key: str, item: Entry) -> None:
-		if self.exists(key):
+	def add(self, full_path: str, entry: Entry) -> None:
+		"""指定のパスとエントリーを紐付けてキャッシュに追加
+
+		Args:
+			full_path (str): フルパス
+			entry (str): フルパス
+		"""
+		if self.exists(full_path):
 			return
 
-		begin = len(self.__items)
-		self.__items.append(item)
-		self.__indexs[key] = (begin, begin)
+		begin = len(self.__entries)
+		self.__entries.append(entry)
+		self.__indexs[full_path] = (begin, begin)
 
-		remain = key.split('.')[:-1]
+		remain = full_path.split('.')[:-1]
 		while len(remain):
 			in_key = '.'.join(remain)
 			begin, end = self.__indexs[in_key]
@@ -208,13 +244,11 @@ class Nodes(Query[Node]):
 			root (Entry): ASTのルート要素
 			resolver (NodeResolver): ノードリゾルバー
 		"""
-		self.__root = root
 		self.__resolver = resolver
 		self.__proxy = EntryProxyLark()
-		self.__finder = ASTFinder(self.__proxy)
-		self.__cache = EntryCache()
-		for full_path, entry in self.__finder.full_pathfy(self.__root).items():
-			self.__cache.add(full_path, entry)
+		self.__entries = EntryCache()
+		for full_path, entry in ASTFinder(self.__proxy).full_pathfy(root).items():
+			self.__entries.add(full_path, entry)
 
 	def __resolve(self, entry: Entry, full_path: str) -> Node:
 		"""エントリーからノードを解決し、パスとマッピングしてキャッシュ
@@ -225,7 +259,7 @@ class Nodes(Query[Node]):
 		Returns:
 			Node: 解決したノード
 		"""
-		return self.__resolver.resolve(self.__finder.tag_by(entry), full_path, lambda ctor: ctor(self, full_path))
+		return self.__resolver.resolve(self.__proxy.name(entry), full_path, lambda ctor: ctor(self, full_path))
 
 	@implements
 	def exists(self, full_path: str) -> bool:
@@ -236,7 +270,7 @@ class Nodes(Query[Node]):
 		Returns:
 			bool: True = 存在
 		"""
-		return self.__cache.exists(full_path)
+		return self.__entries.exists(full_path)
 
 	@implements
 	def by(self, full_path: str) -> Node:
@@ -249,7 +283,7 @@ class Nodes(Query[Node]):
 		Raises:
 			NotFoundError: ノードが存在しない
 		"""
-		entry = self.__cache.by(full_path)
+		entry = self.__entries.by(full_path)
 		return self.__resolve(entry, full_path)
 
 	@implements
@@ -290,7 +324,7 @@ class Nodes(Query[Node]):
 
 		regular = re.compile(rf'{uplayer_path.escaped_origin}\.[^.]+')
 		tester = lambda _, path: regular.fullmatch(path) is not None
-		entries = {path: entry for path, entry in self.__cache.group_by(uplayer_path.origin).items() if tester(entry, path)}
+		entries = {path: entry for path, entry in self.__entries.group_by(uplayer_path.origin).items() if tester(entry, path)}
 		return [self.__resolve(entry, path) for path, entry in entries.items()]
 
 	@implements
@@ -306,7 +340,7 @@ class Nodes(Query[Node]):
 		"""
 		regular = re.compile(rf'{EntryPath(via).escaped_origin}\.[^.]+')
 		tester = lambda _, path: regular.fullmatch(path) is not None
-		entries = {path: entry for path, entry in self.__cache.group_by(via).items() if tester(entry, path)}
+		entries = {path: entry for path, entry in self.__entries.group_by(via).items() if tester(entry, path)}
 		return [self.__resolve(entry, path) for path, entry in entries.items()]
 
 	@implements
@@ -323,7 +357,7 @@ class Nodes(Query[Node]):
 		"""
 		regular = re.compile(rf'{EntryPath(via).escaped_origin}\.(.+\.)?{leaf_tag}(\[\d+\])?')
 		tester = lambda _, path: regular.fullmatch(path) is not None
-		entries = {path: entry for path, entry in self.__cache.group_by(via).items() if tester(entry, path)}
+		entries = {path: entry for path, entry in self.__entries.group_by(via).items() if tester(entry, path)}
 		return [self.__resolve(entry, path) for path, entry in entries.items()]
 
 	@implements
@@ -354,7 +388,7 @@ class Nodes(Query[Node]):
 				memo.append(entry_path.origin)
 				return True
 
-			if self.__finder.has_child(entry):
+			if self.__proxy.has_child(entry):
 				return False
 
 			# 自身を含む配下のエントリーに変換対象のノードがなく、Terminalにフォールバックされる終端記号が対象
@@ -362,7 +396,7 @@ class Nodes(Query[Node]):
 			in_allows = [index for index, in_tag in enumerate(entry_tags) if self.__resolver.can_resolve(in_tag)]
 			return len(in_allows) == 0
 
-		entries = {path: entry for path, entry in self.__cache.group_by(via).items() if tester(entry, path)}
+		entries = {path: entry for path, entry in self.__entries.group_by(via).items() if tester(entry, path)}
 		return [self.__resolve(entry, path) for path, entry in entries.items()]
 
 	@implements
@@ -374,24 +408,5 @@ class Nodes(Query[Node]):
 		Returns:
 			str: 値
 		"""
-		entry = self.__cache.by(full_path)
+		entry = self.__entries.by(full_path)
 		return self.__proxy.value(entry) if self.__proxy.is_terminal(entry) else ''
-
-	# @implements
-	# def embed(self, via: str, entry_tag: str) -> Node:
-	# 	"""指定のパスの下に仮想のノードを生成
-
-	# 	Args:
-	# 		via (str): 基点のパス(フルパス)
-	# 		entry_tag (str): 仮想エントリータグ
-	# 	Returns:
-	# 		Node: 生成した仮想ノード
-	# 	Note:
-	# 		@deprecated
-	# 		理由:
-	# 			* 同じパスのノードが存在するとキャッシュが壊れる
-	# 			* ASTに存在しないため、既存のパス検索で検索出来ない
-	# 	"""
-	# 	entry = self.__finder.pluck(self.__root, via)
-	# 	full_path = f'{via}.{entry_tag}'
-	# 	return self.__resolve(entry, full_path)  # FIXME 同じパスのノードがいた場合に壊れる可能性大

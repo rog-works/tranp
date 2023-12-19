@@ -1,4 +1,3 @@
-from typing import TypedDict
 from unittest import TestCase
 
 from lark import Token, Tree
@@ -11,11 +10,10 @@ from py2cpp.node.provider import Settings
 from py2cpp.node.trait import ScopeTrait
 from tests.test.helper import data_provider
 
-T_Settings = TypedDict('T_Settings', {'nodes': dict[str, type[Node]], 'fallback': type[Node]})
-
 
 class Terminal(Node): pass
 class Empty(Node): pass
+class Expression(Node): pass
 class Assign(Node): pass
 class Block(Node, ScopeTrait): pass
 
@@ -299,12 +297,6 @@ class TestNode(TestCase):
 		all = [node.full_path for node in nodes.by(full_path).calculated()]
 		self.assertEqual(all, expected)
 
-	def test_as_a(self) -> None:
-		nodes = Fixture.nodes()
-		node = nodes.by('fule_input.class')
-		self.assertEqual(type(node), Class)
-		self.assertEqual(type(node.as_a(Terminal)), Terminal)
-
 	def test_is_a(self) -> None:
 		nodes = Fixture.nodes()
 		node = nodes.by('fule_input.class')
@@ -313,11 +305,23 @@ class TestNode(TestCase):
 		self.assertEqual(node.is_a(Node), True)
 		self.assertEqual(node.is_a(Terminal), False)
 
+	def test_as_a(self) -> None:
+		nodes = Fixture.nodes()
+		node = nodes.by('fule_input.class')
+		self.assertEqual(type(node), Class)
+		self.assertEqual(type(node.as_a(Terminal)), Terminal)
+
 	def test_if_not_a_to_b(self) -> None:
 		nodes = Fixture.nodes()
 		empty = nodes.by('fule_input.class.__empty__')
 		self.assertEqual(type(empty), Empty)
 		self.assertEqual(type(empty.if_not_a_to_b(Empty, Terminal)), Empty)
+
+	def test_if_a_actualize_from_b(self) -> None:
+		nodes = Fixture.nodes()
+		empty = nodes.by('fule_input.class.__empty__')
+		self.assertEqual(type(empty), Empty)
+		self.assertEqual(type(empty.if_a_actualize_from_b(Terminal, Expression)), Empty)
 
 	def test_match_feature(self) -> None:
 		class NodeA(Node):

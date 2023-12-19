@@ -50,7 +50,7 @@ class Indexer(GetItem):
 
 	@property
 	def key(self) -> Node:
-		return self._by('slices.slice[0]')._at(0).as_a(Expression).actualize()
+		return self._by('slices.slice[0]')._at(0).if_a_actualize_from_b(Terminal, Expression)
 
 
 class GenericType(GetItem): pass
@@ -102,8 +102,8 @@ class DictType(GenericType):
 class FuncCall(Node):
 	@property
 	@Meta.embed(Node, expansionable(order=0))
-	def caller(self) -> Node:  # FIXME 厳密に言うとCallable？関数の戻り値でも良いのでSymbolよりExpressionの方に近い
-		return self._at(0).as_a(Expression).actualize()
+	def calls(self) -> Node:
+		return self._at(0).if_a_actualize_from_b(Terminal, Expression)
 
 	@property
 	@Meta.embed(Node, expansionable(order=1))

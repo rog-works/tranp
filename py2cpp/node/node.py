@@ -354,9 +354,22 @@ class Node(NodeBase):
 			reject_type (type[T_A]): 除外する型
 			expect_type (type[T_B]): 期待する型
 		Returns:
-			T1 | T2: AかBの型
+			T1 | T2: AかB
 		"""
 		return cast(reject_type, self) if self.is_a(reject_type) else self.as_a(expect_type)
+
+	def if_a_actualize_from_b(self, expect_type: type[T_A], through_type: type[T_B]) -> 'Node':
+		"""AならBを介して適切な具象クラスに変換
+
+		Args:
+			expect_type (type[T_A]): 期待する型
+			through_type (type[T_B]): 仲介する型
+		Returns:
+			Node: A以外か、Bから変換した具象クラス
+		Note:
+			変換先のクラスは状況次第のため不明
+		"""
+		return cast(Node, self.as_a(through_type)).actualize() if self.is_a(expect_type) else self
 
 	@classmethod
 	def match_feature(cls, via: 'Node') -> bool:

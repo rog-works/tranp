@@ -140,7 +140,7 @@ class TestDefinition(TestCase):
 	def test_funccall(self, full_path: str, expected: dict[str, Any]) -> None:
 		nodes = Fixture.inst.nodes()
 		node = nodes.by(full_path).as_a(defs.FuncCall)
-		self.assertEqual(node.caller.to_string(), expected['caller'])
+		self.assertEqual(node.calls.to_string(), expected['caller'])
 		self.assertEqual(len(node.arguments), len(expected['arguments']))
 		for index, argument in enumerate(node.arguments):
 			in_expected = expected['arguments'][index]

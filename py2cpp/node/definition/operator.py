@@ -1,8 +1,8 @@
 from py2cpp.lang.annotation import override
-from py2cpp.node.embed import Meta, accept_tags, actualized, expansionable
-from py2cpp.node.node import Node
 from py2cpp.node.definition.expression import Expression
 from py2cpp.node.definition.terminal import Terminal
+from py2cpp.node.embed import Meta, accept_tags, actualized, expansionable
+from py2cpp.node.node import Node
 
 
 @Meta.embed(Node, accept_tags('factor'), actualized(via=Expression))
@@ -23,7 +23,7 @@ class UnaryOperator(Node):
 	@property
 	@Meta.embed(Node, expansionable(order=1))
 	def value(self) -> Node:
-		return self._at(1).as_a(Expression).actualize()
+		return self._at(1).if_a_actualize_from_b(Terminal, Expression)
 
 
 # @Meta.embed(Node, accept_tags('group_expr'), actualized(via=Expression))

@@ -32,7 +32,13 @@ class CellMesh {
 		Max = 6,
 	};
 	public: static Vector fromCell(IntVector cell, int unit = 100) {
-		return Vector(float(cell.z * unit), float(cell.y * unit), float(cell.x * unit));
+		cell.x = cell.x * unit;
+		cell.y = cell.y * unit;
+		cell.z = cell.z * unit;
+		fx = float(cell.x);
+		fy = float(cell.y);
+		fz = float(cell.z);
+		return Vector(fz, fy, fx);
 	}
 	public: static IntVector faceIndexToVector(int faceIndex) {
 		std::map<CellMesh.FaceIndexs, IntVector> map = {

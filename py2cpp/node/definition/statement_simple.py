@@ -65,7 +65,7 @@ class AugAssign(Assign):
 	@property
 	@Meta.embed(Node, expansionable(order=1))
 	def operator(self) -> Terminal:
-		return self._elements[1].as_a(Terminal)
+		return self._at_child(1).as_a(Terminal)  # XXX _at_childを使うべきか検討
 
 	@property
 	@Meta.embed(Node, expansionable(order=2))

@@ -28,6 +28,7 @@ class Hoge(Base):
 		arr: list[int] = [0, 1, 2]
 		empty_arr = []
 		arr[0]
+		arr[0] += arr[1]
 
 	def __init__(self, v: int, s: str) -> None:
 		self.v: int = v

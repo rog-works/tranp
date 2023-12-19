@@ -28,7 +28,13 @@ class CellMesh:
 
 	@classmethod
 	def fromCell(cls, cell: IntVector, unit: int = 100) -> Vector:
-		return Vector(float(cell.x * unit), float(cell.y * unit), float(cell.z * unit))
+		cell.x = cell.x * unit
+		cell.y = cell.y * unit
+		cell.z = cell.z * unit
+		fx = float(cell.x)
+		fy = float(cell.y)
+		fz = float(cell.z)
+		return Vector(fx, fy, fz)
 
 	@classmethod
 	def faceIndexToVector(cls, faceIndex: int) -> IntVector:

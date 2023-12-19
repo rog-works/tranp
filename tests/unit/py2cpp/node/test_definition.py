@@ -161,6 +161,20 @@ class TestDefinition(TestCase):
 		self.assertEqual(type(node.value), expected['value'])
 
 	@data_provider([
+		('file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block.assign_stmt[5]', {
+			'symbol': defs.Indexer,
+			'operator': '+=',
+			'value': defs.Indexer,
+		}),
+	])
+	def test_aug_assign(self, full_path: str, expected: dict[str, Any]) -> None:
+		nodes = Fixture.inst.nodes
+		node = nodes.by(full_path).as_a(defs.AugAssign)
+		self.assertEqual(type(node.symbol), expected['symbol'])
+		self.assertEqual(node.operator.to_string(), expected['operator'])
+		self.assertEqual(type(node.value), expected['value'])
+
+	@data_provider([
 		('file_input.import_stmt[1]', {
 			'module_path': 'py2cpp.cpp.enum',
 			'import_symbols': [

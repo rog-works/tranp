@@ -300,11 +300,14 @@ class TestDefinition(TestCase):
 	# Literal
 
 	@data_provider([
-		(Tree('file_input', [Tree('number', [Token('DEC_NUMBER', '1')])]), 'file_input.number', '1'),
+		(Tree('file_input', [Tree('number', [Token('DEC_NUMBER', '1')])]), 'file_input.number', {'type': defs.Integer, 'value': '1'}),
+		(Tree('file_input', [Tree('number', [Token('HEX_NUMBER', '0x1')])]), 'file_input.number', {'type': defs.Integer, 'value': '0x1'}),
+		(Tree('file_input', [Tree('number', [Token('FLOAT_NUMBER', '0.1')])]), 'file_input.number', {'type': defs.Float, 'value': '0.1'}),
 	])
-	def test_integer(self, tree: Tree, full_path: str, expected: dict[str, Any]) -> None:
-		node = Fixture.inst.custom(tree).by(full_path).as_a(defs.Integer)
-		self.assertEqual(node.to_string(), expected)
+	def test_number(self, tree: Tree, full_path: str, expected: dict[str, Any]) -> None:
+		node = Fixture.inst.custom(tree).by(full_path).as_a(defs.Number)
+		self.assertEqual(type(node), expected['type'])
+		self.assertEqual(node.to_string(), expected['value'])
 
 	@data_provider([
 		('file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block.assign_stmt[2].anno_assign.list', {

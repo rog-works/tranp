@@ -9,7 +9,15 @@ class Literal(Node): pass
 
 
 @Meta.embed(Node, accept_tags('number'))
-class Number(Literal): pass
+class Number(Literal):
+	@property
+	@override
+	def is_terminal(self) -> bool:  # XXX Terminalへの移設を検討
+		return True
+
+	@override
+	def to_string(self) -> str:  # XXX Terminalへの移設を検討
+		return '.'.join([node.to_string() for node in self._under_expansion()])
 
 
 @Meta.embed(Node, actualized(via=Number))
@@ -18,30 +26,12 @@ class Integer(Number):
 	def match_feature(cls, via: Node) -> bool:
 		return Terminal.match_terminal(via, allow_tags=['number', 'DEC_NUMBER', 'HEX_NUMBER'])
 
-	@property
-	@override
-	def is_terminal(self) -> bool:  # XXX Terminalへの移設を検討
-		return True
-
-	@override
-	def to_string(self) -> str:  # XXX Terminalへの移設を検討
-		return '.'.join([node.to_string() for node in self._under_expansion()])
-
 
 @Meta.embed(Node, actualized(via=Number))
 class Float(Number):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
 		return Terminal.match_terminal(via, allow_tags=['number', 'FLOAT_NUMBER'])
-
-	@property
-	@override
-	def is_terminal(self) -> bool:  # XXX Terminalへの移設を検討
-		return True
-
-	@override
-	def to_string(self) -> str:  # XXX Terminalへの移設を検討
-		return '.'.join([node.to_string() for node in self._under_expansion()])
 
 
 @Meta.embed(Node, accept_tags('string'))

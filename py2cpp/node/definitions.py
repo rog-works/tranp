@@ -14,7 +14,7 @@ def make_settings() -> Settings:
 			'enum_def': defs.Enum,
 			# -- Function/Class Elements --
 			'paramvalue': defs.Parameter,
-			# '': defs.Var
+			# '': defs.Var,
 			'block': defs.Block,
 			'decorator': defs.Decorator,
 			# -- Statement simple --
@@ -32,21 +32,21 @@ def make_settings() -> Settings:
 			# -- Common --
 			'argvalue': defs.Argument,
 			# -- Operator --
-			# 'unary_op': defs.UnaryOperator
-			# 'binary_op': defs.BinaryOperator
-			# 'group_expr': defs.Group
+			# 'unary_op': defs.UnaryOperator,
+			# 'binary_op': defs.BinaryOperator,
+			# 'group_expr': defs.Group,
 			# -- Literal --
 			'number': defs.Number,
 			# 'number': defs.Integer,
 			# 'number': defs.Float,
 			'string': defs.String,
-			# 'key_value': defs.KeyValue
+			# 'key_value': defs.KeyValue,
 			'list': defs.List,
 			'dict': defs.Dict,
 			# -- Expression --
-			# 'expression': defs.Expression
+			# 'expression': defs.Expression,
 			# -- Terminal --
-			# '': defs.Terminal
+			# '': defs.Terminal,
 			'const_none': defs.Null,
 			'__empty__': defs.Empty,
 		},

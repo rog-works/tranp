@@ -151,6 +151,7 @@ class Handler:
 
 	def on_enum(self, node: defs.Enum, ctx: Context) -> None:
 		vars = [var for _, var in ctx.registry.each_pop(len(node.vars))]
+		vars.reverse()
 		text = ctx.view.render('enum.j2', vars={**serialize(node, T_EnumVar), **{'vars': vars}})
 		ctx.registry.push((node, text))
 

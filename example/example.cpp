@@ -8,13 +8,13 @@ class IntVector {
 };
 class CellMesh {
 	enum class FaceIndexs {
-		Max = 6,
-		Top = 5,
-		Bottom = 4,
-		Front = 3,
-		Back = 2,
-		Right = 1,
 		Left = 0,
+		Right = 1,
+		Back = 2,
+		Front = 3,
+		Bottom = 4,
+		Top = 5,
+		Max = 6,
 	};
 	public: static IntVector faceIndexToVector(int faceIndex) {
 		std::map<CellMesh.FaceIndexs, IntVector> map = {

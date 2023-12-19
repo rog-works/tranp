@@ -4,7 +4,7 @@ from py2cpp.lang.annotation import override
 from py2cpp.node.definition.common import Argument
 from py2cpp.node.definition.element import Block, Decorator, Parameter, Var
 from py2cpp.node.definition.primary import Self, Symbol
-from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
+from py2cpp.node.definition.statement_simple import MoveAssign
 from py2cpp.node.definition.terminal import Empty, Terminal
 from py2cpp.node.embed import Meta, accept_tags, actualized, expansionable
 from py2cpp.node.node import Node
@@ -65,9 +65,7 @@ class Constructor(Function):
 
 	@property
 	def decl_vars(self) -> list[Var]:
-		assigns = [node.as_a(AnnoAssign) for node in self.block._children() if node.is_a(AnnoAssign)]
-		vars = {node.as_a(Var): True for node in assigns if node.symbol.is_a(Self)}
-		return list(vars.keys())
+		return [node for node in self.block.decl_vars if node.symbol.is_a(Self)]
 
 
 @Meta.embed(Node, actualized(via=Function))

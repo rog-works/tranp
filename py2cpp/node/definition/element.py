@@ -1,6 +1,7 @@
 from py2cpp.node.definition.common import Argument
 from py2cpp.node.definition.expression import Expression
 from py2cpp.node.definition.primary import Symbol, GenericType
+from py2cpp.node.definition.statement_simple import AnnoAssign
 from py2cpp.node.definition.terminal import Empty, Terminal
 from py2cpp.node.embed import Meta, accept_tags, expansionable
 from py2cpp.node.node import Node
@@ -61,6 +62,11 @@ class Block(Node, ScopeTrait):
 	@Meta.embed(Node, expansionable(order=0))
 	def statements(self) -> list[Node]:
 		return self._children()
+
+	@property
+	def decl_vars(self) -> list[Var]:
+		assigns = {node.as_a(AnnoAssign): True for node in reversed(self.statements) if node.is_a(AnnoAssign)}
+		return [node.as_a(Var) for node in reversed(assigns.keys())]
 
 
 @Meta.embed(Node, accept_tags('decorator'))

@@ -237,6 +237,12 @@ class Handler:
 		text = ctx.view.render('list.j2', vars={**serialize(node, T_ListVar), **{'values': values}})
 		ctx.registry.push((node, text))
 
+	# Expression
+
+	def on_expression(self, node: Node, ctx: Context) -> None:  # XXX 出来れば消したい
+		_, expression = ctx.registry.pop(tuple[defs.Node, str])
+		ctx.registry.push((node, expression))
+
 	# Terminal
 
 	def on_terminal(self, node: Node, ctx: Context) -> None:

@@ -143,13 +143,12 @@ class Handler:
 
 	def on_class(self, node: defs.Class, ctx: Context) -> None:
 		_, block = ctx.registry.pop(tuple[defs.Block, str])
-		text = ctx.view.render(node.identifer, vars={**serialize(node, T_ClassVar), **{'block': block}})
+		text = ctx.view.render(node.identifer, vars={**serialize(node, T_ClassVar), 'block': block})
 		ctx.registry.push((node, text))
 
 	def on_enum(self, node: defs.Enum, ctx: Context) -> None:
-		vars = [var for _, var in ctx.registry.each_pop(len(node.vars))]
-		vars.reverse()
-		text = ctx.view.render(node.identifer, vars={**serialize(node, T_EnumVar), **{'vars': vars}})
+		_, block = ctx.registry.pop(tuple[defs.Block, str])
+		text = ctx.view.render(node.identifer, vars={**serialize(node, T_EnumVar), 'block': block})
 		ctx.registry.push((node, text))
 
 	def on_function(self, node: defs.Function, ctx: Context) -> None:

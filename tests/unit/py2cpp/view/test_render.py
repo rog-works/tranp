@@ -166,10 +166,10 @@ class TestRenderer(TestCase):
 		(
 			{
 				'enum_name': 'Values',
-				'vars': [
+				'block': '\n'.join([
 					'A = 0;',
 					'B = 1;',
-				],
+				]),
 			},
 			'\n'.join([
 				'enum class Values {',

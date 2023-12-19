@@ -139,13 +139,13 @@ class Class(Node):
 		return [node.as_a(Method) for node in self.block._children() if node.is_a(Method)]
 
 	@property
+	def vars(self) -> list[Var]:
+		return self.constructor.decl_vars if self.constructor_exists else []
+
+	@property
 	@Meta.embed(Node, expansionable(order=0))
 	def block(self) -> Block:
 		return self._by('class_def_raw.block').as_a(Block)
-
-	@property
-	def vars(self) -> list[Var]:
-		return self.constructor.decl_vars if self.constructor_exists else []
 
 
 @Meta.embed(Node, accept_tags('enum_def'))
@@ -160,6 +160,10 @@ class Enum(Node):
 		return self._by('name').as_a(Terminal)
 
 	@property
-	@Meta.embed(Node, expansionable(order=0))
 	def vars(self) -> list[MoveAssign]:  # XXX 理想としてはVarだが、Enumの変数に型の定義がないため一旦MoveAssignで妥協
 		return [node.as_a(MoveAssign) for node in self._children('block')]
+
+	@property
+	@Meta.embed(Node, expansionable(order=0))
+	def block(self) -> Block:
+		return self._by('block').as_a(Block)

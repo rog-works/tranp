@@ -171,7 +171,7 @@ pass_stmt: "pass"
 // # Primary elements
 
 // @note Lark: atom_expr, Offical: primary
-primary: primary "." name -> getattr
+?primary: primary "." name -> getattr
 	| primary "(" [arguments] ")" -> funccall
 	| primary "[" slices "]" -> getitem
 	| atom
@@ -179,7 +179,7 @@ primary: primary "." name -> getattr
 slices: slice | slice (("," slice)+ [","] | ",")
 slice: expression
 
-atom: name -> var
+?atom: name -> var
 	| "True" -> const_true
 	| "False" -> const_false
 	| "None" -> const_none

@@ -30,8 +30,8 @@ class Function(Node):
 			return 'public'
 
 	@property
-	def function_name(self) -> Terminal:
-		return self._by('function_def_raw.name').as_a(Terminal)
+	def function_name(self) -> Symbol:
+		return self._by('function_def_raw.name').as_a(Symbol)
 
 	@property
 	def decorators(self) -> list[Decorator]:
@@ -42,9 +42,9 @@ class Function(Node):
 		return [node.as_a(Parameter) for node in self._children('function_def_raw.parameters')]
 
 	@property
-	def return_type(self) -> Symbol | GenericType | Empty:
+	def return_type(self) -> Symbol | GenericType | Null:
 		node = self._by('function_def_raw')._at(2)
-		return node.as_a(Empty) if node.is_a(Null) else node.if_not_a_to_b(GenericType, Symbol)
+		return node.as_a(Null) if node.is_a(Null) else node.if_not_a_to_b(GenericType, Symbol)
 
 	@property
 	@Meta.embed(Node, expansionable(order=0))
@@ -60,7 +60,7 @@ class Constructor(Function):
 		return via.as_a(Function).function_name.to_string() == '__init__'
 
 	@property
-	def class_name(self) -> Terminal:
+	def class_name(self) -> Symbol:
 		return self.parent.as_a(Block).parent.as_a(Class).class_name  # FIXME 循環参照
 
 	@property
@@ -77,7 +77,7 @@ class ClassMethod(Function):
 		return len(decorators) > 0 and decorators[0].symbol.to_string() == 'classmethod'
 
 	@property
-	def class_name(self) -> Terminal:
+	def class_name(self) -> Symbol:
 		return self.parent.as_a(Block).parent.as_a(Class).class_name  # FIXME 循環参照
 
 
@@ -94,7 +94,7 @@ class Method(Function):
 		return len(parameters) > 0 and parameters[0].symbol.to_string() == 'self'  # XXX 手軽だが不正確
 
 	@property
-	def class_name(self) -> Terminal:
+	def class_name(self) -> Symbol:
 		return self.parent.as_a(Block).parent.as_a(Class).class_name  # FIXME 循環参照
 
 
@@ -106,8 +106,8 @@ class Class(Node):
 		return self.class_name.to_string()
 
 	@property
-	def class_name(self) -> Terminal:
-		return self._by('class_def_raw.name').as_a(Terminal)
+	def class_name(self) -> Symbol:
+		return self._by('class_def_raw.name').as_a(Symbol)
 
 	@property
 	def decorators(self) -> list[Decorator]:
@@ -156,8 +156,8 @@ class Enum(Node):
 		return self.enum_name.to_string()
 
 	@property
-	def enum_name(self) -> Terminal:
-		return self._by('name').as_a(Terminal)
+	def enum_name(self) -> Symbol:
+		return self._by('name').as_a(Symbol)
 
 	@property
 	def vars(self) -> list[MoveAssign]:  # XXX 理想としてはVarだが、Enumの変数に型の定義がないため一旦MoveAssignで妥協

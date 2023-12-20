@@ -82,7 +82,7 @@ class TestDefinition(TestCase):
 				{'name': 'self', 'type': 'Empty', 'default': 'Empty'},
 				{'name': 'text', 'type': 'str', 'default': 'Empty'},
 			],
-			'return': 'Empty',
+			'return': 'Null',
 		}),
 		('file_input.function_def', {
 			'name': 'func3',
@@ -91,7 +91,7 @@ class TestDefinition(TestCase):
 			'parameters': [
 				{'name': 'ok', 'type': 'bool', 'default': 'Empty'},
 			],
-			'return': 'Empty',
+			'return': 'Null',
 		}),
 	])
 	def test_function(self, full_path: str, expected: dict[str, Any]) -> None:
@@ -114,7 +114,7 @@ class TestDefinition(TestCase):
 			self.assertEqual(parameter.var_type.to_string() if type(parameter.var_type) is defs.Symbol else 'Empty', in_expected['type'])
 			self.assertEqual(parameter.default_value.to_string() if type(parameter.default_value) is defs.Terminal else 'Empty', in_expected['default'])
 
-		self.assertEqual(node.return_type.to_string() if type(node.return_type) is defs.Symbol else 'Empty', expected['return'])
+		self.assertEqual('Null' if type(node.return_type) is defs.Null else node.return_type.to_string(), expected['return'])
 		self.assertEqual(type(node.block), defs.Block)
 
 	@data_provider([

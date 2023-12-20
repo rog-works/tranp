@@ -301,7 +301,7 @@ class Node(NodeBase):
 		return self.__nodes.by_value(self.full_path)
 
 	def as_a(self, to_class: type[T]) -> T:
-		"""指定の具象クラスに変換。変換先が同種(同じか派生クラス)の場合はキャストするのみ
+		"""指定の具象クラスに変換。変換先が同種(同じか基底クラス)の場合はキャストするのみ
 
 		Args:
 			to_class (type[T]): 変換先の具象クラス
@@ -310,8 +310,7 @@ class Node(NodeBase):
 		Raises:
 			LogicError: 許可されない変換先を指定
 		Note:
-			XXX 変換先は継承関係が無くても良い
-			変換先の受け入れ範囲が広い場合(Expressionなど)、何でも変換できてしまうので注意
+			変換される場合は派生クラスであることが条件
 		"""
 		if self.is_a(to_class):
 			return cast(T, self)
@@ -323,7 +322,10 @@ class Node(NodeBase):
 		if len(accept_tags) and self.tag not in accept_tags:
 			raise LogicError(str(self), to_class)
 
-		return to_class(self.__nodes, self.full_path)
+		if not issubclass(to_class, self.__class__):
+			raise LogicError(str(self), to_class)
+
+		return cast(T, to_class(self.__nodes, self.full_path))
 
 	def __acceptable_by(self, to_class: type[NodeBase]) -> bool:
 		"""指定の具象クラスへの変換が受け入れられるか判定

@@ -73,6 +73,9 @@ class Function(Node):
 		return self._by('block').as_a(Block)
 
 
+class Method(Function): pass
+
+
 class Fixture:
 	@classmethod
 	def tree(cls) -> Tree:
@@ -307,9 +310,9 @@ class TestNode(TestCase):
 
 	def test_as_a(self) -> None:
 		nodes = Fixture.nodes()
-		node = nodes.by('file_input.class')
-		self.assertEqual(type(node), Class)
-		self.assertEqual(type(node.as_a(Terminal)), Terminal)
+		node = nodes.by('file_input.class.block.function[1]')
+		self.assertEqual(type(node), Function)
+		self.assertEqual(type(node.as_a(Method)), Method)
 
 	def test_if_not_a_to_b(self) -> None:
 		nodes = Fixture.nodes()

@@ -5,7 +5,7 @@ from py2cpp.node.definition.common import Argument
 from py2cpp.node.definition.element import Block, Decorator, Parameter, Var
 from py2cpp.node.definition.primary import GenericType, Self, Symbol
 from py2cpp.node.definition.statement_simple import MoveAssign
-from py2cpp.node.definition.terminal import Empty, Null, Terminal
+from py2cpp.node.definition.terminal import Empty, Null
 from py2cpp.node.embed import Meta, accept_tags, actualized, expansionable
 from py2cpp.node.node import Node
 

@@ -3,7 +3,7 @@ import re
 from py2cpp.lang.annotation import override
 from py2cpp.node.definition.common import Argument
 from py2cpp.node.definition.element import Block, Decorator, Parameter, Var
-from py2cpp.node.definition.primary import GenericType, Self, Symbol
+from py2cpp.node.definition.primary import GenericType, This, Symbol
 from py2cpp.node.definition.statement_simple import MoveAssign
 from py2cpp.node.definition.terminal import Empty, Null
 from py2cpp.node.embed import Meta, accept_tags, actualized, expansionable
@@ -64,7 +64,7 @@ class Constructor(Function):
 
 	@property
 	def decl_vars(self) -> list[Var]:
-		return [node for node in self.block.decl_vars if node.symbol.is_a(Self)]
+		return [node for node in self.block.decl_vars if node.symbol.is_a(This)]
 
 
 @Meta.embed(Node, actualized(via=Function))
@@ -90,7 +90,7 @@ class Method(Function):
 			return False
 
 		parameters = via.as_a(Function).parameters
-		return len(parameters) > 0 and parameters[0].symbol.to_string() == 'self'  # XXX 手軽だが不正確
+		return len(parameters) > 0 and parameters[0].symbol.is_a(This)  # XXX Thisだけの判定だと不正確かも
 
 	@property
 	def class_name(self) -> Symbol:

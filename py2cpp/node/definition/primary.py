@@ -17,7 +17,7 @@ class Symbol(Node):
 
 
 @Meta.embed(Node, actualized(via=Symbol))
-class Self(Symbol):
+class This(Symbol):
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:

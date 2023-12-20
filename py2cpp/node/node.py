@@ -1,5 +1,5 @@
 import functools
-from typing import Iterator, TypeVar, Union, cast
+from typing import Iterator, TypeVar, cast
 
 from py2cpp.ast.travarsal import EntryPath
 from py2cpp.errors import LogicError, NotFoundError
@@ -272,6 +272,7 @@ class Node(NodeBase):
 		via = self._full_path.joined(relative_path) if relative_path else self.full_path
 		return self.__nodes.children(via)
 
+	@deprecated
 	def _leafs(self, leaf_tag: str) -> list['Node']:
 		"""配下に存在する接尾辞が一致するノードをフェッチ
 
@@ -279,6 +280,8 @@ class Node(NodeBase):
 			leaf_name (str): 接尾辞
 		Returns:
 			list[Node]: ノードリスト
+		Note:
+			@deprecated 探索深度が不定なため、意図しないノードを拾う可能性が高いので使用しないことを推奨
 		"""
 		return self.__nodes.leafs(self.full_path, leaf_tag)
 
@@ -299,7 +302,7 @@ class Node(NodeBase):
 		return self.__nodes.by_value(self.full_path)
 
 	def as_a(self, to_class: type[T]) -> T:
-		"""指定の具象クラスに変換。変換先が同種(同じか基底クラス)の場合は何もしない
+		"""指定の具象クラスに変換。変換先が派生クラスの場合のみ変換し、同じか基底クラスの場合は何もしない
 		変換条件:
 		1. 変換先と継承関係
 		2. 受け入れタグが設定
@@ -348,7 +351,7 @@ class Node(NodeBase):
 		return list(accept_tags.keys())
 
 	def one_of(self, expects: type[T]) -> T:
-		"""指定のクラスと同種(同じか派生クラス)のインスタンスか確認し、合致すればそのままインスタンスを返す。いずれのクラスでもない場合はエラーを出力
+		"""指定のクラスと同じか派生クラスか判定し、合致すればそのままインスタンスを返す。いずれのクラスでもない場合はエラーを出力
 
 		Args:
 			expects (type[T]): 期待するクラス(共用型)
@@ -356,6 +359,12 @@ class Node(NodeBase):
 			bool: True = 同種
 		Raises:
 			LogicError: 指定のクラスと合致しない
+		Examples:
+			```python
+			@property
+			def var_type(self) -> Symbol | GenericType:
+				return self._at(1).one_of(Symbol | GenericType)
+			```
 		"""
 		if hasattr(expects, '__args__'):
 			inherits = [candidate for candidate in getattr(expects, '__args__', []) if isinstance(self, candidate)]
@@ -369,7 +378,7 @@ class Node(NodeBase):
 
 
 	def is_a(self, ctor: type[NodeBase]) -> bool:
-		"""指定のクラスと同種(同じか派生クラス)のインスタンスか判定
+		"""指定のクラスと同じか派生クラスか判定
 
 		Args:
 			ctor (type[NodeBase]): 判定するクラス

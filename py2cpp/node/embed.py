@@ -269,9 +269,11 @@ def expandable() -> dict[str, Any]:
 
 	Returns:
 		dict[str, Any]: メタデータ
+	Note:
+		展開される順序はメソッドの定義順に倣う
 	Examples:
 		```python
-		class A:
+		class NodeA(Node):
 			@property
 			@embed_meta(Node, expandable)
 			def prop_order0(self) -> int:

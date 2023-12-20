@@ -59,9 +59,5 @@ class Sum(BinaryOperator): pass
 class Term(BinaryOperator): pass
 
 
-# @Meta.embed(Node, accept_tags('group_expr'))
-class Group(Node):  # FIXME impl トランスパイルの性質上必要だが、あると色々と邪魔になる
-	@classmethod
-	@override
-	def match_feature(cls, via: Node) -> bool:
-		return False
+@Meta.embed(Node, accept_tags('group_expr'))
+class Group(Node): pass  # FIXME impl トランスパイルの性質上必要だが、あると色々と邪魔になる

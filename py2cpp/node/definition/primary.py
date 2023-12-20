@@ -6,7 +6,7 @@ from py2cpp.node.embed import Meta, accept_tags, actualized, expansionable
 from py2cpp.node.node import Node
 
 
-@Meta.embed(Node, accept_tags('getattr', 'var', 'name', 'dotted_name'), actualized(via=Expression))
+@Meta.embed(Node, accept_tags('getattr', 'var', 'name', 'dotted_name'), actualized(via=Expression))  # FIXME actualizedはない方が良い
 class Symbol(Node):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:

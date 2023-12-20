@@ -107,14 +107,14 @@ class Node(NodeBase):
 				2. 展開プロパティーのノードを使う
 				3. 下位ノードを使う
 			# 使い分け
-				* 終端記号に紐づくノードが欲しい場合は_under_expansion
+				* 終端記号に紐づくノードが欲しい場合は_under_expand
 				* 下位のノードを全て洗い出す場合はflatten
 				* ASTの計算順序の並びで欲しい場合はcalculated
 		"""
 		if self.is_terminal:
 			return []
 
-		under = self.__prop_expantion() or self._under_expansion()
+		under = self.__prop_expand() or self._under_expand()
 		return list(flatten([[node, *node.flatten()] for node in under]))
 
 	def calculated(self) -> list['Node']:
@@ -147,21 +147,21 @@ class Node(NodeBase):
 
 		return [path for _, path in sorted(index_of_paths, key=functools.cmp_to_key(order))]
 
-	def __prop_expantion(self) -> list['Node']:
+	def __prop_expand(self) -> list['Node']:
 		"""展開プロパティーからノードリストを取得
 
 		Returns:
 			list[Node]: 展開プロパティーのノードリスト
 		"""
 		nodes: list[Node] = []
-		for key in self.__expantionable_keys():
+		for key in self.__expandable_keys():
 			func_or_result = getattr(self, key)
 			result = cast(Node | list[Node], func_or_result() if callable(func_or_result) else func_or_result)
 			nodes.extend(result if type(result) is list else [cast(Node, result)])
 
 		return nodes
 
-	def __expantionable_keys(self) -> list[str]:
+	def __expandable_keys(self) -> list[str]:
 		"""メタデータより展開プロパティーのメソッド名を抽出
 
 		Returns:
@@ -238,7 +238,7 @@ class Node(NodeBase):
 		Raises:
 			NotFoundError: 子が存在しない
 		"""
-		under = self._under_expansion()
+		under = self._under_expand()
 		if index < 0 or len(under) <= index:
 			raise NotFoundError(str(self), index)
 
@@ -282,13 +282,13 @@ class Node(NodeBase):
 		"""
 		return self.__nodes.leafs(self.full_path, leaf_tag)
 
-	def _under_expansion(self) -> list['Node']:
+	def _under_expand(self) -> list['Node']:
 		"""配下に存在する展開が可能なノードをフェッチ
 
 		Returns:
 			list[Node]: ノードリスト
 		"""
-		return self.__nodes.expansion(self.full_path)
+		return self.__nodes.expand(self.full_path)
 
 	def _my_value(self) -> str:
 		"""自身のエントリーの値を取得

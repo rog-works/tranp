@@ -85,7 +85,7 @@ class TestNodeResolver(TestCase):
 			def siblings(self, via: str) -> list[Node]: ...
 			def children(self, via: str) -> list[Node]: ...
 			def leafs(self, via: str, leaf_name: str) -> list[Node]: ...
-			def expansion(self, via: str) -> list[Node]: ...
+			def expand(self, via: str) -> list[Node]: ...
 			def by_value(self, full_path: str) -> list[Node]: ...
 
 		resolver = Fixture.resolver()
@@ -233,18 +233,18 @@ class TestNodes(TestCase):
 		('root.term_a', []),
 		('root.tree_c', [Terminal]),
 	])
-	def test_expansion(self, via: str, expected: type[Node]) -> None:
+	def test_expand(self, via: str, expected: type[Node]) -> None:
 		nodes = Fixture.nodes()
-		in_nodes = nodes.expansion(via)
+		in_nodes = nodes.expand(via)
 		self.assertEqual([type(node) for node in in_nodes], expected)
 
 	@data_provider([
 		('root.__empty__', NotFoundError),
 	])
-	def test_expansion_error(self, via: str, expected: type[Exception]) -> None:
+	def test_expand_error(self, via: str, expected: type[Exception]) -> None:
 		nodes = Fixture.nodes()
 		with self.assertRaises(expected):
-			nodes.expansion(via)
+			nodes.expand(via)
 
 	@data_provider([
 		('root.tree_a.token_a[1]', 'a.a'),

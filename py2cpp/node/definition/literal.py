@@ -16,7 +16,7 @@ class Number(Literal):
 
 	@override
 	def to_string(self) -> str:  # XXX Terminalへの移設を検討
-		return '.'.join([node.to_string() for node in self._under_expansion()])
+		return '.'.join([node.to_string() for node in self._under_expand()])
 
 
 @Meta.embed(Node, actualized(via=Number))
@@ -42,7 +42,7 @@ class String(Literal):
 
 	@override
 	def to_string(self) -> str:  # XXX Terminalへの移設を検討
-		return '.'.join([node.to_string() for node in self._under_expansion()])
+		return '.'.join([node.to_string() for node in self._under_expand()])
 
 
 @Meta.embed(Node, accept_tags('key_value'))

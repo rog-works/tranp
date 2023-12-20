@@ -197,7 +197,7 @@ class Query(Generic[T], metaclass=ABCMeta):
 		raise NotImplementedError()
 
 	@abstractmethod
-	def expansion(self, via: str) -> list[T]:
+	def expand(self, via: str) -> list[T]:
 		"""指定のパスから下に存在する展開が可能なエントリーをフェッチ
 
 		Args:

@@ -361,7 +361,7 @@ class Nodes(Query[Node]):
 		return [self.__resolve(entry, path) for path, entry in entries.items()]
 
 	@implements
-	def expansion(self, via: str) -> list[Node]:
+	def expand(self, via: str) -> list[Node]:
 		"""指定のパスから下に存在する展開が可能なノードをフェッチ
 
 		Args:

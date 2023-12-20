@@ -30,7 +30,7 @@ class Self(Symbol):
 		return via.to_string().startswith('self')
 
 
-@Meta.embed(Node, accept_tags('getitem'), actualized(via=Expression))
+@Meta.embed(Node, accept_tags('getitem'))
 class GetItem(Node):
 	@property
 	def symbol(self) -> Symbol:  # FIXME シンボル以外も有り得るので不正確

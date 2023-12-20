@@ -58,14 +58,14 @@ class KeyValue(Node):
 
 
 @Meta.embed(Node, accept_tags('list'))
-class List(Node):
+class List(Literal):
 	@property
 	def values(self) -> list[Node]:
 		return self._children()
 
 
 @Meta.embed(Node, accept_tags('dict'))
-class Dict(Node):
+class Dict(Literal):
 	@property
 	def items(self) -> list[KeyValue]:
 		return [node.as_a(KeyValue) for node in self._children()]

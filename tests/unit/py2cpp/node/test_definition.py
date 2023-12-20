@@ -297,12 +297,57 @@ class TestDefinition(TestCase):
 
 		self.assertEqual([str(node) for node in node.calculated()], expected['calculated'])
 
+	# Operator
+
+	@data_provider([
+		(
+			Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'factor'), [Token('MINUS', '-'), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')])])]),
+			'file_input.factor', {'type': defs.UnaryOperator, 'value': '-1'},
+		),
+		(
+			Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'factor'), [Token('PLUS', '+'), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')])])]),
+			'file_input.factor', {'type': defs.UnaryOperator, 'value': '+1'},
+		),
+		(
+			Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'factor'), [Token('TILDE', '~'), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')])])]),
+			'file_input.factor', {'type': defs.UnaryOperator, 'value': '~1'},
+		),
+	])
+	def test_unary_operator(self, tree: Tree, full_path: str, expected: dict[str, Any]) -> None:
+		node = Fixture.inst.custom(tree).by(full_path).as_a(defs.UnaryOperator)
+		self.assertEqual(type(node), expected['type'])
+		self.assertEqual(node.to_string(), expected['value'])
+
+	@data_provider([
+		(
+			Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'or_expr'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')]), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '2')])])]),
+			'file_input.or_expr', {'type': defs.OrBitwise, 'left': '1', 'right': '2'},
+		),
+		(
+			Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'xor_expr'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')]), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '2')])])]),
+			'file_input.xor_expr', {'type': defs.XorBitwise, 'left': '1', 'right': '2'},
+		),
+		(
+			Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'and_expr'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')]), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '2')])])]),
+			'file_input.and_expr', {'type': defs.AndBitwise, 'left': '1', 'right': '2'},
+		),
+		(
+			Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'shift_expr'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')]), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '2')])])]),
+			'file_input.shift_expr', {'type': defs.ShiftBitwise, 'left': '1', 'right': '2'},
+		),
+	])
+	def test_binary_operator(self, tree: Tree, full_path: str, expected: dict[str, Any]) -> None:
+		node = Fixture.inst.custom(tree).by(full_path).as_a(defs.BinaryOperator)
+		self.assertEqual(type(node), expected['type'])
+		self.assertEqual(node.left.to_string(), expected['left'])
+		self.assertEqual(node.right.to_string(), expected['right'])
+
 	# Literal
 
 	@data_provider([
-		(Tree('file_input', [Tree('number', [Token('DEC_NUMBER', '1')])]), 'file_input.number', {'type': defs.Integer, 'value': '1'}),
-		(Tree('file_input', [Tree('number', [Token('HEX_NUMBER', '0x1')])]), 'file_input.number', {'type': defs.Integer, 'value': '0x1'}),
-		(Tree('file_input', [Tree('number', [Token('FLOAT_NUMBER', '0.1')])]), 'file_input.number', {'type': defs.Float, 'value': '0.1'}),
+		(Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')])]), 'file_input.number', {'type': defs.Integer, 'value': '1'}),
+		(Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'number'), [Token('HEX_NUMBER', '0x1')])]), 'file_input.number', {'type': defs.Integer, 'value': '0x1'}),
+		(Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'number'), [Token('FLOAT_NUMBER', '0.1')])]), 'file_input.number', {'type': defs.Float, 'value': '0.1'}),
 	])
 	def test_number(self, tree: Tree, full_path: str, expected: dict[str, Any]) -> None:
 		node = Fixture.inst.custom(tree).by(full_path).as_a(defs.Number)
@@ -310,8 +355,8 @@ class TestDefinition(TestCase):
 		self.assertEqual(node.to_string(), expected['value'])
 
 	@data_provider([
-		(Tree('file_input', [Tree('string', [Token('STRING', "'abcd'")])]), 'file_input.string', {'type': defs.String, 'value': "'abcd'"}),
-		(Tree('file_input', [Tree('string', [Token('LONG_STRING', '"""abcd\nefgh"""')])]), 'file_input.string', {'type': defs.String, 'value': '"""abcd\nefgh"""'}),
+		(Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'string'), [Token('STRING', "'abcd'")])]), 'file_input.string', {'type': defs.String, 'value': "'abcd'"}),
+		(Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'string'), [Token('LONG_STRING', '"""abcd\nefgh"""')])]), 'file_input.string', {'type': defs.String, 'value': '"""abcd\nefgh"""'}),
 	])
 	def test_string(self, tree: Tree, full_path: str, expected: dict[str, Any]) -> None:
 		node = Fixture.inst.custom(tree).by(full_path).as_a(defs.String)

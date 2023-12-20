@@ -33,7 +33,10 @@ def make_settings() -> Settings:
 			'argvalue': defs.Argument,
 			# -- Operator --
 			'factor': defs.UnaryOperator,
-			# '': defs.BinaryOperator,
+			'or_expr': defs.OrBitwise,
+			'xor_expr': defs.XorBitwise,
+			'and_expr': defs.AndBitwise,
+			'shift_expr': defs.ShiftBitwise,
 			# 'group_expr': defs.Group,
 			# -- Literal --
 			'number': defs.Number,

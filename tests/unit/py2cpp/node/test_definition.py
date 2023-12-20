@@ -320,26 +320,31 @@ class TestDefinition(TestCase):
 
 	@data_provider([
 		(
-			Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'or_expr'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')]), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '2')])])]),
-			'file_input.or_expr', {'type': defs.OrBitwise, 'left': '1', 'right': '2'},
+			Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'or_expr'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')]), Token('VBAR', '|'), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '2')])])]),
+			'file_input.or_expr', {'type': defs.OrBitwise, 'left': '1', 'operator': '|', 'right': '2'},
 		),
 		(
-			Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'xor_expr'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')]), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '2')])])]),
-			'file_input.xor_expr', {'type': defs.XorBitwise, 'left': '1', 'right': '2'},
+			Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'xor_expr'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')]), Token('CIRCUMFLEX', '^'), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '2')])])]),
+			'file_input.xor_expr', {'type': defs.XorBitwise, 'left': '1', 'operator': '^', 'right': '2'},
 		),
 		(
-			Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'and_expr'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')]), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '2')])])]),
-			'file_input.and_expr', {'type': defs.AndBitwise, 'left': '1', 'right': '2'},
+			Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'and_expr'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')]), Token('AMPERSAND', '&'), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '2')])])]),
+			'file_input.and_expr', {'type': defs.AndBitwise, 'left': '1', 'operator': '&', 'right': '2'},
 		),
 		(
-			Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'shift_expr'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')]), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '2')])])]),
-			'file_input.shift_expr', {'type': defs.ShiftBitwise, 'left': '1', 'right': '2'},
+			Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'shift_expr'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')]), Token('__ANON_19', '<<'), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '2')])])]),
+			'file_input.shift_expr', {'type': defs.ShiftBitwise, 'left': '1', 'operator': '<<', 'right': '2'},
+		),
+		(
+			Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'shift_expr'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')]), Token('__ANON_20', '>>'), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '2')])])]),
+			'file_input.shift_expr', {'type': defs.ShiftBitwise, 'left': '1', 'operator': '>>', 'right': '2'},
 		),
 	])
 	def test_binary_operator(self, tree: Tree, full_path: str, expected: dict[str, Any]) -> None:
 		node = Fixture.inst.custom(tree).by(full_path).as_a(defs.BinaryOperator)
 		self.assertEqual(type(node), expected['type'])
 		self.assertEqual(node.left.to_string(), expected['left'])
+		self.assertEqual(node.operator.to_string(), expected['operator'])
 		self.assertEqual(node.right.to_string(), expected['right'])
 
 	# Literal

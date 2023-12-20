@@ -5,16 +5,8 @@ from py2cpp.node.embed import Meta, accept_tags, actualized, expansionable
 from py2cpp.node.node import Node
 
 
-@Meta.embed(Node, accept_tags('factor'), actualized(via=Expression))
+@Meta.embed(Node, accept_tags('factor'))
 class UnaryOperator(Node):
-	@classmethod
-	@override
-	def match_feature(cls, via: Node) -> bool:
-		if len(via._children()) != 2:
-			return False
-
-		return via._at(0).to_string() in ['+', '-', '~']
-
 	@property
 	@Meta.embed(Node, expansionable(order=0))
 	def operator(self) -> Terminal:

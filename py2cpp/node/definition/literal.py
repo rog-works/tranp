@@ -1,6 +1,6 @@
 from py2cpp.lang.annotation import override
 from py2cpp.node.definition.terminal import Terminal
-from py2cpp.node.embed import Meta, accept_tags, actualized
+from py2cpp.node.embed import Meta, accept_tags, actualized, expansionable
 from py2cpp.node.node import Node
 
 
@@ -48,10 +48,12 @@ class String(Literal):
 @Meta.embed(Node, accept_tags('key_value'))
 class KeyValue(Node):
 	@property
+	@Meta.embed(Node, expansionable(order=0))
 	def key(self) -> Node:
 		return self._at(0)
 
 	@property
+	@Meta.embed(Node, expansionable(order=1))
 	def value(self) -> Node:
 		return self._at(1)
 
@@ -59,6 +61,7 @@ class KeyValue(Node):
 @Meta.embed(Node, accept_tags('list'))
 class List(Literal):
 	@property
+	@Meta.embed(Node, expansionable(order=0))
 	def values(self) -> list[Node]:
 		return self._children()
 
@@ -66,5 +69,6 @@ class List(Literal):
 @Meta.embed(Node, accept_tags('dict'))
 class Dict(Literal):
 	@property
+	@Meta.embed(Node, expansionable(order=0))
 	def items(self) -> list[KeyValue]:
 		return [node.as_a(KeyValue) for node in self._children()]

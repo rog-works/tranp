@@ -1,7 +1,7 @@
 from py2cpp.node.definition.common import Argument
 from py2cpp.node.definition.primary import Symbol, GenericType
 from py2cpp.node.definition.statement_simple import AnnoAssign
-from py2cpp.node.definition.terminal import Empty, Terminal
+from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, expansionable
 from py2cpp.node.node import Node
 from py2cpp.node.trait import ScopeTrait
@@ -40,14 +40,17 @@ class Var(Node):
 			return 'public'
 
 	@property
+	@Meta.embed(Node, expansionable(order=0))
 	def symbol(self) -> Symbol:
 		return self._by('anno_assign')._at(0).as_a(Symbol)
 
 	@property
+	@Meta.embed(Node, expansionable(order=1))
 	def var_type(self) -> Symbol | GenericType:
 		return self._by('anno_assign')._at(1).one_of(Symbol | GenericType)
 
 	@property
+	@Meta.embed(Node, expansionable(order=2))
 	def initial_value(self) -> Node:
 		return self._by('anno_assign')._at(2)
 
@@ -68,10 +71,11 @@ class Block(Node, ScopeTrait):
 @Meta.embed(Node, accept_tags('decorator'))
 class Decorator(Node):
 	@property
+	@Meta.embed(Node, expansionable(order=0))
 	def symbol(self) -> Symbol:
 		return self._by('dotted_name').as_a(Symbol)
 
 	@property
-	@Meta.embed(Node, expansionable(order=0))
+	@Meta.embed(Node, expansionable(order=1))
 	def arguments(self) -> list[Argument]:
 		return [node.as_a(Argument) for node in self._children('arguments')]

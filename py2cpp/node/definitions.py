@@ -23,6 +23,9 @@ def make_settings() -> Settings:
 			'import_stmt': defs.Import,
 			# -- Primary --
 			'getattr': defs.Symbol,
+			'var': defs.Symbol,
+			'name': defs.Symbol,
+			'dotted_name': defs.Symbol,
 			# 'getattr': defs.Self,
 			'getitem': defs.GetItem,
 			# 'getitem': defs.Indexer,

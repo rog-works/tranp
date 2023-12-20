@@ -9,4 +9,4 @@ class Argument(Node):
 	@property
 	@Meta.embed(Node, expansionable(order=0))
 	def value(self) -> Node:
-		return self._at(0).if_a_actualize_from_b(Terminal, Expression)
+		return self._at(0)

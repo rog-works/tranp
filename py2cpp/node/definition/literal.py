@@ -50,18 +50,18 @@ class String(Literal):
 class KeyValue(Node):
 	@property
 	def key(self) -> Node:
-		return self._at(0).if_a_actualize_from_b(Terminal, Expression)
+		return self._at(0)
 
 	@property
 	def value(self) -> Node:
-		return self._at(1).if_a_actualize_from_b(Terminal, Expression)
+		return self._at(1)
 
 
 @Meta.embed(Node, accept_tags('list'))
 class List(Node):
 	@property
 	def values(self) -> list[Node]:
-		return [node.if_a_actualize_from_b(Terminal, Expression) for node in self._children()]
+		return self._children()
 
 
 @Meta.embed(Node, accept_tags('dict'))

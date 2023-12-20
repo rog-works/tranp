@@ -6,12 +6,8 @@ from py2cpp.node.embed import Meta, accept_tags, actualized, expansionable
 from py2cpp.node.node import Node
 
 
-@Meta.embed(Node, accept_tags('getattr', 'var', 'name', 'dotted_name'), actualized(via=Expression))  # FIXME actualizedはない方が良い
+@Meta.embed(Node, accept_tags('getattr', 'var', 'name', 'dotted_name'))
 class Symbol(Node):
-	@classmethod
-	def match_feature(cls, via: Node) -> bool:
-		return Terminal.match_terminal(via, allow_tags=['getattr', 'var', 'name', 'NAME'])
-
 	@property
 	@override
 	def is_terminal(self) -> bool:  # XXX Terminalへの移設を検討
@@ -50,7 +46,7 @@ class Indexer(GetItem):
 
 	@property
 	def key(self) -> Node:
-		return self._by('slices.slice')._at(0).if_a_actualize_from_b(Terminal, Expression)
+		return self._by('slices.slice')._at(0)
 
 
 class GenericType(GetItem): pass
@@ -103,7 +99,7 @@ class FuncCall(Node):
 	@property
 	@Meta.embed(Node, expansionable(order=0))
 	def calls(self) -> Node:
-		return self._at(0).if_a_actualize_from_b(Terminal, Expression)
+		return self._at(0)
 
 	@property
 	@Meta.embed(Node, expansionable(order=1))

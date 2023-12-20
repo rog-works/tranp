@@ -53,7 +53,7 @@ class Var(Node):
 
 	@property
 	def initial_value(self) -> Node:
-		return self._by('anno_assign')._at(2).if_a_actualize_from_b(Terminal, Expression)
+		return self._by('anno_assign')._at(2)
 
 
 @Meta.embed(Node, accept_tags('block'))

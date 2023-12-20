@@ -15,14 +15,14 @@ class UnaryOperator(Node):
 	@property
 	@Meta.embed(Node, expansionable(order=1))
 	def value(self) -> Node:
-		return self._at(1).if_a_actualize_from_b(Terminal, Expression)
+		return self._at(1)
 
 
 class BinaryOperator(Node):
 	@property
 	@Meta.embed(Node, expansionable(order=0))
 	def left(self) -> Node:
-		return self._at(0).if_a_actualize_from_b(Terminal, Expression)
+		return self._at(0)
 
 	@property
 	@Meta.embed(Node, expansionable(order=1))
@@ -32,7 +32,7 @@ class BinaryOperator(Node):
 	@property
 	@Meta.embed(Node, expansionable(order=2))
 	def right(self) -> Node:
-		return self._at(2).if_a_actualize_from_b(Terminal, Expression)
+		return self._at(2)
 
 
 @Meta.embed(Node, accept_tags('or_expr'))

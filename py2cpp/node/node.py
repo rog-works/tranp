@@ -3,7 +3,7 @@ from typing import Iterator, TypeVar, cast
 
 from py2cpp.ast.travarsal import EntryPath
 from py2cpp.errors import LogicError, NotFoundError
-from py2cpp.lang.annotation import implements
+from py2cpp.lang.annotation import deprecated, implements
 from py2cpp.lang.sequence import flatten
 from py2cpp.lang.string import snakelize
 from py2cpp.node.base import NodeBase
@@ -229,6 +229,7 @@ class Node(NodeBase):
 
 		return children[index]
 
+	@deprecated
 	def _at_child(self, index: int) -> 'Node':
 		"""展開できる子ノードをフェッチ
 
@@ -238,8 +239,6 @@ class Node(NodeBase):
 			Node: ノード
 		Raises:
 			NotFoundError: 子が存在しない
-		Note:
-			@deprecated
 		"""
 		under = self._under_expansion()
 		if index < 0 or len(under) <= index:
@@ -372,6 +371,7 @@ class Node(NodeBase):
 		"""
 		return cast(reject_type, self) if self.is_a(reject_type) else self.as_a(expect_type)
 
+	@deprecated
 	def if_a_actualize_from_b(self, expect_type: type[T_A], through_type: type[T_B]) -> 'Node':
 		"""AならBを介して適切な具象クラスに変換
 
@@ -381,6 +381,7 @@ class Node(NodeBase):
 		Returns:
 			Node: A以外か、Bから変換した具象クラス
 		Note:
+			@deprecated 仲介型を通して具象クラス化すると意図しないクラス変換が起きる可能性が高いため、インスタンス化の際にactualizeによって解決されている型を使う
 			変換先のクラスは状況次第のため不明
 			利用例:
 			ノードがタグで解決できない型の時(=フォールバック型)、仲介型(=Expression)を通してactualizeを呼ぶ

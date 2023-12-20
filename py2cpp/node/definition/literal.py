@@ -36,10 +36,6 @@ class Float(Number):
 
 @Meta.embed(Node, accept_tags('string'))
 class String(Literal):
-	@classmethod
-	def match_feature(cls, via: Node) -> bool:
-		return Terminal.match_terminal(via, allow_tags=['string', 'STRING'])
-
 	@property
 	@override
 	def is_terminal(self) -> bool:  # XXX Terminalへの移設を検討

@@ -301,7 +301,10 @@ class Node(NodeBase):
 		return self.__nodes.by_value(self.full_path)
 
 	def as_a(self, to_class: type[T]) -> T:
-		"""指定の具象クラスに変換。変換先が同種(同じか基底クラス)の場合はキャストするのみ
+		"""指定の具象クラスに変換。変換先が同種(同じか基底クラス)の場合は何もしない
+		変換条件:
+		1. 変換先と継承関係
+		2. 受け入れタグが設定
 
 		Args:
 			to_class (type[T]): 変換先の具象クラス
@@ -309,20 +312,14 @@ class Node(NodeBase):
 			T: 具象クラスのインスタンス
 		Raises:
 			LogicError: 許可されない変換先を指定
-		Note:
-			変換される場合は派生クラスであることが条件
 		"""
 		if self.is_a(to_class):
 			return cast(T, self)
 
-		if not self.__acceptable_by(to_class):
-			raise LogicError(str(self), to_class)
-
-		accept_tags = self.__accept_tags(to_class)
-		if len(accept_tags) and self.tag not in accept_tags:
-			raise LogicError(str(self), to_class)
-
 		if not issubclass(to_class, self.__class__):
+			raise LogicError(str(self), to_class)
+
+		if not self.__acceptable_by(to_class):
 			raise LogicError(str(self), to_class)
 
 		return cast(T, to_class(self.__nodes, self.full_path))
@@ -361,6 +358,33 @@ class Node(NodeBase):
 			bool: True = 同種
 		"""
 		return isinstance(self, ctor)
+
+	def rerole(self, to_class: type[T]) -> T:
+		"""指定の具象クラスへリロールする。変換先と継承関係がある場合はエラーを出力
+		変換条件:
+		1. 変換先と継承関係がない
+		2. 受け入れタグが設定
+
+		Args:
+			to_class (type[T]): 変換先の具象クラス
+		Returns:
+			T: 具象クラスのインスタンス
+		Raises:
+			LogicError: 許可されない変換先を指定
+		Note:
+			このメソッドは極力使用しないことを推奨
+			継承関係がある変換にはas_aを使用すること
+		"""
+		if self.is_a(to_class):
+			raise LogicError(str(self), to_class)
+
+		if issubclass(to_class, self.__class__):
+			raise LogicError(str(self), to_class)
+
+		if not self.__acceptable_by(to_class):
+			raise LogicError(str(self), to_class)
+
+		return to_class(self.__nodes, self.full_path)
 
 	def if_not_a_to_b(self, reject_type: type[T_A], expect_type: type[T_B]) -> T_A | T_B:
 		"""AでなければBに変換

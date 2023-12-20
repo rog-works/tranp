@@ -48,7 +48,7 @@ def make_settings() -> Settings:
 			# 'number': defs.Integer,
 			# 'number': defs.Float,
 			'string': defs.String,
-			# 'key_value': defs.KeyValue,
+			'key_value': defs.KeyValue,
 			'list': defs.List,
 			'dict': defs.Dict,
 			# -- Expression --

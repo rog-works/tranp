@@ -247,9 +247,14 @@ class Handler:
 
 	# Literal
 
+	def on_key_value(self, node: defs.KeyValue, ctx: Context) -> None:
+		_, value = ctx.registry.pop(tuple[Node, str])
+		_, key = ctx.registry.pop(tuple[Node, str])
+		text = '{' f'{key}, {value}' '}'
+		ctx.registry.push((node, text))
+
 	def on_dict(self, node: defs.Dict, ctx: Context) -> None:
-		key_or_values = [key_or_value for _, key_or_value in ctx.registry.each_pop(len(node.items) * 2)]
-		items = [[key_or_values[index * 2 + 1], key_or_values[index * 2]] for index in range(len(node.items))]
+		items = [key_value for _, key_value in ctx.registry.each_pop(len(node.items))]
 		items.reverse()
 		text = ctx.view.render(node.identifer, vars={'items': items})
 		ctx.registry.push((node, text))

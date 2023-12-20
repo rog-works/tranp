@@ -1,34 +1,34 @@
 from py2cpp.node.definition.terminal import Terminal
-from py2cpp.node.embed import Meta, accept_tags, expansionable
+from py2cpp.node.embed import Meta, accept_tags, expandable
 from py2cpp.node.node import Node
 
 
 @Meta.embed(Node, accept_tags('factor'))
 class UnaryOperator(Node):
 	@property
-	@Meta.embed(Node, expansionable(order=0))
+	@Meta.embed(Node, expandable)
 	def operator(self) -> Terminal:
 		return self._at(0).as_a(Terminal)
 
 	@property
-	@Meta.embed(Node, expansionable(order=1))
+	@Meta.embed(Node, expandable)
 	def value(self) -> Node:
 		return self._at(1)
 
 
 class BinaryOperator(Node):
 	@property
-	@Meta.embed(Node, expansionable(order=0))
+	@Meta.embed(Node, expandable)
 	def left(self) -> Node:
 		return self._at(0)
 
 	@property
-	@Meta.embed(Node, expansionable(order=1))
+	@Meta.embed(Node, expandable)
 	def operator(self) -> Terminal:
 		return self._at(1).as_a(Terminal)
 
 	@property
-	@Meta.embed(Node, expansionable(order=2))
+	@Meta.embed(Node, expandable)
 	def right(self) -> Node:
 		return self._at(2)
 

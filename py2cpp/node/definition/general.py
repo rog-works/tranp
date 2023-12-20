@@ -1,5 +1,5 @@
 from py2cpp.lang.annotation import override
-from py2cpp.node.embed import Meta, accept_tags, expansionable
+from py2cpp.node.embed import Meta, accept_tags, expandable
 from py2cpp.node.node import Node
 
 
@@ -21,6 +21,6 @@ class FileInput(Node):
 		return '__main__'
 
 	@property
-	@Meta.embed(Node, expansionable(order=0))
+	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:
 		return self._children()

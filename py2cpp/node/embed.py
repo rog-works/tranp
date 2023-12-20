@@ -14,7 +14,7 @@ class EmbedKeys(NamedTuple):
 
 	AcceptTags = 'allow_tags'
 	Actualized = 'actualized'
-	Expansionable = 'expansionable'
+	Expandable = 'expandable'
 
 
 class MetaData:
@@ -145,7 +145,7 @@ class Meta:
 			*factories (MetaFactory): 埋め込み関数のリスト
 		Returns:
 			Callable: デコレーター
-		Usage:
+		Examples:
 			```python
 			@Meta.embed(MetaHolder, lambda: {'__embed_class_key__': 1})
 			class A:
@@ -234,10 +234,12 @@ def accept_tags(*tags: str) -> MetaFactory:
 		*tags (str): 受け入れ対象のタグリスト
 	Returns:
 		MetaFactory: 埋め込み関数
-	Usage:
+	Examples:
+		```python
 		@Meta.embed(Node, accept_tags('class'))
 		class Class:
 			...
+		```
 	"""
 	return lambda: {EmbedKeys.AcceptTags: list(tags)}
 
@@ -249,34 +251,36 @@ def actualized(via: T_Node) -> MetaFactory:
 		via (T_Node): 基底クラス
 	Returns:
 		MetaFactory: 埋め込み関数
-	Usage:
+	Examples:
+		```python
 		class Base:
 			...
 
 		@Meta.embed(Node, actualized(via=Base))
 		class Sub(Base):
 			...
+		```
 	"""
 	return lambda: {EmbedKeys.Actualized: via}
 
 
-def expansionable(order: int) -> MetaFactory:
-	"""ノードにプロパティーの評価順序を埋め込む(メソッド用)
+def expandable() -> dict[str, Any]:
+	"""ノードのプロパティーを展開対象として情報を埋め込む(メソッド用)
 
-	Args:
-		order (int): プロパティーの評価順序
 	Returns:
-		MetaFactory: 埋め込み関数
-	Usage:
+		dict[str, Any]: メタデータ
+	Examples:
+		```python
 		class A:
 			@property
-			@embed_meta(Node, expansionable(order=0))
+			@embed_meta(Node, expandable)
 			def prop_order0(self) -> int:
 				...
 
 			@property
-			@embed_meta(Node, expansionable(order=1))
+			@embed_meta(Node, expandable)
 			def prop_order1(self) -> int:
 				...
+		```
 	"""
-	return lambda: {EmbedKeys.Expansionable: order}
+	return {EmbedKeys.Expandable: True}

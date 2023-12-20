@@ -6,7 +6,7 @@ from py2cpp.node.definition.element import Block, Decorator, Parameter, Var
 from py2cpp.node.definition.primary import GenericType, This, Symbol
 from py2cpp.node.definition.statement_simple import MoveAssign
 from py2cpp.node.definition.terminal import Empty, Null
-from py2cpp.node.embed import Meta, accept_tags, actualized, expansionable
+from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
 from py2cpp.node.node import Node
 
 
@@ -46,7 +46,7 @@ class Function(Node):
 		return self._by('function_def_raw')._at(2).one_of(Symbol | GenericType | Null)
 
 	@property
-	@Meta.embed(Node, expansionable(order=0))
+	@Meta.embed(Node, expandable)
 	def block(self) -> Block:
 		return self._by('function_def_raw.block').as_a(Block)
 
@@ -142,7 +142,7 @@ class Class(Node):
 		return self.constructor.decl_vars if self.constructor_exists else []
 
 	@property
-	@Meta.embed(Node, expansionable(order=0))
+	@Meta.embed(Node, expandable)
 	def block(self) -> Block:
 		return self._by('class_def_raw.block').as_a(Block)
 
@@ -163,6 +163,6 @@ class Enum(Node):
 		return [node.as_a(MoveAssign) for node in self._children('block')]
 
 	@property
-	@Meta.embed(Node, expansionable(order=0))
+	@Meta.embed(Node, expandable)
 	def block(self) -> Block:
 		return self._by('block').as_a(Block)

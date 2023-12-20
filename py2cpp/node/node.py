@@ -167,16 +167,14 @@ class Node(NodeBase):
 		Returns:
 			list[str]: 展開プロパティーのメソッド名リスト
 		Note:
-			@see trans.node.embed.expansionable
+			@see trans.node.embed.expandable
 		"""
-		order_on_keys: dict[int, str] = {}
+		prop_keys: list[str] = []
 		for ctor in self.__embed_classes(self.__class__):
-			meta = Meta.dig_for_method(Node, ctor, EmbedKeys.Expansionable, value_type=int)
-			in_order_on_keys = {value: name for name, value in meta.items()}
-			order_on_keys = {**order_on_keys, **in_order_on_keys}
+			meta = Meta.dig_for_method(Node, ctor, EmbedKeys.Expandable, value_type=bool)
+			prop_keys = [*prop_keys, *[name for name, _ in meta.items()]]
 
-		prop_keys = {prop_key: True for _, prop_key in sorted(order_on_keys.items(), key=lambda index: index)}
-		return list(prop_keys.keys())
+		return prop_keys
 
 	def __embed_classes(self, via: type[NodeBase]) -> list[type['Node']]:
 		"""対象のクラス自身を含む継承関係のあるクラスを基底クラス順に取得。取得されるクラスはメタデータと関連する派生クラスに限定

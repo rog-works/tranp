@@ -1,7 +1,7 @@
 from py2cpp.lang.annotation import override
 from py2cpp.node.definition.primary import GenericType, Indexer, Symbol
 from py2cpp.node.definition.terminal import Empty, Terminal
-from py2cpp.node.embed import Meta, accept_tags, actualized, expansionable
+from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
 from py2cpp.node.node import Node
 
 
@@ -12,7 +12,7 @@ class Assign(Node):
 		return self._at(0)._children()
 
 	@property
-	@Meta.embed(Node, expansionable(order=0))
+	@Meta.embed(Node, expandable)
 	def symbol(self) -> Symbol | Indexer:
 		return self._elements[0].one_of(Symbol | Indexer)
 
@@ -25,7 +25,7 @@ class MoveAssign(Assign):
 		return via._exists('assign')
 
 	@property
-	@Meta.embed(Node, expansionable(order=1))
+	@Meta.embed(Node, expandable)
 	def value(self) -> Node | Empty:
 		node = self._elements[1]
 		return node.as_a(Empty) if node.is_a(Empty) else node
@@ -39,12 +39,12 @@ class AnnoAssign(Assign):
 		return via._exists('anno_assign')
 
 	@property
-	@Meta.embed(Node, expansionable(order=1))
+	@Meta.embed(Node, expandable)
 	def var_type(self) -> Symbol | GenericType:
 		return self._elements[1].one_of(Symbol | GenericType)
 
 	@property
-	@Meta.embed(Node, expansionable(order=2))
+	@Meta.embed(Node, expandable)
 	def value(self) -> Node | Empty:
 		node = self._elements[2]
 		return node.as_a(Empty) if node.is_a(Empty) else node
@@ -58,12 +58,12 @@ class AugAssign(Assign):
 		return via._exists('aug_assign')
 
 	@property
-	@Meta.embed(Node, expansionable(order=1))
+	@Meta.embed(Node, expandable)
 	def operator(self) -> Terminal:
 		return self._elements[1].as_a(Terminal)
 
 	@property
-	@Meta.embed(Node, expansionable(order=2))
+	@Meta.embed(Node, expandable)
 	def value(self) -> Node:
 		return self._elements[2]
 
@@ -71,7 +71,7 @@ class AugAssign(Assign):
 @Meta.embed(Node, accept_tags('return_stmt'))
 class Return(Node):
 	@property
-	@Meta.embed(Node, expansionable(order=0))
+	@Meta.embed(Node, expandable)
 	def return_value(self) -> Node | Empty:
 		node = self._at(0)
 		return self.as_a(Empty) if node.is_a(Empty) else node
@@ -85,11 +85,11 @@ class Import(Node):
 		return True
 
 	@property
-	@Meta.embed(Node, expansionable(order=0))
+	@Meta.embed(Node, expandable)
 	def module_path(self) -> Symbol:
 		return self._by('dotted_name').as_a(Symbol)
 
 	@property
-	@Meta.embed(Node, expansionable(order=1))
+	@Meta.embed(Node, expandable)
 	def import_symbols(self) -> list[Symbol]:
 		return [node.as_a(Symbol) for node in self._children('import_names')]

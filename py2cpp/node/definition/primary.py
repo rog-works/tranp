@@ -1,6 +1,6 @@
 from py2cpp.lang.annotation import override
 from py2cpp.node.definition.common import Argument
-from py2cpp.node.embed import Meta, accept_tags, actualized, expansionable
+from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
 from py2cpp.node.node import Node
 
 
@@ -27,7 +27,7 @@ class This(Symbol):
 @Meta.embed(Node, accept_tags('getitem'))
 class GetItem(Node):
 	@property
-	@Meta.embed(Node, expansionable(order=0))
+	@Meta.embed(Node, expandable)
 	def symbol(self) -> Symbol:  # FIXME シンボル以外も有り得るので不正確
 		return self._at(0).as_a(Symbol)
 
@@ -44,7 +44,7 @@ class Indexer(GetItem):
 		return len(via._children('slices')) == 1
 
 	@property
-	@Meta.embed(Node, expansionable(order=1))
+	@Meta.embed(Node, expandable)
 	def key(self) -> Node:
 		return self._by('slices.slice')._at(0)
 
@@ -67,7 +67,7 @@ class ListType(GenericType):
 		return len(via._children('slices')) == 1
 
 	@property
-	@Meta.embed(Node, expansionable(order=1))
+	@Meta.embed(Node, expandable)
 	def value_type(self) -> Symbol | GenericType:
 		return self._by('slices.slice')._at(0).one_of(Symbol | GenericType)
 
@@ -87,12 +87,12 @@ class DictType(GenericType):
 		return len(via._children('slices')) == 2
 
 	@property
-	@Meta.embed(Node, expansionable(order=1))
+	@Meta.embed(Node, expandable)
 	def key_type(self) -> Symbol | GenericType:
 		return self._by('slices.slice[0]')._at(0).one_of(Symbol | GenericType)
 
 	@property
-	@Meta.embed(Node, expansionable(order=2))
+	@Meta.embed(Node, expandable)
 	def value_type(self) -> Symbol | GenericType:
 		return self._by('slices.slice[1]')._at(0).one_of(Symbol | GenericType)
 
@@ -100,11 +100,11 @@ class DictType(GenericType):
 @Meta.embed(Node, accept_tags('funccall'))
 class FuncCall(Node):
 	@property
-	@Meta.embed(Node, expansionable(order=0))
+	@Meta.embed(Node, expandable)
 	def calls(self) -> Node:
 		return self._at(0)
 
 	@property
-	@Meta.embed(Node, expansionable(order=1))
+	@Meta.embed(Node, expandable)
 	def arguments(self) -> list[Argument]:
 		return [node.as_a(Argument) for node in self._children('arguments')]

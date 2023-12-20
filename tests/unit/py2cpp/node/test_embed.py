@@ -6,7 +6,7 @@ from py2cpp.node.embed import (
 	Meta,
 	accept_tags,
 	actualized,
-	expansionable,
+	expandable,
 )
 
 
@@ -44,19 +44,19 @@ class TestMeta(TestCase):
 		class_meta = Meta.dig_by_key_for_class(MetaHolder, EmbedKeys.Actualized, value_type=type)
 		self.assertEqual(class_meta[Sub], Base)
 
-	def test_expansionable(self) -> None:
+	def test_expandable(self) -> None:
 		class MetaHolder: pass
 		class C(NodeBase):
 			@property
-			@Meta.embed(MetaHolder, expansionable(order=0))
+			@Meta.embed(MetaHolder, expandable)
 			def prop0(self) -> int:
 				return 0
 
 			@property
-			@Meta.embed(MetaHolder, expansionable(order=1))
+			@Meta.embed(MetaHolder, expandable)
 			def prop1(self) -> int:
 				return 1
 
-		method_meta = Meta.dig_for_method(MetaHolder, C, EmbedKeys.Expansionable, value_type=int)
-		self.assertEqual(method_meta['prop0'], 0)
-		self.assertEqual(method_meta['prop1'], 1)
+		method_meta = Meta.dig_for_method(MetaHolder, C, EmbedKeys.Expandable, value_type=int)
+		self.assertEqual(method_meta['prop0'], True)
+		self.assertEqual(method_meta['prop1'], True)

@@ -46,7 +46,7 @@ class AndBitwise(BinaryOperator): pass
 class ShiftBitwise(BinaryOperator): pass
 
 
-# @Meta.embed(Node, accept_tags('group_expr'), actualized(via=Expression))
+# @Meta.embed(Node, accept_tags('group_expr'))
 class Group(Node):  # FIXME impl トランスパイルの性質上必要だが、あると色々と邪魔になる
 	@classmethod
 	@override

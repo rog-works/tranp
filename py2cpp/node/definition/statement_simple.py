@@ -14,7 +14,7 @@ class Assign(Node):
 	@property
 	@Meta.embed(Node, expansionable(order=0))
 	def symbol(self) -> Symbol | Indexer:
-		return self._elements[0].if_not_a_to_b(Indexer, Symbol)
+		return self._elements[0].one_of(Symbol | Indexer)
 
 
 @Meta.embed(Node, actualized(via=Assign))
@@ -27,10 +27,8 @@ class MoveAssign(Assign):
 	@property
 	@Meta.embed(Node, expansionable(order=1))
 	def value(self) -> Node | Empty:
-		if self._elements[1].is_a(Empty):
-			return self._elements[1].as_a(Empty)
-
-		return self._elements[1]
+		node = self._elements[1]
+		return node.as_a(Empty) if node.is_a(Empty) else node
 
 
 @Meta.embed(Node, actualized(via=Assign))
@@ -43,15 +41,13 @@ class AnnoAssign(Assign):
 	@property
 	@Meta.embed(Node, expansionable(order=1))
 	def var_type(self) -> Symbol | GenericType:
-		return self._elements[1].if_not_a_to_b(GenericType, Symbol)
+		return self._elements[1].one_of(Symbol | GenericType)
 
 	@property
 	@Meta.embed(Node, expansionable(order=2))
 	def value(self) -> Node | Empty:
-		if self._elements[2].is_a(Empty):
-			return self._elements[2].as_a(Empty)
-
-		return self._elements[2]
+		node = self._elements[2]
+		return node.as_a(Empty) if node.is_a(Empty) else node
 
 
 @Meta.embed(Node, actualized(via=Assign))
@@ -77,10 +73,8 @@ class Return(Node):
 	@property
 	@Meta.embed(Node, expansionable(order=0))
 	def return_value(self) -> Node | Empty:
-		if self._at(0).is_a(Empty):
-			return self.as_a(Empty)
-
-		return self._at(0)
+		node = self._at(0)
+		return self.as_a(Empty) if node.is_a(Empty) else node
 
 
 @Meta.embed(Node, accept_tags('import_stmt'))

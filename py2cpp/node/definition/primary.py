@@ -66,7 +66,7 @@ class ListType(GenericType):
 
 	@property
 	def value_type(self) -> Symbol | GenericType:
-		return self._by('slices.slice')._at(0).if_not_a_to_b(GenericType, Symbol)
+		return self._by('slices.slice')._at(0).one_of(Symbol | GenericType)
 
 
 @Meta.embed(Node, actualized(via=GetItem))
@@ -85,11 +85,11 @@ class DictType(GenericType):
 
 	@property
 	def key_type(self) -> Symbol | GenericType:
-		return self._by('slices.slice[0]')._at(0).if_not_a_to_b(GenericType, Symbol)
+		return self._by('slices.slice[0]')._at(0).one_of(Symbol | GenericType)
 
 	@property
 	def value_type(self) -> Symbol | GenericType:
-		return self._by('slices.slice[1]')._at(0).if_not_a_to_b(GenericType, Symbol)
+		return self._by('slices.slice[1]')._at(0).one_of(Symbol | GenericType)
 
 
 @Meta.embed(Node, accept_tags('funccall'))

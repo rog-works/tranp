@@ -1,5 +1,5 @@
 import functools
-from typing import Iterator, TypeVar, cast
+from typing import Iterator, TypeVar, Union, cast
 
 from py2cpp.ast.travarsal import EntryPath
 from py2cpp.errors import LogicError, NotFoundError
@@ -349,6 +349,27 @@ class Node(NodeBase):
 
 		return list(accept_tags.keys())
 
+	def one_of(self, expects: type[T]) -> T:
+		"""指定のクラスと同種(同じか派生クラス)のインスタンスか確認し、合致すればそのままインスタンスを返す。いずれのクラスでもない場合はエラーを出力
+
+		Args:
+			expects (type[T]): 期待するクラス(共用型)
+		Returns:
+			bool: True = 同種
+		Raises:
+			LogicError: 指定のクラスと合致しない
+		"""
+		if hasattr(expects, '__args__'):
+			inherits = [candidate for candidate in getattr(expects, '__args__', []) if isinstance(self, candidate)]
+			if len(inherits) == 1:
+				return cast(T, self)
+		else:
+			if self.is_a(expects):
+				return cast(T, self)
+
+		raise LogicError(str(self), expects)
+
+
 	def is_a(self, ctor: type[NodeBase]) -> bool:
 		"""指定のクラスと同種(同じか派生クラス)のインスタンスか判定
 
@@ -385,17 +406,6 @@ class Node(NodeBase):
 			raise LogicError(str(self), to_class)
 
 		return to_class(self.__nodes, self.full_path)
-
-	def if_not_a_to_b(self, reject_type: type[T_A], expect_type: type[T_B]) -> T_A | T_B:
-		"""AでなければBに変換
-
-		Args:
-			reject_type (type[T_A]): 除外する型
-			expect_type (type[T_B]): 期待する型
-		Returns:
-			T1 | T2: AかB
-		"""
-		return cast(reject_type, self) if self.is_a(reject_type) else self.as_a(expect_type)
 
 	@deprecated
 	def if_a_actualize_from_b(self, expect_type: type[T_A], through_type: type[T_B]) -> 'Node':

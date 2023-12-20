@@ -21,9 +21,9 @@
 			"request": "launch",
 			"module":"unittest",
 			// "args": ["tests.unit.py2cpp.node.test_definition.TestDefinition.test_number"],
-			"args": ["tests.unit.py2cpp.node.test_embed.TestMeta.test_expansionable"],
+			// "args": ["tests.unit.py2cpp.node.test_embed.TestMeta.test_expansionable"],
 			// "args": ["tests.unit.py2cpp.node.test_nodes.TestNodes"],
-			// "args": ["tests.unit.py2cpp.node.test_node.TestNode.test_is_a"],
+			"args": ["tests.unit.py2cpp.node.test_node.TestNode.test_one_of"],
 			"cwd": "${workspaceFolder}",
 			"env": {
 				"PYTHONDONTWRITEBYTECODE": "1",

@@ -43,8 +43,7 @@ class Function(Node):
 
 	@property
 	def return_type(self) -> Symbol | GenericType | Null:
-		node = self._by('function_def_raw')._at(2)
-		return node.as_a(Null) if node.is_a(Null) else node.if_not_a_to_b(GenericType, Symbol)
+		return self._by('function_def_raw')._at(2).one_of(Symbol | GenericType | Null)
 
 	@property
 	@Meta.embed(Node, expansionable(order=0))

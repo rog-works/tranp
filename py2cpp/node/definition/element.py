@@ -17,16 +17,13 @@ class Parameter(Node):
 	@property
 	@Meta.embed(Node, expansionable(order=1))
 	def var_type(self) -> Symbol | GenericType | Empty:
-		typed = self._by('typedparam')._at(1)
-		if typed.is_a(Empty):
-			return typed.as_a(Empty)
-
-		return typed.if_not_a_to_b(GenericType, Symbol)
+		return self._by('typedparam')._at(1).one_of(Symbol | GenericType | Empty)
 
 	@property
 	@Meta.embed(Node, expansionable(order=2))
-	def default_value(self) -> Terminal | Empty:
-		return self._at(1).if_not_a_to_b(Empty, Terminal)
+	def default_value(self) -> Node | Empty:
+		node = self._at(1)
+		return node.as_a(Empty) if node.is_a(Empty) else node
 
 
 @Meta.embed(Node, accept_tags('assign_stmt'))
@@ -48,7 +45,7 @@ class Var(Node):
 
 	@property
 	def var_type(self) -> Symbol | GenericType:
-		return self._by('anno_assign')._at(1).if_not_a_to_b(GenericType, Symbol)
+		return self._by('anno_assign')._at(1).one_of(Symbol | GenericType)
 
 	@property
 	def initial_value(self) -> Node:

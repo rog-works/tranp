@@ -33,11 +33,17 @@ def proc(parser: Lark) -> None:
 		lines.append(line)
 
 	text = '\n'.join(lines)
-	print('==========')
-	print('AST')
-	print('----------')
+
 	try:
-		print(parser.parse(f'{text}\n').pretty())
+		tree = parser.parse(f'{text}\n')
+		print('==========')
+		print('Dump')
+		print('----------')
+		print(str(tree))
+		print('==========')
+		print('AST')
+		print('----------')
+		print(tree.pretty())
 	except Exception:
 		print(traceback.format_exc())
 

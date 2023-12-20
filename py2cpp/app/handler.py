@@ -214,17 +214,35 @@ class Handler:
 
 	# Operator
 
-	def on_unary_operator(self, node: defs.UnaryOperator, ctx: Context) -> None:
-		_, value = ctx.registry.pop(tuple[defs.Expression, str])
-		_, operator = ctx.registry.pop(tuple[defs.Terminal, str])
-		text = f'{operator}{value}'
-		ctx.registry.push((node, text))
+	def on_or_bitwise(self, node: defs.OrBitwise, ctx: Context) -> None:
+		self.on_binary_operator(node, ctx)
+
+	def on_xor_bitwise(self, node: defs.XorBitwise, ctx: Context) -> None:
+		self.on_binary_operator(node, ctx)
+
+	def on_and_bitwise(self, node: defs.AndBitwise, ctx: Context) -> None:
+		self.on_binary_operator(node, ctx)
+
+	def on_shift_bitwise(self, node: defs.ShiftBitwise, ctx: Context) -> None:
+		self.on_binary_operator(node, ctx)
+
+	def on_sum(self, node: defs.Sum, ctx: Context) -> None:
+		self.on_binary_operator(node, ctx)
+
+	def on_term(self, node: defs.Term, ctx: Context) -> None:
+		self.on_binary_operator(node, ctx)
 
 	def on_binary_operator(self, node: defs.BinaryOperator, ctx: Context) -> None:
 		_, right = ctx.registry.pop(tuple[defs.Expression, str])
 		_, operator = ctx.registry.pop(tuple[defs.Terminal, str])
 		_, left = ctx.registry.pop(tuple[defs.Expression, str])
 		text = f'{left} {operator} {right}'
+		ctx.registry.push((node, text))
+
+	def on_unary_operator(self, node: defs.UnaryOperator, ctx: Context) -> None:
+		_, value = ctx.registry.pop(tuple[defs.Expression, str])
+		_, operator = ctx.registry.pop(tuple[defs.Terminal, str])
+		text = f'{operator}{value}'
 		ctx.registry.push((node, text))
 
 	# Literal

@@ -1,4 +1,4 @@
-enum class {{ enum_name }} {
+enum class {{ symbol }} {
 {%- filter indent('\t') %}
 {{ block|replace(';', ',') }}
 {%- endfilter %}

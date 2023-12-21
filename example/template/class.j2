@@ -2,9 +2,9 @@
 {{ decorator }}
 {% endfor -%}
 class {{ symbol }}
-{%- if parents %} : public {% for name in parents -%}
+{%- if parents %} : public {% for parent in parents -%}
 		{%- if loop.index0 > 0 %}, {% endif -%}
-		{{- name -}}
+		{{- parent -}}
 	{%- endfor -%}
 {%- endif %} {
 {%- if vars -%}

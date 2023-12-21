@@ -13,11 +13,8 @@ from py2cpp.view.render import Renderer, Writer
 T_Node = TypeVar('T_Node', bound=Node)
 T_Result = TypeVar('T_Result')
 
-T_ArgumentVar = TypedDict('T_ArgumentVar', {'value': str})
-T_DecoratorVar = TypedDict('T_DecoratorVar', {'symbol': str, 'arguments': list[T_ArgumentVar]})
 T_VarVar = TypedDict('T_VarVar', {'access': str, 'symbol': str, 'var_type': str, 'initial_value': str})
-T_ClassVar = TypedDict('T_ClassVar', {'class_name': str, 'decorators': list[T_DecoratorVar], 'parents': list[str], 'vars': list[T_VarVar]})
-T_EnumVar = TypedDict('T_EnumVar', {'enum_name': str})
+T_ClassVar = TypedDict('T_ClassVar', {'vars': list[T_VarVar]})
 
 T = TypeVar('T')
 
@@ -147,12 +144,16 @@ class Handler:
 
 	def on_class(self, node: defs.Class, ctx: Context) -> None:
 		_, block = ctx.registry.pop(tuple[defs.Block, str])
-		text = ctx.view.render(node.identifer, vars={**serialize(node, T_ClassVar), 'block': block})
+		parents = [parent for  _, parent in ctx.registry.each_pop(len(node.parents))]
+		decorators = [decorator for  _, decorator in ctx.registry.each_pop(len(node.decorators))]
+		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
+		text = ctx.view.render(node.identifer, vars={**serialize(node, T_ClassVar), 'symbol': symbol, 'decorators': decorators, 'parents': parents, 'block': block})
 		ctx.registry.push((node, text))
 
 	def on_enum(self, node: defs.Enum, ctx: Context) -> None:
 		_, block = ctx.registry.pop(tuple[defs.Block, str])
-		text = ctx.view.render(node.identifer, vars={**serialize(node, T_EnumVar), 'block': block})
+		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
+		text = ctx.view.render(node.identifer, vars={'symbol': symbol, 'block': block})
 		ctx.registry.push((node, text))
 
 	def on_function(self, node: defs.Function, ctx: Context) -> None:

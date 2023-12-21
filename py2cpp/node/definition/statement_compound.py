@@ -203,20 +203,28 @@ class Class(Node):
 		return self.symbol.to_string()
 
 	@property
+	@Meta.embed(Node, expandable)
 	def symbol(self) -> Symbol:
 		return self._by('class_def_raw.name').as_a(Symbol)
 
 	@property
+	@Meta.embed(Node, expandable)
 	def decorators(self) -> list[Decorator]:
 		return [node.as_a(Decorator) for node in self._children('decorators')] if self._exists('decorators') else []
 
 	@property
+	@Meta.embed(Node, expandable)
 	def parents(self) -> list[Symbol]:
 		parents = self._by('class_def_raw')._at(1)
 		if parents.is_a(Empty):
 			return []
 
 		return [node.as_a(Argument).value.as_a(Symbol) for node in parents._children()]
+
+	@property
+	@Meta.embed(Node, expandable)
+	def block(self) -> Block:
+		return self._by('class_def_raw.block').as_a(Block)
 
 	@property
 	def constructor_exists(self) -> bool:
@@ -239,28 +247,24 @@ class Class(Node):
 	def vars(self) -> list[Var]:
 		return self.constructor.decl_vars if self.constructor_exists else []
 
-	@property
-	@Meta.embed(Node, expandable)
-	def block(self) -> Block:
-		return self._by('class_def_raw.block').as_a(Block)
-
 
 @Meta.embed(Node, accept_tags('enum_def'))
 class Enum(Node):
 	@property
 	@override
 	def scope_name(self) -> str:
-		return self.enum_name.to_string()
+		return self.symbol.to_string()
 
 	@property
-	def enum_name(self) -> Symbol:
+	@Meta.embed(Node, expandable)
+	def symbol(self) -> Symbol:
 		return self._by('name').as_a(Symbol)
-
-	@property
-	def vars(self) -> list[MoveAssign]:  # XXX 理想としてはVarだが、Enumの変数に型の定義がないため一旦MoveAssignで妥協
-		return [node.as_a(MoveAssign) for node in self._children('block')]
 
 	@property
 	@Meta.embed(Node, expandable)
 	def block(self) -> Block:
 		return self._by('block').as_a(Block)
+
+	@property
+	def vars(self) -> list[MoveAssign]:  # XXX 理想としてはVarだが、Enumの変数に型の定義がないため一旦MoveAssignで妥協
+		return [node.as_a(MoveAssign) for node in self._children('block')]

@@ -163,7 +163,7 @@ class TestRenderer(TestCase):
 	@data_provider([
 		(
 			{
-				'enum_name': 'Values',
+				'symbol': 'Values',
 				'block': '\n'.join([
 					'A = 0;',
 					'B = 1;',

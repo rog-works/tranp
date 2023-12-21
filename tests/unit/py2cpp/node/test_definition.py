@@ -204,7 +204,7 @@ class TestDefinition(TestCase):
 	])
 	def test_enum(self, full_path: str, expected: dict[str, Any]) -> None:
 		node = Fixture.inst.shared.by(full_path).as_a(defs.Enum)
-		self.assertEqual(node.enum_name.to_string(), expected['name'])
+		self.assertEqual(node.symbol.to_string(), expected['name'])
 		self.assertEqual(len(node.vars), len(expected['vars']))
 		for index, var in enumerate(node.vars):
 			in_expected = expected['vars'][index]

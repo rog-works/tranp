@@ -119,13 +119,11 @@ aug_assign: primary aug_assign_op primary
 
 // @lark return_stmt: "return" [testlist]
 // @lark raise_stmt: raise [test ["from" test]]
-// @lark break_stmt: "break"
-// @lark continue_stmt: "continue"
 return_stmt: "return" [expression]
 raise_stmt: "raise" primary ["from" name]
-!break_stmt: "break"
+break_stmt: "break"
 pass_stmt: "pass"
-!continue_stmt: "continue"
+continue_stmt: "continue"
 
 // # Expressions
 

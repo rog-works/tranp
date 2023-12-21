@@ -39,7 +39,7 @@ class Indexer(GetItem):
 	@override
 	def match_feature(cls, via: Node) -> bool:
 		# タイプヒントのケースを除外 XXX 定数化
-		if via.parent.identifer in ['anno_assign', 'parameter', 'return_type']:
+		if via.parent.identifer in ['anno_assign', 'parameter', 'function', 'class_method', 'method']:
 			return False
 
 		return len(via._children('slices')) == 1
@@ -59,7 +59,7 @@ class ListType(GenericType):
 	@override
 	def match_feature(cls, via: Node) -> bool:
 		# タイプヒントのため、代入・仮引数・戻り値の場合のみ XXX 定数化
-		if via.parent.identifer not in ['anno_assign', 'parameter', 'return_type']:
+		if via.parent.identifer not in ['anno_assign', 'parameter', 'function', 'class_method', 'method']:
 			return False
 
 		if via._at(0).to_string() != 'list':
@@ -79,7 +79,7 @@ class DictType(GenericType):
 	@override
 	def match_feature(cls, via: Node) -> bool:
 		# タイプヒントのため、代入・仮引数・戻り値の場合のみ XXX 定数化
-		if via.parent.identifer not in ['anno_assign', 'parameter', 'return_type']:
+		if via.parent.identifer not in ['anno_assign', 'parameter', 'function', 'class_method', 'method']:
 			return False
 
 		if via._at(0).to_string() != 'dict':
@@ -104,7 +104,7 @@ class UnionType(GenericType):
 	@override
 	def match_feature(cls, via: Node) -> bool:
 		# タイプヒントのため、代入・仮引数・戻り値の場合のみ XXX 定数化
-		if via.parent.identifer not in ['anno_assign', 'parameter', 'return_type']:
+		if via.parent.identifer not in ['anno_assign', 'parameter', 'function', 'class_method', 'method']:
 			return False
 
 		return via._exists('or_expr')

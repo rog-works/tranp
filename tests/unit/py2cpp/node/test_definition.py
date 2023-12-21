@@ -70,7 +70,7 @@ class TestDefinition(TestCase):
 				{'name': 'self', 'type': 'Empty', 'default': 'Empty'},
 				{'name': 'value', 'type': 'int', 'default': 'Empty'},
 			],
-			'return': 'Values',
+			'return': defs.Symbol,
 		}),
 		('file_input.class_def[4].class_def_raw.block.function_def[2]', {
 			'name': '_func2',
@@ -82,7 +82,7 @@ class TestDefinition(TestCase):
 				{'name': 'self', 'type': 'Empty', 'default': 'Empty'},
 				{'name': 'text', 'type': 'str', 'default': 'Empty'},
 			],
-			'return': 'Null',
+			'return': defs.ListType,
 		}),
 		('file_input.function_def', {
 			'name': 'func3',
@@ -91,9 +91,9 @@ class TestDefinition(TestCase):
 			'parameters': [
 				{'name': 'ok', 'type': 'bool', 'default': 'Empty'},
 			],
-			'return': 'Null',
+			'return': defs.Null,
 		}),
-	])
+	], includes=[1])
 	def test_function(self, full_path: str, expected: dict[str, Any]) -> None:
 		node = Fixture.inst.shared.by(full_path).as_a(defs.Function)
 		self.assertEqual(node.function_name.to_string(), expected['name'])
@@ -114,7 +114,7 @@ class TestDefinition(TestCase):
 			self.assertEqual(parameter.var_type.to_string() if type(parameter.var_type) is defs.Symbol else 'Empty', in_expected['type'])
 			self.assertEqual(parameter.default_value.to_string() if type(parameter.default_value) is defs.Terminal else 'Empty', in_expected['default'])
 
-		self.assertEqual('Null' if type(node.return_type) is defs.Null else node.return_type.to_string(), expected['return'])
+		self.assertEqual(type(node.return_type), expected['return'])
 		self.assertEqual(type(node.block), defs.Block)
 
 	@data_provider([

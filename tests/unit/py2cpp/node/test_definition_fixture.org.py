@@ -19,7 +19,7 @@ class Hoge(Base):
 			return Hoge.Values.B
 
 	@deco_func('hoge')
-	def _func2(self, text: str) -> None:
+	def _func2(self, text: str) -> list[int]:
 		map: dict[Hoge.Values, int] = {
 			Hoge.Values.A: 0,
 			Hoge.Values.B: 1,
@@ -29,6 +29,7 @@ class Hoge(Base):
 		empty_arr = []
 		arr[0]
 		arr[0] += arr[1]
+		return arr
 
 	def __init__(self, v: int, s: str) -> None:
 		self.v: int = v

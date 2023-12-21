@@ -145,7 +145,9 @@ class Handler:
 	def on_class(self, node: defs.Class, ctx: Context) -> None:
 		_, block = ctx.registry.pop(tuple[defs.Block, str])
 		parents = [parent for  _, parent in ctx.registry.each_pop(len(node.parents))]
+		parents.reverse()
 		decorators = [decorator for  _, decorator in ctx.registry.each_pop(len(node.decorators))]
+		decorators.reverse()
 		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
 		text = ctx.view.render(node.identifer, vars={**serialize(node, T_ClassVar), 'symbol': symbol, 'decorators': decorators, 'parents': parents, 'block': block})
 		ctx.registry.push((node, text))
@@ -160,7 +162,9 @@ class Handler:
 		_, block = ctx.registry.pop(tuple[defs.Block, str])
 		_, return_type = ctx.registry.pop(tuple[defs.Block, str])
 		parameters = [parameter for  _, parameter in ctx.registry.each_pop(len(node.parameters))]
+		parameters.reverse()
 		decorators = [decorator for  _, decorator in ctx.registry.each_pop(len(node.decorators))]
+		decorators.reverse()
 		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
 		text = ctx.view.render(node.identifer, vars={'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'block': block})
 		ctx.registry.push((node, text))
@@ -169,18 +173,22 @@ class Handler:
 		_, block = ctx.registry.pop(tuple[defs.Block, str])
 		_, return_type = ctx.registry.pop(tuple[defs.Block, str])
 		parameters = [parameter for  _, parameter in ctx.registry.each_pop(len(node.parameters))]
+		parameters.reverse()
 		decorators = [decorator for  _, decorator in ctx.registry.each_pop(len(node.decorators))]
+		decorators.reverse()
 		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
-		text = ctx.view.render(node.identifer, vars={'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'block': block})
+		text = ctx.view.render(node.identifer, vars={'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'block': block})
 		ctx.registry.push((node, text))
 
 	def on_class_method(self, node: defs.ClassMethod, ctx: Context) -> None:
 		_, block = ctx.registry.pop(tuple[defs.Block, str])
 		_, return_type = ctx.registry.pop(tuple[defs.Block, str])
 		parameters = [parameter for  _, parameter in ctx.registry.each_pop(len(node.parameters))]
+		parameters.reverse()
 		decorators = [decorator for  _, decorator in ctx.registry.each_pop(len(node.decorators))]
+		decorators.reverse()
 		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
-		text = ctx.view.render(node.identifer, vars={'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'block': block})
+		text = ctx.view.render(node.identifer, vars={'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'block': block})
 		ctx.registry.push((node, text))
 
 	def on_method(self, node: defs.Method, ctx: Context) -> None:
@@ -191,7 +199,7 @@ class Handler:
 		decorators = [decorator for  _, decorator in ctx.registry.each_pop(len(node.decorators))]
 		decorators.reverse()
 		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
-		text = ctx.view.render(node.identifer, vars={'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'block': block})
+		text = ctx.view.render(node.identifer, vars={'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'block': block})
 		ctx.registry.push((node, text))
 
 	# Function/Class Elements
@@ -205,6 +213,7 @@ class Handler:
 
 	def on_decorator(self, node: defs.Decorator, ctx: Context) -> None:
 		arguments = [argument for  _, argument in ctx.registry.each_pop(len(node.arguments))]
+		arguments.reverse()
 		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
 		text = ctx.view.render(node.identifer, vars={'symbol': symbol, 'arguments': arguments})
 		ctx.registry.push((node, text))
@@ -293,6 +302,7 @@ class Handler:
 
 	def on_func_call(self, node: defs.FuncCall, ctx: Context) -> None:
 		arguments = [argument for _, argument in ctx.registry.each_pop(len(node.arguments))]
+		arguments.reverse()
 		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
 		text = ctx.view.render(node.identifer, vars={'symbol': symbol, 'arguments': arguments})
 		ctx.registry.push((node, text))

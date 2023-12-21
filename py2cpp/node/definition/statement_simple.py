@@ -77,6 +77,31 @@ class Return(Node):
 		return self.as_a(Empty) if node.is_a(Empty) else node
 
 
+@Meta.embed(Node, accept_tags('raise_stmt'))
+class Throw(Node):
+	@property
+	@Meta.embed(Node, expandable)
+	def symbol(self) -> Symbol:
+		return self._at(0).as_a(Symbol)
+
+	@property
+	@Meta.embed(Node, expandable)
+	def via(self) -> Symbol | Empty:
+		return self._at(1).one_of(Symbol | Empty)
+
+
+@Meta.embed(Node, accept_tags('pass_stmt'))
+class Pass(Node): pass
+
+
+@Meta.embed(Node, accept_tags('break_stmt'))
+class Break(Node): pass
+
+
+@Meta.embed(Node, accept_tags('break_stmt'))
+class Continue(Node): pass
+
+
 @Meta.embed(Node, accept_tags('import_stmt'))
 class Import(Node):
 	@property

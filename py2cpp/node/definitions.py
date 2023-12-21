@@ -23,6 +23,10 @@ def make_settings() -> Settings:
 			# -- Statement simple --
 			'assign_stmt': defs.Assign,
 			'return_stmt': defs.Return,
+			'raise_stmt': defs.Throw,
+			'pass_stmt': defs.Pass,
+			'break_stmt': defs.Break,
+			'continue_stmt': defs.Continue,
 			'import_stmt': defs.Import,
 			# -- Primary --
 			'getattr': defs.Symbol,

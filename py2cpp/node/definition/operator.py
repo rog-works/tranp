@@ -3,7 +3,6 @@ from py2cpp.node.embed import Meta, accept_tags, expandable
 from py2cpp.node.node import Node
 
 
-@Meta.embed(Node, accept_tags('factor'))
 class UnaryOperator(Node):
 	@property
 	@Meta.embed(Node, expandable)
@@ -31,6 +30,26 @@ class BinaryOperator(Node):
 	@Meta.embed(Node, expandable)
 	def right(self) -> Node:
 		return self._at(2)
+
+
+@Meta.embed(Node, accept_tags('factor'))
+class Factor(UnaryOperator): pass
+
+
+@Meta.embed(Node, accept_tags('not_test'))
+class NotCompare(UnaryOperator): pass
+
+
+@Meta.embed(Node, accept_tags('or_test'))
+class OrCompare(BinaryOperator): pass
+
+
+@Meta.embed(Node, accept_tags('and_test'))
+class AndCompare(BinaryOperator): pass
+
+
+@Meta.embed(Node, accept_tags('comparison'))
+class Comparison(BinaryOperator): pass
 
 
 @Meta.embed(Node, accept_tags('or_expr'))

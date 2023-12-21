@@ -315,6 +315,21 @@ class Handler:
 
 	# Operator
 
+	def on_factor(self, node: defs.Factor, ctx: Context) -> None:
+		self.on_unary_operator(node, ctx)
+
+	def on_not_compare(self, node: defs.NotCompare, ctx: Context) -> None:
+		self.on_unary_operator(node, ctx)
+
+	def on_or_compare(self, node: defs.OrCompare, ctx: Context) -> None:
+		self.on_binary_operator(node, ctx)
+
+	def on_and_compare(self, node: defs.AndCompare, ctx: Context) -> None:
+		self.on_binary_operator(node, ctx)
+
+	def on_comparison(self, node: defs.Comparison, ctx: Context) -> None:
+		self.on_binary_operator(node, ctx)
+
 	def on_or_bitwise(self, node: defs.OrBitwise, ctx: Context) -> None:
 		self.on_binary_operator(node, ctx)
 

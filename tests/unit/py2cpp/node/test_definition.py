@@ -317,15 +317,15 @@ class TestDefinition(TestCase):
 	@data_provider([
 		(
 			Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'factor'), [Token('MINUS', '-'), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')])])]),
-			'file_input.factor', {'type': defs.UnaryOperator, 'value': '-1'},
+			'file_input.factor', {'type': defs.Factor, 'value': '-1'},
 		),
 		(
 			Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'factor'), [Token('PLUS', '+'), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')])])]),
-			'file_input.factor', {'type': defs.UnaryOperator, 'value': '+1'},
+			'file_input.factor', {'type': defs.Factor, 'value': '+1'},
 		),
 		(
 			Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'factor'), [Token('TILDE', '~'), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')])])]),
-			'file_input.factor', {'type': defs.UnaryOperator, 'value': '~1'},
+			'file_input.factor', {'type': defs.Factor, 'value': '~1'},
 		),
 	])
 	def test_unary_operator(self, tree: Tree, full_path: str, expected: dict[str, Any]) -> None:

@@ -45,6 +45,25 @@ class String(Literal):
 		return '.'.join([node.to_string() for node in self._under_expand()])
 
 
+class Boolean(Literal):
+	@property
+	@override
+	def is_terminal(self) -> bool:  # XXX Terminalへの移設を検討
+		return True
+
+	@override
+	def to_string(self) -> str:  # XXX Terminalへの移設を検討
+		return '.'.join([node.to_string() for node in self._under_expand()])
+
+
+@Meta.embed(Node, accept_tags('const_true'))
+class Truthy(Boolean): pass
+
+
+@Meta.embed(Node, accept_tags('const_false'))
+class Falsy(Boolean): pass
+
+
 @Meta.embed(Node, accept_tags('key_value'))
 class KeyValue(Node):
 	@property

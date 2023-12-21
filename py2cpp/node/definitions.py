@@ -58,6 +58,8 @@ def make_settings() -> Settings:
 			# 'number': defs.Integer,
 			# 'number': defs.Float,
 			'string': defs.String,
+			'const_true': defs.Truthy,
+			'const_false': defs.Falsy,
 			'key_value': defs.KeyValue,
 			'list': defs.List,
 			'dict': defs.Dict,

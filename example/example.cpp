@@ -34,7 +34,7 @@ class CellMesh {
 		Max = 6,
 	};
 	classmethod()
-	public: static Vector from_cell(clsIntVector cell, int unit = 100) {
+	public: static Vector from_cell(IntVector cell, int unit = 100) {
 		cell.x = cell.x * unit;
 		cell.y = cell.y * unit;
 		cell.z = cell.z * unit;
@@ -44,7 +44,7 @@ class CellMesh {
 		return Vector(fx, fy, fz);
 	}
 	classmethod()
-	public: static IntVector face_index_to_vector(clsint faceIndex) {
+	public: static IntVector face_index_to_vector(int faceIndex) {
 		std::map<CellMesh.FaceIndexs, IntVector> map = {
 			{CellMesh.FaceIndexs.Left, IntVector(-1, 0, 0)},
 			{CellMesh.FaceIndexs.Right, IntVector(1, 0, 0)},
@@ -56,13 +56,13 @@ class CellMesh {
 		return map[CellMesh.FaceIndexs(faceIndex)];
 	}
 	classmethod()
-	public: static Box3d to_cell_box(clsIntVector cell, int unit) {
+	public: static Box3d to_cell_box(IntVector cell, int unit) {
 		minLocation = cls.from_cell(cell, unit);
 		maxLocation = cls.from_cell(cell + IntVector(1, 1, 1), unit);
 		return Box3d(minLocation, maxLocation);
 	}
 	classmethod()
-	public: static std::vector<Box3d> to_vertex_boxs(clsBox3d cellBox, int unit) {
+	public: static std::vector<Box3d> to_vertex_boxs(Box3d cellBox, int unit) {
 		offset = unit / 10;
 		min = cellBox.min;
 		max = cellBox.max;
@@ -84,7 +84,7 @@ class CellMesh {
 		return out;
 	}
 	classmethod()
-	public: static std::vector<int> by_vertex_ids(clsMesh mesh, IntVector cell, int unit) {
+	public: static std::vector<int> by_vertex_ids(Mesh mesh, IntVector cell, int unit) {
 		std::vector<int> outIds = {
 			{-1},
 			{-1},
@@ -101,7 +101,7 @@ class CellMesh {
 			for (auto i : range(int(CellMesh.VertexIndexs.Max))) {
 				box = boxs[i];
 				for (auto vi : origin.vertex_indices_itr()) {
-					if (notorigin.is_vertex(vi)) {
+					if (!origin.is_vertex(vi)) {
 						continue;
 					}
 					v = origin.get_vertex(vi);

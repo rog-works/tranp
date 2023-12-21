@@ -319,7 +319,10 @@ class Handler:
 		self.on_unary_operator(node, ctx)
 
 	def on_not_compare(self, node: defs.NotCompare, ctx: Context) -> None:
-		self.on_unary_operator(node, ctx)
+		_, value = ctx.registry.pop(tuple[defs.Expression, str])
+		_, _ = ctx.registry.pop(tuple[defs.Terminal, str])
+		text = f'!{value}'
+		ctx.registry.push((node, text))
 
 	def on_or_compare(self, node: defs.OrCompare, ctx: Context) -> None:
 		self.on_binary_operator(node, ctx)

@@ -39,7 +39,7 @@ class Indexer(GetItem):
 	@override
 	def match_feature(cls, via: Node) -> bool:
 		# タイプヒントのケースを除外 XXX 定数化
-		if via.parent.identifer in ['anno_assign', 'parameter']:
+		if via.parent.identifer in ['anno_assign', 'parameter', 'return_type']:
 			return False
 
 		return len(via._children('slices')) == 1
@@ -58,8 +58,8 @@ class ListType(GenericType):
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:
-		# タイプヒントのため、代入か仮引数の場合のみ XXX 定数化
-		if via.parent.identifer not in ['anno_assign', 'parameter']:
+		# タイプヒントのため、代入・仮引数・戻り値の場合のみ XXX 定数化
+		if via.parent.identifer not in ['anno_assign', 'parameter', 'return_type']:
 			return False
 
 		if via._at(0).to_string() != 'list':
@@ -78,8 +78,8 @@ class DictType(GenericType):
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:
-		# タイプヒントのため、代入か仮引数の場合のみ XXX 定数化
-		if via.parent.identifer not in ['anno_assign', 'parameter']:
+		# タイプヒントのため、代入・仮引数・戻り値の場合のみ XXX 定数化
+		if via.parent.identifer not in ['anno_assign', 'parameter', 'return_type']:
 			return False
 
 		if via._at(0).to_string() != 'dict':
@@ -96,6 +96,23 @@ class DictType(GenericType):
 	@Meta.embed(Node, expandable)
 	def value_type(self) -> Symbol | GenericType:
 		return self._by('slices.slice[1]')._at(0).one_of(Symbol | GenericType)
+
+
+@Meta.embed(Node, actualized(via=GetItem))
+class UnionType(GenericType):
+	@classmethod
+	@override
+	def match_feature(cls, via: Node) -> bool:
+		# タイプヒントのため、代入・仮引数・戻り値の場合のみ XXX 定数化
+		if via.parent.identifer not in ['anno_assign', 'parameter', 'return_type']:
+			return False
+
+		return via._exists('or_expr')
+
+	@property
+	@Meta.embed(Node, expandable)
+	def types(self) -> list[Symbol]:  # XXX GenericTypeにも対応するかどうか
+		return [node.as_a(Symbol) for node in self._by('or_bitwise')._children()]
 
 
 @Meta.embed(Node, accept_tags('funccall'))

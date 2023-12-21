@@ -232,7 +232,7 @@ class Handler:
 
 	def on_import(self, node: defs.Import, ctx: Context) -> None:
 		module_path = node.module_path.to_string()
-		if module_path.startswith('py2cpp'):
+		if not module_path.startswith('FW'):
 			return
 
 		text = ctx.view.render(node.identifer, vars={'module_path': module_path})
@@ -252,6 +252,9 @@ class Handler:
 		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
 		text = ctx.view.render(node.identifer, vars={'symbol': symbol, 'key_type': key_type, 'value_type': value_type})
 		ctx.registry.push((node, text))
+
+	def on_union_type(self, node: defs.UnionType, ctx: Context) -> None:
+		raise NotImplementedError(f'Not supported UnionType. via: {node}')
 
 	def on_indexer(self, node: defs.Indexer, ctx: Context) -> None:
 		_, key = ctx.registry.pop(tuple[defs.Expression, str])

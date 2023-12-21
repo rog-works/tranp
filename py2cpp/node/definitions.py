@@ -40,6 +40,7 @@ def make_settings() -> Settings:
 			# 'getitem': defs.Indexer,
 			# 'getitem': defs.ListType,
 			# 'getitem': defs.DictType,
+			# 'getitem': defs.UnionType,
 			'funccall': defs.FuncCall,
 			# -- Common --
 			'argvalue': defs.Argument,

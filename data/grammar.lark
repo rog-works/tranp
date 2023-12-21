@@ -74,7 +74,7 @@ function_def_raw: "def" name "(" [parameters] ")" "->" primary ":" block
 // @lark ?typedparam: name (":" test)?
 parameters: paramvalue ("," paramvalue)*
 ?paramvalue: typedparam ["=" expression]
-?typedparam: name [":" primary]
+?typedparam: name [":" expression]
 
 // # Function call argumanets
 

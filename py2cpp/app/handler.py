@@ -18,9 +18,6 @@ T_DecoratorVar = TypedDict('T_DecoratorVar', {'symbol': str, 'arguments': list[T
 T_VarVar = TypedDict('T_VarVar', {'access': str, 'symbol': str, 'var_type': str, 'initial_value': str})
 T_ClassVar = TypedDict('T_ClassVar', {'class_name': str, 'decorators': list[T_DecoratorVar], 'parents': list[str], 'vars': list[T_VarVar]})
 T_EnumVar = TypedDict('T_EnumVar', {'enum_name': str})
-T_ParameterVar = TypedDict('T_ParameterVar', {'symbol': str, 'var_type': str, 'default_value': str})
-T_FunctionVar = TypedDict('T_FunctionVar', {'function_name': str, 'parameters': list[T_ParameterVar]})
-T_MethodVar = TypedDict('T_MethodVar', {'access': str, 'function_name': str, 'class_name': str, 'parameters': list[T_ParameterVar], 'return_type': str})
 
 T = TypeVar('T')
 
@@ -160,25 +157,56 @@ class Handler:
 
 	def on_function(self, node: defs.Function, ctx: Context) -> None:
 		_, block = ctx.registry.pop(tuple[defs.Block, str])
-		text = ctx.view.render(node.identifer, vars={**serialize(node, T_FunctionVar), 'block': block})
+		_, return_type = ctx.registry.pop(tuple[defs.Block, str])
+		parameters = [parameter for  _, parameter in ctx.registry.each_pop(len(node.parameters))]
+		decorators = [decorator for  _, decorator in ctx.registry.each_pop(len(node.decorators))]
+		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
+		text = ctx.view.render(node.identifer, vars={'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'block': block})
 		ctx.registry.push((node, text))
 
 	def on_constructor(self, node: defs.Constructor, ctx: Context) -> None:
 		_, block = ctx.registry.pop(tuple[defs.Block, str])
-		text = ctx.view.render(node.identifer, vars={**serialize(node, T_MethodVar), 'block': block})
+		_, return_type = ctx.registry.pop(tuple[defs.Block, str])
+		parameters = [parameter for  _, parameter in ctx.registry.each_pop(len(node.parameters))]
+		decorators = [decorator for  _, decorator in ctx.registry.each_pop(len(node.decorators))]
+		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
+		text = ctx.view.render(node.identifer, vars={'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'block': block})
 		ctx.registry.push((node, text))
 
 	def on_class_method(self, node: defs.ClassMethod, ctx: Context) -> None:
 		_, block = ctx.registry.pop(tuple[defs.Block, str])
-		text = ctx.view.render(node.identifer, vars={**serialize(node, T_MethodVar), 'block': block})
+		_, return_type = ctx.registry.pop(tuple[defs.Block, str])
+		parameters = [parameter for  _, parameter in ctx.registry.each_pop(len(node.parameters))]
+		decorators = [decorator for  _, decorator in ctx.registry.each_pop(len(node.decorators))]
+		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
+		text = ctx.view.render(node.identifer, vars={'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'block': block})
 		ctx.registry.push((node, text))
 
 	def on_method(self, node: defs.Method, ctx: Context) -> None:
 		_, block = ctx.registry.pop(tuple[defs.Block, str])
-		text = ctx.view.render(node.identifer, vars={**serialize(node, T_MethodVar), 'block': block})
+		_, return_type = ctx.registry.pop(tuple[defs.Block, str])
+		parameters = [parameter for  _, parameter in ctx.registry.each_pop(len(node.parameters))]
+		parameters.reverse()
+		decorators = [decorator for  _, decorator in ctx.registry.each_pop(len(node.decorators))]
+		decorators.reverse()
+		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
+		text = ctx.view.render(node.identifer, vars={'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'block': block})
 		ctx.registry.push((node, text))
 
 	# Function/Class Elements
+
+	def on_parameter(self, node: defs.Parameter, ctx: Context) -> None:
+		_, default_value = ctx.registry.pop(tuple[defs.Node, str])
+		_, var_type = ctx.registry.pop(tuple[defs.Node, str])
+		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
+		text = ctx.view.render(node.identifer, vars={'symbol': symbol, 'var_type': var_type, 'default_value': default_value})
+		ctx.registry.push((node, text))
+
+	def on_decorator(self, node: defs.Decorator, ctx: Context) -> None:
+		arguments = [argument for  _, argument in ctx.registry.each_pop(len(node.arguments))]
+		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
+		text = ctx.view.render(node.identifer, vars={'symbol': symbol, 'arguments': arguments})
+		ctx.registry.push((node, text))
 
 	def on_block(self, node: defs.Block, ctx: Context) -> None:
 		statements = [statement for _, statement in ctx.registry.each_pop(len(node.statements))]

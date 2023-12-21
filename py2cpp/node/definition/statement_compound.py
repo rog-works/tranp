@@ -112,7 +112,7 @@ class Try(Node):
 class Function(Node):
 	@property
 	def access(self) -> str:
-		name = self.function_name.to_string()
+		name = self.symbol.to_string()
 		# XXX 定数化などが必要
 		if re.fullmatch(r'__.+__', name):
 			return 'public'
@@ -124,18 +124,22 @@ class Function(Node):
 			return 'public'
 
 	@property
-	def function_name(self) -> Symbol:
+	@Meta.embed(Node, expandable)
+	def symbol(self) -> Symbol:
 		return self._by('function_def_raw.name').as_a(Symbol)
 
 	@property
+	@Meta.embed(Node, expandable)
 	def decorators(self) -> list[Decorator]:
 		return [node.as_a(Decorator) for node in self._children('decorators')] if self._exists('decorators') else []
 
 	@property
+	@Meta.embed(Node, expandable)
 	def parameters(self) -> list[Parameter]:
 		return [node.as_a(Parameter) for node in self._children('function_def_raw.parameters')]
 
 	@property
+	@Meta.embed(Node, expandable)
 	def return_type(self) -> Symbol | GenericType | Null:
 		return self._by('function_def_raw')._at(2).one_of(Symbol | GenericType | Null)
 
@@ -150,11 +154,11 @@ class Constructor(Function):
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:
-		return via.as_a(Function).function_name.to_string() == '__init__'
+		return via.as_a(Function).symbol.to_string() == '__init__'
 
 	@property
-	def class_name(self) -> Symbol:
-		return self.parent.as_a(Block).parent.as_a(Class).class_name  # FIXME 循環参照
+	def class_symbol(self) -> Symbol:
+		return self.parent.as_a(Block).parent.as_a(Class).symbol  # FIXME 循環参照
 
 	@property
 	def decl_vars(self) -> list[Var]:
@@ -170,8 +174,8 @@ class ClassMethod(Function):
 		return len(decorators) > 0 and decorators[0].symbol.to_string() == 'classmethod'
 
 	@property
-	def class_name(self) -> Symbol:
-		return self.parent.as_a(Block).parent.as_a(Class).class_name  # FIXME 循環参照
+	def class_symbol(self) -> Symbol:
+		return self.parent.as_a(Block).parent.as_a(Class).symbol  # FIXME 循環参照
 
 
 @Meta.embed(Node, actualized(via=Function))
@@ -180,15 +184,15 @@ class Method(Function):
 	@override
 	def match_feature(cls, via: Node) -> bool:
 		# XXX コンストラクターを除外
-		if via.as_a(Function).function_name.to_string() == '__init__':
+		if via.as_a(Function).symbol.to_string() == '__init__':
 			return False
 
 		parameters = via.as_a(Function).parameters
 		return len(parameters) > 0 and parameters[0].symbol.is_a(This)  # XXX Thisだけの判定だと不正確かも
 
 	@property
-	def class_name(self) -> Symbol:
-		return self.parent.as_a(Block).parent.as_a(Class).class_name  # FIXME 循環参照
+	def class_symbol(self) -> Symbol:
+		return self.parent.as_a(Block).parent.as_a(Class).symbol  # FIXME 循環参照
 
 
 @Meta.embed(Node, accept_tags('class_def'))
@@ -196,10 +200,10 @@ class Class(Node):
 	@property
 	@override
 	def scope_name(self) -> str:
-		return self.class_name.to_string()
+		return self.symbol.to_string()
 
 	@property
-	def class_name(self) -> Symbol:
+	def symbol(self) -> Symbol:
 		return self._by('class_def_raw.name').as_a(Symbol)
 
 	@property

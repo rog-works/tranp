@@ -111,7 +111,7 @@ class TestDefinition(TestCase):
 	])
 	def test_function(self, full_path: str, expected: dict[str, Any]) -> None:
 		node = Fixture.inst.shared.by(full_path).as_a(defs.Function)
-		self.assertEqual(node.function_name.to_string(), expected['name'])
+		self.assertEqual(node.symbol.to_string(), expected['name'])
 		self.assertEqual(node.access, expected['access'])
 		self.assertEqual(len(node.decorators), len(expected['decorators']))
 		for index, decorator in enumerate(node.decorators):
@@ -162,7 +162,7 @@ class TestDefinition(TestCase):
 	])
 	def test_class(self, full_path: str, expected: dict[str, Any]) -> None:
 		node = Fixture.inst.shared.by(full_path).as_a(defs.Class)
-		self.assertEqual(node.class_name.to_string(), expected['name'])
+		self.assertEqual(node.symbol.to_string(), expected['name'])
 		self.assertEqual(len(node.decorators), len(expected['decorators']))
 		for index, decorator in enumerate(node.decorators):
 			in_expected = expected['decorators'][index]
@@ -191,7 +191,7 @@ class TestDefinition(TestCase):
 		for index, constructor in enumerate(node.methods):
 			in_expected = expected['methods'][index]
 			self.assertEqual(type(constructor), defs.Method)
-			self.assertEqual(constructor.function_name.to_string(), in_expected['name'])
+			self.assertEqual(constructor.symbol.to_string(), in_expected['name'])
 
 	@data_provider([
 		('file_input.class_def[4].class_def_raw.block.enum_def', {

@@ -26,6 +26,19 @@ class Parameter(Node):
 		return node.as_a(Empty) if node.is_a(Empty) else node
 
 
+@Meta.embed(Node, accept_tags('decorator'))
+class Decorator(Node):
+	@property
+	@Meta.embed(Node, expandable)
+	def symbol(self) -> Symbol:
+		return self._by('dotted_name').as_a(Symbol)
+
+	@property
+	@Meta.embed(Node, expandable)
+	def arguments(self) -> list[Argument]:
+		return [node.as_a(Argument) for node in self._children('arguments')]
+
+
 @Meta.embed(Node, accept_tags('assign_stmt'))
 class Var(Node):
 	@property
@@ -66,16 +79,3 @@ class Block(Node, ScopeTrait):
 	def decl_vars(self) -> list[Var]:
 		assigns = {node.as_a(AnnoAssign): True for node in reversed(self.statements) if node.is_a(AnnoAssign)}
 		return [node.rerole(Var) for node in reversed(assigns.keys())]
-
-
-@Meta.embed(Node, accept_tags('decorator'))
-class Decorator(Node):
-	@property
-	@Meta.embed(Node, expandable)
-	def symbol(self) -> Symbol:
-		return self._by('dotted_name').as_a(Symbol)
-
-	@property
-	@Meta.embed(Node, expandable)
-	def arguments(self) -> list[Argument]:
-		return [node.as_a(Argument) for node in self._children('arguments')]

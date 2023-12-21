@@ -111,10 +111,8 @@ class TestRenderer(TestCase):
 	@data_provider([
 		(
 			{
-				'class_name': 'Hoge',
-				'decorators': [
-					{'symbol': 'deco', 'arguments': [{'value': 'A'}, {'value': 'A.B'}]}
-				],
+				'symbol': 'Hoge',
+				'decorators': ['deco(A, A.B)'],
 				'parents': ['Base', 'Interface'],
 				'vars': [
 					{'access': 'private', 'symbol': '__value', 'var_type': 'int'},
@@ -142,7 +140,7 @@ class TestRenderer(TestCase):
 		),
 		(
 			{
-				'class_name': 'Hoge',
+				'symbol': 'Hoge',
 				'decorators': [],
 				'parents': [],
 				'vars': [],
@@ -186,14 +184,9 @@ class TestRenderer(TestCase):
 		(
 			'function',
 			{
-				'function_name': 'func',
-				'decorators': [
-					{'symbol': 'deco', 'arguments': [{'value': 'A'}, {'value': 'B'}]},
-				],
-				'parameters': [
-					{'symbol': 'text', 'var_type': 'string', 'default_value': ''},
-					{'symbol': 'value', 'var_type': 'int', 'default_value': '1'},
-				],
+				'symbol': 'func',
+				'decorators': ['deco(A, B)'],
+				'parameters': ['string text', 'int value = 1'],
 				'return_type': 'int',
 				'block': 'return value + 1;',
 			},
@@ -208,12 +201,10 @@ class TestRenderer(TestCase):
 			'constructor',
 			{
 				'access': 'public',
-				'function_name': '__init__',
-				'class_name': 'Hoge',
+				'symbol': '__init__',
+				'class_symbol': 'Hoge',
 				'decorators': [],
-				'parameters': [
-					{'symbol': 'value', 'var_type': 'int', 'default_value': '1'},
-				],
+				'parameters': ['int value = 1'],
 				'return_type': 'void',
 				'block': 'this->x = value;',
 			},
@@ -227,8 +218,8 @@ class TestRenderer(TestCase):
 			'class_method',
 			{
 				'access': 'public',
-				'function_name': 'static_method',
-				'class_name': 'Hoge',
+				'symbol': 'static_method',
+				'class_symbol': 'Hoge',
 				'decorators': [],
 				'parameters': [],
 				'return_type': 'int',
@@ -244,12 +235,10 @@ class TestRenderer(TestCase):
 			'method',
 			{
 				'access': 'public',
-				'function_name': 'method',
-				'class_name': 'Hoge',
+				'symbol': 'method',
+				'class_symbol': 'Hoge',
 				'decorators': [],
-				'parameters': [
-					{'symbol': 'value', 'var_type': 'int', 'default_value': '1'},
-				],
+				'parameters': ['int value = 1'],
 				'return_type': 'void',
 				'block': 'this->x = value;',
 			},

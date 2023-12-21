@@ -37,7 +37,7 @@ class If(Node):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def else_if_blocks(self) -> list[ElseIf]:
+	def else_ifs(self) -> list[ElseIf]:
 		return [node.as_a(ElseIf) for node in self._by('elifs')._children()]
 
 	@property
@@ -68,7 +68,7 @@ class For(Node):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def condition(self) -> Node:
+	def iterates(self) -> Node:
 		return self._by('expression')
 
 	@property

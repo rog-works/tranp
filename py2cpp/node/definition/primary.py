@@ -1,5 +1,6 @@
 from py2cpp.lang.annotation import override
 from py2cpp.node.definition.common import Argument
+from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
 from py2cpp.node.node import Node
 
@@ -107,4 +108,5 @@ class FuncCall(Node):
 	@property
 	@Meta.embed(Node, expandable)
 	def arguments(self) -> list[Argument]:
-		return [node.as_a(Argument) for node in self._children('arguments')]
+		args = self._at(1)
+		return [node.as_a(Argument) for node in args._children()] if not args.is_a(Empty) else []

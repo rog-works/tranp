@@ -15,7 +15,7 @@ class ElseIf(Node):
 	@property
 	@Meta.embed(Node, expandable)
 	def condition(self) -> Node:
-		return self._by('expression')
+		return self._at(0)
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -28,7 +28,7 @@ class If(Node):
 	@property
 	@Meta.embed(Node, expandable)
 	def condition(self) -> Node:
-		return self._by('expression')
+		return self._at(0)
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -51,7 +51,7 @@ class While(Node):
 	@property
 	@Meta.embed(Node, expandable)
 	def condition(self) -> Node:
-		return self._by('expression')
+		return self._at(0)
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -69,7 +69,7 @@ class For(Node):
 	@property
 	@Meta.embed(Node, expandable)
 	def iterates(self) -> Node:
-		return self._by('expression')
+		return self._at(1)
 
 	@property
 	@Meta.embed(Node, expandable)

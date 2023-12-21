@@ -1,0 +1,5 @@
+for (auto {{ symbol }} : {{ iterates }}) {
+{%- filter indent('\t') %}
+{{ block }}
+{%- endfilter %}
+}

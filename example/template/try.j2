@@ -1,0 +1,10 @@
+try {
+{%- filter indent('\t') %}
+{{ block }}
+{%- endfilter %}
+}
+{%- for catch in catches %}
+{%- filter indent('\t') %}
+{{ catch }}
+{%- endfilter %}
+{%- endfor %}

@@ -1,0 +1,5 @@
+catch ({{ symbol }}{% if alias %} {{ alias }}{% endif %}) {
+{%- filter indent('\t') %}
+{{ block }}
+{%- endfilter %}
+}

@@ -1,0 +1,9 @@
+if ({{ condition }}) {
+{%- filter indent('\t') %}
+{{ block }}
+{%- endfilter %}
+}
+{%- for else_if in else_ifs %}
+{%- filter indent('\t') %}
+{{ else_if }}
+{%- endfilter %}

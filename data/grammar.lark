@@ -133,9 +133,12 @@ continue_stmt: "continue"
 
 // ## Comparison operators
 
-?or_test: and_test ("or" and_test)*
-?and_test: not_test_ ("and" not_test_)*
-?not_test_: "not" not_test_ -> not_test | comparison
+// @lark ?or_test: and_test ("or" and_test)*
+// @lark ?and_test: not_test_ ("and" not_test_)*
+// @lark ?not_test_: "not" not_test_ -> not_test | comparison
+?or_test: and_test (_or_op and_test)*
+?and_test: not_test_ (_and_op not_test_)*
+?not_test_: _not_op not_test_ -> not_test | comparison
 ?comparison: expr (comp_op expr)*
 ?expr: or_expr
 
@@ -144,21 +147,25 @@ continue_stmt: "continue"
 	| "not" "in" -> comp_not_in
 	| "is"  -> comp_is
 	| "is" "not" -> comp_is_not
+// @custom
+!_or_op: "or"
+!_and_op: "and"
+!_not_op: "not"
 
 // ## Bitwise operators
 
-// @lark: ?or_expr: xor_expr ("|", xor_expr)*
-// @lark: ?xor_expr: and_expr ("^", and_expr)*
-// @lark: ?and_expr: shift_expr ("&", shift_expr)*
-?or_expr: xor_expr (_or_bit xor_expr)*
-?xor_expr: and_expr (_xor_bit and_expr)*
-?and_expr: shift_expr (_and_bit shift_expr)*
+// @lark: ?or_expr: xor_expr ("|" xor_expr)*
+// @lark: ?xor_expr: and_expr ("^" and_expr)*
+// @lark: ?and_expr: shift_expr ("&" shift_expr)*
+?or_expr: xor_expr (_or_bit_op xor_expr)*
+?xor_expr: and_expr (_xor_bit_op and_expr)*
+?and_expr: shift_expr (_and_bit_op shift_expr)*
 ?shift_expr: sum (_shift_op sum)*
 
 // @custom
-!_or_bit: "|"
-!_xor_bit: "^"
-!_and_bit: "&"
+!_or_bit_op: "|"
+!_xor_bit_op: "^"
+!_and_bit_op: "&"
 
 // ## Arithmetic operators
 

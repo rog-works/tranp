@@ -12,6 +12,8 @@ def make_settings() -> Settings:
 			'if_stmt': defs.If,
 			'while_stmt': defs.While,
 			'for_stmt': defs.For,
+			'except_clause': defs.Catch,
+			'try_stmt': defs.Try,
 			'function_def': defs.Function,
 			'class_def': defs.Class,
 			'enum_def': defs.Enum,

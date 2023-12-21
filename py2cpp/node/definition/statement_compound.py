@@ -13,10 +13,12 @@ from py2cpp.node.node import Node
 @Meta.embed(Node, accept_tags('elif_'))
 class ElseIf(Node):
 	@property
+	@Meta.embed(Node, expandable)
 	def condition(self) -> Node:
 		return self._by('expression')
 
 	@property
+	@Meta.embed(Node, expandable)
 	def block(self) -> Block:
 		return self._by('block').as_a(Block)
 
@@ -25,14 +27,18 @@ class ElseIf(Node):
 class If(Node):
 	@property
 	@Meta.embed(Node, expandable)
-	def if_block(self) -> tuple[Node, Block]:
-		return self._by('expression'), self._at(1).as_a(Block)
+	def condition(self) -> Node:
+		return self._by('expression')
 
 	@property
 	@Meta.embed(Node, expandable)
-	def else_if_blocks(self) -> list[tuple[Node, Block]]:
-		else_ifs = [node.as_a(ElseIf) for node in self._by('elifs')._children()]
-		return [(node.condition, node.block) for node in else_ifs]
+	def block(self) -> Block:
+		return self._at(1).as_a(Block)
+
+	@property
+	@Meta.embed(Node, expandable)
+	def else_if_blocks(self) -> list[ElseIf]:
+		return [node.as_a(ElseIf) for node in self._by('elifs')._children()]
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -44,8 +50,13 @@ class If(Node):
 class While(Node):
 	@property
 	@Meta.embed(Node, expandable)
-	def while_block(self) -> tuple[Node, Block]:
-		return self._by('expression'), self._by('block').as_a(Block)
+	def condition(self) -> Node:
+		return self._by('expression')
+
+	@property
+	@Meta.embed(Node, expandable)
+	def block(self) -> Block:
+		return self._by('block').as_a(Block)
 
 
 @Meta.embed(Node, accept_tags('for_stmt'))
@@ -57,8 +68,44 @@ class For(Node):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def for_block(self) -> tuple[Node, Block]:
-		return self._by('expression'), self._by('block').as_a(Block)
+	def condition(self) -> Node:
+		return self._by('expression')
+
+	@property
+	@Meta.embed(Node, expandable)
+	def block(self) -> Block:
+		return self._by('block').as_a(Block)
+
+
+@Meta.embed(Node, accept_tags('except_clause'))
+class Catch(Node):
+	@property
+	@Meta.embed(Node, expandable)
+	def symbol(self) -> Symbol:
+		return self._by('primary').as_a(Symbol)
+
+	@property
+	@Meta.embed(Node, expandable)
+	def alias(self) -> Symbol | Empty:
+		return self._at(1).one_of(Symbol | Empty)
+
+	@property
+	@Meta.embed(Node, expandable)
+	def block(self) -> Block:
+		return self._by('block').as_a(Block)
+
+
+@Meta.embed(Node, accept_tags('try_stmt'))
+class Try(Node):
+	@property
+	@Meta.embed(Node, expandable)
+	def block(self) -> Block:
+		return self._by('block').as_a(Block)
+
+	@property
+	@Meta.embed(Node, expandable)
+	def catches(self) -> list[Catch]:
+		return [node.as_a(Catch) for node in self._by('except_clauses')._children()]
 
 
 @Meta.embed(Node, accept_tags('function_def'))

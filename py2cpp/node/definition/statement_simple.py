@@ -1,5 +1,5 @@
 from py2cpp.lang.annotation import override
-from py2cpp.node.definition.primary import GenericType, Indexer, Symbol
+from py2cpp.node.definition.primary import FuncCall, GenericType, Indexer, Symbol
 from py2cpp.node.definition.terminal import Empty, Terminal
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
 from py2cpp.node.node import Node
@@ -81,8 +81,8 @@ class Return(Node):
 class Throw(Node):
 	@property
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> Symbol:
-		return self._at(0).as_a(Symbol)
+	def calls(self) -> FuncCall:
+		return self._at(0).as_a(FuncCall)
 
 	@property
 	@Meta.embed(Node, expandable)

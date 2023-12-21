@@ -106,6 +106,48 @@ class Handler:
 
 	# Statement - compound
 
+	def on_if(self, node: defs.If, ctx: Context) -> None:
+		_, else_block = ctx.registry.pop(tuple[defs.Block, str])
+		else_ifs = [else_if for _, else_if in ctx.registry.each_pop(len(node.else_ifs))]
+		else_ifs.reverse()
+		_, block = ctx.registry.pop(tuple[defs.Block, str])
+		_, condition = ctx.registry.pop(tuple[defs.Node, str])
+		text = ctx.view.render(node.identifer, vars={'condition': condition, 'block': block, 'else_ifs': else_ifs, 'else_block': else_block})
+		ctx.registry.push((node, text))
+
+	def on_else_if(self, node: defs.ElseIf, ctx: Context) -> None:
+		_, block = ctx.registry.pop(tuple[defs.Block, str])
+		_, condition = ctx.registry.pop(tuple[defs.Node, str])
+		text = ctx.view.render(node.identifer, vars={'condition': condition, 'block': block})
+		ctx.registry.push((node, text))
+
+	def on_while(self, node: defs.While, ctx: Context) -> None:
+		_, block = ctx.registry.pop(tuple[defs.Block, str])
+		_, condition = ctx.registry.pop(tuple[defs.Node, str])
+		text = ctx.view.render(node.identifer, vars={'condition': condition, 'block': block})
+		ctx.registry.push((node, text))
+
+	def on_for(self, node: defs.For, ctx: Context) -> None:
+		_, block = ctx.registry.pop(tuple[defs.Block, str])
+		_, iterates = ctx.registry.pop(tuple[defs.Node, str])
+		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
+		text = ctx.view.render(node.identifer, vars={'symbol': symbol, 'iterates': iterates, 'block': block})
+		ctx.registry.push((node, text))
+
+	def on_try(self, node: defs.Try, ctx: Context) -> None:
+		catches = [catch for _, catch in ctx.registry.each_pop(len(node.catches))]
+		catches.reverse()
+		_, block = ctx.registry.pop(tuple[defs.Block, str])
+		text = ctx.view.render(node.identifer, vars={'block': block, 'catches': catches})
+		ctx.registry.push((node, text))
+
+	def on_catch(self, node: defs.Catch, ctx: Context) -> None:
+		_, block = ctx.registry.pop(tuple[defs.Block, str])
+		_, alias = ctx.registry.pop(tuple[defs.Symbol, str])
+		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
+		text = ctx.view.render(node.identifer, vars={'symbol': symbol, 'alias': alias, 'block': block})
+		ctx.registry.push((node, text))
+
 	def on_class(self, node: defs.Class, ctx: Context) -> None:
 		_, block = ctx.registry.pop(tuple[defs.Block, str])
 		text = ctx.view.render(node.identifer, vars={**serialize(node, T_ClassVar), 'block': block})
@@ -169,6 +211,23 @@ class Handler:
 	def on_return(self, node: defs.Return, ctx: Context) -> None:
 		_, return_value = ctx.registry.pop(tuple[defs.Expression, str])
 		text = ctx.view.render(node.identifer, vars={'return_value': return_value})
+		ctx.registry.push((node, text))
+
+	def on_throw(self, node: defs.Throw, ctx: Context) -> None:
+		_, via = ctx.registry.pop(tuple[defs.Symbol, str])
+		_, calls = ctx.registry.pop(tuple[defs.FuncCall, str])
+		text = ctx.view.render(node.identifer, vars={'calls': calls, 'via': via})
+		ctx.registry.push((node, text))
+
+	def on_pass(self, node: defs.Pass, ctx: Context) -> None:
+		pass
+
+	def on_break(self, node: defs.Break, ctx: Context) -> None:
+		text = 'break;'
+		ctx.registry.push((node, text))
+
+	def on_continue(self, node: defs.Continue, ctx: Context) -> None:
+		text = 'continue;'
 		ctx.registry.push((node, text))
 
 	def on_import(self, node: defs.Import, ctx: Context) -> None:

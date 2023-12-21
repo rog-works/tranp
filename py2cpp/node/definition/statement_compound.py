@@ -10,8 +10,55 @@ from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
 from py2cpp.node.node import Node
 
 
+@Meta.embed(Node, accept_tags('elif_'))
+class ElseIf(Node):
+	@property
+	def condition(self) -> Node:
+		return self._by('expression')
+
+	@property
+	def block(self) -> Block:
+		return self._by('block').as_a(Block)
+
+
 @Meta.embed(Node, accept_tags('if_stmt'))
-class If(Node): pass  # FIXME impl
+class If(Node):
+	@property
+	@Meta.embed(Node, expandable)
+	def if_block(self) -> tuple[Node, Block]:
+		return self._by('expression'), self._at(1).as_a(Block)
+
+	@property
+	@Meta.embed(Node, expandable)
+	def else_if_blocks(self) -> list[tuple[Node, Block]]:
+		else_ifs = [node.as_a(ElseIf) for node in self._by('elifs')._children()]
+		return [(node.condition, node.block) for node in else_ifs]
+
+	@property
+	@Meta.embed(Node, expandable)
+	def else_block(self) -> Block | Empty:
+		return self._at(3).one_of(Block | Empty)
+
+
+@Meta.embed(Node, accept_tags('while_stmt'))
+class While(Node):
+	@property
+	@Meta.embed(Node, expandable)
+	def while_block(self) -> tuple[Node, Block]:
+		return self._by('expression'), self._by('block').as_a(Block)
+
+
+@Meta.embed(Node, accept_tags('for_stmt'))
+class For(Node):
+	@property
+	@Meta.embed(Node, expandable)
+	def symbol(self) -> Symbol:
+		return self._by('name').as_a(Symbol)
+
+	@property
+	@Meta.embed(Node, expandable)
+	def for_block(self) -> tuple[Node, Block]:
+		return self._by('expression'), self._by('block').as_a(Block)
 
 
 @Meta.embed(Node, accept_tags('function_def'))

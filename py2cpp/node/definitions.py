@@ -8,7 +8,10 @@ def make_settings() -> Settings:
 			# -- General --
 			'file_input': defs.FileInput,
 			# -- Statement compound --
+			'elif_': defs.ElseIf,
 			'if_stmt': defs.If,
+			'while_stmt': defs.While,
+			'for_stmt': defs.For,
 			'function_def': defs.Function,
 			'class_def': defs.Class,
 			'enum_def': defs.Enum,

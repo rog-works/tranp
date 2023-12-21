@@ -62,6 +62,21 @@ class TestDefinition(TestCase):
 	# Statement compound
 
 	@data_provider([
+		(
+			Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'if_stmt'), [Tree('const_true', []), Tree(Token('RULE', 'block'), [Tree(Token('RULE', 'pass_stmt'), [])]), Tree(Token('RULE', 'elifs'), []), None])]),
+			'file_input.if_stmt', {
+			'condition': defs.Truthy,
+			'statements': [defs.Pass],
+		}),
+	])
+	def test_if(self, tree: Tree, full_path: str, expected: dict[str, Any]) -> None:
+		node = Fixture.inst.custom(tree).by(full_path).as_a(defs.If)
+		self.assertEqual(type(node.condition), expected['condition'])
+		for index, statement in enumerate(node.block.statements):
+			in_expected = expected['statements'][index]
+			self.assertEqual(type(statement), in_expected)
+
+	@data_provider([
 		('file_input.class_def[4].class_def_raw.block.function_def[1]', {
 			'name': 'func1',
 			'access': 'public',
@@ -93,7 +108,7 @@ class TestDefinition(TestCase):
 			],
 			'return': defs.Null,
 		}),
-	], includes=[1])
+	])
 	def test_function(self, full_path: str, expected: dict[str, Any]) -> None:
 		node = Fixture.inst.shared.by(full_path).as_a(defs.Function)
 		self.assertEqual(node.function_name.to_string(), expected['name'])

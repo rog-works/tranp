@@ -1,8 +1,6 @@
-{%- for decorator in decorators -%}
-{{- decorator.symbol -}}(
-	{%- for argument in decorator.arguments -%}
+{{- symbol -}}(
+	{%- for argument in arguments -%}
 		{%- if loop.index0 > 0 %}, {% endif -%}
-		{{- argument.value -}}
+		{{- argument -}}
 	{%- endfor -%}
 )
-{% endfor %}

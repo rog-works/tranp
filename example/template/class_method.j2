@@ -1,11 +1,11 @@
-{%- if decorators -%}
-	{%- include 'decorator.j2' -%}
-{%- endif -%}
-{{access}}: static {{return_type}} {{ function_name }}(
+{%- for decorator in decorators -%}
+{{ decorator }}
+{% endfor -%}
+{{ access }}: static {{ return_type }} {{ symbol }}(
 	{%- for parameter in parameters -%}
 		{%- if loop.index0 > 1 %}, {% endif -%}
-		{%- if parameter.symbol != 'cls' -%}
-			{{- parameter.var_type }} {{ parameter.symbol }}{% if parameter.default_value %} = {{ parameter.default_value }}{% endif -%}
+		{%- if parameter != 'self' -%}
+			{{- parameter -}}
 		{%- endif -%}
 	{%- endfor -%}
 ) {

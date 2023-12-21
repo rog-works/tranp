@@ -1,10 +1,10 @@
-{%- if decorators -%}
-	{%- include 'decorator.j2' -%}
-{%- endif -%}
-{{return_type}} {{ function_name }}(
+{%- for decorator in decorators -%}
+{{ decorator }}
+{% endfor -%}
+{{ return_type }} {{ symbol }}(
 	{%- for parameter in parameters -%}
 		{%- if loop.index0 > 0 %}, {% endif -%}
-		{{- parameter.var_type }} {{ parameter.symbol }}{% if parameter.default_value %} = {{ parameter.default_value }}{% endif -%}
+		{{- parameter -}}
 	{%- endfor -%}
 ) {
 {%- filter indent('\t') %}

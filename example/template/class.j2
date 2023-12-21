@@ -1,7 +1,7 @@
-{%- if decorators -%}
-	{%- include 'decorator.j2' -%}
-{%- endif -%}
-class {{ class_name }}
+{%- for decorator in decorators -%}
+{{ decorator }}
+{% endfor -%}
+class {{ symbol }}
 {%- if parents %} : public {% for name in parents -%}
 		{%- if loop.index0 > 0 %}, {% endif -%}
 		{{- name -}}

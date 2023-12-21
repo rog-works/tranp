@@ -1,30 +1,9 @@
-from typing import Callable, Iterator, Union
-
 from py2cpp.cpp.directive import pragma
 from py2cpp.cpp.enum import CEnum
 
+from FW.compatible import IntVector, Vector, Mesh, MeshRaw
+
 pragma('once')
-
-class Vector:
-	def __init__(self, x: float, y: float, z: float) -> None:
-		self.x: float = x
-		self.y: float = y
-		self.z: float = z
-
-	def __add__(self, other: Union['Vector', float]) -> 'Vector':
-		raise NotImplementedError()
-
-	def __sub__(self, other: Union['Vector', float]) -> 'Vector':
-		raise NotImplementedError()
-
-class IntVector:
-	def __init__(self, x: int, y: int, z: int) -> None:
-		self.x: int = x
-		self.y: int = y
-		self.z: int = z
-
-	def __add__(self, other: 'IntVector') -> 'IntVector':
-		raise NotImplementedError()
 
 class Box3d:
 	def __init__(self, min: Vector, max: Vector) -> None:
@@ -32,20 +11,6 @@ class Box3d:
 		self.max: Vector = max
 
 	def contains(self, location: Vector) -> bool:
-		raise NotImplementedError()
-
-class MeshRaw:
-	def vertex_indices_itr(self) -> Iterator[int]:
-		raise NotImplementedError()
-
-	def is_vertex(self, index: int) -> bool:
-		raise NotImplementedError()
-
-	def get_vertex(self, index: int) -> Vector:
-		raise NotImplementedError()
-
-class Mesh:
-	def process_mesh(self, callback: Callable[[MeshRaw], None]) -> None:
 		raise NotImplementedError()
 
 class CellMesh:

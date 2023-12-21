@@ -36,7 +36,7 @@ class Decorator(Node):
 	@property
 	@Meta.embed(Node, expandable)
 	def arguments(self) -> list[Argument]:
-		return [node.as_a(Argument) for node in self._children('arguments')]
+		return [node.as_a(Argument) for node in self._children('arguments')] if self._exists('arguments') else []
 
 
 @Meta.embed(Node, accept_tags('assign_stmt'))

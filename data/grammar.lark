@@ -201,6 +201,7 @@ slice: expression
 	| group_expr
 	| "[" _exprlist? "]" -> list
 	| "{" _dict_exprlist? "}" -> dict
+	| "..." -> elipsis
 
 group_expr: "(" expression ")"
 

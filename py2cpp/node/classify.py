@@ -40,13 +40,9 @@ class Classify:
 		self.__db = db
 
 	def type_of(self, node: defs.Symbol | defs.GenericType | defs.Null) -> defs.Types:
-		resolved = self.__type_of(node.scope, node.to_string() if node.is_a(defs.Symbol) else node.as_a(defs.GenericType).symbol.to_string())
-		if resolved is None:
-			raise LogicError(f'Symbol not defined. node: {node}')
+		return self.__type_of(node.scope, node.to_string() if node.is_a(defs.Symbol) else node.as_a(defs.GenericType).symbol.to_string())
 
-		return resolved
-
-	def __type_of(self, scope: str, symbol: str) -> defs.Types | None:
+	def __type_of(self, scope: str, symbol: str) -> defs.Types:
 		symbols = EntryPath(symbol)
 		first, _ = symbols.first()[0]
 		remain = symbols.shift(1)
@@ -66,12 +62,10 @@ class Classify:
 			if founded:
 				return founded
 
-	def literal_of(self, node: defs.Literal) -> defs.Types:
-		resolved = self.__type_of(node.scope, node.classification)
-		if resolved is None:
-			raise LogicError(f'Symbol not defined. node: {node}')
+		raise LogicError(f'Symbol not defined. scope: {scope}, symbol: {symbol}')
 
-		return resolved
+	def literal_of(self, node: defs.Literal) -> defs.Types:
+		return self.__type_of(node.scope, node.classification)
 
 	def result_of(self, expression: Node) -> defs.Types:
 		handler = Classify.Handler(self)
@@ -95,7 +89,12 @@ class Classify:
 			handler_name = f'on_{node.identifer}'
 			handler = getattr(self, handler_name)
 			keys = reversed([key for key, _ in handler.__annotations__.items() if key not in ['node', 'return']])
-			args = {key: self.__stack.pop() for key in keys}
+			annotations = {key: handler.__annotations__[key] for key in keys}
+			args = {key: self.__stack.pop() for key in annotations.keys()}
+			valids = [True for key, arg in args.items() if type(arg) is annotations[key]]
+			if len(valids) != len(args):
+				raise LogicError(f'Invalid arguments. node: {node}, actual {len(valids)} to expected {len(args)}')
+
 			return handler(node, **args)
 
 		# Primary

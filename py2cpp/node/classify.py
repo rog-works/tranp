@@ -11,30 +11,7 @@ SymbolDB: TypeAlias = dict[str, defs.Types]
 class Classify:
 	@classmethod
 	def instantiate(cls, root: Node) -> 'Classify':
-		return cls(cls.__make_db(root))
-
-	@classmethod
-	def __make_db(cls, root: Node) -> SymbolDB:
-		db: SymbolDB = {}
-		for node in root.calculated():
-			if isinstance(node, (defs.Function, defs.Class)):
-				path = EntryPath.join(node.block.scope, node.symbol.to_string())
-				db[path.origin] = node
-
-		for _, node in db.items():
-			for var in node.block.decl_vars:
-				type_symbol = var.var_type.to_string() if var.var_type.is_a(defs.Symbol) else var.var_type.as_a(defs.GenericType).symbol.to_string()
-				candidates = [
-					EntryPath.join(var.scope, type_symbol),
-					EntryPath.join(type_symbol),
-				]
-				path = EntryPath.join(node.block.scope, var.symbol.to_string())
-				for candidate in candidates:
-					if candidate.origin in db:
-						db[path.origin] = db[candidate.origin]
-						break
-
-		return db
+		return cls(make_db(root))
 
 	def __init__(self, db: SymbolDB) -> None:
 		self.__db = db
@@ -168,6 +145,29 @@ class Classify:
 
 		def on_dict(self, node: defs.Dict) -> defs.Types:
 			return self.__classify.literal_of(node)
+
+
+def make_db(root: Node) -> SymbolDB:
+	db: SymbolDB = {}
+	for node in root.calculated():
+		if isinstance(node, (defs.Function, defs.Class)):
+			path = EntryPath.join(node.block.scope, node.symbol.to_string())
+			db[path.origin] = node
+
+	for _, node in db.items():
+		for var in node.block.decl_vars:
+			type_symbol = var.var_type.to_string() if var.var_type.is_a(defs.Symbol) else var.var_type.as_a(defs.GenericType).symbol.to_string()
+			candidates = [
+				EntryPath.join(var.scope, type_symbol),
+				EntryPath.join(type_symbol),
+			]
+			path = EntryPath.join(node.block.scope, var.symbol.to_string())
+			for candidate in candidates:
+				if candidate.origin in db:
+					db[path.origin] = db[candidate.origin]
+					break
+
+	return db
 
 # DB:
 #   int: Class('$', 'int')

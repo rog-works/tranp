@@ -11,21 +11,21 @@ from py2cpp.node.nodes import NodeResolver, Nodes
 
 
 class Fixture:
-	__insts: dict[TestCase, 'Fixture'] = {}
+	@classmethod
+	def make(cls, filepath: str) -> 'Fixture':
+		rel_path = filepath.split(cls.__appdir())[1]
+		without_ext = rel_path.split('.')[0]
+		elems =  [elem for elem in without_ext.split(os.path.sep) if elem]
+		module_path = '.'.join(elems)
+		return cls(module_path)
 
 	@classmethod
-	def get(cls, runner: TestCase) -> 'Fixture':
-		if runner not in cls.__insts:
-			cls.__insts[runner] = cls(runner.__module__)
-
-		return cls.__insts[runner]
+	def __appdir(cls) -> str:
+		return os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 
 	def __init__(self, module_path: str) -> None:
-		tree = self.__load_prebuild_tree(module_path)
-		self.__nodes = self.__make_nodes(tree)
-
-	def __appdir(self) -> str:
-		return os.path.join(os.path.dirname(__file__), '../..')
+		self.__module_path = module_path
+		self.__nodes: Nodes | None = None
 
 	def __load_parser(self) -> Lark:
 		grammar_path = os.path.join(self.__appdir(), 'data/grammar.lark')
@@ -56,7 +56,11 @@ class Fixture:
 
 	@property
 	def shared(self) -> Nodes:
+		if self.__nodes is None:
+			tree = self.__load_prebuild_tree(self.__module_path)
+			self.__nodes = self.__make_nodes(tree)
+
 		return self.__nodes
 
 	def custom(self, tree: Tree) -> Nodes:
-		return Nodes(tree, self.__make_resolver())
+		return self.__make_nodes(tree)

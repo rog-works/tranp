@@ -20,7 +20,7 @@
 			"type": "python",
 			"request": "launch",
 			"module":"unittest",
-			"args": ["tests.unit.py2cpp.node.test_definition.TestDefinition.test_function"],
+			"args": ["tests.unit.py2cpp.node.test_definition.TestDefinition"],
 			// "args": ["tests.unit.py2cpp.node.test_embed.TestMeta.test_expandable"],
 			// "args": ["tests.unit.py2cpp.node.test_nodes.TestNodes"],
 			// "args": ["tests.unit.py2cpp.node.test_node.TestNode.test_one_of"],

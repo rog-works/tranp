@@ -1,4 +1,6 @@
 from py2cpp.lang.annotation import override
+from py2cpp.node.definition.element import Var
+from py2cpp.node.definition.statement_simple import AnnoAssign
 from py2cpp.node.embed import Meta, accept_tags, expandable
 from py2cpp.node.node import Node
 
@@ -24,3 +26,8 @@ class Module(Node):
 	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:
 		return self._children()
+
+	@property
+	def decl_vars(self) -> list[Var]:
+		assigns = {node.as_a(AnnoAssign): True for node in reversed(self.statements) if node.is_a(AnnoAssign)}  # FIXME MoveAssignの考慮が必要
+		return [node.rerole(Var) for node in reversed(assigns.keys())]

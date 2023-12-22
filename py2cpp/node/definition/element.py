@@ -77,5 +77,5 @@ class Block(Node, ScopeTrait):
 
 	@property
 	def decl_vars(self) -> list[Var]:
-		assigns = {node.as_a(AnnoAssign): True for node in reversed(self.statements) if node.is_a(AnnoAssign)}
+		assigns = {node.as_a(AnnoAssign): True for node in reversed(self.statements) if node.is_a(AnnoAssign)}  # FIXME MoveAssignの考慮が必要
 		return [node.rerole(Var) for node in reversed(assigns.keys())]

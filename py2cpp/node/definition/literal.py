@@ -1,10 +1,14 @@
 from py2cpp.lang.annotation import override
+from py2cpp.lang.string import snakelize
 from py2cpp.node.definition.terminal import Terminal
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
 from py2cpp.node.node import Node
 
 
-class Literal(Node): pass
+class Literal(Node):
+	@property
+	def classification(self) -> str:  # XXX @aliasと対応。かなり苦し紛れ
+		return snakelize(self.__class__.__name__)
 
 
 @Meta.embed(Node, accept_tags('number'))
@@ -25,6 +29,11 @@ class Integer(Number):
 	def match_feature(cls, via: Node) -> bool:
 		return Terminal.match_terminal(via, allow_tags=['number', 'DEC_NUMBER', 'HEX_NUMBER'])
 
+	@property
+	@override
+	def classification(self) -> str:
+		return 'int'
+
 
 @Meta.embed(Node, actualized(via=Number))
 class Float(Number):
@@ -44,6 +53,11 @@ class String(Literal):
 	def to_string(self) -> str:  # XXX Terminalへの移設を検討
 		return '.'.join([node.to_string() for node in self._under_expand()])
 
+	@property
+	@override
+	def classification(self) -> str:
+		return 'str'
+
 
 class Boolean(Literal):
 	@property
@@ -54,6 +68,11 @@ class Boolean(Literal):
 	@override
 	def to_string(self) -> str:  # XXX Terminalへの移設を検討
 		return '.'.join([node.to_string() for node in self._under_expand()])
+
+	@property
+	@override
+	def classification(self) -> str:
+		return 'bool'
 
 
 @Meta.embed(Node, accept_tags('const_true'))
@@ -91,3 +110,7 @@ class Dict(Literal):
 	@Meta.embed(Node, expandable)
 	def items(self) -> list[KeyValue]:
 		return [node.as_a(KeyValue) for node in self._children()]
+
+
+@Meta.embed(Node, accept_tags('const_none'))
+class Null(Literal): pass

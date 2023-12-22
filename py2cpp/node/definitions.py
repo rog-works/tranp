@@ -67,11 +67,11 @@ def make_settings() -> Settings:
 			'key_value': defs.KeyValue,
 			'list': defs.List,
 			'dict': defs.Dict,
+			'const_none': defs.Null,
 			# -- Expression --
 			# 'expression': defs.Expression,
 			# -- Terminal --
 			# '': defs.Terminal,
-			'const_none': defs.Null,
 			'__empty__': defs.Empty,
 		},
 		fallback=defs.Terminal

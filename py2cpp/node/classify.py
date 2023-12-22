@@ -65,10 +65,10 @@ class Classify:
 		def invoke(self, node: Node) -> defs.Types:
 			handler_name = f'on_{node.identifer}'
 			handler = getattr(self, handler_name)
-			keys = reversed([key for key, _ in handler.__annotations__.items() if key not in ['node', 'return']])
+			keys = reversed([key for key, _ in handler.__annotations__.items() if key != 'return'])
 			annotations = {key: handler.__annotations__[key] for key in keys}
-			args = {key: self.__stack.pop() for key in annotations.keys()}
-			valids = [True for key, arg in args.items() if type(arg) is annotations[key]]
+			args = {node: node, **{key: self.__stack.pop() for key in annotations.keys()}}
+			valids = [True for key, arg in args.items() if isinstance(arg, annotations[key])]
 			if len(valids) != len(args):
 				raise LogicError(f'Invalid arguments. node: {node}, actual {len(valids)} to expected {len(args)}')
 

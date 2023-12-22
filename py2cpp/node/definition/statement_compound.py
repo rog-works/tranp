@@ -108,8 +108,14 @@ class Try(Node):
 		return [node.as_a(Catch) for node in self._by('except_clauses')._children()]
 
 
+class Types(Node):
+	@property
+	def block(self) -> Block:
+		...
+
+
 @Meta.embed(Node, accept_tags('function_def'))
-class Function(Node):
+class Function(Types):
 	@property
 	def access(self) -> str:
 		name = self.symbol.to_string()
@@ -196,7 +202,7 @@ class Method(Function):
 
 
 @Meta.embed(Node, accept_tags('class_def'))
-class Class(Node):
+class Class(Types):
 	@property
 	@override
 	def scope_name(self) -> str:
@@ -249,7 +255,7 @@ class Class(Node):
 
 
 @Meta.embed(Node, accept_tags('enum_def'))
-class Enum(Node):
+class Enum(Types):
 	@property
 	@override
 	def scope_name(self) -> str:

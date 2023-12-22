@@ -17,17 +17,24 @@ class S:
 			n: bool = True
 
 		def func(self, v: 'V') -> None:
+			class Z: pass
+
 			S.A.b.n
 			n: dict[str, int] = {}
 			print(f'{n}')
 			print(f'{S.A.n}')
 			print(f'{S.A.V.n}')
+			print(f'{X.n}')
+			print(f'{Z}')
 			v.n
 			self.n
 
+class X:
+	n: bool = True
 
-def make_symbols(root: Node) -> dict[str, defs.Function | defs.Class]:
-	db: dict[str, defs.Function | defs.Class] = {}
+
+def make_symbols(root: Node) -> dict[str, defs.Types]:
+	db: dict[str, defs.Types] = {}
 	for node in root.calculated():
 		if isinstance(node, (defs.Function, defs.Class)):
 			path = EntryPath.join(node.block.scope, node.symbol.to_string())
@@ -49,7 +56,7 @@ def make_symbols(root: Node) -> dict[str, defs.Function | defs.Class]:
 	return db
 
 
-def resolve_symbol(scope: str, symbol: str, db: dict[str, defs.Function | defs.Class]) -> defs.Function | defs.Class | None:
+def resolve_symbol(scope: str, symbol: str, db: dict[str, defs.Types]) -> defs.Types | None:
 	# DB:
 	#   int: Class('$', 'int')
 	#   float: Class('$', 'float')

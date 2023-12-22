@@ -4,7 +4,7 @@ from py2cpp.node.node import Node
 
 
 @Meta.embed(Node, accept_tags('file_input'))
-class FileInput(Node):
+class Module(Node):
 	@property
 	@override
 	def scopr_name(self) -> str:

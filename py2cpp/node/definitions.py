@@ -6,7 +6,7 @@ def make_settings() -> Settings:
 	return Settings(
 		symbols={
 			# -- General --
-			'file_input': defs.FileInput,
+			'file_input': defs.Module,
 			# -- Statement compound --
 			'elif_': defs.ElseIf,
 			'if_stmt': defs.If,

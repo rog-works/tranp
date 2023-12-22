@@ -1,6 +1,5 @@
 import os
 from typing import Callable, cast
-from unittest import TestCase
 
 from lark import Lark, Tree
 from lark.indenter import PythonIndenter

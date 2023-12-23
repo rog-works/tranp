@@ -211,7 +211,7 @@ class TestDefinition(TestCase):
 	# Primary
 
 	@data_provider([
-		('file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block.assign_stmt[2].anno_assign.getitem', {
+		('file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block.assign_stmt[2].anno_assign.typed_getitem', {
 			'value_type': 'int',
 		}),
 	])
@@ -220,7 +220,7 @@ class TestDefinition(TestCase):
 		self.assertEqual(node.value_type.to_string(), expected['value_type'])
 
 	@data_provider([
-		('file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block.assign_stmt[0].anno_assign.getitem', {
+		('file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block.assign_stmt[0].anno_assign.typed_getitem', {
 			'key_type': 'Hoge.Values',
 			'value_type': 'int',
 		}),

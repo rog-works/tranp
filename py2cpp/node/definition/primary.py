@@ -25,27 +25,12 @@ class This(Symbol):
 		return via.to_string().startswith('self')
 
 
-@Meta.embed(Node, accept_tags('getitem', 'typed_getitem'))
-class GetItem(Node):
+@Meta.embed(Node, accept_tags('getitem'))
+class Indexer(Node):
 	@property
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Symbol:  # FIXME シンボル以外も有り得るので不正確
 		return self._at(0).as_a(Symbol)
-
-
-@Meta.embed(Node, actualized(via=GetItem))
-class Indexer(GetItem):
-	@classmethod
-	@override
-	def match_feature(cls, via: Node) -> bool:
-		if via.tag != 'getitem':
-			return False
-
-		# タイプヒントのケースを除外 XXX 定数化
-		if via.parent.identifer in ['anno_assign', 'parameter', 'function', 'class_method', 'method']:
-			return False
-
-		return len(via._children('slices')) == 1
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -53,69 +38,57 @@ class Indexer(GetItem):
 		return self._by('slices.slice')._at(0)
 
 
-class GenericType(GetItem): pass
+@Meta.embed(Node, accept_tags('typed_getitem'))
+class GenericType(Node):
+	@property
+	@Meta.embed(Node, expandable)
+	def symbol(self) -> Symbol:  # FIXME シンボル以外も有り得るので不正確
+		return self._at(0).as_a(Symbol)
 
 
-@Meta.embed(Node, actualized(via=GetItem))
+@Meta.embed(Node, actualized(via=GenericType))
 class ListType(GenericType):
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:
-		# タイプヒントのため、代入・仮引数・戻り値の場合のみ XXX 定数化
-		if via.parent.identifer not in ['anno_assign', 'parameter', 'function', 'class_method', 'method']:
-			return False
-
 		if via._at(0).to_string() != 'list':
 			return False
 
-		# XXX _at(1) -> slices | typed_slices
-		return len(via._at(1)._children()) == 1
+		return len(via._by('typed_slices')._children()) == 1
 
 	@property
 	@Meta.embed(Node, expandable)
 	def value_type(self) -> Symbol | GenericType:
-		# XXX _at(1)._at(0) -> slices.slice | typed_slices.typed_slice
-		return self._at(1)._at(0)._at(0).one_of(Symbol | GenericType)
+		return self._by('typed_slices.typed_slice')._at(0).one_of(Symbol | GenericType)
 
 
-@Meta.embed(Node, actualized(via=GetItem))
+@Meta.embed(Node, actualized(via=GenericType))
 class DictType(GenericType):
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:
-		# タイプヒントのため、代入・仮引数・戻り値の場合のみ XXX 定数化
-		if via.parent.identifer not in ['anno_assign', 'parameter', 'function', 'class_method', 'method']:
-			return False
-
 		if via._at(0).to_string() != 'dict':
 			return False
 
-		# XXX _at(1) -> slices | typed_slices
-		return len(via._at(1)._children()) == 2
+		return len(via._by('typed_slices')._children()) == 2
 
 	@property
 	@Meta.embed(Node, expandable)
 	def key_type(self) -> Symbol | GenericType:
-		# XXX _at(1)._at(0) -> slices.slice[0] | typed_slices.typed_slice[0]
-		return self._at(1)._at(0)._at(0).one_of(Symbol | GenericType)
+		return self._by('typed_slices.typed_slice[0]')._at(0).one_of(Symbol | GenericType)
 
 	@property
 	@Meta.embed(Node, expandable)
 	def value_type(self) -> Symbol | GenericType:
-		# XXX _at(1)._at(1) -> slices.slice[1] | typed_slices.typed_slice[1]
-		return self._at(1)._at(1)._at(0).one_of(Symbol | GenericType)
+		return self._by('typed_slices.typed_slice[1]')._at(0).one_of(Symbol | GenericType)
 
 
-@Meta.embed(Node, actualized(via=GetItem))
+@Meta.embed(Node, actualized(via=GenericType))
 class UnionType(GenericType):
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:
-		# タイプヒントのため、代入・仮引数・戻り値の場合のみ XXX 定数化
-		if via.parent.identifer not in ['anno_assign', 'parameter', 'function', 'class_method', 'method']:
-			return False
-
-		return via._exists('or_expr')
+		return via._exists('typed_or_expr')
 
 	@property
 	@Meta.embed(Node, expandable)

@@ -93,7 +93,7 @@ class UnionType(GenericType):
 	@property
 	@Meta.embed(Node, expandable)
 	def types(self) -> list[Symbol]:  # XXX GenericTypeにも対応するかどうか
-		return [node.as_a(Symbol) for node in self._by('or_bitwise')._children()]
+		return [node.as_a(Symbol) for node in self._by('typed_or_expr')._children()]
 
 
 @Meta.embed(Node, accept_tags('funccall'))

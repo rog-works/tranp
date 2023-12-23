@@ -60,7 +60,7 @@ class_def_raw: "class" name ["(" [arguments] ")"] ":" block
 // @decl `def func_name(param1: type1, param2: type2, ...) -> return_type:`
 // @lark funcdef: "def" name "(" [parameters] ")" ["->" test] ":" suite
 function_def: [decorators] function_def_raw
-function_def_raw: "def" name "(" [parameters] ")" "->" primary ":" block
+function_def_raw: "def" name "(" [parameters] ")" "->" typed_primary ":" block
 
 // ## Function parameters
 
@@ -74,7 +74,16 @@ function_def_raw: "def" name "(" [parameters] ")" "->" primary ":" block
 // @lark ?typedparam: name (":" test)?
 parameters: paramvalue ("," paramvalue)*
 ?paramvalue: typedparam ["=" expression]
-?typedparam: name [":" expression]
+?typedparam: name [":" (typed_primary | "'" typed_primary "'")]
+
+// @custom
+?typed_primary: typed_primary "." name -> typed_getattr
+	| typed_primary "[" typed_slices "]" -> typed_getitem
+	| name -> typed_var
+	| "None" -> typed_none
+
+typed_slices: typed_slice | typed_slice (("," typed_slice)+ [","] | ",")
+typed_slice: typed_primary
 
 // # Function call argumanets
 
@@ -112,7 +121,7 @@ except_clause: "except" primary ["as" name] ":" block
 // @lark augassign: testlist_star_expr augassign_op (yield_expr | testlist)
 assign_stmt: assign | anno_assign | aug_assign
 assign: expression ("=" expression)+
-anno_assign: primary ":" primary ["=" expression]
+anno_assign: primary ":" typed_primary ["=" expression]
 aug_assign: primary aug_assign_op primary
 
 !aug_assign_op: "+=" | "-=" | "*=" | "@=" | "/=" | "%=" | "&=" | "|=" | "^=" | "<<=" | ">>=" | "**=" | "//="

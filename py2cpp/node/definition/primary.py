@@ -5,7 +5,7 @@ from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
 from py2cpp.node.node import Node
 
 
-@Meta.embed(Node, accept_tags('getattr', 'var', 'name', 'dotted_name'))
+@Meta.embed(Node, accept_tags('getattr', 'var', 'name', 'dotted_name', 'typed_getattr', 'typed_var'))
 class Symbol(Node):
 	@property
 	@override
@@ -25,7 +25,7 @@ class This(Symbol):
 		return via.to_string().startswith('self')
 
 
-@Meta.embed(Node, accept_tags('getitem'))
+@Meta.embed(Node, accept_tags('getitem', 'typed_getitem'))
 class GetItem(Node):
 	@property
 	@Meta.embed(Node, expandable)
@@ -38,6 +38,9 @@ class Indexer(GetItem):
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:
+		if via.tag != 'getitem':
+			return False
+
 		# タイプヒントのケースを除外 XXX 定数化
 		if via.parent.identifer in ['anno_assign', 'parameter', 'function', 'class_method', 'method']:
 			return False
@@ -65,12 +68,14 @@ class ListType(GenericType):
 		if via._at(0).to_string() != 'list':
 			return False
 
-		return len(via._children('slices')) == 1
+		# XXX _at(1) -> slices | typed_slices
+		return len(via._at(1)._children()) == 1
 
 	@property
 	@Meta.embed(Node, expandable)
 	def value_type(self) -> Symbol | GenericType:
-		return self._by('slices.slice')._at(0).one_of(Symbol | GenericType)
+		# XXX _at(1)._at(0) -> slices.slice | typed_slices.typed_slice
+		return self._at(1)._at(0)._at(0).one_of(Symbol | GenericType)
 
 
 @Meta.embed(Node, actualized(via=GetItem))
@@ -85,17 +90,20 @@ class DictType(GenericType):
 		if via._at(0).to_string() != 'dict':
 			return False
 
-		return len(via._children('slices')) == 2
+		# XXX _at(1) -> slices | typed_slices
+		return len(via._at(1)._children()) == 2
 
 	@property
 	@Meta.embed(Node, expandable)
 	def key_type(self) -> Symbol | GenericType:
-		return self._by('slices.slice[0]')._at(0).one_of(Symbol | GenericType)
+		# XXX _at(1)._at(0) -> slices.slice[0] | typed_slices.typed_slice[0]
+		return self._at(1)._at(0)._at(0).one_of(Symbol | GenericType)
 
 	@property
 	@Meta.embed(Node, expandable)
 	def value_type(self) -> Symbol | GenericType:
-		return self._by('slices.slice[1]')._at(0).one_of(Symbol | GenericType)
+		# XXX _at(1)._at(1) -> slices.slice[1] | typed_slices.typed_slice[1]
+		return self._at(1)._at(1)._at(0).one_of(Symbol | GenericType)
 
 
 @Meta.embed(Node, actualized(via=GetItem))

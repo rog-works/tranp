@@ -35,8 +35,11 @@ def make_settings() -> Settings:
 			'var': defs.Symbol,
 			'name': defs.Symbol,
 			'dotted_name': defs.Symbol,
+			'typed_getattr': defs.Symbol,
+			'typed_var': defs.Symbol,
 			# 'getattr': defs.Self,
 			'getitem': defs.GetItem,
+			'typed_getitem': defs.GetItem,
 			# 'getitem': defs.Indexer,
 			# 'getitem': defs.ListType,
 			# 'getitem': defs.DictType,
@@ -68,6 +71,7 @@ def make_settings() -> Settings:
 			'list': defs.List,
 			'dict': defs.Dict,
 			'const_none': defs.Null,
+			'typed_none': defs.Null,
 			# -- Expression --
 			# 'expression': defs.Expression,
 			# -- Terminal --

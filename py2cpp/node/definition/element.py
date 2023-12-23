@@ -1,4 +1,5 @@
 from py2cpp.node.definition.common import Argument
+from py2cpp.node.definition.literal import String
 from py2cpp.node.definition.primary import Symbol, GenericType
 from py2cpp.node.definition.statement_simple import AnnoAssign
 from py2cpp.node.definition.terminal import Empty

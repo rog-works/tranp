@@ -112,5 +112,5 @@ class Dict(Literal):
 		return [node.as_a(KeyValue) for node in self._children()]
 
 
-@Meta.embed(Node, accept_tags('const_none'))
+@Meta.embed(Node, accept_tags('const_none', 'typed_none'))
 class Null(Literal): pass

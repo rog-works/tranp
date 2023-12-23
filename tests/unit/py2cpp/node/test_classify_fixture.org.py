@@ -11,9 +11,9 @@ class A:
 	def __init__(self) -> None:
 		self.v: list[int] = []
 
-	def func1(self, b: 'list[int]') -> str:
+	def func1(self, b: 'list[B]') -> str:
 		v: bool = False
 		print(v)
 		print(self.v)
-		print(b.v)
+		print(b[0].v)
 		return A.B.v

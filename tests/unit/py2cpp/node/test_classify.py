@@ -17,12 +17,9 @@ class TestClassify(TestCase):
 			'__main__.v',
 			'__main__.A',
 			'__main__.A.B',
+			'__main__.A.B.__init__',
+			'__main__.A.B.func1',
 			'__main__.A.B.v',
-			'__main__.A.__init__.self',
-			'__main__.A.func1.self',
-			'__main__.A.func1.b',
-			'__main__.A.func1.v',
-			'__main__.A.v',
 		]),
 	])
 	def test_make_db(self, full_path: str, symbols: list[str]) -> None:

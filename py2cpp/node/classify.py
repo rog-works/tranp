@@ -149,23 +149,26 @@ class Classify:
 
 def make_db(root: Node) -> SymbolDB:
 	db: SymbolDB = {}
+	decl_vars: list[defs.Var] = []
 	for node in root.calculated():
 		if isinstance(node, (defs.Function, defs.Class)):
-			path = EntryPath.join(node.block.scope, node.symbol.to_string())
+			path = EntryPath.join(node.scope, node.symbol.to_string())
 			db[path.origin] = node
+			decl_vars.extend(node.block.decl_vars)
+		elif isinstance(node, defs.Module):
+			decl_vars.extend(node.decl_vars)
 
-	for _, node in db.items():
-		for var in node.block.decl_vars:
-			type_symbol = var.var_type.to_string() if var.var_type.is_a(defs.Symbol) else var.var_type.as_a(defs.GenericType).symbol.to_string()
-			candidates = [
-				EntryPath.join(var.scope, type_symbol),
-				EntryPath.join(type_symbol),
-			]
-			path = EntryPath.join(node.block.scope, var.symbol.to_string())
-			for candidate in candidates:
-				if candidate.origin in db:
-					db[path.origin] = db[candidate.origin]
-					break
+	for var in decl_vars:
+		type_symbol = var.var_type.to_string() if var.var_type.is_a(defs.Symbol) else var.var_type.as_a(defs.GenericType).symbol.to_string()
+		candidates = [
+			EntryPath.join(var.scope, type_symbol),
+			EntryPath.join(type_symbol),
+		]
+		path = EntryPath.join(var.scope, var.symbol.to_string())
+		for candidate in candidates:
+			if candidate.origin in db:
+				db[path.origin] = db[candidate.origin]
+				break
 
 	return db
 

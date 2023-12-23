@@ -74,7 +74,7 @@ class Node(NodeBase):
 	def scope(self) -> str:  # FIXME 名前よりノードの方が良い。その場合名前をどう取得するかが課題
 		"""str: 自身が所属するスコープ。@note: 所有するスコープではない点に注意"""
 		if isinstance(self, ScopeTrait):
-			return f'{self.parent.scope}.{self.parent.tag}'
+			return f'{self.parent.scope}.{self.parent.scope_name or self.parent.identifer}'
 		else:
 			return self.parent.scope
 

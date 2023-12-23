@@ -46,7 +46,7 @@ class Class(Node):
 	@property
 	@override
 	def scope_name(self) -> str:
-		return 'Class'
+		return 'C1'
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -58,7 +58,7 @@ class Enum(Node):
 	@property
 	@override
 	def scope_name(self) -> str:
-		return 'Enum'
+		return 'E1'
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -181,13 +181,13 @@ class TestNode(TestCase):
 		('file_input', '__main__'),
 		('file_input.class', '__main__'),
 		('file_input.class.__empty__', '__main__'),
-		('file_input.class.block', '__main__.Class'),
-		('file_input.class.block.enum', '__main__.Class'),
-		('file_input.class.block.enum.block', '__main__.Class.Enum'),
-		('file_input.class.block.function[1]', '__main__.Class'),
-		('file_input.class.block.function[1].block', '__main__.Class'),
-		('file_input.class.block.function[1].block.if', '__main__.Class'),
-		('file_input.class.block.function[1].block.if.block', '__main__.Class'),
+		('file_input.class.block', '__main__.C1'),
+		('file_input.class.block.enum', '__main__.C1'),
+		('file_input.class.block.enum.block', '__main__.C1.E1'),
+		('file_input.class.block.function[1]', '__main__.C1'),
+		('file_input.class.block.function[1].block', '__main__.C1'),
+		('file_input.class.block.function[1].block.if', '__main__.C1'),
+		('file_input.class.block.function[1].block.if.block', '__main__.C1'),
 		('file_input.function.block.term_a', '__main__'),
 	])
 	def test_namespace(self, full_path: str, expected: str) -> None:
@@ -199,13 +199,13 @@ class TestNode(TestCase):
 		('file_input', '__main__'),
 		('file_input.class', '__main__'),
 		('file_input.class.__empty__', '__main__'),
-		('file_input.class.block', '__main__.class'),
-		('file_input.class.block.enum', '__main__.class'),
-		('file_input.class.block.enum.block', '__main__.class.enum'),
-		('file_input.class.block.function[1]', '__main__.class'),
-		('file_input.class.block.function[1].block', '__main__.class.function'),
-		('file_input.class.block.function[1].block.if', '__main__.class.function'),
-		('file_input.class.block.function[1].block.if.block', '__main__.class.function.if'),
+		('file_input.class.block', '__main__.C1'),
+		('file_input.class.block.enum', '__main__.C1'),
+		('file_input.class.block.enum.block', '__main__.C1.E1'),
+		('file_input.class.block.function[1]', '__main__.C1'),
+		('file_input.class.block.function[1].block', '__main__.C1.function'),
+		('file_input.class.block.function[1].block.if', '__main__.C1.function'),
+		('file_input.class.block.function[1].block.if.block', '__main__.C1.function.if'),
 		('file_input.function.block.term_a', '__main__.function'),
 	])
 	def test_scope(self, full_path: str, expected: str) -> None:

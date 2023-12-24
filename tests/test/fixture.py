@@ -8,9 +8,11 @@ from py2cpp.lang.di import DI
 from py2cpp.lang.locator import Locator
 from py2cpp.lang.module import load_module
 from py2cpp.ast.provider import Query, Settings
+from py2cpp.ast.parser import FileLoader, GrammarSettings, SyntaxParser
 from py2cpp.node.definitions import make_settings
 from py2cpp.node.node import Node
 from py2cpp.node.nodes import NodeResolver, Nodes
+from py2cpp.node.plugin import ModuleLoader
 from py2cpp.tp_lark.types import Entry
 
 
@@ -59,6 +61,10 @@ class Fixture:
 		di.register(Settings, make_settings)
 		di.register(NodeResolver, NodeResolver)
 		di.register(Query[Node], Nodes)
+		di.register(FileLoader, FileLoader)
+		di.register(GrammarSettings, lambda: GrammarSettings(grammar='data/grammar.lark'))
+		di.register(SyntaxParser, SyntaxParser)
+		di.register(ModuleLoader, ModuleLoader)
 		return di
 
 	@property

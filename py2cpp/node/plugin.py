@@ -15,7 +15,7 @@ class ModuleLoader(Plugin):
 		self.__locator = locator
 		self.__parser = parser
 
-	def provide(self, module_path: str, expect: type[T]) -> T:
+	def load(self, module_path: str, expect: type[T]) -> T:
 		root = self.__parser.parse(module_path)
 		factory = self.__locator.curry(Nodes, Callable[[Entry], Nodes])
 		nodes = factory(root)

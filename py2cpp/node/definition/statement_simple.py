@@ -122,8 +122,8 @@ class Import(Node):
 
 	@property
 	def module(self) -> Node:
-		provider = self.plugin(ModuleLoader)
-		return provider.provide(self.module_path.to_string(), Node)
+		loader = self.plugin(ModuleLoader)
+		return loader.load(self.module_path.to_string(), Node)
 
 	@property
 	def decl_vars(self) -> list[AnnoAssign]:  # FIXME MoveAssignの考慮が必要

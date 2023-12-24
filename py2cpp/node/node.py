@@ -382,11 +382,11 @@ class Node(NodeBase):
 		raise LogicError(str(self), expects)
 
 
-	def is_a(self, ctor: type[NodeBase]) -> bool:
+	def is_a(self, *ctor: type[NodeBase]) -> bool:
 		"""指定のクラスと同じか派生クラスか判定
 
 		Args:
-			ctor (type[NodeBase]): 判定するクラス
+			*ctor (type[NodeBase]): 判定するクラス
 		Returns:
 			bool: True = 同種
 		"""

@@ -143,6 +143,9 @@ class Function(Types):
 	@property
 	@Meta.embed(Node, expandable)
 	def parameters(self) -> list[Parameter]:
+		if not self._exists('function_def_raw.parameters'):
+			return []
+
 		return [node.as_a(Parameter) for node in self._children('function_def_raw.parameters')]
 
 	@property

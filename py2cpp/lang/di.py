@@ -146,4 +146,4 @@ class DI:
 			if expect_anno is not remain_anno:
 				raise ValueError(f'Unexpected remain arguments. from: {factory}, expect: {expect}')
 
-		return cast(T_Curried, lambda *remain_args: calls(*curried_args, *remain_args))
+		return cast(T_Curried, lambda *remain_args: factory(*curried_args, *remain_args))

@@ -1,6 +1,6 @@
 from typing import Any, Iterator
 
-from STD.annotation import alias
+from py2cpp.python.annotation import alias
 
 
 @alias('int')

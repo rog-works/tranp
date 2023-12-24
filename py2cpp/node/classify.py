@@ -151,11 +151,23 @@ def make_db(root: Node) -> SymbolDB:
 	db: SymbolDB = {}
 	decl_vars: list[defs.AnnoAssign] = []
 	for node in root.calculated():
-		if isinstance(node, (defs.Function, defs.Class)):
+		if isinstance(node, (defs.Function, defs.Class, defs.Enum)):
 			path = EntryPath.join(node.scope, node.symbol.to_string())
 			db[path.origin] = node
+
+		if type(node) is defs.Function:
 			decl_vars.extend(node.block.decl_vars)
-		elif isinstance(node, defs.Module):
+		elif type(node) is defs.ClassMethod:
+			decl_vars.extend(node.block.decl_vars)
+		elif type(node) is defs.Method:
+			decl_vars.extend(node.block.decl_vars)
+		elif type(node) is defs.Class:
+			decl_vars.extend(node.vars)
+		elif type(node) is defs.Enum:
+			decl_vars.extend(node.vars)
+		elif type(node) is defs.Import:
+			decl_vars.extend(node.decl_vars)
+		elif type(node) is defs.Module:
 			decl_vars.extend(node.decl_vars)
 
 	for var in decl_vars:

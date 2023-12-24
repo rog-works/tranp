@@ -126,7 +126,7 @@ class Import(Node):
 		return loader.load(self.module_path.to_string(), Node)
 
 	@property
-	def decl_vars(self) -> list[AnnoAssign]:  # FIXME MoveAssignの考慮が必要
+	def decl_vars(self) -> list[AnnoAssign | MoveAssign]:
 		from py2cpp.node.definition.general import Module  # FIXME 参照違反
 
 		imported_names = [symbol.to_string() for symbol in self.import_symbols]

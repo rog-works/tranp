@@ -5,7 +5,7 @@ from py2cpp.node.definition.common import Argument
 from py2cpp.node.definition.element import Block, Decorator, Parameter
 from py2cpp.node.definition.literal import Null
 from py2cpp.node.definition.primary import GenericType, This, Symbol
-from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
+from py2cpp.node.definition.statement_simple import AnnoAssign, Assign, MoveAssign
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
 from py2cpp.node.node import Node
@@ -169,7 +169,7 @@ class Constructor(Function):
 		return self.parent.as_a(Block).parent.as_a(Class).symbol  # FIXME 循環参照
 
 	@property
-	def decl_vars(self) -> list[AnnoAssign]:
+	def decl_vars(self) -> list[AnnoAssign | MoveAssign]:
 		return [node for node in self.block.decl_vars if node.symbol.is_a(This)]
 
 
@@ -253,7 +253,7 @@ class Class(Types):
 		return [node.as_a(Method) for node in self.block._children() if node.is_a(Method)]
 
 	@property
-	def vars(self) -> list[AnnoAssign]:
+	def vars(self) -> list[AnnoAssign | MoveAssign]:
 		return self.constructor.decl_vars if self.constructor_exists else []
 
 
@@ -276,5 +276,5 @@ class Enum(Types):
 		return self._by('block').as_a(Block)
 
 	@property
-	def vars(self) -> list[MoveAssign]:  # XXX 理想としてはVarだが、Enumの変数に型の定義がないため一旦MoveAssignで妥協
-		return [node.as_a(MoveAssign) for node in self._children('block')]
+	def vars(self) -> list[AnnoAssign | MoveAssign]:
+		return [node.one_of(AnnoAssign | MoveAssign) for node in self._children('block') if node.is_a(Assign)]

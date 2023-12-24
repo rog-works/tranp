@@ -149,7 +149,7 @@ class Classify:
 
 def make_db(root: Node) -> SymbolDB:
 	db: SymbolDB = {}
-	decl_vars: list[defs.AnnoAssign] = []
+	decl_vars: list[defs.AnnoAssign | defs.MoveAssign] = []
 	for node in root.calculated():
 		if isinstance(node, (defs.Function, defs.Class, defs.Enum)):
 			path = EntryPath.join(node.scope, node.symbol.to_string())
@@ -171,7 +171,7 @@ def make_db(root: Node) -> SymbolDB:
 			decl_vars.extend(node.decl_vars)
 
 	for var in decl_vars:
-		type_symbol = var.var_type.to_string() if var.var_type.is_a(defs.Symbol) else var.var_type.as_a(defs.GenericType).symbol.to_string()
+		type_symbol = __resolve_type_symbol(var) if type(var) is defs.AnnoAssign else 'Unknown'
 		candidates = [
 			EntryPath.join(var.scope, type_symbol),
 			EntryPath.join(type_symbol),
@@ -183,6 +183,12 @@ def make_db(root: Node) -> SymbolDB:
 				break
 
 	return db
+
+def __resolve_type_symbol(var: defs.AnnoAssign) -> str:
+	if var.var_type.is_a(defs.Symbol):
+		return var.var_type.to_string()
+	else:
+		return var.var_type.as_a(defs.GenericType).symbol.to_string()
 
 # DB:
 #   int: Class('$', 'int')

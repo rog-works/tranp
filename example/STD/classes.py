@@ -103,3 +103,6 @@ class Dict:
 
 @alias('None')
 class Null: ...
+
+
+class Unknown: ...

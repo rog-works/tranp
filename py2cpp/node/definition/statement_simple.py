@@ -3,6 +3,7 @@ from py2cpp.node.definition.primary import FuncCall, GenericType, Indexer, Symbo
 from py2cpp.node.definition.terminal import Empty, Terminal
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
 from py2cpp.node.node import Node
+from py2cpp.node.plugin import ModuleProvider
 
 
 @Meta.embed(Node, accept_tags('assign_stmt'))
@@ -118,3 +119,15 @@ class Import(Node):
 	@Meta.embed(Node, expandable)
 	def import_symbols(self) -> list[Symbol]:
 		return [node.as_a(Symbol) for node in self._children('import_names')]
+
+	@property
+	def module(self) -> Node:
+		provider = self.plugin(ModuleProvider)
+		return provider.provide(self.module_path.to_string(), Node)
+
+	@property
+	def decl_vars(self) -> list[AnnoAssign]:  # FIXME MoveAssignの考慮が必要
+		from py2cpp.node.definition.general import Module  # FIXME 参照違反
+
+		imported_names = [symbol.to_string() for symbol in self.import_symbols]
+		return [var for var in self.module.as_a(Module).decl_vars if var.symbol.to_string() in imported_names]

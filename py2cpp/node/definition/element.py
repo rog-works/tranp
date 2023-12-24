@@ -1,5 +1,4 @@
 from py2cpp.node.definition.common import Argument
-from py2cpp.node.definition.literal import String
 from py2cpp.node.definition.primary import Symbol, GenericType
 from py2cpp.node.definition.statement_simple import AnnoAssign
 from py2cpp.node.definition.terminal import Empty
@@ -40,35 +39,6 @@ class Decorator(Node):
 		return [node.as_a(Argument) for node in self._children('arguments')] if self._exists('arguments') else []
 
 
-@Meta.embed(Node, accept_tags('assign_stmt'))
-class Var(Node):
-	@property
-	def access(self) -> str:
-		# XXX
-		symbol = self.symbol.to_string()
-		if symbol.startswith('__'):
-			return 'private'
-		elif symbol.startswith('_'):
-			return 'protected'
-		else:
-			return 'public'
-
-	@property
-	@Meta.embed(Node, expandable)
-	def symbol(self) -> Symbol:
-		return self._by('anno_assign')._at(0).as_a(Symbol)
-
-	@property
-	@Meta.embed(Node, expandable)
-	def var_type(self) -> Symbol | GenericType:
-		return self._by('anno_assign')._at(1).one_of(Symbol | GenericType)
-
-	@property
-	@Meta.embed(Node, expandable)
-	def initial_value(self) -> Node:
-		return self._by('anno_assign')._at(2)
-
-
 @Meta.embed(Node, accept_tags('block'))
 class Block(Node, ScopeTrait):
 	@property
@@ -77,6 +47,6 @@ class Block(Node, ScopeTrait):
 		return self._children()
 
 	@property
-	def decl_vars(self) -> list[Var]:
+	def decl_vars(self) -> list[AnnoAssign]:
 		assigns = {node.as_a(AnnoAssign): True for node in reversed(self.statements) if node.is_a(AnnoAssign)}  # FIXME MoveAssignの考慮が必要
-		return [node.rerole(Var) for node in reversed(assigns.keys())]
+		return list(reversed(assigns.keys()))

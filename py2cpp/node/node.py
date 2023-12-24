@@ -4,7 +4,7 @@ from typing import Callable, Iterator, cast
 from py2cpp.ast.provider import Query
 from py2cpp.ast.travarsal import EntryPath
 from py2cpp.errors import LogicError, NotFoundError
-from py2cpp.lang.annotation import deprecated, implements
+from py2cpp.lang.annotation import deprecated
 from py2cpp.lang.locator import Locator
 from py2cpp.lang.sequence import flatten
 from py2cpp.lang.string import snakelize
@@ -27,7 +27,7 @@ class Node(NodeBase):
 		"""インスタンスを生成
 
 		Args:
-			nodes (Query[Node]): クエリーインターフェイス
+			locator (Locator): ロケーター
 			full_path (str): ルート要素からのフルパス
 		"""
 		self.__locator = locator
@@ -35,10 +35,10 @@ class Node(NodeBase):
 
 	@property
 	def __nodes(self) -> Query['Node']:
+		"""Query[Node]: クエリーインターフェイスを返却"""
 		return self.__locator.resolve(Query[Node])
 
 	@property
-	@implements
 	def full_path(self) -> str:
 		"""str: ルート要素からのフルパス"""
 		return self._full_path.origin

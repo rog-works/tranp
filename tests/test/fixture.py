@@ -63,8 +63,9 @@ class Fixture:
 
 	@property
 	def shared(self) -> Query[Node]:
-		self.__di.unregister(Entry)
-		self.__di.register(Entry, lambda: self.__load_prebuild_tree(self.__module_path))
+		if not self.__di.can_resolve(Entry):
+			self.__di.register(Entry, lambda: self.__load_prebuild_tree(self.__module_path))
+
 		return self.__di.resolve(Query[Node])
 
 	def custom(self, tree: Tree) -> Query[Node]:

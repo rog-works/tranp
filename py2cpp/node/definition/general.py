@@ -9,7 +9,7 @@ from py2cpp.node.plugin import ModulePath
 class Module(Node):
 	@property
 	@override
-	def scopr_name(self) -> str:
+	def scope_name(self) -> str:
 		return self.module_path
 
 	@property

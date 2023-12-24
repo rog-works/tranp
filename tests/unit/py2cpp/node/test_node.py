@@ -336,12 +336,6 @@ class TestNode(TestCase):
 		self.assertEqual(type(empty.one_of(Empty)), Empty)
 		self.assertEqual(type(empty.one_of(Terminal | Empty)), Empty)
 
-	def test_if_a_actualize_from_b(self) -> None:
-		nodes = Fixture.nodes()
-		empty = nodes.by('file_input.class.__empty__')
-		self.assertEqual(type(empty), Empty)
-		self.assertEqual(type(empty.if_a_actualize_from_b(Terminal, Expression)), Empty)
-
 	def test_match_feature(self) -> None:
 		class NodeA(Node):
 			@classmethod

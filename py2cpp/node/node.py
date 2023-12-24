@@ -1,5 +1,5 @@
 import functools
-from typing import Callable, Iterator, TypeVar, cast
+from typing import Callable, Iterator, cast
 
 from py2cpp.ast.provider import Query
 from py2cpp.ast.travarsal import EntryPath
@@ -11,9 +11,6 @@ from py2cpp.lang.string import snakelize
 from py2cpp.node.base import NodeBase, T_NodeBase, T_Plugin
 from py2cpp.node.embed import EmbedKeys, Meta
 from py2cpp.node.trait import ScopeTrait
-
-T_A = TypeVar('T_A', bound=NodeBase)
-T_B = TypeVar('T_B', bound=NodeBase)
 
 
 class Node(NodeBase):
@@ -421,24 +418,6 @@ class Node(NodeBase):
 		factory = self.__locator.curry(to_class, Callable[[str], to_class])
 		return factory(self.full_path)
 
-	@deprecated
-	def if_a_actualize_from_b(self, expect_type: type[T_A], through_type: type[T_B]) -> 'Node':
-		"""AならBを介して適切な具象クラスに変換
-
-		Args:
-			expect_type (type[T_A]): 期待する型
-			through_type (type[T_B]): 仲介する型
-		Returns:
-			Node: A以外か、Bから変換した具象クラス
-		Note:
-			@deprecated 仲介型を通して具象クラス化すると意図しないクラス変換が起きる可能性が高いため、インスタンス化の際にactualizeによって解決されている型を使う
-			変換先のクラスは状況次第のため不明
-			利用例:
-			ノードがタグで解決できない型の時(=フォールバック型)、仲介型(=Expression)を通してactualizeを呼ぶ
-			例) node.if_a_actualize_from_b(Terminal, Expression)
-		"""
-		return cast(Node, self.as_a(through_type)).actualize() if self.is_a(expect_type) else self
-
 	@classmethod
 	def match_feature(cls, via: 'Node') -> bool:
 		"""引数のノードが自身の特徴と一致するか判定
@@ -487,6 +466,13 @@ class Node(NodeBase):
 		return f'<{self.__class__.__name__}: {self.full_path}>'
 
 	def plugin(self, symbol: type[T_Plugin]) -> T_Plugin:
+		"""プラグインモジュールを取得
+
+		Args:
+			symbol (type[T_Plugin]): モジュールのシンボル
+		Returns:
+			T_Plugin: モジュール
+		"""
 		return self.__locator.resolve(symbol)
 
 	# XXX def is_statement(self) -> bool: pass

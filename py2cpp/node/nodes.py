@@ -40,7 +40,6 @@ class NodeResolver:
 		Args:
 			symbol (str): シンボル
 			full_path (str): エントリーのフルパス
-			factory (Callable[[type[Node]], Node]): インスタンスファクトリー
 		Returns:
 			Node: 解決したノード
 		Raises:

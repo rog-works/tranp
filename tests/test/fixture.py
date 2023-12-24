@@ -12,7 +12,7 @@ from py2cpp.ast.parser import FileLoader, GrammarSettings, SyntaxParser
 from py2cpp.node.definitions import make_settings
 from py2cpp.node.node import Node
 from py2cpp.node.nodes import NodeResolver, Nodes
-from py2cpp.node.plugin import ModuleLoader
+from py2cpp.node.plugin import ModuleLoader, ModulePath
 from py2cpp.tp_lark.types import Entry
 
 
@@ -65,6 +65,7 @@ class Fixture:
 		di.register(GrammarSettings, lambda: GrammarSettings(grammar='data/grammar.lark'))
 		di.register(SyntaxParser, SyntaxParser)
 		di.register(ModuleLoader, ModuleLoader)
+		di.register(ModulePath, ModulePath.entrypoint)
 		return di
 
 	@property

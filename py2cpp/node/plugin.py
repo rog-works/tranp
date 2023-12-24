@@ -29,8 +29,10 @@ class ModuleLoader(Plugin):
 		root = self.__parser.parse(module_path)
 
 		di = cast(DI, self.__locator).clone()
+		di.unregister(Locator)
 		di.unregister(Entry)
 		di.unregister(ModulePath)
+		di.register(Locator, lambda: di)
 		di.register(Entry, lambda: root)
 		di.register(ModulePath, lambda: ModulePath(module_path))
 

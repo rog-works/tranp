@@ -12,7 +12,7 @@ class A:
 		self.v: list[int] = []
 
 	def func1(self, b: 'list[B]') -> str:
-		v: bool = False
+		v = False
 		print(v)
 		print(self.v)
 		print(b[0].v)

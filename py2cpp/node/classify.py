@@ -171,7 +171,7 @@ def make_db(root: Node) -> SymbolDB:
 			decl_vars.extend(node.decl_vars)
 
 	for var in decl_vars:
-		type_symbol = __resolve_type_symbol(var) if type(var) is defs.AnnoAssign else 'Unknown'
+		type_symbol = __resolve_type_symbol(var)
 		candidates = [
 			EntryPath.join(var.scope, type_symbol),
 			EntryPath.join(type_symbol),
@@ -184,11 +184,15 @@ def make_db(root: Node) -> SymbolDB:
 
 	return db
 
-def __resolve_type_symbol(var: defs.AnnoAssign) -> str:
-	if var.var_type.is_a(defs.Symbol):
-		return var.var_type.to_string()
-	else:
-		return var.var_type.as_a(defs.GenericType).symbol.to_string()
+def __resolve_type_symbol(var: defs.AnnoAssign | defs.MoveAssign) -> str:
+	if type(var) is defs.AnnoAssign:
+		if var.var_type.is_a(defs.Symbol):
+			return var.var_type.to_string()
+		else:
+			return var.var_type.as_a(defs.GenericType).symbol.to_string()
+
+	# XXX Unknownの名前は重要なので定数化などの方法で明示
+	return 'Unknown'
 
 # DB:
 #   int: Class('$', 'int')

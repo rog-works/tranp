@@ -1,12 +1,14 @@
-from typing import cast
 from unittest import TestCase
 
 from lark import Token, Tree
 
+from py2cpp.ast.provider import Query, Settings
 from py2cpp.errors import NotFoundError
+from py2cpp.lang.di import DI
+from py2cpp.lang.locator import Locator
 from py2cpp.node.node import Node
-from py2cpp.node.nodes import EntryCache, NodeResolver, Nodes
-from py2cpp.node.provider import Query, Settings
+from py2cpp.node.nodes import NodeResolver, Nodes
+from py2cpp.tp_lark.types import Entry
 from tests.test.helper import data_provider
 
 
@@ -23,7 +25,17 @@ class Empty(Node): pass
 
 class Fixture:
 	@classmethod
-	def tree(cls) -> Tree:
+	def di(cls) -> DI:
+		di = DI()
+		di.register(Locator, lambda: di)
+		di.register(Query[Node], Nodes)
+		di.register(NodeResolver, NodeResolver)
+		di.register(Settings, cls.__settings)
+		di.register(Entry, cls.__tree)
+		return di
+
+	@classmethod
+	def __tree(cls) -> Tree:
 		return Tree('root', [
 			Tree('tree_a', [
 				None,
@@ -44,8 +56,8 @@ class Fixture:
 		])
 
 	@classmethod
-	def resolver(cls) -> NodeResolver:
-		return NodeResolver.load(Settings(
+	def __settings(cls) -> Settings:
+		return Settings(
 			symbols={
 				'root': Root,
 				'tree_a': TreeA,
@@ -57,11 +69,15 @@ class Fixture:
 				'__empty__': Empty,
 			},
 			fallback=Terminal
-		))
+		)
 
 	@classmethod
-	def nodes(cls) -> Nodes:
-		return Nodes(cls.tree(), cls.resolver())
+	def resolver(cls) -> NodeResolver:
+		return cls.di().resolve(NodeResolver)
+
+	@classmethod
+	def nodes(cls) -> Query[Node]:
+		return cls.di().resolve(Query[Node])
 
 
 class TestNodeResolver(TestCase):
@@ -78,56 +94,8 @@ class TestNodeResolver(TestCase):
 		self.assertEqual(resolver.can_resolve(tag), expected)
 
 	def test_resolve(self) -> None:
-		class QueryA(Query[Node]):
-			def exists(self, full_path: str) -> bool: ...
-			def by(self, full_path: str) -> Node: ...
-			def parent(self, via: str) -> Node: ...
-			def siblings(self, via: str) -> list[Node]: ...
-			def children(self, via: str) -> list[Node]: ...
-			def leafs(self, via: str, leaf_name: str) -> list[Node]: ...
-			def expand(self, via: str) -> list[Node]: ...
-			def by_value(self, full_path: str) -> list[Node]: ...
-
 		resolver = Fixture.resolver()
-		dummy_query = QueryA()
-		self.assertEqual(resolver.resolve('root', 'root', lambda ctor: ctor(dummy_query, 'root')).full_path, 'root')
-
-
-class TestEntryCache(TestCase):
-	def test_exists(self) -> None:
-		cache = EntryCache()
-		cache.add('root', Tree('root', []))
-		self.assertEqual(cache.exists('root'), True)
-
-	def test_by(self) -> None:
-		cache = EntryCache()
-		root = Tree('root', [])
-		cache.add('root', root)
-		self.assertEqual(cache.by('root'), root)
-
-	def test_group_by(self) -> None:
-		cache = EntryCache()
-		root = Tree('root', [
-			Token('term_a', ''),
-			Tree('tree_a', [
-				Token('term_b', ''),
-			]),
-			Token('term_c', ''),
-		])
-		tree_a = cast(Tree, root.children[1])
-		cache.add('root', root)
-		cache.add('root.term_a', root.children[0])
-		cache.add('root.tree_a', root.children[1])
-		cache.add('root.tree_a.term_b', tree_a.children[0])
-		cache.add('root.term_c', root.children[2])
-		arr = list(cache.group_by('root').values())
-		self.assertEqual(arr, [root, root.children[0], tree_a, tree_a.children[0], root.children[2]])
-		self.assertEqual(list(cache.group_by('root.tree_a').values()), [tree_a, tree_a.children[0]])
-
-	def test_add(self) -> None:
-		cache = EntryCache()
-		cache.add('root', Tree('root', []))
-		self.assertEqual(cache.exists('root'), True)
+		self.assertEqual(resolver.resolve('root', 'root').full_path, 'root')
 
 
 class TestNodes(TestCase):

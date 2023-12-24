@@ -1,6 +1,7 @@
 from typing import Any, Callable, Generic, ParamSpec, TypeVar
 
 from py2cpp.node.base import NodeBase
+from py2cpp.node.node import Node
 from py2cpp.node.embed import EmbedKeys, Meta
 
 T = TypeVar('T', bound=NodeBase)

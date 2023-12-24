@@ -1,17 +1,17 @@
 import functools
-from typing import Iterator, TypeVar, cast
+from typing import Callable, Iterator, TypeVar, cast
 
+from py2cpp.ast.provider import Query
 from py2cpp.ast.travarsal import EntryPath
 from py2cpp.errors import LogicError, NotFoundError
 from py2cpp.lang.annotation import deprecated, implements
+from py2cpp.lang.locator import Locator
 from py2cpp.lang.sequence import flatten
 from py2cpp.lang.string import snakelize
-from py2cpp.node.base import NodeBase
+from py2cpp.node.base import NodeBase, T_NodeBase, T_Plugin
 from py2cpp.node.embed import EmbedKeys, Meta
-from py2cpp.node.provider import Query
 from py2cpp.node.trait import ScopeTrait
 
-T = TypeVar('T', bound=NodeBase)
 T_A = TypeVar('T_A', bound=NodeBase)
 T_B = TypeVar('T_B', bound=NodeBase)
 
@@ -26,15 +26,19 @@ class Node(NodeBase):
 		そのため、必ずしもAST上のエントリーとノードのアライメントは一致しない点に注意
 	"""
 
-	def __init__(self, nodes: Query['Node'], full_path: str) -> None:
+	def __init__(self, locator: Locator, full_path: str) -> None:
 		"""インスタンスを生成
 
 		Args:
 			nodes (Query[Node]): クエリーインターフェイス
 			full_path (str): ルート要素からのフルパス
 		"""
-		self.__nodes = nodes
+		self.__locator = locator
 		self._full_path = EntryPath(full_path)
+
+	@property
+	def __nodes(self) -> Query['Node']:
+		return self.__locator.resolve(Query[Node])
 
 	@property
 	@implements
@@ -301,7 +305,7 @@ class Node(NodeBase):
 		"""
 		return self.__nodes.by_value(self.full_path)
 
-	def as_a(self, to_class: type[T]) -> T:
+	def as_a(self, to_class: type[T_NodeBase]) -> T_NodeBase:
 		"""指定の具象クラスに変換。変換先が派生クラスの場合のみ変換し、同じか基底クラスの場合は何もしない
 		変換条件:
 		1. 変換先と継承関係
@@ -315,7 +319,7 @@ class Node(NodeBase):
 			LogicError: 許可されない変換先を指定
 		"""
 		if self.is_a(to_class):
-			return cast(T, self)
+			return cast(T_NodeBase, self)
 
 		if not issubclass(to_class, self.__class__):
 			raise LogicError(str(self), to_class)
@@ -323,7 +327,8 @@ class Node(NodeBase):
 		if not self.__acceptable_by(to_class):
 			raise LogicError(str(self), to_class)
 
-		return cast(T, to_class(self.__nodes, self.full_path))
+		factory = self.__locator.curry(to_class, Callable[[str], to_class])
+		return cast(T_NodeBase, factory(self.full_path))
 
 	def __acceptable_by(self, to_class: type[NodeBase]) -> bool:
 		"""指定の具象クラスへの変換が受け入れられるか判定
@@ -350,7 +355,7 @@ class Node(NodeBase):
 
 		return list(accept_tags.keys())
 
-	def one_of(self, expects: type[T]) -> T:
+	def one_of(self, expects: type[T_NodeBase]) -> T_NodeBase:
 		"""指定のクラスと同じか派生クラスか判定し、合致すればそのままインスタンスを返す。いずれのクラスでもない場合はエラーを出力
 
 		Args:
@@ -369,10 +374,10 @@ class Node(NodeBase):
 		if hasattr(expects, '__args__'):
 			inherits = [candidate for candidate in getattr(expects, '__args__', []) if isinstance(self, candidate)]
 			if len(inherits) == 1:
-				return cast(T, self)
+				return cast(T_NodeBase, self)
 		else:
 			if self.is_a(expects):
-				return cast(T, self)
+				return cast(T_NodeBase, self)
 
 		raise LogicError(str(self), expects)
 
@@ -387,7 +392,8 @@ class Node(NodeBase):
 		"""
 		return isinstance(self, ctor)
 
-	def rerole(self, to_class: type[T]) -> T:
+	@deprecated
+	def rerole(self, to_class: type[T_NodeBase]) -> T_NodeBase:
 		"""指定の具象クラスへリロールする。変換先と継承関係がある場合はエラーを出力
 		変換条件:
 		1. 変換先と継承関係がない
@@ -412,7 +418,8 @@ class Node(NodeBase):
 		if not self.__acceptable_by(to_class):
 			raise LogicError(str(self), to_class)
 
-		return to_class(self.__nodes, self.full_path)
+		factory = self.__locator.curry(to_class, Callable[[str], to_class])
+		return factory(self.full_path)
 
 	@deprecated
 	def if_a_actualize_from_b(self, expect_type: type[T_A], through_type: type[T_B]) -> 'Node':
@@ -479,6 +486,9 @@ class Node(NodeBase):
 		"""str: 文字列表現を取得"""
 		return f'<{self.__class__.__name__}: {self.full_path}>'
 
+	def plugin(self, symbol: type[T_Plugin]) -> T_Plugin:
+		return self.__locator.resolve(symbol)
 
 	# XXX def is_statement(self) -> bool: pass
 	# XXX def pretty(self) -> str: pass
+	# XXX def serialize(self) -> dict: pass

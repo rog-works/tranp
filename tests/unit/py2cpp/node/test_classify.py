@@ -1,7 +1,5 @@
 from unittest import TestCase
 
-from lark import Tree, Token
-
 from py2cpp.node.classify import make_db
 import py2cpp.node.definition as defs
 from tests.test.fixture import Fixture
@@ -18,7 +16,11 @@ class TestClassify(TestCase):
 			'__main__.A',
 			'__main__.A.B',
 			'__main__.A.B.__init__',
+			'__main__.A.B.__init__.self',
 			'__main__.A.B.func1',
+			'__main__.A.B.func1.self',
+			'__main__.A.B.func1.b',
+			'__main__.A.B.func1.v',
 			'__main__.A.B.v',
 		]),
 	])

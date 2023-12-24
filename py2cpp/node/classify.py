@@ -149,7 +149,7 @@ class Classify:
 
 def make_db(root: Node) -> SymbolDB:
 	db: SymbolDB = {}
-	decl_vars: list[defs.Var] = []
+	decl_vars: list[defs.AnnoAssign] = []
 	for node in root.calculated():
 		if isinstance(node, (defs.Function, defs.Class)):
 			path = EntryPath.join(node.scope, node.symbol.to_string())

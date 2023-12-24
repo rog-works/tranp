@@ -3,11 +3,13 @@ from typing import Callable
 
 from lark import Token, Tree
 
+from py2cpp.ast.cache import EntryCache
+from py2cpp.ast.provider import Query, Resolver, Settings
 from py2cpp.ast.travarsal import ASTFinder, EntryPath, EntryProxy
 from py2cpp.errors import NotFoundError
 from py2cpp.lang.annotation import implements
+from py2cpp.lang.locator import Locator
 from py2cpp.node.node import Node
-from py2cpp.node.provider import Query, Resolver, Settings
 from py2cpp.tp_lark.types import Entry
 
 
@@ -104,24 +106,14 @@ class EntryProxyLark(EntryProxy[Entry]):
 class NodeResolver:
 	"""ノードリゾルバー。解決したノードとパスをマッピングして管理"""
 
-	@classmethod
-	def load(cls, settings: Settings[Node]) -> 'NodeResolver':
-		"""設定データを元にインスタンスを生成
-
-		Args:
-			settings (Settings[Node]): 設定データ
-		Returns:
-			NodeResolver: 生成したインスタンス
-		"""
-		return cls(Resolver[Node].load(settings))
-
-	def __init__(self, resolver: Resolver[Node]) -> None:
+	def __init__(self, locator: Locator, settings: Settings) -> None:
 		"""インスタンスを生成
 
 		Args:
 			resolver (Resolver[Node]): 型リゾルバー
 		"""
-		self.__resolver = resolver
+		self.__locator = locator
+		self.__resolver = Resolver[Node].load(settings)
 		self.__insts: dict[str, Node] = {}
 
 	def can_resolve(self, symbol: str) -> bool:
@@ -134,7 +126,7 @@ class NodeResolver:
 		"""
 		return self.__resolver.can_resolve(symbol)
 
-	def resolve(self, symbol: str, full_path: str, factory: Callable[[type[Node]], Node]) -> Node:
+	def resolve(self, symbol: str, full_path: str) -> Node:
 		"""ノードのインスタンスを解決
 
 		Args:
@@ -150,7 +142,8 @@ class NodeResolver:
 			return self.__insts[full_path]
 
 		ctor = self.__resolver.resolve(symbol)
-		self.__insts[full_path] = factory(ctor).actualize()
+		factory = self.__locator.curry(ctor, Callable[[str], ctor])
+		self.__insts[full_path] = factory(full_path).actualize()
 		return self.__insts[full_path]
 
 	def clear(self) -> None:
@@ -158,91 +151,15 @@ class NodeResolver:
 		self.__insts = {}
 
 
-class EntryCache:
-	"""エントリーキャッシュ
-
-	Note:
-		グループ検索用のインデックスは、ツリーの先頭から順序通りに登録することが正常動作の必須要件
-		効率よくインデックスを構築出来る反面、シンタックスツリーが静的であることを前提とした実装のため、
-		インデックスを作り替えることは出来ず、登録順序にも強い制限がある
-	"""
-
-	def __init__(self) -> None:
-		"""インスタンスを生成"""
-		self.__entries: list[Entry] = []
-		self.__indexs: dict[str, tuple[int, int]] = {}
-
-	def exists(self, full_path: str) -> bool:
-		"""指定のパスのエントリーが存在するか判定
-
-		Args:
-			full_path (str): フルパス
-		Returns:
-			bool: True = 存在する
-		"""
-		return full_path in self.__indexs
-
-	def by(self, full_path: str) -> Entry:
-		"""指定のパスのエントリーをフェッチ
-
-		Args:
-			full_path (str): フルパス
-		Returns:
-			Entry: エントリー
-		"""
-		if not self.exists(full_path):
-			raise NotFoundError(full_path)
-
-		begin, _ = self.__indexs[full_path]
-		return self.__entries[begin]
-
-	def group_by(self, via: str) -> dict[str, Entry]:
-		"""指定の基準パス以下のエントリーをフェッチ
-
-		Args:
-			via (str): 基準のパス(フルパス)
-		Returns:
-			dict[str, Entry]: (フルパス, エントリー)
-		"""
-		if not self.exists(via):
-			raise NotFoundError(via)
-
-		begin, end = self.__indexs[via]
-		items = self.__entries[begin:end + 1]
-		keys = list(self.__indexs.keys())[begin:end + 1]
-		return {keys[index]: items[index] for index in range((end + 1) - begin)}
-
-	def add(self, full_path: str, entry: Entry) -> None:
-		"""指定のパスとエントリーを紐付けてキャッシュに追加
-
-		Args:
-			full_path (str): フルパス
-			entry (str): フルパス
-		"""
-		if self.exists(full_path):
-			return
-
-		begin = len(self.__entries)
-		self.__entries.append(entry)
-		self.__indexs[full_path] = (begin, begin)
-
-		remain = full_path.split('.')[:-1]
-		while len(remain):
-			in_key = '.'.join(remain)
-			begin, end = self.__indexs[in_key]
-			self.__indexs[in_key] = (begin, end + 1)
-			remain.pop()
-
-
 class Nodes(Query[Node]):
 	"""ノードクエリーインターフェイス。ASTを元にノードの探索し、リゾルバーを介してインスタンスを解決"""
 
-	def __init__(self, root: Entry, resolver: NodeResolver) -> None:
+	def __init__(self, resolver: NodeResolver, root: Entry) -> None:
 		"""インスタンスを生成
 
 		Args:
-			root (Entry): ASTのルート要素
 			resolver (NodeResolver): ノードリゾルバー
+			root (Entry): ASTのルート要素
 		"""
 		self.__resolver = resolver
 		self.__proxy = EntryProxyLark()
@@ -259,7 +176,7 @@ class Nodes(Query[Node]):
 		Returns:
 			Node: 解決したノード
 		"""
-		return self.__resolver.resolve(self.__proxy.name(entry), full_path, lambda ctor: ctor(self, full_path))
+		return self.__resolver.resolve(self.__proxy.name(entry), full_path)
 
 	@implements
 	def exists(self, full_path: str) -> bool:

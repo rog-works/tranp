@@ -2,12 +2,15 @@ from unittest import TestCase
 
 from lark import Token, Tree
 
+from py2cpp.ast.provider import Query, Settings
 from py2cpp.lang.annotation import override
+from py2cpp.lang.di import DI
+from py2cpp.lang.locator import Locator
 from py2cpp.node.embed import Meta, actualized, expandable
 from py2cpp.node.node import Node
 from py2cpp.node.nodes import NodeResolver, Nodes
-from py2cpp.node.provider import Settings
 from py2cpp.node.trait import ScopeTrait
+from py2cpp.tp_lark.types import Entry
 from tests.test.helper import data_provider
 
 
@@ -78,7 +81,17 @@ class Method(Function): pass
 
 class Fixture:
 	@classmethod
-	def tree(cls) -> Tree:
+	def di(cls) -> DI:
+		di = DI()
+		di.register(Locator, lambda: di)
+		di.register(Query[Node], Nodes)
+		di.register(NodeResolver, NodeResolver)
+		di.register(Settings, cls.__settings)
+		di.register(Entry, cls.__tree)
+		return di
+
+	@classmethod
+	def __tree(cls) -> Tree:
 		return Tree('file_input', [
 			Tree('class', [
 				None,
@@ -113,8 +126,8 @@ class Fixture:
 		])
 
 	@classmethod
-	def resolver(cls) -> NodeResolver:
-		return NodeResolver.load(Settings(
+	def __settings(cls) -> Settings:
+		return Settings(
 			symbols={
 				'file_input': FileInput,
 				'class': Class,
@@ -126,11 +139,11 @@ class Fixture:
 				'__empty__': Empty,
 			},
 			fallback=Terminal
-		))
+		)
 
 	@classmethod
-	def nodes(cls) -> Nodes:
-		return Nodes(cls.tree(), cls.resolver())
+	def nodes(cls) -> Query[Node]:
+		return cls.di().resolve(Query[Node])
 
 
 class TestNode(TestCase):
@@ -334,9 +347,9 @@ class TestNode(TestCase):
 			def match_feature(cls, via: Node) -> bool:
 				return via.tag == 'node_a'
 
-		dummy_nodes = Nodes(Tree('root', []), NodeResolver.load(Settings()))
-		root = NodeA(dummy_nodes, 'root')
-		node = NodeA(dummy_nodes, 'node_a')
+		di = Fixture.di()
+		root = NodeA(di, 'root')
+		node = NodeA(di, 'node_a')
 		self.assertEqual(NodeA.match_feature(root), False)
 		self.assertEqual(NodeA.match_feature(node), True)
 
@@ -350,8 +363,8 @@ class TestNode(TestCase):
 			def match_feature(cls, via: Node) -> bool:
 				return via.tag == 'node_subset'
 
-		dummy_nodes = Nodes(Tree('root', []), NodeResolver.load(Settings()))
-		node = NodeSet(dummy_nodes, 'node_subset')
+		di = Fixture.di()
+		node = NodeSet(di, 'node_subset')
 		self.assertEqual(type(node), NodeSet)
 		self.assertEqual(type(node.actualize()), NodeSubset)
 

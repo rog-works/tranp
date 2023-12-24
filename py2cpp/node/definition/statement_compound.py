@@ -112,7 +112,7 @@ class Try(Node):
 class Types(Node):
 	@property
 	def block(self) -> Block:
-		...
+		raise NotImplementedError()
 
 
 @Meta.embed(Node, accept_tags('function_def'))
@@ -152,6 +152,7 @@ class Function(Types):
 
 	@property
 	@Meta.embed(Node, expandable)
+	@override
 	def block(self) -> Block:
 		return self._by('function_def_raw.block').as_a(Block)
 
@@ -160,8 +161,8 @@ class Function(Types):
 class Constructor(Function):
 	@classmethod
 	@override
-	def match_feature(cls, via: Node) -> bool:
-		return via.as_a(Function).symbol.to_string() == '__init__'
+	def match_feature(cls, via: Function) -> bool:
+		return via.symbol.to_string() == '__init__'
 
 	@property
 	def class_symbol(self) -> Symbol:
@@ -176,8 +177,8 @@ class Constructor(Function):
 class ClassMethod(Function):
 	@classmethod
 	@override
-	def match_feature(cls, via: Node) -> bool:
-		decorators = via.as_a(Function).decorators
+	def match_feature(cls, via: Function) -> bool:
+		decorators = via.decorators
 		return len(decorators) > 0 and decorators[0].symbol.to_string() == 'classmethod'
 
 	@property
@@ -189,12 +190,12 @@ class ClassMethod(Function):
 class Method(Function):
 	@classmethod
 	@override
-	def match_feature(cls, via: Node) -> bool:
+	def match_feature(cls, via: Function) -> bool:
 		# XXX コンストラクターを除外
-		if via.as_a(Function).symbol.to_string() == '__init__':
+		if via.symbol.to_string() == '__init__':
 			return False
 
-		parameters = via.as_a(Function).parameters
+		parameters = via.parameters
 		return len(parameters) > 0 and parameters[0].symbol.is_a(This)  # XXX Thisだけの判定だと不正確かも
 
 	@property
@@ -230,6 +231,7 @@ class Class(Types):
 
 	@property
 	@Meta.embed(Node, expandable)
+	@override
 	def block(self) -> Block:
 		return self._by('class_def_raw.block').as_a(Block)
 
@@ -269,6 +271,7 @@ class Enum(Types):
 
 	@property
 	@Meta.embed(Node, expandable)
+	@override
 	def block(self) -> Block:
 		return self._by('block').as_a(Block)
 

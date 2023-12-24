@@ -3,7 +3,7 @@ from py2cpp.node.definition.primary import FuncCall, GenericType, Indexer, Symbo
 from py2cpp.node.definition.terminal import Empty, Terminal
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
 from py2cpp.node.node import Node
-from py2cpp.node.plugin import ModuleProvider
+from py2cpp.node.plugin import ModuleLoader
 
 
 @Meta.embed(Node, accept_tags('assign_stmt'))
@@ -122,7 +122,7 @@ class Import(Node):
 
 	@property
 	def module(self) -> Node:
-		provider = self.plugin(ModuleProvider)
+		provider = self.plugin(ModuleLoader)
 		return provider.provide(self.module_path.to_string(), Node)
 
 	@property

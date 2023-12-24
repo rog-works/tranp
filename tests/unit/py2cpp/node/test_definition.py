@@ -3,7 +3,9 @@ from unittest import TestCase
 
 from lark import Tree, Token
 
+from py2cpp.ast.entry import Entry
 import py2cpp.node.definition as defs
+from py2cpp.tp_lark.entry import EntryOfLark
 from tests.test.fixture import Fixture
 from tests.test.helper import data_provider
 
@@ -15,13 +17,13 @@ class TestDefinition(TestCase):
 
 	@data_provider([
 		(
-			Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'if_stmt'), [Tree('const_true', []), Tree(Token('RULE', 'block'), [Tree(Token('RULE', 'pass_stmt'), [])]), Tree(Token('RULE', 'elifs'), []), None])]),
+			EntryOfLark(Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'if_stmt'), [Tree('const_true', []), Tree(Token('RULE', 'block'), [Tree(Token('RULE', 'pass_stmt'), [])]), Tree(Token('RULE', 'elifs'), []), None])])),
 			'file_input.if_stmt', {
 			'condition': defs.Truthy,
 			'statements': [defs.Pass],
 		}),
 	])
-	def test_if(self, tree: Tree, full_path: str, expected: dict[str, Any]) -> None:
+	def test_if(self, tree: Entry, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom(tree).by(full_path).as_a(defs.If)
 		self.assertEqual(type(node.condition), expected['condition'])
 		for index, statement in enumerate(node.block.statements):
@@ -268,46 +270,46 @@ class TestDefinition(TestCase):
 
 	@data_provider([
 		(
-			Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'factor'), [Token('MINUS', '-'), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')])])]),
+			EntryOfLark(Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'factor'), [Token('MINUS', '-'), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')])])])),
 			'file_input.factor', {'type': defs.Factor, 'value': '-1'},
 		),
 		(
-			Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'factor'), [Token('PLUS', '+'), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')])])]),
+			EntryOfLark(Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'factor'), [Token('PLUS', '+'), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')])])])),
 			'file_input.factor', {'type': defs.Factor, 'value': '+1'},
 		),
 		(
-			Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'factor'), [Token('TILDE', '~'), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')])])]),
+			EntryOfLark(Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'factor'), [Token('TILDE', '~'), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')])])])),
 			'file_input.factor', {'type': defs.Factor, 'value': '~1'},
 		),
 	])
-	def test_unary_operator(self, tree: Tree, full_path: str, expected: dict[str, Any]) -> None:
+	def test_unary_operator(self, tree: Entry, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom(tree).by(full_path).as_a(defs.UnaryOperator)
 		self.assertEqual(type(node), expected['type'])
 		self.assertEqual(node.to_string(), expected['value'])
 
 	@data_provider([
 		(
-			Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'or_expr'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')]), Token('VBAR', '|'), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '2')])])]),
+			EntryOfLark(Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'or_expr'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')]), Token('VBAR', '|'), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '2')])])])),
 			'file_input.or_expr', {'type': defs.OrBitwise, 'left': '1', 'operator': '|', 'right': '2'},
 		),
 		(
-			Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'xor_expr'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')]), Token('CIRCUMFLEX', '^'), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '2')])])]),
+			EntryOfLark(Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'xor_expr'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')]), Token('CIRCUMFLEX', '^'), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '2')])])])),
 			'file_input.xor_expr', {'type': defs.XorBitwise, 'left': '1', 'operator': '^', 'right': '2'},
 		),
 		(
-			Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'and_expr'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')]), Token('AMPERSAND', '&'), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '2')])])]),
+			EntryOfLark(Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'and_expr'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')]), Token('AMPERSAND', '&'), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '2')])])])),
 			'file_input.and_expr', {'type': defs.AndBitwise, 'left': '1', 'operator': '&', 'right': '2'},
 		),
 		(
-			Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'shift_expr'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')]), Token('__ANON_19', '<<'), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '2')])])]),
+			EntryOfLark(Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'shift_expr'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')]), Token('__ANON_19', '<<'), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '2')])])])),
 			'file_input.shift_expr', {'type': defs.ShiftBitwise, 'left': '1', 'operator': '<<', 'right': '2'},
 		),
 		(
-			Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'shift_expr'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')]), Token('__ANON_20', '>>'), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '2')])])]),
+			EntryOfLark(Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'shift_expr'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')]), Token('__ANON_20', '>>'), Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '2')])])])),
 			'file_input.shift_expr', {'type': defs.ShiftBitwise, 'left': '1', 'operator': '>>', 'right': '2'},
 		),
 	])
-	def test_binary_operator(self, tree: Tree, full_path: str, expected: dict[str, Any]) -> None:
+	def test_binary_operator(self, tree: Entry, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom(tree).by(full_path).as_a(defs.BinaryOperator)
 		self.assertEqual(type(node), expected['type'])
 		self.assertEqual(node.left.to_string(), expected['left'])
@@ -317,20 +319,20 @@ class TestDefinition(TestCase):
 	# Literal
 
 	@data_provider([
-		(Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')])]), 'file_input.number', {'type': defs.Integer, 'value': '1'}),
-		(Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'number'), [Token('HEX_NUMBER', '0x1')])]), 'file_input.number', {'type': defs.Integer, 'value': '0x1'}),
-		(Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'number'), [Token('FLOAT_NUMBER', '0.1')])]), 'file_input.number', {'type': defs.Float, 'value': '0.1'}),
+		(EntryOfLark(Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')])])), 'file_input.number', {'type': defs.Integer, 'value': '1'}),
+		(EntryOfLark(Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'number'), [Token('HEX_NUMBER', '0x1')])])), 'file_input.number', {'type': defs.Integer, 'value': '0x1'}),
+		(EntryOfLark(Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'number'), [Token('FLOAT_NUMBER', '0.1')])])), 'file_input.number', {'type': defs.Float, 'value': '0.1'}),
 	])
-	def test_number(self, tree: Tree, full_path: str, expected: dict[str, Any]) -> None:
+	def test_number(self, tree: Entry, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom(tree).by(full_path).as_a(defs.Number)
 		self.assertEqual(type(node), expected['type'])
 		self.assertEqual(node.to_string(), expected['value'])
 
 	@data_provider([
-		(Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'string'), [Token('STRING', "'abcd'")])]), 'file_input.string', {'type': defs.String, 'value': "'abcd'"}),
-		(Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'string'), [Token('LONG_STRING', '"""abcd\nefgh"""')])]), 'file_input.string', {'type': defs.String, 'value': '"""abcd\nefgh"""'}),
+		(EntryOfLark(Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'string'), [Token('STRING', "'abcd'")])])), 'file_input.string', {'type': defs.String, 'value': "'abcd'"}),
+		(EntryOfLark(Tree(Token('RULE', 'file_input'), [Tree(Token('RULE', 'string'), [Token('LONG_STRING', '"""abcd\nefgh"""')])])), 'file_input.string', {'type': defs.String, 'value': '"""abcd\nefgh"""'}),
 	])
-	def test_string(self, tree: Tree, full_path: str, expected: dict[str, Any]) -> None:
+	def test_string(self, tree: Entry, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom(tree).by(full_path).as_a(defs.String)
 		self.assertEqual(type(node), expected['type'])
 		self.assertEqual(node.to_string(), expected['value'])

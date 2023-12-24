@@ -3,15 +3,15 @@ from unittest import TestCase
 
 from lark import Token, Tree
 
+from py2cpp.ast.entry import Entry
 from py2cpp.ast.travarsal import ASTFinder, EntryPath
-from py2cpp.node.nodes import EntryProxyLark
-from py2cpp.tp_lark.types import Entry
+from py2cpp.tp_lark.entry import EntryOfLark
 from tests.test.helper import data_provider
 
 class Fixture:
 	@classmethod
-	def tree(cls) -> Tree:
-		return Tree('root', [
+	def tree(cls) -> Entry:
+		tree = Tree('root', [
 			Tree('tree_a', [
 				None,
 				Token('token_a', ''),
@@ -24,11 +24,11 @@ class Fixture:
 			]),
 			Token('token_d', ''),
 		])
+		return EntryOfLark(tree)
 
 	@classmethod
-	def finder(cls) -> ASTFinder[Entry]:
-		# XXX 参照違反ではあるが、新たなProxyの実装は無駄な手間なので許容する
-		return ASTFinder(EntryProxyLark())
+	def finder(cls) -> ASTFinder:
+		return ASTFinder()
 
 
 class TestEntryPath(TestCase):
@@ -76,24 +76,6 @@ class TestEntryPath(TestCase):
 
 class TestASTFinder(TestCase):
 	@data_provider([
-		(Tree('0', []), True),
-		(Token('1', ''), False),
-		(None, False),
-	])
-	def test_has_child(self, entry: Entry, expected: bool) -> None:
-		finder = Fixture.finder()
-		self.assertEqual(finder.has_child(entry), expected)
-
-	@data_provider([
-		(Tree('0', []), '0'),
-		(Token('1', ''), '1'),
-		(None, '__empty__'),
-	])
-	def test_tag_by(self, entry: Entry, expected: str) -> None:
-		finder = Fixture.finder()
-		self.assertEqual(finder.tag_by(entry), expected)
-
-	@data_provider([
 		('root', True),
 		('root.tree_a', True),
 		('root.tree_a.__empty__', True),
@@ -125,7 +107,7 @@ class TestASTFinder(TestCase):
 	def test_pluck(self, path: str, expected: str) -> None:
 		tree = Fixture.tree()
 		finder = Fixture.finder()
-		self.assertEqual(finder.tag_by(finder.pluck(tree, path)), expected)
+		self.assertEqual(finder.pluck(tree, path).name, expected)
 
 	@data_provider([
 		('root', r'.+\.token_b', ['root.tree_a.tree_b[3].token_b']),

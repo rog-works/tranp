@@ -1,106 +1,14 @@
 import re
 from typing import Callable
 
-from lark import Token, Tree
-
 from py2cpp.ast.cache import EntryCache
+from py2cpp.ast.entry import Entry
 from py2cpp.ast.provider import Query, Resolver, Settings
-from py2cpp.ast.travarsal import ASTFinder, EntryPath, EntryProxy
+from py2cpp.ast.travarsal import ASTFinder, EntryPath
 from py2cpp.errors import NotFoundError
 from py2cpp.lang.annotation import implements
 from py2cpp.lang.locator import Locator
 from py2cpp.node.node import Node
-from py2cpp.tp_lark.types import Entry
-
-
-class EntryProxyLark(EntryProxy[Entry]):
-	"""エントリーへの要素アクセスを代替するプロクシー"""
-
-	@implements
-	def name(self, entry: Entry) -> str:
-		"""名前を取得
-
-		Args:
-			entry (Entry): エントリー
-		Returns:
-			str: エントリーの名前
-		Note:
-			エントリーが空の場合を考慮すること
-			@see is_empty
-		"""
-		if type(entry) is Tree:
-			return entry.data
-		elif type(entry) is Token:
-			return entry.type
-		else:
-			return self.empty_name
-
-	@implements
-	def has_child(self, entry: Entry) -> bool:
-		"""子を持つエントリーか判定
-
-		Args:
-			entry (Entry): エントリー
-		Returns:
-			bool: True = 子を持つエントリー
-		"""
-		return type(entry) is Tree
-
-	@implements
-	def children(self, entry: Entry) -> list[Entry]:
-		"""配下のエントリーを取得
-
-		Args:
-			entry (Entry): エントリー
-		Returns:
-			list[Entry]: 配下のエントリーリスト
-		Raise:
-			ValueError: 子を持たないエントリーで使用
-		"""
-		if type(entry) is not Tree:
-			raise ValueError()
-
-		return entry.children
-
-	@implements
-	def is_terminal(self, entry: Entry) -> bool:
-		"""終端記号か判定
-
-		Args:
-			entry (Entry): エントリー
-		Returns:
-			bool: True = 終端記号
-		"""
-		return type(entry) is Token
-
-	@implements
-	def value(self, entry: Entry) -> str:
-		"""終端記号の値を取得
-
-		Args:
-			entry (T): エントリー
-		Returns:
-			str: 終端記号の値
-		Raise:
-			ValueError: 終端記号ではないエントリーで使用
-		"""
-		if type(entry) is not Token:
-			raise ValueError()
-
-		return entry.value
-
-	@implements
-	def is_empty(self, entry: Entry) -> bool:
-		"""エントリーが空か判定
-
-		Returns:
-			bool: True = 空
-		Note:
-			Grammarの定義上存在するが、構文解析の結果で空になったエントリー
-			例えば以下の様な関数の定義の場合[parameters]が対象となり、引数がない関数の場合、エントリーとしては存在するが内容は空になる
-			例) function_def: "def" name "(" [parameters] ")" "->" ":" block
-		"""
-		return entry is None
 
 
 class NodeResolver:
@@ -162,9 +70,8 @@ class Nodes(Query[Node]):
 			root (Entry): ASTのルート要素
 		"""
 		self.__resolver = resolver
-		self.__proxy = EntryProxyLark()
 		self.__entries = EntryCache()
-		for full_path, entry in ASTFinder(self.__proxy).full_pathfy(root).items():
+		for full_path, entry in ASTFinder().full_pathfy(root).items():
 			self.__entries.add(full_path, entry)
 
 	def __resolve(self, entry: Entry, full_path: str) -> Node:
@@ -176,7 +83,7 @@ class Nodes(Query[Node]):
 		Returns:
 			Node: 解決したノード
 		"""
-		return self.__resolver.resolve(self.__proxy.name(entry), full_path)
+		return self.__resolver.resolve(entry.name, full_path)
 
 	@implements
 	def exists(self, full_path: str) -> bool:
@@ -305,7 +212,7 @@ class Nodes(Query[Node]):
 				memo.append(entry_path.origin)
 				return True
 
-			if self.__proxy.has_child(entry):
+			if entry.has_child:
 				return False
 
 			# 自身を含む配下のエントリーに変換対象のノードがなく、Terminalにフォールバックされる終端記号が対象
@@ -325,5 +232,4 @@ class Nodes(Query[Node]):
 		Returns:
 			str: 値
 		"""
-		entry = self.__entries.by(full_path)
-		return self.__proxy.value(entry) if self.__proxy.is_terminal(entry) else ''
+		return self.__entries.by(full_path).value

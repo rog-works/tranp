@@ -1,15 +1,16 @@
 from dataclasses import dataclass
 from typing import TypeVar, cast
 
+from py2cpp.ast.entry import Entry
 from py2cpp.ast.parser import SyntaxParser
 from py2cpp.ast.provider import Query
 from py2cpp.lang.di import DI
 from py2cpp.lang.locator import Locator
 from py2cpp.node.base import Plugin
 from py2cpp.node.node import Node
-from py2cpp.tp_lark.types import Entry
 
 T = TypeVar('T', bound=Node)
+
 
 @dataclass
 class ModulePath(Plugin):

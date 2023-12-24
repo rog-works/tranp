@@ -1,128 +1,14 @@
-from abc import ABCMeta, abstractmethod
-from typing import Callable, Generic, TypeVar
+from typing import Callable
 
 from py2cpp.errors import NotFoundError
+from py2cpp.ast.entry import Entry
 from py2cpp.ast.path import EntryPath
 
-T = TypeVar('T')
 
-
-class EntryProxy(Generic[T], metaclass=ABCMeta):
-	"""エントリーへの要素アクセスを代替するプロクシー"""
-
-	@abstractmethod
-	def name(self, entry: T) -> str:
-		"""名前を取得
-
-		Args:
-			entry (T): エントリー
-		Returns:
-			str: エントリーの名前
-		Note:
-			エントリーが空の場合を考慮すること
-			@see is_empty
-		"""
-		raise NotImplementedError()
-
-	@abstractmethod
-	def has_child(self, entry: T) -> bool:
-		"""子を持つエントリーか判定
-
-		Args:
-			entry (T): エントリー
-		Returns:
-			bool: True = 子を持つエントリー
-		"""
-		raise NotImplementedError()
-
-	@abstractmethod
-	def children(self, entry: T) -> list[T]:
-		"""配下のエントリーを取得
-
-		Args:
-			entry (T): エントリー
-		Returns:
-			list[T]: 配下のエントリーリスト
-		Raise:
-			LogicError: 子を持たないエントリーで使用
-		"""
-		raise NotImplementedError()
-
-	@abstractmethod
-	def is_terminal(self, entry: T) -> bool:
-		"""終端記号か判定
-
-		Args:
-			entry (T): エントリー
-		Returns:
-			bool: True = 終端記号
-		"""
-		raise NotImplementedError()
-
-	@abstractmethod
-	def value(self, entry: T) -> str:
-		"""終端記号の値を取得
-
-		Args:
-			entry (T): エントリー
-		Returns:
-			str: 終端記号の値
-		Raise:
-			LogicError: 終端記号ではないエントリーで使用
-		"""
-		raise NotImplementedError()
-
-	@abstractmethod
-	def is_empty(self, entry: T) -> bool:
-		"""エントリーが空か判定
-
-		Returns:
-			bool: True = 空
-		Note:
-			Grammarの定義上存在するが、構文解析の結果で空になったエントリー
-			例えば以下の様な関数の定義の場合[parameters]が対象となり、引数がない関数の場合、エントリーとしては存在するが内容は空になる
-			例) function_def: "def" name "(" [parameters] ")" "->" ":" block
-		"""
-		raise NotImplementedError()
-
-	@property
-	def empty_name(self) -> str:
-		"""str: 空のエントリー名"""
-		return '__empty__'
-
-
-class ASTFinder(Generic[T]):
+class ASTFinder:
 	"""AST探索インターフェイス"""
 
-	def __init__(self, proxy: EntryProxy[T]) -> None:
-		"""インスタンスを生成
-
-		Args:
-			proxy (EntryProxy): エントリープロクシー
-		"""
-		self.__proxy = proxy
-
-	def has_child(self, entry: T) -> bool:
-		"""子を持つエントリーか判定
-
-		Args:
-			entry (T): エントリー
-		Returns:
-			bool: True = 子を持つエントリー
-		"""
-		return self.__proxy.has_child(entry)
-
-	def tag_by(self, entry: T) -> str:
-		"""エントリータグを取得
-
-		Args:
-			entry (Entry): エントリー
-		Returns:
-			str: エントリータグ
-		"""
-		return self.__proxy.name(entry)
-
-	def exists(self, root: T, full_path: str) -> bool:
+	def exists(self, root: Entry, full_path: str) -> bool:
 		"""指定のパスに一致するエントリーが存在するか判定
 
 		Args:
@@ -137,7 +23,7 @@ class ASTFinder(Generic[T]):
 		except NotFoundError:
 			return False
 
-	def pluck(self, root: T, full_path: str) -> T:
+	def pluck(self, root: Entry, full_path: str) -> Entry:
 		"""指定のパスに一致するエントリーを抜き出す
 
 		Args:
@@ -148,12 +34,12 @@ class ASTFinder(Generic[T]):
 		Raise:
 			NotFoundError: エントリーが存在しない
 		"""
-		if self.tag_by(root) == full_path:
+		if root.name == full_path:
 			return root
 
 		return self.__pluck(root, EntryPath(full_path).shift(1))
 
-	def __pluck(self, entry: T, path: EntryPath) -> T:
+	def __pluck(self, entry: Entry, path: EntryPath) -> Entry:
 		"""配下のエントリーから指定のパスに一致するエントリーを抜き出す
 
 		Args:
@@ -166,17 +52,17 @@ class ASTFinder(Generic[T]):
 		Raise:
 			NotFoundError: エントリーが存在しない
 		"""
-		if self.__proxy.has_child(entry) and path.valid:
+		if entry.has_child and path.valid:
 			tag, index = path.first()
 			remain = path.shift(1)
 			# @see EntryPath.identify
 			if index != -1:
-				children = self.__proxy.children(entry)
+				children = entry.children
 				if index >= 0 and index < len(children):
 					return self.__pluck(children[index], remain)
 			else:
-				children = self.__proxy.children(entry)
-				in_entries = [in_entry for in_entry in children if tag == self.tag_by(in_entry)]
+				children = entry.children
+				in_entries = [in_entry for in_entry in children if tag == in_entry.name]
 				if len(in_entries):
 					return self.__pluck(in_entries.pop(), remain)
 		elif not path.valid:
@@ -184,7 +70,7 @@ class ASTFinder(Generic[T]):
 
 		raise NotFoundError(entry, path)
 
-	def find(self, root: T, via: str, tester: Callable[[T, str], bool], depth: int = -1) -> dict[str, T]:
+	def find(self, root: Entry, via: str, tester: Callable[[Entry, str], bool], depth: int = -1) -> dict[str, Entry]:
 		"""基点のパス以下のエントリーを検索
 
 		Args:
@@ -201,7 +87,7 @@ class ASTFinder(Generic[T]):
 		all = self.full_pathfy(entry, via, depth)
 		return {in_path: in_entry for in_path, in_entry in all.items() if tester(in_entry, in_path)}
 
-	def full_pathfy(self, entry: T, path: str = '', depth: int = -1) -> dict[str, T]:
+	def full_pathfy(self, entry: Entry, path: str = '', depth: int = -1) -> dict[str, Entry]:
 		"""指定のエントリー以下のフルパスとマッピングを生成
 
 		Args:
@@ -220,26 +106,26 @@ class ASTFinder(Generic[T]):
 		"""
 		# XXX パスが無い時点はルート要素と見做してパスを設定する
 		if not len(path):
-			path = self.tag_by(entry)
+			path = entry.name
 
 		in_paths = {path: entry}
 		if depth == 0:
 			return in_paths
 
-		if self.__proxy.has_child(entry):
-			children = self.__proxy.children(entry)
+		if entry.has_child:
+			children = entry.children
 			tag_of_indexs = self.__aligned_children(children)
 			for index, in_entry in enumerate(children):
 				# 同名の要素が並ぶか否かでパスの書式を変更
 				# @see EntryPath.identify
-				entry_tag = self.tag_by(in_entry)
+				entry_tag = in_entry.name
 				indivisual = len(tag_of_indexs[entry_tag]) == 1
 				in_path = EntryPath.join(path, entry_tag) if indivisual else EntryPath.identify(path, entry_tag, index)
 				in_paths = {**in_paths, **self.full_pathfy(children[index], in_path.origin, depth - 1)}
 
 		return in_paths
 
-	def __aligned_children(self, children: list[T]) -> dict[str, list[int]]:
+	def __aligned_children(self, children: list[Entry]) -> dict[str, list[int]]:
 		"""子の要素を元にエントリータグ毎のインデックスリストに整理する
 
 		Args:
@@ -247,7 +133,7 @@ class ASTFinder(Generic[T]):
 		Returns:
 			dict[str, list[int]]: エントリータグ毎のインデックスリスト
 		"""
-		index_of_tags = {index: self.tag_by(in_entry) for index, in_entry in enumerate(children)}
+		index_of_tags = {index: in_entry.name for index, in_entry in enumerate(children)}
 		tag_of_indexs: dict[str, list[int]]  = {tag: [] for tag in index_of_tags.values()}
 		for tag in tag_of_indexs.keys():
 			tag_of_indexs[tag] = [index for index, in_tag in index_of_tags.items() if tag == in_tag]

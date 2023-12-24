@@ -2,13 +2,14 @@ from unittest import TestCase
 
 from lark import Token, Tree
 
+from py2cpp.ast.entry import Entry
 from py2cpp.ast.provider import Query, Settings
 from py2cpp.errors import NotFoundError
 from py2cpp.lang.di import DI
 from py2cpp.lang.locator import Locator
 from py2cpp.node.node import Node
 from py2cpp.node.nodes import NodeResolver, Nodes
-from py2cpp.tp_lark.types import Entry
+from py2cpp.tp_lark.entry import EntryOfLark
 from tests.test.helper import data_provider
 
 
@@ -35,8 +36,8 @@ class Fixture:
 		return di
 
 	@classmethod
-	def __tree(cls) -> Tree:
-		return Tree('root', [
+	def __tree(cls) -> Entry:
+		tree = Tree('root', [
 			Tree('tree_a', [
 				None,
 				Token('token_a', 'a.a'),
@@ -54,6 +55,7 @@ class Fixture:
 				]),
 			]),
 		])
+		return EntryOfLark(tree)
 
 	@classmethod
 	def __settings(cls) -> Settings:

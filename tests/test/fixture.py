@@ -7,13 +7,15 @@ from lark.indenter import PythonIndenter
 from py2cpp.lang.di import DI
 from py2cpp.lang.locator import Locator
 from py2cpp.lang.module import load_module
+from py2cpp.ast.entry import Entry
 from py2cpp.ast.provider import Query, Settings
 from py2cpp.ast.parser import FileLoader, GrammarSettings, SyntaxParser
 from py2cpp.node.definitions import make_settings
 from py2cpp.node.node import Node
 from py2cpp.node.nodes import NodeResolver, Nodes
 from py2cpp.node.plugin import ModuleLoader, ModulePath
-from py2cpp.tp_lark.types import Entry
+from py2cpp.tp_lark.entry import EntryOfLark
+from py2cpp.tp_lark.parser import SyntaxParserOfLark
 
 
 class Fixture:
@@ -44,15 +46,15 @@ class Fixture:
 		with open(source_path, mode='r') as f:
 			return '\n'.join(f.readlines())
 
-	def __build_tree(self, module_path: str) -> Tree:
+	def __build_tree(self, module_path: str) -> Entry:
 		parser = self.__load_parser()
 		source = self.__load_source(module_path)
-		return parser.parse(source)
+		return EntryOfLark(parser.parse(source))
 
-	def __load_prebuild_tree(self, module_path: str) -> Tree:
+	def __load_prebuild_tree(self, module_path: str) -> Entry:
 		fixture_path = f'{module_path}_fixture'
 		fixture = cast(Callable[[], Tree], load_module(fixture_path, 'fixture'))
-		return fixture()
+		return EntryOfLark(fixture())
 
 
 	def __make_di(self) -> DI:
@@ -63,7 +65,7 @@ class Fixture:
 		di.register(Query[Node], Nodes)
 		di.register(FileLoader, FileLoader)
 		di.register(GrammarSettings, lambda: GrammarSettings(grammar='data/grammar.lark'))
-		di.register(SyntaxParser, SyntaxParser)
+		di.register(SyntaxParser, SyntaxParserOfLark)
 		di.register(ModuleLoader, ModuleLoader)
 		di.register(ModulePath, ModulePath.entrypoint)
 		return di
@@ -75,7 +77,7 @@ class Fixture:
 
 		return self.__di.resolve(Query[Node])
 
-	def custom(self, tree: Tree) -> Query[Node]:
+	def custom(self, root: Entry) -> Query[Node]:
 		di = self.__make_di()
-		di.register(Entry, lambda: tree)
+		di.register(Entry, lambda: root)
 		return di.resolve(Query[Node])

@@ -5,7 +5,11 @@ from py2cpp.lang.locator import T_Curried, T_Inst, T_Injector
 
 
 class DI:
-	"""DIコンテナー。シンボルとファクトリー(コンストラクターを含む)をマッピングし、解決時に生成したインスタンスを管理"""
+	"""DIコンテナー。シンボルとファクトリー(コンストラクターを含む)をマッピングし、解決時に生成したインスタンスを管理
+
+	Note:
+		@see py2cpp.lang.locator.Locator
+	"""
 
 	def __init__(self) -> None:
 		"""インスタンスを生成"""
@@ -90,45 +94,48 @@ class DI:
 		Raises:
 			ValueError: 未登録のシンボルが引数に存在
 		"""
-		invoker = self.__to_invoker(injector)
-		annos = self.__invoke_annotations(invoker)
+		annotated = self.__to_annotated(injector)
+		annos = self.__pluck_annotations(annotated)
 		return {key: self.resolve(anno) for key, anno in annos.items()}
 
-	def __to_invoker(self, factory: type[T_Inst] | Callable[..., T_Inst]) -> Callable[..., T_Inst]:
-		"""呼び出し関数に変換
+	def __to_annotated(self, factory: type[T_Inst] | Callable[..., T_Inst]) -> Callable[..., T_Inst]:
+		"""アノテーション取得用の呼び出し対象の関数に変換
 
 		Args:
 			factory (type[T_Inst] | Callable[..., T_Inst]): ファクトリー(関数/メソッド/クラス)
 		Returns:
-			Callable[..., T_Inst]: 呼び出し関数
+			Callable[..., T_Inst]: 呼び出し対象の関数
 		"""
 		if isinstance(factory, (FunctionType, MethodType)):
 			return factory
 		else:
 			return cast(Callable[..., T_Inst], factory.__init__)
 
-	def __invoke_annotations(self, invoker: Callable[..., T_Inst]) -> dict[str, type]:
+	def __pluck_annotations(self, annotated: Callable[..., T_Inst]) -> dict[str, type]:
 		"""引数のアノテーションを取得
 
 		Args:
-			invoker (Callable[..., T_Inst]): 呼び出し関数
+			annotated (Callable[..., T_Inst]): 呼び出し対象の関数
 		Returns:
-			dict[str, type]: アノテーションリスト
+			dict[str, type]: 引数のアノテーションリスト
 		"""
-		annos = getattr(invoker, '__annotations__', {}) if hasattr(invoker, '__annotations__') else {}
+		annos = getattr(annotated, '__annotations__', {}) if hasattr(annotated, '__annotations__') else {}
 		return {key: anno for key, anno in annos.items() if key != 'return'}
 
 	def curry(self, factory: T_Injector, expect: type[T_Curried]) -> T_Curried:
-		"""指定のファクトリーをカリー化した関数を返却
+		"""指定のファクトリーをカリー化して返却
 
 		Args:
 			factory (T_Injector): ファクトリー(関数/メソッド/クラス)
-			expect (type[T_Curried]): 期待するカリー化関数のシグネチャー
+			expect (type[T_Curried]): カリー化後に期待する関数シグネチャー
+		Note:
+			ロケーターが解決可能なシンボルを引数リストの前方から省略していき、
+			解決不能なシンボルを残した関数が返却値となる
 		Returns:
-			T_Curried: カリー化関数
+			T_Curried: カリー化後の関数
 		"""
-		calls = self.__to_invoker(factory)
-		annos = self.__invoke_annotations(calls)
+		annotated = self.__to_annotated(factory)
+		annos = self.__pluck_annotations(annotated)
 		curried_args: list[Any] = []
 		for anno in annos.values():
 			if not self.can_resolve(anno):

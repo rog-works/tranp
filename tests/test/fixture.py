@@ -5,7 +5,7 @@ from lark import Lark, Tree
 from lark.indenter import PythonIndenter
 
 from py2cpp.lang.di import DI
-from py2cpp.lang.locator import Locator
+from py2cpp.lang.locator import Curry, Locator
 from py2cpp.lang.module import load_module
 from py2cpp.ast.entry import Entry
 from py2cpp.ast.provider import Query, Settings
@@ -60,6 +60,7 @@ class Fixture:
 	def __make_di(self) -> DI:
 		di = DI()
 		di.register(Locator, lambda: di)
+		di.register(Curry, lambda: di.curry)
 		di.register(Settings, make_settings)
 		di.register(NodeResolver, NodeResolver)
 		di.register(Query[Node], Nodes)

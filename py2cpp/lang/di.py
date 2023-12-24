@@ -147,3 +147,15 @@ class DI:
 				raise ValueError(f'Unexpected remain arguments. from: {factory}, expect: {expect}')
 
 		return cast(T_Curried, lambda *remain_args: factory(*curried_args, *remain_args))
+
+	def clone(self) -> 'DI':
+		"""シンボルのマッピング情報のみコピーした複製を生成
+
+		Returns:
+			DI: 複製したインスタンス
+		"""
+		di = DI()
+		for symbol, injector in self.__injectors.items():
+			di.register(symbol, injector)
+
+		return di

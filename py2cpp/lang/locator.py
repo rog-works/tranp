@@ -36,11 +36,23 @@ class Locator(Protocol):
 		Args:
 			factory (T_Injector): ファクトリー(関数/メソッド/クラス)
 			expect (type[T_Curried]): カリー化後に期待する関数シグネチャー
+		Returns:
+			T_Curried: カリー化後の関数
 		Note:
 			ロケーターが解決可能なシンボルを引数リストの前方から省略していき、
 			解決不能なシンボルを残した関数が返却値となる
+		"""
+		...
+
+	def invoke(self, factory: type[T_Inst] | Callable[..., T_Inst]) -> T_Inst:
+		"""ファクトリーを代替実行し、インスタンスを生成
+
+		Args:
+			factory (type[T_Inst] | Callable[..., T_Inst]): ファクトリー(関数/メソッド/クラス)
 		Returns:
-			T_Curried: カリー化後の関数
+			T_Inst: 生成したインスタンス
+		Note:
+			このメソッドを通して生成したインスタンスはキャッシュされず、毎回生成される
 		"""
 		...
 

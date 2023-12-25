@@ -60,41 +60,41 @@ class Fixture:
 
 	def __make_di(self) -> DI:
 		di = DI()
-		di.register(Locator, lambda: di)
-		di.register(Curry, lambda: di.curry)
-		di.register(FileLoader, FileLoader)
-		di.register(GrammarSettings, lambda: GrammarSettings(grammar='data/grammar.lark'))
-		di.register(SyntaxParser, SyntaxParserOfLark)
-		di.register(Modules, Modules)
-		di.register(ModuleLoader, ModuleLoader)
-		di.register(Module, lambda: Module(di, '__main__'))
-		di.register(Settings, make_settings)
-		di.register(NodeResolver, NodeResolver)
-		di.register(Query[Node], Nodes)
-		di.register(Node, Nodes.root)
+		di.bind(Locator, lambda: di)
+		di.bind(Curry, lambda: di.curry)
+		di.bind(FileLoader, FileLoader)
+		di.bind(GrammarSettings, lambda: GrammarSettings(grammar='data/grammar.lark'))
+		di.bind(SyntaxParser, SyntaxParserOfLark)
+		di.bind(Modules, Modules)
+		di.bind(ModuleLoader, ModuleLoader)
+		di.bind(Module, lambda: Module(di, '__main__'))
+		di.bind(Settings, make_settings)
+		di.bind(NodeResolver, NodeResolver)
+		di.bind(Query[Node], Nodes)
+		di.bind(Node, Nodes.root)
 		return di
 
 	def get(self, symbol: type[T_Inst]) -> T_Inst:
 		if not self.__di.can_resolve(Entry):
-			self.__di.register(Entry, lambda: self.__load_prebuild_tree(self.__module_path))
+			self.__di.bind(Entry, lambda: self.__load_prebuild_tree(self.__module_path))
 
 		return self.__di.resolve(symbol)
 
 	@property
 	def entrypoint(self) -> Module:
 		if not self.__di.can_resolve(Entry):
-			self.__di.register(Entry, lambda: self.__load_prebuild_tree(self.__module_path))
+			self.__di.bind(Entry, lambda: self.__load_prebuild_tree(self.__module_path))
 
 		return self.__di.resolve(Module)
 
 	@property
 	def shared(self) -> Query[Node]:
 		if not self.__di.can_resolve(Entry):
-			self.__di.register(Entry, lambda: self.__load_prebuild_tree(self.__module_path))
+			self.__di.bind(Entry, lambda: self.__load_prebuild_tree(self.__module_path))
 
 		return self.__di.resolve(Query[Node])
 
 	def custom(self, root: Entry) -> Query[Node]:
 		di = self.__make_di()
-		di.register(Entry, lambda: root)
+		di.bind(Entry, lambda: root)
 		return di.resolve(Query[Node])

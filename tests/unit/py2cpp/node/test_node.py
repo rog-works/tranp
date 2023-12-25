@@ -99,12 +99,12 @@ class Fixture:
 	@classmethod
 	def di(cls) -> DI:
 		di = DI()
-		di.register(Locator, lambda: di)
-		di.register(Curry, lambda: di.curry)
-		di.register(Query[Node], Nodes)
-		di.register(NodeResolver, NodeResolver)
-		di.register(Settings, cls.__settings)
-		di.register(Entry, cls.__tree)
+		di.bind(Locator, lambda: di)
+		di.bind(Curry, lambda: di.curry)
+		di.bind(Query[Node], Nodes)
+		di.bind(NodeResolver, NodeResolver)
+		di.bind(Settings, cls.__settings)
+		di.bind(Entry, cls.__tree)
 		return di
 
 	@classmethod

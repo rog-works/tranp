@@ -26,7 +26,7 @@ class DI:
 		"""
 		return self.__find_symbol(symbol) is not None
 
-	def register(self, symbol: type[T_Inst], injector: T_Injector) -> None:
+	def bind(self, symbol: type[T_Inst], injector: T_Injector) -> None:
 		"""シンボルとファクトリーのマッピングを登録
 
 		Args:
@@ -40,7 +40,7 @@ class DI:
 
 		self.__injectors[symbol] = injector
 
-	def unregister(self, symbol: type[T_Inst]) -> None:
+	def unbind(self, symbol: type[T_Inst]) -> None:
 		"""シンボルとファクトリーのマッピングを解除
 
 		Args:
@@ -52,6 +52,18 @@ class DI:
 
 		if found_symbol in self.__instances:
 			del self.__instances[found_symbol]
+
+	def rebind(self, symbol: type[T_Inst], injector: T_Injector) -> None:
+		"""シンボルとファクトリーのマッピングを再登録
+
+		Args:
+			symbol (type[T_Inst]): シンボル
+			injector (T_Injector): ファクトリー(関数/メソッド/クラス)
+		"""
+		if self.can_resolve(symbol):
+			self.unbind(symbol)
+
+		self.bind(symbol, injector)
 
 	def resolve(self, symbol: type[T_Inst]) -> T_Inst:
 		"""シンボルからインスタンスを解決
@@ -69,8 +81,7 @@ class DI:
 
 		if found_symbol not in self.__instances:
 			injector = self.__injectors[found_symbol]
-			kwargs = self.__inject_kwargs(injector)
-			self.__instances[found_symbol] = injector(**kwargs)
+			self.__instances[found_symbol] = self.invoke(injector)
 
 		return self.__instances[found_symbol]
 
@@ -128,11 +139,11 @@ class DI:
 		Args:
 			factory (T_Injector): ファクトリー(関数/メソッド/クラス)
 			expect (type[T_Curried]): カリー化後に期待する関数シグネチャー
+		Returns:
+			T_Curried: カリー化後の関数
 		Note:
 			ロケーターが解決可能なシンボルを引数リストの前方から省略していき、
 			解決不能なシンボルを残した関数が返却値となる
-		Returns:
-			T_Curried: カリー化後の関数
 		"""
 		annotated = self.__to_annotated(factory)
 		annos = self.__pluck_annotations(annotated)
@@ -155,6 +166,19 @@ class DI:
 
 		return cast(T_Curried, lambda *remain_args: factory(*curried_args, *remain_args))
 
+	def invoke(self, factory: type[T_Inst] | Callable[..., T_Inst]) -> T_Inst:
+		"""ファクトリーを代替実行し、インスタンスを生成
+
+		Args:
+			factory (type[T_Inst] | Callable[..., T_Inst]): ファクトリー(関数/メソッド/クラス)
+		Returns:
+			T_Inst: 生成したインスタンス
+		Note:
+			このメソッドを通して生成したインスタンスはキャッシュされず、毎回生成される
+		"""
+		kwargs = self.__inject_kwargs(factory)
+		return factory(**kwargs)
+
 	def clone(self) -> 'DI':
 		"""シンボルのマッピング情報のみコピーした複製を生成
 
@@ -163,6 +187,6 @@ class DI:
 		"""
 		di = DI()
 		for symbol, injector in self.__injectors.items():
-			di.register(symbol, injector)
+			di.bind(symbol, injector)
 
 		return di

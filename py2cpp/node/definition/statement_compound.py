@@ -131,6 +131,11 @@ class Function(Types):
 			return 'public'
 
 	@property
+	@override
+	def name(self) -> str:
+		return self.symbol.to_string()
+
+	@property
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Symbol:
 		return self._by('function_def_raw.name').as_a(Symbol)
@@ -210,8 +215,13 @@ class Method(Function):
 class Class(Types):
 	@property
 	@override
-	def scope_name(self) -> str:
+	def name(self) -> str:
 		return self.symbol.to_string()
+
+	@property
+	@override
+	def scope_name(self) -> str:
+		return self.name
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -264,8 +274,13 @@ class Class(Types):
 class Enum(Types):
 	@property
 	@override
-	def scope_name(self) -> str:
+	def name(self) -> str:
 		return self.symbol.to_string()
+
+	@property
+	@override
+	def scope_name(self) -> str:
+		return self.name
 
 	@property
 	@Meta.embed(Node, expandable)

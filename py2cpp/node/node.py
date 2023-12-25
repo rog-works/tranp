@@ -45,6 +45,11 @@ class Node(NodeBase):
 		return self.__locator.resolve(Module)
 
 	@property
+	def name(self) -> str:  # XXX 名称を変更するなど検討の余地あり
+		"""str: 一般名称。@note: 主にシンボル名を表し、クラス・関数名などが相当。それ以外のノードでは空文字"""
+		return ''
+
+	@property
 	def full_path(self) -> str:
 		"""str: ルート要素からのフルパス"""
 		return self._full_path.origin
@@ -81,7 +86,7 @@ class Node(NodeBase):
 	def scope(self) -> str:  # FIXME 名前よりノードの方が良い。その場合名前をどう取得するかが課題
 		"""str: 自身が所属するスコープ。@note: 所有するスコープではない点に注意"""
 		if isinstance(self, ScopeTrait):
-			return f'{self.parent.scope}.{self.parent.scope_name or self.parent.identifer}'
+			return f'{self.parent.scope}.{self.parent.name}'
 		else:
 			return self.parent.scope
 

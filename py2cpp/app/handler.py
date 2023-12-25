@@ -92,7 +92,7 @@ class Handler:
 
 	# General
 
-	def on_module(self, node: defs.Module, ctx: Context) -> None:
+	def on_entrypoint(self, node: defs.Entrypoint, ctx: Context) -> None:
 		statements = [statement for _, statement in ctx.registry.each_pop()]
 		statements.reverse()
 		text = ctx.view.render('block', vars={'statements': statements})

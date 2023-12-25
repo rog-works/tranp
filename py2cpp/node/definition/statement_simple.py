@@ -121,13 +121,13 @@ class Import(Node):
 		return [node.as_a(Symbol) for node in self._children('import_names')]
 
 	@property
-	def module(self) -> Node:
+	def import_module(self) -> Node:
 		loader = self.plugin(ModuleLoader)
 		return loader.load(self.module_path.to_string(), Node)
 
 	@property
 	def decl_vars(self) -> list[AnnoAssign | MoveAssign]:
-		from py2cpp.node.definition.general import Module  # FIXME 参照違反
+		from py2cpp.node.definition.general import Entrypoint  # FIXME 参照違反
 
 		imported_names = [symbol.to_string() for symbol in self.import_symbols]
-		return [var for var in self.module.as_a(Module).decl_vars if var.symbol.to_string() in imported_names]
+		return [var for var in self.import_module.as_a(Entrypoint).decl_vars if var.symbol.to_string() in imported_names]

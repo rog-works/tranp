@@ -8,6 +8,7 @@ from py2cpp.lang.annotation import deprecated
 from py2cpp.lang.locator import Locator
 from py2cpp.lang.sequence import flatten
 from py2cpp.lang.string import snakelize
+from py2cpp.module.module import Module
 from py2cpp.node.base import NodeBase, T_NodeBase, T_Plugin
 from py2cpp.node.embed import EmbedKeys, Meta
 from py2cpp.node.trait import ScopeTrait
@@ -35,8 +36,13 @@ class Node(NodeBase):
 
 	@property
 	def __nodes(self) -> Query['Node']:
-		"""Query[Node]: クエリーインターフェイスを返却"""
+		"""Query[Node]: クエリーインターフェイス"""
 		return self.__locator.resolve(Query[Node])
+
+	@property
+	def module(self) -> Module:
+		"""Module: モジュール"""
+		return self.__locator.resolve(Module)
 
 	@property
 	def full_path(self) -> str:

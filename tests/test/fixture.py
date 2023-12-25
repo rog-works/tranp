@@ -5,15 +5,16 @@ from lark import Lark, Tree
 from lark.indenter import PythonIndenter
 
 from py2cpp.lang.di import DI
-from py2cpp.lang.locator import Curry, Locator
+from py2cpp.lang.locator import Curry, Locator, T_Inst
 from py2cpp.lang.module import load_module
 from py2cpp.ast.entry import Entry
 from py2cpp.ast.provider import Query, Settings
 from py2cpp.ast.parser import FileLoader, GrammarSettings, SyntaxParser
+from py2cpp.module.modules import Module, Modules
 from py2cpp.node.definitions import make_settings
 from py2cpp.node.node import Node
 from py2cpp.node.nodes import NodeResolver, Nodes
-from py2cpp.node.plugin import ModuleLoader, ModulePath
+from py2cpp.node.plugin import ModuleLoader
 from py2cpp.tp_lark.entry import EntryOfLark
 from py2cpp.tp_lark.parser import SyntaxParserOfLark
 
@@ -61,15 +62,30 @@ class Fixture:
 		di = DI()
 		di.register(Locator, lambda: di)
 		di.register(Curry, lambda: di.curry)
-		di.register(Settings, make_settings)
-		di.register(NodeResolver, NodeResolver)
-		di.register(Query[Node], Nodes)
 		di.register(FileLoader, FileLoader)
 		di.register(GrammarSettings, lambda: GrammarSettings(grammar='data/grammar.lark'))
 		di.register(SyntaxParser, SyntaxParserOfLark)
+		di.register(Modules, Modules)
 		di.register(ModuleLoader, ModuleLoader)
-		di.register(ModulePath, ModulePath.entrypoint)
+		di.register(Module, lambda: Module(di, '__main__'))
+		di.register(Settings, make_settings)
+		di.register(NodeResolver, NodeResolver)
+		di.register(Query[Node], Nodes)
+		di.register(Node, Nodes.root)
 		return di
+
+	def get(self, symbol: type[T_Inst]) -> T_Inst:
+		if not self.__di.can_resolve(Entry):
+			self.__di.register(Entry, lambda: self.__load_prebuild_tree(self.__module_path))
+
+		return self.__di.resolve(symbol)
+
+	@property
+	def entrypoint(self) -> Module:
+		if not self.__di.can_resolve(Entry):
+			self.__di.register(Entry, lambda: self.__load_prebuild_tree(self.__module_path))
+
+		return self.__di.resolve(Module)
 
 	@property
 	def shared(self) -> Query[Node]:

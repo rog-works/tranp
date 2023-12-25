@@ -1,5 +1,6 @@
 from unittest import TestCase
 
+from py2cpp.module.modules import Modules
 from py2cpp.node.classify import make_db
 import py2cpp.node.definition as defs
 from tests.test.fixture import Fixture
@@ -10,22 +11,24 @@ class TestClassify(TestCase):
 	fixture = Fixture.make(__file__)
 
 	@data_provider([
-		('file_input', [
-			'__main__.pragma',
-			'__main__.v',
-			'__main__.A',
-			'__main__.A.B',
-			'__main__.A.B.__init__',
-			'__main__.A.B.__init__.self',
-			'__main__.A.B.func1',
-			'__main__.A.B.func1.self',
-			'__main__.A.B.func1.b',
-			'__main__.A.B.func1.v',
-			'__main__.A.B.v',
-		]),
+		({
+			'py2cpp.cpp.directive.pragma': 'py2cpp.cpp.directive.pragma',
+			'__main__.v': 'py2cpp.python.classes.int',
+			'__main__.A': '__main__.A',
+			'__main__.A.v': 'py2cpp.python.classes.list',
+			'__main__.A.B': '__main__.A.B',
+			'__main__.A.B.v': 'py2cpp.python.classes.str',
+			'__main__.A.__init__': '__main__.A.__init__',
+			'__main__.A.__init__.self': '__main__.A',
+			'__main__.A.func1': '__main__.A.func1',
+			'__main__.A.func1.self': '__main__.A',
+			'__main__.A.func1.b': 'py2cpp.python.classes.list',
+			'__main__.A.func1.v': 'py2cpp.python.classes.bool',
+		},),
 	])
-	def test_make_db(self, full_path: str, symbols: list[str]) -> None:
-		root = self.fixture.shared.by(full_path).as_a(defs.Module)
-		db = make_db(root)
-		for index, path in enumerate(db.keys()):
-			self.assertEqual(path, symbols[index])
+	def test_make_db(self, expected: dict[str, str]) -> None:
+		modules = self.fixture.get(Modules)
+		db = make_db(modules)
+		for path, types in db.items():
+			self.assertEqual(path in expected, True)
+			self.assertEqual(f'{types.scope}.{types.one_of(defs.Class | defs.Function).symbol.to_string()}', expected[path])

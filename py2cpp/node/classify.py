@@ -2,6 +2,7 @@ from typing import TypeAlias
 
 from py2cpp.ast.travarsal import EntryPath
 from py2cpp.errors import LogicError
+from py2cpp.module.modules import Modules
 import py2cpp.node.definition as defs
 from py2cpp.node.node import Node
 
@@ -9,10 +10,6 @@ SymbolDB: TypeAlias = dict[str, defs.Types]
 
 
 class Classify:
-	@classmethod
-	def instantiate(cls, root: Node) -> 'Classify':
-		return cls(make_db(root))
-
 	def __init__(self, db: SymbolDB) -> None:
 		self.__db = db
 
@@ -147,10 +144,10 @@ class Classify:
 			return self.__classify.literal_of(node)
 
 
-def make_db(root: Node) -> SymbolDB:
+def make_db(modules: Modules) -> SymbolDB:
 	db: SymbolDB = {}
 	decl_vars: list[defs.AnnoAssign | defs.MoveAssign] = []
-	for node in root.calculated():
+	for node in modules.main.entrypoint(Node).calculated():
 		if isinstance(node, (defs.Function, defs.Class, defs.Enum)):
 			path = EntryPath.join(node.scope, node.symbol.to_string())
 			db[path.origin] = node
@@ -167,8 +164,14 @@ def make_db(root: Node) -> SymbolDB:
 			decl_vars.extend(node.vars)
 		elif type(node) is defs.Import:
 			decl_vars.extend(node.decl_vars)
-		elif type(node) is defs.Module:
+		elif type(node) is defs.Entrypoint:
 			decl_vars.extend(node.decl_vars)
+
+	for import_module in modules.imported:
+		for node in import_module.entrypoint(Node).calculated():
+			if isinstance(node, (defs.Function, defs.Class, defs.Enum)):
+				path = EntryPath.join(node.scope, node.symbol.to_string())
+				db[path.origin] = node
 
 	for var in decl_vars:
 		type_symbol = __resolve_type_symbol(var)
@@ -186,7 +189,9 @@ def make_db(root: Node) -> SymbolDB:
 
 def __resolve_type_symbol(var: defs.AnnoAssign | defs.MoveAssign) -> str:
 	if type(var) is defs.AnnoAssign:
-		if var.var_type.is_a(defs.Symbol):
+		if var.var_type.is_a(defs.This):
+			return var.namespace
+		elif var.var_type.is_a(defs.Symbol):
 			return var.var_type.to_string()
 		else:
 			return var.var_type.as_a(defs.GenericType).symbol.to_string()

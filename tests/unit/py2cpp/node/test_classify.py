@@ -30,5 +30,5 @@ class TestClassify(TestCase):
 		modules = self.fixture.get(Modules)
 		db = make_db(modules)
 		for path, types in db.items():
-			self.assertEqual(path in expected, True)
+			self.assertEqual('ok' if path in expected else path, 'ok')
 			self.assertEqual(f'{types.scope}.{types.one_of(defs.Class | defs.Function).symbol.to_string()}', expected[path])

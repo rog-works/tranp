@@ -1,12 +1,10 @@
-from typing import TypeVar, cast
+from typing import cast
 
 from py2cpp.lang.di import DI
 from py2cpp.lang.locator import Curry, Locator
 from py2cpp.ast.entry import Entry
 from py2cpp.ast.parser import SyntaxParser
 from py2cpp.module.module import Module
-
-T = TypeVar('T')
 
 
 class Modules:
@@ -21,7 +19,12 @@ class Modules:
 
 	@property
 	def imported(self) -> list[Module]:
+		self.__implicit_modules()  # FIXME 何かしらトリガーを用意
 		return [value for key, value in self.__modules.items() if key != '__main__']
+
+	def __implicit_modules(self) -> list[Module]:
+		paths = ['py2cpp.python.classes']
+		return [self.load(path) for path in paths]
 
 	def load(self, module_path: str) -> Module:
 		if module_path not in self.__modules:

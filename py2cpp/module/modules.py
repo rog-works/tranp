@@ -19,10 +19,10 @@ class Modules:
 
 	@property
 	def imported(self) -> list[Module]:
-		self.__implicit_modules()  # FIXME 何かしらトリガーを用意
-		return [value for key, value in self.__modules.items() if key != '__main__']
+		return list(self.__modules.values())
 
-	def __implicit_modules(self) -> list[Module]:
+	@property
+	def core_libralies(self) -> list[Module]:
 		paths = ['py2cpp.python.classes']
 		return [self.load(path) for path in paths]
 

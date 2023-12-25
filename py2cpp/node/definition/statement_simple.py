@@ -3,7 +3,6 @@ from py2cpp.node.definition.primary import FuncCall, GenericType, Indexer, Symbo
 from py2cpp.node.definition.terminal import Empty, Terminal
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
 from py2cpp.node.node import Node
-from py2cpp.node.plugin import ModuleLoader
 
 
 @Meta.embed(Node, accept_tags('assign_stmt'))
@@ -119,15 +118,3 @@ class Import(Node):
 	@Meta.embed(Node, expandable)
 	def import_symbols(self) -> list[Symbol]:
 		return [node.as_a(Symbol) for node in self._children('import_names')]
-
-	@property
-	def import_module(self) -> Node:
-		loader = self.plugin(ModuleLoader)
-		return loader.load(self.module_path.to_string(), Node)
-
-	@property
-	def decl_vars(self) -> list[AnnoAssign | MoveAssign]:
-		from py2cpp.node.definition.general import Entrypoint  # FIXME 参照違反
-
-		imported_names = [symbol.to_string() for symbol in self.import_symbols]
-		return [var for var in self.import_module.as_a(Entrypoint).decl_vars if var.symbol.to_string() in imported_names]

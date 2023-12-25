@@ -49,8 +49,13 @@ class FileInput(Node):
 class Class(Node):
 	@property
 	@override
-	def scope_name(self) -> str:
+	def name(self) -> str:
 		return 'C1'
+
+	@property
+	@override
+	def scope_name(self) -> str:
+		return self.name
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -61,8 +66,13 @@ class Class(Node):
 class Enum(Node):
 	@property
 	@override
-	def scope_name(self) -> str:
+	def name(self) -> str:
 		return 'E1'
+
+	@property
+	@override
+	def scope_name(self) -> str:
+		return self.name
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -71,6 +81,11 @@ class Enum(Node):
 
 
 class Function(Node):
+	@property
+	@override
+	def name(self) -> str:
+		return 'F1'
+
 	@property
 	@Meta.embed(Node, expandable)
 	def block(self) -> Block:
@@ -219,10 +234,10 @@ class TestNode(TestCase):
 		('file_input.class.block.enum', '__main__.C1'),
 		('file_input.class.block.enum.block', '__main__.C1.E1'),
 		('file_input.class.block.function[1]', '__main__.C1'),
-		('file_input.class.block.function[1].block', '__main__.C1.function'),
-		('file_input.class.block.function[1].block.if', '__main__.C1.function'),
-		('file_input.class.block.function[1].block.if.block', '__main__.C1.function.if'),
-		('file_input.function.block.term_a', '__main__.function'),
+		('file_input.class.block.function[1].block', '__main__.C1.F1'),
+		('file_input.class.block.function[1].block.if', '__main__.C1.F1'),
+		('file_input.class.block.function[1].block.if.block', '__main__.C1.F1.if'),
+		('file_input.function.block.term_a', '__main__.F1'),
 	])
 	def test_scope(self, full_path: str, expected: str) -> None:
 		nodes = Fixture.nodes()

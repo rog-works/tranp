@@ -39,9 +39,9 @@ def make_settings() -> Settings:
 			# 'getattr': defs.Self,
 			'getitem': defs.Indexer,
 			'typed_getitem': defs.GenericType,
-			# 'getitem': defs.ListType,
-			# 'getitem': defs.DictType,
-			# 'getitem': defs.UnionType,
+			# 'typed_getitem': defs.ListType,
+			# 'typed_getitem': defs.DictType,
+			'typed_or_expr': defs.UnionType,
 			'funccall': defs.FuncCall,
 			# -- Common --
 			'argvalue': defs.Argument,

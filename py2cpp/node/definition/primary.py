@@ -83,17 +83,12 @@ class DictType(GenericType):
 		return self._by('typed_slices.typed_slice[1]')._at(0).one_of(Symbol | GenericType)
 
 
-@Meta.embed(Node, actualized(via=GenericType))
+@Meta.embed(Node, accept_tags('typed_or_expr'))
 class UnionType(GenericType):
-	@classmethod
-	@override
-	def match_feature(cls, via: Node) -> bool:
-		return via._exists('typed_or_expr')
-
 	@property
 	@Meta.embed(Node, expandable)
-	def types(self) -> list[Symbol]:  # XXX GenericTypeにも対応するかどうか
-		return [node.as_a(Symbol) for node in self._by('typed_or_expr')._children()]
+	def types(self) -> list[Symbol]:  # FIXME GenericTypeにも対応
+		return [node.as_a(Symbol) for node in self._children()]
 
 
 @Meta.embed(Node, accept_tags('funccall'))

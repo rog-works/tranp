@@ -226,7 +226,20 @@ class Class(Types):
 	@property
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Symbol:
-		return self._by('class_def_raw.name').as_a(Symbol)
+		return self.__alias_symbol or self._by('class_def_raw.name').as_a(Symbol)
+
+	@property
+	def __alias_symbol(self) -> Symbol | None:
+		"""Symbol: 特定の書式のデコレーターで設定した別名をクラス名のシンボルとして取り込む @node: 書式: `@__alias__.${alias_symbol}`。標準ライブラリの実装にのみ使う想定"""
+		decorators = self.decorators
+		if len(decorators) == 0:
+			return None
+
+		decorator = decorators[0]
+		if not decorator.symbol.to_string().startswith('__alias__'):
+			return None
+
+		return decorator.symbol._at(1).as_a(Symbol)
 
 	@property
 	@Meta.embed(Node, expandable)

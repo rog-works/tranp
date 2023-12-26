@@ -5,7 +5,11 @@ pragma('once')
 v: int = 0
 
 class A:
-	class B:
+	def __init__(self) -> None:
+		self.s: str = ''
+
+class B(A):
+	class B2:
 		v: str = ''
 
 	def __init__(self) -> None:
@@ -16,4 +20,4 @@ class A:
 		print(v)
 		print(self.v)
 		print(b[0].v)
-		return A.B.v
+		return self.s

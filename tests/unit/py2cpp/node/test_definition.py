@@ -80,8 +80,8 @@ class TestDefinition(TestCase):
 		for index, parameter in enumerate(node.parameters):
 			in_expected = expected['parameters'][index]
 			self.assertEqual(parameter.symbol.to_string(), in_expected['name'])
-			self.assertEqual(parameter.var_type.to_string() if type(parameter.var_type) is defs.Symbol else 'Empty', in_expected['type'])
-			self.assertEqual(parameter.default_value.to_string() if type(parameter.default_value) is defs.Terminal else 'Empty', in_expected['default'])
+			self.assertEqual(parameter.var_type.to_string() if parameter.var_type.is_a(defs.Symbol) else 'Empty', in_expected['type'])
+			self.assertEqual(parameter.default_value.to_string() if parameter.default_value.is_a(defs.Terminal) else 'Empty', in_expected['default'])
 
 		self.assertEqual(type(node.return_type), expected['return'])
 		self.assertEqual(type(node.block), defs.Block)
@@ -104,8 +104,9 @@ class TestDefinition(TestCase):
 			],
 			'constructor': {
 				'decl_vars': [
-					{'symbol': 'self.v', 'type': 'int'},
-					{'symbol': 'self.s', 'type': 'str'},
+					{'symbol': 'self', 'type': 'Empty'},
+					{'symbol': 'v', 'type': 'int'},
+					{'symbol': 's', 'type': 'str'},
 				],
 			},
 			'methods': [
@@ -139,7 +140,12 @@ class TestDefinition(TestCase):
 			for index, var in enumerate(constructor.decl_vars):
 				in_var_expected = in_expected['decl_vars'][index]
 				self.assertEqual(var.symbol.to_string(), in_var_expected['symbol'])
-				self.assertEqual(var.var_type.to_string(), in_var_expected['type'])
+				if isinstance(var, defs.AnnoAssign):
+					self.assertEqual(var.var_type.to_string(), in_var_expected['type'])
+				elif isinstance(var, defs.MoveAssign):
+					self.assertEqual('Empty', in_var_expected['type'])
+				elif isinstance(var, defs.Parameter):
+					self.assertEqual(var.var_type.to_string() if var.var_type.is_a(defs.Symbol) else 'Empty', in_var_expected['type'])
 
 		self.assertEqual(len(node.methods), len(expected['methods']))
 		for index, constructor in enumerate(node.methods):
@@ -250,7 +256,7 @@ class TestDefinition(TestCase):
 				{'value': "'once'"},
 			],
 			'calculated': [
-				'<Symbol: file_input.funccall.var>',
+				'<Var: file_input.funccall.var>',
 				'<String: file_input.funccall.arguments.argvalue.string>',
 				'<Argument: file_input.funccall.arguments.argvalue>',
 			],

@@ -4,8 +4,8 @@ from py2cpp.lang.annotation import override
 from py2cpp.node.definition.common import Argument
 from py2cpp.node.definition.element import Block, Decorator, Parameter
 from py2cpp.node.definition.literal import Null
-from py2cpp.node.definition.primary import GenericType, This, Symbol
-from py2cpp.node.definition.statement_simple import AnnoAssign, Assign, MoveAssign
+from py2cpp.node.definition.primary import GenericType, Symbol, This, ThisVar
+from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
 from py2cpp.node.node import Node
@@ -164,10 +164,14 @@ class Function(Types):
 		return self._by('function_def_raw')._at(2).one_of(Symbol | GenericType | Null)
 
 	@property
-	@Meta.embed(Node, expandable)
 	@override
+	@Meta.embed(Node, expandable)
 	def block(self) -> Block:
 		return self._by('function_def_raw.block').as_a(Block)
+
+	@property
+	def decl_vars(self) -> list[Parameter | AnnoAssign | MoveAssign]:
+		return [*self.parameters, *self.block.decl_vars]
 
 
 @Meta.embed(Node, actualized(via=Function))
@@ -182,8 +186,10 @@ class Constructor(Function):
 		return self.parent.as_a(Block).parent.as_a(Class).symbol  # FIXME 循環参照
 
 	@property
-	def decl_vars(self) -> list[AnnoAssign | MoveAssign]:
-		return [node for node in self.block.decl_vars if node.symbol.is_a(This)]
+	@override
+	def decl_vars(self) -> list[Parameter | AnnoAssign | MoveAssign]:
+		# ThisVarはClassの所有物として除外 @see Class.vars
+		return [var for var in super().decl_vars if not var.is_a(ThisVar)]
 
 
 @Meta.embed(Node, actualized(via=Function))
@@ -208,8 +214,9 @@ class Method(Function):
 		if via.symbol.to_string() == '__init__':
 			return False
 
+		# XXX Thisのみの判定だと不正確かもしれない
 		parameters = via.parameters
-		return len(parameters) > 0 and parameters[0].symbol.is_a(This)  # XXX Thisだけの判定だと不正確かも
+		return len(parameters) > 0 and parameters[0].symbol.is_a(This)
 
 	@property
 	def class_symbol(self) -> Symbol:
@@ -286,7 +293,19 @@ class Class(Types):
 
 	@property
 	def vars(self) -> list[AnnoAssign | MoveAssign]:
-		return self.constructor.decl_vars if self.constructor_exists else []
+		return [*self.class_vars, *self.instance_vars]
+
+	@property
+	def class_vars(self) -> list[AnnoAssign | MoveAssign]:
+		return self.block.decl_vars
+
+	@property
+	def instance_vars(self) -> list[AnnoAssign | MoveAssign]:
+		if not self.constructor_exists:
+			return []
+
+		# ThisVarのみが対象 @see Constructor.decl_vars
+		return [var.one_of(AnnoAssign | MoveAssign) for var in self.constructor.decl_vars if var.is_a(AnnoAssign, MoveAssign) and var.symbol.is_a(ThisVar)]
 
 
 @Meta.embed(Node, accept_tags('enum_def'))
@@ -315,4 +334,4 @@ class Enum(Types):
 
 	@property
 	def vars(self) -> list[AnnoAssign | MoveAssign]:
-		return [node.one_of(AnnoAssign | MoveAssign) for node in self._children('block') if node.is_a(Assign)]
+		return [node.one_of(AnnoAssign | MoveAssign) for node in self.block._children() if node.is_a(AnnoAssign, MoveAssign)]

@@ -1,3 +1,5 @@
+import re
+
 from py2cpp.lang.annotation import override
 from py2cpp.node.definition.common import Argument
 from py2cpp.node.definition.terminal import Empty
@@ -5,7 +7,7 @@ from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
 from py2cpp.node.node import Node
 
 
-@Meta.embed(Node, accept_tags('getattr', 'var', 'name', 'dotted_name', 'typed_getattr', 'typed_var'))
+@Meta.embed(Node, accept_tags('getattr', 'name', 'dotted_name', 'typed_getattr', 'typed_var'))
 class Symbol(Node):
 	@property
 	@override
@@ -17,12 +19,34 @@ class Symbol(Node):
 		return '.'.join([node.to_string() for node in self._under_expand()])
 
 
+@Meta.embed(Node, accept_tags('var'))
+class Var(Symbol):
+	"""Note: ローカル変数と引数に対応。クラスメンバーはいずれもこのシンボルにあたらない"""
+
+	@classmethod
+	@override
+	def match_feature(cls, via: Node) -> bool:
+		name = via.to_string()
+		if name == 'self' or name.find('.') != -1:
+			return False
+
+		return via.parent.tag != 'getattr'
+
+
 @Meta.embed(Node, actualized(via=Symbol))
 class This(Symbol):
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:
-		return via.to_string().startswith('self')
+		return via.to_string() == 'self'
+
+
+@Meta.embed(Node, actualized(via=Symbol))
+class ThisVar(Symbol):
+	@classmethod
+	@override
+	def match_feature(cls, via: Node) -> bool:
+		return re.fullmatch(r'self\.\w+', via.to_string()) is not None
 
 
 @Meta.embed(Node, accept_tags('getitem'))

@@ -1,4 +1,5 @@
 from py2cpp.lang.annotation import override
+from py2cpp.node.definition.primary import Var
 from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from py2cpp.node.embed import Meta, accept_tags, expandable
 from py2cpp.node.node import Node
@@ -32,5 +33,10 @@ class Entrypoint(Node):
 
 	@property
 	def decl_vars(self) -> list[AnnoAssign | MoveAssign]:
-		assigns = {node.one_of(AnnoAssign | MoveAssign): True for node in reversed(self.statements) if node.is_a(AnnoAssign, MoveAssign)}
+		# @see element.Block.decl_vars
+		assigns = {
+			node.one_of(AnnoAssign | MoveAssign): True
+			for node in reversed(self.statements)
+			if isinstance(node, (AnnoAssign, MoveAssign)) and node.symbol.is_a(Var)
+		}
 		return list(reversed(assigns.keys()))

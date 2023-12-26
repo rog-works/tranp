@@ -70,6 +70,7 @@ class Fixture:
 		di.bind(ModuleLoader, ModuleLoader)
 		di.bind(Module, lambda: Module(di, '__main__'))
 		di.bind(Settings, make_settings)
+		di.bind(Entry, lambda: self.__load_prebuild_tree(self.__module_path))
 		di.bind(NodeResolver, NodeResolver)
 		di.bind(Query[Node], Nodes)
 		di.bind(Node, Nodes.root)
@@ -77,26 +78,17 @@ class Fixture:
 		return di
 
 	def get(self, symbol: type[T_Inst]) -> T_Inst:
-		if not self.__di.can_resolve(Entry):
-			self.__di.bind(Entry, lambda: self.__load_prebuild_tree(self.__module_path))
-
 		return self.__di.resolve(symbol)
 
 	@property
-	def entrypoint(self) -> Module:
-		if not self.__di.can_resolve(Entry):
-			self.__di.bind(Entry, lambda: self.__load_prebuild_tree(self.__module_path))
-
+	def main(self) -> Module:
 		return self.__di.resolve(Module)
 
 	@property
-	def shared(self) -> Query[Node]:
-		if not self.__di.can_resolve(Entry):
-			self.__di.bind(Entry, lambda: self.__load_prebuild_tree(self.__module_path))
-
+	def shared_nodes(self) -> Query[Node]:
 		return self.__di.resolve(Query[Node])
 
-	def custom(self, root: Entry) -> Query[Node]:
+	def custom_nodes(self, root: Entry) -> Query[Node]:
 		di = self.__make_di()
-		di.bind(Entry, lambda: root)
+		di.rebind(Entry, lambda: root)
 		return di.resolve(Query[Node])

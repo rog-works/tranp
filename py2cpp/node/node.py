@@ -1,8 +1,8 @@
 import functools
 from typing import Callable, Iterator, cast
 
-from py2cpp.ast.provider import Query
 from py2cpp.ast.path import EntryPath
+from py2cpp.ast.provider import Query
 from py2cpp.errors import LogicError, NotFoundError
 from py2cpp.lang.annotation import deprecated
 from py2cpp.lang.locator import Locator

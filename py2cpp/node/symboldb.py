@@ -12,7 +12,7 @@ class SymbolRow(NamedTuple):
 	org_path: str
 	module: Module
 	symbol: defs.Symbol
-	node: defs.Types
+	types: defs.Types
 
 
 SymbolDB: TypeAlias = dict[str, SymbolRow]
@@ -29,7 +29,7 @@ class SymbolDBFactory:
 			module = modules.load(import_node.module_path.to_string())
 			imported_db = self.__pluck_imported(main, module)
 			expanded_db = {
-				row.org_path: SymbolRow(row.org_path, row.org_path, row.module, row.symbol, row.node)
+				row.org_path: SymbolRow(row.org_path, row.org_path, row.module, row.symbol, row.types)
 				for _, row in imported_db.items()
 			}
 			# import句で明示したシンボルに限定
@@ -44,7 +44,7 @@ class SymbolDBFactory:
 		for module in modules.core_libralies:
 			imported_db = self.__pluck_imported(main, module)
 			expanded_db = {
-				row.org_path: SymbolRow(row.org_path, row.org_path, row.module, row.symbol, row.node)
+				row.org_path: SymbolRow(row.org_path, row.org_path, row.module, row.symbol, row.types)
 				for _, row in imported_db.items()
 			}
 			# 第1層で宣言されているTypesに限定

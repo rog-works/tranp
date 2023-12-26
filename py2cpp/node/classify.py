@@ -10,32 +10,32 @@ class Classify:
 		self.__db = db
 
 	def type_of(self, node: defs.Symbol | defs.GenericType | defs.Null) -> defs.Types:
-		return self.__type_of(node.scope, node.to_string() if node.is_a(defs.Symbol) else node.as_a(defs.GenericType).symbol.to_string())
+		return self.__type_of(node.module.path, node.scope, node.to_string() if node.is_a(defs.Symbol) else node.as_a(defs.GenericType).symbol.to_string())
 
-	def __type_of(self, scope: str, symbol: str) -> defs.Types:
+	def __type_of(self, module_path: str, scope: str, symbol: str) -> defs.Types:
 		symbols = EntryPath(symbol)
 		first, _ = symbols.first()[0]
 		remain = symbols.shift(1)
 		candidates = [
 			EntryPath.join(scope, first),
-			EntryPath.join(first),
+			EntryPath.join(module_path, first),
 		]
 		for candidate in candidates:
 			if candidate.origin in self.__db:
 				continue
 
-			ctor = self.__db[candidate.origin]
+			row = self.__db[candidate.origin]
 			if not remain.valid:
-				return ctor
+				return row.types
 
-			founded = self.__type_of(ctor.block.scope, remain.origin)
+			founded = self.__type_of(row.module.path, row.types.scope, remain.origin)
 			if founded:
 				return founded
 
-		raise LogicError(f'Symbol not defined. scope: {scope}, symbol: {symbol}')
+		raise LogicError(f'Symbol not defined. module_path: {module_path}, scope: {scope}, symbol: {symbol}')
 
 	def literal_of(self, node: defs.Literal) -> defs.Types:
-		return self.__type_of(node.scope, node.classification)
+		return self.__type_of(node.module.path, node.scope, node.classification)
 
 	def result_of(self, expression: Node) -> defs.Types:
 		handler = Handler(self)

@@ -93,6 +93,7 @@ class TestDefinition(TestCase):
 			'parents': [],
 			'constructor': {},
 			'methods': [],
+			'vars': [],
 		}),
 		('file_input.class_def[4]', {
 			'name': 'Hoge',
@@ -112,6 +113,10 @@ class TestDefinition(TestCase):
 			'methods': [
 				{'name': 'func1'},
 				{'name': '_func2'},
+			],
+			'vars': [
+				{'symbol': 'self.v', 'type': defs.AnnoAssign},
+				{'symbol': 'self.s', 'type': defs.AnnoAssign},
 			],
 		}),
 	])
@@ -148,10 +153,16 @@ class TestDefinition(TestCase):
 					self.assertEqual(var.var_type.to_string() if var.var_type.is_a(defs.Symbol) else 'Empty', in_var_expected['type'])
 
 		self.assertEqual(len(node.methods), len(expected['methods']))
-		for index, constructor in enumerate(node.methods):
+		for index, method in enumerate(node.methods):
 			in_expected = expected['methods'][index]
-			self.assertEqual(type(constructor), defs.Method)
-			self.assertEqual(constructor.symbol.to_string(), in_expected['name'])
+			self.assertEqual(type(method), defs.Method)
+			self.assertEqual(method.symbol.to_string(), in_expected['name'])
+
+		self.assertEqual(len(node.vars), len(expected['vars']))
+		for index, var in enumerate(node.vars):
+			in_expected = expected['vars'][index]
+			self.assertEqual(type(var), in_expected['type'])
+			self.assertEqual(var.symbol.to_string(), in_expected['symbol'])
 
 	@data_provider([
 		('file_input.class_def[4].class_def_raw.block.enum_def', {

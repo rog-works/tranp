@@ -130,6 +130,11 @@ class SymbolDBFactory:
 			if var.symbol.is_a(defs.This):
 				# XXX 自己参照の場合は名前空間からクラス名を取る
 				return EntryPath(var.namespace).last()[0]
+			# elif var.symbol.is_a(defs.ThisVar):
+			# 	return EntryPath.join(
+			# 		EntryPath(var.namespace).last()[0],
+			# 		EntryPath(var.symbol.to_string()).shift(1).origin
+			# 	).origin
 			elif var.var_type.is_a(defs.Symbol):
 				return var.var_type.to_string()
 			elif var.var_type.is_a(defs.GenericType):

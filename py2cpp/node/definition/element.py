@@ -1,8 +1,9 @@
 from py2cpp.node.definition.common import Argument
-from py2cpp.node.definition.primary import GenericType, Symbol, Var
+from py2cpp.node.definition.primary import GenericType, Symbol
 from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, expandable
+from py2cpp.node.base import T_NodeBase
 from py2cpp.node.node import Node
 from py2cpp.node.trait import ScopeTrait
 
@@ -46,12 +47,11 @@ class Block(Node, ScopeTrait):
 	def statements(self) -> list[Node]:
 		return self._children()
 
-	@property
-	def decl_vars(self) -> list[AnnoAssign | MoveAssign]:
+	def decl_vars_with(self, allow: type[T_NodeBase]) -> list[AnnoAssign | MoveAssign]:
 		# @see general.Entrypoint.bock.decl_vars
 		assigns = {
 			node.one_of(AnnoAssign | MoveAssign): True
 			for node in reversed(self.statements)
-			if isinstance(node, (AnnoAssign, MoveAssign)) and node.symbol.is_a(Var)
+			if isinstance(node, (AnnoAssign, MoveAssign)) and node.symbol.is_a(allow)
 		}
 		return list(reversed(assigns.keys()))

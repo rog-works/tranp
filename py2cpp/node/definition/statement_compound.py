@@ -4,7 +4,7 @@ from py2cpp.lang.annotation import override
 from py2cpp.node.definition.common import Argument
 from py2cpp.node.definition.element import Block, Decorator, Parameter
 from py2cpp.node.definition.literal import Null
-from py2cpp.node.definition.primary import GenericType, Symbol, This, ThisVar
+from py2cpp.node.definition.primary import GenericType, Symbol, This, ThisVar, Var
 from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
@@ -171,7 +171,7 @@ class Function(Types):
 
 	@property
 	def decl_vars(self) -> list[Parameter | AnnoAssign | MoveAssign]:
-		return [*self.parameters, *self.block.decl_vars]
+		return [*self.parameters, *self.block.decl_vars_with(Var)]
 
 
 @Meta.embed(Node, actualized(via=Function))
@@ -199,10 +199,8 @@ class Constructor(Function):
 		return self.parent.as_a(Block).parent.as_a(Class).symbol  # FIXME 循環参照
 
 	@property
-	@override
-	def decl_vars(self) -> list[Parameter | AnnoAssign | MoveAssign]:
-		# ThisVarはClassの所有物として除外 @see Class.vars
-		return [var for var in super().decl_vars if not var.is_a(ThisVar)]
+	def this_vars(self) -> list[AnnoAssign | MoveAssign]:
+		return self.block.decl_vars_with(ThisVar)
 
 
 @Meta.embed(Node, actualized(via=Function))
@@ -297,15 +295,11 @@ class Class(Types):
 
 	@property
 	def class_vars(self) -> list[AnnoAssign | MoveAssign]:
-		return self.block.decl_vars
+		return self.block.decl_vars_with(Var)
 
 	@property
 	def instance_vars(self) -> list[AnnoAssign | MoveAssign]:
-		if not self.constructor_exists:
-			return []
-
-		# ThisVarのみが対象 @see Constructor.decl_vars
-		return [var.one_of(AnnoAssign | MoveAssign) for var in self.constructor.decl_vars if var.is_a(AnnoAssign, MoveAssign) and var.symbol.is_a(ThisVar)]
+		return self.constructor.this_vars if self.constructor_exists else []
 
 
 @Meta.embed(Node, accept_tags('enum_def'))

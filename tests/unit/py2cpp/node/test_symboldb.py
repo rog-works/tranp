@@ -47,13 +47,7 @@ class TestSymbolDB(TestCase):
 			# entrypoint symbols
 			'__main__.v': '__main__.int',
 			'__main__.A.s': '__main__.str',
-			'__main__.A.__init__.self': '__main__.A',
-			'__main__.A.__init__.self.s': '__main__.A.s',
-			'__main__.B.s': '__main__.A.s',
 			'__main__.B.v': '__main__.bool',
-			'__main__.B.__init__.self': '__main__.B',
-			'__main__.B.__init__.self.v': '__main__.B.v',
-			'__main__.B.func1.self': '__main__.B',
 			'__main__.B.func1.b': '__main__.list',
 			'__main__.B.func1.v': '__main__.bool',
 			'__main__.B.B2.v': '__main__.str',

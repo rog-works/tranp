@@ -63,9 +63,19 @@ class SymbolDBFactory:
 			db = {**expanded_db, **filtered_db, **db}
 
 		for var in decl_vars:
-			scope = var.scope if type(var) is not defs.Parameter else var.parent.as_a(defs.Function).block.scope
-			path = EntryPath.join(scope, var.symbol.to_string())
-			db[path.origin] = cls.__resolve_symbol(var, db)
+			# Thisは登録から除外
+			if var.symbol.is_a(defs.This):
+				pass
+			# ThisVarはクラス直下に配置
+			if var.symbol.is_a(defs.ThisVar):
+				path = EntryPath.join(var.namespace, EntryPath(var.symbol.to_string()).last()[0])
+				ref_path = EntryPath.join(var.module.path, cls.__resolve_type_name(var))
+				db[path.origin] = db[ref_path.origin]
+			# それ以外はスコープ配下に配置
+			else:
+				scope = var.scope if type(var) is not defs.Parameter else var.parent.as_a(defs.Function).block.scope
+				path = EntryPath.join(scope, var.symbol.to_string())
+				db[path.origin] = cls.__resolve_symbol(var, db)
 
 		return db
 
@@ -127,15 +137,7 @@ class SymbolDBFactory:
 	@classmethod
 	def __resolve_type_name(cls, var: DeclVar) -> str:
 		if isinstance(var, (defs.AnnoAssign, defs.Parameter)):
-			if var.symbol.is_a(defs.This):
-				# XXX 自己参照の場合は名前空間からクラス名を取る
-				return EntryPath(var.namespace).last()[0]
-			# elif var.symbol.is_a(defs.ThisVar):
-			# 	return EntryPath.join(
-			# 		EntryPath(var.namespace).last()[0],
-			# 		EntryPath(var.symbol.to_string()).shift(1).origin
-			# 	).origin
-			elif var.var_type.is_a(defs.Symbol):
+			if var.var_type.is_a(defs.Symbol):
 				return var.var_type.to_string()
 			elif var.var_type.is_a(defs.GenericType):
 				return var.var_type.as_a(defs.GenericType).symbol.to_string()

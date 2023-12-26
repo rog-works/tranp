@@ -175,6 +175,19 @@ class Function(Types):
 
 
 @Meta.embed(Node, actualized(via=Function))
+class ClassMethod(Function):
+	@classmethod
+	@override
+	def match_feature(cls, via: Function) -> bool:
+		decorators = via.decorators
+		return len(decorators) > 0 and decorators[0].symbol.to_string() == 'classmethod'
+
+	@property
+	def class_symbol(self) -> Symbol:
+		return self.parent.as_a(Block).parent.as_a(Class).symbol  # FIXME 循環参照
+
+
+@Meta.embed(Node, actualized(via=Function))
 class Constructor(Function):
 	@classmethod
 	@override
@@ -190,19 +203,6 @@ class Constructor(Function):
 	def decl_vars(self) -> list[Parameter | AnnoAssign | MoveAssign]:
 		# ThisVarはClassの所有物として除外 @see Class.vars
 		return [var for var in super().decl_vars if not var.is_a(ThisVar)]
-
-
-@Meta.embed(Node, actualized(via=Function))
-class ClassMethod(Function):
-	@classmethod
-	@override
-	def match_feature(cls, via: Function) -> bool:
-		decorators = via.decorators
-		return len(decorators) > 0 and decorators[0].symbol.to_string() == 'classmethod'
-
-	@property
-	def class_symbol(self) -> Symbol:
-		return self.parent.as_a(Block).parent.as_a(Class).symbol  # FIXME 循環参照
 
 
 @Meta.embed(Node, actualized(via=Function))

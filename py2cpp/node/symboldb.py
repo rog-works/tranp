@@ -88,6 +88,8 @@ class SymbolDBFactory:
 				decl_vars.extend(node.decl_vars)
 			elif type(node) is defs.ClassMethod:
 				decl_vars.extend(node.decl_vars)
+			elif type(node) is defs.Constructor:
+				decl_vars.extend(node.decl_vars)
 			elif type(node) is defs.Method:
 				decl_vars.extend(node.decl_vars)
 			elif type(node) is defs.Class:

@@ -15,6 +15,9 @@ def make_settings() -> Settings:
 			'except_clause': defs.Catch,
 			'try_stmt': defs.Try,
 			'function_def': defs.Function,
+			# 'function_def': defs.ClassMethod,
+			# 'function_def': defs.Constructor,
+			# 'function_def': defs.Method,
 			'class_def': defs.Class,
 			'enum_def': defs.Enum,
 			# -- Function/Class Elements --

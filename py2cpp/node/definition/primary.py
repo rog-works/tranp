@@ -12,7 +12,7 @@ from py2cpp.node.trait import TerminalTrait
 class Symbol(Node, TerminalTrait): pass
 
 
-@Meta.embed(Node, accept_tags('var'))
+@Meta.embed(Node, actualized(via=Symbol))
 class Var(Symbol):
 	"""Note: ローカル変数と引数に対応。クラスメンバーは如何なる種類もこのシンボルにあたらない"""
 

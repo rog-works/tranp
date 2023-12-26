@@ -109,7 +109,7 @@ for_stmt: "for" name "in" expression ":" block
 // Try/Except statement
 
 // @lark try_stmt: "try" ":" suite except_clauses ["else" block] [finally] | "try" ":" suite finally
-// @lark except_claus: "except" [test ["as" name]] ":" suite
+// @lark except_clause: "except" [test ["as" name]] ":" suite
 try_stmt: "try" ":" block except_clauses
 except_clauses: except_clause+
 except_clause: "except" primary ["as" name] ":" block
@@ -125,8 +125,8 @@ except_clause: "except" primary ["as" name] ":" block
 // @lark augassign: testlist_star_expr augassign_op (yield_expr | testlist)
 assign_stmt: assign | anno_assign | aug_assign
 assign: expression ("=" expression)+
-anno_assign: primary ":" typed_expression ["=" expression]
-aug_assign: primary aug_assign_op primary
+anno_assign: expression ":" typed_expression ["=" expression]
+aug_assign: expression aug_assign_op expression
 
 !aug_assign_op: "+=" | "-=" | "*=" | "@=" | "/=" | "%=" | "&=" | "|=" | "^=" | "<<=" | ">>=" | "**=" | "//="
 

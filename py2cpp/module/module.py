@@ -18,7 +18,8 @@ class Module:
 		# FIXME 循環参照を回避するため一旦関数内部に配置
 		from py2cpp.node.node import Node
 
-		if ctor is not Node:
+		# XXX 後のas_aによって確認されるため、冗長な判定
+		if not issubclass(ctor, Node):
 			raise ValueError(f'Unexpected entrypoint type. ctor: {ctor}')
 
-		return self.__locator.resolve(ctor)
+		return self.__locator.resolve(Node).as_a(ctor)

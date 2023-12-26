@@ -1,4 +1,4 @@
-from py2cpp.ast.travarsal import EntryPath
+from py2cpp.ast.path import EntryPath
 from py2cpp.errors import LogicError
 import py2cpp.node.definition as defs
 from py2cpp.node.node import Node

@@ -111,6 +111,10 @@ class Try(Node):
 
 class Types(Node):
 	@property
+	def symbol(self) -> Symbol:
+		raise NotImplementedError()
+
+	@property
 	def block(self) -> Block:
 		raise NotImplementedError()
 
@@ -136,6 +140,7 @@ class Function(Types):
 		return self.symbol.to_string()
 
 	@property
+	@override
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Symbol:
 		return self._by('function_def_raw.name').as_a(Symbol)
@@ -224,6 +229,7 @@ class Class(Types):
 		return self.name
 
 	@property
+	@override
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Symbol:
 		return self.__alias_symbol or self._by('class_def_raw.name').as_a(Symbol)
@@ -296,6 +302,7 @@ class Enum(Types):
 		return self.name
 
 	@property
+	@override
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Symbol:
 		return self._by('name').as_a(Symbol)

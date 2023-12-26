@@ -57,7 +57,7 @@ class TestSymbolDB(TestCase):
 	def test_make_db(self, expected: dict[str, str]) -> None:
 		modules = self.fixture.get(Modules)
 		db = SymbolDBFactory().create(modules)
-		print('\n'.join([f'{key}: {types.scope}.{types.one_of(defs.Class | defs.Function).symbol.to_string()}' for key, types in db.items()]))
-		for path, types in db.items():
+		print('\n'.join([f'{key}: {row.ref_path}' for key, row in db.items()]))
+		for path, row in db.items():
 			self.assertEqual('ok' if path in expected else path, 'ok')
-			self.assertEqual(f'{types.scope}.{types.one_of(defs.Class | defs.Function).symbol.to_string()}', expected[path])
+			self.assertEqual(f'{row.ref_path}', expected[path])

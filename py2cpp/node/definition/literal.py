@@ -7,7 +7,8 @@ from py2cpp.node.node import Node
 
 class Literal(Node):
 	@property
-	def classification(self) -> str:  # XXX @aliasと対応。かなり苦し紛れ
+	def alias_name(self) -> str:
+		"""Note: FIXME @__alias__と対応。かなり苦し紛れなので修正を検討"""
 		return snakelize(self.__class__.__name__)
 
 
@@ -31,7 +32,7 @@ class Integer(Number):
 
 	@property
 	@override
-	def classification(self) -> str:
+	def alias_name(self) -> str:
 		return 'int'
 
 
@@ -55,7 +56,7 @@ class String(Literal):
 
 	@property
 	@override
-	def classification(self) -> str:
+	def alias_name(self) -> str:
 		return 'str'
 
 
@@ -71,7 +72,7 @@ class Boolean(Literal):
 
 	@property
 	@override
-	def classification(self) -> str:
+	def alias_name(self) -> str:
 		return 'bool'
 
 

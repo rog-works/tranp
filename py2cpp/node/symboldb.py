@@ -77,7 +77,33 @@ class SymbolDBFactory:
 				path = EntryPath.join(scope, var.symbol.to_string())
 				db[path.origin] = cls.__resolve_symbol(var, db)
 
+		# 基底クラスのシンボルを派生クラスに展開
+		for row in list(db.values()):
+			if not row.types.is_a(defs.Class):
+				continue
+
+			if row.module != main:
+				continue
+
+			sub_class = row.types.as_a(defs.Class)
+			db = {**db, **cls.__expand_parent_symbols(main, sub_class, db)}
+
 		return db
+
+	@classmethod
+	def __expand_parent_symbols(cls, expand_module: Module, sub_class: defs.Class, db: SymbolDB) -> SymbolDB:
+		in_db: SymbolDB = {}
+		for parent in sub_class.parents:
+			path = EntryPath.join(expand_module.path, parent.to_string())
+			parent_class = db[path.origin].types.as_a(defs.Class)
+			for var in parent_class.vars:
+				org_path = EntryPath.join(var.namespace, EntryPath(var.symbol.to_string()).last()[0])
+				path = EntryPath.join(sub_class.block.namespace, org_path.relativefy(var.namespace).origin)
+				in_db[path.origin] = db[org_path.origin]
+
+			in_db = {**cls.__expand_parent_symbols(expand_module, parent_class, db), **in_db}
+
+		return in_db
 
 	@classmethod
 	def __pluck_main(cls, module: Module) -> tuple[SymbolDB, list[DeclVar], list[defs.Import]]:

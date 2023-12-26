@@ -10,15 +10,27 @@ class Classify:
 		self.__db = db
 
 	def type_of(self, node: defs.Symbol | defs.GenericType | defs.Null) -> defs.Types:
-		return self.__type_of(node.module.path, node.scope, node.to_string() if node.is_a(defs.Symbol) else node.as_a(defs.GenericType).symbol.to_string())
+		return self.__type_of(node, self.__resolve_symbol(node))
+	
+	def __resolve_symbol(self, node: defs.Symbol | defs.GenericType | defs.Null) -> str:
+		if node.is_a(defs.This):
+			return node.namespace
+		elif node.is_a(defs.ThisVar):
+			return EntryPath.join(node.namespace, EntryPath(node.to_string()).last()[0]).origin
+		elif node.is_a(defs.Symbol):
+			return node.to_string()
+		elif node.is_a(defs.GenericType):
+			return node.as_a(defs.GenericType).symbol.to_string()
+		else:
+			return node.to_string()
 
-	def __type_of(self, module_path: str, scope: str, symbol: str) -> defs.Types:
+	def __type_of(self, node: defs.Symbol | defs.GenericType | defs.Null | defs.Literal | defs.Types, symbol: str) -> defs.Types:
 		symbols = EntryPath(symbol)
 		first, _ = symbols.first()[0]
 		remain = symbols.shift(1)
 		candidates = [
-			EntryPath.join(scope, first),
-			EntryPath.join(module_path, first),
+			EntryPath.join(node.scope, first),
+			EntryPath.join(node.module.path, first),
 		]
 		for candidate in candidates:
 			if candidate.origin in self.__db:
@@ -28,14 +40,14 @@ class Classify:
 			if not remain.valid:
 				return row.types
 
-			founded = self.__type_of(row.module.path, row.types.scope, remain.origin)
+			founded = self.__type_of(row.types, remain.origin)
 			if founded:
 				return founded
 
-		raise LogicError(f'Symbol not defined. module_path: {module_path}, scope: {scope}, symbol: {symbol}')
+		raise LogicError(f'Symbol not defined. node: {node}, symbol: {symbol}')
 
 	def literal_of(self, node: defs.Literal) -> defs.Types:
-		return self.__type_of(node.module.path, node.scope, node.classification)
+		return self.__type_of(node, node.alias_name)
 
 	def result_of(self, expression: Node) -> defs.Types:
 		handler = Handler(self)

@@ -123,7 +123,7 @@ class Types(Node):
 class Function(Types):
 	@property
 	def access(self) -> str:
-		name = self.symbol.to_string()
+		name = self.symbol.tokens
 		# XXX 定数化などが必要
 		if re.fullmatch(r'__.+__', name):
 			return 'public'
@@ -137,7 +137,7 @@ class Function(Types):
 	@property
 	@override
 	def name(self) -> str:
-		return self.symbol.to_string()
+		return self.symbol.tokens
 
 	@property
 	@override
@@ -180,7 +180,7 @@ class ClassMethod(Function):
 	@override
 	def match_feature(cls, via: Function) -> bool:
 		decorators = via.decorators
-		return len(decorators) > 0 and decorators[0].symbol.to_string() == 'classmethod'
+		return len(decorators) > 0 and decorators[0].symbol.tokens == 'classmethod'
 
 	@property
 	def class_symbol(self) -> Symbol:
@@ -192,7 +192,7 @@ class Constructor(Function):
 	@classmethod
 	@override
 	def match_feature(cls, via: Function) -> bool:
-		return via.symbol.to_string() == '__init__'
+		return via.symbol.tokens == '__init__'
 
 	@property
 	def class_symbol(self) -> Symbol:
@@ -209,7 +209,7 @@ class Method(Function):
 	@override
 	def match_feature(cls, via: Function) -> bool:
 		# XXX コンストラクターを除外
-		if via.symbol.to_string() == '__init__':
+		if via.symbol.tokens == '__init__':
 			return False
 
 		# XXX Thisのみの判定だと不正確かもしれない
@@ -226,7 +226,7 @@ class Class(Types):
 	@property
 	@override
 	def name(self) -> str:
-		return self.symbol.to_string()
+		return self.symbol.tokens
 
 	@property
 	@override
@@ -247,7 +247,7 @@ class Class(Types):
 			return None
 
 		decorator = decorators[0]
-		if not decorator.symbol.to_string().startswith('__alias__'):
+		if not decorator.symbol.tokens.startswith('__alias__'):
 			return None
 
 		return decorator.symbol._at(1).as_a(Symbol)
@@ -307,7 +307,7 @@ class Enum(Types):
 	@property
 	@override
 	def name(self) -> str:
-		return self.symbol.to_string()
+		return self.symbol.tokens
 
 	@property
 	@override

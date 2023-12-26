@@ -28,18 +28,18 @@ class SymbolDBFactory:
 		# XXX 別枠として分離するより、ステートメントの中で処理するのが理想
 		# XXX また、ステートメントのスコープも合わせて考慮
 		for import_node in import_nodes:
-			module = modules.load(import_node.module_path.to_string())
+			module = modules.load(import_node.module_path.tokens)
 			imported_db = cls.__pluck_imported(main, module)
 			expanded_db = {
 				row.org_path: SymbolRow(row.org_path, row.org_path, row.module, row.symbol, row.types)
 				for _, row in imported_db.items()
 			}
 			# import句で明示したシンボルに限定
-			imported_symbol_names = [symbol.to_string() for symbol in import_node.import_symbols]
+			imported_symbol_names = [symbol.tokens for symbol in import_node.import_symbols]
 			filtered_db = {
 				path: row
 				for path, row in imported_db.items()
-				if row.symbol.to_string() in imported_symbol_names
+				if row.symbol.tokens in imported_symbol_names
 			}
 			db = {**expanded_db, **filtered_db, **db}
 
@@ -51,14 +51,14 @@ class SymbolDBFactory:
 			}
 			# 第1層で宣言されているTypesに限定
 			primary_symbol_names = [
-				node.symbol.to_string()
+				node.symbol.tokens
 				for node in module.entrypoint(defs.Entrypoint).statements
 				if isinstance(node, defs.Types)
 			]
 			filtered_db = {
 				path: row
 				for path, row in imported_db.items()
-				if row.symbol.to_string() in primary_symbol_names
+				if row.symbol.tokens in primary_symbol_names
 			}
 			db = {**expanded_db, **filtered_db, **db}
 
@@ -68,13 +68,13 @@ class SymbolDBFactory:
 				pass
 			# ThisVarはクラス直下に配置
 			if var.symbol.is_a(defs.ThisVar):
-				path = EntryPath.join(var.namespace, EntryPath(var.symbol.to_string()).last()[0])
+				path = EntryPath.join(var.namespace, EntryPath(var.symbol.tokens).last()[0])
 				ref_path = EntryPath.join(var.module.path, cls.__resolve_type_name(var))
 				db[path.origin] = db[ref_path.origin]
 			# それ以外はスコープ配下に配置
 			else:
 				scope = var.scope if type(var) is not defs.Parameter else var.parent.as_a(defs.Function).block.scope
-				path = EntryPath.join(scope, var.symbol.to_string())
+				path = EntryPath.join(scope, var.symbol.tokens)
 				db[path.origin] = cls.__resolve_symbol(var, db)
 
 		# 基底クラスのシンボルを派生クラスに展開
@@ -94,10 +94,10 @@ class SymbolDBFactory:
 	def __expand_parent_symbols(cls, expand_module: Module, sub_class: defs.Class, db: SymbolDB) -> SymbolDB:
 		in_db: SymbolDB = {}
 		for parent in sub_class.parents:
-			path = EntryPath.join(expand_module.path, parent.to_string())
+			path = EntryPath.join(expand_module.path, parent.tokens)
 			parent_class = db[path.origin].types.as_a(defs.Class)
 			for var in parent_class.vars:
-				org_path = EntryPath.join(var.namespace, EntryPath(var.symbol.to_string()).last()[0])
+				org_path = EntryPath.join(var.namespace, EntryPath(var.symbol.tokens).last()[0])
 				path = EntryPath.join(sub_class.block.namespace, org_path.relativefy(var.namespace).origin)
 				in_db[path.origin] = db[org_path.origin]
 
@@ -112,7 +112,7 @@ class SymbolDBFactory:
 		import_nodes: list[defs.Import] = []
 		for node in module.entrypoint(defs.Entrypoint).calculated():
 			if isinstance(node, defs.Types):
-				path = EntryPath.join(node.scope, node.symbol.to_string())
+				path = EntryPath.join(node.scope, node.symbol.tokens)
 				db[path.origin] = SymbolRow(path.origin, path.origin, node.module, node.symbol, node)
 
 			if type(node) is defs.Import:
@@ -141,7 +141,7 @@ class SymbolDBFactory:
 		for node in imported.entrypoint(defs.Entrypoint).calculated():
 			# FIXME 一旦Typesに限定
 			if isinstance(node, defs.Types):
-				org_path = EntryPath.join(node.scope, node.symbol.to_string())
+				org_path = EntryPath.join(node.scope, node.symbol.tokens)
 				path = EntryPath.join(expand_module.path, org_path.relativefy(node.module.path).origin)
 				db[path.origin] = SymbolRow(path.origin, org_path.origin, expand_module, node.symbol, node)
 
@@ -158,15 +158,15 @@ class SymbolDBFactory:
 			if candidate.origin in db:
 				return db[candidate.origin]
 
-		raise LogicError(f'Unresolve var type symbol. symbol: {var.symbol.to_string()}')
+		raise LogicError(f'Unresolve var type symbol. symbol: {var.symbol.tokens}')
 
 	@classmethod
 	def __resolve_type_name(cls, var: DeclVar) -> str:
 		if isinstance(var, (defs.AnnoAssign, defs.Parameter)):
 			if var.var_type.is_a(defs.Symbol):
-				return var.var_type.to_string()
+				return var.var_type.tokens
 			elif var.var_type.is_a(defs.GenericType):
-				return var.var_type.as_a(defs.GenericType).symbol.to_string()
+				return var.var_type.as_a(defs.GenericType).symbol.tokens
 
 		# XXX Unknownの名前は重要なので定数化などの方法で明示
 		return 'Unknown'

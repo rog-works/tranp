@@ -83,7 +83,7 @@ class Nodes(Query[Node]):
 			root (Entry): ASTのルート要素
 		"""
 		self.__resolver = resolver
-		self.__entries = EntryCache()
+		self.__entries = EntryCache[Entry]()
 		for full_path, entry in ASTFinder().full_pathfy(root).items():
 			self.__entries.add(full_path, entry)
 
@@ -237,12 +237,12 @@ class Nodes(Query[Node]):
 		return [self.__resolve(entry, path) for path, entry in entries.items()]
 
 	@implements
-	def by_value(self, full_path: str) -> str:
-		"""指定のエントリーの値を取得
+	def values(self, via: str) -> list[str]:
+		"""指定のパス以下(基点を含む)のエントリーの値を取得
 
 		Args:
-			full_path (str): フルパス
+			via (str): 基点のパス(フルパス)
 		Returns:
-			str: 値
+			list[str]: 値リスト
 		"""
-		return self.__entries.by(full_path).value
+		return [entry.value for entry in self.__entries.group_by(via).values() if entry.value]

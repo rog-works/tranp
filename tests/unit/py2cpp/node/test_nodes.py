@@ -218,11 +218,12 @@ class TestNodes(TestCase):
 			nodes.expand(via)
 
 	@data_provider([
-		('root.tree_a.token_a[1]', 'a.a'),
-		('root.tree_a.tree_b[3].token_b', 'a.b.b'),
-		('root.term_a', 'a'),
-		('root.tree_c.skip_tree_a.term_a', 'c.a.a'),
+		('root.tree_a', ['a.a', 'a.b.b', 'a.a', 'a.c']),
+		('root.tree_a.token_a[1]', ['a.a']),
+		('root.tree_a.tree_b[3].token_b', ['a.b.b']),
+		('root.term_a', ['a']),
+		('root.tree_c.skip_tree_a.term_a', ['c.a.a']),
 	])
-	def test_by_value(self, full_path: str, expected: str) -> None:
+	def test_value(self, via: str, expected: str) -> None:
 		nodes = Fixture.nodes()
-		self.assertEqual(nodes.by_value(full_path), expected)
+		self.assertEqual(nodes.values(via), expected)

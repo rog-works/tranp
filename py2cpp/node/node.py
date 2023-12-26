@@ -11,7 +11,7 @@ from py2cpp.lang.string import snakelize
 from py2cpp.module.module import Module
 from py2cpp.node.base import NodeBase, T_NodeBase, T_Plugin
 from py2cpp.node.embed import EmbedKeys, Meta
-from py2cpp.node.trait import ScopeTrait
+from py2cpp.node.trait import ScopeTrait, TerminalTrait
 
 
 class Node(NodeBase):
@@ -67,7 +67,7 @@ class Node(NodeBase):
 	@property
 	def is_terminal(self) -> bool:
 		"""bool: 終端要素。これ以上展開が不要な要素であることを表す。@note: 終端記号とは別"""
-		return False
+		return isinstance(self, TerminalTrait)
 
 	@property
 	def scope_name(self) -> str:
@@ -100,13 +100,14 @@ class Node(NodeBase):
 		"""Node: 親のノード。@note: あくまでもノード上の親であり、AST上の親と必ずしも一致しない点に注意"""
 		return self.__nodes.parent(self.full_path)
 
-	def to_string(self) -> str:
-		"""自身を表す文字列表現を取得
+	@property
+	def tokens(self) -> str:
+		"""自身のトークン表現を取得
 
 		Returns:
-			str: 文字列表現
+			str: トークン
 		"""
-		return ''.join([self._my_value(), *[node.to_string() for node in self.flatten()]])
+		return '.'.join(self._values())
 
 	def flatten(self) -> list['Node']:
 		"""下位のノードを再帰的に展開し、1次元に平坦化して取得
@@ -305,13 +306,13 @@ class Node(NodeBase):
 		"""
 		return self.__nodes.expand(self.full_path)
 
-	def _my_value(self) -> str:
-		"""自身のエントリーの値を取得
+	def _values(self) -> list[str]:
+		"""自身と配下のエントリーの値を取得
 
 		Returns:
-			str: 値
+			list[str]: 値リスト
 		"""
-		return self.__nodes.by_value(self.full_path)
+		return self.__nodes.values(self.full_path)
 
 	def as_a(self, to_class: type[T_NodeBase]) -> T_NodeBase:
 		"""指定の具象クラスに変換。変換先が派生クラスの場合のみ変換し、同じか基底クラスの場合は何もしない

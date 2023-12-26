@@ -1,9 +1,15 @@
+from py2cpp.lang.annotation import override
 from py2cpp.node.definition.terminal import Terminal
 from py2cpp.node.embed import Meta, accept_tags, expandable
 from py2cpp.node.node import Node
 
 
 class UnaryOperator(Node):
+	@property
+	@override
+	def tokens(self) -> str:
+		return ''.join(self._values())
+
 	@property
 	@Meta.embed(Node, expandable)
 	def operator(self) -> Terminal:

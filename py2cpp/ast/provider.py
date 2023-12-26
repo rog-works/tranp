@@ -210,14 +210,12 @@ class Query(Generic[T], metaclass=ABCMeta):
 		raise NotImplementedError()
 
 	@abstractmethod
-	def by_value(self, full_path: str) -> str:
-		"""指定のエントリーの値を取得
+	def values(self, full_path: str) -> list[str]:
+		"""指定のパス以下(基点を含む)のエントリーの値を取得
 
 		Args:
-			full_path (str): フルパス
+			via (str): 基点のパス(フルパス)
 		Returns:
-			str: 値
-		Raises:
-			NotFoundError: エントリーが存在しない
+			list[str]: 値リスト
 		"""
 		raise NotImplementedError()

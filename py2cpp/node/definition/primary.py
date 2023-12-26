@@ -5,28 +5,24 @@ from py2cpp.node.definition.common import Argument
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
 from py2cpp.node.node import Node
+from py2cpp.node.trait import TerminalTrait
 
 
-@Meta.embed(Node, accept_tags('getattr', 'name', 'dotted_name', 'typed_getattr', 'typed_var'))
-class Symbol(Node):
-	@property
-	@override
-	def is_terminal(self) -> bool:  # XXX Terminalへの移設を検討
-		return True
-
-	@override
-	def to_string(self) -> str:  # XXX Terminalへの移設を検討
-		return '.'.join([node.to_string() for node in self._under_expand()])
+@Meta.embed(Node, accept_tags('getattr', 'var', 'name', 'dotted_name', 'typed_getattr', 'typed_var'))
+class Symbol(Node, TerminalTrait): pass
 
 
 @Meta.embed(Node, accept_tags('var'))
 class Var(Symbol):
-	"""Note: ローカル変数と引数に対応。クラスメンバーはいずれもこのシンボルにあたらない"""
+	"""Note: ローカル変数と引数に対応。クラスメンバーは如何なる種類もこのシンボルにあたらない"""
 
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:
-		name = via.to_string()
+		if via.tag != 'var':
+			return False
+
+		name = via.tokens
 		if name == 'self' or name.find('.') != -1:
 			return False
 
@@ -38,7 +34,7 @@ class This(Symbol):
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:
-		return via.to_string() == 'self'
+		return via.tokens == 'self'
 
 
 @Meta.embed(Node, actualized(via=Symbol))
@@ -46,7 +42,7 @@ class ThisVar(Symbol):
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:
-		return re.fullmatch(r'self\.\w+', via.to_string()) is not None
+		return re.fullmatch(r'self\.\w+', via.tokens) is not None
 
 
 @Meta.embed(Node, accept_tags('getitem'))
@@ -75,7 +71,7 @@ class ListType(GenericType):
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:
-		if via._at(0).to_string() != 'list':
+		if via._at(0).tokens != 'list':
 			return False
 
 		return len(via._by('typed_slices')._children()) == 1
@@ -91,7 +87,7 @@ class DictType(GenericType):
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:
-		if via._at(0).to_string() != 'dict':
+		if via._at(0).tokens != 'dict':
 			return False
 
 		return len(via._by('typed_slices')._children()) == 2

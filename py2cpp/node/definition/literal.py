@@ -1,27 +1,19 @@
 from py2cpp.lang.annotation import override
-from py2cpp.lang.string import snakelize
 from py2cpp.node.definition.terminal import Terminal
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
 from py2cpp.node.node import Node
+from py2cpp.node.trait import TerminalTrait
 
 
 class Literal(Node):
 	@property
-	def alias_name(self) -> str:
+	def alias_class_symbol(self) -> str:
 		"""Note: FIXME @__alias__と対応。かなり苦し紛れなので修正を検討"""
-		return snakelize(self.__class__.__name__)
+		raise NotImplementedError()
 
 
 @Meta.embed(Node, accept_tags('number'))
-class Number(Literal):
-	@property
-	@override
-	def is_terminal(self) -> bool:  # XXX Terminalへの移設を検討
-		return True
-
-	@override
-	def to_string(self) -> str:  # XXX Terminalへの移設を検討
-		return '.'.join([node.to_string() for node in self._under_expand()])
+class Number(Literal, TerminalTrait): pass
 
 
 @Meta.embed(Node, actualized(via=Number))
@@ -32,7 +24,7 @@ class Integer(Number):
 
 	@property
 	@override
-	def alias_name(self) -> str:
+	def alias_class_symbol(self) -> str:
 		return 'int'
 
 
@@ -42,37 +34,24 @@ class Float(Number):
 	def match_feature(cls, via: Node) -> bool:
 		return Terminal.match_terminal(via, allow_tags=['number', 'FLOAT_NUMBER'])
 
+	@property
+	@override
+	def alias_class_symbol(self) -> str:
+		return 'float'
+
 
 @Meta.embed(Node, accept_tags('string'))
-class String(Literal):
+class String(Literal, TerminalTrait):
 	@property
 	@override
-	def is_terminal(self) -> bool:  # XXX Terminalへの移設を検討
-		return True
-
-	@override
-	def to_string(self) -> str:  # XXX Terminalへの移設を検討
-		return '.'.join([node.to_string() for node in self._under_expand()])
-
-	@property
-	@override
-	def alias_name(self) -> str:
+	def alias_class_symbol(self) -> str:
 		return 'str'
 
 
-class Boolean(Literal):
+class Boolean(Literal, TerminalTrait):
 	@property
 	@override
-	def is_terminal(self) -> bool:  # XXX Terminalへの移設を検討
-		return True
-
-	@override
-	def to_string(self) -> str:  # XXX Terminalへの移設を検討
-		return '.'.join([node.to_string() for node in self._under_expand()])
-
-	@property
-	@override
-	def alias_name(self) -> str:
+	def alias_class_symbol(self) -> str:
 		return 'bool'
 
 
@@ -104,6 +83,11 @@ class List(Literal):
 	def values(self) -> list[Node]:
 		return self._children()
 
+	@property
+	@override
+	def alias_class_symbol(self) -> str:
+		return 'list'
+
 
 @Meta.embed(Node, accept_tags('dict'))
 class Dict(Literal):
@@ -112,6 +96,15 @@ class Dict(Literal):
 	def items(self) -> list[KeyValue]:
 		return [node.as_a(KeyValue) for node in self._children()]
 
+	@property
+	@override
+	def alias_class_symbol(self) -> str:
+		return 'dict'
+
 
 @Meta.embed(Node, accept_tags('const_none', 'typed_none'))
-class Null(Literal): pass
+class Null(Literal, TerminalTrait):
+	@property
+	@override
+	def alias_class_symbol(self) -> str:
+		return 'None'

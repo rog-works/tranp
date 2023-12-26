@@ -16,13 +16,13 @@ class Classify:
 		if node.is_a(defs.This):
 			return node.namespace
 		elif node.is_a(defs.ThisVar):
-			return EntryPath.join(node.namespace, EntryPath(node.to_string()).last()[0]).origin
+			return EntryPath.join(node.namespace, EntryPath(node.tokens).last()[0]).origin
 		elif node.is_a(defs.Symbol):
-			return node.to_string()
+			return node.tokens
 		elif node.is_a(defs.GenericType):
-			return node.as_a(defs.GenericType).symbol.to_string()
+			return node.as_a(defs.GenericType).symbol.tokens
 		else:
-			return node.to_string()
+			return node.tokens
 
 	def __type_of(self, node: defs.Symbol | defs.GenericType | defs.Null | defs.Literal | defs.Types, symbol: str) -> defs.Types:
 		symbols = EntryPath(symbol)
@@ -47,7 +47,7 @@ class Classify:
 		raise LogicError(f'Symbol not defined. node: {node}, symbol: {symbol}')
 
 	def literal_of(self, node: defs.Literal) -> defs.Types:
-		return self.__type_of(node, node.alias_name)
+		return self.__type_of(node, node.alias_class_symbol)
 
 	def result_of(self, expression: Node) -> defs.Types:
 		handler = Handler(self)
@@ -117,7 +117,7 @@ class Handler:
 		return self.on_binary_operator(node, left, right, '__add__')
 
 	def on_binary_operator(self, node: defs.Sum, left: defs.Class, right: defs.Class, operator: str) -> defs.Types:
-		methods = [method for method in left.as_a(defs.Class).methods if method.symbol.to_string () == operator]
+		methods = [method for method in left.as_a(defs.Class).methods if method.symbol.tokens == operator]
 		if len(methods) == 0:
 			raise LogicError(f'Operation not allowed. {node}, {left}, {right}, {operator}')
 

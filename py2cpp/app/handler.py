@@ -269,7 +269,7 @@ class Handler:
 		ctx.registry.push((node, text))
 
 	def on_import(self, node: defs.Import, ctx: Context) -> None:
-		module_path = node.module_path.to_string()
+		module_path = node.module_path.tokens
 		if not module_path.startswith('FW'):
 			return
 
@@ -393,7 +393,7 @@ class Handler:
 	# Terminal
 
 	def on_terminal(self, node: Node, ctx: Context) -> None:
-		ctx.registry.push((node, node.to_string()))
+		ctx.registry.push((node, node.tokens))
 
 
 class Runner:

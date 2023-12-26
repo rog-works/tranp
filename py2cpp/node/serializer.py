@@ -36,7 +36,7 @@ def __serialize_value(value: list[Node] | Node, schema: type) -> Any:
 	elif hasattr(schema, '__origin__') and getattr(schema, '__origin__') is list and type(value) is list:
 		return [__serialize_value(elem, getattr(schema, '__args__')[0]) for elem in value]
 	elif schema is str and isinstance(value, Node):
-		return value.to_string()
+		return value.tokens
 	elif schema is str and type(value) is str:
 		return value
 

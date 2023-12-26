@@ -1,8 +1,6 @@
 from unittest import TestCase
 
-from py2cpp.module.modules import Modules
-from py2cpp.node.symboldb import SymbolDBFactory
-import py2cpp.node.definition as defs
+from py2cpp.node.symboldb import SymbolDB
 from tests.test.fixture import Fixture
 from tests.test.helper import data_provider
 
@@ -55,9 +53,8 @@ class TestSymbolDB(TestCase):
 		},),
 	])
 	def test_make_db(self, expected: dict[str, str]) -> None:
-		modules = self.fixture.get(Modules)
-		db = SymbolDBFactory().create(modules)
-		print('\n'.join([f'{key}: {row.ref_path}' for key, row in db.items()]))
+		db = self.fixture.get(SymbolDB)
+		print('\n'.join([f"'{key}': '{row.ref_path}'," for key, row in db.items()]))
 		for path, row in db.items():
 			self.assertEqual('ok' if path in expected else path, 'ok')
 			self.assertEqual(f'{row.ref_path}', expected[path])

@@ -19,15 +19,16 @@ SymbolDB: TypeAlias = dict[str, SymbolRow]
 
 
 class SymbolDBFactory:
-	def create(self, modules: Modules) -> SymbolDB:
+	@classmethod
+	def create(cls, modules: Modules) -> SymbolDB:
 		main = modules.main
-		db, decl_vars, import_nodes = self.__pluck_main(main)
+		db, decl_vars, import_nodes = cls.__pluck_main(main)
 
 		# XXX 別枠として分離するより、ステートメントの中で処理するのが理想
 		# XXX また、ステートメントのスコープも合わせて考慮
 		for import_node in import_nodes:
 			module = modules.load(import_node.module_path.to_string())
-			imported_db = self.__pluck_imported(main, module)
+			imported_db = cls.__pluck_imported(main, module)
 			expanded_db = {
 				row.org_path: SymbolRow(row.org_path, row.org_path, row.module, row.symbol, row.types)
 				for _, row in imported_db.items()
@@ -42,7 +43,7 @@ class SymbolDBFactory:
 			db = {**expanded_db, **filtered_db, **db}
 
 		for module in modules.core_libralies:
-			imported_db = self.__pluck_imported(main, module)
+			imported_db = cls.__pluck_imported(main, module)
 			expanded_db = {
 				row.org_path: SymbolRow(row.org_path, row.org_path, row.module, row.symbol, row.types)
 				for _, row in imported_db.items()
@@ -62,11 +63,12 @@ class SymbolDBFactory:
 
 		for var in decl_vars:
 			path = EntryPath.join(var.scope, var.symbol.to_string())
-			db[path.origin] = self.__resolve_symbol(var, db)
+			db[path.origin] = cls.__resolve_symbol(var, db)
 
 		return db
 
-	def __pluck_main(self, module: Module) -> tuple[SymbolDB, list[defs.AnnoAssign | defs.MoveAssign], list[defs.Import]]:
+	@classmethod
+	def __pluck_main(cls, module: Module) -> tuple[SymbolDB, list[defs.AnnoAssign | defs.MoveAssign], list[defs.Import]]:
 		db: SymbolDB = {}
 		decl_vars: list[defs.AnnoAssign | defs.MoveAssign] = []
 		import_nodes: list[defs.Import] = []
@@ -93,7 +95,8 @@ class SymbolDBFactory:
 
 		return db, decl_vars, import_nodes
 
-	def __pluck_imported(self, expand_module: Module, imported: Module) -> SymbolDB:
+	@classmethod
+	def __pluck_imported(cls, expand_module: Module, imported: Module) -> SymbolDB:
 		db: SymbolDB = {}
 		for node in imported.entrypoint(defs.Entrypoint).calculated():
 			# FIXME 一旦Typesに限定
@@ -104,8 +107,9 @@ class SymbolDBFactory:
 
 		return db
 
-	def __resolve_symbol(self, var: defs.AnnoAssign | defs.MoveAssign, db: SymbolDB) -> SymbolRow:
-		type_name = self.__resolve_type_name(var)
+	@classmethod
+	def __resolve_symbol(cls, var: defs.AnnoAssign | defs.MoveAssign, db: SymbolDB) -> SymbolRow:
+		type_name = cls.__resolve_type_name(var)
 		candidates = [
 			EntryPath.join(var.scope, type_name),
 			EntryPath.join(var.module.path, type_name),
@@ -116,10 +120,11 @@ class SymbolDBFactory:
 
 		raise LogicError(f'Unresolve var type symbol. symbol: {var.symbol.to_string()}')
 
-	def __resolve_type_name(self, var: defs.AnnoAssign | defs.MoveAssign) -> str:
+	@classmethod
+	def __resolve_type_name(cls, var: defs.AnnoAssign | defs.MoveAssign) -> str:
 		if type(var) is defs.AnnoAssign:
 			if var.var_type.is_a(defs.This) and var.symbol.to_string() == 'self':
-				# XXX 名前空間末尾のクラス名を取る
+				# XXX 自己参照の場合は名前空間からクラス名を取る
 				return EntryPath(var.namespace).last()[0]
 			elif var.var_type.is_a(defs.Symbol):
 				return var.var_type.to_string()

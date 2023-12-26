@@ -15,6 +15,7 @@ from py2cpp.node.definitions import make_settings
 from py2cpp.node.node import Node
 from py2cpp.node.nodes import NodeResolver, Nodes
 from py2cpp.node.plugin import ModuleLoader
+from py2cpp.node.symboldb import SymbolDB, SymbolDBFactory
 from py2cpp.tp_lark.entry import EntryOfLark
 from py2cpp.tp_lark.parser import SyntaxParserOfLark
 
@@ -72,6 +73,7 @@ class Fixture:
 		di.bind(NodeResolver, NodeResolver)
 		di.bind(Query[Node], Nodes)
 		di.bind(Node, Nodes.root)
+		di.bind(SymbolDB, SymbolDBFactory.create)
 		return di
 
 	def get(self, symbol: type[T_Inst]) -> T_Inst:

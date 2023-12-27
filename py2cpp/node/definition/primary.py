@@ -1,5 +1,6 @@
 import re
 
+from py2cpp.ast.dns import domainize
 from py2cpp.lang.annotation import override
 from py2cpp.node.definition.common import Argument
 from py2cpp.node.definition.terminal import Empty
@@ -9,7 +10,14 @@ from py2cpp.node.trait import TerminalTrait
 
 
 @Meta.embed(Node, accept_tags('getattr', 'var', 'name', 'dotted_name', 'typed_getattr', 'typed_var'))
-class Symbol(Node, TerminalTrait): pass
+class Symbol(Node, TerminalTrait):
+	@property
+	def domain_id(self) -> str:
+		return domainize(self.scope, self.tokens)
+
+	@property
+	def domain_name(self) -> str:
+		return domainize(self.module.path, self.tokens)
 
 
 @Meta.embed(Node, actualized(via=Symbol))
@@ -31,6 +39,16 @@ class Var(Symbol):
 
 @Meta.embed(Node, actualized(via=Symbol))
 class This(Symbol):
+	@property
+	@override
+	def domain_id(self) -> str:
+		return self.namespace
+
+	@property
+	@override
+	def domain_name(self) -> str:
+		return self.domain_id
+
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:
@@ -39,6 +57,16 @@ class This(Symbol):
 
 @Meta.embed(Node, actualized(via=Symbol))
 class ThisVar(Symbol):
+	@property
+	@override
+	def domain_id(self) -> str:
+		return domainize(self.namespace, self.tokens.split('.')[1])
+
+	@property
+	@override
+	def domain_name(self) -> str:
+		return self.domain_id
+
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:
@@ -60,6 +88,14 @@ class Indexer(Node):
 
 @Meta.embed(Node, accept_tags('typed_getitem'))
 class GenericType(Node):
+	@property
+	def domain_id(self) -> str:
+		return domainize(self.scope, self.symbol.tokens)
+
+	@property
+	def domain_name(self) -> str:
+		return domainize(self.module.path, self.symbol.tokens)
+
 	@property
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Symbol:  # FIXME シンボル以外も有り得るので不正確

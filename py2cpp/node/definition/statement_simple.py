@@ -14,7 +14,13 @@ class Assign(Node):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> Symbol | Indexer:
+	def symbol(self) -> Symbol:
+		receiver = self.receiver
+		return receiver.as_a(Symbol) if receiver.is_a(Symbol) else receiver.as_a(Indexer).symbol
+
+	@property
+	@Meta.embed(Node, expandable)
+	def receiver(self) -> Symbol | Indexer:
 		return self._elements[0].one_of(Symbol | Indexer)
 
 

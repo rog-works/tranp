@@ -1,6 +1,7 @@
 import functools
 from typing import Callable, Iterator, cast
 
+from py2cpp.ast.dns import domainize
 from py2cpp.ast.path import EntryPath
 from py2cpp.ast.provider import Query
 from py2cpp.errors import LogicError, NotFoundError
@@ -75,18 +76,18 @@ class Node(NodeBase):
 		return ''
 
 	@property
-	def namespace(self) -> str:  # FIXME 名前よりノードの方が良い。その場合名前をどう取得するかが課題
+	def namespace(self) -> str:  # XXX 名前よりノードの方が良い。その場合名前をどう取得するかが課題
 		"""str: 自身が所属する名前空間。@note: 所有する名前空間ではない点に注意"""
 		if isinstance(self, ScopeTrait) and self.parent.scope_name:
-			return f'{self.parent.namespace}.{self.parent.scope_name}'
+			return domainize(self.parent.namespace, self.parent.scope_name)
 		else:
 			return self.parent.namespace
 
 	@property
-	def scope(self) -> str:  # FIXME 名前よりノードの方が良い。その場合名前をどう取得するかが課題
+	def scope(self) -> str:  # XXX 名前よりノードの方が良い。その場合名前をどう取得するかが課題
 		"""str: 自身が所属するスコープ。@note: 所有するスコープではない点に注意"""
 		if isinstance(self, ScopeTrait):
-			return f'{self.parent.scope}.{self.parent.name or self.parent._full_path.elements[-1]}'
+			return domainize(self.parent.scope, self.parent.name or self.parent._full_path.elements[-1])
 		else:
 			return self.parent.scope
 

@@ -60,7 +60,8 @@ class_def_raw: "class" name ["(" [arguments] ")"] ":" block
 // @decl `def func_name(param1: type1, param2: type2, ...) -> return_type:`
 // @lark funcdef: "def" name "(" [parameters] ")" ["->" test] ":" suite
 function_def: [decorators] function_def_raw
-function_def_raw: "def" name "(" [parameters] ")" "->" typed_expression ":" block
+function_def_raw: "def" name "(" [parameters] ")" "->" return_type ":" block
+return_type: typed_expression
 
 // ## Function parameters
 

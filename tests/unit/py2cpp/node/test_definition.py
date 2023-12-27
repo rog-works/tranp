@@ -83,7 +83,7 @@ class TestDefinition(TestCase):
 			self.assertEqual(parameter.var_type.tokens if parameter.var_type.is_a(defs.Symbol) else 'Empty', in_expected['type'])
 			self.assertEqual(parameter.default_value.tokens if parameter.default_value.is_a(defs.Terminal) else 'Empty', in_expected['default'])
 
-		self.assertEqual(type(node.return_type), expected['return'])
+		self.assertEqual(type(node.return_type.var_type), expected['return'])
 		self.assertEqual(type(node.block), defs.Block)
 
 	@data_provider([
@@ -206,7 +206,7 @@ class TestDefinition(TestCase):
 	])
 	def test_aug_assign(self, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.shared_nodes.by(full_path).as_a(defs.AugAssign)
-		self.assertEqual(type(node.symbol), expected['symbol'])
+		self.assertEqual(type(node.receiver), expected['symbol'])
 		self.assertEqual(node.operator.tokens, expected['operator'])
 		self.assertEqual(type(node.value), expected['value'])
 

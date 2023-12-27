@@ -22,6 +22,7 @@ def make_settings() -> Settings:
 			'enum_def': defs.Enum,
 			# -- Function/Class Elements --
 			'paramvalue': defs.Parameter,
+			'return_type': defs.ReturnType,
 			'block': defs.Block,
 			'decorator': defs.Decorator,
 			# -- Statement simple --

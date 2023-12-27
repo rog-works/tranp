@@ -1,6 +1,6 @@
 from typing import NamedTuple, TypeAlias
 
-from py2cpp.ast.path import EntryPath
+from py2cpp.ast.dns import domainize
 from py2cpp.errors import LogicError
 from py2cpp.module.module import Module
 from py2cpp.module.modules import Modules
@@ -79,31 +79,12 @@ class SymbolDBFactory:
 				pass
 			# ThisVarはクラス直下に配置
 			elif var.symbol.is_a(defs.ThisVar):
-				path = EntryPath.join(var.namespace, EntryPath(var.symbol.tokens).last()[0])
-				ref_path = EntryPath.join(var.module.path, cls.__resolve_type_name(var))
-				db[path.origin] = db[ref_path.origin]
+				db[var.symbol.domain_id] = cls.__resolve_var_type(var, db)
 			# それ以外はスコープ配下に配置
 			else:
-				scope = var.scope if type(var) is not defs.Parameter else var.parent.as_a(defs.Function).block.scope
-				path = EntryPath.join(scope, var.symbol.tokens)
-				db[path.origin] = cls.__resolve_symbol(var, db)
+				db[var.symbol.domain_id] = cls.__resolve_var_type(var, db)
 
 		return db
-
-	@classmethod
-	def __expand_parent_symbols(cls, expand_module: Module, sub_class: defs.Class, db: SymbolDB) -> SymbolDB:
-		in_db: SymbolDB = {}
-		for parent in sub_class.parents:
-			path = EntryPath.join(expand_module.path, parent.tokens)
-			parent_class = db[path.origin].types.as_a(defs.Class)
-			for var in parent_class.vars:
-				org_path = EntryPath.join(var.namespace, EntryPath(var.symbol.tokens).last()[0])
-				path = EntryPath.join(sub_class.block.namespace, org_path.relativefy(var.namespace).origin)
-				in_db[path.origin] = db[org_path.origin]
-
-			in_db = {**cls.__expand_parent_symbols(expand_module, parent_class, db), **in_db}
-
-		return in_db
 
 	@classmethod
 	def __pluck_main(cls, module: Module) -> tuple[SymbolDB, list[DeclVar], list[defs.Import]]:
@@ -113,8 +94,7 @@ class SymbolDBFactory:
 		entrypoint = module.entrypoint(defs.Entrypoint)
 		for node in entrypoint.calculated():
 			if isinstance(node, defs.Types):
-				path = EntryPath.join(node.scope, node.symbol.tokens)
-				db[path.origin] = SymbolRow(path.origin, path.origin, node.module, node.symbol, node)
+				db[node.domain_id] = SymbolRow(node.domain_id, node.domain_id, node.module, node.symbol, node)
 
 			if type(node) is defs.Import:
 				import_nodes.append(node)
@@ -146,32 +126,34 @@ class SymbolDBFactory:
 		for node in entrypoint.calculated():
 			# FIXME 一旦Typesに限定
 			if isinstance(node, defs.Types):
-				org_path = EntryPath.join(node.scope, node.symbol.tokens)
-				path = EntryPath.join(expand_module.path, org_path.relativefy(node.module.path).origin)
-				db[path.origin] = SymbolRow(path.origin, org_path.origin, expand_module, node.symbol, node)
+				ref_domain_id = node.domain_id.replace(node.module.path, expand_module.path)
+				db[ref_domain_id] = SymbolRow(ref_domain_id, node.domain_id, expand_module, node.symbol, node)
 
 		return db
 
 	@classmethod
-	def __resolve_symbol(cls, var: DeclVar, db: SymbolDB) -> SymbolRow:
-		type_name = cls.__resolve_type_name(var)
-		candidates = [
-			EntryPath.join(var.scope, type_name),
-			EntryPath.join(var.module.path, type_name),
-		]
+	def __resolve_var_type(cls, var: DeclVar, db: SymbolDB) -> SymbolRow:
+		type_symbol = cls.__fetch_type_symbol(var)
+		candidates = []
+		if type_symbol is not None:
+			candidates = [type_symbol.domain_id, type_symbol.domain_name]
+		else:
+			# XXX Unknownの名前は重要なので定数化などの方法で明示
+			type_name = 'Unknown'
+			candidates = [domainize(var.scope, type_name), domainize(var.module.path, type_name)]
+
 		for candidate in candidates:
-			if candidate.origin in db:
-				return db[candidate.origin]
+			if candidate in db:
+				return db[candidate]
 
 		raise LogicError(f'Unresolve var type symbol. symbol: {var.symbol.tokens}')
 
 	@classmethod
-	def __resolve_type_name(cls, var: DeclVar) -> str:
+	def __fetch_type_symbol(cls, var: DeclVar) -> defs.Symbol | None:
 		if isinstance(var, (defs.AnnoAssign, defs.Parameter)):
 			if var.var_type.is_a(defs.Symbol):
-				return var.var_type.tokens
+				return var.var_type.as_a(defs.Symbol)
 			elif var.var_type.is_a(defs.GenericType):
-				return var.var_type.as_a(defs.GenericType).symbol.tokens
+				return var.var_type.as_a(defs.GenericType).symbol
 
-		# XXX Unknownの名前は重要なので定数化などの方法で明示
-		return 'Unknown'
+		return None

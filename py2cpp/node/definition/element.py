@@ -1,4 +1,6 @@
+from py2cpp.lang.annotation import override
 from py2cpp.node.definition.common import Argument
+from py2cpp.node.definition.literal import Null
 from py2cpp.node.definition.primary import GenericType, Symbol
 from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from py2cpp.node.definition.terminal import Empty
@@ -9,7 +11,9 @@ from py2cpp.node.trait import ScopeTrait
 
 
 @Meta.embed(Node, accept_tags('paramvalue'))
-class Parameter(Node):
+class Parameter(Node, ScopeTrait):
+	"""Note: XXX 名前空間を関数内部に置くためScopeTraitを継承"""
+
 	@property
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Symbol:
@@ -25,6 +29,16 @@ class Parameter(Node):
 	def default_value(self) -> Node | Empty:
 		node = self._at(1)
 		return node.as_a(Empty) if node.is_a(Empty) else node
+
+
+@Meta.embed(Node, accept_tags('return_type'))
+class ReturnType(Node, ScopeTrait):
+	"""Note: XXX 名前空間を関数内部に置くためScopeTraitを継承"""
+
+	@property
+	@Meta.embed(Node, expandable)
+	def var_type(self) -> Symbol | GenericType | Null:
+		return self._at(0).one_of(Symbol | GenericType | Null)
 
 
 @Meta.embed(Node, accept_tags('decorator'))

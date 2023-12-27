@@ -1,10 +1,10 @@
 import re
 
+from py2cpp.ast.dns import domainize
 from py2cpp.lang.annotation import override
 from py2cpp.node.definition.common import Argument
-from py2cpp.node.definition.element import Block, Decorator, Parameter
-from py2cpp.node.definition.literal import Null
-from py2cpp.node.definition.primary import GenericType, Symbol, This, ThisVar, Var
+from py2cpp.node.definition.element import Block, Decorator, Parameter, ReturnType
+from py2cpp.node.definition.primary import Symbol, This, ThisVar, Var
 from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
@@ -111,6 +111,14 @@ class Try(Node):
 
 class Types(Node):
 	@property
+	def domain_id(self) -> str:
+		return domainize(self.scope, self.symbol.tokens)
+
+	@property
+	def domain_name(self) -> str:
+		return domainize(self.module.path, self.symbol.tokens)
+
+	@property
 	def symbol(self) -> Symbol:
 		raise NotImplementedError()
 
@@ -160,8 +168,8 @@ class Function(Types):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def return_type(self) -> Symbol | GenericType | Null:
-		return self._by('function_def_raw')._at(2).one_of(Symbol | GenericType | Null)
+	def return_type(self) -> ReturnType:
+		return self._by('function_def_raw.return_type').as_a(ReturnType)
 
 	@property
 	@override

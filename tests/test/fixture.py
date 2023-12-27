@@ -1,8 +1,7 @@
 import os
 from typing import Callable, cast
 
-from lark import Lark, Tree
-from lark.indenter import PythonIndenter
+from lark import Tree
 
 from py2cpp.lang.di import DI
 from py2cpp.lang.locator import Curry, Locator, T_Inst
@@ -15,7 +14,6 @@ from py2cpp.module.provider import CoreLibrariesProvider
 from py2cpp.node.definitions import make_settings
 from py2cpp.node.node import Node
 from py2cpp.node.nodes import NodeResolver, Nodes
-from py2cpp.node.plugin import ModuleLoader
 from py2cpp.node.symboldb import SymbolDB, SymbolDBFactory
 from py2cpp.tp_lark.entry import EntryOfLark
 from py2cpp.tp_lark.parser import SyntaxParserOfLark
@@ -38,22 +36,6 @@ class Fixture:
 		self.__module_path = module_path
 		self.__di: DI = self.__make_di()
 
-	def __load_parser(self) -> Lark:
-		grammar_path = os.path.join(self.__appdir(), 'data/grammar.lark')
-		with open(grammar_path, mode='r') as f:
-			return Lark(f, start='file_input', postlex=PythonIndenter(), parser='lalr')
-
-	def __load_source(self, module_path: str) -> str:
-		filepath = module_path.replace('.', '/')
-		source_path = os.path.join(self.__appdir(), f'{filepath}_fixture.org.py')
-		with open(source_path, mode='r') as f:
-			return '\n'.join(f.readlines())
-
-	def __build_tree(self, module_path: str) -> Entry:
-		parser = self.__load_parser()
-		source = self.__load_source(module_path)
-		return EntryOfLark(parser.parse(source))
-
 	def __load_prebuild_tree(self, module_path: str) -> Entry:
 		elems = module_path.split('.')
 		dirpath, filename = '.'.join(elems[:-1]), elems[-1]
@@ -73,7 +55,6 @@ class Fixture:
 		di.bind(SyntaxParser, SyntaxParserOfLark)
 		di.bind(CoreLibrariesProvider, lambda: self.__core_libraries)
 		di.bind(Modules, Modules)
-		di.bind(ModuleLoader, ModuleLoader)
 		di.bind(Module, lambda: Module(di, '__main__'))
 		di.bind(Settings, make_settings)
 		di.bind(Entry, lambda: self.__load_prebuild_tree(self.__module_path))

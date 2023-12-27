@@ -478,6 +478,7 @@ class Node(NodeBase):
 		"""str: 文字列表現を取得"""
 		return f'<{self.__class__.__name__}: {self.full_path}>'
 
+	@deprecated
 	def plugin(self, symbol: type[T_Plugin]) -> T_Plugin:
 		"""プラグインモジュールを取得
 
@@ -485,6 +486,8 @@ class Node(NodeBase):
 			symbol (type[T_Plugin]): モジュールのシンボル
 		Returns:
 			T_Plugin: モジュール
+		Note:
+			@deprecated 未使用
 		"""
 		return self.__locator.resolve(symbol)
 

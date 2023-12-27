@@ -7,6 +7,7 @@ from tests.test.helper import data_provider
 
 class TestSymbolDB(TestCase):
 	fixture = Fixture.make(__file__)
+	__verbose = False
 
 	@data_provider([
 		({
@@ -35,10 +36,10 @@ class TestSymbolDB(TestCase):
 			'tests.unit.py2cpp.node.fixtures.test_symboldb_xyz.Y': 'tests.unit.py2cpp.node.fixtures.test_symboldb_xyz.Y',
 			'tests.unit.py2cpp.node.fixtures.test_symboldb_xyz.Z': 'tests.unit.py2cpp.node.fixtures.test_symboldb_xyz.Z',
 			# インポートモジュール(Symbols)
-			# 'tests.unit.py2cpp.node.fixtures.test_symboldb_xyz.X.nx': 'tests.unit.py2cpp.node.fixtures.test_symboldb_xyz.int',
-			# 'tests.unit.py2cpp.node.fixtures.test_symboldb_xyz.Y.ny': 'tests.unit.py2cpp.node.fixtures.test_symboldb_xyz.int',
-			# 'tests.unit.py2cpp.node.fixtures.test_symboldb_xyz.Y.x': 'tests.unit.py2cpp.node.fixtures.test_symboldb_xyz.X',
-			# 'tests.unit.py2cpp.node.fixtures.test_symboldb_xyz.Z.nz': 'tests.unit.py2cpp.node.fixtures.test_symboldb_xyz.int',
+			'tests.unit.py2cpp.node.fixtures.test_symboldb_xyz.X.nx': 'tests.unit.py2cpp.node.fixtures.test_symboldb_classes.int',
+			'tests.unit.py2cpp.node.fixtures.test_symboldb_xyz.Y.ny': 'tests.unit.py2cpp.node.fixtures.test_symboldb_classes.int',
+			'tests.unit.py2cpp.node.fixtures.test_symboldb_xyz.Y.x': 'tests.unit.py2cpp.node.fixtures.test_symboldb_xyz.X',
+			'tests.unit.py2cpp.node.fixtures.test_symboldb_xyz.Z.nz': 'tests.unit.py2cpp.node.fixtures.test_symboldb_classes.int',
 			# エントリーポイント/標準ライブラリー(Types)
 			'__main__.int': 'tests.unit.py2cpp.node.fixtures.test_symboldb_classes.int',
 			'__main__.float': 'tests.unit.py2cpp.node.fixtures.test_symboldb_classes.float',
@@ -69,7 +70,10 @@ class TestSymbolDB(TestCase):
 	])
 	def test_make_db(self, expected: dict[str, str]) -> None:
 		db = self.fixture.get(SymbolDB)
-		print('\n', '\n'.join([f"'{key}': '{row.org_path}'," for key, row in db.items()]))
+
+		if self.__verbose:
+			print('\n', '\n'.join([f"'{key}': '{row.org_path}'," for key, row in db.items()]))
+
 		for expected_path, expected_org_path in expected.items():
 			self.assertEqual('ok' if expected_path in db else expected_path, 'ok')
 			self.assertEqual(db[expected_path].org_path, expected_org_path)

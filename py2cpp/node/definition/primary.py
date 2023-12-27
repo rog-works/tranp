@@ -42,6 +42,7 @@ class This(Symbol):
 	@property
 	@override
 	def domain_id(self) -> str:
+		"""Note: クラスの別名と言う扱いなので、クラス自身を表す"""
 		return self.namespace
 
 	@property
@@ -60,6 +61,7 @@ class ThisVar(Symbol):
 	@property
 	@override
 	def domain_id(self) -> str:
+		"""Note: クラス直下に配置"""
 		return domainize(self.namespace, self.tokens.split('.')[1])
 
 	@property

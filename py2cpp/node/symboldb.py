@@ -8,6 +8,16 @@ import py2cpp.node.definition as defs
 
 
 class SymbolRow(NamedTuple):
+	"""シンボル情報
+
+	Attributes:
+		ref_path: 参照パス
+		org_path: 参照パス(オリジナル)
+		module: 展開先のモジュール
+		symbol: シンボルノード
+		types: タイプ(クラス/関数全般)
+	"""
+
 	ref_path: str
 	org_path: str
 	module: Module
@@ -20,12 +30,23 @@ DeclVar: TypeAlias = defs.Parameter | defs.AnnoAssign | defs.MoveAssign
 
 
 class SymbolDBFactory:
+	"""シンボルテーブルファクトリー"""
+
 	@classmethod
 	def create(cls, modules: Modules) -> SymbolDB:
+		"""シンボルテーブルを生成
+
+		Args:
+			modules (Modules): モジュールマネージャー
+		Returns:
+			SymbolDB: シンボルテーブル
+		"""
 		main = modules.main
+
+		# メインモジュール(Types)を展開
 		db, decl_vars, import_nodes = cls.__pluck_main(main)
 
-		# インポートモジュールの追加
+		# インポートモジュール(Types)を展開
 		# XXX 別枠として分離するより、ステートメントの中で処理するのが理想
 		# XXX また、ステートメントのスコープも合わせて考慮
 		for import_node in import_nodes:
@@ -44,7 +65,7 @@ class SymbolDBFactory:
 			}
 			db = {**expanded_db, **filtered_db, **db}
 
-		# 標準ライブラリの追加
+		# 標準ライブラリ(Types)を展開
 		for module in modules.core_libralies:
 			imported_db = cls.__pluck_imported(main, module)
 			expanded_db = {
@@ -64,7 +85,7 @@ class SymbolDBFactory:
 			}
 			db = {**expanded_db, **filtered_db, **db}
 
-			# XXX インポートモジュール側にも展開
+			# XXX インポートモジュール側に展開
 			for import_node in import_nodes:
 				filtered_db = {
 					path.replace(row.module.path, import_node.module_path.tokens): row
@@ -73,25 +94,27 @@ class SymbolDBFactory:
 				}
 				db = {**filtered_db, **db}
 
+		# メインモジュールの変数シンボルを展開
 		for var in decl_vars:
-			# Thisは登録から除外
-			if var.symbol.is_a(defs.This):
-				pass
-			# ThisVarはクラス直下に配置
-			elif var.symbol.is_a(defs.ThisVar):
-				db[var.symbol.domain_id] = cls.__resolve_var_type(var, db)
-			# それ以外はスコープ配下に配置
-			else:
+			# XXX This以外を登録
+			if not var.symbol.is_a(defs.This):
 				db[var.symbol.domain_id] = cls.__resolve_var_type(var, db)
 
 		return db
 
 	@classmethod
-	def __pluck_main(cls, module: Module) -> tuple[SymbolDB, list[DeclVar], list[defs.Import]]:
+	def __pluck_main(cls, main: Module) -> tuple[SymbolDB, list[DeclVar], list[defs.Import]]:
+		"""メインモジュールの全シンボルを展開
+
+		Args:
+			module (Module): メインモジュール
+		Returns:
+			tuple[SymbolDB, list[DeclVar], list[defs.Import]]: (シンボルテーブル, 変数リスト, インポートリスト)
+		"""
 		db: SymbolDB = {}
 		decl_vars: list[DeclVar] = []
 		import_nodes: list[defs.Import] = []
-		entrypoint = module.entrypoint(defs.Entrypoint)
+		entrypoint = main.entrypoint(defs.Entrypoint)
 		for node in entrypoint.calculated():
 			if isinstance(node, defs.Types):
 				db[node.domain_id] = SymbolRow(node.domain_id, node.domain_id, node.module, node.symbol, node)
@@ -120,36 +143,59 @@ class SymbolDBFactory:
 		return db, decl_vars, import_nodes
 
 	@classmethod
-	def __pluck_imported(cls, expand_module: Module, imported: Module) -> SymbolDB:
+	def __pluck_imported(cls, main: Module, imported: Module) -> SymbolDB:
+		"""インポートモジュールのシンボルを展開
+
+		Args:
+			main (Module): メインモジュール
+			imported (Module): インポートモジュール
+		Returns:
+			SymbolDB: シンボルテーブル
+		"""
 		db: SymbolDB = {}
 		entrypoint = imported.entrypoint(defs.Entrypoint)
 		for node in entrypoint.calculated():
 			# FIXME 一旦Typesに限定
 			if isinstance(node, defs.Types):
-				ref_domain_id = node.domain_id.replace(node.module.path, expand_module.path)
-				db[ref_domain_id] = SymbolRow(ref_domain_id, node.domain_id, expand_module, node.symbol, node)
+				ref_domain_id = node.domain_id.replace(node.module.path, main.path)
+				db[ref_domain_id] = SymbolRow(ref_domain_id, node.domain_id, main, node.symbol, node)
 
 		return db
 
 	@classmethod
 	def __resolve_var_type(cls, var: DeclVar, db: SymbolDB) -> SymbolRow:
+		"""シンボルテーブルから変数の型を解決
+
+		Args:
+			var (DeclVar): 変数
+			db (SymbolDB): シンボルテーブル
+		Returns:
+			SymbolRow: シンボル情報
+		"""
 		type_symbol = cls.__fetch_type_symbol(var)
 		candidates = []
 		if type_symbol is not None:
 			candidates = [type_symbol.domain_id, type_symbol.domain_name]
 		else:
+			# 型が不明な変数はUnknownにフォールバック
 			# XXX Unknownの名前は重要なので定数化などの方法で明示
-			type_name = 'Unknown'
-			candidates = [domainize(var.scope, type_name), domainize(var.module.path, type_name)]
+			candidates = [domainize(var.module.path, 'Unknown')]
 
 		for candidate in candidates:
 			if candidate in db:
 				return db[candidate]
 
-		raise LogicError(f'Unresolve var type symbol. symbol: {var.symbol.tokens}')
+		raise LogicError(f'Unresolve var type. symbol: {var.symbol.tokens}')
 
 	@classmethod
 	def __fetch_type_symbol(cls, var: DeclVar) -> defs.Symbol | None:
+		"""変数の型のシンボルノードを取得
+
+		Args:
+			var (DeclVar): 変数
+		Returns:
+			Symbol: シンボルノード
+		"""
 		if isinstance(var, (defs.AnnoAssign, defs.Parameter)):
 			if var.var_type.is_a(defs.Symbol):
 				return var.var_type.as_a(defs.Symbol)

@@ -44,6 +44,14 @@ class Classify:
 			if founded:
 				return founded
 
+		if node.is_a(defs.Class):
+			for parent in node.as_a(defs.Class).parents:
+				parent_path = EntryPath.join(node.module.path, parent.tokens)
+				parent_row = self.__db[parent_path.origin]
+				founded = self.__type_of(parent_row.types, symbol)
+				if founded:
+					return founded
+
 		raise LogicError(f'Symbol not defined. node: {node}, symbol: {symbol}')
 
 	def literal_of(self, node: defs.Literal) -> defs.Types:

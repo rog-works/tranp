@@ -67,7 +67,7 @@ class SymbolDBFactory:
 			# XXX インポートモジュール側にも展開
 			for import_node in import_nodes:
 				filtered_db = {
-					path.replace(row.module.path, import_node.module.path): row
+					path.replace(row.module.path, import_node.module_path.tokens): row
 					for path, row in imported_db.items()
 					if row.symbol.tokens in primary_symbol_names
 				}
@@ -78,7 +78,7 @@ class SymbolDBFactory:
 			if var.symbol.is_a(defs.This):
 				pass
 			# ThisVarはクラス直下に配置
-			if var.symbol.is_a(defs.ThisVar):
+			elif var.symbol.is_a(defs.ThisVar):
 				path = EntryPath.join(var.namespace, EntryPath(var.symbol.tokens).last()[0])
 				ref_path = EntryPath.join(var.module.path, cls.__resolve_type_name(var))
 				db[path.origin] = db[ref_path.origin]
@@ -110,7 +110,8 @@ class SymbolDBFactory:
 		db: SymbolDB = {}
 		decl_vars: list[DeclVar] = []
 		import_nodes: list[defs.Import] = []
-		for node in module.entrypoint(defs.Entrypoint).calculated():
+		entrypoint = module.entrypoint(defs.Entrypoint)
+		for node in entrypoint.calculated():
 			if isinstance(node, defs.Types):
 				path = EntryPath.join(node.scope, node.symbol.tokens)
 				db[path.origin] = SymbolRow(path.origin, path.origin, node.module, node.symbol, node)
@@ -133,12 +134,16 @@ class SymbolDBFactory:
 			elif type(node) is defs.Enum:
 				decl_vars.extend(node.vars)
 
+		# XXX calculatedに含まれないためエントリーポイントは個別に処理
+		decl_vars.extend(entrypoint.decl_vars)
+
 		return db, decl_vars, import_nodes
 
 	@classmethod
 	def __pluck_imported(cls, expand_module: Module, imported: Module) -> SymbolDB:
 		db: SymbolDB = {}
-		for node in imported.entrypoint(defs.Entrypoint).calculated():
+		entrypoint = imported.entrypoint(defs.Entrypoint)
+		for node in entrypoint.calculated():
 			# FIXME 一旦Typesに限定
 			if isinstance(node, defs.Types):
 				org_path = EntryPath.join(node.scope, node.symbol.tokens)

@@ -115,16 +115,14 @@ class SymbolDBFactory:
 		decl_vars: list[DeclVar] = []
 		import_nodes: list[defs.Import] = []
 		entrypoint = main.entrypoint(defs.Entrypoint)
-		for node in entrypoint.calculated():
+		for node in entrypoint.flatten():
 			if isinstance(node, defs.Types):
 				db[node.domain_id] = SymbolRow(node.domain_id, node.domain_id, node.module, node.symbol, node)
 
 			if type(node) is defs.Import:
 				import_nodes.append(node)
 
-			if type(node) is defs.Entrypoint:
-				decl_vars.extend(node.decl_vars)
-			elif type(node) is defs.Function:
+			if type(node) is defs.Function:
 				decl_vars.extend(node.decl_vars)
 			elif type(node) is defs.ClassMethod:
 				decl_vars.extend(node.decl_vars)
@@ -138,7 +136,7 @@ class SymbolDBFactory:
 				decl_vars.extend(node.vars)
 
 		# XXX calculatedに含まれないためエントリーポイントは個別に処理
-		decl_vars.extend(entrypoint.decl_vars)
+		decl_vars = [*entrypoint.decl_vars, *decl_vars]
 
 		return db, decl_vars, import_nodes
 
@@ -154,7 +152,7 @@ class SymbolDBFactory:
 		"""
 		db: SymbolDB = {}
 		entrypoint = imported.entrypoint(defs.Entrypoint)
-		for node in entrypoint.calculated():
+		for node in entrypoint.flatten():
 			# FIXME 一旦Typesに限定
 			if isinstance(node, defs.Types):
 				ref_domain_id = node.domain_id.replace(node.module.path, main.path)

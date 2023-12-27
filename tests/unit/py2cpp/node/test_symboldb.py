@@ -73,3 +73,5 @@ class TestSymbolDB(TestCase):
 		for expected_path, expected_org_path in expected.items():
 			self.assertEqual('ok' if expected_path in db else expected_path, 'ok')
 			self.assertEqual(db[expected_path].org_path, expected_org_path)
+
+		self.assertEqual(len(db), len(expected))

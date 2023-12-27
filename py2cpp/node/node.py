@@ -42,7 +42,7 @@ class Node(NodeBase):
 
 	@property
 	def module(self) -> Module:
-		"""Module: モジュール"""
+		"""Module: モジュール XXX モジュールに依存するべきではないのと、パスだけで実用上は十分なので修正を検討"""
 		return self.__locator.resolve(Module)
 
 	@property
@@ -57,12 +57,12 @@ class Node(NodeBase):
 
 	@property
 	def tag(self) -> str:
-		"""str: エントリータグ。具象クラスとのマッピングに用いる。@note: あくまでもマッチパターンに対するタグであり、必ずしも共通の構造を表さない点に注意"""
+		"""str: エントリータグ。Grammar上のルール名。@note: あくまでもマッチパターンに対するタグであり、必ずしも共通の構造を表さない点に注意"""
 		return self._full_path.last()[0]
 
 	@property
-	def identifer(self) -> str:
-		"""str: 構造に対する識別子。実質的に派生クラスに対する識別子"""
+	def classification(self) -> str:
+		"""str: 構造を分類する識別子。実質的に派生クラスに対する識別子"""
 		return snakelize(self.__class__.__name__)
 
 	@property

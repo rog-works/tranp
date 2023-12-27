@@ -203,10 +203,10 @@ class TestNode(TestCase):
 		('file_input.class.block.function[2]', 'function'),
 		('file_input.function', 'function'),
 	])
-	def test_identifer(self, full_path: str, expected: str) -> None:
+	def test_classification(self, full_path: str, expected: str) -> None:
 		nodes = Fixture.nodes()
 		node = nodes.by(full_path)
-		self.assertEqual(node.identifer, expected)
+		self.assertEqual(node.classification, expected)
 
 	@data_provider([
 		('file_input', '__main__'),

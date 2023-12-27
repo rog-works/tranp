@@ -77,7 +77,7 @@ class Handler:
 		self.__stack.append(self.invoke(node))
 
 	def invoke(self, node: Node) -> defs.Types:
-		handler_name = f'on_{node.identifer}'
+		handler_name = f'on_{node.classification}'
 		handler = getattr(self, handler_name)
 		keys = reversed([key for key, _ in handler.__annotations__.items() if key != 'return'])
 		annotations = {key: handler.__annotations__[key] for key in keys}

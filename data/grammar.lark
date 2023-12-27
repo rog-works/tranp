@@ -25,7 +25,7 @@ file_input: (_NEWLINE | statement)*
 
 // # Import statements
 
-// @decl `from module.path.to import name1, name2, ...`
+// @decl `from module.path.to import symbol1, symbol2, ...`
 // @lark import_from: "from" (dots? dotted_name | dots) "import" ("*" | "(" import_as_names ")" | import_as_names)
 import_stmt: "from" dotted_name "import" ("(" import_names ")" | import_names)
 dotted_name: name ("." name)*
@@ -35,8 +35,8 @@ import_names: name ("," name)* [","]
 
 block: _NEWLINE _INDENT statement+ _DEDENT | simple_stmt
 
-// @decl `@decorator_name`
-// @decl `@decorator_name(symbol1, symbol2, ...)`
+// @decl `@decorator.path.to`
+// @decl `@decorator.path.to(symbol1, symbol2, ...)`
 // @lark decorated: decorators (classdef | funcdef | async_funcdef)
 decorators: decorator+
 decorator: "@" dotted_name ["(" [arguments] ")"] _NEWLINE
@@ -44,7 +44,7 @@ decorator: "@" dotted_name ["(" [arguments] ")"] _NEWLINE
 // # Enum definitions
 
 // @decl `class enum_name(CEnum):`
-// @note 拡張仕様
+// @custom
 enum_def: "class" name "(" "CEnum" ")" ":" block
 
 // # Class definitions
@@ -61,6 +61,7 @@ class_def_raw: "class" name ["(" [arguments] ")"] ":" block
 // @lark funcdef: "def" name "(" [parameters] ")" ["->" test] ":" suite
 function_def: [decorators] function_def_raw
 function_def_raw: "def" name "(" [parameters] ")" "->" return_type ":" block
+// @custom
 return_type: typed_expression
 
 // ## Function parameters
@@ -100,7 +101,6 @@ argvalue: expression
 
 // @lark while_stmt: "while" test ":" suite ["else" block]
 // @lark for_stmt: "for" exprlist "in" testlist ":" suite ["else" block]
-// XXX elif/elseの構造に一貫性が無い様に感じる
 if_stmt: "if" expression ":" block elifs ["else" ":" block]
 elifs: elif_*
 elif_: "elif" expression ":" block

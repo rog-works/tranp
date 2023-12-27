@@ -25,6 +25,7 @@ class SymbolDBFactory:
 		main = modules.main
 		db, decl_vars, import_nodes = cls.__pluck_main(main)
 
+		# インポートモジュールの追加
 		# XXX 別枠として分離するより、ステートメントの中で処理するのが理想
 		# XXX また、ステートメントのスコープも合わせて考慮
 		for import_node in import_nodes:
@@ -43,6 +44,7 @@ class SymbolDBFactory:
 			}
 			db = {**expanded_db, **filtered_db, **db}
 
+		# 標準ライブラリの追加
 		for module in modules.core_libralies:
 			imported_db = cls.__pluck_imported(main, module)
 			expanded_db = {
@@ -61,6 +63,15 @@ class SymbolDBFactory:
 				if row.symbol.tokens in primary_symbol_names
 			}
 			db = {**expanded_db, **filtered_db, **db}
+
+			# XXX インポートモジュール側にも展開
+			for import_node in import_nodes:
+				filtered_db = {
+					path.replace(row.module.path, import_node.module.path): row
+					for path, row in imported_db.items()
+					if row.symbol.tokens in primary_symbol_names
+				}
+				db = {**filtered_db, **db}
 
 		for var in decl_vars:
 			# Thisは登録から除外

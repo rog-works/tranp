@@ -5,6 +5,7 @@ from py2cpp.lang.locator import Curry, Locator
 from py2cpp.ast.entry import Entry
 from py2cpp.ast.parser import SyntaxParser
 from py2cpp.module.module import Module
+from py2cpp.module.provider import CoreLibrariesProvider
 
 
 class Modules:
@@ -23,7 +24,7 @@ class Modules:
 
 	@property
 	def core_libralies(self) -> list[Module]:
-		paths = ['py2cpp.python.classes']
+		paths = self.__locator.resolve(CoreLibrariesProvider)()
 		return [self.load(path) for path in paths]
 
 	def load(self, module_path: str) -> Module:

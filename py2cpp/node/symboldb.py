@@ -88,17 +88,6 @@ class SymbolDBFactory:
 				path = EntryPath.join(scope, var.symbol.tokens)
 				db[path.origin] = cls.__resolve_symbol(var, db)
 
-		# 基底クラスのシンボルを派生クラスに展開
-		for row in list(db.values()):
-			if not row.types.is_a(defs.Class):
-				continue
-
-			if row.module != main:
-				continue
-
-			sub_class = row.types.as_a(defs.Class)
-			db = {**db, **cls.__expand_parent_symbols(main, sub_class, db)}
-
 		return db
 
 	@classmethod

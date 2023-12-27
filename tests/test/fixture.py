@@ -11,6 +11,7 @@ from py2cpp.ast.entry import Entry
 from py2cpp.ast.provider import Query, Settings
 from py2cpp.ast.parser import FileLoader, GrammarSettings, SyntaxParser
 from py2cpp.module.modules import Module, Modules
+from py2cpp.module.provider import CoreLibrariesProvider
 from py2cpp.node.definitions import make_settings
 from py2cpp.node.node import Node
 from py2cpp.node.nodes import NodeResolver, Nodes
@@ -54,10 +55,14 @@ class Fixture:
 		return EntryOfLark(parser.parse(source))
 
 	def __load_prebuild_tree(self, module_path: str) -> Entry:
-		fixture_path = f'{module_path}_fixture'
+		elems = module_path.split('.')
+		dirpath, filename = '.'.join(elems[:-1]), elems[-1]
+		fixture_path = '.'.join([dirpath, 'fixtures', filename])
 		fixture = cast(Callable[[], Tree], load_module(fixture_path, 'fixture'))
 		return EntryOfLark(fixture())
 
+	def __core_libraries(self) -> list[str]:
+		return ['tests.unit.py2cpp.node.fixtures.test_symboldb_classes']
 
 	def __make_di(self) -> DI:
 		di = DI()
@@ -66,6 +71,7 @@ class Fixture:
 		di.bind(FileLoader, FileLoader)
 		di.bind(GrammarSettings, lambda: GrammarSettings(grammar='data/grammar.lark'))
 		di.bind(SyntaxParser, SyntaxParserOfLark)
+		di.bind(CoreLibrariesProvider, lambda: self.__core_libraries)
 		di.bind(Modules, Modules)
 		di.bind(ModuleLoader, ModuleLoader)
 		di.bind(Module, lambda: Module(di, '__main__'))

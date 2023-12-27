@@ -96,7 +96,7 @@ class SymbolDBFactory:
 
 		all_modules = [*import_modules, main]
 		for expand_module in all_modules:
-			expand_analize = expends[expand_module]
+			expand_target = expends[expand_module]
 
 			# 標準ライブラリを展開
 			if expand_module not in modules.core_libralies:
@@ -106,26 +106,26 @@ class SymbolDBFactory:
 					primary_symbol_names = [node.symbol.tokens for node in entrypoint.statements if isinstance(node, DeclAll)]
 					expanded = expends[core_module]
 					filtered_db = {row.path_to(expand_module): row.to(expand_module) for row in expanded.db.values() if row.symbol.tokens in primary_symbol_names}
-					expand_analize.db = {**filtered_db, **expand_analize.db}
+					expand_target.db = {**filtered_db, **expand_target.db}
 
 			# インポートモジュールを展開
 			# XXX 別枠として分離するより、ステートメントの中で処理するのが理想
 			# XXX また、ステートメントのスコープも合わせて考慮
-			for import_node in expand_analize.import_nodes:
+			for import_node in expand_target.import_nodes:
 				# import句で明示されたシンボルに限定
 				imported_symbol_names = [symbol.tokens for symbol in import_node.import_symbols]
 				import_module = modules.load(import_node.module_path.tokens)
 				expanded = expends[import_module]
 				filtered_db = {row.path_to(expand_module): row.to(expand_module) for row in expanded.db.values() if row.symbol.tokens in imported_symbol_names}
-				expand_analize.db = {**filtered_db, **expand_analize.db}
+				expand_target.db = {**filtered_db, **expand_target.db}
 
 			# 展開対象モジュールの変数シンボルを展開
-			for var in expand_analize.decl_vars:
+			for var in expand_target.decl_vars:
 				# XXX This以外を登録
 				if not var.symbol.is_a(defs.This):
-					expand_analize.db[var.symbol.domain_id] = cls.__resolve_var_type(var, expand_analize.db)
+					expand_target.db[var.symbol.domain_id] = cls.__resolve_var_type(var, expand_target.db)
 
-		# シンボルをテーブルを統合
+		# シンボルテーブルを統合
 		db: SymbolDB = {}
 		for expanded in expends.values():
 			db = {**expanded.db, **db}
@@ -134,12 +134,12 @@ class SymbolDBFactory:
 
 	@classmethod
 	def __expand_module(cls, main: Module) -> Expanded:
-		"""メインモジュールの全シンボルを展開
+		"""モジュールの全シンボルを展開
 
 		Args:
-			module (Module): メインモジュール
+			module (Module): モジュール
 		Returns:
-			tuple[SymbolDB, list[DeclVar], list[defs.Import]]: (シンボルテーブル, 変数リスト, インポートリスト)
+			Expanded: 展開データ
 		"""
 		db: SymbolDB = {}
 		decl_vars: list[DeclVar] = []

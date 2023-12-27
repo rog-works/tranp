@@ -1,3 +1,4 @@
+from dataclasses import dataclass, field
 from typing import NamedTuple, TypeAlias
 
 from py2cpp.ast.dns import domainize
@@ -17,16 +18,50 @@ class SymbolRow(NamedTuple):
 		symbol: シンボルノード
 		types: タイプ(クラス/関数全般)
 	"""
-
 	ref_path: str
 	org_path: str
 	module: Module
 	symbol: defs.Symbol
 	types: defs.Types
 
+	def to(self, module: Module) -> 'SymbolRow':
+		"""展開先を変更したインスタンスを生成
+
+		Args:
+			module (Module): 展開先のモジュール
+		Returns:
+			SymbolRow: インスタンス
+		"""
+		return SymbolRow(self.path_to(module), self.org_path, module, self.symbol, self.types)
+
+	def path_to(self, module: Module) -> str:
+		"""展開先を変更した参照パスを生成
+
+		Args:
+			module (Module): 展開先のモジュール
+		Returns:
+			str: 展開先の参照パス
+		"""
+		return self.ref_path.replace(self.module.path, module.path)
+
 
 SymbolDB: TypeAlias = dict[str, SymbolRow]
 DeclVar: TypeAlias = defs.Parameter | defs.AnnoAssign | defs.MoveAssign
+DeclAll: TypeAlias = defs.Parameter | defs.AnnoAssign | defs.MoveAssign | defs.Types
+
+
+@dataclass
+class Expanded:
+	"""展開時のテンポラリーデータ
+
+	Attributes:
+		db (SymbolDB): シンボルテーブル
+		decl_vars (list[DeclVar]): 変数リスト
+		import_nodes (list[Import]): インポートリスト
+	"""
+	db: SymbolDB = field(default_factory=dict)
+	decl_vars: list[DeclVar] = field(default_factory=list)
+	import_nodes: list[defs.Import] = field(default_factory=list)
 
 
 class SymbolDBFactory:
@@ -43,67 +78,62 @@ class SymbolDBFactory:
 		"""
 		main = modules.main
 
-		# メインモジュール(Types)を展開
-		db, decl_vars, import_nodes = cls.__pluck_main(main)
+		# メインモジュールを展開
+		expends: dict[Module, Expanded] = {}
+		expends[main] = cls.__expand_module(main)
 
-		# インポートモジュール(Types)を展開
-		# XXX 別枠として分離するより、ステートメントの中で処理するのが理想
-		# XXX また、ステートメントのスコープも合わせて考慮
-		for import_node in import_nodes:
-			module = modules.load(import_node.module_path.tokens)
-			imported_db = cls.__pluck_imported(main, module)
-			expanded_db = {
-				row.org_path: SymbolRow(row.org_path, row.org_path, row.module, row.symbol, row.types)
-				for _, row in imported_db.items()
-			}
-			# import句で明示したシンボルに限定
-			imported_symbol_names = [symbol.tokens for symbol in import_node.import_symbols]
-			filtered_db = {
-				path: row
-				for path, row in imported_db.items()
-				if row.symbol.tokens in imported_symbol_names
-			}
-			db = {**expanded_db, **filtered_db, **db}
+		# インポートモジュールを全て展開
+		import_index = 0
+		import_modules_from_main = [modules.load(node.module_path.tokens) for node in expends[main].import_nodes]
+		import_modules = [*modules.core_libralies, *import_modules_from_main]
+		while import_index < len(import_modules):
+			import_module = import_modules[import_index]
+			expanded = cls.__expand_module(import_module)
+			import_modules_from_depended = [modules.load(node.module_path.tokens) for node in expanded.import_nodes]
+			import_modules = [*import_modules, *import_modules_from_depended]
+			expends[import_module] = expanded
+			import_index += 1
 
-		# 標準ライブラリ(Types)を展開
-		for module in modules.core_libralies:
-			imported_db = cls.__pluck_imported(main, module)
-			expanded_db = {
-				row.org_path: SymbolRow(row.org_path, row.org_path, row.module, row.symbol, row.types)
-				for _, row in imported_db.items()
-			}
-			# 第1層で宣言されているTypesに限定
-			primary_symbol_names = [
-				node.symbol.tokens
-				for node in module.entrypoint(defs.Entrypoint).statements
-				if isinstance(node, defs.Types)
-			]
-			filtered_db = {
-				path: row
-				for path, row in imported_db.items()
-				if row.symbol.tokens in primary_symbol_names
-			}
-			db = {**expanded_db, **filtered_db, **db}
+		all_modules = [*import_modules, main]
+		for expand_module in all_modules:
+			expand_analize = expends[expand_module]
 
-			# XXX インポートモジュール側に展開
-			for import_node in import_nodes:
-				filtered_db = {
-					path.replace(row.module.path, import_node.module_path.tokens): row
-					for path, row in imported_db.items()
-					if row.symbol.tokens in primary_symbol_names
-				}
-				db = {**filtered_db, **db}
+			# 標準ライブラリを展開
+			if expand_module not in modules.core_libralies:
+				for core_module in modules.core_libralies:
+					# 第1層で宣言されているシンボルに限定
+					entrypoint = core_module.entrypoint(defs.Entrypoint)
+					primary_symbol_names = [node.symbol.tokens for node in entrypoint.statements if isinstance(node, DeclAll)]
+					expanded = expends[core_module]
+					filtered_db = {row.path_to(expand_module): row.to(expand_module) for row in expanded.db.values() if row.symbol.tokens in primary_symbol_names}
+					expand_analize.db = {**filtered_db, **expand_analize.db}
 
-		# メインモジュールの変数シンボルを展開
-		for var in decl_vars:
-			# XXX This以外を登録
-			if not var.symbol.is_a(defs.This):
-				db[var.symbol.domain_id] = cls.__resolve_var_type(var, db)
+			# インポートモジュールを展開
+			# XXX 別枠として分離するより、ステートメントの中で処理するのが理想
+			# XXX また、ステートメントのスコープも合わせて考慮
+			for import_node in expand_analize.import_nodes:
+				# import句で明示されたシンボルに限定
+				imported_symbol_names = [symbol.tokens for symbol in import_node.import_symbols]
+				import_module = modules.load(import_node.module_path.tokens)
+				expanded = expends[import_module]
+				filtered_db = {row.path_to(expand_module): row.to(expand_module) for row in expanded.db.values() if row.symbol.tokens in imported_symbol_names}
+				expand_analize.db = {**filtered_db, **expand_analize.db}
+
+			# 展開対象モジュールの変数シンボルを展開
+			for var in expand_analize.decl_vars:
+				# XXX This以外を登録
+				if not var.symbol.is_a(defs.This):
+					expand_analize.db[var.symbol.domain_id] = cls.__resolve_var_type(var, expand_analize.db)
+
+		# シンボルをテーブルを統合
+		db: SymbolDB = {}
+		for expanded in expends.values():
+			db = {**expanded.db, **db}
 
 		return db
 
 	@classmethod
-	def __pluck_main(cls, main: Module) -> tuple[SymbolDB, list[DeclVar], list[defs.Import]]:
+	def __expand_module(cls, main: Module) -> Expanded:
 		"""メインモジュールの全シンボルを展開
 
 		Args:
@@ -138,27 +168,7 @@ class SymbolDBFactory:
 		# XXX calculatedに含まれないためエントリーポイントは個別に処理
 		decl_vars = [*entrypoint.decl_vars, *decl_vars]
 
-		return db, decl_vars, import_nodes
-
-	@classmethod
-	def __pluck_imported(cls, main: Module, imported: Module) -> SymbolDB:
-		"""インポートモジュールのシンボルを展開
-
-		Args:
-			main (Module): メインモジュール
-			imported (Module): インポートモジュール
-		Returns:
-			SymbolDB: シンボルテーブル
-		"""
-		db: SymbolDB = {}
-		entrypoint = imported.entrypoint(defs.Entrypoint)
-		for node in entrypoint.flatten():
-			# FIXME 一旦Typesに限定
-			if isinstance(node, defs.Types):
-				ref_domain_id = node.domain_id.replace(node.module.path, main.path)
-				db[ref_domain_id] = SymbolRow(ref_domain_id, node.domain_id, main, node.symbol, node)
-
-		return db
+		return Expanded(db, decl_vars, import_nodes)
 
 	@classmethod
 	def __resolve_var_type(cls, var: DeclVar, db: SymbolDB) -> SymbolRow:

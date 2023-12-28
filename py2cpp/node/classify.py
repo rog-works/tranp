@@ -23,7 +23,7 @@ class Classify:
 		elif node.is_a(defs.GenericType):
 			return node.as_a(defs.GenericType).symbol.tokens
 		elif node.is_a(defs.Literal):
-			return node.as_a(defs.Null).class_symbol_alias
+			return node.as_a(defs.Literal).class_symbol_alias
 		elif node.is_a(defs.Types):
 			return node.as_a(defs.Types).symbol.tokens
 		else:

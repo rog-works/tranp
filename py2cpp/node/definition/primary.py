@@ -180,7 +180,7 @@ class FuncCall(Node):
 
 
 @Meta.embed(Node, actualized(via=FuncCall))
-class Super(Node):
+class Super(FuncCall):
 	@classmethod
 	@override
 	def match_feature(cls, via: FuncCall) -> bool:

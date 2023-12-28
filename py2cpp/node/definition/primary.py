@@ -1,5 +1,3 @@
-import re
-
 from py2cpp.ast.dns import domainize
 from py2cpp.lang.annotation import implements, override
 from py2cpp.node.definition.common import Argument

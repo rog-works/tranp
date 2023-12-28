@@ -1,7 +1,7 @@
 import re
 
 from py2cpp.ast.dns import domainize
-from py2cpp.lang.annotation import override
+from py2cpp.lang.annotation import implements, override
 from py2cpp.node.definition.common import Argument
 from py2cpp.node.definition.element import Block, Decorator, Parameter, ReturnType
 from py2cpp.node.definition.primary import Symbol, This, ThisVar, Var
@@ -9,6 +9,7 @@ from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
 from py2cpp.node.node import Node
+from py2cpp.node.trait import DomainNameTrait
 
 
 @Meta.embed(Node, accept_tags('elif_'))
@@ -109,12 +110,14 @@ class Try(Node):
 		return [node.as_a(Catch) for node in self._by('except_clauses')._children()]
 
 
-class Types(Node):
+class Types(Node, DomainNameTrait):
 	@property
+	@implements
 	def domain_id(self) -> str:
 		return domainize(self.scope, self.symbol.tokens)
 
 	@property
+	@implements
 	def domain_name(self) -> str:
 		return domainize(self.module.path, self.symbol.tokens)
 

@@ -1,14 +1,25 @@
-from py2cpp.lang.annotation import override
+from py2cpp.ast.dns import domainize
+from py2cpp.lang.annotation import implements, override
 from py2cpp.node.definition.terminal import Terminal
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
 from py2cpp.node.node import Node
-from py2cpp.node.trait import TerminalTrait
+from py2cpp.node.trait import DomainNameTrait, TerminalTrait
 
 
-class Literal(Node):
+class Literal(Node, DomainNameTrait):
 	@property
-	def alias_class_symbol(self) -> str:
-		"""Note: FIXME @__alias__と対応。かなり苦し紛れなので修正を検討"""
+	@implements
+	def domain_id(self) -> str:
+		return domainize(self.module.path, self.class_symbol_alias)
+
+	@property
+	@implements
+	def domain_name(self) -> str:
+		return self.domain_id
+
+	@property
+	def class_symbol_alias(self) -> str:
+		"""Note: XXX @__alias__と対応"""
 		raise NotImplementedError()
 
 
@@ -24,7 +35,7 @@ class Integer(Number):
 
 	@property
 	@override
-	def alias_class_symbol(self) -> str:
+	def class_symbol_alias(self) -> str:
 		return 'int'
 
 
@@ -36,7 +47,7 @@ class Float(Number):
 
 	@property
 	@override
-	def alias_class_symbol(self) -> str:
+	def class_symbol_alias(self) -> str:
 		return 'float'
 
 
@@ -44,14 +55,14 @@ class Float(Number):
 class String(Literal, TerminalTrait):
 	@property
 	@override
-	def alias_class_symbol(self) -> str:
+	def class_symbol_alias(self) -> str:
 		return 'str'
 
 
 class Boolean(Literal, TerminalTrait):
 	@property
 	@override
-	def alias_class_symbol(self) -> str:
+	def class_symbol_alias(self) -> str:
 		return 'bool'
 
 
@@ -85,7 +96,7 @@ class List(Literal):
 
 	@property
 	@override
-	def alias_class_symbol(self) -> str:
+	def class_symbol_alias(self) -> str:
 		return 'list'
 
 
@@ -98,7 +109,7 @@ class Dict(Literal):
 
 	@property
 	@override
-	def alias_class_symbol(self) -> str:
+	def class_symbol_alias(self) -> str:
 		return 'dict'
 
 
@@ -106,5 +117,5 @@ class Dict(Literal):
 class Null(Literal, TerminalTrait):
 	@property
 	@override
-	def alias_class_symbol(self) -> str:
+	def class_symbol_alias(self) -> str:
 		return 'None'

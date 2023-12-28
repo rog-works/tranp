@@ -1,21 +1,23 @@
 import re
 
 from py2cpp.ast.dns import domainize
-from py2cpp.lang.annotation import override
+from py2cpp.lang.annotation import implements, override
 from py2cpp.node.definition.common import Argument
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
 from py2cpp.node.node import Node
-from py2cpp.node.trait import TerminalTrait
+from py2cpp.node.trait import DomainNameTrait, TerminalTrait
 
 
 @Meta.embed(Node, accept_tags('getattr', 'var', 'name', 'dotted_name', 'typed_getattr', 'typed_var'))
-class Symbol(Node, TerminalTrait):
+class Symbol(Node, DomainNameTrait, TerminalTrait):
 	@property
+	@implements
 	def domain_id(self) -> str:
 		return domainize(self.scope, self.tokens)
 
 	@property
+	@implements
 	def domain_name(self) -> str:
 		return domainize(self.module.path, self.tokens)
 
@@ -39,40 +41,58 @@ class Var(Symbol):
 
 @Meta.embed(Node, actualized(via=Symbol))
 class This(Symbol):
-	@property
-	@override
-	def domain_id(self) -> str:
-		"""Note: クラスの別名と言う扱いなので、クラス自身を表す"""
-		return self.namespace
-
-	@property
-	@override
-	def domain_name(self) -> str:
-		return self.domain_id
-
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:
 		return via.tokens == 'self'
 
-
-@Meta.embed(Node, actualized(via=Symbol))
-class ThisVar(Symbol):
 	@property
 	@override
 	def domain_id(self) -> str:
-		"""Note: クラス直下に配置"""
-		return domainize(self.namespace, self.tokens.split('.')[1])
+		from py2cpp.node.definition.statement_compound import Types  # FIXME 循環参照
+
+		return self.__class.as_a(Types).domain_id
 
 	@property
 	@override
 	def domain_name(self) -> str:
-		return self.domain_id
+		from py2cpp.node.definition.statement_compound import Types  # FIXME 循環参照
 
+		return self.__class.as_a(Types).domain_name
+
+	@property
+	def __class(self) -> Node:
+		return self._ancestor('class_def')
+
+
+@Meta.embed(Node, actualized(via=Symbol))
+class ThisVar(Symbol):
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:
-		return re.fullmatch(r'self\.\w+', via.tokens) is not None
+		return via.tokens.startswith('self.')
+
+	@property
+	@override
+	def domain_id(self) -> str:
+		from py2cpp.node.definition.statement_compound import Types  # FIXME 循環参照
+
+		return domainize(self.__class.as_a(Types).domain_id, self.tokens_without_this)
+
+	@property
+	@override
+	def domain_name(self) -> str:
+		from py2cpp.node.definition.statement_compound import Types  # FIXME 循環参照
+
+		return domainize(self.__class.as_a(Types).domain_name, self.tokens_without_this)
+
+	@property
+	def tokens_without_this(self) -> str:
+		return self.tokens.replace('self.', '')
+
+	@property
+	def __class(self) -> Node:
+		return self._ancestor('class_def')
 
 
 @Meta.embed(Node, accept_tags('getitem'))
@@ -89,12 +109,14 @@ class Indexer(Node):
 
 
 @Meta.embed(Node, accept_tags('typed_getitem'))
-class GenericType(Node):
+class GenericType(Node, DomainNameTrait):
 	@property
+	@implements
 	def domain_id(self) -> str:
 		return domainize(self.scope, self.symbol.tokens)
 
 	@property
+	@implements
 	def domain_name(self) -> str:
 		return domainize(self.module.path, self.symbol.tokens)
 

@@ -11,6 +11,7 @@ from py2cpp.ast.provider import Query, Settings
 from py2cpp.ast.parser import FileLoader, GrammarSettings, SyntaxParser
 from py2cpp.module.modules import Module, Modules
 from py2cpp.module.provider import CoreLibrariesProvider
+from py2cpp.node.classify import Classify
 from py2cpp.node.definitions import make_settings
 from py2cpp.node.node import Node
 from py2cpp.node.nodes import NodeResolver, Nodes
@@ -62,6 +63,7 @@ class Fixture:
 		di.bind(Query[Node], Nodes)
 		di.bind(Node, Nodes.root)
 		di.bind(SymbolDB, SymbolDBFactory.create)
+		di.bind(Classify, Classify)
 		return di
 
 	def get(self, symbol: type[T_Inst]) -> T_Inst:

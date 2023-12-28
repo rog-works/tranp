@@ -1,3 +1,4 @@
+from py2cpp.ast.dns import domainize
 from py2cpp.ast.path import EntryPath
 from py2cpp.errors import LogicError
 import py2cpp.node.definition as defs
@@ -9,53 +10,49 @@ class Classify:
 	def __init__(self, db: SymbolDB) -> None:
 		self.__db = db
 
-	def type_of(self, node: defs.Symbol | defs.GenericType | defs.Null) -> defs.Types:
+	def type_of(self, node: defs.Symbol | defs.GenericType | defs.Literal | defs.Types) -> defs.Types:
 		return self.__type_of(node, self.__resolve_symbol(node))
 	
-	def __resolve_symbol(self, node: defs.Symbol | defs.GenericType | defs.Null) -> str:
-		if node.is_a(defs.This):
-			return node.namespace
-		elif node.is_a(defs.ThisVar):
-			return EntryPath.join(node.namespace, EntryPath(node.tokens).last[0]).origin
-		elif node.is_a(defs.Symbol):
-			return node.tokens
+	def __resolve_symbol(self, node: defs.Symbol | defs.GenericType | defs.Literal | defs.Types) -> str:
+		if node.is_a(defs.ThisVar):
+			return node.as_a(defs.ThisVar).tokens_without_this
 		elif node.is_a(defs.GenericType):
 			return node.as_a(defs.GenericType).symbol.tokens
+		elif node.is_a(defs.Literal):
+			return node.as_a(defs.Null).class_symbol_alias
+		elif node.is_a(defs.Types):
+			return node.as_a(defs.Types).symbol.tokens
 		else:
+			# その他のSymbol
 			return node.tokens
 
-	def __type_of(self, node: defs.Symbol | defs.GenericType | defs.Null | defs.Literal | defs.Types, symbol: str) -> defs.Types:
-		symbols = EntryPath(symbol)
-		first, _ = symbols.first[0]
-		remain = symbols.shift(1)
+	def __type_of(self, node: defs.Symbol | defs.GenericType | defs.Literal | defs.Types, symbol: str) -> defs.Types:
+		remain_symbol = EntryPath(symbol).shift(1)
+		first = EntryPath(symbol).first[0]
 		candidates = [
-			EntryPath.join(node.scope, first),
-			EntryPath.join(node.module.path, first),
+			domainize(node.scope, first),
+			domainize(node.module.path, first),
 		]
 		for candidate in candidates:
-			if candidate.origin in self.__db:
+			if candidate not in self.__db:
 				continue
 
-			row = self.__db[candidate.origin]
-			if not remain.valid:
+			row = self.__db[candidate]
+			if not remain_symbol.valid:
 				return row.types
 
-			founded = self.__type_of(row.types, remain.origin)
+			founded = self.__type_of(row.types, remain_symbol.origin)
 			if founded:
 				return founded
 
 		if node.is_a(defs.Class):
-			for parent in node.as_a(defs.Class).parents:
-				parent_path = EntryPath.join(node.module.path, parent.tokens)
-				parent_row = self.__db[parent_path.origin]
-				founded = self.__type_of(parent_row.types, symbol)
+			for symbol_node in node.as_a(defs.Class).parents:
+				parent_types = self.__type_of(symbol_node, symbol_node.tokens).as_a(defs.Class)
+				founded = self.__type_of(parent_types, symbol)
 				if founded:
 					return founded
 
 		raise LogicError(f'Symbol not defined. node: {node}, symbol: {symbol}')
-
-	def literal_of(self, node: defs.Literal) -> defs.Types:
-		return self.__type_of(node, node.alias_class_symbol)
 
 	def result_of(self, expression: Node) -> defs.Types:
 		handler = Handler(self)
@@ -152,22 +149,22 @@ class Handler:
 	# Literal
 
 	def on_integer(self, node: defs.Integer) -> defs.Types:
-		return self.__classify.literal_of(node)
+		return self.__classify.type_of(node)
 
 	def on_float(self, node: defs.Float) -> defs.Types:
-		return self.__classify.literal_of(node)
+		return self.__classify.type_of(node)
 
 	def on_string(self, node: defs.String) -> defs.Types:
-		return self.__classify.literal_of(node)
+		return self.__classify.type_of(node)
 
 	def on_truthy(self, node: defs.Truthy) -> defs.Types:
-		return self.__classify.literal_of(node)
+		return self.__classify.type_of(node)
 
 	def on_falsy(self, node: defs.Falsy) -> defs.Types:
-		return self.__classify.literal_of(node)
+		return self.__classify.type_of(node)
 
 	def on_list(self, node: defs.List) -> defs.Types:
-		return self.__classify.literal_of(node)
+		return self.__classify.type_of(node)
 
 	def on_dict(self, node: defs.Dict) -> defs.Types:
-		return self.__classify.literal_of(node)
+		return self.__classify.type_of(node)

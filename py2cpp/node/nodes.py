@@ -136,13 +136,35 @@ class Nodes(Query[Node]):
 		"""
 		forwards = EntryPath(via).shift(-1)
 		while(forwards.valid):
-			tag, _ = forwards.last()
+			tag, _ = forwards.last
 			if self.__resolver.can_resolve(tag):
 				return self.by(forwards.origin)
 
 			forwards = forwards.shift(-1)
 
 		raise NotFoundError(via)
+
+	@implements
+	def ancestor(self, via: str, tag: str) -> Node:
+		"""指定のエントリータグを持つ直近の親ノードをフェッチ
+
+		Args:
+			via (str): 基点のパス
+			tag (str): エントリータグ
+		Returns:
+			Node: ノード
+		Raises:
+			NotFoundError: 指定のエントリータグを持つ親が存在しない
+		"""
+		base = EntryPath(via)
+		elems = list(reversed(base.de_identify().elements))
+		index = elems.index(tag)
+		if index == -1:
+			raise NotFoundError(via, tag)
+
+		slices = len(elems) - index
+		found_path = EntryPath.join(*base.elements[:slices])
+		return self.by(found_path.origin)
 
 	@implements
 	def siblings(self, via: str) -> list[Node]:
@@ -220,7 +242,7 @@ class Nodes(Query[Node]):
 			entry_path = EntryPath(path)
 
 			# XXX 変換対象が存在する場合はそちらに対応を任せる(終端記号か否かは問わない)
-			entry_tag = entry_path.last()[0]
+			entry_tag = entry_path.last[0]
 			if self.__resolver.can_resolve(entry_tag):
 				memo.append(entry_path.origin)
 				return True

@@ -157,6 +157,20 @@ class Query(Generic[T], metaclass=ABCMeta):
 		raise NotImplementedError()
 
 	@abstractmethod
+	def ancestor(self, via: str, tag: str) -> T:
+		"""指定のエントリータグを持つ直近の親エントリーをフェッチ
+
+		Args:
+			via (str): 基点のパス
+			tag (str): エントリータグ
+		Returns:
+			Node: ノード
+		Raises:
+			NotFoundError: 指定のエントリータグを持つ親が存在しない
+		"""
+		raise NotImplementedError()
+
+	@abstractmethod
 	def siblings(self, via: str) -> list[T]:
 		"""指定のパスを基準に同階層のエントリーをフェッチ
 

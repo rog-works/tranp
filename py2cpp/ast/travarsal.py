@@ -53,7 +53,7 @@ class ASTFinder:
 			NotFoundError: エントリーが存在しない
 		"""
 		if entry.has_child and path.valid:
-			tag, index = path.first()
+			tag, index = path.first
 			remain = path.shift(1)
 			# @see EntryPath.identify
 			if index != -1:

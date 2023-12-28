@@ -56,7 +56,7 @@ class TestEntryPath(TestCase):
 		('token[2]', ('token', 2)),
 	])
 	def test_first(self, origin: str, expected: tuple[str, int]) -> None:
-		self.assertEqual(EntryPath(origin).first(), expected)
+		self.assertEqual(EntryPath(origin).first, expected)
 
 	@data_provider([
 		('root.tree[1]', ('tree', 1)),
@@ -65,7 +65,7 @@ class TestEntryPath(TestCase):
 		('root.tree.token', ('token', -1)),
 	])
 	def test_last(self, origin: str, expected: tuple[str, int]) -> None:
-		self.assertEqual(EntryPath(origin).last(), expected)
+		self.assertEqual(EntryPath(origin).last, expected)
 
 	@data_provider([
 		('tree.tree_a[0].token', r'tree\.tree_a\[0\]\.token'),

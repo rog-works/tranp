@@ -58,7 +58,7 @@ class Node(NodeBase):
 	@property
 	def tag(self) -> str:
 		"""str: エントリータグ。Grammar上のルール名。@note: あくまでもマッチパターンに対するタグであり、必ずしも共通の構造を表さない点に注意"""
-		return self._full_path.last()[0]
+		return self._full_path.last[0]
 
 	@property
 	def classification(self) -> str:
@@ -299,6 +299,18 @@ class Node(NodeBase):
 		"""
 		return self.__nodes.leafs(self.full_path, leaf_tag)
 
+	def _ancestor(self, tag: str) -> 'Node':
+		"""指定のエントリータグを持つ直近の親ノードをフェッチ
+
+		Args:
+			tag (str): エントリータグ
+		Returns:
+			Node: ノード
+		Raises:
+			NotFoundError: ノードが存在しない
+		"""
+		return self.__nodes.ancestor(self.full_path, tag)
+
 	def _under_expand(self) -> list['Node']:
 		"""配下に存在する展開が可能なノードをフェッチ
 
@@ -442,7 +454,11 @@ class Node(NodeBase):
 		Returns:
 			bool: True = 一致
 		Note:
-			@see actualize, _features
+			@see actualize, _feature_classes
+			# 注意点
+			このメソッド内で引数のviaを元に親ノードをインスタンス化すると無限ループするため、その様に実装してはならない
+			OK: return via._full_path.shift(-1).last[0] == 'xxx'
+			NG: return via.parent.tag == 'xxx'
 		"""
 		return False
 

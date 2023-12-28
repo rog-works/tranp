@@ -34,3 +34,7 @@ class Null: pass
 
 
 class Unknown: pass
+
+
+@__alias__.super
+class Super: pass

@@ -63,6 +63,7 @@ class EntryPath:
 		"""
 		return '.'.join([self.origin, relative])
 
+	@property
 	def first(self) -> tuple[str, int]:
 		"""先頭の要素を分解して取得
 
@@ -71,6 +72,7 @@ class EntryPath:
 		"""
 		return self.__break_tag(self.elements[0])
 
+	@property
 	def last(self) -> tuple[str, int]:
 		"""末尾の要素を分解して取得
 

@@ -49,6 +49,7 @@ def make_settings() -> Settings:
 			# 'typed_getitem': defs.DictType,
 			'typed_or_expr': defs.UnionType,
 			'funccall': defs.FuncCall,
+			# 'funccall': defs.Super,
 			# -- Common --
 			'argvalue': defs.Argument,
 			# -- Operator --

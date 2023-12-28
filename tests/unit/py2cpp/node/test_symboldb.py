@@ -21,6 +21,7 @@ class TestSymbolDB(TestCase):
 			'tests.unit.py2cpp.node.fixtures.test_symboldb_classes.dict': 'tests.unit.py2cpp.node.fixtures.test_symboldb_classes.dict',
 			'tests.unit.py2cpp.node.fixtures.test_symboldb_classes.None': 'tests.unit.py2cpp.node.fixtures.test_symboldb_classes.None',
 			'tests.unit.py2cpp.node.fixtures.test_symboldb_classes.Unknown': 'tests.unit.py2cpp.node.fixtures.test_symboldb_classes.Unknown',
+			'tests.unit.py2cpp.node.fixtures.test_symboldb_classes.super': 'tests.unit.py2cpp.node.fixtures.test_symboldb_classes.super',
 			# インポートモジュール/標準ライブラリー(Types)
 			'tests.unit.py2cpp.node.fixtures.test_symboldb_xyz.int': 'tests.unit.py2cpp.node.fixtures.test_symboldb_classes.int',
 			'tests.unit.py2cpp.node.fixtures.test_symboldb_xyz.float': 'tests.unit.py2cpp.node.fixtures.test_symboldb_classes.float',
@@ -31,6 +32,7 @@ class TestSymbolDB(TestCase):
 			'tests.unit.py2cpp.node.fixtures.test_symboldb_xyz.dict': 'tests.unit.py2cpp.node.fixtures.test_symboldb_classes.dict',
 			'tests.unit.py2cpp.node.fixtures.test_symboldb_xyz.None': 'tests.unit.py2cpp.node.fixtures.test_symboldb_classes.None',
 			'tests.unit.py2cpp.node.fixtures.test_symboldb_xyz.Unknown': 'tests.unit.py2cpp.node.fixtures.test_symboldb_classes.Unknown',
+			'tests.unit.py2cpp.node.fixtures.test_symboldb_xyz.super': 'tests.unit.py2cpp.node.fixtures.test_symboldb_classes.super',
 			# インポートモジュール(Types)
 			'tests.unit.py2cpp.node.fixtures.test_symboldb_xyz.X': 'tests.unit.py2cpp.node.fixtures.test_symboldb_xyz.X',
 			'tests.unit.py2cpp.node.fixtures.test_symboldb_xyz.Y': 'tests.unit.py2cpp.node.fixtures.test_symboldb_xyz.Y',
@@ -50,6 +52,7 @@ class TestSymbolDB(TestCase):
 			'__main__.dict': 'tests.unit.py2cpp.node.fixtures.test_symboldb_classes.dict',
 			'__main__.None': 'tests.unit.py2cpp.node.fixtures.test_symboldb_classes.None',
 			'__main__.Unknown': 'tests.unit.py2cpp.node.fixtures.test_symboldb_classes.Unknown',
+			'__main__.super': 'tests.unit.py2cpp.node.fixtures.test_symboldb_classes.super',
 			# エントリーポイント/インポートモジュール(Types)
 			'__main__.Z': 'tests.unit.py2cpp.node.fixtures.test_symboldb_xyz.Z',
 			# エントリーポイント(Types)

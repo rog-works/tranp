@@ -11,6 +11,7 @@ class B(A):
 		v: str = ''
 
 	def __init__(self) -> None:
+		super().__init__()
 		self.v: list[int] = []
 
 	def func1(self, b: 'list[B]') -> str:

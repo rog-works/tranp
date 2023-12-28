@@ -16,7 +16,7 @@ class Classify:
 		if node.is_a(defs.This):
 			return node.namespace
 		elif node.is_a(defs.ThisVar):
-			return EntryPath.join(node.namespace, EntryPath(node.tokens).last()[0]).origin
+			return EntryPath.join(node.namespace, EntryPath(node.tokens).last[0]).origin
 		elif node.is_a(defs.Symbol):
 			return node.tokens
 		elif node.is_a(defs.GenericType):
@@ -26,7 +26,7 @@ class Classify:
 
 	def __type_of(self, node: defs.Symbol | defs.GenericType | defs.Null | defs.Literal | defs.Types, symbol: str) -> defs.Types:
 		symbols = EntryPath(symbol)
-		first, _ = symbols.first()[0]
+		first, _ = symbols.first[0]
 		remain = symbols.shift(1)
 		candidates = [
 			EntryPath.join(node.scope, first),
@@ -93,7 +93,13 @@ class Handler:
 	def on_symbol(self, node: defs.Symbol) -> defs.Types:
 		return self.__classify.type_of(node)
 
+	def on_var(self, node: defs.Var) -> defs.Types:
+		return self.__classify.type_of(node)
+
 	def on_this(self, node: defs.This) -> defs.Types:
+		return self.__classify.type_of(node)
+
+	def on_this_var(self, node: defs.ThisVar) -> defs.Types:
 		return self.__classify.type_of(node)
 
 	def on_indexer(self, node: defs.Indexer) -> defs.Types:
@@ -111,8 +117,14 @@ class Handler:
 	def on_generic_type(self, node: defs.GenericType) -> defs.Types:
 		return self.__classify.type_of(node.symbol)
 
-	def on_func_call(self, node: defs.FuncCall, calls: defs.Function) -> defs.Types:
-		return self.__classify.type_of(calls.return_type)
+	def on_func_call(self, node: defs.FuncCall, calls: defs.Function, arguments: list[defs.Argument]) -> defs.Types:
+		if calls.is_a(defs.Constructor):
+			return self.__classify.type_of(calls.as_a(defs.Constructor).class_symbol)
+		else:
+			return self.__classify.type_of(calls.return_type.var_type)
+
+	def on_super(self, node: defs.Super, calls: defs.Function, arguments: list[defs.Argument]) -> defs.Types:
+		return self.__classify.type_of(node.class_symbol)
 
 	# Common
 

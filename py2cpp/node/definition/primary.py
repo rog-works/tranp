@@ -34,7 +34,7 @@ class Var(Symbol):
 		if name == 'self' or name.find('.') != -1:
 			return False
 
-		return via.parent.tag != 'getattr'
+		return via._full_path.shift(-1).last[0] != 'getattr'
 
 
 @Meta.embed(Node, actualized(via=Symbol))
@@ -161,3 +161,17 @@ class FuncCall(Node):
 	def arguments(self) -> list[Argument]:
 		args = self._at(1)
 		return [node.as_a(Argument) for node in args._children()] if not args.is_a(Empty) else []
+
+
+@Meta.embed(Node, actualized(via=FuncCall))
+class Super(Node):
+	@classmethod
+	@override
+	def match_feature(cls, via: FuncCall) -> bool:
+		return via.calls.tokens == 'super'
+
+	@property
+	def class_symbol(self) -> Symbol:
+		from py2cpp.node.definition.statement_compound import Types  # FIXME 循環参照
+
+		return self._ancestor('class_def').as_a(Types).symbol

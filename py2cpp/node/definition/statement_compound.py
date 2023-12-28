@@ -192,7 +192,7 @@ class ClassMethod(Function):
 
 	@property
 	def class_symbol(self) -> Symbol:
-		return self.parent.as_a(Block).parent.as_a(Class).symbol  # FIXME 循環参照
+		return self.parent.as_a(Block).parent.as_a(Types).symbol
 
 
 @Meta.embed(Node, actualized(via=Function))
@@ -204,7 +204,7 @@ class Constructor(Function):
 
 	@property
 	def class_symbol(self) -> Symbol:
-		return self.parent.as_a(Block).parent.as_a(Class).symbol  # FIXME 循環参照
+		return self.parent.as_a(Block).parent.as_a(Types).symbol
 
 	@property
 	def this_vars(self) -> list[AnnoAssign | MoveAssign]:
@@ -226,7 +226,7 @@ class Method(Function):
 
 	@property
 	def class_symbol(self) -> Symbol:
-		return self.parent.as_a(Block).parent.as_a(Class).symbol  # FIXME 循環参照
+		return self.parent.as_a(Block).parent.as_a(Types).symbol
 
 
 @Meta.embed(Node, accept_tags('class_def'))
@@ -258,7 +258,7 @@ class Class(Types):
 		if not decorator.symbol.tokens.startswith('__alias__'):
 			return None
 
-		return decorator.symbol._at(1).as_a(Symbol)
+		return decorator.symbol._by('name[1]').as_a(Symbol)
 
 	@property
 	@Meta.embed(Node, expandable)

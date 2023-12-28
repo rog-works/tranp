@@ -157,6 +157,23 @@ class TestNodes(TestCase):
 		self.assertEqual(type(node), expected)
 
 	@data_provider([
+		('root.tree_a', 'root', Root),
+		('root.tree_a.__empty__', 'tree_a', TreeA),
+		('root.tree_a.token_a[1]', 'tree_a', TreeA),
+		('root.tree_a.tree_b[2]', 'tree_a', TreeA),
+		('root.tree_a.tree_b[3]', 'root', Root),
+		('root.tree_a.tree_b[3].token_b', 'tree_a', TreeA),
+		('root.tree_a.token_a[4]', 'root', Root),
+		('root.tree_a.token_c', 'tree_a', TreeA),
+		('root.term_a', 'root', Root),
+		('root.tree_c.skip_tree_a.term_a', 'tree_c', TreeC),
+	])
+	def test_ancestor(self, via: str, tag: str, expected: type[Node]) -> None:
+		nodes = Fixture.nodes()
+		node = nodes.ancestor(via, tag)
+		self.assertEqual(type(node), expected)
+
+	@data_provider([
 		('root.tree_a', [TreeA, Terminal, TreeC]),
 		('root.tree_a.__empty__', [Empty, TokenA, TreeB, TreeB, TokenA, TokenC]),
 		('root.tree_a.token_a[1]', [Empty, TokenA, TreeB, TreeB, TokenA, TokenC]),

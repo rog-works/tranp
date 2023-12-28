@@ -145,7 +145,9 @@ class EntryPath:
 			EntryPath: インスタンス
 		"""
 		elems = self.elements
-		if skip > 0:
+		if skip == 0:
+			pass
+		elif skip > 0:
 			elems = elems[skip:]
 		elif skip < 1:
 			elems = elems[:skip]

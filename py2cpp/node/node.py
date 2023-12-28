@@ -29,11 +29,15 @@ class Node(NodeBase):
 		"""インスタンスを生成
 
 		Args:
-			locator (Locator): ロケーター
+			locator (Locator): ロケーター @inject
 			full_path (str): ルート要素からのフルパス
 		"""
 		self.__locator = locator
 		self._full_path = EntryPath(full_path)
+
+	def __str__(self) -> str:
+		"""str: 文字列表現を取得"""
+		return f'<{self.__class__.__name__}: {self.full_path}>'
 
 	@property
 	def __nodes(self) -> Query['Node']:
@@ -42,13 +46,8 @@ class Node(NodeBase):
 
 	@property
 	def module(self) -> Module:
-		"""Module: モジュール XXX モジュールに依存するべきではないのと、パスだけで実用上は十分なので修正を検討"""
+		"""Module: モジュール Note: XXX モジュールの方が上位のため依存するのは好ましくないのと、パスだけで実用上は十分なので修正を検討"""
 		return self.__locator.resolve(Module)
-
-	@property
-	def name(self) -> str:  # XXX 名称を変更するなど検討の余地あり
-		"""str: 一般名称。@note: 主にシンボル名を表し、クラス・関数名などが相当。それ以外のノードでは空文字"""
-		return ''
 
 	@property
 	def full_path(self) -> str:
@@ -57,8 +56,8 @@ class Node(NodeBase):
 
 	@property
 	def tag(self) -> str:
-		"""str: エントリータグ。Grammar上のルール名。@note: あくまでもマッチパターンに対するタグであり、必ずしも共通の構造を表さない点に注意"""
-		return self._full_path.last[0]
+		"""str: エントリータグ。Grammar上のルール名 Note: あくまでもマッチパターンに対するタグであり、必ずしも共通の構造を表さない点に注意"""
+		return self._full_path.last_tag
 
 	@property
 	def classification(self) -> str:
@@ -66,49 +65,40 @@ class Node(NodeBase):
 		return snakelize(self.__class__.__name__)
 
 	@property
-	def is_terminal(self) -> bool:
-		"""bool: 終端要素。これ以上展開が不要な要素であることを表す。@note: 終端記号とは別"""
-		return isinstance(self, TerminalTrait)
-
-	@property
-	def scope_name(self) -> str:
-		"""str: スコープ名を返却。@note: 名前空間を持たないノード以外は空文字"""
+	def public_name(self) -> str:
+		"""str: 公開名称 Note: シンボル名(クラス・関数名)を表す。それ以外のノードでは空文字。実装対象: クラス/ファンクション"""
 		return ''
 
 	@property
-	def namespace(self) -> str:  # XXX 名前よりノードの方が良い。その場合名前をどう取得するかが課題
-		"""str: 自身が所属する名前空間。@note: 所有する名前空間ではない点に注意"""
-		if isinstance(self, ScopeTrait) and self.parent.scope_name:
-			return domainize(self.parent.namespace, self.parent.scope_name)
-		else:
-			return self.parent.namespace
+	def is_terminal(self) -> bool:
+		"""bool: 終端要素。これ以上展開が不要な要素であることを表す Note: 終端記号とは別"""
+		return isinstance(self, TerminalTrait)
 
 	@property
-	def scope(self) -> str:  # XXX 名前よりノードの方が良い。その場合名前をどう取得するかが課題
-		"""str: 自身が所属するスコープ。@note: 所有するスコープではない点に注意"""
+	def scope(self) -> str:
+		"""str: 自身が所有するスコープ。FQDNに相当"""
 		if isinstance(self, ScopeTrait):
-			return domainize(self.parent.scope, self.parent.name or self.parent._full_path.elements[-1])
+			return domainize(self.parent.scope, self.scope_part)
 		else:
 			return self.parent.scope
 
 	@property
-	def nest(self) -> int:
-		"""int: ネストレベル。スコープと同期"""
-		return len(self.scope.split('.')) - 1
-
-	@property
-	def parent(self) -> 'Node':
-		"""Node: 親のノード。@note: あくまでもノード上の親であり、AST上の親と必ずしも一致しない点に注意"""
-		return self.__nodes.parent(self.full_path)
+	def namespace(self) -> str:
+		"""str: 自身が所有する名前空間。スコープのエイリアス"""
+		if isinstance(self, ScopeTrait):
+			return domainize(self.parent.namespace, self.namespace_part)
+		else:
+			return self.parent.namespace
 
 	@property
 	def tokens(self) -> str:
-		"""自身のトークン表現を取得
-
-		Returns:
-			str: トークン
-		"""
+		"""str: 自身のトークン表現"""
 		return '.'.join(self._values())
+
+	@property
+	def parent(self) -> 'Node':
+		"""Node: 親のノード Note: あくまでもノード上の親であり、AST上の親と必ずしも一致しない点に注意"""
+		return self.__nodes.parent(self.full_path)
 
 	def flatten(self) -> list['Node']:
 		"""下位のノードを再帰的に展開し、1次元に平坦化して取得
@@ -217,7 +207,7 @@ class Node(NodeBase):
 		"""指定のパスに紐づく一意なノードをフェッチ
 
 		Args:
-			relative_path (str): 自身のエントリーからの相対パス
+			relative_path (str): 自身のノードからの相対パス
 		Returns:
 			Node: ノード
 		Raises:
@@ -237,7 +227,7 @@ class Node(NodeBase):
 		"""
 		children = self._children()
 		if index < 0 or len(children) <= index:
-			raise NotFoundError(self, index)
+			raise NotFoundError(str(self), index)
 
 		return children[index]
 
@@ -263,7 +253,7 @@ class Node(NodeBase):
 		パスを省略した場合は自身と同階層を検索し、自身を除いたノードを返却
 
 		Args:
-			relative_path (str): 自身のエントリーからの相対パス(default = '')
+			relative_path (str): 自身のノードからの相対パス(default = '')
 		Returns:
 			list[Node]: ノードリスト
 		Raises:
@@ -277,7 +267,7 @@ class Node(NodeBase):
 		パスを省略した場合は自身と同階層より1階層下を検索
 
 		Args:
-			relative_path (str): 自身のエントリーからの相対パス(default = '')
+			relative_path (str): 自身のノードからの相対パス(default = '')
 		Returns:
 			list[Node]: ノードリスト
 		Raises:
@@ -329,16 +319,17 @@ class Node(NodeBase):
 
 	def as_a(self, to_class: type[T_NodeBase]) -> T_NodeBase:
 		"""指定の具象クラスに変換。変換先が派生クラスの場合のみ変換し、同じか基底クラスの場合は何もしない
-		変換条件:
-		1. 変換先と継承関係
-		2. 受け入れタグが設定
 
 		Args:
-			to_class (type[T]): 変換先の具象クラス
+			to_class (type[T_NodeBase]): 変換先の具象クラス
 		Returns:
-			T: 具象クラスのインスタンス
+			T_NodeBase: 具象クラスのインスタンス
 		Raises:
 			LogicError: 許可されない変換先を指定
+		Note:
+			## 変換条件
+			1. 変換先と継承関係
+			2. 受け入れタグが設定
 		"""
 		if self.is_a(to_class):
 			return cast(T_NodeBase, self)
@@ -381,16 +372,16 @@ class Node(NodeBase):
 		"""指定のクラスと同じか派生クラスか判定し、合致すればそのままインスタンスを返す。いずれのクラスでもない場合はエラーを出力
 
 		Args:
-			expects (type[T]): 期待するクラス(共用型)
+			expects (T_NodeBase): 期待するクラス(型/共用型)
 		Returns:
-			bool: True = 同種
+			T_NodeBase: インスタンス
 		Raises:
 			LogicError: 指定のクラスと合致しない
 		Examples:
 			```python
 			@property
-			def var_type(self) -> Symbol | GenericType:
-				return self._at(1).one_of(Symbol | GenericType)
+			def var_type(self) -> Symbol | GenericType | Null:
+				return self._at(1).one_of(Symbol | GenericType | Null)
 			```
 		"""
 		if hasattr(expects, '__args__'):
@@ -402,7 +393,6 @@ class Node(NodeBase):
 				return cast(T_NodeBase, self)
 
 		raise LogicError(str(self), expects)
-
 
 	def is_a(self, *ctor: type[NodeBase]) -> bool:
 		"""指定のクラスと同じか派生クラスか判定
@@ -417,19 +407,18 @@ class Node(NodeBase):
 	@deprecated
 	def rerole(self, to_class: type[T_NodeBase]) -> T_NodeBase:
 		"""指定の具象クラスへリロールする。変換先と継承関係がある場合はエラーを出力
-		変換条件:
-		1. 変換先と継承関係がない
-		2. 受け入れタグが設定
 
 		Args:
-			to_class (type[T]): 変換先の具象クラス
+			to_class (type[T_NodeBase]): 変換先の具象クラス
 		Returns:
-			T: 具象クラスのインスタンス
+			T_NodeBase: 具象クラスのインスタンス
 		Raises:
 			LogicError: 許可されない変換先を指定
 		Note:
-			このメソッドは極力使用しないことを推奨
-			継承関係がある変換にはas_aを使用すること
+			@deprecated このメソッドは極力使用しないことを推奨。継承関係がある変換にはas_aを使用すること
+			## 変換条件
+			1. 変換先と継承関係がない
+			2. 受け入れタグが設定
 		"""
 		if self.is_a(to_class):
 			raise LogicError(str(self), to_class)
@@ -455,10 +444,14 @@ class Node(NodeBase):
 			bool: True = 一致
 		Note:
 			@see actualize, _feature_classes
-			# 注意点
+			## 注意点
 			このメソッド内で引数のviaを元に親ノードをインスタンス化すると無限ループするため、その様に実装してはならない
-			OK: return via._full_path.shift(-1).last[0] == 'xxx'
-			NG: return via.parent.tag == 'xxx'
+			```python
+			# OK
+			return via._full_path.shift(-1).last_tag == 'xxx'
+			# NG
+			return via.parent.tag == 'xxx'
+			```
 		"""
 		return False
 
@@ -490,10 +483,6 @@ class Node(NodeBase):
 
 		return self
 
-	def __str__(self) -> str:
-		"""str: 文字列表現を取得"""
-		return f'<{self.__class__.__name__}: {self.full_path}>'
-
 	@deprecated
 	def plugin(self, symbol: type[T_Plugin]) -> T_Plugin:
 		"""プラグインモジュールを取得
@@ -501,7 +490,7 @@ class Node(NodeBase):
 		Args:
 			symbol (type[T_Plugin]): モジュールのシンボル
 		Returns:
-			T_Plugin: モジュール
+			T_Plugin: プラグイン
 		Note:
 			@deprecated 未使用
 		"""

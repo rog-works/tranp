@@ -9,11 +9,14 @@ from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
 from py2cpp.node.node import Node
-from py2cpp.node.trait import DomainNameTrait
+from py2cpp.node.trait import DomainNameTrait, ScopeTrait
+
+
+class Flow(Node): pass
 
 
 @Meta.embed(Node, accept_tags('elif_'))
-class ElseIf(Node):
+class ElseIf(Flow):
 	@property
 	@Meta.embed(Node, expandable)
 	def condition(self) -> Node:
@@ -26,7 +29,7 @@ class ElseIf(Node):
 
 
 @Meta.embed(Node, accept_tags('if_stmt'))
-class If(Node):
+class If(Flow):
 	@property
 	@Meta.embed(Node, expandable)
 	def condition(self) -> Node:
@@ -49,7 +52,7 @@ class If(Node):
 
 
 @Meta.embed(Node, accept_tags('while_stmt'))
-class While(Node):
+class While(Flow):
 	@property
 	@Meta.embed(Node, expandable)
 	def condition(self) -> Node:
@@ -62,7 +65,7 @@ class While(Node):
 
 
 @Meta.embed(Node, accept_tags('for_stmt'))
-class For(Node):
+class For(Flow):
 	@property
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Symbol:
@@ -80,7 +83,7 @@ class For(Node):
 
 
 @Meta.embed(Node, accept_tags('except_clause'))
-class Catch(Node):
+class Catch(Flow):
 	@property
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Symbol:
@@ -98,7 +101,7 @@ class Catch(Node):
 
 
 @Meta.embed(Node, accept_tags('try_stmt'))
-class Try(Node):
+class Try(Flow):
 	@property
 	@Meta.embed(Node, expandable)
 	def block(self) -> Block:
@@ -110,7 +113,17 @@ class Try(Node):
 		return [node.as_a(Catch) for node in self._by('except_clauses')._children()]
 
 
-class Types(Node, DomainNameTrait):
+class Types(Node, DomainNameTrait, ScopeTrait):
+	@property
+	@override
+	def public_name(self) -> str:
+		return self.symbol.tokens
+
+	@property
+	@override
+	def scope_part(self) -> str:
+		return self.public_name
+
 	@property
 	@implements
 	def domain_id(self) -> str:
@@ -144,11 +157,6 @@ class Function(Types):
 			return 'protected'
 		else:
 			return 'public'
-
-	@property
-	@override
-	def name(self) -> str:
-		return self.symbol.tokens
 
 	@property
 	@override
@@ -236,13 +244,8 @@ class Method(Function):
 class Class(Types):
 	@property
 	@override
-	def name(self) -> str:
-		return self.symbol.tokens
-
-	@property
-	@override
-	def scope_name(self) -> str:
-		return self.name
+	def namespace_part(self) -> str:
+		return self.public_name
 
 	@property
 	@override
@@ -317,13 +320,8 @@ class Class(Types):
 class Enum(Types):
 	@property
 	@override
-	def name(self) -> str:
-		return self.symbol.tokens
-
-	@property
-	@override
-	def scope_name(self) -> str:
-		return self.name
+	def namespace_part(self) -> str:
+		return self.public_name
 
 	@property
 	@override

@@ -19,7 +19,13 @@ class Terminal(Node): pass
 class Empty(Node): pass
 class Expression(Node): pass
 class Assign(Node): pass
-class Block(Node, ScopeTrait): pass
+
+
+class Block(Node, ScopeTrait):
+	@property
+	@override
+	def scope_part(self) -> str:
+		return self.parent._full_path.last_tag
 
 
 class If(Node):
@@ -32,11 +38,6 @@ class If(Node):
 class FileInput(Node):
 	@property
 	@override
-	def scope_name(self) -> str:
-		return '__main__'
-
-	@property
-	@override
 	def namespace(self) -> str:
 		return '__main__'
 
@@ -46,16 +47,23 @@ class FileInput(Node):
 		return '__main__'
 
 
-class Class(Node):
+class Types(Node, ScopeTrait):
 	@property
 	@override
-	def name(self) -> str:
+	def scope_part(self) -> str:
+		return self.public_name
+
+
+class Class(Types):
+	@property
+	@override
+	def public_name(self) -> str:
 		return 'C1'
 
 	@property
 	@override
-	def scope_name(self) -> str:
-		return self.name
+	def namespace_part(self) -> str:
+		return self.public_name
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -63,16 +71,16 @@ class Class(Node):
 		return self._by('block').as_a(Block)
 
 
-class Enum(Node):
+class Enum(Types):
 	@property
 	@override
-	def name(self) -> str:
+	def public_name(self) -> str:
 		return 'E1'
 
 	@property
 	@override
-	def scope_name(self) -> str:
-		return self.name
+	def namespace_part(self) -> str:
+		return self.public_name
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -80,10 +88,10 @@ class Enum(Node):
 		return [node.as_a(Assign) for node in self._children('block')]
 
 
-class Function(Node):
+class Function(Types):
 	@property
 	@override
-	def name(self) -> str:
+	def public_name(self) -> str:
 		return 'F1'
 
 	@property
@@ -210,10 +218,10 @@ class TestNode(TestCase):
 
 	@data_provider([
 		('file_input', '__main__'),
-		('file_input.class', '__main__'),
-		('file_input.class.__empty__', '__main__'),
+		('file_input.class', '__main__.C1'),
+		('file_input.class.__empty__', '__main__.C1'),
 		('file_input.class.block', '__main__.C1'),
-		('file_input.class.block.enum', '__main__.C1'),
+		('file_input.class.block.enum', '__main__.C1.E1'),
 		('file_input.class.block.enum.block', '__main__.C1.E1'),
 		('file_input.class.block.function[1]', '__main__.C1'),
 		('file_input.class.block.function[1].block', '__main__.C1'),
@@ -228,39 +236,21 @@ class TestNode(TestCase):
 
 	@data_provider([
 		('file_input', '__main__'),
-		('file_input.class', '__main__'),
-		('file_input.class.__empty__', '__main__'),
-		('file_input.class.block', '__main__.C1'),
-		('file_input.class.block.enum', '__main__.C1'),
-		('file_input.class.block.enum.block', '__main__.C1.E1'),
-		('file_input.class.block.function[1]', '__main__.C1'),
-		('file_input.class.block.function[1].block', '__main__.C1.F1'),
-		('file_input.class.block.function[1].block.if', '__main__.C1.F1'),
-		('file_input.class.block.function[1].block.if.block', '__main__.C1.F1.if'),
-		('file_input.function.block.term_a', '__main__.F1'),
+		('file_input.class', '__main__.C1'),
+		('file_input.class.__empty__', '__main__.C1'),
+		('file_input.class.block', '__main__.C1.class'),
+		('file_input.class.block.enum', '__main__.C1.class.E1'),
+		('file_input.class.block.enum.block', '__main__.C1.class.E1.enum'),
+		('file_input.class.block.function[1]', '__main__.C1.class.F1'),
+		('file_input.class.block.function[1].block', '__main__.C1.class.F1.function'),
+		('file_input.class.block.function[1].block.if', '__main__.C1.class.F1.function'),
+		('file_input.class.block.function[1].block.if.block', '__main__.C1.class.F1.function.if'),
+		('file_input.function.block.term_a', '__main__.F1.function'),
 	])
 	def test_scope(self, full_path: str, expected: str) -> None:
 		nodes = Fixture.nodes()
 		node = nodes.by(full_path)
 		self.assertEqual(node.scope, expected)
-
-	@data_provider([
-		('file_input', 0),
-		('file_input.class', 0),
-		('file_input.class.__empty__', 0),
-		('file_input.class.block', 1),
-		('file_input.class.block.enum', 1),
-		('file_input.class.block.enum.block', 2),
-		('file_input.class.block.function[1]', 1),
-		('file_input.class.block.function[1].block', 2),
-		('file_input.class.block.function[1].block.if', 2),
-		('file_input.class.block.function[1].block.if.block', 3),
-		('file_input.function.block.term_a', 1),
-	])
-	def test_nest(self, full_path: str, expected: int) -> None:
-		nodes = Fixture.nodes()
-		node = nodes.by(full_path)
-		self.assertEqual(node.nest, expected)
 
 	@data_provider([
 		('file_input.class', 'file_input'),

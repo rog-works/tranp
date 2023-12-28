@@ -242,7 +242,7 @@ class Nodes(Query[Node]):
 			entry_path = EntryPath(path)
 
 			# XXX 変換対象が存在する場合はそちらに対応を任せる(終端記号か否かは問わない)
-			entry_tag = entry_path.last[0]
+			entry_tag = entry_path.last_tag
 			if self.__resolver.can_resolve(entry_tag):
 				memo.append(entry_path.origin)
 				return True

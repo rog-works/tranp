@@ -1,3 +1,4 @@
+from py2cpp.lang.annotation import override
 from py2cpp.node.definition.common import Argument
 from py2cpp.node.definition.literal import Null
 from py2cpp.node.definition.primary import GenericType, Symbol
@@ -10,9 +11,7 @@ from py2cpp.node.trait import ScopeTrait
 
 
 @Meta.embed(Node, accept_tags('paramvalue'))
-class Parameter(Node, ScopeTrait):
-	"""Note: XXX 名前空間を関数内部に置くためScopeTraitを継承"""
-
+class Parameter(Node):
 	@property
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Symbol:
@@ -31,9 +30,7 @@ class Parameter(Node, ScopeTrait):
 
 
 @Meta.embed(Node, accept_tags('return_type'))
-class ReturnType(Node, ScopeTrait):
-	"""Note: XXX 名前空間を関数内部に置くためScopeTraitを継承"""
-
+class ReturnType(Node):
 	@property
 	@Meta.embed(Node, expandable)
 	def var_type(self) -> Symbol | GenericType | Null:
@@ -56,12 +53,17 @@ class Decorator(Node):
 @Meta.embed(Node, accept_tags('block'))
 class Block(Node, ScopeTrait):
 	@property
+	@override
+	def scope_part(self) -> str:
+		return self.parent._full_path.last_tag
+
+	@property
 	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:
 		return self._children()
 
 	def decl_vars_with(self, allow: type[T_NodeBase]) -> list[AnnoAssign | MoveAssign]:
-		# @see general.Entrypoint.bock.decl_vars
+		# @see general.Entrypoint.block.decl_vars
 		assigns = {
 			node.one_of(AnnoAssign | MoveAssign): True
 			for node in reversed(self.statements)

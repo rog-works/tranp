@@ -34,7 +34,7 @@ class Var(Symbol):
 		if name == 'self' or name.find('.') != -1:
 			return False
 
-		return via._full_path.shift(-1).last[0] != 'getattr'
+		return via._full_path.shift(-1).last_tag != 'getattr'
 
 
 @Meta.embed(Node, actualized(via=Symbol))

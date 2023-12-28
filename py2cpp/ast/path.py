@@ -81,6 +81,24 @@ class EntryPath:
 		"""
 		return self.__break_tag(self.elements[-1])
 
+	@property
+	def first_tag(self) -> str:
+		"""先頭のエントリータグを取得
+
+		Returns:
+			str: エントリータグ
+		"""
+		return self.first[0]
+
+	@property
+	def last_tag(self) -> str:
+		"""末尾のエントリータグを取得
+
+		Returns:
+			str: エントリータグ
+		"""
+		return self.last[0]
+
 	def __break_tag(self, elem: str) -> tuple[str, int]:
 		"""要素から元のタグと付与されたインデックスに分解。インデックスがない場合は-1とする
 

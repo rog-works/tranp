@@ -8,23 +8,14 @@ from py2cpp.node.node import Node
 @Meta.embed(Node, accept_tags('file_input'))
 class Entrypoint(Node):
 	@property
-	def module_path(self) -> str:
+	@override
+	def namespace(self) -> str:
 		return self.module.path
 
 	@property
 	@override
-	def scope_name(self) -> str:
-		return self.module_path
-
-	@property
-	@override
-	def namespace(self) -> str:
-		return self.module_path
-
-	@property
-	@override
 	def scope(self) -> str:
-		return self.module_path
+		return self.module.path
 
 	@property
 	@Meta.embed(Node, expandable)

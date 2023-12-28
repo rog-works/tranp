@@ -1,2 +1,2 @@
-def domainize(domain: str, symbol: str) -> str:
-	return f'{domain}.{symbol}'
+def domainize(domain: str, *prats: str) -> str:
+	return '.'.join([domain, *[part for part in prats if part]])

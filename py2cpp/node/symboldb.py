@@ -121,9 +121,7 @@ class SymbolDBFactory:
 
 			# 展開対象モジュールの変数シンボルを展開
 			for var in expand_target.decl_vars:
-				# XXX This以外を登録
-				if not var.symbol.is_a(defs.This):
-					expand_target.db[var.symbol.domain_id] = cls.__resolve_var_type(var, expand_target.db)
+				expand_target.db[var.symbol.domain_id] = cls.__resolve_var_type(var, expand_target.db)
 
 		# シンボルテーブルを統合
 		db: SymbolDB = {}
@@ -205,7 +203,9 @@ class SymbolDBFactory:
 			Symbol: シンボルノード
 		"""
 		if isinstance(var, (defs.AnnoAssign, defs.Parameter)):
-			if var.var_type.is_a(defs.Symbol):
+			if var.symbol.is_a(defs.This):
+				return var.symbol.as_a(defs.This).class_types.as_a(defs.Types).symbol
+			elif var.var_type.is_a(defs.Symbol):
 				return var.var_type.as_a(defs.Symbol)
 			elif var.var_type.is_a(defs.GenericType):
 				return var.var_type.as_a(defs.GenericType).symbol

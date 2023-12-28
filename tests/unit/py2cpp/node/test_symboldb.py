@@ -65,7 +65,10 @@ class TestSymbolDB(TestCase):
 			# エントリーポイント(Symbols)
 			'__main__.v': 'tests.unit.py2cpp.node.fixtures.test_symboldb_classes.int',
 			'__main__.A.s': 'tests.unit.py2cpp.node.fixtures.test_symboldb_classes.str',
+			'__main__.A.__init__.self': '__main__.A',
 			'__main__.B.v': 'tests.unit.py2cpp.node.fixtures.test_symboldb_classes.list',
+			'__main__.B.__init__.self': '__main__.B',
+			'__main__.B.func1.self': '__main__.B',
 			'__main__.B.func1.b': 'tests.unit.py2cpp.node.fixtures.test_symboldb_classes.list',
 			'__main__.B.func1.v': 'tests.unit.py2cpp.node.fixtures.test_symboldb_classes.Unknown',
 			'__main__.B.B2.v': 'tests.unit.py2cpp.node.fixtures.test_symboldb_classes.str',

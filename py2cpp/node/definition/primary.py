@@ -49,19 +49,15 @@ class This(Symbol):
 	@property
 	@override
 	def domain_id(self) -> str:
-		from py2cpp.node.definition.statement_compound import Types  # FIXME 循環参照
-
-		return self.__class.as_a(Types).domain_id
+		return domainize(self.scope, self.tokens)
 
 	@property
 	@override
 	def domain_name(self) -> str:
-		from py2cpp.node.definition.statement_compound import Types  # FIXME 循環参照
-
-		return self.__class.as_a(Types).domain_name
+		return domainize(self.module.path, self.tokens)
 
 	@property
-	def __class(self) -> Node:
+	def class_types(self) -> Node:  # XXX 微妙
 		return self._ancestor('class_def')
 
 
@@ -77,21 +73,21 @@ class ThisVar(Symbol):
 	def domain_id(self) -> str:
 		from py2cpp.node.definition.statement_compound import Types  # FIXME 循環参照
 
-		return domainize(self.__class.as_a(Types).domain_id, self.tokens_without_this)
+		return domainize(self.class_types.as_a(Types).domain_id, self.tokens_without_this)
 
 	@property
 	@override
 	def domain_name(self) -> str:
 		from py2cpp.node.definition.statement_compound import Types  # FIXME 循環参照
 
-		return domainize(self.__class.as_a(Types).domain_name, self.tokens_without_this)
+		return domainize(self.class_types.as_a(Types).domain_name, self.tokens_without_this)
 
 	@property
 	def tokens_without_this(self) -> str:
 		return self.tokens.replace('self.', '')
 
 	@property
-	def __class(self) -> Node:
+	def class_types(self) -> Node:  # XXX 微妙
 		return self._ancestor('class_def')
 
 

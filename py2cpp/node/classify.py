@@ -3,7 +3,7 @@ from py2cpp.ast.path import EntryPath
 from py2cpp.errors import LogicError
 import py2cpp.node.definition as defs
 from py2cpp.node.node import Node
-from py2cpp.node.symboldb import SymbolDB
+from py2cpp.node.symboldb import SymbolDB, SymbolRow
 
 
 class Classify:
@@ -11,11 +11,15 @@ class Classify:
 		self.__db = db
 
 	def type_of(self, node: defs.Symbol | defs.GenericType | defs.Literal | defs.Types) -> defs.Types:
-		return self.__type_of(node, self.__resolve_symbol(node))
+		founded = self.__type_of(node, node.module.path, node.scope, self.__resolve_symbol(node))
+		if founded is not None:
+			return founded
+
+		raise LogicError(f'Symbol not defined. node: {node}')
 	
 	def __resolve_symbol(self, node: defs.Symbol | defs.GenericType | defs.Literal | defs.Types) -> str:
-		if node.is_a(defs.ThisVar):
-			return node.as_a(defs.ThisVar).tokens_without_this
+		if node.is_a(defs.This, defs.ThisVar):
+			return node.tokens
 		elif node.is_a(defs.GenericType):
 			return node.as_a(defs.GenericType).symbol.tokens
 		elif node.is_a(defs.Literal):
@@ -26,33 +30,52 @@ class Classify:
 			# その他のSymbol
 			return node.tokens
 
-	def __type_of(self, node: defs.Symbol | defs.GenericType | defs.Literal | defs.Types, symbol: str) -> defs.Types:
-		remain_symbol = EntryPath(symbol).shift(1)
-		first = EntryPath(symbol).first[0]
-		candidates = [
-			domainize(node.scope, first),
-			domainize(node.module.path, first),
-		]
-		for candidate in candidates:
-			if candidate not in self.__db:
-				continue
+	def __type_of(self, node: Node, module_path: str, scope: str, symbol: str) -> defs.Types | None:
+		symbols = EntryPath(symbol)
+		symbol_types = None
+		symbol_counts = len(symbols.elements)
+		remain_counts = symbol_counts
+		while remain_counts > 0:
+			candidate = EntryPath.join(*symbols.elements[0:(symbol_counts - (remain_counts - 1))]).origin
+			found_row = self.__fetch_symbol_row(module_path, scope, candidate)
+			if found_row is None:
+				break
 
-			row = self.__db[candidate]
-			if not remain_symbol.valid:
-				return row.types
+			symbol_types = found_row.types
+			remain_counts -= 1
 
-			founded = self.__type_of(row.types, remain_symbol.origin)
+		if symbol_types and remain_counts == 0:
+			return symbol_types
+
+		remain_symbol = symbols.shift(symbol_counts - remain_counts).origin
+		if symbol_types and symbol_types.is_a(defs.Class):
+			return self.__type_of(symbol_types, symbol_types.module.path, symbol_types.block.scope, remain_symbol)
+		elif node.is_a(defs.Class):
+			return self.__type_of_from_class_chain(node.as_a(defs.Class), remain_symbol)
+
+		return None
+
+	def __fetch_symbol_row(self, module_path: str, scope: str, symbol: str) -> SymbolRow | None:
+		domain_id = domainize(scope, symbol)
+		domain_name = domainize(module_path, symbol)
+		if domain_id in self.__db:
+			return self.__db[domain_id]
+		elif domain_name in self.__db:
+			return self.__db[domain_name]
+
+		return None
+
+	def __type_of_from_class_chain(self, class_types: defs.Class, symbol: str) -> defs.Types | None:
+		for symbol_node in class_types.parents:
+			parent_types = self.__type_of(symbol_node, symbol_node.module.path, symbol_node.scope, symbol_node.tokens)
+			if parent_types is None:
+				break
+
+			founded = self.__type_of(parent_types, parent_types.module.path, parent_types.block.scope, symbol)
 			if founded:
 				return founded
 
-		if node.is_a(defs.Class):
-			for symbol_node in node.as_a(defs.Class).parents:
-				parent_types = self.__type_of(symbol_node, symbol_node.tokens).as_a(defs.Class)
-				founded = self.__type_of(parent_types, symbol)
-				if founded:
-					return founded
-
-		raise LogicError(f'Symbol not defined. node: {node}, symbol: {symbol}')
+		return None
 
 	def result_of(self, expression: Node) -> defs.Types:
 		handler = Handler(self)

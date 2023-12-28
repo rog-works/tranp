@@ -1,23 +1,52 @@
+from typing import TypeAlias
+
 from py2cpp.ast.dns import domainize
 from py2cpp.ast.path import EntryPath
 from py2cpp.errors import LogicError
+from py2cpp.lang.annotation import injectable
 import py2cpp.node.definition as defs
 from py2cpp.node.node import Node
 from py2cpp.node.symboldb import SymbolDB, SymbolRow
 
+T_Symbolic: TypeAlias = defs.Symbol | defs.GenericType | defs.Literal | defs.Types
+
 
 class Classify:
+	"""シンボルテーブルを参照してシンボルの型を解決する機能を提供"""
+
+	@injectable
 	def __init__(self, db: SymbolDB) -> None:
+		"""インスタンスを生成
+
+		Args:
+			db (SymbolDB): シンボルテーブル
+		"""
 		self.__db = db
 
-	def type_of(self, node: defs.Symbol | defs.GenericType | defs.Literal | defs.Types) -> defs.Types:
+	def type_of(self, node: T_Symbolic) -> defs.Types:
+		"""シンボルノードからタイプノードを解決
+
+		Args:
+			node (T_Symbolic): シンボルノード
+		Returns:
+			Types: タイプノード(クラス/ファンクション)
+		Raises:
+			LogicError: 未定義のシンボルを指定
+		"""
 		founded = self.__type_of(node, node.module.path, node.scope, self.__resolve_symbol(node))
 		if founded is not None:
 			return founded
 
 		raise LogicError(f'Symbol not defined. node: {node}')
 	
-	def __resolve_symbol(self, node: defs.Symbol | defs.GenericType | defs.Literal | defs.Types) -> str:
+	def __resolve_symbol(self, node: T_Symbolic) -> str:
+		"""シンボル名を解決
+
+		Args:
+			node (T_Symbolic): シンボルノード
+		Returns:
+			str: シンボル名
+		"""
 		if node.is_a(defs.This, defs.ThisVar):
 			return node.tokens
 		elif node.is_a(defs.GenericType):
@@ -30,24 +59,39 @@ class Classify:
 			# その他のSymbol
 			return node.tokens
 
-	def __type_of(self, node: Node, module_path: str, scope: str, symbol: str) -> defs.Types | None:
-		symbols = EntryPath(symbol)
+	def __type_of(self, node: T_Symbolic, module_path: str, scope: str, symbol: str) -> defs.Types | None:
+		"""シンボルノードからタイプノードを解決。未検出の場合はNoneを返却
+
+		Args:
+			node (T_Symbolic): シンボルノード
+			module_path (str): シンボルノードのモジュールパス
+			scope (str): シンボルノードのスコープ
+			symbol (str): シンボル名
+		Returns:
+			Types | None: タイプノード(クラス/ファンクション)
+		"""
+		symbol_path = EntryPath(symbol)
 		symbol_types = None
-		symbol_counts = len(symbols.elements)
+
+		# ドット区切りで前方からシンボルを検索
+		symbol_counts = len(symbol_path.elements)
 		remain_counts = symbol_counts
 		while remain_counts > 0:
-			candidate = EntryPath.join(*symbols.elements[0:(symbol_counts - (remain_counts - 1))]).origin
-			found_row = self.__fetch_symbol_row(module_path, scope, candidate)
+			symbol_elems = symbol_path.elements[0:(symbol_counts - (remain_counts - 1))]
+			symbol_starts = EntryPath.join(*symbol_elems).origin
+			found_row = self.__find_symbol_row(module_path, scope, symbol_starts)
 			if found_row is None:
 				break
 
 			symbol_types = found_row.types
 			remain_counts -= 1
 
+		# シンボルが完全一致したデータを検出したら終了
 		if symbol_types and remain_counts == 0:
 			return symbol_types
 
-		remain_symbol = symbols.shift(symbol_counts - remain_counts).origin
+		# 残りのシンボルパスは検出したクラスタイプのノードか、クラスシンボルのノード自体が再帰的に解決
+		remain_symbol = symbol_path.shift(symbol_counts - remain_counts).origin
 		if symbol_types and symbol_types.is_a(defs.Class):
 			return self.__type_of(symbol_types, symbol_types.module.path, symbol_types.block.scope, remain_symbol)
 		elif node.is_a(defs.Class):
@@ -55,7 +99,16 @@ class Classify:
 
 		return None
 
-	def __fetch_symbol_row(self, module_path: str, scope: str, symbol: str) -> SymbolRow | None:
+	def __find_symbol_row(self, module_path: str, scope: str, symbol: str) -> SymbolRow | None:
+		"""シンボルデータを検索。未検出の場合はNoneを返却
+
+		Args:
+			module_path (str): シンボルノードのモジュールパス
+			scope (str): シンボルノードのスコープ
+			symbol (str): シンボル名
+		Returns:
+			SymbolRow | None: シンボルデータ
+		"""
 		domain_id = domainize(scope, symbol)
 		domain_name = domainize(module_path, symbol)
 		if domain_id in self.__db:
@@ -66,6 +119,14 @@ class Classify:
 		return None
 
 	def __type_of_from_class_chain(self, class_types: defs.Class, symbol: str) -> defs.Types | None:
+		"""クラスの継承チェーンを辿ってシンボルを解決。未検出の場合はNoneを返却
+
+		Args:
+			class_types (Class): クラスタイプノード
+			symbol (str): シンボル名
+		Returns:
+			Types | None: タイプノード(クラス/ファンクション)
+		"""
 		for symbol_node in class_types.parents:
 			parent_types = self.__type_of(symbol_node, symbol_node.module.path, symbol_node.scope, symbol_node.tokens)
 			if parent_types is None:
@@ -78,6 +139,15 @@ class Classify:
 		return None
 
 	def result_of(self, expression: Node) -> defs.Types:
+		"""式ノードからタイプノードを解決
+
+		Args:
+			expression (Node): 式ノード
+		Returns:
+			Types: タイプノード(クラス/ファンクション)
+		Raises:
+			LogicError: シンボルの解決に失敗
+		"""
 		handler = Handler(self)
 		for node in expression.calculated():
 			handler.on_action(node)

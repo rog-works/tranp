@@ -38,3 +38,15 @@ def deprecated(wrapper_func: Callable[P, T]) -> Callable[P, T]:
 	"""
 	# FIXME impl
 	return wrapper_func
+
+
+def injectable(wrapper_func: Callable[P, T]) -> Callable[P, T]:
+	"""メソッドのinjectableアノテーション。特に何も変更せずそのまま元のメソッドを返す
+
+	Args:
+		wrapper_func (Callable[..., T]): 対象のメソッド
+	Returns:
+		Callable[...,  T]: 対象のメソッドを返却
+	"""
+	# FIXME impl
+	return wrapper_func

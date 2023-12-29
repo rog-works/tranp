@@ -4,10 +4,10 @@ from py2cpp.app.types import ModuleDefinitions
 def default_definitions() -> ModuleDefinitions:
 	return {
 		'py2cpp.ast.entry.Entry': 'py2cpp.ast.provider.root',
-		'py2cpp.ast.parser.FileLoader': 'py2cpp.ast.parser.FileLoader',
+		'py2cpp.ast.query.Query': 'py2cpp.node.nodes.Nodes',
 		'py2cpp.ast.parser.GrammarSettings': 'py2cpp.ast.provider.grammar_settings',
 		'py2cpp.ast.parser.SyntaxParser': 'py2cpp.tp_lark.parser.SyntaxParserOfLark',
-		'py2cpp.ast.query.Query': 'py2cpp.node.nodes.Nodes',
+		'py2cpp.lang.io.FileLoader': 'py2cpp.lang.io.FileLoader',
 		'py2cpp.module.base.LibraryPaths': 'py2cpp.module.provider.library_paths',
 		'py2cpp.module.base.ModulePath': 'py2cpp.module.provider.module_path_main',
 		'py2cpp.module.loader.ModuleLoader': 'py2cpp.module.provider.module_loader',

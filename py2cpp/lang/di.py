@@ -94,9 +94,9 @@ class DI:
 		Returns:
 			type[T_Inst]: シンボル
 		Note:
-			XXX Generic型は型の解決結果が不明瞭で扱いにくいためオリジナルの型のみ受け入れ
+			XXX Generic型は型の解決結果が不明瞭で扱いにくいため、オリジナルの型のみ受け入れ
 			```python
-			# Generic型を登録にした場合(=曖昧な例)
+			# Generic型で登録した場合(=曖昧な例)
 			di.bind(Gen[A], lambda: Gen[B]())
 			di.resolve(Gen[A])  # OK
 			di.resolve(Gen[B])  # NG

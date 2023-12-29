@@ -2,8 +2,9 @@ from lark import Lark
 from lark.indenter import PythonIndenter
 
 from py2cpp.ast.entry import Entry
-from py2cpp.ast.parser import GrammarSettings, FileLoader, SyntaxParser
+from py2cpp.ast.parser import GrammarSettings, SyntaxParser
 from py2cpp.lang.annotation import implements
+from py2cpp.lang.io import FileLoader
 from py2cpp.tp_lark.entry import EntryOfLark
 
 

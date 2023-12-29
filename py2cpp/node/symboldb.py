@@ -16,13 +16,13 @@ class SymbolRow(NamedTuple):
 		org_path: 参照パス(オリジナル)
 		module: 展開先のモジュール
 		symbol: シンボルノード
-		types: タイプ(クラス/関数全般)
+		types: タイプ(クラスタイプ)
 	"""
 	ref_path: str
 	org_path: str
 	module: Module
 	symbol: defs.Symbol
-	types: defs.Types
+	types: defs.ClassType
 
 	def to(self, module: Module) -> 'SymbolRow':
 		"""展開先を変更したインスタンスを生成
@@ -47,7 +47,7 @@ class SymbolRow(NamedTuple):
 
 SymbolDB: TypeAlias = dict[str, SymbolRow]
 DeclVar: TypeAlias = defs.Parameter | defs.AnnoAssign | defs.MoveAssign
-DeclAll: TypeAlias = defs.Parameter | defs.AnnoAssign | defs.MoveAssign | defs.Types
+DeclAll: TypeAlias = defs.Parameter | defs.AnnoAssign | defs.MoveAssign | defs.ClassType
 
 
 @dataclass
@@ -144,7 +144,7 @@ class SymbolDBFactory:
 		import_nodes: list[defs.Import] = []
 		entrypoint = main.entrypoint(defs.Entrypoint)
 		for node in entrypoint.flatten():
-			if isinstance(node, defs.Types):
+			if isinstance(node, defs.ClassType):
 				db[node.domain_id] = SymbolRow(node.domain_id, node.domain_id, node.module, node.symbol, node)
 
 			if type(node) is defs.Import:
@@ -204,7 +204,7 @@ class SymbolDBFactory:
 		"""
 		if isinstance(var, (defs.AnnoAssign, defs.Parameter)):
 			if var.symbol.is_a(defs.This):
-				return var.symbol.as_a(defs.This).class_types.as_a(defs.Types).symbol
+				return var.symbol.as_a(defs.This).class_types.as_a(defs.ClassType).symbol
 			elif var.var_type.is_a(defs.Symbol):
 				return var.var_type.as_a(defs.Symbol)
 			elif var.var_type.is_a(defs.GenericType):

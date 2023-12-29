@@ -7,7 +7,7 @@ import py2cpp.node.definition as defs
 from py2cpp.node.node import Node
 from py2cpp.node.symboldb import SymbolDB, SymbolRow
 
-T_Symbolic: TypeAlias = defs.Symbol | defs.GenericType | defs.Literal | defs.Types
+Symbolic: TypeAlias = defs.Symbol | defs.GenericType | defs.Literal | defs.ClassType
 
 
 class Classify:
@@ -22,11 +22,11 @@ class Classify:
 		"""
 		self.__db = db
 
-	def type_of(self, node: T_Symbolic) -> defs.Types:
+	def type_of(self, node: Symbolic) -> defs.ClassType:
 		"""シンボルノードからタイプノードを解決
 
 		Args:
-			node (T_Symbolic): シンボルノード
+			node (Symbolic): 対象ノード
 		Returns:
 			Types: タイプノード(クラス/ファンクション)
 		Raises:
@@ -38,11 +38,11 @@ class Classify:
 
 		raise LogicError(f'Symbol not defined. node: {node}')
 
-	def __type_of(self, node: T_Symbolic, symbol: str) -> defs.Types | None:
+	def __type_of(self, node: Symbolic, symbol: str) -> defs.ClassType | None:
 		"""シンボルノードからタイプノードを解決。未検出の場合はNoneを返却
 
 		Args:
-			node (T_Symbolic): シンボルノード
+			node (Symbolic): 対象ノード
 			symbol (str): シンボル名
 		Returns:
 			Types | None: タイプノード(クラス/ファンクション)
@@ -68,26 +68,26 @@ class Classify:
 		# 解決した部分を除外して探索シンボルを再編
 		remain_symbol = DSN.right(symbol, remain_counts)
 
-		# シンボルを検出、且つクラスタイプのノードの場合は再帰的に解決
+		# シンボルを検出、且つ検出したタイプがクラスノードの場合は再帰的に解決
 		if symbol_types and symbol_types.is_a(defs.Class):
 			return self.__type_of(symbol_types, remain_symbol)
 
-		# シンボルが未検出、且つクラスシンボルの場合は、クラスの継承チェーンを辿って解決
+		# シンボルが未検出、且つ対象ノードがクラスノードの場合は、クラスの継承チェーンを辿って解決
 		if node.is_a(defs.Class):
 			return self.__type_of_from_class_chain(node.as_a(defs.Class), remain_symbol)
 
 		return None
 
-	def __type_of_from_class_chain(self, class_types: defs.Class, symbol: str) -> defs.Types | None:
+	def __type_of_from_class_chain(self, class_node: defs.Class, symbol: str) -> defs.ClassType | None:
 		"""クラスの継承チェーンを辿ってシンボルを解決。未検出の場合はNoneを返却
 
 		Args:
-			class_types (Class): クラスタイプノード
+			class_node (Class): クラスノード
 			symbol (str): シンボル名
 		Returns:
 			Types | None: タイプノード(クラス/ファンクション)
 		"""
-		for symbol_node in class_types.parents:
+		for symbol_node in class_node.parents:
 			parent_types = self.__type_of(symbol_node, self.__resolve_symbol(symbol_node))
 			if parent_types is None:
 				break
@@ -98,11 +98,11 @@ class Classify:
 
 		return None
 
-	def __resolve_symbol(self, node: T_Symbolic) -> str:
+	def __resolve_symbol(self, node: Symbolic) -> str:
 		"""シンボル名を解決
 
 		Args:
-			node (T_Symbolic): シンボルノード
+			node (Symbolic): 対象ノード
 		Returns:
 			str: シンボル名
 		"""
@@ -112,17 +112,17 @@ class Classify:
 			return node.as_a(defs.GenericType).symbol.tokens
 		elif node.is_a(defs.Literal):
 			return node.as_a(defs.Literal).class_symbol_alias
-		elif node.is_a(defs.Types):
-			return node.as_a(defs.Types).symbol.tokens
+		elif node.is_a(defs.ClassType):
+			return node.as_a(defs.ClassType).symbol.tokens
 		else:
 			# その他のSymbol
 			return node.tokens
 
-	def __find_symbol_row(self, node: T_Symbolic, symbol: str) -> SymbolRow | None:
+	def __find_symbol_row(self, node: Symbolic, symbol: str) -> SymbolRow | None:
 		"""シンボルデータを検索。未検出の場合はNoneを返却
 
 		Args:
-			node (T_Symbolic): シンボルノード
+			node (Symbolic): 対象ノード
 			symbol (str): シンボル名
 		Returns:
 			SymbolRow | None: シンボルデータ
@@ -136,7 +136,7 @@ class Classify:
 
 		return None
 
-	def result_of(self, expression: Node) -> defs.Types:
+	def result_of(self, expression: Node) -> defs.ClassType:
 		"""式ノードからタイプノードを解決
 
 		Args:
@@ -156,15 +156,15 @@ class Classify:
 class Handler:
 	def __init__(self, classify: Classify) -> None:
 		self.__classify = classify
-		self.__stack: list[defs.Types] = []
+		self.__stack: list[defs.ClassType] = []
 
-	def result(self) -> defs.Types:
+	def result(self) -> defs.ClassType:
 		return self.__stack.pop()
 
 	def on_action(self, node: Node) -> None:
 		self.__stack.append(self.invoke(node))
 
-	def invoke(self, node: Node) -> defs.Types:
+	def invoke(self, node: Node) -> defs.ClassType:
 		handler_name = f'on_{node.classification}'
 		handler = getattr(self, handler_name)
 		keys = reversed([key for key, _ in handler.__annotations__.items() if key != 'return'])
@@ -178,53 +178,53 @@ class Handler:
 
 	# Primary
 
-	def on_symbol(self, node: defs.Symbol) -> defs.Types:
+	def on_symbol(self, node: defs.Symbol) -> defs.ClassType:
 		return self.__classify.type_of(node)
 
-	def on_var(self, node: defs.Var) -> defs.Types:
+	def on_var(self, node: defs.Var) -> defs.ClassType:
 		return self.__classify.type_of(node)
 
-	def on_this(self, node: defs.This) -> defs.Types:
+	def on_this(self, node: defs.This) -> defs.ClassType:
 		return self.__classify.type_of(node)
 
-	def on_this_var(self, node: defs.ThisVar) -> defs.Types:
+	def on_this_var(self, node: defs.ThisVar) -> defs.ClassType:
 		return self.__classify.type_of(node)
 
-	def on_indexer(self, node: defs.Indexer) -> defs.Types:
+	def on_indexer(self, node: defs.Indexer) -> defs.ClassType:
 		return self.__classify.type_of(node.symbol)
 
-	def on_list_type(self, node: defs.ListType) -> defs.Types:
+	def on_list_type(self, node: defs.ListType) -> defs.ClassType:
 		return self.on_generic_type(node)
 
-	def on_dict_type(self, node: defs.DictType) -> defs.Types:
+	def on_dict_type(self, node: defs.DictType) -> defs.ClassType:
 		return self.on_generic_type(node)
 
-	def on_union_type(self, node: defs.UnionType) -> defs.Types:
+	def on_union_type(self, node: defs.UnionType) -> defs.ClassType:
 		raise LogicError(f'Operation not supoorted. {node}')
 
-	def on_generic_type(self, node: defs.GenericType) -> defs.Types:
+	def on_generic_type(self, node: defs.GenericType) -> defs.ClassType:
 		return self.__classify.type_of(node.symbol)
 
-	def on_func_call(self, node: defs.FuncCall, calls: defs.Function, arguments: list[defs.Argument]) -> defs.Types:
+	def on_func_call(self, node: defs.FuncCall, calls: defs.Function, arguments: list[defs.Argument]) -> defs.ClassType:
 		if calls.is_a(defs.Constructor):
 			return self.__classify.type_of(calls.as_a(defs.Constructor).class_symbol)
 		else:
 			return self.__classify.type_of(calls.return_type.var_type)
 
-	def on_super(self, node: defs.Super, calls: defs.Function, arguments: list[defs.Argument]) -> defs.Types:
+	def on_super(self, node: defs.Super, calls: defs.Function, arguments: list[defs.Argument]) -> defs.ClassType:
 		return self.__classify.type_of(node.class_symbol)
 
 	# Common
 
-	def on_argument(self, node: defs.Argument, value: defs.Types) -> defs.Types:
+	def on_argument(self, node: defs.Argument, value: defs.ClassType) -> defs.ClassType:
 		return value
 
 	# Operator
 
-	def on_sum(self, node: defs.Sum, left: defs.Class, right: defs.Class) -> defs.Types:
+	def on_sum(self, node: defs.Sum, left: defs.Class, right: defs.Class) -> defs.ClassType:
 		return self.on_binary_operator(node, left, right, '__add__')
 
-	def on_binary_operator(self, node: defs.Sum, left: defs.Class, right: defs.Class, operator: str) -> defs.Types:
+	def on_binary_operator(self, node: defs.Sum, left: defs.Class, right: defs.Class, operator: str) -> defs.ClassType:
 		methods = [method for method in left.as_a(defs.Class).methods if method.symbol.tokens == operator]
 		if len(methods) == 0:
 			raise LogicError(f'Operation not allowed. {node}, {left}, {right}, {operator}')
@@ -239,23 +239,23 @@ class Handler:
 
 	# Literal
 
-	def on_integer(self, node: defs.Integer) -> defs.Types:
+	def on_integer(self, node: defs.Integer) -> defs.ClassType:
 		return self.__classify.type_of(node)
 
-	def on_float(self, node: defs.Float) -> defs.Types:
+	def on_float(self, node: defs.Float) -> defs.ClassType:
 		return self.__classify.type_of(node)
 
-	def on_string(self, node: defs.String) -> defs.Types:
+	def on_string(self, node: defs.String) -> defs.ClassType:
 		return self.__classify.type_of(node)
 
-	def on_truthy(self, node: defs.Truthy) -> defs.Types:
+	def on_truthy(self, node: defs.Truthy) -> defs.ClassType:
 		return self.__classify.type_of(node)
 
-	def on_falsy(self, node: defs.Falsy) -> defs.Types:
+	def on_falsy(self, node: defs.Falsy) -> defs.ClassType:
 		return self.__classify.type_of(node)
 
-	def on_list(self, node: defs.List) -> defs.Types:
+	def on_list(self, node: defs.List) -> defs.ClassType:
 		return self.__classify.type_of(node)
 
-	def on_dict(self, node: defs.Dict) -> defs.Types:
+	def on_dict(self, node: defs.Dict) -> defs.ClassType:
 		return self.__classify.type_of(node)

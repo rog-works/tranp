@@ -113,7 +113,7 @@ class Try(Flow):
 		return [node.as_a(Catch) for node in self._by('except_clauses')._children()]
 
 
-class Types(Node, IDomainName, IScope):
+class ClassType(Node, IDomainName, IScope):
 	@property
 	@override
 	def public_name(self) -> str:
@@ -149,7 +149,7 @@ class Types(Node, IDomainName, IScope):
 
 
 @Meta.embed(Node, accept_tags('function_def'))
-class Function(Types):
+class Function(ClassType):
 	@property
 	def access(self) -> str:
 		name = self.symbol.tokens
@@ -208,7 +208,7 @@ class ClassMethod(Function):
 
 	@property
 	def class_symbol(self) -> Symbol:
-		return self.parent.as_a(Block).parent.as_a(Types).symbol
+		return self.parent.as_a(Block).parent.as_a(ClassType).symbol
 
 
 @Meta.embed(Node, actualized(via=Function))
@@ -220,7 +220,7 @@ class Constructor(Function):
 
 	@property
 	def class_symbol(self) -> Symbol:
-		return self.parent.as_a(Block).parent.as_a(Types).symbol
+		return self.parent.as_a(Block).parent.as_a(ClassType).symbol
 
 	@property
 	def this_vars(self) -> list[AnnoAssign | MoveAssign]:
@@ -242,11 +242,11 @@ class Method(Function):
 
 	@property
 	def class_symbol(self) -> Symbol:
-		return self.parent.as_a(Block).parent.as_a(Types).symbol
+		return self.parent.as_a(Block).parent.as_a(ClassType).symbol
 
 
 @Meta.embed(Node, accept_tags('class_def'))
-class Class(Types):
+class Class(ClassType):
 	@property
 	@override
 	def namespace_part(self) -> str:
@@ -322,7 +322,7 @@ class Class(Types):
 
 
 @Meta.embed(Node, accept_tags('enum_def'))
-class Enum(Types):
+class Enum(ClassType):
 	@property
 	@override
 	def namespace_part(self) -> str:

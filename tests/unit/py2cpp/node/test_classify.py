@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from py2cpp.node.classify import Classify
+from py2cpp.node.classify import Classify, Symbolic
 import py2cpp.node.definition as defs
 from tests.test.fixture import Fixture
 from tests.test.helper import data_provider
@@ -63,7 +63,7 @@ class TestClassify(TestCase):
 		(by('B.func1.block', 'assign_stmt[5].assign.number'), 'tests.unit.py2cpp.node.fixtures.test_symboldb_classes.int'),
 		(by('B.func1.block', 'return_stmt.getattr'), 'tests.unit.py2cpp.node.fixtures.test_symboldb_classes.str'),
 	])
-	def test_type_of(self, full_path: str, expected: type[defs.Types]) -> None:
+	def test_type_of(self, full_path: str, expected: type[defs.ClassType]) -> None:
 		classify = self.fixture.get(Classify)
-		node = self.fixture.shared_nodes.by(full_path).one_of(defs.Symbol | defs.GenericType | defs.Literal | defs.Types)
+		node = self.fixture.shared_nodes.by(full_path).one_of(Symbolic)
 		self.assertEqual(classify.type_of(node).domain_id, expected)

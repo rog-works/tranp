@@ -55,7 +55,8 @@ class Block(Node, ScopeTrait):
 	@property
 	@override
 	def scope_part(self) -> str:
-		return self.parent._full_path.last_tag
+		"""Note: XXX 親が公開名称を持つノード(クラス/ファンクション)の場合は空文字。それ以外は親の一意エントリータグを返却"""
+		return '' if self.parent.public_name else self.parent._full_path.elements[-1]
 
 	@property
 	@Meta.embed(Node, expandable)

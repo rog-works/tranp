@@ -10,13 +10,13 @@ from py2cpp.lang.locator import Curry, Locator
 from py2cpp.node.embed import Meta, actualized, expandable
 from py2cpp.node.node import Node
 from py2cpp.node.nodes import NodeResolver, Nodes
-from py2cpp.node.trait import ScopeTrait
+from py2cpp.node.trait import ScopeTrait, TerminalTrait
 from py2cpp.tp_lark.entry import EntryOfLark
 from tests.test.helper import data_provider
 
 
-class Terminal(Node): pass
-class Empty(Node): pass
+class Terminal(Node, TerminalTrait): pass
+class Empty(Node, TerminalTrait): pass
 class Expression(Node): pass
 class Assign(Node): pass
 
@@ -25,7 +25,7 @@ class Block(Node, ScopeTrait):
 	@property
 	@override
 	def scope_part(self) -> str:
-		return self.parent._full_path.last_tag
+		return '' if self.parent.public_name else self.parent._full_path.elements[-1]
 
 
 class If(Node):
@@ -35,7 +35,7 @@ class If(Node):
 		return self._by('block').as_a(Block)
 
 
-class FileInput(Node):
+class Entrypoint(Node):
 	@property
 	@override
 	def namespace(self) -> str:
@@ -123,29 +123,34 @@ class Fixture:
 				Tree('block', [
 					Tree('enum', [
 						Tree('block', [
-							Tree('assign', [Token('term_a', '')]),
-							Tree('assign', [Token('term_a', '')]),
+							Tree('assign', [Token('term_a', 'C1_E1_A')]),
+							Tree('assign', [Token('term_a', 'C1_E1_B')]),
 						]),
 					]),
 					Tree('function', [
 						Tree('block', [
 							Tree('if', [
 								Tree('block', [
-									Token('term_a', ''),
+									Token('term_a', 'C1_F1_IF1_A'),
+								]),
+							]),
+							Tree('if', [
+								Tree('block', [
+									Token('term_a', 'C1_F1_IF2_A'),
 								]),
 							]),
 						]),
 					]),
 					Tree('function', [
 						Tree('block', [
-							Token('term_a', ''),
+							Token('term_a', 'C1_F2_A'),
 						]),
 					]),
 				]),
 			]),
 			Tree('function', [
 				Tree('block', [
-					Token('term_a', ''),
+					Token('term_a', 'F1_A'),
 				]),
 			]),
 		])
@@ -155,7 +160,7 @@ class Fixture:
 	def __settings(cls) -> Settings:
 		return Settings(
 			symbols={
-				'file_input': FileInput,
+				'file_input': Entrypoint,
 				'class': Class,
 				'enum': Enum,
 				'function': Function,
@@ -173,6 +178,17 @@ class Fixture:
 
 
 class TestNode(TestCase):
+	@data_provider([
+		('file_input', '<Entrypoint: file_input>'),
+		('file_input.class', '<Class: file_input.class>'),
+		('file_input.class.__empty__', '<Empty: file_input.class.__empty__>'),
+		('file_input.function', '<Function: file_input.function>'),
+	])
+	def test___str__(self, full_path: str, expected: str) -> None:
+		nodes = Fixture.nodes()
+		node = nodes.by(full_path)
+		self.assertEqual(str(node), expected)
+
 	def test_full_path(self) -> None:
 		nodes = Fixture.nodes()
 		root = nodes.by('file_input')
@@ -194,6 +210,7 @@ class TestNode(TestCase):
 		('file_input.class.block', 'block'),
 		('file_input.class.block.enum', 'enum'),
 		('file_input.class.block.function[1]', 'function'),
+		('file_input.class.block.function[1].block.if[0]', 'if'),
 		('file_input.class.block.function[2]', 'function'),
 		('file_input.function', 'function'),
 	])
@@ -203,11 +220,12 @@ class TestNode(TestCase):
 		self.assertEqual(node.tag, expected)
 
 	@data_provider([
-		('file_input', 'file_input'),
+		('file_input', 'entrypoint'),
 		('file_input.class.__empty__', 'empty'),
 		('file_input.class.block', 'block'),
 		('file_input.class.block.enum', 'enum'),
 		('file_input.class.block.function[1]', 'function'),
+		('file_input.class.block.function[1].block.if[0]', 'if'),
 		('file_input.class.block.function[2]', 'function'),
 		('file_input.function', 'function'),
 	])
@@ -215,6 +233,58 @@ class TestNode(TestCase):
 		nodes = Fixture.nodes()
 		node = nodes.by(full_path)
 		self.assertEqual(node.classification, expected)
+
+	@data_provider([
+		('file_input', ''),
+		('file_input.class.__empty__', ''),
+		('file_input.class', 'C1'),
+		('file_input.class.block', ''),
+		('file_input.class.block.enum', 'E1'),
+		('file_input.class.block.function[1]', 'F1'),
+		('file_input.class.block.function[1].block.if[0]', ''),
+		('file_input.class.block.function[2]', 'F1'),
+		('file_input.function', 'F1'),
+	])
+	def test_public_name(self, full_path: str, expected: str) -> None:
+		nodes = Fixture.nodes()
+		node = nodes.by(full_path)
+		self.assertEqual(node.public_name, expected)
+
+	@data_provider([
+		('file_input', False),
+		('file_input.class.__empty__', True),
+		('file_input.class', False),
+		('file_input.class.block', False),
+		('file_input.class.block.enum', False),
+		('file_input.class.block.enum.block.assign[0]', False),
+		('file_input.class.block.function[1]', False),
+		('file_input.class.block.function[1].block.if[0]', False),
+		('file_input.function.block.term_a', True),
+	])
+	def test_is_terminal(self, full_path: str, expected: bool) -> None:
+		nodes = Fixture.nodes()
+		node = nodes.by(full_path)
+		self.assertEqual(node.is_terminal, expected)
+
+	@data_provider([
+		('file_input', '__main__'),
+		('file_input.class', '__main__.C1'),
+		('file_input.class.__empty__', '__main__.C1'),
+		('file_input.class.block', '__main__.C1'),
+		('file_input.class.block.enum', '__main__.C1.E1'),
+		('file_input.class.block.enum.block', '__main__.C1.E1'),
+		('file_input.class.block.function[1]', '__main__.C1.F1'),
+		('file_input.class.block.function[1].block', '__main__.C1.F1'),
+		('file_input.class.block.function[1].block.if[0]', '__main__.C1.F1'),
+		('file_input.class.block.function[1].block.if[0].block', '__main__.C1.F1.if[0]'),
+		('file_input.class.block.function[1].block.if[1]', '__main__.C1.F1'),
+		('file_input.class.block.function[1].block.if[1].block', '__main__.C1.F1.if[1]'),
+		('file_input.function.block.term_a', '__main__.F1'),
+	])
+	def test_scope(self, full_path: str, expected: str) -> None:
+		nodes = Fixture.nodes()
+		node = nodes.by(full_path)
+		self.assertEqual(node.scope, expected)
 
 	@data_provider([
 		('file_input', '__main__'),
@@ -225,8 +295,10 @@ class TestNode(TestCase):
 		('file_input.class.block.enum.block', '__main__.C1.E1'),
 		('file_input.class.block.function[1]', '__main__.C1'),
 		('file_input.class.block.function[1].block', '__main__.C1'),
-		('file_input.class.block.function[1].block.if', '__main__.C1'),
-		('file_input.class.block.function[1].block.if.block', '__main__.C1'),
+		('file_input.class.block.function[1].block.if[0]', '__main__.C1'),
+		('file_input.class.block.function[1].block.if[0].block', '__main__.C1'),
+		('file_input.class.block.function[1].block.if[1]', '__main__.C1'),
+		('file_input.class.block.function[1].block.if[1].block', '__main__.C1'),
 		('file_input.function.block.term_a', '__main__'),
 	])
 	def test_namespace(self, full_path: str, expected: str) -> None:
@@ -235,22 +307,17 @@ class TestNode(TestCase):
 		self.assertEqual(node.namespace, expected)
 
 	@data_provider([
-		('file_input', '__main__'),
-		('file_input.class', '__main__.C1'),
-		('file_input.class.__empty__', '__main__.C1'),
-		('file_input.class.block', '__main__.C1.class'),
-		('file_input.class.block.enum', '__main__.C1.class.E1'),
-		('file_input.class.block.enum.block', '__main__.C1.class.E1.enum'),
-		('file_input.class.block.function[1]', '__main__.C1.class.F1'),
-		('file_input.class.block.function[1].block', '__main__.C1.class.F1.function'),
-		('file_input.class.block.function[1].block.if', '__main__.C1.class.F1.function'),
-		('file_input.class.block.function[1].block.if.block', '__main__.C1.class.F1.function.if'),
-		('file_input.function.block.term_a', '__main__.F1.function'),
+		('file_input.class.block.enum.block.assign[0].term_a', 'C1_E1_A'),
+		('file_input.class.block.enum.block.assign[1].term_a', 'C1_E1_B'),
+		('file_input.class.block.function[1].block.if[0].block.term_a', 'C1_F1_IF1_A'),
+		('file_input.class.block.function[1].block.if[1].block.term_a', 'C1_F1_IF2_A'),
+		('file_input.class.block.function[2].block.term_a', 'C1_F2_A'),
+		('file_input.function.block.term_a', 'F1_A'),
 	])
-	def test_scope(self, full_path: str, expected: str) -> None:
+	def test_tokens(self, full_path: str, expected: str) -> None:
 		nodes = Fixture.nodes()
 		node = nodes.by(full_path)
-		self.assertEqual(node.scope, expected)
+		self.assertEqual(node.tokens, expected)
 
 	@data_provider([
 		('file_input.class', 'file_input'),
@@ -275,9 +342,12 @@ class TestNode(TestCase):
 			'file_input.class.block.enum.block.assign[1].term_a',
 			'file_input.class.block.function[1]',
 			'file_input.class.block.function[1].block',
-			'file_input.class.block.function[1].block.if',
-			'file_input.class.block.function[1].block.if.block',
-			'file_input.class.block.function[1].block.if.block.term_a',
+			'file_input.class.block.function[1].block.if[0]',
+			'file_input.class.block.function[1].block.if[0].block',
+			'file_input.class.block.function[1].block.if[0].block.term_a',
+			'file_input.class.block.function[1].block.if[1]',
+			'file_input.class.block.function[1].block.if[1].block',
+			'file_input.class.block.function[1].block.if[1].block.term_a',
 			'file_input.class.block.function[2]',
 			'file_input.class.block.function[2].block',
 			'file_input.class.block.function[2].block.term_a',
@@ -305,9 +375,12 @@ class TestNode(TestCase):
 			'file_input.class.block.enum.block.assign[1].term_a',
 			'file_input.class.block.enum.block.assign[1]',
 			'file_input.class.block.enum',
-			'file_input.class.block.function[1].block.if.block.term_a',
-			'file_input.class.block.function[1].block.if.block',
-			'file_input.class.block.function[1].block.if',
+			'file_input.class.block.function[1].block.if[0].block.term_a',
+			'file_input.class.block.function[1].block.if[0].block',
+			'file_input.class.block.function[1].block.if[0]',
+			'file_input.class.block.function[1].block.if[1].block.term_a',
+			'file_input.class.block.function[1].block.if[1].block',
+			'file_input.class.block.function[1].block.if[1]',
 			'file_input.class.block.function[1].block',
 			'file_input.class.block.function[1]',
 			'file_input.class.block.function[2].block.term_a',
@@ -369,8 +442,3 @@ class TestNode(TestCase):
 		node = NodeSet(di, 'node_subset')
 		self.assertEqual(type(node), NodeSet)
 		self.assertEqual(type(node.actualize()), NodeSubset)
-
-	def test___str__(self) -> None:
-		nodes = Fixture.nodes()
-		node = nodes.by('file_input')
-		self.assertEqual(str(node), '<FileInput: file_input>')

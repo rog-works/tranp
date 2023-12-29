@@ -127,12 +127,12 @@ class Types(Node, DomainNameTrait, ScopeTrait):
 	@property
 	@implements
 	def domain_id(self) -> str:
-		return domainize(self.scope, self.symbol.tokens)
+		return self.scope
 
 	@property
 	@implements
 	def domain_name(self) -> str:
-		return domainize(self.module.path, self.symbol.tokens)
+		return domainize(self.scope, self.public_name)
 
 	@property
 	def symbol(self) -> Symbol:

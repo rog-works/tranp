@@ -93,7 +93,7 @@ class Classify:
 		# 残りのシンボルパスは検出したクラスタイプのノードか、クラスシンボルのノード自体が再帰的に解決
 		remain_symbol = symbol_path.shift(symbol_counts - remain_counts).origin
 		if symbol_types and symbol_types.is_a(defs.Class):
-			return self.__type_of(symbol_types, symbol_types.module.path, symbol_types.block.scope, remain_symbol)
+			return self.__type_of(symbol_types, symbol_types.module.path, symbol_types.scope, remain_symbol)
 		elif node.is_a(defs.Class):
 			return self.__type_of_from_class_chain(node.as_a(defs.Class), remain_symbol)
 
@@ -132,7 +132,7 @@ class Classify:
 			if parent_types is None:
 				break
 
-			founded = self.__type_of(parent_types, parent_types.module.path, parent_types.block.scope, symbol)
+			founded = self.__type_of(parent_types, parent_types.module.path, parent_types.scope, symbol)
 			if founded:
 				return founded
 

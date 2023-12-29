@@ -45,16 +45,6 @@ class This(Symbol):
 		return via.tokens == 'self'
 
 	@property
-	@override
-	def domain_id(self) -> str:
-		return domainize(self.scope, self.tokens)
-
-	@property
-	@override
-	def domain_name(self) -> str:
-		return domainize(self.module.path, self.tokens)
-
-	@property
 	def class_types(self) -> Node:  # XXX 微妙
 		return self._ancestor('class_def')
 

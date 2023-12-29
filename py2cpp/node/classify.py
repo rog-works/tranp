@@ -33,12 +33,70 @@ class Classify:
 		Raises:
 			LogicError: 未定義のシンボルを指定
 		"""
-		founded = self.__type_of(node, node.module.path, node.scope, self.__resolve_symbol(node))
+		founded = self.__type_of(node, self.__resolve_symbol(node))
 		if founded is not None:
 			return founded
 
 		raise LogicError(f'Symbol not defined. node: {node}')
-	
+
+	def __type_of(self, node: T_Symbolic, symbol: str) -> defs.Types | None:
+		"""シンボルノードからタイプノードを解決。未検出の場合はNoneを返却
+
+		Args:
+			node (T_Symbolic): シンボルノード
+			symbol (str): シンボル名
+		Returns:
+			Types | None: タイプノード(クラス/ファンクション)
+		"""
+		symbol_path = EntryPath(symbol)
+		symbol_types = None
+
+		# ドット区切りで前方からシンボルを検索
+		symbol_counts = len(symbol_path.elements)
+		remain_counts = symbol_counts
+		while remain_counts > 0:
+			symbol_elems = symbol_path.elements[0:(symbol_counts - (remain_counts - 1))]
+			symbol_starts = EntryPath.join(*symbol_elems).origin
+			found_row = self.__find_symbol_row(node, symbol_starts)
+			if found_row is None:
+				break
+
+			symbol_types = found_row.types
+			remain_counts -= 1
+
+		# シンボルが完全一致したデータを検出したら終了
+		if symbol_types and remain_counts == 0:
+			return symbol_types
+
+		# 残りのシンボルパスは検出したクラスタイプのノードか、クラスシンボルのノード自体が再帰的に解決
+		remain_symbol = symbol_path.shift(symbol_counts - remain_counts).origin
+		if symbol_types and symbol_types.is_a(defs.Class):
+			return self.__type_of(symbol_types, remain_symbol)
+		elif node.is_a(defs.Class):
+			return self.__type_of_from_class_chain(node.as_a(defs.Class), remain_symbol)
+
+		return None
+
+	def __type_of_from_class_chain(self, class_types: defs.Class, symbol: str) -> defs.Types | None:
+		"""クラスの継承チェーンを辿ってシンボルを解決。未検出の場合はNoneを返却
+
+		Args:
+			class_types (Class): クラスタイプノード
+			symbol (str): シンボル名
+		Returns:
+			Types | None: タイプノード(クラス/ファンクション)
+		"""
+		for symbol_node in class_types.parents:
+			parent_types = self.__type_of(symbol_node, self.__resolve_symbol(symbol_node))
+			if parent_types is None:
+				break
+
+			founded = self.__type_of(parent_types, symbol)
+			if founded:
+				return founded
+
+		return None
+
 	def __resolve_symbol(self, node: T_Symbolic) -> str:
 		"""シンボル名を解決
 
@@ -59,82 +117,21 @@ class Classify:
 			# その他のSymbol
 			return node.tokens
 
-	def __type_of(self, node: T_Symbolic, module_path: str, scope: str, symbol: str) -> defs.Types | None:
-		"""シンボルノードからタイプノードを解決。未検出の場合はNoneを返却
-
-		Args:
-			node (T_Symbolic): シンボルノード
-			module_path (str): シンボルノードのモジュールパス
-			scope (str): シンボルノードのスコープ
-			symbol (str): シンボル名
-		Returns:
-			Types | None: タイプノード(クラス/ファンクション)
-		"""
-		symbol_path = EntryPath(symbol)
-		symbol_types = None
-
-		# ドット区切りで前方からシンボルを検索
-		symbol_counts = len(symbol_path.elements)
-		remain_counts = symbol_counts
-		while remain_counts > 0:
-			symbol_elems = symbol_path.elements[0:(symbol_counts - (remain_counts - 1))]
-			symbol_starts = EntryPath.join(*symbol_elems).origin
-			found_row = self.__find_symbol_row(module_path, scope, symbol_starts)
-			if found_row is None:
-				break
-
-			symbol_types = found_row.types
-			remain_counts -= 1
-
-		# シンボルが完全一致したデータを検出したら終了
-		if symbol_types and remain_counts == 0:
-			return symbol_types
-
-		# 残りのシンボルパスは検出したクラスタイプのノードか、クラスシンボルのノード自体が再帰的に解決
-		remain_symbol = symbol_path.shift(symbol_counts - remain_counts).origin
-		if symbol_types and symbol_types.is_a(defs.Class):
-			return self.__type_of(symbol_types, symbol_types.module.path, symbol_types.scope, remain_symbol)
-		elif node.is_a(defs.Class):
-			return self.__type_of_from_class_chain(node.as_a(defs.Class), remain_symbol)
-
-		return None
-
-	def __find_symbol_row(self, module_path: str, scope: str, symbol: str) -> SymbolRow | None:
+	def __find_symbol_row(self, node: T_Symbolic, symbol: str) -> SymbolRow | None:
 		"""シンボルデータを検索。未検出の場合はNoneを返却
 
 		Args:
-			module_path (str): シンボルノードのモジュールパス
-			scope (str): シンボルノードのスコープ
+			node (T_Symbolic): シンボルノード
 			symbol (str): シンボル名
 		Returns:
 			SymbolRow | None: シンボルデータ
 		"""
-		domain_id = domainize(scope, symbol)
-		domain_name = domainize(module_path, symbol)
+		domain_id = domainize(node.scope, symbol)
+		domain_name = domainize(node.module.path, symbol)
 		if domain_id in self.__db:
 			return self.__db[domain_id]
 		elif domain_name in self.__db:
 			return self.__db[domain_name]
-
-		return None
-
-	def __type_of_from_class_chain(self, class_types: defs.Class, symbol: str) -> defs.Types | None:
-		"""クラスの継承チェーンを辿ってシンボルを解決。未検出の場合はNoneを返却
-
-		Args:
-			class_types (Class): クラスタイプノード
-			symbol (str): シンボル名
-		Returns:
-			Types | None: タイプノード(クラス/ファンクション)
-		"""
-		for symbol_node in class_types.parents:
-			parent_types = self.__type_of(symbol_node, symbol_node.module.path, symbol_node.scope, symbol_node.tokens)
-			if parent_types is None:
-				break
-
-			founded = self.__type_of(parent_types, parent_types.module.path, parent_types.scope, symbol)
-			if founded:
-				return founded
 
 		return None
 

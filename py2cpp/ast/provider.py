@@ -1,10 +1,10 @@
 from py2cpp.ast.entry import Entry
-from py2cpp.ast.parser import GrammarSettings, SyntaxParser
-from py2cpp.module.base import ModulePath
+from py2cpp.ast.parser import ParserSettings, SyntaxParser
+from py2cpp.module.types import ModulePath
 
 
-def grammar_settings() -> GrammarSettings:
-	return GrammarSettings(grammar='data/grammar.lark')
+def parser_settings() -> ParserSettings:
+	return ParserSettings(grammar='data/grammar.lark')
 
 
 def make_entrypoint(module_path: ModulePath, parser: SyntaxParser) -> Entry:

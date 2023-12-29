@@ -10,8 +10,8 @@ from py2cpp.app.types import ModuleDefinitions
 from py2cpp.ast.entry import Entry
 from py2cpp.ast.query import Query
 from py2cpp.ast.parser import SyntaxParser
-from py2cpp.module.base import ModulePath
 from py2cpp.module.module import Module
+from py2cpp.module.types import ModulePath
 from py2cpp.ast.provider import make_entrypoint
 from py2cpp.node.node import Node
 from py2cpp.tp_lark.entry import EntryOfLark

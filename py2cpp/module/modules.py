@@ -1,7 +1,7 @@
 from py2cpp.lang.annotation import injectable
-from py2cpp.module.base import LibraryPaths
 from py2cpp.module.module import Module
 from py2cpp.module.loader import ModuleLoader
+from py2cpp.module.types import LibraryPaths
 
 
 class Modules:

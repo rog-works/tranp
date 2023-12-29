@@ -7,11 +7,13 @@ T = TypeVar('T')
 
 
 @dataclass
-class Settings(Generic[T]):
-	"""マッピング設定データ
+class SymbolMapping(Generic[T]):
+	"""シンボルマッピングデータ
 
 	Attributes:
 		T: マッピング対象の基底クラス
+		symbols (dict[str, type[T]]): 文字列とシンボル型のマッピング
+		fallback (type[T] | None): 未定義のシンボルを指定した際のフォールバック型
 	"""
 
 	symbols: dict[str, type[T]] = field(default_factory=dict)
@@ -26,19 +28,19 @@ class Resolver(Generic[T]):
 	"""
 
 	@classmethod
-	def load(cls, settings: Settings[T]) -> 'Resolver[T]':
+	def load(cls, mapping: SymbolMapping[T]) -> 'Resolver[T]':
 		"""設定データを元にインスタンスを生成
 
 		Args:
-			settings (Settings[T]): 設定データ
+			mapping (SymbolMapping[T]): シンボルマッピングデータ
 		Returns:
 			Resolver[T]: 生成したインスタンス
 		"""
 		inst = cls()
-		for symbol, ctor in settings.symbols.items():
+		for symbol, ctor in mapping.symbols.items():
 			inst.register(symbol, ctor)
 
-		inst.fallback(settings.fallback)
+		inst.fallback(mapping.fallback)
 		return inst
 
 	def __init__(self) -> None:

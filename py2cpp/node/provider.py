@@ -1,15 +1,15 @@
 from py2cpp.ast.query import Query
+from py2cpp.ast.resolver import SymbolMapping
 import py2cpp.node.definition as defs
 from py2cpp.node.node import Node
-from py2cpp.node.nodes import Settings
 
 
 def entrypoint(query: Query[Node]) -> Node:
 	return query.by('file_input')
 
 
-def settings() -> Settings:
-	return Settings(
+def symbol_mapping() -> SymbolMapping:
+	return SymbolMapping(
 		symbols={
 			# -- General --
 			'file_input': defs.Entrypoint,

@@ -3,7 +3,7 @@ from unittest import TestCase
 
 from lark import Token, Tree
 
-from py2cpp.node.nodes import EntryCache
+from py2cpp.ast.cache import EntryCache
 
 
 class TestEntryCache(TestCase):

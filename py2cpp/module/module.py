@@ -1,5 +1,5 @@
 from py2cpp.lang.annotation import injectable
-from py2cpp.module.base import ModulePath
+from py2cpp.module.types import ModulePath
 from py2cpp.node.node import Node
 
 

@@ -2,14 +2,14 @@ from lark import Lark
 from lark.indenter import PythonIndenter
 
 from py2cpp.ast.entry import Entry
-from py2cpp.ast.parser import GrammarSettings, SyntaxParser
+from py2cpp.ast.parser import ParserSettings, SyntaxParser
 from py2cpp.lang.annotation import implements
 from py2cpp.lang.io import FileLoader
 from py2cpp.tp_lark.entry import EntryOfLark
 
 
 class SyntaxParserOfLark(SyntaxParser):
-	def __init__(self, loader: FileLoader, settings: GrammarSettings) -> None:
+	def __init__(self, loader: FileLoader, settings: ParserSettings) -> None:
 		self.__loader = loader
 		self.__settings = settings
 

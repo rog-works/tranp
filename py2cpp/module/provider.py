@@ -2,7 +2,7 @@ from typing import cast
 
 from py2cpp.lang.di import DI
 from py2cpp.lang.locator import Currying, Locator
-from py2cpp.module.base import ModulePath
+from py2cpp.module.types import ModulePath
 from py2cpp.module.module import Module
 from py2cpp.module.loader import ModuleLoader
 

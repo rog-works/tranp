@@ -4,16 +4,17 @@ from unittest import TestCase
 from lark import Token, Tree
 
 from py2cpp.ast.entry import Entry
-from py2cpp.ast.resolver import Settings
+from py2cpp.ast.resolver import SymbolMapping
 from py2cpp.ast.query import Query
 from py2cpp.lang.annotation import implements, override
 from py2cpp.lang.di import DI
 from py2cpp.lang.locator import Currying, Locator
-from py2cpp.module.base import ModulePath
+from py2cpp.module.types import ModulePath
 from py2cpp.node.embed import Meta, actualized, expandable
 from py2cpp.node.interface import IScope, ITerminal
 from py2cpp.node.node import Node
-from py2cpp.node.nodes import NodeResolver, Nodes
+from py2cpp.node.query import Nodes
+from py2cpp.node.resolver import NodeResolver
 from py2cpp.tp_lark.entry import EntryOfLark
 from tests.test.helper import data_provider
 
@@ -125,7 +126,7 @@ class Fixture:
 		di.bind(Query[Node], Nodes)
 		di.bind(NodeResolver, NodeResolver)
 		di.bind(ModulePath, lambda: '__main__')
-		di.bind(Settings, cls.__settings)
+		di.bind(SymbolMapping, cls.__settings)
 		di.bind(Entry, cls.__tree)
 		return di
 
@@ -171,8 +172,8 @@ class Fixture:
 		return EntryOfLark(tree)
 
 	@classmethod
-	def __settings(cls) -> Settings:
-		return Settings(
+	def __settings(cls) -> SymbolMapping:
+		return SymbolMapping(
 			symbols={
 				'file_input': Entrypoint,
 				'class': Class,

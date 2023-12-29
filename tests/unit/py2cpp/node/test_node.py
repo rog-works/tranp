@@ -7,7 +7,7 @@ from py2cpp.ast.entry import Entry
 from py2cpp.ast.provider import Query, Settings
 from py2cpp.lang.annotation import implements, override
 from py2cpp.lang.di import DI
-from py2cpp.lang.locator import Curry, Locator
+from py2cpp.lang.locator import Currying, Locator
 from py2cpp.module.base import ModulePath
 from py2cpp.node.embed import Meta, actualized, expandable
 from py2cpp.node.interface import IScope, ITerminal
@@ -120,7 +120,7 @@ class Fixture:
 	def di(cls) -> DI:
 		di = DI()
 		di.bind(Locator, lambda: di)
-		di.bind(Curry, lambda: di.curry)
+		di.bind(Currying, lambda: di.currying)
 		di.bind(Query[Node], Nodes)
 		di.bind(NodeResolver, NodeResolver)
 		di.bind(ModulePath, lambda: '__main__')
@@ -436,8 +436,8 @@ class TestNode(TestCase):
 				return via.tag == 'node_a'
 
 		di = Fixture.di()
-		root = di.curry(NodeA, Callable[[str], Node])('root')
-		node = di.curry(NodeA, Callable[[str], Node])('node_a')
+		root = di.currying(NodeA, Callable[[str], Node])('root')
+		node = di.currying(NodeA, Callable[[str], Node])('node_a')
 		self.assertEqual(NodeA.match_feature(root), False)
 		self.assertEqual(NodeA.match_feature(node), True)
 
@@ -452,6 +452,6 @@ class TestNode(TestCase):
 				return via.tag == 'node_subset'
 
 		di = Fixture.di()
-		node = di.curry(NodeSet, Callable[[str], Node])('node_subset')
+		node = di.currying(NodeSet, Callable[[str], Node])('node_subset')
 		self.assertEqual(type(node), NodeSet)
 		self.assertEqual(type(node.actualize()), NodeSubset)

@@ -2,7 +2,7 @@ from typing import cast
 
 from py2cpp.lang.annotation import injectable
 from py2cpp.lang.di import DI
-from py2cpp.lang.locator import Curry, Locator
+from py2cpp.lang.locator import Currying, Locator
 from py2cpp.ast.entry import Entry
 from py2cpp.ast.parser import SyntaxParser
 from py2cpp.module.base import ModulePath
@@ -31,7 +31,7 @@ class Module:
 
 	@property
 	def entrypoint(self) -> Node:
-		"""Node: エントリーポイントを取得"""
+		"""Node: エントリーポイント"""
 		return self.__entrypoint
 
 
@@ -63,20 +63,35 @@ class Modules:
 
 	@property
 	def core_libralies(self) -> list[Module]:
+		"""list[Module]: 標準ライブラリーのモジュールリスト"""
 		paths = self.__locator.resolve(CoreLibrariesProvider)()
 		return [self.load(path) for path in paths]
 
 	def load(self, module_path: str) -> Module:
+		"""モジュールをロード。ロードしたモジュールはパスとマッピングしてキャッシュ
+
+		Args:
+			module_path (str): モジュールパス
+		Returns:
+			Module: モジュール
+		"""
 		if module_path not in self.__modules:
 			self.__modules[module_path] = self.__load_impl(module_path)
 
 		return self.__modules[module_path]
 
 	def __load_impl(self, module_path: str) -> Module:
+		"""モジュールをロード
+
+		Args:
+			module_path (str): モジュールパス
+		Returns:
+			Module: モジュール
+		"""
 		root = self.__parser.parse(module_path)
 		di = cast(DI, self.__locator).clone()
 		di.rebind(Locator, lambda: di)
-		di.rebind(Curry, lambda: di.curry)
+		di.rebind(Currying, lambda: di.currying)
 		di.rebind(ModulePath, lambda: module_path)
 		di.rebind(Module, Module)
 		di.rebind(Entry, lambda: root)

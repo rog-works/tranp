@@ -7,21 +7,21 @@ from py2cpp.ast.provider import Query, Resolver, Settings
 from py2cpp.ast.travarsal import ASTFinder, EntryPath
 from py2cpp.errors import NotFoundError
 from py2cpp.lang.annotation import implements
-from py2cpp.lang.locator import Curry
+from py2cpp.lang.locator import Currying
 from py2cpp.node.node import Node
 
 
 class NodeResolver:
 	"""ノードリゾルバー。解決したノードとパスをマッピングして管理"""
 
-	def __init__(self, curry: Curry, settings: Settings) -> None:
+	def __init__(self, currying: Currying, settings: Settings) -> None:
 		"""インスタンスを生成
 
 		Args:
-			curry (Curry): カリー化関数
+			currying (Currying): カリー化関数
 			settings (Settings): マッピング設定データ
 		"""
-		self.__curry = curry
+		self.__currying = currying
 		self.__resolver = Resolver[Node].load(settings)
 		self.__insts: dict[str, Node] = {}
 
@@ -50,7 +50,7 @@ class NodeResolver:
 			return self.__insts[full_path]
 
 		ctor = self.__resolver.resolve(symbol)
-		factory = self.__curry(ctor, Callable[[str], ctor])
+		factory = self.__currying(ctor, Callable[[str], ctor])
 		self.__insts[full_path] = factory(full_path).actualize()
 		return self.__insts[full_path]
 

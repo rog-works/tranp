@@ -6,7 +6,7 @@ from py2cpp.ast.entry import Entry
 from py2cpp.ast.provider import Query, Settings
 from py2cpp.errors import NotFoundError
 from py2cpp.lang.di import DI
-from py2cpp.lang.locator import Curry, Locator
+from py2cpp.lang.locator import Currying, Locator
 from py2cpp.module.base import ModulePath
 from py2cpp.node.node import Node
 from py2cpp.node.nodes import NodeResolver, Nodes
@@ -30,7 +30,7 @@ class Fixture:
 	def di(cls) -> DI:
 		di = DI()
 		di.bind(Locator, lambda: di)
-		di.bind(Curry, lambda: di.curry)
+		di.bind(Currying, lambda: di.currying)
 		di.bind(Query[Node], Nodes)
 		di.bind(NodeResolver, NodeResolver)
 		di.bind(ModulePath, lambda: '__main__')

@@ -66,14 +66,14 @@ class TestDI(TestCase):
 		self.assertEqual(type(di.resolve(X)), X)
 		self.assertEqual(type(di.resolve(Y)), Y)
 
-	def test_curry(self) -> None:
+	def test_currying(self) -> None:
 		def factory(a: A, x: X, suffix: str) -> str:
 			return f'{a.__class__.__name__}.{x.__class__.__name__}.{suffix}'
 
 		di = DI()
 		di.bind(A, B)
 		di.bind(X, X)
-		curried = di.curry(factory, Callable[[str], str])
+		curried = di.currying(factory, Callable[[str], str])
 		self.assertEqual(curried('hogefuga'), 'B.X.hogefuga')
 
 	def test_invoke(self) -> None:

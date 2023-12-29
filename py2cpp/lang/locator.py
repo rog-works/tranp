@@ -30,7 +30,7 @@ class Locator(Protocol):
 		"""
 		...
 
-	def curry(self, factory: T_Injector, expect: type[T_Curried]) -> T_Curried:
+	def currying(self, factory: T_Injector, expect: type[T_Curried]) -> T_Curried:
 		"""指定のファクトリーをカリー化して返却
 
 		Args:
@@ -57,9 +57,9 @@ class Locator(Protocol):
 		...
 
 
-class Curry(Protocol):
+class Currying(Protocol):
 	"""カリー化関数プロトコル"""
 
 	def __call__(self, factory: T_Injector, expect: type[T_Curried]) -> T_Curried:
-		"""Note: @see Locator.curry"""
+		"""Note: @see Locator.currying"""
 		...

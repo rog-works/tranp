@@ -162,7 +162,7 @@ class DI:
 		annos = getattr(annotated, '__annotations__', {}) if hasattr(annotated, '__annotations__') else {}
 		return {key: anno for key, anno in annos.items() if key != 'return'}
 
-	def curry(self, factory: T_Injector, expect: type[T_Curried]) -> T_Curried:
+	def currying(self, factory: T_Injector, expect: type[T_Curried]) -> T_Curried:
 		"""指定のファクトリーをカリー化して返却
 
 		Args:

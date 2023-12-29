@@ -4,7 +4,7 @@ from typing import Callable, cast
 from lark import Tree
 
 from py2cpp.lang.di import DI
-from py2cpp.lang.locator import Curry, Locator, T_Inst
+from py2cpp.lang.locator import Currying, Locator, T_Inst
 from py2cpp.lang.module import load_module
 from py2cpp.ast.entry import Entry
 from py2cpp.ast.provider import Query, Settings
@@ -51,7 +51,7 @@ class Fixture:
 	def __make_di(self) -> DI:
 		di = DI()
 		di.bind(Locator, lambda: di)
-		di.bind(Curry, lambda: di.curry)
+		di.bind(Currying, lambda: di.currying)
 		di.bind(FileLoader, FileLoader)
 		di.bind(GrammarSettings, lambda: GrammarSettings(grammar='data/grammar.lark'))
 		di.bind(SyntaxParser, SyntaxParserOfLark)

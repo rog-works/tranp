@@ -4,7 +4,7 @@ from py2cpp.errors import LogicError
 from py2cpp.lang.error import stacktrace
 from py2cpp.lang.eventemitter import EventEmitter, T_Callback
 import py2cpp.node.definition as defs
-from py2cpp.node.definitions import make_settings
+from py2cpp.node.provider import settings
 from py2cpp.node.node import Node
 from py2cpp.node.nodes import NodeResolver, Nodes
 from py2cpp.node.serializer import serialize

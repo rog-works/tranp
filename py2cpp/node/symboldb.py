@@ -49,16 +49,6 @@ class SymbolRow(NamedTuple):
 
 
 @dataclass
-class SymbolDB:
-	"""シンボルテーブル
-
-	Attributes:
-		rows: 参照パスとシンボルデータのマッピング情報
-	"""
-	rows: dict[str, SymbolRow] = field(default_factory=dict)
-
-
-@dataclass
 class Expanded:
 	"""展開時のテンポラリーデータ
 
@@ -72,32 +62,39 @@ class Expanded:
 	import_nodes: list[defs.Import] = field(default_factory=list)
 
 
-class SymbolDBFactory:
-	"""シンボルテーブルファクトリー"""
+class SymbolDB:
+	"""シンボルテーブル"""
 
-	@classmethod
 	@injectable
-	def create(cls, modules: Modules) -> SymbolDB:
-		"""シンボルテーブルを生成
+	def __init__(self, modules: Modules) -> None:
+		"""インスタンスを生成
 
 		Args:
 			modules (Modules): モジュールマネージャー @inject
+		"""
+		self.rows = self.__make_rows(modules)
+
+	def __make_rows(self, modules: Modules) -> dict[str, SymbolRow]:
+		"""シンボルテーブルを生成
+
+		Args:
+			modules (Modules): モジュールマネージャー
 		Returns:
-			SymbolDB: シンボルテーブル
+			dict[str, SymbolRow]: シンボルテーブル
 		"""
 		main = modules.main
 
 		# メインモジュールを展開
 		expends: dict[Module, Expanded] = {}
-		expends[main] = cls.__expand_module(main)
+		expends[main] = self.__expand_module(main)
 
 		# インポートモジュールを全て展開
 		import_index = 0
 		import_modules_from_main = [modules.load(node.module_path.tokens) for node in expends[main].import_nodes]
-		import_modules = [*modules.core_libralies, *import_modules_from_main]
+		import_modules = [*modules.libralies, *import_modules_from_main]
 		while import_index < len(import_modules):
 			import_module = import_modules[import_index]
-			expanded = cls.__expand_module(import_module)
+			expanded = self.__expand_module(import_module)
 			import_modules_from_depended = [modules.load(node.module_path.tokens) for node in expanded.import_nodes]
 			import_modules = [*import_modules, *import_modules_from_depended]
 			expends[import_module] = expanded
@@ -108,8 +105,8 @@ class SymbolDBFactory:
 			expand_target = expends[expand_module]
 
 			# 標準ライブラリを展開
-			if expand_module not in modules.core_libralies:
-				for core_module in modules.core_libralies:
+			if expand_module not in modules.libralies:
+				for core_module in modules.libralies:
 					# 第1層で宣言されているシンボルに限定
 					entrypoint = core_module.entrypoint.as_a(defs.Entrypoint)
 					primary_symbol_names = [node.symbol.tokens for node in entrypoint.statements if isinstance(node, DeclAll)]
@@ -130,17 +127,16 @@ class SymbolDBFactory:
 
 			# 展開対象モジュールの変数シンボルを展開
 			for var in expand_target.decl_vars:
-				expand_target.rows[var.symbol.domain_id] = cls.__resolve_var_type(var, expand_target.rows)
+				expand_target.rows[var.symbol.domain_id] = self.__resolve_var_type(var, expand_target.rows)
 
 		# シンボルテーブルを統合
 		rows: dict[str, SymbolRow] = {}
 		for expanded in expends.values():
 			rows = {**expanded.rows, **rows}
 
-		return SymbolDB(rows)
+		return rows
 
-	@classmethod
-	def __expand_module(cls, module: Module) -> Expanded:
+	def __expand_module(self, module: Module) -> Expanded:
 		"""モジュールの全シンボルを展開
 
 		Args:
@@ -177,8 +173,7 @@ class SymbolDBFactory:
 
 		return Expanded(rows, decl_vars, import_nodes)
 
-	@classmethod
-	def __resolve_var_type(cls, var: DeclVar, rows: dict[str, SymbolRow]) -> SymbolRow:
+	def __resolve_var_type(self, var: DeclVar, rows: dict[str, SymbolRow]) -> SymbolRow:
 		"""シンボルテーブルから変数の型を解決
 
 		Args:
@@ -187,7 +182,7 @@ class SymbolDBFactory:
 		Returns:
 			SymbolRow: シンボル情報
 		"""
-		type_symbol = cls.__fetch_type_symbol(var)
+		type_symbol = self.__fetch_type_symbol(var)
 		candidates = []
 		if type_symbol is not None:
 			candidates = [type_symbol.domain_id, type_symbol.domain_name]
@@ -202,8 +197,7 @@ class SymbolDBFactory:
 
 		raise LogicError(f'Unresolve var type. symbol: {var.symbol.tokens}')
 
-	@classmethod
-	def __fetch_type_symbol(cls, var: DeclVar) -> defs.Symbol | None:
+	def __fetch_type_symbol(self, var: DeclVar) -> defs.Symbol | None:
 		"""変数の型のシンボルノードを取得
 
 		Args:

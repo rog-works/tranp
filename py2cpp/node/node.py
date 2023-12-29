@@ -3,7 +3,7 @@ from typing import Iterator, cast
 
 from py2cpp.ast.dsn import DSN
 from py2cpp.ast.path import EntryPath
-from py2cpp.ast.provider import Query
+from py2cpp.ast.query import Query
 from py2cpp.errors import LogicError, NotFoundError
 from py2cpp.lang.annotation import deprecated, injectable
 from py2cpp.lang.sequence import flatten

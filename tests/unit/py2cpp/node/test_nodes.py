@@ -3,7 +3,8 @@ from unittest import TestCase
 from lark import Token, Tree
 
 from py2cpp.ast.entry import Entry
-from py2cpp.ast.provider import Query, Settings
+from py2cpp.ast.resolver import Settings
+from py2cpp.ast.query import Query
 from py2cpp.errors import NotFoundError
 from py2cpp.lang.di import DI
 from py2cpp.lang.locator import Currying, Locator

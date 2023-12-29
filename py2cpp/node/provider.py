@@ -1,8 +1,14 @@
+from py2cpp.ast.query import Query
 import py2cpp.node.definition as defs
+from py2cpp.node.node import Node
 from py2cpp.node.nodes import Settings
 
 
-def make_settings() -> Settings:
+def entrypoint(query: Query[Node]) -> Node:
+	return query.by('file_input')
+
+
+def settings() -> Settings:
 	return Settings(
 		symbols={
 			# -- General --

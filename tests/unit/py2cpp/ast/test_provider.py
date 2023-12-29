@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from py2cpp.errors import LogicError
-from py2cpp.ast.provider import Resolver
+from py2cpp.ast.resolver import Resolver
 
 
 class A: pass

@@ -3,7 +3,8 @@ from typing import Callable
 
 from py2cpp.ast.cache import EntryCache
 from py2cpp.ast.entry import Entry
-from py2cpp.ast.provider import Query, Resolver, Settings
+from py2cpp.ast.resolver import Resolver, Settings
+from py2cpp.ast.query import Query
 from py2cpp.ast.travarsal import ASTFinder, EntryPath
 from py2cpp.errors import NotFoundError
 from py2cpp.lang.annotation import implements
@@ -61,19 +62,6 @@ class NodeResolver:
 
 class Nodes(Query[Node]):
 	"""ノードクエリーインターフェイス。ASTを元にノードの探索し、リゾルバーを介してインスタンスを解決"""
-
-	@classmethod
-	def root(cls, that: Query[Node]) -> Node:
-		"""ルートノードリゾルバー
-
-		Args:
-			that (Query[Node]): 自身のインスタンス @inject
-		Returns:
-			Node: ルートノード
-		Note:
-			FIXME 苦し紛れ感があるので、関数に分離しても良さそう
-		"""
-		return that.by('file_input')
 
 	def __init__(self, resolver: NodeResolver, root: Entry) -> None:
 		"""インスタンスを生成

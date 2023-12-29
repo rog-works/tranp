@@ -1,7 +1,7 @@
 import functools
 from typing import Callable, Iterator, cast
 
-from py2cpp.ast.dns import domainize
+from py2cpp.ast.dsn import DSN
 from py2cpp.ast.path import EntryPath
 from py2cpp.ast.provider import Query
 from py2cpp.errors import LogicError, NotFoundError
@@ -78,7 +78,7 @@ class Node(NodeBase):
 	def scope(self) -> str:
 		"""str: 自身が所有するスコープ。FQDNに相当"""
 		if isinstance(self, ScopeTrait):
-			return domainize(self.parent.scope, self.scope_part)
+			return DSN.join(self.parent.scope, self.scope_part)
 		else:
 			return self.parent.scope
 
@@ -86,7 +86,7 @@ class Node(NodeBase):
 	def namespace(self) -> str:
 		"""str: 自身が所有する名前空間。スコープのエイリアス"""
 		if isinstance(self, ScopeTrait):
-			return domainize(self.parent.namespace, self.namespace_part)
+			return DSN.join(self.parent.namespace, self.namespace_part)
 		else:
 			return self.parent.namespace
 

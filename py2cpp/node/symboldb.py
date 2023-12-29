@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import NamedTuple, TypeAlias
 
-from py2cpp.ast.dns import domainize
+from py2cpp.ast.dsn import DSN
 from py2cpp.errors import LogicError
 from py2cpp.module.module import Module
 from py2cpp.module.modules import Modules
@@ -185,7 +185,7 @@ class SymbolDBFactory:
 		else:
 			# 型が不明な変数はUnknownにフォールバック
 			# XXX Unknownの名前は重要なので定数化などの方法で明示
-			candidates = [domainize(var.module.path, 'Unknown')]
+			candidates = [DSN.join(var.module.path, 'Unknown')]
 
 		for candidate in candidates:
 			if candidate in db:

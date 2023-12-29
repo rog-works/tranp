@@ -1,4 +1,4 @@
-from py2cpp.ast.dns import domainize
+from py2cpp.ast.dsn import DSN
 from py2cpp.lang.annotation import implements, override
 from py2cpp.node.definition.common import Argument
 from py2cpp.node.definition.terminal import Empty
@@ -12,12 +12,12 @@ class Symbol(Node, DomainNameTrait, TerminalTrait):
 	@property
 	@implements
 	def domain_id(self) -> str:
-		return domainize(self.scope, self.tokens)
+		return DSN.join(self.scope, self.tokens)
 
 	@property
 	@implements
 	def domain_name(self) -> str:
-		return domainize(self.module.path, self.tokens)
+		return DSN.join(self.module.path, self.tokens)
 
 
 @Meta.embed(Node, actualized(via=Symbol))
@@ -61,14 +61,14 @@ class ThisVar(Symbol):
 	def domain_id(self) -> str:
 		from py2cpp.node.definition.statement_compound import Types  # FIXME 循環参照
 
-		return domainize(self.class_types.as_a(Types).domain_id, self.tokens_without_this)
+		return DSN.join(self.class_types.as_a(Types).domain_id, self.tokens_without_this)
 
 	@property
 	@override
 	def domain_name(self) -> str:
 		from py2cpp.node.definition.statement_compound import Types  # FIXME 循環参照
 
-		return domainize(self.class_types.as_a(Types).domain_name, self.tokens_without_this)
+		return DSN.join(self.class_types.as_a(Types).domain_name, self.tokens_without_this)
 
 	@property
 	def tokens_without_this(self) -> str:
@@ -97,12 +97,12 @@ class GenericType(Node, DomainNameTrait):
 	@property
 	@implements
 	def domain_id(self) -> str:
-		return domainize(self.scope, self.symbol.tokens)
+		return DSN.join(self.scope, self.symbol.tokens)
 
 	@property
 	@implements
 	def domain_name(self) -> str:
-		return domainize(self.module.path, self.symbol.tokens)
+		return DSN.join(self.module.path, self.symbol.tokens)
 
 	@property
 	@Meta.embed(Node, expandable)

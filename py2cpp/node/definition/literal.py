@@ -1,4 +1,4 @@
-from py2cpp.ast.dns import domainize
+from py2cpp.ast.dsn import DSN
 from py2cpp.lang.annotation import implements, override
 from py2cpp.node.definition.terminal import Terminal
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
@@ -10,7 +10,7 @@ class Literal(Node, DomainNameTrait):
 	@property
 	@implements
 	def domain_id(self) -> str:
-		return domainize(self.module.path, self.class_symbol_alias)
+		return DSN.join(self.module.path, self.class_symbol_alias)
 
 	@property
 	@implements

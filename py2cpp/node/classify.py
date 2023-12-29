@@ -1,7 +1,6 @@
 from typing import TypeAlias
 
-from py2cpp.ast.dns import domainize
-from py2cpp.ast.path import EntryPath
+from py2cpp.ast.dsn import DSN
 from py2cpp.errors import LogicError
 from py2cpp.lang.annotation import injectable
 import py2cpp.node.definition as defs
@@ -48,15 +47,13 @@ class Classify:
 		Returns:
 			Types | None: タイプノード(クラス/ファンクション)
 		"""
-		symbol_path = EntryPath(symbol)
 		symbol_types = None
 
 		# ドット区切りで前方からシンボルを検索
-		symbol_counts = len(symbol_path.elements)
+		symbol_counts = DSN.length(symbol)
 		remain_counts = symbol_counts
 		while remain_counts > 0:
-			symbol_elems = symbol_path.elements[0:(symbol_counts - (remain_counts - 1))]
-			symbol_starts = EntryPath.join(*symbol_elems).origin
+			symbol_starts = DSN.left(symbol, symbol_counts - (remain_counts - 1))
 			found_row = self.__find_symbol_row(node, symbol_starts)
 			if found_row is None:
 				break
@@ -68,11 +65,15 @@ class Classify:
 		if symbol_types and remain_counts == 0:
 			return symbol_types
 
-		# 残りのシンボルパスは検出したクラスタイプのノードか、クラスシンボルのノード自体が再帰的に解決
-		remain_symbol = symbol_path.shift(symbol_counts - remain_counts).origin
+		# 解決した部分を除外して探索シンボルを再編
+		remain_symbol = DSN.right(symbol, remain_counts)
+
+		# シンボルを検出、且つクラスタイプのノードの場合は再帰的に解決
 		if symbol_types and symbol_types.is_a(defs.Class):
 			return self.__type_of(symbol_types, remain_symbol)
-		elif node.is_a(defs.Class):
+
+		# シンボルが未検出、且つクラスシンボルの場合は、クラスの継承チェーンを辿って解決
+		if node.is_a(defs.Class):
 			return self.__type_of_from_class_chain(node.as_a(defs.Class), remain_symbol)
 
 		return None
@@ -126,8 +127,8 @@ class Classify:
 		Returns:
 			SymbolRow | None: シンボルデータ
 		"""
-		domain_id = domainize(node.scope, symbol)
-		domain_name = domainize(node.module.path, symbol)
+		domain_id = DSN.join(node.scope, symbol)
+		domain_name = DSN.join(node.module.path, symbol)
 		if domain_id in self.__db:
 			return self.__db[domain_id]
 		elif domain_name in self.__db:

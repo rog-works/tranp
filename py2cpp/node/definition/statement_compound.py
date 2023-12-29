@@ -1,6 +1,6 @@
 import re
 
-from py2cpp.ast.dns import domainize
+from py2cpp.ast.dsn import DSN
 from py2cpp.lang.annotation import implements, override
 from py2cpp.node.definition.common import Argument
 from py2cpp.node.definition.element import Block, Decorator, Parameter, ReturnType
@@ -132,7 +132,7 @@ class Types(Node, DomainNameTrait, ScopeTrait):
 	@property
 	@implements
 	def domain_name(self) -> str:
-		return domainize(self.scope, self.public_name)
+		return DSN.join(self.scope, self.public_name)
 
 	@property
 	def symbol(self) -> Symbol:

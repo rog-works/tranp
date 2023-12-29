@@ -12,7 +12,7 @@ from py2cpp.lang.string import snakelize
 from py2cpp.module.module import Module
 from py2cpp.node.base import NodeBase, T_NodeBase, T_Plugin
 from py2cpp.node.embed import EmbedKeys, Meta
-from py2cpp.node.trait import ScopeTrait, TerminalTrait
+from py2cpp.node.interface import IScope, ITerminal
 
 
 class Node(NodeBase):
@@ -72,12 +72,12 @@ class Node(NodeBase):
 	@property
 	def is_terminal(self) -> bool:
 		"""bool: 終端要素。これ以上展開が不要な要素であることを表す Note: 終端記号とは別"""
-		return isinstance(self, TerminalTrait)
+		return isinstance(self, ITerminal)
 
 	@property
 	def scope(self) -> str:
 		"""str: 自身が所有するスコープ。FQDNに相当"""
-		if isinstance(self, ScopeTrait):
+		if isinstance(self, IScope):
 			return DSN.join(self.parent.scope, self.scope_part)
 		else:
 			return self.parent.scope
@@ -85,7 +85,7 @@ class Node(NodeBase):
 	@property
 	def namespace(self) -> str:
 		"""str: 自身が所有する名前空間。スコープのエイリアス"""
-		if isinstance(self, ScopeTrait):
+		if isinstance(self, IScope):
 			return DSN.join(self.parent.namespace, self.namespace_part)
 		else:
 			return self.parent.namespace

@@ -1,14 +1,17 @@
+from typing import cast
+
 from py2cpp.ast.dsn import DSN
 from py2cpp.lang.annotation import implements, override
 from py2cpp.node.definition.common import Argument
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
+from py2cpp.node.interface import IDomainName, ITerminal
 from py2cpp.node.node import Node
-from py2cpp.node.trait import DomainNameTrait, TerminalTrait
+from py2cpp.node.protocol import Symbolization
 
 
 @Meta.embed(Node, accept_tags('getattr', 'var', 'name', 'dotted_name', 'typed_getattr', 'typed_var'))
-class Symbol(Node, DomainNameTrait, TerminalTrait):
+class Symbol(Node, IDomainName, ITerminal):
 	@property
 	@implements
 	def domain_id(self) -> str:
@@ -45,7 +48,8 @@ class This(Symbol):
 		return via.tokens == 'self'
 
 	@property
-	def class_types(self) -> Node:  # XXX 微妙
+	def class_types(self) -> Node:
+		# XXX 中途半端感があるので修正を検討
 		return self._ancestor('class_def')
 
 
@@ -59,23 +63,20 @@ class ThisVar(Symbol):
 	@property
 	@override
 	def domain_id(self) -> str:
-		from py2cpp.node.definition.statement_compound import Types  # FIXME 循環参照
-
-		return DSN.join(self.class_types.as_a(Types).domain_id, self.tokens_without_this)
+		return DSN.join(cast(IDomainName, self.class_types).domain_id, self.tokens_without_this)
 
 	@property
 	@override
 	def domain_name(self) -> str:
-		from py2cpp.node.definition.statement_compound import Types  # FIXME 循環参照
-
-		return DSN.join(self.class_types.as_a(Types).domain_name, self.tokens_without_this)
+		return DSN.join(cast(IDomainName, self.class_types).domain_name, self.tokens_without_this)
 
 	@property
 	def tokens_without_this(self) -> str:
 		return self.tokens.replace('self.', '')
 
 	@property
-	def class_types(self) -> Node:  # XXX 微妙
+	def class_types(self) -> Node:
+		# XXX 中途半端感があるので修正を検討
 		return self._ancestor('class_def')
 
 
@@ -93,7 +94,7 @@ class Indexer(Node):
 
 
 @Meta.embed(Node, accept_tags('typed_getitem'))
-class GenericType(Node, DomainNameTrait):
+class GenericType(Node, IDomainName):
 	@property
 	@implements
 	def domain_id(self) -> str:
@@ -178,6 +179,4 @@ class Super(FuncCall):
 
 	@property
 	def class_symbol(self) -> Symbol:
-		from py2cpp.node.definition.statement_compound import Types  # FIXME 循環参照
-
-		return self._ancestor('class_def').as_a(Types).symbol
+		return cast(Symbolization, self._ancestor('class_def')).symbol.as_a(Symbol)

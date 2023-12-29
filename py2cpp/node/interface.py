@@ -1,4 +1,4 @@
-class ScopeTrait:
+class IScope:
 	"""スコープを所有するノードを明示
 
 	Note:
@@ -8,15 +8,15 @@ class ScopeTrait:
 	@property
 	def scope_part(self) -> str:
 		"""str: スコープパート名 Note: 実装対象以外は空文字。対象: クラス/ファンクション/ブロック"""
-		return ''
+		raise NotImplementedError()
 
 	@property
 	def namespace_part(self) -> str:
 		"""str: 名前空間パート名 Note: 実装対象以外は空文字。対象: クラス"""
-		return ''
+		raise NotImplementedError()
 
 
-class TerminalTrait:
+class ITerminal:
 	"""終端要素のノードを明示
 
 	Note:
@@ -25,7 +25,7 @@ class TerminalTrait:
 	"""
 
 
-class DomainNameTrait:
+class IDomainName:
 	"""ドメイン名で解決出来るノードを明示
 
 	Note:

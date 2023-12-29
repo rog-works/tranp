@@ -8,8 +8,8 @@ from py2cpp.node.definition.primary import Symbol, This, ThisVar, Var
 from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
+from py2cpp.node.interface import IDomainName, IScope
 from py2cpp.node.node import Node
-from py2cpp.node.trait import DomainNameTrait, ScopeTrait
 
 
 class Flow(Node): pass
@@ -113,16 +113,21 @@ class Try(Flow):
 		return [node.as_a(Catch) for node in self._by('except_clauses')._children()]
 
 
-class Types(Node, DomainNameTrait, ScopeTrait):
+class Types(Node, IDomainName, IScope):
 	@property
 	@override
 	def public_name(self) -> str:
 		return self.symbol.tokens
 
 	@property
-	@override
+	@implements
 	def scope_part(self) -> str:
 		return self.public_name
+
+	@property
+	@implements
+	def namespace_part(self) -> str:
+		return ''
 
 	@property
 	@implements

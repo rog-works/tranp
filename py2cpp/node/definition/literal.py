@@ -2,11 +2,11 @@ from py2cpp.ast.dsn import DSN
 from py2cpp.lang.annotation import implements, override
 from py2cpp.node.definition.terminal import Terminal
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
+from py2cpp.node.interface import IDomainName, ITerminal
 from py2cpp.node.node import Node
-from py2cpp.node.trait import DomainNameTrait, TerminalTrait
 
 
-class Literal(Node, DomainNameTrait):
+class Literal(Node, IDomainName):
 	@property
 	@implements
 	def domain_id(self) -> str:
@@ -24,7 +24,7 @@ class Literal(Node, DomainNameTrait):
 
 
 @Meta.embed(Node, accept_tags('number'))
-class Number(Literal, TerminalTrait): pass
+class Number(Literal, ITerminal): pass
 
 
 @Meta.embed(Node, actualized(via=Number))
@@ -52,14 +52,14 @@ class Float(Number):
 
 
 @Meta.embed(Node, accept_tags('string'))
-class String(Literal, TerminalTrait):
+class String(Literal, ITerminal):
 	@property
 	@override
 	def class_symbol_alias(self) -> str:
 		return 'str'
 
 
-class Boolean(Literal, TerminalTrait):
+class Boolean(Literal, ITerminal):
 	@property
 	@override
 	def class_symbol_alias(self) -> str:
@@ -114,7 +114,7 @@ class Dict(Literal):
 
 
 @Meta.embed(Node, accept_tags('const_none', 'typed_none'))
-class Null(Literal, TerminalTrait):
+class Null(Literal, ITerminal):
 	@property
 	@override
 	def class_symbol_alias(self) -> str:

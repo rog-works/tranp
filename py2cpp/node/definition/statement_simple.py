@@ -2,8 +2,8 @@ from py2cpp.lang.annotation import override
 from py2cpp.node.definition.primary import FuncCall, GenericType, Indexer, Symbol
 from py2cpp.node.definition.terminal import Empty, Terminal
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
+from py2cpp.node.interface import ITerminal
 from py2cpp.node.node import Node
-from py2cpp.node.trait import TerminalTrait
 
 
 @Meta.embed(Node, accept_tags('assign_stmt'))
@@ -110,7 +110,7 @@ class Continue(Node): pass
 
 
 @Meta.embed(Node, accept_tags('import_stmt'))
-class Import(Node, TerminalTrait):
+class Import(Node, ITerminal):
 	@property
 	@Meta.embed(Node, expandable)
 	def module_path(self) -> Symbol:

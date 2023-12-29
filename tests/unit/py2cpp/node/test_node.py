@@ -4,28 +4,33 @@ from lark import Token, Tree
 
 from py2cpp.ast.entry import Entry
 from py2cpp.ast.provider import Query, Settings
-from py2cpp.lang.annotation import override
+from py2cpp.lang.annotation import implements, override
 from py2cpp.lang.di import DI
 from py2cpp.lang.locator import Curry, Locator
 from py2cpp.node.embed import Meta, actualized, expandable
+from py2cpp.node.interface import IScope, ITerminal
 from py2cpp.node.node import Node
 from py2cpp.node.nodes import NodeResolver, Nodes
-from py2cpp.node.trait import ScopeTrait, TerminalTrait
 from py2cpp.tp_lark.entry import EntryOfLark
 from tests.test.helper import data_provider
 
 
-class Terminal(Node, TerminalTrait): pass
-class Empty(Node, TerminalTrait): pass
+class Terminal(Node, ITerminal): pass
+class Empty(Node, ITerminal): pass
 class Expression(Node): pass
 class Assign(Node): pass
 
 
-class Block(Node, ScopeTrait):
+class Block(Node, IScope):
 	@property
-	@override
+	@implements
 	def scope_part(self) -> str:
 		return '' if self.parent.public_name else self.parent._full_path.elements[-1]
+
+	@property
+	@implements
+	def namespace_part(self) -> str:
+		return ''
 
 
 class If(Node):
@@ -47,11 +52,16 @@ class Entrypoint(Node):
 		return '__main__'
 
 
-class Types(Node, ScopeTrait):
+class Types(Node, IScope):
 	@property
-	@override
+	@implements
 	def scope_part(self) -> str:
 		return self.public_name
+
+	@property
+	@implements
+	def namespace_part(self) -> str:
+		return ''
 
 
 class Class(Types):

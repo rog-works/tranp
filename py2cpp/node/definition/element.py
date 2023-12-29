@@ -1,4 +1,4 @@
-from py2cpp.lang.annotation import override
+from py2cpp.lang.annotation import implements
 from py2cpp.node.definition.common import Argument
 from py2cpp.node.definition.literal import Null
 from py2cpp.node.definition.primary import GenericType, Symbol
@@ -6,8 +6,8 @@ from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, expandable
 from py2cpp.node.base import T_NodeBase
+from py2cpp.node.interface import IScope
 from py2cpp.node.node import Node
-from py2cpp.node.trait import ScopeTrait
 
 
 @Meta.embed(Node, accept_tags('paramvalue'))
@@ -51,12 +51,17 @@ class Decorator(Node):
 
 
 @Meta.embed(Node, accept_tags('block'))
-class Block(Node, ScopeTrait):
+class Block(Node, IScope):
 	@property
-	@override
+	@implements
 	def scope_part(self) -> str:
 		"""Note: XXX 親が公開名称を持つノード(クラス/ファンクション)の場合は空文字。それ以外は親の一意エントリータグを返却"""
 		return '' if self.parent.public_name else self.parent._full_path.elements[-1]
+
+	@property
+	@implements
+	def namespace_part(self) -> str:
+		return ''
 
 	@property
 	@Meta.embed(Node, expandable)

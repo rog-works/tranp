@@ -9,6 +9,7 @@ from py2cpp.lang.module import load_module
 from py2cpp.ast.entry import Entry
 from py2cpp.ast.provider import Query, Settings
 from py2cpp.ast.parser import FileLoader, GrammarSettings, SyntaxParser
+from py2cpp.module.base import ModulePath
 from py2cpp.module.modules import Module, Modules
 from py2cpp.module.provider import CoreLibrariesProvider
 from py2cpp.node.classify import Classify
@@ -56,7 +57,8 @@ class Fixture:
 		di.bind(SyntaxParser, SyntaxParserOfLark)
 		di.bind(CoreLibrariesProvider, lambda: self.__core_libraries)
 		di.bind(Modules, Modules)
-		di.bind(Module, lambda: Module(di, '__main__'))
+		di.bind(ModulePath, lambda: '__main__')
+		di.bind(Module, Module)
 		di.bind(Settings, make_settings)
 		di.bind(Entry, lambda: self.__load_prebuild_tree(self.__module_path))
 		di.bind(NodeResolver, NodeResolver)

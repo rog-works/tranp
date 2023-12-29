@@ -7,6 +7,7 @@ from py2cpp.ast.provider import Query, Settings
 from py2cpp.errors import NotFoundError
 from py2cpp.lang.di import DI
 from py2cpp.lang.locator import Curry, Locator
+from py2cpp.module.base import ModulePath
 from py2cpp.node.node import Node
 from py2cpp.node.nodes import NodeResolver, Nodes
 from py2cpp.tp_lark.entry import EntryOfLark
@@ -32,6 +33,7 @@ class Fixture:
 		di.bind(Curry, lambda: di.curry)
 		di.bind(Query[Node], Nodes)
 		di.bind(NodeResolver, NodeResolver)
+		di.bind(ModulePath, lambda: '__main__')
 		di.bind(Settings, cls.__settings)
 		di.bind(Entry, cls.__tree)
 		return di

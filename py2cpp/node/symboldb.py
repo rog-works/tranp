@@ -3,9 +3,12 @@ from typing import NamedTuple, TypeAlias
 
 from py2cpp.ast.dsn import DSN
 from py2cpp.errors import LogicError
-from py2cpp.module.module import Module
-from py2cpp.module.modules import Modules
+from py2cpp.lang.annotation import injectable
+from py2cpp.module.modules import Module, Modules
 import py2cpp.node.definition as defs
+
+DeclVar: TypeAlias = defs.Parameter | defs.AnnoAssign | defs.MoveAssign
+DeclAll: TypeAlias = defs.Parameter | defs.AnnoAssign | defs.MoveAssign | defs.ClassType
 
 
 class SymbolRow(NamedTuple):
@@ -45,9 +48,14 @@ class SymbolRow(NamedTuple):
 		return self.ref_path.replace(self.module.path, module.path)
 
 
-SymbolDB: TypeAlias = dict[str, SymbolRow]
-DeclVar: TypeAlias = defs.Parameter | defs.AnnoAssign | defs.MoveAssign
-DeclAll: TypeAlias = defs.Parameter | defs.AnnoAssign | defs.MoveAssign | defs.ClassType
+@dataclass
+class SymbolDB:
+	"""シンボルテーブル
+
+	Attributes:
+		rows: 参照パスとシンボルデータのマッピング情報
+	"""
+	rows: dict[str, SymbolRow] = field(default_factory=dict)
 
 
 @dataclass
@@ -55,11 +63,11 @@ class Expanded:
 	"""展開時のテンポラリーデータ
 
 	Attributes:
-		db (SymbolDB): シンボルテーブル
+		rows (SymbolDB): シンボルテーブル
 		decl_vars (list[DeclVar]): 変数リスト
 		import_nodes (list[Import]): インポートリスト
 	"""
-	db: SymbolDB = field(default_factory=dict)
+	rows: dict[str, SymbolRow] = field(default_factory=dict)
 	decl_vars: list[DeclVar] = field(default_factory=list)
 	import_nodes: list[defs.Import] = field(default_factory=list)
 
@@ -68,11 +76,12 @@ class SymbolDBFactory:
 	"""シンボルテーブルファクトリー"""
 
 	@classmethod
+	@injectable
 	def create(cls, modules: Modules) -> SymbolDB:
 		"""シンボルテーブルを生成
 
 		Args:
-			modules (Modules): モジュールマネージャー
+			modules (Modules): モジュールマネージャー @inject
 		Returns:
 			SymbolDB: シンボルテーブル
 		"""
@@ -102,11 +111,11 @@ class SymbolDBFactory:
 			if expand_module not in modules.core_libralies:
 				for core_module in modules.core_libralies:
 					# 第1層で宣言されているシンボルに限定
-					entrypoint = core_module.entrypoint(defs.Entrypoint)
+					entrypoint = core_module.entrypoint.as_a(defs.Entrypoint)
 					primary_symbol_names = [node.symbol.tokens for node in entrypoint.statements if isinstance(node, DeclAll)]
 					expanded = expends[core_module]
-					filtered_db = {row.path_to(expand_module): row.to(expand_module) for row in expanded.db.values() if row.symbol.tokens in primary_symbol_names}
-					expand_target.db = {**filtered_db, **expand_target.db}
+					filtered_db = {row.path_to(expand_module): row.to(expand_module) for row in expanded.rows.values() if row.symbol.tokens in primary_symbol_names}
+					expand_target.rows = {**filtered_db, **expand_target.rows}
 
 			# インポートモジュールを展開
 			# XXX 別枠として分離するより、ステートメントの中で処理するのが理想
@@ -116,22 +125,22 @@ class SymbolDBFactory:
 				imported_symbol_names = [symbol.tokens for symbol in import_node.import_symbols]
 				import_module = modules.load(import_node.module_path.tokens)
 				expanded = expends[import_module]
-				filtered_db = {row.path_to(expand_module): row.to(expand_module) for row in expanded.db.values() if row.symbol.tokens in imported_symbol_names}
-				expand_target.db = {**filtered_db, **expand_target.db}
+				filtered_db = {row.path_to(expand_module): row.to(expand_module) for row in expanded.rows.values() if row.symbol.tokens in imported_symbol_names}
+				expand_target.rows = {**filtered_db, **expand_target.rows}
 
 			# 展開対象モジュールの変数シンボルを展開
 			for var in expand_target.decl_vars:
-				expand_target.db[var.symbol.domain_id] = cls.__resolve_var_type(var, expand_target.db)
+				expand_target.rows[var.symbol.domain_id] = cls.__resolve_var_type(var, expand_target.rows)
 
 		# シンボルテーブルを統合
-		db: SymbolDB = {}
+		rows: dict[str, SymbolRow] = {}
 		for expanded in expends.values():
-			db = {**expanded.db, **db}
+			rows = {**expanded.rows, **rows}
 
-		return db
+		return SymbolDB(rows)
 
 	@classmethod
-	def __expand_module(cls, main: Module) -> Expanded:
+	def __expand_module(cls, module: Module) -> Expanded:
 		"""モジュールの全シンボルを展開
 
 		Args:
@@ -139,13 +148,13 @@ class SymbolDBFactory:
 		Returns:
 			Expanded: 展開データ
 		"""
-		db: SymbolDB = {}
+		rows: dict[str, SymbolRow] = {}
 		decl_vars: list[DeclVar] = []
 		import_nodes: list[defs.Import] = []
-		entrypoint = main.entrypoint(defs.Entrypoint)
+		entrypoint = module.entrypoint.as_a(defs.Entrypoint)
 		for node in entrypoint.flatten():
 			if isinstance(node, defs.ClassType):
-				db[node.domain_id] = SymbolRow(node.domain_id, node.domain_id, node.module, node.symbol, node)
+				rows[node.domain_id] = SymbolRow(node.domain_id, node.domain_id, module, node.symbol, node)
 
 			if type(node) is defs.Import:
 				import_nodes.append(node)
@@ -166,15 +175,15 @@ class SymbolDBFactory:
 		# XXX calculatedに含まれないためエントリーポイントは個別に処理
 		decl_vars = [*entrypoint.decl_vars, *decl_vars]
 
-		return Expanded(db, decl_vars, import_nodes)
+		return Expanded(rows, decl_vars, import_nodes)
 
 	@classmethod
-	def __resolve_var_type(cls, var: DeclVar, db: SymbolDB) -> SymbolRow:
+	def __resolve_var_type(cls, var: DeclVar, rows: dict[str, SymbolRow]) -> SymbolRow:
 		"""シンボルテーブルから変数の型を解決
 
 		Args:
 			var (DeclVar): 変数
-			db (SymbolDB): シンボルテーブル
+			rows (dict[str, SymbolRow]): シンボルテーブル
 		Returns:
 			SymbolRow: シンボル情報
 		"""
@@ -185,11 +194,11 @@ class SymbolDBFactory:
 		else:
 			# 型が不明な変数はUnknownにフォールバック
 			# XXX Unknownの名前は重要なので定数化などの方法で明示
-			candidates = [DSN.join(var.module.path, 'Unknown')]
+			candidates = [DSN.join(var.module_path, 'Unknown')]
 
 		for candidate in candidates:
-			if candidate in db:
-				return db[candidate]
+			if candidate in rows:
+				return rows[candidate]
 
 		raise LogicError(f'Unresolve var type. symbol: {var.symbol.tokens}')
 

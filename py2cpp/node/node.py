@@ -1,16 +1,15 @@
 import functools
-from typing import Callable, Iterator, cast
+from typing import Iterator, cast
 
 from py2cpp.ast.dsn import DSN
 from py2cpp.ast.path import EntryPath
 from py2cpp.ast.provider import Query
 from py2cpp.errors import LogicError, NotFoundError
-from py2cpp.lang.annotation import deprecated
-from py2cpp.lang.locator import Locator
+from py2cpp.lang.annotation import deprecated, injectable
 from py2cpp.lang.sequence import flatten
 from py2cpp.lang.string import snakelize
-from py2cpp.module.module import Module
-from py2cpp.node.base import NodeBase, T_NodeBase, T_Plugin
+from py2cpp.module.base import ModulePath
+from py2cpp.node.base import NodeBase, T_NodeBase
 from py2cpp.node.embed import EmbedKeys, Meta
 from py2cpp.node.interface import IScope, ITerminal
 
@@ -25,14 +24,17 @@ class Node(NodeBase):
 		そのため、必ずしもAST上のエントリーとノードのアライメントは一致しない点に注意
 	"""
 
-	def __init__(self, locator: Locator, full_path: str) -> None:
+	@injectable
+	def __init__(self, nodes: Query['Node'], module_path: ModulePath, full_path: str) -> None:
 		"""インスタンスを生成
 
 		Args:
-			locator (Locator): ロケーター @inject
+			nodes (Query[Node]): クエリーインターフェイス @inject
+			module_path (ModulePath): モジュールパス @inject
 			full_path (str): ルート要素からのフルパス
 		"""
-		self.__locator = locator
+		self.__nodes = nodes
+		self.__module_path = module_path
 		self._full_path = EntryPath(full_path)
 
 	def __str__(self) -> str:
@@ -40,14 +42,9 @@ class Node(NodeBase):
 		return f'<{self.__class__.__name__}: {self.full_path}>'
 
 	@property
-	def __nodes(self) -> Query['Node']:
-		"""Query[Node]: クエリーインターフェイス"""
-		return self.__locator.resolve(Query[Node])
-
-	@property
-	def module(self) -> Module:
-		"""Module: モジュール Note: XXX モジュールの方が上位のため依存するのは好ましくないのと、パスだけで実用上は十分なので修正を検討"""
-		return self.__locator.resolve(Module)
+	def module_path(self) -> str:
+		"""str: モジュールパス"""
+		return self.__module_path
 
 	@property
 	def full_path(self) -> str:
@@ -276,19 +273,6 @@ class Node(NodeBase):
 		via = self._full_path.joined(relative_path) if relative_path else self.full_path
 		return self.__nodes.children(via)
 
-	@deprecated
-	def _leafs(self, leaf_tag: str) -> list['Node']:
-		"""配下に存在する接尾辞が一致するノードをフェッチ
-
-		Args:
-			leaf_name (str): 接尾辞
-		Returns:
-			list[Node]: ノードリスト
-		Note:
-			@deprecated 探索深度が不定なため、意図しないノードを拾う可能性が高いので使用しないことを推奨
-		"""
-		return self.__nodes.leafs(self.full_path, leaf_tag)
-
 	def _ancestor(self, tag: str) -> 'Node':
 		"""指定のエントリータグを持つ直近の親ノードをフェッチ
 
@@ -340,8 +324,7 @@ class Node(NodeBase):
 		if not self.__acceptable_by(to_class):
 			raise LogicError(str(self), to_class)
 
-		factory = self.__locator.curry(to_class, Callable[[str], to_class])
-		return cast(T_NodeBase, factory(self.full_path))
+		return cast(T_NodeBase, to_class(self.__nodes, self.__module_path, self.full_path))
 
 	def __acceptable_by(self, to_class: type[NodeBase]) -> bool:
 		"""指定の具象クラスへの変換が受け入れられるか判定
@@ -404,34 +387,6 @@ class Node(NodeBase):
 		"""
 		return isinstance(self, ctor)
 
-	@deprecated
-	def rerole(self, to_class: type[T_NodeBase]) -> T_NodeBase:
-		"""指定の具象クラスへリロールする。変換先と継承関係がある場合はエラーを出力
-
-		Args:
-			to_class (type[T_NodeBase]): 変換先の具象クラス
-		Returns:
-			T_NodeBase: 具象クラスのインスタンス
-		Raises:
-			LogicError: 許可されない変換先を指定
-		Note:
-			@deprecated このメソッドは極力使用しないことを推奨。継承関係がある変換にはas_aを使用すること
-			## 変換条件
-			1. 変換先と継承関係がない
-			2. 受け入れタグが設定
-		"""
-		if self.is_a(to_class):
-			raise LogicError(str(self), to_class)
-
-		if issubclass(to_class, self.__class__):
-			raise LogicError(str(self), to_class)
-
-		if not self.__acceptable_by(to_class):
-			raise LogicError(str(self), to_class)
-
-		factory = self.__locator.curry(to_class, Callable[[str], to_class])
-		return factory(self.full_path)
-
 	@classmethod
 	def match_feature(cls, via: 'Node') -> bool:
 		"""引数のノードが自身の特徴と一致するか判定
@@ -482,19 +437,6 @@ class Node(NodeBase):
 				return self.as_a(feature_class)
 
 		return self
-
-	@deprecated
-	def plugin(self, symbol: type[T_Plugin]) -> T_Plugin:
-		"""プラグインモジュールを取得
-
-		Args:
-			symbol (type[T_Plugin]): モジュールのシンボル
-		Returns:
-			T_Plugin: プラグイン
-		Note:
-			@deprecated 未使用
-		"""
-		return self.__locator.resolve(symbol)
 
 	# XXX def is_statement(self) -> bool: pass
 	# XXX def pretty(self) -> str: pass

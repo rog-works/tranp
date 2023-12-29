@@ -128,11 +128,11 @@ class Classify:
 			SymbolRow | None: シンボルデータ
 		"""
 		domain_id = DSN.join(node.scope, symbol)
-		domain_name = DSN.join(node.module.path, symbol)
-		if domain_id in self.__db:
-			return self.__db[domain_id]
-		elif domain_name in self.__db:
-			return self.__db[domain_name]
+		domain_name = DSN.join(node.module_path, symbol)
+		if domain_id in self.__db.rows:
+			return self.__db.rows[domain_id]
+		elif domain_name in self.__db.rows:
+			return self.__db.rows[domain_name]
 
 		return None
 

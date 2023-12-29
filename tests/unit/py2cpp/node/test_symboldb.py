@@ -5,7 +5,7 @@ from tests.test.fixture import Fixture
 from tests.test.helper import data_provider
 
 
-class TestSymbolDB(TestCase):
+class TestSymbolDBFactory(TestCase):
 	fixture = Fixture.make(__file__)
 	__verbose = False
 
@@ -74,14 +74,14 @@ class TestSymbolDB(TestCase):
 			'__main__.B.B2.v': 'tests.unit.py2cpp.node.fixtures.test_symboldb_classes.str',
 		},),
 	])
-	def test_make_db(self, expected: dict[str, str]) -> None:
+	def test_create(self, expected: dict[str, str]) -> None:
 		db = self.fixture.get(SymbolDB)
 
 		if self.__verbose:
-			print('\n', '\n'.join([f"'{key}': '{row.org_path}'," for key, row in db.items()]))
+			print('\n', '\n'.join([f"'{key}': '{row.org_path}'," for key, row in db.rows.items()]))
 
 		for expected_path, expected_org_path in expected.items():
-			self.assertEqual('ok' if expected_path in db else expected_path, 'ok')
-			self.assertEqual(db[expected_path].org_path, expected_org_path)
+			self.assertEqual('ok' if expected_path in db.rows else expected_path, 'ok')
+			self.assertEqual(db.rows[expected_path].org_path, expected_org_path)
 
-		self.assertEqual(len(db), len(expected))
+		self.assertEqual(len(db.rows), len(expected))

@@ -10,7 +10,7 @@ class Literal(Node, IDomainName):
 	@property
 	@implements
 	def domain_id(self) -> str:
-		return DSN.join(self.module.path, self.class_symbol_alias)
+		return DSN.join(self.module_path, self.class_symbol_alias)
 
 	@property
 	@implements

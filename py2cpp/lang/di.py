@@ -35,10 +35,11 @@ class DI:
 		Raises:
 			ValueError: 登録済みのシンボルを指定
 		"""
-		if self.can_resolve(symbol):
+		binded_symbol = self.__acceptable_symbol(symbol)
+		if self.can_resolve(binded_symbol):
 			raise ValueError(f'Already defined. symbol: {symbol}')
 
-		self.__injectors[symbol] = injector
+		self.__injectors[binded_symbol] = injector
 
 	def unbind(self, symbol: type[T_Inst]) -> None:
 		"""シンボルとファクトリーのマッピングを解除
@@ -85,6 +86,33 @@ class DI:
 
 		return self.__instances[found_symbol]
 
+	def __acceptable_symbol(self, symbol: type[T_Inst]) -> type[T_Inst]:
+		"""受け入れ可能なシンボルに変換
+
+		Args:
+			symbol (type[T_Inst]): シンボル
+		Returns:
+			type[T_Inst]: シンボル
+		Note:
+			XXX Generic型は型の解決結果が不明瞭で扱いにくいためオリジナルの型のみ受け入れ
+			```python
+			# Generic型を登録にした場合(=曖昧な例)
+			di.bind(Gen[A], lambda: Gen[B]())
+			di.resolve(Gen[A])  # OK
+			di.resolve(Gen[B])  # NG
+			di.resolve(Gen['A'])  # NG
+			di.resolve(Gen)  # NG
+
+			# オリジナルの型で登録した場合
+			di.bind(Gen[A], lambda: Gen[B])
+			di.resolve(Gen[A])  # OK
+			di.resolve(Gen[B])  # OK
+			di.resolve(Gen['A'])  # OK
+			di.resolve(Gen)  # OK
+			```
+		"""
+		return getattr(symbol, '__origin__') if hasattr(symbol, '__origin__') else symbol
+
 	def __find_symbol(self, symbol: type[T_Inst]) -> type[T_Inst] | None:
 		"""シンボルを検索
 
@@ -93,7 +121,8 @@ class DI:
 		Returns:
 			type[T_Inst] | None: シンボル
 		"""
-		return symbol if symbol in self.__injectors else None
+		find_symbol = self.__acceptable_symbol(symbol)
+		return find_symbol if find_symbol in self.__injectors else None
 
 	def __inject_kwargs(self, injector: T_Injector) -> dict[str, Any]:
 		"""注入する引数リストを生成

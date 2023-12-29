@@ -3,7 +3,6 @@ import sys
 from typing import Any, Callable
 
 
-
 def load_module(path: str, module: str) -> Any:
 	"""モジュールをロード
 

@@ -20,7 +20,7 @@ class Symbol(Node, IDomainName, ITerminal):
 	@property
 	@implements
 	def domain_name(self) -> str:
-		return DSN.join(self.module.path, self.tokens)
+		return DSN.join(self.module_path, self.tokens)
 
 
 @Meta.embed(Node, actualized(via=Symbol))
@@ -103,7 +103,7 @@ class GenericType(Node, IDomainName):
 	@property
 	@implements
 	def domain_name(self) -> str:
-		return DSN.join(self.module.path, self.symbol.tokens)
+		return DSN.join(self.module_path, self.symbol.tokens)
 
 	@property
 	@Meta.embed(Node, expandable)

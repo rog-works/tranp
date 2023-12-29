@@ -37,7 +37,7 @@ class Fixture:
 	def __definitions(self) -> ModuleDefinitions:
 		return {
 			'py2cpp.ast.entry.Entry': self.__make_entrypoint,
-			'py2cpp.module.base.LibraryPaths': self.__library_paths,
+			'py2cpp.module.types.LibraryPaths': self.__library_paths,
 		}
 
 	def __library_paths(self) -> list[str]:

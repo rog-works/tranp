@@ -190,23 +190,6 @@ class Nodes(Query[Node]):
 		return [self.__resolve(entry, path) for path, entry in entries.items()]
 
 	@implements
-	def leafs(self, via: str, leaf_tag: str) -> list[Node]:
-		"""指定のパスから下に存在する接尾辞が一致するノードをフェッチ
-
-		Args:
-			via (str): 基点のパス(フルパス)
-			leaf_name (str): 接尾辞
-		Returns:
-			list[Node]: ノードリスト
-		Raises:
-			NotFoundError: 基点のノードが存在しない
-		"""
-		regular = re.compile(rf'{EntryPath(via).escaped_origin}\.(.+\.)?{leaf_tag}(\[\d+\])?')
-		tester = lambda _, path: regular.fullmatch(path) is not None
-		entries = {path: entry for path, entry in self.__entries.group_by(via).items() if tester(entry, path)}
-		return [self.__resolve(entry, path) for path, entry in entries.items()]
-
-	@implements
 	def expand(self, via: str) -> list[Node]:
 		"""指定のパスから下に存在する展開が可能なノードをフェッチ
 

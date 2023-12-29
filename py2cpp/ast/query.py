@@ -89,20 +89,6 @@ class Query(Generic[T], metaclass=ABCMeta):
 		raise NotImplementedError()
 
 	@abstractmethod
-	def leafs(self, via: str, leaf_name: str) -> list[T]:
-		"""指定のパスから下に存在する接尾辞が一致するエントリーをフェッチ
-
-		Args:
-			via (str): 基点のパス(フルパス)
-			leaf_name (str): 接尾辞
-		Returns:
-			list[T]: エントリーリスト
-		Raises:
-			NotFoundError: 基点のエントリーが存在しない
-		"""
-		raise NotImplementedError()
-
-	@abstractmethod
 	def expand(self, via: str) -> list[T]:
 		"""指定のパスから下に存在する展開が可能なエントリーをフェッチ
 

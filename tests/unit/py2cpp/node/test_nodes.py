@@ -206,18 +206,6 @@ class TestNodes(TestCase):
 		self.assertEqual([type(node) for node in in_nodes], expected)
 
 	@data_provider([
-		('root', '__empty__', [Empty]),
-		('root', 'token_b', [TokenB]),
-		('root', 'token_a', [TokenA, TokenA]),
-		('root', 'tree_b', [TreeB, TreeB]),
-		('root', 'term_a', [Terminal, Terminal]),
-	])
-	def test_leafs(self, via: str, leaf_name: str, expected: type[Node]) -> None:
-		nodes = Fixture.nodes()
-		in_nodes = nodes.leafs(via, leaf_name)
-		self.assertEqual([type(node) for node in in_nodes], expected)
-
-	@data_provider([
 		('root', [TreeA, Terminal, TreeC]),
 		('root.tree_a', [Empty, TokenA, TreeB, TreeB, TokenA, TokenC]),
 		('root.tree_a.tree_b[3]', [TokenB]),
@@ -244,6 +232,6 @@ class TestNodes(TestCase):
 		('root.term_a', ['a']),
 		('root.tree_c.skip_tree_a.term_a', ['c.a.a']),
 	])
-	def test_value(self, via: str, expected: str) -> None:
+	def test_values(self, via: str, expected: str) -> None:
 		nodes = Fixture.nodes()
 		self.assertEqual(nodes.values(via), expected)

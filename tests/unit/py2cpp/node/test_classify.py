@@ -70,6 +70,7 @@ class TestClassify(TestCase):
 
 	@data_provider([
 		(by('__main__', 'assign_stmt.anno_assign.number'), 'tests.unit.py2cpp.node.fixtures.test_symboldb_classes.int'),
+		(by('B.func1.block', 'funccall[3].arguments.argvalue.getattr'), 'tests.unit.py2cpp.node.fixtures.test_symboldb_classes.int'),
 	])
 	def test_result_of(self, full_path: str, expected: type[defs.ClassType]) -> None:
 		classify = self.fixture.get(Classify)

@@ -197,8 +197,8 @@ class Handler:
 	def on_this_var(self, node: defs.ThisVar) -> defs.ClassType:
 		return self.__classify.type_of(node)
 
-	def on_indexer(self, node: defs.Indexer) -> defs.ClassType:
-		return self.__classify.type_of(node.symbol)
+	def on_indexer(self, node: defs.Indexer, symbol: defs.Symbol, key: Node) -> defs.ClassType:
+		return self.__classify.type_of(symbol)
 
 	def on_list_type(self, node: defs.ListType) -> defs.ClassType:
 		return self.on_generic_type(node)

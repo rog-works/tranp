@@ -1,7 +1,9 @@
 from types import FunctionType, MethodType
-from typing import Any, Callable, cast
+from typing import Any, Callable, TypeAlias, cast
 
+from py2cpp.lang.annotation import override
 from py2cpp.lang.locator import T_Curried, T_Inst, T_Injector
+from py2cpp.lang.module import load_module_path
 
 
 class DI:
@@ -24,6 +26,16 @@ class DI:
 		Returns:
 			bool: True = 解決できる
 		"""
+		return self.__inner_binded(symbol)
+
+	def __inner_binded(self, symbol: type) -> bool:
+		"""シンボルが登録済みか判定。bindの中のみ直接使用
+
+		Args:
+			symbol (type): シンボル
+		Returns:
+			bool: True = 登録済み
+		"""
 		return self.__find_symbol(symbol) is not None
 
 	def bind(self, symbol: type[T_Inst], injector: T_Injector) -> None:
@@ -35,11 +47,11 @@ class DI:
 		Raises:
 			ValueError: 登録済みのシンボルを指定
 		"""
-		binded_symbol = self.__acceptable_symbol(symbol)
-		if self.can_resolve(binded_symbol):
+		accept_symbol = self._acceptable_symbol(symbol)
+		if self.__inner_binded(accept_symbol):
 			raise ValueError(f'Already defined. symbol: {symbol}')
 
-		self.__injectors[binded_symbol] = injector
+		self.__injectors[accept_symbol] = injector
 
 	def unbind(self, symbol: type[T_Inst]) -> None:
 		"""シンボルとファクトリーのマッピングを解除
@@ -61,7 +73,7 @@ class DI:
 			symbol (type[T_Inst]): シンボル
 			injector (T_Injector): ファクトリー(関数/メソッド/クラス)
 		"""
-		if self.can_resolve(symbol):
+		if self.__inner_binded(symbol):
 			self.unbind(symbol)
 
 		self.bind(symbol, injector)
@@ -86,7 +98,7 @@ class DI:
 
 		return self.__instances[found_symbol]
 
-	def __acceptable_symbol(self, symbol: type[T_Inst]) -> type[T_Inst]:
+	def _acceptable_symbol(self, symbol: type[T_Inst]) -> type[T_Inst]:
 		"""受け入れ可能なシンボルに変換
 
 		Args:
@@ -121,8 +133,8 @@ class DI:
 		Returns:
 			type[T_Inst] | None: シンボル
 		"""
-		find_symbol = self.__acceptable_symbol(symbol)
-		return find_symbol if find_symbol in self.__injectors else None
+		accept_symbol = self._acceptable_symbol(symbol)
+		return accept_symbol if accept_symbol in self.__injectors else None
 
 	def __inject_kwargs(self, injector: T_Injector) -> dict[str, Any]:
 		"""注入する引数リストを生成
@@ -219,3 +231,141 @@ class DI:
 			di.bind(symbol, injector)
 
 		return di
+
+
+ModuleDefinitions: TypeAlias = dict[str, str | Callable[..., T_Inst]]
+
+
+class LazyDI(DI):
+	"""遅延ロードDIコンテナー。マッピングを文字列で管理し、型解決時までモジュールの読み込みを遅延させる"""
+
+	@classmethod
+	def instantiate(cls, definitions: ModuleDefinitions) -> 'LazyDI':
+		"""インスタンスを生成
+
+		Args:
+			definitions (ModuleDefinitions): モジュール定義
+		Returns:
+			LazyDI: インスタンス
+		"""
+		di = cls()
+		for symbol_path, injector in definitions.items():
+			di.__register(symbol_path, injector)
+
+		return di
+
+	def __init__(self) -> None:
+		"""インスタンスを生成"""
+		super().__init__()
+		self.__definitions: ModuleDefinitions = {}
+
+	def __register(self, symbol_path: str, injector: str | Callable[..., T_Inst]) -> None:
+		"""マッピングの登録を追加
+
+		Args:
+			symbol_path (str): シンボル型のパス
+			injector (str | Callable[..., T_Inst]): ファクトリー、またはパス
+		Raises:
+			ValueError: 登録済みのシンボルを指定
+		"""
+		if symbol_path in self.__definitions:
+			raise ValueError(f'Already defined. symbol: {symbol_path}')
+
+		self.__definitions[symbol_path] = injector
+
+	def __unregister(self, symbol_path: str) -> None:
+		"""マッピングの登録を解除
+
+		Args:
+			symbol_path (str): シンボル型のパス
+		"""
+		if self.__can_resolve(symbol_path):
+			del self.__definitions[symbol_path]
+
+	@override
+	def can_resolve(self, symbol: type[T_Inst]) -> bool:
+		"""シンボルが解決できるか判定
+
+		Args:
+			symbol (type): シンボル
+		Returns:
+			bool: True = 解決できる
+		"""
+		return self.__can_resolve(self.__symbolize(symbol))
+
+	def __can_resolve(self, symbol_path: str) -> bool:
+		"""シンボルが解決できるか判定
+
+		Args:
+			symbol_path (str): シンボル型のパス
+		Returns:
+			bool: True = 解決できる
+		"""
+		return symbol_path in self.__definitions
+
+	def __symbolize(self, symbol: type[T_Inst]) -> str:
+		"""シンボルが解決できるか判定
+
+		Args:
+			symbol (type[T_Inst]): シンボル
+		Returns:
+			str: シンボルパス
+		"""
+		accept_symbol = self._acceptable_symbol(symbol)
+		return f'{accept_symbol.__module__}.{accept_symbol.__name__}'
+
+	@override
+	def bind(self, symbol: type[T_Inst], injector: T_Injector) -> None:
+		"""シンボルとファクトリーのマッピングを登録
+
+		Args:
+			symbol (type[T_Inst]): シンボル
+			injector (T_Injector): ファクトリー(関数/メソッド/クラス)
+		Raises:
+			ValueError: 登録済みのシンボルを指定
+		"""
+		symbol_path = self.__symbolize(symbol)
+		if not self.__can_resolve(symbol_path):
+			self.__register(symbol_path, injector)
+
+		return super().bind(symbol, injector)
+
+	@override
+	def unbind(self, symbol: type[T_Inst]) -> None:
+		"""シンボルとファクトリーのマッピングを解除
+
+		Args:
+			symbol (type[T_Inst]): シンボル
+		"""
+		if self.can_resolve(symbol):
+			self.__unregister(self.__symbolize(symbol))
+
+		super().unbind(symbol)
+
+	@override
+	def resolve(self, symbol: type[T_Inst]) -> T_Inst:
+		"""シンボルからインスタンスを解決
+
+		Args:
+			symbol (type[T_Inst]): シンボル
+		Returns:
+			T_Inst: インスタンス
+		Raises:
+			ValueError: 未登録のシンボルを指定
+		"""
+		symbol_path = self.__symbolize(symbol)
+		if not super().can_resolve(symbol) and self.__can_resolve(symbol_path):
+			self.__bind_proxy(symbol_path)
+
+		return super().resolve(symbol)
+
+	def __bind_proxy(self, symbol_path: str) -> None:
+		"""シンボルとファクトリーのマッピングを代替登録
+
+		Args:
+			symbol_path (str): シンボル型のパス
+		Raises:
+			ValueError: 登録済みのシンボルを指定
+		"""
+		injector = self.__definitions[symbol_path]
+		self.bind(load_module_path(symbol_path), injector if callable(injector) else load_module_path(injector))

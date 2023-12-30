@@ -1,4 +1,4 @@
-from py2cpp.app.types import ModuleDefinitions
+from py2cpp.lang.di import ModuleDefinitions
 
 
 def default_definitions() -> ModuleDefinitions:

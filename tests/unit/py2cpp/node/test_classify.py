@@ -67,3 +67,11 @@ class TestClassify(TestCase):
 		classify = self.fixture.get(Classify)
 		node = self.fixture.shared_nodes.by(full_path).one_of(Symbolic)
 		self.assertEqual(classify.type_of(node).domain_id, expected)
+
+	@data_provider([
+		(by('__main__', 'assign_stmt.anno_assign.number'), 'tests.unit.py2cpp.node.fixtures.test_symboldb_classes.int'),
+	])
+	def test_result_of(self, full_path: str, expected: type[defs.ClassType]) -> None:
+		classify = self.fixture.get(Classify)
+		node = self.fixture.shared_nodes.by(full_path)
+		self.assertEqual(classify.result_of(node).domain_id, expected)

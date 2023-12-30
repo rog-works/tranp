@@ -150,6 +150,9 @@ class Classify:
 		for node in expression.calculated():
 			handler.on_action(node)
 
+		# XXX 自分自身が含まれないため個別に実行
+		handler.on_action(expression)
+
 		return handler.result()
 
 
@@ -159,6 +162,9 @@ class Handler:
 		self.__stack: list[defs.ClassType] = []
 
 	def result(self) -> defs.ClassType:
+		if len(self.__stack) != 1:
+			raise LogicError(f'Invalid number of stacks. {len(self.__stack)} != 1')
+
 		return self.__stack.pop()
 
 	def on_action(self, node: Node) -> None:
@@ -168,13 +174,14 @@ class Handler:
 		handler_name = f'on_{node.classification}'
 		handler = getattr(self, handler_name)
 		keys = reversed([key for key, _ in handler.__annotations__.items() if key != 'return'])
-		annotations = {key: handler.__annotations__[key] for key in keys}
-		args = {node: node, **{key: self.__stack.pop() for key in annotations.keys()}}
-		valids = [True for key, arg in args.items() if isinstance(arg, annotations[key])]
+		annos = {key: handler.__annotations__[key] for key in keys}
+		node_key = list(annos.keys())[0]
+		args = {node_key: node, **{key: self.__stack.pop() for key in annos.keys() if key != node_key}}
+		valids = [True for key, arg in args.items() if isinstance(arg, annos[key])]
 		if len(valids) != len(args):
 			raise LogicError(f'Invalid arguments. node: {node}, actual {len(valids)} to expected {len(args)}')
 
-		return handler(node, **args)
+		return handler(**args)
 
 	# Primary
 

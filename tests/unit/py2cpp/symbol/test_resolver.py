@@ -70,7 +70,7 @@ class TestSymbolResolver(TestCase):
 
 	@data_provider([
 		(by('__main__', 'assign_stmt.anno_assign.number'), 'tests.unit.py2cpp.symbol.fixtures.test_db_classes.int'),
-		(by('B.func1.block', 'funccall[3].arguments.argvalue.getattr'), 'tests.unit.py2cpp.symbol.fixtures.test_db_classes.int'),
+		(by('B.func1.block', 'funccall[3].arguments.argvalue.getattr'), 'tests.unit.py2cpp.symbol.fixtures.test_db_classes.list'),
 	])
 	def test_result_of(self, full_path: str, expected: type[defs.ClassType]) -> None:
 		resolver = self.fixture.get(SymbolResolver)

@@ -17,5 +17,5 @@ def default_definitions() -> ModuleDefinitions:
 		'py2cpp.node.node.Node': 'py2cpp.node.provider.entrypoint',
 		'py2cpp.node.resolver.NodeResolver': 'py2cpp.node.resolver.NodeResolver',
 		'py2cpp.symbol.db.SymbolDB': 'py2cpp.symbol.db.SymbolDB',
-		'py2cpp.symbol.resolver.SymbolResolver': 'py2cpp.symbol.resolver.SymbolResolver',
+		'py2cpp.symbol.symbols.Symbols': 'py2cpp.symbol.symbols.Symbols',
 	}

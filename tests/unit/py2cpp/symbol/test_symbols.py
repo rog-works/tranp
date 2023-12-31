@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 import py2cpp.node.definition as defs
-from py2cpp.symbol.resolver import SymbolResolver, Symbolic
+from py2cpp.symbol.symbols import Symbols, Symbolic
 from tests.test.fixture import Fixture
 from tests.test.helper import data_provider
 
@@ -33,7 +33,7 @@ def _mod(before: str, after: str) -> str:
 	return f'{aliases[before]}.{after}'
 
 
-class TestSymbolResolver(TestCase):
+class TestSymbols(TestCase):
 	fixture = Fixture.make(__file__)
 
 	@data_provider([
@@ -72,7 +72,7 @@ class TestSymbolResolver(TestCase):
 		(_ast('B.func1.block', 'return_stmt.getattr'), _mod('classes', 'str')),
 	])
 	def test_type_of(self, full_path: str, expected: type[defs.ClassType]) -> None:
-		resolver = self.fixture.get(SymbolResolver)
+		resolver = self.fixture.get(Symbols)
 		node = self.fixture.shared_nodes.by(full_path).one_of(Symbolic)
 		self.assertEqual(resolver.type_of(node).types.domain_id, expected)
 
@@ -83,6 +83,6 @@ class TestSymbolResolver(TestCase):
 		(_ast('B.func1.block', 'funccall[3].arguments.argvalue.getattr'), _mod('classes', 'list')),
 	])
 	def test_result_of(self, full_path: str, expected: type[defs.ClassType]) -> None:
-		resolver = self.fixture.get(SymbolResolver)
+		resolver = self.fixture.get(Symbols)
 		node = self.fixture.shared_nodes.by(full_path)
 		self.assertEqual(resolver.result_of(node).types.domain_id, expected)

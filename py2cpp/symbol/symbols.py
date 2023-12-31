@@ -10,7 +10,7 @@ from py2cpp.symbol.db import SymbolDB, SymbolRow
 Symbolic: TypeAlias = defs.Symbol | defs.GenericType | defs.Literal | defs.ClassType
 
 
-class SymbolResolver:
+class Symbols:
 	"""シンボルテーブルを参照してシンボルの型を解決する機能を提供"""
 
 	@injectable
@@ -174,7 +174,7 @@ class SymbolResolver:
 
 
 class Handler:
-	def __init__(self, resolver: SymbolResolver) -> None:
+	def __init__(self, resolver: Symbols) -> None:
 		self.__resolver = resolver
 		self.__stack: list[SymbolRow] = []
 

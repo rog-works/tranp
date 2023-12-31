@@ -21,7 +21,7 @@
 			"request": "launch",
 			"module":"unittest",
 			// "args": ["tests.unit.py2cpp.symbol.test_db.TestSymbolDB"],
-			"args": ["tests.unit.py2cpp.symbol.test_resolver.TestSymbolResolver.test_result_of"],
+			"args": ["tests.unit.py2cpp.symbol.test_resolver.TestSymbols.test_result_of"],
 			// "args": ["tests.unit.py2cpp.lang.test_di.TestDI"],
 			// "args": ["tests.unit.py2cpp.node.test_definition.TestDefinition.test_class"],
 			// "args": ["tests.unit.py2cpp.node.test_embed.TestMeta.test_expandable"],

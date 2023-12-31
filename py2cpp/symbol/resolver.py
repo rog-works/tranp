@@ -22,113 +22,130 @@ class SymbolResolver:
 		"""
 		self.__db = db
 
-	def type_of(self, node: Symbolic) -> SymbolRow:
-		"""シンボルノードからタイプノードを解決
+	def type_of(self, symbolic: Symbolic) -> SymbolRow:
+		"""シンボル系ノードからシンボルを解決
 
 		Args:
-			node (Symbolic): 対象ノード
+			symbolic (Symbolic): シンボル系ノード
 		Returns:
-			SymbolRow: タイプノード(クラス/ファンクション)
+			SymbolRow: シンボルデータ
 		Raises:
 			LogicError: 未定義のシンボルを指定
 		"""
-		found_row = self.__resolve_symbol(node, self.__resolve_symbol_path(node))
+		found_row = self.__resolve_symbol(symbolic, self.__to_symbol_path(symbolic))
 		if found_row is not None:
 			return found_row
 
-		raise LogicError(f'Symbol not defined. node: {node}')
+		raise LogicError(f'Symbol not defined. node: {symbolic}')
 
-	def __resolve_symbol(self, node: Symbolic, symbol_path: str) -> SymbolRow | None:
+	def property_of(self, class_type: defs.ClassType, symbol: defs.Symbol) -> SymbolRow:
+		"""クラスタイプノードからプロパティのシンボルを解決
+
+		Args:
+			class_type (ClassType): クラスタイプノード
+			symbol (Symbol): プロパティのシンボルノード
+		Returns:
+			SymbolRow: シンボルデータ
+		Raises:
+			LogicError: 未定義のシンボルを指定
+		"""
+		found_row = self.__resolve_symbol(class_type, self.__to_symbol_path(symbol))
+		if found_row is not None:
+			return found_row
+
+		raise LogicError(f'Symbol not defined. node: {class_type}')
+
+	def __resolve_symbol(self, symbolic: Symbolic, symbol_path: str) -> SymbolRow | None:
 		"""シンボルノードからタイプノードを解決。未検出の場合はNoneを返却
 
 		Args:
-			node (Symbolic): 対象ノード
+			symbolic (Symbolic): シンボル系ノード
 			symbol_path (str): シンボルパス
 		Returns:
-			Types | None: タイプノード(クラス/ファンクション)
+			SymbolRow | None: シンボルデータ
 		"""
-		symgol_row = None
+		symbol_row = None
 
 		# ドット区切りで前方からシンボルを検索
-		symbol_counts = DSN.length(symbol_path)
-		remain_counts = symbol_counts
+		elem_counts = DSN.length(symbol_path)
+		remain_counts = elem_counts
 		while remain_counts > 0:
-			symbol_starts = DSN.left(symbol_path, symbol_counts - (remain_counts - 1))
-			found_row = self.__find_symbol(node, symbol_starts)
+			symbol_starts = DSN.left(symbol_path, elem_counts - (remain_counts - 1))
+			found_row = self.__find_symbol(symbolic, symbol_starts)
 			if found_row is None:
 				break
 
-			symgol_row = found_row
+			symbol_row = found_row
 			remain_counts -= 1
 
 		# シンボルが完全一致したデータを検出したら終了
-		if symgol_row and remain_counts == 0:
-			return symgol_row
+		if symbol_row and remain_counts == 0:
+			return symbol_row
 
 		# 解決した部分を除外して探索シンボルを再編
-		remain_symbol = DSN.right(symbol_path, remain_counts)
+		remain_path = DSN.right(symbol_path, remain_counts)
 
 		# シンボルを検出、且つ検出したタイプがクラスノードの場合は再帰的に解決
-		if symgol_row and symgol_row.types.is_a(defs.Class):
-			return self.__resolve_symbol(symgol_row.types, remain_symbol)
+		if symbol_row and symbol_row.types.is_a(defs.Class):
+			return self.__resolve_symbol(symbol_row.types, remain_path)
 
 		# シンボルが未検出、且つ対象ノードがクラスノードの場合は、クラスの継承チェーンを辿って解決
-		if node.is_a(defs.Class):
-			return self.__resolve_symbol_from_class_chain(node.as_a(defs.Class), remain_symbol)
+		if symbolic.is_a(defs.Class):
+			return self.__resolve_symbol_from_class_chain(symbolic.as_a(defs.Class), remain_path)
 
 		return None
 
-	def __resolve_symbol_from_class_chain(self, class_node: defs.Class, symbol: str) -> SymbolRow | None:
+	def __resolve_symbol_from_class_chain(self, class_type: defs.Class, symbol_path: str) -> SymbolRow | None:
 		"""クラスの継承チェーンを辿ってシンボルを解決。未検出の場合はNoneを返却
 
 		Args:
-			class_node (Class): クラスノード
-			symbol (str): シンボル名
+			class_type (Class): クラスタイプノード
+			symbol_path (str): シンボルパス
 		Returns:
-			Types | None: タイプノード(クラス/ファンクション)
+			SymbolRow | None: シンボルデータ
 		"""
-		for symbol_node in class_node.parents:
-			parent_type_row = self.__resolve_symbol(symbol_node, self.__resolve_symbol_path(symbol_node))
+		for symbol in class_type.parents:
+			parent_type_row = self.__resolve_symbol(symbol, self.__to_symbol_path(symbol))
 			if parent_type_row is None:
 				break
 
-			found_row = self.__resolve_symbol(parent_type_row.types, symbol)
+			found_row = self.__resolve_symbol(parent_type_row.types, symbol_path)
 			if found_row:
 				return found_row
 
 		return None
 
-	def __resolve_symbol_path(self, node: Symbolic) -> str:
-		"""シンボルパスを解決
+	def __to_symbol_path(self, symbolic: Symbolic) -> str:
+		"""シンボルパスに変換
 
 		Args:
-			node (Symbolic): 対象ノード
+			symbolic (Symbolic): シンボル系ノード
 		Returns:
 			str: シンボルパス
 		"""
-		if node.is_a(defs.This, defs.ThisVar):
-			return node.tokens
-		elif node.is_a(defs.GenericType):
-			return node.as_a(defs.GenericType).symbol.tokens
-		elif node.is_a(defs.Literal):
-			return node.as_a(defs.Literal).class_symbol_alias
-		elif node.is_a(defs.ClassType):
-			return node.as_a(defs.ClassType).symbol.tokens
+		if symbolic.is_a(defs.This, defs.ThisVar):
+			return symbolic.tokens
+		elif symbolic.is_a(defs.GenericType):
+			return symbolic.as_a(defs.GenericType).symbol.tokens
+		elif symbolic.is_a(defs.Literal):
+			return symbolic.as_a(defs.Literal).class_symbol_alias
+		elif symbolic.is_a(defs.ClassType):
+			return symbolic.as_a(defs.ClassType).symbol.tokens
 		else:
 			# その他のSymbol
-			return node.tokens
+			return symbolic.tokens
 
-	def __find_symbol(self, node: Symbolic, symbol_path: str) -> SymbolRow | None:
+	def __find_symbol(self, symbolic: Symbolic, symbol_path: str) -> SymbolRow | None:
 		"""シンボルデータを検索。未検出の場合はNoneを返却
 
 		Args:
-			node (Symbolic): 対象ノード
+			symbolic (Symbolic): シンボル系ノード
 			symbol_path (str): シンボルパス
 		Returns:
 			SymbolRow | None: シンボルデータ
 		"""
-		domain_id = DSN.join(node.scope, symbol_path)
-		domain_name = DSN.join(node.module_path, symbol_path)
+		domain_id = DSN.join(symbolic.scope, symbol_path)
+		domain_name = DSN.join(symbolic.module_path, symbol_path)
 		if domain_id in self.__db.rows:
 			return self.__db.rows[domain_id]
 		elif domain_name in self.__db.rows:
@@ -137,7 +154,7 @@ class SymbolResolver:
 		return None
 
 	def result_of(self, expression: Node) -> SymbolRow:
-		"""式ノードからタイプノードを解決
+		"""式ノードからシンボルを解決
 
 		Args:
 			expression (Node): 式ノード
@@ -187,6 +204,9 @@ class Handler:
 
 	def on_symbol(self, node: defs.Symbol) -> SymbolRow:
 		return self.__resolver.type_of(node)
+
+	def on_symbol_relay(self, node: defs.SymbolRelay, receiver: SymbolRow) -> SymbolRow:
+		return self.__resolver.property_of(receiver.types, node.property)
 
 	def on_var(self, node: defs.Var) -> SymbolRow:
 		return self.__resolver.type_of(node)

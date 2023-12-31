@@ -12,7 +12,7 @@ DeclAll: TypeAlias = defs.Parameter | defs.AnnoAssign | defs.MoveAssign | defs.C
 
 
 class SymbolRow(NamedTuple):
-	"""シンボル情報
+	"""シンボルデータ
 
 	Attributes:
 		ref_path (str): 参照パス
@@ -189,10 +189,10 @@ class SymbolDB:
 		"""シンボルテーブルから変数の型を解決
 
 		Args:
-			var (DeclVar): 変数
+			var (DeclVar): 変数宣言ノード
 			rows (dict[str, SymbolRow]): シンボルテーブル
 		Returns:
-			SymbolRow: シンボル情報
+			SymbolRow: シンボルデータ
 		"""
 		type_symbol = self.__fetch_type_symbol(var)
 		candidates = []
@@ -210,12 +210,12 @@ class SymbolDB:
 		raise LogicError(f'Unresolve var type. symbol: {var.symbol.tokens}')
 
 	def __fetch_type_symbol(self, var: DeclVar) -> defs.Symbol | None:
-		"""変数の型のシンボルノードを取得
+		"""変数の型のシンボルノードを取得。型が不明な場合はNoneを返却
 
 		Args:
-			var (DeclVar): 変数
+			var (DeclVar): 変数宣言ノード
 		Returns:
-			Symbol: シンボルノード
+			Symbol | None: シンボルノード
 		"""
 		if isinstance(var, (defs.AnnoAssign, defs.Parameter)):
 			if var.symbol.is_a(defs.This):

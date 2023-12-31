@@ -53,8 +53,8 @@ class SymbolRelay(Symbol):
 		return self._at(0).one_of(FuncCall | Indexer | Literal)
 
 	@property
-	@Meta.embed(Node, expandable)
-	def symbol(self) -> Symbol:
+	def property(self) -> Symbol:
+		"""Note: receiverと不可分な要素であり、単体で解釈不能なため展開対象から除外"""
 		return self._at(1).as_a(Symbol)
 
 

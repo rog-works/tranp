@@ -6,7 +6,7 @@ from tests.test.fixture import Fixture
 from tests.test.helper import data_provider
 
 
-def by(before: str, after: str) -> str:
+def _ast(before: str, after: str) -> str:
 	aliases = {
 		'__main__': 'file_input',
 		'A': 'file_input.class_def[2].class_def_raw',
@@ -25,43 +25,51 @@ def by(before: str, after: str) -> str:
 	return f'{aliases[before]}.{after}'
 
 
+def _mod(before: str, after: str) -> str:
+	aliases = {
+		'xyz': 'tests.unit.py2cpp.symbol.fixtures.test_db_xyz',
+		'classes': 'tests.unit.py2cpp.symbol.fixtures.test_db_classes',
+	}
+	return f'{aliases[before]}.{after}'
+
+
 class TestSymbolResolver(TestCase):
 	fixture = Fixture.make(__file__)
 
 	@data_provider([
-		(by('__main__', 'import_stmt.import_names.name'), 'tests.unit.py2cpp.symbol.fixtures.test_db_xyz.Z'),
-		(by('__main__', 'assign_stmt.anno_assign.var'), 'tests.unit.py2cpp.symbol.fixtures.test_db_classes.int'),
-		(by('__main__', 'assign_stmt.anno_assign.typed_var'), 'tests.unit.py2cpp.symbol.fixtures.test_db_classes.int'),
-		(by('__main__', 'assign_stmt.anno_assign.number'), 'tests.unit.py2cpp.symbol.fixtures.test_db_classes.int'),
-		(by('A', 'name'), '__main__.A'),
-		(by('A.__init__.params', 'paramvalue.typedparam.name'), '__main__.A'),
-		(by('A.__init__.return', 'typed_none'), 'tests.unit.py2cpp.symbol.fixtures.test_db_classes.None'),
-		(by('A.__init__.block', 'assign_stmt.anno_assign.getattr'), 'tests.unit.py2cpp.symbol.fixtures.test_db_classes.str'),
-		(by('A.__init__.block', 'assign_stmt.anno_assign.typed_var'), 'tests.unit.py2cpp.symbol.fixtures.test_db_classes.str'),
-		(by('A.__init__.block', 'assign_stmt.anno_assign.string'), 'tests.unit.py2cpp.symbol.fixtures.test_db_classes.str'),
-		(by('B', 'name'), '__main__.B'),
-		(by('B', 'arguments.argvalue.var'), '__main__.A'),
-		(by('B.B2.block', 'assign_stmt.anno_assign.var'), 'tests.unit.py2cpp.symbol.fixtures.test_db_classes.str'),
-		(by('B.B2.block', 'assign_stmt.anno_assign.typed_var'), 'tests.unit.py2cpp.symbol.fixtures.test_db_classes.str'),
-		(by('B.B2.block', 'assign_stmt.anno_assign.string'), 'tests.unit.py2cpp.symbol.fixtures.test_db_classes.str'),
-		(by('B.__init__.params', 'paramvalue.typedparam.name'), '__main__.B'),
-		(by('B.__init__.return', 'typed_none'), 'tests.unit.py2cpp.symbol.fixtures.test_db_classes.None'),
-		(by('B.__init__.block', 'funccall.getattr.funccall.var'), 'tests.unit.py2cpp.symbol.fixtures.test_db_classes.super'),
-		(by('B.__init__.block', 'assign_stmt.anno_assign.getattr'), 'tests.unit.py2cpp.symbol.fixtures.test_db_classes.list'),
-		(by('B.__init__.block', 'assign_stmt.anno_assign.typed_getitem'), 'tests.unit.py2cpp.symbol.fixtures.test_db_classes.list'),
-		(by('B.__init__.block', 'assign_stmt.anno_assign.list'), 'tests.unit.py2cpp.symbol.fixtures.test_db_classes.list'),
-		(by('B.func1.params', 'paramvalue[0].typedparam.name'), '__main__.B'),
-		(by('B.func1.params', 'paramvalue[1].typedparam.name'), 'tests.unit.py2cpp.symbol.fixtures.test_db_classes.list'),
-		(by('B.func1.return', 'typed_var'), 'tests.unit.py2cpp.symbol.fixtures.test_db_classes.str'),
-		(by('B.func1.block', 'assign_stmt[0].assign.var'), 'tests.unit.py2cpp.symbol.fixtures.test_db_classes.Unknown'),
-		(by('B.func1.block', 'assign_stmt[0].assign.const_false'), 'tests.unit.py2cpp.symbol.fixtures.test_db_classes.bool'),
-		(by('B.func1.block', 'funccall[1].arguments.argvalue.var'), 'tests.unit.py2cpp.symbol.fixtures.test_db_classes.Unknown'),
-		(by('B.func1.block', 'funccall[2].arguments.argvalue.getattr'), 'tests.unit.py2cpp.symbol.fixtures.test_db_classes.list'),
-		(by('B.func1.block', 'assign_stmt[4].assign.getattr'), 'tests.unit.py2cpp.symbol.fixtures.test_db_classes.str'),
-		(by('B.func1.block', 'assign_stmt[4].assign.string'), 'tests.unit.py2cpp.symbol.fixtures.test_db_classes.str'),
-		(by('B.func1.block', 'assign_stmt[5].assign.getattr'), 'tests.unit.py2cpp.symbol.fixtures.test_db_classes.int'),
-		(by('B.func1.block', 'assign_stmt[5].assign.number'), 'tests.unit.py2cpp.symbol.fixtures.test_db_classes.int'),
-		(by('B.func1.block', 'return_stmt.getattr'), 'tests.unit.py2cpp.symbol.fixtures.test_db_classes.str'),
+		(_ast('__main__', 'import_stmt.import_names.name'), _mod('xyz', 'Z')),
+		(_ast('__main__', 'assign_stmt.anno_assign.var'), _mod('classes', 'int')),
+		(_ast('__main__', 'assign_stmt.anno_assign.typed_var'), _mod('classes', 'int')),
+		(_ast('__main__', 'assign_stmt.anno_assign.number'), _mod('classes', 'int')),
+		(_ast('A', 'name'), '__main__.A'),
+		(_ast('A.__init__.params', 'paramvalue.typedparam.name'), '__main__.A'),
+		(_ast('A.__init__.return', 'typed_none'), _mod('classes', 'None')),
+		(_ast('A.__init__.block', 'assign_stmt.anno_assign.getattr'), _mod('classes', 'str')),
+		(_ast('A.__init__.block', 'assign_stmt.anno_assign.typed_var'), _mod('classes', 'str')),
+		(_ast('A.__init__.block', 'assign_stmt.anno_assign.string'), _mod('classes', 'str')),
+		(_ast('B', 'name'), '__main__.B'),
+		(_ast('B', 'arguments.argvalue.var'), '__main__.A'),
+		(_ast('B.B2.block', 'assign_stmt.anno_assign.var'), _mod('classes', 'str')),
+		(_ast('B.B2.block', 'assign_stmt.anno_assign.typed_var'), _mod('classes', 'str')),
+		(_ast('B.B2.block', 'assign_stmt.anno_assign.string'), _mod('classes', 'str')),
+		(_ast('B.__init__.params', 'paramvalue.typedparam.name'), '__main__.B'),
+		(_ast('B.__init__.return', 'typed_none'), _mod('classes', 'None')),
+		(_ast('B.__init__.block', 'funccall.getattr.funccall.var'), _mod('classes', 'super')),
+		(_ast('B.__init__.block', 'assign_stmt.anno_assign.getattr'), _mod('classes', 'list')),
+		(_ast('B.__init__.block', 'assign_stmt.anno_assign.typed_getitem'), _mod('classes', 'list')),
+		(_ast('B.__init__.block', 'assign_stmt.anno_assign.list'), _mod('classes', 'list')),
+		(_ast('B.func1.params', 'paramvalue[0].typedparam.name'), '__main__.B'),
+		(_ast('B.func1.params', 'paramvalue[1].typedparam.name'), _mod('classes', 'list')),
+		(_ast('B.func1.return', 'typed_var'), _mod('classes', 'str')),
+		(_ast('B.func1.block', 'assign_stmt[0].assign.var'), _mod('classes', 'Unknown')),
+		(_ast('B.func1.block', 'assign_stmt[0].assign.const_false'), _mod('classes', 'bool')),
+		(_ast('B.func1.block', 'funccall[1].arguments.argvalue.var'), _mod('classes', 'Unknown')),
+		(_ast('B.func1.block', 'funccall[2].arguments.argvalue.getattr'), _mod('classes', 'list')),
+		(_ast('B.func1.block', 'assign_stmt[4].assign.getattr'), _mod('classes', 'str')),
+		(_ast('B.func1.block', 'assign_stmt[4].assign.string'), _mod('classes', 'str')),
+		(_ast('B.func1.block', 'assign_stmt[5].assign.getattr'), _mod('classes', 'int')),
+		(_ast('B.func1.block', 'assign_stmt[5].assign.number'), _mod('classes', 'int')),
+		(_ast('B.func1.block', 'return_stmt.getattr'), _mod('classes', 'str')),
 	])
 	def test_type_of(self, full_path: str, expected: type[defs.ClassType]) -> None:
 		resolver = self.fixture.get(SymbolResolver)
@@ -69,8 +77,8 @@ class TestSymbolResolver(TestCase):
 		self.assertEqual(resolver.type_of(node).types.domain_id, expected)
 
 	@data_provider([
-		(by('__main__', 'assign_stmt.anno_assign.number'), 'tests.unit.py2cpp.symbol.fixtures.test_db_classes.int'),
-		(by('B.func1.block', 'funccall[3].arguments.argvalue.getattr'), 'tests.unit.py2cpp.symbol.fixtures.test_db_classes.list'),
+		(_ast('__main__', 'assign_stmt.anno_assign.number'), _mod('classes', 'int')),
+		(_ast('B.func1.block', 'funccall[3].arguments.argvalue.getattr'), _mod('classes', 'list')),
 	])
 	def test_result_of(self, full_path: str, expected: type[defs.ClassType]) -> None:
 		resolver = self.fixture.get(SymbolResolver)

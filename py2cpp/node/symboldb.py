@@ -26,6 +26,7 @@ class SymbolRow(NamedTuple):
 	module: Module
 	symbol: defs.Symbol
 	types: defs.ClassType
+	decl: DeclAll
 
 	def to(self, module: Module) -> 'SymbolRow':
 		"""展開先を変更したインスタンスを生成
@@ -35,7 +36,7 @@ class SymbolRow(NamedTuple):
 		Returns:
 			SymbolRow: インスタンス
 		"""
-		return SymbolRow(self.path_to(module), self.org_path, module, self.symbol, self.types)
+		return SymbolRow(self.path_to(module), self.org_path, module, self.symbol, self.types, self.decl)
 
 	def path_to(self, module: Module) -> str:
 		"""展開先を変更した参照パスを生成
@@ -46,6 +47,9 @@ class SymbolRow(NamedTuple):
 			str: 展開先の参照パス
 		"""
 		return self.ref_path.replace(self.module.path, module.path)
+
+	def varnize(self, var: DeclVar) -> 'SymbolRow':
+		return SymbolRow(self.ref_path, self.org_path, self.module, self.symbol, self.types, var)
 
 
 @dataclass
@@ -127,7 +131,7 @@ class SymbolDB:
 
 			# 展開対象モジュールの変数シンボルを展開
 			for var in expand_target.decl_vars:
-				expand_target.rows[var.symbol.domain_id] = self.__resolve_var_type(var, expand_target.rows)
+				expand_target.rows[var.symbol.domain_id] = self.__resolve_var_type(var, expand_target.rows).varnize(var)
 
 		# シンボルテーブルを統合
 		rows: dict[str, SymbolRow] = {}
@@ -150,7 +154,7 @@ class SymbolDB:
 		entrypoint = module.entrypoint.as_a(defs.Entrypoint)
 		for node in entrypoint.flatten():
 			if isinstance(node, defs.ClassType):
-				rows[node.domain_id] = SymbolRow(node.domain_id, node.domain_id, module, node.symbol, node)
+				rows[node.domain_id] = SymbolRow(node.domain_id, node.domain_id, module, node.symbol, node, node)
 
 			if type(node) is defs.Import:
 				import_nodes.append(node)

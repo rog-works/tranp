@@ -30,14 +30,17 @@ class Symbol(Node, IDomainName, ITerminal):
 
 
 @Meta.embed(Node, actualized(via=Symbol))
-class PropertyGetter(Node):
+class PropertyGetter(Symbol):
 	@classmethod
-	def match_freature(cls, via: Symbol) -> bool:
+	@override
+	def match_feature(cls, via: Symbol) -> bool:
 		if via.tag != 'getattr':
 			return False
 
 		allow_tags = ['getattr', 'var', 'name']
-		return via._at(0).tag not in allow_tags or via._at(1).tag in allow_tags
+		receiver_tag = via._at(0).tag
+		symbol_tag = via._at(1).tag
+		return receiver_tag not in allow_tags and symbol_tag in allow_tags
 
 	@property
 	@implements
@@ -65,7 +68,8 @@ class Var(Symbol):
 		if via.tag not in ['var', 'name']:
 			return False
 
-		if via._full_path.shift(-1).last_tag == 'getattr':
+		parent_tag = via._full_path.shift(-1).last_tag
+		if parent_tag == 'getattr':
 			return False
 
 		name = via.tokens

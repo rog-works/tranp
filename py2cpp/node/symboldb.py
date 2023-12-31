@@ -15,11 +15,12 @@ class SymbolRow(NamedTuple):
 	"""シンボル情報
 
 	Attributes:
-		ref_path: 参照パス
-		org_path: 参照パス(オリジナル)
-		module: 展開先のモジュール
-		symbol: シンボルノード
-		types: タイプ(クラスタイプ)
+		ref_path (str): 参照パス
+		org_path (str): 参照パス(オリジナル)
+		module (Module): 展開先のモジュール
+		symbol (Symbol): シンボルノード
+		types (ClassType): タイプノード
+		decl (DeclAll): 宣言ノード
 	"""
 	ref_path: str
 	org_path: str
@@ -49,6 +50,13 @@ class SymbolRow(NamedTuple):
 		return self.ref_path.replace(self.module.path, module.path)
 
 	def varnize(self, var: DeclVar) -> 'SymbolRow':
+		"""変数シンボル用のデータに変換
+
+		Args:
+			var (DeclVar): 変数宣言ノード
+		Returns:
+			SymbolRow: インスタンス
+		"""
 		return SymbolRow(self.ref_path, self.org_path, self.module, self.symbol, self.types, var)
 
 

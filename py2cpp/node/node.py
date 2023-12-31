@@ -67,11 +67,6 @@ class Node(NodeBase):
 		return ''
 
 	@property
-	def is_terminal(self) -> bool:
-		"""bool: 終端要素。これ以上展開が不要な要素であることを表す Note: 終端記号とは別"""
-		return isinstance(self, ITerminal)
-
-	@property
 	def scope(self) -> str:
 		"""str: 自身が所有するスコープ。FQDNに相当"""
 		if isinstance(self, IScope):
@@ -112,7 +107,8 @@ class Node(NodeBase):
 				* 下位のノードを全て洗い出す場合はflatten
 				* ASTの計算順序の並びで欲しい場合はcalculated
 		"""
-		if self.is_terminal:
+		# XXX 参照方法が煩わしい
+		if isinstance(self, ITerminal) and not cast(ITerminal, self).can_expand:
 			return []
 
 		under = self.__prop_expand() or self._under_expand()

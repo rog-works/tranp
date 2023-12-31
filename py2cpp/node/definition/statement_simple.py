@@ -1,4 +1,4 @@
-from py2cpp.lang.annotation import override
+from py2cpp.lang.annotation import implements, override
 from py2cpp.node.definition.primary import FuncCall, GenericType, Indexer, Symbol
 from py2cpp.node.definition.terminal import Empty, Terminal
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
@@ -112,11 +112,14 @@ class Continue(Node): pass
 @Meta.embed(Node, accept_tags('import_stmt'))
 class Import(Node, ITerminal):
 	@property
-	@Meta.embed(Node, expandable)
+	@implements
+	def can_expand(self) -> bool:
+		return False
+
+	@property
 	def module_path(self) -> Symbol:
 		return self._by('dotted_name').as_a(Symbol)
 
 	@property
-	@Meta.embed(Node, expandable)
 	def import_symbols(self) -> list[Symbol]:
 		return [node.as_a(Symbol) for node in self._children('import_names')]

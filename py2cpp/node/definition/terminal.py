@@ -1,3 +1,4 @@
+from py2cpp.lang.annotation import implements
 from py2cpp.node.embed import Meta, accept_tags
 from py2cpp.node.interface import ITerminal
 from py2cpp.node.node import Node
@@ -15,4 +16,8 @@ class Terminal(Node):
 
 
 @Meta.embed(Node, accept_tags('__empty__', 'const_none'))
-class Empty(Node, ITerminal): pass
+class Empty(Node, ITerminal):
+	@property
+	@implements
+	def can_expand(self) -> bool:
+		return False

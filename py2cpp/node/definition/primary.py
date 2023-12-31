@@ -3,6 +3,7 @@ from typing import cast
 from py2cpp.ast.dsn import DSN
 from py2cpp.lang.annotation import implements, override
 from py2cpp.node.definition.common import Argument
+from py2cpp.node.definition.literal import Literal
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
 from py2cpp.node.interface import IDomainName, ITerminal
@@ -12,6 +13,11 @@ from py2cpp.node.protocol import Symbolization
 
 @Meta.embed(Node, accept_tags('getattr', 'var', 'name', 'dotted_name', 'typed_getattr', 'typed_var'))
 class Symbol(Node, IDomainName, ITerminal):
+	@property
+	@implements
+	def can_expand(self) -> bool:
+		return False
+
 	@property
 	@implements
 	def domain_id(self) -> str:
@@ -24,20 +30,46 @@ class Symbol(Node, IDomainName, ITerminal):
 
 
 @Meta.embed(Node, actualized(via=Symbol))
+class PropertyGetter(Node):
+	@classmethod
+	def match_freature(cls, via: Symbol) -> bool:
+		if via.tag != 'getattr':
+			return False
+
+		allow_tags = ['getattr', 'var', 'name']
+		return via._at(0).tag not in allow_tags or via._at(1).tag in allow_tags
+
+	@property
+	@implements
+	def can_expand(self) -> bool:
+		return True
+
+	@property
+	@Meta.embed(Node, expandable)
+	def receiver(self) -> 'FuncCall | Indexer | Literal':  # XXX 前方参照
+		return self._at(0).one_of(FuncCall | Indexer | Literal)
+
+	@property
+	@Meta.embed(Node, expandable)
+	def property(self) -> Symbol:
+		return self._at(1).as_a(Symbol)
+
+
+@Meta.embed(Node, actualized(via=Symbol))
 class Var(Symbol):
 	"""Note: ローカル変数と引数に対応。クラスメンバーは如何なる種類もこのシンボルにあたらない"""
 
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:
-		if via.tag != 'var':
+		if via.tag not in ['var', 'name']:
+			return False
+
+		if via._full_path.shift(-1).last_tag == 'getattr':
 			return False
 
 		name = via.tokens
-		if name == 'self' or name.find('.') != -1:
-			return False
-
-		return via._full_path.shift(-1).last_tag != 'getattr'
+		return name != 'self' and name.find('.') == -1
 
 
 @Meta.embed(Node, actualized(via=Symbol))
@@ -45,7 +77,7 @@ class This(Symbol):
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:
-		return via.tokens == 'self'
+		return via.tag in ['var', 'name'] and via.tokens == 'self'
 
 	@property
 	def class_types(self) -> Node:
@@ -58,6 +90,9 @@ class ThisVar(Symbol):
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:
+		if via.tag != 'getattr':
+			return False
+
 		return via.tokens.startswith('self.')
 
 	@property

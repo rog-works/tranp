@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, cast
 from unittest import TestCase
 
 from lark import Token, Tree
@@ -19,8 +19,20 @@ from py2cpp.tp_lark.entry import EntryOfLark
 from tests.test.helper import data_provider
 
 
-class Terminal(Node, ITerminal): pass
-class Empty(Node, ITerminal): pass
+class Terminal(Node, ITerminal):
+	@property
+	@implements
+	def can_expand(self) -> bool:
+		return False
+
+
+class Empty(Node, ITerminal):
+	@property
+	@implements
+	def can_expand(self) -> bool:
+		return False
+
+
 class Expression(Node): pass
 class Assign(Node): pass
 
@@ -56,7 +68,7 @@ class Entrypoint(Node):
 		return '__main__'
 
 
-class Types(Node, IScope):
+class ClassType(Node, IScope):
 	@property
 	@implements
 	def scope_part(self) -> str:
@@ -68,7 +80,7 @@ class Types(Node, IScope):
 		return ''
 
 
-class Class(Types):
+class Class(ClassType):
 	@property
 	@override
 	def public_name(self) -> str:
@@ -85,7 +97,7 @@ class Class(Types):
 		return self._by('block').as_a(Block)
 
 
-class Enum(Types):
+class Enum(ClassType):
 	@property
 	@override
 	def public_name(self) -> str:
@@ -102,7 +114,7 @@ class Enum(Types):
 		return [node.as_a(Assign) for node in self._children('block')]
 
 
-class Function(Types):
+class Function(ClassType):
 	@property
 	@override
 	def public_name(self) -> str:
@@ -266,20 +278,20 @@ class TestNode(TestCase):
 		self.assertEqual(node.public_name, expected)
 
 	@data_provider([
-		('file_input', False),
-		('file_input.class.__empty__', True),
-		('file_input.class', False),
-		('file_input.class.block', False),
-		('file_input.class.block.enum', False),
-		('file_input.class.block.enum.block.assign[0]', False),
-		('file_input.class.block.function[1]', False),
-		('file_input.class.block.function[1].block.if[0]', False),
-		('file_input.function.block.term_a', True),
+		('file_input', True),
+		('file_input.class.__empty__', False),
+		('file_input.class', True),
+		('file_input.class.block', True),
+		('file_input.class.block.enum', True),
+		('file_input.class.block.enum.block.assign[0]', True),
+		('file_input.class.block.function[1]', True),
+		('file_input.class.block.function[1].block.if[0]', True),
+		('file_input.function.block.term_a', False),
 	])
-	def test_is_terminal(self, full_path: str, expected: bool) -> None:
+	def test_can_expand(self, full_path: str, expected: bool) -> None:
 		nodes = Fixture.nodes()
 		node = nodes.by(full_path)
-		self.assertEqual(node.is_terminal, expected)
+		self.assertEqual((not isinstance(node, ITerminal)) or cast(ITerminal, node).can_expand, expected)
 
 	@data_provider([
 		('file_input', '__main__'),

@@ -6,7 +6,12 @@ from py2cpp.node.interface import IDomainName, ITerminal
 from py2cpp.node.node import Node
 
 
-class Literal(Node, IDomainName):
+class Literal(Node, IDomainName, ITerminal):
+	@property
+	@implements
+	def can_expand(self) -> bool:
+		return False
+
 	@property
 	@implements
 	def domain_id(self) -> str:
@@ -24,7 +29,7 @@ class Literal(Node, IDomainName):
 
 
 @Meta.embed(Node, accept_tags('number'))
-class Number(Literal, ITerminal): pass
+class Number(Literal): pass
 
 
 @Meta.embed(Node, actualized(via=Number))
@@ -52,14 +57,14 @@ class Float(Number):
 
 
 @Meta.embed(Node, accept_tags('string'))
-class String(Literal, ITerminal):
+class String(Literal):
 	@property
 	@override
 	def class_symbol_alias(self) -> str:
 		return 'str'
 
 
-class Boolean(Literal, ITerminal):
+class Boolean(Literal):
 	@property
 	@override
 	def class_symbol_alias(self) -> str:
@@ -90,6 +95,11 @@ class KeyValue(Node):
 @Meta.embed(Node, accept_tags('list'))
 class List(Literal):
 	@property
+	@implements
+	def can_expand(self) -> bool:
+		return True
+
+	@property
 	@Meta.embed(Node, expandable)
 	def values(self) -> list[Node]:
 		return self._children()
@@ -103,6 +113,11 @@ class List(Literal):
 @Meta.embed(Node, accept_tags('dict'))
 class Dict(Literal):
 	@property
+	@implements
+	def can_expand(self) -> bool:
+		return True
+
+	@property
 	@Meta.embed(Node, expandable)
 	def items(self) -> list[KeyValue]:
 		return [node.as_a(KeyValue) for node in self._children()]
@@ -114,7 +129,7 @@ class Dict(Literal):
 
 
 @Meta.embed(Node, accept_tags('const_none', 'typed_none'))
-class Null(Literal, ITerminal):
+class Null(Literal):
 	@property
 	@override
 	def class_symbol_alias(self) -> str:

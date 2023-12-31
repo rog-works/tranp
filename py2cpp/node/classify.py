@@ -175,7 +175,7 @@ class Handler:
 		handler = getattr(self, handler_name)
 		keys = reversed([key for key, _ in handler.__annotations__.items() if key != 'return'])
 		annos = {key: handler.__annotations__[key] for key in keys}
-		node_key = list(annos.keys())[0]
+		node_key = list(annos.keys()).pop()
 		args = {node_key: node, **{key: self.__stack.pop() for key in annos.keys() if key != node_key}}
 		valids = [True for key, arg in args.items() if isinstance(arg, annos[key])]
 		if len(valids) != len(args):

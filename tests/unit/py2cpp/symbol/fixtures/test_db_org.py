@@ -1,4 +1,4 @@
-from tests.unit.py2cpp.node.fixtures.test_symboldb_xyz import Z
+from tests.unit.py2cpp.symbol.fixtures.test_db_xyz import Z
 
 v: int = 0
 

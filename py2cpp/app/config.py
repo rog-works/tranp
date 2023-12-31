@@ -14,8 +14,8 @@ def default_definitions() -> ModuleDefinitions:
 		'py2cpp.module.loader.ModuleLoader': 'py2cpp.module.provider.module_loader',
 		'py2cpp.module.module.Module': 'py2cpp.module.module.Module',
 		'py2cpp.module.modules.Modules': 'py2cpp.module.modules.Modules',
-		'py2cpp.node.classify.Classify': 'py2cpp.node.classify.Classify',
 		'py2cpp.node.node.Node': 'py2cpp.node.provider.entrypoint',
 		'py2cpp.node.resolver.NodeResolver': 'py2cpp.node.resolver.NodeResolver',
-		'py2cpp.node.symboldb.SymbolDB': 'py2cpp.node.symboldb.SymbolDB',
+		'py2cpp.symbol.db.SymbolDB': 'py2cpp.symbol.db.SymbolDB',
+		'py2cpp.symbol.resolver.SymbolResolver': 'py2cpp.symbol.resolver.SymbolResolver',
 	}

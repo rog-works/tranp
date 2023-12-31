@@ -41,7 +41,7 @@ class Fixture:
 		}
 
 	def __library_paths(self) -> list[str]:
-		return ['tests.unit.py2cpp.node.fixtures.test_symboldb_classes']
+		return ['tests.unit.py2cpp.symbol.fixtures.test_db_classes']
 
 	def __make_entrypoint(self, module_path: ModulePath, parser: SyntaxParser) -> Entry:
 		if module_path == '__main__':

@@ -150,8 +150,14 @@ class GenericType(Node, IDomainName):
 		return self._at(0).as_a(Symbol)
 
 
+class CollectionType(GenericType):
+	@property
+	def value_type(self) -> Symbol | GenericType:
+		raise NotImplementedError()
+
+
 @Meta.embed(Node, actualized(via=GenericType))
-class ListType(GenericType):
+class ListType(CollectionType):
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:
@@ -161,6 +167,7 @@ class ListType(GenericType):
 		return len(via._by('typed_slices')._children()) == 1
 
 	@property
+	@override
 	@Meta.embed(Node, expandable)
 	def value_type(self) -> Symbol | GenericType:
 		return self._by('typed_slices.typed_slice')._at(0).one_of(Symbol | GenericType)
@@ -182,6 +189,7 @@ class DictType(GenericType):
 		return self._by('typed_slices.typed_slice[0]')._at(0).one_of(Symbol | GenericType)
 
 	@property
+	@override
 	@Meta.embed(Node, expandable)
 	def value_type(self) -> Symbol | GenericType:
 		return self._by('typed_slices.typed_slice[1]')._at(0).one_of(Symbol | GenericType)

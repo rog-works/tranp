@@ -78,6 +78,8 @@ class TestSymbolResolver(TestCase):
 
 	@data_provider([
 		(_ast('__main__', 'assign_stmt.anno_assign.number'), _mod('classes', 'int')),
+		(_ast('B.func1.block', 'funccall[1].arguments.argvalue.var'), _mod('classes', 'Unknown')),  # FIXME MoveAssignを解析してboolにするべき
+		(_ast('B.func1.block', 'funccall[2].arguments.argvalue.getattr'), _mod('classes', 'list')),
 		(_ast('B.func1.block', 'funccall[3].arguments.argvalue.getattr'), _mod('classes', 'list')),
 	])
 	def test_result_of(self, full_path: str, expected: type[defs.ClassType]) -> None:

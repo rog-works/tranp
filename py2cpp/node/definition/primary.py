@@ -30,7 +30,7 @@ class Symbol(Node, IDomainName, ITerminal):
 
 
 @Meta.embed(Node, actualized(via=Symbol))
-class PropertyGetter(Symbol):
+class SymbolRelay(Symbol):
 	@classmethod
 	@override
 	def match_feature(cls, via: Symbol) -> bool:
@@ -54,7 +54,7 @@ class PropertyGetter(Symbol):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def property(self) -> Symbol:
+	def symbol(self) -> Symbol:
 		return self._at(1).as_a(Symbol)
 
 

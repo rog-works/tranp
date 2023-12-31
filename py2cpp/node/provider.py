@@ -41,6 +41,7 @@ def symbol_mapping() -> SymbolMapping:
 			'import_stmt': defs.Import,
 			# -- Primary --
 			'getattr': defs.Symbol,
+			# 'getattr': defs.SymbolRelay,
 			# 'getattr': defs.This,
 			# 'getattr': defs.ThisVar,
 			'var': defs.Symbol,

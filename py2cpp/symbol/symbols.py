@@ -80,6 +80,10 @@ class Symbols:
 
 		# シンボルが完全一致したデータを検出したら終了
 		if symbol_row and remain_counts == 0:
+			# XXX 宣言ノードによって型が明示されない場合は、右辺の代入式から型を補完する
+			if symbol_row.decl.is_a(defs.MoveAssign):
+				return self.result_of(symbol_row.decl.as_a(defs.MoveAssign).value)
+
 			return symbol_row
 
 		# 解決した部分を除外して探索シンボルを再編

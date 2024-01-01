@@ -61,9 +61,9 @@ class TestSymbols(TestCase):
 		(_ast('B.func1.params', 'paramvalue[0].typedparam.name'), '__main__.B'),
 		(_ast('B.func1.params', 'paramvalue[1].typedparam.name'), _mod('classes', 'list')),
 		(_ast('B.func1.return', 'typed_var'), _mod('classes', 'str')),
-		(_ast('B.func1.block', 'assign_stmt[0].assign.var'), _mod('classes', 'Unknown')),
+		(_ast('B.func1.block', 'assign_stmt[0].assign.var'), _mod('classes', 'bool')),
 		(_ast('B.func1.block', 'assign_stmt[0].assign.const_false'), _mod('classes', 'bool')),
-		(_ast('B.func1.block', 'funccall[1].arguments.argvalue.var'), _mod('classes', 'Unknown')),
+		(_ast('B.func1.block', 'funccall[1].arguments.argvalue.var'), _mod('classes', 'bool')),
 		(_ast('B.func1.block', 'funccall[2].arguments.argvalue.getattr'), _mod('classes', 'list')),
 		(_ast('B.func1.block', 'assign_stmt[4].assign.getattr'), _mod('classes', 'str')),
 		(_ast('B.func1.block', 'assign_stmt[4].assign.string'), _mod('classes', 'str')),
@@ -78,7 +78,7 @@ class TestSymbols(TestCase):
 
 	@data_provider([
 		(_ast('__main__', 'assign_stmt.anno_assign.number'), _mod('classes', 'int')),
-		(_ast('B.func1.block', 'funccall[1].arguments.argvalue.var'), _mod('classes', 'Unknown')),  # FIXME MoveAssignを解析してboolにするべき
+		(_ast('B.func1.block', 'funccall[1].arguments.argvalue.var'), _mod('classes', 'bool')),
 		(_ast('B.func1.block', 'funccall[2].arguments.argvalue.getattr'), _mod('classes', 'list')),
 		(_ast('B.func1.block', 'funccall[3].arguments.argvalue.getattr'), _mod('classes', 'list')),
 	])

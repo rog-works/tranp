@@ -81,6 +81,10 @@ class Symbols:
 		# シンボルが完全一致したデータを検出したら終了
 		if symbol_row and remain_counts == 0:
 			# XXX 宣言ノードによって型が明示されない場合は、右辺の代入式から型を補完する
+			# XXX この処理にはいくつか問題がありそうなので、より良い方法があれば改善
+			# XXX 1. type_ofとresule_ofが共依存している(循環参照)
+			# XXX 2. MoveAssignだけが特別視され一貫性が無い
+			# XXX 3. この処理を除外する手立てが無い(選択的でない)
 			if symbol_row.decl.is_a(defs.MoveAssign):
 				return self.result_of(symbol_row.decl.as_a(defs.MoveAssign).value)
 

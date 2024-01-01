@@ -1,7 +1,7 @@
 import os
 from typing import Any, IO, cast
 
-from lark import Lark, Token, Tree
+from lark import Lark, Tree
 from lark.indenter import PythonIndenter
 import yaml
 
@@ -10,7 +10,7 @@ from py2cpp.ast.parser import ParserSettings, SyntaxParser
 from py2cpp.lang.annotation import implements
 from py2cpp.lang.io import FileLoader
 from py2cpp.lang.proxy import CachedProxy
-from py2cpp.tp_lark.entry import EntryOfLark
+from py2cpp.tp_lark.entry import EntryOfLark, Serialization
 
 
 class LarkLifecycle:
@@ -40,6 +40,7 @@ class LarkLifecycle:
 	def load(self, f: IO) -> Lark:
 		return Lark.load(f)
 
+
 class EntryLifecycle:
 	def __init__(self, loader: FileLoader, parser: Lark, module_path: str) -> None:
 		self.__loader = loader
@@ -61,37 +62,13 @@ class EntryLifecycle:
 		return {'mtime': str(os.path.getmtime(self.__source_path))}
 
 	def save(self, instance: EntryOfLark, f: IO) -> None:
-		data = self.dumps(cast(Tree, instance.source))
+		data = Serialization.dumps(cast(Tree, instance.source))
 		yaml.safe_dump(data, f, encoding='utf-8', sort_keys=False)
 
 	def load(self, f: IO) -> EntryOfLark:
 		data = cast(dict[str, Any], yaml.safe_load(f))
-		tree = cast(Tree, self.loads(data))
+		tree = cast(Tree, Serialization.loads(data))
 		return EntryOfLark(tree)
-
-	def dumps(self, entry: Tree | Token | None) -> dict[str, Any] | None:
-		if type(entry) is Tree:
-			children: list[dict[str, Any] | None] = []
-			for child in entry.children:
-				children.append(self.dumps(child))
-
-			return {'data': str(entry.data), 'children': children}
-		elif type(entry) is Token:
-			return {'type': entry.type, 'value': entry.value}
-		else:
-			return None
-
-	def loads(self, entry: dict[str, Any]) -> Tree | Token | None:
-		if type(entry) is dict and 'children' in entry:
-			children: list[Tree | Token | None] = []
-			for child in entry['children']:
-				children.append(self.loads(child))
-
-			return Tree(entry['data'], children)
-		elif type(entry) is dict and 'type' in entry:
-			return Token(entry['type'], entry['value'])
-		else:
-			return None
 
 
 class SyntaxParserOfLark(SyntaxParser):

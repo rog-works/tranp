@@ -1,3 +1,5 @@
+from typing import Any
+
 from lark import Token, Tree
 
 from py2cpp.ast.entry import Entry
@@ -67,3 +69,31 @@ class EntryOfLark(Entry):
 			例) function_def: "def" name "(" [parameters] ")" "->" ":" block
 		"""
 		return self.__entry is None
+
+
+class Serialization:
+	@classmethod
+	def dumps(cls, entry: Tree | Token | None) -> dict[str, Any] | None:
+		if type(entry) is Tree:
+			children: list[dict[str, Any] | None] = []
+			for child in entry.children:
+				children.append(cls.dumps(child))
+
+			return {'data': str(entry.data), 'children': children}
+		elif type(entry) is Token:
+			return {'type': entry.type, 'value': entry.value}
+		else:
+			return None
+
+	@classmethod
+	def loads(cls, entry: dict[str, Any]) -> Tree | Token | None:
+		if type(entry) is dict and 'children' in entry:
+			children: list[Tree | Token | None] = []
+			for child in entry['children']:
+				children.append(cls.loads(child))
+
+			return Tree(entry['data'], children)
+		elif type(entry) is dict and 'type' in entry:
+			return Token(entry['type'], entry['value'])
+		else:
+			return None

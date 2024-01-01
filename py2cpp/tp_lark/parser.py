@@ -62,7 +62,7 @@ class EntryLifecycle:
 
 	def save(self, instance: EntryOfLark, f: IO) -> None:
 		data = self.dumps(cast(Tree, instance.source))
-		yaml.safe_dump(data, f, encoding='utf-8')
+		yaml.safe_dump(data, f, encoding='utf-8', sort_keys=False)
 
 	def load(self, f: IO) -> EntryOfLark:
 		data = cast(dict[str, Any], yaml.safe_load(f))

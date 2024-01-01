@@ -44,6 +44,10 @@ class CachedProxy(Generic[T]):
 		return os.path.exists(cache_filepath)
 
 	def save_cache(self, instance: T, filepath: str) -> None:
+		dirpath = os.path.dirname(filepath)
+		if not os.path.exists(dirpath):
+			os.makedirs(dirpath)
+
 		with open(filepath, mode='wb') as f:
 			self.__lifecycle.save(instance, f)
 
@@ -56,26 +60,3 @@ class CachedProxy(Generic[T]):
 	
 	def load_actual(self) -> Any:
 		return self.__lifecycle.instantiate()
-
-	# @classmethod
-	# def save_tree(cls, filepath: str, tree: Tree) -> None:
-	# 	pretty = '\n# '.join(tree.pretty().split('\n'))
-	# 	lines = [
-	# 		'from lark import Tree, Token',
-	# 		'def tree() -> Tree:',
-	# 		f'	return {str(tree)}',
-	# 		'# ==========',
-	# 		f'# {pretty}',
-	# 	]
-	# 	with open(filepath, mode='wb') as f:
-	# 		f.write(('\n'.join(lines)).encode('utf-8'))
-
-	# @classmethod
-	# def load_tree(cls, filepath: str) -> Tree:
-	# 	cwd = os.getcwd()
-	# 	dirpath, filename = os.path.dirname(filepath), os.path.basename(filepath)
-	# 	os.chdir(dirpath)
-	# 	module_path = filename.split('.')
-	# 	tree = cast(Callable[[], Tree], load_module(module_path, 'tree'))
-	# 	os.chdir(cwd)
-	# 	return tree()

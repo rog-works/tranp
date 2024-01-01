@@ -1,8 +1,15 @@
 from abc import ABCMeta, abstractmethod
+from typing import Any
 
 
 class Entry(metaclass=ABCMeta):
 	"""エントリー"""
+
+	@property
+	@abstractmethod
+	def source(self) -> Any:
+		"""Any: オリジナルのエントリー"""
+		raise NotImplementedError()
 
 	@property
 	@abstractmethod

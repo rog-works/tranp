@@ -17,6 +17,12 @@ class EntryOfLark(Entry):
 
 	@property
 	@implements
+	def source(self) -> Tree | Token | None:
+		"""Tree | Token | None: オリジナルのエントリー"""
+		return self.__entry
+
+	@property
+	@implements
 	def name(self) -> str:
 		"""str: エントリー名 @note: 空の場合を考慮"""
 		if type(self.__entry) is Tree:

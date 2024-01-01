@@ -16,7 +16,7 @@ class ParserSettings:
 
 	grammar: str
 	start: str = 'file_input'
-	algorihtem: str = 'lalr'
+	algorithem: str = 'lalr'
 
 
 class SyntaxParser(metaclass=ABCMeta):

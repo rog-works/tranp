@@ -22,3 +22,5 @@ class B(A):
 		B.B2.v = 'b.b2.v'
 		self.x.nx = 2
 		return self.s
+
+d = {'s': v}

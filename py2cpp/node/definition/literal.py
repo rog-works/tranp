@@ -80,16 +80,26 @@ class Falsy(Boolean): pass
 
 
 @Meta.embed(Node, accept_tags('key_value'))
-class KeyValue(Node):
+class Pair(Literal):
+	@property
+	@implements
+	def can_expand(self) -> bool:
+		return True
+
 	@property
 	@Meta.embed(Node, expandable)
-	def key(self) -> Node:
+	def left(self) -> Node:
 		return self._at(0)
 
 	@property
 	@Meta.embed(Node, expandable)
-	def value(self) -> Node:
+	def right(self) -> Node:
 		return self._at(1)
+
+	@property
+	@override
+	def class_symbol_alias(self) -> str:
+		return 'pair_'
 
 
 @Meta.embed(Node, accept_tags('list'))
@@ -119,8 +129,8 @@ class Dict(Literal):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def items(self) -> list[KeyValue]:
-		return [node.as_a(KeyValue) for node in self._children()]
+	def items(self) -> list[Pair]:
+		return [node.as_a(Pair) for node in self._children()]
 
 	@property
 	@override

@@ -1,4 +1,5 @@
-from typing import TypeAlias
+from dataclasses import dataclass
+from typing import Any, Callable, TypeAlias
 
 from py2cpp.ast.dsn import DSN
 from py2cpp.errors import LogicError
@@ -8,6 +9,11 @@ from py2cpp.node.node import Node
 from py2cpp.symbol.db import SymbolDB, SymbolRow
 
 Symbolic: TypeAlias = defs.Symbol | defs.GenericType | defs.Literal | defs.ClassType
+
+# @dataclass
+# class TypeSymbol:
+# 	class_symbol: SymbolRow
+# 	class_attributes: list[SymbolRow]
 
 
 class Symbols:
@@ -195,18 +201,44 @@ class Handler:
 	def on_action(self, node: Node) -> None:
 		self.__stack.append(self.invoke(node))
 
+
 	def invoke(self, node: Node) -> SymbolRow:
 		handler_name = f'on_{node.classification}'
 		handler = getattr(self, handler_name)
+		args = self.invoke_args(node, handler)
+		return handler(**args)
+
+	def invoke_args(self, node: Node, handler: Callable) -> dict[str, Any]:
+		def arg_is_list(anno: type) -> bool:
+			return hasattr(anno, '__origin__') and getattr(anno, '__origin__') is list
+
+		def pluck_arg(node: Node, anno: type, key: str) -> SymbolRow | list[SymbolRow]:
+			if arg_is_list(anno):
+				return pluck_arg_list(node, key)
+			else:
+				return self.__stack.pop()
+
+		def pluck_arg_list(node: Node, key: str) -> list[SymbolRow]:
+			args = [self.__stack.pop() for _ in range(len(getattr(node, key)))]
+			return list(reversed(args))
+
+		def valid_arg(anno: type, arg: Node | SymbolRow | list[SymbolRow]) -> bool:
+			if type(arg) is list:
+				origin = getattr(anno, '__args__')[0]
+				valids = [True for in_arg in arg if isinstance(in_arg, origin)]
+				return len(valids) == len(arg)
+			else:
+				return isinstance(arg, anno)
+
 		keys = reversed([key for key, _ in handler.__annotations__.items() if key != 'return'])
 		annos = {key: handler.__annotations__[key] for key in keys}
 		node_key = list(annos.keys()).pop()
-		args = {node_key: node, **{key: self.__stack.pop() for key in annos.keys() if key != node_key}}
-		valids = [True for key, arg in args.items() if isinstance(arg, annos[key])]
+		args = {node_key: node, **{key: pluck_arg(node, annos[key], key) for key in annos.keys() if key != node_key}}
+		valids = [True for key, arg in args.items() if valid_arg(annos[key], arg)]
 		if len(valids) != len(args):
 			raise LogicError(f'Invalid arguments. node: {node}, actual {len(valids)} to expected {len(args)}')
 
-		return handler(**args)
+		return args
 
 	# Primary
 
@@ -291,8 +323,11 @@ class Handler:
 	def on_falsy(self, node: defs.Falsy) -> SymbolRow:
 		return self.__resolver.type_of(node)
 
+	def on_pair(self, node: defs.Pair, left: SymbolRow, right: SymbolRow) -> SymbolRow:
+		return self.__resolver.type_of(node)
+
 	def on_list(self, node: defs.List) -> SymbolRow:
 		return self.__resolver.type_of(node)
 
-	def on_dict(self, node: defs.Dict) -> SymbolRow:
+	def on_dict(self, node: defs.Dict, items: list[SymbolRow]) -> SymbolRow:
 		return self.__resolver.type_of(node)

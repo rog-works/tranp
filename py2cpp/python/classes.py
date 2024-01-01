@@ -82,6 +82,13 @@ class Boolean:
 class Tuple: ...
 
 
+@__alias__.pair_
+class Pair:
+	def __init__(self, key: Any, value: Any) -> None:
+		self.key = key
+		self.value = value
+
+
 @__alias__.list
 class List:
 	def __init__(self, iterable: Iterator) -> None: ...

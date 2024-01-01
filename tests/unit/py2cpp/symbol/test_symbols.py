@@ -38,9 +38,10 @@ class TestSymbols(TestCase):
 
 	@data_provider([
 		(_ast('__main__', 'import_stmt.import_names.name'), _mod('xyz', 'Z')),
-		(_ast('__main__', 'assign_stmt.anno_assign.var'), _mod('classes', 'int')),
-		(_ast('__main__', 'assign_stmt.anno_assign.typed_var'), _mod('classes', 'int')),
-		(_ast('__main__', 'assign_stmt.anno_assign.number'), _mod('classes', 'int')),
+		(_ast('__main__', 'assign_stmt[1].anno_assign.var'), _mod('classes', 'int')),
+		(_ast('__main__', 'assign_stmt[1].anno_assign.typed_var'), _mod('classes', 'int')),
+		(_ast('__main__', 'assign_stmt[1].anno_assign.number'), _mod('classes', 'int')),
+		(_ast('__main__', 'assign_stmt[4].assign.var'), _mod('classes', 'dict')),
 		(_ast('A', 'name'), '__main__.A'),
 		(_ast('A.__init__.params', 'paramvalue.typedparam.name'), '__main__.A'),
 		(_ast('A.__init__.return', 'typed_none'), _mod('classes', 'None')),
@@ -77,7 +78,7 @@ class TestSymbols(TestCase):
 		self.assertEqual(resolver.type_of(node).types.domain_id, expected)
 
 	@data_provider([
-		(_ast('__main__', 'assign_stmt.anno_assign.number'), _mod('classes', 'int')),
+		(_ast('__main__', 'assign_stmt[1].anno_assign.number'), _mod('classes', 'int')),
 		(_ast('B.func1.block', 'funccall[1].arguments.argvalue.var'), _mod('classes', 'bool')),
 		(_ast('B.func1.block', 'funccall[2].arguments.argvalue.getattr'), _mod('classes', 'list')),
 		(_ast('B.func1.block', 'funccall[3].arguments.argvalue.getattr'), _mod('classes', 'list')),

@@ -79,7 +79,7 @@ def symbol_mapping() -> SymbolMapping:
 			'string': defs.String,
 			'const_true': defs.Truthy,
 			'const_false': defs.Falsy,
-			'key_value': defs.KeyValue,
+			'key_value': defs.Pair,
 			'list': defs.List,
 			'dict': defs.Dict,
 			'const_none': defs.Null,

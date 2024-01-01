@@ -366,7 +366,7 @@ class Handler:
 
 	# Literal
 
-	def on_key_value(self, node: defs.KeyValue, ctx: Context) -> None:
+	def on_key_value(self, node: defs.Pair, ctx: Context) -> None:
 		_, value = ctx.registry.pop(tuple[Node, str])
 		_, key = ctx.registry.pop(tuple[Node, str])
 		text = '{' f'{key}, {value}' '}'

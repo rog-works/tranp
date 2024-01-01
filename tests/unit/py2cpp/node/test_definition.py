@@ -384,6 +384,6 @@ class TestDefinition(TestCase):
 		self.assertEqual(len(node.items), len(expected['items']))
 		for index, item in enumerate(node.items):
 			in_expected = expected['items'][index]
-			self.assertEqual(item.key.tokens, in_expected['key'])
-			self.assertEqual(item.value.tokens, in_expected['value'])
-			self.assertEqual(type(item.value), in_expected['value_type'])
+			self.assertEqual(item.left.tokens, in_expected['key'])
+			self.assertEqual(item.right.tokens, in_expected['value'])
+			self.assertEqual(type(item.right), in_expected['value_type'])

@@ -21,6 +21,10 @@ class Boolean: pass
 class Tuple: pass
 
 
+@__alias__.pair_
+class Pair: pass
+
+
 @__alias__.list
 class List: pass
 

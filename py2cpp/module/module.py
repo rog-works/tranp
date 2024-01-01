@@ -7,20 +7,20 @@ class Module:
 	"""モジュール。読み込んだモジュールのパスとエントリーポイントを管理"""
 
 	@injectable
-	def __init__(self, path: ModulePath, entrypoint: Node) -> None:
+	def __init__(self, module_path: ModulePath, entrypoint: Node) -> None:
 		"""インスタンスを生成
 
 		Args:
-			path (ModulePath): モジュールパス @inject
+			module_path (ModulePath): モジュールパス @inject
 			entrypoint (Node): エントリーポイント @inject
 		"""
-		self.__path = path
+		self.__module_path = module_path
 		self.__entrypoint = entrypoint
 
 	@property
 	def path(self) -> str:
 		"""str: モジュールパス"""
-		return self.__path
+		return self.__module_path.ref_name
 
 	@property
 	def entrypoint(self) -> Node:

@@ -9,6 +9,7 @@ from py2cpp.ast.query import Query
 from py2cpp.lang.annotation import implements, override
 from py2cpp.lang.di import DI
 from py2cpp.lang.locator import Currying, Locator
+from py2cpp.module.provider import module_path_dummy
 from py2cpp.module.types import ModulePath
 from py2cpp.node.embed import Meta, actualized, expandable
 from py2cpp.node.interface import IScope, ITerminal
@@ -137,7 +138,7 @@ class Fixture:
 		di.bind(Currying, lambda: di.currying)
 		di.bind(Query[Node], Nodes)
 		di.bind(NodeResolver, NodeResolver)
-		di.bind(ModulePath, lambda: '__main__')
+		di.bind(ModulePath, module_path_dummy)
 		di.bind(SymbolMapping, cls.__settings)
 		di.bind(Entry, cls.__tree)
 		return di

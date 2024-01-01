@@ -8,4 +8,4 @@ def parser_settings() -> ParserSettings:
 
 
 def make_entrypoint(module_path: ModulePath, parser: SyntaxParser) -> Entry:
-	return parser.parse(module_path)
+	return parser.parse(module_path.actual)

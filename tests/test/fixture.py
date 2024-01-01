@@ -1,20 +1,13 @@
 import os
-from typing import Callable, cast
-
-from lark import Tree
 
 from py2cpp.lang.di import ModuleDefinitions
 from py2cpp.lang.locator import T_Inst
-from py2cpp.lang.module import load_module
 from py2cpp.app.app import App
 from py2cpp.ast.entry import Entry
 from py2cpp.ast.query import Query
-from py2cpp.ast.parser import SyntaxParser
-from py2cpp.ast.provider import make_entrypoint
 from py2cpp.module.module import Module
 from py2cpp.module.types import ModulePath
 from py2cpp.node.node import Node
-from py2cpp.tp_lark.entry import EntryOfLark
 
 
 class Fixture:
@@ -23,38 +16,31 @@ class Fixture:
 		rel_path = filepath.split(cls.__appdir())[1]
 		without_ext = rel_path.split('.')[0]
 		elems =  [elem for elem in without_ext.split(os.path.sep) if elem]
-		module_path = '.'.join(elems)
-		return cls(module_path)
+		test_module_path = '.'.join(elems)
+		return cls(test_module_path)
 
 	@classmethod
 	def __appdir(cls) -> str:
 		return os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 
-	def __init__(self, module_path: str) -> None:
-		self.__module_path = module_path
+	def __init__(self, test_module_path: str) -> None:
+		self.__test_module_path = test_module_path
 		self.__app = App(self.__definitions())
 
 	def __definitions(self) -> ModuleDefinitions:
 		return {
-			'py2cpp.ast.entry.Entry': self.__make_entrypoint,
+			'py2cpp.module.types.ModulePath': self.__module_path,
 			'py2cpp.module.types.LibraryPaths': self.__library_paths,
 		}
 
+	def __module_path(self) -> ModulePath:
+		elems = self.__test_module_path.split('.')
+		dirpath, filename = '.'.join(elems[:-1]), elems[-1]
+		fixture_module_path = '.'.join([dirpath, 'fixtures', filename])
+		return ModulePath('__main__', fixture_module_path)
+
 	def __library_paths(self) -> list[str]:
 		return ['tests.unit.py2cpp.symbol.fixtures.test_db_classes']
-
-	def __make_entrypoint(self, module_path: ModulePath, parser: SyntaxParser) -> Entry:
-		if module_path == '__main__':
-			return self.__make_entrypoint_from_fixture()
-		else:
-			return make_entrypoint(module_path, parser)
-
-	def __make_entrypoint_from_fixture(self) -> Entry:
-		elems = self.__module_path.split('.')
-		dirpath, filename = '.'.join(elems[:-1]), elems[-1]
-		fixture_path = '.'.join([dirpath, 'fixtures', filename])
-		fixture = cast(Callable[[], Tree], load_module(fixture_path, 'fixture'))
-		return EntryOfLark(fixture())
 
 	def get(self, symbol: type[T_Inst]) -> T_Inst:
 		return self.__app.resolve(symbol)

@@ -44,7 +44,7 @@ class Node(NodeBase):
 	@property
 	def module_path(self) -> str:
 		"""str: モジュールパス"""
-		return self.__module_path
+		return self.__module_path.ref_name
 
 	@property
 	def full_path(self) -> str:

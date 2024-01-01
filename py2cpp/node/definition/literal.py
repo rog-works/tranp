@@ -88,12 +88,12 @@ class Pair(Literal):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def left(self) -> Node:
+	def first(self) -> Node:
 		return self._at(0)
 
 	@property
 	@Meta.embed(Node, expandable)
-	def right(self) -> Node:
+	def second(self) -> Node:
 		return self._at(1)
 
 	@property

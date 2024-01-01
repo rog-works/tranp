@@ -1,6 +1,8 @@
+from typing import cast
 from unittest import TestCase
 
 import py2cpp.node.definition as defs
+from py2cpp.symbol.db import SymbolRow
 from py2cpp.symbol.symbols import Symbols, Symbolic
 from tests.test.fixture import Fixture
 from tests.test.helper import data_provider
@@ -75,15 +77,19 @@ class TestSymbols(TestCase):
 	def test_type_of(self, full_path: str, expected: type[defs.ClassType]) -> None:
 		resolver = self.fixture.get(Symbols)
 		node = self.fixture.shared_nodes.by(full_path).one_of(Symbolic)
-		self.assertEqual(resolver.type_of(node).types.domain_id, expected)
+		self.assertEqual(resolver.type_of(node).row.types.domain_id, expected)
 
 	@data_provider([
-		(_ast('__main__', 'assign_stmt[1].anno_assign.number'), _mod('classes', 'int')),
-		(_ast('B.func1.block', 'funccall[1].arguments.argvalue.var'), _mod('classes', 'bool')),
-		(_ast('B.func1.block', 'funccall[2].arguments.argvalue.getattr'), _mod('classes', 'list')),
-		(_ast('B.func1.block', 'funccall[3].arguments.argvalue.getattr'), _mod('classes', 'list')),
+		(_ast('__main__', 'assign_stmt[1].anno_assign.number'), _mod('classes', 'int'), {}),
+		(_ast('B.func1.block', 'funccall[1].arguments.argvalue.var'), _mod('classes', 'bool'), {}),
+		(_ast('B.func1.block', 'funccall[2].arguments.argvalue.getattr'), _mod('classes', 'list'), {}), # FIXME {'value': _mod('classes', 'int')}),
+		(_ast('B.func1.block', 'funccall[3].arguments.argvalue.getattr'), _mod('classes', 'list'), {}), # FIXME {'value': _mod('classes', 'int')}),
 	])
-	def test_result_of(self, full_path: str, expected: type[defs.ClassType]) -> None:
+	def test_result_of(self, full_path: str, expected: type[defs.ClassType], sub_expected: dict[str, type[defs.ClassType]]) -> None:
 		resolver = self.fixture.get(Symbols)
 		node = self.fixture.shared_nodes.by(full_path)
-		self.assertEqual(resolver.result_of(node).types.domain_id, expected)
+		schema = resolver.result_of(node)
+		self.assertEqual(schema.row.types.domain_id, expected)
+		for key, sub_type in sub_expected.items():
+			self.assertEqual('ok' if schema.has_attr(key) else key, 'ok')
+			self.assertEqual(cast(SymbolRow, getattr(schema, key)).types.domain_id, sub_type)

@@ -83,10 +83,7 @@ class Tuple: ...
 
 
 @__alias__.pair_
-class Pair:
-	def __init__(self, key: Any, value: Any) -> None:
-		self.key = key
-		self.value = value
+class Pair: ...
 
 
 @__alias__.list

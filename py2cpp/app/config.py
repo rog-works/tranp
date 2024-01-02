@@ -2,6 +2,11 @@ from py2cpp.lang.di import ModuleDefinitions
 
 
 def default_definitions() -> ModuleDefinitions:
+	"""デフォルトのモジュール定義を取得
+
+	Returns:
+		ModuleDefinition: モジュール定義
+	"""
 	return {
 		'py2cpp.ast.entry.Entry': 'py2cpp.ast.provider.make_entrypoint',
 		'py2cpp.ast.query.Query': 'py2cpp.node.query.Nodes',

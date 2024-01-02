@@ -4,10 +4,12 @@ from py2cpp.ast.dsn import DSN
 from py2cpp.errors import LogicError
 from py2cpp.lang.annotation import injectable
 import py2cpp.node.definition as defs
+from py2cpp.module.types import ModulePath
 from py2cpp.node.node import Node
 from py2cpp.symbol.db import SymbolDB, SymbolRow
 
 Symbolic: TypeAlias = defs.Symbol | defs.GenericType | defs.Literal | defs.ClassType
+Primitives: TypeAlias = int | str | bool | tuple | list | dict | None
 
 PairSchema = NamedTuple('PairSchema', [('row', SymbolRow), ('first', SymbolRow), ('second', SymbolRow)])
 ListSchema = NamedTuple('ListSchema', [('row', SymbolRow), ('value', SymbolRow)])
@@ -15,24 +17,59 @@ DictSchema = NamedTuple('DictSchema', [('row', SymbolRow), ('key', SymbolRow), (
 
 
 class SymbolSchema:
+	"""シンボルスキーマ
+
+	Attributes:
+		__row (SymbolRow): 型のシンボルデータ
+		__attrs (dict[str, SymbolRow]): キーと型の属性のシンボルデータのマップ情報
+	"""
+
 	def __init__(self, row: SymbolRow, **attrs: SymbolRow) -> None:
+		"""インスタンスを生成
+
+		Args:
+			row (SymbolRow): 型のシンボルデータ
+			**attrs (SymbolRow): キーと型の属性のシンボルデータのマップ情報
+		"""
 		self.__row = row
 		self.__attrs = attrs
 
 	@property
 	def row(self) -> SymbolRow:
+		"""SymbolRow: 型のシンボルデータ"""
 		return self.__row
 
 	def has_attr(self, key: str) -> bool:
+		"""指定のキーの属性を持つか判定
+
+		Args:
+			key (str): キー
+		Returns:
+			bool: True = 所持
+		"""
 		return key in self.__attrs
 
 	def __getattr__(self, key: str) -> SymbolRow:
+		"""キーに対応する属性を取得
+
+		Args:
+			key (str): キー
+		Returns:
+			SymbolRow: 属性の型のシンボルデータ
+		"""
 		if self.has_attr(key):
 			return self.__attrs[key]
 
 		raise ValueError(f'Undefined key. key: {key}')
 
 	def extends(self, **attrs: SymbolRow) -> 'SymbolSchema':
+		"""既存のスキーマに属性を追加してインスタンスを生成
+
+		Args:
+			**attrs (SymbolRow): キーと型の属性のシンボルデータのマップ情報
+		Returns:
+			SymbolSchema: インスタンス
+		"""
 		return SymbolSchema(self.row, **attrs)
 
 
@@ -40,13 +77,46 @@ class Symbols:
 	"""シンボルテーブルを参照してシンボルの型を解決する機能を提供"""
 
 	@injectable
-	def __init__(self, db: SymbolDB) -> None:
+	def __init__(self, db: SymbolDB, module_path: ModulePath) -> None:
 		"""インスタンスを生成
 
 		Args:
 			db (SymbolDB): シンボルテーブル
 		"""
 		self.__db = db
+		self.__module_path = module_path
+
+	def primitive_of(self, primitive_type: type[Primitives]) -> SymbolSchema:
+		"""プリミティブ型のシンボルを解決
+
+		Args:
+			primitive_type (type[Primitives]): プリミティブ型
+		Returns:
+			SymbolSchema: シンボルスキーマ
+		Raises:
+			LogicError: 未定義のタイプを指定
+		"""
+		symbol_name = primitive_type.__name__ if primitive_type is not None else 'None'
+		candidate = DSN.join(self.__module_path.ref_name, symbol_name)
+		if candidate in self.__db.rows:
+			return SymbolSchema(self.__db.rows[candidate])
+
+		raise LogicError(f'Primitive not defined. name: {primitive_type.__name__}')
+
+	def unknown_of(self) -> SymbolSchema:
+		"""Unknown型のシンボルを解決
+
+		Returns:
+			SymbolSchema: シンボルスキーマ
+		Raises:
+			LogicError: Unknown型が未定義
+		"""
+		# XXX 'Unknown'の定数化を検討
+		candidate = DSN.join(self.__module_path.ref_name, 'Unknown')
+		if candidate in self.__db.rows:
+			return SymbolSchema(self.__db.rows[candidate])
+
+		raise LogicError(f'Unknown not defined.')
 
 	def type_of(self, symbolic: Symbolic) -> SymbolSchema:
 		"""シンボル系ノードからシンボルを解決
@@ -54,7 +124,7 @@ class Symbols:
 		Args:
 			symbolic (Symbolic): シンボル系ノード
 		Returns:
-			SymbolRow: シンボルデータ
+			SymbolSchema: シンボルスキーマ
 		Raises:
 			LogicError: 未定義のシンボルを指定
 		"""
@@ -71,7 +141,7 @@ class Symbols:
 			class_type (ClassType): クラスタイプノード
 			symbol (Symbol): プロパティのシンボルノード
 		Returns:
-			SymbolRow: シンボルデータ
+			SymbolSchema: シンボルスキーマ
 		Raises:
 			LogicError: 未定義のシンボルを指定
 		"""
@@ -80,6 +150,25 @@ class Symbols:
 			return SymbolSchema(found_row)
 
 		raise LogicError(f'Symbol not defined. node: {class_type}')
+
+	def result_of(self, expression: Node) -> SymbolSchema:
+		"""式ノードからシンボルを解決
+
+		Args:
+			expression (Node): 式ノード
+		Returns:
+			SymbolSchema: シンボルスキーマ
+		Raises:
+			LogicError: シンボルの解決に失敗
+		"""
+		handler = Handler(self)
+		for node in expression.calculated():
+			handler.on_action(node)
+
+		# XXX 自分自身が含まれないため個別に実行
+		handler.on_action(expression)
+
+		return handler.result()
 
 	def __resolve_symbol(self, symbolic: Symbolic, symbol_path: str) -> SymbolRow | None:
 		"""シンボルノードからタイプノードを解決。未検出の場合はNoneを返却
@@ -186,25 +275,6 @@ class Symbols:
 			return self.__db.rows[domain_name]
 
 		return None
-
-	def result_of(self, expression: Node) -> SymbolSchema:
-		"""式ノードからシンボルを解決
-
-		Args:
-			expression (Node): 式ノード
-		Returns:
-			SymbolRow: シンボルデータ
-		Raises:
-			LogicError: シンボルの解決に失敗
-		"""
-		handler = Handler(self)
-		for node in expression.calculated():
-			handler.on_action(node)
-
-		# XXX 自分自身が含まれないため個別に実行
-		handler.on_action(expression)
-
-		return handler.result()
 
 
 class Handler:
@@ -345,15 +415,13 @@ class Handler:
 		return self.__resolver.type_of(node).extends(first=first.row, second=second.row)
 
 	def on_list(self, node: defs.List, values: list[SymbolSchema]) -> SymbolSchema:
-		# FIXME 一貫性のないレスポンス
 		if len(values) == 0:
-			return self.__resolver.type_of(node)
+			return self.__resolver.type_of(node).extends(value=self.__resolver.unknown_of().row)
 		else:
 			return self.__resolver.type_of(node).extends(value=values[0].row)
 
 	def on_dict(self, node: defs.Dict, items: list[PairSchema]) -> SymbolSchema:
-		# FIXME 一貫性のないレスポンス
 		if len(items) == 0:
-			return self.__resolver.type_of(node)
+			return self.__resolver.type_of(node).extends(key=self.__resolver.unknown_of().row, value=self.__resolver.unknown_of().row)
 		else:
 			return self.__resolver.type_of(node).extends(key=items[0].first, value=items[0].second)

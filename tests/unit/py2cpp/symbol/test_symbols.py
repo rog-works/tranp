@@ -3,7 +3,7 @@ from unittest import TestCase
 
 import py2cpp.node.definition as defs
 from py2cpp.symbol.db import SymbolRow
-from py2cpp.symbol.symbols import Symbols, Symbolic
+from py2cpp.symbol.symbols import Primitives, Symbols, Symbolic
 from tests.test.fixture import Fixture
 from tests.test.helper import data_provider
 
@@ -37,6 +37,26 @@ def _mod(before: str, after: str) -> str:
 
 class TestSymbols(TestCase):
 	fixture = Fixture.make(__file__)
+
+	@data_provider([
+		(int, _mod('classes', 'int')),
+		(str, _mod('classes', 'str')),
+		(bool, _mod('classes', 'bool')),
+		(tuple, _mod('classes', 'tuple')),
+		(list, _mod('classes', 'list')),
+		(dict, _mod('classes', 'dict')),
+		(None, _mod('classes', 'None')),
+	])
+	def test_primitive_of(self, primitive_type: type[Primitives], expected: type[defs.ClassType]) -> None:
+		resolver = self.fixture.get(Symbols)
+		self.assertEqual(resolver.primitive_of(primitive_type).row.types.domain_id, expected)
+
+	@data_provider([
+		(_mod('classes', 'Unknown'),),
+	])
+	def test_unknown_of(self, expected: type[defs.ClassType]) -> None:
+		resolver = self.fixture.get(Symbols)
+		self.assertEqual(resolver.unknown_of().row.types.domain_id, expected)
 
 	@data_provider([
 		(_ast('__main__', 'import_stmt.import_names.name'), _mod('xyz', 'Z')),

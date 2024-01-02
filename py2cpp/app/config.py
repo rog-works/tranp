@@ -11,7 +11,7 @@ def default_definitions() -> ModuleDefinitions:
 		'py2cpp.ast.entry.Entry': 'py2cpp.ast.provider.make_entrypoint',
 		'py2cpp.ast.query.Query': 'py2cpp.node.query.Nodes',
 		'py2cpp.ast.resolver.SymbolMapping': 'py2cpp.node.provider.symbol_mapping',
-		'py2cpp.ast.parser.ParserSettings': 'py2cpp.ast.provider.parser_settings',
+		'py2cpp.ast.parser.ParserSetting': 'py2cpp.ast.provider.parser_setting',
 		'py2cpp.ast.parser.SyntaxParser': 'py2cpp.tp_lark.parser.SyntaxParserOfLark',
 		'py2cpp.lang.cache.CacheProvider': 'py2cpp.lang.cache.CacheProvider',
 		'py2cpp.lang.cache.CacheSetting': 'py2cpp.ast.provider.cache_setting',

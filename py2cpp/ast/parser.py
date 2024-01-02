@@ -5,11 +5,11 @@ from py2cpp.ast.entry import Entry
 
 
 @dataclass
-class ParserSettings:
+class ParserSetting:
 	"""シンタックスパーサー設定データ
 
 	Attributes:
-		grammer (str): Grammarファイルへのパス
+		grammer (str): Grammarファイルへのパス(実行ディレクトリーからの相対パス)
 		start (str): ルートエントリータグ(default = 'file_input')
 		algorithem (str): パーサーアルゴリズム(default = 'lalr')
 	"""

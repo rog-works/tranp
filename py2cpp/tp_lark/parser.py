@@ -6,7 +6,7 @@ from lark import Lark, Tree
 from lark.indenter import PythonIndenter
 
 from py2cpp.ast.entry import Entry
-from py2cpp.ast.parser import ParserSettings, SyntaxParser
+from py2cpp.ast.parser import ParserSetting, SyntaxParser
 from py2cpp.lang.annotation import implements
 from py2cpp.lang.cache import CacheProvider, Lifecycle
 from py2cpp.lang.io import FileLoader
@@ -14,7 +14,7 @@ from py2cpp.tp_lark.entry import EntryOfLark, Serialization
 
 
 class LarkLifecycle(Lifecycle[Lark]):
-	def __init__(self, loader: FileLoader, settings: ParserSettings) -> None:
+	def __init__(self, loader: FileLoader, settings: ParserSetting) -> None:
 		self.__loader = loader
 		self.__settings = settings
 
@@ -89,7 +89,7 @@ class EntryLifecycle(Lifecycle[Entry]):
 
 
 class SyntaxParserOfLark(SyntaxParser):
-	def __init__(self, loader: FileLoader, settings: ParserSettings, cache: CacheProvider) -> None:
+	def __init__(self, loader: FileLoader, settings: ParserSetting, cache: CacheProvider) -> None:
 		self.__loader = loader
 		self.__cache = cache
 		self.__parser = self.__cache.provide(LarkLifecycle(loader, settings))

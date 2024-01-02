@@ -2,8 +2,9 @@ import re
 
 from py2cpp.ast.cache import EntryCache
 from py2cpp.ast.entry import Entry
+from py2cpp.ast.finder import ASTFinder
+from py2cpp.ast.path import EntryPath
 from py2cpp.ast.query import Query
-from py2cpp.ast.travarsal import ASTFinder, EntryPath
 from py2cpp.errors import NotFoundError
 from py2cpp.lang.annotation import implements
 from py2cpp.node.node import Node

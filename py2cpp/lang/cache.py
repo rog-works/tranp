@@ -1,8 +1,10 @@
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
+import glob
 import json
 import hashlib
 import os
+import re
 from typing import Generic, IO, TypeVar
 
 from py2cpp.lang.annotation import implements
@@ -53,7 +55,7 @@ class CachedProxy(Cached[T]):
 		basepath = os.path.join(self._basedir, relpath)
 		data = json.dumps(self._lifecycle.context())
 		identifer = hashlib.md5(data.encode('utf-8')).hexdigest()
-		return f'{basepath}.{identifer}{extention}'
+		return f'{basepath}-{identifer}{extention}'
 
 	def cache_exists(self, cache_filepath: str) -> bool:
 		return os.path.exists(cache_filepath)
@@ -63,8 +65,15 @@ class CachedProxy(Cached[T]):
 		if not os.path.exists(dirpath):
 			os.makedirs(dirpath)
 
+		for oldedst in self.find_oldest(filepath):
+			os.unlink(oldedst)
+
 		with open(filepath, mode='wb') as f:
 			self._lifecycle.save(instance, f)
+
+	def find_oldest(self, new_filepath: str) -> list[str]:
+		glob_pattern = re.sub(r'-(\w{32})(\.\w+$)', r'-*\2', new_filepath)
+		return glob.glob(glob_pattern)
 
 	def load_cache(self, filepath: str) -> T:
 		with open(filepath, mode='rb') as f:

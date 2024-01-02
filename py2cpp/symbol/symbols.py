@@ -289,6 +289,9 @@ class Handler:
 		return self.__stack.pop()
 
 	def on_action(self, node: Node) -> None:
+		if self.skiped(node):
+			return
+
 		self.__stack.append(self.invoke(node))
 
 	def invoke(self, node: Node) -> SymbolSchema:
@@ -296,6 +299,10 @@ class Handler:
 		handler = getattr(self, handler_name)
 		args = self.invoke_args(node, handler)
 		return handler(**args)
+
+	def skiped(self, node: Node) -> bool:
+		skip_types = (defs.Terminal,)
+		return isinstance(node, *skip_types)
 
 	def invoke_args(self, node: Node, handler: Callable) -> dict[str, Any]:
 		def arg_is_list(anno: type) -> bool:
@@ -328,6 +335,11 @@ class Handler:
 
 		return args
 
+	# Statement simple
+
+	def on_anno_assign(self, node: defs.AnnoAssign, receiver: SymbolSchema, var_type: SymbolSchema, value: SymbolSchema) -> SymbolSchema:
+		return var_type
+
 	# Primary
 
 	def on_symbol(self, node: defs.Symbol) -> SymbolSchema:
@@ -349,17 +361,14 @@ class Handler:
 		symbol_var_type = symbol.row.decl.as_a(defs.Parameter).var_type.as_a(defs.CollectionType)
 		return self.__resolver.type_of(symbol_var_type.value_type)
 
-	def on_list_type(self, node: defs.ListType) -> SymbolSchema:
-		return self.on_generic_type(node)
+	def on_list_type(self, node: defs.ListType, symbol: SymbolSchema, value_type: SymbolSchema) -> SymbolSchema:
+		return symbol.extends(value_type=value_type.row)
 
-	def on_dict_type(self, node: defs.DictType) -> SymbolSchema:
-		return self.on_generic_type(node)
+	def on_dict_type(self, node: defs.DictType, symbol: SymbolSchema, key_type: SymbolSchema, value_type: SymbolSchema) -> SymbolSchema:
+		return symbol.extends(key_type=key_type.row, value_type=value_type.row)
 
 	def on_union_type(self, node: defs.UnionType) -> SymbolSchema:
 		raise LogicError(f'Operation not supoorted. {node}')
-
-	def on_generic_type(self, node: defs.GenericType) -> SymbolSchema:
-		return self.__resolver.type_of(node.symbol)
 
 	def on_func_call(self, node: defs.FuncCall, calls: SymbolSchema, arguments: list[SymbolSchema]) -> SymbolSchema:
 		calls_function = calls.row.types.as_a(defs.Function)

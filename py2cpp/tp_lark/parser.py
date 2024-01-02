@@ -8,16 +8,17 @@ from lark.indenter import PythonIndenter
 from py2cpp.ast.entry import Entry
 from py2cpp.ast.parser import ParserSettings, SyntaxParser
 from py2cpp.lang.annotation import implements
+from py2cpp.lang.cache import CacheProvider, Lifecycle
 from py2cpp.lang.io import FileLoader
-from py2cpp.lang.proxy import CachedProxy
 from py2cpp.tp_lark.entry import EntryOfLark, Serialization
 
 
-class LarkLifecycle:
+class LarkLifecycle(Lifecycle[Lark]):
 	def __init__(self, loader: FileLoader, settings: ParserSettings) -> None:
 		self.__loader = loader
 		self.__settings = settings
 
+	@implements
 	def instantiate(self) -> Lark:
 		return Lark(
 			self.__loader(self.__settings.grammar),
@@ -26,6 +27,7 @@ class LarkLifecycle:
 			postlex=PythonIndenter()
 		)
 
+	@implements
 	def context(self) -> dict[str, str]:
 		return {
 			'mtime': str(os.path.getmtime(self.__settings.grammar)),
@@ -34,14 +36,16 @@ class LarkLifecycle:
 			'algorithem': self.__settings.algorithem,
 		}
 
+	@implements
 	def save(self, instance: Lark, f: IO) -> None:
 		instance.save(f)
 
+	@implements
 	def load(self, f: IO) -> Lark:
 		return Lark.load(f)
 
 
-class EntryLifecycle:
+class EntryLifecycle(Lifecycle[Entry]):
 	def __init__(self, loader: FileLoader, parser: Lark, module_path: str) -> None:
 		self.__loader = loader
 		self.__parser = parser
@@ -51,17 +55,20 @@ class EntryLifecycle:
 		filepath = module_path.replace('.', '/')
 		return f'{filepath}.py'
 
-	def instantiate(self) -> EntryOfLark:
+	@implements
+	def instantiate(self) -> Entry:
 		tree = self.__parser.parse(self.load_source())
 		return EntryOfLark(tree)
 
 	def load_source(self) -> str:
 		return self.__loader(self.__source_path)
 
+	@implements
 	def context(self) -> dict[str, str]:
 		return {'mtime': str(os.path.getmtime(self.__source_path))}
 
-	def save(self, instance: EntryOfLark, f: IO) -> None:
+	@implements
+	def save(self, instance: Entry, f: IO) -> None:
 		# XXX JSONと比べてかなり遅いため一旦廃止
 		# import yaml
 		# data = Serialization.dumps(cast(Tree, instance.source))
@@ -70,7 +77,8 @@ class EntryLifecycle:
 		data = Serialization.dumps(cast(Tree, instance.source))
 		f.write(json.dumps(data).encode('utf-8'))
 
-	def load(self, f: IO) -> EntryOfLark:
+	@implements
+	def load(self, f: IO) -> Entry:
 		# XXX JSONと比べてかなり遅いため一旦廃止
 		# import yaml
 		# data = cast(dict[str, Any], yaml.safe_load(f))
@@ -81,9 +89,10 @@ class EntryLifecycle:
 
 
 class SyntaxParserOfLark(SyntaxParser):
-	def __init__(self, loader: FileLoader, settings: ParserSettings) -> None:
+	def __init__(self, loader: FileLoader, settings: ParserSettings, cache: CacheProvider) -> None:
 		self.__loader = loader
-		self.__parser = CachedProxy(LarkLifecycle(loader, settings))
+		self.__cache = cache
+		self.__parser = self.__cache.provide(LarkLifecycle(loader, settings))
 
 	@implements
 	def parse(self, module_path: str) -> Entry:
@@ -91,11 +100,11 @@ class SyntaxParserOfLark(SyntaxParser):
 		return self.__load_entry(parser, module_path)
 
 	def __load_parser(self) -> Lark:
-		return self.__parser.get('./.cache/py2cpp/parser.cache')
+		return self.__parser.get('parser.cache')
 
 	def __load_entry(self, parser: Lark, module_path: str) -> Entry:
 		basepath = module_path.replace('.', '/')
-		entry = CachedProxy(EntryLifecycle(self.__loader, parser, module_path))
+		entry = self.__cache.provide(EntryLifecycle(self.__loader, parser, module_path))
 		# XXX JSONと比べてかなり遅いため一旦廃止
-		# return entry.get(f'./.cache/py2cpp/{basepath}.yml')
-		return entry.get(f'./.cache/py2cpp/{basepath}.json')
+		# return entry.get(f'{basepath}.yml')
+		return entry.get(f'{basepath}.json')

@@ -2,7 +2,7 @@ class DSN:
 	"""AST用のドメイン名ユーティリティー。ドット区切りで要素を結合した書式を前提とする"""
 
 	@classmethod
-	def length(cls, origin: str) -> int:
+	def elem_counts(cls, origin: str) -> int:
 		"""ドメイン名内の要素数を取得
 
 		Args:
@@ -14,7 +14,7 @@ class DSN:
 
 	@classmethod
 	def join(cls, domain: str, *prats: str) -> str:
-		"""ドメイン名の要素を結合。空の要素は除外される
+		"""ドメイン名の要素を結合。基点以外の空の要素は除外される
 
 		Args:
 			domain (str): 基点

@@ -182,7 +182,7 @@ class Symbols:
 		symbol_row = None
 
 		# ドット区切りで前方からシンボルを検索
-		elem_counts = DSN.length(symbol_path)
+		elem_counts = DSN.elem_counts(symbol_path)
 		remain_counts = elem_counts
 		while remain_counts > 0:
 			symbol_starts = DSN.left(symbol_path, elem_counts - (remain_counts - 1))

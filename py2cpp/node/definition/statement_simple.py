@@ -13,7 +13,6 @@ class Assign(Node):
 		return self._at(0)._children()
 
 	@property
-	@Meta.embed(Node, expandable)
 	def symbol(self) -> Symbol:
 		receiver = self.receiver
 		return receiver.as_a(Symbol) if receiver.is_a(Symbol) else receiver.as_a(Indexer).symbol

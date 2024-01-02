@@ -1,5 +1,6 @@
 import re
 
+from py2cpp.ast.dsn import DSN
 from py2cpp.errors import LogicError
 
 
@@ -15,7 +16,7 @@ class EntryPath:
 		Returns:
 			EntryPath: インスタンス
 		"""
-		return cls('.'.join([*elems]))
+		return cls(DSN.join(*elems))
 
 	@classmethod
 	def identify(cls, origin: str, entry_tag: str, index: int) -> 'EntryPath':
@@ -28,7 +29,7 @@ class EntryPath:
 		Returns:
 			EntryPath: インスタンス
 		"""
-		return cls('.'.join([origin, f'{entry_tag}[{index}]']))
+		return cls(DSN.join(*[origin, f'{entry_tag}[{index}]']))
 
 	def __init__(self, origin: str) -> None:
 		"""インスタンスを生成
@@ -41,12 +42,12 @@ class EntryPath:
 	@property
 	def valid(self) -> bool:
 		"""bool: True = パスが有効"""
-		return len(self.elements) > 0
+		return DSN.elem_counts(self.origin) > 0
 
 	@property
 	def elements(self) -> list[str]:
 		"""list[str]: 区切り文字で分解した要素を返却"""
-		return self.origin.split('.') if len(self.origin) > 0 else []
+		return DSN.elements(self.origin)
 
 	@property
 	def escaped_origin(self) -> str:
@@ -61,7 +62,7 @@ class EntryPath:
 		Returns:
 			str: パス
 		"""
-		return '.'.join([self.origin, relative])
+		return DSN.join(*[self.origin, relative])
 
 	@property
 	def first(self) -> tuple[str, int]:

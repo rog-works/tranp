@@ -3,7 +3,7 @@ from typing import Any
 
 
 class Entry(metaclass=ABCMeta):
-	"""エントリー"""
+	"""ASTの各要素に対応するエントリーの抽象基底クラス"""
 
 	@property
 	@abstractmethod
@@ -56,4 +56,5 @@ class Entry(metaclass=ABCMeta):
 	@property
 	def empty_name(self) -> str:
 		"""str: 空のエントリー名"""
+		# XXX 定数化を検討
 		return '__empty__'

@@ -10,19 +10,29 @@ class DSN:
 		Returns:
 			int: 要素数
 		"""
-		return len(origin.split('.'))
+		return len(cls.elements(origin))
 
 	@classmethod
-	def join(cls, domain: str, *prats: str) -> str:
-		"""ドメイン名の要素を結合。基点以外の空の要素は除外される
+	def elements(cls, origin: str) -> list[str]:
+		"""ドメイン名を要素に分解
 
 		Args:
-			domain (str): 基点
+			origin (str): ドメイン名
+		Returns:
+			list[str]: 要素リスト
+		"""
+		return [elem for elem in origin.split('.') if elem]
+
+	@classmethod
+	def join(cls, *prats: str) -> str:
+		"""ドメイン名の要素を結合。空の要素は除外される
+
+		Args:
 			*parts (str): 要素リスト
 		Returns:
 			str: ドメイン名
 		"""
-		return '.'.join([domain, *[part for part in prats if part]])
+		return '.'.join([*[part for part in prats if part]])
 
 	@classmethod
 	def left(cls, origin: str, counts: int) -> str:
@@ -34,7 +44,7 @@ class DSN:
 		Returns:
 			str: ドメイン名
 		"""
-		return cls.join(*origin.split('.')[0:counts])
+		return cls.join(*(cls.elements(origin)[0:counts]))
 
 	@classmethod
 	def right(cls, origin: str, counts: int) -> str:
@@ -46,4 +56,4 @@ class DSN:
 		Returns:
 			str: ドメイン名
 		"""
-		return cls.join(*origin.split('.')[-counts:])
+		return cls.join(*(cls.elements(origin)[-counts:]))

@@ -8,6 +8,8 @@ def default_definitions() -> ModuleDefinitions:
 		ModuleDefinition: モジュール定義
 	"""
 	return {
+		'py2cpp.analize.db.SymbolDB': 'py2cpp.analize.db.SymbolDB',
+		'py2cpp.analize.symbols.Symbols': 'py2cpp.analize.symbols.Symbols',
 		'py2cpp.ast.entry.Entry': 'py2cpp.ast.provider.make_entrypoint',
 		'py2cpp.ast.query.Query': 'py2cpp.node.query.Nodes',
 		'py2cpp.ast.resolver.SymbolMapping': 'py2cpp.node.provider.symbol_mapping',
@@ -23,6 +25,4 @@ def default_definitions() -> ModuleDefinitions:
 		'py2cpp.module.modules.Modules': 'py2cpp.module.modules.Modules',
 		'py2cpp.node.node.Node': 'py2cpp.node.provider.entrypoint',
 		'py2cpp.node.resolver.NodeResolver': 'py2cpp.node.resolver.NodeResolver',
-		'py2cpp.symbol.db.SymbolDB': 'py2cpp.symbol.db.SymbolDB',
-		'py2cpp.symbol.symbols.Symbols': 'py2cpp.symbol.symbols.Symbols',
 	}

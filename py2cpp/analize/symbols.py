@@ -1,13 +1,13 @@
-from typing import Any, Callable, NamedTuple, TypeAlias
+from typing import NamedTuple, TypeAlias
 
+from py2cpp.analize.db import SymbolDB, SymbolRow
+from py2cpp.analize.procedure import Procedure
 from py2cpp.ast.dsn import DSN
 from py2cpp.errors import LogicError
 from py2cpp.lang.implementation import injectable
 import py2cpp.node.definition as defs
 from py2cpp.module.types import ModulePath
 from py2cpp.node.node import Node
-from py2cpp.symbol.db import SymbolDB, SymbolRow
-from py2cpp.task.procedure import Procedure
 
 Symbolic: TypeAlias = defs.Symbol | defs.GenericType | defs.Literal | defs.ClassType
 Primitives: TypeAlias = int | str | bool | tuple | list | dict | None

@@ -1,4 +1,4 @@
-from tests.unit.py2cpp.symbol.fixtures.test_db_xyz import Z
+from tests.unit.py2cpp.analize.fixtures.test_db_xyz import Z
 
 v: int = 0
 
@@ -22,5 +22,3 @@ class B(A):
 		B.B2.v = 'b.b2.v'
 		self.x.nx = 2
 		return self.s
-
-d = {'s': v}

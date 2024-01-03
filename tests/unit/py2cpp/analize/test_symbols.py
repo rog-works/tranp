@@ -1,9 +1,9 @@
 from typing import cast
 from unittest import TestCase
 
+from py2cpp.analize.db import SymbolRow
+from py2cpp.analize.symbols import Primitives, Symbols, Symbolic
 import py2cpp.node.definition as defs
-from py2cpp.symbol.db import SymbolRow
-from py2cpp.symbol.symbols import Primitives, Symbols, Symbolic
 from tests.test.fixture import Fixture
 from tests.test.helper import data_provider
 
@@ -29,8 +29,8 @@ def _ast(before: str, after: str) -> str:
 
 def _mod(before: str, after: str) -> str:
 	aliases = {
-		'xyz': 'tests.unit.py2cpp.symbol.fixtures.test_db_xyz',
-		'classes': 'tests.unit.py2cpp.symbol.fixtures.test_db_classes',
+		'xyz': 'tests.unit.py2cpp.analize.fixtures.test_db_xyz',
+		'classes': 'tests.unit.py2cpp.analize.fixtures.test_db_classes',
 	}
 	return f'{aliases[before]}.{after}'
 

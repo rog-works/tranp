@@ -37,10 +37,10 @@
 			"justMyCode": true,
 		},
 		{
-			"name": "Python: py2cpp",
+			"name": "Python: transpile",
 			"type": "python",
 			"request": "launch",
-			"module":"py2cpp.bin.handler",
+			"module":"py2cpp.bin.transpile",
 			"args": [
 				"data/grammar.lark",
 				"example/example.py",

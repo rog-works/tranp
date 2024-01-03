@@ -9,47 +9,47 @@ T_Ret = TypeVar('T_Ret')
 
 class Procedure(Generic[T_Ret]):
 	def __init__(self) -> None:
-		self.__stack: list[T_Ret] = []
+		self._stack: list[T_Ret] = []
 		self.__invoker = HandlerInvoker[T_Ret]()
 
 	def result(self) -> T_Ret:
-		if len(self.__stack) != 1:
-			raise LogicError(f'Invalid number of stacks. {len(self.__stack)} != 1')
+		if len(self._stack) != 1:
+			raise LogicError(f'Invalid number of stacks. {len(self._stack)} != 1')
 
-		return self.__stack.pop()
+		return self._stack.pop()
 
 	def process(self, node: Node) -> None:
-		self.enter(node)
-		self.action(node)
-		self.exit(node)
+		self._enter(node)
+		self._action(node)
+		self._exit(node)
 
-	def action(self, node: Node) -> None:
+	def _action(self, node: Node) -> None:
 		handler_name = f'on_{node.classification}'
 		if hasattr(self, handler_name):
-			self.run_action(handler_name, node)
+			self._run_action(handler_name, node)
 		elif hasattr(self, 'on_fallback'):
-			self.run_action('on_fallback', node)
+			self._run_action('on_fallback', node)
 		else:
 			raise LogicError(f'Handler not defined. node: {str(node)}')
 
-	def enter(self, node: Node) -> None:
+	def _enter(self, node: Node) -> None:
 		handler_name = f'on_enter_{node.classification}'
 		if hasattr(self, handler_name):
-			self.run_action(handler_name, node)
+			self._run_action(handler_name, node)
 
-	def exit(self, node: Node) -> None:
+	def _exit(self, node: Node) -> None:
 		handler_name = f'on_exit_{node.classification}'
 		if hasattr(self, handler_name):
-			self.run_action(handler_name, node)
+			self._run_action(handler_name, node)
 
-	def run_action(self, handler_name: str, node: Node) -> None:
-		result = self.__invoker.invoke(getattr(self, handler_name), node, self.__stack)
-		if type(result) is not None:
-			self.__stack.append(result)
+	def _run_action(self, handler_name: str, node: Node) -> None:
+		result = self.__invoker.invoke(getattr(self, handler_name), node, self._stack)
+		if result is not None:
+			self._stack.append(result)
 
 
 class HandlerInvoker(Generic[T_Ret]):
-	def invoke(self, handler: Callable[..., T_Ret], node: Node, stack: list[T_Ret]) -> T_Ret:
+	def invoke(self, handler: Callable[..., T_Ret], node: Node, stack: list[T_Ret]) -> T_Ret | None:
 		args = self.__invoke_args(handler, node, stack)
 		return handler(**args)
 
@@ -60,7 +60,7 @@ class HandlerInvoker(Generic[T_Ret]):
 		args_keys = reversed(args_anno.keys())
 		for key in args_keys:
 			arg_anno = args_anno[key]
-			if arg_anno.org_type is Node:
+			if issubclass(arg_anno.org_type, Node):
 				args[key] = node
 			elif arg_anno.is_list:
 				args[key] = self.__pluck_values(stack, node, key)

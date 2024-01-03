@@ -7,6 +7,7 @@ import py2cpp.node.definition as defs
 from py2cpp.module.types import ModulePath
 from py2cpp.node.node import Node
 from py2cpp.symbol.db import SymbolDB, SymbolRow
+from py2cpp.task.procedure import Procedure
 
 Symbolic: TypeAlias = defs.Symbol | defs.GenericType | defs.Literal | defs.ClassType
 Primitives: TypeAlias = int | str | bool | tuple | list | dict | None
@@ -163,10 +164,10 @@ class Symbols:
 		"""
 		handler = Handler(self)
 		for node in expression.calculated():
-			handler.on_action(node)
+			handler.process(node)
 
 		# XXX 自分自身が含まれないため個別に実行
-		handler.on_action(expression)
+		handler.process(expression)
 
 		return handler.result()
 
@@ -277,63 +278,15 @@ class Symbols:
 		return None
 
 
-class Handler:
+class Handler(Procedure[SymbolSchema]):
 	def __init__(self, resolver: Symbols) -> None:
+		super().__init__()
 		self.__resolver = resolver
-		self.__stack: list[SymbolSchema] = []
 
-	def result(self) -> SymbolSchema:
-		if len(self.__stack) != 1:
-			raise LogicError(f'Invalid number of stacks. {len(self.__stack)} != 1')
+	# Fallback
 
-		return self.__stack.pop()
-
-	def on_action(self, node: Node) -> None:
-		if self.skiped(node):
-			return
-
-		self.__stack.append(self.invoke(node))
-
-	def invoke(self, node: Node) -> SymbolSchema:
-		handler_name = f'on_{node.classification}'
-		handler = getattr(self, handler_name)
-		args = self.invoke_args(node, handler)
-		return handler(**args)
-
-	def skiped(self, node: Node) -> bool:
-		skip_types = (defs.Terminal,)
-		return isinstance(node, *skip_types)
-
-	def invoke_args(self, node: Node, handler: Callable) -> dict[str, Any]:
-		def arg_is_list(anno: type) -> bool:
-			return hasattr(anno, '__origin__') and getattr(anno, '__origin__') is list
-
-		def pluck_arg(node: Node, anno: type, key: str) -> SymbolSchema | list[SymbolSchema]:
-			if arg_is_list(anno):
-				return pluck_arg_list(node, key)
-			else:
-				return self.__stack.pop()
-
-		def pluck_arg_list(node: Node, key: str) -> list[SymbolSchema]:
-			args = [self.__stack.pop() for _ in range(len(getattr(node, key)))]
-			return list(reversed(args))
-
-		def valid_arg(anno: type, arg: Node | SymbolSchema | list[SymbolSchema]) -> bool:
-			if type(arg) is list:
-				valids = [True for in_arg in arg if isinstance(in_arg, SymbolSchema)]
-				return len(valids) == len(arg)
-			else:
-				return isinstance(arg, anno)
-
-		keys = reversed([key for key, _ in handler.__annotations__.items() if key != 'return'])
-		annos = {key: handler.__annotations__[key] for key in keys}
-		node_key = list(annos.keys()).pop()
-		args = {node_key: node, **{key: pluck_arg(node, annos[key], key) for key in annos.keys() if key != node_key}}
-		valids = [True for key, arg in args.items() if valid_arg(annos[key], arg)]
-		if len(valids) != len(args):
-			raise LogicError(f'Invalid arguments. node: {node}, actual {len(valids)} to expected {len(args)}')
-
-		return args
+	def on_fallback(self, node: Node) -> None:
+		pass
 
 	# Statement simple
 

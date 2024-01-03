@@ -1,19 +1,22 @@
+import os
+import sys
 from typing import Generic, Iterator, TypedDict, TypeVar
 
+from py2cpp.app.app import App
+from py2cpp.ast.parser import ParserSetting
 from py2cpp.errors import LogicError
 from py2cpp.lang.error import stacktrace
 from py2cpp.lang.eventemitter import EventEmitter, T_Callback
+from py2cpp.module.types import ModulePath
 import py2cpp.node.definition as defs
 from py2cpp.node.node import Node
-from py2cpp.node.query import Nodes
-from py2cpp.node.resolver import NodeResolver
 from py2cpp.node.serializer import serialize
 from py2cpp.view.render import Renderer, Writer
 
 T_Node = TypeVar('T_Node', bound=Node)
 T_Result = TypeVar('T_Result')
 
-T_VarVar = TypedDict('T_VarVar', {'access': str, 'symbol': str, 'var_type': str, 'initial_value': str})
+T_VarVar = TypedDict('T_VarVar', {'access': str, 'symbol': str, 'var_type': str, 'value': str})
 T_ClassVar = TypedDict('T_ClassVar', {'vars': list[T_VarVar]})
 
 T = TypeVar('T')
@@ -384,77 +387,64 @@ class Handler:
 		text = ctx.view.render(node.classification, vars={'values': values})
 		ctx.registry.push((node, text))
 
-	# Expression
-
-	def on_expression(self, node: Node, ctx: Context) -> None:  # XXX 出来れば消したい
-		_, expression = ctx.registry.pop(tuple[defs.Node, str])
-		ctx.registry.push((node, expression))
-
 	# Terminal
 
 	def on_terminal(self, node: Node, ctx: Context) -> None:
 		ctx.registry.push((node, node.tokens))
 
 
-class Runner:
-	def __init__(self, handler: Handler) -> None:
-		self.__handler = handler
+class Args:
+	def __init__(self) -> None:
+		args = self.__parse_argv()
+		self.grammar = args['grammar']
+		self.source = args['source']
 
-	def run(self, root: Node, ctx: Context) -> None:
-		try:
-			ctx.on('action', self.__handler.on_action)
-
-			flatted = root.calculated()
-			flatted.append(root)  # XXX
-
-			for node in flatted:
-				print('action:', str(node))
-				ctx.emit('action', node=node, ctx=ctx)
-
-			ctx.writer.flush()
-
-			ctx.off('action', self.__handler.on_action)
-		except Exception as e:
-			print(''.join(stacktrace(e)))
+	def __parse_argv(self) -> dict[str, str]:
+		_, grammar, source = sys.argv
+		return {'grammar': grammar, 'source': source}
 
 
-import os
-
-
-def appdir() -> str:
-	return os.path.join(os.path.dirname(__file__), '../../')
-
-
-def load_file(filename: str) -> str:
-	filepath = os.path.join(appdir(), filename)
-	with open(filepath) as f:
-		return ''.join(f.readlines())
-
-
-def parse_argv() -> dict[str, str]:
-	import sys
-
-	_, grammar, source = sys.argv
-	return {'grammar': grammar, 'source': source}
-
-
-def make_nodes(grammar: str, source: str) -> Nodes:
-	from lark import Lark
-	from lark.indenter import PythonIndenter
-
-	parser = Lark(load_file(grammar), start='file_input', postlex=PythonIndenter(), parser='lalr')
-	tree = parser.parse(load_file(source))
-	return Nodes(tree, NodeResolver.load(make_settings()))
-
-
-def make_context(source: str) -> Context:
-	output = os.path.join(appdir(), f'{"/".join(source.split(".")[:-1])}.cpp')
-	template_dir = os.path.join(appdir(), 'example/template')
+def make_context(args: Args) -> Context:
+	basepath, _ = os.path.splitext(args.source)
+	output = f'{basepath}.cpp'
+	template_dir = 'example/template'
 	return Context(Registry(), Writer(output), Renderer(template_dir))
 
 
+def make_parser_setting(args: Args) -> ParserSetting:
+	return ParserSetting(grammar=args.grammar)
+
+
+def make_module_path(args: Args) -> ModulePath:
+	basepath, _ = os.path.splitext(args.source)
+	module_path = basepath.replace('/', '.')
+	return ModulePath('__main__', module_path)
+
+
+def task(root: Node, ctx: Context) -> None:
+	try:
+		handler = Handler()
+		ctx.on('action', handler.on_action)
+
+		flatted = root.calculated()
+		flatted.append(root)  # XXX
+
+		for node in flatted:
+			print('action:', str(node))
+			ctx.emit('action', node=node, ctx=ctx)
+
+		ctx.writer.flush()
+
+		ctx.off('action', handler.on_action)
+	except Exception as e:
+		print(''.join(stacktrace(e)))
+
+
 if __name__ == '__main__':
-	args = parse_argv()
-	nodes = make_nodes(args['grammar'], args['source'])
-	ctx = make_context(args['source'])
-	Runner(Handler()).run(nodes.by('file_input'), ctx)
+	definitions = {
+		f'{Args.__module__}.{Args.__name__}': Args,
+		f'{Context.__module__}.{Context.__name__}': make_context,
+		'py2cpp.ast.parser.ParserSetting': make_parser_setting,
+		'py2cpp.module.types.ModulePath': make_module_path,
+	}
+	App(definitions).run(task)

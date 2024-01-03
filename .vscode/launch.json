@@ -40,7 +40,7 @@
 			"name": "Python: py2cpp",
 			"type": "python",
 			"request": "launch",
-			"module":"py2cpp.app.handler",
+			"module":"py2cpp.bin.handler",
 			"args": [
 				"data/grammar.lark",
 				"example/example.py",

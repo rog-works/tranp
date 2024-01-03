@@ -1,4 +1,4 @@
-from typing import Callable, Generic, TypeVar
+from typing import Callable, Generic, TypeVar, cast
 
 from py2cpp.errors import LogicError
 from py2cpp.lang.annotation import FunctionAnnotation
@@ -35,12 +35,14 @@ class Procedure(Generic[T_Ret]):
 	def _enter(self, node: Node) -> None:
 		handler_name = f'on_enter_{node.classification}'
 		if hasattr(self, handler_name):
-			self._run_action(handler_name, node)
+			# FIXME impl?
+			raise NotImplementedError()
 
 	def _exit(self, node: Node) -> None:
 		handler_name = f'on_exit_{node.classification}'
 		if hasattr(self, handler_name):
-			self._run_action(handler_name, node)
+			handler = cast(Callable[[Node, T_Ret], T_Ret], getattr(self, handler_name))
+			self._stack.append(handler(node, self._stack.pop()))
 
 	def _run_action(self, handler_name: str, node: Node) -> None:
 		result = self.__invoker.invoke(getattr(self, handler_name), node, self._stack)

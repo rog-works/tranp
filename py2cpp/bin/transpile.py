@@ -2,6 +2,7 @@ import os
 import sys
 from typing import Generic, Iterator, TypedDict, TypeVar
 
+from py2cpp.analize.procedure import Procedure
 from py2cpp.app.app import App
 from py2cpp.ast.parser import ParserSetting
 from py2cpp.errors import LogicError
@@ -45,9 +46,8 @@ class Registry(Generic[T]):
 
 
 class Context:
-	def __init__(self, registry: Registry[tuple[Node, str]], writer: Writer, view: Renderer) -> None:
+	def __init__(self, writer: Writer, view: Renderer) -> None:
 		self.__emitter = EventEmitter()
-		self.registry = registry
 		self.writer = writer
 		self.view = view
 
@@ -61,336 +61,197 @@ class Context:
 		self.__emitter.off(action, callback)
 
 
-class Handler:
-	def on_action(self, node: Node, ctx: Context) -> None:
-		self.enter(node, ctx)
-		self.action(node, ctx)
-		self.exit(node, ctx)
-
-	def action(self, node: Node, ctx: Context) -> None:
-		handler_name = f'on_{node.classification}'
-		if hasattr(self, handler_name):
-			getattr(self, handler_name)(node, ctx)
-		else:
-			self.on_terminal(node, ctx)
-
-	def enter(self, node: Node, ctx: Context) -> None:
-		handler_name = f'on_enter_{node.classification}'
-		if hasattr(self, handler_name):
-			getattr(self, handler_name)(node, ctx)
-
-	def exit(self, node: Node, ctx: Context) -> None:
-		handler_name = f'on_exit_{node.classification}'
-		if hasattr(self, handler_name):
-			getattr(self, handler_name)(node, ctx)
+class Handler(Procedure[str]):
+	def __init__(self, render: Renderer) -> None:
+		super().__init__()
+		self.view = render
 
 	# Hook
 
-	def on_exit_func_call(self, node: defs.FuncCall, ctx: Context) -> None:
-		_, result = ctx.registry.pop(tuple[defs.FuncCall, str])
+	def on_exit_func_call(self, node: defs.FuncCall, result: str) -> str:
 		if result == "pragma('once')":
-			ctx.registry.push((node, '#pragma once'))
+			return '#pragma once'
 		else:
-			ctx.registry.push((node, result))
+			return result
 
 	# General
 
-	def on_entrypoint(self, node: defs.Entrypoint, ctx: Context) -> None:
-		statements = [statement for _, statement in ctx.registry.each_pop()]
-		statements.reverse()
-		text = ctx.view.render('block', vars={'statements': statements})
-		ctx.writer.put(text)
+	def on_entrypoint(self, node: defs.Entrypoint, statements: list[str]) -> str:
+		return self.view.render('block', vars={'statements': statements})
 
 	# Statement - compound
 
-	def on_if(self, node: defs.If, ctx: Context) -> None:
-		_, else_block = ctx.registry.pop(tuple[defs.Block, str])
-		else_ifs = [else_if for _, else_if in ctx.registry.each_pop(len(node.else_ifs))]
-		else_ifs.reverse()
-		_, block = ctx.registry.pop(tuple[defs.Block, str])
-		_, condition = ctx.registry.pop(tuple[defs.Node, str])
-		text = ctx.view.render(node.classification, vars={'condition': condition, 'block': block, 'else_ifs': else_ifs, 'else_block': else_block})
-		ctx.registry.push((node, text))
+	def on_if(self, node: defs.If, condition: str, block: str, else_ifs: list[str], else_block: str) -> str:
+		return self.view.render(node.classification, vars={'condition': condition, 'block': block, 'else_ifs': else_ifs, 'else_block': else_block})
 
-	def on_else_if(self, node: defs.ElseIf, ctx: Context) -> None:
-		_, block = ctx.registry.pop(tuple[defs.Block, str])
-		_, condition = ctx.registry.pop(tuple[defs.Node, str])
-		text = ctx.view.render(node.classification, vars={'condition': condition, 'block': block})
-		ctx.registry.push((node, text))
+	def on_else_if(self, node: defs.ElseIf, condition: str, block: str) -> str:
+		return self.view.render(node.classification, vars={'condition': condition, 'block': block})
 
-	def on_while(self, node: defs.While, ctx: Context) -> None:
-		_, block = ctx.registry.pop(tuple[defs.Block, str])
-		_, condition = ctx.registry.pop(tuple[defs.Node, str])
-		text = ctx.view.render(node.classification, vars={'condition': condition, 'block': block})
-		ctx.registry.push((node, text))
+	def on_while(self, node: defs.While, condition: str, block: str) -> str:
+		return self.view.render(node.classification, vars={'condition': condition, 'block': block})
 
-	def on_for(self, node: defs.For, ctx: Context) -> None:
-		_, block = ctx.registry.pop(tuple[defs.Block, str])
-		_, iterates = ctx.registry.pop(tuple[defs.Node, str])
-		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
-		text = ctx.view.render(node.classification, vars={'symbol': symbol, 'iterates': iterates, 'block': block})
-		ctx.registry.push((node, text))
+	def on_for(self, node: defs.For, symbol: str, iterates: str, block: str) -> str:
+		return self.view.render(node.classification, vars={'symbol': symbol, 'iterates': iterates, 'block': block})
 
-	def on_try(self, node: defs.Try, ctx: Context) -> None:
-		catches = [catch for _, catch in ctx.registry.each_pop(len(node.catches))]
-		catches.reverse()
-		_, block = ctx.registry.pop(tuple[defs.Block, str])
-		text = ctx.view.render(node.classification, vars={'block': block, 'catches': catches})
-		ctx.registry.push((node, text))
+	def on_try(self, node: defs.Try, block: str, catches: list[str]) -> str:
+		return self.view.render(node.classification, vars={'block': block, 'catches': catches})
 
-	def on_catch(self, node: defs.Catch, ctx: Context) -> None:
-		_, block = ctx.registry.pop(tuple[defs.Block, str])
-		_, alias = ctx.registry.pop(tuple[defs.Symbol, str])
-		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
-		text = ctx.view.render(node.classification, vars={'symbol': symbol, 'alias': alias, 'block': block})
-		ctx.registry.push((node, text))
+	def on_catch(self, node: defs.Catch, symbol: str, alias: str, block: str) -> str:
+		return self.view.render(node.classification, vars={'symbol': symbol, 'alias': alias, 'block': block})
 
-	def on_class(self, node: defs.Class, ctx: Context) -> None:
-		_, block = ctx.registry.pop(tuple[defs.Block, str])
-		parents = [parent for  _, parent in ctx.registry.each_pop(len(node.parents))]
-		parents.reverse()
-		decorators = [decorator for  _, decorator in ctx.registry.each_pop(len(node.decorators))]
-		decorators.reverse()
-		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
-		text = ctx.view.render(node.classification, vars={**serialize(node, T_ClassVar), 'symbol': symbol, 'decorators': decorators, 'parents': parents, 'block': block})
-		ctx.registry.push((node, text))
+	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], parents: list[str], block: str) -> str:
+		# XXX
+		vars: list[dict[str, str]] = []
+		for var in node.vars:
+			if var.is_a(defs.MoveAssign):
+				vars.append({'access': 'public', 'symbol': var.symbol.tokens, 'var_type': 'Unknoen', 'value': var.value.tokens})
+			else:
+				vars.append({'access': 'public', 'symbol': var.symbol.tokens, 'var_type': var.as_a(defs.AnnoAssign).var_type.tokens, 'value': var.value.tokens})
 
-	def on_enum(self, node: defs.Enum, ctx: Context) -> None:
-		_, block = ctx.registry.pop(tuple[defs.Block, str])
-		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
-		text = ctx.view.render(node.classification, vars={'symbol': symbol, 'block': block})
-		ctx.registry.push((node, text))
+		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'parents': parents, 'block': block, 'vars': vars})
 
-	def on_function(self, node: defs.Function, ctx: Context) -> None:
-		_, block = ctx.registry.pop(tuple[defs.Block, str])
-		_, return_type = ctx.registry.pop(tuple[defs.Block, str])
-		parameters = [parameter for  _, parameter in ctx.registry.each_pop(len(node.parameters))]
-		parameters.reverse()
-		decorators = [decorator for  _, decorator in ctx.registry.each_pop(len(node.decorators))]
-		decorators.reverse()
-		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
-		text = ctx.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'block': block})
-		ctx.registry.push((node, text))
+	def on_enum(self, node: defs.Enum, symbol: str, block: str) -> str:
+		return self.view.render(node.classification, vars={'symbol': symbol, 'block': block})
 
-	def on_constructor(self, node: defs.Constructor, ctx: Context) -> None:
-		_, block = ctx.registry.pop(tuple[defs.Block, str])
-		_, return_type = ctx.registry.pop(tuple[defs.Block, str])
-		parameters = [parameter for  _, parameter in ctx.registry.each_pop(len(node.parameters))]
-		parameters.reverse()
-		decorators = [decorator for  _, decorator in ctx.registry.each_pop(len(node.decorators))]
-		decorators.reverse()
-		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
-		text = ctx.view.render(node.classification, vars={'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'block': block})
-		ctx.registry.push((node, text))
+	def on_function(self, node: defs.Function, symbol: str, decorators: list[str], parameters: list[str], return_type: str, block: str) -> str:
+		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'block': block})
 
-	def on_class_method(self, node: defs.ClassMethod, ctx: Context) -> None:
-		_, block = ctx.registry.pop(tuple[defs.Block, str])
-		_, return_type = ctx.registry.pop(tuple[defs.Block, str])
-		parameters = [parameter for  _, parameter in ctx.registry.each_pop(len(node.parameters))]
-		parameters.reverse()
-		decorators = [decorator for  _, decorator in ctx.registry.each_pop(len(node.decorators))]
-		decorators.reverse()
-		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
-		text = ctx.view.render(node.classification, vars={'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'block': block})
-		ctx.registry.push((node, text))
+	def on_constructor(self, node: defs.Constructor, symbol: str, decorators: list[str], parameters: list[str], return_type: str, block: str) -> str:
+		return self.on_method_type(node, symbol, decorators, parameters, return_type, block)
 
-	def on_method(self, node: defs.Method, ctx: Context) -> None:
-		_, block = ctx.registry.pop(tuple[defs.Block, str])
-		_, return_type = ctx.registry.pop(tuple[defs.Block, str])
-		parameters = [parameter for  _, parameter in ctx.registry.each_pop(len(node.parameters))]
-		parameters.reverse()
-		decorators = [decorator for  _, decorator in ctx.registry.each_pop(len(node.decorators))]
-		decorators.reverse()
-		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
-		text = ctx.view.render(node.classification, vars={'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'block': block})
-		ctx.registry.push((node, text))
+	def on_class_method(self, node: defs.Constructor, symbol: str, decorators: list[str], parameters: list[str], return_type: str, block: str) -> str:
+		return self.on_method_type(node, symbol, decorators, parameters, return_type, block)
+
+	def on_method(self, node: defs.Constructor, symbol: str, decorators: list[str], parameters: list[str], return_type: str, block: str) -> str:
+		return self.on_method_type(node, symbol, decorators, parameters, return_type, block)
+
+	def on_method_type(self, node: defs.Constructor, symbol: str, decorators: list[str], parameters: list[str], return_type: str, block: str) -> str:
+		return self.view.render(node.classification, vars={'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'block': block})
 
 	# Function/Class Elements
 
-	def on_parameter(self, node: defs.Parameter, ctx: Context) -> None:
-		_, default_value = ctx.registry.pop(tuple[defs.Node, str])
-		_, var_type = ctx.registry.pop(tuple[defs.Node, str])
-		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
-		text = ctx.view.render(node.classification, vars={'symbol': symbol, 'var_type': var_type, 'default_value': default_value})
-		ctx.registry.push((node, text))
+	def on_parameter(self, node: defs.Parameter, symbol: str, var_type: str, default_value: str) -> str:
+		return self.view.render(node.classification, vars={'symbol': symbol, 'var_type': var_type, 'default_value': default_value})
 
-	def on_decorator(self, node: defs.Decorator, ctx: Context) -> None:
-		arguments = [argument for  _, argument in ctx.registry.each_pop(len(node.arguments))]
-		arguments.reverse()
-		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
-		text = ctx.view.render(node.classification, vars={'symbol': symbol, 'arguments': arguments})
-		ctx.registry.push((node, text))
+	def on_decorator(self, node: defs.Decorator, symbol: str, arguments: list[str]) -> str:
+		return self.view.render(node.classification, vars={'symbol': symbol, 'arguments': arguments})
 
-	def on_block(self, node: defs.Block, ctx: Context) -> None:
-		statements = [statement for _, statement in ctx.registry.each_pop(len(node.statements))]
-		statements.reverse()
-		text = ctx.view.render(node.classification, vars={'statements': statements})
-		ctx.registry.push((node, text))
+	def on_block(self, node: defs.Block, statements: list[str]) -> str:
+		return self.view.render(node.classification, vars={'statements': statements})
 
 	# Statement - simple
 
-	def on_move_assign(self, node: defs.MoveAssign, ctx: Context) -> None:
-		_, value = ctx.registry.pop(tuple[defs.Expression, str])
-		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
-		text = ctx.view.render(node.classification, vars={'symbol': symbol, 'value': value})
-		ctx.registry.push((node, text))
+	def on_move_assign(self, node: defs.MoveAssign, symbol: str, value: str) -> str:
+		return self.view.render(node.classification, vars={'symbol': symbol, 'value': value})
 
-	def on_anno_assign(self, node: defs.AnnoAssign, ctx: Context) -> None:
-		_, value = ctx.registry.pop(tuple[defs.Expression, str])
-		_, var_type = ctx.registry.pop(tuple[defs.Symbol, str])
-		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
-		text = ctx.view.render(node.classification, vars={'symbol': symbol, 'var_type': var_type, 'value': value})
-		ctx.registry.push((node, text))
+	def on_anno_assign(self, node: defs.AnnoAssign, symbol: str, var_type: str, value: str) -> str:
+		return self.view.render(node.classification, vars={'symbol': symbol, 'var_type': var_type, 'value': value})
 
-	def on_aug_assign(self, node: defs.AugAssign, ctx: Context) -> None:
-		_, value = ctx.registry.pop(tuple[defs.Expression, str])
-		_, operator = ctx.registry.pop(tuple[defs.Terminal, str])
-		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
-		text = ctx.view.render(node.classification, vars={'symbol': symbol, 'operator': operator, 'value': value})
-		ctx.registry.push((node, text))
+	def on_aug_assign(self, node: defs.AugAssign, symbol: str, operator: str, value: str) -> str:
+		return self.view.render(node.classification, vars={'symbol': symbol, 'operator': operator, 'value': value})
 
-	def on_return(self, node: defs.Return, ctx: Context) -> None:
-		_, return_value = ctx.registry.pop(tuple[defs.Expression, str])
-		text = ctx.view.render(node.classification, vars={'return_value': return_value})
-		ctx.registry.push((node, text))
+	def on_return(self, node: defs.Return, return_value: str) -> str:
+		return self.view.render(node.classification, vars={'return_value': return_value})
 
-	def on_throw(self, node: defs.Throw, ctx: Context) -> None:
-		_, via = ctx.registry.pop(tuple[defs.Symbol, str])
-		_, calls = ctx.registry.pop(tuple[defs.FuncCall, str])
-		text = ctx.view.render(node.classification, vars={'calls': calls, 'via': via})
-		ctx.registry.push((node, text))
+	def on_throw(self, node: defs.Throw, calls: str, via: str) -> str:
+		return self.view.render(node.classification, vars={'calls': calls, 'via': via})
 
-	def on_pass(self, node: defs.Pass, ctx: Context) -> None:
+	def on_pass(self, node: defs.Pass) -> None:
 		pass
 
-	def on_break(self, node: defs.Break, ctx: Context) -> None:
-		text = 'break;'
-		ctx.registry.push((node, text))
+	def on_break(self, node: defs.Break) -> str:
+		return 'break;'
 
-	def on_continue(self, node: defs.Continue, ctx: Context) -> None:
-		text = 'continue;'
-		ctx.registry.push((node, text))
+	def on_continue(self, node: defs.Continue) -> str:
+		return 'continue;'
 
-	def on_import(self, node: defs.Import, ctx: Context) -> None:
+	def on_import(self, node: defs.Import) -> str | None:
 		module_path = node.module_path.tokens
 		if not module_path.startswith('FW'):
-			return
+			return None
 
-		text = ctx.view.render(node.classification, vars={'module_path': module_path})
-		ctx.registry.push((node, text))
+		return self.view.render(node.classification, vars={'module_path': module_path})
 
 	# Primary
 
-	def on_list_type(self, node: defs.ListType, ctx: Context) -> None:
-		_, value_type = ctx.registry.pop(tuple[defs.Symbol, str])
-		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
-		text = ctx.view.render(node.classification, vars={'symbol': symbol, 'value_type': value_type})
-		ctx.registry.push((node, text))
+	def on_list_type(self, node: defs.ListType, symbol: str, value_type: str) -> str:
+		return self.view.render(node.classification, vars={'symbol': symbol, 'value_type': value_type})
 
-	def on_dict_type(self, node: defs.DictType, ctx: Context) -> None:
-		_, value_type = ctx.registry.pop(tuple[defs.Symbol, str])
-		_, key_type = ctx.registry.pop(tuple[defs.Symbol, str])
-		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
-		text = ctx.view.render(node.classification, vars={'symbol': symbol, 'key_type': key_type, 'value_type': value_type})
-		ctx.registry.push((node, text))
+	def on_dict_type(self, node: defs.DictType, symbol: str, key_type: str, value_type: str) -> str:
+		return self.view.render(node.classification, vars={'symbol': symbol, 'key_type': key_type, 'value_type': value_type})
 
-	def on_union_type(self, node: defs.UnionType, ctx: Context) -> None:
+	def on_union_type(self, node: defs.UnionType) -> str:
 		raise NotImplementedError(f'Not supported UnionType. via: {node}')
 
-	def on_indexer(self, node: defs.Indexer, ctx: Context) -> None:
-		_, key = ctx.registry.pop(tuple[defs.Expression, str])
-		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
-		text = f'{symbol}[{key}]'
-		ctx.registry.push((node, text))
+	def on_indexer(self, node: defs.Indexer, symbol: str, key: str) -> str:
+		return f'{symbol}[{key}]'
 
-	def on_func_call(self, node: defs.FuncCall, ctx: Context) -> None:
-		arguments = [argument for _, argument in ctx.registry.each_pop(len(node.arguments))]
-		arguments.reverse()
-		_, symbol = ctx.registry.pop(tuple[defs.Symbol, str])
-		text = ctx.view.render(node.classification, vars={'symbol': symbol, 'arguments': arguments})
-		ctx.registry.push((node, text))
+	def on_func_call(self, node: defs.FuncCall, symbol: str, arguments: list[str]) -> str:
+		return self.view.render(node.classification, vars={'symbol': symbol, 'arguments': arguments})
 
 	# Common
 
-	def on_argument(self, node: defs.Argument, ctx: Context) -> None:
-		_, value = ctx.registry.pop(tuple[defs.Expression, str])
-		ctx.registry.push((node, value))
+	def on_argument(self, node: defs.Argument, value: str) -> str:
+		return value
 
 	# Operator
 
-	def on_factor(self, node: defs.Factor, ctx: Context) -> None:
-		self.on_unary_operator(node, ctx)
+	def on_factor(self, node: defs.Factor, operator: str, value: str) -> str:
+		return f'{operator}{value}'
 
-	def on_not_compare(self, node: defs.NotCompare, ctx: Context) -> None:
-		_, value = ctx.registry.pop(tuple[defs.Expression, str])
-		_, _ = ctx.registry.pop(tuple[defs.Terminal, str])
-		text = f'!{value}'
-		ctx.registry.push((node, text))
+	def on_not_compare(self, node: defs.NotCompare, operator: str, value: str) -> str:
+		return f'!{value}'
 
-	def on_or_compare(self, node: defs.OrCompare, ctx: Context) -> None:
-		self.on_binary_operator(node, ctx)
+	def on_or_compare(self, node: defs.OrCompare, left: str, operator: str, right: str) -> str:
+		return self.on_binary_operator(node, left, operator, right)
 
-	def on_and_compare(self, node: defs.AndCompare, ctx: Context) -> None:
-		self.on_binary_operator(node, ctx)
+	def on_and_compare(self, node: defs.AndCompare, left: str, operator: str, right: str) -> str:
+		return self.on_binary_operator(node, left, operator, right)
 
-	def on_comparison(self, node: defs.Comparison, ctx: Context) -> None:
-		self.on_binary_operator(node, ctx)
+	def on_comparison(self, node: defs.Comparison, left: str, operator: str, right: str) -> str:
+		return self.on_binary_operator(node, left, operator, right)
 
-	def on_or_bitwise(self, node: defs.OrBitwise, ctx: Context) -> None:
-		self.on_binary_operator(node, ctx)
+	def on_or_bitwise(self, node: defs.OrBitwise, left: str, operator: str, right: str) -> str:
+		return self.on_binary_operator(node, left, operator, right)
 
-	def on_xor_bitwise(self, node: defs.XorBitwise, ctx: Context) -> None:
-		self.on_binary_operator(node, ctx)
+	def on_xor_bitwise(self, node: defs.XorBitwise, left: str, operator: str, right: str) -> str:
+		return self.on_binary_operator(node, left, operator, right)
 
-	def on_and_bitwise(self, node: defs.AndBitwise, ctx: Context) -> None:
-		self.on_binary_operator(node, ctx)
+	def on_and_bitwise(self, node: defs.AndBitwise, left: str, operator: str, right: str) -> str:
+		return self.on_binary_operator(node, left, operator, right)
 
-	def on_shift_bitwise(self, node: defs.ShiftBitwise, ctx: Context) -> None:
-		self.on_binary_operator(node, ctx)
+	def on_shift_bitwise(self, node: defs.ShiftBitwise, left: str, operator: str, right: str) -> str:
+		return self.on_binary_operator(node, left, operator, right)
 
-	def on_sum(self, node: defs.Sum, ctx: Context) -> None:
-		self.on_binary_operator(node, ctx)
+	def on_sum(self, node: defs.Sum, left: str, operator: str, right: str) -> str:
+		return self.on_binary_operator(node, left, operator, right)
 
-	def on_term(self, node: defs.Term, ctx: Context) -> None:
-		self.on_binary_operator(node, ctx)
+	def on_term(self, node: defs.Term, left: str, operator: str, right: str) -> str:
+		return self.on_binary_operator(node, left, operator, right)
 
-	def on_binary_operator(self, node: defs.BinaryOperator, ctx: Context) -> None:
-		_, right = ctx.registry.pop(tuple[defs.Expression, str])
-		_, operator = ctx.registry.pop(tuple[defs.Terminal, str])
-		_, left = ctx.registry.pop(tuple[defs.Expression, str])
-		text = f'{left} {operator} {right}'
-		ctx.registry.push((node, text))
-
-	def on_unary_operator(self, node: defs.UnaryOperator, ctx: Context) -> None:
-		_, value = ctx.registry.pop(tuple[defs.Expression, str])
-		_, operator = ctx.registry.pop(tuple[defs.Terminal, str])
-		text = f'{operator}{value}'
-		ctx.registry.push((node, text))
+	def on_binary_operator(self, node: defs.BinaryOperator, left: str, operator: str, right: str) -> str:
+		return f'{left} {operator} {right}'
 
 	# Literal
 
-	def on_key_value(self, node: defs.Pair, ctx: Context) -> None:
-		_, value = ctx.registry.pop(tuple[Node, str])
-		_, key = ctx.registry.pop(tuple[Node, str])
-		text = '{' f'{key}, {value}' '}'
-		ctx.registry.push((node, text))
+	def on_key_value(self, node: defs.Pair, first: str, second: str) -> str:
+		return '{' f'{first}, {second}' '}'
 
-	def on_dict(self, node: defs.Dict, ctx: Context) -> None:
-		items = [key_value for _, key_value in ctx.registry.each_pop(len(node.items))]
-		items.reverse()
-		text = ctx.view.render(node.classification, vars={'items': items})
-		ctx.registry.push((node, text))
+	def on_dict(self, node: defs.Dict, items: list[str]) -> str:
+		return self.view.render(node.classification, vars={'items': items})
 
-	def on_list(self, node: defs.List, ctx: Context) -> None:
-		values = [value for _, value in ctx.registry.each_pop(len(node.values))]
-		values.reverse()
-		text = ctx.view.render(node.classification, vars={'values': values})
-		ctx.registry.push((node, text))
+	def on_list(self, node: defs.List, values: list[str]) -> str:
+		return self.view.render(node.classification, vars={'values': values})
 
 	# Terminal
 
-	def on_terminal(self, node: Node, ctx: Context) -> None:
-		ctx.registry.push((node, node.tokens))
+	def on_terminal(self, node: Node) -> str:
+		return node.tokens
+
+	# Fallback
+
+	def on_fallback(self, node: Node) -> str:
+		return node.tokens
 
 
 class Args:
@@ -408,7 +269,7 @@ def make_context(args: Args) -> Context:
 	basepath, _ = os.path.splitext(args.source)
 	output = f'{basepath}.cpp'
 	template_dir = 'example/template'
-	return Context(Registry(), Writer(output), Renderer(template_dir))
+	return Context(Writer(output), Renderer(template_dir))
 
 
 def make_parser_setting(args: Args) -> ParserSetting:
@@ -423,19 +284,17 @@ def make_module_path(args: Args) -> ModulePath:
 
 def task(root: Node, ctx: Context) -> None:
 	try:
-		handler = Handler()
-		ctx.on('action', handler.on_action)
+		handler = Handler(ctx.view)
 
 		flatted = root.calculated()
 		flatted.append(root)  # XXX
 
 		for node in flatted:
 			print('action:', str(node))
-			ctx.emit('action', node=node, ctx=ctx)
+			handler.process(node)
 
+		ctx.writer.put(handler.result())
 		ctx.writer.flush()
-
-		ctx.off('action', handler.on_action)
 	except Exception as e:
 		print(''.join(stacktrace(e)))
 

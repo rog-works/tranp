@@ -1,78 +1,64 @@
-from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 import glob
 import json
 import hashlib
 import os
 import re
-from typing import Generic, IO, TypeVar
+from typing import Any, Callable, Generic, IO, Protocol, TypeVar
 
 from py2cpp.lang.annotation import implements
 
-T = TypeVar('T')
 
+class Stored(Protocol):
+	"""ストアインターフェイス"""
 
-class Lifecycle(Generic[T], metaclass=ABCMeta):
-	"""インスタンスのライフサイクルイベントを扱うインターフェイス"""
+	@classmethod
+	def load(cls, stream: IO) -> 'Stored':
+		"""インスタンスを復元
 
-	@abstractmethod
-	def instantiate(self) -> T:
-		"""インスタンスを生成
-
+		Args:
+			stream (IO): IO
 		Returns:
-			T: 生成したインスタンス
+			Stored: 復元したインスタンス
 		"""
-		raise NotImplementedError()
+		...
 
-	@abstractmethod
-	def context(self) -> dict[str, str]:
-		"""インスタンスの一意性を担保するコンテキストを生成
-
-		Returns:
-			dict[str, str]: コンテキスト
-		"""
-		raise NotImplementedError()
-
-	@abstractmethod
-	def save(self, instance: T, f: IO) -> None:
+	def save(self, stream: IO) -> None:
 		"""インスタンスを保存
 
 		Args:
-			instance (T): 対象のインタスタンス
-			f (IO): ファイルオブジェクト
+			stream (IO): IO
 		"""
-		raise NotImplementedError()
+		...
 
-	@abstractmethod
-	def load(self, f: IO) -> T:
-		"""インスタンスを読み込み
 
-		Args:
-			f (IO): ファイルオブジェクト
-		Returns:
-			T: ロードしたインスタンス
-		"""
-		raise NotImplementedError()
+T = TypeVar('T', bound=Stored)
 
 
 class Cached(Generic[T]):
 	"""キャッシュの抽象基底クラス"""
 
-	def __init__(self, lifecycle: Lifecycle[T], basedir: str) -> None:
+	def __init__(self, stored: T, factory: Callable[[], T], identity: dict[str, str], basedir: str, **options: Any) -> None:
 		"""インスタンスを生成
 
 		Args:
-			lifecycle (Lifecycle[T]): ライフサイクル
+			stored (T): ストアインターフェイス
+			factory (Callable[[], T]): ファクトリー
+			identity (dict[str, str]): 一意性担保用のコンテキスト
 			basedir (str): キャッシュの保存ディレクトリー(実行ディレクトリーからの相対パス)
+			**options (Any): オプション
 		"""
-		self._lifecycle = lifecycle
+		self._stored = stored
+		self._factory = factory
+		self._identity = identity
 		self._basedir = basedir
+		self._options = options
 
-	def get(self, filepath: str) -> T:
+	def get(self, cache_key: str) -> T:
 		"""インスタンスの取得プロクシー
 
 		Args:
-			filepath (str): ファイルパス(保存ディレクトリーからの相対パス)
+			cache_key (str): キャッシュキー
 		Returns:
 			T: インスタンス
 		"""
@@ -83,20 +69,23 @@ class CachedProxy(Cached[T]):
 	"""キャッシュ実装。キャッシュを優先してインスタンスを取得するプロクシー
 
 	Note:
-		キャッシュの保存先はgetの引数であるfilepathを元にLifecycle.contextによって一意性を担保したパスに変換する
-		例) filepath: 'path/to/data.json' -> 'path/to/data-12345678901234567890123456789012.json'
+		キャッシュの保存先はcache_keyとidentityによって一意性を担保したパスに変換する
+		### 例
+		cache_key: 'path/to/cache'
+		identity: {'mtime': str(os.path.getmtime('path/to/actual'))}
+		'${cache_key}-${md5(json.dumps(identity))}' -> 'path/to/cache-12345678901234567890123456789012'
 	"""
 
 	@implements
-	def get(self, filepath: str) -> T:
+	def get(self, cache_key: str) -> T:
 		"""インスタンスの取得プロクシー
 
 		Args:
-			filepath (str): ファイルパス(保存ディレクトリーからの相対パス)
+			cache_key (str): キャッシュキー
 		Returns:
 			T: インスタンス
 		"""
-		cache_path = self.to_cache_path(filepath)
+		cache_path = self.to_cache_path(cache_key)
 		if self.cache_exists(cache_path):
 			return self.load_cache(cache_path)
 
@@ -104,20 +93,21 @@ class CachedProxy(Cached[T]):
 		self.save_cache(instance, cache_path)
 		return instance
 
-	def to_cache_path(self, filepath: str) -> str:
+	def to_cache_path(self, cache_key: str) -> str:
 		"""キャッシュファイルパスに変換
 
 		Args:
-			filepath (str): ファイルパス(保存ディレクトリーからの相対パス)
+			cache_key (str): キャッシュキー
 		Returns:
 			str: キャッシュファイルパス
 		Note:
 			ファイルパスに一意性を担保する文字列を付与する
 		"""
-		relpath, extention = os.path.splitext(filepath)
-		basepath = os.path.join(self._basedir, relpath)
-		data = json.dumps(self._lifecycle.context())
+		basepath = os.path.join(self._basedir, cache_key)
+		data = json.dumps(self._identity)
 		identifer = hashlib.md5(data.encode('utf-8')).hexdigest()
+		file_format = self._options.get('format', '')
+		extention = f'.{file_format}' if file_format else ''
 		return f'{basepath}-{identifer}{extention}'
 
 	def cache_exists(self, cache_path: str) -> bool:
@@ -147,7 +137,7 @@ class CachedProxy(Cached[T]):
 			os.unlink(oldedst)
 
 		with open(cache_path, mode='wb') as f:
-			self._lifecycle.save(instance, f)
+			instance.save(f)
 
 	def find_oldest(self, cache_path: str) -> list[str]:
 		"""旧キャッシュファイルを検索
@@ -169,7 +159,7 @@ class CachedProxy(Cached[T]):
 			T: 読み込んだインスタンス
 		"""
 		with open(cache_path, mode='rb') as f:
-			return self._lifecycle.load(f)
+			return self._stored.load(f)
 	
 	def instantiate(self) -> T:
 		"""インスタンスを生成
@@ -177,22 +167,22 @@ class CachedProxy(Cached[T]):
 		Returns:
 			T: インスタンス
 		"""
-		return self._lifecycle.instantiate()
+		return self._factory()
 
 
 class CachedDummy(Cached[T]):
 	"""キャッシュダミー。このクラスはキャッシュを無効にする以外の機能はない"""
 
 	@implements
-	def get(self, filepath: str) -> T:
+	def get(self, cache_key: str) -> T:
 		"""インスタンスの取得プロクシー
 
 		Args:
-			filepath (str): ファイルパス(保存ディレクトリーからの相対パス)
+			cache_key (str): キャッシュキー
 		Returns:
 			T: インスタンス
 		"""
-		return self._lifecycle.instantiate()
+		return self._factory()
 
 
 @dataclass
@@ -219,15 +209,42 @@ class CacheProvider:
 		"""
 		self.__setting = setting
 
-	def provide(self, lifecycle: Lifecycle[T]) -> Cached[T]:
-		"""キャッシュプロクシーを生成
+	def get(self, cache_key: str, identity: dict[str, str] = {}, **options: Any) -> Callable[[Callable[[], T]], Callable[[], T]]:
+		"""キャッシュデコレーター。ファクトリー関数をラップしてキャッシュ機能を付与
 
 		Args:
-			lifecycle (Lifecycle[T]): ライフサイクル
+			cache_key (str): キャッシュキー
+			identity (dict[str, str]): 一意性担保用のコンテキスト
+			**options (Any): オプション
 		Returns:
-			Cached[T]: キャッシュプロクシー
+			Callable: デコレーター
+		Examples:
+			```python
+			class Data:
+				@classmethod
+				def load(self, stream: IO) -> 'Data':
+					...
+
+				def save(self, strem: IO) -> None:
+					...
+
+			def loader(path: str) -> Data:
+				cache = CacheProvider(setting)
+
+				@cache.get('data.cache', identity={'mtime': str(os.path.getmtime(path))})
+				def wrap_factory() -> Data:
+					return Data.very_slow_factory(path)
+
+				return wrap_factory()
+			```
 		"""
-		if self.__setting.enabled:
-			return CachedProxy[T](lifecycle, self.__setting.basedir)
-		else:
-			return CachedDummy[T](lifecycle, self.__setting.basedir)
+		def decorator(wrapped: Callable[[], T]) -> Callable[[], T]:
+			def wrapper() -> T:
+				stored = wrapped.__annotations__['return']
+				if self.__setting.enabled:
+					return CachedProxy(stored, wrapped, identity, self.__setting.basedir, **options).get(cache_key)
+				else:
+					return CachedDummy(stored, wrapped, identity, self.__setting.basedir, **options).get(cache_key)
+
+			return wrapper
+		return decorator

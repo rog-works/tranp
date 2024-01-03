@@ -6,8 +6,8 @@ from lark import Token, Tree
 from py2cpp.ast.entry import Entry
 from py2cpp.ast.resolver import SymbolMapping
 from py2cpp.ast.query import Query
-from py2cpp.lang.annotation import implements, override
 from py2cpp.lang.di import DI
+from py2cpp.lang.implementation import implements, override
 from py2cpp.lang.locator import Currying, Locator
 from py2cpp.module.provider import module_path_dummy
 from py2cpp.module.types import ModulePath

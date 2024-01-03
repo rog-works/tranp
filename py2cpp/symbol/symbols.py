@@ -2,7 +2,7 @@ from typing import Any, Callable, NamedTuple, TypeAlias
 
 from py2cpp.ast.dsn import DSN
 from py2cpp.errors import LogicError
-from py2cpp.lang.annotation import injectable
+from py2cpp.lang.implementation import injectable
 import py2cpp.node.definition as defs
 from py2cpp.module.types import ModulePath
 from py2cpp.node.node import Node

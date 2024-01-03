@@ -1,4 +1,4 @@
-from py2cpp.lang.annotation import injectable
+from py2cpp.lang.implementation import injectable
 from py2cpp.module.types import ModulePath
 from py2cpp.node.node import Node
 

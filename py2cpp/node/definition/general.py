@@ -1,4 +1,4 @@
-from py2cpp.lang.annotation import override
+from py2cpp.lang.implementation import override
 from py2cpp.node.definition.primary import Var
 from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from py2cpp.node.embed import Meta, accept_tags, expandable

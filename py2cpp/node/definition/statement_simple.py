@@ -1,4 +1,4 @@
-from py2cpp.lang.annotation import implements, override
+from py2cpp.lang.implementation import implements, override
 from py2cpp.node.definition.primary import FuncCall, GenericType, Indexer, Symbol
 from py2cpp.node.definition.terminal import Empty, Terminal
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable

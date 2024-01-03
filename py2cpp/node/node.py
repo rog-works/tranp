@@ -5,7 +5,7 @@ from py2cpp.ast.dsn import DSN
 from py2cpp.ast.path import EntryPath
 from py2cpp.ast.query import Query
 from py2cpp.errors import LogicError, NotFoundError
-from py2cpp.lang.annotation import deprecated, injectable
+from py2cpp.lang.implementation import deprecated, injectable
 from py2cpp.lang.sequence import flatten
 from py2cpp.lang.string import snakelize
 from py2cpp.module.types import ModulePath

@@ -1,7 +1,7 @@
 from types import FunctionType, MethodType
 from typing import Any, Callable, TypeAlias, cast
 
-from py2cpp.lang.annotation import override
+from py2cpp.lang.implementation import override
 from py2cpp.lang.locator import T_Curried, T_Inst, T_Injector
 from py2cpp.lang.module import load_module_path
 

@@ -6,7 +6,7 @@ import os
 import re
 from typing import Any, Callable, Generic, IO, Protocol, TypeVar
 
-from py2cpp.lang.annotation import implements
+from py2cpp.lang.implementation import implements
 
 
 class Stored(Protocol):

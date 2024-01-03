@@ -7,8 +7,8 @@ from lark.indenter import PythonIndenter
 
 from py2cpp.ast.entry import Entry
 from py2cpp.ast.parser import ParserSetting, SyntaxParser
-from py2cpp.lang.annotation import implements, injectable
 from py2cpp.lang.cache import CacheProvider
+from py2cpp.lang.implementation import implements, injectable
 from py2cpp.lang.io import FileLoader
 from py2cpp.tp_lark.entry import EntryOfLark, Serialization
 

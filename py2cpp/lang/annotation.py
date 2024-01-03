@@ -1,52 +1,39 @@
-from typing import Callable, ParamSpec, TypeVar
-
-T = TypeVar('T')
-P = ParamSpec('P')
+from typing import Callable
 
 
-def override(wrapper_func: Callable[P, T]) -> Callable[P, T]:
-	"""メソッドのoverrideアノテーション。特に何も変更せずそのまま元のメソッドを返す
+class ValueAnnotation:
+	def __init__(self, origin: type) -> None:
+		self.__type = origin
 
-	Args:
-		wrapper_func (Callable[..., T]): 対象のメソッド
-	Returns:
-		Callable[...,  T]: 対象のメソッドを返却
-	"""
-	# FIXME impl
-	return wrapper_func
+	@property
+	def org_type(self) -> type:
+		return self.__type
 
+	@property
+	def is_generic(self) -> bool:
+		return hasattr(self.__type, '__origin__')
 
-def implements(wrapper_func: Callable[P, T]) -> Callable[P, T]:
-	"""メソッドのimplementsアノテーション。特に何も変更せずそのまま元のメソッドを返す
+	@property
+	def is_list(self) -> bool:
+		return self.is_generic and self.origin is list
 
-	Args:
-		wrapper_func (Callable[..., T]): 対象のメソッド
-	Returns:
-		Callable[...,  T]: 対象のメソッドを返却
-	"""
-	# FIXME impl
-	return wrapper_func
+	@property
+	def origin(self) -> type:
+		return getattr(self.__type, '__origin__')
 
 
-def deprecated(wrapper_func: Callable[P, T]) -> Callable[P, T]:
-	"""メソッドのdeprecatedアノテーション。特に何も変更せずそのまま元のメソッドを返す
+class FunctionAnnotation:
+	def __init__(self, func: Callable) -> None:
+		self.__func = func
 
-	Args:
-		wrapper_func (Callable[..., T]): 対象のメソッド
-	Returns:
-		Callable[...,  T]: 対象のメソッドを返却
-	"""
-	# FIXME impl
-	return wrapper_func
+	@property
+	def args(self) -> dict[str, ValueAnnotation]:
+		return {key: ValueAnnotation(in_type) for key, in_type in self.__annos.items() if key != 'return'}
 
+	@property
+	def return_type(self) -> ValueAnnotation:
+		return ValueAnnotation(self.__annos['return'])
 
-def injectable(wrapper_func: Callable[P, T]) -> Callable[P, T]:
-	"""メソッドのinjectableアノテーション。特に何も変更せずそのまま元のメソッドを返す
-
-	Args:
-		wrapper_func (Callable[..., T]): 対象のメソッド
-	Returns:
-		Callable[...,  T]: 対象のメソッドを返却
-	"""
-	# FIXME impl
-	return wrapper_func
+	@property
+	def __annos(self) -> dict[str, type]:
+		return self.__func.__annotations__

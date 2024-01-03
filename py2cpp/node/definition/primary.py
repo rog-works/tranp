@@ -1,7 +1,7 @@
 from typing import cast
 
 from py2cpp.ast.dsn import DSN
-from py2cpp.lang.annotation import implements, override
+from py2cpp.lang.implementation import implements, override
 from py2cpp.node.definition.common import Argument
 from py2cpp.node.definition.literal import Literal
 from py2cpp.node.definition.terminal import Empty

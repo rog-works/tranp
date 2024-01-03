@@ -1,5 +1,5 @@
 from py2cpp.ast.dsn import DSN
-from py2cpp.lang.annotation import implements, override
+from py2cpp.lang.implementation import implements, override
 from py2cpp.node.definition.terminal import Terminal
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
 from py2cpp.node.interface import IDomainName, ITerminal

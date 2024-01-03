@@ -3,7 +3,7 @@ from typing import Any
 from lark import Token, Tree
 
 from py2cpp.ast.entry import Entry
-from py2cpp.lang.annotation import implements
+from py2cpp.lang.implementation import implements
 
 
 class EntryOfLark(Entry):

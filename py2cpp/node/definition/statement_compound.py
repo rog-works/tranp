@@ -1,7 +1,7 @@
 import re
 
 from py2cpp.ast.dsn import DSN
-from py2cpp.lang.annotation import implements, override
+from py2cpp.lang.implementation import implements, override
 from py2cpp.node.definition.common import Argument
 from py2cpp.node.definition.element import Block, Decorator, Parameter, ReturnType
 from py2cpp.node.definition.primary import Symbol, This, ThisVar, Var

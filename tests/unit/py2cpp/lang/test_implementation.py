@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from py2cpp.lang.annotation import implements, override
+from py2cpp.lang.implementation import implements, override
 
 class A:
 	@property
@@ -11,7 +11,7 @@ class A:
 		return str(n)
 
 
-class TestAnnotation(TestCase):
+class TestImplementation(TestCase):
 	def test_override(self) -> None:
 		class B(A):
 			@property

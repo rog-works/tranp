@@ -2,7 +2,7 @@ from typing import TypeAlias
 from unittest import TestCase
 
 from py2cpp.ast.entry import Entry
-from py2cpp.lang.annotation import implements
+from py2cpp.lang.implementation import implements
 
 T_Entry: TypeAlias = tuple[str, list] | tuple[str, str] | None
 

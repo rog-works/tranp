@@ -1,4 +1,4 @@
-from py2cpp.lang.annotation import implements
+from py2cpp.lang.implementation import implements
 from py2cpp.node.definition.common import Argument
 from py2cpp.node.definition.literal import Null
 from py2cpp.node.definition.primary import GenericType, Symbol

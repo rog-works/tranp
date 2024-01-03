@@ -3,7 +3,7 @@ from typing import NamedTuple, TypeAlias
 
 from py2cpp.ast.dsn import DSN
 from py2cpp.errors import LogicError
-from py2cpp.lang.annotation import injectable
+from py2cpp.lang.implementation import injectable
 from py2cpp.module.modules import Module, Modules
 import py2cpp.node.definition as defs
 

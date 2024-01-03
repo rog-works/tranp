@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from py2cpp.ast.parser import SyntaxParser
-from py2cpp.lang.annotation import implements
+from py2cpp.lang.implementation import implements
 from tests.unit.py2cpp.ast.test_entry import EntryImpl
 
 

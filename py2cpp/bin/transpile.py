@@ -105,7 +105,12 @@ class Handler(Procedure[str]):
 		return self.on_method_type(node, symbol, decorators, parameters, return_type, block, node.class_symbol.tokens)
 
 	def on_constructor(self, node: defs.Constructor, symbol: str, decorators: list[str], parameters: list[str], return_type: str, block: str) -> str:
-		return self.on_method_type(node, symbol, decorators, parameters, return_type, block, node.class_symbol.tokens)
+		add_vars = {'initializer': [], 'class_symbol': node.class_symbol.tokens}
+		for var in node.this_vars:
+			var_symbol = var.symbol.as_a(defs.ThisVar)
+			add_vars['initializer'].append({'symbol': var_symbol.tokens_without_this, 'value': var.value.tokens})
+
+		return self.view.render(node.classification, vars={'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'block': block, **add_vars})
 
 	def on_method(self, node: defs.Method, symbol: str, decorators: list[str], parameters: list[str], return_type: str, block: str) -> str:
 		return self.on_method_type(node, symbol, decorators, parameters, return_type, block, node.class_symbol.tokens)

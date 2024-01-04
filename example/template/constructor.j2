@@ -8,7 +8,14 @@
 			{{- parameter -}}
 		{%- endif -%}
 	{%- endfor -%}
-) {
+)
+{%- if initializer %}{{ ' : ' -}}
+	{%- for this_var in initializer -%}
+		{%- if loop.index0 %}, {% endif -%}
+		{{- this_var.symbol }}({{ this_var.value -}})
+	{%- endfor -%}
+{%- endif -%}
+{
 {%- filter indent('\t') %}
 {{ block }}
 {%- endfilter %}

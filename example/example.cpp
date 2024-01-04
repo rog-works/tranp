@@ -1,12 +1,14 @@
+// #include "py2cpp/cpp/directive.h"
+// #include "py2cpp/cpp/enum.h"
 #pragma once
 #include "FW/compatible.h"
 class Box3d {
 	public: Vector self.min;
 	public: Vector self.max;
 
-	public: (Vector min, Vector max) {
-		Vector self.min = min;
-		Vector self.max = max;
+	public: Box3d(Vector min, Vector max) {
+		Vector this.min = min;
+		Vector this.max = max;
 	}
 	public: bool contains(Vector location) {
 		throw new NotImplementedError();
@@ -95,7 +97,7 @@ class CellMesh {
 			{-1},
 			{-1},
 		};
-		 closure(MeshRaw origin) {
+		void closure(MeshRaw origin) {
 			cellBox = cls.to_cell_box(cell, unit);
 			boxs = cls.to_vertex_boxs(cellBox, unit);
 			for (auto i : range(int(CellMesh.VertexIndexs.Max))) {

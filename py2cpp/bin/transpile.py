@@ -11,7 +11,6 @@ from py2cpp.lang.eventemitter import EventEmitter, T_Callback
 from py2cpp.module.types import ModulePath
 import py2cpp.node.definition as defs
 from py2cpp.node.node import Node
-from py2cpp.node.serializer import serialize
 from py2cpp.view.render import Renderer, Writer
 
 T_Node = TypeVar('T_Node', bound=Node)
@@ -99,12 +98,27 @@ class Handler(Procedure[str]):
 	def on_catch(self, node: defs.Catch, symbol: str, alias: str, block: str) -> str:
 		return self.view.render(node.classification, vars={'symbol': symbol, 'alias': alias, 'block': block})
 
+	def on_function(self, node: defs.Function, symbol: str, decorators: list[str], parameters: list[str], return_type: str, block: str) -> str:
+		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'block': block})
+
+	def on_class_method(self, node: defs.ClassMethod, symbol: str, decorators: list[str], parameters: list[str], return_type: str, block: str) -> str:
+		return self.on_method_type(node, symbol, decorators, parameters, return_type, block, node.class_symbol.tokens)
+
+	def on_constructor(self, node: defs.Constructor, symbol: str, decorators: list[str], parameters: list[str], return_type: str, block: str) -> str:
+		return self.on_method_type(node, symbol, decorators, parameters, return_type, block, node.class_symbol.tokens)
+
+	def on_method(self, node: defs.Method, symbol: str, decorators: list[str], parameters: list[str], return_type: str, block: str) -> str:
+		return self.on_method_type(node, symbol, decorators, parameters, return_type, block, node.class_symbol.tokens)
+
+	def on_method_type(self, node: defs.Function, symbol: str, decorators: list[str], parameters: list[str], return_type: str, block: str, class_symbol: str) -> str:
+		return self.view.render(node.classification, vars={'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'block': block, 'class_symbol': class_symbol})
+
 	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], parents: list[str], block: str) -> str:
-		# XXX
+		# FIXME メンバー変数の展開方法を再検討
 		vars: list[dict[str, str]] = []
 		for var in node.vars:
 			if var.is_a(defs.MoveAssign):
-				vars.append({'access': 'public', 'symbol': var.symbol.tokens, 'var_type': 'Unknoen', 'value': var.value.tokens})
+				vars.append({'access': 'public', 'symbol': var.symbol.tokens, 'var_type': 'Unknown', 'value': var.value.tokens})
 			else:
 				vars.append({'access': 'public', 'symbol': var.symbol.tokens, 'var_type': var.as_a(defs.AnnoAssign).var_type.tokens, 'value': var.value.tokens})
 
@@ -113,25 +127,13 @@ class Handler(Procedure[str]):
 	def on_enum(self, node: defs.Enum, symbol: str, block: str) -> str:
 		return self.view.render(node.classification, vars={'symbol': symbol, 'block': block})
 
-	def on_function(self, node: defs.Function, symbol: str, decorators: list[str], parameters: list[str], return_type: str, block: str) -> str:
-		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'block': block})
-
-	def on_constructor(self, node: defs.Constructor, symbol: str, decorators: list[str], parameters: list[str], return_type: str, block: str) -> str:
-		return self.on_method_type(node, symbol, decorators, parameters, return_type, block)
-
-	def on_class_method(self, node: defs.Constructor, symbol: str, decorators: list[str], parameters: list[str], return_type: str, block: str) -> str:
-		return self.on_method_type(node, symbol, decorators, parameters, return_type, block)
-
-	def on_method(self, node: defs.Constructor, symbol: str, decorators: list[str], parameters: list[str], return_type: str, block: str) -> str:
-		return self.on_method_type(node, symbol, decorators, parameters, return_type, block)
-
-	def on_method_type(self, node: defs.Constructor, symbol: str, decorators: list[str], parameters: list[str], return_type: str, block: str) -> str:
-		return self.view.render(node.classification, vars={'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'block': block})
-
 	# Function/Class Elements
 
 	def on_parameter(self, node: defs.Parameter, symbol: str, var_type: str, default_value: str) -> str:
 		return self.view.render(node.classification, vars={'symbol': symbol, 'var_type': var_type, 'default_value': default_value})
+
+	def on_return_type(self, node: defs.ReturnType, var_type: str) -> str:
+		return var_type if not node.var_type.is_a(defs.Null) else 'void'
 
 	def on_decorator(self, node: defs.Decorator, symbol: str, arguments: list[str]) -> str:
 		return self.view.render(node.classification, vars={'symbol': symbol, 'arguments': arguments})
@@ -141,14 +143,14 @@ class Handler(Procedure[str]):
 
 	# Statement - simple
 
-	def on_move_assign(self, node: defs.MoveAssign, symbol: str, value: str) -> str:
-		return self.view.render(node.classification, vars={'symbol': symbol, 'value': value})
+	def on_move_assign(self, node: defs.MoveAssign, receiver: str, value: str) -> str:
+		return self.view.render(node.classification, vars={'receiver': receiver, 'value': value})
 
-	def on_anno_assign(self, node: defs.AnnoAssign, symbol: str, var_type: str, value: str) -> str:
-		return self.view.render(node.classification, vars={'symbol': symbol, 'var_type': var_type, 'value': value})
+	def on_anno_assign(self, node: defs.AnnoAssign, receiver: str, var_type: str, value: str) -> str:
+		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': value})
 
-	def on_aug_assign(self, node: defs.AugAssign, symbol: str, operator: str, value: str) -> str:
-		return self.view.render(node.classification, vars={'symbol': symbol, 'operator': operator, 'value': value})
+	def on_aug_assign(self, node: defs.AugAssign, receiver: str, operator: str, value: str) -> str:
+		return self.view.render(node.classification, vars={'receiver': receiver, 'operator': operator, 'value': value})
 
 	def on_return(self, node: defs.Return, return_value: str) -> str:
 		return self.view.render(node.classification, vars={'return_value': return_value})
@@ -165,14 +167,31 @@ class Handler(Procedure[str]):
 	def on_continue(self, node: defs.Continue) -> str:
 		return 'continue;'
 
-	def on_import(self, node: defs.Import) -> str | None:
+	def on_import(self, node: defs.Import) -> str:
 		module_path = node.module_path.tokens
-		if not module_path.startswith('FW'):
-			return None
-
-		return self.view.render(node.classification, vars={'module_path': module_path})
+		text = self.view.render(node.classification, vars={'module_path': module_path})
+		return text if module_path.startswith('FW') else f'// {text}'
 
 	# Primary
+
+	def on_symbol(self, node: defs.Symbol) -> str:
+		return node.tokens
+
+	def on_symbol_relay(self, node: defs.SymbolRelay, receiver: str) -> str:
+		return f'{receiver}.{node.property.tokens}'
+
+	def on_var(self, node: defs.Var) -> str:
+		return node.tokens
+
+	def on_this(self, node: defs.This) -> str:
+		return 'this'
+
+	def on_this_var(self, node: defs.ThisVar) -> str:
+		# XXX
+		return node.tokens.replace('self', 'this')
+
+	def on_indexer(self, node: defs.Indexer, symbol: str, key: str) -> str:
+		return f'{symbol}[{key}]'
 
 	def on_list_type(self, node: defs.ListType, symbol: str, value_type: str) -> str:
 		return self.view.render(node.classification, vars={'symbol': symbol, 'value_type': value_type})
@@ -183,11 +202,8 @@ class Handler(Procedure[str]):
 	def on_union_type(self, node: defs.UnionType) -> str:
 		raise NotImplementedError(f'Not supported UnionType. via: {node}')
 
-	def on_indexer(self, node: defs.Indexer, symbol: str, key: str) -> str:
-		return f'{symbol}[{key}]'
-
-	def on_func_call(self, node: defs.FuncCall, symbol: str, arguments: list[str]) -> str:
-		return self.view.render(node.classification, vars={'symbol': symbol, 'arguments': arguments})
+	def on_func_call(self, node: defs.FuncCall, calls: str, arguments: list[str]) -> str:
+		return self.view.render(node.classification, vars={'calls': calls, 'arguments': arguments})
 
 	# Common
 
@@ -234,14 +250,17 @@ class Handler(Procedure[str]):
 
 	# Literal
 
-	def on_key_value(self, node: defs.Pair, first: str, second: str) -> str:
+	def on_pair(self, node: defs.Pair, first: str, second: str) -> str:
 		return '{' f'{first}, {second}' '}'
+
+	def on_list(self, node: defs.List, values: list[str]) -> str:
+		return self.view.render(node.classification, vars={'values': values})
 
 	def on_dict(self, node: defs.Dict, items: list[str]) -> str:
 		return self.view.render(node.classification, vars={'items': items})
 
-	def on_list(self, node: defs.List, values: list[str]) -> str:
-		return self.view.render(node.classification, vars={'values': values})
+	def on_null(self, node: defs.Null) -> str:
+		return 'nullptr'
 
 	# Terminal
 

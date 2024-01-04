@@ -8,7 +8,7 @@
 			{{- parameter -}}
 		{%- endif -%}
 	{%- endfor -%}
-)
+){{ ' ' }}
 {%- if initializer %}{{ ' : ' -}}
 	{%- for this_var in initializer -%}
 		{%- if loop.index0 %}, {% endif -%}

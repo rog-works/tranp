@@ -22,8 +22,8 @@ class TestRenderer(TestCase):
 		self.assertEqual(actual, expected)
 
 	@data_provider([
-		(1, {'symbol': 'hoge', 'value': '1234'}, '\thoge = 1234;'),
-		(2, {'symbol': 'hoge', 'value': '1234'}, '\t\thoge = 1234;'),
+		(1, {'receiver': 'hoge', 'value': '1234'}, '\thoge = 1234;'),
+		(2, {'receiver': 'hoge', 'value': '1234'}, '\t\thoge = 1234;'),
 	])
 	def test_render_indent(self, indent: int, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('move_assign', indent, vars, expected)
@@ -62,11 +62,11 @@ class TestRenderer(TestCase):
 		self.assertRender('dict', 0, vars, expected)
 
 	@data_provider([
-		('move_assign', {'symbol': 'hoge', 'value': '1234'}, 'hoge = 1234;'),
-		('move_assign', {'symbol': 'hoge'}, 'hoge;'),
-		('anno_assign', {'symbol': 'hoge', 'value': '1234', 'var_type': 'int'}, 'int hoge = 1234;'),
-		('anno_assign', {'symbol': 'hoge', 'var_type': 'int'}, 'int hoge;'),
-		('aug_assign', {'symbol': 'hoge', 'value': '1234', 'operator': '+='}, 'hoge += 1234;'),
+		('move_assign', {'receiver': 'hoge', 'value': '1234'}, 'hoge = 1234;'),
+		('move_assign', {'receiver': 'hoge'}, 'hoge;'),
+		('anno_assign', {'receiver': 'hoge', 'value': '1234', 'var_type': 'int'}, 'int hoge = 1234;'),
+		('anno_assign', {'receiver': 'hoge', 'var_type': 'int'}, 'int hoge;'),
+		('aug_assign', {'receiver': 'hoge', 'value': '1234', 'operator': '+='}, 'hoge += 1234;'),
 	])
 	def test_render_assign(self, template: str, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender(template, 0, vars, expected)
@@ -91,7 +91,7 @@ class TestRenderer(TestCase):
 		self.assertRender('block', 0, vars, expected)
 
 	@data_provider([
-		({'symbol': 'A.func', 'arguments': ['1 + 2', 'A.value']}, 'A.func(1 + 2, A.value)'),
+		({'calls': 'A.func', 'arguments': ['1 + 2', 'A.value']}, 'A.func(1 + 2, A.value)'),
 	])
 	def test_render_func_call(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('func_call', 0, vars, expected)

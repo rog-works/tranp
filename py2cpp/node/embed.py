@@ -12,7 +12,7 @@ MetaFactory: TypeAlias = Callable[[], dict[str, Any]]
 class EmbedKeys(NamedTuple):
 	"""埋め込みキー一覧"""
 
-	AcceptTags = 'allow_tags'
+	AcceptTags = 'accept_tags'
 	Actualized = 'actualized'
 	Expandable = 'expandable'
 
@@ -20,11 +20,7 @@ class EmbedKeys(NamedTuple):
 class MetaData:
 	"""メタデータコンテナー"""
 
-	@classmethod
-	@property
-	def key(cls) -> str:
-		"""str: 保持クラスに追加するメタデータのプロパティ名"""
-		return f'__meta_data_{id(cls)}__'
+	key = f'__meta_data_{id(__name__)}__'
 
 	def __init__(self) -> None:
 		"""インスタンスを生成"""
@@ -182,7 +178,7 @@ class Meta:
 			embed_key (str): 抽出対象の埋め込みキー
 			value_type (type[T_Data]): メタデータの型
 		Returns:
-			dict[type, Any]: 対象クラスとメタデータのマップ
+			dict[type, T_Data]: 対象クラスとメタデータのマップ
 		"""
 		if not hasattr(holder, MetaData.key):
 			return {}
@@ -200,7 +196,7 @@ class Meta:
 			embed_key (str): 抽出対象の埋め込みキー
 			default (T_Data): メタデータが存在しない場合の返却値
 		Returns:
-			Any: メタデータ
+			T_Data: メタデータ
 		"""
 		if not hasattr(holder, MetaData.key):
 			return default
@@ -218,7 +214,7 @@ class Meta:
 			embed_key (str): 抽出対象の埋め込みキー
 			value_type (type[T_Data]): メタデータの型
 		Returns:
-			dict[str, Any]: メソッド毎のメタデータ
+			dict[str, T_Data]: メソッド毎のメタデータ
 		"""
 		if not hasattr(holder, MetaData.key):
 			return {}
@@ -234,6 +230,8 @@ def accept_tags(*tags: str) -> MetaFactory:
 		*tags (str): 受け入れ対象のタグリスト
 	Returns:
 		MetaFactory: 埋め込み関数
+	Note:
+		派生クラスの定義は基底クラスの定義を上書きする
 	Examples:
 		```python
 		@Meta.embed(Node, accept_tags('class'))

@@ -1,10 +1,7 @@
 from typing import Any, TypedDict
 from unittest import TestCase
 
-from lark import Token, Tree
-
 from py2cpp.node.serializer import serialize
-from py2cpp.tp_lark.entry import Entry, EntryOfLark
 
 from tests.test.fixture import Fixture
 from tests.test.helper import data_provider

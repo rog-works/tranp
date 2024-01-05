@@ -1,5 +1,5 @@
 from py2cpp.lang.implementation import implements, override
-from py2cpp.node.definition.primary import FuncCall, GenericType, Indexer, Symbol
+from py2cpp.node.definition.primary import FuncCall, GenericType, ImportPath, Indexer, Symbol, TypeSymbol, Var
 from py2cpp.node.definition.terminal import Empty, Terminal
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
 from py2cpp.node.interface import ITerminal
@@ -13,14 +13,9 @@ class Assign(Node):
 		return self._at(0)._children()
 
 	@property
-	def symbol(self) -> Symbol:
-		receiver = self.receiver
-		return receiver.as_a(Symbol) if receiver.is_a(Symbol) else receiver.as_a(Indexer).symbol
-
-	@property
 	@Meta.embed(Node, expandable)
-	def receiver(self) -> Symbol | Indexer:
-		return self._elements[0].one_of(Symbol | Indexer)
+	def receiver(self) -> Var | Indexer:
+		return self._elements[0].one_of(Var | Indexer)
 
 
 @Meta.embed(Node, actualized(via=Assign))
@@ -46,8 +41,8 @@ class AnnoAssign(Assign):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def var_type(self) -> Symbol | GenericType:
-		return self._elements[1].one_of(Symbol | GenericType)
+	def var_type(self) -> TypeSymbol | GenericType:
+		return self._elements[1].one_of(TypeSymbol | GenericType)
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -92,8 +87,8 @@ class Throw(Node):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def via(self) -> Symbol | Empty:
-		return self._at(1).one_of(Symbol | Empty)
+	def via(self) -> Var | Empty:
+		return self._at(1).one_of(Var | Empty)
 
 
 @Meta.embed(Node, accept_tags('pass_stmt'))
@@ -116,8 +111,8 @@ class Import(Node, ITerminal):
 		return False
 
 	@property
-	def module_path(self) -> Symbol:
-		return self._by('dotted_name').as_a(Symbol)
+	def module_path(self) -> ImportPath:
+		return self._by('dotted_name').as_a(ImportPath)
 
 	@property
 	def import_symbols(self) -> list[Symbol]:

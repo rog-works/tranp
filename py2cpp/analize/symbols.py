@@ -135,7 +135,7 @@ class Symbols:
 
 		raise LogicError(f'Symbol not defined. node: {symbolic}')
 
-	def property_of(self, class_type: defs.ClassType, symbol: defs.Symbol) -> SymbolSchema:
+	def property_of(self, class_type: defs.ClassType, fragment: defs.Fragment) -> SymbolSchema:
 		"""クラスタイプノードからプロパティのシンボルを解決
 
 		Args:
@@ -247,7 +247,7 @@ class Symbols:
 		Returns:
 			str: シンボルパス
 		"""
-		if symbolic.is_a(defs.This, defs.ThisVar):
+		if symbolic.is_a(defs.Symbol):
 			return symbolic.tokens
 		elif symbolic.is_a(defs.GenericType):
 			return symbolic.as_a(defs.GenericType).symbol.tokens
@@ -302,9 +302,6 @@ class Handler(Procedure[SymbolSchema]):
 		return self.__resolver.property_of(receiver.row.types, node.property)
 
 	def on_var(self, node: defs.Var) -> SymbolSchema:
-		return self.__resolver.type_of(node)
-
-	def on_this(self, node: defs.This) -> SymbolSchema:
 		return self.__resolver.type_of(node)
 
 	def on_this_var(self, node: defs.ThisVar) -> SymbolSchema:

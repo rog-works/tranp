@@ -4,7 +4,7 @@ from py2cpp.ast.dsn import DSN
 from py2cpp.lang.implementation import implements, override
 from py2cpp.node.definition.common import Argument
 from py2cpp.node.definition.element import Block, Decorator, Parameter, ReturnType
-from py2cpp.node.definition.primary import Symbol, This, ThisVar, Var
+from py2cpp.node.definition.primary import ClassSymbol, Symbol, ThisVar, TypeSymbol, Var
 from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
@@ -68,8 +68,8 @@ class While(Flow):
 class For(Flow):
 	@property
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> Symbol:
-		return self._by('name').as_a(Symbol)
+	def symbol(self) -> Var:
+		return self._by('name').as_a(Var)
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -86,13 +86,13 @@ class For(Flow):
 class Catch(Flow):
 	@property
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> Symbol:
-		return self._by('primary').as_a(Symbol)
+	def symbol(self) -> TypeSymbol:
+		return self._by('primary').as_a(TypeSymbol)
 
 	@property
 	@Meta.embed(Node, expandable)
-	def alias(self) -> Symbol | Empty:
-		return self._at(1).one_of(Symbol | Empty)
+	def alias(self) -> Var | Empty:
+		return self._at(1).one_of(Var | Empty)
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -140,7 +140,7 @@ class ClassType(Node, IDomainName, IScope):
 		return DSN.join(self.scope, self.public_name)
 
 	@property
-	def symbol(self) -> Symbol:
+	def symbol(self) -> ClassSymbol:
 		raise NotImplementedError()
 
 	@property
@@ -166,8 +166,8 @@ class Function(ClassType):
 	@property
 	@override
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> Symbol:
-		return self._by('function_def_raw.name').as_a(Symbol)
+	def symbol(self) -> ClassSymbol:
+		return self._by('function_def_raw.name').as_a(ClassSymbol)
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -207,7 +207,7 @@ class ClassMethod(Function):
 		return len(decorators) > 0 and decorators[0].symbol.tokens == 'classmethod'
 
 	@property
-	def class_symbol(self) -> Symbol:
+	def class_symbol(self) -> ClassSymbol:
 		return self.parent.as_a(Block).parent.as_a(ClassType).symbol
 
 
@@ -219,7 +219,7 @@ class Constructor(Function):
 		return via.symbol.tokens == '__init__'
 
 	@property
-	def class_symbol(self) -> Symbol:
+	def class_symbol(self) -> ClassSymbol:
 		return self.parent.as_a(Block).parent.as_a(ClassType).symbol
 
 	@property
@@ -238,10 +238,10 @@ class Method(Function):
 
 		# XXX Thisのみの判定だと不正確かもしれない
 		parameters = via.parameters
-		return len(parameters) > 0 and parameters[0].symbol.is_a(This)
+		return len(parameters) > 0 and parameters[0].symbol.is_a(ThisVar)
 
 	@property
-	def class_symbol(self) -> Symbol:
+	def class_symbol(self) -> ClassSymbol:
 		return self.parent.as_a(Block).parent.as_a(ClassType).symbol
 
 
@@ -255,8 +255,8 @@ class Class(ClassType):
 	@property
 	@override
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> Symbol:
-		return self.__alias_symbol or self._by('class_def_raw.name').as_a(Symbol)
+	def symbol(self) -> Symbol | ClassSymbol:  # FIXME
+		return self.__alias_symbol or self._by('class_def_raw.name').as_a(ClassSymbol)
 
 	@property
 	def __alias_symbol(self) -> Symbol | None:
@@ -331,8 +331,8 @@ class Enum(ClassType):
 	@property
 	@override
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> Symbol:
-		return self._by('name').as_a(Symbol)
+	def symbol(self) -> ClassSymbol:
+		return self._by('name').as_a(ClassSymbol)
 
 	@property
 	@Meta.embed(Node, expandable)

@@ -1,7 +1,7 @@
 from py2cpp.lang.implementation import implements
 from py2cpp.node.definition.common import Argument
 from py2cpp.node.definition.literal import Null
-from py2cpp.node.definition.primary import GenericType, Symbol
+from py2cpp.node.definition.primary import DecoratorSymbol, GenericType, Symbol, TypeSymbol, Var
 from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, expandable
@@ -14,13 +14,13 @@ from py2cpp.node.node import Node
 class Parameter(Node):
 	@property
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> Symbol:
-		return self._by('typedparam.name').as_a(Symbol)
+	def symbol(self) -> Var:
+		return self._by('typedparam.name').as_a(Var)
 
 	@property
 	@Meta.embed(Node, expandable)
-	def var_type(self) -> Symbol | GenericType | Empty:
-		return self._by('typedparam')._at(1).one_of(Symbol | GenericType | Empty)
+	def var_type(self) -> TypeSymbol | GenericType | Empty:
+		return self._by('typedparam')._at(1).one_of(TypeSymbol | GenericType | Empty)
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -33,16 +33,16 @@ class Parameter(Node):
 class ReturnType(Node):
 	@property
 	@Meta.embed(Node, expandable)
-	def var_type(self) -> Symbol | GenericType | Null:
-		return self._at(0).one_of(Symbol | GenericType | Null)
+	def var_type(self) -> TypeSymbol | GenericType | Null:
+		return self._at(0).one_of(TypeSymbol | GenericType | Null)
 
 
 @Meta.embed(Node, accept_tags('decorator'))
 class Decorator(Node):
 	@property
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> Symbol:
-		return self._by('dotted_name').as_a(Symbol)
+	def symbol(self) -> DecoratorSymbol:
+		return self._by('dotted_name').as_a(DecoratorSymbol)
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -73,6 +73,6 @@ class Block(Node, IScope):
 		assigns = {
 			node.one_of(AnnoAssign | MoveAssign): True
 			for node in reversed(self.statements)
-			if isinstance(node, (AnnoAssign, MoveAssign)) and node.symbol.is_a(allow)
+			if isinstance(node, (AnnoAssign, MoveAssign)) and node.receiver.is_a(allow)
 		}
 		return list(reversed(assigns.keys()))

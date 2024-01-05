@@ -359,7 +359,7 @@ class Node(NodeBase):
 		Examples:
 			```python
 			@property
-			def var_type(self) -> Symbol | GenericType | Null:
+			def var_type(self) -> TypeSymbol | GenericType | Null:
 				return self._at(1).one_of(Symbol | GenericType | Null)
 			```
 		"""

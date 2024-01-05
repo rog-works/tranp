@@ -12,10 +12,19 @@ from py2cpp.node.protocol import Symbolization
 
 
 @Meta.embed(Node, accept_tags('getattr', 'var', 'name', 'dotted_name', 'typed_getattr', 'typed_var'))
-class Fragment(Node):
-	@property
-	def parent_tag(self) -> str:
-		return self._full_path.shift(-1).last_tag
+class Fragment(Node): pass
+
+
+@Meta.embed(Node, accept_tags('dotted_name'), actualized(via=Fragment))
+class ImportPath(Fragment, ITerminal):
+	@implements
+	def can_expand(self) -> bool:
+		return False
+
+	@classmethod
+	@override
+	def match_feature(cls, via: Fragment) -> bool:
+		return via._full_path.parent_tag == 'import_stmt'
 
 
 @Meta.embed(Node, accept_tags('getattr', 'typed_getattr'), actualized(via=Fragment))
@@ -23,7 +32,7 @@ class SymbolRelay(Fragment):
 	@classmethod
 	@override
 	def match_feature(cls, via: Fragment) -> bool:
-		return via.parent_tag in ['getattr', 'typed_getattr']
+		return via._full_path.parent_tag in ['getattr', 'typed_getattr']
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -31,8 +40,8 @@ class SymbolRelay(Fragment):
 		return self._at(0).one_of(Fragment | FuncCall | Indexer | Literal)
 
 	@property
+	@Meta.embed(Node, expandable)
 	def property(self) -> Fragment:
-		"""Note: receiverと不可分な要素であり、単体で解釈不能なため展開対象から除外"""
 		return self._at(1).as_a(Fragment)
 
 
@@ -48,12 +57,15 @@ class Symbol(Fragment, IDomainName):
 		return DSN.join(self.module_path, self.tokens)
 
 
+class Var(Symbol): pass
+
+
 @Meta.embed(Node, accept_tags('getattr', 'var', 'name'), actualized(via=Fragment))
-class ThisVar(Symbol):
+class ThisVar(Var):
 	@classmethod
 	@override
 	def match_feature(cls, via: Fragment) -> bool:
-		return via.parent_tag != 'getattr' and via.tokens.startswith('self')
+		return via._full_path.parent_tag != 'getattr' and via.tokens.startswith('self')
 
 	@property
 	@override
@@ -76,11 +88,41 @@ class ThisVar(Symbol):
 
 
 @Meta.embed(Node, accept_tags('getattr', 'var', 'name'), actualized(via=Fragment))
-class Var(Symbol):
+class LocalVar(Var):
 	@classmethod
 	@override
 	def match_feature(cls, via: Fragment) -> bool:
-		return via.parent_tag != 'getattr' and not via.tokens.startswith('self')
+		if via.tag == 'name':
+			in_flows = ['for_stmt', 'except_clause', 'raise_stmt']
+			in_params = ['typedparam']
+			allow_parent_tags = [*in_flows, *in_params]
+			return via._full_path.parent_tag in allow_parent_tags
+		else:
+			return via._full_path.parent_tag != 'getattr'
+
+
+@Meta.embed(Node, accept_tags('dotted_name'), actualized(via=Fragment))
+class DecoratorSymbol(Symbol, ITerminal):
+	@implements
+	def can_expand(self) -> bool:
+		return False
+
+	@classmethod
+	@override
+	def match_feature(cls, via: Fragment) -> bool:
+		return via._full_path.parent_tag == 'decorator'
+
+
+@Meta.embed(Node, accept_tags('name'), actualized(via=Fragment))
+class ClassSymbol(Symbol, ITerminal):
+	@implements
+	def can_expand(self) -> bool:
+		return False
+
+	@classmethod
+	@override
+	def match_feature(cls, via: Fragment) -> bool:
+		return via._full_path.parent_tag in ['enum_def', 'class_def_raw', 'function_def_raw']
 
 
 @Meta.embed(Node, accept_tags('typed_getattr', 'typed_var'), actualized(via=Fragment))
@@ -88,22 +130,14 @@ class TypeSymbol(Symbol):
 	@classmethod
 	@override
 	def match_feature(cls, via: Fragment) -> bool:
-		return via.parent_tag != 'typed_getattr'
-
-
-@Meta.embed(Node, accept_tags('name', 'dotted_name'), actualized(via=Fragment))
-class SymbolName(Symbol):
-	@classmethod
-	@override
-	def match_feature(cls, via: Fragment) -> bool:
-		return via.parent_tag not in ['var', 'dotted_name', 'typed_var']
+		return via._full_path.parent_tag in ['return_type', 'typedparam', 'anno_assign']
 
 
 @Meta.embed(Node, accept_tags('getitem'))
 class Indexer(Node):
 	@property
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> Symbol:  # FIXME シンボル以外も有り得るので不正確
+	def symbol(self) -> 'Symbol | Indexer | FuncCall':  # FIXME シンボル以外も有り得るので不正確
 		return self._at(0).as_a(Symbol)
 
 	@property
@@ -126,13 +160,13 @@ class GenericType(Node, IDomainName):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> Symbol:  # FIXME シンボル以外も有り得るので不正確
-		return self._at(0).as_a(Symbol)
+	def symbol(self) -> TypeSymbol:  # FIXME シンボル以外も有り得るので不正確
+		return self._at(0).as_a(TypeSymbol)
 
 
 class CollectionType(GenericType):
 	@property
-	def value_type(self) -> Symbol | GenericType:
+	def value_type(self) -> TypeSymbol | GenericType:
 		raise NotImplementedError()
 
 
@@ -149,8 +183,8 @@ class ListType(CollectionType):
 	@property
 	@override
 	@Meta.embed(Node, expandable)
-	def value_type(self) -> Symbol | GenericType:
-		return self._by('typed_slices.typed_slice')._at(0).one_of(Symbol | GenericType)
+	def value_type(self) -> TypeSymbol | GenericType:
+		return self._by('typed_slices.typed_slice')._at(0).one_of(TypeSymbol | GenericType)
 
 
 @Meta.embed(Node, actualized(via=GenericType))
@@ -165,14 +199,14 @@ class DictType(GenericType):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def key_type(self) -> Symbol | GenericType:
-		return self._by('typed_slices.typed_slice[0]')._at(0).one_of(Symbol | GenericType)
+	def key_type(self) -> TypeSymbol | GenericType:
+		return self._by('typed_slices.typed_slice[0]')._at(0).one_of(TypeSymbol | GenericType)
 
 	@property
 	@override
 	@Meta.embed(Node, expandable)
-	def value_type(self) -> Symbol | GenericType:
-		return self._by('typed_slices.typed_slice[1]')._at(0).one_of(Symbol | GenericType)
+	def value_type(self) -> TypeSymbol | GenericType:
+		return self._by('typed_slices.typed_slice[1]')._at(0).one_of(TypeSymbol | GenericType)
 
 
 @Meta.embed(Node, accept_tags('typed_or_expr'))
@@ -187,8 +221,8 @@ class UnionType(GenericType):
 class FuncCall(Node):
 	@property
 	@Meta.embed(Node, expandable)
-	def calls(self) -> Node:
-		return self._at(0)
+	def calls(self) -> 'Symbol | Indexer | FuncCall':
+		return self._at(0).one_of(Symbol | Indexer | FuncCall)
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -205,5 +239,5 @@ class Super(FuncCall):
 		return via.calls.tokens == 'super'
 
 	@property
-	def class_symbol(self) -> Symbol:
-		return cast(Symbolization, self._ancestor('class_def')).symbol.as_a(Symbol)
+	def class_symbol(self) -> ClassSymbol:
+		return cast(Symbolization, self._ancestor('class_def')).symbol.as_a(ClassSymbol)

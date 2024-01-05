@@ -28,6 +28,6 @@ class Entrypoint(Node):
 		assigns = {
 			node.one_of(AnnoAssign | MoveAssign): True
 			for node in reversed(self.statements)
-			if isinstance(node, (AnnoAssign, MoveAssign)) and node.symbol.is_a(Var)
+			if isinstance(node, (AnnoAssign, MoveAssign)) and node.receiver.is_a(Var)
 		}
 		return list(reversed(assigns.keys()))

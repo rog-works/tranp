@@ -12,12 +12,31 @@ from py2cpp.node.protocol import Symbolization
 
 
 @Meta.embed(Node, accept_tags('getattr', 'var', 'name', 'dotted_name', 'typed_getattr', 'typed_var'))
-class Symbol(Node, IDomainName, ITerminal):
+class Fragment(Node):
 	@property
-	@implements
-	def can_expand(self) -> bool:
-		return False
+	def parent_tag(self) -> str:
+		return self._full_path.shift(-1).last_tag
 
+
+@Meta.embed(Node, accept_tags('getattr', 'typed_getattr'), actualized(via=Fragment))
+class SymbolRelay(Fragment):
+	@classmethod
+	@override
+	def match_feature(cls, via: Fragment) -> bool:
+		return via.parent_tag in ['getattr', 'typed_getattr']
+
+	@property
+	@Meta.embed(Node, expandable)
+	def receiver(self) -> 'Fragment | FuncCall | Indexer | Literal':  # XXX 前方参照
+		return self._at(0).one_of(Fragment | FuncCall | Indexer | Literal)
+
+	@property
+	def property(self) -> Fragment:
+		"""Note: receiverと不可分な要素であり、単体で解釈不能なため展開対象から除外"""
+		return self._at(1).as_a(Fragment)
+
+
+class Symbol(Fragment, IDomainName):
 	@property
 	@implements
 	def domain_id(self) -> str:
@@ -29,75 +48,12 @@ class Symbol(Node, IDomainName, ITerminal):
 		return DSN.join(self.module_path, self.tokens)
 
 
-@Meta.embed(Node, actualized(via=Symbol))
-class SymbolRelay(Symbol):
-	@classmethod
-	@override
-	def match_feature(cls, via: Symbol) -> bool:
-		if via.tag != 'getattr':
-			return False
-
-		allow_tags = ['getattr', 'var', 'name']
-		receiver_tag = via._at(0).tag
-		symbol_tag = via._at(1).tag
-		return receiver_tag not in allow_tags and symbol_tag in allow_tags
-
-	@property
-	@implements
-	def can_expand(self) -> bool:
-		return True
-
-	@property
-	@Meta.embed(Node, expandable)
-	def receiver(self) -> 'FuncCall | Indexer | Literal':  # XXX 前方参照
-		return self._at(0).one_of(FuncCall | Indexer | Literal)
-
-	@property
-	def property(self) -> Symbol:
-		"""Note: receiverと不可分な要素であり、単体で解釈不能なため展開対象から除外"""
-		return self._at(1).as_a(Symbol)
-
-
-@Meta.embed(Node, actualized(via=Symbol))
-class Var(Symbol):
-	"""Note: ローカル変数と引数に対応。クラスメンバーは如何なる種類もこのシンボルにあたらない"""
-
-	@classmethod
-	@override
-	def match_feature(cls, via: Node) -> bool:
-		if via.tag not in ['var', 'name']:
-			return False
-
-		parent_tag = via._full_path.shift(-1).last_tag
-		if parent_tag == 'getattr':
-			return False
-
-		name = via.tokens
-		return name != 'self' and name.find('.') == -1
-
-
-@Meta.embed(Node, actualized(via=Symbol))
-class This(Symbol):
-	@classmethod
-	@override
-	def match_feature(cls, via: Node) -> bool:
-		return via.tag in ['var', 'name'] and via.tokens == 'self'
-
-	@property
-	def class_types(self) -> Node:
-		# XXX 中途半端感があるので修正を検討
-		return self._ancestor('class_def')
-
-
-@Meta.embed(Node, actualized(via=Symbol))
+@Meta.embed(Node, accept_tags('getattr', 'var', 'name'), actualized(via=Fragment))
 class ThisVar(Symbol):
 	@classmethod
 	@override
-	def match_feature(cls, via: Node) -> bool:
-		if via.tag != 'getattr':
-			return False
-
-		return via.tokens.startswith('self.')
+	def match_feature(cls, via: Fragment) -> bool:
+		return via.parent_tag != 'getattr' and via.tokens.startswith('self')
 
 	@property
 	@override
@@ -111,12 +67,36 @@ class ThisVar(Symbol):
 
 	@property
 	def tokens_without_this(self) -> str:
-		return self.tokens.replace('self.', '')
+		return DSN.join(*DSN.elements(self.tokens)[1:])
 
 	@property
 	def class_types(self) -> Node:
 		# XXX 中途半端感があるので修正を検討
 		return self._ancestor('class_def')
+
+
+@Meta.embed(Node, accept_tags('getattr', 'var', 'name'), actualized(via=Fragment))
+class Var(Symbol):
+	@classmethod
+	@override
+	def match_feature(cls, via: Fragment) -> bool:
+		return via.parent_tag != 'getattr' and not via.tokens.startswith('self')
+
+
+@Meta.embed(Node, accept_tags('typed_getattr', 'typed_var'), actualized(via=Fragment))
+class TypeSymbol(Symbol):
+	@classmethod
+	@override
+	def match_feature(cls, via: Fragment) -> bool:
+		return via.parent_tag != 'typed_getattr'
+
+
+@Meta.embed(Node, accept_tags('name', 'dotted_name'), actualized(via=Fragment))
+class SymbolName(Symbol):
+	@classmethod
+	@override
+	def match_feature(cls, via: Fragment) -> bool:
+		return via.parent_tag not in ['var', 'dotted_name', 'typed_var']
 
 
 @Meta.embed(Node, accept_tags('getitem'))

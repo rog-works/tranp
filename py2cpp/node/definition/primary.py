@@ -1,3 +1,4 @@
+import re
 from typing import cast
 
 from py2cpp.ast.dsn import DSN
@@ -10,14 +11,11 @@ from py2cpp.node.interface import IDomainName, ITerminal
 from py2cpp.node.node import Node
 from py2cpp.node.protocol import Symbolization
 
+@Meta.embed(Node, accept_tags('getattr', 'var', 'name'))
+class Fragment(Node): pass
 
-@Meta.embed(Node, accept_tags('getattr', 'var', 'name', 'dotted_name', 'typed_getattr', 'typed_var'))
-class Symbol(Node, IDomainName, ITerminal):
-	@property
-	@implements
-	def can_expand(self) -> bool:
-		return False
 
+class Symbol(Fragment, IDomainName, ITerminal):
 	@property
 	@implements
 	def domain_id(self) -> str:
@@ -28,76 +26,21 @@ class Symbol(Node, IDomainName, ITerminal):
 	def domain_name(self) -> str:
 		return DSN.join(self.module_path, self.tokens)
 
-
-@Meta.embed(Node, actualized(via=Symbol))
-class SymbolRelay(Symbol):
-	@classmethod
-	@override
-	def match_feature(cls, via: Symbol) -> bool:
-		if via.tag != 'getattr':
-			return False
-
-		allow_tags = ['getattr', 'var', 'name']
-		receiver_tag = via._at(0).tag
-		symbol_tag = via._at(1).tag
-		return receiver_tag not in allow_tags and symbol_tag in allow_tags
-
-	@property
 	@implements
 	def can_expand(self) -> bool:
-		return True
-
-	@property
-	@Meta.embed(Node, expandable)
-	def receiver(self) -> 'FuncCall | Indexer | Literal':  # XXX 前方参照
-		return self._at(0).one_of(FuncCall | Indexer | Literal)
-
-	@property
-	def property(self) -> Symbol:
-		"""Note: receiverと不可分な要素であり、単体で解釈不能なため展開対象から除外"""
-		return self._at(1).as_a(Symbol)
+		return False
 
 
-@Meta.embed(Node, actualized(via=Symbol))
-class Var(Symbol):
-	"""Note: ローカル変数と引数に対応。クラスメンバーは如何なる種類もこのシンボルにあたらない"""
+class Var(Symbol): pass
 
+
+@Meta.embed(Node, actualized(via=Fragment))
+class ThisVar(Var):
 	@classmethod
-	@override
 	def match_feature(cls, via: Node) -> bool:
-		if via.tag not in ['var', 'name']:
-			return False
-
-		parent_tag = via._full_path.shift(-1).last_tag
-		if parent_tag == 'getattr':
-			return False
-
-		name = via.tokens
-		return name != 'self' and name.find('.') == -1
-
-
-@Meta.embed(Node, actualized(via=Symbol))
-class This(Symbol):
-	@classmethod
-	@override
-	def match_feature(cls, via: Node) -> bool:
-		return via.tag in ['var', 'name'] and via.tokens == 'self'
-
-	@property
-	def class_types(self) -> Node:
-		# XXX 中途半端感があるので修正を検討
-		return self._ancestor('class_def')
-
-
-@Meta.embed(Node, actualized(via=Symbol))
-class ThisVar(Symbol):
-	@classmethod
-	@override
-	def match_feature(cls, via: Node) -> bool:
-		if via.tag != 'getattr':
-			return False
-
-		return via.tokens.startswith('self.')
+		is_decl_var = via._full_path.parent_tag in ['assign', 'anno_assign', 'typedparam']
+		is_self = re.fullmatch(r'self.\w+', via.tokens) is not None
+		return is_decl_var and is_self
 
 	@property
 	@override
@@ -111,12 +54,119 @@ class ThisVar(Symbol):
 
 	@property
 	def tokens_without_this(self) -> str:
-		return self.tokens.replace('self.', '')
+		return DSN.join(*DSN.elements(self.tokens)[1:])
 
 	@property
 	def class_types(self) -> Node:
 		# XXX 中途半端感があるので修正を検討
 		return self._ancestor('class_def')
+
+
+@Meta.embed(Node, accept_tags('var', 'name'), actualized(via=Fragment))
+class LocalVar(Var):
+	@classmethod
+	def match_feature(cls, via: Node) -> bool:
+		is_decl_var = via._full_path.parent_tag in ['assign', 'anno_assign', 'typedparam', 'for_stmt', 'except_clause', 'raise_stmt']
+		is_not_self = not via.tokens.startswith('self')
+		is_local = DSN.elem_counts(via.tokens) == 1
+		return is_decl_var and is_not_self and is_local
+
+
+class DeclName(Symbol): pass
+
+
+@Meta.embed(Node, accept_tags('name'), actualized(via=Fragment))
+class ClassName(DeclName):
+	@classmethod
+	def match_feature(cls, via: Node) -> bool:
+		is_decl_class = via._full_path.parent_tag in ['class_def_raw', 'enum_def', 'function_def_raw']
+		return is_decl_class
+
+
+@Meta.embed(Node, accept_tags('name'), actualized(via=Fragment))
+class ImportName(DeclName):
+	@classmethod
+	def match_feature(cls, via: Node) -> bool:
+		is_decl_import = via._full_path.parent_tag == 'import_names'
+		return is_decl_import
+
+
+class Reference(Fragment, IDomainName):
+	@property
+	@implements
+	def domain_id(self) -> str:
+		return DSN.join(self.scope, self.tokens)
+
+	@property
+	@implements
+	def domain_name(self) -> str:
+		return DSN.join(self.module_path, self.tokens)
+
+
+@Meta.embed(Node, actualized(via=Fragment))
+class Relay(Reference):
+	@classmethod
+	def match_feature(cls, via: Node) -> bool:
+		is_decl_var = via._full_path.parent_tag in ['assign', 'anno_assign', 'typedparam', 'for_stmt', 'except_clause', 'raise_stmt']
+		is_not_self = not via.tokens.startswith('self')
+		is_local = DSN.elem_counts(via.tokens) == 1
+		if is_decl_var and is_not_self and is_local:
+			return False
+
+		is_decl_var = via._full_path.parent_tag in ['assign', 'anno_assign', 'typedparam']
+		is_self = re.fullmatch(r'self.\w+', via.tokens) is not None
+		if is_decl_var and is_self:
+			return False
+
+		is_not_decl_class = via._full_path.parent_tag not in ['class_def_raw', 'enum_def', 'function_def_raw']
+		is_not_decl_import = via._full_path.parent_tag not in ['import_stmt']
+		return is_not_decl_class and is_not_decl_import
+
+	@property
+	@Meta.embed(Node, expandable)
+	def receiver(self) -> 'Relay | FuncCall | Indexer | Literal':  # XXX 前方参照
+		return self._at(0).one_of(Relay | FuncCall | Indexer | Literal)
+
+	@property
+	def has_property(self) -> bool:
+		return len(self._children()) == 2
+
+	@property
+	def property(self) -> 'Name':  # XXX 前方参照
+		return self._at(1).as_a(Name)
+
+
+@Meta.embed(Node, accept_tags('name'), actualized(via=Fragment))
+class Name(Fragment, ITerminal):
+	@classmethod
+	def match_feature(cls, via: Node) -> bool:
+		# XXX actualizeループの結果を元に排他的に決定(実質的なフォールバック)
+		return True
+
+	@implements
+	def can_expand(self) -> bool:
+		return False
+
+
+@Meta.embed(Node, accept_tags('dotted_name'))
+class Path(Node, ITerminal):
+	@implements
+	def can_expand(self) -> bool:
+		return False
+
+
+@Meta.embed(Node, actualized(via=Path))
+class ImportPath(Path):
+	@classmethod
+	def match_feature(cls, via: Node) -> bool:
+		return via._full_path.parent_tag == 'import_stmt'
+
+
+@Meta.embed(Node, actualized(via=Path))
+class DecoratorPath(Path):
+	@classmethod
+	def match_feature(cls, via: Node) -> bool:
+		return via._full_path.parent_tag == 'decorator'
 
 
 @Meta.embed(Node, accept_tags('getitem'))
@@ -132,8 +182,7 @@ class Indexer(Node):
 		return self._by('slices.slice')._at(0)
 
 
-@Meta.embed(Node, accept_tags('typed_getitem'))
-class GenericType(Node, IDomainName):
+class Type(Node, IDomainName):
 	@property
 	@implements
 	def domain_id(self) -> str:
@@ -150,6 +199,14 @@ class GenericType(Node, IDomainName):
 		return self._at(0).as_a(Symbol)
 
 
+@Meta.embed(Node, accept_tags('typed_getattr', 'typed_var'))
+class ClassType(Type): pass
+
+
+@Meta.embed(Node, accept_tags('typed_getitem'))
+class GenericType(Type): pass
+
+
 class CollectionType(GenericType):
 	@property
 	def value_type(self) -> Symbol | GenericType:
@@ -160,11 +217,8 @@ class CollectionType(GenericType):
 class ListType(CollectionType):
 	@classmethod
 	@override
-	def match_feature(cls, via: Node) -> bool:
-		if via._at(0).tokens != 'list':
-			return False
-
-		return len(via._by('typed_slices')._children()) == 1
+	def match_feature(cls, via: GenericType) -> bool:
+		return via.symbol.tokens == 'list'
 
 	@property
 	@override
@@ -177,11 +231,8 @@ class ListType(CollectionType):
 class DictType(GenericType):
 	@classmethod
 	@override
-	def match_feature(cls, via: Node) -> bool:
-		if via._at(0).tokens != 'dict':
-			return False
-
-		return len(via._by('typed_slices')._children()) == 2
+	def match_feature(cls, via: GenericType) -> bool:
+		return via.symbol.tokens == 'dict'
 
 	@property
 	@Meta.embed(Node, expandable)

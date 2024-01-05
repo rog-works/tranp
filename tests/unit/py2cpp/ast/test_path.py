@@ -99,6 +99,14 @@ class TestEntryPath(TestCase):
 		self.assertEqual(EntryPath(origin).last_tag, expected)
 
 	@data_provider([
+		('b.c', 'b'),
+		('a[0].b.c[1]', 'b'),
+		('c[1].b[0].a[0]', 'b'),
+	])
+	def test_parent_tag(self, origin: str, expected: str) -> None:
+		self.assertEqual(EntryPath(origin).parent_tag, expected)
+
+	@data_provider([
 		('a', 'a', True),
 		('a', 'b', False),
 		('b.c', 'c', True),

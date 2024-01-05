@@ -100,6 +100,15 @@ class EntryPath:
 		"""
 		return self.last[0]
 
+	@property
+	def parent_tag(self) -> str:
+		"""親のエントリータグを取得
+
+		Returns:
+			str: エントリータグ
+		"""
+		return self.shift(-1).last[0]
+
 	def __break_tag(self, elem: str) -> tuple[str, int]:
 		"""要素から元のタグと付与されたインデックスに分解。インデックスがない場合は-1とする
 

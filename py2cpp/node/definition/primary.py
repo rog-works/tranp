@@ -197,7 +197,7 @@ class Type(Node, IDomainName):
 
 
 @Meta.embed(Node, accept_tags('typed_getattr', 'typed_var'))
-class ClassType(Type): pass
+class GeneralType(Type): pass
 
 
 @Meta.embed(Node, accept_tags('typed_getitem'))

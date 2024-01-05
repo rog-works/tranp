@@ -58,3 +58,25 @@ class TestDSN(TestCase):
 	])
 	def test_right(self, origin: str, counts: int, expected: str) -> None:
 		self.assertEqual(DSN.right(origin, counts), expected)
+
+	@data_provider([
+		('a.b.c', 'a'),
+		('a.b.c', 'a'),
+		('b.c', 'b'),
+		('c.b', 'c'),
+		('.a.b', 'a'),
+		('a.b.', 'a'),
+	])
+	def test_root(self, origin: str, expected: str) -> None:
+		self.assertEqual(DSN.root(origin), expected)
+
+	@data_provider([
+		('a.b.c', 'b'),
+		('a.b.c', 'b'),
+		('b.c', 'b'),
+		('c.b', 'c'),
+		('.a.b', 'a'),
+		('a.b.', 'a'),
+	])
+	def test_parent(self, origin: str, expected: str) -> None:
+		self.assertEqual(DSN.parent(origin), expected)

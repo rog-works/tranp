@@ -57,3 +57,25 @@ class DSN:
 			str: ドメイン名
 		"""
 		return cls.join(*(cls.elements(origin)[-counts:]))
+
+	@classmethod
+	def root(cls, origin: str) -> str:
+		"""ルート要素を取得
+
+		Args:
+			origin (str): ドメイン名
+		Returns:
+			str: ルート要素
+		"""
+		return cls.elements(origin)[0]
+
+	@classmethod
+	def parent(cls, origin: str) -> str:
+		"""親の要素を取得
+
+		Args:
+			origin (str): ドメイン名
+		Returns:
+			str: 親の要素
+		"""
+		return cls.elements(origin)[-2]

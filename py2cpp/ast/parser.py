@@ -1,5 +1,5 @@
-from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
+from typing import Protocol
 
 from py2cpp.ast.entry import Entry
 
@@ -19,11 +19,10 @@ class ParserSetting:
 	algorithem: str = 'lalr'
 
 
-class SyntaxParser(metaclass=ABCMeta):
-	"""シンタックスパーサーのインターフェイス。Grammarの定義を元にソースを解析し、シンタックスツリーを生成する機能を提供"""
+class SyntaxParser(Protocol):
+	"""シンタックスパーサープロトコル。Grammarの定義を元にソースを解析し、シンタックスツリーを生成"""
 
-	@abstractmethod
-	def parse(self, module_path: str) -> Entry:
+	def __call__(self, module_path: str) -> Entry:
 		"""モジュールを解析してシンタックスツリーを生成
 
 		Args:
@@ -31,4 +30,4 @@ class SyntaxParser(metaclass=ABCMeta):
 		Returns:
 			Entry: シンタックスツリーのルートエントリー
 		"""
-		raise NotImplementedError()
+		...

@@ -1,13 +1,15 @@
 import os
 
-from py2cpp.lang.di import ModuleDefinitions
-from py2cpp.lang.locator import T_Inst
 from py2cpp.app.app import App
-from py2cpp.ast.entry import Entry
+from py2cpp.ast.parser import SyntaxParser
 from py2cpp.ast.query import Query
+from py2cpp.lang.di import ModuleDefinitions
+from py2cpp.lang.locator import Locator, T_Inst
 from py2cpp.module.module import Module
 from py2cpp.module.types import ModulePath
 from py2cpp.node.node import Node
+from py2cpp.tp_lark.entry import EntryOfLark
+from py2cpp.tp_lark.parser import SyntaxParserOfLark
 
 
 class Fixture:
@@ -53,6 +55,10 @@ class Fixture:
 	def shared_nodes(self) -> Query[Node]:
 		return self.__app.resolve(Query[Node])
 
-	def custom_nodes(self, root: Entry) -> Query[Node]:
-		definitions = {**self.__definitions(), **{'py2cpp.ast.entry.Entry': lambda: root}}
+	def custom_nodes(self, source_code: str) -> Query[Node]:
+		def syntax_parser(locator: Locator) -> SyntaxParser:
+			parser = locator.invoke(SyntaxParserOfLark)
+			return lambda module_path: EntryOfLark(parser.get_lark_dirty().parse(f'{source_code}\n'))
+
+		definitions = {**self.__definitions(), **{'py2cpp.ast.parser.SyntaxParser': syntax_parser}}
 		return App(definitions).resolve(Query[Node])

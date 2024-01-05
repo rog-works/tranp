@@ -18,18 +18,12 @@ class TestSerializer(TestCase):
 
 	@data_provider([
 		(
-			EntryOfLark(Tree(Token('RULE', 'file_input'), [
-				Tree(Token('RULE', 'sum'), [
-					Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '1')]),
-					Token('PLUS', '+'),
-					Tree(Token('RULE', 'number'), [Token('DEC_NUMBER', '2')])
-				]),
-			])),
+			'1 + 2',
 			'file_input',
 			{'statements': [{'left': '1', 'operator': '+', 'right': '2'}]},
 		),
 	])
-	def test_serialize(self, tree: Entry, full_path: str, expected: dict[str, Any]) -> None:
-		node = self.fixture.custom_nodes(tree).by(full_path)
+	def test_serialize(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path)
 		dump = serialize(node, T_FileInput)
 		self.assertEqual(dump, expected)

@@ -13,4 +13,4 @@ def parser_setting() -> ParserSetting:
 
 
 def make_entrypoint(module_path: ModulePath, parser: SyntaxParser) -> Entry:
-	return parser.parse(module_path.actual)
+	return parser(module_path.actual)

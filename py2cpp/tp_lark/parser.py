@@ -6,14 +6,14 @@ from lark import Lark, Tree
 from lark.indenter import PythonIndenter
 
 from py2cpp.ast.entry import Entry
-from py2cpp.ast.parser import ParserSetting, SyntaxParser
+from py2cpp.ast.parser import ParserSetting
 from py2cpp.lang.cache import CacheProvider
 from py2cpp.lang.implementation import implements, injectable
 from py2cpp.lang.io import FileLoader
 from py2cpp.tp_lark.entry import EntryOfLark, Serialization
 
 
-class SyntaxParserOfLark(SyntaxParser):
+class SyntaxParserOfLark:
 	"""シンタックスパーサー(Lark版)"""
 
 	@injectable
@@ -30,7 +30,7 @@ class SyntaxParserOfLark(SyntaxParser):
 		self.__cache = cache
 
 	@implements
-	def parse(self, module_path: str) -> Entry:
+	def __call__(self, module_path: str) -> Entry:
 		"""モジュールを解析してシンタックスツリーを生成
 
 		Args:
@@ -91,6 +91,17 @@ class SyntaxParserOfLark(SyntaxParser):
 			return EntryStored(EntryOfLark(parser.parse(load_source())))
 
 		return instantiate().entry
+
+	def get_lark_dirty(self) -> Lark:
+		"""Larkインスタンスを取得(デバッグ用)
+
+		Returns:
+			Lark: Larkインスタンス
+		Note:
+			デバッグ用途のため、基本的に使用しないことを推奨
+		"""
+		return self.__load_parser()
+
 
 class LarkStored:
 	"""ストア(Lark版)"""

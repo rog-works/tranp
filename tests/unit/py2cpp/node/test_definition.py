@@ -221,6 +221,26 @@ class TestDefinition(TestCase):
 	# Primary
 
 	@data_provider([
+		('a', 'file_input.var', defs.Var),
+		('a()', 'file_input.funccall.var', defs.Var),
+		('a[0]', 'file_input.getitem.var', defs.Var),
+		('a[0].b', 'file_input.getattr', defs.SymbolRelay),  # FIXME Symbolの想定だが、Symbolと言うよりExpressionなのでどちらにせよ不自然
+		('a[0].b', 'file_input.getattr.getitem.var', defs.Var),
+		('a.b', 'file_input.getattr', defs.Symbol),
+		('a.b()', 'file_input.funccall.getattr', defs.Symbol),
+		('a.b[0]', 'file_input.getitem.getattr', defs.Symbol),
+		('a.b.c', 'file_input.getattr', defs.Symbol),
+		('self', 'file_input.var', defs.This),
+		('self.a', 'file_input.getattr', defs.ThisVar),
+		('self.a()', 'file_input.funccall.getattr', defs.ThisVar),
+		('self.a[0]', 'file_input.getitem.getattr', defs.ThisVar),
+		('self.a.b', 'file_input.getattr', defs.ThisVar),
+	])
+	def test_symbol(self, source: str, full_path: str, expected: type[defs.Symbol]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Symbol)
+		self.assertEqual(type(node), expected)
+
+	@data_provider([
 		('file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block.assign_stmt[2].anno_assign.typed_getitem', {
 			'value_type': 'int',
 		}),

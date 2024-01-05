@@ -4,7 +4,7 @@ from py2cpp.ast.dsn import DSN
 from py2cpp.lang.implementation import implements, override
 from py2cpp.node.definition.common import Argument
 from py2cpp.node.definition.element import Block, Decorator, Parameter, ReturnType
-from py2cpp.node.definition.primary import Symbol, This, ThisVar, Var
+from py2cpp.node.definition.primary import Symbol, ThisVar, Var
 from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
@@ -238,7 +238,7 @@ class Method(Function):
 
 		# XXX Thisのみの判定だと不正確かもしれない
 		parameters = via.parameters
-		return len(parameters) > 0 and parameters[0].symbol.is_a(This)
+		return len(parameters) > 0 and parameters[0].symbol.is_a(ThisVar)
 
 	@property
 	def class_symbol(self) -> Symbol:

@@ -221,23 +221,34 @@ class TestDefinition(TestCase):
 	# Primary
 
 	@data_provider([
-		('a', 'file_input.var', defs.Var),
-		('a()', 'file_input.funccall.var', defs.Var),
-		('a[0]', 'file_input.getitem.var', defs.Var),
-		('a[0].b', 'file_input.getattr', defs.SymbolRelay),  # FIXME Symbolの想定だが、Symbolと言うよりExpressionなのでどちらにせよ不自然
-		('a[0].b', 'file_input.getattr.getitem.var', defs.Var),
-		('a.b', 'file_input.getattr', defs.Symbol),
-		('a.b()', 'file_input.funccall.getattr', defs.Symbol),
-		('a.b[0]', 'file_input.getitem.getattr', defs.Symbol),
-		('a.b.c', 'file_input.getattr', defs.Symbol),
-		('self', 'file_input.var', defs.This),
-		('self.a', 'file_input.getattr', defs.ThisVar),
-		('self.a()', 'file_input.funccall.getattr', defs.ThisVar),
-		('self.a[0]', 'file_input.getitem.getattr', defs.ThisVar),
-		('self.a.b', 'file_input.getattr', defs.ThisVar),
+		('a', 'file_input.var', defs.Name),
+		('a = 0', 'file_input.assign_stmt.assign.var', defs.LocalVar),
+		('a: int = 0', 'file_input.assign_stmt.anno_assign.var', defs.LocalVar),
+		('a()', 'file_input.funccall.var', defs.Name),
+		('a[0]', 'file_input.getitem.var', defs.Name),
+		('a[0].b', 'file_input.getattr', defs.Relay),
+		('a[0].b', 'file_input.getattr.getitem.var', defs.Name),
+		('a[0].b', 'file_input.getattr.name', defs.Name),
+		('a.b', 'file_input.getattr', defs.Relay),
+		('a.b()', 'file_input.funccall.getattr', defs.Relay),
+		('a.b[0]', 'file_input.getitem.getattr', defs.Relay),
+		('a.b.c', 'file_input.getattr', defs.Relay),
+		('self', 'file_input.var', defs.Name),
+		('self.a', 'file_input.getattr', defs.Relay),
+		('self.a = 0', 'file_input.assign_stmt.assign.getattr', defs.ThisVar),
+		('self.a: int = 0', 'file_input.assign_stmt.anno_assign.getattr', defs.ThisVar),
+		('self.a()', 'file_input.funccall.getattr', defs.Relay),
+		('self.a[0]', 'file_input.getitem.getattr', defs.Relay),
+		('self.a.b', 'file_input.getattr', defs.Relay),
+		('for a in arr: pass', 'file_input.for_stmt.name', defs.LocalVar),
+		('try:\n\t...\nexcept E as e: ...', 'file_input.try_stmt.except_clauses.except_clause.var', defs.LocalVar),
+		('raise E() from e', 'file_input.raise_stmt.name', defs.Name),
+		('class A: pass', 'file_input.class_def.class_def_raw.name', defs.ClassName),
+		('def func(a: int) -> None: pass', 'file_input.function_def.function_def_raw.name', defs.ClassName),
+		('def func(a: int) -> None: pass', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.LocalVar),
 	])
-	def test_symbol(self, source: str, full_path: str, expected: type[defs.Symbol]) -> None:
-		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Symbol)
+	def test_symbol(self, source: str, full_path: str, expected: type[defs.Fragment]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Fragment)
 		self.assertEqual(type(node), expected)
 
 	@data_provider([

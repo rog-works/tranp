@@ -66,7 +66,7 @@ class ThisVar(Var):
 class LocalVar(Var):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
-		is_decl_var = via._full_path.parent_tag in ['assign', 'anno_assign', 'typedparam', 'for_stmt', 'except_clause', 'raise_stmt']
+		is_decl_var = via._full_path.parent_tag in ['assign', 'anno_assign', 'typedparam', 'for_stmt', 'except_clause']
 		is_not_self = not via.tokens.startswith('self')
 		is_local = DSN.elem_counts(via.tokens) == 1
 		return is_decl_var and is_not_self and is_local
@@ -103,11 +103,11 @@ class Reference(Fragment, IDomainName):
 		return DSN.join(self.module_path, self.tokens)
 
 
-@Meta.embed(Node, actualized(via=Fragment))
+@Meta.embed(Node, accept_tags('getattr'), actualized(via=Fragment))
 class Relay(Reference):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
-		is_decl_var = via._full_path.parent_tag in ['assign', 'anno_assign', 'typedparam', 'for_stmt', 'except_clause', 'raise_stmt']
+		is_decl_var = via._full_path.parent_tag in ['assign', 'anno_assign', 'typedparam', 'for_stmt', 'except_clause']
 		is_not_self = not via.tokens.startswith('self')
 		is_local = DSN.elem_counts(via.tokens) == 1
 		if is_decl_var and is_not_self and is_local:
@@ -120,7 +120,8 @@ class Relay(Reference):
 
 		is_not_decl_class = via._full_path.parent_tag not in ['class_def_raw', 'enum_def', 'function_def_raw']
 		is_not_decl_import = via._full_path.parent_tag not in ['import_stmt']
-		return is_not_decl_class and is_not_decl_import
+		is_relay = len(via._children()) == 2
+		return is_not_decl_class and is_not_decl_import and is_relay
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -128,15 +129,11 @@ class Relay(Reference):
 		return self._at(0).one_of(Relay | FuncCall | Indexer | Literal)
 
 	@property
-	def has_property(self) -> bool:
-		return len(self._children()) == 2
-
-	@property
 	def property(self) -> 'Name':  # XXX 前方参照
 		return self._at(1).as_a(Name)
 
 
-@Meta.embed(Node, accept_tags('name'), actualized(via=Fragment))
+@Meta.embed(Node, accept_tags('var', 'name'), actualized(via=Fragment))
 class Name(Fragment, ITerminal):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:

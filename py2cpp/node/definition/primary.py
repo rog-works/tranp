@@ -197,7 +197,10 @@ class Type(Node, IDomainName):
 
 
 @Meta.embed(Node, accept_tags('typed_getattr', 'typed_var'))
-class GeneralType(Type): pass
+class GeneralType(Type, ITerminal):
+	@implements
+	def can_expand(self) -> bool:
+		return False
 
 
 @Meta.embed(Node, accept_tags('typed_getitem'))
@@ -249,6 +252,13 @@ class UnionType(GenericType):
 	@Meta.embed(Node, expandable)
 	def types(self) -> list[Symbol]:  # FIXME GenericTypeにも対応
 		return [node.as_a(Symbol) for node in self._children()]
+
+
+@Meta.embed(Node, accept_tags('typed_none'))
+class NoneType(Type, ITerminal):
+	@implements
+	def can_expand(self) -> bool:
+		return False
 
 
 @Meta.embed(Node, accept_tags('funccall'))

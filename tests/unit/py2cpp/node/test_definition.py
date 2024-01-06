@@ -244,8 +244,9 @@ class TestDefinition(TestCase):
 		('try: ...\nexcept A.E as e: ...', 'file_input.try_stmt.except_clauses.except_clause.name', defs.LocalVar),
 		('raise E() from e', 'file_input.raise_stmt.funccall.var', defs.Name),
 		('raise E() from e', 'file_input.raise_stmt.name', defs.Name),
-		('class B(A): pass', 'file_input.class_def.class_def_raw.name', defs.ClassName),
-		('def func(a: int) -> None: pass', 'file_input.function_def.function_def_raw.name', defs.ClassName),
+		('from path.to import A', 'file_input.import_stmt.import_names.name', defs.ImportName),
+		('class B(A): pass', 'file_input.class_def.class_def_raw.name', defs.ClassTypeName),
+		('def func(a: int) -> None: pass', 'file_input.function_def.function_def_raw.name', defs.ClassTypeName),
 		('def func(a: int) -> None: pass', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.LocalVar),
 	])
 	def test_fragment(self, source: str, full_path: str, expected: type[defs.Fragment]) -> None:
@@ -256,7 +257,7 @@ class TestDefinition(TestCase):
 		('a: int = 0', 'file_input.assign_stmt.anno_assign.typed_var', defs.GeneralType),
 		('self.a: int = 0', 'file_input.assign_stmt.anno_assign.typed_var', defs.GeneralType),
 		('try: ...\nexcept A.E as e: ...', 'file_input.try_stmt.except_clauses.except_clause.typed_getattr', defs.GeneralType),
-		('class B(A): pass', 'file_input.class_def.class_def_raw.arguments.argvalue.typed_var', defs.GeneralType),
+		('class B(A): pass', 'file_input.class_def.class_def_raw.typed_arguments.typed_argvalue.typed_var', defs.GeneralType),
 		('def func(a: int) -> None: pass', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.typed_var', defs.GeneralType),
 		('def func(a: int) -> None: pass', 'file_input.function_def.function_def_raw.return_type.typed_none', defs.NoneType),
 	])

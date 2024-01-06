@@ -248,9 +248,18 @@ class TestDefinition(TestCase):
 		('class B(A): pass', 'file_input.class_def.class_def_raw.name', defs.ClassTypeName),
 		('def func(a: int) -> None: pass', 'file_input.function_def.function_def_raw.name', defs.ClassTypeName),
 		('def func(a: int) -> None: pass', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.LocalVar),
+		('def func(self) -> None: pass', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.ThisVar),
 	])
 	def test_fragment(self, source: str, full_path: str, expected: type[defs.Fragment]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Fragment)
+		self.assertEqual(type(node), expected)
+
+	@data_provider([
+		('from path.to import A', 'file_input.import_stmt.dotted_name', defs.ImportPath),
+		('@path.to(a, b)\ndef func() -> None: ...', 'file_input.function_def.decorators.decorator.dotted_name', defs.DecoratorPath),
+	])
+	def test_path(self, source: str, full_path: str, expected: type[defs.Path]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Path)
 		self.assertEqual(type(node), expected)
 
 	@data_provider([

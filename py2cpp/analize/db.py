@@ -6,6 +6,7 @@ from py2cpp.errors import LogicError
 from py2cpp.lang.implementation import injectable
 from py2cpp.module.modules import Module, Modules
 import py2cpp.node.definition as defs
+from py2cpp.node.interface import IDomainName
 
 DeclVar: TypeAlias = defs.Parameter | defs.AnnoAssign | defs.MoveAssign
 DeclAll: TypeAlias = defs.Parameter | defs.AnnoAssign | defs.MoveAssign | defs.ClassKind
@@ -194,10 +195,10 @@ class SymbolDB:
 		Returns:
 			SymbolRow: シンボルデータ
 		"""
-		type_symbol = self.__fetch_type_symbol(var)
+		type_domain = self.__fetch_type_domain(var)
 		candidates = []
-		if type_symbol is not None:
-			candidates = [type_symbol.domain_id, type_symbol.domain_name]
+		if type_domain is not None:
+			candidates = [type_domain.domain_id, type_domain.domain_name]
 		else:
 			# 型が不明な変数はUnknownにフォールバック
 			# XXX Unknownの名前は重要なので定数化などの方法で明示
@@ -207,22 +208,23 @@ class SymbolDB:
 			if candidate in rows:
 				return rows[candidate]
 
-		raise LogicError(f'Unresolve var type. symbol: {var.symbol.tokens}')
+		raise LogicError(f'Unresolve var type. var: {var}, domain: {type_domain}')
 
-	def __fetch_type_symbol(self, var: DeclVar) -> defs.Symbol | None:
-		"""変数の型のシンボルノードを取得。型が不明な場合はNoneを返却
+	def __fetch_type_domain(self, var: DeclVar) -> IDomainName | None:
+		"""変数の型のドメインを取得。型が不明な場合はNoneを返却
 
 		Args:
 			var (DeclVar): 変数宣言ノード
 		Returns:
-			Symbol | None: シンボルノード
+			IDomainName | None: ドメイン名インターフェイス
 		"""
-		if isinstance(var, (defs.AnnoAssign, defs.Parameter)):
-			if var.symbol.is_a(defs.This):
-				return var.symbol.as_a(defs.This).class_types.as_a(defs.ClassKind).symbol
-			elif var.var_type.is_a(defs.Symbol):
-				return var.var_type.as_a(defs.Symbol)
-			elif var.var_type.is_a(defs.GenericType):
-				return var.var_type.as_a(defs.GenericType).symbol
+		if isinstance(var, defs.AnnoAssign):
+			if var.receiver.is_a(defs.ThisVar):
+				return var.receiver.as_a(defs.ThisVar)
+			elif var.var_type.is_a(defs.Type):
+				return var.var_type.as_a(defs.Type).symbol
+		elif isinstance(var, defs.Parameter):
+			if var.var_type.is_a(defs.Type):
+				return var.var_type.as_a(defs.Type).symbol
 
 		return None

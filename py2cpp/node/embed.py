@@ -1,11 +1,7 @@
 from types import FunctionType
 from typing import Any, Callable, NamedTuple, TypeVar, TypeAlias, cast
 
-from py2cpp.node.base import NodeBase
-
-T = TypeVar('T', bound=NodeBase)
 T_Data = TypeVar('T_Data')
-T_Node: TypeAlias = type[NodeBase]
 MetaFactory: TypeAlias = Callable[[], dict[str, Any]]
 
 
@@ -24,7 +20,7 @@ class MetaData:
 
 	def __init__(self) -> None:
 		"""インスタンスを生成"""
-		self.__classes: dict[T_Node, dict[str, Any]] = {}
+		self.__classes: dict[type, dict[str, Any]] = {}
 		self.__methods: dict[FunctionType, dict[str, Any]] = {}
 
 	def class_path(self, ctor: type) -> str:
@@ -47,7 +43,7 @@ class MetaData:
 		"""
 		return f'{method.__module__}.{method.__qualname__.split(".")[-2]}.{method.__name__}'
 
-	def set_for_class(self, ctor: T_Node, embed_key: str, value: Any) -> None:
+	def set_for_class(self, ctor: type, embed_key: str, value: Any) -> None:
 		"""メタデータを設定(クラス用)
 
 		Args:
@@ -88,11 +84,11 @@ class MetaData:
 			if embed_key in meta
 		}
 
-	def get_from_class(self, ctor: T_Node, embed_key: str) -> Any:
+	def get_from_class(self, ctor: type, embed_key: str) -> Any:
 		"""メタデータを取得(クラス用)
 
 		Args:
-			ctor (T_Node): 対象クラス
+			ctor (type): 対象クラス
 			embed_key (str): メタデータのキー
 		Returns:
 			Any: メタデータの値
@@ -107,11 +103,11 @@ class MetaData:
 
 		return self.__classes[ctor][embed_key]
 
-	def get_from_method(self, ctor: T_Node, embed_key: str) -> dict[str, Any]:
+	def get_from_method(self, ctor: type, embed_key: str) -> dict[str, Any]:
 		"""メタデータを取得(メソッド用)
 
 		Args:
-			ctor (T_Node): 対象クラス
+			ctor (type): 対象クラス
 			embed_key (str): メタデータのキー
 		Returns:
 			dict[str, Any]: 対象メソッドの名前とメタデータの値のマップ
@@ -150,7 +146,7 @@ class Meta:
 					...
 			```
 		"""
-		def decorator(wrapped: T_Node | FunctionType) -> T_Node | FunctionType:
+		def decorator(wrapped: type | FunctionType) -> type | FunctionType:
 			for factory in factories:
 				for embed_key, value in factory().items():
 					if not hasattr(holder, MetaData.key):
@@ -187,12 +183,12 @@ class Meta:
 		return meta_data.get_by_key_from_class(embed_key)
 
 	@classmethod
-	def dig_for_class(cls, holder: type, ctor: T_Node, embed_key: str, default: T_Data) -> T_Data:
+	def dig_for_class(cls, holder: type, ctor: type, embed_key: str, default: T_Data) -> T_Data:
 		"""クラスに埋め込まれたメタデータを抽出(クラス用)
 
 		Args:
 			holder (type): メタデータを保持するクラス
-			ctor (T_Node): 抽出対象のクラス
+			ctor (type): 抽出対象のクラス
 			embed_key (str): 抽出対象の埋め込みキー
 			default (T_Data): メタデータが存在しない場合の返却値
 		Returns:
@@ -205,12 +201,12 @@ class Meta:
 		return meta_data.get_from_class(ctor, embed_key) or default
 
 	@classmethod
-	def dig_for_method(cls, holder: type, ctor: T_Node, embed_key: str, value_type: type[T_Data]) -> dict[str, T_Data]:
+	def dig_for_method(cls, holder: type, ctor: type, embed_key: str, value_type: type[T_Data]) -> dict[str, T_Data]:
 		"""クラスに埋め込まれたメタデータを抽出(メソッド用)
 
 		Args:
 			holder (type): メタデータを保持するクラス
-			ctor (T_Node): 抽出対象のクラス
+			ctor (type): 抽出対象のクラス
 			embed_key (str): 抽出対象の埋め込みキー
 			value_type (type[T_Data]): メタデータの型
 		Returns:
@@ -242,11 +238,11 @@ def accept_tags(*tags: str) -> MetaFactory:
 	return lambda: {EmbedKeys.AcceptTags: list(tags)}
 
 
-def actualized(via: T_Node) -> MetaFactory:
+def actualized(via: type) -> MetaFactory:
 	"""引数の基底クラスからノード生成時に最適化対象としての情報を埋め込む(クラス用)
 
 	Args:
-		via (T_Node): 基底クラス
+		via (type): 基底クラス
 	Returns:
 		MetaFactory: 埋め込み関数
 	Examples:

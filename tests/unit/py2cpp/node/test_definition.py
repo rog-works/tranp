@@ -227,6 +227,8 @@ class TestDefinition(TestCase):
 		('a = 0', 'file_input.assign_stmt.assign.var', defs.LocalVar),
 		('a: int = 0', 'file_input.assign_stmt.anno_assign.var', defs.LocalVar),
 		('a()', 'file_input.funccall.var', defs.Name),
+		('a(self.v)', 'file_input.funccall.arguments.argvalue.getattr', defs.Relay),
+		('a(self.v)', 'file_input.funccall.arguments.argvalue.getattr.var', defs.Name),
 		('a[0]', 'file_input.getitem.var', defs.Name),
 		('a[0].b', 'file_input.getattr', defs.Relay),
 		('a[0].b', 'file_input.getattr.getitem.var', defs.Name),
@@ -259,6 +261,26 @@ class TestDefinition(TestCase):
 		self.assertEqual(type(node), expected)
 
 	@data_provider([
+		('a(self.v)', 'file_input.funccall.arguments.argvalue.getattr', {'receiver': defs.Name, 'property': defs.Name}),
+		('a[0].b', 'file_input.getattr', {'receiver': defs.Indexer, 'property': defs.Name}),
+		('a.b', 'file_input.getattr', {'receiver': defs.Name, 'property': defs.Name}),
+		('a.b()', 'file_input.funccall.getattr', {'receiver': defs.Name, 'property': defs.Name}),
+		('a.b[0]', 'file_input.getitem.getattr', {'receiver': defs.Name, 'property': defs.Name}),
+		('a.b.c', 'file_input.getattr', {'receiver': defs.Relay, 'property': defs.Name}),
+		('a.b.c', 'file_input.getattr.getattr', {'receiver': defs.Name, 'property': defs.Name}),
+		('self.a', 'file_input.getattr', {'receiver': defs.Name, 'property': defs.Name}),
+		('self.a()', 'file_input.funccall.getattr', {'receiver': defs.Name, 'property': defs.Name}),
+		('self.a[0]', 'file_input.getitem.getattr', {'receiver': defs.Name, 'property': defs.Name}),
+		('self.a.b', 'file_input.getattr', {'receiver': defs.Relay, 'property': defs.Name}),
+		('self.a().b', 'file_input.getattr', {'receiver': defs.FuncCall, 'property': defs.Name}),
+		('"".a', 'file_input.getattr', {'receiver': defs.String, 'property': defs.Name}),
+	])
+	def test_relay(self, source: str, full_path: str, expected: dict[str, type[defs.Relay]]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Relay)
+		self.assertEqual(type(node.receiver), expected['receiver'])
+		self.assertEqual(type(node.property), expected['property'])
+
+	@data_provider([
 		('from path.to import A', 'file_input.import_stmt.dotted_name', defs.ImportPath),
 		('@path.to(a, b)\ndef func() -> None: ...', 'file_input.function_def.decorators.decorator.dotted_name', defs.DecoratorPath),
 	])
@@ -279,7 +301,7 @@ class TestDefinition(TestCase):
 		('self.a: int = 0', 'file_input.assign_stmt.anno_assign.typed_var', defs.GeneralType),
 		('try: ...\nexcept A.E as e: ...', 'file_input.try_stmt.except_clauses.except_clause.typed_getattr', defs.GeneralType),
 		('class B(A): pass', 'file_input.class_def.class_def_raw.typed_arguments.typed_argvalue.typed_var', defs.GeneralType),
-		('class B(A[T]): pass', 'file_input.class_def.class_def_raw.typed_arguments.typed_argvalue.typed_getitem', defs.GenericType),
+		('class B(A[T]): pass', 'file_input.class_def.class_def_raw.typed_arguments.typed_argvalue.typed_getitem', defs.GenericType),  # XXX 当たらずとも遠からず
 		('def func(a: int) -> None: pass', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.typed_var', defs.GeneralType),
 		('def func(a: int) -> None: pass', 'file_input.function_def.function_def_raw.return_type.typed_none', defs.NoneType),
 	])

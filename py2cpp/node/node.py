@@ -340,12 +340,16 @@ class Node(NodeBase):
 			to_class (type[NodeBase]): 変換先の具象クラス
 		Returns:
 			list[str]: 受け入れタグリスト
+		Note:
+			派生クラスによって上書きする仕様 @see embed.accept_tags
 		"""
-		accept_tags: dict[str, bool] = {}
+		accept_tags: list[str] = []
 		for ctor in self.__embed_classes(to_class):
-			accept_tags = {**accept_tags, **{in_tag: True for in_tag in Meta.dig_for_class(Node, ctor, EmbedKeys.AcceptTags, default=[])}}
+			in_accept_tags = Meta.dig_for_class(Node, ctor, EmbedKeys.AcceptTags, default=[])
+			if len(in_accept_tags) > 0:
+				accept_tags = in_accept_tags
 
-		return list(accept_tags.keys())
+		return accept_tags
 
 	def one_of(self, expects: type[T_NodeBase]) -> T_NodeBase:
 		"""指定のクラスと同じか派生クラスか判定し、合致すればそのままインスタンスを返す。いずれのクラスでもない場合はエラーを出力

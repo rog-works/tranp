@@ -241,14 +241,27 @@ class TestDefinition(TestCase):
 		('self.a[0]', 'file_input.getitem.getattr', defs.Relay),
 		('self.a.b', 'file_input.getattr', defs.Relay),
 		('for a in arr: pass', 'file_input.for_stmt.name', defs.LocalVar),
-		('try:\n\t...\nexcept E as e: ...', 'file_input.try_stmt.except_clauses.except_clause.var', defs.LocalVar),
+		('try: ...\nexcept A.E as e: ...', 'file_input.try_stmt.except_clauses.except_clause.name', defs.LocalVar),
+		('raise E() from e', 'file_input.raise_stmt.funccall.var', defs.Name),
 		('raise E() from e', 'file_input.raise_stmt.name', defs.Name),
-		('class A: pass', 'file_input.class_def.class_def_raw.name', defs.ClassName),
+		('class B(A): pass', 'file_input.class_def.class_def_raw.name', defs.ClassName),
 		('def func(a: int) -> None: pass', 'file_input.function_def.function_def_raw.name', defs.ClassName),
 		('def func(a: int) -> None: pass', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.LocalVar),
 	])
-	def test_symbol(self, source: str, full_path: str, expected: type[defs.Fragment]) -> None:
+	def test_fragment(self, source: str, full_path: str, expected: type[defs.Fragment]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Fragment)
+		self.assertEqual(type(node), expected)
+
+	@data_provider([
+		('a: int = 0', 'file_input.assign_stmt.anno_assign.typed_var', defs.GeneralType),
+		('self.a: int = 0', 'file_input.assign_stmt.anno_assign.typed_var', defs.GeneralType),
+		('try: ...\nexcept A.E as e: ...', 'file_input.try_stmt.except_clauses.except_clause.typed_getattr', defs.GeneralType),
+		('class B(A): pass', 'file_input.class_def.class_def_raw.arguments.argvalue.typed_var', defs.GeneralType),
+		('def func(a: int) -> None: pass', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.typed_var', defs.GeneralType),
+		('def func(a: int) -> None: pass', 'file_input.function_def.function_def_raw.return_type.typed_none', defs.NoneType),
+	])
+	def test_type(self, source: str, full_path: str, expected: type[defs.Type]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Type)
 		self.assertEqual(type(node), expected)
 
 	@data_provider([

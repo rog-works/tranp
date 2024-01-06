@@ -30,7 +30,7 @@ class TestDefinition(TestCase):
 				{'name': 'self', 'type': 'Empty', 'default': 'Empty'},
 				{'name': 'value', 'type': 'int', 'default': 'Empty'},
 			],
-			'return': defs.Symbol,
+			'return': defs.GeneralType,
 		}),
 		('file_input.class_def[4].class_def_raw.block.function_def[2]', {
 			'name': '_func2',
@@ -51,7 +51,7 @@ class TestDefinition(TestCase):
 			'parameters': [
 				{'name': 'ok', 'type': 'bool', 'default': 'Empty'},
 			],
-			'return': defs.Null,
+			'return': defs.NoneType,
 		}),
 	])
 	def test_function(self, full_path: str, expected: dict[str, Any]) -> None:
@@ -71,8 +71,8 @@ class TestDefinition(TestCase):
 		for index, parameter in enumerate(node.parameters):
 			in_expected = expected['parameters'][index]
 			self.assertEqual(parameter.symbol.tokens, in_expected['name'])
-			self.assertEqual(parameter.var_type.tokens if parameter.var_type.is_a(defs.Symbol) else 'Empty', in_expected['type'])
-			self.assertEqual(parameter.default_value.tokens if parameter.default_value.is_a(defs.Terminal) else 'Empty', in_expected['default'])
+			self.assertEqual(parameter.var_type.tokens if not parameter.var_type.is_a(defs.Empty) else 'Empty', in_expected['type'])
+			self.assertEqual(parameter.default_value.tokens if not parameter.default_value.is_a(defs.Empty) else 'Empty', in_expected['default'])
 
 		self.assertEqual(type(node.return_type.var_type), expected['return'])
 		self.assertEqual(type(node.block), defs.Block)
@@ -135,13 +135,15 @@ class TestDefinition(TestCase):
 			self.assertEqual(len(constructor.decl_vars), len(in_expected['decl_vars']))
 			for index, var in enumerate(constructor.decl_vars):
 				in_var_expected = in_expected['decl_vars'][index]
-				self.assertEqual(var.symbol.tokens, in_var_expected['symbol'])
 				if isinstance(var, defs.AnnoAssign):
+					self.assertEqual(var.receiver.tokens, in_var_expected['symbol'])
 					self.assertEqual(var.var_type.tokens, in_var_expected['type'])
 				elif isinstance(var, defs.MoveAssign):
+					self.assertEqual(var.receiver.tokens, in_var_expected['symbol'])
 					self.assertEqual('Empty', in_var_expected['type'])
 				elif isinstance(var, defs.Parameter):
-					self.assertEqual(var.var_type.tokens if var.var_type.is_a(defs.Symbol) else 'Empty', in_var_expected['type'])
+					self.assertEqual(var.symbol.tokens, in_var_expected['symbol'])
+					self.assertEqual(var.var_type.tokens if not var.var_type.is_a(defs.Empty) else 'Empty', in_var_expected['type'])
 
 		self.assertEqual(len(node.methods), len(expected['methods']))
 		for index, method in enumerate(node.methods):
@@ -153,7 +155,7 @@ class TestDefinition(TestCase):
 		for index, var in enumerate(node.vars):
 			in_expected = expected['vars'][index]
 			self.assertEqual(type(var), in_expected['type'])
-			self.assertEqual(var.symbol.tokens, in_expected['symbol'])
+			self.assertEqual(var.receiver.tokens, in_expected['symbol'])
 
 	@data_provider([
 		('file_input.class_def[4].class_def_raw.block.enum_def', {
@@ -170,7 +172,7 @@ class TestDefinition(TestCase):
 		self.assertEqual(len(node.vars), len(expected['vars']))
 		for index, var in enumerate(node.vars):
 			in_expected = expected['vars'][index]
-			self.assertEqual(var.symbol.tokens, in_expected['symbol'])
+			self.assertEqual(var.receiver.tokens, in_expected['symbol'])
 			self.assertEqual(var.value.tokens, in_expected['value'])
 
 	# Statement simple
@@ -184,7 +186,7 @@ class TestDefinition(TestCase):
 	])
 	def test_anno_assign(self, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.shared_nodes.by(full_path).as_a(defs.AnnoAssign)
-		self.assertEqual(node.symbol.tokens, expected['symbol'])
+		self.assertEqual(node.receiver.tokens, expected['symbol'])
 		self.assertEqual(type(node.var_type), expected['var_type'])
 		self.assertEqual(type(node.value), expected['value'])
 
@@ -318,20 +320,20 @@ class TestDefinition(TestCase):
 
 	@data_provider([
 		('file_input.funccall', {
-			'caller': 'pragma',
+			'calls': 'pragma',
 			'arguments': [
 				{'value': "'once'"},
 			],
 			'calculated': [
-				'<Var: file_input.funccall.var>',
+				'<Name: file_input.funccall.var>',
 				'<String: file_input.funccall.arguments.argvalue.string>',
 				'<Argument: file_input.funccall.arguments.argvalue>',
 			],
 		}),
 	])
-	def test_funccall(self, full_path: str, expected: dict[str, Any]) -> None:
+	def test_func_call(self, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.shared_nodes.by(full_path).as_a(defs.FuncCall)
-		self.assertEqual(node.calls.tokens, expected['caller'])
+		self.assertEqual(node.calls.tokens, expected['calls'])
 		self.assertEqual(len(node.arguments), len(expected['arguments']))
 		for index, argument in enumerate(node.arguments):
 			in_expected = expected['arguments'][index]

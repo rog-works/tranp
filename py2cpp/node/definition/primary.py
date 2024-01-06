@@ -12,7 +12,29 @@ from py2cpp.node.node import Node
 from py2cpp.node.protocol import Symbolization
 
 @Meta.embed(Node, accept_tags('getattr', 'var', 'name'))
-class Fragment(Node): pass
+class Fragment(Node):
+	@property
+	def is_this_var(self) -> bool:
+		tokens = self.tokens
+		is_decl_var = self._full_path.parent_tag in ['assign', 'anno_assign', 'typedparam']
+		is_self = re.fullmatch(r'self.\w+', tokens) is not None
+		return is_decl_var and is_self
+
+	@property
+	def is_local_var(self) -> bool:
+		tokens = self.tokens
+		is_decl_var = self._full_path.parent_tag in ['assign', 'anno_assign', 'typedparam', 'for_stmt', 'except_clause']
+		is_not_self = not tokens.startswith('self')
+		is_local = DSN.elem_counts(tokens) == 1
+		return is_decl_var and is_not_self and is_local
+
+	@property
+	def in_decl_class_type(self) -> bool:
+		return self._full_path.parent_tag in ['class_def_raw', 'enum_def', 'function_def_raw']
+
+	@property
+	def in_decl_import(self) -> bool:
+		return self._full_path.parent_tag == 'import_names'
 
 
 class Symbol(Fragment, IDomainName, ITerminal):
@@ -37,10 +59,8 @@ class Var(Symbol): pass
 @Meta.embed(Node, actualized(via=Fragment))
 class ThisVar(Var):
 	@classmethod
-	def match_feature(cls, via: Node) -> bool:
-		is_decl_var = via._full_path.parent_tag in ['assign', 'anno_assign', 'typedparam']
-		is_self = re.fullmatch(r'self.\w+', via.tokens) is not None
-		return is_decl_var and is_self
+	def match_feature(cls, via: Fragment) -> bool:
+		return via.is_this_var
 
 	@property
 	@override
@@ -65,30 +85,25 @@ class ThisVar(Var):
 @Meta.embed(Node, accept_tags('var', 'name'), actualized(via=Fragment))
 class LocalVar(Var):
 	@classmethod
-	def match_feature(cls, via: Node) -> bool:
-		is_decl_var = via._full_path.parent_tag in ['assign', 'anno_assign', 'typedparam', 'for_stmt', 'except_clause']
-		is_not_self = not via.tokens.startswith('self')
-		is_local = DSN.elem_counts(via.tokens) == 1
-		return is_decl_var and is_not_self and is_local
+	def match_feature(cls, via: Fragment) -> bool:
+		return via.is_local_var
 
 
 class DeclName(Symbol): pass
 
 
 @Meta.embed(Node, accept_tags('name'), actualized(via=Fragment))
-class ClassName(DeclName):
+class ClassTypeName(DeclName):
 	@classmethod
-	def match_feature(cls, via: Node) -> bool:
-		is_decl_class = via._full_path.parent_tag in ['class_def_raw', 'enum_def', 'function_def_raw']
-		return is_decl_class
+	def match_feature(cls, via: Fragment) -> bool:
+		return via.in_decl_class_type
 
 
 @Meta.embed(Node, accept_tags('name'), actualized(via=Fragment))
 class ImportName(DeclName):
 	@classmethod
-	def match_feature(cls, via: Node) -> bool:
-		is_decl_import = via._full_path.parent_tag == 'import_names'
-		return is_decl_import
+	def match_feature(cls, via: Fragment) -> bool:
+		return via.in_decl_import
 
 
 class Reference(Fragment, IDomainName):
@@ -106,22 +121,14 @@ class Reference(Fragment, IDomainName):
 @Meta.embed(Node, accept_tags('getattr'), actualized(via=Fragment))
 class Relay(Reference):
 	@classmethod
-	def match_feature(cls, via: Node) -> bool:
-		is_decl_var = via._full_path.parent_tag in ['assign', 'anno_assign', 'typedparam', 'for_stmt', 'except_clause']
-		is_not_self = not via.tokens.startswith('self')
-		is_local = DSN.elem_counts(via.tokens) == 1
-		if is_decl_var and is_not_self and is_local:
+	def match_feature(cls, via: Fragment) -> bool:
+		if via.is_local_var or via.is_this_var:
 			return False
 
-		is_decl_var = via._full_path.parent_tag in ['assign', 'anno_assign', 'typedparam']
-		is_self = re.fullmatch(r'self.\w+', via.tokens) is not None
-		if is_decl_var and is_self:
+		if via.in_decl_class_type or via.in_decl_import:
 			return False
 
-		is_not_decl_class = via._full_path.parent_tag not in ['class_def_raw', 'enum_def', 'function_def_raw']
-		is_not_decl_import = via._full_path.parent_tag not in ['import_stmt']
-		is_relay = len(via._children()) == 2
-		return is_not_decl_class and is_not_decl_import and is_relay
+		return True
 
 	@property
 	@Meta.embed(Node, expandable)

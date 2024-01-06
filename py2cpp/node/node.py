@@ -363,8 +363,8 @@ class Node(NodeBase):
 		Examples:
 			```python
 			@property
-			def var_type(self) -> Symbol | GenericType | Null:
-				return self._at(1).one_of(Symbol | GenericType | Null)
+			def var_type(self) -> Type | Null:
+				return self._at(1).one_of(Type | Null)
 			```
 		"""
 		if hasattr(expects, '__args__'):

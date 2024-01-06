@@ -48,6 +48,7 @@ class Symbol(Fragment, IDomainName, ITerminal):
 	def domain_name(self) -> str:
 		return DSN.join(self.module_path, self.tokens)
 
+	@property
 	@implements
 	def can_expand(self) -> bool:
 		return False
@@ -141,12 +142,13 @@ class Relay(Reference):
 
 
 @Meta.embed(Node, accept_tags('var', 'name'), actualized(via=Fragment))
-class Name(Fragment, ITerminal):
+class Name(Reference, ITerminal):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
 		# XXX actualizeループの結果を元に排他的に決定(実質的なフォールバック)
 		return True
 
+	@property
 	@implements
 	def can_expand(self) -> bool:
 		return False
@@ -154,6 +156,7 @@ class Name(Fragment, ITerminal):
 
 @Meta.embed(Node, accept_tags('dotted_name'))
 class Path(Node, ITerminal):
+	@property
 	@implements
 	def can_expand(self) -> bool:
 		return False
@@ -177,8 +180,8 @@ class DecoratorPath(Path):
 class Indexer(Node):
 	@property
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> Symbol:  # FIXME シンボル以外も有り得るので不正確
-		return self._at(0).as_a(Symbol)
+	def symbol(self) -> Reference:  # XXX symbol以外の名前を検討
+		return self._at(0).as_a(Reference)
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -199,12 +202,13 @@ class Type(Node, IDomainName):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> 'Type':
+	def symbol(self) -> 'Type':  # XXX symbol以外の名前を検討
 		return self._at(0).as_a(Type)
 
 
 @Meta.embed(Node, accept_tags('typed_getattr', 'typed_var'))
 class GeneralType(Type, ITerminal):
+	@property
 	@implements
 	def can_expand(self) -> bool:
 		return False
@@ -263,6 +267,7 @@ class UnionType(GenericType):
 
 @Meta.embed(Node, accept_tags('typed_none'))
 class NoneType(Type, ITerminal):
+	@property
 	@implements
 	def can_expand(self) -> bool:
 		return False

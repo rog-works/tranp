@@ -2,9 +2,9 @@ import re
 
 from py2cpp.ast.dsn import DSN
 from py2cpp.lang.implementation import implements, override
-from py2cpp.node.definition.common import Argument
+from py2cpp.node.definition.common import InheritArgument
 from py2cpp.node.definition.element import Block, Decorator, Parameter, ReturnType
-from py2cpp.node.definition.primary import Symbol, ThisVar, Var
+from py2cpp.node.definition.primary import LocalVar, Symbol, ThisVar, Type
 from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
@@ -86,8 +86,8 @@ class For(Flow):
 class Catch(Flow):
 	@property
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> Symbol:
-		return self._by('primary').as_a(Symbol)
+	def symbol(self) -> Type:  # XXX symbol以外の名前を検討
+		return self._by('typed_expression').as_a(Type)
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -195,7 +195,7 @@ class Function(ClassType):
 
 	@property
 	def decl_vars(self) -> list[Parameter | AnnoAssign | MoveAssign]:
-		return [*self.parameters, *self.block.decl_vars_with(Var)]
+		return [*self.parameters, *self.block.decl_vars_with(LocalVar)]
 
 
 @Meta.embed(Node, actualized(via=Function))
@@ -259,7 +259,7 @@ class Class(ClassType):
 		return self.__alias_symbol or self._by('class_def_raw.name').as_a(Symbol)
 
 	@property
-	def __alias_symbol(self) -> Symbol | None:
+	def __alias_symbol(self) -> Symbol | None:  # FIXME 現状解決策なし
 		"""Symbol: 特定の書式のデコレーターで設定した別名をクラス名のシンボルとして取り込む @node: 書式: `@__alias__.${alias_symbol}`。標準ライブラリの実装にのみ使う想定"""
 		decorators = self.decorators
 		if len(decorators) == 0:
@@ -278,12 +278,12 @@ class Class(ClassType):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def parents(self) -> list[Symbol]:
+	def parents(self) -> list[Type]:
 		parents = self._by('class_def_raw')._at(1)
 		if parents.is_a(Empty):
 			return []
 
-		return [node.as_a(Argument).value.as_a(Symbol) for node in parents._children()]
+		return [node.as_a(InheritArgument).class_type.as_a(Type) for node in parents._children()]  # XXX as_a(Type)を消す
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -314,7 +314,7 @@ class Class(ClassType):
 
 	@property
 	def class_vars(self) -> list[AnnoAssign | MoveAssign]:
-		return self.block.decl_vars_with(Var)
+		return self.block.decl_vars_with(LocalVar)
 
 	@property
 	def instance_vars(self) -> list[AnnoAssign | MoveAssign]:

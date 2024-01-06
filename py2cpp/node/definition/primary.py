@@ -199,8 +199,8 @@ class Type(Node, IDomainName):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> Symbol:  # FIXME シンボル以外も有り得るので不正確
-		return self._at(0).as_a(Symbol)
+	def symbol(self) -> 'Type':
+		return self._at(0).as_a(Type)
 
 
 @Meta.embed(Node, accept_tags('typed_getattr', 'typed_var'))
@@ -216,7 +216,7 @@ class GenericType(Type): pass
 
 class CollectionType(GenericType):
 	@property
-	def value_type(self) -> Symbol | GenericType:
+	def value_type(self) -> Type:
 		raise NotImplementedError()
 
 
@@ -230,8 +230,8 @@ class ListType(CollectionType):
 	@property
 	@override
 	@Meta.embed(Node, expandable)
-	def value_type(self) -> Symbol | GenericType:
-		return self._by('typed_slices.typed_slice')._at(0).one_of(Symbol | GenericType)
+	def value_type(self) -> Type:
+		return self._by('typed_slices.typed_slice')._at(0).as_a(Type)
 
 
 @Meta.embed(Node, actualized(via=GenericType))
@@ -243,22 +243,22 @@ class DictType(GenericType):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def key_type(self) -> Symbol | GenericType:
-		return self._by('typed_slices.typed_slice[0]')._at(0).one_of(Symbol | GenericType)
+	def key_type(self) -> Type:
+		return self._by('typed_slices.typed_slice[0]')._at(0).one_of(Type)
 
 	@property
 	@override
 	@Meta.embed(Node, expandable)
-	def value_type(self) -> Symbol | GenericType:
-		return self._by('typed_slices.typed_slice[1]')._at(0).one_of(Symbol | GenericType)
+	def value_type(self) -> Type:
+		return self._by('typed_slices.typed_slice[1]')._at(0).one_of(Type)
 
 
 @Meta.embed(Node, accept_tags('typed_or_expr'))
 class UnionType(GenericType):
 	@property
 	@Meta.embed(Node, expandable)
-	def types(self) -> list[Symbol]:  # FIXME GenericTypeにも対応
-		return [node.as_a(Symbol) for node in self._children()]
+	def types(self) -> list[Type]:
+		return [node.as_a(Type) for node in self._children()]
 
 
 @Meta.embed(Node, accept_tags('typed_none'))

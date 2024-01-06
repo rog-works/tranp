@@ -15,7 +15,7 @@ class Assign(Node):
 	@property
 	@Meta.embed(Node, expandable)
 	def receiver(self) -> Symbol | Reference | Indexer:
-		return self._elements[0].one_of(Symbol | Indexer)
+		return self._elements[0].one_of(Symbol | Reference | Indexer)
 
 
 @Meta.embed(Node, actualized(via=Assign))

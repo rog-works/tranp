@@ -1,5 +1,5 @@
 from py2cpp.lang.implementation import override
-from py2cpp.node.definition.primary import Var
+from py2cpp.node.definition.primary import LocalVar
 from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from py2cpp.node.embed import Meta, accept_tags, expandable
 from py2cpp.node.node import Node
@@ -28,6 +28,6 @@ class Entrypoint(Node):
 		assigns = {
 			node.one_of(AnnoAssign | MoveAssign): True
 			for node in reversed(self.statements)
-			if isinstance(node, (AnnoAssign, MoveAssign)) and node.symbol.is_a(Var)
+			if isinstance(node, (AnnoAssign, MoveAssign)) and node.receiver.is_a(LocalVar)
 		}
 		return list(reversed(assigns.keys()))

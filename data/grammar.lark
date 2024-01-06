@@ -113,6 +113,7 @@ for_stmt: "for" name "in" expression ":" block
 // @lark except_clause: "except" [test ["as" name]] ":" suite
 try_stmt: "try" ":" block except_clauses
 except_clauses: except_clause+
+// @note XXX typed_expressionの箇所は本来は式だが、クラス以外を指定する事はまずないので簡易化しておく
 except_clause: "except" typed_expression ["as" name] ":" block
 
 // Match statement

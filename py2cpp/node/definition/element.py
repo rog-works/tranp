@@ -41,7 +41,7 @@ class ReturnType(Node):
 class Decorator(Node):
 	@property
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> DecoratorPath:  # FIXME symbol以外の名前を検討
+	def symbol(self) -> DecoratorPath:  # XXX symbol以外の名前を検討
 		return self._by('dotted_name').as_a(DecoratorPath)
 
 	@property

@@ -86,7 +86,8 @@ class For(Flow):
 class Catch(Flow):
 	@property
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> Type:  # XXX symbol以外の名前を検討
+	def capture_type(self) -> Type:
+		# XXX Pythonの仕様では複数の型を捕捉できるが一旦単数で実装
 		return self._by('typed_expression').as_a(Type)
 
 	@property

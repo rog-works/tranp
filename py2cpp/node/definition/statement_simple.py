@@ -17,6 +17,16 @@ class Assign(Node):
 	def receiver(self) -> Symbol | Reference | Indexer:
 		return self._elements[0].one_of(Symbol | Reference | Indexer)
 
+	@property
+	def symbol(self) -> Symbol:
+		"""
+		Note:
+			XXX MoveAssign/AnnoAssign/Parameterのインターフェイスを統一するために定義
+			XXX receiverがSymbol以外のインスタンスで使用するとエラーが発生する
+			XXX シンボルテーブル作成時以外に使用しないと言う前提
+		"""
+		return self._elements[0].as_a(Symbol)
+
 
 @Meta.embed(Node, actualized(via=Assign))
 class MoveAssign(Assign):

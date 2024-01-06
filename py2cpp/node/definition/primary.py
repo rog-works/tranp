@@ -17,7 +17,7 @@ class Fragment(Node):
 	def is_this_var(self) -> bool:
 		tokens = self.tokens
 		is_decl_var = self._full_path.parent_tag in ['assign', 'anno_assign', 'typedparam']
-		is_self = re.fullmatch(r'self.\w+', tokens) is not None
+		is_self = re.fullmatch(r'self(.\w+)?', tokens) is not None
 		return is_decl_var and is_self
 
 	@property

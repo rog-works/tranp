@@ -7,7 +7,7 @@ from tests.test.helper import data_provider
 
 class TestSymbolDB(TestCase):
 	fixture = Fixture.make(__file__)
-	__verbose = False
+	__verbose = True
 
 	@data_provider([
 		({

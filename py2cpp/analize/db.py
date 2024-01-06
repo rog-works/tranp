@@ -227,7 +227,14 @@ class SymbolDB:
 			else:
 				return receiver.as_a(defs.ThisVar).class_types.as_a(defs.Class)
 		elif isinstance(var, defs.Parameter):
-			if var.var_type.is_a(defs.Type):
-				return var.var_type.as_a(defs.Type)
+			symbol = var.symbol
+			if not symbol.is_a(defs.ThisVar):
+				if var.var_type.is_a(defs.Type):
+					return var.var_type.as_a(defs.Type)
+			elif not symbol.as_a(defs.ThisVar).is_this_only:
+				if var.var_type.is_a(defs.Type):
+					return var.var_type.as_a(defs.Type)
+			else:
+				return symbol.as_a(defs.ThisVar).class_types.as_a(defs.Class)
 
 		return None

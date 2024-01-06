@@ -208,7 +208,7 @@ class SymbolDB:
 			if candidate in rows:
 				return rows[candidate]
 
-		raise LogicError(f'Unresolve var type. var: {var}, domain: {type_domain}')
+		raise LogicError(f'Unresolve var type. var: {var}, candidates: {candidates}')
 
 	def __fetch_type_domain(self, var: DeclVar) -> IDomainName | None:
 		"""変数の型のドメインを取得。型が不明な場合はNoneを返却
@@ -222,9 +222,9 @@ class SymbolDB:
 			if var.receiver.is_a(defs.ThisVar):
 				return var.receiver.as_a(defs.ThisVar)
 			elif var.var_type.is_a(defs.Type):
-				return var.var_type.as_a(defs.Type).symbol
+				return var.var_type.as_a(defs.Type)
 		elif isinstance(var, defs.Parameter):
 			if var.var_type.is_a(defs.Type):
-				return var.var_type.as_a(defs.Type).symbol
+				return var.var_type.as_a(defs.Type)
 
 		return None

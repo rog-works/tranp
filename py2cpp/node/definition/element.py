@@ -1,13 +1,11 @@
 from py2cpp.lang.implementation import implements
 from py2cpp.node.definition.common import Argument
-from py2cpp.node.definition.literal import Null
 from py2cpp.node.definition.primary import DecoratorPath, Symbol, Type
 from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, expandable
-from py2cpp.node.base import T_NodeBase
 from py2cpp.node.interface import IScope
-from py2cpp.node.node import Node
+from py2cpp.node.node import Node, T_Node
 
 
 @Meta.embed(Node, accept_tags('paramvalue'))
@@ -68,7 +66,7 @@ class Block(Node, IScope):
 	def statements(self) -> list[Node]:
 		return self._children()
 
-	def decl_vars_with(self, allow: type[T_NodeBase]) -> list[AnnoAssign | MoveAssign]:
+	def decl_vars_with(self, allow: type[T_Node]) -> list[AnnoAssign | MoveAssign]:
 		# @see general.Entrypoint.block.decl_vars
 		assigns = {
 			node.one_of(AnnoAssign | MoveAssign): True

@@ -202,8 +202,8 @@ class Type(Node, IDomainName):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> 'Type':  # XXX symbol以外の名前を検討
-		return self._at(0).as_a(Type)
+	def symbol(self) -> 'Type | Name':  # XXX symbol以外の名前を検討 XXX Nameは微妙
+		return self._at(0).one_of(Type | Name)
 
 
 @Meta.embed(Node, accept_tags('typed_getattr', 'typed_var'))

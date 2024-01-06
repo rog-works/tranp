@@ -233,6 +233,8 @@ class TestDefinition(TestCase):
 		('a.b()', 'file_input.funccall.getattr', defs.Relay),
 		('a.b[0]', 'file_input.getitem.getattr', defs.Relay),
 		('a.b.c', 'file_input.getattr', defs.Relay),
+		('a.b.c', 'file_input.getattr.getattr', defs.Relay),
+		('a.b.c', 'file_input.getattr.getattr.var', defs.Name),
 		('self', 'file_input.var', defs.Name),
 		('self.a', 'file_input.getattr', defs.Relay),
 		('self.a = 0', 'file_input.assign_stmt.assign.getattr', defs.ThisVar),

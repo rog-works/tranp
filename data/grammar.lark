@@ -53,7 +53,7 @@ enum_def: "class" name "(" "CEnum" ")" ":" block
 // @decl `class class_name(parent1, parent2, ...):`
 // @lark classdef: "class" name ["(" [arguments] ")"] ":" block
 class_def: [decorators] class_def_raw
-class_def_raw: "class" name ["(" [arguments] ")"] ":" block
+class_def_raw: "class" name ["(" [typed_arguments] ")"] ":" block
 
 // # Function definitions
 
@@ -90,6 +90,9 @@ parameters: paramvalue ("," paramvalue)*
 
 typed_slices: typed_slice | typed_slice (("," typed_slice)+ [","] | ",")
 typed_slice: typed_primary
+
+typed_arguments: typed_argvalue ("," typed_argvalue)*
+typed_argvalue: typed_expression
 
 // # Function call argumanets
 

@@ -16,17 +16,17 @@ class Fragment(Node):
 	@property
 	def is_this_var(self) -> bool:
 		tokens = self.tokens
-		is_decl_var = self._full_path.parent_tag in ['assign', 'anno_assign', 'typedparam']
+		in_decl_var = self._full_path.parent_tag in ['assign', 'anno_assign', 'typedparam']
 		is_self = re.fullmatch(r'self(.\w+)?', tokens) is not None
-		return is_decl_var and is_self
+		return in_decl_var and is_self
 
 	@property
 	def is_local_var(self) -> bool:
 		tokens = self.tokens
-		is_decl_var = self._full_path.parent_tag in ['assign', 'anno_assign', 'typedparam', 'for_stmt', 'except_clause']
+		in_decl_var = self._full_path.parent_tag in ['assign', 'anno_assign', 'typedparam', 'for_stmt', 'except_clause']
 		is_not_self = not tokens.startswith('self')
 		is_local = DSN.elem_counts(tokens) == 1
-		return is_decl_var and is_not_self and is_local
+		return in_decl_var and is_not_self and is_local
 
 	@property
 	def in_decl_class_type(self) -> bool:
@@ -291,4 +291,5 @@ class Super(FuncCall):
 
 	@property
 	def class_symbol(self) -> Symbol:
+		# FIXME 親クラスを参照するべきなので誤り
 		return cast(Symbolization, self._ancestor('class_def')).symbol.as_a(Symbol)

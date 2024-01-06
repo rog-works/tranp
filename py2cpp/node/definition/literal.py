@@ -63,6 +63,10 @@ class String(Literal):
 	def class_symbol_alias(self) -> str:
 		return 'str'
 
+	@property
+	def plain(self) -> str:
+		return self.tokens[1:-1]
+
 
 class Boolean(Literal):
 	@property

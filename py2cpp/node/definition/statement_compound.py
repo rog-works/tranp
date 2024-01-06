@@ -4,6 +4,7 @@ from py2cpp.ast.dsn import DSN
 from py2cpp.lang.implementation import implements, override
 from py2cpp.node.definition.common import InheritArgument
 from py2cpp.node.definition.element import Block, Decorator, Parameter, ReturnType
+from py2cpp.node.definition.literal import String
 from py2cpp.node.definition.primary import LocalVar, Symbol, ThisVar, Type
 from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from py2cpp.node.definition.terminal import Empty
@@ -257,11 +258,12 @@ class Class(ClassKind):
 	@override
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Symbol:
-		return self.__alias_symbol or self._by('class_def_raw.name').as_a(Symbol)
+		symbol = self._by('class_def_raw.name').as_a(Symbol)
+		alias = self.__alias_symbol()
+		return symbol if not alias else symbol.dirty_proxify(tokens=alias).as_a(Symbol)
 
-	@property
-	def __alias_symbol(self) -> Symbol | None:  # FIXME 現状解決策なし
-		"""Symbol: 特定の書式のデコレーターで設定した別名をクラス名のシンボルとして取り込む @node: 書式: `@__alias__.${alias_symbol}`。標準ライブラリの実装にのみ使う想定"""
+	def __alias_symbol(self) -> str | None:
+		"""Symbol: 特定の書式のデコレーターで設定した別名をクラス名のシンボルとして取り込む @node: 書式: `@__alias__(${alias_symbol})`。標準ライブラリの実装にのみ使う想定"""
 		decorators = self.decorators
 		if len(decorators) == 0:
 			return None
@@ -270,7 +272,7 @@ class Class(ClassKind):
 		if not decorator.symbol.tokens.startswith('__alias__'):
 			return None
 
-		return decorator.symbol._by('name[1]').as_a(Symbol)
+		return decorator.arguments[0].value.as_a(String).plain
 
 	@property
 	@Meta.embed(Node, expandable)

@@ -470,3 +470,15 @@ class TestNode(TestCase):
 		node = di.currying(NodeSet, Callable[[str], Node])('node_subset')
 		self.assertEqual(type(node), NodeSet)
 		self.assertEqual(type(node.actualize()), NodeSubset)
+
+	@data_provider([
+		('file_input.function.block.term_a', {'from': 'F1_A', 'to': 'hoge'}),
+	])
+	def test_dirty_proxify(self, full_path: str, expected: dict[str, str]) -> None:
+		nodes = Fixture.nodes()
+		node = nodes.by(full_path)
+		proxy = node.dirty_proxify(tokens=expected['to'])
+		self.assertEqual(isinstance(node, Terminal), True)
+		self.assertEqual(isinstance(proxy, Terminal), True)
+		self.assertEqual(node.tokens, expected['from'])
+		self.assertEqual(proxy.tokens, expected['to'])

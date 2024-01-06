@@ -8,7 +8,7 @@ from py2cpp.module.modules import Module, Modules
 import py2cpp.node.definition as defs
 
 DeclVar: TypeAlias = defs.Parameter | defs.AnnoAssign | defs.MoveAssign
-DeclAll: TypeAlias = defs.Parameter | defs.AnnoAssign | defs.MoveAssign | defs.ClassType
+DeclAll: TypeAlias = defs.Parameter | defs.AnnoAssign | defs.MoveAssign | defs.ClassKind
 
 
 class SymbolRow(NamedTuple):
@@ -19,14 +19,14 @@ class SymbolRow(NamedTuple):
 		org_path (str): 参照パス(オリジナル)
 		module (Module): 展開先のモジュール
 		symbol (Symbol): シンボルノード
-		types (ClassType): タイプノード
+		types (ClassKind): タイプノード
 		decl (DeclAll): 宣言ノード
 	"""
 	ref_path: str
 	org_path: str
 	module: Module
 	symbol: defs.Symbol
-	types: defs.ClassType
+	types: defs.ClassKind
 	decl: DeclAll
 
 	def to(self, module: Module) -> 'SymbolRow':
@@ -161,7 +161,7 @@ class SymbolDB:
 		import_nodes: list[defs.Import] = []
 		entrypoint = module.entrypoint.as_a(defs.Entrypoint)
 		for node in entrypoint.flatten():
-			if isinstance(node, defs.ClassType):
+			if isinstance(node, defs.ClassKind):
 				rows[node.domain_id] = SymbolRow(node.domain_id, node.domain_id, module, node.symbol, node, node)
 
 			if type(node) is defs.Import:
@@ -219,7 +219,7 @@ class SymbolDB:
 		"""
 		if isinstance(var, (defs.AnnoAssign, defs.Parameter)):
 			if var.symbol.is_a(defs.This):
-				return var.symbol.as_a(defs.This).class_types.as_a(defs.ClassType).symbol
+				return var.symbol.as_a(defs.This).class_types.as_a(defs.ClassKind).symbol
 			elif var.var_type.is_a(defs.Symbol):
 				return var.var_type.as_a(defs.Symbol)
 			elif var.var_type.is_a(defs.GenericType):

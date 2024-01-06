@@ -47,14 +47,14 @@ class TestSymbols(TestCase):
 		(dict, _mod('classes', 'dict')),
 		(None, _mod('classes', 'None')),
 	])
-	def test_primitive_of(self, primitive_type: type[Primitives], expected: type[defs.ClassType]) -> None:
+	def test_primitive_of(self, primitive_type: type[Primitives], expected: type[defs.ClassKind]) -> None:
 		resolver = self.fixture.get(Symbols)
 		self.assertEqual(resolver.primitive_of(primitive_type).row.types.domain_id, expected)
 
 	@data_provider([
 		(_mod('classes', 'Unknown'),),
 	])
-	def test_unknown_of(self, expected: type[defs.ClassType]) -> None:
+	def test_unknown_of(self, expected: type[defs.ClassKind]) -> None:
 		resolver = self.fixture.get(Symbols)
 		self.assertEqual(resolver.unknown_of().row.types.domain_id, expected)
 
@@ -94,7 +94,7 @@ class TestSymbols(TestCase):
 		(_ast('B.func1.block', 'assign_stmt[5].assign.number'), _mod('classes', 'int')),
 		(_ast('B.func1.block', 'return_stmt.getattr'), _mod('classes', 'str')),
 	])
-	def test_type_of(self, full_path: str, expected: type[defs.ClassType]) -> None:
+	def test_type_of(self, full_path: str, expected: type[defs.ClassKind]) -> None:
 		resolver = self.fixture.get(Symbols)
 		node = self.fixture.shared_nodes.by(full_path).one_of(Symbolic)
 		self.assertEqual(resolver.type_of(node).row.types.domain_id, expected)
@@ -106,7 +106,7 @@ class TestSymbols(TestCase):
 		(_ast('B.func1.block', 'funccall[2].arguments.argvalue.getattr'), _mod('classes', 'list'), {}), # FIXME {'value': _mod('classes', 'int')}),
 		(_ast('B.func1.block', 'funccall[3].arguments.argvalue.getattr'), _mod('classes', 'list'), {}), # FIXME {'value': _mod('classes', 'int')}),
 	])
-	def test_result_of(self, full_path: str, expected: type[defs.ClassType], sub_expected: dict[str, type[defs.ClassType]]) -> None:
+	def test_result_of(self, full_path: str, expected: type[defs.ClassKind], sub_expected: dict[str, type[defs.ClassKind]]) -> None:
 		resolver = self.fixture.get(Symbols)
 		node = self.fixture.shared_nodes.by(full_path)
 		schema = resolver.result_of(node)

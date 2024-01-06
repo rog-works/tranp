@@ -9,7 +9,7 @@ import py2cpp.node.definition as defs
 from py2cpp.module.types import ModulePath
 from py2cpp.node.node import Node
 
-Symbolic: TypeAlias = defs.Symbol | defs.GenericType | defs.Literal | defs.ClassType
+Symbolic: TypeAlias = defs.Symbol | defs.GenericType | defs.Literal | defs.ClassKind
 Primitives: TypeAlias = int | str | bool | tuple | list | dict | None
 
 PairSchema = NamedTuple('PairSchema', [('row', SymbolRow), ('first', SymbolRow), ('second', SymbolRow)])
@@ -135,11 +135,11 @@ class Symbols:
 
 		raise LogicError(f'Symbol not defined. node: {symbolic}')
 
-	def property_of(self, class_type: defs.ClassType, symbol: defs.Symbol) -> SymbolSchema:
+	def property_of(self, class_type: defs.ClassKind, symbol: defs.Symbol) -> SymbolSchema:
 		"""クラスタイプノードからプロパティのシンボルを解決
 
 		Args:
-			class_type (ClassType): クラスタイプノード
+			class_type (ClassKind): クラスタイプノード
 			symbol (Symbol): プロパティのシンボルノード
 		Returns:
 			SymbolSchema: シンボルスキーマ
@@ -253,8 +253,8 @@ class Symbols:
 			return symbolic.as_a(defs.GenericType).symbol.tokens
 		elif symbolic.is_a(defs.Literal):
 			return symbolic.as_a(defs.Literal).class_symbol_alias
-		elif symbolic.is_a(defs.ClassType):
-			return symbolic.as_a(defs.ClassType).symbol.tokens
+		elif symbolic.is_a(defs.ClassKind):
+			return symbolic.as_a(defs.ClassKind).symbol.tokens
 		else:
 			# その他のSymbol
 			return symbolic.tokens

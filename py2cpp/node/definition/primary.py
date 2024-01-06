@@ -82,6 +82,10 @@ class ThisVar(Var):
 		# XXX 中途半端感があるので修正を検討
 		return self._ancestor('class_def')
 
+	@property
+	def is_this_only(self) -> bool:
+		return self.tokens == 'self'
+
 
 @Meta.embed(Node, accept_tags('var', 'name'), actualized(via=Fragment))
 class LocalVar(Var):

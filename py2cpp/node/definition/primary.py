@@ -133,8 +133,8 @@ class Relay(Reference):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def receiver(self) -> 'Relay | FuncCall | Indexer | Literal':  # XXX 前方参照
-		return self._at(0).one_of(Relay | FuncCall | Indexer | Literal)
+	def receiver(self) -> 'Reference | FuncCall | Indexer | Literal':  # XXX 前方参照
+		return self._at(0).one_of(Reference | FuncCall | Indexer | Literal)
 
 	@property
 	def property(self) -> 'Name':  # XXX 前方参照

@@ -142,7 +142,7 @@ class Dict(Literal):
 		return 'dict'
 
 
-@Meta.embed(Node, accept_tags('const_none', 'typed_none'))
+@Meta.embed(Node, accept_tags('const_none'))
 class Null(Literal):
 	@property
 	@override

@@ -290,11 +290,22 @@ class UnionType(GenericType):
 
 
 @Meta.embed(Node, accept_tags('typed_none'))
-class NoneType(Type, ITerminal):
+class NullType(Type, ITerminal):
 	@property
 	@implements
 	def can_expand(self) -> bool:
 		return False
+
+	@property
+	@override
+	def domain_id(self) -> str:
+		# XXX 定数化を検討
+		return DSN.join(self.module_path, 'None')
+
+	@property
+	@override
+	def domain_name(self) -> str:
+		return self.domain_id
 
 
 @Meta.embed(Node, accept_tags('funccall'))

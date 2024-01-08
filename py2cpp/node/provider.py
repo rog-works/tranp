@@ -53,7 +53,7 @@ def symbol_mapping() -> SymbolMapping:
 			# 'typed_getitem': defs.ListType,
 			# 'typed_getitem': defs.DictType,
 			'typed_or_expr': defs.UnionType,
-			'typed_none': defs.NoneType,
+			'typed_none': defs.NullType,
 			'funccall': defs.FuncCall,
 			# 'funccall': defs.Super,
 			# -- Common --

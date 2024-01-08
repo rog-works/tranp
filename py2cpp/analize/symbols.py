@@ -367,8 +367,8 @@ class Handler(Procedure[SymbolSchema]):
 	def on_union_type(self, node: defs.UnionType) -> SymbolSchema:
 		raise LogicError(f'Operation not supoorted. {node}')
 
-	def on_none_type(self, node: defs.NoneType) -> SymbolSchema:
-		raise NotImplementedError()  # FIXME Noneはあるが、NoneTypeは無い
+	def on_none_type(self, node: defs.NullType) -> SymbolSchema:
+		return self._symbols.by(node)
 
 	def on_func_call(self, node: defs.FuncCall, calls: SymbolSchema, arguments: list[SymbolSchema]) -> SymbolSchema:
 		calls_function = calls.row.types.as_a(defs.Function)

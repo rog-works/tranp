@@ -213,7 +213,12 @@ class Indexer(Node):
 		return self._by('slices.slice')._at(0)
 
 
-class Type(Node, IDomainName):
+class Type(Node, IDomainName, ITerminal):
+	@property
+	@implements
+	def can_expand(self) -> bool:
+		return True
+
 	@property
 	@implements
 	def domain_id(self) -> str:
@@ -226,14 +231,15 @@ class Type(Node, IDomainName):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> 'Type | Name':  # XXX symbol以外の名前を検討 XXX Nameは微妙
-		return self._at(0).one_of(Type | Name)
+	def symbol(self) -> 'Type':  # XXX symbol以外の名前を検討
+		"""Note: XXX 終端要素の場合は自分自身をシンボルとして扱う"""
+		return self if not self.can_expand else self._at(0).as_a(Type)
 
 
 @Meta.embed(Node, accept_tags('typed_getattr', 'typed_var'))
-class GeneralType(Type, ITerminal):
+class GeneralType(Type):
 	@property
-	@implements
+	@override
 	def can_expand(self) -> bool:
 		return False
 
@@ -292,7 +298,7 @@ class UnionType(GenericType):
 @Meta.embed(Node, accept_tags('typed_none'))
 class NullType(Type, ITerminal):
 	@property
-	@implements
+	@override
 	def can_expand(self) -> bool:
 		return False
 
@@ -330,7 +336,7 @@ class Super(FuncCall):
 		return via.calls.tokens == 'super'
 
 	@property
-	def parent_symbol(self) -> Type | Name:  # XXX symbol以外の名前を検討
+	def parent_symbol(self) -> Type:
 		from py2cpp.node.definition.statement_compound import Class  # FIXME 循環参照
 
 		decl_class = self._ancestor('class_def').as_a(Class)

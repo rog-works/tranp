@@ -1,7 +1,7 @@
 # from typing import Any, Iterator
 # FIXME 実装を簡単にするため一旦インポートはせず、警告も無視する
 
-@__alias__.int
+@__alias__('int')
 class Integer:
 	# comparison
 	def __eq__(self, other: Any) -> bool: ...
@@ -22,7 +22,7 @@ class Integer:
 	def __str__(self) -> str: ...
 
 
-@__alias__.float
+@__alias__('float')
 class Float:
 	# comparison
 	def __eq__(self, other: Any) -> bool: ...
@@ -40,7 +40,7 @@ class Float:
 	def __str__(self) -> str: ...
 
 
-@__alias__.str
+@__alias__('str')
 class String:
 	def split(self, delimiter: str) -> list[str]: ...
 	def join(self, iterable: Iterator) -> str: ...
@@ -60,7 +60,7 @@ class String:
 	def __str__(self) -> str: ...
 
 
-@__alias__.bool
+@__alias__('bool')
 class Boolean:
 	# comparison
 	def __eq__(self, other: Any) -> bool: ...
@@ -78,15 +78,15 @@ class Boolean:
 	def __str__(self) -> str: ...
 
 
-@__alias__.tuple
+@__alias__('tuple')
 class Tuple: ...
 
 
-@__alias__.pair_
+@__alias__('pair_')
 class Pair: ...
 
 
-@__alias__.list
+@__alias__('list')
 class List:
 	def __init__(self, iterable: Iterator) -> None: ...
 	def append(self, elem: Any) -> None: ...
@@ -95,7 +95,7 @@ class List:
 	def reverse(self) -> None: ...
 
 
-@__alias__.dict
+@__alias__('dict')
 class Dict:
 	def __init__(self, iterable: Iterator[tuple]) -> None: ...
 	def keys(self) -> list: ...
@@ -103,12 +103,12 @@ class Dict:
 	def items(self) -> list[tuple]: ...
 
 
-@__alias__.None
+@__alias__('None')
 class Null: ...
 
 
 class Unknown: ...
 
 
-@__alias__.super
+@__alias__('super')
 class Super: ...

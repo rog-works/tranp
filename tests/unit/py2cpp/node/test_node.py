@@ -69,7 +69,7 @@ class Entrypoint(Node):
 		return '__main__'
 
 
-class ClassType(Node, IScope):
+class ClassKind(Node, IScope):
 	@property
 	@implements
 	def scope_part(self) -> str:
@@ -81,7 +81,7 @@ class ClassType(Node, IScope):
 		return ''
 
 
-class Class(ClassType):
+class Class(ClassKind):
 	@property
 	@override
 	def public_name(self) -> str:
@@ -98,7 +98,7 @@ class Class(ClassType):
 		return self._by('block').as_a(Block)
 
 
-class Enum(ClassType):
+class Enum(ClassKind):
 	@property
 	@override
 	def public_name(self) -> str:
@@ -115,7 +115,7 @@ class Enum(ClassType):
 		return [node.as_a(Assign) for node in self._children('block')]
 
 
-class Function(ClassType):
+class Function(ClassKind):
 	@property
 	@override
 	def public_name(self) -> str:
@@ -470,3 +470,15 @@ class TestNode(TestCase):
 		node = di.currying(NodeSet, Callable[[str], Node])('node_subset')
 		self.assertEqual(type(node), NodeSet)
 		self.assertEqual(type(node.actualize()), NodeSubset)
+
+	@data_provider([
+		('file_input.function.block.term_a', {'from': 'F1_A', 'to': 'hoge'}),
+	])
+	def test_dirty_proxify(self, full_path: str, expected: dict[str, str]) -> None:
+		nodes = Fixture.nodes()
+		node = nodes.by(full_path)
+		proxy = node.dirty_proxify(tokens=expected['to'])
+		self.assertEqual(isinstance(node, Terminal), True)
+		self.assertEqual(isinstance(proxy, Terminal), True)
+		self.assertEqual(node.tokens, expected['from'])
+		self.assertEqual(proxy.tokens, expected['to'])

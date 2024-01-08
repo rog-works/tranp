@@ -53,7 +53,7 @@ enum_def: "class" name "(" "CEnum" ")" ":" block
 // @decl `class class_name(parent1, parent2, ...):`
 // @lark classdef: "class" name ["(" [arguments] ")"] ":" block
 class_def: [decorators] class_def_raw
-class_def_raw: "class" name ["(" [arguments] ")"] ":" block
+class_def_raw: "class" name ["(" [typed_arguments] ")"] ":" block
 
 // # Function definitions
 
@@ -91,6 +91,9 @@ parameters: paramvalue ("," paramvalue)*
 typed_slices: typed_slice | typed_slice (("," typed_slice)+ [","] | ",")
 typed_slice: typed_primary
 
+typed_arguments: typed_argvalue ("," typed_argvalue)*
+typed_argvalue: typed_expression
+
 // # Function call argumanets
 
 // @decl `(arg1, arg2, ...)`
@@ -113,7 +116,8 @@ for_stmt: "for" name "in" expression ":" block
 // @lark except_clause: "except" [test ["as" name]] ":" suite
 try_stmt: "try" ":" block except_clauses
 except_clauses: except_clause+
-except_clause: "except" primary ["as" name] ":" block
+// @note XXX typed_expressionの箇所は本来は式だが、クラス以外を指定する事はまずないので簡易化しておく
+except_clause: "except" typed_expression ["as" name] ":" block
 
 // Match statement
 // @note switchの代替。3.10から導入。使わないので不要

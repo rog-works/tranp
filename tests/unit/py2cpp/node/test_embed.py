@@ -1,6 +1,5 @@
 from unittest import TestCase
 
-from py2cpp.node.base import NodeBase
 from py2cpp.node.embed import (
 	EmbedKeys,
 	Meta,
@@ -14,7 +13,7 @@ class TestMeta(TestCase):
 	def test_embed(self) -> None:
 		class MetaHolder: pass
 		@Meta.embed(MetaHolder, lambda: {'__test_class_meta__': 1})
-		class A(NodeBase):
+		class A:
 			@Meta.embed(MetaHolder, lambda: {'__test_func_meta__': 2})
 			def prop(self, v: int) -> str:
 				return str(v)
@@ -30,14 +29,14 @@ class TestMeta(TestCase):
 	def test_accept_tags(self) -> None:
 		class MetaHolder: pass
 		@Meta.embed(MetaHolder, accept_tags('hoge'))
-		class B(NodeBase): pass
+		class B: pass
 
 		class_meta: list[str] = Meta.dig_for_class(MetaHolder, B, EmbedKeys.AcceptTags, default=[])
 		self.assertEqual(class_meta, ['hoge'])
 
 	def test_actualized(self) -> None:
 		class MetaHolder: pass
-		class Base(NodeBase): pass
+		class Base: pass
 		@Meta.embed(MetaHolder, actualized(via=Base))
 		class Sub(Base): pass
 
@@ -46,7 +45,7 @@ class TestMeta(TestCase):
 
 	def test_expandable(self) -> None:
 		class MetaHolder: pass
-		class C(NodeBase):
+		class C:
 			@property
 			@Meta.embed(MetaHolder, expandable)
 			def prop0(self) -> int:

@@ -1,5 +1,5 @@
 from py2cpp.lang.implementation import implements, override
-from py2cpp.node.definition.primary import FuncCall, GenericType, Indexer, Symbol
+from py2cpp.node.definition.primary import FuncCall, ImportPath, Indexer, Reference, Symbol, Type
 from py2cpp.node.definition.terminal import Empty, Terminal
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
 from py2cpp.node.interface import ITerminal
@@ -13,14 +13,19 @@ class Assign(Node):
 		return self._at(0)._children()
 
 	@property
-	def symbol(self) -> Symbol:
-		receiver = self.receiver
-		return receiver.as_a(Symbol) if receiver.is_a(Symbol) else receiver.as_a(Indexer).symbol
+	@Meta.embed(Node, expandable)
+	def receiver(self) -> Symbol | Reference | Indexer:
+		return self._elements[0].one_of(Symbol | Reference | Indexer)
 
 	@property
-	@Meta.embed(Node, expandable)
-	def receiver(self) -> Symbol | Indexer:
-		return self._elements[0].one_of(Symbol | Indexer)
+	def symbol(self) -> Symbol:
+		"""
+		Note:
+			XXX MoveAssign/AnnoAssign/Parameterのインターフェイスを統一するために定義
+			XXX receiverがSymbol以外のインスタンスで使用するとエラーが発生する
+			XXX シンボルテーブル作成時以外に使用しないと言う前提
+		"""
+		return self._elements[0].as_a(Symbol)
 
 
 @Meta.embed(Node, actualized(via=Assign))
@@ -46,8 +51,8 @@ class AnnoAssign(Assign):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def var_type(self) -> Symbol | GenericType:
-		return self._elements[1].one_of(Symbol | GenericType)
+	def var_type(self) -> Type:
+		return self._elements[1].one_of(Type)
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -92,8 +97,8 @@ class Throw(Node):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def via(self) -> Symbol | Empty:
-		return self._at(1).one_of(Symbol | Empty)
+	def via(self) -> Reference | Empty:
+		return self._at(1).one_of(Reference | Empty)
 
 
 @Meta.embed(Node, accept_tags('pass_stmt'))
@@ -116,8 +121,8 @@ class Import(Node, ITerminal):
 		return False
 
 	@property
-	def module_path(self) -> Symbol:
-		return self._by('dotted_name').as_a(Symbol)
+	def module_path(self) -> ImportPath:
+		return self._by('dotted_name').as_a(ImportPath)
 
 	@property
 	def import_symbols(self) -> list[Symbol]:

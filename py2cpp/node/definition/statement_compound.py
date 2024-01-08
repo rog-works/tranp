@@ -2,9 +2,10 @@ import re
 
 from py2cpp.ast.dsn import DSN
 from py2cpp.lang.implementation import implements, override
-from py2cpp.node.definition.common import Argument
+from py2cpp.node.definition.common import InheritArgument
 from py2cpp.node.definition.element import Block, Decorator, Parameter, ReturnType
-from py2cpp.node.definition.primary import Symbol, This, ThisVar, Var
+from py2cpp.node.definition.literal import String
+from py2cpp.node.definition.primary import BlockVar, LocalVar, ParamThis, Symbol, ThisVar, Type
 from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
@@ -86,8 +87,9 @@ class For(Flow):
 class Catch(Flow):
 	@property
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> Symbol:
-		return self._by('primary').as_a(Symbol)
+	def capture_type(self) -> Type:
+		# XXX Pythonの仕様では複数の型を捕捉できるが一旦単数で実装
+		return self._by('typed_expression').as_a(Type)
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -113,7 +115,7 @@ class Try(Flow):
 		return [node.as_a(Catch) for node in self._by('except_clauses')._children()]
 
 
-class ClassType(Node, IDomainName, IScope):
+class ClassKind(Node, IDomainName, IScope):
 	@property
 	@override
 	def public_name(self) -> str:
@@ -149,7 +151,7 @@ class ClassType(Node, IDomainName, IScope):
 
 
 @Meta.embed(Node, accept_tags('function_def'))
-class Function(ClassType):
+class Function(ClassKind):
 	@property
 	def access(self) -> str:
 		name = self.symbol.tokens
@@ -195,7 +197,7 @@ class Function(ClassType):
 
 	@property
 	def decl_vars(self) -> list[Parameter | AnnoAssign | MoveAssign]:
-		return [*self.parameters, *self.block.decl_vars_with(Var)]
+		return [*self.parameters, *self.block.decl_vars_with(BlockVar)]
 
 
 @Meta.embed(Node, actualized(via=Function))
@@ -208,7 +210,7 @@ class ClassMethod(Function):
 
 	@property
 	def class_symbol(self) -> Symbol:
-		return self.parent.as_a(Block).parent.as_a(ClassType).symbol
+		return self.parent.as_a(Block).parent.as_a(ClassKind).symbol
 
 
 @Meta.embed(Node, actualized(via=Function))
@@ -220,7 +222,7 @@ class Constructor(Function):
 
 	@property
 	def class_symbol(self) -> Symbol:
-		return self.parent.as_a(Block).parent.as_a(ClassType).symbol
+		return self.parent.as_a(Block).parent.as_a(ClassKind).symbol
 
 	@property
 	def this_vars(self) -> list[AnnoAssign | MoveAssign]:
@@ -232,21 +234,19 @@ class Method(Function):
 	@classmethod
 	@override
 	def match_feature(cls, via: Function) -> bool:
-		# XXX コンストラクターを除外
 		if via.symbol.tokens == '__init__':
 			return False
 
-		# XXX Thisのみの判定だと不正確かもしれない
 		parameters = via.parameters
-		return len(parameters) > 0 and parameters[0].symbol.is_a(This)
+		return len(parameters) > 0 and parameters[0].symbol.is_a(ParamThis)
 
 	@property
 	def class_symbol(self) -> Symbol:
-		return self.parent.as_a(Block).parent.as_a(ClassType).symbol
+		return self.parent.as_a(Block).parent.as_a(ClassKind).symbol
 
 
 @Meta.embed(Node, accept_tags('class_def'))
-class Class(ClassType):
+class Class(ClassKind):
 	@property
 	@override
 	def namespace_part(self) -> str:
@@ -256,11 +256,12 @@ class Class(ClassType):
 	@override
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Symbol:
-		return self.__alias_symbol or self._by('class_def_raw.name').as_a(Symbol)
+		symbol = self._by('class_def_raw.name').as_a(Symbol)
+		alias = self.__alias_symbol()
+		return symbol if not alias else symbol.dirty_proxify(tokens=alias).as_a(Symbol)
 
-	@property
-	def __alias_symbol(self) -> Symbol | None:
-		"""Symbol: 特定の書式のデコレーターで設定した別名をクラス名のシンボルとして取り込む @node: 書式: `@__alias__.${alias_symbol}`。標準ライブラリの実装にのみ使う想定"""
+	def __alias_symbol(self) -> str | None:
+		"""Symbol: 特定の書式のデコレーターで設定した別名をクラス名のシンボルとして取り込む @node: 書式: `@__alias__(${alias_symbol})`。標準ライブラリの実装にのみ使う想定"""
 		decorators = self.decorators
 		if len(decorators) == 0:
 			return None
@@ -269,7 +270,7 @@ class Class(ClassType):
 		if not decorator.symbol.tokens.startswith('__alias__'):
 			return None
 
-		return decorator.symbol._by('name[1]').as_a(Symbol)
+		return decorator.arguments[0].value.as_a(String).plain
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -278,12 +279,12 @@ class Class(ClassType):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def parents(self) -> list[Symbol]:
+	def parents(self) -> list[Type]:
 		parents = self._by('class_def_raw')._at(1)
 		if parents.is_a(Empty):
 			return []
 
-		return [node.as_a(Argument).value.as_a(Symbol) for node in parents._children()]
+		return [node.as_a(InheritArgument).class_type.as_a(Type) for node in parents._children()]  # XXX as_a(Type)を消す
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -314,7 +315,7 @@ class Class(ClassType):
 
 	@property
 	def class_vars(self) -> list[AnnoAssign | MoveAssign]:
-		return self.block.decl_vars_with(Var)
+		return self.block.decl_vars_with(LocalVar)
 
 	@property
 	def instance_vars(self) -> list[AnnoAssign | MoveAssign]:
@@ -322,7 +323,7 @@ class Class(ClassType):
 
 
 @Meta.embed(Node, accept_tags('enum_def'))
-class Enum(ClassType):
+class Enum(ClassKind):
 	@property
 	@override
 	def namespace_part(self) -> str:

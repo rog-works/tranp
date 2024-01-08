@@ -1,5 +1,5 @@
 import functools
-from typing import Iterator, cast
+from typing import Any, Iterator, TypeVar, cast
 
 from py2cpp.ast.dsn import DSN
 from py2cpp.ast.path import EntryPath
@@ -9,12 +9,13 @@ from py2cpp.lang.implementation import deprecated, injectable
 from py2cpp.lang.sequence import flatten
 from py2cpp.lang.string import snakelize
 from py2cpp.module.types import ModulePath
-from py2cpp.node.base import NodeBase, T_NodeBase
 from py2cpp.node.embed import EmbedKeys, Meta
 from py2cpp.node.interface import IScope, ITerminal
 
+T_Node = TypeVar('T_Node', bound='Node')
 
-class Node(NodeBase):
+
+class Node:
 	"""ASTのエントリーと紐づくノードの基底クラス
 	自身のエントリーを基点にJSONPathクエリーベースで各ノードへ参照が可能
 	派生クラスではノードの役割をプロパティーとして定義する
@@ -173,11 +174,11 @@ class Node(NodeBase):
 
 		return prop_keys
 
-	def __embed_classes(self, via: type[NodeBase]) -> list[type['Node']]:
+	def __embed_classes(self, via: type[T_Node]) -> list[type['Node']]:
 		"""対象のクラス自身を含む継承関係のあるクラスを基底クラス順に取得。取得されるクラスはメタデータと関連する派生クラスに限定
 
 		Args:
-			via (type[NodeBase]): 対象のクラス
+			via (type[T_Node]): 対象のクラス
 		Returns:
 			list[type[Node]]: クラスリスト
 		Note:
@@ -297,13 +298,13 @@ class Node(NodeBase):
 		"""
 		return self.__nodes.values(self.full_path)
 
-	def as_a(self, to_class: type[T_NodeBase]) -> T_NodeBase:
+	def as_a(self, to_class: type[T_Node]) -> T_Node:
 		"""指定の具象クラスに変換。変換先が派生クラスの場合のみ変換し、同じか基底クラスの場合は何もしない
 
 		Args:
-			to_class (type[T_NodeBase]): 変換先の具象クラス
+			to_class (type[T_Node]): 変換先の具象クラス
 		Returns:
-			T_NodeBase: 具象クラスのインスタンス
+			T_Node: 具象クラスのインスタンス
 		Raises:
 			LogicError: 許可されない変換先を指定
 		Note:
@@ -312,7 +313,7 @@ class Node(NodeBase):
 			2. 受け入れタグが設定
 		"""
 		if self.is_a(to_class):
-			return cast(T_NodeBase, self)
+			return cast(T_Node, self)
 
 		if not issubclass(to_class, self.__class__):
 			raise LogicError(str(self), to_class)
@@ -320,64 +321,68 @@ class Node(NodeBase):
 		if not self.__acceptable_by(to_class):
 			raise LogicError(str(self), to_class)
 
-		return cast(T_NodeBase, to_class(self.__nodes, self.__module_path, self.full_path))
+		return cast(T_Node, to_class(self.__nodes, self.__module_path, self.full_path))
 
-	def __acceptable_by(self, to_class: type[NodeBase]) -> bool:
+	def __acceptable_by(self, to_class: type[T_Node]) -> bool:
 		"""指定の具象クラスへの変換が受け入れられるか判定
 
 		Args:
-			to_class (type[NodeBase]): 変換先の具象クラス
+			to_class (type[T_Node]): 変換先の具象クラス
 		Returns:
 			list[str]: 受け入れタグリスト
 		"""
 		accept_tags = self.__accept_tags(to_class)
 		return len(accept_tags) == 0 or self.tag in accept_tags
 
-	def __accept_tags(self, to_class: type[NodeBase]) -> list[str]:
+	def __accept_tags(self, to_class: type[T_Node]) -> list[str]:
 		"""メタデータより変換先の受け入れタグリストを取得
 
 		Args:
-			to_class (type[NodeBase]): 変換先の具象クラス
+			to_class (type[T_Node]): 変換先の具象クラス
 		Returns:
 			list[str]: 受け入れタグリスト
+		Note:
+			派生クラスによって上書きする仕様 @see embed.accept_tags
 		"""
-		accept_tags: dict[str, bool] = {}
+		accept_tags: list[str] = []
 		for ctor in self.__embed_classes(to_class):
-			accept_tags = {**accept_tags, **{in_tag: True for in_tag in Meta.dig_for_class(Node, ctor, EmbedKeys.AcceptTags, default=[])}}
+			in_accept_tags = Meta.dig_for_class(Node, ctor, EmbedKeys.AcceptTags, default=[])
+			if len(in_accept_tags) > 0:
+				accept_tags = in_accept_tags
 
-		return list(accept_tags.keys())
+		return accept_tags
 
-	def one_of(self, expects: type[T_NodeBase]) -> T_NodeBase:
+	def one_of(self, expects: type[T_Node]) -> T_Node:
 		"""指定のクラスと同じか派生クラスか判定し、合致すればそのままインスタンスを返す。いずれのクラスでもない場合はエラーを出力
 
 		Args:
-			expects (T_NodeBase): 期待するクラス(型/共用型)
+			expects (T_Node): 期待するクラス(型/共用型)
 		Returns:
-			T_NodeBase: インスタンス
+			T_Node: インスタンス
 		Raises:
 			LogicError: 指定のクラスと合致しない
 		Examples:
 			```python
 			@property
-			def var_type(self) -> Symbol | GenericType | Null:
-				return self._at(1).one_of(Symbol | GenericType | Null)
+			def var_type(self) -> Type | Empty:
+				return self._at(1).one_of(Type | Empty)
 			```
 		"""
 		if hasattr(expects, '__args__'):
 			inherits = [candidate for candidate in getattr(expects, '__args__', []) if isinstance(self, candidate)]
 			if len(inherits) == 1:
-				return cast(T_NodeBase, self)
+				return cast(T_Node, self)
 		else:
 			if self.is_a(expects):
-				return cast(T_NodeBase, self)
+				return cast(T_Node, self)
 
 		raise LogicError(str(self), expects)
 
-	def is_a(self, *ctor: type[NodeBase]) -> bool:
+	def is_a(self, *ctor: type[T_Node]) -> bool:
 		"""指定のクラスと同じか派生クラスか判定
 
 		Args:
-			*ctor (type[NodeBase]): 判定するクラス
+			*ctor (type[T_Node]): 判定するクラス
 		Returns:
 			bool: True = 同種
 		"""
@@ -433,6 +438,25 @@ class Node(NodeBase):
 				return self.as_a(feature_class)
 
 		return self
+
+	def dirty_proxify(self, **overrides: Any) -> 'Node':
+		"""プロキシノードを生成
+
+		Args:
+			**overrides (Any): 上書きするプロパティー
+		Returns:
+			Proxy[T_Node]: プロキシノード
+		Note:
+			XXX シンボルエイリアスにのみ使う想定。ダーティーな実装のため濫用は厳禁
+		"""
+		class Proxy(self.__class__):
+			def __getattribute__(self, __name: str) -> Any:
+				if __name in overrides:
+					return overrides[__name]
+
+				return super().__getattribute__(__name)
+
+		return Proxy(self.__nodes, self.__module_path, self.full_path)
 
 	# XXX def is_statement(self) -> bool: pass
 	# XXX def pretty(self) -> str: pass

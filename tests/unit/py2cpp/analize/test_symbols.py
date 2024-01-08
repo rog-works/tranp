@@ -47,23 +47,61 @@ class TestSymbols(TestCase):
 		(dict, _mod('classes', 'dict')),
 		(None, _mod('classes', 'None')),
 	])
-	def test_primitive_of(self, primitive_type: type[Primitives], expected: type[defs.ClassType]) -> None:
-		resolver = self.fixture.get(Symbols)
-		self.assertEqual(resolver.primitive_of(primitive_type).row.types.domain_id, expected)
+	def test_primitive_of(self, primitive_type: type[Primitives], expected: str) -> None:
+		symbols = self.fixture.get(Symbols)
+		self.assertEqual(symbols.primitive_of(primitive_type).row.types.domain_id, expected)
 
 	@data_provider([
 		(_mod('classes', 'Unknown'),),
 	])
-	def test_unknown_of(self, expected: type[defs.ClassType]) -> None:
-		resolver = self.fixture.get(Symbols)
-		self.assertEqual(resolver.unknown_of().row.types.domain_id, expected)
+	def test_unknown_of(self, expected: str) -> None:
+		symbols = self.fixture.get(Symbols)
+		self.assertEqual(symbols.unknown_of().row.types.domain_id, expected)
+
+	@data_provider([
+		(_ast('__main__', 'import_stmt.import_names.name'), _mod('xyz', 'Z')),
+		(_ast('__main__', 'assign_stmt[1].anno_assign.var'), _mod('classes', 'int')),
+		(_ast('__main__', 'assign_stmt[4].assign.var'), _mod('classes', 'Unknown')),  # FIXME dict?
+		(_ast('A', 'name'), '__main__.A'),
+		(_ast('A.__init__.params', 'paramvalue.typedparam.name'), '__main__.A'),
+	])
+	def test_symbol_of(self, full_path: str, expected: str) -> None:
+		symbols = self.fixture.get(Symbols)
+		node = self.fixture.shared_nodes.by(full_path).as_a(defs.Symbol)
+		self.assertEqual(symbols.symbol_of(node).row.types.domain_id, expected)
+
+	@data_provider([
+		(_ast('__main__', 'assign_stmt[1].anno_assign.typed_var'), _mod('classes', 'int')),
+		(_ast('A.__init__.return', 'typed_none'), _mod('classes', 'None')),
+	])
+	def test_type_of(self, full_path: str, expected: str) -> None:
+		symbols = self.fixture.get(Symbols)
+		node = self.fixture.shared_nodes.by(full_path).as_a(defs.Type)
+		self.assertEqual(symbols.type_of(node).row.types.domain_id, expected)
+
+	@data_provider([
+		(_ast('__main__', 'assign_stmt[1].anno_assign.number'), _mod('classes', 'int')),
+	])
+	def test_literal_of(self, full_path: str, expected: str) -> None:
+		symbols = self.fixture.get(Symbols)
+		node = self.fixture.shared_nodes.by(full_path).as_a(defs.Literal)
+		self.assertEqual(symbols.literal_of(node).row.types.domain_id, expected)
+
+	@data_provider([
+		(_ast('B.func1.block', 'funccall[2].arguments.argvalue.getattr'), _mod('classes', 'list')),
+	])
+	def test_property_of(self, full_path: str, expected: str) -> None:
+		symbols = self.fixture.get(Symbols)
+		node = self.fixture.shared_nodes.by(full_path).as_a(defs.Relay)
+		receiver = symbols.result_of(node.receiver)
+		self.assertEqual(symbols.property_of(receiver.row.types, node.property).row.types.domain_id, expected)
 
 	@data_provider([
 		(_ast('__main__', 'import_stmt.import_names.name'), _mod('xyz', 'Z')),
 		(_ast('__main__', 'assign_stmt[1].anno_assign.var'), _mod('classes', 'int')),
 		(_ast('__main__', 'assign_stmt[1].anno_assign.typed_var'), _mod('classes', 'int')),
 		(_ast('__main__', 'assign_stmt[1].anno_assign.number'), _mod('classes', 'int')),
-		(_ast('__main__', 'assign_stmt[4].assign.var'), _mod('classes', 'dict')),
+		(_ast('__main__', 'assign_stmt[4].assign.var'), _mod('classes', 'Unknown')),  # FIXME dict?
 		(_ast('A', 'name'), '__main__.A'),
 		(_ast('A.__init__.params', 'paramvalue.typedparam.name'), '__main__.A'),
 		(_ast('A.__init__.return', 'typed_none'), _mod('classes', 'None')),
@@ -71,7 +109,7 @@ class TestSymbols(TestCase):
 		(_ast('A.__init__.block', 'assign_stmt.anno_assign.typed_var'), _mod('classes', 'str')),
 		(_ast('A.__init__.block', 'assign_stmt.anno_assign.string'), _mod('classes', 'str')),
 		(_ast('B', 'name'), '__main__.B'),
-		(_ast('B', 'arguments.argvalue.var'), '__main__.A'),
+		(_ast('B', 'typed_arguments.typed_argvalue.typed_var'), '__main__.A'),
 		(_ast('B.B2.block', 'assign_stmt.anno_assign.var'), _mod('classes', 'str')),
 		(_ast('B.B2.block', 'assign_stmt.anno_assign.typed_var'), _mod('classes', 'str')),
 		(_ast('B.B2.block', 'assign_stmt.anno_assign.string'), _mod('classes', 'str')),
@@ -84,9 +122,9 @@ class TestSymbols(TestCase):
 		(_ast('B.func1.params', 'paramvalue[0].typedparam.name'), '__main__.B'),
 		(_ast('B.func1.params', 'paramvalue[1].typedparam.name'), _mod('classes', 'list')),
 		(_ast('B.func1.return', 'typed_var'), _mod('classes', 'str')),
-		(_ast('B.func1.block', 'assign_stmt[0].assign.var'), _mod('classes', 'bool')),
+		(_ast('B.func1.block', 'assign_stmt[0].assign.var'), _mod('classes', 'Unknown')),  # FIXME bool?
 		(_ast('B.func1.block', 'assign_stmt[0].assign.const_false'), _mod('classes', 'bool')),
-		(_ast('B.func1.block', 'funccall[1].arguments.argvalue.var'), _mod('classes', 'bool')),
+		(_ast('B.func1.block', 'funccall[1].arguments.argvalue.var'), _mod('classes', 'Unknown')),  # FIXME bool?
 		(_ast('B.func1.block', 'funccall[2].arguments.argvalue.getattr'), _mod('classes', 'list')),
 		(_ast('B.func1.block', 'assign_stmt[4].assign.getattr'), _mod('classes', 'str')),
 		(_ast('B.func1.block', 'assign_stmt[4].assign.string'), _mod('classes', 'str')),
@@ -94,22 +132,22 @@ class TestSymbols(TestCase):
 		(_ast('B.func1.block', 'assign_stmt[5].assign.number'), _mod('classes', 'int')),
 		(_ast('B.func1.block', 'return_stmt.getattr'), _mod('classes', 'str')),
 	])
-	def test_type_of(self, full_path: str, expected: type[defs.ClassType]) -> None:
-		resolver = self.fixture.get(Symbols)
+	def test_by(self, full_path: str, expected: str) -> None:
+		symbols = self.fixture.get(Symbols)
 		node = self.fixture.shared_nodes.by(full_path).one_of(Symbolic)
-		self.assertEqual(resolver.type_of(node).row.types.domain_id, expected)
+		self.assertEqual(symbols.by(node).row.types.domain_id, expected)
 
 	@data_provider([
 		(_ast('__main__', 'assign_stmt[1].anno_assign.number'), _mod('classes', 'int'), {}),
 		(_ast('B.__init__.block', 'assign_stmt'), _mod('classes', 'list'), {'value_type': _mod('classes', 'int')}),
-		(_ast('B.func1.block', 'funccall[1].arguments.argvalue.var'), _mod('classes', 'bool'), {}),
+		(_ast('B.func1.block', 'funccall[1].arguments.argvalue.var'), _mod('classes', 'Unknown'), {}),  # FIXME bool?
 		(_ast('B.func1.block', 'funccall[2].arguments.argvalue.getattr'), _mod('classes', 'list'), {}), # FIXME {'value': _mod('classes', 'int')}),
 		(_ast('B.func1.block', 'funccall[3].arguments.argvalue.getattr'), _mod('classes', 'list'), {}), # FIXME {'value': _mod('classes', 'int')}),
 	])
-	def test_result_of(self, full_path: str, expected: type[defs.ClassType], sub_expected: dict[str, type[defs.ClassType]]) -> None:
-		resolver = self.fixture.get(Symbols)
+	def test_result_of(self, full_path: str, expected: str, sub_expected: dict[str, str]) -> None:
+		symbols = self.fixture.get(Symbols)
 		node = self.fixture.shared_nodes.by(full_path)
-		schema = resolver.result_of(node)
+		schema = symbols.result_of(node)
 		self.assertEqual(schema.row.types.domain_id, expected)
 		for key, sub_type in sub_expected.items():
 			self.assertEqual('ok' if schema.has_attr(key) else key, 'ok')

@@ -30,7 +30,7 @@ class TestDefinition(TestCase):
 				{'name': 'self', 'type': 'Empty', 'default': 'Empty'},
 				{'name': 'value', 'type': 'int', 'default': 'Empty'},
 			],
-			'return': defs.Symbol,
+			'return': defs.GeneralType,
 		}),
 		('file_input.class_def[4].class_def_raw.block.function_def[2]', {
 			'name': '_func2',
@@ -51,7 +51,7 @@ class TestDefinition(TestCase):
 			'parameters': [
 				{'name': 'ok', 'type': 'bool', 'default': 'Empty'},
 			],
-			'return': defs.Null,
+			'return': defs.NullType,
 		}),
 	])
 	def test_function(self, full_path: str, expected: dict[str, Any]) -> None:
@@ -71,8 +71,8 @@ class TestDefinition(TestCase):
 		for index, parameter in enumerate(node.parameters):
 			in_expected = expected['parameters'][index]
 			self.assertEqual(parameter.symbol.tokens, in_expected['name'])
-			self.assertEqual(parameter.var_type.tokens if parameter.var_type.is_a(defs.Symbol) else 'Empty', in_expected['type'])
-			self.assertEqual(parameter.default_value.tokens if parameter.default_value.is_a(defs.Terminal) else 'Empty', in_expected['default'])
+			self.assertEqual(parameter.var_type.tokens if not parameter.var_type.is_a(defs.Empty) else 'Empty', in_expected['type'])
+			self.assertEqual(parameter.default_value.tokens if not parameter.default_value.is_a(defs.Empty) else 'Empty', in_expected['default'])
 
 		self.assertEqual(type(node.return_type.var_type), expected['return'])
 		self.assertEqual(type(node.block), defs.Block)
@@ -135,13 +135,15 @@ class TestDefinition(TestCase):
 			self.assertEqual(len(constructor.decl_vars), len(in_expected['decl_vars']))
 			for index, var in enumerate(constructor.decl_vars):
 				in_var_expected = in_expected['decl_vars'][index]
-				self.assertEqual(var.symbol.tokens, in_var_expected['symbol'])
 				if isinstance(var, defs.AnnoAssign):
+					self.assertEqual(var.receiver.tokens, in_var_expected['symbol'])
 					self.assertEqual(var.var_type.tokens, in_var_expected['type'])
 				elif isinstance(var, defs.MoveAssign):
+					self.assertEqual(var.receiver.tokens, in_var_expected['symbol'])
 					self.assertEqual('Empty', in_var_expected['type'])
 				elif isinstance(var, defs.Parameter):
-					self.assertEqual(var.var_type.tokens if var.var_type.is_a(defs.Symbol) else 'Empty', in_var_expected['type'])
+					self.assertEqual(var.symbol.tokens, in_var_expected['symbol'])
+					self.assertEqual(var.var_type.tokens if not var.var_type.is_a(defs.Empty) else 'Empty', in_var_expected['type'])
 
 		self.assertEqual(len(node.methods), len(expected['methods']))
 		for index, method in enumerate(node.methods):
@@ -153,7 +155,7 @@ class TestDefinition(TestCase):
 		for index, var in enumerate(node.vars):
 			in_expected = expected['vars'][index]
 			self.assertEqual(type(var), in_expected['type'])
-			self.assertEqual(var.symbol.tokens, in_expected['symbol'])
+			self.assertEqual(var.receiver.tokens, in_expected['symbol'])
 
 	@data_provider([
 		('file_input.class_def[4].class_def_raw.block.enum_def', {
@@ -170,7 +172,7 @@ class TestDefinition(TestCase):
 		self.assertEqual(len(node.vars), len(expected['vars']))
 		for index, var in enumerate(node.vars):
 			in_expected = expected['vars'][index]
-			self.assertEqual(var.symbol.tokens, in_expected['symbol'])
+			self.assertEqual(var.receiver.tokens, in_expected['symbol'])
 			self.assertEqual(var.value.tokens, in_expected['value'])
 
 	# Statement simple
@@ -184,7 +186,7 @@ class TestDefinition(TestCase):
 	])
 	def test_anno_assign(self, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.shared_nodes.by(full_path).as_a(defs.AnnoAssign)
-		self.assertEqual(node.symbol.tokens, expected['symbol'])
+		self.assertEqual(node.receiver.tokens, expected['symbol'])
 		self.assertEqual(type(node.var_type), expected['var_type'])
 		self.assertEqual(type(node.value), expected['value'])
 
@@ -221,23 +223,90 @@ class TestDefinition(TestCase):
 	# Primary
 
 	@data_provider([
-		('a', 'file_input.var', defs.Var),
-		('a()', 'file_input.funccall.var', defs.Var),
-		('a[0]', 'file_input.getitem.var', defs.Var),
-		('a[0].b', 'file_input.getattr', defs.SymbolRelay),  # FIXME Symbolの想定だが、Symbolと言うよりExpressionなのでどちらにせよ不自然
-		('a[0].b', 'file_input.getattr.getitem.var', defs.Var),
-		('a.b', 'file_input.getattr', defs.Symbol),
-		('a.b()', 'file_input.funccall.getattr', defs.Symbol),
-		('a.b[0]', 'file_input.getitem.getattr', defs.Symbol),
-		('a.b.c', 'file_input.getattr', defs.Symbol),
-		('self', 'file_input.var', defs.This),
-		('self.a', 'file_input.getattr', defs.ThisVar),
-		('self.a()', 'file_input.funccall.getattr', defs.ThisVar),
-		('self.a[0]', 'file_input.getitem.getattr', defs.ThisVar),
-		('self.a.b', 'file_input.getattr', defs.ThisVar),
+		('a', 'file_input.var', defs.Name),
+		('a = 0', 'file_input.assign_stmt.assign.var', defs.LocalVar),
+		('a: int = 0', 'file_input.assign_stmt.anno_assign.var', defs.LocalVar),
+		('a()', 'file_input.funccall.var', defs.Name),
+		('a(self.v)', 'file_input.funccall.arguments.argvalue.getattr', defs.Relay),
+		('a(self.v)', 'file_input.funccall.arguments.argvalue.getattr.var', defs.Name),
+		('a[0]', 'file_input.getitem.var', defs.Name),
+		('a[0].b', 'file_input.getattr', defs.Relay),
+		('a[0].b', 'file_input.getattr.getitem.var', defs.Name),
+		('a[0].b', 'file_input.getattr.name', defs.Name),
+		('a.b', 'file_input.getattr', defs.Relay),
+		('a.b()', 'file_input.funccall.getattr', defs.Relay),
+		('a.b[0]', 'file_input.getitem.getattr', defs.Relay),
+		('a.b.c', 'file_input.getattr', defs.Relay),
+		('a.b.c', 'file_input.getattr.getattr', defs.Relay),
+		('a.b.c', 'file_input.getattr.getattr.var', defs.Name),
+		('self', 'file_input.var', defs.Name),
+		('self.a', 'file_input.getattr', defs.Relay),
+		('self.a = 0', 'file_input.assign_stmt.assign.getattr', defs.ThisVar),
+		('self.a: int = 0', 'file_input.assign_stmt.anno_assign.getattr', defs.ThisVar),
+		('self.a()', 'file_input.funccall.getattr', defs.Relay),
+		('self.a[0]', 'file_input.getitem.getattr', defs.Relay),
+		('self.a.b', 'file_input.getattr', defs.Relay),
+		('for a in arr: pass', 'file_input.for_stmt.name', defs.LocalVar),
+		('try: ...\nexcept A.E as e: ...', 'file_input.try_stmt.except_clauses.except_clause.name', defs.LocalVar),
+		('raise E() from e', 'file_input.raise_stmt.funccall.var', defs.Name),
+		('raise E() from e', 'file_input.raise_stmt.name', defs.Name),
+		('from path.to import A', 'file_input.import_stmt.import_names.name', defs.ImportName),
+		('class B(A): pass', 'file_input.class_def.class_def_raw.name', defs.ClassTypeName),
+		('def func(a: int) -> None: pass', 'file_input.function_def.function_def_raw.name', defs.ClassTypeName),
+		('def func(a: int) -> None: pass', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.LocalVar),
+		('def func(self) -> None: pass', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.ParamThis),
 	])
-	def test_symbol(self, source: str, full_path: str, expected: type[defs.Symbol]) -> None:
-		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Symbol)
+	def test_fragment(self, source: str, full_path: str, expected: type[defs.Fragment]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Fragment)
+		self.assertEqual(type(node), expected)
+
+	@data_provider([
+		('a(self.v)', 'file_input.funccall.arguments.argvalue.getattr', {'receiver': defs.Name, 'property': defs.Name}),
+		('a[0].b', 'file_input.getattr', {'receiver': defs.Indexer, 'property': defs.Name}),
+		('a.b', 'file_input.getattr', {'receiver': defs.Name, 'property': defs.Name}),
+		('a.b()', 'file_input.funccall.getattr', {'receiver': defs.Name, 'property': defs.Name}),
+		('a.b[0]', 'file_input.getitem.getattr', {'receiver': defs.Name, 'property': defs.Name}),
+		('a.b.c', 'file_input.getattr', {'receiver': defs.Relay, 'property': defs.Name}),
+		('a.b.c', 'file_input.getattr.getattr', {'receiver': defs.Name, 'property': defs.Name}),
+		('self.a', 'file_input.getattr', {'receiver': defs.Name, 'property': defs.Name}),
+		('self.a()', 'file_input.funccall.getattr', {'receiver': defs.Name, 'property': defs.Name}),
+		('self.a[0]', 'file_input.getitem.getattr', {'receiver': defs.Name, 'property': defs.Name}),
+		('self.a.b', 'file_input.getattr', {'receiver': defs.Relay, 'property': defs.Name}),
+		('self.a().b', 'file_input.getattr', {'receiver': defs.FuncCall, 'property': defs.Name}),
+		('"".a', 'file_input.getattr', {'receiver': defs.String, 'property': defs.Name}),
+	])
+	def test_relay(self, source: str, full_path: str, expected: dict[str, type[defs.Relay]]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Relay)
+		self.assertEqual(type(node.receiver), expected['receiver'])
+		self.assertEqual(type(node.property), expected['property'])
+
+	@data_provider([
+		('from path.to import A', 'file_input.import_stmt.dotted_name', defs.ImportPath),
+		('@path.to(a, b)\ndef func() -> None: ...', 'file_input.function_def.decorators.decorator.dotted_name', defs.DecoratorPath),
+	])
+	def test_path(self, source: str, full_path: str, expected: type[defs.Path]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Path)
+		self.assertEqual(type(node), expected)
+
+	@data_provider([
+		('a: int = 0', 'file_input.assign_stmt.anno_assign.typed_var', defs.GeneralType),
+		('a: list[int] = []', 'file_input.assign_stmt.anno_assign.typed_getitem', defs.ListType),
+		('a: list[int] = []', 'file_input.assign_stmt.anno_assign.typed_getitem.typed_var', defs.GeneralType),
+		('a: dict[str, int] = {}', 'file_input.assign_stmt.anno_assign.typed_getitem', defs.DictType),
+		('a: dict[str, int] = {}', 'file_input.assign_stmt.anno_assign.typed_getitem.typed_slices.typed_slice[0].typed_var', defs.GeneralType),
+		('a: dict[str, int] = {}', 'file_input.assign_stmt.anno_assign.typed_getitem.typed_slices.typed_slice[1].typed_var', defs.GeneralType),
+		('a: str | None = None', 'file_input.assign_stmt.anno_assign.typed_or_expr', defs.UnionType),
+		('a: str | None = None', 'file_input.assign_stmt.anno_assign.typed_or_expr.typed_var', defs.GeneralType),
+		('a: str | None = None', 'file_input.assign_stmt.anno_assign.typed_or_expr.typed_none', defs.NullType),
+		('self.a: int = 0', 'file_input.assign_stmt.anno_assign.typed_var', defs.GeneralType),
+		('try: ...\nexcept A.E as e: ...', 'file_input.try_stmt.except_clauses.except_clause.typed_getattr', defs.GeneralType),
+		('class B(A): pass', 'file_input.class_def.class_def_raw.typed_arguments.typed_argvalue.typed_var', defs.GeneralType),
+		('class B(A[T]): pass', 'file_input.class_def.class_def_raw.typed_arguments.typed_argvalue.typed_getitem', defs.GenericType),  # XXX 当たらずとも遠からず
+		('def func(a: int) -> None: pass', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.typed_var', defs.GeneralType),
+		('def func(a: int) -> None: pass', 'file_input.function_def.function_def_raw.return_type.typed_none', defs.NullType),
+	])
+	def test_type(self, source: str, full_path: str, expected: type[defs.Type]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Type)
 		self.assertEqual(type(node), expected)
 
 	@data_provider([
@@ -273,20 +342,20 @@ class TestDefinition(TestCase):
 
 	@data_provider([
 		('file_input.funccall', {
-			'caller': 'pragma',
+			'calls': 'pragma',
 			'arguments': [
 				{'value': "'once'"},
 			],
 			'calculated': [
-				'<Var: file_input.funccall.var>',
+				'<Name: file_input.funccall.var>',
 				'<String: file_input.funccall.arguments.argvalue.string>',
 				'<Argument: file_input.funccall.arguments.argvalue>',
 			],
 		}),
 	])
-	def test_funccall(self, full_path: str, expected: dict[str, Any]) -> None:
+	def test_func_call(self, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.shared_nodes.by(full_path).as_a(defs.FuncCall)
-		self.assertEqual(node.calls.tokens, expected['caller'])
+		self.assertEqual(node.calls.tokens, expected['calls'])
 		self.assertEqual(len(node.arguments), len(expected['arguments']))
 		for index, argument in enumerate(node.arguments):
 			in_expected = expected['arguments'][index]

@@ -63,6 +63,10 @@ class String(Literal):
 	def class_symbol_alias(self) -> str:
 		return 'str'
 
+	@property
+	def plain(self) -> str:
+		return self.tokens[1:-1]
+
 
 class Boolean(Literal):
 	@property
@@ -138,7 +142,7 @@ class Dict(Literal):
 		return 'dict'
 
 
-@Meta.embed(Node, accept_tags('const_none', 'typed_none'))
+@Meta.embed(Node, accept_tags('const_none'))
 class Null(Literal):
 	@property
 	@override

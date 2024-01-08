@@ -10,6 +10,10 @@ class B(A):
 	class B2:
 		v: str = ''
 
+		@classmethod
+		def class_func(cls) -> dict[str, int]:
+			return {cls.v: v}
+
 	def __init__(self) -> None:
 		super().__init__()
 		self.v: list[int] = []

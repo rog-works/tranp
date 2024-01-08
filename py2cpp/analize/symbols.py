@@ -5,8 +5,8 @@ from py2cpp.analize.procedure import Procedure
 from py2cpp.ast.dsn import DSN
 from py2cpp.errors import LogicError
 from py2cpp.lang.implementation import injectable
-import py2cpp.node.definition as defs
 from py2cpp.module.types import ModulePath
+import py2cpp.node.definition as defs
 from py2cpp.node.node import Node
 
 Symbolic: TypeAlias = defs.Symbol | defs.Reference | defs.Type | defs.Literal | defs.ClassKind

@@ -219,22 +219,14 @@ class SymbolDB:
 			IDomainName | None: ドメイン名インターフェイス
 		"""
 		if isinstance(var, defs.AnnoAssign):
-			receiver = var.receiver
-			if not receiver.is_a(defs.ThisVar):
-				return var.var_type
-			elif not receiver.as_a(defs.ThisVar).is_this_only:
-				return var.var_type
-			else:
-				return receiver.as_a(defs.ThisVar).class_types.as_a(defs.Class)
+			return var.var_type
+		elif isinstance(var, defs.MoveAssign):
+			# 型指定が無いため全てUnknown
+			return None
 		elif isinstance(var, defs.Parameter):
-			symbol = var.symbol
-			if not symbol.is_a(defs.ThisVar):
-				if var.var_type.is_a(defs.Type):
-					return var.var_type.as_a(defs.Type)
-			elif not symbol.as_a(defs.ThisVar).is_this_only:
-				if var.var_type.is_a(defs.Type):
-					return var.var_type.as_a(defs.Type)
+			if var.symbol.is_a(defs.ParamThis):
+				return var.symbol.as_a(defs.ParamThis).class_domain
 			else:
-				return symbol.as_a(defs.ThisVar).class_types.as_a(defs.Class)
+				return var.var_type.as_a(defs.Type)
 
 		return None

@@ -254,7 +254,7 @@ class TestDefinition(TestCase):
 		('class B(A): pass', 'file_input.class_def.class_def_raw.name', defs.ClassTypeName),
 		('def func(a: int) -> None: pass', 'file_input.function_def.function_def_raw.name', defs.ClassTypeName),
 		('def func(a: int) -> None: pass', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.LocalVar),
-		('def func(self) -> None: pass', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.ThisVar),
+		('def func(self) -> None: pass', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.ParamThis),
 	])
 	def test_fragment(self, source: str, full_path: str, expected: type[defs.Fragment]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Fragment)

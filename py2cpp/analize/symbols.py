@@ -301,8 +301,8 @@ class Symbols:
 		Returns:
 			SymbolRow | None: シンボルデータ
 		"""
-		domain_id = DSN.join(symbolic.scope, prop_name)
-		domain_name = DSN.join(symbolic.module_path, prop_name)
+		domain_id = DSN.join(symbolic.domain_id, prop_name)
+		domain_name = DSN.join(symbolic.domain_name, prop_name)
 		if domain_id in self.__db.rows:
 			return self.__db.rows[domain_id]
 		elif domain_name in self.__db.rows:

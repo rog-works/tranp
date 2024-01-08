@@ -179,24 +179,30 @@ class Handler(Procedure[str]):
 
 	# Primary
 
-	def on_symbol(self, node: defs.Symbol) -> str:
+	def on_this_var(self, node: defs.ThisVar) -> str:
+		return node.tokens.replace('self', 'this')
+
+	def on_param_class(self, node: defs.ParamClass) -> str:
 		return node.tokens
 
-	def on_symbol_relay(self, node: defs.SymbolRelay, receiver: str) -> str:
+	def on_param_this(self, node: defs.ParamThis) -> str:
+		return node.tokens
+
+	def on_local_var(self, node: defs.LocalVar) -> str:
+		return node.tokens
+
+	def on_relay(self, node: defs.Relay, receiver: str) -> str:
+		# FIXME receiverの形態によってアクセス演算子を変える必要がある
 		return f'{receiver}.{node.property.tokens}'
 
-	def on_var(self, node: defs.Var) -> str:
+	def on_name(self, node: defs.Name) -> str:
 		return node.tokens
-
-	def on_this(self, node: defs.This) -> str:
-		return 'this'
-
-	def on_this_var(self, node: defs.ThisVar) -> str:
-		# XXX
-		return node.tokens.replace('self', 'this')
 
 	def on_indexer(self, node: defs.Indexer, symbol: str, key: str) -> str:
 		return f'{symbol}[{key}]'
+
+	def on_general_type(self, node: defs.GeneralType, symbol: str) -> str:
+		return symbol
 
 	def on_list_type(self, node: defs.ListType, symbol: str, value_type: str) -> str:
 		return self.view.render(node.classification, vars={'symbol': symbol, 'value_type': value_type})
@@ -204,16 +210,26 @@ class Handler(Procedure[str]):
 	def on_dict_type(self, node: defs.DictType, symbol: str, key_type: str, value_type: str) -> str:
 		return self.view.render(node.classification, vars={'symbol': symbol, 'key_type': key_type, 'value_type': value_type})
 
-	def on_union_type(self, node: defs.UnionType) -> str:
+	def on_union_type(self, node: defs.UnionType, symbol: str, types: list[str]) -> str:
 		raise NotImplementedError(f'Not supported UnionType. via: {node}')
+
+	def on_null_type(self, node: defs.NullType, symbol: str) -> str:
+		# FIXME nullptrは型ではないのでは？
+		return 'nullptr'
 
 	def on_func_call(self, node: defs.FuncCall, calls: str, arguments: list[str]) -> str:
 		return self.view.render(node.classification, vars={'calls': calls, 'arguments': arguments})
+
+	def on_super(self, node: defs.Super, calls: str, arguments: list[str]) -> str:
+		return self.view.render('func_call', vars={'calls': node.parent_symbol.tokens, 'arguments': arguments})
 
 	# Common
 
 	def on_argument(self, node: defs.Argument, value: str) -> str:
 		return value
+
+	def on_inherit_argument(self, node: defs.InheritArgument, class_type: str) -> str:
+		return class_type
 
 	# Operator
 

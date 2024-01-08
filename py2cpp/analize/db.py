@@ -224,7 +224,9 @@ class SymbolDB:
 			# 型指定が無いため全てUnknown
 			return None
 		elif isinstance(var, defs.Parameter):
-			if var.symbol.is_a(defs.ParamThis):
+			if var.symbol.is_a(defs.ParamClass):
+				return var.symbol.as_a(defs.ParamClass).class_domain
+			elif var.symbol.is_a(defs.ParamThis):
 				return var.symbol.as_a(defs.ParamThis).class_domain
 			else:
 				return var.var_type.as_a(defs.Type)

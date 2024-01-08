@@ -22,6 +22,15 @@ class Fragment(Node):
 		return in_decl_var and is_property
 
 	@property
+	def is_param_class(self) -> bool:
+		"""Note: マッチング対象: 仮引数(clsのみ)"""
+		tokens = self.tokens
+		in_decl_var = self._full_path.parent_tag in ['typedparam']
+		is_class = tokens == 'cls'
+		is_local = DSN.elem_counts(tokens) == 1
+		return in_decl_var and is_class and is_local
+
+	@property
 	def is_param_this(self) -> bool:
 		"""Note: マッチング対象: 仮引数(selfのみ)"""
 		tokens = self.tokens
@@ -35,9 +44,9 @@ class Fragment(Node):
 		"""Note: マッチング対象: クラス変数/ローカル変数/仮引数(self以外)"""
 		tokens = self.tokens
 		in_decl_var = self._full_path.parent_tag in ['assign', 'anno_assign', 'typedparam', 'for_stmt', 'except_clause']
-		is_this = tokens == 'self'
+		is_class_or_this = tokens == 'cls' or tokens == 'self'
 		is_local = DSN.elem_counts(tokens) == 1
-		return in_decl_var and not is_this and is_local
+		return in_decl_var and not is_class_or_this and is_local
 
 	@property
 	def in_decl_class_type(self) -> bool:
@@ -94,6 +103,17 @@ class ThisVar(Var):
 
 
 class BlockVar(Var): pass
+
+
+@Meta.embed(Node, accept_tags('name'), actualized(via=Fragment))
+class ParamClass(BlockVar):
+	@classmethod
+	def match_feature(cls, via: Fragment) -> bool:
+		return via.is_param_class
+
+	@property
+	def class_domain(self) -> IDomainName:
+		return cast(IDomainName, self._ancestor('class_def'))
 
 
 @Meta.embed(Node, accept_tags('name'), actualized(via=Fragment))

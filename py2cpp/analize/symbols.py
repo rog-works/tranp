@@ -349,7 +349,7 @@ class Handler(Procedure[SymbolSchema]):
 
 	def on_indexer(self, node: defs.Indexer, symbol: SymbolSchema, key: SymbolSchema) -> SymbolSchema:
 		if isinstance(symbol.row.decl, (defs.AnnoAssign, defs.Parameter)):
-			return self._symbols.by(symbol.row.decl.var_type)
+			return self._symbols.by(symbol.row.decl.var_type.as_a(defs.CollectionType).value_type)
 		else:
 			return self._symbols.by(symbol.row.decl.as_a(defs.MoveAssign).value)
 

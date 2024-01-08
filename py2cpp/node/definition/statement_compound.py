@@ -5,7 +5,7 @@ from py2cpp.lang.implementation import implements, override
 from py2cpp.node.definition.common import InheritArgument
 from py2cpp.node.definition.element import Block, Decorator, Parameter, ReturnType
 from py2cpp.node.definition.literal import String
-from py2cpp.node.definition.primary import LocalVar, Symbol, ThisVar, Type
+from py2cpp.node.definition.primary import BlockVar, LocalVar, ParamThis, Symbol, ThisVar, Type
 from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
@@ -197,7 +197,7 @@ class Function(ClassKind):
 
 	@property
 	def decl_vars(self) -> list[Parameter | AnnoAssign | MoveAssign]:
-		return [*self.parameters, *self.block.decl_vars_with(LocalVar)]
+		return [*self.parameters, *self.block.decl_vars_with(BlockVar)]
 
 
 @Meta.embed(Node, actualized(via=Function))
@@ -234,13 +234,11 @@ class Method(Function):
 	@classmethod
 	@override
 	def match_feature(cls, via: Function) -> bool:
-		# XXX コンストラクターを除外
 		if via.symbol.tokens == '__init__':
 			return False
 
-		# XXX Thisのみの判定だと不正確かもしれない
 		parameters = via.parameters
-		return len(parameters) > 0 and parameters[0].symbol.is_a(ThisVar)
+		return len(parameters) > 0 and parameters[0].symbol.is_a(ParamThis)
 
 	@property
 	def class_symbol(self) -> Symbol:

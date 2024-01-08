@@ -13,6 +13,7 @@ class Parameter(Node):
 	@property
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Symbol:
+		"""Note: XXX 実体はBlockVarのみ"""
 		return self._by('typedparam.name').as_a(Symbol)
 
 	@property

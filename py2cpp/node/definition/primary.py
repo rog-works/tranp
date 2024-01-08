@@ -15,18 +15,29 @@ from py2cpp.node.protocol import Symbolization
 class Fragment(Node):
 	@property
 	def is_this_var(self) -> bool:
+		"""Note: マッチング対象: インスタンス変数"""
 		tokens = self.tokens
-		in_decl_var = self._full_path.parent_tag in ['assign', 'anno_assign', 'typedparam']
-		is_self = re.fullmatch(r'self(.\w+)?', tokens) is not None
-		return in_decl_var and is_self
+		in_decl_var = self._full_path.parent_tag in ['assign', 'anno_assign']
+		is_property = re.fullmatch(r'self.\w+', tokens) is not None
+		return in_decl_var and is_property
+
+	@property
+	def is_param_this(self) -> bool:
+		"""Note: マッチング対象: 仮引数(selfのみ)"""
+		tokens = self.tokens
+		in_decl_var = self._full_path.parent_tag in ['typedparam']
+		is_this = tokens == 'self'
+		is_local = DSN.elem_counts(tokens) == 1
+		return in_decl_var and is_this and is_local
 
 	@property
 	def is_local_var(self) -> bool:
+		"""Note: マッチング対象: クラス変数/ローカル変数/仮引数(self以外)"""
 		tokens = self.tokens
 		in_decl_var = self._full_path.parent_tag in ['assign', 'anno_assign', 'typedparam', 'for_stmt', 'except_clause']
-		is_not_self = not tokens.startswith('self')
+		is_this = tokens == 'self'
 		is_local = DSN.elem_counts(tokens) == 1
-		return in_decl_var and is_not_self and is_local
+		return in_decl_var and not is_this and is_local
 
 	@property
 	def in_decl_class_type(self) -> bool:
@@ -66,29 +77,38 @@ class ThisVar(Var):
 	@property
 	@override
 	def domain_id(self) -> str:
-		return DSN.join(cast(IDomainName, self.class_types).domain_id, self.tokens_without_this)
+		return DSN.join(self.class_domain.domain_id, self.tokens_without_this)
 
 	@property
 	@override
 	def domain_name(self) -> str:
-		return DSN.join(cast(IDomainName, self.class_types).domain_name, self.tokens_without_this)
+		return DSN.join(self.class_domain.domain_name, self.tokens_without_this)
 
 	@property
 	def tokens_without_this(self) -> str:
 		return DSN.join(*DSN.elements(self.tokens)[1:])
 
 	@property
-	def class_types(self) -> Node:
-		# XXX 中途半端感があるので修正を検討
-		return self._ancestor('class_def')
+	def class_domain(self) -> IDomainName:
+		return cast(IDomainName, self._ancestor('class_def'))
+
+
+class BlockVar(Var): pass
+
+
+@Meta.embed(Node, accept_tags('name'), actualized(via=Fragment))
+class ParamThis(BlockVar):
+	@classmethod
+	def match_feature(cls, via: Fragment) -> bool:
+		return via.is_param_this
 
 	@property
-	def is_this_only(self) -> bool:
-		return self.tokens == 'self'
+	def class_domain(self) -> IDomainName:
+		return cast(IDomainName, self._ancestor('class_def'))
 
 
 @Meta.embed(Node, accept_tags('var', 'name'), actualized(via=Fragment))
-class LocalVar(Var):
+class LocalVar(BlockVar):
 	@classmethod
 	def match_feature(cls, via: Fragment) -> bool:
 		return via.is_local_var

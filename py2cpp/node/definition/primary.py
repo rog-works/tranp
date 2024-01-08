@@ -252,7 +252,11 @@ class Type(Node, IDomainName, ITerminal):
 	@property
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> 'Type':  # XXX symbol以外の名前を検討
-		"""Note: XXX 終端要素の場合は自分自身をシンボルとして扱う"""
+		"""
+		Note:
+			XXX 終端要素の場合は自分自身をシンボルとして扱う
+			XXX 派生クラスでexpandableの設定が矛盾する場合がある。終端要素は展開しないので必ずしも必要ない。直接的な害は無いが勘違いしやすいので修正を検討
+		"""
 		return self if not self.can_expand else self._at(0).as_a(Type)
 
 

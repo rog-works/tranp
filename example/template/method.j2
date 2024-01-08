@@ -4,7 +4,7 @@
 {{ access }}: {{ return_type }} {{ symbol }}(
 	{%- for parameter in parameters -%}
 		{%- if loop.index0 > 1 %}, {% endif -%}
-		{%- if parameter != 'this' -%}
+		{%- if parameter != 'self' -%}
 			{{- parameter -}}
 		{%- endif -%}
 	{%- endfor -%}

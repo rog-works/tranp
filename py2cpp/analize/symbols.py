@@ -220,17 +220,15 @@ class Symbols:
 			SymbolSchema: シンボルスキーマ
 		Raises:
 			LogicError: シンボルの解決に失敗
-			LogicError: 引数にRelayを指定
-		Note:
-			XXX Relayは単体でシンボルを表さないため、このメソッドでは非対応とする
 		"""
-		if isinstance(node, defs.Relay):
-			raise LogicError(f'Not supported node. node: {node}')
 
 		if isinstance(node, defs.Symbol):
 			return self.symbol_of(node)
 		elif isinstance(node, defs.Name):
 			return self.var_ref_of(node)
+		elif isinstance(node, defs.Relay):
+			# XXX Relayは実質的に式であるためresult_ofを使用
+			return self.result_of(node)
 		elif isinstance(node, defs.Type):
 			return self.type_of(node)
 		elif isinstance(node, defs.ClassKind):

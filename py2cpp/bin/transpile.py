@@ -196,9 +196,9 @@ class Handler(Procedure[str]):
 
 	def on_relay(self, node: defs.Relay, receiver: str) -> str:
 		# FIXME receiverの形態によってアクセス演算子を変える必要がある
-		return f'{receiver}.{node.property.tokens}'
+		return f'{receiver}.{node.prop.tokens}'
 
-	def on_name(self, node: defs.Name) -> str:
+	def on_var(self, node: defs.Var) -> str:
 		return node.tokens
 
 	def on_indexer(self, node: defs.Indexer, symbol: str, key: str) -> str:

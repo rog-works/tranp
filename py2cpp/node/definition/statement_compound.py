@@ -5,7 +5,7 @@ from py2cpp.lang.implementation import implements, override
 from py2cpp.node.definition.common import InheritArgument
 from py2cpp.node.definition.element import Block, Decorator, Parameter, ReturnType
 from py2cpp.node.definition.literal import String
-from py2cpp.node.definition.primary import BlockVar, ClassVar, ParamThis, Symbol, ThisVar, Type
+from py2cpp.node.definition.primary import BlockVar, ClassVar, ParamThis, Declable, ThisVar, Type
 from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
@@ -69,8 +69,8 @@ class While(Flow):
 class For(Flow):
 	@property
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> Symbol:
-		return self._by('name').as_a(Symbol)
+	def symbol(self) -> Declable:
+		return self._by('name').as_a(Declable)
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -93,8 +93,8 @@ class Catch(Flow):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def alias(self) -> Symbol | Empty:
-		return self._at(1).one_of(Symbol | Empty)
+	def alias(self) -> Declable | Empty:
+		return self._at(1).one_of(Declable | Empty)
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -142,7 +142,7 @@ class ClassKind(Node, IDomainName, IScope):
 		return DSN.join(self.scope, self.public_name)
 
 	@property
-	def symbol(self) -> Symbol:
+	def symbol(self) -> Declable:
 		raise NotImplementedError()
 
 	@property
@@ -168,8 +168,8 @@ class Function(ClassKind):
 	@property
 	@override
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> Symbol:
-		return self._by('function_def_raw.name').as_a(Symbol)
+	def symbol(self) -> Declable:
+		return self._by('function_def_raw.name').as_a(Declable)
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -209,7 +209,7 @@ class ClassMethod(Function):
 		return len(decorators) > 0 and decorators[0].symbol.tokens == 'classmethod'
 
 	@property
-	def class_symbol(self) -> Symbol:
+	def class_symbol(self) -> Declable:
 		return self.parent.as_a(Block).parent.as_a(ClassKind).symbol
 
 
@@ -221,7 +221,7 @@ class Constructor(Function):
 		return via.symbol.tokens == '__init__'
 
 	@property
-	def class_symbol(self) -> Symbol:
+	def class_symbol(self) -> Declable:
 		return self.parent.as_a(Block).parent.as_a(ClassKind).symbol
 
 	@property
@@ -241,7 +241,7 @@ class Method(Function):
 		return len(parameters) > 0 and parameters[0].symbol.is_a(ParamThis)
 
 	@property
-	def class_symbol(self) -> Symbol:
+	def class_symbol(self) -> Declable:
 		return self.parent.as_a(Block).parent.as_a(ClassKind).symbol
 
 
@@ -255,13 +255,22 @@ class Class(ClassKind):
 	@property
 	@override
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> Symbol:
-		symbol = self._by('class_def_raw.name').as_a(Symbol)
+	def symbol(self) -> Declable:
+		symbol = self._by('class_def_raw.name').as_a(Declable)
 		alias = self.__alias_symbol()
-		return symbol if not alias else symbol.dirty_proxify(tokens=alias).as_a(Symbol)
+		return symbol if not alias else symbol.dirty_proxify(tokens=alias).as_a(Declable)
 
 	def __alias_symbol(self) -> str | None:
-		"""Symbol: 特定の書式のデコレーターで設定した別名をクラス名のシンボルとして取り込む @node: 書式: `@__alias__(${alias_symbol})`。標準ライブラリの実装にのみ使う想定"""
+		"""デコレーターで設定した別名をシンボル名として取り込む
+
+		Returns:
+			str | None: 別名
+		Examples:
+			```python
+			@__alias__('int')
+			class Integer: ...
+			```
+		"""
 		decorators = self.decorators
 		if len(decorators) == 0:
 			return None
@@ -332,8 +341,8 @@ class Enum(ClassKind):
 	@property
 	@override
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> Symbol:
-		return self._by('name').as_a(Symbol)
+	def symbol(self) -> Declable:
+		return self._by('name').as_a(Declable)
 
 	@property
 	@Meta.embed(Node, expandable)

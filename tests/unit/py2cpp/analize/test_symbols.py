@@ -67,18 +67,18 @@ class TestSymbols(TestCase):
 	@data_provider([
 		(_ast('__main__', 'import_stmt.import_names.name'), _mod('xyz', 'Z')),
 	])
-	def test_symbol_of(self, full_path: str, expected: str) -> None:
+	def test_declable_of(self, full_path: str, expected: str) -> None:
 		symbols = self.fixture.get(Symbols)
-		node = self.fixture.shared_nodes.by(full_path).as_a(defs.Symbol)
-		self.assertEqual(symbols.symbol_of(node).row.types.domain_id, expected)
+		node = self.fixture.shared_nodes.by(full_path).as_a(defs.Declable)
+		self.assertEqual(symbols.declable_of(node).row.types.domain_id, expected)
 
 	@data_provider([
 		(_ast('B.func1.block', 'funccall[1].arguments.argvalue.var'), _mod('classes', 'Unknown')),  # FIXME bool?
 	])
-	def test_var_ref_of(self, full_path: str, expected: str) -> None:
+	def test_var_of(self, full_path: str, expected: str) -> None:
 		symbols = self.fixture.get(Symbols)
-		node = self.fixture.shared_nodes.by(full_path).as_a(defs.Name)
-		self.assertEqual(symbols.var_ref_of(node).row.types.domain_id, expected)
+		node = self.fixture.shared_nodes.by(full_path).as_a(defs.Var)
+		self.assertEqual(symbols.var_of(node).row.types.domain_id, expected)
 
 	@data_provider([
 		(_ast('__main__', 'assign_stmt[1].anno_assign.typed_var'), _mod('classes', 'int')),
@@ -111,7 +111,7 @@ class TestSymbols(TestCase):
 		symbols = self.fixture.get(Symbols)
 		node = self.fixture.shared_nodes.by(full_path).as_a(defs.Relay)
 		receiver = symbols.result_of(node.receiver)
-		self.assertEqual(symbols.property_of(receiver.row.types, node.property).row.types.domain_id, expected)
+		self.assertEqual(symbols.property_of(receiver.row.types, node.prop).row.types.domain_id, expected)
 
 	@data_provider([
 		(_ast('__main__', 'assign_stmt[1].anno_assign.number'), _mod('classes', 'int'), {}),

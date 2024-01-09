@@ -1,6 +1,6 @@
 from py2cpp.lang.implementation import implements
 from py2cpp.node.definition.common import Argument
-from py2cpp.node.definition.primary import DecoratorPath, Symbol, Type
+from py2cpp.node.definition.primary import DecoratorPath, Declable, Type
 from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, expandable
@@ -12,9 +12,9 @@ from py2cpp.node.node import Node, T_Node
 class Parameter(Node):
 	@property
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> Symbol:
+	def symbol(self) -> Declable:
 		"""Note: XXX 実体はBlockVarのみ"""
-		return self._by('typedparam.name').as_a(Symbol)
+		return self._by('typedparam.name').as_a(Declable)
 
 	@property
 	@Meta.embed(Node, expandable)

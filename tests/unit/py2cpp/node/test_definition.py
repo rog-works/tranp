@@ -223,23 +223,23 @@ class TestDefinition(TestCase):
 	# Primary
 
 	@data_provider([
-		('a', 'file_input.var', defs.Name),
+		('a', 'file_input.var', defs.Var),
 		('a = 0', 'file_input.assign_stmt.assign.var', defs.LocalVar),
 		('a: int = 0', 'file_input.assign_stmt.anno_assign.var', defs.LocalVar),
-		('a()', 'file_input.funccall.var', defs.Name),
+		('a()', 'file_input.funccall.var', defs.Var),
 		('a(self.v)', 'file_input.funccall.arguments.argvalue.getattr', defs.Relay),
-		('a(self.v)', 'file_input.funccall.arguments.argvalue.getattr.var', defs.Name),
-		('a[0]', 'file_input.getitem.var', defs.Name),
+		('a(self.v)', 'file_input.funccall.arguments.argvalue.getattr.var', defs.Var),
+		('a[0]', 'file_input.getitem.var', defs.Var),
 		('a[0].b', 'file_input.getattr', defs.Relay),
-		('a[0].b', 'file_input.getattr.getitem.var', defs.Name),
-		('a[0].b', 'file_input.getattr.name', defs.Name),
+		('a[0].b', 'file_input.getattr.getitem.var', defs.Var),
+		('a[0].b', 'file_input.getattr.name', defs.Var),
 		('a.b', 'file_input.getattr', defs.Relay),
 		('a.b()', 'file_input.funccall.getattr', defs.Relay),
 		('a.b[0]', 'file_input.getitem.getattr', defs.Relay),
 		('a.b.c', 'file_input.getattr', defs.Relay),
 		('a.b.c', 'file_input.getattr.getattr', defs.Relay),
-		('a.b.c', 'file_input.getattr.getattr.var', defs.Name),
-		('self', 'file_input.var', defs.Name),
+		('a.b.c', 'file_input.getattr.getattr.var', defs.Var),
+		('self', 'file_input.var', defs.Var),
 		('self.a', 'file_input.getattr', defs.Relay),
 		('self.a = 0', 'file_input.assign_stmt.assign.getattr', defs.ThisVar),
 		('self.a: int = 0', 'file_input.assign_stmt.anno_assign.getattr', defs.ThisVar),
@@ -248,12 +248,12 @@ class TestDefinition(TestCase):
 		('self.a.b', 'file_input.getattr', defs.Relay),
 		('for a in arr: pass', 'file_input.for_stmt.name', defs.LocalVar),
 		('try: ...\nexcept A.E as e: ...', 'file_input.try_stmt.except_clauses.except_clause.name', defs.LocalVar),
-		('raise E() from e', 'file_input.raise_stmt.funccall.var', defs.Name),
-		('raise E() from e', 'file_input.raise_stmt.name', defs.Name),
+		('raise E() from e', 'file_input.raise_stmt.funccall.var', defs.Var),
+		('raise E() from e', 'file_input.raise_stmt.name', defs.Var),
 		('from path.to import A', 'file_input.import_stmt.import_names.name', defs.ImportName),
-		('class B(A): pass', 'file_input.class_def.class_def_raw.name', defs.ClassTypeName),
+		('class B(A): pass', 'file_input.class_def.class_def_raw.name', defs.TypesName),
 		('class B(A):\n\tv: int = 0', 'file_input.class_def.class_def_raw.block.assign_stmt.anno_assign.var', defs.ClassVar),
-		('def func(a: int) -> None: pass', 'file_input.function_def.function_def_raw.name', defs.ClassTypeName),
+		('def func(a: int) -> None: pass', 'file_input.function_def.function_def_raw.name', defs.TypesName),
 		('def func(a: int) -> None: pass', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.LocalVar),
 		('def func(self) -> None: pass', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.ParamThis),
 	])
@@ -262,24 +262,24 @@ class TestDefinition(TestCase):
 		self.assertEqual(type(node), expected)
 
 	@data_provider([
-		('a(self.v)', 'file_input.funccall.arguments.argvalue.getattr', {'receiver': defs.Name, 'property': defs.Name}),
-		('a[0].b', 'file_input.getattr', {'receiver': defs.Indexer, 'property': defs.Name}),
-		('a.b', 'file_input.getattr', {'receiver': defs.Name, 'property': defs.Name}),
-		('a.b()', 'file_input.funccall.getattr', {'receiver': defs.Name, 'property': defs.Name}),
-		('a.b[0]', 'file_input.getitem.getattr', {'receiver': defs.Name, 'property': defs.Name}),
-		('a.b.c', 'file_input.getattr', {'receiver': defs.Relay, 'property': defs.Name}),
-		('a.b.c', 'file_input.getattr.getattr', {'receiver': defs.Name, 'property': defs.Name}),
-		('self.a', 'file_input.getattr', {'receiver': defs.Name, 'property': defs.Name}),
-		('self.a()', 'file_input.funccall.getattr', {'receiver': defs.Name, 'property': defs.Name}),
-		('self.a[0]', 'file_input.getitem.getattr', {'receiver': defs.Name, 'property': defs.Name}),
-		('self.a.b', 'file_input.getattr', {'receiver': defs.Relay, 'property': defs.Name}),
-		('self.a().b', 'file_input.getattr', {'receiver': defs.FuncCall, 'property': defs.Name}),
-		('"".a', 'file_input.getattr', {'receiver': defs.String, 'property': defs.Name}),
+		('a(self.v)', 'file_input.funccall.arguments.argvalue.getattr', {'receiver': defs.Var, 'property': defs.Var}),
+		('a[0].b', 'file_input.getattr', {'receiver': defs.Indexer, 'property': defs.Var}),
+		('a.b', 'file_input.getattr', {'receiver': defs.Var, 'property': defs.Var}),
+		('a.b()', 'file_input.funccall.getattr', {'receiver': defs.Var, 'property': defs.Var}),
+		('a.b[0]', 'file_input.getitem.getattr', {'receiver': defs.Var, 'property': defs.Var}),
+		('a.b.c', 'file_input.getattr', {'receiver': defs.Relay, 'property': defs.Var}),
+		('a.b.c', 'file_input.getattr.getattr', {'receiver': defs.Var, 'property': defs.Var}),
+		('self.a', 'file_input.getattr', {'receiver': defs.Var, 'property': defs.Var}),
+		('self.a()', 'file_input.funccall.getattr', {'receiver': defs.Var, 'property': defs.Var}),
+		('self.a[0]', 'file_input.getitem.getattr', {'receiver': defs.Var, 'property': defs.Var}),
+		('self.a.b', 'file_input.getattr', {'receiver': defs.Relay, 'property': defs.Var}),
+		('self.a().b', 'file_input.getattr', {'receiver': defs.FuncCall, 'property': defs.Var}),
+		('"".a', 'file_input.getattr', {'receiver': defs.String, 'property': defs.Var}),
 	])
 	def test_relay(self, source: str, full_path: str, expected: dict[str, type[defs.Relay]]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Relay)
 		self.assertEqual(type(node.receiver), expected['receiver'])
-		self.assertEqual(type(node.property), expected['property'])
+		self.assertEqual(type(node.prop), expected['property'])
 
 	@data_provider([
 		('from path.to import A', 'file_input.import_stmt.dotted_name', defs.ImportPath),
@@ -348,7 +348,7 @@ class TestDefinition(TestCase):
 				{'value': "'once'"},
 			],
 			'calculated': [
-				'<Name: file_input.funccall.var>',
+				'<Var: file_input.funccall.var>',
 				'<String: file_input.funccall.arguments.argvalue.string>',
 				'<Argument: file_input.funccall.arguments.argvalue>',
 			],

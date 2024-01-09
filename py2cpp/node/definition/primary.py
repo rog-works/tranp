@@ -70,7 +70,7 @@ class Fragment(Node):
 		return self._full_path.parent_tag == 'import_names'
 
 
-class Symbol(Fragment, IDomainName, ITerminal):
+class Declable(Fragment, IDomainName, ITerminal):
 	@property
 	@implements
 	def domain_id(self) -> str:
@@ -87,11 +87,11 @@ class Symbol(Fragment, IDomainName, ITerminal):
 		return False
 
 
-class Var(Symbol): pass
+class DeclVar(Declable): pass
 
 
 @Meta.embed(Node, accept_tags('var'), actualized(via=Fragment))
-class ClassVar(Var):
+class ClassVar(DeclVar):
 	@classmethod
 	def match_feature(cls, via: Fragment) -> bool:
 		return via.is_class_var
@@ -102,7 +102,7 @@ class ClassVar(Var):
 
 
 @Meta.embed(Node, accept_tags('getattr'), actualized(via=Fragment))
-class ThisVar(Var):
+class ThisVar(DeclVar):
 	@classmethod
 	def match_feature(cls, via: Fragment) -> bool:
 		return via.is_this_var
@@ -126,7 +126,7 @@ class ThisVar(Var):
 		return cast(IDomainName, self._ancestor('class_def'))
 
 
-class BlockVar(Var): pass
+class BlockVar(DeclVar): pass
 
 
 @Meta.embed(Node, accept_tags('name'), actualized(via=Fragment))
@@ -158,11 +158,11 @@ class LocalVar(BlockVar):
 		return via.is_local_var
 
 
-class DeclName(Symbol): pass
+class DeclName(Declable): pass
 
 
 @Meta.embed(Node, accept_tags('name'), actualized(via=Fragment))
-class ClassTypeName(DeclName):
+class TypesName(DeclName):
 	@classmethod
 	def match_feature(cls, via: Fragment) -> bool:
 		return via.in_decl_class_type
@@ -205,12 +205,12 @@ class Relay(Reference):
 		return self._at(0).one_of(Reference | FuncCall | Indexer | Literal)
 
 	@property
-	def property(self) -> 'Name':  # XXX 前方参照
-		return self._at(1).as_a(Name)
+	def prop(self) -> 'Var':  # XXX 前方参照
+		return self._at(1).as_a(Var)
 
 
 @Meta.embed(Node, accept_tags('var', 'name'), actualized(via=Fragment))
-class Name(Reference, ITerminal):
+class Var(Reference, ITerminal):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
 		# XXX actualizeループの結果を元に排他的に決定(実質的なフォールバック)

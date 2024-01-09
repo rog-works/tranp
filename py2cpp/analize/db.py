@@ -19,14 +19,14 @@ class SymbolRow(NamedTuple):
 		ref_path (str): 参照パス
 		org_path (str): 参照パス(オリジナル)
 		module (Module): 展開先のモジュール
-		symbol (Symbol): シンボルノード
+		symbol (Declable): シンボル宣言ノード
 		types (ClassKind): タイプノード
-		decl (DeclAll): 宣言ノード
+		decl (DeclAll): 宣言ステートメントノード
 	"""
 	ref_path: str
 	org_path: str
 	module: Module
-	symbol: defs.Symbol
+	symbol: defs.Declable
 	types: defs.ClassKind
 	decl: DeclAll
 

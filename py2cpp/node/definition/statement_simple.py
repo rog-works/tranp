@@ -1,5 +1,5 @@
 from py2cpp.lang.implementation import implements, override
-from py2cpp.node.definition.primary import FuncCall, ImportPath, Indexer, Reference, Symbol, Type
+from py2cpp.node.definition.primary import FuncCall, ImportPath, Indexer, Reference, Declable, Type
 from py2cpp.node.definition.terminal import Empty, Terminal
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
 from py2cpp.node.interface import ITerminal
@@ -14,18 +14,18 @@ class Assign(Node):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def receiver(self) -> Symbol | Reference | Indexer:
-		return self._elements[0].one_of(Symbol | Reference | Indexer)
+	def receiver(self) -> Declable | Reference | Indexer:
+		return self._elements[0].one_of(Declable | Reference | Indexer)
 
 	@property
-	def symbol(self) -> Symbol:
+	def symbol(self) -> Declable:
 		"""
 		Note:
 			XXX MoveAssign/AnnoAssign/Parameterのインターフェイスを統一するために定義
 			XXX receiverがSymbol以外のインスタンスで使用するとエラーが発生する
 			XXX シンボルテーブル作成時以外に使用しないと言う前提
 		"""
-		return self._elements[0].as_a(Symbol)
+		return self._elements[0].as_a(Declable)
 
 
 @Meta.embed(Node, actualized(via=Assign))
@@ -125,5 +125,5 @@ class Import(Node, ITerminal):
 		return self._by('dotted_name').as_a(ImportPath)
 
 	@property
-	def import_symbols(self) -> list[Symbol]:
-		return [node.as_a(Symbol) for node in self._children('import_names')]
+	def import_symbols(self) -> list[Declable]:
+		return [node.as_a(Declable) for node in self._children('import_names')]

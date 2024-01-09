@@ -9,7 +9,7 @@ from py2cpp.module.types import ModulePath
 import py2cpp.node.definition as defs
 from py2cpp.node.node import Node
 
-Symbolic: TypeAlias = defs.Symbol | defs.Reference | defs.Type | defs.Literal | defs.ClassKind
+Symbolic: TypeAlias = defs.Declable | defs.Reference | defs.Type | defs.Literal | defs.ClassKind
 Primitives: TypeAlias = int | str | bool | tuple | list | dict | None
 
 PairSchema = NamedTuple('PairSchema', [('row', SymbolRow), ('first', SymbolRow), ('second', SymbolRow)])
@@ -119,11 +119,11 @@ class Symbols:
 
 		raise LogicError(f'Unknown not defined.')
 
-	def symbol_of(self, symbol: defs.Symbol) -> SymbolSchema:
-		"""シンボルノードからシンボルを解決
+	def declable_of(self, symbol: defs.Declable) -> SymbolSchema:
+		"""シンボル宣言ノードからシンボルを解決
 
 		Args:
-			symbol (Symbol): シンボルノード
+			symbol (Declable): シンボル宣言ノード
 		Returns:
 			SymbolSchema: シンボルスキーマ
 		Raises:
@@ -131,7 +131,7 @@ class Symbols:
 		"""
 		return self.__resolve_symbol(symbol)
 
-	def var_ref_of(self, var_ref: defs.Name) -> SymbolSchema:
+	def var_of(self, var_ref: defs.Var) -> SymbolSchema:
 		"""変数参照ノードからシンボルを解決
 
 		Args:
@@ -179,12 +179,12 @@ class Symbols:
 		"""
 		return self.__resolve_symbol(decl_class)
 
-	def property_of(self, decl_class: defs.ClassKind, prop: defs.Name) -> SymbolSchema:
+	def property_of(self, decl_class: defs.ClassKind, prop: defs.Var) -> SymbolSchema:
 		"""クラス定義ノードと名前ノードからプロパティーのシンボルを解決
 
 		Args:
 			decl_class (ClassKind): クラス定義ノード
-			prop (Name): 名前ノード
+			prop (Var): 変数参照ノード
 		Returns:
 			SymbolSchema: シンボルスキーマ
 		Raises:
@@ -222,10 +222,10 @@ class Symbols:
 			LogicError: シンボルの解決に失敗
 		"""
 
-		if isinstance(node, defs.Symbol):
-			return self.symbol_of(node)
-		elif isinstance(node, defs.Name):
-			return self.var_ref_of(node)
+		if isinstance(node, defs.Declable):
+			return self.declable_of(node)
+		elif isinstance(node, defs.Var):
+			return self.var_of(node)
 		elif isinstance(node, defs.Relay):
 			# XXX Relayは実質的に式であるためresult_ofを使用
 			return self.result_of(node)
@@ -341,16 +341,16 @@ class Handler(Procedure[SymbolSchema]):
 	def on_local_var(self, node: defs.LocalVar) -> SymbolSchema:
 		return self._symbols.by(node)
 
-	def on_class_type_name(self, node: defs.ClassTypeName) -> SymbolSchema:
+	def on_types_name(self, node: defs.TypesName) -> SymbolSchema:
 		return self._symbols.by(node)
 
 	def on_import_name(self, node: defs.ImportName) -> SymbolSchema:
 		return self._symbols.by(node)
 
 	def on_relay(self, node: defs.Relay, receiver: SymbolSchema) -> SymbolSchema:
-		return self._symbols.property_of(receiver.row.types, node.property)
+		return self._symbols.property_of(receiver.row.types, node.prop)
 
-	def on_name(self, node: defs.Name) -> SymbolSchema:
+	def on_var(self, node: defs.Var) -> SymbolSchema:
 		return self._symbols.by(node)
 
 	def on_indexer(self, node: defs.Indexer, symbol: SymbolSchema, key: SymbolSchema) -> SymbolSchema:
@@ -405,7 +405,7 @@ class Handler(Procedure[SymbolSchema]):
 		other = methods[0].parameters.pop()
 		var_types = [other.var_type] if not other.var_type.is_a(defs.UnionType) else other.var_type.as_a(defs.UnionType).types
 		for var_type in var_types:
-			if self._symbols.by(var_type.one_of(defs.Symbol | defs.GenericType)) == right:
+			if self._symbols.by(var_type.one_of(defs.Declable | defs.GenericType)) == right:
 				return right
 
 		raise LogicError(f'Operation not allowed. {node}, {left}, {right}, {operator}')

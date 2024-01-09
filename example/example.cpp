@@ -97,7 +97,7 @@ class CellMesh {
 			{-1},
 			{-1},
 		};
-		void closure(MeshRaw origin) {
+		auto closure = [&](MeshRaw origin) -> void {
 			cellBox = cls.to_cell_box(cell, unit);
 			boxs = cls.to_vertex_boxs(cellBox, unit);
 			for (auto i : range(int(CellMesh.VertexIndexs.Max))) {

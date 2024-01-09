@@ -1,0 +1,10 @@
+auto {{ symbol }} = [&](
+	{%- for parameter in parameters -%}
+		{%- if loop.index0 > 0 %}, {% endif -%}
+		{{- parameter -}}
+	{%- endfor -%}
+) -> {{ return_type }} {
+{%- filter indent('\t') %}
+{{ block }}
+{%- endfilter %}
+}

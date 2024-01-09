@@ -2,6 +2,7 @@ import re
 
 from py2cpp.ast.dsn import DSN
 from py2cpp.lang.implementation import implements, override
+from py2cpp.lang.sequence import last_index_of
 from py2cpp.node.definition.common import InheritArgument
 from py2cpp.node.definition.element import Block, Decorator, Parameter, ReturnDecl
 from py2cpp.node.definition.literal import String
@@ -243,6 +244,18 @@ class Method(Function):
 	@property
 	def class_symbol(self) -> Declable:
 		return self.parent.as_a(Block).parent.as_a(ClassKind).symbol
+
+
+@Meta.embed(Node, actualized(via=Function))
+class Closure(Function):
+	@classmethod
+	@override
+	def match_feature(cls, via: Function) -> bool:
+		elems = via._full_path.elements
+		actual_function_def_at = last_index_of(elems, 'function_def_raw')
+		expect_function_def_at = max(0, len(elems) - 3)
+		in_decl_function = actual_function_def_at == expect_function_def_at
+		return in_decl_function
 
 
 @Meta.embed(Node, accept_tags('class_def'))

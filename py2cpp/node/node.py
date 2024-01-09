@@ -424,11 +424,11 @@ class Node:
 
 		return list(classes.keys())
 
-	def actualize(self) -> 'Node':
+	def actualize(self: T_Node) -> T_Node:
 		"""ASTの相関関係より判断した実体としてより適切な具象クラスのインスタンスに変換。条件は具象側で実装
 
 		Returns:
-			Node: 具象クラスのインスタンス
+			T_Node: 具象クラスのインスタンス
 		"""
 		for feature_class in self._feature_classes():
 			if not self.__acceptable_by(feature_class):
@@ -439,13 +439,13 @@ class Node:
 
 		return self
 
-	def dirty_proxify(self, **overrides: Any) -> 'Node':
+	def dirty_proxify(self: T_Node, **overrides: Any) -> T_Node:
 		"""プロキシノードを生成
 
 		Args:
 			**overrides (Any): 上書きするプロパティー
 		Returns:
-			Proxy[T_Node]: プロキシノード
+			T_Node: プロキシノード
 		Note:
 			XXX シンボルエイリアスにのみ使う想定。ダーティーな実装のため濫用は厳禁
 		"""
@@ -456,7 +456,8 @@ class Node:
 
 				return super().__getattribute__(__name)
 
-		return Proxy(self.__nodes, self.__module_path, self.full_path)
+		# XXX 継承関係が無いと判断されるのでcastで対処
+		return cast(T_Node, Proxy(self.__nodes, self.__module_path, self.full_path))
 
 	# XXX def is_statement(self) -> bool: pass
 	# XXX def pretty(self) -> str: pass

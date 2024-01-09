@@ -54,7 +54,7 @@ class Fragment(Node):
 
 	@property
 	def is_local_var(self) -> bool:
-		"""Note: マッチング対象: ローカル変数/仮引数(self以外)"""
+		"""Note: マッチング対象: ローカル変数/仮引数(cls/self以外)"""
 		tokens = self.tokens
 		in_decl_var = self._full_path.parent_tag in ['assign', 'anno_assign', 'typedparam', 'for_stmt', 'except_clause']
 		is_class_or_this = tokens == 'cls' or tokens == 'self'
@@ -90,7 +90,7 @@ class Symbol(Fragment, IDomainName, ITerminal):
 class Var(Symbol): pass
 
 
-@Meta.embed(Node, actualized(via=Fragment))
+@Meta.embed(Node, accept_tags('var'), actualized(via=Fragment))
 class ClassVar(Var):
 	@classmethod
 	def match_feature(cls, via: Fragment) -> bool:
@@ -101,7 +101,7 @@ class ClassVar(Var):
 		return cast(IDomainName, self._ancestor('class_def'))
 
 
-@Meta.embed(Node, actualized(via=Fragment))
+@Meta.embed(Node, accept_tags('getattr'), actualized(via=Fragment))
 class ThisVar(Var):
 	@classmethod
 	def match_feature(cls, via: Fragment) -> bool:

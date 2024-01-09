@@ -69,7 +69,7 @@ class While(Flow):
 class For(Flow):
 	@property
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> Declable:
+	def decl_var(self) -> Declable:
 		return self._by('name').as_a(Declable)
 
 	@property
@@ -93,7 +93,7 @@ class Catch(Flow):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def alias(self) -> Declable | Empty:
+	def decl_var(self) -> Declable | Empty:
 		return self._at(1).one_of(Declable | Empty)
 
 	@property

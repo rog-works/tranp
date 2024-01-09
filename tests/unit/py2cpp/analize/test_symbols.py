@@ -115,7 +115,7 @@ class TestSymbols(TestCase):
 
 	@data_provider([
 		(_ast('__main__', 'assign_stmt[1].anno_assign.number'), _mod('classes', 'int'), {}),
-		(_ast('B.__init__.block', 'funccall'), '__main__.A.__init__', {}),
+		(_ast('B.__init__.block', 'funccall'), '__main__.A', {}),
 		(_ast('B.__init__.block', 'assign_stmt'), _mod('classes', 'list'), {'value_type': _mod('classes', 'int')}),
 		(_ast('B.func1.block', 'funccall[1].arguments.argvalue.var'), _mod('classes', 'Unknown'), {}),  # FIXME bool?
 		(_ast('B.func1.block', 'funccall[2].arguments.argvalue.getattr'), _mod('classes', 'list'), {}), # FIXME {'value': _mod('classes', 'int')}),

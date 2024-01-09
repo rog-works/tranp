@@ -3,22 +3,35 @@ from typing import cast
 
 from py2cpp.ast.dsn import DSN
 from py2cpp.lang.implementation import implements, override
+from py2cpp.lang.sequence import last_index_of
 from py2cpp.node.definition.common import Argument
 from py2cpp.node.definition.literal import Literal
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
 from py2cpp.node.interface import IDomainName, ITerminal
 from py2cpp.node.node import Node
-from py2cpp.node.protocol import Symbolization
+
 
 @Meta.embed(Node, accept_tags('getattr', 'var', 'name'))
 class Fragment(Node):
 	@property
+	def is_class_var(self) -> bool:
+		"""Note: マッチング対象: クラス変数"""
+		# XXX ASTへの依存度が非常に高い判定なので注意
+		# XXX 期待するパス: class_def_raw.block.assign_stmt.(assign|anno_assign).(getattr|var|name)
+		elems = self._full_path.de_identify().elements
+		actual_class_def_at = last_index_of(elems, 'class_def_raw')
+		expect_class_def_at = max(0, len(elems) - 5)
+		in_decl_class_var = actual_class_def_at == expect_class_def_at
+		in_decl_var = self._full_path.parent_tag in ['assign', 'anno_assign']
+		is_local = DSN.elem_counts(self.tokens) == 1
+		return in_decl_var and in_decl_class_var and is_local
+
+	@property
 	def is_this_var(self) -> bool:
 		"""Note: マッチング対象: インスタンス変数"""
-		tokens = self.tokens
 		in_decl_var = self._full_path.parent_tag in ['assign', 'anno_assign']
-		is_property = re.fullmatch(r'self.\w+', tokens) is not None
+		is_property = re.fullmatch(r'self.\w+', self.tokens) is not None
 		return in_decl_var and is_property
 
 	@property
@@ -41,7 +54,7 @@ class Fragment(Node):
 
 	@property
 	def is_local_var(self) -> bool:
-		"""Note: マッチング対象: クラス変数/ローカル変数/仮引数(self以外)"""
+		"""Note: マッチング対象: ローカル変数/仮引数(self以外)"""
 		tokens = self.tokens
 		in_decl_var = self._full_path.parent_tag in ['assign', 'anno_assign', 'typedparam', 'for_stmt', 'except_clause']
 		is_class_or_this = tokens == 'cls' or tokens == 'self'
@@ -75,6 +88,17 @@ class Symbol(Fragment, IDomainName, ITerminal):
 
 
 class Var(Symbol): pass
+
+
+@Meta.embed(Node, actualized(via=Fragment))
+class ClassVar(Var):
+	@classmethod
+	def match_feature(cls, via: Fragment) -> bool:
+		return via.is_class_var
+
+	@property
+	def class_domain(self) -> IDomainName:
+		return cast(IDomainName, self._ancestor('class_def'))
 
 
 @Meta.embed(Node, actualized(via=Fragment))

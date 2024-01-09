@@ -5,7 +5,7 @@ from py2cpp.lang.implementation import implements, override
 from py2cpp.node.definition.common import InheritArgument
 from py2cpp.node.definition.element import Block, Decorator, Parameter, ReturnType
 from py2cpp.node.definition.literal import String
-from py2cpp.node.definition.primary import BlockVar, LocalVar, ParamThis, Symbol, ThisVar, Type
+from py2cpp.node.definition.primary import BlockVar, ClassVar, ParamThis, Symbol, ThisVar, Type
 from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
@@ -315,7 +315,7 @@ class Class(ClassKind):
 
 	@property
 	def class_vars(self) -> list[AnnoAssign | MoveAssign]:
-		return self.block.decl_vars_with(LocalVar)
+		return self.block.decl_vars_with(ClassVar)
 
 	@property
 	def instance_vars(self) -> list[AnnoAssign | MoveAssign]:

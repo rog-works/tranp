@@ -326,6 +326,9 @@ class Handler(Procedure[SymbolSchema]):
 
 	# Primary
 
+	def on_class_var(self, node: defs.ClassVar) -> SymbolSchema:
+		return self._symbols.by(node)
+
 	def on_this_var(self, node: defs.ThisVar) -> SymbolSchema:
 		return self._symbols.by(node)
 

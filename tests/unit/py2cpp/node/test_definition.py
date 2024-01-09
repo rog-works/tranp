@@ -252,6 +252,7 @@ class TestDefinition(TestCase):
 		('raise E() from e', 'file_input.raise_stmt.name', defs.Name),
 		('from path.to import A', 'file_input.import_stmt.import_names.name', defs.ImportName),
 		('class B(A): pass', 'file_input.class_def.class_def_raw.name', defs.ClassTypeName),
+		('class B(A):\n\tv: int = 0', 'file_input.class_def.class_def_raw.block.assign_stmt.anno_assign.var', defs.ClassVar),
 		('def func(a: int) -> None: pass', 'file_input.function_def.function_def_raw.name', defs.ClassTypeName),
 		('def func(a: int) -> None: pass', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.LocalVar),
 		('def func(self) -> None: pass', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.ParamThis),

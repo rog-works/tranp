@@ -179,6 +179,9 @@ class Handler(Procedure[str]):
 
 	# Primary
 
+	def on_class_var(self, node: defs.ClassVar) -> str:
+		return node.tokens
+
 	def on_this_var(self, node: defs.ThisVar) -> str:
 		return node.tokens.replace('self', 'this')
 

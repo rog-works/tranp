@@ -3,7 +3,7 @@ import re
 from py2cpp.ast.dsn import DSN
 from py2cpp.lang.implementation import implements, override
 from py2cpp.node.definition.common import InheritArgument
-from py2cpp.node.definition.element import Block, Decorator, Parameter, ReturnType
+from py2cpp.node.definition.element import Block, Decorator, Parameter, ReturnDecl
 from py2cpp.node.definition.literal import String
 from py2cpp.node.definition.primary import BlockVar, ClassVar, ParamThis, Declable, ThisVar, Type
 from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
@@ -186,8 +186,8 @@ class Function(ClassKind):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def return_type(self) -> ReturnType:
-		return self._by('function_def_raw.return_type').as_a(ReturnType)
+	def return_decl(self) -> ReturnDecl:
+		return self._by('function_def_raw.return_type').as_a(ReturnDecl)
 
 	@property
 	@override

@@ -137,7 +137,7 @@ class Handler(Procedure[str]):
 	def on_parameter(self, node: defs.Parameter, symbol: str, var_type: str, default_value: str) -> str:
 		return self.view.render(node.classification, vars={'symbol': symbol, 'var_type': var_type, 'default_value': default_value})
 
-	def on_return_type(self, node: defs.ReturnType, var_type: str) -> str:
+	def on_return_decl(self, node: defs.ReturnDecl, var_type: str) -> str:
 		return var_type if not node.var_type.is_a(defs.Null) else 'void'
 
 	def on_decorator(self, node: defs.Decorator, symbol: str, arguments: list[str]) -> str:

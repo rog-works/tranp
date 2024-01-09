@@ -29,7 +29,7 @@ class Parameter(Node):
 
 
 @Meta.embed(Node, accept_tags('return_type'))
-class ReturnType(Node):
+class ReturnDecl(Node):
 	@property
 	@Meta.embed(Node, expandable)
 	def var_type(self) -> Type:

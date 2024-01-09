@@ -379,7 +379,7 @@ class Handler(Procedure[SymbolSchema]):
 		if calls_function.is_a(defs.Constructor):
 			return self._symbols.by(calls_function.as_a(defs.Constructor).class_symbol)
 		else:
-			return self._symbols.by(calls_function.return_type.var_type)
+			return self._symbols.by(calls_function.return_decl.var_type)
 
 	def on_super(self, node: defs.Super, calls: SymbolSchema, arguments: list[SymbolSchema]) -> SymbolSchema:
 		return self._symbols.by(node.parent_symbol)

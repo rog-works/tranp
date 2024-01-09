@@ -28,7 +28,7 @@ def symbol_mapping() -> SymbolMapping:
 			'enum_def': defs.Enum,
 			# -- Function/Class Elements --
 			'paramvalue': defs.Parameter,
-			'return_type': defs.ReturnType,
+			'return_type': defs.ReturnDecl,
 			'block': defs.Block,
 			'decorator': defs.Decorator,
 			# -- Statement simple --

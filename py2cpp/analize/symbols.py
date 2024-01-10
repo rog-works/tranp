@@ -401,7 +401,7 @@ class Handler(Procedure[Symbol]):
 	def on_dict(self, node: defs.Dict, items: list[Symbol]) -> Symbol:
 		if len(items) == 0:
 			unknown_type = self._symbols.unknown_of()
-			key_value_type = unknown_type.extends(unknown_type, unknown_type)
-			return self._symbols.by(node).extends(key_value_type)
+			return self._symbols.by(node).extends(unknown_type, unknown_type)
 		else:
-			return self._symbols.by(node).extends(items[0])
+			key_type, value_type = items[0].attrs
+			return self._symbols.by(node).extends(key_type, value_type)

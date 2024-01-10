@@ -119,7 +119,7 @@ class Handler(Procedure[str]):
 		return self.view.render(node.classification, vars={'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'block': block, 'class_symbol': class_symbol})
 
 	def on_closure(self, node: defs.Closure, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, block: str) -> str:
-		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'block': block})
+		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'block': block, 'binded_this': node.binded_this})
 
 	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], parents: list[str], block: str) -> str:
 		# FIXME メンバー変数の展開方法を再検討

@@ -1,4 +1,4 @@
-auto {{ symbol }} = [&](
+auto {{ symbol }} = [{% if binded_this %}this, {% endif %}&](
 	{%- for parameter in parameters -%}
 		{%- if loop.index0 > 0 %}, {% endif -%}
 		{{- parameter -}}

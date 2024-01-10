@@ -251,11 +251,25 @@ class Closure(Function):
 	@classmethod
 	@override
 	def match_feature(cls, via: Function) -> bool:
-		elems = via._full_path.elements
+		elems = via._full_path.de_identify().elements
 		actual_function_def_at = last_index_of(elems, 'function_def_raw')
 		expect_function_def_at = max(0, len(elems) - 3)
 		in_decl_function = actual_function_def_at == expect_function_def_at
 		return in_decl_function
+
+	@property
+	def binded_this(self) -> bool:
+		found_own_class = 'class_def' in self._full_path.de_identify().elements
+		if not found_own_class:
+			return False
+
+		types = self._ancestor('class_def').as_a(Class)
+		own_method_at = len(types.block._full_path.elements) + 1
+		own_method = self
+		while own_method_at < len(own_method._full_path.elements):
+			own_method = own_method.parent
+
+		return own_method.is_a(Method)
 
 
 @Meta.embed(Node, accept_tags('class_def'))

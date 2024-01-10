@@ -24,6 +24,7 @@ def symbol_mapping() -> SymbolMapping:
 			# 'function_def': defs.ClassMethod,
 			# 'function_def': defs.Constructor,
 			# 'function_def': defs.Method,
+			# 'function_def': defs.Closure,
 			'class_def': defs.Class,
 			'enum_def': defs.Enum,
 			# -- Function/Class Elements --

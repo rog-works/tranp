@@ -23,6 +23,7 @@ class TestDefinition(TestCase):
 
 	@data_provider([
 		('file_input.class_def[4].class_def_raw.block.function_def[1]', {
+			'type': defs.Method,
 			'name': 'func1',
 			'access': 'public',
 			'decorators': [],
@@ -33,6 +34,7 @@ class TestDefinition(TestCase):
 			'return': defs.GeneralType,
 		}),
 		('file_input.class_def[4].class_def_raw.block.function_def[2]', {
+			'type': defs.Method,
 			'name': '_func2',
 			'access': 'protected',
 			'decorators': [
@@ -44,7 +46,28 @@ class TestDefinition(TestCase):
 			],
 			'return': defs.ListType,
 		}),
+		('file_input.class_def[4].class_def_raw.block.function_def[3].function_def_raw.block.function_def', {
+			'type': defs.Closure,
+			'name': 'closure',
+			'access': 'public',
+			'decorators': [],
+			'parameters': [],
+			'return': defs.NullType,
+		}),
+		('file_input.class_def[4].class_def_raw.block.function_def[4]', {
+			'type': defs.ClassMethod,
+			'name': 'cls_func',
+			'access': 'public',
+			'decorators': [
+				{'symbol': 'classmethod', 'arguments': []},
+			],
+			'parameters': [
+				{'name': 'cls', 'type': 'Empty', 'default': 'Empty'},
+			],
+			'return': defs.GeneralType,
+		}),
 		('file_input.function_def', {
+			'type': defs.Function,
 			'name': 'func3',
 			'access': 'public',
 			'decorators': [],
@@ -56,6 +79,7 @@ class TestDefinition(TestCase):
 	])
 	def test_function(self, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.shared_nodes.by(full_path).as_a(defs.Function)
+		self.assertEqual(type(node), expected['type'])
 		self.assertEqual(node.symbol.tokens, expected['name'])
 		self.assertEqual(node.access, expected['access'])
 		self.assertEqual(len(node.decorators), len(expected['decorators']))

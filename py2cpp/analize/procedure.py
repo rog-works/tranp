@@ -8,9 +8,10 @@ T_Ret = TypeVar('T_Ret')
 
 
 class Procedure(Generic[T_Ret]):
-	def __init__(self) -> None:
+	def __init__(self, verbose: bool = False) -> None:
 		self._stack: list[T_Ret] = []
 		self.__invoker = HandlerInvoker[T_Ret]()
+		self.__verbose = verbose
 
 	def result(self) -> T_Ret:
 		if len(self._stack) != 1:
@@ -45,9 +46,15 @@ class Procedure(Generic[T_Ret]):
 			self._stack.append(handler(node, self._stack.pop()))
 
 	def _run_action(self, handler_name: str, node: Node) -> None:
+		self._log(f'{handler_name}, stacks: {len(self._stack)}, node: {node}')
+
 		result = self.__invoker.invoke(getattr(self, handler_name), node, self._stack)
 		if result is not None:
 			self._stack.append(result)
+
+	def _log(self, *strs: str) -> None:
+		if self.__verbose:
+			print(*strs)  # FIXME impl Logger
 
 
 class HandlerInvoker(Generic[T_Ret]):

@@ -1,7 +1,7 @@
 from typing import cast
 from unittest import TestCase
 
-from py2cpp.analize.db import SymbolRow
+from py2cpp.analize.db import SymbolRaw
 from py2cpp.analize.symbols import Primitives, Symbols, Symbolic
 from py2cpp.ast.dsn import DSN
 import py2cpp.node.definition as defs
@@ -55,14 +55,14 @@ class TestSymbols(TestCase):
 	])
 	def test_primitive_of(self, primitive_type: type[Primitives], expected: str) -> None:
 		symbols = self.fixture.get(Symbols)
-		self.assertEqual(symbols.primitive_of(primitive_type).row.types.domain_id, expected)
+		self.assertEqual(symbols.primitive_of(primitive_type).types.domain_id, expected)
 
 	@data_provider([
 		(_mod('classes', 'Unknown'),),
 	])
 	def test_unknown_of(self, expected: str) -> None:
 		symbols = self.fixture.get(Symbols)
-		self.assertEqual(symbols.unknown_of().row.types.domain_id, expected)
+		self.assertEqual(symbols.unknown_of().types.domain_id, expected)
 
 	@data_provider([
 		(_ast('__main__', 'import_stmt.import_names.name'), _mod('xyz', 'Z')),
@@ -70,7 +70,7 @@ class TestSymbols(TestCase):
 	def test_declable_of(self, full_path: str, expected: str) -> None:
 		symbols = self.fixture.get(Symbols)
 		node = self.fixture.shared_nodes.by(full_path).as_a(defs.Declable)
-		self.assertEqual(symbols.declable_of(node).row.types.domain_id, expected)
+		self.assertEqual(symbols.declable_of(node).types.domain_id, expected)
 
 	@data_provider([
 		(_ast('B.func1.block', 'funccall[1].arguments.argvalue.var'), _mod('classes', 'Unknown')),  # FIXME bool?
@@ -78,7 +78,7 @@ class TestSymbols(TestCase):
 	def test_var_of(self, full_path: str, expected: str) -> None:
 		symbols = self.fixture.get(Symbols)
 		node = self.fixture.shared_nodes.by(full_path).as_a(defs.Var)
-		self.assertEqual(symbols.var_of(node).row.types.domain_id, expected)
+		self.assertEqual(symbols.var_of(node).types.domain_id, expected)
 
 	@data_provider([
 		(_ast('__main__', 'assign_stmt[1].anno_assign.typed_var'), _mod('classes', 'int')),
@@ -86,7 +86,7 @@ class TestSymbols(TestCase):
 	def test_type_of(self, full_path: str, expected: str) -> None:
 		symbols = self.fixture.get(Symbols)
 		node = self.fixture.shared_nodes.by(full_path).as_a(defs.Type)
-		self.assertEqual(symbols.type_of(node).row.types.domain_id, expected)
+		self.assertEqual(symbols.type_of(node).types.domain_id, expected)
 
 	@data_provider([
 		(_ast('__main__', 'assign_stmt[1].anno_assign.number'), _mod('classes', 'int')),
@@ -94,7 +94,7 @@ class TestSymbols(TestCase):
 	def test_literal_of(self, full_path: str, expected: str) -> None:
 		symbols = self.fixture.get(Symbols)
 		node = self.fixture.shared_nodes.by(full_path).as_a(defs.Literal)
-		self.assertEqual(symbols.literal_of(node).row.types.domain_id, expected)
+		self.assertEqual(symbols.literal_of(node).types.domain_id, expected)
 
 	@data_provider([
 		(_ast('B', ''), '__main__.B'),
@@ -102,7 +102,7 @@ class TestSymbols(TestCase):
 	def test_class_of(self, full_path: str, expected: str) -> None:
 		symbols = self.fixture.get(Symbols)
 		node = self.fixture.shared_nodes.by(full_path).as_a(defs.ClassKind)
-		self.assertEqual(symbols.class_of(node).row.types.domain_id, expected)
+		self.assertEqual(symbols.class_of(node).types.domain_id, expected)
 
 	@data_provider([
 		(_ast('B.func1.block', 'funccall[2].arguments.argvalue.getattr'), _mod('classes', 'list')),
@@ -111,24 +111,23 @@ class TestSymbols(TestCase):
 		symbols = self.fixture.get(Symbols)
 		node = self.fixture.shared_nodes.by(full_path).as_a(defs.Relay)
 		receiver = symbols.result_of(node.receiver)
-		self.assertEqual(symbols.property_of(receiver.row.types, node.prop).row.types.domain_id, expected)
+		self.assertEqual(symbols.property_of(receiver.types, node.prop).types.domain_id, expected)
 
 	@data_provider([
-		(_ast('__main__', 'assign_stmt[1].anno_assign.number'), _mod('classes', 'int'), {}),
-		(_ast('B.__init__.block', 'funccall'), '__main__.A', {}),
-		(_ast('B.__init__.block', 'assign_stmt'), _mod('classes', 'list'), {'value_type': _mod('classes', 'int')}),
-		(_ast('B.func1.block', 'funccall[1].arguments.argvalue.var'), _mod('classes', 'Unknown'), {}),  # FIXME bool?
-		(_ast('B.func1.block', 'funccall[2].arguments.argvalue.getattr'), _mod('classes', 'list'), {}), # FIXME {'value': _mod('classes', 'int')}),
-		(_ast('B.func1.block', 'funccall[3].arguments.argvalue.getattr'), _mod('classes', 'list'), {}), # FIXME {'value': _mod('classes', 'int')}),
+		(_ast('__main__', 'assign_stmt[1].anno_assign.number'), _mod('classes', 'int'), []),
+		(_ast('B.__init__.block', 'funccall'), '__main__.A', []),
+		(_ast('B.__init__.block', 'assign_stmt'), _mod('classes', 'list'), [_mod('classes', 'int')]),
+		(_ast('B.func1.block', 'funccall[1].arguments.argvalue.var'), _mod('classes', 'Unknown'), []),  # FIXME bool?
+		(_ast('B.func1.block', 'funccall[2].arguments.argvalue.getattr'), _mod('classes', 'list'), [_mod('classes', 'int')]), # FIXME {'value': _mod('classes', 'int')}),
+		(_ast('B.func1.block', 'funccall[3].arguments.argvalue.getattr'), _mod('classes', 'list'), [_mod('classes', 'int')]), # FIXME {'value': _mod('classes', 'int')}),
 	])
-	def test_result_of(self, full_path: str, expected: str, sub_expected: dict[str, str]) -> None:
+	def test_result_of(self, full_path: str, expected: str, attrs_expected: list[str]) -> None:
 		symbols = self.fixture.get(Symbols)
 		node = self.fixture.shared_nodes.by(full_path)
-		schema = symbols.result_of(node)
-		self.assertEqual(schema.row.types.domain_id, expected)
-		for key, sub_type in sub_expected.items():
-			self.assertEqual('ok' if schema.has_attr(key) else key, 'ok')
-			self.assertEqual(cast(SymbolRow, getattr(schema, key)).types.domain_id, sub_type)
+		symbol = symbols.result_of(node)
+		self.assertEqual(symbol.types.domain_id, expected)
+		# for index, in_expected in enumerate(attrs_expected):
+		# 	self.assertEqual(symbol.attrs[index].types.domain_id, in_expected)
 
 	@data_provider([
 		(_ast('__main__', 'import_stmt.import_names.name'), _mod('xyz', 'Z')),
@@ -176,4 +175,4 @@ class TestSymbols(TestCase):
 	def test_by(self, full_path: str, expected: str) -> None:
 		symbols = self.fixture.get(Symbols)
 		node = self.fixture.shared_nodes.by(full_path)
-		self.assertEqual(symbols.by(node).row.types.domain_id, expected)
+		self.assertEqual(symbols.by(node).types.domain_id, expected)

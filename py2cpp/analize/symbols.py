@@ -115,6 +115,8 @@ class Symbols:
 				return symbol.extends(self.type_of(decl.var_type.key_type), self.type_of(decl.var_type.value_type))
 		elif isinstance(decl, defs.MoveAssign):
 			return self.type_of(decl.value)
+		elif isinstance(decl, defs.ClassKind):
+			return symbol.extends(*[self.type_of(in_type) for in_type in decl.generic_types])
 
 		return symbol
 
@@ -280,7 +282,7 @@ class Handler(Procedure[Symbol]):
 
 	def on_indexer(self, node: defs.Indexer, symbol: Symbol, key: Symbol) -> Symbol:
 		if isinstance(symbol.raw.decl, (defs.AnnoAssign, defs.Parameter)):
-			return self._symbols.type_of(symbol.raw.decl.var_type.as_a(defs.CollectionType).value_type)
+			return self._symbols.type_of(symbol.raw.decl.var_type.as_a(defs.GenericType).primary_type)
 		else:
 			return self._symbols.type_of(symbol.raw.decl.as_a(defs.MoveAssign).value)
 
@@ -328,9 +330,9 @@ class Handler(Procedure[Symbol]):
 			raise LogicError(f'Operation not allowed. {node}, {left}, {right}, {operator}')
 
 		other = methods[0].parameters.pop()
-		var_types = [other.var_type] if not other.var_type.is_a(defs.UnionType) else other.var_type.as_a(defs.UnionType).types
+		var_types = other.var_type.or_types if isinstance(other.var_type, defs.UnionType) else [other.var_type]
 		for var_type in var_types:
-			if self._symbols.type_of(var_type.one_of(defs.Declable | defs.GenericType)) == right:
+			if self._symbols.type_of(var_type.one_of(defs.Declable | defs.Type)) == right:
 				return right
 
 		raise LogicError(f'Operation not allowed. {node}, {left}, {right}, {operator}')

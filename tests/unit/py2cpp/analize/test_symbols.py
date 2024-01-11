@@ -55,14 +55,14 @@ class TestSymbols(TestCase):
 	])
 	def test_primitive_of(self, primitive_type: type[Primitives], expected: str) -> None:
 		symbols = self.fixture.get(Symbols)
-		self.assertEqual(symbols.primitive_of(primitive_type).types.domain_id, expected)
+		self.assertEqual(symbols.type_of_primitive(primitive_type).types.domain_id, expected)
 
 	@data_provider([
 		(_mod('classes', 'Unknown'),),
 	])
 	def test_unknown_of(self, expected: str) -> None:
 		symbols = self.fixture.get(Symbols)
-		self.assertEqual(symbols.unknown_of().types.domain_id, expected)
+		self.assertEqual(symbols.type_of_unknown().types.domain_id, expected)
 
 	@data_provider([
 		(_ast('__main__', 'assign_stmt[1].anno_assign.number'), _mod('classes', 'int'), []),
@@ -122,7 +122,7 @@ class TestSymbols(TestCase):
 		(_ast('B.func1.block', 'assign_stmt[5].assign.getattr'), _mod('classes', 'int'), []),
 		(_ast('B.func1.block', 'assign_stmt[5].assign.number'), _mod('classes', 'int'), []),
 		(_ast('B.func1.block', 'return_stmt.getattr'), _mod('classes', 'str'), []),
-	], includes=[4])
+	])
 	def test_type_of(self, full_path: str, expected: str, attrs_expected: list[str]) -> None:
 		symbols = self.fixture.get(Symbols)
 		node = self.fixture.shared_nodes.by(full_path)

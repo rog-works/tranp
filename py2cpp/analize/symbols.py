@@ -382,8 +382,11 @@ class ProceduralResolver(Procedure[Symbol]):
 	def on_dict_type(self, node: defs.DictType, symbol: Symbol, key_type: Symbol, value_type: Symbol) -> Symbol:
 		return symbol.extends(key_type, value_type)
 
-	def on_union_type(self, node: defs.UnionType) -> Symbol:
-		raise LogicError(f'Operation not supoorted. {node}')
+	def on_custom_type(self, node: defs.CustomType, symbol: Symbol, template_types: list[Symbol]) -> Symbol:
+		return symbol.extends(*template_types)
+
+	def on_union_type(self, node: defs.UnionType, symbol: Symbol, or_types: list[Symbol]) -> Symbol:
+		return symbol.extends(*or_types)
 
 	def on_null_type(self, node: defs.NullType) -> Symbol:
 		return self.symbols.resolve(node)

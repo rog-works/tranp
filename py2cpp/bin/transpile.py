@@ -197,6 +197,12 @@ class Handler(Procedure[str]):
 	def on_local_var(self, node: defs.LocalVar) -> str:
 		return node.tokens
 
+	def on_types_name(self, node: defs.TypesName) -> str:
+		return node.tokens
+
+	def on_import_name(self, node: defs.ImportName) -> str:
+		return node.tokens
+
 	def on_relay(self, node: defs.Relay, receiver: str) -> str:
 		# FIXME receiverの形態によってアクセス演算子を変える必要がある
 		return f'{receiver}.{node.prop.tokens}'
@@ -216,7 +222,10 @@ class Handler(Procedure[str]):
 	def on_dict_type(self, node: defs.DictType, symbol: str, key_type: str, value_type: str) -> str:
 		return self.view.render(node.classification, vars={'symbol': symbol, 'key_type': key_type, 'value_type': value_type})
 
-	def on_union_type(self, node: defs.UnionType, symbol: str, types: list[str]) -> str:
+	def on_custom_type(self, node: defs.CustomType, symbol: str, template_types: list[str]) -> str:
+		return self.view.render(node.classification, vars={'symbol': symbol, 'template_types': template_types})
+
+	def on_union_type(self, node: defs.UnionType, symbol: str, or_types: list[str]) -> str:
 		raise NotImplementedError(f'Not supported UnionType. via: {node}')
 
 	def on_null_type(self, node: defs.NullType) -> str:
@@ -284,6 +293,12 @@ class Handler(Procedure[str]):
 
 	def on_dict(self, node: defs.Dict, items: list[str]) -> str:
 		return self.view.render(node.classification, vars={'items': items})
+
+	def on_truthy(self, node: defs.Truthy) -> str:
+		return 'true'
+
+	def on_falsy(self, node: defs.Falsy) -> str:
+		return 'false'
 
 	def on_null(self, node: defs.Null) -> str:
 		return 'nullptr'

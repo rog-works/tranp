@@ -152,6 +152,7 @@ class ClassKind(Node, IDomainName, IScope):
 
 	@property
 	def generic_types(self) -> list[Type]:
+		"""Note: XXX 未使用"""
 		return []
 
 
@@ -335,6 +336,7 @@ class Class(ClassKind):
 	@property
 	@override
 	def generic_types(self) -> list[Type]:
+		"""Note: XXX 未使用"""
 		generic_parent = [parent for parent in self.parents if isinstance(parent, GenericType)]
 		return generic_parent[0].template_types if len(generic_parent) > 0 else []
 

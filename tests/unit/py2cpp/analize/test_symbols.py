@@ -69,7 +69,7 @@ class TestSymbols(TestCase):
 		(_ast('__main__', 'assign_stmt[1].anno_assign.var'), _mod('classes', 'int'), []),
 		(_ast('__main__', 'assign_stmt[1].anno_assign.typed_var'), _mod('classes', 'int'), []),
 		(_ast('__main__', 'assign_stmt[1].anno_assign.number'), _mod('classes', 'int'), []),
-		(_ast('__main__', 'assign_stmt[4].assign.var'), _mod('classes', 'dict'), []),
+		(_ast('__main__', 'assign_stmt[4].assign.var'), _mod('classes', 'dict'), [_mod('classes', 'str'), _mod('classes', 'int')]),
 		(_ast('A', ''), '__main__.A', []),
 		(_ast('A', 'class_def_raw.name'), '__main__.A', []),
 		(_ast('A.__init__.params', 'paramvalue.typedparam.name'), '__main__.A', []),
@@ -86,24 +86,24 @@ class TestSymbols(TestCase):
 		(_ast('B.B2.block', 'assign_stmt.anno_assign.string'), _mod('classes', 'str'), []),
 		(_ast('B.B2.class_func', ''), '__main__.B.B2.class_func', []),
 		(_ast('B.B2.class_func.params', 'paramvalue.typedparam.name'), '__main__.B.B2', []),
-		(_ast('B.B2.class_func.return', 'typed_getitem'), _mod('classes', 'dict'), []),
-		(_ast('B.B2.class_func.block', 'return_stmt.dict'), _mod('classes', 'dict'), []),
+		(_ast('B.B2.class_func.return', 'typed_getitem'), _mod('classes', 'dict'), [_mod('classes', 'str'), _mod('classes', 'int')]),
+		(_ast('B.B2.class_func.block', 'return_stmt.dict'), _mod('classes', 'dict'), [_mod('classes', 'str'), _mod('classes', 'int')]),
 		(_ast('B.__init__.params', 'paramvalue.typedparam.name'), '__main__.B', []),
 		(_ast('B.__init__.return', 'typed_none'), _mod('classes', 'None'), []),
 		(_ast('B.__init__.block', 'funccall'), '__main__.A', []),
 		(_ast('B.__init__.block', 'funccall.getattr.funccall.var'), _mod('classes', 'super'), []),
 		(_ast('B.__init__.block', 'assign_stmt'), _mod('classes', 'list'), [_mod('classes', 'int')]),
-		(_ast('B.__init__.block', 'assign_stmt.anno_assign.getattr'), _mod('classes', 'list'), []),
-		(_ast('B.__init__.block', 'assign_stmt.anno_assign.typed_getitem'), _mod('classes', 'list'), []),
-		(_ast('B.__init__.block', 'assign_stmt.anno_assign.list'), _mod('classes', 'list'), []),
+		(_ast('B.__init__.block', 'assign_stmt.anno_assign.getattr'), _mod('classes', 'list'), [_mod('classes', 'int')]),
+		(_ast('B.__init__.block', 'assign_stmt.anno_assign.typed_getitem'), _mod('classes', 'list'), [_mod('classes', 'int')]),
+		(_ast('B.__init__.block', 'assign_stmt.anno_assign.list'), _mod('classes', 'list'), [_mod('classes', 'Unknown')]),
 		(_ast('B.func1.params', 'paramvalue[0].typedparam.name'), '__main__.B', []),
-		(_ast('B.func1.params', 'paramvalue[1].typedparam.name'), _mod('classes', 'list'), []),
+		(_ast('B.func1.params', 'paramvalue[1].typedparam.name'), _mod('classes', 'list'), ['__main__.B']),
 		(_ast('B.func1.return', 'typed_var'), _mod('classes', 'str'), []),
 		(_ast('B.func1.block', 'assign_stmt[0].assign.var'), _mod('classes', 'bool'), []),
 		(_ast('B.func1.block', 'assign_stmt[0].assign.const_false'), _mod('classes', 'bool'), []),
 		(_ast('B.func1.block', 'funccall[1].arguments.argvalue.var'), _mod('classes', 'bool'), []),
-		(_ast('B.func1.block', 'funccall[2].arguments.argvalue.getattr'), _mod('classes', 'list'), [_mod('classes', 'int')]), # FIXME {'value': _mod('classes', 'int')}),
-		(_ast('B.func1.block', 'funccall[3].arguments.argvalue.getattr'), _mod('classes', 'list'), [_mod('classes', 'int')]), # FIXME {'value': _mod('classes', 'int')}),
+		(_ast('B.func1.block', 'funccall[2].arguments.argvalue.getattr'), _mod('classes', 'list'), [_mod('classes', 'int')]),
+		(_ast('B.func1.block', 'funccall[3].arguments.argvalue.getattr'), _mod('classes', 'list'), [_mod('classes', 'int')]),
 		(_ast('B.func1.block', 'assign_stmt[4].assign.getattr'), _mod('classes', 'str'), []),
 		(_ast('B.func1.block', 'assign_stmt[4].assign.string'), _mod('classes', 'str'), []),
 		(_ast('B.func1.block', 'assign_stmt[5].assign.getattr'), _mod('classes', 'int'), []),
@@ -115,5 +115,6 @@ class TestSymbols(TestCase):
 		node = self.fixture.shared_nodes.by(full_path)
 		symbol = symbols.type_of(node)
 		self.assertEqual(symbol.types.domain_id, expected)
+		self.assertEqual(len(symbol.attrs), len(attrs_expected))
 		for index, in_expected in enumerate(attrs_expected):
 			self.assertEqual(symbol.attrs[index].types.domain_id, in_expected)

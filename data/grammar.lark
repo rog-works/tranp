@@ -79,20 +79,27 @@ parameters: paramvalue ("," paramvalue)*
 ?typedparam: name [":" (typed_expression | "'" typed_expression "'")]
 
 // @custom
+typed_arguments: typed_argvalue ("," typed_argvalue)*
+typed_argvalue: typed_expression
+
+// @custom
 ?typed_expression: typed_or_expr
 ?typed_or_expr: typed_primary ("|" typed_primary)*
 ?typed_primary: typed_primary "." name -> typed_getattr
 	| typed_primary "[" typed_slices "]" -> typed_getitem
 	| typed_atom
 
-?typed_atom: name -> typed_var
-	| "None" -> typed_none
-
+// @custom
 typed_slices: typed_slice | typed_slice (("," typed_slice)+ [","] | ",")
 typed_slice: typed_primary
 
-typed_arguments: typed_argvalue ("," typed_argvalue)*
-typed_argvalue: typed_expression
+// @custom
+?typed_atom: name -> typed_var
+	| "None" -> typed_none
+	| "[" _typed_exprlist "]" -> typed_list
+
+// @custom
+_typed_exprlist: typed_expression ("," typed_expression)* [","]
 
 // # Function call argumanets
 

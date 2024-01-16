@@ -267,14 +267,27 @@ class Handler(Procedure[str]):
 
 class Args:
 	def __init__(self) -> None:
-		args = self.__parse_argv()
+		args = self.__parse_argv(sys.argv[1:])
 		self.grammar = args['grammar']
 		self.source = args['source']
 		self.template_dir = args['template_dir']
 
-	def __parse_argv(self) -> dict[str, str]:
-		_, grammar, source, template_dir = sys.argv
-		return {'grammar': grammar, 'source': source, 'template_dir': template_dir}
+	def __parse_argv(self, argv: list[str]) -> dict[str, str]:
+		args = {
+			'grammar': '',
+			'source': '',
+			'template_dir': '', 
+		}
+		while argv:
+			arg = argv.pop(0)
+			if arg == '-g':
+				args['grammar'] = argv.pop(0)
+			elif arg == '-s':
+				args['source'] = argv.pop(0)
+			elif arg == '-t':
+				args['template_dir'] = argv.pop(0)
+
+		return args
 
 
 def make_writer(args: Args) -> Writer:

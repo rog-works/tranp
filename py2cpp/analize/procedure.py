@@ -69,12 +69,15 @@ class HandlerInvoker(Generic[T_Ret]):
 		args_keys = reversed(args_anno.keys())
 		for key in args_keys:
 			arg_anno = args_anno[key]
-			if issubclass(arg_anno.org_type, Node):
-				args[key] = node
-			elif arg_anno.is_list:
-				args[key] = self.__pluck_values(stack, node, key)
-			else:
-				args[key] = self.__pluck_value(stack)
+			try:
+				if arg_anno.is_list:
+					args[key] = self.__pluck_values(stack, node, key)
+				elif issubclass(arg_anno.org_type, Node):
+					args[key] = node
+				else:
+					args[key] = self.__pluck_value(stack)
+			except TypeError as e:
+				print(node, key, e)
 
 		return args
 

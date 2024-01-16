@@ -238,7 +238,7 @@ class TestDefinition(TestCase):
 	])
 	def test_import(self, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.shared_nodes.by(full_path).as_a(defs.Import)
-		self.assertEqual(node.module_path.tokens, expected['module_path'])
+		self.assertEqual(node.import_path.tokens, expected['module_path'])
 		self.assertEqual(len(node.import_symbols), len(expected['import_symbols']))
 		for index, symbol in enumerate(node.import_symbols):
 			in_expected = expected['import_symbols'][index]

@@ -58,8 +58,9 @@
 			"request": "launch",
 			"module":"py2cpp.bin.transpile",
 			"args": [
-				"data/grammar.lark",
-				"example/example.py",
+				"-g", "data/grammar.lark",
+				"-s", "example/example.py",
+				"-t", "example/template",
 			],
 			"cwd": "${workspaceFolder}",
 			"windows": {

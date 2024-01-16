@@ -103,12 +103,12 @@ class SymbolDB:
 
 		# インポートモジュールを全て展開
 		import_index = 0
-		import_modules_from_main = [modules.load(node.module_path.tokens) for node in expends[main].import_nodes]
+		import_modules_from_main = [modules.load(node.import_path.tokens) for node in expends[main].import_nodes]
 		import_modules = [*modules.libralies, *import_modules_from_main]
 		while import_index < len(import_modules):
 			import_module = import_modules[import_index]
 			expanded = self.__expand_module(import_module)
-			import_modules_from_depended = [modules.load(node.module_path.tokens) for node in expanded.import_nodes]
+			import_modules_from_depended = [modules.load(node.import_path.tokens) for node in expanded.import_nodes]
 			import_modules = [*import_modules, *import_modules_from_depended]
 			expends[import_module] = expanded
 			import_index += 1
@@ -133,7 +133,7 @@ class SymbolDB:
 			for import_node in expand_target.import_nodes:
 				# import句で明示されたシンボルに限定
 				imported_symbol_names = [symbol.tokens for symbol in import_node.import_symbols]
-				import_module = modules.load(import_node.module_path.tokens)
+				import_module = modules.load(import_node.import_path.tokens)
 				expanded = expends[import_module]
 				filtered_db = {raw.path_to(expand_module): raw.to(expand_module) for raw in expanded.raws.values() if raw.symbol.tokens in imported_symbol_names}
 				expand_target.raws = {**filtered_db, **expand_target.raws}

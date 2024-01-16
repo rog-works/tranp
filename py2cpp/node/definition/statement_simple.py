@@ -121,7 +121,7 @@ class Import(Node, ITerminal):
 		return False
 
 	@property
-	def module_path(self) -> ImportPath:
+	def import_path(self) -> ImportPath:
 		return self._by('dotted_name').as_a(ImportPath)
 
 	@property

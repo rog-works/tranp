@@ -96,7 +96,7 @@ typed_slice: typed_primary
 // @custom
 ?typed_atom: name -> typed_var
 	| "None" -> typed_none
-	| "[" _typed_exprlist "]" -> typed_list
+	| "[" _typed_exprlist? "]" -> typed_list
 
 // @custom
 _typed_exprlist: typed_expression ("," typed_expression)* [","]

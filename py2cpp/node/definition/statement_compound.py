@@ -6,7 +6,7 @@ from py2cpp.lang.sequence import last_index_of
 from py2cpp.node.definition.common import InheritArgument
 from py2cpp.node.definition.element import Block, Decorator, Parameter, ReturnDecl
 from py2cpp.node.definition.literal import String
-from py2cpp.node.definition.primary import BlockVar, ClassVar, ParamThis, Declable, ThisVar, Type
+from py2cpp.node.definition.primary import BlockVar, ClassVar, Declable, GenericType, ParamThis, ThisVar, Type
 from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
@@ -149,6 +149,11 @@ class ClassKind(Node, IDomainName, IScope):
 	@property
 	def block(self) -> Block:
 		raise NotImplementedError()
+
+	@property
+	def generic_types(self) -> list[Type]:
+		"""Note: XXX 未使用"""
+		return []
 
 
 @Meta.embed(Node, accept_tags('function_def'))
@@ -327,6 +332,13 @@ class Class(ClassKind):
 	@override
 	def block(self) -> Block:
 		return self._by('class_def_raw.block').as_a(Block)
+
+	@property
+	@override
+	def generic_types(self) -> list[Type]:
+		"""Note: XXX 未使用"""
+		generic_parent = [parent for parent in self.parents if isinstance(parent, GenericType)]
+		return generic_parent[0].template_types if len(generic_parent) > 0 else []
 
 	@property
 	def constructor_exists(self) -> bool:

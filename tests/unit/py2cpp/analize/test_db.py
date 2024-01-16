@@ -83,10 +83,10 @@ class TestSymbolDB(TestCase):
 		db = self.fixture.get(SymbolDB)
 
 		if self.__verbose:
-			print('\n', '\n'.join([f"'{key}': '{row.org_path}'," for key, row in db.rows.items()]))
+			print('\n', '\n'.join([f"'{key}': '{raw.org_path}'," for key, raw in db.raws.items()]))
 
 		for expected_path, expected_org_path in expected.items():
-			self.assertEqual('ok' if expected_path in db.rows else expected_path, 'ok')
-			self.assertEqual(db.rows[expected_path].org_path, expected_org_path)
+			self.assertEqual('ok' if expected_path in db.raws else expected_path, 'ok')
+			self.assertEqual(db.raws[expected_path].org_path, expected_org_path)
 
-		self.assertEqual(len(db.rows), len(expected))
+		self.assertEqual(len(db.raws), len(expected))

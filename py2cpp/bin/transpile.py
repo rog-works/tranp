@@ -1,63 +1,14 @@
 import os
 import sys
-from typing import Generic, Iterator, TypedDict, TypeVar
 
 from py2cpp.analize.procedure import Procedure
 from py2cpp.app.app import App
 from py2cpp.ast.parser import ParserSetting
-from py2cpp.errors import LogicError
 from py2cpp.lang.error import stacktrace
-from py2cpp.lang.eventemitter import EventEmitter, T_Callback
 from py2cpp.module.types import ModulePath
 import py2cpp.node.definition as defs
 from py2cpp.node.node import Node
 from py2cpp.view.render import Renderer, Writer
-
-T_Node = TypeVar('T_Node', bound=Node)
-T_Result = TypeVar('T_Result')
-
-T_VarVar = TypedDict('T_VarVar', {'access': str, 'symbol': str, 'var_type': str, 'value': str})
-T_ClassVar = TypedDict('T_ClassVar', {'vars': list[T_VarVar]})
-
-T = TypeVar('T')
-
-
-class Registry(Generic[T]):
-	def __init__(self) -> None:
-		self.__stack: list[T] = []
-
-	def __len__(self) -> int:
-		return len(self.__stack)
-
-	def push(self, entry: T) -> None:
-		self.__stack.append(entry)
-
-	def pop(self, entry_type: type[T]) -> T:
-		return self.__stack.pop()
-
-	def each_pop(self, counts: int = -1) -> Iterator[T]:
-		if counts < -1 or len(self) < counts:
-			raise LogicError(counts, len(self))
-
-		loops =  len(self) if counts == -1 else counts
-		for _ in range(loops):
-			yield self.__stack.pop()
-
-
-class Context:
-	def __init__(self, writer: Writer, view: Renderer) -> None:
-		self.__emitter = EventEmitter()
-		self.writer = writer
-		self.view = view
-
-	def emit(self, action: str, **kwargs) -> None:
-		self.__emitter.emit(action, **kwargs)
-
-	def on(self, action: str, callback: T_Callback) -> None:
-		self.__emitter.on(action, callback)
-
-	def off(self, action: str, callback: T_Callback) -> None:
-		self.__emitter.off(action, callback)
 
 
 class Handler(Procedure[str]):
@@ -197,6 +148,12 @@ class Handler(Procedure[str]):
 	def on_local_var(self, node: defs.LocalVar) -> str:
 		return node.tokens
 
+	def on_types_name(self, node: defs.TypesName) -> str:
+		return node.tokens
+
+	def on_import_name(self, node: defs.ImportName) -> str:
+		return node.tokens
+
 	def on_relay(self, node: defs.Relay, receiver: str) -> str:
 		# FIXME receiverの形態によってアクセス演算子を変える必要がある
 		return f'{receiver}.{node.prop.tokens}'
@@ -216,7 +173,10 @@ class Handler(Procedure[str]):
 	def on_dict_type(self, node: defs.DictType, symbol: str, key_type: str, value_type: str) -> str:
 		return self.view.render(node.classification, vars={'symbol': symbol, 'key_type': key_type, 'value_type': value_type})
 
-	def on_union_type(self, node: defs.UnionType, symbol: str, types: list[str]) -> str:
+	def on_custom_type(self, node: defs.CustomType, symbol: str, template_types: list[str]) -> str:
+		return self.view.render(node.classification, vars={'symbol': symbol, 'template_types': template_types})
+
+	def on_union_type(self, node: defs.UnionType, symbol: str, or_types: list[str]) -> str:
 		raise NotImplementedError(f'Not supported UnionType. via: {node}')
 
 	def on_null_type(self, node: defs.NullType) -> str:
@@ -285,6 +245,12 @@ class Handler(Procedure[str]):
 	def on_dict(self, node: defs.Dict, items: list[str]) -> str:
 		return self.view.render(node.classification, vars={'items': items})
 
+	def on_truthy(self, node: defs.Truthy) -> str:
+		return 'true'
+
+	def on_falsy(self, node: defs.Falsy) -> str:
+		return 'false'
+
 	def on_null(self, node: defs.Null) -> str:
 		return 'nullptr'
 
@@ -304,17 +270,21 @@ class Args:
 		args = self.__parse_argv()
 		self.grammar = args['grammar']
 		self.source = args['source']
+		self.template_dir = args['template_dir']
 
 	def __parse_argv(self) -> dict[str, str]:
-		_, grammar, source = sys.argv
-		return {'grammar': grammar, 'source': source}
+		_, grammar, source, template_dir = sys.argv
+		return {'grammar': grammar, 'source': source, 'template_dir': template_dir}
 
 
-def make_context(args: Args) -> Context:
+def make_writer(args: Args) -> Writer:
 	basepath, _ = os.path.splitext(args.source)
 	output = f'{basepath}.cpp'
-	template_dir = 'example/template'
-	return Context(Writer(output), Renderer(template_dir))
+	return Writer(output)
+
+
+def make_renderer(args: Args) -> Renderer:
+	return Renderer(args.template_dir)
 
 
 def make_parser_setting(args: Args) -> ParserSetting:
@@ -327,10 +297,8 @@ def make_module_path(args: Args) -> ModulePath:
 	return ModulePath('__main__', module_path)
 
 
-def task(root: Node, ctx: Context) -> None:
+def task(handler: Handler, root: Node, writer: Writer) -> None:
 	try:
-		handler = Handler(ctx.view)
-
 		flatted = root.calculated()
 		flatted.append(root)  # XXX
 
@@ -338,8 +306,8 @@ def task(root: Node, ctx: Context) -> None:
 			print('action:', str(node))
 			handler.process(node)
 
-		ctx.writer.put(handler.result())
-		ctx.writer.flush()
+		writer.put(handler.result())
+		writer.flush()
 	except Exception as e:
 		print(''.join(stacktrace(e)))
 
@@ -347,7 +315,9 @@ def task(root: Node, ctx: Context) -> None:
 if __name__ == '__main__':
 	definitions = {
 		f'{Args.__module__}.{Args.__name__}': Args,
-		f'{Context.__module__}.{Context.__name__}': make_context,
+		f'{Writer.__module__}.{Writer.__name__}': make_writer,
+		f'{Renderer.__module__}.{Renderer.__name__}': make_renderer,
+		f'{Handler.__module__}.{Handler.__name__}': Handler,
 		'py2cpp.ast.parser.ParserSetting': make_parser_setting,
 		'py2cpp.module.types.ModulePath': make_module_path,
 	}

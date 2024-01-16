@@ -12,7 +12,7 @@ DeclVar: TypeAlias = defs.Parameter | defs.AnnoAssign | defs.MoveAssign
 DeclAll: TypeAlias = defs.Parameter | defs.AnnoAssign | defs.MoveAssign | defs.ClassKind
 
 
-class SymbolRow(NamedTuple):
+class SymbolRaw(NamedTuple):
 	"""シンボルデータ
 
 	Attributes:
@@ -30,15 +30,15 @@ class SymbolRow(NamedTuple):
 	types: defs.ClassKind
 	decl: DeclAll
 
-	def to(self, module: Module) -> 'SymbolRow':
+	def to(self, module: Module) -> 'SymbolRaw':
 		"""展開先を変更したインスタンスを生成
 
 		Args:
 			module (Module): 展開先のモジュール
 		Returns:
-			SymbolRow: インスタンス
+			SymbolRaw: インスタンス
 		"""
-		return SymbolRow(self.path_to(module), self.org_path, module, self.symbol, self.types, self.decl)
+		return SymbolRaw(self.path_to(module), self.org_path, module, self.symbol, self.types, self.decl)
 
 	def path_to(self, module: Module) -> str:
 		"""展開先を変更した参照パスを生成
@@ -50,15 +50,15 @@ class SymbolRow(NamedTuple):
 		"""
 		return self.ref_path.replace(self.module.path, module.path)
 
-	def varnize(self, var: DeclVar) -> 'SymbolRow':
+	def varnize(self, var: DeclVar) -> 'SymbolRaw':
 		"""変数シンボル用のデータに変換
 
 		Args:
 			var (DeclVar): 変数宣言ノード
 		Returns:
-			SymbolRow: インスタンス
+			SymbolRaw: インスタンス
 		"""
-		return SymbolRow(self.ref_path, self.org_path, self.module, self.symbol, self.types, var)
+		return SymbolRaw(self.ref_path, self.org_path, self.module, self.symbol, self.types, var)
 
 
 @dataclass
@@ -66,11 +66,11 @@ class Expanded:
 	"""展開時のテンポラリーデータ
 
 	Attributes:
-		rows (SymbolDB): シンボルテーブル
+		raws (SymbolDB): シンボルテーブル
 		decl_vars (list[DeclVar]): 変数リスト
 		import_nodes (list[Import]): インポートリスト
 	"""
-	rows: dict[str, SymbolRow] = field(default_factory=dict)
+	raws: dict[str, SymbolRaw] = field(default_factory=dict)
 	decl_vars: list[DeclVar] = field(default_factory=list)
 	import_nodes: list[defs.Import] = field(default_factory=list)
 
@@ -85,15 +85,15 @@ class SymbolDB:
 		Args:
 			modules (Modules): モジュールマネージャー @inject
 		"""
-		self.rows = self.__make_rows(modules)
+		self.raws = self.__make_raws(modules)
 
-	def __make_rows(self, modules: Modules) -> dict[str, SymbolRow]:
+	def __make_raws(self, modules: Modules) -> dict[str, SymbolRaw]:
 		"""シンボルテーブルを生成
 
 		Args:
 			modules (Modules): モジュールマネージャー
 		Returns:
-			dict[str, SymbolRow]: シンボルテーブル
+			dict[str, SymbolRaw]: シンボルテーブル
 		"""
 		main = modules.main
 
@@ -124,8 +124,8 @@ class SymbolDB:
 					entrypoint = core_module.entrypoint.as_a(defs.Entrypoint)
 					primary_symbol_names = [node.symbol.tokens for node in entrypoint.statements if isinstance(node, DeclAll)]
 					expanded = expends[core_module]
-					filtered_db = {row.path_to(expand_module): row.to(expand_module) for row in expanded.rows.values() if row.symbol.tokens in primary_symbol_names}
-					expand_target.rows = {**filtered_db, **expand_target.rows}
+					filtered_db = {raw.path_to(expand_module): raw.to(expand_module) for raw in expanded.raws.values() if raw.symbol.tokens in primary_symbol_names}
+					expand_target.raws = {**filtered_db, **expand_target.raws}
 
 			# インポートモジュールを展開
 			# XXX 別枠として分離するより、ステートメントの中で処理するのが理想
@@ -135,19 +135,19 @@ class SymbolDB:
 				imported_symbol_names = [symbol.tokens for symbol in import_node.import_symbols]
 				import_module = modules.load(import_node.module_path.tokens)
 				expanded = expends[import_module]
-				filtered_db = {row.path_to(expand_module): row.to(expand_module) for row in expanded.rows.values() if row.symbol.tokens in imported_symbol_names}
-				expand_target.rows = {**filtered_db, **expand_target.rows}
+				filtered_db = {raw.path_to(expand_module): raw.to(expand_module) for raw in expanded.raws.values() if raw.symbol.tokens in imported_symbol_names}
+				expand_target.raws = {**filtered_db, **expand_target.raws}
 
 			# 展開対象モジュールの変数シンボルを展開
 			for var in expand_target.decl_vars:
-				expand_target.rows[var.symbol.domain_id] = self.__resolve_var_type(var, expand_target.rows).varnize(var)
+				expand_target.raws[var.symbol.domain_id] = self.__resolve_var_type(var, expand_target.raws).varnize(var)
 
 		# シンボルテーブルを統合
-		rows: dict[str, SymbolRow] = {}
+		raws: dict[str, SymbolRaw] = {}
 		for expanded in expends.values():
-			rows = {**expanded.rows, **rows}
+			raws = {**expanded.raws, **raws}
 
-		return rows
+		return raws
 
 	def __expand_module(self, module: Module) -> Expanded:
 		"""モジュールの全シンボルを展開
@@ -157,13 +157,13 @@ class SymbolDB:
 		Returns:
 			Expanded: 展開データ
 		"""
-		rows: dict[str, SymbolRow] = {}
+		raws: dict[str, SymbolRaw] = {}
 		decl_vars: list[DeclVar] = []
 		import_nodes: list[defs.Import] = []
 		entrypoint = module.entrypoint.as_a(defs.Entrypoint)
 		for node in entrypoint.flatten():
 			if isinstance(node, defs.ClassKind):
-				rows[node.domain_id] = SymbolRow(node.domain_id, node.domain_id, module, node.symbol, node, node)
+				raws[node.domain_id] = SymbolRaw(node.domain_id, node.domain_id, module, node.symbol, node, node)
 
 			if type(node) is defs.Import:
 				import_nodes.append(node)
@@ -184,16 +184,16 @@ class SymbolDB:
 		# XXX calculatedに含まれないためエントリーポイントは個別に処理
 		decl_vars = [*entrypoint.decl_vars, *decl_vars]
 
-		return Expanded(rows, decl_vars, import_nodes)
+		return Expanded(raws, decl_vars, import_nodes)
 
-	def __resolve_var_type(self, var: DeclVar, rows: dict[str, SymbolRow]) -> SymbolRow:
+	def __resolve_var_type(self, var: DeclVar, raws: dict[str, SymbolRaw]) -> SymbolRaw:
 		"""シンボルテーブルから変数の型を解決
 
 		Args:
 			var (DeclVar): 変数宣言ノード
-			rows (dict[str, SymbolRow]): シンボルテーブル
+			raws (dict[str, SymbolRaw]): シンボルテーブル
 		Returns:
-			SymbolRow: シンボルデータ
+			SymbolRaw: シンボルデータ
 		"""
 		type_domain = self.__fetch_type_domain(var)
 		candidates = []
@@ -205,8 +205,8 @@ class SymbolDB:
 			candidates = [DSN.join(var.module_path, 'Unknown')]
 
 		for candidate in candidates:
-			if candidate in rows:
-				return rows[candidate]
+			if candidate in raws:
+				return raws[candidate]
 
 		raise LogicError(f'Unresolve var type. var: {var}, candidates: {candidates}')
 

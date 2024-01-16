@@ -35,5 +35,12 @@ class Hoge(Base):
 		self.v: int = v
 		self.s: str = s
 
+		def closure() -> None:
+			print(self.v)
+
+	@classmethod
+	def cls_func(cls) -> bool:
+		return True
+
 def func3(ok: bool) -> None:
 	pass

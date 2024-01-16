@@ -23,6 +23,7 @@ class TestDefinition(TestCase):
 
 	@data_provider([
 		('file_input.class_def[4].class_def_raw.block.function_def[1]', {
+			'type': defs.Method,
 			'name': 'func1',
 			'access': 'public',
 			'decorators': [],
@@ -33,6 +34,7 @@ class TestDefinition(TestCase):
 			'return': defs.GeneralType,
 		}),
 		('file_input.class_def[4].class_def_raw.block.function_def[2]', {
+			'type': defs.Method,
 			'name': '_func2',
 			'access': 'protected',
 			'decorators': [
@@ -44,7 +46,28 @@ class TestDefinition(TestCase):
 			],
 			'return': defs.ListType,
 		}),
+		('file_input.class_def[4].class_def_raw.block.function_def[3].function_def_raw.block.function_def', {
+			'type': defs.Closure,
+			'name': 'closure',
+			'access': 'public',
+			'decorators': [],
+			'parameters': [],
+			'return': defs.NullType,
+		}),
+		('file_input.class_def[4].class_def_raw.block.function_def[4]', {
+			'type': defs.ClassMethod,
+			'name': 'cls_func',
+			'access': 'public',
+			'decorators': [
+				{'symbol': 'classmethod', 'arguments': []},
+			],
+			'parameters': [
+				{'name': 'cls', 'type': 'Empty', 'default': 'Empty'},
+			],
+			'return': defs.GeneralType,
+		}),
 		('file_input.function_def', {
+			'type': defs.Function,
 			'name': 'func3',
 			'access': 'public',
 			'decorators': [],
@@ -56,6 +79,7 @@ class TestDefinition(TestCase):
 	])
 	def test_function(self, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.shared_nodes.by(full_path).as_a(defs.Function)
+		self.assertEqual(type(node), expected['type'])
 		self.assertEqual(node.symbol.tokens, expected['name'])
 		self.assertEqual(node.access, expected['access'])
 		self.assertEqual(len(node.decorators), len(expected['decorators']))
@@ -302,7 +326,7 @@ class TestDefinition(TestCase):
 		('self.a: int = 0', 'file_input.assign_stmt.anno_assign.typed_var', defs.GeneralType),
 		('try: ...\nexcept A.E as e: ...', 'file_input.try_stmt.except_clauses.except_clause.typed_getattr', defs.GeneralType),
 		('class B(A): pass', 'file_input.class_def.class_def_raw.typed_arguments.typed_argvalue.typed_var', defs.GeneralType),
-		('class B(A[T]): pass', 'file_input.class_def.class_def_raw.typed_arguments.typed_argvalue.typed_getitem', defs.GenericType),  # XXX 当たらずとも遠からず
+		('class B(A[T]): pass', 'file_input.class_def.class_def_raw.typed_arguments.typed_argvalue.typed_getitem', defs.CustomType),
 		('def func(a: int) -> None: pass', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.typed_var', defs.GeneralType),
 		('def func(a: int) -> None: pass', 'file_input.function_def.function_def_raw.return_type.typed_none', defs.NullType),
 	])

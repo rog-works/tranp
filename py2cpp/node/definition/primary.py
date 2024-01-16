@@ -293,17 +293,18 @@ class GeneralType(Type):
 
 
 @Meta.embed(Node, accept_tags('typed_getitem'))
-class GenericType(Type): pass
-
-
-class CollectionType(GenericType):
+class GenericType(Type):
 	@property
-	def value_type(self) -> Type:
-		raise NotImplementedError()
+	def template_types(self) -> list[Type]:
+		return [node.as_a(Type) for node in self._by('typed_slices')._under_expand()]
+
+	@property
+	def primary_type(self) -> Type:
+		return self.template_types[0]
 
 
 @Meta.embed(Node, actualized(via=GenericType))
-class ListType(CollectionType):
+class ListType(GenericType):
 	@classmethod
 	@override
 	def match_feature(cls, via: GenericType) -> bool:
@@ -313,7 +314,7 @@ class ListType(CollectionType):
 	@override
 	@Meta.embed(Node, expandable)
 	def value_type(self) -> Type:
-		return self._by('typed_slices.typed_slice')._at(0).as_a(Type)
+		return self.primary_type
 
 
 @Meta.embed(Node, actualized(via=GenericType))
@@ -326,20 +327,41 @@ class DictType(GenericType):
 	@property
 	@Meta.embed(Node, expandable)
 	def key_type(self) -> Type:
-		return self._by('typed_slices.typed_slice[0]')._at(0).one_of(Type)
+		return self.template_types[0]
 
 	@property
 	@override
 	@Meta.embed(Node, expandable)
 	def value_type(self) -> Type:
-		return self._by('typed_slices.typed_slice[1]')._at(0).one_of(Type)
+		return self.primary_type
+
+	@property
+	@override
+	def primary_type(self) -> Type:
+		"""Note: XXX value_typeをprimaryとするためoverride"""
+		return self.template_types[1]
+
+
+@Meta.embed(Node, actualized(via=GenericType))
+class CustomType(GenericType):
+	@classmethod
+	@override
+	def match_feature(cls, via: GenericType) -> bool:
+		"""Note: ListType/DictTypeと排他関係。実質的なフォールバック"""
+		return True
+
+	@property
+	@override
+	@Meta.embed(Node, expandable)
+	def template_types(self) -> list[Type]:
+		return super().template_types
 
 
 @Meta.embed(Node, accept_tags('typed_or_expr'))
-class UnionType(GenericType):
+class UnionType(Type):
 	@property
 	@Meta.embed(Node, expandable)
-	def types(self) -> list[Type]:
+	def or_types(self) -> list[Type]:
 		return [node.as_a(Type) for node in self._children()]
 
 

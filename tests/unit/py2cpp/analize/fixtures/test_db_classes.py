@@ -1,6 +1,7 @@
 # from typing import Any, Iterator
 # FIXME 実装を簡単にするため一旦インポートはせず、警告も無視する
 
+
 @__alias__('int')
 class Integer: pass
 

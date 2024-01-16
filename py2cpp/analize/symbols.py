@@ -1,6 +1,6 @@
 from typing import NamedTuple, TypeAlias
 
-from py2cpp.analize.db import SymbolDB, SymbolRow
+from py2cpp.analize.db import SymbolDB, SymbolRaw
 from py2cpp.analize.procedure import Procedure
 from py2cpp.ast.dsn import DSN
 from py2cpp.errors import LogicError
@@ -12,66 +12,30 @@ from py2cpp.node.node import Node
 Symbolic: TypeAlias = defs.Declable | defs.Reference | defs.Type | defs.Literal | defs.ClassKind
 Primitives: TypeAlias = int | str | bool | tuple | list | dict | None
 
-PairSchema = NamedTuple('PairSchema', [('row', SymbolRow), ('first', SymbolRow), ('second', SymbolRow)])
-ListSchema = NamedTuple('ListSchema', [('row', SymbolRow), ('value', SymbolRow)])
-DictSchema = NamedTuple('DictSchema', [('row', SymbolRow), ('key', SymbolRow), ('value', SymbolRow)])
 
+class Symbol:
+	"""シンボル"""
 
-class SymbolSchema:
-	"""シンボルスキーマ
-
-	Attributes:
-		__row (SymbolRow): 型のシンボルデータ
-		__attrs (dict[str, SymbolRow]): キーと型の属性のシンボルデータのマップ情報
-	"""
-
-	def __init__(self, row: SymbolRow, **attrs: SymbolRow) -> None:
+	def __init__(self, raw: SymbolRaw, *attrs: 'Symbol') -> None:
 		"""インスタンスを生成
 
 		Args:
-			row (SymbolRow): 型のシンボルデータ
-			**attrs (SymbolRow): キーと型の属性のシンボルデータのマップ情報
+			raw (SymbolRaw): 型のシンボルデータ
+			*attrs (Symbol): 属性シンボルリスト
 		"""
-		self.__row = row
-		self.__attrs = attrs
+		self.types = raw.types
+		self.attrs = list(attrs)
+		self.raw = raw
 
-	@property
-	def row(self) -> SymbolRow:
-		"""SymbolRow: 型のシンボルデータ"""
-		return self.__row
-
-	def has_attr(self, key: str) -> bool:
-		"""指定のキーの属性を持つか判定
-
-		Args:
-			key (str): キー
-		Returns:
-			bool: True = 所持
-		"""
-		return key in self.__attrs
-
-	def __getattr__(self, key: str) -> SymbolRow:
-		"""キーに対応する属性を取得
-
-		Args:
-			key (str): キー
-		Returns:
-			SymbolRow: 属性の型のシンボルデータ
-		"""
-		if self.has_attr(key):
-			return self.__attrs[key]
-
-		raise ValueError(f'Undefined key. key: {key}')
-
-	def extends(self, **attrs: SymbolRow) -> 'SymbolSchema':
+	def extends(self, *attrs: 'Symbol') -> 'Symbol':
 		"""既存のスキーマに属性を追加してインスタンスを生成
 
 		Args:
-			**attrs (SymbolRow): キーと型の属性のシンボルデータのマップ情報
+			*attrs (Symbol): 属性シンボルリスト
 		Returns:
-			SymbolSchema: インスタンス
+			Symbol: インスタンス
 		"""
-		return SymbolSchema(self.row, **attrs)
+		return Symbol(self.raw, *[*self.attrs, *attrs])
 
 
 class Symbols:
@@ -87,232 +51,277 @@ class Symbols:
 		self.__db = db
 		self.__module_path = module_path
 
-	def primitive_of(self, primitive_type: type[Primitives]) -> SymbolSchema:
+	def type_of_primitive(self, primitive_type: type[Primitives]) -> Symbol:
 		"""プリミティブ型のシンボルを解決
 
 		Args:
 			primitive_type (type[Primitives]): プリミティブ型
 		Returns:
-			SymbolSchema: シンボルスキーマ
+			Symbol: シンボル
 		Raises:
 			LogicError: 未定義のタイプを指定
 		"""
 		symbol_name = primitive_type.__name__ if primitive_type is not None else 'None'
 		candidate = DSN.join(self.__module_path.ref_name, symbol_name)
-		if candidate in self.__db.rows:
-			return SymbolSchema(self.__db.rows[candidate])
+		if candidate in self.__db.raws:
+			return Symbol(self.__db.raws[candidate])
 
 		raise LogicError(f'Primitive not defined. name: {primitive_type.__name__}')
 
-	def unknown_of(self) -> SymbolSchema:
+	def type_of_unknown(self) -> Symbol:
 		"""Unknown型のシンボルを解決
 
 		Returns:
-			SymbolSchema: シンボルスキーマ
+			Symbol: シンボル
 		Raises:
 			LogicError: Unknown型が未定義
 		"""
 		# XXX 'Unknown'の定数化を検討
 		candidate = DSN.join(self.__module_path.ref_name, 'Unknown')
-		if candidate in self.__db.rows:
-			return SymbolSchema(self.__db.rows[candidate])
+		if candidate in self.__db.raws:
+			return Symbol(self.__db.raws[candidate])
 
 		raise LogicError(f'Unknown not defined.')
 
-	def declable_of(self, symbol: defs.Declable) -> SymbolSchema:
-		"""シンボル宣言ノードからシンボルを解決
-
-		Args:
-			symbol (Declable): シンボル宣言ノード
-		Returns:
-			SymbolSchema: シンボルスキーマ
-		Raises:
-			LogicError: 未定義のシンボルを指定
-		"""
-		return self.__resolve_symbol(symbol)
-
-	def var_of(self, var_ref: defs.Var) -> SymbolSchema:
-		"""変数参照ノードからシンボルを解決
-
-		Args:
-			var_ref (Name): 変数参照ノード
-		Returns:
-			SymbolSchema: シンボルスキーマ
-		Raises:
-			LogicError: 未定義のシンボルを指定
-		"""
-		return self.__resolve_symbol(var_ref)
-
-	def type_of(self, types: defs.Type) -> SymbolSchema:
-		"""型ノードからシンボルを解決
-
-		Args:
-			types (Type): 型ノード
-		Returns:
-			SymbolSchema: シンボルスキーマ
-		Raises:
-			LogicError: 未定義のシンボルを指定
-		"""
-		return self.__resolve_symbol(types)
-
-	def literal_of(self, literal: defs.Literal) -> SymbolSchema:
-		"""リテラルノードからシンボルを解決
-
-		Args:
-			literal (Literal): リテラルノード
-		Returns:
-			SymbolSchema: シンボルスキーマ
-		Raises:
-			LogicError: 未定義のシンボルを指定
-		"""
-		return self.__resolve_symbol(literal)
-
-	def class_of(self, decl_class: defs.ClassKind) -> SymbolSchema:
-		"""クラス定義ノードからシンボルを解決
-
-		Args:
-			decl_class (ClassKind): クラス定義ノード
-		Returns:
-			SymbolSchema: シンボルスキーマ
-		Raises:
-			LogicError: 未定義のシンボルを指定
-		"""
-		return self.__resolve_symbol(decl_class)
-
-	def property_of(self, decl_class: defs.ClassKind, prop: defs.Var) -> SymbolSchema:
-		"""クラス定義ノードと名前ノードからプロパティーのシンボルを解決
+	def type_of_property(self, decl_class: defs.ClassKind, prop: defs.Var) -> Symbol:
+		"""クラス定義ノードと変数参照ノードからプロパティーのシンボルを解決
 
 		Args:
 			decl_class (ClassKind): クラス定義ノード
 			prop (Var): 変数参照ノード
 		Returns:
-			SymbolSchema: シンボルスキーマ
+			Symbol: シンボル
 		Raises:
 			LogicError: 未定義のシンボルを指定
 		"""
-		return self.__resolve_symbol(decl_class, prop.tokens)
+		symbol = self.resolve(decl_class, prop.tokens)
+		return self.__post_type_of_var(prop, symbol)
 
-	def result_of(self, expression: Node) -> SymbolSchema:
-		"""式ノードからシンボルを解決
-
-		Args:
-			expression (Node): 式ノード
-		Returns:
-			SymbolSchema: シンボルスキーマ
-		Raises:
-			LogicError: シンボルの解決に失敗
-		"""
-		handler = Handler(self)
-		for node in expression.calculated():
-			handler.process(node)
-
-		# XXX 自分自身が含まれないため個別に実行
-		handler.process(expression)
-
-		return handler.result()
-
-	def by(self, node: Node) -> SymbolSchema:
-		"""シンボル系/式ノードからシンボルを解決
+	def type_of(self, node: Node) -> Symbol:
+		"""シンボル系/式ノードからシンボルを解決 XXX 万能過ぎるので細分化を検討
 
 		Args:
 			node (Node): シンボル系/式ノード
 		Returns:
-			SymbolSchema: シンボルスキーマ
+			Symbol: シンボル
+		Raises:
+			LogicError: 未定義のシンボルを指定
+		"""
+		if isinstance(node, defs.Declable):
+			return self.__from_declable(node)
+		elif isinstance(node, defs.Reference):
+			return self.__from_reference(node)
+		elif isinstance(node, defs.Type):
+			return self.__from_type(node)
+		elif isinstance(node, defs.ClassKind):
+			return self.__from_class(node)
+		elif isinstance(node, defs.Literal):
+			return self.__from_literal(node)
+		else:
+			return self.__resolve_procedural(node)
+
+	def type_of_var(self, node: defs.Declable | defs.Reference) -> Symbol:
+		"""シンボル宣言・参照ノードのシンボルを解決
+
+		Args:
+			node (Declable | Reference): シンボル宣言・参照ノード
+		Returns:
+			Symbol: シンボル
+		Raises:
+			LogicError: 未定義のシンボルを指定
+		"""
+		symbol = self.resolve(node)
+		return self.__post_type_of_var(node, symbol)
+
+	def __post_type_of_var(self, node: defs.Declable | defs.Reference, symbol: Symbol) -> Symbol:
+		"""シンボル宣言・参照ノードのシンボル解決の後処理
+
+		Args:
+			node (Declable | Reference): シンボル宣言・参照ノード XXX 未使用
+			symbol (Symbol): シンボル
+		Returns:
+			Symbol: シンボル
+		Raises:
+			LogicError: 未定義のシンボルを指定
+		Note:
+			# このメソッドの目的
+			* Generic型のサブタイプの解決(シンボル宣言・参照ノード由来)
+			* MoveAssignの左辺の型の解決(シンボル宣言・参照ノード由来)
+			@see resolve
+		"""
+		decl = symbol.raw.decl
+		if isinstance(decl, (defs.AnnoAssign, defs.Parameter)):
+			return self.__from_type(decl.var_type) if isinstance(decl.var_type, defs.GenericType) else symbol
+		elif isinstance(decl, defs.MoveAssign):
+			return self.__resolve_procedural(decl.value)
+		# defs.ClassKind
+		else:
+			return symbol
+
+	def __from_declable(self, node: defs.Declable) -> Symbol:
+		"""シンボル宣言ノードからシンボルを解決
+
+		Args:
+			node (Declable): シンボル宣言ノード
+		Returns:
+			Symbol: シンボル
+		Raises:
+			LogicError: 未定義のシンボルを指定
+		"""
+		return self.type_of_var(node)
+
+	def __from_reference(self, node: defs.Reference) -> Symbol:
+		"""シンボル参照ノードからシンボルを解決
+
+		Args:
+			node (Reference): 参照ノード
+		Returns:
+			Symbol: シンボル
+		Raises:
+			LogicError: 未定義のシンボルを指定
+		"""
+		if isinstance(node, defs.Var):
+			return self.type_of_var(node)
+		# defs.Relay
+		else:
+			return self.__resolve_procedural(node)
+
+	def __from_type(self, node: defs.Type) -> Symbol:
+		"""型ノードからシンボルを解決
+
+		Args:
+			node (Type): 型ノード
+		Returns:
+			Symbol: シンボル
+		Raises:
+			LogicError: 未定義のシンボルを指定
+		"""
+		return self.__resolve_procedural(node)
+
+	def __from_literal(self, node: defs.Literal) -> Symbol:
+		"""リテラルノードからシンボルを解決
+
+		Args:
+			node (Literal): リテラルノード
+		Returns:
+			Symbol: シンボル
+		Raises:
+			LogicError: 未定義のシンボルを指定
+		"""
+		return self.__resolve_procedural(node)
+
+	def __from_class(self, node: defs.ClassKind) -> Symbol:
+		"""クラス定義ノードからシンボルを解決
+
+		Args:
+			node (ClassKind): クラス定義ノード
+		Returns:
+			Symbol: シンボル
+		Raises:
+			LogicError: 未定義のシンボルを指定
+		"""
+		return self.resolve(node)
+
+	def __resolve_procedural(self, node: Node) -> Symbol:
+		"""ノードを展開してシンボルを解決
+
+		Args:
+			node (Node): ノード
+		Returns:
+			Symbol: シンボル
 		Raises:
 			LogicError: シンボルの解決に失敗
 		"""
+		resolver = ProceduralResolver(self)
+		for in_node in node.calculated():
+			resolver.process(in_node)
 
-		if isinstance(node, defs.Declable):
-			return self.declable_of(node)
-		elif isinstance(node, defs.Var):
-			return self.var_of(node)
-		elif isinstance(node, defs.Relay):
-			# XXX Relayは実質的に式であるためresult_ofを使用
-			return self.result_of(node)
-		elif isinstance(node, defs.Type):
-			return self.type_of(node)
-		elif isinstance(node, defs.ClassKind):
-			return self.class_of(node)
-		elif isinstance(node, defs.Literal):
-			return self.literal_of(node)
-		else:
-			return self.result_of(node)
+		# XXX 自分自身が含まれないため個別に実行
+		resolver.process(node)
 
-	def __resolve_symbol(self, symbolic: Symbolic, prop_name: str = '') -> SymbolSchema:
-		"""シンボル系ノードからシンボルデータを解決
+		return resolver.result()
+
+	def resolve(self, symbolic: Symbolic, prop_name: str = '') -> Symbol:
+		"""シンボルテーブルからシンボルを解決
 
 		Args:
 			symbolic (Symbolic): シンボル系ノード
 			prop_name (str): プロパティー名(default = '')
 		Returns:
-			SymbolSchema: シンボルスキーマ
+			Symbol: シンボル
 		Raises:
 			LogicError: シンボルの解決に失敗
+		Note:
+			# 注意点
+			シンボルテーブルから直接解決するため、以下のシンボル解決は含まれない
+			* Generic型のサブタイプの解決(シンボル宣言・参照ノード由来)
+			* MoveAssignの左辺の型の解決(シンボル宣言・参照ノード由来)
+			@see __post_type_of_var
 		"""
-		found_row = self.__resolve_symbol_row(symbolic, prop_name)
-		if found_row is not None:
-			return SymbolSchema(found_row)
+		found_raw = self.__resolve_raw(symbolic, prop_name)
+		if found_raw is not None:
+			return Symbol(found_raw)
 
-		raise LogicError(f'Symbol not defined. symbolic: {symbolic}, prop_name: {prop_name}')
+		raise LogicError(f'Symbol not defined. symbolic: {symbolic.domain_id}, prop_name: {prop_name}')
 
-	def __resolve_symbol_row(self, symbolic: Symbolic, prop_name: str) -> SymbolRow | None:
+	def __resolve_raw(self, symbolic: Symbolic, prop_name: str) -> SymbolRaw | None:
 		"""シンボル系ノードからシンボルを解決。未検出の場合はNoneを返却
 
 		Args:
 			symbolic (Symbolic): シンボル系ノード
 			prop_name (str): プロパティー名(空文字の場合は無視される)
 		Returns:
-			SymbolRow | None: シンボルデータ
+			SymbolRaw | None: シンボルデータ
 		"""
-		symbol_row = self.__find_symbol_row(symbolic, prop_name)
-		if symbol_row is None and symbolic.is_a(defs.Class):
-			symbol_row = self.__resolve_symbol_row_recursive(symbolic.as_a(defs.Class), prop_name)
+		symbol_raw = self.__find_raw(symbolic, prop_name)
+		if symbol_raw is None and symbolic.is_a(defs.Class):
+			symbol_raw = self.__resolve_raw_recursive(symbolic.as_a(defs.Class), prop_name)
 
-		return symbol_row
+		return symbol_raw
 
-	def __resolve_symbol_row_recursive(self, decl_class: defs.Class, prop_name: str) -> SymbolRow | None:
+	def __resolve_raw_recursive(self, decl_class: defs.Class, prop_name: str) -> SymbolRaw | None:
 		"""クラスの継承チェーンを辿ってシンボルを解決。未検出の場合はNoneを返却
 
 		Args:
 			decl_class (Class): クラス定義ノード
 			prop_name (str): プロパティー名(空文字の場合は無視される)
 		Returns:
-			SymbolRow | None: シンボルデータ
+			SymbolRaw | None: シンボルデータ
 		"""
 		for parent_type in decl_class.parents:
-			parent_type_row = self.__find_symbol_row(parent_type)
-			if parent_type_row is None:
+			parent_type_raw = self.__find_raw(parent_type)
+			if parent_type_raw is None:
 				break
 
-			found_row = self.__resolve_symbol_row(parent_type_row.types, prop_name)
-			if found_row:
-				return found_row
+			found_raw = self.__resolve_raw(parent_type_raw.types, prop_name)
+			if found_raw:
+				return found_raw
 
 		return None
 
-	def __find_symbol_row(self, symbolic: Symbolic, prop_name: str = '') -> SymbolRow | None:
+	def __find_raw(self, symbolic: Symbolic, prop_name: str = '') -> SymbolRaw | None:
 		"""シンボルデータを検索。未検出の場合はNoneを返却
 
 		Args:
 			symbolic (Symbolic): シンボル系ノード
 			prop_name (str): プロパティー名(default = '')
 		Returns:
-			SymbolRow | None: シンボルデータ
+			SymbolRaw | None: シンボルデータ
 		"""
 		domain_id = DSN.join(symbolic.domain_id, prop_name)
 		domain_name = DSN.join(symbolic.domain_name, prop_name)
-		if domain_id in self.__db.rows:
-			return self.__db.rows[domain_id]
-		elif domain_name in self.__db.rows:
-			return self.__db.rows[domain_name]
+		if domain_id in self.__db.raws:
+			return self.__db.raws[domain_id]
+		elif domain_name in self.__db.raws:
+			return self.__db.raws[domain_name]
 
 		return None
 
 
-class Handler(Procedure[SymbolSchema]):
+class ProceduralResolver(Procedure[Symbol]):
 	def __init__(self, symbols: Symbols) -> None:
 		super().__init__()
-		self._symbols = symbols
+		self.symbols = symbols
 
 	# Fallback
 
@@ -321,123 +330,133 @@ class Handler(Procedure[SymbolSchema]):
 
 	# Statement simple
 
-	def on_anno_assign(self, node: defs.AnnoAssign, receiver: SymbolSchema, var_type: SymbolSchema, value: SymbolSchema) -> SymbolSchema:
+	def on_anno_assign(self, node: defs.AnnoAssign, receiver: Symbol, var_type: Symbol, value: Symbol) -> Symbol:
+		return var_type
+
+	# Element
+
+	def on_return_decl(self, node: defs.ReturnDecl, var_type: Symbol) -> Symbol:
 		return var_type
 
 	# Primary
 
-	def on_class_var(self, node: defs.ClassVar) -> SymbolSchema:
-		return self._symbols.by(node)
+	def on_class_var(self, node: defs.ClassVar) -> Symbol:
+		return self.symbols.type_of_var(node)
 
-	def on_this_var(self, node: defs.ThisVar) -> SymbolSchema:
-		return self._symbols.by(node)
+	def on_this_var(self, node: defs.ThisVar) -> Symbol:
+		return self.symbols.type_of_var(node)
 
-	def on_param_class(self, node: defs.ParamClass) -> SymbolSchema:
-		return self._symbols.by(node)
+	def on_param_class(self, node: defs.ParamClass) -> Symbol:
+		return self.symbols.type_of_var(node)
 
-	def on_param_this(self, node: defs.ParamThis) -> SymbolSchema:
-		return self._symbols.by(node)
+	def on_param_this(self, node: defs.ParamThis) -> Symbol:
+		return self.symbols.type_of_var(node)
 
-	def on_local_var(self, node: defs.LocalVar) -> SymbolSchema:
-		return self._symbols.by(node)
+	def on_local_var(self, node: defs.LocalVar) -> Symbol:
+		return self.symbols.type_of_var(node)
 
-	def on_types_name(self, node: defs.TypesName) -> SymbolSchema:
-		return self._symbols.by(node)
+	def on_types_name(self, node: defs.TypesName) -> Symbol:
+		return self.symbols.type_of_var(node)
 
-	def on_import_name(self, node: defs.ImportName) -> SymbolSchema:
-		return self._symbols.by(node)
+	def on_import_name(self, node: defs.ImportName) -> Symbol:
+		return self.symbols.type_of_var(node)
 
-	def on_relay(self, node: defs.Relay, receiver: SymbolSchema) -> SymbolSchema:
-		return self._symbols.property_of(receiver.row.types, node.prop)
-
-	def on_var(self, node: defs.Var) -> SymbolSchema:
-		return self._symbols.by(node)
-
-	def on_indexer(self, node: defs.Indexer, symbol: SymbolSchema, key: SymbolSchema) -> SymbolSchema:
-		if isinstance(symbol.row.decl, (defs.AnnoAssign, defs.Parameter)):
-			return self._symbols.by(symbol.row.decl.var_type.as_a(defs.CollectionType).value_type)
+	def on_relay(self, node: defs.Relay, receiver: Symbol) -> Symbol:
+		if isinstance(node.receiver, defs.Indexer):
+			return self.symbols.type_of_property(receiver.attrs[0].types, node.prop)
 		else:
-			return self._symbols.by(symbol.row.decl.as_a(defs.MoveAssign).value)
+			return self.symbols.type_of_property(receiver.types, node.prop)
 
-	def on_general_type(self, node: defs.GeneralType) -> SymbolSchema:
-		return self._symbols.by(node)
+	def on_var(self, node: defs.Var) -> Symbol:
+		return self.symbols.type_of_var(node)
 
-	def on_list_type(self, node: defs.ListType, symbol: SymbolSchema, value_type: SymbolSchema) -> SymbolSchema:
-		return symbol.extends(value_type=value_type.row)
+	def on_indexer(self, node: defs.Indexer, symbol: Symbol, key: Symbol) -> Symbol:
+		return symbol
 
-	def on_dict_type(self, node: defs.DictType, symbol: SymbolSchema, key_type: SymbolSchema, value_type: SymbolSchema) -> SymbolSchema:
-		return symbol.extends(key_type=key_type.row, value_type=value_type.row)
+	def on_general_type(self, node: defs.GeneralType) -> Symbol:
+		return self.symbols.resolve(node)
 
-	def on_union_type(self, node: defs.UnionType) -> SymbolSchema:
-		raise LogicError(f'Operation not supoorted. {node}')
+	def on_list_type(self, node: defs.ListType, symbol: Symbol, value_type: Symbol) -> Symbol:
+		return symbol.extends(value_type)
 
-	def on_none_type(self, node: defs.NullType) -> SymbolSchema:
-		return self._symbols.by(node)
+	def on_dict_type(self, node: defs.DictType, symbol: Symbol, key_type: Symbol, value_type: Symbol) -> Symbol:
+		return symbol.extends(key_type, value_type)
 
-	def on_func_call(self, node: defs.FuncCall, calls: SymbolSchema, arguments: list[SymbolSchema]) -> SymbolSchema:
-		calls_function = calls.row.types.as_a(defs.Function)
-		if calls_function.is_a(defs.Constructor):
-			return self._symbols.by(calls_function.as_a(defs.Constructor).class_symbol)
+	def on_custom_type(self, node: defs.CustomType, symbol: Symbol, template_types: list[Symbol]) -> Symbol:
+		return symbol.extends(*template_types)
+
+	def on_union_type(self, node: defs.UnionType, symbol: Symbol, or_types: list[Symbol]) -> Symbol:
+		return symbol.extends(*or_types)
+
+	def on_null_type(self, node: defs.NullType) -> Symbol:
+		return self.symbols.resolve(node)
+
+	def on_func_call(self, node: defs.FuncCall, calls: Symbol, arguments: list[Symbol]) -> Symbol:
+		if isinstance(calls.types, defs.Constructor):
+			return self.symbols.type_of_var(calls.types.class_symbol)
+		elif isinstance(calls.types, defs.Function):
+			return self.symbols.resolve(calls.types.return_decl.var_type)
+		# defs.ClassKind
 		else:
-			return self._symbols.by(calls_function.return_decl.var_type)
+			return calls
 
-	def on_super(self, node: defs.Super, calls: SymbolSchema, arguments: list[SymbolSchema]) -> SymbolSchema:
-		return self._symbols.by(node.parent_symbol)
+	def on_super(self, node: defs.Super, calls: Symbol, arguments: list[Symbol]) -> Symbol:
+		return self.symbols.resolve(node.parent_symbol)
 
 	# Common
 
-	def on_argument(self, node: defs.Argument, value: SymbolSchema) -> SymbolSchema:
+	def on_argument(self, node: defs.Argument, value: Symbol) -> Symbol:
 		return value
 
-	def on_inherit_argument(self, node: defs.InheritArgument, class_type: SymbolSchema) -> SymbolSchema:
+	def on_inherit_argument(self, node: defs.InheritArgument, class_type: Symbol) -> Symbol:
 		return class_type
 
 	# Operator
 
-	def on_sum(self, node: defs.Sum, left: SymbolSchema, right: SymbolSchema) -> SymbolSchema:
+	def on_sum(self, node: defs.Sum, left: Symbol, right: Symbol) -> Symbol:
 		return self.on_binary_operator(node, left, right, '__add__')
 
-	def on_binary_operator(self, node: defs.BinaryOperator, left: SymbolSchema, right: SymbolSchema, operator: str) -> SymbolSchema:
-		methods = [method for method in left.row.types.as_a(defs.Class).methods if method.symbol.tokens == operator]
+	def on_binary_operator(self, node: defs.BinaryOperator, left: Symbol, right: Symbol, operator: str) -> Symbol:
+		methods = [method for method in left.types.as_a(defs.Class).methods if method.symbol.tokens == operator]
 		if len(methods) == 0:
 			raise LogicError(f'Operation not allowed. {node}, {left}, {right}, {operator}')
 
 		other = methods[0].parameters.pop()
-		var_types = [other.var_type] if not other.var_type.is_a(defs.UnionType) else other.var_type.as_a(defs.UnionType).types
+		var_types = other.var_type.or_types if isinstance(other.var_type, defs.UnionType) else [other.var_type]
 		for var_type in var_types:
-			if self._symbols.by(var_type.one_of(defs.Declable | defs.GenericType)) == right:
+			if self.symbols.resolve(var_type.as_a(defs.Type)) == right:
 				return right
 
 		raise LogicError(f'Operation not allowed. {node}, {left}, {right}, {operator}')
 
 	# Literal
 
-	def on_integer(self, node: defs.Integer) -> SymbolSchema:
-		return self._symbols.by(node)
+	def on_integer(self, node: defs.Integer) -> Symbol:
+		return self.symbols.resolve(node)
 
-	def on_float(self, node: defs.Float) -> SymbolSchema:
-		return self._symbols.by(node)
+	def on_float(self, node: defs.Float) -> Symbol:
+		return self.symbols.resolve(node)
 
-	def on_string(self, node: defs.String) -> SymbolSchema:
-		return self._symbols.by(node)
+	def on_string(self, node: defs.String) -> Symbol:
+		return self.symbols.resolve(node)
 
-	def on_truthy(self, node: defs.Truthy) -> SymbolSchema:
-		return self._symbols.by(node)
+	def on_truthy(self, node: defs.Truthy) -> Symbol:
+		return self.symbols.resolve(node)
 
-	def on_falsy(self, node: defs.Falsy) -> SymbolSchema:
-		return self._symbols.by(node)
+	def on_falsy(self, node: defs.Falsy) -> Symbol:
+		return self.symbols.resolve(node)
 
-	def on_pair(self, node: defs.Pair, first: SymbolSchema, second: SymbolSchema) -> SymbolSchema:
-		return self._symbols.by(node).extends(first=first.row, second=second.row)
+	def on_pair(self, node: defs.Pair, first: Symbol, second: Symbol) -> Symbol:
+		return self.symbols.resolve(node).extends(first, second)
 
-	def on_list(self, node: defs.List, values: list[SymbolSchema]) -> SymbolSchema:
-		if len(values) == 0:
-			return self._symbols.by(node).extends(value=self._symbols.unknown_of().row)
-		else:
-			return self._symbols.by(node).extends(value=values[0].row)
+	def on_list(self, node: defs.List, values: list[Symbol]) -> Symbol:
+		value_type = values[0] if len(values) > 0 else self.symbols.type_of_unknown()
+		return self.symbols.resolve(node).extends(value_type)
 
-	def on_dict(self, node: defs.Dict, items: list[PairSchema]) -> SymbolSchema:
+	def on_dict(self, node: defs.Dict, items: list[Symbol]) -> Symbol:
 		if len(items) == 0:
-			return self._symbols.by(node).extends(key=self._symbols.unknown_of().row, value=self._symbols.unknown_of().row)
+			unknown_type = self.symbols.type_of_unknown()
+			return self.symbols.resolve(node).extends(unknown_type, unknown_type)
 		else:
-			return self._symbols.by(node).extends(key=items[0].first, value=items[0].second)
+			key_type, value_type = items[0].attrs
+			return self.symbols.resolve(node).extends(key_type, value_type)

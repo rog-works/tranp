@@ -2,6 +2,7 @@ import os
 import sys
 
 from py2cpp.analize.procedure import Procedure
+from py2cpp.analize.symbols import Symbols
 from py2cpp.app.app import App
 from py2cpp.ast.parser import ParserSetting
 from py2cpp.lang.error import stacktrace
@@ -12,9 +13,18 @@ from py2cpp.view.render import Renderer, Writer
 
 
 class Handler(Procedure[str]):
-	def __init__(self, render: Renderer) -> None:
+	def __init__(self, symbols: Symbols, render: Renderer) -> None:
 		super().__init__()
+		self.symbols = symbols
 		self.view = render
+
+	def __result_internal(self, begin: Node) -> str:
+		cloning = Handler(self.symbols, self.view)
+		for node in begin.calculated():
+			cloning.process(node)
+
+		cloning.process(begin)
+		return cloning.result()
 
 	# Hook
 
@@ -103,7 +113,13 @@ class Handler(Procedure[str]):
 	# Statement - simple
 
 	def on_move_assign(self, node: defs.MoveAssign, receiver: str, value: str) -> str:
-		return self.view.render(node.classification, vars={'receiver': receiver, 'value': value})
+		declared = len([decl_var for decl_var in node.parent.as_a(defs.Block).decl_vars_with(defs.MoveAssign) if decl_var == node]) > 0
+		var_type = ''
+		if declared:
+			value_type = self.symbols.type_of(node.value)
+			var_type = self.__result_internal(value_type.types)
+
+		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': value})
 
 	def on_anno_assign(self, node: defs.AnnoAssign, receiver: str, var_type: str, value: str) -> str:
 		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': value})

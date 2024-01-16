@@ -8,9 +8,17 @@
 			"module":"unittest",
 			"args": ["discover", "tests/"],
 			"cwd": "${workspaceFolder}",
-			"env": {
-				"PYTHONDONTWRITEBYTECODE": "1",
-				"PYTHONPATH": "${workspaceFolder};${workspaceFolder}/vendor",
+			"windows": {
+				"env": {
+					"PYTHONPATH": "${workspaceFolder};${workspaceFolder}/vendor",
+					"PYTHONDONTWRITEBYTECODE": "1",
+				},
+			},
+			"linux": {
+				"env": {
+					"PYTHONPATH": "${workspaceFolder}:${workspaceFolder}/vendor",
+					"PYTHONDONTWRITEBYTECODE": "1",
+				},
 			},
 			"console": "integratedTerminal",
 			"justMyCode": true,
@@ -29,9 +37,17 @@
 			// "args": ["tests.unit.py2cpp.node.test_node.TestNode.test_scope"],
 			// "args": ["tests.unit.py2cpp.view.test_render.TestRenderer.test_render_function"],
 			"cwd": "${workspaceFolder}",
-			"env": {
-				"PYTHONDONTWRITEBYTECODE": "1",
-				"PYTHONPATH": "${workspaceFolder};${workspaceFolder}/vendor",
+			"windows": {
+				"env": {
+					"PYTHONPATH": "${workspaceFolder};${workspaceFolder}/vendor",
+					"PYTHONDONTWRITEBYTECODE": "1",
+				},
+			},
+			"linux": {
+				"env": {
+					"PYTHONPATH": "${workspaceFolder}:${workspaceFolder}/vendor",
+					"PYTHONDONTWRITEBYTECODE": "1",
+				},
 			},
 			"console": "integratedTerminal",
 			"justMyCode": true,
@@ -46,9 +62,17 @@
 				"example/example.py",
 			],
 			"cwd": "${workspaceFolder}",
-			"env": {
-				"PYTHONDONTWRITEBYTECODE": "1",
-				"PYTHONPATH": "${workspaceFolder};${workspaceFolder}/vendor",
+			"windows": {
+				"env": {
+					"PYTHONPATH": "${workspaceFolder};${workspaceFolder}/vendor",
+					"PYTHONDONTWRITEBYTECODE": "1",
+				},
+			},
+			"linux": {
+				"env": {
+					"PYTHONPATH": "${workspaceFolder}:${workspaceFolder}/vendor",
+					"PYTHONDONTWRITEBYTECODE": "1",
+				},
 			},
 			"console": "integratedTerminal",
 			"justMyCode": true,
@@ -58,9 +82,17 @@
 			"type": "python",
 			"request": "launch",
 			"program": "${file}",
-			"env": {
-				"PYTHONDONTWRITEBYTECODE": "1",
-				"PYTHONPATH": "${workspaceFolder};${workspaceFolder}/vendor",
+			"windows": {
+				"env": {
+					"PYTHONPATH": "${workspaceFolder};${workspaceFolder}/vendor",
+					"PYTHONDONTWRITEBYTECODE": "1",
+				},
+			},
+			"linux": {
+				"env": {
+					"PYTHONPATH": "${workspaceFolder}:${workspaceFolder}/vendor",
+					"PYTHONDONTWRITEBYTECODE": "1",
+				},
 			},
 			"console": "integratedTerminal",
 			"justMyCode": true

@@ -3,7 +3,7 @@ from py2cpp.cpp.enum import CEnum
 
 pragma('once')
 
-from FW.compatible import IntVector, Vector, Mesh, MeshRaw
+from example.FW.compatible import IntVector, Vector, Mesh, MeshRaw
 
 class Box3d:
 	def __init__(self, min: Vector, max: Vector) -> None:

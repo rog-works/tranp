@@ -384,6 +384,14 @@ class NullType(Type, ITerminal):
 		return self.domain_id
 
 
+@Meta.embed(Node, accept_tags('typed_list'))
+class TypeParameters(Node):
+	@property
+	@Meta.embed(Node, expandable)
+	def type_params(self) -> list[Type]:
+		return [node.as_a(Type) for node in self._children()]
+
+
 @Meta.embed(Node, accept_tags('funccall'))
 class FuncCall(Node):
 	@property

@@ -65,6 +65,7 @@ def symbol_mapping() -> SymbolMapping:
 			# 'typed_getitem': defs.CustomType,
 			'typed_or_expr': defs.UnionType,
 			'typed_none': defs.NullType,
+			'typed_list': defs.TypeParameters,
 			'funccall': defs.FuncCall,
 			# 'funccall': defs.Super,
 			# -- Common --

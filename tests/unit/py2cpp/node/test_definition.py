@@ -355,6 +355,21 @@ class TestDefinition(TestCase):
 		self.assertEqual(node.value_type.tokens, expected['value_type'])
 
 	@data_provider([
+		('def func() -> Callable[[], None]: ...', 'file_input.function_def.function_def_raw.return_type.typed_getitem.typed_slices.typed_slice[0].typed_list', []),
+		('def func() -> Callable[[str], None]: ...', 'file_input.function_def.function_def_raw.return_type.typed_getitem.typed_slices.typed_slice[0].typed_list', [defs.GeneralType]),
+		('def func() -> Callable[[str, int], None]: ...', 'file_input.function_def.function_def_raw.return_type.typed_getitem.typed_slices.typed_slice[0].typed_list', [defs.GeneralType, defs.GeneralType]),
+		('def func() -> Callable[[str, list[int]], None]: ...', 'file_input.function_def.function_def_raw.return_type.typed_getitem.typed_slices.typed_slice[0].typed_list', [defs.GeneralType, defs.ListType]),
+		# ('def func() -> Callable[[...], None]: ...', 'file_input.function_def.function_def_raw.return_type.typed_getitem.typed_slices.typed_slice[0].typed_list', [defs.GeneralType, defs.ListType]), XXX Elipsisは一旦非対応
+		('def func(f: Callable[[int], None]) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.typed_getitem.typed_slices.typed_slice[0].typed_list', [defs.GeneralType]),
+	])
+	def test_type_parameters(self, source: str, full_path: str, expecteds: list[type[defs.Type]]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.TypeParameters)
+		self.assertEqual(len(node.type_params), len(expecteds))
+		for index, in_types in enumerate(node.type_params):
+			expected = expecteds[index]
+			self.assertEqual(type(in_types), expected)
+
+	@data_provider([
 		('file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block.getitem', {
 			'symbol': 'arr',
 			'key': '0',

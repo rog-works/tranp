@@ -12,8 +12,9 @@ class TestSymbolDB(TestCase):
 	@data_provider([
 		({
 			# 標準ライブラリー/typingライブラリー(ClassKind)
-			'tests.unit.py2cpp.analize.fixtures.test_db_classes.Iterator': 'typing.Iterator',
 			'tests.unit.py2cpp.analize.fixtures.test_db_classes.Any': 'typing.Any',
+			'tests.unit.py2cpp.analize.fixtures.test_db_classes.Iterator': 'typing.Iterator',
+			'tests.unit.py2cpp.analize.fixtures.test_db_classes.Sequence': 'typing.Sequence',
 			# 標準ライブラリー(ClassKind)
 			'tests.unit.py2cpp.analize.fixtures.test_db_classes.int': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.int',
 			'tests.unit.py2cpp.analize.fixtures.test_db_classes.float': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.float',
@@ -32,10 +33,9 @@ class TestSymbolDB(TestCase):
 			'tests.unit.py2cpp.analize.fixtures.test_db_classes.len': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.len',
 			# 標準ライブラリー(Declable)
 			'tests.unit.py2cpp.analize.fixtures.test_db_classes.id.instance': 'typing.Any',
-			'tests.unit.py2cpp.analize.fixtures.test_db_classes.enumerate.iterable': 'typing.Iterator',
+			'tests.unit.py2cpp.analize.fixtures.test_db_classes.enumerate.iterable': 'typing.Sequence',
 			'tests.unit.py2cpp.analize.fixtures.test_db_classes.range.size': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.int',
-			'tests.unit.py2cpp.analize.fixtures.test_db_classes.range.step': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.int',
-			'tests.unit.py2cpp.analize.fixtures.test_db_classes.len.iterable': 'typing.Iterator',
+			'tests.unit.py2cpp.analize.fixtures.test_db_classes.len.iterable': 'typing.Sequence',
 			# typingライブラリー/標準ライブラリー(ClassKind)
 			'typing.int': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.int',
 			'typing.float': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.float',

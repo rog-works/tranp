@@ -1,5 +1,5 @@
-from py2cpp.cpp.directive import pragma
-from py2cpp.cpp.enum import (CEnum, A)
+from py2cpp.compatible.cpp.directive import pragma
+from py2cpp.compatible.cpp.enum import (CEnum, A)
 
 pragma('once')
 

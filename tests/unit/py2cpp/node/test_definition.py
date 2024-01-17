@@ -229,7 +229,7 @@ class TestDefinition(TestCase):
 
 	@data_provider([
 		('file_input.import_stmt[1]', {
-			'module_path': 'py2cpp.cpp.enum',
+			'module_path': 'py2cpp.compatible.cpp.enum',
 			'import_symbols': [
 				{'symbol': 'CEnum'},
 				{'symbol': 'A'},

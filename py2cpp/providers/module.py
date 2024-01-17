@@ -12,7 +12,7 @@ def module_path_dummy() -> ModulePath:
 
 
 def library_paths() -> list[str]:
-	return ['py2cpp.python.classes']
+	return ['py2cpp.compatible.python.classes']
 
 
 def module_loader(locator: Locator) -> ModuleLoader:

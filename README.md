@@ -18,17 +18,23 @@ $ pip install -r requirements.txt -t vendor/
 ## Interactive Python AST Viewer
 
 ```
-$ bin/ast.sh
+$ bash bin/ast.sh
+```
+
+## Dumping analyze symbols
+
+```
+$ bash bin/analize.sh
 ```
 
 ## Transpile from Python to C++
 
 ```
-$ bin/transpile.sh path/to/origin.py
+$ bash bin/transpile.sh path/to/origin.py
 ```
 
 ## Testing via tests/
 
 ```
-$ bin/test.sh
+$ bash bin/test.sh
 ```

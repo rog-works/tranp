@@ -1,4 +1,3 @@
-import os
 import json
 from typing import IO, cast
 
@@ -49,7 +48,7 @@ class SyntaxParserOfLark:
 		"""
 		def identity() -> dict[str, str]:
 			return {
-				'mtime': str(os.path.getmtime(self.__setting.grammar)),
+				'mtime': str(self.__loader.mtime(self.__setting.grammar)),
 				'grammar': self.__setting.grammar,
 				'start': self.__setting.start,
 				'algorithem': self.__setting.algorithem,
@@ -58,7 +57,7 @@ class SyntaxParserOfLark:
 		@self.__cache.get('parser.cache', identity=identity())
 		def instantiate() -> LarkStored:
 			return LarkStored(Lark(
-				self.__loader(self.__setting.grammar),
+				self.__loader.load(self.__setting.grammar),
 				start=self.__setting.start,
 				parser=self.__setting.algorithem,
 				postlex=PythonIndenter()
@@ -81,10 +80,10 @@ class SyntaxParserOfLark:
 			return f'{basepath}.py'
 
 		def identity() -> dict[str, str]:
-			return {'mtime': str(os.path.getmtime(source_path()))}
+			return {'mtime': str(self.__loader.mtime(source_path()))}
 
 		def load_source() -> str:
-			return self.__loader(source_path())
+			return self.__loader.load(source_path())
 
 		@self.__cache.get(basepath, identity=identity(), format='json')
 		def instantiate() -> EntryStored:

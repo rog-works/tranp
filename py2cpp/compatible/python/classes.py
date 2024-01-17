@@ -1,5 +1,5 @@
-# from typing import Any, Iterator
-# FIXME 実装を簡単にするため一旦インポートはせず、警告も無視する
+from typing import Any, Iterator
+
 
 @__alias__('int')
 class Integer:
@@ -115,9 +115,7 @@ class Super: ...
 
 
 def id(instance: Any) -> int: ...
-# FIXME *argsに対応
-# def print(*args: Any) -> None: ...
-# XXX (Iterator[T]) -> Iterator[tuple[int, T]]
-def enumerate(iterable: Iterator[Any]) -> Iterator[tuple[int, Any]]: ...
+# def print(*args: Any) -> None: ... FIXME *argsに対応
+def enumerate(iterable: Iterator[Any]) -> Iterator[tuple[int, Any]]: ...  # XXX (Iterator[T]) -> Iterator[tuple[int, T]]
 def range(size: int, step: int = 1) -> Iterator[int]: ...
 def len(iterable: Iterator[Any]) -> int: ...

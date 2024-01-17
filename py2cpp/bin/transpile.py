@@ -145,7 +145,7 @@ class Handler(Procedure[str]):
 	def on_import(self, node: defs.Import) -> str:
 		module_path = node.import_path.tokens
 		text = self.view.render(node.classification, vars={'module_path': module_path})
-		return text if module_path.startswith('FW') else f'// {text}'
+		return text if module_path.startswith('example.FW') else f'// {text}'
 
 	# Primary
 

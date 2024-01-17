@@ -1,7 +1,7 @@
-// #include "py2cpp/cpp/directive.h"
-// #include "py2cpp/cpp/enum.h"
+// #include "py2cpp/compatible/cpp/directive.h"
+// #include "py2cpp/compatible/cpp/enum.h"
 #pragma once
-#include "FW/compatible.h"
+#include "example/FW/compatible.h"
 class Box3d {
 	public: Vector self.min;
 	public: Vector self.max;

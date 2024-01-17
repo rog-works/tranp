@@ -343,11 +343,30 @@ class DictType(GenericType):
 
 
 @Meta.embed(Node, actualized(via=GenericType))
+class CallableType(GenericType):
+	@classmethod
+	@override
+	def match_feature(cls, via: GenericType) -> bool:
+		children = via._children('typed_slices')
+		return len(children) == 2 and children[0]._exists('typed_list')
+
+	@property
+	@Meta.embed(Node, expandable)
+	def parameters(self) -> list[Type]:
+		return self._by('typed_slices.typed_slice[0].typed_list').as_a(TypeParameters).type_params
+
+	@property
+	@Meta.embed(Node, expandable)
+	def return_decl(self) -> Type:
+		return self._by('typed_slices.typed_slice[1]')._at(0).as_a(Type)
+
+
+@Meta.embed(Node, actualized(via=GenericType))
 class CustomType(GenericType):
 	@classmethod
 	@override
 	def match_feature(cls, via: GenericType) -> bool:
-		"""Note: ListType/DictTypeと排他関係。実質的なフォールバック"""
+		"""Note: その他のGenericTypeと排他関係。実質的なフォールバック"""
 		return True
 
 	@property

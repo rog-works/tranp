@@ -11,7 +11,10 @@ class TestSymbolDB(TestCase):
 
 	@data_provider([
 		({
-			# 標準ライブラリー(Types)
+			# 標準ライブラリー/typingライブラリー(ClassKind)
+			'tests.unit.py2cpp.analize.fixtures.test_db_classes.Iterator': 'typing.Iterator',
+			'tests.unit.py2cpp.analize.fixtures.test_db_classes.Any': 'typing.Any',
+			# 標準ライブラリー(ClassKind)
 			'tests.unit.py2cpp.analize.fixtures.test_db_classes.int': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.int',
 			'tests.unit.py2cpp.analize.fixtures.test_db_classes.float': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.float',
 			'tests.unit.py2cpp.analize.fixtures.test_db_classes.str': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.str',
@@ -23,7 +26,40 @@ class TestSymbolDB(TestCase):
 			'tests.unit.py2cpp.analize.fixtures.test_db_classes.None': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.None',
 			'tests.unit.py2cpp.analize.fixtures.test_db_classes.Unknown': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Unknown',
 			'tests.unit.py2cpp.analize.fixtures.test_db_classes.super': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.super',
-			# インポートモジュール/標準ライブラリー(Types)
+			'tests.unit.py2cpp.analize.fixtures.test_db_classes.id': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.id',
+			'tests.unit.py2cpp.analize.fixtures.test_db_classes.enumerate': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.enumerate',
+			'tests.unit.py2cpp.analize.fixtures.test_db_classes.range': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.range',
+			'tests.unit.py2cpp.analize.fixtures.test_db_classes.len': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.len',
+			# 標準ライブラリー(Declable)
+			'tests.unit.py2cpp.analize.fixtures.test_db_classes.id.instance': 'typing.Any',
+			'tests.unit.py2cpp.analize.fixtures.test_db_classes.enumerate.iterable': 'typing.Iterator',
+			'tests.unit.py2cpp.analize.fixtures.test_db_classes.range.size': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.int',
+			'tests.unit.py2cpp.analize.fixtures.test_db_classes.range.step': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.int',
+			'tests.unit.py2cpp.analize.fixtures.test_db_classes.len.iterable': 'typing.Iterator',
+			# typingライブラリー/標準ライブラリー(ClassKind)
+			'typing.int': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.int',
+			'typing.float': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.float',
+			'typing.str': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.str',
+			'typing.bool': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.bool',
+			'typing.tuple': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.tuple',
+			'typing.pair_': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.pair_',
+			'typing.list': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.list',
+			'typing.dict': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.dict',
+			'typing.None': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.None',
+			'typing.Unknown': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Unknown',
+			'typing.super': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.super',
+			'typing.id': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.id',
+			'typing.enumerate': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.enumerate',
+			'typing.range': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.range',
+			'typing.len': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.len',
+			# typingライブラリー(ClassKind)
+			'typing.Any': 'typing.Any',
+			'typing.Callable': 'typing.Callable',
+			'typing.Iterator': 'typing.Iterator',
+			'typing.Sequence': 'typing.Sequence',
+			'typing.TypeVar': 'typing.TypeVar',
+			'typing.Union': 'typing.Union',
+			# test_db_xyzモジュール/標準ライブラリー(ClassKind)
 			'tests.unit.py2cpp.analize.fixtures.test_db_xyz.int': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.int',
 			'tests.unit.py2cpp.analize.fixtures.test_db_xyz.float': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.float',
 			'tests.unit.py2cpp.analize.fixtures.test_db_xyz.str': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.str',
@@ -35,16 +71,20 @@ class TestSymbolDB(TestCase):
 			'tests.unit.py2cpp.analize.fixtures.test_db_xyz.None': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.None',
 			'tests.unit.py2cpp.analize.fixtures.test_db_xyz.Unknown': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Unknown',
 			'tests.unit.py2cpp.analize.fixtures.test_db_xyz.super': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.super',
-			# インポートモジュール(Types)
+			'tests.unit.py2cpp.analize.fixtures.test_db_xyz.id': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.id',
+			'tests.unit.py2cpp.analize.fixtures.test_db_xyz.enumerate': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.enumerate',
+			'tests.unit.py2cpp.analize.fixtures.test_db_xyz.range': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.range',
+			'tests.unit.py2cpp.analize.fixtures.test_db_xyz.len': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.len',
+			# test_db_xyzモジュール(ClassKind)
 			'tests.unit.py2cpp.analize.fixtures.test_db_xyz.X': 'tests.unit.py2cpp.analize.fixtures.test_db_xyz.X',
 			'tests.unit.py2cpp.analize.fixtures.test_db_xyz.Y': 'tests.unit.py2cpp.analize.fixtures.test_db_xyz.Y',
 			'tests.unit.py2cpp.analize.fixtures.test_db_xyz.Z': 'tests.unit.py2cpp.analize.fixtures.test_db_xyz.Z',
-			# インポートモジュール(Symbols)
+			# test_db_xyzモジュール(Declable)
 			'tests.unit.py2cpp.analize.fixtures.test_db_xyz.X.nx': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.int',
 			'tests.unit.py2cpp.analize.fixtures.test_db_xyz.Y.ny': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.int',
 			'tests.unit.py2cpp.analize.fixtures.test_db_xyz.Y.x': 'tests.unit.py2cpp.analize.fixtures.test_db_xyz.X',
 			'tests.unit.py2cpp.analize.fixtures.test_db_xyz.Z.nz': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.int',
-			# エントリーポイント/標準ライブラリー(Types)
+			# エントリーポイント/標準ライブラリー(ClassKind)
 			'__main__.int': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.int',
 			'__main__.float': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.float',
 			'__main__.str': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.str',
@@ -56,9 +96,13 @@ class TestSymbolDB(TestCase):
 			'__main__.None': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.None',
 			'__main__.Unknown': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Unknown',
 			'__main__.super': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.super',
-			# エントリーポイント/インポートモジュール(Types)
+			'__main__.id': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.id',
+			'__main__.enumerate': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.enumerate',
+			'__main__.range': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.range',
+			'__main__.len': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.len',
+			# エントリーポイント/test_db_xyzモジュール(ClassKind)
 			'__main__.Z': 'tests.unit.py2cpp.analize.fixtures.test_db_xyz.Z',
-			# エントリーポイント(Types)
+			# エントリーポイント(ClassKind)
 			'__main__.A': '__main__.A',
 			'__main__.A.__init__': '__main__.A.__init__',
 			'__main__.B': '__main__.B',
@@ -66,17 +110,17 @@ class TestSymbolDB(TestCase):
 			'__main__.B.B2.class_func': '__main__.B.B2.class_func',
 			'__main__.B.__init__': '__main__.B.__init__',
 			'__main__.B.func1': '__main__.B.func1',
-			# エントリーポイント(Symbols)
+			# エントリーポイント(Declable)
 			'__main__.v': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.int',
 			'__main__.A.s': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.str',
 			'__main__.A.__init__.self': '__main__.A',
-			'__main__.B.B2.class_func.cls': '__main__.B.B2',
 			'__main__.B.v': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.list',
+			'__main__.B.B2.v': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.str',
+			'__main__.B.B2.class_func.cls': '__main__.B.B2',
 			'__main__.B.__init__.self': '__main__.B',
 			'__main__.B.func1.self': '__main__.B',
 			'__main__.B.func1.b': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.list',
 			'__main__.B.func1.v': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Unknown',
-			'__main__.B.B2.v': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.str',
 		},),
 	])
 	def test___init__(self, expected: dict[str, str]) -> None:

@@ -9,13 +9,13 @@ from py2cpp.ast.query import Query
 from py2cpp.lang.di import DI
 from py2cpp.lang.implementation import implements, override
 from py2cpp.lang.locator import Currying, Locator
-from py2cpp.module.provider import module_path_dummy
 from py2cpp.module.types import ModulePath
 from py2cpp.node.embed import Meta, actualized, expandable
 from py2cpp.node.interface import IScope, ITerminal
 from py2cpp.node.node import Node
 from py2cpp.node.query import Nodes
 from py2cpp.node.resolver import NodeResolver
+from py2cpp.providers.module import module_path_dummy
 from py2cpp.tp_lark.entry import EntryOfLark
 from tests.test.helper import data_provider
 

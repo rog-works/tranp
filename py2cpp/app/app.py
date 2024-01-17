@@ -1,9 +1,9 @@
 from typing import Callable
 
 from py2cpp.app.config import default_definitions
-from py2cpp.app.provider import di_container
 from py2cpp.lang.di import ModuleDefinitions
 from py2cpp.lang.locator import T_Inst
+from py2cpp.providers.app import di_container
 
 
 class App:

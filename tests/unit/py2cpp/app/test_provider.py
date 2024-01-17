@@ -1,7 +1,7 @@
 from unittest import TestCase
 
-from py2cpp.app.provider import di_container
 from py2cpp.lang.di import DI
+from py2cpp.providers.app import di_container
 
 
 class TestProvider(TestCase):

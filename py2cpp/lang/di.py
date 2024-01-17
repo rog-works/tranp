@@ -3,7 +3,7 @@ from typing import Any, Callable, TypeAlias, cast
 
 from py2cpp.lang.implementation import override
 from py2cpp.lang.locator import T_Curried, T_Inst, T_Injector
-from py2cpp.lang.module import load_module_path
+from py2cpp.lang.module import fullyname, load_module_path
 
 
 class DI:
@@ -311,8 +311,7 @@ class LazyDI(DI):
 		Returns:
 			str: シンボルパス
 		"""
-		accept_symbol = self._acceptable_symbol(symbol)
-		return f'{accept_symbol.__module__}.{accept_symbol.__name__}'
+		return fullyname(self._acceptable_symbol(symbol))
 
 	@override
 	def bind(self, symbol: type[T_Inst], injector: T_Injector) -> None:

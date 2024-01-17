@@ -6,6 +6,7 @@ from py2cpp.analize.symbols import Symbols
 from py2cpp.app.app import App
 from py2cpp.ast.parser import ParserSetting
 from py2cpp.lang.error import stacktrace
+from py2cpp.lang.module import fullyname
 from py2cpp.module.types import ModulePath
 import py2cpp.node.definition as defs
 from py2cpp.node.node import Node
@@ -343,11 +344,11 @@ def task(handler: Handler, root: Node, writer: Writer) -> None:
 
 if __name__ == '__main__':
 	definitions = {
-		f'{Args.__module__}.{Args.__name__}': Args,
-		f'{Writer.__module__}.{Writer.__name__}': make_writer,
-		f'{Renderer.__module__}.{Renderer.__name__}': make_renderer,
-		f'{Handler.__module__}.{Handler.__name__}': Handler,
-		'py2cpp.ast.parser.ParserSetting': make_parser_setting,
-		'py2cpp.module.types.ModulePath': make_module_path,
+		fullyname(Args): Args,
+		fullyname(Writer): make_writer,
+		fullyname(Renderer): make_renderer,
+		fullyname(Handler): Handler,
+		fullyname(ParserSetting): make_parser_setting,
+		fullyname(ModulePath): make_module_path,
 	}
 	App(definitions).run(task)

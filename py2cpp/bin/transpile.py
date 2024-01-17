@@ -15,7 +15,7 @@ from py2cpp.view.render import Renderer, Writer
 
 class Handler(Procedure[str]):
 	def __init__(self, symbols: Symbols, render: Renderer) -> None:
-		super().__init__()
+		super().__init__(verbose=True)
 		self.symbols = symbols
 		self.view = render
 
@@ -114,11 +114,12 @@ class Handler(Procedure[str]):
 	# Statement - simple
 
 	def on_move_assign(self, node: defs.MoveAssign, receiver: str, value: str) -> str:
-		declared = len([decl_var for decl_var in node.parent.as_a(defs.Block).decl_vars_with(defs.MoveAssign) if decl_var == node]) > 0
+		decl_vars = [decl_var for decl_var in node.parent.as_a(defs.Block).decl_vars_with(defs.LocalVar)]
+		declared = len([decl_var for decl_var in decl_vars if decl_var == node]) > 0
 		var_type = ''
 		if declared:
 			value_type = self.symbols.type_of(node.value)
-			var_type = self.__result_internal(value_type.types)
+			var_type = value_type.types.symbol  # XXX 必ずしもクラス名で参照できるとは限らず不正確
 
 		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': value})
 
@@ -333,7 +334,6 @@ def task(handler: Handler, root: Node, writer: Writer) -> None:
 		flatted.append(root)  # XXX
 
 		for node in flatted:
-			print('action:', str(node))
 			handler.process(node)
 
 		writer.put(handler.result())

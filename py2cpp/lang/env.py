@@ -9,7 +9,11 @@ class Env:
 		self.__env = deep_merge(self.__default_env(), env)
 
 	def __default_env(self) -> dict[str, Any]:
-		return {'PYTHONPATH': {os.getcwd(): os.getcwd()}}
+		paths = [
+			os.getcwd(),
+			os.path.join(os.getcwd(), 'py2cpp/compatible/python'),
+		]
+		return {'PYTHONPATH': {path: path for path in paths}}
 
 	@property
 	def paths(self) -> list[str]:

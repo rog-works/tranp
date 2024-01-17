@@ -1,10 +1,10 @@
-from typing import NamedTuple, TypeAlias
+from typing import TypeAlias
 
 from py2cpp.analize.db import SymbolDB, SymbolRaw
 from py2cpp.analize.procedure import Procedure
 from py2cpp.ast.dsn import DSN
 from py2cpp.errors import LogicError
-from py2cpp.lang.implementation import injectable
+from py2cpp.lang.implementation import injectable, override
 from py2cpp.module.types import ModulePath
 import py2cpp.node.definition as defs
 from py2cpp.node.node import Node
@@ -36,6 +36,33 @@ class Symbol:
 			Symbol: インスタンス
 		"""
 		return Symbol(self.raw, *[*self.attrs, *attrs])
+
+	@override
+	def __eq__(self, __value: object) -> bool:
+		"""比較演算子のオーバーロード
+
+		Args:
+			__value (object): 比較対象
+		Returns:
+			bool: True = 同じ
+		"""
+		if type(__value) is not Symbol:
+			return super().__eq__(__value)
+
+		return __value.__repr__() == self.__repr__()
+
+	@override
+	def __repr__(self) -> str:
+		"""オブジェクトの文字列表現を取得
+
+		Returns:
+			str: 文字列表現
+		"""
+		data = {
+			'types': str(self.types),
+			'attrs': [attr.__repr__() for attr in self.attrs],
+		}
+		return str(data)
 
 
 class Symbols:
@@ -419,7 +446,7 @@ class ProceduralResolver(Procedure[Symbol]):
 	def on_binary_operator(self, node: defs.BinaryOperator, left: Symbol, right: Symbol, operator: str) -> Symbol:
 		methods = [method for method in left.types.as_a(defs.Class).methods if method.symbol.tokens == operator]
 		if len(methods) == 0:
-			raise LogicError(f'Operation not allowed. {node}, {left}, {right}, {operator}')
+			raise LogicError(f'Operation not allowed. {node}, {left.types.domain_id}, {right.types.domain_id}, {operator}')
 
 		other = methods[0].parameters.pop()
 		var_types = other.var_type.or_types if isinstance(other.var_type, defs.UnionType) else [other.var_type]
@@ -427,7 +454,7 @@ class ProceduralResolver(Procedure[Symbol]):
 			if self.symbols.resolve(var_type.as_a(defs.Type)) == right:
 				return right
 
-		raise LogicError(f'Operation not allowed. {node}, {left}, {right}, {operator}')
+		raise LogicError(f'Operation not allowed. {node}, {left.types.domain_id}, {right.types.domain_id}, {operator}')
 
 	# Literal
 

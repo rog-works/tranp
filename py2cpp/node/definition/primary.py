@@ -224,6 +224,20 @@ class ClassVar(Var):
 		return via.tokens == 'cls'
 
 	@property
+	@override
+	def domain_id(self) -> str:
+		return self.class_domain.domain_id
+
+	@property
+	@override
+	def domain_name(self) -> str:
+		return self.class_domain.domain_name
+
+	@property
+	def class_domain(self) -> IDomainName:
+		return cast(IDomainName, self._ancestor('class_def'))
+
+	@property
 	def class_symbol(self) -> Declable:
 		from py2cpp.node.definition.statement_compound import Class  # FIXME 循環参照
 
@@ -235,6 +249,20 @@ class ThisVar(Var):
 	@classmethod
 	def match_feature(cls, via: Fragment) -> bool:
 		return via.tokens == 'self'
+
+	@property
+	@override
+	def domain_id(self) -> str:
+		return self.class_domain.domain_id
+
+	@property
+	@override
+	def domain_name(self) -> str:
+		return self.class_domain.domain_name
+
+	@property
+	def class_domain(self) -> IDomainName:
+		return cast(IDomainName, self._ancestor('class_def'))
 
 
 @Meta.embed(Node, actualized(via=Fragment))

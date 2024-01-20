@@ -4,9 +4,9 @@ from unittest import TestCase
 from py2cpp.lang.locator import Currying
 from py2cpp.lang.implementation import override
 from py2cpp.node.embed import Meta, actualized
-from py2cpp.node.interface import ITerminal
+from py2cpp.node.interface import IDomainName, ITerminal
 import py2cpp.node.definition as defs  # XXX テストを拡充するため実装クラスを使用
-from py2cpp.node.node import Node
+from py2cpp.node.node import Node, T_Node
 from tests.test.fixture import Fixture
 from tests.test.helper import data_provider
 
@@ -22,6 +22,15 @@ class TestNode(TestCase):
 	def test___str__(self, source: str, full_path: str, expected: str) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path)
 		self.assertEqual(str(node), expected)
+
+	@data_provider([
+		('...', 'file_input', '__main__'),
+		('class A: ...', 'file_input.class_def', '__main__'),
+		('def func() -> None: ...', 'file_input.function_def', '__main__'),
+	])
+	def test_module_path(self, source: str, full_path: str, expected: str) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path)
+		self.assertEqual(node.module_path, expected)
 
 	@data_provider([
 		('...', 'file_input', 'file_input'),
@@ -70,19 +79,6 @@ class TestNode(TestCase):
 	def test_public_name(self, source: str, full_path: str, expected: str) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path)
 		self.assertEqual(node.public_name, expected)
-
-	@data_provider([
-		('...', 'file_input', True),
-		('class A: ...', 'file_input.class_def', True),
-		('class A: ...', 'file_input.class_def.class_def_raw.block', True),
-		('class E(CEnum): ...', 'file_input.enum_def', True),
-		('def func() -> None: ...', 'file_input.function_def', True),
-		('if 1: ...', 'file_input.if_stmt', True),
-		('1', 'file_input.number', False),
-	])
-	def test_can_expand(self, source: str, full_path: str, expected: bool) -> None:
-		node = self.fixture.custom_nodes(source).by(full_path)
-		self.assertEqual((not isinstance(node, ITerminal)) or cast(ITerminal, node).can_expand, expected)
 
 	@data_provider([
 		('...', 'file_input', '__main__'),
@@ -134,6 +130,64 @@ class TestNode(TestCase):
 	def test_parent(self, source: str, full_path: str, expected: str) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path)
 		self.assertEqual(node.parent.classification, expected)
+
+	@data_provider([
+		('...', 'file_input', True),
+		('class A: ...', 'file_input.class_def', True),
+		('class A: ...', 'file_input.class_def.class_def_raw.block', True),
+		('class E(CEnum): ...', 'file_input.enum_def', True),
+		('def func() -> None: ...', 'file_input.function_def', True),
+		('if 1: ...', 'file_input.if_stmt', True),
+		('1', 'file_input.number', False),
+	])
+	def test_can_expand(self, source: str, full_path: str, expected: bool) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path)
+		self.assertEqual((not isinstance(node, ITerminal)) or cast(ITerminal, node).can_expand, expected)
+
+	@data_provider([
+		# ClassKind
+		('def func() -> None: ...', 'file_input.function_def', defs.Function, '__main__.func'),
+		('class A:\n\t@classmethod\n\tdef c_method(cls) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def', defs.ClassMethod, '__main__.A.c_method'),
+		('class A:\n\tdef __init__(self) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def', defs.Constructor, '__main__.A.__init__'),
+		('class A:\n\tdef method(self) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def', defs.Method, '__main__.A.method'),
+		('class A:\n\tdef method(self) -> None:\n\t\tdef closure() -> None: ...', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.function_def', defs.Closure, '__main__.A.method.closure'),
+		('class A: ...', 'file_input.class_def', defs.Class, '__main__.A'),
+		('class E(CEnum): ...', 'file_input.enum_def', defs.Enum, '__main__.E'),
+		# Declable
+		('class A:\n\ta: int = 0', 'file_input.class_def.class_def_raw.block.assign_stmt.anno_assign.var', defs.ClassDeclVar, '__main__.A.a'),
+		('class A:\n\tdef __init__(self) -> None:\n\t\tself.a: int = 0', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.assign_stmt.anno_assign.getattr', defs.ThisDeclVar, '__main__.A.a'),
+		('class A:\n\t@classmethod\n\tdef c_method(cls) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.ParamClass, '__main__.A.c_method.cls'),
+		('class A:\n\tdef method(self) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.ParamThis, '__main__.A.method.self'),
+		('a = 0', 'file_input.assign_stmt.assign.var', defs.LocalDeclVar, '__main__.a'),
+		('class A: ...', 'file_input.class_def.class_def_raw.name', defs.TypesName, '__main__.A.A'),  # XXX 不自然な結果
+		('from a.b.c import A', 'file_input.import_stmt.import_names.name', defs.ImportName, '__main__.A'),
+		# Reference
+		('a.b', 'file_input.getattr', defs.Relay, '__main__.a.b'),
+		('class A:\n\t@classmethod\n\tdef c_method(cls) -> None:\n\t\tprint(cls)', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.funccall.arguments.argvalue.var', defs.ClassVar, '__main__.A'),
+		('class A:\n\tdef method(self) -> None:\n\t\tprint(self)', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.funccall.arguments.argvalue.var', defs.ThisVar, '__main__.A'),
+		('a', 'file_input.var', defs.Variable, '__main__.a'),
+		# Type
+		('a: int = 0', 'file_input.assign_stmt.anno_assign.typed_var', defs.GeneralType, '__main__.int'),
+		('a: list[int] = []', 'file_input.assign_stmt.anno_assign.typed_getitem', defs.ListType, '__main__.list'),
+		('a: dict[str, int] = {}', 'file_input.assign_stmt.anno_assign.typed_getitem', defs.DictType, '__main__.dict'),
+		('a: Callable[[int], None] = {}', 'file_input.assign_stmt.anno_assign.typed_getitem', defs.CallableType, '__main__.Callable'),
+		('a: int | str = 0', 'file_input.assign_stmt.anno_assign.typed_or_expr', defs.UnionType, '__main__.int'),  # FIXME UnionTypeは表現できない
+		('def func() -> None: ...', 'file_input.function_def.function_def_raw.return_type.typed_none', defs.NullType, '__main__.None'),
+		# Literal
+		('1', 'file_input.number', defs.Integer, '__main__.int'),
+		('1.0', 'file_input.number', defs.Float, '__main__.float'),
+		("'string'", 'file_input.string', defs.String, '__main__.str'),
+		('True', 'file_input.const_true', defs.Truthy, '__main__.bool'),
+		('False', 'file_input.const_false', defs.Falsy, '__main__.bool'),
+		('{1: 2}', 'file_input.dict.key_value', defs.Pair, '__main__.pair_'),
+		('[1]', 'file_input.list', defs.List, '__main__.list'),
+		('{1: 2}', 'file_input.dict', defs.Dict, '__main__.dict'),
+		('None', 'file_input.const_none', defs.Null, '__main__.None'),
+	])
+	def test_domain_id(self, source: str, full_path: str, types: type[T_Node], expected: bool) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path)
+		self.assertEqual(type(node), types)
+		self.assertEqual(cast(IDomainName, node).domain_id, expected)
 
 	@data_provider([
 		('file_input.class_def', [

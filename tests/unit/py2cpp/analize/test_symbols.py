@@ -26,6 +26,7 @@ def _ast(before: str, after: str) -> str:
 		'B.func1.params': 'file_input.class_def[3].class_def_raw.block.function_def[2].function_def_raw.parameters',
 		'B.func1.return': 'file_input.class_def[3].class_def_raw.block.function_def[2].function_def_raw.return_type',
 		'B.func1.block': 'file_input.class_def[3].class_def_raw.block.function_def[2].function_def_raw.block',
+		'B.func2.block': 'file_input.class_def[3].class_def_raw.block.function_def[3].function_def_raw.block',
 		'B.func2.closure.block': 'file_input.class_def[3].class_def_raw.block.function_def[3].function_def_raw.block.function_def.function_def_raw.block',
 	}
 	return DSN.join(aliases[before], after)
@@ -107,6 +108,7 @@ class TestSymbols(TestCase):
 		(_ast('B.func1.block', 'assign_stmt[5].assign.getattr'), _mod('classes', 'int'), []),
 		(_ast('B.func1.block', 'assign_stmt[5].assign.number'), _mod('classes', 'int'), []),
 		(_ast('B.func1.block', 'return_stmt.getattr'), _mod('classes', 'str'), []),
+		(_ast('B.func2.block', 'if_stmt.block.assign_stmt.assign.var'), _mod('classes', 'int'), []),
 		(_ast('B.func2.closure.block', 'assign_stmt.assign.var'), _mod('classes', 'int'), []),
 	])
 	def test_type_of(self, full_path: str, expected: str, attrs_expected: list[str]) -> None:

@@ -28,9 +28,13 @@ class B(A):
 		return self.s
 
 	def func2(self) -> int:
+		a = 1
+		if a:
+			a = a + 1
+
 		def closure() -> int:
-			a = self.v[0]
-			return a
+			b = self.v[0]
+			return b
 
 		return closure()
 

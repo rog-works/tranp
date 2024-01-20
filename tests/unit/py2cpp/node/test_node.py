@@ -159,10 +159,11 @@ class TestNode(TestCase):
 		('class A:\n\t@classmethod\n\tdef c_method(cls) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.ParamClass, '__main__.A.c_method.cls', '__main__.cls'),
 		('class A:\n\tdef method(self) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.ParamThis, '__main__.A.method.self', '__main__.self'),
 		('a = 0', 'file_input.assign_stmt.assign.var', defs.LocalDeclVar, '__main__.a', '__main__.a'),
-		('class A: ...', 'file_input.class_def.class_def_raw.name', defs.TypesName, '__main__.A.A', '__main__.A'),  # XXX domain_idが不自然な結果
+		('class A: ...', 'file_input.class_def.class_def_raw.name', defs.TypesName, '__main__.A.A', '__main__.A'),
 		('from a.b.c import A', 'file_input.import_stmt.import_names.name', defs.ImportName, '__main__.A', '__main__.A'),
 		# Reference
 		('a.b', 'file_input.getattr', defs.Relay, '__main__.a.b', '__main__.a.b'),
+		('if True:\n\tif True:\n\t\ta.b', 'file_input.if_stmt.block.if_stmt.block.getattr', defs.Relay, '__main__.if_stmt.if_stmt.a.b', '__main__.a.b'),
 		('class A:\n\t@classmethod\n\tdef c_method(cls) -> None:\n\t\tprint(cls)', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.funccall.arguments.argvalue.var', defs.ClassVar, '__main__.A', '__main__.A.A'),
 		('class A:\n\tdef method(self) -> None:\n\t\tprint(self)', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.funccall.arguments.argvalue.var', defs.ThisVar, '__main__.A', '__main__.A.A'),
 		('a', 'file_input.var', defs.Variable, '__main__.a', '__main__.a'),

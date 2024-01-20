@@ -1,10 +1,7 @@
-from typing import cast
 from unittest import TestCase
 
-from py2cpp.analize.db import SymbolRaw
-from py2cpp.analize.symbols import Primitives, Symbols, Symbolic
+from py2cpp.analize.symbols import Primitives, Symbols
 from py2cpp.ast.dsn import DSN
-import py2cpp.node.definition as defs
 from tests.test.fixture import Fixture
 from tests.test.helper import data_provider
 
@@ -29,6 +26,7 @@ def _ast(before: str, after: str) -> str:
 		'B.func1.params': 'file_input.class_def[3].class_def_raw.block.function_def[2].function_def_raw.parameters',
 		'B.func1.return': 'file_input.class_def[3].class_def_raw.block.function_def[2].function_def_raw.return_type',
 		'B.func1.block': 'file_input.class_def[3].class_def_raw.block.function_def[2].function_def_raw.block',
+		'B.func2.closure.block': 'file_input.class_def[3].class_def_raw.block.function_def[3].function_def_raw.block.function_def.function_def_raw.block',
 	}
 	return DSN.join(aliases[before], after)
 
@@ -109,6 +107,7 @@ class TestSymbols(TestCase):
 		(_ast('B.func1.block', 'assign_stmt[5].assign.getattr'), _mod('classes', 'int'), []),
 		(_ast('B.func1.block', 'assign_stmt[5].assign.number'), _mod('classes', 'int'), []),
 		(_ast('B.func1.block', 'return_stmt.getattr'), _mod('classes', 'str'), []),
+		(_ast('B.func2.closure.block', 'assign_stmt.assign.var'), _mod('classes', 'int'), []),
 	])
 	def test_type_of(self, full_path: str, expected: str, attrs_expected: list[str]) -> None:
 		symbols = self.fixture.get(Symbols)

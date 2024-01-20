@@ -78,6 +78,26 @@ class Symbols:
 		self.__db = db
 		self.__module_path = module_path
 
+	def is_list(self, symbol: Symbol) -> bool:
+		"""シンボルがList型か判定
+
+		Args:
+			symbol (Symbol): シンボル
+		Return:
+			bool: True = List型
+		"""
+		return symbol.types == self.type_of_primitive(list).types
+
+	def is_dict(self, symbol: Symbol) -> bool:
+		"""シンボルがDict型か判定
+
+		Args:
+			symbol (Symbol): シンボル
+		Return:
+			bool: True = Dict型
+		"""
+		return symbol.types == self.type_of_primitive(dict).types
+
 	def type_of_primitive(self, primitive_type: type[Primitives]) -> Symbol:
 		"""プリミティブ型のシンボルを解決
 
@@ -389,10 +409,7 @@ class ProceduralResolver(Procedure[Symbol]):
 		return self.symbols.type_of_var(node)
 
 	def on_relay(self, node: defs.Relay, receiver: Symbol) -> Symbol:
-		if isinstance(node.receiver, defs.Indexer):
-			return self.symbols.type_of_property(receiver.attrs[0].types, node.prop)
-		else:
-			return self.symbols.type_of_property(receiver.types, node.prop)
+		return self.symbols.type_of_property(receiver.types, node.prop)
 
 	def on_class_var(self, node: defs.ClassVar) -> Symbol:
 		return self.symbols.type_of_var(node)
@@ -404,7 +421,12 @@ class ProceduralResolver(Procedure[Symbol]):
 		return self.symbols.type_of_var(node)
 
 	def on_indexer(self, node: defs.Indexer, symbol: Symbol, key: Symbol) -> Symbol:
-		return symbol
+		if self.symbols.is_list(symbol):
+			return symbol.attrs[0]
+		elif self.symbols.is_dict(symbol):
+			return symbol.attrs[1]
+		else:
+			raise ValueError(f'Not supported indexer symbol type. {symbol.types}')
 
 	def on_general_type(self, node: defs.GeneralType) -> Symbol:
 		return self.symbols.resolve(node)

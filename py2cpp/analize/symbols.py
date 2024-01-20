@@ -367,10 +367,10 @@ class ProceduralResolver(Procedure[Symbol]):
 
 	# Primary
 
-	def on_class_var(self, node: defs.ClassVar) -> Symbol:
+	def on_class_decl_var(self, node: defs.ClassDeclVar) -> Symbol:
 		return self.symbols.type_of_var(node)
 
-	def on_this_var(self, node: defs.ThisVar) -> Symbol:
+	def on_this_decl_var(self, node: defs.ThisDeclVar) -> Symbol:
 		return self.symbols.type_of_var(node)
 
 	def on_param_class(self, node: defs.ParamClass) -> Symbol:
@@ -379,7 +379,7 @@ class ProceduralResolver(Procedure[Symbol]):
 	def on_param_this(self, node: defs.ParamThis) -> Symbol:
 		return self.symbols.type_of_var(node)
 
-	def on_local_var(self, node: defs.LocalVar) -> Symbol:
+	def on_local_decl_var(self, node: defs.LocalDeclVar) -> Symbol:
 		return self.symbols.type_of_var(node)
 
 	def on_types_name(self, node: defs.TypesName) -> Symbol:
@@ -394,7 +394,13 @@ class ProceduralResolver(Procedure[Symbol]):
 		else:
 			return self.symbols.type_of_property(receiver.types, node.prop)
 
-	def on_var(self, node: defs.Var) -> Symbol:
+	def on_class_var(self, node: defs.ClassVar) -> Symbol:
+		return self.symbols.type_of_var(node)
+
+	def on_this_var(self, node: defs.ThisVar) -> Symbol:
+		return self.symbols.type_of_var(node)
+
+	def on_variable(self, node: defs.Var) -> Symbol:
 		return self.symbols.type_of_var(node)
 
 	def on_indexer(self, node: defs.Indexer, symbol: Symbol, key: Symbol) -> Symbol:

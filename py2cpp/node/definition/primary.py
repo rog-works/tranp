@@ -91,7 +91,7 @@ class DeclVar(Declable): pass
 
 
 @Meta.embed(Node, accept_tags('var'), actualized(via=Fragment))
-class ClassVar(DeclVar):
+class ClassDeclVar(DeclVar):
 	@classmethod
 	def match_feature(cls, via: Fragment) -> bool:
 		return via.is_class_var
@@ -102,7 +102,7 @@ class ClassVar(DeclVar):
 
 
 @Meta.embed(Node, accept_tags('getattr'), actualized(via=Fragment))
-class ThisVar(DeclVar):
+class ThisDeclVar(DeclVar):
 	@classmethod
 	def match_feature(cls, via: Fragment) -> bool:
 		return via.is_this_var
@@ -126,11 +126,11 @@ class ThisVar(DeclVar):
 		return cast(IDomainName, self._ancestor('class_def'))
 
 
-class BlockVar(DeclVar): pass
+class BlockDeclVar(DeclVar): pass
 
 
 @Meta.embed(Node, accept_tags('name'), actualized(via=Fragment))
-class ParamClass(BlockVar):
+class ParamClass(BlockDeclVar):
 	@classmethod
 	def match_feature(cls, via: Fragment) -> bool:
 		return via.is_param_class
@@ -141,7 +141,7 @@ class ParamClass(BlockVar):
 
 
 @Meta.embed(Node, accept_tags('name'), actualized(via=Fragment))
-class ParamThis(BlockVar):
+class ParamThis(BlockDeclVar):
 	@classmethod
 	def match_feature(cls, via: Fragment) -> bool:
 		return via.is_param_this
@@ -152,7 +152,7 @@ class ParamThis(BlockVar):
 
 
 @Meta.embed(Node, accept_tags('var', 'name'), actualized(via=Fragment))
-class LocalVar(BlockVar):
+class LocalDeclVar(BlockDeclVar):
 	@classmethod
 	def match_feature(cls, via: Fragment) -> bool:
 		return via.is_local_var
@@ -209,17 +209,40 @@ class Relay(Reference):
 		return self._at(1).as_a(Var)
 
 
-@Meta.embed(Node, accept_tags('var', 'name'), actualized(via=Fragment))
+@Meta.embed(Node, accept_tags('var', 'name'))
 class Var(Reference, ITerminal):
-	@classmethod
-	def match_feature(cls, via: Node) -> bool:
-		# XXX actualizeループの結果を元に排他的に決定(実質的なフォールバック)
-		return True
-
 	@property
 	@implements
 	def can_expand(self) -> bool:
 		return False
+
+
+@Meta.embed(Node, actualized(via=Fragment))
+class ClassVar(Var):
+	@classmethod
+	def match_feature(cls, via: Fragment) -> bool:
+		return via.tokens == 'cls'
+
+	@property
+	def class_symbol(self) -> Declable:
+		from py2cpp.node.definition.statement_compound import Class  # FIXME 循環参照
+
+		return self._ancestor('class_def').as_a(Class).symbol
+
+
+@Meta.embed(Node, actualized(via=Fragment))
+class ThisVar(Var):
+	@classmethod
+	def match_feature(cls, via: Fragment) -> bool:
+		return via.tokens == 'self'
+
+
+@Meta.embed(Node, actualized(via=Fragment))
+class Variable(Var):
+	@classmethod
+	def match_feature(cls, via: Fragment) -> bool:
+		# XXX actualizeループの結果を元に排他的に決定(実質的なフォールバック)
+		return True
 
 
 @Meta.embed(Node, accept_tags('dotted_name'))

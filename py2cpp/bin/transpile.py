@@ -69,7 +69,7 @@ class Handler(Procedure[str]):
 	def on_constructor(self, node: defs.Constructor, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, block: str) -> str:
 		add_vars = {'initializer': [], 'class_symbol': node.class_symbol.tokens}
 		for var in node.this_vars:
-			var_symbol = var.symbol.as_a(defs.ThisVar)
+			var_symbol = var.symbol.as_a(defs.ThisDeclVar)
 			add_vars['initializer'].append({'symbol': var_symbol.tokens_without_this, 'value': var.value.tokens})
 
 		return self.view.render(node.classification, vars={'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'block': block, **add_vars})
@@ -114,7 +114,7 @@ class Handler(Procedure[str]):
 	# Statement - simple
 
 	def on_move_assign(self, node: defs.MoveAssign, receiver: str, value: str) -> str:
-		decl_vars = [decl_var for decl_var in node.parent.as_a(defs.Block).decl_vars_with(defs.LocalVar)]
+		decl_vars = [decl_var for decl_var in node.parent.as_a(defs.Block).decl_vars_with(defs.LocalDeclVar)]
 		declared = len([decl_var for decl_var in decl_vars if decl_var == node]) > 0
 		var_type = ''
 		if declared:
@@ -151,10 +151,10 @@ class Handler(Procedure[str]):
 
 	# Primary
 
-	def on_class_var(self, node: defs.ClassVar) -> str:
+	def on_class_decl_var(self, node: defs.ClassDeclVar) -> str:
 		return node.tokens
 
-	def on_this_var(self, node: defs.ThisVar) -> str:
+	def on_this_decl_var(self, node: defs.ThisDeclVar) -> str:
 		return node.tokens.replace('self', 'this')
 
 	def on_param_class(self, node: defs.ParamClass) -> str:
@@ -163,7 +163,7 @@ class Handler(Procedure[str]):
 	def on_param_this(self, node: defs.ParamThis) -> str:
 		return node.tokens
 
-	def on_local_var(self, node: defs.LocalVar) -> str:
+	def on_local_decl_var(self, node: defs.LocalDeclVar) -> str:
 		return node.tokens
 
 	def on_types_name(self, node: defs.TypesName) -> str:
@@ -176,7 +176,13 @@ class Handler(Procedure[str]):
 		# FIXME receiverの形態によってアクセス演算子を変える必要がある
 		return f'{receiver}.{node.prop.tokens}'
 
-	def on_var(self, node: defs.Var) -> str:
+	def on_class_var(self, node: defs.ClassVar) -> str:
+		return node.class_symbol.tokens
+
+	def on_this_var(self, node: defs.ThisVar) -> str:
+		return 'this'
+
+	def on_variable(self, node: defs.Variable) -> str:
 		return node.tokens
 
 	def on_indexer(self, node: defs.Indexer, symbol: str, key: str) -> str:

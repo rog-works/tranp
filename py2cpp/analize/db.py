@@ -168,13 +168,7 @@ class SymbolDB:
 			if type(node) is defs.Import:
 				import_nodes.append(node)
 
-			if type(node) is defs.Function:
-				decl_vars.extend(node.decl_vars)
-			elif type(node) is defs.ClassMethod:
-				decl_vars.extend(node.decl_vars)
-			elif type(node) is defs.Constructor:
-				decl_vars.extend(node.decl_vars)
-			elif type(node) is defs.Method:
+			if isinstance(node, defs.Function):
 				decl_vars.extend(node.decl_vars)
 			elif type(node) is defs.Class:
 				decl_vars.extend(node.vars)

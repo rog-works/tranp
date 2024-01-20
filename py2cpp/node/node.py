@@ -298,6 +298,16 @@ class Node:
 		"""
 		return self.__nodes.values(self.full_path)
 
+	def is_a(self, *ctor: type[T_Node]) -> bool:
+		"""指定のクラスと同じか派生クラスか判定
+
+		Args:
+			*ctor (type[T_Node]): 判定するクラス
+		Returns:
+			bool: True = 同種
+		"""
+		return isinstance(self, ctor)
+
 	def as_a(self, to_class: type[T_Node]) -> T_Node:
 		"""指定の具象クラスに変換。変換先が派生クラスの場合のみ変換し、同じか基底クラスの場合は何もしない
 
@@ -377,16 +387,6 @@ class Node:
 				return cast(T_Node, self)
 
 		raise LogicError(str(self), expects)
-
-	def is_a(self, *ctor: type[T_Node]) -> bool:
-		"""指定のクラスと同じか派生クラスか判定
-
-		Args:
-			*ctor (type[T_Node]): 判定するクラス
-		Returns:
-			bool: True = 同種
-		"""
-		return isinstance(self, ctor)
 
 	@classmethod
 	def match_feature(cls, via: 'Node') -> bool:

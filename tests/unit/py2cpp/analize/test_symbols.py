@@ -108,7 +108,7 @@ class TestSymbols(TestCase):
 		(_ast('B.func1.block', 'assign_stmt[5].assign.getattr'), _mod('classes', 'int'), []),
 		(_ast('B.func1.block', 'assign_stmt[5].assign.number'), _mod('classes', 'int'), []),
 		(_ast('B.func1.block', 'return_stmt.getattr'), _mod('classes', 'str'), []),
-		# (_ast('B.func2.block', 'if_stmt.block.assign_stmt.assign.var'), _mod('classes', 'int'), []), FIXME テストが通らないため一旦コメントアウト
+		(_ast('B.func2.block', 'if_stmt.block.assign_stmt.assign.var'), _mod('classes', 'int'), []),
 		(_ast('B.func2.closure.block', 'assign_stmt.assign.var'), _mod('classes', 'int'), []),
 	])
 	def test_type_of(self, full_path: str, expected: str, attrs_expected: list[str]) -> None:

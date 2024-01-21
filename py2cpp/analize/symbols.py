@@ -3,7 +3,7 @@ from typing import TypeAlias
 from py2cpp.analize.db import SymbolDB, SymbolRaw
 from py2cpp.analize.procedure import Procedure
 from py2cpp.ast.dsn import DSN
-from py2cpp.errors import LogicError
+from py2cpp.errors import LogicError, NotFoundError
 from py2cpp.lang.implementation import injectable, override
 from py2cpp.module.types import ModulePath
 import py2cpp.node.definition as defs
@@ -97,6 +97,22 @@ class Symbols:
 			bool: True = Dict型
 		"""
 		return symbol.types == self.type_of_primitive(dict).types
+
+	def from_fullyname(self, fullyname: str) -> Symbol:
+		"""参照フルパスからシンボルを解決
+
+		Args:
+			fullyname (str): 参照フルパス
+		Returns:
+			Symbol: シンボル
+		Raises:
+			NotFoundError: 存在しないパスを指定
+		"""
+		if fullyname not in self.__db.raws:
+			raise NotFoundError(f'Symbol not defined. fullyname: {fullyname}')
+
+		raw = self.__db.raws[fullyname]
+		return self.type_of(raw.decl)
 
 	def type_of_primitive(self, primitive_type: type[Primitives]) -> Symbol:
 		"""プリミティブ型のシンボルを解決

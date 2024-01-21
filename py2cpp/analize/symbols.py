@@ -59,7 +59,7 @@ class Symbol:
 			str: 文字列表現
 		"""
 		data = {
-			'types': str(self.types),
+			'types': self.types.fullyname,
 			'attrs': [attr.__repr__() for attr in self.attrs],
 		}
 		return str(data)
@@ -400,6 +400,14 @@ class ProceduralResolver(Procedure[Symbol]):
 
 	def on_anno_assign(self, node: defs.AnnoAssign, receiver: Symbol, var_type: Symbol, value: Symbol) -> Symbol:
 		return var_type
+
+	def on_move_assign(self, node: defs.MoveAssign, receiver: Symbol, value: Symbol) -> Symbol:
+		return value
+
+	def on_aug_assign(self, node: defs.AugAssign, receiver: Symbol, value: Symbol) -> Symbol:
+		"""Note: XXX operatorに型はないので引数からは省略"""
+		return value
+
 
 	# Element
 

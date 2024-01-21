@@ -1,5 +1,4 @@
 import re
-from typing import cast
 
 from py2cpp.ast.dsn import DSN
 from py2cpp.lang.implementation import implements, override
@@ -143,6 +142,20 @@ class ParamThis(BlockDeclVar):
 	@property
 	def class_types(self) -> Node:
 		return self._ancestor('class_def')
+
+
+@Meta.embed(Node, accept_tags('name'), actualized(via=Fragment))
+class ForDeclVar(BlockDeclVar):
+	@classmethod
+	def match_feature(cls, via: Fragment) -> bool:
+		return via._full_path.parent_tag == 'for_stmt'
+
+
+@Meta.embed(Node, accept_tags('name'), actualized(via=Fragment))
+class CatchDeclVar(BlockDeclVar):
+	@classmethod
+	def match_feature(cls, via: Fragment) -> bool:
+		return via._full_path.parent_tag == 'except_clause'
 
 
 @Meta.embed(Node, accept_tags('var', 'name'), actualized(via=Fragment))

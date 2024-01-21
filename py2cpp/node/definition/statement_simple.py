@@ -1,5 +1,5 @@
 from py2cpp.lang.implementation import implements, override
-from py2cpp.node.definition.primary import FuncCall, ImportPath, Indexer, Reference, Declable, Type
+from py2cpp.node.definition.primary import FuncCall, ImportPath, Indexer, Reference, Declable, Type, Var
 from py2cpp.node.definition.terminal import Empty, Terminal
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
 from py2cpp.node.interface import ITerminal
@@ -92,8 +92,8 @@ class Return(Node):
 class Throw(Node):
 	@property
 	@Meta.embed(Node, expandable)
-	def calls(self) -> FuncCall:
-		return self._at(0).as_a(FuncCall)
+	def throws(self) -> FuncCall | Var:
+		return self._at(0).one_of(FuncCall | Var)
 
 	@property
 	@Meta.embed(Node, expandable)

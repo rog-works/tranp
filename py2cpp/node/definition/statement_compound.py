@@ -90,12 +90,12 @@ class Catch(Flow):
 	@Meta.embed(Node, expandable)
 	def capture_type(self) -> Type:
 		# XXX Pythonの仕様では複数の型を捕捉できるが一旦単数で実装
-		return self._by('typed_expression').as_a(Type)
+		return self._at(0).as_a(Type)
 
 	@property
 	@Meta.embed(Node, expandable)
 	def decl_var(self) -> Declable | Empty:
-		return self._at(1).one_of(Declable | Empty)
+		return self._by('name').one_of(Declable | Empty)
 
 	@property
 	@Meta.embed(Node, expandable)

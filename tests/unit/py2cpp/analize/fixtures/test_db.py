@@ -32,4 +32,16 @@ class B(A):
 			a = self.v[0]
 			return a
 
+		for i in range(10):
+			print(v)
+			if i == 1:
+				return closure()
+
+		try:
+			while True:
+				if v == 1:
+					break
+		except Exception as e:
+			raise e
+
 		return closure()

@@ -13,7 +13,22 @@ from py2cpp.node.node import Node
 
 
 @Meta.embed(Node, accept_tags('getattr', 'var', 'name'))
-class Fragment(Node):
+class Fragment(Node, ITerminal, IDomainName):
+	@property
+	@implements
+	def can_expand(self) -> bool:
+		return False
+
+	@property
+	@implements
+	def domain_name(self) -> str:
+		return self.tokens
+
+	@property
+	@implements
+	def fullyname(self) -> str:
+		return DSN.join(self.scope, self.domain_name)
+
 	@property
 	def is_class_var(self) -> bool:
 		"""Note: マッチング対象: クラス変数"""
@@ -70,89 +85,68 @@ class Fragment(Node):
 		return self._full_path.parent_tag == 'import_names'
 
 
-class Declable(Fragment, IDomainName, ITerminal):
-	@property
-	@implements
-	def domain_id(self) -> str:
-		return DSN.join(self.scope, self.tokens)
-
-	@property
-	@implements
-	def domain_name(self) -> str:
-		return DSN.join(self.module_path, self.tokens)
-
-	@property
-	@implements
-	def can_expand(self) -> bool:
-		return False
+class Declable(Fragment): pass
 
 
 class DeclVar(Declable): pass
 
 
 @Meta.embed(Node, accept_tags('var'), actualized(via=Fragment))
-class ClassVar(DeclVar):
+class ClassDeclVar(DeclVar):
 	@classmethod
 	def match_feature(cls, via: Fragment) -> bool:
 		return via.is_class_var
 
-	@property
-	def class_domain(self) -> IDomainName:
-		return cast(IDomainName, self._ancestor('class_def'))
-
 
 @Meta.embed(Node, accept_tags('getattr'), actualized(via=Fragment))
-class ThisVar(DeclVar):
+class ThisDeclVar(DeclVar):
 	@classmethod
 	def match_feature(cls, via: Fragment) -> bool:
 		return via.is_this_var
 
 	@property
 	@override
-	def domain_id(self) -> str:
-		return DSN.join(self.class_domain.domain_id, self.tokens_without_this)
-
-	@property
-	@override
 	def domain_name(self) -> str:
-		return DSN.join(self.class_domain.domain_name, self.tokens_without_this)
+		return self.tokens_without_this
 
 	@property
 	def tokens_without_this(self) -> str:
 		return DSN.join(*DSN.elements(self.tokens)[1:])
 
 	@property
-	def class_domain(self) -> IDomainName:
-		return cast(IDomainName, self._ancestor('class_def'))
+	@override
+	def fullyname(self) -> str:
+		"""Note: XXX クラス直下に配置するため例外的にスコープを調整"""
+		return DSN.join(self._ancestor('class_def').scope, self.domain_name)
 
 
-class BlockVar(DeclVar): pass
+class BlockDeclVar(DeclVar): pass
 
 
 @Meta.embed(Node, accept_tags('name'), actualized(via=Fragment))
-class ParamClass(BlockVar):
+class ParamClass(BlockDeclVar):
 	@classmethod
 	def match_feature(cls, via: Fragment) -> bool:
 		return via.is_param_class
 
 	@property
-	def class_domain(self) -> IDomainName:
-		return cast(IDomainName, self._ancestor('class_def'))
+	def class_types(self) -> Node:
+		return self._ancestor('class_def')
 
 
 @Meta.embed(Node, accept_tags('name'), actualized(via=Fragment))
-class ParamThis(BlockVar):
+class ParamThis(BlockDeclVar):
 	@classmethod
 	def match_feature(cls, via: Fragment) -> bool:
 		return via.is_param_this
 
 	@property
-	def class_domain(self) -> IDomainName:
-		return cast(IDomainName, self._ancestor('class_def'))
+	def class_types(self) -> Node:
+		return self._ancestor('class_def')
 
 
 @Meta.embed(Node, accept_tags('var', 'name'), actualized(via=Fragment))
-class LocalVar(BlockVar):
+class LocalDeclVar(BlockDeclVar):
 	@classmethod
 	def match_feature(cls, via: Fragment) -> bool:
 		return via.is_local_var
@@ -175,16 +169,7 @@ class ImportName(DeclName):
 		return via.in_decl_import
 
 
-class Reference(Fragment, IDomainName):
-	@property
-	@implements
-	def domain_id(self) -> str:
-		return DSN.join(self.scope, self.tokens)
-
-	@property
-	@implements
-	def domain_name(self) -> str:
-		return DSN.join(self.module_path, self.tokens)
+class Reference(Fragment): pass
 
 
 @Meta.embed(Node, accept_tags('getattr'), actualized(via=Fragment))
@@ -208,18 +193,42 @@ class Relay(Reference):
 	def prop(self) -> 'Var':  # XXX 前方参照
 		return self._at(1).as_a(Var)
 
-
-@Meta.embed(Node, accept_tags('var', 'name'), actualized(via=Fragment))
-class Var(Reference, ITerminal):
-	@classmethod
-	def match_feature(cls, via: Node) -> bool:
-		# XXX actualizeループの結果を元に排他的に決定(実質的なフォールバック)
+	@property
+	@override
+	def can_expand(self) -> bool:
 		return True
 
+
+@Meta.embed(Node, accept_tags('var', 'name'))
+class Var(Reference, ITerminal): pass
+
+
+@Meta.embed(Node, actualized(via=Fragment))
+class ClassVar(Var):
+	@classmethod
+	def match_feature(cls, via: Fragment) -> bool:
+		return via.tokens == 'cls'
+
 	@property
-	@implements
-	def can_expand(self) -> bool:
-		return False
+	def class_symbol(self) -> Declable:
+		from py2cpp.node.definition.statement_compound import Class  # FIXME 循環参照
+
+		return self._ancestor('class_def').as_a(Class).symbol
+
+
+@Meta.embed(Node, actualized(via=Fragment))
+class ThisVar(Var):
+	@classmethod
+	def match_feature(cls, via: Fragment) -> bool:
+		return via.tokens == 'self'
+
+
+@Meta.embed(Node, actualized(via=Fragment))
+class Variable(Var):
+	@classmethod
+	def match_feature(cls, via: Fragment) -> bool:
+		# XXX actualizeループの結果を元に排他的に決定(実質的なフォールバック)
+		return True
 
 
 @Meta.embed(Node, accept_tags('dotted_name'))
@@ -257,7 +266,7 @@ class Indexer(Node):
 		return self._by('slices.slice')._at(0)
 
 
-class Type(Node, IDomainName, ITerminal):
+class Type(Node, ITerminal, IDomainName):
 	@property
 	@implements
 	def can_expand(self) -> bool:
@@ -265,13 +274,13 @@ class Type(Node, IDomainName, ITerminal):
 
 	@property
 	@implements
-	def domain_id(self) -> str:
-		return DSN.join(self.scope, self.symbol.tokens)
+	def domain_name(self) -> str:
+		return self.symbol.tokens
 
 	@property
 	@implements
-	def domain_name(self) -> str:
-		return DSN.join(self.module_path, self.symbol.tokens)
+	def fullyname(self) -> str:
+		return DSN.join(self.scope, self.domain_name)
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -383,24 +392,25 @@ class UnionType(Type):
 	def or_types(self) -> list[Type]:
 		return [node.as_a(Type) for node in self._children()]
 
+	@property
+	@override
+	def domain_name(self) -> str:
+		# XXX 定数化を検討
+		return 'Union'
+
 
 @Meta.embed(Node, accept_tags('typed_none'))
-class NullType(Type, ITerminal):
+class NullType(Type):
+	@property
+	@override
+	def domain_name(self) -> str:
+		# XXX 定数化を検討
+		return 'None'
+
 	@property
 	@override
 	def can_expand(self) -> bool:
 		return False
-
-	@property
-	@override
-	def domain_id(self) -> str:
-		# XXX 定数化を検討
-		return DSN.join(self.module_path, 'None')
-
-	@property
-	@override
-	def domain_name(self) -> str:
-		return self.domain_id
 
 
 @Meta.embed(Node, accept_tags('typed_list'))

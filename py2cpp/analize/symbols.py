@@ -1,10 +1,10 @@
-from typing import NamedTuple, TypeAlias
+from typing import TypeAlias
 
 from py2cpp.analize.db import SymbolDB, SymbolRaw
 from py2cpp.analize.procedure import Procedure
 from py2cpp.ast.dsn import DSN
 from py2cpp.errors import LogicError
-from py2cpp.lang.implementation import injectable
+from py2cpp.lang.implementation import injectable, override
 from py2cpp.module.types import ModulePath
 import py2cpp.node.definition as defs
 from py2cpp.node.node import Node
@@ -37,6 +37,33 @@ class Symbol:
 		"""
 		return Symbol(self.raw, *[*self.attrs, *attrs])
 
+	@override
+	def __eq__(self, __value: object) -> bool:
+		"""比較演算子のオーバーロード
+
+		Args:
+			__value (object): 比較対象
+		Returns:
+			bool: True = 同じ
+		"""
+		if type(__value) is not Symbol:
+			return super().__eq__(__value)
+
+		return __value.__repr__() == self.__repr__()
+
+	@override
+	def __repr__(self) -> str:
+		"""オブジェクトの文字列表現を取得
+
+		Returns:
+			str: 文字列表現
+		"""
+		data = {
+			'types': str(self.types),
+			'attrs': [attr.__repr__() for attr in self.attrs],
+		}
+		return str(data)
+
 
 class Symbols:
 	"""シンボルテーブルを参照してシンボルの型を解決する機能を提供"""
@@ -50,6 +77,26 @@ class Symbols:
 		"""
 		self.__db = db
 		self.__module_path = module_path
+
+	def is_list(self, symbol: Symbol) -> bool:
+		"""シンボルがList型か判定
+
+		Args:
+			symbol (Symbol): シンボル
+		Return:
+			bool: True = List型
+		"""
+		return symbol.types == self.type_of_primitive(list).types
+
+	def is_dict(self, symbol: Symbol) -> bool:
+		"""シンボルがDict型か判定
+
+		Args:
+			symbol (Symbol): シンボル
+		Return:
+			bool: True = Dict型
+		"""
+		return symbol.types == self.type_of_primitive(dict).types
 
 	def type_of_primitive(self, primitive_type: type[Primitives]) -> Symbol:
 		"""プリミティブ型のシンボルを解決
@@ -262,7 +309,7 @@ class Symbols:
 		if found_raw is not None:
 			return Symbol(found_raw)
 
-		raise LogicError(f'Symbol not defined. symbolic: {symbolic.domain_id}, prop_name: {prop_name}')
+		raise LogicError(f'Symbol not defined. symbolic: {symbolic.fullyname}, prop_name: {prop_name}')
 
 	def __resolve_raw(self, symbolic: Symbolic, prop_name: str) -> SymbolRaw | None:
 		"""シンボル系ノードからシンボルを解決。未検出の場合はNoneを返却
@@ -308,12 +355,17 @@ class Symbols:
 		Returns:
 			SymbolRaw | None: シンボルデータ
 		"""
-		domain_id = DSN.join(symbolic.domain_id, prop_name)
-		domain_name = DSN.join(symbolic.domain_name, prop_name)
-		if domain_id in self.__db.raws:
-			return self.__db.raws[domain_id]
-		elif domain_name in self.__db.raws:
-			return self.__db.raws[domain_name]
+		scopes = [DSN.left(symbolic.scope, DSN.elem_counts(symbolic.scope) - i) for i in range(DSN.elem_counts(symbolic.scope))]
+		for scope in scopes:
+			candidate = DSN.join(scope, symbolic.domain_name, prop_name)
+			if candidate not in self.__db.raws:
+				continue
+
+			# XXX ローカル変数の参照は、クラス直下のスコープを参照できない
+			if symbolic.is_a(defs.Var) and scope in self.__db.raws and self.__db.raws[scope].types.is_a(defs.Class):
+				continue
+
+			return self.__db.raws[candidate]
 
 		return None
 
@@ -340,10 +392,10 @@ class ProceduralResolver(Procedure[Symbol]):
 
 	# Primary
 
-	def on_class_var(self, node: defs.ClassVar) -> Symbol:
+	def on_class_decl_var(self, node: defs.ClassDeclVar) -> Symbol:
 		return self.symbols.type_of_var(node)
 
-	def on_this_var(self, node: defs.ThisVar) -> Symbol:
+	def on_this_decl_var(self, node: defs.ThisDeclVar) -> Symbol:
 		return self.symbols.type_of_var(node)
 
 	def on_param_class(self, node: defs.ParamClass) -> Symbol:
@@ -352,7 +404,7 @@ class ProceduralResolver(Procedure[Symbol]):
 	def on_param_this(self, node: defs.ParamThis) -> Symbol:
 		return self.symbols.type_of_var(node)
 
-	def on_local_var(self, node: defs.LocalVar) -> Symbol:
+	def on_local_decl_var(self, node: defs.LocalDeclVar) -> Symbol:
 		return self.symbols.type_of_var(node)
 
 	def on_types_name(self, node: defs.TypesName) -> Symbol:
@@ -362,16 +414,24 @@ class ProceduralResolver(Procedure[Symbol]):
 		return self.symbols.type_of_var(node)
 
 	def on_relay(self, node: defs.Relay, receiver: Symbol) -> Symbol:
-		if isinstance(node.receiver, defs.Indexer):
-			return self.symbols.type_of_property(receiver.attrs[0].types, node.prop)
-		else:
-			return self.symbols.type_of_property(receiver.types, node.prop)
+		return self.symbols.type_of_property(receiver.types, node.prop)
 
-	def on_var(self, node: defs.Var) -> Symbol:
+	def on_class_var(self, node: defs.ClassVar) -> Symbol:
+		return self.symbols.type_of_var(node)
+
+	def on_this_var(self, node: defs.ThisVar) -> Symbol:
+		return self.symbols.type_of_var(node)
+
+	def on_variable(self, node: defs.Var) -> Symbol:
 		return self.symbols.type_of_var(node)
 
 	def on_indexer(self, node: defs.Indexer, symbol: Symbol, key: Symbol) -> Symbol:
-		return symbol
+		if self.symbols.is_list(symbol):
+			return symbol.attrs[0]
+		elif self.symbols.is_dict(symbol):
+			return symbol.attrs[1]
+		else:
+			raise ValueError(f'Not supported indexer symbol type. {symbol.types}')
 
 	def on_general_type(self, node: defs.GeneralType) -> Symbol:
 		return self.symbols.resolve(node)
@@ -413,13 +473,69 @@ class ProceduralResolver(Procedure[Symbol]):
 
 	# Operator
 
+	def on_factor(self, node: defs.Sum, value: Symbol) -> Symbol:
+		return value
+
+	def on_not_compare(self, node: defs.NotCompare, value: Symbol) -> Symbol:
+		return value
+
+	def on_or_compare(self, node: defs.OrCompare, left: Symbol, right: Symbol) -> Symbol:
+		return self.on_binary_operator(node, left, right, '__or__')
+
+	def on_and_compare(self, node: defs.AndCompare, left: Symbol, right: Symbol) -> Symbol:
+		return self.on_binary_operator(node, left, right, '__and__')
+
+	def on_comparison(self, node: defs.Comparison, left: Symbol, right: Symbol) -> Symbol:
+		operators = {
+			'==': '__eq__',
+			'<': '__lt__',
+			'>': '__gt__',
+			'<=': '__le__',
+			'>=': '__ge__',
+			'<>': '__not__',
+			'!=': '__not__',
+			'in': '__contains__',
+			'not.in': '__contains__',  # XXX 型推論的に同じなので代用
+			'is': '__eq__',  # XXX 型推論的に同じなので代用
+			'is.not': '__eq__',  # XXX 型推論的に同じなので代用
+		}
+		return self.on_binary_operator(node, left, right, '__eq__')
+
+	def on_or_bitwise(self, node: defs.OrBitwise, left: Symbol, right: Symbol) -> Symbol:
+		return self.on_binary_operator(node, left, right, '__or__')
+
+	def on_xor_bitwise(self, node: defs.XorBitwise, left: Symbol, right: Symbol) -> Symbol:
+		return self.on_binary_operator(node, left, right, '__xor__')
+
+	def on_and_bitwise(self, node: defs.AndBitwise, left: Symbol, right: Symbol) -> Symbol:
+		return self.on_binary_operator(node, left, right, '__and__')
+
+	def on_shift_bitwise(self, node: defs.Sum, left: Symbol, right: Symbol) -> Symbol:
+		operators = {
+			'<<': '__lshift__',
+			'>>': '__rshift__',
+		}
+		return self.on_binary_operator(node, left, right, operators[node.operator.tokens])
+
 	def on_sum(self, node: defs.Sum, left: Symbol, right: Symbol) -> Symbol:
-		return self.on_binary_operator(node, left, right, '__add__')
+		operators = {
+			'+': '__add__',
+			'-': '__sub__',
+		}
+		return self.on_binary_operator(node, left, right, operators[node.operator.tokens])
+
+	def on_term(self, node: defs.Term, left: Symbol, right: Symbol) -> Symbol:
+		operators = {
+			'*': '__mul__',
+			'/': '__truediv__',
+			'%': '__mod__',
+		}
+		return self.on_binary_operator(node, left, right, operators[node.operator.tokens])
 
 	def on_binary_operator(self, node: defs.BinaryOperator, left: Symbol, right: Symbol, operator: str) -> Symbol:
 		methods = [method for method in left.types.as_a(defs.Class).methods if method.symbol.tokens == operator]
 		if len(methods) == 0:
-			raise LogicError(f'Operation not allowed. {node}, {left}, {right}, {operator}')
+			raise LogicError(f'Operation not allowed. {node}, {left.types.fullyname}, {right.types.fullyname}, {operator}')
 
 		other = methods[0].parameters.pop()
 		var_types = other.var_type.or_types if isinstance(other.var_type, defs.UnionType) else [other.var_type]
@@ -427,7 +543,7 @@ class ProceduralResolver(Procedure[Symbol]):
 			if self.symbols.resolve(var_type.as_a(defs.Type)) == right:
 				return right
 
-		raise LogicError(f'Operation not allowed. {node}, {left}, {right}, {operator}')
+		raise LogicError(f'Operation not allowed. {node}, {left.types.fullyname}, {right.types.fullyname}, {operator}')
 
 	# Literal
 

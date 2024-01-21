@@ -37,11 +37,11 @@ class IDomainName:
 	"""
 
 	@property
-	def domain_id(self) -> str:
-		"""str: ドメインID Note: FQDN。スコープと対応"""
+	def domain_name(self) -> str:
+		"""str: ドメイン名 Note: スコープを除いた参照名"""
 		raise NotImplementedError()
 
 	@property
-	def domain_name(self) -> str:
-		"""str: ドメイン名 Note: 名前空間と対応"""
+	def fullyname(self) -> str:
+		"""str: 参照フルパス名 Note: スコープと参照名を合わせたフルパス"""
 		raise NotImplementedError()

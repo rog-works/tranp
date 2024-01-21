@@ -19,11 +19,11 @@ def default_definitions() -> ModuleDefinitions:
 		'py2cpp.lang.cache.CacheProvider': 'py2cpp.lang.cache.CacheProvider',
 		'py2cpp.lang.cache.CacheSetting': 'py2cpp.providers.ast.cache_setting',
 		'py2cpp.lang.io.FileLoader': 'py2cpp.lang.io.FileLoader',
-		'py2cpp.module.types.LibraryPaths': 'py2cpp.providers.module.library_paths',
-		'py2cpp.module.types.ModulePath': 'py2cpp.providers.module.module_path_dummy',
 		'py2cpp.module.loader.ModuleLoader': 'py2cpp.providers.module.module_loader',
 		'py2cpp.module.module.Module': 'py2cpp.module.module.Module',
 		'py2cpp.module.modules.Modules': 'py2cpp.module.modules.Modules',
+		'py2cpp.module.types.LibraryPaths': 'py2cpp.providers.module.library_paths',
+		'py2cpp.module.types.ModulePath': 'py2cpp.providers.module.module_path_dummy',
 		'py2cpp.node.node.Node': 'py2cpp.providers.node.entrypoint',
 		'py2cpp.node.resolver.NodeResolver': 'py2cpp.node.resolver.NodeResolver',
 	}

@@ -1,14 +1,18 @@
+import hashlib
+import json
 import os
+from typing import Any
 
 from py2cpp.app.app import App
 from py2cpp.ast.parser import SyntaxParser
 from py2cpp.ast.query import Query
+from py2cpp.lang.cache import CacheSetting
 from py2cpp.lang.di import ModuleDefinitions
 from py2cpp.lang.locator import Locator, T_Inst
 from py2cpp.module.module import Module
 from py2cpp.module.types import ModulePath
 from py2cpp.node.node import Node
-from py2cpp.tp_lark.entry import EntryOfLark
+from py2cpp.tp_lark.entry import EntryOfLark, Serialization
 from py2cpp.tp_lark.parser import SyntaxParserOfLark
 
 
@@ -57,8 +61,35 @@ class Fixture:
 
 	def custom_nodes(self, source_code: str) -> Query[Node]:
 		def syntax_parser(locator: Locator) -> SyntaxParser:
-			parser = locator.invoke(SyntaxParserOfLark)
-			return lambda module_path: EntryOfLark(parser.get_lark_dirty().parse(f'{source_code}\n'))
+			return self.make_custom_syntax_parser(locator, source_code)
 
 		definitions = {**self.__definitions(), **{'py2cpp.ast.parser.SyntaxParser': syntax_parser}}
 		return App(definitions).resolve(Query[Node])
+
+	def make_custom_syntax_parser(self, locator: Locator, source_code: str) -> SyntaxParser:
+		parser = locator.invoke(SyntaxParserOfLark).get_lark_dirty()
+		cache_setting = locator.resolve(CacheSetting)
+		if not cache_setting.enabled:
+			return lambda module_path: EntryOfLark(parser.parse(f'{source_code}\n'))
+
+		module_path = locator.resolve(ModulePath)
+		basepath = '.'.join(module_path.actual.split('.')[:-1]).replace('.', '/')
+		fixture_name = f'{module_path.actual.split(".").pop()}-customs.json'
+		filepath = os.path.join(cache_setting.basedir, basepath, fixture_name)
+
+		cache: dict[str, dict[str, Any]] = {}
+		if os.path.exists(filepath):
+			with open(filepath, 'rb') as f:
+				cache = json.load(f)
+
+		identity = hashlib.md5(source_code.encode('utf-8')).hexdigest()
+		if identity in cache:
+			root = Serialization.loads(cache[identity])
+			return lambda module_path: EntryOfLark(root)
+
+		root = parser.parse(f'{source_code}\n')
+		with open(filepath, 'wb') as f:
+			cache[identity] = Serialization.dumps(root)
+			f.write(json.dumps(cache).encode('utf-8'))
+
+		return lambda module_path: EntryOfLark(root)

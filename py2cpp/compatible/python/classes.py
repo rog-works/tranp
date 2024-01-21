@@ -103,6 +103,9 @@ class Dict:
 	def items(self) -> list[tuple]: ...
 
 
+class Union: ...
+
+
 @__alias__('None')
 class Null: ...
 

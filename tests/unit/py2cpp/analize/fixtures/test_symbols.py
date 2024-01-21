@@ -27,4 +27,15 @@ class B(A):
 		self.x.nx = 2
 		return self.s
 
+	def func2(self) -> int:
+		a = 1
+		if a:
+			a = a + 1
+
+		def closure() -> int:
+			b = self.v[0]
+			return b
+
+		return closure()
+
 d = {'s': v}

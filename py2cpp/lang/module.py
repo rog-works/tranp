@@ -48,3 +48,14 @@ def resolve_own_class(method: Callable) -> type:
 		raise ModuleNotFoundError(f'{method.__module__}.{class_name}')
 
 	return modules[class_name]
+
+
+def fullyname(ctor: type) -> str:
+	"""クラスのフルパスを取得
+
+	Args:
+		ctor (type): クラス
+	Returns:
+		str: フルパス
+	"""
+	return '.'.join([ctor.__module__, ctor.__name__])

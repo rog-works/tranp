@@ -24,6 +24,7 @@ class TestSymbolDB(TestCase):
 			'tests.unit.py2cpp.analize.fixtures.test_db_classes.pair_': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.pair_',
 			'tests.unit.py2cpp.analize.fixtures.test_db_classes.list': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.list',
 			'tests.unit.py2cpp.analize.fixtures.test_db_classes.dict': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.dict',
+			'tests.unit.py2cpp.analize.fixtures.test_db_classes.Union': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Union',
 			'tests.unit.py2cpp.analize.fixtures.test_db_classes.None': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.None',
 			'tests.unit.py2cpp.analize.fixtures.test_db_classes.Unknown': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Unknown',
 			'tests.unit.py2cpp.analize.fixtures.test_db_classes.super': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.super',
@@ -45,6 +46,7 @@ class TestSymbolDB(TestCase):
 			'typing.pair_': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.pair_',
 			'typing.list': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.list',
 			'typing.dict': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.dict',
+			'typing.Union': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Union',
 			'typing.None': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.None',
 			'typing.Unknown': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Unknown',
 			'typing.super': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.super',
@@ -58,7 +60,6 @@ class TestSymbolDB(TestCase):
 			'typing.Iterator': 'typing.Iterator',
 			'typing.Sequence': 'typing.Sequence',
 			'typing.TypeVar': 'typing.TypeVar',
-			'typing.Union': 'typing.Union',
 			# test_db_xyzモジュール/標準ライブラリー(ClassKind)
 			'tests.unit.py2cpp.analize.fixtures.test_db_xyz.int': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.int',
 			'tests.unit.py2cpp.analize.fixtures.test_db_xyz.float': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.float',
@@ -68,6 +69,7 @@ class TestSymbolDB(TestCase):
 			'tests.unit.py2cpp.analize.fixtures.test_db_xyz.pair_': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.pair_',
 			'tests.unit.py2cpp.analize.fixtures.test_db_xyz.list': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.list',
 			'tests.unit.py2cpp.analize.fixtures.test_db_xyz.dict': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.dict',
+			'tests.unit.py2cpp.analize.fixtures.test_db_xyz.Union': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Union',
 			'tests.unit.py2cpp.analize.fixtures.test_db_xyz.None': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.None',
 			'tests.unit.py2cpp.analize.fixtures.test_db_xyz.Unknown': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Unknown',
 			'tests.unit.py2cpp.analize.fixtures.test_db_xyz.super': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.super',
@@ -93,6 +95,7 @@ class TestSymbolDB(TestCase):
 			'__main__.pair_': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.pair_',
 			'__main__.list': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.list',
 			'__main__.dict': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.dict',
+			'__main__.Union': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Union',
 			'__main__.None': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.None',
 			'__main__.Unknown': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Unknown',
 			'__main__.super': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.super',
@@ -110,6 +113,8 @@ class TestSymbolDB(TestCase):
 			'__main__.B.B2.class_func': '__main__.B.B2.class_func',
 			'__main__.B.__init__': '__main__.B.__init__',
 			'__main__.B.func1': '__main__.B.func1',
+			'__main__.B.func2': '__main__.B.func2',
+			'__main__.B.func2.closure': '__main__.B.func2.closure',
 			# エントリーポイント(Declable)
 			'__main__.v': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.int',
 			'__main__.A.s': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.str',
@@ -121,6 +126,8 @@ class TestSymbolDB(TestCase):
 			'__main__.B.func1.self': '__main__.B',
 			'__main__.B.func1.b': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.list',
 			'__main__.B.func1.v': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Unknown',
+			'__main__.B.func2.self': '__main__.B',
+			'__main__.B.func2.closure.a': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Unknown',
 		},),
 	])
 	def test___init__(self, expected: dict[str, str]) -> None:

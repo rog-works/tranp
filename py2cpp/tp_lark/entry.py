@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, cast
 
 from lark import Token, Tree
 
@@ -73,7 +73,25 @@ class EntryOfLark(Entry):
 
 class Serialization:
 	@classmethod
-	def dumps(cls, entry: Tree | Token | None) -> dict[str, Any] | None:
+	def dumps(cls, root: Tree | Token) -> dict[str, Any]:
+		"""連想配列にシリアライズ
+
+		Args:
+			root (Tree | Token): ルート
+		Returns:
+			dict[str, Any]
+		"""
+		return cast(dict[str, Any], cls.__dumps(root))
+
+	@classmethod
+	def __dumps(cls, entry: Tree | Token | None) -> dict[str, Any] | None:
+		"""連想配列にシリアライズ
+
+		Args:
+			entry (Tree | Token | None): エントリー
+		Returns:
+			dict[str, Any] | None
+		"""
 		if type(entry) is Tree:
 			children: list[dict[str, Any] | None] = []
 			for child in entry.children:
@@ -86,7 +104,25 @@ class Serialization:
 			return None
 
 	@classmethod
-	def loads(cls, entry: dict[str, Any]) -> Tree | Token | None:
+	def loads(cls, data: dict[str, Any]) -> Tree | Token:
+		"""連想配列からデシリアライズ
+
+		Args:
+			data (dict[str, Any]): シリアライズデータ
+		Returns:
+			Tree | Token
+		"""
+		return cast(Tree | Token, cls.__loads(data))
+
+	@classmethod
+	def __loads(cls, entry: dict[str, Any]) -> Tree | Token | None:
+		"""連想配列からデシリアライズ
+
+		Args:
+			entry (dict[str, Any]): エントリー
+		Returns:
+			Tree | Token | None
+		"""
 		if type(entry) is dict and 'children' in entry:
 			children: list[Tree | Token | None] = []
 			for child in entry['children']:

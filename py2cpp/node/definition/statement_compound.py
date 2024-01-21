@@ -6,7 +6,7 @@ from py2cpp.lang.sequence import last_index_of
 from py2cpp.node.definition.common import InheritArgument
 from py2cpp.node.definition.element import Block, Decorator, Parameter, ReturnDecl
 from py2cpp.node.definition.literal import String
-from py2cpp.node.definition.primary import BlockVar, ClassVar, Declable, GenericType, ParamThis, ThisVar, Type
+from py2cpp.node.definition.primary import BlockDeclVar, ClassDeclVar, Declable, GenericType, ParamThis, ThisDeclVar, Type
 from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
@@ -134,13 +134,14 @@ class ClassKind(Node, IDomainName, IScope):
 
 	@property
 	@implements
-	def domain_id(self) -> str:
-		return self.scope
+	def domain_name(self) -> str:
+		"""Note: XXX スコープ内に自身の名前が含まれるので空文字を返却"""
+		return ''
 
 	@property
 	@implements
-	def domain_name(self) -> str:
-		return DSN.join(self.scope, self.public_name)
+	def fullyname(self) -> str:
+		return DSN.join(self.scope, self.domain_name)
 
 	@property
 	def symbol(self) -> Declable:
@@ -203,7 +204,7 @@ class Function(ClassKind):
 
 	@property
 	def decl_vars(self) -> list[Parameter | AnnoAssign | MoveAssign]:
-		return [*self.parameters, *self.block.decl_vars_with(BlockVar)]
+		return [*self.parameters, *self.block.decl_vars_with(BlockDeclVar)]
 
 
 @Meta.embed(Node, actualized(via=Function))
@@ -232,7 +233,7 @@ class Constructor(Function):
 
 	@property
 	def this_vars(self) -> list[AnnoAssign | MoveAssign]:
-		return self.block.decl_vars_with(ThisVar)
+		return self.block.decl_vars_with(ThisDeclVar)
 
 
 @Meta.embed(Node, actualized(via=Function))
@@ -363,7 +364,7 @@ class Class(ClassKind):
 
 	@property
 	def class_vars(self) -> list[AnnoAssign | MoveAssign]:
-		return self.block.decl_vars_with(ClassVar)
+		return self.block.decl_vars_with(ClassDeclVar)
 
 	@property
 	def instance_vars(self) -> list[AnnoAssign | MoveAssign]:

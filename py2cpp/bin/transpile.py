@@ -6,6 +6,7 @@ from py2cpp.analize.symbols import Symbols
 from py2cpp.app.app import App
 from py2cpp.ast.parser import ParserSetting
 from py2cpp.lang.error import stacktrace
+from py2cpp.lang.module import fullyname
 from py2cpp.module.types import ModulePath
 import py2cpp.node.definition as defs
 from py2cpp.node.node import Node
@@ -14,7 +15,7 @@ from py2cpp.view.render import Renderer, Writer
 
 class Handler(Procedure[str]):
 	def __init__(self, symbols: Symbols, render: Renderer) -> None:
-		super().__init__()
+		super().__init__(verbose=True)
 		self.symbols = symbols
 		self.view = render
 
@@ -68,7 +69,7 @@ class Handler(Procedure[str]):
 	def on_constructor(self, node: defs.Constructor, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, block: str) -> str:
 		add_vars = {'initializer': [], 'class_symbol': node.class_symbol.tokens}
 		for var in node.this_vars:
-			var_symbol = var.symbol.as_a(defs.ThisVar)
+			var_symbol = var.symbol.as_a(defs.ThisDeclVar)
 			add_vars['initializer'].append({'symbol': var_symbol.tokens_without_this, 'value': var.value.tokens})
 
 		return self.view.render(node.classification, vars={'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'block': block, **add_vars})
@@ -113,11 +114,12 @@ class Handler(Procedure[str]):
 	# Statement - simple
 
 	def on_move_assign(self, node: defs.MoveAssign, receiver: str, value: str) -> str:
-		declared = len([decl_var for decl_var in node.parent.as_a(defs.Block).decl_vars_with(defs.MoveAssign) if decl_var == node]) > 0
+		decl_vars = [decl_var for decl_var in node.parent.as_a(defs.Block).decl_vars_with(defs.LocalDeclVar)]
+		declared = len([decl_var for decl_var in decl_vars if decl_var == node]) > 0
 		var_type = ''
 		if declared:
 			value_type = self.symbols.type_of(node.value)
-			var_type = self.__result_internal(value_type.types)
+			var_type = value_type.types.symbol.fullyname
 
 		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': value})
 
@@ -149,10 +151,10 @@ class Handler(Procedure[str]):
 
 	# Primary
 
-	def on_class_var(self, node: defs.ClassVar) -> str:
+	def on_class_decl_var(self, node: defs.ClassDeclVar) -> str:
 		return node.tokens
 
-	def on_this_var(self, node: defs.ThisVar) -> str:
+	def on_this_decl_var(self, node: defs.ThisDeclVar) -> str:
 		return node.tokens.replace('self', 'this')
 
 	def on_param_class(self, node: defs.ParamClass) -> str:
@@ -161,7 +163,7 @@ class Handler(Procedure[str]):
 	def on_param_this(self, node: defs.ParamThis) -> str:
 		return node.tokens
 
-	def on_local_var(self, node: defs.LocalVar) -> str:
+	def on_local_decl_var(self, node: defs.LocalDeclVar) -> str:
 		return node.tokens
 
 	def on_types_name(self, node: defs.TypesName) -> str:
@@ -174,7 +176,13 @@ class Handler(Procedure[str]):
 		# FIXME receiverの形態によってアクセス演算子を変える必要がある
 		return f'{receiver}.{node.prop.tokens}'
 
-	def on_var(self, node: defs.Var) -> str:
+	def on_class_var(self, node: defs.ClassVar) -> str:
+		return node.class_symbol.tokens
+
+	def on_this_var(self, node: defs.ThisVar) -> str:
+		return 'this'
+
+	def on_variable(self, node: defs.Variable) -> str:
 		return node.tokens
 
 	def on_indexer(self, node: defs.Indexer, symbol: str, key: str) -> str:
@@ -332,7 +340,6 @@ def task(handler: Handler, root: Node, writer: Writer) -> None:
 		flatted.append(root)  # XXX
 
 		for node in flatted:
-			print('action:', str(node))
 			handler.process(node)
 
 		writer.put(handler.result())
@@ -343,11 +350,11 @@ def task(handler: Handler, root: Node, writer: Writer) -> None:
 
 if __name__ == '__main__':
 	definitions = {
-		f'{Args.__module__}.{Args.__name__}': Args,
-		f'{Writer.__module__}.{Writer.__name__}': make_writer,
-		f'{Renderer.__module__}.{Renderer.__name__}': make_renderer,
-		f'{Handler.__module__}.{Handler.__name__}': Handler,
-		'py2cpp.ast.parser.ParserSetting': make_parser_setting,
-		'py2cpp.module.types.ModulePath': make_module_path,
+		fullyname(Args): Args,
+		fullyname(Writer): make_writer,
+		fullyname(Renderer): make_renderer,
+		fullyname(Handler): Handler,
+		fullyname(ParserSetting): make_parser_setting,
+		fullyname(ModulePath): make_module_path,
 	}
 	App(definitions).run(task)

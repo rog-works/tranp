@@ -155,7 +155,7 @@ class TestNode(TestCase):
 		('class E(CEnum): ...', 'file_input.enum_def', defs.Enum, '', '__main__.E'),
 		# Declable
 		('class A:\n\ta: int = 0', 'file_input.class_def.class_def_raw.block.assign_stmt.anno_assign.var', defs.ClassDeclVar, 'a', '__main__.A.a'),
-		('class A:\n\tdef __init__(self) -> None:\n\t\tself.a: int = 0', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.assign_stmt.anno_assign.getattr', defs.ThisDeclVar, 'a', '__main__.A.__init__.a'),
+		('class A:\n\tdef __init__(self) -> None:\n\t\tself.a: int = 0', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.assign_stmt.anno_assign.getattr', defs.ThisDeclVar, 'a', '__main__.A.a'),
 		('class A:\n\t@classmethod\n\tdef c_method(cls) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.ParamClass, 'cls', '__main__.A.c_method.cls'),
 		('class A:\n\tdef method(self) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.ParamThis, 'self', '__main__.A.method.self'),
 		('a = 0', 'file_input.assign_stmt.assign.var', defs.LocalDeclVar, 'a', '__main__.a'),

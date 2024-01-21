@@ -2,46 +2,49 @@ from typing import Any, Iterator, Sequence
 
 
 @__alias__('int')
-class Integer: pass
+class Integer: ...
 
 
 @__alias__('float')
-class Float: pass
+class Float: ...
 
 
 @__alias__('str')
-class String: pass
+class String: ...
 
 
 @__alias__('bool')
-class Boolean: pass
+class Boolean: ...
 
 
 @__alias__('tuple')
-class Tuple: pass
+class Tuple: ...
 
 
 @__alias__('pair_')
-class Pair: pass
+class Pair: ...
 
 
 @__alias__('list')
-class List: pass
+class List: ...
 
 
 @__alias__('dict')
-class Dict: pass
+class Dict: ...
+
+
+class Union: ...
 
 
 @__alias__('None')
-class Null: pass
+class Null: ...
 
 
-class Unknown: pass
+class Unknown: ...
 
 
 @__alias__('super')
-class Super: pass
+class Super: ...
 
 
 def id(instance: Any) -> int: ...

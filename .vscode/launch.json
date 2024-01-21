@@ -78,6 +78,33 @@
 			"justMyCode": true,
 		},
 		{
+			"name": "Python: analize",
+			"type": "python",
+			"request": "launch",
+			"module":"py2cpp.bin.analize",
+			"args": [
+				"-g", "data/grammar.lark",
+				"-s", "example/example.py",
+				"-a", "type",
+				"-n", "__main__.CellMesh.by_vertex_ids.closure.boxs",
+			],
+			"cwd": "${workspaceFolder}",
+			"windows": {
+				"env": {
+					"PYTHONPATH": "${workspaceFolder};${workspaceFolder}/vendor",
+					"PYTHONDONTWRITEBYTECODE": "1",
+				},
+			},
+			"linux": {
+				"env": {
+					"PYTHONPATH": "${workspaceFolder}:${workspaceFolder}/vendor",
+					"PYTHONDONTWRITEBYTECODE": "1",
+				},
+			},
+			"console": "integratedTerminal",
+			"justMyCode": true,
+		},
+		{
 			"name": "Python: 現在のファイル",
 			"type": "python",
 			"request": "launch",

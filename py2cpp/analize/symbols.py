@@ -356,10 +356,16 @@ class Symbols:
 			SymbolRaw | None: シンボルデータ
 		"""
 		scopes = [DSN.left(symbolic.scope, DSN.elem_counts(symbolic.scope) - i) for i in range(DSN.elem_counts(symbolic.scope))]
-		candidates = [DSN.join(scope, symbolic.domain_name, prop_name) for scope in scopes]
-		for candidate in candidates:
-			if candidate in self.__db.raws:
-				return self.__db.raws[candidate]
+		for scope in scopes:
+			candidate = DSN.join(scope, symbolic.domain_name, prop_name)
+			if candidate not in self.__db.raws:
+				continue
+
+			# XXX ローカル変数の参照は、クラス直下のスコープを参照できない
+			if symbolic.is_a(defs.Var) and scope in self.__db.raws and self.__db.raws[scope].types.is_a(defs.Class):
+				continue
+
+			return self.__db.raws[candidate]
 
 		return None
 

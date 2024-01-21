@@ -3,9 +3,9 @@ from unittest import TestCase
 
 from py2cpp.lang.locator import Currying
 from py2cpp.lang.implementation import override
+import py2cpp.node.definition as defs  # XXX テストを拡充するため実装クラスを使用
 from py2cpp.node.embed import Meta, actualized
 from py2cpp.node.interface import IDomainName, ITerminal
-import py2cpp.node.definition as defs  # XXX テストを拡充するため実装クラスを使用
 from py2cpp.node.node import Node, T_Node
 from tests.test.fixture import Fixture
 from tests.test.helper import data_provider

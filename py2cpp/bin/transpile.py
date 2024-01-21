@@ -119,7 +119,7 @@ class Handler(Procedure[str]):
 		var_type = ''
 		if declared:
 			value_type = self.symbols.type_of(node.value)
-			var_type = value_type.types.symbol  # XXX 必ずしもクラス名で参照できるとは限らず不正確
+			var_type = value_type.types.symbol.fullyname
 
 		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': value})
 

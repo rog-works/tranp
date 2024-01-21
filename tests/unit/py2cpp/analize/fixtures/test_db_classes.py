@@ -1,51 +1,39 @@
 from typing import Any, Iterator, Sequence
 
 
+# Primitive
+
 @__alias__('int')
 class Integer: ...
-
-
 @__alias__('float')
 class Float: ...
-
-
 @__alias__('str')
 class String: ...
-
-
 @__alias__('bool')
 class Boolean: ...
-
-
 @__alias__('tuple')
 class Tuple: ...
-
-
 @__alias__('pair_')
 class Pair: ...
-
-
 @__alias__('list')
 class List: ...
-
-
 @__alias__('dict')
 class Dict: ...
-
-
-class Union: ...
-
-
 @__alias__('None')
 class Null: ...
 
+# Type
 
+class Union: ...
 class Unknown: ...
 
+# Class
 
 @__alias__('super')
 class Super: ...
+class Exception: ...
 
+# Function
 
 def id(instance: Any) -> int: ...
 # def print(*args: Any) -> None: ... FIXME *argsに対応

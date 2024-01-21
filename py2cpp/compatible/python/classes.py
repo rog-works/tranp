@@ -1,5 +1,6 @@
 from typing import Any, Iterator, Sequence
 
+# Primitive
 
 @__alias__('int')
 class Integer:
@@ -80,8 +81,6 @@ class Boolean:
 
 @__alias__('tuple')
 class Tuple: ...
-
-
 @__alias__('pair_')
 class Pair: ...
 
@@ -103,18 +102,26 @@ class Dict:
 	def items(self) -> list[tuple]: ...
 
 
-class Union: ...
-
-
 @__alias__('None')
 class Null: ...
 
 
+# Type
+
+
+class Union: ...
 class Unknown: ...
+
+
+# Type
 
 
 @__alias__('super')
 class Super: ...
+class Exception: ...
+
+
+# Function
 
 
 def id(instance: Any) -> int: ...

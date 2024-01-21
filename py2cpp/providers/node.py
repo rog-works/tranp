@@ -14,6 +14,7 @@ def symbol_mapping() -> SymbolMapping:
 			# -- General --
 			'file_input': defs.Entrypoint,
 			# -- Statement compound --
+			'block': defs.Block,
 			'elif_': defs.ElseIf,
 			'if_stmt': defs.If,
 			'while_stmt': defs.While,
@@ -30,7 +31,6 @@ def symbol_mapping() -> SymbolMapping:
 			# -- Function/Class Elements --
 			'paramvalue': defs.Parameter,
 			'return_type': defs.ReturnDecl,
-			'block': defs.Block,
 			'decorator': defs.Decorator,
 			# -- Statement simple --
 			'assign_stmt': defs.Assign,
@@ -48,8 +48,6 @@ def symbol_mapping() -> SymbolMapping:
 			# 'getattr': defs.ThisDeclVar,
 			# 'name': defs.ParamClass,
 			# 'name': defs.ParamThis,
-			# 'name': defs.ForDeclVar,
-			# 'name': defs.CatchDeclVar,
 			# '': defs.LocalDeclVar,
 			# 'name': defs.TypesName,
 			# 'name': defs.ImportName,

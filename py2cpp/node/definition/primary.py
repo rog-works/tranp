@@ -144,20 +144,6 @@ class ParamThis(BlockDeclVar):
 		return self._ancestor('class_def')
 
 
-@Meta.embed(Node, accept_tags('name'), actualized(via=Fragment))
-class ForDeclVar(BlockDeclVar):
-	@classmethod
-	def match_feature(cls, via: Fragment) -> bool:
-		return via._full_path.parent_tag == 'for_stmt'
-
-
-@Meta.embed(Node, accept_tags('name'), actualized(via=Fragment))
-class CatchDeclVar(BlockDeclVar):
-	@classmethod
-	def match_feature(cls, via: Fragment) -> bool:
-		return via._full_path.parent_tag == 'except_clause'
-
-
 @Meta.embed(Node, accept_tags('var', 'name'), actualized(via=Fragment))
 class LocalDeclVar(BlockDeclVar):
 	@classmethod

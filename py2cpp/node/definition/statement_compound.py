@@ -1,17 +1,66 @@
 import re
+from typing import cast
 
 from py2cpp.ast.dsn import DSN
 from py2cpp.lang.implementation import implements, override
 from py2cpp.lang.sequence import last_index_of
 from py2cpp.node.definition.common import InheritArgument
-from py2cpp.node.definition.element import Block, Decorator, Parameter, ReturnDecl
+from py2cpp.node.definition.element import Decorator, Parameter, ReturnDecl
 from py2cpp.node.definition.literal import String
 from py2cpp.node.definition.primary import BlockDeclVar, ClassDeclVar, Declable, GenericType, ParamThis, ThisDeclVar, Type
 from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
 from py2cpp.node.interface import IDomainName, IScope
-from py2cpp.node.node import Node
+from py2cpp.node.node import Node, T_Node
+
+
+@Meta.embed(Node, accept_tags('block'))
+class Block(Node, IScope):
+	@property
+	@implements
+	def scope_part(self) -> str:
+		"""Note: XXX 親が公開名称を持つノード(クラス/ファンクション)の場合は空文字。それ以外は親の一意エントリータグを返却"""
+		return '' if self.parent.public_name else self.parent._full_path.elements[-1]
+
+	@property
+	@implements
+	def namespace_part(self) -> str:
+		return ''
+
+	@property
+	@Meta.embed(Node, expandable)
+	def statements(self) -> list[Node]:
+		return self._children()
+
+	def decl_vars_with(self, allow: type[T_Node]) -> list['AnnoAssign | MoveAssign | For | Catch']:
+		"""Note: @see general.Entrypoint.block.decl_vars"""
+		return list(self.__decl_vars_with(self, allow).values())
+
+	def __decl_vars_with(self, block: 'Block', allow: type[T_Node]) -> dict[str, 'AnnoAssign | MoveAssign | For | Catch']:
+		decl_vars: dict[str, AnnoAssign | MoveAssign | For | Catch] = {}
+		for node in block.statements:
+			if isinstance(node, (AnnoAssign, MoveAssign)) and node.receiver.is_a(allow):
+				var_name = cast(Declable, node.receiver).tokens
+				if var_name not in decl_vars:
+					decl_vars[var_name] = node
+			elif isinstance(node, For) and node.symbol.is_a(allow):
+				var_name = cast(Declable, node.symbol).tokens
+				if var_name not in decl_vars:
+					decl_vars[var_name] = node
+			elif isinstance(node, Try):
+				for catch in node.catches:
+					var_name = cast(Declable, catch.symbol).tokens
+					if var_name not in decl_vars:
+						decl_vars[var_name] = catch
+
+			if isinstance(node, (If, Try)):
+				for in_block in node.having_blocks:
+					decl_vars = {**self.__decl_vars_with(in_block, allow), **decl_vars}
+			elif isinstance(node, (While, For)):
+				decl_vars = {**self.__decl_vars_with(node.block, allow), **decl_vars}
+
+		return decl_vars
 
 
 class Flow(Node): pass
@@ -52,6 +101,17 @@ class If(Flow):
 	def else_block(self) -> Block | Empty:
 		return self._at(3).one_of(Block | Empty)
 
+	@property
+	def having_blocks(self) -> list[Block]:
+		blocks: list[Block] = [self.block]
+		for else_if in self.else_ifs:
+			blocks.append(else_if.block)
+
+		if isinstance(self.else_block, Block):
+			blocks.append(self.else_block)
+
+		return blocks
+
 
 @Meta.embed(Node, accept_tags('while_stmt'))
 class While(Flow):
@@ -70,7 +130,7 @@ class While(Flow):
 class For(Flow):
 	@property
 	@Meta.embed(Node, expandable)
-	def decl_var(self) -> Declable:
+	def symbol(self) -> Declable:
 		return self._by('name').as_a(Declable)
 
 	@property
@@ -94,7 +154,7 @@ class Catch(Flow):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def decl_var(self) -> Declable | Empty:
+	def symbol(self) -> Declable | Empty:
 		return self._by('name').one_of(Declable | Empty)
 
 	@property
@@ -114,6 +174,10 @@ class Try(Flow):
 	@Meta.embed(Node, expandable)
 	def catches(self) -> list[Catch]:
 		return [node.as_a(Catch) for node in self._by('except_clauses')._children()]
+
+	@property
+	def having_blocks(self) -> list[Block]:
+		return [self.block, *[catch.block for catch in self.catches]]
 
 
 class ClassKind(Node, IDomainName, IScope):
@@ -204,7 +268,7 @@ class Function(ClassKind):
 
 	@property
 	def decl_vars(self) -> list[Parameter | AnnoAssign | MoveAssign]:
-		return [*self.parameters, *self.block.decl_vars_with(BlockDeclVar)]
+		return [*self.parameters, *cast(list[AnnoAssign | MoveAssign], self.block.decl_vars_with(BlockDeclVar))]
 
 
 @Meta.embed(Node, actualized(via=Function))
@@ -233,7 +297,7 @@ class Constructor(Function):
 
 	@property
 	def this_vars(self) -> list[AnnoAssign | MoveAssign]:
-		return self.block.decl_vars_with(ThisDeclVar)
+		return cast(list[AnnoAssign | MoveAssign], self.block.decl_vars_with(ThisDeclVar))
 
 
 @Meta.embed(Node, actualized(via=Function))
@@ -364,7 +428,7 @@ class Class(ClassKind):
 
 	@property
 	def class_vars(self) -> list[AnnoAssign | MoveAssign]:
-		return self.block.decl_vars_with(ClassDeclVar)
+		return cast(list[AnnoAssign | MoveAssign], self.block.decl_vars_with(ClassDeclVar))
 
 	@property
 	def instance_vars(self) -> list[AnnoAssign | MoveAssign]:

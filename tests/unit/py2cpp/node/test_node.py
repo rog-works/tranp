@@ -186,7 +186,7 @@ class TestNode(TestCase):
 		('{1: 2}', 'file_input.dict', defs.Dict, 'dict', '__main__.dict'),
 		('None', 'file_input.const_none', defs.Null, 'None', '__main__.None'),
 	])
-	def test_domain_id(self, source: str, full_path: str, types: type[T_Node], expected_name: bool, expected_fully: str) -> None:
+	def test_i_domain_name(self, source: str, full_path: str, types: type[T_Node], expected_name: bool, expected_fully: str) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path)
 		self.assertEqual(type(node), types)
 		self.assertEqual(cast(IDomainName, node).domain_name, expected_name)

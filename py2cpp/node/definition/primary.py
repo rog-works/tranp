@@ -266,7 +266,12 @@ class Indexer(Node):
 		return self._by('slices.slice')._at(0)
 
 
-class Type(Node, IDomainName, ITerminal):
+class Type(Node, ITerminal, IDomainName):
+	@property
+	@implements
+	def can_expand(self) -> bool:
+		return True
+
 	@property
 	@implements
 	def domain_name(self) -> str:
@@ -276,11 +281,6 @@ class Type(Node, IDomainName, ITerminal):
 	@implements
 	def fullyname(self) -> str:
 		return DSN.join(self.scope, self.domain_name)
-
-	@property
-	@implements
-	def can_expand(self) -> bool:
-		return True
 
 	@property
 	@Meta.embed(Node, expandable)

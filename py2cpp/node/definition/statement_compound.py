@@ -134,13 +134,14 @@ class ClassKind(Node, IDomainName, IScope):
 
 	@property
 	@implements
-	def domain_id(self) -> str:
-		return self.scope
+	def domain_name(self) -> str:
+		"""Note: XXX スコープ内に自身の名前が含まれるので空文字を返却"""
+		return ''
 
 	@property
 	@implements
-	def domain_name(self) -> str:
-		return DSN.join(self.scope, self.public_name)
+	def fullyname(self) -> str:
+		return DSN.join(self.scope, self.domain_name)
 
 	@property
 	def symbol(self) -> Declable:

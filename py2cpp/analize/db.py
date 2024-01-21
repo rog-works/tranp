@@ -6,7 +6,6 @@ from py2cpp.errors import LogicError
 from py2cpp.lang.implementation import injectable
 from py2cpp.module.modules import Module, Modules
 import py2cpp.node.definition as defs
-from py2cpp.node.interface import IDomainName
 
 DeclVar: TypeAlias = defs.Parameter | defs.AnnoAssign | defs.MoveAssign
 DeclAll: TypeAlias = defs.Parameter | defs.AnnoAssign | defs.MoveAssign | defs.ClassKind
@@ -140,7 +139,7 @@ class SymbolDB:
 
 			# 展開対象モジュールの変数シンボルを展開
 			for var in expand_target.decl_vars:
-				expand_target.raws[var.symbol.domain_id] = self.__resolve_var_type(var, expand_target.raws).varnize(var)
+				expand_target.raws[var.symbol.fullyname] = self.__resolve_var_type(var, expand_target.raws).varnize(var)
 
 		# シンボルテーブルを統合
 		raws: dict[str, SymbolRaw] = {}
@@ -163,7 +162,7 @@ class SymbolDB:
 		entrypoint = module.entrypoint.as_a(defs.Entrypoint)
 		for node in entrypoint.flatten():
 			if isinstance(node, defs.ClassKind):
-				raws[node.domain_id] = SymbolRaw(node.domain_id, node.domain_id, module, node.symbol, node, node)
+				raws[node.fullyname] = SymbolRaw(node.fullyname, node.fullyname, module, node.symbol, node, node)
 
 			if type(node) is defs.Import:
 				import_nodes.append(node)
@@ -189,10 +188,10 @@ class SymbolDB:
 		Returns:
 			SymbolRaw: シンボルデータ
 		"""
-		type_domain = self.__fetch_type_domain(var)
-		candidates = []
-		if type_domain is not None:
-			candidates = [type_domain.domain_id, type_domain.domain_name]
+		domain_type = self.__fetch_domain_type(var)
+		if domain_type is not None:
+			scopes = [DSN.left(domain_type.scope, DSN.elem_counts(domain_type.scope) - i) for i in range(DSN.elem_counts(domain_type.scope))]
+			candidates = [DSN.join(scope, domain_type.domain_name) for scope in scopes]
 		else:
 			# 型が不明な変数はUnknownにフォールバック
 			# XXX Unknownの名前は重要なので定数化などの方法で明示
@@ -202,15 +201,15 @@ class SymbolDB:
 			if candidate in raws:
 				return raws[candidate]
 
-		raise LogicError(f'Unresolve var type. var: {var}, candidates: {candidates}')
+		raise LogicError(f'Unresolve var type. var: {var}, domain: {domain_type.fullyname if domain_type is not None else "Unknown"}, candidates: {candidates}')
 
-	def __fetch_type_domain(self, var: DeclVar) -> IDomainName | None:
+	def __fetch_domain_type(self, var: DeclVar) -> defs.Type | defs.ClassKind | None:
 		"""変数の型のドメインを取得。型が不明な場合はNoneを返却
 
 		Args:
 			var (DeclVar): 変数宣言ノード
 		Returns:
-			IDomainName | None: ドメイン名インターフェイス
+			Type | ClassKind | None: 型/クラス定義ノード。不明な場合はNone
 		"""
 		if isinstance(var, defs.AnnoAssign):
 			return var.var_type
@@ -218,10 +217,10 @@ class SymbolDB:
 			# 型指定が無いため全てUnknown
 			return None
 		elif isinstance(var, defs.Parameter):
-			if var.symbol.is_a(defs.ParamClass):
-				return var.symbol.as_a(defs.ParamClass).class_domain
-			elif var.symbol.is_a(defs.ParamThis):
-				return var.symbol.as_a(defs.ParamThis).class_domain
+			if isinstance(var.symbol, defs.ParamClass):
+				return var.symbol.class_types.as_a(defs.ClassKind)
+			elif isinstance(var.symbol, defs.ParamThis):
+				return var.symbol.class_types.as_a(defs.ClassKind)
 			else:
 				return var.var_type.as_a(defs.Type)
 

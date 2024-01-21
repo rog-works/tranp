@@ -54,14 +54,14 @@ class TestSymbols(TestCase):
 	])
 	def test_type_of_primitive(self, primitive_type: type[Primitives], expected: str) -> None:
 		symbols = self.fixture.get(Symbols)
-		self.assertEqual(symbols.type_of_primitive(primitive_type).types.domain_id, expected)
+		self.assertEqual(symbols.type_of_primitive(primitive_type).types.fullyname, expected)
 
 	@data_provider([
 		(_mod('classes', 'Unknown'),),
 	])
 	def test_type_of_unknown(self, expected: str) -> None:
 		symbols = self.fixture.get(Symbols)
-		self.assertEqual(symbols.type_of_unknown().types.domain_id, expected)
+		self.assertEqual(symbols.type_of_unknown().types.fullyname, expected)
 
 	@data_provider([
 		(_ast('__main__', 'import_stmt.import_names.name'), _mod('xyz', 'Z'), []),
@@ -115,7 +115,7 @@ class TestSymbols(TestCase):
 		symbols = self.fixture.get(Symbols)
 		node = self.fixture.shared_nodes.by(full_path)
 		symbol = symbols.type_of(node)
-		self.assertEqual(symbol.types.domain_id, expected)
+		self.assertEqual(symbol.types.fullyname, expected)
 		self.assertEqual(len(symbol.attrs), len(attrs_expected))
 		for index, in_expected in enumerate(attrs_expected):
-			self.assertEqual(symbol.attrs[index].types.domain_id, in_expected)
+			self.assertEqual(symbol.attrs[index].types.fullyname, in_expected)

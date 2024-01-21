@@ -309,7 +309,7 @@ class Symbols:
 		if found_raw is not None:
 			return Symbol(found_raw)
 
-		raise LogicError(f'Symbol not defined. symbolic: {symbolic.domain_id}, prop_name: {prop_name}')
+		raise LogicError(f'Symbol not defined. symbolic: {symbolic.fullyname}, prop_name: {prop_name}')
 
 	def __resolve_raw(self, symbolic: Symbolic, prop_name: str) -> SymbolRaw | None:
 		"""シンボル系ノードからシンボルを解決。未検出の場合はNoneを返却
@@ -355,12 +355,11 @@ class Symbols:
 		Returns:
 			SymbolRaw | None: シンボルデータ
 		"""
-		domain_id = DSN.join(symbolic.domain_id, prop_name)
-		domain_name = DSN.join(symbolic.domain_name, prop_name)
-		if domain_id in self.__db.raws:
-			return self.__db.raws[domain_id]
-		elif domain_name in self.__db.raws:
-			return self.__db.raws[domain_name]
+		scopes = [DSN.left(symbolic.scope, DSN.elem_counts(symbolic.scope) - i) for i in range(DSN.elem_counts(symbolic.scope))]
+		candidates = [DSN.join(scope, symbolic.domain_name, prop_name) for scope in scopes]
+		for candidate in candidates:
+			if candidate in self.__db.raws:
+				return self.__db.raws[candidate]
 
 		return None
 
@@ -530,7 +529,7 @@ class ProceduralResolver(Procedure[Symbol]):
 	def on_binary_operator(self, node: defs.BinaryOperator, left: Symbol, right: Symbol, operator: str) -> Symbol:
 		methods = [method for method in left.types.as_a(defs.Class).methods if method.symbol.tokens == operator]
 		if len(methods) == 0:
-			raise LogicError(f'Operation not allowed. {node}, {left.types.domain_id}, {right.types.domain_id}, {operator}')
+			raise LogicError(f'Operation not allowed. {node}, {left.types.fullyname}, {right.types.fullyname}, {operator}')
 
 		other = methods[0].parameters.pop()
 		var_types = other.var_type.or_types if isinstance(other.var_type, defs.UnionType) else [other.var_type]
@@ -538,7 +537,7 @@ class ProceduralResolver(Procedure[Symbol]):
 			if self.symbols.resolve(var_type.as_a(defs.Type)) == right:
 				return right
 
-		raise LogicError(f'Operation not allowed. {node}, {left.types.domain_id}, {right.types.domain_id}, {operator}')
+		raise LogicError(f'Operation not allowed. {node}, {left.types.fullyname}, {right.types.fullyname}, {operator}')
 
 	# Literal
 

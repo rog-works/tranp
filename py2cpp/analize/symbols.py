@@ -221,14 +221,16 @@ class Symbols:
 		Note:
 			# このメソッドの目的
 			* Generic型のサブタイプの解決(シンボル宣言・参照ノード由来)
-			* MoveAssignの左辺の型の解決(シンボル宣言・参照ノード由来)
+			* MoveAssign/Forの宣言型の解決(シンボル宣言・参照ノード由来)
 			@see resolve
 		"""
 		decl = symbol.raw.decl
-		if isinstance(decl, (defs.AnnoAssign, defs.Parameter)):
+		if isinstance(decl, (defs.AnnoAssign, defs.Parameter, defs.Catch)):
 			return self.__from_type(decl.var_type) if isinstance(decl.var_type, defs.GenericType) else symbol
 		elif isinstance(decl, defs.MoveAssign):
 			return self.__resolve_procedural(decl.value)
+		elif isinstance(decl, defs.For):
+			return self.__resolve_procedural(decl.iterates)
 		# defs.ClassKind
 		else:
 			return symbol

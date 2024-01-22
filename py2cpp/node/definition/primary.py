@@ -1,4 +1,5 @@
 import re
+from typing import cast
 
 from py2cpp.ast.dsn import DSN
 from py2cpp.lang.implementation import implements, override
@@ -9,6 +10,7 @@ from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
 from py2cpp.node.interface import IDomainName, ITerminal
 from py2cpp.node.node import Node
+from py2cpp.node.promise import IDeclable
 
 
 @Meta.embed(Node, accept_tags('getattr', 'var', 'name'))
@@ -210,9 +212,7 @@ class ClassVar(Var):
 
 	@property
 	def class_symbol(self) -> Declable:
-		from py2cpp.node.definition.statement_compound import Class  # FIXME 循環参照
-
-		return self._ancestor('class_def').as_a(Class).symbol
+		return cast(IDeclable, self._ancestor('class_def')).symbol.as_a(Declable)
 
 
 @Meta.embed(Node, actualized(via=Fragment))
@@ -265,7 +265,7 @@ class Indexer(Node):
 		return self._children('slices')[0]
 
 
-class Type(Node, ITerminal, IDomainName):
+class Type(Node, ITerminal, IDomainName, IDeclable):
 	@property
 	@implements
 	def can_expand(self) -> bool:
@@ -282,6 +282,7 @@ class Type(Node, ITerminal, IDomainName):
 		return DSN.join(self.scope, self.domain_name)
 
 	@property
+	@implements
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> 'Type':  # XXX symbol以外の名前を検討
 		"""

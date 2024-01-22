@@ -11,6 +11,6 @@ from py2cpp.node.definition.statement_compound import *
 from py2cpp.node.definition.statement_simple import *
 from py2cpp.node.definition.terminal import *
 
-DeclVars: TypeAlias = Parameter | AnnoAssign | MoveAssign
-DeclAll: TypeAlias = Parameter | AnnoAssign | MoveAssign | ClassKind
+DeclVars: TypeAlias = Parameter | AnnoAssign | MoveAssign | For | Catch
+DeclAll: TypeAlias = Parameter | AnnoAssign | MoveAssign | For | Catch | ClassKind
 Symbolic: TypeAlias = Declable | Reference | Type | Literal | ClassKind

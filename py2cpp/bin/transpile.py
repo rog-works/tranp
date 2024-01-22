@@ -119,8 +119,8 @@ class Handler(Procedure[str]):
 	def on_return_decl(self, node: defs.ReturnDecl, var_type: str) -> str:
 		return var_type if not node.var_type.is_a(defs.Null) else 'void'
 
-	def on_decorator(self, node: defs.Decorator, symbol: str, arguments: list[str]) -> str:
-		return self.view.render(node.classification, vars={'symbol': symbol, 'arguments': arguments})
+	def on_decorator(self, node: defs.Decorator, path: str, arguments: list[str]) -> str:
+		return self.view.render(node.classification, vars={'path': path, 'arguments': arguments})
 
 	# Statement - simple
 

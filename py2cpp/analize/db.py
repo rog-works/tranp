@@ -208,11 +208,8 @@ class SymbolDB:
 		Returns:
 			Type | ClassKind | None: 型/クラス定義ノード。不明な場合はNone
 		"""
-		if isinstance(var, defs.AnnoAssign):
+		if isinstance(var, (defs.AnnoAssign, defs.Catch)):
 			return var.var_type
-		elif isinstance(var, defs.MoveAssign):
-			# 型指定が無いため全てUnknown
-			return None
 		elif isinstance(var, defs.Parameter):
 			if isinstance(var.symbol, defs.ParamClass):
 				return var.symbol.class_types.as_a(defs.ClassKind)
@@ -220,5 +217,8 @@ class SymbolDB:
 				return var.symbol.class_types.as_a(defs.ClassKind)
 			else:
 				return var.var_type.as_a(defs.Type)
+		elif isinstance(var, (defs.MoveAssign, defs.For)):
+			# 型指定が無いため全てUnknown
+			return None
 
 		return None

@@ -4,10 +4,11 @@ from py2cpp.node.definition.terminal import Empty, Terminal
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
 from py2cpp.node.interface import ITerminal
 from py2cpp.node.node import Node
+from py2cpp.node.promise import IDeclable
 
 
 @Meta.embed(Node, accept_tags('assign_stmt'))
-class Assign(Node):
+class Assign(Node, IDeclable):
 	@property
 	def _elements(self) -> list[Node]:
 		return self._at(0)._children()
@@ -18,12 +19,12 @@ class Assign(Node):
 		return self._elements[0].one_of(Declable | Reference | Indexer)
 
 	@property
+	@implements
 	def symbol(self) -> Declable:
 		"""
 		Note:
-			XXX MoveAssign/AnnoAssign/Parameterのインターフェイスを統一するために定義
+			XXX シンボルテーブル作成時以外に使用しないと言う前提のため、
 			XXX receiverがSymbol以外のインスタンスで使用するとエラーが発生する
-			XXX シンボルテーブル作成時以外に使用しないと言う前提
 		"""
 		return self._elements[0].as_a(Declable)
 

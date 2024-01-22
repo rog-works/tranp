@@ -1,5 +1,5 @@
-{%- if symbol not in ['classmethod', 'abstractmethod'] %}
-{{- symbol -}}(
+{%- if path not in ['classmethod', 'abstractmethod'] %}
+{{- path -}}(
 	{%- for argument in arguments -%}
 		{%- if loop.index0 > 0 %}, {% endif -%}
 		{{- argument -}}

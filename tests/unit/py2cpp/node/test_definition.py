@@ -17,7 +17,7 @@ class TestDefinition(TestCase):
 	def test_if(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.If)
 		self.assertEqual(type(node.condition), expected['condition'])
-		for index, statement in enumerate(node.block.statements):
+		for index, statement in enumerate(node.statements):
 			in_expected = expected['statements'][index]
 			self.assertEqual(type(statement), in_expected)
 

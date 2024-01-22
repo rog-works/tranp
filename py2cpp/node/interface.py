@@ -43,5 +43,5 @@ class IDomainName:
 
 	@property
 	def fullyname(self) -> str:
-		"""str: 参照フルパス名 Note: スコープと参照名を合わせたフルパス"""
+		"""str: 完全参照名 Note: スコープとドメイン名を合わせた参照名"""
 		raise NotImplementedError()

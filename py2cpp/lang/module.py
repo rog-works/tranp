@@ -51,11 +51,11 @@ def resolve_own_class(method: Callable) -> type:
 
 
 def fullyname(ctor: type) -> str:
-	"""クラスのフルパスを取得
+	"""クラスの完全参照名を取得
 
 	Args:
 		ctor (type): クラス
 	Returns:
-		str: フルパス
+		str: 完全参照名
 	"""
 	return '.'.join([ctor.__module__, ctor.__name__])

@@ -2,7 +2,7 @@ from typing import Any, cast
 
 from lark import Token, Tree
 
-from py2cpp.ast.entry import Entry
+from py2cpp.ast.entry import Entry, T_Entry, T_Tree
 from py2cpp.lang.implementation import implements
 
 
@@ -73,63 +73,63 @@ class EntryOfLark(Entry):
 
 class Serialization:
 	@classmethod
-	def dumps(cls, root: Tree | Token) -> dict[str, Any]:
+	def dumps(cls, root: Tree) -> T_Tree:
 		"""連想配列にシリアライズ
 
 		Args:
-			root (Tree | Token): ルート
+			root (Tree): ツリー
 		Returns:
-			dict[str, Any]
+			T_Tree: シリアライズツリー
 		"""
-		return cast(dict[str, Any], cls.__dumps(root))
+		return cast(T_Tree, cls.__dumps(root))
 
 	@classmethod
-	def __dumps(cls, entry: Tree | Token | None) -> dict[str, Any] | None:
+	def __dumps(cls, entry: Tree | Token | None) -> T_Entry:
 		"""連想配列にシリアライズ
 
 		Args:
 			entry (Tree | Token | None): エントリー
 		Returns:
-			dict[str, Any] | None
+			T_Entry: シリアライズエントリー
 		"""
 		if type(entry) is Tree:
-			children: list[dict[str, Any] | None] = []
+			children: list[T_Entry] = []
 			for child in entry.children:
-				children.append(cls.dumps(child))
+				children.append(cls.__dumps(child))
 
-			return {'data': str(entry.data), 'children': children}
+			return {'name': str(entry.data), 'children': children}
 		elif type(entry) is Token:
-			return {'type': entry.type, 'value': entry.value}
+			return {'name': entry.type, 'value': entry.value}
 		else:
 			return None
 
 	@classmethod
-	def loads(cls, data: dict[str, Any]) -> Tree | Token:
+	def loads(cls, root: T_Tree) -> Tree:
 		"""連想配列からデシリアライズ
 
 		Args:
-			data (dict[str, Any]): シリアライズデータ
+			root (T_Tree): シリアライズツリー
 		Returns:
-			Tree | Token
+			Tree: ツリー
 		"""
-		return cast(Tree | Token, cls.__loads(data))
+		return cast(Tree, cls.__loads(root))
 
 	@classmethod
-	def __loads(cls, entry: dict[str, Any]) -> Tree | Token | None:
+	def __loads(cls, entry: T_Entry) -> Tree | Token | None:
 		"""連想配列からデシリアライズ
 
 		Args:
-			entry (dict[str, Any]): エントリー
+			entry (T_Entry): シリアライズエントリー
 		Returns:
-			Tree | Token | None
+			Tree | Token | None: エントリー
 		"""
 		if type(entry) is dict and 'children' in entry:
 			children: list[Tree | Token | None] = []
-			for child in entry['children']:
-				children.append(cls.loads(child))
+			for child in cast(list[T_Entry], entry['children']):
+				children.append(cls.__loads(child))
 
-			return Tree(entry['data'], children)
-		elif type(entry) is dict and 'type' in entry:
-			return Token(entry['type'], entry['value'])
+			return Tree(entry['name'], children)
+		elif type(entry) is dict and 'value' in entry:
+			return Token(entry['name'], entry['value'])
 		else:
 			return None

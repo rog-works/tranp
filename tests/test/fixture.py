@@ -4,6 +4,7 @@ import os
 from typing import Any
 
 from py2cpp.app.app import App
+from py2cpp.ast.entry import EntryOfDict, T_Tree
 from py2cpp.ast.parser import SyntaxParser
 from py2cpp.ast.query import Query
 from py2cpp.lang.cache import CacheSetting
@@ -77,15 +78,14 @@ class Fixture:
 		fixture_name = f'{module_path.actual.split(".").pop()}-customs.json'
 		filepath = os.path.join(cache_setting.basedir, basepath, fixture_name)
 
-		cache: dict[str, dict[str, Any]] = {}
+		cache: dict[str, T_Tree] = {}
 		if os.path.exists(filepath):
 			with open(filepath, 'rb') as f:
 				cache = json.load(f)
 
 		identity = hashlib.md5(source_code.encode('utf-8')).hexdigest()
 		if identity in cache:
-			root = Serialization.loads(cache[identity])
-			return lambda module_path: EntryOfLark(root)
+			return lambda module_path: EntryOfDict(cache[identity])
 
 		root = parser.parse(f'{source_code}\n')
 		with open(filepath, 'wb') as f:

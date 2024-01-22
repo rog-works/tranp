@@ -378,7 +378,7 @@ class TestDefinition(TestCase):
 	])
 	def test_indexer(self, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.shared_nodes.by(full_path).as_a(defs.Indexer)
-		self.assertEqual(node.symbol.tokens, expected['symbol'])
+		self.assertEqual(node.receiver.tokens, expected['symbol'])
 		self.assertEqual(node.key.tokens, expected['key'])
 
 	@data_provider([

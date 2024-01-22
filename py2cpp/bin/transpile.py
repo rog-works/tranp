@@ -199,22 +199,22 @@ class Handler(Procedure[str]):
 	def on_variable(self, node: defs.Variable) -> str:
 		return node.tokens
 
-	def on_indexer(self, node: defs.Indexer, symbol: str, key: str) -> str:
-		return f'{symbol}[{key}]'
+	def on_indexer(self, node: defs.Indexer, receiver: str, key: str) -> str:
+		return f'{receiver}[{key}]'
 
 	def on_general_type(self, node: defs.GeneralType) -> str:
-		return node.symbol.tokens
+		return node.type_name.tokens
 
-	def on_list_type(self, node: defs.ListType, symbol: str, value_type: str) -> str:
-		return self.view.render(node.classification, vars={'symbol': symbol, 'value_type': value_type})
+	def on_list_type(self, node: defs.ListType, type_name: str, value_type: str) -> str:
+		return self.view.render(node.classification, vars={'type_name': type_name, 'value_type': value_type})
 
-	def on_dict_type(self, node: defs.DictType, symbol: str, key_type: str, value_type: str) -> str:
-		return self.view.render(node.classification, vars={'symbol': symbol, 'key_type': key_type, 'value_type': value_type})
+	def on_dict_type(self, node: defs.DictType, type_name: str, key_type: str, value_type: str) -> str:
+		return self.view.render(node.classification, vars={'type_name': type_name, 'key_type': key_type, 'value_type': value_type})
 
-	def on_custom_type(self, node: defs.CustomType, symbol: str, template_types: list[str]) -> str:
-		return self.view.render(node.classification, vars={'symbol': symbol, 'template_types': template_types})
+	def on_custom_type(self, node: defs.CustomType, type_name: str, template_types: list[str]) -> str:
+		return self.view.render(node.classification, vars={'type_name': type_name, 'template_types': template_types})
 
-	def on_union_type(self, node: defs.UnionType, symbol: str, or_types: list[str]) -> str:
+	def on_union_type(self, node: defs.UnionType, type_name: str, or_types: list[str]) -> str:
 		raise NotImplementedError(f'Not supported UnionType. symbol: {node.fullyname}')
 
 	def on_null_type(self, node: defs.NullType) -> str:

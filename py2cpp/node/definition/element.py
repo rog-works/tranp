@@ -1,4 +1,4 @@
-from py2cpp.lang.implementation import override
+from py2cpp.lang.implementation import implements
 from py2cpp.node.definition.common import Argument
 from py2cpp.node.definition.primary import DecoratorPath, Declable, Type
 from py2cpp.node.definition.terminal import Empty
@@ -10,7 +10,7 @@ from py2cpp.node.promise import IDeclare
 @Meta.embed(Node, accept_tags('paramvalue'))
 class Parameter(Node, IDeclare):
 	@property
-	@override
+	@implements
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Declable:
 		"""Note: XXX 実体はBlockVarのみ"""

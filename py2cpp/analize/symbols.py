@@ -463,28 +463,28 @@ class ProceduralResolver(Procedure[Symbol]):
 	def on_variable(self, node: defs.Var) -> Symbol:
 		return self.symbols.type_of_var(node)
 
-	def on_indexer(self, node: defs.Indexer, symbol: Symbol, key: Symbol) -> Symbol:
-		if self.symbols.is_list(symbol):
-			return symbol.attrs[0]
-		elif self.symbols.is_dict(symbol):
-			return symbol.attrs[1]
+	def on_indexer(self, node: defs.Indexer, receiver: Symbol, key: Symbol) -> Symbol:
+		if self.symbols.is_list(receiver):
+			return receiver.attrs[0]
+		elif self.symbols.is_dict(receiver):
+			return receiver.attrs[1]
 		else:
-			raise ValueError(f'Not supported indexer symbol type. {symbol.types}')
+			raise ValueError(f'Not supported indexer symbol type. {str(receiver)}')
 
 	def on_general_type(self, node: defs.GeneralType) -> Symbol:
 		return self.symbols.resolve(node)
 
-	def on_list_type(self, node: defs.ListType, symbol: Symbol, value_type: Symbol) -> Symbol:
-		return symbol.extends(value_type)
+	def on_list_type(self, node: defs.ListType, type_name: Symbol, value_type: Symbol) -> Symbol:
+		return type_name.extends(value_type)
 
-	def on_dict_type(self, node: defs.DictType, symbol: Symbol, key_type: Symbol, value_type: Symbol) -> Symbol:
-		return symbol.extends(key_type, value_type)
+	def on_dict_type(self, node: defs.DictType, type_name: Symbol, key_type: Symbol, value_type: Symbol) -> Symbol:
+		return type_name.extends(key_type, value_type)
 
-	def on_custom_type(self, node: defs.CustomType, symbol: Symbol, template_types: list[Symbol]) -> Symbol:
-		return symbol.extends(*template_types)
+	def on_custom_type(self, node: defs.CustomType, type_name: Symbol, template_types: list[Symbol]) -> Symbol:
+		return type_name.extends(*template_types)
 
-	def on_union_type(self, node: defs.UnionType, symbol: Symbol, or_types: list[Symbol]) -> Symbol:
-		return symbol.extends(*or_types)
+	def on_union_type(self, node: defs.UnionType, type_name: Symbol, or_types: list[Symbol]) -> Symbol:
+		return type_name.extends(*or_types)
 
 	def on_null_type(self, node: defs.NullType) -> Symbol:
 		return self.symbols.resolve(node)

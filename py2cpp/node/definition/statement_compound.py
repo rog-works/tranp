@@ -121,7 +121,7 @@ class While(Flow):
 @Meta.embed(Node, accept_tags('for_stmt'))
 class For(Flow, IDeclare):
 	@property
-	@override
+	@implements
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Declable:
 		return self._by('name').as_a(Declable)
@@ -150,7 +150,7 @@ class Catch(Flow, IDeclare):
 		return self._at(0).as_a(Type)
 
 	@property
-	@override
+	@implements
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Declable:
 		# XXX Pythonの仕様では省略出来るが実装を簡単にするため必須で実装

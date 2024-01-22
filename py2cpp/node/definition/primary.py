@@ -256,7 +256,7 @@ class DecoratorPath(Path):
 class Indexer(Node):
 	@property
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> 'Reference | FuncCall':  # XXX symbol以外の名前を検討
+	def receiver(self) -> 'Reference | FuncCall':
 		return self._at(0).one_of(Reference | FuncCall)
 
 	@property
@@ -274,7 +274,7 @@ class Type(Node, ITerminal, IDomainName):
 	@property
 	@implements
 	def domain_name(self) -> str:
-		return self.symbol.tokens
+		return self.type_name.tokens
 
 	@property
 	@implements
@@ -282,9 +282,8 @@ class Type(Node, ITerminal, IDomainName):
 		return DSN.join(self.scope, self.domain_name)
 
 	@property
-	@implements
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> 'Type':  # XXX symbol以外の名前を検討
+	def type_name(self) -> 'Type':
 		"""
 		Note:
 			XXX 終端要素の場合は自分自身をシンボルとして扱う
@@ -317,7 +316,7 @@ class ListType(GenericType):
 	@classmethod
 	@override
 	def match_feature(cls, via: GenericType) -> bool:
-		return via.symbol.tokens == 'list'
+		return via.type_name.tokens == 'list'
 
 	@property
 	@override
@@ -331,7 +330,7 @@ class DictType(GenericType):
 	@classmethod
 	@override
 	def match_feature(cls, via: GenericType) -> bool:
-		return via.symbol.tokens == 'dict'
+		return via.type_name.tokens == 'dict'
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -404,14 +403,14 @@ class UnionType(Type):
 class NullType(Type):
 	@property
 	@override
-	def domain_name(self) -> str:
-		# XXX 定数化を検討
-		return 'None'
+	def can_expand(self) -> bool:
+		return False
 
 	@property
 	@override
-	def can_expand(self) -> bool:
-		return False
+	def domain_name(self) -> str:
+		# XXX 定数化を検討
+		return 'None'
 
 
 @Meta.embed(Node, accept_tags('typed_list'))
@@ -449,4 +448,4 @@ class Super(FuncCall):
 
 		decl_class = self._ancestor('class_def').as_a(Class)
 		# XXX 簡易化のため単一継承と言う前提。MROは考慮せず先頭要素を直系の親クラスとする
-		return decl_class.parents[0].symbol
+		return decl_class.parents[0].type_name

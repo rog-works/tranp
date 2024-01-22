@@ -4,8 +4,8 @@ import sys
 from py2cpp.analize.procedure import Procedure
 from py2cpp.analize.symbols import Symbols
 from py2cpp.app.app import App
-from py2cpp.ast.dsn import DSN
 from py2cpp.ast.parser import ParserSetting
+from py2cpp.errors import LogicError
 from py2cpp.lang.error import stacktrace
 from py2cpp.lang.module import fullyname
 from py2cpp.module.types import ModulePath
@@ -73,7 +73,12 @@ class Handler(Procedure[str]):
 			var_symbol = var.symbol.as_a(defs.ThisDeclVar)
 			add_vars['initializer'].append({'symbol': var_symbol.tokens_without_this, 'value': var.value.tokens})
 
-		return self.view.render(node.classification, vars={'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'statements': statements, **add_vars})
+		without_initializer_statements = []
+		for statement in node.statements:
+			if statement not in node.this_vars:
+				without_initializer_statements.append(statement)
+
+		return self.view.render(node.classification, vars={'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'statements': without_initializer_statements, **add_vars})
 
 	def on_method(self, node: defs.Method, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, statements: list[str]) -> str:
 		return self.on_method_type(node, symbol, decorators, parameters, return_decl, statements, node.class_symbol.tokens)
@@ -88,15 +93,18 @@ class Handler(Procedure[str]):
 		# FIXME メンバー変数の展開方法を再検討
 		vars: list[dict[str, str]] = []
 		for var in node.vars:
-			if var.is_a(defs.MoveAssign):
-				vars.append({'access': 'public', 'symbol': var.symbol.tokens, 'var_type': 'Unknown', 'value': var.value.tokens})
+			if isinstance(var, defs.AnnoAssign):
+				var_symbol = var.symbol.as_a(defs.ThisDeclVar)
+				vars.append({'access': 'public', 'symbol': var_symbol.tokens_without_this, 'var_type': var.var_type.tokens, 'value': var.value.tokens})
 			else:
-				vars.append({'access': 'public', 'symbol': var.symbol.tokens, 'var_type': var.as_a(defs.AnnoAssign).var_type.tokens, 'value': var.value.tokens})
+				raise LogicError(f'Not supported this var declaration. symbol: {var.symbol}')
 
 		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'parents': parents, 'statements': statements, 'vars': vars})
 
 	def on_enum(self, node: defs.Enum, symbol: str, statements: list[str]) -> str:
-		return self.view.render(node.classification, vars={'symbol': symbol, 'statements': statements})
+		# XXX 行頭の型宣言は不要なので除外
+		without_type_statements = [' '.join(statement.split(' ')[1:]) for statement in statements]
+		return self.view.render(node.classification, vars={'symbol': symbol, 'statements': without_type_statements})
 
 	# Function/Class Elements
 

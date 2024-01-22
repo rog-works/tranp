@@ -20,13 +20,14 @@ class Handler(Procedure[str]):
 		self.symbols = symbols
 		self.view = render
 
-	def __result_internal(self, begin: Node) -> str:
-		cloning = Handler(self.symbols, self.view)
-		for node in begin.calculated():
-			cloning.process(node)
+	# XXX 未使用
+	# def __result_internal(self, begin: Node) -> str:
+	# 	cloning = Handler(self.symbols, self.view)
+	# 	for node in begin.calculated():
+	# 		cloning.process(node)
 
-		cloning.process(begin)
-		return cloning.result()
+	# 	cloning.process(begin)
+	# 	return cloning.result()
 
 	# Hook
 
@@ -68,15 +69,19 @@ class Handler(Procedure[str]):
 		return self.on_method_type(node, symbol, decorators, parameters, return_decl, statements, node.class_symbol.tokens)
 
 	def on_constructor(self, node: defs.Constructor, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, statements: list[str]) -> str:
-		add_vars = {'initializer': [], 'class_symbol': node.class_symbol.tokens}
-		for var in node.this_vars:
+		add_vars = {'class_symbol': node.class_symbol.tokens, 'initializer': []}
+
+		# XXX メンバー変数の宣言用のデータを生成
+		this_vars = node.this_vars
+		for var in this_vars:
 			var_symbol = var.symbol.as_a(defs.ThisDeclVar)
 			add_vars['initializer'].append({'symbol': var_symbol.tokens_without_this, 'value': var.value.tokens})
 
+		# XXX メンバー変数の初期化ステートメントを除外
 		without_initializer_statements = []
-		for statement in node.statements:
-			if statement not in node.this_vars:
-				without_initializer_statements.append(statement)
+		for index, statement in enumerate(node.statements):
+			if statement not in this_vars:
+				without_initializer_statements.append(statements[index])
 
 		return self.view.render(node.classification, vars={'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'statements': without_initializer_statements, **add_vars})
 
@@ -90,14 +95,14 @@ class Handler(Procedure[str]):
 		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'statements': statements, 'binded_this': node.binded_this})
 
 	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], parents: list[str], statements: list[str]) -> str:
-		# FIXME メンバー変数の展開方法を再検討
+		# FIXME メンバー変数の展開方法を検討
 		vars: list[dict[str, str]] = []
 		for var in node.vars:
 			if isinstance(var, defs.AnnoAssign):
 				var_symbol = var.symbol.as_a(defs.ThisDeclVar)
 				vars.append({'access': 'public', 'symbol': var_symbol.tokens_without_this, 'var_type': var.var_type.tokens, 'value': var.value.tokens})
 			else:
-				raise LogicError(f'Not supported this var declaration. symbol: {var.symbol}')
+				raise LogicError(f'Not supported this var declaration. symbol: {var.symbol.fullyname}')
 
 		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'parents': parents, 'statements': statements, 'vars': vars})
 
@@ -120,8 +125,11 @@ class Handler(Procedure[str]):
 	# Statement - simple
 
 	def on_move_assign(self, node: defs.MoveAssign, receiver: str, value: str) -> str:
+		# XXX ローカル変数の宣言を伴うステートメントか判定
 		decl_vars = [decl_var for decl_var in node.parent.as_a(defs.Block).decl_vars_with(defs.LocalDeclVar)]
 		declared = len([decl_var for decl_var in decl_vars if decl_var == node]) > 0
+
+		# XXX 変数の型名を取得
 		var_type = ''
 		if declared:
 			value_type = self.symbols.type_of(node.value)
@@ -207,7 +215,7 @@ class Handler(Procedure[str]):
 		return self.view.render(node.classification, vars={'symbol': symbol, 'template_types': template_types})
 
 	def on_union_type(self, node: defs.UnionType, symbol: str, or_types: list[str]) -> str:
-		raise NotImplementedError(f'Not supported UnionType. via: {node}')
+		raise NotImplementedError(f'Not supported UnionType. symbol: {node.fullyname}')
 
 	def on_null_type(self, node: defs.NullType) -> str:
 		return 'void'

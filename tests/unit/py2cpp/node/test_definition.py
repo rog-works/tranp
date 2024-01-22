@@ -319,8 +319,8 @@ class TestDefinition(TestCase):
 		('a: list[int] = []', 'file_input.assign_stmt.anno_assign.typed_getitem', defs.ListType),
 		('a: list[int] = []', 'file_input.assign_stmt.anno_assign.typed_getitem.typed_var', defs.GeneralType),
 		('a: dict[str, int] = {}', 'file_input.assign_stmt.anno_assign.typed_getitem', defs.DictType),
-		('a: dict[str, int] = {}', 'file_input.assign_stmt.anno_assign.typed_getitem.typed_slices.typed_slice[0].typed_var', defs.GeneralType),
-		('a: dict[str, int] = {}', 'file_input.assign_stmt.anno_assign.typed_getitem.typed_slices.typed_slice[1].typed_var', defs.GeneralType),
+		('a: dict[str, int] = {}', 'file_input.assign_stmt.anno_assign.typed_getitem.typed_slices.typed_var[0]', defs.GeneralType),
+		('a: dict[str, int] = {}', 'file_input.assign_stmt.anno_assign.typed_getitem.typed_slices.typed_var[1]', defs.GeneralType),
 		('a: str | None = None', 'file_input.assign_stmt.anno_assign.typed_or_expr', defs.UnionType),
 		('a: str | None = None', 'file_input.assign_stmt.anno_assign.typed_or_expr.typed_var', defs.GeneralType),
 		('a: str | None = None', 'file_input.assign_stmt.anno_assign.typed_or_expr.typed_none', defs.NullType),
@@ -356,12 +356,12 @@ class TestDefinition(TestCase):
 		self.assertEqual(node.value_type.tokens, expected['value_type'])
 
 	@data_provider([
-		('def func() -> Callable[[], None]: ...', 'file_input.function_def.function_def_raw.return_type.typed_getitem.typed_slices.typed_slice[0].typed_list', []),
-		('def func() -> Callable[[str], None]: ...', 'file_input.function_def.function_def_raw.return_type.typed_getitem.typed_slices.typed_slice[0].typed_list', [defs.GeneralType]),
-		('def func() -> Callable[[str, int], None]: ...', 'file_input.function_def.function_def_raw.return_type.typed_getitem.typed_slices.typed_slice[0].typed_list', [defs.GeneralType, defs.GeneralType]),
-		('def func() -> Callable[[str, list[int]], None]: ...', 'file_input.function_def.function_def_raw.return_type.typed_getitem.typed_slices.typed_slice[0].typed_list', [defs.GeneralType, defs.ListType]),
-		# ('def func() -> Callable[[...], None]: ...', 'file_input.function_def.function_def_raw.return_type.typed_getitem.typed_slices.typed_slice[0].typed_list', [defs.GeneralType, defs.ListType]), XXX Elipsisは一旦非対応
-		('def func(f: Callable[[int], None]) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.typed_getitem.typed_slices.typed_slice[0].typed_list', [defs.GeneralType]),
+		('def func() -> Callable[[], None]: ...', 'file_input.function_def.function_def_raw.return_type.typed_getitem.typed_slices.typed_list', []),
+		('def func() -> Callable[[str], None]: ...', 'file_input.function_def.function_def_raw.return_type.typed_getitem.typed_slices.typed_list', [defs.GeneralType]),
+		('def func() -> Callable[[str, int], None]: ...', 'file_input.function_def.function_def_raw.return_type.typed_getitem.typed_slices.typed_list', [defs.GeneralType, defs.GeneralType]),
+		('def func() -> Callable[[str, list[int]], None]: ...', 'file_input.function_def.function_def_raw.return_type.typed_getitem.typed_slices.typed_list', [defs.GeneralType, defs.ListType]),
+		# ('def func() -> Callable[[...], None]: ...', 'file_input.function_def.function_def_raw.return_type.typed_getitem.typed_slices.typed_list', [defs.GeneralType, defs.ListType]), XXX Elipsisは一旦非対応
+		('def func(f: Callable[[int], None]) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.typed_getitem.typed_slices.typed_list', [defs.GeneralType]),
 	])
 	def test_type_parameters(self, source: str, full_path: str, expecteds: list[type[defs.Type]]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.TypeParameters)

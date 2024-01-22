@@ -262,7 +262,7 @@ class Indexer(Node):
 	@property
 	@Meta.embed(Node, expandable)
 	def key(self) -> Node:
-		return self._by('slices.slice')._at(0)
+		return self._children('slices')[0]
 
 
 class Type(Node, ITerminal, IDomainName):
@@ -304,7 +304,7 @@ class GeneralType(Type):
 class GenericType(Type):
 	@property
 	def template_types(self) -> list[Type]:
-		return [node.as_a(Type) for node in self._by('typed_slices')._under_expand()]
+		return [node.as_a(Type) for node in self._children('typed_slices')]
 
 	@property
 	def primary_type(self) -> Type:
@@ -356,17 +356,17 @@ class CallableType(GenericType):
 	@override
 	def match_feature(cls, via: GenericType) -> bool:
 		children = via._children('typed_slices')
-		return len(children) == 2 and children[0]._exists('typed_list')
+		return len(children) == 2 and children[0].is_a(TypeParameters)
 
 	@property
 	@Meta.embed(Node, expandable)
 	def parameters(self) -> list[Type]:
-		return self._by('typed_slices.typed_slice[0].typed_list').as_a(TypeParameters).type_params
+		return self.template_types[0].as_a(TypeParameters).type_params
 
 	@property
 	@Meta.embed(Node, expandable)
 	def return_decl(self) -> Type:
-		return self._by('typed_slices.typed_slice[1]')._at(0).as_a(Type)
+		return self.template_types[1]
 
 
 @Meta.embed(Node, actualized(via=GenericType))

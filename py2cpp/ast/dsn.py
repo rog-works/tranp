@@ -59,6 +59,26 @@ class DSN:
 		return cls.join(*(cls.elements(origin)[-counts:]))
 
 	@classmethod
+	def shift(cls, origin: str, skip: int) -> str:
+		"""指定方向分要素を除外しドメイン名を生成
+
+		Args:
+			origin (str): ドメイン名
+			skip (int): 移動方向
+		Returns:
+			str: ドメイン名
+		"""
+		elems = cls.elements(origin)
+		if skip == 0:
+			pass
+		elif skip > 0:
+			elems = elems[skip:]
+		elif skip < 1:
+			elems = elems[:skip]
+
+		return cls.join(*elems)
+
+	@classmethod
 	def root(cls, origin: str) -> str:
 		"""ルート要素を取得
 

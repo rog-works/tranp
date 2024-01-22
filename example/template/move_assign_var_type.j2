@@ -1,0 +1,7 @@
+{%- if types.startswith('list') -%}
+std::vector<{{ types[5:-1] }}>
+{%- elif types.startswith('dict') -%}
+std::map<{{ types[5:-1] }}>
+{%- else -%}
+{{ types }}
+{%- endif -%}

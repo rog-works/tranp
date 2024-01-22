@@ -16,33 +16,33 @@ class Box3d {
 };
 class CellMesh {
 	enum class VertexIndexs {
-		BottomBackLeft = 0,
-		BottomBackRight = 1,
-		BottomFrontLeft = 2,
-		BottomFrontRight = 3,
-		TopBackLeft = 4,
-		TopBackRight = 5,
-		TopFrontLeft = 6,
-		TopFrontRight = 7,
-		Max = 8,
+		int BottomBackLeft = 0,
+		int BottomBackRight = 1,
+		int BottomFrontLeft = 2,
+		int BottomFrontRight = 3,
+		int TopBackLeft = 4,
+		int TopBackRight = 5,
+		int TopFrontLeft = 6,
+		int TopFrontRight = 7,
+		int Max = 8,
 	};
 	enum class FaceIndexs {
-		Left = 0,
-		Right = 1,
-		Back = 2,
-		Front = 3,
-		Bottom = 4,
-		Top = 5,
-		Max = 6,
+		int Left = 0,
+		int Right = 1,
+		int Back = 2,
+		int Front = 3,
+		int Bottom = 4,
+		int Top = 5,
+		int Max = 6,
 	};
 	classmethod()
 	public: static Vector from_cell(IntVector cell, int unit = 100) {
 		cell.x = cell.x * unit;
 		cell.y = cell.y * unit;
 		cell.z = cell.z * unit;
-		fx = float(cell.x);
-		fy = float(cell.y);
-		fz = float(cell.z);
+		float fx = float(cell.x);
+		float fy = float(cell.y);
+		float fz = float(cell.z);
 		return Vector(fx, fy, fz);
 	}
 	classmethod()
@@ -59,15 +59,15 @@ class CellMesh {
 	}
 	classmethod()
 	public: static Box3d to_cell_box(IntVector cell, int unit) {
-		minLocation = cls.from_cell(cell, unit);
-		maxLocation = cls.from_cell(cell + IntVector(1, 1, 1), unit);
+		Vector minLocation = CellMesh.from_cell(cell, unit);
+		Vector maxLocation = CellMesh.from_cell(cell + IntVector(1, 1, 1), unit);
 		return Box3d(minLocation, maxLocation);
 	}
 	classmethod()
 	public: static std::vector<Box3d> to_vertex_boxs(Box3d cellBox, int unit) {
-		offset = unit / 10;
-		min = cellBox.min;
-		max = cellBox.max;
+		int offset = unit / 10;
+		Vector min = cellBox.min;
+		Vector max = cellBox.max;
 		std::vector<Vector> positions = {
 			{Vector(min.x, min.y, min.z)},
 			{Vector(max.x, min.y, min.z)},
@@ -98,15 +98,15 @@ class CellMesh {
 			{-1},
 		};
 		auto closure = [&](MeshRaw origin) -> void {
-			cellBox = cls.to_cell_box(cell, unit);
-			boxs = cls.to_vertex_boxs(cellBox, unit);
+			Box3d cellBox = CellMesh.to_cell_box(cell, unit);
+			std::vector<Box3d> boxs = CellMesh.to_vertex_boxs(cellBox, unit);
 			for (auto i : range(int(CellMesh.VertexIndexs.Max))) {
-				box = boxs[i];
+				Box3d box = boxs[i];
 				for (auto vi : origin.vertex_indices_itr()) {
 					if (!origin.is_vertex(vi)) {
 						continue;
 					}
-					v = origin.get_vertex(vi);
+					Vector v = origin.get_vertex(vi);
 					if (box.contains(v)) {
 						outIds[i] = vi;
 						break;

@@ -4,6 +4,7 @@ import sys
 from py2cpp.analize.procedure import Procedure
 from py2cpp.analize.symbols import Symbols
 from py2cpp.app.app import App
+from py2cpp.ast.dsn import DSN
 from py2cpp.ast.parser import ParserSetting
 from py2cpp.lang.error import stacktrace
 from py2cpp.lang.module import fullyname
@@ -41,6 +42,9 @@ class Handler(Procedure[str]):
 		return self.view.render('block', vars={'statements': statements})
 
 	# Statement - compound
+
+	def on_block(self, node: defs.Block, statements: list[str]) -> str:
+		return self.view.render(node.classification, vars={'statements': statements})
 
 	def on_if(self, node: defs.If, condition: str, block: str, else_ifs: list[str], else_block: str) -> str:
 		return self.view.render(node.classification, vars={'condition': condition, 'block': block, 'else_ifs': else_ifs, 'else_block': else_block})
@@ -108,9 +112,6 @@ class Handler(Procedure[str]):
 	def on_decorator(self, node: defs.Decorator, symbol: str, arguments: list[str]) -> str:
 		return self.view.render(node.classification, vars={'symbol': symbol, 'arguments': arguments})
 
-	def on_block(self, node: defs.Block, statements: list[str]) -> str:
-		return self.view.render(node.classification, vars={'statements': statements})
-
 	# Statement - simple
 
 	def on_move_assign(self, node: defs.MoveAssign, receiver: str, value: str) -> str:
@@ -119,7 +120,7 @@ class Handler(Procedure[str]):
 		var_type = ''
 		if declared:
 			value_type = self.symbols.type_of(node.value)
-			var_type = value_type.types.symbol.fullyname
+			var_type = self.view.render('move_assign_var_type', vars={'types': str(value_type)})
 
 		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': value})
 

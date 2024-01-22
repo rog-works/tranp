@@ -3,7 +3,7 @@ from typing import Protocol
 from py2cpp.node.node import Node
 
 
-class IDeclable:
+class IDeclare:
 	"""シンボルとして定義されるノードの共通インターフェイス"""
 
 	@property

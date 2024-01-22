@@ -4,11 +4,11 @@ from py2cpp.node.definition.primary import DecoratorPath, Declable, Type
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, expandable
 from py2cpp.node.node import Node
-from py2cpp.node.promise import IDeclable
+from py2cpp.node.promise import IDeclare
 
 
 @Meta.embed(Node, accept_tags('paramvalue'))
-class Parameter(Node, IDeclable):
+class Parameter(Node, IDeclare):
 	@property
 	@override
 	@Meta.embed(Node, expandable)

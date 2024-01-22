@@ -10,7 +10,7 @@ from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
 from py2cpp.node.interface import IDomainName, ITerminal
 from py2cpp.node.node import Node
-from py2cpp.node.promise import IDeclable
+from py2cpp.node.promise import IDeclare
 
 
 @Meta.embed(Node, accept_tags('getattr', 'var', 'name'))
@@ -212,7 +212,7 @@ class ClassVar(Var):
 
 	@property
 	def class_symbol(self) -> Declable:
-		return cast(IDeclable, self._ancestor('class_def')).symbol.as_a(Declable)
+		return cast(IDeclare, self._ancestor('class_def')).symbol.as_a(Declable)
 
 
 @Meta.embed(Node, actualized(via=Fragment))
@@ -265,7 +265,7 @@ class Indexer(Node):
 		return self._children('slices')[0]
 
 
-class Type(Node, ITerminal, IDomainName, IDeclable):
+class Type(Node, ITerminal, IDomainName):
 	@property
 	@implements
 	def can_expand(self) -> bool:

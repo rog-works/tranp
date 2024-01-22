@@ -13,7 +13,7 @@ from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
 from py2cpp.node.interface import IDomainName, IScope
 from py2cpp.node.node import Node, T_Node
-from py2cpp.node.promise import IDeclable, StatementBlock
+from py2cpp.node.promise import IDeclare, StatementBlock
 
 
 @Meta.embed(Node, accept_tags('block'))
@@ -119,7 +119,7 @@ class While(Flow):
 
 
 @Meta.embed(Node, accept_tags('for_stmt'))
-class For(Flow, IDeclable):
+class For(Flow, IDeclare):
 	@property
 	@override
 	@Meta.embed(Node, expandable)
@@ -142,7 +142,7 @@ class For(Flow, IDeclable):
 
 
 @Meta.embed(Node, accept_tags('except_clause'))
-class Catch(Flow, IDeclable):
+class Catch(Flow, IDeclare):
 	@property
 	@Meta.embed(Node, expandable)
 	def var_type(self) -> Type:
@@ -187,7 +187,7 @@ class Try(Flow):
 		return [self.block, *[catch.block for catch in self.catches]]
 
 
-class ClassKind(Node, IDomainName, IScope, IDeclable):
+class ClassKind(Node, IDomainName, IScope, IDeclare):
 	@property
 	@override
 	def public_name(self) -> str:

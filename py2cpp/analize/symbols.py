@@ -312,6 +312,7 @@ class Symbols:
 			LogicError: 未定義のシンボルを指定
 		"""
 		if isinstance(node, defs.For):
+			# iteratesはIteratorなので、必ずプライマリーの属性の型になる
 			return self.__resolve_procedural(node.iterates).attrs[0]
 		else:
 			# defs.Catch

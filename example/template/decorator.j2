@@ -1,6 +1,8 @@
+{%- if symbol not in ['classmethod', 'abstractmethod'] %}
 {{- symbol -}}(
 	{%- for argument in arguments -%}
 		{%- if loop.index0 > 0 %}, {% endif -%}
 		{{- argument -}}
 	{%- endfor -%}
 )
+{%- endif %}

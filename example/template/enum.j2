@@ -1,5 +1,7 @@
 enum class {{ symbol }} {
 {%- filter indent('\t') %}
-{{ block|replace(';', ',') }}
+{%- for statement in statements %}
+{{ statement | replace(';', ',') }}
+{%- endfor %}
 {%- endfilter %}
 };

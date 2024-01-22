@@ -75,6 +75,10 @@ class ElseIf(Flow):
 
 	@property
 	@Meta.embed(Node, expandable)
+	def statements(self) -> list[Node]:
+		return self.block.statements
+
+	@property
 	def block(self) -> Block:
 		return self._by('block').as_a(Block)
 
@@ -88,8 +92,8 @@ class If(Flow):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def block(self) -> Block:
-		return self._at(1).as_a(Block)
+	def statements(self) -> list[Node]:
+		return self.block.statements
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -98,6 +102,15 @@ class If(Flow):
 
 	@property
 	@Meta.embed(Node, expandable)
+	def else_statements(self) -> list[Node]:
+		block = self.else_block
+		return block.statements if isinstance(block, Block) else []
+	
+	@property
+	def block(self) -> Block:
+		return self._at(1).as_a(Block)
+
+	@property
 	def else_block(self) -> Block | Empty:
 		return self._at(3).one_of(Block | Empty)
 
@@ -122,6 +135,10 @@ class While(Flow):
 
 	@property
 	@Meta.embed(Node, expandable)
+	def statements(self) -> list[Node]:
+		return self.block.statements
+
+	@property
 	def block(self) -> Block:
 		return self._by('block').as_a(Block)
 
@@ -140,6 +157,10 @@ class For(Flow):
 
 	@property
 	@Meta.embed(Node, expandable)
+	def statements(self) -> list[Node]:
+		return self.block.statements
+
+	@property
 	def block(self) -> Block:
 		return self._by('block').as_a(Block)
 
@@ -159,6 +180,10 @@ class Catch(Flow):
 
 	@property
 	@Meta.embed(Node, expandable)
+	def statements(self) -> list[Node]:
+		return self.block.statements
+
+	@property
 	def block(self) -> Block:
 		return self._by('block').as_a(Block)
 
@@ -167,13 +192,17 @@ class Catch(Flow):
 class Try(Flow):
 	@property
 	@Meta.embed(Node, expandable)
-	def block(self) -> Block:
-		return self._by('block').as_a(Block)
+	def statements(self) -> list[Node]:
+		return self.block.statements
 
 	@property
 	@Meta.embed(Node, expandable)
 	def catches(self) -> list[Catch]:
 		return [node.as_a(Catch) for node in self._by('except_clauses')._children()]
+
+	@property
+	def block(self) -> Block:
+		return self._by('block').as_a(Block)
 
 	@property
 	def having_blocks(self) -> list[Block]:
@@ -208,22 +237,6 @@ class ClassKind(Node, IDomainName, IScope):
 		return DSN.join(self.scope, self.domain_name)
 
 	@property
-	def symbol(self) -> Declable:
-		raise NotImplementedError()
-
-	@property
-	def block(self) -> Block:
-		raise NotImplementedError()
-
-	@property
-	def generic_types(self) -> list[Type]:
-		"""Note: XXX 未使用"""
-		return []
-
-
-@Meta.embed(Node, accept_tags('function_def'))
-class Function(ClassKind):
-	@property
 	def access(self) -> str:
 		name = self.symbol.tokens
 		# XXX 定数化などが必要
@@ -237,12 +250,60 @@ class Function(ClassKind):
 			return 'public'
 
 	@property
+	def symbol(self) -> Declable:
+		raise NotImplementedError()
+
+	@property
+	def decorators(self) -> list[Decorator]:
+		raise NotImplementedError()
+
+	@property
+	def statements(self) -> list[Node]:
+		raise NotImplementedError()
+
+	@property
+	def block(self) -> Block:
+		raise NotImplementedError()
+
+	@property
+	def generic_types(self) -> list[Type]:
+		"""Note: XXX 未使用"""
+		return []
+
+	def _alias_symbol(self) -> str | None:
+		"""デコレーターで設定した別名をシンボル名として取り込む
+
+		Returns:
+			str | None: 別名
+		Examples:
+			```python
+			@__alias__('int')
+			class Integer: ...
+			```
+		"""
+		decorators = self.decorators
+		if len(decorators) == 0:
+			return None
+
+		decorator = decorators[0]
+		if not decorator.symbol.tokens.startswith('__alias__'):
+			return None
+
+		return decorator.arguments[0].value.as_a(String).plain
+
+
+@Meta.embed(Node, accept_tags('function_def'))
+class Function(ClassKind):
+	@property
 	@override
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Declable:
-		return self._by('function_def_raw.name').as_a(Declable)
+		symbol = self._by('function_def_raw.name').as_a(Declable)
+		alias = self._alias_symbol()
+		return symbol if not alias else symbol.dirty_proxify(tokens=alias).as_a(Declable)
 
 	@property
+	@override
 	@Meta.embed(Node, expandable)
 	def decorators(self) -> list[Decorator]:
 		return [node.as_a(Decorator) for node in self._children('decorators')] if self._exists('decorators') else []
@@ -263,6 +324,11 @@ class Function(ClassKind):
 	@property
 	@override
 	@Meta.embed(Node, expandable)
+	def statements(self) -> list[Node]:
+		return self.block.statements
+
+	@property
+	@override
 	def block(self) -> Block:
 		return self._by('function_def_raw.block').as_a(Block)
 
@@ -354,31 +420,11 @@ class Class(ClassKind):
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Declable:
 		symbol = self._by('class_def_raw.name').as_a(Declable)
-		alias = self.__alias_symbol()
+		alias = self._alias_symbol()
 		return symbol if not alias else symbol.dirty_proxify(tokens=alias).as_a(Declable)
 
-	def __alias_symbol(self) -> str | None:
-		"""デコレーターで設定した別名をシンボル名として取り込む
-
-		Returns:
-			str | None: 別名
-		Examples:
-			```python
-			@__alias__('int')
-			class Integer: ...
-			```
-		"""
-		decorators = self.decorators
-		if len(decorators) == 0:
-			return None
-
-		decorator = decorators[0]
-		if not decorator.symbol.tokens.startswith('__alias__'):
-			return None
-
-		return decorator.arguments[0].value.as_a(String).plain
-
 	@property
+	@override
 	@Meta.embed(Node, expandable)
 	def decorators(self) -> list[Decorator]:
 		return [node.as_a(Decorator) for node in self._children('decorators')] if self._exists('decorators') else []
@@ -393,7 +439,12 @@ class Class(ClassKind):
 		return [node.as_a(InheritArgument).class_type.as_a(Type) for node in parents._children()]  # XXX as_a(Type)を消す
 
 	@property
+	@override
 	@Meta.embed(Node, expandable)
+	def statements(self) -> list[Node]:
+		return self.block.statements
+
+	@property
 	@override
 	def block(self) -> Block:
 		return self._by('class_def_raw.block').as_a(Block)
@@ -407,20 +458,20 @@ class Class(ClassKind):
 
 	@property
 	def constructor_exists(self) -> bool:
-		candidates = [node.as_a(Constructor) for node in self.block._children() if node.is_a(Constructor)]
+		candidates = [node.as_a(Constructor) for node in self.statements if node.is_a(Constructor)]
 		return len(candidates) == 1
 
 	@property
 	def constructor(self) -> Constructor:
-		return [node.as_a(Constructor) for node in self.block._children() if node.is_a(Constructor)].pop()
+		return [node.as_a(Constructor) for node in self.statements if node.is_a(Constructor)].pop()
 
 	@property
 	def class_methods(self) -> list[ClassMethod]:
-		return [node.as_a(ClassMethod) for node in self.block._children() if node.is_a(ClassMethod)]
+		return [node.as_a(ClassMethod) for node in self.statements if node.is_a(ClassMethod)]
 
 	@property
 	def methods(self) -> list[Method]:
-		return [node.as_a(Method) for node in self.block._children() if node.is_a(Method)]
+		return [node.as_a(Method) for node in self.statements if node.is_a(Method)]
 
 	@property
 	def vars(self) -> list[AnnoAssign | MoveAssign]:
@@ -449,11 +500,16 @@ class Enum(ClassKind):
 		return self._by('name').as_a(Declable)
 
 	@property
+	@override
 	@Meta.embed(Node, expandable)
+	def statements(self) -> list[Node]:
+		return self.block.statements
+
+	@property
 	@override
 	def block(self) -> Block:
 		return self._by('block').as_a(Block)
 
 	@property
 	def vars(self) -> list[AnnoAssign | MoveAssign]:
-		return [node.one_of(AnnoAssign | MoveAssign) for node in self.block._children() if node.is_a(AnnoAssign, MoveAssign)]
+		return [node.one_of(AnnoAssign | MoveAssign) for node in self.statements if node.is_a(AnnoAssign, MoveAssign)]

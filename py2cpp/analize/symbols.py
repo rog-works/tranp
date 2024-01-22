@@ -401,7 +401,7 @@ class Symbols:
 
 class ProceduralResolver(Procedure[Symbol]):
 	def __init__(self, symbols: Symbols) -> None:
-		super().__init__()
+		super().__init__(verbose=True)
 		self.symbols = symbols
 
 	# Fallback
@@ -492,7 +492,8 @@ class ProceduralResolver(Procedure[Symbol]):
 		if isinstance(calls.types, defs.Constructor):
 			return self.symbols.type_of_var(calls.types.class_symbol)
 		elif isinstance(calls.types, defs.Function):
-			return self.symbols.resolve(calls.types.return_decl.var_type)
+			# XXX type_ofを使うと無限再帰になりやすいため別案を検討
+			return self.symbols.type_of(calls.types.return_decl.var_type)
 		# defs.ClassKind
 		else:
 			return calls

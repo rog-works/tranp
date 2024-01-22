@@ -14,6 +14,5 @@ if ({{ condition }}) {
 {%- filter indent('\t') %}
 {%- if loop.index0 > 0 %}{{ '\n' }}{% endif %}
 {{ else_statement }}
-{%- endfor %}
 {%- endfilter %}
 {%- endfor %}

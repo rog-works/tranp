@@ -53,16 +53,29 @@ class Symbol:
 
 	@override
 	def __repr__(self) -> str:
-		"""オブジェクトの文字列表現を取得
+		"""オブジェクトのシリアライズ表現を取得
 
 		Returns:
-			str: 文字列表現
+			str: シリアライズ表現
 		"""
 		data = {
 			'types': self.types.fullyname,
 			'attrs': [attr.__repr__() for attr in self.attrs],
 		}
 		return str(data)
+
+	@override
+	def __str__(self) -> str:
+		"""オブジェクトの文字列表現を取得
+
+		Returns:
+			str: 文字列表現
+		"""
+		if len(self.attrs) > 0:
+			attrs = [str(attr) for attr in self.attrs]
+			return f'{self.types.public_name}[{', '.join(attrs)}]'
+		else:
+			return f'{self.types.public_name}'
 
 
 class Symbols:
@@ -402,11 +415,11 @@ class ProceduralResolver(Procedure[Symbol]):
 		return var_type
 
 	def on_move_assign(self, node: defs.MoveAssign, receiver: Symbol, value: Symbol) -> Symbol:
-		return value
+		return receiver
 
 	def on_aug_assign(self, node: defs.AugAssign, receiver: Symbol, value: Symbol) -> Symbol:
 		"""Note: XXX operatorに型はないので引数からは省略"""
-		return value
+		return receiver
 
 
 	# Element

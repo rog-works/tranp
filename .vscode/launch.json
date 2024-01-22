@@ -84,9 +84,9 @@
 			"module":"py2cpp.bin.analize",
 			"args": [
 				"-g", "data/grammar.lark",
-				"-s", "example/example.py",
+				"-s", "tests/unit/py2cpp/analize/fixtures/test_symbols.py",
 				"-a", "type",
-				"-n", "__main__.CellMesh.by_vertex_ids.closure.boxs",
+				"-n", "__main__.B.func2.closure.b",
 			],
 			"cwd": "${workspaceFolder}",
 			"windows": {

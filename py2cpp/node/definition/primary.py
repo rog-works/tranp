@@ -256,8 +256,8 @@ class DecoratorPath(Path):
 class Indexer(Node):
 	@property
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> Reference:  # XXX symbol以外の名前を検討
-		return self._at(0).as_a(Reference)
+	def symbol(self) -> 'Reference | FuncCall':  # XXX symbol以外の名前を検討
+		return self._at(0).one_of(Reference | FuncCall)
 
 	@property
 	@Meta.embed(Node, expandable)

@@ -32,10 +32,10 @@ class B(A):
 		if a:
 			a = a + 1
 
-		def closure() -> int:
-			b = self.v[0]
+		def closure() -> list[int]:
+			b = self.v
 			return b
 
-		return closure()
+		return closure()[0]
 
 d = {'s': v}

@@ -55,7 +55,7 @@ def action_db(db: SymbolDB) -> None:
 
 
 def action_type(args: Args, symbols: Symbols) -> None:
-	print(f'{args.name}:', f'{symbols.from_fullyname(args.name)}')
+	print(f'{args.name}:', f'{str(symbols.from_fullyname(args.name))}')
 
 
 def task(args: Args, locator: Locator) -> None:

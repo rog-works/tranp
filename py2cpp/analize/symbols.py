@@ -401,7 +401,7 @@ class Symbols:
 
 class ProceduralResolver(Procedure[Symbol]):
 	def __init__(self, symbols: Symbols) -> None:
-		super().__init__(verbose=True)
+		super().__init__(verbose=False)
 		self.symbols = symbols
 
 	# Fallback

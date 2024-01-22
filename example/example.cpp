@@ -5,7 +5,6 @@
 class Box3d {
 	public: Vector self.min;
 	public: Vector self.max;
-
 	public: Box3d(Vector min, Vector max) : min(min), max(max) {
 		Vector this.min = min;
 		Vector this.max = max;

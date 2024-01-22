@@ -339,7 +339,7 @@ class Node:
 		Args:
 			to_class (type[T_Node]): 変換先の具象クラス
 		Returns:
-			list[str]: 受け入れタグリスト
+			bool: True = 受け入れ出来る
 		"""
 		accept_tags = self.__accept_tags(to_class)
 		return len(accept_tags) == 0 or self.tag in accept_tags

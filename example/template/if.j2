@@ -1,10 +1,19 @@
 if ({{ condition }}) {
 {%- filter indent('\t') %}
-{{ block }}
+{%- for statement in statements %}
+{{ statement }}
+{%- endfor %}
 {%- endfilter %}
 }
 {%- for else_if in else_ifs %}
 {%- filter indent('\t') %}
 {{ else_if }}
+{%- endfilter %}
+{%- endfor %}
+{%- for else_statement in else_statements %}
+{%- filter indent('\t') %}
+{%- if loop.index0 > 0 %}{{ '\n' }}{% endif %}
+{{ else_statement }}
+{%- endfor %}
 {%- endfilter %}
 {%- endfor %}

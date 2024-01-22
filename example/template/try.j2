@@ -1,6 +1,8 @@
 try {
 {%- filter indent('\t') %}
-{{ block }}
+{%- for statement in statements %}
+{{ statement }}
+{%- endfor %}
 {%- endfilter %}
 }
 {%- for catch in catches %}

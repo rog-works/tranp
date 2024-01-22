@@ -11,9 +11,10 @@ class {{ symbol }}
 {%- for var in vars %}
 	{{ var.access }}: {{ var.var_type }} {{ var.symbol }};
 {%- endfor -%}
-{{ '\n' }}
 {%- endif %}
 {%- filter indent('\t') %}
-{{ block }}
+{%- for statement in statements %}
+{{ statement }}
+{%- endfor %}
 {%- endfilter %}
 };

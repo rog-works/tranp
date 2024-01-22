@@ -3,7 +3,7 @@ from typing import TypeAlias
 from py2cpp.analize.db import SymbolDB, SymbolRaw
 from py2cpp.analize.procedure import Procedure
 from py2cpp.ast.dsn import DSN
-from py2cpp.errors import LogicError, NotFoundError
+from py2cpp.errors import FatalError, LogicError, NotFoundError
 from py2cpp.lang.implementation import injectable, override
 from py2cpp.module.types import ModulePath
 import py2cpp.node.definition as defs
@@ -192,6 +192,8 @@ class Symbols:
 			return self.__from_class(node)
 		elif isinstance(node, defs.Literal):
 			return self.__from_literal(node)
+		elif isinstance(node, (defs.For, defs.Catch)):
+			return self.__from_flow(node)
 		else:
 			return self.__resolve_procedural(node)
 
@@ -221,18 +223,18 @@ class Symbols:
 		Note:
 			# このメソッドの目的
 			* Generic型のサブタイプの解決(シンボル宣言・参照ノード由来)
-			* MoveAssign/Forの宣言型の解決(シンボル宣言・参照ノード由来)
+			* MoveAssignの宣言型の解決(シンボル宣言・参照ノード由来)
 			@see resolve
 		"""
 		decl = symbol.raw.decl
-		if isinstance(decl, (defs.AnnoAssign, defs.Parameter, defs.Catch)):
+		if isinstance(decl, (defs.AnnoAssign, defs.Parameter)):
 			return self.__from_type(decl.var_type) if isinstance(decl.var_type, defs.GenericType) else symbol
 		elif isinstance(decl, defs.MoveAssign):
 			return self.__resolve_procedural(decl.value)
-		elif isinstance(decl, defs.For):
-			return self.__resolve_procedural(decl.iterates)
-		# defs.ClassKind
+		elif isinstance(decl, (defs.For, defs.Catch)):
+			return self.__from_flow(decl)
 		else:
+			# defs.ClassKind
 			return symbol
 
 	def __from_declable(self, node: defs.Declable) -> Symbol:
@@ -259,8 +261,8 @@ class Symbols:
 		"""
 		if isinstance(node, defs.Var):
 			return self.type_of_var(node)
-		# defs.Relay
 		else:
+			# defs.Relay
 			return self.__resolve_procedural(node)
 
 	def __from_type(self, node: defs.Type) -> Symbol:
@@ -298,6 +300,22 @@ class Symbols:
 			LogicError: 未定義のシンボルを指定
 		"""
 		return self.resolve(node)
+
+	def __from_flow(self, node: defs.For | defs.Catch) -> Symbol:
+		"""制御構文ノードからシンボルを解決
+
+		Args:
+			node (For | Catch): 制御構文ノード
+		Returns:
+			Symbol: シンボル
+		Raises:
+			LogicError: 未定義のシンボルを指定
+		"""
+		if isinstance(node, defs.For):
+			return self.__resolve_procedural(node.iterates).attrs[0]
+		else:
+			# defs.Catch
+			return self.__from_type(node.var_type)
 
 	def __resolve_procedural(self, node: Node) -> Symbol:
 		"""ノードを展開してシンボルを解決
@@ -421,7 +439,6 @@ class ProceduralResolver(Procedure[Symbol]):
 	def on_aug_assign(self, node: defs.AugAssign, receiver: Symbol, value: Symbol) -> Symbol:
 		"""Note: XXX operatorに型はないので引数からは省略"""
 		return receiver
-
 
 	# Element
 

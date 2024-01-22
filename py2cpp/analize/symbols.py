@@ -9,7 +9,6 @@ from py2cpp.module.types import ModulePath
 import py2cpp.node.definition as defs
 from py2cpp.node.node import Node
 
-Symbolic: TypeAlias = defs.Declable | defs.Reference | defs.Type | defs.Literal | defs.ClassKind
 Primitives: TypeAlias = int | str | bool | tuple | list | dict | None
 
 
@@ -317,7 +316,7 @@ class Symbols:
 
 		return resolver.result()
 
-	def resolve(self, symbolic: Symbolic, prop_name: str = '') -> Symbol:
+	def resolve(self, symbolic: defs.Symbolic, prop_name: str = '') -> Symbol:
 		"""シンボルテーブルからシンボルを解決
 
 		Args:
@@ -340,7 +339,7 @@ class Symbols:
 
 		raise LogicError(f'Symbol not defined. symbolic: {symbolic.fullyname}, prop_name: {prop_name}')
 
-	def __resolve_raw(self, symbolic: Symbolic, prop_name: str) -> SymbolRaw | None:
+	def __resolve_raw(self, symbolic: defs.Symbolic, prop_name: str) -> SymbolRaw | None:
 		"""シンボル系ノードからシンボルを解決。未検出の場合はNoneを返却
 
 		Args:
@@ -375,7 +374,7 @@ class Symbols:
 
 		return None
 
-	def __find_raw(self, symbolic: Symbolic, prop_name: str = '') -> SymbolRaw | None:
+	def __find_raw(self, symbolic: defs.Symbolic, prop_name: str = '') -> SymbolRaw | None:
 		"""シンボルデータを検索。未検出の場合はNoneを返却
 
 		Args:

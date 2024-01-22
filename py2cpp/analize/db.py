@@ -1,14 +1,11 @@
 from dataclasses import dataclass, field
-from typing import NamedTuple, TypeAlias
+from typing import NamedTuple
 
 from py2cpp.ast.dsn import DSN
 from py2cpp.errors import LogicError
 from py2cpp.lang.implementation import injectable
 from py2cpp.module.modules import Module, Modules
 import py2cpp.node.definition as defs
-
-DeclVar: TypeAlias = defs.Parameter | defs.AnnoAssign | defs.MoveAssign
-DeclAll: TypeAlias = defs.Parameter | defs.AnnoAssign | defs.MoveAssign | defs.ClassKind
 
 
 class SymbolRaw(NamedTuple):
@@ -27,7 +24,7 @@ class SymbolRaw(NamedTuple):
 	module: Module
 	symbol: defs.Declable
 	types: defs.ClassKind
-	decl: DeclAll
+	decl: defs.DeclAll
 
 	def to(self, module: Module) -> 'SymbolRaw':
 		"""展開先を変更したインスタンスを生成
@@ -49,11 +46,11 @@ class SymbolRaw(NamedTuple):
 		"""
 		return self.ref_path.replace(self.module.path, module.path)
 
-	def varnize(self, var: DeclVar) -> 'SymbolRaw':
+	def varnize(self, var: defs.DeclVars) -> 'SymbolRaw':
 		"""変数シンボル用のデータに変換
 
 		Args:
-			var (DeclVar): 変数宣言ノード
+			var (DeclVars): 変数宣言ノード
 		Returns:
 			SymbolRaw: インスタンス
 		"""
@@ -66,11 +63,11 @@ class Expanded:
 
 	Attributes:
 		raws (SymbolDB): シンボルテーブル
-		decl_vars (list[DeclVar]): 変数リスト
+		decl_vars (list[DeclVars]): 変数リスト
 		import_nodes (list[Import]): インポートリスト
 	"""
 	raws: dict[str, SymbolRaw] = field(default_factory=dict)
-	decl_vars: list[DeclVar] = field(default_factory=list)
+	decl_vars: list[defs.DeclVars] = field(default_factory=list)
 	import_nodes: list[defs.Import] = field(default_factory=list)
 
 
@@ -121,7 +118,7 @@ class SymbolDB:
 				for core_module in modules.libralies:
 					# 第1層で宣言されているシンボルに限定
 					entrypoint = core_module.entrypoint.as_a(defs.Entrypoint)
-					primary_symbol_names = [node.symbol.tokens for node in entrypoint.statements if isinstance(node, DeclAll)]
+					primary_symbol_names = [node.symbol.tokens for node in entrypoint.statements if isinstance(node, defs.DeclAll)]
 					expanded = expends[core_module]
 					filtered_db = {raw.path_to(expand_module): raw.to(expand_module) for raw in expanded.raws.values() if raw.symbol.tokens in primary_symbol_names}
 					expand_target.raws = {**filtered_db, **expand_target.raws}
@@ -157,7 +154,7 @@ class SymbolDB:
 			Expanded: 展開データ
 		"""
 		raws: dict[str, SymbolRaw] = {}
-		decl_vars: list[DeclVar] = []
+		decl_vars: list[defs.DeclVars] = []
 		import_nodes: list[defs.Import] = []
 		entrypoint = module.entrypoint.as_a(defs.Entrypoint)
 		for node in entrypoint.flatten():
@@ -179,11 +176,11 @@ class SymbolDB:
 
 		return Expanded(raws, decl_vars, import_nodes)
 
-	def __resolve_var_type(self, var: DeclVar, raws: dict[str, SymbolRaw]) -> SymbolRaw:
+	def __resolve_var_type(self, var: defs.DeclVars, raws: dict[str, SymbolRaw]) -> SymbolRaw:
 		"""シンボルテーブルから変数の型を解決
 
 		Args:
-			var (DeclVar): 変数宣言ノード
+			var (DeclVars): 変数宣言ノード
 			raws (dict[str, SymbolRaw]): シンボルテーブル
 		Returns:
 			SymbolRaw: シンボルデータ
@@ -203,11 +200,11 @@ class SymbolDB:
 
 		raise LogicError(f'Unresolve var type. var: {var}, domain: {domain_type.fullyname if domain_type is not None else "Unknown"}, candidates: {candidates}')
 
-	def __fetch_domain_type(self, var: DeclVar) -> defs.Type | defs.ClassKind | None:
+	def __fetch_domain_type(self, var: defs.DeclVars) -> defs.Type | defs.ClassKind | None:
 		"""変数の型のドメインを取得。型が不明な場合はNoneを返却
 
 		Args:
-			var (DeclVar): 変数宣言ノード
+			var (DeclVars): 変数宣言ノード
 		Returns:
 			Type | ClassKind | None: 型/クラス定義ノード。不明な場合はNone
 		"""

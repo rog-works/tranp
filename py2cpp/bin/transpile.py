@@ -43,51 +43,48 @@ class Handler(Procedure[str]):
 
 	# Statement - compound
 
-	def on_block(self, node: defs.Block, statements: list[str]) -> str:
-		return self.view.render(node.classification, vars={'statements': statements})
+	def on_if(self, node: defs.If, condition: str, statements: list[str], else_ifs: list[str], else_statements: list[str]) -> str:
+		return self.view.render(node.classification, vars={'condition': condition, 'statements': statements, 'else_ifs': else_ifs, 'else_statements': else_statements})
 
-	def on_if(self, node: defs.If, condition: str, block: str, else_ifs: list[str], else_block: str) -> str:
-		return self.view.render(node.classification, vars={'condition': condition, 'block': block, 'else_ifs': else_ifs, 'else_block': else_block})
+	def on_else_if(self, node: defs.ElseIf, condition: str, statements: str) -> str:
+		return self.view.render(node.classification, vars={'condition': condition, 'statements': statements})
 
-	def on_else_if(self, node: defs.ElseIf, condition: str, block: str) -> str:
-		return self.view.render(node.classification, vars={'condition': condition, 'block': block})
+	def on_while(self, node: defs.While, condition: str, statements: str) -> str:
+		return self.view.render(node.classification, vars={'condition': condition, 'statements': statements})
 
-	def on_while(self, node: defs.While, condition: str, block: str) -> str:
-		return self.view.render(node.classification, vars={'condition': condition, 'block': block})
+	def on_for(self, node: defs.For, symbol: str, iterates: str, statements: str) -> str:
+		return self.view.render(node.classification, vars={'symbol': symbol, 'iterates': iterates, 'statements': statements})
 
-	def on_for(self, node: defs.For, symbol: str, iterates: str, block: str) -> str:
-		return self.view.render(node.classification, vars={'symbol': symbol, 'iterates': iterates, 'block': block})
+	def on_try(self, node: defs.Try, statements: str, catches: list[str]) -> str:
+		return self.view.render(node.classification, vars={'statements': statements, 'catches': catches})
 
-	def on_try(self, node: defs.Try, block: str, catches: list[str]) -> str:
-		return self.view.render(node.classification, vars={'block': block, 'catches': catches})
+	def on_catch(self, node: defs.Catch, symbol: str, alias: str, statements: str) -> str:
+		return self.view.render(node.classification, vars={'symbol': symbol, 'alias': alias, 'statements': statements})
 
-	def on_catch(self, node: defs.Catch, symbol: str, alias: str, block: str) -> str:
-		return self.view.render(node.classification, vars={'symbol': symbol, 'alias': alias, 'block': block})
+	def on_function(self, node: defs.Function, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, statements: str) -> str:
+		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'statements': statements})
 
-	def on_function(self, node: defs.Function, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, block: str) -> str:
-		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'block': block})
+	def on_class_method(self, node: defs.ClassMethod, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, statements: str) -> str:
+		return self.on_method_type(node, symbol, decorators, parameters, return_decl, statements, node.class_symbol.tokens)
 
-	def on_class_method(self, node: defs.ClassMethod, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, block: str) -> str:
-		return self.on_method_type(node, symbol, decorators, parameters, return_decl, block, node.class_symbol.tokens)
-
-	def on_constructor(self, node: defs.Constructor, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, block: str) -> str:
+	def on_constructor(self, node: defs.Constructor, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, statements: str) -> str:
 		add_vars = {'initializer': [], 'class_symbol': node.class_symbol.tokens}
 		for var in node.this_vars:
 			var_symbol = var.symbol.as_a(defs.ThisDeclVar)
 			add_vars['initializer'].append({'symbol': var_symbol.tokens_without_this, 'value': var.value.tokens})
 
-		return self.view.render(node.classification, vars={'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'block': block, **add_vars})
+		return self.view.render(node.classification, vars={'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'statements': statements, **add_vars})
 
-	def on_method(self, node: defs.Method, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, block: str) -> str:
-		return self.on_method_type(node, symbol, decorators, parameters, return_decl, block, node.class_symbol.tokens)
+	def on_method(self, node: defs.Method, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, statements: str) -> str:
+		return self.on_method_type(node, symbol, decorators, parameters, return_decl, statements, node.class_symbol.tokens)
 
-	def on_method_type(self, node: defs.Function, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, block: str, class_symbol: str) -> str:
-		return self.view.render(node.classification, vars={'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'block': block, 'class_symbol': class_symbol})
+	def on_method_type(self, node: defs.Function, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, statements: str, class_symbol: str) -> str:
+		return self.view.render(node.classification, vars={'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'statements': statements, 'class_symbol': class_symbol})
 
-	def on_closure(self, node: defs.Closure, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, block: str) -> str:
-		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'block': block, 'binded_this': node.binded_this})
+	def on_closure(self, node: defs.Closure, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, statements: str) -> str:
+		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'statements': statements, 'binded_this': node.binded_this})
 
-	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], parents: list[str], block: str) -> str:
+	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], parents: list[str], statements: str) -> str:
 		# FIXME メンバー変数の展開方法を再検討
 		vars: list[dict[str, str]] = []
 		for var in node.vars:
@@ -96,10 +93,10 @@ class Handler(Procedure[str]):
 			else:
 				vars.append({'access': 'public', 'symbol': var.symbol.tokens, 'var_type': var.as_a(defs.AnnoAssign).var_type.tokens, 'value': var.value.tokens})
 
-		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'parents': parents, 'block': block, 'vars': vars})
+		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'parents': parents, 'statements': statements, 'vars': vars})
 
-	def on_enum(self, node: defs.Enum, symbol: str, block: str) -> str:
-		return self.view.render(node.classification, vars={'symbol': symbol, 'block': block})
+	def on_enum(self, node: defs.Enum, symbol: str, statements: str) -> str:
+		return self.view.render(node.classification, vars={'symbol': symbol, 'statements': statements})
 
 	# Function/Class Elements
 

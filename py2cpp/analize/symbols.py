@@ -3,13 +3,12 @@ from typing import TypeAlias
 from py2cpp.analize.db import SymbolDB, SymbolRaw
 from py2cpp.analize.procedure import Procedure
 from py2cpp.ast.dsn import DSN
-from py2cpp.errors import LogicError, NotFoundError
+from py2cpp.errors import FatalError, LogicError, NotFoundError
 from py2cpp.lang.implementation import injectable, override
 from py2cpp.module.types import ModulePath
 import py2cpp.node.definition as defs
 from py2cpp.node.node import Node
 
-Symbolic: TypeAlias = defs.Declable | defs.Reference | defs.Type | defs.Literal | defs.ClassKind
 Primitives: TypeAlias = int | str | bool | tuple | list | dict | None
 
 
@@ -193,6 +192,8 @@ class Symbols:
 			return self.__from_class(node)
 		elif isinstance(node, defs.Literal):
 			return self.__from_literal(node)
+		elif isinstance(node, (defs.For, defs.Catch)):
+			return self.__from_flow(node)
 		else:
 			return self.__resolve_procedural(node)
 
@@ -222,7 +223,7 @@ class Symbols:
 		Note:
 			# このメソッドの目的
 			* Generic型のサブタイプの解決(シンボル宣言・参照ノード由来)
-			* MoveAssignの左辺の型の解決(シンボル宣言・参照ノード由来)
+			* MoveAssignの宣言型の解決(シンボル宣言・参照ノード由来)
 			@see resolve
 		"""
 		decl = symbol.raw.decl
@@ -230,8 +231,10 @@ class Symbols:
 			return self.__from_type(decl.var_type) if isinstance(decl.var_type, defs.GenericType) else symbol
 		elif isinstance(decl, defs.MoveAssign):
 			return self.__resolve_procedural(decl.value)
-		# defs.ClassKind
+		elif isinstance(decl, (defs.For, defs.Catch)):
+			return self.__from_flow(decl)
 		else:
+			# defs.ClassKind
 			return symbol
 
 	def __from_declable(self, node: defs.Declable) -> Symbol:
@@ -258,8 +261,8 @@ class Symbols:
 		"""
 		if isinstance(node, defs.Var):
 			return self.type_of_var(node)
-		# defs.Relay
 		else:
+			# defs.Relay
 			return self.__resolve_procedural(node)
 
 	def __from_type(self, node: defs.Type) -> Symbol:
@@ -298,6 +301,23 @@ class Symbols:
 		"""
 		return self.resolve(node)
 
+	def __from_flow(self, node: defs.For | defs.Catch) -> Symbol:
+		"""制御構文ノードからシンボルを解決
+
+		Args:
+			node (For | Catch): 制御構文ノード
+		Returns:
+			Symbol: シンボル
+		Raises:
+			LogicError: 未定義のシンボルを指定
+		"""
+		if isinstance(node, defs.For):
+			# iteratesはIteratorなので、必ずプライマリーの属性の型になる
+			return self.__resolve_procedural(node.iterates).attrs[0]
+		else:
+			# defs.Catch
+			return self.__from_type(node.var_type)
+
 	def __resolve_procedural(self, node: Node) -> Symbol:
 		"""ノードを展開してシンボルを解決
 
@@ -317,7 +337,7 @@ class Symbols:
 
 		return resolver.result()
 
-	def resolve(self, symbolic: Symbolic, prop_name: str = '') -> Symbol:
+	def resolve(self, symbolic: defs.Symbolic, prop_name: str = '') -> Symbol:
 		"""シンボルテーブルからシンボルを解決
 
 		Args:
@@ -340,7 +360,7 @@ class Symbols:
 
 		raise LogicError(f'Symbol not defined. symbolic: {symbolic.fullyname}, prop_name: {prop_name}')
 
-	def __resolve_raw(self, symbolic: Symbolic, prop_name: str) -> SymbolRaw | None:
+	def __resolve_raw(self, symbolic: defs.Symbolic, prop_name: str) -> SymbolRaw | None:
 		"""シンボル系ノードからシンボルを解決。未検出の場合はNoneを返却
 
 		Args:
@@ -375,7 +395,7 @@ class Symbols:
 
 		return None
 
-	def __find_raw(self, symbolic: Symbolic, prop_name: str = '') -> SymbolRaw | None:
+	def __find_raw(self, symbolic: defs.Symbolic, prop_name: str = '') -> SymbolRaw | None:
 		"""シンボルデータを検索。未検出の場合はNoneを返却
 
 		Args:
@@ -421,7 +441,6 @@ class ProceduralResolver(Procedure[Symbol]):
 		"""Note: XXX operatorに型はないので引数からは省略"""
 		return receiver
 
-
 	# Element
 
 	def on_return_decl(self, node: defs.ReturnDecl, var_type: Symbol) -> Symbol:
@@ -462,28 +481,28 @@ class ProceduralResolver(Procedure[Symbol]):
 	def on_variable(self, node: defs.Var) -> Symbol:
 		return self.symbols.type_of_var(node)
 
-	def on_indexer(self, node: defs.Indexer, symbol: Symbol, key: Symbol) -> Symbol:
-		if self.symbols.is_list(symbol):
-			return symbol.attrs[0]
-		elif self.symbols.is_dict(symbol):
-			return symbol.attrs[1]
+	def on_indexer(self, node: defs.Indexer, receiver: Symbol, key: Symbol) -> Symbol:
+		if self.symbols.is_list(receiver):
+			return receiver.attrs[0]
+		elif self.symbols.is_dict(receiver):
+			return receiver.attrs[1]
 		else:
-			raise ValueError(f'Not supported indexer symbol type. {symbol.types}')
+			raise ValueError(f'Not supported indexer symbol type. {str(receiver)}')
 
 	def on_general_type(self, node: defs.GeneralType) -> Symbol:
 		return self.symbols.resolve(node)
 
-	def on_list_type(self, node: defs.ListType, symbol: Symbol, value_type: Symbol) -> Symbol:
-		return symbol.extends(value_type)
+	def on_list_type(self, node: defs.ListType, type_name: Symbol, value_type: Symbol) -> Symbol:
+		return type_name.extends(value_type)
 
-	def on_dict_type(self, node: defs.DictType, symbol: Symbol, key_type: Symbol, value_type: Symbol) -> Symbol:
-		return symbol.extends(key_type, value_type)
+	def on_dict_type(self, node: defs.DictType, type_name: Symbol, key_type: Symbol, value_type: Symbol) -> Symbol:
+		return type_name.extends(key_type, value_type)
 
-	def on_custom_type(self, node: defs.CustomType, symbol: Symbol, template_types: list[Symbol]) -> Symbol:
-		return symbol.extends(*template_types)
+	def on_custom_type(self, node: defs.CustomType, type_name: Symbol, template_types: list[Symbol]) -> Symbol:
+		return type_name.extends(*template_types)
 
-	def on_union_type(self, node: defs.UnionType, symbol: Symbol, or_types: list[Symbol]) -> Symbol:
-		return symbol.extends(*or_types)
+	def on_union_type(self, node: defs.UnionType, type_name: Symbol, or_types: list[Symbol]) -> Symbol:
+		return type_name.extends(*or_types)
 
 	def on_null_type(self, node: defs.NullType) -> Symbol:
 		return self.symbols.resolve(node)

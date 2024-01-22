@@ -31,6 +31,11 @@ class B(A):
 		a = 1
 		if a:
 			a = a + 1
+			for i in range(a):
+				try:
+					i = 0
+				except Exception as e:
+					raise e
 
 		def closure() -> list[int]:
 			b = self.v

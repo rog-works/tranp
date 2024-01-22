@@ -1,13 +1,16 @@
+from py2cpp.lang.implementation import implements
 from py2cpp.node.definition.common import Argument
 from py2cpp.node.definition.primary import DecoratorPath, Declable, Type
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, expandable
 from py2cpp.node.node import Node
+from py2cpp.node.promise import IDeclare
 
 
 @Meta.embed(Node, accept_tags('paramvalue'))
-class Parameter(Node):
+class Parameter(Node, IDeclare):
 	@property
+	@implements
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Declable:
 		"""Note: XXX 実体はBlockVarのみ"""
@@ -37,7 +40,7 @@ class ReturnDecl(Node):
 class Decorator(Node):
 	@property
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> DecoratorPath:  # XXX symbol以外の名前を検討
+	def path(self) -> DecoratorPath:
 		return self._by('dotted_name').as_a(DecoratorPath)
 
 	@property

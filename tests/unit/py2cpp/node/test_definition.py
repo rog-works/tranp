@@ -85,7 +85,7 @@ class TestDefinition(TestCase):
 		self.assertEqual(len(node.decorators), len(expected['decorators']))
 		for index, decorator in enumerate(node.decorators):
 			in_expected = expected['decorators'][index]
-			self.assertEqual(decorator.symbol.tokens, in_expected['symbol'])
+			self.assertEqual(decorator.path.tokens, in_expected['symbol'])
 			self.assertEqual(len(decorator.arguments), len(in_expected['arguments']))
 			for index_arg, argument in enumerate(decorator.arguments):
 				in_arg_expected = in_expected['arguments'][index_arg]
@@ -141,7 +141,7 @@ class TestDefinition(TestCase):
 		self.assertEqual(len(node.decorators), len(expected['decorators']))
 		for index, decorator in enumerate(node.decorators):
 			in_expected = expected['decorators'][index]
-			self.assertEqual(decorator.symbol.tokens, in_expected['symbol'])
+			self.assertEqual(decorator.path.tokens, in_expected['symbol'])
 			for index_arg, argument in enumerate(decorator.arguments):
 				in_arg_expected = in_expected['arguments'][index_arg]
 				self.assertEqual(argument.value.tokens, in_arg_expected['value'])
@@ -378,7 +378,7 @@ class TestDefinition(TestCase):
 	])
 	def test_indexer(self, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.shared_nodes.by(full_path).as_a(defs.Indexer)
-		self.assertEqual(node.symbol.tokens, expected['symbol'])
+		self.assertEqual(node.receiver.tokens, expected['symbol'])
 		self.assertEqual(node.key.tokens, expected['key'])
 
 	@data_provider([

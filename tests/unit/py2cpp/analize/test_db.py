@@ -133,7 +133,7 @@ class TestSymbolDB(TestCase):
 			'__main__.B.func2.self': '__main__.B',
 			'__main__.B.func2.closure.a': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Unknown',
 			'__main__.B.func2.i': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Unknown',
-			'__main__.B.func2.e': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Unknown',
+			'__main__.B.func2.e': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Exception',
 		},),
 	])
 	def test___init__(self, expected: dict[str, str]) -> None:

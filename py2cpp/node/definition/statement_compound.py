@@ -157,6 +157,10 @@ class For(Flow):
 
 	@property
 	@Meta.embed(Node, expandable)
+	def statements(self) -> list[Node]:
+		return self.block.statements
+
+	@property
 	def block(self) -> Block:
 		return self._by('block').as_a(Block)
 

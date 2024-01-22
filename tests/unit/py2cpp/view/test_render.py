@@ -118,19 +118,18 @@ class TestRenderer(TestCase):
 					{'access': 'private', 'symbol': '__value', 'var_type': 'int'},
 					{'access': 'private', 'symbol': '__text', 'var_type': 'string'},
 				],
-				'block': '\n'.join([
+				'statements': [
 					'public: Hoge() {',
 					'	int hoge = 1234;',
 					'	int fuga = 2345;',
 					'}',
-				]),
+				],
 			},
 			'\n'.join([
 				'deco(A, A.B)',
 				'class Hoge : public Base, Interface {',
 				'	private: int __value;',
 				'	private: string __text;',
-				'',
 				'	public: Hoge() {',
 				'		int hoge = 1234;',
 				'		int fuga = 2345;',
@@ -144,10 +143,10 @@ class TestRenderer(TestCase):
 				'decorators': [],
 				'parents': [],
 				'vars': [],
-				'block': '\n'.join([
+				'statements': [
 					'public: Hoge() {',
 					'}',
-				]),
+				],
 			},
 			'\n'.join([
 				'class Hoge {',
@@ -164,10 +163,10 @@ class TestRenderer(TestCase):
 		(
 			{
 				'symbol': 'Values',
-				'block': '\n'.join([
+				'statements': [
 					'A = 0;',
 					'B = 1;',
-				]),
+				],
 			},
 			'\n'.join([
 				'enum class Values {',
@@ -188,7 +187,7 @@ class TestRenderer(TestCase):
 				'decorators': ['deco(A, B)'],
 				'parameters': ['string text', 'int value = 1'],
 				'return_type': 'int',
-				'block': 'return value + 1;',
+				'statements': ['return value + 1;'],
 			},
 			'\n'.join([
 				'deco(A, B)',
@@ -206,7 +205,7 @@ class TestRenderer(TestCase):
 				'decorators': [],
 				'parameters': ['int value = 1'],
 				'return_type': 'void',
-				'block': 'this->x = value;',
+				'statements': ['this->x = value;'],
 			},
 			'\n'.join([
 				'public: Hoge(int value = 1) {',
@@ -223,7 +222,7 @@ class TestRenderer(TestCase):
 				'decorators': [],
 				'parameters': [],
 				'return_type': 'int',
-				'block': 'return 1;',
+				'statements': ['return 1;'],
 			},
 			'\n'.join([
 				'public: static int static_method() {',
@@ -240,7 +239,7 @@ class TestRenderer(TestCase):
 				'decorators': [],
 				'parameters': ['int value = 1'],
 				'return_type': 'void',
-				'block': 'this->x = value;',
+				'statements': ['this->x = value;'],
 			},
 			'\n'.join([
 				'public: void method(int value = 1) {',

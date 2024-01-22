@@ -119,10 +119,12 @@ class TestRenderer(TestCase):
 					{'access': 'private', 'symbol': '__text', 'var_type': 'string'},
 				],
 				'statements': [
-					'public: Hoge() {',
-					'	int hoge = 1234;',
-					'	int fuga = 2345;',
-					'}',
+					'\n'.join([
+						'public: Hoge() {',
+						'	int hoge = 1234;',
+						'	int fuga = 2345;',
+						'}',
+					]),
 				],
 			},
 			'\n'.join([
@@ -144,8 +146,10 @@ class TestRenderer(TestCase):
 				'parents': [],
 				'vars': [],
 				'statements': [
-					'public: Hoge() {',
-					'}',
+					'\n'.join([
+						'public: Hoge() {',
+						'}',
+					]),
 				],
 			},
 			'\n'.join([

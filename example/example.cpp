@@ -46,19 +46,19 @@ class CellMesh {
 
 	public: static IntVector face_index_to_vector(int faceIndex) {
 		std::map<CellMesh.FaceIndexs, IntVector> map = {
-			{CellMesh.FaceIndexs.Left, IntVector(-1, 0, 0)},
-			{CellMesh.FaceIndexs.Right, IntVector(1, 0, 0)},
-			{CellMesh.FaceIndexs.Back, IntVector(0, -1, 0)},
-			{CellMesh.FaceIndexs.Front, IntVector(0, 1, 0)},
-			{CellMesh.FaceIndexs.Bottom, IntVector(0, 0, -1)},
-			{CellMesh.FaceIndexs.Top, IntVector(0, 0, 1)},
+			{CellMesh::FaceIndexs::Left, IntVector(-1, 0, 0)},
+			{CellMesh::FaceIndexs::Right, IntVector(1, 0, 0)},
+			{CellMesh::FaceIndexs::Back, IntVector(0, -1, 0)},
+			{CellMesh::FaceIndexs::Front, IntVector(0, 1, 0)},
+			{CellMesh::FaceIndexs::Bottom, IntVector(0, 0, -1)},
+			{CellMesh::FaceIndexs::Top, IntVector(0, 0, 1)},
 		};
-		return map[CellMesh.FaceIndexs(faceIndex)];
+		return map[CellMesh::FaceIndexs(faceIndex)];
 	}
 
 	public: static Box3d to_cell_box(IntVector cell, int unit) {
-		Vector minLocation = CellMesh.from_cell(cell, unit);
-		Vector maxLocation = CellMesh.from_cell(cell + IntVector(1, 1, 1), unit);
+		Vector minLocation = CellMesh::from_cell(cell, unit);
+		Vector maxLocation = CellMesh::from_cell(cell + IntVector(1, 1, 1), unit);
 		return Box3d(minLocation, maxLocation);
 	}
 
@@ -96,9 +96,9 @@ class CellMesh {
 			{-1},
 		};
 		auto closure = [&](MeshRaw origin) -> void {
-			Box3d cellBox = CellMesh.to_cell_box(cell, unit);
-			std::vector<Box3d> boxs = CellMesh.to_vertex_boxs(cellBox, unit);
-			for (auto i : range(int(CellMesh.VertexIndexs.Max))) {
+			Box3d cellBox = CellMesh::to_cell_box(cell, unit);
+			std::vector<Box3d> boxs = CellMesh::to_vertex_boxs(cellBox, unit);
+			for (auto i : range(int(CellMesh::VertexIndexs::Max))) {
 				Box3d box = boxs[i];
 				for (auto vi : origin.vertex_indices_itr()) {
 					if (!origin.is_vertex(vi)) {

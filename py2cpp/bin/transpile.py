@@ -215,7 +215,7 @@ class Handler(Procedure[str]):
 		return self.view.render(node.classification, vars={'type_name': type_name, 'key_type': key_type, 'value_type': value_type})
 
 	def on_custom_type(self, node: defs.CustomType, type_name: str, template_types: list[str]) -> str:
-		return self.view.render(node.classification, vars={'type_name': type_name, 'template_types': template_types})
+		return self.view.render(node.classification, vars={'type_name': type_name, 'var_type': template_types[0], 'mutable': template_types[1] if len(template_types) == 2 else ''})
 
 	def on_union_type(self, node: defs.UnionType, type_name: str, or_types: list[str]) -> str:
 		raise NotImplementedError(f'Not supported UnionType. symbol: {node.fullyname}')

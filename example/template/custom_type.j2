@@ -1,0 +1,10 @@
+{%- if mutable == 'CConst'  %}
+{	{- 'const' }}
+{%- endif %}
+{%- if var_type == 'CSP'  %}
+	{{- 'std::shared_ptr<' }}{{ type_name }}{{ '>' }}
+{%- elif var_type == 'CRef' %}
+	{{- type_name }}&
+{%- elif var_type == 'CP' %}
+	{{- type_name }}*
+{%- endif %}

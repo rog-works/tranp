@@ -1,8 +1,9 @@
 // #include "py2cpp/compatible/cpp/directive.h"
 // #include "py2cpp/compatible/cpp/enum.h"
+// #include "py2cpp/compatible/cpp/object.h"
 #pragma once
 #include "example/FW/compatible.h"
-class Box3d {
+class Box3d : public CObject {
 	public: Vector min;
 	public: Vector max;
 	public: Box3d(Vector min, Vector max) : min(min), max(max) {
@@ -61,7 +62,7 @@ class CellMesh {
 		return Box3d(minLocation, maxLocation);
 	}
 
-	public: static std::vector<Box3d> to_vertex_boxs(Box3d cellBox, int unit) {
+	public: static std::vector<Box3d> to_vertex_boxs(Box3d& cellBox, int unit) {
 		int offset = unit / 10;
 		Vector min = cellBox.min;
 		Vector max = cellBox.max;

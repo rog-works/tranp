@@ -1,12 +1,12 @@
-{%- if mutable == 'CConst'  %}
+{%- if cmutable == 'CConst' %}
 	{{- 'const' }}{{ ' ' }}
 {%- endif %}
-{%- if var_type == 'CP' %}
+{%- if cvar_type == 'CP' %}
 	{{- type_name }}*
-{%- elif var_type == 'CSP' %}
+{%- elif cvar_type == 'CSP' %}
 	{{- 'std::shared_ptr<' }}{{ type_name }}{{ '>' }}
-{%- elif var_type == 'CRef' %}
+{%- elif cvar_type == 'CRef' %}
 	{{- type_name }}&
-{%- elif var_type == 'CRaw' %}
+{%- elif cvar_type == 'CRaw' %}
 	{{- type_name }}
 {%- endif %}

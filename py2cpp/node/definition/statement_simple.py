@@ -88,6 +88,12 @@ class Return(Node):
 		node = self._at(0)
 		return self.as_a(Empty) if node.is_a(Empty) else node
 
+	@property
+	def function(self) -> Node:
+		"""Note: XXX 参照違反になるためNode型で返却"""
+		# XXX self.parent.as_a(Block).parent.as_a(Function)
+		return self.parent.parent
+
 
 @Meta.embed(Node, accept_tags('raise_stmt'))
 class Throw(Node):

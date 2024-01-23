@@ -145,7 +145,28 @@ class Handler(Procedure[str]):
 		return self.view.render(node.classification, vars={'receiver': receiver, 'operator': operator, 'value': value})
 
 	def on_return(self, node: defs.Return, return_value: str) -> str:
-		return self.view.render(node.classification, vars={'return_value': return_value})
+		def analyze_cvar_return_symbol() -> Symbol | None:
+			function = node.function.as_a(defs.Function)
+			if not isinstance(node.return_value, defs.FuncCall):
+				return None
+
+			is_cvar_return = function.return_decl.var_type.is_a(defs.CustomType)
+			if not is_cvar_return:
+				return None
+
+			calls_symbol = self.symbols.type_of(node.return_value.calls)
+			is_call_constructor = calls_symbol.raw.decl.is_a(defs.Class)
+			if not is_call_constructor:
+				return None
+
+			return self.symbols.type_of(function.return_decl)
+
+		cvar_return_symbol = analyze_cvar_return_symbol()
+		if cvar_return_symbol is not None:
+			cvar_type = cvar_return_symbol.attrs[0].types.symbol.tokens
+			return self.view.render(node.classification, vars={'return_value': return_value, 'cvar_type': cvar_type})
+		else:
+			return self.view.render(node.classification, vars={'return_value': return_value, 'cvar_type': ''})
 
 	def on_throw(self, node: defs.Throw, calls: str, via: str) -> str:
 		return self.view.render(node.classification, vars={'calls': calls, 'via': via})
@@ -245,7 +266,7 @@ class Handler(Procedure[str]):
 		return self.view.render(node.classification, vars={'type_name': type_name, 'key_type': key_type, 'value_type': value_type})
 
 	def on_custom_type(self, node: defs.CustomType, type_name: str, template_types: list[str]) -> str:
-		return self.view.render(node.classification, vars={'type_name': type_name, 'var_type': template_types[0], 'mutable': template_types[1] if len(template_types) == 2 else ''})
+		return self.view.render(node.classification, vars={'type_name': type_name, 'cvar_type': template_types[0], 'cmutable': template_types[1] if len(template_types) == 2 else ''})
 
 	def on_union_type(self, node: defs.UnionType, type_name: str, or_types: list[str]) -> str:
 		raise NotImplementedError(f'Not supported UnionType. symbol: {node.fullyname}')

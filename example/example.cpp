@@ -56,10 +56,10 @@ class CellMesh {
 		return map[CellMesh::FaceIndexs(faceIndex)];
 	}
 
-	public: static const Box3d to_cell_box(IntVector cell, int unit) {
+	public: static const std::shared_ptr<Box3d> to_cell_box(IntVector cell, int unit) {
 		Vector minLocation = CellMesh::from_cell(cell, unit);
 		Vector maxLocation = CellMesh::from_cell(cell + IntVector(1, 1, 1), unit);
-		return Box3d(minLocation, maxLocation);
+		return new Box3d(minLocation, maxLocation);
 	}
 
 	public: static std::vector<Box3d> to_vertex_boxs(Box3d* cellBox, int unit) {
@@ -96,7 +96,7 @@ class CellMesh {
 			{-1},
 		};
 		auto closure = [&](MeshRaw origin) -> void {
-			Box3d[CRaw, CConst] cellBox = CellMesh::to_cell_box(cell, unit);
+			Box3d[CSP, CConst] cellBox = CellMesh::to_cell_box(cell, unit);
 			std::vector<Box3d> boxs = CellMesh::to_vertex_boxs(cellBox, unit);
 			for (auto i : range(int(CellMesh::VertexIndexs::Max))) {
 				Box3d box = boxs[i];

@@ -1,6 +1,6 @@
 from py2cpp.compatible.cpp.directive import pragma
 from py2cpp.compatible.cpp.enum import CEnum
-from py2cpp.compatible.cpp.object import CObject, CP, CRaw, CConst
+from py2cpp.compatible.cpp.object import CObject, CP, CSP, CConst
 
 pragma('once')
 
@@ -58,7 +58,7 @@ class CellMesh:
 		return map[CellMesh.FaceIndexs(faceIndex)]
 
 	@classmethod
-	def to_cell_box(cls, cell: IntVector, unit: int) -> Box3d[CRaw, CConst]:
+	def to_cell_box(cls, cell: IntVector, unit: int) -> Box3d[CSP, CConst]:
 		minLocation = cls.from_cell(cell, unit)
 		maxLocation = cls.from_cell(cell + IntVector(1, 1, 1), unit)
 		return Box3d(minLocation, maxLocation)

@@ -8,11 +8,15 @@ std::map<{{ types[5:-1] }}>
 std::shared_ptr<{{ types[:-5] }}>
 {%- elif types.endswith('[CRef]') -%}
 {{ types[:-6] }}&
+{%- elif types.endswith('[CRaw]') -%}
+{{ types[:-6] }}&
 {%- elif types.endswith('[CP, CConst]') -%}
 const {{ types[:-12] }}*
 {%- elif types.endswith('[CSP, CConst]') -%}
 const std::shared_ptr<{{ types[:-13] }}>
 {%- elif types.endswith('[CRef, CConst]') -%}
+const {{ types[:-14] }}&
+{%- elif types.endswith('[CRaw, CConst]') -%}
 const {{ types[:-14] }}&
 {%- else -%}
 {{ types }}

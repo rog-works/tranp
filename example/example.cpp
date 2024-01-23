@@ -96,7 +96,7 @@ class CellMesh {
 			{-1},
 		};
 		auto closure = [&](MeshRaw origin) -> void {
-			Box3d[CSP, CConst] cellBox = CellMesh::to_cell_box(cell, unit);
+			const std::shared_ptr<Box3d> cellBox = CellMesh::to_cell_box(cell, unit);
 			std::vector<Box3d> boxs = CellMesh::to_vertex_boxs(cellBox, unit);
 			for (auto i : range(int(CellMesh::VertexIndexs::Max))) {
 				Box3d box = boxs[i];

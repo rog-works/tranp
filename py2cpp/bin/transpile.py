@@ -1,5 +1,7 @@
 import os
+import re
 import sys
+from typing import cast
 
 from py2cpp.analize.procedure import Procedure
 from py2cpp.analize.symbols import Symbol, Symbols
@@ -72,19 +74,24 @@ class Handler(Procedure[str]):
 	def on_constructor(self, node: defs.Constructor, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, statements: list[str]) -> str:
 		add_vars = {'class_symbol': node.class_symbol.tokens, 'initializer': []}
 
-		# XXX メンバー変数の宣言用のデータを生成
+		# メンバー変数の初期化ステートメントとそれ以外を分離
 		this_vars = node.this_vars
-		for var in this_vars:
-			var_symbol = var.symbol.as_a(defs.ThisDeclVar)
-			add_vars['initializer'].append({'symbol': var_symbol.tokens_without_this, 'value': var.value.tokens})
-
-		# XXX メンバー変数の初期化ステートメントを除外
-		without_initializer_statements = []
+		without_initializers = []
+		initializers = []
 		for index, statement in enumerate(node.statements):
-			if statement not in this_vars:
-				without_initializer_statements.append(statements[index])
+			if statement in this_vars:
+				initializers.append(statements[index])
+			else:
+				without_initializers.append(statements[index])
 
-		return self.view.render(node.classification, vars={'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'statements': without_initializer_statements, **add_vars})
+		# メンバー変数の宣言用のデータを生成
+		for index, var in enumerate(this_vars):
+			# XXX 代入式の右辺を取得。必ず取得できるのでキャストして警告を抑制
+			initialize_value = cast(re.Match[str], re.search(r'=\s*([^;]+);$', initializers[index]))[1]
+			var_symbol = var.symbol.as_a(defs.ThisDeclVar)
+			add_vars['initializer'].append({'symbol': var_symbol.tokens_without_this, 'value': initialize_value})
+
+		return self.view.render(node.classification, vars={'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'statements': without_initializers, **add_vars})
 
 	def on_method(self, node: defs.Method, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, statements: list[str]) -> str:
 		return self.on_method_type(node, symbol, decorators, parameters, return_decl, statements, node.class_symbol.tokens)

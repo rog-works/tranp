@@ -83,7 +83,7 @@ class TestSymbols(TestCase):
 		(dict, _mod('classes', 'dict')),
 		(None, _mod('classes', 'None')),
 	])
-	def test_type_of_primitive(self, primitive_type: type[Primitives], expected: str) -> None:
+	def test_type_of_primitive(self, primitive_type: type[Primitives] | None, expected: str) -> None:
 		symbols = self.fixture.get(Symbols)
 		self.assertEqual(symbols.type_of_primitive(primitive_type).types.fullyname, expected)
 

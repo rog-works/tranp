@@ -3,13 +3,13 @@ from typing import TypeAlias
 from py2cpp.analize.db import SymbolDB, SymbolRaw
 from py2cpp.analize.procedure import Procedure
 from py2cpp.ast.dsn import DSN
-from py2cpp.errors import FatalError, LogicError, NotFoundError
+from py2cpp.errors import LogicError, NotFoundError
 from py2cpp.lang.implementation import injectable, override
 from py2cpp.module.types import ModulePath
 import py2cpp.node.definition as defs
 from py2cpp.node.node import Node
 
-Primitives: TypeAlias = int | str | bool | tuple | list | dict | None
+Primitives: TypeAlias = int | str | bool | tuple | list | dict
 
 
 class Symbol:
@@ -639,3 +639,8 @@ class ProceduralResolver(Procedure[Symbol]):
 		else:
 			key_type, value_type = items[0].attrs
 			return self.symbols.resolve(node).extends(key_type, value_type)
+
+	# Terminal
+
+	def on_empty(self, node: defs.Empty) -> Symbol:
+		return self.symbols.type_of_primitive(None)

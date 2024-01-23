@@ -45,11 +45,11 @@ class Handler(Procedure[str]):
 
 	# Statement - compound
 
-	def on_if(self, node: defs.If, condition: str, statements: list[str], else_ifs: list[str], else_statements: list[str]) -> str:
-		return self.view.render(node.classification, vars={'condition': condition, 'statements': statements, 'else_ifs': else_ifs, 'else_statements': else_statements})
-
 	def on_else_if(self, node: defs.ElseIf, condition: str, statements: list[str]) -> str:
 		return self.view.render(node.classification, vars={'condition': condition, 'statements': statements})
+
+	def on_if(self, node: defs.If, condition: str, statements: list[str], else_ifs: list[str], else_statements: list[str]) -> str:
+		return self.view.render(node.classification, vars={'condition': condition, 'statements': statements, 'else_ifs': else_ifs, 'else_statements': else_statements})
 
 	def on_while(self, node: defs.While, condition: str, statements: list[str]) -> str:
 		return self.view.render(node.classification, vars={'condition': condition, 'statements': statements})
@@ -57,11 +57,11 @@ class Handler(Procedure[str]):
 	def on_for(self, node: defs.For, symbol: str, iterates: str, statements: list[str]) -> str:
 		return self.view.render(node.classification, vars={'symbol': symbol, 'iterates': iterates, 'statements': statements})
 
+	def on_catch(self, node: defs.Catch, var_type: str, symbol: str, statements: list[str]) -> str:
+		return self.view.render(node.classification, vars={'var_type': var_type, 'symbol': symbol, 'statements': statements})
+
 	def on_try(self, node: defs.Try, statements: list[str], catches: list[str]) -> str:
 		return self.view.render(node.classification, vars={'statements': statements, 'catches': catches})
-
-	def on_catch(self, node: defs.Catch, symbol: str, alias: str, statements: list[str]) -> str:
-		return self.view.render(node.classification, vars={'symbol': symbol, 'alias': alias, 'statements': statements})
 
 	def on_function(self, node: defs.Function, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, statements: list[str]) -> str:
 		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'statements': statements})

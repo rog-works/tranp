@@ -1,4 +1,4 @@
-catch ({{ symbol }}{% if alias %} {{ alias }}{% endif %}) {
+catch ({{ var_type }}{% if symbol %} {{ symbol }}{% endif %}) {
 {%- filter indent('\t') %}
 {{ block }}
 {%- endfilter %}

@@ -101,6 +101,7 @@ class Handler(Procedure[str]):
 		for var in node.vars:
 			if isinstance(var, defs.AnnoAssign):
 				var_symbol = var.symbol.as_a(defs.ThisDeclVar)
+				# FIXME var_typeがGeneric型の場合に対応
 				vars.append({'access': 'public', 'symbol': var_symbol.tokens_without_this, 'var_type': var.var_type.tokens, 'value': var.value.tokens})
 			else:
 				raise LogicError(f'Not supported this var declaration. symbol: {var.symbol.fullyname}')

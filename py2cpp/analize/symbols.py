@@ -126,11 +126,11 @@ class Symbols:
 		raw = self.__db.raws[fullyname]
 		return self.type_of(raw.decl)
 
-	def type_of_primitive(self, primitive_type: type[Primitives]) -> Symbol:
+	def type_of_primitive(self, primitive_type: type[Primitives] | None) -> Symbol:
 		"""プリミティブ型のシンボルを解決
 
 		Args:
-			primitive_type (type[Primitives]): プリミティブ型
+			primitive_type (type[Primitives] | None): プリミティブ型
 		Returns:
 			Symbol: シンボル
 		Raises:
@@ -478,6 +478,14 @@ class ProceduralResolver(Procedure[Symbol]):
 	def on_this_var(self, node: defs.ThisVar) -> Symbol:
 		return self.symbols.type_of_var(node)
 
+	def on_argument_label(self, node: defs.ArgumentLabel) -> Symbol:
+		func_symbol = self.symbols.type_of(node.invoker.calls)
+		for param in func_symbol.types.as_a(defs.Function).parameters:
+			if param.symbol.tokens == node.tokens:
+				return self.symbols.type_of_var(param.symbol)
+
+		raise LogicError(f'Parameter not defined. function: {func_symbol.types.fullyname}, label: {node.tokens}')
+
 	def on_variable(self, node: defs.Var) -> Symbol:
 		return self.symbols.type_of_var(node)
 
@@ -520,9 +528,7 @@ class ProceduralResolver(Procedure[Symbol]):
 	def on_super(self, node: defs.Super, calls: Symbol, arguments: list[Symbol]) -> Symbol:
 		return self.symbols.resolve(node.parent_symbol)
 
-	# Common
-
-	def on_argument(self, node: defs.Argument, value: Symbol) -> Symbol:
+	def on_argument(self, node: defs.Argument, label: Symbol, value: Symbol) -> Symbol:
 		return value
 
 	def on_inherit_argument(self, node: defs.InheritArgument, class_type: Symbol) -> Symbol:

@@ -253,6 +253,7 @@ class TestDefinition(TestCase):
 		('a()', 'file_input.funccall.var', defs.Variable),
 		('a(self.v)', 'file_input.funccall.arguments.argvalue.getattr', defs.Relay),
 		('a(self.v)', 'file_input.funccall.arguments.argvalue.getattr.var', defs.ThisVar),
+		('a(b=c)', 'file_input.funccall.arguments.argvalue.name', defs.ArgumentLabel),
 		('a[0]', 'file_input.getitem.var', defs.Variable),
 		('a[0].b', 'file_input.getattr', defs.Relay),
 		('a[0].b', 'file_input.getattr.getitem.var', defs.Variable),
@@ -389,6 +390,7 @@ class TestDefinition(TestCase):
 			],
 			'calculated': [
 				'<Variable: file_input.funccall.var>',
+				'<Proxy: file_input.funccall.arguments.argvalue.__empty__>',
 				'<String: file_input.funccall.arguments.argvalue.string>',
 				'<Argument: file_input.funccall.arguments.argvalue>',
 			],

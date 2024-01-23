@@ -4,10 +4,9 @@ from typing import cast
 from py2cpp.ast.dsn import DSN
 from py2cpp.lang.implementation import implements, override
 from py2cpp.lang.sequence import last_index_of
-from py2cpp.node.definition.common import InheritArgument
 from py2cpp.node.definition.element import Decorator, Parameter, ReturnDecl
 from py2cpp.node.definition.literal import String
-from py2cpp.node.definition.primary import BlockDeclVar, ClassDeclVar, Declable, GenericType, ParamThis, ThisDeclVar, Type
+from py2cpp.node.definition.primary import BlockDeclVar, ClassDeclVar, Declable, GenericType, InheritArgument, ParamThis, ThisDeclVar, Type
 from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable

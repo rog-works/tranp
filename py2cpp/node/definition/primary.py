@@ -4,7 +4,7 @@ from typing import cast
 from py2cpp.ast.dsn import DSN
 from py2cpp.lang.implementation import implements, override
 from py2cpp.lang.sequence import last_index_of
-from py2cpp.node.definition.common import Argument
+from py2cpp.lang.string import snakelize
 from py2cpp.node.definition.literal import Literal
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
@@ -200,11 +200,10 @@ class Relay(Reference):
 		return True
 
 
-@Meta.embed(Node, accept_tags('var', 'name'))
 class Var(Reference, ITerminal): pass
 
 
-@Meta.embed(Node, actualized(via=Fragment))
+@Meta.embed(Node, accept_tags('var'), actualized(via=Fragment))
 class ClassVar(Var):
 	@classmethod
 	def match_feature(cls, via: Fragment) -> bool:
@@ -215,14 +214,25 @@ class ClassVar(Var):
 		return cast(IDeclare, self._ancestor('class_def')).symbol.as_a(Declable)
 
 
-@Meta.embed(Node, actualized(via=Fragment))
+@Meta.embed(Node, accept_tags('var'), actualized(via=Fragment))
 class ThisVar(Var):
 	@classmethod
 	def match_feature(cls, via: Fragment) -> bool:
 		return via.tokens == 'self'
 
 
-@Meta.embed(Node, actualized(via=Fragment))
+@Meta.embed(Node, accept_tags('name'), actualized(via=Fragment))
+class ArgumentLabel(Var):
+	@classmethod
+	def match_feature(cls, via: Fragment) -> bool:
+		return via._full_path.shift(-1).elements[-1] == 'argvalue'
+
+	@property
+	def invoker(self) -> 'FuncCall':
+		return self._ancestor('funccall').as_a(FuncCall)
+
+
+@Meta.embed(Node, accept_tags('var', 'name'), actualized(via=Fragment))
 class Variable(Var):
 	@classmethod
 	def match_feature(cls, via: Fragment) -> bool:
@@ -430,7 +440,7 @@ class FuncCall(Node):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def arguments(self) -> list[Argument]:
+	def arguments(self) -> list['Argument']:
 		args = self._at(1)
 		return [node.as_a(Argument) for node in args._children()] if not args.is_a(Empty) else []
 
@@ -449,3 +459,29 @@ class Super(FuncCall):
 		decl_class = self._ancestor('class_def').as_a(Class)
 		# XXX 簡易化のため単一継承と言う前提。MROは考慮せず先頭要素を直系の親クラスとする
 		return decl_class.parents[0].type_name
+
+
+@Meta.embed(Node, accept_tags('argvalue'))
+class Argument(Node):
+	@property
+	@Meta.embed(Node, expandable)
+	def label(self) -> ArgumentLabel | Empty:
+		children = self._children()
+		if len(children) == 2:
+			return children[0].as_a(ArgumentLabel)
+
+		return self.dirty_child(Empty, '__empty__', tokens='', classification=snakelize(Empty.__name__))
+
+	@property
+	@Meta.embed(Node, expandable)
+	def value(self) -> Node:
+		children = self._children()
+		return children[1] if len(children) == 2 else children[0]
+
+
+@Meta.embed(Node, accept_tags('typed_argvalue'))
+class InheritArgument(Node):
+	@property
+	@Meta.embed(Node, expandable)
+	def class_type(self) -> Node:  # XXX 理想はTypeだが、参照違反になるため一旦Nodeで対応
+		return self._at(0)

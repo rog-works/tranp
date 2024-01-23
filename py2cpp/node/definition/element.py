@@ -1,6 +1,5 @@
 from py2cpp.lang.implementation import implements
-from py2cpp.node.definition.common import Argument
-from py2cpp.node.definition.primary import DecoratorPath, Declable, Type
+from py2cpp.node.definition.primary import Argument, DecoratorPath, Declable, Type
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, expandable
 from py2cpp.node.node import Node

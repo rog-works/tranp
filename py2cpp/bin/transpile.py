@@ -196,6 +196,9 @@ class Handler(Procedure[str]):
 	def on_this_var(self, node: defs.ThisVar) -> str:
 		return 'this'
 
+	def on_argument_label(self, node: defs.ArgumentLabel) -> str:
+		return node.tokens
+
 	def on_variable(self, node: defs.Variable) -> str:
 		return node.tokens
 
@@ -226,9 +229,7 @@ class Handler(Procedure[str]):
 	def on_super(self, node: defs.Super, calls: str, arguments: list[str]) -> str:
 		return self.view.render('func_call', vars={'calls': node.parent_symbol.tokens, 'arguments': arguments})
 
-	# Common
-
-	def on_argument(self, node: defs.Argument, value: str) -> str:
+	def on_argument(self, node: defs.Argument, label: str, value: str) -> str:
 		return value
 
 	def on_inherit_argument(self, node: defs.InheritArgument, class_type: str) -> str:

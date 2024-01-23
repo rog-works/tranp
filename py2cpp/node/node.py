@@ -459,6 +459,30 @@ class Node:
 		# XXX 継承関係が無いと判断されるのでcastで対処
 		return cast(T_Node, Proxy(self.__nodes, self.__module_path, self.full_path))
 
+	def dirty_child(self, ctor: type[T_Node], entry_tag: str, **overrides: Any) -> T_Node:
+		"""仮想の子ノードを生成
+
+		Args:
+			ctor (type[T_Node]): 子ノードのクラス
+			entry_tag (str): エントリータグ (一意性は呼び出し側で考慮する)
+			**overrides (Any): 上書きするプロパティー
+		Returns:
+			T_Node: 生成した子ノード
+		Note:
+			XXX 主に空要素として使う想定。ダーティーな実装のため濫用は厳禁
+		Examples:
+			```python
+			@property
+			def var_type(self) -> Type | Empty:
+				if len(self._children()) == 2:
+					return self._at(1)
+
+				return self.dirty_child(Empty, '__empty__', tokens='', classification=snakelize(Empty))
+			```
+		"""
+		child = ctor(self.__nodes, self.__module_path, self._full_path.joined(entry_tag))
+		return child.dirty_proxify(**overrides)
+
 	# XXX def is_statement(self) -> bool: pass
 	# XXX def pretty(self) -> str: pass
 	# XXX def serialize(self) -> dict: pass

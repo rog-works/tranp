@@ -104,8 +104,9 @@ _typed_exprlist: typed_expression ("," typed_expression)* [","]
 // # Function call argumanets
 
 // @decl `(arg1, arg2, ...)`
+// @lark argvalue: test ("=" test)?
 arguments: argvalue ("," argvalue)*
-argvalue: expression
+argvalue: expression | name "=" expression
 
 // # If/While/For statement
 
@@ -214,6 +215,7 @@ continue_stmt: "continue"
 	| primary "[" slices "]" -> getitem
 	| atom
 
+// @lark slice: test
 slices: slice | slice (("," slice)+ [","] | ",")
 ?slice: expression
 

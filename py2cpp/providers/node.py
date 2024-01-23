@@ -71,7 +71,6 @@ def symbol_mapping() -> SymbolMapping:
 			'typed_list': defs.TypeParameters,
 			'funccall': defs.FuncCall,
 			# 'funccall': defs.Super,
-			# -- Common --
 			'argvalue': defs.Argument,
 			'typed_argvalue': defs.InheritArgument,
 			# -- Operator --

@@ -1,6 +1,5 @@
 from typing import TypeAlias
 
-from py2cpp.node.definition.common import *
 from py2cpp.node.definition.element import *
 from py2cpp.node.definition.expression import *
 from py2cpp.node.definition.general import *

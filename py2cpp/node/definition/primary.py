@@ -225,7 +225,7 @@ class ThisVar(Var):
 class ArgumentLabel(Var):
 	@classmethod
 	def match_feature(cls, via: Fragment) -> bool:
-		return via._full_path.shift(-1).elements[-1] == 'argvalue'
+		return via._full_path.parent_tag == 'argvalue'
 
 	@property
 	def invoker(self) -> 'FuncCall':

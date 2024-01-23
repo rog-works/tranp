@@ -224,22 +224,16 @@ class Handler(Procedure[str]):
 
 			return False
 
-		accessors = {
-			cpp.CP.__name__: '->',
-			cpp.CSP.__name__: '->',
-			cpp.CRef.__name__: '.',
-			cpp.CRaw.__name__: '.',
-		}
+		cvars: list[str] = [cvar.__name__ for cvar in [cpp.CP, cpp.CSP, cpp.CRef, cpp.CRaw]]
 		receiver_symbol = self.symbols.type_of(node.receiver)
-		is_cvar_receiver = len(receiver_symbol.attrs) > 0 and receiver_symbol.attrs[0].types.symbol.tokens in accessors
+		is_cvar_receiver = len(receiver_symbol.attrs) > 0 and receiver_symbol.attrs[0].types.symbol.tokens in cvars
 		if is_cvar_receiver:
 			cvar_type = receiver_symbol.attrs[0].types.symbol.tokens
-			accessor = accessors[cvar_type]
-			return f'{receiver}{accessor}{node.prop.tokens}'
+			return self.view.render(node.classification, vars={'receiver': receiver, 'access': cvar_type, 'prop': node.prop.tokens})
 		elif is_static_access(receiver_symbol):
-			return f'{receiver}::{node.prop.tokens}'
+			return self.view.render(node.classification, vars={'receiver': receiver, 'access': 'static', 'prop': node.prop.tokens})
 		else:
-			return f'{receiver}.{node.prop.tokens}'
+			return self.view.render(node.classification, vars={'receiver': receiver, 'access': 'raw', 'prop': node.prop.tokens})
 
 	def on_class_var(self, node: defs.ClassVar) -> str:
 		return node.class_symbol.tokens

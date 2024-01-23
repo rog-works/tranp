@@ -62,10 +62,10 @@ class CellMesh {
 		return Box3d(minLocation, maxLocation);
 	}
 
-	public: static std::vector<Box3d> to_vertex_boxs(Box3d& cellBox, int unit) {
+	public: static std::vector<Box3d> to_vertex_boxs(Box3d* cellBox, int unit) {
 		int offset = unit / 10;
-		Vector min = cellBox.min;
-		Vector max = cellBox.max;
+		Vector min = cellBox->min;
+		Vector max = cellBox->max;
 		std::vector<Vector> positions = {
 			{Vector(min.x, min.y, min.z)},
 			{Vector(max.x, min.y, min.z)},

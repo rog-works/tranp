@@ -2,9 +2,10 @@ import os
 import sys
 
 from py2cpp.analize.procedure import Procedure
-from py2cpp.analize.symbols import Symbols
+from py2cpp.analize.symbols import Symbol, Symbols
 from py2cpp.app.app import App
 from py2cpp.ast.parser import ParserSetting
+import py2cpp.compatible.cpp.object as cpp
 from py2cpp.errors import LogicError
 from py2cpp.lang.error import stacktrace
 from py2cpp.lang.module import fullyname
@@ -187,8 +188,35 @@ class Handler(Procedure[str]):
 		return node.tokens
 
 	def on_relay(self, node: defs.Relay, receiver: str) -> str:
-		# FIXME receiverの形態によってアクセス演算子を変える必要がある
-		return f'{receiver}.{node.prop.tokens}'
+		def is_static_relay(receiver: defs.Relay, receiver_symbol: Symbol) -> bool:
+			receiver_decl = self.symbols.resolve(receiver).raw.decl
+			if isinstance(receiver_decl, defs.Parameter) and receiver_decl.symbol.is_a(defs.ParamClass):
+				return True
+
+			prop_symbol = self.symbols.type_of_property(receiver_symbol.types, node.prop)
+			prop_symbol_decl = prop_symbol.raw.decl
+			if isinstance(prop_symbol.types, defs.ClassMethod):
+				return True
+			elif isinstance(prop_symbol_decl, defs.AnnoAssign) and prop_symbol_decl.symbol.is_a(defs.ClassDeclVar):
+				return True
+
+			return False
+
+		accessors = {
+			cpp.CP.__name__: '->',
+			cpp.CSP.__name__: '->',
+			cpp.CRef.__name__: '.',
+			cpp.CRaw.__name__: '.',
+		}
+		receiver_symbol = self.symbols.type_of(node.receiver)
+		if len(receiver_symbol.attrs) > 0 and receiver_symbol.attrs[0].types.symbol.tokens in accessors:
+			cvar_type = receiver_symbol.attrs[0].types.symbol.tokens
+			accessor = accessors[cvar_type]
+			return f'{receiver}{accessor}{node.prop.tokens}'
+		elif isinstance(node.receiver, defs.Relay) and is_static_relay(node.receiver, receiver_symbol):
+			return f'{receiver}::{node.prop.tokens}'
+		else:
+			return f'{receiver}.{node.prop.tokens}'
 
 	def on_class_var(self, node: defs.ClassVar) -> str:
 		return node.class_symbol.tokens

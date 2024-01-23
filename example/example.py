@@ -1,6 +1,6 @@
 from py2cpp.compatible.cpp.directive import pragma
 from py2cpp.compatible.cpp.enum import CEnum
-from py2cpp.compatible.cpp.object import CObject, CRef
+from py2cpp.compatible.cpp.object import CObject, CP
 
 pragma('once')
 
@@ -64,7 +64,7 @@ class CellMesh:
 		return Box3d(minLocation, maxLocation)
 
 	@classmethod
-	def to_vertex_boxs(cls, cellBox: Box3d[CRef], unit: int) -> list[Box3d]:
+	def to_vertex_boxs(cls, cellBox: Box3d[CP], unit: int) -> list[Box3d]:
 		offset = unit / 10
 		min = cellBox.min
 		max = cellBox.max

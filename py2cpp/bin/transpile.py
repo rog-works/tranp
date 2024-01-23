@@ -69,35 +69,34 @@ class Handler(Procedure[str]):
 		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'statements': statements})
 
 	def on_class_method(self, node: defs.ClassMethod, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, statements: list[str]) -> str:
-		return self.on_method_type(node, symbol, decorators, parameters, return_decl, statements, node.class_symbol.tokens)
+		return self.view.render(node.classification, vars={'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'statements': statements, 'class_symbol': node.class_symbol.tokens})
 
 	def on_constructor(self, node: defs.Constructor, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, statements: list[str]) -> str:
-		add_vars = {'class_symbol': node.class_symbol.tokens, 'initializer': []}
+		this_vars = node.this_vars
 
 		# メンバー変数の初期化ステートメントとそれ以外を分離
-		this_vars = node.this_vars
-		without_initializers = []
-		initializers = []
+		normal_statements = []
+		initializer_statements = []
 		for index, statement in enumerate(node.statements):
 			if statement in this_vars:
-				initializers.append(statements[index])
+				initializer_statements.append(statements[index])
 			else:
-				without_initializers.append(statements[index])
+				normal_statements.append(statements[index])
 
 		# メンバー変数の宣言用のデータを生成
+		initializers: list[dict[str, str]] = []
 		for index, var in enumerate(this_vars):
 			# XXX 代入式の右辺を取得。必ず取得できるのでキャストして警告を抑制
-			initialize_value = cast(re.Match[str], re.search(r'=\s*([^;]+);$', initializers[index]))[1]
+			initialize_value = cast(re.Match[str], re.search(r'=\s*([^;]+);$', initializer_statements[index]))[1]
 			var_symbol = var.symbol.as_a(defs.ThisDeclVar)
-			add_vars['initializer'].append({'symbol': var_symbol.tokens_without_this, 'value': initialize_value})
+			initializers.append({'symbol': var_symbol.tokens_without_this, 'value': initialize_value})
 
-		return self.view.render(node.classification, vars={'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'statements': without_initializers, **add_vars})
+		method_vars = {'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'statements': normal_statements, 'class_symbol': node.class_symbol.tokens}
+		constructor_vars = {'initializers': initializers}
+		return self.view.render(node.classification, vars={**method_vars, **constructor_vars})
 
 	def on_method(self, node: defs.Method, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, statements: list[str]) -> str:
-		return self.on_method_type(node, symbol, decorators, parameters, return_decl, statements, node.class_symbol.tokens)
-
-	def on_method_type(self, node: defs.Function, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, statements: list[str], class_symbol: str) -> str:
-		return self.view.render(node.classification, vars={'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'statements': statements, 'class_symbol': class_symbol})
+		return self.view.render(node.classification, vars={'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'statements': statements, 'class_symbol': node.class_symbol.tokens})
 
 	def on_closure(self, node: defs.Closure, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, statements: list[str]) -> str:
 		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'statements': statements, 'binded_this': node.binded_this})

@@ -168,8 +168,8 @@ class TestRenderer(TestCase):
 			{
 				'symbol': 'Values',
 				'statements': [
-					'A = 0;',
-					'B = 1;',
+					'int A = 0;',
+					'int B = 1;',
 				],
 			},
 			'\n'.join([

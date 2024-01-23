@@ -108,9 +108,7 @@ class Handler(Procedure[str]):
 		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'parents': parents, 'statements': statements, 'vars': vars})
 
 	def on_enum(self, node: defs.Enum, symbol: str, statements: list[str]) -> str:
-		# XXX 行頭の型宣言は不要なので除外
-		without_type_statements = [' '.join(statement.split(' ')[1:]) for statement in statements]
-		return self.view.render(node.classification, vars={'symbol': symbol, 'statements': without_type_statements})
+		return self.view.render(node.classification, vars={'symbol': symbol, 'statements': statements})
 
 	# Function/Class Elements
 

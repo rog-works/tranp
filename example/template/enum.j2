@@ -1,7 +1,7 @@
 enum class {{ symbol }} {
 {%- filter indent('\t') %}
 {%- for statement in statements %}
-{{ statement | replace(';', ',') }}
+{{ statement.split(' ')[1:] | join(' ') | replace(';', ',') }}
 {%- endfor %}
 {%- endfilter %}
 };

@@ -333,10 +333,11 @@ class TestDefinition(TestCase):
 		('a: str | None = None', 'file_input.assign_stmt.anno_assign.typed_or_expr.typed_none', defs.NullType),
 		('self.a: int = 0', 'file_input.assign_stmt.anno_assign.typed_var', defs.GeneralType),
 		('try: ...\nexcept A.E as e: ...', 'file_input.try_stmt.except_clauses.except_clause.typed_getattr', defs.GeneralType),
-		('class B(A): pass', 'file_input.class_def.class_def_raw.typed_arguments.typed_argvalue.typed_var', defs.GeneralType),
-		('class B(A[T]): pass', 'file_input.class_def.class_def_raw.typed_arguments.typed_argvalue.typed_getitem', defs.CustomType),
-		('def func(a: int) -> None: pass', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.typed_var', defs.GeneralType),
-		('def func(a: int) -> None: pass', 'file_input.function_def.function_def_raw.return_type.typed_none', defs.NullType),
+		('class B(A): ...', 'file_input.class_def.class_def_raw.typed_arguments.typed_argvalue.typed_var', defs.GeneralType),
+		('class B(A[T]): ...', 'file_input.class_def.class_def_raw.typed_arguments.typed_argvalue.typed_getitem', defs.CustomType),
+		('def func(a: int) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.typed_var', defs.GeneralType),
+		('def func(a: int) -> None: ...', 'file_input.function_def.function_def_raw.return_type.typed_none', defs.NullType),
+		('def func() -> Callable[[], None]: ...', 'file_input.function_def.function_def_raw.return_type.typed_getitem', defs.CallableType),
 	])
 	def test_type(self, source: str, full_path: str, expected: type[defs.Type]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Type)

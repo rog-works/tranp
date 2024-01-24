@@ -30,6 +30,7 @@ def symbol_mapping() -> SymbolMapping:
 			'enum_def': defs.Enum,
 			# -- Function/Class Elements --
 			'paramvalue': defs.Parameter,
+			'starparam': defs.Parameter,
 			'decorator': defs.Decorator,
 			# -- Statement simple --
 			'assign_stmt': defs.Assign,

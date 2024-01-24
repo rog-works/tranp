@@ -71,12 +71,13 @@ return_type: typed_expression | "'" typed_expression "'"
 // @decl `(param1: type1.path.to, ...)`
 // @decl `(param1: type1[subtype1, subtype2, ...], ...)`
 // @decl `(param1: 'type1.path.to', ...)`
-// @lark parameters: ("," paramvalue)* ["," SLASH ("," parambalue)*] ["," [starparams | kwparams]] | starparams | kwparams
+// @lark parameters: ("," paramvalue)* ["," SLASH ("," paramvalue)*] ["," [starparams | kwparams]] | starparams | kwparams
 // @lark ?paramvalue: typedparam ("=" test)?
 // @lark ?typedparam: name (":" test)?
-parameters: paramvalue ("," paramvalue)*
+parameters: paramvalue ("," paramvalue)* ["," starparam] | starparam
 ?paramvalue: typedparam ["=" expression]
 ?typedparam: name [":" (typed_expression | "'" typed_expression "'")]
+starparam: "*" typedparam
 
 // @custom
 typed_arguments: typed_argvalue ("," typed_argvalue)*

@@ -1,4 +1,5 @@
 from py2cpp.lang.implementation import implements
+from py2cpp.lang.string import snakelize
 from py2cpp.node.definition.primary import Argument, DecoratorPath, Declable, Type
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, expandable
@@ -6,8 +7,10 @@ from py2cpp.node.node import Node
 from py2cpp.node.promise import IDeclare
 
 
-@Meta.embed(Node, accept_tags('paramvalue'))
+@Meta.embed(Node, accept_tags('paramvalue', 'starparam'))
 class Parameter(Node, IDeclare):
+	"""Note: XXX starparamを受け入れるが、正式に対応する必要がないため通常の引数と同じように扱う"""
+
 	@property
 	@implements
 	@Meta.embed(Node, expandable)
@@ -23,8 +26,13 @@ class Parameter(Node, IDeclare):
 	@property
 	@Meta.embed(Node, expandable)
 	def default_value(self) -> Node | Empty:
-		node = self._at(1)
-		return node.as_a(Empty) if node.is_a(Empty) else node
+		children = self._children()
+		if len(children) == 2:
+			node = self._at(1)
+			return node.as_a(Empty) if node.is_a(Empty) else node
+
+		# XXX starparamはデフォルト引数がないためダミーを生成
+		return self.dirty_child(Empty, '__empty__', tokens='', classification=snakelize(Empty.__name__))
 
 
 @Meta.embed(Node, accept_tags('decorator'))

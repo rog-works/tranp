@@ -293,7 +293,7 @@ class Function(ClassKind):
 		if not self._exists('function_def_raw.parameters'):
 			return []
 
-		return [node.as_a(Parameter) for node in self._children('function_def_raw.parameters')]
+		return [node.as_a(Parameter) for node in self._children('function_def_raw.parameters') if not node.is_a(Empty)]
 
 	@property
 	@Meta.embed(Node, expandable)

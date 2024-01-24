@@ -102,15 +102,15 @@ class Handler(Procedure[str]):
 		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'statements': statements, 'binded_this': node.binded_this})
 
 	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], parents: list[str], statements: list[str]) -> str:
-		# FIXME メンバー変数の展開方法を検討
-		vars: list[dict[str, str]] = []
-		for var in node.vars:
-			if isinstance(var, defs.AnnoAssign):
-				var_symbol = var.symbol.as_a(defs.ThisDeclVar)
-				# FIXME var_typeがGeneric型の場合に対応
-				vars.append({'access': 'public', 'symbol': var_symbol.tokens_without_this, 'var_type': var.var_type.tokens, 'value': var.value.tokens})
-			else:
-				raise LogicError(f'Not supported this var declaration. symbol: {var.symbol.fullyname}')
+		# XXX メンバー変数の展開方法を検討
+		vars: list[str] = []
+		for class_var in node.class_vars:
+			decl_var_symbol = class_var.symbol.as_a(defs.ClassDeclVar)
+			vars.append(self.view.render('class_decl_var', vars={'is_static': True, 'access': 'public', 'symbol': decl_var_symbol.tokens, 'var_type': class_var.var_type.tokens}))
+
+		for this_var in node.this_vars:
+			decl_var_symbol = this_var.symbol.as_a(defs.ThisDeclVar)
+			vars.append(self.view.render('class_decl_var', vars={'is_static': False, 'access': 'public', 'symbol': decl_var_symbol.tokens_without_this, 'var_type': this_var.var_type.tokens}))
 
 		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'parents': parents, 'statements': statements, 'vars': vars})
 
@@ -139,7 +139,7 @@ class Handler(Procedure[str]):
 		var_type = ''
 		if declared:
 			value_type = self.symbols.type_of(node.value)
-			var_type = self.view.render('move_assign_var_type', vars={'types': str(value_type)})
+			var_type = self.view.render('move_assign_var_type', vars={'var_type': str(value_type)})
 
 		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': value})
 

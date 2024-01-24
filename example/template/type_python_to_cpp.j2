@@ -1,0 +1,23 @@
+{%- if var_type.startswith('list') -%}
+std::vector<{{ var_type[5:-1] }}>
+{%- elif var_type.startswith('dict') -%}
+std::map<{{ var_type[5:-1] }}>
+{%- elif var_type.endswith('[CP]') -%}
+{{ var_type[:-4] }}*
+{%- elif var_type.endswith('[CSP]') -%}
+std::shared_ptr<{{ var_type[:-5] }}>
+{%- elif var_type.endswith('[CRef]') -%}
+{{ var_type[:-6] }}&
+{%- elif var_type.endswith('[CRaw]') -%}
+{{ var_type[:-6] }}&
+{%- elif var_type.endswith('[CP, CConst]') -%}
+const {{ var_type[:-12] }}*
+{%- elif var_type.endswith('[CSP, CConst]') -%}
+const std::shared_ptr<{{ var_type[:-13] }}>
+{%- elif var_type.endswith('[CRef, CConst]') -%}
+const {{ var_type[:-14] }}&
+{%- elif var_type.endswith('[CRaw, CConst]') -%}
+const {{ var_type[:-14] }}&
+{%- else -%}
+{{ var_type }}
+{%- endif -%}

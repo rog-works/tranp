@@ -115,8 +115,8 @@ class TestRenderer(TestCase):
 				'decorators': ['deco(A, A.B)'],
 				'parents': ['Base', 'Interface'],
 				'vars': [
-					{'access': 'private', 'symbol': '__value', 'var_type': 'int'},
-					{'access': 'private', 'symbol': '__text', 'var_type': 'string'},
+					'private: int __value;',
+					'private: std::string __text;',
 				],
 				'statements': [
 					'\n'.join([
@@ -131,7 +131,7 @@ class TestRenderer(TestCase):
 				'deco(A, A.B)',
 				'class Hoge : public Base, Interface {',
 				'	private: int __value;',
-				'	private: string __text;',
+				'	private: std::string __text;',
 				'	public: Hoge() {',
 				'		int hoge = 1234;',
 				'		int fuga = 2345;',

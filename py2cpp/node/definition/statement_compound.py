@@ -374,6 +374,7 @@ class Closure(Function):
 
 	@property
 	def binded_this(self) -> bool:
+		"""Note: メソッド内のクロージャーは、メソッドの所有インスタンスを静的に束縛しているものとして扱う"""
 		found_own_class = 'class_def' in self._full_path.de_identify().elements
 		if not found_own_class:
 			return False
@@ -453,15 +454,11 @@ class Class(ClassKind):
 		return [node.as_a(Method) for node in self.statements if node.is_a(Method)]
 
 	@property
-	def vars(self) -> list[AnnoAssign]:
-		return [*self.class_vars, *self.instance_vars]
-
-	@property
 	def class_vars(self) -> list[AnnoAssign]:
 		return [node.as_a(AnnoAssign) for node in self.block.decl_vars_with(ClassDeclVar)]
 
 	@property
-	def instance_vars(self) -> list[AnnoAssign]:
+	def this_vars(self) -> list[AnnoAssign]:
 		return self.constructor.this_vars if self.constructor_exists else []
 
 

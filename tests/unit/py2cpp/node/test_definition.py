@@ -108,7 +108,7 @@ class TestDefinition(TestCase):
 			'parents': [],
 			'constructor': {},
 			'methods': [],
-			'vars': [],
+			'this_vars': [],
 		}),
 		('file_input.class_def[4]', {
 			'name': 'Hoge',
@@ -129,7 +129,7 @@ class TestDefinition(TestCase):
 				{'name': 'func1'},
 				{'name': '_func2'},
 			],
-			'vars': [
+			'this_vars': [
 				{'symbol': 'self.v', 'type': defs.AnnoAssign},
 				{'symbol': 'self.s', 'type': defs.AnnoAssign},
 			],
@@ -175,9 +175,9 @@ class TestDefinition(TestCase):
 			self.assertEqual(type(method), defs.Method)
 			self.assertEqual(method.symbol.tokens, in_expected['name'])
 
-		self.assertEqual(len(node.vars), len(expected['vars']))
-		for index, var in enumerate(node.vars):
-			in_expected = expected['vars'][index]
+		self.assertEqual(len(node.this_vars), len(expected['this_vars']))
+		for index, var in enumerate(node.this_vars):
+			in_expected = expected['this_vars'][index]
 			self.assertEqual(type(var), in_expected['type'])
 			self.assertEqual(var.receiver.tokens, in_expected['symbol'])
 

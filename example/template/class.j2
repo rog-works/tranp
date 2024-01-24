@@ -9,7 +9,7 @@ class {{ symbol }}
 {%- endif %} {
 {%- if vars -%}
 {%- for var in vars %}
-	{{ var.access }}: {{ var.var_type }} {{ var.symbol }};
+	{{ var }}
 {%- endfor -%}
 {%- endif %}
 {%- filter indent('\t') %}

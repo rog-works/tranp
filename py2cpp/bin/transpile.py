@@ -196,7 +196,7 @@ class Handler(Procedure[str]):
 		return node.tokens
 
 	def on_this_decl_var(self, node: defs.ThisDeclVar) -> str:
-		return node.tokens.replace('self', 'this')
+		return node.tokens.replace('self.', 'this->')
 
 	def on_param_class(self, node: defs.ParamClass) -> str:
 		return node.tokens
@@ -236,11 +236,13 @@ class Handler(Procedure[str]):
 		is_cvar_receiver = len(receiver_symbol.attrs) > 0 and receiver_symbol.attrs[0].types.symbol.tokens in cvars
 		if is_cvar_receiver:
 			cvar_type = receiver_symbol.attrs[0].types.symbol.tokens
-			return self.view.render(node.classification, vars={'receiver': receiver, 'access': cvar_type, 'prop': node.prop.tokens})
+			return self.view.render(node.classification, vars={'receiver': receiver, 'accessor': cvar_type, 'prop': node.prop.tokens})
+		elif node.receiver.is_a(defs.ThisVar):
+			return self.view.render(node.classification, vars={'receiver': receiver, 'accessor': 'arrow', 'prop': node.prop.tokens})
 		elif is_static_access(receiver_symbol):
-			return self.view.render(node.classification, vars={'receiver': receiver, 'access': 'static', 'prop': node.prop.tokens})
+			return self.view.render(node.classification, vars={'receiver': receiver, 'accessor': 'static', 'prop': node.prop.tokens})
 		else:
-			return self.view.render(node.classification, vars={'receiver': receiver, 'access': 'raw', 'prop': node.prop.tokens})
+			return self.view.render(node.classification, vars={'receiver': receiver, 'accessor': 'dot', 'prop': node.prop.tokens})
 
 	def on_class_var(self, node: defs.ClassVar) -> str:
 		return node.class_symbol.tokens

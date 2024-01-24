@@ -266,7 +266,7 @@ class TestDefinition(TestCase):
 		('a.b.c', 'file_input.getattr.getattr.var', defs.Variable),
 		('self', 'file_input.var', defs.ThisVar),
 		('self.a', 'file_input.getattr', defs.Relay),
-		('self.a = 0', 'file_input.assign_stmt.assign.getattr', defs.ThisDeclVar),
+		('self.a = 0', 'file_input.assign_stmt.assign.getattr', defs.Relay),
 		('self.a: int = 0', 'file_input.assign_stmt.anno_assign.getattr', defs.ThisDeclVar),
 		('self.a()', 'file_input.funccall.getattr', defs.Relay),
 		('self.a[0]', 'file_input.getitem.getattr', defs.Relay),

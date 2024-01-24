@@ -31,24 +31,26 @@ class Fragment(Node, ITerminal, IDomainName):
 		return DSN.join(self.scope, self.domain_name)
 
 	@property
-	def is_class_var(self) -> bool:
+	def is_decl_class_var(self) -> bool:
 		"""Note: マッチング対象: クラス変数"""
 		# XXX ASTへの依存度が非常に高い判定なので注意
-		# XXX 期待するパス: class_def_raw.block.assign_stmt.(assign|anno_assign).(getattr|var|name)
+		# XXX 期待するパス: class_def_raw.block.assign_stmt.(anno_assign).(getattr|var|name)
 		elems = self._full_path.de_identify().elements
 		actual_class_def_at = last_index_of(elems, 'class_def_raw')
 		expect_class_def_at = max(0, len(elems) - 5)
 		in_decl_class_var = actual_class_def_at == expect_class_def_at
-		in_decl_var = self._full_path.parent_tag in ['assign', 'anno_assign']
+		in_decl_var = self._full_path.parent_tag in ['anno_assign']
 		is_local = DSN.elem_counts(self.tokens) == 1
-		return in_decl_var and in_decl_class_var and is_local
+		is_receiver = self._full_path.last[1] in [0, -1]  # 代入式の左辺が対象
+		return in_decl_var and in_decl_class_var and is_local and is_receiver
 
 	@property
-	def is_this_var(self) -> bool:
+	def is_decl_this_var(self) -> bool:
 		"""Note: マッチング対象: インスタンス変数"""
-		in_decl_var = self._full_path.parent_tag in ['assign', 'anno_assign']
+		in_decl_var = self._full_path.parent_tag in ['anno_assign']
 		is_property = re.fullmatch(r'self.\w+', self.tokens) is not None
-		return in_decl_var and is_property
+		is_receiver = self._full_path.last[1] in [0, -1]  # 代入式の左辺が対象
+		return in_decl_var and is_property and is_receiver
 
 	@property
 	def is_param_class(self) -> bool:
@@ -69,13 +71,14 @@ class Fragment(Node, ITerminal, IDomainName):
 		return in_decl_var and is_this and is_local
 
 	@property
-	def is_local_var(self) -> bool:
+	def is_decl_local_var(self) -> bool:
 		"""Note: マッチング対象: ローカル変数/仮引数(cls/self以外)"""
 		tokens = self.tokens
 		in_decl_var = self._full_path.parent_tag in ['assign', 'anno_assign', 'typedparam', 'for_stmt', 'except_clause']
 		is_class_or_this = tokens == 'cls' or tokens == 'self'
 		is_local = DSN.elem_counts(tokens) == 1
-		return in_decl_var and not is_class_or_this and is_local
+		is_receiver = self._full_path.last[1] in [0, -1]  # 代入式の左辺が対象
+		return in_decl_var and not is_class_or_this and is_local and is_receiver
 
 	@property
 	def in_decl_class_type(self) -> bool:
@@ -96,14 +99,14 @@ class DeclVar(Declable): pass
 class ClassDeclVar(DeclVar):
 	@classmethod
 	def match_feature(cls, via: Fragment) -> bool:
-		return via.is_class_var
+		return via.is_decl_class_var
 
 
 @Meta.embed(Node, accept_tags('getattr'), actualized(via=Fragment))
 class ThisDeclVar(DeclVar):
 	@classmethod
 	def match_feature(cls, via: Fragment) -> bool:
-		return via.is_this_var
+		return via.is_decl_this_var
 
 	@property
 	@override
@@ -150,7 +153,7 @@ class ParamThis(BlockDeclVar):
 class LocalDeclVar(BlockDeclVar):
 	@classmethod
 	def match_feature(cls, via: Fragment) -> bool:
-		return via.is_local_var
+		return via.is_decl_local_var
 
 
 class DeclName(Declable): pass
@@ -177,7 +180,7 @@ class Reference(Fragment): pass
 class Relay(Reference):
 	@classmethod
 	def match_feature(cls, via: Fragment) -> bool:
-		if via.is_local_var or via.is_this_var:
+		if via.is_decl_local_var or via.is_decl_this_var:
 			return False
 
 		if via.in_decl_class_type or via.in_decl_import:

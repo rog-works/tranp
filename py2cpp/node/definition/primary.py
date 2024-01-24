@@ -194,8 +194,8 @@ class Relay(Reference):
 		return self._at(0).one_of(Reference | FuncCall | Indexer | Literal)
 
 	@property
-	def prop(self) -> 'Var':
-		return self._at(1).as_a(Var)
+	def prop(self) -> 'Variable':
+		return self._at(1).as_a(Variable)
 
 	@property
 	@override

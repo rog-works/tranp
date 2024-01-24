@@ -248,8 +248,8 @@ class TestDefinition(TestCase):
 
 	@data_provider([
 		('a', 'file_input.var', defs.Variable),
-		('a = 0', 'file_input.assign_stmt.assign.var', defs.LocalDeclVar),
-		('a: int = 0', 'file_input.assign_stmt.anno_assign.var', defs.LocalDeclVar),
+		('a = 0', 'file_input.assign_stmt.assign.var', defs.DeclLocalVar),
+		('a: int = 0', 'file_input.assign_stmt.anno_assign.var', defs.DeclLocalVar),
 		('a()', 'file_input.funccall.var', defs.Variable),
 		('a(self.v)', 'file_input.funccall.arguments.argvalue.getattr', defs.Relay),
 		('a(self.v)', 'file_input.funccall.arguments.argvalue.getattr.var', defs.ThisVar),
@@ -267,21 +267,21 @@ class TestDefinition(TestCase):
 		('self', 'file_input.var', defs.ThisVar),
 		('self.a', 'file_input.getattr', defs.Relay),
 		('self.a = 0', 'file_input.assign_stmt.assign.getattr', defs.Relay),
-		('self.a: int = 0', 'file_input.assign_stmt.anno_assign.getattr', defs.ThisDeclVar),
+		('self.a: int = 0', 'file_input.assign_stmt.anno_assign.getattr', defs.DeclThisVar),
 		('self.a()', 'file_input.funccall.getattr', defs.Relay),
 		('self.a[0]', 'file_input.getitem.getattr', defs.Relay),
 		('self.a.b', 'file_input.getattr', defs.Relay),
-		('for a in arr: pass', 'file_input.for_stmt.name', defs.LocalDeclVar),
-		('try: ...\nexcept Exception as e: ...', 'file_input.try_stmt.except_clauses.except_clause.name', defs.LocalDeclVar),
+		('for a in arr: pass', 'file_input.for_stmt.name', defs.DeclLocalVar),
+		('try: ...\nexcept Exception as e: ...', 'file_input.try_stmt.except_clauses.except_clause.name', defs.DeclLocalVar),
 		('raise e', 'file_input.raise_stmt.var', defs.Variable),
 		('raise E() from e', 'file_input.raise_stmt.funccall.var', defs.Variable),
 		('raise E() from e', 'file_input.raise_stmt.name', defs.Variable),
 		('from path.to import A', 'file_input.import_stmt.import_names.name', defs.ImportName),
 		('class B(A): pass', 'file_input.class_def.class_def_raw.name', defs.TypesName),
-		('class B(A):\n\tv: int = 0', 'file_input.class_def.class_def_raw.block.assign_stmt.anno_assign.var', defs.ClassDeclVar),
+		('class B(A):\n\tv: int = 0', 'file_input.class_def.class_def_raw.block.assign_stmt.anno_assign.var', defs.DeclClassVar),
 		('def func(a: int) -> None: pass', 'file_input.function_def.function_def_raw.name', defs.TypesName),
-		('def func(a: int) -> None: pass', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.LocalDeclVar),
-		('def func(self) -> None: pass', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.ParamThis),
+		('def func(a: int) -> None: pass', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.DeclLocalVar),
+		('def func(self) -> None: pass', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.DeclThisParam),
 	])
 	def test_fragment(self, source: str, full_path: str, expected: type[defs.Fragment]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Fragment)

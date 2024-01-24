@@ -12,7 +12,7 @@ class Parameter(Node, IDeclare):
 	@implements
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Declable:
-		"""Note: XXX 実体はBlockVarのみ"""
+		"""Note: XXX 実体はDeclBlockVarのみ"""
 		return self._by('typedparam.name').as_a(Declable)
 
 	@property

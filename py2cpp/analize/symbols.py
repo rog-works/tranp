@@ -448,19 +448,19 @@ class ProceduralResolver(Procedure[Symbol]):
 
 	# Primary
 
-	def on_class_decl_var(self, node: defs.ClassDeclVar) -> Symbol:
+	def on_decl_class_var(self, node: defs.DeclClassVar) -> Symbol:
 		return self.symbols.type_of_var(node)
 
-	def on_this_decl_var(self, node: defs.ThisDeclVar) -> Symbol:
+	def on_decl_this_var(self, node: defs.DeclThisVar) -> Symbol:
 		return self.symbols.type_of_var(node)
 
-	def on_param_class(self, node: defs.ParamClass) -> Symbol:
+	def on_decl_class_param(self, node: defs.DeclClassParam) -> Symbol:
 		return self.symbols.type_of_var(node)
 
-	def on_param_this(self, node: defs.ParamThis) -> Symbol:
+	def on_decl_this_param(self, node: defs.DeclThisParam) -> Symbol:
 		return self.symbols.type_of_var(node)
 
-	def on_local_decl_var(self, node: defs.LocalDeclVar) -> Symbol:
+	def on_decl_local_var(self, node: defs.DeclLocalVar) -> Symbol:
 		return self.symbols.type_of_var(node)
 
 	def on_types_name(self, node: defs.TypesName) -> Symbol:

@@ -1,5 +1,5 @@
 from py2cpp.lang.implementation import override
-from py2cpp.node.definition.primary import LocalDeclVar
+from py2cpp.node.definition.primary import DeclLocalVar
 from py2cpp.node.definition.statement_compound import Catch, For, collect_decl_vars
 from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from py2cpp.node.embed import Meta, accept_tags, expandable
@@ -25,4 +25,4 @@ class Entrypoint(Node):
 
 	@property
 	def decl_vars(self) -> list[AnnoAssign | MoveAssign | For | Catch]:
-		return list(collect_decl_vars(self, LocalDeclVar).values())
+		return list(collect_decl_vars(self, DeclLocalVar).values())

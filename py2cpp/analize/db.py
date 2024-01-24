@@ -212,9 +212,9 @@ class SymbolDB:
 		if isinstance(var, (defs.AnnoAssign, defs.Catch)):
 			return var.var_type
 		elif isinstance(var, defs.Parameter):
-			if isinstance(var.symbol, defs.ParamClass):
+			if isinstance(var.symbol, defs.DeclClassParam):
 				return var.symbol.class_types.as_a(defs.ClassKind)
-			elif isinstance(var.symbol, defs.ParamThis):
+			elif isinstance(var.symbol, defs.DeclThisParam):
 				return var.symbol.class_types.as_a(defs.ClassKind)
 			else:
 				return var.var_type.as_a(defs.Type)

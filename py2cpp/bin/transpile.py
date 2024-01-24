@@ -88,8 +88,8 @@ class Handler(Procedure[str]):
 		for index, var in enumerate(this_vars):
 			# XXX 代入式の右辺を取得。必ず取得できるのでキャストして警告を抑制
 			initialize_value = cast(re.Match[str], re.search(r'=\s*([^;]+);$', initializer_statements[index]))[1]
-			var_symbol = var.symbol.as_a(defs.ThisDeclVar)
-			initializers.append({'symbol': var_symbol.tokens_without_this, 'value': initialize_value})
+			decl_var_symbol = var.symbol.as_a(defs.DeclThisVar)
+			initializers.append({'symbol': decl_var_symbol.tokens_without_this, 'value': initialize_value})
 
 		method_vars = {'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'statements': normal_statements, 'class_symbol': node.class_symbol.tokens}
 		constructor_vars = {'initializers': initializers}
@@ -105,11 +105,11 @@ class Handler(Procedure[str]):
 		# XXX メンバー変数の展開方法を検討
 		vars: list[str] = []
 		for class_var in node.class_vars:
-			decl_var_symbol = class_var.symbol.as_a(defs.ClassDeclVar)
+			decl_var_symbol = class_var.symbol.as_a(defs.DeclClassVar)
 			vars.append(self.view.render('class_decl_var', vars={'is_static': True, 'access': 'public', 'symbol': decl_var_symbol.tokens, 'var_type': class_var.var_type.tokens}))
 
 		for this_var in node.this_vars:
-			decl_var_symbol = this_var.symbol.as_a(defs.ThisDeclVar)
+			decl_var_symbol = this_var.symbol.as_a(defs.DeclThisVar)
 			vars.append(self.view.render('class_decl_var', vars={'is_static': False, 'access': 'public', 'symbol': decl_var_symbol.tokens_without_this, 'var_type': this_var.var_type.tokens}))
 
 		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'parents': parents, 'statements': statements, 'vars': vars})
@@ -132,7 +132,7 @@ class Handler(Procedure[str]):
 
 	def on_move_assign(self, node: defs.MoveAssign, receiver: str, value: str) -> str:
 		# XXX ローカル変数の宣言を伴うステートメントか判定
-		decl_vars = [decl_var for decl_var in node.parent.as_a(defs.Block).decl_vars_with(defs.LocalDeclVar)]
+		decl_vars = [decl_var for decl_var in node.parent.as_a(defs.Block).decl_vars_with(defs.DeclLocalVar)]
 		declared = len([decl_var for decl_var in decl_vars if decl_var == node]) > 0
 
 		# XXX 変数の型名を取得
@@ -192,19 +192,19 @@ class Handler(Procedure[str]):
 
 	# Primary
 
-	def on_class_decl_var(self, node: defs.ClassDeclVar) -> str:
+	def on_decl_class_var(self, node: defs.DeclClassVar) -> str:
 		return node.tokens
 
-	def on_this_decl_var(self, node: defs.ThisDeclVar) -> str:
+	def on_decl_this_var(self, node: defs.DeclThisVar) -> str:
 		return node.tokens.replace('self.', 'this->')
 
-	def on_param_class(self, node: defs.ParamClass) -> str:
+	def on_decl_class_param(self, node: defs.DeclClassParam) -> str:
 		return node.tokens
 
-	def on_param_this(self, node: defs.ParamThis) -> str:
+	def on_decl_this_param(self, node: defs.DeclThisParam) -> str:
 		return node.tokens
 
-	def on_local_decl_var(self, node: defs.LocalDeclVar) -> str:
+	def on_decl_local_var(self, node: defs.DeclLocalVar) -> str:
 		return node.tokens
 
 	def on_types_name(self, node: defs.TypesName) -> str:
@@ -226,7 +226,7 @@ class Handler(Procedure[str]):
 			prop_symbol_decl = prop_symbol.raw.decl
 			if isinstance(prop_symbol.types, (defs.Enum, defs.ClassMethod)):
 				return True
-			elif isinstance(prop_symbol_decl, defs.AnnoAssign) and prop_symbol_decl.symbol.is_a(defs.ClassDeclVar):
+			elif isinstance(prop_symbol_decl, defs.AnnoAssign) and prop_symbol_decl.symbol.is_a(defs.DeclClassVar):
 				return True
 
 			return False

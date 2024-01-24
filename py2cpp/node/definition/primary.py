@@ -32,7 +32,7 @@ class Fragment(Node, ITerminal, IDomainName):
 
 	@property
 	def is_decl_class_var(self) -> bool:
-		"""Note: マッチング対象: クラス変数"""
+		"""Note: マッチング対象: クラス変数宣言"""
 		# XXX ASTへの依存度が非常に高い判定なので注意
 		# XXX 期待するパス: class_def_raw.block.assign_stmt.(anno_assign).(getattr|var|name)
 		elems = self._full_path.de_identify().elements
@@ -46,7 +46,7 @@ class Fragment(Node, ITerminal, IDomainName):
 
 	@property
 	def is_decl_this_var(self) -> bool:
-		"""Note: マッチング対象: インスタンス変数"""
+		"""Note: マッチング対象: インスタンス変数宣言"""
 		in_decl_var = self._full_path.parent_tag in ['anno_assign']
 		is_property = re.fullmatch(r'self.\w+', self.tokens) is not None
 		is_receiver = self._full_path.last[1] in [0, -1]  # 代入式の左辺が対象
@@ -72,7 +72,7 @@ class Fragment(Node, ITerminal, IDomainName):
 
 	@property
 	def is_decl_local_var(self) -> bool:
-		"""Note: マッチング対象: ローカル変数/仮引数(cls/self以外)"""
+		"""Note: マッチング対象: ローカル変数宣言/仮引数(cls/self以外)"""
 		tokens = self.tokens
 		in_decl_var = self._full_path.parent_tag in ['assign', 'anno_assign', 'typedparam', 'for_stmt', 'except_clause']
 		is_class_or_this = tokens == 'cls' or tokens == 'self'
@@ -96,14 +96,14 @@ class DeclVar(Declable): pass
 
 
 @Meta.embed(Node, accept_tags('var'), actualized(via=Fragment))
-class ClassDeclVar(DeclVar):
+class DeclClassVar(DeclVar):
 	@classmethod
 	def match_feature(cls, via: Fragment) -> bool:
 		return via.is_decl_class_var
 
 
 @Meta.embed(Node, accept_tags('getattr'), actualized(via=Fragment))
-class ThisDeclVar(DeclVar):
+class DeclThisVar(DeclVar):
 	@classmethod
 	def match_feature(cls, via: Fragment) -> bool:
 		return via.is_decl_this_var
@@ -124,11 +124,11 @@ class ThisDeclVar(DeclVar):
 		return DSN.shift(self.tokens, 1)
 
 
-class BlockDeclVar(DeclVar): pass
+class DeclBlockVar(DeclVar): pass
 
 
 @Meta.embed(Node, accept_tags('name'), actualized(via=Fragment))
-class ParamClass(BlockDeclVar):
+class DeclClassParam(DeclBlockVar):
 	@classmethod
 	def match_feature(cls, via: Fragment) -> bool:
 		return via.is_param_class
@@ -139,7 +139,7 @@ class ParamClass(BlockDeclVar):
 
 
 @Meta.embed(Node, accept_tags('name'), actualized(via=Fragment))
-class ParamThis(BlockDeclVar):
+class DeclThisParam(DeclBlockVar):
 	@classmethod
 	def match_feature(cls, via: Fragment) -> bool:
 		return via.is_param_this
@@ -150,7 +150,7 @@ class ParamThis(BlockDeclVar):
 
 
 @Meta.embed(Node, accept_tags('var', 'name'), actualized(via=Fragment))
-class LocalDeclVar(BlockDeclVar):
+class DeclLocalVar(DeclBlockVar):
 	@classmethod
 	def match_feature(cls, via: Fragment) -> bool:
 		return via.is_decl_local_var

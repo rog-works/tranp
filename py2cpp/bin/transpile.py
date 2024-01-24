@@ -173,8 +173,8 @@ class Handler(Procedure[str]):
 		else:
 			return self.view.render(node.classification, vars={'return_value': return_value, 'cvar_type': ''})
 
-	def on_throw(self, node: defs.Throw, calls: str, via: str) -> str:
-		return self.view.render(node.classification, vars={'calls': calls, 'via': via})
+	def on_throw(self, node: defs.Throw, throws: str, via: str) -> str:
+		return self.view.render(node.classification, vars={'throws': throws, 'via': via})
 
 	def on_pass(self, node: defs.Pass) -> None:
 		pass

@@ -412,11 +412,10 @@ class Class(ClassKind):
 	@property
 	@Meta.embed(Node, expandable)
 	def parents(self) -> list[Type]:
-		parents = self._children('class_def_raw')[1]
-		if parents.is_a(Empty):
+		if not self._exists('class_def_raw.typed_arguments'):
 			return []
 
-		return [node.as_a(InheritArgument).class_type for node in parents._children()]
+		return [node.as_a(InheritArgument).class_type for node in self._children('class_def_raw.typed_arguments')]
 
 	@property
 	@override

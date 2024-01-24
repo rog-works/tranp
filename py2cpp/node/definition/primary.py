@@ -77,7 +77,7 @@ class Fragment(Node, ITerminal, IDomainName):
 		in_decl_var = self._full_path.parent_tag in ['assign', 'anno_assign', 'typedparam', 'for_stmt', 'except_clause']
 		is_class_or_this = tokens == 'cls' or tokens == 'self'
 		is_local = DSN.elem_counts(tokens) == 1
-		is_receiver = self._full_path.last[1] in [0, -1]  # 代入式の左辺が対象
+		is_receiver = self._full_path.last[1] in [0, -1]  # 代入式の左辺が対象(assign/anno_assign)、それ以外はname単独のため必ず-1
 		return in_decl_var and not is_class_or_this and is_local and is_receiver
 
 	@property
@@ -439,8 +439,7 @@ class FuncCall(Node):
 	@property
 	@Meta.embed(Node, expandable)
 	def arguments(self) -> list['Argument']:
-		args = self._at(1)
-		return [node.as_a(Argument) for node in args._children()] if not args.is_a(Empty) else []
+		return [node.as_a(Argument) for node in self._children('arguments')] if self._exists('arguments') else []
 
 
 @Meta.embed(Node, actualized(via=FuncCall))

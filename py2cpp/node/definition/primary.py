@@ -478,5 +478,5 @@ class Argument(Node):
 class InheritArgument(Node):
 	@property
 	@Meta.embed(Node, expandable)
-	def class_type(self) -> Node:  # XXX 理想はTypeだが、参照違反になるため一旦Nodeで対応
-		return self._at(0)
+	def class_type(self) -> Type:
+		return self._at(0).as_a(Type)

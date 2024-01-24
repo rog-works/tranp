@@ -416,7 +416,7 @@ class Class(ClassKind):
 		if parents.is_a(Empty):
 			return []
 
-		return [node.as_a(InheritArgument).class_type.as_a(Type) for node in parents._children()]  # XXX as_a(Type)を消す
+		return [node.as_a(InheritArgument).class_type for node in parents._children()]
 
 	@property
 	@override

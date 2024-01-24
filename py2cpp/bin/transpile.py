@@ -341,6 +341,9 @@ class Handler(Procedure[str]):
 
 	# Literal
 
+	def on_string(self, node: defs.String) -> str:
+		return node.tokens.replace("'", '"')
+
 	def on_truthy(self, node: defs.Truthy) -> str:
 		return 'true'
 

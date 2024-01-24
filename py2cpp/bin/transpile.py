@@ -74,25 +74,35 @@ class Handler(Procedure[str]):
 	def on_constructor(self, node: defs.Constructor, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, statements: list[str]) -> str:
 		this_vars = node.this_vars
 
-		# メンバー変数の初期化ステートメントとそれ以外を分離
-		normal_statements = []
-		initializer_statements = []
+		# クラスの初期化ステートメントとそれ以外を分離
+		normal_statements: list[str] = []
+		initializer_statements: list[str] = []
+		super_initializer_statement = ''
 		for index, statement in enumerate(node.statements):
 			if statement in this_vars:
 				initializer_statements.append(statements[index])
+			elif isinstance(statement, defs.FuncCall) and statement.calls.tokens.endswith('__init__'):
+				super_initializer_statement = statements[index]
 			else:
 				normal_statements.append(statements[index])
+
+		# 親クラスのコンストラクター呼び出しのデータを生成
+		super_initializer = {}
+		if super_initializer_statement:
+			super_initializer['parent'] = super_initializer_statement.split('::')[0]
+			# XXX コンストラクターへの実引数を取得。必ず取得できるのでキャストして警告を抑制 (期待値: `Class::__init__(a, b, c);`)
+			super_initializer['arguments'] = cast(re.Match[str], re.search(r'\(([^)]*)\);$', super_initializer_statement))[1]
 
 		# メンバー変数の宣言用のデータを生成
 		initializers: list[dict[str, str]] = []
 		for index, var in enumerate(this_vars):
-			# XXX 代入式の右辺を取得。必ず取得できるのでキャストして警告を抑制
+			# XXX 代入式の右辺を取得。必ず取得できるのでキャストして警告を抑制 (期待値: `int this.a = 1234;`)
 			initialize_value = cast(re.Match[str], re.search(r'=\s*([^;]+);$', initializer_statements[index]))[1]
 			decl_var_symbol = var.symbol.as_a(defs.DeclThisVar)
 			initializers.append({'symbol': decl_var_symbol.tokens_without_this, 'value': initialize_value})
 
 		method_vars = {'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'statements': normal_statements, 'class_symbol': node.class_symbol.tokens}
-		constructor_vars = {'initializers': initializers}
+		constructor_vars = {'initializers': initializers, 'super_initializer': super_initializer}
 		return self.view.render(node.classification, vars={**method_vars, **constructor_vars})
 
 	def on_method(self, node: defs.Method, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, statements: list[str]) -> str:
@@ -278,7 +288,9 @@ class Handler(Procedure[str]):
 		return 'void'
 
 	def on_func_call(self, node: defs.FuncCall, calls: str, arguments: list[str]) -> str:
-		return self.view.render(node.classification, vars={'calls': calls, 'arguments': arguments})
+		# Block直下の場合はステートメント
+		is_statement = node.parent.is_a(defs.Block)
+		return self.view.render(node.classification, vars={'calls': calls, 'arguments': arguments, 'is_statement': is_statement})
 
 	def on_super(self, node: defs.Super, calls: str, arguments: list[str]) -> str:
 		return node.parent_class_symbol.tokens

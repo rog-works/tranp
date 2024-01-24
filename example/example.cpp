@@ -6,7 +6,7 @@
 class Box3d : public CObject {
 	public: Vector min;
 	public: Vector max;
-	public: Box3d(Vector min, Vector max) : min(min), max(max) {
+	public: Box3d(Vector min, Vector max) : CObject(), min(min), max(max) {
 	}
 	public: bool contains(Vector location) {
 		throw new NotImplementedError();
@@ -79,7 +79,7 @@ class CellMesh {
 		std::vector<Box3d> out = {
 		};
 		for (auto position : positions) {
-			out.append(Box3d(position - offset, position + offset))
+			out.append(Box3d(position - offset, position + offset));
 		}
 		return out;
 	}
@@ -112,7 +112,7 @@ class CellMesh {
 				}
 			}
 		}
-		mesh.process_mesh(closure)
+		mesh.process_mesh(closure);
 		return outIds;
 	}
 };

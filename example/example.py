@@ -8,6 +8,7 @@ from example.FW.compatible import IntVector, Vector, Mesh, MeshRaw
 
 class Box3d(CObject):
 	def __init__(self, min: Vector, max: Vector) -> None:
+		super().__init__()
 		self.min: Vector = min
 		self.max: Vector = max
 

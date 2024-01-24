@@ -3,4 +3,4 @@
 		{%- if loop.index0 > 0 %}, {% endif -%}
 		{{- argument -}}
 	{%- endfor -%}
-)
+){% if is_statement %};{% endif %}

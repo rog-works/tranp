@@ -18,7 +18,7 @@ class Parameter(Node, IDeclare):
 	@property
 	@Meta.embed(Node, expandable)
 	def var_type(self) -> Type | Empty:
-		return self._by('typedparam')._at(1).one_of(Type | Empty)
+		return self._children('typedparam')[1].one_of(Type | Empty)
 
 	@property
 	@Meta.embed(Node, expandable)

@@ -412,7 +412,7 @@ class Class(ClassKind):
 	@property
 	@Meta.embed(Node, expandable)
 	def parents(self) -> list[Type]:
-		parents = self._by('class_def_raw')._at(1)
+		parents = self._children('class_def_raw')[1]
 		if parents.is_a(Empty):
 			return []
 

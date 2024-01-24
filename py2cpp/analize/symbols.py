@@ -467,10 +467,10 @@ class ProceduralResolver(Procedure[Symbol]):
 	def on_relay(self, node: defs.Relay, receiver: Symbol) -> Symbol:
 		return self.symbols.type_of_property(receiver.types, node.prop)
 
-	def on_class_var(self, node: defs.ClassVar) -> Symbol:
+	def on_class_ref(self, node: defs.ClassRef) -> Symbol:
 		return self.symbols.type_of_var(node)
 
-	def on_this_var(self, node: defs.ThisVar) -> Symbol:
+	def on_this_ref(self, node: defs.ThisRef) -> Symbol:
 		return self.symbols.type_of_var(node)
 
 	def on_argument_label(self, node: defs.ArgumentLabel) -> Symbol:

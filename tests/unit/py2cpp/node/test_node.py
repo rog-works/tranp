@@ -166,8 +166,8 @@ class TestNode(TestCase):
 		# Reference
 		('a.b', 'file_input.getattr', defs.Relay, 'a.b', '__main__.a.b'),
 		('if True:\n\tif True:\n\t\ta.b', 'file_input.if_stmt.block.if_stmt.block.getattr', defs.Relay, 'a.b', '__main__.if_stmt.if_stmt.a.b'),
-		('class A:\n\t@classmethod\n\tdef c_method(cls) -> None:\n\t\tprint(cls)', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.funccall.arguments.argvalue.var', defs.ClassVar, 'cls', '__main__.A.c_method.cls'),
-		('class A:\n\tdef method(self) -> None:\n\t\tprint(self)', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.funccall.arguments.argvalue.var', defs.ThisVar, 'self', '__main__.A.method.self'),
+		('class A:\n\t@classmethod\n\tdef c_method(cls) -> None:\n\t\tprint(cls)', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.funccall.arguments.argvalue.var', defs.ClassRef, 'cls', '__main__.A.c_method.cls'),
+		('class A:\n\tdef method(self) -> None:\n\t\tprint(self)', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.funccall.arguments.argvalue.var', defs.ThisRef, 'self', '__main__.A.method.self'),
 		('a', 'file_input.var', defs.Variable, 'a', '__main__.a'),
 		# Type
 		('a: int = 0', 'file_input.assign_stmt.anno_assign.typed_var', defs.GeneralType, 'int', '__main__.int'),

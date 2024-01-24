@@ -207,7 +207,7 @@ class Var(Reference, ITerminal): pass
 
 
 @Meta.embed(Node, accept_tags('var'), actualized(via=Fragment))
-class ClassVar(Var):
+class ClassRef(Var):
 	@classmethod
 	def match_feature(cls, via: Fragment) -> bool:
 		return via.tokens == 'cls'
@@ -218,7 +218,7 @@ class ClassVar(Var):
 
 
 @Meta.embed(Node, accept_tags('var'), actualized(via=Fragment))
-class ThisVar(Var):
+class ThisRef(Var):
 	@classmethod
 	def match_feature(cls, via: Fragment) -> bool:
 		return via.tokens == 'self'

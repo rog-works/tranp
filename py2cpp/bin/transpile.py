@@ -214,7 +214,7 @@ class Handler(Procedure[str]):
 		def is_static_access(receiver_symbol: Symbol) -> bool:
 			if isinstance(receiver_symbol.types, defs.Enum):
 				return True
-			elif isinstance(node.receiver, defs.ClassVar):
+			elif isinstance(node.receiver, defs.ClassRef):
 				return True
 			elif isinstance(node.receiver, defs.Super):
 				return True
@@ -234,17 +234,17 @@ class Handler(Procedure[str]):
 		if is_cvar_receiver:
 			cvar_type = receiver_symbol.attrs[0].types.symbol.tokens
 			return self.view.render(node.classification, vars={'receiver': receiver, 'accessor': cvar_type, 'prop': node.prop.tokens})
-		elif node.receiver.is_a(defs.ThisVar):
+		elif node.receiver.is_a(defs.ThisRef):
 			return self.view.render(node.classification, vars={'receiver': receiver, 'accessor': 'arrow', 'prop': node.prop.tokens})
 		elif is_static_access(receiver_symbol):
 			return self.view.render(node.classification, vars={'receiver': receiver, 'accessor': 'static', 'prop': node.prop.tokens})
 		else:
 			return self.view.render(node.classification, vars={'receiver': receiver, 'accessor': 'dot', 'prop': node.prop.tokens})
 
-	def on_class_var(self, node: defs.ClassVar) -> str:
+	def on_class_ref(self, node: defs.ClassRef) -> str:
 		return node.class_symbol.tokens
 
-	def on_this_var(self, node: defs.ThisVar) -> str:
+	def on_this_ref(self, node: defs.ThisRef) -> str:
 		return 'this'
 
 	def on_argument_label(self, node: defs.ArgumentLabel) -> str:

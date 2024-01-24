@@ -2,7 +2,7 @@ import re
 from typing import cast
 
 from py2cpp.ast.dsn import DSN
-from py2cpp.compatible.python.embed import __actual__
+from py2cpp.compatible.python.embed import __actual__, __alias__
 from py2cpp.lang.implementation import implements, override
 from py2cpp.lang.sequence import last_index_of
 from py2cpp.node.definition.element import Decorator, Parameter
@@ -250,9 +250,17 @@ class ClassKind(Node, IDomainName, IScope, IDeclare):
 		"""Note: XXX 未使用"""
 		return []
 
-	def _actual_symbol(self) -> str | None:
+	def actual_symbol(self) -> str | None:
+		return self._attr_symbol(__actual__.__name__)
+
+	def alias_symbol(self) -> str | None:
+		return self._attr_symbol(__alias__.__name__)
+
+	def _attr_symbol(self, identifier: str) -> str | None:
 		"""デコレーターで設定した別名をシンボル名として取り込む
 
+		Args:
+			identifier (str): 識別名
 		Returns:
 			str | None: 別名
 		Examples:
@@ -266,7 +274,7 @@ class ClassKind(Node, IDomainName, IScope, IDeclare):
 			return None
 
 		decorator = decorators[0]
-		if not decorator.path.tokens.startswith(__actual__.__name__):
+		if not decorator.path.tokens == identifier:
 			return None
 
 		return decorator.arguments[0].value.as_a(String).plain
@@ -279,7 +287,7 @@ class Function(ClassKind):
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Declable:
 		symbol = self._by('function_def_raw.name').as_a(Declable)
-		alias = self._actual_symbol()
+		alias = self.actual_symbol()
 		return symbol if not alias else symbol.dirty_proxify(tokens=alias).as_a(Declable)
 
 	@property
@@ -401,7 +409,7 @@ class Class(ClassKind):
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Declable:
 		symbol = self._by('class_def_raw.name').as_a(Declable)
-		alias = self._actual_symbol()
+		alias = self.actual_symbol()
 		return symbol if not alias else symbol.dirty_proxify(tokens=alias).as_a(Declable)
 
 	@property

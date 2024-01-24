@@ -215,11 +215,7 @@ class Handler(Procedure[str]):
 		return node.tokens
 
 	def on_types_name(self, node: defs.TypesName) -> str:
-		for decorator in node.class_types.as_a(defs.ClassKind).decorators:
-			if decorator.path.tokens == __alias__.__name__:
-				return decorator.arguments[0].value.as_a(defs.String).plain
-
-		return node.tokens
+		return node.class_types.as_a(defs.ClassKind).alias_symbol() or node.tokens
 
 	def on_import_name(self, node: defs.ImportName) -> str:
 		return node.tokens

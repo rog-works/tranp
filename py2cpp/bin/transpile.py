@@ -264,6 +264,9 @@ class Handler(Procedure[str]):
 	def on_dict_type(self, node: defs.DictType, type_name: str, key_type: str, value_type: str) -> str:
 		return self.view.render(node.classification, vars={'type_name': type_name, 'key_type': key_type, 'value_type': value_type})
 
+	def on_callable_type(self, node: defs.CallableType, type_name: str, parameters: list[str], return_type: str) -> str:
+		raise NotImplementedError(f'Not supported CallableType. symbol: {node.fullyname}')
+
 	def on_custom_type(self, node: defs.CustomType, type_name: str, template_types: list[str]) -> str:
 		return self.view.render(node.classification, vars={'type_name': type_name, 'cvar_type': template_types[0], 'cmutable': template_types[1] if len(template_types) == 2 else ''})
 

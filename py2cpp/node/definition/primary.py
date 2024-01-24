@@ -187,11 +187,11 @@ class Relay(Reference):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def receiver(self) -> 'Reference | FuncCall | Indexer | Literal':  # XXX 前方参照
+	def receiver(self) -> 'Reference | FuncCall | Indexer | Literal':
 		return self._at(0).one_of(Reference | FuncCall | Indexer | Literal)
 
 	@property
-	def prop(self) -> 'Var':  # XXX 前方参照
+	def prop(self) -> 'Var':
 		return self._at(1).as_a(Var)
 
 	@property
@@ -236,7 +236,7 @@ class ArgumentLabel(Var):
 class Variable(Var):
 	@classmethod
 	def match_feature(cls, via: Fragment) -> bool:
-		# XXX actualizeループの結果を元に排他的に決定(実質的なフォールバック)
+		"""Note: XXX actualizeループの結果を元に排他的に決定(実質的なフォールバック)"""
 		return True
 
 
@@ -275,12 +275,7 @@ class Indexer(Node):
 		return self._children('slices')[0]
 
 
-class Type(Node, ITerminal, IDomainName):
-	@property
-	@implements
-	def can_expand(self) -> bool:
-		return True
-
+class Type(Node, IDomainName):
 	@property
 	@implements
 	def domain_name(self) -> str:
@@ -292,26 +287,26 @@ class Type(Node, ITerminal, IDomainName):
 		return DSN.join(self.scope, self.domain_name)
 
 	@property
-	@Meta.embed(Node, expandable)
 	def type_name(self) -> 'Type':
-		"""
-		Note:
-			XXX 終端要素の場合は自分自身をシンボルとして扱う
-			XXX 派生クラスでexpandableの設定が矛盾する場合がある。終端要素は展開しないので必ずしも必要ない。直接的な害は無いが勘違いしやすいので修正を検討
-		"""
-		return self if not self.can_expand else self._at(0).as_a(Type)
+		return self
 
 
 @Meta.embed(Node, accept_tags('typed_getattr', 'typed_var'))
-class GeneralType(Type):
+class GeneralType(Type, ITerminal):
 	@property
-	@override
+	@implements
 	def can_expand(self) -> bool:
 		return False
 
 
 @Meta.embed(Node, accept_tags('typed_getitem'))
 class GenericType(Type):
+	@property
+	@override
+	@Meta.embed(Node, expandable)
+	def type_name(self) -> 'Type':
+		return self._at(0).as_a(Type)
+
 	@property
 	def template_types(self) -> list[Type]:
 		return [node.as_a(Type) for node in self._children('typed_slices')]
@@ -376,7 +371,7 @@ class CallableType(GenericType):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def return_decl(self) -> Type:
+	def return_type(self) -> Type:
 		return self._children('typed_slices')[1].as_a(Type)
 
 
@@ -410,9 +405,9 @@ class UnionType(Type):
 
 
 @Meta.embed(Node, accept_tags('typed_none'))
-class NullType(Type):
+class NullType(Type, ITerminal):
 	@property
-	@override
+	@implements
 	def can_expand(self) -> bool:
 		return False
 

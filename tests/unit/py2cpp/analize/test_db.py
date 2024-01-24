@@ -35,6 +35,8 @@ class TestSymbolDB(TestCase):
 			'tests.unit.py2cpp.analize.fixtures.test_db_classes.enumerate': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.enumerate',
 			'tests.unit.py2cpp.analize.fixtures.test_db_classes.range': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.range',
 			'tests.unit.py2cpp.analize.fixtures.test_db_classes.len': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.len',
+			# 標準ライブラリー/embedライブラリー(ClassKind)
+			'tests.unit.py2cpp.analize.fixtures.test_db_classes.__actual__': 'py2cpp.compatible.python.embed.__actual__',
 			# 標準ライブラリー(Declable)
 			'tests.unit.py2cpp.analize.fixtures.test_db_classes.id.instance': 'typing.Any',
 			'tests.unit.py2cpp.analize.fixtures.test_db_classes.print.args': 'typing.Any',
@@ -67,6 +69,40 @@ class TestSymbolDB(TestCase):
 			'typing.Iterator': 'typing.Iterator',
 			'typing.Sequence': 'typing.Sequence',
 			'typing.TypeVar': 'typing.TypeVar',
+			# embedモジュール/typingライブラリー(ClassKind)
+			'py2cpp.compatible.python.embed.Callable': 'typing.Callable',
+			'py2cpp.compatible.python.embed.TypeVar': 'typing.TypeVar',
+			# embedモジュール/標準ライブラリー(ClassKind)
+			'py2cpp.compatible.python.embed.int': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.int',
+			'py2cpp.compatible.python.embed.float': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.float',
+			'py2cpp.compatible.python.embed.str': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.str',
+			'py2cpp.compatible.python.embed.bool': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.bool',
+			'py2cpp.compatible.python.embed.tuple': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.tuple',
+			'py2cpp.compatible.python.embed.pair_': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.pair_',
+			'py2cpp.compatible.python.embed.list': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.list',
+			'py2cpp.compatible.python.embed.dict': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.dict',
+			'py2cpp.compatible.python.embed.None': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.None',
+			'py2cpp.compatible.python.embed.Union': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Union',
+			'py2cpp.compatible.python.embed.Unknown': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Unknown',
+			'py2cpp.compatible.python.embed.type': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.type',
+			'py2cpp.compatible.python.embed.super': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.super',
+			'py2cpp.compatible.python.embed.Exception': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Exception',
+			'py2cpp.compatible.python.embed.id': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.id',
+			'py2cpp.compatible.python.embed.print': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.print',
+			'py2cpp.compatible.python.embed.enumerate': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.enumerate',
+			'py2cpp.compatible.python.embed.range': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.range',
+			'py2cpp.compatible.python.embed.len': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.len',
+			# embedモジュール(ClassKind)
+			'py2cpp.compatible.python.embed.__actual__': 'py2cpp.compatible.python.embed.__actual__',
+			'py2cpp.compatible.python.embed.__actual__.decorator': 'py2cpp.compatible.python.embed.__actual__.decorator',
+			'py2cpp.compatible.python.embed.__alias__': 'py2cpp.compatible.python.embed.__alias__',
+			'py2cpp.compatible.python.embed.__alias__.decorator': 'py2cpp.compatible.python.embed.__alias__.decorator',
+			# embedモジュール(Declable)
+			'py2cpp.compatible.python.embed.T': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Unknown',
+			'py2cpp.compatible.python.embed.__actual__.name': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.str',
+			'py2cpp.compatible.python.embed.__actual__.decorator.wrapped': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Unknown',
+			'py2cpp.compatible.python.embed.__alias__.name': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.str',
+			'py2cpp.compatible.python.embed.__alias__.decorator.wrapped': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Unknown',
 			# test_db_xyzモジュール/標準ライブラリー(ClassKind)
 			'tests.unit.py2cpp.analize.fixtures.test_db_xyz.int': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.int',
 			'tests.unit.py2cpp.analize.fixtures.test_db_xyz.float': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.float',
@@ -140,9 +176,9 @@ class TestSymbolDB(TestCase):
 			'__main__.B.func1.b': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.list',
 			'__main__.B.func1.v': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Unknown',
 			'__main__.B.func2.self': '__main__.B',
-			'__main__.B.func2.closure.a': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Unknown',
 			'__main__.B.func2.i': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Unknown',
 			'__main__.B.func2.e': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Exception',
+			'__main__.B.func2.closure.a': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Unknown',
 		},),
 	])
 	def test___init__(self, expected: dict[str, str]) -> None:
@@ -154,5 +190,8 @@ class TestSymbolDB(TestCase):
 		for expected_path, expected_org_path in expected.items():
 			self.assertEqual('ok' if expected_path in db.raws else expected_path, 'ok')
 			self.assertEqual(db.raws[expected_path].org_path, expected_org_path)
+
+		for key, value in db.raws.items():
+			self.assertEqual('ok' if key in expected else key, 'ok')
 
 		self.assertEqual(len(db.raws), len(expected))

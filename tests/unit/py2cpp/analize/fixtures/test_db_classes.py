@@ -1,25 +1,27 @@
 from typing import Any, Iterator, Sequence
 
+from py2cpp.compatible.python.embed import __actual__
+
 
 # Primitive
 
-@__alias__('int')
+@__actual__('int')
 class Integer: ...
-@__alias__('float')
+@__actual__('float')
 class Float: ...
-@__alias__('str')
+@__actual__('str')
 class String: ...
-@__alias__('bool')
+@__actual__('bool')
 class Boolean: ...
-@__alias__('tuple')
+@__actual__('tuple')
 class Tuple: ...
-@__alias__('pair_')
+@__actual__('pair_')
 class Pair: ...
-@__alias__('list')
+@__actual__('list')
 class List: ...
-@__alias__('dict')
+@__actual__('dict')
 class Dict: ...
-@__alias__('None')
+@__actual__('None')
 class Null: ...
 
 # Type
@@ -29,9 +31,9 @@ class Unknown: ...
 
 # Class
 
-@__alias__('type')
+@__actual__('type')
 class Type: ...
-@__alias__('super')
+@__actual__('super')
 class Super: ...
 class Exception: ...
 

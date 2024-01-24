@@ -8,7 +8,7 @@ from py2cpp.analize.symbols import Symbol, Symbols
 from py2cpp.app.app import App
 from py2cpp.ast.parser import ParserSetting
 import py2cpp.compatible.cpp.object as cpp
-from py2cpp.errors import LogicError
+import py2cpp.compatible.python.embed as __alias__
 from py2cpp.lang.error import stacktrace
 from py2cpp.lang.module import fullyname
 from py2cpp.module.types import ModulePath
@@ -215,7 +215,7 @@ class Handler(Procedure[str]):
 		return node.tokens
 
 	def on_types_name(self, node: defs.TypesName) -> str:
-		return node.tokens
+		return node.class_types.as_a(defs.ClassKind).alias_symbol() or node.tokens
 
 	def on_import_name(self, node: defs.ImportName) -> str:
 		return node.tokens

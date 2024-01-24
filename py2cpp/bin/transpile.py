@@ -339,14 +339,13 @@ class Handler(Procedure[str]):
 	def on_dict(self, node: defs.Dict, items: list[str]) -> str:
 		return self.view.render(node.classification, vars={'items': items})
 
-	def on_truthy(self, node: defs.Truthy) -> str:
-		return 'true'
-
-	def on_falsy(self, node: defs.Falsy) -> str:
-		return 'false'
-
 	def on_null(self, node: defs.Null) -> str:
 		return 'nullptr'
+
+	# Expression
+
+	def on_group(self, node: defs.Group, expression: str) -> str:
+		return f'({expression})'
 
 	# Terminal
 

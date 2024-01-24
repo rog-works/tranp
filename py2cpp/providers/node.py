@@ -98,7 +98,7 @@ def symbol_mapping() -> SymbolMapping:
 			'dict': defs.Dict,
 			'const_none': defs.Null,
 			# -- Expression --
-			# 'expression': defs.Expression,
+			'group_expr': defs.Group,
 			# -- Terminal --
 			# '': defs.Terminal,
 			'__empty__': defs.Empty,

@@ -642,6 +642,11 @@ class ProceduralResolver(Procedure[Symbol]):
 
 	# Terminal
 
+	def on_group(self, node: defs.Group, expression: Symbol) -> Symbol:
+		return expression
+
+	# Terminal
+
 	def on_empty(self, node: defs.Empty) -> Symbol:
 		# XXX 厳密にいうとNullとEmptyは別だが、実用上はほぼ同じなので代用
 		return self.symbols.type_of_primitive(None)

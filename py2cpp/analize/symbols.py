@@ -526,7 +526,7 @@ class ProceduralResolver(Procedure[Symbol]):
 			return calls
 
 	def on_super(self, node: defs.Super, calls: Symbol, arguments: list[Symbol]) -> Symbol:
-		return self.symbols.resolve(node.parent_symbol)
+		return self.symbols.resolve(node.parent_class_symbol)
 
 	def on_argument(self, node: defs.Argument, label: Symbol, value: Symbol) -> Symbol:
 		return value

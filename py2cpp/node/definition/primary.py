@@ -448,7 +448,7 @@ class Super(FuncCall):
 		return via.calls.tokens == 'super'
 
 	@property
-	def parent_symbol(self) -> Type:
+	def parent_class_symbol(self) -> Type:
 		from py2cpp.node.definition.statement_compound import Class  # FIXME 循環参照
 
 		decl_class = self._ancestor('class_def').as_a(Class)

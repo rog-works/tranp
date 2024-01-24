@@ -219,6 +219,8 @@ class Handler(Procedure[str]):
 				return True
 			elif isinstance(node.receiver, defs.ClassVar):
 				return True
+			elif isinstance(node.receiver, defs.Super):
+				return True
 
 			prop_symbol = self.symbols.type_of_property(receiver_symbol.types, node.prop)
 			prop_symbol_decl = prop_symbol.raw.decl
@@ -280,7 +282,7 @@ class Handler(Procedure[str]):
 		return self.view.render(node.classification, vars={'calls': calls, 'arguments': arguments})
 
 	def on_super(self, node: defs.Super, calls: str, arguments: list[str]) -> str:
-		return self.view.render('func_call', vars={'calls': node.parent_symbol.tokens, 'arguments': arguments})
+		return node.parent_class_symbol.tokens
 
 	def on_argument(self, node: defs.Argument, label: str, value: str) -> str:
 		return value

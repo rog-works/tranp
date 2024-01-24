@@ -24,9 +24,9 @@ class Assign(Node, IDeclare):
 		"""
 		Note:
 			XXX シンボルテーブル作成時以外に使用しないと言う前提のため、
-			XXX receiverがSymbol以外のインスタンスで使用するとエラーが発生する
+			XXX receiverがDeclable以外のインスタンスで使用するとエラーが発生する
 		"""
-		return self._elements[0].as_a(Declable)
+		return self.receiver.as_a(Declable)
 
 
 @Meta.embed(Node, actualized(via=Assign))

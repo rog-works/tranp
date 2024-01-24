@@ -35,8 +35,8 @@ class Handler(Procedure[str]):
 	# Hook
 
 	def on_exit_func_call(self, node: defs.FuncCall, result: str) -> str:
-		if result == "pragma('once')":
-			return '#pragma once'
+		if result.startswith('directive'):
+			return node.arguments[0].tokens[1:-1]
 		else:
 			return result
 

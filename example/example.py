@@ -1,8 +1,8 @@
-from py2cpp.compatible.cpp.directive import pragma
+from py2cpp.compatible.cpp.preprocess import directive
 from py2cpp.compatible.cpp.enum import CEnum
 from py2cpp.compatible.cpp.object import CObject, CP, CSP, CConst
 
-pragma('once')
+directive('#pragma once')
 
 from example.FW.compatible import IntVector, Vector, Mesh, MeshRaw
 
@@ -44,6 +44,7 @@ class CellMesh:
 		fx = float(cell.x)
 		fy = float(cell.y)
 		fz = float(cell.z)
+		print('%f, %f, %f', fx, fy, fz)
 		return Vector(fx, fy, fz)
 
 	@classmethod

@@ -1,4 +1,4 @@
-// #include "py2cpp/compatible/cpp/directive.h"
+// #include "py2cpp/compatible/cpp/preprocess.h"
 // #include "py2cpp/compatible/cpp/enum.h"
 // #include "py2cpp/compatible/cpp/object.h"
 #pragma once
@@ -41,6 +41,7 @@ class CellMesh {
 		float fx = float(cell.x);
 		float fy = float(cell.y);
 		float fz = float(cell.z);
+		print("%f, %f, %f", fx, fy, fz);
 		return Vector(fx, fy, fz);
 	}
 

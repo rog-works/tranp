@@ -292,24 +292,26 @@ class TestDefinition(TestCase):
 		self.assertEqual(type(node), expected)
 
 	@data_provider([
-		('a(self.v)', 'file_input.funccall.arguments.argvalue.getattr', {'receiver': defs.ThisRef, 'property': defs.Variable}),
-		('a[0].b', 'file_input.getattr', {'receiver': defs.Indexer, 'property': defs.Variable}),
-		('a.b', 'file_input.getattr', {'receiver': defs.Variable, 'property': defs.Variable}),
-		('a.b()', 'file_input.funccall.getattr', {'receiver': defs.Variable, 'property': defs.Variable}),
-		('a.b[0]', 'file_input.getitem.getattr', {'receiver': defs.Variable, 'property': defs.Variable}),
-		('a.b.c', 'file_input.getattr', {'receiver': defs.Relay, 'property': defs.Variable}),
-		('a.b.c', 'file_input.getattr.getattr', {'receiver': defs.Variable, 'property': defs.Variable}),
-		('self.a', 'file_input.getattr', {'receiver': defs.ThisRef, 'property': defs.Variable}),
-		('self.a()', 'file_input.funccall.getattr', {'receiver': defs.ThisRef, 'property': defs.Variable}),
-		('self.a[0]', 'file_input.getitem.getattr', {'receiver': defs.ThisRef, 'property': defs.Variable}),
-		('self.a.b', 'file_input.getattr', {'receiver': defs.Relay, 'property': defs.Variable}),
-		('self.a().b', 'file_input.getattr', {'receiver': defs.FuncCall, 'property': defs.Variable}),
-		('"".a', 'file_input.getattr', {'receiver': defs.String, 'property': defs.Variable}),
+		('a(self.v)', 'file_input.funccall.arguments.argvalue.getattr', defs.ThisRef),
+		('a(cls.v)', 'file_input.funccall.arguments.argvalue.getattr', defs.ClassRef),
+		('a[0].b', 'file_input.getattr', defs.Indexer),
+		('a.b', 'file_input.getattr', defs.Variable),
+		('a.b()', 'file_input.funccall.getattr', defs.Variable),
+		('a.b[0]', 'file_input.getitem.getattr', defs.Variable),
+		('a.b.c', 'file_input.getattr', defs.Relay),
+		('a.b.c', 'file_input.getattr.getattr', defs.Variable),
+		('self.a', 'file_input.getattr', defs.ThisRef),
+		('self.a()', 'file_input.funccall.getattr', defs.ThisRef),
+		('self.a[0]', 'file_input.getitem.getattr', defs.ThisRef),
+		('self.a.b', 'file_input.getattr', defs.Relay),
+		('self.a().b', 'file_input.getattr', defs.FuncCall),
+		('super().b', 'file_input.getattr', defs.Super),
+		('"".a', 'file_input.getattr', defs.String),
 	])
-	def test_relay(self, source: str, full_path: str, expected: dict[str, type[defs.Relay]]) -> None:
+	def test_relay(self, source: str, full_path: str, expected: type[defs.Reference | defs.FuncCall | defs.Indexer | defs.Literal]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Relay)
-		self.assertEqual(type(node.receiver), expected['receiver'])
-		self.assertEqual(type(node.prop), expected['property'])
+		self.assertEqual(type(node.receiver), expected)
+		self.assertEqual(type(node.prop), defs.Variable)
 
 	@data_provider([
 		('from path.to import A', 'file_input.import_stmt.dotted_name', defs.ImportPath),

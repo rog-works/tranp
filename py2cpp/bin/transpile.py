@@ -330,6 +330,12 @@ class Handler(Procedure[str]):
 
 	# Literal
 
+	def on_truthy(self, node: defs.Truthy) -> str:
+		return 'true'
+
+	def on_falsy(self, node: defs.Falsy) -> str:
+		return 'false'
+
 	def on_pair(self, node: defs.Pair, first: str, second: str) -> str:
 		return '{' f'{first}, {second}' '}'
 

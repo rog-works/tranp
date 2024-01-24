@@ -441,11 +441,6 @@ class ProceduralResolver(Procedure[Symbol]):
 		"""Note: XXX operatorに型はないので引数からは省略"""
 		return receiver
 
-	# Element
-
-	def on_return_decl(self, node: defs.ReturnDecl, var_type: Symbol) -> Symbol:
-		return var_type
-
 	# Primary
 
 	def on_decl_class_var(self, node: defs.DeclClassVar) -> Symbol:
@@ -520,7 +515,7 @@ class ProceduralResolver(Procedure[Symbol]):
 			return self.symbols.type_of_var(calls.types.class_symbol)
 		elif isinstance(calls.types, defs.Function):
 			# XXX type_ofを使うと無限再帰になりやすいため別案を検討
-			return self.symbols.type_of(calls.types.return_decl.var_type)
+			return self.symbols.type_of(calls.types.return_type)
 		# defs.ClassKind
 		else:
 			return calls

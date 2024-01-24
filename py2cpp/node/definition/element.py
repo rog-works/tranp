@@ -27,14 +27,6 @@ class Parameter(Node, IDeclare):
 		return node.as_a(Empty) if node.is_a(Empty) else node
 
 
-@Meta.embed(Node, accept_tags('return_type'))
-class ReturnDecl(Node):
-	@property
-	@Meta.embed(Node, expandable)
-	def var_type(self) -> Type:
-		return self._at(0).one_of(Type)
-
-
 @Meta.embed(Node, accept_tags('decorator'))
 class Decorator(Node):
 	@property

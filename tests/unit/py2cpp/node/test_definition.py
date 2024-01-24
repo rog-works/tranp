@@ -98,7 +98,7 @@ class TestDefinition(TestCase):
 			self.assertEqual(parameter.var_type.tokens if not parameter.var_type.is_a(defs.Empty) else 'Empty', in_expected['type'])
 			self.assertEqual(parameter.default_value.tokens if not parameter.default_value.is_a(defs.Empty) else 'Empty', in_expected['default'])
 
-		self.assertEqual(type(node.return_decl.var_type), expected['return'])
+		self.assertEqual(type(node.return_type), expected['return'])
 		self.assertEqual(type(node.block), defs.Block)
 
 	@data_provider([

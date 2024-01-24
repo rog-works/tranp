@@ -122,9 +122,6 @@ class Handler(Procedure[str]):
 	def on_parameter(self, node: defs.Parameter, symbol: str, var_type: str, default_value: str) -> str:
 		return self.view.render(node.classification, vars={'symbol': symbol, 'var_type': var_type, 'default_value': default_value})
 
-	def on_return_decl(self, node: defs.ReturnDecl, var_type: str) -> str:
-		return var_type if not node.var_type.is_a(defs.Null) else 'void'
-
 	def on_decorator(self, node: defs.Decorator, path: str, arguments: list[str]) -> str:
 		return self.view.render(node.classification, vars={'path': path, 'arguments': arguments})
 
@@ -155,7 +152,7 @@ class Handler(Procedure[str]):
 			if not isinstance(node.return_value, defs.FuncCall):
 				return None
 
-			is_cvar_return = function.return_decl.var_type.is_a(defs.CustomType)
+			is_cvar_return = function.return_type.is_a(defs.CustomType)
 			if not is_cvar_return:
 				return None
 
@@ -164,7 +161,7 @@ class Handler(Procedure[str]):
 			if not is_call_constructor:
 				return None
 
-			return self.symbols.type_of(function.return_decl)
+			return self.symbols.type_of(function.return_type)
 
 		cvar_return_symbol = analyze_cvar_return_symbol()
 		if cvar_return_symbol is not None:

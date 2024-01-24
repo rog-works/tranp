@@ -4,7 +4,7 @@ from typing import cast
 from py2cpp.ast.dsn import DSN
 from py2cpp.lang.implementation import implements, override
 from py2cpp.lang.sequence import last_index_of
-from py2cpp.node.definition.element import Decorator, Parameter, ReturnDecl
+from py2cpp.node.definition.element import Decorator, Parameter
 from py2cpp.node.definition.literal import String
 from py2cpp.node.definition.primary import DeclBlockVar, DeclClassVar, Declable, GenericType, InheritArgument, DeclThisParam, DeclThisVar, Type
 from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
@@ -297,8 +297,8 @@ class Function(ClassKind):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def return_decl(self) -> ReturnDecl:
-		return self._by('function_def_raw.return_type').as_a(ReturnDecl)
+	def return_type(self) -> Type:
+		return self._children('function_def_raw.return_type')[0].as_a(Type)
 
 	@property
 	@override

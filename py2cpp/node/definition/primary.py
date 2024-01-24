@@ -111,14 +111,14 @@ class ThisDeclVar(DeclVar):
 		return self.tokens_without_this
 
 	@property
-	def tokens_without_this(self) -> str:
-		return DSN.join(*DSN.elements(self.tokens)[1:])
-
-	@property
 	@override
 	def fullyname(self) -> str:
 		"""Note: XXX クラス直下に配置するため例外的にスコープを調整"""
 		return DSN.join(self._ancestor('class_def').scope, self.domain_name)
+
+	@property
+	def tokens_without_this(self) -> str:
+		return DSN.shift(self.tokens, 1)
 
 
 class BlockDeclVar(DeclVar): pass

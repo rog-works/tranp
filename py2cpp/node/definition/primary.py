@@ -165,6 +165,10 @@ class TypesName(DeclName):
 	def match_feature(cls, via: Fragment) -> bool:
 		return via.in_decl_class_type
 
+	@property
+	def class_types(self) -> Node:
+		return self.parent
+
 
 @Meta.embed(Node, accept_tags('name'), actualized(via=Fragment))
 class ImportName(DeclName):

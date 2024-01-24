@@ -1,8 +1,11 @@
 from typing import Any, Iterator, Sequence
 
+from py2cpp.compatible.python.embed import __actual__, __alias__
+
+
 # Primitive
 
-@__alias__('int')
+@__actual__('int')
 class Integer:
 	# comparison
 	def __eq__(self, other: Any) -> bool: ...
@@ -23,7 +26,7 @@ class Integer:
 	def __str__(self) -> str: ...
 
 
-@__alias__('float')
+@__actual__('float')
 class Float:
 	# comparison
 	def __eq__(self, other: Any) -> bool: ...
@@ -41,7 +44,7 @@ class Float:
 	def __str__(self) -> str: ...
 
 
-@__alias__('str')
+@__actual__('str')
 class String:
 	def split(self, delimiter: str) -> list[str]: ...
 	def join(self, iterable: Iterator) -> str: ...
@@ -61,7 +64,7 @@ class String:
 	def __str__(self) -> str: ...
 
 
-@__alias__('bool')
+@__actual__('bool')
 class Boolean:
 	# comparison
 	def __eq__(self, other: Any) -> bool: ...
@@ -79,22 +82,23 @@ class Boolean:
 	def __str__(self) -> str: ...
 
 
-@__alias__('tuple')
+@__actual__('tuple')
 class Tuple: ...
-@__alias__('pair_')
+@__actual__('pair_')
 class Pair: ...
 
 
-@__alias__('list')
+@__actual__('list')
 class List:
 	def __init__(self, iterable: Iterator) -> None: ...
+	@__alias__('push_back')
 	def append(self, elem: Any) -> None: ...
 	def insert(self, index: int, elem: Any) -> None: ...
 	def pop(self, index: int = -1) -> Any: ...
 	def reverse(self) -> None: ...
 
 
-@__alias__('dict')
+@__actual__('dict')
 class Dict:
 	def __init__(self, iterable: Iterator[tuple]) -> None: ...
 	def keys(self) -> list: ...
@@ -102,7 +106,7 @@ class Dict:
 	def items(self) -> list[tuple]: ...
 
 
-@__alias__('None')
+@__actual__('None')
 class Null: ...
 
 
@@ -116,9 +120,9 @@ class Unknown: ...
 # Type
 
 
-@__alias__('type')
+@__actual__('type')
 class Type: ...
-@__alias__('super')
+@__actual__('super')
 class Super: ...
 class Exception: ...
 

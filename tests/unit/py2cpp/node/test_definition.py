@@ -13,7 +13,7 @@ class TestDefinition(TestCase):
 
 	@data_provider([
 		({
-			'statements': [defs.Import, defs.Enum, defs.Class, defs.Class, defs.Function, defs.MoveAssign, defs.AnnoAssign],
+			'statements': [defs.Import, defs.Import, defs.Enum, defs.Class, defs.Class, defs.Function, defs.Class, defs.MoveAssign, defs.AnnoAssign],
 			'decl_vars': [defs.MoveAssign, defs.AnnoAssign],
 		},),
 	])

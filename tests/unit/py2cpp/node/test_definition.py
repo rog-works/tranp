@@ -259,8 +259,8 @@ class TestDefinition(TestCase):
 		self.assertEqual([parent.type_name.tokens for parent in node.parents], expected['parents'])
 		self.assertEqual(node.constructor_exists, expected['constructor_exists'])
 		self.assertEqual([method.symbol.tokens for method in node.methods], expected['methods'])
-		self.assertEqual([var.receiver.tokens for var in node.class_vars if var.is_a(defs.AnnoAssign)], expected['class_vars'])
-		self.assertEqual([var.receiver.tokens for var in node.this_vars if var.is_a(defs.AnnoAssign)], expected['this_vars'])
+		self.assertEqual([var.receiver.tokens for var in node.class_vars], expected['class_vars'])
+		self.assertEqual([var.receiver.tokens for var in node.this_vars], expected['this_vars'])
 
 	@data_provider([
 		('file_input.enum_def', {

@@ -394,7 +394,7 @@ class Closure(Function):
 		while own_method_at < len(own_method._full_path.elements):
 			own_method = own_method.parent
 
-		return own_method.is_a(Method)
+		return own_method.is_a(Constructor, Method)
 
 
 @Meta.embed(Node, accept_tags('class_def'))

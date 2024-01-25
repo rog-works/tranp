@@ -73,6 +73,7 @@ def symbol_mapping() -> SymbolMapping:
 			# 'funccall': defs.Super,
 			'argvalue': defs.Argument,
 			'typed_argvalue': defs.InheritArgument,
+			'elipsis': defs.Elipsis,
 			# -- Operator --
 			'factor': defs.Factor,
 			'not_test': defs.NotCompare,

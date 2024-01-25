@@ -1,46 +1,49 @@
-from py2cpp.compatible.cpp.preprocess import pragma
-from py2cpp.compatible.cpp.enum import (CEnum, A)
+from py2cpp.compatible.cpp.enum import CEnum
+from py2cpp.compatible.python.embed import __actual__, __alias__
 
-pragma('once')
+class Values(CEnum):
+	A = 0
+	B = 1
 
-class Base:
-	pass
+class Base: ...
 
-@deco(A, A.B)
-class Hoge(Base):
-	class Values(CEnum):
-		A = 0
-		B = 1
-
-	def func1(self, value: int) -> Values:
-		if value == 0:
-			return Hoge.Values.A
-		else:
-			return Hoge.Values.B
-
-	@deco_func('hoge')
-	def _func2(self, text: str) -> list[int]:
-		map: dict[Hoge.Values, int] = {
-			Hoge.Values.A: 0,
-			Hoge.Values.B: 1,
-		}
-		empty_map = {}
-		arr: list[int] = [0, 1, 2]
-		empty_arr = []
-		arr[0]
-		arr[0] += arr[1]
-		return arr
-
-	def __init__(self, v: int, s: str) -> None:
-		self.v: int = v
-		self.s: str = s
-
-		def closure() -> None:
-			print(self.v)
+@__alias__('Alias')
+class Class(Base):
+	cn: int = 0
 
 	@classmethod
-	def cls_func(cls) -> bool:
-		return True
+	def class_method(cls) -> bool:
+		if True:
+			lb = True
+			return lb
+		else:
+			return False
 
-def func3(ok: bool) -> None:
-	pass
+	def __init__(self, n: int, s: str) -> None:
+		self.n: int = n
+		self.s: str = s
+		ln = n
+		lb: bool = False
+
+		def method_in_closure() -> None:
+			for i in range(10): ...
+
+	@__alias__('alias')
+	def public_method(self, n: int) -> Values:
+		try:
+			raise Exception()
+		except Exception as e:
+			raise e
+
+	def _protected_method(self, s: str) -> list[int]: ...
+
+def func(b: bool) -> None:
+	lb = b
+
+	def func_in_closure(n: int) -> None: ...
+
+@__actual__('Actual')
+class Class2: ...
+
+a = 0
+b: str = ''

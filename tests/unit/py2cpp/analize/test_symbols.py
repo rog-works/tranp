@@ -68,7 +68,7 @@ class TestSymbols(TestCase):
 		('__main__.B.func2.closure.b', 'list[int]'),
 		('__main__.B.func2.if_stmt.i', 'int'),
 		('__main__.B.func2.if_stmt.for_stmt.e', 'Exception'),
-	], includes=[2])
+	])
 	def test_from_fullyname(self, fullyname: str, expected: str) -> None:
 		symbols = self.fixture.get(Symbols)
 		symbol = symbols.from_fullyname(fullyname)

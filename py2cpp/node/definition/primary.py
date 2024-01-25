@@ -486,3 +486,7 @@ class InheritArgument(Node):
 	@Meta.embed(Node, expandable)
 	def class_type(self) -> Type:
 		return self._at(0).as_a(Type)
+
+
+@Meta.embed(Node, accept_tags('elipsis'))
+class Elipsis(Node): pass

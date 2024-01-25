@@ -9,6 +9,16 @@ from tests.test.helper import data_provider
 class TestDefinition(TestCase):
 	fixture = Fixture.make(__file__)
 
+	# General
+
+	@data_provider([
+		([defs.Import, defs.Enum, defs.Class, defs.Class, defs.Function, defs.MoveAssign, defs.AnnoAssign], [defs.MoveAssign, defs.AnnoAssign]),
+	])
+	def test_entrypoint(self, expected_statements: list[type], expected_decl_vars: list[type]) -> None:
+		node = self.fixture.shared_nodes.by('file_input').as_a(defs.Entrypoint)
+		self.assertEqual([type(statement) for statement in node.statements], expected_statements)
+		self.assertEqual([type(decl_var) for decl_var in node.decl_vars], expected_decl_vars)
+
 	# Statement compound
 
 	@data_provider([
@@ -22,168 +32,181 @@ class TestDefinition(TestCase):
 			self.assertEqual(type(statement), in_expected)
 
 	@data_provider([
-		('file_input.class_def[4].class_def_raw.block.function_def[1]', {
-			'type': defs.Method,
-			'name': 'func1',
+		('file_input.class_def[3].class_def_raw.block.function_def[1]', {
+			'type': defs.ClassMethod,
+			'symbol': 'class_method',
+			'access': 'public',
+			'decorators': ['classmethod'],
+			'parameters': [
+				{'symbol': 'cls', 'var_type': 'Empty', 'default_value': 'Empty'},
+			],
+			'return': defs.GeneralType,
+			'decl_vars': [
+				{'symbol': 'cls', 'decl_type': defs.Parameter},
+				{'symbol': 'lb', 'decl_type': defs.MoveAssign},
+			],
+			'class_symbol': 'Class',
+		}),
+		('file_input.class_def[3].class_def_raw.block.function_def[2]', {
+			'type': defs.Constructor,
+			'symbol': '__init__',
 			'access': 'public',
 			'decorators': [],
 			'parameters': [
-				{'name': 'self', 'type': 'Empty', 'default': 'Empty'},
-				{'name': 'value', 'type': 'int', 'default': 'Empty'},
+				{'symbol': 'self', 'var_type': 'Empty', 'default_value': 'Empty'},
+				{'symbol': 'n', 'var_type': 'int', 'default_value': 'Empty'},
+				{'symbol': 's', 'var_type': 'str', 'default_value': 'Empty'},
 			],
-			'return': defs.GeneralType,
+			'return': defs.NullType,
+			'decl_vars': [
+				{'symbol': 'self', 'decl_type': defs.Parameter},
+				{'symbol': 'n', 'decl_type': defs.Parameter},
+				{'symbol': 's', 'decl_type': defs.Parameter},
+				{'symbol': 'ln', 'decl_type': defs.MoveAssign},
+				{'symbol': 'lb', 'decl_type': defs.AnnoAssign},
+			],
+			'class_symbol': 'Class',
+			'this_vars': ['self.n', 'self.s'],
 		}),
-		('file_input.class_def[4].class_def_raw.block.function_def[2]', {
-			'type': defs.Method,
-			'name': '_func2',
-			'access': 'protected',
-			'decorators': [
-				{'symbol': 'deco_func', 'arguments': [{'value': "'hoge'"}]},
-			],
-			'parameters': [
-				{'name': 'self', 'type': 'Empty', 'default': 'Empty'},
-				{'name': 'text', 'type': 'str', 'default': 'Empty'},
-			],
-			'return': defs.ListType,
-		}),
-		('file_input.class_def[4].class_def_raw.block.function_def[3].function_def_raw.block.function_def', {
+		('file_input.class_def[3].class_def_raw.block.function_def[2].function_def_raw.block.function_def', {
 			'type': defs.Closure,
-			'name': 'closure',
+			'symbol': 'method_in_closure',
 			'access': 'public',
 			'decorators': [],
 			'parameters': [],
 			'return': defs.NullType,
-		}),
-		('file_input.class_def[4].class_def_raw.block.function_def[4]', {
-			'type': defs.ClassMethod,
-			'name': 'cls_func',
-			'access': 'public',
-			'decorators': [
-				{'symbol': 'classmethod', 'arguments': []},
+			'decl_vars': [
+				{'symbol': 'i', 'decl_type': defs.For},
 			],
-			'parameters': [
-				{'name': 'cls', 'type': 'Empty', 'default': 'Empty'},
-			],
-			'return': defs.GeneralType,
+			'binded_this': True,
 		}),
-		('file_input.function_def', {
-			'type': defs.Function,
-			'name': 'func3',
+		('file_input.class_def[3].class_def_raw.block.function_def[3]', {
+			'type': defs.Method,
+			'symbol': 'public_method',
 			'access': 'public',
 			'decorators': [],
 			'parameters': [
-				{'name': 'ok', 'type': 'bool', 'default': 'Empty'},
+				{'symbol': 'self', 'var_type': 'Empty', 'default_value': 'Empty'},
+				{'symbol': 'n', 'var_type': 'int', 'default_value': 'Empty'},
+			],
+			'return': defs.GeneralType,
+			'decl_vars': [
+				{'symbol': 'self', 'decl_type': defs.Parameter},
+				{'symbol': 'n', 'decl_type': defs.Parameter},
+				{'symbol': 'e', 'decl_type': defs.Catch},
+			],
+			'class_symbol': 'Class',
+		}),
+		('file_input.class_def[3].class_def_raw.block.function_def[4]', {
+			'type': defs.Method,
+			'symbol': '_protected_method',
+			'access': 'protected',
+			'decorators': [],
+			'parameters': [
+				{'symbol': 'self', 'var_type': 'Empty', 'default_value': 'Empty'},
+				{'symbol': 's', 'var_type': 'str', 'default_value': 'Empty'},
+			],
+			'return': defs.ListType,
+			'decl_vars': [
+				{'symbol': 'self', 'decl_type': defs.Parameter},
+				{'symbol': 's', 'decl_type': defs.Parameter},
+			],
+			'class_symbol': 'Class',
+		}),
+		('file_input.function_def', {
+			'type': defs.Function,
+			'symbol': 'func',
+			'access': 'public',
+			'decorators': [],
+			'parameters': [
+				{'symbol': 'b', 'var_type': 'bool', 'default_value': 'Empty'},
 			],
 			'return': defs.NullType,
+			'decl_vars': [
+				{'symbol': 'b', 'decl_type': defs.Parameter},
+				{'symbol': 'lb', 'decl_type': defs.MoveAssign},
+			],
+		}),
+		('file_input.function_def.function_def_raw.block.function_def', {
+			'type': defs.Closure,
+			'symbol': 'func_in_closure',
+			'access': 'public',
+			'decorators': [],
+			'parameters': [
+				{'symbol': 'n', 'var_type': 'int', 'default_value': 'Empty'},
+			],
+			'return': defs.NullType,
+			'decl_vars': [
+				{'symbol': 'n', 'decl_type': defs.Parameter},
+			],
+			'binded_this': False,
 		}),
 	])
 	def test_function(self, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.shared_nodes.by(full_path).as_a(defs.Function)
 		self.assertEqual(type(node), expected['type'])
-		self.assertEqual(node.symbol.tokens, expected['name'])
+		self.assertEqual(node.symbol.tokens, expected['symbol'])
 		self.assertEqual(node.access, expected['access'])
-		self.assertEqual(len(node.decorators), len(expected['decorators']))
-		for index, decorator in enumerate(node.decorators):
-			in_expected = expected['decorators'][index]
-			self.assertEqual(decorator.path.tokens, in_expected['symbol'])
-			self.assertEqual(len(decorator.arguments), len(in_expected['arguments']))
-			for index_arg, argument in enumerate(decorator.arguments):
-				in_arg_expected = in_expected['arguments'][index_arg]
-				self.assertEqual(argument.value.tokens, in_arg_expected['value'])
-
+		self.assertEqual([decorator.path.tokens for decorator in node.decorators], expected['decorators'])
 		self.assertEqual(len(node.parameters), len(expected['parameters']))
 		for index, parameter in enumerate(node.parameters):
 			in_expected = expected['parameters'][index]
-			self.assertEqual(parameter.symbol.tokens, in_expected['name'])
-			self.assertEqual(parameter.var_type.tokens if not parameter.var_type.is_a(defs.Empty) else 'Empty', in_expected['type'])
-			self.assertEqual(parameter.default_value.tokens if not parameter.default_value.is_a(defs.Empty) else 'Empty', in_expected['default'])
+			self.assertEqual(parameter.symbol.tokens, in_expected['symbol'])
+			self.assertEqual(parameter.var_type.tokens if not parameter.var_type.is_a(defs.Empty) else 'Empty', in_expected['var_type'])
+			self.assertEqual(parameter.default_value.tokens if not parameter.default_value.is_a(defs.Empty) else 'Empty', in_expected['default_value'])
 
 		self.assertEqual(type(node.return_type), expected['return'])
 		self.assertEqual(type(node.block), defs.Block)
+		self.assertEqual(len(node.decl_vars), len(expected['decl_vars']))
+		for index, decl_var in enumerate(node.decl_vars):
+			in_expected = expected['decl_vars'][index]
+			self.assertEqual(decl_var.symbol.tokens, in_expected['symbol'])
+			self.assertEqual(type(decl_var), in_expected['decl_type'])
+
+		if isinstance(node, (defs.ClassMethod, defs.Constructor, defs.Method)):
+			self.assertEqual(node.class_symbol.tokens, expected['class_symbol'])
+
+		if isinstance(node, defs.Constructor):
+			self.assertEqual([var.symbol.tokens for var in node.this_vars if var.is_a(defs.AnnoAssign)], expected['this_vars'])
+
+		if isinstance(node, defs.Closure):
+			self.assertEqual(node.binded_this, expected['binded_this'])
 
 	@data_provider([
-		('file_input.class_def[3]', {
-			'name': 'Base',
+		('file_input.class_def[2]', {
+			'symbol': 'Base',
 			'decorators': [],
 			'parents': [],
-			'constructor': {},
+			'constructor_exists': False,
+			'class_methods': [],
 			'methods': [],
+			'class_vars': [],
 			'this_vars': [],
 		}),
-		('file_input.class_def[4]', {
-			'name': 'Hoge',
-			'decorators': [
-				{'symbol': 'deco', 'arguments': [{'value': 'A'}, {'value': 'A.B'}]},
-			],
-			'parents': [
-				{'symbol': 'Base'},
-			],
-			'constructor': {
-				'decl_vars': [
-					{'symbol': 'self', 'type': 'Empty'},
-					{'symbol': 'v', 'type': 'int'},
-					{'symbol': 's', 'type': 'str'},
-				],
-			},
-			'methods': [
-				{'name': 'func1'},
-				{'name': '_func2'},
-			],
-			'this_vars': [
-				{'symbol': 'self.v', 'type': defs.AnnoAssign},
-				{'symbol': 'self.s', 'type': defs.AnnoAssign},
-			],
+		('file_input.class_def[3]', {
+			'symbol': 'Class',
+			'decorators': [],
+			'parents': ['Base'],
+			'constructor_exists': True,
+			'class_methods': ['class_method'],
+			'methods': ['public_method', '_protected_method'],
+			'class_vars': ['cn'],
+			'this_vars': ['self.n', 'self.s'],
 		}),
 	])
 	def test_class(self, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.shared_nodes.by(full_path).as_a(defs.Class)
-		self.assertEqual(node.symbol.tokens, expected['name'])
-		self.assertEqual(len(node.decorators), len(expected['decorators']))
-		for index, decorator in enumerate(node.decorators):
-			in_expected = expected['decorators'][index]
-			self.assertEqual(decorator.path.tokens, in_expected['symbol'])
-			for index_arg, argument in enumerate(decorator.arguments):
-				in_arg_expected = in_expected['arguments'][index_arg]
-				self.assertEqual(argument.value.tokens, in_arg_expected['value'])
-
-		self.assertEqual(len(node.parents), len(expected['parents']))
-		for index, parent in enumerate(node.parents):
-			in_expected = expected['parents'][index]
-			self.assertEqual(parent.tokens, in_expected['symbol'])
-
-		self.assertEqual(node.constructor_exists, len(expected['constructor'].keys()) > 0)
-		if node.constructor_exists:
-			in_expected = expected['constructor']
-			constructor = node.constructor
-			self.assertEqual(type(constructor), defs.Constructor)
-			self.assertEqual(len(constructor.decl_vars), len(in_expected['decl_vars']))
-			for index, var in enumerate(constructor.decl_vars):
-				in_var_expected = in_expected['decl_vars'][index]
-				if isinstance(var, defs.AnnoAssign):
-					self.assertEqual(var.receiver.tokens, in_var_expected['symbol'])
-					self.assertEqual(var.var_type.tokens, in_var_expected['type'])
-				elif isinstance(var, defs.MoveAssign):
-					self.assertEqual(var.receiver.tokens, in_var_expected['symbol'])
-					self.assertEqual('Empty', in_var_expected['type'])
-				elif isinstance(var, defs.Parameter):
-					self.assertEqual(var.symbol.tokens, in_var_expected['symbol'])
-					self.assertEqual(var.var_type.tokens if not var.var_type.is_a(defs.Empty) else 'Empty', in_var_expected['type'])
-
-		self.assertEqual(len(node.methods), len(expected['methods']))
-		for index, method in enumerate(node.methods):
-			in_expected = expected['methods'][index]
-			self.assertEqual(type(method), defs.Method)
-			self.assertEqual(method.symbol.tokens, in_expected['name'])
-
-		self.assertEqual(len(node.this_vars), len(expected['this_vars']))
-		for index, var in enumerate(node.this_vars):
-			in_expected = expected['this_vars'][index]
-			self.assertEqual(type(var), in_expected['type'])
-			self.assertEqual(var.receiver.tokens, in_expected['symbol'])
+		self.assertEqual(node.symbol.tokens, expected['symbol'])
+		self.assertEqual([decorator.path.tokens for decorator in node.decorators], expected['decorators'])
+		self.assertEqual([parent.type_name.tokens for parent in node.parents], expected['parents'])
+		self.assertEqual(node.constructor_exists, expected['constructor_exists'])
+		self.assertEqual([method.symbol.tokens for method in node.methods], expected['methods'])
+		self.assertEqual([var.receiver.tokens for var in node.class_vars if var.is_a(defs.AnnoAssign)], expected['class_vars'])
+		self.assertEqual([var.receiver.tokens for var in node.this_vars if var.is_a(defs.AnnoAssign)], expected['this_vars'])
 
 	@data_provider([
-		('file_input.class_def[4].class_def_raw.block.enum_def', {
-			'name': 'Values',
+		('file_input.enum_def', {
+			'symbol': 'Values',
 			'vars': [
 				{'symbol': 'A', 'value': '0'},
 				{'symbol': 'B', 'value': '1'},
@@ -192,57 +215,43 @@ class TestDefinition(TestCase):
 	])
 	def test_enum(self, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.shared_nodes.by(full_path).as_a(defs.Enum)
-		self.assertEqual(node.symbol.tokens, expected['name'])
+		self.assertEqual(node.symbol.tokens, expected['symbol'])
 		self.assertEqual(len(node.vars), len(expected['vars']))
 		for index, var in enumerate(node.vars):
 			in_expected = expected['vars'][index]
 			self.assertEqual(var.receiver.tokens, in_expected['symbol'])
 			self.assertEqual(var.value.tokens, in_expected['value'])
+			self.assertEqual(type(var), defs.MoveAssign)
 
 	# Statement simple
 
 	@data_provider([
-		('file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block.assign_stmt[0]', {
-			'symbol': 'map',
-			'var_type': defs.DictType,
-			'value': defs.Dict,
-		}),
+		('a: dict[str, int] = {}', 'file_input.assign_stmt', {'receiver': 'a', 'var_type': defs.DictType, 'value': defs.Dict}),
 	])
-	def test_anno_assign(self, full_path: str, expected: dict[str, Any]) -> None:
-		node = self.fixture.shared_nodes.by(full_path).as_a(defs.AnnoAssign)
-		self.assertEqual(node.receiver.tokens, expected['symbol'])
+	def test_anno_assign(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.AnnoAssign)
+		self.assertEqual(node.receiver.tokens, expected['receiver'])
 		self.assertEqual(type(node.var_type), expected['var_type'])
 		self.assertEqual(type(node.value), expected['value'])
 
 	@data_provider([
-		('file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block.assign_stmt[5]', {
-			'symbol': defs.Indexer,
-			'operator': '+=',
-			'value': defs.Indexer,
-		}),
+		('a[0] += a[1]', 'file_input.assign_stmt', {'receiver': defs.Indexer, 'operator': '+=', 'value': defs.Indexer}),
 	])
-	def test_aug_assign(self, full_path: str, expected: dict[str, Any]) -> None:
-		node = self.fixture.shared_nodes.by(full_path).as_a(defs.AugAssign)
-		self.assertEqual(type(node.receiver), expected['symbol'])
+	def test_aug_assign(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.AugAssign)
+		self.assertEqual(type(node.receiver), expected['receiver'])
 		self.assertEqual(node.operator.tokens, expected['operator'])
 		self.assertEqual(type(node.value), expected['value'])
 
 	@data_provider([
-		('file_input.import_stmt[1]', {
-			'module_path': 'py2cpp.compatible.cpp.enum',
-			'import_symbols': [
-				{'symbol': 'CEnum'},
-				{'symbol': 'A'},
-			],
-		}),
+		('from a.b.c import A, B', 'file_input.import_stmt', {'import_path': 'a.b.c', 'import_symbols': ['A', 'B']}),
 	])
-	def test_import(self, full_path: str, expected: dict[str, Any]) -> None:
-		node = self.fixture.shared_nodes.by(full_path).as_a(defs.Import)
-		self.assertEqual(node.import_path.tokens, expected['module_path'])
+	def test_import(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Import)
+		self.assertEqual(node.import_path.tokens, expected['import_path'])
 		self.assertEqual(len(node.import_symbols), len(expected['import_symbols']))
 		for index, symbol in enumerate(node.import_symbols):
-			in_expected = expected['import_symbols'][index]
-			self.assertEqual(symbol.tokens, in_expected['symbol'])
+			self.assertEqual(symbol.tokens, expected['import_symbols'][index])
 
 	# Primary
 
@@ -344,22 +353,17 @@ class TestDefinition(TestCase):
 		self.assertEqual(type(node), expected)
 
 	@data_provider([
-		('file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block.assign_stmt[2].anno_assign.typed_getitem', {
-			'value_type': 'int',
-		}),
+		('a: list[int] = []', 'file_input.assign_stmt.anno_assign.typed_getitem', {'value_type': 'int'}),
 	])
-	def test_list_type(self, full_path: str, expected: dict[str, Any]) -> None:
-		node = self.fixture.shared_nodes.by(full_path).as_a(defs.ListType)
+	def test_list_type(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.ListType)
 		self.assertEqual(node.value_type.tokens, expected['value_type'])
 
 	@data_provider([
-		('file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block.assign_stmt[0].anno_assign.typed_getitem', {
-			'key_type': 'Hoge.Values',
-			'value_type': 'int',
-		}),
+		('a: dict[str, int] = {}', 'file_input.assign_stmt.anno_assign.typed_getitem', {'key_type': 'str', 'value_type': 'int'}),
 	])
-	def test_dict_type(self, full_path: str, expected: dict[str, Any]) -> None:
-		node = self.fixture.shared_nodes.by(full_path).as_a(defs.DictType)
+	def test_dict_type(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.DictType)
 		self.assertEqual(node.key_type.tokens, expected['key_type'])
 		self.assertEqual(node.value_type.tokens, expected['value_type'])
 
@@ -379,51 +383,39 @@ class TestDefinition(TestCase):
 			self.assertEqual(type(in_types), expected)
 
 	@data_provider([
-		('file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block.getitem', {
-			'symbol': 'arr',
-			'key': '0',
-		}),
+		('a[0]', 'file_input.getitem', {'receiver': 'a', 'key': '0'}),
 	])
-	def test_indexer(self, full_path: str, expected: dict[str, Any]) -> None:
-		node = self.fixture.shared_nodes.by(full_path).as_a(defs.Indexer)
-		self.assertEqual(node.receiver.tokens, expected['symbol'])
+	def test_indexer(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Indexer)
+		self.assertEqual(node.receiver.tokens, expected['receiver'])
 		self.assertEqual(node.key.tokens, expected['key'])
 
 	@data_provider([
-		('file_input.funccall', {
-			'calls': 'pragma',
-			'arguments': [
-				{'value': "'once'"},
-			],
-			'calculated': [
-				'<Variable: file_input.funccall.var>',
-				'<Proxy: file_input.funccall.arguments.argvalue.__empty__>',
-				'<String: file_input.funccall.arguments.argvalue.string>',
-				'<Argument: file_input.funccall.arguments.argvalue>',
-			],
-		}),
+		('a(b, c)', 'file_input.funccall', {'calls': {'symbol': 'a', 'var_type': defs.Variable}, 'arguments': [{'symbol': 'b', 'var_type': defs.Variable}, {'symbol': 'c', 'var_type': defs.Variable}]}),
 	])
-	def test_func_call(self, full_path: str, expected: dict[str, Any]) -> None:
-		node = self.fixture.shared_nodes.by(full_path).as_a(defs.FuncCall)
-		self.assertEqual(node.calls.tokens, expected['calls'])
+	def test_func_call(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.FuncCall)
+		self.assertEqual(node.calls.tokens, expected['calls']['symbol'])
+		self.assertEqual(type(node.calls), expected['calls']['var_type'])
 		self.assertEqual(len(node.arguments), len(expected['arguments']))
 		for index, argument in enumerate(node.arguments):
 			in_expected = expected['arguments'][index]
-			self.assertEqual(argument.value.tokens, in_expected['value'])
-
-		self.assertEqual([str(node) for node in node.calculated()], expected['calculated'])
+			self.assertEqual(argument.value.tokens, in_expected['symbol'])
+			self.assertEqual(type(argument.value), in_expected['var_type'])
 
 	# Operator
 
 	@data_provider([
-		('-1', 'file_input.factor', {'type': defs.Factor, 'value': '-1'}),
-		('+1', 'file_input.factor', {'type': defs.Factor, 'value': '+1'}),
-		('~1', 'file_input.factor', {'type': defs.Factor, 'value': '~1'}),
+		('-1', 'file_input.factor', {'type': defs.Factor, 'operator': '-', 'value': '1'}),
+		('+1', 'file_input.factor', {'type': defs.Factor, 'operator': '+', 'value': '1'}),
+		('~1', 'file_input.factor', {'type': defs.Factor, 'operator': '~', 'value': '1'}),
+		('not 1', 'file_input.not_test', {'type': defs.NotCompare, 'operator': 'not', 'value': '1'}),
 	])
 	def test_unary_operator(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.UnaryOperator)
 		self.assertEqual(type(node), expected['type'])
-		self.assertEqual(node.tokens, expected['value'])
+		self.assertEqual(node.operator.tokens, expected['operator'])
+		self.assertEqual(node.value.tokens, expected['value'])
 
 	@data_provider([
 		('1 | 2', 'file_input.or_expr', {'type': defs.OrBitwise, 'left': '1', 'operator': '|', 'right': '2'}),
@@ -461,35 +453,22 @@ class TestDefinition(TestCase):
 		self.assertEqual(node.tokens, expected['value'])
 
 	@data_provider([
-		('file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block.assign_stmt[2].anno_assign.list', {
-			'values': [
-				{'value': '0', 'value_type': defs.Integer},
-				{'value': '1', 'value_type': defs.Integer},
-				{'value': '2', 'value_type': defs.Integer},
-			],
-		}),
+		('a = [0, 1]', 'file_input.assign_stmt.assign.list', [{'value': '0', 'value_type': defs.Integer}, {'value': '1', 'value_type': defs.Integer}]),
 	])
-	def test_list(self, full_path: str, expected: dict[str, Any]) -> None:
-		node = self.fixture.shared_nodes.by(full_path).as_a(defs.List)
-		self.assertEqual(len(node.values), len(expected['values']))
+	def test_list(self, source: str, full_path: str, expected: list[dict[str, Any]]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.List)
+		self.assertEqual(len(node.values), len(expected))
 		for index, value in enumerate(node.values):
-			in_expected = expected['values'][index]
-			self.assertEqual(value.tokens, in_expected['value'])
-			self.assertEqual(type(value), in_expected['value_type'])
+			self.assertEqual(value.tokens, expected[index]['value'])
+			self.assertEqual(type(value), expected[index]['value_type'])
 
 	@data_provider([
-		('file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block.assign_stmt[0].anno_assign.dict', {
-			'items': [
-				{'key': 'Hoge.Values.A', 'value': '0', 'value_type': defs.Integer},
-				{'key': 'Hoge.Values.B', 'value': '1', 'value_type': defs.Integer},
-			],
-		}),
+		('a = {"b": 0, "c": 1}', 'file_input.assign_stmt.assign.dict', [{'key': '"b"', 'value': '0', 'value_type': defs.Integer}, {'key': '"c"', 'value': '1', 'value_type': defs.Integer}]),
 	])
-	def test_dict(self, full_path: str, expected: dict[str, Any]) -> None:
-		node = self.fixture.shared_nodes.by(full_path).as_a(defs.Dict)
-		self.assertEqual(len(node.items), len(expected['items']))
+	def test_dict(self, source: str, full_path: str, expected: list[dict[str, Any]]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Dict)
+		self.assertEqual(len(node.items), len(expected))
 		for index, item in enumerate(node.items):
-			in_expected = expected['items'][index]
-			self.assertEqual(item.first.tokens, in_expected['key'])
-			self.assertEqual(item.second.tokens, in_expected['value'])
-			self.assertEqual(type(item.second), in_expected['value_type'])
+			self.assertEqual(item.first.tokens, expected[index]['key'])
+			self.assertEqual(item.second.tokens, expected[index]['value'])
+			self.assertEqual(type(item.second), expected[index]['value_type'])

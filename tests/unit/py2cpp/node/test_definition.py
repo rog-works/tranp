@@ -71,6 +71,25 @@ class TestDefinition(TestCase):
 		self.assertEqual([type(statement) for statement in node.statements], expected['statements'])
 
 	@data_provider([
+		('try:\n\t...\nexcept Exception as e: ...', 'file_input.try_stmt.except_clauses.except_clause', {'var_type': 'Exception', 'symbol': 'e', 'statements': [defs.Elipsis]}),
+	])
+	def test_catch(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Catch)
+		self.assertEqual(node.var_type.tokens, expected['var_type'])
+		self.assertEqual(type(node.var_type), defs.GeneralType)
+		self.assertEqual(node.symbol.tokens, expected['symbol'])
+		self.assertEqual(type(node.symbol), defs.DeclLocalVar)
+		self.assertEqual([type(statement) for statement in node.statements], expected['statements'])
+
+	@data_provider([
+		('try:\n\t...\nexcept Exception as e: ...', 'file_input.try_stmt', {'statements': [defs.Elipsis], 'catches': 1}),
+	])
+	def test_try(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Try)
+		self.assertEqual([type(statement) for statement in node.statements], expected['statements'])
+		self.assertEqual(len(node.catches), expected['catches'])
+
+	@data_provider([
 		('file_input.class_def[3].class_def_raw.block.function_def[1]', {
 			'type': defs.ClassMethod,
 			'symbol': 'class_method',

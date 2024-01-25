@@ -273,8 +273,8 @@ class DecoratorPath(Path):
 class Indexer(Node):
 	@property
 	@Meta.embed(Node, expandable)
-	def receiver(self) -> 'Reference | FuncCall':
-		return self._at(0).one_of(Reference | FuncCall)
+	def receiver(self) -> 'Reference | FuncCall | Indexer':
+		return self._at(0).one_of(Reference | FuncCall | Indexer)
 
 	@property
 	@Meta.embed(Node, expandable)

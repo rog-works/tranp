@@ -321,6 +321,8 @@ class TestDefinition(TestCase):
 			in_expected = expected['vars'][index]
 			self.assertEqual(var.receiver.tokens, in_expected['symbol'])
 			self.assertEqual(var.value.tokens, in_expected['value'])
+			self.assertEqual(type(var.receiver), defs.DeclLocalVar)  # XXX 設計通りではあるがDeclClassVarと勘違いしやすい
+			self.assertEqual(type(var.value), defs.Integer)
 			self.assertEqual(type(var), defs.MoveAssign)
 
 	# Statement simple

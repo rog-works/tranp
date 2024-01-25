@@ -625,6 +625,31 @@ class TestDefinition(TestCase):
 			self.assertEqual(argument.value.tokens, in_expected['symbol'])
 			self.assertEqual(type(argument.value), in_expected['var_type'])
 
+	@data_provider([
+		('a(b)', 'file_input.funccall.arguments.argvalue', {'label': 'Empty', 'value': defs.Variable}),
+		('a(label=b)', 'file_input.funccall.arguments.argvalue', {'label': 'label', 'value': defs.Variable}),
+	])
+	def test_argument(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Argument)
+		self.assertEqual(node.label.tokens if not node.label.is_a(defs.Empty) else 'Empty', expected['label'])
+		self.assertEqual(type(node.value), expected['value'])
+
+	@data_provider([
+		('class B(A): ...', 'file_input.class_def.class_def_raw.typed_arguments.typed_argvalue', {'class_type': defs.GeneralType}),
+	])
+	def test_inherit_argument(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.InheritArgument)
+		self.assertEqual(type(node.class_type), expected['class_type'])
+
+	@data_provider([
+		('...', 'file_input.elipsis'),
+		('if True: ...', 'file_input.if_stmt.block.elipsis'),
+		('a = ...', 'file_input.assign_stmt.assign.elipsis'),
+		('class A: ...', 'file_input.class_def.class_def_raw.block.elipsis'),
+	])
+	def test_elipsis(self, source: str, full_path: str) -> None:
+		self.assertEqual(type(self.fixture.custom_nodes(source).by(full_path)), defs.Elipsis)
+
 	# Operator
 
 	@data_provider([

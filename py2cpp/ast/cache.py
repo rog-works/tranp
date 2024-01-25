@@ -42,6 +42,7 @@ class EntryCache(Generic[T]):
 
 		Args:
 			via (str): 基準のパス(フルパス)
+			depth (int): 探索深度。-1は無制限(default = -1)
 		Returns:
 			dict[str, T]: (フルパス, エントリー)
 		"""

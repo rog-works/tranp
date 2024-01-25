@@ -310,10 +310,10 @@ class Handler(Procedure[str]):
 		return f'!{value}'
 
 	def on_or_compare(self, node: defs.OrCompare, left: str, operator: str, right: str) -> str:
-		return self.on_binary_operator(node, left, operator, right)
+		return self.on_binary_operator(node, left, '||', right)
 
 	def on_and_compare(self, node: defs.AndCompare, left: str, operator: str, right: str) -> str:
-		return self.on_binary_operator(node, left, operator, right)
+		return self.on_binary_operator(node, left, '&&', right)
 
 	def on_comparison(self, node: defs.Comparison, left: str, operator: str, right: str) -> str:
 		return self.on_binary_operator(node, left, operator, right)

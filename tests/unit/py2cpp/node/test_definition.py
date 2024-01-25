@@ -547,11 +547,14 @@ class TestDefinition(TestCase):
 		('try: ...\nexcept A.E as e: ...', 'file_input.try_stmt.except_clauses.except_clause.typed_getattr', defs.GeneralType),  # XXX TypeRelayの実装を検討
 		('class B(A): ...', 'file_input.class_def.class_def_raw.typed_arguments.typed_argvalue.typed_var', defs.GeneralType),
 		('def func(a: int) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.typed_var', defs.GeneralType),
+		('a: A.B[A.B[A.B], A.B] = {}', 'file_input.assign_stmt.anno_assign.typed_getitem.typed_slices.typed_getattr', defs.GeneralType),
 		# Generic - List/Dict/Callable/Custom
 		('a: list[int] = []', 'file_input.assign_stmt.anno_assign.typed_getitem', defs.ListType),
 		('a: dict[str, int] = {}', 'file_input.assign_stmt.anno_assign.typed_getitem', defs.DictType),
 		('def func() -> Callable[[], None]: ...', 'file_input.function_def.function_def_raw.return_type.typed_getitem', defs.CallableType),
 		('class B(A[T]): ...', 'file_input.class_def.class_def_raw.typed_arguments.typed_argvalue.typed_getitem', defs.CustomType),
+		('a: A.B[A.B[A.B], A.B] = {}', 'file_input.assign_stmt.anno_assign.typed_getitem', defs.CustomType),
+		('a: A.B[A.B[A.B], A.B] = {}', 'file_input.assign_stmt.anno_assign.typed_getitem.typed_slices.typed_getitem', defs.CustomType),
 		# Union
 		('a: str | None = None', 'file_input.assign_stmt.anno_assign.typed_or_expr', defs.UnionType),
 		# Null

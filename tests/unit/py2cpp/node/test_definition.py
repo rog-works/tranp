@@ -328,22 +328,79 @@ class TestDefinition(TestCase):
 	# Statement simple
 
 	@data_provider([
-		('a: dict[str, int] = {}', 'file_input.assign_stmt', {'receiver': 'a', 'var_type': defs.DictType, 'value': defs.Dict}),
+		('a: dict[str, int] = {}', 'file_input.assign_stmt', {'receiver': 'a', 'receiver_type': defs.DeclLocalVar, 'var_type': defs.DictType, 'value': defs.Dict}),
+		('self.a: list[str] = []', 'file_input.assign_stmt', {'receiver': 'self.a', 'receiver_type': defs.DeclThisVar, 'var_type': defs.ListType, 'value': defs.List}),
+		('class A: a: str = ""', 'file_input.class_def.class_def_raw.block.assign_stmt', {'receiver': 'a', 'receiver_type': defs.DeclClassVar, 'var_type': defs.GeneralType, 'value': defs.String}),
 	])
 	def test_anno_assign(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.AnnoAssign)
 		self.assertEqual(node.receiver.tokens, expected['receiver'])
+		self.assertEqual(type(node.receiver), expected['receiver_type'])
 		self.assertEqual(type(node.var_type), expected['var_type'])
 		self.assertEqual(type(node.value), expected['value'])
 
 	@data_provider([
-		('a[0] += a[1]', 'file_input.assign_stmt', {'receiver': defs.Indexer, 'operator': '+=', 'value': defs.Indexer}),
+		('a = {}', 'file_input.assign_stmt', {'receiver': 'a', 'receiver_type': defs.DeclLocalVar, 'value': defs.Dict}),
+		('a.b = 1', 'file_input.assign_stmt', {'receiver': 'a.b', 'receiver_type': defs.Relay, 'value': defs.Integer}),
+		('a[0] = []', 'file_input.assign_stmt', {'receiver': 'a.0', 'receiver_type': defs.Indexer, 'value': defs.List}),
+	])
+	def test_move_assign(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.MoveAssign)
+		self.assertEqual(node.receiver.tokens, expected['receiver'])
+		self.assertEqual(type(node.receiver), expected['receiver_type'])
+		self.assertEqual(type(node.value), expected['value'])
+
+	@data_provider([
+		('a += 1', 'file_input.assign_stmt', {'receiver': 'a', 'receiver_type': defs.Variable, 'operator': '+=', 'value': defs.Integer}),
+		('a.b -= 1.0', 'file_input.assign_stmt', {'receiver': 'a.b', 'receiver_type': defs.Relay, 'operator': '-=', 'value': defs.Float}),
+		('a[0] *= 0', 'file_input.assign_stmt', {'receiver': 'a.0', 'receiver_type': defs.Indexer, 'operator': '*=', 'value': defs.Integer}),
 	])
 	def test_aug_assign(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.AugAssign)
-		self.assertEqual(type(node.receiver), expected['receiver'])
+		self.assertEqual(node.receiver.tokens, expected['receiver'])
+		self.assertEqual(type(node.receiver), expected['receiver_type'])
 		self.assertEqual(node.operator.tokens, expected['operator'])
 		self.assertEqual(type(node.value), expected['value'])
+
+	@data_provider([
+		('def func() -> int: return 1', 'file_input.function_def.function_def_raw.block.return_stmt', {'return_value': defs.Integer}),
+	])
+	def test_return(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Return)
+		self.assertEqual(type(node.return_value), expected['return_value'])
+
+	@data_provider([
+		('raise Exception()', 'file_input.raise_stmt', {'throws': defs.FuncCall, 'via': defs.Empty}),
+		('raise Exception() from e', 'file_input.raise_stmt', {'throws': defs.FuncCall, 'via': defs.Variable}),
+		('raise e', 'file_input.raise_stmt', {'throws': defs.Variable, 'via': defs.Empty}),
+	])
+	def test_throw(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Throw)
+		self.assertEqual(type(node.throws), expected['throws'])
+		self.assertEqual(type(node.via), expected['via'])
+
+	@data_provider([
+		('pass', 'file_input.pass_stmt'),
+		('if True: pass', 'file_input.if_stmt.block.pass_stmt'),
+	])
+	def test_pass(self, source: str, full_path: str) -> None:
+		self.assertEqual(type(self.fixture.custom_nodes(source).by(full_path)), defs.Pass)
+
+	@data_provider([
+		('break', 'file_input.break_stmt'),
+		('for i in range(1): break', 'file_input.for_stmt.block.break_stmt'),
+		('while True: break', 'file_input.while_stmt.block.break_stmt'),
+	])
+	def test_break(self, source: str, full_path: str) -> None:
+		self.assertEqual(type(self.fixture.custom_nodes(source).by(full_path)), defs.Break)
+
+	@data_provider([
+		('continue', 'file_input.continue_stmt'),
+		('for i in range(1): continue', 'file_input.for_stmt.block.continue_stmt'),
+		('while True: continue', 'file_input.while_stmt.block.continue_stmt'),
+	])
+	def test_continue(self, source: str, full_path: str) -> None:
+		self.assertEqual(type(self.fixture.custom_nodes(source).by(full_path)), defs.Continue)
 
 	@data_provider([
 		('from a.b.c import A, B', 'file_input.import_stmt', {'import_path': 'a.b.c', 'import_symbols': ['A', 'B']}),

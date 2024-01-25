@@ -12,24 +12,63 @@ class TestDefinition(TestCase):
 	# General
 
 	@data_provider([
-		([defs.Import, defs.Enum, defs.Class, defs.Class, defs.Function, defs.MoveAssign, defs.AnnoAssign], [defs.MoveAssign, defs.AnnoAssign]),
+		({
+			'statements': [defs.Import, defs.Enum, defs.Class, defs.Class, defs.Function, defs.MoveAssign, defs.AnnoAssign],
+			'decl_vars': [defs.MoveAssign, defs.AnnoAssign],
+		},),
 	])
-	def test_entrypoint(self, expected_statements: list[type], expected_decl_vars: list[type]) -> None:
+	def test_entrypoint(self, expected: dict[str, list[type]]) -> None:
 		node = self.fixture.shared_nodes.by('file_input').as_a(defs.Entrypoint)
-		self.assertEqual([type(statement) for statement in node.statements], expected_statements)
-		self.assertEqual([type(decl_var) for decl_var in node.decl_vars], expected_decl_vars)
+		self.assertEqual([type(statement) for statement in node.statements], expected['statements'])
+		self.assertEqual([type(decl_var) for decl_var in node.decl_vars], expected['decl_vars'])
 
 	# Statement compound
 
 	@data_provider([
-		('if True:\n\tpass', 'file_input.if_stmt', {'condition': defs.Truthy, 'statements': [defs.Pass]}),
+		('if True: ...', 'file_input.if_stmt.block', {'statements': [defs.Elipsis], 'decl_vars': []}),
+		('if True: a = 0', 'file_input.if_stmt.block', {'statements': [defs.MoveAssign], 'decl_vars': [defs.MoveAssign]}),
+		('if True: a += 0', 'file_input.if_stmt.block', {'statements': [defs.AugAssign], 'decl_vars': []}),
+	])
+	def test_block(self, source: str, full_path: str, expected: dict[str, list[type]]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Block)
+		self.assertEqual([type(statement) for statement in node.statements], expected['statements'])
+		self.assertEqual([type(decl_var) for decl_var in node.decl_vars_with(defs.DeclBlockVar)], expected['decl_vars'])
+
+	@data_provider([
+		('if True:\n\t...\nelif False: ...', 'file_input.if_stmt.elifs.elif_', {'condition': defs.Falsy, 'statements': [defs.Elipsis]}),
+	])
+	def test_else_if(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.ElseIf)
+		self.assertEqual(type(node.condition), expected['condition'])
+		self.assertEqual([type(statement) for statement in node.statements], expected['statements'])
+
+	@data_provider([
+		('if True:\n\t...\nelif False:\n\t...\nelse: ...', 'file_input.if_stmt', {'condition': defs.Truthy, 'statements': [defs.Elipsis], 'else_ifs': 1, 'else_statements': [defs.Elipsis]}),
 	])
 	def test_if(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.If)
 		self.assertEqual(type(node.condition), expected['condition'])
-		for index, statement in enumerate(node.statements):
-			in_expected = expected['statements'][index]
-			self.assertEqual(type(statement), in_expected)
+		self.assertEqual([type(statement) for statement in node.statements], expected['statements'])
+		self.assertEqual(len(node.else_ifs), expected['else_ifs'])
+		self.assertEqual([type(statement) for statement in node.else_statements], expected['else_statements'])
+
+	@data_provider([
+		('while True: ...', 'file_input.while_stmt', {'condition': defs.Truthy, 'statements': [defs.Elipsis]}),
+	])
+	def test_while(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.While)
+		self.assertEqual(type(node.condition), expected['condition'])
+		self.assertEqual([type(statement) for statement in node.statements], expected['statements'])
+
+	@data_provider([
+		('for i in range(1): ...', 'file_input.for_stmt', {'symbol': 'i', 'iterates': defs.FuncCall, 'statements': [defs.Elipsis]}),
+	])
+	def test_for(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.For)
+		self.assertEqual(node.symbol.tokens, expected['symbol'])
+		self.assertEqual(type(node.symbol), defs.DeclLocalVar)
+		self.assertEqual(type(node.iterates), expected['iterates'])
+		self.assertEqual([type(statement) for statement in node.statements], expected['statements'])
 
 	@data_provider([
 		('file_input.class_def[3].class_def_raw.block.function_def[1]', {

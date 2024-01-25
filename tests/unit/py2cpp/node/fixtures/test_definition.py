@@ -1,4 +1,5 @@
 from py2cpp.compatible.cpp.enum import CEnum
+from py2cpp.compatible.python.embed import __actual__, __alias__
 
 class Values(CEnum):
 	A = 0
@@ -6,6 +7,7 @@ class Values(CEnum):
 
 class Base: ...
 
+@__alias__('Alias')
 class Class(Base):
 	cn: int = 0
 
@@ -26,6 +28,7 @@ class Class(Base):
 		def method_in_closure() -> None:
 			for i in range(10): ...
 
+	@__alias__('alias')
 	def public_method(self, n: int) -> Values:
 		try:
 			raise Exception()
@@ -38,6 +41,9 @@ def func(b: bool) -> None:
 	lb = b
 
 	def func_in_closure(n: int) -> None: ...
+
+@__actual__('Actual')
+class Class2: ...
 
 a = 0
 b: str = ''

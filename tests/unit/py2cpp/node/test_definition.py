@@ -90,7 +90,7 @@ class TestDefinition(TestCase):
 		self.assertEqual(len(node.catches), expected['catches'])
 
 	@data_provider([
-		('file_input.class_def[3].class_def_raw.block.function_def[1]', {
+		('file_input.class_def[4].class_def_raw.block.function_def[1]', {
 			'type': defs.ClassMethod,
 			'symbol': 'class_method',
 			'access': 'public',
@@ -103,9 +103,12 @@ class TestDefinition(TestCase):
 				{'symbol': 'cls', 'decl_type': defs.Parameter},
 				{'symbol': 'lb', 'decl_type': defs.MoveAssign},
 			],
+			'actual_symbol': None,
+			'alias_symbol': None,
+			# Belong class only
 			'class_symbol': 'Class',
 		}),
-		('file_input.class_def[3].class_def_raw.block.function_def[2]', {
+		('file_input.class_def[4].class_def_raw.block.function_def[2]', {
 			'type': defs.Constructor,
 			'symbol': '__init__',
 			'access': 'public',
@@ -123,10 +126,14 @@ class TestDefinition(TestCase):
 				{'symbol': 'ln', 'decl_type': defs.MoveAssign},
 				{'symbol': 'lb', 'decl_type': defs.AnnoAssign},
 			],
+			'actual_symbol': None,
+			'alias_symbol': None,
+			# Belong class only
 			'class_symbol': 'Class',
+			# Constructor only
 			'this_vars': ['self.n', 'self.s'],
 		}),
-		('file_input.class_def[3].class_def_raw.block.function_def[2].function_def_raw.block.function_def', {
+		('file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block.function_def', {
 			'type': defs.Closure,
 			'symbol': 'method_in_closure',
 			'access': 'public',
@@ -136,13 +143,16 @@ class TestDefinition(TestCase):
 			'decl_vars': [
 				{'symbol': 'i', 'decl_type': defs.For},
 			],
+			'actual_symbol': None,
+			'alias_symbol': None,
+			# Closure only
 			'binded_this': True,
 		}),
-		('file_input.class_def[3].class_def_raw.block.function_def[3]', {
+		('file_input.class_def[4].class_def_raw.block.function_def[3]', {
 			'type': defs.Method,
 			'symbol': 'public_method',
 			'access': 'public',
-			'decorators': [],
+			'decorators': ['__alias__'],
 			'parameters': [
 				{'symbol': 'self', 'var_type': 'Empty', 'default_value': 'Empty'},
 				{'symbol': 'n', 'var_type': 'int', 'default_value': 'Empty'},
@@ -153,9 +163,12 @@ class TestDefinition(TestCase):
 				{'symbol': 'n', 'decl_type': defs.Parameter},
 				{'symbol': 'e', 'decl_type': defs.Catch},
 			],
+			'actual_symbol': None,
+			'alias_symbol': 'alias',
+			# Belong class only
 			'class_symbol': 'Class',
 		}),
-		('file_input.class_def[3].class_def_raw.block.function_def[4]', {
+		('file_input.class_def[4].class_def_raw.block.function_def[4]', {
 			'type': defs.Method,
 			'symbol': '_protected_method',
 			'access': 'protected',
@@ -169,6 +182,9 @@ class TestDefinition(TestCase):
 				{'symbol': 'self', 'decl_type': defs.Parameter},
 				{'symbol': 's', 'decl_type': defs.Parameter},
 			],
+			'actual_symbol': None,
+			'alias_symbol': None,
+			# Belong class only
 			'class_symbol': 'Class',
 		}),
 		('file_input.function_def', {
@@ -184,6 +200,8 @@ class TestDefinition(TestCase):
 				{'symbol': 'b', 'decl_type': defs.Parameter},
 				{'symbol': 'lb', 'decl_type': defs.MoveAssign},
 			],
+			'actual_symbol': None,
+			'alias_symbol': None,
 		}),
 		('file_input.function_def.function_def_raw.block.function_def', {
 			'type': defs.Closure,
@@ -197,6 +215,9 @@ class TestDefinition(TestCase):
 			'decl_vars': [
 				{'symbol': 'n', 'decl_type': defs.Parameter},
 			],
+			'actual_symbol': None,
+			'alias_symbol': None,
+			# Closure only
 			'binded_this': False,
 		}),
 	])
@@ -221,6 +242,9 @@ class TestDefinition(TestCase):
 			self.assertEqual(decl_var.symbol.tokens, in_expected['symbol'])
 			self.assertEqual(type(decl_var), in_expected['decl_type'])
 
+		self.assertEqual(node.actual_symbol(), expected['actual_symbol'])
+		self.assertEqual(node.alias_symbol(), expected['alias_symbol'])
+
 		if isinstance(node, (defs.ClassMethod, defs.Constructor, defs.Method)):
 			self.assertEqual(node.class_symbol.tokens, expected['class_symbol'])
 
@@ -231,7 +255,7 @@ class TestDefinition(TestCase):
 			self.assertEqual(node.binded_this, expected['binded_this'])
 
 	@data_provider([
-		('file_input.class_def[2]', {
+		('file_input.class_def[3]', {
 			'symbol': 'Base',
 			'decorators': [],
 			'parents': [],
@@ -240,16 +264,32 @@ class TestDefinition(TestCase):
 			'methods': [],
 			'class_vars': [],
 			'this_vars': [],
+			'actual_symbol': None,
+			'alias_symbol': None,
 		}),
-		('file_input.class_def[3]', {
+		('file_input.class_def[4]', {
 			'symbol': 'Class',
-			'decorators': [],
+			'decorators': ['__alias__'],
 			'parents': ['Base'],
 			'constructor_exists': True,
 			'class_methods': ['class_method'],
 			'methods': ['public_method', '_protected_method'],
 			'class_vars': ['cn'],
 			'this_vars': ['self.n', 'self.s'],
+			'actual_symbol': None,
+			'alias_symbol': 'Alias',
+		}),
+		('file_input.class_def[6]', {
+			'symbol': 'Actual',
+			'decorators': ['__actual__'],
+			'parents': [],
+			'constructor_exists': False,
+			'class_methods': [],
+			'methods': [],
+			'class_vars': [],
+			'this_vars': [],
+			'actual_symbol': 'Actual',
+			'alias_symbol': None,
 		}),
 	])
 	def test_class(self, full_path: str, expected: dict[str, Any]) -> None:
@@ -261,6 +301,8 @@ class TestDefinition(TestCase):
 		self.assertEqual([method.symbol.tokens for method in node.methods], expected['methods'])
 		self.assertEqual([var.receiver.tokens for var in node.class_vars], expected['class_vars'])
 		self.assertEqual([var.receiver.tokens for var in node.this_vars], expected['this_vars'])
+		self.assertEqual(node.actual_symbol(), expected['actual_symbol'])
+		self.assertEqual(node.alias_symbol(), expected['alias_symbol'])
 
 	@data_provider([
 		('file_input.enum_def', {

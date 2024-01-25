@@ -718,6 +718,13 @@ class TestDefinition(TestCase):
 		self.assertEqual(node.tokens, expected['value'])
 
 	@data_provider([
+		('True', 'file_input.const_true', defs.Truthy),
+		('False', 'file_input.const_false', defs.Falsy),
+	])
+	def test_boolean(self, source: str, full_path: str, expected: type) -> None:
+		self.assertEqual(type(self.fixture.custom_nodes(source).by(full_path)), expected)
+
+	@data_provider([
 		('a = [0, 1]', 'file_input.assign_stmt.assign.list', [{'value': '0', 'value_type': defs.Integer}, {'value': '1', 'value_type': defs.Integer}]),
 	])
 	def test_list(self, source: str, full_path: str, expected: list[dict[str, Any]]) -> None:
@@ -737,3 +744,9 @@ class TestDefinition(TestCase):
 			self.assertEqual(item.first.tokens, expected[index]['key'])
 			self.assertEqual(item.second.tokens, expected[index]['value'])
 			self.assertEqual(type(item.second), expected[index]['value_type'])
+
+	@data_provider([
+		('None', 'file_input.const_none'),
+	])
+	def test_null(self, source: str, full_path: str) -> None:
+		self.assertEqual(type(self.fixture.custom_nodes(source).by(full_path)), defs.Null)

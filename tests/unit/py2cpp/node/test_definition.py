@@ -415,65 +415,83 @@ class TestDefinition(TestCase):
 	# Primary
 
 	@data_provider([
-		('a', 'file_input.var', defs.Variable),
+		# Declable - Local
 		('a = 0', 'file_input.assign_stmt.assign.var', defs.DeclLocalVar),
 		('a: int = 0', 'file_input.assign_stmt.anno_assign.var', defs.DeclLocalVar),
-		('a()', 'file_input.funccall.var', defs.Variable),
+		('for i in range(1): ...', 'file_input.for_stmt.name', defs.DeclLocalVar),
+		('try: ...\nexcept Exception as e: ...', 'file_input.try_stmt.except_clauses.except_clause.name', defs.DeclLocalVar),
+		('def func(a: int) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.DeclLocalVar),
+		('class B(A):\n\ta = 0', 'file_input.class_def.class_def_raw.block.assign_stmt.assign.var', defs.DeclLocalVar),  # XXX MoveAssignはクラス変数の宣言にはならない設計
+		# Declable - Class/This
+		('class B(A):\n\tb: int = a', 'file_input.class_def.class_def_raw.block.assign_stmt.anno_assign.var[0]', defs.DeclClassVar),
+		('self.b: int = self.a', 'file_input.assign_stmt.anno_assign.getattr[0]', defs.DeclThisVar),
+		# Declable - Param Class/This
+		('def func(cls) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.DeclClassParam),
+		('def func(self) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.DeclThisParam),
+		# Declable - Name
+		('class B(A): ...', 'file_input.class_def.class_def_raw.name', defs.TypesName),
+		('def func(a: int) -> None: ...', 'file_input.function_def.function_def_raw.name', defs.TypesName),
+		('from path.to import A', 'file_input.import_stmt.import_names.name', defs.ImportName),
+		# Reference - Relay
 		('a(self.v)', 'file_input.funccall.arguments.argvalue.getattr', defs.Relay),
-		('a(self.v)', 'file_input.funccall.arguments.argvalue.getattr.var', defs.ThisRef),
-		('a(b=c)', 'file_input.funccall.arguments.argvalue.name', defs.ArgumentLabel),
-		('a(b=c)', 'file_input.funccall.arguments.argvalue.var', defs.Variable),
-		('a[0]', 'file_input.getitem.var', defs.Variable),
+		('a().b', 'file_input.getattr', defs.Relay),
 		('a[0].b', 'file_input.getattr', defs.Relay),
-		('a[0].b', 'file_input.getattr.getitem.var', defs.Variable),
-		('a[0].b', 'file_input.getattr.name', defs.Variable),
 		('a.b', 'file_input.getattr', defs.Relay),
 		('a.b()', 'file_input.funccall.getattr', defs.Relay),
 		('a.b[0]', 'file_input.getitem.getattr', defs.Relay),
 		('a.b.c', 'file_input.getattr', defs.Relay),
 		('a.b.c', 'file_input.getattr.getattr', defs.Relay),
-		('a.b.c', 'file_input.getattr.getattr.var', defs.Variable),
-		('self', 'file_input.var', defs.ThisRef),
 		('self.a', 'file_input.getattr', defs.Relay),
 		('self.a = self.a', 'file_input.assign_stmt.assign.getattr[0]', defs.Relay),
 		('self.a = self.a', 'file_input.assign_stmt.assign.getattr[1]', defs.Relay),
-		('self.b: int = self.a', 'file_input.assign_stmt.anno_assign.getattr[0]', defs.DeclThisVar),
 		('self.b: int = self.a', 'file_input.assign_stmt.anno_assign.getattr[2]', defs.Relay),
 		('self.a()', 'file_input.funccall.getattr', defs.Relay),
-		('self.a[0]', 'file_input.getitem.getattr', defs.Relay),
 		('self.a.b', 'file_input.getattr', defs.Relay),
-		('for a in arr: pass', 'file_input.for_stmt.name', defs.DeclLocalVar),
-		('try: ...\nexcept Exception as e: ...', 'file_input.try_stmt.except_clauses.except_clause.name', defs.DeclLocalVar),
+		('self.a[0]', 'file_input.getitem.getattr', defs.Relay),
+		# Reference - Class/This
+		('cls', 'file_input.var', defs.ClassRef),
+		('a(cls.v)', 'file_input.funccall.arguments.argvalue.getattr.var', defs.ClassRef),
+		('self', 'file_input.var', defs.ThisRef),
+		('a(self.v)', 'file_input.funccall.arguments.argvalue.getattr.var', defs.ThisRef),
+		# Reference - Label
+		('a(b=c)', 'file_input.funccall.arguments.argvalue.name', defs.ArgumentLabel),
+		# Reference - Variable
+		('a', 'file_input.var', defs.Variable),
+		('a()', 'file_input.funccall.var', defs.Variable),
+		('a().b', 'file_input.getattr.name', defs.Variable),
+		('a[0]', 'file_input.getitem.var', defs.Variable),
+		('a[0].b', 'file_input.getattr.getitem.var', defs.Variable),
+		('a[0].b', 'file_input.getattr.name', defs.Variable),
+		('a.b.c', 'file_input.getattr.getattr.var', defs.Variable),
 		('raise e', 'file_input.raise_stmt.var', defs.Variable),
 		('raise E() from e', 'file_input.raise_stmt.funccall.var', defs.Variable),
 		('raise E() from e', 'file_input.raise_stmt.name', defs.Variable),
-		('from path.to import A', 'file_input.import_stmt.import_names.name', defs.ImportName),
-		('class B(A): pass', 'file_input.class_def.class_def_raw.name', defs.TypesName),
-		('class B(A):\n\tb: int = a', 'file_input.class_def.class_def_raw.block.assign_stmt.anno_assign.var[0]', defs.DeclClassVar),
+		('a(b=c)', 'file_input.funccall.arguments.argvalue.var', defs.Variable),
 		('class B(A):\n\tb: int = a', 'file_input.class_def.class_def_raw.block.assign_stmt.anno_assign.var[2]', defs.Variable),
-		('def func(a: int) -> None: pass', 'file_input.function_def.function_def_raw.name', defs.TypesName),
-		('def func(a: int) -> None: pass', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.DeclLocalVar),
-		('def func(self) -> None: pass', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.DeclThisParam),
 	])
 	def test_fragment(self, source: str, full_path: str, expected: type[defs.Fragment]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Fragment)
 		self.assertEqual(type(node), expected)
 
 	@data_provider([
-		('a(self.v)', 'file_input.funccall.arguments.argvalue.getattr', defs.ThisRef),
-		('a(cls.v)', 'file_input.funccall.arguments.argvalue.getattr', defs.ClassRef),
-		('a[0].b', 'file_input.getattr', defs.Indexer),
-		('a.b', 'file_input.getattr', defs.Variable),
-		('a.b()', 'file_input.funccall.getattr', defs.Variable),
-		('a.b[0]', 'file_input.getitem.getattr', defs.Variable),
+		# left(Reference)
 		('a.b.c', 'file_input.getattr', defs.Relay),
-		('a.b.c', 'file_input.getattr.getattr', defs.Variable),
+		('self.a.b', 'file_input.getattr', defs.Relay),
+		('a(cls.v)', 'file_input.funccall.arguments.argvalue.getattr', defs.ClassRef),
 		('self.a', 'file_input.getattr', defs.ThisRef),
 		('self.a()', 'file_input.funccall.getattr', defs.ThisRef),
 		('self.a[0]', 'file_input.getitem.getattr', defs.ThisRef),
-		('self.a.b', 'file_input.getattr', defs.Relay),
+		('a(self.v)', 'file_input.funccall.arguments.argvalue.getattr', defs.ThisRef),
+		('a.b', 'file_input.getattr', defs.Variable),
+		('a.b()', 'file_input.funccall.getattr', defs.Variable),
+		('a.b[0]', 'file_input.getitem.getattr', defs.Variable),
+		('a.b.c', 'file_input.getattr.getattr', defs.Variable),
+		# left(Indexer)
+		('a[0].b', 'file_input.getattr', defs.Indexer),
+		# left(FuncCall)
 		('self.a().b', 'file_input.getattr', defs.FuncCall),
 		('super().b', 'file_input.getattr', defs.Super),
+		# left(Literal)
 		('"".a', 'file_input.getattr', defs.String),
 	])
 	def test_relay(self, source: str, full_path: str, expected: type[defs.Reference | defs.FuncCall | defs.Indexer | defs.Literal]) -> None:
@@ -490,70 +508,115 @@ class TestDefinition(TestCase):
 		self.assertEqual(type(node), expected)
 
 	@data_provider([
+		('a[0]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Variable, 'key': '0', 'key_type': defs.Integer}),
+		('a[b]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Variable, 'key': 'b', 'key_type': defs.Variable}),
+		('a[b()]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Variable, 'key': 'b', 'key_type': defs.FuncCall}),
+		('a[b.c]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Variable, 'key': 'b.c', 'key_type': defs.Relay}),
+		('a[b[0]]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Variable, 'key': 'b.0', 'key_type': defs.Indexer}),
+		('a()["b"]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.FuncCall, 'key': '"b"', 'key_type': defs.String}),
+		('a[0]["b"]', 'file_input.getitem', {'receiver': 'a.0', 'receiver_type': defs.Indexer, 'key': '"b"', 'key_type': defs.String}),
+	])
+	def test_indexer(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Indexer)
+		self.assertEqual(node.receiver.tokens, expected['receiver'])
+		self.assertEqual(type(node.receiver), expected['receiver_type'])
+		self.assertEqual(node.key.tokens, expected['key'])
+		self.assertEqual(type(node.key), expected['key_type'])
+
+	@data_provider([
+		# General
 		('a: int = 0', 'file_input.assign_stmt.anno_assign.typed_var', defs.GeneralType),
-		('a: list[int] = []', 'file_input.assign_stmt.anno_assign.typed_getitem', defs.ListType),
 		('a: list[int] = []', 'file_input.assign_stmt.anno_assign.typed_getitem.typed_var', defs.GeneralType),
-		('a: dict[str, int] = {}', 'file_input.assign_stmt.anno_assign.typed_getitem', defs.DictType),
 		('a: dict[str, int] = {}', 'file_input.assign_stmt.anno_assign.typed_getitem.typed_slices.typed_var[0]', defs.GeneralType),
 		('a: dict[str, int] = {}', 'file_input.assign_stmt.anno_assign.typed_getitem.typed_slices.typed_var[1]', defs.GeneralType),
-		('a: str | None = None', 'file_input.assign_stmt.anno_assign.typed_or_expr', defs.UnionType),
 		('a: str | None = None', 'file_input.assign_stmt.anno_assign.typed_or_expr.typed_var', defs.GeneralType),
-		('a: str | None = None', 'file_input.assign_stmt.anno_assign.typed_or_expr.typed_none', defs.NullType),
 		('self.a: int = 0', 'file_input.assign_stmt.anno_assign.typed_var', defs.GeneralType),
 		('try: ...\nexcept A.E as e: ...', 'file_input.try_stmt.except_clauses.except_clause.typed_getattr', defs.GeneralType),
 		('class B(A): ...', 'file_input.class_def.class_def_raw.typed_arguments.typed_argvalue.typed_var', defs.GeneralType),
-		('class B(A[T]): ...', 'file_input.class_def.class_def_raw.typed_arguments.typed_argvalue.typed_getitem', defs.CustomType),
 		('def func(a: int) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.typed_var', defs.GeneralType),
-		('def func(a: int) -> None: ...', 'file_input.function_def.function_def_raw.return_type.typed_none', defs.NullType),
+		# Generic - List/Dict/Callable/Custom
+		('a: list[int] = []', 'file_input.assign_stmt.anno_assign.typed_getitem', defs.ListType),
+		('a: dict[str, int] = {}', 'file_input.assign_stmt.anno_assign.typed_getitem', defs.DictType),
 		('def func() -> Callable[[], None]: ...', 'file_input.function_def.function_def_raw.return_type.typed_getitem', defs.CallableType),
+		('class B(A[T]): ...', 'file_input.class_def.class_def_raw.typed_arguments.typed_argvalue.typed_getitem', defs.CustomType),
+		# Union
+		('a: str | None = None', 'file_input.assign_stmt.anno_assign.typed_or_expr', defs.UnionType),
+		# Null
+		('a: str | None = None', 'file_input.assign_stmt.anno_assign.typed_or_expr.typed_none', defs.NullType),
+		('def func(a: int) -> None: ...', 'file_input.function_def.function_def_raw.return_type.typed_none', defs.NullType),
 	])
 	def test_type(self, source: str, full_path: str, expected: type[defs.Type]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Type)
 		self.assertEqual(type(node), expected)
 
 	@data_provider([
-		('a: list[int] = []', 'file_input.assign_stmt.anno_assign.typed_getitem', {'value_type': 'int'}),
+		('a: list[int] = []', 'file_input.assign_stmt.anno_assign.typed_getitem', {'type_name': 'list', 'value_type': defs.GeneralType}),
 	])
 	def test_list_type(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.ListType)
-		self.assertEqual(node.value_type.tokens, expected['value_type'])
+		self.assertEqual(node.type_name.tokens, expected['type_name'])
+		self.assertEqual(type(node.value_type), expected['value_type'])
 
 	@data_provider([
-		('a: dict[str, int] = {}', 'file_input.assign_stmt.anno_assign.typed_getitem', {'key_type': 'str', 'value_type': 'int'}),
+		('a: dict[str, int] = {}', 'file_input.assign_stmt.anno_assign.typed_getitem', {'type_name': 'dict', 'key_type': defs.GeneralType, 'value_type': defs.GeneralType}),
 	])
 	def test_dict_type(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.DictType)
-		self.assertEqual(node.key_type.tokens, expected['key_type'])
-		self.assertEqual(node.value_type.tokens, expected['value_type'])
+		self.assertEqual(node.type_name.tokens, expected['type_name'])
+		self.assertEqual(type(node.key_type), expected['key_type'])
+		self.assertEqual(type(node.value_type), expected['value_type'])
 
 	@data_provider([
-		('def func() -> Callable[[], None]: ...', 'file_input.function_def.function_def_raw.return_type.typed_getitem.typed_slices.typed_list', []),
-		('def func() -> Callable[[str], None]: ...', 'file_input.function_def.function_def_raw.return_type.typed_getitem.typed_slices.typed_list', [defs.GeneralType]),
-		('def func() -> Callable[[str, int], None]: ...', 'file_input.function_def.function_def_raw.return_type.typed_getitem.typed_slices.typed_list', [defs.GeneralType, defs.GeneralType]),
-		('def func() -> Callable[[str, list[int]], None]: ...', 'file_input.function_def.function_def_raw.return_type.typed_getitem.typed_slices.typed_list', [defs.GeneralType, defs.ListType]),
-		# ('def func() -> Callable[[...], None]: ...', 'file_input.function_def.function_def_raw.return_type.typed_getitem.typed_slices.typed_list', [defs.GeneralType, defs.ListType]), XXX Elipsisは一旦非対応
-		('def func(f: Callable[[int], None]) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.typed_getitem.typed_slices.typed_list', [defs.GeneralType]),
+		('a: Callable[[], None] = ...', 'file_input.assign_stmt.anno_assign.typed_getitem', {'type_name': 'Callable', 'parameters': [], 'return_type': defs.NullType}),
+		('a: Callable[[str], None] = ...', 'file_input.assign_stmt.anno_assign.typed_getitem', {'type_name': 'Callable', 'parameters': [defs.GeneralType], 'return_type': defs.NullType}),
+		('a: Callable[[str, int], None] = ...', 'file_input.assign_stmt.anno_assign.typed_getitem', {'type_name': 'Callable', 'parameters': [defs.GeneralType, defs.GeneralType], 'return_type': defs.NullType}),
+		('a: Callable[[str, list[int]], None] = ...', 'file_input.assign_stmt.anno_assign.typed_getitem', {'type_name': 'Callable', 'parameters': [defs.GeneralType, defs.ListType], 'return_type': defs.NullType}),
+		('a: Callable[[int], None] = ...', 'file_input.assign_stmt.anno_assign.typed_getitem', {'type_name': 'Callable', 'parameters': [defs.GeneralType], 'return_type': defs.NullType}),
+		# ('a: Callable[[...], None] = ...', 'file_input.assign_stmt.anno_assign.typed_getitem', {}), XXX Elipsisは一旦非対応
 	])
-	def test_type_parameters(self, source: str, full_path: str, expecteds: list[type[defs.Type]]) -> None:
-		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.TypeParameters)
-		self.assertEqual(len(node.type_params), len(expecteds))
-		for index, in_types in enumerate(node.type_params):
-			expected = expecteds[index]
-			self.assertEqual(type(in_types), expected)
+	def test_callable_type(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.CallableType)
+		self.assertEqual(node.type_name.tokens, expected['type_name'])
+		self.assertEqual([type(parameter) for parameter in node.parameters], expected['parameters'])
+		self.assertEqual(type(node.return_type), expected['return_type'])
 
 	@data_provider([
-		('a[0]', 'file_input.getitem', {'receiver': 'a', 'key': '0'}),
+		('a: A[str, int] = {}', 'file_input.assign_stmt.anno_assign.typed_getitem', {'type_name': 'A', 'template_types': [defs.GeneralType, defs.GeneralType]}),
 	])
-	def test_indexer(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
-		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Indexer)
-		self.assertEqual(node.receiver.tokens, expected['receiver'])
-		self.assertEqual(node.key.tokens, expected['key'])
+	def test_custom_type(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.CustomType)
+		self.assertEqual(node.type_name.tokens, expected['type_name'])
+		self.assertEqual([type(in_type) for in_type in node.template_types], expected['template_types'])
 
 	@data_provider([
-		('a(b, c)', 'file_input.funccall', {'calls': {'symbol': 'a', 'var_type': defs.Variable}, 'arguments': [{'symbol': 'b', 'var_type': defs.Variable}, {'symbol': 'c', 'var_type': defs.Variable}]}),
+		('a: str | int = {}', 'file_input.assign_stmt.anno_assign.typed_or_expr', {'type_name': 'str.int', 'or_types': [defs.GeneralType, defs.GeneralType]}),
+	])
+	def test_union_type(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.UnionType)
+		self.assertEqual(node.type_name.tokens, expected['type_name'])
+		self.assertEqual([type(in_type) for in_type in node.or_types], expected['or_types'])
+
+	@data_provider([
+		('a: None = None', 'file_input.assign_stmt.anno_assign.typed_none'),
+	])
+	def test_null_type(self, source: str, full_path: str) -> None:
+		self.assertEqual(type(self.fixture.custom_nodes(source).by(full_path)), defs.NullType)
+
+	@data_provider([
+		('a(b, c)', 'file_input.funccall', {
+			'type': defs.FuncCall,
+			'calls': {'symbol': 'a', 'var_type': defs.Variable},
+			'arguments': [{'symbol': 'b', 'var_type': defs.Variable}, {'symbol': 'c', 'var_type': defs.Variable}]
+		}),
+		('super(b, c)', 'file_input.funccall', {
+			'type': defs.Super,
+			'calls': {'symbol': 'super', 'var_type': defs.Variable},
+			'arguments': [{'symbol': 'b', 'var_type': defs.Variable}, {'symbol': 'c', 'var_type': defs.Variable}]
+		}),
 	])
 	def test_func_call(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.FuncCall)
+		self.assertEqual(type(node), expected['type'])
 		self.assertEqual(node.calls.tokens, expected['calls']['symbol'])
 		self.assertEqual(type(node.calls), expected['calls']['var_type'])
 		self.assertEqual(len(node.arguments), len(expected['arguments']))

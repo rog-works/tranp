@@ -40,7 +40,7 @@ class MoveAssign(Assign):
 	@Meta.embed(Node, expandable)
 	def value(self) -> Node | Empty:
 		node = self._elements[1]
-		return node.as_a(Empty) if node.is_a(Empty) else node
+		return node if not node.is_a(Empty) else node.as_a(Empty)
 
 
 @Meta.embed(Node, actualized(via=Assign))
@@ -59,7 +59,7 @@ class AnnoAssign(Assign):
 	@Meta.embed(Node, expandable)
 	def value(self) -> Node | Empty:
 		node = self._elements[2]
-		return node.as_a(Empty) if node.is_a(Empty) else node
+		return node if not node.is_a(Empty) else node.as_a(Empty)
 
 
 @Meta.embed(Node, actualized(via=Assign))
@@ -86,7 +86,7 @@ class Return(Node):
 	@Meta.embed(Node, expandable)
 	def return_value(self) -> Node | Empty:
 		node = self._at(0)
-		return self.as_a(Empty) if node.is_a(Empty) else node
+		return node if not node.is_a(Empty) else node.as_a(Empty)
 
 	@property
 	def function(self) -> Node:

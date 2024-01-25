@@ -29,7 +29,7 @@ class Parameter(Node, IDeclare):
 		children = self._children()
 		if len(children) == 2:
 			node = self._at(1)
-			return node.as_a(Empty) if node.is_a(Empty) else node
+			return node if not node.is_a(Empty) else node.as_a(Empty)
 
 		# XXX starparamはデフォルト引数がないためダミーを生成
 		return self.dirty_child(Empty, '__empty__', tokens='', classification=snakelize(Empty.__name__))

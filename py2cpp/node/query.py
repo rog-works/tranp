@@ -121,7 +121,7 @@ class Nodes(Query[Node]):
 
 		regular = re.compile(rf'{uplayer_path.escaped_origin}\.[^.]+')
 		tester = lambda _, path: regular.fullmatch(path) is not None
-		entries = {path: entry for path, entry in self.__entries.group_by(uplayer_path.origin).items() if tester(entry, path)}
+		entries = {path: entry for path, entry in self.__entries.group_by(uplayer_path.origin, depth=1).items() if tester(entry, path)}
 		return [self.__resolve(entry, path) for path, entry in entries.items()]
 
 	@implements
@@ -137,7 +137,7 @@ class Nodes(Query[Node]):
 		"""
 		regular = re.compile(rf'{EntryPath(via).escaped_origin}\.[^.]+')
 		tester = lambda _, path: regular.fullmatch(path) is not None
-		entries = {path: entry for path, entry in self.__entries.group_by(via).items() if tester(entry, path)}
+		entries = {path: entry for path, entry in self.__entries.group_by(via, depth=1).items() if tester(entry, path)}
 		return [self.__resolve(entry, path) for path, entry in entries.items()]
 
 	@implements
@@ -175,7 +175,9 @@ class Nodes(Query[Node]):
 			in_allows = [index for index, in_tag in enumerate(entry_tags) if self.__resolver.can_resolve(in_tag)]
 			return len(in_allows) == 0
 
-		entries = {path: entry for path, entry in self.__entries.group_by(via).items() if tester(entry, path)}
+		# XXX depthの3階層下までと言う指定に根拠はない。影響はないだろうと言う程度なので問題があったら修正
+		under_entries = self.__entries.group_by(via, depth=3).items()
+		entries = {path: entry for path, entry in under_entries if tester(entry, path)}
 		return [self.__resolve(entry, path) for path, entry in entries.items()]
 
 	@implements

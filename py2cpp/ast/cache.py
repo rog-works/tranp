@@ -1,23 +1,18 @@
 from typing import Generic, TypeVar
 
+from py2cpp.ast.dsn import DSN
 from py2cpp.errors import NotFoundError
 
 T = TypeVar('T')
 
 
 class EntryCache(Generic[T]):
-	"""エントリーキャッシュ
-
-	Note:
-		グループ検索用のインデックスは、ツリーの先頭から順序通りに登録することが正常動作の必須要件
-		効率よくインデックスを構築出来る反面、シンタックスツリーが静的であることを前提とした実装のため、
-		インデックスを作り替えることは出来ず、登録順序にも強い制限がある
-	"""
+	"""エントリーキャッシュ"""
 
 	def __init__(self) -> None:
 		"""インスタンスを生成"""
-		self.__entries: list[T] = []
-		self.__indexs: dict[str, tuple[int, int]] = {}
+		self.__entries: dict[str, T] = {}
+		self.__indexs: dict[str, dict[str, str]] = {}
 
 	def exists(self, full_path: str) -> bool:
 		"""指定のパスのエントリーが存在するか判定
@@ -27,7 +22,7 @@ class EntryCache(Generic[T]):
 		Returns:
 			bool: True = 存在する
 		"""
-		return full_path in self.__indexs
+		return full_path in self.__entries
 
 	def by(self, full_path: str) -> T:
 		"""指定のパスのエントリーをフェッチ
@@ -40,10 +35,9 @@ class EntryCache(Generic[T]):
 		if not self.exists(full_path):
 			raise NotFoundError(full_path)
 
-		begin, _ = self.__indexs[full_path]
-		return self.__entries[begin]
+		return self.__entries[full_path]
 
-	def group_by(self, via: str) -> dict[str, T]:
+	def group_by(self, via: str, depth: int = -1) -> dict[str, T]:
 		"""指定の基準パス以下のエントリーをフェッチ
 
 		Args:
@@ -54,28 +48,35 @@ class EntryCache(Generic[T]):
 		if not self.exists(via):
 			raise NotFoundError(via)
 
-		begin, end = self.__indexs[via]
-		items = self.__entries[begin:end + 1]
-		keys = list(self.__indexs.keys())[begin:end + 1]
-		return {keys[index]: items[index] for index in range((end + 1) - begin)}
+		if depth == 0:
+			return {}
+
+		entries: dict[str, T] = {via: self.by(via)}
+		for key in self.__indexs[via]:
+			path = DSN.join(via, key)
+			entries[path] = self.by(path)
+			under = self.group_by(path, depth - 1)
+			entries = {**entries, **under}
+
+		return entries
 
 	def add(self, full_path: str, entry: T) -> None:
 		"""指定のパスとエントリーを紐付けてキャッシュに追加
 
 		Args:
 			full_path (str): フルパス
-			entry (str): フルパス
+			entry (T): エントリー
 		"""
 		if self.exists(full_path):
 			return
 
-		begin = len(self.__entries)
-		self.__entries.append(entry)
-		self.__indexs[full_path] = (begin, begin)
+		self.__entries[full_path] = entry
+		self.__indexs[full_path] = {}
 
-		remain = full_path.split('.')[:-1]
+		elems = full_path.split('.')
+		remain = elems[:-1]
+		last = elems[-1]
 		while len(remain):
-			in_key = '.'.join(remain)
-			begin, end = self.__indexs[in_key]
-			self.__indexs[in_key] = (begin, end + 1)
-			remain.pop()
+			in_path = '.'.join(remain)
+			self.__indexs[in_path] = {**(self.__indexs[in_path] if in_path in self.__indexs else {}), last: ''}
+			last = remain.pop()

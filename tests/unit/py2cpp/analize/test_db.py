@@ -93,16 +93,16 @@ class TestSymbolDB(TestCase):
 			'py2cpp.compatible.python.embed.range': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.range',
 			'py2cpp.compatible.python.embed.len': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.len',
 			# embedモジュール(ClassKind)
+			'py2cpp.compatible.python.embed.T': 'py2cpp.compatible.python.embed.T',
 			'py2cpp.compatible.python.embed.__actual__': 'py2cpp.compatible.python.embed.__actual__',
 			'py2cpp.compatible.python.embed.__actual__.decorator': 'py2cpp.compatible.python.embed.__actual__.decorator',
 			'py2cpp.compatible.python.embed.__alias__': 'py2cpp.compatible.python.embed.__alias__',
 			'py2cpp.compatible.python.embed.__alias__.decorator': 'py2cpp.compatible.python.embed.__alias__.decorator',
 			# embedモジュール(Declable)
-			'py2cpp.compatible.python.embed.T': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Unknown',
 			'py2cpp.compatible.python.embed.__actual__.name': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.str',
-			'py2cpp.compatible.python.embed.__actual__.decorator.wrapped': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Unknown',
+			'py2cpp.compatible.python.embed.__actual__.decorator.wrapped': 'py2cpp.compatible.python.embed.T',
 			'py2cpp.compatible.python.embed.__alias__.name': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.str',
-			'py2cpp.compatible.python.embed.__alias__.decorator.wrapped': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Unknown',
+			'py2cpp.compatible.python.embed.__alias__.decorator.wrapped': 'py2cpp.compatible.python.embed.T',
 			# test_db_xyzモジュール/標準ライブラリー(ClassKind)
 			'tests.unit.py2cpp.analize.fixtures.test_db_xyz.int': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.int',
 			'tests.unit.py2cpp.analize.fixtures.test_db_xyz.float': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.float',

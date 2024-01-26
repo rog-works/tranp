@@ -1,15 +1,15 @@
 import hashlib
 import json
 import os
-from typing import Any
 
 from py2cpp.app.app import App
 from py2cpp.ast.entry import EntryOfDict, T_Tree
 from py2cpp.ast.parser import SyntaxParser
 from py2cpp.ast.query import Query
-from py2cpp.lang.cache import CacheSetting
+from py2cpp.lang.cache import CacheProvider, CacheSetting
 from py2cpp.lang.di import ModuleDefinitions
 from py2cpp.lang.locator import Locator, T_Inst
+from py2cpp.lang.module import fullyname
 from py2cpp.module.module import Module
 from py2cpp.module.types import ModulePath
 from py2cpp.node.node import Node
@@ -64,7 +64,11 @@ class Fixture:
 		def syntax_parser(locator: Locator) -> SyntaxParser:
 			return self.make_custom_syntax_parser(locator, source_code)
 
-		definitions = {**self.__definitions(), **{'py2cpp.ast.parser.SyntaxParser': syntax_parser}}
+		new_definitions = {
+			fullyname(SyntaxParser): syntax_parser,
+			fullyname(CacheProvider): lambda: self.__app.resolve(CacheProvider),
+		}
+		definitions = {**self.__definitions(), **new_definitions}
 		return App(definitions).resolve(Query[Node])
 
 	def make_custom_syntax_parser(self, locator: Locator, source_code: str) -> SyntaxParser:

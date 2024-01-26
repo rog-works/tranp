@@ -31,7 +31,7 @@
 			// "args": ["tests.unit.py2cpp.analize.test_db.TestSymbolDB"],
 			// "args": ["tests.unit.py2cpp.analize.test_symbols.TestSymbols.test_type_of_unknown"],
 			// "args": ["tests.unit.py2cpp.lang.test_di.TestDI"],
-			"args": ["tests.unit.py2cpp.node.test_definition.TestDefinition.test_return"],
+			"args": ["tests.unit.py2cpp.node.test_definition.TestDefinition.test_fragment"],
 			// "args": ["tests.unit.py2cpp.node.test_embed.TestMeta.test_expandable"],
 			// "args": ["tests.unit.py2cpp.node.test_node.TestNode.test_scope"],
 			// "args": ["tests.unit.py2cpp.view.test_render.TestRenderer.test_render_function"],

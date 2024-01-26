@@ -141,7 +141,7 @@ except_clause: "except" typed_expression ["as" name] ":" block
 assign: expression ("=" expression)+
 anno_assign: expression ":" typed_expression ["=" expression]
 aug_assign: expression aug_assign_op expression
-class_assign: name ":" "TypeAlias" "=" typed_expression
+class_assign: expression ":" "TypeAlias" "=" typed_expression
 
 !aug_assign_op: "+=" | "-=" | "*=" | "@=" | "/=" | "%=" | "&=" | "|=" | "^=" | "<<=" | ">>=" | "**=" | "//="
 

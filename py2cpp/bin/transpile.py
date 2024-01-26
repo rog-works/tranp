@@ -215,7 +215,7 @@ class Handler(Procedure[str]):
 		return node.tokens
 
 	def on_types_name(self, node: defs.TypesName) -> str:
-		return node.class_types.as_a(defs.ClassKind).alias_symbol() or node.tokens
+		return node.class_types.as_a(defs.ClassDef).alias_symbol() or node.tokens
 
 	def on_import_name(self, node: defs.ImportName) -> str:
 		return node.tokens

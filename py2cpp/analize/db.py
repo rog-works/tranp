@@ -23,7 +23,7 @@ class SymbolRaw(NamedTuple):
 	org_path: str
 	module: Module
 	symbol: defs.Declable
-	types: defs.ClassKind
+	types: defs.ClassDef
 	decl: defs.DeclAll
 
 	def to(self, module: Module) -> 'SymbolRaw':
@@ -158,7 +158,7 @@ class SymbolDB:
 		import_nodes: list[defs.Import] = []
 		entrypoint = module.entrypoint.as_a(defs.Entrypoint)
 		for node in entrypoint.flatten():
-			if isinstance(node, defs.ClassKind):
+			if isinstance(node, defs.ClassDef):
 				raws[node.fullyname] = SymbolRaw(node.fullyname, node.fullyname, module, node.symbol, node, node)
 
 			if type(node) is defs.Import:
@@ -201,7 +201,7 @@ class SymbolDB:
 
 		raise LogicError(f'Unresolve var type. var: {var}, domain: {domain_type.fullyname if domain_type is not None else "Unknown"}, candidates: {candidates}')
 
-	def __fetch_domain_type(self, var: defs.DeclVars) -> defs.Type | defs.ClassKind | None:
+	def __fetch_domain_type(self, var: defs.DeclVars) -> defs.Type | defs.ClassDef | None:
 		"""変数の型のドメインを取得。型が不明な場合はNoneを返却
 
 		Args:
@@ -213,9 +213,9 @@ class SymbolDB:
 			return var.var_type
 		elif isinstance(var, defs.Parameter):
 			if isinstance(var.symbol, defs.DeclClassParam):
-				return var.symbol.class_types.as_a(defs.ClassKind)
+				return var.symbol.class_types.as_a(defs.ClassDef)
 			elif isinstance(var.symbol, defs.DeclThisParam):
-				return var.symbol.class_types.as_a(defs.ClassKind)
+				return var.symbol.class_types.as_a(defs.ClassDef)
 			else:
 				return var.var_type.as_a(defs.Type)
 		elif isinstance(var, (defs.MoveAssign, defs.For)):

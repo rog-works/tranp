@@ -1,8 +1,8 @@
-from enum import Enum
+from enum import Enum as OrgEnum
 from typing import Any
 
 
-class CEnum(Enum):
+class Enum(OrgEnum):
 	"""C言語との互換用Enum"""
 
 	def __int__(self) -> int:

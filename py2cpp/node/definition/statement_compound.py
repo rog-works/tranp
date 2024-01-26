@@ -187,7 +187,7 @@ class Try(Flow):
 		return [self.block, *[catch.block for catch in self.catches]]
 
 
-class ClassKind(Node, IDomainName, IScope, IDeclare):
+class ClassDef(Node, IDomainName, IScope, IDeclare):
 	@property
 	@override
 	def public_name(self) -> str:
@@ -281,7 +281,7 @@ class ClassKind(Node, IDomainName, IScope, IDeclare):
 
 
 @Meta.embed(Node, accept_tags('function_def'))
-class Function(ClassKind):
+class Function(ClassDef):
 	@property
 	@override
 	@Meta.embed(Node, expandable)
@@ -335,7 +335,7 @@ class ClassMethod(Function):
 
 	@property
 	def class_symbol(self) -> Declable:
-		return self.parent.as_a(Block).parent.as_a(ClassKind).symbol
+		return self.parent.as_a(Block).parent.as_a(ClassDef).symbol
 
 
 @Meta.embed(Node, actualized(via=Function))
@@ -347,7 +347,7 @@ class Constructor(Function):
 
 	@property
 	def class_symbol(self) -> Declable:
-		return self.parent.as_a(Block).parent.as_a(ClassKind).symbol
+		return self.parent.as_a(Block).parent.as_a(ClassDef).symbol
 
 	@property
 	def this_vars(self) -> list[AnnoAssign]:
@@ -367,7 +367,7 @@ class Method(Function):
 
 	@property
 	def class_symbol(self) -> Declable:
-		return self.parent.as_a(Block).parent.as_a(ClassKind).symbol
+		return self.parent.as_a(Block).parent.as_a(ClassDef).symbol
 
 
 @Meta.embed(Node, actualized(via=Function))
@@ -398,7 +398,7 @@ class Closure(Function):
 
 
 @Meta.embed(Node, accept_tags('class_def'))
-class Class(ClassKind):
+class Class(ClassDef):
 	@property
 	@override
 	def namespace_part(self) -> str:
@@ -471,7 +471,7 @@ class Class(ClassKind):
 
 
 @Meta.embed(Node, accept_tags('enum_def'))
-class Enum(ClassKind):
+class Enum(ClassDef):
 	@property
 	@override
 	def namespace_part(self) -> str:

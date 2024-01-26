@@ -278,13 +278,13 @@ class TestNode(TestCase):
 		self.assertEqual(node.is_a(defs.ClassMethod), False)
 		self.assertEqual(node.is_a(defs.Method), True)
 		self.assertEqual(node.is_a(defs.Class), False)
-		self.assertEqual(node.is_a(defs.ClassKind), True)
+		self.assertEqual(node.is_a(defs.ClassDef), True)
 
 	def test_as_a(self) -> None:
 		node = self.fixture.shared_nodes.by('file_input.class_def.class_def_raw.block.function_def[1]')
 		self.assertEqual(type(node), defs.Method)
 		self.assertEqual(type(node.as_a(defs.Function)), defs.Method)
-		self.assertEqual(type(node.as_a(defs.ClassKind)), defs.Method)
+		self.assertEqual(type(node.as_a(defs.ClassDef)), defs.Method)
 
 	def test_one_of(self) -> None:
 		node = self.fixture.shared_nodes.by('file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.parameters.paramvalue.typedparam.__empty__')

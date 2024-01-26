@@ -158,7 +158,7 @@ class Symbols:
 
 		raise LogicError(f'Unknown not defined.')
 
-	def type_of_property(self, decl_class: defs.ClassKind, prop: defs.Var) -> Symbol:
+	def type_of_property(self, decl_class: defs.ClassDef, prop: defs.Var) -> Symbol:
 		"""クラス定義ノードと変数参照ノードからプロパティーのシンボルを解決
 
 		Args:
@@ -188,7 +188,7 @@ class Symbols:
 			return self.__from_reference(node)
 		elif isinstance(node, defs.Type):
 			return self.__from_type(node)
-		elif isinstance(node, defs.ClassKind):
+		elif isinstance(node, defs.ClassDef):
 			return self.__from_class(node)
 		elif isinstance(node, defs.Literal):
 			return self.__from_literal(node)
@@ -289,7 +289,7 @@ class Symbols:
 		"""
 		return self.__resolve_procedural(node)
 
-	def __from_class(self, node: defs.ClassKind) -> Symbol:
+	def __from_class(self, node: defs.ClassDef) -> Symbol:
 		"""クラス定義ノードからシンボルを解決
 
 		Args:

@@ -350,6 +350,13 @@ class TestDefinition(TestCase):
 		self.assertEqual(node.symbol.tokens, expected['symbol'])
 		self.assertEqual(type(node.actual_type), expected['actual_type'])
 
+	@data_provider([
+		('A = TypeVar("A")', 'file_input.template_assign', {'symbol': 'A'}),
+	])
+	def test_template_class(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.TemplateClass)
+		self.assertEqual(node.symbol.tokens, expected['symbol'])
+
 	# Statement simple
 
 	@data_provider([

@@ -91,7 +91,7 @@ class SyntaxParserOfLark:
 
 		return instantiate().entry
 
-	def get_lark_dirty(self) -> Lark:
+	def dirty_get_origin(self) -> Lark:
 		"""Larkインスタンスを取得(デバッグ用)
 
 		Returns:

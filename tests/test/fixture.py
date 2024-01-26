@@ -60,7 +60,7 @@ class Fixture:
 
 	def custom_nodes(self, source_code: str) -> Query[Node]:
 		def syntax_parser() -> SyntaxParser:
-			org_parser = cast(SyntaxParserOfLark, self.__app.resolve(SyntaxParser)).get_lark_dirty()
+			org_parser = cast(SyntaxParserOfLark, self.__app.resolve(SyntaxParser)).dirty_get_origin()
 			return lambda module_path: EntryOfLark(org_parser.parse(f'{source_code}\n'))
 
 		new_definitions = {

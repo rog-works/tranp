@@ -7,7 +7,7 @@ from py2cpp.lang.implementation import implements, override
 from py2cpp.lang.sequence import last_index_of
 from py2cpp.node.definition.element import Decorator, Parameter
 from py2cpp.node.definition.literal import String
-from py2cpp.node.definition.primary import DeclBlockVar, DeclClassVar, Declable, GenericType, InheritArgument, DeclThisParam, DeclThisVar, Type
+from py2cpp.node.definition.primary import DeclBlockVar, DeclClassVar, Declable, GenericType, InheritArgument, DeclThisParam, DeclThisVar, Type, TypesName
 from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
@@ -497,6 +497,25 @@ class Enum(ClassDef):
 	@property
 	def vars(self) -> list[MoveAssign]:
 		return [node.as_a(MoveAssign) for node in self.statements if node.is_a(MoveAssign)]
+
+
+@Meta.embed(Node, accept_tags('class_assign'))
+class AltClass(ClassDef):
+	@property
+	@override
+	def namespace_part(self) -> str:
+		return self.public_name
+
+	@property
+	@override
+	@Meta.embed(Node, expandable)
+	def symbol(self) -> Declable:
+		return self._by('name').as_a(TypesName)
+
+	@property
+	@Meta.embed(Node, expandable)
+	def actual_type(self) -> Type:
+		return self._at(1).as_a(Type)
 
 
 def collect_decl_vars(block: StatementBlock, allow: type[T_Node]) -> dict[str, AnnoAssign | MoveAssign | For | Catch]:

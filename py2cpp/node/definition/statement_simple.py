@@ -1,17 +1,16 @@
-from py2cpp.lang.implementation import implements, override
+from py2cpp.lang.implementation import implements
 from py2cpp.node.definition.primary import FuncCall, ImportPath, Indexer, Reference, Declable, Type, Var
 from py2cpp.node.definition.terminal import Empty, Terminal
-from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
+from py2cpp.node.embed import Meta, accept_tags, expandable
 from py2cpp.node.interface import ITerminal
 from py2cpp.node.node import Node
 from py2cpp.node.promise import IDeclare
 
 
-@Meta.embed(Node, accept_tags('assign_stmt'))
 class Assign(Node, IDeclare):
 	@property
 	def _elements(self) -> list[Node]:
-		return self._at(0)._children()
+		return self._children()
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -29,13 +28,8 @@ class Assign(Node, IDeclare):
 		return self.receiver.as_a(Declable)
 
 
-@Meta.embed(Node, actualized(via=Assign))
+@Meta.embed(Node, accept_tags('assign'))
 class MoveAssign(Assign):
-	@classmethod
-	@override
-	def match_feature(cls, via: Node) -> bool:
-		return via._exists('assign')
-
 	@property
 	@Meta.embed(Node, expandable)
 	def value(self) -> Node | Empty:
@@ -43,13 +37,8 @@ class MoveAssign(Assign):
 		return node if not node.is_a(Empty) else node.as_a(Empty)
 
 
-@Meta.embed(Node, actualized(via=Assign))
+@Meta.embed(Node, accept_tags('anno_assign'))
 class AnnoAssign(Assign):
-	@classmethod
-	@override
-	def match_feature(cls, via: Node) -> bool:
-		return via._exists('anno_assign')
-
 	@property
 	@Meta.embed(Node, expandable)
 	def var_type(self) -> Type:
@@ -62,13 +51,8 @@ class AnnoAssign(Assign):
 		return node if not node.is_a(Empty) else node.as_a(Empty)
 
 
-@Meta.embed(Node, actualized(via=Assign))
+@Meta.embed(Node, accept_tags('aug_assign'))
 class AugAssign(Assign):
-	@classmethod
-	@override
-	def match_feature(cls, via: Node) -> bool:
-		return via._exists('aug_assign')
-
 	@property
 	@Meta.embed(Node, expandable)
 	def operator(self) -> Terminal:

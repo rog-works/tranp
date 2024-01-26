@@ -29,6 +29,7 @@ def symbol_mapping() -> SymbolMapping:
 			'class_def': defs.Class,
 			'enum_def': defs.Enum,
 			'class_assign': defs.AltClass,
+			'template_assign': defs.TemplateClass,
 			# -- Function/Class Elements --
 			'paramvalue': defs.Parameter,
 			'starparam': defs.Parameter,

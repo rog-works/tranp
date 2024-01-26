@@ -519,6 +519,21 @@ class AltClass(ClassDef):
 		return self._at(1).as_a(Type)
 
 
+@Meta.embed(Node, accept_tags('template_assign'))
+class TemplateClass(ClassDef):
+	@property
+	@override
+	def namespace_part(self) -> str:
+		return self.public_name
+
+	@property
+	@override
+	@Meta.embed(Node, expandable)
+	def symbol(self) -> Declable:
+		# FIXME TypesNameのaccept_tagsと一致していない
+		return self._at(0).dirty_child(TypesName, '', class_types=self)
+
+
 def collect_decl_vars(block: StatementBlock, allow: type[T_Node]) -> dict[str, AnnoAssign | MoveAssign | For | Catch]:
 	decl_vars: dict[str, AnnoAssign | MoveAssign | For | Catch] = {}
 	for node in block.statements:

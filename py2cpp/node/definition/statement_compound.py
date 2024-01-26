@@ -510,7 +510,8 @@ class AltClass(ClassDef):
 	@override
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Declable:
-		return self._at(0).as_a(Declable)
+		# FIXME TypesNameのaccept_tagsと一致していない
+		return self._at(0).dirty_child(TypesName, '', class_types=self)
 
 	@property
 	@Meta.embed(Node, expandable)

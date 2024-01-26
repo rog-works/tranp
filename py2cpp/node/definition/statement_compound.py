@@ -510,7 +510,7 @@ class AltClass(ClassDef):
 	@override
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Declable:
-		return self._by('name').as_a(TypesName)
+		return self._at(0).as_a(Declable)
 
 	@property
 	@Meta.embed(Node, expandable)

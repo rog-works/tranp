@@ -162,7 +162,7 @@ class Symbols:
 		"""クラス定義ノードと変数参照ノードからプロパティーのシンボルを解決
 
 		Args:
-			decl_class (ClassKind): クラス定義ノード
+			decl_class (ClassDef): クラス定義ノード
 			prop (Var): 変数参照ノード
 		Returns:
 			Symbol: シンボル
@@ -234,7 +234,7 @@ class Symbols:
 		elif isinstance(decl, (defs.For, defs.Catch)):
 			return self.__from_flow(decl)
 		else:
-			# defs.ClassKind
+			# defs.ClassDef
 			return symbol
 
 	def __from_declable(self, node: defs.Declable) -> Symbol:
@@ -293,7 +293,7 @@ class Symbols:
 		"""クラス定義ノードからシンボルを解決
 
 		Args:
-			node (ClassKind): クラス定義ノード
+			node (ClassDef): クラス定義ノード
 		Returns:
 			Symbol: シンボル
 		Raises:
@@ -516,7 +516,7 @@ class ProceduralResolver(Procedure[Symbol]):
 		elif isinstance(calls.types, defs.Function):
 			# XXX type_ofを使うと無限再帰になりやすいため別案を検討
 			return self.symbols.type_of(calls.types.return_type)
-		# defs.ClassKind
+		# defs.ClassDef
 		else:
 			return calls
 

@@ -145,7 +145,7 @@ class TestNode(TestCase):
 		self.assertEqual((not isinstance(node, ITerminal)) or cast(ITerminal, node).can_expand, expected)
 
 	@data_provider([
-		# ClassKind
+		# ClassDef
 		('def func() -> None: ...', 'file_input.function_def', defs.Function, '', '__main__.func'),
 		('class A:\n\t@classmethod\n\tdef c_method(cls) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def', defs.ClassMethod, '', '__main__.A.c_method'),
 		('class A:\n\tdef __init__(self) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def', defs.Constructor, '', '__main__.A.__init__'),

@@ -16,7 +16,7 @@ class SymbolRaw(NamedTuple):
 		org_path (str): 参照パス(オリジナル)
 		module (Module): 展開先のモジュール
 		symbol (Declable): シンボル宣言ノード
-		types (ClassKind): タイプノード
+		types (ClassDef): タイプノード
 		decl (DeclAll): 宣言ステートメントノード
 	"""
 	ref_path: str
@@ -207,7 +207,7 @@ class SymbolDB:
 		Args:
 			var (DeclVars): 変数宣言ノード
 		Returns:
-			Type | ClassKind | None: 型/クラス定義ノード。不明な場合はNone
+			Type | ClassDef | None: 型/クラス定義ノード。不明な場合はNone
 		"""
 		if isinstance(var, (defs.AnnoAssign, defs.Catch)):
 			return var.var_type

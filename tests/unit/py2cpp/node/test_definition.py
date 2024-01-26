@@ -335,6 +335,21 @@ class TestDefinition(TestCase):
 			self.assertEqual(type(var.value), defs.Integer)
 			self.assertEqual(type(var), defs.MoveAssign)
 
+	@data_provider([
+		('A: TypeAlias = int', 'file_input.class_assign', {'symbol': 'A', 'actual_type': defs.GeneralType}),
+		('A: TypeAlias = B.C', 'file_input.class_assign', {'symbol': 'A', 'actual_type': defs.GeneralType}),
+		('A: TypeAlias = list[str]', 'file_input.class_assign', {'symbol': 'A', 'actual_type': defs.ListType}),
+		('A: TypeAlias = dict[str, int]', 'file_input.class_assign', {'symbol': 'A', 'actual_type': defs.DictType}),
+		('A: TypeAlias = B[str, int]', 'file_input.class_assign', {'symbol': 'A', 'actual_type': defs.CustomType}),
+		('A: TypeAlias = Callable[[str], None]', 'file_input.class_assign', {'symbol': 'A', 'actual_type': defs.CallableType}),
+		('A: TypeAlias = str | None', 'file_input.class_assign', {'symbol': 'A', 'actual_type': defs.UnionType}),
+		('A: TypeAlias = None', 'file_input.class_assign', {'symbol': 'A', 'actual_type': defs.NullType}),
+	])
+	def test_alt_class(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.AltClass)
+		self.assertEqual(node.symbol.tokens, expected['symbol'])
+		self.assertEqual(type(node.actual_type), expected['actual_type'])
+
 	# Statement simple
 
 	@data_provider([

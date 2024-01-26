@@ -471,7 +471,7 @@ class Argument(Node):
 		if len(children) == 2:
 			return children[0].as_a(ArgumentLabel)
 
-		return self.dirty_child(Empty, '__empty__', tokens='', classification=snakelize(Empty.__name__))
+		return self.dirty_child(Empty, '__empty__', tokens='')
 
 	@property
 	@Meta.embed(Node, expandable)

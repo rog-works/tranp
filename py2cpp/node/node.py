@@ -449,6 +449,8 @@ class Node:
 		Note:
 			XXX シンボルエイリアスにのみ使う想定。ダーティーな実装のため濫用は厳禁
 		"""
+		overrides = {**overrides, 'classification': snakelize(self.__class__.__name__)}
+
 		class Proxy(self.__class__):
 			def __getattribute__(self, __name: str) -> Any:
 				if __name in overrides:
@@ -477,7 +479,7 @@ class Node:
 				if len(self._children()) == 2:
 					return self._at(1)
 
-				return self.dirty_child(Empty, '__empty__', tokens='', classification=snakelize(Empty))
+				return self.dirty_child(Empty, '__empty__', tokens='')
 			```
 		"""
 		child = ctor(self.__nodes, self.__module_path, self._full_path.joined(entry_tag))

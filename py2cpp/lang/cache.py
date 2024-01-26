@@ -38,6 +38,18 @@ T = TypeVar('T', bound=Stored)
 class Cached(Generic[T]):
 	"""キャッシュの抽象基底クラス"""
 
+	@classmethod
+	def identifier(cls, identity: dict[str, str]) -> str:
+		"""一意性担保用のコンテキストから一意な識別子を生成
+
+		Args:
+			identity (dict[str, str]): 一意性担保用のコンテキスト
+		Returns:
+			str: 一意な識別子
+		"""
+		data = json.dumps(identity)
+		return hashlib.md5(data.encode('utf-8')).hexdigest()
+
 	def __init__(self, stored: T, factory: Callable[[], T], identity: dict[str, str], basedir: str, **options: Any) -> None:
 		"""インスタンスを生成
 
@@ -104,11 +116,9 @@ class CachedProxy(Cached[T]):
 			ファイルパスに一意性を担保する文字列を付与する
 		"""
 		basepath = os.path.join(self._basedir, cache_key)
-		data = json.dumps(self._identity)
-		identifer = hashlib.md5(data.encode('utf-8')).hexdigest()
 		file_format = self._options.get('format', '')
 		extention = f'.{file_format}' if file_format else ''
-		return f'{basepath}-{identifer}{extention}'
+		return f'{basepath}-{self.identifier(self._identity)}{extention}'
 
 	def cache_exists(self, cache_path: str) -> bool:
 		"""キャッシュファイルが存在するか判定
@@ -208,6 +218,7 @@ class CacheProvider:
 			setting (CacheSetting): キャッシュ設定データ
 		"""
 		self.__setting = setting
+		self.__instances: dict[str, Any] = {}
 
 	def get(self, cache_key: str, identity: dict[str, str] = {}, **options: Any) -> Callable[[Callable[[], T]], Callable[[], T]]:
 		"""キャッシュデコレーター。ファクトリー関数をラップしてキャッシュ機能を付与
@@ -241,10 +252,13 @@ class CacheProvider:
 		def decorator(wrapped: Callable[[], T]) -> Callable[[], T]:
 			def wrapper() -> T:
 				stored = wrapped.__annotations__['return']
-				if self.__setting.enabled:
-					return CachedProxy(stored, wrapped, identity, self.__setting.basedir, **options).get(cache_key)
-				else:
-					return CachedDummy(stored, wrapped, identity, self.__setting.basedir, **options).get(cache_key)
+				ctor = CachedProxy if self.__setting.enabled else CachedDummy
+				identifier = ctor.identifier(identity)
+				if identifier not in self.__instances:
+					cacher = ctor(stored, wrapped, identity, self.__setting.basedir, **options)
+					self.__instances[identifier] = cacher.get(cache_key)
+
+				return self.__instances[identifier]
 
 			return wrapper
 		return decorator

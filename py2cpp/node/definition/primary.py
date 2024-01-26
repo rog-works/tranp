@@ -34,10 +34,10 @@ class Fragment(Node, ITerminal, IDomainName):
 	def is_decl_class_var(self) -> bool:
 		"""Note: マッチング対象: クラス変数宣言"""
 		# XXX ASTへの依存度が非常に高い判定なので注意
-		# XXX 期待するパス: class_def_raw.block.assign_stmt.(anno_assign).(getattr|var|name)
+		# XXX 期待するパス: class_def_raw.block.anno_assign.(getattr|var|name)
 		elems = self._full_path.de_identify().elements
 		actual_class_def_at = last_index_of(elems, 'class_def_raw')
-		expect_class_def_at = max(0, len(elems) - 5)
+		expect_class_def_at = max(0, len(elems) - 4)
 		in_decl_class_var = actual_class_def_at == expect_class_def_at
 		in_decl_var = self._full_path.parent_tag in ['anno_assign']
 		is_local = DSN.elem_counts(self.tokens) == 1

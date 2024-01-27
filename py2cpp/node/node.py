@@ -10,7 +10,7 @@ from py2cpp.lang.sequence import flatten
 from py2cpp.lang.string import snakelize
 from py2cpp.module.types import ModulePath
 from py2cpp.node.embed import EmbedKeys, Meta
-from py2cpp.node.interface import IScope, ITerminal
+from py2cpp.node.interface import IDomain, IScope, ITerminal
 
 T_Node = TypeVar('T_Node', bound='Node')
 
@@ -39,8 +39,8 @@ class Node:
 		self._full_path = EntryPath(full_path)
 
 	def __str__(self) -> str:
-		"""str: 文字列表現を取得"""
-		return f'<{self.__class__.__name__}: {self.full_path}>'
+		"""str: オブジェクトの文字列表現を取得"""
+		return f'<{self.__class__.__name__}: {self.fullyname}>'
 
 	@property
 	def module_path(self) -> str:
@@ -63,9 +63,29 @@ class Node:
 		return snakelize(self.__class__.__name__)
 
 	@property
-	def public_name(self) -> str:
-		"""str: 公開名称 Note: シンボル名(クラス・関数名)を表す。それ以外のノードでは空文字。実装対象: クラス/ファンクション"""
+	def domain_name(self) -> str:
+		"""str: ドメイン名 Note: 自身を表す一般名称。スコープは含まない"""
 		return ''
+
+	@property
+	def fullyname(self) -> str:
+		"""完全参照名
+
+		Returns:
+			str: 完全参照名
+		Note:
+			主にスコープとドメイン名の組み合わせによって表されるが、規則はノードのカテゴリー毎に異なる
+			# 分類
+			* クラス/ファンクション/Enum: scope
+			* 名前宣言/参照/タイプ/リテラル: scope + domain_name
+			* その他: scope + entry_tag
+		"""
+		if isinstance(self, IScope) and isinstance(self, IDomain):
+			return self.scope
+		elif isinstance(self, IDomain):
+			return DSN.join(self.scope, self.domain_name)
+		else:
+			return DSN.join(self.scope, self._full_path.elements[-1])
 
 	@property
 	def scope(self) -> str:
@@ -82,6 +102,11 @@ class Node:
 			return DSN.join(self.parent.namespace, self.namespace_part)
 		else:
 			return self.parent.namespace
+
+	@property
+	def can_expand(self) -> bool:
+		"""bool: True = 配下の要素を展開"""
+		return not isinstance(self, ITerminal)
 
 	@property
 	def tokens(self) -> str:
@@ -108,8 +133,7 @@ class Node:
 				* 下位のノードを全て洗い出す場合はflatten
 				* ASTの計算順序の並びで欲しい場合はcalculated
 		"""
-		# XXX 参照方法が煩わしい
-		if isinstance(self, ITerminal) and not cast(ITerminal, self).can_expand:
+		if not self.can_expand:
 			return []
 
 		under = self.__prop_expand() or self._under_expand()
@@ -146,18 +170,27 @@ class Node:
 		return [path for _, path in sorted(index_of_paths, key=functools.cmp_to_key(order))]
 
 	def __prop_expand(self) -> list['Node']:
-		"""展開プロパティーからノードリストを取得
+		"""プロパティーを平坦化して展開
 
 		Returns:
-			list[Node]: 展開プロパティーのノードリスト
+			list[Node]: プロパティーのノードリスト
 		"""
 		nodes: list[Node] = []
-		for key in self.__expandable_keys():
-			func_or_result = getattr(self, key)
-			result = cast(Node | list[Node], func_or_result() if callable(func_or_result) else func_or_result)
-			nodes.extend(result if type(result) is list else [cast(Node, result)])
+		for node_or_list in self.__prop_of_nodes().values():
+			if isinstance(node_or_list, list):
+				nodes.extend(node_or_list)
+			else:
+				nodes.append(node_or_list)
 
 		return nodes
+
+	def __prop_of_nodes(self) -> dict[str, 'Node | list[Node]']:
+		"""プロパティーを展開
+
+		Returns:
+			dict[Node | list[Node]]: プロパティーのノードリスト
+		"""
+		return {key: getattr(self, key) for key in self.__expandable_keys()}
 
 	def __expandable_keys(self) -> list[str]:
 		"""メタデータより展開プロパティーのメソッド名を抽出
@@ -483,6 +516,38 @@ class Node:
 		child = ctor(self.__nodes, self.__module_path, self._full_path.joined(entry_tag))
 		return child.dirty_proxify(**overrides)
 
+	def pretty(self, indent: str = '  ') -> str:
+		"""階層構造を出力
+
+		Args:
+			indent (str): インデント(default = '  ')
+		Returns:
+			str: 階層構造
+		"""
+		if not self.can_expand:
+			return str(self)
+
+		lines = [str(self)]
+		under_props = self.__prop_of_nodes()
+		if under_props:
+			for key, node_or_list in under_props.items():
+				if isinstance(node_or_list, list):
+					lines.append(f'{indent}{key}:')
+					for in_node in node_or_list:
+						in_line = f'\n{indent * 2}'.join(in_node.pretty(indent).split('\n'))
+						lines.append(f'{indent * 2}{in_line}')
+				else:
+					in_line = f'{indent * 2}'.join(node_or_list.pretty(indent).split('\n'))
+					lines.append(f'{indent}{key}: {in_line}')
+
+			return '\n'.join(lines)
+		else:
+			under = self._under_expand()
+			for node in under:
+				in_line = f'{indent}'.join(node.pretty(indent).split('\n'))
+				lines.append(f'{indent}{in_line}')
+
+			return '\n'.join(lines)
+
 	# XXX def is_statement(self) -> bool: pass
-	# XXX def pretty(self) -> str: pass
 	# XXX def serialize(self) -> dict: pass

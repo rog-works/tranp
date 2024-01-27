@@ -1,25 +1,15 @@
-from py2cpp.ast.dsn import DSN
-from py2cpp.lang.implementation import implements
+from py2cpp.lang.implementation import override
 from py2cpp.node.definition.terminal import Terminal
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
-from py2cpp.node.interface import IDomainName, ITerminal
+from py2cpp.node.interface import IDomain, ITerminal
 from py2cpp.node.node import Node
 
 
-class Literal(Node, ITerminal, IDomainName):
-	@property
-	@implements
-	def can_expand(self) -> bool:
-		return False
-
-	@property
-	@implements
-	def fullyname(self) -> str:
-		return DSN.join(self.scope, self.domain_name)
+class Literal(Node, IDomain): pass
 
 
 @Meta.embed(Node, accept_tags('number'))
-class Number(Literal): pass
+class Number(Literal, ITerminal): pass
 
 
 @Meta.embed(Node, actualized(via=Number))
@@ -29,9 +19,9 @@ class Integer(Number):
 		return Terminal.match_terminal(via, allow_tags=['number', 'DEC_NUMBER', 'HEX_NUMBER'])
 
 	@property
-	@implements
+	@override
 	def domain_name(self) -> str:
-		return 'int'
+		return int.__name__
 
 
 @Meta.embed(Node, actualized(via=Number))
@@ -41,28 +31,28 @@ class Float(Number):
 		return Terminal.match_terminal(via, allow_tags=['number', 'FLOAT_NUMBER'])
 
 	@property
-	@implements
+	@override
 	def domain_name(self) -> str:
-		return 'float'
+		return float.__name__
 
 
 @Meta.embed(Node, accept_tags('string'))
-class String(Literal):
+class String(Literal, ITerminal):
 	@property
-	@implements
+	@override
 	def domain_name(self) -> str:
-		return 'str'
+		return str.__name__
 
 	@property
 	def plain(self) -> str:
 		return self.tokens[1:-1]
 
 
-class Boolean(Literal):
+class Boolean(Literal, ITerminal):
 	@property
-	@implements
+	@override
 	def domain_name(self) -> str:
-		return 'bool'
+		return bool.__name__
 
 
 @Meta.embed(Node, accept_tags('const_true'))
@@ -86,12 +76,7 @@ class Pair(Literal):
 		return self._at(1)
 
 	@property
-	@implements
-	def can_expand(self) -> bool:
-		return True
-
-	@property
-	@implements
+	@override
 	def domain_name(self) -> str:
 		return 'pair_'
 
@@ -104,14 +89,9 @@ class List(Literal):
 		return self._children()
 
 	@property
-	@implements
-	def can_expand(self) -> bool:
-		return True
-
-	@property
-	@implements
+	@override
 	def domain_name(self) -> str:
-		return 'list'
+		return list.__name__
 
 
 @Meta.embed(Node, accept_tags('dict'))
@@ -122,19 +102,14 @@ class Dict(Literal):
 		return [node.as_a(Pair) for node in self._children()]
 
 	@property
-	@implements
-	def can_expand(self) -> bool:
-		return True
-
-	@property
-	@implements
+	@override
 	def domain_name(self) -> str:
-		return 'dict'
+		return dict.__name__
 
 
 @Meta.embed(Node, accept_tags('const_none'))
-class Null(Literal):
+class Null(Literal, ITerminal):
 	@property
-	@implements
+	@override
 	def domain_name(self) -> str:
 		return 'None'

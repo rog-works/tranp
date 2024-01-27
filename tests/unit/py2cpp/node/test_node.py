@@ -23,6 +23,25 @@ class TestNode(TestCase):
 		self.assertEqual(str(node), expected)
 
 	@data_provider([
+		('...', 'file_input', '<Entrypoint: file_input>'),
+		('class A: ...', 'file_input.class_def', '<Class: file_input.class_def>'),
+		('def func() -> None: ...', 'file_input.function_def', '<Function: file_input.function_def>'),
+	])
+	def test___repr__(self, source: str, full_path: str, expected: str) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path)
+		self.assertEqual(node.__repr__(), expected)
+
+	@data_provider([
+		('...', 'file_input', 'file_input', True),
+		('class A: ...', 'file_input.class_def', 'file_input.class_def', True),
+		('class A: ...', 'file_input', 'file_input.class_def', False),
+	])
+	def test___eq__(self, source: str, full_path_a: str, full_path_b: str, expected: bool) -> None:
+		node_a = self.fixture.custom_nodes(source).by(full_path_a)
+		node_b = self.fixture.custom_nodes(source).by(full_path_b)
+		self.assertEqual(node_a == node_b, expected)
+
+	@data_provider([
 		('...', 'file_input', '__main__'),
 		('class A: ...', 'file_input.class_def', '__main__'),
 		('def func() -> None: ...', 'file_input.function_def', '__main__'),

@@ -1,5 +1,6 @@
 import os
 import sys
+import subprocess
 import traceback
 from typing import TypedDict
 
@@ -11,7 +12,7 @@ T_Args = TypedDict('T_Args', {'runner': str, 'grammar': str, 'options': T_Option
 
 
 def appdir() -> str:
-	return os.path.join(os.path.dirname(__file__), '../../')
+	return os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
 
 
 def load_file(filename: str) -> str:
@@ -26,7 +27,7 @@ def proc(parser: Lark) -> None:
 
 	lines: list[str] = []
 	while True:
-		line = input()
+		line = readline()
 		if not line:
 			break
 
@@ -48,11 +49,20 @@ def proc(parser: Lark) -> None:
 		print(traceback.format_exc())
 
 
+def readline(prompt: str = '') -> str:
+	if prompt:
+		print(prompt)
+
+	input_filepath = os.path.join(appdir(), 'bin/_input.sh')
+	res = subprocess.run(['bash', input_filepath], stdout=subprocess.PIPE)
+	return res.stdout.decode('utf-8').rstrip()
+
+
 def run_interactive(parser: Lark) -> None:
 	while True:
 		proc(parser)
 
-		ok = input('exit? (y)es: ')
+		ok = readline('exit? (y)es:')
 		if ok == 'y':
 			break
 

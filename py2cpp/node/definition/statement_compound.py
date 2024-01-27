@@ -1,7 +1,6 @@
 import re
 from typing import cast
 
-from py2cpp.ast.dsn import DSN
 from py2cpp.compatible.python.embed import __actual__, __alias__
 from py2cpp.lang.implementation import implements, override
 from py2cpp.lang.sequence import last_index_of
@@ -11,7 +10,7 @@ from py2cpp.node.definition.primary import DeclBlockVar, DeclClassVar, Declable,
 from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
-from py2cpp.node.interface import IDomainName, IScope
+from py2cpp.node.interface import IDomain, IScope
 from py2cpp.node.node import Node, T_Node
 from py2cpp.node.promise import IDeclare, StatementBlock
 
@@ -21,8 +20,8 @@ class Block(Node, IScope):
 	@property
 	@implements
 	def scope_part(self) -> str:
-		"""Note: XXX 親が公開名称を持つノード(クラス/ファンクション)の場合は空文字。それ以外は親の一意エントリータグを返却"""
-		return '' if self.parent.public_name else self.parent._full_path.elements[-1]
+		"""Note: XXX 親がスコープを持つノード(クラス/ファンクション)の場合は空文字。それ以外は親の一意エントリータグを返却"""
+		return '' if isinstance(self.parent, IScope) else self.parent._full_path.elements[-1]
 
 	@property
 	@implements
@@ -187,32 +186,27 @@ class Try(Flow):
 		return [self.block, *[catch.block for catch in self.catches]]
 
 
-class ClassDef(Node, IDomainName, IScope, IDeclare):
+class ClassDef(Node, IDomain, IScope, IDeclare):
 	@property
 	@override
-	def public_name(self) -> str:
+	def domain_name(self) -> str:
 		return self.symbol.tokens
+
+	@property
+	@override
+	def fullyname(self) -> str:
+		"""Note: XXX スコープが自身を表すためスコープをそのまま返却"""
+		return self.scope
 
 	@property
 	@implements
 	def scope_part(self) -> str:
-		return self.public_name
+		return self.domain_name
 
 	@property
 	@implements
 	def namespace_part(self) -> str:
 		return ''
-
-	@property
-	@implements
-	def domain_name(self) -> str:
-		"""Note: XXX スコープ内に自身の名前が含まれるので空文字を返却"""
-		return ''
-
-	@property
-	@implements
-	def fullyname(self) -> str:
-		return DSN.join(self.scope, self.domain_name)
 
 	@property
 	@implements
@@ -402,7 +396,7 @@ class Class(ClassDef):
 	@property
 	@override
 	def namespace_part(self) -> str:
-		return self.public_name
+		return self.domain_name
 
 	@property
 	@override
@@ -475,7 +469,7 @@ class Enum(ClassDef):
 	@property
 	@override
 	def namespace_part(self) -> str:
-		return self.public_name
+		return self.domain_name
 
 	@property
 	@override
@@ -504,7 +498,7 @@ class AltClass(ClassDef):
 	@property
 	@override
 	def namespace_part(self) -> str:
-		return self.public_name
+		return self.domain_name
 
 	@property
 	@override
@@ -524,7 +518,7 @@ class TemplateClass(ClassDef):
 	@property
 	@override
 	def namespace_part(self) -> str:
-		return self.public_name
+		return self.domain_name
 
 	@property
 	@override

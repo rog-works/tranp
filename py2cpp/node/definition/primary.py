@@ -8,27 +8,17 @@ from py2cpp.lang.string import snakelize
 from py2cpp.node.definition.literal import Literal
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
-from py2cpp.node.interface import IDomainName, ITerminal
+from py2cpp.node.interface import IDomain, ITerminal
 from py2cpp.node.node import Node
 from py2cpp.node.promise import IDeclare
 
 
 @Meta.embed(Node, accept_tags('getattr', 'var', 'name'))
-class Fragment(Node, ITerminal, IDomainName):
+class Fragment(Node, IDomain):
 	@property
-	@implements
-	def can_expand(self) -> bool:
-		return False
-
-	@property
-	@implements
+	@override
 	def domain_name(self) -> str:
 		return self.tokens
-
-	@property
-	@implements
-	def fullyname(self) -> str:
-		return DSN.join(self.scope, self.domain_name)
 
 	@property
 	def is_decl_class_var(self) -> bool:
@@ -89,7 +79,7 @@ class Fragment(Node, ITerminal, IDomainName):
 		return self._full_path.parent_tag == 'import_names'
 
 
-class Declable(Fragment): pass
+class Declable(Fragment, ITerminal): pass
 
 
 class DeclVar(Declable): pass
@@ -201,11 +191,6 @@ class Relay(Reference):
 	def prop(self) -> 'Variable':
 		return self._at(1).as_a(Variable)
 
-	@property
-	@override
-	def can_expand(self) -> bool:
-		return True
-
 
 class Var(Reference, ITerminal): pass
 
@@ -248,11 +233,7 @@ class Variable(Var):
 
 
 @Meta.embed(Node, accept_tags('dotted_name'))
-class Path(Node, ITerminal):
-	@property
-	@implements
-	def can_expand(self) -> bool:
-		return False
+class Path(Node, ITerminal): pass
 
 
 @Meta.embed(Node, actualized(via=Path))
@@ -282,16 +263,11 @@ class Indexer(Node):
 		return self._children('slices')[0]
 
 
-class Type(Node, IDomainName):
+class Type(Node, IDomain):
 	@property
-	@implements
+	@override
 	def domain_name(self) -> str:
 		return self.type_name.tokens
-
-	@property
-	@implements
-	def fullyname(self) -> str:
-		return DSN.join(self.scope, self.domain_name)
 
 	@property
 	def type_name(self) -> 'Type':
@@ -299,11 +275,7 @@ class Type(Node, IDomainName):
 
 
 @Meta.embed(Node, accept_tags('typed_getattr', 'typed_var'))
-class GeneralType(Type, ITerminal):
-	@property
-	@implements
-	def can_expand(self) -> bool:
-		return False
+class GeneralType(Type, ITerminal): pass
 
 
 @Meta.embed(Node, accept_tags('typed_getitem'))
@@ -414,11 +386,6 @@ class UnionType(Type):
 @Meta.embed(Node, accept_tags('typed_none'))
 class NullType(Type, ITerminal):
 	@property
-	@implements
-	def can_expand(self) -> bool:
-		return False
-
-	@property
 	@override
 	def domain_name(self) -> str:
 		# XXX 定数化を検討
@@ -489,4 +456,4 @@ class InheritArgument(Node):
 
 
 @Meta.embed(Node, accept_tags('elipsis'))
-class Elipsis(Node): pass
+class Elipsis(Node, ITerminal): pass

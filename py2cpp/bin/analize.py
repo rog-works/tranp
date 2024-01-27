@@ -1,7 +1,7 @@
 import os
 import sys
 import json
-from typing import Any, cast
+from typing import Any, Callable, cast
 
 from py2cpp.analize.db import SymbolDB
 from py2cpp.analize.symbols import Symbols
@@ -140,7 +140,7 @@ def task_menu(locator: Locator) -> None:
 		'--------------',
 		'here:',
 	])
-	actions = {
+	actions: dict[str, Callable[..., None]] = {
 		'a': task_ast,
 		'p': task_pretty,
 		'd': task_db,
@@ -152,7 +152,7 @@ def task_menu(locator: Locator) -> None:
 		if input == 'q':
 			return
 
-		action = actions.get(input, 'h')
+		action = actions.get(input, task_help)
 		locator.invoke(action)
 
 		print('--------------')

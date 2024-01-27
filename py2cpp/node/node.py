@@ -522,41 +522,44 @@ class Node:
 		Returns:
 			str: 階層構造
 		"""
+		def expand_lines(node: Node, begin: str, after: str) -> list[str]:
+			"""str: ノード内の要素を展開して行リストを返却"""
+			lines: list[str] = []
+			for j, ln_line in enumerate(node.pretty().split('\n')):
+				prefix = begin if j == 0 else after
+				lines.append(f'{prefix}{ln_line}')
+
+			return lines
+
 		if not self.can_expand:
 			return str(self)
 
 		lines = [str(self)]
 		under_props = self.__prop_of_nodes()
 		if under_props:
-			for index, item in enumerate(under_props.items()):
+			for i, item in enumerate(under_props.items()):
 				key, node_or_list = item
-				last_i = index == len(under_props) - 1
-				belong_i = '|' if not last_i else ' '
+				last_i = i == len(under_props) - 1
+				belongs_i = '|' if not last_i else ' '
 				if isinstance(node_or_list, list):
 					lines.append(f'+-{key}:')
 					for j, in_node in enumerate(node_or_list):
 						last_j = j == len(node_or_list) - 1
-						belong_j = '|' if not last_j else ' '
-						in_lines = in_node.pretty().split('\n')
-						for j, ln_line in enumerate(in_lines):
-							prefix = f'{belong_i} +-' if j == 0 else f'{belong_i} {belong_j} '
-							lines.append(f'{prefix}{ln_line}')
+						belongs_j = '|' if not last_j else ' '
+						in_lines = expand_lines(in_node, f'{belongs_i} +-', f'{belongs_i} {belongs_j} ')
+						lines.extend(in_lines)
 				else:
-					in_lines = node_or_list.pretty().split('\n')
-					for j, in_line in enumerate(in_lines):
-						prefix = f'+-{key}: ' if j == 0 else f'{belong_i} '
-						lines.append(f'{prefix}{in_line}')
+					in_lines = expand_lines(node_or_list, f'+-{key}: ', f'{belongs_i} ')
+					lines.extend(in_lines)
 
 			return '\n'.join(lines)
 		else:
 			under = self._under_expand()
-			for i , node in enumerate(under):
+			for i, node in enumerate(under):
 				last_i = i == len(under_props) - 1
-				belong_i = '|' if not last_i else ' '
-				in_lines = node.pretty().split('\n')
-				for j, in_line in enumerate(in_lines):
-					prefix = "+-" if j == 0 else f"{belong_i} "
-					lines.append(f'{prefix}{in_line}')
+				belongs_i = '|' if not last_i else ' '
+				in_lines = expand_lines(node, '+-', f'{belongs_i} ')
+				lines.extend(in_lines)
 
 			return '\n'.join(lines)
 

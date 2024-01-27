@@ -14,7 +14,7 @@ class TestNode(TestCase):
 	fixture = Fixture.make(__file__)
 
 	@data_provider([
-		('...', 'file_input', '<Entrypoint: __main__.file_input>'),  # FIXME file_inputを削除
+		('...', 'file_input', '<Entrypoint: __main__>'),
 		('class A: ...', 'file_input.class_def', '<Class: __main__.A>'),
 		('def func() -> None: ...', 'file_input.function_def', '<Function: __main__.func>'),
 	])
@@ -317,7 +317,7 @@ class TestNode(TestCase):
 		('class A:\n\tdef __init__(self, n: int) -> None:\n\t\tself.n: int = n',
 			'file_input',
 			'\n'.join([
-				'<Entrypoint: __main__.file_input>',
+				'<Entrypoint: __main__>',
 				'  statements:',
 				'    <Class: __main__.A>',
 				'      symbol: <TypesName: __main__.A.A>',

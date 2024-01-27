@@ -10,6 +10,16 @@ from py2cpp.node.node import Node
 class Entrypoint(Node):
 	@property
 	@override
+	def domain_name(self) -> str:
+		return self.module_path
+
+	@property
+	@override
+	def fullyname(self) -> str:
+		return self.module_path
+
+	@property
+	@override
 	def namespace(self) -> str:
 		return self.module_path
 

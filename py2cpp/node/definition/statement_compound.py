@@ -1,12 +1,12 @@
 import re
-from typing import cast
+from typing import Generic, cast
 
 from py2cpp.compatible.python.embed import __actual__, __alias__
 from py2cpp.lang.implementation import implements, override
 from py2cpp.lang.sequence import last_index_of
 from py2cpp.node.definition.element import Decorator, Parameter
 from py2cpp.node.definition.literal import String
-from py2cpp.node.definition.primary import DeclBlockVar, DeclClassVar, Declable, GenericType, InheritArgument, DeclThisParam, DeclThisVar, Type, TypesName
+from py2cpp.node.definition.primary import CustomType, DeclBlockVar, DeclClassVar, Declable, InheritArgument, DeclThisParam, DeclThisVar, Type, TypesName
 from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
@@ -415,10 +415,8 @@ class Class(ClassDef):
 	@property
 	@Meta.embed(Node, expandable)
 	def inherits(self) -> list[Type]:
-		if not self._exists('class_def_raw.typed_arguments'):
-			return []
-
-		return [node.as_a(InheritArgument).class_type for node in self._children('class_def_raw.typed_arguments')]
+		"""Note: XXX Genericは継承チェーンを考慮する必要がないため除外する"""
+		return [inherit for inherit in self.__inherit_types if inherit.type_name != Generic.__name__]
 
 	@property
 	@override
@@ -434,9 +432,15 @@ class Class(ClassDef):
 	@property
 	@override
 	def generic_types(self) -> list[Type]:
-		"""Note: XXX 未使用"""
-		generic_inherit = [inherit for inherit in self.inherits if isinstance(inherit, GenericType)]
-		return generic_inherit[0].template_types if len(generic_inherit) > 0 else []
+		candidates = [inherit.as_a(CustomType) for inherit in self.inherits if inherit.type_name == Generic.__name__]
+		return candidates[0].template_types if len(candidates) == 1 else []
+
+	@property
+	def __inherit_types(self) -> list[Type]:
+		if not self._exists('class_def_raw.typed_arguments'):
+			return []
+
+		return [node.as_a(InheritArgument).class_type for node in self._children('class_def_raw.typed_arguments')]
 
 	@property
 	def constructor_exists(self) -> bool:

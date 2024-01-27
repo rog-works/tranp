@@ -84,6 +84,11 @@ class Node:
 			return self.parent.namespace
 
 	@property
+	def can_expand(self) -> bool:
+		"""bool: True = 配下の要素を展開"""
+		return not isinstance(self, ITerminal)
+
+	@property
 	def tokens(self) -> str:
 		"""str: 自身のトークン表現"""
 		return '.'.join(self._values())
@@ -108,8 +113,7 @@ class Node:
 				* 下位のノードを全て洗い出す場合はflatten
 				* ASTの計算順序の並びで欲しい場合はcalculated
 		"""
-		# XXX 参照方法が煩わしい
-		if isinstance(self, ITerminal) and not cast(ITerminal, self).can_expand:
+		if not self.can_expand:
 			return []
 
 		under = self.__prop_expand() or self._under_expand()
@@ -500,12 +504,10 @@ class Node:
 		Returns:
 			str: 階層構造
 		"""
+		if not self.can_expand:
+			return str(self)
+
 		lines = [str(self)]
-
-		# XXX 参照方法が煩わしい
-		if isinstance(self, ITerminal) and not cast(ITerminal, self).can_expand:
-			return '\n'.join(lines)
-
 		under_props = self.__prop_of_nodes()
 		if under_props:
 			for key, node_or_list in under_props.items():

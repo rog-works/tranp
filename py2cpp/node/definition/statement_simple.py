@@ -109,15 +109,15 @@ class Throw(Node):
 
 
 @Meta.embed(Node, accept_tags('pass_stmt'))
-class Pass(Node): pass
+class Pass(Node, ITerminal): pass
 
 
 @Meta.embed(Node, accept_tags('break_stmt'))
-class Break(Node): pass
+class Break(Node, ITerminal): pass
 
 
 @Meta.embed(Node, accept_tags('break_stmt'))
-class Continue(Node): pass
+class Continue(Node, ITerminal): pass
 
 
 @Meta.embed(Node, accept_tags('import_stmt'))

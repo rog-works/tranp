@@ -6,12 +6,7 @@ from py2cpp.node.interface import IDomainName, ITerminal
 from py2cpp.node.node import Node
 
 
-class Literal(Node, ITerminal, IDomainName):
-	@property
-	@implements
-	def can_expand(self) -> bool:
-		return False
-
+class Literal(Node, IDomainName):
 	@property
 	@implements
 	def fullyname(self) -> str:
@@ -19,7 +14,7 @@ class Literal(Node, ITerminal, IDomainName):
 
 
 @Meta.embed(Node, accept_tags('number'))
-class Number(Literal): pass
+class Number(Literal, ITerminal): pass
 
 
 @Meta.embed(Node, actualized(via=Number))
@@ -47,7 +42,7 @@ class Float(Number):
 
 
 @Meta.embed(Node, accept_tags('string'))
-class String(Literal):
+class String(Literal, ITerminal):
 	@property
 	@implements
 	def domain_name(self) -> str:
@@ -58,7 +53,7 @@ class String(Literal):
 		return self.tokens[1:-1]
 
 
-class Boolean(Literal):
+class Boolean(Literal, ITerminal):
 	@property
 	@implements
 	def domain_name(self) -> str:
@@ -87,11 +82,6 @@ class Pair(Literal):
 
 	@property
 	@implements
-	def can_expand(self) -> bool:
-		return True
-
-	@property
-	@implements
 	def domain_name(self) -> str:
 		return 'pair_'
 
@@ -102,11 +92,6 @@ class List(Literal):
 	@Meta.embed(Node, expandable)
 	def values(self) -> list[Node]:
 		return self._children()
-
-	@property
-	@implements
-	def can_expand(self) -> bool:
-		return True
 
 	@property
 	@implements
@@ -123,17 +108,12 @@ class Dict(Literal):
 
 	@property
 	@implements
-	def can_expand(self) -> bool:
-		return True
-
-	@property
-	@implements
 	def domain_name(self) -> str:
 		return 'dict'
 
 
 @Meta.embed(Node, accept_tags('const_none'))
-class Null(Literal):
+class Null(Literal, ITerminal):
 	@property
 	@implements
 	def domain_name(self) -> str:

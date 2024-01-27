@@ -142,7 +142,7 @@ class TestNode(TestCase):
 	])
 	def test_can_expand(self, source: str, full_path: str, expected: bool) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path)
-		self.assertEqual((not isinstance(node, ITerminal)) or cast(ITerminal, node).can_expand, expected)
+		self.assertEqual(node.can_expand, expected)
 
 	@data_provider([
 		# ClassKind

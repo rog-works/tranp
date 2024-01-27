@@ -22,11 +22,7 @@ class ITerminal:
 	Note:
 		対象: シンボル/リテラル/インポート/終端記号
 	"""
-
-	@property
-	def can_expand(self) -> bool:
-		"""bool: True = 配下の要素を展開"""
-		raise NotImplementedError()
+	pass
 
 
 class IDomainName:

@@ -1,11 +1,10 @@
-from typing import Callable, cast
+from typing import Callable
 from unittest import TestCase
 
 from py2cpp.lang.locator import Currying
 from py2cpp.lang.implementation import override
 import py2cpp.node.definition as defs  # XXX テストを拡充するため実装クラスを使用
 from py2cpp.node.embed import Meta, actualized
-from py2cpp.node.interface import IDomainName, ITerminal
 from py2cpp.node.node import Node, T_Node
 from tests.test.fixture import Fixture
 from tests.test.helper import data_provider
@@ -15,9 +14,9 @@ class TestNode(TestCase):
 	fixture = Fixture.make(__file__)
 
 	@data_provider([
-		('...', 'file_input', '<Entrypoint: file_input>'),
-		('class A: ...', 'file_input.class_def', '<Class: file_input.class_def>'),
-		('def func() -> None: ...', 'file_input.function_def', '<Function: file_input.function_def>'),
+		('...', 'file_input', '<Entrypoint: __main__.file_input>'),  # FIXME file_inputを削除
+		('class A: ...', 'file_input.class_def', '<Class: __main__.A>'),
+		('def func() -> None: ...', 'file_input.function_def', '<Function: __main__.func>'),
 	])
 	def test___str__(self, source: str, full_path: str, expected: str) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path)
@@ -66,19 +65,6 @@ class TestNode(TestCase):
 	def test_classification(self, source: str, full_path: str, expected: str) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path)
 		self.assertEqual(node.classification, expected)
-
-	@data_provider([
-		('...', 'file_input', ''),
-		('class A: ...', 'file_input.class_def', 'A'),
-		('class A: ...', 'file_input.class_def.class_def_raw.block', ''),
-		('class E(CEnum): ...', 'file_input.enum_def', 'E'),
-		('def func() -> None: ...', 'file_input.function_def', 'func'),
-		('if 1: ...', 'file_input.if_stmt', ''),
-		('1', 'file_input.number', ''),
-	])
-	def test_public_name(self, source: str, full_path: str, expected: str) -> None:
-		node = self.fixture.custom_nodes(source).by(full_path)
-		self.assertEqual(node.public_name, expected)
 
 	@data_provider([
 		('...', 'file_input', '__main__'),
@@ -146,13 +132,13 @@ class TestNode(TestCase):
 
 	@data_provider([
 		# ClassKind
-		('def func() -> None: ...', 'file_input.function_def', defs.Function, '', '__main__.func'),
-		('class A:\n\t@classmethod\n\tdef c_method(cls) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def', defs.ClassMethod, '', '__main__.A.c_method'),
-		('class A:\n\tdef __init__(self) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def', defs.Constructor, '', '__main__.A.__init__'),
-		('class A:\n\tdef method(self) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def', defs.Method, '', '__main__.A.method'),
-		('class A:\n\tdef method(self) -> None:\n\t\tdef closure() -> None: ...', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.function_def', defs.Closure, '', '__main__.A.method.closure'),
-		('class A: ...', 'file_input.class_def', defs.Class, '', '__main__.A'),
-		('class E(CEnum): ...', 'file_input.enum_def', defs.Enum, '', '__main__.E'),
+		('def func() -> None: ...', 'file_input.function_def', defs.Function, 'func', '__main__.func'),
+		('class A:\n\t@classmethod\n\tdef c_method(cls) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def', defs.ClassMethod, 'c_method', '__main__.A.c_method'),
+		('class A:\n\tdef __init__(self) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def', defs.Constructor, '__init__', '__main__.A.__init__'),
+		('class A:\n\tdef method(self) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def', defs.Method, 'method', '__main__.A.method'),
+		('class A:\n\tdef method(self) -> None:\n\t\tdef closure() -> None: ...', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.function_def', defs.Closure, 'closure', '__main__.A.method.closure'),
+		('class A: ...', 'file_input.class_def', defs.Class, 'A', '__main__.A'),
+		('class E(CEnum): ...', 'file_input.enum_def', defs.Enum, 'E', '__main__.E'),
 		# Declable
 		('class A:\n\ta: int = 0', 'file_input.class_def.class_def_raw.block.assign_stmt.anno_assign.var', defs.DeclClassVar, 'a', '__main__.A.a'),
 		('class A:\n\tdef __init__(self) -> None:\n\t\tself.a: int = 0', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.assign_stmt.anno_assign.getattr', defs.DeclThisVar, 'a', '__main__.A.a'),
@@ -188,11 +174,11 @@ class TestNode(TestCase):
 		('{1: 2}', 'file_input.dict', defs.Dict, 'dict', '__main__.dict'),
 		('None', 'file_input.const_none', defs.Null, 'None', '__main__.None'),
 	])
-	def test_i_domain_name(self, source: str, full_path: str, types: type[T_Node], expected_name: bool, expected_fully: str) -> None:
+	def test_i_domain(self, source: str, full_path: str, types: type[T_Node], expected_name: bool, expected_fully: str) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path)
 		self.assertEqual(type(node), types)
-		self.assertEqual(cast(IDomainName, node).domain_name, expected_name)
-		self.assertEqual(cast(IDomainName, node).fullyname, expected_fully)
+		self.assertEqual(node.domain_name, expected_name)
+		self.assertEqual(node.fullyname, expected_fully)
 
 	@data_provider([
 		('file_input.class_def', [
@@ -331,31 +317,31 @@ class TestNode(TestCase):
 		('class A:\n\tdef __init__(self, n: int) -> None:\n\t\tself.n: int = n',
 			'file_input',
 			'\n'.join([
-				'<Entrypoint: file_input>',
+				'<Entrypoint: __main__.file_input>',
 				'  statements:',
-				'    <Class: file_input.class_def>',
-				'      symbol: <TypesName: file_input.class_def.class_def_raw.name>',
+				'    <Class: __main__.A>',
+				'      symbol: <TypesName: __main__.A.A>',
 				'      decorators:',
 				'      parents:',
 				'      statements:',
-				'        <Constructor: file_input.class_def.class_def_raw.block.function_def>',
-				'          symbol: <TypesName: file_input.class_def.class_def_raw.block.function_def.function_def_raw.name>',
+				'        <Constructor: __main__.A.__init__>',
+				'          symbol: <TypesName: __main__.A.__init__.__init__>',
 				'          decorators:',
 				'          parameters:',
-				'            <Parameter: file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue[0]>',
-				'              symbol: <DeclThisParam: file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue[0].typedparam.name>',
-				'              var_type: <Empty: file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue[0].typedparam.__empty__>',
-				'              default_value: <Empty: file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue[0].__empty__>',
-				'            <Parameter: file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue[1]>',
-				'              symbol: <DeclLocalVar: file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue[1].typedparam.name>',
-				'              var_type: <GeneralType: file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue[1].typedparam.typed_var>',
-				'              default_value: <Empty: file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue[1].__empty__>',
-				'          return_type: <NullType: file_input.class_def.class_def_raw.block.function_def.function_def_raw.return_type.typed_none>',
+				'            <Parameter: __main__.A.__init__.paramvalue[0]>',
+				'              symbol: <DeclThisParam: __main__.A.__init__.self>',
+				'              var_type: <Empty: __main__.A.__init__.__empty__>',
+				'              default_value: <Empty: __main__.A.__init__.__empty__>',
+				'            <Parameter: __main__.A.__init__.paramvalue[1]>',
+				'              symbol: <DeclLocalVar: __main__.A.__init__.n>',
+				'              var_type: <GeneralType: __main__.A.__init__.int>',
+				'              default_value: <Empty: __main__.A.__init__.__empty__>',
+				'          return_type: <NullType: __main__.A.__init__.None>',
 				'          statements:',
-				'            <AnnoAssign: file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.assign_stmt>',
-				'              receiver: <DeclThisVar: file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.assign_stmt.anno_assign.getattr>',
-				'              var_type: <GeneralType: file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.assign_stmt.anno_assign.typed_var>',
-				'              value: <DeclLocalVar: file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.assign_stmt.anno_assign.var>',
+				'            <AnnoAssign: __main__.A.__init__.assign_stmt>',
+				'              receiver: <DeclThisVar: __main__.A.n>',
+				'              var_type: <GeneralType: __main__.A.__init__.int>',
+				'              value: <DeclLocalVar: __main__.A.__init__.n>',
 			]),
 	),])
 	def test_pretty(self, source: str, full_path: str, expected: str) -> None:

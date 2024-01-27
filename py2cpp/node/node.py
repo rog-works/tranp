@@ -10,7 +10,7 @@ from py2cpp.lang.sequence import flatten
 from py2cpp.lang.string import snakelize
 from py2cpp.module.types import ModulePath
 from py2cpp.node.embed import EmbedKeys, Meta
-from py2cpp.node.interface import IScope, ITerminal
+from py2cpp.node.interface import IDomain, IScope, ITerminal
 
 T_Node = TypeVar('T_Node', bound='Node')
 
@@ -39,8 +39,8 @@ class Node:
 		self._full_path = EntryPath(full_path)
 
 	def __str__(self) -> str:
-		"""str: 文字列表現を取得"""
-		return f'<{self.__class__.__name__}: {self.full_path}>'
+		"""str: オブジェクトの文字列表現を取得"""
+		return f'<{self.__class__.__name__}: {self.fullyname}>'
 
 	@property
 	def module_path(self) -> str:
@@ -63,9 +63,29 @@ class Node:
 		return snakelize(self.__class__.__name__)
 
 	@property
-	def public_name(self) -> str:
-		"""str: 公開名称 Note: シンボル名(クラス・関数名)を表す。それ以外のノードでは空文字。実装対象: クラス/ファンクション"""
+	def domain_name(self) -> str:
+		"""str: ドメイン名 Note: 自身を表す一般名称。スコープは含まない"""
 		return ''
+
+	@property
+	def fullyname(self) -> str:
+		"""完全参照名
+
+		Returns:
+			str: 完全参照名
+		Note:
+			主にスコープとドメイン名の組み合わせによって表されるが、規則はノードのカテゴリー毎に異なる
+			# 分類
+			* クラス/ファンクション/Enum: scope
+			* 名前宣言/参照/タイプ/リテラル: scope + domain_name
+			* その他: scope + entry_tag
+		"""
+		if isinstance(self, IScope) and isinstance(self, IDomain):
+			return self.scope
+		elif isinstance(self, IDomain):
+			return DSN.join(self.scope, self.domain_name)
+		else:
+			return DSN.join(self.scope, self._full_path.elements[-1])
 
 	@property
 	def scope(self) -> str:

@@ -8,22 +8,17 @@ from py2cpp.lang.string import snakelize
 from py2cpp.node.definition.literal import Literal
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
-from py2cpp.node.interface import IDomainName, ITerminal
+from py2cpp.node.interface import IDomain, ITerminal
 from py2cpp.node.node import Node
 from py2cpp.node.promise import IDeclare
 
 
 @Meta.embed(Node, accept_tags('getattr', 'var', 'name'))
-class Fragment(Node, IDomainName):
+class Fragment(Node, IDomain):
 	@property
-	@implements
+	@override
 	def domain_name(self) -> str:
 		return self.tokens
-
-	@property
-	@implements
-	def fullyname(self) -> str:
-		return DSN.join(self.scope, self.domain_name)
 
 	@property
 	def is_decl_class_var(self) -> bool:
@@ -268,16 +263,11 @@ class Indexer(Node):
 		return self._children('slices')[0]
 
 
-class Type(Node, IDomainName):
+class Type(Node, IDomain):
 	@property
-	@implements
+	@override
 	def domain_name(self) -> str:
 		return self.type_name.tokens
-
-	@property
-	@implements
-	def fullyname(self) -> str:
-		return DSN.join(self.scope, self.domain_name)
 
 	@property
 	def type_name(self) -> 'Type':

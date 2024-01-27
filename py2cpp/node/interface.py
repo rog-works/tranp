@@ -20,24 +20,15 @@ class ITerminal:
 	"""終端要素インターフェイス。配下の要素の展開可否を扱う。終端記号とは別の概念である点に注意
 
 	Note:
-		対象: シンボル/リテラル/インポート/終端記号
+		対象: 名前宣言/変数参照/リテラル(コレクション以外)/フロー構文(pass/break/continue)/インポート/終端記号
 	"""
 	pass
 
 
-class IDomainName:
-	"""ドメイン名インターフェイス
+class IDomain:
+	"""ドメインインターフェイス
 
 	Note:
 		対象: クラス/ファンクション/シンボル/リテラル
 	"""
-
-	@property
-	def domain_name(self) -> str:
-		"""str: ドメイン名 Note: スコープを除いた参照名"""
-		raise NotImplementedError()
-
-	@property
-	def fullyname(self) -> str:
-		"""str: 完全参照名 Note: スコープとドメイン名を合わせた参照名"""
-		raise NotImplementedError()
+	pass

@@ -52,11 +52,7 @@ class Symbol:
 
 	@override
 	def __repr__(self) -> str:
-		"""オブジェクトのシリアライズ表現を取得
-
-		Returns:
-			str: シリアライズ表現
-		"""
+		"""str: オブジェクトのシリアライズ表現"""
 		data = {
 			'types': self.types.fullyname,
 			'attrs': [attr.__repr__() for attr in self.attrs],
@@ -65,16 +61,12 @@ class Symbol:
 
 	@override
 	def __str__(self) -> str:
-		"""オブジェクトの文字列表現を取得
-
-		Returns:
-			str: 文字列表現
-		"""
+		"""str: オブジェクトの文字列表現"""
 		if len(self.attrs) > 0:
 			attrs = [str(attr) for attr in self.attrs]
-			return f'{self.types.public_name}[{', '.join(attrs)}]'
+			return f'{self.types.domain_name}[{', '.join(attrs)}]'
 		else:
-			return f'{self.types.public_name}'
+			return f'{self.types.domain_name}'
 
 
 class Symbols:

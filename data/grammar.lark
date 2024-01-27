@@ -43,7 +43,7 @@ decorator: "@" dotted_name ["(" [arguments] ")"] _NEWLINE
 
 // # Enum definitions
 
-// @decl `class enum_name(Enum):`
+// @decl `class enum_name(CEnum):`
 // @custom
 enum_def: "class" name "(" "CEnum" ")" ":" block
 

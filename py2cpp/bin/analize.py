@@ -53,17 +53,29 @@ def make_module_path(args: Args) -> ModulePath:
 
 
 def task_db(db: SymbolDB) -> None:
+	title = '\n'.join([
+		'==============',
+		'Symbol DB',
+		'--------------',
+	])
+	print(title)
 	print(json.dumps([f'{key}: {raw.org_path}' for key, raw in db.raws.items()], indent=2))
 
 
 def task_pretty(nodes: Query[Node]) -> None:
+	title = '\n'.join([
+		'==============',
+		'AST',
+		'--------------',
+	])
+	print(title)
 	print(nodes.by('file_input').pretty())
 
 
 def task_type(symbols: Symbols) -> None:
 	prompt = '\n'.join([
 		'==============',
-		'Symbol name here:',
+		'Symbol fullyname here:',
 	])
 	name = readline(prompt)
 	print('--------------')
@@ -76,10 +88,10 @@ def task_help() -> None:
 		'Help',
 		'--------------',
 		'# Usage',
-		'$ bash bin/analize.sh -g ${path} -s ${path}',
+		'$ bash bin/analize.sh [-g ${path}] [-s ${path}]',
 		'# Options',
-		'* -g: Grammar file path',
-		'* -s: Python sorce code file path',
+		'* -g: Grammar file path. defalut = "data/grammar.lark"',
+		'* -s: Python sorce code file path. default = "example/example.py"',
 	]
 	print('\n'.join(lines))
 
@@ -137,14 +149,14 @@ def task_menu(locator: Locator) -> None:
 	}
 	while True:
 		input = readline(prompt)
-		if input in ['quit', 'q']:
+		if input == 'q':
 			return
 
-		action = actions.get(input, 'help')
+		action = actions.get(input, 'h')
 		locator.invoke(action)
 
 		print('--------------')
-		readline('Next... Enter here:')
+		readline('Enter here:')
 
 
 if __name__ == '__main__':

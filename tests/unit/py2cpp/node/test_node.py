@@ -329,7 +329,7 @@ class A:
 				'  +-<Class: __main__.A>',
 				'    +-symbol: <TypesName: __main__.A.A>',
 				'    +-decorators:',
-				'    +-parents:',
+				'    +-inherits:',
 				'    +-statements:',
 				'      +-<Constructor: __main__.A.__init__>',
 				'        +-symbol: <TypesName: __main__.A.__init__.__init__>',

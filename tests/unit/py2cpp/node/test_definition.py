@@ -268,7 +268,7 @@ class TestDefinition(TestCase):
 		('file_input.class_def[3]', {
 			'symbol': 'Base',
 			'decorators': [],
-			'parents': [],
+			'inherits': [],
 			'constructor_exists': False,
 			'class_methods': [],
 			'methods': [],
@@ -280,7 +280,7 @@ class TestDefinition(TestCase):
 		('file_input.class_def[4]', {
 			'symbol': 'Class',
 			'decorators': ['__alias__'],
-			'parents': ['Base'],
+			'inherits': ['Base'],
 			'constructor_exists': True,
 			'class_methods': ['class_method'],
 			'methods': ['public_method', '_protected_method'],
@@ -292,7 +292,7 @@ class TestDefinition(TestCase):
 		('file_input.class_def[6]', {
 			'symbol': 'Actual',
 			'decorators': ['__actual__'],
-			'parents': [],
+			'inherits': [],
 			'constructor_exists': False,
 			'class_methods': [],
 			'methods': [],
@@ -306,7 +306,7 @@ class TestDefinition(TestCase):
 		node = self.fixture.shared_nodes.by(full_path).as_a(defs.Class)
 		self.assertEqual(node.symbol.tokens, expected['symbol'])
 		self.assertEqual([decorator.path.tokens for decorator in node.decorators], expected['decorators'])
-		self.assertEqual([parent.type_name.tokens for parent in node.parents], expected['parents'])
+		self.assertEqual([parent.type_name.tokens for parent in node.inherits], expected['inherits'])
 		self.assertEqual(node.constructor_exists, expected['constructor_exists'])
 		self.assertEqual([method.symbol.tokens for method in node.methods], expected['methods'])
 		self.assertEqual([var.receiver.tokens for var in node.class_vars], expected['class_vars'])

@@ -376,12 +376,12 @@ class Symbols:
 		Returns:
 			SymbolRaw | None: シンボルデータ
 		"""
-		for parent_type in decl_class.parents:
-			parent_type_raw = self.__find_raw(parent_type)
-			if parent_type_raw is None:
+		for inherit_type in decl_class.inherits:
+			inherit_type_raw = self.__find_raw(inherit_type)
+			if inherit_type_raw is None:
 				break
 
-			found_raw = self.__resolve_raw(parent_type_raw.types, prop_name)
+			found_raw = self.__resolve_raw(inherit_type_raw.types, prop_name)
 			if found_raw:
 				return found_raw
 
@@ -513,7 +513,7 @@ class ProceduralResolver(Procedure[Symbol]):
 			return calls
 
 	def on_super(self, node: defs.Super, calls: Symbol, arguments: list[Symbol]) -> Symbol:
-		return self.symbols.resolve(node.parent_class_symbol)
+		return self.symbols.resolve(node.super_class_symbol)
 
 	def on_argument(self, node: defs.Argument, label: Symbol, value: Symbol) -> Symbol:
 		return value

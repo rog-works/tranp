@@ -293,7 +293,7 @@ class Handler(Procedure[str]):
 		return self.view.render(node.classification, vars={'calls': calls, 'arguments': arguments, 'is_statement': is_statement})
 
 	def on_super(self, node: defs.Super, calls: str, arguments: list[str]) -> str:
-		return node.parent_class_symbol.tokens
+		return node.super_class_symbol.tokens
 
 	def on_argument(self, node: defs.Argument, label: str, value: str) -> str:
 		return value

@@ -269,6 +269,7 @@ class TestDefinition(TestCase):
 			'symbol': 'Base',
 			'decorators': [],
 			'inherits': [],
+			'generic_types': [],
 			'constructor_exists': False,
 			'class_methods': [],
 			'methods': [],
@@ -281,6 +282,7 @@ class TestDefinition(TestCase):
 			'symbol': 'Class',
 			'decorators': ['__alias__'],
 			'inherits': ['Base'],
+			'generic_types': [],
 			'constructor_exists': True,
 			'class_methods': ['class_method'],
 			'methods': ['public_method', '_protected_method'],
@@ -293,6 +295,7 @@ class TestDefinition(TestCase):
 			'symbol': 'Actual',
 			'decorators': ['__actual__'],
 			'inherits': [],
+			'generic_types': [],
 			'constructor_exists': False,
 			'class_methods': [],
 			'methods': [],
@@ -306,13 +309,22 @@ class TestDefinition(TestCase):
 		node = self.fixture.shared_nodes.by(full_path).as_a(defs.Class)
 		self.assertEqual(node.symbol.tokens, expected['symbol'])
 		self.assertEqual([decorator.path.tokens for decorator in node.decorators], expected['decorators'])
-		self.assertEqual([parent.type_name.tokens for parent in node.inherits], expected['inherits'])
+		self.assertEqual([inherit.type_name.tokens for inherit in node.inherits], expected['inherits'])
+		self.assertEqual([in_type.type_name.tokens for in_type in node.generic_types], expected['generic_types'])
 		self.assertEqual(node.constructor_exists, expected['constructor_exists'])
 		self.assertEqual([method.symbol.tokens for method in node.methods], expected['methods'])
 		self.assertEqual([var.receiver.tokens for var in node.class_vars], expected['class_vars'])
 		self.assertEqual([var.receiver.tokens for var in node.this_vars], expected['this_vars'])
 		self.assertEqual(node.actual_symbol(), expected['actual_symbol'])
 		self.assertEqual(node.alias_symbol(), expected['alias_symbol'])
+
+	@data_provider([
+		('class A(Generic[T]): ...', 'file_input.class_def', {'generic_types': [defs.GeneralType]}),
+		('class A(Generic[T1, T2]): ...', 'file_input.class_def', {'generic_types': [defs.GeneralType, defs.GeneralType]}),
+	])
+	def test_class_generic_types(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Class)
+		self.assertEqual([type(in_type) for in_type in node.generic_types], expected['generic_types'])
 
 	@data_provider([
 		('file_input.enum_def', {

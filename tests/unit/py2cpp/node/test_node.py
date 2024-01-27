@@ -314,9 +314,9 @@ class TestNode(TestCase):
 		self.assertEqual(proxy.tokens, '10')
 
 	@data_provider([
-		('class A:\n\tdef __init__(self, n: int) -> None:\n\t\tself.n: int = n',
+		('class A:\n\tdef __init__(self, n: int) -> None:\n\t\tself.n: dict[str, int] = {"key": n}',
 			'file_input',
-			'\n'.join([
+			[
 				'<Entrypoint: __main__>',
 				'  statements:',
 				'    <Class: __main__.A>',
@@ -340,10 +340,17 @@ class TestNode(TestCase):
 				'          statements:',
 				'            <AnnoAssign: __main__.A.__init__.assign_stmt>',
 				'              receiver: <DeclThisVar: __main__.A.n>',
-				'              var_type: <GeneralType: __main__.A.__init__.int>',
-				'              value: <DeclLocalVar: __main__.A.__init__.n>',
-			]),
+				'              var_type: <DictType: __main__.A.__init__.dict>',
+				'                  type_name: <GeneralType: __main__.A.__init__.dict>',
+				'                  key_type: <GeneralType: __main__.A.__init__.str>',
+				'                  value_type: <GeneralType: __main__.A.__init__.int>',
+				'              value: <Dict: __main__.A.__init__.dict>',
+				'                  items:',
+				'                    <Pair: __main__.A.__init__.pair_>',
+				'                      first: <String: __main__.A.__init__.str>',
+				'                      second: <Variable: __main__.A.__init__.n>',
+			],
 	),])
-	def test_pretty(self, source: str, full_path: str, expected: str) -> None:
+	def test_pretty(self, source: str, full_path: str, expected: list[str]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path)
-		self.assertEqual(node.pretty(), expected)
+		self.assertEqual(node.pretty().split('\n'), expected)

@@ -416,7 +416,7 @@ class Class(ClassDef):
 	@Meta.embed(Node, expandable)
 	def inherits(self) -> list[Type]:
 		"""Note: XXX Genericは継承チェーンを考慮する必要がないため除外する"""
-		return [inherit for inherit in self.__inherit_types if inherit.type_name != Generic.__name__]
+		return [inherit for inherit in self.__inherit_types if inherit.type_name.tokens != Generic.__name__]
 
 	@property
 	@override
@@ -432,7 +432,7 @@ class Class(ClassDef):
 	@property
 	@override
 	def generic_types(self) -> list[Type]:
-		candidates = [inherit.as_a(CustomType) for inherit in self.inherits if inherit.type_name == Generic.__name__]
+		candidates = [inherit.as_a(CustomType) for inherit in self.__inherit_types if inherit.type_name.tokens == Generic.__name__]
 		return candidates[0].template_types if len(candidates) == 1 else []
 
 	@property

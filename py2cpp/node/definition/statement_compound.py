@@ -527,6 +527,12 @@ class TemplateClass(ClassDef):
 		# FIXME TypesNameのaccept_tagsと一致していない
 		return self._at(0).dirty_child(TypesName, '', class_types=self)
 
+	@property
+	@override
+	@Meta.embed(Node, expandable)
+	def boundary(self) -> Type | Empty:
+		return self._at(2).one_of(Type | Empty)
+
 
 def collect_decl_vars(block: StatementBlock, allow: type[T_Node]) -> dict[str, AnnoAssign | MoveAssign | For | Catch]:
 	decl_vars: dict[str, AnnoAssign | MoveAssign | For | Catch] = {}

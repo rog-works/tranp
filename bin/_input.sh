@@ -1,4 +1,4 @@
 #!/bin/bash
 
-read -e input
-echo $input
+IFS= read -e input
+echo "${input}"

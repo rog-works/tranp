@@ -518,36 +518,50 @@ class Node:
 		child = ctor(self.__nodes, self.__module_path, self._full_path.joined(entry_tag))
 		return child.dirty_proxify(**overrides)
 
-	def pretty(self, indent: str = '  ') -> str:
+	def pretty(self) -> str:
 		"""階層構造を出力
 
-		Args:
-			indent (str): インデント(default = '  ')
 		Returns:
 			str: 階層構造
 		"""
+		def expand_lines(node: Node, begin: str, after: str) -> list[str]:
+			"""str: ノード内の要素を展開して行リストを返却"""
+			lines: list[str] = []
+			for j, ln_line in enumerate(node.pretty().split('\n')):
+				prefix = begin if j == 0 else after
+				lines.append(f'{prefix}{ln_line}')
+
+			return lines
+
 		if not self.can_expand:
 			return str(self)
 
 		lines = [str(self)]
 		under_props = self.__prop_of_nodes()
 		if under_props:
-			for key, node_or_list in under_props.items():
+			for i, item in enumerate(under_props.items()):
+				key, node_or_list = item
+				last_i = i == len(under_props) - 1
+				belongs_i = '|' if not last_i else ' '
 				if isinstance(node_or_list, list):
-					lines.append(f'{indent}{key}:')
-					for in_node in node_or_list:
-						in_line = f'\n{indent * 2}'.join(in_node.pretty(indent).split('\n'))
-						lines.append(f'{indent * 2}{in_line}')
+					lines.append(f'+-{key}:')
+					for j, in_node in enumerate(node_or_list):
+						last_j = j == len(node_or_list) - 1
+						belongs_j = '|' if not last_j else ' '
+						in_lines = expand_lines(in_node, f'{belongs_i} +-', f'{belongs_i} {belongs_j} ')
+						lines.extend(in_lines)
 				else:
-					in_line = f'{indent * 2}'.join(node_or_list.pretty(indent).split('\n'))
-					lines.append(f'{indent}{key}: {in_line}')
+					in_lines = expand_lines(node_or_list, f'+-{key}: ', f'{belongs_i} ')
+					lines.extend(in_lines)
 
 			return '\n'.join(lines)
 		else:
 			under = self._under_expand()
-			for node in under:
-				in_line = f'{indent}'.join(node.pretty(indent).split('\n'))
-				lines.append(f'{indent}{in_line}')
+			for i, node in enumerate(under):
+				last_i = i == len(under_props) - 1
+				belongs_i = '|' if not last_i else ' '
+				in_lines = expand_lines(node, '+-', f'{belongs_i} ')
+				lines.extend(in_lines)
 
 			return '\n'.join(lines)
 

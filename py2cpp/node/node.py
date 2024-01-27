@@ -537,14 +537,14 @@ class Node:
 						in_line = f'\n{indent * 2}'.join(in_node.pretty(indent).split('\n'))
 						lines.append(f'{indent * 2}{in_line}')
 				else:
-					in_line = f'{indent * 2}'.join(node_or_list.pretty(indent).split('\n'))
+					in_line = f'\n{indent * 2}'.join(node_or_list.pretty(indent).split('\n'))
 					lines.append(f'{indent}{key}: {in_line}')
 
 			return '\n'.join(lines)
 		else:
 			under = self._under_expand()
 			for node in under:
-				in_line = f'{indent}'.join(node.pretty(indent).split('\n'))
+				in_line = f'\n{indent}'.join(node.pretty(indent).split('\n'))
 				lines.append(f'{indent}{in_line}')
 
 			return '\n'.join(lines)

@@ -326,3 +326,38 @@ class TestNode(TestCase):
 		self.assertEqual(isinstance(proxy, defs.Number), True)
 		self.assertEqual(node.tokens, '1')
 		self.assertEqual(proxy.tokens, '10')
+
+	@data_provider([
+		('class A:\n\tdef __init__(self, n: int) -> None:\n\t\tself.n: int = n',
+			'file_input',
+			'\n'.join([
+				'<Entrypoint: file_input>',
+				'  statements:',
+				'    <Class: file_input.class_def>',
+				'      symbol: <TypesName: file_input.class_def.class_def_raw.name>',
+				'      decorators:',
+				'      parents:',
+				'      statements:',
+				'        <Constructor: file_input.class_def.class_def_raw.block.function_def>',
+				'          symbol: <TypesName: file_input.class_def.class_def_raw.block.function_def.function_def_raw.name>',
+				'          decorators:',
+				'          parameters:',
+				'            <Parameter: file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue[0]>',
+				'              symbol: <DeclThisParam: file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue[0].typedparam.name>',
+				'              var_type: <Empty: file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue[0].typedparam.__empty__>',
+				'              default_value: <Empty: file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue[0].__empty__>',
+				'            <Parameter: file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue[1]>',
+				'              symbol: <DeclLocalVar: file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue[1].typedparam.name>',
+				'              var_type: <GeneralType: file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue[1].typedparam.typed_var>',
+				'              default_value: <Empty: file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue[1].__empty__>',
+				'          return_type: <NullType: file_input.class_def.class_def_raw.block.function_def.function_def_raw.return_type.typed_none>',
+				'          statements:',
+				'            <AnnoAssign: file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.assign_stmt>',
+				'              receiver: <DeclThisVar: file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.assign_stmt.anno_assign.getattr>',
+				'              var_type: <GeneralType: file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.assign_stmt.anno_assign.typed_var>',
+				'              value: <DeclLocalVar: file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.assign_stmt.anno_assign.var>',
+			]),
+	),])
+	def test_pretty(self, source: str, full_path: str, expected: str) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path)
+		self.assertEqual(node.pretty(), expected)

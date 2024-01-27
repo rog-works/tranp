@@ -143,7 +143,7 @@ anno_assign: expression ":" typed_expression ["=" expression]
 aug_assign: expression aug_assign_op expression
 // @custom
 class_assign: expression ":" "TypeAlias" "=" typed_expression
-template_assign: expression "=" "TypeVar" "(" string ")"
+template_assign: expression "=" "TypeVar" "(" string ["," "bound" "=" typed_expression] ")"
 
 !aug_assign_op: "+=" | "-=" | "*=" | "@=" | "/=" | "%=" | "&=" | "|=" | "^=" | "<<=" | ">>=" | "**=" | "//="
 

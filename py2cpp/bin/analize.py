@@ -56,6 +56,10 @@ def task_db(db: SymbolDB) -> None:
 	print(json.dumps([f'{key}: {raw.org_path}' for key, raw in db.raws.items()], indent=2))
 
 
+def task_pretty(nodes: Query[Node]) -> None:
+	print(nodes.by('file_input').pretty())
+
+
 def task_type(symbols: Symbols) -> None:
 	prompt = '\n'.join([
 		'==============',
@@ -115,16 +119,18 @@ def task_menu(locator: Locator) -> None:
 		'Task selection',
 		'--------------',
 		'# Tasks',
-		'* (a)st  : Interactive AST Viewer',
-		'* (d)b   : Show Symbol DB',
-		'* (t)ype : Show Symbol Type',
-		'* (h)elp : Show Usage',
-		'* (q)uit : Quit',
+		'* (a)st    : Interactive AST Viewer',
+		'* (p)retty : Show AST',
+		'* (d)b     : Show Symbol DB',
+		'* (t)ype   : Show Symbol Type',
+		'* (h)elp   : Show Usage',
+		'* (q)uit   : Quit',
 		'--------------',
 		'here:',
 	])
 	actions = {
 		'a': task_ast,
+		'p': task_pretty,
 		'd': task_db,
 		't': task_type,
 		'h': task_help,

@@ -537,7 +537,7 @@ class Node:
 						in_line = f'\n{indent * 2}'.join(in_node.pretty(indent).split('\n'))
 						lines.append(f'{indent * 2}{in_line}')
 				else:
-					in_line = f'\n{indent * 2}'.join(node_or_list.pretty(indent).split('\n'))
+					in_line = f'\n{indent}'.join(node_or_list.pretty(indent).split('\n'))
 					lines.append(f'{indent}{key}: {in_line}')
 
 			return '\n'.join(lines)

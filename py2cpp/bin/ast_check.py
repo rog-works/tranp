@@ -7,12 +7,10 @@ from typing import TypedDict
 from lark import Lark
 from lark.indenter import PythonIndenter
 
+from py2cpp.bin.utils import appdir, readline
+
 T_Options = TypedDict('T_Options', {'source': str, 'output': str})
 T_Args = TypedDict('T_Args', {'runner': str, 'grammar': str, 'options': T_Options})
-
-
-def appdir() -> str:
-	return os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
 
 
 def load_file(filename: str) -> str:

@@ -520,7 +520,7 @@ class Node:
 		"""階層構造を出力
 
 		Args:
-			indent (str): インデント
+			indent (str): インデント(default = '  ')
 		Returns:
 			str: 階層構造
 		"""
@@ -543,7 +543,10 @@ class Node:
 			return '\n'.join(lines)
 		else:
 			under = self._under_expand()
-			lines.extend([node.pretty(indent) for node in under])
+			for node in under:
+				in_line = f'{indent}'.join(node.pretty(indent).split('\n'))
+				lines.append(f'{indent}{in_line}')
+
 			return '\n'.join(lines)
 
 	# XXX def is_statement(self) -> bool: pass

@@ -314,7 +314,14 @@ class TestNode(TestCase):
 		self.assertEqual(proxy.tokens, '10')
 
 	@data_provider([
-		('class A:\n\tdef __init__(self, n: int) -> None:\n\t\tself.n: dict[str, int] = {"key": n}',
+		("""
+class A:
+	def __init__(self, n: int) -> None:
+		self.n: dict[str, int] = {'key': n}
+		if True:
+			n = 1
+			a.b(c, d)
+""",
 			'file_input',
 			[
 				'<Entrypoint: __main__>',
@@ -339,16 +346,34 @@ class TestNode(TestCase):
 				'        +-return_type: <NullType: __main__.A.__init__.None>',
 				'        +-statements:',
 				'          +-<AnnoAssign: __main__.A.__init__.assign_stmt>',
-				'            +-receiver: <DeclThisVar: __main__.A.n>',
-				'            +-var_type: <DictType: __main__.A.__init__.dict>',
-				'            | +-type_name: <GeneralType: __main__.A.__init__.dict>',
-				'            | +-key_type: <GeneralType: __main__.A.__init__.str>',
-				'            | +-value_type: <GeneralType: __main__.A.__init__.int>',
-				'            +-value: <Dict: __main__.A.__init__.dict>',
-				'              +-items:',
-				'                +-<Pair: __main__.A.__init__.pair_>',
-				'                  +-first: <String: __main__.A.__init__.str>',
-				'                  +-second: <Variable: __main__.A.__init__.n>',
+				'          | +-receiver: <DeclThisVar: __main__.A.n>',
+				'          | +-var_type: <DictType: __main__.A.__init__.dict>',
+				'          | | +-type_name: <GeneralType: __main__.A.__init__.dict>',
+				'          | | +-key_type: <GeneralType: __main__.A.__init__.str>',
+				'          | | +-value_type: <GeneralType: __main__.A.__init__.int>',
+				'          | +-value: <Dict: __main__.A.__init__.dict>',
+				'          |   +-items:',
+				'          |     +-<Pair: __main__.A.__init__.pair_>',
+				'          |       +-first: <String: __main__.A.__init__.str>',
+				'          |       +-second: <Variable: __main__.A.__init__.n>',
+				'          +-<If: __main__.A.__init__.if_stmt>',
+				'            +-condition: <Truthy: __main__.A.__init__.bool>',
+				'            +-statements:',
+				'            | +-<MoveAssign: __main__.A.__init__.if_stmt.assign_stmt>',
+				'            | | +-receiver: <DeclLocalVar: __main__.A.__init__.if_stmt.n>',
+				'            | | +-value: <Integer: __main__.A.__init__.if_stmt.int>',
+				'            | +-<FuncCall: __main__.A.__init__.if_stmt.funccall>',
+				'            |   +-calls: <Relay: __main__.A.__init__.if_stmt.a.b>',
+				'            |   | +-receiver: <Variable: __main__.A.__init__.if_stmt.a>',
+				'            |   +-arguments:',
+				'            |     +-<Argument: __main__.A.__init__.if_stmt.argvalue[0]>',
+				'            |     | +-label: <Proxy: __main__.A.__init__.if_stmt.__empty__>',
+				'            |     | +-value: <Variable: __main__.A.__init__.if_stmt.c>',
+				'            |     +-<Argument: __main__.A.__init__.if_stmt.argvalue[1]>',
+				'            |       +-label: <Proxy: __main__.A.__init__.if_stmt.__empty__>',
+				'            |       +-value: <Variable: __main__.A.__init__.if_stmt.d>',
+				'            +-else_ifs:',
+				'            +-else_statements:',
 			],
 	),])
 	def test_pretty(self, source: str, full_path: str, expected: list[str]) -> None:

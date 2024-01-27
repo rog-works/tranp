@@ -516,11 +516,9 @@ class Node:
 		child = ctor(self.__nodes, self.__module_path, self._full_path.joined(entry_tag))
 		return child.dirty_proxify(**overrides)
 
-	def pretty(self, indent: str = '  ') -> str:
+	def pretty(self) -> str:
 		"""階層構造を出力
 
-		Args:
-			indent (str): インデント(default = '  ')
 		Returns:
 			str: 階層構造
 		"""
@@ -530,22 +528,35 @@ class Node:
 		lines = [str(self)]
 		under_props = self.__prop_of_nodes()
 		if under_props:
-			for key, node_or_list in under_props.items():
+			for index, item in enumerate(under_props.items()):
+				key, node_or_list = item
+				last_i = index == len(under_props) - 1
+				belong_i = '|' if not last_i else ' '
 				if isinstance(node_or_list, list):
-					lines.append(f'{indent}{key}:')
-					for in_node in node_or_list:
-						in_line = f'\n{indent * 2}'.join(in_node.pretty(indent).split('\n'))
-						lines.append(f'{indent * 2}{in_line}')
+					lines.append(f'+-{key}:')
+					for j, in_node in enumerate(node_or_list):
+						last_j = j == len(node_or_list) - 1
+						belong_j = '|' if not last_j else ' '
+						in_lines = in_node.pretty().split('\n')
+						for j, ln_line in enumerate(in_lines):
+							prefix = f'{belong_i} +-' if j == 0 else f'{belong_i} {belong_j} '
+							lines.append(f'{prefix}{ln_line}')
 				else:
-					in_line = f'\n{indent}'.join(node_or_list.pretty(indent).split('\n'))
-					lines.append(f'{indent}{key}: {in_line}')
+					in_lines = node_or_list.pretty().split('\n')
+					for j, in_line in enumerate(in_lines):
+						prefix = f'+-{key}: ' if j == 0 else f'{belong_i} '
+						lines.append(f'{prefix}{in_line}')
 
 			return '\n'.join(lines)
 		else:
 			under = self._under_expand()
-			for node in under:
-				in_line = f'\n{indent}'.join(node.pretty(indent).split('\n'))
-				lines.append(f'{indent}{in_line}')
+			for i , node in enumerate(under):
+				last_i = i == len(under_props) - 1
+				belong_i = '|' if not last_i else ' '
+				in_lines = node.pretty().split('\n')
+				for j, in_line in enumerate(in_lines):
+					prefix = "+-" if j == 0 else f"{belong_i} "
+					lines.append(f'{prefix}{in_line}')
 
 			return '\n'.join(lines)
 

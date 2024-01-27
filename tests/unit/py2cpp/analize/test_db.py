@@ -13,6 +13,7 @@ class TestSymbolDB(TestCase):
 		({
 			# 標準ライブラリー/typingライブラリー(ClassDef)
 			'tests.unit.py2cpp.analize.fixtures.test_db_classes.Any': 'typing.Any',
+			'tests.unit.py2cpp.analize.fixtures.test_db_classes.Generic': 'typing.Generic',
 			'tests.unit.py2cpp.analize.fixtures.test_db_classes.Iterator': 'typing.Iterator',
 			'tests.unit.py2cpp.analize.fixtures.test_db_classes.Sequence': 'typing.Sequence',
 			# 標準ライブラリー(ClassDef)
@@ -74,6 +75,7 @@ class TestSymbolDB(TestCase):
 			# typingライブラリー(ClassDef)
 			'typing.Any': 'typing.Any',
 			'typing.Callable': 'typing.Callable',
+			'typing.Generic': 'typing.Generic',
 			'typing.Iterator': 'typing.Iterator',
 			'typing.Sequence': 'typing.Sequence',
 			'typing.TypeVar': 'typing.TypeVar',

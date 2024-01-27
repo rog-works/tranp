@@ -146,18 +146,27 @@ class Node:
 		return [path for _, path in sorted(index_of_paths, key=functools.cmp_to_key(order))]
 
 	def __prop_expand(self) -> list['Node']:
-		"""展開プロパティーからノードリストを取得
+		"""プロパティーを平坦化して展開
 
 		Returns:
-			list[Node]: 展開プロパティーのノードリスト
+			list[Node]: プロパティーのノードリスト
 		"""
 		nodes: list[Node] = []
-		for key in self.__expandable_keys():
-			func_or_result = getattr(self, key)
-			result = cast(Node | list[Node], func_or_result() if callable(func_or_result) else func_or_result)
-			nodes.extend(result if type(result) is list else [cast(Node, result)])
+		for node_or_list in self.__prop_of_nodes().values():
+			if isinstance(node_or_list, list):
+				nodes.extend(node_or_list)
+			else:
+				nodes.append(node_or_list)
 
 		return nodes
+
+	def __prop_of_nodes(self) -> dict[str, 'Node | list[Node]']:
+		"""プロパティーを展開
+
+		Returns:
+			dict[Node | list[Node]]: プロパティーのノードリスト
+		"""
+		return {key: getattr(self, key) for key in self.__expandable_keys()}
 
 	def __expandable_keys(self) -> list[str]:
 		"""メタデータより展開プロパティーのメソッド名を抽出
@@ -483,6 +492,37 @@ class Node:
 		child = ctor(self.__nodes, self.__module_path, self._full_path.joined(entry_tag))
 		return child.dirty_proxify(**overrides)
 
+	def pretty(self, indent: str = '  ') -> str:
+		"""階層構造を出力
+
+		Args:
+			indent (str): インデント
+		Returns:
+			str: 階層構造
+		"""
+		lines = [str(self)]
+
+		# XXX 参照方法が煩わしい
+		if isinstance(self, ITerminal) and not cast(ITerminal, self).can_expand:
+			return '\n'.join(lines)
+
+		under_props = self.__prop_of_nodes()
+		if under_props:
+			for key, node_or_list in under_props.items():
+				if isinstance(node_or_list, list):
+					lines.append(f'{indent}{key}:')
+					for in_node in node_or_list:
+						in_line = f'\n{indent * 2}'.join(in_node.pretty(indent).split('\n'))
+						lines.append(f'{indent * 2}{in_line}')
+				else:
+					in_line = f'{indent * 2}'.join(node_or_list.pretty(indent).split('\n'))
+					lines.append(f'{indent}{key}: {in_line}')
+
+			return '\n'.join(lines)
+		else:
+			under = self._under_expand()
+			lines.extend([node.pretty(indent) for node in under])
+			return '\n'.join(lines)
+
 	# XXX def is_statement(self) -> bool: pass
-	# XXX def pretty(self) -> str: pass
 	# XXX def serialize(self) -> dict: pass

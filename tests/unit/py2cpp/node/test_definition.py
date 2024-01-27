@@ -351,11 +351,14 @@ class TestDefinition(TestCase):
 		self.assertEqual(type(node.actual_type), expected['actual_type'])
 
 	@data_provider([
-		('A = TypeVar("A")', 'file_input.template_assign', {'symbol': 'A'}),
+		('A = TypeVar("A")', 'file_input.template_assign', {'symbol': 'A', 'boundary': defs.Empty}),
+		('A = TypeVar("A", bound=X)', 'file_input.template_assign', {'symbol': 'A', 'boundary': defs.GeneralType}),
+		('A = TypeVar("A", bound=X.Y)', 'file_input.template_assign', {'symbol': 'A', 'boundary': defs.GeneralType}),
 	])
 	def test_template_class(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.TemplateClass)
 		self.assertEqual(node.symbol.tokens, expected['symbol'])
+		self.assertEqual(type(node.boundary), expected['boundary'])
 
 	# Statement simple
 

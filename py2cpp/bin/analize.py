@@ -81,12 +81,12 @@ def task_pretty(nodes: Query[Node]) -> None:
 
 
 def task_class(db: SymbolDB, symbols: Symbols) -> None:
-	names = [fullyname for fullyname, raw in db.raws.items() if raw.decl.is_a(defs.Class)]
+	names = {raw.decl.fullyname: True for raw in db.raws.values() if raw.decl.is_a(defs.Class)}
 	prompt = '\n'.join([
 		'==============',
 		'Class List',
 		'--------------',
-		*names,
+		*names.keys(),
 		'--------------',
 		'Class fullyname here:',
 	])

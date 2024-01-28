@@ -503,6 +503,7 @@ class Node:
 			T_Node: プロキシノード
 		Note:
 			XXX シンボルエイリアスにのみ使う想定。ダーティーな実装のため濫用は厳禁
+			XXX classificationのみ固定で擬態クラスを模倣して上書き
 		"""
 		overrides = {**overrides, 'classification': snakelize(self.__class__.__name__)}
 

@@ -457,15 +457,15 @@ class ProceduralResolver(Procedure[Symbol]):
 		return self.symbols.type_of_var(node)
 
 	def on_relay(self, node: defs.Relay, receiver: Symbol) -> Symbol:
-		symbol = self.symbols.type_of_property(receiver.types, node.prop)
-		# XXX 未検証
-		for t in symbol.types.generic_types:
-			t_symbol = self.symbols.resolve(t)
-			for attr in receiver.attrs:
-				if t_symbol == attr:
-					symbol.extends(attr)
+		prop_symbol = self.symbols.type_of_property(receiver.types, node.prop)
+		if isinstance(prop_symbol.types, defs.Method):
+			# XXX 同じものを比較しているので意味がない
+			receiver_ts = [self.symbols.resolve(t) for t in receiver.types.generic_types]
+			prop_ts = [self.symbols.resolve(t) for t in prop_symbol.types.class_types.generic_types]
+			attrs = [receiver.attrs[index] for index, t in enumerate(receiver_ts) if t in prop_ts]
+			return prop_symbol.extends(*attrs)
 
-		return symbol
+		return prop_symbol
 
 	def on_class_ref(self, node: defs.ClassRef) -> Symbol:
 		return self.symbols.type_of_var(node)
@@ -514,10 +514,14 @@ class ProceduralResolver(Procedure[Symbol]):
 		if isinstance(calls.types, defs.Constructor):
 			return self.symbols.type_of_var(calls.types.class_types.symbol)
 		elif isinstance(calls.types, defs.Function):
-			# XXX type_ofを使うと無限再帰になりやすいため別案を検討
-			return self.symbols.type_of(calls.types.return_type)
-		# defs.ClassDef
+			symbol = self.symbols.type_of(calls.types.return_type)
+			# FIXME 一部のパターンにしか対応出来ていない
+			if symbol.types.is_a(defs.TemplateClass):
+				return calls.attrs[0]
+
+			return symbol
 		else:
+			# defs.ClassDef
 			return calls
 
 	def on_super(self, node: defs.Super, calls: Symbol, arguments: list[Symbol]) -> Symbol:

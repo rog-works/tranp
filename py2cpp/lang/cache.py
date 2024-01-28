@@ -253,7 +253,7 @@ class CacheProvider:
 			def wrapper() -> T:
 				stored = wrapped.__annotations__['return']
 				ctor = CachedProxy if self.__setting.enabled else CachedDummy
-				identifier = ctor.identifier(identity)
+				identifier = ctor.identifier({'__cache_key__': cache_key, **identity})
 				if identifier not in self.__instances:
 					cacher = ctor(stored, wrapped, identity, self.__setting.basedir, **options)
 					self.__instances[identifier] = cacher.get(cache_key)

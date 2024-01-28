@@ -105,16 +105,12 @@ class Continue(Node, ITerminal): pass
 
 
 @Meta.embed(Node, accept_tags('import_stmt'))
-class Import(Node, ITerminal):
-	@property
-	@implements
-	def can_expand(self) -> bool:
-		return False
-
+class Import(Node):
 	@property
 	def import_path(self) -> ImportPath:
 		return self._by('dotted_name').as_a(ImportPath)
 
 	@property
+	@Meta.embed(Node, expandable)
 	def import_symbols(self) -> list[Declable]:
 		return [node.as_a(Declable) for node in self._children('import_names')]

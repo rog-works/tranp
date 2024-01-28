@@ -192,7 +192,7 @@ class Handler(Procedure[str]):
 	def on_continue(self, node: defs.Continue) -> str:
 		return 'continue;'
 
-	def on_import(self, node: defs.Import) -> str:
+	def on_import(self, node: defs.Import, import_symbols: list[str]) -> str:
 		module_path = node.import_path.tokens
 		text = self.view.render(node.classification, vars={'module_path': module_path})
 		return text if module_path.startswith('example.FW') else f'// {text}'

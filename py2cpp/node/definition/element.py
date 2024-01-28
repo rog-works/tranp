@@ -1,5 +1,4 @@
 from py2cpp.lang.implementation import implements
-from py2cpp.lang.string import snakelize
 from py2cpp.node.definition.primary import Argument, DecoratorPath, Declable, Type
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, expandable

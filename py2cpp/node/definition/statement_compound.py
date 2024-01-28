@@ -241,7 +241,6 @@ class ClassDef(Node, IDomain, IScope, IDeclare):
 
 	@property
 	def generic_types(self) -> list[Type]:
-		"""Note: XXX 未使用"""
 		return []
 
 	@property
@@ -330,8 +329,8 @@ class ClassMethod(Function):
 		return len(decorators) > 0 and decorators[0].path.tokens == 'classmethod'
 
 	@property
-	def class_symbol(self) -> Declable:
-		return self.parent.as_a(Block).parent.as_a(ClassDef).symbol
+	def class_types(self) -> ClassDef:
+		return self.parent.as_a(Block).parent.as_a(ClassDef)
 
 
 @Meta.embed(Node, actualized(via=Function))
@@ -342,8 +341,8 @@ class Constructor(Function):
 		return via.symbol.tokens == '__init__'
 
 	@property
-	def class_symbol(self) -> Declable:
-		return self.parent.as_a(Block).parent.as_a(ClassDef).symbol
+	def class_types(self) -> ClassDef:
+		return self.parent.as_a(Block).parent.as_a(ClassDef)
 
 	@property
 	def this_vars(self) -> list[AnnoAssign]:
@@ -362,8 +361,8 @@ class Method(Function):
 		return len(parameters) > 0 and parameters[0].symbol.is_a(DeclThisParam)
 
 	@property
-	def class_symbol(self) -> Declable:
-		return self.parent.as_a(Block).parent.as_a(ClassDef).symbol
+	def class_types(self) -> ClassDef:
+		return self.parent.as_a(Block).parent.as_a(ClassDef)
 
 
 @Meta.embed(Node, actualized(via=Function))

@@ -256,7 +256,7 @@ class TestDefinition(TestCase):
 		self.assertEqual(node.alias_symbol, expected['alias_symbol'])
 
 		if isinstance(node, (defs.ClassMethod, defs.Constructor, defs.Method)):
-			self.assertEqual(node.class_symbol.tokens, expected['class_symbol'])
+			self.assertEqual(node.class_types.symbol.tokens, expected['class_symbol'])
 
 		if isinstance(node, defs.Constructor):
 			self.assertEqual([var.symbol.tokens for var in node.this_vars if var.is_a(defs.AnnoAssign)], expected['this_vars'])

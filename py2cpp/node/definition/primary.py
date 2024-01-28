@@ -2,9 +2,8 @@ import re
 from typing import cast
 
 from py2cpp.ast.dsn import DSN
-from py2cpp.lang.implementation import implements, override
+from py2cpp.lang.implementation import override
 from py2cpp.lang.sequence import last_index_of
-from py2cpp.lang.string import snakelize
 from py2cpp.node.definition.literal import Literal
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable

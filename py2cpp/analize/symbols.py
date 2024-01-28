@@ -512,7 +512,7 @@ class ProceduralResolver(Procedure[Symbol]):
 
 	def on_func_call(self, node: defs.FuncCall, calls: Symbol, arguments: list[Symbol]) -> Symbol:
 		if isinstance(calls.types, defs.Constructor):
-			return self.symbols.type_of_var(calls.types.class_symbol)
+			return self.symbols.type_of_var(calls.types.class_types.symbol)
 		elif isinstance(calls.types, defs.Function):
 			# XXX type_ofを使うと無限再帰になりやすいため別案を検討
 			return self.symbols.type_of(calls.types.return_type)

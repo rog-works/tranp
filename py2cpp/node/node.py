@@ -541,22 +541,24 @@ class Node:
 		child = ctor(self.__nodes, self.__module_path, self._full_path.joined(entry_tag))
 		return child.dirty_proxify(**overrides)
 
-	def pretty(self) -> str:
+	def pretty(self, depth: int = -1) -> str:
 		"""階層構造を出力
 
+		Args:
+			depth (int): 探索深度。-1は無制限 (default - 1)
 		Returns:
 			str: 階層構造
 		"""
 		def expand_lines(node: Node, begin: str, after: str) -> list[str]:
 			"""str: ノード内の要素を展開して行リストを返却"""
 			lines: list[str] = []
-			for j, ln_line in enumerate(node.pretty().split('\n')):
+			for j, ln_line in enumerate(node.pretty(depth - 1).split('\n')):
 				prefix = begin if j == 0 else after
 				lines.append(f'{prefix}{ln_line}')
 
 			return lines
 
-		if not self.can_expand:
+		if not self.can_expand or depth == 0:
 			return str(self)
 
 		lines = [str(self)]

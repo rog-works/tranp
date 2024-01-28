@@ -3,7 +3,7 @@
 // #include "py2cpp/compatible/cpp/object.h"
 #pragma once
 #include "example/FW/compatible.h"
-class Box3d : public CObject {
+class Box3d {
 	public: Vector min;
 	public: Vector max;
 	public: Box3d(Vector min, Vector max) : min(min), max(max) {

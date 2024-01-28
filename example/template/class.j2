@@ -1,8 +1,10 @@
+{% set _inherits = inherits | select('!=', 'CObject') | list %}
+
 {%- for decorator in decorators -%}
 {{ decorator }}
 {% endfor -%}
 class {{ symbol }}
-{%- if inherits %} : public {% for inherit in inherits -%}
+{%- if _inherits %} : public {% for inherit in _inherits -%}
 		{%- if loop.index0 > 0 %}, {% endif -%}
 		{{- inherit -}}
 	{%- endfor -%}

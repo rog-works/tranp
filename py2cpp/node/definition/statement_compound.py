@@ -536,7 +536,7 @@ class TemplateClass(ClassDef):
 	@property
 	@override
 	@Meta.embed(Node, expandable)
-	def boundary(self) -> Type | Empty:
+	def constraints(self) -> Type | Empty:
 		return self._at(2).one_of(Type | Empty)
 
 

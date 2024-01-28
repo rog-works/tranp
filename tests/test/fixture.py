@@ -2,6 +2,7 @@ import os
 from typing import cast
 
 from py2cpp.app.app import App
+from py2cpp.ast.entry import Entry
 from py2cpp.ast.parser import SyntaxParser
 from py2cpp.ast.query import Query
 from py2cpp.lang.cache import CacheProvider
@@ -59,13 +60,22 @@ class Fixture:
 		return self.__app.resolve(Query[Node])
 
 	def custom_nodes(self, source_code: str) -> Query[Node]:
+		return self.custom_app(source_code).resolve(Query[Node])
+
+	def custom_app(self, source_code: str) -> App:
 		def syntax_parser() -> SyntaxParser:
-			org_parser = cast(SyntaxParserOfLark, self.__app.resolve(SyntaxParser)).dirty_get_origin()
-			return lambda module_path: EntryOfLark(org_parser.parse(f'{source_code}\n'))
+			org_parser = self.__app.resolve(SyntaxParser)
+			test_module_path = self.__app.resolve(ModulePath)
+			lark = cast(SyntaxParserOfLark, org_parser).dirty_get_origin()
+			root = EntryOfLark(lark.parse(f'{source_code}\n'))
+			def new_parser(module_path: str) -> Entry:
+				return root if module_path == test_module_path.actual else org_parser(module_path)
+
+			return new_parser
 
 		new_definitions = {
 			fullyname(SyntaxParser): syntax_parser,
 			fullyname(CacheProvider): lambda: self.__app.resolve(CacheProvider),
 		}
 		definitions = {**self.__definitions(), **new_definitions}
-		return App(definitions).resolve(Query[Node])
+		return App(definitions)

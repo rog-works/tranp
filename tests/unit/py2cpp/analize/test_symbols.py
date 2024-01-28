@@ -46,16 +46,13 @@ class TestSymbols(TestCase):
 	fixture = Fixture.make(__file__)
 
 	@data_provider([
-		('a: list[int] = []', 'file_input.anno_assign.var', True),
-		('a: list[int] = []', 'file_input.anno_assign.typed_getitem', True),
-		('a: list[int] = []', 'file_input.anno_assign.typed_getitem.typed_slices.typed_var', False),
-		('a: list[int] = []', 'file_input.anno_assign.list', True),
+		('__main__.B.func2.a', False),
+		('__main__.B.func2.closure.b', True),
+		('__main__.d', False),
 	])
-	def test_is_list(self, source: str, full_path: str, expected: bool) -> None:
-		app = self.fixture.custom_app(source)
-		symbols = app.resolve(Symbols)
-		node = app.resolve(Query[Node]).by(full_path)
-		symbol = symbols.type_of(node)
+	def test_is_list(self, fullyname: str, expected: bool) -> None:
+		symbols = self.fixture.get(Symbols)
+		symbol = symbols.from_fullyname(fullyname)
 		self.assertEqual(symbols.is_list(symbol), expected)
 
 	@data_provider([

@@ -16,7 +16,7 @@ class SymbolRaw(NamedTuple):
 		org_path (str): 参照パス(オリジナル)
 		module (Module): 展開先のモジュール
 		symbol (Declable): シンボル宣言ノード
-		types (ClassDef): タイプノード
+		types (ClassDef): クラス定義ノード
 		decl (DeclAll): 宣言ステートメントノード
 	"""
 	ref_path: str

@@ -111,7 +111,7 @@ class Handler(Procedure[str]):
 	def on_closure(self, node: defs.Closure, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, statements: list[str]) -> str:
 		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'statements': statements, 'binded_this': node.binded_this})
 
-	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], parents: list[str], statements: list[str]) -> str:
+	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], statements: list[str]) -> str:
 		# XXX メンバー変数の展開方法を検討
 		vars: list[str] = []
 		for class_var in node.class_vars:
@@ -122,7 +122,7 @@ class Handler(Procedure[str]):
 			decl_var_symbol = this_var.symbol.as_a(defs.DeclThisVar)
 			vars.append(self.view.render('class_decl_var', vars={'is_static': False, 'access': 'public', 'symbol': decl_var_symbol.tokens_without_this, 'var_type': this_var.var_type.tokens}))
 
-		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'parents': parents, 'statements': statements, 'vars': vars})
+		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'statements': statements, 'vars': vars})
 
 	def on_enum(self, node: defs.Enum, symbol: str, statements: list[str]) -> str:
 		return self.view.render(node.classification, vars={'symbol': symbol, 'statements': statements})

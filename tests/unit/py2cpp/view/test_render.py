@@ -113,7 +113,7 @@ class TestRenderer(TestCase):
 			{
 				'symbol': 'Hoge',
 				'decorators': ['deco(A, A.B)'],
-				'parents': ['Base', 'Interface'],
+				'inherits': ['Base', 'Interface'],
 				'vars': [
 					'private: int __value;',
 					'private: std::string __text;',
@@ -143,7 +143,7 @@ class TestRenderer(TestCase):
 			{
 				'symbol': 'Hoge',
 				'decorators': [],
-				'parents': [],
+				'inherits': [],
 				'vars': [],
 				'statements': [
 					'\n'.join([

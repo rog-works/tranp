@@ -12,6 +12,7 @@ from py2cpp.bin.utils import readline
 from py2cpp.lang.locator import Locator
 from py2cpp.lang.module import fullyname
 from py2cpp.module.types import ModulePath
+import py2cpp.node.definition as defs
 from py2cpp.node.node import Node
 from py2cpp.tp_lark.entry import EntryOfLark
 from py2cpp.tp_lark.parser import SyntaxParserOfLark
@@ -79,6 +80,21 @@ def task_pretty(nodes: Query[Node]) -> None:
 	print(nodes.by('file_input').pretty())
 
 
+def task_class(db: SymbolDB, symbols: Symbols) -> None:
+	names = [fullyname for fullyname, raw in db.raws.items() if raw.decl.is_a(defs.Class)]
+	prompt = '\n'.join([
+		'==============',
+		'Class List',
+		'--------------',
+		*names,
+		'--------------',
+		'Class fullyname here:',
+	])
+	name = readline(prompt)
+	print('--------------')
+	print(symbols.from_fullyname(name).types.pretty(1))
+
+
 def task_type(symbols: Symbols) -> None:
 	prompt = '\n'.join([
 		'==============',
@@ -141,6 +157,7 @@ def task_menu(locator: Locator) -> None:
 		'* (a)st    : Interactive AST Viewer',
 		'* (p)retty : Show AST',
 		'* (d)b     : Show Symbol DB',
+		'* (c)lass  : Show Class Information',
 		'* (t)ype   : Show Symbol Type',
 		'* (h)elp   : Show Usage',
 		'* (q)uit   : Quit',
@@ -153,6 +170,7 @@ def task_menu(locator: Locator) -> None:
 		'a': task_ast,
 		'p': task_pretty,
 		'd': task_db,
+		'c': task_class,
 		't': task_type,
 		'h': task_help,
 	}

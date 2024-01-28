@@ -458,10 +458,11 @@ class ProceduralResolver(Procedure[Symbol]):
 
 	def on_relay(self, node: defs.Relay, receiver: Symbol) -> Symbol:
 		symbol = self.symbols.type_of_property(receiver.types, node.prop)
+		# XXX 未検証
 		for t in symbol.types.generic_types:
 			t_symbol = self.symbols.resolve(t)
 			for attr in receiver.attrs:
-				if attr.types == t_symbol:
+				if t_symbol == attr:
 					symbol.extends(attr)
 
 		return symbol

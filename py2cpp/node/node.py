@@ -545,7 +545,7 @@ class Node:
 		"""階層構造を出力
 
 		Args:
-			depth (int): 探索深度。-1は無制限 (default - 1)
+			depth (int): 探索深度。-1は無制限。(default = -1)
 		Returns:
 			str: 階層構造
 		"""

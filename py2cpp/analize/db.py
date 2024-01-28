@@ -100,17 +100,17 @@ class SymbolDB:
 		# インポートモジュールを全て展開
 		import_index = 0
 		import_modules_from_main = [modules.load(node.import_path.tokens) for node in expends[main].import_nodes]
-		import_modules = [*modules.libralies, *import_modules_from_main]
+		import_modules: dict[str, Module] = {**{module.path: module for module in modules.libralies}, **{module.path: module for module in import_modules_from_main}}
 		while import_index < len(import_modules):
-			import_module = import_modules[import_index]
+			import_module = list(import_modules.values())[import_index]
 			expanded = self.__expand_module(import_module)
 			import_modules_from_depended = [modules.load(node.import_path.tokens) for node in expanded.import_nodes]
-			import_modules = [*import_modules, *import_modules_from_depended]
+			import_modules = {**import_modules, **{module.path: module for module in import_modules_from_depended}}
 			expends[import_module] = expanded
 			import_index += 1
 
-		all_modules = [*import_modules, main]
-		for expand_module in all_modules:
+		all_modules = {**import_modules, main.path: main}
+		for expand_module in all_modules.values():
 			expand_target = expends[expand_module]
 
 			# 標準ライブラリを展開

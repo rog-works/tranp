@@ -42,6 +42,13 @@ class Args:
 		return args
 
 
+def now() -> str:
+	from datetime import datetime, timedelta, timezone
+
+	zone = timezone(timedelta(hours=9), 'JST)')
+	return datetime.now(zone).strftime('%Y-%m-%d %H:%M:%S')
+
+
 def make_parser_setting(args: Args) -> ParserSetting:
 	return ParserSetting(grammar=args.grammar)
 
@@ -138,6 +145,8 @@ def task_menu(locator: Locator) -> None:
 		'* (h)elp   : Show Usage',
 		'* (q)uit   : Quit',
 		'--------------',
+		'@now',
+		'--------------',
 		'here:',
 	])
 	actions: dict[str, Callable[..., None]] = {
@@ -148,15 +157,12 @@ def task_menu(locator: Locator) -> None:
 		'h': task_help,
 	}
 	while True:
-		input = readline(prompt)
+		input = readline(prompt.replace('@now', now()))
 		if input == 'q':
 			return
 
 		action = actions.get(input, task_help)
 		locator.invoke(action)
-
-		print('--------------')
-		readline('Enter here:')
 
 
 if __name__ == '__main__':

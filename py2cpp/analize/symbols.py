@@ -150,11 +150,11 @@ class Symbols:
 
 		raise LogicError(f'Unknown not defined.')
 
-	def type_of_property(self, decl_class: defs.ClassKind, prop: defs.Var) -> Symbol:
+	def type_of_property(self, decl_class: defs.ClassDef, prop: defs.Var) -> Symbol:
 		"""クラス定義ノードと変数参照ノードからプロパティーのシンボルを解決
 
 		Args:
-			decl_class (ClassKind): クラス定義ノード
+			decl_class (ClassDef): クラス定義ノード
 			prop (Var): 変数参照ノード
 		Returns:
 			Symbol: シンボル
@@ -180,7 +180,7 @@ class Symbols:
 			return self.__from_reference(node)
 		elif isinstance(node, defs.Type):
 			return self.__from_type(node)
-		elif isinstance(node, defs.ClassKind):
+		elif isinstance(node, defs.ClassDef):
 			return self.__from_class(node)
 		elif isinstance(node, defs.Literal):
 			return self.__from_literal(node)
@@ -226,7 +226,7 @@ class Symbols:
 		elif isinstance(decl, (defs.For, defs.Catch)):
 			return self.__from_flow(decl)
 		else:
-			# defs.ClassKind
+			# defs.ClassDef
 			return symbol
 
 	def __from_declable(self, node: defs.Declable) -> Symbol:
@@ -281,11 +281,11 @@ class Symbols:
 		"""
 		return self.__resolve_procedural(node)
 
-	def __from_class(self, node: defs.ClassKind) -> Symbol:
+	def __from_class(self, node: defs.ClassDef) -> Symbol:
 		"""クラス定義ノードからシンボルを解決
 
 		Args:
-			node (ClassKind): クラス定義ノード
+			node (ClassDef): クラス定義ノード
 		Returns:
 			Symbol: シンボル
 		Raises:
@@ -376,12 +376,12 @@ class Symbols:
 		Returns:
 			SymbolRaw | None: シンボルデータ
 		"""
-		for parent_type in decl_class.parents:
-			parent_type_raw = self.__find_raw(parent_type)
-			if parent_type_raw is None:
+		for inherit_type in decl_class.inherits:
+			inherit_type_raw = self.__find_raw(inherit_type)
+			if inherit_type_raw is None:
 				break
 
-			found_raw = self.__resolve_raw(parent_type_raw.types, prop_name)
+			found_raw = self.__resolve_raw(inherit_type_raw.types, prop_name)
 			if found_raw:
 				return found_raw
 
@@ -457,7 +457,15 @@ class ProceduralResolver(Procedure[Symbol]):
 		return self.symbols.type_of_var(node)
 
 	def on_relay(self, node: defs.Relay, receiver: Symbol) -> Symbol:
-		return self.symbols.type_of_property(receiver.types, node.prop)
+		symbol = self.symbols.type_of_property(receiver.types, node.prop)
+		# XXX 未検証
+		for t in symbol.types.generic_types:
+			t_symbol = self.symbols.resolve(t)
+			for attr in receiver.attrs:
+				if t_symbol == attr:
+					symbol.extends(attr)
+
+		return symbol
 
 	def on_class_ref(self, node: defs.ClassRef) -> Symbol:
 		return self.symbols.type_of_var(node)
@@ -508,12 +516,12 @@ class ProceduralResolver(Procedure[Symbol]):
 		elif isinstance(calls.types, defs.Function):
 			# XXX type_ofを使うと無限再帰になりやすいため別案を検討
 			return self.symbols.type_of(calls.types.return_type)
-		# defs.ClassKind
+		# defs.ClassDef
 		else:
 			return calls
 
 	def on_super(self, node: defs.Super, calls: Symbol, arguments: list[Symbol]) -> Symbol:
-		return self.symbols.resolve(node.parent_class_symbol)
+		return self.symbols.resolve(node.super_class_symbol)
 
 	def on_argument(self, node: defs.Argument, label: Symbol, value: Symbol) -> Symbol:
 		return value

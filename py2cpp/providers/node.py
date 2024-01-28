@@ -28,12 +28,16 @@ def symbol_mapping() -> SymbolMapping:
 			# 'function_def': defs.Closure,
 			'class_def': defs.Class,
 			'enum_def': defs.Enum,
+			'class_assign': defs.AltClass,
+			'template_assign': defs.TemplateClass,
 			# -- Function/Class Elements --
 			'paramvalue': defs.Parameter,
 			'starparam': defs.Parameter,
 			'decorator': defs.Decorator,
 			# -- Statement simple --
-			'assign_stmt': defs.Assign,
+			'assign': defs.MoveAssign,
+			'anno_assign': defs.AnnoAssign,
+			'aug_assign': defs.AugAssign,
 			'return_stmt': defs.Return,
 			'raise_stmt': defs.Throw,
 			'pass_stmt': defs.Pass,

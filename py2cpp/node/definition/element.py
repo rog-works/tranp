@@ -32,7 +32,7 @@ class Parameter(Node, IDeclare):
 			return node if not node.is_a(Empty) else node.as_a(Empty)
 
 		# XXX starparamはデフォルト引数がないためダミーを生成
-		return self.dirty_child(Empty, '__empty__', tokens='', classification=snakelize(Empty.__name__))
+		return self.dirty_child(Empty, '__empty__', tokens='')
 
 
 @Meta.embed(Node, accept_tags('decorator'))

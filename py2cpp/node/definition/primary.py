@@ -24,10 +24,10 @@ class Fragment(Node, IDomain):
 	def is_decl_class_var(self) -> bool:
 		"""Note: マッチング対象: クラス変数宣言"""
 		# XXX ASTへの依存度が非常に高い判定なので注意
-		# XXX 期待するパス: class_def_raw.block.assign_stmt.(anno_assign).(getattr|var|name)
+		# XXX 期待するパス: class_def_raw.block.anno_assign.(getattr|var|name)
 		elems = self._full_path.de_identify().elements
 		actual_class_def_at = last_index_of(elems, 'class_def_raw')
-		expect_class_def_at = max(0, len(elems) - 5)
+		expect_class_def_at = max(0, len(elems) - 4)
 		in_decl_class_var = actual_class_def_at == expect_class_def_at
 		in_decl_var = self._full_path.parent_tag in ['anno_assign']
 		is_local = DSN.elem_counts(self.tokens) == 1
@@ -421,12 +421,12 @@ class Super(FuncCall):
 		return via.calls.tokens == 'super'
 
 	@property
-	def parent_class_symbol(self) -> Type:
+	def super_class_symbol(self) -> Type:
 		from py2cpp.node.definition.statement_compound import Class  # FIXME 循環参照
 
 		decl_class = self._ancestor('class_def').as_a(Class)
 		# XXX 簡易化のため単一継承と言う前提。MROは考慮せず先頭要素を直系の親クラスとする
-		return decl_class.parents[0].type_name
+		return decl_class.inherits[0].type_name
 
 
 @Meta.embed(Node, accept_tags('argvalue'))
@@ -438,7 +438,7 @@ class Argument(Node):
 		if len(children) == 2:
 			return children[0].as_a(ArgumentLabel)
 
-		return self.dirty_child(Empty, '__empty__', tokens='', classification=snakelize(Empty.__name__))
+		return self.dirty_child(Empty, '__empty__', tokens='')
 
 	@property
 	@Meta.embed(Node, expandable)

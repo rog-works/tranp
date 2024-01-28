@@ -111,7 +111,7 @@ class Handler(Procedure[str]):
 	def on_closure(self, node: defs.Closure, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, statements: list[str]) -> str:
 		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'statements': statements, 'binded_this': node.binded_this})
 
-	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], parents: list[str], statements: list[str]) -> str:
+	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], statements: list[str]) -> str:
 		# XXX メンバー変数の展開方法を検討
 		vars: list[str] = []
 		for class_var in node.class_vars:
@@ -122,7 +122,7 @@ class Handler(Procedure[str]):
 			decl_var_symbol = this_var.symbol.as_a(defs.DeclThisVar)
 			vars.append(self.view.render('class_decl_var', vars={'is_static': False, 'access': 'public', 'symbol': decl_var_symbol.tokens_without_this, 'var_type': this_var.var_type.tokens}))
 
-		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'parents': parents, 'statements': statements, 'vars': vars})
+		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'statements': statements, 'vars': vars})
 
 	def on_enum(self, node: defs.Enum, symbol: str, statements: list[str]) -> str:
 		return self.view.render(node.classification, vars={'symbol': symbol, 'statements': statements})
@@ -215,41 +215,40 @@ class Handler(Procedure[str]):
 		return node.tokens
 
 	def on_types_name(self, node: defs.TypesName) -> str:
-		return node.class_types.as_a(defs.ClassKind).alias_symbol() or node.tokens
+		return node.class_types.as_a(defs.ClassDef).alias_symbol or node.tokens
 
 	def on_import_name(self, node: defs.ImportName) -> str:
 		return node.tokens
 
 	def on_relay(self, node: defs.Relay, receiver: str) -> str:
-		def is_static_access(receiver_symbol: Symbol) -> bool:
-			if isinstance(receiver_symbol.types, defs.Enum):
-				return True
-			elif isinstance(node.receiver, defs.ClassRef):
-				return True
-			elif isinstance(node.receiver, defs.Super):
-				return True
-
-			prop_symbol = self.symbols.type_of_property(receiver_symbol.types, node.prop)
-			prop_symbol_decl = prop_symbol.raw.decl
-			if isinstance(prop_symbol.types, (defs.Enum, defs.ClassMethod)):
-				return True
-			elif isinstance(prop_symbol_decl, defs.AnnoAssign) and prop_symbol_decl.symbol.is_a(defs.DeclClassVar):
-				return True
-
-			return False
-
-		cvars: list[str] = [cvar.__name__ for cvar in [cpp.CP, cpp.CSP, cpp.CRef, cpp.CRaw]]
 		receiver_symbol = self.symbols.type_of(node.receiver)
-		is_cvar_receiver = len(receiver_symbol.attrs) > 0 and receiver_symbol.attrs[0].types.symbol.tokens in cvars
-		if is_cvar_receiver:
+		prop_symbol = self.symbols.type_of_property(receiver_symbol.types, node.prop)
+		prop = prop_symbol.types.alias_symbol or node.prop.tokens
+
+		def is_cvar_receiver() -> bool:
+			cvars: list[str] = [cvar.__name__ for cvar in [cpp.CP, cpp.CSP, cpp.CRef, cpp.CRaw]]
+			return len(receiver_symbol.attrs) > 0 and receiver_symbol.attrs[0].types.symbol.tokens in cvars
+
+		def is_this_var() -> bool:
+			return node.receiver.is_a(defs.ThisRef)
+
+		def is_static_access() -> bool:
+			prop_symbol_decl = prop_symbol.raw.decl
+			is_prop_static = isinstance(prop_symbol.types, (defs.Enum, defs.ClassMethod))
+			is_prop_class_var = isinstance(prop_symbol_decl, defs.AnnoAssign) and prop_symbol_decl.symbol.is_a(defs.DeclClassVar)
+			is_receiver_enum = isinstance(receiver_symbol.types, defs.Enum)
+			is_receiver_class = isinstance(node.receiver, (defs.ClassRef, defs.Super))
+			return True in [is_prop_static, is_prop_class_var, is_receiver_enum, is_receiver_class]
+
+		if is_cvar_receiver():
 			cvar_type = receiver_symbol.attrs[0].types.symbol.tokens
-			return self.view.render(node.classification, vars={'receiver': receiver, 'accessor': cvar_type, 'prop': node.prop.tokens})
-		elif node.receiver.is_a(defs.ThisRef):
-			return self.view.render(node.classification, vars={'receiver': receiver, 'accessor': 'arrow', 'prop': node.prop.tokens})
-		elif is_static_access(receiver_symbol):
-			return self.view.render(node.classification, vars={'receiver': receiver, 'accessor': 'static', 'prop': node.prop.tokens})
+			return self.view.render(node.classification, vars={'receiver': receiver, 'accessor': cvar_type, 'prop': prop})
+		elif is_this_var():
+			return self.view.render(node.classification, vars={'receiver': receiver, 'accessor': 'arrow', 'prop': prop})
+		elif is_static_access():
+			return self.view.render(node.classification, vars={'receiver': receiver, 'accessor': 'static', 'prop': prop})
 		else:
-			return self.view.render(node.classification, vars={'receiver': receiver, 'accessor': 'dot', 'prop': node.prop.tokens})
+			return self.view.render(node.classification, vars={'receiver': receiver, 'accessor': 'dot', 'prop': prop})
 
 	def on_class_ref(self, node: defs.ClassRef) -> str:
 		return node.class_symbol.tokens
@@ -293,7 +292,7 @@ class Handler(Procedure[str]):
 		return self.view.render(node.classification, vars={'calls': calls, 'arguments': arguments, 'is_statement': is_statement})
 
 	def on_super(self, node: defs.Super, calls: str, arguments: list[str]) -> str:
-		return node.parent_class_symbol.tokens
+		return node.super_class_symbol.tokens
 
 	def on_argument(self, node: defs.Argument, label: str, value: str) -> str:
 		return value

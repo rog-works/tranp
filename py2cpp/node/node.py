@@ -5,7 +5,7 @@ from py2cpp.ast.dsn import DSN
 from py2cpp.ast.path import EntryPath
 from py2cpp.ast.query import Query
 from py2cpp.errors import LogicError, NotFoundError
-from py2cpp.lang.implementation import deprecated, injectable
+from py2cpp.lang.implementation import deprecated, injectable, override
 from py2cpp.lang.sequence import flatten
 from py2cpp.lang.string import snakelize
 from py2cpp.module.types import ModulePath
@@ -38,9 +38,31 @@ class Node:
 		self.__module_path = module_path
 		self._full_path = EntryPath(full_path)
 
+	@override
 	def __str__(self) -> str:
-		"""str: オブジェクトの文字列表現を取得"""
+		"""str: オブジェクトの文字列表現"""
 		return f'<{self.__class__.__name__}: {self.fullyname}>'
+
+	@override
+	def __repr__(self) -> str:
+		"""str: オブジェクトのシリアライズ表現"""
+		return f'<{self.__class__.__name__}: {self.full_path}>'
+
+	@override
+	def __eq__(self, other: Any) -> bool:
+		"""比較演算子のオーバーロード
+
+		Args:
+			other (Any): 比較対象
+		Returns:
+			bool: True = 同じ
+		Raises:
+			ValueError: Node以外のオブジェクトを指定
+		"""
+		if not isinstance(other, Node):
+			raise ValueError(f'Not allowed comparison. other: {type(other)}')
+
+		return self.__repr__() == other.__repr__()
 
 	@property
 	def module_path(self) -> str:
@@ -481,7 +503,10 @@ class Node:
 			T_Node: プロキシノード
 		Note:
 			XXX シンボルエイリアスにのみ使う想定。ダーティーな実装のため濫用は厳禁
+			XXX classificationのみ固定で擬態クラスを模倣して上書き
 		"""
+		overrides = {**overrides, 'classification': snakelize(self.__class__.__name__)}
+
 		class Proxy(self.__class__):
 			def __getattribute__(self, __name: str) -> Any:
 				if __name in overrides:
@@ -510,7 +535,7 @@ class Node:
 				if len(self._children()) == 2:
 					return self._at(1)
 
-				return self.dirty_child(Empty, '__empty__', tokens='', classification=snakelize(Empty))
+				return self.dirty_child(Empty, '__empty__', tokens='')
 			```
 		"""
 		child = ctor(self.__nodes, self.__module_path, self._full_path.joined(entry_tag))

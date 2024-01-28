@@ -25,6 +25,7 @@ class B(A):
 		print(b[0].v)
 		B.B2.v = 'b.b2.v'
 		self.x.nx = 2
+		v2 = self.v.pop()
 		return self.s
 
 	def func2(self) -> int:

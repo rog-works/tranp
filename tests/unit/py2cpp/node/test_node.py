@@ -23,6 +23,25 @@ class TestNode(TestCase):
 		self.assertEqual(str(node), expected)
 
 	@data_provider([
+		('...', 'file_input', '<Entrypoint: file_input>'),
+		('class A: ...', 'file_input.class_def', '<Class: file_input.class_def>'),
+		('def func() -> None: ...', 'file_input.function_def', '<Function: file_input.function_def>'),
+	])
+	def test___repr__(self, source: str, full_path: str, expected: str) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path)
+		self.assertEqual(node.__repr__(), expected)
+
+	@data_provider([
+		('...', 'file_input', 'file_input', True),
+		('class A: ...', 'file_input.class_def', 'file_input.class_def', True),
+		('class A: ...', 'file_input', 'file_input.class_def', False),
+	])
+	def test___eq__(self, source: str, full_path_a: str, full_path_b: str, expected: bool) -> None:
+		node_a = self.fixture.custom_nodes(source).by(full_path_a)
+		node_b = self.fixture.custom_nodes(source).by(full_path_b)
+		self.assertEqual(node_a == node_b, expected)
+
+	@data_provider([
 		('...', 'file_input', '__main__'),
 		('class A: ...', 'file_input.class_def', '__main__'),
 		('def func() -> None: ...', 'file_input.function_def', '__main__'),
@@ -131,7 +150,7 @@ class TestNode(TestCase):
 		self.assertEqual(node.can_expand, expected)
 
 	@data_provider([
-		# ClassKind
+		# ClassDef
 		('def func() -> None: ...', 'file_input.function_def', defs.Function, 'func', '__main__.func'),
 		('class A:\n\t@classmethod\n\tdef c_method(cls) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def', defs.ClassMethod, 'c_method', '__main__.A.c_method'),
 		('class A:\n\tdef __init__(self) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def', defs.Constructor, '__init__', '__main__.A.__init__'),
@@ -140,13 +159,13 @@ class TestNode(TestCase):
 		('class A: ...', 'file_input.class_def', defs.Class, 'A', '__main__.A'),
 		('class E(CEnum): ...', 'file_input.enum_def', defs.Enum, 'E', '__main__.E'),
 		# Declable
-		('class A:\n\ta: int = 0', 'file_input.class_def.class_def_raw.block.assign_stmt.anno_assign.var', defs.DeclClassVar, 'a', '__main__.A.a'),
-		('class A:\n\tdef __init__(self) -> None:\n\t\tself.a: int = 0', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.assign_stmt.anno_assign.getattr', defs.DeclThisVar, 'a', '__main__.A.a'),
+		('class A:\n\ta: int = 0', 'file_input.class_def.class_def_raw.block.anno_assign.var', defs.DeclClassVar, 'a', '__main__.A.a'),
+		('class A:\n\tdef __init__(self) -> None:\n\t\tself.a: int = 0', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.anno_assign.getattr', defs.DeclThisVar, 'a', '__main__.A.a'),
 		('class A:\n\t@classmethod\n\tdef c_method(cls) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.DeclClassParam, 'cls', '__main__.A.c_method.cls'),
 		('class A:\n\tdef method(self) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.DeclThisParam, 'self', '__main__.A.method.self'),
 		('for i in range(1): ...', 'file_input.for_stmt.name', defs.DeclLocalVar, 'i', '__main__.i'),
 		('try:\n\ta\nexcept Exception as e: ...', 'file_input.try_stmt.except_clauses.except_clause.name', defs.DeclLocalVar, 'e', '__main__.e'),
-		('a = 0', 'file_input.assign_stmt.assign.var', defs.DeclLocalVar, 'a', '__main__.a'),
+		('a = 0', 'file_input.assign.var', defs.DeclLocalVar, 'a', '__main__.a'),
 		('class A: ...', 'file_input.class_def.class_def_raw.name', defs.TypesName, 'A', '__main__.A.A'),
 		('from a.b.c import A', 'file_input.import_stmt.import_names.name', defs.ImportName, 'A', '__main__.A'),
 		# Reference
@@ -156,12 +175,12 @@ class TestNode(TestCase):
 		('class A:\n\tdef method(self) -> None:\n\t\tprint(self)', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.funccall.arguments.argvalue.var', defs.ThisRef, 'self', '__main__.A.method.self'),
 		('a', 'file_input.var', defs.Variable, 'a', '__main__.a'),
 		# Type
-		('a: int = 0', 'file_input.assign_stmt.anno_assign.typed_var', defs.GeneralType, 'int', '__main__.int'),
-		('if True:\n\ta: int = 0', 'file_input.if_stmt.block.assign_stmt.anno_assign.typed_var', defs.GeneralType, 'int', '__main__.if_stmt.int'),
-		('a: list[int] = []', 'file_input.assign_stmt.anno_assign.typed_getitem', defs.ListType, 'list', '__main__.list'),
-		('a: dict[str, int] = {}', 'file_input.assign_stmt.anno_assign.typed_getitem', defs.DictType, 'dict', '__main__.dict'),
-		('a: Callable[[int], None] = {}', 'file_input.assign_stmt.anno_assign.typed_getitem', defs.CallableType, 'Callable', '__main__.Callable'),
-		('a: int | str = 0', 'file_input.assign_stmt.anno_assign.typed_or_expr', defs.UnionType, 'Union', '__main__.Union'),
+		('a: int = 0', 'file_input.anno_assign.typed_var', defs.GeneralType, 'int', '__main__.int'),
+		('if True:\n\ta: int = 0', 'file_input.if_stmt.block.anno_assign.typed_var', defs.GeneralType, 'int', '__main__.if_stmt.int'),
+		('a: list[int] = []', 'file_input.anno_assign.typed_getitem', defs.ListType, 'list', '__main__.list'),
+		('a: dict[str, int] = {}', 'file_input.anno_assign.typed_getitem', defs.DictType, 'dict', '__main__.dict'),
+		('a: Callable[[int], None] = {}', 'file_input.anno_assign.typed_getitem', defs.CallableType, 'Callable', '__main__.Callable'),
+		('a: int | str = 0', 'file_input.anno_assign.typed_or_expr', defs.UnionType, 'Union', '__main__.Union'),
 		('def func() -> None: ...', 'file_input.function_def.function_def_raw.return_type.typed_none', defs.NullType, 'None', '__main__.func.None'),
 		# Literal
 		('1', 'file_input.number', defs.Integer, 'int', '__main__.int'),
@@ -185,12 +204,12 @@ class TestNode(TestCase):
 			'file_input.class_def.class_def_raw.name',
 			'file_input.class_def.class_def_raw.block.enum_def',
 			'file_input.class_def.class_def_raw.block.enum_def.name',
-			'file_input.class_def.class_def_raw.block.enum_def.block.assign_stmt[0]',
-			'file_input.class_def.class_def_raw.block.enum_def.block.assign_stmt[0].assign.var',
-			'file_input.class_def.class_def_raw.block.enum_def.block.assign_stmt[0].assign.number',
-			'file_input.class_def.class_def_raw.block.enum_def.block.assign_stmt[1]',
-			'file_input.class_def.class_def_raw.block.enum_def.block.assign_stmt[1].assign.var',
-			'file_input.class_def.class_def_raw.block.enum_def.block.assign_stmt[1].assign.number',
+			'file_input.class_def.class_def_raw.block.enum_def.block.assign[0]',
+			'file_input.class_def.class_def_raw.block.enum_def.block.assign[0].var',
+			'file_input.class_def.class_def_raw.block.enum_def.block.assign[0].number',
+			'file_input.class_def.class_def_raw.block.enum_def.block.assign[1]',
+			'file_input.class_def.class_def_raw.block.enum_def.block.assign[1].var',
+			'file_input.class_def.class_def_raw.block.enum_def.block.assign[1].number',
 			'file_input.class_def.class_def_raw.block.function_def[1]',
 			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.name',
 			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.parameters.paramvalue',
@@ -223,12 +242,12 @@ class TestNode(TestCase):
 		('file_input.class_def', [
 			'file_input.class_def.class_def_raw.name',
 			'file_input.class_def.class_def_raw.block.enum_def.name',
-			'file_input.class_def.class_def_raw.block.enum_def.block.assign_stmt[0].assign.var',
-			'file_input.class_def.class_def_raw.block.enum_def.block.assign_stmt[0].assign.number',
-			'file_input.class_def.class_def_raw.block.enum_def.block.assign_stmt[0]',
-			'file_input.class_def.class_def_raw.block.enum_def.block.assign_stmt[1].assign.var',
-			'file_input.class_def.class_def_raw.block.enum_def.block.assign_stmt[1].assign.number',
-			'file_input.class_def.class_def_raw.block.enum_def.block.assign_stmt[1]',
+			'file_input.class_def.class_def_raw.block.enum_def.block.assign[0].var',
+			'file_input.class_def.class_def_raw.block.enum_def.block.assign[0].number',
+			'file_input.class_def.class_def_raw.block.enum_def.block.assign[0]',
+			'file_input.class_def.class_def_raw.block.enum_def.block.assign[1].var',
+			'file_input.class_def.class_def_raw.block.enum_def.block.assign[1].number',
+			'file_input.class_def.class_def_raw.block.enum_def.block.assign[1]',
 			'file_input.class_def.class_def_raw.block.enum_def',
 			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.name',
 			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.parameters.paramvalue.typedparam.name',
@@ -264,13 +283,13 @@ class TestNode(TestCase):
 		self.assertEqual(node.is_a(defs.ClassMethod), False)
 		self.assertEqual(node.is_a(defs.Method), True)
 		self.assertEqual(node.is_a(defs.Class), False)
-		self.assertEqual(node.is_a(defs.ClassKind), True)
+		self.assertEqual(node.is_a(defs.ClassDef), True)
 
 	def test_as_a(self) -> None:
 		node = self.fixture.shared_nodes.by('file_input.class_def.class_def_raw.block.function_def[1]')
 		self.assertEqual(type(node), defs.Method)
 		self.assertEqual(type(node.as_a(defs.Function)), defs.Method)
-		self.assertEqual(type(node.as_a(defs.ClassKind)), defs.Method)
+		self.assertEqual(type(node.as_a(defs.ClassDef)), defs.Method)
 
 	def test_one_of(self) -> None:
 		node = self.fixture.shared_nodes.by('file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.parameters.paramvalue.typedparam.__empty__')
@@ -306,7 +325,7 @@ class TestNode(TestCase):
 		self.assertEqual(type(node.actualize()), NodeB)
 
 	def test_dirty_proxify(self) -> None:
-		node = self.fixture.shared_nodes.by('file_input.class_def.class_def_raw.block.enum_def.block.assign_stmt[0].assign.number')
+		node = self.fixture.shared_nodes.by('file_input.class_def.class_def_raw.block.enum_def.block.assign[0].number')
 		proxy = node.dirty_proxify(tokens='10')
 		self.assertEqual(isinstance(node, defs.Number), True)
 		self.assertEqual(isinstance(proxy, defs.Number), True)
@@ -329,7 +348,7 @@ class A:
 				'  +-<Class: __main__.A>',
 				'    +-symbol: <TypesName: __main__.A.A>',
 				'    +-decorators:',
-				'    +-parents:',
+				'    +-inherits:',
 				'    +-statements:',
 				'      +-<Constructor: __main__.A.__init__>',
 				'        +-symbol: <TypesName: __main__.A.__init__.__init__>',
@@ -345,7 +364,7 @@ class A:
 				'        |   +-default_value: <Empty: __main__.A.__init__.__empty__>',
 				'        +-return_type: <NullType: __main__.A.__init__.None>',
 				'        +-statements:',
-				'          +-<AnnoAssign: __main__.A.__init__.assign_stmt>',
+				'          +-<AnnoAssign: __main__.A.__init__.anno_assign>',
 				'          | +-receiver: <DeclThisVar: __main__.A.n>',
 				'          | +-var_type: <DictType: __main__.A.__init__.dict>',
 				'          | | +-type_name: <GeneralType: __main__.A.__init__.dict>',
@@ -359,7 +378,7 @@ class A:
 				'          +-<If: __main__.A.__init__.if_stmt>',
 				'            +-condition: <Truthy: __main__.A.__init__.bool>',
 				'            +-statements:',
-				'            | +-<MoveAssign: __main__.A.__init__.if_stmt.assign_stmt>',
+				'            | +-<MoveAssign: __main__.A.__init__.if_stmt.assign>',
 				'            | | +-receiver: <DeclLocalVar: __main__.A.__init__.if_stmt.n>',
 				'            | | +-value: <Integer: __main__.A.__init__.if_stmt.int>',
 				'            | +-<FuncCall: __main__.A.__init__.if_stmt.funccall>',

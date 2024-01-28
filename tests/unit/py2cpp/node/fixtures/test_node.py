@@ -1,3 +1,5 @@
+from py2cpp.compatible.cpp.enum import CEnum
+
 class A:
 	class E(CEnum):
 		A = 1

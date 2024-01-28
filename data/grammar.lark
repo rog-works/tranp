@@ -137,10 +137,13 @@ except_clause: "except" typed_expression ["as" name] ":" block
 // @lark assign: test ("=" test)+
 // @lark annassign: testlist_star_expr ":" test ["=" test]
 // @lark augassign: testlist_star_expr augassign_op (yield_expr | testlist)
-assign_stmt: assign | anno_assign | aug_assign
+?assign_stmt: assign | anno_assign | aug_assign | class_assign | template_assign
 assign: expression ("=" expression)+
 anno_assign: expression ":" typed_expression ["=" expression]
 aug_assign: expression aug_assign_op expression
+// @custom
+class_assign: expression ":" "TypeAlias" "=" typed_expression
+template_assign: expression "=" "TypeVar" "(" string ["," "bound" "=" (typed_expression | "'" typed_expression "'")] ")"
 
 !aug_assign_op: "+=" | "-=" | "*=" | "@=" | "/=" | "%=" | "&=" | "|=" | "^=" | "<<=" | ">>=" | "**=" | "//="
 

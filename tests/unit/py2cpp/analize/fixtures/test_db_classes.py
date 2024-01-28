@@ -1,7 +1,7 @@
-from typing import Any, Iterator, Sequence
+from typing import Any, Generic, Iterator, Sequence
 
 from py2cpp.compatible.python.embed import __actual__
-
+from py2cpp.compatible.python.template import T_Seq
 
 # Primitive
 
@@ -18,7 +18,10 @@ class Tuple: ...
 @__actual__('pair_')
 class Pair: ...
 @__actual__('list')
-class List: ...
+class List(Generic[T_Seq]):
+	def append(self, elem: T_Seq) -> None: ...
+	def pop(self, index: int = 0) -> T_Seq: ...
+
 @__actual__('dict')
 class Dict: ...
 @__actual__('None')

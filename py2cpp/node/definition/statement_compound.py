@@ -1,12 +1,12 @@
 import re
-from typing import cast
+from typing import Generic, cast
 
 from py2cpp.compatible.python.embed import __actual__, __alias__
 from py2cpp.lang.implementation import implements, override
 from py2cpp.lang.sequence import last_index_of
 from py2cpp.node.definition.element import Decorator, Parameter
 from py2cpp.node.definition.literal import String
-from py2cpp.node.definition.primary import DeclBlockVar, DeclClassVar, Declable, GenericType, InheritArgument, DeclThisParam, DeclThisVar, Type
+from py2cpp.node.definition.primary import CustomType, DeclBlockVar, DeclClassVar, Declable, InheritArgument, DeclThisParam, DeclThisVar, Type, TypesName
 from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
@@ -186,7 +186,7 @@ class Try(Flow):
 		return [self.block, *[catch.block for catch in self.catches]]
 
 
-class ClassKind(Node, IDomain, IScope, IDeclare):
+class ClassDef(Node, IDomain, IScope, IDeclare):
 	@property
 	@override
 	def domain_name(self) -> str:
@@ -244,9 +244,11 @@ class ClassKind(Node, IDomain, IScope, IDeclare):
 		"""Note: XXX 未使用"""
 		return []
 
+	@property
 	def actual_symbol(self) -> str | None:
 		return self._attr_symbol(__actual__.__name__)
 
+	@property
 	def alias_symbol(self) -> str | None:
 		return self._attr_symbol(__alias__.__name__)
 
@@ -275,13 +277,13 @@ class ClassKind(Node, IDomain, IScope, IDeclare):
 
 
 @Meta.embed(Node, accept_tags('function_def'))
-class Function(ClassKind):
+class Function(ClassDef):
 	@property
 	@override
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Declable:
 		symbol = self._by('function_def_raw.name').as_a(Declable)
-		alias = self.actual_symbol()
+		alias = self.actual_symbol
 		return symbol if not alias else symbol.dirty_proxify(tokens=alias).as_a(Declable)
 
 	@property
@@ -329,7 +331,7 @@ class ClassMethod(Function):
 
 	@property
 	def class_symbol(self) -> Declable:
-		return self.parent.as_a(Block).parent.as_a(ClassKind).symbol
+		return self.parent.as_a(Block).parent.as_a(ClassDef).symbol
 
 
 @Meta.embed(Node, actualized(via=Function))
@@ -341,7 +343,7 @@ class Constructor(Function):
 
 	@property
 	def class_symbol(self) -> Declable:
-		return self.parent.as_a(Block).parent.as_a(ClassKind).symbol
+		return self.parent.as_a(Block).parent.as_a(ClassDef).symbol
 
 	@property
 	def this_vars(self) -> list[AnnoAssign]:
@@ -361,7 +363,7 @@ class Method(Function):
 
 	@property
 	def class_symbol(self) -> Declable:
-		return self.parent.as_a(Block).parent.as_a(ClassKind).symbol
+		return self.parent.as_a(Block).parent.as_a(ClassDef).symbol
 
 
 @Meta.embed(Node, actualized(via=Function))
@@ -392,7 +394,7 @@ class Closure(Function):
 
 
 @Meta.embed(Node, accept_tags('class_def'))
-class Class(ClassKind):
+class Class(ClassDef):
 	@property
 	@override
 	def namespace_part(self) -> str:
@@ -403,7 +405,7 @@ class Class(ClassKind):
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Declable:
 		symbol = self._by('class_def_raw.name').as_a(Declable)
-		alias = self.actual_symbol()
+		alias = self.actual_symbol
 		return symbol if not alias else symbol.dirty_proxify(tokens=alias).as_a(Declable)
 
 	@property
@@ -414,11 +416,9 @@ class Class(ClassKind):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def parents(self) -> list[Type]:
-		if not self._exists('class_def_raw.typed_arguments'):
-			return []
-
-		return [node.as_a(InheritArgument).class_type for node in self._children('class_def_raw.typed_arguments')]
+	def inherits(self) -> list[Type]:
+		"""Note: XXX Genericは継承チェーンを考慮する必要がないため除外する"""
+		return [inherit for inherit in self.__org_inherits if inherit.type_name.tokens != Generic.__name__]
 
 	@property
 	@override
@@ -434,9 +434,15 @@ class Class(ClassKind):
 	@property
 	@override
 	def generic_types(self) -> list[Type]:
-		"""Note: XXX 未使用"""
-		generic_parent = [parent for parent in self.parents if isinstance(parent, GenericType)]
-		return generic_parent[0].template_types if len(generic_parent) > 0 else []
+		candidates = [inherit.as_a(CustomType) for inherit in self.__org_inherits if inherit.type_name.tokens == Generic.__name__]
+		return candidates[0].template_types if len(candidates) == 1 else []
+
+	@property
+	def __org_inherits(self) -> list[Type]:
+		if not self._exists('class_def_raw.typed_arguments'):
+			return []
+
+		return [node.as_a(InheritArgument).class_type for node in self._children('class_def_raw.typed_arguments')]
 
 	@property
 	def constructor_exists(self) -> bool:
@@ -465,7 +471,7 @@ class Class(ClassKind):
 
 
 @Meta.embed(Node, accept_tags('enum_def'))
-class Enum(ClassKind):
+class Enum(ClassDef):
 	@property
 	@override
 	def namespace_part(self) -> str:
@@ -491,6 +497,47 @@ class Enum(ClassKind):
 	@property
 	def vars(self) -> list[MoveAssign]:
 		return [node.as_a(MoveAssign) for node in self.statements if node.is_a(MoveAssign)]
+
+
+@Meta.embed(Node, accept_tags('class_assign'))
+class AltClass(ClassDef):
+	@property
+	@override
+	def namespace_part(self) -> str:
+		return self.domain_name
+
+	@property
+	@override
+	@Meta.embed(Node, expandable)
+	def symbol(self) -> Declable:
+		# FIXME TypesNameのaccept_tagsと一致していない
+		return self._at(0).dirty_child(TypesName, '', class_types=self)
+
+	@property
+	@Meta.embed(Node, expandable)
+	def actual_type(self) -> Type:
+		return self._at(1).as_a(Type)
+
+
+@Meta.embed(Node, accept_tags('template_assign'))
+class TemplateClass(ClassDef):
+	@property
+	@override
+	def namespace_part(self) -> str:
+		return self.domain_name
+
+	@property
+	@override
+	@Meta.embed(Node, expandable)
+	def symbol(self) -> Declable:
+		# FIXME TypesNameのaccept_tagsと一致していない
+		return self._at(0).dirty_child(TypesName, '', class_types=self)
+
+	@property
+	@override
+	@Meta.embed(Node, expandable)
+	def constraints(self) -> Type | Empty:
+		return self._at(2).one_of(Type | Empty)
 
 
 def collect_decl_vars(block: StatementBlock, allow: type[T_Node]) -> dict[str, AnnoAssign | MoveAssign | For | Catch]:

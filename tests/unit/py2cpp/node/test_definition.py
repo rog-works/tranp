@@ -718,36 +718,36 @@ class TestDefinition(TestCase):
 		self.assertEqual(node.value.tokens, expected['value'])
 
 	@data_provider([
-		('1 or 2', 'file_input.or_test', {'type': defs.OrCompare, 'left': '1', 'operator': 'or', 'right': '2'}),
-		('1 and 2', 'file_input.and_test', {'type': defs.AndCompare, 'left': '1', 'operator': 'and', 'right': '2'}),
-		('1 < 2', 'file_input.comparison', {'type': defs.Comparison, 'left': '1', 'operator': '<', 'right': '2'}),
-		('1 > 2', 'file_input.comparison', {'type': defs.Comparison, 'left': '1', 'operator': '>', 'right': '2'}),
-		('1 == 2', 'file_input.comparison', {'type': defs.Comparison, 'left': '1', 'operator': '==', 'right': '2'}),
-		('1 >= 2', 'file_input.comparison', {'type': defs.Comparison, 'left': '1', 'operator': '>=', 'right': '2'}),
-		('1 <= 2', 'file_input.comparison', {'type': defs.Comparison, 'left': '1', 'operator': '<=', 'right': '2'}),
-		('1 <> 2', 'file_input.comparison', {'type': defs.Comparison, 'left': '1', 'operator': '<>', 'right': '2'}),
-		('1 != 2', 'file_input.comparison', {'type': defs.Comparison, 'left': '1', 'operator': '!=', 'right': '2'}),
-		('1 in 2', 'file_input.comparison', {'type': defs.Comparison, 'left': '1', 'operator': 'in', 'right': '2'}),
-		('1 not in 2', 'file_input.comparison', {'type': defs.Comparison, 'left': '1', 'operator': 'not.in', 'right': '2'}),
-		('1 is 2', 'file_input.comparison', {'type': defs.Comparison, 'left': '1', 'operator': 'is', 'right': '2'}),
-		('1 is not 2', 'file_input.comparison', {'type': defs.Comparison, 'left': '1', 'operator': 'is.not', 'right': '2'}),
-		('1 | 2', 'file_input.or_expr', {'type': defs.OrBitwise, 'left': '1', 'operator': '|', 'right': '2'}),
-		('1 ^ 2', 'file_input.xor_expr', {'type': defs.XorBitwise, 'left': '1', 'operator': '^', 'right': '2'}),
-		('1 & 2', 'file_input.and_expr', {'type': defs.AndBitwise, 'left': '1', 'operator': '&', 'right': '2'}),
-		('1 << 2', 'file_input.shift_expr', {'type': defs.ShiftBitwise, 'left': '1', 'operator': '<<', 'right': '2'}),
-		('1 >> 2', 'file_input.shift_expr', {'type': defs.ShiftBitwise, 'left': '1', 'operator': '>>', 'right': '2'}),
-		('1 + 2', 'file_input.sum', {'type': defs.Sum, 'left': '1', 'operator': '+', 'right': '2'}),
-		('1 - 2', 'file_input.sum', {'type': defs.Sum, 'left': '1', 'operator': '-', 'right': '2'}),
-		('1 * 2', 'file_input.term', {'type': defs.Term, 'left': '1', 'operator': '*', 'right': '2'}),
-		('1 / 2', 'file_input.term', {'type': defs.Term, 'left': '1', 'operator': '/', 'right': '2'}),
-		('1 % 2', 'file_input.term', {'type': defs.Term, 'left': '1', 'operator': '%', 'right': '2'}),
+		('1 or 2', 'file_input.or_test', {'type': defs.OrCompare, 'left': '1', 'operator': 'or', 'right': ['2']}),
+		('1 and 2', 'file_input.and_test', {'type': defs.AndCompare, 'left': '1', 'operator': 'and', 'right': ['2']}),
+		('1 < 2', 'file_input.comparison', {'type': defs.Comparison, 'left': '1', 'operator': '<', 'right': ['2']}),
+		('1 > 2', 'file_input.comparison', {'type': defs.Comparison, 'left': '1', 'operator': '>', 'right': ['2']}),
+		('1 == 2', 'file_input.comparison', {'type': defs.Comparison, 'left': '1', 'operator': '==', 'right': ['2']}),
+		('1 >= 2', 'file_input.comparison', {'type': defs.Comparison, 'left': '1', 'operator': '>=', 'right': ['2']}),
+		('1 <= 2', 'file_input.comparison', {'type': defs.Comparison, 'left': '1', 'operator': '<=', 'right': ['2']}),
+		('1 <> 2', 'file_input.comparison', {'type': defs.Comparison, 'left': '1', 'operator': '<>', 'right': ['2']}),
+		('1 != 2', 'file_input.comparison', {'type': defs.Comparison, 'left': '1', 'operator': '!=', 'right': ['2']}),
+		('1 in 2', 'file_input.comparison', {'type': defs.Comparison, 'left': '1', 'operator': 'in', 'right': ['2']}),
+		('1 not in 2', 'file_input.comparison', {'type': defs.Comparison, 'left': '1', 'operator': 'not.in', 'right': ['2']}),
+		('1 is 2', 'file_input.comparison', {'type': defs.Comparison, 'left': '1', 'operator': 'is', 'right': ['2']}),
+		('1 is not 2', 'file_input.comparison', {'type': defs.Comparison, 'left': '1', 'operator': 'is.not', 'right': ['2']}),
+		('1 | 2', 'file_input.or_expr', {'type': defs.OrBitwise, 'left': '1', 'operator': '|', 'right': ['2']}),
+		('1 ^ 2', 'file_input.xor_expr', {'type': defs.XorBitwise, 'left': '1', 'operator': '^', 'right': ['2']}),
+		('1 & 2', 'file_input.and_expr', {'type': defs.AndBitwise, 'left': '1', 'operator': '&', 'right': ['2']}),
+		('1 << 2', 'file_input.shift_expr', {'type': defs.ShiftBitwise, 'left': '1', 'operator': '<<', 'right': ['2']}),
+		('1 >> 2', 'file_input.shift_expr', {'type': defs.ShiftBitwise, 'left': '1', 'operator': '>>', 'right': ['2']}),
+		('1 + 2', 'file_input.sum', {'type': defs.Sum, 'left': '1', 'operator': '+', 'right': ['2']}),
+		('1 - 2', 'file_input.sum', {'type': defs.Sum, 'left': '1', 'operator': '-', 'right': ['2']}),
+		('1 * 2', 'file_input.term', {'type': defs.Term, 'left': '1', 'operator': '*', 'right': ['2']}),
+		('1 / 2', 'file_input.term', {'type': defs.Term, 'left': '1', 'operator': '/', 'right': ['2']}),
+		('1 % 2', 'file_input.term', {'type': defs.Term, 'left': '1', 'operator': '%', 'right': ['2']}),
 	])
 	def test_binary_operator(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.BinaryOperator)
 		self.assertEqual(type(node), expected['type'])
 		self.assertEqual(node.left.tokens, expected['left'])
 		self.assertEqual(node.operator.tokens, expected['operator'])
-		self.assertEqual(node.right.tokens, expected['right'])
+		self.assertEqual([r.tokens for r in node.right], expected['right'])
 
 	# Literal
 

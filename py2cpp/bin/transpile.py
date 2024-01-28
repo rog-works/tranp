@@ -308,35 +308,36 @@ class Handler(Procedure[str]):
 	def on_not_compare(self, node: defs.NotCompare, operator: str, value: str) -> str:
 		return f'!{value}'
 
-	def on_or_compare(self, node: defs.OrCompare, left: str, operator: str, right: str) -> str:
+	def on_or_compare(self, node: defs.OrCompare, left: str, operator: str, right: list[str]) -> str:
 		return self.on_binary_operator(node, left, '||', right)
 
-	def on_and_compare(self, node: defs.AndCompare, left: str, operator: str, right: str) -> str:
+	def on_and_compare(self, node: defs.AndCompare, left: str, operator: str, right: list[str]) -> str:
 		return self.on_binary_operator(node, left, '&&', right)
 
-	def on_comparison(self, node: defs.Comparison, left: str, operator: str, right: str) -> str:
+	def on_comparison(self, node: defs.Comparison, left: str, operator: str, right: list[str]) -> str:
 		return self.on_binary_operator(node, left, operator, right)
 
-	def on_or_bitwise(self, node: defs.OrBitwise, left: str, operator: str, right: str) -> str:
+	def on_or_bitwise(self, node: defs.OrBitwise, left: str, operator: str, right: list[str]) -> str:
 		return self.on_binary_operator(node, left, operator, right)
 
-	def on_xor_bitwise(self, node: defs.XorBitwise, left: str, operator: str, right: str) -> str:
+	def on_xor_bitwise(self, node: defs.XorBitwise, left: str, operator: str, right: list[str]) -> str:
 		return self.on_binary_operator(node, left, operator, right)
 
-	def on_and_bitwise(self, node: defs.AndBitwise, left: str, operator: str, right: str) -> str:
+	def on_and_bitwise(self, node: defs.AndBitwise, left: str, operator: str, right: list[str]) -> str:
 		return self.on_binary_operator(node, left, operator, right)
 
-	def on_shift_bitwise(self, node: defs.ShiftBitwise, left: str, operator: str, right: str) -> str:
+	def on_shift_bitwise(self, node: defs.ShiftBitwise, left: str, operator: str, right: list[str]) -> str:
 		return self.on_binary_operator(node, left, operator, right)
 
-	def on_sum(self, node: defs.Sum, left: str, operator: str, right: str) -> str:
+	def on_sum(self, node: defs.Sum, left: str, operator: str, right: list[str]) -> str:
 		return self.on_binary_operator(node, left, operator, right)
 
-	def on_term(self, node: defs.Term, left: str, operator: str, right: str) -> str:
+	def on_term(self, node: defs.Term, left: str, operator: str, right: list[str]) -> str:
 		return self.on_binary_operator(node, left, operator, right)
 
-	def on_binary_operator(self, node: defs.BinaryOperator, left: str, operator: str, right: str) -> str:
-		return f'{left} {operator} {right}'
+	def on_binary_operator(self, node: defs.BinaryOperator, left: str, operator: str, right: list[str]) -> str:
+		joined_right = f' {operator} '.join(right)
+		return f'{left} {operator} {joined_right}'
 
 	# Literal
 

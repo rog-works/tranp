@@ -34,8 +34,8 @@ class BinaryOperator(Node):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def right(self) -> Node:
-		return self._at(2)
+	def right(self) -> list[Node]:
+		return self._children()[2:]
 
 
 @Meta.embed(Node, accept_tags('factor'))

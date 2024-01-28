@@ -422,6 +422,13 @@ class Class(ClassDef):
 	@property
 	@override
 	@Meta.embed(Node, expandable)
+	def generic_types(self) -> list[Type]:
+		candidates = [inherit.as_a(CustomType) for inherit in self.__org_inherits if inherit.type_name.tokens == Generic.__name__]
+		return candidates[0].template_types if len(candidates) == 1 else []
+
+	@property
+	@override
+	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:
 		return self.block.statements
 
@@ -429,12 +436,6 @@ class Class(ClassDef):
 	@override
 	def block(self) -> Block:
 		return self._by('class_def_raw.block').as_a(Block)
-
-	@property
-	@override
-	def generic_types(self) -> list[Type]:
-		candidates = [inherit.as_a(CustomType) for inherit in self.__org_inherits if inherit.type_name.tokens == Generic.__name__]
-		return candidates[0].template_types if len(candidates) == 1 else []
 
 	@property
 	def __org_inherits(self) -> list[Type]:

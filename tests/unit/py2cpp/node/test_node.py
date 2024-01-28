@@ -349,6 +349,7 @@ class A:
 				'    +-symbol: <TypesName: __main__.A.A>',
 				'    +-decorators:',
 				'    +-inherits:',
+				'    +-generic_types:',
 				'    +-statements:',
 				'      +-<Constructor: __main__.A.__init__>',
 				'        +-symbol: <TypesName: __main__.A.__init__.__init__>',

@@ -244,9 +244,11 @@ class ClassDef(Node, IDomain, IScope, IDeclare):
 		"""Note: XXX 未使用"""
 		return []
 
+	@property
 	def actual_symbol(self) -> str | None:
 		return self._attr_symbol(__actual__.__name__)
 
+	@property
 	def alias_symbol(self) -> str | None:
 		return self._attr_symbol(__alias__.__name__)
 
@@ -281,7 +283,7 @@ class Function(ClassDef):
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Declable:
 		symbol = self._by('function_def_raw.name').as_a(Declable)
-		alias = self.actual_symbol()
+		alias = self.actual_symbol
 		return symbol if not alias else symbol.dirty_proxify(tokens=alias).as_a(Declable)
 
 	@property
@@ -403,7 +405,7 @@ class Class(ClassDef):
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Declable:
 		symbol = self._by('class_def_raw.name').as_a(Declable)
-		alias = self.actual_symbol()
+		alias = self.actual_symbol
 		return symbol if not alias else symbol.dirty_proxify(tokens=alias).as_a(Declable)
 
 	@property

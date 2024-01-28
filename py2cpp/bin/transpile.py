@@ -215,41 +215,40 @@ class Handler(Procedure[str]):
 		return node.tokens
 
 	def on_types_name(self, node: defs.TypesName) -> str:
-		return node.class_types.as_a(defs.ClassDef).alias_symbol() or node.tokens
+		return node.class_types.as_a(defs.ClassDef).alias_symbol or node.tokens
 
 	def on_import_name(self, node: defs.ImportName) -> str:
 		return node.tokens
 
 	def on_relay(self, node: defs.Relay, receiver: str) -> str:
-		def is_static_access(receiver_symbol: Symbol) -> bool:
-			if isinstance(receiver_symbol.types, defs.Enum):
-				return True
-			elif isinstance(node.receiver, defs.ClassRef):
-				return True
-			elif isinstance(node.receiver, defs.Super):
-				return True
-
-			prop_symbol = self.symbols.type_of_property(receiver_symbol.types, node.prop)
-			prop_symbol_decl = prop_symbol.raw.decl
-			if isinstance(prop_symbol.types, (defs.Enum, defs.ClassMethod)):
-				return True
-			elif isinstance(prop_symbol_decl, defs.AnnoAssign) and prop_symbol_decl.symbol.is_a(defs.DeclClassVar):
-				return True
-
-			return False
-
-		cvars: list[str] = [cvar.__name__ for cvar in [cpp.CP, cpp.CSP, cpp.CRef, cpp.CRaw]]
 		receiver_symbol = self.symbols.type_of(node.receiver)
-		is_cvar_receiver = len(receiver_symbol.attrs) > 0 and receiver_symbol.attrs[0].types.symbol.tokens in cvars
-		if is_cvar_receiver:
+		prop_symbol = self.symbols.type_of_property(receiver_symbol.types, node.prop)
+		prop = prop_symbol.types.alias_symbol or node.prop.tokens
+
+		def is_cvar_receiver() -> bool:
+			cvars: list[str] = [cvar.__name__ for cvar in [cpp.CP, cpp.CSP, cpp.CRef, cpp.CRaw]]
+			return len(receiver_symbol.attrs) > 0 and receiver_symbol.attrs[0].types.symbol.tokens in cvars
+
+		def is_this_var() -> bool:
+			return node.receiver.is_a(defs.ThisRef)
+
+		def is_static_access() -> bool:
+			prop_symbol_decl = prop_symbol.raw.decl
+			is_prop_static = isinstance(prop_symbol.types, (defs.Enum, defs.ClassMethod))
+			is_prop_class_var = isinstance(prop_symbol_decl, defs.AnnoAssign) and prop_symbol_decl.symbol.is_a(defs.DeclClassVar)
+			is_receiver_enum = isinstance(receiver_symbol.types, defs.Enum)
+			is_receiver_class = isinstance(node.receiver, (defs.ClassRef, defs.Super))
+			return True in [is_prop_static, is_prop_class_var, is_receiver_enum, is_receiver_class]
+
+		if is_cvar_receiver():
 			cvar_type = receiver_symbol.attrs[0].types.symbol.tokens
-			return self.view.render(node.classification, vars={'receiver': receiver, 'accessor': cvar_type, 'prop': node.prop.tokens})
-		elif node.receiver.is_a(defs.ThisRef):
-			return self.view.render(node.classification, vars={'receiver': receiver, 'accessor': 'arrow', 'prop': node.prop.tokens})
-		elif is_static_access(receiver_symbol):
-			return self.view.render(node.classification, vars={'receiver': receiver, 'accessor': 'static', 'prop': node.prop.tokens})
+			return self.view.render(node.classification, vars={'receiver': receiver, 'accessor': cvar_type, 'prop': prop})
+		elif is_this_var():
+			return self.view.render(node.classification, vars={'receiver': receiver, 'accessor': 'arrow', 'prop': prop})
+		elif is_static_access():
+			return self.view.render(node.classification, vars={'receiver': receiver, 'accessor': 'static', 'prop': prop})
 		else:
-			return self.view.render(node.classification, vars={'receiver': receiver, 'accessor': 'dot', 'prop': node.prop.tokens})
+			return self.view.render(node.classification, vars={'receiver': receiver, 'accessor': 'dot', 'prop': prop})
 
 	def on_class_ref(self, node: defs.ClassRef) -> str:
 		return node.class_symbol.tokens

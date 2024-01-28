@@ -252,8 +252,8 @@ class TestDefinition(TestCase):
 			self.assertEqual(decl_var.symbol.tokens, in_expected['symbol'])
 			self.assertEqual(type(decl_var), in_expected['decl_type'])
 
-		self.assertEqual(node.actual_symbol(), expected['actual_symbol'])
-		self.assertEqual(node.alias_symbol(), expected['alias_symbol'])
+		self.assertEqual(node.actual_symbol, expected['actual_symbol'])
+		self.assertEqual(node.alias_symbol, expected['alias_symbol'])
 
 		if isinstance(node, (defs.ClassMethod, defs.Constructor, defs.Method)):
 			self.assertEqual(node.class_symbol.tokens, expected['class_symbol'])
@@ -315,8 +315,8 @@ class TestDefinition(TestCase):
 		self.assertEqual([method.symbol.tokens for method in node.methods], expected['methods'])
 		self.assertEqual([var.receiver.tokens for var in node.class_vars], expected['class_vars'])
 		self.assertEqual([var.receiver.tokens for var in node.this_vars], expected['this_vars'])
-		self.assertEqual(node.actual_symbol(), expected['actual_symbol'])
-		self.assertEqual(node.alias_symbol(), expected['alias_symbol'])
+		self.assertEqual(node.actual_symbol, expected['actual_symbol'])
+		self.assertEqual(node.alias_symbol, expected['alias_symbol'])
 
 	@data_provider([
 		('class A(Generic[T]): ...', 'file_input.class_def', {'generic_types': [defs.GeneralType]}),

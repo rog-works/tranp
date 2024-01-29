@@ -122,6 +122,25 @@ def task_help() -> None:
 
 
 def task_ast(org_parser: SyntaxParser, cache: CacheProvider) -> None:
+	def make_result() -> tuple[str, str]:
+		def new_parser(module_path: str) -> Entry:
+			return root if module_path == '__main__' else org_parser(module_path)
+
+		lark = cast(SyntaxParserOfLark, org_parser).dirty_get_origin()
+		root = EntryOfLark(lark.parse(f'{"\n".join(lines)}\n'))
+		new_difinitions = {fullyname(SyntaxParser): lambda: new_parser}
+		org_definitions = {fullyname(CacheProvider): lambda: cache}
+		app = App({**org_definitions, **new_difinitions})
+
+		db = app.resolve(SymbolDB)
+		symbols = app.resolve(Symbols)
+
+		main_raws = {key: raw for key, raw in db.raws.items() if raw.decl.module_path == '__main__'}
+		main_symbols = {key: str(symbols.from_fullyname(key)) for key, _ in main_raws.items()}
+		found_symbols = '\n'.join([f'{key}: {symbol_type}' for key, symbol_type in main_symbols.items()])
+		node = app.resolve(Query[Node]).by('file_input')
+		return (found_symbols, node.pretty())
+
 	while True:
 		title = '\n'.join([
 			'==============',
@@ -137,26 +156,20 @@ def task_ast(org_parser: SyntaxParser, cache: CacheProvider) -> None:
 
 			lines.append(line)
 
-		def new_parser(module_path: str) -> Entry:
-			return root if module_path == '__main__' else org_parser(module_path)
+		symbols, ast = make_result()
 
-		lark = cast(SyntaxParserOfLark, org_parser).dirty_get_origin()
-		root = EntryOfLark(lark.parse(f'{"\n".join(lines)}\n'))
-		new_difinitions = {fullyname(SyntaxParser): lambda: new_parser}
-		org_definitions = {fullyname(CacheProvider): lambda: cache}
-		app = App({**org_definitions, **new_difinitions})
-		node = app.resolve(Query[Node]).by('file_input')
-		db = app.resolve(SymbolDB)
-
-		print('==============')
-		print('Symbol DB')
-		print('--------------')
-		print('\n'.join([f'{key}: {raw.org_path}' for key, raw in db.raws.items() if raw.decl.module_path == '__main__']))
-		print('==============')
-		print('AST')
-		print('--------------')
-		print(node.pretty())
-		print('--------------')
+		lines = [
+			'==============',
+			'Symbols',
+			'--------------',
+			symbols,
+			'==============',
+			'AST',
+			'--------------',
+			ast,
+			'--------------',
+		]
+		print('\n'.join(lines))
 
 		if readline('(e)xit?:') == 'e':
 			break
@@ -205,4 +218,6 @@ if __name__ == '__main__':
 			fullyname(ModulePath): make_module_path,
 		}).run(task_menu)
 	except KeyboardInterrupt:
+		pass
+	finally:
 		print('Quit')

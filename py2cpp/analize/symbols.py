@@ -1,72 +1,16 @@
 from typing import TypeAlias
 
-from py2cpp.analize.db import SymbolDB, SymbolRaw
+from py2cpp.analize.db import SymbolDB
+from py2cpp.analize.symbol import Symbol, SymbolRaw
 from py2cpp.analize.procedure import Procedure
 from py2cpp.ast.dsn import DSN
 from py2cpp.errors import LogicError, NotFoundError
-from py2cpp.lang.implementation import injectable, override
+from py2cpp.lang.implementation import injectable
 from py2cpp.module.types import ModulePath
 import py2cpp.node.definition as defs
 from py2cpp.node.node import Node
 
 Primitives: TypeAlias = int | str | bool | tuple | list | dict
-
-
-class Symbol:
-	"""シンボル"""
-
-	def __init__(self, raw: SymbolRaw, *attrs: 'Symbol') -> None:
-		"""インスタンスを生成
-
-		Args:
-			raw (SymbolRaw): 型のシンボルデータ
-			*attrs (Symbol): 属性シンボルリスト
-		"""
-		self.types = raw.types
-		self.attrs = list(attrs)
-		self.raw = raw
-
-	def extends(self, *attrs: 'Symbol') -> 'Symbol':
-		"""既存のスキーマに属性を追加してインスタンスを生成
-
-		Args:
-			*attrs (Symbol): 属性シンボルリスト
-		Returns:
-			Symbol: インスタンス
-		"""
-		return Symbol(self.raw, *[*self.attrs, *attrs])
-
-	@override
-	def __eq__(self, __value: object) -> bool:
-		"""比較演算子のオーバーロード
-
-		Args:
-			__value (object): 比較対象
-		Returns:
-			bool: True = 同じ
-		"""
-		if type(__value) is not Symbol:
-			return super().__eq__(__value)
-
-		return __value.__repr__() == self.__repr__()
-
-	@override
-	def __repr__(self) -> str:
-		"""str: オブジェクトのシリアライズ表現"""
-		data = {
-			'types': self.types.fullyname,
-			'attrs': [attr.__repr__() for attr in self.attrs],
-		}
-		return str(data)
-
-	@override
-	def __str__(self) -> str:
-		"""str: オブジェクトの文字列表現"""
-		if len(self.attrs) > 0:
-			attrs = [str(attr) for attr in self.attrs]
-			return f'{self.types.domain_name}[{', '.join(attrs)}]'
-		else:
-			return f'{self.types.domain_name}'
 
 
 class Symbols:

@@ -91,7 +91,9 @@ class TestNode(TestCase):
 		('class A: ...', 'file_input.class_def.class_def_raw.block', '__main__.A'),
 		('class E(CEnum): ...', 'file_input.enum_def', '__main__.E'),
 		('def func() -> None: ...', 'file_input.function_def', '__main__.func'),
-		('if 1: ...', 'file_input.if_stmt', '__main__'),
+		('if True: ...', 'file_input.if_stmt', '__main__.if_stmt'),
+		('for i in [0]: ...', 'file_input.for_stmt', '__main__.for_stmt'),
+		('while True: ...', 'file_input.while_stmt', '__main__.while_stmt'),
 		('1', 'file_input.number', '__main__'),
 	])
 	def test_scope(self, source: str, full_path: str, expected: str) -> None:
@@ -163,8 +165,8 @@ class TestNode(TestCase):
 		('class A:\n\tdef __init__(self) -> None:\n\t\tself.a: int = 0', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.anno_assign.getattr', defs.DeclThisVar, 'a', '__main__.A.a'),
 		('class A:\n\t@classmethod\n\tdef c_method(cls) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.DeclClassParam, 'cls', '__main__.A.c_method.cls'),
 		('class A:\n\tdef method(self) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.DeclThisParam, 'self', '__main__.A.method.self'),
-		('for i in range(1): ...', 'file_input.for_stmt.name', defs.DeclLocalVar, 'i', '__main__.i'),
-		('try:\n\ta\nexcept Exception as e: ...', 'file_input.try_stmt.except_clauses.except_clause.name', defs.DeclLocalVar, 'e', '__main__.e'),
+		('for i in range(1): ...', 'file_input.for_stmt.name', defs.DeclLocalVar, 'i', '__main__.for_stmt.i'),
+		('try:\n\ta\nexcept Exception as e: ...', 'file_input.try_stmt.except_clauses.except_clause.name', defs.DeclLocalVar, 'e', '__main__.try_stmt.e'),
 		('a = 0', 'file_input.assign.var', defs.DeclLocalVar, 'a', '__main__.a'),
 		('class A: ...', 'file_input.class_def.class_def_raw.name', defs.TypesName, 'A', '__main__.A.A'),
 		('from a.b.c import A', 'file_input.import_stmt.import_names.name', defs.ImportName, 'A', '__main__.A'),
@@ -192,6 +194,17 @@ class TestNode(TestCase):
 		('[1]', 'file_input.list', defs.List, 'list', '__main__.list'),
 		('{1: 2}', 'file_input.dict', defs.Dict, 'dict', '__main__.dict'),
 		('None', 'file_input.const_none', defs.Null, 'None', '__main__.None'),
+		# Statement compound
+		('if True: ...', 'file_input.if_stmt.block', defs.Block, '', '__main__.if_stmt'),
+		('if True: ...', 'file_input.if_stmt', defs.If, '', '__main__.if_stmt'),
+		# Statement simple
+		('a = 0', 'file_input.assign', defs.MoveAssign, '', '__main__.assign'),
+		('a: int = 0', 'file_input.anno_assign', defs.AnnoAssign, '', '__main__.anno_assign'),
+		('a += 1', 'file_input.aug_assign', defs.AugAssign, '', '__main__.aug_assign'),
+		# Primary
+		('a(0)', 'file_input.funccall', defs.FuncCall, '', '__main__.funccall'),
+		('a(0)\nfor i in b(): ...', 'file_input.funccall', defs.FuncCall, '', '__main__.funccall'),
+		('a(0)\nfor i in b(): ...', 'file_input.for_stmt.funccall', defs.FuncCall, '', '__main__.for_stmt.funccall'),
 	])
 	def test_i_domain(self, source: str, full_path: str, types: type[T_Node], expected_name: bool, expected_fully: str) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path)
@@ -377,7 +390,7 @@ class A:
 				'          |       +-first: <String: __main__.A.__init__.str>',
 				'          |       +-second: <Variable: __main__.A.__init__.n>',
 				'          +-<If: __main__.A.__init__.if_stmt>',
-				'            +-condition: <Truthy: __main__.A.__init__.bool>',
+				'            +-condition: <Truthy: __main__.A.__init__.if_stmt.bool>',
 				'            +-statements:',
 				'            | +-<MoveAssign: __main__.A.__init__.if_stmt.assign>',
 				'            | | +-receiver: <DeclLocalVar: __main__.A.__init__.if_stmt.n>',

@@ -4,13 +4,15 @@ import json
 from typing import Any, Callable, cast
 
 from py2cpp.analize.db import SymbolDB
+from py2cpp.analize.symbol import Symbol
 from py2cpp.analize.symbols import Symbols
 from py2cpp.app.app import App
 from py2cpp.ast.entry import Entry
 from py2cpp.ast.parser import ParserSetting, SyntaxParser
 from py2cpp.ast.query import Query
 from py2cpp.bin.utils import readline
-from py2cpp.lang.cache import CacheProvider
+from py2cpp.errors import LogicError
+from py2cpp.io.cache import CacheProvider
 from py2cpp.lang.locator import Locator
 from py2cpp.lang.module import fullyname
 from py2cpp.module.types import ModulePath
@@ -121,7 +123,32 @@ def task_help() -> None:
 	print('\n'.join(lines))
 
 
-def task_ast(org_parser: SyntaxParser, cache: CacheProvider) -> None:
+def task_analize(org_parser: SyntaxParser, cache: CacheProvider) -> None:
+	def make_result() -> tuple[str, str]:
+		def new_parser(module_path: str) -> Entry:
+			return root if module_path == '__main__' else org_parser(module_path)
+
+		def resolve_symbol(symbols: Symbols, name: str) -> Symbol:
+			try:
+				return symbols.from_fullyname(name)
+			except LogicError:
+				return symbols.type_of_unknown()
+
+		lark = cast(SyntaxParserOfLark, org_parser).dirty_get_origin()
+		root = EntryOfLark(lark.parse(f'{"\n".join(lines)}\n'))
+		new_difinitions = {fullyname(SyntaxParser): lambda: new_parser}
+		org_definitions = {fullyname(CacheProvider): lambda: cache}
+		app = App({**org_definitions, **new_difinitions})
+
+		db = app.resolve(SymbolDB)
+		symbols = app.resolve(Symbols)
+
+		main_raws = {key: raw for key, raw in db.raws.items() if raw.decl.module_path == '__main__'}
+		main_symbols = {key: str(resolve_symbol(symbols, key)) for key, _ in main_raws.items()}
+		found_symbols = '\n'.join([f'{key}: {symbol_type}' for key, symbol_type in main_symbols.items()])
+		node = app.resolve(Query[Node]).by('file_input')
+		return (found_symbols, node.pretty())
+
 	while True:
 		title = '\n'.join([
 			'==============',
@@ -137,26 +164,20 @@ def task_ast(org_parser: SyntaxParser, cache: CacheProvider) -> None:
 
 			lines.append(line)
 
-		def new_parser(module_path: str) -> Entry:
-			return root if module_path == '__main__' else org_parser(module_path)
+		symbols, ast = make_result()
 
-		lark = cast(SyntaxParserOfLark, org_parser).dirty_get_origin()
-		root = EntryOfLark(lark.parse(f'{"\n".join(lines)}\n'))
-		new_difinitions = {fullyname(SyntaxParser): lambda: new_parser}
-		org_definitions = {fullyname(CacheProvider): lambda: cache}
-		app = App({**org_definitions, **new_difinitions})
-		node = app.resolve(Query[Node]).by('file_input')
-		db = app.resolve(SymbolDB)
-
-		print('==============')
-		print('Symbol DB')
-		print('--------------')
-		print('\n'.join([f'{key}: {raw.org_path}' for key, raw in db.raws.items() if raw.decl.module_path == '__main__']))
-		print('==============')
-		print('AST')
-		print('--------------')
-		print(node.pretty())
-		print('--------------')
+		lines = [
+			'==============',
+			'Symbols',
+			'--------------',
+			symbols,
+			'==============',
+			'AST',
+			'--------------',
+			ast,
+			'--------------',
+		]
+		print('\n'.join(lines))
 
 		if readline('(e)xit?:') == 'e':
 			break
@@ -165,26 +186,26 @@ def task_ast(org_parser: SyntaxParser, cache: CacheProvider) -> None:
 def task_menu(locator: Locator) -> None:
 	prompt = '\n'.join([
 		'==============',
-		'Task selection',
+		'Task Menu',
 		'--------------',
 		'# Tasks',
-		'* (a)st    : Interactive AST Viewer',
-		'* (p)retty : Show AST',
-		'* (d)b     : Show Symbol DB',
-		'* (c)lass  : Show Class Information',
-		'* (t)ype   : Show Symbol Type',
-		'* (h)elp   : Show Usage',
-		'* (q)uit   : Quit',
+		'* (a)nalize : Interactive Analizer',
+		'* (c)lass   : Show Class Information',
+		'* (d)b      : Show Symbol DB',
+		'* (p)retty  : Show AST',
+		'* (t)ype    : Show Symbol Type',
+		'* (h)elp    : Show Usage',
+		'* (q)uit    : Quit',
 		'--------------',
-		'@now',
+		'@@now',
 		'--------------',
-		'here:',
+		'Selection here:',
 	])
 	actions: dict[str, Callable[..., None]] = {
-		'a': task_ast,
-		'p': task_pretty,
-		'd': task_db,
+		'a': task_analize,
 		'c': task_class,
+		'd': task_db,
+		'p': task_pretty,
 		't': task_type,
 		'h': task_help,
 	}
@@ -205,4 +226,6 @@ if __name__ == '__main__':
 			fullyname(ModulePath): make_module_path,
 		}).run(task_menu)
 	except KeyboardInterrupt:
+		pass
+	finally:
 		print('Quit')

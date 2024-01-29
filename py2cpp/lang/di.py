@@ -160,6 +160,8 @@ class DI:
 		"""
 		if isinstance(factory, (FunctionType, MethodType)):
 			return factory
+		elif not isinstance(factory, type) and hasattr(factory, '__call__'):
+			return factory.__call__
 		else:
 			return cast(Callable[..., T_Inst], factory.__init__)
 

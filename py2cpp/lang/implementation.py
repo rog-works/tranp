@@ -12,7 +12,6 @@ def override(wrapper_func: Callable[P, T]) -> Callable[P, T]:
 	Returns:
 		Callable[...,  T]: 対象のメソッドを返却
 	"""
-	# FIXME impl
 	return wrapper_func
 
 
@@ -24,7 +23,6 @@ def implements(wrapper_func: Callable[P, T]) -> Callable[P, T]:
 	Returns:
 		Callable[...,  T]: 対象のメソッドを返却
 	"""
-	# FIXME impl
 	return wrapper_func
 
 
@@ -36,7 +34,6 @@ def deprecated(wrapper_func: Callable[P, T]) -> Callable[P, T]:
 	Returns:
 		Callable[...,  T]: 対象のメソッドを返却
 	"""
-	# FIXME impl
 	return wrapper_func
 
 
@@ -48,5 +45,4 @@ def injectable(wrapper_func: Callable[P, T]) -> Callable[P, T]:
 	Returns:
 		Callable[...,  T]: 対象のメソッドを返却
 	"""
-	# FIXME impl
 	return wrapper_func

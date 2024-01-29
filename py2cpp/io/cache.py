@@ -157,6 +157,7 @@ class CachedProxy(Cached[T]):
 		Returns:
 			list[str]: 旧キャッシュファイルパスリスト
 		"""
+		# FIXME 拡張子が無いと検索できない
 		glob_pattern = re.sub(r'-(\w{32})(\.\w+$)', r'-*\2', cache_path)
 		return glob.glob(glob_pattern)
 

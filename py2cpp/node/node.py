@@ -98,11 +98,11 @@ class Node:
 		Note:
 			主にスコープとドメイン名の組み合わせによって表されるが、規則はノードのカテゴリー毎に異なる
 			# 分類
-			* クラス/ファンクション/Enum: scope
-			* 名前宣言/参照/タイプ/リテラル: scope + domain_name
+			* ClassDef/Flow/Block: scope
+			* Declable/Reference/Type/Literal: scope + domain_name
 			* その他: scope + entry_tag
 		"""
-		if isinstance(self, IScope) and isinstance(self, IDomain):
+		if isinstance(self, IScope):
 			return self.scope
 		elif isinstance(self, IDomain):
 			return DSN.join(self.scope, self.domain_name)

@@ -5,7 +5,7 @@ from py2cpp.app.app import App
 from py2cpp.ast.entry import Entry
 from py2cpp.ast.parser import SyntaxParser
 from py2cpp.ast.query import Query
-from py2cpp.lang.cache import CacheProvider
+from py2cpp.io.cache import CacheProvider
 from py2cpp.lang.di import ModuleDefinitions
 from py2cpp.lang.locator import T_Inst
 from py2cpp.lang.module import fullyname

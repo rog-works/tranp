@@ -198,8 +198,11 @@ def task_menu(locator: Locator) -> None:
 
 
 if __name__ == '__main__':
-	App({
-		fullyname(Args): Args,
-		fullyname(ParserSetting): make_parser_setting,
-		fullyname(ModulePath): make_module_path,
-	}).run(task_menu)
+	try:
+		App({
+			fullyname(Args): Args,
+			fullyname(ParserSetting): make_parser_setting,
+			fullyname(ModulePath): make_module_path,
+		}).run(task_menu)
+	except KeyboardInterrupt:
+		print('Quit')

@@ -116,11 +116,11 @@ class Handler(Procedure[str]):
 		vars: list[str] = []
 		for class_var in node.class_vars:
 			decl_var_symbol = class_var.symbol.as_a(defs.DeclClassVar)
-			vars.append(self.view.render('class_decl_var', vars={'is_static': True, 'access': 'public', 'symbol': decl_var_symbol.tokens, 'var_type': class_var.var_type.tokens}))
+			vars.append(self.view.render('class_decl_var', vars={'is_static': True, 'access': defs.to_access(decl_var_symbol.tokens), 'symbol': decl_var_symbol.tokens, 'var_type': class_var.var_type.tokens}))
 
 		for this_var in node.this_vars:
 			decl_var_symbol = this_var.symbol.as_a(defs.DeclThisVar)
-			vars.append(self.view.render('class_decl_var', vars={'is_static': False, 'access': 'public', 'symbol': decl_var_symbol.tokens_without_this, 'var_type': this_var.var_type.tokens}))
+			vars.append(self.view.render('class_decl_var', vars={'is_static': False, 'access': defs.to_access(decl_var_symbol.tokens_without_this), 'symbol': decl_var_symbol.tokens_without_this, 'var_type': this_var.var_type.tokens}))
 
 		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'statements': statements, 'vars': vars})
 

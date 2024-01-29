@@ -1,10 +1,10 @@
-import re
 from typing import Generic, cast
 from py2cpp.ast.dsn import DSN
 
 from py2cpp.compatible.python.embed import __actual__, __alias__
 from py2cpp.lang.implementation import implements, override
 from py2cpp.lang.sequence import last_index_of
+from py2cpp.node.definition.accessor import to_access
 from py2cpp.node.definition.element import Decorator, Parameter
 from py2cpp.node.definition.literal import String
 from py2cpp.node.definition.primary import CustomType, DeclBlockVar, DeclClassVar, Declable, InheritArgument, DeclThisParam, DeclThisVar, Type, TypesName
@@ -232,16 +232,7 @@ class ClassDef(Node, IDomain, IScope, IDeclare):
 
 	@property
 	def access(self) -> str:
-		name = self.symbol.tokens
-		# XXX 定数化などが必要
-		if re.fullmatch(r'__.+__', name):
-			return 'public'
-		elif name.startswith('__'):
-			return 'private'
-		elif name.startswith('_'):
-			return 'protected'
-		else:
-			return 'public'
+		return to_access(self.symbol.tokens)
 
 	@property
 	def decorators(self) -> list[Decorator]:

@@ -210,7 +210,7 @@ class TestSymbolDB(TestCase):
 			'__main__.B.func1.b': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.list',
 			'__main__.B.func1.v': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Unknown',
 			'__main__.B.func2.self': '__main__.B',
-			'__main__.B.func2.i': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Unknown',
+			'__main__.B.func2.for_stmt.i': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Unknown',
 			'__main__.B.func2.e': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Exception',
 			'__main__.B.func2.closure.a': 'tests.unit.py2cpp.analize.fixtures.test_db_classes.Unknown',
 		},),

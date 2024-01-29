@@ -1,5 +1,6 @@
 import re
 from typing import Generic, cast
+from py2cpp.ast.dsn import DSN
 
 from py2cpp.compatible.python.embed import __actual__, __alias__
 from py2cpp.lang.implementation import implements, override
@@ -118,7 +119,17 @@ class While(Flow):
 
 
 @Meta.embed(Node, accept_tags('for_stmt'))
-class For(Flow, IDeclare):
+class For(Flow, IScope, IDeclare):
+	@property
+	@implements
+	def scope_part(self) -> str:
+		return DSN.right(self.full_path, 1)
+
+	@property
+	@implements
+	def namespace_part(self) -> str:
+		return ''
+
 	@property
 	@implements
 	@Meta.embed(Node, expandable)

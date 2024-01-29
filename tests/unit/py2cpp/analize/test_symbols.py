@@ -68,7 +68,7 @@ class TestSymbols(TestCase):
 	@data_provider([
 		('__main__.B.func2.a', 'int'),
 		('__main__.B.func2.closure.b', 'list[int]'),
-		('__main__.B.func2.if_stmt.i', 'int'),
+		('__main__.B.func2.if_stmt.for_stmt.i', 'int'),
 		('__main__.B.func2.if_stmt.for_stmt.e', 'Exception'),
 	])
 	def test_from_fullyname(self, fullyname: str, expected: str) -> None:

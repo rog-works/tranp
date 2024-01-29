@@ -1,6 +1,6 @@
 import os
 
-from py2cpp.lang.env import Env
+from py2cpp.app.env import Env
 
 
 class FileLoader:

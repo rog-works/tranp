@@ -6,7 +6,7 @@ from py2cpp.module.modules import Module, Modules
 import py2cpp.node.definition as defs
 
 
-class Initializer:
+class FromModules:
 	"""モジュールからシンボルテーブルの生成
 	
 	Note:

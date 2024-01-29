@@ -1,5 +1,5 @@
 from py2cpp.analize.processor import Preprocessors
-import py2cpp.analize.processors.initializer as procs
+import py2cpp.analize.processors.from_modules as procs
 
 
 def preprocessors() -> Preprocessors:
@@ -9,5 +9,5 @@ def preprocessors() -> Preprocessors:
 		Preprocessors: プロセッサープロバイダー
 	"""
 	return lambda: [
-		procs.Initializer(),
+		procs.FromModules(),
 	]

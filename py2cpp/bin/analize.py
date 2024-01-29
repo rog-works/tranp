@@ -12,7 +12,7 @@ from py2cpp.ast.parser import ParserSetting, SyntaxParser
 from py2cpp.ast.query import Query
 from py2cpp.bin.utils import readline
 from py2cpp.errors import LogicError
-from py2cpp.lang.cache import CacheProvider
+from py2cpp.io.cache import CacheProvider
 from py2cpp.lang.locator import Locator
 from py2cpp.lang.module import fullyname
 from py2cpp.module.types import ModulePath

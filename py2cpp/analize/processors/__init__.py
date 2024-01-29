@@ -1,1 +1,1 @@
-from py2cpp.analize.processors.initializer import *
+from py2cpp.analize.processors.from_modules import *

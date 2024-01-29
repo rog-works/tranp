@@ -203,9 +203,9 @@ def task_menu(locator: Locator) -> None:
 	])
 	actions: dict[str, Callable[..., None]] = {
 		'a': task_analize,
-		'p': task_pretty,
-		'd': task_db,
 		'c': task_class,
+		'd': task_db,
+		'p': task_pretty,
 		't': task_type,
 		'h': task_help,
 	}

@@ -3,10 +3,10 @@ import py2cpp.analize.processors.from_modules as procs
 
 
 def preprocessors() -> Preprocessors:
-	"""プロセッサープロバイダーを生成
+	"""プリプロセッサープロバイダーを生成
 	
 	Returns:
-		Preprocessors: プロセッサープロバイダー
+		Preprocessors: プリプロセッサープロバイダー
 	"""
 	return lambda: [
 		procs.FromModules(),

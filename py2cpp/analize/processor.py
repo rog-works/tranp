@@ -1,4 +1,4 @@
-from typing import Any, Callable, Protocol, TypeAlias
+from typing import Callable, Protocol, TypeAlias
 
 from py2cpp.analize.symbol import SymbolRaws
 
@@ -29,7 +29,7 @@ Preprocessor: TypeAlias = Callable[..., SymbolRaws]
 
 
 class Preprocessors(Protocol):
-	"""プロプロセッサープロバイダープロトコル"""
+	"""プリプロセッサープロバイダープロトコル"""
 
 	def __call__(self) -> list[Preprocessor]:
 		"""プリプロセッサーリストを返却

@@ -20,6 +20,11 @@ def di_container(definitions: ModuleDefinitions) -> DI:
 
 
 def make_env() -> Env:
+	"""環境変数を生成
+
+	Returns:
+		Env: 環境変数
+	"""
 	paths = [os.path.join(os.getcwd(), 'example')]
 	return Env({
 		'PYTHONPATH': {path: path for path in paths},

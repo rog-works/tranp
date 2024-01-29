@@ -9,6 +9,7 @@ def default_definitions() -> ModuleDefinitions:
 	"""
 	return {
 		'py2cpp.analize.db.SymbolDB': 'py2cpp.analize.db.SymbolDB',
+		'py2cpp.analize.processor.Preprocessors': 'py2cpp.providers.analyze.preprocessors',
 		'py2cpp.analize.symbols.Symbols': 'py2cpp.analize.symbols.Symbols',
 		'py2cpp.ast.entry.Entry': 'py2cpp.providers.ast.make_entrypoint',
 		'py2cpp.ast.query.Query': 'py2cpp.node.query.Nodes',

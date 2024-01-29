@@ -6,9 +6,11 @@ from typing import Any, Callable, cast
 from py2cpp.analize.db import SymbolDB
 from py2cpp.analize.symbols import Symbols
 from py2cpp.app.app import App
+from py2cpp.ast.entry import Entry
 from py2cpp.ast.parser import ParserSetting, SyntaxParser
 from py2cpp.ast.query import Query
 from py2cpp.bin.utils import readline
+from py2cpp.lang.cache import CacheProvider
 from py2cpp.lang.locator import Locator
 from py2cpp.lang.module import fullyname
 from py2cpp.module.types import ModulePath
@@ -119,7 +121,7 @@ def task_help() -> None:
 	print('\n'.join(lines))
 
 
-def task_ast(parser: SyntaxParser) -> None:
+def task_ast(org_parser: SyntaxParser, cache: CacheProvider) -> None:
 	while True:
 		title = '\n'.join([
 			'==============',
@@ -135,11 +137,23 @@ def task_ast(parser: SyntaxParser) -> None:
 
 			lines.append(line)
 
-		org_parser = cast(SyntaxParserOfLark, parser).dirty_get_origin()
-		root = EntryOfLark(org_parser.parse(f'{"\n".join(lines)}\n'))
-		new_parser: SyntaxParser = lambda module_path: root
-		node = App({fullyname(SyntaxParser): lambda: new_parser}).resolve(Query[Node]).by('file_input')
+		def new_parser(module_path: str) -> Entry:
+			return root if module_path == '__main__' else org_parser(module_path)
 
+		lark = cast(SyntaxParserOfLark, org_parser).dirty_get_origin()
+		root = EntryOfLark(lark.parse(f'{"\n".join(lines)}\n'))
+		new_difinitions = {fullyname(SyntaxParser): lambda: new_parser}
+		org_definitions = {fullyname(CacheProvider): lambda: cache}
+		app = App({**org_definitions, **new_difinitions})
+		node = app.resolve(Query[Node]).by('file_input')
+		db = app.resolve(SymbolDB)
+
+		print('==============')
+		print('Symbol DB')
+		print('--------------')
+		print('\n'.join([f'{key}: {raw.org_path}' for key, raw in db.raws.items() if raw.decl.module_path == '__main__']))
+		print('==============')
+		print('AST')
 		print('--------------')
 		print(node.pretty())
 		print('--------------')

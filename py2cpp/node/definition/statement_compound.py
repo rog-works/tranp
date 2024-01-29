@@ -526,8 +526,7 @@ class AltClass(ClassDef):
 	@override
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Declable:
-		# FIXME TypesNameのaccept_tagsと一致していない
-		return self._at(0).dirty_child(TypesName, '', class_types=self)
+		return self._by('var.name').dirty_child(TypesName, '', class_types=self)
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -546,8 +545,7 @@ class TemplateClass(ClassDef):
 	@override
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Declable:
-		# FIXME TypesNameのaccept_tagsと一致していない
-		return self._at(0).dirty_child(TypesName, '', class_types=self)
+		return self._by('var.name').dirty_child(TypesName, '', class_types=self)
 
 	@property
 	@override

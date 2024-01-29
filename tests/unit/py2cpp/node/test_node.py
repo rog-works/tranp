@@ -198,6 +198,8 @@ class TestNode(TestCase):
 		('a += 1', 'file_input.aug_assign', defs.AugAssign, '', '__main__.aug_assign'),
 		# Primary
 		('a(0)', 'file_input.funccall', defs.FuncCall, '', '__main__.funccall'),
+		('a(0)\nfor i in b(): ...', 'file_input.funccall', defs.FuncCall, '', '__main__.funccall'),
+		('a(0)\nfor i in b(): ...', 'file_input.for_stmt.funccall', defs.FuncCall, '', '__main__.funccall'),  # FIXME forにスコープが無いため、参照名が同じになる
 	])
 	def test_i_domain(self, source: str, full_path: str, types: type[T_Node], expected_name: bool, expected_fully: str) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path)

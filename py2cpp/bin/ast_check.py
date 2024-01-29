@@ -60,8 +60,8 @@ def run_interactive(parser: Lark) -> None:
 	while True:
 		proc(parser)
 
-		ok = readline('exit? (y)es:')
-		if ok == 'y':
+		ok = readline('(e)xit?:')
+		if ok == 'e':
 			break
 
 
@@ -128,5 +128,10 @@ def parse_args(argv: list[str]) -> T_Args:
 
 
 if __name__ == '__main__':
-	_, *argv = sys.argv
-	main(**parse_args(argv))
+	try:
+		_, *argv = sys.argv
+		main(**parse_args(argv))
+	except KeyboardInterrupt:
+		pass
+	finally:
+		print('Quit')

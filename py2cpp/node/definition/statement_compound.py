@@ -41,8 +41,23 @@ class Block(Node, IScope):
 class Flow(Node): pass
 
 
+class FlowEnter(Flow, IScope):
+	@property
+	@implements
+	def scope_part(self) -> str:
+		return DSN.right(self.full_path, 1)
+
+	@property
+	@implements
+	def namespace_part(self) -> str:
+		return ''
+
+
+class FlowPart(Flow): pass
+
+
 @Meta.embed(Node, accept_tags('elif_'))
-class ElseIf(Flow):
+class ElseIf(FlowPart):
 	@property
 	@Meta.embed(Node, expandable)
 	def condition(self) -> Node:
@@ -59,7 +74,7 @@ class ElseIf(Flow):
 
 
 @Meta.embed(Node, accept_tags('if_stmt'))
-class If(Flow):
+class If(FlowEnter):
 	@property
 	@Meta.embed(Node, expandable)
 	def condition(self) -> Node:
@@ -102,7 +117,7 @@ class If(Flow):
 
 
 @Meta.embed(Node, accept_tags('while_stmt'))
-class While(Flow):
+class While(FlowEnter):
 	@property
 	@Meta.embed(Node, expandable)
 	def condition(self) -> Node:
@@ -119,17 +134,7 @@ class While(Flow):
 
 
 @Meta.embed(Node, accept_tags('for_stmt'))
-class For(Flow, IScope, IDeclare):
-	@property
-	@implements
-	def scope_part(self) -> str:
-		return DSN.right(self.full_path, 1)
-
-	@property
-	@implements
-	def namespace_part(self) -> str:
-		return ''
-
+class For(FlowEnter, IDeclare):
 	@property
 	@implements
 	@Meta.embed(Node, expandable)
@@ -152,7 +157,7 @@ class For(Flow, IScope, IDeclare):
 
 
 @Meta.embed(Node, accept_tags('except_clause'))
-class Catch(Flow, IDeclare):
+class Catch(FlowPart, IDeclare):
 	@property
 	@Meta.embed(Node, expandable)
 	def var_type(self) -> Type:
@@ -177,7 +182,7 @@ class Catch(Flow, IDeclare):
 
 
 @Meta.embed(Node, accept_tags('try_stmt'))
-class Try(Flow):
+class Try(FlowEnter):
 	@property
 	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:

@@ -121,7 +121,7 @@ def task_help() -> None:
 	print('\n'.join(lines))
 
 
-def task_ast(org_parser: SyntaxParser, cache: CacheProvider) -> None:
+def task_analize(org_parser: SyntaxParser, cache: CacheProvider) -> None:
 	def make_result() -> tuple[str, str]:
 		def new_parser(module_path: str) -> Entry:
 			return root if module_path == '__main__' else org_parser(module_path)
@@ -178,23 +178,23 @@ def task_ast(org_parser: SyntaxParser, cache: CacheProvider) -> None:
 def task_menu(locator: Locator) -> None:
 	prompt = '\n'.join([
 		'==============',
-		'Task selection',
+		'Task Menu',
 		'--------------',
 		'# Tasks',
-		'* (a)st    : Interactive AST Viewer',
-		'* (p)retty : Show AST',
-		'* (d)b     : Show Symbol DB',
-		'* (c)lass  : Show Class Information',
-		'* (t)ype   : Show Symbol Type',
-		'* (h)elp   : Show Usage',
-		'* (q)uit   : Quit',
+		'* (a)nalize : Interactive Analizer',
+		'* (c)lass   : Show Class Information',
+		'* (d)b      : Show Symbol DB',
+		'* (p)retty  : Show AST',
+		'* (t)ype    : Show Symbol Type',
+		'* (h)elp    : Show Usage',
+		'* (q)uit    : Quit',
 		'--------------',
-		'@now',
+		'@@now',
 		'--------------',
-		'here:',
+		'Selection here:',
 	])
 	actions: dict[str, Callable[..., None]] = {
-		'a': task_ast,
+		'a': task_analize,
 		'p': task_pretty,
 		'd': task_db,
 		'c': task_class,

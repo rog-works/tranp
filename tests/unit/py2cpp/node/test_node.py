@@ -196,6 +196,8 @@ class TestNode(TestCase):
 		('a = 0', 'file_input.assign', defs.MoveAssign, '', '__main__.assign'),
 		('a: int = 0', 'file_input.anno_assign', defs.AnnoAssign, '', '__main__.anno_assign'),
 		('a += 1', 'file_input.aug_assign', defs.AugAssign, '', '__main__.aug_assign'),
+		# Primary
+		('a(0)', 'file_input.funccall', defs.FuncCall, '', '__main__.funccall'),
 	])
 	def test_i_domain(self, source: str, full_path: str, types: type[T_Node], expected_name: bool, expected_fully: str) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path)

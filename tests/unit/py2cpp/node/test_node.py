@@ -192,6 +192,10 @@ class TestNode(TestCase):
 		('[1]', 'file_input.list', defs.List, 'list', '__main__.list'),
 		('{1: 2}', 'file_input.dict', defs.Dict, 'dict', '__main__.dict'),
 		('None', 'file_input.const_none', defs.Null, 'None', '__main__.None'),
+		# Assign
+		('a = 0', 'file_input.assign', defs.MoveAssign, '', '__main__.assign'),
+		('a: int = 0', 'file_input.anno_assign', defs.AnnoAssign, '', '__main__.anno_assign'),
+		('a += 1', 'file_input.aug_assign', defs.AugAssign, '', '__main__.aug_assign'),
 	])
 	def test_i_domain(self, source: str, full_path: str, types: type[T_Node], expected_name: bool, expected_fully: str) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path)

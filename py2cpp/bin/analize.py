@@ -4,12 +4,14 @@ import json
 from typing import Any, Callable, cast
 
 from py2cpp.analize.db import SymbolDB
+from py2cpp.analize.symbol import Symbol
 from py2cpp.analize.symbols import Symbols
 from py2cpp.app.app import App
 from py2cpp.ast.entry import Entry
 from py2cpp.ast.parser import ParserSetting, SyntaxParser
 from py2cpp.ast.query import Query
 from py2cpp.bin.utils import readline
+from py2cpp.errors import LogicError
 from py2cpp.lang.cache import CacheProvider
 from py2cpp.lang.locator import Locator
 from py2cpp.lang.module import fullyname
@@ -126,6 +128,12 @@ def task_analize(org_parser: SyntaxParser, cache: CacheProvider) -> None:
 		def new_parser(module_path: str) -> Entry:
 			return root if module_path == '__main__' else org_parser(module_path)
 
+		def resolve_symbol(symbols: Symbols, name: str) -> Symbol:
+			try:
+				return symbols.from_fullyname(name)
+			except LogicError:
+				return symbols.type_of_unknown()
+
 		lark = cast(SyntaxParserOfLark, org_parser).dirty_get_origin()
 		root = EntryOfLark(lark.parse(f'{"\n".join(lines)}\n'))
 		new_difinitions = {fullyname(SyntaxParser): lambda: new_parser}
@@ -136,7 +144,7 @@ def task_analize(org_parser: SyntaxParser, cache: CacheProvider) -> None:
 		symbols = app.resolve(Symbols)
 
 		main_raws = {key: raw for key, raw in db.raws.items() if raw.decl.module_path == '__main__'}
-		main_symbols = {key: str(symbols.from_fullyname(key)) for key, _ in main_raws.items()}
+		main_symbols = {key: str(resolve_symbol(symbols, key)) for key, _ in main_raws.items()}
 		found_symbols = '\n'.join([f'{key}: {symbol_type}' for key, symbol_type in main_symbols.items()])
 		node = app.resolve(Query[Node]).by('file_input')
 		return (found_symbols, node.pretty())

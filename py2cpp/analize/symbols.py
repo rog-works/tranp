@@ -569,6 +569,9 @@ class ProceduralResolver(Procedure[Symbol]):
 	def on_string(self, node: defs.String) -> Symbol:
 		return self.symbols.resolve(node)
 
+	def on_comment(self, node: defs.Comment) -> Symbol:
+		return self.symbols.resolve(node)
+
 	def on_truthy(self, node: defs.Truthy) -> Symbol:
 		return self.symbols.resolve(node)
 

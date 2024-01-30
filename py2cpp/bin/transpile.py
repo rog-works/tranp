@@ -65,13 +65,13 @@ class Handler(Procedure[str]):
 	def on_try(self, node: defs.Try, statements: list[str], catches: list[str]) -> str:
 		return self.view.render(node.classification, vars={'statements': statements, 'catches': catches})
 
-	def on_function(self, node: defs.Function, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, statements: list[str]) -> str:
+	def on_function(self, node: defs.Function, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, comment: str, statements: list[str]) -> str:
 		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'statements': statements})
 
-	def on_class_method(self, node: defs.ClassMethod, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, statements: list[str]) -> str:
+	def on_class_method(self, node: defs.ClassMethod, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, comment: str, statements: list[str]) -> str:
 		return self.view.render(node.classification, vars={'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'statements': statements, 'class_symbol': node.class_types.symbol.tokens})
 
-	def on_constructor(self, node: defs.Constructor, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, statements: list[str]) -> str:
+	def on_constructor(self, node: defs.Constructor, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, comment: str, statements: list[str]) -> str:
 		this_vars = node.this_vars
 
 		# クラスの初期化ステートメントとそれ以外を分離
@@ -105,13 +105,13 @@ class Handler(Procedure[str]):
 		constructor_vars = {'initializers': initializers, 'super_initializer': super_initializer}
 		return self.view.render(node.classification, vars={**method_vars, **constructor_vars})
 
-	def on_method(self, node: defs.Method, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, statements: list[str]) -> str:
+	def on_method(self, node: defs.Method, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, comment: str, statements: list[str]) -> str:
 		return self.view.render(node.classification, vars={'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'statements': statements, 'class_symbol': node.class_types.symbol.tokens})
 
-	def on_closure(self, node: defs.Closure, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, statements: list[str]) -> str:
+	def on_closure(self, node: defs.Closure, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, comment: str, statements: list[str]) -> str:
 		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'statements': statements, 'binded_this': node.binded_this})
 
-	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], statements: list[str]) -> str:
+	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], comment: str, statements: list[str]) -> str:
 		# XXX メンバー変数の展開方法を検討
 		vars: list[str] = []
 		for class_var in node.class_vars:
@@ -124,7 +124,7 @@ class Handler(Procedure[str]):
 
 		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'statements': statements, 'vars': vars})
 
-	def on_enum(self, node: defs.Enum, symbol: str, statements: list[str]) -> str:
+	def on_enum(self, node: defs.Enum, symbol: str, comment: str, statements: list[str]) -> str:
 		return self.view.render(node.classification, vars={'symbol': symbol, 'statements': statements})
 
 	# Function/Class Elements
@@ -343,6 +343,9 @@ class Handler(Procedure[str]):
 
 	def on_string(self, node: defs.String) -> str:
 		return node.tokens.replace("'", '"')
+
+	def on_comment(self, node: defs.Comment) -> str:
+		return self.view.render(node.classification, vars={'data': node.data})
 
 	def on_truthy(self, node: defs.Truthy) -> str:
 		return 'true'

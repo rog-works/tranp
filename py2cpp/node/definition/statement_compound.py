@@ -6,7 +6,7 @@ from py2cpp.lang.implementation import implements, override
 from py2cpp.lang.sequence import last_index_of
 from py2cpp.node.definition.accessor import to_access
 from py2cpp.node.definition.element import Decorator, Parameter
-from py2cpp.node.definition.literal import String
+from py2cpp.node.definition.literal import Comment, String
 from py2cpp.node.definition.primary import CustomType, DeclBlockVar, DeclClassVar, Declable, InheritArgument, DeclThisParam, DeclThisVar, Type, TypesName
 from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from py2cpp.node.definition.terminal import Empty
@@ -239,8 +239,20 @@ class ClassDef(Node, IDomain, IScope, IDeclare):
 		return []
 
 	@property
+	def comment(self) -> Comment | Empty:
+		found_comment = [statement for statement in self._org_statements if isinstance(statement, Comment)]
+		if len(found_comment):
+			return found_comment.pop()
+
+		return self.dirty_child(Empty, '__empty__', tokens='')
+
+	@property
 	def statements(self) -> list[Node]:
-		raise NotImplementedError()
+		return [statement for statement in self._org_statements if not statement.is_a(Comment)]
+
+	@property
+	def _org_statements(self) -> list[Node]:
+		return self.block.statements
 
 	@property
 	def block(self) -> Block:
@@ -314,8 +326,14 @@ class Function(ClassDef):
 	@property
 	@override
 	@Meta.embed(Node, expandable)
+	def comment(self) -> Comment | Empty:
+		return super().comment
+
+	@property
+	@override
+	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:
-		return self.block.statements
+		return super().statements
 
 	@property
 	@override
@@ -436,8 +454,14 @@ class Class(ClassDef):
 	@property
 	@override
 	@Meta.embed(Node, expandable)
+	def comment(self) -> Comment | Empty:
+		return super().comment
+
+	@property
+	@override
+	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:
-		return self.block.statements
+		return super().statements
 
 	@property
 	@override
@@ -493,8 +517,14 @@ class Enum(ClassDef):
 	@property
 	@override
 	@Meta.embed(Node, expandable)
+	def comment(self) -> Comment | Empty:
+		return super().comment
+
+	@property
+	@override
+	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:
-		return self.block.statements
+		return super().statements
 
 	@property
 	@override

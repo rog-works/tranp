@@ -1,3 +1,4 @@
+from py2cpp.lang.comment import Comment as CommentData
 from py2cpp.lang.implementation import override
 from py2cpp.node.definition.terminal import Terminal
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
@@ -46,6 +47,23 @@ class String(Literal, ITerminal):
 	@property
 	def plain(self) -> str:
 		return self.tokens[1:-1]
+
+
+@Meta.embed(Node, actualized(via=String))
+class Comment(String):
+	@classmethod
+	def match_feature(cls, via: Node) -> bool:
+		text = via.tokens
+		return via._full_path.parent_tag == 'block' and text.startswith('"""') and text.endswith('"""')
+
+	@property
+	@override
+	def plain(self) -> str:
+		return self.tokens[4:-4]
+
+	@property
+	def data(self) -> CommentData:
+		return CommentData.parse(self.plain)
 
 
 class Boolean(Literal, ITerminal):

@@ -215,8 +215,10 @@ class TestNode(TestCase):
 	@data_provider([
 		('file_input.class_def', [
 			'file_input.class_def.class_def_raw.name',
+			'file_input.class_def.__empty__',
 			'file_input.class_def.class_def_raw.block.enum_def',
 			'file_input.class_def.class_def_raw.block.enum_def.name',
+			'file_input.class_def.class_def_raw.block.enum_def.__empty__',
 			'file_input.class_def.class_def_raw.block.enum_def.block.assign[0]',
 			'file_input.class_def.class_def_raw.block.enum_def.block.assign[0].var',
 			'file_input.class_def.class_def_raw.block.enum_def.block.assign[0].number',
@@ -230,6 +232,7 @@ class TestNode(TestCase):
 			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.parameters.paramvalue.typedparam.__empty__',
 			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.parameters.paramvalue.__empty__',
 			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.return_type.typed_none',
+			'file_input.class_def.class_def_raw.block.function_def[1].__empty__',
 			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.block.if_stmt[0]',
 			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.block.if_stmt[0].const_true',
 			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.block.if_stmt[0].block.elipsis',
@@ -243,6 +246,7 @@ class TestNode(TestCase):
 			'file_input.class_def.class_def_raw.block.function_def[2].function_def_raw.parameters.paramvalue.typedparam.__empty__',
 			'file_input.class_def.class_def_raw.block.function_def[2].function_def_raw.parameters.paramvalue.__empty__',
 			'file_input.class_def.class_def_raw.block.function_def[2].function_def_raw.return_type.typed_none',
+			'file_input.class_def.class_def_raw.block.function_def[2].__empty__',
 			'file_input.class_def.class_def_raw.block.function_def[2].function_def_raw.block.elipsis',
 		]),
 	])
@@ -254,7 +258,9 @@ class TestNode(TestCase):
 	@data_provider([
 		('file_input.class_def', [
 			'file_input.class_def.class_def_raw.name',
+			'file_input.class_def.__empty__',
 			'file_input.class_def.class_def_raw.block.enum_def.name',
+			'file_input.class_def.class_def_raw.block.enum_def.__empty__',
 			'file_input.class_def.class_def_raw.block.enum_def.block.assign[0].var',
 			'file_input.class_def.class_def_raw.block.enum_def.block.assign[0].number',
 			'file_input.class_def.class_def_raw.block.enum_def.block.assign[0]',
@@ -268,6 +274,7 @@ class TestNode(TestCase):
 			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.parameters.paramvalue.__empty__',
 			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.parameters.paramvalue',
 			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.return_type.typed_none',
+			'file_input.class_def.class_def_raw.block.function_def[1].__empty__',
 			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.block.if_stmt[0].const_true',
 			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.block.if_stmt[0].block.elipsis',
 			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.block.if_stmt[0]',
@@ -281,6 +288,7 @@ class TestNode(TestCase):
 			'file_input.class_def.class_def_raw.block.function_def[2].function_def_raw.parameters.paramvalue.__empty__',
 			'file_input.class_def.class_def_raw.block.function_def[2].function_def_raw.parameters.paramvalue',
 			'file_input.class_def.class_def_raw.block.function_def[2].function_def_raw.return_type.typed_none',
+			'file_input.class_def.class_def_raw.block.function_def[2].__empty__',
 			'file_input.class_def.class_def_raw.block.function_def[2].function_def_raw.block.elipsis',
 			'file_input.class_def.class_def_raw.block.function_def[2]',
 		]),
@@ -363,6 +371,7 @@ class A:
 				'    +-decorators:',
 				'    +-inherits:',
 				'    +-generic_types:',
+				'    +-comment: <Proxy: __main__.A.__empty__>',
 				'    +-statements:',
 				'      +-<Constructor: __main__.A.__init__>',
 				'        +-symbol: <TypesName: __main__.A.__init__.__init__>',
@@ -377,6 +386,7 @@ class A:
 				'        |   +-var_type: <GeneralType: __main__.A.__init__.int>',
 				'        |   +-default_value: <Empty: __main__.A.__init__.__empty__>',
 				'        +-return_type: <NullType: __main__.A.__init__.None>',
+				'        +-comment: <Proxy: __main__.A.__init__.__empty__>',
 				'        +-statements:',
 				'          +-<AnnoAssign: __main__.A.__init__.anno_assign>',
 				'          | +-receiver: <DeclThisVar: __main__.A.n>',

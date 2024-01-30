@@ -96,6 +96,7 @@ def symbol_mapping() -> SymbolMapping:
 			# 'number': defs.Integer,
 			# 'number': defs.Float,
 			'string': defs.String,
+			# 'string': defs.Comment,
 			'const_true': defs.Truthy,
 			'const_false': defs.Falsy,
 			'key_value': defs.Pair,

@@ -2,34 +2,8 @@ import re
 from typing import NamedTuple
 
 
-class CommentAttribute(NamedTuple):
-	"""コメント(属性)
-	
-	Attributes:
-		name (str): 名前
-		type (str): 型
-		description (str): 説明
-	"""
-
-	name: str
-	type: str
-	description: str
-
-
-class CommentType(NamedTuple):
-	"""コメント(型)
-	
-	Attributes:
-		type (str): 型
-		description (str): 説明
-	"""
-
-	type: str
-	description: str
-
-
 class Comment(NamedTuple):
-	"""コメント(クラス/関数共用)
+	"""コメントデータ(クラス/関数共用)
 	
 	Attributes:
 		description (str): 説明
@@ -41,20 +15,42 @@ class Comment(NamedTuple):
 		examples (str): サンプル
 	"""
 
+	class Attribute(NamedTuple):
+		"""属性コメント
+
+		Attributes:
+			name (str): 名前
+			type (str): 型
+			description (str): 説明
+		"""
+		name: str
+		type: str
+		description: str
+
+	class Type(NamedTuple):
+		"""型コメント
+
+		Attributes:
+			type (str): 型
+			description (str): 説明
+		"""
+		type: str
+		description: str
+
 	description: str
-	attributes: list[CommentAttribute]
-	args: list[CommentAttribute]
-	returns: CommentType
-	raises: list[CommentType]
+	attributes: list[Attribute]
+	args: list[Attribute]
+	returns: Type
+	raises: list[Type]
 	note: str
 	examples: str
 
 	@classmethod
 	def parse(cls, text: str) -> 'Comment':
-		"""LONGSTRINGを解析してインスタンスを生成
+		"""コメントを解析してインスタンスを生成
 
 		Args:
-			text (str): LONGSTRING
+			text (str): コメントテキスト
 		Returns:
 			Comment: インスタンス
 		"""
@@ -93,24 +89,23 @@ class Comment(NamedTuple):
 
 	@classmethod
 	def split_block(cls, text: str) -> tuple[str, dict[str, str]]:
-		"""LONGSTRINGを解析してメインの説明と各ブロックを分離
+		"""コメントを解析してメインの説明と各ブロックを分離
 
 		Args:
-			text (str): LONGSTRING
+			text (str): コメントテキスト
 		Returns:
 			tuple[str, dict[str, str]]: (メインの説明, ブロックリスト)
 		"""
-		_text = text[4:-4]
 		tags = ['Attributes', 'Args', 'Returns', 'Raises', 'Note', 'Examples']
 		joined_tags = '|'.join(tags)
-		elems = cls.__each_trim(re.split(rf'(?:{joined_tags}):', _text))
+		elems = cls.__each_trim(re.split(rf'(?:{joined_tags}):', text))
 		seq_tags = re.findall(rf'({joined_tags}):', text)
 		description, *block_contents = elems
 		blocks = {tag: block_contents[index] for index, tag in enumerate(seq_tags)}
 		return description, blocks
 
 	@classmethod
-	def parse_attributes(cls, block: str) -> list[CommentAttribute]:
+	def parse_attributes(cls, block: str) -> list[Attribute]:
 		"""属性ブロックをパース
 
 		Args:
@@ -121,17 +116,17 @@ class Comment(NamedTuple):
 		if len(block) == 0:
 			return []
 
-		attrs: list[CommentAttribute] = []
+		attrs: list[Comment.Attribute] = []
 		for line in block.split('\n'):
 			left, description = cls.__each_trim(line.split(':'))
 			name, wrap_t = cls.__each_trim(left.split(' '))
 			t = wrap_t[1:-1]
-			attrs.append(CommentAttribute(name, t, cls.__trim_description(description)))
+			attrs.append(Comment.Attribute(name, t, cls.__trim_description(description)))
 
 		return attrs
 
 	@classmethod
-	def parse_returns(cls, block: str) -> CommentType:
+	def parse_returns(cls, block: str) -> Type:
 		"""戻り値ブロックをパース
 
 		Args:
@@ -140,13 +135,13 @@ class Comment(NamedTuple):
 			CommentType: 型コメント
 		"""
 		if len(block) == 0:
-			return CommentType('', '')
+			return Comment.Type('', '')
 
 		t, description = cls.__each_trim(block.split(':'))
-		return CommentType(t, cls.__trim_description(description))
+		return Comment.Type(t, cls.__trim_description(description))
 
 	@classmethod
-	def parse_raises(cls, block: str) -> list[CommentType]:
+	def parse_raises(cls, block: str) -> list[Type]:
 		"""出力例外ブロックをパース
 
 		Args:
@@ -157,10 +152,10 @@ class Comment(NamedTuple):
 		if len(block) == 0:
 			return []
 
-		raises: list[CommentType] = []
+		raises: list[Comment.Type] = []
 		for line in block.split('\n'):
 			t, description = cls.__each_trim(line.split(':'))
-			raises.append(CommentType(t, cls.__trim_description(description)))
+			raises.append(Comment.Type(t, cls.__trim_description(description)))
 
 		return raises
 

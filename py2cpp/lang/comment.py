@@ -118,7 +118,7 @@ class Comment(NamedTuple):
 
 		attrs: list[Comment.Attribute] = []
 		for line in block.split('\n'):
-			matches = re.fullmatch(r'([^(]+)\(([^)+])\)\s*:\s*(.+)', line)
+			matches = re.fullmatch(r'([^(]+)\(([^)]+)\)\s*:\s*(.+)', line)
 			if not matches:
 				continue
 

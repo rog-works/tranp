@@ -11,6 +11,8 @@ class Box3d {
 	public: Vector max;
 	/**
 	 * インスタンスを生成
+	 * @param min 開始座標
+	 * @param max 終了座標
 	 */
 	public: Box3d(Vector min, Vector max) : min(min), max(max) {
 	}

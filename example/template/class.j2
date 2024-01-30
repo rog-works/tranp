@@ -1,7 +1,7 @@
 {% set _inherits = inherits | select('!=', 'CObject') | list %}
 
-{%- if comment %}{{ comment }}{% endif %}
-{%- for decorator in decorators %}
+{%- if comment %}{{ comment }}{% else %}/** {{ symbol }} */{% endif %}
+{%- for decorator in decorators | select('!=', '') %}
 {{ decorator }}
 {%- endfor %}
 class {{ symbol }}

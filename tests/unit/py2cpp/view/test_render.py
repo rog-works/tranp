@@ -129,7 +129,7 @@ class TestRenderer(TestCase):
 				],
 			},
 			'\n'.join([
-				'',  # XXX この空行は一旦許容する(コメント/デコレーターが原因)
+				'/** Hoge */',
 				'deco(A, A.B)',
 				'class Hoge : public Base, Interface {',
 				'	private: int __value;',
@@ -156,7 +156,7 @@ class TestRenderer(TestCase):
 				],
 			},
 			'\n'.join([
-				'',  # XXX この空行は一旦許容する(コメント/デコレーターが原因)
+				'/** Hoge */',
 				'class Hoge {',
 				'	public: Hoge() {',
 				'	}',
@@ -235,7 +235,7 @@ class TestRenderer(TestCase):
 				],
 			},
 			'\n'.join([
-				'',  # XXX この空行は一旦許容する(コメント/デコレーターが原因)
+				'/** Values */',
 				'enum class Values {',
 				'	A = 0,',
 				'	B = 1,',
@@ -258,7 +258,7 @@ class TestRenderer(TestCase):
 				'statements': ['return value + 1;'],
 			},
 			'\n'.join([
-				'',  # XXX この空行は一旦許容する(コメント/デコレーターが原因)
+				'/** func */',
 				'deco(A, B)',
 				'int func(string text, int value = 1) {',
 				'	return value + 1;',
@@ -278,7 +278,7 @@ class TestRenderer(TestCase):
 				'statements': ['this->x = value;'],
 			},
 			'\n'.join([
-				'',  # XXX この空行は一旦許容する(コメント/デコレーターが原因)
+				'/** Constructor */',
 				'public: Hoge(int value = 1) {',
 				'	this->x = value;',
 				'}',
@@ -297,7 +297,7 @@ class TestRenderer(TestCase):
 				'statements': ['return 1;'],
 			},
 			'\n'.join([
-				'',  # XXX この空行は一旦許容する(コメント/デコレーターが原因)
+				'/** static_method */',
 				'public: static int static_method() {',
 				'	return 1;',
 				'}',
@@ -316,7 +316,7 @@ class TestRenderer(TestCase):
 				'statements': ['this->x = value;'],
 			},
 			'\n'.join([
-				'',  # XXX この空行は一旦許容する(コメント/デコレーターが原因)
+				'/** method */',
 				'public: void method(int value = 1) {',
 				'	this->x = value;',
 				'}',

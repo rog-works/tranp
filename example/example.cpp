@@ -14,14 +14,14 @@ class Box3d {
 	 */
 	public: Box3d(Vector min, Vector max) : min(min), max(max) {
 	}
-
+	/** contains */
 	public: bool contains(Vector location) {
 		throw new NotImplementedError();
 	}
 };
-
+/** CellMesh */
 class CellMesh {
-
+	/** VertexIndexs */
 	enum class VertexIndexs {
 		BottomBackLeft = 0,
 		BottomBackRight = 1,
@@ -33,7 +33,7 @@ class CellMesh {
 		TopFrontRight = 7,
 		Max = 8,
 	};
-
+	/** FaceIndexs */
 	enum class FaceIndexs {
 		Left = 0,
 		Right = 1,
@@ -43,8 +43,7 @@ class CellMesh {
 		Top = 5,
 		Max = 6,
 	};
-
-
+	/** from_cell */
 	public: static Vector from_cell(IntVector cell, int unit = 100) {
 		cell.x = cell.x * unit;
 		cell.y = cell.y * unit;
@@ -55,8 +54,7 @@ class CellMesh {
 		print("%f, %f, %f", fx, fy, fz);
 		return Vector(fx, fy, fz);
 	}
-
-
+	/** face_index_to_vector */
 	public: static IntVector face_index_to_vector(int faceIndex) {
 		std::map<CellMesh.FaceIndexs, IntVector> map = {
 			{CellMesh::FaceIndexs::Left, IntVector(-1, 0, 0)},
@@ -68,15 +66,13 @@ class CellMesh {
 		};
 		return map[CellMesh::FaceIndexs(faceIndex)];
 	}
-
-
+	/** to_cell_box */
 	public: static const std::shared_ptr<Box3d> to_cell_box(IntVector cell, int unit) {
 		Vector minLocation = CellMesh::from_cell(cell, unit);
 		Vector maxLocation = CellMesh::from_cell(cell + IntVector(1, 1, 1), unit);
 		return new Box3d(minLocation, maxLocation);
 	}
-
-
+	/** to_vertex_boxs */
 	public: static std::vector<Box3d> to_vertex_boxs(Box3d* cellBox, int unit) {
 		int offset = unit / 10;
 		Vector min = cellBox->min;
@@ -98,8 +94,7 @@ class CellMesh {
 		}
 		return out;
 	}
-
-
+	/** by_vertex_ids */
 	public: static std::vector<int> by_vertex_ids(Mesh mesh, IntVector cell, int unit) {
 		std::vector<int> outIds = {
 			{-1},

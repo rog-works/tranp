@@ -17,13 +17,14 @@ class Symbols:
 	"""シンボルテーブルを参照してシンボルの型を解決する機能を提供"""
 
 	@injectable
-	def __init__(self, db: SymbolDB, module_path: ModulePath) -> None:
+	def __init__(self, module_path: ModulePath, db: SymbolDB) -> None:
 		"""インスタンスを生成
 
 		Args:
+			module_path (ModulePath): モジュールパス
 			db (SymbolDB): シンボルテーブル
 		"""
-		self.__db = db
+		self.__raws = db.raws
 		self.__module_path = module_path
 
 	def is_list(self, symbol: Symbol) -> bool:
@@ -56,10 +57,10 @@ class Symbols:
 		Raises:
 			NotFoundError: 存在しないパスを指定
 		"""
-		if fullyname not in self.__db.raws:
+		if fullyname not in self.__raws:
 			raise NotFoundError(f'Symbol not defined. fullyname: {fullyname}')
 
-		raw = self.__db.raws[fullyname]
+		raw = self.__raws[fullyname]
 		return self.type_of(raw.decl)
 
 	def type_of_primitive(self, primitive_type: type[Primitives] | None) -> Symbol:
@@ -74,8 +75,8 @@ class Symbols:
 		"""
 		symbol_name = primitive_type.__name__ if primitive_type is not None else 'None'
 		candidate = DSN.join(self.__module_path.ref_name, symbol_name)
-		if candidate in self.__db.raws:
-			return Symbol(self.__db.raws[candidate])
+		if candidate in self.__raws:
+			return Symbol(self.__raws[candidate])
 
 		raise LogicError(f'Primitive not defined. name: {primitive_type.__name__}')
 
@@ -89,8 +90,8 @@ class Symbols:
 		"""
 		# XXX 'Unknown'の定数化を検討
 		candidate = DSN.join(self.__module_path.ref_name, 'Unknown')
-		if candidate in self.__db.raws:
-			return Symbol(self.__db.raws[candidate])
+		if candidate in self.__raws:
+			return Symbol(self.__raws[candidate])
 
 		raise LogicError(f'Unknown not defined.')
 
@@ -343,14 +344,14 @@ class Symbols:
 		scopes = [DSN.left(symbolic.scope, DSN.elem_counts(symbolic.scope) - i) for i in range(DSN.elem_counts(symbolic.scope))]
 		for scope in scopes:
 			candidate = DSN.join(scope, symbolic.domain_name, prop_name)
-			if candidate not in self.__db.raws:
+			if candidate not in self.__raws:
 				continue
 
 			# XXX ローカル変数の参照は、クラス直下のスコープを参照できない
-			if symbolic.is_a(defs.Var) and scope in self.__db.raws and self.__db.raws[scope].types.is_a(defs.Class):
+			if symbolic.is_a(defs.Var) and scope in self.__raws and self.__raws[scope].types.is_a(defs.Class):
 				continue
 
-			return self.__db.raws[candidate]
+			return self.__raws[candidate]
 
 		return None
 

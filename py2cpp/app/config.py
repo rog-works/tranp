@@ -8,7 +8,7 @@ def default_definitions() -> ModuleDefinitions:
 		ModuleDefinition: モジュール定義
 	"""
 	return {
-		'py2cpp.analize.db.SymbolDB': 'py2cpp.analize.db.SymbolDB',
+		'py2cpp.analize.db.SymbolDB': 'py2cpp.analize.db.make_db',
 		'py2cpp.analize.processor.Preprocessors': 'py2cpp.providers.analyze.preprocessors',
 		'py2cpp.analize.symbols.Symbols': 'py2cpp.analize.symbols.Symbols',
 		'py2cpp.app.env.Env': 'py2cpp.providers.app.make_env',

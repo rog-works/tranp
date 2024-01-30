@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, NamedTuple
 
 from py2cpp.analize.processor import Preprocessors
 from py2cpp.analize.symbol import SymbolRaws
@@ -6,20 +6,29 @@ from py2cpp.lang.implementation import injectable
 from py2cpp.lang.locator import Currying
 
 
-class SymbolDB:
-	"""シンボルテーブル"""
+class SymbolDB(NamedTuple):
+	"""シンボルテーブルを管理
 
-	@injectable
-	def __init__(self, currying: Currying, preprocessors: Preprocessors) -> None:
-		"""インスタンスを生成
+	Attributes:
+		raws: シンボルテーブル
+	"""
 
-		Args:
-			currying (Currying): カリー化関数 @inject
-			preprocessors (Preprocessors): プリプロセッサープロバイダー @inject
-		"""
-		raws: SymbolRaws = {}
-		for proc in preprocessors():
-			invoker = currying(proc, Callable[[SymbolRaws], SymbolRaws])
-			raws = invoker(raws)
+	raws: SymbolRaws
 
-		self.raws = raws
+
+@injectable
+def make_db(currying: Currying, preprocessors: Preprocessors) -> SymbolDB:
+	"""シンボルテーブルを生成
+
+	Args:
+		currying (Currying): カリー化関数 @inject
+		preprocessors (Preprocessors): プリプロセッサープロバイダー @inject
+	Returns:
+		SymbolDB: シンボルテーブル
+	"""
+	raws: SymbolRaws = {}
+	for proc in preprocessors():
+		invoker = currying(proc, Callable[[SymbolRaws], SymbolRaws])
+		raws = invoker(raws)
+
+	return SymbolDB(raws)

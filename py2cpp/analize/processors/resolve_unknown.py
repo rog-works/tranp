@@ -22,5 +22,8 @@ class ResolveUnknown:
 		for key, raw in raws.items():
 			if isinstance(raw.decl, defs.MoveAssign):
 				update_raws[key] = symbols.type_of(raw.decl.value).raw.varnize(raw.decl)
+			elif isinstance(raw.decl, defs.For):
+				# FIXME attrsは後発の情報のため、この段階で参照するのはNG
+				update_raws[key] = symbols.type_of(raw.decl.iterates).attrs[0].raw.varnize(raw.decl)
 
 		return {**raws, **update_raws}

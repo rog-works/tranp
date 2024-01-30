@@ -59,7 +59,7 @@ class Comment(String):
 	@property
 	@override
 	def plain(self) -> str:
-		return self.tokens[4:-4]
+		return self.tokens[3:-3]
 
 	@property
 	def data(self) -> CommentData:

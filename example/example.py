@@ -15,6 +15,12 @@ class Box3d(CObject):
 	"""
 
 	def __init__(self, min: Vector, max: Vector) -> None:
+		"""インスタンスを生成
+
+		Args:
+			min (Vector): 開始座標
+			max (Vector): 終了座標
+		"""
 		self.min: Vector = min
 		self.max: Vector = max
 

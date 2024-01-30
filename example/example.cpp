@@ -3,16 +3,25 @@
 // #include "py2cpp/compatible/cpp/object.h"
 #pragma once
 #include "example/FW/compatible.h"
+/**
+ * 3Dレンジオブジェクト
+ */
 class Box3d {
 	public: Vector min;
 	public: Vector max;
+	/**
+	 * インスタンスを生成
+	 */
 	public: Box3d(Vector min, Vector max) : min(min), max(max) {
 	}
+
 	public: bool contains(Vector location) {
 		throw new NotImplementedError();
 	}
 };
+
 class CellMesh {
+
 	enum class VertexIndexs {
 		BottomBackLeft = 0,
 		BottomBackRight = 1,
@@ -24,6 +33,7 @@ class CellMesh {
 		TopFrontRight = 7,
 		Max = 8,
 	};
+
 	enum class FaceIndexs {
 		Left = 0,
 		Right = 1,
@@ -33,6 +43,7 @@ class CellMesh {
 		Top = 5,
 		Max = 6,
 	};
+
 
 	public: static Vector from_cell(IntVector cell, int unit = 100) {
 		cell.x = cell.x * unit;
@@ -44,6 +55,7 @@ class CellMesh {
 		print("%f, %f, %f", fx, fy, fz);
 		return Vector(fx, fy, fz);
 	}
+
 
 	public: static IntVector face_index_to_vector(int faceIndex) {
 		std::map<CellMesh.FaceIndexs, IntVector> map = {
@@ -57,11 +69,13 @@ class CellMesh {
 		return map[CellMesh::FaceIndexs(faceIndex)];
 	}
 
+
 	public: static const std::shared_ptr<Box3d> to_cell_box(IntVector cell, int unit) {
 		Vector minLocation = CellMesh::from_cell(cell, unit);
 		Vector maxLocation = CellMesh::from_cell(cell + IntVector(1, 1, 1), unit);
 		return new Box3d(minLocation, maxLocation);
 	}
+
 
 	public: static std::vector<Box3d> to_vertex_boxs(Box3d* cellBox, int unit) {
 		int offset = unit / 10;
@@ -84,6 +98,7 @@ class CellMesh {
 		}
 		return out;
 	}
+
 
 	public: static std::vector<int> by_vertex_ids(Mesh mesh, IntVector cell, int unit) {
 		std::vector<int> outIds = {

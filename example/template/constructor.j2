@@ -1,6 +1,7 @@
-{%- for decorator in decorators -%}
+{%- if comment %}{{ comment }}{% endif %}
+{%- for decorator in decorators %}
 {{ decorator }}
-{% endfor -%}
+{%- endfor %}
 {{ access }}: {{ class_symbol }}(
 	{%- for parameter in parameters -%}
 		{%- if loop.index0 > 1 %}, {% endif -%}

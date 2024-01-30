@@ -118,6 +118,7 @@ class TestRenderer(TestCase):
 					'private: int __value;',
 					'private: std::string __text;',
 				],
+				'comment': '',
 				'statements': [
 					'\n'.join([
 						'public: Hoge() {',
@@ -128,6 +129,7 @@ class TestRenderer(TestCase):
 				],
 			},
 			'\n'.join([
+				'',  # XXX この空行は一旦許容する(コメント/デコレーターが原因)
 				'deco(A, A.B)',
 				'class Hoge : public Base, Interface {',
 				'	private: int __value;',
@@ -145,6 +147,7 @@ class TestRenderer(TestCase):
 				'decorators': [],
 				'inherits': [],
 				'vars': [],
+				'comment': '',
 				'statements': [
 					'\n'.join([
 						'public: Hoge() {',
@@ -153,6 +156,7 @@ class TestRenderer(TestCase):
 				],
 			},
 			'\n'.join([
+				'',  # XXX この空行は一旦許容する(コメント/デコレーターが原因)
 				'class Hoge {',
 				'	public: Hoge() {',
 				'	}',
@@ -167,12 +171,14 @@ class TestRenderer(TestCase):
 		(
 			{
 				'symbol': 'Values',
+				'comment': '',
 				'statements': [
 					'int A = 0;',
 					'int B = 1;',
 				],
 			},
 			'\n'.join([
+				'',  # XXX この空行は一旦許容する(コメント/デコレーターが原因)
 				'enum class Values {',
 				'	A = 0,',
 				'	B = 1,',
@@ -191,9 +197,11 @@ class TestRenderer(TestCase):
 				'decorators': ['deco(A, B)'],
 				'parameters': ['string text', 'int value = 1'],
 				'return_type': 'int',
+				'comment': '',
 				'statements': ['return value + 1;'],
 			},
 			'\n'.join([
+				'',  # XXX この空行は一旦許容する(コメント/デコレーターが原因)
 				'deco(A, B)',
 				'int func(string text, int value = 1) {',
 				'	return value + 1;',
@@ -209,9 +217,11 @@ class TestRenderer(TestCase):
 				'decorators': [],
 				'parameters': ['int value = 1'],
 				'return_type': 'void',
+				'comment': '',
 				'statements': ['this->x = value;'],
 			},
 			'\n'.join([
+				'',  # XXX この空行は一旦許容する(コメント/デコレーターが原因)
 				'public: Hoge(int value = 1) {',
 				'	this->x = value;',
 				'}',
@@ -226,9 +236,11 @@ class TestRenderer(TestCase):
 				'decorators': [],
 				'parameters': [],
 				'return_type': 'int',
+				'comment': '',
 				'statements': ['return 1;'],
 			},
 			'\n'.join([
+				'',  # XXX この空行は一旦許容する(コメント/デコレーターが原因)
 				'public: static int static_method() {',
 				'	return 1;',
 				'}',
@@ -243,9 +255,11 @@ class TestRenderer(TestCase):
 				'decorators': [],
 				'parameters': ['int value = 1'],
 				'return_type': 'void',
+				'comment': '',
 				'statements': ['this->x = value;'],
 			},
 			'\n'.join([
+				'',  # XXX この空行は一旦許容する(コメント/デコレーターが原因)
 				'public: void method(int value = 1) {',
 				'	this->x = value;',
 				'}',

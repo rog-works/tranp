@@ -66,10 +66,10 @@ class Handler(Procedure[str]):
 		return self.view.render(node.classification, vars={'statements': statements, 'catches': catches})
 
 	def on_function(self, node: defs.Function, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, comment: str, statements: list[str]) -> str:
-		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'statements': statements})
+		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'comment': comment, 'statements': statements})
 
 	def on_class_method(self, node: defs.ClassMethod, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, comment: str, statements: list[str]) -> str:
-		return self.view.render(node.classification, vars={'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'statements': statements, 'class_symbol': node.class_types.symbol.tokens})
+		return self.view.render(node.classification, vars={'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'comment': comment, 'statements': statements, 'class_symbol': node.class_types.symbol.tokens})
 
 	def on_constructor(self, node: defs.Constructor, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, comment: str, statements: list[str]) -> str:
 		this_vars = node.this_vars
@@ -101,12 +101,12 @@ class Handler(Procedure[str]):
 			decl_var_symbol = var.symbol.as_a(defs.DeclThisVar)
 			initializers.append({'symbol': decl_var_symbol.tokens_without_this, 'value': initialize_value})
 
-		method_vars = {'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'statements': normal_statements, 'class_symbol': node.class_types.symbol.tokens}
+		method_vars = {'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'comment': comment, 'statements': normal_statements, 'class_symbol': node.class_types.symbol.tokens}
 		constructor_vars = {'initializers': initializers, 'super_initializer': super_initializer}
 		return self.view.render(node.classification, vars={**method_vars, **constructor_vars})
 
 	def on_method(self, node: defs.Method, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, comment: str, statements: list[str]) -> str:
-		return self.view.render(node.classification, vars={'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'statements': statements, 'class_symbol': node.class_types.symbol.tokens})
+		return self.view.render(node.classification, vars={'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'comment': comment, 'statements': statements, 'class_symbol': node.class_types.symbol.tokens})
 
 	def on_closure(self, node: defs.Closure, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, comment: str, statements: list[str]) -> str:
 		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'statements': statements, 'binded_this': node.binded_this})
@@ -122,10 +122,10 @@ class Handler(Procedure[str]):
 			decl_var_symbol = this_var.symbol.as_a(defs.DeclThisVar)
 			vars.append(self.view.render('class_decl_var', vars={'is_static': False, 'access': defs.to_access(decl_var_symbol.tokens_without_this), 'symbol': decl_var_symbol.tokens_without_this, 'var_type': this_var.var_type.tokens}))
 
-		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'statements': statements, 'vars': vars})
+		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'comment': comment, 'statements': statements, 'vars': vars})
 
 	def on_enum(self, node: defs.Enum, symbol: str, comment: str, statements: list[str]) -> str:
-		return self.view.render(node.classification, vars={'symbol': symbol, 'statements': statements})
+		return self.view.render(node.classification, vars={'symbol': symbol, 'comment': comment, 'statements': statements})
 
 	# Function/Class Elements
 

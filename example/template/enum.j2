@@ -1,3 +1,4 @@
+{%- if comment %}{{ comment }}{% endif %}
 enum class {{ symbol }} {
 {%- filter indent('\t') %}
 {%- for statement in statements %}

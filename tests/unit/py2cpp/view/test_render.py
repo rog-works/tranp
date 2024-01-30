@@ -163,6 +163,63 @@ class TestRenderer(TestCase):
 				'};',
 			]),
 		),
+		(
+			{
+				'symbol': 'Hoge',
+				'decorators': [],
+				'inherits': [],
+				'vars': [],
+				'comment': '\n'.join([
+					'/**',
+					' * Description',
+					' */',
+				]),
+				'statements': [
+					'\n'.join([
+						'public: Hoge() {',
+						'}',
+					]),
+				],
+			},
+			'\n'.join([
+				'/**',
+				' * Description',
+				' */',
+				'class Hoge {',
+				'	public: Hoge() {',
+				'	}',
+				'};',
+			]),
+		),
+		(
+			{
+				'symbol': 'Hoge',
+				'decorators': ['deco(A, A.B)'],
+				'inherits': [],
+				'vars': [],
+				'comment': '\n'.join([
+					'/**',
+					' * Description',
+					' */',
+				]),
+				'statements': [
+					'\n'.join([
+						'public: Hoge() {',
+						'}',
+					]),
+				],
+			},
+			'\n'.join([
+				'/**',
+				' * Description',
+				' */',
+				'deco(A, A.B)',
+				'class Hoge {',
+				'	public: Hoge() {',
+				'	}',
+				'};',
+			]),
+		),
 	])
 	def test_render_class(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('class', 0, vars, expected)

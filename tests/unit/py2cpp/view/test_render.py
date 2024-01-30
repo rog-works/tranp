@@ -254,3 +254,60 @@ class TestRenderer(TestCase):
 	])
 	def test_render_function(self, template: str, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender(template, 0, vars, expected)
+
+	@data_provider([
+		(
+			{
+				'data': {
+					'description': 'Description',
+					'attributes': [],
+					'args': [
+						{'name': 'a', 'type': 'A', 'description': 'A desc'},
+						{'name': 'b', 'type': 'B', 'description': 'B desc'},
+					],
+					'returns': {'type': 'R', 'description': 'R desc'},
+					'raises': [
+						{'type': 'E1', 'description': 'E1 desc'},
+						{'type': 'E2', 'description': 'E2 desc'},
+					],
+					'note': 'Some note',
+					'examples': 'Some example',
+				},
+			},
+			'\n'.join([
+				'/**',
+				' * Description',
+				' * @param a A desc',
+				' * @param b B desc',
+				' * @return R desc',
+				' * @throw E1 E1 desc',
+				' * @throw E2 E2 desc',
+				' * @note Some note',
+				' * @example Some example',
+				' */',
+			]),
+		),
+		(
+			{
+				'data': {
+					'description': 'Description',
+					'attributes': [
+						{'name': 'a', 'type': 'A', 'description': 'A desc'},
+						{'name': 'b', 'type': 'B', 'description': 'B desc'},
+					],
+					'args': [],
+					'returns': {'type': '', 'description': ''},
+					'raises': [],
+					'note': '',
+					'examples': '',
+				},
+			},
+			'\n'.join([
+				'/**',
+				' * Description',
+				' */',
+			]),
+		),
+	])
+	def test_render_comment(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('comment', 0, vars, expected)

@@ -8,7 +8,8 @@ from tests.test.helper import data_provider
 
 class TestComment(TestCase):
 	@data_provider([
-		("""Description
+		(
+			"""Description
 line2
 
 Args:
@@ -26,21 +27,43 @@ Examples:
 	```python
 	Some example
 	```
-""", {
-			'description': 'Description\nline2',
-			'attributes': [],
-			'args': [
-				{'name': 'a', 'type': 'A', 'description': 'A desc'},
-				{'name': 'b', 'type': 'B', 'description': 'B desc'},
-			],
-			'returns': {'type': 'R', 'description': 'R desc'},
-			'raises': [
-				{'type': 'E1', 'description': 'E1 desc'},
-				{'type': 'E2', 'description': 'E2 desc'},
-			],
-			'note': 'Some note\nline2',
-			'examples': '```python\nSome example\n```',
-		}),
+""",
+			{
+				'description': 'Description\nline2',
+				'attributes': [],
+				'args': [
+					{'name': 'a', 'type': 'A', 'description': 'A desc'},
+					{'name': 'b', 'type': 'B', 'description': 'B desc'},
+				],
+				'returns': {'type': 'R', 'description': 'R desc'},
+				'raises': [
+					{'type': 'E1', 'description': 'E1 desc'},
+					{'type': 'E2', 'description': 'E2 desc'},
+				],
+				'note': 'Some note\nline2',
+				'examples': '```python\nSome example\n```',
+			},
+		),
+		(
+			"""Description
+
+Attributes:
+	a (A): A desc
+	b (B): B desc
+""",
+			{
+				'description': 'Description',
+				'attributes': [
+					{'name': 'a', 'type': 'A', 'description': 'A desc'},
+					{'name': 'b', 'type': 'B', 'description': 'B desc'},
+				],
+				'args': [],
+				'returns': {'type': '', 'description': ''},
+				'raises': [],
+				'note': '',
+				'examples': '',
+			},
+		),
 	])
 	def test_comment(self, source: str, expected: dict[str, Any]) -> None:
 		comment = Comment.parse(source)

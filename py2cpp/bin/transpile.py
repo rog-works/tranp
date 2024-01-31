@@ -56,8 +56,11 @@ class Handler(Procedure[str]):
 	def on_while(self, node: defs.While, condition: str, statements: list[str]) -> str:
 		return self.view.render(node.classification, vars={'condition': condition, 'statements': statements})
 
-	def on_for(self, node: defs.For, symbol: str, iterates: str, statements: list[str]) -> str:
-		return self.view.render(node.classification, vars={'symbol': symbol, 'iterates': iterates, 'statements': statements})
+	def on_for_in(self, node: defs.ForIn, iterates: str) -> str:
+		return iterates
+
+	def on_for(self, node: defs.For, symbol: str, for_in: str, statements: list[str]) -> str:
+		return self.view.render(node.classification, vars={'symbol': symbol, 'iterates': for_in, 'statements': statements})
 
 	def on_catch(self, node: defs.Catch, var_type: str, symbol: str, statements: list[str]) -> str:
 		return self.view.render(node.classification, vars={'var_type': var_type, 'symbol': symbol, 'statements': statements})

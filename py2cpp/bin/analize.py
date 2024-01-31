@@ -11,6 +11,7 @@ from py2cpp.ast.entry import Entry
 from py2cpp.ast.parser import ParserSetting, SyntaxParser
 from py2cpp.ast.query import Query
 from py2cpp.bin.utils import readline
+import py2cpp.compatible.python.classes as classes
 from py2cpp.errors import LogicError
 from py2cpp.io.cache import CacheProvider
 from py2cpp.lang.locator import Locator
@@ -132,7 +133,7 @@ def task_analize(org_parser: SyntaxParser, cache: CacheProvider) -> None:
 			try:
 				return symbols.from_fullyname(name)
 			except LogicError:
-				return symbols.type_of_unknown()
+				return symbols.type_of_primitive(classes.Unknown)
 
 		lark = cast(SyntaxParserOfLark, org_parser).dirty_get_origin()
 		root = EntryOfLark(lark.parse(f'{"\n".join(lines)}\n'))

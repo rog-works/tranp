@@ -18,6 +18,11 @@ class Module:
 		self.__entrypoint = entrypoint
 
 	@property
+	def module_path(self) -> ModulePath:
+		"""ModulePath: モジュールパス"""
+		return self.__module_path
+
+	@property
 	def path(self) -> str:
 		"""str: モジュールパス"""
 		return self.__module_path.ref_name

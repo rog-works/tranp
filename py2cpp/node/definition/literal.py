@@ -1,12 +1,13 @@
+import py2cpp.compatible.python.classes as classes
 from py2cpp.lang.comment import Comment as CommentData
 from py2cpp.lang.implementation import override
 from py2cpp.node.definition.terminal import Terminal
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
-from py2cpp.node.interface import IDomain, ITerminal
+from py2cpp.node.interface import ITerminal
 from py2cpp.node.node import Node
 
 
-class Literal(Node, IDomain): pass
+class Literal(Node): pass
 
 
 @Meta.embed(Node, accept_tags('number'))
@@ -96,7 +97,7 @@ class Pair(Literal):
 	@property
 	@override
 	def domain_name(self) -> str:
-		return 'pair_'
+		return f'{classes.Pair.__name__}({self._id()})'
 
 
 @Meta.embed(Node, accept_tags('list'))
@@ -109,7 +110,7 @@ class List(Literal):
 	@property
 	@override
 	def domain_name(self) -> str:
-		return list.__name__
+		return f'{list.__name__}({self._id()})'
 
 
 @Meta.embed(Node, accept_tags('dict'))
@@ -122,7 +123,7 @@ class Dict(Literal):
 	@property
 	@override
 	def domain_name(self) -> str:
-		return dict.__name__
+		return f'{dict.__name__}({self._id()})'
 
 
 @Meta.embed(Node, accept_tags('const_none'))

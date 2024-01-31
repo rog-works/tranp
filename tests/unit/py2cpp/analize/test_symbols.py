@@ -2,8 +2,7 @@ from unittest import TestCase
 
 from py2cpp.analize.symbols import Primitives, Symbols
 from py2cpp.ast.dsn import DSN
-from py2cpp.ast.query import Query
-from py2cpp.node.node import Node
+import py2cpp.compatible.python.classes as classes
 from tests.test.fixture import Fixture
 from tests.test.helper import data_provider
 
@@ -68,8 +67,8 @@ class TestSymbols(TestCase):
 	@data_provider([
 		('__main__.B.func2.a', 'int'),
 		('__main__.B.func2.closure.b', 'list[int]'),
-		('__main__.B.func2.if_stmt.for_stmt.i', 'T_Seq'),  # FIXME 追って修正
-		('__main__.B.func2.if_stmt.for_stmt.try_stmt.e', 'Exception'),
+		('__main__.B.func2.if(321).for(337).i', 'T_Seq'),  # FIXME 追って修正
+		('__main__.B.func2.if(321).for(337).try(351).e', 'Exception'),
 	])
 	def test_from_fullyname(self, fullyname: str, expected: str) -> None:
 		symbols = self.fixture.get(Symbols)
@@ -77,24 +76,20 @@ class TestSymbols(TestCase):
 		self.assertEqual(str(symbol), expected)
 
 	@data_provider([
-		(int, _mod('classes', 'int')),
-		(str, _mod('classes', 'str')),
-		(bool, _mod('classes', 'bool')),
-		(tuple, _mod('classes', 'tuple')),
-		(list, _mod('classes', 'list')),
-		(dict, _mod('classes', 'dict')),
+		(int, _mod('classes', int.__name__)),
+		(float, _mod('classes', float.__name__)),
+		(str, _mod('classes', str.__name__)),
+		(bool, _mod('classes', bool.__name__)),
+		(tuple, _mod('classes', tuple.__name__)),
+		(classes.Pair, _mod('classes', classes.Pair.__name__)),
+		(list, _mod('classes', list.__name__)),
+		(dict, _mod('classes', dict.__name__)),
+		(classes.Unknown, _mod('classes', classes.Unknown.__name__)),
 		(None, _mod('classes', 'None')),
 	])
 	def test_type_of_primitive(self, primitive_type: type[Primitives] | None, expected: str) -> None:
 		symbols = self.fixture.get(Symbols)
 		self.assertEqual(symbols.type_of_primitive(primitive_type).types.fullyname, expected)
-
-	@data_provider([
-		(_mod('classes', 'Unknown'),),
-	])
-	def test_type_of_unknown(self, expected: str) -> None:
-		symbols = self.fixture.get(Symbols)
-		self.assertEqual(symbols.type_of_unknown().types.fullyname, expected)
 
 	@data_provider([
 		(_ast('__main__', 'import_stmt.import_names.name'), _mod('xyz', 'Z'), []),

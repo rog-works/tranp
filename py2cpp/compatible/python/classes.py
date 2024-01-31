@@ -95,7 +95,6 @@ class Boolean:
 
 @__actual__('tuple')
 class Tuple: ...
-@__actual__('pair_')
 class Pair: ...
 
 

@@ -17,6 +17,7 @@ class SymbolRaw(NamedTuple):
 		symbol (Declable): シンボル宣言ノード
 		types (ClassDef): クラス定義ノード
 		decl (DeclAll): 宣言ステートメントノード
+		inline (FuncCall | Literal): インラインノード FIXME 暫定
 	"""
 	ref_path: str
 	org_path: str
@@ -24,6 +25,7 @@ class SymbolRaw(NamedTuple):
 	symbol: defs.Declable
 	types: defs.ClassDef
 	decl: defs.DeclAll
+	inline: defs.FuncCall | defs.Literal | None = None  # FIXME 暫定
 
 	def to(self, module: Module) -> 'SymbolRaw':
 		"""展開先を変更したインスタンスを生成
@@ -54,6 +56,18 @@ class SymbolRaw(NamedTuple):
 			SymbolRaw: インスタンス
 		"""
 		return SymbolRaw(self.ref_path, self.org_path, self.module, self.symbol, self.types, var)
+
+	def inlinify(self, inline: defs.FuncCall | defs.Literal) -> 'SymbolRaw':
+		"""インライン用のデータに変換
+
+		Args:
+			inline (Inline): インラインノード
+		Returns:
+			SymbolRaw: インスタンス
+		Note:
+			FIXME 暫定
+		"""
+		return SymbolRaw(self.ref_path, self.org_path, self.module, self.symbol, self.types, self.decl, inline)
 
 
 SymbolRaws: TypeAlias = dict[str, SymbolRaw]

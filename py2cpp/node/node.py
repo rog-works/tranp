@@ -87,7 +87,7 @@ class Node:
 	@property
 	def domain_name(self) -> str:
 		"""str: ドメイン名 Note: 自身を表す一般名称。スコープは含まない"""
-		return ''
+		return f'{self.classification}({self._id()})'
 
 	@property
 	def fullyname(self) -> str:
@@ -99,15 +99,12 @@ class Node:
 			主にスコープとドメイン名の組み合わせによって表されるが、規則はノードのカテゴリー毎に異なる
 			# 分類
 			* ClassDef/Flow/Block: scope
-			* Declable/Reference/Type/Literal: scope + domain_name
-			* その他: scope + entry_tag
+			* その他: scope + domain_name
 		"""
 		if isinstance(self, IScope):
 			return self.scope
-		elif isinstance(self, IDomain):
-			return DSN.join(self.scope, self.domain_name)
 		else:
-			return DSN.join(self.scope, self._full_path.elements[-1])
+			return DSN.join(self.scope, self.domain_name)
 
 	@property
 	def scope(self) -> str:
@@ -352,6 +349,14 @@ class Node:
 			list[str]: 値リスト
 		"""
 		return self.__nodes.values(self.full_path)
+
+	def _id(self) -> int:
+		"""AST上のIDを取得
+
+		Returns:
+			int: ID
+		"""
+		return self.__nodes.id(self.full_path)
 
 	def is_a(self, *ctor: type[T_Node]) -> bool:
 		"""指定のクラスと同じか派生クラスか判定

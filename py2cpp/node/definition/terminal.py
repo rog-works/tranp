@@ -1,4 +1,4 @@
-from py2cpp.lang.implementation import implements
+from py2cpp.lang.implementation import implements, override
 from py2cpp.node.embed import Meta, accept_tags
 from py2cpp.node.interface import ITerminal
 from py2cpp.node.node import Node
@@ -21,3 +21,8 @@ class Empty(Node, ITerminal):
 	@implements
 	def can_expand(self) -> bool:
 		return False
+
+	@property
+	@override
+	def domain_name(self) -> str:
+		return 'Empty'

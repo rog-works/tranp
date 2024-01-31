@@ -4,13 +4,14 @@ from py2cpp.analize.db import SymbolDB
 from py2cpp.analize.symbol import Symbol, SymbolRaw
 from py2cpp.analize.procedure import Procedure
 from py2cpp.ast.dsn import DSN
+import py2cpp.compatible.python.classes as classes
 from py2cpp.errors import LogicError, NotFoundError
 from py2cpp.lang.implementation import injectable
 from py2cpp.module.types import ModulePath
 import py2cpp.node.definition as defs
 from py2cpp.node.node import Node
 
-Primitives: TypeAlias = int | str | bool | tuple | list | dict
+Primitives: TypeAlias = int | float | str | bool | tuple | list | dict | classes.Pair | classes.Unknown
 
 
 class Symbols:
@@ -79,21 +80,6 @@ class Symbols:
 			return Symbol(self.__raws[candidate])
 
 		raise LogicError(f'Primitive not defined. name: {primitive_type.__name__}')
-
-	def type_of_unknown(self) -> Symbol:
-		"""Unknown型のシンボルを解決
-
-		Returns:
-			Symbol: シンボル
-		Raises:
-			LogicError: Unknown型が未定義
-		"""
-		# XXX 'Unknown'の定数化を検討
-		candidate = DSN.join(self.__module_path.ref_name, 'Unknown')
-		if candidate in self.__raws:
-			return Symbol(self.__raws[candidate])
-
-		raise LogicError(f'Unknown not defined.')
 
 	def type_of_property(self, decl_class: defs.ClassDef, prop: defs.Var) -> Symbol:
 		"""クラス定義ノードと変数参照ノードからプロパティーのシンボルを解決
@@ -570,37 +556,37 @@ class ProceduralResolver(Procedure[Symbol]):
 	# Literal
 
 	def on_integer(self, node: defs.Integer) -> Symbol:
-		return self.symbols.resolve(node)
+		return self.symbols.type_of_primitive(int)
 
 	def on_float(self, node: defs.Float) -> Symbol:
-		return self.symbols.resolve(node)
+		return self.symbols.type_of_primitive(float)
 
 	def on_string(self, node: defs.String) -> Symbol:
-		return self.symbols.resolve(node)
+		return self.symbols.type_of_primitive(str)
 
 	def on_comment(self, node: defs.Comment) -> Symbol:
-		return self.symbols.resolve(node)
+		raise NotImplementedError(f'Not supported. node: {str(node)}')
 
 	def on_truthy(self, node: defs.Truthy) -> Symbol:
-		return self.symbols.resolve(node)
+		return self.symbols.type_of_primitive(bool)
 
 	def on_falsy(self, node: defs.Falsy) -> Symbol:
-		return self.symbols.resolve(node)
+		return self.symbols.type_of_primitive(bool)
 
 	def on_pair(self, node: defs.Pair, first: Symbol, second: Symbol) -> Symbol:
-		return self.symbols.resolve(node).extends(first, second)
+		return self.symbols.type_of_primitive(classes.Pair).extends(first, second)
 
 	def on_list(self, node: defs.List, values: list[Symbol]) -> Symbol:
-		value_type = values[0] if len(values) > 0 else self.symbols.type_of_unknown()
-		return self.symbols.resolve(node).extends(value_type)
+		value_type = values[0] if len(values) > 0 else self.symbols.type_of_primitive(classes.Unknown)
+		return self.symbols.type_of_primitive(list).extends(value_type)
 
 	def on_dict(self, node: defs.Dict, items: list[Symbol]) -> Symbol:
 		if len(items) == 0:
-			unknown_type = self.symbols.type_of_unknown()
-			return self.symbols.resolve(node).extends(unknown_type, unknown_type)
+			unknown_type = self.symbols.type_of_primitive(classes.Unknown)
+			return self.symbols.type_of_primitive(dict).extends(unknown_type, unknown_type)
 		else:
 			key_type, value_type = items[0].attrs
-			return self.symbols.resolve(node).extends(key_type, value_type)
+			return self.symbols.type_of_primitive(dict).extends(key_type, value_type)
 
 	# Terminal
 

@@ -21,8 +21,8 @@ class Block(Node, IScope):
 	@property
 	@implements
 	def scope_part(self) -> str:
-		"""Note: XXX 親がスコープを持つノード(クラス/ファンクション)の場合は空文字。それ以外は親の一意エントリータグを返却"""
-		return '' if isinstance(self.parent, IScope) else self.parent._full_path.elements[-1]
+		"""Note: XXX 親がスコープを持つノード(ClassDef/FlowEntry)の場合は空文字。それ以外は親のドメイン名を返却"""
+		return '' if isinstance(self.parent, IScope) else self.domain_name
 
 	@property
 	@implements
@@ -45,7 +45,7 @@ class FlowEnter(Flow, IScope):
 	@property
 	@implements
 	def scope_part(self) -> str:
-		return DSN.right(self.full_path, 1)
+		return self.domain_name
 
 	@property
 	@implements

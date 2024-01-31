@@ -11,4 +11,5 @@ def preprocessors() -> Preprocessors:
 	return lambda: [
 		procs.FromModules(),
 		procs.ResolveUnknown(),
+		procs.InlineRegister(),
 	]

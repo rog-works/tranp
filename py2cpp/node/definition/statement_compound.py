@@ -133,6 +133,14 @@ class While(FlowEnter):
 		return self._by('block').as_a(Block)
 
 
+@Meta.embed(Node, accept_tags('for_in'))
+class ForIn(FlowPart):
+	@property
+	@Meta.embed(Node, expandable)
+	def iterates(self) -> Node:
+		return self._at(0)
+
+
 @Meta.embed(Node, accept_tags('for_stmt'))
 class For(FlowEnter, IDeclare):
 	@property
@@ -143,13 +151,17 @@ class For(FlowEnter, IDeclare):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def iterates(self) -> Node:
-		return self._at(1)
+	def for_in(self) -> ForIn:
+		return self._by('for_in').as_a(ForIn)
 
 	@property
 	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:
 		return self.block.statements
+
+	@property
+	def iterates(self) -> Node:
+		return self.for_in.iterates
 
 	@property
 	def block(self) -> Block:

@@ -249,8 +249,7 @@ class Symbols:
 			LogicError: 未定義のシンボルを指定
 		"""
 		if isinstance(node, defs.For):
-			# iteratesはIteratorなので、必ずプライマリーの属性の型になる
-			return self.__resolve_procedural(node.iterates).attrs[0]
+			return self.__resolve_procedural(node.for_in)
 		else:
 			# defs.Catch
 			return self.__from_type(node.var_type)
@@ -365,6 +364,12 @@ class ProceduralResolver(Procedure[Symbol]):
 
 	def on_fallback(self, node: Node) -> None:
 		pass
+
+	# Statement compound
+
+	def on_for_in(self, node: defs.ForIn, iterates: Symbol) -> Symbol:
+		method = [method for method in iterates.types.as_a(defs.Class).methods if method.symbol.tokens == '__next__'].pop()
+		return self.symbols.resolve(method.as_a(defs.Method).return_type)
 
 	# Statement simple
 

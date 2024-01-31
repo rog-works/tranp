@@ -204,7 +204,7 @@ class TestNode(TestCase):
 		# Primary
 		('a(0)', 'file_input.funccall', defs.FuncCall, '', '__main__.funccall'),
 		('a(0)\nfor i in b(): ...', 'file_input.funccall', defs.FuncCall, '', '__main__.funccall'),
-		('a(0)\nfor i in b(): ...', 'file_input.for_stmt.funccall', defs.FuncCall, '', '__main__.for_stmt.funccall'),
+		('a(0)\nfor i in b(): ...', 'file_input.for_stmt.for_in.funccall', defs.FuncCall, '', '__main__.for_stmt.funccall'),
 	])
 	def test_i_domain(self, source: str, full_path: str, types: type[T_Node], expected_name: bool, expected_fully: str) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path)

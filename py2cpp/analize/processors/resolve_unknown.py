@@ -13,7 +13,7 @@ class ResolveUnknown:
 
 		Args:
 			module_path (ModulePath): モジュールパス
-			db (SymbolDB): シンボルテーブル
+			raws (SymbolRaws): シンボルテーブル
 		Returns:
 			SymbolRaws: シンボルテーブル
 		"""
@@ -23,7 +23,6 @@ class ResolveUnknown:
 			if isinstance(raw.decl, defs.MoveAssign):
 				update_raws[key] = symbols.type_of(raw.decl.value).raw.varnize(raw.decl)
 			elif isinstance(raw.decl, defs.For):
-				# FIXME attrsは後発の情報のため、この段階で参照するのはNG
-				update_raws[key] = symbols.type_of(raw.decl.iterates).attrs[0].raw.varnize(raw.decl)
+				update_raws[key] = symbols.type_of(raw.decl.for_in).raw.varnize(raw.decl)
 
 		return {**raws, **update_raws}

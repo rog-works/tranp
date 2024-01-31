@@ -1,18 +1,26 @@
 from py2cpp.analize.db import SymbolDB
 from py2cpp.analize.symbol import SymbolRaws
 from py2cpp.analize.symbols import Symbols
+from py2cpp.lang.implementation import injectable
 from py2cpp.module.types import ModulePath
 import py2cpp.node.definition as defs
 
 
 class ResolveUnknown:
-	"""Unknownのシンボルを解決"""
+	"""Unknownのシンボルを解決
 
+	Note:
+		# Unknownになる条件
+		* MoveAssignの代入変数
+		* Forの展開変数
+	"""
+
+	@injectable
 	def __call__(self, module_path: ModulePath, raws: SymbolRaws) -> SymbolRaws:
 		"""シンボルテーブルを生成
 
 		Args:
-			module_path (ModulePath): モジュールパス
+			module_path (ModulePath): モジュールパス @inject
 			raws (SymbolRaws): シンボルテーブル
 		Returns:
 			SymbolRaws: シンボルテーブル

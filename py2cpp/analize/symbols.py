@@ -368,8 +368,11 @@ class ProceduralResolver(Procedure[Symbol]):
 	# Statement compound
 
 	def on_for_in(self, node: defs.ForIn, iterates: Symbol) -> Symbol:
-		method = [method for method in iterates.types.as_a(defs.Class).methods if method.symbol.tokens == '__next__'].pop()
-		return self.symbols.resolve(method.as_a(defs.Method).return_type)
+		methods = {method.symbol.tokens: method for method in iterates.types.as_a(defs.Class).methods if method.symbol.tokens in ['__next__', '__iter__']}
+		if '__next__' in methods:
+			return self.symbols.resolve(methods['__next__'].return_type)
+		else:
+			return self.symbols.resolve(methods['__iter__'].return_type.as_a(defs.GenericType).primary_type)
 
 	# Statement simple
 

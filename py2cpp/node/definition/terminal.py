@@ -18,11 +18,11 @@ class Terminal(Node):
 @Meta.embed(Node, accept_tags('__empty__', 'const_none'))
 class Empty(Node, ITerminal):
 	@property
-	@implements
-	def can_expand(self) -> bool:
-		return False
-
-	@property
 	@override
 	def domain_name(self) -> str:
 		return 'Empty'
+
+	@property
+	@implements
+	def can_expand(self) -> bool:
+		return False

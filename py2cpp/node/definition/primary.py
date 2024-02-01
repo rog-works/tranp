@@ -403,6 +403,7 @@ class FuncCall(Node, IDomain):
 	@property
 	@override
 	def domain_name(self) -> str:
+		# XXX 一意な名称を持たないためIDで代用
 		return DSN.identify(self.classification, self._id())
 
 	@property

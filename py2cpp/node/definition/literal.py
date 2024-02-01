@@ -12,6 +12,7 @@ class Literal(Node, IDomain):
 	@property
 	@override
 	def domain_name(self) -> str:
+		# XXX 一意な名称を持たないためIDで代用
 		return DSN.identify(self.literal_identifier, self._id())
 
 	@property
@@ -140,7 +141,7 @@ class Null(Literal, ITerminal):
 	@property
 	@override
 	def domain_name(self) -> str:
-		# XXX Noneはシングルトンであり、全て同一と見なすためIDを除外
+		# XXX Noneはシングルトンであり、全て同一と見なすため識別子のみとする
 		return self.literal_identifier
 
 	@property

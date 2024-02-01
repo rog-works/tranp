@@ -1,5 +1,5 @@
 import re
-from typing import cast
+from typing import Union, cast
 
 from py2cpp.ast.dsn import DSN
 from py2cpp.lang.implementation import override
@@ -378,8 +378,7 @@ class UnionType(Type):
 	@property
 	@override
 	def domain_name(self) -> str:
-		# XXX 定数化を検討
-		return 'Union'
+		return Union.__name__
 
 
 @Meta.embed(Node, accept_tags('typed_none'))
@@ -400,7 +399,12 @@ class TypeParameters(Node):
 
 
 @Meta.embed(Node, accept_tags('funccall'))
-class FuncCall(Node):
+class FuncCall(Node, IDomain):
+	@property
+	@override
+	def domain_name(self) -> str:
+		return DSN.identify(self.classification, self._id())
+
 	@property
 	@Meta.embed(Node, expandable)
 	def calls(self) -> Node:

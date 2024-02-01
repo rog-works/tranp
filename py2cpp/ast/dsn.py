@@ -99,3 +99,15 @@ class DSN:
 			str: 親の要素
 		"""
 		return cls.elements(origin)[-2]
+
+	@classmethod
+	def identify(cls, origin: str, id: int | str) -> str:
+		"""IDを付与し、一意性を持ったドメイン名を生成
+
+		Args:
+			origin (str): ドメイン名
+			id (int | str): ID
+		Returns:
+			str: ドメイン名
+		"""
+		return f'{origin}@{id}'

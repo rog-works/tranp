@@ -67,8 +67,8 @@ class TestSymbols(TestCase):
 	@data_provider([
 		('__main__.B.func2.a', 'int'),
 		('__main__.B.func2.closure.b', 'list[int]'),
-		('__main__.B.func2.if(321).for(337).i', 'T_Seq'),  # FIXME 追って修正
-		('__main__.B.func2.if(321).for(337).try(351).e', 'Exception'),
+		('__main__.B.func2.if.for.i', 'T_Seq'),  # FIXME 追って修正
+		('__main__.B.func2.if.for.try.e', 'Exception'),
 	])
 	def test_from_fullyname(self, fullyname: str, expected: str) -> None:
 		symbols = self.fixture.get(Symbols)

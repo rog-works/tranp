@@ -10,7 +10,7 @@ from py2cpp.lang.sequence import flatten
 from py2cpp.lang.string import snakelize
 from py2cpp.module.types import ModulePath
 from py2cpp.node.embed import EmbedKeys, Meta
-from py2cpp.node.interface import IScope, ITerminal
+from py2cpp.node.interface import IDomain, IScope, ITerminal
 
 T_Node = TypeVar('T_Node', bound='Node')
 
@@ -91,8 +91,22 @@ class Node:
 
 	@property
 	def fullyname(self) -> str:
-		"""str: 完全参照名 Note: スコープとドメイン名の組み合わせはあくまでも推奨値。ノードの役割に合わせてoverrideされる"""
-		return DSN.join(self.scope, self.domain_name)
+		"""完全参照名を取得
+
+		Returns:
+			str: 完全参照名
+		Note:
+			# 分類
+			* IDomainを実装(ClassDef/Declare/Reference/Type/FuncCall/Literal/Empty): scope.domain_name
+			* IScopeを実装(FlowEntry): scope@id
+			* その他: scope.classification@id
+		"""
+		if isinstance(self, IDomain):
+			return DSN.join(self.scope, self.domain_name)
+		elif isinstance(self, IScope):
+			return DSN.identify(self.scope, self._id())
+		else:
+			return DSN.join(self.scope, DSN.identify(self.classification, self._id()))
 
 	@property
 	def scope(self) -> str:

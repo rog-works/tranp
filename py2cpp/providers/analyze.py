@@ -10,6 +10,7 @@ def preprocessors() -> Preprocessors:
 	"""
 	return lambda: [
 		procs.FromModules(),
+		procs.ResolveGeneric(),
 		procs.ResolveUnknown(),
-		procs.InlineRegister(),
+		procs.RuntimeRegister(),
 	]

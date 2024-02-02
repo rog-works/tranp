@@ -6,7 +6,7 @@ from py2cpp.module.modules import Modules
 import py2cpp.node.definition as defs
 
 
-class InlineRegister:
+class RuntimeRegister:
 	"""インライン要素をシンボルに解決
 
 	Note:
@@ -28,9 +28,9 @@ class InlineRegister:
 		symbols = Symbols(modules.main.module_path, SymbolDB(raws))
 		new_raws: SymbolRaws = {}
 		# for node in modules.main.entrypoint.calculated():
-		# 	if isinstance(node, defs.FuncCall):
-		# 		new_raws[node.fullyname] = symbols.type_of(node).raw.inlinify(node)
+		# 	if isinstance(node, (defs.Reference, defs.Indexer, defs.FuncCall)):
+		# 		new_raws[node.fullyname] = symbols.type_of(node).raw.runtimes(node)
 		# 	elif isinstance(node, defs.Literal):
-		# 		new_raws[node.fullyname] = symbols.type_of(node).raw.inlinify(node)
+		# 		new_raws[node.fullyname] = symbols.type_of(node).raw.runtimes(node)
 
 		return {**raws, **new_raws}

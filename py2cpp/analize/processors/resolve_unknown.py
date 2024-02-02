@@ -27,10 +27,10 @@ class ResolveUnknown:
 		"""
 		symbols = Symbols(module_path, SymbolDB(raws))
 		update_raws: SymbolRaws = {}
-		for key, raw in raws.items():
-			if isinstance(raw.decl, defs.MoveAssign):
-				update_raws[key] = symbols.type_of(raw.decl.value).raw.varnize(raw.decl)
-			elif isinstance(raw.decl, defs.For):
-				update_raws[key] = symbols.type_of(raw.decl.for_in).raw.varnize(raw.decl)
+		# for key, raw in raws.items():
+		# 	if isinstance(raw.decl, defs.MoveAssign):
+		# 		update_raws[key] = symbols.type_of(raw.decl.value).raw.varnize(raw.decl)
+		# 	elif isinstance(raw.decl, defs.For):
+		# 		update_raws[key] = symbols.type_of(raw.decl.for_in).raw.varnize(raw.decl)
 
 		return {**raws, **update_raws}

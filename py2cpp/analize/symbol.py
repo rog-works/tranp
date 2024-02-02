@@ -1,13 +1,15 @@
 from dataclasses import dataclass, field
 
-from typing import NamedTuple, TypeAlias
+from typing import TypeAlias
 
 from py2cpp.lang.implementation import override
 from py2cpp.module.modules import Module
 import py2cpp.node.definition as defs
 
+Decl: TypeAlias = defs.Parameter | defs.AnnoAssign | defs.MoveAssign | defs.For | defs.Catch | defs.ClassDef | defs.Reference | defs.Indexer | defs.FuncCall | defs.Literal
 
-class SymbolRaw(NamedTuple):
+
+class SymbolRaw:
 	"""シンボルデータ
 
 	Attributes:
@@ -17,12 +19,14 @@ class SymbolRaw(NamedTuple):
 		types (ClassDef): クラス定義ノード
 		decl (DeclAll): 宣言ステートメントノード
 	"""
-	ref_path: str
-	org_path: str
-	module_path: str
-	types: defs.ClassDef
-	decl: defs.DeclAll
-	via: 'SymbolRaw | None' = None
+	def __init__(self, ref_path: str, org_path: str, module_path: str, types: defs.ClassDef, decl: Decl, via: 'SymbolRaw | None' = None, attrs: list['SymbolRaw'] = []) -> None:
+		self.ref_path = ref_path
+		self.org_path = org_path
+		self.module_path = module_path
+		self.types = types
+		self.decl = decl
+		self.via = via
+		self.attrs = attrs
 
 	def to(self, module: Module) -> 'SymbolRaw':
 		"""展開先を変更したインスタンスを生成
@@ -53,6 +57,19 @@ class SymbolRaw(NamedTuple):
 			SymbolRaw: インスタンス
 		"""
 		return SymbolRaw(self.ref_path, self.org_path, var.module_path, self.types, var, self)
+
+	def runtimes(self, runtime: defs.Reference | defs.Indexer | defs.FuncCall | defs.Literal) -> 'SymbolRaw':
+		"""変数シンボル用のデータに変換
+
+		Args:
+			var (DeclVars): 変数宣言ノード
+		Returns:
+			SymbolRaw: インスタンス
+		"""
+		return SymbolRaw(self.ref_path, self.org_path, runtime.module_path, self.types, runtime, self)
+
+	def extends(self, *attrs: 'SymbolRaw') -> 'SymbolRaw':
+		return SymbolRaw(self.ref_path, self.org_path, self.module_path, self.types, self.decl, self.via, list(attrs))
 
 
 SymbolRaws: TypeAlias = dict[str, SymbolRaw]

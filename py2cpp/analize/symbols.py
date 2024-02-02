@@ -565,7 +565,7 @@ class ProceduralResolver(Procedure[Symbol]):
 		return self.symbols.type_of_primitive(str)
 
 	def on_comment(self, node: defs.Comment) -> Symbol:
-		raise NotImplementedError(f'Not supported. node: {str(node)}')
+		return self.symbols.type_of_primitive(str)
 
 	def on_truthy(self, node: defs.Truthy) -> Symbol:
 		return self.symbols.type_of_primitive(bool)

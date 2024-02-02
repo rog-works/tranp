@@ -1,13 +1,9 @@
-from typing import Any, Generic, Sequence
+from typing import Any, Generic, Iterator, Sequence
 
 from py2cpp.compatible.python.embed import __actual__
 from py2cpp.compatible.python.template import T_Seq
 
 # Type
-
-class Iterator(Generic[T_Seq]):
-	def __next__(self) -> T_Seq:
-		...
 
 class Union: ...
 class Unknown: ...

@@ -1,15 +1,10 @@
-from typing import Any, Generic, Sequence
+from typing import Any, Generic, Iterator, Sequence
 
 from py2cpp.compatible.python.embed import __actual__, __alias__
 from py2cpp.compatible.python.template import T_Seq
 
 
 # Type
-
-class Iterator(Generic[T_Seq]):
-	def __next__(self) -> T_Seq:
-		...
-
 
 class Union: ...
 class Unknown: ...
@@ -99,12 +94,12 @@ class Pair: ...
 
 
 @__actual__('list')
-class List(Generic[T_Seq]):
+class List(Generic[T_Seq]):  # FIXME 警告は一旦無視
 	def __init__(self, iterable: Iterator[T_Seq]) -> None: ...
 	def __iter__(self) -> Iterator[T_Seq]: ...
 	@__alias__('push_back')
 	def append(self, elem: T_Seq) -> None: ...
-	def pop(self, index: int = -1) -> T_Seq: ...
+	def pop(self, index: int = -1) -> Any: ...
 
 
 @__actual__('dict')

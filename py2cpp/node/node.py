@@ -59,6 +59,9 @@ class Node:
 		Raises:
 			ValueError: Node以外のオブジェクトを指定
 		"""
+		if other is None:
+			return False
+
 		if not isinstance(other, Node):
 			raise ValueError(f'Not allowed comparison. other: {type(other)}')
 

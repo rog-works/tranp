@@ -93,7 +93,7 @@ class FromModules:
 		entrypoint = module.entrypoint.as_a(defs.Entrypoint)
 		for node in entrypoint.flatten():
 			if isinstance(node, defs.ClassDef):
-				raws[node.fullyname] = SymbolRaw(node.fullyname, node.fullyname, module.path, node, node)
+				raws[node.fullyname] = SymbolRaw.from_types(node)
 
 			if type(node) is defs.Import:
 				import_nodes.append(node)

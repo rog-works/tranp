@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 
 from typing import TypeAlias
+from py2cpp.errors import LogicError
 
 from py2cpp.lang.implementation import override
 from py2cpp.module.modules import Module
@@ -11,9 +12,20 @@ DeclRefs: TypeAlias = defs.Reference | defs.Indexer | defs.FuncCall | defs.Liter
 
 
 class SymbolRaw:
-	"""シンボルデータ"""
+	"""シンボル"""
 
-	def __init__(self, ref_path: str, org_path: str, module_path: str, types: defs.ClassDef, decl: Decl, via: 'SymbolRaw | None' = None, attrs: list['SymbolRaw'] = []) -> None:
+	@classmethod
+	def from_types(cls, types: defs.ClassDef) -> 'SymbolRaw':
+		"""クラス定義ノードを元にインスタンスを生成
+
+		Args:
+			types (ClassDef): クラス定義ノード
+		Returns:
+			SymbolRaw: シンボル
+		"""
+		return cls(types.fullyname, types.fullyname, types.module_path, types, types)
+
+	def __init__(self, ref_path: str, org_path: str, module_path: str, types: defs.ClassDef, decl: Decl, via: 'SymbolRaw | None' = None, behavior: str = 'Origin') -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -21,17 +33,55 @@ class SymbolRaw:
 			org_path (str): 参照パス(オリジナル)
 			module_path (str): 展開先モジュールのパス
 			types (ClassDef): クラス定義ノード
-			decl (Decl): 宣言ノード XXX 名称を再検討
-			via (SymbolRaw): ラップ対象のシンボル(Reference -> Var -> Type)
-			attrs (list[SymbolRaw]): ジェネリック型に対応する属性シンボルリスト
+			decl (Decl): 宣言ノード
+			via (SymbolRaw | None): 参照元のシンボル(Reference -> Var -> Type)
 		"""
-		self.ref_path = ref_path
-		self.org_path = org_path
-		self.module_path = module_path
-		self.types = types
-		self.decl = decl
-		self.via = via
-		self.attrs = attrs
+		self._ref_path = ref_path
+		self._org_path = org_path
+		self._module_path = module_path
+		self._types = types
+		self._decl = decl
+		self._attrs: list[SymbolRaw] = []
+		self._via = via
+		self._behavior = behavior
+
+	@property
+	def ref_path(self) -> str:
+		"""str: 参照パス"""
+		return self._ref_path
+
+	@property
+	def org_path(self) -> str:
+		"""str: 参照パス(オリジナル)"""
+		return self._org_path
+
+	@property
+	def module_path(self) -> str:
+		"""str: 展開先モジュールのパス"""
+		return self._module_path
+
+	@property
+	def types(self) -> defs.ClassDef:
+		"""ClassDef: クラス定義ノード"""
+		return self._types
+
+	@property
+	def decl(self) -> Decl:
+		"""Decl: 宣言ノード"""
+		return self._decl
+
+	@property
+	def attrs(self) -> list['SymbolRaw']:
+		"""list[SymbolRaw]: 属性シンボルリスト"""
+		if self._attrs:
+			return self._attrs
+
+		return self._via.attrs if self._via else []
+
+	@property
+	def has_entity(self) -> bool:
+		"""bool: True = 実態を持つ"""
+		return self._behavior in ['Origin', 'Var']
 
 	@override
 	def __eq__(self, other: object) -> bool:
@@ -44,6 +94,9 @@ class SymbolRaw:
 		Raises:
 			ValueError: Node以外のオブジェクトを指定
 		"""
+		if other is None:
+			return False
+
 		if type(other) is not SymbolRaw:
 			raise ValueError(f'Not allowed comparison. other: {type(other)}')
 
@@ -67,16 +120,6 @@ class SymbolRaw:
 		else:
 			return f'{self.types.domain_name}'
 
-	def to(self, module: Module) -> 'SymbolRaw':
-		"""展開先を変更したインスタンスを生成
-
-		Args:
-			module (Module): 展開先のモジュール
-		Returns:
-			SymbolRaw: インスタンス
-		"""
-		return SymbolRaw(self.path_to(module), self.org_path, module.path, self.types, self.decl)
-
 	def path_to(self, module: Module) -> str:
 		"""展開先を変更した参照パスを生成
 
@@ -87,6 +130,16 @@ class SymbolRaw:
 		"""
 		return self.ref_path.replace(self.module_path, module.path)
 
+	def to(self, module: Module) -> 'SymbolRaw':
+		"""展開先を変更したインスタンスを生成
+
+		Args:
+			module (Module): 展開先のモジュール
+		Returns:
+			SymbolRaw: インスタンス
+		"""
+		return SymbolRaw(self.path_to(module), self.org_path, module.path, self.types, self.decl, self, 'Alias')
+
 	def varnize(self, var: defs.DeclVars) -> 'SymbolRaw':
 		"""変数シンボル用のデータに変換
 
@@ -95,7 +148,7 @@ class SymbolRaw:
 		Returns:
 			SymbolRaw: インスタンス
 		"""
-		return SymbolRaw(self.ref_path, self.org_path, var.module_path, self.types, var, self)
+		return SymbolRaw(self.ref_path, self.org_path, var.module_path, self.types, var, self, 'Var')
 
 	def refnize(self, ref: DeclRefs) -> 'SymbolRaw':
 		"""参照シンボル用のデータに変換
@@ -105,17 +158,23 @@ class SymbolRaw:
 		Returns:
 			SymbolRaw: インスタンス
 		"""
-		return SymbolRaw(self.ref_path, self.org_path, ref.module_path, self.types, ref, self)
+		return SymbolRaw(self.ref_path, self.org_path, ref.module_path, self.types, ref, self, 'Reference')
 
 	def extends(self, *attrs: 'SymbolRaw') -> 'SymbolRaw':
-		"""属性を取り込んだ拡張データに変換
+		"""属性の型を取り込み、シンボルデータを拡張
 
 		Args:
 			*attrs (SymbolRaw): 属性シンボルリスト
 		Returns:
 			SymbolRaw: インスタンス
+		Raises:
+			LogicError: 拡張済みのインスタンスに再度実行
 		"""
-		return SymbolRaw(self.ref_path, self.org_path, self.module_path, self.types, self.decl, self.via, list(attrs))
+		if self._attrs:
+			raise LogicError('Already set attibutes.')
+
+		self._attrs = list(attrs)
+		return self
 
 
 SymbolRaws: TypeAlias = dict[str, SymbolRaw]

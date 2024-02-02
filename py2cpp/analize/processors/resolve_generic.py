@@ -19,6 +19,9 @@ class ResolveGeneric:
 		"""
 		update_raws: SymbolRaws = {}
 		for key, raw in raws.items():
+			if not raw.has_entity:
+				continue
+
 			fore_type = self.__analyze_fore_type(raw)
 			if isinstance(fore_type, defs.GenericType):
 				update_raws[key] = self.__actualize_generic(raws, raw, fore_type)
@@ -49,14 +52,14 @@ class ResolveGeneric:
 			return raw.decl.return_type
 
 	def __actualize_generic(self, raws: SymbolRaws, via: SymbolRaw, generic_type: defs.GenericType) -> SymbolRaw:
-		"""ジェネリックタイプノードを解析し、属性の型を取り込んだシンボルに変換
+		"""ジェネリックタイプノードを解析し、属性の型を取り込みシンボルを拡張
 
 		Args:
 			raws (SymbolRaws): シンボルテーブル
 			via: (SymbolRaw): シンボル
 			generic_type (GenericType): ジェネリックタイプノード
 		Returns:
-			SymbolRaw: 変換後のシンボル
+			SymbolRaw: シンボル
 		"""
 		attrs: list[SymbolRaw] = []
 		for t_type in generic_type.template_types:

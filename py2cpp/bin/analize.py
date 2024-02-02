@@ -106,8 +106,21 @@ def task_type(symbols: Symbols) -> None:
 		'Symbol fullyname here:',
 	])
 	name = readline(prompt)
+
+	symbol = symbols.from_fullyname(name)
+	data = {
+		'type': str(symbols.from_fullyname(name)),
+		'ref_path': symbol.raw.ref_path,
+		'org_path': symbol.raw.org_path,
+		'module': symbol.raw.module.path,
+		'symbol': symbol.raw.symbol.tokens,
+		'types': str(symbol.raw.types),
+		'decl': str(symbol.raw.decl),
+		'attrs': ', '.join([str(attr) for attr in symbol.attrs]),
+	}
+
 	print('--------------')
-	print(f'{name}:', f'{str(symbols.from_fullyname(name))}')
+	print('\n'.join([f'{key}: {value}' for key, value in data.items()]))
 
 
 def task_help() -> None:

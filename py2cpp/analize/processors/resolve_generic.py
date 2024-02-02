@@ -25,29 +25,31 @@ class ResolveGeneric:
 
 		return {**raws, **update_raws}
 
-	def __analyze_fore_type(self, raw: SymbolRaw) -> defs.Type | defs.ClassDef | None:
+	def __analyze_fore_type(self, raw: SymbolRaw) -> defs.Type | defs.Class | defs.Function | None:
 		"""シンボルの外形タイプを解析
 
 		Args:
 			raw (SymbolRaw): シンボル
 		Returns:
-			Type | ClassDef | None: 外形タイプ
+			Type | Class | Function | None: 外形タイプ
 		"""
 		if isinstance(raw.decl, (defs.AnnoAssign, defs.Catch)):
 			return raw.decl.var_type
 		elif isinstance(raw.decl, defs.Parameter):
 			if isinstance(raw.decl.symbol, defs.DeclClassParam):
-				return raw.decl.symbol.class_types.as_a(defs.ClassDef)
+				return raw.decl.symbol.class_types.as_a(defs.Class)
 			elif isinstance(raw.decl.symbol, defs.DeclThisParam):
-				return raw.decl.symbol.class_types.as_a(defs.ClassDef)
+				return raw.decl.symbol.class_types.as_a(defs.Class)
 			else:
 				return raw.decl.var_type.as_a(defs.Type)
 		elif isinstance(raw.decl, (defs.MoveAssign, defs.For)):
 			# 型指定が無いため全てUnknown
 			return None
+		elif isinstance(raw.decl, defs.Function):
+			return raw.decl.return_type
 
 	def __actualize_generic(self, raws: SymbolRaws, via: SymbolRaw, generic_type: defs.GenericType) -> SymbolRaw:
-		"""ジェネリックタイプノードを解析し、実際の型を取り込んだシンボルに変換
+		"""ジェネリックタイプノードを解析し、属性の型を取り込んだシンボルに変換
 
 		Args:
 			raws (SymbolRaws): シンボルテーブル

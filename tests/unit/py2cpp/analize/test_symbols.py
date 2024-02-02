@@ -114,7 +114,7 @@ class TestSymbols(TestCase):
 		(_ast('B.B2.block', 'anno_assign.var'), _mod('classes', 'str'), []),
 		(_ast('B.B2.block', 'anno_assign.typed_var'), _mod('classes', 'str'), []),
 		(_ast('B.B2.block', 'anno_assign.string'), _mod('classes', 'str'), []),
-		(_ast('B.B2.class_func', ''), '__main__.B.B2.class_func', []),
+		(_ast('B.B2.class_func', ''), '__main__.B.B2.class_func', [_mod('classes', 'str'), _mod('classes', 'int')]),
 		# 20
 		(_ast('B.B2.class_func.params', 'paramvalue.typedparam.name'), '__main__.B.B2', []),
 		(_ast('B.B2.class_func.return', 'typed_getitem'), _mod('classes', 'dict'), []), # FIXME 追って修正 [_mod('classes', 'str'), _mod('classes', 'int')]),

@@ -1,7 +1,7 @@
 from typing import TypeAlias
 
 from py2cpp.analize.db import SymbolDB
-from py2cpp.analize.symbol import Symbol, SymbolRaw
+from py2cpp.analize.symbol import SymbolRaw
 from py2cpp.analize.procedure import Procedure
 from py2cpp.ast.dsn import DSN
 import py2cpp.compatible.python.classes as classes
@@ -28,80 +28,80 @@ class Symbols:
 		self.__raws = db.raws
 		self.__module_path = module_path
 
-	def is_list(self, symbol: Symbol) -> bool:
+	def is_list(self, symbol: SymbolRaw) -> bool:
 		"""シンボルがList型か判定
 
 		Args:
-			symbol (Symbol): シンボル
+			symbol (SymbolRaw): シンボル
 		Return:
 			bool: True = List型
 		"""
 		return symbol.types == self.type_of_primitive(list).types
 
-	def is_dict(self, symbol: Symbol) -> bool:
+	def is_dict(self, symbol: SymbolRaw) -> bool:
 		"""シンボルがDict型か判定
 
 		Args:
-			symbol (Symbol): シンボル
+			symbol (SymbolRaw): シンボル
 		Return:
 			bool: True = Dict型
 		"""
 		return symbol.types == self.type_of_primitive(dict).types
 
-	def from_fullyname(self, fullyname: str) -> Symbol:
-		"""参照フルパスからシンボルを解決
+	def from_fullyname(self, fullyname: str) -> SymbolRaw:
+		"""完全参照名からシンボルを解決
 
 		Args:
-			fullyname (str): 参照フルパス
+			fullyname (str): 完全参照名
 		Returns:
-			Symbol: シンボル
+			SymbolRaw: シンボル
 		Raises:
 			NotFoundError: 存在しないパスを指定
 		"""
 		if fullyname not in self.__raws:
-			raise NotFoundError(f'Symbol not defined. fullyname: {fullyname}')
+			raise NotFoundError(f'SymbolRaw not defined. fullyname: {fullyname}')
 
 		raw = self.__raws[fullyname]
 		return self.type_of(raw.decl)
 
-	def type_of_primitive(self, primitive_type: type[Primitives] | None) -> Symbol:
+	def type_of_primitive(self, primitive_type: type[Primitives] | None) -> SymbolRaw:
 		"""プリミティブ型のシンボルを解決
 
 		Args:
 			primitive_type (type[Primitives] | None): プリミティブ型
 		Returns:
-			Symbol: シンボル
+			SymbolRaw: シンボル
 		Raises:
 			LogicError: 未定義のタイプを指定
 		"""
 		symbol_name = primitive_type.__name__ if primitive_type is not None else 'None'
 		candidate = DSN.join(self.__module_path.ref_name, symbol_name)
 		if candidate in self.__raws:
-			return Symbol(self.__raws[candidate])
+			return self.__raws[candidate]
 
 		raise LogicError(f'Primitive not defined. name: {primitive_type.__name__}')
 
-	def type_of_property(self, decl_class: defs.ClassDef, prop: defs.Var) -> Symbol:
+	def type_of_property(self, decl_class: defs.ClassDef, prop: defs.Var) -> SymbolRaw:
 		"""クラス定義ノードと変数参照ノードからプロパティーのシンボルを解決
 
 		Args:
 			decl_class (ClassDef): クラス定義ノード
 			prop (Var): 変数参照ノード
 		Returns:
-			Symbol: シンボル
+			SymbolRaw: シンボル
 		Raises:
 			LogicError: 未定義のシンボルを指定
 		"""
 		symbol = self.resolve(decl_class, prop.tokens)
 		return self.__post_type_of_var(prop, symbol)
 
-	def type_of(self, node: Node) -> Symbol:
+	def type_of(self, node: Node) -> SymbolRaw:
 		"""シンボル系/式ノードからシンボルを解決 XXX 万能過ぎるので細分化を検討
 
 		Args:
 			node (Node): シンボル系/式ノード
 		Returns:
-			Symbol: シンボル
+			SymbolRaw: シンボル
 		Raises:
 			LogicError: 未定義のシンボルを指定
 		"""
@@ -120,38 +120,37 @@ class Symbols:
 		else:
 			return self.__resolve_procedural(node)
 
-	def type_of_var(self, node: defs.Declable | defs.Reference) -> Symbol:
+	def type_of_var(self, node: defs.Declable | defs.Reference) -> SymbolRaw:
 		"""シンボル宣言・参照ノードのシンボルを解決
 
 		Args:
 			node (Declable | Reference): シンボル宣言・参照ノード
 		Returns:
-			Symbol: シンボル
+			SymbolRaw: シンボル
 		Raises:
 			LogicError: 未定義のシンボルを指定
 		"""
 		symbol = self.resolve(node)
 		return self.__post_type_of_var(node, symbol)
 
-	def __post_type_of_var(self, node: defs.Declable | defs.Reference, symbol: Symbol) -> Symbol:
+	def __post_type_of_var(self, node: defs.Declable | defs.Reference, symbol: SymbolRaw) -> SymbolRaw:
 		"""シンボル宣言・参照ノードのシンボル解決の後処理
 
 		Args:
 			node (Declable | Reference): シンボル宣言・参照ノード XXX 未使用
-			symbol (Symbol): シンボル
+			symbol (SymbolRaw): シンボル
 		Returns:
-			Symbol: シンボル
+			SymbolRaw: シンボル
 		Raises:
 			LogicError: 未定義のシンボルを指定
 		Note:
 			# このメソッドの目的
-			* Generic型のサブタイプの解決(シンボル宣言・参照ノード由来)
 			* MoveAssignの宣言型の解決(シンボル宣言・参照ノード由来)
 			@see resolve
 		"""
-		decl = symbol.raw.decl
+		decl = symbol.decl
 		if isinstance(decl, (defs.AnnoAssign, defs.Parameter)):
-			return self.__from_type(decl.var_type) if isinstance(decl.var_type, defs.GenericType) else symbol
+			return symbol
 		elif isinstance(decl, defs.MoveAssign):
 			return self.__resolve_procedural(decl.value)
 		elif isinstance(decl, (defs.For, defs.Catch)):
@@ -160,25 +159,25 @@ class Symbols:
 			# defs.ClassDef
 			return symbol
 
-	def __from_declable(self, node: defs.Declable) -> Symbol:
+	def __from_declable(self, node: defs.Declable) -> SymbolRaw:
 		"""シンボル宣言ノードからシンボルを解決
 
 		Args:
 			node (Declable): シンボル宣言ノード
 		Returns:
-			Symbol: シンボル
+			SymbolRaw: シンボル
 		Raises:
 			LogicError: 未定義のシンボルを指定
 		"""
 		return self.type_of_var(node)
 
-	def __from_reference(self, node: defs.Reference) -> Symbol:
+	def __from_reference(self, node: defs.Reference) -> SymbolRaw:
 		"""シンボル参照ノードからシンボルを解決
 
 		Args:
 			node (Reference): 参照ノード
 		Returns:
-			Symbol: シンボル
+			SymbolRaw: シンボル
 		Raises:
 			LogicError: 未定義のシンボルを指定
 		"""
@@ -188,49 +187,49 @@ class Symbols:
 			# defs.Relay
 			return self.__resolve_procedural(node)
 
-	def __from_type(self, node: defs.Type) -> Symbol:
+	def __from_type(self, node: defs.Type) -> SymbolRaw:
 		"""型ノードからシンボルを解決
 
 		Args:
 			node (Type): 型ノード
 		Returns:
-			Symbol: シンボル
-		Raises:
-			LogicError: 未定義のシンボルを指定
-		"""
-		return self.__resolve_procedural(node)
-
-	def __from_literal(self, node: defs.Literal) -> Symbol:
-		"""リテラルノードからシンボルを解決
-
-		Args:
-			node (Literal): リテラルノード
-		Returns:
-			Symbol: シンボル
-		Raises:
-			LogicError: 未定義のシンボルを指定
-		"""
-		return self.__resolve_procedural(node)
-
-	def __from_class(self, node: defs.ClassDef) -> Symbol:
-		"""クラス定義ノードからシンボルを解決
-
-		Args:
-			node (ClassDef): クラス定義ノード
-		Returns:
-			Symbol: シンボル
+			SymbolRaw: シンボル
 		Raises:
 			LogicError: 未定義のシンボルを指定
 		"""
 		return self.resolve(node)
 
-	def __from_flow(self, node: defs.For | defs.Catch) -> Symbol:
+	def __from_literal(self, node: defs.Literal) -> SymbolRaw:
+		"""リテラルノードからシンボルを解決
+
+		Args:
+			node (Literal): リテラルノード
+		Returns:
+			SymbolRaw: シンボル
+		Raises:
+			LogicError: 未定義のシンボルを指定
+		"""
+		return self.__resolve_procedural(node)
+
+	def __from_class(self, node: defs.ClassDef) -> SymbolRaw:
+		"""クラス定義ノードからシンボルを解決
+
+		Args:
+			node (ClassDef): クラス定義ノード
+		Returns:
+			SymbolRaw: シンボル
+		Raises:
+			LogicError: 未定義のシンボルを指定
+		"""
+		return self.resolve(node)
+
+	def __from_flow(self, node: defs.For | defs.Catch) -> SymbolRaw:
 		"""制御構文ノードからシンボルを解決
 
 		Args:
 			node (For | Catch): 制御構文ノード
 		Returns:
-			Symbol: シンボル
+			SymbolRaw: シンボル
 		Raises:
 			LogicError: 未定義のシンボルを指定
 		"""
@@ -240,13 +239,13 @@ class Symbols:
 			# defs.Catch
 			return self.__from_type(node.var_type)
 
-	def __resolve_procedural(self, node: Node) -> Symbol:
+	def __resolve_procedural(self, node: Node) -> SymbolRaw:
 		"""ノードを展開してシンボルを解決
 
 		Args:
 			node (Node): ノード
 		Returns:
-			Symbol: シンボル
+			SymbolRaw: シンボル
 		Raises:
 			LogicError: シンボルの解決に失敗
 		"""
@@ -259,14 +258,14 @@ class Symbols:
 
 		return resolver.result()
 
-	def resolve(self, symbolic: defs.Symbolic, prop_name: str = '') -> Symbol:
+	def resolve(self, symbolic: defs.Symbolic, prop_name: str = '') -> SymbolRaw:
 		"""シンボルテーブルからシンボルを解決
 
 		Args:
 			symbolic (Symbolic): シンボル系ノード
 			prop_name (str): プロパティー名(default = '')
 		Returns:
-			Symbol: シンボル
+			SymbolRaw: シンボル
 		Raises:
 			LogicError: シンボルの解決に失敗
 		Note:
@@ -278,9 +277,9 @@ class Symbols:
 		"""
 		found_raw = self.__resolve_raw(symbolic, prop_name)
 		if found_raw is not None:
-			return Symbol(found_raw)
+			return found_raw
 
-		raise LogicError(f'Symbol not defined. symbolic: {symbolic.fullyname}, prop_name: {prop_name}')
+		raise LogicError(f'SymbolRaw not defined. symbolic: {symbolic.fullyname}, prop_name: {prop_name}')
 
 	def __resolve_raw(self, symbolic: defs.Symbolic, prop_name: str) -> SymbolRaw | None:
 		"""シンボル系ノードからシンボルを解決。未検出の場合はNoneを返却
@@ -341,7 +340,7 @@ class Symbols:
 		return None
 
 
-class ProceduralResolver(Procedure[Symbol]):
+class ProceduralResolver(Procedure[SymbolRaw]):
 	def __init__(self, symbols: Symbols) -> None:
 		super().__init__(verbose=False)
 		self.symbols = symbols
@@ -353,7 +352,7 @@ class ProceduralResolver(Procedure[Symbol]):
 
 	# Statement compound
 
-	def on_for_in(self, node: defs.ForIn, iterates: Symbol) -> Symbol:
+	def on_for_in(self, node: defs.ForIn, iterates: SymbolRaw) -> SymbolRaw:
 		methods = {method.symbol.tokens: method for method in iterates.types.as_a(defs.Class).methods if method.symbol.tokens in ['__next__', '__iter__']}
 		if '__next__' in methods:
 			return self.symbols.resolve(methods['__next__'].return_type)
@@ -362,40 +361,40 @@ class ProceduralResolver(Procedure[Symbol]):
 
 	# Statement simple
 
-	def on_anno_assign(self, node: defs.AnnoAssign, receiver: Symbol, var_type: Symbol, value: Symbol) -> Symbol:
-		return var_type
-
-	def on_move_assign(self, node: defs.MoveAssign, receiver: Symbol, value: Symbol) -> Symbol:
+	def on_anno_assign(self, node: defs.AnnoAssign, receiver: SymbolRaw, var_type: SymbolRaw, value: SymbolRaw) -> SymbolRaw:
 		return receiver
 
-	def on_aug_assign(self, node: defs.AugAssign, receiver: Symbol, value: Symbol) -> Symbol:
+	def on_move_assign(self, node: defs.MoveAssign, receiver: SymbolRaw, value: SymbolRaw) -> SymbolRaw:
+		return receiver
+
+	def on_aug_assign(self, node: defs.AugAssign, receiver: SymbolRaw, value: SymbolRaw) -> SymbolRaw:
 		"""Note: XXX operatorに型はないので引数からは省略"""
 		return receiver
 
 	# Primary
 
-	def on_decl_class_var(self, node: defs.DeclClassVar) -> Symbol:
+	def on_decl_class_var(self, node: defs.DeclClassVar) -> SymbolRaw:
 		return self.symbols.type_of_var(node)
 
-	def on_decl_this_var(self, node: defs.DeclThisVar) -> Symbol:
+	def on_decl_this_var(self, node: defs.DeclThisVar) -> SymbolRaw:
 		return self.symbols.type_of_var(node)
 
-	def on_decl_class_param(self, node: defs.DeclClassParam) -> Symbol:
+	def on_decl_class_param(self, node: defs.DeclClassParam) -> SymbolRaw:
 		return self.symbols.type_of_var(node)
 
-	def on_decl_this_param(self, node: defs.DeclThisParam) -> Symbol:
+	def on_decl_this_param(self, node: defs.DeclThisParam) -> SymbolRaw:
 		return self.symbols.type_of_var(node)
 
-	def on_decl_local_var(self, node: defs.DeclLocalVar) -> Symbol:
+	def on_decl_local_var(self, node: defs.DeclLocalVar) -> SymbolRaw:
 		return self.symbols.type_of_var(node)
 
-	def on_types_name(self, node: defs.TypesName) -> Symbol:
+	def on_types_name(self, node: defs.TypesName) -> SymbolRaw:
 		return self.symbols.type_of_var(node)
 
-	def on_import_name(self, node: defs.ImportName) -> Symbol:
+	def on_import_name(self, node: defs.ImportName) -> SymbolRaw:
 		return self.symbols.type_of_var(node)
 
-	def on_relay(self, node: defs.Relay, receiver: Symbol) -> Symbol:
+	def on_relay(self, node: defs.Relay, receiver: SymbolRaw) -> SymbolRaw:
 		prop_symbol = self.symbols.type_of_property(receiver.types, node.prop)
 		if isinstance(prop_symbol.types, defs.Method):
 			# XXX 同じものを比較しているので意味がない
@@ -406,13 +405,13 @@ class ProceduralResolver(Procedure[Symbol]):
 
 		return prop_symbol
 
-	def on_class_ref(self, node: defs.ClassRef) -> Symbol:
+	def on_class_ref(self, node: defs.ClassRef) -> SymbolRaw:
 		return self.symbols.type_of_var(node)
 
-	def on_this_ref(self, node: defs.ThisRef) -> Symbol:
+	def on_this_ref(self, node: defs.ThisRef) -> SymbolRaw:
 		return self.symbols.type_of_var(node)
 
-	def on_argument_label(self, node: defs.ArgumentLabel) -> Symbol:
+	def on_argument_label(self, node: defs.ArgumentLabel) -> SymbolRaw:
 		func_symbol = self.symbols.type_of(node.invoker.calls)
 		for param in func_symbol.types.as_a(defs.Function).parameters:
 			if param.symbol.tokens == node.tokens:
@@ -420,10 +419,10 @@ class ProceduralResolver(Procedure[Symbol]):
 
 		raise LogicError(f'Parameter not defined. function: {func_symbol.types.fullyname}, label: {node.tokens}')
 
-	def on_variable(self, node: defs.Var) -> Symbol:
+	def on_variable(self, node: defs.Var) -> SymbolRaw:
 		return self.symbols.type_of_var(node)
 
-	def on_indexer(self, node: defs.Indexer, receiver: Symbol, key: Symbol) -> Symbol:
+	def on_indexer(self, node: defs.Indexer, receiver: SymbolRaw, key: SymbolRaw) -> SymbolRaw:
 		if self.symbols.is_list(receiver):
 			return receiver.attrs[0]
 		elif self.symbols.is_dict(receiver):
@@ -431,25 +430,25 @@ class ProceduralResolver(Procedure[Symbol]):
 		else:
 			raise ValueError(f'Not supported indexer symbol type. {str(receiver)}')
 
-	def on_general_type(self, node: defs.GeneralType) -> Symbol:
+	def on_general_type(self, node: defs.GeneralType) -> SymbolRaw:
 		return self.symbols.resolve(node)
 
-	def on_list_type(self, node: defs.ListType, type_name: Symbol, value_type: Symbol) -> Symbol:
-		return type_name.extends(value_type)
+	def on_list_type(self, node: defs.ListType, type_name: SymbolRaw, value_type: SymbolRaw) -> SymbolRaw:
+		return type_name
 
-	def on_dict_type(self, node: defs.DictType, type_name: Symbol, key_type: Symbol, value_type: Symbol) -> Symbol:
-		return type_name.extends(key_type, value_type)
+	def on_dict_type(self, node: defs.DictType, type_name: SymbolRaw, key_type: SymbolRaw, value_type: SymbolRaw) -> SymbolRaw:
+		return type_name
 
-	def on_custom_type(self, node: defs.CustomType, type_name: Symbol, template_types: list[Symbol]) -> Symbol:
-		return type_name.extends(*template_types)
+	def on_custom_type(self, node: defs.CustomType, type_name: SymbolRaw, template_types: list[SymbolRaw]) -> SymbolRaw:
+		return type_name
 
-	def on_union_type(self, node: defs.UnionType, type_name: Symbol, or_types: list[Symbol]) -> Symbol:
-		return type_name.extends(*or_types)
+	def on_union_type(self, node: defs.UnionType, type_name: SymbolRaw, or_types: list[SymbolRaw]) -> SymbolRaw:
+		return type_name
 
-	def on_null_type(self, node: defs.NullType) -> Symbol:
-		return self.symbols.resolve(node)
+	def on_null_type(self, node: defs.NullType) -> SymbolRaw:
+		return self.symbols.type_of_primitive(None)
 
-	def on_func_call(self, node: defs.FuncCall, calls: Symbol, arguments: list[Symbol]) -> Symbol:
+	def on_func_call(self, node: defs.FuncCall, calls: SymbolRaw, arguments: list[SymbolRaw]) -> SymbolRaw:
 		if isinstance(calls.types, defs.Constructor):
 			return self.symbols.type_of_var(calls.types.class_types.symbol)
 		elif isinstance(calls.types, defs.Function):
@@ -463,30 +462,30 @@ class ProceduralResolver(Procedure[Symbol]):
 			# defs.ClassDef
 			return calls
 
-	def on_super(self, node: defs.Super, calls: Symbol, arguments: list[Symbol]) -> Symbol:
+	def on_super(self, node: defs.Super, calls: SymbolRaw, arguments: list[SymbolRaw]) -> SymbolRaw:
 		return self.symbols.resolve(node.super_class_symbol)
 
-	def on_argument(self, node: defs.Argument, label: Symbol, value: Symbol) -> Symbol:
+	def on_argument(self, node: defs.Argument, label: SymbolRaw, value: SymbolRaw) -> SymbolRaw:
 		return value
 
-	def on_inherit_argument(self, node: defs.InheritArgument, class_type: Symbol) -> Symbol:
+	def on_inherit_argument(self, node: defs.InheritArgument, class_type: SymbolRaw) -> SymbolRaw:
 		return class_type
 
 	# Operator
 
-	def on_factor(self, node: defs.Sum, value: Symbol) -> Symbol:
+	def on_factor(self, node: defs.Sum, value: SymbolRaw) -> SymbolRaw:
 		return value
 
-	def on_not_compare(self, node: defs.NotCompare, value: Symbol) -> Symbol:
+	def on_not_compare(self, node: defs.NotCompare, value: SymbolRaw) -> SymbolRaw:
 		return value
 
-	def on_or_compare(self, node: defs.OrCompare, left: Symbol, right: list[Symbol]) -> Symbol:
+	def on_or_compare(self, node: defs.OrCompare, left: SymbolRaw, right: list[SymbolRaw]) -> SymbolRaw:
 		return self.each_binary_operator(node, left, right, '__or__')
 
-	def on_and_compare(self, node: defs.AndCompare, left: Symbol, right: list[Symbol]) -> Symbol:
+	def on_and_compare(self, node: defs.AndCompare, left: SymbolRaw, right: list[SymbolRaw]) -> SymbolRaw:
 		return self.each_binary_operator(node, left, right, '__and__')
 
-	def on_comparison(self, node: defs.Comparison, left: Symbol, right: list[Symbol]) -> Symbol:
+	def on_comparison(self, node: defs.Comparison, left: SymbolRaw, right: list[SymbolRaw]) -> SymbolRaw:
 		operators = {
 			'==': '__eq__',
 			'<': '__lt__',
@@ -502,30 +501,30 @@ class ProceduralResolver(Procedure[Symbol]):
 		}
 		return self.each_binary_operator(node, left, right, '__eq__')
 
-	def on_or_bitwise(self, node: defs.OrBitwise, left: Symbol, right: list[Symbol]) -> Symbol:
+	def on_or_bitwise(self, node: defs.OrBitwise, left: SymbolRaw, right: list[SymbolRaw]) -> SymbolRaw:
 		return self.each_binary_operator(node, left, right, '__or__')
 
-	def on_xor_bitwise(self, node: defs.XorBitwise, left: Symbol, right: list[Symbol]) -> Symbol:
+	def on_xor_bitwise(self, node: defs.XorBitwise, left: SymbolRaw, right: list[SymbolRaw]) -> SymbolRaw:
 		return self.each_binary_operator(node, left, right, '__xor__')
 
-	def on_and_bitwise(self, node: defs.AndBitwise, left: Symbol, right: list[Symbol]) -> Symbol:
+	def on_and_bitwise(self, node: defs.AndBitwise, left: SymbolRaw, right: list[SymbolRaw]) -> SymbolRaw:
 		return self.each_binary_operator(node, left, right, '__and__')
 
-	def on_shift_bitwise(self, node: defs.Sum, left: Symbol, right: list[Symbol]) -> Symbol:
+	def on_shift_bitwise(self, node: defs.Sum, left: SymbolRaw, right: list[SymbolRaw]) -> SymbolRaw:
 		operators = {
 			'<<': '__lshift__',
 			'>>': '__rshift__',
 		}
 		return self.each_binary_operator(node, left, right, operators[node.operator.tokens])
 
-	def on_sum(self, node: defs.Sum, left: Symbol, right: list[Symbol]) -> Symbol:
+	def on_sum(self, node: defs.Sum, left: SymbolRaw, right: list[SymbolRaw]) -> SymbolRaw:
 		operators = {
 			'+': '__add__',
 			'-': '__sub__',
 		}
 		return self.each_binary_operator(node, left, right, operators[node.operator.tokens])
 
-	def on_term(self, node: defs.Term, left: Symbol, right: list[Symbol]) -> Symbol:
+	def on_term(self, node: defs.Term, left: SymbolRaw, right: list[SymbolRaw]) -> SymbolRaw:
 		operators = {
 			'*': '__mul__',
 			'/': '__truediv__',
@@ -533,14 +532,14 @@ class ProceduralResolver(Procedure[Symbol]):
 		}
 		return self.each_binary_operator(node, left, right, operators[node.operator.tokens])
 
-	def each_binary_operator(self, node: defs.BinaryOperator, left: Symbol, right: list[Symbol], operator: str) -> Symbol:
+	def each_binary_operator(self, node: defs.BinaryOperator, left: SymbolRaw, right: list[SymbolRaw], operator: str) -> SymbolRaw:
 		symbol = self.on_binary_operator(node, left, right[0], operator)
 		for in_right in right[1:]:
 			symbol = self.on_binary_operator(node, symbol, in_right, operator)
 
 		return symbol
 
-	def on_binary_operator(self, node: defs.BinaryOperator, left: Symbol, right: Symbol, operator: str) -> Symbol:
+	def on_binary_operator(self, node: defs.BinaryOperator, left: SymbolRaw, right: SymbolRaw, operator: str) -> SymbolRaw:
 		methods = [method for method in left.types.as_a(defs.Class).methods if method.symbol.tokens == operator]
 		if len(methods) == 0:
 			raise LogicError(f'Operation not allowed. {node}, {left.types.domain_name} {operator} {right.types.domain_name}')
@@ -555,32 +554,32 @@ class ProceduralResolver(Procedure[Symbol]):
 
 	# Literal
 
-	def on_integer(self, node: defs.Integer) -> Symbol:
+	def on_integer(self, node: defs.Integer) -> SymbolRaw:
 		return self.symbols.type_of_primitive(int)
 
-	def on_float(self, node: defs.Float) -> Symbol:
+	def on_float(self, node: defs.Float) -> SymbolRaw:
 		return self.symbols.type_of_primitive(float)
 
-	def on_string(self, node: defs.String) -> Symbol:
+	def on_string(self, node: defs.String) -> SymbolRaw:
 		return self.symbols.type_of_primitive(str)
 
-	def on_comment(self, node: defs.Comment) -> Symbol:
+	def on_comment(self, node: defs.Comment) -> SymbolRaw:
 		return self.symbols.type_of_primitive(str)
 
-	def on_truthy(self, node: defs.Truthy) -> Symbol:
+	def on_truthy(self, node: defs.Truthy) -> SymbolRaw:
 		return self.symbols.type_of_primitive(bool)
 
-	def on_falsy(self, node: defs.Falsy) -> Symbol:
+	def on_falsy(self, node: defs.Falsy) -> SymbolRaw:
 		return self.symbols.type_of_primitive(bool)
 
-	def on_pair(self, node: defs.Pair, first: Symbol, second: Symbol) -> Symbol:
+	def on_pair(self, node: defs.Pair, first: SymbolRaw, second: SymbolRaw) -> SymbolRaw:
 		return self.symbols.type_of_primitive(classes.Pair).extends(first, second)
 
-	def on_list(self, node: defs.List, values: list[Symbol]) -> Symbol:
+	def on_list(self, node: defs.List, values: list[SymbolRaw]) -> SymbolRaw:
 		value_type = values[0] if len(values) > 0 else self.symbols.type_of_primitive(classes.Unknown)
 		return self.symbols.type_of_primitive(list).extends(value_type)
 
-	def on_dict(self, node: defs.Dict, items: list[Symbol]) -> Symbol:
+	def on_dict(self, node: defs.Dict, items: list[SymbolRaw]) -> SymbolRaw:
 		if len(items) == 0:
 			unknown_type = self.symbols.type_of_primitive(classes.Unknown)
 			return self.symbols.type_of_primitive(dict).extends(unknown_type, unknown_type)
@@ -590,11 +589,11 @@ class ProceduralResolver(Procedure[Symbol]):
 
 	# Terminal
 
-	def on_group(self, node: defs.Group, expression: Symbol) -> Symbol:
+	def on_group(self, node: defs.Group, expression: SymbolRaw) -> SymbolRaw:
 		return expression
 
 	# Terminal
 
-	def on_empty(self, node: defs.Empty) -> Symbol:
+	def on_empty(self, node: defs.Empty) -> SymbolRaw:
 		# XXX 厳密にいうとNullとEmptyは別だが、実用上はほぼ同じなので代用
 		return self.symbols.type_of_primitive(None)

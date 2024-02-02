@@ -4,7 +4,7 @@ import json
 from typing import Any, Callable, cast
 
 from py2cpp.analize.db import SymbolDB
-from py2cpp.analize.symbol import Symbol
+from py2cpp.analize.symbol import SymbolRaw
 from py2cpp.analize.symbols import Symbols
 from py2cpp.app.app import App
 from py2cpp.ast.entry import Entry
@@ -110,12 +110,12 @@ def task_type(symbols: Symbols) -> None:
 	symbol = symbols.from_fullyname(name)
 	data = {
 		'type': str(symbol),
-		'ref_path': symbol.raw.ref_path,
-		'org_path': symbol.raw.org_path,
-		'module_path': symbol.raw.module_path,
-		'types': str(symbol.raw.types),
-		'decl': str(symbol.raw.decl),
-		'via': str(symbol.raw.via),
+		'ref_path': symbol.ref_path,
+		'org_path': symbol.org_path,
+		'module_path': symbol.module_path,
+		'types': str(symbol.types),
+		'decl': str(symbol.decl),
+		'via': str(symbol.via),
 		'attrs': ', '.join([str(attr) for attr in symbol.attrs]),
 	}
 
@@ -142,7 +142,7 @@ def task_analize(org_parser: SyntaxParser, cache: CacheProvider) -> None:
 		def new_parser(module_path: str) -> Entry:
 			return root if module_path == '__main__' else org_parser(module_path)
 
-		def resolve_symbol(symbols: Symbols, name: str) -> Symbol:
+		def resolve_symbol(symbols: Symbols, name: str) -> SymbolRaw:
 			try:
 				return symbols.from_fullyname(name)
 			except LogicError:

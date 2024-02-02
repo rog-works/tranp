@@ -109,13 +109,13 @@ def task_type(symbols: Symbols) -> None:
 
 	symbol = symbols.from_fullyname(name)
 	data = {
-		'type': str(symbols.from_fullyname(name)),
+		'type': str(symbol),
 		'ref_path': symbol.raw.ref_path,
 		'org_path': symbol.raw.org_path,
-		'module': symbol.raw.module.path,
-		'symbol': symbol.raw.symbol.tokens,
+		'module_path': symbol.raw.module_path,
 		'types': str(symbol.raw.types),
 		'decl': str(symbol.raw.decl),
+		'via': str(symbol.raw.via),
 		'attrs': ', '.join([str(attr) for attr in symbol.attrs]),
 	}
 

@@ -13,19 +13,16 @@ class SymbolRaw(NamedTuple):
 	Attributes:
 		ref_path (str): 参照パス
 		org_path (str): 参照パス(オリジナル)
-		module (Module): 展開先のモジュール
-		symbol (Declable): シンボル宣言ノード
+		module_path (str): 展開先モジュールのパス
 		types (ClassDef): クラス定義ノード
 		decl (DeclAll): 宣言ステートメントノード
-		inline (FuncCall | Literal): インラインノード FIXME 暫定
 	"""
 	ref_path: str
 	org_path: str
-	module: Module
-	symbol: defs.Declable
+	module_path: str
 	types: defs.ClassDef
 	decl: defs.DeclAll
-	inline: defs.FuncCall | defs.Literal | None = None  # FIXME 暫定
+	via: 'SymbolRaw | None' = None
 
 	def to(self, module: Module) -> 'SymbolRaw':
 		"""展開先を変更したインスタンスを生成
@@ -35,7 +32,7 @@ class SymbolRaw(NamedTuple):
 		Returns:
 			SymbolRaw: インスタンス
 		"""
-		return SymbolRaw(self.path_to(module), self.org_path, module, self.symbol, self.types, self.decl)
+		return SymbolRaw(self.path_to(module), self.org_path, module.path, self.types, self.decl)
 
 	def path_to(self, module: Module) -> str:
 		"""展開先を変更した参照パスを生成
@@ -45,7 +42,7 @@ class SymbolRaw(NamedTuple):
 		Returns:
 			str: 展開先の参照パス
 		"""
-		return self.ref_path.replace(self.module.path, module.path)
+		return self.ref_path.replace(self.module_path, module.path)
 
 	def varnize(self, var: defs.DeclVars) -> 'SymbolRaw':
 		"""変数シンボル用のデータに変換
@@ -55,19 +52,7 @@ class SymbolRaw(NamedTuple):
 		Returns:
 			SymbolRaw: インスタンス
 		"""
-		return SymbolRaw(self.ref_path, self.org_path, self.module, self.symbol, self.types, var)
-
-	def inlinify(self, inline: defs.FuncCall | defs.Literal) -> 'SymbolRaw':
-		"""インライン用のデータに変換
-
-		Args:
-			inline (Inline): インラインノード
-		Returns:
-			SymbolRaw: インスタンス
-		Note:
-			FIXME 暫定
-		"""
-		return SymbolRaw(self.ref_path, self.org_path, self.module, self.symbol, self.types, self.decl, inline)
+		return SymbolRaw(self.ref_path, self.org_path, var.module_path, self.types, var, self)
 
 
 SymbolRaws: TypeAlias = dict[str, SymbolRaw]

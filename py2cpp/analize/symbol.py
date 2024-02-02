@@ -34,7 +34,8 @@ class SymbolRaw:
 			module_path (str): 展開先モジュールのパス
 			types (ClassDef): クラス定義ノード
 			decl (Decl): 宣言ノード
-			via (SymbolRaw | None): 参照元のシンボル(Reference -> Var -> Type)
+			via (SymbolRaw | None): 参照元のシンボル(Reference -> Var -> Origin)
+			behavior (str): シンボルの種別(Origin/Alias/Var/Reference)
 		"""
 		self._ref_path = ref_path
 		self._org_path = org_path

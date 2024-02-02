@@ -27,10 +27,10 @@ class InlineRegister:
 		"""
 		symbols = Symbols(modules.main.module_path, SymbolDB(raws))
 		new_raws: SymbolRaws = {}
-		for node in modules.main.entrypoint.calculated():
-			if isinstance(node, defs.FuncCall):
-				new_raws[node.fullyname] = symbols.type_of(node).raw.inlinify(node)
-			elif isinstance(node, defs.Literal):
-				new_raws[node.fullyname] = symbols.type_of(node).raw.inlinify(node)
+		# for node in modules.main.entrypoint.calculated():
+		# 	if isinstance(node, defs.FuncCall):
+		# 		new_raws[node.fullyname] = symbols.type_of(node).raw.inlinify(node)
+		# 	elif isinstance(node, defs.Literal):
+		# 		new_raws[node.fullyname] = symbols.type_of(node).raw.inlinify(node)
 
 		return {**raws, **new_raws}

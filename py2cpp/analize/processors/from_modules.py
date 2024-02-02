@@ -50,9 +50,10 @@ class FromModules:
 				for core_module in modules.libralies:
 					# 第1層で宣言されているシンボルに限定
 					entrypoint = core_module.entrypoint.as_a(defs.Entrypoint)
-					primary_symbol_names = [node.symbol.tokens for node in entrypoint.statements if isinstance(node, defs.DeclAll)]
+					primary_symbol_names = [node.fullyname for node in entrypoint.statements if isinstance(node, defs.DeclAll)]
 					expanded = expends[core_module]
-					filtered_db = {raw.path_to(expand_module): raw.to(expand_module) for raw in expanded.raws.values() if raw.symbol.tokens in primary_symbol_names}
+					filtered_raws = [expanded.raws[fullyname] for fullyname in primary_symbol_names]
+					filtered_db = {raw.path_to(expand_module): raw.to(expand_module) for raw in filtered_raws}
 					expand_target.raws = {**filtered_db, **expand_target.raws}
 
 			# インポートモジュールを展開
@@ -63,7 +64,8 @@ class FromModules:
 				imported_symbol_names = [symbol.tokens for symbol in import_node.import_symbols]
 				import_module = modules.load(import_node.import_path.tokens)
 				expanded = expends[import_module]
-				filtered_db = {raw.path_to(expand_module): raw.to(expand_module) for raw in expanded.raws.values() if raw.symbol.tokens in imported_symbol_names}
+				filtered_raws = [expanded.raws[DSN.join(import_module.path, name)] for name in imported_symbol_names]
+				filtered_db = {raw.path_to(expand_module): raw.to(expand_module) for raw in filtered_raws}
 				expand_target.raws = {**filtered_db, **expand_target.raws}
 
 			# 展開対象モジュールの変数シンボルを展開

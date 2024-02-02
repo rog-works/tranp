@@ -7,6 +7,7 @@ from py2cpp.module.modules import Module
 import py2cpp.node.definition as defs
 
 Decl: TypeAlias = defs.Parameter | defs.AnnoAssign | defs.MoveAssign | defs.For | defs.Catch | defs.ClassDef | defs.Reference | defs.Indexer | defs.FuncCall | defs.Literal
+DeclRefs: TypeAlias = defs.Reference | defs.Indexer | defs.FuncCall | defs.Literal
 
 
 class SymbolRaw:
@@ -20,7 +21,9 @@ class SymbolRaw:
 			org_path (str): 参照パス(オリジナル)
 			module_path (str): 展開先モジュールのパス
 			types (ClassDef): クラス定義ノード
-			decl (DeclAll): 宣言ステートメントノード
+			decl (Decl): 宣言ノード XXX 名称を再検討
+			via (SymbolRaw): ラップ対象のシンボル(Reference -> Var -> Type)
+			attrs (list[SymbolRaw]): ジェネリック型に対応する属性シンボルリスト
 		"""
 		self.ref_path = ref_path
 		self.org_path = org_path
@@ -29,49 +32,6 @@ class SymbolRaw:
 		self.decl = decl
 		self.via = via
 		self.attrs = attrs
-
-	def to(self, module: Module) -> 'SymbolRaw':
-		"""展開先を変更したインスタンスを生成
-
-		Args:
-			module (Module): 展開先のモジュール
-		Returns:
-			SymbolRaw: インスタンス
-		"""
-		return SymbolRaw(self.path_to(module), self.org_path, module.path, self.types, self.decl)
-
-	def path_to(self, module: Module) -> str:
-		"""展開先を変更した参照パスを生成
-
-		Args:
-			module (Module): 展開先のモジュール
-		Returns:
-			str: 展開先の参照パス
-		"""
-		return self.ref_path.replace(self.module_path, module.path)
-
-	def varnize(self, var: defs.DeclVars) -> 'SymbolRaw':
-		"""変数シンボル用のデータに変換
-
-		Args:
-			var (DeclVars): 変数宣言ノード
-		Returns:
-			SymbolRaw: インスタンス
-		"""
-		return SymbolRaw(self.ref_path, self.org_path, var.module_path, self.types, var, self)
-
-	def runtimes(self, runtime: defs.Reference | defs.Indexer | defs.FuncCall | defs.Literal) -> 'SymbolRaw':
-		"""変数シンボル用のデータに変換
-
-		Args:
-			var (DeclVars): 変数宣言ノード
-		Returns:
-			SymbolRaw: インスタンス
-		"""
-		return SymbolRaw(self.ref_path, self.org_path, runtime.module_path, self.types, runtime, self)
-
-	def extends(self, *attrs: 'SymbolRaw') -> 'SymbolRaw':
-		return SymbolRaw(self.ref_path, self.org_path, self.module_path, self.types, self.decl, self.via, list(attrs))
 
 	@override
 	def __eq__(self, other: object) -> bool:
@@ -106,6 +66,56 @@ class SymbolRaw:
 			return f'{self.types.domain_name}<{', '.join(attrs)}>'
 		else:
 			return f'{self.types.domain_name}'
+
+	def to(self, module: Module) -> 'SymbolRaw':
+		"""展開先を変更したインスタンスを生成
+
+		Args:
+			module (Module): 展開先のモジュール
+		Returns:
+			SymbolRaw: インスタンス
+		"""
+		return SymbolRaw(self.path_to(module), self.org_path, module.path, self.types, self.decl)
+
+	def path_to(self, module: Module) -> str:
+		"""展開先を変更した参照パスを生成
+
+		Args:
+			module (Module): 展開先のモジュール
+		Returns:
+			str: 展開先の参照パス
+		"""
+		return self.ref_path.replace(self.module_path, module.path)
+
+	def varnize(self, var: defs.DeclVars) -> 'SymbolRaw':
+		"""変数シンボル用のデータに変換
+
+		Args:
+			var (DeclVars): 変数宣言ノード
+		Returns:
+			SymbolRaw: インスタンス
+		"""
+		return SymbolRaw(self.ref_path, self.org_path, var.module_path, self.types, var, self)
+
+	def refnize(self, ref: DeclRefs) -> 'SymbolRaw':
+		"""参照シンボル用のデータに変換
+
+		Args:
+			ref (DeclRefs): 参照ノード
+		Returns:
+			SymbolRaw: インスタンス
+		"""
+		return SymbolRaw(self.ref_path, self.org_path, ref.module_path, self.types, ref, self)
+
+	def extends(self, *attrs: 'SymbolRaw') -> 'SymbolRaw':
+		"""属性を取り込んだ拡張データに変換
+
+		Args:
+			*attrs (SymbolRaw): 属性シンボルリスト
+		Returns:
+			SymbolRaw: インスタンス
+		"""
+		return SymbolRaw(self.ref_path, self.org_path, self.module_path, self.types, self.decl, self.via, list(attrs))
 
 
 SymbolRaws: TypeAlias = dict[str, SymbolRaw]

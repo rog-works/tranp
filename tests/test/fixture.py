@@ -46,7 +46,7 @@ class Fixture:
 		return ModulePath('__main__', fixture_module_path)
 
 	def __library_paths(self) -> list[str]:
-		return ['tests.unit.py2cpp.analize.fixtures.test_db_classes']
+		return ['tests.unit.py2cpp.analyze.fixtures.test_db_classes']
 
 	def get(self, symbol: type[T_Inst]) -> T_Inst:
 		return self.__app.resolve(symbol)

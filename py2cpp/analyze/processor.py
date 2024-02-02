@@ -1,6 +1,6 @@
 from typing import Callable, Protocol, TypeAlias
 
-from py2cpp.analize.symbol import SymbolRaws
+from py2cpp.analyze.symbol import SymbolRaws
 
 
 # class Preprocessor(Protocol):

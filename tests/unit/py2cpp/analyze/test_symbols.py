@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from py2cpp.analize.symbols import Primitives, Symbols
+from py2cpp.analyze.symbols import Primitives, Symbols
 from py2cpp.ast.dsn import DSN
 import py2cpp.compatible.python.classes as classes
 from tests.test.fixture import Fixture
@@ -35,8 +35,8 @@ def _ast(before: str, after: str) -> str:
 
 def _mod(before: str, after: str) -> str:
 	aliases = {
-		'xyz': 'tests.unit.py2cpp.analize.fixtures.test_db_xyz',
-		'classes': 'tests.unit.py2cpp.analize.fixtures.test_db_classes',
+		'xyz': 'tests.unit.py2cpp.analyze.fixtures.test_db_xyz',
+		'classes': 'tests.unit.py2cpp.analyze.fixtures.test_db_classes',
 	}
 	return DSN.join(aliases[before], after)
 

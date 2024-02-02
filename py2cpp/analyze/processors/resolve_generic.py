@@ -1,4 +1,4 @@
-from py2cpp.analize.symbol import SymbolRaw, SymbolRaws
+from py2cpp.analyze.symbol import SymbolRaw, SymbolRaws
 from py2cpp.ast.dsn import DSN
 from py2cpp.errors import LogicError
 from py2cpp.lang.implementation import injectable

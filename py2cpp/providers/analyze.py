@@ -1,5 +1,5 @@
-from py2cpp.analize.processor import Preprocessors
-import py2cpp.analize.processors as procs
+from py2cpp.analyze.processor import Preprocessors
+import py2cpp.analyze.processors as procs
 
 
 def preprocessors() -> Preprocessors:

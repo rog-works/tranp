@@ -1,8 +1,8 @@
 from typing import TypeAlias
 
-from py2cpp.analize.db import SymbolDB
-from py2cpp.analize.symbol import SymbolRaw
-from py2cpp.analize.procedure import Procedure
+from py2cpp.analyze.db import SymbolDB
+from py2cpp.analyze.symbol import SymbolRaw
+from py2cpp.analyze.procedure import Procedure
 from py2cpp.ast.dsn import DSN
 import py2cpp.compatible.python.classes as classes
 from py2cpp.errors import LogicError, NotFoundError

@@ -1,6 +1,4 @@
-from py2cpp.analyze.symbol import SymbolRaw, SymbolRaws
-from py2cpp.ast.dsn import DSN
-from py2cpp.errors import LogicError
+from py2cpp.analyze.symbol import SymbolRaw, SymbolRaws, SymbolResolver
 from py2cpp.lang.implementation import injectable
 import py2cpp.node.definition as defs
 
@@ -63,27 +61,10 @@ class ResolveGeneric:
 		"""
 		attrs: list[SymbolRaw] = []
 		for t_type in generic_type.template_types:
-			t_raw = self.__resolve_raw(raws, t_type)
+			t_raw = SymbolResolver.by_type(raws, t_type)
 			if isinstance(t_raw.types, defs.GenericType):
 				attrs.append(self.__actualize_generic(raws, t_raw, t_raw.types))
 			else:
 				attrs.append(t_raw)
 
 		return via.extends(*attrs)
-
-	def __resolve_raw(self, raws: SymbolRaws, domain_type: defs.Type) -> SymbolRaw:
-		"""タイプノードからシンボルを解決
-
-		Args:
-			raws (SymbolRaws): シンボルテーブル
-			domain_type: (Type): タイプノード
-		Returns:
-			SymbolRaw: シンボル
-		"""
-		scopes = [DSN.left(domain_type.scope, DSN.elem_counts(domain_type.scope) - i) for i in range(DSN.elem_counts(domain_type.scope))]
-		candidates = [DSN.join(scope, domain_type.domain_name) for scope in scopes]
-		for candidate in candidates:
-			if candidate in raws:
-				return raws[candidate]
-		
-		raise LogicError(f'Unresolve type. type: {domain_type.fullyname}, candidates: {candidates}')

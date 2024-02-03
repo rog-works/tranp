@@ -1,14 +1,17 @@
-from dataclasses import dataclass, field
-
 from typing import TypeAlias
+from py2cpp.ast.dsn import DSN
 from py2cpp.errors import LogicError
 
+import py2cpp.compatible.python.classes as classes
 from py2cpp.lang.implementation import override
 from py2cpp.module.modules import Module
 import py2cpp.node.definition as defs
+from py2cpp.node.node import Node
 
 Decl: TypeAlias = defs.Parameter | defs.AnnoAssign | defs.MoveAssign | defs.For | defs.Catch | defs.ClassDef | defs.Reference | defs.Indexer | defs.FuncCall | defs.Literal
 DeclRefs: TypeAlias = defs.Reference | defs.Indexer | defs.FuncCall | defs.Literal
+
+Primitives: TypeAlias = int | float | str | bool | tuple | list | dict | classes.Pair | classes.Unknown
 
 
 class SymbolRaw:
@@ -181,15 +184,86 @@ class SymbolRaw:
 SymbolRaws: TypeAlias = dict[str, SymbolRaw]
 
 
-@dataclass
-class Expanded:
-	"""展開時のテンポラリーデータ
+class SymbolResolver:
+	"""シンボルリゾルバー"""
 
-	Attributes:
-		raws (SymbolRaws): シンボルテーブル
-		decl_vars (list[DeclVars]): 変数リスト
-		import_nodes (list[Import]): インポートリスト
-	"""
-	raws: SymbolRaws = field(default_factory=dict)
-	decl_vars: list[defs.DeclVars] = field(default_factory=list)
-	import_nodes: list[defs.Import] = field(default_factory=list)
+	@classmethod
+	def by_primitive(cls, raws: SymbolRaws, primitive_type: type[Primitives] | None) -> SymbolRaw:
+		"""プリミティブ型のシンボルを解決
+
+		Args:
+			primitive_type (type[Primitives] | None): プリミティブ型
+		Returns:
+			SymbolRaw: シンボル
+		Raises:
+			LogicError: 未定義のタイプを指定
+		"""
+		symbol_name = primitive_type.__name__ if primitive_type is not None else 'None'
+		raw = cls.__find_by(raws, ['__main__'], symbol_name)
+		if raw is not None:
+			return raw
+
+		raise LogicError(f'Primitive not defined. name: {primitive_type.__name__}')
+
+	@classmethod
+	def by_type(cls, raws: SymbolRaws, node: defs.Type | defs.ClassDef) -> SymbolRaw:
+		"""タイプ/クラス宣言ノードからシンボルを解決
+
+		Args:
+			raws (SymbolRaws): シンボルテーブル
+			node: (Type | ClassDef): タイプ/クラス宣言ノード
+		Returns:
+			SymbolRaw: シンボル
+		Raises:
+			LogicError: 未定義のタイプを指定
+		"""
+		raw = cls.find_by_symbolic(raws, node)
+		if raw is not None:
+			return raw
+
+		raise LogicError(f'Type not defined. type: {node.fullyname}')
+
+	@classmethod
+	def find_by_symbolic(cls, raws: SymbolRaws, node: defs.Symbolic, prop_name: str = '') -> SymbolRaw | None:
+		"""シンボルデータを検索。未検出の場合はNoneを返却
+
+		Args:
+			raws (SymbolRaws): シンボルテーブル
+			node (Symbolic): シンボル系ノード
+			prop_name (str): プロパティー名(default = '')
+		Returns:
+			SymbolRaw | None: シンボルデータ
+		"""
+		# XXX ローカル変数の参照は、クラス直下のスコープを参照できない
+		is_local_var_in_class_scope = lambda scope: node.is_a(defs.Var) and scope in raws and raws[scope].types.is_a(defs.Class)
+		scopes = [scope for scope in cls.__scopes_by_node(node) if not is_local_var_in_class_scope(scope)]
+		return cls.__find_by(raws, scopes, DSN.join(node.domain_name, prop_name))
+
+	@classmethod
+	def __find_by(cls, raws: SymbolRaws, scopes: list[str], domain_name: str) -> SymbolRaw | None:
+		"""スコープを辿りドメイン名を持つシンボルデータを検索。未検出の場合はNoneを返却
+
+		Args:
+			raws (SymbolRaws): シンボルテーブル
+			scopes (list[str]): 探索スコープリスト
+			domain_name (str): ドメイン名
+		Returns:
+			SymbolRaw | None: シンボルデータ
+		"""
+		candidates = [DSN.join(scope, domain_name) for scope in scopes]
+		for candidate in candidates:
+			if candidate in raws:
+				return raws[candidate]
+
+		return None
+
+	@classmethod
+	def __scopes_by_node(cls, node: Node) -> list[str]:
+		"""対象ノードのスコープを元に探索スコープのリストを生成
+
+		Args:
+			node (Node): ノード
+		Returns:
+			list[str]: 探索スコープリスト
+		"""
+		return [DSN.left(node.scope, DSN.elem_counts(node.scope) - i) for i in range(DSN.elem_counts(node.scope))]

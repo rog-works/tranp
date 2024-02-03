@@ -1,32 +1,25 @@
-from typing import TypeAlias
-
 from py2cpp.analyze.db import SymbolDB
-from py2cpp.analyze.symbol import SymbolRaw
+from py2cpp.analyze.symbol import Primitives, SymbolRaw, SymbolResolver
 from py2cpp.analyze.procedure import Procedure
-from py2cpp.ast.dsn import DSN
 import py2cpp.compatible.python.classes as classes
 from py2cpp.errors import LogicError, NotFoundError
 from py2cpp.lang.implementation import injectable
-from py2cpp.module.types import ModulePath
 import py2cpp.node.definition as defs
 from py2cpp.node.node import Node
 
-Primitives: TypeAlias = int | float | str | bool | tuple | list | dict | classes.Pair | classes.Unknown
 
 
 class Symbols:
 	"""シンボルテーブルを参照してシンボルの型を解決する機能を提供"""
 
 	@injectable
-	def __init__(self, module_path: ModulePath, db: SymbolDB) -> None:
+	def __init__(self, db: SymbolDB) -> None:
 		"""インスタンスを生成
 
 		Args:
-			module_path (ModulePath): モジュールパス
-			db (SymbolDB): シンボルテーブル
+			db (SymbolDB): シンボルテーブル @inject
 		"""
 		self.__raws = db.raws
-		self.__module_path = module_path
 
 	def is_list(self, symbol: SymbolRaw) -> bool:
 		"""シンボルがList型か判定
@@ -74,12 +67,7 @@ class Symbols:
 		Raises:
 			LogicError: 未定義のタイプを指定
 		"""
-		symbol_name = primitive_type.__name__ if primitive_type is not None else 'None'
-		candidate = DSN.join(self.__module_path.ref_name, symbol_name)
-		if candidate in self.__raws:
-			return self.__raws[candidate]
-
-		raise LogicError(f'Primitive not defined. name: {primitive_type.__name__}')
+		return SymbolResolver.by_primitive(self.__raws, primitive_type)
 
 	def type_of_property(self, decl_class: defs.ClassDef, prop: defs.Var) -> SymbolRaw:
 		"""クラス定義ノードと変数参照ノードからプロパティーのシンボルを解決
@@ -271,7 +259,6 @@ class Symbols:
 		Note:
 			# 注意点
 			シンボルテーブルから直接解決するため、以下のシンボル解決は含まれない
-			* Generic型のサブタイプの解決(シンボル宣言・参照ノード由来)
 			* MoveAssignの左辺の型の解決(シンボル宣言・参照ノード由来)
 			@see __post_type_of_var
 		"""
@@ -290,7 +277,7 @@ class Symbols:
 		Returns:
 			SymbolRaw | None: シンボルデータ
 		"""
-		symbol_raw = self.__find_raw(symbolic, prop_name)
+		symbol_raw = SymbolResolver.find_by_symbolic(self.__raws, symbolic, prop_name)
 		if symbol_raw is None and symbolic.is_a(defs.Class):
 			symbol_raw = self.__resolve_raw_recursive(symbolic.as_a(defs.Class), prop_name)
 
@@ -306,36 +293,10 @@ class Symbols:
 			SymbolRaw | None: シンボルデータ
 		"""
 		for inherit_type in decl_class.inherits:
-			inherit_type_raw = self.__find_raw(inherit_type)
-			if inherit_type_raw is None:
-				break
-
+			inherit_type_raw = SymbolResolver.by_type(self.__raws, inherit_type)
 			found_raw = self.__resolve_raw(inherit_type_raw.types, prop_name)
 			if found_raw:
 				return found_raw
-
-		return None
-
-	def __find_raw(self, symbolic: defs.Symbolic, prop_name: str = '') -> SymbolRaw | None:
-		"""シンボルデータを検索。未検出の場合はNoneを返却
-
-		Args:
-			symbolic (Symbolic): シンボル系ノード
-			prop_name (str): プロパティー名(default = '')
-		Returns:
-			SymbolRaw | None: シンボルデータ
-		"""
-		scopes = [DSN.left(symbolic.scope, DSN.elem_counts(symbolic.scope) - i) for i in range(DSN.elem_counts(symbolic.scope))]
-		for scope in scopes:
-			candidate = DSN.join(scope, symbolic.domain_name, prop_name)
-			if candidate not in self.__raws:
-				continue
-
-			# XXX ローカル変数の参照は、クラス直下のスコープを参照できない
-			if symbolic.is_a(defs.Var) and scope in self.__raws and self.__raws[scope].types.is_a(defs.Class):
-				continue
-
-			return self.__raws[candidate]
 
 		return None
 

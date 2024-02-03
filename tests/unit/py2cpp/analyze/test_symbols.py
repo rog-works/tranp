@@ -1,6 +1,7 @@
 from unittest import TestCase
 
-from py2cpp.analyze.symbols import Primitives, Symbols
+from py2cpp.analyze.symbol import Primitives
+from py2cpp.analyze.symbols import Symbols
 from py2cpp.ast.dsn import DSN
 import py2cpp.compatible.python.classes as classes
 from tests.test.fixture import Fixture

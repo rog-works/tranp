@@ -1,9 +1,25 @@
-from py2cpp.analyze.symbol import Expanded, SymbolRaw, SymbolRaws
+from dataclasses import dataclass, field
+
+from py2cpp.analyze.symbol import SymbolRaw, SymbolRaws, SymbolResolver
 from py2cpp.ast.dsn import DSN
-from py2cpp.errors import LogicError
+import py2cpp.compatible.python.classes as classes
 from py2cpp.lang.implementation import injectable
 from py2cpp.module.modules import Module, Modules
 import py2cpp.node.definition as defs
+
+
+@dataclass
+class Expanded:
+	"""展開時のテンポラリーデータ
+
+	Attributes:
+		raws (SymbolRaws): シンボルテーブル
+		decl_vars (list[DeclVars]): 変数リスト
+		import_nodes (list[Import]): インポートリスト
+	"""
+	raws: SymbolRaws = field(default_factory=dict)
+	decl_vars: list[defs.DeclVars] = field(default_factory=list)
+	import_nodes: list[defs.Import] = field(default_factory=list)
 
 
 class FromModules:
@@ -122,18 +138,9 @@ class FromModules:
 		"""
 		domain_type = self.__fetch_domain_type(var)
 		if domain_type is not None:
-			scopes = [DSN.left(domain_type.scope, DSN.elem_counts(domain_type.scope) - i) for i in range(DSN.elem_counts(domain_type.scope))]
-			candidates = [DSN.join(scope, domain_type.domain_name) for scope in scopes]
+			return SymbolResolver.by_type(raws, domain_type)
 		else:
-			# 型が不明な変数はUnknownにフォールバック
-			# XXX Unknownの名前は重要なので定数化などの方法で明示
-			candidates = [DSN.join(var.module_path, 'Unknown')]
-
-		for candidate in candidates:
-			if candidate in raws:
-				return raws[candidate]
-
-		raise LogicError(f'Unresolve var type. var: {var}, domain: {domain_type.fullyname if domain_type is not None else "Unknown"}, candidates: {candidates}')
+			return SymbolResolver.by_primitive(raws, classes.Unknown)
 
 	def __fetch_domain_type(self, var: defs.DeclVars) -> defs.Type | defs.ClassDef | None:
 		"""変数の型のドメインを取得。型が不明な場合はNoneを返却

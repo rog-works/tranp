@@ -4,7 +4,8 @@ import sys
 from typing import cast
 
 from py2cpp.analyze.procedure import Procedure
-from py2cpp.analyze.symbols import Symbol, Symbols
+from py2cpp.analyze.symbol import SymbolRaw
+from py2cpp.analyze.symbols import Symbols
 from py2cpp.app.app import App
 from py2cpp.ast.parser import ParserSetting
 import py2cpp.compatible.cpp.object as cpp
@@ -160,7 +161,7 @@ class Handler(Procedure[str]):
 		return self.view.render(node.classification, vars={'receiver': receiver, 'operator': operator, 'value': value})
 
 	def on_return(self, node: defs.Return, return_value: str) -> str:
-		def analyze_cvar_return_symbol() -> Symbol | None:
+		def analyze_cvar_return_symbol() -> SymbolRaw | None:
 			function = node.function.as_a(defs.Function)
 			if not isinstance(node.return_value, defs.FuncCall):
 				return None
@@ -170,7 +171,7 @@ class Handler(Procedure[str]):
 				return None
 
 			calls_symbol = self.symbols.type_of(node.return_value.calls)
-			is_call_constructor = calls_symbol.raw.decl.is_a(defs.Class)
+			is_call_constructor = calls_symbol.decl.is_a(defs.Class)
 			if not is_call_constructor:
 				return None
 
@@ -236,7 +237,7 @@ class Handler(Procedure[str]):
 			return node.receiver.is_a(defs.ThisRef)
 
 		def is_static_access() -> bool:
-			prop_symbol_decl = prop_symbol.raw.decl
+			prop_symbol_decl = prop_symbol.decl
 			is_prop_static = isinstance(prop_symbol.types, (defs.Enum, defs.ClassMethod))
 			is_prop_class_var = isinstance(prop_symbol_decl, defs.AnnoAssign) and prop_symbol_decl.symbol.is_a(defs.DeclClassVar)
 			is_receiver_enum = isinstance(receiver_symbol.types, defs.Enum)

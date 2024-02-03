@@ -192,6 +192,7 @@ class SymbolResolver:
 		"""プリミティブ型のシンボルを解決
 
 		Args:
+			raws (SymbolRaws): シンボルテーブル
 			primitive_type (type[Primitives] | None): プリミティブ型
 		Returns:
 			SymbolRaw: シンボル

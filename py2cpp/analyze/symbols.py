@@ -540,7 +540,7 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 			key_type, value_type = items[0].attrs
 			return self.symbols.type_of_primitive(dict).literalize(node).extends(key_type, value_type)
 
-	# Terminal
+	# Expression
 
 	def on_group(self, node: defs.Group, expression: SymbolRaw) -> SymbolRaw:
 		return expression

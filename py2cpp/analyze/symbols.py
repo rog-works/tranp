@@ -320,6 +320,11 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 		else:
 			return self.symbols.resolve(methods['__iter__'].return_type.as_a(defs.GenericType).primary_type)
 
+	# Function/Class Elements
+
+	def on_parameter(self, node: defs.Parameter, symbol: SymbolRaw, var_type: SymbolRaw, default_value: SymbolRaw) -> SymbolRaw:
+		return symbol
+
 	# Statement simple
 
 	def on_anno_assign(self, node: defs.AnnoAssign, receiver: SymbolRaw, var_type: SymbolRaw, value: SymbolRaw) -> SymbolRaw:

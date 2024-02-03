@@ -29,7 +29,7 @@
 			"request": "launch",
 			"module":"unittest",
 			// "args": ["tests.unit.py2cpp.analyze.test_db.TestSymbolDB"],
-			"args": ["tests.unit.py2cpp.analyze.test_symbols.TestSymbols.test_type_of"],
+			"args": ["tests.unit.py2cpp.analyze.test_symbols.TestSymbols.test_from_fullyname"],
 			// "args": ["tests.unit.py2cpp.lang.test_di.TestDI"],
 			// "args": ["tests.unit.py2cpp.node.test_definition.TestDefinition.test_for"],
 			// "args": ["tests.unit.py2cpp.node.test_embed.TestMeta.test_expandable"],

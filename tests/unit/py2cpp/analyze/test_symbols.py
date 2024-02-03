@@ -73,10 +73,10 @@ class TestSymbols(TestCase):
 		('__main__.B', 'B'),
 		('__main__.B.v', 'list<int>'),
 		('__main__.B.__init__', '__init__<B, None>'),
-		# ('__main__.B.__init__.self', 'B'),  # FIXME
+		('__main__.B.__init__.self', 'B'),
 		('__main__.B.func1', 'func1<B, list<B>, str>'),
-		# ('__main__.B.func1.self', 'B'),  # FIXME
-		# ('__main__.B.func1.b', 'list<B>'),  # FIXME
+		('__main__.B.func1.self', 'B'),
+		('__main__.B.func1.b', 'list<B>'),
 		('__main__.B.func1.v', 'bool'),
 		('__main__.B.func1.v2', 'T_Seq'),  # FIXME 追って修正
 		('__main__.B.func2', 'func2<B, int>'),

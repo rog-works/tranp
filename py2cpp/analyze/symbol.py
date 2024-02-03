@@ -259,7 +259,7 @@ class SymbolResolver:
 
 	@classmethod
 	def by_symbolic(cls, raws: SymbolRaws, node: defs.Symbolic) -> SymbolRaw:
-		"""タイプ/クラス宣言ノードからシンボルを解決
+		"""シンボル系ノードからシンボルを解決
 
 		Args:
 			raws (SymbolRaws): シンボルテーブル

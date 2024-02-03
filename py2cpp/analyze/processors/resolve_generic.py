@@ -93,7 +93,7 @@ class ResolveGeneric:
 			else:
 				t_type = cast(defs.Type, parameter.var_type)
 				t_raw = SymbolResolver.by_symbolic(raws, t_type)
-				attrs.append(self.__expand_attr(raws, t_raw if t_raw.has_entity else t_raw.varnize(parameter), t_type))
+				attrs.append(self.__expand_attr(raws, t_raw.varnize(parameter), t_type))
 
 		t_raw = SymbolResolver.by_symbolic(raws, function.return_type).returnize(function.return_type)
 		attrs.append(self.__expand_attr(raws, t_raw, function.return_type))

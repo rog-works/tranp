@@ -1,7 +1,7 @@
 from py2cpp.analyze.symbol import SymbolRaw, SymbolRaws
 from py2cpp.ast.dsn import DSN
 from py2cpp.compatible.python.types import Primitives
-from py2cpp.errors import LogicError, NotFoundError
+from py2cpp.errors import NotFoundError
 from py2cpp.lang.implementation import injectable
 from py2cpp.module.types import LibraryPaths
 import py2cpp.node.definition as defs
@@ -28,12 +28,12 @@ class SymbolResolver:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			NotFoundError: 存在しないパスを指定
+			NotFoundError: シンボルの解決に失敗
 		"""
-		if fullyname not in raws:
-			raise NotFoundError(f'Symbol not defined. fullyname: {fullyname}')
+		if fullyname in raws:
+			return raws[fullyname]
 
-		return raws[fullyname]
+		raise NotFoundError(f'Symbol not defined. fullyname: {fullyname}')
 
 	def by_primitive(self, raws: SymbolRaws, primitive_type: type[Primitives] | None) -> SymbolRaw:
 		"""プリミティブ型のシンボルを解決
@@ -44,14 +44,14 @@ class SymbolResolver:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			LogicError: 未定義のタイプを指定
+			NotFoundError: シンボルの解決に失敗
 		"""
-		symbol_name = primitive_type.__name__ if primitive_type is not None else 'None'
-		raw = self.__find_by(raws, self.__make_scopes('__main__'), symbol_name)
+		domain_name = primitive_type.__name__ if primitive_type is not None else 'None'
+		raw = self.__find_raw(raws, self.__library_paths, domain_name)
 		if raw is not None:
 			return raw
 
-		raise LogicError(f'Primitive not defined. name: {primitive_type.__name__}')
+		raise NotFoundError(f'Primitive not defined. name: {primitive_type.__name__}')
 
 	def by_symbolic(self, raws: SymbolRaws, node: defs.Symbolic) -> SymbolRaw:
 		"""シンボル系ノードからシンボルを解決
@@ -62,38 +62,38 @@ class SymbolResolver:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			LogicError: 未定義のタイプを指定
+			NotFoundError: シンボルの解決に失敗
 		"""
 		raw = self.find_by_symbolic(raws, node)
 		if raw is not None:
 			return raw
 
-		raise LogicError(f'Symbol not defined. type: {node.fullyname}')
+		raise NotFoundError(f'Symbol not defined. type: {node.fullyname}')
 
 	def find_by_symbolic(self, raws: SymbolRaws, node: defs.Symbolic, prop_name: str = '') -> SymbolRaw | None:
-		"""シンボルデータを検索。未検出の場合はNoneを返却
+		"""シンボルを検索。未検出の場合はNoneを返却
 
 		Args:
 			raws (SymbolRaws): シンボルテーブル
 			node (Symbolic): シンボル系ノード
 			prop_name (str): プロパティー名(default = '')
 		Returns:
-			SymbolRaw | None: シンボルデータ
+			SymbolRaw | None: シンボル
 		"""
 		# XXX ローカル変数の参照は、クラス直下のスコープを参照できない
 		is_local_var_in_class_scope = lambda scope: node.is_a(defs.Var) and scope in raws and raws[scope].types.is_a(defs.Class)
 		scopes = [scope for scope in self.__make_scopes(node.scope) if not is_local_var_in_class_scope(scope)]
-		return self.__find_by(raws, scopes, DSN.join(node.domain_name, prop_name))
+		return self.__find_raw(raws, scopes, DSN.join(node.domain_name, prop_name))
 
-	def __find_by(self, raws: SymbolRaws, scopes: list[str], domain_name: str) -> SymbolRaw | None:
-		"""スコープを辿りドメイン名を持つシンボルデータを検索。未検出の場合はNoneを返却
+	def __find_raw(self, raws: SymbolRaws, scopes: list[str], domain_name: str) -> SymbolRaw | None:
+		"""スコープを辿りドメイン名を持つシンボルを検索。未検出の場合はNoneを返却
 
 		Args:
 			raws (SymbolRaws): シンボルテーブル
 			scopes (list[str]): 探索スコープリスト
 			domain_name (str): ドメイン名
 		Returns:
-			SymbolRaw | None: シンボルデータ
+			SymbolRaw | None: シンボル
 		"""
 		candidates = [DSN.join(scope, domain_name) for scope in scopes]
 		for candidate in candidates:
@@ -103,7 +103,7 @@ class SymbolResolver:
 		return None
 
 	def __make_scopes(self, scope: str) -> list[str]:
-		"""対象ノードのスコープを元に探索スコープのリストを生成
+		"""スコープを元に探索スコープのリストを生成
 
 		Args:
 			scope (str): スコープ

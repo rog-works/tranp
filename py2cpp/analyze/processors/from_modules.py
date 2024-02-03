@@ -138,7 +138,7 @@ class FromModules:
 		"""
 		domain_type = self.__fetch_domain_type(var)
 		if domain_type is not None:
-			return SymbolResolver.by_type(raws, domain_type)
+			return SymbolResolver.by_symbolic(raws, domain_type)
 		else:
 			return SymbolResolver.by_primitive(raws, classes.Unknown)
 

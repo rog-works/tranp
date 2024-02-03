@@ -1,3 +1,5 @@
+from typing import cast
+
 from py2cpp.analyze.symbol import SymbolRaw, SymbolRaws, SymbolResolver
 from py2cpp.lang.implementation import injectable
 import py2cpp.node.definition as defs
@@ -23,6 +25,8 @@ class ResolveGeneric:
 			domain_type = self.__fetch_domain_type(raw)
 			if isinstance(domain_type, defs.GenericType):
 				update_raws[key] = self.__actualize_generic(raws, raw, domain_type)
+			elif isinstance(domain_type, defs.Function):
+				update_raws[key] = self.__actualize_function(raws, raw, domain_type)
 
 		return {**raws, **update_raws}
 
@@ -47,7 +51,7 @@ class ResolveGeneric:
 			# 型指定が無いため全てUnknown
 			return None
 		elif isinstance(raw.decl, defs.Function):
-			return raw.decl.return_type
+			return raw.decl
 
 	def __actualize_generic(self, raws: SymbolRaws, via: SymbolRaw, generic_type: defs.GenericType) -> SymbolRaw:
 		"""ジェネリックタイプノードを解析し、属性の型を取り込みシンボルを拡張
@@ -59,12 +63,22 @@ class ResolveGeneric:
 		Returns:
 			SymbolRaw: シンボル
 		"""
-		attrs: list[SymbolRaw] = []
-		for t_type in generic_type.template_types:
-			t_raw = SymbolResolver.by_type(raws, t_type)
-			if isinstance(t_raw.types, defs.GenericType):
-				attrs.append(self.__actualize_generic(raws, t_raw, t_raw.types))
-			else:
-				attrs.append(t_raw)
+		attrs = [self.__expand_attr(raws, SymbolResolver.by_symbolic(raws, t_type), t_type) for t_type in generic_type.template_types]
+		return via.extends(*attrs)
 
+	def __expand_attr(self, raws: SymbolRaws, raw: SymbolRaw, t_type: defs.Type) -> SymbolRaw:
+		return self.__actualize_generic(raws, raw, t_type) if isinstance(t_type, defs.GenericType) else raw
+
+	def __actualize_function(self, raws: SymbolRaws, via: SymbolRaw, function: defs.Function) -> SymbolRaw:
+		attrs: list[SymbolRaw] = []
+		for parameter in function.parameters:
+			if isinstance(parameter.symbol, (defs.DeclClassParam, defs.DeclThisParam)):
+				attrs.append(SymbolResolver.by_symbolic(raws, parameter.symbol))
+			else:
+				t_type = cast(defs.Type, parameter.var_type)
+				t_raw = SymbolResolver.by_symbolic(raws, t_type)
+				attrs.append(self.__expand_attr(raws, t_raw if t_raw.has_entity else t_raw.varnize(parameter), t_type))
+
+		t_raw = SymbolResolver.by_symbolic(raws, function.return_type).returnize(function.return_type)
+		attrs.append(self.__expand_attr(raws, t_raw, function.return_type))
 		return via.extends(*attrs)

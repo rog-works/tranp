@@ -93,68 +93,66 @@ class TestSymbols(TestCase):
 		self.assertEqual(symbols.type_of_primitive(primitive_type).types.fullyname, expected)
 
 	@data_provider([
-		(_ast('__main__', 'import_stmt.import_names.name'), _mod('xyz', 'Z'), []),
-		(_ast('__main__', 'anno_assign.var'), _mod('classes', 'int'), []),
-		(_ast('__main__', 'anno_assign.typed_var'), _mod('classes', 'int'), []),
-		(_ast('__main__', 'anno_assign.number'), _mod('classes', 'int'), []),
-		(_ast('__main__', 'assign.var'), _mod('classes', 'dict'), [_mod('classes', 'str'), _mod('classes', 'int')]),
+		(_ast('__main__', 'import_stmt.import_names.name'), _mod('xyz', 'Z'), 'Z'),
+		(_ast('__main__', 'anno_assign.var'), _mod('classes', 'int'), 'int'),
+		(_ast('__main__', 'anno_assign.typed_var'), _mod('classes', 'int'), 'int'),
+		(_ast('__main__', 'anno_assign.number'), _mod('classes', 'int'), 'int'),
+		(_ast('__main__', 'assign.var'), _mod('classes', 'dict'), 'dict<str, int>'),
 		# 5
-		(_ast('A', ''), '__main__.A', []),
-		(_ast('A', 'class_def_raw.name'), '__main__.A', []),
-		(_ast('A.__init__.params', 'paramvalue.typedparam.name'), '__main__.A', []),
-		(_ast('A.__init__.return', 'typed_none'), _mod('classes', 'None'), []),
-		(_ast('A.__init__.block', 'anno_assign.getattr'), _mod('classes', 'str'), []),
+		(_ast('A', ''), '__main__.A', 'A'),
+		(_ast('A', 'class_def_raw.name'), '__main__.A', 'A'),
+		(_ast('A.__init__.params', 'paramvalue.typedparam.name'), '__main__.A', 'A'),
+		(_ast('A.__init__.return', 'typed_none'), _mod('classes', 'None'), 'None'),
+		(_ast('A.__init__.block', 'anno_assign.getattr'), _mod('classes', 'str'), 'str'),
 		# 10
-		(_ast('A.__init__.block', 'anno_assign.typed_var'), _mod('classes', 'str'), []),
-		(_ast('A.__init__.block', 'anno_assign.string'), _mod('classes', 'str'), []),
-		(_ast('B', ''), '__main__.B', []),
-		(_ast('B', 'class_def_raw.name'), '__main__.B', []),
-		(_ast('B', 'class_def_raw.typed_arguments.typed_argvalue.typed_var'), '__main__.A', []),
+		(_ast('A.__init__.block', 'anno_assign.typed_var'), _mod('classes', 'str'), 'str'),
+		(_ast('A.__init__.block', 'anno_assign.string'), _mod('classes', 'str'), 'str'),
+		(_ast('B', ''), '__main__.B', 'B'),
+		(_ast('B', 'class_def_raw.name'), '__main__.B', 'B'),
+		(_ast('B', 'class_def_raw.typed_arguments.typed_argvalue.typed_var'), '__main__.A', 'A'),
 		# 15
-		(_ast('B.B2', ''), '__main__.B.B2', []),
-		(_ast('B.B2.block', 'anno_assign.var'), _mod('classes', 'str'), []),
-		(_ast('B.B2.block', 'anno_assign.typed_var'), _mod('classes', 'str'), []),
-		(_ast('B.B2.block', 'anno_assign.string'), _mod('classes', 'str'), []),
-		(_ast('B.B2.class_func', ''), '__main__.B.B2.class_func', [_mod('classes', 'str'), _mod('classes', 'int')]),
+		(_ast('B.B2', ''), '__main__.B.B2', 'B2'),
+		(_ast('B.B2.block', 'anno_assign.var'), _mod('classes', 'str'), 'str'),
+		(_ast('B.B2.block', 'anno_assign.typed_var'), _mod('classes', 'str'), 'str'),
+		(_ast('B.B2.block', 'anno_assign.string'), _mod('classes', 'str'), 'str'),
+		(_ast('B.B2.class_func', ''), '__main__.B.B2.class_func', 'class_func<B2, dict<str, int>>'),
 		# 20
-		(_ast('B.B2.class_func.params', 'paramvalue.typedparam.name'), '__main__.B.B2', []),
-		(_ast('B.B2.class_func.return', 'typed_getitem'), _mod('classes', 'dict'), []), # FIXME 追って修正 [_mod('classes', 'str'), _mod('classes', 'int')]),
-		(_ast('B.B2.class_func.block', 'return_stmt.dict'), _mod('classes', 'dict'), [_mod('classes', 'str'), _mod('classes', 'int')]),
-		(_ast('B.__init__.params', 'paramvalue.typedparam.name'), '__main__.B', []),
-		(_ast('B.__init__.return', 'typed_none'), _mod('classes', 'None'), []),
+		(_ast('B.B2.class_func.params', 'paramvalue.typedparam.name'), '__main__.B.B2', 'B2'),
+		(_ast('B.B2.class_func.return', 'typed_getitem'), _mod('classes', 'dict'), 'dict'), # FIXME 追って修正 'dict[str, int]'
+		(_ast('B.B2.class_func.block', 'return_stmt.dict'), _mod('classes', 'dict'), 'dict<str, int>'),
+		(_ast('B.__init__.params', 'paramvalue.typedparam.name'), '__main__.B', 'B'),
+		(_ast('B.__init__.return', 'typed_none'), _mod('classes', 'None'), 'None'),
 		# 25
-		(_ast('B.__init__.block', 'funccall'), '__main__.A', []),
-		(_ast('B.__init__.block', 'funccall.getattr.funccall.var'), _mod('classes', 'super'), []),
-		(_ast('B.__init__.block', 'anno_assign'), _mod('classes', 'list'), [_mod('classes', 'int')]),
-		(_ast('B.__init__.block', 'anno_assign.getattr'), _mod('classes', 'list'), [_mod('classes', 'int')]),
-		(_ast('B.__init__.block', 'anno_assign.typed_getitem'), _mod('classes', 'list'), []), # FIXME 追って修正 [_mod('classes', 'int')]),
+		(_ast('B.__init__.block', 'funccall'), '__main__.A', 'A'),
+		(_ast('B.__init__.block', 'funccall.getattr.funccall.var'), _mod('classes', 'super'), 'super'),
+		(_ast('B.__init__.block', 'anno_assign'), _mod('classes', 'list'), 'list<int>'),
+		(_ast('B.__init__.block', 'anno_assign.getattr'), _mod('classes', 'list'), 'list<int>'),
+		(_ast('B.__init__.block', 'anno_assign.typed_getitem'), _mod('classes', 'list'), 'list'), # FIXME 追って修正 'list<int>'
 		# 30
-		(_ast('B.__init__.block', 'anno_assign.list'), _mod('classes', 'list'), [_mod('classes', 'Unknown')]),
-		(_ast('B.func1.params', 'paramvalue[0].typedparam.name'), '__main__.B', []),
-		(_ast('B.func1.params', 'paramvalue[1].typedparam.name'), _mod('classes', 'list'), ['__main__.B']),
-		(_ast('B.func1.return', 'typed_var'), _mod('classes', 'str'), []),
-		(_ast('B.func1.block', 'assign[0].var'), _mod('classes', 'bool'), []),
+		(_ast('B.__init__.block', 'anno_assign.list'), _mod('classes', 'list'), 'list<Unknown>'),
+		(_ast('B.func1.params', 'paramvalue[0].typedparam.name'), '__main__.B', 'B'),
+		(_ast('B.func1.params', 'paramvalue[1].typedparam.name'), _mod('classes', 'list'), 'list<B>'),
+		(_ast('B.func1.return', 'typed_var'), _mod('classes', 'str'), 'str'),
+		(_ast('B.func1.block', 'assign[0].var'), _mod('classes', 'bool'), 'bool'),
 		# 35
-		(_ast('B.func1.block', 'assign[0].const_false'), _mod('classes', 'bool'), []),
-		(_ast('B.func1.block', 'funccall[1].arguments.argvalue.var'), _mod('classes', 'bool'), []),
-		(_ast('B.func1.block', 'funccall[2].arguments.argvalue.getattr'), _mod('classes', 'list'), [_mod('classes', 'int')]),
-		(_ast('B.func1.block', 'funccall[3].arguments.argvalue.getattr'), _mod('classes', 'list'), [_mod('classes', 'int')]),
-		(_ast('B.func1.block', 'assign[4].getattr'), _mod('classes', 'str'), []),
+		(_ast('B.func1.block', 'assign[0].const_false'), _mod('classes', 'bool'), 'bool'),
+		(_ast('B.func1.block', 'funccall[1].arguments.argvalue.var'), _mod('classes', 'bool'), 'bool'),
+		(_ast('B.func1.block', 'funccall[2].arguments.argvalue.getattr'), _mod('classes', 'list'), 'list<int>'),
+		(_ast('B.func1.block', 'funccall[3].arguments.argvalue.getattr'), _mod('classes', 'list'), 'list<int>'),
+		(_ast('B.func1.block', 'assign[4].getattr'), _mod('classes', 'str'), 'str'),
 		# 40
-		(_ast('B.func1.block', 'assign[4].string'), _mod('classes', 'str'), []),
-		(_ast('B.func1.block', 'assign[5].getattr'), _mod('classes', 'int'), []),
-		(_ast('B.func1.block', 'assign[5].number'), _mod('classes', 'int'), []),
-		(_ast('B.func1.block', 'assign[6]'), 'py2cpp.compatible.python.template.T_Seq', []), # FIXME 追って修正 _mod('classes', 'int'), []),
-		(_ast('B.func1.block', 'return_stmt.getattr'), _mod('classes', 'str'), []),
+		(_ast('B.func1.block', 'assign[4].string'), _mod('classes', 'str'), 'str'),
+		(_ast('B.func1.block', 'assign[5].getattr'), _mod('classes', 'int'), 'int'),
+		(_ast('B.func1.block', 'assign[5].number'), _mod('classes', 'int'), 'int'),
+		(_ast('B.func1.block', 'assign[6]'), 'py2cpp.compatible.python.template.T_Seq', 'T_Seq'), # FIXME 追って修正 _mod('classes', 'int'), []),
+		(_ast('B.func1.block', 'return_stmt.getattr'), _mod('classes', 'str'), 'str'),
 		# 45
-		(_ast('B.func2.block', 'if_stmt.block.assign.var'), _mod('classes', 'int'), []),
-		(_ast('B.func2.closure.block', 'assign.var'), _mod('classes', 'list'), [_mod('classes', 'int')]),
+		(_ast('B.func2.block', 'if_stmt.block.assign.var'), _mod('classes', 'int'), 'int'),
+		(_ast('B.func2.closure.block', 'assign.var'), _mod('classes', 'list'), 'list<int>'),
 	])
-	def test_type_of(self, full_path: str, expected: str, attrs_expected: list[str]) -> None:
+	def test_type_of(self, full_path: str, expected: str, attrs_expected: str) -> None:
 		symbols = self.fixture.get(Symbols)
 		node = self.fixture.shared_nodes.by(full_path)
 		symbol = symbols.type_of(node)
 		self.assertEqual(symbol.types.fullyname, expected)
-		self.assertEqual(len(symbol.attrs), len(attrs_expected))
-		for index, in_expected in enumerate(attrs_expected):
-			self.assertEqual(symbol.attrs[index].types.fullyname, in_expected)
+		self.assertEqual(str(symbol), attrs_expected)

@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import TypeAlias
 
 from py2cpp.ast.dsn import DSN
@@ -8,10 +9,36 @@ from py2cpp.module.modules import Module
 import py2cpp.node.definition as defs
 from py2cpp.node.node import Node
 
-Decl: TypeAlias = defs.Parameter | defs.AnnoAssign | defs.MoveAssign | defs.For | defs.Catch | defs.ClassDef | defs.Reference | defs.Indexer | defs.FuncCall | defs.Literal
+Decl: TypeAlias = defs.Parameter | defs.AnnoAssign | defs.MoveAssign | defs.For | defs.Catch | defs.ClassDef | defs.Type | defs.Reference | defs.Indexer | defs.FuncCall | defs.Literal
 DeclRefs: TypeAlias = defs.Reference | defs.Indexer | defs.FuncCall
 
 Primitives: TypeAlias = int | float | str | bool | tuple | list | dict | classes.Pair | classes.Unknown
+
+class Roles(Enum):
+	"""シンボルのロール
+
+	Attributes:
+		Origin: 定義元 (実体あり)
+		Alias: Originのコピー (実体なし)
+		Var: Originの変数化 (実体あり)
+		Reference: Varの参照 (実体なし)
+		Literal: リテラルの実体 (実体あり)
+		Return: 戻り値の型の受け皿 (実体あり)
+	Note:
+		# 参照関係
+		* Origin <- Var
+		* Origin <- Alias
+		* Var <- Reference
+		* Alias <- Var
+		* Alias <- Literal
+		* Alias <- Return
+	"""
+	Origin = 'Origin'
+	Alias = 'Alias'
+	Var = 'Var'
+	Reference = 'Reference'
+	Literal = 'Literal'
+	Return = 'Return'
 
 
 class SymbolRaw:
@@ -28,7 +55,7 @@ class SymbolRaw:
 		"""
 		return cls(types.fullyname, types.fullyname, types.module_path, types, types)
 
-	def __init__(self, ref_path: str, org_path: str, module_path: str, types: defs.ClassDef, decl: Decl, via: 'SymbolRaw | None' = None, role: str = 'Origin') -> None:
+	def __init__(self, ref_path: str, org_path: str, module_path: str, types: defs.ClassDef, decl: Decl, via: 'SymbolRaw | None' = None, role: Roles = Roles.Origin) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -37,7 +64,7 @@ class SymbolRaw:
 			module_path (str): 展開先モジュールのパス
 			types (ClassDef): クラス定義ノード
 			decl (Decl): 宣言ノード
-			via (SymbolRaw | None): 参照元のシンボル(Reference -> Var -> Origin)
+			via (SymbolRaw | None): 参照元のシンボル
 			role (str): シンボルの役割(Origin/Alias/Var/Reference)
 		"""
 		self._ref_path = ref_path
@@ -85,7 +112,7 @@ class SymbolRaw:
 	@property
 	def has_entity(self) -> bool:
 		"""bool: True = 実態を持つ"""
-		return self._role in ['Origin', 'Var']
+		return self._role in [Roles.Origin, Roles.Var, Roles.Literal, Roles.Return]
 
 	@override
 	def __eq__(self, other: object) -> bool:
@@ -142,7 +169,7 @@ class SymbolRaw:
 		Returns:
 			SymbolRaw: インスタンス
 		"""
-		return SymbolRaw(self.path_to(module), self.org_path, module.path, types=self.types, decl=self.decl, via=self, role='Alias')
+		return SymbolRaw(self.path_to(module), self.org_path, module.path, types=self.types, decl=self.decl, via=self, role=Roles.Alias)
 
 	def varnize(self, var: defs.DeclVars) -> 'SymbolRaw':
 		"""変数シンボル用のデータに変換
@@ -152,7 +179,7 @@ class SymbolRaw:
 		Returns:
 			SymbolRaw: インスタンス
 		"""
-		return SymbolRaw(self.ref_path, self.org_path, var.module_path, types=self.types, decl=var, via=self, role='Var')
+		return SymbolRaw(self.ref_path, self.org_path, var.module_path, types=self.types, decl=var, via=self, role=Roles.Var)
 
 	def refnize(self, ref: DeclRefs) -> 'SymbolRaw':
 		"""参照シンボル用のデータに変換
@@ -162,17 +189,27 @@ class SymbolRaw:
 		Returns:
 			SymbolRaw: インスタンス
 		"""
-		return SymbolRaw(self.ref_path, self.org_path, ref.module_path, types=self.types, decl=ref, via=self, role='Reference')
+		return SymbolRaw(self.ref_path, self.org_path, ref.module_path, types=self.types, decl=ref, via=self, role=Roles.Reference)
 
-	def temporarize(self, node: defs.Literal) -> 'SymbolRaw':
-		"""一時シンボル用のデータに変換
+	def literalize(self, node: defs.Literal) -> 'SymbolRaw':
+		"""リテラルシンボル用のデータに変換
 
 		Args:
 			node (Literal): リテラルノード
 		Returns:
 			SymbolRaw: インスタンス
 		"""
-		return SymbolRaw(self.ref_path, self.org_path, self.module_path, types=self.types, decl=node, via=self, role='Temporary')
+		return SymbolRaw(self.ref_path, self.org_path, node.module_path, types=self.types, decl=node, via=self, role=Roles.Literal)
+
+	def returnize(self, node: defs.Type) -> 'SymbolRaw':
+		"""戻り値用のデータに変換
+
+		Args:
+			node (Type): 戻り値のタイプノード
+		Returns:
+			SymbolRaw: インスタンス
+		"""
+		return SymbolRaw(self.ref_path, self.org_path, node.module_path, types=self.types, decl=node, via=self, role=Roles.Return)
 
 	def extends(self, *attrs: 'SymbolRaw') -> 'SymbolRaw':
 		"""属性の型を取り込み、シンボルデータを拡張
@@ -182,10 +219,14 @@ class SymbolRaw:
 		Returns:
 			SymbolRaw: インスタンス
 		Raises:
+			LogicError: 実体の無いインスタンスに実行
 			LogicError: 拡張済みのインスタンスに再度実行
 		"""
+		if not self.has_entity:
+			raise LogicError(f'Not allowd operation. symbol: {self.types.fullyname}, role: {self._role}')
+
 		if self._attrs:
-			raise LogicError('Already set attibutes.')
+			raise LogicError(f'Already set attibutes. symbol: {self.types.fullyname}')
 
 		self._attrs = list(attrs)
 		return self
@@ -217,12 +258,12 @@ class SymbolResolver:
 		raise LogicError(f'Primitive not defined. name: {primitive_type.__name__}')
 
 	@classmethod
-	def by_type(cls, raws: SymbolRaws, node: defs.Type | defs.ClassDef) -> SymbolRaw:
+	def by_symbolic(cls, raws: SymbolRaws, node: defs.Symbolic) -> SymbolRaw:
 		"""タイプ/クラス宣言ノードからシンボルを解決
 
 		Args:
 			raws (SymbolRaws): シンボルテーブル
-			node: (Type | ClassDef): タイプ/クラス宣言ノード
+			node: (Symbolic): シンボル系ノード
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
@@ -232,7 +273,7 @@ class SymbolResolver:
 		if raw is not None:
 			return raw
 
-		raise LogicError(f'Type not defined. type: {node.fullyname}')
+		raise LogicError(f'Symbol not defined. type: {node.fullyname}')
 
 	@classmethod
 	def find_by_symbolic(cls, raws: SymbolRaws, node: defs.Symbolic, prop_name: str = '') -> SymbolRaw | None:

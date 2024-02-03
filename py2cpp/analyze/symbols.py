@@ -293,7 +293,7 @@ class Symbols:
 			SymbolRaw | None: シンボルデータ
 		"""
 		for inherit_type in decl_class.inherits:
-			inherit_type_raw = SymbolResolver.by_type(self.__raws, inherit_type)
+			inherit_type_raw = SymbolResolver.by_symbolic(self.__raws, inherit_type)
 			found_raw = self.__resolve_raw(inherit_type_raw.types, prop_name)
 			if found_raw:
 				return found_raw
@@ -521,19 +521,19 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 		return self.symbols.type_of_primitive(bool)
 
 	def on_pair(self, node: defs.Pair, first: SymbolRaw, second: SymbolRaw) -> SymbolRaw:
-		return self.symbols.type_of_primitive(classes.Pair).temporarize(node).extends(first, second)
+		return self.symbols.type_of_primitive(classes.Pair).literalize(node).extends(first, second)
 
 	def on_list(self, node: defs.List, values: list[SymbolRaw]) -> SymbolRaw:
 		value_type = values[0] if len(values) > 0 else self.symbols.type_of_primitive(classes.Unknown)
-		return self.symbols.type_of_primitive(list).temporarize(node).extends(value_type)
+		return self.symbols.type_of_primitive(list).literalize(node).extends(value_type)
 
 	def on_dict(self, node: defs.Dict, items: list[SymbolRaw]) -> SymbolRaw:
 		if len(items) == 0:
 			unknown_type = self.symbols.type_of_primitive(classes.Unknown)
-			return self.symbols.type_of_primitive(dict).temporarize(node).extends(unknown_type, unknown_type)
+			return self.symbols.type_of_primitive(dict).literalize(node).extends(unknown_type, unknown_type)
 		else:
 			key_type, value_type = items[0].attrs
-			return self.symbols.type_of_primitive(dict).temporarize(node).extends(key_type, value_type)
+			return self.symbols.type_of_primitive(dict).literalize(node).extends(key_type, value_type)
 
 	# Terminal
 

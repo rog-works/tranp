@@ -13,24 +13,25 @@ class Roles(Enum):
 	"""シンボルのロール
 
 	Attributes:
-		Origin: 定義元 (実体あり)
-		Import: Originのコピー (実体なし)
-		Var: Originの変数化 (実体あり)
-		Reference: Varの参照 (実体なし)
-		Wrap: 型の受け皿 (実体あり)
+		Origin: 定義元。一部属性を保持 (ファンクション)
+		Import: Originの複製。属性なし
+		Var: Origin/Importを参照。変数として分離し、属性を保持 (変数宣言)
+		Reference: Varの参照。属性なし
+		Extend: Origin/Importを参照。追加の属性の保持 (タイプ/リテラル)
 	Note:
 		# 参照関係
-		* Origin <- Var
 		* Origin <- Import
-		* Var <- Reference
+		* Origin <- Var
+		* Origin <- Extend
 		* Import <- Var
-		* Import <- Wrap
+		* Import <- Extend
+		* Var <- Reference
 	"""
 	Origin = 'Origin'
 	Import = 'Import'
 	Var = 'Var'
 	Reference = 'Reference'
-	Wrap = 'Wrap'
+	Extend = 'Extend'
 
 
 class SymbolRaw:
@@ -109,7 +110,7 @@ class SymbolRaw:
 	@property
 	def has_entity(self) -> bool:
 		"""bool: True = 実態を持つ"""
-		return self._role in [Roles.Origin, Roles.Var, Roles.Wrap]
+		return self._role in [Roles.Origin, Roles.Var, Roles.Extend]
 
 	@override
 	def __eq__(self, other: object) -> bool:
@@ -179,7 +180,7 @@ class SymbolRaw:
 		to_roles = {
 			defs.DeclVars: Roles.Var,
 			defs.DeclRefs: Roles.Reference,
-			defs.DeclWraps: Roles.Wrap,
+			defs.DeclWraps: Roles.Extend,
 		}
 		role = [role for with_types, role in to_roles.items() if isinstance(decl, with_types)].pop()
 		return SymbolRaw(self.ref_path, self.org_path, decl.module_path, types=self.types, decl=decl, via=self, role=role)

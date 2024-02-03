@@ -1,8 +1,8 @@
 from typing import TypeAlias
-from py2cpp.ast.dsn import DSN
-from py2cpp.errors import LogicError
 
+from py2cpp.ast.dsn import DSN
 import py2cpp.compatible.python.classes as classes
+from py2cpp.errors import LogicError
 from py2cpp.lang.implementation import override
 from py2cpp.module.modules import Module
 import py2cpp.node.definition as defs

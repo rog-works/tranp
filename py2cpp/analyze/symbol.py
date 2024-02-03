@@ -9,7 +9,7 @@ import py2cpp.node.definition as defs
 from py2cpp.node.node import Node
 
 Decl: TypeAlias = defs.Parameter | defs.AnnoAssign | defs.MoveAssign | defs.For | defs.Catch | defs.ClassDef | defs.Reference | defs.Indexer | defs.FuncCall | defs.Literal
-DeclRefs: TypeAlias = defs.Reference | defs.Indexer | defs.FuncCall | defs.Literal
+DeclRefs: TypeAlias = defs.Reference | defs.Indexer | defs.FuncCall
 
 Primitives: TypeAlias = int | float | str | bool | tuple | list | dict | classes.Pair | classes.Unknown
 
@@ -142,7 +142,7 @@ class SymbolRaw:
 		Returns:
 			SymbolRaw: インスタンス
 		"""
-		return SymbolRaw(self.path_to(module), self.org_path, module.path, self.types, self.decl, self, 'Alias')
+		return SymbolRaw(self.path_to(module), self.org_path, module.path, types=self.types, decl=self.decl, via=self, role='Alias')
 
 	def varnize(self, var: defs.DeclVars) -> 'SymbolRaw':
 		"""変数シンボル用のデータに変換
@@ -152,7 +152,7 @@ class SymbolRaw:
 		Returns:
 			SymbolRaw: インスタンス
 		"""
-		return SymbolRaw(self.ref_path, self.org_path, var.module_path, self.types, var, self, 'Var')
+		return SymbolRaw(self.ref_path, self.org_path, var.module_path, types=self.types, decl=var, via=self, role='Var')
 
 	def refnize(self, ref: DeclRefs) -> 'SymbolRaw':
 		"""参照シンボル用のデータに変換
@@ -162,7 +162,17 @@ class SymbolRaw:
 		Returns:
 			SymbolRaw: インスタンス
 		"""
-		return SymbolRaw(self.ref_path, self.org_path, ref.module_path, self.types, ref, self, 'Reference')
+		return SymbolRaw(self.ref_path, self.org_path, ref.module_path, types=self.types, decl=ref, via=self, role='Reference')
+
+	def temporarize(self, node: defs.Literal) -> 'SymbolRaw':
+		"""一時シンボル用のデータに変換
+
+		Args:
+			node (Literal): リテラルノード
+		Returns:
+			SymbolRaw: インスタンス
+		"""
+		return SymbolRaw(self.ref_path, self.org_path, self.module_path, types=self.types, decl=node, via=self, role='Temporary')
 
 	def extends(self, *attrs: 'SymbolRaw') -> 'SymbolRaw':
 		"""属性の型を取り込み、シンボルデータを拡張

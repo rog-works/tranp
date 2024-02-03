@@ -329,7 +329,7 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 		return receiver
 
 	def on_aug_assign(self, node: defs.AugAssign, receiver: SymbolRaw, value: SymbolRaw) -> SymbolRaw:
-		"""Note: XXX operatorに型はないので引数からは省略"""
+		"""Note: XXX operatorに型はないので引数からは省略。on_fallbackによってpassされるのでスタックはズレない"""
 		return receiver
 
 	# Primary

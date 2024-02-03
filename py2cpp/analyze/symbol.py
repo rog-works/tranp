@@ -28,7 +28,7 @@ class SymbolRaw:
 		"""
 		return cls(types.fullyname, types.fullyname, types.module_path, types, types)
 
-	def __init__(self, ref_path: str, org_path: str, module_path: str, types: defs.ClassDef, decl: Decl, via: 'SymbolRaw | None' = None, behavior: str = 'Origin') -> None:
+	def __init__(self, ref_path: str, org_path: str, module_path: str, types: defs.ClassDef, decl: Decl, via: 'SymbolRaw | None' = None, role: str = 'Origin') -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -38,7 +38,7 @@ class SymbolRaw:
 			types (ClassDef): クラス定義ノード
 			decl (Decl): 宣言ノード
 			via (SymbolRaw | None): 参照元のシンボル(Reference -> Var -> Origin)
-			behavior (str): シンボルの種別(Origin/Alias/Var/Reference)
+			role (str): シンボルの役割(Origin/Alias/Var/Reference)
 		"""
 		self._ref_path = ref_path
 		self._org_path = org_path
@@ -47,7 +47,7 @@ class SymbolRaw:
 		self._decl = decl
 		self._attrs: list[SymbolRaw] = []
 		self._via = via
-		self._behavior = behavior
+		self._role = role
 
 	@property
 	def ref_path(self) -> str:
@@ -85,7 +85,7 @@ class SymbolRaw:
 	@property
 	def has_entity(self) -> bool:
 		"""bool: True = 実態を持つ"""
-		return self._behavior in ['Origin', 'Var']
+		return self._role in ['Origin', 'Var']
 
 	@override
 	def __eq__(self, other: object) -> bool:

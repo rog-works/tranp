@@ -143,12 +143,12 @@ class FromModules:
 			return SymbolResolver.by_primitive(raws, classes.Unknown)
 
 	def __fetch_domain_type(self, var: defs.DeclVars) -> defs.Type | defs.ClassDef | None:
-		"""変数の型のドメインを取得。型が不明な場合はNoneを返却
+		"""変数の型(タイプ/クラス定義ノード)を取得。型が不明な場合はNoneを返却
 
 		Args:
 			var (DeclVars): 変数宣言ノード
 		Returns:
-			Type | ClassDef | None: 型/クラス定義ノード。不明な場合はNone
+			Type | ClassDef | None: タイプ/クラス定義ノード。不明な場合はNone
 		"""
 		if isinstance(var, (defs.AnnoAssign, defs.Catch)):
 			return var.var_type

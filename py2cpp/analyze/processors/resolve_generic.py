@@ -20,19 +20,19 @@ class ResolveGeneric:
 			if not raw.has_entity:
 				continue
 
-			fore_type = self.__analyze_fore_type(raw)
-			if isinstance(fore_type, defs.GenericType):
-				update_raws[key] = self.__actualize_generic(raws, raw, fore_type)
+			domain_type = self.__fetch_domain_type(raw)
+			if isinstance(domain_type, defs.GenericType):
+				update_raws[key] = self.__actualize_generic(raws, raw, domain_type)
 
 		return {**raws, **update_raws}
 
-	def __analyze_fore_type(self, raw: SymbolRaw) -> defs.Type | defs.Class | defs.Function | None:
-		"""シンボルの外形タイプを解析
+	def __fetch_domain_type(self, raw: SymbolRaw) -> defs.Type | defs.Class | defs.Function | None:
+		"""シンボルの型(タイプ/クラス定義ノード)を取得。型が不明な場合はNoneを返却
 
 		Args:
 			raw (SymbolRaw): シンボル
 		Returns:
-			Type | Class | Function | None: 外形タイプ
+			Type | Class | Function | None: タイプ/クラス定義ノード。不明な場合はNone
 		"""
 		if isinstance(raw.decl, (defs.AnnoAssign, defs.Catch)):
 			return raw.decl.var_type

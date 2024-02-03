@@ -1,12 +1,12 @@
-from py2cpp.analize.db import SymbolDB
-from py2cpp.analize.symbol import SymbolRaws
-from py2cpp.analize.symbols import Symbols
+from py2cpp.analyze.db import SymbolDB
+from py2cpp.analyze.symbol import SymbolRaws
+from py2cpp.analyze.symbols import Symbols
 from py2cpp.lang.implementation import injectable
 from py2cpp.module.modules import Modules
 import py2cpp.node.definition as defs
 
 
-class InlineRegister:
+class RuntimeRegister:
 	"""インライン要素をシンボルに解決
 
 	Note:
@@ -25,12 +25,12 @@ class InlineRegister:
 		Returns:
 			SymbolRaws: シンボルテーブル
 		"""
-		symbols = Symbols(modules.main.module_path, SymbolDB(raws))
+		symbols = Symbols(SymbolDB(raws))
 		new_raws: SymbolRaws = {}
-		for node in modules.main.entrypoint.calculated():
-			if isinstance(node, defs.FuncCall):
-				new_raws[node.fullyname] = symbols.type_of(node).raw.inlinify(node)
-			elif isinstance(node, defs.Literal):
-				new_raws[node.fullyname] = symbols.type_of(node).raw.inlinify(node)
+		# for node in modules.main.entrypoint.calculated():
+		# 	if isinstance(node, (defs.Reference, defs.Indexer, defs.FuncCall)):
+		# 		new_raws[node.fullyname] = symbols.type_of(node).raw.runtimes(node)
+		# 	elif isinstance(node, defs.Literal):
+		# 		new_raws[node.fullyname] = symbols.type_of(node).raw.runtimes(node)
 
 		return {**raws, **new_raws}

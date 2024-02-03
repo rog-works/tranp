@@ -3,9 +3,9 @@ import sys
 import json
 from typing import Any, Callable, cast
 
-from py2cpp.analize.db import SymbolDB
-from py2cpp.analize.symbol import Symbol
-from py2cpp.analize.symbols import Symbols
+from py2cpp.analyze.db import SymbolDB
+from py2cpp.analyze.symbol import SymbolRaw
+from py2cpp.analyze.symbols import Symbols
 from py2cpp.app.app import App
 from py2cpp.ast.entry import Entry
 from py2cpp.ast.parser import ParserSetting, SyntaxParser
@@ -106,8 +106,21 @@ def task_type(symbols: Symbols) -> None:
 		'Symbol fullyname here:',
 	])
 	name = readline(prompt)
+
+	symbol = symbols.from_fullyname(name)
+	data = {
+		'type': str(symbol),
+		'ref_path': symbol.ref_path,
+		'org_path': symbol.org_path,
+		'module_path': symbol.module_path,
+		'types': str(symbol.types),
+		'decl': str(symbol.decl),
+		'via': str(symbol.via),
+		'attrs': ', '.join([str(attr) for attr in symbol.attrs]),
+	}
+
 	print('--------------')
-	print(f'{name}:', f'{str(symbols.from_fullyname(name))}')
+	print('\n'.join([f'{key}: {value}' for key, value in data.items()]))
 
 
 def task_help() -> None:
@@ -116,7 +129,7 @@ def task_help() -> None:
 		'Help',
 		'--------------',
 		'# Usage',
-		'$ bash bin/analize.sh [-g ${path}] [-s ${path}]',
+		'$ bash bin/analyze.sh [-g ${path}] [-s ${path}]',
 		'# Options',
 		'* -g: Grammar file path. defalut = "data/grammar.lark"',
 		'* -s: Python sorce code file path. default = "example/example.py"',
@@ -124,12 +137,12 @@ def task_help() -> None:
 	print('\n'.join(lines))
 
 
-def task_analize(org_parser: SyntaxParser, cache: CacheProvider) -> None:
+def task_analyze(org_parser: SyntaxParser, cache: CacheProvider) -> None:
 	def make_result() -> tuple[str, str]:
 		def new_parser(module_path: str) -> Entry:
 			return root if module_path == '__main__' else org_parser(module_path)
 
-		def resolve_symbol(symbols: Symbols, name: str) -> Symbol:
+		def resolve_symbol(symbols: Symbols, name: str) -> SymbolRaw:
 			try:
 				return symbols.from_fullyname(name)
 			except LogicError:
@@ -190,7 +203,7 @@ def task_menu(locator: Locator) -> None:
 		'Task Menu',
 		'--------------',
 		'# Tasks',
-		'* (a)nalize : Interactive Analizer',
+		'* (a)nalyze : Interactive Analyzer',
 		'* (c)lass   : Show Class Information',
 		'* (d)b      : Show Symbol DB',
 		'* (p)retty  : Show AST',
@@ -203,7 +216,7 @@ def task_menu(locator: Locator) -> None:
 		'Selection here:',
 	])
 	actions: dict[str, Callable[..., None]] = {
-		'a': task_analize,
+		'a': task_analyze,
 		'c': task_class,
 		'd': task_db,
 		'p': task_pretty,

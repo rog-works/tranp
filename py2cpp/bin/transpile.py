@@ -3,8 +3,8 @@ import re
 import sys
 from typing import cast
 
-from py2cpp.analize.procedure import Procedure
-from py2cpp.analize.symbols import Symbol, Symbols
+from py2cpp.analyze.procedure import Procedure
+from py2cpp.analyze.symbols import Symbol, Symbols
 from py2cpp.app.app import App
 from py2cpp.ast.parser import ParserSetting
 import py2cpp.compatible.cpp.object as cpp

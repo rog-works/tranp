@@ -345,12 +345,17 @@ class CallableType(GenericType):
 	@property
 	@Meta.embed(Node, expandable)
 	def parameters(self) -> list[Type]:
-		return self._children('typed_slices')[0].as_a(TypeParameters).type_params
+		return self.template_types
 
 	@property
 	@Meta.embed(Node, expandable)
 	def return_type(self) -> Type:
 		return self._children('typed_slices')[1].as_a(Type)
+
+	@property
+	@override
+	def template_types(self) -> list[Type]:
+		return self._children('typed_slices')[0].as_a(TypeParameters).type_params
 
 
 @Meta.embed(Node, actualized(via=GenericType))

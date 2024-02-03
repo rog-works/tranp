@@ -110,6 +110,11 @@ class SymbolRaw:
 		return self._via.attrs if self._via else []
 
 	@property
+	def via(self) -> 'SymbolRaw | None':
+		"""SymbolRaw | None: 参照元のシンボル"""
+		return self._via
+
+	@property
 	def has_entity(self) -> bool:
 		"""bool: True = 実態を持つ"""
 		return self._role in [Roles.Origin, Roles.Var, Roles.Literal, Roles.Return]

@@ -86,7 +86,7 @@ class FromModules:
 
 			# 展開対象モジュールの変数シンボルを展開
 			for var in expand_target.decl_vars:
-				expand_target.raws[var.symbol.fullyname] = self.__resolve_var_type(var, expand_target.raws).varnize(var)
+				expand_target.raws[var.symbol.fullyname] = self.__resolve_var_type(var, expand_target.raws).wrap(var)
 
 		# シンボルテーブルを統合
 		new_raws = {**raws}

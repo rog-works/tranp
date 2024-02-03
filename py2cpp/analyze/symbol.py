@@ -9,8 +9,9 @@ from py2cpp.module.modules import Module
 import py2cpp.node.definition as defs
 from py2cpp.node.node import Node
 
-Decl: TypeAlias = defs.Parameter | defs.AnnoAssign | defs.MoveAssign | defs.For | defs.Catch | defs.ClassDef | defs.Type | defs.Reference | defs.Indexer | defs.FuncCall | defs.Literal
 DeclRefs: TypeAlias = defs.Reference | defs.Indexer | defs.FuncCall
+DeclWraps: TypeAlias = defs.Type | defs.Literal
+Decl: TypeAlias = defs.DeclAll | DeclRefs | DeclWraps
 
 Primitives: TypeAlias = int | float | str | bool | tuple | list | dict | classes.Pair | classes.Unknown
 
@@ -22,23 +23,20 @@ class Roles(Enum):
 		Alias: Originのコピー (実体なし)
 		Var: Originの変数化 (実体あり)
 		Reference: Varの参照 (実体なし)
-		Literal: リテラルの実体 (実体あり)
-		Return: 戻り値の型の受け皿 (実体あり)
+		Wrap: 型の受け皿 (実体あり)
 	Note:
 		# 参照関係
 		* Origin <- Var
 		* Origin <- Alias
 		* Var <- Reference
 		* Alias <- Var
-		* Alias <- Literal
-		* Alias <- Return
+		* Alias <- Wrap
 	"""
 	Origin = 'Origin'
 	Alias = 'Alias'
 	Var = 'Var'
 	Reference = 'Reference'
-	Literal = 'Literal'
-	Return = 'Return'
+	Wrap = 'Wrap'
 
 
 class SymbolRaw:
@@ -117,7 +115,7 @@ class SymbolRaw:
 	@property
 	def has_entity(self) -> bool:
 		"""bool: True = 実態を持つ"""
-		return self._role in [Roles.Origin, Roles.Var, Roles.Literal, Roles.Return]
+		return self._role in [Roles.Origin, Roles.Var, Roles.Wrap]
 
 	@override
 	def __eq__(self, other: object) -> bool:
@@ -176,45 +174,21 @@ class SymbolRaw:
 		"""
 		return SymbolRaw(self.path_to(module), self.org_path, module.path, types=self.types, decl=self.decl, via=self, role=Roles.Alias)
 
-	def varnize(self, var: defs.DeclVars) -> 'SymbolRaw':
-		"""変数シンボル用のデータに変換
+	def wrap(self, decl: Decl) -> 'SymbolRaw':
+		"""シンボルをラップ
 
 		Args:
-			var (DeclVars): 変数宣言ノード
+			decl (Decl): 宣言ノード
 		Returns:
 			SymbolRaw: インスタンス
 		"""
-		return SymbolRaw(self.ref_path, self.org_path, var.module_path, types=self.types, decl=var, via=self, role=Roles.Var)
-
-	def refnize(self, ref: DeclRefs) -> 'SymbolRaw':
-		"""参照シンボル用のデータに変換
-
-		Args:
-			ref (DeclRefs): 参照ノード
-		Returns:
-			SymbolRaw: インスタンス
-		"""
-		return SymbolRaw(self.ref_path, self.org_path, ref.module_path, types=self.types, decl=ref, via=self, role=Roles.Reference)
-
-	def literalize(self, node: defs.Literal) -> 'SymbolRaw':
-		"""リテラルシンボル用のデータに変換
-
-		Args:
-			node (Literal): リテラルノード
-		Returns:
-			SymbolRaw: インスタンス
-		"""
-		return SymbolRaw(self.ref_path, self.org_path, node.module_path, types=self.types, decl=node, via=self, role=Roles.Literal)
-
-	def returnize(self, node: defs.Type) -> 'SymbolRaw':
-		"""戻り値用のデータに変換
-
-		Args:
-			node (Type): 戻り値のタイプノード
-		Returns:
-			SymbolRaw: インスタンス
-		"""
-		return SymbolRaw(self.ref_path, self.org_path, node.module_path, types=self.types, decl=node, via=self, role=Roles.Return)
+		to_roles = {
+			defs.DeclVars: Roles.Var,
+			DeclRefs: Roles.Reference,
+			DeclWraps: Roles.Wrap,
+		}
+		role = [role for with_types, role in to_roles.items() if isinstance(decl, with_types)].pop()
+		return SymbolRaw(self.ref_path, self.org_path, decl.module_path, types=self.types, decl=decl, via=self, role=role)
 
 	def extends(self, *attrs: 'SymbolRaw') -> 'SymbolRaw':
 		"""属性の型を取り込み、シンボルデータを拡張

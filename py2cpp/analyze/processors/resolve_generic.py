@@ -27,8 +27,9 @@ class ResolveGeneric:
 				update_raws[key] = self.__apply_generic(raws, raw, domain_type)
 			elif isinstance(domain_type, defs.Function):
 				update_raws[key] = self.__apply_function(raws, raw, domain_type)
-			elif isinstance(domain_type, defs.Class):
-				update_raws[key] = self.__apply_class(raws, raw, domain_type)
+			# XXX 文字列表現がGeneric形式になってしまうので一旦廃止
+			# elif isinstance(domain_type, defs.Class):
+			# 	update_raws[key] = self.__apply_class(raws, raw, domain_type)
 
 		return {**raws, **update_raws}
 
@@ -72,7 +73,7 @@ class ResolveGeneric:
 		Returns:
 			SymbolRaw: シンボル
 		"""
-		attrs = [self.__expand_attr(raws, SymbolResolver.by_symbolic(raws, t_type), t_type) for t_type in generic_type.template_types]
+		attrs = [self.__expand_attr(raws, SymbolResolver.by_symbolic(raws, t_type).wrap(t_type), t_type) for t_type in generic_type.template_types]
 		return via.extends(*attrs)
 
 	def __apply_function(self, raws: SymbolRaws, via: SymbolRaw, function: defs.Function) -> SymbolRaw:
@@ -92,9 +93,9 @@ class ResolveGeneric:
 			else:
 				t_type = cast(defs.Type, parameter.var_type)
 				t_raw = SymbolResolver.by_symbolic(raws, t_type)
-				attrs.append(self.__expand_attr(raws, t_raw.varnize(parameter), t_type))
+				attrs.append(self.__expand_attr(raws, t_raw.wrap(parameter), t_type))
 
-		t_raw = SymbolResolver.by_symbolic(raws, function.return_type).returnize(function.return_type)
+		t_raw = SymbolResolver.by_symbolic(raws, function.return_type).wrap(function.return_type)
 		attrs.append(self.__expand_attr(raws, t_raw, function.return_type))
 		return via.extends(*attrs)
 

@@ -118,7 +118,7 @@ class TestSymbols(TestCase):
 		(_ast('B.B2.class_func', ''), '__main__.B.B2.class_func', 'class_func<B2, dict<str, int>>'),
 		# 20
 		(_ast('B.B2.class_func.params', 'paramvalue.typedparam.name'), '__main__.B.B2', 'B2'),
-		(_ast('B.B2.class_func.return', 'typed_getitem'), _mod('classes', 'dict'), 'dict'), # FIXME 追って修正 'dict[str, int]'
+		(_ast('B.B2.class_func.return', 'typed_getitem'), _mod('classes', 'dict'), 'dict'), # XXX 関数の戻り値の型は関数のシンボル経由でのみ取得できる
 		(_ast('B.B2.class_func.block', 'return_stmt.dict'), _mod('classes', 'dict'), 'dict<str, int>'),
 		(_ast('B.__init__.params', 'paramvalue.typedparam.name'), '__main__.B', 'B'),
 		(_ast('B.__init__.return', 'typed_none'), _mod('classes', 'None'), 'None'),
@@ -127,9 +127,9 @@ class TestSymbols(TestCase):
 		(_ast('B.__init__.block', 'funccall.getattr.funccall.var'), _mod('classes', 'super'), 'super'),
 		(_ast('B.__init__.block', 'anno_assign'), _mod('classes', 'list'), 'list<int>'),
 		(_ast('B.__init__.block', 'anno_assign.getattr'), _mod('classes', 'list'), 'list<int>'),
-		(_ast('B.__init__.block', 'anno_assign.typed_getitem'), _mod('classes', 'list'), 'list'), # FIXME 追って修正 'list<int>'
+		(_ast('B.__init__.block', 'anno_assign.typed_getitem'), _mod('classes', 'list'), 'list'), # XXX 型はシンボル経由でのみ取得できる
 		# 30
-		(_ast('B.__init__.block', 'anno_assign.list'), _mod('classes', 'list'), 'list<Unknown>'),
+		(_ast('B.__init__.block', 'anno_assign.list'), _mod('classes', 'list'), 'list<Unknown>'),  # XXX 空のリストは型を補完できないためlist<Unknown>になる
 		(_ast('B.func1.params', 'paramvalue[0].typedparam.name'), '__main__.B', 'B'),
 		(_ast('B.func1.params', 'paramvalue[1].typedparam.name'), _mod('classes', 'list'), 'list<B>'),
 		(_ast('B.func1.return', 'typed_var'), _mod('classes', 'str'), 'str'),

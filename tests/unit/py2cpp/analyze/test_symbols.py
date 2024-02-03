@@ -66,10 +66,27 @@ class TestSymbols(TestCase):
 		self.assertEqual(symbols.is_dict(symbol), expected)
 
 	@data_provider([
+		('__main__.v', 'int'),
+		('__main__.d', 'dict<str, int>'),
+		('__main__.A', 'A'),
+		('__main__.A.s', 'str'),
+		('__main__.B', 'B'),
+		('__main__.B.v', 'list<int>'),
+		('__main__.B.__init__', '__init__<B, None>'),
+		# ('__main__.B.__init__.self', 'B'),  # FIXME
+		('__main__.B.func1', 'func1<B, list<B>, str>'),
+		# ('__main__.B.func1.self', 'B'),  # FIXME
+		# ('__main__.B.func1.b', 'list<B>'),  # FIXME
+		('__main__.B.func1.v', 'bool'),
+		('__main__.B.func1.v2', 'T_Seq'),  # FIXME 追って修正
+		('__main__.B.func2', 'func2<B, int>'),
 		('__main__.B.func2.a', 'int'),
+		('__main__.B.func2.closure', 'closure<list<int>>'),
 		('__main__.B.func2.closure.b', 'list<int>'),
 		('__main__.B.func2.if.for.i', 'T_Seq'),  # FIXME 追って修正
 		('__main__.B.func2.if.for.try.e', 'Exception'),
+		('__main__.B.B2', 'B2'),
+		('__main__.B.B2.class_func', 'class_func<B2, dict<str, int>>'),
 	])
 	def test_from_fullyname(self, fullyname: str, expected: str) -> None:
 		symbols = self.fixture.get(Symbols)

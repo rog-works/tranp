@@ -175,11 +175,11 @@ class Handler(Procedure[str]):
 			if not is_call_constructor:
 				return None
 
-			return self.symbols.type_of(function.return_type)
+			return self.symbols.resolve(function)
 
 		cvar_return_symbol = analyze_cvar_return_symbol()
 		if cvar_return_symbol is not None:
-			cvar_type = cvar_return_symbol.attrs[0].types.symbol.tokens
+			cvar_type = cvar_return_symbol.attrs[-1].attrs[0].types.symbol.tokens
 			return self.view.render(node.classification, vars={'return_value': return_value, 'cvar_type': cvar_type})
 		else:
 			return self.view.render(node.classification, vars={'return_value': return_value, 'cvar_type': ''})

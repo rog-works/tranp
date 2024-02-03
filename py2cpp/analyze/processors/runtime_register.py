@@ -25,7 +25,7 @@ class RuntimeRegister:
 		Returns:
 			SymbolRaws: シンボルテーブル
 		"""
-		symbols = Symbols(SymbolDB(raws))
+		# symbols = Symbols(SymbolDB(raws))
 		new_raws: SymbolRaws = {}
 		# for node in modules.main.entrypoint.calculated():
 		# 	if isinstance(node, (defs.Reference, defs.Indexer, defs.FuncCall)):

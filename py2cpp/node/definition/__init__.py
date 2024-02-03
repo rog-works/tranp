@@ -14,3 +14,8 @@ from py2cpp.node.definition.terminal import *
 DeclVars: TypeAlias = Parameter | AnnoAssign | MoveAssign | For | Catch
 DeclAll: TypeAlias = Parameter | AnnoAssign | MoveAssign | For | Catch | ClassDef
 Symbolic: TypeAlias = Declable | Reference | Type | Literal | ClassDef
+
+# XXX 暫定
+DeclRefs: TypeAlias = Reference | Indexer | FuncCall
+DeclWraps: TypeAlias = Type | Literal
+Decl: TypeAlias = DeclAll | DeclRefs | DeclWraps

@@ -1,9 +1,9 @@
 from unittest import TestCase
 
-from py2cpp.analyze.symbol import Primitives
 from py2cpp.analyze.symbols import Symbols
 from py2cpp.ast.dsn import DSN
 import py2cpp.compatible.python.classes as classes
+from py2cpp.compatible.python.types import Primitives
 from tests.test.fixture import Fixture
 from tests.test.helper import data_provider
 

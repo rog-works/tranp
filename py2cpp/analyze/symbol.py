@@ -1,39 +1,33 @@
 from enum import Enum
 from typing import TypeAlias
 
-from py2cpp.ast.dsn import DSN
-import py2cpp.compatible.python.classes as classes
 from py2cpp.errors import LogicError
 from py2cpp.lang.implementation import override
 from py2cpp.module.modules import Module
 import py2cpp.node.definition as defs
-from py2cpp.node.node import Node
 
-DeclRefs: TypeAlias = defs.Reference | defs.Indexer | defs.FuncCall
-DeclWraps: TypeAlias = defs.Type | defs.Literal
-Decl: TypeAlias = defs.DeclAll | DeclRefs | DeclWraps
+SymbolRaws: TypeAlias = dict[str, 'SymbolRaw']
 
-Primitives: TypeAlias = int | float | str | bool | tuple | list | dict | classes.Pair | classes.Unknown
 
 class Roles(Enum):
 	"""シンボルのロール
 
 	Attributes:
 		Origin: 定義元 (実体あり)
-		Alias: Originのコピー (実体なし)
+		Import: Originのコピー (実体なし)
 		Var: Originの変数化 (実体あり)
 		Reference: Varの参照 (実体なし)
 		Wrap: 型の受け皿 (実体あり)
 	Note:
 		# 参照関係
 		* Origin <- Var
-		* Origin <- Alias
+		* Origin <- Import
 		* Var <- Reference
-		* Alias <- Var
-		* Alias <- Wrap
+		* Import <- Var
+		* Import <- Wrap
 	"""
 	Origin = 'Origin'
-	Alias = 'Alias'
+	Import = 'Import'
 	Var = 'Var'
 	Reference = 'Reference'
 	Wrap = 'Wrap'
@@ -53,7 +47,7 @@ class SymbolRaw:
 		"""
 		return cls(types.fullyname, types.fullyname, types.module_path, types, types)
 
-	def __init__(self, ref_path: str, org_path: str, module_path: str, types: defs.ClassDef, decl: Decl, via: 'SymbolRaw | None' = None, role: Roles = Roles.Origin) -> None:
+	def __init__(self, ref_path: str, org_path: str, module_path: str, types: defs.ClassDef, decl: defs.Decl, via: 'SymbolRaw | None' = None, role: Roles = Roles.Origin) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -95,7 +89,7 @@ class SymbolRaw:
 		return self._types
 
 	@property
-	def decl(self) -> Decl:
+	def decl(self) -> defs.Decl:
 		"""Decl: 宣言ノード"""
 		return self._decl
 
@@ -172,9 +166,9 @@ class SymbolRaw:
 		Returns:
 			SymbolRaw: インスタンス
 		"""
-		return SymbolRaw(self.path_to(module), self.org_path, module.path, types=self.types, decl=self.decl, via=self, role=Roles.Alias)
+		return SymbolRaw(self.path_to(module), self.org_path, module.path, types=self.types, decl=self.decl, via=self, role=Roles.Import)
 
-	def wrap(self, decl: Decl) -> 'SymbolRaw':
+	def wrap(self, decl: defs.Decl) -> 'SymbolRaw':
 		"""シンボルをラップ
 
 		Args:
@@ -184,8 +178,8 @@ class SymbolRaw:
 		"""
 		to_roles = {
 			defs.DeclVars: Roles.Var,
-			DeclRefs: Roles.Reference,
-			DeclWraps: Roles.Wrap,
+			defs.DeclRefs: Roles.Reference,
+			defs.DeclWraps: Roles.Wrap,
 		}
 		role = [role for with_types, role in to_roles.items() if isinstance(decl, with_types)].pop()
 		return SymbolRaw(self.ref_path, self.org_path, decl.module_path, types=self.types, decl=decl, via=self, role=role)
@@ -211,90 +205,3 @@ class SymbolRaw:
 		return self
 
 
-SymbolRaws: TypeAlias = dict[str, SymbolRaw]
-
-
-class SymbolResolver:
-	"""シンボルリゾルバー"""
-
-	@classmethod
-	def by_primitive(cls, raws: SymbolRaws, primitive_type: type[Primitives] | None) -> SymbolRaw:
-		"""プリミティブ型のシンボルを解決
-
-		Args:
-			raws (SymbolRaws): シンボルテーブル
-			primitive_type (type[Primitives] | None): プリミティブ型
-		Returns:
-			SymbolRaw: シンボル
-		Raises:
-			LogicError: 未定義のタイプを指定
-		"""
-		symbol_name = primitive_type.__name__ if primitive_type is not None else 'None'
-		raw = cls.__find_by(raws, ['__main__'], symbol_name)
-		if raw is not None:
-			return raw
-
-		raise LogicError(f'Primitive not defined. name: {primitive_type.__name__}')
-
-	@classmethod
-	def by_symbolic(cls, raws: SymbolRaws, node: defs.Symbolic) -> SymbolRaw:
-		"""シンボル系ノードからシンボルを解決
-
-		Args:
-			raws (SymbolRaws): シンボルテーブル
-			node: (Symbolic): シンボル系ノード
-		Returns:
-			SymbolRaw: シンボル
-		Raises:
-			LogicError: 未定義のタイプを指定
-		"""
-		raw = cls.find_by_symbolic(raws, node)
-		if raw is not None:
-			return raw
-
-		raise LogicError(f'Symbol not defined. type: {node.fullyname}')
-
-	@classmethod
-	def find_by_symbolic(cls, raws: SymbolRaws, node: defs.Symbolic, prop_name: str = '') -> SymbolRaw | None:
-		"""シンボルデータを検索。未検出の場合はNoneを返却
-
-		Args:
-			raws (SymbolRaws): シンボルテーブル
-			node (Symbolic): シンボル系ノード
-			prop_name (str): プロパティー名(default = '')
-		Returns:
-			SymbolRaw | None: シンボルデータ
-		"""
-		# XXX ローカル変数の参照は、クラス直下のスコープを参照できない
-		is_local_var_in_class_scope = lambda scope: node.is_a(defs.Var) and scope in raws and raws[scope].types.is_a(defs.Class)
-		scopes = [scope for scope in cls.__scopes_by_node(node) if not is_local_var_in_class_scope(scope)]
-		return cls.__find_by(raws, scopes, DSN.join(node.domain_name, prop_name))
-
-	@classmethod
-	def __find_by(cls, raws: SymbolRaws, scopes: list[str], domain_name: str) -> SymbolRaw | None:
-		"""スコープを辿りドメイン名を持つシンボルデータを検索。未検出の場合はNoneを返却
-
-		Args:
-			raws (SymbolRaws): シンボルテーブル
-			scopes (list[str]): 探索スコープリスト
-			domain_name (str): ドメイン名
-		Returns:
-			SymbolRaw | None: シンボルデータ
-		"""
-		candidates = [DSN.join(scope, domain_name) for scope in scopes]
-		for candidate in candidates:
-			if candidate in raws:
-				return raws[candidate]
-
-		return None
-
-	@classmethod
-	def __scopes_by_node(cls, node: Node) -> list[str]:
-		"""対象ノードのスコープを元に探索スコープのリストを生成
-
-		Args:
-			node (Node): ノード
-		Returns:
-			list[str]: 探索スコープリスト
-		"""
-		return [DSN.left(node.scope, DSN.elem_counts(node.scope) - i) for i in range(DSN.elem_counts(node.scope))]

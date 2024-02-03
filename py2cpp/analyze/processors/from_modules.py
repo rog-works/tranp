@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 
-from py2cpp.analyze.symbol import SymbolRaw, SymbolRaws, SymbolResolver
+from py2cpp.analyze.resolver import SymbolResolver
+from py2cpp.analyze.symbol import SymbolRaw, SymbolRaws
 from py2cpp.ast.dsn import DSN
 import py2cpp.compatible.python.classes as classes
 from py2cpp.lang.implementation import injectable
@@ -30,6 +31,15 @@ class FromModules:
 	"""
 
 	@injectable
+	def __init__(self, resolver: SymbolResolver) -> None:
+		"""インスタンスを生成
+
+		Args:
+			resolver (SymbolResolver): シンボルリゾルバー @inject
+		"""
+		self.resolver = resolver
+
+	@injectable
 	def __call__(self, modules: Modules, raws: SymbolRaws) -> SymbolRaws:
 		"""シンボルテーブルを生成
 
@@ -42,60 +52,61 @@ class FromModules:
 		main = modules.main
 
 		# メインモジュールを展開
-		expends: dict[Module, Expanded] = {}
-		expends[main] = self.__expand_module(main)
+		expands: dict[Module, Expanded] = {}
+		expands[main] = self.expand_module(main)
 
 		# インポートモジュールを全て展開
 		import_index = 0
-		import_modules_from_main = [modules.load(node.import_path.tokens) for node in expends[main].import_nodes]
+		import_modules_from_main = [modules.load(node.import_path.tokens) for node in expands[main].import_nodes]
 		import_modules: dict[str, Module] = {**{module.path: module for module in modules.libralies}, **{module.path: module for module in import_modules_from_main}}
 		while import_index < len(import_modules):
 			import_module = list(import_modules.values())[import_index]
-			expanded = self.__expand_module(import_module)
+			expanded = self.expand_module(import_module)
 			import_modules_from_depended = [modules.load(node.import_path.tokens) for node in expanded.import_nodes]
 			import_modules = {**import_modules, **{module.path: module for module in import_modules_from_depended}}
-			expends[import_module] = expanded
+			expands[import_module] = expanded
 			import_index += 1
 
 		all_modules = {**import_modules, main.path: main}
 		for expand_module in all_modules.values():
-			expand_target = expends[expand_module]
+			expand_target = expands[expand_module]
 
 			# 標準ライブラリを展開
+			core_primary_raws: SymbolRaws = {}
 			if expand_module not in modules.libralies:
 				for core_module in modules.libralies:
 					# 第1層で宣言されているシンボルに限定
 					entrypoint = core_module.entrypoint.as_a(defs.Entrypoint)
 					primary_symbol_names = [node.fullyname for node in entrypoint.statements if isinstance(node, defs.DeclAll)]
-					expanded = expends[core_module]
-					filtered_raws = [expanded.raws[fullyname] for fullyname in primary_symbol_names]
-					filtered_db = {raw.path_to(expand_module): raw.to(expand_module) for raw in filtered_raws}
-					expand_target.raws = {**filtered_db, **expand_target.raws}
+					expanded = expands[core_module]
+					core_primary_raws = {fullyname: expanded.raws[fullyname] for fullyname in primary_symbol_names}
 
 			# インポートモジュールを展開
 			# XXX 別枠として分離するより、ステートメントの中で処理するのが理想
 			# XXX また、ステートメントのスコープも合わせて考慮
+			imported_raws: SymbolRaws = {}
 			for import_node in expand_target.import_nodes:
 				# import句で明示されたシンボルに限定
 				imported_symbol_names = [symbol.tokens for symbol in import_node.import_symbols]
 				import_module = modules.load(import_node.import_path.tokens)
-				expanded = expends[import_module]
+				expanded = expands[import_module]
 				filtered_raws = [expanded.raws[DSN.join(import_module.path, name)] for name in imported_symbol_names]
 				filtered_db = {raw.path_to(expand_module): raw.to(expand_module) for raw in filtered_raws}
-				expand_target.raws = {**filtered_db, **expand_target.raws}
+				imported_raws = {**filtered_db, **imported_raws}
 
 			# 展開対象モジュールの変数シンボルを展開
+			expand_target.raws = {**core_primary_raws, **imported_raws, **expand_target.raws}
 			for var in expand_target.decl_vars:
-				expand_target.raws[var.symbol.fullyname] = self.__resolve_var_type(var, expand_target.raws).wrap(var)
+				expand_target.raws[var.symbol.fullyname] = self.resolve_var_type(expand_target.raws, var).wrap(var)
 
 		# シンボルテーブルを統合
 		new_raws = {**raws}
-		for expanded in expends.values():
+		for expanded in expands.values():
 			new_raws = {**expanded.raws, **new_raws}
 
 		return new_raws
 
-	def __expand_module(self, module: Module) -> Expanded:
+	def expand_module(self, module: Module) -> Expanded:
 		"""モジュールの全シンボルを展開
 
 		Args:
@@ -127,22 +138,22 @@ class FromModules:
 
 		return Expanded(raws, decl_vars, import_nodes)
 
-	def __resolve_var_type(self, var: defs.DeclVars, raws: SymbolRaws) -> SymbolRaw:
+	def resolve_var_type(self, raws: SymbolRaws, var: defs.DeclVars) -> SymbolRaw:
 		"""シンボルテーブルから変数の型を解決
 
 		Args:
-			var (DeclVars): 変数宣言ノード
 			raws (SymbolRaws): シンボルテーブル
+			var (DeclVars): 変数宣言ノード
 		Returns:
 			SymbolRaw: シンボルデータ
 		"""
-		domain_type = self.__fetch_domain_type(var)
+		domain_type = self.fetch_domain_type(var)
 		if domain_type is not None:
-			return SymbolResolver.by_symbolic(raws, domain_type)
+			return self.resolver.by_symbolic(raws, domain_type)
 		else:
-			return SymbolResolver.by_primitive(raws, classes.Unknown)
+			return self.resolver.by_primitive(raws, classes.Unknown)
 
-	def __fetch_domain_type(self, var: defs.DeclVars) -> defs.Type | defs.ClassDef | None:
+	def fetch_domain_type(self, var: defs.DeclVars) -> defs.Type | defs.ClassDef | None:
 		"""変数の型(タイプ/クラス定義ノード)を取得。型が不明な場合はNoneを返却
 
 		Args:

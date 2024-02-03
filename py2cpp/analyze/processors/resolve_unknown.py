@@ -23,7 +23,7 @@ class ResolveUnknown:
 		Returns:
 			SymbolRaws: シンボルテーブル
 		"""
-		symbols = Symbols(SymbolDB(raws))
+		# symbols = Symbols(SymbolDB(raws))
 		update_raws: SymbolRaws = {}
 		# for key, raw in raws.items():
 		# 	if isinstance(raw.decl, defs.MoveAssign):

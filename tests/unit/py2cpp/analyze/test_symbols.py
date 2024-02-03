@@ -162,8 +162,9 @@ class TestSymbols(TestCase):
 		(_ast('B.func1.block', 'assign[5].getattr'), _mod('classes', 'int'), 'int'),
 		(_ast('B.func1.block', 'assign[5].number'), _mod('classes', 'int'), 'int'),
 		(_ast('B.func1.block', 'assign[6]'), 'py2cpp.compatible.python.template.T_Seq', 'T_Seq'), # FIXME 追って修正 _mod('classes', 'int'), []),
-		(_ast('B.func1.block', 'return_stmt.getattr'), _mod('classes', 'str'), 'str'),
+		(_ast('B.func1.block', 'funccall[7].arguments.argvalue.getattr'), _mod('classes', 'list'), 'list<int>'),
 		# 45
+		(_ast('B.func1.block', 'return_stmt.getattr'), _mod('classes', 'str'), 'str'),
 		(_ast('B.func2.block', 'if_stmt.block.assign.var'), _mod('classes', 'int'), 'int'),
 		(_ast('B.func2.closure.block', 'assign.var'), _mod('classes', 'list'), 'list<int>'),
 	])

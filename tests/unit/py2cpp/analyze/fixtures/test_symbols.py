@@ -26,6 +26,7 @@ class B(A):
 		B.B2.v = 'b.b2.v'
 		self.x.nx = 2
 		v2 = self.v.pop()
+		print(self.func3()[0].v)
 		return self.s
 
 	def func2(self) -> int:
@@ -43,5 +44,8 @@ class B(A):
 			return b
 
 		return closure()[0]
+
+	def func3(self) -> list[B]:
+		...
 
 d = {'s': v}

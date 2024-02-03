@@ -410,7 +410,7 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 		if isinstance(calls.types, defs.Constructor):
 			return self.symbols.type_of_var(calls.types.class_types.symbol)
 		elif isinstance(calls.types, defs.Function):
-			return self.symbols.type_of(calls.types.return_type)
+			return calls.attrs[-1]
 		else:
 			# defs.ClassDef
 			return calls

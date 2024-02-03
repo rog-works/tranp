@@ -356,21 +356,13 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 		return self.symbols.type_of_var(node)
 
 	def on_relay(self, node: defs.Relay, receiver: SymbolRaw) -> SymbolRaw:
-		prop_symbol = self.symbols.type_of_property(receiver.types, node.prop)
-		if isinstance(prop_symbol.types, defs.Method):
-			# XXX 同じものを比較しているので意味がない
-			receiver_ts = [self.symbols.resolve(t) for t in receiver.types.generic_types]
-			prop_ts = [self.symbols.resolve(t) for t in prop_symbol.types.class_types.generic_types]
-			attrs = [receiver.attrs[index] for index, t in enumerate(receiver_ts) if t in prop_ts]
-			return prop_symbol.extends(*attrs)
-
-		return prop_symbol
+		return self.symbols.type_of_property(receiver.types, node.prop).refnize(node)
 
 	def on_class_ref(self, node: defs.ClassRef) -> SymbolRaw:
-		return self.symbols.type_of_var(node)
+		return self.symbols.type_of_var(node).refnize(node)
 
 	def on_this_ref(self, node: defs.ThisRef) -> SymbolRaw:
-		return self.symbols.type_of_var(node)
+		return self.symbols.type_of_var(node).refnize(node)
 
 	def on_argument_label(self, node: defs.ArgumentLabel) -> SymbolRaw:
 		func_symbol = self.symbols.type_of(node.invoker.calls)
@@ -381,7 +373,7 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 		raise LogicError(f'Parameter not defined. function: {func_symbol.types.fullyname}, label: {node.tokens}')
 
 	def on_variable(self, node: defs.Var) -> SymbolRaw:
-		return self.symbols.type_of_var(node)
+		return self.symbols.type_of_var(node).refnize(node)
 
 	def on_indexer(self, node: defs.Indexer, receiver: SymbolRaw, key: SymbolRaw) -> SymbolRaw:
 		if self.symbols.is_list(receiver):
@@ -413,12 +405,7 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 		if isinstance(calls.types, defs.Constructor):
 			return self.symbols.type_of_var(calls.types.class_types.symbol)
 		elif isinstance(calls.types, defs.Function):
-			symbol = self.symbols.type_of(calls.types.return_type)
-			# FIXME 一部のパターンにしか対応出来ていない
-			if symbol.types.is_a(defs.TemplateClass):
-				return calls.attrs[0]
-
-			return symbol
+			return self.symbols.type_of(calls.types.return_type)
 		else:
 			# defs.ClassDef
 			return calls

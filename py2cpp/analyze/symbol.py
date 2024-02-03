@@ -65,7 +65,7 @@ class SymbolRaw:
 			types (ClassDef): クラス定義ノード
 			decl (Decl): 宣言ノード
 			via (SymbolRaw | None): 参照元のシンボル
-			role (str): シンボルの役割(Origin/Alias/Var/Reference)
+			role (str): シンボルの役割
 		"""
 		self._ref_path = ref_path
 		self._org_path = org_path

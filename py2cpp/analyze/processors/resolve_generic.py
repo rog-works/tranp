@@ -24,34 +24,33 @@ class ResolveGeneric:
 
 			domain_type = self.__fetch_domain_type(raw)
 			if isinstance(domain_type, defs.GenericType):
-				update_raws[key] = self.__actualize_generic(raws, raw, domain_type)
+				update_raws[key] = self.__apply_generic(raws, raw, domain_type)
 			elif isinstance(domain_type, defs.Function):
-				update_raws[key] = self.__actualize_function(raws, raw, domain_type)
+				update_raws[key] = self.__apply_function(raws, raw, domain_type)
+			elif isinstance(domain_type, defs.Class):
+				update_raws[key] = self.__apply_class(raws, raw, domain_type)
 
 		return {**raws, **update_raws}
 
-	def __fetch_domain_type(self, raw: SymbolRaw) -> defs.Type | defs.Class | defs.Function | None:
+	def __fetch_domain_type(self, raw: SymbolRaw) -> defs.Type | defs.ClassDef | None:
 		"""シンボルの型(タイプ/クラス定義ノード)を取得。型が不明な場合はNoneを返却
 
 		Args:
 			raw (SymbolRaw): シンボル
 		Returns:
-			Type | Class | Function | None: タイプ/クラス定義ノード。不明な場合はNone
+			Type | ClassDef | None: タイプ/クラス定義ノード。不明な場合はNone
 		"""
 		if isinstance(raw.decl, (defs.AnnoAssign, defs.Catch)):
 			return raw.decl.var_type
 		elif isinstance(raw.decl, defs.Parameter):
-			if isinstance(raw.decl.symbol, defs.DeclClassParam):
-				return raw.decl.symbol.class_types.as_a(defs.Class)
-			elif isinstance(raw.decl.symbol, defs.DeclThisParam):
-				return raw.decl.symbol.class_types.as_a(defs.Class)
-			else:
+			if raw.decl.var_type.is_a(defs.Type):
 				return raw.decl.var_type.as_a(defs.Type)
-		elif isinstance(raw.decl, (defs.MoveAssign, defs.For)):
+		elif isinstance(raw.decl, defs.ClassDef):
+			return raw.decl
+		else:
+			# MoveAssign, For
 			# 型指定が無いため全てUnknown
 			return None
-		elif isinstance(raw.decl, defs.Function):
-			return raw.decl
 
 	def __expand_attr(self, raws: SymbolRaws, t_raw: SymbolRaw, t_type: defs.Type) -> SymbolRaw:
 		"""指定のタイプノードを属性として展開
@@ -61,9 +60,9 @@ class ResolveGeneric:
 			t_raw: (SymbolRaw): タイプノードのシンボル
 			t_type (Type): タイプノード
 		"""
-		return self.__actualize_generic(raws, t_raw, t_type) if isinstance(t_type, defs.GenericType) else t_raw
+		return self.__apply_generic(raws, t_raw, t_type) if isinstance(t_type, defs.GenericType) else t_raw
 
-	def __actualize_generic(self, raws: SymbolRaws, via: SymbolRaw, generic_type: defs.GenericType) -> SymbolRaw:
+	def __apply_generic(self, raws: SymbolRaws, via: SymbolRaw, generic_type: defs.GenericType) -> SymbolRaw:
 		"""ジェネリックタイプノードを解析し、属性の型を取り込みシンボルを拡張
 
 		Args:
@@ -76,8 +75,8 @@ class ResolveGeneric:
 		attrs = [self.__expand_attr(raws, SymbolResolver.by_symbolic(raws, t_type), t_type) for t_type in generic_type.template_types]
 		return via.extends(*attrs)
 
-	def __actualize_function(self, raws: SymbolRaws, via: SymbolRaw, function: defs.Function) -> SymbolRaw:
-		"""ファンクションノードを解析し、属性の型を取り込みシンボルを拡張
+	def __apply_function(self, raws: SymbolRaws, via: SymbolRaw, function: defs.Function) -> SymbolRaw:
+		"""ファンクション定義ノードを解析し、属性の型を取り込みシンボルを拡張
 
 		Args:
 			raws (SymbolRaws): シンボルテーブル
@@ -97,4 +96,17 @@ class ResolveGeneric:
 
 		t_raw = SymbolResolver.by_symbolic(raws, function.return_type).returnize(function.return_type)
 		attrs.append(self.__expand_attr(raws, t_raw, function.return_type))
+		return via.extends(*attrs)
+
+	def __apply_class(self, raws: SymbolRaws, via: SymbolRaw, types: defs.Class) -> SymbolRaw:
+		"""クラス定義ノードを解析し、属性の型を取り込みシンボルを拡張
+
+		Args:
+			raws (SymbolRaws): シンボルテーブル
+			via: (SymbolRaw): シンボル
+			types (Class): クラス定義ノード
+		Returns:
+			SymbolRaw: シンボル
+		"""
+		attrs: list[SymbolRaw] = [SymbolResolver.by_symbolic(raws, generic_type) for generic_type in types.generic_types]
 		return via.extends(*attrs)

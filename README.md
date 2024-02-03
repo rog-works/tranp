@@ -24,7 +24,7 @@ $ bash bin/ast.sh
 ## Dumping analyze symbols
 
 ```
-$ bash bin/analize.sh
+$ bash bin/analyze.sh
 ```
 
 ## Transpile from Python to C++

@@ -1,12 +1,23 @@
+from py2cpp.ast.dsn import DSN
+import py2cpp.compatible.python.classes as classes
 from py2cpp.lang.comment import Comment as CommentData
-from py2cpp.lang.implementation import override
+from py2cpp.lang.implementation import implements, override
 from py2cpp.node.definition.terminal import Terminal
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
 from py2cpp.node.interface import IDomain, ITerminal
 from py2cpp.node.node import Node
 
 
-class Literal(Node, IDomain): pass
+class Literal(Node, IDomain):
+	@property
+	@override
+	def domain_name(self) -> str:
+		# XXX 一意な名称を持たないためIDで代用
+		return DSN.identify(self.literal_identifier, self._id())
+
+	@property
+	def literal_identifier(self) -> str:
+		raise NotImplementedError()
 
 
 @Meta.embed(Node, accept_tags('number'))
@@ -20,8 +31,8 @@ class Integer(Number):
 		return Terminal.match_terminal(via, allow_tags=['number', 'DEC_NUMBER', 'HEX_NUMBER'])
 
 	@property
-	@override
-	def domain_name(self) -> str:
+	@implements
+	def literal_identifier(self) -> str:
 		return int.__name__
 
 
@@ -32,16 +43,16 @@ class Float(Number):
 		return Terminal.match_terminal(via, allow_tags=['number', 'FLOAT_NUMBER'])
 
 	@property
-	@override
-	def domain_name(self) -> str:
+	@implements
+	def literal_identifier(self) -> str:
 		return float.__name__
 
 
 @Meta.embed(Node, accept_tags('string'))
 class String(Literal, ITerminal):
 	@property
-	@override
-	def domain_name(self) -> str:
+	@implements
+	def literal_identifier(self) -> str:
 		return str.__name__
 
 	@property
@@ -68,8 +79,8 @@ class Comment(String):
 
 class Boolean(Literal, ITerminal):
 	@property
-	@override
-	def domain_name(self) -> str:
+	@implements
+	def literal_identifier(self) -> str:
 		return bool.__name__
 
 
@@ -94,9 +105,9 @@ class Pair(Literal):
 		return self._at(1)
 
 	@property
-	@override
-	def domain_name(self) -> str:
-		return 'pair_'
+	@implements
+	def literal_identifier(self) -> str:
+		return classes.Pair.__name__
 
 
 @Meta.embed(Node, accept_tags('list'))
@@ -107,8 +118,8 @@ class List(Literal):
 		return self._children()
 
 	@property
-	@override
-	def domain_name(self) -> str:
+	@implements
+	def literal_identifier(self) -> str:
 		return list.__name__
 
 
@@ -120,8 +131,8 @@ class Dict(Literal):
 		return [node.as_a(Pair) for node in self._children()]
 
 	@property
-	@override
-	def domain_name(self) -> str:
+	@implements
+	def literal_identifier(self) -> str:
 		return dict.__name__
 
 
@@ -130,4 +141,10 @@ class Null(Literal, ITerminal):
 	@property
 	@override
 	def domain_name(self) -> str:
+		# XXX Noneはシングルトンであり、全て同一と見なすため識別子のみとする
+		return self.literal_identifier
+
+	@property
+	@implements
+	def literal_identifier(self) -> str:
 		return 'None'

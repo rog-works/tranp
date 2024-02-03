@@ -1,7 +1,7 @@
 from typing import Callable, NamedTuple
 
-from py2cpp.analize.processor import Preprocessors
-from py2cpp.analize.symbol import SymbolRaws
+from py2cpp.analyze.processor import Preprocessors
+from py2cpp.analyze.symbol import SymbolRaws
 from py2cpp.lang.implementation import injectable
 from py2cpp.lang.locator import Currying
 

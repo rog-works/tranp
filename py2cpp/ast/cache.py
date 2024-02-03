@@ -12,7 +12,8 @@ class EntryCache(Generic[T]):
 	def __init__(self) -> None:
 		"""インスタンスを生成"""
 		self.__entries: dict[str, T] = {}
-		self.__indexs: dict[str, dict[str, str]] = {}
+		self.__children: dict[str, dict[str, str]] = {}
+		self.__indexs: dict[str, int] = {}
 
 	def exists(self, full_path: str) -> bool:
 		"""指定のパスのエントリーが存在するか判定
@@ -24,6 +25,16 @@ class EntryCache(Generic[T]):
 		"""
 		return full_path in self.__entries
 
+	def index_of(self, full_path: str) -> int:
+		"""指定のパスのエントリーのインデックスを取得
+
+		Args:
+			full_path (str): フルパス
+		Returns:
+			int: インデックス
+		"""
+		return self.__indexs[full_path] if self.exists(full_path) else -1
+
 	def by(self, full_path: str) -> T:
 		"""指定のパスのエントリーをフェッチ
 
@@ -31,6 +42,8 @@ class EntryCache(Generic[T]):
 			full_path (str): フルパス
 		Returns:
 			T: エントリー
+		Raises:
+			NotFoundError: 存在しないパスを指定
 		"""
 		if not self.exists(full_path):
 			raise NotFoundError(full_path)
@@ -45,6 +58,8 @@ class EntryCache(Generic[T]):
 			depth (int): 探索深度。-1は無制限(default = -1)
 		Returns:
 			dict[str, T]: (フルパス, エントリー)
+		Raises:
+			NotFoundError: 存在しないパスを指定
 		"""
 		if not self.exists(via):
 			raise NotFoundError(via)
@@ -53,7 +68,7 @@ class EntryCache(Generic[T]):
 			return {}
 
 		entries: dict[str, T] = {via: self.by(via)}
-		for key in self.__indexs[via]:
+		for key in self.__children[via]:
 			path = DSN.join(via, key)
 			entries[path] = self.by(path)
 			under = self.group_by(path, depth - 1)
@@ -71,13 +86,14 @@ class EntryCache(Generic[T]):
 		if self.exists(full_path):
 			return
 
+		self.__indexs[full_path] = len(self.__entries)
 		self.__entries[full_path] = entry
-		self.__indexs[full_path] = {}
+		self.__children[full_path] = {}
 
 		elems = full_path.split('.')
 		remain = elems[:-1]
 		last = elems[-1]
 		while len(remain):
 			in_path = '.'.join(remain)
-			self.__indexs[in_path] = {**(self.__indexs[in_path] if in_path in self.__indexs else {}), last: ''}
+			self.__children[in_path] = {**(self.__children[in_path] if in_path in self.__children else {}), last: ''}
 			last = remain.pop()

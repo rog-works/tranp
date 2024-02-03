@@ -25,7 +25,7 @@ class Box3d(CObject):
 		self.max: Vector = max
 
 	def contains(self, location: Vector) -> bool:
-		raise NotImplementedError()
+		... # raise NotImplementedError()
 
 class CellMesh:
 	class VertexIndexs(CEnum):
@@ -94,6 +94,7 @@ class CellMesh:
 		]
 		out: list[Box3d] = []
 		for position in positions:
+			p = position + 1.0
 			out.append(Box3d(position - offset,  position + offset))
 
 		return out

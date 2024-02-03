@@ -102,12 +102,23 @@ class Query(Generic[T], metaclass=ABCMeta):
 		raise NotImplementedError()
 
 	@abstractmethod
-	def values(self, full_path: str) -> list[str]:
+	def values(self, via: str) -> list[str]:
 		"""指定のパス以下(基点を含む)のエントリーの値を取得
 
 		Args:
 			via (str): 基点のパス(フルパス)
 		Returns:
 			list[str]: 値リスト
+		"""
+		raise NotImplementedError()
+
+	@abstractmethod
+	def id(self, full_path: str) -> int:
+		"""指定のパスのIDを取得
+
+		Args:
+			full_path (str): フルパス
+		Returns:
+			int: ID
 		"""
 		raise NotImplementedError()

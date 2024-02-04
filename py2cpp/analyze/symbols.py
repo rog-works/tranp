@@ -313,11 +313,47 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 	# Statement compound
 
 	def on_for_in(self, node: defs.ForIn, iterates: SymbolRaw) -> SymbolRaw:
-		methods = {method.symbol.tokens: method for method in iterates.types.as_a(defs.Class).methods if method.symbol.tokens in ['__next__', '__iter__']}
-		if '__next__' in methods:
-			return self.symbols.resolve(methods['__next__'].return_type)
-		else:
-			return self.symbols.resolve(methods['__iter__'].return_type.as_a(defs.GenericType).primary_type)
+		def resolve() -> SymbolRaw:
+			methods = {method.symbol.tokens: method for method in iterates.types.as_a(defs.Class).methods if method.symbol.tokens in ['__next__', '__iter__']}
+			if '__next__' in methods:
+				return self.symbols.resolve(methods['__next__'])
+				# return func_raw.attrs[-1]
+			else:
+				return self.symbols.resolve(methods['__iter__'])
+				# return self.symbols.resolve(methods['__iter__'].return_type.as_a(defs.GenericType).primary_type)
+
+		def unpack(raw: SymbolRaw) -> list[defs.TemplateClass]:
+			ts: list[defs.TemplateClass] = []
+			if isinstance(raw.types, defs.TemplateClass):
+				ts.append(raw.types)
+
+			for in_raw in raw.attrs:
+				ts.extend(unpack(in_raw))
+
+			return ts
+
+		def unpacked(raw: SymbolRaw, ts: list[defs.TemplateClass]) -> SymbolRaw:
+			gs = [self.symbols.resolve(g_type).types for g_type in raw.types.generic_types]
+			for index, g_type in enumerate(gs):
+				if g_type in ts:
+					return raw.attrs[index]
+
+			raise LogicError('Unreachable code.')
+
+		# # iterates
+		# ## 無視できない
+		# * list: list<int>
+		# * dict: dict<str, int>
+		# * func_call: func<..., T> -> T = list<int> | dict<str, int>
+		# * variable: list<int> | dict<str, int>
+		# * relay: list<int> | dict<str, int>
+		# * indexer: list<int> | dict<str, int>
+		# ## 無視してよい
+		# * group: Any
+		# * operator: Any
+		raw = resolve()
+		ts = unpack(raw.attrs[-1])
+		return unpacked(iterates, ts)
 
 	# Function/Class Elements
 

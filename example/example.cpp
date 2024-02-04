@@ -18,7 +18,7 @@ class Box3d {
 	}
 	/** contains */
 	public: bool contains(Vector location) {
-		throw new NotImplementedError();
+
 	}
 };
 /** CellMesh */
@@ -92,6 +92,7 @@ class CellMesh {
 		std::vector<Box3d> out = {
 		};
 		for (auto position : positions) {
+			float p = position + 1.0;
 			out.push_back(Box3d(position - offset, position + offset));
 		}
 		return out;
@@ -109,7 +110,7 @@ class CellMesh {
 			{-1},
 		};
 		auto closure = [&](MeshRaw origin) -> void {
-			const std::shared_ptr<Box3d> cellBox = CellMesh::to_cell_box(cell, unit);
+			Box3d<CSP, CConst> cellBox = CellMesh::to_cell_box(cell, unit);
 			std::vector<Box3d> boxs = CellMesh::to_vertex_boxs(cellBox, unit);
 			for (auto i : range(int(CellMesh::VertexIndexs::Max))) {
 				Box3d box = boxs[i];

@@ -10,7 +10,7 @@ SymbolRaws: TypeAlias = dict[str, 'SymbolRaw']
 
 
 class Roles(Enum):
-	"""シンボルのロール
+	"""シンボルの役割
 
 	Attributes:
 		Origin: 定義元。一部属性を保持 (ファンクション)
@@ -109,7 +109,7 @@ class SymbolRaw:
 
 	@property
 	def has_entity(self) -> bool:
-		"""bool: True = 実態を持つ"""
+		"""bool: True = 実体を持つ"""
 		return self._role in [Roles.Origin, Roles.Var, Roles.Extend]
 
 	@override
@@ -186,7 +186,7 @@ class SymbolRaw:
 		return SymbolRaw(self.ref_path, self.org_path, decl.module_path, types=self.types, decl=decl, via=self, role=role)
 
 	def extends(self, *attrs: 'SymbolRaw') -> 'SymbolRaw':
-		"""属性の型を取り込み、シンボルデータを拡張
+		"""シンボルが保持する型を拡張情報として属性に取り込む
 
 		Args:
 			*attrs (SymbolRaw): 属性シンボルリスト

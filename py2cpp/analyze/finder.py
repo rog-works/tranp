@@ -7,8 +7,8 @@ from py2cpp.module.types import LibraryPaths
 import py2cpp.node.definition as defs
 
 
-class SymbolResolver:
-	"""シンボルリゾルバー"""
+class SymbolFinder:
+	"""シンボル検索インターフェイス"""
 
 	@injectable
 	def __init__(self, library_paths: LibraryPaths) -> None:
@@ -20,7 +20,7 @@ class SymbolResolver:
 		self.__library_paths = library_paths
 
 	def by(self, raws: SymbolRaws, fullyname: str) -> SymbolRaw:
-		"""完全参照名からシンボルを解決
+		"""完全参照名からシンボルを取得
 
 		Args:
 			raws (SymbolRaws): シンボルテーブル
@@ -28,7 +28,7 @@ class SymbolResolver:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			NotFoundError: シンボルの解決に失敗
+			NotFoundError: シンボルが見つからない
 		"""
 		if fullyname in raws:
 			return raws[fullyname]
@@ -36,7 +36,7 @@ class SymbolResolver:
 		raise NotFoundError(f'Symbol not defined. fullyname: {fullyname}')
 
 	def by_primitive(self, raws: SymbolRaws, primitive_type: type[Primitives] | None) -> SymbolRaw:
-		"""プリミティブ型のシンボルを解決
+		"""プリミティブ型のシンボルを取得
 
 		Args:
 			raws (SymbolRaws): シンボルテーブル
@@ -44,7 +44,7 @@ class SymbolResolver:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			NotFoundError: シンボルの解決に失敗
+			NotFoundError: シンボルが見つからない
 		"""
 		domain_name = primitive_type.__name__ if primitive_type is not None else 'None'
 		raw = self.__find_raw(raws, self.__library_paths, domain_name)
@@ -54,7 +54,7 @@ class SymbolResolver:
 		raise NotFoundError(f'Primitive not defined. name: {primitive_type.__name__}')
 
 	def by_symbolic(self, raws: SymbolRaws, node: defs.Symbolic) -> SymbolRaw:
-		"""シンボル系ノードからシンボルを解決
+		"""シンボル系ノードからシンボルを取得
 
 		Args:
 			raws (SymbolRaws): シンボルテーブル
@@ -62,7 +62,7 @@ class SymbolResolver:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			NotFoundError: シンボルの解決に失敗
+			NotFoundError: シンボルが見つからない
 		"""
 		raw = self.find_by_symbolic(raws, node)
 		if raw is not None:
@@ -80,13 +80,18 @@ class SymbolResolver:
 		Returns:
 			SymbolRaw | None: シンボル
 		"""
-		# XXX ローカル変数の参照は、クラス直下のスコープを参照できない
-		is_local_var_in_class_scope = lambda scope: node.is_a(defs.Var) and scope in raws and raws[scope].types.is_a(defs.Class)
-		scopes = [scope for scope in self.__make_scopes(node.scope) if not is_local_var_in_class_scope(scope)]
-		return self.__find_raw(raws, scopes, DSN.join(node.domain_name, prop_name))
+		def is_local_var_in_class_scope(scope: str) -> bool:
+			# XXX ローカル変数の参照は、クラス直下のスコープを参照できない
+			return node.is_a(defs.Var) and scope in raws and raws[scope].types.is_a(defs.Class)
+
+		domain_name = DSN.join(node.domain_name, prop_name)
+		# ドメイン名の要素数が1つの場合のみ標準ライブラリーへのフォールバックを許可する(プライマリー以外のモジュールへのフォールバックを抑制)
+		allow_fallback_lib = DSN.elem_counts(domain_name) == 1
+		scopes = [scope for scope in self.__make_scopes(node.scope, allow_fallback_lib) if not is_local_var_in_class_scope(scope)]
+		return self.__find_raw(raws, scopes, domain_name)
 
 	def __find_raw(self, raws: SymbolRaws, scopes: list[str], domain_name: str) -> SymbolRaw | None:
-		"""スコープを辿りドメイン名を持つシンボルを検索。未検出の場合はNoneを返却
+		"""スコープを辿り、指定のドメイン名を持つシンボルを検索。未検出の場合はNoneを返却
 
 		Args:
 			raws (SymbolRaws): シンボルテーブル
@@ -102,13 +107,14 @@ class SymbolResolver:
 
 		return None
 
-	def __make_scopes(self, scope: str) -> list[str]:
+	def __make_scopes(self, scope: str, allow_fallback_lib: bool = True) -> list[str]:
 		"""スコープを元に探索スコープのリストを生成
 
 		Args:
 			scope (str): スコープ
+			allow_fallback_lib (bool): True = 標準ライブラリーのパスを加える(default = True)
 		Returns:
 			list[str]: 探索スコープリスト
 		"""
 		scopes_of_node = [DSN.left(scope, DSN.elem_counts(scope) - i) for i in range(DSN.elem_counts(scope))]
-		return [*scopes_of_node, *self.__library_paths]
+		return [*scopes_of_node, *(self.__library_paths if allow_fallback_lib else [])]

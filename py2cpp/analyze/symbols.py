@@ -1,7 +1,7 @@
 from py2cpp.analyze.db import SymbolDB
 from py2cpp.analyze.symbol import SymbolRaw
 from py2cpp.analyze.procedure import Procedure
-from py2cpp.analyze.resolver import SymbolResolver
+from py2cpp.analyze.finder import SymbolFinder
 import py2cpp.compatible.python.classes as classes
 from py2cpp.compatible.python.types import Primitives
 from py2cpp.errors import LogicError
@@ -14,15 +14,15 @@ class Symbols:
 	"""シンボルテーブルを参照してシンボルの型を解決する機能を提供"""
 
 	@injectable
-	def __init__(self, db: SymbolDB, resolver: SymbolResolver) -> None:
+	def __init__(self, db: SymbolDB, finder: SymbolFinder) -> None:
 		"""インスタンスを生成
 
 		Args:
 			db (SymbolDB): シンボルテーブル @inject
-			resolver (SymbolResolver): シンボルリゾルバー @inject
+			finder (SymbolFinder): シンボル検索 @inject
 		"""
 		self.__raws = db.raws
-		self.__resolver = resolver
+		self.__finder = finder
 
 	def is_list(self, symbol: SymbolRaw) -> bool:
 		"""シンボルがList型か判定
@@ -54,7 +54,7 @@ class Symbols:
 		Raises:
 			NotFoundError: 存在しないパスを指定
 		"""
-		return self.type_of(self.__resolver.by(self.__raws, fullyname).decl)
+		return self.type_of(self.__finder.by(self.__raws, fullyname).decl)
 
 	def type_of_primitive(self, primitive_type: type[Primitives] | None) -> SymbolRaw:
 		"""プリミティブ型のシンボルを解決
@@ -66,7 +66,7 @@ class Symbols:
 		Raises:
 			LogicError: 未定義のタイプを指定
 		"""
-		return self.__resolver.by_primitive(self.__raws, primitive_type)
+		return self.__finder.by_primitive(self.__raws, primitive_type)
 
 	def type_of_property(self, decl_class: defs.ClassDef, prop: defs.Var) -> SymbolRaw:
 		"""クラス定義ノードと変数参照ノードからプロパティーのシンボルを解決
@@ -276,7 +276,7 @@ class Symbols:
 		Returns:
 			SymbolRaw | None: シンボルデータ
 		"""
-		symbol_raw = self.__resolver.find_by_symbolic(self.__raws, symbolic, prop_name)
+		symbol_raw = self.__finder.find_by_symbolic(self.__raws, symbolic, prop_name)
 		if symbol_raw is None and symbolic.is_a(defs.Class):
 			symbol_raw = self.__resolve_raw_recursive(symbolic.as_a(defs.Class), prop_name)
 
@@ -292,7 +292,7 @@ class Symbols:
 			SymbolRaw | None: シンボルデータ
 		"""
 		for inherit_type in decl_class.inherits:
-			inherit_type_raw = self.__resolver.by_symbolic(self.__raws, inherit_type)
+			inherit_type_raw = self.__finder.by_symbolic(self.__raws, inherit_type)
 			found_raw = self.__resolve_raw(inherit_type_raw.types, prop_name)
 			if found_raw:
 				return found_raw

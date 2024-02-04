@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 
-from py2cpp.analyze.resolver import SymbolResolver
+from py2cpp.analyze.finder import SymbolFinder
 from py2cpp.analyze.symbol import SymbolRaw, SymbolRaws
 from py2cpp.ast.dsn import DSN
 import py2cpp.compatible.python.classes as classes
@@ -31,13 +31,13 @@ class FromModules:
 	"""
 
 	@injectable
-	def __init__(self, resolver: SymbolResolver) -> None:
+	def __init__(self, finder: SymbolFinder) -> None:
 		"""インスタンスを生成
 
 		Args:
-			resolver (SymbolResolver): シンボルリゾルバー @inject
+			finder (SymbolFinder): シンボル検索 @inject
 		"""
-		self.resolver = resolver
+		self.finder = finder
 
 	@injectable
 	def __call__(self, modules: Modules, raws: SymbolRaws) -> SymbolRaws:
@@ -149,9 +149,9 @@ class FromModules:
 		"""
 		domain_type = self.fetch_domain_type(var)
 		if domain_type is not None:
-			return self.resolver.by_symbolic(raws, domain_type)
+			return self.finder.by_symbolic(raws, domain_type)
 		else:
-			return self.resolver.by_primitive(raws, classes.Unknown)
+			return self.finder.by_primitive(raws, classes.Unknown)
 
 	def fetch_domain_type(self, var: defs.DeclVars) -> defs.Type | defs.ClassDef | None:
 		"""変数の型(タイプ/クラス定義ノード)を取得。型が不明な場合はNoneを返却

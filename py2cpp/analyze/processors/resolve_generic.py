@@ -1,6 +1,6 @@
 from typing import cast
 
-from py2cpp.analyze.resolver import SymbolResolver
+from py2cpp.analyze.finder import SymbolFinder
 from py2cpp.analyze.symbol import SymbolRaw, SymbolRaws
 from py2cpp.lang.implementation import injectable
 import py2cpp.node.definition as defs
@@ -10,13 +10,13 @@ class ResolveGeneric:
 	"""Genericのシンボルを解決"""
 
 	@injectable
-	def __init__(self, resolver: SymbolResolver) -> None:
+	def __init__(self, finder: SymbolFinder) -> None:
 		"""インスタンスを生成
 
 		Args:
-			resolver (SymbolResolver): シンボルリゾルバー @inject
+			finder (SymbolFinder): シンボル検索 @inject
 		"""
-		self.resolver = resolver
+		self.finder = finder
 
 	@injectable
 	def __call__(self, raws: SymbolRaws) -> SymbolRaws:
@@ -86,7 +86,7 @@ class ResolveGeneric:
 		Returns:
 			SymbolRaw: シンボル
 		"""
-		attrs = [self.expand_attr(raws, self.resolver.by_symbolic(raws, t_type).wrap(t_type), t_type) for t_type in generic_type.template_types]
+		attrs = [self.expand_attr(raws, self.finder.by_symbolic(raws, t_type).wrap(t_type), t_type) for t_type in generic_type.template_types]
 		return via.extends(*attrs)
 
 	def apply_function(self, raws: SymbolRaws, via: SymbolRaw, function: defs.Function) -> SymbolRaw:
@@ -102,13 +102,13 @@ class ResolveGeneric:
 		attrs: list[SymbolRaw] = []
 		for parameter in function.parameters:
 			if isinstance(parameter.symbol, (defs.DeclClassParam, defs.DeclThisParam)):
-				attrs.append(self.resolver.by_symbolic(raws, parameter.symbol))
+				attrs.append(self.finder.by_symbolic(raws, parameter.symbol))
 			else:
 				t_type = cast(defs.Type, parameter.var_type)
-				t_raw = self.resolver.by_symbolic(raws, t_type)
+				t_raw = self.finder.by_symbolic(raws, t_type)
 				attrs.append(self.expand_attr(raws, t_raw.wrap(parameter), t_type))
 
-		t_raw = self.resolver.by_symbolic(raws, function.return_type).wrap(function.return_type)
+		t_raw = self.finder.by_symbolic(raws, function.return_type).wrap(function.return_type)
 		attrs.append(self.expand_attr(raws, t_raw, function.return_type))
 		return via.extends(*attrs)
 
@@ -122,5 +122,5 @@ class ResolveGeneric:
 		Returns:
 			SymbolRaw: シンボル
 		"""
-		attrs: list[SymbolRaw] = [self.resolver.by_symbolic(raws, generic_type) for generic_type in types.generic_types]
+		attrs: list[SymbolRaw] = [self.finder.by_symbolic(raws, generic_type) for generic_type in types.generic_types]
 		return via.extends(*attrs)

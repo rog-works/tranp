@@ -93,8 +93,8 @@ class CellMesh:
 			Vector(min.x, max.y, max.z),
 		]
 		out: list[Box3d] = []
+		p = positions.pop()
 		for position in positions:
-			p = position + 1.0
 			out.append(Box3d(position - offset,  position + offset))
 
 		return out

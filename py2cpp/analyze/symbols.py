@@ -317,10 +317,8 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 			methods = {method.symbol.tokens: method for method in iterates.types.as_a(defs.Class).methods if method.symbol.tokens in ['__next__', '__iter__']}
 			if '__next__' in methods:
 				return self.symbols.resolve(methods['__next__'])
-				# return func_raw.attrs[-1]
 			else:
 				return self.symbols.resolve(methods['__iter__'])
-				# return self.symbols.resolve(methods['__iter__'].return_type.as_a(defs.GenericType).primary_type)
 
 		def unpack(raw: SymbolRaw) -> list[defs.TemplateClass]:
 			ts: list[defs.TemplateClass] = []
@@ -442,13 +440,69 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 		return self.symbols.type_of_primitive(None)
 
 	def on_func_call(self, node: defs.FuncCall, calls: SymbolRaw, arguments: list[SymbolRaw]) -> SymbolRaw:
-		if isinstance(calls.types, defs.Constructor):
-			return self.symbols.type_of_var(calls.types.class_types.symbol)
-		elif isinstance(calls.types, defs.Function):
-			return calls.attrs[-1]
-		else:
-			# defs.ClassDef
-			return calls
+		def resolve() -> SymbolRaw:
+			if isinstance(calls.types, defs.Constructor):
+				return self.symbols.type_of_var(calls.types.class_types.symbol)
+			elif isinstance(calls.types, defs.Function):
+				def unpack(raw: SymbolRaw) -> list[defs.TemplateClass]:
+					ts: list[defs.TemplateClass] = []
+					if isinstance(raw.types, defs.TemplateClass):
+						ts.append(raw.types)
+
+					for in_raw in raw.attrs:
+						ts.extend(unpack(in_raw))
+
+					return ts
+
+				def unpacked(attr: SymbolRaw, ts: list[defs.TemplateClass], path: str = '$') -> dict[str, SymbolRaw]:
+					d: dict[str, SymbolRaw] = {}
+					if isinstance(attr.types, defs.TemplateClass):
+						if attr.types in ts:
+							d[path] = attr
+
+					for index, in_attr in enumerate(attr.attrs):
+						d = {**d, **unpacked(in_attr, ts, f'{path}.{index}')}
+
+					return d
+
+				def apply(raw: SymbolRaw, path: str, attr: SymbolRaw) -> None:
+					index, *remain = path.split('.')
+					if not len(remain):
+						raw.attrs[int(index)] = attr
+					else:
+						apply(raw.attrs[int(index)], '.'.join(remain), attr)
+
+				return_raw = calls.attrs[-1]
+				return_ts = unpack(return_raw)
+
+				args_attrs = calls.attrs[:-1]
+				attrs_in_args: dict[str, SymbolRaw] = {}
+				for index, attr in enumerate(args_attrs):
+					attrs_in_args = {**attrs_in_args, **unpacked(attr, return_ts, str(index))}
+
+				attrs_in_class: dict[str, SymbolRaw] = {}
+				if isinstance(calls.types, (defs.Constructor, defs.ClassMethod, defs.Method)):
+					# FIXME generic_typesがunpack対象なので誤り
+					# FIXME receiverの情報が損失してるので実行時型を補完できない
+					attrs_in_class = unpacked(self.symbols.resolve(calls.types.class_types), return_ts)
+
+				for path, attr in {**attrs_in_args, **attrs_in_class}.items():
+					apply(return_raw, path, attr)
+
+				return return_raw
+			else:
+				# defs.ClassDef
+				return calls
+
+		# # calls
+		# * relay a.b()
+		# * variable a()
+		# * indexer a[0]()
+		# * func_call a()()
+		# # arguments
+		# * expression
+
+		return resolve()
 
 	def on_super(self, node: defs.Super, calls: SymbolRaw, arguments: list[SymbolRaw]) -> SymbolRaw:
 		return self.symbols.resolve(node.super_class_symbol)

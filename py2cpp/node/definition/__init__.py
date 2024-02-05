@@ -16,6 +16,6 @@ DeclAll: TypeAlias = Parameter | AnnoAssign | MoveAssign | For | Catch | ClassDe
 Symbolic: TypeAlias = Declable | Reference | Type | Literal | ClassDef
 
 # XXX 暫定
-DeclRefs: TypeAlias = Reference | Indexer | FuncCall
-DeclWraps: TypeAlias = Type | Literal
-Decl: TypeAlias = DeclAll | DeclRefs | DeclWraps
+ContextReferences: TypeAlias = Reference | Indexer | FuncCall
+ContextGenerics: TypeAlias = Type | Literal
+Context: TypeAlias = ContextReferences | ContextGenerics

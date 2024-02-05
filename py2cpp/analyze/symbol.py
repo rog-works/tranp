@@ -46,24 +46,26 @@ class SymbolRaw:
 		Returns:
 			SymbolRaw: シンボル
 		"""
-		return cls(types.fullyname, types, types)
+		return cls(types.fullyname, types=types, decl=types)
 
-	def __init__(self, ref_path: str, types: defs.ClassDef, decl: defs.Decl, via: 'SymbolRaw | None' = None, role: Roles = Roles.Origin) -> None:
+	def __init__(self, ref_path: str, types: defs.ClassDef, decl: defs.DeclAll, role: Roles = Roles.Origin, prev: 'SymbolRaw | None' = None, context: defs.Context | None = None) -> None:
 		"""インスタンスを生成
 
 		Args:
 			ref_path (str): 参照パス
 			types (ClassDef): クラス定義ノード
-			decl (Decl): 宣言ノード
-			via (SymbolRaw | None): 参照元のシンボル
+			decl (DeclAll): クラス/変数宣言ノード
 			role (str): シンボルの役割
+			prev (SymbolRaw | None): 参照元のシンボル
+			context (Context | None): コンテキスト
 		"""
 		self._ref_path = ref_path
 		self._types = types
 		self._decl = decl
-		self._attrs: list[SymbolRaw] = []
-		self._via = via
 		self._role = role
+		self._attrs: list[SymbolRaw] = []
+		self._prev = prev
+		self._context = context
 
 	@property
 	def ref_path(self) -> str:
@@ -81,8 +83,8 @@ class SymbolRaw:
 		return self._types
 
 	@property
-	def decl(self) -> defs.Decl:
-		"""Decl: 宣言ノード"""
+	def decl(self) -> defs.DeclAll:
+		"""DeclAll: クラス/変数宣言ノード"""
 		return self._decl
 
 	@property
@@ -91,12 +93,12 @@ class SymbolRaw:
 		if self._attrs:
 			return self._attrs
 
-		return self._via.attrs if self._via else []
+		return self._prev.attrs if self._prev else []
 
 	@property
-	def via(self) -> 'SymbolRaw | None':
+	def prev(self) -> 'SymbolRaw | None':
 		"""SymbolRaw | None: 参照元のシンボル"""
-		return self._via
+		return self._prev
 
 	@property
 	def has_entity(self) -> bool:
@@ -150,7 +152,7 @@ class SymbolRaw:
 		"""
 		return self.ref_path.replace(self.types.module_path, module.path)
 
-	def to(self, module: Module) -> 'SymbolRaw':
+	def imports(self, module: Module) -> 'SymbolRaw':
 		"""展開先を変更したインスタンスを生成
 
 		Args:
@@ -158,23 +160,32 @@ class SymbolRaw:
 		Returns:
 			SymbolRaw: インスタンス
 		"""
-		return SymbolRaw(self.path_to(module), types=self.types, decl=self.decl, via=self, role=Roles.Import)
+		return SymbolRaw(self.path_to(module), types=self.types, decl=self.decl, role=Roles.Import, prev=self)
 
-	def wrap(self, decl: defs.Decl) -> 'SymbolRaw':
-		"""シンボルをラップ
+	def var(self, decl: defs.DeclVars) -> 'SymbolRaw':
+		"""変数宣言用にラップ
 
 		Args:
-			decl (Decl): 宣言ノード
+			decl (DeclVars): 変数宣言ノード
+		Returns:
+			SymbolRaw: インスタンス
+		"""
+		return SymbolRaw(self.ref_path, types=self.types, decl=decl, role=Roles.Var, prev=self)
+
+	def wrap(self, context: defs.Context) -> 'SymbolRaw':
+		"""コンテキスト用にラップ
+
+		Args:
+			context (Context): コンテキスト系ノード
 		Returns:
 			SymbolRaw: インスタンス
 		"""
 		to_roles = {
-			defs.DeclVars: Roles.Var,
-			defs.DeclRefs: Roles.Reference,
-			defs.DeclWraps: Roles.Extend,
+			defs.ContextReferences: Roles.Reference,
+			defs.ContextGenerics: Roles.Extend,
 		}
-		role = [role for with_types, role in to_roles.items() if isinstance(decl, with_types)].pop()
-		return SymbolRaw(self.ref_path, types=self.types, decl=decl, via=self, role=role)
+		role = [role for with_types, role in to_roles.items() if isinstance(context, with_types)].pop()
+		return SymbolRaw(self.ref_path, types=self.types, decl=self.decl, role=role, prev=self, context=context)
 
 	def extends(self, *attrs: 'SymbolRaw') -> 'SymbolRaw':
 		"""シンボルが保持する型を拡張情報として属性に取り込む

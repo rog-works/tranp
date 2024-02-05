@@ -106,7 +106,7 @@ class ResolveGeneric:
 			else:
 				t_type = cast(defs.Type, parameter.var_type)
 				t_raw = self.finder.by_symbolic(raws, t_type)
-				attrs.append(self.expand_attr(raws, t_raw.wrap(parameter), t_type))
+				attrs.append(self.expand_attr(raws, t_raw.var(parameter), t_type))
 
 		t_raw = self.finder.by_symbolic(raws, function.return_type).wrap(function.return_type)
 		attrs.append(self.expand_attr(raws, t_raw, function.return_type))

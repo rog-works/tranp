@@ -91,13 +91,13 @@ class FromModules:
 				import_module = modules.load(import_node.import_path.tokens)
 				expanded = expands[import_module]
 				filtered_raws = [expanded.raws[DSN.join(import_module.path, name)] for name in imported_symbol_names]
-				filtered_db = {raw.path_to(expand_module): raw.to(expand_module) for raw in filtered_raws}
+				filtered_db = {raw.path_to(expand_module): raw.imports(expand_module) for raw in filtered_raws}
 				imported_raws = {**filtered_db, **imported_raws}
 
 			# 展開対象モジュールの変数シンボルを展開
 			expand_target.raws = {**core_primary_raws, **imported_raws, **expand_target.raws}
 			for var in expand_target.decl_vars:
-				expand_target.raws[var.symbol.fullyname] = self.resolve_var_type(expand_target.raws, var).wrap(var)
+				expand_target.raws[var.symbol.fullyname] = self.resolve_var_type(expand_target.raws, var).var(var)
 
 		# シンボルテーブルを統合
 		new_raws = {**raws}

@@ -112,10 +112,9 @@ def task_type(symbols: Symbols) -> None:
 		'type': str(symbol),
 		'ref_path': symbol.ref_path,
 		'org_path': symbol.org_path,
-		'module_path': symbol.module_path,
 		'types': str(symbol.types),
 		'decl': str(symbol.decl),
-		'via': str(symbol.via),
+		'prev': str(symbol.prev),
 		'attrs': ', '.join([str(attr) for attr in symbol.attrs]),
 	}
 

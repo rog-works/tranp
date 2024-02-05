@@ -1,5 +1,5 @@
 from itertools import chain
-from typing import Any, Sequence, TypeVar, cast
+from typing import Any, Callable, Iterator, Sequence, TypeVar, cast
 
 T = TypeVar('T')
 
@@ -31,11 +31,13 @@ def last_index_of(seq: Sequence[T], elem: T) -> int:
 	return (len(seq) - 1) - list(reversed(seq)).index(elem) if elem in seq else -1
 
 
-def unwrap(entry: list[T] | dict[str, T] | T, path: str = '') -> dict[str, T]:
+def expand(entry: list[T] | dict[str, T] | T, path: str = '', iter_key: str | None = None) -> dict[str, T]:
 	"""list/dictを直列に展開
 
 	Args:
 		entry (list[T] | dict[str, T] | T): エントリー
+		path (str): 開始パス(default = '')
+		iter_key (str | None): イテレーター属性のキー(default = None)
 	Returns:
 		dict[str, T]: マッピング情報
 	"""
@@ -44,16 +46,48 @@ def unwrap(entry: list[T] | dict[str, T] | T, path: str = '') -> dict[str, T]:
 		for index, elem in enumerate(entry):
 			routes = [e for e in [path, str(index)] if e]
 			in_path = '.'.join(routes)
-			entries = {**entries, **unwrap(elem, in_path)}
+			entries = {**entries, **expand(elem, in_path, iter_key)}
 	elif type(entry) is dict:
-		for key, elem in entry.items():
-			routes = [e for e in [path, key] if e]
+		for iter_key, elem in entry.items():
+			routes = [e for e in [path, iter_key] if e]
 			in_path = '.'.join(routes)
-			entries = {**entries, **unwrap(elem, in_path)}
+			entries = {**entries, **expand(elem, in_path, iter_key)}
 	else:
 		entries[path] = cast(T, entry)
+		if iter_key and hasattr(entry, iter_key):
+			for index, elem in enumerate(getattr(entry, iter_key)):
+				routes = [e for e in [path, str(index)] if e]
+				in_path = '.'.join(routes)
+				entries = {**entries, **expand(elem, in_path, iter_key)}
 
 	return entries
+
+
+def update(entry: list | dict, path: str, value: Any, iter_key: str | None = None) -> None:
+	"""list/dictの指定パスの値を更新
+
+	Args:
+		entry (list | dict): エントリー
+		path (str): 更新対象のパス
+		value (Any): 更新値
+		iter_key (str | None): イテレーター属性のキー(default = None)
+	"""
+	key, *remain = path.split('.')
+	if len(remain):
+		remain_path = '.'.join(remain)
+		if type(entry) is list:
+			update(entry[int(key)], remain_path, value, iter_key)
+		elif type(entry) is dict:
+			update(entry[key], remain_path, value, iter_key)
+		elif iter_key:
+			update(getattr(entry, iter_key)[int(key)], remain_path, value, iter_key)
+	else:
+		if type(entry) is list:
+			entry[int(key)] = value
+		elif type(entry) is dict:
+			entry[key] = value
+		elif iter_key:
+			getattr(entry, iter_key)[int(key)] = value
 
 
 def deep_copy(entry: list | dict) -> list | dict:
@@ -86,18 +120,3 @@ def deep_copy(entry: list | dict) -> list | dict:
 				new[key] = elem
 
 		return new
-
-
-def update(entry: list | dict, path: str, value: Any) -> None:
-	"""list/dictの指定パスの値を更新
-
-	Args:
-		entry (list | dict): エントリー
-		path (str): 更新対象のパス
-		value (Any): 更新値
-	"""
-	index, *remain = path.split('.')
-	if not len(remain):
-		entry[int(index)] = value
-	else:
-		update(entry[int(index)], '.'.join(remain), value)

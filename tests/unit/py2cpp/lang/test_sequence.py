@@ -23,10 +23,13 @@ class TestSequence(TestCase):
 		([[1], [2]], None, {'0.0': 1, '1.0': 2}),
 		([[1, 2], [3]], None, {'0.0': 1, '0.1': 2, '1.0': 3}),
 		([[1, [2]], [3], 4], None, {'0.0': 1, '0.1.0': 2, '1.0': 3, '2': 4}),
+		({'a': 1}, None, {'a': 1}),
+		({'a': [1]}, None, {'a.0': 1}),
+		({'a': [1, {'b': 2}]}, None, {'a.0': 1, 'a.1.b': 2}),
 		([Each(1), Each(2)], 'attrs', {'0': Each(1), '1': Each(2)}),
 		([Each(1, [Each(2)]), Each(3)], 'attrs', {'0': Each(1, [Each(2)]), '0.0': Each(2), '1': Each(3)}),
 	])
-	def test_expand(self, entries: list, iter_key: str | None, expected: dict[str, int]) -> None:
+	def test_expand(self, entries: list | dict, iter_key: str | None, expected: dict[str, int]) -> None:
 		self.assertEqual(expand(entries, iter_key=iter_key), expected)
 
 	@data_provider([
@@ -34,10 +37,13 @@ class TestSequence(TestCase):
 		([[1], 2], '0.0', 4, None, [[4], 2]),
 		([[1], 2], '1', 5, None, [[1], 5]),
 		([[1, 2], 3], '1', 6, None, [[1, 2], 6]),
+		({'a': 1}, 'a', 2, None, {'a': 2}),
+		({'a': [1]}, 'a.0', 2, None, {'a': [2]}),
+		({'a': [1, {'b': 2}]}, 'a.1.b', 3, None, {'a': [1, {'b': 3}]}),
 		([Each(1), Each(2)], '1', Each(3), 'attrs', [Each(1), Each(3)]),
 		([Each(1, [Each(2)]), Each(3)], '0.0', Each(4), 'attrs', [Each(1, [Each(4)]), Each(3)]),
 	])
-	def test_update(self, entries: list[int], path: str, value: int, iter_key: str | None, expected: list) -> None:
+	def test_update(self, entries: list | dict, path: str, value: int, iter_key: str | None, expected: list | dict) -> None:
 		update(entries, path, value, iter_key=iter_key)
 		self.assertEqual(entries, expected)
 

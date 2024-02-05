@@ -134,8 +134,12 @@ class SymbolRaw:
 	def shorthand(self) -> str:
 		"""str: オブジェクトの簡易表現"""
 		if len(self.attrs) > 0:
-			attrs = [str(attr) for attr in self.attrs]
-			return f'{self.types.domain_name}<{', '.join(attrs)}>'
+			if self.types.is_a(defs.Function):
+				attrs = [str(attr) for attr in self.attrs]
+				return f'{self.types.domain_name}({", ".join(attrs[:-1])}) -> {attrs[-1]}'
+			else:
+				attrs = [str(attr) for attr in self.attrs]
+				return f'{self.types.domain_name}<{", ".join(attrs)}>'
 		else:
 			return f'{self.types.domain_name}'
 

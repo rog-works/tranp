@@ -72,21 +72,21 @@ class TestSymbols(TestCase):
 		('__main__.A.s', 'str'),
 		('__main__.B', 'B'),
 		('__main__.B.v', 'list<int>'),
-		('__main__.B.__init__', '__init__<B, None>'),
+		('__main__.B.__init__', '__init__(B) -> None'),
 		('__main__.B.__init__.self', 'B'),
-		('__main__.B.func1', 'func1<B, list<B>, str>'),
+		('__main__.B.func1', 'func1(B, list<B>) -> str'),
 		('__main__.B.func1.self', 'B'),
 		('__main__.B.func1.b', 'list<B>'),
 		('__main__.B.func1.v', 'bool'),
 		('__main__.B.func1.v2', 'int'),
-		('__main__.B.func2', 'func2<B, int>'),
+		('__main__.B.func2', 'func2(B) -> int'),
 		('__main__.B.func2.a', 'int'),
-		('__main__.B.func2.closure', 'closure<list<int>>'),
+		('__main__.B.func2.closure', 'closure() -> list<int>'),
 		('__main__.B.func2.closure.b', 'list<int>'),
 		('__main__.B.func2.if.for.i', 'int'),
 		('__main__.B.func2.if.for.try.e', 'Exception'),
 		('__main__.B.B2', 'B2'),
-		('__main__.B.B2.class_func', 'class_func<B2, dict<str, int>>'),
+		('__main__.B.B2.class_func', 'class_func(B2) -> dict<str, int>'),
 	])
 	def test_from_fullyname(self, fullyname: str, expected: str) -> None:
 		symbols = self.fixture.get(Symbols)
@@ -132,7 +132,7 @@ class TestSymbols(TestCase):
 		(_ast('B.B2.block', 'anno_assign.var'), _mod('classes', 'str'), 'str'),
 		(_ast('B.B2.block', 'anno_assign.typed_var'), _mod('classes', 'str'), 'str'),
 		(_ast('B.B2.block', 'anno_assign.string'), _mod('classes', 'str'), 'str'),
-		(_ast('B.B2.class_func', ''), '__main__.B.B2.class_func', 'class_func<B2, dict<str, int>>'),
+		(_ast('B.B2.class_func', ''), '__main__.B.B2.class_func', 'class_func(B2) -> dict<str, int>'),
 		# 20
 		(_ast('B.B2.class_func.params', 'paramvalue.typedparam.name'), '__main__.B.B2', 'B2'),
 		(_ast('B.B2.class_func.return', 'typed_getitem'), _mod('classes', 'dict'), 'dict'), # XXX 関数の戻り値の型は関数のシンボル経由でのみ取得できる

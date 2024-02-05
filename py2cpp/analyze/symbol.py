@@ -116,9 +116,9 @@ class SymbolRaw:
 		return self._org
 
 	@property
-	def via(self) -> Node:
-		"""Node: 参照元のノード"""
-		return self._decl
+	def via(self) -> Node | None:
+		"""Node | None: 参照元のノード"""
+		return self._via
 
 	@property
 	def context(self) -> 'SymbolRaw | None':

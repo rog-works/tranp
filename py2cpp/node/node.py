@@ -99,7 +99,7 @@ class Node:
 		Returns:
 			str: 完全参照名
 		Note:
-			# 分類
+			# 命名規則
 			* IDomainを実装(ClassDef/Declare/Reference/Type/FuncCall/Literal/Empty): scope.domain_name
 			* IScopeを実装(FlowEntry): scope@id
 			* その他: scope.classification@id

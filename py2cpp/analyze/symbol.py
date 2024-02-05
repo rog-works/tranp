@@ -5,6 +5,7 @@ from py2cpp.errors import LogicError
 from py2cpp.lang.implementation import override
 from py2cpp.module.modules import Module
 import py2cpp.node.definition as defs
+from py2cpp.node.node import Node
 
 SymbolRaws: TypeAlias = dict[str, 'SymbolRaw']
 
@@ -13,11 +14,11 @@ class Roles(Enum):
 	"""シンボルの役割
 
 	Attributes:
-		Origin: 定義元。一部属性を保持 (ファンクション)
+		Origin: 定義元。クラス定義ノードが対象。ファンクション定義ノードは関数シグネチャーを属性として保持
 		Import: Originの複製。属性なし
-		Var: Origin/Importを参照。変数として分離し、属性を保持 (変数宣言)
-		Reference: Varの参照。属性なし
-		Extend: Origin/Importを参照。追加の属性の保持 (タイプ/リテラル)
+		Var: Origin/Importを参照。変数宣言ノードが対象。Generic型の属性を保持
+		Reference: Varの参照。参照系ノードが対象。属性なし
+		Extend: Origin/Importを参照。タイプ/リテラルノードが対象。Generic型の属性を保持
 	Note:
 		# 参照関係
 		* Origin <- Import
@@ -48,16 +49,26 @@ class SymbolRaw:
 		"""
 		return cls(types.fullyname, types=types, decl=types)
 
-	def __init__(self, ref_path: str, types: defs.ClassDef, decl: defs.DeclAll, role: Roles = Roles.Origin, prev: 'SymbolRaw | None' = None, context: 'SymbolRaw | None' = None) -> None:
+	def __init__(
+		self,
+		ref_path: str,
+		types: defs.ClassDef,
+		decl: defs.DeclAll,
+		role: Roles = Roles.Origin,
+		org: 'SymbolRaw | None' = None,
+		via: Node | None = None,
+		context: 'SymbolRaw | None' = None
+	) -> None:
 		"""インスタンスを生成
 
 		Args:
 			ref_path (str): 参照パス
 			types (ClassDef): クラス定義ノード
 			decl (DeclAll): クラス/変数宣言ノード
-			role (str): シンボルの役割
-			prev (SymbolRaw | None): 参照元のシンボル (default = None)
-			context (Context | None): コンテキストのシンボル (default = None)
+			role (Roles): シンボルの役割
+			org (SymbolRaw | None): スタックシンボル (default = None)
+			via (Node | None): 参照元のノード (default = None)
+			context (SymbolRaw| None): コンテキストのシンボル (default = None)
 		Note:
 			# contextのユースケース
 			* Relay/Indexerのreceiverを設定。on_func_call等で実行型の補完に使用
@@ -67,7 +78,8 @@ class SymbolRaw:
 		self._decl = decl
 		self._role = role
 		self._attrs: list[SymbolRaw] = []
-		self._prev = prev
+		self._org = org
+		self._via = via
 		self._context = context
 
 	@property
@@ -96,12 +108,17 @@ class SymbolRaw:
 		if self._attrs:
 			return self._attrs
 
-		return self._prev.attrs if self._prev else []
+		return self._org.attrs if self._org else []
 
 	@property
-	def prev(self) -> 'SymbolRaw | None':
-		"""SymbolRaw | None: 参照元のシンボル"""
-		return self._prev
+	def org(self) -> 'SymbolRaw | None':
+		"""SymbolRaw | None: スタックシンボル"""
+		return self._org
+
+	@property
+	def via(self) -> Node:
+		"""Node: 参照元のノード"""
+		return self._decl
 
 	@property
 	def context(self) -> 'SymbolRaw | None':
@@ -114,8 +131,8 @@ class SymbolRaw:
 		return self._role in [Roles.Origin, Roles.Var, Roles.Extend]
 
 	@property
-	def _humanize(self) -> str:
-		"""str: オブジェクトの文字列表現"""
+	def shorthand(self) -> str:
+		"""str: オブジェクトの簡易表現"""
 		if len(self.attrs) > 0:
 			attrs = [str(attr) for attr in self.attrs]
 			return f'{self.types.domain_name}<{', '.join(attrs)}>'
@@ -153,7 +170,7 @@ class SymbolRaw:
 	@override
 	def __str__(self) -> str:
 		"""str: オブジェクトの文字列表現"""
-		return self._humanize
+		return self.shorthand
 
 	def try_get_context(self) -> 'SymbolRaw':
 		"""コンテキストを取得
@@ -186,7 +203,7 @@ class SymbolRaw:
 		Returns:
 			SymbolRaw: インスタンス
 		"""
-		return SymbolRaw(self.path_to(module), types=self.types, decl=self.decl, role=Roles.Import, prev=self)
+		return SymbolRaw(self.path_to(module), types=self.types, decl=self.decl, role=Roles.Import, org=self)
 
 	def to_var(self, decl: defs.DeclVars) -> 'SymbolRaw':
 		"""変数宣言用にラップ
@@ -196,7 +213,7 @@ class SymbolRaw:
 		Returns:
 			SymbolRaw: インスタンス
 		"""
-		return SymbolRaw(self.ref_path, types=self.types, decl=decl, role=Roles.Var, prev=self)
+		return SymbolRaw(self.ref_path, types=self.types, decl=decl, role=Roles.Var, org=self, via=decl)
 
 	def to_ref(self, node: defs.RefAll, context: 'SymbolRaw | None' = None) -> 'SymbolRaw':
 		"""参照用にラップ
@@ -207,7 +224,7 @@ class SymbolRaw:
 		Returns:
 			SymbolRaw: インスタンス
 		"""
-		return SymbolRaw(self.ref_path, types=self.types, decl=self.decl, role=Roles.Reference, prev=self, context=context)
+		return SymbolRaw(self.ref_path, types=self.types, decl=self.decl, role=Roles.Reference, org=self, via=node, context=context)
 
 	def to_generic(self, node: defs.Generized) -> 'SymbolRaw':
 		"""ジェネリック用にラップ
@@ -217,7 +234,7 @@ class SymbolRaw:
 		Returns:
 			SymbolRaw: インスタンス
 		"""
-		return SymbolRaw(self.ref_path, types=self.types, decl=self.decl, role=Roles.Extend, prev=self)
+		return SymbolRaw(self.ref_path, types=self.types, decl=self.decl, role=Roles.Extend, org=self, via=node)
 
 	def extends(self, *attrs: 'SymbolRaw') -> 'SymbolRaw':
 		"""シンボルが保持する型を拡張情報として属性に取り込む

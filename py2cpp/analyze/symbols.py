@@ -54,7 +54,7 @@ class Symbols:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			NotFoundError: 存在しないパスを指定
+			NotFoundError: シンボルが見つからない
 		"""
 		return self.type_of(self.__finder.by(self.__raws, fullyname).decl)
 
@@ -66,7 +66,7 @@ class Symbols:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			LogicError: 未定義のタイプを指定
+			NotFoundError: シンボルが見つからない
 		"""
 		return self.__finder.by_primitive(self.__raws, primitive_type)
 
@@ -79,7 +79,7 @@ class Symbols:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			LogicError: 未定義のシンボルを指定
+			NotFoundError: シンボルが見つからない
 		"""
 		symbol = self.resolve(decl_class, prop.tokens)
 		return self.__post_type_of_var(prop, symbol)
@@ -92,7 +92,7 @@ class Symbols:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			LogicError: 未定義のシンボルを指定
+			NotFoundError: シンボルが見つからない
 		"""
 		if isinstance(node, defs.Declable):
 			return self.__from_declable(node)
@@ -117,7 +117,7 @@ class Symbols:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			LogicError: 未定義のシンボルを指定
+			NotFoundError: シンボルが見つからない
 		"""
 		symbol = self.resolve(node)
 		return self.__post_type_of_var(node, symbol)
@@ -131,7 +131,7 @@ class Symbols:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			LogicError: 未定義のシンボルを指定
+			NotFoundError: シンボルが見つからない
 		Note:
 			# このメソッドの目的
 			* MoveAssignの宣言型の解決(シンボル宣言・参照ノード由来)
@@ -156,7 +156,7 @@ class Symbols:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			LogicError: 未定義のシンボルを指定
+			NotFoundError: シンボルが見つからない
 		"""
 		return self.type_of_var(node)
 
@@ -168,7 +168,7 @@ class Symbols:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			LogicError: 未定義のシンボルを指定
+			NotFoundError: シンボルが見つからない
 		"""
 		if isinstance(node, defs.Var):
 			return self.type_of_var(node)
@@ -184,7 +184,7 @@ class Symbols:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			LogicError: 未定義のシンボルを指定
+			NotFoundError: シンボルが見つからない
 		"""
 		return self.resolve(node)
 
@@ -196,7 +196,7 @@ class Symbols:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			LogicError: 未定義のシンボルを指定
+			NotFoundError: シンボルが見つからない
 		"""
 		return self.__resolve_procedural(node)
 
@@ -208,7 +208,7 @@ class Symbols:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			LogicError: 未定義のシンボルを指定
+			NotFoundError: シンボルが見つからない
 		"""
 		return self.resolve(node)
 
@@ -220,7 +220,7 @@ class Symbols:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			LogicError: 未定義のシンボルを指定
+			NotFoundError: シンボルが見つからない
 		"""
 		if isinstance(node, defs.For):
 			return self.__resolve_procedural(node.for_in)
@@ -236,7 +236,7 @@ class Symbols:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			LogicError: シンボルの解決に失敗
+			NotFoundError: シンボルが見つからない
 		"""
 		resolver = ProceduralResolver(self)
 		for in_node in node.calculated():
@@ -256,7 +256,7 @@ class Symbols:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			LogicError: シンボルの解決に失敗
+			NotFoundError: シンボルが見つからない
 		Note:
 			# 注意点
 			シンボルテーブルから直接解決するため、以下のシンボル解決は含まれない
@@ -315,6 +315,20 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 	# Statement compound
 
 	def on_for_in(self, node: defs.ForIn, iterates: SymbolRaw) -> SymbolRaw:
+		"""
+		Note:
+			# iterates
+			## 無視できない
+			* list: list<int>
+			* dict: dict<str, int>
+			* func_call: func<..., T> -> T = list<int> | dict<str, int>
+			* variable: list<int> | dict<str, int>
+			* relay: list<int> | dict<str, int>
+			* indexer: list<int> | dict<str, int>
+			## 無視してよい
+			* group: Any
+			* operator: Any
+		"""
 		def resolve() -> SymbolRaw:
 			methods = {method.symbol.tokens: method for method in iterates.types.as_a(defs.Class).methods if method.symbol.tokens in ['__next__', '__iter__']}
 			if '__next__' in methods:
@@ -340,17 +354,6 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 
 			raise LogicError('Unreachable code.')
 
-		# # iterates
-		# ## 無視できない
-		# * list: list<int>
-		# * dict: dict<str, int>
-		# * func_call: func<..., T> -> T = list<int> | dict<str, int>
-		# * variable: list<int> | dict<str, int>
-		# * relay: list<int> | dict<str, int>
-		# * indexer: list<int> | dict<str, int>
-		# ## 無視してよい
-		# * group: Any
-		# * operator: Any
 		raw = resolve()
 		ts = unpack(raw.attrs[-1])
 		return unpacked(iterates, ts)
@@ -442,6 +445,16 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 		return self.symbols.type_of_primitive(None)
 
 	def on_func_call(self, node: defs.FuncCall, calls: SymbolRaw, arguments: list[SymbolRaw]) -> SymbolRaw:
+		"""
+		Note:
+			# calls
+			* relay: a.b()
+			* variable: a()
+			* indexer: a[0]()
+			* func_call: a()()
+			# arguments
+			* expression
+		"""
 		def resolve() -> SymbolRaw:
 			if isinstance(calls.types, defs.Constructor):
 				return self.symbols.type_of_var(calls.types.class_types.symbol)
@@ -492,14 +505,6 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 			else:
 				# defs.ClassDef
 				return calls
-
-		# # calls
-		# * relay a.b()
-		# * variable a()
-		# * indexer a[0]()
-		# * func_call a()()
-		# # arguments
-		# * expression
 
 		return resolve()
 
@@ -589,6 +594,7 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 		var_types = other.var_type.or_types if isinstance(other.var_type, defs.UnionType) else [other.var_type]
 		for var_type in var_types:
 			if self.symbols.resolve(var_type.as_a(defs.Type)) == right:
+				# FIXME 必ずしも右オペランドの型が戻り値として正しいわけではない
 				return right
 
 		raise LogicError(f'Operation not allowed. {node}, {left.types.domain_name} {operator} {right.types.domain_name}')

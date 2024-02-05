@@ -6,6 +6,7 @@ import py2cpp.compatible.python.classes as classes
 from py2cpp.compatible.python.types import Primitives
 from py2cpp.errors import LogicError
 from py2cpp.lang.implementation import injectable
+import py2cpp.lang.sequence as seqs
 import py2cpp.node.definition as defs
 from py2cpp.node.node import Node
 
@@ -444,50 +445,26 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 			if isinstance(calls.types, defs.Constructor):
 				return self.symbols.type_of_var(calls.types.class_types.symbol)
 			elif isinstance(calls.types, defs.Function):
-				def unpack(raw: SymbolRaw) -> list[defs.TemplateClass]:
-					ts: list[defs.TemplateClass] = []
-					if isinstance(raw.types, defs.TemplateClass):
-						ts.append(raw.types)
+				def unpack(raws: dict[str, SymbolRaw | list[SymbolRaw]]) -> dict[str, defs.TemplateClass]:
+					expand_attrs = seqs.expand(raws, iter_key=SymbolRaw.attrs.__name__)
+					return {path: attr.types for path, attr in expand_attrs.items() if isinstance(attr.types, defs.TemplateClass)}
 
-					for in_raw in raw.attrs:
-						ts.extend(unpack(in_raw))
+				def apply(raw: SymbolRaw, updates: dict[str, defs.ClassDef]) -> None:
+					for path, attr in updates.items():
+						seqs.update(raw.attrs, path, attr, iter_key=SymbolRaw.attrs.__name__)
 
-					return ts
-
-				def unpacked(attr: SymbolRaw, ts: list[defs.TemplateClass], path: str = '$') -> dict[str, SymbolRaw]:
-					d: dict[str, SymbolRaw] = {}
-					if isinstance(attr.types, defs.TemplateClass):
-						if attr.types in ts:
-							d[path] = attr
-
-					for index, in_attr in enumerate(attr.attrs):
-						d = {**d, **unpacked(in_attr, ts, f'{path}.{index}')}
-
-					return d
-
-				def apply(raw: SymbolRaw, path: str, attr: SymbolRaw) -> None:
-					index, *remain = path.split('.')
-					if not len(remain):
-						raw.attrs[int(index)] = attr
-					else:
-						apply(raw.attrs[int(index)], '.'.join(remain), attr)
+				calls_ts: dict[str, defs.TemplateClass] = {}
+				if isinstance(calls.types, (defs.Constructor, defs.ClassMethod, defs.Method)):
+					g_types = self.symbols.resolve(calls.types.class_types).types.generic_types
+					class_ts = [self.symbols.resolve(g_type) for g_type in g_types]
+					calls_ts = unpack({'return': calls.attrs[-1], 'args': calls.attrs[:-1], 'class': class_ts})
+				else:
+					calls_ts = unpack({'return': calls.attrs[-1]})
 
 				return_raw = calls.attrs[-1]
-				return_ts = unpack(return_raw)
-
-				args_attrs = calls.attrs[:-1]
-				attrs_in_args: dict[str, SymbolRaw] = {}
-				for index, attr in enumerate(args_attrs):
-					attrs_in_args = {**attrs_in_args, **unpacked(attr, return_ts, str(index))}
-
-				attrs_in_class: dict[str, SymbolRaw] = {}
-				if isinstance(calls.types, (defs.Constructor, defs.ClassMethod, defs.Method)):
-					# FIXME generic_typesがunpack対象なので誤り
+				if calls_ts['calls']:
 					# FIXME receiverの情報が損失してるので実行時型を補完できない
-					attrs_in_class = unpacked(self.symbols.resolve(calls.types.class_types), return_ts)
-
-				for path, attr in {**attrs_in_args, **attrs_in_class}.items():
-					apply(return_raw, path, attr)
+					apply(return_raw, {})
 
 				return return_raw
 			else:

@@ -2,6 +2,7 @@ from py2cpp.analyze.db import SymbolDB
 from py2cpp.analyze.symbol import SymbolRaw
 from py2cpp.analyze.procedure import Procedure
 from py2cpp.analyze.finder import SymbolFinder
+from py2cpp.ast.dsn import DSN
 import py2cpp.compatible.python.classes as classes
 from py2cpp.compatible.python.types import Primitives
 from py2cpp.errors import LogicError
@@ -449,9 +450,31 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 					expand_attrs = seqs.expand(raws, iter_key='attrs')
 					return {path: attr.types for path, attr in expand_attrs.items() if isinstance(attr.types, defs.TemplateClass)}
 
-				def apply(raw: SymbolRaw, updates: dict[str, defs.ClassDef]) -> None:
+				def make_return(calls_ts: dict[str, defs.TemplateClass]) -> SymbolRaw:
+					t_returns = {path: t for path, t in calls_ts.items() if path.startswith('return')}
+					t_args = {path: t for path, t in calls_ts.items() if path.startswith('args')}
+					updates: dict[str, SymbolRaw] = {}
+					for path, t in t_returns.items():
+						founds = [int(DSN.elements(in_path)[1]) for in_path, t_arg in t_args.items() if t_arg == t]
+						for index in founds:
+							updates[path] = arguments[index]
+
+					t_classes = {path: t for path, t in calls_ts.items() if path.startswith('class')}
+					for path, t in t_returns.items():
+						founds = [int(DSN.elements(in_path)[1]) for in_path, t_arg in t_classes.items() if t_arg == t]
+						for index in founds:
+							updates[path] = calls.try_get_context().attrs[index]
+
+					if 'return' in updates:
+						return updates['return']
+					else:
+						return apply_return(calls.attrs[-1], updates)
+
+				def apply_return(raw: SymbolRaw, updates: dict[str, SymbolRaw]) -> SymbolRaw:
 					for path, attr in updates.items():
 						seqs.update(raw.attrs, path, attr, iter_key='attrs')
+
+					return raw
 
 				calls_ts: dict[str, defs.TemplateClass] = {}
 				if isinstance(calls.types, (defs.Constructor, defs.ClassMethod, defs.Method)):
@@ -461,12 +484,11 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 				else:
 					calls_ts = unpack({'return': calls.attrs[-1]})
 
-				return_raw = calls.attrs[-1]
-				if calls_ts:
-					# FIXME receiverの情報が損失してるので実行時型を補完できない
-					apply(return_raw, {})
+				if len(calls_ts):
+					return make_return(calls_ts)
+				else:
+					return calls.attrs[-1]
 
-				return return_raw
 			else:
 				# defs.ClassDef
 				return calls

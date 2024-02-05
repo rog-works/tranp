@@ -57,7 +57,10 @@ class SymbolRaw:
 			decl (DeclAll): クラス/変数宣言ノード
 			role (str): シンボルの役割
 			prev (SymbolRaw | None): 参照元のシンボル
-			context (Context | None): コンテキストのシンボル (主にreceiverが該当)
+			context (Context | None): コンテキストのシンボル
+		Note:
+			# contextのユースケース
+			* Relay/Indexerのreceiverを設定。on_func_call等で実行型の補完に使用
 		"""
 		self._ref_path = ref_path
 		self._types = types
@@ -146,6 +149,19 @@ class SymbolRaw:
 			return f'{self.types.domain_name}<{', '.join(attrs)}>'
 		else:
 			return f'{self.types.domain_name}'
+
+	def try_get_context(self) -> 'SymbolRaw':
+		"""コンテキストを取得
+
+		Returns:
+			SymbolRawe: コンテキストのシンボル
+		Raises:
+			LogicError: コンテキストが無いシンボルで使用
+		"""
+		if self._context is None:
+			raise LogicError(f'Context not defined. symbol: {str(self)}, ref_path: {self.ref_path}')
+
+		return self._context
 
 	def path_to(self, module: Module) -> str:
 		"""展開先を変更した参照パスを生成

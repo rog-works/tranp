@@ -91,7 +91,7 @@ class CellMesh {
 		};
 		std::vector<Box3d> out = {
 		};
-		T_Seq p = positions.pop();
+		Vector p = positions.pop();
 		for (auto position : positions) {
 			out.push_back(Box3d(position - offset, position + offset));
 		}

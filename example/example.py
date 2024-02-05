@@ -25,7 +25,7 @@ class Box3d(CObject):
 		self.max: Vector = max
 
 	def contains(self, location: Vector) -> bool:
-		... # raise NotImplementedError()
+		raise Exception('Not implemented')
 
 class CellMesh:
 	class VertexIndexs(CEnum):

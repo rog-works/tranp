@@ -446,12 +446,12 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 				return self.symbols.type_of_var(calls.types.class_types.symbol)
 			elif isinstance(calls.types, defs.Function):
 				def unpack(raws: dict[str, SymbolRaw | list[SymbolRaw]]) -> dict[str, defs.TemplateClass]:
-					expand_attrs = seqs.expand(raws, iter_key=SymbolRaw.attrs.__name__)
+					expand_attrs = seqs.expand(raws, iter_key='attrs')
 					return {path: attr.types for path, attr in expand_attrs.items() if isinstance(attr.types, defs.TemplateClass)}
 
 				def apply(raw: SymbolRaw, updates: dict[str, defs.ClassDef]) -> None:
 					for path, attr in updates.items():
-						seqs.update(raw.attrs, path, attr, iter_key=SymbolRaw.attrs.__name__)
+						seqs.update(raw.attrs, path, attr, iter_key='attrs')
 
 				calls_ts: dict[str, defs.TemplateClass] = {}
 				if isinstance(calls.types, (defs.Constructor, defs.ClassMethod, defs.Method)):
@@ -462,7 +462,7 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 					calls_ts = unpack({'return': calls.attrs[-1]})
 
 				return_raw = calls.attrs[-1]
-				if calls_ts['calls']:
+				if calls_ts:
 					# FIXME receiverの情報が損失してるので実行時型を補完できない
 					apply(return_raw, {})
 

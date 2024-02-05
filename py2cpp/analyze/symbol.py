@@ -46,23 +46,19 @@ class SymbolRaw:
 		Returns:
 			SymbolRaw: シンボル
 		"""
-		return cls(types.fullyname, types.fullyname, types.module_path, types, types)
+		return cls(types.fullyname, types, types)
 
-	def __init__(self, ref_path: str, org_path: str, module_path: str, types: defs.ClassDef, decl: defs.Decl, via: 'SymbolRaw | None' = None, role: Roles = Roles.Origin) -> None:
+	def __init__(self, ref_path: str, types: defs.ClassDef, decl: defs.Decl, via: 'SymbolRaw | None' = None, role: Roles = Roles.Origin) -> None:
 		"""インスタンスを生成
 
 		Args:
 			ref_path (str): 参照パス
-			org_path (str): 参照パス(オリジナル)
-			module_path (str): 展開先モジュールのパス
 			types (ClassDef): クラス定義ノード
 			decl (Decl): 宣言ノード
 			via (SymbolRaw | None): 参照元のシンボル
 			role (str): シンボルの役割
 		"""
 		self._ref_path = ref_path
-		self._org_path = org_path
-		self._module_path = module_path
 		self._types = types
 		self._decl = decl
 		self._attrs: list[SymbolRaw] = []
@@ -77,12 +73,7 @@ class SymbolRaw:
 	@property
 	def org_path(self) -> str:
 		"""str: 参照パス(オリジナル)"""
-		return self._org_path
-
-	@property
-	def module_path(self) -> str:
-		"""str: 展開先モジュールのパス"""
-		return self._module_path
+		return self.types.fullyname
 
 	@property
 	def types(self) -> defs.ClassDef:
@@ -157,7 +148,7 @@ class SymbolRaw:
 		Returns:
 			str: 展開先の参照パス
 		"""
-		return self.ref_path.replace(self.module_path, module.path)
+		return self.ref_path.replace(self.types.module_path, module.path)
 
 	def to(self, module: Module) -> 'SymbolRaw':
 		"""展開先を変更したインスタンスを生成
@@ -167,7 +158,7 @@ class SymbolRaw:
 		Returns:
 			SymbolRaw: インスタンス
 		"""
-		return SymbolRaw(self.path_to(module), self.org_path, module.path, types=self.types, decl=self.decl, via=self, role=Roles.Import)
+		return SymbolRaw(self.path_to(module), types=self.types, decl=self.decl, via=self, role=Roles.Import)
 
 	def wrap(self, decl: defs.Decl) -> 'SymbolRaw':
 		"""シンボルをラップ
@@ -183,7 +174,7 @@ class SymbolRaw:
 			defs.DeclWraps: Roles.Extend,
 		}
 		role = [role for with_types, role in to_roles.items() if isinstance(decl, with_types)].pop()
-		return SymbolRaw(self.ref_path, self.org_path, decl.module_path, types=self.types, decl=decl, via=self, role=role)
+		return SymbolRaw(self.ref_path, types=self.types, decl=decl, via=self, role=role)
 
 	def extends(self, *attrs: 'SymbolRaw') -> 'SymbolRaw':
 		"""シンボルが保持する型を拡張情報として属性に取り込む

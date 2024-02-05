@@ -1,47 +1,47 @@
 from itertools import chain
-from typing import Any, Callable, Iterator, Sequence, TypeVar, cast
+from typing import Any, Sequence, TypeVar, cast
 
-T = TypeVar('T')
+T_Seq = TypeVar('T_Seq')
 
 
 flatten = chain.from_iterable
 
 
-def index_of(seq: Sequence[T], elem: T) -> int:
+def index_of(seq: Sequence[T_Seq], elem: T_Seq) -> int:
 	"""指定の要素を検出した初めのインデックスを返却。未検出の場合は-1を返却
 
 	Args:
-		seq (Sequence[T]): リスト
-		elem (T): 検索対象の要素
+		seq (Sequence[T_Seq]): リスト
+		elem (T_Seq): 検索対象の要素
 	Returns:
 		int: インデックス
 	"""
 	return seq.index(elem) if elem in seq else -1
 
 
-def last_index_of(seq: Sequence[T], elem: T) -> int:
+def last_index_of(seq: Sequence[T_Seq], elem: T_Seq) -> int:
 	"""指定の要素を検出した最後のインデックスを返却。未検出の場合は-1を返却
 
 	Args:
-		seq (Sequence[T]): リスト
-		elem (T): 検索対象の要素
+		seq (Sequence[T_Seq]): リスト
+		elem (T_Seq): 検索対象の要素
 	Returns:
 		int: インデックス
 	"""
 	return (len(seq) - 1) - list(reversed(seq)).index(elem) if elem in seq else -1
 
 
-def expand(entry: list[T] | dict[str, T] | T, path: str = '', iter_key: str | None = None) -> dict[str, T]:
+def expand(entry: list | dict | Any, path: str = '', iter_key: str | None = None) -> dict[str, Any]:
 	"""list/dictを直列に展開
 
 	Args:
-		entry (list[T] | dict[str, T] | T): エントリー
+		entry (list | dict | Any): エントリー
 		path (str): 開始パス(default = '')
 		iter_key (str | None): イテレーター属性のキー(default = None)
 	Returns:
-		dict[str, T]: マッピング情報
+		dict[str, Any]: 展開データ
 	"""
-	entries: dict[str, T] = {}
+	entries: dict[str, Any] = {}
 	if type(entry) is list:
 		for index, elem in enumerate(entry):
 			routes = [e for e in [path, str(index)] if e]
@@ -53,7 +53,7 @@ def expand(entry: list[T] | dict[str, T] | T, path: str = '', iter_key: str | No
 			in_path = '.'.join(routes)
 			entries = {**entries, **expand(elem, in_path, iter_key)}
 	else:
-		entries[path] = cast(T, entry)
+		entries[path] = entry
 		if iter_key and hasattr(entry, iter_key):
 			for index, elem in enumerate(getattr(entry, iter_key)):
 				routes = [e for e in [path, str(index)] if e]

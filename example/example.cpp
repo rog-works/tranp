@@ -18,7 +18,7 @@ class Box3d {
 	}
 	/** contains */
 	public: bool contains(Vector location) {
-		throw new NotImplementedError();
+		throw new Exception("Not implemented");
 	}
 };
 /** CellMesh */
@@ -91,6 +91,7 @@ class CellMesh {
 		};
 		std::vector<Box3d> out = {
 		};
+		Vector p = positions.pop();
 		for (auto position : positions) {
 			out.push_back(Box3d(position - offset, position + offset));
 		}

@@ -59,6 +59,9 @@ class Node:
 		Raises:
 			ValueError: Node以外のオブジェクトを指定
 		"""
+		if other is None:
+			return False
+
 		if not isinstance(other, Node):
 			raise ValueError(f'Not allowed comparison. other: {type(other)}')
 
@@ -86,28 +89,27 @@ class Node:
 
 	@property
 	def domain_name(self) -> str:
-		"""str: ドメイン名 Note: 自身を表す一般名称。スコープは含まない"""
+		"""str: ドメイン名 Note: スコープを除いた自身を表す一意な名称。絶対参照(完全参照名によるアクセス)が不要なノードは無名とする"""
 		return ''
 
 	@property
 	def fullyname(self) -> str:
-		"""完全参照名
+		"""完全参照名を取得
 
 		Returns:
 			str: 完全参照名
 		Note:
-			主にスコープとドメイン名の組み合わせによって表されるが、規則はノードのカテゴリー毎に異なる
-			# 分類
-			* ClassDef/Flow/Block: scope
-			* Declable/Reference/Type/Literal: scope + domain_name
-			* その他: scope + entry_tag
+			# 命名規則
+			* IDomainを実装(ClassDef/Declare/Reference/Type/FuncCall/Literal/Empty): scope.domain_name
+			* IScopeを実装(FlowEntry): scope@id
+			* その他: scope.classification@id
 		"""
-		if isinstance(self, IScope):
-			return self.scope
-		elif isinstance(self, IDomain):
+		if isinstance(self, IDomain):
 			return DSN.join(self.scope, self.domain_name)
+		elif isinstance(self, IScope):
+			return DSN.identify(self.scope, self._id())
 		else:
-			return DSN.join(self.scope, self._full_path.elements[-1])
+			return DSN.join(self.scope, DSN.identify(self.classification, self._id()))
 
 	@property
 	def scope(self) -> str:
@@ -352,6 +354,14 @@ class Node:
 			list[str]: 値リスト
 		"""
 		return self.__nodes.values(self.full_path)
+
+	def _id(self) -> int:
+		"""AST上のIDを取得
+
+		Returns:
+			int: ID
+		"""
+		return self.__nodes.id(self.full_path)
 
 	def is_a(self, *ctor: type[T_Node]) -> bool:
 		"""指定のクラスと同じか派生クラスか判定

@@ -117,7 +117,9 @@ if_stmt: "if" expression ":" block elifs ["else" ":" block]
 elifs: elif_*
 elif_: "elif" expression ":" block
 while_stmt: "while" expression ":" block
-for_stmt: "for" name "in" expression ":" block
+for_stmt: "for" name for_in ":" block
+// @custom
+for_in: "in" expression
 
 // Try/Except statement
 

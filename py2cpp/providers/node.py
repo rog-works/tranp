@@ -18,6 +18,7 @@ def symbol_mapping() -> SymbolMapping:
 			'elif_': defs.ElseIf,
 			'if_stmt': defs.If,
 			'while_stmt': defs.While,
+			'for_in': defs.ForIn,
 			'for_stmt': defs.For,
 			'except_clause': defs.Catch,
 			'try_stmt': defs.Try,

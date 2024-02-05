@@ -17,18 +17,7 @@ from py2cpp.node.promise import IDeclare, StatementBlock
 
 
 @Meta.embed(Node, accept_tags('block'))
-class Block(Node, IScope):
-	@property
-	@implements
-	def scope_part(self) -> str:
-		"""Note: XXX 親がスコープを持つノード(クラス/ファンクション)の場合は空文字。それ以外は親の一意エントリータグを返却"""
-		return '' if isinstance(self.parent, IScope) else self.parent._full_path.elements[-1]
-
-	@property
-	@implements
-	def namespace_part(self) -> str:
-		return ''
-
+class Block(Node):
 	@property
 	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:
@@ -45,7 +34,7 @@ class FlowEnter(Flow, IScope):
 	@property
 	@implements
 	def scope_part(self) -> str:
-		return DSN.right(self.full_path, 1)
+		return self.classification
 
 	@property
 	@implements
@@ -133,6 +122,14 @@ class While(FlowEnter):
 		return self._by('block').as_a(Block)
 
 
+@Meta.embed(Node, accept_tags('for_in'))
+class ForIn(FlowPart):
+	@property
+	@Meta.embed(Node, expandable)
+	def iterates(self) -> Node:
+		return self._at(0)
+
+
 @Meta.embed(Node, accept_tags('for_stmt'))
 class For(FlowEnter, IDeclare):
 	@property
@@ -143,13 +140,17 @@ class For(FlowEnter, IDeclare):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def iterates(self) -> Node:
-		return self._at(1)
+	def for_in(self) -> ForIn:
+		return self._by('for_in').as_a(ForIn)
 
 	@property
 	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:
 		return self.block.statements
+
+	@property
+	def iterates(self) -> Node:
+		return self.for_in.iterates
 
 	@property
 	def block(self) -> Block:

@@ -3,7 +3,7 @@
 	"configurations": [
 		{
 			"name": "Python: unittest discover",
-			"type": "python",
+			"type": "debugpy",
 			"request": "launch",
 			"module":"unittest",
 			"args": ["discover", "tests/"],
@@ -25,13 +25,14 @@
 		},
 		{
 			"name": "Python: unittest file",
-			"type": "python",
+			"type": "debugpy",
 			"request": "launch",
 			"module":"unittest",
-			// "args": ["tests.unit.py2cpp.analize.test_db.TestSymbolDB"],
-			// "args": ["tests.unit.py2cpp.analize.test_symbols.TestSymbols.test_is_list"],
+			// "args": ["tests.unit.py2cpp.analyze.test_db.TestSymbolDB"],
+			// "args": ["tests.unit.py2cpp.analyze.test_symbols.TestSymbols.test_type_of"],
+			"args": ["tests.unit.py2cpp.lang.test_sequence"],
 			// "args": ["tests.unit.py2cpp.lang.test_di.TestDI"],
-			"args": ["tests.unit.py2cpp.node.test_definition.TestDefinition.test_comment"],
+			// "args": ["tests.unit.py2cpp.node.test_definition.TestDefinition.test_for"],
 			// "args": ["tests.unit.py2cpp.node.test_embed.TestMeta.test_expandable"],
 			// "args": ["tests.unit.py2cpp.node.test_node.TestNode.test_i_domain"],
 			// "args": ["tests.unit.py2cpp.view.test_render.TestRenderer.test_render_function"],
@@ -53,7 +54,7 @@
 		},
 		{
 			"name": "Python: transpile",
-			"type": "python",
+			"type": "debugpy",
 			"request": "launch",
 			"module":"py2cpp.bin.transpile",
 			"args": [
@@ -78,15 +79,13 @@
 			"justMyCode": true,
 		},
 		{
-			"name": "Python: analize",
-			"type": "python",
+			"name": "Python: analyze",
+			"type": "debugpy",
 			"request": "launch",
-			"module":"py2cpp.bin.analize",
+			"module":"py2cpp.bin.analyze",
 			"args": [
 				"-g", "data/grammar.lark",
-				"-s", "tests/unit/py2cpp/analize/fixtures/test_symbols.py",
-				"-a", "type",
-				"-n", "__main__.B.func2.closure.b",
+				// "-s", "tests/unit/py2cpp/analyze/fixtures/test_symbols.py",
 			],
 			"cwd": "${workspaceFolder}",
 			"windows": {
@@ -106,7 +105,7 @@
 		},
 		{
 			"name": "Python: 現在のファイル",
-			"type": "python",
+			"type": "debugpy",
 			"request": "launch",
 			"program": "${file}",
 			"windows": {

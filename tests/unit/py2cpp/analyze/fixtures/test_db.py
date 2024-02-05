@@ -1,4 +1,4 @@
-from tests.unit.py2cpp.analize.fixtures.test_db_xyz import Z
+from tests.unit.py2cpp.analyze.fixtures.test_db_xyz import Z
 
 v: int = 0
 

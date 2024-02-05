@@ -190,3 +190,14 @@ class Nodes(Query[Node]):
 			list[str]: 値リスト
 		"""
 		return [entry.value for entry in self.__entries.group_by(via).values() if entry.value]
+
+	@implements
+	def id(self, full_path: str) -> int:
+		"""指定のパスのIDを取得
+
+		Args:
+			full_path (str): フルパス
+		Returns:
+			int: ID
+		"""
+		return self.__entries.index_of(full_path)

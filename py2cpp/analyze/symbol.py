@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Iterator, TypeAlias
+from typing import Iterator, TypeAlias, cast
 
 from py2cpp.errors import LogicError
 from py2cpp.lang.implementation import override
@@ -193,7 +193,8 @@ class SymbolRaw:
 		"""
 		curr = self
 		while curr:
-			yield curr.via
+			# XXX whileの判定が反映されずに警告されるためcastで対処
+			yield cast(Node, curr.via)
 			curr = curr.org
 
 	def path_to(self, module: Module) -> str:

@@ -395,13 +395,13 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 		return self.symbols.type_of_var(node)
 
 	def on_relay(self, node: defs.Relay, receiver: SymbolRaw) -> SymbolRaw:
-		return self.symbols.type_of_property(receiver.types, node.prop).wrap(node)
+		return self.symbols.type_of_property(receiver.types, node.prop).to_ref(node, context=receiver)
 
 	def on_class_ref(self, node: defs.ClassRef) -> SymbolRaw:
-		return self.symbols.type_of_var(node).wrap(node)
+		return self.symbols.type_of_var(node).to_ref(node)
 
 	def on_this_ref(self, node: defs.ThisRef) -> SymbolRaw:
-		return self.symbols.type_of_var(node).wrap(node)
+		return self.symbols.type_of_var(node).to_ref(node)
 
 	def on_argument_label(self, node: defs.ArgumentLabel) -> SymbolRaw:
 		func_symbol = self.symbols.type_of(node.invoker.calls)
@@ -412,13 +412,13 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 		raise LogicError(f'Parameter not defined. function: {func_symbol.types.fullyname}, label: {node.tokens}')
 
 	def on_variable(self, node: defs.Var) -> SymbolRaw:
-		return self.symbols.type_of_var(node).wrap(node)
+		return self.symbols.type_of_var(node).to_ref(node)
 
 	def on_indexer(self, node: defs.Indexer, receiver: SymbolRaw, key: SymbolRaw) -> SymbolRaw:
 		if self.symbols.is_list(receiver):
-			return receiver.attrs[0]
+			return receiver.attrs[0].to_ref(node, context=receiver)
 		elif self.symbols.is_dict(receiver):
-			return receiver.attrs[1]
+			return receiver.attrs[1].to_ref(node, context=receiver)
 		else:
 			raise ValueError(f'Not supported indexer symbol type. {str(receiver)}')
 
@@ -592,19 +592,19 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 		return self.symbols.type_of_primitive(bool)
 
 	def on_pair(self, node: defs.Pair, first: SymbolRaw, second: SymbolRaw) -> SymbolRaw:
-		return self.symbols.type_of_primitive(classes.Pair).wrap(node).extends(first, second)
+		return self.symbols.type_of_primitive(classes.Pair).to_generic(node).extends(first, second)
 
 	def on_list(self, node: defs.List, values: list[SymbolRaw]) -> SymbolRaw:
 		value_type = values[0] if len(values) > 0 else self.symbols.type_of_primitive(classes.Unknown)
-		return self.symbols.type_of_primitive(list).wrap(node).extends(value_type)
+		return self.symbols.type_of_primitive(list).to_generic(node).extends(value_type)
 
 	def on_dict(self, node: defs.Dict, items: list[SymbolRaw]) -> SymbolRaw:
 		if len(items) == 0:
 			unknown_type = self.symbols.type_of_primitive(classes.Unknown)
-			return self.symbols.type_of_primitive(dict).wrap(node).extends(unknown_type, unknown_type)
+			return self.symbols.type_of_primitive(dict).to_generic(node).extends(unknown_type, unknown_type)
 		else:
 			key_type, value_type = items[0].attrs
-			return self.symbols.type_of_primitive(dict).wrap(node).extends(key_type, value_type)
+			return self.symbols.type_of_primitive(dict).to_generic(node).extends(key_type, value_type)
 
 	# Expression
 

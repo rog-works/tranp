@@ -48,7 +48,7 @@ class SymbolRaw:
 		"""
 		return cls(types.fullyname, types=types, decl=types)
 
-	def __init__(self, ref_path: str, types: defs.ClassDef, decl: defs.DeclAll, role: Roles = Roles.Origin, prev: 'SymbolRaw | None' = None, context: defs.Context | None = None) -> None:
+	def __init__(self, ref_path: str, types: defs.ClassDef, decl: defs.DeclAll, role: Roles = Roles.Origin, prev: 'SymbolRaw | None' = None, context: 'SymbolRaw | None' = None) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -57,7 +57,7 @@ class SymbolRaw:
 			decl (DeclAll): クラス/変数宣言ノード
 			role (str): シンボルの役割
 			prev (SymbolRaw | None): 参照元のシンボル
-			context (Context | None): コンテキスト
+			context (Context | None): コンテキストのシンボル (主にreceiverが該当)
 		"""
 		self._ref_path = ref_path
 		self._types = types
@@ -99,6 +99,11 @@ class SymbolRaw:
 	def prev(self) -> 'SymbolRaw | None':
 		"""SymbolRaw | None: 参照元のシンボル"""
 		return self._prev
+
+	@property
+	def context(self) -> 'SymbolRaw | None':
+		"""SymbolRaw | None: コンテキストのシンボル"""
+		return self._context
 
 	@property
 	def has_entity(self) -> bool:
@@ -152,7 +157,7 @@ class SymbolRaw:
 		"""
 		return self.ref_path.replace(self.types.module_path, module.path)
 
-	def imports(self, module: Module) -> 'SymbolRaw':
+	def to_import(self, module: Module) -> 'SymbolRaw':
 		"""展開先を変更したインスタンスを生成
 
 		Args:
@@ -162,7 +167,7 @@ class SymbolRaw:
 		"""
 		return SymbolRaw(self.path_to(module), types=self.types, decl=self.decl, role=Roles.Import, prev=self)
 
-	def var(self, decl: defs.DeclVars) -> 'SymbolRaw':
+	def to_var(self, decl: defs.DeclVars) -> 'SymbolRaw':
 		"""変数宣言用にラップ
 
 		Args:
@@ -172,20 +177,26 @@ class SymbolRaw:
 		"""
 		return SymbolRaw(self.ref_path, types=self.types, decl=decl, role=Roles.Var, prev=self)
 
-	def wrap(self, context: defs.Context) -> 'SymbolRaw':
-		"""コンテキスト用にラップ
+	def to_ref(self, node: defs.RefAll, context: 'SymbolRaw | None' = None) -> 'SymbolRaw':
+		"""参照用にラップ
 
 		Args:
-			context (Context): コンテキスト系ノード
+			node (RefAll): 参照系ノード XXX 未使用
+			context (SymbolRaw | None): コンテキストのシンボル
 		Returns:
 			SymbolRaw: インスタンス
 		"""
-		to_roles = {
-			defs.ContextReferences: Roles.Reference,
-			defs.ContextGenerics: Roles.Extend,
-		}
-		role = [role for with_types, role in to_roles.items() if isinstance(context, with_types)].pop()
-		return SymbolRaw(self.ref_path, types=self.types, decl=self.decl, role=role, prev=self, context=context)
+		return SymbolRaw(self.ref_path, types=self.types, decl=self.decl, role=Roles.Reference, prev=self, context=context)
+
+	def to_generic(self, node: defs.Generized) -> 'SymbolRaw':
+		"""ジェネリック用にラップ
+
+		Args:
+			node (Generized): ジェネリック化対象ノード XXX 未使用
+		Returns:
+			SymbolRaw: インスタンス
+		"""
+		return SymbolRaw(self.ref_path, types=self.types, decl=self.decl, role=Roles.Extend, prev=self)
 
 	def extends(self, *attrs: 'SymbolRaw') -> 'SymbolRaw':
 		"""シンボルが保持する型を拡張情報として属性に取り込む

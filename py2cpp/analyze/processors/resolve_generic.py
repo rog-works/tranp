@@ -86,7 +86,7 @@ class ResolveGeneric:
 		Returns:
 			SymbolRaw: シンボル
 		"""
-		attrs = [self.expand_attr(raws, self.finder.by_symbolic(raws, t_type).wrap(t_type), t_type) for t_type in generic_type.template_types]
+		attrs = [self.expand_attr(raws, self.finder.by_symbolic(raws, t_type).to_generic(t_type), t_type) for t_type in generic_type.template_types]
 		return via.extends(*attrs)
 
 	def apply_function(self, raws: SymbolRaws, via: SymbolRaw, function: defs.Function) -> SymbolRaw:
@@ -106,9 +106,9 @@ class ResolveGeneric:
 			else:
 				t_type = cast(defs.Type, parameter.var_type)
 				t_raw = self.finder.by_symbolic(raws, t_type)
-				attrs.append(self.expand_attr(raws, t_raw.var(parameter), t_type))
+				attrs.append(self.expand_attr(raws, t_raw.to_var(parameter), t_type))
 
-		t_raw = self.finder.by_symbolic(raws, function.return_type).wrap(function.return_type)
+		t_raw = self.finder.by_symbolic(raws, function.return_type).to_generic(function.return_type)
 		attrs.append(self.expand_attr(raws, t_raw, function.return_type))
 		return via.extends(*attrs)
 

@@ -78,12 +78,12 @@ class TestSymbols(TestCase):
 		('__main__.B.func1.self', 'B'),
 		('__main__.B.func1.b', 'list<B>'),
 		('__main__.B.func1.v', 'bool'),
-		('__main__.B.func1.v2', 'T_Seq'),  # FIXME 追って修正
+		('__main__.B.func1.v2', 'int'),
 		('__main__.B.func2', 'func2<B, int>'),
 		('__main__.B.func2.a', 'int'),
 		('__main__.B.func2.closure', 'closure<list<int>>'),
 		('__main__.B.func2.closure.b', 'list<int>'),
-		('__main__.B.func2.if.for.i', 'T_Seq'),  # FIXME 追って修正
+		('__main__.B.func2.if.for.i', 'int'),
 		('__main__.B.func2.if.for.try.e', 'Exception'),
 		('__main__.B.B2', 'B2'),
 		('__main__.B.B2.class_func', 'class_func<B2, dict<str, int>>'),
@@ -161,7 +161,7 @@ class TestSymbols(TestCase):
 		(_ast('B.func1.block', 'assign[4].string'), _mod('classes', 'str'), 'str'),
 		(_ast('B.func1.block', 'assign[5].getattr'), _mod('classes', 'int'), 'int'),
 		(_ast('B.func1.block', 'assign[5].number'), _mod('classes', 'int'), 'int'),
-		(_ast('B.func1.block', 'assign[6]'), 'py2cpp.compatible.python.template.T_Seq', 'T_Seq'), # FIXME 追って修正 _mod('classes', 'int'), []),
+		(_ast('B.func1.block', 'assign[6]'), _mod('classes', 'int'), 'int'),
 		(_ast('B.func1.block', 'funccall[7].arguments.argvalue.getattr'), _mod('classes', 'list'), 'list<int>'),
 		# 45
 		(_ast('B.func1.block', 'return_stmt.getattr'), _mod('classes', 'str'), 'str'),

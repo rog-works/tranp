@@ -56,8 +56,8 @@ class SymbolRaw:
 			types (ClassDef): クラス定義ノード
 			decl (DeclAll): クラス/変数宣言ノード
 			role (str): シンボルの役割
-			prev (SymbolRaw | None): 参照元のシンボル
-			context (Context | None): コンテキストのシンボル
+			prev (SymbolRaw | None): 参照元のシンボル (default = None)
+			context (Context | None): コンテキストのシンボル (default = None)
 		Note:
 			# contextのユースケース
 			* Relay/Indexerのreceiverを設定。on_func_call等で実行型の補完に使用
@@ -113,6 +113,15 @@ class SymbolRaw:
 		"""bool: True = 実体を持つ"""
 		return self._role in [Roles.Origin, Roles.Var, Roles.Extend]
 
+	@property
+	def _humanize(self) -> str:
+		"""str: オブジェクトの文字列表現"""
+		if len(self.attrs) > 0:
+			attrs = [str(attr) for attr in self.attrs]
+			return f'{self.types.domain_name}<{', '.join(attrs)}>'
+		else:
+			return f'{self.types.domain_name}'
+
 	@override
 	def __eq__(self, other: object) -> bool:
 		"""比較演算子のオーバーロード
@@ -144,11 +153,7 @@ class SymbolRaw:
 	@override
 	def __str__(self) -> str:
 		"""str: オブジェクトの文字列表現"""
-		if len(self.attrs) > 0:
-			attrs = [str(attr) for attr in self.attrs]
-			return f'{self.types.domain_name}<{', '.join(attrs)}>'
-		else:
-			return f'{self.types.domain_name}'
+		return self._humanize
 
 	def try_get_context(self) -> 'SymbolRaw':
 		"""コンテキストを取得
@@ -159,7 +164,7 @@ class SymbolRaw:
 			LogicError: コンテキストが無いシンボルで使用
 		"""
 		if self._context is None:
-			raise LogicError(f'Context not defined. symbol: {str(self)}, ref_path: {self.ref_path}')
+			raise LogicError(f'Context is null. symbol: {str(self)}, ref_path: {self.ref_path}')
 
 		return self._context
 

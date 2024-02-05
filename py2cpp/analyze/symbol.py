@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import TypeAlias
+from typing import Iterator, TypeAlias
 
 from py2cpp.errors import LogicError
 from py2cpp.lang.implementation import override
@@ -71,7 +71,7 @@ class SymbolRaw:
 			context (SymbolRaw| None): コンテキストのシンボル (default = None)
 		Note:
 			# contextのユースケース
-			* Relay/Indexerのreceiverを設定。on_func_call等で実行型の補完に使用
+			* Relay/Indexerのreceiverを設定。on_func_call等で実行時型の補完に使用
 		"""
 		self._ref_path = ref_path
 		self._types = types
@@ -184,6 +184,17 @@ class SymbolRaw:
 			raise LogicError(f'Context is null. symbol: {str(self)}, ref_path: {self.ref_path}')
 
 		return self._context
+
+	def each_via(self) -> Iterator[Node]:
+		"""参照元を辿るイテレーターを取得
+
+		Returns:
+			Iterator[Node]: イテレーター
+		"""
+		curr = self
+		while curr:
+			yield curr.via
+			curr = curr.org
 
 	def path_to(self, module: Module) -> str:
 		"""展開先を変更した参照パスを生成

@@ -115,7 +115,7 @@ def task_type(symbols: Symbols) -> None:
 		'types': str(symbol.types),
 		'decl': str(symbol.decl),
 		'org': str(symbol.org),
-		'via': str(symbol.via),
+		'via': f'\n     -> '.join([str(via) for via in symbol.each_via()]),
 		'attrs': ', '.join([str(attr) for attr in symbol.attrs]),
 	}
 

@@ -298,8 +298,8 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 
 	def on_relay(self, node: defs.Relay, receiver: SymbolRaw) -> SymbolRaw:
 		# # receiver
-		# variable.prop: a.b
-		# variable.func_call: a.b()
+		# variable.prop: a.b: A.T
+		# variable.func_call: a.b(): A.b() -> T
 		# relay.prop: a.b.c
 		# relay.func_call: a.b.c()
 		# func_call.prop: a.b().c
@@ -596,3 +596,41 @@ class FuncCallCompletion(Completion[defs.FuncCall]):
 	def actual_from_class(self, found_path: str) -> SymbolRaw:
 		index = int(DSN.elements(found_path)[1])
 		return self.__calls.try_get_context().attrs[index]
+
+
+class RelayCompletion(Completion[defs.Relay]):
+	def __init__(self, symbols: Symbols, node: defs.Relay, receiver: SymbolRaw, prop: SymbolRaw) -> None:
+		super().__init__(symbols, node)
+		self.__receiver = receiver
+		self.__prop = prop
+
+	@property
+	def receiver_symbol(self) -> SymbolRaw:
+		return self.__receiver
+
+	@property
+	def prop_symbol(self) -> SymbolRaw:
+		return self.__prop
+
+	@property
+	def class_t_symbols(self) -> list[SymbolRaw]:
+		return self._fetch_class_t_symbols(self.__receiver.types)
+
+	@implements
+	def actual_return(self) -> SymbolRaw:
+		unpacked = self._unpack({'receiver': self.receiver_symbol, 'prop': self.prop_symbol, 'class': self.class_t_symbols})
+		if not len(unpacked):
+			return self.receiver_symbol
+
+		updates = self._make_updates(unpacked)
+		if 'receiver' in updates:
+			return updates['receiver']
+
+		return self._apply_return(self.receiver_symbol, updates)
+
+	def actual_from_prop(self, found_path: str) -> SymbolRaw:
+		return self.__prop
+
+	def actual_from_class(self, found_path: str) -> SymbolRaw:
+		index = int(DSN.elements(found_path)[1])
+		return self.__receiver.try_get_context().attrs[index]

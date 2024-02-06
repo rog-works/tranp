@@ -33,12 +33,12 @@ class ResolveUnknown:
 			SymbolRaws: シンボルテーブル
 		"""
 		symbols = Symbols(SymbolDB(raws), self.finder)
-		update_raws: SymbolRaws = {}
 		for key, raw in raws.items():
 			# XXX 変数宣言のシンボルのため、roleをVarに変更
+			# XXX MoveAssignを参照するMoveAssign/Forが存在するためrawsを直接更新
 			if isinstance(raw.decl, defs.MoveAssign):
-				update_raws[key] = symbols.type_of(raw.decl.value).to_var(raw.decl)
+				raws[key] = symbols.type_of(raw.decl.value).to_var(raw.decl)
 			elif isinstance(raw.decl, defs.For):
-				update_raws[key] = symbols.type_of(raw.decl.for_in).to_var(raw.decl)
+				raws[key] = symbols.type_of(raw.decl.for_in).to_var(raw.decl)
 
-		return {**raws, **update_raws}
+		return raws

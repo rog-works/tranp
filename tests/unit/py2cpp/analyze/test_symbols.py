@@ -46,24 +46,17 @@ class TestSymbols(TestCase):
 	fixture = Fixture.make(__file__)
 
 	@data_provider([
-		('__main__.B.func2.a', False),
-		('__main__.B.func2.closure.b', True),
-		('__main__.d', False),
+		('__main__.B.func2.a', list, False),
+		('__main__.B.func2.closure.b', list, True),
+		('__main__.d', list, False),
+		('__main__.B.func2.a', dict, False),
+		('__main__.B.func2.closure.b', dict, False),
+		('__main__.d', dict, True),
 	])
-	def test_is_list(self, fullyname: str, expected: bool) -> None:
+	def test_is_a(self, fullyname: str, primitive_type: type[Primitives], expected: bool) -> None:
 		symbols = self.fixture.get(Symbols)
 		symbol = symbols.from_fullyname(fullyname)
-		self.assertEqual(symbols.is_list(symbol), expected)
-
-	@data_provider([
-		('__main__.B.func2.a', False),
-		('__main__.B.func2.closure.b', False),
-		('__main__.d', True),
-	])
-	def test_is_dict(self, fullyname: str, expected: bool) -> None:
-		symbols = self.fixture.get(Symbols)
-		symbol = symbols.from_fullyname(fullyname)
-		self.assertEqual(symbols.is_dict(symbol), expected)
+		self.assertEqual(symbols.is_a(symbol, primitive_type), expected)
 
 	@data_provider([
 		('__main__.v', 'int'),

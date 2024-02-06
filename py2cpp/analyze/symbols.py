@@ -26,25 +26,16 @@ class Symbols:
 		self.__raws = db.raws
 		self.__finder = finder
 
-	def is_list(self, symbol: SymbolRaw) -> bool:
-		"""シンボルがList型か判定
+	def is_a(self, symbol: SymbolRaw, primitive_type: type[Primitives]) -> bool:
+		"""シンボルの型を判定
 
 		Args:
 			symbol (SymbolRaw): シンボル
+			primitive_type (type[Primitives]): プリミティブ型
 		Return:
-			bool: True = List型
+			bool: True = 指定の型と一致
 		"""
-		return symbol.types == self.type_of_primitive(list).types
-
-	def is_dict(self, symbol: SymbolRaw) -> bool:
-		"""シンボルがDict型か判定
-
-		Args:
-			symbol (SymbolRaw): シンボル
-		Return:
-			bool: True = Dict型
-		"""
-		return symbol.types == self.type_of_primitive(dict).types
+		return symbol.types == self.type_of_primitive(primitive_type).types
 
 	def from_fullyname(self, fullyname: str) -> SymbolRaw:
 		"""完全参照名からシンボルを解決
@@ -331,9 +322,9 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 		return self.symbols.resolve(node).to_ref(node)
 
 	def on_indexer(self, node: defs.Indexer, receiver: SymbolRaw, key: SymbolRaw) -> SymbolRaw:
-		if self.symbols.is_list(receiver):
+		if self.symbols.is_a(receiver, list):
 			return receiver.attrs[0].to_ref(node, context=receiver)
-		elif self.symbols.is_dict(receiver):
+		elif self.symbols.is_a(receiver, dict):
 			return receiver.attrs[1].to_ref(node, context=receiver)
 		else:
 			raise ValueError(f'Not supported indexer symbol type. {str(receiver)}')

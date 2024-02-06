@@ -1,7 +1,7 @@
 from typing import Any, NamedTuple
 from unittest import TestCase
 
-from py2cpp.lang.sequence import deep_copy, update, expand
+from py2cpp.lang.sequence import index_of, last_index_of, deep_copy, update, expand
 from tests.test.helper import data_provider
 
 
@@ -17,6 +17,23 @@ class Each(NamedTuple):
 
 
 class TestSequence(TestCase):
+	@data_provider([
+		([1, 2], 1, 0),
+		([1, 2], 2, 1),
+		([1, 2], 3, -1),
+	])
+	def test_index_of(self, arr: list[int], search: int, expected: int) -> None:
+		self.assertEqual(index_of(arr, search), expected)
+
+	@data_provider([
+		([1, 2, 2, 1, 3], 1, 3),
+		([1, 2, 2, 1, 3], 2, 2),
+		([1, 2, 2, 1, 3], 3, 4),
+		([1, 2, 2, 1, 3], 4, -1),
+	])
+	def test_last_index_of(self, arr: list[int], search: int, expected: int) -> None:
+		self.assertEqual(last_index_of(arr, search), expected)
+
 	@data_provider([
 		([1, 2], None, {'0': 1, '1': 2}),
 		([[1], 2], None, {'0.0': 1, '1': 2}),

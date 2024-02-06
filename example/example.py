@@ -1,8 +1,12 @@
+from typing import TypeAlias
+
 from py2cpp.compatible.cpp.preprocess import directive
 from py2cpp.compatible.cpp.enum import CEnum
 from py2cpp.compatible.cpp.object import CObject, CP, CSP, CConst
 
 directive('#pragma once')
+
+Enum: TypeAlias = CEnum
 
 from example.FW.compatible import IntVector, Vector, Mesh, MeshRaw
 

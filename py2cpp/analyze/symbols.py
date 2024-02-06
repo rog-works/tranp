@@ -358,58 +358,13 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 			# arguments
 			* expression
 		"""
-		def resolve() -> SymbolRaw:
-			if isinstance(calls.types, defs.Constructor):
-				return self.symbols.resolve(calls.types.class_types.symbol)
-			elif isinstance(calls.types, defs.Function):
-				def unpack(raws: dict[str, SymbolRaw | list[SymbolRaw]]) -> dict[str, defs.TemplateClass]:
-					expand_attrs = seqs.expand(raws, iter_key='attrs')
-					return {path: attr.types for path, attr in expand_attrs.items() if isinstance(attr.types, defs.TemplateClass)}
-
-				def make_return(calls_ts: dict[str, defs.TemplateClass]) -> SymbolRaw:
-					t_returns = {path: t for path, t in calls_ts.items() if path.startswith('return')}
-					t_args = {path: t for path, t in calls_ts.items() if path.startswith('args')}
-					updates: dict[str, SymbolRaw] = {}
-					for path, t in t_returns.items():
-						founds = [int(DSN.elements(in_path)[1]) for in_path, t_arg in t_args.items() if t_arg == t]
-						for index in founds:
-							updates[path] = arguments[index]
-
-					t_classes = {path: t for path, t in calls_ts.items() if path.startswith('class')}
-					for path, t in t_returns.items():
-						founds = [int(DSN.elements(in_path)[1]) for in_path, t_arg in t_classes.items() if t_arg == t]
-						for index in founds:
-							updates[path] = calls.try_get_context().attrs[index]
-
-					if 'return' in updates:
-						return updates['return']
-					else:
-						return apply_return(calls.attrs[-1], updates)
-
-				def apply_return(raw: SymbolRaw, updates: dict[str, SymbolRaw]) -> SymbolRaw:
-					for path, attr in updates.items():
-						seqs.update(raw.attrs, path, attr, iter_key='attrs')
-
-					return raw
-
-				calls_ts: dict[str, defs.TemplateClass] = {}
-				if isinstance(calls.types, (defs.Constructor, defs.ClassMethod, defs.Method)):
-					g_types = self.symbols.resolve(calls.types.class_types).types.generic_types
-					class_ts = [self.symbols.resolve(g_type) for g_type in g_types]
-					calls_ts = unpack({'return': calls.attrs[-1], 'args': calls.attrs[:-1], 'class': class_ts})
-				else:
-					calls_ts = unpack({'return': calls.attrs[-1]})
-
-				if len(calls_ts):
-					return make_return(calls_ts)
-				else:
-					return calls.attrs[-1]
-
-			else:
-				# defs.ClassDef
-				return calls
-
-		return resolve()
+		if isinstance(calls.types, defs.Constructor):
+			return self.symbols.resolve(calls.types.class_types.symbol)
+		elif isinstance(calls.types, defs.Function):
+			return FuncCallCompletion(self.symbols, node, calls, arguments).actual_return()
+		else:
+			# defs.ClassDef
+			return calls
 
 	def on_super(self, node: defs.Super, calls: SymbolRaw, arguments: list[SymbolRaw]) -> SymbolRaw:
 		return self.symbols.resolve(node.super_class_symbol)
@@ -547,3 +502,91 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 	def on_empty(self, node: defs.Empty) -> SymbolRaw:
 		# XXX 厳密にいうとNullとEmptyは別だが、実用上はほぼ同じなので代用
 		return self.symbols.type_of_primitive(None)
+
+
+from typing import Generic
+from py2cpp.node.node import T_Node
+
+
+class Completion(Generic[T_Node]):
+	def __init__(self, symbols: Symbols, node: T_Node) -> None:
+		self._symbols = symbols
+		self._node = node
+
+	def unpack(self, raws: dict[str, SymbolRaw | list[SymbolRaw]]) -> dict[str, defs.TemplateClass]:
+		expand_attrs = seqs.expand(raws, iter_key='attrs')
+		return {path: attr.types for path, attr in expand_attrs.items() if isinstance(attr.types, defs.TemplateClass)}
+
+	def fetch_class_t_symbols(self, types: defs.ClassDef) -> list[SymbolRaw]:
+		g_types = self._symbols.resolve(types).types.generic_types
+		return [self._symbols.resolve(g_type) for g_type in g_types]
+
+
+class FuncCallCompletion(Completion[defs.FuncCall]):
+	def __init__(self, symbols: Symbols, node: defs.FuncCall, calls: SymbolRaw, arguments: list[SymbolRaw]) -> None:
+		super().__init__(symbols, node)
+		self.__calls = calls
+		self.__arguments = arguments
+
+	@property
+	def class_t_symbols(self) -> list[SymbolRaw]:
+		if not isinstance(self.__calls.types, (defs.Constructor, defs.ClassMethod, defs.Method)):
+			return []
+		
+		return self.fetch_class_t_symbols(self.__calls.types.class_types)
+
+	@property
+	def args_symbols(self) -> list[SymbolRaw]:
+		return self.__calls.attrs[:-1]
+
+	@property
+	def return_symbol(self) -> SymbolRaw:
+		return self.__calls.attrs[-1]
+
+	def actual_return(self) -> SymbolRaw:
+		unpacked = self.unpack({
+			'return': self.return_symbol,
+			'args': self.args_symbols,
+			'class': self.class_t_symbols
+		})
+		if not len(unpacked):
+			return self.return_symbol
+
+		updates = self.__make_updates(unpacked)
+		if 'return' in updates:
+			return updates['return']
+
+		return self.__apply_for_return(self.return_symbol, updates)
+
+	def __make_updates(self, calls_ts: dict[str, defs.TemplateClass]) -> dict[str, SymbolRaw]:
+		ts_return = {path: t for path, t in calls_ts.items() if path.startswith('return')}
+		ts_args = {path: t for path, t in calls_ts.items() if path.startswith('args')}
+		ts_class = {path: t for path, t in calls_ts.items() if path.startswith('class')}
+		return {
+			**self.__actual_from_args(ts_return, ts_args),
+			**self.__actual_from_class(ts_return, ts_class),
+		}
+
+	def __actual_from_args(self, ts_return: dict[str, defs.TemplateClass], ts_args: dict[str, defs.TemplateClass]) -> dict[str, SymbolRaw]:
+		updates: dict[str, SymbolRaw] = {}
+		for path, t in ts_return.items():
+			founds = [int(DSN.elements(in_path)[1]) for in_path, t_arg in ts_args.items() if t_arg == t]
+			for index in founds:
+				updates[path] = self.__arguments[index]
+
+		return updates
+
+	def __actual_from_class(self, ts_return: dict[str, defs.TemplateClass], ts_class: dict[str, defs.TemplateClass]) -> dict[str, SymbolRaw]:
+		updates: dict[str, SymbolRaw] = {}
+		for path, t in ts_return.items():
+			founds = [int(DSN.elements(in_path)[1]) for in_path, t_arg in ts_class.items() if t_arg == t]
+			for index in founds:
+				updates[path] = self.__calls.try_get_context().attrs[index]
+
+		return updates
+
+	def __apply_for_return(self, return_raw: SymbolRaw, updates: dict[str, SymbolRaw]) -> SymbolRaw:
+		for path, attr in updates.items():
+			seqs.update(return_raw.attrs, path, attr, iter_key='attrs')
+
+		return return_raw

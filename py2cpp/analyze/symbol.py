@@ -27,6 +27,7 @@ class Roles(Enum):
 		* Import <- Var
 		* Import <- Extend
 		* Var <- Reference
+		* Extend <- Var ※MoveAssign/Forの場合のみ
 	"""
 	Origin = 'Origin'
 	Import = 'Import'

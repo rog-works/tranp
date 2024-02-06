@@ -56,7 +56,7 @@ class Symbols:
 		Raises:
 			NotFoundError: シンボルが見つからない
 		"""
-		return self.type_of(self.__finder.by(self.__raws, fullyname).decl)
+		return self.__finder.by(self.__raws, fullyname)
 
 	def type_of_primitive(self, primitive_type: type[Primitives] | None) -> SymbolRaw:
 		"""プリミティブ型のシンボルを解決
@@ -81,8 +81,7 @@ class Symbols:
 		Raises:
 			NotFoundError: シンボルが見つからない
 		"""
-		symbol = self.resolve(decl_class, prop.tokens)
-		return self.__post_type_of_var(prop, symbol)
+		return self.resolve(decl_class, prop.tokens)
 
 	def type_of(self, node: Node) -> SymbolRaw:
 		"""シンボル系/式ノードからシンボルを解決 XXX 万能過ぎるので細分化を検討
@@ -109,45 +108,6 @@ class Symbols:
 		else:
 			return self.__resolve_procedural(node)
 
-	def type_of_var(self, node: defs.Declable | defs.Reference) -> SymbolRaw:
-		"""シンボル宣言・参照ノードのシンボルを解決
-
-		Args:
-			node (Declable | Reference): シンボル宣言・参照ノード
-		Returns:
-			SymbolRaw: シンボル
-		Raises:
-			NotFoundError: シンボルが見つからない
-		"""
-		symbol = self.resolve(node)
-		return self.__post_type_of_var(node, symbol)
-
-	def __post_type_of_var(self, node: defs.Declable | defs.Reference, symbol: SymbolRaw) -> SymbolRaw:
-		"""シンボル宣言・参照ノードのシンボル解決の後処理
-
-		Args:
-			node (Declable | Reference): シンボル宣言・参照ノード XXX 未使用
-			symbol (SymbolRaw): シンボル
-		Returns:
-			SymbolRaw: シンボル
-		Raises:
-			NotFoundError: シンボルが見つからない
-		Note:
-			# このメソッドの目的
-			* MoveAssignの宣言型の解決(シンボル宣言・参照ノード由来)
-			@see resolve
-		"""
-		decl = symbol.decl
-		if isinstance(decl, (defs.AnnoAssign, defs.Parameter)):
-			return symbol
-		elif isinstance(decl, defs.MoveAssign):
-			return self.__resolve_procedural(decl.value)
-		elif isinstance(decl, (defs.For, defs.Catch)):
-			return self.__from_flow(decl)
-		else:
-			# defs.ClassDef
-			return symbol
-
 	def __from_declable(self, node: defs.Declable) -> SymbolRaw:
 		"""シンボル宣言ノードからシンボルを解決
 
@@ -158,7 +118,7 @@ class Symbols:
 		Raises:
 			NotFoundError: シンボルが見つからない
 		"""
-		return self.type_of_var(node)
+		return self.resolve(node)
 
 	def __from_reference(self, node: defs.Reference) -> SymbolRaw:
 		"""シンボル参照ノードからシンボルを解決
@@ -171,7 +131,7 @@ class Symbols:
 			NotFoundError: シンボルが見つからない
 		"""
 		if isinstance(node, defs.Var):
-			return self.type_of_var(node)
+			return self.resolve(node)
 		else:
 			# defs.Relay
 			return self.__resolve_procedural(node)
@@ -378,25 +338,25 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 	# Primary
 
 	def on_decl_class_var(self, node: defs.DeclClassVar) -> SymbolRaw:
-		return self.symbols.type_of_var(node)
+		return self.symbols.resolve(node)
 
 	def on_decl_this_var(self, node: defs.DeclThisVar) -> SymbolRaw:
-		return self.symbols.type_of_var(node)
+		return self.symbols.resolve(node)
 
 	def on_decl_class_param(self, node: defs.DeclClassParam) -> SymbolRaw:
-		return self.symbols.type_of_var(node)
+		return self.symbols.resolve(node)
 
 	def on_decl_this_param(self, node: defs.DeclThisParam) -> SymbolRaw:
-		return self.symbols.type_of_var(node)
+		return self.symbols.resolve(node)
 
 	def on_decl_local_var(self, node: defs.DeclLocalVar) -> SymbolRaw:
-		return self.symbols.type_of_var(node)
+		return self.symbols.resolve(node)
 
 	def on_types_name(self, node: defs.TypesName) -> SymbolRaw:
-		return self.symbols.type_of_var(node)
+		return self.symbols.resolve(node)
 
 	def on_import_name(self, node: defs.ImportName) -> SymbolRaw:
-		return self.symbols.type_of_var(node)
+		return self.symbols.resolve(node)
 
 	def on_relay(self, node: defs.Relay, receiver: SymbolRaw) -> SymbolRaw:
 		# # receiver
@@ -411,21 +371,21 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 		return self.symbols.type_of_property(receiver.types, node.prop).to_ref(node, context=receiver)
 
 	def on_class_ref(self, node: defs.ClassRef) -> SymbolRaw:
-		return self.symbols.type_of_var(node).to_ref(node)
+		return self.symbols.resolve(node).to_ref(node)
 
 	def on_this_ref(self, node: defs.ThisRef) -> SymbolRaw:
-		return self.symbols.type_of_var(node).to_ref(node)
+		return self.symbols.resolve(node).to_ref(node)
 
 	def on_argument_label(self, node: defs.ArgumentLabel) -> SymbolRaw:
 		func_symbol = self.symbols.type_of(node.invoker.calls)
 		for param in func_symbol.types.as_a(defs.Function).parameters:
 			if param.symbol.tokens == node.tokens:
-				return self.symbols.type_of_var(param.symbol)
+				return self.symbols.resolve(param.symbol)
 
 		raise LogicError(f'Parameter not defined. function: {func_symbol.types.fullyname}, label: {node.tokens}')
 
 	def on_variable(self, node: defs.Var) -> SymbolRaw:
-		return self.symbols.type_of_var(node).to_ref(node)
+		return self.symbols.resolve(node).to_ref(node)
 
 	def on_indexer(self, node: defs.Indexer, receiver: SymbolRaw, key: SymbolRaw) -> SymbolRaw:
 		if self.symbols.is_list(receiver):
@@ -466,7 +426,7 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 		"""
 		def resolve() -> SymbolRaw:
 			if isinstance(calls.types, defs.Constructor):
-				return self.symbols.type_of_var(calls.types.class_types.symbol)
+				return self.symbols.resolve(calls.types.class_types.symbol)
 			elif isinstance(calls.types, defs.Function):
 				def unpack(raws: dict[str, SymbolRaw | list[SymbolRaw]]) -> dict[str, defs.TemplateClass]:
 					expand_attrs = seqs.expand(raws, iter_key='attrs')

@@ -399,6 +399,15 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 		return self.symbols.type_of_var(node)
 
 	def on_relay(self, node: defs.Relay, receiver: SymbolRaw) -> SymbolRaw:
+		# # receiver
+		# variable.prop: a.b
+		# variable.func_call: a.b()
+		# relay.prop: a.b.c
+		# relay.func_call: a.b.c()
+		# func_call.prop: a.b().c
+		# func_call.func_call: a.b().c()
+		# indexer.prop: a.b[0].c()
+		# indexer.func_call: a.b[1].c()
 		return self.symbols.type_of_property(receiver.types, node.prop).to_ref(node, context=receiver)
 
 	def on_class_ref(self, node: defs.ClassRef) -> SymbolRaw:

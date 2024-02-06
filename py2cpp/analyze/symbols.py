@@ -324,12 +324,8 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 		return self.symbols.resolve(node).to_ref(node)
 
 	def on_argument_label(self, node: defs.ArgumentLabel) -> SymbolRaw:
-		func_symbol = self.symbols.type_of(node.invoker.calls)
-		for param in func_symbol.types.as_a(defs.Function).parameters:
-			if param.symbol.tokens == node.tokens:
-				return self.symbols.resolve(param.symbol)
-
-		raise LogicError(f'Parameter not defined. function: {func_symbol.types.fullyname}, label: {node.tokens}')
+		"""Note: labelに型はないのでUnknownを返す"""
+		return self.symbols.type_of_primitive(classes.Unknown)
 
 	def on_variable(self, node: defs.Var) -> SymbolRaw:
 		return self.symbols.resolve(node).to_ref(node)
@@ -461,7 +457,7 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 			'is': '__eq__',  # XXX 型推論的に同じなので代用
 			'is.not': '__eq__',  # XXX 型推論的に同じなので代用
 		}
-		return self.each_binary_operator(node, left, right, '__eq__')
+		return self.each_binary_operator(node, left, right, operators[node.operator.tokens])
 
 	def on_or_bitwise(self, node: defs.OrBitwise, left: SymbolRaw, right: list[SymbolRaw]) -> SymbolRaw:
 		return self.each_binary_operator(node, left, right, '__or__')

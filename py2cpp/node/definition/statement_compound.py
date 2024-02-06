@@ -595,8 +595,8 @@ def collect_decl_vars(block: StatementBlock, allow: type[T_Node]) -> dict[str, A
 
 		if isinstance(node, (If, Try)):
 			for in_block in node.having_blocks:
-				decl_vars = {**collect_decl_vars(in_block, allow), **decl_vars}
+				decl_vars = {**decl_vars, **collect_decl_vars(in_block, allow)}
 		elif isinstance(node, (While, For)):
-			decl_vars = {**collect_decl_vars(node.block, allow), **decl_vars}
+			decl_vars = {**decl_vars, **collect_decl_vars(node.block, allow)}
 
 	return decl_vars

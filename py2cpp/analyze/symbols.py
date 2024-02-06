@@ -94,31 +94,19 @@ class Symbols:
 			NotFoundError: シンボルが見つからない
 		"""
 		if isinstance(node, defs.Declable):
-			return self.__from_declable(node)
+			return self.resolve(node)
 		elif isinstance(node, defs.Reference):
 			return self.__from_reference(node)
 		elif isinstance(node, defs.Type):
-			return self.__from_type(node)
+			return self.resolve(node)
 		elif isinstance(node, defs.ClassDef):
-			return self.__from_class(node)
+			return self.resolve(node)
 		elif isinstance(node, defs.Literal):
-			return self.__from_literal(node)
+			return self.__resolve_procedural(node)
 		elif isinstance(node, (defs.For, defs.Catch)):
 			return self.__from_flow(node)
 		else:
 			return self.__resolve_procedural(node)
-
-	def __from_declable(self, node: defs.Declable) -> SymbolRaw:
-		"""シンボル宣言ノードからシンボルを解決
-
-		Args:
-			node (Declable): シンボル宣言ノード
-		Returns:
-			SymbolRaw: シンボル
-		Raises:
-			NotFoundError: シンボルが見つからない
-		"""
-		return self.resolve(node)
 
 	def __from_reference(self, node: defs.Reference) -> SymbolRaw:
 		"""シンボル参照ノードからシンボルを解決
@@ -136,42 +124,6 @@ class Symbols:
 			# defs.Relay
 			return self.__resolve_procedural(node)
 
-	def __from_type(self, node: defs.Type) -> SymbolRaw:
-		"""型ノードからシンボルを解決
-
-		Args:
-			node (Type): 型ノード
-		Returns:
-			SymbolRaw: シンボル
-		Raises:
-			NotFoundError: シンボルが見つからない
-		"""
-		return self.resolve(node)
-
-	def __from_literal(self, node: defs.Literal) -> SymbolRaw:
-		"""リテラルノードからシンボルを解決
-
-		Args:
-			node (Literal): リテラルノード
-		Returns:
-			SymbolRaw: シンボル
-		Raises:
-			NotFoundError: シンボルが見つからない
-		"""
-		return self.__resolve_procedural(node)
-
-	def __from_class(self, node: defs.ClassDef) -> SymbolRaw:
-		"""クラス定義ノードからシンボルを解決
-
-		Args:
-			node (ClassDef): クラス定義ノード
-		Returns:
-			SymbolRaw: シンボル
-		Raises:
-			NotFoundError: シンボルが見つからない
-		"""
-		return self.resolve(node)
-
 	def __from_flow(self, node: defs.For | defs.Catch) -> SymbolRaw:
 		"""制御構文ノードからシンボルを解決
 
@@ -186,7 +138,7 @@ class Symbols:
 			return self.__resolve_procedural(node.for_in)
 		else:
 			# defs.Catch
-			return self.__from_type(node.var_type)
+			return self.resolve(node.var_type)
 
 	def __resolve_procedural(self, node: Node) -> SymbolRaw:
 		"""ノードを展開してシンボルを解決
@@ -217,11 +169,6 @@ class Symbols:
 			SymbolRaw: シンボル
 		Raises:
 			NotFoundError: シンボルが見つからない
-		Note:
-			# 注意点
-			シンボルテーブルから直接解決するため、以下のシンボル解決は含まれない
-			* MoveAssignの左辺の型の解決(シンボル宣言・参照ノード由来)
-			@see __post_type_of_var
 		"""
 		found_raw = self.__resolve_raw(symbolic, prop_name)
 		if found_raw is not None:

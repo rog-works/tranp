@@ -212,7 +212,7 @@ class SymbolRaw:
 		return self.ref_path.replace(self.types.module_path, module.path)
 
 	def to_import(self, module: Module) -> 'SymbolRaw':
-		"""展開先を変更したインスタンスを生成
+		"""インポート用にラップ
 
 		Args:
 			module (Module): 展開先のモジュール
@@ -235,7 +235,7 @@ class SymbolRaw:
 		"""参照用にラップ
 
 		Args:
-			node (RefAll): 参照系ノード XXX 未使用
+			node (RefAll): 参照系ノード
 			context (SymbolRaw | None): コンテキストのシンボル
 		Returns:
 			SymbolRaw: インスタンス
@@ -246,7 +246,7 @@ class SymbolRaw:
 		"""ジェネリック用にラップ
 
 		Args:
-			node (Generized): ジェネリック化対象ノード XXX 未使用
+			node (Generized): ジェネリック化対象ノード
 		Returns:
 			SymbolRaw: インスタンス
 		"""

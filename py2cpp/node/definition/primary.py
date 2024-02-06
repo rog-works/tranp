@@ -455,6 +455,10 @@ class Argument(Node):
 		children = self._children()
 		return children[1] if len(children) == 2 else children[0]
 
+	@property
+	def func_call(self) -> FuncCall:
+		return self.parent.as_a(FuncCall)
+
 
 @Meta.embed(Node, accept_tags('typed_argvalue'))
 class InheritArgument(Node):

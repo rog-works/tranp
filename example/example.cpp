@@ -75,7 +75,7 @@ class CellMesh {
 		return new Box3d(minLocation, maxLocation);
 	}
 	/** to_vertex_boxs */
-	public: static std::vector<Box3d> to_vertex_boxs(Box3d* cellBox, int unit) {
+	public: static std::vector<std::shared_ptr<Box3d>> to_vertex_boxs(Box3d* cellBox, int unit) {
 		int offset = unit / 10;
 		Vector min = cellBox->min;
 		Vector max = cellBox->max;
@@ -89,7 +89,7 @@ class CellMesh {
 			{Vector(max.x, max.y, max.z)},
 			{Vector(min.x, max.y, max.z)},
 		};
-		std::vector<Box3d> out = {
+		std::vector<std::shared_ptr<Box3d>> out = {
 		};
 		Vector p = positions.pop();
 		for (auto position : positions) {
@@ -111,15 +111,15 @@ class CellMesh {
 		};
 		auto closure = [&](MeshRaw origin) -> void {
 			const std::shared_ptr<Box3d> cellBox = CellMesh::to_cell_box(cell, unit);
-			std::vector<Box3d> boxs = CellMesh::to_vertex_boxs(cellBox, unit);
+			std::vector<Box3d<CSP>> boxs = CellMesh::to_vertex_boxs(cellBox, unit);
 			for (auto i : range(int(CellMesh::VertexIndexs::Max))) {
-				Box3d box = boxs[i];
+				std::shared_ptr<Box3d> box = boxs[i];
 				for (auto vi : origin.vertex_indices_itr()) {
 					if (!origin.is_vertex(vi)) {
 						continue;
 					}
 					Vector v = origin.get_vertex(vi);
-					if (box.contains(v)) {
+					if (box->contains(v)) {
 						outIds[i] = vi;
 						break;
 					}

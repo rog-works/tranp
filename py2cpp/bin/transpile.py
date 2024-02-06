@@ -162,10 +162,10 @@ class Handler(Procedure[str]):
 
 	def on_return(self, node: defs.Return, return_value: str) -> str:
 		def analyze_cvar_return_symbol() -> SymbolRaw | None:
-			function = node.function.as_a(defs.Function)
 			if not isinstance(node.return_value, defs.FuncCall):
 				return None
 
+			function = node.function.as_a(defs.Function)
 			is_cvar_return = function.return_type.is_a(defs.CustomType)
 			if not is_cvar_return:
 				return None
@@ -299,6 +299,30 @@ class Handler(Procedure[str]):
 		return node.super_class_symbol.tokens
 
 	def on_argument(self, node: defs.Argument, label: str, value: str) -> str:
+		def analyze_cvar_return_symbol() -> SymbolRaw | None:
+			if not isinstance(node.value, defs.FuncCall):
+				return None
+
+			calls_symbol = self.symbols.type_of(node.value.calls)
+			is_call_constructor = calls_symbol.decl.is_a(defs.Class)
+			if not is_call_constructor:
+				return None
+
+			function = self.symbols.type_of(node.func_call.calls)
+			index = node.func_call.arguments.index(node)
+			arg_attr = function.attrs[index + 1]  # XXX Constructorの第一引数はselfのため+1
+			is_cvar_return = arg_attr.types.is_a(defs.CustomType)
+			if not is_cvar_return:
+				return None
+
+			return function
+
+		# cvar_return_symbol = analyze_cvar_return_symbol()
+		# if cvar_return_symbol is not None:
+		# 	cvar_type = cvar_return_symbol.attrs[-1].attrs[0].types.symbol.tokens
+		# 	return self.view.render('type_python_to_cpp', vars={'cvar_type': cvar_type})
+		# else:
+		# 	return value
 		return value
 
 	def on_inherit_argument(self, node: defs.InheritArgument, class_type: str) -> str:

@@ -1,5 +1,6 @@
 from typing import Callable, Generic, TypeVar, cast
 
+from py2cpp.ast.dsn import DSN
 from py2cpp.errors import LogicError
 from py2cpp.lang.annotation import FunctionAnnotation
 from py2cpp.node.node import Node
@@ -46,11 +47,13 @@ class Procedure(Generic[T_Ret]):
 			self._stack.append(handler(node, self._stack.pop()))
 
 	def _run_action(self, handler_name: str, node: Node) -> None:
-		self._log(f'{handler_name}, stacks: {len(self._stack)}, node: {node}')
-
+		before = len(self._stack)
 		result = self.__invoker.invoke(getattr(self, handler_name), node, self._stack)
+		consumed = len(self._stack)
 		if result is not None:
 			self._stack.append(result)
+
+		self._log(f'{" " * DSN.elem_counts(node.full_path)}{handler_name}, stacks: {before} -> {consumed} -> {len(self._stack)}, node: {node}, result: {str(result)}')
 
 	def _log(self, *strs: str) -> None:
 		if self.__verbose:

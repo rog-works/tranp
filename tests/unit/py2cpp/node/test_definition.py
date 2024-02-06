@@ -33,9 +33,9 @@ class TestDefinition(TestCase):
 		('if True:\n\ta = 0\n\tb = a', 'file_input.if_stmt.block', {'statements': [defs.MoveAssign, defs.MoveAssign], 'decl_vars': [defs.MoveAssign, defs.MoveAssign]}),
 		('if True:\n\ta = 0\n\tif True: a = 1', 'file_input.if_stmt.block', {'statements': [defs.MoveAssign, defs.If], 'decl_vars': [defs.MoveAssign]}),
 		('if True:\n\ta = 0\n\tfor i in range(1): a = 1', 'file_input.if_stmt.block', {'statements': [defs.MoveAssign, defs.For], 'decl_vars': [defs.MoveAssign, defs.For]}),
-		('if True:\n\ttry:\n\t\ta = 0\n\texcept Exception as e: ...', 'file_input.if_stmt.block', {'statements': [defs.Try], 'decl_vars': [defs.MoveAssign, defs.Catch]}),
+		('if True:\n\ttry:\n\t\ta = 0\n\texcept Exception as e: ...', 'file_input.if_stmt.block', {'statements': [defs.Try], 'decl_vars': [defs.Catch, defs.MoveAssign]}),
 		('try:\n\ta = 0\nexcept Exception as e: ...', 'file_input.try_stmt.block', {'statements': [defs.MoveAssign], 'decl_vars': [defs.MoveAssign]}),
-	])
+	], includes=[8])
 	def test_block(self, source: str, full_path: str, expected: dict[str, list[type]]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Block)
 		self.assertEqual([type(statement) for statement in node.statements], expected['statements'])

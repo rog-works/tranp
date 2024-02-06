@@ -53,7 +53,18 @@ class Procedure(Generic[T_Ret]):
 		if result is not None:
 			self._stack.append(result)
 
-		self._log(f'{" " * DSN.elem_counts(node.full_path)}{handler_name}, stacks: {before} -> {consumed} -> {len(self._stack)}, node: {node}, result: {str(result)}')
+		self._log_action(handler_name, node, stacks=(before, consumed, len(self._stack)), result=result)
+
+	def _log_action(self, handler_name: str, node: Node, stacks: tuple[int, int, int], result: T_Ret | None) -> None:
+		result_str = str(result).replace('\n', '\\n')
+		indent = ' ' * DSN.elem_counts(node.full_path)
+		data = {
+			str(node): handler_name,
+			'stacks': ' -> '.join(map(str, stacks)),
+			'result': result_str if len(result_str) < 50 else f'{result_str[:50]}...',
+		}
+		joined_data = ', '.join([f'{key}: {value}' for key, value in data.items()])
+		self._log(f'{indent} {joined_data}')
 
 	def _log(self, *strs: str) -> None:
 		if self.__verbose:

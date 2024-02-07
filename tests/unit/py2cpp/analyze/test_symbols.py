@@ -84,14 +84,16 @@ class TestSymbols(TestCase):
 		('__main__.B.B2', 'B2'),
 		('__main__.B.B2.class_func', 'class_func(B2) -> dict<str, int>'),
 		# 20
-		('__main__.func', 'func() -> None'),
-		('__main__.func.d', 'DSI: dict<str, int>'),
+		('__main__.func', 'func(Z2=Z) -> None'),
+		('__main__.func.z2', 'Z2=Z'),
+		('__main__.func.d', 'DSI=dict<str, int>'),
 		('__main__.func.d_in_v', 'int'),
-		('__main__.func.d2', 'DSI2: dict<str, DSI: dict<str, int>>'),
-		('__main__.func.d2_in_dsi', 'DSI: dict<str, int>'),
+		('__main__.func.d2', 'DSI2=dict<str, DSI=dict<str, int>>'),
 		# 25
+		('__main__.func.d2_in_dsi', 'DSI=dict<str, int>'),
 		('__main__.func.d2_in_dsi_in_v', 'int'),
 		('__main__.func.z2_in_x', 'X'),
+		('__main__.func.new_z2_in_x', 'X'),
 	])
 	def test_from_fullyname(self, fullyname: str, expected: str) -> None:
 		symbols = self.fixture.get(Symbols)

@@ -54,7 +54,7 @@ DSI: TypeAlias = dict[str, int]
 DSI2: TypeAlias = dict[str, DSI]
 Z2: TypeAlias = Z
 
-def func() -> None:
+def func(z2: Z2) -> None:
 	d: DSI = {'s': v}
 	d_in_v = d['s']
 
@@ -62,4 +62,5 @@ def func() -> None:
 	d2_in_dsi = d2['s']
 	d2_in_dsi_in_v = d2['s2']['s']
 
-	z2_in_x = Z2().x
+	z2_in_x = z2.x
+	new_z2_in_x = Z2().x

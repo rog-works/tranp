@@ -17,7 +17,6 @@ def preprocessors(currying: Currying) -> Preprocessors:
 	"""
 	ctors = [
 		procs.FromModules,
-		procs.ResolveTypeAlias,
 		procs.ResolveGeneric,
 		procs.ResolveUnknown,
 	]

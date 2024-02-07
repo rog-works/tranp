@@ -2,8 +2,6 @@ from typing import TypeAlias
 
 from tests.unit.py2cpp.analyze.fixtures.test_db_xyz import Z
 
-DSI: TypeAlias = dict[str, int]
-
 v: int = 0
 
 class A(Z):
@@ -51,6 +49,8 @@ class B(A):
 
 	def func3(self) -> 'list[B]':
 		...
+
+DSI: TypeAlias = dict[str, int]
 
 d: DSI = {'s': v}
 dv = d['s']

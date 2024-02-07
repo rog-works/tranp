@@ -27,8 +27,8 @@ class ResolveTypeAlias:
 			SymbolRaws: シンボルテーブル
 		"""
 		update_raws: SymbolRaws = {}
-		for key, raw in raws.items():
-			if isinstance(raw.decl, defs.AltClass):
-				update_raws[key] = raw.to_alias(self.finder.by_symbolic(raws, raw.decl.actual_type).types)
+		# for key, raw in raws.items():
+		# 	if isinstance(raw.decl, defs.AltClass):
+		# 		update_raws[key] = raw.to_alias(self.finder.by_symbolic(raws, raw.decl.actual_type).types)
 
 		return {**raws, **update_raws}

@@ -361,6 +361,9 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 			# arguments
 			* expression
 		"""
+		if isinstance(calls.types, defs.AltClass):
+			calls = calls.attrs[0]
+
 		if isinstance(calls.types, defs.Constructor):
 			return self.symbols.resolve(calls.types.class_types.symbol)
 		elif isinstance(calls.types, defs.Function):

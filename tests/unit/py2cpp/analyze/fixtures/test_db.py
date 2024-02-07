@@ -1,4 +1,8 @@
+from typing import TypeAlias
+
 from tests.unit.py2cpp.analyze.fixtures.test_db_xyz import Z
+
+DSI: TypeAlias = dict[str, int]
 
 v: int = 0
 
@@ -45,3 +49,5 @@ class B(A):
 			raise e
 
 		return closure()
+
+d: DSI = {'s': 1}

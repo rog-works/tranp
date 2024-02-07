@@ -17,8 +17,8 @@ def preprocessors(currying: Currying) -> Preprocessors:
 	"""
 	ctors = [
 		procs.FromModules,
+		procs.ResolveTypeAlias,
 		procs.ResolveGeneric,
 		procs.ResolveUnknown,
-		procs.RuntimeRegister,
 	]
 	return lambda: [currying(proc, Callable[[], Preprocessor])() for proc in ctors]

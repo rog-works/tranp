@@ -222,6 +222,26 @@ class SymbolRaw:
 		"""
 		return SymbolRaw(self.path_to(module), types=self.types, decl=self.decl, role=Roles.Import, org=self)
 
+	def to_alias(self, alias_types: defs.ClassDef) -> 'SymbolRaw':
+		"""自身のシンボルをエイリアスとし、別のクラス定義ノードを参照するように変更
+
+		Args:
+			alias_types (SymbolRaw): クラス定義ノード
+		Returns:
+			SymbolRaw: 自己参照
+		Raises:
+			LogicError: Origin以外のロールに実行
+			LogicError: 属性適用後に実行
+		"""
+		if self._role != Roles.Origin:
+			raise LogicError(f'Not allowed to alias. from: {str(self)}, to_types: {str(alias_types)}')
+
+		if self.attrs:
+			raise LogicError(f'Not possible after extended. from: {str(self)}')
+
+		self._types = alias_types
+		return self
+
 	def to_var(self, decl: defs.DeclVars) -> 'SymbolRaw':
 		"""変数宣言用にラップ
 
@@ -265,7 +285,7 @@ class SymbolRaw:
 			LogicError: 拡張済みのインスタンスに再度実行
 		"""
 		if not self.has_entity:
-			raise LogicError(f'Not allowd operation. symbol: {self.types.fullyname}, role: {self._role}')
+			raise LogicError(f'Not allowd extends. symbol: {self.types.fullyname}, role: {self._role}')
 
 		if self._attrs:
 			raise LogicError(f'Already set attibutes. symbol: {self.types.fullyname}')

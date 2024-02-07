@@ -10,7 +10,7 @@ def default_definitions() -> ModuleDefinitions:
 	return {
 		'py2cpp.analyze.db.SymbolDB': 'py2cpp.analyze.db.make_db',
 		'py2cpp.analyze.finder.SymbolFinder': 'py2cpp.analyze.finder.SymbolFinder',
-		'py2cpp.analyze.processor.Preprocessors': 'py2cpp.providers.analyze.preprocessors',
+		'py2cpp.analyze.processor.Preprocessors': 'py2cpp.analyze.preprocessors.preprocessors',
 		'py2cpp.analyze.symbols.Symbols': 'py2cpp.analyze.symbols.Symbols',
 		'py2cpp.app.env.Env': 'py2cpp.providers.app.make_env',
 		'py2cpp.ast.entry.Entry': 'py2cpp.providers.ast.make_entrypoint',

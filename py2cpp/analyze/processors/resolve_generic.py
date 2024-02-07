@@ -67,7 +67,7 @@ class ResolveGeneric:
 			return None
 
 	def expand_attr(self, raws: SymbolRaws, t_raw: SymbolRaw, t_type: defs.Type) -> SymbolRaw:
-		"""指定のタイプノードを属性として展開
+		"""タイプノードを属性として展開
 
 		Args:
 			raws (SymbolRaws): シンボルテーブル
@@ -76,7 +76,10 @@ class ResolveGeneric:
 		Returns:
 			SymbolRaw: シンボル
 		"""
-		return self.apply_generic(raws, t_raw, t_type) if isinstance(t_type, defs.GenericType) else t_raw
+		if not isinstance(t_type, defs.GenericType):
+			return t_raw
+
+		return self.apply_generic(raws, t_raw, t_type)
 
 	def apply_generic(self, raws: SymbolRaws, via: SymbolRaw, generic_type: defs.GenericType) -> SymbolRaw:
 		"""ジェネリックタイプノードを解析し、属性の型を取り込みシンボルを拡張
@@ -88,7 +91,11 @@ class ResolveGeneric:
 		Returns:
 			SymbolRaw: シンボル
 		"""
-		attrs = [self.expand_attr(raws, self.finder.by_symbolic(raws, t_type).to_generic(t_type), t_type) for t_type in generic_type.template_types]
+		attrs: list[SymbolRaw] = []
+		for t_type in generic_type.template_types:
+			t_raw = self.finder.by_symbolic(raws, t_type).to_generic(t_type)
+			attrs.append(self.expand_attr(raws, t_raw, t_type))
+
 		return via.extends(*attrs)
 
 	def apply_function(self, raws: SymbolRaws, via: SymbolRaw, function: defs.Function) -> SymbolRaw:
@@ -107,8 +114,8 @@ class ResolveGeneric:
 				attrs.append(self.finder.by_symbolic(raws, parameter.symbol))
 			else:
 				t_type = cast(defs.Type, parameter.var_type)
-				t_raw = self.finder.by_symbolic(raws, t_type)
-				attrs.append(self.expand_attr(raws, t_raw.to_var(parameter), t_type))
+				t_raw = self.finder.by_symbolic(raws, t_type).to_var(parameter)
+				attrs.append(self.expand_attr(raws, t_raw, t_type))
 
 		t_raw = self.finder.by_symbolic(raws, function.return_type).to_generic(function.return_type)
 		attrs.append(self.expand_attr(raws, t_raw, function.return_type))
@@ -137,5 +144,5 @@ class ResolveGeneric:
 		Returns:
 			SymbolRaw: シンボル
 		"""
-		attrs: list[SymbolRaw] = [self.finder.by_symbolic(raws, generic_type) for generic_type in types.generic_types]
+		attrs = [self.finder.by_symbolic(raws, generic_type) for generic_type in types.generic_types]
 		return via.extends(*attrs)

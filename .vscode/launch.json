@@ -8,7 +8,7 @@
 			"options": [
 				"analyze.test_db.TestSymbolDB",
 				"analyze.test_symbols.TestSymbols.test_from_fullyname",
-				"analyze.test_symbols.TestSymbols.test_type_od",
+				"analyze.test_symbols.TestSymbols.test_type_of",
 				"node.test_definition.TestDefinition.test_block",
 				"node.test_node.TestNode.test_i_domain",
 				"view.test_render.TestRenderer.test_render_function",

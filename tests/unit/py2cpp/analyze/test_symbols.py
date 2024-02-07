@@ -11,25 +11,25 @@ from tests.test.helper import data_provider
 def _ast(before: str, after: str) -> str:
 	aliases = {
 		'__main__': 'file_input',
-		'A': 'file_input.class_def[2]',
-		'A.__init__.params': 'file_input.class_def[2].class_def_raw.block.function_def.function_def_raw.parameters',
-		'A.__init__.return': 'file_input.class_def[2].class_def_raw.block.function_def.function_def_raw.return_type',
-		'A.__init__.block': 'file_input.class_def[2].class_def_raw.block.function_def.function_def_raw.block',
-		'B': 'file_input.class_def[3]',
-		'B.B2': 'file_input.class_def[3].class_def_raw.block.class_def',
-		'B.B2.block': 'file_input.class_def[3].class_def_raw.block.class_def.class_def_raw.block',
-		'B.B2.class_func': 'file_input.class_def[3].class_def_raw.block.class_def.class_def_raw.block.function_def',
-		'B.B2.class_func.params': 'file_input.class_def[3].class_def_raw.block.class_def.class_def_raw.block.function_def.function_def_raw.parameters',
-		'B.B2.class_func.return': 'file_input.class_def[3].class_def_raw.block.class_def.class_def_raw.block.function_def.function_def_raw.return_type',
-		'B.B2.class_func.block': 'file_input.class_def[3].class_def_raw.block.class_def.class_def_raw.block.function_def.function_def_raw.block',
-		'B.__init__.params': 'file_input.class_def[3].class_def_raw.block.function_def[1].function_def_raw.parameters',
-		'B.__init__.return': 'file_input.class_def[3].class_def_raw.block.function_def[1].function_def_raw.return_type',
-		'B.__init__.block': 'file_input.class_def[3].class_def_raw.block.function_def[1].function_def_raw.block',
-		'B.func1.params': 'file_input.class_def[3].class_def_raw.block.function_def[2].function_def_raw.parameters',
-		'B.func1.return': 'file_input.class_def[3].class_def_raw.block.function_def[2].function_def_raw.return_type',
-		'B.func1.block': 'file_input.class_def[3].class_def_raw.block.function_def[2].function_def_raw.block',
-		'B.func2.block': 'file_input.class_def[3].class_def_raw.block.function_def[3].function_def_raw.block',
-		'B.func2.closure.block': 'file_input.class_def[3].class_def_raw.block.function_def[3].function_def_raw.block.function_def.function_def_raw.block',
+		'A': 'file_input.class_def[4]',
+		'A.__init__.params': 'file_input.class_def[4].class_def_raw.block.function_def.function_def_raw.parameters',
+		'A.__init__.return': 'file_input.class_def[4].class_def_raw.block.function_def.function_def_raw.return_type',
+		'A.__init__.block': 'file_input.class_def[4].class_def_raw.block.function_def.function_def_raw.block',
+		'B': 'file_input.class_def[5]',
+		'B.B2': 'file_input.class_def[5].class_def_raw.block.class_def',
+		'B.B2.block': 'file_input.class_def[5].class_def_raw.block.class_def.class_def_raw.block',
+		'B.B2.class_func': 'file_input.class_def[5].class_def_raw.block.class_def.class_def_raw.block.function_def',
+		'B.B2.class_func.params': 'file_input.class_def[5].class_def_raw.block.class_def.class_def_raw.block.function_def.function_def_raw.parameters',
+		'B.B2.class_func.return': 'file_input.class_def[5].class_def_raw.block.class_def.class_def_raw.block.function_def.function_def_raw.return_type',
+		'B.B2.class_func.block': 'file_input.class_def[5].class_def_raw.block.class_def.class_def_raw.block.function_def.function_def_raw.block',
+		'B.__init__.params': 'file_input.class_def[5].class_def_raw.block.function_def[1].function_def_raw.parameters',
+		'B.__init__.return': 'file_input.class_def[5].class_def_raw.block.function_def[1].function_def_raw.return_type',
+		'B.__init__.block': 'file_input.class_def[5].class_def_raw.block.function_def[1].function_def_raw.block',
+		'B.func1.params': 'file_input.class_def[5].class_def_raw.block.function_def[2].function_def_raw.parameters',
+		'B.func1.return': 'file_input.class_def[5].class_def_raw.block.function_def[2].function_def_raw.return_type',
+		'B.func1.block': 'file_input.class_def[5].class_def_raw.block.function_def[2].function_def_raw.block',
+		'B.func2.block': 'file_input.class_def[5].class_def_raw.block.function_def[3].function_def_raw.block',
+		'B.func2.closure.block': 'file_input.class_def[5].class_def_raw.block.function_def[3].function_def_raw.block.function_def.function_def_raw.block',
 	}
 	return DSN.join(aliases[before], after)
 
@@ -51,7 +51,7 @@ class TestSymbols(TestCase):
 		('__main__.d', list, False),
 		('__main__.B.func2.a', dict, False),
 		('__main__.B.func2.closure.b', dict, False),
-		('__main__.d', dict, True),
+		('__main__.d', dict, False),  # XXX 確かにdictではないが、ただのエイリアスなので要検討
 	])
 	def test_is_a(self, fullyname: str, primitive_type: type[Primitives], expected: bool) -> None:
 		symbols = self.fixture.get(Symbols)
@@ -60,7 +60,7 @@ class TestSymbols(TestCase):
 
 	@data_provider([
 		('__main__.v', 'int'),
-		('__main__.d', 'dict<str, int>'),
+		('__main__.d', 'DSI'),
 		('__main__.A', 'A'),
 		('__main__.A.s', 'str'),
 		('__main__.B', 'B'),
@@ -103,11 +103,11 @@ class TestSymbols(TestCase):
 		self.assertEqual(symbols.type_of_primitive(primitive_type).types.fullyname, expected)
 
 	@data_provider([
-		(_ast('__main__', 'import_stmt.import_names.name'), _mod('xyz', 'Z'), 'Z'),
-		(_ast('__main__', 'anno_assign.var'), _mod('classes', 'int'), 'int'),
-		(_ast('__main__', 'anno_assign.typed_var'), _mod('classes', 'int'), 'int'),
-		(_ast('__main__', 'anno_assign.number'), _mod('classes', 'int'), 'int'),
-		(_ast('__main__', 'assign.var'), _mod('classes', 'dict'), 'dict<str, int>'),
+		(_ast('__main__', 'import_stmt[1].import_names.name'), _mod('xyz', 'Z'), 'Z'),
+		(_ast('__main__', 'anno_assign[3].var'), _mod('classes', 'int'), 'int'),
+		(_ast('__main__', 'anno_assign[3].typed_var'), _mod('classes', 'int'), 'int'),
+		(_ast('__main__', 'anno_assign[3].number'), _mod('classes', 'int'), 'int'),
+		(_ast('__main__', 'anno_assign[6].var'), '__main__.DSI', 'DSI'),
 		# 5
 		(_ast('A', ''), '__main__.A', 'A'),
 		(_ast('A', 'class_def_raw.name'), '__main__.A', 'A'),

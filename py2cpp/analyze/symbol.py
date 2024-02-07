@@ -135,7 +135,10 @@ class SymbolRaw:
 	def shorthand(self) -> str:
 		"""str: オブジェクトの簡易表現"""
 		if len(self.attrs) > 0:
-			if self.types.is_a(defs.Function):
+			if self.types.is_a(defs.AltClass):
+				attrs = [str(attr) for attr in self.attrs]
+				return f'{self.types.domain_name}={attrs[0]}'
+			elif self.types.is_a(defs.Function):
 				attrs = [str(attr) for attr in self.attrs]
 				return f'{self.types.domain_name}({", ".join(attrs[:-1])}) -> {attrs[-1]}'
 			else:
@@ -265,7 +268,7 @@ class SymbolRaw:
 			LogicError: 拡張済みのインスタンスに再度実行
 		"""
 		if not self.has_entity:
-			raise LogicError(f'Not allowd operation. symbol: {self.types.fullyname}, role: {self._role}')
+			raise LogicError(f'Not allowd extends. symbol: {self.types.fullyname}, role: {self._role}')
 
 		if self._attrs:
 			raise LogicError(f'Already set attibutes. symbol: {self.types.fullyname}')

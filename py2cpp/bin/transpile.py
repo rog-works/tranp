@@ -131,6 +131,9 @@ class Handler(Procedure[str]):
 	def on_enum(self, node: defs.Enum, symbol: str, comment: str, statements: list[str]) -> str:
 		return self.view.render(node.classification, vars={'symbol': symbol, 'comment': comment, 'statements': statements})
 
+	def on_alt_class(self, node: defs.AltClass, symbol: str, actual_class: str) -> str:
+		return self.view.render(node.classification, vars={'symbol': symbol, 'actual_class': actual_class})
+
 	# Function/Class Elements
 
 	def on_parameter(self, node: defs.Parameter, symbol: str, var_type: str, default_value: str) -> str:

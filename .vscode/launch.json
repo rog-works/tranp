@@ -1,5 +1,21 @@
 {
 	"version": "0.2.0",
+	"inputs": [
+		{
+			"type": "pickString",
+			"description": "Select test case",
+			"id": "testCases",
+			"options": [
+				"analyze.test_db.TestSymbolDB",
+				"analyze.test_symbols.TestSymbols.test_from_fullyname",
+				"analyze.test_symbols.TestSymbols.test_type_of",
+				"node.test_definition.TestDefinition.test_block",
+				"node.test_node.TestNode.test_i_domain",
+				"view.test_render.TestRenderer.test_render_function",
+			],
+			"default": "analyze.test_db.TestSymbolDB"
+		}
+	],
 	"configurations": [
 		{
 			"name": "Python: unittest discover",
@@ -28,14 +44,7 @@
 			"type": "debugpy",
 			"request": "launch",
 			"module":"unittest",
-			// "args": ["tests.unit.py2cpp.analyze.test_db.TestSymbolDB"],
-			// "args": ["tests.unit.py2cpp.analyze.test_symbols.TestSymbols.test_type_of_primitive"],
-			// "args": ["tests.unit.py2cpp.lang.test_sequence"],
-			// "args": ["tests.unit.py2cpp.lang.test_di.TestDI"],
-			"args": ["tests.unit.py2cpp.node.test_definition.TestDefinition.test_block"],
-			// "args": ["tests.unit.py2cpp.node.test_embed.TestMeta.test_expandable"],
-			// "args": ["tests.unit.py2cpp.node.test_node.TestNode.test_i_domain"],
-			// "args": ["tests.unit.py2cpp.view.test_render.TestRenderer.test_render_function"],
+			"args": ["tests.unit.py2cpp.${input:testCases}"],
 			"cwd": "${workspaceFolder}",
 			"windows": {
 				"env": {

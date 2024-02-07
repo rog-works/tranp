@@ -7,7 +7,6 @@ from tests.test.helper import data_provider
 
 class TestSymbolDB(TestCase):
 	fixture = Fixture.make(__file__)
-	__verbose = False
 
 	@data_provider([
 		({
@@ -69,6 +68,7 @@ class TestSymbolDB(TestCase):
 			'typing.Callable': 'typing.Callable',
 			'typing.Generic': 'typing.Generic',
 			'typing.Sequence': 'typing.Sequence',
+			'typing.TypeAlias': 'typing.TypeAlias',
 			'typing.TypeVar': 'typing.TypeVar',
 			'typing.T_Seq': 'typing.T_Seq',
 			'typing.Iterator': 'typing.Iterator',
@@ -81,7 +81,9 @@ class TestSymbolDB(TestCase):
 			'tests.unit.py2cpp.analyze.fixtures.test_db_xyz.Y.ny': 'tests.unit.py2cpp.analyze.fixtures.test_db_classes.int',
 			'tests.unit.py2cpp.analyze.fixtures.test_db_xyz.Y.x': 'tests.unit.py2cpp.analyze.fixtures.test_db_xyz.X',
 			'tests.unit.py2cpp.analyze.fixtures.test_db_xyz.Z.nz': 'tests.unit.py2cpp.analyze.fixtures.test_db_classes.int',
+			'__main__.TypeAlias': 'typing.TypeAlias',
 			'__main__.Z': 'tests.unit.py2cpp.analyze.fixtures.test_db_xyz.Z',
+			'__main__.DSI': '__main__.DSI',
 			'__main__.A': '__main__.A',
 			'__main__.A.__init__': '__main__.A.__init__',
 			'__main__.B': '__main__.B',
@@ -92,6 +94,7 @@ class TestSymbolDB(TestCase):
 			'__main__.B.func2': '__main__.B.func2',
 			'__main__.B.func2.closure': '__main__.B.func2.closure',
 			'__main__.v': 'tests.unit.py2cpp.analyze.fixtures.test_db_classes.int',
+			'__main__.d': '__main__.DSI',
 			'__main__.A.s': 'tests.unit.py2cpp.analyze.fixtures.test_db_classes.str',
 			'__main__.A.__init__.self': '__main__.A',
 			'__main__.B.v': 'tests.unit.py2cpp.analyze.fixtures.test_db_classes.list',
@@ -135,14 +138,15 @@ class TestSymbolDB(TestCase):
 	def test___init__(self, expected: dict[str, str]) -> None:
 		db = self.fixture.get(SymbolDB)
 
-		if self.__verbose:
+		try:
+			for expected_path, expected_org_path in expected.items():
+				self.assertEqual('ok' if expected_path in db.raws else expected_path, 'ok')
+				self.assertEqual(db.raws[expected_path].org_path, expected_org_path)
+
+			for key, value in db.raws.items():
+				self.assertEqual('ok' if key in expected else key, 'ok')
+
+			self.assertEqual(len(db.raws), len(expected))
+		except AssertionError as e:
 			print('\n', '\n'.join([f"'{key}': '{raw.org_path}'," for key, raw in db.raws.items()]))
-
-		for expected_path, expected_org_path in expected.items():
-			self.assertEqual('ok' if expected_path in db.raws else expected_path, 'ok')
-			self.assertEqual(db.raws[expected_path].org_path, expected_org_path)
-
-		for key, value in db.raws.items():
-			self.assertEqual('ok' if key in expected else key, 'ok')
-
-		self.assertEqual(len(db.raws), len(expected))
+			raise

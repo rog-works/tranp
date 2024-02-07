@@ -1,7 +1,9 @@
+// #include "typing.h"
 // #include "py2cpp/compatible/cpp/preprocess.h"
 // #include "py2cpp/compatible/cpp/enum.h"
 // #include "py2cpp/compatible/cpp/object.h"
 #pragma once
+using Enum = CEnum;
 #include "example/FW/compatible.h"
 /**
  * 3Dレンジオブジェクト

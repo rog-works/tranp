@@ -1,3 +1,5 @@
+from typing import TypeAlias
+
 from tests.unit.py2cpp.analyze.fixtures.test_db_xyz import Z
 
 v: int = 0
@@ -45,7 +47,20 @@ class B(A):
 
 		return closure()[0]
 
-	def func3(self) -> list[B]:
+	def func3(self) -> 'list[B]':
 		...
 
-d = {'s': v}
+DSI: TypeAlias = dict[str, int]
+DSI2: TypeAlias = dict[str, DSI]
+Z2: TypeAlias = Z
+
+def func(z2: Z2) -> None:
+	d: DSI = {'s': v}
+	d_in_v = d['s']
+
+	d2: DSI2 = {'s2': d}
+	d2_in_dsi = d2['s']
+	d2_in_dsi_in_v = d2['s2']['s']
+
+	z2_in_x = z2.x
+	new_z2_in_x = Z2().x

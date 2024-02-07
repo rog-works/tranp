@@ -6,7 +6,7 @@ from py2cpp.ast.dsn import DSN
 import py2cpp.compatible.python.classes as classes
 from py2cpp.compatible.python.types import Primitives
 from py2cpp.errors import LogicError
-from py2cpp.lang.implementation import injectable
+from py2cpp.lang.implementation import implements, injectable
 import py2cpp.lang.sequence as seqs
 import py2cpp.node.definition as defs
 from py2cpp.node.node import Node
@@ -26,25 +26,16 @@ class Symbols:
 		self.__raws = db.raws
 		self.__finder = finder
 
-	def is_list(self, symbol: SymbolRaw) -> bool:
-		"""シンボルがList型か判定
+	def is_a(self, symbol: SymbolRaw, primitive_type: type[Primitives]) -> bool:
+		"""シンボルの型を判定
 
 		Args:
 			symbol (SymbolRaw): シンボル
+			primitive_type (type[Primitives]): プリミティブ型
 		Return:
-			bool: True = List型
+			bool: True = 指定の型と一致
 		"""
-		return symbol.types == self.type_of_primitive(list).types
-
-	def is_dict(self, symbol: SymbolRaw) -> bool:
-		"""シンボルがDict型か判定
-
-		Args:
-			symbol (SymbolRaw): シンボル
-		Return:
-			bool: True = Dict型
-		"""
-		return symbol.types == self.type_of_primitive(dict).types
+		return symbol.types == self.type_of_primitive(primitive_type).types
 
 	def from_fullyname(self, fullyname: str) -> SymbolRaw:
 		"""完全参照名からシンボルを解決
@@ -307,14 +298,17 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 
 	def on_relay(self, node: defs.Relay, receiver: SymbolRaw) -> SymbolRaw:
 		# # receiver
-		# variable.prop: a.b
-		# variable.func_call: a.b()
+		# variable.prop: a.b: A.T
+		# variable.func_call: a.b(): A.b() -> T
 		# relay.prop: a.b.c
 		# relay.func_call: a.b.c()
 		# func_call.prop: a.b().c
 		# func_call.func_call: a.b().c()
 		# indexer.prop: a.b[0].c()
 		# indexer.func_call: a.b[1].c()
+		if isinstance(receiver.types, defs.AltClass):
+			receiver = receiver.attrs[0]
+
 		return self.symbols.type_of_property(receiver.types, node.prop).to_ref(node, context=receiver)
 
 	def on_class_ref(self, node: defs.ClassRef) -> SymbolRaw:
@@ -331,9 +325,12 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 		return self.symbols.resolve(node).to_ref(node)
 
 	def on_indexer(self, node: defs.Indexer, receiver: SymbolRaw, key: SymbolRaw) -> SymbolRaw:
-		if self.symbols.is_list(receiver):
+		if receiver.types.is_a(defs.AltClass):
+			receiver = receiver.attrs[0]
+
+		if self.symbols.is_a(receiver, list):
 			return receiver.attrs[0].to_ref(node, context=receiver)
-		elif self.symbols.is_dict(receiver):
+		elif self.symbols.is_a(receiver, dict):
 			return receiver.attrs[1].to_ref(node, context=receiver)
 		else:
 			raise ValueError(f'Not supported indexer symbol type. {str(receiver)}')
@@ -367,58 +364,16 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 			# arguments
 			* expression
 		"""
-		def resolve() -> SymbolRaw:
-			if isinstance(calls.types, defs.Constructor):
-				return self.symbols.resolve(calls.types.class_types.symbol)
-			elif isinstance(calls.types, defs.Function):
-				def unpack(raws: dict[str, SymbolRaw | list[SymbolRaw]]) -> dict[str, defs.TemplateClass]:
-					expand_attrs = seqs.expand(raws, iter_key='attrs')
-					return {path: attr.types for path, attr in expand_attrs.items() if isinstance(attr.types, defs.TemplateClass)}
+		if isinstance(calls.types, defs.AltClass):
+			calls = calls.attrs[0]
 
-				def make_return(calls_ts: dict[str, defs.TemplateClass]) -> SymbolRaw:
-					t_returns = {path: t for path, t in calls_ts.items() if path.startswith('return')}
-					t_args = {path: t for path, t in calls_ts.items() if path.startswith('args')}
-					updates: dict[str, SymbolRaw] = {}
-					for path, t in t_returns.items():
-						founds = [int(DSN.elements(in_path)[1]) for in_path, t_arg in t_args.items() if t_arg == t]
-						for index in founds:
-							updates[path] = arguments[index]
-
-					t_classes = {path: t for path, t in calls_ts.items() if path.startswith('class')}
-					for path, t in t_returns.items():
-						founds = [int(DSN.elements(in_path)[1]) for in_path, t_arg in t_classes.items() if t_arg == t]
-						for index in founds:
-							updates[path] = calls.try_get_context().attrs[index]
-
-					if 'return' in updates:
-						return updates['return']
-					else:
-						return apply_return(calls.attrs[-1], updates)
-
-				def apply_return(raw: SymbolRaw, updates: dict[str, SymbolRaw]) -> SymbolRaw:
-					for path, attr in updates.items():
-						seqs.update(raw.attrs, path, attr, iter_key='attrs')
-
-					return raw
-
-				calls_ts: dict[str, defs.TemplateClass] = {}
-				if isinstance(calls.types, (defs.Constructor, defs.ClassMethod, defs.Method)):
-					g_types = self.symbols.resolve(calls.types.class_types).types.generic_types
-					class_ts = [self.symbols.resolve(g_type) for g_type in g_types]
-					calls_ts = unpack({'return': calls.attrs[-1], 'args': calls.attrs[:-1], 'class': class_ts})
-				else:
-					calls_ts = unpack({'return': calls.attrs[-1]})
-
-				if len(calls_ts):
-					return make_return(calls_ts)
-				else:
-					return calls.attrs[-1]
-
-			else:
-				# defs.ClassDef
-				return calls
-
-		return resolve()
+		if isinstance(calls.types, defs.Constructor):
+			return self.symbols.resolve(calls.types.class_types.symbol)
+		elif isinstance(calls.types, defs.Function):
+			return FuncCallCompletion(self.symbols, node, calls, arguments).actual_return()
+		else:
+			# defs.ClassDef
+			return calls
 
 	def on_super(self, node: defs.Super, calls: SymbolRaw, arguments: list[SymbolRaw]) -> SymbolRaw:
 		return self.symbols.resolve(node.super_class_symbol)
@@ -556,3 +511,135 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 	def on_empty(self, node: defs.Empty) -> SymbolRaw:
 		# XXX 厳密にいうとNullとEmptyは別だが、実用上はほぼ同じなので代用
 		return self.symbols.type_of_primitive(None)
+
+
+from typing import Callable, Generic, TypeAlias, cast
+
+from py2cpp.node.node import T_Node
+
+
+TemplateMap: TypeAlias = dict[str, defs.TemplateClass]
+SymbolMap: TypeAlias = dict[str, SymbolRaw]
+Callback: TypeAlias = Callable[[str], SymbolRaw]
+
+class Completion(Generic[T_Node]):
+	def __init__(self, symbols: Symbols, node: T_Node) -> None:
+		self._symbols = symbols
+		self._node = node
+
+	def actual_return(self) -> SymbolRaw:
+		raise NotImplementedError()
+
+	def _unpack(self, raws: dict[str, SymbolRaw | list[SymbolRaw]]) -> dict[str, defs.TemplateClass]:
+		expand_attrs = seqs.expand(raws, iter_key='attrs')
+		return {path: attr.types for path, attr in expand_attrs.items() if isinstance(attr.types, defs.TemplateClass)}
+
+	def _fetch_class_t_symbols(self, types: defs.ClassDef) -> list[SymbolRaw]:
+		g_types = self._symbols.resolve(types).types.generic_types
+		return [self._symbols.resolve(g_type) for g_type in g_types]
+
+	def _make_updates(self, calls_ts: TemplateMap) -> dict[str, SymbolRaw]:
+		primary, *sub_items = [DSN.elements(path)[0] for path in calls_ts.keys()]
+		ts_primary = {path: t for path, t in calls_ts.items() if path.startswith(primary)}
+		updates: SymbolMap = {}
+		for key in sub_items:
+			ts_sub_item = {path: t for path, t in calls_ts.items() if path.startswith(key)}
+			updates = {**updates, **self.__actualized(key, ts_primary, ts_sub_item)}
+
+		return updates
+
+	def __actualized(self, key: str, ts_primary: TemplateMap, ts_sub_item: TemplateMap) -> SymbolMap:
+		invoker = cast(Callback, getattr(self, f'actual_from_{key}'))
+		updates: dict[str, SymbolRaw] = {}
+		for path, t in ts_primary.items():
+			founds = [in_path for in_path, t_arg in ts_sub_item.items() if t_arg == t]
+			for found_path in founds:
+				updates[path] = invoker(found_path)
+
+		return updates
+
+	def _apply_return(self, return_raw: SymbolRaw, updates: dict[str, SymbolRaw]) -> SymbolRaw:
+		for path, attr in updates.items():
+			seqs.update(return_raw.attrs, path, attr, iter_key='attrs')
+
+		return return_raw
+
+
+class FuncCallCompletion(Completion[defs.FuncCall]):
+	def __init__(self, symbols: Symbols, node: defs.FuncCall, calls: SymbolRaw, arguments: list[SymbolRaw]) -> None:
+		super().__init__(symbols, node)
+		self.__calls = calls
+		self.__arguments = arguments
+
+	@property
+	def class_t_symbols(self) -> list[SymbolRaw]:
+		if not isinstance(self.__calls.types, (defs.Constructor, defs.ClassMethod, defs.Method)):
+			return []
+		
+		return self._fetch_class_t_symbols(self.__calls.types.class_types)
+
+	@property
+	def args_symbols(self) -> list[SymbolRaw]:
+		return self.__calls.attrs[:-1]
+
+	@property
+	def return_symbol(self) -> SymbolRaw:
+		return self.__calls.attrs[-1]
+
+	@implements
+	def actual_return(self) -> SymbolRaw:
+		unpacked = self._unpack({'return': self.return_symbol, 'args': self.args_symbols, 'class': self.class_t_symbols})
+		if not len(unpacked):
+			return self.return_symbol
+
+		updates = self._make_updates(unpacked)
+		if 'return' in updates:
+			return updates['return']
+
+		return self._apply_return(self.return_symbol, updates)
+
+	def actual_from_args(self, found_path: str) -> SymbolRaw:
+		index = int(DSN.elements(found_path)[1])
+		return self.__arguments[index]
+
+	def actual_from_class(self, found_path: str) -> SymbolRaw:
+		index = int(DSN.elements(found_path)[1])
+		return self.__calls.try_get_context().attrs[index]
+
+
+class RelayCompletion(Completion[defs.Relay]):
+	def __init__(self, symbols: Symbols, node: defs.Relay, receiver: SymbolRaw, prop: SymbolRaw) -> None:
+		super().__init__(symbols, node)
+		self.__receiver = receiver
+		self.__prop = prop
+
+	@property
+	def receiver_symbol(self) -> SymbolRaw:
+		return self.__receiver
+
+	@property
+	def prop_symbol(self) -> SymbolRaw:
+		return self.__prop
+
+	@property
+	def class_t_symbols(self) -> list[SymbolRaw]:
+		return self._fetch_class_t_symbols(self.__receiver.types)
+
+	@implements
+	def actual_return(self) -> SymbolRaw:
+		unpacked = self._unpack({'receiver': self.receiver_symbol, 'prop': self.prop_symbol, 'class': self.class_t_symbols})
+		if not len(unpacked):
+			return self.receiver_symbol
+
+		updates = self._make_updates(unpacked)
+		if 'receiver' in updates:
+			return updates['receiver']
+
+		return self._apply_return(self.receiver_symbol, updates)
+
+	def actual_from_prop(self, found_path: str) -> SymbolRaw:
+		return self.__prop
+
+	def actual_from_class(self, found_path: str) -> SymbolRaw:
+		index = int(DSN.elements(found_path)[1])
+		return self.__receiver.try_get_context().attrs[index]

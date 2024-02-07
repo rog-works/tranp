@@ -107,58 +107,62 @@ class TestSymbols(TestCase):
 		(_ast('__main__', 'anno_assign[2].var'), _mod('classes', 'int'), 'int'),
 		(_ast('__main__', 'anno_assign[2].typed_var'), _mod('classes', 'int'), 'int'),
 		(_ast('__main__', 'anno_assign[2].number'), _mod('classes', 'int'), 'int'),
-		(_ast('__main__', 'anno_assign[6].var'), '__main__.DSI', 'DSI<dict<str, int>>'),
+		(_ast('__main__', 'anno_assign[7].var'), '__main__.DSI', 'DSI<dict<str, int>>'),
 		# 5
-		(_ast('__main__', 'assign.var'), _mod('classes', 'int'), 'int'),
+		(_ast('__main__', 'assign[8].var'), _mod('classes', 'int'), 'int'),
+		(_ast('__main__', 'anno_assign[9].var'), '__main__.DSI2', 'DSI2<dict<str, DSI<dict<str, int>>>>'),
+		(_ast('__main__', 'assign[10].var'), '__main__.DSI', 'DSI<dict<str, int>>'),
+		(_ast('__main__', 'assign[11].var'), _mod('classes', 'int'), 'int'),
 		(_ast('A', ''), '__main__.A', 'A'),
+		# 10
 		(_ast('A', 'class_def_raw.name'), '__main__.A', 'A'),
 		(_ast('A.__init__.params', 'paramvalue.typedparam.name'), '__main__.A', 'A'),
 		(_ast('A.__init__.return', 'typed_none'), _mod('classes', 'None'), 'None'),
-		# 10
 		(_ast('A.__init__.block', 'anno_assign.getattr'), _mod('classes', 'str'), 'str'),
 		(_ast('A.__init__.block', 'anno_assign.typed_var'), _mod('classes', 'str'), 'str'),
+		# 15
 		(_ast('A.__init__.block', 'anno_assign.string'), _mod('classes', 'str'), 'str'),
 		(_ast('B', ''), '__main__.B', 'B'),
 		(_ast('B', 'class_def_raw.name'), '__main__.B', 'B'),
-		# 15
 		(_ast('B', 'class_def_raw.typed_arguments.typed_argvalue.typed_var'), '__main__.A', 'A'),
 		(_ast('B.B2', ''), '__main__.B.B2', 'B2'),
+		# 20
 		(_ast('B.B2.block', 'anno_assign.var'), _mod('classes', 'str'), 'str'),
 		(_ast('B.B2.block', 'anno_assign.typed_var'), _mod('classes', 'str'), 'str'),
 		(_ast('B.B2.block', 'anno_assign.string'), _mod('classes', 'str'), 'str'),
-		# 20
 		(_ast('B.B2.class_func', ''), '__main__.B.B2.class_func', 'class_func(B2) -> dict<str, int>'),
 		(_ast('B.B2.class_func.params', 'paramvalue.typedparam.name'), '__main__.B.B2', 'B2'),
+		# 25
 		(_ast('B.B2.class_func.return', 'typed_getitem'), _mod('classes', 'dict'), 'dict'), # XXX 関数の戻り値の型は関数のシンボル経由でのみ取得できる
 		(_ast('B.B2.class_func.block', 'return_stmt.dict'), _mod('classes', 'dict'), 'dict<str, int>'),
 		(_ast('B.__init__.params', 'paramvalue.typedparam.name'), '__main__.B', 'B'),
-		# 25
 		(_ast('B.__init__.return', 'typed_none'), _mod('classes', 'None'), 'None'),
 		(_ast('B.__init__.block', 'funccall'), '__main__.A', 'A'),
+		# 30
 		(_ast('B.__init__.block', 'funccall.getattr.funccall.var'), _mod('classes', 'super'), 'super'),
 		(_ast('B.__init__.block', 'anno_assign'), _mod('classes', 'list'), 'list<int>'),
 		(_ast('B.__init__.block', 'anno_assign.getattr'), _mod('classes', 'list'), 'list<int>'),
-		# 30
 		(_ast('B.__init__.block', 'anno_assign.typed_getitem'), _mod('classes', 'list'), 'list'), # XXX 型はシンボル経由でのみ取得できる
 		(_ast('B.__init__.block', 'anno_assign.list'), _mod('classes', 'list'), 'list<Unknown>'),  # XXX 空のリストは型を補完できないためlist<Unknown>になる
+		# 35
 		(_ast('B.func1.params', 'paramvalue[0].typedparam.name'), '__main__.B', 'B'),
 		(_ast('B.func1.params', 'paramvalue[1].typedparam.name'), _mod('classes', 'list'), 'list<B>'),
 		(_ast('B.func1.return', 'typed_var'), _mod('classes', 'str'), 'str'),
-		# 35
 		(_ast('B.func1.block', 'assign[0].var'), _mod('classes', 'bool'), 'bool'),
 		(_ast('B.func1.block', 'assign[0].const_false'), _mod('classes', 'bool'), 'bool'),
+		# 40
 		(_ast('B.func1.block', 'funccall[1].arguments.argvalue.var'), _mod('classes', 'bool'), 'bool'),
 		(_ast('B.func1.block', 'funccall[2].arguments.argvalue.getattr'), _mod('classes', 'list'), 'list<int>'),
 		(_ast('B.func1.block', 'funccall[3].arguments.argvalue.getattr'), _mod('classes', 'list'), 'list<int>'),
-		# 40
 		(_ast('B.func1.block', 'assign[4].getattr'), _mod('classes', 'str'), 'str'),
 		(_ast('B.func1.block', 'assign[4].string'), _mod('classes', 'str'), 'str'),
+		# 45
 		(_ast('B.func1.block', 'assign[5].getattr'), _mod('classes', 'int'), 'int'),
 		(_ast('B.func1.block', 'assign[5].number'), _mod('classes', 'int'), 'int'),
 		(_ast('B.func1.block', 'assign[6]'), _mod('classes', 'int'), 'int'),
-		# 45
 		(_ast('B.func1.block', 'funccall[7].arguments.argvalue.getattr'), _mod('classes', 'list'), 'list<int>'),
 		(_ast('B.func1.block', 'return_stmt.getattr'), _mod('classes', 'str'), 'str'),
+		# 50
 		(_ast('B.func2.block', 'if_stmt.block.assign.var'), _mod('classes', 'int'), 'int'),
 		(_ast('B.func2.closure.block', 'assign.var'), _mod('classes', 'list'), 'list<int>'),
 	])

@@ -83,7 +83,7 @@ class TestSymbolDB(TestCase):
 			'tests.unit.py2cpp.analyze.fixtures.test_db_xyz.Z.nz': 'tests.unit.py2cpp.analyze.fixtures.test_db_classes.int',
 			'__main__.TypeAlias': 'typing.TypeAlias',
 			'__main__.Z': 'tests.unit.py2cpp.analyze.fixtures.test_db_xyz.Z',
-			'__main__.DSI': 'tests.unit.py2cpp.analyze.fixtures.test_db_classes.dict',
+			'__main__.DSI': '__main__.DSI',
 			'__main__.A': '__main__.A',
 			'__main__.A.__init__': '__main__.A.__init__',
 			'__main__.B': '__main__.B',

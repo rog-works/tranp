@@ -51,6 +51,10 @@ class B(A):
 		...
 
 DSI: TypeAlias = dict[str, int]
+DSI2: TypeAlias = dict[str, DSI]
 
 d: DSI = {'s': v}
 dv = d['s']
+d2: DSI2 = {'s2': d}
+dv2_in_dsi = d2['s']
+dv2_in_dsi_in_v = d2['s2']['s']

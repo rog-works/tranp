@@ -147,13 +147,13 @@ class FromModules:
 		Returns:
 			SymbolRaw: シンボルデータ
 		"""
-		domain_type = self.fetch_domain_type(var)
-		if domain_type is not None:
-			return self.finder.by_symbolic(raws, domain_type)
+		decl_type = self.fetch_decl_type(var)
+		if decl_type is not None:
+			return self.finder.by_symbolic(raws, decl_type)
 		else:
 			return self.finder.by_primitive(raws, classes.Unknown)
 
-	def fetch_domain_type(self, var: defs.DeclVars) -> defs.Type | defs.ClassDef | None:
+	def fetch_decl_type(self, var: defs.DeclVars) -> defs.Type | defs.ClassDef | None:
 		"""変数の型(タイプ/クラス定義ノード)を取得。型が不明な場合はNoneを返却
 
 		Args:

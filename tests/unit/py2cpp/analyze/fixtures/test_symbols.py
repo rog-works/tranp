@@ -49,7 +49,8 @@ class B(A):
 
 		return closure()[0]
 
-	def func3(self) -> list[B]:
+	def func3(self) -> 'list[B]':
 		...
 
 d: DSI = {'s': v}
+dv = d['s']

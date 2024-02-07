@@ -37,6 +37,8 @@ class ResolveGeneric:
 				update_raws[key] = self.apply_generic(raws, raw, domain_type)
 			elif isinstance(domain_type, defs.Function):
 				update_raws[key] = self.apply_function(raws, raw, domain_type)
+			elif isinstance(domain_type, defs.AltClass):
+				update_raws[key] = self.apply_alt_class(raws, raw, domain_type)
 			# XXX 文字列表現がGeneric形式になってしまうので一旦廃止
 			# elif isinstance(domain_type, defs.Class):
 			# 	update_raws[key] = self.apply_class(raws, raw, domain_type)
@@ -111,6 +113,19 @@ class ResolveGeneric:
 		t_raw = self.finder.by_symbolic(raws, function.return_type).to_generic(function.return_type)
 		attrs.append(self.expand_attr(raws, t_raw, function.return_type))
 		return via.extends(*attrs)
+
+	def apply_alt_class(self, raws: SymbolRaws, via: SymbolRaw, types: defs.AltClass) -> SymbolRaw:
+		"""タイプ再定義ノードを解析し、属性の型を取り込みシンボルを拡張
+
+		Args:
+			raws (SymbolRaws): シンボルテーブル
+			via (SymbolRaw): シンボル
+			types (AltClass): タイプ再定義ノード
+		Returns:
+			SymbolRaw: シンボル
+		"""
+		t_raw = self.finder.by_symbolic(raws, types.actual_type).to_generic(types.actual_type)
+		return via.extends(self.expand_attr(raws, t_raw, types.actual_type))
 
 	def apply_class(self, raws: SymbolRaws, via: SymbolRaw, types: defs.Class) -> SymbolRaw:
 		"""クラス定義ノードを解析し、属性の型を取り込みシンボルを拡張

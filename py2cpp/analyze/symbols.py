@@ -322,6 +322,9 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 		return self.symbols.resolve(node).to_ref(node)
 
 	def on_indexer(self, node: defs.Indexer, receiver: SymbolRaw, key: SymbolRaw) -> SymbolRaw:
+		if receiver.types.is_a(defs.AltClass):
+			receiver = receiver.attrs[0]
+
 		if self.symbols.is_a(receiver, list):
 			return receiver.attrs[0].to_ref(node, context=receiver)
 		elif self.symbols.is_a(receiver, dict):

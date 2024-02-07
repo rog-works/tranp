@@ -1,0 +1,5 @@
+{%- if var_type -%}
+{% include 'calls_py2cpp.j2' %}
+{%- else -%}
+{{ receiver }}[{{ key }}]
+{%- endif -%}

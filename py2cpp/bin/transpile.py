@@ -164,28 +164,7 @@ class Handler(Procedure[str]):
 		return self.view.render(node.classification, vars={'receiver': receiver, 'operator': operator, 'value': value})
 
 	def on_return(self, node: defs.Return, return_value: str) -> str:
-		def analyze_cvar_return_symbol() -> SymbolRaw | None:
-			if not isinstance(node.return_value, defs.FuncCall):
-				return None
-
-			function = node.function.as_a(defs.Function)
-			is_cvar_return = function.return_type.is_a(defs.CustomType)
-			if not is_cvar_return:
-				return None
-
-			calls_symbol = self.symbols.type_of(node.return_value.calls)
-			is_call_constructor = calls_symbol.decl.is_a(defs.Class)
-			if not is_call_constructor:
-				return None
-
-			return self.symbols.resolve(function)
-
-		cvar_return_symbol = analyze_cvar_return_symbol()
-		if cvar_return_symbol is not None:
-			cvar_type = cvar_return_symbol.attrs[-1].attrs[0].types.symbol.tokens
-			return self.view.render(node.classification, vars={'return_value': return_value, 'cvar_type': cvar_type})
-		else:
-			return self.view.render(node.classification, vars={'return_value': return_value, 'cvar_type': ''})
+		return self.view.render(node.classification, vars={'return_value': return_value})
 
 	def on_throw(self, node: defs.Throw, throws: str, via: str) -> str:
 		return self.view.render(node.classification, vars={'throws': throws, 'via': via})
@@ -270,7 +249,16 @@ class Handler(Procedure[str]):
 		return node.tokens
 
 	def on_indexer(self, node: defs.Indexer, receiver: str, key: str) -> str:
-		return f'{receiver}[{key}]'
+		def is_own_new() -> bool:
+			"""bool: True = 親がコンストラクターコール"""
+			if not isinstance(node.parent, defs.FuncCall):
+				return False
+
+			function = self.symbols.type_of(node.parent.calls)
+			return isinstance(function.types, defs.Class)
+
+		var_type = f'{receiver}<{key}>' if is_own_new() else ''
+		return self.view.render(node.classification, vars={'receiver': receiver, 'key': key, 'var_type': var_type})
 
 	def on_general_type(self, node: defs.GeneralType) -> str:
 		return node.type_name.tokens
@@ -302,30 +290,6 @@ class Handler(Procedure[str]):
 		return node.super_class_symbol.tokens
 
 	def on_argument(self, node: defs.Argument, label: str, value: str) -> str:
-		def analyze_cvar_return_symbol() -> SymbolRaw | None:
-			if not isinstance(node.value, defs.FuncCall):
-				return None
-
-			calls_symbol = self.symbols.type_of(node.value.calls)
-			is_call_constructor = calls_symbol.decl.is_a(defs.Class)
-			if not is_call_constructor:
-				return None
-
-			function = self.symbols.type_of(node.func_call.calls)
-			index = node.func_call.arguments.index(node)
-			arg_attr = function.attrs[index + 1]  # XXX Constructorの第一引数はselfのため+1
-			is_cvar_return = arg_attr.types.is_a(defs.CustomType)
-			if not is_cvar_return:
-				return None
-
-			return function
-
-		# cvar_return_symbol = analyze_cvar_return_symbol()
-		# if cvar_return_symbol is not None:
-		# 	cvar_type = cvar_return_symbol.attrs[-1].attrs[0].types.symbol.tokens
-		# 	return self.view.render('type_python_to_cpp', vars={'cvar_type': cvar_type})
-		# else:
-		# 	return value
 		return value
 
 	def on_inherit_argument(self, node: defs.InheritArgument, class_type: str) -> str:

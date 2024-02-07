@@ -306,6 +306,9 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 		# func_call.func_call: a.b().c()
 		# indexer.prop: a.b[0].c()
 		# indexer.func_call: a.b[1].c()
+		if isinstance(receiver.types, defs.AltClass):
+			receiver = receiver.attrs[0]
+
 		return self.symbols.type_of_property(receiver.types, node.prop).to_ref(node, context=receiver)
 
 	def on_class_ref(self, node: defs.ClassRef) -> SymbolRaw:

@@ -53,7 +53,7 @@ class CellMesh:
 		Max = 6
 
 	@classmethod
-	def from_cell(cls, cell: IntVector, unit: int = 100) -> Vector:
+	def from_cell(cls, cell: IntVector, unit: int = 100) -> Vector[CSP]:
 		cell.x = cell.x * unit
 		cell.y = cell.y * unit
 		cell.z = cell.z * unit
@@ -61,7 +61,7 @@ class CellMesh:
 		fy = float(cell.y)
 		fz = float(cell.z)
 		print('%f, %f, %f', fx, fy, fz)
-		return Vector(fx, fy, fz)
+		return Vector[CSP](fx, fy, fz)
 
 	@classmethod
 	def face_index_to_vector(cls, faceIndex: int) -> IntVector:
@@ -99,7 +99,7 @@ class CellMesh:
 		out: list[Box3d[CSP]] = []
 		p = positions.pop()
 		for position in positions:
-			out.append(Box3d(position - offset,  position + offset))
+			out.append(Box3d[CSP](position - offset,  position + offset))
 
 		return out
 

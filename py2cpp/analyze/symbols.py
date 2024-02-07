@@ -333,7 +333,10 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 		elif self.symbols.is_a(receiver, dict):
 			return receiver.attrs[1].to_ref(node, context=receiver)
 		else:
-			raise ValueError(f'Not supported indexer symbol type. {str(receiver)}')
+			# XXX コレクション型以外は全て通常のクラスである想定
+			# XXX keyに何が入るべきか特定できないためreceiverをそのまま返却
+			# XXX この状況で何が取得されるべきかは利用側で判断することとする
+			return receiver
 
 	def on_general_type(self, node: defs.GeneralType) -> SymbolRaw:
 		return self.symbols.resolve(node)

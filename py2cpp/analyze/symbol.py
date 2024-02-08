@@ -122,8 +122,17 @@ class SymbolRaw:
 		return self._via
 
 	@property
-	def context(self) -> 'SymbolRaw | None':
-		"""SymbolRaw | None: コンテキストのシンボル"""
+	def context(self) -> 'SymbolRaw':
+		"""コンテキストを取得
+
+		Returns:
+			SymbolRaw: コンテキストのシンボル
+		Raises:
+			LogicError: コンテキストが無いシンボルで使用
+		"""
+		if self._context is None:
+			raise LogicError(f'Context is null. symbol: {str(self)}, ref_path: {self.ref_path}')
+
 		return self._context
 
 	@property
@@ -133,7 +142,7 @@ class SymbolRaw:
 
 	@property
 	def shorthand(self) -> str:
-		"""str: オブジェクトの簡易表現"""
+		"""str: オブジェクトの短縮表記"""
 		if len(self.attrs) > 0:
 			if self.types.is_a(defs.AltClass):
 				attrs = [str(attr) for attr in self.attrs]
@@ -141,11 +150,11 @@ class SymbolRaw:
 			elif self.types.is_a(defs.Function):
 				attrs = [str(attr) for attr in self.attrs]
 				return f'{self.types.domain_name}({", ".join(attrs[:-1])}) -> {attrs[-1]}'
-			else:
+			elif self._role != Roles.Origin:
 				attrs = [str(attr) for attr in self.attrs]
 				return f'{self.types.domain_name}<{", ".join(attrs)}>'
-		else:
-			return f'{self.types.domain_name}'
+
+		return f'{self.types.domain_name}'
 
 	@override
 	def __eq__(self, other: object) -> bool:
@@ -180,19 +189,6 @@ class SymbolRaw:
 		"""str: オブジェクトの文字列表現"""
 		return self.shorthand
 
-	def try_get_context(self) -> 'SymbolRaw':
-		"""コンテキストを取得
-
-		Returns:
-			SymbolRawe: コンテキストのシンボル
-		Raises:
-			LogicError: コンテキストが無いシンボルで使用
-		"""
-		if self._context is None:
-			raise LogicError(f'Context is null. symbol: {str(self)}, ref_path: {self.ref_path}')
-
-		return self._context
-
 	def each_via(self) -> Iterator[Node]:
 		"""参照元を辿るイテレーターを取得
 
@@ -205,6 +201,14 @@ class SymbolRaw:
 			yield cast(Node, curr.via)
 			curr = curr.org
 
+	def safe_get_context(self) -> 'SymbolRaw | None':
+		"""コンテキストを取得
+
+		Returns:
+			SymbolRaw | None: コンテキストのシンボル
+		"""
+		return self._context
+
 	def path_to(self, module: Module) -> str:
 		"""展開先を変更した参照パスを生成
 
@@ -214,6 +218,14 @@ class SymbolRaw:
 			str: 展開先の参照パス
 		"""
 		return self.ref_path.replace(self.types.module_path, module.path)
+
+	def clone(self) -> 'SymbolRaw':
+		"""複製を作成
+
+		Returns:
+			SymbolRaw: インスタンス
+		"""
+		return SymbolRaw(self.ref_path, types=self.types, decl=self.decl, role=self._role, org=self.org, via=self.via, context=self._context).extends(*self.attrs)
 
 	def to_import(self, module: Module) -> 'SymbolRaw':
 		"""インポート用にラップ

@@ -48,8 +48,8 @@ def expand(entry: list | dict | Any, path: str = '', iter_key: str | None = None
 			in_path = '.'.join(routes)
 			entries = {**entries, **expand(elem, in_path, iter_key)}
 	elif type(entry) is dict:
-		for iter_key, elem in entry.items():
-			routes = [e for e in [path, iter_key] if e]
+		for key, elem in entry.items():
+			routes = [e for e in [path, key] if e]
 			in_path = '.'.join(routes)
 			entries = {**entries, **expand(elem, in_path, iter_key)}
 	else:

@@ -300,9 +300,14 @@ class Builder:
 		Returns:
 			InjectSchemata: スキーマ
 		"""
-		if ctor.__name__ in self.__case_of_schemata:
-			return self.__case_of_schemata[ctor.__name__]
-		elif '__other__' in self.__case_of_schemata:
+		for ctor_ in ctor.__mro__:
+			if not issubclass(ctor_, Reflection):
+				break
+
+			if ctor_.__name__ in self.__case_of_schemata:
+				return self.__case_of_schemata[ctor_.__name__]
+
+		if '__other__' in self.__case_of_schemata:
 			return self.__case_of_schemata['__other__']
 		else:
 			return self.__case_of_schemata['__default__']

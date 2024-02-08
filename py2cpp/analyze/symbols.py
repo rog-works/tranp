@@ -374,15 +374,19 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 		if isinstance(calls.types, defs.Constructor):
 			return self.symbols.resolve(calls.types.class_types.symbol)
 		elif isinstance(calls.types, defs.Function):
-			func = reflection.Builder(calls).schema(
-				klass=calls.attrs[0],
-				parameters=calls.attrs[1:-1],
-				returns=calls.attrs[-1],
-			).build(reflection.Function)
+			func = reflection.Builder(calls) \
+				.case(reflection.Method).schema(
+					klass=calls.attrs[0],
+					parameters=calls.attrs[1:-1],
+					returns=calls.attrs[-1],
+				).other_case().schema(
+					parameters=calls.attrs[:-1],
+					returns=calls.attrs[-1],
+				).build(reflection.Function)
 			if func.is_a(reflection.Method):
-				return func.invoke(calls.context, *arguments)
+				return func.returns(calls.context, *arguments)
 			else:
-				return func.invoke(*arguments)
+				return func.returns(*arguments)
 		else:
 			# defs.ClassDef
 			return calls

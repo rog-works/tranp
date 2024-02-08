@@ -142,7 +142,7 @@ class SymbolRaw:
 
 	@property
 	def shorthand(self) -> str:
-		"""str: オブジェクトの簡易表現"""
+		"""str: オブジェクトの短縮表記"""
 		if len(self.attrs) > 0:
 			if self.types.is_a(defs.AltClass):
 				attrs = [str(attr) for attr in self.attrs]
@@ -218,6 +218,14 @@ class SymbolRaw:
 			str: 展開先の参照パス
 		"""
 		return self.ref_path.replace(self.types.module_path, module.path)
+
+	def clone(self) -> 'SymbolRaw':
+		"""複製を作成
+
+		Returns:
+			SymbolRaw: インスタンス
+		"""
+		return SymbolRaw(self.ref_path, types=self.types, decl=self.decl, role=self._role, org=self.org, via=self.via, context=self._context).extends(*self.attrs)
 
 	def to_import(self, module: Module) -> 'SymbolRaw':
 		"""インポート用にラップ

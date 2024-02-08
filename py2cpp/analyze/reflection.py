@@ -195,7 +195,7 @@ class TemplateManipulator:
 
 		Args:
 			t_map_primary (TemplateMap): 主体
-			t_map_prop (TemplateMap): サブ
+			t_map_props (TemplateMap): サブ
 		Returns:
 			UpdateMap: 一致したパスのマップ表
 		"""

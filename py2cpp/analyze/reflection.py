@@ -66,10 +66,10 @@ class Function(Object):
 		return self._schema('returns')
 
 	def invoke(self, *arguments: SymbolRaw) -> SymbolRaw:
-		t_map_returns = TemplateManipulator.unpack_templates(returns=self.returns)
-		t_map_props = TemplateManipulator.unpack_templates(parameters=list(self.parameters.values()), returns=self.returns)
-		updates = TemplateManipulator.make_updates(t_map_returns, t_map_props)
 		map_props = TemplateManipulator.unpack_symbols(parameters=list(arguments))
+		t_map_props = TemplateManipulator.unpack_templates(parameters=list(self.parameters.values()), returns=self.returns)
+		t_map_returns = TemplateManipulator.unpack_templates(returns=self.returns)
+		updates = TemplateManipulator.make_updates(t_map_returns, t_map_props)
 		return TemplateManipulator.actualize(self.returns, map_props, updates)
 
 

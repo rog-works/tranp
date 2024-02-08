@@ -150,11 +150,11 @@ class SymbolRaw:
 			elif self.types.is_a(defs.Function):
 				attrs = [str(attr) for attr in self.attrs]
 				return f'{self.types.domain_name}({", ".join(attrs[:-1])}) -> {attrs[-1]}'
-			else:
+			elif self._role != Roles.Origin:
 				attrs = [str(attr) for attr in self.attrs]
 				return f'{self.types.domain_name}<{", ".join(attrs)}>'
-		else:
-			return f'{self.types.domain_name}'
+
+		return f'{self.types.domain_name}'
 
 	@override
 	def __eq__(self, other: object) -> bool:

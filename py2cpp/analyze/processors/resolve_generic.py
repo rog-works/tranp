@@ -39,9 +39,8 @@ class ResolveGeneric:
 				update_raws[key] = self.apply_function(raws, raw, decl_type)
 			elif isinstance(decl_type, defs.AltClass):
 				update_raws[key] = self.apply_alt_class(raws, raw, decl_type)
-			# XXX 文字列表現がGeneric形式になってしまうので一旦廃止
-			# elif isinstance(domain_type, defs.Class):
-			# 	update_raws[key] = self.apply_class(raws, raw, domain_type)
+			elif isinstance(decl_type, defs.Class):
+				update_raws[key] = self.apply_class(raws, raw, decl_type)
 
 		return {**raws, **update_raws}
 

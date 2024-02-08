@@ -122,8 +122,17 @@ class SymbolRaw:
 		return self._via
 
 	@property
-	def context(self) -> 'SymbolRaw | None':
-		"""SymbolRaw | None: コンテキストのシンボル"""
+	def context(self) -> 'SymbolRaw':
+		"""コンテキストを取得
+
+		Returns:
+			SymbolRaw: コンテキストのシンボル
+		Raises:
+			LogicError: コンテキストが無いシンボルで使用
+		"""
+		if self._context is None:
+			raise LogicError(f'Context is null. symbol: {str(self)}, ref_path: {self.ref_path}')
+
 		return self._context
 
 	@property
@@ -180,19 +189,6 @@ class SymbolRaw:
 		"""str: オブジェクトの文字列表現"""
 		return self.shorthand
 
-	def try_get_context(self) -> 'SymbolRaw':
-		"""コンテキストを取得
-
-		Returns:
-			SymbolRawe: コンテキストのシンボル
-		Raises:
-			LogicError: コンテキストが無いシンボルで使用
-		"""
-		if self._context is None:
-			raise LogicError(f'Context is null. symbol: {str(self)}, ref_path: {self.ref_path}')
-
-		return self._context
-
 	def each_via(self) -> Iterator[Node]:
 		"""参照元を辿るイテレーターを取得
 
@@ -204,6 +200,14 @@ class SymbolRaw:
 			# XXX whileの判定が反映されずに警告されるためcastで対処
 			yield cast(Node, curr.via)
 			curr = curr.org
+
+	def safe_get_context(self) -> 'SymbolRaw | None':
+		"""コンテキストを取得
+
+		Returns:
+			SymbolRaw | None: コンテキストのシンボル
+		"""
+		return self._context
 
 	def path_to(self, module: Module) -> str:
 		"""展開先を変更した参照パスを生成

@@ -1,7 +1,6 @@
 from typing import Callable, TypeAlias, TypeVar, cast
 
 from py2cpp.analyze.symbol import SymbolRaw
-from py2cpp.analyze.symbols import Symbols
 from py2cpp.ast.dsn import DSN
 from py2cpp.errors import LogicError
 from py2cpp.lang.implementation import override
@@ -36,7 +35,7 @@ class Reflection:
 	def shorthand(self) -> str:
 		return str(self._via)
 
-	def is_a(self, ctor: type[Reflection]) -> bool:
+	def is_a(self, ctor: type['Reflection']) -> bool:
 		return isinstance(self, ctor)
 
 
@@ -84,10 +83,10 @@ class Method(Function):
 
 	@override
 	def invoke(self, *arguments: SymbolRaw) -> SymbolRaw:
-		t_map_returns = TemplateManipulator.unpack_templates(returns=self.returns)
-		t_map_props = TemplateManipulator.unpack_templates(klass=self.klass, parameters=list(self.parameters.values()), returns=self.returns)
-		updates = TemplateManipulator.make_updates(t_map_returns, t_map_props)
 		map_props = TemplateManipulator.unpack_symbols(klass=list(arguments)[0], parameters=list(arguments)[1:])
+		t_map_props = TemplateManipulator.unpack_templates(klass=self.klass, parameters=list(self.parameters.values()))
+		t_map_returns = TemplateManipulator.unpack_templates(returns=self.returns)
+		updates = TemplateManipulator.make_updates(t_map_returns, t_map_props)
 		return TemplateManipulator.actualize(self.returns, map_props, updates)
 
 
@@ -101,11 +100,6 @@ UpdateMap: TypeAlias = dict[str, str]
 
 
 class TemplateManipulator:
-	@classmethod
-	def class_template_symbols(cls, symbols: Symbols, types: defs.ClassDef) -> list[SymbolRaw]:
-		g_types = symbols.resolve(types).types.generic_types
-		return [symbols.resolve(g_type) for g_type in g_types]
-
 	@classmethod
 	def unpack_templates(cls, **attrs: SymbolRaw | list[SymbolRaw]) -> TemplateMap:
 		expand_attrs = seqs.expand(attrs, iter_key='attrs')
@@ -127,7 +121,7 @@ class TemplateManipulator:
 
 	@classmethod
 	def actualize(cls, primary: SymbolRaw, actual_props: SymbolMap, updates: UpdateMap) -> SymbolRaw:
-		primary_bodies = [prop_path for prop_path in updates.keys() if DSN.elem_counts(prop_path) == 1]
+		primary_bodies = [prop_path for primary_path, prop_path in updates.items() if DSN.elem_counts(primary_path) == 1]
 		if primary_bodies:
 			return actual_props[primary_bodies[0]]
 
@@ -142,15 +136,13 @@ class Builder:
 		self.__via = via
 		self.__schemata: dict[str, SymbolRaw | list[SymbolRaw]] = {}
 
-	def __getattr__(self, key: str) -> Callable[[SymbolRaw | list[SymbolRaw]], 'Builder']:
-		return lambda schema: self.add_schema(key, schema)
-
-	def add_schema(self, key: str, schema: SymbolRaw | list[SymbolRaw]) -> 'Builder':
-		self.__schemata[key] = schema
+	def schema(self, **schema: SymbolRaw | list[SymbolRaw]) -> 'Builder':
+		self.__schemata = {**self.__schemata, **schema}
 		return self
 
 	def build(self, target: type[T_Ref]) -> T_Ref:
 		ctors: dict[type[defs.ClassDef], type[Reflection]] = {
+			defs.Function: Function,
 			defs.ClassMethod: ClassMethod,
 			defs.Method: Method,
 			defs.Constructor: Constructor,

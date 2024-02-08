@@ -1,6 +1,7 @@
 from py2cpp.analyze.db import SymbolDB
 from py2cpp.analyze.symbol import SymbolRaw
 from py2cpp.analyze.procedure import Procedure
+import py2cpp.analyze.reflection as reflection
 from py2cpp.analyze.finder import SymbolFinder
 from py2cpp.ast.dsn import DSN
 import py2cpp.compatible.python.classes as classes
@@ -373,7 +374,15 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 		if isinstance(calls.types, defs.Constructor):
 			return self.symbols.resolve(calls.types.class_types.symbol)
 		elif isinstance(calls.types, defs.Function):
-			return FuncCallCompletion(self.symbols, node, calls, arguments).actual_return()
+			func = reflection.Builder(calls).schema(
+				klass=calls.attrs[0],
+				parameters=calls.attrs[1:-1],
+				returns=calls.attrs[-1],
+			).build(reflection.Function)
+			if func.is_a(reflection.Method):
+				return func.invoke(calls.context, *arguments)
+			else:
+				return func.invoke(*arguments)
 		else:
 			# defs.ClassDef
 			return calls
@@ -514,146 +523,3 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 	def on_empty(self, node: defs.Empty) -> SymbolRaw:
 		# XXX 厳密にいうとNullとEmptyは別だが、実用上はほぼ同じなので代用
 		return self.symbols.type_of_primitive(None)
-
-
-from typing import Callable, Generic, TypeAlias, cast
-
-from py2cpp.node.node import T_Node
-
-
-TemplateMap: TypeAlias = dict[str, defs.TemplateClass]
-SymbolMap: TypeAlias = dict[str, SymbolRaw]
-Callback: TypeAlias = Callable[[str], SymbolRaw]
-
-class Completion(Generic[T_Node]):
-	def __init__(self, symbols: Symbols, node: T_Node) -> None:
-		self._symbols = symbols
-		self._node = node
-
-	def actual_return(self) -> SymbolRaw:
-		raise NotImplementedError()
-
-	def _unpack(self, raws: dict[str, SymbolRaw | list[SymbolRaw]]) -> dict[str, defs.TemplateClass]:
-		expand_attrs = seqs.expand(raws, iter_key='attrs')
-		return {path: attr.types for path, attr in expand_attrs.items() if isinstance(attr.types, defs.TemplateClass)}
-
-	def _fetch_class_t_symbols(self, types: defs.ClassDef) -> list[SymbolRaw]:
-		g_types = self._symbols.resolve(types).types.generic_types
-		return [self._symbols.resolve(g_type) for g_type in g_types]
-
-	def _make_updates(self, calls_ts: TemplateMap) -> dict[str, SymbolRaw]:
-		primary, *sub_items = [DSN.elements(path)[0] for path in calls_ts.keys()]
-		ts_primary = {path: t for path, t in calls_ts.items() if path.startswith(primary)}
-		updates: SymbolMap = {}
-		for key in sub_items:
-			ts_sub_item = {path: t for path, t in calls_ts.items() if path.startswith(key)}
-			updates = {**updates, **self.__actualized(key, ts_primary, ts_sub_item)}
-
-		return updates
-
-	def __actualized(self, key: str, ts_primary: TemplateMap, ts_sub_item: TemplateMap) -> SymbolMap:
-		invoker = cast(Callback, getattr(self, f'actual_from_{key}'))
-		updates: dict[str, SymbolRaw] = {}
-		for path, t in ts_primary.items():
-			founds = [in_path for in_path, t_arg in ts_sub_item.items() if t_arg == t]
-			for found_path in founds:
-				updates[path] = invoker(found_path)
-
-		return updates
-
-	def _apply_return(self, return_raw: SymbolRaw, updates: dict[str, SymbolRaw]) -> SymbolRaw:
-		for path, attr in updates.items():
-			seqs.update(return_raw.attrs, path, attr, iter_key='attrs')
-
-		return return_raw
-
-
-class FuncCallCompletion(Completion[defs.FuncCall]):
-	def __init__(self, symbols: Symbols, node: defs.FuncCall, calls: SymbolRaw, arguments: list[SymbolRaw]) -> None:
-		super().__init__(symbols, node)
-		self.__calls = calls
-		self.__arguments = arguments
-
-	@property
-	def class_t_symbols(self) -> list[SymbolRaw]:
-		if not isinstance(self.__calls.types, (defs.Constructor, defs.ClassMethod, defs.Method)):
-			return []
-		
-		return self._fetch_class_t_symbols(self.__calls.types.class_types)
-
-	@property
-	def args_symbols(self) -> list[SymbolRaw]:
-		return self.__calls.attrs[:-1]
-
-	@property
-	def return_symbol(self) -> SymbolRaw:
-		return self.__calls.attrs[-1]
-
-	# def reflection(self) -> reflection.Function:
-	# 	return reflection.Builder(self.__calls) \
-	# 		.klass(self.__calls.attrs[0]) \
-	# 		.parameters(self.__calls.attrs[1:-1]) \
-	# 		.returns(self.__calls.attrs[-1]) \
-	# 		.build(reflection.Function)
-
-	# def actual_return2(self) -> SymbolRaw:
-	# 	func = self.reflection()
-	# 	return func.invoke(self.__calls.context, *self.__arguments)
-
-	@implements
-	def actual_return(self) -> SymbolRaw:
-		unpacked = self._unpack({'return': self.return_symbol, 'args': self.args_symbols, 'class': self.class_t_symbols})
-		if not len(unpacked):
-			return self.return_symbol
-
-		updates = self._make_updates(unpacked)
-		if 'return' in updates:
-			return updates['return']
-
-		return self._apply_return(self.return_symbol, updates)
-
-	def actual_from_args(self, found_path: str) -> SymbolRaw:
-		index = int(DSN.elements(found_path)[1])
-		return self.__arguments[index]
-
-	def actual_from_class(self, found_path: str) -> SymbolRaw:
-		index = int(DSN.elements(found_path)[1])
-		return self.__calls.context.attrs[index]
-
-
-# class RelayCompletion(Completion[defs.Relay]):
-# 	def __init__(self, symbols: Symbols, node: defs.Relay, receiver: SymbolRaw, prop: SymbolRaw) -> None:
-# 		super().__init__(symbols, node)
-# 		self.__receiver = receiver
-# 		self.__prop = prop
-# 
-# 	@property
-# 	def receiver_symbol(self) -> SymbolRaw:
-# 		return self.__receiver
-# 
-# 	@property
-# 	def prop_symbol(self) -> SymbolRaw:
-# 		return self.__prop
-# 
-# 	@property
-# 	def class_t_symbols(self) -> list[SymbolRaw]:
-# 		return self._fetch_class_t_symbols(self.__receiver.types)
-# 
-# 	@implements
-# 	def actual_return(self) -> SymbolRaw:
-# 		unpacked = self._unpack({'receiver': self.receiver_symbol, 'prop': self.prop_symbol, 'class': self.class_t_symbols})
-# 		if not len(unpacked):
-# 			return self.receiver_symbol
-# 
-# 		updates = self._make_updates(unpacked)
-# 		if 'receiver' in updates:
-# 			return updates['receiver']
-# 
-# 		return self._apply_return(self.receiver_symbol, updates)
-# 
-# 	def actual_from_prop(self, found_path: str) -> SymbolRaw:
-# 		return self.__prop
-# 
-# 	def actual_from_class(self, found_path: str) -> SymbolRaw:
-# 		index = int(DSN.elements(found_path)[1])
-# 		return self.__receiver.try_get_context().attrs[index]

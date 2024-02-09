@@ -303,7 +303,7 @@ class Builder:
 		"""編集中のケースにスキーマを追加
 
 		Args:
-			injector (Injector): スキーマ注入関数
+			injector (Injector): スキーマファクトリー
 		Returns:
 			Builder: 自己参照
 		"""
@@ -314,7 +314,9 @@ class Builder:
 		"""リフレクションを生成
 
 		Args:
-			target (type[T_Ref]): レスポンスするリフレクション型
+			expect (type[T_Ref]): 期待するレスポンス型
+		Returns:
+			T_Ref: 生成したインスタンス
 		"""
 		ctors: dict[type[defs.ClassDef], type[Reflection]] = {
 			defs.Function: Function,
@@ -334,9 +336,9 @@ class Builder:
 		"""生成時に注入するスキーマを取得
 
 		Args:
-			ctor (type[Reflection]): 生成するリフレクション型
+			ctor (type[Reflection]): 生成する型
 		Returns:
-			InjectSchemata: スキーマ
+			Injector: スキーマファクトリー
 		"""
 		for ctor_ in ctor.__mro__:
 			if not issubclass(ctor_, Reflection):

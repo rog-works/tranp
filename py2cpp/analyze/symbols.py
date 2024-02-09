@@ -39,7 +39,7 @@ class Symbols:
 		return symbol.types == self.type_of_primitive(primitive_type).types
 
 	def get_object(self) -> SymbolRaw:
-		"""オブジェクト(共通基底クラス)のシンボルを取得
+		"""objectのシンボルを取得
 
 		Returns:
 			SymbolRaw: シンボル

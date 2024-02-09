@@ -20,7 +20,7 @@ class SymbolFinder:
 		self.__library_paths = library_paths
 
 	def get_object(self, raws: SymbolRaws) -> SymbolRaw:
-		"""オブジェクト(共通基底クラス)のシンボルを取得
+		"""objectのシンボルを取得
 
 		Args:
 			raws (SymbolRaws): シンボルテーブル

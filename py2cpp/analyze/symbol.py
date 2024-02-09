@@ -151,7 +151,7 @@ class SymbolRaw:
 			* types=AltClass: ${alias}=${actual}
 			* types=Function: ${domain_name}(...${arguments}) -> ${return}
 			* role=Origin: ${domain_name}
-			* その他: ${domain_name}<$attributes>
+			* その他: ${domain_name}<...${attributes}>
 		"""
 		if len(self.attrs) > 0:
 			if self.types.is_a(defs.AltClass):

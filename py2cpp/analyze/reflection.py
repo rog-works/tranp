@@ -54,7 +54,7 @@ class Reflection:
 
 	@property
 	def types(self) -> defs.ClassDef:
-		"""ClassDef: シンボルのクラス型(クラス定義ノード)"""
+		"""ClassDef: シンボルの型(クラス定義ノード)"""
 		return self.symbol.types
 
 	@property
@@ -79,6 +79,8 @@ class Reflection:
 			ctor (type[T_Ref]): 比較対象
 		Returns:
 			T_Ref: キャスト後のインスタンス
+		Raises:
+			LogicError: 派生関係が無いクラスを指定
 		"""
 		if isinstance(self, ctor):
 			return self
@@ -91,15 +93,9 @@ class Object(Reflection):
 	...
 
 
-class Instance(Object):
-	"""クラスインスタンスの基底クラス"""
-
-	@property
-	def is_static(self) -> bool:
-		...
-
-	def props(self, key: str) -> Object:
-		...
+class Type(Object):
+	"""全タイプ(クラス定義)の基底クラス"""
+	...
 
 
 class Enum(Object):
@@ -107,8 +103,28 @@ class Enum(Object):
 	...
 
 
+class Instance(Object):
+	"""クラスインスタンスの基底クラス"""
+
+	@property
+	def is_static(self) -> bool:
+		...
+
+
 class Function(Object):
-	"""全ファンクションの基底クラス。素のファンクションが該当"""
+	"""全ファンクションの基底クラス。メソッド/クロージャー以外のファンクションが対象"""
+
+	def parameter(self, key: str, *arguments: SymbolRaw) -> SymbolRaw:
+		"""引数の実行時型を解決
+
+		Args:
+			key (str): 引数の名前
+			*arguments (SymbolRaw): 引数リスト(実行時型)
+		Returns:
+			SymbolRaw: 実行時型
+		"""
+		index = [index for index, parameter in enumerate(self.schemata.parameters) if key == parameter.decl.symbol.tokens].pop()
+		return arguments[index]
 
 	def returns(self, *arguments: SymbolRaw) -> SymbolRaw:
 		"""戻り値の実行時型を解決
@@ -116,7 +132,7 @@ class Function(Object):
 		Args:
 			*arguments (SymbolRaw): 引数リスト(実行時型)
 		Returns:
-			SymbolRaw: 戻り値の実行時型
+			SymbolRaw: 実行時型
 		"""
 		map_props = TemplateManipulator.unpack_symbols(parameters=list(arguments))
 		t_map_props = TemplateManipulator.unpack_templates(parameters=self.schemata.parameters, returns=self.schema.returns)
@@ -131,7 +147,25 @@ class Closure(Function):
 
 
 class Method(Function):
-	"""全メソッドの基底クラス"""
+	"""全メソッドの基底クラス。クラスメソッド/コンストラクター以外のメソッドが対象"""
+
+	@override
+	def parameter(self, key: str, *arguments: SymbolRaw) -> SymbolRaw:
+		"""引数の実行時型を解決
+
+		Args:
+			key (str): 引数の名前
+			*arguments (SymbolRaw): 引数リスト(実行時型)
+		Returns:
+			SymbolRaw: 実行時型
+		"""
+		actual_klass, *_ = arguments
+		parameter = [parameter for parameter in self.schemata.parameters if key == parameter.decl.symbol.tokens].pop()
+		map_props = TemplateManipulator.unpack_symbols(klass=actual_klass)
+		t_map_props = TemplateManipulator.unpack_templates(klass=self.schema.klass)
+		t_map_parameter = TemplateManipulator.unpack_templates(parameter=parameter)
+		updates = TemplateManipulator.make_updates(t_map_parameter, t_map_props)
+		return TemplateManipulator.apply(parameter.clone(), map_props, updates)
 
 	@override
 	def returns(self, *arguments: SymbolRaw) -> SymbolRaw:
@@ -140,9 +174,10 @@ class Method(Function):
 		Args:
 			*arguments (SymbolRaw): 引数リスト(実行時型)
 		Returns:
-			SymbolRaw: 戻り値の実行時型
+			SymbolRaw: 実行時型
 		"""
-		map_props = TemplateManipulator.unpack_symbols(klass=list(arguments)[0], parameters=list(arguments)[1:])
+		actual_klass, *actual_arguments = arguments
+		map_props = TemplateManipulator.unpack_symbols(klass=actual_klass, parameters=actual_arguments)
 		t_map_props = TemplateManipulator.unpack_templates(klass=self.schema.klass, parameters=self.schemata.parameters)
 		t_map_returns = TemplateManipulator.unpack_templates(returns=self.schema.returns)
 		updates = TemplateManipulator.make_updates(t_map_returns, t_map_props)

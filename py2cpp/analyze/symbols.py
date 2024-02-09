@@ -38,6 +38,16 @@ class Symbols:
 		"""
 		return symbol.types == self.type_of_primitive(primitive_type).types
 
+	def get_object(self) -> SymbolRaw:
+		"""オブジェクト(共通基底クラス)のシンボルを取得
+
+		Returns:
+			SymbolRaw: シンボル
+		Raises:
+			LogicError: objectが未実装
+		"""
+		return self.__finder.get_object(self.__raws)
+
 	def from_fullyname(self, fullyname: str) -> SymbolRaw:
 		"""完全参照名からシンボルを解決
 
@@ -211,6 +221,11 @@ class Symbols:
 			found_raw = self.__resolve_raw(inherit_type_raw.types, prop_name)
 			if found_raw:
 				return found_raw
+
+		# 全てのクラスはobjectを継承している前提のため、暗黙的にフォールバック
+		found_raw = self.__resolve_raw(self.get_object().types, prop_name)
+		if found_raw:
+			return found_raw
 
 		return None
 

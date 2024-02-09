@@ -115,6 +115,11 @@ class Null: ...
 
 # Class
 
+@__actual__('object')
+class Object:
+	def __init__(self) -> None: ...
+
+
 @__actual__('type')
 class Type: ...
 @__actual__('super')

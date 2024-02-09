@@ -327,7 +327,7 @@ class Builder:
 		}
 		ctor = ctors.get(self.__symbol.types.__class__, Object)
 		if not issubclass(ctor, expect):
-			raise LogicError(f'Unexpected build class. resolved: {ctor}, expect: {expect}')
+			raise LogicError(f'Unexpected build class. symbol: {self.__symbol}, resolved: {ctor}, expect: {expect}')
 
 		injector = self.__resolve_injector(ctor)
 		return ctor(self.__symbol, injector())

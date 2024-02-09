@@ -303,24 +303,26 @@ class Handler(Procedure[str]):
 		return node.super_class_symbol.tokens
 
 	def on_argument(self, node: defs.Argument, label: str, value: str) -> str:
-		def resolve_calls() -> SymbolRaw:
-			calls = self.symbols.type_of(node.func_call.calls)
-			if not isinstance(calls.types, defs.Class):
-				return calls
+		def resolve_calls(org_calls) -> SymbolRaw:
+			if not isinstance(org_calls.types, defs.Class):
+				return org_calls
 
-			return self.symbols.type_of_constructor(calls.types)
+			return self.symbols.type_of_constructor(org_calls.types)
 
-		def actual_parameter(calls_ref: reflection.Function, calls: SymbolRaw) -> SymbolRaw:
+		def actual_parameter(calls_ref: reflection.Function, org_calls: SymbolRaw) -> SymbolRaw:
 			actual_argument = self.symbols.type_of(node)
-			if isinstance(calls_ref, reflection.Method):
-				return calls_ref.parameter(node.func_call.param_index_of(node), calls.context, actual_argument)
+			if isinstance(calls_ref, reflection.Constructor):
+				return calls_ref.parameter(node.func_call.param_index_of(node), org_calls, actual_argument)
+			elif isinstance(calls_ref, reflection.Method):
+				return calls_ref.parameter(node.func_call.param_index_of(node), calls_ref.symbol.context, actual_argument)
 			else:
 				return calls_ref.parameter(node.func_call.param_index_of(node), actual_argument)
 
-		calls = resolve_calls()
-		calls_ref = reflection.Builder(calls) \
-			.case(reflection.Method).schema(lambda: {'klass': calls.attrs[0], 'parameters': calls.attrs[1:-1], 'returns': calls.attrs[-1]}) \
-			.other_case().schema(lambda: {'parameters': calls.attrs[:-1], 'returns': calls.attrs[-1]}) \
+		calls = self.symbols.type_of(node.func_call.calls)
+		calls_of_func = resolve_calls(calls)
+		calls_ref = reflection.Builder(calls_of_func) \
+			.case(reflection.Method).schema(lambda: {'klass': calls_of_func.attrs[0], 'parameters': calls_of_func.attrs[1:-1], 'returns': calls_of_func.attrs[-1]}) \
+			.other_case().schema(lambda: {'parameters': calls_of_func.attrs[:-1], 'returns': calls_of_func.attrs[-1]}) \
 			.build(reflection.Function)
 		parameter = actual_parameter(calls_ref, calls)
 		if len(parameter.attrs):

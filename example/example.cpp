@@ -78,7 +78,7 @@ class CellMesh {
 	}
 	/** to_vertex_boxs */
 	public: static std::vector<std::shared_ptr<Box3d>> to_vertex_boxs(Box3d* cellBox, int unit) {
-		int offset = unit / 10;
+		float offset = unit / 10.0;
 		Vector min = cellBox->min;
 		Vector max = cellBox->max;
 		std::vector<Vector> positions = {
@@ -93,7 +93,7 @@ class CellMesh {
 		};
 		std::vector<std::shared_ptr<Box3d>> out = {
 		};
-		Vector p = positions.pop();
+		Vector* p = positions[0];
 		for (auto position : positions) {
 			out.push_back(new Box3d(position - offset, position + offset));
 		}

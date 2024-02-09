@@ -62,18 +62,32 @@ class Symbols:
 		"""
 		return self.__finder.by_primitive(self.__raws, primitive_type)
 
-	def type_of_property(self, decl_class: defs.ClassDef, prop: defs.Var) -> SymbolRaw:
+	def type_of_property(self, types: defs.ClassDef, prop: defs.Var) -> SymbolRaw:
 		"""クラス定義ノードと変数参照ノードからプロパティーのシンボルを解決
 
 		Args:
-			decl_class (ClassDef): クラス定義ノード
+			types (ClassDef): クラス定義ノード
 			prop (Var): 変数参照ノード
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
 			NotFoundError: シンボルが見つからない
 		"""
-		return self.resolve(decl_class, prop.tokens)
+		return self.resolve(types, prop.tokens)
+
+	def type_of_constructor(self, types: defs.Class) -> SymbolRaw:
+		"""クラス定義ノードからコンストラクターのシンボルを解決
+
+		Args:
+			class (Class): クラス定義ノード
+		Returns:
+			SymbolRaw: シンボル
+		Raises:
+			NotFoundError: シンボルが見つからない
+		Note:
+			FIXME Pythonのコンストラクターに依存したコードはNG。再度検討
+		"""
+		return self.resolve(types, '__init__')
 
 	def type_of(self, node: Node) -> SymbolRaw:
 		"""シンボル系/式ノードからシンボルを解決 XXX 万能過ぎるので細分化を検討
@@ -375,14 +389,9 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 			return self.symbols.resolve(calls.types.class_types.symbol)
 		elif isinstance(calls.types, defs.Function):
 			func = reflection.Builder(calls) \
-				.case(reflection.Method).schema(
-					klass=calls.attrs[0],
-					parameters=calls.attrs[1:-1],
-					returns=calls.attrs[-1],
-				).other_case().schema(
-					parameters=calls.attrs[:-1],
-					returns=calls.attrs[-1],
-				).build(reflection.Function)
+				.case(reflection.Method).schema(lambda: {'klass': calls.attrs[0], 'parameters': calls.attrs[1:-1], 'returns': calls.attrs[-1]}) \
+				.other_case().schema(lambda: {'parameters': calls.attrs[:-1], 'returns': calls.attrs[-1]}) \
+				.build(reflection.Function)
 			if func.is_a(reflection.Method):
 				return func.returns(calls.context, *arguments)
 			else:

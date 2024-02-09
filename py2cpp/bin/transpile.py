@@ -4,6 +4,7 @@ import sys
 from typing import cast
 
 from py2cpp.analyze.procedure import Procedure
+import py2cpp.analyze.reflection as reflection
 from py2cpp.analyze.symbol import SymbolRaw
 from py2cpp.analyze.symbols import Symbols
 from py2cpp.app.app import App
@@ -23,6 +24,10 @@ class Handler(Procedure[str]):
 		super().__init__(verbose=True)
 		self.symbols = symbols
 		self.view = render
+
+	@property
+	def cvar_keys(self) -> list[str]:
+		return [cvar.__name__ for cvar in [cpp.CP, cpp.CSP, cpp.CRef, cpp.CRaw]]
 
 	# XXX 未使用
 	# def __result_internal(self, begin: Node) -> str:
@@ -221,8 +226,7 @@ class Handler(Procedure[str]):
 		prop = prop_symbol.types.alias_symbol or node.prop.tokens
 
 		def is_cvar_receiver() -> bool:
-			cvars: list[str] = [cvar.__name__ for cvar in [cpp.CP, cpp.CSP, cpp.CRef, cpp.CRaw]]
-			return len(receiver_symbol.attrs) > 0 and receiver_symbol.attrs[0].types.symbol.tokens in cvars
+			return len(receiver_symbol.attrs) > 0 and receiver_symbol.attrs[0].types.symbol.tokens in self.cvar_keys
 
 		def is_this_var() -> bool:
 			return node.receiver.is_a(defs.ThisRef)
@@ -299,6 +303,31 @@ class Handler(Procedure[str]):
 		return node.super_class_symbol.tokens
 
 	def on_argument(self, node: defs.Argument, label: str, value: str) -> str:
+		def resolve_calls() -> SymbolRaw:
+			calls = self.symbols.type_of(node.func_call.calls)
+			if not isinstance(calls.types, defs.Class):
+				return calls
+
+			return self.symbols.type_of_constructor(calls.types)
+
+		def actual_parameter(calls_ref: reflection.Function, calls: SymbolRaw) -> SymbolRaw:
+			actual_argument = self.symbols.type_of(node)
+			if isinstance(calls_ref, reflection.Method):
+				return calls_ref.parameter(node.func_call.param_index_of(node), calls.context, actual_argument)
+			else:
+				return calls_ref.parameter(node.func_call.param_index_of(node), actual_argument)
+
+		calls = resolve_calls()
+		calls_ref = reflection.Builder(calls) \
+			.case(reflection.Method).schema(lambda: {'klass': calls.attrs[0], 'parameters': calls.attrs[1:-1], 'returns': calls.attrs[-1]}) \
+			.other_case().schema(lambda: {'parameters': calls.attrs[:-1], 'returns': calls.attrs[-1]}) \
+			.build(reflection.Function)
+		parameter = actual_parameter(calls_ref, calls)
+		if len(parameter.attrs):
+			key = [attr.types.symbol.tokens for attr in parameter.attrs].pop(0)
+			if key in self.cvar_keys:
+				print(key)
+
 		return value
 
 	def on_inherit_argument(self, node: defs.InheritArgument, class_type: str) -> str:

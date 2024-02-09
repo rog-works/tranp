@@ -1,4 +1,4 @@
-from typing import Generic, TypeAlias, TypeVar
+from typing import Callable, Generic, TypeAlias, TypeVar
 
 from py2cpp.analyze.symbol import SymbolRaw
 from py2cpp.ast.dsn import DSN
@@ -11,6 +11,7 @@ T_Ref = TypeVar('T_Ref', bound='Reflection')
 T_Sym = TypeVar('T_Sym', SymbolRaw, list[SymbolRaw], 'Object')
 
 InjectSchemata: TypeAlias = dict[str, SymbolRaw | list[SymbolRaw]]
+Injector: TypeAlias = Callable[[], InjectSchemata]
 
 
 class Schema(Generic[T_Sym]):
@@ -85,7 +86,7 @@ class Reflection:
 		if isinstance(self, ctor):
 			return self
 
-		raise LogicError(f'Cast not allowed. from: {self.__class__.__name__}, to: {ctor.__name__}')
+		raise LogicError(f'Cast not allowed. from: {self.__class__}, to: {ctor}')
 
 
 class Object(Reflection):
@@ -114,17 +115,17 @@ class Instance(Object):
 class Function(Object):
 	"""全ファンクションの基底クラス。メソッド/クロージャー以外のファンクションが対象"""
 
-	def parameter(self, key: str, *arguments: SymbolRaw) -> SymbolRaw:
+	def parameter(self, index: int, *context: SymbolRaw) -> SymbolRaw:
 		"""引数の実行時型を解決
 
 		Args:
-			key (str): 引数の名前
-			*arguments (SymbolRaw): 引数リスト(実行時型)
+			index (int): 引数のインデックス
+			*context (SymbolRaw): コンテキスト(0: 引数(実行時型))
 		Returns:
 			SymbolRaw: 実行時型
 		"""
-		index = [index for index, parameter in enumerate(self.schemata.parameters) if key == parameter.decl.symbol.tokens].pop()
-		return arguments[index]
+		argument, *_ = context
+		return argument
 
 	def returns(self, *arguments: SymbolRaw) -> SymbolRaw:
 		"""戻り値の実行時型を解決
@@ -150,17 +151,17 @@ class Method(Function):
 	"""全メソッドの基底クラス。クラスメソッド/コンストラクター以外のメソッドが対象"""
 
 	@override
-	def parameter(self, key: str, *arguments: SymbolRaw) -> SymbolRaw:
+	def parameter(self, index: int, *context: SymbolRaw) -> SymbolRaw:
 		"""引数の実行時型を解決
 
 		Args:
-			key (str): 引数の名前
-			*arguments (SymbolRaw): 引数リスト(実行時型)
+			index (int): 引数のインデックス
+			*context (SymbolRaw): コンテキスト(0: レシーバー(実行時型), 1: 引数(実行時型))
 		Returns:
 			SymbolRaw: 実行時型
 		"""
-		actual_klass, *_ = arguments
-		parameter = [parameter for parameter in self.schemata.parameters if key == parameter.decl.symbol.tokens].pop()
+		actual_klass, *_ = context
+		parameter = self.schemata.parameters[index]
 		map_props = TemplateManipulator.unpack_symbols(klass=actual_klass)
 		t_map_props = TemplateManipulator.unpack_templates(klass=self.schema.klass)
 		t_map_parameter = TemplateManipulator.unpack_templates(parameter=parameter)
@@ -271,12 +272,12 @@ class Builder:
 			symbol (SymbolRaw): シンボル
 		"""
 		self.__symbol = symbol
-		self.__case_of_schemata: dict[str, InjectSchemata] = {'__default__': {}}
+		self.__case_of_injectors: dict[str, Injector] = {'__default__': lambda: {}}
 
 	@property
 	def __current_key(self) -> str:
 		"""str: 編集中のキー"""
-		return list(self.__case_of_schemata.keys())[-1]
+		return list(self.__case_of_injectors.keys())[-1]
 
 	def case(self, expect: type[Reflection]) -> 'Builder':
 		"""ケースを挿入
@@ -286,7 +287,7 @@ class Builder:
 		Returns:
 			Builder: 自己参照
 		"""
-		self.__case_of_schemata[expect.__name__] = {}
+		self.__case_of_injectors[expect.__name__] = lambda: {}
 		return self
 
 	def other_case(self) -> 'Builder':
@@ -295,18 +296,18 @@ class Builder:
 		Returns:
 			Builder: 自己参照
 		"""
-		self.__case_of_schemata['__other__'] = {}
+		self.__case_of_injectors['__other__'] = lambda: {}
 		return self
 
-	def schema(self, **schemata: SymbolRaw | list[SymbolRaw]) -> 'Builder':
+	def schema(self, injector: Injector) -> 'Builder':
 		"""編集中のケースにスキーマを追加
 
 		Args:
-			**schemata (SymbolRaw | list[SymbolRaw]): スキーマとなるシンボル
+			injector (Injector): スキーマ注入関数
 		Returns:
 			Builder: 自己参照
 		"""
-		self.__case_of_schemata[self.__current_key] = {**self.__case_of_schemata[self.__current_key], **schemata}
+		self.__case_of_injectors[self.__current_key] = injector
 		return self
 
 	def build(self, expect: type[T_Ref]) -> T_Ref:
@@ -320,14 +321,16 @@ class Builder:
 			defs.ClassMethod: ClassMethod,
 			defs.Method: Method,
 			defs.Constructor: Constructor,
+			defs.Class: Type,
 		}
-		ctor = ctors[self.__symbol.types.__class__]
+		ctor = ctors.get(self.__symbol.types.__class__, Object)
 		if not issubclass(ctor, expect):
-			raise LogicError(f'Reflection build not supported. expect: {expect}')
+			raise LogicError(f'Unexpected build class. resolved: {ctor}, expect: {expect}')
 
-		return ctor(self.__symbol, self.__inject_schemata(ctor))
+		injector = self.__resolve_injector(ctor)
+		return ctor(self.__symbol, injector())
 
-	def __inject_schemata(self, ctor: type[Reflection]) -> InjectSchemata:
+	def __resolve_injector(self, ctor: type[Reflection]) -> Injector:
 		"""生成時に注入するスキーマを取得
 
 		Args:
@@ -339,11 +342,11 @@ class Builder:
 			if not issubclass(ctor_, Reflection):
 				break
 
-			if ctor_.__name__ in self.__case_of_schemata:
-				return self.__case_of_schemata[ctor_.__name__]
+			if ctor_.__name__ in self.__case_of_injectors:
+				return self.__case_of_injectors[ctor_.__name__]
 
-		if '__other__' in self.__case_of_schemata:
-			return self.__case_of_schemata['__other__']
+		if '__other__' in self.__case_of_injectors:
+			return self.__case_of_injectors['__other__']
 		else:
-			return self.__case_of_schemata['__default__']
+			return self.__case_of_injectors['__default__']
 

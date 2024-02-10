@@ -421,7 +421,7 @@ class FuncCall(Node, IDomain):
 	def arguments(self) -> list['Argument']:
 		return [node.as_a(Argument) for node in self._children('arguments')] if self._exists('arguments') else []
 
-	def param_index_of(self, argument: 'Argument') -> int:
+	def arg_index_of(self, argument: 'Argument') -> int:
 		"""Note: 無関係のノードを渡すとエラーを出力"""
 		return [index for index, in_argument in enumerate(self.arguments) if in_argument == argument].pop()
 

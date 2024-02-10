@@ -323,11 +323,11 @@ class Handler(Procedure[str]):
 				.other_case().schema(lambda: {'parameters': calls.attrs[:-1], 'returns': calls.attrs[-1]}) \
 				.build(reflection.Function)
 			if isinstance(calls_ref, reflection.Constructor):
-				return calls_ref.parameter(node.func_call.param_index_of(node), org_calls, argument)
+				return calls_ref.parameter(node.func_call.arg_index_of(node), org_calls, argument)
 			elif isinstance(calls_ref, reflection.Method):
-				return calls_ref.parameter(node.func_call.param_index_of(node), calls_ref.symbol.context, argument)
+				return calls_ref.parameter(node.func_call.arg_index_of(node), calls_ref.symbol.context, argument)
 			else:
-				return calls_ref.parameter(node.func_call.param_index_of(node), argument)
+				return calls_ref.parameter(node.func_call.arg_index_of(node), argument)
 
 		org_calls = self.symbols.type_of(node.func_call.calls)
 		calls = resolve_calls(org_calls)

@@ -459,11 +459,6 @@ class Argument(Node):
 		children = self._children()
 		return children[1] if len(children) == 2 else children[0]
 
-	@property
-	def func_call(self) -> FuncCall:
-		"""Note: XXX このメソッドは実用上便利と言うだけで、振る舞いとしては如何なものか。本質的にはFuncCallからArgumentを知るべきであり、依存関係に違反しているのでは？"""
-		return self.parent.as_a(FuncCall)
-
 
 @Meta.embed(Node, accept_tags('typed_argvalue'))
 class InheritArgument(Node):

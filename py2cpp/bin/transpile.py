@@ -34,25 +34,20 @@ class Handler(Procedure[str]):
 	# 	cloning.process(begin)
 	# 	return cloning.result()
 
-	def accept_value(self, value_node: Node, accept_raw: SymbolRaw, value_raw: SymbolRaw, value: str) -> str:
-		def value_on_new() -> bool:
-			if isinstance(value_node, defs.FuncCall):
-				return self.symbols.type_of(value_node.calls).types.is_a(defs.Class)
-
-			return False
-
-		if CVars.raw_to_ref(value_raw, accept_raw) and value_on_new():
+	def accepted_cvar_value(self, accept_raw: SymbolRaw, value_node: Node, value_raw: SymbolRaw, value_str: str) -> str:
+		value_on_new = isinstance(value_node, defs.FuncCall) and self.symbols.type_of(value_node.calls).types.is_a(defs.Class)
+		if CVars.raw_to_ref(value_raw, accept_raw) and value_on_new:
 			if CVars.is_shared_ref(accept_raw):
-				matches = cast(re.Match, re.fullmatch(r'([^(]+)\((.+)\)', value))
+				matches = cast(re.Match, re.fullmatch(r'([^(]+)\((.+)\)', value_str))
 				return f'make_shared<{matches[1]}>({matches[2]})'
 			else:
-				return f'new {value}'
+				return f'new {value_str}'
 		elif CVars.raw_to_ref(value_raw, accept_raw):
-			return f'&({value})'
+			return f'&({value_str})'
 		elif CVars.ref_to_raw(value_raw, accept_raw):
-			return f'*({value})'
+			return f'*({value_str})'
 		else:
-			return value
+			return value_str
 
 	# Hook
 
@@ -166,23 +161,23 @@ class Handler(Procedure[str]):
 	# Statement - simple
 
 	def on_move_assign(self, node: defs.MoveAssign, receiver: str, value: str) -> str:
-		accept_value = self.accept_value(node.value, self.symbols.type_of(node.receiver), self.symbols.type_of(node.value), value)
+		accepted_value = self.accepted_cvar_value(self.symbols.type_of(node.receiver), node.value, self.symbols.type_of(node.value), value)
 		# 変数宣言を伴う場合は変数の型名を取得
 		declared = node.parent.as_a(defs.Block).declared_with(node, defs.DeclLocalVar)
 		var_type = str(self.symbols.type_of(node.value)) if declared else ''
-		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': accept_value})
+		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': accepted_value})
 
 	def on_anno_assign(self, node: defs.AnnoAssign, receiver: str, var_type: str, value: str) -> str:
-		accept_value = self.accept_value(node.value, self.symbols.type_of(node.receiver), self.symbols.type_of(node.value), value)
-		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': accept_value})
+		accepted_value = self.accepted_cvar_value(self.symbols.type_of(node.receiver), node.value, self.symbols.type_of(node.value), value)
+		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': accepted_value})
 
 	def on_aug_assign(self, node: defs.AugAssign, receiver: str, operator: str, value: str) -> str:
 		return self.view.render(node.classification, vars={'receiver': receiver, 'operator': operator, 'value': value})
 
 	def on_return(self, node: defs.Return, return_value: str) -> str:
 		function = node.parent.as_a(defs.Block).parent.as_a(defs.Function)
-		accept_value = self.accept_value(node.return_value, self.symbols.type_of(function).attrs[-1], self.symbols.type_of(node.return_value), return_value)
-		return self.view.render(node.classification, vars={'return_value': accept_value})
+		accepted_value = self.accepted_cvar_value(self.symbols.type_of(function).attrs[-1], node.return_value, self.symbols.type_of(node.return_value), return_value)
+		return self.view.render(node.classification, vars={'return_value': accepted_value})
 
 	def on_throw(self, node: defs.Throw, throws: str, via: str) -> str:
 		return self.view.render(node.classification, vars={'throws': throws, 'via': via})
@@ -303,37 +298,44 @@ class Handler(Procedure[str]):
 		return 'void'
 
 	def on_func_call(self, node: defs.FuncCall, calls: str, arguments: list[str]) -> str:
+		def process_argument(org_calls: SymbolRaw, arg_index: int, arg_node: defs.Argument, arg_value_str: str) -> str:
+			def resolve_calls(org_calls: SymbolRaw) -> SymbolRaw:
+				if isinstance(org_calls.types, defs.Class):
+					return self.symbols.type_of_constructor(org_calls.types)
+
+				return org_calls
+
+			def actualize_parameter(calls: SymbolRaw, arg_value: SymbolRaw) -> SymbolRaw:
+				calls_ref = reflection.Builder(calls) \
+					.case(reflection.Method).schema(lambda: {'klass': calls.attrs[0], 'parameters': calls.attrs[1:-1], 'returns': calls.attrs[-1]}) \
+					.other_case().schema(lambda: {'parameters': calls.attrs[:-1], 'returns': calls.attrs[-1]}) \
+					.build(reflection.Function)
+				if isinstance(calls_ref, reflection.Constructor):
+					return calls_ref.parameter(arg_index, org_calls, arg_value)
+				elif isinstance(calls_ref, reflection.Method):
+					return calls_ref.parameter(arg_index, calls_ref.symbol.context, arg_value)
+				else:
+					return calls_ref.parameter(arg_index, arg_value)
+
+			arg_value = self.symbols.type_of(arg_node.value)
+			parameter = actualize_parameter(resolve_calls(org_calls), arg_value)
+			return self.accepted_cvar_value(parameter, arg_node.value, arg_value, arg_value_str)
+
+		# 実引数を受け入れ可能な形式に変換
+		calls_raw = self.symbols.type_of(node.calls)
+		node_arguments = node.arguments
+		accepted_arguments = [process_argument(calls_raw, index, node_arguments[index], argument) for index, argument in enumerate(arguments)]
+
 		# Block直下の場合はステートメント
 		is_statement = node.parent.is_a(defs.Block)
-		return self.view.render(node.classification, vars={'calls': calls, 'arguments': arguments, 'is_statement': is_statement})
+		return self.view.render(node.classification, vars={'calls': calls, 'arguments': accepted_arguments, 'is_statement': is_statement})
+
 
 	def on_super(self, node: defs.Super, calls: str, arguments: list[str]) -> str:
 		return node.super_class_symbol.tokens
 
 	def on_argument(self, node: defs.Argument, label: str, value: str) -> str:
-		def resolve_calls(org_calls: SymbolRaw) -> SymbolRaw:
-			if isinstance(org_calls.types, defs.Class):
-				return self.symbols.type_of_constructor(org_calls.types)
-
-			return org_calls
-
-		def actualize_parameter(org_calls: SymbolRaw, calls: SymbolRaw, argument: SymbolRaw) -> SymbolRaw:
-			calls_ref = reflection.Builder(calls) \
-				.case(reflection.Method).schema(lambda: {'klass': calls.attrs[0], 'parameters': calls.attrs[1:-1], 'returns': calls.attrs[-1]}) \
-				.other_case().schema(lambda: {'parameters': calls.attrs[:-1], 'returns': calls.attrs[-1]}) \
-				.build(reflection.Function)
-			if isinstance(calls_ref, reflection.Constructor):
-				return calls_ref.parameter(node.func_call.arg_index_of(node), org_calls, argument)
-			elif isinstance(calls_ref, reflection.Method):
-				return calls_ref.parameter(node.func_call.arg_index_of(node), calls_ref.symbol.context, argument)
-			else:
-				return calls_ref.parameter(node.func_call.arg_index_of(node), argument)
-
-		org_calls = self.symbols.type_of(node.func_call.calls)
-		calls = resolve_calls(org_calls)
-		argument = self.symbols.type_of(node.value)
-		parameter = actualize_parameter(org_calls, calls, argument)
-		return self.accept_value(node.value, parameter, argument, value)
+		return value
 
 	def on_inherit_argument(self, node: defs.InheritArgument, class_type: str) -> str:
 		return class_type

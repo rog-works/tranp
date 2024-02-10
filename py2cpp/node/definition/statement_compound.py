@@ -506,10 +506,12 @@ class Enum(Class):
 	@classmethod
 	@override
 	def match_feature(cls, via: Class) -> bool:
+		# XXX CEnumの継承に依存するのは微妙なので、修正を検討
 		return 'CEnum' in [inherit.type_name.tokens for inherit in via.inherits]
 
 	@property
 	def vars(self) -> list[MoveAssign]:
+		# XXX collect_decl_varsだと不要な変数宣言まで拾う可能性があるため、ステートメントから直接収集
 		return [node.as_a(MoveAssign) for node in self.statements if node.is_a(MoveAssign)]
 
 

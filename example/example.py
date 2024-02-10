@@ -79,7 +79,7 @@ class CellMesh:
 	def to_cell_box(cls, cell: IntVector, unit: int) -> Box3d[CSP, CConst]:
 		minLocation = cls.from_cell(cell, unit)
 		maxLocation = cls.from_cell(cell + IntVector(1, 1, 1), unit)
-		return Box3d(minLocation, maxLocation)
+		return Box3d[CSP, CConst](minLocation, maxLocation)
 
 	@classmethod
 	def to_vertex_boxs(cls, cellBox: Box3d[CP], unit: int) -> list[Box3d[CSP]]:

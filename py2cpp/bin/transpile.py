@@ -166,10 +166,11 @@ class Handler(Procedure[str]):
 	# Statement - simple
 
 	def on_move_assign(self, node: defs.MoveAssign, receiver: str, value: str) -> str:
+		accept_value = self.accept_value(node.value, self.symbols.type_of(node.receiver), self.symbols.type_of(node.value), value)
 		# 変数宣言を伴う場合は変数の型名を取得
 		declared = node.parent.as_a(defs.Block).declared_with(node, defs.DeclLocalVar)
 		var_type = str(self.symbols.type_of(node.value)) if declared else ''
-		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': value})
+		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': accept_value})
 
 	def on_anno_assign(self, node: defs.AnnoAssign, receiver: str, var_type: str, value: str) -> str:
 		accept_value = self.accept_value(node.value, self.symbols.type_of(node.receiver), self.symbols.type_of(node.value), value)

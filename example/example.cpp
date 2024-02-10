@@ -95,6 +95,8 @@ class CellMesh {
 		};
 		Vector* p = &(positions[0]);
 		std::shared_ptr<Vector> p2 = make_shared<Vector>(1, 2, 3);
+		Vector p3 = Vector(1, 1, 1);
+		p3 = *(p2);
 		for (auto position : positions) {
 			out.push_back(make_shared<Box3d>(position - offset, position + offset));
 		}

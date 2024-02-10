@@ -99,6 +99,8 @@ class CellMesh:
 		out: list[Box3d[CSP]] = []
 		p: Vector[CP] = positions[0]
 		p2: Vector[CSP] = Vector[CSP](1, 2, 3)
+		p3 = Vector(1, 1, 1)
+		p3 = p2
 		for position in positions:
 			out.append(Box3d[CSP](position - offset,  position + offset))
 

@@ -220,15 +220,6 @@ class Handler(Procedure[str]):
 		return node.tokens
 
 	def on_relay(self, node: defs.Relay, receiver: str) -> str:
-		# import py2cpp.analyze.reflection as reflection
-		# def ref(receiver_: reflection.Instance, prop_: reflection.Instance) -> None:
-		# 	receiver_.specs
-		# 	receiver_.is_a(reflection.Instance)
-
-		# 	receiver_.is_static
-		# 	receiver_.is_a(reflection.Enum)
-		# 	receiver_.is_a(reflection.ClassVar)
-
 		receiver_symbol = self.symbols.type_of(node.receiver)
 		prop_symbol = self.symbols.type_of_property(receiver_symbol.types, node.prop)
 		prop = prop_symbol.types.alias_symbol or node.prop.tokens

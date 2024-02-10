@@ -83,7 +83,7 @@ class CellMesh:
 
 	@classmethod
 	def to_vertex_boxs(cls, cellBox: Box3d[CP], unit: int) -> list[Box3d[CSP]]:
-		offset = unit / 10
+		offset = unit / 10.0
 		min = cellBox.min
 		max = cellBox.max
 		positions: list[Vector] = [
@@ -97,7 +97,7 @@ class CellMesh:
 			Vector(min.x, max.y, max.z),
 		]
 		out: list[Box3d[CSP]] = []
-		p = positions.pop()
+		p: Vector[CP] = positions[0]
 		for position in positions:
 			out.append(Box3d[CSP](position - offset,  position + offset))
 

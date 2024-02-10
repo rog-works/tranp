@@ -142,7 +142,17 @@ class SymbolRaw:
 
 	@property
 	def shorthand(self) -> str:
-		"""str: オブジェクトの短縮表記"""
+		"""オブジェクトの短縮表記を生成
+
+		Returns:
+			str: 短縮表記
+		Note:
+			# 書式
+			* types=AltClass: ${alias}=${actual}
+			* types=Function: ${domain_name}(...${arguments}) -> ${return}
+			* role=Origin: ${domain_name}
+			* その他: ${domain_name}<...${attributes}>
+		"""
 		if len(self.attrs) > 0:
 			if self.types.is_a(defs.AltClass):
 				attrs = [str(attr) for attr in self.attrs]

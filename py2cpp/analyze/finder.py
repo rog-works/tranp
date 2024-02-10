@@ -1,7 +1,7 @@
 from py2cpp.analyze.symbol import SymbolRaw, SymbolRaws
 from py2cpp.ast.dsn import DSN
 from py2cpp.compatible.python.types import Primitives
-from py2cpp.errors import NotFoundError
+from py2cpp.errors import LogicError, NotFoundError
 from py2cpp.lang.implementation import injectable
 from py2cpp.module.types import LibraryPaths
 import py2cpp.node.definition as defs
@@ -18,6 +18,24 @@ class SymbolFinder:
 			library_paths (LibraryPaths): 標準ライブラリーパスリスト @inject
 		"""
 		self.__library_paths = library_paths
+
+	def get_object(self, raws: SymbolRaws) -> SymbolRaw:
+		"""objectのシンボルを取得
+
+		Args:
+			raws (SymbolRaws): シンボルテーブル
+		Returns:
+			SymbolRaw: シンボル
+		Raises:
+			LogicError: objectが未実装
+		Note:
+			必ず存在すると言う前提。見つからない場合は実装ミス
+		"""
+		raw = self.__find_raw(raws, self.__library_paths, object.__name__)
+		if raw is not None:
+			return raw
+
+		raise LogicError('Implementaion of object class is required.')
 
 	def by(self, raws: SymbolRaws, fullyname: str) -> SymbolRaw:
 		"""完全参照名からシンボルを取得

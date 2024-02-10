@@ -71,7 +71,7 @@ class Fragment(Node, IDomain):
 
 	@property
 	def in_decl_class_type(self) -> bool:
-		return self._full_path.parent_tag in ['class_def_raw', 'enum_def', 'function_def_raw']
+		return self._full_path.parent_tag in ['class_def_raw', 'function_def_raw']
 
 	@property
 	def in_decl_import(self) -> bool:
@@ -421,6 +421,10 @@ class FuncCall(Node, IDomain):
 	def arguments(self) -> list['Argument']:
 		return [node.as_a(Argument) for node in self._children('arguments')] if self._exists('arguments') else []
 
+	def param_index_of(self, argument: 'Argument') -> int:
+		"""Note: 無関係のノードを渡すとエラーを出力"""
+		return [index for index, in_argument in enumerate(self.arguments) if in_argument == argument].pop()
+
 
 @Meta.embed(Node, actualized(via=FuncCall))
 class Super(FuncCall):
@@ -457,6 +461,7 @@ class Argument(Node):
 
 	@property
 	def func_call(self) -> FuncCall:
+		"""Note: XXX このメソッドは実用上便利と言うだけで、振る舞いとしては如何なものか。本質的にはFuncCallからArgumentを知るべきであり、依存関係に違反しているのでは？"""
 		return self.parent.as_a(FuncCall)
 
 

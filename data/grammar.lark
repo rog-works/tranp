@@ -17,7 +17,6 @@ file_input: (_NEWLINE | statement)*
 
 ?compound_stmt: function_def
 	| if_stmt
-	| enum_def
 	| class_def
 	| for_stmt
 	| try_stmt
@@ -40,12 +39,6 @@ block: _NEWLINE _INDENT statement+ _DEDENT | simple_stmt
 // @lark decorated: decorators (classdef | funcdef | async_funcdef)
 decorators: decorator+
 decorator: "@" dotted_name ["(" [arguments] ")"] _NEWLINE
-
-// # Enum definitions
-
-// @decl `class enum_name(CEnum):`
-// @custom
-enum_def: "class" name "(" "CEnum" ")" ":" block
 
 // # Class definitions
 

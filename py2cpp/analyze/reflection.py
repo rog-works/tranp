@@ -1,4 +1,4 @@
-from typing import Generic, TypeAlias, TypeVar
+from typing import Callable, Generic, TypeAlias, TypeVar
 
 from py2cpp.analyze.symbol import SymbolRaw
 from py2cpp.ast.dsn import DSN
@@ -11,6 +11,7 @@ T_Ref = TypeVar('T_Ref', bound='Reflection')
 T_Sym = TypeVar('T_Sym', SymbolRaw, list[SymbolRaw], 'Object')
 
 InjectSchemata: TypeAlias = dict[str, SymbolRaw | list[SymbolRaw]]
+Injector: TypeAlias = Callable[[], InjectSchemata]
 
 
 class Schema(Generic[T_Sym]):
@@ -54,7 +55,7 @@ class Reflection:
 
 	@property
 	def types(self) -> defs.ClassDef:
-		"""ClassDef: シンボルのクラス型(クラス定義ノード)"""
+		"""ClassDef: シンボルの型(クラス定義ノード)"""
 		return self.symbol.types
 
 	@property
@@ -79,15 +80,27 @@ class Reflection:
 			ctor (type[T_Ref]): 比較対象
 		Returns:
 			T_Ref: キャスト後のインスタンス
+		Raises:
+			LogicError: 派生関係が無いクラスを指定
 		"""
 		if isinstance(self, ctor):
 			return self
 
-		raise LogicError(f'Cast not allowed. from: {self.__class__.__name__}, to: {ctor.__name__}')
+		raise LogicError(f'Cast not allowed. from: {self.__class__}, to: {ctor}')
 
 
 class Object(Reflection):
 	"""全クラスの基底クラス"""
+	...
+
+
+class Type(Object):
+	"""全タイプ(クラス定義)の基底クラス"""
+	...
+
+
+class Enum(Object):
+	"""Enum"""
 	...
 
 
@@ -98,17 +111,21 @@ class Instance(Object):
 	def is_static(self) -> bool:
 		...
 
-	def props(self, key: str) -> Object:
-		...
-
-
-class Enum(Object):
-	"""Enum"""
-	...
-
 
 class Function(Object):
-	"""全ファンクションの基底クラス。素のファンクションが該当"""
+	"""全ファンクションの基底クラス。メソッド/クロージャー以外のファンクションが対象"""
+
+	def parameter(self, index: int, *context: SymbolRaw) -> SymbolRaw:
+		"""引数の実行時型を解決
+
+		Args:
+			index (int): 引数のインデックス
+			*context (SymbolRaw): コンテキスト(0: 引数(実行時型))
+		Returns:
+			SymbolRaw: 実行時型
+		"""
+		argument, *_ = context
+		return argument
 
 	def returns(self, *arguments: SymbolRaw) -> SymbolRaw:
 		"""戻り値の実行時型を解決
@@ -116,7 +133,7 @@ class Function(Object):
 		Args:
 			*arguments (SymbolRaw): 引数リスト(実行時型)
 		Returns:
-			SymbolRaw: 戻り値の実行時型
+			SymbolRaw: 実行時型
 		"""
 		map_props = TemplateManipulator.unpack_symbols(parameters=list(arguments))
 		t_map_props = TemplateManipulator.unpack_templates(parameters=self.schemata.parameters, returns=self.schema.returns)
@@ -131,7 +148,25 @@ class Closure(Function):
 
 
 class Method(Function):
-	"""全メソッドの基底クラス"""
+	"""全メソッドの基底クラス。クラスメソッド/コンストラクター以外のメソッドが対象"""
+
+	@override
+	def parameter(self, index: int, *context: SymbolRaw) -> SymbolRaw:
+		"""引数の実行時型を解決
+
+		Args:
+			index (int): 引数のインデックス
+			*context (SymbolRaw): コンテキスト(0: レシーバー(実行時型), 1: 引数(実行時型))
+		Returns:
+			SymbolRaw: 実行時型
+		"""
+		actual_klass, *_ = context
+		parameter = self.schemata.parameters[index]
+		map_props = TemplateManipulator.unpack_symbols(klass=actual_klass)
+		t_map_props = TemplateManipulator.unpack_templates(klass=self.schema.klass)
+		t_map_parameter = TemplateManipulator.unpack_templates(parameter=parameter)
+		updates = TemplateManipulator.make_updates(t_map_parameter, t_map_props)
+		return TemplateManipulator.apply(parameter.clone(), map_props, updates)
 
 	@override
 	def returns(self, *arguments: SymbolRaw) -> SymbolRaw:
@@ -140,9 +175,10 @@ class Method(Function):
 		Args:
 			*arguments (SymbolRaw): 引数リスト(実行時型)
 		Returns:
-			SymbolRaw: 戻り値の実行時型
+			SymbolRaw: 実行時型
 		"""
-		map_props = TemplateManipulator.unpack_symbols(klass=list(arguments)[0], parameters=list(arguments)[1:])
+		actual_klass, *actual_arguments = arguments
+		map_props = TemplateManipulator.unpack_symbols(klass=actual_klass, parameters=actual_arguments)
 		t_map_props = TemplateManipulator.unpack_templates(klass=self.schema.klass, parameters=self.schemata.parameters)
 		t_map_returns = TemplateManipulator.unpack_templates(returns=self.schema.returns)
 		updates = TemplateManipulator.make_updates(t_map_returns, t_map_props)
@@ -195,7 +231,7 @@ class TemplateManipulator:
 
 		Args:
 			t_map_primary (TemplateMap): 主体
-			t_map_prop (TemplateMap): サブ
+			t_map_props (TemplateMap): サブ
 		Returns:
 			UpdateMap: 一致したパスのマップ表
 		"""
@@ -236,12 +272,12 @@ class Builder:
 			symbol (SymbolRaw): シンボル
 		"""
 		self.__symbol = symbol
-		self.__case_of_schemata: dict[str, InjectSchemata] = {'__default__': {}}
+		self.__case_of_injectors: dict[str, Injector] = {'__default__': lambda: {}}
 
 	@property
 	def __current_key(self) -> str:
 		"""str: 編集中のキー"""
-		return list(self.__case_of_schemata.keys())[-1]
+		return list(self.__case_of_injectors.keys())[-1]
 
 	def case(self, expect: type[Reflection]) -> 'Builder':
 		"""ケースを挿入
@@ -251,7 +287,7 @@ class Builder:
 		Returns:
 			Builder: 自己参照
 		"""
-		self.__case_of_schemata[expect.__name__] = {}
+		self.__case_of_injectors[expect.__name__] = lambda: {}
 		return self
 
 	def other_case(self) -> 'Builder':
@@ -260,55 +296,60 @@ class Builder:
 		Returns:
 			Builder: 自己参照
 		"""
-		self.__case_of_schemata['__other__'] = {}
+		self.__case_of_injectors['__other__'] = lambda: {}
 		return self
 
-	def schema(self, **schemata: SymbolRaw | list[SymbolRaw]) -> 'Builder':
+	def schema(self, injector: Injector) -> 'Builder':
 		"""編集中のケースにスキーマを追加
 
 		Args:
-			**schemata (SymbolRaw | list[SymbolRaw]): スキーマとなるシンボル
+			injector (Injector): スキーマファクトリー
 		Returns:
 			Builder: 自己参照
 		"""
-		self.__case_of_schemata[self.__current_key] = {**self.__case_of_schemata[self.__current_key], **schemata}
+		self.__case_of_injectors[self.__current_key] = injector
 		return self
 
 	def build(self, expect: type[T_Ref]) -> T_Ref:
 		"""リフレクションを生成
 
 		Args:
-			target (type[T_Ref]): レスポンスするリフレクション型
+			expect (type[T_Ref]): 期待するレスポンス型
+		Returns:
+			T_Ref: 生成したインスタンス
 		"""
 		ctors: dict[type[defs.ClassDef], type[Reflection]] = {
 			defs.Function: Function,
 			defs.ClassMethod: ClassMethod,
 			defs.Method: Method,
 			defs.Constructor: Constructor,
+			defs.Enum: Enum,
+			defs.Class: Type,
 		}
-		ctor = ctors[self.__symbol.types.__class__]
+		ctor = ctors.get(self.__symbol.types.__class__, Object)
 		if not issubclass(ctor, expect):
-			raise LogicError(f'Reflection build not supported. expect: {expect}')
+			raise LogicError(f'Unexpected build class. symbol: {self.__symbol}, resolved: {ctor}, expect: {expect}')
 
-		return ctor(self.__symbol, self.__inject_schemata(ctor))
+		injector = self.__resolve_injector(ctor)
+		return ctor(self.__symbol, injector())
 
-	def __inject_schemata(self, ctor: type[Reflection]) -> InjectSchemata:
+	def __resolve_injector(self, ctor: type[Reflection]) -> Injector:
 		"""生成時に注入するスキーマを取得
 
 		Args:
-			ctor (type[Reflection]): 生成するリフレクション型
+			ctor (type[Reflection]): 生成する型
 		Returns:
-			InjectSchemata: スキーマ
+			Injector: スキーマファクトリー
 		"""
 		for ctor_ in ctor.__mro__:
 			if not issubclass(ctor_, Reflection):
 				break
 
-			if ctor_.__name__ in self.__case_of_schemata:
-				return self.__case_of_schemata[ctor_.__name__]
+			if ctor_.__name__ in self.__case_of_injectors:
+				return self.__case_of_injectors[ctor_.__name__]
 
-		if '__other__' in self.__case_of_schemata:
-			return self.__case_of_schemata['__other__']
+		if '__other__' in self.__case_of_injectors:
+			return self.__case_of_injectors['__other__']
 		else:
-			return self.__case_of_schemata['__default__']
+			return self.__case_of_injectors['__default__']
 

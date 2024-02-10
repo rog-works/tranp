@@ -127,11 +127,11 @@ class FromModules:
 
 			if isinstance(node, defs.Function):
 				decl_vars.extend(node.decl_vars)
+			elif type(node) is defs.Enum:
+				decl_vars.extend(node.vars)
 			elif type(node) is defs.Class:
 				decl_vars.extend(node.class_vars)
 				decl_vars.extend(node.this_vars)
-			elif type(node) is defs.Enum:
-				decl_vars.extend(node.vars)
 
 		# XXX calculatedに含まれないためエントリーポイントは個別に処理
 		decl_vars = [*entrypoint.decl_vars, *decl_vars]

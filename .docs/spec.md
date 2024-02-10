@@ -61,7 +61,6 @@ rules:
       continue_stmt: $ref: '#/rules/continue_stmt'
       # compound statement
       function_def: $ref: '#/rules/function_def'
-      enum_def: $ref: '#/rules/enum_def'
       class_def: $ref: '#/rules/class_def'
       if_stmt: $ref: '#/rules/if_stmt'
       for_stmt: $ref: '#/rules/for_stmt'
@@ -74,11 +73,6 @@ rules:
       decorators:
         type: array
         items: $ref: '#/rules/decorator'
-      name: $ref: '#/terminals/name'
-      block: $ref: '#/rules/block'
-  enum_def:
-    type: object
-    properties:
       name: $ref: '#/terminals/name'
       block: $ref: '#/rules/block'
   class_def:

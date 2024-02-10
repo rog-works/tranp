@@ -4,6 +4,7 @@ import sys
 from typing import cast
 
 from py2cpp.analyze.procedure import Procedure
+import py2cpp.analyze.reflection as reflection
 from py2cpp.analyze.symbol import SymbolRaw
 from py2cpp.analyze.symbols import Symbols
 from py2cpp.app.app import App
@@ -23,6 +24,10 @@ class Handler(Procedure[str]):
 		super().__init__(verbose=True)
 		self.symbols = symbols
 		self.view = render
+
+	@property
+	def cvar_keys(self) -> list[str]:
+		return [cvar.__name__ for cvar in [cpp.CP, cpp.CSP, cpp.CRef, cpp.CRaw]]
 
 	# XXX 未使用
 	# def __result_internal(self, begin: Node) -> str:
@@ -128,7 +133,7 @@ class Handler(Procedure[str]):
 
 		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'comment': comment, 'statements': statements, 'vars': vars})
 
-	def on_enum(self, node: defs.Enum, symbol: str, comment: str, statements: list[str]) -> str:
+	def on_enum(self, node: defs.Enum, symbol: str, decorators: list[str], inherits: list[str], comment: str, statements: list[str]) -> str:
 		return self.view.render(node.classification, vars={'symbol': symbol, 'comment': comment, 'statements': statements})
 
 	def on_alt_class(self, node: defs.AltClass, symbol: str, actual_class: str) -> str:
@@ -221,8 +226,7 @@ class Handler(Procedure[str]):
 		prop = prop_symbol.types.alias_symbol or node.prop.tokens
 
 		def is_cvar_receiver() -> bool:
-			cvars: list[str] = [cvar.__name__ for cvar in [cpp.CP, cpp.CSP, cpp.CRef, cpp.CRaw]]
-			return len(receiver_symbol.attrs) > 0 and receiver_symbol.attrs[0].types.symbol.tokens in cvars
+			return len(receiver_symbol.attrs) > 0 and receiver_symbol.attrs[0].types.symbol.tokens in self.cvar_keys
 
 		def is_this_var() -> bool:
 			return node.receiver.is_a(defs.ThisRef)
@@ -299,6 +303,33 @@ class Handler(Procedure[str]):
 		return node.super_class_symbol.tokens
 
 	def on_argument(self, node: defs.Argument, label: str, value: str) -> str:
+		def resolve_calls(org_calls) -> SymbolRaw:
+			if isinstance(org_calls.types, defs.Class):
+				return self.symbols.type_of_constructor(org_calls.types)
+
+			return org_calls
+
+		def actual_parameter(calls_ref: reflection.Function, org_calls: SymbolRaw) -> SymbolRaw:
+			actual_argument = self.symbols.type_of(node)
+			if isinstance(calls_ref, reflection.Constructor):
+				return calls_ref.parameter(node.func_call.param_index_of(node), org_calls, actual_argument)
+			elif isinstance(calls_ref, reflection.Method):
+				return calls_ref.parameter(node.func_call.param_index_of(node), calls_ref.symbol.context, actual_argument)
+			else:
+				return calls_ref.parameter(node.func_call.param_index_of(node), actual_argument)
+
+		calls = self.symbols.type_of(node.func_call.calls)
+		calls_of_func = resolve_calls(calls)
+		calls_ref = reflection.Builder(calls_of_func) \
+			.case(reflection.Method).schema(lambda: {'klass': calls_of_func.attrs[0], 'parameters': calls_of_func.attrs[1:-1], 'returns': calls_of_func.attrs[-1]}) \
+			.other_case().schema(lambda: {'parameters': calls_of_func.attrs[:-1], 'returns': calls_of_func.attrs[-1]}) \
+			.build(reflection.Function)
+		parameter = actual_parameter(calls_ref, calls)
+		if len(parameter.attrs):
+			key = [attr.types.symbol.tokens for attr in parameter.attrs].pop(0)
+			if key in self.cvar_keys:
+				print(key)
+
 		return value
 
 	def on_inherit_argument(self, node: defs.InheritArgument, class_type: str) -> str:

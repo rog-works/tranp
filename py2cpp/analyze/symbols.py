@@ -38,6 +38,16 @@ class Symbols:
 		"""
 		return symbol.types == self.type_of_primitive(primitive_type).types
 
+	def get_object(self) -> SymbolRaw:
+		"""objectのシンボルを取得
+
+		Returns:
+			SymbolRaw: シンボル
+		Raises:
+			LogicError: objectが未実装
+		"""
+		return self.__finder.get_object(self.__raws)
+
 	def from_fullyname(self, fullyname: str) -> SymbolRaw:
 		"""完全参照名からシンボルを解決
 
@@ -62,18 +72,32 @@ class Symbols:
 		"""
 		return self.__finder.by_primitive(self.__raws, primitive_type)
 
-	def type_of_property(self, decl_class: defs.ClassDef, prop: defs.Var) -> SymbolRaw:
+	def type_of_property(self, types: defs.ClassDef, prop: defs.Var) -> SymbolRaw:
 		"""クラス定義ノードと変数参照ノードからプロパティーのシンボルを解決
 
 		Args:
-			decl_class (ClassDef): クラス定義ノード
+			types (ClassDef): クラス定義ノード
 			prop (Var): 変数参照ノード
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
 			NotFoundError: シンボルが見つからない
 		"""
-		return self.resolve(decl_class, prop.tokens)
+		return self.resolve(types, prop.tokens)
+
+	def type_of_constructor(self, types: defs.Class) -> SymbolRaw:
+		"""クラス定義ノードからコンストラクターのシンボルを解決
+
+		Args:
+			class (Class): クラス定義ノード
+		Returns:
+			SymbolRaw: シンボル
+		Raises:
+			NotFoundError: シンボルが見つからない
+		Note:
+			FIXME Pythonのコンストラクターに依存したコードはNG。再度検討
+		"""
+		return self.resolve(types, '__init__')
 
 	def type_of(self, node: Node) -> SymbolRaw:
 		"""シンボル系/式ノードからシンボルを解決 XXX 万能過ぎるので細分化を検討
@@ -178,25 +202,30 @@ class Symbols:
 			SymbolRaw | None: シンボルデータ
 		"""
 		symbol_raw = self.__finder.find_by_symbolic(self.__raws, symbolic, prop_name)
-		if symbol_raw is None and symbolic.is_a(defs.Class):
-			symbol_raw = self.__resolve_raw_recursive(symbolic.as_a(defs.Class), prop_name)
+		if symbol_raw is None and isinstance(symbolic, defs.Class):
+			symbol_raw = self.__resolve_raw_recursive(symbolic, prop_name)
 
 		return symbol_raw
 
-	def __resolve_raw_recursive(self, decl_class: defs.Class, prop_name: str) -> SymbolRaw | None:
+	def __resolve_raw_recursive(self, types: defs.Class, prop_name: str) -> SymbolRaw | None:
 		"""クラスの継承チェーンを辿ってシンボルを解決。未検出の場合はNoneを返却
 
 		Args:
-			decl_class (Class): クラス定義ノード
+			types (Class): クラス定義ノード
 			prop_name (str): プロパティー名(空文字の場合は無視される)
 		Returns:
 			SymbolRaw | None: シンボルデータ
 		"""
-		for inherit_type in decl_class.inherits:
+		for inherit_type in types.inherits:
 			inherit_type_raw = self.__finder.by_symbolic(self.__raws, inherit_type)
 			found_raw = self.__resolve_raw(inherit_type_raw.types, prop_name)
 			if found_raw:
 				return found_raw
+
+		# 全てのクラスはobjectを継承している前提のため、暗黙的にフォールバック
+		found_raw = self.__resolve_raw(self.get_object().types, prop_name)
+		if found_raw:
+			return found_raw
 
 		return None
 
@@ -375,14 +404,9 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 			return self.symbols.resolve(calls.types.class_types.symbol)
 		elif isinstance(calls.types, defs.Function):
 			func = reflection.Builder(calls) \
-				.case(reflection.Method).schema(
-					klass=calls.attrs[0],
-					parameters=calls.attrs[1:-1],
-					returns=calls.attrs[-1],
-				).other_case().schema(
-					parameters=calls.attrs[:-1],
-					returns=calls.attrs[-1],
-				).build(reflection.Function)
+				.case(reflection.Method).schema(lambda: {'klass': calls.attrs[0], 'parameters': calls.attrs[1:-1], 'returns': calls.attrs[-1]}) \
+				.other_case().schema(lambda: {'parameters': calls.attrs[:-1], 'returns': calls.attrs[-1]}) \
+				.build(reflection.Function)
 			if func.is_a(reflection.Method):
 				return func.returns(calls.context, *arguments)
 			else:

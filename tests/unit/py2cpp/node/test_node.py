@@ -63,7 +63,7 @@ class TestNode(TestCase):
 		('...', 'file_input', 'file_input'),
 		('class A: ...', 'file_input.class_def', 'class_def'),
 		('class A: ...', 'file_input.class_def.class_def_raw.block', 'block'),
-		('class E(CEnum): ...', 'file_input.enum_def', 'enum_def'),
+		('class E(CEnum): ...', 'file_input.class_def', 'class_def'),
 		('def func() -> None: ...', 'file_input.function_def', 'function_def'),
 		('if 1: ...', 'file_input.if_stmt', 'if_stmt'),
 		('1', 'file_input.number', 'number'),
@@ -76,7 +76,7 @@ class TestNode(TestCase):
 		('...', 'file_input', 'entrypoint'),
 		('class A: ...', 'file_input.class_def', 'class'),
 		('class A: ...', 'file_input.class_def.class_def_raw.block', 'block'),
-		('class E(CEnum): ...', 'file_input.enum_def', 'enum'),
+		('class E(CEnum): ...', 'file_input.class_def', 'enum'),
 		('def func() -> None: ...', 'file_input.function_def', 'function'),
 		('if 1: ...', 'file_input.if_stmt', 'if'),
 		('1', 'file_input.number', 'integer'),
@@ -89,7 +89,7 @@ class TestNode(TestCase):
 		('...', 'file_input', '__main__'),
 		('class A: ...', 'file_input.class_def', '__main__.A'),
 		('class A: ...', 'file_input.class_def.class_def_raw.block', '__main__.A'),
-		('class E(CEnum): ...', 'file_input.enum_def', '__main__.E'),
+		('class E(CEnum): ...', 'file_input.class_def', '__main__.E'),
 		('def func() -> None: ...', 'file_input.function_def', '__main__.func'),
 		('if True: ...', 'file_input.if_stmt', '__main__.if'),
 		('for i in [0]: ...', 'file_input.for_stmt', '__main__.for'),
@@ -104,7 +104,7 @@ class TestNode(TestCase):
 		('...', 'file_input', '__main__'),
 		('class A: ...', 'file_input.class_def', '__main__.A'),
 		('class A: ...', 'file_input.class_def.class_def_raw.block', '__main__.A'),
-		('class E(CEnum): ...', 'file_input.enum_def', '__main__.E'),
+		('class E(CEnum): ...', 'file_input.class_def', '__main__.E'),
 		('def func() -> None: ...', 'file_input.function_def', '__main__'),
 		('if 1: ...', 'file_input.if_stmt', '__main__'),
 		('1', 'file_input.number', '__main__'),
@@ -117,7 +117,7 @@ class TestNode(TestCase):
 		('...', 'file_input', ''),
 		('class A: ...', 'file_input.class_def.class_def_raw.name', 'A'),
 		('class A: ...', 'file_input.class_def.class_def_raw.block', ''),
-		('class E(CEnum): ...', 'file_input.enum_def.name', 'E'),
+		('class E(CEnum): ...', 'file_input.class_def.class_def_raw.name', 'E'),
 		('def func() -> None: ...', 'file_input.function_def.function_def_raw.name', 'func'),
 		('if 1: ...', 'file_input.if_stmt.block', ''),
 		('1', 'file_input.number', '1'),
@@ -129,7 +129,7 @@ class TestNode(TestCase):
 	@data_provider([
 		('class A: ...', 'file_input.class_def', 'entrypoint'),
 		('class A: ...', 'file_input.class_def.class_def_raw.block', 'class'),
-		('class E(CEnum): ...', 'file_input.enum_def', 'entrypoint'),
+		('class E(CEnum): ...', 'file_input.class_def', 'entrypoint'),
 		('def func() -> None: ...', 'file_input.function_def', 'entrypoint'),
 		('if 1: ...', 'file_input.if_stmt', 'entrypoint'),
 		('1', 'file_input.number', 'entrypoint'),
@@ -142,7 +142,7 @@ class TestNode(TestCase):
 		('...', 'file_input', True),
 		('class A: ...', 'file_input.class_def', True),
 		('class A: ...', 'file_input.class_def.class_def_raw.block', True),
-		('class E(CEnum): ...', 'file_input.enum_def', True),
+		('class E(CEnum): ...', 'file_input.class_def', True),
 		('def func() -> None: ...', 'file_input.function_def', True),
 		('if 1: ...', 'file_input.if_stmt', True),
 		('1', 'file_input.number', False),
@@ -159,7 +159,7 @@ class TestNode(TestCase):
 		('class A:\n\tdef method(self) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def', defs.Method, 'method', '__main__.A.method'),
 		('class A:\n\tdef method(self) -> None:\n\t\tdef closure() -> None: ...', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.function_def', defs.Closure, 'closure', '__main__.A.method.closure'),
 		('class A: ...', 'file_input.class_def', defs.Class, 'A', '__main__.A'),
-		('class E(CEnum): ...', 'file_input.enum_def', defs.Enum, 'E', '__main__.E'),
+		('class E(CEnum): ...', 'file_input.class_def', defs.Enum, 'E', '__main__.E'),
 		# Declable
 		('class A:\n\ta: int = 0', 'file_input.class_def.class_def_raw.block.anno_assign.var', defs.DeclClassVar, 'a', '__main__.A.a'),
 		('class A:\n\tdef __init__(self) -> None:\n\t\tself.a: int = 0', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.anno_assign.getattr', defs.DeclThisVar, 'a', '__main__.A.a'),
@@ -216,15 +216,16 @@ class TestNode(TestCase):
 		('file_input.class_def', [
 			'file_input.class_def.class_def_raw.name',
 			'file_input.class_def.__empty__',
-			'file_input.class_def.class_def_raw.block.enum_def',
-			'file_input.class_def.class_def_raw.block.enum_def.name',
-			'file_input.class_def.class_def_raw.block.enum_def.__empty__',
-			'file_input.class_def.class_def_raw.block.enum_def.block.assign[0]',
-			'file_input.class_def.class_def_raw.block.enum_def.block.assign[0].var',
-			'file_input.class_def.class_def_raw.block.enum_def.block.assign[0].number',
-			'file_input.class_def.class_def_raw.block.enum_def.block.assign[1]',
-			'file_input.class_def.class_def_raw.block.enum_def.block.assign[1].var',
-			'file_input.class_def.class_def_raw.block.enum_def.block.assign[1].number',
+			'file_input.class_def.class_def_raw.block.class_def',
+			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.name',
+			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.typed_arguments.typed_argvalue.typed_var',
+			'file_input.class_def.class_def_raw.block.class_def.__empty__',
+			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[0]',
+			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[0].var',
+			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[0].number',
+			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[1]',
+			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[1].var',
+			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[1].number',
 			'file_input.class_def.class_def_raw.block.function_def[1]',
 			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.name',
 			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.parameters.paramvalue',
@@ -253,21 +254,27 @@ class TestNode(TestCase):
 	def test_flatten(self, full_path: str, expected: list[str]) -> None:
 		node = self.fixture.shared_nodes.by(full_path)
 		all = [in_node.full_path for in_node in node.flatten()]
-		self.assertEqual(all, expected)
+		try:
+			self.assertEqual(all, expected)
+		except AssertionError:
+			import json
+			print(json.dumps(all, indent=2))
+			raise
 
 	@data_provider([
 		('file_input.class_def', [
 			'file_input.class_def.class_def_raw.name',
 			'file_input.class_def.__empty__',
-			'file_input.class_def.class_def_raw.block.enum_def.name',
-			'file_input.class_def.class_def_raw.block.enum_def.__empty__',
-			'file_input.class_def.class_def_raw.block.enum_def.block.assign[0].var',
-			'file_input.class_def.class_def_raw.block.enum_def.block.assign[0].number',
-			'file_input.class_def.class_def_raw.block.enum_def.block.assign[0]',
-			'file_input.class_def.class_def_raw.block.enum_def.block.assign[1].var',
-			'file_input.class_def.class_def_raw.block.enum_def.block.assign[1].number',
-			'file_input.class_def.class_def_raw.block.enum_def.block.assign[1]',
-			'file_input.class_def.class_def_raw.block.enum_def',
+			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.name',
+			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.typed_arguments.typed_argvalue.typed_var',
+			'file_input.class_def.class_def_raw.block.class_def.__empty__',
+			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[0].var',
+			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[0].number',
+			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[0]',
+			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[1].var',
+			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[1].number',
+			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[1]',
+			'file_input.class_def.class_def_raw.block.class_def',
 			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.name',
 			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.parameters.paramvalue.typedparam.name',
 			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.parameters.paramvalue.typedparam.__empty__',
@@ -296,7 +303,12 @@ class TestNode(TestCase):
 	def test_calculated(self, full_path: str, expected: list[str]) -> None:
 		node = self.fixture.shared_nodes.by(full_path)
 		all = [in_node.full_path for in_node in node.calculated()]
-		self.assertEqual(all, expected)
+		try:
+			self.assertEqual(all, expected)
+		except AssertionError:
+			import json
+			print(json.dumps(all, indent=2))
+			raise
 
 	def test_is_a(self) -> None:
 		node = self.fixture.shared_nodes.by('file_input.class_def.class_def_raw.block.function_def[1]')
@@ -346,7 +358,7 @@ class TestNode(TestCase):
 		self.assertEqual(type(node.actualize()), NodeB)
 
 	def test_dirty_proxify(self) -> None:
-		node = self.fixture.shared_nodes.by('file_input.class_def.class_def_raw.block.enum_def.block.assign[0].number')
+		node = self.fixture.shared_nodes.by('file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[0].number')
 		proxy = node.dirty_proxify(tokens='10')
 		self.assertEqual(isinstance(node, defs.Number), True)
 		self.assertEqual(isinstance(proxy, defs.Number), True)

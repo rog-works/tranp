@@ -74,7 +74,7 @@ class CellMesh {
 	public: static const std::shared_ptr<Box3d> to_cell_box(IntVector cell, int unit) {
 		std::shared_ptr<Vector> minLocation = CellMesh::from_cell(cell, unit);
 		std::shared_ptr<Vector> maxLocation = CellMesh::from_cell(cell + IntVector(1, 1, 1), unit);
-		return Box3d(minLocation, maxLocation);
+		return Box3d(*minLocation, *maxLocation);
 	}
 	/** to_vertex_boxs */
 	public: static std::vector<std::shared_ptr<Box3d>> to_vertex_boxs(Box3d* cellBox, int unit) {
@@ -95,7 +95,7 @@ class CellMesh {
 		};
 		Vector* p = positions[0];
 		for (auto position : positions) {
-			out.push_back(new Box3d(position - offset, position + offset));
+			out.push_back(&new Box3d(position - offset, position + offset));
 		}
 		return out;
 	}

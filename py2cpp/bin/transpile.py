@@ -25,10 +25,6 @@ class Handler(Procedure[str]):
 		self.symbols = symbols
 		self.view = render
 
-	@property
-	def cvar_keys(self) -> list[str]:
-		return [cvar.__name__ for cvar in [cpp.CP, cpp.CSP, cpp.CRef, cpp.CRaw]]
-
 	# XXX 未使用
 	# def __result_internal(self, begin: Node) -> str:
 	# 	cloning = Handler(self.symbols, self.view)
@@ -226,7 +222,7 @@ class Handler(Procedure[str]):
 		prop = prop_symbol.types.alias_symbol or node.prop.tokens
 
 		def is_cvar_receiver() -> bool:
-			return len(receiver_symbol.attrs) > 0 and receiver_symbol.attrs[0].types.symbol.tokens in self.cvar_keys
+			return len(receiver_symbol.attrs) > 0 and receiver_symbol.attrs[0].types.symbol.tokens in CVars.keys()
 
 		def is_this_var() -> bool:
 			return node.receiver.is_a(defs.ThisRef)
@@ -309,14 +305,13 @@ class Handler(Procedure[str]):
 
 			return org_calls
 
-		def actual_parameter(calls_ref: reflection.Function, org_calls: SymbolRaw) -> SymbolRaw:
-			actual_argument = self.symbols.type_of(node)
+		def actual_parameter(calls_ref: reflection.Function, org_calls: SymbolRaw, argument: SymbolRaw) -> SymbolRaw:
 			if isinstance(calls_ref, reflection.Constructor):
-				return calls_ref.parameter(node.func_call.param_index_of(node), org_calls, actual_argument)
+				return calls_ref.parameter(node.func_call.param_index_of(node), org_calls, argument)
 			elif isinstance(calls_ref, reflection.Method):
-				return calls_ref.parameter(node.func_call.param_index_of(node), calls_ref.symbol.context, actual_argument)
+				return calls_ref.parameter(node.func_call.param_index_of(node), calls_ref.symbol.context, argument)
 			else:
-				return calls_ref.parameter(node.func_call.param_index_of(node), actual_argument)
+				return calls_ref.parameter(node.func_call.param_index_of(node), argument)
 
 		calls = self.symbols.type_of(node.func_call.calls)
 		calls_of_func = resolve_calls(calls)
@@ -324,13 +319,14 @@ class Handler(Procedure[str]):
 			.case(reflection.Method).schema(lambda: {'klass': calls_of_func.attrs[0], 'parameters': calls_of_func.attrs[1:-1], 'returns': calls_of_func.attrs[-1]}) \
 			.other_case().schema(lambda: {'parameters': calls_of_func.attrs[:-1], 'returns': calls_of_func.attrs[-1]}) \
 			.build(reflection.Function)
-		parameter = actual_parameter(calls_ref, calls)
-		if len(parameter.attrs):
-			key = [attr.types.symbol.tokens for attr in parameter.attrs].pop(0)
-			if key in self.cvar_keys:
-				print(key)
-
-		return value
+		argument = self.symbols.type_of(node)
+		parameter = actual_parameter(calls_ref, calls, argument)
+		if CVars.raw_to_ref(argument, parameter):
+			return f'&{value}'
+		elif CVars.ref_to_raw(argument, parameter):
+			return f'*{value}'
+		else:
+			return value
 
 	def on_inherit_argument(self, node: defs.InheritArgument, class_type: str) -> str:
 		return class_type
@@ -414,6 +410,44 @@ class Handler(Procedure[str]):
 
 	def on_fallback(self, node: Node) -> str:
 		return node.tokens
+
+
+class CVars:
+	@classmethod
+	def is_raw(cls, raw: SymbolRaw) -> bool:
+		return cls.is_raw_by(cls.pluck_key(raw))
+
+	@classmethod
+	def is_ref(cls, raw: SymbolRaw) -> bool:
+		return cls.is_ref_by(cls.pluck_key(raw))
+
+	@classmethod
+	def is_raw_by(cls, key: str) -> bool:
+		return key in [cpp.CRaw.__name__, cpp.CRef.__name__]
+
+	@classmethod
+	def is_ref_by(cls, key: str) -> bool:
+		return key in [cpp.CP.__name__, cpp.CSP.__name__]
+
+	@classmethod
+	def ref_to_raw(cls, from_: SymbolRaw, to_: SymbolRaw) -> bool:
+		return cls.is_ref(from_) and cls.is_raw(to_)
+
+	@classmethod
+	def raw_to_ref(cls, from_: SymbolRaw, to_: SymbolRaw) -> bool:
+		return cls.is_raw(from_) and cls.is_ref(to_)
+
+	@classmethod
+	def keys(cls) -> list[str]:
+		return [cvar.__name__ for cvar in [cpp.CP, cpp.CSP, cpp.CRef, cpp.CRaw]]
+
+	@classmethod
+	def pluck_key(cls, raw: SymbolRaw) -> str:
+		keys = [attr.types.symbol.tokens for attr in raw.attrs]
+		if len(keys) > 0 and keys[0] in cls.keys():
+			return keys[0]
+
+		return cpp.CRaw.__name__
 
 
 class Args:

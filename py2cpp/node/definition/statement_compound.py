@@ -1,5 +1,4 @@
 from typing import Generic, cast
-from py2cpp.ast.dsn import DSN
 
 from py2cpp.compatible.python.embed import __actual__, __alias__
 from py2cpp.lang.implementation import implements, override
@@ -502,39 +501,12 @@ class Class(ClassDef):
 		return self.constructor.this_vars if self.constructor_exists else []
 
 
-@Meta.embed(Node, accept_tags('enum_def'))
-class Enum(ClassDef):
-	@property
+@Meta.embed(Node, actualized(via=Class))
+class Enum(Class):
+	@classmethod
 	@override
-	def namespace_part(self) -> str:
-		return self.domain_name
-
-	@property
-	@override
-	@Meta.embed(Node, expandable)
-	def symbol(self) -> Declable:
-		return self._by('name').as_a(Declable)
-
-	@property
-	@override
-	@Meta.embed(Node, expandable)
-	def comment(self) -> Comment | Empty:
-		return super().comment
-
-	@property
-	@override
-	@Meta.embed(Node, expandable)
-	def statements(self) -> list[Node]:
-		return super().statements
-
-	@property
-	@override
-	def block(self) -> Block:
-		return self._by('block').as_a(Block)
-
-	@property
-	def vars(self) -> list[MoveAssign]:
-		return [node.as_a(MoveAssign) for node in self.statements if node.is_a(MoveAssign)]
+	def match_feature(cls, via: Class) -> bool:
+		return 'CEnum' in [inherit.type_name.tokens for inherit in via.inherits]
 
 
 @Meta.embed(Node, accept_tags('class_assign'))

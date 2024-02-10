@@ -71,7 +71,7 @@ class Fragment(Node, IDomain):
 
 	@property
 	def in_decl_class_type(self) -> bool:
-		return self._full_path.parent_tag in ['class_def_raw', 'enum_def', 'function_def_raw']
+		return self._full_path.parent_tag in ['class_def_raw', 'function_def_raw']
 
 	@property
 	def in_decl_import(self) -> bool:

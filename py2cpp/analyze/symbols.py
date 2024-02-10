@@ -202,21 +202,21 @@ class Symbols:
 			SymbolRaw | None: シンボルデータ
 		"""
 		symbol_raw = self.__finder.find_by_symbolic(self.__raws, symbolic, prop_name)
-		if symbol_raw is None and symbolic.is_a(defs.Class):
-			symbol_raw = self.__resolve_raw_recursive(symbolic.as_a(defs.Class), prop_name)
+		if symbol_raw is None and isinstance(symbolic, defs.Class):
+			symbol_raw = self.__resolve_raw_recursive(symbolic, prop_name)
 
 		return symbol_raw
 
-	def __resolve_raw_recursive(self, decl_class: defs.Class, prop_name: str) -> SymbolRaw | None:
+	def __resolve_raw_recursive(self, types: defs.Class, prop_name: str) -> SymbolRaw | None:
 		"""クラスの継承チェーンを辿ってシンボルを解決。未検出の場合はNoneを返却
 
 		Args:
-			decl_class (Class): クラス定義ノード
+			types (Class): クラス定義ノード
 			prop_name (str): プロパティー名(空文字の場合は無視される)
 		Returns:
 			SymbolRaw | None: シンボルデータ
 		"""
-		for inherit_type in decl_class.inherits:
+		for inherit_type in types.inherits:
 			inherit_type_raw = self.__finder.by_symbolic(self.__raws, inherit_type)
 			found_raw = self.__resolve_raw(inherit_type_raw.types, prop_name)
 			if found_raw:

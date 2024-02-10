@@ -133,7 +133,7 @@ class Handler(Procedure[str]):
 
 		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'comment': comment, 'statements': statements, 'vars': vars})
 
-	def on_enum(self, node: defs.Enum, symbol: str, comment: str, statements: list[str]) -> str:
+	def on_enum(self, node: defs.Enum, symbol: str, decorators: list[str], inherits: list[str], comment: str, statements: list[str]) -> str:
 		return self.view.render(node.classification, vars={'symbol': symbol, 'comment': comment, 'statements': statements})
 
 	def on_alt_class(self, node: defs.AltClass, symbol: str, actual_class: str) -> str:
@@ -304,10 +304,10 @@ class Handler(Procedure[str]):
 
 	def on_argument(self, node: defs.Argument, label: str, value: str) -> str:
 		def resolve_calls(org_calls) -> SymbolRaw:
-			if not isinstance(org_calls.types, defs.Class):
-				return org_calls
+			if isinstance(org_calls.types, defs.Class):
+				return self.symbols.type_of_constructor(org_calls.types)
 
-			return self.symbols.type_of_constructor(org_calls.types)
+			return org_calls
 
 		def actual_parameter(calls_ref: reflection.Function, org_calls: SymbolRaw) -> SymbolRaw:
 			actual_argument = self.symbols.type_of(node)

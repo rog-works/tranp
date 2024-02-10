@@ -508,6 +508,10 @@ class Enum(Class):
 	def match_feature(cls, via: Class) -> bool:
 		return 'CEnum' in [inherit.type_name.tokens for inherit in via.inherits]
 
+	@property
+	def vars(self) -> list[MoveAssign]:
+		return [node.as_a(MoveAssign) for node in self.statements if node.is_a(MoveAssign)]
+
 
 @Meta.embed(Node, accept_tags('class_assign'))
 class AltClass(ClassDef):

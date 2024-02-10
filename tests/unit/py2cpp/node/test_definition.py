@@ -327,7 +327,7 @@ class TestDefinition(TestCase):
 		self.assertEqual([type(in_type) for in_type in node.generic_types], expected['generic_types'])
 
 	@data_provider([
-		('file_input.enum_def', {
+		('file_input.class_def[2]', {
 			'symbol': 'Values',
 			'vars': [
 				{'symbol': 'A', 'value': '0'},

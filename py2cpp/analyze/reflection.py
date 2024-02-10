@@ -323,6 +323,7 @@ class Builder:
 			defs.ClassMethod: ClassMethod,
 			defs.Method: Method,
 			defs.Constructor: Constructor,
+			defs.Enum: Enum,
 			defs.Class: Type,
 		}
 		ctor = ctors.get(self.__symbol.types.__class__, Object)

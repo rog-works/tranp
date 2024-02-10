@@ -34,6 +34,26 @@ class Handler(Procedure[str]):
 	# 	cloning.process(begin)
 	# 	return cloning.result()
 
+	def accept_value(self, value_node: Node, accept_raw: SymbolRaw, value_raw: SymbolRaw, value: str) -> str:
+		def value_on_new() -> bool:
+			if isinstance(value_node, defs.FuncCall):
+				return self.symbols.type_of(value_node.calls).types.is_a(defs.Class)
+
+			return False
+
+		if CVars.raw_to_ref(value_raw, accept_raw) and value_on_new():
+			if CVars.is_shared_ref(accept_raw):
+				matches = cast(re.Match, re.fullmatch(r'([^(]+)\((.+)\)', value))
+				return f'make_shared<{matches[1]}>({matches[2]})'
+			else:
+				return f'new {value}'
+		elif CVars.raw_to_ref(value_raw, accept_raw):
+			return f'&({value})'
+		elif CVars.ref_to_raw(value_raw, accept_raw):
+			return f'*({value})'
+		else:
+			return value
+
 	# Hook
 
 	def on_exit_func_call(self, node: defs.FuncCall, result: str) -> str:
@@ -152,51 +172,16 @@ class Handler(Procedure[str]):
 		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': value})
 
 	def on_anno_assign(self, node: defs.AnnoAssign, receiver: str, var_type: str, value: str) -> str:
-		def value_on_new() -> bool:
-			if isinstance(node.value, defs.FuncCall):
-				return self.symbols.type_of(node.value.calls).types.is_a(defs.Class)
-
-			return False
-
-		left = self.symbols.type_of(node.receiver)
-		right = self.symbols.type_of(node.value)
-		if CVars.raw_to_ref(right, left) and value_on_new():
-			if CVars.is_shared_ref(left):
-				matches = cast(re.Match, re.fullmatch(r'([^(]+)\((.+)\)', value))
-				value = f'make_shared<{matches[1]}>({matches[2]})'
-			else:
-				value = f'new {value}'
-		elif CVars.raw_to_ref(right, left):
-			value = f'&({value})'
-		elif CVars.ref_to_raw(right, left):
-			value = f'*({value})'
-
-		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': value})
+		accept_value = self.accept_value(node.value, self.symbols.type_of(node.receiver), self.symbols.type_of(node.value), value)
+		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': accept_value})
 
 	def on_aug_assign(self, node: defs.AugAssign, receiver: str, operator: str, value: str) -> str:
 		return self.view.render(node.classification, vars={'receiver': receiver, 'operator': operator, 'value': value})
 
 	def on_return(self, node: defs.Return, return_value: str) -> str:
-		def return_value_on_new() -> bool:
-			if isinstance(node.return_value, defs.FuncCall):
-				return self.symbols.type_of(node.return_value.calls).types.is_a(defs.Class)
-
-			return False
-
-		left = self.symbols.type_of(node.parent.as_a(defs.Block).parent.as_a(defs.Function)).attrs[-1]
-		right = self.symbols.type_of(node.return_value)
-		if CVars.raw_to_ref(right, left) and return_value_on_new():
-			if CVars.is_shared_ref(left):
-				matches = cast(re.Match, re.fullmatch(r'([^(]+)\((.+)\)', return_value))
-				return_value = f'make_shared<{matches[1]}>({matches[2]})'
-			else:
-				return_value = f'new {return_value}'
-		elif CVars.raw_to_ref(right, left):
-			return_value = f'&({return_value})'
-		elif CVars.ref_to_raw(right, left):
-			return_value = f'*({return_value})'
-
-		return self.view.render(node.classification, vars={'return_value': return_value})
+		function = node.parent.as_a(defs.Block).parent.as_a(defs.Function)
+		accept_value = self.accept_value(node.return_value, self.symbols.type_of(function).attrs[-1], self.symbols.type_of(node.return_value), return_value)
+		return self.view.render(node.classification, vars={'return_value': accept_value})
 
 	def on_throw(self, node: defs.Throw, throws: str, via: str) -> str:
 		return self.view.render(node.classification, vars={'throws': throws, 'via': via})
@@ -342,28 +327,11 @@ class Handler(Procedure[str]):
 			else:
 				return calls_ref.parameter(node.func_call.param_index_of(node), argument)
 
-		def argument_on_new() -> bool:
-			if isinstance(node.value, defs.FuncCall):
-				return self.symbols.type_of(node.value.calls).types.is_a(defs.Class)
-
-			return False
-
 		org_calls = self.symbols.type_of(node.func_call.calls)
 		calls = resolve_calls(org_calls)
-		argument = self.symbols.type_of(node)
+		argument = self.symbols.type_of(node.value)
 		parameter = actualize_parameter(org_calls, calls, argument)
-		if CVars.raw_to_ref(argument, parameter) and argument_on_new():
-			if CVars.is_shared_ref(parameter):
-				matches = cast(re.Match, re.fullmatch(r'([^(]+)\((.+)\)', value))
-				return f'make_shared<{matches[1]}>({matches[2]})'
-			else:
-				return f'new {value}'
-		if CVars.raw_to_ref(argument, parameter):
-			return f'&({value})'
-		elif CVars.ref_to_raw(argument, parameter):
-			return f'*({value})'
-		else:
-			return value
+		return self.accept_value(node.value, parameter, argument, value)
 
 	def on_inherit_argument(self, node: defs.InheritArgument, class_type: str) -> str:
 		return class_type

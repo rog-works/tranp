@@ -146,16 +146,9 @@ class Handler(Procedure[str]):
 	# Statement - simple
 
 	def on_move_assign(self, node: defs.MoveAssign, receiver: str, value: str) -> str:
-		# XXX ローカル変数の宣言を伴うステートメントか判定
-		decl_vars = [decl_var for decl_var in node.parent.as_a(defs.Block).decl_vars_with(defs.DeclLocalVar)]
-		declared = len([decl_var for decl_var in decl_vars if decl_var == node]) > 0
-
-		# XXX 変数の型名を取得
-		var_type = ''
-		if declared:
-			value_type = self.symbols.type_of(node.value)
-			var_type = self.view.render('move_assign_var_type', vars={'var_type': str(value_type)})
-
+		# 変数宣言を伴う場合は変数の型名を取得
+		declared = node.parent.as_a(defs.Block).declared_with(node, defs.DeclLocalVar)
+		var_type = str(self.symbols.type_of(node.value)) if declared else ''
 		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': value})
 
 	def on_anno_assign(self, node: defs.AnnoAssign, receiver: str, var_type: str, value: str) -> str:

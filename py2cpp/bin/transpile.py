@@ -276,6 +276,7 @@ class Handler(Procedure[str]):
 
 	def on_indexer(self, node: defs.Indexer, receiver: str, key: str) -> str:
 		if key in CVars.keys():
+			# XXX 互換用の型は不要なので除外
 			return receiver
 		else:
 			return f'{receiver}[{key}]'

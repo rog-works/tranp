@@ -25,10 +25,6 @@ class Handler(Procedure[str]):
 		self.symbols = symbols
 		self.view = render
 
-	@property
-	def cvar_keys(self) -> list[str]:
-		return [cvar.__name__ for cvar in [cpp.CP, cpp.CSP, cpp.CRef, cpp.CRaw]]
-
 	# XXX 未使用
 	# def __result_internal(self, begin: Node) -> str:
 	# 	cloning = Handler(self.symbols, self.view)
@@ -37,6 +33,26 @@ class Handler(Procedure[str]):
 
 	# 	cloning.process(begin)
 	# 	return cloning.result()
+
+	def accept_value(self, value_node: Node, accept_raw: SymbolRaw, value_raw: SymbolRaw, value: str) -> str:
+		def value_on_new() -> bool:
+			if isinstance(value_node, defs.FuncCall):
+				return self.symbols.type_of(value_node.calls).types.is_a(defs.Class)
+
+			return False
+
+		if CVars.raw_to_ref(value_raw, accept_raw) and value_on_new():
+			if CVars.is_shared_ref(accept_raw):
+				matches = cast(re.Match, re.fullmatch(r'([^(]+)\((.+)\)', value))
+				return f'make_shared<{matches[1]}>({matches[2]})'
+			else:
+				return f'new {value}'
+		elif CVars.raw_to_ref(value_raw, accept_raw):
+			return f'&({value})'
+		elif CVars.ref_to_raw(value_raw, accept_raw):
+			return f'*({value})'
+		else:
+			return value
 
 	# Hook
 
@@ -150,26 +166,23 @@ class Handler(Procedure[str]):
 	# Statement - simple
 
 	def on_move_assign(self, node: defs.MoveAssign, receiver: str, value: str) -> str:
-		# XXX ローカル変数の宣言を伴うステートメントか判定
-		decl_vars = [decl_var for decl_var in node.parent.as_a(defs.Block).decl_vars_with(defs.DeclLocalVar)]
-		declared = len([decl_var for decl_var in decl_vars if decl_var == node]) > 0
-
-		# XXX 変数の型名を取得
-		var_type = ''
-		if declared:
-			value_type = self.symbols.type_of(node.value)
-			var_type = self.view.render('move_assign_var_type', vars={'var_type': str(value_type)})
-
-		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': value})
+		accept_value = self.accept_value(node.value, self.symbols.type_of(node.receiver), self.symbols.type_of(node.value), value)
+		# 変数宣言を伴う場合は変数の型名を取得
+		declared = node.parent.as_a(defs.Block).declared_with(node, defs.DeclLocalVar)
+		var_type = str(self.symbols.type_of(node.value)) if declared else ''
+		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': accept_value})
 
 	def on_anno_assign(self, node: defs.AnnoAssign, receiver: str, var_type: str, value: str) -> str:
-		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': value})
+		accept_value = self.accept_value(node.value, self.symbols.type_of(node.receiver), self.symbols.type_of(node.value), value)
+		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': accept_value})
 
 	def on_aug_assign(self, node: defs.AugAssign, receiver: str, operator: str, value: str) -> str:
 		return self.view.render(node.classification, vars={'receiver': receiver, 'operator': operator, 'value': value})
 
 	def on_return(self, node: defs.Return, return_value: str) -> str:
-		return self.view.render(node.classification, vars={'return_value': return_value})
+		function = node.parent.as_a(defs.Block).parent.as_a(defs.Function)
+		accept_value = self.accept_value(node.return_value, self.symbols.type_of(function).attrs[-1], self.symbols.type_of(node.return_value), return_value)
+		return self.view.render(node.classification, vars={'return_value': accept_value})
 
 	def on_throw(self, node: defs.Throw, throws: str, via: str) -> str:
 		return self.view.render(node.classification, vars={'throws': throws, 'via': via})
@@ -226,7 +239,7 @@ class Handler(Procedure[str]):
 		prop = prop_symbol.types.alias_symbol or node.prop.tokens
 
 		def is_cvar_receiver() -> bool:
-			return len(receiver_symbol.attrs) > 0 and receiver_symbol.attrs[0].types.symbol.tokens in self.cvar_keys
+			return len(receiver_symbol.attrs) > 0 and receiver_symbol.attrs[0].types.symbol.tokens in CVars.keys()
 
 		def is_this_var() -> bool:
 			return node.receiver.is_a(defs.ThisRef)
@@ -262,16 +275,11 @@ class Handler(Procedure[str]):
 		return node.tokens
 
 	def on_indexer(self, node: defs.Indexer, receiver: str, key: str) -> str:
-		def is_own_new() -> bool:
-			"""bool: True = 親がコンストラクターコール"""
-			if not isinstance(node.parent, defs.FuncCall):
-				return False
-
-			function = self.symbols.type_of(node.parent.calls)
-			return isinstance(function.types, defs.Class)
-
-		var_type = f'{receiver}<{key}>' if is_own_new() else ''
-		return self.view.render(node.classification, vars={'receiver': receiver, 'key': key, 'var_type': var_type})
+		if key in CVars.keys():
+			# XXX 互換用の型は不要なので除外
+			return receiver
+		else:
+			return f'{receiver}[{key}]'
 
 	def on_general_type(self, node: defs.GeneralType) -> str:
 		return node.type_name.tokens
@@ -303,34 +311,29 @@ class Handler(Procedure[str]):
 		return node.super_class_symbol.tokens
 
 	def on_argument(self, node: defs.Argument, label: str, value: str) -> str:
-		def resolve_calls(org_calls) -> SymbolRaw:
+		def resolve_calls(org_calls: SymbolRaw) -> SymbolRaw:
 			if isinstance(org_calls.types, defs.Class):
 				return self.symbols.type_of_constructor(org_calls.types)
 
 			return org_calls
 
-		def actual_parameter(calls_ref: reflection.Function, org_calls: SymbolRaw) -> SymbolRaw:
-			actual_argument = self.symbols.type_of(node)
+		def actualize_parameter(org_calls: SymbolRaw, calls: SymbolRaw, argument: SymbolRaw) -> SymbolRaw:
+			calls_ref = reflection.Builder(calls) \
+				.case(reflection.Method).schema(lambda: {'klass': calls.attrs[0], 'parameters': calls.attrs[1:-1], 'returns': calls.attrs[-1]}) \
+				.other_case().schema(lambda: {'parameters': calls.attrs[:-1], 'returns': calls.attrs[-1]}) \
+				.build(reflection.Function)
 			if isinstance(calls_ref, reflection.Constructor):
-				return calls_ref.parameter(node.func_call.param_index_of(node), org_calls, actual_argument)
+				return calls_ref.parameter(node.func_call.param_index_of(node), org_calls, argument)
 			elif isinstance(calls_ref, reflection.Method):
-				return calls_ref.parameter(node.func_call.param_index_of(node), calls_ref.symbol.context, actual_argument)
+				return calls_ref.parameter(node.func_call.param_index_of(node), calls_ref.symbol.context, argument)
 			else:
-				return calls_ref.parameter(node.func_call.param_index_of(node), actual_argument)
+				return calls_ref.parameter(node.func_call.param_index_of(node), argument)
 
-		calls = self.symbols.type_of(node.func_call.calls)
-		calls_of_func = resolve_calls(calls)
-		calls_ref = reflection.Builder(calls_of_func) \
-			.case(reflection.Method).schema(lambda: {'klass': calls_of_func.attrs[0], 'parameters': calls_of_func.attrs[1:-1], 'returns': calls_of_func.attrs[-1]}) \
-			.other_case().schema(lambda: {'parameters': calls_of_func.attrs[:-1], 'returns': calls_of_func.attrs[-1]}) \
-			.build(reflection.Function)
-		parameter = actual_parameter(calls_ref, calls)
-		if len(parameter.attrs):
-			key = [attr.types.symbol.tokens for attr in parameter.attrs].pop(0)
-			if key in self.cvar_keys:
-				print(key)
-
-		return value
+		org_calls = self.symbols.type_of(node.func_call.calls)
+		calls = resolve_calls(org_calls)
+		argument = self.symbols.type_of(node.value)
+		parameter = actualize_parameter(org_calls, calls, argument)
+		return self.accept_value(node.value, parameter, argument, value)
 
 	def on_inherit_argument(self, node: defs.InheritArgument, class_type: str) -> str:
 		return class_type
@@ -414,6 +417,48 @@ class Handler(Procedure[str]):
 
 	def on_fallback(self, node: Node) -> str:
 		return node.tokens
+
+
+class CVars:
+	@classmethod
+	def is_raw(cls, raw: SymbolRaw) -> bool:
+		return cls.is_raw_by(cls.pluck_key(raw))
+
+	@classmethod
+	def is_ref(cls, raw: SymbolRaw) -> bool:
+		return cls.is_ref_by(cls.pluck_key(raw))
+
+	@classmethod
+	def is_shared_ref(cls, raw: SymbolRaw) -> bool:
+		return cls.pluck_key(raw) == cpp.CSP.__name__
+
+	@classmethod
+	def is_raw_by(cls, key: str) -> bool:
+		return key in [cpp.CRaw.__name__, cpp.CRef.__name__]
+
+	@classmethod
+	def is_ref_by(cls, key: str) -> bool:
+		return key in [cpp.CP.__name__, cpp.CSP.__name__]
+
+	@classmethod
+	def ref_to_raw(cls, from_: SymbolRaw, to_: SymbolRaw) -> bool:
+		return cls.is_ref(from_) and cls.is_raw(to_)
+
+	@classmethod
+	def raw_to_ref(cls, from_: SymbolRaw, to_: SymbolRaw) -> bool:
+		return cls.is_raw(from_) and cls.is_ref(to_)
+
+	@classmethod
+	def keys(cls) -> list[str]:
+		return [cvar.__name__ for cvar in [cpp.CP, cpp.CSP, cpp.CRef, cpp.CRaw]]
+
+	@classmethod
+	def pluck_key(cls, raw: SymbolRaw) -> str:
+		keys = [attr.types.symbol.tokens for attr in raw.attrs]
+		if len(keys) > 0 and keys[0] in cls.keys():
+			return keys[0]
+
+		return cpp.CRaw.__name__
 
 
 class Args:

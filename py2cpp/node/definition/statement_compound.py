@@ -25,6 +25,10 @@ class Block(Node):
 	def decl_vars_with(self, allow: type[T_Node]) -> list['AnnoAssign | MoveAssign | For | Catch']:
 		return list(collect_decl_vars(self, allow).values())
 
+	def declared_with(self, node: AnnoAssign | MoveAssign, allow: type[T_Node]) -> bool:
+		decl_vars = [decl_var for decl_var in self.decl_vars_with(allow)]
+		return len([decl_var for decl_var in decl_vars if decl_var == node]) > 0
+
 
 class Flow(Node): pass
 

@@ -155,9 +155,9 @@ class Handler(Procedure[str]):
 		left = self.symbols.type_of(node.receiver)
 		right = self.symbols.type_of(node.value)
 		if CVars.raw_to_ref(right, left):
-			value = f'&{value}'
+			value = f'&({value})'
 		elif CVars.ref_to_raw(right, left):
-			value = f'*{value}'
+			value = f'*({value})'
 
 		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': value})
 
@@ -258,17 +258,10 @@ class Handler(Procedure[str]):
 		return node.tokens
 
 	def on_indexer(self, node: defs.Indexer, receiver: str, key: str) -> str:
-		# FIXME 一貫性がなくなるためon_argumentに統一
-		def is_own_new() -> bool:
-			"""bool: True = 親がコンストラクターコール"""
-			if not isinstance(node.parent, defs.FuncCall):
-				return False
-
-			function = self.symbols.type_of(node.parent.calls)
-			return isinstance(function.types, defs.Class)
-
-		var_type = f'{receiver}<{key}>' if is_own_new() else ''
-		return self.view.render(node.classification, vars={'receiver': receiver, 'key': key, 'var_type': var_type})
+		if key in CVars.keys():
+			return receiver
+		else:
+			return f'{receiver}[{key}]'
 
 	def on_general_type(self, node: defs.GeneralType) -> str:
 		return node.type_name.tokens
@@ -306,7 +299,11 @@ class Handler(Procedure[str]):
 
 			return org_calls
 
-		def actualize_parameter(calls_ref: reflection.Function, org_calls: SymbolRaw, argument: SymbolRaw) -> SymbolRaw:
+		def actualize_parameter(org_calls: SymbolRaw, calls: SymbolRaw, argument: SymbolRaw) -> SymbolRaw:
+			calls_ref = reflection.Builder(calls) \
+				.case(reflection.Method).schema(lambda: {'klass': calls.attrs[0], 'parameters': calls.attrs[1:-1], 'returns': calls.attrs[-1]}) \
+				.other_case().schema(lambda: {'parameters': calls.attrs[:-1], 'returns': calls.attrs[-1]}) \
+				.build(reflection.Function)
 			if isinstance(calls_ref, reflection.Constructor):
 				return calls_ref.parameter(node.func_call.param_index_of(node), org_calls, argument)
 			elif isinstance(calls_ref, reflection.Method):
@@ -314,18 +311,23 @@ class Handler(Procedure[str]):
 			else:
 				return calls_ref.parameter(node.func_call.param_index_of(node), argument)
 
+		def argument_is_new() -> bool:
+			if isinstance(node.value, defs.FuncCall):
+				calls_in_argument = self.symbols.type_of(node.value.calls)
+				return calls_in_argument.types.is_a(defs.Class)
+
+			return False
+
 		org_calls = self.symbols.type_of(node.func_call.calls)
 		calls = resolve_calls(org_calls)
-		calls_ref = reflection.Builder(calls) \
-			.case(reflection.Method).schema(lambda: {'klass': calls.attrs[0], 'parameters': calls.attrs[1:-1], 'returns': calls.attrs[-1]}) \
-			.other_case().schema(lambda: {'parameters': calls.attrs[:-1], 'returns': calls.attrs[-1]}) \
-			.build(reflection.Function)
 		argument = self.symbols.type_of(node)
-		parameter = actualize_parameter(calls_ref, org_calls, argument)
+		parameter = actualize_parameter(org_calls, calls, argument)
+		if CVars.raw_to_ref(argument, parameter) and argument_is_new():
+			return f'new {value}'
 		if CVars.raw_to_ref(argument, parameter):
-			return f'&{value}'
+			return f'&({value})'
 		elif CVars.ref_to_raw(argument, parameter):
-			return f'*{value}'
+			return f'*({value})'
 		else:
 			return value
 

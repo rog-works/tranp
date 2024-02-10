@@ -299,13 +299,13 @@ class Handler(Procedure[str]):
 		return node.super_class_symbol.tokens
 
 	def on_argument(self, node: defs.Argument, label: str, value: str) -> str:
-		def resolve_calls(org_calls) -> SymbolRaw:
+		def resolve_calls(org_calls: SymbolRaw) -> SymbolRaw:
 			if isinstance(org_calls.types, defs.Class):
 				return self.symbols.type_of_constructor(org_calls.types)
 
 			return org_calls
 
-		def actual_parameter(calls_ref: reflection.Function, org_calls: SymbolRaw, argument: SymbolRaw) -> SymbolRaw:
+		def actualize_parameter(calls_ref: reflection.Function, org_calls: SymbolRaw, argument: SymbolRaw) -> SymbolRaw:
 			if isinstance(calls_ref, reflection.Constructor):
 				return calls_ref.parameter(node.func_call.param_index_of(node), org_calls, argument)
 			elif isinstance(calls_ref, reflection.Method):
@@ -313,14 +313,14 @@ class Handler(Procedure[str]):
 			else:
 				return calls_ref.parameter(node.func_call.param_index_of(node), argument)
 
-		calls = self.symbols.type_of(node.func_call.calls)
-		calls_of_func = resolve_calls(calls)
-		calls_ref = reflection.Builder(calls_of_func) \
-			.case(reflection.Method).schema(lambda: {'klass': calls_of_func.attrs[0], 'parameters': calls_of_func.attrs[1:-1], 'returns': calls_of_func.attrs[-1]}) \
-			.other_case().schema(lambda: {'parameters': calls_of_func.attrs[:-1], 'returns': calls_of_func.attrs[-1]}) \
+		org_calls = self.symbols.type_of(node.func_call.calls)
+		calls = resolve_calls(org_calls)
+		calls_ref = reflection.Builder(calls) \
+			.case(reflection.Method).schema(lambda: {'klass': calls.attrs[0], 'parameters': calls.attrs[1:-1], 'returns': calls.attrs[-1]}) \
+			.other_case().schema(lambda: {'parameters': calls.attrs[:-1], 'returns': calls.attrs[-1]}) \
 			.build(reflection.Function)
 		argument = self.symbols.type_of(node)
-		parameter = actual_parameter(calls_ref, calls, argument)
+		parameter = actualize_parameter(calls_ref, org_calls, argument)
 		if CVars.raw_to_ref(argument, parameter):
 			return f'&{value}'
 		elif CVars.ref_to_raw(argument, parameter):

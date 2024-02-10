@@ -93,7 +93,7 @@ class CellMesh {
 		};
 		std::vector<std::shared_ptr<Box3d>> out = {
 		};
-		Vector* p = positions[0];
+		Vector* p = &positions[0];
 		for (auto position : positions) {
 			out.push_back(&new Box3d(position - offset, position + offset));
 		}

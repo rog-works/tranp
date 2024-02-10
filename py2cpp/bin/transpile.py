@@ -159,6 +159,13 @@ class Handler(Procedure[str]):
 		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': value})
 
 	def on_anno_assign(self, node: defs.AnnoAssign, receiver: str, var_type: str, value: str) -> str:
+		left = self.symbols.type_of(node.receiver)
+		right = self.symbols.type_of(node.value)
+		if CVars.raw_to_ref(right, left):
+			value = f'&{value}'
+		elif CVars.ref_to_raw(right, left):
+			value = f'*{value}'
+
 		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': value})
 
 	def on_aug_assign(self, node: defs.AugAssign, receiver: str, operator: str, value: str) -> str:
@@ -258,6 +265,7 @@ class Handler(Procedure[str]):
 		return node.tokens
 
 	def on_indexer(self, node: defs.Indexer, receiver: str, key: str) -> str:
+		# FIXME 一貫性がなくなるためon_argumentに統一
 		def is_own_new() -> bool:
 			"""bool: True = 親がコンストラクターコール"""
 			if not isinstance(node.parent, defs.FuncCall):

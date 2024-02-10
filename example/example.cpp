@@ -56,7 +56,7 @@ class CellMesh {
 		float fy = float(cell.y);
 		float fz = float(cell.z);
 		print("%f, %f, %f", fx, fy, fz);
-		return Vector(fx, fy, fz);
+		return make_shared<Vector>(fx, fy, fz);
 	}
 	/** face_index_to_vector */
 	public: static IntVector face_index_to_vector(int faceIndex) {
@@ -74,7 +74,7 @@ class CellMesh {
 	public: static const std::shared_ptr<Box3d> to_cell_box(IntVector cell, int unit) {
 		std::shared_ptr<Vector> minLocation = CellMesh::from_cell(cell, unit);
 		std::shared_ptr<Vector> maxLocation = CellMesh::from_cell(cell + IntVector(1, 1, 1), unit);
-		return Box3d(*(minLocation), *(maxLocation));
+		return make_shared<Box3d>(*(minLocation), *(maxLocation));
 	}
 	/** to_vertex_boxs */
 	public: static std::vector<std::shared_ptr<Box3d>> to_vertex_boxs(Box3d* cellBox, int unit) {
@@ -94,8 +94,9 @@ class CellMesh {
 		std::vector<std::shared_ptr<Box3d>> out = {
 		};
 		Vector* p = &(positions[0]);
+		std::shared_ptr<Vector> p2 = make_shared<Vector>(1, 2, 3);
 		for (auto position : positions) {
-			out.push_back(new Box3d(position - offset, position + offset));
+			out.push_back(make_shared<Box3d>(position - offset, position + offset));
 		}
 		return out;
 	}

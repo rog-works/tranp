@@ -4,6 +4,7 @@ from unittest import TestCase
 
 from py2cpp.analyze.symbols import Symbols
 from py2cpp.ast.dsn import DSN
+from py2cpp.errors import LogicError
 import py2cpp.node.definition as defs
 from py2cpp.node.node import Node
 from py2cpp.translator.option import TranslatorOptions
@@ -47,8 +48,6 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarCheck.local_move.block', 'assign[6]'), defs.MoveAssign, 'ap = &(a);'),
 		(_ast('CVarCheck.local_move.block', 'assign[7]'), defs.MoveAssign, 'ap = ap;'),
 		(_ast('CVarCheck.local_move.block', 'assign[8]'), defs.MoveAssign, 'ap = (asp).get();'),
-		(_ast('CVarCheck.local_move.block', 'assign[9]'), defs.MoveAssign, 'asp = &(a);'),  # ソース側の実装ミス
-		(_ast('CVarCheck.local_move.block', 'assign[10]'), defs.MoveAssign, 'asp = ap;'),  # ソース側の実装ミス
 		(_ast('CVarCheck.local_move.block', 'assign[11]'), defs.MoveAssign, 'asp = asp;'),
 
 		(_ast('CVarCheck.param_move.block', 'assign[0]'), defs.MoveAssign, 'A a1 = a;'),
@@ -56,10 +55,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarCheck.param_move.block', 'anno_assign[2]'), defs.AnnoAssign, 'A a3 = *(asp);'),
 		(_ast('CVarCheck.param_move.block', 'assign[3]'), defs.MoveAssign, 'a = a1;'),
 		(_ast('CVarCheck.param_move.block', 'assign[4]'), defs.MoveAssign, 'ap = &(a2);'),
-		(_ast('CVarCheck.param_move.block', 'assign[5]'), defs.MoveAssign, 'asp = &(a3);'),  # ソース側の実装ミス
 
-		(_ast('CVarCheck.invoke_method.block', 'funccall[0]'), defs.FuncCall, 'this->invoke_method(a, &(a), &(a));'),
-		(_ast('CVarCheck.invoke_method.block', 'funccall[1]'), defs.FuncCall, 'this->invoke_method(*(ap), ap, ap);'),  # ソース側の実装ミス(第3引数)
 		(_ast('CVarCheck.invoke_method.block', 'funccall[2]'), defs.FuncCall, 'this->invoke_method(*(asp), (asp).get(), asp);'),
 	])
 	def test_exec(self, full_path: str, expected_type: type[Node], expected: str) -> None:
@@ -67,3 +63,18 @@ class TestPy2Cpp(TestCase):
 		node = self.fixture.shared_nodes.by(full_path).as_a(expected_type)
 		actual = translator.exec(node)
 		self.assertEqual(actual, expected)
+
+	@data_provider([
+		(_ast('CVarCheck.local_move.block', 'assign[9]'), defs.MoveAssign, 'asp = &(a);'),
+		(_ast('CVarCheck.local_move.block', 'assign[10]'), defs.MoveAssign, 'asp = ap;'),
+
+		(_ast('CVarCheck.param_move.block', 'assign[5]'), defs.MoveAssign, 'asp = &(a3);'),
+
+		(_ast('CVarCheck.invoke_method.block', 'funccall[0]'), defs.FuncCall, 'this->invoke_method(a, &(a), &(a));'),
+		(_ast('CVarCheck.invoke_method.block', 'funccall[1]'), defs.FuncCall, 'this->invoke_method(*(ap), ap, ap);'),
+	])
+	def test_exec_error(self, full_path: str, expected_type: type[Node], expected: str) -> None:
+		translator = self.translator()
+		node = self.fixture.shared_nodes.by(full_path).as_a(expected_type)
+		with self.assertRaisesRegex(LogicError, r'^Unacceptable value move.'):
+			translator.exec(node)

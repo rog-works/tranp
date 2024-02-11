@@ -23,8 +23,8 @@ class CVarCheck:
 		ap = a
 		ap = ap
 		ap = asp
-		asp = a  # XXX あえて誤った実装でテスト
-		asp = ap  # XXX あえて誤った実装でテスト
+		asp = a  # エラーケース
+		asp = ap  # エラーケース
 		asp = asp
 
 	def param_move(self, a: A, ap: A[CP], asp: A[CSP]) -> None:
@@ -33,9 +33,9 @@ class CVarCheck:
 		a3: A = asp
 		a = a1
 		ap = a2
-		asp = a3  # XXX あえて誤った実装でテスト
+		asp = a3  # エラーケース
 
 	def invoke_method(self, a: A, ap: A[CP], asp: A[CSP]) -> None:
 		self.invoke_method(a, a, a)
-		self.invoke_method(ap, ap, ap)  # XXX あえて誤った実装でテスト(第3引数)
-		self.invoke_method(asp, asp, asp)
+		self.invoke_method(ap, ap, ap)  # エラーケース
+		self.invoke_method(asp, asp, asp)  # エラーケース

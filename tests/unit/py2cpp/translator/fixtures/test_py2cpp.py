@@ -16,9 +16,16 @@ class CVarCheck:
 	def local_move(self) -> None:
 		a: A = A()
 		ap: A[CP] = a
-		a = ap
 		asp: A[CSP] = A()
+		a = a
+		a = ap
 		a = asp
+		ap = a
+		ap = ap
+		ap = asp
+		asp = a  # XXX あえて誤った実装でテスト
+		asp = ap  # XXX あえて誤った実装でテスト
+		asp = asp
 
 	def param_move(self, a: A, ap: A[CP], asp: A[CSP]) -> None:
 		a1 = a

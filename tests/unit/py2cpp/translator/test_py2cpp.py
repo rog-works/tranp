@@ -40,9 +40,16 @@ class TestPy2Cpp(TestCase):
 
 		(_ast('CVarCheck.local_move.block', 'anno_assign[0]'), defs.AnnoAssign, 'A a = A();'),
 		(_ast('CVarCheck.local_move.block', 'anno_assign[1]'), defs.AnnoAssign, 'A* ap = &(a);'),
-		(_ast('CVarCheck.local_move.block', 'assign[2]'), defs.MoveAssign, 'a = *(ap);'),
-		(_ast('CVarCheck.local_move.block', 'anno_assign[3]'), defs.AnnoAssign, 'std::shared_ptr<A> asp = std::make_shared<A>();'),
-		(_ast('CVarCheck.local_move.block', 'assign[4]'), defs.MoveAssign, 'a = *(asp);'),
+		(_ast('CVarCheck.local_move.block', 'anno_assign[2]'), defs.AnnoAssign, 'std::shared_ptr<A> asp = std::make_shared<A>();'),
+		(_ast('CVarCheck.local_move.block', 'assign[3]'), defs.MoveAssign, 'a = a;'),
+		(_ast('CVarCheck.local_move.block', 'assign[4]'), defs.MoveAssign, 'a = *(ap);'),
+		(_ast('CVarCheck.local_move.block', 'assign[5]'), defs.MoveAssign, 'a = *(asp);'),
+		(_ast('CVarCheck.local_move.block', 'assign[6]'), defs.MoveAssign, 'ap = &(a);'),
+		(_ast('CVarCheck.local_move.block', 'assign[7]'), defs.MoveAssign, 'ap = ap;'),
+		(_ast('CVarCheck.local_move.block', 'assign[8]'), defs.MoveAssign, 'ap = (asp).get();'),
+		(_ast('CVarCheck.local_move.block', 'assign[9]'), defs.MoveAssign, 'asp = &(a);'),  # ソース側の実装ミス
+		(_ast('CVarCheck.local_move.block', 'assign[10]'), defs.MoveAssign, 'asp = ap;'),  # ソース側の実装ミス
+		(_ast('CVarCheck.local_move.block', 'assign[11]'), defs.MoveAssign, 'asp = asp;'),
 
 		(_ast('CVarCheck.param_move.block', 'assign[0]'), defs.MoveAssign, 'A a1 = a;'),
 		(_ast('CVarCheck.param_move.block', 'anno_assign[1]'), defs.AnnoAssign, 'A a2 = *(ap);'),

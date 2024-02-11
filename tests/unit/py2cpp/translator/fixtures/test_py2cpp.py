@@ -1,4 +1,4 @@
-from py2cpp.compatible.cpp.object import CObject, CP, CSP
+from py2cpp.compatible.cpp.object import CObject, CP, CRef, CSP
 
 class A(CObject):
 	...
@@ -17,15 +17,19 @@ class CVarCheck:
 		a: A = A()
 		ap: A[CP] = a
 		asp: A[CSP] = A()
+		ar: A[CRef] = a
 		a = a
 		a = ap
 		a = asp
+		a = ar
 		ap = a
 		ap = ap
 		ap = asp
+		ap = ar
 		asp = a  # エラーケース
 		asp = ap  # エラーケース
 		asp = asp
+		asp = ar  # エラーケース
 
 	def param_move(self, a: A, ap: A[CP], asp: A[CSP]) -> None:
 		a1 = a

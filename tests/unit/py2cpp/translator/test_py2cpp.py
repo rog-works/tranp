@@ -42,13 +42,16 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarCheck.local_move.block', 'anno_assign[0]'), defs.AnnoAssign, 'A a = A();'),
 		(_ast('CVarCheck.local_move.block', 'anno_assign[1]'), defs.AnnoAssign, 'A* ap = &(a);'),
 		(_ast('CVarCheck.local_move.block', 'anno_assign[2]'), defs.AnnoAssign, 'std::shared_ptr<A> asp = std::make_shared<A>();'),
-		(_ast('CVarCheck.local_move.block', 'assign[3]'), defs.MoveAssign, 'a = a;'),
-		(_ast('CVarCheck.local_move.block', 'assign[4]'), defs.MoveAssign, 'a = *(ap);'),
-		(_ast('CVarCheck.local_move.block', 'assign[5]'), defs.MoveAssign, 'a = *(asp);'),
-		(_ast('CVarCheck.local_move.block', 'assign[6]'), defs.MoveAssign, 'ap = &(a);'),
-		(_ast('CVarCheck.local_move.block', 'assign[7]'), defs.MoveAssign, 'ap = ap;'),
-		(_ast('CVarCheck.local_move.block', 'assign[8]'), defs.MoveAssign, 'ap = (asp).get();'),
-		(_ast('CVarCheck.local_move.block', 'assign[11]'), defs.MoveAssign, 'asp = asp;'),
+		(_ast('CVarCheck.local_move.block', 'anno_assign[3]'), defs.AnnoAssign, 'A& ar = a;'),
+		(_ast('CVarCheck.local_move.block', 'assign[4]'), defs.MoveAssign, 'a = a;'),
+		(_ast('CVarCheck.local_move.block', 'assign[5]'), defs.MoveAssign, 'a = *(ap);'),
+		(_ast('CVarCheck.local_move.block', 'assign[6]'), defs.MoveAssign, 'a = *(asp);'),
+		(_ast('CVarCheck.local_move.block', 'assign[7]'), defs.MoveAssign, 'a = ar;'),
+		(_ast('CVarCheck.local_move.block', 'assign[8]'), defs.MoveAssign, 'ap = &(a);'),
+		(_ast('CVarCheck.local_move.block', 'assign[9]'), defs.MoveAssign, 'ap = ap;'),
+		(_ast('CVarCheck.local_move.block', 'assign[10]'), defs.MoveAssign, 'ap = (asp).get();'),
+		(_ast('CVarCheck.local_move.block', 'assign[11]'), defs.MoveAssign, 'ap = &(ar);'),
+		(_ast('CVarCheck.local_move.block', 'assign[14]'), defs.MoveAssign, 'asp = asp;'),
 
 		(_ast('CVarCheck.param_move.block', 'assign[0]'), defs.MoveAssign, 'A a1 = a;'),
 		(_ast('CVarCheck.param_move.block', 'anno_assign[1]'), defs.AnnoAssign, 'A a2 = *(ap);'),
@@ -65,15 +68,16 @@ class TestPy2Cpp(TestCase):
 		self.assertEqual(actual, expected)
 
 	@data_provider([
-		(_ast('CVarCheck.local_move.block', 'assign[9]'), defs.MoveAssign, 'asp = &(a);'),
-		(_ast('CVarCheck.local_move.block', 'assign[10]'), defs.MoveAssign, 'asp = ap;'),
+		(_ast('CVarCheck.local_move.block', 'assign[12]'), defs.MoveAssign),
+		(_ast('CVarCheck.local_move.block', 'assign[13]'), defs.MoveAssign),
+		(_ast('CVarCheck.local_move.block', 'assign[15]'), defs.MoveAssign),
 
-		(_ast('CVarCheck.param_move.block', 'assign[5]'), defs.MoveAssign, 'asp = &(a3);'),
+		(_ast('CVarCheck.param_move.block', 'assign[5]'), defs.MoveAssign),
 
-		(_ast('CVarCheck.invoke_method.block', 'funccall[0]'), defs.FuncCall, 'this->invoke_method(a, &(a), &(a));'),
-		(_ast('CVarCheck.invoke_method.block', 'funccall[1]'), defs.FuncCall, 'this->invoke_method(*(ap), ap, ap);'),
+		(_ast('CVarCheck.invoke_method.block', 'funccall[0]'), defs.FuncCall),
+		(_ast('CVarCheck.invoke_method.block', 'funccall[1]'), defs.FuncCall),
 	])
-	def test_exec_error(self, full_path: str, expected_type: type[Node], expected: str) -> None:
+	def test_exec_error(self, full_path: str, expected_type: type[Node]) -> None:
 		translator = self.translator()
 		node = self.fixture.shared_nodes.by(full_path).as_a(expected_type)
 		with self.assertRaisesRegex(LogicError, r'^Unacceptable value move.'):

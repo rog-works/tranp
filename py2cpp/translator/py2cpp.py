@@ -409,7 +409,7 @@ class CVars:
 	@classmethod
 	def acceptable(cls, accept: SymbolRaw, value: SymbolRaw) -> bool:
 		to_key = cls.key_from(value)
-		if cls.is_ref_sp(accept) and to_key in [cpp.CRaw.__name__, cpp.CP.__name__]:
+		if cls.is_ref_sp(accept) and to_key in [cpp.CRaw.__name__, cpp.CRef.__name__, cpp.CP.__name__]:
 			return False
 
 		return True

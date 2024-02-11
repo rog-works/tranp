@@ -19,14 +19,14 @@ from py2cpp.tp_lark.parser import SyntaxParserOfLark
 class Fixture:
 	@classmethod
 	def make(cls, filepath: str) -> 'Fixture':
-		rel_path = filepath.split(cls.__appdir())[1]
+		rel_path = filepath.split(cls.appdir())[1]
 		without_ext = rel_path.split('.')[0]
 		elems =  [elem for elem in without_ext.split(os.path.sep) if elem]
 		test_module_path = '.'.join(elems)
 		return cls(test_module_path)
 
 	@classmethod
-	def __appdir(cls) -> str:
+	def appdir(cls) -> str:
 		return os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 
 	def __init__(self, test_module_path: str) -> None:

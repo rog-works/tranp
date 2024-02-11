@@ -21,7 +21,7 @@ class Py2Cpp(Procedure[str]):
 	def accepted_cvar_value(self, accept_raw: SymbolRaw, value_node: Node, value_raw: SymbolRaw, value_str: str) -> str:
 		value_on_new = isinstance(value_node, defs.FuncCall) and self.symbols.type_of(value_node.calls).types.is_a(defs.Class)
 		if CVars.is_raw_to_ref(value_raw, accept_raw) and value_on_new:
-			if CVars.is_shared_ref(accept_raw):
+			if CVars.is_ref_sp(accept_raw):
 				matches = cast(re.Match, re.fullmatch(r'([^(]+)\((.*)\)', value_str))
 				return f'std::make_shared<{matches[1]}>({matches[2]})'
 			else:
@@ -30,7 +30,7 @@ class Py2Cpp(Procedure[str]):
 			return f'&({value_str})'
 		elif CVars.is_ref_to_raw(value_raw, accept_raw):
 			return f'*({value_str})'
-		elif CVars.is_shared_to_pointer(value_raw, accept_raw):
+		elif CVars.is_sp_to_p(value_raw, accept_raw):
 			return f'({value_str}).get()'
 		else:
 			return value_str
@@ -409,19 +409,19 @@ class CVars:
 
 	@classmethod
 	def is_raw(cls, raw: SymbolRaw) -> bool:
-		return cls.is_raw_by(cls.pluck_key(raw))
+		return cls.is_raw_by(cls.key_from(raw))
 
 	@classmethod
 	def is_ref(cls, raw: SymbolRaw) -> bool:
-		return cls.is_ref_by(cls.pluck_key(raw))
+		return cls.is_ref_by(cls.key_from(raw))
 
 	@classmethod
-	def is_pointer_ref(cls, raw: SymbolRaw) -> bool:
-		return cls.pluck_key(raw) == cpp.CP.__name__
+	def is_ref_p(cls, raw: SymbolRaw) -> bool:
+		return cls.key_from(raw) == cpp.CP.__name__
 
 	@classmethod
-	def is_shared_ref(cls, raw: SymbolRaw) -> bool:
-		return cls.pluck_key(raw) == cpp.CSP.__name__
+	def is_ref_sp(cls, raw: SymbolRaw) -> bool:
+		return cls.key_from(raw) == cpp.CSP.__name__
 
 	@classmethod
 	def is_ref_to_raw(cls, from_: SymbolRaw, to_: SymbolRaw) -> bool:
@@ -432,15 +432,15 @@ class CVars:
 		return cls.is_raw(from_) and cls.is_ref(to_)
 
 	@classmethod
-	def is_shared_to_pointer(cls, from_: SymbolRaw, to_: SymbolRaw) -> bool:
-		return cls.is_shared_ref(from_) and cls.is_pointer_ref(to_)
+	def is_sp_to_p(cls, from_: SymbolRaw, to_: SymbolRaw) -> bool:
+		return cls.is_ref_sp(from_) and cls.is_ref_p(to_)
 
 	@classmethod
 	def keys(cls) -> list[str]:
 		return [cvar.__name__ for cvar in [cpp.CP, cpp.CSP, cpp.CRef, cpp.CRaw]]
 
 	@classmethod
-	def pluck_key(cls, raw: SymbolRaw) -> str:
+	def key_from(cls, raw: SymbolRaw) -> str:
 		keys = [attr.types.symbol.tokens for attr in raw.attrs]
 		if len(keys) > 0 and keys[0] in cls.keys():
 			return keys[0]

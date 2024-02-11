@@ -4,9 +4,10 @@ from unittest import TestCase
 
 from py2cpp.analyze.symbols import Symbols
 from py2cpp.ast.dsn import DSN
-from py2cpp.implements.translator.py2cpp import Py2Cpp
 import py2cpp.node.definition as defs
 from py2cpp.node.node import Node
+from py2cpp.translator.option import TranslatorOptions
+from py2cpp.translator.py2cpp import Py2Cpp
 from py2cpp.view.render import Renderer
 from tests.test.fixture import Fixture
 from tests.test.helper import data_provider
@@ -29,7 +30,8 @@ class TestPy2Cpp(TestCase):
 
 	def translator(self) -> Py2Cpp:
 		renderer = Renderer(os.path.join(Fixture.appdir(), 'example/template'))
-		return Py2Cpp(self.fixture.get(Symbols), renderer)
+		options = TranslatorOptions(verbose=False)
+		return Py2Cpp(self.fixture.get(Symbols), renderer, options)
 
 	@data_provider([
 		(_ast('CVarCheck.ret_raw.return', ''), defs.Return, 'return A();'),

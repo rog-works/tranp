@@ -4,11 +4,12 @@ import sys
 from py2cpp.app.app import App
 from py2cpp.ast.parser import ParserSetting
 import py2cpp.compatible.python.embed as __alias__
-from py2cpp.implements.translator.py2cpp import Py2Cpp
 from py2cpp.lang.error import stacktrace
 from py2cpp.lang.module import fullyname
 from py2cpp.module.types import ModulePath
 from py2cpp.node.node import Node
+from py2cpp.translator.option import TranslatorOptions
+from py2cpp.translator.py2cpp import Py2Cpp
 from py2cpp.view.render import Renderer, Writer
 
 
@@ -47,6 +48,10 @@ def make_renderer(args: Args) -> Renderer:
 	return Renderer(args.template_dir)
 
 
+def make_options() -> TranslatorOptions:
+	return TranslatorOptions(verbose=True)
+
+
 def make_parser_setting(args: Args) -> ParserSetting:
 	return ParserSetting(grammar=args.grammar)
 
@@ -70,6 +75,7 @@ if __name__ == '__main__':
 		fullyname(Args): Args,
 		fullyname(Writer): make_writer,
 		fullyname(Renderer): make_renderer,
+		fullyname(TranslatorOptions): make_options,
 		fullyname(Py2Cpp): Py2Cpp,
 		fullyname(ParserSetting): make_parser_setting,
 		fullyname(ModulePath): make_module_path,

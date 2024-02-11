@@ -9,12 +9,13 @@ import py2cpp.compatible.cpp.object as cpp
 import py2cpp.compatible.python.embed as __alias__
 import py2cpp.node.definition as defs
 from py2cpp.node.node import Node
+from py2cpp.translator.option import TranslatorOptions
 from py2cpp.view.render import Renderer
 
 
 class Py2Cpp(Procedure[str]):
-	def __init__(self, symbols: Symbols, render: Renderer) -> None:
-		super().__init__(verbose=True)
+	def __init__(self, symbols: Symbols, render: Renderer, options: TranslatorOptions) -> None:
+		super().__init__(verbose=options.verbose)
 		self.symbols = symbols
 		self.view = render
 

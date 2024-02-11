@@ -57,15 +57,9 @@ def make_module_path(args: Args) -> ModulePath:
 	return ModulePath('__main__', module_path)
 
 
-def task(handler: Py2Cpp, root: Node, writer: Writer) -> None:
+def task(translator: Py2Cpp, root: Node, writer: Writer) -> None:
 	try:
-		flatted = root.calculated()
-		flatted.append(root)  # XXX
-
-		for node in flatted:
-			handler.process(node)
-
-		writer.put(handler.result())
+		writer.put(translator.exec(root))
 		writer.flush()
 	except Exception as e:
 		print(''.join(stacktrace(e)))

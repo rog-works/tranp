@@ -156,25 +156,6 @@ class Symbols:
 			# defs.Catch
 			return self.resolve(node.var_type)
 
-	def __resolve_procedural(self, node: Node) -> SymbolRaw:
-		"""ノードを展開してシンボルを解決
-
-		Args:
-			node (Node): ノード
-		Returns:
-			SymbolRaw: シンボル
-		Raises:
-			NotFoundError: シンボルが見つからない
-		"""
-		resolver = ProceduralResolver(self)
-		for in_node in node.calculated():
-			resolver.process(in_node)
-
-		# XXX 自分自身が含まれないため個別に実行
-		resolver.process(node)
-
-		return resolver.result()
-
 	def resolve(self, symbolic: defs.Symbolic, prop_name: str = '') -> SymbolRaw:
 		"""シンボルテーブルからシンボルを解決
 
@@ -228,6 +209,18 @@ class Symbols:
 			return found_raw
 
 		return None
+
+	def __resolve_procedural(self, node: Node) -> SymbolRaw:
+		"""ノードを展開してシンボルを解決
+
+		Args:
+			node (Node): ノード
+		Returns:
+			SymbolRaw: シンボル
+		Raises:
+			NotFoundError: シンボルが見つからない
+		"""
+		return ProceduralResolver(self).exec(node)
 
 
 class ProceduralResolver(Procedure[SymbolRaw]):

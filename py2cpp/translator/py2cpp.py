@@ -7,6 +7,7 @@ from py2cpp.analyze.symbol import SymbolRaw
 from py2cpp.analyze.symbols import Symbols
 import py2cpp.compatible.cpp.object as cpp
 import py2cpp.compatible.python.embed as __alias__
+from py2cpp.errors import LogicError
 import py2cpp.node.definition as defs
 from py2cpp.node.node import Node
 from py2cpp.translator.option import TranslatorOptions
@@ -27,7 +28,12 @@ class Py2Cpp(Procedure[str]):
 				return f'std::make_shared<{matches[1]}>({matches[2]})'
 			else:
 				return f'new {value_str}'
-		elif CVars.is_raw_to_ref(value_raw, accept_raw):
+
+		# XXX value_on_newの条件を考慮するべきでは
+		if not CVars.acceptable(accept_raw, value_raw):
+			raise LogicError(f'Unacceptable value move. accept: {str(accept_raw)}, value: {str(value_raw)}')
+
+		if CVars.is_raw_to_ref(value_raw, accept_raw):
 			return f'&({value_str})'
 		elif CVars.is_ref_to_raw(value_raw, accept_raw):
 			return f'*({value_str})'
@@ -401,6 +407,14 @@ class Py2Cpp(Procedure[str]):
 
 class CVars:
 	@classmethod
+	def acceptable(cls, accept: SymbolRaw, value: SymbolRaw) -> bool:
+		to_key = cls.key_from(value)
+		if cls.is_ref_sp(accept) and to_key in [cpp.CRaw.__name__, cpp.CP.__name__]:
+			return False
+
+		return True
+
+	@classmethod
 	def is_raw_by(cls, key: str) -> bool:
 		return key in [cpp.CRaw.__name__, cpp.CRef.__name__]
 
@@ -425,16 +439,16 @@ class CVars:
 		return cls.key_from(raw) == cpp.CSP.__name__
 
 	@classmethod
-	def is_ref_to_raw(cls, from_: SymbolRaw, to_: SymbolRaw) -> bool:
-		return cls.is_ref(from_) and cls.is_raw(to_)
+	def is_ref_to_raw(cls, accept: SymbolRaw, value: SymbolRaw) -> bool:
+		return cls.is_ref(accept) and cls.is_raw(value)
 
 	@classmethod
-	def is_raw_to_ref(cls, from_: SymbolRaw, to_: SymbolRaw) -> bool:
-		return cls.is_raw(from_) and cls.is_ref(to_)
+	def is_raw_to_ref(cls, accept: SymbolRaw, value: SymbolRaw) -> bool:
+		return cls.is_raw(accept) and cls.is_ref(value)
 
 	@classmethod
-	def is_sp_to_p(cls, from_: SymbolRaw, to_: SymbolRaw) -> bool:
-		return cls.is_ref_sp(from_) and cls.is_ref_p(to_)
+	def is_sp_to_p(cls, accept: SymbolRaw, value: SymbolRaw) -> bool:
+		return cls.is_ref_sp(accept) and cls.is_ref_p(value)
 
 	@classmethod
 	def keys(cls) -> list[str]:

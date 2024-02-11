@@ -20,22 +20,37 @@ class Sub(Base):
 		super().__init__()
 		self.numbers: list[int] = []
 
-	def func1(self, subs: 'list[Sub]') -> str:
+	def local_ref(self) -> None:
 		value = False
 		print(value)
+
+	def member_ref(self) -> None:
 		print(self.numbers)
-		print(subs[0].numbers)
-		Sub.C.value = 'b.b2.v'
+
+	def member_write(self) -> None:
 		self.x.nx = 2
-		v2 = self.numbers.pop()
-		print(self.func3()[0].numbers)
+		Sub.C.value = 'update'
+
+	def param_ref(self, param: int) -> None:
+		print(param)
+
+	def list_ref(self, subs: 'list[Sub]') -> None:
+		print(self.numbers[0])
+		print(subs[0].numbers)
+
+	def base_ref(self) -> None:
+		print(self.base_str)
+
+	def returns(self) -> str:
 		return self.base_str
 
-	def func3(self) -> 'list[Sub]':
-		...
+	def invoke_method(self) -> None:
+		self.invoke_method()
 
-class DeclVar:
-	def if_for_try(self) -> int:
+	def decl_with_pop(self) -> None:
+		poped = self.numbers.pop()
+
+	def decl_locals(self) -> int:
 		a = 1
 		if a:
 			a = a + 1

@@ -29,8 +29,8 @@ def _ast(before: str, after: str) -> str:
 		'Sub.func1.params': 'file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.parameters',
 		'Sub.func1.return': 'file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.return_type',
 		'Sub.func1.block': 'file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block',
-		'Sub.func2.block': 'file_input.class_def[4].class_def_raw.block.function_def[3].function_def_raw.block',
-		'Sub.func2.closure.block': 'file_input.class_def[4].class_def_raw.block.function_def[3].function_def_raw.block.function_def.function_def_raw.block',
+		'DeclVar.if_for_try.block': 'file_input.class_def[5].class_def_raw.block.function_def.function_def_raw.block',
+		'DeclVar.if_for_try.closure.block': 'file_input.class_def[5].class_def_raw.block.function_def.function_def_raw.block.function_def.function_def_raw.block',
 	}
 	return DSN.join(aliases[before], after)
 
@@ -47,12 +47,12 @@ class TestSymbols(TestCase):
 	fixture = Fixture.make(__file__)
 
 	@data_provider([
-		('__main__.Sub.func2.a', list, False),
-		('__main__.Sub.func2.closure.b', list, True),
-		('__main__.func.d', list, False),
-		('__main__.Sub.func2.a', dict, False),
-		('__main__.Sub.func2.closure.b', dict, False),
-		('__main__.func.d', dict, False),  # XXX エイリアスなのでdictでそのものではないが、要検討
+		('__main__.DeclVar.if_for_try.a', list, False),
+		('__main__.DeclVar.if_for_try.closure.b', list, True),
+		('__main__.DeclVar.if_for_try.a', dict, False),
+		('__main__.DeclVar.if_for_try.closure.b', dict, False),
+		('__main__.AliasCheck.func.d', list, False),
+		('__main__.AliasCheck.func.d', dict, False),  # XXX エイリアスなのでdictでそのものではないが、要検討
 	])
 	def test_is_a(self, fullyname: str, primitive_type: type[Primitives], expected: bool) -> None:
 		symbols = self.fixture.get(Symbols)
@@ -74,27 +74,27 @@ class TestSymbols(TestCase):
 		# 10
 		('__main__.Sub.func1.value', 'bool'),
 		('__main__.Sub.func1.v2', 'int'),
-		('__main__.Sub.func2', 'func2(Sub) -> int'),
-		('__main__.Sub.func2.a', 'int'),
-		('__main__.Sub.func2.closure', 'closure() -> list<int>'),
-		# 15
-		('__main__.Sub.func2.closure.b', 'list<int>'),
-		('__main__.Sub.func2.if.for.i', 'int'),
-		('__main__.Sub.func2.if.for.try.e', 'Exception'),
 		('__main__.Sub.C', 'C'),
 		('__main__.Sub.C.value', 'str'),
 		('__main__.Sub.C.class_func', 'class_func(C) -> dict<str, int>'),
+		# 15
+		('__main__.DeclVar.if_for_try', 'if_for_try(DeclVar) -> int'),
+		('__main__.DeclVar.if_for_try.a', 'int'),
+		('__main__.DeclVar.if_for_try.closure', 'closure() -> list<int>'),
+		('__main__.DeclVar.if_for_try.closure.b', 'list<int>'),
+		('__main__.DeclVar.if_for_try.if.for.i', 'int'),
 		# 20
-		('__main__.func', 'func(Z2=Z) -> None'),
-		('__main__.func.z2', 'Z2=Z'),
-		('__main__.func.d', 'DSI=dict<str, int>'),
-		('__main__.func.d_in_v', 'int'),
-		('__main__.func.d2', 'DSI2=dict<str, DSI=dict<str, int>>'),
+		('__main__.DeclVar.if_for_try.if.for.try.e', 'Exception'),
+		('__main__.AliasCheck.func', 'func(AliasCheck, Z2=Z) -> None'),
+		('__main__.AliasCheck.func.z2', 'Z2=Z'),
+		('__main__.AliasCheck.func.d', 'DSI=dict<str, int>'),
+		('__main__.AliasCheck.func.d_in_v', 'int'),
 		# 25
-		('__main__.func.d2_in_dsi', 'DSI=dict<str, int>'),
-		('__main__.func.d2_in_dsi_in_v', 'int'),
-		('__main__.func.z2_in_x', 'X'),
-		('__main__.func.new_z2_in_x', 'X'),
+		('__main__.AliasCheck.func.d2', 'DSI2=dict<str, DSI=dict<str, int>>'),
+		('__main__.AliasCheck.func.d2_in_dsi', 'DSI=dict<str, int>'),
+		('__main__.AliasCheck.func.d2_in_dsi_in_v', 'int'),
+		('__main__.AliasCheck.func.z2_in_x', 'X'),
+		('__main__.AliasCheck.func.new_z2_in_x', 'X'),
 	])
 	def test_from_fullyname(self, fullyname: str, expected: str) -> None:
 		symbols = self.fixture.get(Symbols)
@@ -172,8 +172,8 @@ class TestSymbols(TestCase):
 		(_ast('Sub.func1.block', 'funccall[7].arguments.argvalue.getattr'), _mod('classes', 'list'), 'list<int>'),
 		(_ast('Sub.func1.block', 'return_stmt.getattr'), _mod('classes', 'str'), 'str'),
 		# 45
-		(_ast('Sub.func2.block', 'if_stmt.block.assign.var'), _mod('classes', 'int'), 'int'),
-		(_ast('Sub.func2.closure.block', 'assign.var'), _mod('classes', 'list'), 'list<int>'),
+		(_ast('DeclVar.if_for_try.block', 'if_stmt.block.assign.var'), _mod('classes', 'int'), 'int'),
+		(_ast('DeclVar.if_for_try.closure.block', 'assign.var'), _mod('classes', 'list'), 'list<int>'),
 	])
 	def test_type_of(self, full_path: str, expected: str, attrs_expected: str) -> None:
 		symbols = self.fixture.get(Symbols)

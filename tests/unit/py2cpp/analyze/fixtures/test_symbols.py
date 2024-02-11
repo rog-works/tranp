@@ -31,7 +31,11 @@ class Sub(Base):
 		print(self.func3()[0].numbers)
 		return self.base_str
 
-	def func2(self) -> int:
+	def func3(self) -> 'list[Sub]':
+		...
+
+class DeclVar:
+	def if_for_try(self) -> int:
 		a = 1
 		if a:
 			a = a + 1
@@ -42,25 +46,23 @@ class Sub(Base):
 					raise e
 
 		def closure() -> list[int]:
-			b = self.numbers
+			b = [1]
 			return b
 
 		return closure()[0]
-
-	def func3(self) -> 'list[Sub]':
-		...
 
 DSI: TypeAlias = dict[str, int]
 DSI2: TypeAlias = dict[str, DSI]
 Z2: TypeAlias = Z
 
-def func(z2: Z2) -> None:
-	d: DSI = {'s': value}
-	d_in_v = d['s']
+class AliasCheck:
+	def func(self, z2: Z2) -> None:
+		d: DSI = {'s': value}
+		d_in_v = d['s']
 
-	d2: DSI2 = {'s2': d}
-	d2_in_dsi = d2['s']
-	d2_in_dsi_in_v = d2['s2']['s']
+		d2: DSI2 = {'s2': d}
+		d2_in_dsi = d2['s']
+		d2_in_dsi_in_v = d2['s2']['s']
 
-	z2_in_x = z2.x
-	new_z2_in_x = Z2().x
+		z2_in_x = z2.x
+		new_z2_in_x = Z2().x

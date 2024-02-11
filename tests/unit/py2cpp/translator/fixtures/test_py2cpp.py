@@ -24,11 +24,11 @@ class CVarCheck:
 		a1 = a
 		a2: A = ap
 		a3: A = asp
-		# a = a1
-		# ap = a2
-		# asp = a3
+		a = a1
+		ap = a2
+		asp = a3  # XXX あえて誤った実装でテスト
 
 	def invoke_method(self, a: A, ap: A[CP], asp: A[CSP]) -> None:
 		self.invoke_method(a, a, a)
-		self.invoke_method(ap, ap, ap)
+		self.invoke_method(ap, ap, ap)  # XXX あえて誤った実装でテスト(第3引数)
 		self.invoke_method(asp, asp, asp)

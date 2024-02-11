@@ -37,19 +37,22 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarCheck.ret_raw.return', ''), defs.Return, 'return A();'),
 		(_ast('CVarCheck.ret_cp.return', ''), defs.Return, 'return new A();'),
 		(_ast('CVarCheck.ret_csp.return', ''), defs.Return, 'return std::make_shared<A>();'),
+
 		(_ast('CVarCheck.local_move.block', 'anno_assign[0]'), defs.AnnoAssign, 'A a = A();'),
 		(_ast('CVarCheck.local_move.block', 'anno_assign[1]'), defs.AnnoAssign, 'A* ap = &(a);'),
 		(_ast('CVarCheck.local_move.block', 'assign[2]'), defs.MoveAssign, 'a = *(ap);'),
 		(_ast('CVarCheck.local_move.block', 'anno_assign[3]'), defs.AnnoAssign, 'std::shared_ptr<A> asp = std::make_shared<A>();'),
 		(_ast('CVarCheck.local_move.block', 'assign[4]'), defs.MoveAssign, 'a = *(asp);'),
-		(_ast('CVarCheck.param_move.block', 'assign'), defs.MoveAssign, 'A a1 = a;'),
+
+		(_ast('CVarCheck.param_move.block', 'assign[0]'), defs.MoveAssign, 'A a1 = a;'),
 		(_ast('CVarCheck.param_move.block', 'anno_assign[1]'), defs.AnnoAssign, 'A a2 = *(ap);'),
 		(_ast('CVarCheck.param_move.block', 'anno_assign[2]'), defs.AnnoAssign, 'A a3 = *(asp);'),
-		# (_ast('CVarCheck.param_move.block', 'assign[3]'), defs.MoveAssign, 'a = a1;'),
-		# (_ast('CVarCheck.param_move.block', 'assign[4]'), defs.MoveAssign, 'ap = &(a2);'),
-		# (_ast('CVarCheck.param_move.block', 'assign[5]'), defs.MoveAssign, 'asp = a3;'),  # 実装の誤り
+		(_ast('CVarCheck.param_move.block', 'assign[3]'), defs.MoveAssign, 'a = a1;'),
+		(_ast('CVarCheck.param_move.block', 'assign[4]'), defs.MoveAssign, 'ap = &(a2);'),
+		(_ast('CVarCheck.param_move.block', 'assign[5]'), defs.MoveAssign, 'asp = &(a3);'),  # ソース側の実装ミス
+
 		(_ast('CVarCheck.invoke_method.block', 'funccall[0]'), defs.FuncCall, 'this->invoke_method(a, &(a), &(a));'),
-		(_ast('CVarCheck.invoke_method.block', 'funccall[1]'), defs.FuncCall, 'this->invoke_method(*(ap), ap, ap);'),  # 第3引数は実装の誤り(構文として成り立たない)
+		(_ast('CVarCheck.invoke_method.block', 'funccall[1]'), defs.FuncCall, 'this->invoke_method(*(ap), ap, ap);'),  # ソース側の実装ミス(第3引数)
 		(_ast('CVarCheck.invoke_method.block', 'funccall[2]'), defs.FuncCall, 'this->invoke_method(*(asp), (asp).get(), asp);'),
 	])
 	def test_exec(self, full_path: str, expected_type: type[Node], expected: str) -> None:

@@ -18,27 +18,20 @@ class Py2Cpp(Procedure[str]):
 		self.symbols = symbols
 		self.view = render
 
-	# XXX 未使用
-	# def __result_internal(self, begin: Node) -> str:
-	# 	cloning = Handler(self.symbols, self.view)
-	# 	for node in begin.calculated():
-	# 		cloning.process(node)
-
-	# 	cloning.process(begin)
-	# 	return cloning.result()
-
 	def accepted_cvar_value(self, accept_raw: SymbolRaw, value_node: Node, value_raw: SymbolRaw, value_str: str) -> str:
 		value_on_new = isinstance(value_node, defs.FuncCall) and self.symbols.type_of(value_node.calls).types.is_a(defs.Class)
-		if CVars.raw_to_ref(value_raw, accept_raw) and value_on_new:
+		if CVars.is_raw_to_ref(value_raw, accept_raw) and value_on_new:
 			if CVars.is_shared_ref(accept_raw):
 				matches = cast(re.Match, re.fullmatch(r'([^(]+)\((.*)\)', value_str))
 				return f'std::make_shared<{matches[1]}>({matches[2]})'
 			else:
 				return f'new {value_str}'
-		elif CVars.raw_to_ref(value_raw, accept_raw):
+		elif CVars.is_raw_to_ref(value_raw, accept_raw):
 			return f'&({value_str})'
-		elif CVars.ref_to_raw(value_raw, accept_raw):
+		elif CVars.is_ref_to_raw(value_raw, accept_raw):
 			return f'*({value_str})'
+		elif CVars.is_shared_to_pointer(value_raw, accept_raw):
+			return f'({value_str}).get()'
 		else:
 			return value_str
 
@@ -407,18 +400,6 @@ class Py2Cpp(Procedure[str]):
 
 class CVars:
 	@classmethod
-	def is_raw(cls, raw: SymbolRaw) -> bool:
-		return cls.is_raw_by(cls.pluck_key(raw))
-
-	@classmethod
-	def is_ref(cls, raw: SymbolRaw) -> bool:
-		return cls.is_ref_by(cls.pluck_key(raw))
-
-	@classmethod
-	def is_shared_ref(cls, raw: SymbolRaw) -> bool:
-		return cls.pluck_key(raw) == cpp.CSP.__name__
-
-	@classmethod
 	def is_raw_by(cls, key: str) -> bool:
 		return key in [cpp.CRaw.__name__, cpp.CRef.__name__]
 
@@ -427,12 +408,32 @@ class CVars:
 		return key in [cpp.CP.__name__, cpp.CSP.__name__]
 
 	@classmethod
-	def ref_to_raw(cls, from_: SymbolRaw, to_: SymbolRaw) -> bool:
+	def is_raw(cls, raw: SymbolRaw) -> bool:
+		return cls.is_raw_by(cls.pluck_key(raw))
+
+	@classmethod
+	def is_ref(cls, raw: SymbolRaw) -> bool:
+		return cls.is_ref_by(cls.pluck_key(raw))
+
+	@classmethod
+	def is_pointer_ref(cls, raw: SymbolRaw) -> bool:
+		return cls.pluck_key(raw) == cpp.CP.__name__
+
+	@classmethod
+	def is_shared_ref(cls, raw: SymbolRaw) -> bool:
+		return cls.pluck_key(raw) == cpp.CSP.__name__
+
+	@classmethod
+	def is_ref_to_raw(cls, from_: SymbolRaw, to_: SymbolRaw) -> bool:
 		return cls.is_ref(from_) and cls.is_raw(to_)
 
 	@classmethod
-	def raw_to_ref(cls, from_: SymbolRaw, to_: SymbolRaw) -> bool:
+	def is_raw_to_ref(cls, from_: SymbolRaw, to_: SymbolRaw) -> bool:
 		return cls.is_raw(from_) and cls.is_ref(to_)
+
+	@classmethod
+	def is_shared_to_pointer(cls, from_: SymbolRaw, to_: SymbolRaw) -> bool:
+		return cls.is_shared_ref(from_) and cls.is_pointer_ref(to_)
 
 	@classmethod
 	def keys(cls) -> list[str]:

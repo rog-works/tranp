@@ -185,27 +185,27 @@ class TestNode(TestCase):
 		('a: int | str = 0', 'file_input.anno_assign.typed_or_expr', defs.UnionType, 'Union', '__main__.Union'),
 		('def func() -> None: ...', 'file_input.function_def.function_def_raw.return_type.typed_none', defs.NullType, 'None', '__main__.func.None'),
 		# Literal
-		('1', 'file_input.number', defs.Integer, 'int', '__main__.int'),
-		('1.0', 'file_input.number', defs.Float, 'float', '__main__.float'),
-		("'string'", 'file_input.string', defs.String, 'str', '__main__.str'),
-		('True', 'file_input.const_true', defs.Truthy, 'bool', '__main__.bool'),
-		('False', 'file_input.const_false', defs.Falsy, 'bool', '__main__.bool'),
+		('1', 'file_input.number', defs.Integer, 'int@1', '__main__.int@1'),
+		('1.0', 'file_input.number', defs.Float, 'float@1', '__main__.float@1'),
+		("'string'", 'file_input.string', defs.String, 'str@1', '__main__.str@1'),
+		('True', 'file_input.const_true', defs.Truthy, 'bool@1', '__main__.bool@1'),
+		('False', 'file_input.const_false', defs.Falsy, 'bool@1', '__main__.bool@1'),
 		('{1: 2}', 'file_input.dict.key_value', defs.Pair, 'Pair@2', '__main__.Pair@2'),
 		('[1]', 'file_input.list', defs.List, 'list@1', '__main__.list@1'),
 		('{1: 2}', 'file_input.dict', defs.Dict, 'dict@1', '__main__.dict@1'),
 		('None', 'file_input.const_none', defs.Null, 'None', '__main__.None'),
 		# Statement compound
-		('if True: ...', 'file_input.if_stmt.block', defs.Block, '', '__main__.if'),
-		('if True: ...', 'file_input.if_stmt', defs.If, '', '__main__.if'),
+		('if True: ...', 'file_input.if_stmt.block', defs.Block, '', '__main__.if.block@3'),
+		('if True: ...', 'file_input.if_stmt', defs.If, '', '__main__.if@1'),
 		# Statement simple
-		('a = 0', 'file_input.assign', defs.MoveAssign, '', '__main__.move_assign'),
-		('a: int = 0', 'file_input.anno_assign', defs.AnnoAssign, '', '__main__.anno_assign'),
-		('a += 1', 'file_input.aug_assign', defs.AugAssign, '', '__main__.aug_assign'),
+		('a = 0', 'file_input.assign', defs.MoveAssign, '', '__main__.move_assign@1'),
+		('a: int = 0', 'file_input.anno_assign', defs.AnnoAssign, '', '__main__.anno_assign@1'),
+		('a += 1', 'file_input.aug_assign', defs.AugAssign, '', '__main__.aug_assign@1'),
 		# Primary
 		('a(0)', 'file_input.funccall', defs.FuncCall, 'func_call@1', '__main__.func_call@1'),
 		('a(0)\nfor i in b(): ...', 'file_input.funccall', defs.FuncCall, 'func_call@1', '__main__.func_call@1'),
 		('a(0)\nfor i in b(): ...', 'file_input.for_stmt.for_in.funccall', defs.FuncCall, 'func_call@13', '__main__.for.func_call@13'),
-	], includes=[11])
+	])
 	def test_i_domain(self, source: str, full_path: str, types: type[T_Node], expected_name: bool, expected_fully: str) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path)
 		self.assertEqual(type(node), types)

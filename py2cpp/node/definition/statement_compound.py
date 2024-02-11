@@ -23,9 +23,15 @@ class Block(Node):
 		return self._children()
 
 	def decl_vars_with(self, allow: type[T_Node]) -> list['AnnoAssign | MoveAssign | For | Catch']:
-		return list(collect_decl_vars(self, allow).values())
+		""" Note: XXX ファンクション直下のブロックは引数と同名の変数宣言を除外して出力"""
+		without_var_names = []
+		if isinstance(self.parent, Function):
+			without_var_names = [parameter.symbol.tokens for parameter in self.parent.parameters]
+
+		return [decl_var for name, decl_var in collect_decl_vars(self, allow).items() if name not in without_var_names]
 
 	def declared_with(self, node: AnnoAssign | MoveAssign, allow: type[T_Node]) -> bool:
+
 		decl_vars = [decl_var for decl_var in self.decl_vars_with(allow)]
 		return len([decl_var for decl_var in decl_vars if decl_var == node]) > 0
 

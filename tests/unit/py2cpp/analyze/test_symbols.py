@@ -179,7 +179,7 @@ class TestSymbols(TestCase):
 
 		(_ast('Sub.C.class_func', ''), '__main__.Sub.C.class_func', 'class_func(C) -> dict<str, int>'),
 		(_ast('Sub.C.class_func.params', 'paramvalue.typedparam.name'), '__main__.Sub.C', 'C'),
-		(_ast('Sub.C.class_func.return', 'typed_getitem'), _mod('classes', 'dict'), 'dict'), # XXX 関数の戻り値の型は関数のシンボル経由でのみ取得できる
+		(_ast('Sub.C.class_func.return', ''), _mod('classes', 'dict'), 'dict'),  # XXX 関数の戻り値の型は関数のシンボル経由でのみ取得できる
 		(_ast('Sub.C.class_func.block', 'return_stmt.dict'), _mod('classes', 'dict'), 'dict<str, int>'),
 
 		(_ast('Sub.__init__.params', 'paramvalue.typedparam.name'), '__main__.Sub', 'Sub'),
@@ -188,7 +188,7 @@ class TestSymbols(TestCase):
 		(_ast('Sub.__init__.block', 'funccall.getattr.funccall.var'), _mod('classes', 'super'), 'super'),
 		(_ast('Sub.__init__.block', 'anno_assign'), _mod('classes', 'list'), 'list<int>'),
 		(_ast('Sub.__init__.block', 'anno_assign.getattr'), _mod('classes', 'list'), 'list<int>'),
-		(_ast('Sub.__init__.block', 'anno_assign.typed_getitem'), _mod('classes', 'list'), 'list'), # XXX 型はシンボル経由でのみ取得できる
+		(_ast('Sub.__init__.block', 'anno_assign.typed_getitem'), _mod('classes', 'list'), 'list'),  # XXX 型はシンボル経由でのみ取得できる
 		(_ast('Sub.__init__.block', 'anno_assign.list'), _mod('classes', 'list'), 'list<Unknown>'),  # XXX 空のリストは型を補完できないためlist<Unknown>になる
 
 		(_ast('Sub.local_ref.params', 'paramvalue.typedparam.name'), '__main__.Sub', 'Sub'),

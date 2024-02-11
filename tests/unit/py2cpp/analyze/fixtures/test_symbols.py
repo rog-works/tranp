@@ -4,11 +4,11 @@ from tests.unit.py2cpp.analyze.fixtures.test_db_xyz import Z
 
 v: int = 0
 
-class A(Z):
+class Base(Z):
 	def __init__(self) -> None:
 		self.s: str = ''
 
-class B(A):
+class Sub(Base):
 	class B2:
 		v: str = ''
 
@@ -20,12 +20,12 @@ class B(A):
 		super().__init__()
 		self.v: list[int] = []
 
-	def func1(self, b: 'list[B]') -> str:
+	def func1(self, b: 'list[Sub]') -> str:
 		v = False
 		print(v)
 		print(self.v)
 		print(b[0].v)
-		B.B2.v = 'b.b2.v'
+		Sub.B2.v = 'b.b2.v'
 		self.x.nx = 2
 		v2 = self.v.pop()
 		print(self.func3()[0].v)
@@ -47,7 +47,7 @@ class B(A):
 
 		return closure()[0]
 
-	def func3(self) -> 'list[B]':
+	def func3(self) -> 'list[Sub]':
 		...
 
 DSI: TypeAlias = dict[str, int]

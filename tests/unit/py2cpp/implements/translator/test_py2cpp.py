@@ -43,8 +43,11 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarCheck.param_move.block', 'assign'), defs.MoveAssign, 'A a1 = a;'),
 		(_ast('CVarCheck.param_move.block', 'anno_assign[1]'), defs.AnnoAssign, 'A a2 = *(ap);'),
 		(_ast('CVarCheck.param_move.block', 'anno_assign[2]'), defs.AnnoAssign, 'A a3 = *(asp);'),
+		# (_ast('CVarCheck.param_move.block', 'assign[3]'), defs.MoveAssign, 'a = a1;'),
+		# (_ast('CVarCheck.param_move.block', 'assign[4]'), defs.MoveAssign, 'ap = &(a2);'),
+		# (_ast('CVarCheck.param_move.block', 'assign[5]'), defs.MoveAssign, 'asp = a3;'),  # 実装の誤り
 		(_ast('CVarCheck.invoke_method.block', 'funccall[0]'), defs.FuncCall, 'this->invoke_method(a, &(a), &(a));'),
-		(_ast('CVarCheck.invoke_method.block', 'funccall[1]'), defs.FuncCall, 'this->invoke_method(*(ap), ap, ap);'),  # 第3引数は実装の誤り(構文として成り立たない)なので対処はしなくて良い
+		(_ast('CVarCheck.invoke_method.block', 'funccall[1]'), defs.FuncCall, 'this->invoke_method(*(ap), ap, ap);'),  # 第3引数は実装の誤り(構文として成り立たない)
 		(_ast('CVarCheck.invoke_method.block', 'funccall[2]'), defs.FuncCall, 'this->invoke_method(*(asp), (asp).get(), asp);'),
 	])
 	def test_exec(self, full_path: str, expected_type: type[Node], expected: str) -> None:

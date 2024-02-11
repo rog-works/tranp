@@ -24,6 +24,9 @@ class CVarCheck:
 		a1 = a
 		a2: A = ap
 		a3: A = asp
+		# a = a1
+		# ap = a2
+		# asp = a3
 
 	def invoke_method(self, a: A, ap: A[CP], asp: A[CSP]) -> None:
 		self.invoke_method(a, a, a)

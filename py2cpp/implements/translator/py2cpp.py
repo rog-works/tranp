@@ -31,8 +31,8 @@ class Py2Cpp(Procedure[str]):
 		value_on_new = isinstance(value_node, defs.FuncCall) and self.symbols.type_of(value_node.calls).types.is_a(defs.Class)
 		if CVars.raw_to_ref(value_raw, accept_raw) and value_on_new:
 			if CVars.is_shared_ref(accept_raw):
-				matches = cast(re.Match, re.fullmatch(r'([^(]+)\((.+)\)', value_str))
-				return f'make_shared<{matches[1]}>({matches[2]})'
+				matches = cast(re.Match, re.fullmatch(r'([^(]+)\((.*)\)', value_str))
+				return f'std::make_shared<{matches[1]}>({matches[2]})'
 			else:
 				return f'new {value_str}'
 		elif CVars.raw_to_ref(value_raw, accept_raw):

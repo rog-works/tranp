@@ -120,11 +120,13 @@ class Py2Cpp(Procedure[str]):
 		vars: list[str] = []
 		for class_var in node.class_vars:
 			decl_var_symbol = class_var.symbol.as_a(defs.DeclClassVar)
-			vars.append(self.view.render('class_decl_var', vars={'is_static': True, 'access': defs.to_access(decl_var_symbol.tokens), 'symbol': decl_var_symbol.tokens, 'var_type': class_var.var_type.tokens}))
+			var_type = self.symbols.type_of(class_var.var_type).make_shorthand(rename_handler=lambda types: types.alias_symbol)
+			vars.append(self.view.render('class_decl_var', vars={'is_static': True, 'access': defs.to_access(decl_var_symbol.tokens), 'symbol': decl_var_symbol.tokens, 'var_type': var_type}))
 
 		for this_var in node.this_vars:
 			decl_var_symbol = this_var.symbol.as_a(defs.DeclThisVar)
-			vars.append(self.view.render('class_decl_var', vars={'is_static': False, 'access': defs.to_access(decl_var_symbol.tokens_without_this), 'symbol': decl_var_symbol.tokens_without_this, 'var_type': this_var.var_type.tokens}))
+			var_type = self.symbols.type_of(this_var.var_type).make_shorthand(rename_handler=lambda types: types.alias_symbol)
+			vars.append(self.view.render('class_decl_var', vars={'is_static': False, 'access': defs.to_access(decl_var_symbol.tokens_without_this), 'symbol': decl_var_symbol.tokens_without_this, 'var_type': var_type}))
 
 		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'comment': comment, 'statements': statements, 'vars': vars})
 
@@ -152,7 +154,9 @@ class Py2Cpp(Procedure[str]):
 		receiver_raw = self.symbols.type_of(node.receiver)
 		# 変数宣言を伴う場合は変数の型名を取得
 		declared = receiver_raw.decl == node
-		var_type = str(self.symbols.type_of(node.value)) if declared else ''
+		var_type = ''
+		if declared:
+			var_type = self.symbols.type_of(node.value).make_shorthand(rename_handler=lambda types: types.alias_symbol)
 
 		accepted_value = self.accepted_cvar_value(receiver_raw, node.value, self.symbols.type_of(node.value), value, declared=declared)
 		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': accepted_value})
@@ -248,7 +252,8 @@ class Py2Cpp(Procedure[str]):
 		return node.tokens
 
 	def on_variable(self, node: defs.Variable) -> str:
-		return node.tokens
+		symbol = self.symbols.type_of(node)
+		return symbol.types.alias_symbol or node.tokens
 
 	def on_indexer(self, node: defs.Indexer, receiver: str, key: str) -> str:
 		if key in CVars.keys():
@@ -258,10 +263,15 @@ class Py2Cpp(Procedure[str]):
 			return f'{receiver}[{key}]'
 
 	def on_type_relay(self, node: defs.TypeRelay, receiver: str) -> str:
-		return self.view.render(node.classification, vars={'receiver': receiver, 'type_name': node.prop.tokens})
+		receiver_symbol = self.symbols.type_of(node.receiver)
+		prop_symbol = self.symbols.type_of_property(receiver_symbol.types, node.prop)
+		type_name = prop_symbol.types.alias_symbol or node.prop.tokens
+		return self.view.render(node.classification, vars={'receiver': receiver, 'type_name': type_name})
 
 	def on_type_var(self, node: defs.TypeVar) -> str:
-		return self.view.render(node.classification, vars={'type_name': node.type_name.tokens})
+		symbol = self.symbols.type_of(node)
+		type_name = symbol.types.alias_symbol or node.type_name.tokens
+		return self.view.render(node.classification, vars={'type_name': type_name})
 
 	def on_list_type(self, node: defs.ListType, type_name: str, value_type: str) -> str:
 		return self.view.render(node.classification, vars={'type_name': type_name, 'value_type': value_type})

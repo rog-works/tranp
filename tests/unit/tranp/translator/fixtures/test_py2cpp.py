@@ -101,6 +101,24 @@ class AccessOps(Base):
 			AccessOps.Values.B: 'B',
 		}
 
+from tranp.compatible.python.embed import __alias__
+
+@__alias__('Alias2')
+class Alias:
+	@__alias__('Inner2')
+	class Inner:
+		...
+
+	def in_param_return(self, a: 'Alias') -> 'Alias':
+		...
+
+	def in_param_return2(self, i: 'Alias.Inner') -> 'Alias.Inner':
+		...
+
+	def in_local(self) -> None:
+		a = Alias()
+		i = Alias.Inner()
+
 from typing import TypeAlias
 
 DSI: TypeAlias = dict[str, int]

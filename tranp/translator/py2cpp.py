@@ -6,6 +6,7 @@ from tranp.analyze.procedure import Procedure
 import tranp.analyze.reflection as reflection
 from tranp.analyze.symbol import SymbolRaw
 from tranp.analyze.symbols import Symbols
+from tranp.ast.dsn import DSN
 import tranp.compatible.cpp.object as cpp
 import tranp.compatible.python.embed as __alias__
 from tranp.errors import LogicError
@@ -28,6 +29,7 @@ class Py2Cpp(Procedure[str]):
 			raise LogicError(f'Unacceptable value move. accept: {str(accept_raw)}, value: {str(value_raw)}, value_on_new: {value_on_new}, declared: {declared}')
 
 		if move == CVars.Moves.MakeSp:
+			# XXX 関数名(クラス名)と引数を分離。必ず取得できるので警告を抑制(期待値: `Class(a, b, c)`)
 			matches = cast(re.Match, re.fullmatch(r'([^(]+)\((.*)\)', value_str))
 			return self.view.render('cvar_move', vars={'move': move.name, 'var_type': matches[1], 'arguments': matches[2]})
 		else:
@@ -100,7 +102,7 @@ class Py2Cpp(Procedure[str]):
 		# メンバー変数の宣言用のデータを生成
 		initializers: list[dict[str, str]] = []
 		for index, var in enumerate(this_vars):
-			# XXX 代入式の右辺を取得。必ず取得できるのでキャストして警告を抑制 (期待値: `int this.a = 1234;`)
+			# XXX 代入式の右辺を取得。必ず取得できるのでキャストして警告を抑制 (期待値: `int this->a = 1234;`)
 			initialize_value = cast(re.Match[str], re.search(r'=\s*([^;]+);$', initializer_statements[index]))[1]
 			decl_var_symbol = var.symbol.as_a(defs.DeclThisVar)
 			initializers.append({'symbol': decl_var_symbol.tokens_without_this, 'value': initialize_value})
@@ -153,9 +155,12 @@ class Py2Cpp(Procedure[str]):
 
 	def on_move_assign(self, node: defs.MoveAssign, receiver: str, value: str) -> str:
 		receiver_raw = self.symbols.type_of(node.receiver)
-		# 変数宣言を伴う場合は変数の型名を取得
+		value_raw = self.symbols.type_of(node.value)
+
+		# 変数宣言を伴う場合は変数の型を取得。いずれのスコープ上でも参照出来るようにフルパスで指定(例: `Class` -> `A.B.Class`)
 		declared = receiver_raw.decl == node
-		var_type = self.symbols.type_of(node.value).make_shorthand(use_alias=True) if declared else ''
+		prefix = DSN.join(*DSN.elements(value_raw.types.scope)[1:-1])
+		var_type = DSN.join(prefix, value_raw.make_shorthand(use_alias=True)) if declared else ''
 
 		accepted_value = self.accepted_cvar_value(receiver_raw, node.value, self.symbols.type_of(node.value), value, declared=declared)
 		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': accepted_value})

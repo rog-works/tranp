@@ -1,12 +1,8 @@
-from typing import TypeAlias
-
 from tranp.compatible.cpp.preprocess import directive
 from tranp.compatible.cpp.enum import CEnum
-from tranp.compatible.cpp.object import CObject, CP, CSP, CConst
+from tranp.compatible.cpp.object import CObject
 
 directive('#pragma once')
-
-Enum: TypeAlias = CEnum
 
 from example.FW.compatible import IntVector, Vector, Mesh, MeshRaw
 
@@ -53,15 +49,14 @@ class CellMesh:
 		Max = 6
 
 	@classmethod
-	def from_cell(cls, cell: IntVector, unit: int = 100) -> Vector[CSP]:
+	def from_cell(cls, cell: IntVector, unit: int = 100) -> Vector:
 		cell.x = cell.x * unit
 		cell.y = cell.y * unit
 		cell.z = cell.z * unit
 		fx = float(cell.x)
 		fy = float(cell.y)
 		fz = float(cell.z)
-		print('%f, %f, %f', fx, fy, fz)
-		return Vector[CSP](fx, fy, fz)
+		return Vector(fx, fy, fz)
 
 	@classmethod
 	def face_index_to_vector(cls, faceIndex: int) -> IntVector:
@@ -76,13 +71,13 @@ class CellMesh:
 		return map[CellMesh.FaceIndexs(faceIndex)]
 
 	@classmethod
-	def to_cell_box(cls, cell: IntVector, unit: int) -> Box3d[CSP, CConst]:
+	def to_cell_box(cls, cell: IntVector, unit: int) -> Box3d:
 		minLocation = cls.from_cell(cell, unit)
 		maxLocation = cls.from_cell(cell + IntVector(1, 1, 1), unit)
-		return Box3d[CSP, CConst](minLocation, maxLocation)
+		return Box3d(minLocation, maxLocation)
 
 	@classmethod
-	def to_vertex_boxs(cls, cellBox: Box3d[CP], unit: int) -> list[Box3d[CSP]]:
+	def to_vertex_boxs(cls, cellBox: Box3d, unit: int) -> list[Box3d]:
 		offset = unit / 10.0
 		min = cellBox.min
 		max = cellBox.max
@@ -96,13 +91,9 @@ class CellMesh:
 			Vector(max.x, max.y, max.z),
 			Vector(min.x, max.y, max.z),
 		]
-		out: list[Box3d[CSP]] = []
-		p: Vector[CP] = positions[0]
-		p2: Vector[CSP] = Vector[CSP](1, 2, 3)
-		p3 = Vector(1, 1, 1)
-		p3 = p2
+		out: list[Box3d] = []
 		for position in positions:
-			out.append(Box3d[CSP](position - offset,  position + offset))
+			out.append(Box3d(position - offset,  position + offset))
 
 		return out
 

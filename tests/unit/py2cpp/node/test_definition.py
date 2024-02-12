@@ -25,22 +25,21 @@ class TestDefinition(TestCase):
 	# Statement compound
 
 	@data_provider([
-		('if True: ...', 'file_input.if_stmt.block', {'statements': [defs.Elipsis], 'decl_vars': []}),
-		('if True: a: int = 0', 'file_input.if_stmt.block', {'statements': [defs.AnnoAssign], 'decl_vars': [defs.AnnoAssign]}),
-		('if True: a = 0', 'file_input.if_stmt.block', {'statements': [defs.MoveAssign], 'decl_vars': [defs.MoveAssign]}),
-		('if True: a += 0', 'file_input.if_stmt.block', {'statements': [defs.AugAssign], 'decl_vars': []}),
-		('if True:\n\ta = 0\n\ta = a', 'file_input.if_stmt.block', {'statements': [defs.MoveAssign, defs.MoveAssign], 'decl_vars': [defs.MoveAssign]}),
-		('if True:\n\ta = 0\n\tb = a', 'file_input.if_stmt.block', {'statements': [defs.MoveAssign, defs.MoveAssign], 'decl_vars': [defs.MoveAssign, defs.MoveAssign]}),
-		('if True:\n\ta = 0\n\tif True: a = 1', 'file_input.if_stmt.block', {'statements': [defs.MoveAssign, defs.If], 'decl_vars': [defs.MoveAssign]}),
-		('if True:\n\ta = 0\n\tfor i in range(1): a = 1', 'file_input.if_stmt.block', {'statements': [defs.MoveAssign, defs.For], 'decl_vars': [defs.MoveAssign, defs.For]}),
-		('if True:\n\ttry:\n\t\ta = 0\n\texcept Exception as e: ...', 'file_input.if_stmt.block', {'statements': [defs.Try], 'decl_vars': [defs.Catch, defs.MoveAssign]}),
-		('try:\n\ta = 0\nexcept Exception as e: ...', 'file_input.try_stmt.block', {'statements': [defs.MoveAssign], 'decl_vars': [defs.MoveAssign]}),
-		('def func(a: int) -> None:\n\ta1 = a\n\ta = a1', 'file_input.function_def.function_def_raw.block', {'statements': [defs.MoveAssign, defs.MoveAssign], 'decl_vars': [defs.MoveAssign]}),
+		('if True: ...', 'file_input.if_stmt.block', {'statements': [defs.Elipsis]}),
+		('if True: a: int = 0', 'file_input.if_stmt.block', {'statements': [defs.AnnoAssign]}),
+		('if True: a = 0', 'file_input.if_stmt.block', {'statements': [defs.MoveAssign]}),
+		('if True: a += 0', 'file_input.if_stmt.block', {'statements': [defs.AugAssign]}),
+		('if True:\n\ta = 0\n\ta = a', 'file_input.if_stmt.block', {'statements': [defs.MoveAssign, defs.MoveAssign]}),
+		('if True:\n\ta = 0\n\tb = a', 'file_input.if_stmt.block', {'statements': [defs.MoveAssign, defs.MoveAssign]}),
+		('if True:\n\ta = 0\n\tif True: a = 1', 'file_input.if_stmt.block', {'statements': [defs.MoveAssign, defs.If]}),
+		('if True:\n\ta = 0\n\tfor i in range(1): a = 1', 'file_input.if_stmt.block', {'statements': [defs.MoveAssign, defs.For]}),
+		('if True:\n\ttry:\n\t\ta = 0\n\texcept Exception as e: ...', 'file_input.if_stmt.block', {'statements': [defs.Try]}),
+		('try:\n\ta = 0\nexcept Exception as e: ...', 'file_input.try_stmt.block', {'statements': [defs.MoveAssign]}),
+		('def func(a: int) -> None:\n\ta1 = a\n\ta = a1', 'file_input.function_def.function_def_raw.block', {'statements': [defs.MoveAssign, defs.MoveAssign]}),
 	])
 	def test_block(self, source: str, full_path: str, expected: dict[str, list[type]]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Block)
 		self.assertEqual([type(statement) for statement in node.statements], expected['statements'])
-		self.assertEqual([type(decl_var) for decl_var in node.decl_vars_with(defs.DeclBlockVar)], expected['decl_vars'])
 
 	@data_provider([
 		('if True:\n\t...\nelif False: ...', 'file_input.if_stmt.elifs.elif_', {'condition': defs.Falsy, 'statements': [defs.Elipsis]}),

@@ -6,7 +6,7 @@ from py2cpp.lang.sequence import last_index_of
 from py2cpp.node.definition.accessor import to_access
 from py2cpp.node.definition.element import Decorator, Parameter
 from py2cpp.node.definition.literal import Comment, String
-from py2cpp.node.definition.primary import CustomType, DeclBlockVar, DeclClassVar, Declable, InheritArgument, DeclThisParam, DeclThisVar, Type, TypesName
+from py2cpp.node.definition.primary import CustomType, DeclClassVar, DeclLocalVar, Declable, InheritArgument, DeclThisParam, DeclThisVar, Type, TypesName
 from py2cpp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from py2cpp.node.definition.terminal import Empty
 from py2cpp.node.embed import Meta, accept_tags, actualized, expandable
@@ -21,19 +21,6 @@ class Block(Node):
 	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:
 		return self._children()
-
-	def decl_vars_with(self, allow: type[T_Node]) -> list['AnnoAssign | MoveAssign | For | Catch']:
-		""" Note: XXX ファンクション直下のブロックは引数と同名の変数宣言を除外して出力"""
-		without_var_names = []
-		if isinstance(self.parent, Function):
-			without_var_names = [parameter.symbol.tokens for parameter in self.parent.parameters]
-
-		return [decl_var for name, decl_var in collect_decl_vars(self, allow).items() if name not in without_var_names]
-
-	def declared_with(self, node: AnnoAssign | MoveAssign, allow: type[T_Node]) -> bool:
-
-		decl_vars = [decl_var for decl_var in self.decl_vars_with(allow)]
-		return len([decl_var for decl_var in decl_vars if decl_var == node]) > 0
 
 
 class Flow(Node): pass
@@ -303,6 +290,9 @@ class ClassDef(Node, IDomain, IScope, IDeclare):
 
 		return decorator.arguments[0].value.as_a(String).plain
 
+	def _decl_vars_with(self, allow: type[Declable]) -> dict[str, 'AnnoAssign | MoveAssign | For | Catch']:
+		return collect_decl_vars(self, allow)
+
 
 @Meta.embed(Node, accept_tags('function_def'))
 class Function(ClassDef):
@@ -352,7 +342,10 @@ class Function(ClassDef):
 
 	@property
 	def decl_vars(self) -> list[Parameter | AnnoAssign | MoveAssign | For | Catch]:
-		return [*self.parameters, *self.block.decl_vars_with(DeclBlockVar)]
+		parameters = self.parameters
+		parameter_names = [parameter.symbol.tokens for parameter in parameters]
+		local_vars = [var for name, var in self._decl_vars_with(DeclLocalVar).items() if name not in parameter_names]
+		return [*parameters, *local_vars]
 
 
 @Meta.embed(Node, actualized(via=Function))
@@ -381,7 +374,7 @@ class Constructor(Function):
 
 	@property
 	def this_vars(self) -> list[AnnoAssign]:
-		return [node.as_a(AnnoAssign) for node in self.block.decl_vars_with(DeclThisVar)]
+		return [var.as_a(AnnoAssign) for _, var in self._decl_vars_with(DeclThisVar).items()]
 
 
 @Meta.embed(Node, actualized(via=Function))
@@ -504,7 +497,7 @@ class Class(ClassDef):
 
 	@property
 	def class_vars(self) -> list[AnnoAssign]:
-		return [node.as_a(AnnoAssign) for node in self.block.decl_vars_with(DeclClassVar)]
+		return [var.as_a(AnnoAssign) for _, var in self._decl_vars_with(DeclClassVar).items()]
 
 	@property
 	def this_vars(self) -> list[AnnoAssign]:
@@ -564,7 +557,8 @@ class TemplateClass(ClassDef):
 		return self._at(2).one_of(Type | Empty)
 
 
-def collect_decl_vars(block: StatementBlock, allow: type[T_Node]) -> dict[str, AnnoAssign | MoveAssign | For | Catch]:
+def collect_decl_vars(block: StatementBlock, allow: type[Declable]) -> dict[str, AnnoAssign | MoveAssign | For | Catch]:
+	"""Note: あくまでも配下のスコープに存在する変数宣言を抽出するため、親のスコープに存在する変数との衝突は考慮しない(例: 仮引数)"""
 	decl_vars: dict[str, AnnoAssign | MoveAssign | For | Catch] = {}
 	for node in block.statements:
 		if isinstance(node, (AnnoAssign, MoveAssign)) and node.receiver.is_a(allow):

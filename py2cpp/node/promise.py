@@ -17,8 +17,9 @@ class StatementBlock(Protocol):
 
 	Note:
 		# 対象
-		* Block
 		* Entrypoint
+		* Block
+		* ClassDef
 	"""
 
 	@property

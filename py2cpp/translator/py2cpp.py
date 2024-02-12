@@ -154,9 +154,10 @@ class Py2Cpp(Procedure[str]):
 	# Statement - simple
 
 	def on_move_assign(self, node: defs.MoveAssign, receiver: str, value: str) -> str:
-		accepted_value = self.accepted_cvar_value(self.symbols.type_of(node.receiver), node.value, self.symbols.type_of(node.value), value)
+		receiver_raw = self.symbols.type_of(node.receiver)
+		accepted_value = self.accepted_cvar_value(receiver_raw, node.value, self.symbols.type_of(node.value), value)
 		# 変数宣言を伴う場合は変数の型名を取得
-		declared = node.parent.as_a(defs.Block).declared_with(node, defs.DeclLocalVar)
+		declared = receiver_raw.decl == node
 		var_type = str(self.symbols.type_of(node.value)) if declared else ''
 		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': accepted_value})
 

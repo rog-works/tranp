@@ -258,7 +258,7 @@ class Py2Cpp(Procedure[str]):
 			return f'{receiver}[{key}]'
 
 	def on_general_type(self, node: defs.GeneralType) -> str:
-		return node.type_name.tokens
+		return self.view.render(node.classification, vars={'type_name': node.type_name.tokens})
 
 	def on_list_type(self, node: defs.ListType, type_name: str, value_type: str) -> str:
 		return self.view.render(node.classification, vars={'type_name': type_name, 'value_type': value_type})

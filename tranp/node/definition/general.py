@@ -1,0 +1,38 @@
+from tranp.lang.implementation import override
+from tranp.node.definition.primary import DeclLocalVar
+from tranp.node.definition.statement_compound import Catch, For, collect_decl_vars
+from tranp.node.definition.statement_simple import AnnoAssign, MoveAssign
+from tranp.node.embed import Meta, accept_tags, expandable
+from tranp.node.node import Node
+
+
+@Meta.embed(Node, accept_tags('file_input'))
+class Entrypoint(Node):
+	@property
+	@override
+	def domain_name(self) -> str:
+		return self.module_path
+
+	@property
+	@override
+	def fullyname(self) -> str:
+		return self.module_path
+
+	@property
+	@override
+	def namespace(self) -> str:
+		return self.module_path
+
+	@property
+	@override
+	def scope(self) -> str:
+		return self.module_path
+
+	@property
+	@Meta.embed(Node, expandable)
+	def statements(self) -> list[Node]:
+		return self._children()
+
+	@property
+	def decl_vars(self) -> list[AnnoAssign | MoveAssign | For | Catch]:
+		return list(collect_decl_vars(self, DeclLocalVar).values())

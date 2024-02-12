@@ -46,7 +46,7 @@
 			"type": "debugpy",
 			"request": "launch",
 			"module":"unittest",
-			"args": ["tests.unit.py2cpp.${input:testCases}"],
+			"args": ["tests.unit.tranp.${input:testCases}"],
 			"cwd": "${workspaceFolder}",
 			"windows": {
 				"env": {
@@ -67,7 +67,7 @@
 			"name": "Python: transpile",
 			"type": "debugpy",
 			"request": "launch",
-			"module":"py2cpp.bin.transpile",
+			"module":"tranp.bin.transpile",
 			"args": [
 				"-g", "data/grammar.lark",
 				"-s", "example/example.py",
@@ -93,10 +93,10 @@
 			"name": "Python: analyze",
 			"type": "debugpy",
 			"request": "launch",
-			"module":"py2cpp.bin.analyze",
+			"module":"tranp.bin.analyze",
 			"args": [
 				"-g", "data/grammar.lark",
-				// "-s", "tests/unit/py2cpp/analyze/fixtures/test_symbols.py",
+				// "-s", "tests/unit/tranp/analyze/fixtures/test_symbols.py",
 			],
 			"cwd": "${workspaceFolder}",
 			"windows": {

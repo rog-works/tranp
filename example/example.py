@@ -1,8 +1,8 @@
 from typing import TypeAlias
 
-from py2cpp.compatible.cpp.preprocess import directive
-from py2cpp.compatible.cpp.enum import CEnum
-from py2cpp.compatible.cpp.object import CObject, CP, CSP, CConst
+from tranp.compatible.cpp.preprocess import directive
+from tranp.compatible.cpp.enum import CEnum
+from tranp.compatible.cpp.object import CObject, CP, CSP, CConst
 
 directive('#pragma once')
 

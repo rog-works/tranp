@@ -1,19 +1,19 @@
 import os
 from typing import cast
 
-from py2cpp.app.app import App
-from py2cpp.ast.entry import Entry
-from py2cpp.ast.parser import SyntaxParser
-from py2cpp.ast.query import Query
-from py2cpp.io.cache import CacheProvider
-from py2cpp.lang.di import ModuleDefinitions
-from py2cpp.lang.locator import T_Inst
-from py2cpp.lang.module import fullyname
-from py2cpp.module.module import Module
-from py2cpp.module.types import ModulePath
-from py2cpp.node.node import Node
-from py2cpp.tp_lark.entry import EntryOfLark
-from py2cpp.tp_lark.parser import SyntaxParserOfLark
+from tranp.app.app import App
+from tranp.ast.entry import Entry
+from tranp.ast.parser import SyntaxParser
+from tranp.ast.query import Query
+from tranp.io.cache import CacheProvider
+from tranp.lang.di import ModuleDefinitions
+from tranp.lang.locator import T_Inst
+from tranp.lang.module import fullyname
+from tranp.module.module import Module
+from tranp.module.types import ModulePath
+from tranp.node.node import Node
+from tranp.tp_lark.entry import EntryOfLark
+from tranp.tp_lark.parser import SyntaxParserOfLark
 
 
 class Fixture:
@@ -35,8 +35,8 @@ class Fixture:
 
 	def __definitions(self) -> ModuleDefinitions:
 		return {
-			'py2cpp.module.types.ModulePath': self.__module_path,
-			'py2cpp.module.types.LibraryPaths': self.__library_paths,
+			'tranp.module.types.ModulePath': self.__module_path,
+			'tranp.module.types.LibraryPaths': self.__library_paths,
 		}
 
 	def __module_path(self) -> ModulePath:
@@ -46,7 +46,7 @@ class Fixture:
 		return ModulePath('__main__', fixture_module_path)
 
 	def __library_paths(self) -> list[str]:
-		return ['tests.unit.py2cpp.analyze.fixtures.test_db_classes']
+		return ['tests.unit.tranp.analyze.fixtures.test_db_classes']
 
 	def get(self, symbol: type[T_Inst]) -> T_Inst:
 		return self.__app.resolve(symbol)

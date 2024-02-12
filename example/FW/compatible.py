@@ -1,6 +1,6 @@
 from typing import Callable, Iterator
 
-from py2cpp.compatible.cpp.object import CObject
+from tranp.compatible.cpp.object import CObject
 
 class Vector(CObject):
 	def __init__(self, x: float, y: float, z: float) -> None:

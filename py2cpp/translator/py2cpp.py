@@ -29,7 +29,7 @@ class Py2Cpp(Procedure[str]):
 
 		if move == CVars.Moves.MakeSp:
 			matches = cast(re.Match, re.fullmatch(r'([^(]+)\((.*)\)', value_str))
-			return self.view.render('cvar_move', vars={'move': move.name, 'var_type': matches[1], 'initializer': matches[2]})
+			return self.view.render('cvar_move', vars={'move': move.name, 'var_type': matches[1], 'arguments': matches[2]})
 		else:
 			return self.view.render('cvar_move', vars={'move': move.name, 'value': value_str})
 
@@ -410,47 +410,49 @@ class CVars:
 
 	@classmethod
 	def analyze_move(cls, accept: SymbolRaw, value: SymbolRaw, value_on_new: bool, declared: bool) -> Moves:
-		if cls.is_raw_ref(accept) and not declared:
+		accept_key = cls.key_from(accept)
+		value_key = cls.key_from(value)
+		if cls.is_raw_ref(accept_key) and not declared:
 			return cls.Moves.Deny
 
-		if cls.is_addr_sp(accept) and cls.is_raw(value) and value_on_new:
+		if cls.is_addr_sp(accept_key) and cls.is_raw(value_key) and value_on_new:
 			return cls.Moves.MakeSp
-		elif cls.is_addr_p(accept) and cls.is_raw(value) and value_on_new:
+		elif cls.is_addr_p(accept_key) and cls.is_raw(value_key) and value_on_new:
 			return cls.Moves.New
-		elif cls.is_addr_p(accept) and cls.is_raw(value):
+		elif cls.is_addr_p(accept_key) and cls.is_raw(value_key):
 			return cls.Moves.ToAddress
-		elif cls.is_raw(accept) and cls.is_addr(value):
+		elif cls.is_raw(accept_key) and cls.is_addr(value_key):
 			return cls.Moves.ToActual
-		elif cls.is_addr_p(accept) and cls.is_addr_sp(value):
+		elif cls.is_addr_p(accept_key) and cls.is_addr_sp(value_key):
 			return cls.Moves.UnpackSp
-		elif cls.is_addr_p(accept) and cls.is_addr_p(value):
+		elif cls.is_addr_p(accept_key) and cls.is_addr_p(value_key):
 			return cls.Moves.Copy
-		elif cls.is_addr_sp(accept) and cls.is_addr_sp(value):
+		elif cls.is_addr_sp(accept_key) and cls.is_addr_sp(value_key):
 			return cls.Moves.Copy
-		elif cls.is_raw(accept) and cls.is_raw(value):
+		elif cls.is_raw(accept_key) and cls.is_raw(value_key):
 			return cls.Moves.Copy
 		else:
 			return cls.Moves.Deny
 
 	@classmethod
-	def is_raw(cls, raw: SymbolRaw) -> bool:
-		return cls.key_from(raw) in [cpp.CRaw.__name__, cpp.CRef.__name__]
+	def is_raw(cls, key: str) -> bool:
+		return key in [cpp.CRaw.__name__, cpp.CRef.__name__]
 
 	@classmethod
-	def is_addr(cls, raw: SymbolRaw) -> bool:
-		return cls.key_from(raw) in [cpp.CP.__name__, cpp.CSP.__name__]
+	def is_addr(cls, key: str) -> bool:
+		return key in [cpp.CP.__name__, cpp.CSP.__name__]
 
 	@classmethod
-	def is_raw_ref(cls, raw: SymbolRaw) -> bool:
-		return cls.key_from(raw) == cpp.CRef.__name__
+	def is_raw_ref(cls, key: str) -> bool:
+		return key == cpp.CRef.__name__
 
 	@classmethod
-	def is_addr_p(cls, raw: SymbolRaw) -> bool:
-		return cls.key_from(raw) == cpp.CP.__name__
+	def is_addr_p(cls, key: str) -> bool:
+		return key == cpp.CP.__name__
 
 	@classmethod
-	def is_addr_sp(cls, raw: SymbolRaw) -> bool:
-		return cls.key_from(raw) == cpp.CSP.__name__
+	def is_addr_sp(cls, key: str) -> bool:
+		return key == cpp.CSP.__name__
 
 	@classmethod
 	def keys(cls) -> list[str]:

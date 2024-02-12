@@ -1,7 +1,7 @@
 {%- if move == 'New' -%}
 new {{ value }}
 {%- elif move == 'MakeSp' -%}
-std::make_shared<{{ var_type }}>({{ initializer }})
+std::make_shared<{{ var_type }}>({{ arguments }})
 {%- elif move == 'ToActual' -%}
 *({{ value }})
 {%- elif move == 'ToAddress' -%}

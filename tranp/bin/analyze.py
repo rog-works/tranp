@@ -109,6 +109,7 @@ def task_type(symbols: Symbols) -> None:
 
 	symbol = symbols.from_fullyname(name)
 	data = {
+		'full_path': symbol.types.full_path,
 		'shorthand': str(symbol),
 		'ref_path': symbol.ref_path,
 		'org_path': symbol.org_path,

@@ -94,7 +94,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('AccessOps.double_colon.block', 'funccall[1].arguments.argvalue'), defs.Argument, 'Base::class_base_n'),
 		(_ast('AccessOps.double_colon.block', 'funccall[2].arguments.argvalue'), defs.Argument, 'AccessOps::class_base_n'),
 		(_ast('AccessOps.double_colon.block', 'funccall[3].arguments.argvalue'), defs.Argument, 'AccessOps::Values::A'),
-		# (_ast('AccessOps.double_colon.block', 'anno_assign'), defs.AnnoAssign, 'std::map<AccessOps::Values, std::string> d = {\n\t{AccessOps::Values::A, "A"},\n\t{AccessOps::Values::B, "B"},\n};'),
+		(_ast('AccessOps.double_colon.block', 'anno_assign'), defs.AnnoAssign, 'std::map<AccessOps::Values, std::string> d = {\n\t{AccessOps::Values::A, "A"},\n\t{AccessOps::Values::B, "B"},\n};'),
 
 		(_ast('import.typing', ''), defs.Import, '// #include "typing.h"'),
 

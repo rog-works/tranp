@@ -257,7 +257,10 @@ class Py2Cpp(Procedure[str]):
 		else:
 			return f'{receiver}[{key}]'
 
-	def on_general_type(self, node: defs.GeneralType) -> str:
+	def on_type_relay(self, node: defs.TypeRelay, receiver: str) -> str:
+		return self.view.render(node.classification, vars={'receiver': receiver, 'type_name': node.prop.tokens})
+
+	def on_type_var(self, node: defs.TypeVar) -> str:
 		return self.view.render(node.classification, vars={'type_name': node.type_name.tokens})
 
 	def on_list_type(self, node: defs.ListType, type_name: str, value_type: str) -> str:

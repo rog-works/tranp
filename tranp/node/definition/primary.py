@@ -262,7 +262,7 @@ class Indexer(Node):
 		return self._children('slices')[0]
 
 
-class Type(Node, IDomain):
+class Type(Node, IDomain):  # FIXME 固有のドメインはないのでは？
 	@property
 	@override
 	def domain_name(self) -> str:
@@ -273,8 +273,23 @@ class Type(Node, IDomain):
 		return self
 
 
-@Meta.embed(Node, accept_tags('typed_getattr', 'typed_var'))
-class GeneralType(Type, ITerminal): pass
+class GeneralType(Type): pass
+
+
+@Meta.embed(Node, accept_tags('typed_getattr'))
+class TypeRelay(GeneralType):
+	@property
+	@Meta.embed(Node, expandable)
+	def receiver(self) -> 'TypeRelay | TypeVar':
+		return self._at(0).one_of(TypeRelay | TypeVar)
+
+	@property
+	def prop(self) -> Variable:
+		return self._at(1).as_a(Variable)
+
+
+@Meta.embed(Node, accept_tags('typed_var'))
+class TypeVar(GeneralType, ITerminal): pass
 
 
 @Meta.embed(Node, accept_tags('typed_getitem'))

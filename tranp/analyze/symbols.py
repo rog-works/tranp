@@ -362,7 +362,7 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 			return receiver
 
 	def on_type_relay(self, node: defs.TypeRelay, receiver: SymbolRaw) -> SymbolRaw:
-		# FIXME AltClassの対応が必要なはず
+		"""Note: Pythonではtypeをアンパックする構文が存在しないためAltClassも同様に扱う"""
 		return self.symbols.type_of_property(receiver.types, node.prop)
 
 	def on_type_var(self, node: defs.TypeVar) -> SymbolRaw:

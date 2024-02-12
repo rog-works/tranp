@@ -21,7 +21,7 @@ class MetaData:
 	def __init__(self) -> None:
 		"""インスタンスを生成"""
 		self.__classes: dict[type, dict[str, Any]] = {}
-		self.__methods: dict[FunctionType, dict[str, Any]] = {}
+		self.__methods: dict[str, dict[str, dict[str, Any]]] = {}
 
 	def class_path(self, ctor: type) -> str:
 		"""クラスのモジュールパスを取得
@@ -41,7 +41,8 @@ class MetaData:
 		Returns:
 			str: モジュールパス
 		"""
-		return f'{method.__module__}.{method.__qualname__.split(".")[-2]}.{method.__name__}'
+		class_name = method.__qualname__.split('.')[-2]
+		return f'{method.__module__}.{class_name}.{method.__name__}'
 
 	def set_for_class(self, ctor: type, embed_key: str, value: Any) -> None:
 		"""メタデータを設定(クラス用)
@@ -64,10 +65,16 @@ class MetaData:
 			embed_key (str): メタデータのキー
 			value (Any): メタデータの値
 		"""
-		if method not in self.__methods:
-			self.__methods[method] = {}
+		elems = self.method_path(method).split('.')
+		method_name = elems.pop()
+		class_path = '.'.join(elems)
+		if class_path not in self.__methods:
+			self.__methods[class_path] = {}
 
-		self.__methods[method][embed_key] = value
+		if method_name not in self.__methods[class_path]:
+			self.__methods[class_path][method_name] = {}
+
+		self.__methods[class_path][method_name][embed_key] = value
 
 	def get_by_key_from_class(self, embed_key: str) -> dict[type, Any]:
 		"""メタデータを取得(クラス用)
@@ -78,11 +85,7 @@ class MetaData:
 		Returns:
 			dict[type, Any]: 対象クラスとメタデータのマップ
 		"""
-		return {
-			ctor: meta[embed_key]
-			for ctor, meta in self.__classes.items()
-			if embed_key in meta
-		}
+		return {ctor: meta[embed_key] for ctor, meta in self.__classes.items() if embed_key in meta}
 
 	def get_from_class(self, ctor: type, embed_key: str) -> Any:
 		"""メタデータを取得(クラス用)
@@ -113,16 +116,8 @@ class MetaData:
 			dict[str, Any]: 対象メソッドの名前とメタデータの値のマップ
 		"""
 		class_path = self.class_path(ctor)
-		class_in_meta = {
-			self.method_path(method): meta
-			for method, meta in self.__methods.items()
-			if self.method_path(method).startswith(f'{class_path}.')
-		}
-		return {
-			in_path.split('.')[-1]: meta[embed_key]
-			for in_path, meta in class_in_meta.items()
-			if embed_key in meta
-		}
+		class_in_meta = self.__methods.get(class_path, {})
+		return {method_name: meta[embed_key] for method_name, meta in class_in_meta.items() if embed_key in meta}
 
 
 class Meta:

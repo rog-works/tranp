@@ -1,0 +1,5 @@
+{%- if type_name == 'str' -%}
+std::string
+{%- else -%}
+{{ type_name }}
+{%- endif -%}

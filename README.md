@@ -1,4 +1,4 @@
-Python to C++
+Tranp (TRANslator on Python)
 ===
 
 # Dependencies
@@ -21,7 +21,7 @@ $ pip install -r requirements.txt -t vendor/
 $ bash bin/ast.sh
 ```
 
-## Dumping analyze symbols
+## Symbol Analyzer Tool
 
 ```
 $ bash bin/analyze.sh

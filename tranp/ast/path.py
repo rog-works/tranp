@@ -1,4 +1,5 @@
 import re
+from typing import cast
 
 from tranp.ast.dsn import DSN
 from tranp.errors import LogicError
@@ -117,8 +118,11 @@ class EntryPath:
 		Returns:
 			tuple[str, int]: (エントリータグ, インデックス)
 		"""
-		matches = re.fullmatch(r'(\w+)\[(\d+)\]', elem)
-		return (matches[1], int(matches[2])) if matches else (elem, -1)
+		if not elem.endswith(']'):
+			return (elem, -1)
+
+		before, after = elem.split('[')
+		return (before, int(after[:-1]))
 
 	def contains(self, entry_tag: str) -> bool:
 		"""指定のエントリータグが含まれるか判定

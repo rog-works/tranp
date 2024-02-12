@@ -33,6 +33,11 @@ class CVarCheck:
 			asp = ap  # エラーケース
 			asp = asp
 			asp = ar  # エラーケース
+		if True:
+			ar = a  # エラーケース
+			ar = ap  # エラーケース
+			ar = asp  # エラーケース
+			ar = ar  # エラーケース
 
 	def param_move(self, a: A, ap: A[CP], asp: A[CSP], ar: A[CRef]) -> None:
 		a1 = a

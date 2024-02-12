@@ -69,9 +69,13 @@ class TestPy2Cpp(TestCase):
 		self.assertEqual(actual, expected)
 
 	@data_provider([
-		# (_ast('CVarCheck.local_move.block', 'if_stmt[6].block.assign[0]'), defs.MoveAssign),
+		(_ast('CVarCheck.local_move.block', 'if_stmt[6].block.assign[0]'), defs.MoveAssign),
 		(_ast('CVarCheck.local_move.block', 'if_stmt[6].block.assign[1]'), defs.MoveAssign),
 		(_ast('CVarCheck.local_move.block', 'if_stmt[6].block.assign[3]'), defs.MoveAssign),
+		(_ast('CVarCheck.local_move.block', 'if_stmt[7].block.assign[0]'), defs.MoveAssign),
+		(_ast('CVarCheck.local_move.block', 'if_stmt[7].block.assign[1]'), defs.MoveAssign),
+		(_ast('CVarCheck.local_move.block', 'if_stmt[7].block.assign[2]'), defs.MoveAssign),
+		(_ast('CVarCheck.local_move.block', 'if_stmt[7].block.assign[3]'), defs.MoveAssign),
 
 		(_ast('CVarCheck.param_move.block', 'assign[6]'), defs.MoveAssign),
 		(_ast('CVarCheck.param_move.block', 'assign[7]'), defs.MoveAssign),

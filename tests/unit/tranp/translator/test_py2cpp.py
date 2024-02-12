@@ -22,6 +22,9 @@ def _ast(before: str, after: str) -> str:
 		'CVarCheck.local_move.block': 'file_input.class_def[2].class_def_raw.block.function_def[3].function_def_raw.block',
 		'CVarCheck.param_move.block': 'file_input.class_def[2].class_def_raw.block.function_def[4].function_def_raw.block',
 		'CVarCheck.invoke_method.block': 'file_input.class_def[2].class_def_raw.block.function_def[5].function_def_raw.block',
+		'FuncCheck.print.block': 'file_input.class_def[3].class_def_raw.block.function_def.function_def_raw.block',
+		'import.typing': 'file_input.import_stmt[4]',
+		'DSI': 'file_input.class_assign',
 	}
 	return DSN.join(aliases[before], after)
 
@@ -61,6 +64,12 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarCheck.param_move.block', 'assign[5]'), defs.MoveAssign, 'ap = &(a2);'),
 
 		(_ast('CVarCheck.invoke_method.block', 'funccall[2]'), defs.FuncCall, 'this->invoke_method(*(asp), (asp).get(), asp);'),
+
+		(_ast('FuncCheck.print.block', 'funccall'), defs.FuncCall, 'print("%d, %d, %d", 1, 2, 3);'),
+
+		(_ast('import.typing', ''), defs.Import, '// #include "typing.h"'),
+
+		(_ast('DSI', ''), defs.AltClass, 'using DSI = std::map<std::string, int>;'),
 	])
 	def test_exec(self, full_path: str, expected_type: type[Node], expected: str) -> None:
 		translator = self.translator()

@@ -53,3 +53,11 @@ class CVarCheck:
 		self.invoke_method(a, a, a)
 		self.invoke_method(ap, ap, ap)  # エラーケース
 		self.invoke_method(asp, asp, asp)  # エラーケース
+
+class FuncCheck:
+	def print(self) -> None:
+		print('%d, %d, %d', 1, 2, 3)
+
+from typing import TypeAlias
+
+DSI: TypeAlias = dict[str, int]

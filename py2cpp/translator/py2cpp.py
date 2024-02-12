@@ -1,3 +1,4 @@
+from enum import Enum
 import re
 from typing import cast
 
@@ -20,27 +21,17 @@ class Py2Cpp(Procedure[str]):
 		self.symbols = symbols
 		self.view = render
 
-	def accepted_cvar_value(self, accept_raw: SymbolRaw, value_node: Node, value_raw: SymbolRaw, value_str: str) -> str:
+	def accepted_cvar_value(self, accept_raw: SymbolRaw, value_node: Node, value_raw: SymbolRaw, value_str: str, declared: bool = False) -> str:
 		value_on_new = isinstance(value_node, defs.FuncCall) and self.symbols.type_of(value_node.calls).types.is_a(defs.Class)
-		if CVars.is_raw_to_ref(value_raw, accept_raw) and value_on_new:
-			if CVars.is_ref_sp(accept_raw):
-				matches = cast(re.Match, re.fullmatch(r'([^(]+)\((.*)\)', value_str))
-				return f'std::make_shared<{matches[1]}>({matches[2]})'
-			else:
-				return f'new {value_str}'
+		move = CVars.analyze_move(accept_raw, value_raw, value_on_new, declared)
+		if move == CVars.Moves.Deny:
+			raise LogicError(f'Unacceptable value move. accept: {str(accept_raw)}, value: {str(value_raw)}, value_on_new: {value_on_new}, declared: {declared}')
 
-		# XXX value_on_newの条件を考慮するべきでは
-		if not CVars.acceptable(accept_raw, value_raw):
-			raise LogicError(f'Unacceptable value move. accept: {str(accept_raw)}, value: {str(value_raw)}')
-
-		if CVars.is_raw_to_ref(value_raw, accept_raw):
-			return f'&({value_str})'
-		elif CVars.is_ref_to_raw(value_raw, accept_raw):
-			return f'*({value_str})'
-		elif CVars.is_sp_to_p(value_raw, accept_raw):
-			return f'({value_str}).get()'
+		if move == CVars.Moves.MakeSp:
+			matches = cast(re.Match, re.fullmatch(r'([^(]+)\((.*)\)', value_str))
+			return self.view.render('cvar_move', vars={'move': move.name, 'var_type': matches[1], 'initializer': matches[2]})
 		else:
-			return value_str
+			return self.view.render('cvar_move', vars={'move': move.name, 'value': value_str})
 
 	# Hook
 
@@ -155,14 +146,15 @@ class Py2Cpp(Procedure[str]):
 
 	def on_move_assign(self, node: defs.MoveAssign, receiver: str, value: str) -> str:
 		receiver_raw = self.symbols.type_of(node.receiver)
-		accepted_value = self.accepted_cvar_value(receiver_raw, node.value, self.symbols.type_of(node.value), value)
 		# 変数宣言を伴う場合は変数の型名を取得
 		declared = receiver_raw.decl == node
 		var_type = str(self.symbols.type_of(node.value)) if declared else ''
+
+		accepted_value = self.accepted_cvar_value(receiver_raw, node.value, self.symbols.type_of(node.value), value, declared=declared)
 		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': accepted_value})
 
 	def on_anno_assign(self, node: defs.AnnoAssign, receiver: str, var_type: str, value: str) -> str:
-		accepted_value = self.accepted_cvar_value(self.symbols.type_of(node.receiver), node.value, self.symbols.type_of(node.value), value)
+		accepted_value = self.accepted_cvar_value(self.symbols.type_of(node.receiver), node.value, self.symbols.type_of(node.value), value, declared=True)
 		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': accepted_value})
 
 	def on_aug_assign(self, node: defs.AugAssign, receiver: str, operator: str, value: str) -> str:
@@ -407,49 +399,58 @@ class Py2Cpp(Procedure[str]):
 
 
 class CVars:
-	@classmethod
-	def acceptable(cls, accept: SymbolRaw, value: SymbolRaw) -> bool:
-		to_key = cls.key_from(value)
-		if cls.is_ref_sp(accept) and to_key in [cpp.CRaw.__name__, cpp.CRef.__name__, cpp.CP.__name__]:
-			return False
-
-		return True
-
-	@classmethod
-	def is_raw_by(cls, key: str) -> bool:
-		return key in [cpp.CRaw.__name__, cpp.CRef.__name__]
+	class Moves(Enum):
+		Copy = 0
+		New = 1
+		MakeSp = 2
+		ToActual = 3
+		ToAddress = 4
+		UnpackSp = 5
+		Deny = 6
 
 	@classmethod
-	def is_ref_by(cls, key: str) -> bool:
-		return key in [cpp.CP.__name__, cpp.CSP.__name__]
+	def analyze_move(cls, accept: SymbolRaw, value: SymbolRaw, value_on_new: bool, declared: bool) -> Moves:
+		if cls.is_raw_ref(accept) and not declared:
+			return cls.Moves.Deny
+
+		if cls.is_addr_sp(accept) and cls.is_raw(value) and value_on_new:
+			return cls.Moves.MakeSp
+		elif cls.is_addr_p(accept) and cls.is_raw(value) and value_on_new:
+			return cls.Moves.New
+		elif cls.is_addr_p(accept) and cls.is_raw(value):
+			return cls.Moves.ToAddress
+		elif cls.is_raw(accept) and cls.is_addr(value):
+			return cls.Moves.ToActual
+		elif cls.is_addr_p(accept) and cls.is_addr_sp(value):
+			return cls.Moves.UnpackSp
+		elif cls.is_addr_p(accept) and cls.is_addr_p(value):
+			return cls.Moves.Copy
+		elif cls.is_addr_sp(accept) and cls.is_addr_sp(value):
+			return cls.Moves.Copy
+		elif cls.is_raw(accept) and cls.is_raw(value):
+			return cls.Moves.Copy
+		else:
+			return cls.Moves.Deny
 
 	@classmethod
 	def is_raw(cls, raw: SymbolRaw) -> bool:
-		return cls.is_raw_by(cls.key_from(raw))
+		return cls.key_from(raw) in [cpp.CRaw.__name__, cpp.CRef.__name__]
 
 	@classmethod
-	def is_ref(cls, raw: SymbolRaw) -> bool:
-		return cls.is_ref_by(cls.key_from(raw))
+	def is_addr(cls, raw: SymbolRaw) -> bool:
+		return cls.key_from(raw) in [cpp.CP.__name__, cpp.CSP.__name__]
 
 	@classmethod
-	def is_ref_p(cls, raw: SymbolRaw) -> bool:
+	def is_raw_ref(cls, raw: SymbolRaw) -> bool:
+		return cls.key_from(raw) == cpp.CRef.__name__
+
+	@classmethod
+	def is_addr_p(cls, raw: SymbolRaw) -> bool:
 		return cls.key_from(raw) == cpp.CP.__name__
 
 	@classmethod
-	def is_ref_sp(cls, raw: SymbolRaw) -> bool:
+	def is_addr_sp(cls, raw: SymbolRaw) -> bool:
 		return cls.key_from(raw) == cpp.CSP.__name__
-
-	@classmethod
-	def is_ref_to_raw(cls, accept: SymbolRaw, value: SymbolRaw) -> bool:
-		return cls.is_ref(accept) and cls.is_raw(value)
-
-	@classmethod
-	def is_raw_to_ref(cls, accept: SymbolRaw, value: SymbolRaw) -> bool:
-		return cls.is_raw(accept) and cls.is_ref(value)
-
-	@classmethod
-	def is_sp_to_p(cls, accept: SymbolRaw, value: SymbolRaw) -> bool:
-		return cls.is_ref_sp(accept) and cls.is_ref_p(value)
 
 	@classmethod
 	def keys(cls) -> list[str]:

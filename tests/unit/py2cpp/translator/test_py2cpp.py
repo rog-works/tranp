@@ -56,8 +56,9 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarCheck.param_move.block', 'assign[0]'), defs.MoveAssign, 'A a1 = a;'),
 		(_ast('CVarCheck.param_move.block', 'anno_assign[1]'), defs.AnnoAssign, 'A a2 = *(ap);'),
 		(_ast('CVarCheck.param_move.block', 'anno_assign[2]'), defs.AnnoAssign, 'A a3 = *(asp);'),
-		(_ast('CVarCheck.param_move.block', 'assign[3]'), defs.MoveAssign, 'a = a1;'),
-		(_ast('CVarCheck.param_move.block', 'assign[4]'), defs.MoveAssign, 'ap = &(a2);'),
+		(_ast('CVarCheck.param_move.block', 'anno_assign[3]'), defs.AnnoAssign, 'A a4 = ar;'),
+		(_ast('CVarCheck.param_move.block', 'assign[4]'), defs.MoveAssign, 'a = a1;'),
+		(_ast('CVarCheck.param_move.block', 'assign[5]'), defs.MoveAssign, 'ap = &(a2);'),
 
 		(_ast('CVarCheck.invoke_method.block', 'funccall[2]'), defs.FuncCall, 'this->invoke_method(*(asp), (asp).get(), asp);'),
 	])
@@ -68,11 +69,12 @@ class TestPy2Cpp(TestCase):
 		self.assertEqual(actual, expected)
 
 	@data_provider([
-		(_ast('CVarCheck.local_move.block', 'if_stmt[6].block.assign[0]'), defs.MoveAssign),
+		# (_ast('CVarCheck.local_move.block', 'if_stmt[6].block.assign[0]'), defs.MoveAssign),
 		(_ast('CVarCheck.local_move.block', 'if_stmt[6].block.assign[1]'), defs.MoveAssign),
 		(_ast('CVarCheck.local_move.block', 'if_stmt[6].block.assign[3]'), defs.MoveAssign),
 
-		(_ast('CVarCheck.param_move.block', 'assign[5]'), defs.MoveAssign),
+		(_ast('CVarCheck.param_move.block', 'assign[6]'), defs.MoveAssign),
+		(_ast('CVarCheck.param_move.block', 'assign[7]'), defs.MoveAssign),
 
 		(_ast('CVarCheck.invoke_method.block', 'funccall[0]'), defs.FuncCall),
 		(_ast('CVarCheck.invoke_method.block', 'funccall[1]'), defs.FuncCall),

@@ -34,13 +34,15 @@ class CVarCheck:
 			asp = asp
 			asp = ar  # エラーケース
 
-	def param_move(self, a: A, ap: A[CP], asp: A[CSP]) -> None:
+	def param_move(self, a: A, ap: A[CP], asp: A[CSP], ar: A[CRef]) -> None:
 		a1 = a
 		a2: A = ap
 		a3: A = asp
+		a4: A = ar
 		a = a1
 		ap = a2
 		asp = a3  # エラーケース
+		ar = a4  # エラーケース
 
 	def invoke_method(self, a: A, ap: A[CP], asp: A[CSP]) -> None:
 		self.invoke_method(a, a, a)

@@ -38,7 +38,7 @@ class CellMesh {
 	}
 	/** face_index_to_vector */
 	public: static IntVector face_index_to_vector(int faceIndex) {
-		std::map<CellMesh.FaceIndexs, IntVector> map = {
+		std::map<CellMesh::FaceIndexs, IntVector> map = {
 			{CellMesh::FaceIndexs::Left, IntVector(-1, 0, 0)},
 			{CellMesh::FaceIndexs::Right, IntVector(1, 0, 0)},
 			{CellMesh::FaceIndexs::Back, IntVector(0, -1, 0)},

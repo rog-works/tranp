@@ -35,8 +35,7 @@ class Fixture:
 
 	def __definitions(self) -> ModuleDefinitions:
 		return {
-			'tranp.module.types.ModulePath': self.__module_path,
-			'tranp.module.types.LibraryPaths': self.__library_paths,
+			fullyname(ModulePath): self.__module_path,
 		}
 
 	def __module_path(self) -> ModulePath:
@@ -44,9 +43,6 @@ class Fixture:
 		dirpath, filename = '.'.join(elems[:-1]), elems[-1]
 		fixture_module_path = '.'.join([dirpath, 'fixtures', filename])
 		return ModulePath('__main__', fixture_module_path)
-
-	def __library_paths(self) -> list[str]:
-		return ['tests.unit.tranp.analyze.fixtures.test_db_classes']
 
 	def get(self, symbol: type[T_Inst]) -> T_Inst:
 		return self.__app.resolve(symbol)

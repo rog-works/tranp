@@ -1,26 +1,7 @@
 // #include "tranp/compatible/cpp/preprocess.h"
 // #include "tranp/compatible/cpp/enum.h"
-// #include "tranp/compatible/cpp/object.h"
 #pragma once
 #include "example/FW/compatible.h"
-/**
- * 3Dレンジオブジェクト
- */
-class Box3d {
-	public: Vector min;
-	public: Vector max;
-	/**
-	 * インスタンスを生成
-	 * @param min 開始座標
-	 * @param max 終了座標
-	 */
-	public: Box3d(Vector min, Vector max) : min(min), max(max) {
-	}
-	/** contains */
-	public: bool contains(Vector location) {
-		throw new Exception("Not implemented");
-	}
-};
 /** CellMesh */
 class CellMesh {
 	/** VertexIndexs */

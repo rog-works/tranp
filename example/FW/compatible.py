@@ -26,6 +26,28 @@ class IntVector(CObject):
 	def __sub__(self, other: 'IntVector | float') -> 'IntVector':
 		raise NotImplementedError()
 
+class Box3d(CObject):
+	"""3Dレンジオブジェクト
+
+	Attributes:
+		min (Vector): 開始座標
+		max (Vector): 終了座標
+	"""
+
+	def __init__(self, min: Vector, max: Vector) -> None:
+		"""インスタンスを生成
+
+		Args:
+			min (Vector): 開始座標
+			max (Vector): 終了座標
+		"""
+		self.min: Vector = min
+		self.max: Vector = max
+
+	def contains(self, location: Vector) -> bool:
+		raise Exception('Not implemented')
+
+
 class MeshRaw(CObject):
 	def vertex_indices_itr(self) -> Iterator[int]:
 		raise NotImplementedError()

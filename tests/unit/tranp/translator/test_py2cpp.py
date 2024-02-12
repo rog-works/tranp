@@ -29,9 +29,10 @@ def _ast(before: str, after: str) -> str:
 		'AccessOps.arrow.block': 'file_input.class_def[5].class_def_raw.block.function_def[3].function_def_raw.block',
 		'AccessOps.double_colon.block': 'file_input.class_def[5].class_def_raw.block.function_def[4].function_def_raw.block',
 		'Alias.Inner': 'file_input.class_def[7].class_def_raw.block.class_def',
-		'Alias.in_param_return': 'file_input.class_def[7].class_def_raw.block.function_def[1]',
-		'Alias.in_param_return2': 'file_input.class_def[7].class_def_raw.block.function_def[2]',
-		'Alias.in_local.block': 'file_input.class_def[7].class_def_raw.block.function_def[3].function_def_raw.block',
+		'Alias.__init__': 'file_input.class_def[7].class_def_raw.block.function_def[1]',
+		'Alias.in_param_return': 'file_input.class_def[7].class_def_raw.block.function_def[2]',
+		'Alias.in_param_return2': 'file_input.class_def[7].class_def_raw.block.function_def[3]',
+		'Alias.in_local.block': 'file_input.class_def[7].class_def_raw.block.function_def[4].function_def_raw.block',
 		'import.typing': 'file_input.import_stmt[8]',
 		'DSI': 'file_input.class_assign',
 	}
@@ -101,9 +102,11 @@ class TestPy2Cpp(TestCase):
 		(_ast('AccessOps.double_colon.block', 'anno_assign'), defs.AnnoAssign, 'std::map<AccessOps::Values, std::string> d = {\n\t{AccessOps::Values::A, "A"},\n\t{AccessOps::Values::B, "B"},\n};'),
 
 		(_ast('Alias.Inner', ''), defs.Class, '/** Inner2 */\nclass Inner2 {\n\n};'),
+		(_ast('Alias.__init__', ''), defs.Constructor, '/** Constructor */\npublic: Alias2() : inner(Alias2::Inner2()) {\n}'),
 		(_ast('Alias.in_param_return', ''), defs.Method, '/** in_param_return */\npublic: Alias2 in_param_return(Alias2 a) {\n\n}'),
 		(_ast('Alias.in_param_return2', ''), defs.Method, '/** in_param_return2 */\npublic: Alias2::Inner2 in_param_return2(Alias2::Inner2 i) {\n\n}'),
 		(_ast('Alias.in_local.block', 'assign[0]'), defs.MoveAssign, 'Alias2 a = Alias2();'),
+		# (_ast('Alias.in_local.block', 'assign[1]'), defs.MoveAssign, 'Alias2::Inner2 i = Alias2::Inner2();'),
 
 		(_ast('import.typing', ''), defs.Import, '// #include "typing.h"'),
 

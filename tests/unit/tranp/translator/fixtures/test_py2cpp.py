@@ -109,6 +109,9 @@ class Alias:
 	class Inner:
 		...
 
+	def __init__(self) -> None:
+		self.inner: Alias.Inner = Alias.Inner()
+
 	def in_param_return(self, a: 'Alias') -> 'Alias':
 		...
 

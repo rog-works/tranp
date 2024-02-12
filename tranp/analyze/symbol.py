@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Callable, Iterator, TypeAlias, cast
+from typing import Iterator, TypeAlias, cast
 
 from tranp.errors import LogicError
 from tranp.lang.implementation import override
@@ -142,47 +142,8 @@ class SymbolRaw:
 
 	@property
 	def shorthand(self) -> str:
-		"""オブジェクトの短縮表記を生成
-
-		Returns:
-			str: 短縮表記
-		Note:
-			# 書式
-			* types=AltClass: ${alias}=${actual}
-			* types=Function: ${domain_name}(...${arguments}) -> ${return}
-			* role=Origin: ${domain_name}
-			* その他: ${domain_name}<...${attributes}>
-		"""
+		"""str: オブジェクトの短縮表記"""
 		return self.make_shorthand()
-
-	def make_shorthand(self, rename_handler: Callable[[defs.ClassDef], str | None] | None = None) -> str:
-		"""オブジェクトの短縮表記を生成
-
-		Args:
-			rename_handler (Callable[[ClassDef], str | None]): リネームハンドラー(default = None)
-		Returns:
-			str: 短縮表記
-		Note:
-			# 書式
-			* types=AltClass: ${alias}=${actual}
-			* types=Function: ${domain_name}(...${arguments}) -> ${return}
-			* role=Origin: ${domain_name}
-			* その他: ${domain_name}<...${attributes}>
-		"""
-		domain_name = self.types.domain_name
-		domain_name = rename_handler(self.types) or domain_name if rename_handler else domain_name
-		if len(self.attrs) > 0:
-			if self.types.is_a(defs.AltClass):
-				attrs = [str(attr) for attr in self.attrs]
-				return f'{domain_name}={attrs[0]}'
-			elif self.types.is_a(defs.Function):
-				attrs = [str(attr) for attr in self.attrs]
-				return f'{domain_name}({", ".join(attrs[:-1])}) -> {attrs[-1]}'
-			elif self._role != Roles.Origin:
-				attrs = [str(attr) for attr in self.attrs]
-				return f'{domain_name}<{", ".join(attrs)}>'
-
-		return domain_name
 
 	@override
 	def __eq__(self, other: object) -> bool:
@@ -216,6 +177,35 @@ class SymbolRaw:
 	def __str__(self) -> str:
 		"""str: オブジェクトの文字列表現"""
 		return self.shorthand
+
+	def make_shorthand(self, use_alias: bool = False) -> str:
+		"""オブジェクトの短縮表記を生成
+
+		Args:
+			use_alias (bool): True = エイリアスの名前を優先(default = False)
+		Returns:
+			str: 短縮表記
+		Note:
+			# 書式
+			* types=AltClass: ${alias}=${actual}
+			* types=Function: ${domain_name}(...${arguments}) -> ${return}
+			* role=Origin: ${domain_name}
+			* その他: ${domain_name}<...${attributes}>
+		"""
+		domain_name = self.types.domain_name
+		domain_name = self.types.alias_symbol or domain_name if use_alias else domain_name
+		if len(self.attrs) > 0:
+			if self.types.is_a(defs.AltClass):
+				attrs = [str(attr) for attr in self.attrs]
+				return f'{domain_name}={attrs[0]}'
+			elif self.types.is_a(defs.Function):
+				attrs = [str(attr) for attr in self.attrs]
+				return f'{domain_name}({", ".join(attrs[:-1])}) -> {attrs[-1]}'
+			elif self._role != Roles.Origin:
+				attrs = [str(attr) for attr in self.attrs]
+				return f'{domain_name}<{", ".join(attrs)}>'
+
+		return domain_name
 
 	def each_via(self) -> Iterator[Node]:
 		"""参照元を辿るイテレーターを取得

@@ -105,7 +105,8 @@ class Py2Cpp(Procedure[str]):
 			decl_var_symbol = var.symbol.as_a(defs.DeclThisVar)
 			initializers.append({'symbol': decl_var_symbol.tokens_without_this, 'value': initialize_value})
 
-		method_vars = {'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'comment': comment, 'statements': normal_statements, 'class_symbol': node.class_types.symbol.tokens}
+		class_name = node.class_types.alias_symbol or node.class_types.symbol.tokens
+		method_vars = {'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'comment': comment, 'statements': normal_statements, 'class_symbol': class_name}
 		constructor_vars = {'initializers': initializers, 'super_initializer': super_initializer}
 		return self.view.render(node.classification, vars={**method_vars, **constructor_vars})
 
@@ -120,12 +121,12 @@ class Py2Cpp(Procedure[str]):
 		vars: list[str] = []
 		for class_var in node.class_vars:
 			decl_var_symbol = class_var.symbol.as_a(defs.DeclClassVar)
-			var_type = self.symbols.type_of(class_var.var_type).make_shorthand(rename_handler=lambda types: types.alias_symbol)
+			var_type = self.symbols.type_of(class_var.var_type).make_shorthand(use_alias=True)
 			vars.append(self.view.render('class_decl_var', vars={'is_static': True, 'access': defs.to_access(decl_var_symbol.tokens), 'symbol': decl_var_symbol.tokens, 'var_type': var_type}))
 
 		for this_var in node.this_vars:
 			decl_var_symbol = this_var.symbol.as_a(defs.DeclThisVar)
-			var_type = self.symbols.type_of(this_var.var_type).make_shorthand(rename_handler=lambda types: types.alias_symbol)
+			var_type = self.symbols.type_of(this_var.var_type).make_shorthand(use_alias=True)
 			vars.append(self.view.render('class_decl_var', vars={'is_static': False, 'access': defs.to_access(decl_var_symbol.tokens_without_this), 'symbol': decl_var_symbol.tokens_without_this, 'var_type': var_type}))
 
 		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'comment': comment, 'statements': statements, 'vars': vars})
@@ -154,9 +155,7 @@ class Py2Cpp(Procedure[str]):
 		receiver_raw = self.symbols.type_of(node.receiver)
 		# 変数宣言を伴う場合は変数の型名を取得
 		declared = receiver_raw.decl == node
-		var_type = ''
-		if declared:
-			var_type = self.symbols.type_of(node.value).make_shorthand(rename_handler=lambda types: types.alias_symbol)
+		var_type = self.symbols.type_of(node.value).make_shorthand(use_alias=True) if declared else ''
 
 		accepted_value = self.accepted_cvar_value(receiver_raw, node.value, self.symbols.type_of(node.value), value, declared=declared)
 		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': accepted_value})
@@ -225,12 +224,9 @@ class Py2Cpp(Procedure[str]):
 			return node.receiver.is_a(defs.ThisRef)
 
 		def is_static_access() -> bool:
-			prop_symbol_decl = prop_symbol.decl
-			is_prop_static = isinstance(prop_symbol.types, (defs.Enum, defs.ClassMethod))
-			is_prop_class_var = isinstance(prop_symbol_decl, defs.AnnoAssign) and prop_symbol_decl.symbol.is_a(defs.DeclClassVar)
-			is_receiver_enum = isinstance(receiver_symbol.types, defs.Enum)
-			is_receiver_class = isinstance(node.receiver, (defs.ClassRef, defs.Super))
-			return True in [is_prop_static, is_prop_class_var, is_receiver_enum, is_receiver_class]
+			is_class_alias = isinstance(node.receiver, (defs.ClassRef, defs.Super))
+			is_class_direct = receiver_symbol.types.fullyname.endswith(node.receiver.tokens)
+			return is_class_alias or is_class_direct
 
 		if is_cvar_receiver():
 			cvar_type = receiver_symbol.attrs[0].types.symbol.tokens

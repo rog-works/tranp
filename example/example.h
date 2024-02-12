@@ -1,26 +1,7 @@
 // #include "tranp/compatible/cpp/preprocess.h"
 // #include "tranp/compatible/cpp/enum.h"
-// #include "tranp/compatible/cpp/object.h"
 #pragma once
 #include "example/FW/compatible.h"
-/**
- * 3Dレンジオブジェクト
- */
-class Box3d {
-	public: Vector min;
-	public: Vector max;
-	/**
-	 * インスタンスを生成
-	 * @param min 開始座標
-	 * @param max 終了座標
-	 */
-	public: Box3d(Vector min, Vector max) : min(min), max(max) {
-	}
-	/** contains */
-	public: bool contains(Vector location) {
-		throw new Exception("Not implemented");
-	}
-};
 /** CellMesh */
 class CellMesh {
 	/** VertexIndexs */
@@ -57,7 +38,7 @@ class CellMesh {
 	}
 	/** face_index_to_vector */
 	public: static IntVector face_index_to_vector(int faceIndex) {
-		std::map<CellMesh.FaceIndexs, IntVector> map = {
+		std::map<CellMesh::FaceIndexs, IntVector> map = {
 			{CellMesh::FaceIndexs::Left, IntVector(-1, 0, 0)},
 			{CellMesh::FaceIndexs::Right, IntVector(1, 0, 0)},
 			{CellMesh::FaceIndexs::Back, IntVector(0, -1, 0)},

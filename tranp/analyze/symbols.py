@@ -361,7 +361,11 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 			# XXX この状況で何が取得されるべきかは利用側で判断することとする
 			return receiver
 
-	def on_general_type(self, node: defs.GeneralType) -> SymbolRaw:
+	def on_type_relay(self, node: defs.TypeRelay, receiver: SymbolRaw) -> SymbolRaw:
+		"""Note: Pythonではtypeをアンパックする構文が存在しないためAltClassも同様に扱う"""
+		return self.symbols.type_of_property(receiver.types, node.prop)
+
+	def on_type_var(self, node: defs.TypeVar) -> SymbolRaw:
 		return self.symbols.resolve(node)
 
 	def on_list_type(self, node: defs.ListType, type_name: SymbolRaw, value_type: SymbolRaw) -> SymbolRaw:

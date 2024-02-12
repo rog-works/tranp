@@ -23,12 +23,12 @@ def _ast(before: str, after: str) -> str:
 		'CVarOps.param_move.block': 'file_input.class_def[2].class_def_raw.block.function_def[4].function_def_raw.block',
 		'CVarOps.invoke_method.block': 'file_input.class_def[2].class_def_raw.block.function_def[5].function_def_raw.block',
 		'FuncOps.print.block': 'file_input.class_def[3].class_def_raw.block.function_def.function_def_raw.block',
-		'Values': 'file_input.class_def[5]',
-		'AccessOps.__init__': 'file_input.class_def[6].class_def_raw.block.function_def[0]',
-		'AccessOps.dot.block': 'file_input.class_def[6].class_def_raw.block.function_def[1].function_def_raw.block',
-		'AccessOps.arrow.block': 'file_input.class_def[6].class_def_raw.block.function_def[2].function_def_raw.block',
-		'AccessOps.double_colon.block': 'file_input.class_def[6].class_def_raw.block.function_def[3].function_def_raw.block',
-		'import.typing': 'file_input.import_stmt[7]',
+		'AccessOps.Values': 'file_input.class_def[5].class_def_raw.block.class_def',
+		'AccessOps.__init__': 'file_input.class_def[5].class_def_raw.block.function_def[1]',
+		'AccessOps.dot.block': 'file_input.class_def[5].class_def_raw.block.function_def[2].function_def_raw.block',
+		'AccessOps.arrow.block': 'file_input.class_def[5].class_def_raw.block.function_def[3].function_def_raw.block',
+		'AccessOps.double_colon.block': 'file_input.class_def[5].class_def_raw.block.function_def[4].function_def_raw.block',
+		'import.typing': 'file_input.import_stmt[6]',
 		'DSI': 'file_input.class_assign',
 	}
 	return DSN.join(aliases[before], after)
@@ -72,7 +72,7 @@ class TestPy2Cpp(TestCase):
 
 		(_ast('FuncOps.print.block', 'funccall'), defs.FuncCall, 'print("%d, %d, %d", 1, 2, 3);'),
 
-		(_ast('Values', ''), defs.Enum, '/** Values */\nenum class Values {\n\tA = 0,\n\tB = 1,\n};'),
+		(_ast('AccessOps.Values', ''), defs.Enum, '/** Values */\npublic: enum class Values {\n\tA = 0,\n\tB = 1,\n};'),
 
 		(_ast('AccessOps.__init__', ''), defs.Constructor, '/** Constructor */\npublic: AccessOps() : Base(0), sub_s("") {\n}'),
 
@@ -93,7 +93,8 @@ class TestPy2Cpp(TestCase):
 		(_ast('AccessOps.double_colon.block', 'funccall[0]'), defs.FuncCall, 'Base::call();'),
 		(_ast('AccessOps.double_colon.block', 'funccall[1].arguments.argvalue'), defs.Argument, 'Base::class_base_n'),
 		(_ast('AccessOps.double_colon.block', 'funccall[2].arguments.argvalue'), defs.Argument, 'AccessOps::class_base_n'),
-		(_ast('AccessOps.double_colon.block', 'funccall[3].arguments.argvalue'), defs.Argument, 'Values::A'),
+		(_ast('AccessOps.double_colon.block', 'funccall[3].arguments.argvalue'), defs.Argument, 'AccessOps::Values::A'),
+		(_ast('AccessOps.double_colon.block', 'anno_assign'), defs.AnnoAssign, 'std::map<AccessOps::Values, std::string> d = {\n\t{AccessOps::Values::A, "A"},\n\t{AccessOps::Values::B, "B"},\n};'),
 
 		(_ast('import.typing', ''), defs.Import, '// #include "typing.h"'),
 

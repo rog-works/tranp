@@ -263,6 +263,8 @@ class Indexer(Node):
 
 
 class Type(Node, IDomain):
+	"""Note: Typeに固有のドメイン名はないが、同じ参照名を持つものは等価に扱って問題ないためIDomainを実装 FIXME GenericTypeは別なのでは？"""
+
 	@property
 	@override
 	def domain_name(self) -> str:
@@ -273,8 +275,23 @@ class Type(Node, IDomain):
 		return self
 
 
-@Meta.embed(Node, accept_tags('typed_getattr', 'typed_var'))
-class GeneralType(Type, ITerminal): pass
+class GeneralType(Type): pass
+
+
+@Meta.embed(Node, accept_tags('typed_getattr'))
+class TypeRelay(GeneralType):
+	@property
+	@Meta.embed(Node, expandable)
+	def receiver(self) -> 'TypeRelay | TypeVar':
+		return self._at(0).one_of(TypeRelay | TypeVar)
+
+	@property
+	def prop(self) -> Variable:
+		return self._at(1).as_a(Variable)
+
+
+@Meta.embed(Node, accept_tags('typed_var'))
+class TypeVar(GeneralType, ITerminal): pass
 
 
 @Meta.embed(Node, accept_tags('typed_getitem'))

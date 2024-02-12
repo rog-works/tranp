@@ -1,31 +1,9 @@
 from tranp.compatible.cpp.preprocess import directive
 from tranp.compatible.cpp.enum import CEnum
-from tranp.compatible.cpp.object import CObject
 
 directive('#pragma once')
 
-from example.FW.compatible import IntVector, Vector, Mesh, MeshRaw
-
-class Box3d(CObject):
-	"""3Dレンジオブジェクト
-
-	Attributes:
-		min (Vector): 開始座標
-		max (Vector): 終了座標
-	"""
-
-	def __init__(self, min: Vector, max: Vector) -> None:
-		"""インスタンスを生成
-
-		Args:
-			min (Vector): 開始座標
-			max (Vector): 終了座標
-		"""
-		self.min: Vector = min
-		self.max: Vector = max
-
-	def contains(self, location: Vector) -> bool:
-		raise Exception('Not implemented')
+from example.FW.compatible import Box3d, IntVector, Mesh, MeshRaw, Vector
 
 class CellMesh:
 	class VertexIndexs(CEnum):

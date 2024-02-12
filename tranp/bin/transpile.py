@@ -40,7 +40,7 @@ class Args:
 
 def make_writer(args: Args) -> Writer:
 	basepath, _ = os.path.splitext(args.source)
-	output = f'{basepath}.cpp'
+	output = f'{basepath}.h'
 	return Writer(output)
 
 

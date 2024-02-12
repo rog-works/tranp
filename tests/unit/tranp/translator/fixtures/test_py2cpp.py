@@ -66,11 +66,11 @@ class FuncOps:
 
 from tranp.compatible.cpp.enum import CEnum
 
-class Values(CEnum):
-	A = 0
-	B = 1
-
 class AccessOps(Base):
+	class Values(CEnum):
+		A = 0
+		B = 1
+
 	def __init__(self) -> None:
 		super().__init__(0)
 		self.sub_s: str = ''
@@ -95,7 +95,11 @@ class AccessOps(Base):
 		super().call()
 		print(Base.class_base_n)
 		print(AccessOps.class_base_n)
-		print(Values.A)
+		print(AccessOps.Values.A)
+		d: dict[AccessOps.Values, str] = {
+			AccessOps.Values.A: 'A',
+			AccessOps.Values.B: 'B',
+		}
 
 from typing import TypeAlias
 

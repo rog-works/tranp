@@ -26,7 +26,7 @@ class Box3d {
 /** CellMesh */
 class CellMesh {
 	/** VertexIndexs */
-	enum class VertexIndexs {
+	public: enum class VertexIndexs {
 		BottomBackLeft = 0,
 		BottomBackRight = 1,
 		BottomFrontLeft = 2,
@@ -38,7 +38,7 @@ class CellMesh {
 		Max = 8,
 	};
 	/** FaceIndexs */
-	enum class FaceIndexs {
+	public: enum class FaceIndexs {
 		Left = 0,
 		Right = 1,
 		Back = 2,

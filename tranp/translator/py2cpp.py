@@ -129,7 +129,11 @@ class Py2Cpp(Procedure[str]):
 		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'comment': comment, 'statements': statements, 'vars': vars})
 
 	def on_enum(self, node: defs.Enum, symbol: str, decorators: list[str], inherits: list[str], comment: str, statements: list[str]) -> str:
-		return self.view.render(node.classification, vars={'symbol': symbol, 'comment': comment, 'statements': statements})
+		add_vars = {}
+		if not node.parent.is_a(defs.Entrypoint):
+			add_vars = {'access': node.access}
+
+		return self.view.render(node.classification, vars={'symbol': symbol, 'comment': comment, 'statements': statements, **add_vars})
 
 	def on_alt_class(self, node: defs.AltClass, symbol: str, actual_class: str) -> str:
 		return self.view.render(node.classification, vars={'symbol': symbol, 'actual_class': actual_class})

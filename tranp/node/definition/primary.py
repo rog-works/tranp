@@ -262,7 +262,9 @@ class Indexer(Node):
 		return self._children('slices')[0]
 
 
-class Type(Node, IDomain):  # FIXME 固有のドメインはないのでは？
+class Type(Node, IDomain):
+	"""Note: Typeに固有のドメイン名はないが、同じ参照名を持つものは等価に扱って問題ないためIDomainを実装 FIXME GenericTypeは別なのでは？"""
+
 	@property
 	@override
 	def domain_name(self) -> str:

@@ -157,10 +157,21 @@ class Py2Cpp(Procedure[str]):
 		receiver_raw = self.symbols.type_of(node.receiver)
 		value_raw = self.symbols.type_of(node.value)
 
-		# 変数宣言を伴う場合は変数の型を取得。いずれのスコープ上でも参照出来るようにフルパスで指定(例: `Class` -> `A.B.Class`)
+		# 変数宣言を伴う場合は変数の型を取得
 		declared = receiver_raw.decl == node
-		prefix = DSN.join(*DSN.elements(value_raw.types.scope)[1:-1])
-		var_type = DSN.join(prefix, value_raw.make_shorthand(use_alias=True)) if declared else ''
+		var_type = ''
+		if declared:
+			# フルパスの接頭辞をスコープから取得
+			remain_scope = value_raw.types.scope.replace(f'{value_raw.types.module_path}.', '')
+			remain_elems = DSN.elements(remain_scope)[:-1]
+			fullyname = node.module_path
+			for elem in remain_elems:
+				in_symbol = self.symbols.from_fullyname(DSN.join(fullyname, elem))
+				fullyname = DSN.join(fullyname, in_symbol.types.alias_symbol or in_symbol.types.domain_name)
+
+			# いずれのスコープ上でも参照出来るようにフルパスで指定(例: `Class` -> `A::B::Class`)
+			prefix = DSN.join(*DSN.elements(DSN.shift(fullyname, 1)), delimiter='::')
+			var_type = DSN.join(prefix, value_raw.make_shorthand(use_alias=True), delimiter='::')
 
 		accepted_value = self.accepted_cvar_value(receiver_raw, node.value, self.symbols.type_of(node.value), value, declared=declared)
 		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': accepted_value})

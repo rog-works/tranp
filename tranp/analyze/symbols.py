@@ -3,12 +3,10 @@ from tranp.analyze.symbol import SymbolRaw
 from tranp.analyze.procedure import Procedure
 import tranp.analyze.reflection as reflection
 from tranp.analyze.finder import SymbolFinder
-from tranp.ast.dsn import DSN
 import tranp.compatible.python.classes as classes
 from tranp.compatible.python.types import Primitives
 from tranp.errors import LogicError
-from tranp.lang.implementation import implements, injectable
-import tranp.lang.sequence as seqs
+from tranp.lang.implementation import injectable
 import tranp.node.definition as defs
 from tranp.node.node import Node
 
@@ -490,16 +488,20 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 		return symbol
 
 	def on_binary_operator(self, node: defs.BinaryOperator, left: SymbolRaw, right: SymbolRaw, operator: str) -> SymbolRaw:
-		methods = [method for method in left.types.as_a(defs.Class).methods if method.symbol.tokens == operator]
+		in_left = [method for method in left.types.as_a(defs.Class).methods if method.symbol.tokens == operator]
+		in_right = [method for method in right.types.as_a(defs.Class).methods if method.symbol.tokens == operator]
+		methods = [*in_left, *in_right]
 		if len(methods) == 0:
 			raise LogicError(f'Operation not allowed. {node}, {left.types.domain_name} {operator} {right.types.domain_name}')
 
-		other = methods[0].parameters.pop()
-		var_types = other.var_type.or_types if isinstance(other.var_type, defs.UnionType) else [other.var_type]
-		for var_type in var_types:
-			if self.symbols.resolve(var_type.as_a(defs.Type)) == right:
-				# FIXME 必ずしも右オペランドの型が戻り値として正しいわけではない
-				return right
+		for method in methods:
+			with_left = method in in_left
+			other = method.parameters[-1]
+			var_types = other.var_type.or_types if isinstance(other.var_type, defs.UnionType) else [other.var_type]
+			for var_type in var_types:
+				type_raw = self.symbols.resolve(var_type.as_a(defs.Type))
+				if (with_left and type_raw == right) or (not with_left and type_raw == left):
+					return self.symbols.resolve(method.return_type)
 
 		raise LogicError(f'Operation not allowed. {node}, {left.types.domain_name} {operator} {right.types.domain_name}')
 

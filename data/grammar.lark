@@ -226,15 +226,33 @@ slices: slice | slice (("," slice)+ [","] | ",")
 	| number
 	| group_expr
 	| "[" _exprlist? "]" -> list
+	| "[" comprehension{expression} "]"  -> list_comp
 	| "{" _dict_exprlist? "}" -> dict
+	// | "{" comprehension{key_value} "}" -> dict_comp XXX 一旦非対応
 	| "..." -> elipsis
 
 group_expr: "(" expression ")"
+
+// XXX 要するに目的はtuple展開なので一旦非対応
+// @lark (expr|star_expr) | (expr|star_expr) (("," (expr|star_expr))+ [","]|",")
+// ?exprlist: expr | expr (("," expr)+ [","] | ",")
 
 _exprlist: expression ("," expression)* [","]
 
 _dict_exprlist: key_value ("," key_value)* [","]
 key_value: expression ":" expression
+
+// # Comprehensions & Generators
+
+// @lark comp_for: [ASYNC] "for" exprlist "in" or_test
+// @lark ?comp_if: "if" test_nocond
+comprehension{comp_result}: comp_result comp_fors [comp_if]
+comp_fors: comp_for+
+comp_for: "for" name comp_for_in // XXX 実装を簡単にするため一旦tuple展開は無し
+?comp_if: "if" or_test
+
+// @custom
+comp_for_in: "in" or_test
 
 // # Typeing elements
 

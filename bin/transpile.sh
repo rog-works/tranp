@@ -14,4 +14,4 @@ if [ "$2" != "" ]; then
 fi
 
 source ${cwd}/.env.sh
-python ${appdir}/tranp/bin/transpile.py -g data/grammar.lark -s ${source} -t ${template_dir}
+python ${appdir}/rogw/tranp/bin/transpile.py -g data/grammar.lark -s ${source} -t ${template_dir}

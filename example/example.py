@@ -1,5 +1,5 @@
-from tranp.compatible.cpp.preprocess import directive
-from tranp.compatible.cpp.enum import CEnum
+from rogw.tranp.compatible.cpp.preprocess import directive
+from rogw.tranp.compatible.cpp.enum import CEnum
 
 directive('#pragma once')
 

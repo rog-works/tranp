@@ -1,19 +1,19 @@
 import os
 from typing import cast
 
-from tranp.app.app import App
-from tranp.ast.entry import Entry
-from tranp.ast.parser import SyntaxParser
-from tranp.ast.query import Query
-from tranp.io.cache import CacheProvider
-from tranp.lang.di import ModuleDefinitions
-from tranp.lang.locator import T_Inst
-from tranp.lang.module import fullyname
-from tranp.module.module import Module
-from tranp.module.types import ModulePath
-from tranp.node.node import Node
-from tranp.tp_lark.entry import EntryOfLark
-from tranp.tp_lark.parser import SyntaxParserOfLark
+from rogw.tranp.app.app import App
+from rogw.tranp.ast.entry import Entry
+from rogw.tranp.ast.parser import SyntaxParser
+from rogw.tranp.ast.query import Query
+from rogw.tranp.io.cache import CacheProvider
+from rogw.tranp.lang.di import ModuleDefinitions
+from rogw.tranp.lang.locator import T_Inst
+from rogw.tranp.lang.module import fullyname
+from rogw.tranp.module.module import Module
+from rogw.tranp.module.types import ModulePath
+from rogw.tranp.node.node import Node
+from rogw.tranp.tp_lark.entry import EntryOfLark
+from rogw.tranp.tp_lark.parser import SyntaxParserOfLark
 
 
 class Fixture:

@@ -69,9 +69,13 @@ class Sub(Base):
 class Ops:
 	def sum(self) -> None:
 		n = 1 + 1
-		f0 = 1 + 1.0
-		f1 = 1.0 + 1
-		f2 = 1.0 + 1.0
+		nb0 = 1 + True
+		nb1 = True + 1
+		fn0 = 1 + 1.0
+		fn1 = 1.0 + 1
+		fn2 = 1.0 + 1.0
+		fb0 = 1.0 + True
+		fb1 = True + 1.0
 
 DSI: TypeAlias = dict[str, int]
 DSI2: TypeAlias = dict[str, DSI]

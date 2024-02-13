@@ -123,9 +123,13 @@ class TestSymbols(TestCase):
 		('__main__.Sub.decl_locals.if.for.try.e', 'Exception'),
 
 		('__main__.Ops.sum.n', 'int'),
-		('__main__.Ops.sum.f0', 'float'),
-		('__main__.Ops.sum.f1', 'float'),
-		('__main__.Ops.sum.f2', 'float'),
+		('__main__.Ops.sum.nb0', 'int'),
+		('__main__.Ops.sum.nb1', 'int'),
+		('__main__.Ops.sum.fn0', 'float'),
+		('__main__.Ops.sum.fn1', 'float'),
+		('__main__.Ops.sum.fn2', 'float'),
+		('__main__.Ops.sum.fb0', 'float'),
+		('__main__.Ops.sum.fb1', 'float'),
 
 		('__main__.AliasCheck.func', 'func(AliasCheck, Z2=Z) -> None'),
 		('__main__.AliasCheck.func.z2', 'Z2=Z'),

@@ -203,8 +203,8 @@ class Try(FlowEnter):
 class CompFor(Node):
 	@property
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> Declable:
-		return self._by('name').as_a(Declable)
+	def symbols(self) -> list[Declable]:
+		return [node.as_a(Declable) for node in self._children('namelist')]
 
 	@property
 	@Meta.embed(Node, expandable)

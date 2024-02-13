@@ -492,7 +492,7 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 		in_right = [method for method in right.types.as_a(defs.Class).methods if method.symbol.tokens == operator]
 		methods = [*in_left, *in_right]
 		if len(methods) == 0:
-			raise LogicError(f'Operation not allowed. {node}, {left.types.domain_name} {operator} {right.types.domain_name}')
+			raise LogicError(f'Operation not allowed. {node}, {str(left)} {operator} {str(right)}')
 
 		for method in methods:
 			with_left = method in in_left
@@ -503,7 +503,7 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 				if (with_left and type_raw == right) or (not with_left and type_raw == left):
 					return self.symbols.resolve(method.return_type)
 
-		raise LogicError(f'Operation not allowed. {node}, {left.types.domain_name} {operator} {right.types.domain_name}')
+		raise LogicError(f'Operation not allowed. {node}, {str(left)} {operator} {str(right)}')
 
 	# Literal
 

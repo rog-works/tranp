@@ -49,7 +49,7 @@ def _ast(before: str, after: str) -> str:
 def _mod(before: str, after: str) -> str:
 	aliases = {
 		'xyz': 'tests.unit.tranp.analyze.fixtures.test_db_xyz',
-		'classes': 'tests.unit.tranp.analyze.fixtures.test_db_classes',
+		'classes': 'tranp.compatible.python.classes',
 	}
 	return DSN.join(aliases[before], after)
 
@@ -121,6 +121,11 @@ class TestSymbols(TestCase):
 		('__main__.Sub.decl_locals.closure.b', 'list<int>'),
 		('__main__.Sub.decl_locals.if.for.i', 'int'),
 		('__main__.Sub.decl_locals.if.for.try.e', 'Exception'),
+
+		('__main__.Ops.sum.n', 'int'),
+		('__main__.Ops.sum.f0', 'float'),
+		('__main__.Ops.sum.f1', 'float'),
+		('__main__.Ops.sum.f2', 'float'),
 
 		('__main__.AliasCheck.func', 'func(AliasCheck, Z2=Z) -> None'),
 		('__main__.AliasCheck.func.z2', 'Z2=Z'),

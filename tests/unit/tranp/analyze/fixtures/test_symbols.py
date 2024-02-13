@@ -66,6 +66,13 @@ class Sub(Base):
 
 		return closure()[0]
 
+class Ops:
+	def sum(self) -> None:
+		n = 1 + 1
+		f0 = 1 + 1.0
+		f1 = 1.0 + 1
+		f2 = 1.0 + 1.0
+
 DSI: TypeAlias = dict[str, int]
 DSI2: TypeAlias = dict[str, DSI]
 Z2: TypeAlias = Z

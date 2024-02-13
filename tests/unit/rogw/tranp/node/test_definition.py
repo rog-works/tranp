@@ -100,10 +100,10 @@ class TestDefinition(TestCase):
 		self.assertEqual(len(node.catches), expected['catches'])
 
 	@data_provider([
-		('[a for a in {}]', 'file_input.list_comp', {'projection': defs.Variable, 'fors': [{'symbol': 'a', 'iterates': defs.Dict}], 'condition': defs.Empty}),
-		('[a for a in [] if a == 0]', 'file_input.list_comp', {'projection': defs.Variable, 'fors': [{'symbol': 'a', 'iterates': defs.List}], 'condition': defs.Comparison}),
-		('[a for a in [] for b in []]', 'file_input.list_comp', {'projection': defs.Variable, 'fors': [{'symbol': 'a', 'iterates': defs.List}, {'symbol': 'b', 'iterates': defs.List}], 'condition': defs.Empty}),
-		('[a for a in [b for b in []]]', 'file_input.list_comp', {'projection': defs.Variable, 'fors': [{'symbol': 'a', 'iterates': defs.ListComp}], 'condition': defs.Empty}),
+		('[a for key, value in {}]', 'file_input.list_comp', {'projection': defs.Variable, 'fors': [{'symbols': ['key', 'value'], 'iterates': defs.Dict}], 'condition': defs.Empty}),
+		('[a for a in [] if a == 0]', 'file_input.list_comp', {'projection': defs.Variable, 'fors': [{'symbols': ['a'], 'iterates': defs.List}], 'condition': defs.Comparison}),
+		('[a for a in [] for b in []]', 'file_input.list_comp', {'projection': defs.Variable, 'fors': [{'symbols': ['a'], 'iterates': defs.List}, {'symbols': ['b'], 'iterates': defs.List}], 'condition': defs.Empty}),
+		('[a for a in [b for b in []]]', 'file_input.list_comp', {'projection': defs.Variable, 'fors': [{'symbols': ['a'], 'iterates': defs.ListComp}], 'condition': defs.Empty}),
 	])
 	def test_list_comp(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.ListComp)
@@ -111,7 +111,7 @@ class TestDefinition(TestCase):
 		self.assertEqual(len(node.fors), len(expected['fors']))
 		for index, in_for in enumerate(node.fors):
 			in_expected = expected['fors'][index]
-			self.assertEqual(in_for.symbol.tokens, in_expected['symbol'])
+			self.assertEqual([symbol.tokens for symbol in in_for.symbols], in_expected['symbols'])
 			self.assertEqual(type(in_for.iterates), in_expected['iterates'])
 
 		self.assertEqual(type(node.condition), expected['condition'])

@@ -67,12 +67,15 @@ class FileLoader(IFileLoader):
 		"""ファイルパスを解決。未検出の場合はNoneを返却
 
 		Args:
-			filepath (str): 実行ディレクトリーからの相対パス
+			filepath (str): 実行ディレクトリーからの相対パス。または絶対パス
 		Returns:
 			str | None: 解決したファイルパス
 		Note:
 			環境変数のPYTHONPATHの登録順に探索
 		"""
+		if os.path.isabs(filepath):
+			return filepath
+
 		for path in self.__env.paths:
 			abs_filepath = os.path.abspath(os.path.join(path, filepath))
 			if os.path.isfile(abs_filepath):

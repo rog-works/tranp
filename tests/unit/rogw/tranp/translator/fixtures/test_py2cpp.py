@@ -6,8 +6,8 @@ class Base(CObject):
 	def __init__(self, n: int = 0) -> None:
 		self.base_n: int = n
 
-	def call(self) -> None:
-		...
+	def call(self) -> None: ...
+	def __add__(self, other: Base) -> Base: ...
 
 class CVarOps:
 	def ret_raw(self) -> Base:
@@ -59,6 +59,11 @@ class CVarOps:
 		self.invoke_method(a, a, a)
 		self.invoke_method(ap, ap, ap)  # エラーケース
 		self.invoke_method(asp, asp, asp)  # エラーケース
+
+	def sum(self) -> None:
+		a = Base()
+		ap: Base[CP] = a
+		# a2 = a + ap FIXME 実体参照する方法を検討
 
 class FuncOps:
 	def print(self) -> None:

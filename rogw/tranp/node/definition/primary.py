@@ -62,7 +62,7 @@ class Fragment(Node, IDomain):
 	@property
 	def is_decl_local_var(self) -> bool:
 		"""Note: マッチング対象: ローカル変数宣言/仮引数(cls/self以外)"""
-		# 以下の親を持つノードはnameタグであるだけでローカル変数と見做すことが出来る
+		# 以下の親直下のnameタグノードは、それだけでローカル変数と見做すことが出来る
 		is_identified_by_name_only = self._full_path.parent_tag in ['typedparam', 'for_stmt', 'except_clause', 'namelist']
 		if is_identified_by_name_only and self._full_path.last_tag == 'name':
 			return True
@@ -71,7 +71,7 @@ class Fragment(Node, IDomain):
 		in_decl_var = self._full_path.parent_tag in ['assign', 'anno_assign']
 		is_class_or_this = tokens == 'cls' or tokens == 'self'
 		is_local = DSN.elem_counts(tokens) == 1
-		# 代入式の左辺は必ずvarであり、右辺がvarの場合のみ0。それ以外は全て-1
+		# ローカル変数への代入式の左辺は必ずvarであり、右辺がvarの場合のみ0。それ以外は全て-1
 		#  0のパターン: var = var | var: type = var
 		# -1のパターン: var = expression | var: type = expression
 		is_receiver = self._full_path.last[1] in [0, -1]

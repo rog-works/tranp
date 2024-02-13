@@ -63,7 +63,7 @@ class Fragment(Node, IDomain):
 	def is_decl_local_var(self) -> bool:
 		"""Note: マッチング対象: ローカル変数宣言/仮引数(cls/self以外)"""
 		tokens = self.tokens
-		in_decl_var = self._full_path.parent_tag in ['assign', 'anno_assign', 'typedparam', 'for_stmt', 'except_clause']
+		in_decl_var = self._full_path.parent_tag in ['assign', 'anno_assign', 'typedparam', 'for_stmt', 'comp_for', 'except_clause']
 		is_class_or_this = tokens == 'cls' or tokens == 'self'
 		is_local = DSN.elem_counts(tokens) == 1
 		is_receiver = self._full_path.last[1] in [0, -1]  # 代入式の左辺が対象(assign/anno_assign)、それ以外はname単独のため必ず-1

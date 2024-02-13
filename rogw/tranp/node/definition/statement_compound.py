@@ -118,7 +118,7 @@ class While(FlowEnter):
 		return self._by('block').as_a(Block)
 
 
-@Meta.embed(Node, accept_tags('for_in'))
+@Meta.embed(Node, accept_tags('for_in', 'comp_for_in'))
 class ForIn(FlowPart):
 	@property
 	@Meta.embed(Node, expandable)
@@ -197,6 +197,50 @@ class Try(FlowEnter):
 	@property
 	def having_blocks(self) -> list[Block]:
 		return [self.block, *[catch.block for catch in self.catches]]
+
+
+@Meta.embed(Node, accept_tags('comp_for'))
+class CompFor(Node):
+	@property
+	@Meta.embed(Node, expandable)
+	def symbol(self) -> Declable:
+		return self._by('name').as_a(Declable)
+
+	@property
+	@Meta.embed(Node, expandable)
+	def for_in(self) -> ForIn:
+		return self._by('comp_for_in').as_a(ForIn)
+
+	@property
+	def iterates(self) -> Node:
+		return self.for_in.iterates
+
+
+class Comprehension(Node): ...
+
+
+@Meta.embed(Node, accept_tags('list_comp'))
+class ListComp(Comprehension):
+	"""Note: XXX カテゴリーはExpressionなので、定義位置を再検討"""
+
+	@property
+	@Meta.embed(Node, expandable)
+	def projection(self) -> Node:
+		return self._children('comprehension')[0]
+
+	@property
+	@Meta.embed(Node, expandable)
+	def fors(self) -> list[CompFor]:
+		return [node.as_a(CompFor) for node in self._children('comprehension.comp_fors')]
+
+	@property
+	@Meta.embed(Node, expandable)
+	def condition(self) -> Node | Empty:
+		node = self._children('comprehension')[2]
+		if isinstance(node, Empty):
+			return node
+
+		return node
 
 
 class ClassDef(Node, IDomain, IScope, IDeclare):

@@ -20,7 +20,7 @@ def default_definitions() -> ModuleDefinitions:
 		'rogw.tranp.ast.parser.SyntaxParser': 'rogw.tranp.tp_lark.parser.SyntaxParserOfLark',
 		'rogw.tranp.io.cache.CacheProvider': 'rogw.tranp.io.cache.CacheProvider',
 		'rogw.tranp.io.cache.CacheSetting': 'rogw.tranp.providers.io.cache_setting',
-		'rogw.tranp.io.loader.FileLoader': 'rogw.tranp.io.loader.FileLoader',
+		'rogw.tranp.io.loader.IFileLoader': 'rogw.tranp.app.io.FileLoader',
 		'rogw.tranp.module.loader.ModuleLoader': 'rogw.tranp.providers.module.module_loader',
 		'rogw.tranp.module.module.Module': 'rogw.tranp.module.module.Module',
 		'rogw.tranp.module.modules.Modules': 'rogw.tranp.module.modules.Modules',

@@ -7,7 +7,7 @@ from lark.indenter import PythonIndenter
 from rogw.tranp.ast.entry import Entry
 from rogw.tranp.ast.parser import ParserSetting
 from rogw.tranp.io.cache import CacheProvider
-from rogw.tranp.io.loader import FileLoader
+from rogw.tranp.io.loader import IFileLoader
 from rogw.tranp.lang.implementation import implements, injectable
 from rogw.tranp.tp_lark.entry import EntryOfLark, Serialization
 
@@ -16,11 +16,11 @@ class SyntaxParserOfLark:
 	"""シンタックスパーサー(Lark版)"""
 
 	@injectable
-	def __init__(self, loader: FileLoader, setting: ParserSetting, cache: CacheProvider) -> None:
+	def __init__(self, loader: IFileLoader, setting: ParserSetting, cache: CacheProvider) -> None:
 		"""インスタンスを生成
 
 		Args:
-			loader (FileLoader): ファイルローダー @inject
+			loader (IFileLoader): ファイルローダー @inject
 			setting (ParserSetting): パーサー設定データ @inject
 			cache (CacheProvider): キャッシュプロバイダー @inject
 		"""

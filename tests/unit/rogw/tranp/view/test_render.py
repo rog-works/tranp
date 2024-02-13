@@ -3,16 +3,14 @@ from typing import Any
 from unittest import TestCase
 
 from rogw.tranp.view.render import Renderer
+from rogw.tranp.app.io import appdir
 from tests.test.helper import data_provider
+
 
 class Fixture:
 	@classmethod
-	def appdir(cls) -> str:
-		return os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../../..'))
-
-	@classmethod
 	def renderer(cls) -> Renderer:
-		return Renderer(os.path.join(cls.appdir(), 'example/template'))
+		return Renderer(os.path.abspath(os.path.join(appdir(), 'example/template')))
 
 
 class TestRenderer(TestCase):

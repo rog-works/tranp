@@ -3,6 +3,7 @@ import os
 from unittest import TestCase
 
 from rogw.tranp.analyze.symbols import Symbols
+from rogw.tranp.app.io import appdir
 from rogw.tranp.ast.dsn import DSN
 from rogw.tranp.errors import LogicError
 import rogw.tranp.node.definition as defs
@@ -43,7 +44,7 @@ class TestPy2Cpp(TestCase):
 	fixture = Fixture.make(__file__)
 
 	def translator(self) -> Py2Cpp:
-		renderer = Renderer(os.path.join(Fixture.appdir(), 'example/template'))
+		renderer = Renderer(os.path.abspath(os.path.join(appdir(), 'example/template')))
 		options = TranslatorOptions(verbose=False)
 		return Py2Cpp(self.fixture.get(Symbols), renderer, options)
 

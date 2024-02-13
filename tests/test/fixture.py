@@ -2,6 +2,7 @@ import os
 from typing import cast
 
 from rogw.tranp.app.app import App
+from rogw.tranp.app.io import appdir
 from rogw.tranp.ast.entry import Entry
 from rogw.tranp.ast.parser import SyntaxParser
 from rogw.tranp.ast.query import Query
@@ -19,15 +20,11 @@ from rogw.tranp.tp_lark.parser import SyntaxParserOfLark
 class Fixture:
 	@classmethod
 	def make(cls, filepath: str) -> 'Fixture':
-		rel_path = filepath.split(cls.appdir())[1]
+		rel_path = filepath.split(appdir())[1]
 		without_ext = rel_path.split('.')[0]
 		elems =  [elem for elem in without_ext.split(os.path.sep) if elem]
 		test_module_path = '.'.join(elems)
 		return cls(test_module_path)
-
-	@classmethod
-	def appdir(cls) -> str:
-		return os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 
 	def __init__(self, test_module_path: str) -> None:
 		self.__test_module_path = test_module_path

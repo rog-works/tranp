@@ -615,7 +615,7 @@ class AltClass(ClassDef):
 	@override
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Declable:
-		return self._by('var.name').dirty_child(TypesName, '', class_types=self)
+		return self._by('assign_namelist.var.name').dirty_child(TypesName, '', class_types=self)
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -634,7 +634,7 @@ class TemplateClass(ClassDef):
 	@override
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Declable:
-		return self._by('var.name').dirty_child(TypesName, '', class_types=self)
+		return self._by('assign_namelist.var.name').dirty_child(TypesName, '', class_types=self)
 
 	@property
 	@override

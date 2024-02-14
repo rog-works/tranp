@@ -22,12 +22,8 @@ class Assign(Node, IDeclare):
 	@property
 	@implements
 	def symbols(self) -> list[Declable]:
-		"""
-		Note:
-			XXX シンボルテーブル作成時以外に使用しないと言う前提のため、
-			XXX receiverがDeclable以外のインスタンスで使用するとエラーが発生する
-		"""
-		return [self.receiver.as_a(Declable)]
+		node = self.receiver
+		return [node] if isinstance(node, Declable) else []
 
 
 @Meta.embed(Node, accept_tags('assign'))

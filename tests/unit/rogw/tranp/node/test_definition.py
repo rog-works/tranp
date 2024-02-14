@@ -70,12 +70,12 @@ class TestDefinition(TestCase):
 		self.assertEqual([type(statement) for statement in node.statements], expected['statements'])
 
 	@data_provider([
-		('for i in range(1): ...', 'file_input.for_stmt', {'symbol': 'i', 'iterates': defs.FuncCall, 'statements': [defs.Elipsis]}),
+		('for i in range(1): ...', 'file_input.for_stmt', {'symbols': ['i'], 'iterates': defs.FuncCall, 'statements': [defs.Elipsis]}),
 	])
 	def test_for(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.For)
-		self.assertEqual(node.symbol.tokens, expected['symbol'])
-		self.assertEqual(type(node.symbol), defs.DeclLocalVar)
+		self.assertEqual([symbol.tokens for symbol in node.symbols], expected['symbols'])
+		self.assertEqual(len([symbol for symbol in node.symbols if symbol.is_a(defs.DeclLocalVar)]), len(expected['symbols']))
 		self.assertEqual(type(node.iterates), expected['iterates'])
 		self.assertEqual([type(statement) for statement in node.statements], expected['statements'])
 
@@ -324,8 +324,10 @@ class TestDefinition(TestCase):
 		self.assertEqual(len(node.decl_vars), len(expected['decl_vars']))
 		for index, decl_var in enumerate(node.decl_vars):
 			in_expected = expected['decl_vars'][index]
-			self.assertEqual(decl_var.symbol.tokens, in_expected['symbol'])
 			self.assertEqual(type(decl_var), in_expected['decl_type'])
+			# FIXME decl_varから複数のシンボルが取得できるの不自然
+			for symbol in decl_var.symbols:
+				self.assertEqual(symbol.tokens, in_expected['symbol'])
 
 		self.assertEqual(node.actual_symbol, expected['actual_symbol'])
 		self.assertEqual(node.alias_symbol, expected['alias_symbol'])
@@ -334,7 +336,12 @@ class TestDefinition(TestCase):
 			self.assertEqual(node.class_types.symbol.tokens, expected['class_symbol'])
 
 		if isinstance(node, defs.Constructor):
-			self.assertEqual([var.symbol.tokens for var in node.this_vars if var.is_a(defs.AnnoAssign)], expected['this_vars'])
+			# FIXME decl_varから複数のシンボルが取得できるの不自然
+			this_var_names: list[str] = []
+			for this_var in node.this_vars:
+				this_var_names = [*this_var_names, *[symbol.tokens for symbol in this_var.symbols]]
+
+			self.assertEqual(this_var_names, expected['this_vars'])
 
 		if isinstance(node, defs.Closure):
 			self.assertEqual(node.binded_this, expected['binded_this'])
@@ -434,7 +441,7 @@ class TestDefinition(TestCase):
 	])
 	def test_alt_class(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.AltClass)
-		self.assertEqual(node.symbol.tokens, expected['symbol'])
+		self.assertEqual(node.symbols.tokens, expected['symbol'])
 		self.assertEqual(type(node.actual_type), expected['actual_type'])
 
 	@data_provider([

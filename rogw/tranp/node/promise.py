@@ -4,11 +4,21 @@ from rogw.tranp.node.node import Node
 
 
 class IDeclare:
-	"""シンボルとして定義されるノードの共通インターフェイス"""
+	"""シンボルを保有するノードの共通インターフェイス
+
+	Note:
+		# 対象 | 1 on 1/n
+		* ClassDef | 1 on 1
+		* Assign | 1 on n
+		* Parameter | 1 on 1
+		* For | 1 on n
+		* Catch | 1 on 1
+		* Comprehension | 1 on n
+	"""
 
 	@property
-	def symbol(self) -> Node:
-		"""Note: シンボル名を表すノード。実体はDeclable"""
+	def symbols(self) -> list[Node]:
+		"""list[Node]: シンボル名のノードリスト。実体はDeclable"""
 		raise NotImplementedError()
 
 

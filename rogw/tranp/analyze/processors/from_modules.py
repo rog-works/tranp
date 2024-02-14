@@ -97,7 +97,9 @@ class FromModules:
 			# 展開対象モジュールの変数シンボルを展開
 			expand_target.raws = {**core_primary_raws, **imported_raws, **expand_target.raws}
 			for var in expand_target.decl_vars:
-				expand_target.raws[var.symbol.fullyname] = self.resolve_var_type(expand_target.raws, var).to_var(var)
+				for symbol in var.symbols:
+					# FIXME decl_varから複数のシンボルが取得できるの不自然
+					expand_target.raws[symbol.fullyname] = self.resolve_type_symbol(expand_target.raws, var).to_var(var)
 
 		# シンボルテーブルを統合
 		new_raws = {**raws}
@@ -138,14 +140,14 @@ class FromModules:
 
 		return Expanded(raws, decl_vars, import_nodes)
 
-	def resolve_var_type(self, raws: SymbolRaws, var: defs.DeclVars) -> SymbolRaw:
-		"""シンボルテーブルから変数の型を解決
+	def resolve_type_symbol(self, raws: SymbolRaws, var: defs.DeclVars) -> SymbolRaw:
+		"""シンボルテーブルから変数の型のシンボルを解決
 
 		Args:
 			raws (SymbolRaws): シンボルテーブル
 			var (DeclVars): 変数宣言ノード
 		Returns:
-			SymbolRaw: シンボルデータ
+			SymbolRaw: シンボル
 		"""
 		decl_type = self.fetch_decl_type(var)
 		if decl_type is not None:

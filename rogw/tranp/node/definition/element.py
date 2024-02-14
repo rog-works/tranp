@@ -11,7 +11,6 @@ class Parameter(Node, IDeclare):
 	"""Note: XXX starparamを受け入れるが、正式に対応する必要がないため通常の引数と同じように扱う"""
 
 	@property
-	@implements
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Declable:
 		"""Note: XXX 実体はDeclBlockVarのみ"""
@@ -32,6 +31,11 @@ class Parameter(Node, IDeclare):
 
 		# XXX starparamはデフォルト引数がないためダミーを生成
 		return self.dirty_child(Empty, '__empty__', tokens='')
+
+	@property
+	@implements
+	def symbols(self) -> list[Declable]:
+		return [self.symbol]
 
 
 @Meta.embed(Node, accept_tags('decorator'))

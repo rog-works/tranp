@@ -15,17 +15,18 @@ class Assign(Node, IDeclare):
 	@property
 	@Meta.embed(Node, expandable)
 	def receiver(self) -> Declable | Reference | Indexer:
+		"""Note: FIXME receiversに変更"""
 		return self._elements[0].one_of(Declable | Reference | Indexer)
 
 	@property
 	@implements
-	def symbol(self) -> Declable:
+	def symbols(self) -> list[Declable]:
 		"""
 		Note:
 			XXX シンボルテーブル作成時以外に使用しないと言う前提のため、
 			XXX receiverがDeclable以外のインスタンスで使用するとエラーが発生する
 		"""
-		return self.receiver.as_a(Declable)
+		return [self.receiver.as_a(Declable)]
 
 
 @Meta.embed(Node, accept_tags('assign'))

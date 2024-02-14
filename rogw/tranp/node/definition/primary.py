@@ -210,7 +210,7 @@ class ClassRef(Var):
 
 	@property
 	def class_symbol(self) -> Declable:
-		return cast(IDeclare, self._ancestor('class_def')).symbol.as_a(Declable)
+		return cast(IDeclare, self._ancestor('class_def')).symbols[0].as_a(Declable)
 
 
 @Meta.embed(Node, accept_tags('var'), actualized(via=Fragment))

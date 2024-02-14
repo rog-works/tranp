@@ -1,4 +1,4 @@
-from typing import Generic, cast
+from typing import Generic
 
 from rogw.tranp.compatible.python.embed import __actual__, __alias__
 from rogw.tranp.lang.implementation import implements, override
@@ -11,7 +11,7 @@ from rogw.tranp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from rogw.tranp.node.definition.terminal import Empty
 from rogw.tranp.node.embed import Meta, accept_tags, actualized, expandable
 from rogw.tranp.node.interface import IDomain, IScope
-from rogw.tranp.node.node import Node, T_Node
+from rogw.tranp.node.node import Node
 from rogw.tranp.node.promise import IDeclare, StatementBlock
 
 
@@ -131,8 +131,8 @@ class For(FlowEnter, IDeclare):
 	@property
 	@implements
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> Declable:
-		return self._by('name').as_a(Declable)
+	def symbols(self) -> list[Declable]:
+		return [node.as_a(Declable) for node in self._children('namelist')]
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -162,7 +162,6 @@ class Catch(FlowPart, IDeclare):
 		return self._at(0).as_a(Type)
 
 	@property
-	@implements
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Declable:
 		# XXX Pythonの仕様では省略出来るが実装を簡単にするため必須で実装
@@ -172,6 +171,11 @@ class Catch(FlowPart, IDeclare):
 	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:
 		return self.block.statements
+
+	@property
+	@implements
+	def symbols(self) -> list[Declable]:
+		return [self.symbol]
 
 	@property
 	def block(self) -> Block:
@@ -301,8 +305,11 @@ class ClassDef(Node, IDomain, IScope, IDeclare):
 
 	@property
 	@implements
+	def symbols(self) -> list[Declable]:
+		return [self.symbol]
+
+	@property
 	def symbol(self) -> Declable:
-		"""Note: XXX 宣言し直しているため、念のためインターフェイスを継承していることを明示"""
 		raise NotImplementedError()
 
 	@property
@@ -606,7 +613,7 @@ class AltClass(ClassDef):
 	@property
 	@override
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> Declable:
+	def symbols(self) -> Declable:
 		return self._by('var.name').dirty_child(TypesName, '', class_types=self)
 
 	@property
@@ -636,20 +643,23 @@ class TemplateClass(ClassDef):
 
 
 def collect_decl_vars(block: StatementBlock, allow: type[Declable]) -> dict[str, AnnoAssign | MoveAssign | For | Catch]:
-	"""Note: あくまでも配下のスコープに存在する変数宣言を抽出するため、親のスコープに存在する変数との衝突は考慮しない(例: 仮引数)"""
 	decl_vars: dict[str, AnnoAssign | MoveAssign | For | Catch] = {}
 	for node in block.statements:
 		if isinstance(node, (AnnoAssign, MoveAssign)) and node.receiver.is_a(allow):
 			var_name = node.receiver.tokens
 			if var_name not in decl_vars:
 				decl_vars[var_name] = node
-		if isinstance(node, For) and node.symbol.is_a(allow):
-			var_name = node.symbol.tokens
-			if var_name not in decl_vars:
-				decl_vars[var_name] = node
+		if isinstance(node, For):
+			for symbol in node.symbols:
+				if not symbol.is_a(allow):
+					continue
+
+				var_name = symbol.tokens
+				if var_name not in decl_vars:
+					decl_vars[var_name] = node
 		elif isinstance(node, Try):
 			for catch in node.catches:
-				var_name = cast(Declable, catch.symbol).tokens
+				var_name = catch.symbol.tokens
 				if var_name not in decl_vars:
 					decl_vars[var_name] = catch
 

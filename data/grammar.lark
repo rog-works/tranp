@@ -129,9 +129,9 @@ except_clause: "except" typed_expression ["as" name] ":" block
 // # Simple Statements
 
 // @lark assign_stmt: assign | annassign | augassign
-// @lark assign: test ("=" test)+
+// @lark assign: testlist_star_expr ("=" (yield_expr|testlist_star_expr))+
 // @lark annassign: testlist_star_expr ":" test ["=" test]
-// @lark augassign: testlist_star_expr augassign_op (yield_expr | testlist)
+// @lark augassign: testlist_star_expr augassign_op (yield_expr|testlist)
 ?assign_stmt: assign | anno_assign | aug_assign | class_assign | template_assign
 assign: expression ("=" expression)+
 anno_assign: expression ":" typed_expression ["=" expression]

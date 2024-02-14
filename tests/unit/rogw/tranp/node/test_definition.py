@@ -100,14 +100,72 @@ class TestDefinition(TestCase):
 		self.assertEqual(len(node.catches), expected['catches'])
 
 	@data_provider([
-		('[a for key, value in {}]', 'file_input.list_comp', {'projection': defs.Variable, 'fors': [{'symbols': ['key', 'value'], 'iterates': defs.Dict}], 'condition': defs.Empty}),
-		('[a for a in [] if a == 0]', 'file_input.list_comp', {'projection': defs.Variable, 'fors': [{'symbols': ['a'], 'iterates': defs.List}], 'condition': defs.Comparison}),
-		('[a for a in [] for b in []]', 'file_input.list_comp', {'projection': defs.Variable, 'fors': [{'symbols': ['a'], 'iterates': defs.List}, {'symbols': ['b'], 'iterates': defs.List}], 'condition': defs.Empty}),
-		('[a for a in [b for b in []]]', 'file_input.list_comp', {'projection': defs.Variable, 'fors': [{'symbols': ['a'], 'iterates': defs.ListComp}], 'condition': defs.Empty}),
+		('[a for a in {}]', 'file_input.list_comp', {
+			'projection_value': defs.Variable,
+			'fors': [{'symbols': ['a'], 'iterates': defs.Dict}],
+			'condition': defs.Empty,
+		}),
+		('[a for a in [] if a == 0]', 'file_input.list_comp', {
+			'projection_value': defs.Variable,
+			'fors': [{'symbols': ['a'], 'iterates': defs.List}],
+			'condition': defs.Comparison,
+		}),
+		('[a for a in [] for b in []]', 'file_input.list_comp', {
+			'projection_value': defs.Variable,
+			'fors': [{'symbols': ['a'],
+			 'iterates': defs.List}, {'symbols': ['b'], 'iterates': defs.List}],
+			 'condition': defs.Empty,
+		}),
+		('[a for a in [b for b in []]]', 'file_input.list_comp', {
+			'projection_value': defs.Variable,
+			'fors': [{'symbols': ['a'], 'iterates': defs.ListComp}],
+			'condition': defs.Empty,
+		}),
 	])
 	def test_list_comp(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.ListComp)
-		self.assertEqual(type(node.projection_value), expected['projection'])
+		self.assertEqual(type(node.projection_value), expected['projection_value'])
+		self.assertEqual(len(node.fors), len(expected['fors']))
+		for index, in_for in enumerate(node.fors):
+			in_expected = expected['fors'][index]
+			self.assertEqual([symbol.tokens for symbol in in_for.symbols], in_expected['symbols'])
+			self.assertEqual(type(in_for.iterates), in_expected['iterates'])
+
+		self.assertEqual(type(node.condition), expected['condition'])
+
+	@data_provider([
+		('{key: value for key, value in {}.items()}', 'file_input.dict_comp', {
+			'projection_key': defs.Variable,
+			'projection_value': defs.Variable,
+			'fors': [{'symbols': ['key', 'value'], 'iterates': defs.FuncCall}],
+			'condition': defs.Empty,
+		}),
+		('{key: value for key, value in {}.items() if a == 0}', 'file_input.dict_comp', {
+			'projection_key': defs.Variable,
+			'projection_value': defs.Variable,
+			'fors': [{'symbols': ['key', 'value'], 'iterates': defs.FuncCall}],
+			'condition': defs.Comparison,
+		}),
+		('{key: value for key, value in {}.items() for key2, value2 in {}.items()}', 'file_input.dict_comp', {
+			'projection_key': defs.Variable,
+			'projection_value': defs.Variable,
+			'fors': [
+				{'symbols': ['key', 'value'], 'iterates': defs.FuncCall},
+				{'symbols': ['key2', 'value2'], 'iterates': defs.FuncCall},
+			],
+			'condition': defs.Empty,
+		}),
+		('{key: value for key, value in {key2: value2 for key2, value2 in {}.items()}}', 'file_input.dict_comp', {
+			'projection_key': defs.Variable,
+			'projection_value': defs.Variable,
+			'fors': [{'symbols': ['key', 'value'], 'iterates': defs.DictComp}],
+			'condition': defs.Empty,
+		}),
+	])
+	def test_dict_comp(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.DictComp)
+		self.assertEqual(type(node.projection_key), expected['projection_key'])
+		self.assertEqual(type(node.projection_value), expected['projection_value'])
 		self.assertEqual(len(node.fors), len(expected['fors']))
 		for index, in_for in enumerate(node.fors):
 			in_expected = expected['fors'][index]

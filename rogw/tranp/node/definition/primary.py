@@ -77,8 +77,8 @@ class Fragment(Node, IDomain):
 
 		# Assign
 		parent_tags = self._full_path.de_identify().shift(-1).elements[-2:]
-		expect_assign, expect_namelist = parent_tags if len(parent_tags) >= 2 else ['', '']
-		in_decl_var = expect_assign in ['assign', 'anno_assign'] and expect_namelist == 'assign_namelist'
+		for_assign, for_namelist = parent_tags if len(parent_tags) >= 2 else ['', '']
+		in_decl_var = for_assign in ['assign', 'anno_assign'] and for_namelist == 'assign_namelist'
 		is_local = DSN.elem_counts(tokens) == 1
 		# ローカル変数への代入式の左辺は必ずvarであり、右辺がvarの場合のみ0。それ以外は全て-1
 		#  0のパターン: var = var | var: type = var
@@ -96,6 +96,11 @@ class Fragment(Node, IDomain):
 
 
 class Declable(Fragment, ITerminal):
+	@property
+	def symbol(self) -> Node:
+		"""Note: XXX ClassDef/Parameterとインターフェイスを統一"""
+		return self
+
 	@property
 	def declare(self) -> Node:
 		parent_tags = [

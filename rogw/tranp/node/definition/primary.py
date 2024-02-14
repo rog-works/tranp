@@ -24,12 +24,12 @@ class Fragment(Node, IDomain):
 	def is_decl_class_var(self) -> bool:
 		"""Note: マッチング対象: クラス変数宣言"""
 		# XXX ASTへの依存度が非常に高い判定なので注意
-		# XXX 期待するパス: class_def_raw.block.anno_assign.(getattr|var|name)
+		# XXX 期待するパス: class_def_raw.block.anno_assign.assign_namelist.(getattr|var|name)
 		elems = self._full_path.de_identify().elements
 		actual_class_def_at = last_index_of(elems, 'class_def_raw')
-		expect_class_def_at = max(0, len(elems) - 4)
+		expect_class_def_at = max(0, len(elems) - 5)
 		in_decl_class_var = actual_class_def_at == expect_class_def_at
-		in_decl_var = self._full_path.parent_tag == 'anno_assign'
+		in_decl_var = self._full_path.de_identify().shift(-1).origin.endswith('anno_assign.assign_namelist')
 		is_local = DSN.elem_counts(self.tokens) == 1
 		is_receiver = self._full_path.last[1] in [0, -1]  # 代入式の左辺が対象
 		return in_decl_var and in_decl_class_var and is_local and is_receiver
@@ -37,7 +37,7 @@ class Fragment(Node, IDomain):
 	@property
 	def is_decl_this_var(self) -> bool:
 		"""Note: マッチング対象: インスタンス変数宣言"""
-		in_decl_var = self._full_path.parent_tag == 'anno_assign'
+		in_decl_var = self._full_path.de_identify().shift(-1).origin.endswith('anno_assign.assign_namelist')
 		is_property = re.fullmatch(r'self.\w+', self.tokens) is not None
 		is_receiver = self._full_path.last[1] in [0, -1]  # 代入式の左辺が対象
 		return in_decl_var and is_property and is_receiver
@@ -63,15 +63,28 @@ class Fragment(Node, IDomain):
 	@property
 	def is_decl_local_var(self) -> bool:
 		"""Note: マッチング対象: ローカル変数宣言/仮引数(cls/self以外)"""
-		# 仮引数以外の親を持つnameタグノードは、それだけでローカル変数と見做すことが出来る
-		is_identified_by_name_only = self._full_path.parent_tag in ['assign_namelist', 'for_namelist', 'except_clause']
+		# For/Catch/Comprehension
+		is_identified_by_name_only = self._full_path.parent_tag in ['for_namelist', 'except_clause']
 		if is_identified_by_name_only and self._full_path.last_tag == 'name':
 			return True
 
+		# Parameter(cls/self以外)
 		tokens = self.tokens
-		in_decl_param = self._full_path.parent_tag in ['typedparam']
+		in_decl_param = self._full_path.parent_tag == 'typedparam'
 		is_class_or_this = tokens in ['cls', 'self']
-		return in_decl_param and not is_class_or_this
+		if in_decl_param:
+			return not is_class_or_this
+
+		# Assign
+		parent_tags = self._full_path.de_identify().shift(-1).elements[-2:]
+		expect_assign, expect_namelist = parent_tags if len(parent_tags) >= 2 else ['', '']
+		in_decl_var = expect_assign in ['assign', 'anno_assign'] and expect_namelist == 'assign_namelist'
+		is_local = DSN.elem_counts(tokens) == 1
+		# ローカル変数への代入式の左辺は必ずvarであり、右辺がvarの場合のみ0。それ以外は全て-1
+		#  0のパターン: var = var | var: type = var
+		# -1のパターン: var = expression | var: type = expression
+		is_receiver = self._full_path.last[1] in [0, -1]
+		return in_decl_var and not is_class_or_this and is_local and is_receiver
 
 	@property
 	def in_decl_class_type(self) -> bool:

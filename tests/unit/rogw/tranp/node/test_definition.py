@@ -325,9 +325,7 @@ class TestDefinition(TestCase):
 		for index, decl_var in enumerate(node.decl_vars):
 			in_expected = expected['decl_vars'][index]
 			self.assertEqual(type(decl_var), in_expected['decl_type'])
-			# FIXME decl_varから複数のシンボルが取得できるの不自然
-			for symbol in decl_var.symbols:
-				self.assertEqual(symbol.tokens, in_expected['symbol'])
+			self.assertEqual(decl_var.tokens, in_expected['symbol'])
 
 		self.assertEqual(node.actual_symbol, expected['actual_symbol'])
 		self.assertEqual(node.alias_symbol, expected['alias_symbol'])
@@ -336,12 +334,7 @@ class TestDefinition(TestCase):
 			self.assertEqual(node.class_types.symbol.tokens, expected['class_symbol'])
 
 		if isinstance(node, defs.Constructor):
-			# FIXME decl_varから複数のシンボルが取得できるの不自然
-			this_var_names: list[str] = []
-			for this_var in node.this_vars:
-				this_var_names = [*this_var_names, *[symbol.tokens for symbol in this_var.symbols]]
-
-			self.assertEqual(this_var_names, expected['this_vars'])
+			self.assertEqual([this_var.tokens for this_var in node.this_vars], expected['this_vars'])
 
 		if isinstance(node, defs.Closure):
 			self.assertEqual(node.binded_this, expected['binded_this'])
@@ -395,8 +388,8 @@ class TestDefinition(TestCase):
 		self.assertEqual([in_type.type_name.tokens for in_type in node.generic_types], expected['generic_types'])
 		self.assertEqual(node.constructor_exists, expected['constructor_exists'])
 		self.assertEqual([method.symbol.tokens for method in node.methods], expected['methods'])
-		self.assertEqual([var.receiver.tokens for var in node.class_vars], expected['class_vars'])
-		self.assertEqual([var.receiver.tokens for var in node.this_vars], expected['this_vars'])
+		self.assertEqual([var.tokens for var in node.class_vars], expected['class_vars'])
+		self.assertEqual([var.tokens for var in node.this_vars], expected['this_vars'])
 		self.assertEqual(node.actual_symbol, expected['actual_symbol'])
 		self.assertEqual(node.alias_symbol, expected['alias_symbol'])
 
@@ -423,10 +416,10 @@ class TestDefinition(TestCase):
 		self.assertEqual(len(node.vars), len(expected['vars']))
 		for index, var in enumerate(node.vars):
 			in_expected = expected['vars'][index]
-			self.assertEqual(var.receiver.tokens, in_expected['symbol'])
-			self.assertEqual(var.value.tokens, in_expected['value'])
-			self.assertEqual(type(var.receiver), defs.DeclLocalVar)  # XXX MoveAssignはメンバー変数宣言にならない設計。設計通りではあるがDeclClassVarと勘違いしやすい
-			self.assertEqual(type(var.value), defs.Integer)
+			self.assertEqual(var.tokens, in_expected['symbol'])
+			self.assertEqual(var.declare.as_a(defs.MoveAssign).value.tokens, in_expected['value'])
+			self.assertEqual(type(var), defs.DeclLocalVar)  # XXX MoveAssignはメンバー変数宣言にならない設計。設計通りではあるがDeclClassVarと勘違いしやすい
+			self.assertEqual(type(var.declare.as_a(defs.MoveAssign).value), defs.Integer)
 			self.assertEqual(type(var), defs.MoveAssign)
 
 	@data_provider([

@@ -97,9 +97,7 @@ class FromModules:
 			# 展開対象モジュールの変数シンボルを展開
 			expand_target.raws = {**core_primary_raws, **imported_raws, **expand_target.raws}
 			for var in expand_target.decl_vars:
-				for symbol in var.symbols:
-					# FIXME decl_varから複数のシンボルが取得できるの不自然
-					expand_target.raws[symbol.fullyname] = self.resolve_type_symbol(expand_target.raws, var).to_var(var)
+				expand_target.raws[var.fullyname] = self.resolve_type_symbol(expand_target.raws, var).to_var(var)
 
 		# シンボルテーブルを統合
 		new_raws = {**raws}
@@ -163,16 +161,17 @@ class FromModules:
 		Returns:
 			Type | ClassDef | None: タイプ/クラス定義ノード。不明な場合はNone
 		"""
-		if isinstance(var, (defs.AnnoAssign, defs.Catch)):
-			return var.var_type
-		elif isinstance(var, defs.Parameter):
+		if isinstance(var, defs.Parameter):
 			if isinstance(var.symbol, defs.DeclClassParam):
 				return var.symbol.class_types.as_a(defs.ClassDef)
 			elif isinstance(var.symbol, defs.DeclThisParam):
 				return var.symbol.class_types.as_a(defs.ClassDef)
 			else:
 				return var.var_type.as_a(defs.Type)
-		elif isinstance(var, (defs.MoveAssign, defs.For)):
+
+		if isinstance(var.declare, (defs.AnnoAssign, defs.Catch)):
+			return var.declare.var_type
+		elif isinstance(var.declare, (defs.MoveAssign, defs.For)):
 			# 型指定が無いため全てUnknown
 			return None
 

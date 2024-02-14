@@ -16,11 +16,7 @@ class Assign(Node, IDeclare):
 	@Meta.embed(Node, expandable)
 	def receiver(self) -> Declable | Reference | Indexer:
 		"""Note: FIXME receiversに変更"""
-		node = self._elements[0]
-		if node._exists('tuple'):
-			# FIXME 一旦単数で実装
-			node = node._children('tuple')[0]
-
+		node = self._elements[0]._children()[0]
 		return node.one_of(Declable | Reference | Indexer)
 
 	@property

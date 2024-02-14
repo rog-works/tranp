@@ -18,7 +18,7 @@ class IDeclare:
 
 	@property
 	def symbols(self) -> list[Node]:
-		"""list[Node]: シンボル名のノードリスト。実体はDeclable"""
+		"""list[Node]: シンボルとなるDeclableノードのリスト"""
 		raise NotImplementedError()
 
 

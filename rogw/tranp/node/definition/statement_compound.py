@@ -2,7 +2,7 @@ from typing import Generic
 
 from rogw.tranp.compatible.python.embed import __actual__, __alias__
 from rogw.tranp.lang.implementation import implements, override
-from rogw.tranp.lang.sequence import last_index_of
+from rogw.tranp.lang.sequence import last_index_of, flatten
 from rogw.tranp.node.definition.accessor import to_access
 from rogw.tranp.node.definition.element import Decorator, Parameter
 from rogw.tranp.node.definition.literal import Comment, Pair, String
@@ -132,7 +132,7 @@ class For(FlowEnter, IDeclare):
 	@implements
 	@Meta.embed(Node, expandable)
 	def symbols(self) -> list[Declable]:
-		return [node.as_a(Declable) for node in self._children('namelist')]
+		return [node.as_a(Declable) for node in self._children('for_namelist')]
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -204,13 +204,14 @@ class Try(FlowEnter):
 
 
 @Meta.embed(Node, accept_tags('comp_for'))
-class CompFor(Node):
+class CompFor(Node, IDeclare):
 	"""Note: XXX カテゴリーはExpressionなので、定義位置を再検討"""
 
 	@property
+	@implements
 	@Meta.embed(Node, expandable)
 	def symbols(self) -> list[Declable]:
-		return [node.as_a(Declable) for node in self._children('namelist')]
+		return [node.as_a(Declable) for node in self._children('for_namelist')]
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -375,7 +376,7 @@ class ClassDef(Node, IDomain, IScope, IDeclare):
 
 		return decorator.arguments[0].value.as_a(String).plain
 
-	def _decl_vars_with(self, allow: type[Declable]) -> dict[str, 'AnnoAssign | MoveAssign | For | Catch']:
+	def _decl_vars_with(self, allow: type[Declable]) -> dict[str, Declable]:
 		return collect_decl_vars(self, allow)
 
 
@@ -426,7 +427,7 @@ class Function(ClassDef):
 		return self._by('function_def_raw.block').as_a(Block)
 
 	@property
-	def decl_vars(self) -> list[Parameter | AnnoAssign | MoveAssign | For | Catch]:
+	def decl_vars(self) -> list[Parameter | Declable]:
 		parameters = self.parameters
 		parameter_names = [parameter.symbol.tokens for parameter in parameters]
 		local_vars = [var for name, var in self._decl_vars_with(DeclLocalVar).items() if name not in parameter_names]
@@ -458,8 +459,8 @@ class Constructor(Function):
 		return self.parent.as_a(Block).parent.as_a(ClassDef)
 
 	@property
-	def this_vars(self) -> list[AnnoAssign]:
-		return [var.as_a(AnnoAssign) for _, var in self._decl_vars_with(DeclThisVar).items()]
+	def this_vars(self) -> list[Declable]:
+		return list(self._decl_vars_with(DeclThisVar).values())
 
 
 @Meta.embed(Node, actualized(via=Function))
@@ -581,11 +582,11 @@ class Class(ClassDef):
 		return [node.as_a(Method) for node in self.statements if node.is_a(Method)]
 
 	@property
-	def class_vars(self) -> list[AnnoAssign]:
-		return [var.as_a(AnnoAssign) for _, var in self._decl_vars_with(DeclClassVar).items()]
+	def class_vars(self) -> list[Declable]:
+		return list(self._decl_vars_with(DeclClassVar).values())
 
 	@property
-	def this_vars(self) -> list[AnnoAssign]:
+	def this_vars(self) -> list[Declable]:
 		return self.constructor.this_vars if self.constructor_exists else []
 
 
@@ -598,9 +599,9 @@ class Enum(Class):
 		return 'CEnum' in [inherit.type_name.tokens for inherit in via.inherits]
 
 	@property
-	def vars(self) -> list[MoveAssign]:
+	def vars(self) -> list[Declable]:
 		# XXX collect_decl_varsだと不要な変数宣言まで拾う可能性があるため、ステートメントから直接収集
-		return [node.as_a(MoveAssign) for node in self.statements if node.is_a(MoveAssign)]
+		return list(flatten([node.symbols for node in self.statements if isinstance(node, MoveAssign)]))
 
 
 @Meta.embed(Node, accept_tags('class_assign'))
@@ -642,31 +643,27 @@ class TemplateClass(ClassDef):
 		return self._at(2).one_of(Type | Empty)
 
 
-def collect_decl_vars(block: StatementBlock, allow: type[Declable]) -> dict[str, AnnoAssign | MoveAssign | For | Catch]:
-	decl_vars: dict[str, AnnoAssign | MoveAssign | For | Catch] = {}
-	for node in block.statements:
-		if isinstance(node, (AnnoAssign, MoveAssign)) and node.receiver.is_a(allow):
-			var_name = node.receiver.tokens
-			if var_name not in decl_vars:
-				decl_vars[var_name] = node
-		if isinstance(node, For):
-			for symbol in node.symbols:
-				if not symbol.is_a(allow):
-					continue
+def collect_decl_vars(block: StatementBlock, allow: type[Declable]) -> dict[str, Declable]:
+	def merged_by(decl_vars: dict[str, Declable], declare: IDeclare) -> dict[str, Declable]:
+		allow_vars = {symbol.tokens: symbol for symbol in declare.symbols if isinstance(symbol, allow)}
+		return merged(decl_vars, allow_vars)
 
-				var_name = symbol.tokens
-				if var_name not in decl_vars:
-					decl_vars[var_name] = node
+	def merged(decl_vars: dict[str, Declable], allow_vars: dict[str, Declable]) -> dict[str, Declable]:
+		return {**decl_vars, **{key: symbol for key, symbol in allow_vars.items() if key not in decl_vars}}
+
+	decl_vars: dict[str, Declable] = {}
+	for node in block.statements:
+		if isinstance(node, (AnnoAssign, MoveAssign)):
+			decl_vars = merged_by(decl_vars, node)
+		if isinstance(node, For):
+			decl_vars = merged_by(decl_vars, node)
 		elif isinstance(node, Try):
 			for catch in node.catches:
-				var_name = catch.symbol.tokens
-				if var_name not in decl_vars:
-					decl_vars[var_name] = catch
-
+				decl_vars = merged_by(decl_vars, catch)
 		if isinstance(node, (If, Try)):
 			for in_block in node.having_blocks:
-				decl_vars = {**decl_vars, **{key: value for key, value in collect_decl_vars(in_block, allow).items() if key not in decl_vars}}
+				decl_vars = merged(decl_vars, collect_decl_vars(in_block, allow))
 		elif isinstance(node, (While, For)):
-			decl_vars = {**decl_vars, **{key: value for key, value in collect_decl_vars(node.block, allow).items() if key not in decl_vars}}
+			decl_vars = merged(decl_vars, collect_decl_vars(node.block, allow))
 
 	return decl_vars

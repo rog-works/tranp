@@ -107,9 +107,8 @@ class Py2Cpp(Procedure[str]):
 		for index, var in enumerate(this_vars):
 			# XXX 代入式の右辺を取得。必ず取得できるのでキャストして警告を抑制 (期待値: `int this->a = 1234;`)
 			initialize_value = cast(re.Match[str], re.search(r'=\s*([^;]+);$', initializer_statements[index]))[1]
-			for in_symbol in var.symbols:
-				decl_var_symbol = in_symbol.as_a(defs.DeclThisVar)
-				initializers.append({'symbol': decl_var_symbol.tokens_without_this, 'value': initialize_value})
+			this_var_name = var.as_a(defs.DeclThisVar).tokens_without_this
+			initializers.append({'symbol': this_var_name, 'value': initialize_value})
 
 		class_name = node.class_types.alias_symbol or node.class_types.symbol.tokens
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'comment': comment, 'statements': normal_statements}
@@ -130,19 +129,17 @@ class Py2Cpp(Procedure[str]):
 	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], comment: str, statements: list[str]) -> str:
 		# XXX メンバー変数の展開方法を検討
 		vars: list[str] = []
-		for class_var in node.class_vars:
-			for in_symbol in class_var.symbols:
-				decl_var_symbol = in_symbol.as_a(defs.DeclClassVar)
-				var_type = self.symbols.type_of(class_var.var_type).make_shorthand(use_alias=True)
-				class_var_vars = {'is_static': True, 'access': defs.to_access(decl_var_symbol.tokens), 'symbol': decl_var_symbol.tokens, 'var_type': var_type}
-				vars.append(self.view.render('class_decl_var', vars=class_var_vars))
+		for var in node.class_vars:
+			class_var_name = var.as_a(defs.DeclClassVar).tokens
+			var_type = self.symbols.type_of(var.declare.as_a(defs.AnnoAssign).var_type).make_shorthand(use_alias=True)
+			class_var_vars = {'is_static': True, 'access': defs.to_access(class_var_name), 'symbol': class_var_name, 'var_type': var_type}
+			vars.append(self.view.render('class_decl_var', vars=class_var_vars))
 
-		for this_var in node.this_vars:
-			for in_symbol in this_var.symbols:
-				decl_var_symbol = in_symbol.as_a(defs.DeclThisVar)
-				var_type = self.symbols.type_of(this_var.var_type).make_shorthand(use_alias=True)
-				this_var_vars = {'is_static': False, 'access': defs.to_access(decl_var_symbol.tokens_without_this), 'symbol': decl_var_symbol.tokens_without_this, 'var_type': var_type}
-				vars.append(self.view.render('class_decl_var', vars=this_var_vars))
+		for var in node.this_vars:
+			this_var_name = var.as_a(defs.DeclThisVar).tokens_without_this
+			var_type = self.symbols.type_of(var.declare.as_a(defs.AnnoAssign).var_type).make_shorthand(use_alias=True)
+			this_var_vars = {'is_static': False, 'access': defs.to_access(this_var_name), 'symbol': this_var_name, 'var_type': var_type}
+			vars.append(self.view.render('class_decl_var', vars=this_var_vars))
 
 		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'comment': comment, 'statements': statements, 'vars': vars})
 

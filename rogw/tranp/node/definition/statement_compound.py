@@ -613,7 +613,7 @@ class AltClass(ClassDef):
 	@property
 	@override
 	@Meta.embed(Node, expandable)
-	def symbols(self) -> Declable:
+	def symbol(self) -> Declable:
 		return self._by('var.name').dirty_child(TypesName, '', class_types=self)
 
 	@property

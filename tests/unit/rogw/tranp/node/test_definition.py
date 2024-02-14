@@ -14,7 +14,7 @@ class TestDefinition(TestCase):
 	@data_provider([
 		({
 			'statements': [defs.Import, defs.Import, defs.Enum, defs.Class, defs.Class, defs.Function, defs.Class, defs.MoveAssign, defs.AnnoAssign],
-			'decl_vars': [defs.MoveAssign, defs.AnnoAssign],
+			'decl_vars': [defs.DeclLocalVar, defs.DeclLocalVar],
 		},),
 	])
 	def test_entrypoint(self, expected: dict[str, list[type]]) -> None:
@@ -186,7 +186,7 @@ class TestDefinition(TestCase):
 			'return': defs.TypeVar,
 			'decl_vars': [
 				{'symbol': 'cls', 'decl_type': defs.Parameter},
-				{'symbol': 'lb', 'decl_type': defs.MoveAssign},
+				{'symbol': 'lb', 'decl_type': defs.DeclLocalVar},
 			],
 			'actual_symbol': None,
 			'alias_symbol': None,
@@ -208,8 +208,8 @@ class TestDefinition(TestCase):
 				{'symbol': 'self', 'decl_type': defs.Parameter},
 				{'symbol': 'n', 'decl_type': defs.Parameter},
 				{'symbol': 's', 'decl_type': defs.Parameter},
-				{'symbol': 'ln', 'decl_type': defs.MoveAssign},
-				{'symbol': 'lb', 'decl_type': defs.AnnoAssign},
+				{'symbol': 'ln', 'decl_type': defs.DeclLocalVar},
+				{'symbol': 'lb', 'decl_type': defs.DeclLocalVar},
 			],
 			'actual_symbol': None,
 			'alias_symbol': None,
@@ -226,7 +226,7 @@ class TestDefinition(TestCase):
 			'parameters': [],
 			'return': defs.NullType,
 			'decl_vars': [
-				{'symbol': 'i', 'decl_type': defs.For},
+				{'symbol': 'i', 'decl_type': defs.DeclLocalVar},
 			],
 			'actual_symbol': None,
 			'alias_symbol': None,
@@ -246,7 +246,7 @@ class TestDefinition(TestCase):
 			'decl_vars': [
 				{'symbol': 'self', 'decl_type': defs.Parameter},
 				{'symbol': 'n', 'decl_type': defs.Parameter},
-				{'symbol': 'e', 'decl_type': defs.Catch},
+				{'symbol': 'e', 'decl_type': defs.DeclLocalVar},
 			],
 			'actual_symbol': None,
 			'alias_symbol': 'alias',
@@ -283,7 +283,7 @@ class TestDefinition(TestCase):
 			'return': defs.NullType,
 			'decl_vars': [
 				{'symbol': 'b', 'decl_type': defs.Parameter},
-				{'symbol': 'lb', 'decl_type': defs.MoveAssign},
+				{'symbol': 'lb', 'decl_type': defs.DeclLocalVar},
 			],
 			'actual_symbol': None,
 			'alias_symbol': None,
@@ -325,7 +325,7 @@ class TestDefinition(TestCase):
 		for index, decl_var in enumerate(node.decl_vars):
 			in_expected = expected['decl_vars'][index]
 			self.assertEqual(type(decl_var), in_expected['decl_type'])
-			self.assertEqual(decl_var.tokens, in_expected['symbol'])
+			self.assertEqual(decl_var.symbol.tokens, in_expected['symbol'])
 
 		self.assertEqual(node.actual_symbol, expected['actual_symbol'])
 		self.assertEqual(node.alias_symbol, expected['alias_symbol'])
@@ -419,8 +419,8 @@ class TestDefinition(TestCase):
 			self.assertEqual(var.tokens, in_expected['symbol'])
 			self.assertEqual(var.declare.as_a(defs.MoveAssign).value.tokens, in_expected['value'])
 			self.assertEqual(type(var), defs.DeclLocalVar)  # XXX MoveAssignはメンバー変数宣言にならない設計。設計通りではあるがDeclClassVarと勘違いしやすい
+			self.assertEqual(type(var.declare), defs.MoveAssign)
 			self.assertEqual(type(var.declare.as_a(defs.MoveAssign).value), defs.Integer)
-			self.assertEqual(type(var), defs.MoveAssign)
 
 	@data_provider([
 		('A: TypeAlias = int', 'file_input.class_assign', {'symbol': 'A', 'actual_type': defs.TypeVar}),
@@ -540,15 +540,15 @@ class TestDefinition(TestCase):
 
 	@data_provider([
 		# Declable - Local
-		('a = 0', 'file_input.assign.var', defs.DeclLocalVar),
-		('a: int = 0', 'file_input.anno_assign.var', defs.DeclLocalVar),
-		('for i in range(1): ...', 'file_input.for_stmt.namelist.name', defs.DeclLocalVar),
+		('a = 0', 'file_input.assign.assign_namelist.var', defs.DeclLocalVar),
+		('a: int = 0', 'file_input.anno_assign.assign_namelist.var', defs.DeclLocalVar),
+		('for i in range(1): ...', 'file_input.for_stmt.for_namelist.name', defs.DeclLocalVar),
 		('try: ...\nexcept Exception as e: ...', 'file_input.try_stmt.except_clauses.except_clause.name', defs.DeclLocalVar),
 		('def func(a: int) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.DeclLocalVar),
-		('class B(A):\n\ta = 0', 'file_input.class_def.class_def_raw.block.assign.var', defs.DeclLocalVar),  # XXX MoveAssignはクラス変数の宣言にはならない設計
+		('class B(A):\n\ta = 0', 'file_input.class_def.class_def_raw.block.assign.assign_namelist.var', defs.DeclLocalVar),  # XXX MoveAssignはクラス変数の宣言にはならない設計
 		# Declable - Class/This
-		('class B(A):\n\tb: int = a', 'file_input.class_def.class_def_raw.block.anno_assign.var[0]', defs.DeclClassVar),
-		('self.b: int = self.a', 'file_input.anno_assign.getattr[0]', defs.DeclThisVar),
+		('class B(A):\n\tb: int = a', 'file_input.class_def.class_def_raw.block.anno_assign.assign_namelist.var', defs.DeclClassVar),
+		('self.b: int = self.a', 'file_input.anno_assign.assign_namelist.getattr', defs.DeclThisVar),
 		# Declable - Param Class/This
 		('def func(cls) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.DeclClassParam),
 		('def func(self) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.DeclThisParam),
@@ -566,9 +566,9 @@ class TestDefinition(TestCase):
 		('a.b.c', 'file_input.getattr', defs.Relay),
 		('a.b.c', 'file_input.getattr.getattr', defs.Relay),
 		('self.a', 'file_input.getattr', defs.Relay),
-		('self.a = self.a', 'file_input.assign.getattr[0]', defs.Relay),
-		('self.a = self.a', 'file_input.assign.getattr[1]', defs.Relay),
-		('self.b: int = self.a', 'file_input.anno_assign.getattr[2]', defs.Relay),
+		('self.a = self.a', 'file_input.assign.assign_namelist.getattr', defs.Relay),
+		('self.a = self.a', 'file_input.assign.getattr', defs.Relay),
+		('self.b: int = self.a', 'file_input.anno_assign.getattr', defs.Relay),
 		('self.a()', 'file_input.funccall.getattr', defs.Relay),
 		('self.a.b', 'file_input.getattr', defs.Relay),
 		('self.a[0]', 'file_input.getitem.getattr', defs.Relay),
@@ -591,7 +591,7 @@ class TestDefinition(TestCase):
 		('raise E() from e', 'file_input.raise_stmt.funccall.var', defs.Variable),
 		('raise E() from e', 'file_input.raise_stmt.name', defs.Variable),
 		('a(b=c)', 'file_input.funccall.arguments.argvalue.var', defs.Variable),
-		('class B(A):\n\tb: int = a', 'file_input.class_def.class_def_raw.block.anno_assign.var[2]', defs.Variable),
+		('class B(A):\n\tb: int = a', 'file_input.class_def.class_def_raw.block.anno_assign.var', defs.Variable),
 	])
 	def test_fragment(self, source: str, full_path: str, expected: type) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Fragment)

@@ -5,7 +5,7 @@ from rogw.tranp.lang.implementation import implements, override
 from rogw.tranp.lang.sequence import last_index_of
 from rogw.tranp.node.definition.accessor import to_access
 from rogw.tranp.node.definition.element import Decorator, Parameter
-from rogw.tranp.node.definition.literal import Comment, String
+from rogw.tranp.node.definition.literal import Comment, Pair, String
 from rogw.tranp.node.definition.primary import CustomType, DeclClassVar, DeclLocalVar, Declable, InheritArgument, DeclThisParam, DeclThisVar, Type, TypesName
 from rogw.tranp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from rogw.tranp.node.definition.terminal import Empty
@@ -201,6 +201,8 @@ class Try(FlowEnter):
 
 @Meta.embed(Node, accept_tags('comp_for'))
 class CompFor(Node):
+	"""Note: XXX カテゴリーはExpressionなので、定義位置を再検討"""
+
 	@property
 	@Meta.embed(Node, expandable)
 	def symbols(self) -> list[Declable]:
@@ -216,7 +218,15 @@ class CompFor(Node):
 		return self.for_in.iterates
 
 
-class Comprehension(Node): ...
+class Comprehension(Node):
+	@property
+	def fors(self) -> list[CompFor]:
+		return [node.as_a(CompFor) for node in self._children('comprehension.comp_fors')]
+
+	@property
+	def condition(self) -> Node | Empty:
+		node = self._children('comprehension')[2]
+		return node if isinstance(node, Empty) else node
 
 
 @Meta.embed(Node, accept_tags('list_comp'))
@@ -225,22 +235,46 @@ class ListComp(Comprehension):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def projection(self) -> Node:
+	def projection_value(self) -> Node:
 		return self._children('comprehension')[0]
 
 	@property
+	@override
 	@Meta.embed(Node, expandable)
 	def fors(self) -> list[CompFor]:
-		return [node.as_a(CompFor) for node in self._children('comprehension.comp_fors')]
+		return super().fors
 
 	@property
 	@Meta.embed(Node, expandable)
 	def condition(self) -> Node | Empty:
-		node = self._children('comprehension')[2]
-		if isinstance(node, Empty):
-			return node
+		return super().condition
 
-		return node
+
+@Meta.embed(Node, accept_tags('dict_comp'))
+class DictComp(Comprehension):
+	"""Note: XXX カテゴリーはExpressionなので、定義位置を再検討"""
+
+	@property
+	@Meta.embed(Node, expandable)
+	def projection_key(self) -> Node:
+		return self._by('comprehension.key_value').as_a(Pair).first
+
+	@property
+	@Meta.embed(Node, expandable)
+	def projection_value(self) -> Node:
+		return self._by('comprehension.key_value').as_a(Pair).second
+
+	@property
+	@override
+	@Meta.embed(Node, expandable)
+	def fors(self) -> list[CompFor]:
+		return super().fors
+
+	@property
+	@override
+	@Meta.embed(Node, expandable)
+	def condition(self) -> Node | Empty:
+		return super().condition
 
 
 class ClassDef(Node, IDomain, IScope, IDeclare):

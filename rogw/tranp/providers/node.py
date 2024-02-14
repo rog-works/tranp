@@ -25,6 +25,7 @@ def symbol_mapping() -> SymbolMapping:
 			'comp_for_in': defs.ForIn,
 			'comp_for': defs.CompFor,
 			'list_comp': defs.ListComp,
+			'dict_comp': defs.DictComp,
 			'function_def': defs.Function,
 			# 'function_def': defs.ClassMethod,
 			# 'function_def': defs.Constructor,

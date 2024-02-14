@@ -107,7 +107,7 @@ class TestDefinition(TestCase):
 	])
 	def test_list_comp(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.ListComp)
-		self.assertEqual(type(node.projection), expected['projection'])
+		self.assertEqual(type(node.projection_value), expected['projection'])
 		self.assertEqual(len(node.fors), len(expected['fors']))
 		for index, in_for in enumerate(node.fors):
 			in_expected = expected['fors'][index]

@@ -110,7 +110,7 @@ if_stmt: "if" expression ":" block elifs ["else" ":" block]
 elifs: elif_*
 elif_: "elif" expression ":" block
 while_stmt: "while" expression ":" block
-for_stmt: "for" namelist for_in ":" block
+for_stmt: "for" for_namelist for_in ":" block
 // @custom
 for_in: "in" expression
 
@@ -133,12 +133,12 @@ except_clause: "except" typed_expression ["as" name] ":" block
 // @lark annassign: testlist_star_expr ":" test ["=" test]
 // @lark augassign: testlist_star_expr augassign_op (yield_expr|testlist)
 ?assign_stmt: assign | anno_assign | aug_assign | class_assign | template_assign
-assign: testlist_expr ("=" expression)+
-anno_assign: testlist_expr ":" typed_expression ["=" expression]
-aug_assign: testlist_expr aug_assign_op expression
+assign: assign_namelist ("=" expression)+
+anno_assign: assign_namelist ":" typed_expression ["=" expression]
+aug_assign: assign_namelist aug_assign_op expression
 // @custom
-class_assign: testlist_expr ":" "TypeAlias" "=" typed_expression
-template_assign: testlist_expr "=" "TypeVar" "(" string ["," "bound" "=" (typed_expression | "'" typed_expression "'")] ")"
+class_assign: assign_namelist ":" "TypeAlias" "=" typed_expression
+template_assign: assign_namelist "=" "TypeVar" "(" string ["," "bound" "=" (typed_expression | "'" typed_expression "'")] ")"
 
 !aug_assign_op: "+=" | "-=" | "*=" | "@=" | "/=" | "%=" | "&=" | "|=" | "^=" | "<<=" | ">>=" | "**=" | "//="
 
@@ -234,11 +234,9 @@ slices: slice | slice (("," slice)+ [","] | ",")
 group_expr: "(" expression ")"
 
 // @lark ?testlist_star_expr: test_or_star_expr | test_or_star_expr ("," test_or_star_expr)+ ","?  -> tuple | test_or_star_expr ","  -> tuple
-?testlist_expr: expression
-	| expression ("," expression)+ ","? -> tuple
-	| expression "," -> tuple
+assign_namelist: expression | expression (("," expression)+ [","] | ",")
 // @lark ?exprlist: (expr|star_expr) | (expr|star_expr) (("," (expr|star_expr))+ [","]|",")
-namelist: name | name (("," name)+ [","] | ",")
+for_namelist: name | name (("," name)+ [","] | ",")
 
 _exprlist: expression ("," expression)* [","]
 
@@ -251,7 +249,7 @@ key_value: expression ":" expression
 // @lark ?comp_if: "if" test_nocond
 comprehension{comp_result}: comp_result comp_fors [comp_if]
 comp_fors: comp_for+
-comp_for: "for" namelist comp_for_in
+comp_for: "for" for_namelist comp_for_in
 ?comp_if: "if" or_test
 
 // @custom

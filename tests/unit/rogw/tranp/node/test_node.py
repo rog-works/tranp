@@ -161,13 +161,13 @@ class TestNode(TestCase):
 		('class A: ...', 'file_input.class_def', defs.Class, 'A', '__main__.A'),
 		('class E(CEnum): ...', 'file_input.class_def', defs.Enum, 'E', '__main__.E'),
 		# Declable
-		('class A:\n\ta: int = 0', 'file_input.class_def.class_def_raw.block.anno_assign.var', defs.DeclClassVar, 'a', '__main__.A.a'),
-		('class A:\n\tdef __init__(self) -> None:\n\t\tself.a: int = 0', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.anno_assign.getattr', defs.DeclThisVar, 'a', '__main__.A.a'),
+		('class A:\n\ta: int = 0', 'file_input.class_def.class_def_raw.block.anno_assign.assign_namelist.var', defs.DeclClassVar, 'a', '__main__.A.a'),
+		('class A:\n\tdef __init__(self) -> None:\n\t\tself.a: int = 0', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.anno_assign.assign_namelist.getattr', defs.DeclThisVar, 'a', '__main__.A.a'),
 		('class A:\n\t@classmethod\n\tdef c_method(cls) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.DeclClassParam, 'cls', '__main__.A.c_method.cls'),
 		('class A:\n\tdef method(self) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.DeclThisParam, 'self', '__main__.A.method.self'),
-		('for i in range(1): ...', 'file_input.for_stmt.namelist.name', defs.DeclLocalVar, 'i', '__main__.for.i'),
+		('for i in range(1): ...', 'file_input.for_stmt.for_namelist.name', defs.DeclLocalVar, 'i', '__main__.for.i'),
 		('try:\n\ta\nexcept Exception as e: ...', 'file_input.try_stmt.except_clauses.except_clause.name', defs.DeclLocalVar, 'e', '__main__.try.e'),
-		('a = 0', 'file_input.assign.var', defs.DeclLocalVar, 'a', '__main__.a'),
+		('a = 0', 'file_input.assign.assign_namelist.var', defs.DeclLocalVar, 'a', '__main__.a'),
 		('class A: ...', 'file_input.class_def.class_def_raw.name', defs.TypesName, 'A', '__main__.A.A'),
 		('from a.b.c import A', 'file_input.import_stmt.import_names.name', defs.ImportName, 'A', '__main__.A'),
 		# Reference
@@ -221,10 +221,10 @@ class TestNode(TestCase):
 			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.typed_arguments.typed_argvalue.typed_var',
 			'file_input.class_def.class_def_raw.block.class_def.__empty__',
 			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[0]',
-			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[0].var',
+			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[0].assign_namelist.var',
 			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[0].number',
 			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[1]',
-			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[1].var',
+			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[1].assign_namelist.var',
 			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[1].number',
 			'file_input.class_def.class_def_raw.block.function_def[1]',
 			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.name',
@@ -268,10 +268,10 @@ class TestNode(TestCase):
 			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.name',
 			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.typed_arguments.typed_argvalue.typed_var',
 			'file_input.class_def.class_def_raw.block.class_def.__empty__',
-			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[0].var',
+			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[0].assign_namelist.var',
 			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[0].number',
 			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[0]',
-			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[1].var',
+			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[1].assign_namelist.var',
 			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[1].number',
 			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[1]',
 			'file_input.class_def.class_def_raw.block.class_def',
@@ -406,25 +406,25 @@ class A:
 				'          | | +-type_name: <TypeVar: __main__.A.__init__.dict>',
 				'          | | +-key_type: <TypeVar: __main__.A.__init__.str>',
 				'          | | +-value_type: <TypeVar: __main__.A.__init__.int>',
-				'          | +-value: <Dict: __main__.A.__init__.dict@50>',
+				'          | +-value: <Dict: __main__.A.__init__.dict@51>',
 				'          |   +-items:',
-				'          |     +-<Pair: __main__.A.__init__.Pair@51>',
-				'          |       +-first: <String: __main__.A.__init__.str@52>',
+				'          |     +-<Pair: __main__.A.__init__.Pair@52>',
+				'          |       +-first: <String: __main__.A.__init__.str@53>',
 				'          |       +-second: <Variable: __main__.A.__init__.n>',
-				'          +-<If: __main__.A.__init__.if@57>',
-				'            +-condition: <Truthy: __main__.A.__init__.if.bool@58>',
+				'          +-<If: __main__.A.__init__.if@58>',
+				'            +-condition: <Truthy: __main__.A.__init__.if.bool@59>',
 				'            +-statements:',
-				'            | +-<MoveAssign: __main__.A.__init__.if.move_assign@60>',
+				'            | +-<MoveAssign: __main__.A.__init__.if.move_assign@61>',
 				'            | | +-receiver: <DeclLocalVar: __main__.A.__init__.if.n>',
-				'            | | +-value: <Integer: __main__.A.__init__.if.int@64>',
-				'            | +-<FuncCall: __main__.A.__init__.if.func_call@66>',
+				'            | | +-value: <Integer: __main__.A.__init__.if.int@66>',
+				'            | +-<FuncCall: __main__.A.__init__.if.func_call@68>',
 				'            |   +-calls: <Relay: __main__.A.__init__.if.a.b>',
 				'            |   | +-receiver: <Variable: __main__.A.__init__.if.a>',
 				'            |   +-arguments:',
-				'            |     +-<Argument: __main__.A.__init__.if.argument@74>',
+				'            |     +-<Argument: __main__.A.__init__.if.argument@76>',
 				'            |     | +-label: <Proxy: __main__.A.__init__.if.Empty>',
 				'            |     | +-value: <Variable: __main__.A.__init__.if.c>',
-				'            |     +-<Argument: __main__.A.__init__.if.argument@78>',
+				'            |     +-<Argument: __main__.A.__init__.if.argument@80>',
 				'            |       +-label: <Proxy: __main__.A.__init__.if.Empty>',
 				'            |       +-value: <Variable: __main__.A.__init__.if.d>',
 				'            +-else_ifs:',
@@ -434,8 +434,7 @@ class A:
 	def test_pretty(self, source: str, full_path: str, expected: list[str]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path)
 
-		verbose = False
-		if verbose:
+		try:
+			self.assertEqual(node.pretty().split('\n'), expected)
+		except AssertionError:
 			print(node.pretty())
-
-		self.assertEqual(node.pretty().split('\n'), expected)

@@ -441,7 +441,7 @@ class TestDefinition(TestCase):
 	])
 	def test_alt_class(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.AltClass)
-		self.assertEqual(node.symbols.tokens, expected['symbol'])
+		self.assertEqual(node.symbol.tokens, expected['symbol'])
 		self.assertEqual(type(node.actual_type), expected['actual_type'])
 
 	@data_provider([
@@ -549,7 +549,7 @@ class TestDefinition(TestCase):
 		# Declable - Local
 		('a = 0', 'file_input.assign.var', defs.DeclLocalVar),
 		('a: int = 0', 'file_input.anno_assign.var', defs.DeclLocalVar),
-		('for i in range(1): ...', 'file_input.for_stmt.name', defs.DeclLocalVar),
+		('for i in range(1): ...', 'file_input.for_stmt.namelist.name', defs.DeclLocalVar),
 		('try: ...\nexcept Exception as e: ...', 'file_input.try_stmt.except_clauses.except_clause.name', defs.DeclLocalVar),
 		('def func(a: int) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.DeclLocalVar),
 		('class B(A):\n\ta = 0', 'file_input.class_def.class_def_raw.block.assign.var', defs.DeclLocalVar),  # XXX MoveAssignはクラス変数の宣言にはならない設計

@@ -92,3 +92,7 @@ class AliasCheck:
 
 		z2_in_x = z2.x
 		new_z2_in_x = Z2().x
+
+class TupleCheck:
+	def unpack(self) -> None:
+		for key, value in {'a': 1}: ...

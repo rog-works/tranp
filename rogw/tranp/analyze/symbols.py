@@ -248,6 +248,9 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 			* group: Any
 			* operator: Any
 		"""
+		if isinstance(iterates.types, defs.AltClass):
+			iterates = iterates.attrs[0]
+
 		def resolve() -> SymbolRaw:
 			methods = {method.symbol.tokens: method for method in iterates.types.as_a(defs.Class).methods if method.symbol.tokens in ['__next__', '__iter__']}
 			if '__next__' in methods:

@@ -52,18 +52,19 @@ class ResolveGeneric:
 		Returns:
 			Type | ClassDef | None: タイプ/クラス定義ノード。不明な場合はNone
 		"""
-		if isinstance(raw.decl, (defs.AnnoAssign, defs.Catch)):
-			return raw.decl.var_type
-		elif isinstance(raw.decl, defs.Parameter):
+		if isinstance(raw.decl, defs.Parameter):
 			# XXX self/cls以外は型指定がある前提
 			if raw.decl.var_type.is_a(defs.Type):
 				return raw.decl.var_type.as_a(defs.Type)
 		elif isinstance(raw.decl, defs.ClassDef):
 			return raw.decl
-		else:
-			# MoveAssign, For
-			# 型指定が無いため全てUnknown
-			return None
+		elif isinstance(raw.decl, defs.Declable):
+			if isinstance(raw.decl.declare, (defs.AnnoAssign, defs.Catch)):
+				return raw.decl.declare.var_type
+
+		# MoveAssign, For
+		# 型指定が無いため全てUnknown
+		return None
 
 	def expand_attr(self, raws: SymbolRaws, t_raw: SymbolRaw, t_type: defs.Type) -> SymbolRaw:
 		"""タイプノードを属性として展開

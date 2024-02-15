@@ -34,11 +34,14 @@ class ResolveUnknown:
 		"""
 		symbols = Symbols(SymbolDB(raws), self.finder)
 		for key, raw in raws.items():
+			if not isinstance(raw.decl, defs.Declable):
+				continue
+
 			# XXX 変数宣言のシンボルのため、roleをVarに変更
 			# XXX MoveAssignを参照するMoveAssign/Forが存在するためrawsを直接更新
-			if isinstance(raw.decl, defs.MoveAssign):
-				raws[key] = symbols.type_of(raw.decl.value).to_var(raw.decl)
-			elif isinstance(raw.decl, defs.For):
-				raws[key] = symbols.type_of(raw.decl.for_in).to_var(raw.decl)
+			if isinstance(raw.decl.declare, defs.MoveAssign):
+				raws[key] = symbols.type_of(raw.decl.declare.value).to_var(raw.decl)
+			elif isinstance(raw.decl.declare, defs.For):
+				raws[key] = symbols.type_of(raw.decl.declare.for_in).to_var(raw.decl)
 
 		return raws

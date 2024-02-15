@@ -132,6 +132,9 @@ except_clause: "except" typed_expression ["as" name] ":" block
 // @lark assign: testlist_star_expr ("=" (yield_expr|testlist_star_expr))+
 // @lark annassign: testlist_star_expr ":" test ["=" test]
 // @lark augassign: testlist_star_expr augassign_op (yield_expr|testlist)
+// @note XXX Pythonの仕様では本来assign以外はtuple展開できない(=左辺にtupleを書けない)
+// @note XXX しかし、Larkの構文解析の仕様上、マッチ条件が短いほど優先度が高くなり
+// @note XXX assign_stmtのor条件が成り立たなくなるため、優先度を合わせるためにassign_namelistを共通で利用する
 ?assign_stmt: assign | anno_assign | aug_assign | class_assign | template_assign
 assign: assign_namelist ("=" expression)+
 anno_assign: assign_namelist ":" typed_expression ["=" expression]

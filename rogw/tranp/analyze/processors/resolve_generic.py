@@ -27,22 +27,21 @@ class ResolveGeneric:
 		Returns:
 			SymbolRaws: シンボルテーブル
 		"""
-		update_raws: SymbolRaws = {}
 		for key, raw in raws.items():
 			if not raw.has_entity:
 				continue
 
 			decl_type = self.fetch_decl_type(raw)
 			if isinstance(decl_type, defs.GenericType):
-				update_raws[key] = self.apply_generic(raws, raw, decl_type)
+				raws[key] = self.apply_generic(raws, raw, decl_type)
 			elif isinstance(decl_type, defs.Function):
-				update_raws[key] = self.apply_function(raws, raw, decl_type)
+				raws[key] = self.apply_function(raws, raw, decl_type)
 			elif isinstance(decl_type, defs.AltClass):
-				update_raws[key] = self.apply_alt_class(raws, raw, decl_type)
+				raws[key] = self.apply_alt_class(raws, raw, decl_type)
 			elif isinstance(decl_type, defs.Class):
-				update_raws[key] = self.apply_class(raws, raw, decl_type)
+				raws[key] = self.apply_class(raws, raw, decl_type)
 
-		return {**raws, **update_raws}
+		return raws
 
 	def fetch_decl_type(self, raw: SymbolRaw) -> defs.Type | defs.ClassDef | None:
 		"""シンボルの型(タイプ/クラス定義ノード)を取得。型が不明な場合はNoneを返却

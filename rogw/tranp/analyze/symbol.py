@@ -1,13 +1,11 @@
 from enum import Enum
-from typing import Iterator, TypeAlias, cast
+from typing import Iterator, cast
 
 from rogw.tranp.errors import LogicError
 from rogw.tranp.lang.implementation import override
 from rogw.tranp.module.modules import Module
 import rogw.tranp.node.definition as defs
 from rogw.tranp.node.node import Node
-
-SymbolRaws: TypeAlias = dict[str, 'SymbolRaw']
 
 
 class Roles(Enum):
@@ -307,3 +305,20 @@ class SymbolRaw:
 		return self
 
 
+class SymbolRaws(dict[str, SymbolRaw]):
+	"""シンボルテーブル"""
+
+	@classmethod
+	def new(cls, *raws: 'SymbolRaws | dict[str, SymbolRaw]') -> 'SymbolRaws':
+		"""シンボルテーブルを結合した新たなインスタンスを生成
+
+		Args:
+			*raws (SymbolRaws | dict[str, SymbolRaw]): シンボルテーブルリスト
+		Returns:
+			SymbolRaws: 生成したインスタンス
+		"""
+		that = cls()
+		for in_raws in raws:
+			that.update(**in_raws)
+
+		return that

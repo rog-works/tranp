@@ -456,8 +456,8 @@ class TestDefinition(TestCase):
 	])
 	def test_anno_assign(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.AnnoAssign)
-		self.assertEqual(node.receivers[0].tokens, expected['receiver'])  # XXX Pythonの仕様上AnnoAssignのreceiverは単数のみ
-		self.assertEqual(type(node.receivers[0]), expected['receiver_type'])
+		self.assertEqual(node.receiver.tokens, expected['receiver'])
+		self.assertEqual(type(node.receiver), expected['receiver_type'])
 		self.assertEqual(type(node.var_type), expected['var_type'])
 		self.assertEqual(type(node.value), expected['value'])
 
@@ -479,8 +479,8 @@ class TestDefinition(TestCase):
 	])
 	def test_aug_assign(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.AugAssign)
-		self.assertEqual(node.receivers[0].tokens, expected['receiver'])  # XXX Pythonの仕様上AugAssignのreceiverは単数のみ
-		self.assertEqual(type(node.receivers[0]), expected['receiver_type'])
+		self.assertEqual(node.receiver.tokens, expected['receiver'])
+		self.assertEqual(type(node.receiver), expected['receiver_type'])
 		self.assertEqual(node.operator.tokens, expected['operator'])
 		self.assertEqual(type(node.value), expected['value'])
 

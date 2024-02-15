@@ -1,4 +1,4 @@
-from rogw.tranp.lang.implementation import implements
+from rogw.tranp.lang.implementation import implements, override
 from rogw.tranp.node.definition.primary import FuncCall, ImportPath, Indexer, Reference, Declable, Type, Var
 from rogw.tranp.node.definition.terminal import Empty, Terminal
 from rogw.tranp.node.embed import Meta, accept_tags, expandable
@@ -9,7 +9,6 @@ from rogw.tranp.node.promise import IDeclaration
 
 class Assign(Node):
 	@property
-	@Meta.embed(Node, expandable)
 	def receivers(self) -> list[Declable | Reference | Indexer]:
 		return [node.one_of(Declable | Reference | Indexer) for node in self._children('assign_namelist')]
 
@@ -21,6 +20,12 @@ class Assign(Node):
 @Meta.embed(Node, accept_tags('assign'))
 class MoveAssign(Assign, IDeclaration):
 	@property
+	@override
+	@Meta.embed(Node, expandable)
+	def receivers(self) -> list[Declable | Reference | Indexer]:
+		return super().receivers
+
+	@property
 	@Meta.embed(Node, expandable)
 	def value(self) -> Node | Empty:
 		node = self._elements[1]
@@ -29,11 +34,16 @@ class MoveAssign(Assign, IDeclaration):
 	@property
 	@implements
 	def symbols(self) -> list[Declable]:
-		return [node.as_a(Declable) for node in self.receivers]
+		return [node for node in self.receivers if isinstance(node, Declable)]
 
 
 @Meta.embed(Node, accept_tags('anno_assign'))
 class AnnoAssign(Assign, IDeclaration):
+	@property
+	@Meta.embed(Node, expandable)
+	def receiver(self) -> Declable:
+		return super().receivers[0].as_a(Declable)
+
 	@property
 	@Meta.embed(Node, expandable)
 	def var_type(self) -> Type:
@@ -48,11 +58,16 @@ class AnnoAssign(Assign, IDeclaration):
 	@property
 	@implements
 	def symbols(self) -> list[Declable]:
-		return [node.as_a(Declable) for node in self.receivers]
+		return [self.receiver]
 
 
 @Meta.embed(Node, accept_tags('aug_assign'))
 class AugAssign(Assign):
+	@property
+	@Meta.embed(Node, expandable)
+	def receiver(self) -> Declable | Reference | Indexer:
+		return super().receivers[0]
+
 	@property
 	@Meta.embed(Node, expandable)
 	def operator(self) -> Terminal:

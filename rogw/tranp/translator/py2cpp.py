@@ -83,7 +83,7 @@ class Py2Cpp(Procedure[str]):
 
 		return self.render_cvar_value(move, value_str)
 
-	def render_cvar_value(self, move: CVars.Moves, value_str: str) -> str:
+	def render_cvar_value(self, move: 'CVars.Moves', value_str: str) -> str:
 		if move == CVars.Moves.MakeSp:
 			# XXX 関数名(クラス名)と引数を分離。必ず取得できるので警告を抑制(期待値: `Class(a, b, c)`)
 			matches = cast(re.Match, re.fullmatch(r'([^(]+)\((.*)\)', value_str))
@@ -238,14 +238,12 @@ class Py2Cpp(Procedure[str]):
 		accepted_value = self.unpacked_cvar_value(node.value, self.symbols.type_of(node.value), value, declared=True)
 		return self.view.render(f'{node.classification}_unpack', vars={'receivers': receivers, 'value': accepted_value})
 
-	def on_anno_assign(self, node: defs.AnnoAssign, receivers: list[str], var_type: str, value: str) -> str:
-		# XXX Pythonの仕様上AnnoAssignのreceiverは単数のみ
-		accepted_value = self.accepted_cvar_value(self.symbols.type_of(node.receivers[0]), node.value, self.symbols.type_of(node.value), value, declared=True)
-		return self.view.render(node.classification, vars={'receiver': receivers[0], 'var_type': var_type, 'value': accepted_value})
+	def on_anno_assign(self, node: defs.AnnoAssign, receiver: str, var_type: str, value: str) -> str:
+		accepted_value = self.accepted_cvar_value(self.symbols.type_of(node.receiver), node.value, self.symbols.type_of(node.value), value, declared=True)
+		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': accepted_value})
 
-	def on_aug_assign(self, node: defs.AugAssign, receivers: list[str], operator: str, value: str) -> str:
-		# XXX Pythonの仕様上AugAssignのreceiverは単数のみ
-		return self.view.render(node.classification, vars={'receiver': receivers[0], 'operator': operator, 'value': value})
+	def on_aug_assign(self, node: defs.AugAssign, receiver: str, operator: str, value: str) -> str:
+		return self.view.render(node.classification, vars={'receiver': receiver, 'operator': operator, 'value': value})
 
 	def on_return(self, node: defs.Return, return_value: str) -> str:
 		function = node.parent.as_a(defs.Block).parent.as_a(defs.Function)

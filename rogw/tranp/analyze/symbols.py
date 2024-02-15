@@ -287,8 +287,8 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 	def on_anno_assign(self, node: defs.AnnoAssign, receiver: SymbolRaw, var_type: SymbolRaw, value: SymbolRaw) -> SymbolRaw:
 		return receiver
 
-	def on_move_assign(self, node: defs.MoveAssign, receiver: SymbolRaw, value: SymbolRaw) -> SymbolRaw:
-		return receiver
+	def on_move_assign(self, node: defs.MoveAssign, receivers: list[SymbolRaw], value: SymbolRaw) -> SymbolRaw:
+		return receivers[0]  # FIXME tupleが未実装
 
 	def on_aug_assign(self, node: defs.AugAssign, receiver: SymbolRaw, value: SymbolRaw) -> SymbolRaw:
 		"""Note: XXX operatorに型はないので引数からは省略。on_fallbackによってpassされるのでスタックはズレない"""

@@ -43,9 +43,9 @@ class ResolveUnknown:
 			# XXX 変数宣言のシンボルのため、roleをVarに変更
 			# XXX MoveAssignを参照するMoveAssign/Forが存在するためrawsを直接更新
 			if isinstance(raw.decl.declare, defs.MoveAssign):
-				raws[key] = self.unpack_value(raw, symbols.type_of(raw.decl.declare.value))
+				raws[key] = self.unpack_value(raw, symbols.type_of(raw.decl.declare.value)).to_var(raw.decl)
 			elif isinstance(raw.decl.declare, defs.For):
-				raws[key] = self.unpack_value(raw, symbols.type_of(raw.decl.declare.for_in))
+				raws[key] = self.unpack_value(raw, symbols.type_of(raw.decl.declare.for_in)).to_var(raw.decl)
 
 		return raws
 

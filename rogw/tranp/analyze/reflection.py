@@ -251,13 +251,16 @@ class TemplateManipulator:
 			primary (SymbolRaw): 適用するシンボル
 			actual_props (SymbolMap): シンボルのマップ表(実行時型)
 			updates (UpdateMap): 更新表
+		Returns:
+			SymbolRaw: 適用後のシンボル
 		"""
 		primary_bodies = [prop_path for primary_path, prop_path in updates.items() if DSN.elem_counts(primary_path) == 1]
 		if primary_bodies:
 			return actual_props[primary_bodies[0]]
 
 		for primary_path, prop_path in updates.items():
-			seqs.update(primary.attrs, primary_path, actual_props[prop_path], iter_key='attrs')
+			attr_path = DSN.shift(primary_path, 1)
+			seqs.update(primary.attrs, attr_path, actual_props[prop_path], iter_key='attrs')
 
 		return primary
 

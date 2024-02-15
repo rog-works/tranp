@@ -255,27 +255,15 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 			else:
 				return self.symbols.resolve(methods['__iter__'])
 
-		def unpack(raw: SymbolRaw) -> list[defs.TemplateClass]:
-			ts: list[defs.TemplateClass] = []
-			if isinstance(raw.types, defs.TemplateClass):
-				ts.append(raw.types)
-
-			for in_raw in raw.attrs:
-				ts.extend(unpack(in_raw))
-
-			return ts
-
-		def unpacked(raw: SymbolRaw, ts: list[defs.TemplateClass]) -> SymbolRaw:
-			gs = [self.symbols.resolve(g_type).types for g_type in raw.types.generic_types]
-			for index, g_type in enumerate(gs):
-				if g_type in ts:
-					return raw.attrs[index]
-
-			raise LogicError('Unreachable code.')
-
-		raw = resolve()
-		ts = unpack(raw.attrs[-1])
-		return unpacked(iterates, ts)
+		method = resolve()
+		schema = {
+			'klass': method.attrs[0],
+			'parameters': method.attrs[1:-1],
+			# XXX iter関数の動作再現として、__iter__の場合のみ戻り値内のT_Seqをアンパックする(期待値: `__iter__(self) -> Iterator[T_Seq]`)
+			'returns': method.attrs[-1] if method.types.domain_name == '__next__' else method.attrs[-1].attrs[0],
+		}
+		method_ref = reflection.Builder(method).schema(lambda: schema).build(reflection.Method)
+		return method_ref.returns(iterates)
 
 	# Function/Class Elements
 

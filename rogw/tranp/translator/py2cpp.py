@@ -22,10 +22,11 @@ class Py2Cpp(Procedure[str]):
 		self.symbols = symbols
 		self.view = render
 
-	def c_fullyname_by(self, raw: SymbolRaw) -> str:
-		"""C++用のシンボルの完全参照名を取得
+	def c_fullyname_by(self, node: defs.MoveAssign | defs.For, raw: SymbolRaw) -> str:
+		"""C++用のシンボルの完全参照名を取得。型が明示されない場合の補完として利用する
 
 		Args:
+			node (MoveAssign | For): 型推論の対象ノード
 			raw (SymbolRaw): シンボル
 		Returns:
 			str: C++用のシンボルの完全参照名
@@ -36,7 +37,7 @@ class Py2Cpp(Procedure[str]):
 		# シンボルの型のスコープを元に接頭辞を生成
 		remain_scope = raw.types.scope.replace(f'{raw.types.module_path}.', '')
 		remain_elems = DSN.elements(remain_scope)[:-1]
-		fullyname = raw.decl.module_path
+		fullyname = node.module_path
 		for elem in remain_elems:
 			in_symbol = self.symbols.from_fullyname(DSN.join(fullyname, elem))
 			fullyname = DSN.join(fullyname, in_symbol.types.alias_symbol or in_symbol.types.domain_name)
@@ -230,7 +231,7 @@ class Py2Cpp(Procedure[str]):
 		receiver_raw = self.symbols.type_of(node.receivers[0])
 		value_raw = self.symbols.type_of(node.value)
 		declared = receiver_raw.decl.declare == node
-		var_type = self.c_fullyname_by(value_raw) if declared else ''
+		var_type = self.c_fullyname_by(node, value_raw) if declared else ''
 		accepted_value = self.accepted_cvar_value(receiver_raw, node.value, self.symbols.type_of(node.value), value, declared=declared)
 		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': accepted_value})
 

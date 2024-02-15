@@ -164,7 +164,7 @@ class TestSymbols(TestCase):
 
 	@data_provider([
 		(_ast('__main__', 'import_stmt[1].import_names.name'), _mod('xyz', 'Z'), 'Z'),
-		(_ast('__main__', 'anno_assign.var'), _mod('classes', 'int'), 'int'),
+		(_ast('__main__', 'anno_assign.assign_namelist.var'), _mod('classes', 'int'), 'int'),
 		(_ast('__main__', 'anno_assign.typed_var'), _mod('classes', 'int'), 'int'),
 		(_ast('__main__', 'anno_assign.number'), _mod('classes', 'int'), 'int'),
 
@@ -173,7 +173,7 @@ class TestSymbols(TestCase):
 
 		(_ast('Base.__init__.params', 'paramvalue.typedparam.name'), '__main__.Base', 'Base'),
 		(_ast('Base.__init__.return', 'typed_none'), _mod('classes', 'None'), 'None'),
-		(_ast('Base.__init__.block', 'anno_assign.getattr'), _mod('classes', 'str'), 'str'),
+		(_ast('Base.__init__.block', 'anno_assign.assign_namelist.getattr'), _mod('classes', 'str'), 'str'),
 		(_ast('Base.__init__.block', 'anno_assign.typed_var'), _mod('classes', 'str'), 'str'),
 		(_ast('Base.__init__.block', 'anno_assign.string'), _mod('classes', 'str'), 'str'),
 
@@ -182,7 +182,7 @@ class TestSymbols(TestCase):
 		(_ast('Sub', 'class_def_raw.typed_arguments.typed_argvalue.typed_var'), '__main__.Base', 'Base'),
 
 		(_ast('Sub.C', ''), '__main__.Sub.C', 'C'),
-		(_ast('Sub.C.block', 'anno_assign.var'), _mod('classes', 'str'), 'str'),
+		(_ast('Sub.C.block', 'anno_assign.assign_namelist.var'), _mod('classes', 'str'), 'str'),
 		(_ast('Sub.C.block', 'anno_assign.typed_var'), _mod('classes', 'str'), 'str'),
 		(_ast('Sub.C.block', 'anno_assign.string'), _mod('classes', 'str'), 'str'),
 
@@ -196,7 +196,7 @@ class TestSymbols(TestCase):
 		(_ast('Sub.__init__.block', 'funccall'), '__main__.Base', 'Base'),
 		(_ast('Sub.__init__.block', 'funccall.getattr.funccall.var'), _mod('classes', 'super'), 'super'),
 		(_ast('Sub.__init__.block', 'anno_assign'), _mod('classes', 'list'), 'list<int>'),
-		(_ast('Sub.__init__.block', 'anno_assign.getattr'), _mod('classes', 'list'), 'list<int>'),
+		(_ast('Sub.__init__.block', 'anno_assign.assign_namelist.getattr'), _mod('classes', 'list'), 'list<int>'),
 		(_ast('Sub.__init__.block', 'anno_assign.typed_getitem'), _mod('classes', 'list'), 'list'),  # XXX 型はシンボル経由でのみ取得できる
 		(_ast('Sub.__init__.block', 'anno_assign.list'), _mod('classes', 'list'), 'list<Unknown>'),  # XXX 空のリストは型を補完できないためlist<Unknown>になる
 
@@ -208,9 +208,9 @@ class TestSymbols(TestCase):
 
 		(_ast('Sub.member_ref.block', 'funccall.arguments.argvalue'), _mod('classes', 'list'), 'list<int>'),
 
-		(_ast('Sub.member_write.block', 'assign[0].getattr'), _mod('classes', 'int'), 'int'),
+		(_ast('Sub.member_write.block', 'assign[0].assign_namelist.getattr'), _mod('classes', 'int'), 'int'),
 		(_ast('Sub.member_write.block', 'assign[0].number'), _mod('classes', 'int'), 'int'),
-		(_ast('Sub.member_write.block', 'assign[1].getattr'), _mod('classes', 'str'), 'str'),
+		(_ast('Sub.member_write.block', 'assign[1].assign_namelist.getattr'), _mod('classes', 'str'), 'str'),
 		(_ast('Sub.member_write.block', 'assign[1].string'), _mod('classes', 'str'), 'str'),
 
 		(_ast('Sub.param_ref.params', 'paramvalue[0].typedparam.name'), '__main__.Sub', 'Sub'),
@@ -229,11 +229,11 @@ class TestSymbols(TestCase):
 
 		(_ast('Sub.invoke_method.block', 'funccall.getattr'), '__main__.Sub.invoke_method', 'invoke_method(Sub) -> None'),
 
-		(_ast('Sub.decl_with_pop.block', 'assign.var'), _mod('classes', 'int'), 'int'),
+		(_ast('Sub.decl_with_pop.block', 'assign.assign_namelist.var'), _mod('classes', 'int'), 'int'),
 		(_ast('Sub.decl_with_pop.block', 'assign.funccall'), _mod('classes', 'int'), 'int'),
 
-		(_ast('Sub.decl_locals.block', 'if_stmt.block.assign.var'), _mod('classes', 'int'), 'int'),
-		(_ast('Sub.decl_locals.closure.block', 'assign.var'), _mod('classes', 'list'), 'list<int>'),
+		(_ast('Sub.decl_locals.block', 'if_stmt.block.assign.assign_namelist.var'), _mod('classes', 'int'), 'int'),
+		(_ast('Sub.decl_locals.closure.block', 'assign.assign_namelist.var'), _mod('classes', 'list'), 'list<int>'),
 	])
 	def test_type_of(self, full_path: str, expected: str, attrs_expected: str) -> None:
 		symbols = self.fixture.get(Symbols)

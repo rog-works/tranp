@@ -9,15 +9,13 @@ from rogw.tranp.node.promise import IDeclaration
 
 class Assign(Node):
 	@property
-	def _elements(self) -> list[Node]:
-		return self._children()
+	@Meta.embed(Node, expandable)
+	def receivers(self) -> list[Declable | Reference | Indexer]:
+		return [node.one_of(Declable | Reference | Indexer) for node in self._children('assign_namelist')]
 
 	@property
-	@Meta.embed(Node, expandable)
-	def receiver(self) -> Declable | Reference | Indexer:
-		"""Note: FIXME receiversに変更"""
-		node = self._elements[0]._children()[0]
-		return node.one_of(Declable | Reference | Indexer)
+	def _elements(self) -> list[Node]:
+		return self._children()
 
 
 @Meta.embed(Node, accept_tags('assign'))
@@ -31,8 +29,7 @@ class MoveAssign(Assign, IDeclaration):
 	@property
 	@implements
 	def symbols(self) -> list[Declable]:
-		node = self.receiver
-		return [node] if isinstance(node, Declable) else []
+		return [node.as_a(Declable) for node in self.receivers]
 
 
 @Meta.embed(Node, accept_tags('anno_assign'))
@@ -51,8 +48,7 @@ class AnnoAssign(Assign, IDeclaration):
 	@property
 	@implements
 	def symbols(self) -> list[Declable]:
-		node = self.receiver
-		return [node] if isinstance(node, Declable) else []
+		return [node.as_a(Declable) for node in self.receivers]
 
 
 @Meta.embed(Node, accept_tags('aug_assign'))

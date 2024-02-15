@@ -12,7 +12,7 @@ from rogw.tranp.node.definition.terminal import Empty
 from rogw.tranp.node.embed import Meta, accept_tags, actualized, expandable
 from rogw.tranp.node.interface import IDomain, IScope
 from rogw.tranp.node.node import Node
-from rogw.tranp.node.promise import IDeclare, StatementBlock
+from rogw.tranp.node.promise import IDeclaration, ISymbol, StatementBlock
 
 
 @Meta.embed(Node, accept_tags('block'))
@@ -127,7 +127,7 @@ class ForIn(FlowPart):
 
 
 @Meta.embed(Node, accept_tags('for_stmt'))
-class For(FlowEnter, IDeclare):
+class For(FlowEnter, IDeclaration):
 	@property
 	@implements
 	@Meta.embed(Node, expandable)
@@ -154,17 +154,17 @@ class For(FlowEnter, IDeclare):
 
 
 @Meta.embed(Node, accept_tags('except_clause'))
-class Catch(FlowPart, IDeclare):
+class Catch(FlowPart, IDeclaration):
 	@property
 	@Meta.embed(Node, expandable)
 	def var_type(self) -> Type:
-		# XXX Pythonの仕様では複数の型を捕捉できるが一旦単数で実装
+		"""Note: XXX Pythonの仕様では複数の型を捕捉できるが一旦単数で実装"""
 		return self._at(0).as_a(Type)
 
 	@property
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Declable:
-		# XXX Pythonの仕様では省略出来るが実装を簡単にするため必須で実装
+		"""Note: XXX Pythonの仕様では省略出来るが実装を簡単にするため必須で実装"""
 		return self._by('name').one_of(Declable)
 
 	@property
@@ -204,7 +204,7 @@ class Try(FlowEnter):
 
 
 @Meta.embed(Node, accept_tags('comp_for'))
-class CompFor(Node, IDeclare):
+class CompFor(Node, IDeclaration):
 	"""Note: XXX カテゴリーはExpressionなので、定義位置を再検討"""
 
 	@property
@@ -282,7 +282,7 @@ class DictComp(Comprehension):
 		return super().condition
 
 
-class ClassDef(Node, IDomain, IScope, IDeclare):
+class ClassDef(Node, IDomain, IScope, IDeclaration, ISymbol):
 	@property
 	@override
 	def domain_name(self) -> str:
@@ -310,8 +310,14 @@ class ClassDef(Node, IDomain, IScope, IDeclare):
 		return [self.symbol]
 
 	@property
+	@implements
 	def symbol(self) -> Declable:
 		raise NotImplementedError()
+
+	@property
+	@implements
+	def declare(self) -> 'ClassDef':
+		return self
 
 	@property
 	def access(self) -> str:
@@ -644,7 +650,7 @@ class TemplateClass(ClassDef):
 
 
 def collect_decl_vars(block: StatementBlock, allow: type[Declable]) -> dict[str, Declable]:
-	def merged_by(decl_vars: dict[str, Declable], declare: IDeclare) -> dict[str, Declable]:
+	def merged_by(decl_vars: dict[str, Declable], declare: IDeclaration) -> dict[str, Declable]:
 		allow_vars = {symbol.tokens: symbol for symbol in declare.symbols if isinstance(symbol, allow)}
 		return merged(decl_vars, allow_vars)
 

@@ -3,14 +3,15 @@ from rogw.tranp.node.definition.primary import Argument, DecoratorPath, Declable
 from rogw.tranp.node.definition.terminal import Empty
 from rogw.tranp.node.embed import Meta, accept_tags, expandable
 from rogw.tranp.node.node import Node
-from rogw.tranp.node.promise import IDeclare
+from rogw.tranp.node.promise import IDeclaration, ISymbol
 
 
 @Meta.embed(Node, accept_tags('paramvalue', 'starparam'))
-class Parameter(Node, IDeclare):
+class Parameter(Node, IDeclaration, ISymbol):
 	"""Note: XXX starparamを受け入れるが、正式に対応する必要がないため通常の引数と同じように扱う"""
 
 	@property
+	@implements
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> Declable:
 		"""Note: XXX 実体はDeclBlockVarのみ"""
@@ -36,6 +37,11 @@ class Parameter(Node, IDeclare):
 	@implements
 	def symbols(self) -> list[Declable]:
 		return [self.symbol]
+
+	@property
+	@implements
+	def declare(self) -> 'Parameter':
+		return self
 
 
 @Meta.embed(Node, accept_tags('decorator'))

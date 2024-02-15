@@ -3,14 +3,14 @@ from typing import Union, cast
 
 from rogw.tranp.ast.dsn import DSN
 from rogw.tranp.errors import LogicError
-from rogw.tranp.lang.implementation import override
+from rogw.tranp.lang.implementation import implements, override
 from rogw.tranp.lang.sequence import last_index_of
 from rogw.tranp.node.definition.literal import Literal
 from rogw.tranp.node.definition.terminal import Empty
 from rogw.tranp.node.embed import Meta, accept_tags, actualized, expandable
 from rogw.tranp.node.interface import IDomain, ITerminal
 from rogw.tranp.node.node import Node
-from rogw.tranp.node.promise import IDeclare
+from rogw.tranp.node.promise import IDeclaration, ISymbol
 
 
 @Meta.embed(Node, accept_tags('getattr', 'var', 'name'))
@@ -95,31 +95,20 @@ class Fragment(Node, IDomain):
 		return self._full_path.parent_tag == 'import_names'
 
 
-class Declable(Fragment, ITerminal):
+class Declable(Fragment, ISymbol, ITerminal):
 	@property
+	@implements
 	def symbol(self) -> Node:
-		"""Note: XXX ClassDef/Parameterとインターフェイスを統一"""
 		return self
 
 	@property
+	@implements
 	def declare(self) -> Node:
-		parent_tags = [
-			# Assign
-			'assign_namelist',
-			# For/Comprehension
-			'for_namelist',
-			# Catch
-			'except_clause',
-			# Parameter
-			'typedparam',
-			# ClassDef
-			'class_def_raw',
-			'function_def_raw',
-		]
-		if self._full_path.parent_tag in parent_tags and isinstance(self.parent, IDeclare):
+		parent_tags = ['assign_namelist', 'for_namelist', 'except_clause']
+		if self._full_path.parent_tag in parent_tags and isinstance(self.parent, IDeclaration):
 			return self.parent
 
-		raise LogicError(f'Unexpected declare parent. node: {self}, parent: {self.parent}')
+		raise LogicError(f'Unexpected parent. node: {self}, parent: {self.parent}')
 
 
 class DeclVar(Declable): pass
@@ -243,8 +232,7 @@ class ClassRef(Var):
 
 	@property
 	def class_symbol(self) -> Declable:
-		# XXX `ClassDef.symbol=symbols[0]`
-		return cast(IDeclare, self._ancestor('class_def')).symbols[0].as_a(Declable)
+		return cast(ISymbol, self._ancestor('class_def')).symbol.as_a(Declable)
 
 
 @Meta.embed(Node, accept_tags('var'), actualized(via=Fragment))

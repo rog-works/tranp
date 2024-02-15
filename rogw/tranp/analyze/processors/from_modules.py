@@ -161,15 +161,14 @@ class FromModules:
 		Returns:
 			Type | ClassDef | None: タイプ/クラス定義ノード。不明な場合はNone
 		"""
-		if isinstance(var, defs.Parameter):
-			if isinstance(var.symbol, defs.DeclClassParam):
-				return var.symbol.class_types.as_a(defs.ClassDef)
-			elif isinstance(var.symbol, defs.DeclThisParam):
-				return var.symbol.class_types.as_a(defs.ClassDef)
+		if isinstance(var.declare, defs.Parameter):
+			if isinstance(var.declare.symbol, defs.DeclClassParam):
+				return var.declare.symbol.class_types.as_a(defs.ClassDef)
+			elif isinstance(var.declare.symbol, defs.DeclThisParam):
+				return var.declare.symbol.class_types.as_a(defs.ClassDef)
 			else:
-				return var.var_type.as_a(defs.Type)
-
-		if isinstance(var.declare, (defs.AnnoAssign, defs.Catch)):
+				return var.declare.var_type.as_a(defs.Type)
+		elif isinstance(var.declare, (defs.AnnoAssign, defs.Catch)):
 			return var.declare.var_type
 		elif isinstance(var.declare, (defs.MoveAssign, defs.For)):
 			# 型指定が無いため全てUnknown

@@ -3,13 +3,14 @@ from typing import Protocol
 from rogw.tranp.node.node import Node
 
 
-class IDeclare:
-	"""シンボルを保有するノードの共通インターフェイス
+class IDeclaration:
+	"""シンボルを宣言するノードの共通インターフェイス
 
 	Note:
 		# 対象 | 1 on 1/n
 		* ClassDef | 1 on 1
-		* Assign | 1 on n
+		* AnnoAssign | 1 on 1
+		* MoveAssign | 1 on n
 		* Parameter | 1 on 1
 		* For | 1 on n
 		* Catch | 1 on 1
@@ -19,6 +20,27 @@ class IDeclare:
 	@property
 	def symbols(self) -> list[Node]:
 		"""list[Node]: シンボルとなるDeclableノードのリスト"""
+		raise NotImplementedError()
+
+
+class ISymbol:
+	"""シンボルとなるノードの共通インターフェイス
+
+	Note:
+		# 対象
+		* ClassDef
+		* Declable
+		* Parameter
+	"""
+
+	@property
+	def symbol(self) -> Node:
+		"""Node: シンボルへの参照"""
+		raise NotImplementedError()
+
+	@property
+	def declare(self) -> Node:
+		"""Node: 自身の親であるシンボル宣言ノード"""
 		raise NotImplementedError()
 
 

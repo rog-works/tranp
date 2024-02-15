@@ -169,7 +169,7 @@ class Py2Cpp(Procedure[str]):
 		value_raw = self.symbols.type_of(node.value)
 
 		# 変数宣言を伴う場合は変数の型を取得
-		declared = (receiver_raw.decl.declare if isinstance(receiver_raw.decl, defs.Declable) else receiver_raw.decl) == node
+		declared = receiver_raw.decl.declare == node
 		var_type = ''
 		if declared:
 			# フルパスの接頭辞をスコープから取得

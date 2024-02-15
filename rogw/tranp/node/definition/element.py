@@ -1,5 +1,5 @@
 from rogw.tranp.lang.implementation import implements
-from rogw.tranp.node.definition.primary import Argument, DecoratorPath, Declable, Type
+from rogw.tranp.node.definition.primary import Argument, DeclBlockVar, DecoratorPath, Type
 from rogw.tranp.node.definition.terminal import Empty
 from rogw.tranp.node.embed import Meta, accept_tags, expandable
 from rogw.tranp.node.node import Node
@@ -13,9 +13,8 @@ class Parameter(Node, IDeclaration, ISymbol):
 	@property
 	@implements
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> Declable:
-		"""Note: XXX 実体はDeclBlockVarのみ"""
-		return self._by('typedparam.name').as_a(Declable)
+	def symbol(self) -> DeclBlockVar:
+		return self._by('typedparam.name').as_a(DeclBlockVar)
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -35,7 +34,7 @@ class Parameter(Node, IDeclaration, ISymbol):
 
 	@property
 	@implements
-	def symbols(self) -> list[Declable]:
+	def symbols(self) -> list[DeclBlockVar]:
 		return [self.symbol]
 
 	@property

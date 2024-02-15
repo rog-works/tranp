@@ -1,4 +1,4 @@
-from typing import Generic
+from typing import Generic, TypeVar
 
 from rogw.tranp.compatible.python.embed import __actual__, __alias__
 from rogw.tranp.lang.implementation import implements, override
@@ -13,6 +13,8 @@ from rogw.tranp.node.embed import Meta, accept_tags, actualized, expandable
 from rogw.tranp.node.interface import IDomain, IScope
 from rogw.tranp.node.node import Node
 from rogw.tranp.node.promise import IDeclaration, ISymbol, StatementBlock
+
+T_Declable = TypeVar('T_Declable', bound=Declable)
 
 
 @Meta.embed(Node, accept_tags('block'))
@@ -163,9 +165,9 @@ class Catch(FlowPart, IDeclaration):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> Declable:
+	def symbol(self) -> DeclLocalVar:
 		"""Note: XXX Pythonの仕様では省略出来るが実装を簡単にするため必須で実装"""
-		return self._by('name').one_of(Declable)
+		return self._by('name').as_a(DeclLocalVar)
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -311,7 +313,7 @@ class ClassDef(Node, IDomain, IScope, IDeclaration, ISymbol):
 
 	@property
 	@implements
-	def symbol(self) -> Declable:
+	def symbol(self) -> TypesName:
 		raise NotImplementedError()
 
 	@property
@@ -382,7 +384,7 @@ class ClassDef(Node, IDomain, IScope, IDeclaration, ISymbol):
 
 		return decorator.arguments[0].value.as_a(String).plain
 
-	def _decl_vars_with(self, allow: type[Declable]) -> dict[str, Declable]:
+	def _decl_vars_with(self, allow: type[T_Declable]) -> dict[str, T_Declable]:
 		return collect_decl_vars(self, allow)
 
 
@@ -391,10 +393,10 @@ class Function(ClassDef):
 	@property
 	@override
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> Declable:
-		symbol = self._by('function_def_raw.name').as_a(Declable)
+	def symbol(self) -> TypesName:
+		symbol = self._by('function_def_raw.name').as_a(TypesName)
 		alias = self.actual_symbol
-		return symbol if not alias else symbol.dirty_proxify(tokens=alias).as_a(Declable)
+		return symbol if not alias else symbol.dirty_proxify(tokens=alias)
 
 	@property
 	@override
@@ -433,7 +435,7 @@ class Function(ClassDef):
 		return self._by('function_def_raw.block').as_a(Block)
 
 	@property
-	def decl_vars(self) -> list[Parameter | Declable]:
+	def decl_vars(self) -> list[Parameter | DeclLocalVar]:
 		parameters = self.parameters
 		parameter_names = [parameter.symbol.tokens for parameter in parameters]
 		local_vars = [var for name, var in self._decl_vars_with(DeclLocalVar).items() if name not in parameter_names]
@@ -465,7 +467,7 @@ class Constructor(Function):
 		return self.parent.as_a(Block).parent.as_a(ClassDef)
 
 	@property
-	def this_vars(self) -> list[Declable]:
+	def this_vars(self) -> list[DeclThisVar]:
 		return list(self._decl_vars_with(DeclThisVar).values())
 
 
@@ -522,10 +524,10 @@ class Class(ClassDef):
 	@property
 	@override
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> Declable:
-		symbol = self._by('class_def_raw.name').as_a(Declable)
+	def symbol(self) -> TypesName:
+		symbol = self._by('class_def_raw.name').as_a(TypesName)
 		alias = self.actual_symbol
-		return symbol if not alias else symbol.dirty_proxify(tokens=alias).as_a(Declable)
+		return symbol if not alias else symbol.dirty_proxify(tokens=alias)
 
 	@property
 	@override
@@ -588,11 +590,11 @@ class Class(ClassDef):
 		return [node.as_a(Method) for node in self.statements if node.is_a(Method)]
 
 	@property
-	def class_vars(self) -> list[Declable]:
+	def class_vars(self) -> list[DeclClassVar]:
 		return list(self._decl_vars_with(DeclClassVar).values())
 
 	@property
-	def this_vars(self) -> list[Declable]:
+	def this_vars(self) -> list[DeclThisVar]:
 		return self.constructor.this_vars if self.constructor_exists else []
 
 
@@ -605,9 +607,11 @@ class Enum(Class):
 		return 'CEnum' in [inherit.type_name.tokens for inherit in via.inherits]
 
 	@property
-	def vars(self) -> list[Declable]:
+	def vars(self) -> list[DeclLocalVar]:
+		"""Note: XXX MoveAssignはメンバー変数宣言にならない設計であるため、返却型はlist[DeclLocalVar]になる"""
 		# XXX collect_decl_varsだと不要な変数宣言まで拾う可能性があるため、ステートメントから直接収集
-		return list(flatten([node.symbols for node in self.statements if isinstance(node, MoveAssign)]))
+		vars = flatten([node.symbols for node in self.statements if isinstance(node, MoveAssign)])
+		return [var.as_a(DeclLocalVar) for var in vars]
 
 
 @Meta.embed(Node, accept_tags('class_assign'))
@@ -620,7 +624,7 @@ class AltClass(ClassDef):
 	@property
 	@override
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> Declable:
+	def symbol(self) -> TypesName:
 		return self._by('assign_namelist.var.name').dirty_child(TypesName, '', class_types=self)
 
 	@property
@@ -639,7 +643,7 @@ class TemplateClass(ClassDef):
 	@property
 	@override
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> Declable:
+	def symbol(self) -> TypesName:
 		return self._by('assign_namelist.var.name').dirty_child(TypesName, '', class_types=self)
 
 	@property
@@ -649,15 +653,15 @@ class TemplateClass(ClassDef):
 		return self._at(2).one_of(Type | Empty)
 
 
-def collect_decl_vars(block: StatementBlock, allow: type[Declable]) -> dict[str, Declable]:
-	def merged_by(decl_vars: dict[str, Declable], declare: IDeclaration) -> dict[str, Declable]:
+def collect_decl_vars(block: StatementBlock, allow: type[T_Declable]) -> dict[str, T_Declable]:
+	def merged_by(decl_vars: dict[str, T_Declable], declare: IDeclaration) -> dict[str, T_Declable]:
 		allow_vars = {symbol.tokens: symbol for symbol in declare.symbols if isinstance(symbol, allow)}
 		return merged(decl_vars, allow_vars)
 
-	def merged(decl_vars: dict[str, Declable], allow_vars: dict[str, Declable]) -> dict[str, Declable]:
+	def merged(decl_vars: dict[str, T_Declable], allow_vars: dict[str, T_Declable]) -> dict[str, T_Declable]:
 		return {**decl_vars, **{key: symbol for key, symbol in allow_vars.items() if key not in decl_vars}}
 
-	decl_vars: dict[str, Declable] = {}
+	decl_vars: dict[str, T_Declable] = {}
 	for node in block.statements:
 		if isinstance(node, (AnnoAssign, MoveAssign)):
 			decl_vars = merged_by(decl_vars, node)

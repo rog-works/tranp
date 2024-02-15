@@ -108,7 +108,7 @@ class Py2Cpp(Procedure[str]):
 		for index, this_var in enumerate(this_vars):
 			# XXX 代入式の右辺を取得。必ず取得できるのでキャストして警告を抑制 (期待値: `int this->a = 1234;`)
 			initialize_value = cast(re.Match[str], re.search(r'=\s*([^;]+);$', initializer_statements[index]))[1]
-			this_var_name = this_var.as_a(defs.DeclThisVar).tokens_without_this
+			this_var_name = this_var.tokens_without_this
 			initializers.append({'symbol': this_var_name, 'value': initialize_value})
 
 		class_name = node.class_types.alias_symbol or node.class_types.symbol.tokens
@@ -131,13 +131,13 @@ class Py2Cpp(Procedure[str]):
 		# XXX メンバー変数の展開方法を検討
 		vars: list[str] = []
 		for var in node.class_vars:
-			class_var_name = var.as_a(defs.DeclClassVar).tokens
+			class_var_name = var.tokens
 			var_type = self.symbols.type_of(var.declare.as_a(defs.AnnoAssign).var_type).make_shorthand(use_alias=True)
 			class_var_vars = {'is_static': True, 'access': defs.to_access(class_var_name), 'symbol': class_var_name, 'var_type': var_type}
 			vars.append(self.view.render('class_decl_var', vars=class_var_vars))
 
 		for var in node.this_vars:
-			this_var_name = var.as_a(defs.DeclThisVar).tokens_without_this
+			this_var_name = var.tokens_without_this
 			var_type = self.symbols.type_of(var.declare.as_a(defs.AnnoAssign).var_type).make_shorthand(use_alias=True)
 			this_var_vars = {'is_static': False, 'access': defs.to_access(this_var_name), 'symbol': this_var_name, 'var_type': var_type}
 			vars.append(self.view.render('class_decl_var', vars=this_var_vars))
@@ -285,13 +285,13 @@ class Py2Cpp(Procedure[str]):
 		else:
 			return f'{receiver}[{key}]'
 
-	def on_type_relay(self, node: defs.TypeRelay, receiver: str) -> str:
+	def on_relay_of_type(self, node: defs.RelayOfType, receiver: str) -> str:
 		receiver_symbol = self.symbols.type_of(node.receiver)
 		prop_symbol = self.symbols.type_of_property(receiver_symbol.types, node.prop)
 		type_name = prop_symbol.types.alias_symbol or node.prop.tokens
 		return self.view.render(node.classification, vars={'receiver': receiver, 'type_name': type_name})
 
-	def on_type_var(self, node: defs.TypeVar) -> str:
+	def on_var_of_type(self, node: defs.VarOfType) -> str:
 		symbol = self.symbols.type_of(node)
 		type_name = symbol.types.alias_symbol or node.type_name.tokens
 		return self.view.render(node.classification, vars={'type_name': type_name})

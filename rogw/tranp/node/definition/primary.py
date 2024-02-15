@@ -98,7 +98,7 @@ class Fragment(Node, IDomain):
 class Declable(Fragment, ISymbol, ITerminal):
 	@property
 	@implements
-	def symbol(self) -> Node:
+	def symbol(self) -> 'Declable':
 		return self
 
 	@property
@@ -231,8 +231,8 @@ class ClassRef(Var):
 		return via.tokens == 'cls'
 
 	@property
-	def class_symbol(self) -> Declable:
-		return cast(ISymbol, self._ancestor('class_def')).symbol.as_a(Declable)
+	def class_symbol(self) -> TypesName:
+		return cast(ISymbol, self._ancestor('class_def')).symbol.as_a(TypesName)
 
 
 @Meta.embed(Node, accept_tags('var'), actualized(via=Fragment))
@@ -309,11 +309,11 @@ class GeneralType(Type): pass
 
 
 @Meta.embed(Node, accept_tags('typed_getattr'))
-class TypeRelay(GeneralType):
+class RelayOfType(GeneralType):
 	@property
 	@Meta.embed(Node, expandable)
-	def receiver(self) -> 'TypeRelay | TypeVar':
-		return self._at(0).one_of(TypeRelay | TypeVar)
+	def receiver(self) -> 'RelayOfType | VarOfType':
+		return self._at(0).one_of(RelayOfType | VarOfType)
 
 	@property
 	def prop(self) -> Variable:
@@ -321,7 +321,7 @@ class TypeRelay(GeneralType):
 
 
 @Meta.embed(Node, accept_tags('typed_var'))
-class TypeVar(GeneralType, ITerminal): pass
+class VarOfType(GeneralType, ITerminal): pass
 
 
 @Meta.embed(Node, accept_tags('typed_getitem'))

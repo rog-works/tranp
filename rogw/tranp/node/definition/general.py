@@ -33,5 +33,5 @@ class Entrypoint(Node):
 		return self._children()
 
 	@property
-	def decl_vars(self) -> list[Declable]:
+	def decl_vars(self) -> list[DeclLocalVar]:
 		return list(collect_decl_vars(self, DeclLocalVar).values())

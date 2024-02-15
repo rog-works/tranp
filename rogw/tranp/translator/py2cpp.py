@@ -72,20 +72,24 @@ class Py2Cpp(Procedure[str]):
 		return self.view.render(node.classification, vars={'statements': statements, 'catches': catches})
 
 	def on_function(self, node: defs.Function, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, comment: str, statements: list[str]) -> str:
-		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'comment': comment, 'statements': statements})
+		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'comment': comment, 'statements': statements}
+		return self.view.render(node.classification, vars=function_vars)
 
 	def on_class_method(self, node: defs.ClassMethod, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, comment: str, statements: list[str]) -> str:
-		return self.view.render(node.classification, vars={'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'comment': comment, 'statements': statements, 'class_symbol': node.class_types.symbol.tokens})
+		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'comment': comment, 'statements': statements, }
+		method_vars = {'access': node.access, 'class_symbol': node.class_types.symbol.tokens}
+		return self.view.render(node.classification, vars={**function_vars, **method_vars})
 
 	def on_constructor(self, node: defs.Constructor, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, comment: str, statements: list[str]) -> str:
 		this_vars = node.this_vars
 
 		# クラスの初期化ステートメントとそれ以外を分離
+		this_var_declares = [this_var.declare.as_a(defs.AnnoAssign) for this_var in this_vars]
 		normal_statements: list[str] = []
 		initializer_statements: list[str] = []
 		super_initializer_statement = ''
 		for index, statement in enumerate(node.statements):
-			if statement in this_vars:
+			if statement in this_var_declares:
 				initializer_statements.append(statements[index])
 			elif isinstance(statement, defs.FuncCall) and statement.calls.tokens.endswith('__init__'):
 				super_initializer_statement = statements[index]
@@ -101,35 +105,42 @@ class Py2Cpp(Procedure[str]):
 
 		# メンバー変数の宣言用のデータを生成
 		initializers: list[dict[str, str]] = []
-		for index, var in enumerate(this_vars):
+		for index, this_var in enumerate(this_vars):
 			# XXX 代入式の右辺を取得。必ず取得できるのでキャストして警告を抑制 (期待値: `int this->a = 1234;`)
 			initialize_value = cast(re.Match[str], re.search(r'=\s*([^;]+);$', initializer_statements[index]))[1]
-			decl_var_symbol = var.symbol.as_a(defs.DeclThisVar)
-			initializers.append({'symbol': decl_var_symbol.tokens_without_this, 'value': initialize_value})
+			this_var_name = this_var.tokens_without_this
+			initializers.append({'symbol': this_var_name, 'value': initialize_value})
 
 		class_name = node.class_types.alias_symbol or node.class_types.symbol.tokens
-		method_vars = {'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'comment': comment, 'statements': normal_statements, 'class_symbol': class_name}
+		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'comment': comment, 'statements': normal_statements}
+		method_vars = {'access': node.access, 'class_symbol': class_name}
 		constructor_vars = {'initializers': initializers, 'super_initializer': super_initializer}
-		return self.view.render(node.classification, vars={**method_vars, **constructor_vars})
+		return self.view.render(node.classification, vars={**function_vars, **method_vars, **constructor_vars})
 
 	def on_method(self, node: defs.Method, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, comment: str, statements: list[str]) -> str:
-		return self.view.render(node.classification, vars={'access': node.access, 'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'comment': comment, 'statements': statements, 'class_symbol': node.class_types.symbol.tokens})
+		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'comment': comment, 'statements': statements}
+		method_vars = {'access': node.access, 'class_symbol': node.class_types.symbol.tokens}
+		return self.view.render(node.classification, vars={**function_vars, **method_vars})
 
 	def on_closure(self, node: defs.Closure, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, comment: str, statements: list[str]) -> str:
-		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'statements': statements, 'binded_this': node.binded_this})
+		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'statements': statements}
+		closure_vars = {'binded_this': node.binded_this}
+		return self.view.render(node.classification, vars={**function_vars, **closure_vars})
 
 	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], comment: str, statements: list[str]) -> str:
 		# XXX メンバー変数の展開方法を検討
 		vars: list[str] = []
-		for class_var in node.class_vars:
-			decl_var_symbol = class_var.symbol.as_a(defs.DeclClassVar)
-			var_type = self.symbols.type_of(class_var.var_type).make_shorthand(use_alias=True)
-			vars.append(self.view.render('class_decl_var', vars={'is_static': True, 'access': defs.to_access(decl_var_symbol.tokens), 'symbol': decl_var_symbol.tokens, 'var_type': var_type}))
+		for var in node.class_vars:
+			class_var_name = var.tokens
+			var_type = self.symbols.type_of(var.declare.as_a(defs.AnnoAssign).var_type).make_shorthand(use_alias=True)
+			class_var_vars = {'is_static': True, 'access': defs.to_access(class_var_name), 'symbol': class_var_name, 'var_type': var_type}
+			vars.append(self.view.render('class_decl_var', vars=class_var_vars))
 
-		for this_var in node.this_vars:
-			decl_var_symbol = this_var.symbol.as_a(defs.DeclThisVar)
-			var_type = self.symbols.type_of(this_var.var_type).make_shorthand(use_alias=True)
-			vars.append(self.view.render('class_decl_var', vars={'is_static': False, 'access': defs.to_access(decl_var_symbol.tokens_without_this), 'symbol': decl_var_symbol.tokens_without_this, 'var_type': var_type}))
+		for var in node.this_vars:
+			this_var_name = var.tokens_without_this
+			var_type = self.symbols.type_of(var.declare.as_a(defs.AnnoAssign).var_type).make_shorthand(use_alias=True)
+			this_var_vars = {'is_static': False, 'access': defs.to_access(this_var_name), 'symbol': this_var_name, 'var_type': var_type}
+			vars.append(self.view.render('class_decl_var', vars=this_var_vars))
 
 		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'comment': comment, 'statements': statements, 'vars': vars})
 
@@ -158,7 +169,7 @@ class Py2Cpp(Procedure[str]):
 		value_raw = self.symbols.type_of(node.value)
 
 		# 変数宣言を伴う場合は変数の型を取得
-		declared = receiver_raw.decl == node
+		declared = receiver_raw.decl.declare == node
 		var_type = ''
 		if declared:
 			# フルパスの接頭辞をスコープから取得
@@ -274,13 +285,13 @@ class Py2Cpp(Procedure[str]):
 		else:
 			return f'{receiver}[{key}]'
 
-	def on_type_relay(self, node: defs.TypeRelay, receiver: str) -> str:
+	def on_relay_of_type(self, node: defs.RelayOfType, receiver: str) -> str:
 		receiver_symbol = self.symbols.type_of(node.receiver)
 		prop_symbol = self.symbols.type_of_property(receiver_symbol.types, node.prop)
 		type_name = prop_symbol.types.alias_symbol or node.prop.tokens
 		return self.view.render(node.classification, vars={'receiver': receiver, 'type_name': type_name})
 
-	def on_type_var(self, node: defs.TypeVar) -> str:
+	def on_var_of_type(self, node: defs.VarOfType) -> str:
 		symbol = self.symbols.type_of(node)
 		type_name = symbol.types.alias_symbol or node.type_name.tokens
 		return self.view.render(node.classification, vars={'type_name': type_name})

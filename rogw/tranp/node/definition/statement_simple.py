@@ -4,10 +4,10 @@ from rogw.tranp.node.definition.terminal import Empty, Terminal
 from rogw.tranp.node.embed import Meta, accept_tags, expandable
 from rogw.tranp.node.interface import ITerminal
 from rogw.tranp.node.node import Node
-from rogw.tranp.node.promise import IDeclare
+from rogw.tranp.node.promise import IDeclaration
 
 
-class Assign(Node, IDeclare):
+class Assign(Node):
 	@property
 	def _elements(self) -> list[Node]:
 		return self._children()
@@ -15,30 +15,28 @@ class Assign(Node, IDeclare):
 	@property
 	@Meta.embed(Node, expandable)
 	def receiver(self) -> Declable | Reference | Indexer:
-		return self._elements[0].one_of(Declable | Reference | Indexer)
-
-	@property
-	@implements
-	def symbol(self) -> Declable:
-		"""
-		Note:
-			XXX シンボルテーブル作成時以外に使用しないと言う前提のため、
-			XXX receiverがDeclable以外のインスタンスで使用するとエラーが発生する
-		"""
-		return self.receiver.as_a(Declable)
+		"""Note: FIXME receiversに変更"""
+		node = self._elements[0]._children()[0]
+		return node.one_of(Declable | Reference | Indexer)
 
 
 @Meta.embed(Node, accept_tags('assign'))
-class MoveAssign(Assign):
+class MoveAssign(Assign, IDeclaration):
 	@property
 	@Meta.embed(Node, expandable)
 	def value(self) -> Node | Empty:
 		node = self._elements[1]
-		return node if not node.is_a(Empty) else node.as_a(Empty)
+		return node if isinstance(node, Empty) else node
+
+	@property
+	@implements
+	def symbols(self) -> list[Declable]:
+		node = self.receiver
+		return [node] if isinstance(node, Declable) else []
 
 
 @Meta.embed(Node, accept_tags('anno_assign'))
-class AnnoAssign(Assign):
+class AnnoAssign(Assign, IDeclaration):
 	@property
 	@Meta.embed(Node, expandable)
 	def var_type(self) -> Type:
@@ -48,7 +46,13 @@ class AnnoAssign(Assign):
 	@Meta.embed(Node, expandable)
 	def value(self) -> Node | Empty:
 		node = self._elements[2]
-		return node if not node.is_a(Empty) else node.as_a(Empty)
+		return node if isinstance(node, Empty) else node
+
+	@property
+	@implements
+	def symbols(self) -> list[Declable]:
+		node = self.receiver
+		return [node] if isinstance(node, Declable) else []
 
 
 @Meta.embed(Node, accept_tags('aug_assign'))
@@ -70,7 +74,7 @@ class Return(Node):
 	@Meta.embed(Node, expandable)
 	def return_value(self) -> Node | Empty:
 		node = self._at(0)
-		return node if not node.is_a(Empty) else node.as_a(Empty)
+		return node if isinstance(node, Empty) else node
 
 	@property
 	def function(self) -> Node:

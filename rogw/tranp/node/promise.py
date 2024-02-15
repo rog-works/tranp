@@ -3,12 +3,44 @@ from typing import Protocol
 from rogw.tranp.node.node import Node
 
 
-class IDeclare:
-	"""シンボルとして定義されるノードの共通インターフェイス"""
+class IDeclaration:
+	"""シンボルを宣言するノードの共通インターフェイス
+
+	Note:
+		# 対象 | 1 on 1/n
+		* ClassDef | 1 on 1
+		* AnnoAssign | 1 on 1
+		* MoveAssign | 1 on n
+		* Parameter | 1 on 1
+		* For | 1 on n
+		* Catch | 1 on 1
+		* Comprehension | 1 on n
+	"""
+
+	@property
+	def symbols(self) -> list[Node]:
+		"""list[Node]: シンボルとなるDeclableノードのリスト"""
+		raise NotImplementedError()
+
+
+class ISymbol:
+	"""シンボルとなるノードの共通インターフェイス
+
+	Note:
+		# 対象 | 宣言 | シンボル
+		* ClassDef | o | o
+		* Declable | x | o
+		* Parameter | o | o
+	"""
 
 	@property
 	def symbol(self) -> Node:
-		"""Note: シンボル名を表すノード。実体はDeclable"""
+		"""Node: 自身、または配下のシンボルノード"""
+		raise NotImplementedError()
+
+	@property
+	def declare(self) -> Node:
+		"""Node: 自身、または親であるシンボル宣言ノード"""
 		raise NotImplementedError()
 
 

@@ -1,21 +1,20 @@
 from rogw.tranp.lang.implementation import implements
-from rogw.tranp.node.definition.primary import Argument, DecoratorPath, Declable, Type
+from rogw.tranp.node.definition.primary import Argument, DeclBlockVar, DecoratorPath, Type
 from rogw.tranp.node.definition.terminal import Empty
 from rogw.tranp.node.embed import Meta, accept_tags, expandable
 from rogw.tranp.node.node import Node
-from rogw.tranp.node.promise import IDeclare
+from rogw.tranp.node.promise import IDeclaration, ISymbol
 
 
 @Meta.embed(Node, accept_tags('paramvalue', 'starparam'))
-class Parameter(Node, IDeclare):
+class Parameter(Node, IDeclaration, ISymbol):
 	"""Note: XXX starparamを受け入れるが、正式に対応する必要がないため通常の引数と同じように扱う"""
 
 	@property
 	@implements
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> Declable:
-		"""Note: XXX 実体はDeclBlockVarのみ"""
-		return self._by('typedparam.name').as_a(Declable)
+	def symbol(self) -> DeclBlockVar:
+		return self._by('typedparam.name').as_a(DeclBlockVar)
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -28,10 +27,20 @@ class Parameter(Node, IDeclare):
 		children = self._children()
 		if len(children) == 2:
 			node = self._at(1)
-			return node if not node.is_a(Empty) else node.as_a(Empty)
+			return node if isinstance(node, Empty) else node
 
 		# XXX starparamはデフォルト引数がないためダミーを生成
 		return self.dirty_child(Empty, '__empty__', tokens='')
+
+	@property
+	@implements
+	def symbols(self) -> list[DeclBlockVar]:
+		return [self.symbol]
+
+	@property
+	@implements
+	def declare(self) -> 'Parameter':
+		return self
 
 
 @Meta.embed(Node, accept_tags('decorator'))

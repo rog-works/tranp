@@ -2,14 +2,15 @@ import re
 from typing import Union, cast
 
 from rogw.tranp.ast.dsn import DSN
-from rogw.tranp.lang.implementation import override
+from rogw.tranp.errors import LogicError
+from rogw.tranp.lang.implementation import implements, override
 from rogw.tranp.lang.sequence import last_index_of
 from rogw.tranp.node.definition.literal import Literal
 from rogw.tranp.node.definition.terminal import Empty
 from rogw.tranp.node.embed import Meta, accept_tags, actualized, expandable
 from rogw.tranp.node.interface import IDomain, ITerminal
 from rogw.tranp.node.node import Node
-from rogw.tranp.node.promise import IDeclare
+from rogw.tranp.node.promise import IDeclaration, ISymbol
 
 
 @Meta.embed(Node, accept_tags('getattr', 'var', 'name'))
@@ -23,12 +24,12 @@ class Fragment(Node, IDomain):
 	def is_decl_class_var(self) -> bool:
 		"""Note: マッチング対象: クラス変数宣言"""
 		# XXX ASTへの依存度が非常に高い判定なので注意
-		# XXX 期待するパス: class_def_raw.block.anno_assign.(getattr|var|name)
+		# XXX 期待するパス: class_def_raw.block.anno_assign.assign_namelist.(getattr|var|name)
 		elems = self._full_path.de_identify().elements
 		actual_class_def_at = last_index_of(elems, 'class_def_raw')
-		expect_class_def_at = max(0, len(elems) - 4)
+		expect_class_def_at = max(0, len(elems) - 5)
 		in_decl_class_var = actual_class_def_at == expect_class_def_at
-		in_decl_var = self._full_path.parent_tag in ['anno_assign']
+		in_decl_var = self._full_path.de_identify().shift(-1).origin.endswith('anno_assign.assign_namelist')
 		is_local = DSN.elem_counts(self.tokens) == 1
 		is_receiver = self._full_path.last[1] in [0, -1]  # 代入式の左辺が対象
 		return in_decl_var and in_decl_class_var and is_local and is_receiver
@@ -36,7 +37,7 @@ class Fragment(Node, IDomain):
 	@property
 	def is_decl_this_var(self) -> bool:
 		"""Note: マッチング対象: インスタンス変数宣言"""
-		in_decl_var = self._full_path.parent_tag in ['anno_assign']
+		in_decl_var = self._full_path.de_identify().shift(-1).origin.endswith('anno_assign.assign_namelist')
 		is_property = re.fullmatch(r'self.\w+', self.tokens) is not None
 		is_receiver = self._full_path.last[1] in [0, -1]  # 代入式の左辺が対象
 		return in_decl_var and is_property and is_receiver
@@ -45,7 +46,7 @@ class Fragment(Node, IDomain):
 	def is_param_class(self) -> bool:
 		"""Note: マッチング対象: 仮引数(clsのみ)"""
 		tokens = self.tokens
-		in_decl_var = self._full_path.parent_tag in ['typedparam']
+		in_decl_var = self._full_path.parent_tag == 'typedparam'
 		is_class = tokens == 'cls'
 		is_local = DSN.elem_counts(tokens) == 1
 		return in_decl_var and is_class and is_local
@@ -54,7 +55,7 @@ class Fragment(Node, IDomain):
 	def is_param_this(self) -> bool:
 		"""Note: マッチング対象: 仮引数(selfのみ)"""
 		tokens = self.tokens
-		in_decl_var = self._full_path.parent_tag in ['typedparam']
+		in_decl_var = self._full_path.parent_tag == 'typedparam'
 		is_this = tokens == 'self'
 		is_local = DSN.elem_counts(tokens) == 1
 		return in_decl_var and is_this and is_local
@@ -62,11 +63,27 @@ class Fragment(Node, IDomain):
 	@property
 	def is_decl_local_var(self) -> bool:
 		"""Note: マッチング対象: ローカル変数宣言/仮引数(cls/self以外)"""
+		# For/Catch/Comprehension
+		is_identified_by_name_only = self._full_path.parent_tag in ['for_namelist', 'except_clause']
+		if is_identified_by_name_only and self._full_path.last_tag == 'name':
+			return True
+
+		# Parameter(cls/self以外)
 		tokens = self.tokens
-		in_decl_var = self._full_path.parent_tag in ['assign', 'anno_assign', 'typedparam', 'for_stmt', 'except_clause']
-		is_class_or_this = tokens == 'cls' or tokens == 'self'
+		in_decl_param = self._full_path.parent_tag == 'typedparam'
+		is_class_or_this = tokens in ['cls', 'self']
+		if in_decl_param:
+			return not is_class_or_this
+
+		# Assign
+		parent_tags = self._full_path.de_identify().shift(-1).elements[-2:]
+		for_assign, for_namelist = parent_tags if len(parent_tags) >= 2 else ['', '']
+		in_decl_var = for_assign in ['assign', 'anno_assign'] and for_namelist == 'assign_namelist'
 		is_local = DSN.elem_counts(tokens) == 1
-		is_receiver = self._full_path.last[1] in [0, -1]  # 代入式の左辺が対象(assign/anno_assign)、それ以外はname単独のため必ず-1
+		# ローカル変数への代入式の左辺は必ずvarであり、右辺がvarの場合のみ0。それ以外は全て-1
+		#  0のパターン: var = var | var: type = var
+		# -1のパターン: var = expression | var: type = expression
+		is_receiver = self._full_path.last[1] in [0, -1]
 		return in_decl_var and not is_class_or_this and is_local and is_receiver
 
 	@property
@@ -78,7 +95,20 @@ class Fragment(Node, IDomain):
 		return self._full_path.parent_tag == 'import_names'
 
 
-class Declable(Fragment, ITerminal): pass
+class Declable(Fragment, ISymbol, ITerminal):
+	@property
+	@implements
+	def symbol(self) -> 'Declable':
+		return self
+
+	@property
+	@implements
+	def declare(self) -> Node:
+		parent_tags = ['assign_namelist', 'for_namelist', 'except_clause']
+		if self._full_path.parent_tag in parent_tags and isinstance(self.parent, IDeclaration):
+			return self.parent
+
+		raise LogicError(f'Unexpected parent. node: {self}, parent: {self.parent}')
 
 
 class DeclVar(Declable): pass
@@ -201,8 +231,8 @@ class ClassRef(Var):
 		return via.tokens == 'cls'
 
 	@property
-	def class_symbol(self) -> Declable:
-		return cast(IDeclare, self._ancestor('class_def')).symbol.as_a(Declable)
+	def class_symbol(self) -> TypesName:
+		return cast(ISymbol, self._ancestor('class_def')).symbol.as_a(TypesName)
 
 
 @Meta.embed(Node, accept_tags('var'), actualized(via=Fragment))
@@ -279,11 +309,11 @@ class GeneralType(Type): pass
 
 
 @Meta.embed(Node, accept_tags('typed_getattr'))
-class TypeRelay(GeneralType):
+class RelayOfType(GeneralType):
 	@property
 	@Meta.embed(Node, expandable)
-	def receiver(self) -> 'TypeRelay | TypeVar':
-		return self._at(0).one_of(TypeRelay | TypeVar)
+	def receiver(self) -> 'RelayOfType | VarOfType':
+		return self._at(0).one_of(RelayOfType | VarOfType)
 
 	@property
 	def prop(self) -> Variable:
@@ -291,7 +321,7 @@ class TypeRelay(GeneralType):
 
 
 @Meta.embed(Node, accept_tags('typed_var'))
-class TypeVar(GeneralType, ITerminal): pass
+class VarOfType(GeneralType, ITerminal): pass
 
 
 @Meta.embed(Node, accept_tags('typed_getitem'))

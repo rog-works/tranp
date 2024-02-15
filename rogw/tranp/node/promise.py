@@ -27,20 +27,20 @@ class ISymbol:
 	"""シンボルとなるノードの共通インターフェイス
 
 	Note:
-		# 対象
-		* ClassDef
-		* Declable
-		* Parameter
+		# 対象 | 宣言 | シンボル
+		* ClassDef | o | o
+		* Declable | x | o
+		* Parameter | o | o
 	"""
 
 	@property
 	def symbol(self) -> Node:
-		"""Node: シンボルへの参照"""
+		"""Node: 自身、または配下のシンボルノード"""
 		raise NotImplementedError()
 
 	@property
 	def declare(self) -> Node:
-		"""Node: 自身の親であるシンボル宣言ノード"""
+		"""Node: 自身、または親であるシンボル宣言ノード"""
 		raise NotImplementedError()
 
 

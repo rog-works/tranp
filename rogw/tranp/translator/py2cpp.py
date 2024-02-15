@@ -84,11 +84,12 @@ class Py2Cpp(Procedure[str]):
 		this_vars = node.this_vars
 
 		# クラスの初期化ステートメントとそれ以外を分離
+		this_var_declares = [this_var.declare.as_a(defs.AnnoAssign) for this_var in this_vars]
 		normal_statements: list[str] = []
 		initializer_statements: list[str] = []
 		super_initializer_statement = ''
 		for index, statement in enumerate(node.statements):
-			if statement in this_vars:
+			if statement in this_var_declares:
 				initializer_statements.append(statements[index])
 			elif isinstance(statement, defs.FuncCall) and statement.calls.tokens.endswith('__init__'):
 				super_initializer_statement = statements[index]
@@ -104,10 +105,10 @@ class Py2Cpp(Procedure[str]):
 
 		# メンバー変数の宣言用のデータを生成
 		initializers: list[dict[str, str]] = []
-		for index, var in enumerate(this_vars):
+		for index, this_var in enumerate(this_vars):
 			# XXX 代入式の右辺を取得。必ず取得できるのでキャストして警告を抑制 (期待値: `int this->a = 1234;`)
 			initialize_value = cast(re.Match[str], re.search(r'=\s*([^;]+);$', initializer_statements[index]))[1]
-			this_var_name = var.as_a(defs.DeclThisVar).tokens_without_this
+			this_var_name = this_var.as_a(defs.DeclThisVar).tokens_without_this
 			initializers.append({'symbol': this_var_name, 'value': initialize_value})
 
 		class_name = node.class_types.alias_symbol or node.class_types.symbol.tokens
@@ -168,7 +169,7 @@ class Py2Cpp(Procedure[str]):
 		value_raw = self.symbols.type_of(node.value)
 
 		# 変数宣言を伴う場合は変数の型を取得
-		declared = receiver_raw.decl == node
+		declared = (receiver_raw.decl.declare if isinstance(receiver_raw.decl, defs.Declable) else receiver_raw.decl) == node
 		var_type = ''
 		if declared:
 			# フルパスの接頭辞をスコープから取得

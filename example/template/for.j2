@@ -1,4 +1,4 @@
-for (auto {{ str.join(', ', symbols) }} : {{ iterates }}) {
+for (auto {{ symbols | join(', ') }} : {{ iterates }}) {
 {%- filter indent('\t') %}
 {%- for statement in statements %}
 {{ statement }}

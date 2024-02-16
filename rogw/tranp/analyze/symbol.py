@@ -10,13 +10,6 @@ from rogw.tranp.node.node import Node
 T_Raw = TypeVar('T_Raw', bound='SymbolRaw')
 T_Sym = TypeVar('T_Sym', bound='Symbol')
 
-ImportOrigins: TypeAlias = 'SymbolOrigin | SymbolVar'
-ClassOrigins: TypeAlias = 'SymbolOrigin | SymbolImport'
-VarOrigins: TypeAlias = 'SymbolOrigin | SymbolImport | SymbolClass | SymbolVar | SymbolGeneric | SymbolLiteral | SymbolReference'
-GenericOrigins: TypeAlias = 'SymbolOrigin | SymbolImport | SymbolClass | SymbolVar | SymbolGeneric'
-RefOrigins: TypeAlias = 'SymbolOrigin | SymbolImport | SymbolClass | SymbolVar | SymbolGeneric | SymbolLiteral'
-LiteralOrigins: TypeAlias = 'SymbolClass'
-
 
 class Roles(Enum):
 	"""シンボルの役割
@@ -541,7 +534,7 @@ class Symbol(SymbolRaw):
 class SymbolImport(Symbol):
 	"""シンボル(インポート)"""
 
-	def __init__(self, origin: ImportOrigins, via: defs.Node) -> None:
+	def __init__(self, origin: 'ImportOrigins', via: defs.Node) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -582,7 +575,7 @@ class SymbolImport(Symbol):
 class SymbolClass(Symbol):
 	"""シンボル(クラス定義)"""
 
-	def __init__(self, origin: ClassOrigins, decl: defs.ClassDef) -> None:
+	def __init__(self, origin: 'ClassOrigins', decl: defs.ClassDef) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -615,7 +608,7 @@ class SymbolClass(Symbol):
 
 
 class SymbolVar(Symbol):
-	def __init__(self, origin: VarOrigins, decl: defs.DeclAll) -> None:
+	def __init__(self, origin: 'VarOrigins', decl: defs.DeclAll) -> None:
 		super().__init__(origin)
 		self._decl = decl
 
@@ -642,7 +635,7 @@ class SymbolVar(Symbol):
 
 
 class SymbolGeneric(Symbol):
-	def __init__(self, origin: GenericOrigins, via: defs.Type) -> None:
+	def __init__(self, origin: 'GenericOrigins', via: defs.Type) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -675,7 +668,7 @@ class SymbolGeneric(Symbol):
 
 
 class SymbolLiteral(Symbol):
-	def __init__(self, origin: LiteralOrigins, via: defs.Literal) -> None:
+	def __init__(self, origin: 'LiteralOrigins', via: defs.Literal) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -708,7 +701,7 @@ class SymbolLiteral(Symbol):
 
 
 class SymbolReference(Symbol):
-	def __init__(self, origin: RefOrigins, via: defs.Node, context: SymbolRaw | None = None) -> None:
+	def __init__(self, origin: 'RefOrigins', via: defs.Node, context: SymbolRaw | None = None) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -753,6 +746,14 @@ class SymbolReference(Symbol):
 			T_Sym: 複製したインスタンス
 		"""
 		return self._clone(origin=self.origin, via=self.via, context=self._context)
+
+
+ImportOrigins: TypeAlias = SymbolOrigin | SymbolVar
+ClassOrigins: TypeAlias = SymbolOrigin | SymbolImport
+VarOrigins: TypeAlias = SymbolOrigin | SymbolImport | SymbolClass | SymbolVar | SymbolGeneric | SymbolLiteral | SymbolReference
+GenericOrigins: TypeAlias = SymbolOrigin | SymbolImport | SymbolClass | SymbolVar | SymbolGeneric
+RefOrigins: TypeAlias = SymbolOrigin | SymbolImport | SymbolClass | SymbolVar | SymbolGeneric | SymbolLiteral
+LiteralOrigins: TypeAlias = SymbolClass
 
 
 class SymbolWrapper:

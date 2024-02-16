@@ -54,7 +54,7 @@ class FromModules:
 
 		# メインモジュールを展開
 		expands: dict[Module, Expanded] = {}
-		expands[main] = self.expand_module(raws, main)
+		expands[main] = self.expand_module(main)
 
 		# インポートモジュールを全て展開
 		import_index = 0
@@ -62,7 +62,7 @@ class FromModules:
 		import_modules: dict[str, Module] = {**{module.path: module for module in modules.libralies}, **{module.path: module for module in import_modules_from_main}}
 		while import_index < len(import_modules):
 			import_module = list(import_modules.values())[import_index]
-			expanded = self.expand_module(raws, import_module)
+			expanded = self.expand_module(import_module)
 			import_modules_from_depended = [modules.load(node.import_path.tokens) for node in expanded.import_nodes]
 			import_modules = {**import_modules, **{module.path: module for module in import_modules_from_depended}}
 			expands[import_module] = expanded
@@ -108,7 +108,7 @@ class FromModules:
 		raws.update(**update_raws)
 		return raws
 
-	def expand_module(self, raws: SymbolRaws, module: Module) -> Expanded:
+	def expand_module(self, module: Module) -> Expanded:
 		"""モジュールの全シンボルを展開
 
 		Args:
@@ -122,7 +122,7 @@ class FromModules:
 		entrypoint = module.entrypoint.as_a(defs.Entrypoint)
 		for node in entrypoint.flatten():
 			if isinstance(node, defs.ClassDef):
-				raws[node.fullyname] = SymbolOrigin.from_types(raws, node)
+				raws[node.fullyname] = SymbolOrigin(node)
 
 			if type(node) is defs.Import:
 				import_nodes.append(node)

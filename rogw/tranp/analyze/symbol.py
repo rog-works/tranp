@@ -1,7 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from enum import Enum
-from typing import Iterator, TypeVar, cast
-from rogw.tranp.ast.query import Query
+from typing import Any, Iterator, TypeVar, cast
 
 from rogw.tranp.errors import LogicError
 from rogw.tranp.lang.implementation import implements, injectable, override
@@ -82,18 +81,6 @@ class SymbolRaw(metaclass=ABCMeta):
 
 	@property
 	@abstractmethod
-	def _nodes(self) -> Query[Node]:
-		"""Query[Node]: ノードクエリー"""
-		...
-
-	@property
-	@abstractmethod
-	def _raws(self) -> SymbolRaws:
-		"""SymbolRaws: シンボルテーブル"""
-		...
-
-	@property
-	@abstractmethod
 	def ref_fullyname(self) -> str:
 		"""str: 完全参照名"""
 		...
@@ -149,6 +136,26 @@ class SymbolRaw(metaclass=ABCMeta):
 		"""
 		raise LogicError(f'Context is null. symbol: {str(self)}, fullyname: {self.ref_fullyname}')
 
+	@abstractmethod
+	def clone(self: T_Raw) -> T_Raw:
+		"""インスタンスを複製
+
+		Returns:
+			T_Raw: 複製したインスタンス
+		"""
+		...
+
+	def _clone(self: T_Raw, **kwargs: Any) -> T_Raw:
+		"""インスタンスを複製
+
+		Args:
+			**kwargs (Any): コンストラクター
+		Returns:
+			T_Raw: 複製したインスタンス
+		"""
+		new = self.__class__(**kwargs)
+		return new.extends(*[attr.clone() for attr in self.attrs])
+
 	@property	
 	def has_entity(self) -> bool:
 		"""bool: True = 実体を持つ"""
@@ -185,7 +192,7 @@ class SymbolRaw(metaclass=ABCMeta):
 			'types': self.types.fullyname,
 			'attrs': [attr.__repr__() for attr in self.attrs],
 		}
-		return str(data)
+		return f'<{self.__class__.__name__}: {str(data)}>'
 
 	@override
 	def __str__(self) -> str:
@@ -215,7 +222,7 @@ class SymbolRaw(metaclass=ABCMeta):
 			elif self.types.is_a(defs.Function):
 				attrs = [str(attr) for attr in self.attrs]
 				return f'{domain_name}({", ".join(attrs[:-1])}) -> {attrs[-1]}'
-			elif not self.role != Roles.Class:
+			elif self.role != Roles.Class:
 				attrs = [str(attr) for attr in self.attrs]
 				return f'{domain_name}<{", ".join(attrs)}>'
 
@@ -289,27 +296,9 @@ class SymbolRaw(metaclass=ABCMeta):
 class SymbolOrigin(SymbolRaw):
 	"""シンボル(オリジナル)"""
 
-	@classmethod
-	def from_types(cls, raws: SymbolRaws, types: defs.ClassDef) -> 'SymbolOrigin':
-		return cls(raws, types)
-
 	@injectable
-	def __init__(self, raws: SymbolRaws, types: defs.ClassDef) -> None:
-		self.__nodes = cast(Query[Node], getattr(types, '_Node__nodes'))
-		self.__raws = raws
-		self._types_path = types.full_path
-
-	@property
-	@implements
-	def _nodes(self) -> Query[Node]:
-		"""Query[Node]: ノードクエリー"""
-		return self.__nodes
-
-	@property
-	@implements
-	def _raws(self) -> SymbolRaws:
-		"""SymbolRaws: シンボルテーブル"""
-		return self.__raws
+	def __init__(self, types: defs.ClassDef) -> None:
+		self._types = types
 
 	@property
 	@implements
@@ -327,7 +316,7 @@ class SymbolOrigin(SymbolRaw):
 	@implements
 	def types(self) -> defs.ClassDef:
 		"""ClassDef: クラス定義ノード"""
-		return self._nodes.by(self._types_path).as_a(defs.ClassDef)
+		return self._types
 
 	@property
 	@implements
@@ -347,6 +336,15 @@ class SymbolOrigin(SymbolRaw):
 		"""list[SymbolRaw]: 属性シンボルリスト"""
 		return []
 
+	@implements
+	def clone(self: T_Raw) -> T_Raw:
+		"""インスタンスを複製
+
+		Returns:
+			T_Raw: 複製したインスタンス
+		"""
+		return self._clone(types=self.types)
+
 
 class Symbol(SymbolRaw):
 	"""シンボル(基底)"""
@@ -356,18 +354,6 @@ class Symbol(SymbolRaw):
 		super().__init__()
 		self._origin = origin
 		self._attrs: list[SymbolRaw] = []
-
-	@property
-	@implements
-	def _nodes(self) -> Query[Node]:
-		"""Query[Node]: ノードクエリー"""
-		return self._origin._nodes
-
-	@property
-	@implements
-	def _raws(self) -> SymbolRaws:
-		"""SymbolRaws: シンボルテーブル"""
-		return self._origin._raws
 
 	@property
 	@implements
@@ -403,10 +389,16 @@ class Symbol(SymbolRaw):
 	@override
 	def origin(self) -> SymbolRaw:
 		"""SymbolRaw: スタックシンボル"""
-		if self._origin.role.is_temporary:
-			return self._origin
-		else:
-			return self._raws[self.org_fullyname]
+		return self._origin
+
+	@implements
+	def clone(self: T_Sym) -> T_Sym:
+		"""インスタンスを複製
+
+		Returns:
+			T_Sym: 複製したインスタンス
+		"""
+		return self._clone(origin=self.origin)
 
 	@override
 	def extends(self: T_Sym, *attrs: 'SymbolRaw') -> T_Sym:
@@ -433,8 +425,7 @@ class Symbol(SymbolRaw):
 class SymbolImport(Symbol):
 	def __init__(self, origin: 'SymbolOrigin | SymbolVar', via: defs.Node) -> None:
 		super().__init__(origin)
-		self._via_nodes = cast(Query[Node], getattr(via, '_Node__nodes'))
-		self._via_path = via.full_path
+		self._via = via
 
 	@property
 	@implements
@@ -452,20 +443,28 @@ class SymbolImport(Symbol):
 	@override
 	def via(self) -> defs.Node:
 		"""Node: 参照元のノード"""
-		return self._via_nodes.by(self._via_path)
+		return self._via
+
+	@override
+	def clone(self: T_Sym) -> T_Sym:
+		"""インスタンスを複製
+
+		Returns:
+			T_Sym: 複製したインスタンス
+		"""
+		return self._clone(origin=self.origin, via=self.via)
 
 
 class SymbolClass(Symbol):
 	def __init__(self, origin: 'SymbolOrigin | SymbolImport', decl: defs.ClassDef) -> None:
 		super().__init__(origin)
-		self._decl_nodes = cast(Query[Node], getattr(decl, '_Node__nodes'))
-		self._decl_path = decl.full_path
+		self._decl = decl
 
 	@property
 	@override
 	def decl(self) -> defs.DeclAll:
 		"""DeclAll: クラス/変数宣言ノード"""
-		return self._decl_nodes.by(self._decl_path).as_a(defs.DeclAll)
+		return self._decl
 
 	@property
 	@implements
@@ -473,18 +472,26 @@ class SymbolClass(Symbol):
 		"""Roles: シンボルの役割"""
 		return Roles.Class
 
+	@override
+	def clone(self: T_Sym) -> T_Sym:
+		"""インスタンスを複製
+
+		Returns:
+			T_Sym: 複製したインスタンス
+		"""
+		return self._clone(origin=self.origin, decl=self.decl)
+
 
 class SymbolVar(Symbol):
-	def __init__(self, origin: SymbolOrigin | SymbolImport | SymbolClass, decl: defs.DeclAll) -> None:
+	def __init__(self, origin: 'SymbolOrigin | SymbolImport | SymbolClass | SymbolGeneric | SymbolReference', decl: defs.DeclAll) -> None:
 		super().__init__(origin)
-		self._decl_nodes = cast(Query[Node], getattr(decl, '_Node__nodes'))
-		self._decl_path = decl.full_path
+		self._decl = decl
 
 	@property
 	@override
 	def decl(self) -> defs.DeclAll:
 		"""DeclAll: クラス/変数宣言ノード"""
-		return self._decl_nodes.by(self._decl_path).as_a(defs.DeclAll)
+		return self._decl
 
 	@property
 	@implements
@@ -492,18 +499,26 @@ class SymbolVar(Symbol):
 		"""Roles: シンボルの役割"""
 		return Roles.Var
 
+	@override
+	def clone(self: T_Sym) -> T_Sym:
+		"""インスタンスを複製
+
+		Returns:
+			T_Sym: 複製したインスタンス
+		"""
+		return self._clone(origin=self.origin, decl=self.decl)
+
 
 class SymbolGeneric(Symbol):
 	def __init__(self, origin: 'SymbolOrigin | SymbolImport | SymbolClass | SymbolVar | SymbolGeneric', via: defs.Type) -> None:
 		super().__init__(origin)
-		self._via_nodes = cast(Query[Node], getattr(via, '_Node__nodes'))
-		self._via_path = via.full_path
+		self._via = via
 
 	@property
 	@override
 	def via(self) -> defs.Node:
 		"""Node: 参照元のノード"""
-		return self._via_nodes.by(self._via_path)
+		return self._via
 
 	@property
 	@implements
@@ -511,18 +526,26 @@ class SymbolGeneric(Symbol):
 		"""Roles: シンボルの役割"""
 		return Roles.Generic
 
+	@override
+	def clone(self: T_Sym) -> T_Sym:
+		"""インスタンスを複製
+
+		Returns:
+			T_Sym: 複製したインスタンス
+		"""
+		return self._clone(origin=self.origin, via=self.via)
+
 
 class SymbolLiteral(Symbol):
 	def __init__(self, origin: SymbolClass, via: defs.Literal) -> None:
 		super().__init__(origin)
-		self._via_nodes = cast(Query[Node], getattr(via, '_Node__nodes'))
-		self._via_path = via.full_path
+		self._via = via
 
 	@property
 	@override
 	def via(self) -> defs.Node:
 		"""Node: 参照元のノード"""
-		return self._via_nodes.by(self._via_path)
+		return self._via
 
 	@property
 	@implements
@@ -530,19 +553,27 @@ class SymbolLiteral(Symbol):
 		"""Roles: シンボルの役割"""
 		return Roles.Literal
 
+	@override
+	def clone(self: T_Sym) -> T_Sym:
+		"""インスタンスを複製
+
+		Returns:
+			T_Sym: 複製したインスタンス
+		"""
+		return self._clone(origin=self.origin, via=self.via)
+
 
 class SymbolReference(Symbol):
 	def __init__(self, origin: SymbolClass | SymbolVar | SymbolGeneric | SymbolLiteral, via: defs.Node, context: SymbolRaw | None = None) -> None:
 		super().__init__(origin)
-		self._via_nodes = cast(Query[Node], getattr(via, '_Node__nodes'))
-		self._via_path = via.full_path
+		self._via = via
 		self._context = context
 
 	@property
 	@override
 	def via(self) -> defs.Node:
 		"""Node: 参照元のノード"""
-		return self._via_nodes.by(self._via_path)
+		return self._via
 
 	@property
 	@implements
@@ -551,7 +582,7 @@ class SymbolReference(Symbol):
 		return Roles.Reference
 
 	@property
-	def context(self) -> 'SymbolRaw':
+	def context(self) -> SymbolRaw:
 		"""コンテキストを取得
 
 		Returns:
@@ -563,6 +594,15 @@ class SymbolReference(Symbol):
 			return self._context
 
 		return super().context
+
+	@override
+	def clone(self) -> 'SymbolReference':
+		"""インスタンスを複製
+
+		Returns:
+			T_Sym: 複製したインスタンス
+		"""
+		return self._clone(origin=self.origin, via=self.via, context=self._context)
 
 
 class SymbolWrapper:
@@ -576,7 +616,7 @@ class SymbolWrapper:
 		return SymbolClass(self._raw.one_of(SymbolOrigin | SymbolImport), decl)
 
 	def var(self, decl: defs.DeclAll) -> SymbolVar:
-		return SymbolVar(self._raw.one_of(SymbolOrigin | SymbolImport | SymbolClass), decl)
+		return SymbolVar(self._raw.one_of(SymbolOrigin | SymbolImport | SymbolClass | SymbolGeneric | SymbolReference), decl)
 
 	def generic(self, via: defs.Type) -> SymbolGeneric:
 		return SymbolGeneric(self._raw.one_of(SymbolOrigin | SymbolImport | SymbolClass | SymbolVar | SymbolGeneric), via)

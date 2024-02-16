@@ -50,7 +50,7 @@ class Reflection:
 			schemata (InjectSchemata): プロパティー名とシンボルのマップ情報
 		"""
 		self.symbol = symbol
-		self.schema = Schema[SymbolRaw]({key: schema for key, schema in schemata.items() if type(schema) is SymbolRaw})
+		self.schema = Schema[SymbolRaw]({key: schema for key, schema in schemata.items() if isinstance(schema, SymbolRaw)})
 		self.schemata = Schema[list[SymbolRaw]]({key: schema for key, schema in schemata.items() if type(schema) is list})
 
 	@property

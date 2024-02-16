@@ -111,13 +111,13 @@ def task_type(symbols: Symbols) -> None:
 	data = {
 		'full_path': symbol.types.full_path,
 		'shorthand': str(symbol),
-		'ref_path': symbol.ref_fullyname,
-		'org_path': symbol.org_fullyname,
+		'ref_fullyname': symbol.ref_fullyname,
+		'org_fullyname': symbol.org_fullyname,
 		'types': str(symbol.types),
 		'decl': str(symbol.decl),
-		'org': str(symbol.org),
-		'via': f'\n     -> '.join([str(via) for via in symbol.each_via()]),
+		'origin': str(symbol.origin),
 		'attrs': ', '.join([str(attr) for attr in symbol.attrs]),
+		'hierarchy': f'\n -> '.join([str(via) for via in symbol.each_via()]),
 	}
 
 	print('--------------')

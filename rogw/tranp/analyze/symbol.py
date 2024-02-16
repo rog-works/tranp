@@ -274,8 +274,7 @@ class SymbolRaw(metaclass=ABCMeta):
 		"""
 		curr = self
 		while curr:
-			# XXX whileの判定が反映されずに警告されるためcastで対処
-			yield cast(Node, curr.via)
+			yield curr.via or curr.decl
 			curr = curr.origin
 
 	def extends(self, *attrs: 'SymbolRaw') -> 'SymbolRaw':

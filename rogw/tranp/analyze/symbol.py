@@ -587,7 +587,7 @@ class SymbolClass(Symbol):
 
 
 class SymbolVar(Symbol):
-	def __init__(self, origin: 'SymbolOrigin | SymbolImport | SymbolClass | SymbolGeneric | SymbolReference', decl: defs.DeclAll) -> None:
+	def __init__(self, origin: 'SymbolOrigin | SymbolImport | SymbolClass | SymbolVar | SymbolGeneric | SymbolLiteral | SymbolReference', decl: defs.DeclAll) -> None:
 		super().__init__(origin)
 		self._decl = decl
 
@@ -720,7 +720,7 @@ class SymbolWrapper:
 		return SymbolClass(self._raw.one_of(SymbolOrigin | SymbolImport), decl)
 
 	def var(self, decl: defs.DeclAll) -> SymbolVar:
-		return SymbolVar(self._raw.one_of(SymbolOrigin | SymbolImport | SymbolClass | SymbolGeneric | SymbolReference), decl)
+		return SymbolVar(self._raw.one_of(SymbolOrigin | SymbolImport | SymbolClass | SymbolVar | SymbolGeneric | SymbolLiteral | SymbolReference), decl)
 
 	def generic(self, via: defs.Type) -> SymbolGeneric:
 		return SymbolGeneric(self._raw.one_of(SymbolOrigin | SymbolImport | SymbolClass | SymbolVar | SymbolGeneric), via)

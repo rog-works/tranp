@@ -15,35 +15,41 @@ class Roles(Enum):
 	"""シンボルの役割
 
 	Attributes:
-		Origin: 定義元。クラス定義ノードが対象。属性なし
-		Import: Originの複製。属性なし
-		Class: Origin/Importを参照。クラス定義ノードが対象。クラスはGeneric型、ファンクションは関数シグネチャーを属性として保有
-		Var: Origin/Importを参照。変数宣言ノードが対象。Generic型の属性を保有
-		Reference: Varを参照。参照系ノードが対象。属性なし
-		Generic: Origin/Importを参照。タイプノードが対象。Generic型の属性を保有
-		Literal: Origin/Importを参照。リテラルノードが対象。Generic型の属性を保有
+		Origin: 定義元。クラス定義ノードが対象。属性は保有しない
+		Import: Originの複製。属性は保有しない
+		Class: クラス定義ノードが対象。クラスはGeneric型、ファンクションは関数シグネチャーを属性として保有
+		Var: 変数宣言ノードが対象。Generic型の属性を保有
+		Generic: タイプノードが対象。Generic型の属性を保有
+		Literal: リテラルノードが対象。Generic型の属性を保有
+		Reference: 参照系ノードが対象。属性は保有しない
 	"""
 	Origin = 'Origin'
 	Import = 'Import'
 	Class = 'Class'
 	Var = 'Var'
-	Reference = 'Reference'
 	Generic = 'Generic'
 	Literal = 'Literal'
+	Reference = 'Reference'
 
 	@property
 	def has_entity(self) -> bool:
 		"""bool: True = 実体を持つ"""
 		return self in [Roles.Origin, Roles.Class, Roles.Var, Roles.Generic, Roles.Literal]
 
-	@property
-	def is_temporary(self) -> bool:
-		"""bool: True = コンテキストを保有"""
-		return self in [Roles.Reference, Roles.Generic, Roles.Literal]
-
 
 class SymbolRaws(dict[str, T_Raw]):
 	"""シンボルテーブル"""
+
+	@override
+	def __setitem__(self, key: str, raw: T_Raw) -> None:
+		"""配列要素設定のオーバーロード
+
+		Args:
+			key (str): 要素名
+			raw (T_Raw): シンボル
+		"""
+		raw.set_raws(self)
+		super().__setitem__(key, raw)
 
 	@classmethod
 	def new(cls, *raws: 'SymbolRaws | dict[str, T_Raw]') -> 'SymbolRaws':
@@ -54,11 +60,23 @@ class SymbolRaws(dict[str, T_Raw]):
 		Returns:
 			SymbolRaws: 生成したインスタンス
 		"""
-		that = cls()
-		for in_raws in raws:
-			that.update(**in_raws)
+		return cls().merge(*raws)
 
-		return that
+	def merge(self, *raws: 'SymbolRaws | dict[str, T_Raw]') -> 'SymbolRaws':
+		"""指定のシンボルテーブルと結合
+
+		Args:
+			*raws (SymbolRaws | dict[str, SymbolRaw]): シンボルテーブルリスト
+		Returns:
+			SymbolRaws: 自己参照
+		"""
+		for in_raws in raws:
+			self.update(**in_raws)
+
+		for raw in self.values():
+			raw.set_raws(self)
+
+		return self
 
 
 class SymbolRaw(metaclass=ABCMeta):
@@ -78,6 +96,21 @@ class SymbolRaw(metaclass=ABCMeta):
 		# contextのユースケース
 		* Relay/Indexerのreceiverを設定。on_func_call等で実行時型の補完に使用
 	"""
+
+	@property
+	@abstractmethod
+	def _raws(self) -> SymbolRaws:
+		"""SymbolRaws: 所属するシンボルテーブル"""
+		...
+
+	@abstractmethod
+	def set_raws(self, raws: SymbolRaws) -> None:
+		"""所属するシンボルテーブルを設定
+
+		Args:
+			raws (SymbolRaws): シンボルテーブル
+		"""
+		...
 
 	@property
 	@abstractmethod
@@ -161,11 +194,6 @@ class SymbolRaw(metaclass=ABCMeta):
 		"""bool: True = 実体を持つ"""
 		return self.role.has_entity
 
-	@property
-	def shorthand(self) -> str:
-		"""str: オブジェクトの短縮表記"""
-		return self.make_shorthand()
-
 	@override
 	def __eq__(self, other: object) -> bool:
 		"""比較演算子のオーバーロード
@@ -180,7 +208,7 @@ class SymbolRaw(metaclass=ABCMeta):
 		if other is None:
 			return False
 
-		if type(other) is not SymbolRaw:
+		if not isinstance(other, SymbolRaw):
 			raise ValueError(f'Not allowed comparison. other: {type(other)}')
 
 		return other.__repr__() == self.__repr__()
@@ -198,6 +226,11 @@ class SymbolRaw(metaclass=ABCMeta):
 	def __str__(self) -> str:
 		"""str: オブジェクトの文字列表現"""
 		return self.shorthand
+
+	@property
+	def shorthand(self) -> str:
+		"""str: オブジェクトの短縮表記"""
+		return self.make_shorthand()
 
 	def make_shorthand(self, use_alias: bool = False) -> str:
 		"""オブジェクトの短縮表記を生成
@@ -222,7 +255,7 @@ class SymbolRaw(metaclass=ABCMeta):
 			elif self.types.is_a(defs.Function):
 				attrs = [str(attr) for attr in self.attrs]
 				return f'{domain_name}({", ".join(attrs[:-1])}) -> {attrs[-1]}'
-			elif self.role != Roles.Class:
+			elif self.role in [Roles.Var, Roles.Generic, Roles.Literal, Roles.Reference]:
 				attrs = [str(attr) for attr in self.attrs]
 				return f'{domain_name}<{", ".join(attrs)}>'
 
@@ -298,7 +331,31 @@ class SymbolOrigin(SymbolRaw):
 
 	@injectable
 	def __init__(self, types: defs.ClassDef) -> None:
+		"""インスタンスを生成
+
+		Args:
+			types (ClassDef): クラス定義ノード
+		"""
+		self.__raws: SymbolRaws | None = None
 		self._types = types
+
+	@property
+	@implements
+	def _raws(self) -> SymbolRaws:
+		"""SymbolRaws: 所属するシンボルテーブル"""
+		if self.__raws is not None:
+			return self.__raws
+
+		raise LogicError(f'Unreachable code.')
+
+	@implements
+	def set_raws(self, raws: SymbolRaws) -> None:
+		"""所属するシンボルテーブルを設定
+
+		Args:
+			raws (SymbolRaws): シンボルテーブル
+		"""
+		self.__raws = raws
 
 	@property
 	@implements
@@ -349,11 +406,27 @@ class SymbolOrigin(SymbolRaw):
 class Symbol(SymbolRaw):
 	"""シンボル(基底)"""
 
-	def __init__(self, origin: SymbolRaw) -> None:
+	def __init__(self, origin: 'SymbolOrigin | Symbol') -> None:
 		"""インスタンスを生成"""
 		super().__init__()
+		self.__raws = origin._raws
 		self._origin = origin
 		self._attrs: list[SymbolRaw] = []
+
+	@property
+	@implements
+	def _raws(self) -> SymbolRaws:
+		"""SymbolRaws: 所属するシンボルテーブル"""
+		return self.__raws
+
+	@implements
+	def set_raws(self, raws: SymbolRaws) -> None:
+		"""所属するシンボルテーブルを設定
+
+		Args:
+			raws (SymbolRaws): シンボルテーブル
+		"""
+		self.__raws = raws
 
 	@property
 	@implements
@@ -382,13 +455,44 @@ class Symbol(SymbolRaw):
 	@property
 	@implements
 	def attrs(self) -> list['SymbolRaw']:
-		"""list[SymbolRaw]: 属性シンボルリスト"""
-		return self._attrs if self._attrs else self._origin.attrs
+		"""属性シンボルリストを取得
+
+		Returns:
+			list[SymbolRaw]: 属性シンボルリスト
+		Note:
+			# 属性の評価順序
+			1. 自身に設定された属性
+			2. スタックシンボルに設定された属性
+			3. シンボルテーブル上の参照元に設定された属性
+		"""
+		if self._attrs:
+			return self._attrs
+
+		if self.origin.attrs:
+			return self.origin.attrs
+
+		return self._shared_origin.attrs
 
 	@property
 	@override
 	def origin(self) -> SymbolRaw:
 		"""SymbolRaw: スタックシンボル"""
+		return self._origin
+
+	@property
+	def _shared_origin(self) -> SymbolRaw:
+		"""シンボルテーブル上に存在する共有シンボルを取得
+
+		Returns:
+			SymbolRaw: シンボルテーブル上に存在する共有されたシンボル
+		Note:
+			属性を取得する際にのみ利用 @see attrs
+		"""
+		if self._origin.org_fullyname in self.__raws:
+			origin = self.__raws[self._origin.org_fullyname]
+			if id(origin) != id(self):
+				return origin
+
 		return self._origin
 
 	@implements
@@ -564,7 +668,7 @@ class SymbolLiteral(Symbol):
 
 
 class SymbolReference(Symbol):
-	def __init__(self, origin: SymbolClass | SymbolVar | SymbolGeneric | SymbolLiteral, via: defs.Node, context: SymbolRaw | None = None) -> None:
+	def __init__(self, origin: SymbolOrigin | SymbolImport | SymbolClass | SymbolVar | SymbolGeneric | SymbolLiteral, via: defs.Node, context: SymbolRaw | None = None) -> None:
 		super().__init__(origin)
 		self._via = via
 		self._context = context
@@ -625,7 +729,7 @@ class SymbolWrapper:
 		return SymbolLiteral(self._raw.one_of(SymbolClass), via)
 
 	def ref(self, via: defs.Node, context: SymbolRaw | None = None) -> SymbolReference:
-		return SymbolReference(self._raw.one_of(SymbolClass | SymbolVar | SymbolGeneric | SymbolLiteral), via, context)
+		return SymbolReference(self._raw.one_of(SymbolOrigin | SymbolImport | SymbolClass | SymbolVar | SymbolGeneric | SymbolLiteral), via, context)
 
 
 # class Symbol_(Symbol):

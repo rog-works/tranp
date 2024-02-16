@@ -80,11 +80,7 @@ class Fragment(Node, IDomain):
 		for_assign, for_namelist = parent_tags if len(parent_tags) >= 2 else ['', '']
 		in_decl_var = for_assign in ['assign', 'anno_assign'] and for_namelist == 'assign_namelist'
 		is_local = DSN.elem_counts(tokens) == 1
-		# ローカル変数への代入式の左辺は必ずvarであり、右辺がvarの場合のみ0。それ以外は全て-1
-		#  0のパターン: var = var | var: type = var
-		# -1のパターン: var = expression | var: type = expression
-		is_receiver = self._full_path.last[1] in [0, -1]
-		return in_decl_var and not is_class_or_this and is_local and is_receiver
+		return in_decl_var and not is_class_or_this and is_local
 
 	@property
 	def in_decl_class_type(self) -> bool:

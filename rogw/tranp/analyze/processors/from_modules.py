@@ -101,11 +101,9 @@ class FromModules:
 				expand_target.raws[var.symbol.fullyname] = self.resolve_type_symbol(expand_target.raws, var).to.var(var)
 
 		# シンボルテーブルを統合
-		update_raws = SymbolRaws()
 		for expanded in expands.values():
-			update_raws = SymbolRaws.new(expanded.raws, update_raws)
+			raws.merge(expanded.raws)
 
-		raws.update(**update_raws)
 		return raws
 
 	def expand_module(self, module: Module) -> Expanded:

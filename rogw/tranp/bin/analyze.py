@@ -72,7 +72,7 @@ def task_db(db: SymbolDB) -> None:
 		'--------------',
 	])
 	print(title)
-	print(json.dumps([f'{key}: {raw.org_path}' for key, raw in db.raws.items()], indent=2))
+	print(json.dumps([f'{key}: {raw.org_fullyname}' for key, raw in db.raws.items()], indent=2))
 
 
 def task_pretty(nodes: Query[Node]) -> None:
@@ -111,8 +111,8 @@ def task_type(symbols: Symbols) -> None:
 	data = {
 		'full_path': symbol.types.full_path,
 		'shorthand': str(symbol),
-		'ref_path': symbol.ref_path,
-		'org_path': symbol.org_path,
+		'ref_path': symbol.ref_fullyname,
+		'org_path': symbol.org_fullyname,
 		'types': str(symbol.types),
 		'decl': str(symbol.decl),
 		'org': str(symbol.org),

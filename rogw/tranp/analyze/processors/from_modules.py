@@ -1,12 +1,13 @@
 from dataclasses import dataclass, field
 
 from rogw.tranp.analyze.finder import SymbolFinder
-from rogw.tranp.analyze.symbol import SymbolRaw, SymbolRaws
+from rogw.tranp.analyze.symbol import SymbolOrigin, SymbolRaw, SymbolRaws
 from rogw.tranp.ast.dsn import DSN
 import rogw.tranp.compatible.python.classes as classes
 from rogw.tranp.lang.implementation import injectable
 from rogw.tranp.module.modules import Module, Modules
 import rogw.tranp.node.definition as defs
+from rogw.tranp.node.node import Node
 
 
 @dataclass
@@ -53,7 +54,7 @@ class FromModules:
 
 		# メインモジュールを展開
 		expands: dict[Module, Expanded] = {}
-		expands[main] = self.expand_module(main)
+		expands[main] = self.expand_module(raws, main)
 
 		# インポートモジュールを全て展開
 		import_index = 0
@@ -61,7 +62,7 @@ class FromModules:
 		import_modules: dict[str, Module] = {**{module.path: module for module in modules.libralies}, **{module.path: module for module in import_modules_from_main}}
 		while import_index < len(import_modules):
 			import_module = list(import_modules.values())[import_index]
-			expanded = self.expand_module(import_module)
+			expanded = self.expand_module(raws, import_module)
 			import_modules_from_depended = [modules.load(node.import_path.tokens) for node in expanded.import_nodes]
 			import_modules = {**import_modules, **{module.path: module for module in import_modules_from_depended}}
 			expands[import_module] = expanded
@@ -90,14 +91,14 @@ class FromModules:
 				imported_symbol_names = [symbol.tokens for symbol in import_node.import_symbols]
 				import_module = modules.load(import_node.import_path.tokens)
 				expanded = expands[import_module]
-				filtered_raws = [expanded.raws[DSN.join(import_module.path, name)] for name in imported_symbol_names]
-				filtered_db = SymbolRaws.new({raw.path_to(expand_module): raw.to_import(expand_module) for raw in filtered_raws})
+				filtered_raws = [expanded.raws[DSN.join(import_module.path, name)].to.imports(import_node) for name in imported_symbol_names]
+				filtered_db = SymbolRaws.new({raw.ref_fullyname: raw for raw in filtered_raws})
 				imported_raws = SymbolRaws.new(filtered_db, imported_raws)
 
 			# 展開対象モジュールの変数シンボルを展開
 			expand_target.raws = SymbolRaws.new(core_primary_raws, imported_raws, expand_target.raws)
 			for var in expand_target.decl_vars:
-				expand_target.raws[var.symbol.fullyname] = self.resolve_type_symbol(expand_target.raws, var).to_var(var)
+				expand_target.raws[var.symbol.fullyname] = self.resolve_type_symbol(expand_target.raws, var).to.var(var)
 
 		# シンボルテーブルを統合
 		update_raws = SymbolRaws()
@@ -107,7 +108,7 @@ class FromModules:
 		raws.update(**update_raws)
 		return raws
 
-	def expand_module(self, module: Module) -> Expanded:
+	def expand_module(self, raws: SymbolRaws, module: Module) -> Expanded:
 		"""モジュールの全シンボルを展開
 
 		Args:
@@ -121,7 +122,7 @@ class FromModules:
 		entrypoint = module.entrypoint.as_a(defs.Entrypoint)
 		for node in entrypoint.flatten():
 			if isinstance(node, defs.ClassDef):
-				raws[node.fullyname] = SymbolRaw.from_types(node)
+				raws[node.fullyname] = SymbolOrigin.from_types(raws, node)
 
 			if type(node) is defs.Import:
 				import_nodes.append(node)

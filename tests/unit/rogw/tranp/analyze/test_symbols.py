@@ -146,11 +146,11 @@ class TestSymbols(TestCase):
 		('__main__.TupleCheck.unpack.for.value1', 'int'),
 		('__main__.TupleCheck.unpack.for.key1', 'str'),
 		('__main__.TupleCheck.unpack.for.pair0', 'Pair<str, int>'),
-		# ('__main__.TupleCheck.unpack.for.key10', 'str'),
-		# ('__main__.TupleCheck.unpack.for.value10', 'DSI'),
-		# ('__main__.TupleCheck.unpack.for.value11', 'DSI'),
-		# ('__main__.TupleCheck.unpack.for.key11', 'str'),
-		# ('__main__.TupleCheck.unpack.for.pair10', 'Pair<str, DSI>'),
+		('__main__.TupleCheck.unpack.for.key10', 'str'),
+		('__main__.TupleCheck.unpack.for.value10', 'DSI=dict<str, int>'),
+		('__main__.TupleCheck.unpack.for.value11', 'DSI=dict<str, int>'),
+		('__main__.TupleCheck.unpack.for.key11', 'str'),
+		('__main__.TupleCheck.unpack.for.pair10', 'Pair<str, DSI=dict<str, int>>'),
 	])
 	def test_from_fullyname(self, fullyname: str, expected: str) -> None:
 		symbols = self.fixture.get(Symbols)

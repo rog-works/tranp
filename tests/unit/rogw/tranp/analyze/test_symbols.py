@@ -151,6 +151,9 @@ class TestSymbols(TestCase):
 		('__main__.TupleCheck.unpack.for.value11', 'DSI=dict<str, int>'),
 		('__main__.TupleCheck.unpack.for.key11', 'str'),
 		('__main__.TupleCheck.unpack.for.pair10', 'Pair<str, DSI=dict<str, int>>'),
+
+		('__main__.TupleCheck.unpack_assign.a', 'str'),  # XXX Pythonのシンタックス上は不正。一旦保留
+		('__main__.TupleCheck.unpack_assign.b', 'int'),  # XXX 〃
 	])
 	def test_from_fullyname(self, fullyname: str, expected: str) -> None:
 		symbols = self.fixture.get(Symbols)

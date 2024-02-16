@@ -248,6 +248,9 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 			* group: Any
 			* operator: Any
 		"""
+		if isinstance(iterates.types, defs.AltClass):
+			iterates = iterates.attrs[0]
+
 		def resolve() -> SymbolRaw:
 			methods = {method.symbol.tokens: method for method in iterates.types.as_a(defs.Class).methods if method.symbol.tokens in ['__next__', '__iter__']}
 			if '__next__' in methods:
@@ -255,27 +258,15 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 			else:
 				return self.symbols.resolve(methods['__iter__'])
 
-		def unpack(raw: SymbolRaw) -> list[defs.TemplateClass]:
-			ts: list[defs.TemplateClass] = []
-			if isinstance(raw.types, defs.TemplateClass):
-				ts.append(raw.types)
-
-			for in_raw in raw.attrs:
-				ts.extend(unpack(in_raw))
-
-			return ts
-
-		def unpacked(raw: SymbolRaw, ts: list[defs.TemplateClass]) -> SymbolRaw:
-			gs = [self.symbols.resolve(g_type).types for g_type in raw.types.generic_types]
-			for index, g_type in enumerate(gs):
-				if g_type in ts:
-					return raw.attrs[index]
-
-			raise LogicError('Unreachable code.')
-
-		raw = resolve()
-		ts = unpack(raw.attrs[-1])
-		return unpacked(iterates, ts)
+		method = resolve()
+		schema = {
+			'klass': method.attrs[0],
+			'parameters': method.attrs[1:-1],
+			# XXX iter関数の動作再現として、__iter__の場合のみ戻り値内のT_Seqをアンパックする(期待値: `__iter__(self) -> Iterator[T_Seq]`)
+			'returns': method.attrs[-1] if method.types.domain_name == '__next__' else method.attrs[-1].attrs[0],
+		}
+		method_ref = reflection.Builder(method).schema(lambda: schema).build(reflection.Method)
+		return method_ref.returns(iterates)
 
 	# Function/Class Elements
 
@@ -287,8 +278,8 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 	def on_anno_assign(self, node: defs.AnnoAssign, receiver: SymbolRaw, var_type: SymbolRaw, value: SymbolRaw) -> SymbolRaw:
 		return receiver
 
-	def on_move_assign(self, node: defs.MoveAssign, receiver: SymbolRaw, value: SymbolRaw) -> SymbolRaw:
-		return receiver
+	def on_move_assign(self, node: defs.MoveAssign, receivers: list[SymbolRaw], value: SymbolRaw) -> SymbolRaw:
+		return receivers[0]  # FIXME tupleが未実装
 
 	def on_aug_assign(self, node: defs.AugAssign, receiver: SymbolRaw, value: SymbolRaw) -> SymbolRaw:
 		"""Note: XXX operatorに型はないので引数からは省略。on_fallbackによってpassされるのでスタックはズレない"""
@@ -330,34 +321,34 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 		if isinstance(receiver.types, defs.AltClass):
 			receiver = receiver.attrs[0]
 
-		return self.symbols.type_of_property(receiver.types, node.prop).to_ref(node, context=receiver)
+		return self.symbols.type_of_property(receiver.types, node.prop).to.ref(node, context=receiver)
 
 	def on_class_ref(self, node: defs.ClassRef) -> SymbolRaw:
-		return self.symbols.resolve(node).to_ref(node)
+		return self.symbols.resolve(node).to.ref(node)
 
 	def on_this_ref(self, node: defs.ThisRef) -> SymbolRaw:
-		return self.symbols.resolve(node).to_ref(node)
+		return self.symbols.resolve(node).to.ref(node)
 
 	def on_argument_label(self, node: defs.ArgumentLabel) -> SymbolRaw:
 		"""Note: labelに型はないのでUnknownを返す"""
 		return self.symbols.type_of_primitive(classes.Unknown)
 
 	def on_variable(self, node: defs.Var) -> SymbolRaw:
-		return self.symbols.resolve(node).to_ref(node)
+		return self.symbols.resolve(node).to.ref(node)
 
 	def on_indexer(self, node: defs.Indexer, receiver: SymbolRaw, key: SymbolRaw) -> SymbolRaw:
 		if receiver.types.is_a(defs.AltClass):
 			receiver = receiver.attrs[0]
 
 		if self.symbols.is_a(receiver, list):
-			return receiver.attrs[0].to_ref(node, context=receiver)
+			return receiver.attrs[0].to.ref(node, context=receiver)
 		elif self.symbols.is_a(receiver, dict):
-			return receiver.attrs[1].to_ref(node, context=receiver)
+			return receiver.attrs[1].to.ref(node, context=receiver)
 		else:
 			# XXX コレクション型以外は全て通常のクラスである想定
 			# XXX keyに何が入るべきか特定できないためreceiverをそのまま返却
 			# XXX この状況で何が取得されるべきかは利用側で判断することとする
-			return receiver
+			return receiver.to.ref(node, context=receiver)
 
 	def on_relay_of_type(self, node: defs.RelayOfType, receiver: SymbolRaw) -> SymbolRaw:
 		"""Note: Pythonではtypeをアンパックする構文が存在しないためAltClassも同様に扱う"""
@@ -526,19 +517,19 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 		return self.symbols.type_of_primitive(bool)
 
 	def on_pair(self, node: defs.Pair, first: SymbolRaw, second: SymbolRaw) -> SymbolRaw:
-		return self.symbols.type_of_primitive(classes.Pair).to_generic(node).extends(first, second)
+		return self.symbols.type_of_primitive(classes.Pair).to.literal(node).extends(first, second)
 
 	def on_list(self, node: defs.List, values: list[SymbolRaw]) -> SymbolRaw:
 		value_type = values[0] if len(values) > 0 else self.symbols.type_of_primitive(classes.Unknown)
-		return self.symbols.type_of_primitive(list).to_generic(node).extends(value_type)
+		return self.symbols.type_of_primitive(list).to.literal(node).extends(value_type)
 
 	def on_dict(self, node: defs.Dict, items: list[SymbolRaw]) -> SymbolRaw:
 		if len(items) == 0:
 			unknown_type = self.symbols.type_of_primitive(classes.Unknown)
-			return self.symbols.type_of_primitive(dict).to_generic(node).extends(unknown_type, unknown_type)
+			return self.symbols.type_of_primitive(dict).to.literal(node).extends(unknown_type, unknown_type)
 		else:
 			key_type, value_type = items[0].attrs
-			return self.symbols.type_of_primitive(dict).to_generic(node).extends(key_type, value_type)
+			return self.symbols.type_of_primitive(dict).to.literal(node).extends(key_type, value_type)
 
 	# Expression
 

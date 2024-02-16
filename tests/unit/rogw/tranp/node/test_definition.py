@@ -462,14 +462,14 @@ class TestDefinition(TestCase):
 		self.assertEqual(type(node.value), expected['value'])
 
 	@data_provider([
-		('a = {}', 'file_input.assign', {'receiver': 'a', 'receiver_type': defs.DeclLocalVar, 'value': defs.Dict}),
-		('a.b = 1', 'file_input.assign', {'receiver': 'a.b', 'receiver_type': defs.Relay, 'value': defs.Integer}),
-		('a[0] = []', 'file_input.assign', {'receiver': 'a.0', 'receiver_type': defs.Indexer, 'value': defs.List}),
+		('a = {}', 'file_input.assign', {'receivers': ['a'], 'receiver_types': [defs.DeclLocalVar], 'value': defs.Dict}),
+		('a.b = 1', 'file_input.assign', {'receivers': ['a.b'], 'receiver_types': [defs.Relay], 'value': defs.Integer}),
+		('a[0] = []', 'file_input.assign', {'receivers': ['a.0'], 'receiver_types': [defs.Indexer], 'value': defs.List}),
 	])
 	def test_move_assign(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.MoveAssign)
-		self.assertEqual(node.receiver.tokens, expected['receiver'])
-		self.assertEqual(type(node.receiver), expected['receiver_type'])
+		self.assertEqual([receiver.tokens for receiver in node.receivers], expected['receivers'])
+		self.assertEqual([type(receiver) for receiver in node.receivers], expected['receiver_types'])
 		self.assertEqual(type(node.value), expected['value'])
 
 	@data_provider([

@@ -1,9 +1,12 @@
+from typing import cast
+
 from rogw.tranp.analyze.db import SymbolDB
 from rogw.tranp.analyze.finder import SymbolFinder
-from rogw.tranp.analyze.symbol import SymbolRaws
+from rogw.tranp.analyze.symbol import SymbolRaw, SymbolRaws
 from rogw.tranp.analyze.symbols import Symbols
 from rogw.tranp.lang.implementation import injectable
 import rogw.tranp.node.definition as defs
+from rogw.tranp.node.promise import IDeclaration
 
 
 class ResolveUnknown:
@@ -40,8 +43,24 @@ class ResolveUnknown:
 			# XXX 変数宣言のシンボルのため、roleをVarに変更
 			# XXX MoveAssignを参照するMoveAssign/Forが存在するためrawsを直接更新
 			if isinstance(raw.decl.declare, defs.MoveAssign):
-				raws[key] = symbols.type_of(raw.decl.declare.value).to_var(raw.decl)
+				raws[key] = self.unpack_value(raw, symbols.type_of(raw.decl.declare.value)).to.var(raw.decl)
 			elif isinstance(raw.decl.declare, defs.For):
-				raws[key] = symbols.type_of(raw.decl.declare.for_in).to_var(raw.decl)
+				raws[key] = self.unpack_value(raw, symbols.type_of(raw.decl.declare.for_in)).to.var(raw.decl)
 
 		return raws
+
+	def unpack_value(self, var_raw: SymbolRaw, value_raw: SymbolRaw) -> SymbolRaw:
+		"""右辺値の型をアンパックして左辺の変数の型を解決
+
+		Args:
+			var_raw (SymbolRaw): 変数宣言ノード
+			value_raw (SymbolRaw): 変数宣言の右辺値ノード
+		Returns:
+			SymbolRaw: 変数の型
+		"""
+		decl_vars = cast(IDeclaration, var_raw.decl.declare).symbols
+		if len(decl_vars) == 1:
+			return value_raw
+
+		index = decl_vars.index(var_raw.decl)
+		return value_raw.attrs[index]

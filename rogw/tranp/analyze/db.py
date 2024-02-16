@@ -26,7 +26,7 @@ def make_db(currying: Currying, preprocessors: Preprocessors) -> SymbolDB:
 	Returns:
 		SymbolDB: シンボルテーブル
 	"""
-	raws: SymbolRaws = {}
+	raws = SymbolRaws()
 	for proc in preprocessors():
 		invoker = currying(proc, Callable[[SymbolRaws], SymbolRaws])
 		raws = invoker(raws)

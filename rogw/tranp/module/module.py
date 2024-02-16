@@ -1,4 +1,4 @@
-from rogw.tranp.lang.implementation import injectable
+from rogw.tranp.lang.implementation import injectable, override
 from rogw.tranp.module.types import ModulePath
 from rogw.tranp.node.node import Node
 
@@ -31,3 +31,8 @@ class Module:
 	def entrypoint(self) -> Node:
 		"""Node: エントリーポイント"""
 		return self.__entrypoint
+
+	@override
+	def __repr__(self) -> str:
+		"""str: オブジェクトのシリアライズ表現"""
+		return f'<{self.__class__.__name__}: {self.path}>'

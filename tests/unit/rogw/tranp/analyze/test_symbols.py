@@ -140,6 +140,17 @@ class TestSymbols(TestCase):
 		('__main__.AliasCheck.func.d2_in_dsi_in_v', 'int'),
 		('__main__.AliasCheck.func.z2_in_x', 'X'),
 		('__main__.AliasCheck.func.new_z2_in_x', 'X'),
+
+		('__main__.TupleCheck.unpack.for.key0', 'str'),
+		('__main__.TupleCheck.unpack.for.value0', 'int'),
+		('__main__.TupleCheck.unpack.for.value1', 'int'),
+		('__main__.TupleCheck.unpack.for.key1', 'str'),
+		('__main__.TupleCheck.unpack.for.pair0', 'Pair<str, int>'),
+		('__main__.TupleCheck.unpack.for.key10', 'str'),
+		('__main__.TupleCheck.unpack.for.value10', 'DSI=dict<str, int>'),
+		('__main__.TupleCheck.unpack.for.value11', 'DSI=dict<str, int>'),
+		('__main__.TupleCheck.unpack.for.key11', 'str'),
+		('__main__.TupleCheck.unpack.for.pair10', 'Pair<str, DSI=dict<str, int>>'),
 	])
 	def test_from_fullyname(self, fullyname: str, expected: str) -> None:
 		symbols = self.fixture.get(Symbols)

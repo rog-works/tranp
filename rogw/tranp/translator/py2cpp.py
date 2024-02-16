@@ -22,12 +22,69 @@ class Py2Cpp(Procedure[str]):
 		self.symbols = symbols
 		self.view = render
 
+	def c_fullyname_by(self, node: defs.MoveAssign | defs.For, raw: SymbolRaw) -> str:
+		"""C++用のシンボルの完全参照名を取得。型が明示されない場合の補完として利用する
+
+		Args:
+			node (MoveAssign | For): 型推論の対象ノード
+			raw (SymbolRaw): シンボル
+		Returns:
+			str: C++用のシンボルの完全参照名
+		Note:
+			# 生成例
+			'Class' -> 'A::B::Class'
+		"""
+		# シンボルの型のスコープを元に接頭辞を生成
+		remain_scope = raw.types.scope.replace(f'{raw.types.module_path}.', '')
+		remain_elems = DSN.elements(remain_scope)[:-1]
+		fullyname = node.module_path
+		for elem in remain_elems:
+			in_symbol = self.symbols.from_fullyname(DSN.join(fullyname, elem))
+			fullyname = DSN.join(fullyname, in_symbol.types.alias_symbol or in_symbol.types.domain_name)
+
+		prefix = DSN.join(*DSN.elements(DSN.shift(fullyname, 1)), delimiter='::')
+		return DSN.join(prefix, raw.make_shorthand(use_alias=True), delimiter='::')
+
 	def accepted_cvar_value(self, accept_raw: SymbolRaw, value_node: Node, value_raw: SymbolRaw, value_str: str, declared: bool = False) -> str:
+		"""受け入れ出来る形式に入力値を変換
+
+		Args:
+			accept_raw (SymbolRaw): シンボル(受け入れ側)
+			value_raw (SymbolRaw): シンボル(入力側)
+			value_str (str): 入力値
+			declared (bool): True = 変数宣言時
+		Returns:
+			str: 変換後の入力値
+		"""
 		value_on_new = isinstance(value_node, defs.FuncCall) and self.symbols.type_of(value_node.calls).types.is_a(defs.Class)
 		move = CVars.analyze_move(accept_raw, value_raw, value_on_new, declared)
 		if move == CVars.Moves.Deny:
 			raise LogicError(f'Unacceptable value move. accept: {str(accept_raw)}, value: {str(value_raw)}, value_on_new: {value_on_new}, declared: {declared}')
 
+		return self.render_cvar_value(move, value_str)
+
+	def unpacked_cvar_value(self, value_node: Node, value_raw: SymbolRaw, value_str: str, declared: bool = False) -> str:
+		"""受け入れ出来る形式に入力値を変換(アンパック用)
+
+		Args:
+			value_raw (SymbolRaw): シンボル(入力側)
+			value_str (str): 入力値
+			declared (bool): True = 変数宣言時
+		Returns:
+			str: 変換後の入力値
+		Note:
+			受け入れ形式は型推論に任せるため、以下の書式になる想定
+			# 書式
+			`auto& [...${var_names}] = ${value}`
+		"""
+		value_on_new = isinstance(value_node, defs.FuncCall) and self.symbols.type_of(value_node.calls).types.is_a(defs.Class)
+		move = CVars.move_by(cpp.CRef.__name__, CVars.key_from(value_raw), value_on_new, declared)
+		if move == CVars.Moves.Deny:
+			raise LogicError(f'Unacceptable value move. value: {str(value_raw)}, value_on_new: {value_on_new}, declared: {declared}')
+
+		return self.render_cvar_value(move, value_str)
+
+	def render_cvar_value(self, move: 'CVars.Moves', value_str: str) -> str:
 		if move == CVars.Moves.MakeSp:
 			# XXX 関数名(クラス名)と引数を分離。必ず取得できるので警告を抑制(期待値: `Class(a, b, c)`)
 			matches = cast(re.Match, re.fullmatch(r'([^(]+)\((.*)\)', value_str))
@@ -62,8 +119,8 @@ class Py2Cpp(Procedure[str]):
 	def on_for_in(self, node: defs.ForIn, iterates: str) -> str:
 		return iterates
 
-	def on_for(self, node: defs.For, symbol: str, for_in: str, statements: list[str]) -> str:
-		return self.view.render(node.classification, vars={'symbol': symbol, 'iterates': for_in, 'statements': statements})
+	def on_for(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
+		return self.view.render(node.classification, vars={'symbols': symbols, 'iterates': for_in, 'statements': statements})
 
 	def on_catch(self, node: defs.Catch, var_type: str, symbol: str, statements: list[str]) -> str:
 		return self.view.render(node.classification, vars={'var_type': var_type, 'symbol': symbol, 'statements': statements})
@@ -164,28 +221,23 @@ class Py2Cpp(Procedure[str]):
 
 	# Statement - simple
 
-	def on_move_assign(self, node: defs.MoveAssign, receiver: str, value: str) -> str:
-		receiver_raw = self.symbols.type_of(node.receiver)
+	def on_move_assign(self, node: defs.MoveAssign, receivers: list[str], value: str) -> str:
+		if len(receivers) == 1:
+			return self.on_move_assign_single(node, receivers[0], value)
+		else:
+			return self.on_move_assign_unpack(node, receivers, value)
+
+	def on_move_assign_single(self, node: defs.MoveAssign, receiver: str, value: str) -> str:
+		receiver_raw = self.symbols.type_of(node.receivers[0])
 		value_raw = self.symbols.type_of(node.value)
-
-		# 変数宣言を伴う場合は変数の型を取得
 		declared = receiver_raw.decl.declare == node
-		var_type = ''
-		if declared:
-			# フルパスの接頭辞をスコープから取得
-			remain_scope = value_raw.types.scope.replace(f'{value_raw.types.module_path}.', '')
-			remain_elems = DSN.elements(remain_scope)[:-1]
-			fullyname = node.module_path
-			for elem in remain_elems:
-				in_symbol = self.symbols.from_fullyname(DSN.join(fullyname, elem))
-				fullyname = DSN.join(fullyname, in_symbol.types.alias_symbol or in_symbol.types.domain_name)
-
-			# いずれのスコープ上でも参照出来るようにフルパスで指定(例: `Class` -> `A::B::Class`)
-			prefix = DSN.join(*DSN.elements(DSN.shift(fullyname, 1)), delimiter='::')
-			var_type = DSN.join(prefix, value_raw.make_shorthand(use_alias=True), delimiter='::')
-
+		var_type = self.c_fullyname_by(node, value_raw) if declared else ''
 		accepted_value = self.accepted_cvar_value(receiver_raw, node.value, self.symbols.type_of(node.value), value, declared=declared)
 		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': accepted_value})
+
+	def on_move_assign_unpack(self, node: defs.MoveAssign, receivers: list[str], value: str) -> str:
+		accepted_value = self.unpacked_cvar_value(node.value, self.symbols.type_of(node.value), value, declared=True)
+		return self.view.render(f'{node.classification}_unpack', vars={'receivers': receivers, 'value': accepted_value})
 
 	def on_anno_assign(self, node: defs.AnnoAssign, receiver: str, var_type: str, value: str) -> str:
 		accepted_value = self.accepted_cvar_value(self.symbols.type_of(node.receiver), node.value, self.symbols.type_of(node.value), value, declared=True)
@@ -452,6 +504,10 @@ class CVars:
 	def analyze_move(cls, accept: SymbolRaw, value: SymbolRaw, value_on_new: bool, declared: bool) -> Moves:
 		accept_key = cls.key_from(accept)
 		value_key = cls.key_from(value)
+		return cls.move_by(accept_key, value_key, value_on_new, declared)
+
+	@classmethod
+	def move_by(cls, accept_key: str, value_key: str, value_on_new: bool, declared: bool) -> Moves:
 		if cls.is_raw_ref(accept_key) and not declared:
 			return cls.Moves.Deny
 

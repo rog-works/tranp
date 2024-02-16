@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from enum import Enum
-from typing import Any, Iterator, TypeVar, cast
+from typing import Any, Iterator, TypeAlias, TypeVar, cast
 
 from rogw.tranp.errors import LogicError
 from rogw.tranp.lang.implementation import implements, injectable, override
@@ -9,6 +9,13 @@ from rogw.tranp.node.node import Node
 
 T_Raw = TypeVar('T_Raw', bound='SymbolRaw')
 T_Sym = TypeVar('T_Sym', bound='Symbol')
+
+ImportOrigins: TypeAlias = 'SymbolOrigin | SymbolVar'
+ClassOrigins: TypeAlias = 'SymbolOrigin | SymbolImport'
+VarOrigins: TypeAlias = 'SymbolOrigin | SymbolImport | SymbolClass | SymbolVar | SymbolGeneric | SymbolLiteral | SymbolReference'
+GenericOrigins: TypeAlias = 'SymbolOrigin | SymbolImport | SymbolClass | SymbolVar | SymbolGeneric'
+RefOrigins: TypeAlias = 'SymbolOrigin | SymbolImport | SymbolClass | SymbolVar | SymbolGeneric | SymbolLiteral'
+LiteralOrigins: TypeAlias = 'SymbolClass'
 
 
 class Roles(Enum):
@@ -332,7 +339,7 @@ class SymbolRaw(metaclass=ABCMeta):
 
 
 class SymbolOrigin(SymbolRaw):
-	"""シンボル(オリジナル)"""
+	"""シンボル(クラス定義のオリジナル)"""
 
 	@injectable
 	def __init__(self, types: defs.ClassDef) -> None:
@@ -532,7 +539,15 @@ class Symbol(SymbolRaw):
 
 
 class SymbolImport(Symbol):
-	def __init__(self, origin: 'SymbolOrigin | SymbolVar', via: defs.Node) -> None:
+	"""シンボル(インポート)"""
+
+	def __init__(self, origin: ImportOrigins, via: defs.Node) -> None:
+		"""インスタンスを生成
+
+		Args:
+			origin (SymbolOrigin | SymbolVar): スタックシンボル
+			via (Node): 参照元のノード
+		"""
 		super().__init__(origin)
 		self._via = via
 
@@ -565,7 +580,15 @@ class SymbolImport(Symbol):
 
 
 class SymbolClass(Symbol):
-	def __init__(self, origin: 'SymbolOrigin | SymbolImport', decl: defs.ClassDef) -> None:
+	"""シンボル(クラス定義)"""
+
+	def __init__(self, origin: ClassOrigins, decl: defs.ClassDef) -> None:
+		"""インスタンスを生成
+
+		Args:
+			origin (SymbolOrigin | SymbolImport): スタックシンボル
+			via (Node): 参照元のノード
+		"""
 		super().__init__(origin)
 		self._decl = decl
 
@@ -592,7 +615,7 @@ class SymbolClass(Symbol):
 
 
 class SymbolVar(Symbol):
-	def __init__(self, origin: 'SymbolOrigin | SymbolImport | SymbolClass | SymbolVar | SymbolGeneric | SymbolLiteral | SymbolReference', decl: defs.DeclAll) -> None:
+	def __init__(self, origin: VarOrigins, decl: defs.DeclAll) -> None:
 		super().__init__(origin)
 		self._decl = decl
 
@@ -619,7 +642,13 @@ class SymbolVar(Symbol):
 
 
 class SymbolGeneric(Symbol):
-	def __init__(self, origin: 'SymbolOrigin | SymbolImport | SymbolClass | SymbolVar | SymbolGeneric', via: defs.Type) -> None:
+	def __init__(self, origin: GenericOrigins, via: defs.Type) -> None:
+		"""インスタンスを生成
+
+		Args:
+			origin (SymbolOrigin | SymbolImport): スタックシンボル
+			via (Node): 参照元のノード
+		"""
 		super().__init__(origin)
 		self._via = via
 
@@ -646,7 +675,13 @@ class SymbolGeneric(Symbol):
 
 
 class SymbolLiteral(Symbol):
-	def __init__(self, origin: SymbolClass, via: defs.Literal) -> None:
+	def __init__(self, origin: LiteralOrigins, via: defs.Literal) -> None:
+		"""インスタンスを生成
+
+		Args:
+			origin (SymbolOrigin | SymbolImport): スタックシンボル
+			via (Node): 参照元のノード
+		"""
 		super().__init__(origin)
 		self._via = via
 
@@ -673,7 +708,13 @@ class SymbolLiteral(Symbol):
 
 
 class SymbolReference(Symbol):
-	def __init__(self, origin: SymbolOrigin | SymbolImport | SymbolClass | SymbolVar | SymbolGeneric | SymbolLiteral, via: defs.Node, context: SymbolRaw | None = None) -> None:
+	def __init__(self, origin: RefOrigins, via: defs.Node, context: SymbolRaw | None = None) -> None:
+		"""インスタンスを生成
+
+		Args:
+			origin (RefOrigins): スタックシンボル
+			via (Node): 参照元のノード
+		"""
 		super().__init__(origin)
 		self._via = via
 		self._context = context
@@ -715,26 +756,76 @@ class SymbolReference(Symbol):
 
 
 class SymbolWrapper:
+	"""シンボルラッパーファクトリー"""
+
 	def __init__(self, raw: SymbolRaw) -> None:
+		"""インスタンスを生成
+
+		Args:
+			raw (SymbolRaw): シンボル
+		"""
 		self._raw = raw
 
 	def imports(self, via: defs.Import) -> SymbolImport:
-		return SymbolImport(self._raw.as_a(SymbolOrigin | SymbolVar), via)
+		"""ラップしたシンボルを生成(インポートノード用)
+
+		Args:
+			via (Import): インポートノード
+		Returns:
+			SymbolImport: シンボル
+		"""
+		return SymbolImport(self._raw.as_a(ImportOrigins), via)
 
 	def types(self, decl: defs.ClassDef) -> SymbolClass:
-		return SymbolClass(self._raw.one_of(SymbolOrigin | SymbolImport), decl)
+		"""ラップしたシンボルを生成(クラス定義ノード用)
+
+		Args:
+			decl (ClassDef): クラス定義ノード
+		Returns:
+			SymbolClass: シンボル
+		"""
+		return SymbolClass(self._raw.one_of(ClassOrigins), decl)
 
 	def var(self, decl: defs.DeclAll) -> SymbolVar:
-		return SymbolVar(self._raw.one_of(SymbolOrigin | SymbolImport | SymbolClass | SymbolVar | SymbolGeneric | SymbolLiteral | SymbolReference), decl)
+		"""ラップしたシンボルを生成(変数宣言ノード用)
+
+		Args:
+			decl (ClassDef): 変数宣言ノード
+		Returns:
+			SymbolVar: シンボル
+		"""
+		return SymbolVar(self._raw.one_of(VarOrigins), decl)
 
 	def generic(self, via: defs.Type) -> SymbolGeneric:
-		return SymbolGeneric(self._raw.one_of(SymbolOrigin | SymbolImport | SymbolClass | SymbolVar | SymbolGeneric), via)
+		"""ラップしたシンボルを生成(タイプノード用)
+
+		Args:
+			via (Type): タイプノード
+		Returns:
+			SymbolGeneric: シンボル
+		"""
+		return SymbolGeneric(self._raw.one_of(GenericOrigins), via)
 
 	def literal(self, via: defs.Literal) -> SymbolLiteral:
-		return SymbolLiteral(self._raw.one_of(SymbolClass), via)
+		"""ラップしたシンボルを生成(リテラルノード用)
 
-	def ref(self, via: defs.Node, context: SymbolRaw | None = None) -> SymbolReference:
-		return SymbolReference(self._raw.one_of(SymbolOrigin | SymbolImport | SymbolClass | SymbolVar | SymbolGeneric | SymbolLiteral), via, context)
+		Args:
+			via (Literal): リテラルノード
+		Returns:
+			SymbolLiteral: シンボル
+		"""
+		return SymbolLiteral(self._raw.one_of(LiteralOrigins), via)
+
+	def ref(self, via: defs.Reference | defs.Indexer, context: SymbolRaw | None = None) -> SymbolReference:
+		"""ラップしたシンボルを生成(参照ノード用)
+
+		Args:
+			via (Reference | Indexer): 参照系ノード
+			context (SymbolRaw): コンテキストのシンボル
+		Returns:
+			SymbolReference: シンボル
+		"""
+		return SymbolReference(self._raw.one_of(RefOrigins), via, context)
 
 
 # class Symbol_(Symbol):

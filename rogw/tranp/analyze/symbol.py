@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from enum import Enum
-from typing import Any, Iterator, TypeAlias, TypeVar, cast
+from typing import Any, Iterator, TypeAlias, TypeVar
 
 from rogw.tranp.errors import LogicError
 from rogw.tranp.lang.implementation import implements, injectable, override
@@ -165,7 +165,7 @@ class SymbolRaw(metaclass=ABCMeta):
 		Returns:
 			SymbolRaw: コンテキストのシンボル
 		Raises:
-			LogicError: コンテキストが無いシンボルで使用
+			LogicError: コンテキストが無い状態で使用
 		"""
 		raise LogicError(f'Context is null. symbol: {str(self)}, fullyname: {self.ref_fullyname}')
 
@@ -203,7 +203,7 @@ class SymbolRaw(metaclass=ABCMeta):
 		Returns:
 			bool: True = 同じ
 		Raises:
-			ValueError: Node以外のオブジェクトを指定
+			ValueError: 継承関係の無いオブジェクトを指定
 		"""
 		if other is None:
 			return False
@@ -248,8 +248,8 @@ class SymbolRaw(metaclass=ABCMeta):
 			# 書式
 			* types=AltClass: ${alias}=${actual}
 			* types=Function: ${domain_name}(...${arguments}) -> ${return}
-			* role=Origin: ${domain_name}
-			* その他: ${domain_name}<...${attributes}>
+			* role=Var/Generic/Literal/Reference: ${domain_name}<...${attributes}>
+			* その他: ${domain_name}
 		"""
 		domain_name = self.types.domain_name
 		domain_name = self.types.alias_symbol or domain_name if use_alias else domain_name
@@ -277,13 +277,13 @@ class SymbolRaw(metaclass=ABCMeta):
 			yield curr.via or curr.decl
 			curr = curr.origin
 
-	def extends(self, *attrs: 'SymbolRaw') -> 'SymbolRaw':
-		"""シンボルが保持する型を拡張情報として属性に取り込む
+	def extends(self: T_Raw, *attrs: 'SymbolRaw') -> T_Raw:
+		"""シンボルが保有する型を拡張情報として属性に取り込む
 
 		Args:
 			*attrs (SymbolRaw): 属性シンボルリスト
 		Returns:
-			SymbolRaw: インスタンス
+			T_Raw: インスタンス
 		Raises:
 			LogicError: 実体の無いインスタンスに実行
 			LogicError: 拡張済みのインスタンスに再度実行
@@ -291,28 +291,13 @@ class SymbolRaw(metaclass=ABCMeta):
 		raise LogicError(f'Not allowd extends. symbol: {self.types.fullyname}')
 
 	@property
-	def to(self) -> 'SymbolWrapper':  # XXX 前方参照
-		"""シンボルラッパーを生成
+	def to(self) -> 'SymbolWrapper':
+		"""ラッパーファクトリーを生成
 
 		Returns:
-			SymbolWrapper: シンボルラッパー
+			SymbolWrapper: ラッパーファクトリー
 		"""
 		return SymbolWrapper(self)
-
-	def as_a(self, expect: type[T_Raw]) -> T_Raw:
-		"""期待する型と同種ならキャスト
-
-		Args:
-			expect (type[T_Raw]): 期待する型
-		Returns:
-			T_Raw: インスタンス
-		Raises:
-			LogidError: 継承関係が無い型を指定
-		"""
-		if isinstance(self, expect):
-			return self
-
-		raise LogicError(f'Not allowed conversion. self: {str(self)}, from: {self.__class__.__name__}, to: {expect.__name__}')
 
 	def one_of(self, expects: type[T_Raw]) -> T_Raw:
 		"""期待する型と同種ならキャスト
@@ -411,7 +396,11 @@ class Symbol(SymbolRaw):
 	"""シンボル(基底)"""
 
 	def __init__(self, origin: 'SymbolOrigin | Symbol') -> None:
-		"""インスタンスを生成"""
+		"""インスタンスを生成
+
+		Args:
+			origin (SymbolOrigin | Symbol): スタックシンボル
+		"""
 		super().__init__()
 		self.__raws = origin._raws
 		self._origin = origin
@@ -706,6 +695,7 @@ class SymbolReference(Symbol):
 		Args:
 			origin (RefOrigins): スタックシンボル
 			via (Node): 参照元のノード
+			context (SymbolRaw | None): コンテキストのシンボル (default = None)
 		"""
 		super().__init__(origin)
 		self._via = via
@@ -774,7 +764,7 @@ class SymbolWrapper:
 		Returns:
 			SymbolImport: シンボル
 		"""
-		return SymbolImport(self._raw.as_a(ImportOrigins), via)
+		return SymbolImport(self._raw.one_of(ImportOrigins), via)
 
 	def types(self, decl: defs.ClassDef) -> SymbolClass:
 		"""ラップしたシンボルを生成(クラス定義ノード用)
@@ -821,7 +811,7 @@ class SymbolWrapper:
 
 		Args:
 			via (Reference | Indexer): 参照系ノード
-			context (SymbolRaw): コンテキストのシンボル
+			context (SymbolRaw | None): コンテキストのシンボル (default = None)
 		Returns:
 			SymbolReference: シンボル
 		"""

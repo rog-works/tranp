@@ -1,11 +1,12 @@
 from typing import Generic, TypeVar
 
+from rogw.tranp.ast.dsn import DSN
 from rogw.tranp.compatible.python.embed import __actual__, __alias__
 from rogw.tranp.lang.implementation import implements, override
 from rogw.tranp.lang.sequence import last_index_of, flatten
 from rogw.tranp.node.definition.accessor import to_access
 from rogw.tranp.node.definition.element import Decorator, Parameter
-from rogw.tranp.node.definition.literal import Comment, Pair, String
+from rogw.tranp.node.definition.literal import Comment, String
 from rogw.tranp.node.definition.primary import CustomType, DeclClassVar, DeclLocalVar, Declable, InheritArgument, DeclThisParam, DeclThisVar, Type, TypesName
 from rogw.tranp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from rogw.tranp.node.definition.terminal import Empty
@@ -225,8 +226,29 @@ class CompFor(Node, IDeclaration):
 		return self.for_in.iterates
 
 
-class Comprehension(Node):
+class Comprehension(Node, IDomain, IScope):
 	"""Note: XXX 属するカテゴリーは何が最適か検討。無名関数に近いのでcompoundのままでも良い？"""
+
+	@property
+	@override
+	def domain_name(self) -> str:
+		return DSN.identify(self.classification, self._id())
+
+	@property
+	@override
+	def fullyname(self) -> str:
+		"""Note: XXX スコープが自身を表すためスコープをそのまま返却"""
+		return self.scope
+
+	@property
+	@implements
+	def scope_part(self) -> str:
+		return self.domain_name
+
+	@property
+	@implements
+	def namespace_part(self) -> str:
+		return self.domain_name
 
 	@property
 	@Meta.embed(Node, expandable)

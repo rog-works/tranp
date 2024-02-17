@@ -155,8 +155,12 @@ class TestSymbols(TestCase):
 		('__main__.TupleCheck.unpack_assign.a', 'str'),  # XXX Pythonのシンタックス上は不正。一旦保留
 		('__main__.TupleCheck.unpack_assign.b', 'int'),  # XXX 〃
 
-		('__main__.Comp.list_comp.values', 'list<int>'),
-		('__main__.Comp.dict_comp.kvs', 'dict<str, int>'),
+		('__main__.Comp.list_comp.values0', 'list<int>'),
+		('__main__.Comp.list_comp.values1', 'list<int>'),
+		('__main__.Comp.list_comp.strs', 'list<str>'),
+
+		('__main__.Comp.dict_comp.kvs0', 'dict<str, int>'),
+		('__main__.Comp.dict_comp.kvs1', 'dict<str, int>'),
 	])
 	def test_from_fullyname(self, fullyname: str, expected: str) -> None:
 		symbols = self.fixture.get(Symbols)

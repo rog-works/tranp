@@ -112,3 +112,6 @@ class TupleCheck:
 class Comp:
 	def list_comp(self) -> None:
 		values = [value for value in [1, 2, 3]]
+
+	def dict_comp(self) -> None:
+		kvs = {key: index for index, key in enumerate(['a', 'b', 'c'])}

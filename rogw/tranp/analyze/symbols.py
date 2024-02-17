@@ -119,6 +119,8 @@ class Symbols:
 			return self.__resolve_procedural(node)
 		elif isinstance(node, (defs.For, defs.Catch)):
 			return self.__from_flow(node)
+		elif isinstance(node, (defs.Comprehension, defs.CompFor)):
+			return self.__from_comprehension(node)
 		else:
 			return self.__resolve_procedural(node)
 
@@ -153,6 +155,21 @@ class Symbols:
 		else:
 			# defs.Catch
 			return self.resolve(node.var_type)
+
+	def __from_comprehension(self, node: defs.Comprehension | defs.CompFor) -> SymbolRaw:
+		"""リスト内包表記関連ノードからシンボルを解決
+
+		Args:
+			node (Comprehension | CompFor): リスト内包表記関連ノード
+		Returns:
+			SymbolRaw: シンボル
+		Raises:
+			NotFoundError: シンボルが見つからない
+		"""
+		if isinstance(node, defs.Comprehension):
+			return self.__resolve_procedural(node.projection)
+		else:
+			return self.__resolve_procedural(node.for_in)
 
 	def resolve(self, symbolic: defs.Symbolic, prop_name: str = '') -> SymbolRaw:
 		"""シンボルテーブルからシンボルを解決

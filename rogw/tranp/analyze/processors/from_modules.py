@@ -174,7 +174,7 @@ class FromModules:
 				return var.declare.var_type.as_a(defs.Type)
 		elif isinstance(var.declare, (defs.AnnoAssign, defs.Catch)):
 			return var.declare.var_type
-		elif isinstance(var.declare, (defs.MoveAssign, defs.For)):
+		elif isinstance(var.declare, (defs.MoveAssign, defs.For, defs.CompFor)):
 			# 型指定が無いため全てUnknown
 			return None
 

@@ -11,6 +11,7 @@ import rogw.tranp.compatible.cpp.object as cpp
 import rogw.tranp.compatible.python.embed as __alias__
 from rogw.tranp.errors import LogicError
 import rogw.tranp.node.definition as defs
+from rogw.tranp.node.definition.statement_compound import ClassSymbolMaker
 from rogw.tranp.node.node import Node
 from rogw.tranp.translator.option import TranslatorOptions
 from rogw.tranp.view.render import Renderer
@@ -22,32 +23,19 @@ class Py2Cpp(Procedure[str]):
 		self.symbols = symbols
 		self.view = render
 
-	def c_fullyname_by(self, node: defs.MoveAssign | defs.For | defs.Comprehension, raw: SymbolRaw) -> str:
+	def c_fullyname_by(self, raw: SymbolRaw) -> str:
 		"""C++用のシンボルの完全参照名を取得。型が明示されない場合の補完として利用する
 
 		Args:
-			node (MoveAssign | For | Comprehension): 型推論の対象ノード
 			raw (SymbolRaw): シンボル
 		Returns:
 			str: C++用のシンボルの完全参照名
 		Note:
 			# 生成例
-			'Class' -> 'A::B::Class'
-			# 課題
-			* FIXME 属性を持つシンボルを再帰的に処理していないため不完全
-				* 現状: 'A<B, C>' -> 'NS::A<B, C>'
-				* 理想: 'A<B, C>' -> 'NS::A<NS::B, NS::C>'
+			'Class' -> 'NS::Class'
+			'dict<A, B>' -> 'dict<NS::A, NS::B>'
 		"""
-		# シンボルの型のスコープを元に接頭辞を生成
-		remain_scope = raw.types.scope.replace(f'{raw.types.module_path}.', '')
-		remain_elems = DSN.elements(remain_scope)[:-1]
-		fullyname = node.module_path
-		for elem in remain_elems:
-			in_symbol = self.symbols.from_fullyname(DSN.join(fullyname, elem))
-			fullyname = DSN.join(fullyname, in_symbol.types.alias_symbol or in_symbol.types.domain_name)
-
-		prefix = DSN.join(*DSN.elements(DSN.shift(fullyname, 1)), delimiter='::')
-		return DSN.join(prefix, raw.make_shorthand(use_alias=True), delimiter='::')
+		return DSN.join(*DSN.elements(raw.make_shorthand(use_alias=True, path_method='namespace')), delimiter='::')
 
 	def accepted_cvar_value(self, accept_raw: SymbolRaw, value_node: Node, value_raw: SymbolRaw, value_str: str, declared: bool = False) -> str:
 		"""受け入れ出来る形式に入力値を変換
@@ -137,14 +125,14 @@ class Py2Cpp(Procedure[str]):
 
 	def on_list_comp(self, node: defs.ListComp, projection: str, fors: list[str], condition: str) -> str:
 		projection_type_raw = self.symbols.type_of(node.projection)
-		projection_type = self.c_fullyname_by(node, projection_type_raw)
+		projection_type = self.c_fullyname_by(projection_type_raw)
 		comp_vars = {'projection': projection, 'comp_for': fors[0], 'condition': condition, 'projection_types': [projection_type]}
 		return self.view.render(node.classification, vars=comp_vars)
 
 	def on_dict_comp(self, node: defs.DictComp, projection: str, fors: list[str], condition: str) -> str:
 		projection_type_raw = self.symbols.type_of(node.projection)
-		projection_type_key = self.c_fullyname_by(node, projection_type_raw.attrs[0])
-		projection_type_value = self.c_fullyname_by(node, projection_type_raw.attrs[1])
+		projection_type_key = self.c_fullyname_by(projection_type_raw.attrs[0])
+		projection_type_value = self.c_fullyname_by(projection_type_raw.attrs[1])
 		comp_vars = {'projection': projection, 'comp_for': fors[0], 'condition': condition, 'projection_types': [projection_type_key, projection_type_value]}
 		return self.view.render(node.classification, vars=comp_vars)
 
@@ -188,7 +176,7 @@ class Py2Cpp(Procedure[str]):
 			this_var_name = this_var.tokens_without_this
 			initializers.append({'symbol': this_var_name, 'value': initialize_value})
 
-		class_name = node.class_types.alias_symbol or node.class_types.symbol.tokens
+		class_name = ClassSymbolMaker.domain_name(node.class_types, use_alias=True)
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'comment': comment, 'statements': normal_statements}
 		method_vars = {'access': node.access, 'class_symbol': class_name}
 		constructor_vars = {'initializers': initializers, 'super_initializer': super_initializer}
@@ -251,7 +239,7 @@ class Py2Cpp(Procedure[str]):
 		receiver_raw = self.symbols.type_of(node.receivers[0])
 		value_raw = self.symbols.type_of(node.value)
 		declared = receiver_raw.decl.declare == node
-		var_type = self.c_fullyname_by(node, value_raw) if declared else ''
+		var_type = self.c_fullyname_by(value_raw) if declared else ''
 		accepted_value = self.accepted_cvar_value(receiver_raw, node.value, self.symbols.type_of(node.value), value, declared=declared)
 		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': accepted_value})
 
@@ -306,7 +294,7 @@ class Py2Cpp(Procedure[str]):
 		return node.tokens
 
 	def on_types_name(self, node: defs.TypesName) -> str:
-		return node.class_types.as_a(defs.ClassDef).alias_symbol or node.tokens
+		return ClassSymbolMaker.domain_name(node.class_types.as_a(defs.ClassDef), use_alias=True)
 
 	def on_import_name(self, node: defs.ImportName) -> str:
 		return node.tokens
@@ -315,8 +303,8 @@ class Py2Cpp(Procedure[str]):
 		receiver_symbol = self.symbols.type_of(node.receiver)
 		prop_symbol = self.symbols.type_of_property(receiver_symbol.types, node.prop)
 		prop = node.prop.tokens
-		if prop_symbol.decl.is_a(defs.ClassDef):
-			prop = prop_symbol.types.alias_symbol or prop
+		if isinstance(prop_symbol.decl, defs.ClassDef):
+			prop = ClassSymbolMaker.domain_name(prop_symbol.types, use_alias=True)
 
 		def is_cvar_receiver() -> bool:
 			return len(receiver_symbol.attrs) > 0 and receiver_symbol.attrs[0].types.symbol.tokens in CVars.keys()
@@ -350,8 +338,8 @@ class Py2Cpp(Procedure[str]):
 
 	def on_variable(self, node: defs.Variable) -> str:
 		symbol = self.symbols.type_of(node)
-		if symbol.decl.is_a(defs.ClassDef):
-			return symbol.types.alias_symbol or node.tokens
+		if isinstance(symbol.decl, defs.ClassDef):
+			return ClassSymbolMaker.domain_name(symbol.types, use_alias=True)
 		else:
 			return node.tokens
 
@@ -365,12 +353,12 @@ class Py2Cpp(Procedure[str]):
 	def on_relay_of_type(self, node: defs.RelayOfType, receiver: str) -> str:
 		receiver_symbol = self.symbols.type_of(node.receiver)
 		prop_symbol = self.symbols.type_of_property(receiver_symbol.types, node.prop)
-		type_name = prop_symbol.types.alias_symbol or node.prop.tokens
+		type_name = ClassSymbolMaker.domain_name(prop_symbol.types, use_alias=True)
 		return self.view.render(node.classification, vars={'receiver': receiver, 'type_name': type_name})
 
 	def on_var_of_type(self, node: defs.VarOfType) -> str:
 		symbol = self.symbols.type_of(node)
-		type_name = symbol.types.alias_symbol or node.type_name.tokens
+		type_name = ClassSymbolMaker.domain_name(symbol.types, use_alias=True)
 		return self.view.render(node.classification, vars={'type_name': type_name})
 
 	def on_list_type(self, node: defs.ListType, type_name: str, value_type: str) -> str:

@@ -5,6 +5,7 @@ from typing import Any, Iterator, TypeAlias, TypeVar
 from rogw.tranp.errors import LogicError
 from rogw.tranp.lang.implementation import implements, injectable, override
 import rogw.tranp.node.definition as defs
+from rogw.tranp.node.definition.statement_compound import ClassSymbolMaker
 from rogw.tranp.node.node import Node
 
 T_Raw = TypeVar('T_Raw', bound='SymbolRaw')
@@ -237,11 +238,12 @@ class SymbolRaw(metaclass=ABCMeta):
 		"""str: オブジェクトの短縮表記"""
 		return self.make_shorthand()
 
-	def make_shorthand(self, use_alias: bool = False) -> str:
+	def make_shorthand(self, use_alias: bool = False, path_method: str = 'domain') -> str:
 		"""オブジェクトの短縮表記を生成
 
 		Args:
-			use_alias (bool): True = エイリアスの名前を優先(default = False)
+			use_alias (bool): True = エイリアスの名前を優先 (default = False)
+			path_method (str): 参照名の種別 (default = 'domain')
 		Returns:
 			str: 短縮表記
 		Note:
@@ -251,20 +253,19 @@ class SymbolRaw(metaclass=ABCMeta):
 			* role=Var/Generic/Literal/Reference: ${domain_name}<...${attributes}>
 			* その他: ${domain_name}
 		"""
-		domain_name = self.types.domain_name
-		domain_name = self.types.alias_symbol or domain_name if use_alias else domain_name
+		symbol_name = ClassSymbolMaker.symbol_name(self.types, use_alias, path_method)
 		if len(self.attrs) > 0:
 			if self.types.is_a(defs.AltClass):
-				attrs = [attr.make_shorthand(use_alias) for attr in self.attrs]
-				return f'{domain_name}={attrs[0]}'
+				attrs = [attr.make_shorthand(use_alias, path_method) for attr in self.attrs]
+				return f'{symbol_name}={attrs[0]}'
 			elif self.types.is_a(defs.Function):
-				attrs = [attr.make_shorthand(use_alias) for attr in self.attrs]
-				return f'{domain_name}({", ".join(attrs[:-1])}) -> {attrs[-1]}'
+				attrs = [attr.make_shorthand(use_alias, path_method) for attr in self.attrs]
+				return f'{symbol_name}({", ".join(attrs[:-1])}) -> {attrs[-1]}'
 			elif self.role in [Roles.Var, Roles.Generic, Roles.Literal, Roles.Reference]:
-				attrs = [attr.make_shorthand(use_alias) for attr in self.attrs]
-				return f'{domain_name}<{", ".join(attrs)}>'
+				attrs = [attr.make_shorthand(use_alias, path_method) for attr in self.attrs]
+				return f'{symbol_name}<{", ".join(attrs)}>'
 
-		return domain_name
+		return symbol_name
 	
 	def each_via(self) -> Iterator[Node]:
 		"""参照元を辿るイテレーターを取得

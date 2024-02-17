@@ -1,6 +1,6 @@
 from rogw.tranp.lang.implementation import override
-from rogw.tranp.node.definition.primary import DeclLocalVar, Declable
-from rogw.tranp.node.definition.statement_compound import collect_decl_vars
+from rogw.tranp.node.definition.primary import DeclLocalVar
+from rogw.tranp.node.definition.statement_compound import VarsCollector
 from rogw.tranp.node.embed import Meta, accept_tags, expandable
 from rogw.tranp.node.node import Node
 
@@ -34,4 +34,4 @@ class Entrypoint(Node):
 
 	@property
 	def decl_vars(self) -> list[DeclLocalVar]:
-		return list(collect_decl_vars(self, DeclLocalVar).values())
+		return list(VarsCollector.collect(self, DeclLocalVar).values())

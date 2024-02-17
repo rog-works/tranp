@@ -379,7 +379,18 @@ class ClassDef(Node, IDomain, IScope, IDeclaration, ISymbol):
 		return candidates[0].arguments[0].value.as_a(String).plain
 
 	def _decl_vars_with(self, allow: type[T_Declable]) -> dict[str, T_Declable]:
-		return collect_decl_vars(self, allow)
+		return VarsCollector.collect(self, allow)
+
+	def ancestor_classes(self) -> list['ClassDef']:
+		"""Note: XXX 振る舞いとして必然性のないメソッド。ユースケースはClassSymbolMakerとの連携のみ"""
+		ancestors: list[ClassDef] = []
+		ancestor = self.parent
+		while 'class_def' in ancestor._full_path.de_identify().elements:
+			found = ancestor._ancestor('class_def').as_a(ClassDef)
+			ancestors.append(found)
+			ancestor = found.parent
+
+		return ancestors
 
 
 @Meta.embed(Node, accept_tags('function_def'))
@@ -633,42 +644,69 @@ class TemplateClass(ClassDef):
 		return self._at(2).one_of(Type | Empty)
 
 
-def collect_decl_vars(block: StatementBlock, allow: type[T_Declable]) -> dict[str, T_Declable]:
-	def merged_by(decl_vars: dict[str, T_Declable], declare: IDeclaration) -> dict[str, T_Declable]:
-		# XXX 共通化の方法を検討 @see Function.decl_vars
-		allow_vars = {DSN.join(symbol.namespace, symbol.domain_name): symbol for symbol in declare.symbols if isinstance(symbol, allow)}
-		return merged(decl_vars, allow_vars)
-
-	def merged(decl_vars: dict[str, T_Declable], allow_vars: dict[str, T_Declable]) -> dict[str, T_Declable]:
-		return {**decl_vars, **{name: symbol for name, symbol in allow_vars.items() if name not in decl_vars}}
-
-	def expand_comp_decl_vars(value_node: Node) -> dict[str, T_Declable]:
+class VarsCollector:
+	@classmethod
+	def collect(cls, block: StatementBlock, allow: type[T_Declable]) -> dict[str, T_Declable]:
 		decl_vars: dict[str, T_Declable] = {}
-		for in_node in value_node.calculated():
-			if isinstance(in_node, CompFor):
-				decl_vars = merged_by(decl_vars, in_node)
+		for node in block.statements:
+			if isinstance(node, MoveAssign):
+				decl_vars = cls._merged(decl_vars, cls._expand_comp_decl_vars(node.value, allow))
+			elif isinstance(node, For):
+				decl_vars = cls._merged(decl_vars, cls._expand_comp_decl_vars(node.iterates, allow))
+
+			if isinstance(node, (AnnoAssign, MoveAssign)):
+				decl_vars = cls._merged_by(decl_vars, node, allow)
+			elif isinstance(node, For):
+				decl_vars = cls._merged_by(decl_vars, node, allow)
+			elif isinstance(node, Try):
+				for catch in node.catches:
+					decl_vars = cls._merged_by(decl_vars, catch, allow)
+
+			if isinstance(node, (If, Try)):
+				for in_block in node.having_blocks:
+					decl_vars = cls._merged(decl_vars, cls.collect(in_block, allow))
+			elif isinstance(node, (While, For)):
+				decl_vars = cls._merged(decl_vars, cls.collect(node.block, allow))
 
 		return decl_vars
 
-	decl_vars: dict[str, T_Declable] = {}
-	for node in block.statements:
-		if isinstance(node, MoveAssign):
-			decl_vars = merged(decl_vars, expand_comp_decl_vars(node.value))
-		elif isinstance(node, For):
-			decl_vars = merged(decl_vars, expand_comp_decl_vars(node.iterates))
+	@classmethod
+	def _merged_by(cls, decl_vars: dict[str, T_Declable], declare: IDeclaration, allow: type[T_Declable]) -> dict[str, T_Declable]:
+		# XXX 共通化の方法を検討 @see Function.decl_vars
+		allow_vars = {DSN.join(symbol.namespace, symbol.domain_name): symbol for symbol in declare.symbols if isinstance(symbol, allow)}
+		return cls._merged(decl_vars, allow_vars)
 
-		if isinstance(node, (AnnoAssign, MoveAssign)):
-			decl_vars = merged_by(decl_vars, node)
-		elif isinstance(node, For):
-			decl_vars = merged_by(decl_vars, node)
-		elif isinstance(node, Try):
-			for catch in node.catches:
-				decl_vars = merged_by(decl_vars, catch)
+	@classmethod
+	def _merged(cls, decl_vars: dict[str, T_Declable], allow_vars: dict[str, T_Declable]) -> dict[str, T_Declable]:
+		return {**decl_vars, **{name: symbol for name, symbol in allow_vars.items() if name not in decl_vars}}
 
-		if isinstance(node, (If, Try)):
-			for in_block in node.having_blocks:
-				decl_vars = merged(decl_vars, collect_decl_vars(in_block, allow))
-		elif isinstance(node, (While, For)):
-			decl_vars = merged(decl_vars, collect_decl_vars(node.block, allow))
+	@classmethod
+	def _expand_comp_decl_vars(cls, value_node: Node, allow: type[T_Declable]) -> dict[str, T_Declable]:
+		decl_vars: dict[str, T_Declable] = {}
+		for in_node in value_node.calculated():
+			if isinstance(in_node, CompFor):
+				decl_vars = cls._merged_by(decl_vars, in_node, allow)
 
-	return decl_vars
+		return decl_vars
+
+
+class ClassSymbolMaker:
+	@classmethod
+	def symbol_name(cls, types: ClassDef, use_alias: bool = False, path_method: str = 'domain') -> str:
+		if path_method == 'fully':
+			return DSN.join(types.module_path, cls._make_namespace(types, use_alias), cls.domain_name(types, use_alias))
+		elif path_method == 'namespace':
+			return DSN.join(cls._make_namespace(types, use_alias), cls.domain_name(types, use_alias))
+		else:
+			return cls.domain_name(types, use_alias)
+
+	@classmethod
+	def domain_name(cls, types: ClassDef, use_alias: bool = False) -> str:
+		return types.alias_symbol or types.domain_name if use_alias else types.domain_name
+
+	@classmethod
+	def _make_namespace(cls, types: ClassDef, use_alias: bool = False) -> str:
+		if not use_alias:
+			return DSN.shift(DSN.relativefy(types.namespace, types.module_path), -1)
+
+		return DSN.join(*[cls.domain_name(ancestor, use_alias=True) for ancestor in types.ancestor_classes()])

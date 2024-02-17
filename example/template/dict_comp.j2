@@ -1,13 +1,13 @@
 [&]() -> std::map<{{ projection_types[0] }}, {{ projection_types[1] }}> {
-	std::map<{{ projection_types[0] }}, {{ projection_types[1] }}> ret;
+	std::map<{{ projection_types[0] }}, {{ projection_types[1] }}> __ret;
 	for ({{ comp_for }}) {
 		{%- if condition %}
-			if ({{ condition }}) {
-				ret.emplace({{ projection }});
-			}
+		if ({{ condition }}) {
+			__ret.emplace({{ projection }});
+		}
 		{%- else %}
-			ret.emplace({{ projection }});
+		__ret.emplace({{ projection }});
 		{%- endif %}
 	}
-	return ret;
+	return __ret;
 }()

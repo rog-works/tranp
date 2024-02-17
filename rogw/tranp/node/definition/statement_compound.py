@@ -226,62 +226,38 @@ class CompFor(Node, IDeclaration):
 
 
 class Comprehension(Node):
-	@property
-	def fors(self) -> list[CompFor]:
-		return [node.as_a(CompFor) for node in self._children('comprehension.comp_fors')]
-
-	@property
-	def condition(self) -> Node | Empty:
-		node = self._children('comprehension')[2]
-		return node if isinstance(node, Empty) else node
-
-
-@Meta.embed(Node, accept_tags('list_comp'))
-class ListComp(Comprehension):
-	"""Note: XXX カテゴリーはExpressionなので、定義位置を再検討"""
+	"""Note: XXX 属するカテゴリーは何が最適か検討。無名関数に近いのでcompoundのままでも良い？"""
 
 	@property
 	@Meta.embed(Node, expandable)
-	def projection_value(self) -> Node:
+	def projection(self) -> Node:
 		return self._children('comprehension')[0]
 
 	@property
 	@override
 	@Meta.embed(Node, expandable)
 	def fors(self) -> list[CompFor]:
-		return super().fors
+		return [node.as_a(CompFor) for node in self._children('comprehension.comp_fors')]
 
 	@property
 	@Meta.embed(Node, expandable)
 	def condition(self) -> Node | Empty:
-		return super().condition
+		node = self._children('comprehension')[2]
+		return node if isinstance(node, Empty) else node
+
+	@property
+	def decl_vars(self) -> list[Declable]:
+		return list(flatten([comp_for.symbols for comp_for in self.fors]))
+
+
+@Meta.embed(Node, accept_tags('list_comp'))
+class ListComp(Comprehension):
+	pass
 
 
 @Meta.embed(Node, accept_tags('dict_comp'))
 class DictComp(Comprehension):
-	"""Note: XXX カテゴリーはExpressionなので、定義位置を再検討"""
-
-	@property
-	@Meta.embed(Node, expandable)
-	def projection_key(self) -> Node:
-		return self._by('comprehension.key_value').as_a(Pair).first
-
-	@property
-	@Meta.embed(Node, expandable)
-	def projection_value(self) -> Node:
-		return self._by('comprehension.key_value').as_a(Pair).second
-
-	@property
-	@override
-	@Meta.embed(Node, expandable)
-	def fors(self) -> list[CompFor]:
-		return super().fors
-
-	@property
-	@override
-	@Meta.embed(Node, expandable)
-	def condition(self) -> Node | Empty:
-		return super().condition
+	pass
 
 
 class ClassDef(Node, IDomain, IScope, IDeclaration, ISymbol):
@@ -665,11 +641,12 @@ def collect_decl_vars(block: StatementBlock, allow: type[T_Declable]) -> dict[st
 	for node in block.statements:
 		if isinstance(node, (AnnoAssign, MoveAssign)):
 			decl_vars = merged_by(decl_vars, node)
-		if isinstance(node, For):
+		elif isinstance(node, For):
 			decl_vars = merged_by(decl_vars, node)
 		elif isinstance(node, Try):
 			for catch in node.catches:
 				decl_vars = merged_by(decl_vars, catch)
+
 		if isinstance(node, (If, Try)):
 			for in_block in node.having_blocks:
 				decl_vars = merged(decl_vars, collect_decl_vars(in_block, allow))

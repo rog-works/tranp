@@ -255,13 +255,13 @@ class SymbolRaw(metaclass=ABCMeta):
 		domain_name = self.types.alias_symbol or domain_name if use_alias else domain_name
 		if len(self.attrs) > 0:
 			if self.types.is_a(defs.AltClass):
-				attrs = [str(attr) for attr in self.attrs]
+				attrs = [attr.make_shorthand(use_alias) for attr in self.attrs]
 				return f'{domain_name}={attrs[0]}'
 			elif self.types.is_a(defs.Function):
-				attrs = [str(attr) for attr in self.attrs]
+				attrs = [attr.make_shorthand(use_alias) for attr in self.attrs]
 				return f'{domain_name}({", ".join(attrs[:-1])}) -> {attrs[-1]}'
 			elif self.role in [Roles.Var, Roles.Generic, Roles.Literal, Roles.Reference]:
-				attrs = [str(attr) for attr in self.attrs]
+				attrs = [attr.make_shorthand(use_alias) for attr in self.attrs]
 				return f'{domain_name}<{", ".join(attrs)}>'
 
 		return domain_name

@@ -167,9 +167,14 @@ class Symbols:
 			NotFoundError: シンボルが見つからない
 		"""
 		if isinstance(node, defs.Comprehension):
-			origin = self.type_of_primitive(list if node.is_a(defs.ListComp) else dict)
+			projection_type = list if node.is_a(defs.ListComp) else dict
+			origin = self.type_of_primitive(projection_type)
 			projection = self.__resolve_procedural(node.projection)
-			return origin.to.literal(node).extends(projection)
+			# XXX 属性の扱いの違いを吸収
+			# XXX list: int
+			# XXX dict: Pair<str, int>
+			attrs = [projection] if projection_type is list else projection.attrs
+			return origin.to.literal(node).extends(*attrs)
 		else:
 			# CompFor
 			return self.__resolve_procedural(node.for_in)

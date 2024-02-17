@@ -656,12 +656,12 @@ class SymbolGeneric(Symbol):
 
 
 class SymbolLiteral(Symbol):
-	def __init__(self, origin: 'LiteralOrigins', via: defs.Literal) -> None:
+	def __init__(self, origin: 'LiteralOrigins', via: defs.Literal | defs.Comprehension) -> None:
 		"""インスタンスを生成
 
 		Args:
-			origin (SymbolOrigin | SymbolImport): スタックシンボル
-			via (Node): 参照元のノード
+			origin (LiteralOrigins): スタックシンボル
+			via (Literal | Comprehension): 参照元のノード
 		"""
 		super().__init__(origin)
 		self._via = via
@@ -689,12 +689,12 @@ class SymbolLiteral(Symbol):
 
 
 class SymbolReference(Symbol):
-	def __init__(self, origin: 'RefOrigins', via: defs.Node, context: SymbolRaw | None = None) -> None:
+	def __init__(self, origin: 'RefOrigins', via: defs.Reference | defs.Indexer, context: SymbolRaw | None = None) -> None:
 		"""インスタンスを生成
 
 		Args:
 			origin (RefOrigins): スタックシンボル
-			via (Node): 参照元のノード
+			via (Reference | Indexer): 参照元のノード
 			context (SymbolRaw | None): コンテキストのシンボル (default = None)
 		"""
 		super().__init__(origin)
@@ -796,11 +796,11 @@ class SymbolWrapper:
 		"""
 		return SymbolGeneric(self._raw.one_of(GenericOrigins), via)
 
-	def literal(self, via: defs.Literal) -> SymbolLiteral:
+	def literal(self, via: defs.Literal | defs.Comprehension) -> SymbolLiteral:
 		"""ラップしたシンボルを生成(リテラルノード用)
 
 		Args:
-			via (Literal): リテラルノード
+			via (Literal | Comprehension): リテラル/リスト内包表記ノード
 		Returns:
 			SymbolLiteral: シンボル
 		"""

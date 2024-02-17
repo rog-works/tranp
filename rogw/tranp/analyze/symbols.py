@@ -167,8 +167,11 @@ class Symbols:
 			NotFoundError: シンボルが見つからない
 		"""
 		if isinstance(node, defs.Comprehension):
-			return self.__resolve_procedural(node.projection)
+			origin = self.type_of_primitive(list if node.is_a(defs.ListComp) else dict)
+			projection = self.__resolve_procedural(node.projection)
+			return origin.to.literal(node).extends(projection)
 		else:
+			# CompFor
 			return self.__resolve_procedural(node.for_in)
 
 	def resolve(self, symbolic: defs.Symbolic, prop_name: str = '') -> SymbolRaw:

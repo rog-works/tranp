@@ -108,3 +108,7 @@ class TupleCheck:
 
 	def unpack_assign(self) -> None:
 		a, b = {'a': 1}  # XXX Pythonのシンタックス上は不正
+
+class Comp:
+	def list_comp(self) -> None:
+		values = [value for value in [1, 2, 3]]

@@ -120,8 +120,7 @@ class FromModules:
 		decl_vars: list[defs.DeclVars] = []
 		import_nodes: list[defs.Import] = []
 		entrypoint = module.entrypoint.as_a(defs.Entrypoint)
-		# XXX flattenの方がシンボルテーブルの登録順序が見やすいが、リスト内包表記の変数展開が関数外部にあるためcalculatedに変更
-		for node in entrypoint.calculated():
+		for node in entrypoint.flatten():
 			if isinstance(node, defs.ClassDef):
 				raws[node.fullyname] = SymbolOrigin(node)
 
@@ -135,9 +134,6 @@ class FromModules:
 			elif type(node) is defs.Class:
 				decl_vars.extend(node.class_vars)
 				decl_vars.extend(node.this_vars)
-			elif isinstance(node, defs.Comprehension):
-				# XXX 関数の変数宣言の内に存在する方が自然だが、検出コストが高いため外部で処理
-				decl_vars.extend(node.decl_vars)
 
 		# XXX calculatedに含まれないためエントリーポイントは個別に処理
 		decl_vars = [*entrypoint.decl_vars, *decl_vars]

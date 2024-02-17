@@ -659,8 +659,21 @@ def collect_decl_vars(block: StatementBlock, allow: type[T_Declable]) -> dict[st
 	def merged(decl_vars: dict[str, T_Declable], allow_vars: dict[str, T_Declable]) -> dict[str, T_Declable]:
 		return {**decl_vars, **{key: symbol for key, symbol in allow_vars.items() if key not in decl_vars}}
 
+	def expand_comp_decl_vars(value_node: Node) -> dict[str, T_Declable]:
+		decl_vars: dict[str, T_Declable] = {}
+		for in_node in value_node.calculated():
+			if isinstance(in_node, CompFor):
+				decl_vars = merged_by(decl_vars, in_node)
+
+		return decl_vars
+
 	decl_vars: dict[str, T_Declable] = {}
 	for node in block.statements:
+		if isinstance(node, MoveAssign):
+			decl_vars = merged(decl_vars, expand_comp_decl_vars(node.value))
+		elif isinstance(node, For):
+			decl_vars = merged(decl_vars, expand_comp_decl_vars(node.iterates))
+
 		if isinstance(node, (AnnoAssign, MoveAssign)):
 			decl_vars = merged_by(decl_vars, node)
 		elif isinstance(node, For):

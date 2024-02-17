@@ -435,8 +435,8 @@ class Function(ClassDef):
 	@property
 	def decl_vars(self) -> list[Parameter | DeclLocalVar]:
 		parameters = self.parameters
-		parameter_names = [parameter.symbol.tokens for parameter in parameters]
-		local_vars = [var for name, var in self._decl_vars_with(DeclLocalVar).items() if name not in parameter_names]
+		parameter_names = [DSN.join(parameter.namespace, parameter.domain_name) for parameter in parameters]
+		local_vars = [var for fullyname, var in self._decl_vars_with(DeclLocalVar).items() if fullyname not in parameter_names]
 		return [*parameters, *local_vars]
 
 
@@ -653,11 +653,11 @@ class TemplateClass(ClassDef):
 
 def collect_decl_vars(block: StatementBlock, allow: type[T_Declable]) -> dict[str, T_Declable]:
 	def merged_by(decl_vars: dict[str, T_Declable], declare: IDeclaration) -> dict[str, T_Declable]:
-		allow_vars = {symbol.tokens: symbol for symbol in declare.symbols if isinstance(symbol, allow)}
+		allow_vars = {DSN.join(symbol.namespace, symbol.domain_name): symbol for symbol in declare.symbols if isinstance(symbol, allow)}
 		return merged(decl_vars, allow_vars)
 
 	def merged(decl_vars: dict[str, T_Declable], allow_vars: dict[str, T_Declable]) -> dict[str, T_Declable]:
-		return {**decl_vars, **{key: symbol for key, symbol in allow_vars.items() if key not in decl_vars}}
+		return {**decl_vars, **{name: symbol for name, symbol in allow_vars.items() if name not in decl_vars}}
 
 	def expand_comp_decl_vars(value_node: Node) -> dict[str, T_Declable]:
 		decl_vars: dict[str, T_Declable] = {}

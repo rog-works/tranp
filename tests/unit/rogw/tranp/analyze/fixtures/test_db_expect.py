@@ -94,6 +94,7 @@ def expected_symbols() -> dict:
 		'__main__.Comp.list_comp.list_comp@1111.value': 'rogw.tranp.compatible.python.classes.int',
 		'__main__.Comp.list_comp.values0': 'rogw.tranp.compatible.python.classes.list',
 		'__main__.Comp.list_comp.values1': 'rogw.tranp.compatible.python.classes.list',
+		'__main__.Comp.list_comp.list_comp@1167.value': 'rogw.tranp.compatible.python.classes.int',
 		'__main__.Comp.list_comp.strs': 'rogw.tranp.compatible.python.classes.list',
 		'__main__.Comp.dict_comp.self': '__main__.Comp',
 		'__main__.Comp.dict_comp.dict_comp@1213.index': 'rogw.tranp.compatible.python.classes.int',

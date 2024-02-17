@@ -372,15 +372,11 @@ class ClassDef(Node, IDomain, IScope, IDeclaration, ISymbol):
 			class Integer: ...
 			```
 		"""
-		decorators = self.decorators
-		if len(decorators) == 0:
+		candidates = [decorator for decorator in self.decorators if decorator.path.tokens == identifier]
+		if len(candidates) == 0:
 			return None
 
-		decorator = decorators[0]
-		if not decorator.path.tokens == identifier:
-			return None
-
-		return decorator.arguments[0].value.as_a(String).plain
+		return candidates[0].arguments[0].value.as_a(String).plain
 
 	def _decl_vars_with(self, allow: type[T_Declable]) -> dict[str, T_Declable]:
 		return collect_decl_vars(self, allow)

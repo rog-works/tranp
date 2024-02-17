@@ -127,6 +127,11 @@ class Alias:
 		a = Alias()
 		i = Alias.Inner()
 
+class Comp:
+	def list_comp(self) -> None:
+		values0 = [1, 2, 3]
+		values1 = [value for value in values0]
+
 from typing import TypeAlias
 
 DSI: TypeAlias = dict[str, int]

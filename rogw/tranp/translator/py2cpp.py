@@ -22,11 +22,11 @@ class Py2Cpp(Procedure[str]):
 		self.symbols = symbols
 		self.view = render
 
-	def c_fullyname_by(self, node: defs.MoveAssign | defs.For, raw: SymbolRaw) -> str:
+	def c_fullyname_by(self, node: defs.MoveAssign | defs.For | defs.Comprehension, raw: SymbolRaw) -> str:
 		"""C++用のシンボルの完全参照名を取得。型が明示されない場合の補完として利用する
 
 		Args:
-			node (MoveAssign | For): 型推論の対象ノード
+			node (MoveAssign | For | Comprehension): 型推論の対象ノード
 			raw (SymbolRaw): シンボル
 		Returns:
 			str: C++用のシンボルの完全参照名
@@ -127,6 +127,22 @@ class Py2Cpp(Procedure[str]):
 
 	def on_try(self, node: defs.Try, statements: list[str], catches: list[str]) -> str:
 		return self.view.render(node.classification, vars={'statements': statements, 'catches': catches})
+
+	def on_comp_for(self, node: defs.CompFor, symbols: list[str], for_in: str) -> str:
+		return self.view.render(node.classification, vars={'symbols': symbols, 'iterates': for_in})
+
+	def on_list_comp(self, node: defs.ListComp, projection: str, fors: list[str], condition: str) -> str:
+		projection_type_raw = self.symbols.type_of(node.projection)
+		projection_type = self.c_fullyname_by(node, projection_type_raw)
+		comp_vars = {'projection': projection, 'comp_for': fors[0], 'condition': condition, 'projection_types': [projection_type]}
+		return self.view.render(node.classification, vars=comp_vars)
+
+	def on_dict_comp(self, node: defs.DictComp, projection: str, fors: list[str], condition: str) -> str:
+		projection_type_raw = self.symbols.type_of(node.projection)
+		projection_type_key = self.c_fullyname_by(node, projection_type_raw.attrs[0])
+		projection_type_value = self.c_fullyname_by(node, projection_type_raw.attrs[1])
+		comp_vars = {'projection': projection, 'comp_for': fors[0], 'condition': condition, 'projection_types': [projection_type_key, projection_type_value]}
+		return self.view.render(node.classification, vars=comp_vars)
 
 	def on_function(self, node: defs.Function, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, comment: str, statements: list[str]) -> str:
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'comment': comment, 'statements': statements}

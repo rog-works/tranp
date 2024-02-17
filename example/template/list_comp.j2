@@ -1,0 +1,13 @@
+[&]() -> std::vector<{{ projection_types[0] }}> {
+	std::vector<{{ projection_types[0] }}> ret;
+	for ({{ comp_for }}) {
+		{%- if condition %}
+		if ({{ condition }}) {
+			ret.push_back({{ projection }});
+		}
+		{%- else %}
+		ret.push_back({{ projection }});
+		{%- endif %}
+	}
+	return ret;
+}()

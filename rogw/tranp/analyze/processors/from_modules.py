@@ -134,6 +134,8 @@ class FromModules:
 			elif type(node) is defs.Class:
 				decl_vars.extend(node.class_vars)
 				decl_vars.extend(node.this_vars)
+			elif isinstance(node, defs.Comprehension):
+				decl_vars.extend(node.decl_vars)
 
 		# XXX calculatedに含まれないためエントリーポイントは個別に処理
 		decl_vars = [*entrypoint.decl_vars, *decl_vars]

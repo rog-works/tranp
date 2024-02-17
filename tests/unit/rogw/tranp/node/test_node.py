@@ -111,7 +111,7 @@ class TestNode(TestCase):
 		('class A: ...', 'file_input.class_def', '__main__.A'),
 		('class A: ...', 'file_input.class_def.class_def_raw.block', '__main__.A'),
 		('class E(CEnum): ...', 'file_input.class_def', '__main__.E'),
-		('def func() -> None: ...', 'file_input.function_def', '__main__'),
+		('def func() -> None: ...', 'file_input.function_def', '__main__.func'),
 		('if 1: ...', 'file_input.if_stmt', '__main__'),
 		('1', 'file_input.number', '__main__'),
 		('[a for a in []]', 'file_input.list_comp', '__main__.list_comp@1'),

@@ -66,6 +66,10 @@ class Sub(Base):
 
 		return closure()[0]
 
+	def assign_with_param(self, a: int) -> None:
+		a1 = a + 1
+		a = a1 + 1
+
 class Ops:
 	def sum(self) -> None:
 		n = 1 + 1

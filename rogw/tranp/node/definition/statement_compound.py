@@ -302,7 +302,7 @@ class ClassDef(Node, IDomain, IScope, IDeclaration, ISymbol):
 	@property
 	@implements
 	def namespace_part(self) -> str:
-		return ''
+		return self.domain_name
 
 	@property
 	@implements
@@ -435,7 +435,8 @@ class Function(ClassDef):
 	@property
 	def decl_vars(self) -> list[Parameter | DeclLocalVar]:
 		parameters = self.parameters
-		parameter_names = [DSN.join(parameter.namespace, parameter.domain_name) for parameter in parameters]
+		# XXX 共通化の方法を検討 @see collect_decl_vars_with
+		parameter_names = [DSN.join(parameter.symbol.namespace, parameter.symbol.domain_name) for parameter in parameters]
 		local_vars = [var for fullyname, var in self._decl_vars_with(DeclLocalVar).items() if fullyname not in parameter_names]
 		return [*parameters, *local_vars]
 
@@ -514,11 +515,6 @@ class Closure(Function):
 
 @Meta.embed(Node, accept_tags('class_def'))
 class Class(ClassDef):
-	@property
-	@override
-	def namespace_part(self) -> str:
-		return self.domain_name
-
 	@property
 	@override
 	@Meta.embed(Node, expandable)
@@ -616,11 +612,6 @@ class Enum(Class):
 class AltClass(ClassDef):
 	@property
 	@override
-	def namespace_part(self) -> str:
-		return self.domain_name
-
-	@property
-	@override
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> TypesName:
 		return self._by('assign_namelist.var.name').dirty_child(TypesName, '', class_types=self)
@@ -633,11 +624,6 @@ class AltClass(ClassDef):
 
 @Meta.embed(Node, accept_tags('template_assign'))
 class TemplateClass(ClassDef):
-	@property
-	@override
-	def namespace_part(self) -> str:
-		return self.domain_name
-
 	@property
 	@override
 	@Meta.embed(Node, expandable)
@@ -653,6 +639,7 @@ class TemplateClass(ClassDef):
 
 def collect_decl_vars(block: StatementBlock, allow: type[T_Declable]) -> dict[str, T_Declable]:
 	def merged_by(decl_vars: dict[str, T_Declable], declare: IDeclaration) -> dict[str, T_Declable]:
+		# XXX 共通化の方法を検討 @see Function.decl_vars
 		allow_vars = {DSN.join(symbol.namespace, symbol.domain_name): symbol for symbol in declare.symbols if isinstance(symbol, allow)}
 		return merged(decl_vars, allow_vars)
 

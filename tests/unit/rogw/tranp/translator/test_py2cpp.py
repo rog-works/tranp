@@ -34,7 +34,8 @@ def _ast(before: str, after: str) -> str:
 		'Alias.in_param_return': 'file_input.class_def[7].class_def_raw.block.function_def[2]',
 		'Alias.in_param_return2': 'file_input.class_def[7].class_def_raw.block.function_def[3]',
 		'Alias.in_local.block': 'file_input.class_def[7].class_def_raw.block.function_def[4].function_def_raw.block',
-		'Comp.list_comp.block': 'file_input.class_def[8].class_def_raw.block.function_def.function_def_raw.block',
+		'Comp.list_comp.block': 'file_input.class_def[8].class_def_raw.block.function_def[0].function_def_raw.block',
+		'Comp.dict_comp.block': 'file_input.class_def[8].class_def_raw.block.function_def[1].function_def_raw.block',
 		'import.typing': 'file_input.import_stmt[9]',
 		'DSI': 'file_input.class_assign',
 	}
@@ -111,11 +112,19 @@ class TestPy2Cpp(TestCase):
 		(_ast('Alias.in_local.block', 'assign[1]'), defs.MoveAssign, 'Alias2::Inner2 i = Alias2::Inner2();'),
 
 		(_ast('Comp.list_comp.block', 'assign[1]'), defs.MoveAssign, """std::vector<int> values1 = [&]() -> std::vector<int> {
-	std::vector<int> ret;
+	std::vector<int> __ret;
 	for (auto value : values0) {
-		ret.push_back(value);
+		__ret.push_back(value);
 	}
-	return ret;
+	return __ret;
+}();"""),
+
+		(_ast('Comp.dict_comp.block', 'assign[1]'), defs.MoveAssign, """std::map<std::string, int> kvs1 = [&]() -> std::map<std::string, int> {
+	std::map<std::string, int> __ret;
+	for (auto [key, value] : kvs0.items()) {
+		__ret.emplace({key, value});
+	}
+	return __ret;
 }();"""),
 
 		(_ast('import.typing', ''), defs.Import, '// #include "typing.h"'),

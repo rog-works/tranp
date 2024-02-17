@@ -132,6 +132,10 @@ class Comp:
 		values0 = [1, 2, 3]
 		values1 = [value for value in values0]
 
+	def dict_comp(self) -> None:
+		kvs0 = {'a': 1}
+		kvs1 = {key: value for key, value in kvs0.items()}
+
 from typing import TypeAlias
 
 DSI: TypeAlias = dict[str, int]

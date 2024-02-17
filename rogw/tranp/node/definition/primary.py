@@ -197,6 +197,11 @@ class Reference(Fragment): pass
 
 @Meta.embed(Node, accept_tags('getattr'), actualized(via=Fragment))
 class Relay(Reference):
+	@property
+	@override
+	def domain_name(self) -> str:
+		return DSN.join(self.receiver.domain_name, self.prop.tokens)
+
 	@classmethod
 	def match_feature(cls, via: Fragment) -> bool:
 		if via.is_decl_local_var or via.is_decl_this_var:

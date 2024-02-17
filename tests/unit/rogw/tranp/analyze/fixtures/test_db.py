@@ -117,8 +117,10 @@ class Comp:
 	def list_comp(self) -> None:
 		values0 = [value for value in [1, 2, 3]]
 		values1: list[int] = [value for value in [1, 2, 3]]
+		values2 = [value for value in values0]
 		strs = [str(value) for value in [1, 2, 3]]
 
 	def dict_comp(self) -> None:
 		kvs0 = {key: index for index, key in enumerate(['a', 'b', 'c'])}
 		kvs1: dict[str, int] = {key: index for index, key in enumerate(['a', 'b', 'c'])}
+		kvs2 = {key: index for index, key in kvs0.items()}

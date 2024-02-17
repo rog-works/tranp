@@ -52,6 +52,7 @@ class Float:
 
 
 @__actual__('str')
+@__alias__('std::string')
 class String:
 	def split(self, delimiter: str) -> list[str]: ...
 	def join(self, iterable: Iterator) -> str: ...

@@ -66,6 +66,10 @@ class Sub(Base):
 
 		return closure()[0]
 
+	def assign_with_param(self, a: int) -> None:
+		a1 = a + 1
+		a = a1 + 1
+
 class Ops:
 	def sum(self) -> None:
 		n = 1 + 1
@@ -113,8 +117,10 @@ class Comp:
 	def list_comp(self) -> None:
 		values0 = [value for value in [1, 2, 3]]
 		values1: list[int] = [value for value in [1, 2, 3]]
+		values2 = [value for value in values0]
 		strs = [str(value) for value in [1, 2, 3]]
 
 	def dict_comp(self) -> None:
 		kvs0 = {key: index for index, key in enumerate(['a', 'b', 'c'])}
 		kvs1: dict[str, int] = {key: index for index, key in enumerate(['a', 'b', 'c'])}
+		kvs2 = {key: index for key, index in kvs0.items()}

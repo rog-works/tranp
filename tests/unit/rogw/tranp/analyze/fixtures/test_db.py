@@ -123,4 +123,4 @@ class Comp:
 	def dict_comp(self) -> None:
 		kvs0 = {key: index for index, key in enumerate(['a', 'b', 'c'])}
 		kvs1: dict[str, int] = {key: index for index, key in enumerate(['a', 'b', 'c'])}
-		kvs2 = {key: index for index, key in kvs0.items()}
+		kvs2 = {key: index for key, index in kvs0.items()}

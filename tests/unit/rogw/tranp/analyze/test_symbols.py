@@ -157,10 +157,12 @@ class TestSymbols(TestCase):
 
 		('__main__.Comp.list_comp.values0', 'list<int>'),
 		('__main__.Comp.list_comp.values1', 'list<int>'),
+		('__main__.Comp.list_comp.values2', 'list<int>'),
 		('__main__.Comp.list_comp.strs', 'list<str>'),
 
 		('__main__.Comp.dict_comp.kvs0', 'dict<str, int>'),
 		('__main__.Comp.dict_comp.kvs1', 'dict<str, int>'),
+		('__main__.Comp.dict_comp.kvs2', 'dict<str, int>'),
 	])
 	def test_from_fullyname(self, fullyname: str, expected: str) -> None:
 		symbols = self.fixture.get(Symbols)

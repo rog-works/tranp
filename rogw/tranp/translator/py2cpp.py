@@ -33,6 +33,10 @@ class Py2Cpp(Procedure[str]):
 		Note:
 			# 生成例
 			'Class' -> 'A::B::Class'
+			# 課題
+			* FIXME 属性を持つシンボルを再帰的に処理していないため不完全
+				* 現状: 'A<B, C>' -> 'NS::A<B, C>'
+				* 理想: 'A<B, C>' -> 'NS::A<NS::B, NS::C>'
 		"""
 		# シンボルの型のスコープを元に接頭辞を生成
 		remain_scope = raw.types.scope.replace(f'{raw.types.module_path}.', '')
@@ -310,7 +314,9 @@ class Py2Cpp(Procedure[str]):
 	def on_relay(self, node: defs.Relay, receiver: str) -> str:
 		receiver_symbol = self.symbols.type_of(node.receiver)
 		prop_symbol = self.symbols.type_of_property(receiver_symbol.types, node.prop)
-		prop = prop_symbol.types.alias_symbol or node.prop.tokens
+		prop = node.prop.tokens
+		if prop_symbol.decl.is_a(defs.ClassDef):
+			prop = prop_symbol.types.alias_symbol or prop
 
 		def is_cvar_receiver() -> bool:
 			return len(receiver_symbol.attrs) > 0 and receiver_symbol.attrs[0].types.symbol.tokens in CVars.keys()
@@ -320,8 +326,8 @@ class Py2Cpp(Procedure[str]):
 
 		def is_static_access() -> bool:
 			is_class_alias = isinstance(node.receiver, (defs.ClassRef, defs.Super))
-			is_class_direct = receiver_symbol.types.fullyname.endswith(node.receiver.tokens)
-			return is_class_alias or is_class_direct
+			is_class_access = receiver_symbol.decl.is_a(defs.ClassDef)
+			return is_class_alias or is_class_access
 
 		if is_cvar_receiver():
 			cvar_type = receiver_symbol.attrs[0].types.symbol.tokens
@@ -344,7 +350,10 @@ class Py2Cpp(Procedure[str]):
 
 	def on_variable(self, node: defs.Variable) -> str:
 		symbol = self.symbols.type_of(node)
-		return symbol.types.alias_symbol or node.tokens
+		if symbol.decl.is_a(defs.ClassDef):
+			return symbol.types.alias_symbol or node.tokens
+		else:
+			return node.tokens
 
 	def on_indexer(self, node: defs.Indexer, receiver: str, key: str) -> str:
 		if key in CVars.keys():

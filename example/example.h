@@ -92,7 +92,7 @@ class CellMesh {
 		auto closure = [&](MeshRaw origin) -> void {
 			Box3d cellBox = CellMesh::to_cell_box(cell, unit);
 			std::vector<Box3d> boxs = CellMesh::to_vertex_boxs(cellBox, unit);
-			for (auto i : range(int(CellMesh::VertexIndexs::Max))) {
+			for (auto i = 0; i < int(CellMesh::VertexIndexs::Max); i++) {
 				Box3d box = boxs[i];
 				for (auto vi : origin.vertex_indices_itr()) {
 					if (!origin.is_vertex(vi)) {

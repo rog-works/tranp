@@ -112,7 +112,14 @@ class Py2Cpp(Procedure[str]):
 		return iterates
 
 	def on_for(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
-		return self.view.render(node.classification, vars={'symbols': symbols, 'iterates': for_in, 'statements': statements})
+		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Variable) and node.iterates.calls.tokens == 'range':
+			return self.on_for_range(node, symbols, for_in, statements)
+		else:
+			return self.view.render(node.classification, vars={'symbols': symbols, 'iterates': for_in, 'statements': statements})
+
+	def on_for_range(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
+		last_index = cast(re.Match, re.fullmatch(r'range\((.+)\)', for_in))[1]
+		return self.view.render(f'{node.classification}_range', vars={'symbol': symbols[0], 'last_index': last_index, 'statements': statements})
 
 	def on_catch(self, node: defs.Catch, var_type: str, symbol: str, statements: list[str]) -> str:
 		return self.view.render(node.classification, vars={'var_type': var_type, 'symbol': symbol, 'statements': statements})

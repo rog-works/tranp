@@ -139,6 +139,16 @@ class Comp:
 		kvs0 = {'a': Comp.C()}
 		kvs1 = {key: value for key, value in kvs0.items()}
 
+class For:
+	def range(self) -> None:
+		for i in range(10):
+			print(i)
+
+	def enumerate(self) -> None:
+		values = ['a', 'b']
+		for index, value in enumerate(values):
+			print(index, value)
+
 from typing import TypeAlias
 
 DSI: TypeAlias = dict[str, int]

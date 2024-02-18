@@ -15,6 +15,40 @@ from tests.test.fixture import Fixture
 from tests.test.helper import data_provider
 
 
+BLOCK_EXPECTS = {
+	'Comp.list_comp.block.assign[1]':
+"""std::vector<int> values1 = [this, &]() -> std::vector<int> {
+	std::vector<int> __ret;
+	for (auto& value : values0) {
+		__ret.push_back(value);
+	}
+	return __ret;
+}();""",
+
+	'Comp.dict_comp.block.assign[1]':
+"""std::map<std::string, Comp::C> kvs1 = [this, &]() -> std::map<std::string, Comp::C> {
+	std::map<std::string, Comp::C> __ret;
+	for (auto& [key, value] : kvs0.items()) {
+		__ret.emplace({key, value});
+	}
+	return __ret;
+}();""",
+
+	'For.enumerate.block.for_stmt':
+"""auto __for_iterates_1572 = [&]() -> std::map<int, std::string> {
+	std::map<int, std::string> __ret;
+	int __index = 0;
+	for (auto& __entry : values) {
+		__ret.emplace(__index++, __entry);
+	}
+	return __ret;
+}();
+for (auto& [index, value] : __for_iterates_1572) {
+	print(index, value);
+}""",
+}
+
+
 def _ast(before: str, after: str) -> str:
 	aliases = {
 		'CVarOps.ret_raw.return': 'file_input.class_def[2].class_def_raw.block.function_def[0].function_def_raw.block.return_stmt',
@@ -36,7 +70,9 @@ def _ast(before: str, after: str) -> str:
 		'Alias.in_local.block': 'file_input.class_def[7].class_def_raw.block.function_def[4].function_def_raw.block',
 		'Comp.list_comp.block': 'file_input.class_def[8].class_def_raw.block.function_def[1].function_def_raw.block',
 		'Comp.dict_comp.block': 'file_input.class_def[8].class_def_raw.block.function_def[2].function_def_raw.block',
-		'import.typing': 'file_input.import_stmt[9]',
+		'For.range.block': 'file_input.class_def[9].class_def_raw.block.function_def[0].function_def_raw.block',
+		'For.enumerate.block': 'file_input.class_def[9].class_def_raw.block.function_def[1].function_def_raw.block',
+		'import.typing': 'file_input.import_stmt[10]',
 		'DSI': 'file_input.class_assign',
 	}
 	return DSN.join(aliases[before], after)
@@ -111,21 +147,11 @@ class TestPy2Cpp(TestCase):
 		(_ast('Alias.in_local.block', 'assign[0]'), defs.MoveAssign, 'Alias2 a = Alias2();'),
 		(_ast('Alias.in_local.block', 'assign[1]'), defs.MoveAssign, 'Alias2::Inner2 i = Alias2::Inner2();'),
 
-		(_ast('Comp.list_comp.block', 'assign[1]'), defs.MoveAssign, """std::vector<int> values1 = [this, &]() -> std::vector<int> {
-	std::vector<int> __ret;
-	for (auto& value : values0) {
-		__ret.push_back(value);
-	}
-	return __ret;
-}();"""),
+		(_ast('Comp.list_comp.block', 'assign[1]'), defs.MoveAssign, BLOCK_EXPECTS['Comp.list_comp.block.assign[1]']),
+		(_ast('Comp.dict_comp.block', 'assign[1]'), defs.MoveAssign, BLOCK_EXPECTS['Comp.dict_comp.block.assign[1]']),
 
-		(_ast('Comp.dict_comp.block', 'assign[1]'), defs.MoveAssign, """std::map<std::string, Comp::C> kvs1 = [this, &]() -> std::map<std::string, Comp::C> {
-	std::map<std::string, Comp::C> __ret;
-	for (auto& [key, value] : kvs0.items()) {
-		__ret.emplace({key, value});
-	}
-	return __ret;
-}();"""),
+		(_ast('For.range.block', 'for_stmt'), defs.For, 'for (auto i = 0; i < 10; i++) {\n\tprint(i);\n}'),
+		(_ast('For.enumerate.block', 'for_stmt'), defs.For, BLOCK_EXPECTS['For.enumerate.block.for_stmt']),
 
 		(_ast('import.typing', ''), defs.Import, '// #include "typing.h"'),
 

@@ -109,9 +109,9 @@ class Node:
 		if isinstance(self, IDomain):
 			return DSN.join(self.scope, self.domain_name)
 		elif isinstance(self, IScope):
-			return DSN.identify(self.scope, self._id())
+			return DSN.identify(self.scope, self.id)
 		else:
-			return DSN.join(self.scope, DSN.identify(self.classification, self._id()))
+			return DSN.join(self.scope, DSN.identify(self.classification, self.id))
 
 	@property
 	def scope(self) -> str:
@@ -133,6 +133,11 @@ class Node:
 	def can_expand(self) -> bool:
 		"""bool: True = 配下の要素を展開"""
 		return not isinstance(self, ITerminal)
+
+	@property
+	def id(self) -> int:
+		"""int: AST上のID"""
+		return self.__nodes.id(self.full_path)
 
 	@property
 	def tokens(self) -> str:
@@ -362,14 +367,6 @@ class Node:
 			list[str]: 値リスト
 		"""
 		return self.__nodes.values(self.full_path)
-
-	def _id(self) -> int:
-		"""AST上のIDを取得
-
-		Returns:
-			int: ID
-		"""
-		return self.__nodes.id(self.full_path)
 
 	def is_a(self, *ctor: type[T_Node]) -> bool:
 		"""指定のクラスと同じか派生クラスか判定

@@ -126,7 +126,7 @@ class Py2Cpp(Procedure[str]):
 	def on_for_enumerate(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		iterates = cast(re.Match, re.fullmatch(r'enumerate\((.+)\)', for_in))[1]
 		var_type = self.c_fullyname_by(self.symbols.type_of(node.for_in).attrs[1])
-		return self.view.render(f'{node.classification}_enumerate', vars={'symbols': symbols, 'iterates': iterates, 'statements': statements, 'id': id(node), 'var_type': var_type})
+		return self.view.render(f'{node.classification}_enumerate', vars={'symbols': symbols, 'iterates': iterates, 'statements': statements, 'id': node.id, 'var_type': var_type})
 
 	def on_catch(self, node: defs.Catch, var_type: str, symbol: str, statements: list[str]) -> str:
 		return self.view.render(node.classification, vars={'var_type': var_type, 'symbol': symbol, 'statements': statements})

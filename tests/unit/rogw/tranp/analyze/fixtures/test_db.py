@@ -116,10 +116,11 @@ class TupleCheck:
 class Comp:
 	def list_comp(self) -> None:
 		values0 = [value for value in [1, 2, 3]]
-		value = values0[0]
-		value += [value for value in [0.1, 0.2]][0]
+		values1: list[int] = [value for value in [1, 2, 3]]
 		values2 = [value for value in values0]
 		strs = [str(value) for value in [1, 2, 3]]
+		value = values0[0]
+		value += [value for value in [0.1, 0.2]][0]
 
 	def dict_comp(self) -> None:
 		kvs0 = {key: index for index, key in enumerate(['a', 'b', 'c'])}

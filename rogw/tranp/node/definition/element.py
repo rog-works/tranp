@@ -8,7 +8,11 @@ from rogw.tranp.node.promise import IDeclaration, ISymbol
 
 @Meta.embed(Node, accept_tags('paramvalue', 'starparam'))
 class Parameter(Node, IDeclaration, ISymbol):
-	"""Note: XXX starparamを受け入れるが、正式に対応する必要がないため通常の引数と同じように扱う"""
+	"""
+	Note:
+	* FIXME starparamを受け入れるが、現状は通常の引数と同様に扱う。一部の関数で必要になるため対処が必要
+	* XXX ParameterにIDomainは実装しない(=domain_nameの実装) ※symbolと完全参照名が同じになってしまうため
+	"""
 
 	@property
 	@implements

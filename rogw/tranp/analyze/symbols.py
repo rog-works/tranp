@@ -119,6 +119,8 @@ class Symbols:
 			return self.__resolve_procedural(node)
 		elif isinstance(node, (defs.For, defs.Catch)):
 			return self.__from_flow(node)
+		elif isinstance(node, (defs.Comprehension, defs.CompFor)):
+			return self.__from_comprehension(node)
 		else:
 			return self.__resolve_procedural(node)
 
@@ -153,6 +155,29 @@ class Symbols:
 		else:
 			# defs.Catch
 			return self.resolve(node.var_type)
+
+	def __from_comprehension(self, node: defs.Comprehension | defs.CompFor) -> SymbolRaw:
+		"""リスト内包表記関連ノードからシンボルを解決
+
+		Args:
+			node (Comprehension | CompFor): リスト内包表記関連ノード
+		Returns:
+			SymbolRaw: シンボル
+		Raises:
+			NotFoundError: シンボルが見つからない
+		"""
+		if isinstance(node, defs.Comprehension):
+			projection_type = list if node.is_a(defs.ListComp) else dict
+			origin = self.type_of_primitive(projection_type)
+			projection = self.__resolve_procedural(node.projection)
+			# XXX 属性の扱いの違いを吸収
+			# XXX list: int
+			# XXX dict: Pair<str, int>
+			attrs = [projection] if projection_type is list else projection.attrs
+			return origin.to.literal(node).extends(*attrs)
+		else:
+			# CompFor
+			return self.__resolve_procedural(node.for_in)
 
 	def resolve(self, symbolic: defs.Symbolic, prop_name: str = '') -> SymbolRaw:
 		"""シンボルテーブルからシンボルを解決
@@ -279,7 +304,7 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 		return receiver
 
 	def on_move_assign(self, node: defs.MoveAssign, receivers: list[SymbolRaw], value: SymbolRaw) -> SymbolRaw:
-		return receivers[0]  # FIXME tupleが未実装
+		return value
 
 	def on_aug_assign(self, node: defs.AugAssign, receiver: SymbolRaw, value: SymbolRaw) -> SymbolRaw:
 		"""Note: XXX operatorに型はないので引数からは省略。on_fallbackによってpassされるのでスタックはズレない"""
@@ -409,6 +434,15 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 
 	def on_inherit_argument(self, node: defs.InheritArgument, class_type: SymbolRaw) -> SymbolRaw:
 		return class_type
+
+	def on_comp_for(self, node: defs.CompFor, symbols: list[SymbolRaw], for_in: SymbolRaw) -> SymbolRaw:
+		return for_in
+
+	def on_list_comp(self, node: defs.ListComp, projection: SymbolRaw, fors: list[SymbolRaw], condition: SymbolRaw) -> SymbolRaw:
+		return projection
+
+	def on_dict_comp(self, node: defs.ListComp, projection: SymbolRaw, fors: list[SymbolRaw], condition: SymbolRaw) -> SymbolRaw:
+		return projection
 
 	# Operator
 

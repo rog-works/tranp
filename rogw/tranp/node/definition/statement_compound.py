@@ -1,12 +1,13 @@
 from typing import Generic, TypeVar
 
+from rogw.tranp.ast.dsn import DSN
 from rogw.tranp.compatible.python.embed import __actual__, __alias__
 from rogw.tranp.lang.implementation import implements, override
-from rogw.tranp.lang.sequence import last_index_of, flatten
+from rogw.tranp.lang.sequence import flatten, last_index_of
 from rogw.tranp.node.definition.accessor import to_access
 from rogw.tranp.node.definition.element import Decorator, Parameter
-from rogw.tranp.node.definition.literal import Comment, Pair, String
-from rogw.tranp.node.definition.primary import CustomType, DeclClassVar, DeclLocalVar, Declable, InheritArgument, DeclThisParam, DeclThisVar, Type, TypesName
+from rogw.tranp.node.definition.literal import Comment, String
+from rogw.tranp.node.definition.primary import CompFor, CustomType, DeclClassVar, DeclLocalVar, Declable, ForIn, InheritArgument, DeclThisParam, DeclThisVar, Type, TypesName
 from rogw.tranp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from rogw.tranp.node.definition.terminal import Empty
 from rogw.tranp.node.embed import Meta, accept_tags, actualized, expandable
@@ -120,14 +121,6 @@ class While(FlowEnter):
 		return self._by('block').as_a(Block)
 
 
-@Meta.embed(Node, accept_tags('for_in', 'comp_for_in'))
-class ForIn(FlowPart):
-	@property
-	@Meta.embed(Node, expandable)
-	def iterates(self) -> Node:
-		return self._at(0)
-
-
 @Meta.embed(Node, accept_tags('for_stmt'))
 class For(FlowEnter, IDeclaration):
 	@property
@@ -205,85 +198,6 @@ class Try(FlowEnter):
 		return [self.block, *[catch.block for catch in self.catches]]
 
 
-@Meta.embed(Node, accept_tags('comp_for'))
-class CompFor(Node, IDeclaration):
-	"""Note: XXX カテゴリーはExpressionなので、定義位置を再検討"""
-
-	@property
-	@implements
-	@Meta.embed(Node, expandable)
-	def symbols(self) -> list[Declable]:
-		return [node.as_a(Declable) for node in self._children('for_namelist')]
-
-	@property
-	@Meta.embed(Node, expandable)
-	def for_in(self) -> ForIn:
-		return self._by('comp_for_in').as_a(ForIn)
-
-	@property
-	def iterates(self) -> Node:
-		return self.for_in.iterates
-
-
-class Comprehension(Node):
-	@property
-	def fors(self) -> list[CompFor]:
-		return [node.as_a(CompFor) for node in self._children('comprehension.comp_fors')]
-
-	@property
-	def condition(self) -> Node | Empty:
-		node = self._children('comprehension')[2]
-		return node if isinstance(node, Empty) else node
-
-
-@Meta.embed(Node, accept_tags('list_comp'))
-class ListComp(Comprehension):
-	"""Note: XXX カテゴリーはExpressionなので、定義位置を再検討"""
-
-	@property
-	@Meta.embed(Node, expandable)
-	def projection_value(self) -> Node:
-		return self._children('comprehension')[0]
-
-	@property
-	@override
-	@Meta.embed(Node, expandable)
-	def fors(self) -> list[CompFor]:
-		return super().fors
-
-	@property
-	@Meta.embed(Node, expandable)
-	def condition(self) -> Node | Empty:
-		return super().condition
-
-
-@Meta.embed(Node, accept_tags('dict_comp'))
-class DictComp(Comprehension):
-	"""Note: XXX カテゴリーはExpressionなので、定義位置を再検討"""
-
-	@property
-	@Meta.embed(Node, expandable)
-	def projection_key(self) -> Node:
-		return self._by('comprehension.key_value').as_a(Pair).first
-
-	@property
-	@Meta.embed(Node, expandable)
-	def projection_value(self) -> Node:
-		return self._by('comprehension.key_value').as_a(Pair).second
-
-	@property
-	@override
-	@Meta.embed(Node, expandable)
-	def fors(self) -> list[CompFor]:
-		return super().fors
-
-	@property
-	@override
-	@Meta.embed(Node, expandable)
-	def condition(self) -> Node | Empty:
-		return super().condition
-
-
 class ClassDef(Node, IDomain, IScope, IDeclaration, ISymbol):
 	@property
 	@override
@@ -304,7 +218,7 @@ class ClassDef(Node, IDomain, IScope, IDeclaration, ISymbol):
 	@property
 	@implements
 	def namespace_part(self) -> str:
-		return ''
+		return self.domain_name
 
 	@property
 	@implements
@@ -374,18 +288,25 @@ class ClassDef(Node, IDomain, IScope, IDeclaration, ISymbol):
 			class Integer: ...
 			```
 		"""
-		decorators = self.decorators
-		if len(decorators) == 0:
+		candidates = [decorator for decorator in self.decorators if decorator.path.tokens == identifier]
+		if len(candidates) == 0:
 			return None
 
-		decorator = decorators[0]
-		if not decorator.path.tokens == identifier:
-			return None
-
-		return decorator.arguments[0].value.as_a(String).plain
+		return candidates[0].arguments[0].value.as_a(String).plain
 
 	def _decl_vars_with(self, allow: type[T_Declable]) -> dict[str, T_Declable]:
-		return collect_decl_vars(self, allow)
+		return VarsCollector.collect(self, allow)
+
+	def ancestor_classes(self) -> list['ClassDef']:
+		"""Note: XXX 振る舞いとして必然性のないメソッド。ユースケースはClassSymbolMakerとの連携のみ"""
+		ancestors: list[ClassDef] = []
+		ancestor = self.parent
+		while ancestor._full_path.contains('class_def'):
+			found = ancestor._ancestor('class_def').as_a(ClassDef)
+			ancestors.append(found)
+			ancestor = found.parent
+
+		return ancestors
 
 
 @Meta.embed(Node, accept_tags('function_def'))
@@ -437,8 +358,9 @@ class Function(ClassDef):
 	@property
 	def decl_vars(self) -> list[Parameter | DeclLocalVar]:
 		parameters = self.parameters
-		parameter_names = [parameter.symbol.tokens for parameter in parameters]
-		local_vars = [var for name, var in self._decl_vars_with(DeclLocalVar).items() if name not in parameter_names]
+		# XXX 共通化の方法を検討 @see collect_decl_vars_with
+		parameter_names = [DSN.join(parameter.symbol.namespace, parameter.symbol.domain_name) for parameter in parameters]
+		local_vars = [var for fullyname, var in self._decl_vars_with(DeclLocalVar).items() if fullyname not in parameter_names]
 		return [*parameters, *local_vars]
 
 
@@ -500,27 +422,12 @@ class Closure(Function):
 
 	@property
 	def binded_this(self) -> bool:
-		"""Note: メソッド内のクロージャーは、メソッドの所有インスタンスを静的に束縛しているものとして扱う"""
-		found_own_class = 'class_def' in self._full_path.de_identify().elements
-		if not found_own_class:
-			return False
-
-		types = self._ancestor('class_def').as_a(Class)
-		own_method_at = len(types.block._full_path.elements) + 1
-		own_method = self
-		while own_method_at < len(own_method._full_path.elements):
-			own_method = own_method.parent
-
-		return own_method.is_a(Constructor, Method)
+		"""Note: メソッド内に存在する場合は、メソッドのスコープを静的に束縛しているものとして扱う"""
+		return self._full_path.contains('class_def')
 
 
 @Meta.embed(Node, accept_tags('class_def'))
 class Class(ClassDef):
-	@property
-	@override
-	def namespace_part(self) -> str:
-		return self.domain_name
-
 	@property
 	@override
 	@Meta.embed(Node, expandable)
@@ -618,11 +525,6 @@ class Enum(Class):
 class AltClass(ClassDef):
 	@property
 	@override
-	def namespace_part(self) -> str:
-		return self.domain_name
-
-	@property
-	@override
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> TypesName:
 		return self._by('assign_namelist.var.name').dirty_child(TypesName, '', class_types=self)
@@ -637,11 +539,6 @@ class AltClass(ClassDef):
 class TemplateClass(ClassDef):
 	@property
 	@override
-	def namespace_part(self) -> str:
-		return self.domain_name
-
-	@property
-	@override
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> TypesName:
 		return self._by('assign_namelist.var.name').dirty_child(TypesName, '', class_types=self)
@@ -653,27 +550,55 @@ class TemplateClass(ClassDef):
 		return self._at(2).one_of(Type | Empty)
 
 
-def collect_decl_vars(block: StatementBlock, allow: type[T_Declable]) -> dict[str, T_Declable]:
-	def merged_by(decl_vars: dict[str, T_Declable], declare: IDeclaration) -> dict[str, T_Declable]:
-		allow_vars = {symbol.tokens: symbol for symbol in declare.symbols if isinstance(symbol, allow)}
-		return merged(decl_vars, allow_vars)
+class VarsCollector:
+	@classmethod
+	def collect(cls, block: StatementBlock, allow: type[T_Declable]) -> dict[str, T_Declable]:
+		decl_vars: dict[str, T_Declable] = {}
+		for node in block.statements:
+			if isinstance(node, (AnnoAssign, MoveAssign)):
+				decl_vars = cls._merged_by(decl_vars, node, allow)
+			elif isinstance(node, For):
+				decl_vars = cls._merged_by(decl_vars, node, allow)
+			elif isinstance(node, Try):
+				for catch in node.catches:
+					decl_vars = cls._merged_by(decl_vars, catch, allow)
 
-	def merged(decl_vars: dict[str, T_Declable], allow_vars: dict[str, T_Declable]) -> dict[str, T_Declable]:
-		return {**decl_vars, **{key: symbol for key, symbol in allow_vars.items() if key not in decl_vars}}
+			if isinstance(node, (If, Try)):
+				for in_block in node.having_blocks:
+					decl_vars = cls._merged(decl_vars, cls.collect(in_block, allow))
+			elif isinstance(node, (While, For)):
+				decl_vars = cls._merged(decl_vars, cls.collect(node.block, allow))
 
-	decl_vars: dict[str, T_Declable] = {}
-	for node in block.statements:
-		if isinstance(node, (AnnoAssign, MoveAssign)):
-			decl_vars = merged_by(decl_vars, node)
-		if isinstance(node, For):
-			decl_vars = merged_by(decl_vars, node)
-		elif isinstance(node, Try):
-			for catch in node.catches:
-				decl_vars = merged_by(decl_vars, catch)
-		if isinstance(node, (If, Try)):
-			for in_block in node.having_blocks:
-				decl_vars = merged(decl_vars, collect_decl_vars(in_block, allow))
-		elif isinstance(node, (While, For)):
-			decl_vars = merged(decl_vars, collect_decl_vars(node.block, allow))
+		return decl_vars
 
-	return decl_vars
+	@classmethod
+	def _merged_by(cls, decl_vars: dict[str, T_Declable], declare: IDeclaration, allow: type[T_Declable]) -> dict[str, T_Declable]:
+		# XXX 共通化の方法を検討 @see Function.decl_vars
+		allow_vars = {DSN.join(symbol.namespace, symbol.domain_name): symbol for symbol in declare.symbols if isinstance(symbol, allow)}
+		return cls._merged(decl_vars, allow_vars)
+
+	@classmethod
+	def _merged(cls, decl_vars: dict[str, T_Declable], allow_vars: dict[str, T_Declable]) -> dict[str, T_Declable]:
+		return {**decl_vars, **{name: symbol for name, symbol in allow_vars.items() if name not in decl_vars}}
+
+
+class ClassSymbolMaker:
+	@classmethod
+	def symbol_name(cls, types: ClassDef, use_alias: bool = False, path_method: str = 'domain') -> str:
+		if path_method == 'fully':
+			return DSN.join(types.module_path, cls._make_namespace(types, use_alias), cls.domain_name(types, use_alias))
+		elif path_method == 'namespace':
+			return DSN.join(cls._make_namespace(types, use_alias), cls.domain_name(types, use_alias))
+		else:
+			return cls.domain_name(types, use_alias)
+
+	@classmethod
+	def domain_name(cls, types: ClassDef, use_alias: bool = False) -> str:
+		return types.alias_symbol or types.domain_name if use_alias else types.domain_name
+
+	@classmethod
+	def _make_namespace(cls, types: ClassDef, use_alias: bool = False) -> str:
+		if not use_alias:
+			return DSN.shift(DSN.relativefy(types.namespace, types.module_path), -1)
+
+		return DSN.join(*[cls.domain_name(ancestor, use_alias=True) for ancestor in types.ancestor_classes()])

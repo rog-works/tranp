@@ -16,7 +16,7 @@
 				"translator.test_py2cpp.TestPy2Cpp.test_exec_error",
 				"view.test_render.TestRenderer.test_render_function",
 			],
-			"default": "analyze.test_symbols.TestSymbols.test_type_of",
+			"default": "analyze.test_db.TestSymbolDB",
 		}
 	],
 	"configurations": [

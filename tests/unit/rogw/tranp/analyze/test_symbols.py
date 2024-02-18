@@ -42,6 +42,7 @@ def _ast(before: str, after: str) -> str:
 		'Sub.decl_with_pop.block': 'file_input.class_def[4].class_def_raw.block.function_def[10].function_def_raw.block',
 		'Sub.decl_locals.block': 'file_input.class_def[4].class_def_raw.block.function_def[11].function_def_raw.block',
 		'Sub.decl_locals.closure.block': 'file_input.class_def[4].class_def_raw.block.function_def[11].function_def_raw.block.function_def.function_def_raw.block',
+		'Comp.list_comp.block': 'file_input.class_def[11].class_def_raw.block.function_def[0].function_def_raw.block',
 	}
 	return DSN.join(aliases[before], after)
 
@@ -71,6 +72,10 @@ class TestSymbols(TestCase):
 		self.assertEqual(symbols.is_a(symbol, primitive_type), expected)
 
 	@data_provider([
+		('__main__.TypeAlias', 'TypeAlias'),
+
+		('__main__.Z', 'Z'),
+
 		('__main__.value', 'int'),
 
 		('__main__.Base', 'Base'),
@@ -151,6 +156,19 @@ class TestSymbols(TestCase):
 		('__main__.TupleCheck.unpack.for.value11', 'DSI=dict<str, int>'),
 		('__main__.TupleCheck.unpack.for.key11', 'str'),
 		('__main__.TupleCheck.unpack.for.pair10', 'Pair<str, DSI=dict<str, int>>'),
+
+		('__main__.TupleCheck.unpack_assign.a', 'str'),  # XXX Pythonのシンタックス上は不正。一旦保留
+		('__main__.TupleCheck.unpack_assign.b', 'int'),  # XXX 〃
+
+		('__main__.Comp.list_comp.values0', 'list<int>'),
+		('__main__.Comp.list_comp.values1', 'list<int>'),
+		('__main__.Comp.list_comp.values2', 'list<int>'),
+		('__main__.Comp.list_comp.strs', 'list<str>'),
+		('__main__.Comp.list_comp.value', 'int'),
+
+		('__main__.Comp.dict_comp.kvs0', 'dict<str, int>'),
+		('__main__.Comp.dict_comp.kvs1', 'dict<str, int>'),
+		('__main__.Comp.dict_comp.kvs2', 'dict<str, int>'),
 	])
 	def test_from_fullyname(self, fullyname: str, expected: str) -> None:
 		symbols = self.fixture.get(Symbols)
@@ -245,6 +263,9 @@ class TestSymbols(TestCase):
 
 		(_ast('Sub.decl_locals.block', 'if_stmt.block.assign.assign_namelist.var'), _mod('classes', 'int'), 'int'),
 		(_ast('Sub.decl_locals.closure.block', 'assign.assign_namelist.var'), _mod('classes', 'list'), 'list<int>'),
+
+		(_ast('Comp.list_comp.block', 'aug_assign.assign_namelist.var'), _mod('classes', 'int'), 'int'),
+		(_ast('Comp.list_comp.block', 'aug_assign.getitem'), _mod('classes', 'float'), 'float'),
 	])
 	def test_type_of(self, full_path: str, expected: str, attrs_expected: str) -> None:
 		symbols = self.fixture.get(Symbols)

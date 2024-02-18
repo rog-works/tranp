@@ -34,7 +34,9 @@ def _ast(before: str, after: str) -> str:
 		'Alias.in_param_return': 'file_input.class_def[7].class_def_raw.block.function_def[2]',
 		'Alias.in_param_return2': 'file_input.class_def[7].class_def_raw.block.function_def[3]',
 		'Alias.in_local.block': 'file_input.class_def[7].class_def_raw.block.function_def[4].function_def_raw.block',
-		'import.typing': 'file_input.import_stmt[8]',
+		'Comp.list_comp.block': 'file_input.class_def[8].class_def_raw.block.function_def[1].function_def_raw.block',
+		'Comp.dict_comp.block': 'file_input.class_def[8].class_def_raw.block.function_def[2].function_def_raw.block',
+		'import.typing': 'file_input.import_stmt[9]',
 		'DSI': 'file_input.class_assign',
 	}
 	return DSN.join(aliases[before], after)
@@ -108,6 +110,22 @@ class TestPy2Cpp(TestCase):
 		(_ast('Alias.in_param_return2', ''), defs.Method, '/** in_param_return2 */\npublic: Alias2::Inner2 in_param_return2(Alias2::Inner2 i) {\n\n}'),
 		(_ast('Alias.in_local.block', 'assign[0]'), defs.MoveAssign, 'Alias2 a = Alias2();'),
 		(_ast('Alias.in_local.block', 'assign[1]'), defs.MoveAssign, 'Alias2::Inner2 i = Alias2::Inner2();'),
+
+		(_ast('Comp.list_comp.block', 'assign[1]'), defs.MoveAssign, """std::vector<int> values1 = [this, &]() -> std::vector<int> {
+	std::vector<int> __ret;
+	for (auto value : values0) {
+		__ret.push_back(value);
+	}
+	return __ret;
+}();"""),
+
+		(_ast('Comp.dict_comp.block', 'assign[1]'), defs.MoveAssign, """std::map<std::string, Comp::C> kvs1 = [this, &]() -> std::map<std::string, Comp::C> {
+	std::map<std::string, Comp::C> __ret;
+	for (auto [key, value] : kvs0.items()) {
+		__ret.emplace({key, value});
+	}
+	return __ret;
+}();"""),
 
 		(_ast('import.typing', ''), defs.Import, '// #include "typing.h"'),
 

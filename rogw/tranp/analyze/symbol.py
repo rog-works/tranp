@@ -1,10 +1,11 @@
 from abc import ABCMeta, abstractmethod
 from enum import Enum
-from typing import Any, Iterator, TypeAlias, TypeVar, cast
+from typing import Any, Callable, Iterator, TypeAlias, TypeVar
 
 from rogw.tranp.errors import LogicError
 from rogw.tranp.lang.implementation import implements, injectable, override
 import rogw.tranp.node.definition as defs
+from rogw.tranp.node.definition.statement_compound import ClassSymbolMaker
 from rogw.tranp.node.node import Node
 
 T_Raw = TypeVar('T_Raw', bound='SymbolRaw')
@@ -35,6 +36,92 @@ class Roles(Enum):
 	def has_entity(self) -> bool:
 		"""bool: True = 実体を持つ"""
 		return self in [Roles.Origin, Roles.Class, Roles.Var, Roles.Generic, Roles.Literal]
+
+
+class SymbolProxy:
+	"""シンボルプロクシー
+	* 拡張設定を遅延処理
+	* 参照順序の自動的な解決
+	* 不必要な拡張設定を省略
+
+	Note:
+		シンボルの登録順序と参照順序が重要なインスタンスに関して使用 ※現状はResolveUnknownでのみ使用
+	"""
+
+	def __init__(self, org_raw: 'SymbolRaw', extender: Callable[[], 'SymbolRaw']) -> None:
+		"""インスタンスを生成
+
+		Args:
+			org_raw (SymbolRaw): オリジナル
+			extender (Callable[[], SymbolRaw]): シンボル拡張設定ファクトリー
+		"""
+		super().__setattr__('org_raw', org_raw)
+		super().__setattr__('extender', extender)
+		super().__setattr__('new_raw', None)
+
+	@override
+	def __getattr__(self, key: str) -> Any:
+		"""属性を取得
+
+		Args:
+			key (str): 属性のキー
+		Returns:
+			Any: 属性の値
+		"""
+		if key in ['set_raws', '_raws']:
+			return getattr(self.org_raw, key)
+
+		if self.new_raw is None:
+			super().__setattr__('new_raw', self.extender())
+
+		return getattr(self.new_raw, key)
+
+	@override
+	def __setattr__(self, key: str, value: Any) -> None:
+		"""属性を設定
+
+		Args:
+			key (str): 属性のキー
+			value (Any): 属性の値
+		"""
+		if key in ['set_raws', '_raws']:
+			setattr(self.org_raw, key, value)
+
+		if self.new_raw is None:
+			super().__setattr__('new_raw', self.extender())
+
+		setattr(self.new_raw, key, value)
+
+	@override
+	def __eq__(self, other: object) -> bool:
+		"""比較演算子のオーバーロード
+
+		Args:
+			other (object): 比較対象
+		Returns:
+			bool: True = 同じ
+		"""
+		if self.new_raw is None:
+			super().__setattr__('new_raw', self.extender())
+
+		return self.new_raw == other
+
+	@override
+	def __repr__(self) -> str:
+		"""str: オブジェクトのシリアライズ表現"""
+		if self.new_raw is None:
+			super().__setattr__('new_raw', self.extender())
+
+		return self.new_raw.__repr__()
+
+
+	@override
+	def __str__(self) -> str:
+		"""str: オブジェクトの文字列表現"""
+		if self.new_raw is None:
+			super().__setattr__('new_raw', self.extender())
+
+		return self.new_raw.__str__()
 
 
 class SymbolRaws(dict[str, T_Raw]):
@@ -165,7 +252,7 @@ class SymbolRaw(metaclass=ABCMeta):
 		Returns:
 			SymbolRaw: コンテキストのシンボル
 		Raises:
-			LogicError: コンテキストが無いシンボルで使用
+			LogicError: コンテキストが無い状態で使用
 		"""
 		raise LogicError(f'Context is null. symbol: {str(self)}, fullyname: {self.ref_fullyname}')
 
@@ -203,7 +290,7 @@ class SymbolRaw(metaclass=ABCMeta):
 		Returns:
 			bool: True = 同じ
 		Raises:
-			ValueError: Node以外のオブジェクトを指定
+			ValueError: 継承関係の無いオブジェクトを指定
 		"""
 		if other is None:
 			return False
@@ -237,34 +324,34 @@ class SymbolRaw(metaclass=ABCMeta):
 		"""str: オブジェクトの短縮表記"""
 		return self.make_shorthand()
 
-	def make_shorthand(self, use_alias: bool = False) -> str:
+	def make_shorthand(self, use_alias: bool = False, path_method: str = 'domain') -> str:
 		"""オブジェクトの短縮表記を生成
 
 		Args:
-			use_alias (bool): True = エイリアスの名前を優先(default = False)
+			use_alias (bool): True = エイリアスの名前を優先 (default = False)
+			path_method (str): 参照名の種別 (default = 'domain')
 		Returns:
 			str: 短縮表記
 		Note:
 			# 書式
 			* types=AltClass: ${alias}=${actual}
 			* types=Function: ${domain_name}(...${arguments}) -> ${return}
-			* role=Origin: ${domain_name}
-			* その他: ${domain_name}<...${attributes}>
+			* role=Var/Generic/Literal/Reference: ${domain_name}<...${attributes}>
+			* その他: ${domain_name}
 		"""
-		domain_name = self.types.domain_name
-		domain_name = self.types.alias_symbol or domain_name if use_alias else domain_name
+		symbol_name = ClassSymbolMaker.symbol_name(self.types, use_alias, path_method)
 		if len(self.attrs) > 0:
 			if self.types.is_a(defs.AltClass):
-				attrs = [str(attr) for attr in self.attrs]
-				return f'{domain_name}={attrs[0]}'
+				attrs = [attr.make_shorthand(use_alias, path_method) for attr in self.attrs]
+				return f'{symbol_name}={attrs[0]}'
 			elif self.types.is_a(defs.Function):
-				attrs = [str(attr) for attr in self.attrs]
-				return f'{domain_name}({", ".join(attrs[:-1])}) -> {attrs[-1]}'
+				attrs = [attr.make_shorthand(use_alias, path_method) for attr in self.attrs]
+				return f'{symbol_name}({", ".join(attrs[:-1])}) -> {attrs[-1]}'
 			elif self.role in [Roles.Var, Roles.Generic, Roles.Literal, Roles.Reference]:
-				attrs = [str(attr) for attr in self.attrs]
-				return f'{domain_name}<{", ".join(attrs)}>'
+				attrs = [attr.make_shorthand(use_alias, path_method) for attr in self.attrs]
+				return f'{symbol_name}<{", ".join(attrs)}>'
 
-		return domain_name
+		return symbol_name
 	
 	def each_via(self) -> Iterator[Node]:
 		"""参照元を辿るイテレーターを取得
@@ -277,13 +364,13 @@ class SymbolRaw(metaclass=ABCMeta):
 			yield curr.via or curr.decl
 			curr = curr.origin
 
-	def extends(self, *attrs: 'SymbolRaw') -> 'SymbolRaw':
-		"""シンボルが保持する型を拡張情報として属性に取り込む
+	def extends(self: T_Raw, *attrs: 'SymbolRaw') -> T_Raw:
+		"""シンボルが保有する型を拡張情報として属性に取り込む
 
 		Args:
 			*attrs (SymbolRaw): 属性シンボルリスト
 		Returns:
-			SymbolRaw: インスタンス
+			T_Raw: インスタンス
 		Raises:
 			LogicError: 実体の無いインスタンスに実行
 			LogicError: 拡張済みのインスタンスに再度実行
@@ -291,28 +378,13 @@ class SymbolRaw(metaclass=ABCMeta):
 		raise LogicError(f'Not allowd extends. symbol: {self.types.fullyname}')
 
 	@property
-	def to(self) -> 'SymbolWrapper':  # XXX 前方参照
-		"""シンボルラッパーを生成
+	def to(self) -> 'SymbolWrapper':
+		"""ラッパーファクトリーを生成
 
 		Returns:
-			SymbolWrapper: シンボルラッパー
+			SymbolWrapper: ラッパーファクトリー
 		"""
 		return SymbolWrapper(self)
-
-	def as_a(self, expect: type[T_Raw]) -> T_Raw:
-		"""期待する型と同種ならキャスト
-
-		Args:
-			expect (type[T_Raw]): 期待する型
-		Returns:
-			T_Raw: インスタンス
-		Raises:
-			LogidError: 継承関係が無い型を指定
-		"""
-		if isinstance(self, expect):
-			return self
-
-		raise LogicError(f'Not allowed conversion. self: {str(self)}, from: {self.__class__.__name__}, to: {expect.__name__}')
 
 	def one_of(self, expects: type[T_Raw]) -> T_Raw:
 		"""期待する型と同種ならキャスト
@@ -411,7 +483,11 @@ class Symbol(SymbolRaw):
 	"""シンボル(基底)"""
 
 	def __init__(self, origin: 'SymbolOrigin | Symbol') -> None:
-		"""インスタンスを生成"""
+		"""インスタンスを生成
+
+		Args:
+			origin (SymbolOrigin | Symbol): スタックシンボル
+		"""
 		super().__init__()
 		self.__raws = origin._raws
 		self._origin = origin
@@ -667,12 +743,12 @@ class SymbolGeneric(Symbol):
 
 
 class SymbolLiteral(Symbol):
-	def __init__(self, origin: 'LiteralOrigins', via: defs.Literal) -> None:
+	def __init__(self, origin: 'LiteralOrigins', via: defs.Literal | defs.Comprehension) -> None:
 		"""インスタンスを生成
 
 		Args:
-			origin (SymbolOrigin | SymbolImport): スタックシンボル
-			via (Node): 参照元のノード
+			origin (LiteralOrigins): スタックシンボル
+			via (Literal | Comprehension): 参照元のノード
 		"""
 		super().__init__(origin)
 		self._via = via
@@ -700,12 +776,13 @@ class SymbolLiteral(Symbol):
 
 
 class SymbolReference(Symbol):
-	def __init__(self, origin: 'RefOrigins', via: defs.Node, context: SymbolRaw | None = None) -> None:
+	def __init__(self, origin: 'RefOrigins', via: defs.Reference | defs.Indexer, context: SymbolRaw | None = None) -> None:
 		"""インスタンスを生成
 
 		Args:
 			origin (RefOrigins): スタックシンボル
-			via (Node): 参照元のノード
+			via (Reference | Indexer): 参照元のノード
+			context (SymbolRaw | None): コンテキストのシンボル (default = None)
 		"""
 		super().__init__(origin)
 		self._via = via
@@ -749,9 +826,9 @@ class SymbolReference(Symbol):
 
 ImportOrigins: TypeAlias = SymbolOrigin | SymbolVar
 ClassOrigins: TypeAlias = SymbolOrigin | SymbolImport
-VarOrigins: TypeAlias = SymbolOrigin | SymbolImport | SymbolClass | SymbolVar | SymbolGeneric | SymbolLiteral | SymbolReference
-GenericOrigins: TypeAlias = SymbolOrigin | SymbolImport | SymbolClass | SymbolVar | SymbolGeneric
-RefOrigins: TypeAlias = SymbolOrigin | SymbolImport | SymbolClass | SymbolVar | SymbolGeneric | SymbolLiteral
+VarOrigins: TypeAlias = SymbolOrigin | Symbol
+GenericOrigins: TypeAlias = SymbolOrigin | Symbol
+RefOrigins: TypeAlias = SymbolOrigin | Symbol
 LiteralOrigins: TypeAlias = SymbolClass
 
 
@@ -774,7 +851,7 @@ class SymbolWrapper:
 		Returns:
 			SymbolImport: シンボル
 		"""
-		return SymbolImport(self._raw.as_a(ImportOrigins), via)
+		return SymbolImport(self._raw.one_of(ImportOrigins), via)
 
 	def types(self, decl: defs.ClassDef) -> SymbolClass:
 		"""ラップしたシンボルを生成(クラス定義ノード用)
@@ -806,11 +883,11 @@ class SymbolWrapper:
 		"""
 		return SymbolGeneric(self._raw.one_of(GenericOrigins), via)
 
-	def literal(self, via: defs.Literal) -> SymbolLiteral:
+	def literal(self, via: defs.Literal | defs.Comprehension) -> SymbolLiteral:
 		"""ラップしたシンボルを生成(リテラルノード用)
 
 		Args:
-			via (Literal): リテラルノード
+			via (Literal | Comprehension): リテラル/リスト内包表記ノード
 		Returns:
 			SymbolLiteral: シンボル
 		"""
@@ -821,7 +898,7 @@ class SymbolWrapper:
 
 		Args:
 			via (Reference | Indexer): 参照系ノード
-			context (SymbolRaw): コンテキストのシンボル
+			context (SymbolRaw | None): コンテキストのシンボル (default = None)
 		Returns:
 			SymbolReference: シンボル
 		"""

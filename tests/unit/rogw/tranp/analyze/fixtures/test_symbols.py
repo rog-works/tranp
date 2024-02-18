@@ -66,6 +66,10 @@ class Sub(Base):
 
 		return closure()[0]
 
+	def assign_with_param(self, a: int) -> None:
+		a1 = a + 1
+		a = a1 + 1
+
 class Ops:
 	def sum(self) -> None:
 		n = 1 + 1
@@ -105,3 +109,20 @@ class TupleCheck:
 		for value11 in d.values(): ...
 		for key11 in d.keys(): ...
 		for pair10 in d: ...
+
+	def unpack_assign(self) -> None:
+		a, b = {'a': 1}  # XXX Pythonのシンタックス上は不正
+
+class Comp:
+	def list_comp(self) -> None:
+		values0 = [value for value in [1, 2, 3]]
+		values1: list[int] = [value for value in [1, 2, 3]]
+		values2 = [value for value in values0]
+		strs = [str(value) for value in [1, 2, 3]]
+		value = values0[0]
+		value += [value for value in [0.1, 0.2]][0]
+
+	def dict_comp(self) -> None:
+		kvs0 = {key: index for index, key in enumerate(['a', 'b', 'c'])}
+		kvs1: dict[str, int] = {key: index for index, key in enumerate(['a', 'b', 'c'])}
+		kvs2 = {key: index for key, index in kvs0.items()}

@@ -1,11 +1,11 @@
-from typing import cast
+from typing import Callable, cast
 
-from rogw.tranp.analyze.db import SymbolDB
-from rogw.tranp.analyze.finder import SymbolFinder
-from rogw.tranp.analyze.symbol import SymbolRaw, SymbolRaws
+from rogw.tranp.analyze.symbol import SymbolProxy, SymbolRaw, SymbolRaws
 from rogw.tranp.analyze.symbols import Symbols
 from rogw.tranp.lang.implementation import injectable
+from rogw.tranp.lang.locator import Currying
 import rogw.tranp.node.definition as defs
+from rogw.tranp.node.node import Node
 from rogw.tranp.node.promise import IDeclaration
 
 
@@ -15,46 +15,70 @@ class ResolveUnknown:
 	Note:
 		# Unknownになる条件
 		* MoveAssignの代入変数
-		* Forの展開変数
+		* For/CompForの展開変数
 	"""
 	@injectable
-	def __init__(self, finder: SymbolFinder) -> None:
+	def __init__(self, currying: Currying) -> None:
 		"""インスタンスを生成
 
 		Args:
-			finder (SymbolFinder): シンボル検索 @inject
+			currying (Curring): カリー化関数 @inject
 		"""
-		self.finder = finder
+		self.curring = currying
 
 	@injectable
 	def __call__(self, raws: SymbolRaws) -> SymbolRaws:
 		"""シンボルテーブルを生成
 
 		Args:
-			raws (SymbolRaws): シンボルテーブル
+			raws (SymbolRaws): シンボルテーブル @inject
 		Returns:
 			SymbolRaws: シンボルテーブル
 		"""
-		symbols = Symbols(SymbolDB(raws), self.finder)
+
 		for key, raw in raws.items():
 			if not isinstance(raw.decl, defs.Declable):
 				continue
 
-			# XXX 変数宣言のシンボルのため、roleをVarに変更
-			# XXX MoveAssignを参照するMoveAssign/Forが存在するためrawsを直接更新
 			if isinstance(raw.decl.declare, defs.MoveAssign):
-				raws[key] = self.unpack_value(raw, symbols.type_of(raw.decl.declare.value)).to.var(raw.decl)
-			elif isinstance(raw.decl.declare, defs.For):
-				raws[key] = self.unpack_value(raw, symbols.type_of(raw.decl.declare.for_in)).to.var(raw.decl)
+				raws[key] = SymbolProxy(raw, self.make_resolver(raw, raw.decl.declare.value))
+			elif isinstance(raw.decl.declare, (defs.For, defs.CompFor)):
+				raws[key] = SymbolProxy(raw, self.make_resolver(raw, raw.decl.declare.for_in))
 
 		return raws
+
+	@injectable
+	def resolver(self, symbols: Symbols, var_raw: SymbolRaw, value_node: Node) -> SymbolRaw:
+		"""シンボルの右辺値を解決したシンボルを生成
+
+		Args:
+			symbols (Symbols): シンボルリゾルバー @inject
+			var_raw (SymbolRaw): 変数宣言シンボル
+			value_node (Node): 右辺値ノード
+		Returns:
+			SymbolRaw: 解決したシンボル
+		Note:
+			XXX 変数宣言のシンボルのため、roleをVarに変更
+		"""
+		return self.unpack_value(var_raw, symbols.type_of(value_node)).to.var(var_raw.decl)
+
+	def make_resolver(self, raw: SymbolRaw, value_node: Node) -> Callable[[], SymbolRaw]:
+		"""シンボルリゾルバーを生成
+
+		Args:
+			var_raw (SymbolRaw): 変数宣言シンボル
+			value_node (Node): 右辺値ノード
+		Returns:
+			Callable[[], SymbolRaw]: シンボルリゾルバー
+		"""
+		return lambda: self.curring(self.resolver, Callable[[SymbolRaw, Node], SymbolRaw])(raw, value_node)
 
 	def unpack_value(self, var_raw: SymbolRaw, value_raw: SymbolRaw) -> SymbolRaw:
 		"""右辺値の型をアンパックして左辺の変数の型を解決
 
 		Args:
-			var_raw (SymbolRaw): 変数宣言ノード
-			value_raw (SymbolRaw): 変数宣言の右辺値ノード
+			var_raw (SymbolRaw): 変数宣言シンボル
+			value_raw (SymbolRaw): 変数宣言時の右辺値シンボル
 		Returns:
 			SymbolRaw: 変数の型
 		"""

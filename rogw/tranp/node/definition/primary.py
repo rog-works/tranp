@@ -4,11 +4,11 @@ from typing import Union, cast
 from rogw.tranp.ast.dsn import DSN
 from rogw.tranp.errors import LogicError
 from rogw.tranp.lang.implementation import implements, override
-from rogw.tranp.lang.sequence import last_index_of
+from rogw.tranp.lang.sequence import flatten, last_index_of
 from rogw.tranp.node.definition.literal import Literal
 from rogw.tranp.node.definition.terminal import Empty
 from rogw.tranp.node.embed import Meta, accept_tags, actualized, expandable
-from rogw.tranp.node.interface import IDomain, ITerminal
+from rogw.tranp.node.interface import IDomain, IScope, ITerminal
 from rogw.tranp.node.node import Node
 from rogw.tranp.node.promise import IDeclaration, ISymbol
 
@@ -80,11 +80,7 @@ class Fragment(Node, IDomain):
 		for_assign, for_namelist = parent_tags if len(parent_tags) >= 2 else ['', '']
 		in_decl_var = for_assign in ['assign', 'anno_assign'] and for_namelist == 'assign_namelist'
 		is_local = DSN.elem_counts(tokens) == 1
-		# ローカル変数への代入式の左辺は必ずvarであり、右辺がvarの場合のみ0。それ以外は全て-1
-		#  0のパターン: var = var | var: type = var
-		# -1のパターン: var = expression | var: type = expression
-		is_receiver = self._full_path.last[1] in [0, -1]
-		return in_decl_var and not is_class_or_this and is_local and is_receiver
+		return in_decl_var and not is_class_or_this and is_local
 
 	@property
 	def in_decl_class_type(self) -> bool:
@@ -201,6 +197,11 @@ class Reference(Fragment): pass
 
 @Meta.embed(Node, accept_tags('getattr'), actualized(via=Fragment))
 class Relay(Reference):
+	@property
+	@override
+	def domain_name(self) -> str:
+		return DSN.join(self.receiver.domain_name, self.prop.tokens)
+
 	@classmethod
 	def match_feature(cls, via: Fragment) -> bool:
 		if via.is_decl_local_var or via.is_decl_this_var:
@@ -213,8 +214,8 @@ class Relay(Reference):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def receiver(self) -> 'Reference | FuncCall | Indexer | Literal':
-		return self._at(0).one_of(Reference | FuncCall | Indexer | Literal)
+	def receiver(self) -> 'Reference | FuncCall | Indexer | Generator| Literal':
+		return self._at(0).one_of(Reference | FuncCall | Indexer | Generator | Literal)
 
 	@property
 	def prop(self) -> 'Variable':
@@ -283,8 +284,8 @@ class DecoratorPath(Path):
 class Indexer(Node):
 	@property
 	@Meta.embed(Node, expandable)
-	def receiver(self) -> 'Reference | FuncCall | Indexer':
-		return self._at(0).one_of(Reference | FuncCall | Indexer)
+	def receiver(self) -> 'Reference | FuncCall | Indexer | Generator':
+		return self._at(0).one_of(Reference | FuncCall | Indexer | Generator)
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -517,3 +518,97 @@ class InheritArgument(Node):
 
 @Meta.embed(Node, accept_tags('elipsis'))
 class Elipsis(Node, ITerminal): pass
+
+
+@Meta.embed(Node, accept_tags('for_in', 'comp_for_in'))
+class ForIn(Node):
+	@property
+	@Meta.embed(Node, expandable)
+	def iterates(self) -> Node:
+		return self._at(0)
+
+
+@Meta.embed(Node, accept_tags('comp_for'))
+class CompFor(Node, IDeclaration):
+	@property
+	@implements
+	@Meta.embed(Node, expandable)
+	def symbols(self) -> list[Declable]:
+		return [node.as_a(Declable) for node in self._children('for_namelist')]
+
+	@property
+	@Meta.embed(Node, expandable)
+	def for_in(self) -> ForIn:
+		return self._by('comp_for_in').as_a(ForIn)
+
+	@property
+	def iterates(self) -> Node:
+		return self.for_in.iterates
+
+
+class Generator(Node):
+	@property
+	def decl_vars(self) -> list[Declable]:
+		raise NotImplementedError()
+
+
+class Comprehension(Generator, IDomain, IScope):
+	"""Note: XXX 属するカテゴリーは何が最適か検討。無名関数に近い？"""
+
+	@property
+	@override
+	def domain_name(self) -> str:
+		return DSN.identify(self.classification, self._id())
+
+	@property
+	@override
+	def fullyname(self) -> str:
+		"""Note: XXX スコープが自身を表すためスコープをそのまま返却"""
+		return self.scope
+
+	@property
+	@implements
+	def scope_part(self) -> str:
+		return self.domain_name
+
+	@property
+	@implements
+	def namespace_part(self) -> str:
+		return self.domain_name
+
+	@property
+	@Meta.embed(Node, expandable)
+	def projection(self) -> Node:
+		return self._children('comprehension')[0]
+
+	@property
+	@override
+	@Meta.embed(Node, expandable)
+	def fors(self) -> list[CompFor]:
+		return [node.as_a(CompFor) for node in self._children('comprehension.comp_fors')]
+
+	@property
+	@Meta.embed(Node, expandable)
+	def condition(self) -> Node | Empty:
+		node = self._children('comprehension')[2]
+		return node if isinstance(node, Empty) else node
+
+	@property
+	@override
+	def decl_vars(self) -> list[Declable]:
+		return list(flatten([comp_for.symbols for comp_for in self.fors]))
+
+	@property
+	def binded_this(self) -> bool:
+		"""Note: メソッド内に存在する場合は、メソッドのスコープを静的に束縛しているものとして扱う"""
+		return self._full_path.contains('class_def')
+
+
+@Meta.embed(Node, accept_tags('list_comp'))
+class ListComp(Comprehension):
+	pass
+
+
+@Meta.embed(Node, accept_tags('dict_comp'))
+class DictComp(Comprehension):
+	pass

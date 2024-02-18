@@ -1,0 +1,13 @@
+[{% if binded_this %}this, {% endif %}&]() -> std::vector<{{ projection_types[0] }}> {
+	std::vector<{{ projection_types[0] }}> __ret;
+	for ({{ comp_for }}) {
+		{%- if condition %}
+		if ({{ condition }}) {
+			__ret.push_back({{ projection }});
+		}
+		{%- else %}
+		__ret.push_back({{ projection }});
+		{%- endif %}
+	}
+	return __ret;
+}()

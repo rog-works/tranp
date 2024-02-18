@@ -165,8 +165,7 @@ class EntryPath:
 		if not self.origin.startswith(f'{starts}.'):
 			raise LogicError(self, starts)
 
-		elems = [elem for elem in self.origin.split(f'{starts}.')[1].split('.')]
-		return EntryPath('.'.join(elems))
+		return EntryPath(DSN.relativefy(self.origin, starts))
 
 	def shift(self, skip: int) -> 'EntryPath':
 		"""指定方向の要素を除外して再構築したパスでインスタンスを生成

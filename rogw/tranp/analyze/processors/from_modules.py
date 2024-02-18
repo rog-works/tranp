@@ -80,7 +80,7 @@ class FromModules:
 					entrypoint = core_module.entrypoint.as_a(defs.Entrypoint)
 					primary_symbol_names = [node.fullyname for node in entrypoint.statements if isinstance(node, defs.DeclAll)]
 					expanded = expands[core_module]
-					core_primary_raws = SymbolRaws.new(core_primary_raws, {fullyname: expanded.raws[fullyname] for fullyname in primary_symbol_names})
+					core_primary_raws.merge({fullyname: expanded.raws[fullyname] for fullyname in primary_symbol_names})
 
 			# インポートモジュールを展開
 			# XXX 別枠として分離するより、ステートメントの中で処理するのが理想
@@ -92,8 +92,8 @@ class FromModules:
 				import_module = modules.load(import_node.import_path.tokens)
 				expanded = expands[import_module]
 				filtered_raws = [expanded.raws[DSN.join(import_module.path, name)].to.imports(import_node) for name in imported_symbol_names]
-				filtered_db = SymbolRaws.new({raw.ref_fullyname: raw for raw in filtered_raws})
-				imported_raws = SymbolRaws.new(filtered_db, imported_raws)
+				filtered_db = {raw.ref_fullyname: raw for raw in filtered_raws}
+				imported_raws.merge(filtered_db)
 
 			# 展開対象モジュールの変数シンボルを展開
 			expand_target.raws = SymbolRaws.new(core_primary_raws, imported_raws, expand_target.raws)
@@ -101,9 +101,11 @@ class FromModules:
 				expand_target.raws[var.symbol.fullyname] = self.resolve_type_symbol(expand_target.raws, var).to.var(var)
 
 		# シンボルテーブルを統合
+		combine_raws = SymbolRaws.new()
 		for expanded in expands.values():
-			raws.merge(expanded.raws)
+			combine_raws.merge(expanded.raws)
 
+		raws.merge(self.sorted_raws(combine_raws, [module.path for module in expands.keys()]))
 		return raws
 
 	def expand_module(self, module: Module) -> Expanded:
@@ -132,6 +134,8 @@ class FromModules:
 			elif type(node) is defs.Class:
 				decl_vars.extend(node.class_vars)
 				decl_vars.extend(node.this_vars)
+			elif isinstance(node, defs.Generator):
+				decl_vars.extend(node.decl_vars)
 
 		# XXX calculatedに含まれないためエントリーポイントは個別に処理
 		decl_vars = [*entrypoint.decl_vars, *decl_vars]
@@ -170,8 +174,28 @@ class FromModules:
 				return var.declare.var_type.as_a(defs.Type)
 		elif isinstance(var.declare, (defs.AnnoAssign, defs.Catch)):
 			return var.declare.var_type
-		elif isinstance(var.declare, (defs.MoveAssign, defs.For)):
+		elif isinstance(var.declare, (defs.MoveAssign, defs.For, defs.CompFor)):
 			# 型指定が無いため全てUnknown
 			return None
 
 		return None
+
+	def sorted_raws(self, raws: SymbolRaws, module_orders: list[str]) -> dict[str, SymbolRaw]:
+		"""シンボルテーブルをモジュールのロード順に並び替え
+
+		Args:
+			raws (SymbolRaws): シンボルテーブル
+			module_orders (list[str]): ロード順のモジュール名リスト
+		Returns:
+			dict[str, SymbolRaw]: 並び替え後のシンボルテーブル
+		"""
+		orders = {index: key for index, key in enumerate(module_orders)}
+		def order(entry: tuple[str, SymbolRaw]) -> int:
+			key, _ = entry
+			for index, module_path in orders.items():
+				if module_path in key:
+					return index
+
+			return -1
+
+		return dict(sorted(raws.items(), key=order))

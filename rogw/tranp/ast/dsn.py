@@ -109,6 +109,21 @@ class DSN:
 		return cls.elements(origin, delimiter)[-2]
 
 	@classmethod
+	def relativefy(cls, origin: str, starts: str, delimiter = '.') -> str:
+		"""指定のパスより先の相対パスを生成
+
+		Args:
+			starts (str): 先頭のパス
+		Returns:
+			str: 相対パス
+		"""
+		if not origin.startswith(f'{starts}.'):
+			return origin
+
+		elems = [elem for elem in origin.split(f'{starts}{delimiter}')[1].split(delimiter)]
+		return cls.join(*elems)
+
+	@classmethod
 	def identify(cls, origin: str, id: int | str) -> str:
 		"""IDを付与し、一意性を持ったドメイン名を生成
 

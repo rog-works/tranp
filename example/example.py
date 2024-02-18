@@ -69,11 +69,7 @@ class CellMesh:
 			Vector(max.x, max.y, max.z),
 			Vector(min.x, max.y, max.z),
 		]
-		out: list[Box3d] = []
-		for position in positions:
-			out.append(Box3d(position - offset,  position + offset))
-
-		return out
+		return [Box3d(position - offset,  position + offset) for position in positions]
 
 	@classmethod
 	def by_vertex_ids(cls, mesh: Mesh, cell: IntVector, unit: int) -> list[int]:

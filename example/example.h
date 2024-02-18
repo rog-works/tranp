@@ -69,12 +69,13 @@ class CellMesh {
 			{Vector(max.x, max.y, max.z)},
 			{Vector(min.x, max.y, max.z)},
 		};
-		std::vector<Box3d> out = {
-		};
-		for (auto position : positions) {
-			out.push_back(Box3d(position - offset, position + offset));
-		}
-		return out;
+		return [&]() -> std::vector<Box3d> {
+			std::vector<Box3d> __ret;
+			for (auto position : positions) {
+				__ret.push_back(Box3d(position - offset, position + offset));
+			}
+			return __ret;
+		}();
 	}
 	/** by_vertex_ids */
 	public: static std::vector<int> by_vertex_ids(Mesh mesh, IntVector cell, int unit) {

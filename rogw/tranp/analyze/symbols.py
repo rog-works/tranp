@@ -435,6 +435,15 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 	def on_inherit_argument(self, node: defs.InheritArgument, class_type: SymbolRaw) -> SymbolRaw:
 		return class_type
 
+	def on_comp_for(self, node: defs.CompFor, symbols: list[SymbolRaw], for_in: SymbolRaw) -> SymbolRaw:
+		return for_in
+
+	def on_list_comp(self, node: defs.ListComp, projection: SymbolRaw, fors: list[SymbolRaw], condition: SymbolRaw) -> SymbolRaw:
+		return projection
+
+	def on_dict_comp(self, node: defs.ListComp, projection: SymbolRaw, fors: list[SymbolRaw], condition: SymbolRaw) -> SymbolRaw:
+		return projection
+
 	# Operator
 
 	def on_factor(self, node: defs.Sum, value: SymbolRaw) -> SymbolRaw:

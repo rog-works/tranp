@@ -546,7 +546,10 @@ class CompFor(Node, IDeclaration):
 		return self.for_in.iterates
 
 
-class Generator(Node): ...
+class Generator(Node):
+	@property
+	def decl_vars(self) -> list[Declable]:
+		raise NotImplementedError()
 
 
 class Comprehension(Generator, IDomain, IScope):
@@ -591,6 +594,7 @@ class Comprehension(Generator, IDomain, IScope):
 		return node if isinstance(node, Empty) else node
 
 	@property
+	@override
 	def decl_vars(self) -> list[Declable]:
 		return list(flatten([comp_for.symbols for comp_for in self.fors]))
 

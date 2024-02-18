@@ -565,11 +565,6 @@ class VarsCollector:
 	def collect(cls, block: StatementBlock, allow: type[T_Declable]) -> dict[str, T_Declable]:
 		decl_vars: dict[str, T_Declable] = {}
 		for node in block.statements:
-			if isinstance(node, MoveAssign):
-				decl_vars = cls._merged(decl_vars, cls._expand_comp_decl_vars(node.value, allow))
-			elif isinstance(node, For):
-				decl_vars = cls._merged(decl_vars, cls._expand_comp_decl_vars(node.iterates, allow))
-
 			if isinstance(node, (AnnoAssign, MoveAssign)):
 				decl_vars = cls._merged_by(decl_vars, node, allow)
 			elif isinstance(node, For):
@@ -595,15 +590,6 @@ class VarsCollector:
 	@classmethod
 	def _merged(cls, decl_vars: dict[str, T_Declable], allow_vars: dict[str, T_Declable]) -> dict[str, T_Declable]:
 		return {**decl_vars, **{name: symbol for name, symbol in allow_vars.items() if name not in decl_vars}}
-
-	@classmethod
-	def _expand_comp_decl_vars(cls, value_node: Node, allow: type[T_Declable]) -> dict[str, T_Declable]:
-		decl_vars: dict[str, T_Declable] = {}
-		for in_node in value_node.calculated():
-			if isinstance(in_node, CompFor):
-				decl_vars = cls._merged_by(decl_vars, in_node, allow)
-
-		return decl_vars
 
 
 class ClassSymbolMaker:

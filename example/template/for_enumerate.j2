@@ -1,0 +1,15 @@
+auto __for_iterates_{{ id }} = [&]() -> std::map<int, {{ var_type }}> {
+	std::map<int, {{ var_type }}> __ret;
+	int __index = 0;
+	for (auto& __entry : {{ iterates }}) {
+		__ret.emplace(__index++, __entry);
+	}
+	return __ret;
+}();
+for (auto& {% if symbols | length > 1 %}[{{ symbols | join(', ') }}]{% else %}{{ symbols[0] }}{% endif %} : __for_iterates_{{ id }}) {
+{%- filter indent('\t') %}
+{%- for statement in statements %}
+{{ statement }}
+{%- endfor %}
+{%- endfilter %}
+}

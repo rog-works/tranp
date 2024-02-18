@@ -77,8 +77,7 @@ class CellMesh:
 		def closure(origin: MeshRaw) -> None:
 			cellBox = cls.to_cell_box(cell, unit)
 			boxs = cls.to_vertex_boxs(cellBox, unit)
-			for i in range(int(CellMesh.VertexIndexs.Max)):
-				box = boxs[i]
+			for i, box in enumerate(boxs):
 				for vi in origin.vertex_indices_itr():
 					if not origin.is_vertex(vi):
 						continue

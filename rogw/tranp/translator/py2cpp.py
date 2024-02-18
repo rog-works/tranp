@@ -112,14 +112,21 @@ class Py2Cpp(Procedure[str]):
 		return iterates
 
 	def on_for(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
-		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Variable) and node.iterates.calls.tokens == 'range':
+		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Variable) and node.iterates.calls.tokens == range.__name__:
 			return self.on_for_range(node, symbols, for_in, statements)
+		elif isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Variable) and node.iterates.calls.tokens == enumerate.__name__:
+			return self.on_for_enumerate(node, symbols, for_in, statements)
 		else:
 			return self.view.render(node.classification, vars={'symbols': symbols, 'iterates': for_in, 'statements': statements})
 
 	def on_for_range(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		last_index = cast(re.Match, re.fullmatch(r'range\((.+)\)', for_in))[1]
 		return self.view.render(f'{node.classification}_range', vars={'symbol': symbols[0], 'last_index': last_index, 'statements': statements})
+
+	def on_for_enumerate(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
+		iterates = cast(re.Match, re.fullmatch(r'enumerate\((.+)\)', for_in))[1]
+		var_type = self.c_fullyname_by(self.symbols.type_of(node.for_in).attrs[1])
+		return self.view.render(f'{node.classification}_enumerate', vars={'symbols': symbols, 'iterates': iterates, 'statements': statements, 'id': id(node), 'var_type': var_type})
 
 	def on_catch(self, node: defs.Catch, var_type: str, symbol: str, statements: list[str]) -> str:
 		return self.view.render(node.classification, vars={'var_type': var_type, 'symbol': symbol, 'statements': statements})

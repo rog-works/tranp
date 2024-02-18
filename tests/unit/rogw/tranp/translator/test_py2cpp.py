@@ -111,7 +111,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('Alias.in_local.block', 'assign[0]'), defs.MoveAssign, 'Alias2 a = Alias2();'),
 		(_ast('Alias.in_local.block', 'assign[1]'), defs.MoveAssign, 'Alias2::Inner2 i = Alias2::Inner2();'),
 
-		(_ast('Comp.list_comp.block', 'assign[1]'), defs.MoveAssign, """std::vector<int> values1 = [&]() -> std::vector<int> {
+		(_ast('Comp.list_comp.block', 'assign[1]'), defs.MoveAssign, """std::vector<int> values1 = [this, &]() -> std::vector<int> {
 	std::vector<int> __ret;
 	for (auto value : values0) {
 		__ret.push_back(value);
@@ -119,7 +119,7 @@ class TestPy2Cpp(TestCase):
 	return __ret;
 }();"""),
 
-		(_ast('Comp.dict_comp.block', 'assign[1]'), defs.MoveAssign, """std::map<std::string, Comp::C> kvs1 = [&]() -> std::map<std::string, Comp::C> {
+		(_ast('Comp.dict_comp.block', 'assign[1]'), defs.MoveAssign, """std::map<std::string, Comp::C> kvs1 = [this, &]() -> std::map<std::string, Comp::C> {
 	std::map<std::string, Comp::C> __ret;
 	for (auto [key, value] : kvs0.items()) {
 		__ret.emplace({key, value});

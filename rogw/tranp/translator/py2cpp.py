@@ -126,14 +126,14 @@ class Py2Cpp(Procedure[str]):
 	def on_list_comp(self, node: defs.ListComp, projection: str, fors: list[str], condition: str) -> str:
 		projection_type_raw = self.symbols.type_of(node.projection)
 		projection_type = self.c_fullyname_by(projection_type_raw)
-		comp_vars = {'projection': projection, 'comp_for': fors[0], 'condition': condition, 'projection_types': [projection_type]}
+		comp_vars = {'projection': projection, 'comp_for': fors[0], 'condition': condition, 'projection_types': [projection_type], 'binded_this': node.binded_this}
 		return self.view.render(node.classification, vars=comp_vars)
 
 	def on_dict_comp(self, node: defs.DictComp, projection: str, fors: list[str], condition: str) -> str:
 		projection_type_raw = self.symbols.type_of(node.projection)
 		projection_type_key = self.c_fullyname_by(projection_type_raw.attrs[0])
 		projection_type_value = self.c_fullyname_by(projection_type_raw.attrs[1])
-		comp_vars = {'projection': projection, 'comp_for': fors[0], 'condition': condition, 'projection_types': [projection_type_key, projection_type_value]}
+		comp_vars = {'projection': projection, 'comp_for': fors[0], 'condition': condition, 'projection_types': [projection_type_key, projection_type_value], 'binded_this': node.binded_this}
 		return self.view.render(node.classification, vars=comp_vars)
 
 	def on_function(self, node: defs.Function, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, comment: str, statements: list[str]) -> str:

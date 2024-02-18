@@ -301,7 +301,7 @@ class ClassDef(Node, IDomain, IScope, IDeclaration, ISymbol):
 		"""Note: XXX 振る舞いとして必然性のないメソッド。ユースケースはClassSymbolMakerとの連携のみ"""
 		ancestors: list[ClassDef] = []
 		ancestor = self.parent
-		while 'class_def' in ancestor._full_path.de_identify().elements:
+		while ancestor._full_path.contains('class_def'):
 			found = ancestor._ancestor('class_def').as_a(ClassDef)
 			ancestors.append(found)
 			ancestor = found.parent
@@ -422,18 +422,8 @@ class Closure(Function):
 
 	@property
 	def binded_this(self) -> bool:
-		"""Note: メソッド内のクロージャーは、メソッドの所有インスタンスを静的に束縛しているものとして扱う"""
-		found_own_class = 'class_def' in self._full_path.de_identify().elements
-		if not found_own_class:
-			return False
-
-		types = self._ancestor('class_def').as_a(Class)
-		own_method_at = len(types.block._full_path.elements) + 1
-		own_method = self
-		while own_method_at < len(own_method._full_path.elements):
-			own_method = own_method.parent
-
-		return own_method.is_a(Constructor, Method)
+		"""Note: メソッド内に存在する場合は、メソッドのスコープを静的に束縛しているものとして扱う"""
+		return self._full_path.contains('class_def')
 
 
 @Meta.embed(Node, accept_tags('class_def'))

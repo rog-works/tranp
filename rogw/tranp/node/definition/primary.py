@@ -598,6 +598,11 @@ class Comprehension(Generator, IDomain, IScope):
 	def decl_vars(self) -> list[Declable]:
 		return list(flatten([comp_for.symbols for comp_for in self.fors]))
 
+	@property
+	def binded_this(self) -> bool:
+		"""Note: メソッド内に存在する場合は、メソッドのスコープを静的に束縛しているものとして扱う"""
+		return self._full_path.contains('class_def')
+
 
 @Meta.embed(Node, accept_tags('list_comp'))
 class ListComp(Comprehension):

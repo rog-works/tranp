@@ -1,4 +1,4 @@
-[&]() -> std::map<{{ projection_types[0] }}, {{ projection_types[1] }}> {
+[{% if binded_this %}this, {% endif %}&]() -> std::map<{{ projection_types[0] }}, {{ projection_types[1] }}> {
 	std::map<{{ projection_types[0] }}, {{ projection_types[1] }}> __ret;
 	for ({{ comp_for }}) {
 		{%- if condition %}

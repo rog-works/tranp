@@ -1,5 +1,5 @@
 {%- if symbols | length == 1 -%}
-auto {{ symbols | join(', ') }} : {{ iterates }}
+auto& {{ symbols[0] }} : {{ iterates }}
 {%- else -%}
-auto [{{ symbols | join(', ') }}] : {{ iterates }}
+auto& [{{ symbols | join(', ') }}] : {{ iterates }}
 {%- endif -%}

@@ -71,7 +71,7 @@ class CellMesh {
 		};
 		return [&]() -> std::vector<Box3d> {
 			std::vector<Box3d> __ret;
-			for (auto position : positions) {
+			for (auto& position : positions) {
 				__ret.push_back(Box3d(position - offset, position + offset));
 			}
 			return __ret;
@@ -101,7 +101,7 @@ class CellMesh {
 				return __ret;
 			}();
 			for (auto& [i, box] : __for_iterates_1189) {
-				for (auto vi : origin.vertex_indices_itr()) {
+				for (auto& vi : origin.vertex_indices_itr()) {
 					if (!origin.is_vertex(vi)) {
 						continue;
 					}

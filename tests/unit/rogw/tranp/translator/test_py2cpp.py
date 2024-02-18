@@ -46,6 +46,11 @@ BLOCK_EXPECTS = {
 for (auto& [index, key] : __for_iterates_1572) {
 	print(index, key);
 }""",
+
+	'ForOps.dict_items.block.for_stmt':
+"""for (auto& [key, value] : kvs) {
+	print(key, value);
+}"""
 }
 
 
@@ -72,6 +77,7 @@ def _ast(before: str, after: str) -> str:
 		'CompOps.dict_comp.block': 'file_input.class_def[8].class_def_raw.block.function_def[2].function_def_raw.block',
 		'ForOps.range.block': 'file_input.class_def[9].class_def_raw.block.function_def[0].function_def_raw.block',
 		'ForOps.enumerate.block': 'file_input.class_def[9].class_def_raw.block.function_def[1].function_def_raw.block',
+		'ForOps.dict_items.block': 'file_input.class_def[9].class_def_raw.block.function_def[2].function_def_raw.block',
 		'ListOps.len.block': 'file_input.class_def[10].class_def_raw.block.function_def.function_def_raw.block',
 		'import.typing': 'file_input.import_stmt[11]',
 		'DSI': 'file_input.class_assign',
@@ -153,6 +159,7 @@ class TestPy2Cpp(TestCase):
 
 		(_ast('ForOps.range.block', 'for_stmt'), defs.For, 'for (auto i = 0; i < 10; i++) {\n\tprint(i);\n}'),
 		(_ast('ForOps.enumerate.block', 'for_stmt'), defs.For, BLOCK_EXPECTS['ForOps.enumerate.block.for_stmt']),
+		(_ast('ForOps.dict_items.block', 'for_stmt'), defs.For, BLOCK_EXPECTS['ForOps.dict_items.block.for_stmt']),
 
 		(_ast('ListOps.len.block', 'assign[1]'), defs.MoveAssign, 'int size_values = values.size();'),
 		(_ast('ListOps.len.block', 'assign[3]'), defs.MoveAssign, 'int size_kvs = kvs.size();'),

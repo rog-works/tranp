@@ -149,6 +149,11 @@ class ForOps:
 		for index, key in enumerate(keys):
 			print(index, key)
 
+	def dict_items(self) -> None:
+		kvs = {'a': 1}
+		for key, value in kvs.items():
+			print(key, value)
+
 class ListOps:
 	def len(self) -> None:
 		values = [1, 2]

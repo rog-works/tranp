@@ -87,8 +87,11 @@ class Py2Cpp(Procedure[str]):
 	# Hook
 
 	def on_exit_func_call(self, node: defs.FuncCall, result: str) -> str:
-		if result.startswith('directive'):
+		if result.startswith('directive('):
 			return node.arguments[0].tokens[1:-1]
+		elif result.startswith('len('):
+			arguments = cast(re.Match, re.fullmatch(r'len\((.+)\)', result))[1]
+			return f'{arguments}.size()'
 		else:
 			return result
 

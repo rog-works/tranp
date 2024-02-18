@@ -127,7 +127,7 @@ class Alias:
 		a = Alias()
 		i = Alias.Inner()
 
-class Comp:
+class CompOps:
 	class C:
 		...
 
@@ -136,18 +136,25 @@ class Comp:
 		values1 = [value for value in values0]
 
 	def dict_comp(self) -> None:
-		kvs0 = {'a': Comp.C()}
+		kvs0 = {'a': CompOps.C()}
 		kvs1 = {key: value for key, value in kvs0.items()}
 
-class For:
+class ForOps:
 	def range(self) -> None:
 		for i in range(10):
 			print(i)
 
 	def enumerate(self) -> None:
-		values = ['a', 'b']
-		for index, value in enumerate(values):
-			print(index, value)
+		keys = ['a', 'b']
+		for index, key in enumerate(keys):
+			print(index, key)
+
+class ListOps:
+	def len(self) -> None:
+		values = [1, 2]
+		size_values = len(values)
+		kvs = {'a': 1}
+		size_kvs = len(kvs)
 
 from typing import TypeAlias
 

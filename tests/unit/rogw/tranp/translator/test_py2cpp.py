@@ -16,7 +16,7 @@ from tests.test.helper import data_provider
 
 
 BLOCK_EXPECTS = {
-	'Comp.list_comp.block.assign[1]':
+	'CompOps.list_comp.block.assign[1]':
 """std::vector<int> values1 = [this, &]() -> std::vector<int> {
 	std::vector<int> __ret;
 	for (auto& value : values0) {
@@ -25,26 +25,26 @@ BLOCK_EXPECTS = {
 	return __ret;
 }();""",
 
-	'Comp.dict_comp.block.assign[1]':
-"""std::map<std::string, Comp::C> kvs1 = [this, &]() -> std::map<std::string, Comp::C> {
-	std::map<std::string, Comp::C> __ret;
+	'CompOps.dict_comp.block.assign[1]':
+"""std::map<std::string, CompOps::C> kvs1 = [this, &]() -> std::map<std::string, CompOps::C> {
+	std::map<std::string, CompOps::C> __ret;
 	for (auto& [key, value] : kvs0.items()) {
 		__ret.emplace({key, value});
 	}
 	return __ret;
 }();""",
 
-	'For.enumerate.block.for_stmt':
+	'ForOps.enumerate.block.for_stmt':
 """auto __for_iterates_1572 = [&]() -> std::map<int, std::string> {
 	std::map<int, std::string> __ret;
 	int __index = 0;
-	for (auto& __entry : values) {
+	for (auto& __entry : keys) {
 		__ret.emplace(__index++, __entry);
 	}
 	return __ret;
 }();
-for (auto& [index, value] : __for_iterates_1572) {
-	print(index, value);
+for (auto& [index, key] : __for_iterates_1572) {
+	print(index, key);
 }""",
 }
 
@@ -68,11 +68,12 @@ def _ast(before: str, after: str) -> str:
 		'Alias.in_param_return': 'file_input.class_def[7].class_def_raw.block.function_def[2]',
 		'Alias.in_param_return2': 'file_input.class_def[7].class_def_raw.block.function_def[3]',
 		'Alias.in_local.block': 'file_input.class_def[7].class_def_raw.block.function_def[4].function_def_raw.block',
-		'Comp.list_comp.block': 'file_input.class_def[8].class_def_raw.block.function_def[1].function_def_raw.block',
-		'Comp.dict_comp.block': 'file_input.class_def[8].class_def_raw.block.function_def[2].function_def_raw.block',
-		'For.range.block': 'file_input.class_def[9].class_def_raw.block.function_def[0].function_def_raw.block',
-		'For.enumerate.block': 'file_input.class_def[9].class_def_raw.block.function_def[1].function_def_raw.block',
-		'import.typing': 'file_input.import_stmt[10]',
+		'CompOps.list_comp.block': 'file_input.class_def[8].class_def_raw.block.function_def[1].function_def_raw.block',
+		'CompOps.dict_comp.block': 'file_input.class_def[8].class_def_raw.block.function_def[2].function_def_raw.block',
+		'ForOps.range.block': 'file_input.class_def[9].class_def_raw.block.function_def[0].function_def_raw.block',
+		'ForOps.enumerate.block': 'file_input.class_def[9].class_def_raw.block.function_def[1].function_def_raw.block',
+		'ListOps.len.block': 'file_input.class_def[10].class_def_raw.block.function_def.function_def_raw.block',
+		'import.typing': 'file_input.import_stmt[11]',
 		'DSI': 'file_input.class_assign',
 	}
 	return DSN.join(aliases[before], after)
@@ -147,11 +148,14 @@ class TestPy2Cpp(TestCase):
 		(_ast('Alias.in_local.block', 'assign[0]'), defs.MoveAssign, 'Alias2 a = Alias2();'),
 		(_ast('Alias.in_local.block', 'assign[1]'), defs.MoveAssign, 'Alias2::Inner2 i = Alias2::Inner2();'),
 
-		(_ast('Comp.list_comp.block', 'assign[1]'), defs.MoveAssign, BLOCK_EXPECTS['Comp.list_comp.block.assign[1]']),
-		(_ast('Comp.dict_comp.block', 'assign[1]'), defs.MoveAssign, BLOCK_EXPECTS['Comp.dict_comp.block.assign[1]']),
+		(_ast('CompOps.list_comp.block', 'assign[1]'), defs.MoveAssign, BLOCK_EXPECTS['CompOps.list_comp.block.assign[1]']),
+		(_ast('CompOps.dict_comp.block', 'assign[1]'), defs.MoveAssign, BLOCK_EXPECTS['CompOps.dict_comp.block.assign[1]']),
 
-		(_ast('For.range.block', 'for_stmt'), defs.For, 'for (auto i = 0; i < 10; i++) {\n\tprint(i);\n}'),
-		(_ast('For.enumerate.block', 'for_stmt'), defs.For, BLOCK_EXPECTS['For.enumerate.block.for_stmt']),
+		(_ast('ForOps.range.block', 'for_stmt'), defs.For, 'for (auto i = 0; i < 10; i++) {\n\tprint(i);\n}'),
+		(_ast('ForOps.enumerate.block', 'for_stmt'), defs.For, BLOCK_EXPECTS['ForOps.enumerate.block.for_stmt']),
+
+		(_ast('ListOps.len.block', 'assign[1]'), defs.MoveAssign, 'int size_values = values.size();'),
+		(_ast('ListOps.len.block', 'assign[3]'), defs.MoveAssign, 'int size_kvs = kvs.size();'),
 
 		(_ast('import.typing', ''), defs.Import, '// #include "typing.h"'),
 

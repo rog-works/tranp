@@ -109,19 +109,20 @@ def task_type(symbols: Symbols) -> None:
 
 	symbol = symbols.from_fullyname(name)
 	data = {
-		'full_path': symbol.types.full_path,
+		'types_full_path': symbol.types.full_path,
+		'decl_full_path': symbol.decl.full_path,
 		'shorthand': str(symbol),
 		'ref_fullyname': symbol.ref_fullyname,
 		'org_fullyname': symbol.org_fullyname,
 		'types': str(symbol.types),
 		'decl': str(symbol.decl),
 		'origin': str(symbol.origin),
-		'attrs': ', '.join([str(attr) for attr in symbol.attrs]),
-		'hierarchy': f'\n -> '.join([str(via) for via in symbol.each_via()]),
+		'attrs': [str(attr) for attr in symbol.attrs],
+		'hierarchy': [str(via) for via in symbol.each_via()],
 	}
 
 	print('--------------')
-	print('\n'.join([f'{key}: {value}' for key, value in data.items()]))
+	print(json.dumps(data, indent=2))
 
 
 def task_help() -> None:

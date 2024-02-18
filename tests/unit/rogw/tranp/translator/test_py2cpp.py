@@ -113,7 +113,7 @@ class TestPy2Cpp(TestCase):
 
 		(_ast('Comp.list_comp.block', 'assign[1]'), defs.MoveAssign, """std::vector<int> values1 = [this, &]() -> std::vector<int> {
 	std::vector<int> __ret;
-	for (auto value : values0) {
+	for (auto& value : values0) {
 		__ret.push_back(value);
 	}
 	return __ret;
@@ -121,7 +121,7 @@ class TestPy2Cpp(TestCase):
 
 		(_ast('Comp.dict_comp.block', 'assign[1]'), defs.MoveAssign, """std::map<std::string, Comp::C> kvs1 = [this, &]() -> std::map<std::string, Comp::C> {
 	std::map<std::string, Comp::C> __ret;
-	for (auto [key, value] : kvs0.items()) {
+	for (auto& [key, value] : kvs0.items()) {
 		__ret.emplace({key, value});
 	}
 	return __ret;

@@ -15,14 +15,14 @@ class ResolveUnknown:
 	Note:
 		# Unknownになる条件
 		* MoveAssignの代入変数
-		* Forの展開変数
+		* For/CompForの展開変数
 	"""
 	@injectable
 	def __init__(self, currying: Currying) -> None:
 		"""インスタンスを生成
 
 		Args:
-			finder (SymbolFinder): シンボル検索 @inject
+			currying (Curring): カリー化関数 @inject
 		"""
 		self.curring = currying
 

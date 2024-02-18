@@ -740,9 +740,9 @@ class SymbolReference(Symbol):
 
 ImportOrigins: TypeAlias = SymbolOrigin | SymbolVar
 ClassOrigins: TypeAlias = SymbolOrigin | SymbolImport
-VarOrigins: TypeAlias = SymbolOrigin | SymbolImport | SymbolClass | SymbolVar | SymbolGeneric | SymbolLiteral | SymbolReference
-GenericOrigins: TypeAlias = SymbolOrigin | SymbolImport | SymbolClass | SymbolVar | SymbolGeneric
-RefOrigins: TypeAlias = SymbolOrigin | SymbolImport | SymbolClass | SymbolVar | SymbolGeneric | SymbolLiteral
+VarOrigins: TypeAlias = SymbolOrigin | Symbol
+GenericOrigins: TypeAlias = SymbolOrigin | Symbol
+RefOrigins: TypeAlias = SymbolOrigin | Symbol
 LiteralOrigins: TypeAlias = SymbolClass
 
 

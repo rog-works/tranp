@@ -227,9 +227,11 @@ class Symbols:
 				return found_raw
 
 		# 全てのクラスはobjectを継承している前提のため、暗黙的にフォールバック
-		found_raw = self.__resolve_raw(self.get_object().types, prop_name)
-		if found_raw:
-			return found_raw
+		super_type = self.get_object()
+		if super_type.types != types:
+			found_raw = self.__resolve_raw(super_type.types, prop_name)
+			if found_raw:
+				return found_raw
 
 		return None
 

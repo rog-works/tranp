@@ -201,7 +201,7 @@ class HandlerInvoker(Generic[T_Ret]):
 			list[T_Ret]: リストの引数
 		"""
 		counts = len(getattr(node, key))
-		args = [stack.pop() for _ in range(counts)]
+		args = [self.__pluck_value(stack) for _ in range(counts)]
 		return list(reversed(args))
 
 	def __pluck_value(self, stack: list[T_Ret]) -> T_Ret:
@@ -211,5 +211,10 @@ class HandlerInvoker(Generic[T_Ret]):
 			stack (list[T_Ret]): スタック
 		Returns:
 			T_Ret: 引数
+		Raises:
+			LogicError: スタックが不足
 		"""
-		return stack.pop()
+		if stack:
+			return stack.pop()
+
+		raise LogicError('Stack is empty.')

@@ -195,3 +195,6 @@ class CastOps:
 		f_to_s = str(1.0)
 		s_to_n = int(n_to_s)
 		s_to_f = float(f_to_s)
+
+class Nullable:
+	def returns(self) -> Base[CP] | None: ...

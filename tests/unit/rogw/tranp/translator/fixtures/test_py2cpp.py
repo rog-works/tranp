@@ -183,10 +183,16 @@ class DictOps:
 		values = list(kvs.values())
 
 class CastOps:
-	def cast(self) -> None:
-		n = int(1.0)
-		f = float(1)
-		b = bool(1)
+	def cast_binary(self) -> None:
+		f_to_n = int(1.0)
+		n_to_f = float(1)
+		n_to_b = bool(1)
+
+	def cast_string(self) -> None:
+		n_to_s = str(1)
+		f_to_s = str(1.0)
+		s_to_n = int(n_to_s)
+		s_to_f = float(f_to_s)
 
 from typing import TypeAlias
 

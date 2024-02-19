@@ -402,7 +402,13 @@ class Py2Cpp(Procedure[str]):
 			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
 		elif spec == 'new_list':
 			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
-		elif spec == 'cast':
+		elif spec == 'cast_bin_to_bin':
+			var_type = self.c_fullyname_by(cast(SymbolRaw, context))
+			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'var_type': var_type})
+		elif spec == 'cast_str_to_bin':
+			var_type = self.c_fullyname_by(cast(SymbolRaw, context))
+			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'var_type': var_type})
+		elif spec == 'cast_bin_to_str':
 			var_type = self.c_fullyname_by(cast(SymbolRaw, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'var_type': var_type})
 		elif spec == 'list_pop':
@@ -455,9 +461,19 @@ class Py2Cpp(Procedure[str]):
 			return 'len', None
 		elif calls == 'list':
 			return 'new_list', None
-		elif calls in ['int', 'float', 'bool']:
-			casted_types = {'int': int, 'float': float, 'bool': bool}
-			return 'cast', self.symbols.type_of_primitive(casted_types[calls])
+		elif isinstance(node.calls, defs.Variable) and node.calls.tokens in ['int', 'float', 'bool', 'str']:
+			# FIXME callsは__alias__によって別名になる可能性があるためノードから直接取得。全体的に見直しが必要そう
+			org_calls = node.calls.tokens
+			casted_types = {'int': int, 'float': float, 'bool': bool, 'str': str}
+			from_raw = self.symbols.type_of(node.arguments[0])
+			to_type = casted_types[org_calls]
+			to_raw = self.symbols.type_of_primitive(to_type)
+			if self.symbols.is_a(from_raw, str):
+				return 'cast_str_to_bin', to_raw
+			elif to_type == str:
+				return 'cast_bin_to_str', from_raw
+			else:
+				return 'cast_bin_to_bin', to_raw
 		elif isinstance(node.calls, defs.Relay) and node.calls.prop.tokens in ['pop', 'keys', 'values']:
 			prop = node.calls.prop.tokens
 			context = self.symbols.type_of(node.calls).context

@@ -45,7 +45,8 @@ def _ast(before: str, after: str) -> str:
 		'DictOps.pop.block': 'file_input.class_def[11].class_def_raw.block.function_def[1].function_def_raw.block',
 		'DictOps.keys.block': 'file_input.class_def[11].class_def_raw.block.function_def[2].function_def_raw.block',
 		'DictOps.values.block': 'file_input.class_def[11].class_def_raw.block.function_def[3].function_def_raw.block',
-		'CastOps.cast.block': 'file_input.class_def[12].class_def_raw.block.function_def.function_def_raw.block',
+		'CastOps.cast_binary.block': 'file_input.class_def[12].class_def_raw.block.function_def[0].function_def_raw.block',
+		'CastOps.cast_string.block': 'file_input.class_def[12].class_def_raw.block.function_def[1].function_def_raw.block',
 		'import.typing': 'file_input.import_stmt[13]',
 		'DSI': 'file_input.class_assign',
 	}
@@ -224,9 +225,14 @@ class TestPy2Cpp(TestCase):
 		(_ast('DictOps.keys.block', 'assign[1]'), defs.MoveAssign, BlockExpects.DictOps_keys_assign_keys),
 		(_ast('DictOps.values.block', 'assign[1]'), defs.MoveAssign, BlockExpects.DictOps_values_assign_values),
 
-		(_ast('CastOps.cast.block', 'assign[0]'), defs.MoveAssign, 'int n = (int)(1.0);'),
-		(_ast('CastOps.cast.block', 'assign[1]'), defs.MoveAssign, 'float f = (float)(1);'),
-		(_ast('CastOps.cast.block', 'assign[2]'), defs.MoveAssign, 'bool b = (bool)(1);'),
+		(_ast('CastOps.cast_binary.block', 'assign[0]'), defs.MoveAssign, 'int f_to_n = (int)(1.0);'),
+		(_ast('CastOps.cast_binary.block', 'assign[1]'), defs.MoveAssign, 'float n_to_f = (float)(1);'),
+		(_ast('CastOps.cast_binary.block', 'assign[2]'), defs.MoveAssign, 'bool n_to_b = (bool)(1);'),
+
+		(_ast('CastOps.cast_string.block', 'assign[0]'), defs.MoveAssign, 'std::string n_to_s = std::to_string(1);'),
+		(_ast('CastOps.cast_string.block', 'assign[1]'), defs.MoveAssign, 'std::string f_to_s = std::to_string(1.0);'),
+		(_ast('CastOps.cast_string.block', 'assign[2]'), defs.MoveAssign, 'int s_to_n = atoi(n_to_s);'),
+		(_ast('CastOps.cast_string.block', 'assign[3]'), defs.MoveAssign, 'float s_to_f = atof(f_to_s);'),
 
 		(_ast('import.typing', ''), defs.Import, '// #include "typing.h"'),
 

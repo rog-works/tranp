@@ -88,12 +88,21 @@ class Py2Cpp(Procedure[str]):
 
 	def on_exit_func_call(self, node: defs.FuncCall, result: str) -> str:
 		if result.startswith('directive('):
-			return node.arguments[0].tokens[1:-1]
+			return result[len('directive('):-1]
 		elif result.startswith('len('):
-			arguments = cast(re.Match, re.fullmatch(r'len\((.+)\)', result))[1]
-			return f'{arguments}.size()'
-		else:
-			return result
+			return f'{result[4:-1]}.size()'
+		elif result.startswith('list('):
+			return result[5:-1]
+		elif isinstance(node.calls, defs.Relay) and node.calls.prop.tokens in ['keys', 'values']:
+			prop = node.calls.prop.tokens
+			calls_obj_raw = self.symbols.type_of(node.calls).context
+			if self.symbols.is_a(calls_obj_raw, dict):
+				attr_index = ['keys', 'values'].index(prop)
+				var_type = self.c_fullyname_by(calls_obj_raw.attrs[attr_index])
+				calls = cast(re.Match, re.fullmatch(rf'(.+)\.{prop}\(\)', result))[1]
+				return self.view.render(f'{node.classification}_dict_{prop}', vars={'calls': calls, 'var_type': var_type})
+
+		return result
 
 	# General
 

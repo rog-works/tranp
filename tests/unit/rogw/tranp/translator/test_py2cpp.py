@@ -50,7 +50,16 @@ for (auto& [index, key] : __for_iterates_1572) {
 	'ForOps.dict_items.block.for_stmt':
 """for (auto& [key, value] : kvs) {
 	print(key, value);
-}"""
+}""",
+
+	'DictOps.dict_keys.block.assign[1]':
+"""std::vector<std::string> keys = [&]() -> std::vector<std::string> {
+	std::vector<std::string> __ret;
+	for (auto [__key, _] : kvs) {
+		__ret.push_back(__key);
+	}
+	return __ret;
+}();""",
 }
 
 
@@ -79,7 +88,9 @@ def _ast(before: str, after: str) -> str:
 		'ForOps.enumerate.block': 'file_input.class_def[9].class_def_raw.block.function_def[1].function_def_raw.block',
 		'ForOps.dict_items.block': 'file_input.class_def[9].class_def_raw.block.function_def[2].function_def_raw.block',
 		'ListOps.len.block': 'file_input.class_def[10].class_def_raw.block.function_def.function_def_raw.block',
-		'import.typing': 'file_input.import_stmt[11]',
+		'DictOps.keys.block': 'file_input.class_def[11].class_def_raw.block.function_def[0].function_def_raw.block',
+		'DictOps.values.block': 'file_input.class_def[11].class_def_raw.block.function_def[1].function_def_raw.block',
+		'import.typing': 'file_input.import_stmt[12]',
 		'DSI': 'file_input.class_assign',
 	}
 	return DSN.join(aliases[before], after)
@@ -163,6 +174,8 @@ class TestPy2Cpp(TestCase):
 
 		(_ast('ListOps.len.block', 'assign[1]'), defs.MoveAssign, 'int size_values = values.size();'),
 		(_ast('ListOps.len.block', 'assign[3]'), defs.MoveAssign, 'int size_kvs = kvs.size();'),
+
+		(_ast('DictOps.keys.block', 'assign[1]'), defs.MoveAssign, BLOCK_EXPECTS['DictOps.dict_keys.block.assign[1]']),
 
 		(_ast('import.typing', ''), defs.Import, '// #include "typing.h"'),
 

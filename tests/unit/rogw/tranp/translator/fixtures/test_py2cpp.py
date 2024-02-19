@@ -161,6 +161,15 @@ class ListOps:
 		kvs = {'a': 1}
 		size_kvs = len(kvs)
 
+class DictOps:
+	def keys(self) -> None:
+		kvs = {'a': 1}
+		keys = list(kvs.keys())
+
+	def values(self) -> None:
+		kvs = {'a': 1}
+		values = list(kvs.values())
+
 from typing import TypeAlias
 
 DSI: TypeAlias = dict[str, int]

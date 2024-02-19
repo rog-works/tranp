@@ -1,0 +1,7 @@
+[&]() -> std::vector<{{ var_type }}> {
+	std::vector<{{ var_type }}> __ret;
+	for (auto [__key, _] : {{ calls }}) {
+		__ret.push_back(__key);
+	}
+	return __ret;
+}()

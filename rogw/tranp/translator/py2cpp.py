@@ -385,21 +385,20 @@ class Py2Cpp(Procedure[str]):
 	def on_custom_type(self, node: defs.CustomType, type_name: str, template_types: list[str]) -> str:
 		return self.view.render(node.classification, vars={'type_name': type_name, 'cvar_type': template_types[0], 'cmutable': template_types[1] if len(template_types) == 2 else ''})
 
-	def on_union_type(self, node: defs.UnionType, type_name: str, or_types: list[str]) -> str:
+	def on_union_type(self, node: defs.UnionType, or_types: list[str]) -> str:
 		if len(node.or_types) != 2:
-			raise NotImplementedError(f'Not supported UnionType. symbol: {node.fullyname}, expected: 2 got {len(node.or_types)}')
+			raise NotImplementedError(f'Not supported UnionType. expected 2 types. symbol: {node.fullyname}, got: {len(node.or_types)}')
 
 		found_null = node.or_types[0].is_a(defs.NullType) or node.or_types[1].is_a(defs.NullType)
 		if not found_null:
-			raise NotImplementedError(f'Unexpected UnionType. symbol: {node.fullyname}, or_types[0]: {or_types[0]}, or_types[1]: {or_types[1]}')
+			raise NotImplementedError(f'Unexpected UnionType. with not nullable. symbol: {node.fullyname}, or_types: [{or_types[0]}, {or_types[1]}]')
 
-		var_type_node = node.or_types[1] if node.or_types[0].is_a(defs.NullType) else node.or_types[0]
-		var_type_raw = self.symbols.type_of(var_type_node)
+		var_type_index = 1 if node.or_types[0].is_a(defs.NullType) else 0
+		var_type_raw = self.symbols.type_of(node.or_types[var_type_index])
 		if CVars.is_addr_p(CVars.key_from(var_type_raw)):
-			raise NotImplementedError(f'Unexpected UnionType. symbol: {node.fullyname}, or_types[0]: {or_types[0]}, or_types[1]: {or_types[1]}')
+			raise NotImplementedError(f'Unexpected UnionType. with not pointer. symbol: {node.fullyname}, var_type: {str(var_type_raw)}')
 
-		var_type = self.c_fullyname_by(var_type_raw)
-		return self.view.render('type_py2cpp', vars={'var_type': var_type})
+		return or_types[var_type_index]
 
 	def on_null_type(self, node: defs.NullType) -> str:
 		return 'void'

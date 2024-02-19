@@ -31,9 +31,9 @@ class CellMesh {
 		cell.x = cell.x * unit;
 		cell.y = cell.y * unit;
 		cell.z = cell.z * unit;
-		float fx = float(cell.x);
-		float fy = float(cell.y);
-		float fz = float(cell.z);
+		float fx = (float)(cell.x);
+		float fy = (float)(cell.y);
+		float fz = (float)(cell.z);
 		return Vector(fx, fy, fz);
 	}
 	/** face_index_to_vector */

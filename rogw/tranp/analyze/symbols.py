@@ -410,23 +410,35 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 			# arguments
 			* expression
 		"""
+		actual_calls = calls
 		if isinstance(calls.types, defs.AltClass):
-			calls = calls.attrs[0]
+			actual_calls = calls.attrs[0]
 
-		if isinstance(calls.types, defs.Constructor):
-			return self.symbols.resolve(calls.types.class_types.symbol)
-		elif isinstance(calls.types, defs.Function):
-			func = reflection.Builder(calls) \
-				.case(reflection.Method).schema(lambda: {'klass': calls.attrs[0], 'parameters': calls.attrs[1:-1], 'returns': calls.attrs[-1]}) \
-				.other_case().schema(lambda: {'parameters': calls.attrs[:-1], 'returns': calls.attrs[-1]}) \
+		if isinstance(actual_calls.types, defs.Class):
+			# XXX クラス経由で暗黙的にコンストラクターを呼び出した場合
+			# XXX 戻り値の型をクラスのシンボルで補完
+			# XXX この際のクラスのシンボルはSymbolReferenceになり、そのままだと属性の設定が出来ないため、SymbolVarに変換する
+			constroctur_calls = self.symbols.type_of_constructor(actual_calls.types)
+			func = reflection.Builder(constroctur_calls) \
+				.schema(lambda: {'parameters': constroctur_calls.attrs[1:-1], 'returns': actual_calls.to.var(actual_calls.decl)}) \
+				.build(reflection.Constructor)
+			return func.returns(*arguments)
+		elif isinstance(actual_calls.types, defs.Constructor):
+			# XXX コンストラクターを明示的に呼び出した場合
+			# XXX 戻り値の型を第1引数(自己参照)で補完
+			func = reflection.Builder(actual_calls) \
+				.schema(lambda: {'parameters': actual_calls.attrs[1:-1], 'returns': actual_calls.attrs[0]}) \
+				.build(reflection.Constructor)
+			return func.returns(*arguments)
+		else:
+			func = reflection.Builder(actual_calls) \
+				.case(reflection.Method).schema(lambda: {'klass': actual_calls.attrs[0], 'parameters': actual_calls.attrs[1:-1], 'returns': actual_calls.attrs[-1]}) \
+				.other_case().schema(lambda: {'parameters': actual_calls.attrs[:-1], 'returns': actual_calls.attrs[-1]}) \
 				.build(reflection.Function)
 			if func.is_a(reflection.Method):
-				return func.returns(calls.context, *arguments)
+				return func.returns(actual_calls.context, *arguments)
 			else:
 				return func.returns(*arguments)
-		else:
-			# defs.ClassDef
-			return calls
 
 	def on_super(self, node: defs.Super, calls: SymbolRaw, arguments: list[SymbolRaw]) -> SymbolRaw:
 		return self.symbols.resolve(node.super_class_symbol)

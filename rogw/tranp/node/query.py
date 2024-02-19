@@ -6,6 +6,7 @@ from rogw.tranp.ast.finder import ASTFinder
 from rogw.tranp.ast.path import EntryPath
 from rogw.tranp.ast.query import Query
 from rogw.tranp.errors import NotFoundError
+from rogw.tranp.io.memo import Memoize
 from rogw.tranp.lang.implementation import implements
 from rogw.tranp.node.node import Node
 from rogw.tranp.node.resolver import NodeResolver
@@ -21,6 +22,7 @@ class Nodes(Query[Node]):
 			resolver (NodeResolver): ノードリゾルバー
 			root (Entry): ASTのルート要素
 		"""
+		self.__memo = Memoize()
 		self.__resolver = resolver
 		self.__entries = EntryCache[Entry]()
 		for full_path, entry in ASTFinder().full_pathfy(root).items():
@@ -73,14 +75,19 @@ class Nodes(Query[Node]):
 		Raises:
 			NotFoundError: 親が存在しない
 		"""
-		forwards = EntryPath(via).shift(-1)
-		while(forwards.valid):
-			if self.__resolver.can_resolve(forwards.last_tag):
-				return self.by(forwards.origin)
+		memo = self.__memo.get(self.parent)
+		@memo(via)
+		def factory() -> Node:
+			forwards = EntryPath(via).shift(-1)
+			while(forwards.valid):
+				if self.__resolver.can_resolve(forwards.last_tag):
+					return self.by(forwards.origin)
 
-			forwards = forwards.shift(-1)
+				forwards = forwards.shift(-1)
 
-		raise NotFoundError(via)
+			raise NotFoundError(via)
+
+		return factory()
 
 	@implements
 	def ancestor(self, via: str, tag: str) -> Node:
@@ -94,15 +101,20 @@ class Nodes(Query[Node]):
 		Raises:
 			NotFoundError: 指定のエントリータグを持つ親が存在しない
 		"""
-		base = EntryPath(via)
-		elems = list(reversed(base.de_identify().elements))
-		index = elems.index(tag)
-		if index == -1:
-			raise NotFoundError(via, tag)
+		memo = self.__memo.get(self.ancestor)
+		@memo(f'{via}#{tag}')
+		def factory() -> Node:
+			base = EntryPath(via)
+			elems = list(reversed(base.de_identify().elements))
+			index = elems.index(tag)
+			if index == -1:
+				raise NotFoundError(via, tag)
 
-		slices = len(elems) - index
-		found_path = EntryPath.join(*base.elements[:slices])
-		return self.by(found_path.origin)
+			slices = len(elems) - index
+			found_path = EntryPath.join(*base.elements[:slices])
+			return self.by(found_path.origin)
+
+		return factory()
 
 	@implements
 	def siblings(self, via: str) -> list[Node]:
@@ -135,10 +147,15 @@ class Nodes(Query[Node]):
 		Raises:
 			NotFoundError: 基点のノードが存在しない
 		"""
-		regular = re.compile(rf'{EntryPath(via).escaped_origin}\.[^.]+')
-		tester = lambda _, path: regular.fullmatch(path) is not None
-		entries = {path: entry for path, entry in self.__entries.group_by(via, depth=1).items() if tester(entry, path)}
-		return [self.__resolve(entry, path) for path, entry in entries.items()]
+		memo = self.__memo.get(self.children)
+		@memo(via)
+		def factory() -> list[Node]:
+			regular = re.compile(rf'{EntryPath(via).escaped_origin}\.[^.]+')
+			tester = lambda _, path: regular.fullmatch(path) is not None
+			entries = {path: entry for path, entry in self.__entries.group_by(via, depth=1).items() if tester(entry, path)}
+			return [self.__resolve(entry, path) for path, entry in entries.items()]
+
+		return factory()
 
 	@implements
 	def expand(self, via: str) -> list[Node]:
@@ -151,34 +168,39 @@ class Nodes(Query[Node]):
 		Raises:
 			NotFoundError: 基点のノードが存在しない
 		"""
-		memo: list[str] = []
-		def tester(entry: Entry, path: str) -> bool:
-			if via == path:
-				return False
+		memo = self.__memo.get(self.expand)
+		@memo(via)
+		def factory() -> list[Node]:
+			record: list[str] = []
+			def tester(entry: Entry, path: str) -> bool:
+				if via == path:
+					return False
 
-			# 記録済みの変換対象以降の要素は全て除外
-			if len([cached for cached in memo if path.startswith(cached)]):
-				return False
+				# 記録済みの変換対象以降の要素は全て除外
+				if len([cached for cached in record if path.startswith(cached)]):
+					return False
 
-			entry_path = EntryPath(path)
+				entry_path = EntryPath(path)
 
-			# XXX 変換対象が存在する場合はそちらに対応を任せる(終端記号か否かは問わない)
-			if self.__resolver.can_resolve(entry_path.last_tag):
-				memo.append(entry_path.origin)
-				return True
+				# XXX 変換対象が存在する場合はそちらに対応を任せる(終端記号か否かは問わない)
+				if self.__resolver.can_resolve(entry_path.last_tag):
+					record.append(entry_path.origin)
+					return True
 
-			if entry.has_child:
-				return False
+				if entry.has_child:
+					return False
 
-			# 自身を含む配下のエントリーに変換対象のノードがなく、Terminalにフォールバックされる終端記号が対象
-			entry_tags = entry_path.relativefy(via).de_identify().elements
-			in_allows = [index for index, in_tag in enumerate(entry_tags) if self.__resolver.can_resolve(in_tag)]
-			return len(in_allows) == 0
+				# 自身を含む配下のエントリーに変換対象のノードがなく、Terminalにフォールバックされる終端記号が対象
+				entry_tags = entry_path.relativefy(via).de_identify().elements
+				in_allows = [index for index, in_tag in enumerate(entry_tags) if self.__resolver.can_resolve(in_tag)]
+				return len(in_allows) == 0
 
-		# XXX depthの3階層下までと言う指定に根拠はない。影響はないだろうと言う程度なので問題があったら修正
-		under_entries = self.__entries.group_by(via, depth=3).items()
-		entries = {path: entry for path, entry in under_entries if tester(entry, path)}
-		return [self.__resolve(entry, path) for path, entry in entries.items()]
+			# XXX depthの3階層下までと言う指定に根拠はない。影響はないだろうと言う程度なので問題があったら修正
+			under_entries = self.__entries.group_by(via, depth=3).items()
+			entries = {path: entry for path, entry in under_entries if tester(entry, path)}
+			return [self.__resolve(entry, path) for path, entry in entries.items()]
+
+		return factory()
 
 	@implements
 	def values(self, via: str) -> list[str]:
@@ -189,7 +211,12 @@ class Nodes(Query[Node]):
 		Returns:
 			list[str]: 値リスト
 		"""
-		return [entry.value for entry in self.__entries.group_by(via).values() if entry.value]
+		memo = self.__memo.get(self.values)
+		@memo(via)
+		def factory() -> list[str]:
+			return [entry.value for entry in self.__entries.group_by(via).values() if entry.value]
+
+		return factory()
 
 	@implements
 	def id(self, full_path: str) -> int:

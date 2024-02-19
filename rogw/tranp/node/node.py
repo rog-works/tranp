@@ -5,7 +5,6 @@ from rogw.tranp.ast.dsn import DSN
 from rogw.tranp.ast.path import EntryPath
 from rogw.tranp.ast.query import Query
 from rogw.tranp.errors import LogicError, NotFoundError
-from rogw.tranp.io.memo import Memoize
 from rogw.tranp.lang.implementation import deprecated, injectable, override
 from rogw.tranp.lang.sequence import flatten
 from rogw.tranp.lang.string import snakelize
@@ -38,7 +37,6 @@ class Node:
 		self.__nodes = nodes
 		self.__module_path = module_path
 		self._full_path = EntryPath(full_path)
-		self.__memo = Memoize()
 
 	@override
 	def __str__(self) -> str:
@@ -332,13 +330,7 @@ class Node:
 			NotFoundError: 基点のノードが存在しない
 		"""
 		via = self._full_path.joined(relative_path)
-
-		memo = self.__memo.get(self._children)
-		@memo(via)
-		def factory() -> list[Node]:
-			return self.__nodes.children(via)
-
-		return factory()
+		return self.__nodes.children(via)
 
 	def _ancestor(self, tag: str) -> 'Node':
 		"""指定のエントリータグを持つ直近の親ノードをフェッチ

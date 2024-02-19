@@ -15,26 +15,26 @@ from tests.test.fixture import Fixture
 from tests.test.helper import data_provider
 
 
-BLOCK_EXPECTS = {
-	'CompOps.list_comp.block.assign[1]':
+class BlockExpects:
+	CompOps_list_comp_assign_values1 = \
 """std::vector<int> values1 = [this, &]() -> std::vector<int> {
 	std::vector<int> __ret;
 	for (auto& value : values0) {
 		__ret.push_back(value);
 	}
 	return __ret;
-}();""",
+}();"""
 
-	'CompOps.dict_comp.block.assign[1]':
+	CompOps_dict_comp_assign_kvs1 = \
 """std::map<std::string, CompOps::C> kvs1 = [this, &]() -> std::map<std::string, CompOps::C> {
 	std::map<std::string, CompOps::C> __ret;
 	for (auto& [key, value] : kvs0.items()) {
 		__ret.emplace({key, value});
 	}
 	return __ret;
-}();""",
+}();"""
 
-	'ForOps.enumerate.block.for_stmt':
+	ForOps_enumerate_for_index_key = \
 """auto __for_iterates_1572 = [&]() -> std::map<int, std::string> {
 	std::map<int, std::string> __ret;
 	int __index = 0;
@@ -45,22 +45,30 @@ BLOCK_EXPECTS = {
 }();
 for (auto& [index, key] : __for_iterates_1572) {
 	print(index, key);
-}""",
+}"""
 
-	'ForOps.dict_items.block.for_stmt':
+	ForOps_dict_items_for_key_value = \
 """for (auto& [key, value] : kvs) {
 	print(key, value);
-}""",
+}"""
 
-	'DictOps.dict_keys.block.assign[1]':
+	DictOps_keys_assign_keys = \
 """std::vector<std::string> keys = [&]() -> std::vector<std::string> {
 	std::vector<std::string> __ret;
 	for (auto [__key, _] : kvs) {
 		__ret.push_back(__key);
 	}
 	return __ret;
-}();""",
-}
+}();"""
+
+	DictOps_values_assign_values = \
+"""std::vector<int> values = [&]() -> std::vector<int> {
+	std::vector<int> __ret;
+	for (auto [_, __value] : kvs) {
+		__ret.push_back(__value);
+	}
+	return __ret;
+}();"""
 
 
 def _ast(before: str, after: str) -> str:
@@ -165,17 +173,18 @@ class TestPy2Cpp(TestCase):
 		(_ast('Alias.in_local.block', 'assign[0]'), defs.MoveAssign, 'Alias2 a = Alias2();'),
 		(_ast('Alias.in_local.block', 'assign[1]'), defs.MoveAssign, 'Alias2::Inner2 i = Alias2::Inner2();'),
 
-		(_ast('CompOps.list_comp.block', 'assign[1]'), defs.MoveAssign, BLOCK_EXPECTS['CompOps.list_comp.block.assign[1]']),
-		(_ast('CompOps.dict_comp.block', 'assign[1]'), defs.MoveAssign, BLOCK_EXPECTS['CompOps.dict_comp.block.assign[1]']),
+		(_ast('CompOps.list_comp.block', 'assign[1]'), defs.MoveAssign, BlockExpects.CompOps_list_comp_assign_values1),
+		(_ast('CompOps.dict_comp.block', 'assign[1]'), defs.MoveAssign, BlockExpects.CompOps_dict_comp_assign_kvs1),
 
 		(_ast('ForOps.range.block', 'for_stmt'), defs.For, 'for (auto i = 0; i < 10; i++) {\n\tprint(i);\n}'),
-		(_ast('ForOps.enumerate.block', 'for_stmt'), defs.For, BLOCK_EXPECTS['ForOps.enumerate.block.for_stmt']),
-		(_ast('ForOps.dict_items.block', 'for_stmt'), defs.For, BLOCK_EXPECTS['ForOps.dict_items.block.for_stmt']),
+		(_ast('ForOps.enumerate.block', 'for_stmt'), defs.For, BlockExpects.ForOps_enumerate_for_index_key),
+		(_ast('ForOps.dict_items.block', 'for_stmt'), defs.For, BlockExpects.ForOps_dict_items_for_key_value),
 
 		(_ast('ListOps.len.block', 'assign[1]'), defs.MoveAssign, 'int size_values = values.size();'),
 		(_ast('ListOps.len.block', 'assign[3]'), defs.MoveAssign, 'int size_kvs = kvs.size();'),
 
-		(_ast('DictOps.keys.block', 'assign[1]'), defs.MoveAssign, BLOCK_EXPECTS['DictOps.dict_keys.block.assign[1]']),
+		(_ast('DictOps.keys.block', 'assign[1]'), defs.MoveAssign, BlockExpects.DictOps_keys_assign_keys),
+		(_ast('DictOps.values.block', 'assign[1]'), defs.MoveAssign, BlockExpects.DictOps_values_assign_values),
 
 		(_ast('import.typing', ''), defs.Import, '// #include "typing.h"'),
 

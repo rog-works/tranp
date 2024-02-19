@@ -17,38 +17,38 @@ from tests.test.helper import data_provider
 
 def _ast(before: str, after: str) -> str:
 	aliases = {
-		'CVarOps.ret_raw.return': 'file_input.class_def[2].class_def_raw.block.function_def[0].function_def_raw.block.return_stmt',
-		'CVarOps.ret_cp.return': 'file_input.class_def[2].class_def_raw.block.function_def[1].function_def_raw.block.return_stmt',
-		'CVarOps.ret_csp.return': 'file_input.class_def[2].class_def_raw.block.function_def[2].function_def_raw.block.return_stmt',
-		'CVarOps.local_move.block': 'file_input.class_def[2].class_def_raw.block.function_def[3].function_def_raw.block',
-		'CVarOps.param_move.block': 'file_input.class_def[2].class_def_raw.block.function_def[4].function_def_raw.block',
-		'CVarOps.invoke_method.block': 'file_input.class_def[2].class_def_raw.block.function_def[5].function_def_raw.block',
-		'FuncOps.print.block': 'file_input.class_def[3].class_def_raw.block.function_def.function_def_raw.block',
-		'AccessOps.Values': 'file_input.class_def[5].class_def_raw.block.class_def',
-		'AccessOps.__init__': 'file_input.class_def[5].class_def_raw.block.function_def[1]',
-		'AccessOps.dot.block': 'file_input.class_def[5].class_def_raw.block.function_def[2].function_def_raw.block',
-		'AccessOps.arrow.block': 'file_input.class_def[5].class_def_raw.block.function_def[3].function_def_raw.block',
-		'AccessOps.double_colon.block': 'file_input.class_def[5].class_def_raw.block.function_def[4].function_def_raw.block',
-		'Alias.Inner': 'file_input.class_def[7].class_def_raw.block.class_def',
-		'Alias.__init__': 'file_input.class_def[7].class_def_raw.block.function_def[1]',
-		'Alias.in_param_return': 'file_input.class_def[7].class_def_raw.block.function_def[2]',
-		'Alias.in_param_return2': 'file_input.class_def[7].class_def_raw.block.function_def[3]',
-		'Alias.in_local.block': 'file_input.class_def[7].class_def_raw.block.function_def[4].function_def_raw.block',
-		'CompOps.list_comp.block': 'file_input.class_def[8].class_def_raw.block.function_def[1].function_def_raw.block',
-		'CompOps.dict_comp.block': 'file_input.class_def[8].class_def_raw.block.function_def[2].function_def_raw.block',
-		'ForOps.range.block': 'file_input.class_def[9].class_def_raw.block.function_def[0].function_def_raw.block',
-		'ForOps.enumerate.block': 'file_input.class_def[9].class_def_raw.block.function_def[1].function_def_raw.block',
-		'ForOps.dict_items.block': 'file_input.class_def[9].class_def_raw.block.function_def[2].function_def_raw.block',
-		'ListOps.len.block': 'file_input.class_def[10].class_def_raw.block.function_def[0].function_def_raw.block',
-		'ListOps.pop.block': 'file_input.class_def[10].class_def_raw.block.function_def[1].function_def_raw.block',
-		'DictOps.len.block': 'file_input.class_def[11].class_def_raw.block.function_def[0].function_def_raw.block',
-		'DictOps.pop.block': 'file_input.class_def[11].class_def_raw.block.function_def[1].function_def_raw.block',
-		'DictOps.keys.block': 'file_input.class_def[11].class_def_raw.block.function_def[2].function_def_raw.block',
-		'DictOps.values.block': 'file_input.class_def[11].class_def_raw.block.function_def[3].function_def_raw.block',
-		'CastOps.cast_binary.block': 'file_input.class_def[12].class_def_raw.block.function_def[0].function_def_raw.block',
-		'CastOps.cast_string.block': 'file_input.class_def[12].class_def_raw.block.function_def[1].function_def_raw.block',
-		'import.typing': 'file_input.import_stmt[13]',
+		'import.typing': 'file_input.import_stmt[0]',
 		'DSI': 'file_input.class_assign',
+		'CVarOps.ret_raw.return': 'file_input.class_def[6].class_def_raw.block.function_def[0].function_def_raw.block.return_stmt',
+		'CVarOps.ret_cp.return': 'file_input.class_def[6].class_def_raw.block.function_def[1].function_def_raw.block.return_stmt',
+		'CVarOps.ret_csp.return': 'file_input.class_def[6].class_def_raw.block.function_def[2].function_def_raw.block.return_stmt',
+		'CVarOps.local_move.block': 'file_input.class_def[6].class_def_raw.block.function_def[3].function_def_raw.block',
+		'CVarOps.param_move.block': 'file_input.class_def[6].class_def_raw.block.function_def[4].function_def_raw.block',
+		'CVarOps.invoke_method.block': 'file_input.class_def[6].class_def_raw.block.function_def[5].function_def_raw.block',
+		'FuncOps.print.block': 'file_input.class_def[7].class_def_raw.block.function_def.function_def_raw.block',
+		'AccessOps.Values': 'file_input.class_def[8].class_def_raw.block.class_def',
+		'AccessOps.__init__': 'file_input.class_def[8].class_def_raw.block.function_def[1]',
+		'AccessOps.dot.block': 'file_input.class_def[8].class_def_raw.block.function_def[2].function_def_raw.block',
+		'AccessOps.arrow.block': 'file_input.class_def[8].class_def_raw.block.function_def[3].function_def_raw.block',
+		'AccessOps.double_colon.block': 'file_input.class_def[8].class_def_raw.block.function_def[4].function_def_raw.block',
+		'Alias.Inner': 'file_input.class_def[9].class_def_raw.block.class_def',
+		'Alias.__init__': 'file_input.class_def[9].class_def_raw.block.function_def[1]',
+		'Alias.in_param_return': 'file_input.class_def[9].class_def_raw.block.function_def[2]',
+		'Alias.in_param_return2': 'file_input.class_def[9].class_def_raw.block.function_def[3]',
+		'Alias.in_local.block': 'file_input.class_def[9].class_def_raw.block.function_def[4].function_def_raw.block',
+		'CompOps.list_comp.block': 'file_input.class_def[10].class_def_raw.block.function_def[1].function_def_raw.block',
+		'CompOps.dict_comp.block': 'file_input.class_def[10].class_def_raw.block.function_def[2].function_def_raw.block',
+		'ForOps.range.block': 'file_input.class_def[11].class_def_raw.block.function_def[0].function_def_raw.block',
+		'ForOps.enumerate.block': 'file_input.class_def[11].class_def_raw.block.function_def[1].function_def_raw.block',
+		'ForOps.dict_items.block': 'file_input.class_def[11].class_def_raw.block.function_def[2].function_def_raw.block',
+		'ListOps.len.block': 'file_input.class_def[12].class_def_raw.block.function_def[0].function_def_raw.block',
+		'ListOps.pop.block': 'file_input.class_def[12].class_def_raw.block.function_def[1].function_def_raw.block',
+		'DictOps.len.block': 'file_input.class_def[13].class_def_raw.block.function_def[0].function_def_raw.block',
+		'DictOps.pop.block': 'file_input.class_def[13].class_def_raw.block.function_def[1].function_def_raw.block',
+		'DictOps.keys.block': 'file_input.class_def[13].class_def_raw.block.function_def[2].function_def_raw.block',
+		'DictOps.values.block': 'file_input.class_def[13].class_def_raw.block.function_def[3].function_def_raw.block',
+		'CastOps.cast_binary.block': 'file_input.class_def[14].class_def_raw.block.function_def[0].function_def_raw.block',
+		'CastOps.cast_string.block': 'file_input.class_def[14].class_def_raw.block.function_def[1].function_def_raw.block',
 	}
 	return DSN.join(aliases[before], after)
 
@@ -73,7 +73,7 @@ class BlockExpects:
 }();"""
 
 	ForOps_enumerate_for_index_key = \
-"""auto __for_iterates_1572 = [&]() -> std::map<int, std::string> {
+"""auto __for_iterates_1595 = [&]() -> std::map<int, std::string> {
 	std::map<int, std::string> __ret;
 	int __index = 0;
 	for (auto& __entry : keys) {
@@ -81,7 +81,7 @@ class BlockExpects:
 	}
 	return __ret;
 }();
-for (auto& [index, key] : __for_iterates_1572) {
+for (auto& [index, key] : __for_iterates_1595) {
 	print(index, key);
 }"""
 

@@ -1,4 +1,10 @@
+from typing import TypeAlias
+
+from rogw.tranp.compatible.cpp.enum import CEnum
 from rogw.tranp.compatible.cpp.object import CObject, CP, CRef, CSP
+from rogw.tranp.compatible.python.embed import __alias__
+
+DSI: TypeAlias = dict[str, int]
 
 class Base(CObject):
 	class_base_n: int = 0
@@ -69,8 +75,6 @@ class FuncOps:
 	def print(self) -> None:
 		print('%d, %d, %d', 1, 2, 3)
 
-from rogw.tranp.compatible.cpp.enum import CEnum
-
 class AccessOps(Base):
 	class Values(CEnum):
 		A = 0
@@ -105,8 +109,6 @@ class AccessOps(Base):
 			AccessOps.Values.A: 'A',
 			AccessOps.Values.B: 'B',
 		}
-
-from rogw.tranp.compatible.python.embed import __alias__
 
 @__alias__('Alias2')
 class Alias:
@@ -193,7 +195,3 @@ class CastOps:
 		f_to_s = str(1.0)
 		s_to_n = int(n_to_s)
 		s_to_f = float(f_to_s)
-
-from typing import TypeAlias
-
-DSI: TypeAlias = dict[str, int]

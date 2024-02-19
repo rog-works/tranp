@@ -42,8 +42,9 @@ def _ast(before: str, after: str) -> str:
 		'ListOps.len.block': 'file_input.class_def[10].class_def_raw.block.function_def[0].function_def_raw.block',
 		'ListOps.pop.block': 'file_input.class_def[10].class_def_raw.block.function_def[1].function_def_raw.block',
 		'DictOps.len.block': 'file_input.class_def[11].class_def_raw.block.function_def[0].function_def_raw.block',
-		'DictOps.keys.block': 'file_input.class_def[11].class_def_raw.block.function_def[1].function_def_raw.block',
-		'DictOps.values.block': 'file_input.class_def[11].class_def_raw.block.function_def[2].function_def_raw.block',
+		'DictOps.pop.block': 'file_input.class_def[11].class_def_raw.block.function_def[1].function_def_raw.block',
+		'DictOps.keys.block': 'file_input.class_def[11].class_def_raw.block.function_def[2].function_def_raw.block',
+		'DictOps.values.block': 'file_input.class_def[11].class_def_raw.block.function_def[3].function_def_raw.block',
 		'import.typing': 'file_input.import_stmt[12]',
 		'DSI': 'file_input.class_assign',
 	}
@@ -89,7 +90,7 @@ for (auto& [index, key] : __for_iterates_1572) {
 
 	ListOps_pop_assign_value0 = \
 """int value0 = [&]() -> int {
-	auto __iter = values.end() - 1;
+	auto __iter = values.begin() + 1;
 	auto __copy = *__iter;
 	values.erase(__iter);
 	return __copy;
@@ -97,9 +98,23 @@ for (auto& [index, key] : __for_iterates_1572) {
 
 	ListOps_pop_assign_value1 = \
 """int value1 = [&]() -> int {
-	auto __iter = values.begin() + 1;
+	auto __iter = values.end() - 1;
 	auto __copy = *__iter;
 	values.erase(__iter);
+	return __copy;
+}();"""
+
+	DictOps_pop_assign_value0 = \
+"""int value0 = [&]() -> int {
+	auto __copy = values["a"];
+	values.erase("a");
+	return __copy;
+}();"""
+
+	DictOps_pop_assign_value1 = \
+"""int value1 = [&]() -> int {
+	auto __copy = values["b"];
+	values.erase("b");
 	return __copy;
 }();"""
 
@@ -203,6 +218,8 @@ class TestPy2Cpp(TestCase):
 		(_ast('ListOps.pop.block', 'assign[2]'), defs.MoveAssign, BlockExpects.ListOps_pop_assign_value1),
 
 		(_ast('DictOps.len.block', 'assign[1]'), defs.MoveAssign, 'int size_kvs = kvs.size();'),
+		(_ast('DictOps.pop.block', 'assign[1]'), defs.MoveAssign, BlockExpects.DictOps_pop_assign_value0),
+		(_ast('DictOps.pop.block', 'assign[2]'), defs.MoveAssign, BlockExpects.DictOps_pop_assign_value1),
 		(_ast('DictOps.keys.block', 'assign[1]'), defs.MoveAssign, BlockExpects.DictOps_keys_assign_keys),
 		(_ast('DictOps.values.block', 'assign[1]'), defs.MoveAssign, BlockExpects.DictOps_values_assign_values),
 

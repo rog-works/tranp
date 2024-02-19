@@ -406,7 +406,7 @@ class Py2Cpp(Procedure[str]):
 			var_type = self.c_fullyname_by(cast(SymbolRaw, context).attrs[0])
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': DSN.shift(calls, -1), 'var_type': var_type})
 		elif spec == 'dict_pop':
-			var_type = self.c_fullyname_by(cast(SymbolRaw, context).attrs[0])
+			var_type = self.c_fullyname_by(cast(SymbolRaw, context).attrs[1])
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': DSN.shift(calls, -1), 'var_type': var_type})
 		elif spec == 'dict_keys':
 			var_type = self.c_fullyname_by(cast(SymbolRaw, context).attrs[0])

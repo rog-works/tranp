@@ -135,9 +135,12 @@ class Function(Object):
 		Returns:
 			SymbolRaw: 実行時型
 		"""
+		t_map_returns = TemplateManipulator.unpack_templates(returns=self.schema.returns)
+		if len(t_map_returns) == 0:
+			return self.schema.returns
+
 		map_props = TemplateManipulator.unpack_symbols(parameters=list(arguments))
 		t_map_props = TemplateManipulator.unpack_templates(parameters=self.schemata.parameters)
-		t_map_returns = TemplateManipulator.unpack_templates(returns=self.schema.returns)
 		updates = TemplateManipulator.make_updates(t_map_returns, t_map_props)
 		return TemplateManipulator.apply(self.schema.returns.clone(), map_props, updates)
 
@@ -160,11 +163,14 @@ class Method(Function):
 		Returns:
 			SymbolRaw: 実行時型
 		"""
-		actual_klass, *_ = context
 		parameter = self.schemata.parameters[index]
+		t_map_parameter = TemplateManipulator.unpack_templates(parameter=parameter)
+		if len(t_map_parameter) == 0:
+			return parameter
+
+		actual_klass, *_ = context
 		map_props = TemplateManipulator.unpack_symbols(klass=actual_klass)
 		t_map_props = TemplateManipulator.unpack_templates(klass=self.schema.klass)
-		t_map_parameter = TemplateManipulator.unpack_templates(parameter=parameter)
 		updates = TemplateManipulator.make_updates(t_map_parameter, t_map_props)
 		return TemplateManipulator.apply(parameter.clone(), map_props, updates)
 
@@ -181,10 +187,13 @@ class Method(Function):
 		if self.symbol.types.is_a(defs.Constructor):
 			return super().returns(*arguments)
 
+		t_map_returns = TemplateManipulator.unpack_templates(returns=self.schema.returns)
+		if len(t_map_returns) == 0:
+			return self.schema.returns
+
 		actual_klass, *actual_arguments = arguments
 		map_props = TemplateManipulator.unpack_symbols(klass=actual_klass, parameters=actual_arguments)
 		t_map_props = TemplateManipulator.unpack_templates(klass=self.schema.klass, parameters=self.schemata.parameters)
-		t_map_returns = TemplateManipulator.unpack_templates(returns=self.schema.returns)
 		updates = TemplateManipulator.make_updates(t_map_returns, t_map_props)
 		return TemplateManipulator.apply(self.schema.returns.clone(), map_props, updates)
 

@@ -136,7 +136,7 @@ class Function(Object):
 			SymbolRaw: 実行時型
 		"""
 		map_props = TemplateManipulator.unpack_symbols(parameters=list(arguments))
-		t_map_props = TemplateManipulator.unpack_templates(parameters=self.schemata.parameters, returns=self.schema.returns)
+		t_map_props = TemplateManipulator.unpack_templates(parameters=self.schemata.parameters)
 		t_map_returns = TemplateManipulator.unpack_templates(returns=self.schema.returns)
 		updates = TemplateManipulator.make_updates(t_map_returns, t_map_props)
 		return TemplateManipulator.apply(self.schema.returns.clone(), map_props, updates)
@@ -177,6 +177,10 @@ class Method(Function):
 		Returns:
 			SymbolRaw: 実行時型
 		"""
+		# コンストラクターの場合はファンクションスキームで呼び出す XXX 一貫性がない
+		if self.symbol.types.is_a(defs.Constructor):
+			return super().returns(*arguments)
+
 		actual_klass, *actual_arguments = arguments
 		map_props = TemplateManipulator.unpack_symbols(klass=actual_klass, parameters=actual_arguments)
 		t_map_props = TemplateManipulator.unpack_templates(klass=self.schema.klass, parameters=self.schemata.parameters)
@@ -188,6 +192,7 @@ class Method(Function):
 class ClassMethod(Method):
 	"""クラスメソッド"""
 	...
+
 
 class Constructor(Method):
 	"""コンストラクター"""

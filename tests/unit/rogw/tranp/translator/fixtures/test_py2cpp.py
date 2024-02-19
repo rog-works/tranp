@@ -182,6 +182,12 @@ class DictOps:
 		kvs = {'a': 1}
 		values = list(kvs.values())
 
+class CastOps:
+	def cast(self) -> None:
+		n = int(1.0)
+		f = float(1)
+		b = bool(1)
+
 from typing import TypeAlias
 
 DSI: TypeAlias = dict[str, int]

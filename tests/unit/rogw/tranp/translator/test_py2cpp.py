@@ -45,7 +45,8 @@ def _ast(before: str, after: str) -> str:
 		'DictOps.pop.block': 'file_input.class_def[11].class_def_raw.block.function_def[1].function_def_raw.block',
 		'DictOps.keys.block': 'file_input.class_def[11].class_def_raw.block.function_def[2].function_def_raw.block',
 		'DictOps.values.block': 'file_input.class_def[11].class_def_raw.block.function_def[3].function_def_raw.block',
-		'import.typing': 'file_input.import_stmt[12]',
+		'CastOps.cast.block': 'file_input.class_def[12].class_def_raw.block.function_def.function_def_raw.block',
+		'import.typing': 'file_input.import_stmt[13]',
 		'DSI': 'file_input.class_assign',
 	}
 	return DSN.join(aliases[before], after)
@@ -222,6 +223,10 @@ class TestPy2Cpp(TestCase):
 		(_ast('DictOps.pop.block', 'assign[2]'), defs.MoveAssign, BlockExpects.DictOps_pop_assign_value1),
 		(_ast('DictOps.keys.block', 'assign[1]'), defs.MoveAssign, BlockExpects.DictOps_keys_assign_keys),
 		(_ast('DictOps.values.block', 'assign[1]'), defs.MoveAssign, BlockExpects.DictOps_values_assign_values),
+
+		(_ast('CastOps.cast.block', 'assign[0]'), defs.MoveAssign, 'int n = (int)(1.0);'),
+		(_ast('CastOps.cast.block', 'assign[1]'), defs.MoveAssign, 'float f = (float)(1);'),
+		(_ast('CastOps.cast.block', 'assign[2]'), defs.MoveAssign, 'bool b = (bool)(1);'),
 
 		(_ast('import.typing', ''), defs.Import, '// #include "typing.h"'),
 

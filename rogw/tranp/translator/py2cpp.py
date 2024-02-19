@@ -402,17 +402,20 @@ class Py2Cpp(Procedure[str]):
 			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
 		elif spec == 'new_list':
 			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
+		elif spec == 'cast':
+			var_type = self.c_fullyname_by(cast(SymbolRaw, context))
+			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'var_type': var_type})
 		elif spec == 'list_pop':
-			var_type = self.c_fullyname_by(cast(SymbolRaw, context).attrs[0])
+			var_type = self.c_fullyname_by(cast(SymbolRaw, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': DSN.shift(calls, -1), 'var_type': var_type})
 		elif spec == 'dict_pop':
-			var_type = self.c_fullyname_by(cast(SymbolRaw, context).attrs[1])
+			var_type = self.c_fullyname_by(cast(SymbolRaw, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': DSN.shift(calls, -1), 'var_type': var_type})
 		elif spec == 'dict_keys':
-			var_type = self.c_fullyname_by(cast(SymbolRaw, context).attrs[0])
+			var_type = self.c_fullyname_by(cast(SymbolRaw, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': DSN.shift(calls, -1), 'var_type': var_type})
 		elif spec == 'dict_values':
-			var_type = self.c_fullyname_by(cast(SymbolRaw, context).attrs[1])
+			var_type = self.c_fullyname_by(cast(SymbolRaw, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': DSN.shift(calls, -1), 'var_type': var_type})
 		else:
 			return self.view.render(node.classification, vars=func_call_vars)
@@ -452,20 +455,18 @@ class Py2Cpp(Procedure[str]):
 			return 'len', None
 		elif calls == 'list':
 			return 'new_list', None
+		elif calls in ['int', 'float', 'bool']:
+			casted_types = {'int': int, 'float': float, 'bool': bool}
+			return 'cast', self.symbols.type_of_primitive(casted_types[calls])
 		elif isinstance(node.calls, defs.Relay) and node.calls.prop.tokens in ['pop', 'keys', 'values']:
 			prop = node.calls.prop.tokens
 			context = self.symbols.type_of(node.calls).context
-			is_list = self.symbols.is_a(context, list)
-			if is_list and prop == 'pop':
-				return 'list_pop', context
-
-			is_dict = self.symbols.is_a(context, dict)
-			if is_dict and prop == 'pop':
-				return 'dict_pop', context
-			elif is_dict and prop == 'keys':
-				return 'dict_keys', context
-			elif is_dict and prop == 'values':
-				return 'dict_values', context
+			if self.symbols.is_a(context, list) and prop == 'pop':
+				return 'list_pop', context.attrs[0]
+			elif self.symbols.is_a(context, dict) and prop in ['pop', 'keys', 'values']:
+				key_attr, value_attr = context.attrs
+				attr_indexs = {'pop': value_attr, 'keys': key_attr, 'values': value_attr}
+				return f'dict_{prop}', attr_indexs[prop]
 
 		return 'otherwise', None
 

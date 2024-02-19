@@ -1,0 +1,6 @@
+[&]() -> {{ var_type }} {
+	auto __iter = {{ receiver }}.{% if arguments %}begin() + {{ arguments[0] }}{% else %}end() - 1{% endif %};
+	auto __copy = *__iter;
+	{{ receiver }}.erase(__iter);
+	return __copy;
+}(){% if is_statement %};{% endif %}

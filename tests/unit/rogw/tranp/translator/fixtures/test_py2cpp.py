@@ -158,10 +158,17 @@ class ListOps:
 	def len(self) -> None:
 		values = [1, 2]
 		size_values = len(values)
+
+	def pop(self) -> None:
+		values = [1, 2]
+		value0 = values.pop()
+		value1 = values.pop(1)
+
+class DictOps:
+	def len(self) -> None:
 		kvs = {'a': 1}
 		size_kvs = len(kvs)
 
-class DictOps:
 	def keys(self) -> None:
 		kvs = {'a': 1}
 		keys = list(kvs.keys())

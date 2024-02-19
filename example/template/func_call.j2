@@ -1,6 +1,1 @@
-{{- calls -}}(
-	{%- for argument in arguments -%}
-		{%- if loop.index0 > 0 %}, {% endif -%}
-		{{- argument -}}
-	{%- endfor -%}
-){% if is_statement %};{% endif %}
+{{ calls }}({{ arguments | join(', ') }}){% if is_statement %};{% endif %}

@@ -84,26 +84,6 @@ class Py2Cpp(Procedure[str]):
 		else:
 			return self.view.render('cvar_move', vars={'move': move.name, 'value': value_str})
 
-	# Hook
-
-	def on_exit_func_call(self, node: defs.FuncCall, result: str) -> str:
-		if result.startswith('directive('):
-			return result[len('directive('):-1]
-		elif result.startswith('len('):
-			return f'{result[4:-1]}.size()'
-		elif result.startswith('list('):
-			return result[5:-1]
-		elif isinstance(node.calls, defs.Relay) and node.calls.prop.tokens in ['keys', 'values']:
-			prop = node.calls.prop.tokens
-			calls_obj_raw = self.symbols.type_of(node.calls).context
-			if self.symbols.is_a(calls_obj_raw, dict):
-				attr_index = ['keys', 'values'].index(prop)
-				var_type = self.c_fullyname_by(calls_obj_raw.attrs[attr_index])
-				calls = cast(re.Match, re.fullmatch(rf'(.+)\.{prop}\(\)', result))[1]
-				return self.view.render(f'{node.classification}_dict_{prop}', vars={'calls': calls, 'var_type': var_type})
-
-		return result
-
 	# General
 
 	def on_entrypoint(self, node: defs.Entrypoint, statements: list[str]) -> str:
@@ -412,37 +392,82 @@ class Py2Cpp(Procedure[str]):
 		return 'void'
 
 	def on_func_call(self, node: defs.FuncCall, calls: str, arguments: list[str]) -> str:
-		def process_argument(org_calls: SymbolRaw, arg_index: int, arg_node: defs.Argument, arg_value_str: str) -> str:
-			def resolve_calls(org_calls: SymbolRaw) -> SymbolRaw:
-				if isinstance(org_calls.types, defs.Class):
-					return self.symbols.type_of_constructor(org_calls.types)
+		accepted_arguments = self.accepted_arguments(node, arguments)
+		is_statement = node.parent.is_a(defs.Block)
+		spec, context = self.analyze_func_call_spec(node, calls)
+		func_call_vars = {'calls': calls, 'arguments': accepted_arguments, 'is_statement': is_statement}
+		if spec == 'directive':
+			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
+		elif spec == 'len':
+			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
+		elif spec == 'new_list':
+			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
+		elif spec == 'list_pop':
+			var_type = self.c_fullyname_by(cast(SymbolRaw, context).attrs[0])
+			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': DSN.shift(calls, -1), 'var_type': var_type})
+		elif spec == 'dict_pop':
+			var_type = self.c_fullyname_by(cast(SymbolRaw, context).attrs[0])
+			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': DSN.shift(calls, -1), 'var_type': var_type})
+		elif spec == 'dict_keys':
+			var_type = self.c_fullyname_by(cast(SymbolRaw, context).attrs[0])
+			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': DSN.shift(calls, -1), 'var_type': var_type})
+		elif spec == 'dict_values':
+			var_type = self.c_fullyname_by(cast(SymbolRaw, context).attrs[1])
+			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': DSN.shift(calls, -1), 'var_type': var_type})
+		else:
+			return self.view.render(node.classification, vars=func_call_vars)
 
-				return org_calls
-
-			def actualize_parameter(calls: SymbolRaw, arg_value: SymbolRaw) -> SymbolRaw:
-				calls_ref = reflection.Builder(calls) \
-					.case(reflection.Method).schema(lambda: {'klass': calls.attrs[0], 'parameters': calls.attrs[1:-1], 'returns': calls.attrs[-1]}) \
-					.other_case().schema(lambda: {'parameters': calls.attrs[:-1], 'returns': calls.attrs[-1]}) \
-					.build(reflection.Function)
-				if isinstance(calls_ref, reflection.Constructor):
-					return calls_ref.parameter(arg_index, org_calls, arg_value)
-				elif isinstance(calls_ref, reflection.Method):
-					return calls_ref.parameter(arg_index, calls_ref.symbol.context, arg_value)
-				else:
-					return calls_ref.parameter(arg_index, arg_value)
-
-			arg_value = self.symbols.type_of(arg_node.value)
-			parameter = actualize_parameter(resolve_calls(org_calls), arg_value)
-			return self.accepted_cvar_value(parameter, arg_node.value, arg_value, arg_value_str)
-
-		# 実引数を受け入れ可能な形式に変換
+	def accepted_arguments(self, node: defs.FuncCall, arguments: list[str]) -> list[str]:
 		calls_raw = self.symbols.type_of(node.calls)
 		node_arguments = node.arguments
-		accepted_arguments = [process_argument(calls_raw, index, node_arguments[index], argument) for index, argument in enumerate(arguments)]
+		return [self.process_argument(calls_raw, index, node_arguments[index], argument) for index, argument in enumerate(arguments)]
 
-		# Block直下の場合はステートメント
-		is_statement = node.parent.is_a(defs.Block)
-		return self.view.render(node.classification, vars={'calls': calls, 'arguments': accepted_arguments, 'is_statement': is_statement})
+	def process_argument(self, org_calls: SymbolRaw, arg_index: int, arg_node: defs.Argument, arg_value_str: str) -> str:
+		def resolve_calls(org_calls: SymbolRaw) -> SymbolRaw:
+			if isinstance(org_calls.types, defs.Class):
+				return self.symbols.type_of_constructor(org_calls.types)
+
+			return org_calls
+
+		def actualize_parameter(calls: SymbolRaw, arg_value: SymbolRaw) -> SymbolRaw:
+			calls_ref = reflection.Builder(calls) \
+				.case(reflection.Method).schema(lambda: {'klass': calls.attrs[0], 'parameters': calls.attrs[1:-1], 'returns': calls.attrs[-1]}) \
+				.other_case().schema(lambda: {'parameters': calls.attrs[:-1], 'returns': calls.attrs[-1]}) \
+				.build(reflection.Function)
+			if isinstance(calls_ref, reflection.Constructor):
+				return calls_ref.parameter(arg_index, org_calls, arg_value)
+			elif isinstance(calls_ref, reflection.Method):
+				return calls_ref.parameter(arg_index, calls_ref.symbol.context, arg_value)
+			else:
+				return calls_ref.parameter(arg_index, arg_value)
+
+		arg_value = self.symbols.type_of(arg_node.value)
+		parameter = actualize_parameter(resolve_calls(org_calls), arg_value)
+		return self.accepted_cvar_value(parameter, arg_node.value, arg_value, arg_value_str)
+
+	def analyze_func_call_spec(self, node: defs.FuncCall, calls: str) -> tuple[str, SymbolRaw | None]:
+		if calls == 'directive':
+			return 'directive', None
+		elif calls == 'len':
+			return 'len', None
+		elif calls == 'list':
+			return 'new_list', None
+		elif isinstance(node.calls, defs.Relay) and node.calls.prop.tokens in ['pop', 'keys', 'values']:
+			prop = node.calls.prop.tokens
+			context = self.symbols.type_of(node.calls).context
+			is_list = self.symbols.is_a(context, list)
+			if is_list and prop == 'pop':
+				return 'list_pop', context
+
+			is_dict = self.symbols.is_a(context, dict)
+			if is_dict and prop == 'pop':
+				return 'dict_pop', context
+			elif is_dict and prop == 'keys':
+				return 'dict_keys', context
+			elif is_dict and prop == 'values':
+				return 'dict_values', context
+
+		return 'otherwise', None
 
 
 	def on_super(self, node: defs.Super, calls: str, arguments: list[str]) -> str:

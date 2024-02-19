@@ -1,6 +1,6 @@
 [&]() -> std::vector<{{ var_type }}> {
 	std::vector<{{ var_type }}> __ret;
-	for (auto [_, __value] : {{ calls }}) {
+	for (auto [_, __value] : {{ receiver }}) {
 		__ret.push_back(__value);
 	}
 	return __ret;

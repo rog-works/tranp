@@ -16,18 +16,19 @@ from tests.test.helper import data_provider
 
 
 def _ast(before: str, after: str) -> str:
-	_Base = 'file_input.class_def[7]'
-	_CVarOps = 'file_input.class_def[8]'
-	_FuncOps = 'file_input.class_def[9]'
-	_EnumOps = 'file_input.class_def[10]'
-	_AccessOps = 'file_input.class_def[11]'
-	_Alias = 'file_input.class_def[12]'
-	_CompOps = 'file_input.class_def[13]'
-	_ForOps = 'file_input.class_def[14]'
-	_ListOps = 'file_input.class_def[15]'
-	_DictOps = 'file_input.class_def[16]'
-	_CastOps = 'file_input.class_def[17]'
-	_Nullable = 'file_input.class_def[18]'
+	_Base = 'file_input.class_def[8]'
+	_CVarOps = 'file_input.class_def[9]'
+	_FuncOps = 'file_input.class_def[10]'
+	_EnumOps = 'file_input.class_def[11]'
+	_AccessOps = 'file_input.class_def[12]'
+	_Alias = 'file_input.class_def[13]'
+	_CompOps = 'file_input.class_def[14]'
+	_ForOps = 'file_input.class_def[15]'
+	_ListOps = 'file_input.class_def[16]'
+	_DictOps = 'file_input.class_def[17]'
+	_CastOps = 'file_input.class_def[18]'
+	_Nullable = 'file_input.class_def[19]'
+	_Template = 'file_input.class_def[20]'
 
 	aliases = {
 		'import.typing': 'file_input.import_stmt[0]',
@@ -82,6 +83,8 @@ def _ast(before: str, after: str) -> str:
 		'Nullable.invalid_params': f'{_Nullable}.class_def_raw.block.function_def[2]',
 		'Nullable.invalid_returns': f'{_Nullable}.class_def_raw.block.function_def[3]',
 		'Nullable.var_move.block': f'{_Nullable}.class_def_raw.block.function_def[4].function_def_raw.block',
+
+		'Template.func': f'{_Template}.class_def_raw.block.function_def',
 	}
 	return DSN.join(aliases[before], after)
 
@@ -106,7 +109,7 @@ class BlockExpects:
 }();"""
 
 	ForOps_enumerate_for_index_key = \
-"""auto __for_iterates_1704 = [&]() -> std::map<int, std::string> {
+"""auto __for_iterates_1714 = [&]() -> std::map<int, std::string> {
 	std::map<int, std::string> __ret;
 	int __index = 0;
 	for (auto& __entry : keys) {
@@ -114,7 +117,7 @@ class BlockExpects:
 	}
 	return __ret;
 }();
-for (auto& [index, key] : __for_iterates_1704) {
+for (auto& [index, key] : __for_iterates_1714) {
 	print(index, key);
 }"""
 
@@ -284,6 +287,8 @@ class TestPy2Cpp(TestCase):
 		(_ast('Nullable.var_move.block', 'assign[2]'), defs.MoveAssign, 'p = (sp).get();'),
 		(_ast('Nullable.var_move.block', 'assign[3]'), defs.MoveAssign, 'p = nullptr;'),
 		(_ast('Nullable.var_move.block', 'if_stmt.block.return_stmt'), defs.Return, 'return *(p);'),
+
+		(_ast('Template.func', ''), defs.Method, '/** func */\npublic: T func(T v) {\n\n}'),
 	])
 	def test_exec(self, full_path: str, expected_type: type[Node], expected: str) -> None:
 		translator = self.translator()

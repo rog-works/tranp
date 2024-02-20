@@ -1,4 +1,4 @@
-from typing import TypeAlias
+from typing import TypeAlias, TypeVar
 
 from rogw.tranp.compatible.cpp.enum import CEnum
 from rogw.tranp.compatible.cpp.object import CObject, CP, CRef, CSP
@@ -6,6 +6,8 @@ from rogw.tranp.compatible.cpp.preprocess import directive
 from rogw.tranp.compatible.python.embed import __alias__
 
 directive('#pragma once')
+
+T = TypeVar('T')
 
 DSI: TypeAlias = dict[str, int]
 
@@ -223,3 +225,6 @@ class Nullable:
 			return p
 
 		raise Exception()
+
+class Template:
+	def func(self, v: T) -> T: ...

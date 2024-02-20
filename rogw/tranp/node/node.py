@@ -49,6 +49,11 @@ class Node:
 		return f'<{self.__class__.__name__}: {self.full_path}>'
 
 	@override
+	def __hash__(self) -> int:
+		"""int: オブジェクトのハッシュ値"""
+		return hash(self.__repr__())
+
+	@override
 	def __eq__(self, other: Any) -> bool:
 		"""比較演算子のオーバーロード
 

@@ -288,7 +288,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('Nullable.var_move.block', 'assign[3]'), defs.MoveAssign, 'p = nullptr;'),
 		(_ast('Nullable.var_move.block', 'if_stmt.block.return_stmt'), defs.Return, 'return *(p);'),
 
-		(_ast('Template.func', ''), defs.Method, '/** func */\npublic: T func(T v) {\n\n}'),
+		(_ast('Template.func', ''), defs.Method, '/** func */\npublic:\ntemplate<typename T>\nT func(T v) {\n\n}'),
 	])
 	def test_exec(self, full_path: str, expected_type: type[Node], expected: str) -> None:
 		translator = self.translator()

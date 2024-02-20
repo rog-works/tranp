@@ -339,4 +339,5 @@ def expected_symbols() -> dict:
 		'rogw.tranp.compatible.python.template.TypeVar': 'typing.TypeVar',
 		'rogw.tranp.compatible.python.template.T_Seq': 'rogw.tranp.compatible.python.template.T_Seq',
 		'rogw.tranp.compatible.python.template.T_Key': 'rogw.tranp.compatible.python.template.T_Key',
+		'rogw.tranp.compatible.python.template.T_Self': 'rogw.tranp.compatible.python.template.T_Self',
 	}

@@ -216,7 +216,7 @@ class TestPy2Cpp(TestCase):
 
 		(_ast('FuncOps.print.block', 'funccall'), defs.FuncCall, 'print("%d, %d, %d", 1, 2, 3);'),
 
-		# (_ast('EnumOps.assign.block', 'assign'), defs.MoveAssign, 'EnumOps::Values::A a = EnumOps::Values::A;'),
+		(_ast('EnumOps.assign.block', 'assign'), defs.MoveAssign, 'EnumOps::Values a = EnumOps::Values::A;'),
 		(_ast('EnumOps.Values', ''), defs.Enum, '/** Values */\npublic: enum class Values {\n\tA = 0,\n\tB = 1,\n};'),
 
 		(_ast('AccessOps.__init__', ''), defs.Constructor, '/** Constructor */\npublic: AccessOps() : Base(0), sub_s("") {\n}'),

@@ -144,6 +144,16 @@ class Function(Object):
 		updates = TemplateManipulator.make_updates(t_map_returns, t_map_props)
 		return TemplateManipulator.apply(self.schema.returns.clone(), map_props, updates)
 
+	@property
+	def templates(self) -> list[defs.TemplateClass]:
+		"""テンプレート型(タイプ再定義ノード)を取得
+
+		Returns:
+			list[TemplateClass]: テンプレート型リスト
+		"""
+		t_map_props = TemplateManipulator.unpack_templates(parameters=self.schemata.parameters, returns=self.schema.returns)
+		return list(set(t_map_props.values()))
+
 
 class Closure(Function):
 	"""クロージャー"""

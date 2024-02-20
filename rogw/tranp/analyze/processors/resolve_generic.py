@@ -1,9 +1,11 @@
-from typing import cast
+from typing import TypeAlias, cast
 
 from rogw.tranp.analyze.finder import SymbolFinder
 from rogw.tranp.analyze.symbol import SymbolRaw, SymbolRaws
 from rogw.tranp.lang.implementation import injectable
 import rogw.tranp.node.definition as defs
+
+TargetDeclTypes: TypeAlias = defs.GenericType | defs.Function | defs.AltClass | defs.Class
 
 
 class ResolveGeneric:
@@ -32,14 +34,10 @@ class ResolveGeneric:
 				continue
 
 			decl_type = self.fetch_decl_type(raw)
-			if isinstance(decl_type, defs.GenericType):
-				raws[key] = self.apply_generic(raws, raw, decl_type)
-			elif isinstance(decl_type, defs.Function):
-				raws[key] = self.apply_function(raws, raw, decl_type)
-			elif isinstance(decl_type, defs.AltClass):
-				raws[key] = self.apply_alt_class(raws, raw, decl_type)
-			elif isinstance(decl_type, defs.Class):
-				raws[key] = self.apply_class(raws, raw, decl_type)
+			if isinstance(decl_type, defs.UnionType):
+				raws[key] = self.extends_for_union(raws, raw, decl_type)
+			elif isinstance(decl_type, TargetDeclTypes):
+				raws[key] = self.extends_generic(raws, raw, decl_type)
 
 		return raws
 
@@ -64,22 +62,48 @@ class ResolveGeneric:
 		# 型指定が無いため全てUnknown
 		return None
 
-	def expand_attr(self, raws: SymbolRaws, t_raw: SymbolRaw, t_type: defs.Type) -> SymbolRaw:
-		"""タイプノードを属性として展開
+	def extends_generic(self, raws: SymbolRaws, via: SymbolRaw, decl_type: TargetDeclTypes) -> SymbolRaw:
+		"""ジェネリックタイプ/クラス定義ノードを解析し、属性の型を取り込みシンボルを拡張
 
 		Args:
 			raws (SymbolRaws): シンボルテーブル
-			t_raw (SymbolRaw): タイプノードのシンボル
-			t_type (Type): タイプノード
+			via (SymbolRaw): シンボル
+			decl_type (TargetDeclTypes): ジェネリックタイプ/クラス定義ノード
 		Returns:
 			SymbolRaw: シンボル
 		"""
-		if not isinstance(t_type, defs.GenericType):
-			return t_raw
+		if isinstance(decl_type, defs.GenericType):
+			return self.extends_for_type(raws, via, decl_type)
+		elif isinstance(decl_type, defs.Function):
+			return self.extends_for_function(raws, via, decl_type)
+		elif isinstance(decl_type, defs.AltClass):
+			return self.extends_for_alt_class(raws, via, decl_type)
+		else:
+			return self.extends_for_class(raws, via, decl_type)
 
-		return self.apply_generic(raws, t_raw, t_type)
+	def extends_for_union(self, raws: SymbolRaws, via: SymbolRaw, union_type: defs.UnionType) -> SymbolRaw:
+		"""ユニオンタイプノードを解析し、属性の型を取り込みシンボルを拡張
 
-	def apply_generic(self, raws: SymbolRaws, via: SymbolRaw, generic_type: defs.GenericType) -> SymbolRaw:
+		Args:
+			raws (SymbolRaws): シンボルテーブル
+			via (SymbolRaw): シンボル
+			union_type (UnionType): ユニオンタイプノード
+		Returns:
+			SymbolRaw: シンボル
+		"""
+		attrs: list[SymbolRaw] = []
+		for or_type in union_type.or_types:
+			t_raw = self.finder.by_symbolic(raws, or_type)
+			if isinstance(or_type, defs.UnionType):
+				attrs.append(self.extends_for_union(raws, t_raw, or_type))
+			elif isinstance(or_type, TargetDeclTypes):
+				attrs.append(self.extends_generic(raws, t_raw, or_type))
+			else:
+				attrs.append(t_raw)
+
+		return via.to.generic(union_type).extends(*attrs)
+
+	def extends_for_type(self, raws: SymbolRaws, via: SymbolRaw, generic_type: defs.GenericType) -> SymbolRaw:
 		"""ジェネリックタイプノードを解析し、属性の型を取り込みシンボルを拡張
 
 		Args:
@@ -96,7 +120,22 @@ class ResolveGeneric:
 
 		return via.to.generic(generic_type).extends(*attrs)
 
-	def apply_function(self, raws: SymbolRaws, via: SymbolRaw, function: defs.Function) -> SymbolRaw:
+	def expand_attr(self, raws: SymbolRaws, t_raw: SymbolRaw, t_type: defs.Type) -> SymbolRaw:
+		"""タイプノードを属性として展開
+
+		Args:
+			raws (SymbolRaws): シンボルテーブル
+			t_raw (SymbolRaw): タイプノードのシンボル
+			t_type (Type): タイプノード
+		Returns:
+			SymbolRaw: シンボル
+		"""
+		if not isinstance(t_type, defs.GenericType):
+			return t_raw
+
+		return self.extends_for_type(raws, t_raw, t_type)
+
+	def extends_for_function(self, raws: SymbolRaws, via: SymbolRaw, function: defs.Function) -> SymbolRaw:
 		"""ファンクション定義ノードを解析し、属性の型を取り込みシンボルを拡張
 
 		Args:
@@ -119,7 +158,7 @@ class ResolveGeneric:
 		attrs.append(self.expand_attr(raws, t_raw, function.return_type))
 		return via.to.types(function).extends(*attrs)
 
-	def apply_alt_class(self, raws: SymbolRaws, via: SymbolRaw, types: defs.AltClass) -> SymbolRaw:
+	def extends_for_alt_class(self, raws: SymbolRaws, via: SymbolRaw, types: defs.AltClass) -> SymbolRaw:
 		"""タイプ再定義ノードを解析し、属性の型を取り込みシンボルを拡張
 
 		Args:
@@ -132,7 +171,7 @@ class ResolveGeneric:
 		t_raw = self.finder.by_symbolic(raws, types.actual_type).to.generic(types.actual_type)
 		return via.to.types(types).extends(self.expand_attr(raws, t_raw, types.actual_type))
 
-	def apply_class(self, raws: SymbolRaws, via: SymbolRaw, types: defs.Class) -> SymbolRaw:
+	def extends_for_class(self, raws: SymbolRaws, via: SymbolRaw, types: defs.Class) -> SymbolRaw:
 		"""クラス定義ノードを解析し、属性の型を取り込みシンボルを拡張
 
 		Args:

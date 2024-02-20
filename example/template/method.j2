@@ -1,15 +1,14 @@
 {%- if comment %}{{ comment }}{% else %}/** {{ symbol }} */{% endif %}
-{%- for decorator in decorators | select('!=', '') %}
-{{ decorator }}
+{{- decorators | select('!=', '') | join('\n') }}
+{%- if not template_types %}
+{{ access }}: {{ return_type }} {{ symbol }}({{ parameters | select('!=', 'self') | join(', ') }}) {
+{%- else %}
+{{ access }}:
+{%- for template_type in template_types %}
+template<typename {{ template_type }}>
 {%- endfor %}
-{{ access }}: {{ return_type }} {{ symbol }}(
-	{%- for parameter in parameters -%}
-		{%- if loop.index0 > 1 %}, {% endif -%}
-		{%- if parameter != 'self' -%}
-			{{- parameter -}}
-		{%- endif -%}
-	{%- endfor -%}
-) {
+{{ return_type }} {{ symbol }}({{ parameters | select('!=', 'self') | join(', ') }}) {
+{%- endif %}
 {%- filter indent('\t') %}
 {%- for statement in statements %}
 {{ statement }}

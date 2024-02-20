@@ -210,7 +210,7 @@ class Py2Cpp(Procedure[str]):
 		function_ref = reflection.Builder(function_raw) \
 			.schema(lambda: {'klass': function_raw.attrs[0], 'parameters': function_raw.attrs[1:-1], 'returns': function_raw.attrs[-1]}) \
 			.build(reflection.Method)
-		template_types = [types.domain_name for types in function_ref.templates]
+		template_types = [types.domain_name for types in function_ref.templates()]
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'comment': comment, 'statements': statements, 'template_types': template_types}
 		method_vars = {'access': node.access, 'class_symbol': node.class_types.symbol.tokens}
 		return self.view.render(node.classification, vars={**function_vars, **method_vars})

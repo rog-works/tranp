@@ -386,17 +386,19 @@ class Py2Cpp(Procedure[str]):
 		return self.view.render(node.classification, vars={'type_name': type_name, 'cvar_type': template_types[0], 'cmutable': template_types[1] if len(template_types) == 2 else ''})
 
 	def on_union_type(self, node: defs.UnionType, or_types: list[str]) -> str:
+		"""Note: Union型はNullableのみ許可 (変換例: 'Class[CP] | None' -> 'Class*'"""
 		if len(node.or_types) != 2:
-			raise NotImplementedError(f'Not supported UnionType. expected 2 types. symbol: {node.fullyname}, got: {len(node.or_types)}')
+			raise LogicError(f'Unexpected UnionType. expected 2 types. symbol: {node.fullyname}, got: {len(node.or_types)}')
 
 		found_null = node.or_types[0].is_a(defs.NullType) or node.or_types[1].is_a(defs.NullType)
 		if not found_null:
-			raise NotImplementedError(f'Unexpected UnionType. with not nullable. symbol: {node.fullyname}, or_types: [{or_types[0]}, {or_types[1]}]')
+			raise LogicError(f'Unexpected UnionType. with not nullable. symbol: {node.fullyname}, or_types: [{or_types[0]}, {or_types[1]}]')
 
 		var_type_index = 1 if node.or_types[0].is_a(defs.NullType) else 0
-		var_type_raw = self.symbols.type_of(node.or_types[var_type_index])
-		if CVars.is_addr_p(CVars.key_from(var_type_raw)):
-			raise NotImplementedError(f'Unexpected UnionType. with not pointer. symbol: {node.fullyname}, var_type: {str(var_type_raw)}')
+		var_type_node = node.or_types[var_type_index]
+		is_addr_p = isinstance(var_type_node, defs.CustomType) and CVars.is_addr_p(var_type_node.template_types[0].type_name.tokens)
+		if not is_addr_p:
+			raise LogicError(f'Unexpected UnionType. with not pointer. symbol: {node.fullyname}, var_type: {var_type_node}')
 
 		return or_types[var_type_index]
 

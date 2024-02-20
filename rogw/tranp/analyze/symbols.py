@@ -394,7 +394,7 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 		return type_name
 
 	def on_union_type(self, node: defs.UnionType, or_types: list[SymbolRaw]) -> SymbolRaw:
-		return self.symbols.type_of_primitive(tuple).to.generic(node).extends(*or_types)
+		return self.symbols.resolve(node)
 
 	def on_null_type(self, node: defs.NullType) -> SymbolRaw:
 		return self.symbols.type_of_primitive(None)

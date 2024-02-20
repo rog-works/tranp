@@ -281,6 +281,7 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 			iterates = iterates.attrs[0]
 
 		def resolve() -> SymbolRaw:
+			# FIXME __class_getitem__と同様にクラスチェーンを考慮する必要あり
 			methods = {method.symbol.tokens: method for method in iterates.types.as_a(defs.Class).methods if method.symbol.tokens in ['__next__', '__iter__']}
 			if '__next__' in methods:
 				return self.symbols.resolve(methods['__next__'])
@@ -544,6 +545,7 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 		return symbol
 
 	def on_binary_operator(self, node: defs.BinaryOperator, left: SymbolRaw, right: SymbolRaw, operator: str) -> SymbolRaw:
+		# FIXME __class_getitem__と同様にクラスチェーンを考慮する必要あり
 		in_left = [method for method in left.types.as_a(defs.Class).methods if method.symbol.tokens == operator]
 		in_right = [method for method in right.types.as_a(defs.Class).methods if method.symbol.tokens == operator]
 		methods = [*in_left, *in_right]

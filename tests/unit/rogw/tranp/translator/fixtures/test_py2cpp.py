@@ -85,6 +85,11 @@ class EnumOps:
 
 	def assign(self) -> None:
 		a = EnumOps.Values.A
+		d = {
+			EnumOps.Values.A: 'A',
+			EnumOps.Values.B: 'B',
+		}
+		da = d[EnumOps.Values.A]
 
 class AccessOps(Base):
 	def __init__(self) -> None:

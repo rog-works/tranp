@@ -1,5 +1,6 @@
 from enum import Enum
 import re
+from types import UnionType
 from typing import cast
 
 from rogw.tranp.analyze.procedure import Procedure
@@ -22,6 +23,7 @@ class Py2Cpp(Procedure[str]):
 		super().__init__(verbose=options.verbose)
 		self.symbols = symbols
 		self.view = render
+		self.cvars = CVars(self.symbols)
 
 	def c_fullyname_by(self, raw: SymbolRaw) -> str:
 		"""C++用のシンボルの完全参照名を取得。型が明示されない場合の補完として利用する
@@ -49,7 +51,7 @@ class Py2Cpp(Procedure[str]):
 			str: 変換後の入力値
 		"""
 		value_on_new = isinstance(value_node, defs.FuncCall) and self.symbols.type_of(value_node.calls).types.is_a(defs.Class)
-		move = CVars.analyze_move(accept_raw, value_raw, value_on_new, declared)
+		move = self.cvars.analyze_move(accept_raw, value_raw, value_on_new, declared)
 		if move == CVars.Moves.Deny:
 			raise LogicError(f'Unacceptable value move. accept: {str(accept_raw)}, value: {str(value_raw)}, value_on_new: {value_on_new}, declared: {declared}')
 
@@ -70,7 +72,7 @@ class Py2Cpp(Procedure[str]):
 			`auto& [...${var_names}] = ${value}`
 		"""
 		value_on_new = isinstance(value_node, defs.FuncCall) and self.symbols.type_of(value_node.calls).types.is_a(defs.Class)
-		move = CVars.move_by(cpp.CRef.__name__, CVars.key_from(value_raw), value_on_new, declared)
+		move = self.cvars.move_by(cpp.CRef.__name__, self.cvars.key_from(value_raw), value_on_new, declared)
 		if move == CVars.Moves.Deny:
 			raise LogicError(f'Unacceptable value move. value: {str(value_raw)}, value_on_new: {value_on_new}, declared: {declared}')
 
@@ -319,7 +321,7 @@ class Py2Cpp(Procedure[str]):
 			prop = ClassSymbolMaker.domain_name(prop_symbol.types, use_alias=True)
 
 		def is_cvar_receiver() -> bool:
-			return len(receiver_symbol.attrs) > 0 and receiver_symbol.attrs[0].types.symbol.tokens in CVars.keys()
+			return len(receiver_symbol.attrs) > 0 and receiver_symbol.attrs[0].types.symbol.tokens in self.cvars.keys()
 
 		def is_this_var() -> bool:
 			return node.receiver.is_a(defs.ThisRef)
@@ -356,7 +358,7 @@ class Py2Cpp(Procedure[str]):
 			return node.tokens
 
 	def on_indexer(self, node: defs.Indexer, receiver: str, key: str) -> str:
-		if key in CVars.keys():
+		if key in self.cvars.keys():
 			# XXX 互換用の型は不要なので除外
 			return receiver
 		else:
@@ -396,7 +398,7 @@ class Py2Cpp(Procedure[str]):
 
 		var_type_index = 1 if node.or_types[0].is_a(defs.NullType) else 0
 		var_type_node = node.or_types[var_type_index]
-		is_addr_p = isinstance(var_type_node, defs.CustomType) and CVars.is_addr_p(var_type_node.template_types[0].type_name.tokens)
+		is_addr_p = isinstance(var_type_node, defs.CustomType) and self.cvars.is_addr_p(var_type_node.template_types[0].type_name.tokens)
 		if not is_addr_p:
 			raise LogicError(f'Unexpected UnionType. with not pointer. symbol: {node.fullyname}, var_type: {var_type_node}')
 
@@ -601,64 +603,68 @@ class CVars:
 		UnpackSp = 5
 		Deny = 6
 
-	@classmethod
-	def analyze_move(cls, accept: SymbolRaw, value: SymbolRaw, value_on_new: bool, declared: bool) -> Moves:
-		accept_key = cls.key_from(accept)
-		value_key = cls.key_from(value)
-		return cls.move_by(accept_key, value_key, value_on_new, declared)
+	def __init__(self, symbols: Symbols) -> None:
+		self.symbols = symbols
 
-	@classmethod
-	def move_by(cls, accept_key: str, value_key: str, value_on_new: bool, declared: bool) -> Moves:
-		if cls.is_raw_ref(accept_key) and not declared:
-			return cls.Moves.Deny
+	def analyze_move(self, accept: SymbolRaw, value: SymbolRaw, value_on_new: bool, declared: bool) -> Moves:
+		accept_key = self.key_from(accept)
+		value_key = self.key_from(value)
+		return self.move_by(accept_key, value_key, value_on_new, declared)
 
-		if cls.is_addr_sp(accept_key) and cls.is_raw(value_key) and value_on_new:
-			return cls.Moves.MakeSp
-		elif cls.is_addr_p(accept_key) and cls.is_raw(value_key) and value_on_new:
-			return cls.Moves.New
-		elif cls.is_addr_p(accept_key) and cls.is_raw(value_key):
-			return cls.Moves.ToAddress
-		elif cls.is_raw(accept_key) and cls.is_addr(value_key):
-			return cls.Moves.ToActual
-		elif cls.is_addr_p(accept_key) and cls.is_addr_sp(value_key):
-			return cls.Moves.UnpackSp
-		elif cls.is_addr_p(accept_key) and cls.is_addr_p(value_key):
-			return cls.Moves.Copy
-		elif cls.is_addr_sp(accept_key) and cls.is_addr_sp(value_key):
-			return cls.Moves.Copy
-		elif cls.is_raw(accept_key) and cls.is_raw(value_key):
-			return cls.Moves.Copy
+	def move_by(self, accept_key: str, value_key: str, value_on_new: bool, declared: bool) -> Moves:
+		if self.is_raw_ref(accept_key) and not declared:
+			return self.Moves.Deny
+
+		if self.is_addr_sp(accept_key) and self.is_raw(value_key) and value_on_new:
+			return self.Moves.MakeSp
+		elif self.is_addr_p(accept_key) and self.is_raw(value_key) and value_on_new:
+			return self.Moves.New
+		elif self.is_addr_p(accept_key) and self.is_raw(value_key):
+			return self.Moves.ToAddress
+		elif self.is_raw(accept_key) and self.is_addr(value_key):
+			return self.Moves.ToActual
+		elif self.is_addr_p(accept_key) and self.is_addr_sp(value_key):
+			return self.Moves.UnpackSp
+		elif self.is_addr_p(accept_key) and self.is_addr_p(value_key):
+			return self.Moves.Copy
+		elif self.is_addr_sp(accept_key) and self.is_addr_sp(value_key):
+			return self.Moves.Copy
+		elif self.is_raw(accept_key) and self.is_raw(value_key):
+			return self.Moves.Copy
 		else:
-			return cls.Moves.Deny
+			return self.Moves.Deny
 
-	@classmethod
-	def is_raw(cls, key: str) -> bool:
+	def is_raw(self, key: str) -> bool:
 		return key in [cpp.CRaw.__name__, cpp.CRef.__name__]
 
-	@classmethod
-	def is_addr(cls, key: str) -> bool:
+	def is_addr(self, key: str) -> bool:
 		return key in [cpp.CP.__name__, cpp.CSP.__name__]
 
-	@classmethod
-	def is_raw_ref(cls, key: str) -> bool:
+	def is_raw_ref(self, key: str) -> bool:
 		return key == cpp.CRef.__name__
 
-	@classmethod
-	def is_addr_p(cls, key: str) -> bool:
+	def is_addr_p(self, key: str) -> bool:
 		return key == cpp.CP.__name__
 
-	@classmethod
-	def is_addr_sp(cls, key: str) -> bool:
+	def is_addr_sp(self, key: str) -> bool:
 		return key == cpp.CSP.__name__
 
-	@classmethod
-	def keys(cls) -> list[str]:
+	def keys(self) -> list[str]:
 		return [cvar.__name__ for cvar in [cpp.CP, cpp.CSP, cpp.CRef, cpp.CRaw]]
 
-	@classmethod
-	def key_from(cls, raw: SymbolRaw) -> str:
-		keys = [attr.types.symbol.tokens for attr in raw.attrs]
-		if len(keys) > 0 and keys[0] in cls.keys():
+	def key_from(self, raw: SymbolRaw) -> str:
+		var_type_raw = self.__resolve_var_type_raw(raw)
+		keys = [attr.types.symbol.tokens for attr in var_type_raw.attrs]
+		if len(keys) > 0 and keys[0] in self.keys():
 			return keys[0]
 
 		return cpp.CRaw.__name__
+
+	def __resolve_var_type_raw(self, raw: SymbolRaw) -> SymbolRaw:
+		if self.symbols.is_a(raw, UnionType) and len(raw.attrs) == 2:
+			is_0_null = self.symbols.is_a(raw.attrs[0], None)
+			is_1_null = self.symbols.is_a(raw.attrs[1], None)
+			if is_0_null != is_1_null:
+				return raw.attrs[1 if is_0_null else 0]
+
+		return raw

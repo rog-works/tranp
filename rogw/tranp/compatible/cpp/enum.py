@@ -1,7 +1,6 @@
 from enum import Enum
 from typing import Any
 
-
 class CEnum(Enum):
 	"""C言語との互換用Enum"""
 

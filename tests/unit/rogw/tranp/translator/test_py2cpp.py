@@ -19,14 +19,15 @@ def _ast(before: str, after: str) -> str:
 	_Base = 'file_input.class_def[7]'
 	_CVarOps = 'file_input.class_def[8]'
 	_FuncOps = 'file_input.class_def[9]'
-	_AccessOps = 'file_input.class_def[10]'
-	_Alias = 'file_input.class_def[11]'
-	_CompOps = 'file_input.class_def[12]'
-	_ForOps = 'file_input.class_def[13]'
-	_ListOps = 'file_input.class_def[14]'
-	_DictOps = 'file_input.class_def[15]'
-	_CastOps = 'file_input.class_def[16]'
-	_Nullable = 'file_input.class_def[17]'
+	_EnumOps = 'file_input.class_def[10]'
+	_AccessOps = 'file_input.class_def[11]'
+	_Alias = 'file_input.class_def[12]'
+	_CompOps = 'file_input.class_def[13]'
+	_ForOps = 'file_input.class_def[14]'
+	_ListOps = 'file_input.class_def[15]'
+	_DictOps = 'file_input.class_def[16]'
+	_CastOps = 'file_input.class_def[17]'
+	_Nullable = 'file_input.class_def[18]'
 
 	aliases = {
 		'import.typing': 'file_input.import_stmt[0]',
@@ -44,11 +45,13 @@ def _ast(before: str, after: str) -> str:
 
 		'FuncOps.print.block': f'{_FuncOps}.class_def_raw.block.function_def.function_def_raw.block',
 
-		'AccessOps.Values': f'{_AccessOps}.class_def_raw.block.class_def',
-		'AccessOps.__init__': f'{_AccessOps}.class_def_raw.block.function_def[1]',
-		'AccessOps.dot.block': f'{_AccessOps}.class_def_raw.block.function_def[2].function_def_raw.block',
-		'AccessOps.arrow.block': f'{_AccessOps}.class_def_raw.block.function_def[3].function_def_raw.block',
-		'AccessOps.double_colon.block': f'{_AccessOps}.class_def_raw.block.function_def[4].function_def_raw.block',
+		'EnumOps.assign.block': f'{_EnumOps}.class_def_raw.block.function_def.function_def_raw.block',
+		'EnumOps.Values': f'{_EnumOps}.class_def_raw.block.class_def',
+
+		'AccessOps.__init__': f'{_AccessOps}.class_def_raw.block.function_def[0]',
+		'AccessOps.dot.block': f'{_AccessOps}.class_def_raw.block.function_def[1].function_def_raw.block',
+		'AccessOps.arrow.block': f'{_AccessOps}.class_def_raw.block.function_def[2].function_def_raw.block',
+		'AccessOps.double_colon.block': f'{_AccessOps}.class_def_raw.block.function_def[3].function_def_raw.block',
 
 		'Alias.Inner': f'{_Alias}.class_def_raw.block.class_def',
 		'Alias.__init__': f'{_Alias}.class_def_raw.block.function_def[1]',
@@ -103,7 +106,7 @@ class BlockExpects:
 }();"""
 
 	ForOps_enumerate_for_index_key = \
-"""auto __for_iterates_1618 = [&]() -> std::map<int, std::string> {
+"""auto __for_iterates_1655 = [&]() -> std::map<int, std::string> {
 	std::map<int, std::string> __ret;
 	int __index = 0;
 	for (auto& __entry : keys) {
@@ -111,7 +114,7 @@ class BlockExpects:
 	}
 	return __ret;
 }();
-for (auto& [index, key] : __for_iterates_1618) {
+for (auto& [index, key] : __for_iterates_1655) {
 	print(index, key);
 }"""
 
@@ -213,7 +216,8 @@ class TestPy2Cpp(TestCase):
 
 		(_ast('FuncOps.print.block', 'funccall'), defs.FuncCall, 'print("%d, %d, %d", 1, 2, 3);'),
 
-		(_ast('AccessOps.Values', ''), defs.Enum, '/** Values */\npublic: enum class Values {\n\tA = 0,\n\tB = 1,\n};'),
+		# (_ast('EnumOps.assign.block', 'assign'), defs.MoveAssign, 'EnumOps::Values::A a = EnumOps::Values::A;'),
+		(_ast('EnumOps.Values', ''), defs.Enum, '/** Values */\npublic: enum class Values {\n\tA = 0,\n\tB = 1,\n};'),
 
 		(_ast('AccessOps.__init__', ''), defs.Constructor, '/** Constructor */\npublic: AccessOps() : Base(0), sub_s("") {\n}'),
 
@@ -234,8 +238,8 @@ class TestPy2Cpp(TestCase):
 		(_ast('AccessOps.double_colon.block', 'funccall[0]'), defs.FuncCall, 'Base::call();'),
 		(_ast('AccessOps.double_colon.block', 'funccall[1].arguments.argvalue'), defs.Argument, 'Base::class_base_n'),
 		(_ast('AccessOps.double_colon.block', 'funccall[2].arguments.argvalue'), defs.Argument, 'AccessOps::class_base_n'),
-		(_ast('AccessOps.double_colon.block', 'funccall[3].arguments.argvalue'), defs.Argument, 'AccessOps::Values::A'),
-		(_ast('AccessOps.double_colon.block', 'anno_assign'), defs.AnnoAssign, 'std::map<AccessOps::Values, std::string> d = {\n\t{AccessOps::Values::A, "A"},\n\t{AccessOps::Values::B, "B"},\n};'),
+		(_ast('AccessOps.double_colon.block', 'funccall[3].arguments.argvalue'), defs.Argument, 'EnumOps::Values::A'),
+		(_ast('AccessOps.double_colon.block', 'anno_assign'), defs.AnnoAssign, 'std::map<EnumOps::Values, std::string> d = {\n\t{EnumOps::Values::A, "A"},\n\t{EnumOps::Values::B, "B"},\n};'),
 
 		(_ast('Alias.Inner', ''), defs.Class, '/** Inner2 */\nclass Inner2 {\n\n};'),
 		(_ast('Alias.__init__', ''), defs.Constructor, '/** Constructor */\npublic: Alias2() : inner(Alias2::Inner2()) {\n}'),

@@ -78,11 +78,15 @@ class FuncOps:
 	def print(self) -> None:
 		print('%d, %d, %d', 1, 2, 3)
 
-class AccessOps(Base):
+class EnumOps:
 	class Values(CEnum):
 		A = 0
 		B = 1
 
+	def assign(self) -> None:
+		a = EnumOps.Values.A
+
+class AccessOps(Base):
 	def __init__(self) -> None:
 		super().__init__(0)
 		self.sub_s: str = ''
@@ -107,10 +111,10 @@ class AccessOps(Base):
 		super().call()
 		print(Base.class_base_n)
 		print(AccessOps.class_base_n)
-		print(AccessOps.Values.A)
-		d: dict[AccessOps.Values, str] = {
-			AccessOps.Values.A: 'A',
-			AccessOps.Values.B: 'B',
+		print(EnumOps.Values.A)
+		d: dict[EnumOps.Values, str] = {
+			EnumOps.Values.A: 'A',
+			EnumOps.Values.B: 'B',
 		}
 
 @__alias__('Alias2')

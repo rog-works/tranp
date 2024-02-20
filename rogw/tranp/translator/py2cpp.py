@@ -397,15 +397,20 @@ class Py2Cpp(Procedure[str]):
 		return self.view.render(node.classification, vars={'type_name': type_name, 'cvar_type': template_types[0], 'cmutable': template_types[1] if len(template_types) == 2 else ''})
 
 	def on_union_type(self, node: defs.UnionType, or_types: list[str]) -> str:
-		"""Note: Union型はNullableのみ許可 (変換例: 'Class[CP] | None' -> 'Class*'"""
+		"""
+		Note:
+			Union型はNullableのみ許可 (変換例: 'Class[CP] | None' -> 'Class*'
+			@see CVars.__resolve_var_type
+		"""
 		if len(node.or_types) != 2:
 			raise LogicError(f'Unexpected UnionType. expected 2 types. symbol: {node.fullyname}, got: {len(node.or_types)}')
 
-		found_null = node.or_types[0].is_a(defs.NullType) or node.or_types[1].is_a(defs.NullType)
-		if not found_null:
+		is_0_null = node.or_types[0].is_a(defs.NullType)
+		is_1_null = node.or_types[1].is_a(defs.NullType)
+		if is_0_null == is_1_null:
 			raise LogicError(f'Unexpected UnionType. with not nullable. symbol: {node.fullyname}, or_types: [{or_types[0]}, {or_types[1]}]')
 
-		var_type_index = 1 if node.or_types[0].is_a(defs.NullType) else 0
+		var_type_index = 1 if is_0_null else 0
 		var_type_node = node.or_types[var_type_index]
 		is_addr_p = isinstance(var_type_node, defs.CustomType) and self.cvars.is_addr_p(var_type_node.template_types[0].type_name.tokens)
 		if not is_addr_p:
@@ -740,33 +745,41 @@ class CVars:
 		"""
 		return [cvar.__name__ for cvar in [cpp.CP, cpp.CSP, cpp.CRef, cpp.CRaw]]
 
-	def key_from(self, raw: SymbolRaw) -> str:
+	def key_from(self, symbol: SymbolRaw) -> str:
 		"""シンボルからC++変数種別のキーを取得
 
 		Args:
-			raw (SymbolRaw): シンボル
+			symbol (SymbolRaw): シンボル
 		Returns:
 			str: キー
+		Note:
+			nullはポインターとして扱う
 		"""
-		var_type_raw = self.__resolve_var_type_raw(raw)
-		keys = [attr.types.symbol.tokens for attr in var_type_raw.attrs]
+		if self.symbols.is_a(symbol, None):
+			return cpp.CP.__name__
+
+		var_type = self.__resolve_var_type(symbol)
+		keys = [attr.types.symbol.tokens for attr in var_type.attrs]
 		if len(keys) > 0 and keys[0] in self.keys():
 			return keys[0]
 
 		return cpp.CRaw.__name__
 
-	def __resolve_var_type_raw(self, raw: SymbolRaw) -> SymbolRaw:
-		"""Nullableを考慮し、シンボルの変数の型を解決
+	def __resolve_var_type(self, symbol: SymbolRaw) -> SymbolRaw:
+		"""シンボルの変数の型を解決(Nullableを考慮)
 
 		Args:
-			raw (SymbolRaw): シンボル
+			symbol (SymbolRaw): シンボル
 		Returns:
 			SymbolRaw: 変数の型
+		Note:
+			許容するNullableの書式 (例: 'Class[CP] | None')
+			@see Py2Cpp.on_union_type
 		"""
-		if self.symbols.is_a(raw, UnionType) and len(raw.attrs) == 2:
-			is_0_null = self.symbols.is_a(raw.attrs[0], None)
-			is_1_null = self.symbols.is_a(raw.attrs[1], None)
+		if self.symbols.is_a(symbol, UnionType) and len(symbol.attrs) == 2:
+			is_0_null = self.symbols.is_a(symbol.attrs[0], None)
+			is_1_null = self.symbols.is_a(symbol.attrs[1], None)
 			if is_0_null != is_1_null:
-				return raw.attrs[1 if is_0_null else 0]
+				return symbol.attrs[1 if is_0_null else 0]
 
-		return raw
+		return symbol

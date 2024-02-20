@@ -84,7 +84,7 @@ def _ast(before: str, after: str) -> str:
 		'Nullable.invalid_returns': f'{_Nullable}.class_def_raw.block.function_def[3]',
 		'Nullable.var_move.block': f'{_Nullable}.class_def_raw.block.function_def[4].function_def_raw.block',
 
-		'Template.func': f'{_Template}.class_def_raw.block.function_def',
+		'Template.method': f'{_Template}.class_def_raw.block.function_def',
 	}
 	return DSN.join(aliases[before], after)
 
@@ -288,7 +288,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('Nullable.var_move.block', 'assign[3]'), defs.MoveAssign, 'p = nullptr;'),
 		(_ast('Nullable.var_move.block', 'if_stmt.block.return_stmt'), defs.Return, 'return *(p);'),
 
-		(_ast('Template.func', ''), defs.Method, '/** func */\npublic:\ntemplate<typename T>\nT func(T v) {\n\n}'),
+		(_ast('Template.method', ''), defs.Method, '/** method */\npublic:\ntemplate<typename T>\nT method(T v) {\n\n}'),
 	])
 	def test_exec(self, full_path: str, expected_type: type[Node], expected: str) -> None:
 		translator = self.translator()

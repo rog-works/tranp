@@ -201,7 +201,12 @@ class Nullable:
 	def returns(self) -> Base[CP] | None: ...
 	def invlid_params(self, base: Base | None) -> None: ...  # エラーケース
 	def invlid_returns(self) -> Base | None: ...  # エラーケース
-	def var_move(self, base: Base) -> None:
+	def var_move(self, base: Base, sp: Base[CSP]) -> Base:
 		p: Base[CP] | None = None
 		p = base
+		p = sp
 		p = None
+		if p:
+			return p
+
+		raise Exception()

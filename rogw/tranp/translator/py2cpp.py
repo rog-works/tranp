@@ -278,8 +278,7 @@ class Py2Cpp(Procedure[str]):
 		return self.view.render(node.classification, vars={'receiver': receiver, 'operator': operator, 'value': value})
 
 	def on_return(self, node: defs.Return, return_value: str) -> str:
-		function = node.parent.as_a(defs.Block).parent.as_a(defs.Function)
-		accepted_value = self.accepted_cvar_value(self.symbols.type_of(function).attrs[-1], node.return_value, self.symbols.type_of(node.return_value), return_value)
+		accepted_value = self.accepted_cvar_value(self.symbols.type_of(node.function).attrs[-1], node.return_value, self.symbols.type_of(node.return_value), return_value)
 		return self.view.render(node.classification, vars={'return_value': accepted_value})
 
 	def on_throw(self, node: defs.Throw, throws: str, via: str) -> str:

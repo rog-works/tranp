@@ -9,40 +9,54 @@ from tests.test.helper import data_provider
 
 
 def _ast(before: str, after: str) -> str:
+	_func = 'file_input.function_def'
+	_Base = 'file_input.class_def[7]'
+	_Sub = 'file_input.class_def[8]'
+	_Ops = 'file_input.class_def[9]'
+	_AliasOps = 'file_input.class_def[10]'
+	_TupleOps = 'file_input.class_def[11]'
+	_CompOps = 'file_input.class_def[12]'
+
 	aliases = {
-		'__main__': 'file_input',
-		'__main__.func.block': 'file_input.function_def.function_def_raw.block',
-		'Base': 'file_input.class_def[3]',
-		'Base.__init__.params': 'file_input.class_def[3].class_def_raw.block.function_def.function_def_raw.parameters',
-		'Base.__init__.return': 'file_input.class_def[3].class_def_raw.block.function_def.function_def_raw.return_type',
-		'Base.__init__.block': 'file_input.class_def[3].class_def_raw.block.function_def.function_def_raw.block',
-		'Sub': 'file_input.class_def[4]',
-		'Sub.C': 'file_input.class_def[4].class_def_raw.block.class_def',
-		'Sub.C.block': 'file_input.class_def[4].class_def_raw.block.class_def.class_def_raw.block',
-		'Sub.C.class_func': 'file_input.class_def[4].class_def_raw.block.class_def.class_def_raw.block.function_def',
-		'Sub.C.class_func.params': 'file_input.class_def[4].class_def_raw.block.class_def.class_def_raw.block.function_def.function_def_raw.parameters',
-		'Sub.C.class_func.return': 'file_input.class_def[4].class_def_raw.block.class_def.class_def_raw.block.function_def.function_def_raw.return_type',
-		'Sub.C.class_func.block': 'file_input.class_def[4].class_def_raw.block.class_def.class_def_raw.block.function_def.function_def_raw.block',
-		'Sub.__init__.params': 'file_input.class_def[4].class_def_raw.block.function_def[1].function_def_raw.parameters',
-		'Sub.__init__.return': 'file_input.class_def[4].class_def_raw.block.function_def[1].function_def_raw.return_type',
-		'Sub.__init__.block': 'file_input.class_def[4].class_def_raw.block.function_def[1].function_def_raw.block',
-		'Sub.local_ref.params': 'file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.parameters',
-		'Sub.local_ref.return': 'file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.return_type',
-		'Sub.local_ref.block': 'file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block',
-		'Sub.member_ref.block': 'file_input.class_def[4].class_def_raw.block.function_def[3].function_def_raw.block',
-		'Sub.member_write.block': 'file_input.class_def[4].class_def_raw.block.function_def[4].function_def_raw.block',
-		'Sub.param_ref.params': 'file_input.class_def[4].class_def_raw.block.function_def[5].function_def_raw.parameters',
-		'Sub.param_ref.block': 'file_input.class_def[4].class_def_raw.block.function_def[5].function_def_raw.block',
-		'Sub.list_ref.params': 'file_input.class_def[4].class_def_raw.block.function_def[6].function_def_raw.parameters',
-		'Sub.list_ref.block': 'file_input.class_def[4].class_def_raw.block.function_def[6].function_def_raw.block',
-		'Sub.base_ref.block': 'file_input.class_def[4].class_def_raw.block.function_def[7].function_def_raw.block',
-		'Sub.returns.return': 'file_input.class_def[4].class_def_raw.block.function_def[8].function_def_raw.return_type',
-		'Sub.returns.block': 'file_input.class_def[4].class_def_raw.block.function_def[8].function_def_raw.block',
-		'Sub.invoke_method.block': 'file_input.class_def[4].class_def_raw.block.function_def[9].function_def_raw.block',
-		'Sub.decl_with_pop.block': 'file_input.class_def[4].class_def_raw.block.function_def[10].function_def_raw.block',
-		'Sub.decl_locals.block': 'file_input.class_def[4].class_def_raw.block.function_def[11].function_def_raw.block',
-		'Sub.decl_locals.closure.block': 'file_input.class_def[4].class_def_raw.block.function_def[11].function_def_raw.block.function_def.function_def_raw.block',
-		'Comp.list_comp.block': 'file_input.class_def[11].class_def_raw.block.function_def[0].function_def_raw.block',
+		'__main__.import.xyz': 'file_input.import_stmt[2]',
+
+		'__main__.value': 'file_input.anno_assign',
+
+		'__main__.func.block': f'{_func}.function_def_raw.block',
+
+		'Base': f'{_Base}',
+		'Base.__init__.params': f'{_Base}.class_def_raw.block.function_def.function_def_raw.parameters',
+		'Base.__init__.return': f'{_Base}.class_def_raw.block.function_def.function_def_raw.return_type',
+		'Base.__init__.block': f'{_Base}.class_def_raw.block.function_def.function_def_raw.block',
+
+		'Sub': f'{_Sub}',
+		'Sub.C': f'{_Sub}.class_def_raw.block.class_def',
+		'Sub.C.block': f'{_Sub}.class_def_raw.block.class_def.class_def_raw.block',
+		'Sub.C.class_func': f'{_Sub}.class_def_raw.block.class_def.class_def_raw.block.function_def',
+		'Sub.C.class_func.params': f'{_Sub}.class_def_raw.block.class_def.class_def_raw.block.function_def.function_def_raw.parameters',
+		'Sub.C.class_func.return': f'{_Sub}.class_def_raw.block.class_def.class_def_raw.block.function_def.function_def_raw.return_type',
+		'Sub.C.class_func.block': f'{_Sub}.class_def_raw.block.class_def.class_def_raw.block.function_def.function_def_raw.block',
+		'Sub.__init__.params': f'{_Sub}.class_def_raw.block.function_def[1].function_def_raw.parameters',
+		'Sub.__init__.return': f'{_Sub}.class_def_raw.block.function_def[1].function_def_raw.return_type',
+		'Sub.__init__.block': f'{_Sub}.class_def_raw.block.function_def[1].function_def_raw.block',
+		'Sub.local_ref.params': f'{_Sub}.class_def_raw.block.function_def[2].function_def_raw.parameters',
+		'Sub.local_ref.return': f'{_Sub}.class_def_raw.block.function_def[2].function_def_raw.return_type',
+		'Sub.local_ref.block': f'{_Sub}.class_def_raw.block.function_def[2].function_def_raw.block',
+		'Sub.member_ref.block': f'{_Sub}.class_def_raw.block.function_def[3].function_def_raw.block',
+		'Sub.member_write.block': f'{_Sub}.class_def_raw.block.function_def[4].function_def_raw.block',
+		'Sub.param_ref.params': f'{_Sub}.class_def_raw.block.function_def[5].function_def_raw.parameters',
+		'Sub.param_ref.block': f'{_Sub}.class_def_raw.block.function_def[5].function_def_raw.block',
+		'Sub.list_ref.params': f'{_Sub}.class_def_raw.block.function_def[6].function_def_raw.parameters',
+		'Sub.list_ref.block': f'{_Sub}.class_def_raw.block.function_def[6].function_def_raw.block',
+		'Sub.base_ref.block': f'{_Sub}.class_def_raw.block.function_def[7].function_def_raw.block',
+		'Sub.returns.return': f'{_Sub}.class_def_raw.block.function_def[8].function_def_raw.return_type',
+		'Sub.returns.block': f'{_Sub}.class_def_raw.block.function_def[8].function_def_raw.block',
+		'Sub.invoke_method.block': f'{_Sub}.class_def_raw.block.function_def[9].function_def_raw.block',
+		'Sub.decl_with_pop.block': f'{_Sub}.class_def_raw.block.function_def[10].function_def_raw.block',
+		'Sub.decl_locals.block': f'{_Sub}.class_def_raw.block.function_def[11].function_def_raw.block',
+		'Sub.decl_locals.closure.block': f'{_Sub}.class_def_raw.block.function_def[11].function_def_raw.block.function_def.function_def_raw.block',
+
+		'CompOps.list_comp.block': f'{_CompOps}.class_def_raw.block.function_def[0].function_def_raw.block',
 	}
 	return DSN.join(aliases[before], after)
 
@@ -63,8 +77,8 @@ class TestSymbols(TestCase):
 		('__main__.Sub.decl_locals.closure.b', list, True),
 		('__main__.Sub.decl_locals.a', dict, False),
 		('__main__.Sub.decl_locals.closure.b', dict, False),
-		('__main__.AliasCheck.func.d', list, False),
-		('__main__.AliasCheck.func.d', dict, False),  # XXX エイリアスなのでdictでそのものではないが、要検討
+		('__main__.AliasOps.func.d', list, False),
+		('__main__.AliasOps.func.d', dict, False),  # XXX エイリアスはdictそのものではないが要検討
 	])
 	def test_is_a(self, fullyname: str, primitive_type: type[Primitives], expected: bool) -> None:
 		symbols = self.fixture.get(Symbols)
@@ -136,39 +150,46 @@ class TestSymbols(TestCase):
 		('__main__.Ops.sum.fb0', 'float'),
 		('__main__.Ops.sum.fb1', 'float'),
 
-		('__main__.AliasCheck.func', 'func(AliasCheck, Z2=Z) -> None'),
-		('__main__.AliasCheck.func.z2', 'Z2=Z'),
-		('__main__.AliasCheck.func.d', 'DSI=dict<str, int>'),
-		('__main__.AliasCheck.func.d_in_v', 'int'),
-		('__main__.AliasCheck.func.d2', 'DSI2=dict<str, DSI=dict<str, int>>'),
-		('__main__.AliasCheck.func.d2_in_dsi', 'DSI=dict<str, int>'),
-		('__main__.AliasCheck.func.d2_in_dsi_in_v', 'int'),
-		('__main__.AliasCheck.func.z2_in_x', 'X'),
-		('__main__.AliasCheck.func.new_z2_in_x', 'X'),
+		('__main__.AliasOps.func', 'func(AliasOps, Z2=Z) -> None'),
+		('__main__.AliasOps.func.z2', 'Z2=Z'),
+		('__main__.AliasOps.func.d', 'DSI=dict<str, int>'),
+		('__main__.AliasOps.func.d_in_v', 'int'),
+		('__main__.AliasOps.func.d2', 'DSI2=dict<str, DSI=dict<str, int>>'),
+		('__main__.AliasOps.func.d2_in_dsi', 'DSI=dict<str, int>'),
+		('__main__.AliasOps.func.d2_in_dsi_in_v', 'int'),
+		('__main__.AliasOps.func.z2_in_x', 'X'),
+		('__main__.AliasOps.func.new_z2_in_x', 'X'),
 
-		('__main__.TupleCheck.unpack.for.key0', 'str'),
-		('__main__.TupleCheck.unpack.for.value0', 'int'),
-		('__main__.TupleCheck.unpack.for.value1', 'int'),
-		('__main__.TupleCheck.unpack.for.key1', 'str'),
-		('__main__.TupleCheck.unpack.for.pair0', 'Pair<str, int>'),
-		('__main__.TupleCheck.unpack.for.key10', 'str'),
-		('__main__.TupleCheck.unpack.for.value10', 'DSI=dict<str, int>'),
-		('__main__.TupleCheck.unpack.for.value11', 'DSI=dict<str, int>'),
-		('__main__.TupleCheck.unpack.for.key11', 'str'),
-		('__main__.TupleCheck.unpack.for.pair10', 'Pair<str, DSI=dict<str, int>>'),
+		('__main__.TupleOps.unpack.for.key0', 'str'),
+		('__main__.TupleOps.unpack.for.value0', 'int'),
+		('__main__.TupleOps.unpack.for.value1', 'int'),
+		('__main__.TupleOps.unpack.for.key1', 'str'),
+		('__main__.TupleOps.unpack.for.pair0', 'Pair<str, int>'),
+		('__main__.TupleOps.unpack.for.key10', 'str'),
+		('__main__.TupleOps.unpack.for.value10', 'DSI=dict<str, int>'),
+		('__main__.TupleOps.unpack.for.value11', 'DSI=dict<str, int>'),
+		('__main__.TupleOps.unpack.for.key11', 'str'),
+		('__main__.TupleOps.unpack.for.pair10', 'Pair<str, DSI=dict<str, int>>'),
 
-		('__main__.TupleCheck.unpack_assign.a', 'str'),  # XXX Pythonのシンタックス上は不正。一旦保留
-		('__main__.TupleCheck.unpack_assign.b', 'int'),  # XXX 〃
+		('__main__.TupleOps.unpack_assign.a', 'str'),  # XXX Pythonのシンタックス上は不正。一旦保留
+		('__main__.TupleOps.unpack_assign.b', 'int'),  # XXX 〃
 
-		('__main__.Comp.list_comp.values0', 'list<int>'),
-		('__main__.Comp.list_comp.values1', 'list<int>'),
-		('__main__.Comp.list_comp.values2', 'list<int>'),
-		('__main__.Comp.list_comp.strs', 'list<str>'),
-		('__main__.Comp.list_comp.value', 'int'),
+		('__main__.CompOps.list_comp.values0', 'list<int>'),
+		('__main__.CompOps.list_comp.values1', 'list<int>'),
+		('__main__.CompOps.list_comp.values2', 'list<int>'),
+		('__main__.CompOps.list_comp.strs', 'list<str>'),
+		('__main__.CompOps.list_comp.value', 'int'),
 
-		('__main__.Comp.dict_comp.kvs0', 'dict<str, int>'),
-		('__main__.Comp.dict_comp.kvs1', 'dict<str, int>'),
-		('__main__.Comp.dict_comp.kvs2', 'dict<str, int>'),
+		('__main__.CompOps.dict_comp.kvs0', 'dict<str, int>'),
+		('__main__.CompOps.dict_comp.kvs1', 'dict<str, int>'),
+		('__main__.CompOps.dict_comp.kvs2', 'dict<str, int>'),
+
+		('__main__.EnumOps.Values', 'Values'),
+		('__main__.EnumOps.Values.A', 'int'),  # FIXME Relay経由でないとValuesにならない -> Valuesであるべきでは？
+		('__main__.EnumOps.Values.B', 'int'),  # FIXME 〃
+		('__main__.EnumOps.assign.a', 'Values'),
+		('__main__.EnumOps.assign.d', 'dict<Values, str>'),
+		('__main__.EnumOps.assign.da', 'str'),
 	])
 	def test_from_fullyname(self, fullyname: str, expected: str) -> None:
 		symbols = self.fixture.get(Symbols)
@@ -192,10 +213,10 @@ class TestSymbols(TestCase):
 		self.assertEqual(symbols.type_of_primitive(primitive_type).types.fullyname, expected)
 
 	@data_provider([
-		(_ast('__main__', 'import_stmt[1].import_names.name'), _mod('xyz', 'Z'), 'Z'),
-		(_ast('__main__', 'anno_assign.assign_namelist.var'), _mod('classes', 'int'), 'int'),
-		(_ast('__main__', 'anno_assign.typed_var'), _mod('classes', 'int'), 'int'),
-		(_ast('__main__', 'anno_assign.number'), _mod('classes', 'int'), 'int'),
+		(_ast('__main__.import.xyz', 'import_names.name'), _mod('xyz', 'Z'), 'Z'),
+		(_ast('__main__.value', 'assign_namelist.var'), _mod('classes', 'int'), 'int'),
+		(_ast('__main__.value', 'typed_var'), _mod('classes', 'int'), 'int'),
+		(_ast('__main__.value', 'number'), _mod('classes', 'int'), 'int'),
 
 		(_ast('Base', ''), '__main__.Base', 'Base'),
 		(_ast('Base', 'class_def_raw.name'), '__main__.Base', 'Base'),
@@ -264,8 +285,8 @@ class TestSymbols(TestCase):
 		(_ast('Sub.decl_locals.block', 'if_stmt.block.assign.assign_namelist.var'), _mod('classes', 'int'), 'int'),
 		(_ast('Sub.decl_locals.closure.block', 'assign.assign_namelist.var'), _mod('classes', 'list'), 'list<int>'),
 
-		(_ast('Comp.list_comp.block', 'aug_assign.assign_namelist.var'), _mod('classes', 'int'), 'int'),
-		(_ast('Comp.list_comp.block', 'aug_assign.getitem'), _mod('classes', 'float'), 'float'),
+		(_ast('CompOps.list_comp.block', 'aug_assign.assign_namelist.var'), _mod('classes', 'int'), 'int'),
+		(_ast('CompOps.list_comp.block', 'aug_assign.getitem'), _mod('classes', 'float'), 'float'),
 	])
 	def test_type_of(self, full_path: str, expected: str, attrs_expected: str) -> None:
 		symbols = self.fixture.get(Symbols)

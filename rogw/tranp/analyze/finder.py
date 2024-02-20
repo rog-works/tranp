@@ -1,3 +1,5 @@
+from types import UnionType
+
 from rogw.tranp.analyze.symbol import SymbolRaw, SymbolRaws
 from rogw.tranp.ast.dsn import DSN
 from rogw.tranp.compatible.python.types import Primitives
@@ -64,7 +66,14 @@ class SymbolFinder:
 		Raises:
 			NotFoundError: シンボルが見つからない
 		"""
-		domain_name = primitive_type.__name__ if primitive_type is not None else 'None'
+		domain_name = ''
+		if primitive_type is None:
+			domain_name = 'None'
+		elif primitive_type is UnionType:
+			domain_name = 'Union'
+		else:
+			domain_name = primitive_type.__name__
+
 		raw = self.__find_raw(raws, self.__library_paths, domain_name)
 		if raw is not None:
 			return raw

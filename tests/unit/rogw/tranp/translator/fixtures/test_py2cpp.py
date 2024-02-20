@@ -2,7 +2,10 @@ from typing import TypeAlias
 
 from rogw.tranp.compatible.cpp.enum import CEnum
 from rogw.tranp.compatible.cpp.object import CObject, CP, CRef, CSP
+from rogw.tranp.compatible.cpp.preprocess import directive
 from rogw.tranp.compatible.python.embed import __alias__
+
+directive('#pragma once')
 
 DSI: TypeAlias = dict[str, int]
 

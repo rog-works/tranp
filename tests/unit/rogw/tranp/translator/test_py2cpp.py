@@ -16,55 +16,69 @@ from tests.test.helper import data_provider
 
 
 def _ast(before: str, after: str) -> str:
+	_Base = 'file_input.class_def[7]'
+	_CVarOps = 'file_input.class_def[8]'
+	_FuncOps = 'file_input.class_def[9]'
+	_AccessOps = 'file_input.class_def[10]'
+	_Alias = 'file_input.class_def[11]'
+	_CompOps = 'file_input.class_def[12]'
+	_ForOps = 'file_input.class_def[13]'
+	_ListOps = 'file_input.class_def[14]'
+	_DictOps = 'file_input.class_def[15]'
+	_CastOps = 'file_input.class_def[16]'
+	_Nullable = 'file_input.class_def[17]'
+
 	aliases = {
 		'import.typing': 'file_input.import_stmt[0]',
 
+		'directive': 'file_input.funccall',
+
 		'DSI': 'file_input.class_assign',
 
-		'CVarOps.ret_raw.return': 'file_input.class_def[6].class_def_raw.block.function_def[0].function_def_raw.block.return_stmt',
-		'CVarOps.ret_cp.return': 'file_input.class_def[6].class_def_raw.block.function_def[1].function_def_raw.block.return_stmt',
-		'CVarOps.ret_csp.return': 'file_input.class_def[6].class_def_raw.block.function_def[2].function_def_raw.block.return_stmt',
-		'CVarOps.local_move.block': 'file_input.class_def[6].class_def_raw.block.function_def[3].function_def_raw.block',
-		'CVarOps.param_move.block': 'file_input.class_def[6].class_def_raw.block.function_def[4].function_def_raw.block',
-		'CVarOps.invoke_method.block': 'file_input.class_def[6].class_def_raw.block.function_def[5].function_def_raw.block',
+		'CVarOps.ret_raw.return': f'{_CVarOps}.class_def_raw.block.function_def[0].function_def_raw.block.return_stmt',
+		'CVarOps.ret_cp.return': f'{_CVarOps}.class_def_raw.block.function_def[1].function_def_raw.block.return_stmt',
+		'CVarOps.ret_csp.return': f'{_CVarOps}.class_def_raw.block.function_def[2].function_def_raw.block.return_stmt',
+		'CVarOps.local_move.block': f'{_CVarOps}.class_def_raw.block.function_def[3].function_def_raw.block',
+		'CVarOps.param_move.block': f'{_CVarOps}.class_def_raw.block.function_def[4].function_def_raw.block',
+		'CVarOps.invoke_method.block': f'{_CVarOps}.class_def_raw.block.function_def[5].function_def_raw.block',
 
-		'FuncOps.print.block': 'file_input.class_def[7].class_def_raw.block.function_def.function_def_raw.block',
+		'FuncOps.print.block': f'{_FuncOps}.class_def_raw.block.function_def.function_def_raw.block',
 
-		'AccessOps.Values': 'file_input.class_def[8].class_def_raw.block.class_def',
-		'AccessOps.__init__': 'file_input.class_def[8].class_def_raw.block.function_def[1]',
-		'AccessOps.dot.block': 'file_input.class_def[8].class_def_raw.block.function_def[2].function_def_raw.block',
-		'AccessOps.arrow.block': 'file_input.class_def[8].class_def_raw.block.function_def[3].function_def_raw.block',
-		'AccessOps.double_colon.block': 'file_input.class_def[8].class_def_raw.block.function_def[4].function_def_raw.block',
+		'AccessOps.Values': f'{_AccessOps}.class_def_raw.block.class_def',
+		'AccessOps.__init__': f'{_AccessOps}.class_def_raw.block.function_def[1]',
+		'AccessOps.dot.block': f'{_AccessOps}.class_def_raw.block.function_def[2].function_def_raw.block',
+		'AccessOps.arrow.block': f'{_AccessOps}.class_def_raw.block.function_def[3].function_def_raw.block',
+		'AccessOps.double_colon.block': f'{_AccessOps}.class_def_raw.block.function_def[4].function_def_raw.block',
 
-		'Alias.Inner': 'file_input.class_def[9].class_def_raw.block.class_def',
-		'Alias.__init__': 'file_input.class_def[9].class_def_raw.block.function_def[1]',
-		'Alias.in_param_return': 'file_input.class_def[9].class_def_raw.block.function_def[2]',
-		'Alias.in_param_return2': 'file_input.class_def[9].class_def_raw.block.function_def[3]',
-		'Alias.in_local.block': 'file_input.class_def[9].class_def_raw.block.function_def[4].function_def_raw.block',
+		'Alias.Inner': f'{_Alias}.class_def_raw.block.class_def',
+		'Alias.__init__': f'{_Alias}.class_def_raw.block.function_def[1]',
+		'Alias.in_param_return': f'{_Alias}.class_def_raw.block.function_def[2]',
+		'Alias.in_param_return2': f'{_Alias}.class_def_raw.block.function_def[3]',
+		'Alias.in_local.block': f'{_Alias}.class_def_raw.block.function_def[4].function_def_raw.block',
 
-		'CompOps.list_comp.block': 'file_input.class_def[10].class_def_raw.block.function_def[1].function_def_raw.block',
-		'CompOps.dict_comp.block': 'file_input.class_def[10].class_def_raw.block.function_def[2].function_def_raw.block',
+		'CompOps.list_comp.block': f'{_CompOps}.class_def_raw.block.function_def[1].function_def_raw.block',
+		'CompOps.dict_comp.block': f'{_CompOps}.class_def_raw.block.function_def[2].function_def_raw.block',
 
-		'ForOps.range.block': 'file_input.class_def[11].class_def_raw.block.function_def[0].function_def_raw.block',
-		'ForOps.enumerate.block': 'file_input.class_def[11].class_def_raw.block.function_def[1].function_def_raw.block',
-		'ForOps.dict_items.block': 'file_input.class_def[11].class_def_raw.block.function_def[2].function_def_raw.block',
+		'ForOps.range.block': f'{_ForOps}.class_def_raw.block.function_def[0].function_def_raw.block',
+		'ForOps.enumerate.block': f'{_ForOps}.class_def_raw.block.function_def[1].function_def_raw.block',
+		'ForOps.dict_items.block': f'{_ForOps}.class_def_raw.block.function_def[2].function_def_raw.block',
 
-		'ListOps.len.block': 'file_input.class_def[12].class_def_raw.block.function_def[0].function_def_raw.block',
-		'ListOps.pop.block': 'file_input.class_def[12].class_def_raw.block.function_def[1].function_def_raw.block',
+		'ListOps.len.block': f'{_ListOps}.class_def_raw.block.function_def[0].function_def_raw.block',
+		'ListOps.pop.block': f'{_ListOps}.class_def_raw.block.function_def[1].function_def_raw.block',
 
-		'DictOps.len.block': 'file_input.class_def[13].class_def_raw.block.function_def[0].function_def_raw.block',
-		'DictOps.pop.block': 'file_input.class_def[13].class_def_raw.block.function_def[1].function_def_raw.block',
-		'DictOps.keys.block': 'file_input.class_def[13].class_def_raw.block.function_def[2].function_def_raw.block',
-		'DictOps.values.block': 'file_input.class_def[13].class_def_raw.block.function_def[3].function_def_raw.block',
+		'DictOps.len.block': f'{_DictOps}.class_def_raw.block.function_def[0].function_def_raw.block',
+		'DictOps.pop.block': f'{_DictOps}.class_def_raw.block.function_def[1].function_def_raw.block',
+		'DictOps.keys.block': f'{_DictOps}.class_def_raw.block.function_def[2].function_def_raw.block',
+		'DictOps.values.block': f'{_DictOps}.class_def_raw.block.function_def[3].function_def_raw.block',
 
-		'CastOps.cast_binary.block': 'file_input.class_def[14].class_def_raw.block.function_def[0].function_def_raw.block',
-		'CastOps.cast_string.block': 'file_input.class_def[14].class_def_raw.block.function_def[1].function_def_raw.block',
+		'CastOps.cast_binary.block': f'{_CastOps}.class_def_raw.block.function_def[0].function_def_raw.block',
+		'CastOps.cast_string.block': f'{_CastOps}.class_def_raw.block.function_def[1].function_def_raw.block',
 
-		'Nullable.params': 'file_input.class_def[15].class_def_raw.block.function_def[0]',
-		'Nullable.returns': 'file_input.class_def[15].class_def_raw.block.function_def[1]',
-		'Nullable.invalid_params': 'file_input.class_def[15].class_def_raw.block.function_def[2]',
-		'Nullable.invalid_returns': 'file_input.class_def[15].class_def_raw.block.function_def[3]',
-		'Nullable.var_move.block': 'file_input.class_def[15].class_def_raw.block.function_def[4].function_def_raw.block',
+		'Nullable.params': f'{_Nullable}.class_def_raw.block.function_def[0]',
+		'Nullable.returns': f'{_Nullable}.class_def_raw.block.function_def[1]',
+		'Nullable.invalid_params': f'{_Nullable}.class_def_raw.block.function_def[2]',
+		'Nullable.invalid_returns': f'{_Nullable}.class_def_raw.block.function_def[3]',
+		'Nullable.var_move.block': f'{_Nullable}.class_def_raw.block.function_def[4].function_def_raw.block',
 	}
 	return DSN.join(aliases[before], after)
 
@@ -89,7 +103,7 @@ class BlockExpects:
 }();"""
 
 	ForOps_enumerate_for_index_key = \
-"""auto __for_iterates_1595 = [&]() -> std::map<int, std::string> {
+"""auto __for_iterates_1618 = [&]() -> std::map<int, std::string> {
 	std::map<int, std::string> __ret;
 	int __index = 0;
 	for (auto& __entry : keys) {
@@ -97,7 +111,7 @@ class BlockExpects:
 	}
 	return __ret;
 }();
-for (auto& [index, key] : __for_iterates_1595) {
+for (auto& [index, key] : __for_iterates_1618) {
 	print(index, key);
 }"""
 
@@ -165,6 +179,8 @@ class TestPy2Cpp(TestCase):
 
 	@data_provider([
 		(_ast('import.typing', ''), defs.Import, '// #include "typing.h"'),
+
+		(_ast('directive', ''), defs.FuncCall, '#pragma once'),
 
 		(_ast('DSI', ''), defs.AltClass, 'using DSI = std::map<std::string, int>;'),
 

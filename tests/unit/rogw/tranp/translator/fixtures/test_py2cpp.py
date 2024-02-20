@@ -201,6 +201,7 @@ class CastOps:
 		f_to_n = int(1.0)
 		n_to_f = float(1)
 		n_to_b = bool(1)
+		e_to_n = int(EnumOps.Values.A)
 
 	def cast_string(self) -> None:
 		n_to_s = str(1)

@@ -64,6 +64,7 @@ def _ast(before: str, after: str) -> str:
 		'Nullable.returns': 'file_input.class_def[15].class_def_raw.block.function_def[1]',
 		'Nullable.invalid_params': 'file_input.class_def[15].class_def_raw.block.function_def[2]',
 		'Nullable.invalid_returns': 'file_input.class_def[15].class_def_raw.block.function_def[3]',
+		'Nullable.var_move.block': 'file_input.class_def[15].class_def_raw.block.function_def[4].function_def_raw.block',
 	}
 	return DSN.join(aliases[before], after)
 
@@ -255,6 +256,9 @@ class TestPy2Cpp(TestCase):
 
 		(_ast('Nullable.params', ''), defs.Method, '/** params */\npublic: void params(Base* p) {\n\n}'),
 		(_ast('Nullable.returns', ''), defs.Method, '/** returns */\npublic: Base* returns() {\n\n}'),
+		(_ast('Nullable.var_move.block', 'anno_assign'), defs.AnnoAssign, 'Base* p = nullptr;'),
+		(_ast('Nullable.var_move.block', 'assign[1]'), defs.MoveAssign, 'p = &(base);'),
+		(_ast('Nullable.var_move.block', 'assign[2]'), defs.MoveAssign, 'p = nullptr;'),
 	])
 	def test_exec(self, full_path: str, expected_type: type[Node], expected: str) -> None:
 		translator = self.translator()

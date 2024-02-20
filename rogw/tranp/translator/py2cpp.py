@@ -19,7 +19,16 @@ from rogw.tranp.view.render import Renderer
 
 
 class Py2Cpp(Procedure[str]):
+	"""Python -> C++のトランスパイラー"""
+
 	def __init__(self, symbols: Symbols, render: Renderer, options: TranslatorOptions) -> None:
+		"""インスタンスを生成
+
+		Args:
+			symbols (Symbols): シンボルリゾルバー
+			render (Renderer): ソースレンダー
+			options (TranslatorOptions): 実行オプション
+		"""
 		super().__init__(verbose=options.verbose)
 		self.symbols = symbols
 		self.view = render
@@ -594,7 +603,21 @@ class Py2Cpp(Procedure[str]):
 
 
 class CVars:
+	"""C++用の変数操作ユーティリティー"""
+
 	class Moves(Enum):
+		"""移動操作の種別
+
+		Attributes:
+			Copy: 実体と実体、ポインターとポインターのコピー
+			New: メモリ確保
+			MakeSp: メモリ確保(スマートポインター)
+			ToActual: ポインターを実体参照
+			ToAddress: 実体からポインターに変換
+			UnpackSp: スマートポインターから生ポインターに変換
+			Deny: 不正な移動操作
+		"""
+
 		Copy = 0
 		New = 1
 		MakeSp = 2
@@ -604,14 +627,39 @@ class CVars:
 		Deny = 6
 
 	def __init__(self, symbols: Symbols) -> None:
+		"""インスタンスを生成
+
+		Args:
+			symbols (Symbols): シンボルリゾルバー
+		"""
 		self.symbols = symbols
 
 	def analyze_move(self, accept: SymbolRaw, value: SymbolRaw, value_on_new: bool, declared: bool) -> Moves:
+		"""移動操作を解析
+
+		Args:
+			accept (SymbolRaw): 受け入れ側
+			value (SymbolRaw): 入力側
+			value_on_new (bool): True = インスタンス生成
+			declared (bool): True = 変数宣言時
+		Returns:
+			Moves: 移動操作の種別
+		"""
 		accept_key = self.key_from(accept)
 		value_key = self.key_from(value)
 		return self.move_by(accept_key, value_key, value_on_new, declared)
 
 	def move_by(self, accept_key: str, value_key: str, value_on_new: bool, declared: bool) -> Moves:
+		"""移動操作を解析
+
+		Args:
+			accept_key (str): 受け入れ側
+			value_key (str): 入力側
+			value_on_new (bool): True = インスタンス生成
+			declared (bool): True = 変数宣言時
+		Returns:
+			Moves: 移動操作の種別
+		"""
 		if self.is_raw_ref(accept_key) and not declared:
 			return self.Moves.Deny
 
@@ -635,24 +683,71 @@ class CVars:
 			return self.Moves.Deny
 
 	def is_raw(self, key: str) -> bool:
+		"""実体か判定
+
+		Args:
+			key (str): C++変数種別のキー
+		Returns:
+			bool: True = 実体
+		"""
 		return key in [cpp.CRaw.__name__, cpp.CRef.__name__]
 
 	def is_addr(self, key: str) -> bool:
+		"""ポインターか判定
+
+		Args:
+			key (str): C++変数種別のキー
+		Returns:
+			bool: True = ポインター
+		"""
 		return key in [cpp.CP.__name__, cpp.CSP.__name__]
 
 	def is_raw_ref(self, key: str) -> bool:
+		"""参照か判定
+
+		Args:
+			key (str): C++変数種別のキー
+		Returns:
+			bool: True = 参照
+		"""
 		return key == cpp.CRef.__name__
 
 	def is_addr_p(self, key: str) -> bool:
+		"""ポインターか判定
+
+		Args:
+			key (str): C++変数種別のキー
+		Returns:
+			bool: True = ポインター
+		"""
 		return key == cpp.CP.__name__
 
 	def is_addr_sp(self, key: str) -> bool:
+		"""スマートポインターか判定
+
+		Args:
+			key (str): C++変数種別のキー
+		Returns:
+			bool: True = スマートポインター
+		"""
 		return key == cpp.CSP.__name__
 
 	def keys(self) -> list[str]:
+		"""C++変数種別のキー一覧を生成
+
+		Returns:
+			list[str]: キー一覧
+		"""
 		return [cvar.__name__ for cvar in [cpp.CP, cpp.CSP, cpp.CRef, cpp.CRaw]]
 
 	def key_from(self, raw: SymbolRaw) -> str:
+		"""シンボルからC++変数種別のキーを取得
+
+		Args:
+			raw (SymbolRaw): シンボル
+		Returns:
+			str: キー
+		"""
 		var_type_raw = self.__resolve_var_type_raw(raw)
 		keys = [attr.types.symbol.tokens for attr in var_type_raw.attrs]
 		if len(keys) > 0 and keys[0] in self.keys():
@@ -661,6 +756,13 @@ class CVars:
 		return cpp.CRaw.__name__
 
 	def __resolve_var_type_raw(self, raw: SymbolRaw) -> SymbolRaw:
+		"""Nullableを考慮し、シンボルの変数の型を解決
+
+		Args:
+			raw (SymbolRaw): シンボル
+		Returns:
+			SymbolRaw: 変数の型
+		"""
 		if self.symbols.is_a(raw, UnionType) and len(raw.attrs) == 2:
 			is_0_null = self.symbols.is_a(raw.attrs[0], None)
 			is_1_null = self.symbols.is_a(raw.attrs[1], None)

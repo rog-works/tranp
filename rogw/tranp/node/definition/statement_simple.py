@@ -90,8 +90,7 @@ class Return(Node):
 	@property
 	def function(self) -> Node:
 		"""Note: XXX 参照違反になるためNode型で返却"""
-		# XXX self.parent.as_a(Block).parent.as_a(Function)
-		return self.parent.parent
+		return self._ancestor('function_def')
 
 
 @Meta.embed(Node, accept_tags('raise_stmt'))

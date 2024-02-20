@@ -25,12 +25,12 @@ class Symbols:
 		self.__raws = db.raws
 		self.__finder = finder
 
-	def is_a(self, symbol: SymbolRaw, primitive_type: type[Primitives]) -> bool:
+	def is_a(self, symbol: SymbolRaw, primitive_type: type[Primitives] | None) -> bool:
 		"""シンボルの型を判定
 
 		Args:
 			symbol (SymbolRaw): シンボル
-			primitive_type (type[Primitives]): プリミティブ型
+			primitive_type (type[Primitives] | None): プリミティブ型
 		Return:
 			bool: True = 指定の型と一致
 		"""
@@ -578,6 +578,9 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 		else:
 			key_type, value_type = items[0].attrs
 			return self.symbols.type_of_primitive(dict).to.literal(node).extends(key_type, value_type)
+
+	def on_null(self, node: defs.Null) -> SymbolRaw:
+		return self.symbols.type_of_primitive(None)
 
 	# Expression
 

@@ -1,6 +1,11 @@
 from typing import TypeAlias
 
+from rogw.tranp.compatible.cpp.enum import CEnum
 from tests.unit.rogw.tranp.analyze.fixtures.test_db_xyz import Z
+
+DSI: TypeAlias = dict[str, int]
+DSI2: TypeAlias = dict[str, DSI]
+Z2: TypeAlias = Z
 
 value: int = 0
 
@@ -81,11 +86,7 @@ class Ops:
 		fb0 = 1.0 + True
 		fb1 = True + 1.0
 
-DSI: TypeAlias = dict[str, int]
-DSI2: TypeAlias = dict[str, DSI]
-Z2: TypeAlias = Z
-
-class AliasCheck:
+class AliasOps:
 	def func(self, z2: Z2) -> None:
 		d: DSI = {'s': value}
 		d_in_v = d['s']
@@ -97,7 +98,7 @@ class AliasCheck:
 		z2_in_x = z2.x
 		new_z2_in_x = Z2().x
 
-class TupleCheck:
+class TupleOps:
 	def unpack(self) -> None:
 		for key0, value0 in {'a': 1}.items(): ...
 		for value1 in {'a': 1}.values(): ...
@@ -113,7 +114,7 @@ class TupleCheck:
 	def unpack_assign(self) -> None:
 		a, b = {'a': 1}  # XXX Pythonのシンタックス上は不正
 
-class Comp:
+class CompOps:
 	def list_comp(self) -> None:
 		values0 = [value for value in [1, 2, 3]]
 		values1: list[int] = [value for value in [1, 2, 3]]
@@ -126,3 +127,16 @@ class Comp:
 		kvs0 = {key: index for index, key in enumerate(['a', 'b', 'c'])}
 		kvs1: dict[str, int] = {key: index for index, key in enumerate(['a', 'b', 'c'])}
 		kvs2 = {key: index for key, index in kvs0.items()}
+
+class EnumOps:
+	class Values(CEnum):
+		A = 0
+		B = 1
+
+	def assign(self) -> None:
+		a = EnumOps.Values.A
+		d = {
+			EnumOps.Values.A: 'A',
+			EnumOps.Values.B: 'B',
+		}
+		da = d[EnumOps.Values.A]

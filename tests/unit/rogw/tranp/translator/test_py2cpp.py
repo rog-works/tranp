@@ -60,7 +60,10 @@ def _ast(before: str, after: str) -> str:
 		'CastOps.cast_binary.block': 'file_input.class_def[14].class_def_raw.block.function_def[0].function_def_raw.block',
 		'CastOps.cast_string.block': 'file_input.class_def[14].class_def_raw.block.function_def[1].function_def_raw.block',
 
-		'Nullable.returns': 'file_input.class_def[15].class_def_raw.block.function_def',
+		'Nullable.params': 'file_input.class_def[15].class_def_raw.block.function_def[0]',
+		'Nullable.returns': 'file_input.class_def[15].class_def_raw.block.function_def[1]',
+		'Nullable.invalid_params': 'file_input.class_def[15].class_def_raw.block.function_def[2]',
+		'Nullable.invalid_returns': 'file_input.class_def[15].class_def_raw.block.function_def[3]',
 	}
 	return DSN.join(aliases[before], after)
 
@@ -250,6 +253,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('CastOps.cast_string.block', 'assign[2]'), defs.MoveAssign, 'int s_to_n = atoi(n_to_s);'),
 		(_ast('CastOps.cast_string.block', 'assign[3]'), defs.MoveAssign, 'float s_to_f = atof(f_to_s);'),
 
+		(_ast('Nullable.params', ''), defs.Method, '/** params */\npublic: void params(Base* p) {\n\n}'),
 		(_ast('Nullable.returns', ''), defs.Method, '/** returns */\npublic: Base* returns() {\n\n}'),
 	])
 	def test_exec(self, full_path: str, expected_type: type[Node], expected: str) -> None:
@@ -272,9 +276,12 @@ class TestPy2Cpp(TestCase):
 
 		(_ast('CVarOps.invoke_method.block', 'funccall[0]'), defs.FuncCall),
 		(_ast('CVarOps.invoke_method.block', 'funccall[1]'), defs.FuncCall),
+
+		(_ast('Nullable.invalid_params', ''), defs.Method),
+		(_ast('Nullable.invalid_returns', ''), defs.Method),
 	])
 	def test_exec_error(self, full_path: str, expected_type: type[Node]) -> None:
 		translator = self.translator()
 		node = self.fixture.shared_nodes.by(full_path).as_a(expected_type)
-		with self.assertRaisesRegex(LogicError, r'^Unacceptable value move.'):
+		with self.assertRaises(LogicError):
 			translator.exec(node)

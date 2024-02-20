@@ -59,6 +59,7 @@
 				"env": {
 					"PYTHONPATH": "${workspaceFolder}:${workspaceFolder}/vendor",
 					"PYTHONDONTWRITEBYTECODE": "1",
+					"PYDEVD_CONTAINER_RANDOM_ACCESS_MAX_ITEMS": "2000",
 				},
 			},
 			"console": "integratedTerminal",

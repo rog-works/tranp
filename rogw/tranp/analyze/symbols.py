@@ -7,7 +7,7 @@ import rogw.tranp.analyze.reflection as reflection
 from rogw.tranp.analyze.finder import SymbolFinder
 import rogw.tranp.compatible.python.classes as classes
 from rogw.tranp.compatible.python.types import Primitives
-from rogw.tranp.errors import LogicError
+from rogw.tranp.errors import LogicError, NotFoundError
 from rogw.tranp.lang.implementation import injectable
 import rogw.tranp.node.definition as defs
 from rogw.tranp.node.node import Node
@@ -196,7 +196,7 @@ class Symbols:
 		if found_raw is not None:
 			return found_raw
 
-		raise LogicError(f'SymbolRaw not defined. symbolic: {symbolic.fullyname}, prop_name: {prop_name}')
+		raise NotFoundError(f'SymbolRaw not defined. symbolic: {symbolic.fullyname}, prop_name: {prop_name}')
 
 	def __resolve_raw(self, symbolic: defs.Symbolic, prop_name: str) -> SymbolRaw | None:
 		"""シンボル系ノードからシンボルを解決。未検出の場合はNoneを返却
@@ -349,6 +349,21 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 		# indexer.func_call: a.b[1].c()
 		if isinstance(receiver.types, defs.AltClass):
 			receiver = receiver.attrs[0]
+
+		# クラス属性へのアクセスの場合は__class_getitem__経由で型を解決
+		# FIXME on_superによって解決されたreceiverは、インスタンス属性へのアクセスと見做して除外する ※アクセス対象がクラスかインスタンスか区別出来ないため
+		if not node.receiver.is_a(defs.Super) and isinstance(receiver.decl, defs.Class):
+			try:
+				getitem = self.symbols.resolve(receiver.decl, '__class_getitem__')
+				# XXX clsにタイプヒントが付与された場合、returnsの第1引数のreceiverと階層を合わせるためアンパックする ※タイプヒントが無い場合は必然的に階層が同じになる
+				# XXX (例: '__class_getitem__(cls: type[T], *: Any) -> Any')
+				class_type = getitem.attrs[0].attrs[0] if len(getitem.attrs[0].attrs) > 0 else getitem.attrs[0]
+				getitem_ref = reflection.Builder(getitem) \
+					.schema(lambda: {'klass': class_type, 'parameters': getitem.attrs[1:-2], 'returns': getitem.attrs[-1]}) \
+					.build(reflection.ClassMethod)
+				return getitem_ref.returns(receiver, *getitem.attrs[1:-2])
+			except NotFoundError:
+				pass
 
 		return self.symbols.type_of_property(receiver.types, node.prop).to.ref(node, context=receiver)
 

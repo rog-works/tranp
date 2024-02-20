@@ -147,7 +147,8 @@ class ResolveGeneric:
 		"""
 		attrs: list[SymbolRaw] = []
 		for parameter in function.parameters:
-			if isinstance(parameter.symbol, (defs.DeclClassParam, defs.DeclThisParam)):
+			# cls/selfにタイプヒントが無い場合のみ補完
+			if isinstance(parameter.symbol, (defs.DeclClassParam, defs.DeclThisParam)) and parameter.var_type.is_a(defs.Empty):
 				attrs.append(self.finder.by_symbolic(raws, parameter.symbol))
 			else:
 				t_type = cast(defs.Type, parameter.var_type)

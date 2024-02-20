@@ -1,3 +1,5 @@
+from types import UnionType
+
 from rogw.tranp.analyze.db import SymbolDB
 from rogw.tranp.analyze.symbol import SymbolRaw
 from rogw.tranp.analyze.procedure import Procedure
@@ -378,23 +380,23 @@ class ProceduralResolver(Procedure[SymbolRaw]):
 			return receiver.to.ref(node, context=receiver)
 
 	def on_relay_of_type(self, node: defs.RelayOfType, receiver: SymbolRaw) -> SymbolRaw:
-		"""Note: Pythonではtypeをアンパックする構文が存在しないためAltClassも同様に扱う"""
+		"""Note: XXX Pythonではtypeをアンパックする構文が存在しないためAltClassも同様に扱う"""
 		return self.symbols.type_of_property(receiver.types, node.prop)
 
 	def on_var_of_type(self, node: defs.VarOfType) -> SymbolRaw:
 		return self.symbols.resolve(node)
 
 	def on_list_type(self, node: defs.ListType, type_name: SymbolRaw, value_type: SymbolRaw) -> SymbolRaw:
-		return type_name
+		return type_name.to.generic(node).extends(value_type)
 
 	def on_dict_type(self, node: defs.DictType, type_name: SymbolRaw, key_type: SymbolRaw, value_type: SymbolRaw) -> SymbolRaw:
-		return type_name
+		return type_name.to.generic(node).extends(key_type, value_type)
 
 	def on_custom_type(self, node: defs.CustomType, type_name: SymbolRaw, template_types: list[SymbolRaw]) -> SymbolRaw:
-		return type_name
+		return type_name.to.generic(node).extends(*template_types)
 
 	def on_union_type(self, node: defs.UnionType, or_types: list[SymbolRaw]) -> SymbolRaw:
-		return self.symbols.resolve(node)
+		return self.symbols.type_of_primitive(UnionType).to.generic(node).extends(*or_types)
 
 	def on_null_type(self, node: defs.NullType) -> SymbolRaw:
 		return self.symbols.type_of_primitive(None)

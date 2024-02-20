@@ -7,7 +7,7 @@ from rogw.tranp.lang.sequence import flatten, last_index_of
 from rogw.tranp.node.definition.accessor import to_access
 from rogw.tranp.node.definition.element import Decorator, Parameter
 from rogw.tranp.node.definition.literal import Comment, String
-from rogw.tranp.node.definition.primary import CompFor, CustomType, DeclClassVar, DeclLocalVar, Declable, ForIn, InheritArgument, DeclThisParam, DeclThisVar, Type, TypesName
+from rogw.tranp.node.definition.primary import CustomType, DeclClassVar, DeclLocalVar, Declable, ForIn, InheritArgument, DeclThisParam, DeclThisVar, Type, TypesName
 from rogw.tranp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from rogw.tranp.node.definition.terminal import Empty
 from rogw.tranp.node.embed import Meta, accept_tags, actualized, expandable

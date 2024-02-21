@@ -1,6 +1,14 @@
 {%- if comment %}{{ comment }}{% else %}/** Constructor */{% endif %}
 {{- decorators | select('!=', '') | join('\n') }}
+{%- if not template_types %}
 {{ access }}: {{ class_symbol }}({{ parameters | select('!=', 'self') | join(', ') }}){% include 'constructor_initializer.j2' %} {
+{%- else %}
+{{ access }}:
+{%- for template_type in template_types %}
+template<typename {{ template_type }}>
+{%- endfor %}
+{{ class_symbol }}({{ parameters | select('!=', 'self') | join(', ') }}){% include 'constructor_initializer.j2' %} {
+{%- endif %}
 {%- filter indent('\t') %}
 {%- for statement in statements %}
 {{ statement }}

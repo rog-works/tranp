@@ -228,6 +228,7 @@ class Nullable:
 		raise Exception()
 
 class Template(Generic[T]):
+	def __init__(self, v: T) -> None: ...
 	@classmethod
 	def class_method_t(cls, v2: T2) -> T2: ...
 	@classmethod

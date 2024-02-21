@@ -201,7 +201,8 @@ class Py2Cpp(Procedure[str]):
 			initializers.append({'symbol': this_var_name, 'value': initialize_value})
 
 		class_name = ClassSymbolMaker.domain_name(node.class_types, use_alias=True)
-		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'comment': comment, 'statements': normal_statements}
+		template_types = self.unpack_function_template_types(node)
+		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'comment': comment, 'statements': normal_statements, 'template_types': template_types}
 		method_vars = {'access': node.access, 'class_symbol': class_name}
 		constructor_vars = {'initializers': initializers, 'super_initializer': super_initializer}
 		return self.view.render(node.classification, vars={**function_vars, **method_vars, **constructor_vars})
@@ -223,7 +224,7 @@ class Py2Cpp(Procedure[str]):
 			.case(reflection.Method).schema(lambda: {'klass': function_raw.attrs[0], 'parameters': function_raw.attrs[1:-1], 'returns': function_raw.attrs[-1]}) \
 			.other_case().schema(lambda: {'parameters': function_raw.attrs[1:-1], 'returns': function_raw.attrs[-1]}) \
 			.build(reflection.Function)
-		return [types.domain_name for types in function_ref.templates()]
+		return [types.domain_name for types in function_ref.templates(with_class_generic=function_ref.is_a(reflection.Constructor))]
 
 	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], comment: str, statements: list[str]) -> str:
 		# XXX メンバー変数の展開方法を検討

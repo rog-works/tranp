@@ -85,10 +85,11 @@ def _ast(before: str, after: str) -> str:
 		'Nullable.invalid_returns': f'{_Nullable}.class_def_raw.block.function_def[3]',
 		'Nullable.var_move.block': f'{_Nullable}.class_def_raw.block.function_def[4].function_def_raw.block',
 
-		'Template.class_method_t': f'{_Template}.class_def_raw.block.function_def[0]',
-		'Template.class_method_t_and_class_t': f'{_Template}.class_def_raw.block.function_def[1]',
-		'Template.method_t': f'{_Template}.class_def_raw.block.function_def[2]',
-		'Template.method_t_and_class_t': f'{_Template}.class_def_raw.block.function_def[3]',
+		'Template.__init__': f'{_Template}.class_def_raw.block.function_def[0]',
+		'Template.class_method_t': f'{_Template}.class_def_raw.block.function_def[1]',
+		'Template.class_method_t_and_class_t': f'{_Template}.class_def_raw.block.function_def[2]',
+		'Template.method_t': f'{_Template}.class_def_raw.block.function_def[3]',
+		'Template.method_t_and_class_t': f'{_Template}.class_def_raw.block.function_def[4]',
 	}
 	return DSN.join(aliases[before], after)
 
@@ -292,6 +293,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('Nullable.var_move.block', 'assign[3]'), defs.MoveAssign, 'p = nullptr;'),
 		(_ast('Nullable.var_move.block', 'if_stmt.block.return_stmt'), defs.Return, 'return *(p);'),
 
+		(_ast('Template.__init__', ''), defs.Constructor, '/** Constructor */\npublic:\ntemplate<typename T>\nTemplate(T v) {\n\n}'),
 		(_ast('Template.class_method_t', ''), defs.ClassMethod, '/** class_method_t */\npublic:\ntemplate<typename T2>\nstatic T2 class_method_t(T2 v2) {\n\n}'),
 		(_ast('Template.class_method_t_and_class_t', ''), defs.ClassMethod, '/** class_method_t_and_class_t */\npublic:\ntemplate<typename T2>\nstatic T2 class_method_t_and_class_t(T v, T2 v2) {\n\n}'),
 		(_ast('Template.method_t', ''), defs.Method, '/** method_t */\npublic:\ntemplate<typename T2>\nT2 method_t(T2 v2) {\n\n}'),

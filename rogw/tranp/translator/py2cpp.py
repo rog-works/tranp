@@ -243,7 +243,9 @@ class Py2Cpp(Procedure[str]):
 			this_var_vars = {'is_static': False, 'access': defs.to_access(this_var_name), 'symbol': this_var_name, 'var_type': var_type}
 			vars.append(self.view.render('class_decl_var', vars=this_var_vars))
 
-		return self.view.render(node.classification, vars={'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'comment': comment, 'statements': statements, 'vars': vars})
+		generic_types = [generic_type.domain_name for generic_type in node.generic_types]
+		class_vars = {'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'comment': comment, 'statements': statements, 'vars': vars, 'generic_types': generic_types}
+		return self.view.render(node.classification, vars=class_vars)
 
 	def on_enum(self, node: defs.Enum, symbol: str, decorators: list[str], inherits: list[str], comment: str, statements: list[str]) -> str:
 		add_vars = {}

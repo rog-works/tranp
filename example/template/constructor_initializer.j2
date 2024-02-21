@@ -1,0 +1,9 @@
+{%- if initializers or super_initializer %}{{ ' : ' -}}
+	{%- if super_initializer -%}
+		{{- super_initializer.parent }}({{ super_initializer.arguments -}})
+	{%- endif -%}
+	{%- for this_var in initializers -%}
+		{%- if loop.index0 or super_initializer %}, {% endif -%}
+		{{- this_var.symbol }}({{ this_var.value -}})
+	{%- endfor -%}
+{%- endif -%}

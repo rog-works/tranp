@@ -1,25 +1,6 @@
 {%- if comment %}{{ comment }}{% else %}/** Constructor */{% endif %}
-{%- for decorator in decorators | select('!=', '') %}
-{{ decorator }}
-{%- endfor %}
-{{ access }}: {{ class_symbol }}(
-	{%- for parameter in parameters -%}
-		{%- if loop.index0 > 1 %}, {% endif -%}
-		{%- if parameter != 'self' -%}
-			{{- parameter -}}
-		{%- endif -%}
-	{%- endfor -%}
-)
-{%- if initializers or super_initializer %}{{ ' : ' -}}
-	{%- if super_initializer -%}
-		{{- super_initializer.parent }}({{ super_initializer.arguments -}})
-	{%- endif -%}
-	{%- for this_var in initializers -%}
-		{%- if loop.index0 or super_initializer %}, {% endif -%}
-		{{- this_var.symbol }}({{ this_var.value -}})
-	{%- endfor -%}
-{%- endif -%}
-{{ ' ' }}{
+{{- decorators | select('!=', '') | join('\n') }}
+{{ access }}: {{ class_symbol }}({{ parameters | select('!=', 'self') | join(', ') }}){% include 'constructor_initializer.j2' %} {
 {%- filter indent('\t') %}
 {%- for statement in statements %}
 {{ statement }}

@@ -79,7 +79,7 @@ class CVarOps:
 
 class FuncOps:
 	def print(self) -> None:
-		print('%d, %d, %d', 1, 2, 3)
+		print('message. %d, %f, %s', 1, 1.0, 'abc')
 
 class EnumOps:
 	class Values(CEnum):
@@ -128,17 +128,13 @@ class AccessOps(Base):
 @__alias__('Alias2')
 class Alias:
 	@__alias__('Inner2')
-	class Inner:
-		...
+	class Inner: ...
 
 	def __init__(self) -> None:
 		self.inner: Alias.Inner = Alias.Inner()
 
-	def in_param_return(self, a: 'Alias') -> 'Alias':
-		...
-
-	def in_param_return2(self, i: 'Alias.Inner') -> 'Alias.Inner':
-		...
+	def in_param_return(self, a: 'Alias') -> 'Alias': ...
+	def in_param_return2(self, i: 'Alias.Inner') -> 'Alias.Inner': ...
 
 	def in_local(self) -> None:
 		a = Alias()
@@ -158,18 +154,15 @@ class CompOps:
 
 class ForOps:
 	def range(self) -> None:
-		for i in range(10):
-			print(i)
+		for i in range(10): ...
 
 	def enumerate(self) -> None:
 		keys = ['a', 'b']
-		for index, key in enumerate(keys):
-			print(index, key)
+		for index, key in enumerate(keys): ...
 
 	def dict_items(self) -> None:
 		kvs = {'a': 1}
-		for key, value in kvs.items():
-			print(key, value)
+		for key, value in kvs.items(): ...
 
 class ListOps:
 	def len(self) -> None:

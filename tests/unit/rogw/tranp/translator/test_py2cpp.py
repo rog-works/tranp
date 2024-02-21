@@ -118,7 +118,7 @@ class BlockExpects:
 }();"""
 
 	ForOps_enumerate_for_index_key = \
-"""auto __for_iterates_1724 = [&]() -> std::map<int, std::string> {
+"""auto __for_iterates_1716 = [&]() -> std::map<int, std::string> {
 	std::map<int, std::string> __ret;
 	int __index = 0;
 	for (auto& __entry : keys) {
@@ -126,13 +126,8 @@ class BlockExpects:
 	}
 	return __ret;
 }();
-for (auto& [index, key] : __for_iterates_1724) {
-	print(index, key);
-}"""
+for (auto& [index, key] : __for_iterates_1716) {
 
-	ForOps_dict_items_for_key_value = \
-"""for (auto& [key, value] : kvs) {
-	print(key, value);
 }"""
 
 	ListOps_pop_assign_value0 = \
@@ -226,7 +221,7 @@ class TestPy2Cpp(TestCase):
 
 		(_ast('CVarOps.invoke_method.block', 'funccall[2]'), defs.FuncCall, 'this->invoke_method(*(asp), (asp).get(), asp);'),
 
-		(_ast('FuncOps.print.block', 'funccall'), defs.FuncCall, 'print("%d, %d, %d", 1, 2, 3);'),
+		(_ast('FuncOps.print.block', 'funccall'), defs.FuncCall, 'printf("message. %d, %f, %s", 1, 1.0, "abc");'),
 
 		(_ast('EnumOps.Values', ''), defs.Enum, '/** Values */\npublic: enum class Values {\n\tA = 0,\n\tB = 1,\n};'),
 		(_ast('EnumOps.assign.block', 'assign[0]'), defs.MoveAssign, 'EnumOps::Values a = EnumOps::Values::A;'),
@@ -265,9 +260,9 @@ class TestPy2Cpp(TestCase):
 		(_ast('CompOps.list_comp.block', 'assign[1]'), defs.MoveAssign, BlockExpects.CompOps_list_comp_assign_values1),
 		(_ast('CompOps.dict_comp.block', 'assign[1]'), defs.MoveAssign, BlockExpects.CompOps_dict_comp_assign_kvs1),
 
-		(_ast('ForOps.range.block', 'for_stmt'), defs.For, 'for (auto i = 0; i < 10; i++) {\n\tprint(i);\n}'),
+		(_ast('ForOps.range.block', 'for_stmt'), defs.For, 'for (auto i = 0; i < 10; i++) {\n\n}'),
 		(_ast('ForOps.enumerate.block', 'for_stmt'), defs.For, BlockExpects.ForOps_enumerate_for_index_key),
-		(_ast('ForOps.dict_items.block', 'for_stmt'), defs.For, BlockExpects.ForOps_dict_items_for_key_value),
+		(_ast('ForOps.dict_items.block', 'for_stmt'), defs.For, 'for (auto& [key, value] : kvs) {\n\n}'),
 
 		(_ast('ListOps.len.block', 'assign[1]'), defs.MoveAssign, 'int size_values = values.size();'),
 		(_ast('ListOps.pop.block', 'assign[1]'), defs.MoveAssign, BlockExpects.ListOps_pop_assign_value0),

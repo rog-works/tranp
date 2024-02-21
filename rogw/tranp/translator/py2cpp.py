@@ -458,6 +458,9 @@ class Py2Cpp(Procedure[str]):
 			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
 		elif spec == 'len':
 			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
+		elif spec == 'print':
+			# XXX 愚直に対応すると実引数の型推論がかなり重く、その割に出力メッセージの柔軟性が低くメリットが薄いため、関数名の置き換えのみを行う簡易的な対応とする
+			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
 		elif spec == 'new_list':
 			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
 		elif spec == 'cast_bin_to_bin':
@@ -517,6 +520,8 @@ class Py2Cpp(Procedure[str]):
 			return 'directive', None
 		elif calls == 'len':
 			return 'len', None
+		elif calls == 'print':
+			return 'print', None
 		elif calls == 'list':
 			return 'new_list', None
 		elif isinstance(node.calls, defs.Variable) and node.calls.tokens in ['int', 'float', 'bool', 'str']:

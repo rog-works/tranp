@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+from types import MethodType
 from typing import Any, Callable, cast
 
 from rogw.tranp.analyze.db import SymbolDB
@@ -16,6 +17,7 @@ from rogw.tranp.errors import LogicError
 from rogw.tranp.io.cache import CacheProvider
 from rogw.tranp.lang.locator import Locator
 from rogw.tranp.lang.module import fullyname
+from rogw.tranp.module.module import Module
 from rogw.tranp.module.types import ModulePath
 import rogw.tranp.node.definition as defs
 from rogw.tranp.node.node import Node
@@ -100,7 +102,7 @@ def task_class(db: SymbolDB, symbols: Symbols) -> None:
 	print(symbols.from_fullyname(name).types.pretty(1))
 
 
-def task_type(symbols: Symbols) -> None:
+def task_symbol(symbols: Symbols) -> None:
 	prompt = '\n'.join([
 		'==============',
 		'Symbol fullyname here:',
@@ -108,7 +110,50 @@ def task_type(symbols: Symbols) -> None:
 	name = readline(prompt)
 
 	symbol = symbols.from_fullyname(name)
-	data = {
+
+	print('--------------')
+	print(json.dumps(dump_symbol_data(symbol), indent=2))
+
+
+def task_node(module: Module, symbols: Symbols) -> None:
+	prompt = '\n'.join([
+		'==============',
+		'Node fullyname here:',
+	])
+	name = readline(prompt)
+
+	candidates = [node for node in module.entrypoint.flatten() if node.fullyname == name]
+
+	if len(candidates):
+		node = candidates[0]
+		symbol = symbols.type_of(node)
+
+		print('--------------')
+		print('Node')
+		print('--------------')
+		print(json.dumps(dump_node_data(node), indent=2))
+		print('--------------')
+		print('Type of')
+		print('--------------')
+		print(json.dumps(dump_symbol_data(symbol), indent=2))
+	else:
+		print('--------------')
+		print('Not found')
+
+
+def dump_node_data(node: Node) -> dict[str, Any]:
+	data: dict[str, Any] = {}
+	for key in dir(node):
+		attr = getattr(node, key)
+		attr_type = type(attr)
+		if not key.startswith('_') and attr_type is not MethodType:
+			data[key] = str(attr) if attr_type is not list else list(map(str, attr))
+
+	return data
+
+
+def dump_symbol_data(symbol: SymbolRaw) -> dict[str, Any]:
+	return {
 		'types_full_path': symbol.types.full_path,
 		'decl_full_path': symbol.decl.full_path,
 		'shorthand': str(symbol),
@@ -120,9 +165,6 @@ def task_type(symbols: Symbols) -> None:
 		'attrs': [str(attr) for attr in symbol.attrs],
 		'hierarchy': [f'{via.role.name} -> {str(via.via or via.decl)}' for via in symbol.hierarchy()],
 	}
-
-	print('--------------')
-	print(json.dumps(data, indent=2))
 
 
 def task_help() -> None:
@@ -205,11 +247,12 @@ def task_menu(locator: Locator) -> None:
 		'Task Menu',
 		'--------------',
 		'# Tasks',
-		'* (a)nalyze : Interactive Analyzer',
+		'* (a)nalyze : Interactive Syntax Analyzer',
 		'* (c)lass   : Show Class Information',
 		'* (d)b      : Show Symbol DB',
+		'* (n)ode    : Analyze Node',
 		'* (p)retty  : Show AST',
-		'* (t)ype    : Show Symbol Type',
+		'* (s)ymbol  : Show Symbol Information',
 		'* (h)elp    : Show Usage',
 		'* (q)uit    : Quit',
 		'--------------',
@@ -221,8 +264,9 @@ def task_menu(locator: Locator) -> None:
 		'a': task_analyze,
 		'c': task_class,
 		'd': task_db,
+		'n': task_node,
 		'p': task_pretty,
-		't': task_type,
+		's': task_symbol,
 		'h': task_help,
 	}
 	while True:

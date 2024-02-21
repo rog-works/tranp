@@ -1,15 +1,14 @@
 {%- if comment %}{{ comment }}{% else %}/** {{ symbol }} */{% endif %}
-{%- for decorator in decorators | select('!=', '') %}
-{{ decorator }}
+{{- decorators | select('!=', '') | join('\n') }}
+{%- if not template_types %}
+{{ access }}: static {{ return_type }} {{ symbol }}({{ parameters | select('!=', 'cls') | join(', ') }}) {
+{%- else %}
+{{ access }}:
+{%- for template_type in template_types %}
+template<typename {{ template_type }}>
 {%- endfor %}
-{{ access }}: static {{ return_type }} {{ symbol }}(
-	{%- for parameter in parameters -%}
-		{%- if loop.index0 > 1 %}, {% endif -%}
-		{%- if parameter != 'cls' -%}
-			{{- parameter -}}
-		{%- endif -%}
-	{%- endfor -%}
-) {
+static {{ return_type }} {{ symbol }}({{ parameters | select('!=', 'cls') | join(', ') }}) {
+{%- endif %}
 {%- filter indent('\t') %}
 {%- for statement in statements %}
 {{ statement }}

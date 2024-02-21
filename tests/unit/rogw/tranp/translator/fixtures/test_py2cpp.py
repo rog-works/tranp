@@ -1,4 +1,4 @@
-from typing import TypeAlias, TypeVar
+from typing import Generic, TypeAlias, TypeVar
 
 from rogw.tranp.compatible.cpp.enum import CEnum
 from rogw.tranp.compatible.cpp.object import CObject, CP, CRef, CSP
@@ -8,6 +8,7 @@ from rogw.tranp.compatible.python.embed import __alias__
 directive('#pragma once')
 
 T = TypeVar('T')
+T2 = TypeVar('T2')
 
 DSI: TypeAlias = dict[str, int]
 
@@ -226,5 +227,10 @@ class Nullable:
 
 		raise Exception()
 
-class Template:
-	def method(self, v: T) -> T: ...
+class Template(Generic[T]):
+	@classmethod
+	def class_method_t(cls, v2: T2) -> T2: ...
+	@classmethod
+	def class_method_t_and_class_t(cls, v: T, v2: T2) -> T2: ...
+	def method_t(self, v2: T2) -> T2: ...
+	def method_t_and_class_t(self, v: T, v2: T2) -> T2: ...

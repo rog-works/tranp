@@ -353,15 +353,15 @@ class SymbolRaw(metaclass=ABCMeta):
 
 		return symbol_name
 	
-	def each_via(self) -> Iterator[Node]:
+	def hierarchy(self) -> Iterator['SymbolRaw']:
 		"""参照元を辿るイテレーターを取得
 
 		Returns:
-			Iterator[Node]: イテレーター
+			Iterator[SymbolRaw]: イテレーター
 		"""
 		curr = self
 		while curr:
-			yield curr.via or curr.decl
+			yield curr
 			curr = curr.origin
 
 	def extends(self: T_Raw, *attrs: 'SymbolRaw') -> T_Raw:

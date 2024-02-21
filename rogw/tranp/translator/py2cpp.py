@@ -34,7 +34,7 @@ class Py2Cpp(Procedure[str]):
 		self.view = render
 		self.cvars = CVars(self.symbols)
 
-	def c_fullyname_by(self, raw: SymbolRaw) -> str:
+	def to_symbol_path(self, raw: SymbolRaw) -> str:
 		"""C++用のシンボルの完全参照名を取得。型が明示されない場合の補完として利用する
 
 		Args:
@@ -64,7 +64,7 @@ class Py2Cpp(Procedure[str]):
 		if move == CVars.Moves.Deny:
 			raise LogicError(f'Unacceptable value move. accept: {str(accept_raw)}, value: {str(value_raw)}, value_on_new: {value_on_new}, declared: {declared}')
 
-		return self.render_cvar_value(move, value_str)
+		return self.to_cvar_value(move, value_str)
 
 	def unpacked_cvar_value(self, value_node: Node, value_raw: SymbolRaw, value_str: str, declared: bool = False) -> str:
 		"""受け入れ出来る形式に入力値を変換(アンパック用)
@@ -85,15 +85,38 @@ class Py2Cpp(Procedure[str]):
 		if move == CVars.Moves.Deny:
 			raise LogicError(f'Unacceptable value move. value: {str(value_raw)}, value_on_new: {value_on_new}, declared: {declared}')
 
-		return self.render_cvar_value(move, value_str)
+		return self.to_cvar_value(move, value_str)
 
-	def render_cvar_value(self, move: 'CVars.Moves', value_str: str) -> str:
+	def to_cvar_value(self, move: 'CVars.Moves', org_value_str: str) -> str:
+		"""変数の移動操作の右辺値をC++用に変換
+
+		Args:
+			move (Moves): C++変数の移動操作
+			org_value_str (str): 移動操作の右辺の元の値
+		Returns:
+			str: C++用の右辺値
+		"""
 		if move == CVars.Moves.MakeSp:
 			# XXX 関数名(クラス名)と引数を分離。必ず取得できるので警告を抑制(期待値: `Class(a, b, c)`)
-			matches = cast(re.Match, re.fullmatch(r'([^(]+)\((.*)\)', value_str))
+			matches = cast(re.Match, re.fullmatch(r'([^(]+)\((.*)\)', org_value_str))
 			return self.view.render('cvar_move', vars={'move': move.name, 'var_type': matches[1], 'arguments': matches[2]})
 		else:
-			return self.view.render('cvar_move', vars={'move': move.name, 'value': value_str})
+			return self.view.render('cvar_move', vars={'move': move.name, 'value': org_value_str})
+
+	def unpack_function_template_types(self, node: defs.Function) -> list[str]:
+		"""ファンクションのテンプレート型名をアンパック
+
+		Args:
+			node (Function): ファンクションノード
+		Returns:
+			list[str]: テンプレート型名リスト
+		"""
+		function_raw = self.symbols.type_of(node)
+		function_ref = reflection.Builder(function_raw) \
+			.case(reflection.Method).schema(lambda: {'klass': function_raw.attrs[0], 'parameters': function_raw.attrs[1:-1], 'returns': function_raw.attrs[-1]}) \
+			.other_case().schema(lambda: {'parameters': function_raw.attrs[1:-1], 'returns': function_raw.attrs[-1]}) \
+			.build(reflection.Function)
+		return [types.domain_name for types in function_ref.templates()]
 
 	# General
 
@@ -130,7 +153,7 @@ class Py2Cpp(Procedure[str]):
 
 	def on_for_enumerate(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		iterates = cast(re.Match, re.fullmatch(r'enumerate\((.+)\)', for_in))[1]
-		var_type = self.c_fullyname_by(self.symbols.type_of(node.for_in).attrs[1])
+		var_type = self.to_symbol_path(self.symbols.type_of(node.for_in).attrs[1])
 		return self.view.render(f'{node.classification}_enumerate', vars={'symbols': symbols, 'iterates': iterates, 'statements': statements, 'id': node.id, 'var_type': var_type})
 
 	def on_for_dict_items(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
@@ -148,14 +171,14 @@ class Py2Cpp(Procedure[str]):
 
 	def on_list_comp(self, node: defs.ListComp, projection: str, fors: list[str], condition: str) -> str:
 		projection_type_raw = self.symbols.type_of(node.projection)
-		projection_type = self.c_fullyname_by(projection_type_raw)
+		projection_type = self.to_symbol_path(projection_type_raw)
 		comp_vars = {'projection': projection, 'comp_for': fors[0], 'condition': condition, 'projection_types': [projection_type], 'binded_this': node.binded_this}
 		return self.view.render(node.classification, vars=comp_vars)
 
 	def on_dict_comp(self, node: defs.DictComp, projection: str, fors: list[str], condition: str) -> str:
 		projection_type_raw = self.symbols.type_of(node.projection)
-		projection_type_key = self.c_fullyname_by(projection_type_raw.attrs[0])
-		projection_type_value = self.c_fullyname_by(projection_type_raw.attrs[1])
+		projection_type_key = self.to_symbol_path(projection_type_raw.attrs[0])
+		projection_type_value = self.to_symbol_path(projection_type_raw.attrs[1])
 		comp_vars = {'projection': projection, 'comp_for': fors[0], 'condition': condition, 'projection_types': [projection_type_key, projection_type_value], 'binded_this': node.binded_this}
 		return self.view.render(node.classification, vars=comp_vars)
 
@@ -219,14 +242,6 @@ class Py2Cpp(Procedure[str]):
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'statements': statements}
 		closure_vars = {'binded_this': node.binded_this}
 		return self.view.render(node.classification, vars={**function_vars, **closure_vars})
-	
-	def unpack_function_template_types(self, node: defs.Function) -> list[str]:
-		function_raw = self.symbols.type_of(node)
-		function_ref = reflection.Builder(function_raw) \
-			.case(reflection.Method).schema(lambda: {'klass': function_raw.attrs[0], 'parameters': function_raw.attrs[1:-1], 'returns': function_raw.attrs[-1]}) \
-			.other_case().schema(lambda: {'parameters': function_raw.attrs[1:-1], 'returns': function_raw.attrs[-1]}) \
-			.build(reflection.Function)
-		return [types.domain_name for types in function_ref.templates()]
 
 	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], comment: str, statements: list[str]) -> str:
 		# XXX メンバー変数の展開方法を検討
@@ -277,7 +292,7 @@ class Py2Cpp(Procedure[str]):
 		receiver_raw = self.symbols.type_of(node.receivers[0])
 		value_raw = self.symbols.type_of(node.value)
 		declared = receiver_raw.decl.declare == node
-		var_type = self.c_fullyname_by(value_raw) if declared else ''
+		var_type = self.to_symbol_path(value_raw) if declared else ''
 		accepted_value = self.accepted_cvar_value(receiver_raw, node.value, self.symbols.type_of(node.value), value, declared=declared)
 		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': accepted_value})
 
@@ -447,25 +462,25 @@ class Py2Cpp(Procedure[str]):
 		elif spec == 'new_list':
 			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
 		elif spec == 'cast_bin_to_bin':
-			var_type = self.c_fullyname_by(cast(SymbolRaw, context))
+			var_type = self.to_symbol_path(cast(SymbolRaw, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'var_type': var_type})
 		elif spec == 'cast_str_to_bin':
-			var_type = self.c_fullyname_by(cast(SymbolRaw, context))
+			var_type = self.to_symbol_path(cast(SymbolRaw, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'var_type': var_type})
 		elif spec == 'cast_bin_to_str':
-			var_type = self.c_fullyname_by(cast(SymbolRaw, context))
+			var_type = self.to_symbol_path(cast(SymbolRaw, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'var_type': var_type})
 		elif spec == 'list_pop':
-			var_type = self.c_fullyname_by(cast(SymbolRaw, context))
+			var_type = self.to_symbol_path(cast(SymbolRaw, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': DSN.shift(calls, -1), 'var_type': var_type})
 		elif spec == 'dict_pop':
-			var_type = self.c_fullyname_by(cast(SymbolRaw, context))
+			var_type = self.to_symbol_path(cast(SymbolRaw, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': DSN.shift(calls, -1), 'var_type': var_type})
 		elif spec == 'dict_keys':
-			var_type = self.c_fullyname_by(cast(SymbolRaw, context))
+			var_type = self.to_symbol_path(cast(SymbolRaw, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': DSN.shift(calls, -1), 'var_type': var_type})
 		elif spec == 'dict_values':
-			var_type = self.c_fullyname_by(cast(SymbolRaw, context))
+			var_type = self.to_symbol_path(cast(SymbolRaw, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': DSN.shift(calls, -1), 'var_type': var_type})
 		else:
 			return self.view.render(node.classification, vars=func_call_vars)

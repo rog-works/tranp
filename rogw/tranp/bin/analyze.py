@@ -118,7 +118,7 @@ def task_type(symbols: Symbols) -> None:
 		'decl': str(symbol.decl),
 		'origin': str(symbol.origin),
 		'attrs': [str(attr) for attr in symbol.attrs],
-		'hierarchy': [str(via) for via in symbol.each_via()],
+		'hierarchy': [f'{via.role.name} -> {str(via.via or via.decl)}' for via in symbol.hierarchy()],
 	}
 
 	print('--------------')

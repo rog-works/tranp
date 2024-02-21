@@ -1,5 +1,7 @@
 {%- if comment %}{{ comment }}{% else %}/** {{ symbol }} */{% endif %}
-{{- decorators | select('!=', '') | join('\n') }}
+{%- for decorator in decorators | select('!=', '') %}
+{{ decorator }}
+{%- endfor %}
 {%- if not template_types %}
 {{ access }}: {{ return_type }} {{ symbol }}({{ parameters | select('!=', 'self') | join(', ') }}) {
 {%- else %}

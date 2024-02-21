@@ -1,5 +1,7 @@
 {%- if comment %}{{ comment }}{% else %}/** Constructor */{% endif %}
-{{- decorators | select('!=', '') | join('\n') }}
+{%- for decorator in decorators | select('!=', '') %}
+{{ decorator }}
+{%- endfor %}
 {%- if not template_types %}
 {{ access }}: {{ class_symbol }}({{ parameters | select('!=', 'self') | join(', ') }}){% include 'constructor_initializer.j2' %} {
 {%- else %}

@@ -1,9 +1,4 @@
-auto {{ symbol }} = [{% if binded_this %}this, {% endif %}&](
-	{%- for parameter in parameters -%}
-		{%- if loop.index0 > 0 %}, {% endif -%}
-		{{- parameter -}}
-	{%- endfor -%}
-) -> {{ return_type }} {
+auto {{ symbol }} = [{% if binded_this %}this, {% endif %}&]({{ parameters | join(', ') }}) -> {{ return_type }} {
 {%- filter indent('\t') %}
 {%- for statement in statements %}
 {{ statement }}

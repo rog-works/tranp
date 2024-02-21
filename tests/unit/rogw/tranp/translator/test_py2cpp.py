@@ -304,7 +304,7 @@ class TestPy2Cpp(TestCase):
 	def test_exec(self, full_path: str, expected_type: type[Node], expected: str) -> None:
 		translator = self.translator()
 		node = self.fixture.shared_nodes.by(full_path).as_a(expected_type)
-		actual = translator.exec(node)
+		actual = translator.translate(node)
 		self.assertEqual(actual, expected)
 
 	@data_provider([
@@ -329,4 +329,4 @@ class TestPy2Cpp(TestCase):
 		translator = self.translator()
 		node = self.fixture.shared_nodes.by(full_path).as_a(expected_type)
 		with self.assertRaises(LogicError):
-			translator.exec(node)
+			translator.translate(node)

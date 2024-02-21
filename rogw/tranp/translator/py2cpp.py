@@ -49,15 +49,15 @@ class Py2Cpp:
 
 		return procedure
 
-	def exec(self, entrypoint: Node) -> str:
-		"""エントリーポイントからASTを再帰的に解析し、C++にトランスパイル
+	def translate(self, root: Node) -> str:
+		"""起点のノードからASTを再帰的に解析し、C++にトランスパイル
 
 		Args:
-			entrypoint (Node): ノード
+			root (Node): 起点のノード
 		Returns:
-			SymbolRaw: シンボル
+			str: C++のソースコード
 		"""
-		return self.__procedure.exec(entrypoint)
+		return self.__procedure.exec(root)
 
 	def to_symbol_path(self, raw: SymbolRaw) -> str:
 		"""C++用のシンボルの完全参照名を取得。型が明示されない場合の補完として利用する

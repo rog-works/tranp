@@ -64,7 +64,7 @@ def make_module_path(args: Args) -> ModulePath:
 
 def task(translator: Py2Cpp, root: Node, writer: Writer) -> None:
 	try:
-		writer.put(translator.exec(root))
+		writer.put(translator.translate(root))
 		writer.flush()
 	except Exception as e:
 		print(''.join(stacktrace(e)))

@@ -1,15 +1,13 @@
-{% set _inherits = inherits | select('!=', 'CObject') | list %}
+{%- set _inherits = inherits | select('!=', 'CObject') | list %}
 
 {%- if comment %}{{ comment }}{% else %}/** {{ symbol }} */{% endif %}
 {%- for decorator in decorators | select('!=', '') %}
 {{ decorator }}
 {%- endfor %}
-class {{ symbol }}
-{%- if _inherits %} : public {% for inherit in _inherits -%}
-		{%- if loop.index0 > 0 %}, {% endif -%}
-		{{- inherit -}}
-	{%- endfor -%}
-{%- endif %} {
+{%- for generic_type in generic_types %}
+template<typename {{ generic_type }}>
+{%- endfor %}
+class {{ symbol }}{%- if _inherits %} : public {{ _inherits | join(', ') }}{%- endif %} {
 {%- if vars -%}
 {%- for var in vars %}
 	{{ var }}

@@ -144,20 +144,14 @@ class Function(Object):
 		updates = TemplateManipulator.make_updates(t_map_returns, t_map_props)
 		return TemplateManipulator.apply(self.schema.returns.clone(), map_props, updates)
 
-	def templates(self, with_class_generic: bool = False) -> list[defs.TemplateClass]:
+	def templates(self) -> list[defs.TemplateClass]:
 		"""テンプレート型(タイプ再定義ノード)を取得
 
-		Args:
-			with_class_generic (bool): True = クラスのジェネリック型を加える(default = False)
 		Returns:
 			list[TemplateClass]: テンプレート型リスト
 		"""
-		t_map_props = TemplateManipulator.unpack_templates(klass=self.schema.klass, parameters=self.schemata.parameters, returns=self.schema.returns)
-		ignore_ts: list[defs.TemplateClass] = []
-		if not with_class_generic:
-			ignore_ts = [t for path, t in t_map_props.items() if path.startswith('klass')]
-
-		return list(set([t for t in t_map_props.values() if t not in ignore_ts]))
+		t_map_props = TemplateManipulator.unpack_templates(parameters=self.schemata.parameters, returns=self.schema.returns)
+		return list(t_map_props.values())
 
 
 class Closure(Function):
@@ -211,6 +205,17 @@ class Method(Function):
 		t_map_props = TemplateManipulator.unpack_templates(klass=self.schema.klass, parameters=self.schemata.parameters)
 		updates = TemplateManipulator.make_updates(t_map_returns, t_map_props)
 		return TemplateManipulator.apply(self.schema.returns.clone(), map_props, updates)
+
+	@override
+	def templates(self) -> list[defs.TemplateClass]:
+		"""テンプレート型(タイプ再定義ノード)を取得
+
+		Returns:
+			list[TemplateClass]: テンプレート型リスト
+		"""
+		t_map_props = TemplateManipulator.unpack_templates(klass=self.schema.klass, parameters=self.schemata.parameters, returns=self.schema.returns)
+		ignore_ts = [t for path, t in t_map_props.items() if path.startswith('klass')]
+		return list(set([t for t in t_map_props.values() if t not in ignore_ts]))
 
 
 class ClassMethod(Method):
@@ -384,4 +389,3 @@ class Builder:
 			return self.__case_of_injectors['__other__']
 		else:
 			return self.__case_of_injectors['__default__']
-

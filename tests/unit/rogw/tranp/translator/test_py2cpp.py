@@ -30,6 +30,7 @@ def _ast(before: str, after: str) -> str:
 	_CastOps = f'file_input.class_def[{__begin_class + 10}]'
 	_Nullable = f'file_input.class_def[{__begin_class + 11}]'
 	_Template = f'file_input.class_def[{__begin_class + 12}]'
+	_template_func = f'file_input.function_def'
 
 	aliases = {
 		'import.typing': 'file_input.import_stmt[0]',
@@ -90,6 +91,8 @@ def _ast(before: str, after: str) -> str:
 		'Template.class_method_t_and_class_t': f'{_Template}.class_def_raw.block.function_def[2]',
 		'Template.method_t': f'{_Template}.class_def_raw.block.function_def[3]',
 		'Template.method_t_and_class_t': f'{_Template}.class_def_raw.block.function_def[4]',
+
+		'template_func': f'{_template_func}',
 	}
 	return DSN.join(aliases[before], after)
 
@@ -293,11 +296,13 @@ class TestPy2Cpp(TestCase):
 		(_ast('Nullable.var_move.block', 'assign[3]'), defs.MoveAssign, 'p = nullptr;'),
 		(_ast('Nullable.var_move.block', 'if_stmt.block.return_stmt'), defs.Return, 'return *(p);'),
 
-		(_ast('Template.__init__', ''), defs.Constructor, '/** Constructor */\npublic:\ntemplate<typename T>\nTemplate(T v) {\n\n}'),
+		(_ast('Template.__init__', ''), defs.Constructor, '/** Constructor */\npublic: Template(T v) {\n\n}'),
 		(_ast('Template.class_method_t', ''), defs.ClassMethod, '/** class_method_t */\npublic:\ntemplate<typename T2>\nstatic T2 class_method_t(T2 v2) {\n\n}'),
 		(_ast('Template.class_method_t_and_class_t', ''), defs.ClassMethod, '/** class_method_t_and_class_t */\npublic:\ntemplate<typename T2>\nstatic T2 class_method_t_and_class_t(T v, T2 v2) {\n\n}'),
 		(_ast('Template.method_t', ''), defs.Method, '/** method_t */\npublic:\ntemplate<typename T2>\nT2 method_t(T2 v2) {\n\n}'),
 		(_ast('Template.method_t_and_class_t', ''), defs.Method, '/** method_t_and_class_t */\npublic:\ntemplate<typename T2>\nT2 method_t_and_class_t(T v, T2 v2) {\n\n}'),
+
+		(_ast('template_func', ''), defs.Function, '/** template_func */\ntemplate<typename T>\nT template_func(T v) {\n\n}'),
 	])
 	def test_exec(self, full_path: str, expected_type: type[Node], expected: str) -> None:
 		translator = self.translator()

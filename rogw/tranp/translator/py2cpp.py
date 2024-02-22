@@ -73,7 +73,7 @@ class Py2Cpp:
 		return self.__procedure.exec(root)
 
 	def to_symbol_path(self, raw: SymbolRaw) -> str:
-		"""C++用のシンボルの完全参照名を取得。型が明示されない場合の補完として利用する
+		"""名前空間によるシンボルの参照名を取得。MoveAssignなど、型を補完する際に利用
 
 		Args:
 			raw (SymbolRaw): シンボル
@@ -87,7 +87,7 @@ class Py2Cpp:
 		return DSN.join(*DSN.elements(raw.make_shorthand(use_alias=True, path_method='namespace')), delimiter='::')
 
 	def accepted_cvar_value(self, accept_raw: SymbolRaw, value_node: Node, value_raw: SymbolRaw, value_str: str, declared: bool = False) -> str:
-		"""受け入れ出来る形式に入力値を変換
+		"""受け入れ出来る形式に変換(代入の右辺値/実引数/返却値)
 
 		Args:
 			accept_raw (SymbolRaw): シンボル(受け入れ側)
@@ -96,6 +96,11 @@ class Py2Cpp:
 			declared (bool): True = 変数宣言時
 		Returns:
 			str: 変換後の入力値
+		Note:
+			# 期待する書式
+			* `Class a = ${value_str};`
+			* `func(${value_str}, ...);`
+			* `return ${value_str};`
 		"""
 		value_on_new = isinstance(value_node, defs.FuncCall) and self.symbols.type_of(value_node.calls).types.is_a(defs.Class)
 		move = self.cvars.analyze_move(accept_raw, value_raw, value_on_new, declared)
@@ -104,8 +109,8 @@ class Py2Cpp:
 
 		return self.to_cvar_value(move, value_str)
 
-	def unpacked_cvar_value(self, value_node: Node, value_raw: SymbolRaw, value_str: str, declared: bool = False) -> str:
-		"""受け入れ出来る形式に入力値を変換(アンパック用)
+	def iterable_cvar_value(self, value_node: Node, value_raw: SymbolRaw, value_str: str, declared: bool = False) -> str:
+		"""受け入れ出来る形式に変換(分割代入の右辺値)
 
 		Args:
 			value_raw (SymbolRaw): シンボル(入力側)
@@ -114,9 +119,9 @@ class Py2Cpp:
 		Returns:
 			str: 変換後の入力値
 		Note:
-			受け入れ形式は型推論に任せるため、以下の書式になる想定
-			# 書式
-			`auto& [...${var_names}] = ${value}`
+			# 期待する書式
+			* `auto& [dest_a, dest_b, ...] = ${value_str};`
+			* `for (auto& [dest_a, dest_b, ...] : ${value_str}) { /** some */ }`
 		"""
 		value_on_new = isinstance(value_node, defs.FuncCall) and self.symbols.type_of(value_node.calls).types.is_a(defs.Class)
 		move = self.cvars.move_by(cpp.CRef.__name__, self.cvars.key_from(value_raw), value_on_new, declared)
@@ -125,42 +130,46 @@ class Py2Cpp:
 
 		return self.to_cvar_value(move, value_str)
 
-	def to_cvar_value(self, move: 'CVars.Moves', org_value_str: str) -> str:
-		"""変数の移動操作の右辺値をC++用に変換
-
-		Args:
-			move (Moves): C++変数の移動操作
-			org_value_str (str): 移動操作の右辺の元の値
-		Returns:
-			str: C++用の右辺値
-		"""
-		if move == CVars.Moves.MakeSp:
-			# XXX 関数名(クラス名)と引数を分離。必ず取得できるので警告を抑制(期待値: `Class(a, b, c)`)
-			matches = cast(re.Match, re.fullmatch(r'([^(]+)\((.*)\)', org_value_str))
-			return self.view.render('cvar_move', vars={'move': move.name, 'var_type': matches[1], 'arguments': matches[2]})
-		else:
-			return self.view.render('cvar_move', vars={'move': move.name, 'value': org_value_str})
-
-	def to_calculable_value(self, value_node: Node, org_value_str: str) -> str:
-		"""C++変数型を考慮し、値を演算可能な形式に変換する
+	def calculable_cvar_value(self, value_node: Node, value_str: str) -> str:
+		"""受け入れ出来る形式に変換(1,2項演算用)
 
 		Args:
 			value_node (Node): 値ノード
-			org_value_str (str): 元の値
+			value_str (str): 入力値
 		Returns:
-			str: 値
+			str: 変換後の入力値
+		Note:
+			# 期待する書式
+			* `not_v = !${value_str};`
+			* `add_v = left + ${value_str};`
 		"""
 		if value_node.is_a(defs.Literal):
-			return org_value_str
+			return value_str
 
 		value_raw = self.symbols.type_of(value_node)
 		if self.cvars.is_addr(self.cvars.key_from(value_raw)):
-			return self.to_cvar_value(CVars.Moves.ToActual, org_value_str)
+			return self.to_cvar_value(CVars.Moves.ToActual, value_str)
 
-		return org_value_str
+		return value_str
+
+	def to_cvar_value(self, move: 'CVars.Moves', value_str: str) -> str:
+		"""C++変数型を考慮した変数移動操作の値に変換
+
+		Args:
+			move (Moves): C++変数型の移動操作
+			value_str (str): 入力値
+		Returns:
+			str: 変換後の入力値
+		"""
+		if move == CVars.Moves.MakeSp:
+			# XXX 関数名(クラス名)と引数を分離。必ず取得できるので警告を抑制(期待値: `Class(a, b, c)`)
+			matches = cast(re.Match, re.fullmatch(r'([^(]+)\((.*)\)', value_str))
+			return self.view.render('cvar_move', vars={'move': move.name, 'var_type': matches[1], 'arguments': matches[2]})
+		else:
+			return self.view.render('cvar_move', vars={'move': move.name, 'value': value_str})
 
 	def unpack_cvar_raw(self, value_raw: SymbolRaw) -> SymbolRaw:
-		"""シンボルがC++変数型のシンボルだった場合は実体型をアンパック。それ以外はそのまま返却
+		"""C++変数型を考慮し、シンボルの実体型を取得。C++のアドレス変数型以外はそのまま返却
 
 		Args:
 			value_raw (SymbolRaw): 値のシンボル
@@ -175,7 +184,7 @@ class Py2Cpp:
 			if not self.cvars.is_addr(self.cvars.key_from(origin)):
 				return origin
 
-		raise LogicError(f'Unexpected operand. value: {value_raw}')
+		raise LogicError(f'Unreachable code. value: {value_raw}')
 
 	def unpack_function_template_types(self, node: defs.Function) -> list[str]:
 		"""ファンクションのテンプレート型名をアンパック
@@ -408,7 +417,7 @@ class Py2Cpp:
 		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': accepted_value})
 
 	def proc_move_assign_unpack(self, node: defs.MoveAssign, receivers: list[str], value: str) -> str:
-		accepted_value = self.unpacked_cvar_value(node.value, self.symbols.type_of(node.value), value, declared=True)
+		accepted_value = self.iterable_cvar_value(node.value, self.symbols.type_of(node.value), value, declared=True)
 		return self.view.render(f'{node.classification}_unpack', vars={'receivers': receivers, 'value': accepted_value})
 
 	def on_anno_assign(self, node: defs.AnnoAssign, receiver: str, var_type: str, value: str) -> str:
@@ -673,11 +682,11 @@ class Py2Cpp:
 	# Operator
 
 	def on_factor(self, node: defs.Factor, operator: str, value: str) -> str:
-		calculable_value = f'{operator}{self.to_calculable_value(node, value)}'
+		calculable_value = f'{operator}{self.calculable_cvar_value(node, value)}'
 		return self.view.render('unary_operator', vars={'operator': operator, 'value': calculable_value})
 
 	def on_not_compare(self, node: defs.NotCompare, operator: str, value: str) -> str:
-		calculable_value = f'{operator}{self.to_calculable_value(node, value)}'
+		calculable_value = f'{operator}{self.calculable_cvar_value(node, value)}'
 		return self.view.render('unary_operator', vars={'operator': '!', 'value': calculable_value})
 
 	def on_or_compare(self, node: defs.OrCompare, left: str, operator: str, right: list[str]) -> str:
@@ -708,8 +717,8 @@ class Py2Cpp:
 		return self.proc_binary_operator(node, left, operator, right)
 
 	def proc_binary_operator(self, node: defs.BinaryOperator, left: str, operator: str, right: list[str]) -> str:
-		left_value = self.to_calculable_value(node.left, left)
-		right_values = [self.to_calculable_value(in_node, right[index]) for index, in_node in enumerate(node.right)]
+		left_value = self.calculable_cvar_value(node.left, left)
+		right_values = [self.calculable_cvar_value(in_node, right[index]) for index, in_node in enumerate(node.right)]
 		return self.view.render('binary_operator', vars={'left': left_value, 'operator': operator, 'right': right_values})
 
 	# Literal
@@ -755,17 +764,17 @@ class Py2Cpp:
 
 
 class CVars:
-	"""C++用の変数操作ユーティリティー"""
+	"""C++変数型の操作ユーティリティー"""
 
 	class Moves(Enum):
 		"""移動操作の種別
 
 		Attributes:
-			Copy: 実体と実体、ポインターとポインターのコピー
-			New: メモリ確保
+			Copy: 実体と実体、アドレスとアドレスのコピー
+			New: メモリ確保(生ポインター)
 			MakeSp: メモリ確保(スマートポインター)
-			ToActual: ポインターを実体参照
-			ToAddress: 実体からポインターに変換
+			ToActual: アドレス変数を実体参照
+			ToAddress: 実体からアドレス変数に変換
 			UnpackSp: スマートポインターから生ポインターに変換
 			Deny: 不正な移動操作
 		"""
@@ -838,19 +847,19 @@ class CVars:
 		"""実体か判定
 
 		Args:
-			key (str): C++変数種別のキー
+			key (str): C++変数型の種別キー
 		Returns:
 			bool: True = 実体
 		"""
 		return key in [cpp.CRaw.__name__, cpp.CRef.__name__]
 
 	def is_addr(self, key: str) -> bool:
-		"""ポインターか判定
+		"""アドレスか判定
 
 		Args:
-			key (str): C++変数種別のキー
+			key (str): C++変数型の種別キー
 		Returns:
-			bool: True = ポインター
+			bool: True = アドレス
 		"""
 		return key in [cpp.CP.__name__, cpp.CSP.__name__]
 
@@ -858,7 +867,7 @@ class CVars:
 		"""参照か判定
 
 		Args:
-			key (str): C++変数種別のキー
+			key (str): C++変数型の種別キー
 		Returns:
 			bool: True = 参照
 		"""
@@ -868,7 +877,7 @@ class CVars:
 		"""ポインターか判定
 
 		Args:
-			key (str): C++変数種別のキー
+			key (str): C++変数型の種別キー
 		Returns:
 			bool: True = ポインター
 		"""
@@ -878,27 +887,27 @@ class CVars:
 		"""スマートポインターか判定
 
 		Args:
-			key (str): C++変数種別のキー
+			key (str): C++変数型の種別キー
 		Returns:
 			bool: True = スマートポインター
 		"""
 		return key == cpp.CSP.__name__
 
 	def keys(self) -> list[str]:
-		"""C++変数種別のキー一覧を生成
+		"""C++変数型の種別キー一覧を生成
 
 		Returns:
-			list[str]: キー一覧
+			list[str]: 種別キー一覧
 		"""
 		return [cvar.__name__ for cvar in [cpp.CP, cpp.CSP, cpp.CRef, cpp.CRaw]]
 
 	def key_from(self, symbol: SymbolRaw) -> str:
-		"""シンボルからC++変数種別のキーを取得
+		"""シンボルからC++変数型の種別キーを取得
 
 		Args:
 			symbol (SymbolRaw): シンボル
 		Returns:
-			str: キー
+			str: 種別キー
 		Note:
 			nullはポインターとして扱う
 		"""

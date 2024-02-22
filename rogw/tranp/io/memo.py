@@ -1,7 +1,4 @@
-from typing import Any, Callable, ParamSpec, TypeVar
-
-P = ParamSpec('P')
-T_Ret = TypeVar('T_Ret')
+from typing import Any, Callable
 
 
 class Memo:
@@ -11,16 +8,20 @@ class Memo:
 		"""インスタンスを生成"""
 		self.__cache: dict[str, Any] = {}
 
-	def __call__(self, key: str) -> Callable[[Callable[P, T_Ret]], Callable[P, T_Ret]]:
+	def __call__(self, key: str) -> Callable:
 		"""キャッシュデコレーターを生成
 
 		Args:
 			key (str): キャッシュキー
 		Returns:
 			Callable: デコレーター
+		Note:
+			何万回と実行されるメソッドに対してこのキャッシュデコレーターを適用すると、
+			タイプヒントによるオーバーヘッドが無視できないレベルに達する
+			Callableのタイプヒントが無かったとしても実害がほぼ無いため省略することとする
 		"""
-		def decorator(wrapper_func: Callable[P, T_Ret]) -> Callable[P, T_Ret]:
-			def wrapper(*args: P.args, **kwargs: P.kwargs) -> T_Ret:
+		def decorator(wrapper_func: Callable) -> Callable:
+			def wrapper(*args, **kwargs) -> Any:
 				if key in self.__cache:
 					return self.__cache[key]
 
@@ -33,7 +34,35 @@ class Memo:
 
 
 class Memoize:
-	"""キャッシュプロバイダー"""
+	"""キャッシュプロバイダー
+
+	Examples:
+		# Good
+		```python
+		class Data:
+			def __init__(self) -> None:
+				self.__memo = Memoize()
+
+			def get_very_slow(self, name: str) -> Result:
+				memo = self.__memo.get(self.slowly)
+				@memo(name)
+				def factory() -> Result:
+					# very slow getter
+					return result
+
+				return factory()
+		```
+
+		# Bad
+		```python
+		memo = Memoize()
+		class Data:
+			@memo()
+			def get_very_slow(self, name: str) -> Result:
+				# very slow getter
+				return result
+		```
+	"""
 
 	def __init__(self) -> None:
 		"""インスタンスを生成"""

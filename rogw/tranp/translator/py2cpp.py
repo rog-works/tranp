@@ -293,8 +293,8 @@ class Py2Cpp:
 
 		return self.view.render(node.classification, vars={'symbol': symbol, 'comment': comment, 'statements': statements, **add_vars})
 
-	def on_alt_class(self, node: defs.AltClass, symbol: str, actual_class: str) -> str:
-		return self.view.render(node.classification, vars={'symbol': symbol, 'actual_class': actual_class})
+	def on_alt_class(self, node: defs.AltClass, symbol: str, actual_type: str) -> str:
+		return self.view.render(node.classification, vars={'symbol': symbol, 'actual_type': actual_type})
 
 	# Function/Class Elements
 

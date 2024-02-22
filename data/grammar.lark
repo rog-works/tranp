@@ -55,7 +55,7 @@ class_def_raw: "class" name ["(" [typed_arguments] ")"] ":" block
 function_def: [decorators] function_def_raw
 function_def_raw: "def" name "(" [parameters] ")" "->" return_type ":" block
 // @custom
-return_type: typed_expression | "'" typed_expression "'"
+?return_type: typed_expression | "'" typed_expression "'"
 
 // ## Function parameters
 

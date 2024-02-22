@@ -131,7 +131,7 @@ class Procedure(Generic[T_Ret]):
 		handler_name = f'on_exit_{node.classification}'
 		if self.__emitter.observed(handler_name):
 			org_result = self.__stack_pop()
-			new_result = self.__emitter.emit(handler_name, node=node, result=org_result)
+			new_result = self.__emit_proxy(handler_name, node, result=org_result)
 			if new_result is None:
 				raise LogicError('Result is null.')
 
@@ -145,14 +145,31 @@ class Procedure(Generic[T_Ret]):
 			handler_name (str): ハンドラー名
 		"""
 		before = len(self.__stack)
-		result = self.__emitter.emit(handler_name, **self.__make_event(node))
+		result = self.__emit_proxy(handler_name, node, **self.__make_event(node))
 		consumed = len(self.__stack)
 		if result is not None:
 			self.__stack.append(result)
 
 		self.__put_log_action(node, handler_name, stacks=(before, consumed, len(self.__stack)), result=result)
 
-	def __make_event(self, node: Node) -> dict[str, Node | T_Ret | list[T_Ret]]:
+	def __emit_proxy(self, action: str, node: Node, **event: T_Ret | list[T_Ret]) -> T_Ret | None:
+		"""イベント発火プロクシー
+
+		Args:
+			action (str): イベント名
+			node (Node): ノード
+			**event (T_Ret | list[T_Ret]): イベントデータ
+		Returns:
+			T_Ret | None: 結果
+		Raises:
+			LogicError: イベントデータが不正
+		"""
+		try:
+			return self.__emitter.emit(action, node=node, **event)
+		except TypeError as e:
+			raise LogicError(f'Invalid event schema. node: {node}, props: {", ".join(node.prop_keys())}, event: {event}') from e
+
+	def __make_event(self, node: Node) -> dict[str, T_Ret | list[T_Ret]]:
 		"""ノードの展開プロパティーを元にイベントデータを生成
 
 		Args:
@@ -160,16 +177,16 @@ class Procedure(Generic[T_Ret]):
 		Returns:
 			dict[str, Node | T_Ret | list[T_Ret]]: イベントデータ
 		"""
-		kwargs: dict[str, Node | T_Ret | list[T_Ret]] = {}
+		event: dict[str, T_Ret | list[T_Ret]] = {}
 		prop_keys = reversed(node.prop_keys())
 		for prop_key in prop_keys:
 			if self.__is_prop_list_by(node, prop_key):
 				counts = len(getattr(node, prop_key))
-				kwargs[prop_key] = list(reversed([self.__stack_pop() for _ in range(counts)]))
+				event[prop_key] = list(reversed([self.__stack_pop() for _ in range(counts)]))
 			else:
-				kwargs[prop_key] = self.__stack_pop()
+				event[prop_key] = self.__stack_pop()
 
-		return {'node': node, **kwargs}
+		return event
 
 	def __is_prop_list_by(self, node: Node, prop_key: str) -> bool:
 		"""展開プロパティーがリストか判定

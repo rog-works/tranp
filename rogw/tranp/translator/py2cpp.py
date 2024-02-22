@@ -33,6 +33,7 @@ class Py2Cpp:
 		self.view = render
 		self.cvars = CVars(self.symbols)
 		self.__procedure = self.__make_procedure(options)
+		self.__register_intercept_to_symbols()
 
 	def __make_procedure(self, options: TranslatorOptions) -> Procedure[str]:
 		"""プロシージャーを生成
@@ -48,6 +49,18 @@ class Py2Cpp:
 			procedure.on(key, handler)
 
 		return procedure
+
+	def __register_intercept_to_symbols(self) -> None:
+		"""シンボルリゾルバーにインターセプトハンドラーを登録
+
+		Note:
+			実体はProceduralResolverにon_enter系のイベントハンドラーを登録
+			@see ProceduralResolver.on
+		"""
+		handlers = {key: getattr(self, key) for key in Py2Cpp.__dict__.keys() if key.startswith('intercept_')}
+		for key, handler in handlers.items():
+			action = f'on_enter_{key.split('intercept_')[1]}'
+			self.symbols.on(action, handler)
 
 	def translate(self, root: Node) -> str:
 		"""起点のノードからASTを再帰的に解析し、C++にトランスパイル
@@ -142,6 +155,55 @@ class Py2Cpp:
 			.other_case().schema(lambda: {'parameters': function_raw.attrs[1:-1], 'returns': function_raw.attrs[-1]}) \
 			.build(reflection.Function)
 		return [types.domain_name for types in function_ref.templates()]
+
+	# Intercept
+
+	def intercept_factor(self, node: defs.Factor, operator: SymbolRaw, value: SymbolRaw) -> list[SymbolRaw]:
+		return [operator, self.actualize_operand(value)]
+
+	def intercept_not_compare(self, node: defs.NotCompare, operator: SymbolRaw, value: SymbolRaw) -> list[SymbolRaw]:
+		return [operator, self.actualize_operand(value)]
+
+	def intercept_or_compare(self, node: defs.OrCompare, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> list[SymbolRaw]:
+		return self.each_intercept_binary_operator(node, left, operator, right)
+
+	def intercept_and_compare(self, node: defs.AndCompare, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> list[SymbolRaw]:
+		return self.each_intercept_binary_operator(node, left, operator, right)
+
+	def intercept_comparison(self, node: defs.Comparison, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> list[SymbolRaw]:
+		return self.each_intercept_binary_operator(node, left, operator, right)
+
+	def intercept_or_bitwise(self, node: defs.OrBitwise, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> list[SymbolRaw]:
+		return self.each_intercept_binary_operator(node, left, operator, right)
+
+	def intercept_xor_bitwise(self, node: defs.XorBitwise, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> list[SymbolRaw]:
+		return self.each_intercept_binary_operator(node, left, operator, right)
+
+	def intercept_and_bitwise(self, node: defs.AndBitwise, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> list[SymbolRaw]:
+		return self.each_intercept_binary_operator(node, left, operator, right)
+
+	def intercept_shift_bitwise(self, node: defs.ShiftBitwise, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> list[SymbolRaw]:
+		return self.each_intercept_binary_operator(node, left, operator, right)
+
+	def intercept_sum(self, node: defs.Sum, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> list[SymbolRaw]:
+		return self.each_intercept_binary_operator(node, left, operator, right)
+
+	def intercept_term(self, node: defs.Term, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> list[SymbolRaw]:
+		return self.each_intercept_binary_operator(node, left, operator, right)
+
+	def each_intercept_binary_operator(self, node: Node, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> list[SymbolRaw]:
+		return [self.actualize_operand(left), operator, *[self.actualize_operand(in_right) for in_right in right]]
+
+	def actualize_operand(self, value: SymbolRaw) -> SymbolRaw:
+		if not self.cvars.is_addr(self.cvars.key_from(value)):
+			return value
+
+		# 実体の型を取得出来るまで参照元を辿る
+		for origin in value.hierarchy():
+			if not self.cvars.is_addr(self.cvars.key_from(origin)):
+				return origin
+
+		raise LogicError(f'Unexpected operand. value: {value}')
 
 	# General
 

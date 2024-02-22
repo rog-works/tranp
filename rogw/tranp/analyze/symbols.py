@@ -281,6 +281,8 @@ class Symbols:
 
 
 class ProceduralResolver:
+	"""プロシージャルリゾルバー。ASTを再帰的に解析してシンボルを解決"""
+
 	def __init__(self, symbols: Symbols) -> None:
 		"""インスタンスを生成
 

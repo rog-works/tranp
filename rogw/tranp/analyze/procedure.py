@@ -114,11 +114,19 @@ class Procedure(Generic[T_Ret]):
 		Args:
 			node (Node): ノード
 		Raises:
-			NotImplementedError: 未実装
+			LogicError: 入力と出力が不一致
 		"""
 		handler_name = f'on_enter_{node.classification}'
-		if hasattr(self, handler_name):
-			raise NotImplementedError()
+		if not self.__emitter.observed(handler_name):
+			return
+
+		event = self.__make_event(node)
+		result = self.__emit_proxy(handler_name, node, **event)
+		results = cast(list[T_Ret], result)  # FIXME 公開しているイベントハンドラーの定義と異なる形式を期待
+		if len(event) != len(results):
+			raise LogicError(f'Result not match. node: {node}, event: {len(event)}, results: {len(results)}')
+
+		self.__stack.extend(reversed(results))
 
 	def __exit(self, node: Node) -> None:
 		"""指定のノードのプロセス処理(実行後)
@@ -129,13 +137,15 @@ class Procedure(Generic[T_Ret]):
 			LogicError: 不正な結果(None)
 		"""
 		handler_name = f'on_exit_{node.classification}'
-		if self.__emitter.observed(handler_name):
-			org_result = self.__stack_pop()
-			new_result = self.__emit_proxy(handler_name, node, result=org_result)
-			if new_result is None:
-				raise LogicError('Result is null.')
+		if not self.__emitter.observed(handler_name):
+			return
 
-			self.__stack.append(new_result)
+		org_result = self.__stack_pop()
+		new_result = self.__emit_proxy(handler_name, node, result=org_result)
+		if new_result is None:
+			raise LogicError('Result is null.')
+
+		self.__stack.append(new_result)
 
 	def __run_action(self, node: Node, handler_name: str) -> None:
 		"""指定のノードのプロセス処理

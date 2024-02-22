@@ -27,6 +27,7 @@ class Symbols:
 		"""
 		self.__raws = db.raws
 		self.__finder = finder
+		self.__handlers: dict[str, list[Callable[..., SymbolRaw]]] = {}
 
 	def is_a(self, symbol: SymbolRaw, primitive_type: type[Primitives] | None) -> bool:
 		"""シンボルの型を判定
@@ -238,6 +239,29 @@ class Symbols:
 
 		return None
 
+	def on(self, action: str, handler: Callable[..., SymbolRaw]) -> None:
+		"""イベントハンドラーを登録
+
+		Args:
+			action (str): アクション名
+			handler (Callable[..., T_Ret]): ハンドラー
+		"""
+		if action not in self.__handlers:
+			self.__handlers[action] = []
+
+		if handler not in self.__handlers[action]:
+			self.__handlers[action].append(handler)
+
+	def off(self, action: str, handler: Callable[..., SymbolRaw]) -> None:
+		"""イベントハンドラーを解除
+
+		Args:
+			action (str): アクション名
+			handler (Callable[..., T_Ret]): ハンドラー
+		"""
+		if action in self.__handlers:
+			self.__handlers[action].remove(handler)
+
 	def __resolve_procedural(self, node: Node) -> SymbolRaw:
 		"""ノードを展開してシンボルを解決
 
@@ -248,7 +272,12 @@ class Symbols:
 		Raises:
 			NotFoundError: シンボルが見つからない
 		"""
-		return ProceduralResolver(self).resolve(node)
+		procedure = ProceduralResolver(self)
+		for key, handlers in self.__handlers.items():
+			for handler in handlers:
+				procedure.on(key, handler)
+
+		return procedure.resolve(node)
 
 
 class ProceduralResolver:
@@ -282,15 +311,6 @@ class ProceduralResolver:
 			handler (Callable[..., T_Ret]): ハンドラー
 		"""
 		self.__procedure.on(action, handler)
-
-	def off(self, action: str, handler: Callable[..., SymbolRaw]) -> None:
-		"""イベントハンドラーを解除
-
-		Args:
-			action (str): アクション名
-			handler (Callable[..., T_Ret]): ハンドラー
-		"""
-		self.__procedure.off(action, handler)
 
 	def resolve(self, node: Node) -> SymbolRaw:
 		"""指定のノードからASTを再帰的に解析し、シンボルを解決

@@ -682,11 +682,11 @@ class Py2Cpp:
 	# Operator
 
 	def on_factor(self, node: defs.Factor, operator: str, value: str) -> str:
-		calculable_value = f'{operator}{self.calculable_cvar_value(node, value)}'
+		calculable_value = self.calculable_cvar_value(node, value)
 		return self.view.render('unary_operator', vars={'operator': operator, 'value': calculable_value})
 
 	def on_not_compare(self, node: defs.NotCompare, operator: str, value: str) -> str:
-		calculable_value = f'{operator}{self.calculable_cvar_value(node, value)}'
+		calculable_value = self.calculable_cvar_value(node, value)
 		return self.view.render('unary_operator', vars={'operator': '!', 'value': calculable_value})
 
 	def on_or_compare(self, node: defs.OrCompare, left: str, operator: str, right: list[str]) -> str:

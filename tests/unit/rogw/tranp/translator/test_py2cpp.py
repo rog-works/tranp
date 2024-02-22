@@ -119,15 +119,14 @@ class BlockExpects:
 }();"""
 
 	ForOps_enumerate_for_index_key = \
-"""auto __for_iterates_1822 = [&]() -> std::map<int, std::string> {
+"""for (auto& [index, key] : [&]() -> std::map<int, std::string> {
 	std::map<int, std::string> __ret;
 	int __index = 0;
 	for (auto& __entry : keys) {
 		__ret.emplace(__index++, __entry);
 	}
 	return __ret;
-}();
-for (auto& [index, key] : __for_iterates_1822) {
+}()) {
 
 }"""
 
@@ -188,7 +187,6 @@ class TestPy2Cpp(TestCase):
 		options = TranslatorOptions(verbose=False)
 		return Py2Cpp(self.fixture.get(Symbols), renderer, options)
 
-	@profiler('cumtime')
 	@data_provider([
 		(_ast('import.typing', ''), defs.Import, '// #include "typing.h"'),
 

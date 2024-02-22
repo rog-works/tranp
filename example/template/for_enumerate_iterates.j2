@@ -1,0 +1,8 @@
+[&]() -> std::map<int, {{ var_type }}> {
+	std::map<int, {{ var_type }}> __ret;
+	int __index = 0;{# 静的束縛を考慮するならiteratesをラムダの外側で一旦変数化すれば良い。ただし無駄な複製コストが増えるので現状の実装の方が効率は良い #}
+	for (auto& __entry : {{ iterates }}) {
+		__ret.emplace(__index++, __entry);
+	}
+	return __ret;
+}()

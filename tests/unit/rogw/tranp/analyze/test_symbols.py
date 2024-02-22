@@ -26,7 +26,7 @@ def _ast(before: str, after: str) -> str:
 
 		'Base': f'{_Base}',
 		'Base.__init__.params': f'{_Base}.class_def_raw.block.function_def.function_def_raw.parameters',
-		'Base.__init__.return': f'{_Base}.class_def_raw.block.function_def.function_def_raw.return_type',
+		'Base.__init__.return': f'{_Base}.class_def_raw.block.function_def.function_def_raw.typed_none',
 		'Base.__init__.block': f'{_Base}.class_def_raw.block.function_def.function_def_raw.block',
 
 		'Sub': f'{_Sub}',
@@ -34,13 +34,13 @@ def _ast(before: str, after: str) -> str:
 		'Sub.C.block': f'{_Sub}.class_def_raw.block.class_def.class_def_raw.block',
 		'Sub.C.class_func': f'{_Sub}.class_def_raw.block.class_def.class_def_raw.block.function_def',
 		'Sub.C.class_func.params': f'{_Sub}.class_def_raw.block.class_def.class_def_raw.block.function_def.function_def_raw.parameters',
-		'Sub.C.class_func.return': f'{_Sub}.class_def_raw.block.class_def.class_def_raw.block.function_def.function_def_raw.return_type',
+		'Sub.C.class_func.return': f'{_Sub}.class_def_raw.block.class_def.class_def_raw.block.function_def.function_def_raw.typed_getitem',
 		'Sub.C.class_func.block': f'{_Sub}.class_def_raw.block.class_def.class_def_raw.block.function_def.function_def_raw.block',
 		'Sub.__init__.params': f'{_Sub}.class_def_raw.block.function_def[1].function_def_raw.parameters',
-		'Sub.__init__.return': f'{_Sub}.class_def_raw.block.function_def[1].function_def_raw.return_type',
+		'Sub.__init__.return': f'{_Sub}.class_def_raw.block.function_def[1].function_def_raw.typed_none',
 		'Sub.__init__.block': f'{_Sub}.class_def_raw.block.function_def[1].function_def_raw.block',
 		'Sub.local_ref.params': f'{_Sub}.class_def_raw.block.function_def[2].function_def_raw.parameters',
-		'Sub.local_ref.return': f'{_Sub}.class_def_raw.block.function_def[2].function_def_raw.return_type',
+		'Sub.local_ref.return': f'{_Sub}.class_def_raw.block.function_def[2].function_def_raw.typed_none',
 		'Sub.local_ref.block': f'{_Sub}.class_def_raw.block.function_def[2].function_def_raw.block',
 		'Sub.member_ref.block': f'{_Sub}.class_def_raw.block.function_def[3].function_def_raw.block',
 		'Sub.member_write.block': f'{_Sub}.class_def_raw.block.function_def[4].function_def_raw.block',
@@ -49,7 +49,7 @@ def _ast(before: str, after: str) -> str:
 		'Sub.list_ref.params': f'{_Sub}.class_def_raw.block.function_def[6].function_def_raw.parameters',
 		'Sub.list_ref.block': f'{_Sub}.class_def_raw.block.function_def[6].function_def_raw.block',
 		'Sub.base_ref.block': f'{_Sub}.class_def_raw.block.function_def[7].function_def_raw.block',
-		'Sub.returns.return': f'{_Sub}.class_def_raw.block.function_def[8].function_def_raw.return_type',
+		'Sub.returns.return': f'{_Sub}.class_def_raw.block.function_def[8].function_def_raw.typed_var',
 		'Sub.returns.block': f'{_Sub}.class_def_raw.block.function_def[8].function_def_raw.block',
 		'Sub.invoke_method.block': f'{_Sub}.class_def_raw.block.function_def[9].function_def_raw.block',
 		'Sub.decl_with_pop.block': f'{_Sub}.class_def_raw.block.function_def[10].function_def_raw.block',
@@ -222,7 +222,7 @@ class TestSymbols(TestCase):
 		(_ast('Base', 'class_def_raw.name'), '__main__.Base', 'Base'),
 
 		(_ast('Base.__init__.params', 'paramvalue.typedparam.name'), '__main__.Base', 'Base'),
-		(_ast('Base.__init__.return', 'typed_none'), _mod('classes', 'None'), 'None'),
+		(_ast('Base.__init__.return', ''), _mod('classes', 'None'), 'None'),
 		(_ast('Base.__init__.block', 'anno_assign.assign_namelist.getattr'), _mod('classes', 'str'), 'str'),
 		(_ast('Base.__init__.block', 'anno_assign.typed_var'), _mod('classes', 'str'), 'str'),
 		(_ast('Base.__init__.block', 'anno_assign.string'), _mod('classes', 'str'), 'str'),
@@ -242,12 +242,12 @@ class TestSymbols(TestCase):
 		(_ast('Sub.C.class_func.block', 'return_stmt.dict'), _mod('classes', 'dict'), 'dict<str, int>'),
 
 		(_ast('Sub.__init__.params', 'paramvalue.typedparam.name'), '__main__.Sub', 'Sub'),
-		(_ast('Sub.__init__.return', 'typed_none'), _mod('classes', 'None'), 'None'),
+		(_ast('Sub.__init__.return', ''), _mod('classes', 'None'), 'None'),
 		(_ast('Sub.__init__.block', 'funccall'), '__main__.Base', 'Base'),
 		(_ast('Sub.__init__.block', 'funccall.getattr.funccall.var'), _mod('classes', 'super'), 'super'),
 		(_ast('Sub.__init__.block', 'anno_assign'), _mod('classes', 'list'), 'list<int>'),
 		(_ast('Sub.__init__.block', 'anno_assign.assign_namelist.getattr'), _mod('classes', 'list'), 'list<int>'),
-		(_ast('Sub.__init__.block', 'anno_assign.typed_getitem'), _mod('classes', 'list'), 'list'),  # XXX タイプそのものはシンボルテーブルから直接解決するため属性を取得できない。実用上特に害はないが一貫性がない
+		(_ast('Sub.__init__.block', 'anno_assign.typed_getitem'), _mod('classes', 'list'), 'list<int>'),
 		(_ast('Sub.__init__.block', 'anno_assign.list'), _mod('classes', 'list'), 'list<Unknown>'),  # XXX 空のリストは型を補完できないためlist<Unknown>になる
 
 		(_ast('Sub.local_ref.params', 'paramvalue.typedparam.name'), '__main__.Sub', 'Sub'),

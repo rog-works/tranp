@@ -1,4 +1,5 @@
 from types import UnionType
+from typing import Callable
 
 from rogw.tranp.analyze.db import SymbolDB
 from rogw.tranp.analyze.symbol import SymbolRaw
@@ -272,6 +273,24 @@ class ProceduralResolver:
 			procedure.on(key, handler)
 
 		return procedure
+
+	def on(self, action: str, handler: Callable[..., SymbolRaw]) -> None:
+		"""イベントハンドラーを登録
+
+		Args:
+			action (str): アクション名
+			handler (Callable[..., T_Ret]): ハンドラー
+		"""
+		self.__procedure.on(action, handler)
+
+	def off(self, action: str, handler: Callable[..., SymbolRaw]) -> None:
+		"""イベントハンドラーを解除
+
+		Args:
+			action (str): アクション名
+			handler (Callable[..., T_Ret]): ハンドラー
+		"""
+		self.__procedure.off(action, handler)
 
 	def resolve(self, node: Node) -> SymbolRaw:
 		"""指定のノードからASTを再帰的に解析し、シンボルを解決

@@ -21,14 +21,14 @@ class EventEmitter(Generic[T_Ret]):
 		Returns:
 			T_Ret | None: イベントの結果
 		Note:
-			XXX 有効な結果が取得出来た場合は以降のハンドラーを省略する
+			XXX null以外の結果が取得出来た場合は以降のハンドラーを省略する
 		"""
 		if action not in self.__handlers:
 			return None
 
 		for handler in reversed(self.__handlers[action]):
 			result = handler(**event)
-			if result:
+			if result is not None:
 				return result
 
 		return None

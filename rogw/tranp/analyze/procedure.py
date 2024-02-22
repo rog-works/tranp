@@ -167,7 +167,7 @@ class Procedure(Generic[T_Ret]):
 		try:
 			return self.__emitter.emit(action, node=node, **event)
 		except TypeError as e:
-			raise LogicError(f'Invalid event schema. node: {node}, props: {", ".join(node.prop_keys())}, event: {event}') from e
+			raise LogicError(f'Invalid event schema. node: {node}, props: {node.prop_keys()}, event: {event}') from e
 
 	def __make_event(self, node: Node) -> dict[str, T_Ret | list[T_Ret]]:
 		"""ノードの展開プロパティーを元にイベントデータを生成

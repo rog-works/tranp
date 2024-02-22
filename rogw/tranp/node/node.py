@@ -152,6 +152,34 @@ class Node:
 		"""Node: 親のノード Note: あくまでもノード上の親であり、AST上の親と必ずしも一致しない点に注意"""
 		return self.__nodes.parent(self.full_path)
 
+	def prop_keys(self) -> list[str]:
+		"""展開プロパティーのメソッド名を取得。対象のプロパティーは埋め込まれたメタデータを基に抽出
+
+		Returns:
+			list[str]: 展開プロパティーのメソッド名リスト
+		Note:
+			@see trans.node.embed.expandable
+		"""
+		prop_keys: list[str] = []
+		for ctor in self.__embed_classes(self.__class__):
+			meta = Meta.dig_for_method(Node, ctor, EmbedKeys.Expandable, value_type=bool)
+			prop_keys = [*prop_keys, *[name for name, _ in meta.items()]]
+
+		return prop_keys
+
+	def __embed_classes(self, via: type[T_Node]) -> list[type['Node']]:
+		"""対象のクラス自身を含む継承関係のあるクラスを基底クラス順に取得。取得されるクラスはメタデータと関連する派生クラスに限定
+
+		Args:
+			via (type[T_Node]): 対象のクラス
+		Returns:
+			list[type[Node]]: クラスリスト
+		Note:
+			Node以下の基底クラスはメタデータと関わりがないため除外
+		"""
+		classes = [ctor for ctor in via.__mro__ if issubclass(ctor, Node) and ctor is not Node]
+		return list(reversed(classes))
+
 	def flatten(self) -> list['Node']:
 		"""下位のノードを再帰的に展開し、1次元に平坦化して取得
 
@@ -224,35 +252,7 @@ class Node:
 		Returns:
 			dict[Node | list[Node]]: プロパティーのノードリスト
 		"""
-		return {key: getattr(self, key) for key in self.__expandable_keys()}
-
-	def __expandable_keys(self) -> list[str]:
-		"""メタデータより展開プロパティーのメソッド名を抽出
-
-		Returns:
-			list[str]: 展開プロパティーのメソッド名リスト
-		Note:
-			@see trans.node.embed.expandable
-		"""
-		prop_keys: list[str] = []
-		for ctor in self.__embed_classes(self.__class__):
-			meta = Meta.dig_for_method(Node, ctor, EmbedKeys.Expandable, value_type=bool)
-			prop_keys = [*prop_keys, *[name for name, _ in meta.items()]]
-
-		return prop_keys
-
-	def __embed_classes(self, via: type[T_Node]) -> list[type['Node']]:
-		"""対象のクラス自身を含む継承関係のあるクラスを基底クラス順に取得。取得されるクラスはメタデータと関連する派生クラスに限定
-
-		Args:
-			via (type[T_Node]): 対象のクラス
-		Returns:
-			list[type[Node]]: クラスリスト
-		Note:
-			Node以下の基底クラスはメタデータと関わりがないため除外
-		"""
-		classes = [ctor for ctor in via.__mro__ if issubclass(ctor, Node) and ctor is not Node]
-		return list(reversed(classes))
+		return {key: getattr(self, key) for key in self.prop_keys()}
 
 	def _exists(self, relative_path: str) -> bool:
 		"""指定のパスに紐づく一意なノードが存在するか判定

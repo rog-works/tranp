@@ -18,7 +18,7 @@ from rogw.tranp.translator.option import TranslatorOptions
 from rogw.tranp.view.render import Renderer
 
 
-class Py2Cpp(Procedure[str]):
+class Py2Cpp:
 	"""Python -> C++のトランスパイラー"""
 
 	def __init__(self, symbols: Symbols, render: Renderer, options: TranslatorOptions) -> None:
@@ -29,13 +29,51 @@ class Py2Cpp(Procedure[str]):
 			render (Renderer): ソースレンダー
 			options (TranslatorOptions): 実行オプション
 		"""
-		super().__init__(verbose=options.verbose)
 		self.symbols = symbols
 		self.view = render
 		self.cvars = CVars(self.symbols)
+		self.__procedure = self.__make_procedure(options)
+		self.__register_intercept_to_symbols()
+
+	def __make_procedure(self, options: TranslatorOptions) -> Procedure[str]:
+		"""プロシージャーを生成
+
+		Args:
+			options (TranslatorOptions): 実行オプション
+		Returns:
+			Procedure[str]: プロシージャー
+		"""
+		handlers = {key: getattr(self, key) for key in Py2Cpp.__dict__.keys() if key.startswith('on_')}
+		procedure = Procedure[str](verbose=options.verbose)
+		for key, handler in handlers.items():
+			procedure.on(key, handler)
+
+		return procedure
+
+	def __register_intercept_to_symbols(self) -> None:
+		"""シンボルリゾルバーにインターセプトハンドラーを登録
+
+		Note:
+			実体はProceduralResolverにon_enter系のイベントハンドラーを登録
+			@see ProceduralResolver.on
+		"""
+		handlers = {key: getattr(self, key) for key in Py2Cpp.__dict__.keys() if key.startswith('intercept_')}
+		for key, handler in handlers.items():
+			action = f'on_enter_{key.split('intercept_')[1]}'
+			self.symbols.on(action, handler)
+
+	def translate(self, root: Node) -> str:
+		"""起点のノードからASTを再帰的に解析し、C++にトランスパイル
+
+		Args:
+			root (Node): 起点のノード
+		Returns:
+			str: C++のソースコード
+		"""
+		return self.__procedure.exec(root)
 
 	def to_symbol_path(self, raw: SymbolRaw) -> str:
-		"""C++用のシンボルの完全参照名を取得。型が明示されない場合の補完として利用する
+		"""名前空間によるシンボルの参照名を取得。MoveAssignなど、型を補完する際に利用
 
 		Args:
 			raw (SymbolRaw): シンボル
@@ -49,7 +87,7 @@ class Py2Cpp(Procedure[str]):
 		return DSN.join(*DSN.elements(raw.make_shorthand(use_alias=True, path_method='namespace')), delimiter='::')
 
 	def accepted_cvar_value(self, accept_raw: SymbolRaw, value_node: Node, value_raw: SymbolRaw, value_str: str, declared: bool = False) -> str:
-		"""受け入れ出来る形式に入力値を変換
+		"""受け入れ出来る形式に変換(代入の右辺値/実引数/返却値)
 
 		Args:
 			accept_raw (SymbolRaw): シンボル(受け入れ側)
@@ -58,6 +96,11 @@ class Py2Cpp(Procedure[str]):
 			declared (bool): True = 変数宣言時
 		Returns:
 			str: 変換後の入力値
+		Note:
+			# 期待する書式
+			* `Class a = ${value_str};`
+			* `func(${value_str}, ...);`
+			* `return ${value_str};`
 		"""
 		value_on_new = isinstance(value_node, defs.FuncCall) and self.symbols.type_of(value_node.calls).types.is_a(defs.Class)
 		move = self.cvars.analyze_move(accept_raw, value_raw, value_on_new, declared)
@@ -66,8 +109,8 @@ class Py2Cpp(Procedure[str]):
 
 		return self.to_cvar_value(move, value_str)
 
-	def unpacked_cvar_value(self, value_node: Node, value_raw: SymbolRaw, value_str: str, declared: bool = False) -> str:
-		"""受け入れ出来る形式に入力値を変換(アンパック用)
+	def iterable_cvar_value(self, value_node: Node, value_raw: SymbolRaw, value_str: str, declared: bool = False) -> str:
+		"""受け入れ出来る形式に変換(分割代入の右辺値)
 
 		Args:
 			value_raw (SymbolRaw): シンボル(入力側)
@@ -76,9 +119,9 @@ class Py2Cpp(Procedure[str]):
 		Returns:
 			str: 変換後の入力値
 		Note:
-			受け入れ形式は型推論に任せるため、以下の書式になる想定
-			# 書式
-			`auto& [...${var_names}] = ${value}`
+			# 期待する書式
+			* `auto& [dest_a, dest_b, ...] = ${value_str};`
+			* `for (auto& [dest_a, dest_b, ...] : ${value_str}) { /** some */ }`
 		"""
 		value_on_new = isinstance(value_node, defs.FuncCall) and self.symbols.type_of(value_node.calls).types.is_a(defs.Class)
 		move = self.cvars.move_by(cpp.CRef.__name__, self.cvars.key_from(value_raw), value_on_new, declared)
@@ -87,21 +130,61 @@ class Py2Cpp(Procedure[str]):
 
 		return self.to_cvar_value(move, value_str)
 
-	def to_cvar_value(self, move: 'CVars.Moves', org_value_str: str) -> str:
-		"""変数の移動操作の右辺値をC++用に変換
+	def calculable_cvar_value(self, value_node: Node, value_str: str) -> str:
+		"""受け入れ出来る形式に変換(1,2項演算用)
 
 		Args:
-			move (Moves): C++変数の移動操作
-			org_value_str (str): 移動操作の右辺の元の値
+			value_node (Node): 値ノード
+			value_str (str): 入力値
 		Returns:
-			str: C++用の右辺値
+			str: 変換後の入力値
+		Note:
+			# 期待する書式
+			* `not_v = !${value_str};`
+			* `add_v = left + ${value_str};`
+		"""
+		if value_node.is_a(defs.Literal):
+			return value_str
+
+		value_raw = self.symbols.type_of(value_node)
+		if self.cvars.is_addr(self.cvars.key_from(value_raw)):
+			return self.to_cvar_value(CVars.Moves.ToActual, value_str)
+
+		return value_str
+
+	def to_cvar_value(self, move: 'CVars.Moves', value_str: str) -> str:
+		"""C++変数型を考慮した変数移動操作の値に変換
+
+		Args:
+			move (Moves): C++変数型の移動操作
+			value_str (str): 入力値
+		Returns:
+			str: 変換後の入力値
 		"""
 		if move == CVars.Moves.MakeSp:
 			# XXX 関数名(クラス名)と引数を分離。必ず取得できるので警告を抑制(期待値: `Class(a, b, c)`)
-			matches = cast(re.Match, re.fullmatch(r'([^(]+)\((.*)\)', org_value_str))
+			matches = cast(re.Match, re.fullmatch(r'([^(]+)\((.*)\)', value_str))
 			return self.view.render('cvar_move', vars={'move': move.name, 'var_type': matches[1], 'arguments': matches[2]})
 		else:
-			return self.view.render('cvar_move', vars={'move': move.name, 'value': org_value_str})
+			return self.view.render('cvar_move', vars={'move': move.name, 'value': value_str})
+
+	def unpack_cvar_raw(self, value_raw: SymbolRaw) -> SymbolRaw:
+		"""C++変数型を考慮し、シンボルの実体型を取得。C++のアドレス変数型以外はそのまま返却
+
+		Args:
+			value_raw (SymbolRaw): 値のシンボル
+		Returns:
+			SymbolRaw: シンボル
+		"""
+		if not self.cvars.is_addr(self.cvars.key_from(value_raw)):
+			return value_raw
+
+		# 実体の型を取得出来るまで参照元を辿る
+		for origin in value_raw.hierarchy():
+			if not self.cvars.is_addr(self.cvars.key_from(origin)):
+				return origin
+
+		raise LogicError(f'Unreachable code. value: {value_raw}')
 
 	def unpack_function_template_types(self, node: defs.Function) -> list[str]:
 		"""ファンクションのテンプレート型名をアンパック
@@ -117,6 +200,44 @@ class Py2Cpp(Procedure[str]):
 			.other_case().schema(lambda: {'parameters': function_raw.attrs[1:-1], 'returns': function_raw.attrs[-1]}) \
 			.build(reflection.Function)
 		return [types.domain_name for types in function_ref.templates()]
+
+	# Intercept
+
+	def intercept_factor(self, node: defs.Factor, operator: SymbolRaw, value: SymbolRaw) -> list[SymbolRaw]:
+		return [operator, self.unpack_cvar_raw(value)]
+
+	def intercept_not_compare(self, node: defs.NotCompare, operator: SymbolRaw, value: SymbolRaw) -> list[SymbolRaw]:
+		return [operator, self.unpack_cvar_raw(value)]
+
+	def intercept_or_compare(self, node: defs.OrCompare, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> list[SymbolRaw]:
+		return self.each_intercept_binary_operator(node, left, operator, right)
+
+	def intercept_and_compare(self, node: defs.AndCompare, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> list[SymbolRaw]:
+		return self.each_intercept_binary_operator(node, left, operator, right)
+
+	def intercept_comparison(self, node: defs.Comparison, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> list[SymbolRaw]:
+		return self.each_intercept_binary_operator(node, left, operator, right)
+
+	def intercept_or_bitwise(self, node: defs.OrBitwise, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> list[SymbolRaw]:
+		return self.each_intercept_binary_operator(node, left, operator, right)
+
+	def intercept_xor_bitwise(self, node: defs.XorBitwise, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> list[SymbolRaw]:
+		return self.each_intercept_binary_operator(node, left, operator, right)
+
+	def intercept_and_bitwise(self, node: defs.AndBitwise, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> list[SymbolRaw]:
+		return self.each_intercept_binary_operator(node, left, operator, right)
+
+	def intercept_shift_bitwise(self, node: defs.ShiftBitwise, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> list[SymbolRaw]:
+		return self.each_intercept_binary_operator(node, left, operator, right)
+
+	def intercept_sum(self, node: defs.Sum, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> list[SymbolRaw]:
+		return self.each_intercept_binary_operator(node, left, operator, right)
+
+	def intercept_term(self, node: defs.Term, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> list[SymbolRaw]:
+		return self.each_intercept_binary_operator(node, left, operator, right)
+
+	def each_intercept_binary_operator(self, node: Node, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> list[SymbolRaw]:
+		return [self.unpack_cvar_raw(left), operator, *[self.unpack_cvar_raw(in_right) for in_right in right]]
 
 	# General
 
@@ -182,18 +303,18 @@ class Py2Cpp(Procedure[str]):
 		comp_vars = {'projection': projection, 'comp_for': fors[0], 'condition': condition, 'projection_types': [projection_type_key, projection_type_value], 'binded_this': node.binded_this}
 		return self.view.render(node.classification, vars=comp_vars)
 
-	def on_function(self, node: defs.Function, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, comment: str, statements: list[str]) -> str:
+	def on_function(self, node: defs.Function, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		template_types = self.unpack_function_template_types(node)
-		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'comment': comment, 'statements': statements, 'template_types': template_types}
+		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types}
 		return self.view.render(node.classification, vars=function_vars)
 
-	def on_class_method(self, node: defs.ClassMethod, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, comment: str, statements: list[str]) -> str:
+	def on_class_method(self, node: defs.ClassMethod, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		template_types = self.unpack_function_template_types(node)
-		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'comment': comment, 'statements': statements, 'template_types': template_types}
+		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types}
 		method_vars = {'access': node.access, 'class_symbol': node.class_types.symbol.tokens}
 		return self.view.render(node.classification, vars={**function_vars, **method_vars})
 
-	def on_constructor(self, node: defs.Constructor, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, comment: str, statements: list[str]) -> str:
+	def on_constructor(self, node: defs.Constructor, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		this_vars = node.this_vars
 
 		# クラスの初期化ステートメントとそれ以外を分離
@@ -226,20 +347,20 @@ class Py2Cpp(Procedure[str]):
 
 		class_name = ClassSymbolMaker.domain_name(node.class_types, use_alias=True)
 		template_types = self.unpack_function_template_types(node)
-		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'comment': comment, 'statements': normal_statements, 'template_types': template_types}
+		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': normal_statements, 'template_types': template_types}
 		method_vars = {'access': node.access, 'class_symbol': class_name}
 		constructor_vars = {'initializers': initializers, 'super_initializer': super_initializer}
 		return self.view.render(node.classification, vars={**function_vars, **method_vars, **constructor_vars})
 
-	def on_method(self, node: defs.Method, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, comment: str, statements: list[str]) -> str:
+	def on_method(self, node: defs.Method, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		template_types = self.unpack_function_template_types(node)
-		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'comment': comment, 'statements': statements, 'template_types': template_types}
+		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types}
 		method_vars = {'access': node.access, 'class_symbol': node.class_types.symbol.tokens}
 		return self.view.render(node.classification, vars={**function_vars, **method_vars})
 
-	def on_closure(self, node: defs.Closure, symbol: str, decorators: list[str], parameters: list[str], return_decl: str, comment: str, statements: list[str]) -> str:
+	def on_closure(self, node: defs.Closure, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		"""Note: closureでtemplate_typesは不要なので対応しない"""
-		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_decl, 'statements': statements}
+		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'statements': statements}
 		closure_vars = {'binded_this': node.binded_this}
 		return self.view.render(node.classification, vars={**function_vars, **closure_vars})
 
@@ -261,15 +382,15 @@ class Py2Cpp(Procedure[str]):
 		class_vars = {'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'generic_types': generic_types, 'comment': comment, 'statements': statements, 'vars': vars}
 		return self.view.render(node.classification, vars=class_vars)
 
-	def on_enum(self, node: defs.Enum, symbol: str, decorators: list[str], inherits: list[str], comment: str, statements: list[str]) -> str:
+	def on_enum(self, node: defs.Enum, symbol: str, decorators: list[str], inherits: list[str], generic_types: list[str], comment: str, statements: list[str]) -> str:
 		add_vars = {}
 		if not node.parent.is_a(defs.Entrypoint):
 			add_vars = {'access': node.access}
 
 		return self.view.render(node.classification, vars={'symbol': symbol, 'comment': comment, 'statements': statements, **add_vars})
 
-	def on_alt_class(self, node: defs.AltClass, symbol: str, actual_class: str) -> str:
-		return self.view.render(node.classification, vars={'symbol': symbol, 'actual_class': actual_class})
+	def on_alt_class(self, node: defs.AltClass, symbol: str, actual_type: str) -> str:
+		return self.view.render(node.classification, vars={'symbol': symbol, 'actual_type': actual_type})
 
 	# Function/Class Elements
 
@@ -283,11 +404,11 @@ class Py2Cpp(Procedure[str]):
 
 	def on_move_assign(self, node: defs.MoveAssign, receivers: list[str], value: str) -> str:
 		if len(receivers) == 1:
-			return self.on_move_assign_single(node, receivers[0], value)
+			return self.proc_move_assign_single(node, receivers[0], value)
 		else:
-			return self.on_move_assign_unpack(node, receivers, value)
+			return self.proc_move_assign_unpack(node, receivers, value)
 
-	def on_move_assign_single(self, node: defs.MoveAssign, receiver: str, value: str) -> str:
+	def proc_move_assign_single(self, node: defs.MoveAssign, receiver: str, value: str) -> str:
 		receiver_raw = self.symbols.type_of(node.receivers[0])
 		value_raw = self.symbols.type_of(node.value)
 		declared = receiver_raw.decl.declare == node
@@ -295,8 +416,8 @@ class Py2Cpp(Procedure[str]):
 		accepted_value = self.accepted_cvar_value(receiver_raw, node.value, self.symbols.type_of(node.value), value, declared=declared)
 		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': accepted_value})
 
-	def on_move_assign_unpack(self, node: defs.MoveAssign, receivers: list[str], value: str) -> str:
-		accepted_value = self.unpacked_cvar_value(node.value, self.symbols.type_of(node.value), value, declared=True)
+	def proc_move_assign_unpack(self, node: defs.MoveAssign, receivers: list[str], value: str) -> str:
+		accepted_value = self.iterable_cvar_value(node.value, self.symbols.type_of(node.value), value, declared=True)
 		return self.view.render(f'{node.classification}_unpack', vars={'receivers': receivers, 'value': accepted_value})
 
 	def on_anno_assign(self, node: defs.AnnoAssign, receiver: str, var_type: str, value: str) -> str:
@@ -549,7 +670,6 @@ class Py2Cpp(Procedure[str]):
 
 		return 'otherwise', None
 
-
 	def on_super(self, node: defs.Super, calls: str, arguments: list[str]) -> str:
 		return node.super_class_symbol.tokens
 
@@ -562,41 +682,44 @@ class Py2Cpp(Procedure[str]):
 	# Operator
 
 	def on_factor(self, node: defs.Factor, operator: str, value: str) -> str:
-		return f'{operator}{value}'
+		calculable_value = f'{operator}{self.calculable_cvar_value(node, value)}'
+		return self.view.render('unary_operator', vars={'operator': operator, 'value': calculable_value})
 
 	def on_not_compare(self, node: defs.NotCompare, operator: str, value: str) -> str:
-		return f'!{value}'
+		calculable_value = f'{operator}{self.calculable_cvar_value(node, value)}'
+		return self.view.render('unary_operator', vars={'operator': '!', 'value': calculable_value})
 
 	def on_or_compare(self, node: defs.OrCompare, left: str, operator: str, right: list[str]) -> str:
-		return self.on_binary_operator(node, left, '||', right)
+		return self.proc_binary_operator(node, left, '||', right)
 
 	def on_and_compare(self, node: defs.AndCompare, left: str, operator: str, right: list[str]) -> str:
-		return self.on_binary_operator(node, left, '&&', right)
+		return self.proc_binary_operator(node, left, '&&', right)
 
 	def on_comparison(self, node: defs.Comparison, left: str, operator: str, right: list[str]) -> str:
-		return self.on_binary_operator(node, left, operator, right)
+		return self.proc_binary_operator(node, left, operator, right)
 
 	def on_or_bitwise(self, node: defs.OrBitwise, left: str, operator: str, right: list[str]) -> str:
-		return self.on_binary_operator(node, left, operator, right)
+		return self.proc_binary_operator(node, left, operator, right)
 
 	def on_xor_bitwise(self, node: defs.XorBitwise, left: str, operator: str, right: list[str]) -> str:
-		return self.on_binary_operator(node, left, operator, right)
+		return self.proc_binary_operator(node, left, operator, right)
 
 	def on_and_bitwise(self, node: defs.AndBitwise, left: str, operator: str, right: list[str]) -> str:
-		return self.on_binary_operator(node, left, operator, right)
+		return self.proc_binary_operator(node, left, operator, right)
 
 	def on_shift_bitwise(self, node: defs.ShiftBitwise, left: str, operator: str, right: list[str]) -> str:
-		return self.on_binary_operator(node, left, operator, right)
+		return self.proc_binary_operator(node, left, operator, right)
 
 	def on_sum(self, node: defs.Sum, left: str, operator: str, right: list[str]) -> str:
-		return self.on_binary_operator(node, left, operator, right)
+		return self.proc_binary_operator(node, left, operator, right)
 
 	def on_term(self, node: defs.Term, left: str, operator: str, right: list[str]) -> str:
-		return self.on_binary_operator(node, left, operator, right)
+		return self.proc_binary_operator(node, left, operator, right)
 
-	def on_binary_operator(self, node: defs.BinaryOperator, left: str, operator: str, right: list[str]) -> str:
-		joined_right = f' {operator} '.join(right)
-		return f'{left} {operator} {joined_right}'
+	def proc_binary_operator(self, node: defs.BinaryOperator, left: str, operator: str, right: list[str]) -> str:
+		left_value = self.calculable_cvar_value(node.left, left)
+		right_values = [self.calculable_cvar_value(in_node, right[index]) for index, in_node in enumerate(node.right)]
+		return self.view.render('binary_operator', vars={'left': left_value, 'operator': operator, 'right': right_values})
 
 	# Literal
 
@@ -641,17 +764,17 @@ class Py2Cpp(Procedure[str]):
 
 
 class CVars:
-	"""C++用の変数操作ユーティリティー"""
+	"""C++変数型の操作ユーティリティー"""
 
 	class Moves(Enum):
 		"""移動操作の種別
 
 		Attributes:
-			Copy: 実体と実体、ポインターとポインターのコピー
-			New: メモリ確保
+			Copy: 実体と実体、アドレスとアドレスのコピー
+			New: メモリ確保(生ポインター)
 			MakeSp: メモリ確保(スマートポインター)
-			ToActual: ポインターを実体参照
-			ToAddress: 実体からポインターに変換
+			ToActual: アドレス変数を実体参照
+			ToAddress: 実体からアドレス変数に変換
 			UnpackSp: スマートポインターから生ポインターに変換
 			Deny: 不正な移動操作
 		"""
@@ -724,19 +847,19 @@ class CVars:
 		"""実体か判定
 
 		Args:
-			key (str): C++変数種別のキー
+			key (str): C++変数型の種別キー
 		Returns:
 			bool: True = 実体
 		"""
 		return key in [cpp.CRaw.__name__, cpp.CRef.__name__]
 
 	def is_addr(self, key: str) -> bool:
-		"""ポインターか判定
+		"""アドレスか判定
 
 		Args:
-			key (str): C++変数種別のキー
+			key (str): C++変数型の種別キー
 		Returns:
-			bool: True = ポインター
+			bool: True = アドレス
 		"""
 		return key in [cpp.CP.__name__, cpp.CSP.__name__]
 
@@ -744,7 +867,7 @@ class CVars:
 		"""参照か判定
 
 		Args:
-			key (str): C++変数種別のキー
+			key (str): C++変数型の種別キー
 		Returns:
 			bool: True = 参照
 		"""
@@ -754,7 +877,7 @@ class CVars:
 		"""ポインターか判定
 
 		Args:
-			key (str): C++変数種別のキー
+			key (str): C++変数型の種別キー
 		Returns:
 			bool: True = ポインター
 		"""
@@ -764,27 +887,27 @@ class CVars:
 		"""スマートポインターか判定
 
 		Args:
-			key (str): C++変数種別のキー
+			key (str): C++変数型の種別キー
 		Returns:
 			bool: True = スマートポインター
 		"""
 		return key == cpp.CSP.__name__
 
 	def keys(self) -> list[str]:
-		"""C++変数種別のキー一覧を生成
+		"""C++変数型の種別キー一覧を生成
 
 		Returns:
-			list[str]: キー一覧
+			list[str]: 種別キー一覧
 		"""
 		return [cvar.__name__ for cvar in [cpp.CP, cpp.CSP, cpp.CRef, cpp.CRaw]]
 
 	def key_from(self, symbol: SymbolRaw) -> str:
-		"""シンボルからC++変数種別のキーを取得
+		"""シンボルからC++変数型の種別キーを取得
 
 		Args:
 			symbol (SymbolRaw): シンボル
 		Returns:
-			str: キー
+			str: 種別キー
 		Note:
 			nullはポインターとして扱う
 		"""

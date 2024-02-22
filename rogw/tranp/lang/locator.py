@@ -1,8 +1,9 @@
-from typing import Callable, Protocol, TypeAlias, TypeVar
+from typing import Any, Callable, Protocol, TypeAlias, TypeVar
 
 T_Inst = TypeVar('T_Inst')
-T_Injector: TypeAlias = type[T_Inst] | Callable[..., T_Inst]
 T_Curried = TypeVar('T_Curried', bound=Callable)
+
+Injector: TypeAlias = type[T_Inst] | Callable[..., T_Inst]
 
 
 class Locator(Protocol):
@@ -30,11 +31,11 @@ class Locator(Protocol):
 		"""
 		...
 
-	def currying(self, factory: T_Injector, expect: type[T_Curried]) -> T_Curried:
+	def currying(self, factory: Injector[Any], expect: type[T_Curried]) -> T_Curried:
 		"""指定のファクトリーをカリー化して返却
 
 		Args:
-			factory (T_Injector): ファクトリー(関数/メソッド/クラス)
+			factory (Injector[Any]): ファクトリー(関数/メソッド/クラス)
 			expect (type[T_Curried]): カリー化後に期待する関数シグネチャー
 		Returns:
 			T_Curried: カリー化後の関数
@@ -44,11 +45,11 @@ class Locator(Protocol):
 		"""
 		...
 
-	def invoke(self, factory: type[T_Inst] | Callable[..., T_Inst]) -> T_Inst:
+	def invoke(self, factory: Injector[T_Inst]) -> T_Inst:
 		"""ファクトリーを代替実行し、インスタンスを生成
 
 		Args:
-			factory (type[T_Inst] | Callable[..., T_Inst]): ファクトリー(関数/メソッド/クラス)
+			factory (Injector[T_Inst]): ファクトリー(関数/メソッド/クラス)
 		Returns:
 			T_Inst: 生成したインスタンス
 		Note:
@@ -60,6 +61,6 @@ class Locator(Protocol):
 class Currying(Protocol):
 	"""カリー化関数プロトコル"""
 
-	def __call__(self, factory: T_Injector, expect: type[T_Curried]) -> T_Curried:
+	def __call__(self, factory: Injector[Any], expect: type[T_Curried]) -> T_Curried:
 		"""Note: @see Locator.currying"""
 		...

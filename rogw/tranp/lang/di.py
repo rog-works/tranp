@@ -2,7 +2,7 @@ from types import FunctionType, MethodType
 from typing import Any, Callable, TypeAlias, cast
 
 from rogw.tranp.lang.implementation import override
-from rogw.tranp.lang.locator import T_Curried, T_Inst, T_Injector
+from rogw.tranp.lang.locator import Injector, T_Curried, T_Inst
 from rogw.tranp.lang.module import fullyname, load_module_path
 
 
@@ -16,7 +16,7 @@ class DI:
 	def __init__(self) -> None:
 		"""インスタンスを生成"""
 		self.__instances: dict[type, Any] = {}
-		self.__injectors: dict[type, T_Injector] = {}
+		self.__injectors: dict[type, Injector[Any]] = {}
 
 	def can_resolve(self, symbol: type) -> bool:
 		"""シンボルが解決できるか判定
@@ -38,12 +38,12 @@ class DI:
 		"""
 		return self.__find_symbol(symbol) is not None
 
-	def bind(self, symbol: type[T_Inst], injector: T_Injector) -> None:
+	def bind(self, symbol: type[T_Inst], injector: Injector[T_Inst]) -> None:
 		"""シンボルとファクトリーのマッピングを登録
 
 		Args:
 			symbol (type[T_Inst]): シンボル
-			injector (T_Injector): ファクトリー(関数/メソッド/クラス)
+			injector (Injector[T_Inst]): ファクトリー(関数/メソッド/クラス)
 		Raises:
 			ValueError: 登録済みのシンボルを指定
 		"""
@@ -53,25 +53,26 @@ class DI:
 
 		self.__injectors[accept_symbol] = injector
 
-	def unbind(self, symbol: type[T_Inst]) -> None:
+	def unbind(self, symbol: type[Any]) -> None:
 		"""シンボルとファクトリーのマッピングを解除
 
 		Args:
-			symbol (type[T_Inst]): シンボル
+			symbol (type[Any]): シンボル
 		"""
 		found_symbol = self.__find_symbol(symbol)
 		if found_symbol is not None:
-			del self.__injectors[found_symbol]
+			if found_symbol in self.__injectors:
+				del self.__injectors[found_symbol]
 
-		if found_symbol in self.__instances:
-			del self.__instances[found_symbol]
+			if found_symbol in self.__instances:
+				del self.__instances[found_symbol]
 
-	def rebind(self, symbol: type[T_Inst], injector: T_Injector) -> None:
+	def rebind(self, symbol: type[T_Inst], injector: Injector[T_Inst]) -> None:
 		"""シンボルとファクトリーのマッピングを再登録
 
 		Args:
 			symbol (type[T_Inst]): シンボル
-			injector (T_Injector): ファクトリー(関数/メソッド/クラス)
+			injector (Injector[T_Inst]): ファクトリー(関数/メソッド/クラス)
 		"""
 		if self.__inner_binded(symbol):
 			self.unbind(symbol)
@@ -136,11 +137,11 @@ class DI:
 		accept_symbol = self._acceptable_symbol(symbol)
 		return accept_symbol if accept_symbol in self.__injectors else None
 
-	def __inject_kwargs(self, injector: T_Injector) -> dict[str, Any]:
+	def __inject_kwargs(self, injector: Injector[Any]) -> dict[str, Any]:
 		"""注入する引数リストを生成
 
 		Args:
-			injector (T_Injector): ファクトリー(関数/メソッド/クラス)
+			injector (Injector[Any]): ファクトリー(関数/メソッド/クラス)
 		Returns:
 			dict[str, Any]: 引数リスト
 		Raises:
@@ -150,37 +151,37 @@ class DI:
 		annos = self.__pluck_annotations(annotated)
 		return {key: self.resolve(anno) for key, anno in annos.items()}
 
-	def __to_annotated(self, factory: type[T_Inst] | Callable[..., T_Inst]) -> Callable[..., T_Inst]:
+	def __to_annotated(self, injector: Injector[T_Inst]) -> Callable[..., T_Inst]:
 		"""アノテーション取得用の呼び出し対象の関数に変換
 
 		Args:
-			factory (type[T_Inst] | Callable[..., T_Inst]): ファクトリー(関数/メソッド/クラス)
+			injector (Injector[T_Inst]): ファクトリー(関数/メソッド/クラス)
 		Returns:
 			Callable[..., T_Inst]: 呼び出し対象の関数
 		"""
-		if isinstance(factory, (FunctionType, MethodType)):
-			return factory
-		elif not isinstance(factory, type) and hasattr(factory, '__call__'):
-			return factory.__call__
+		if isinstance(injector, (FunctionType, MethodType)):
+			return injector
+		elif not isinstance(injector, type) and hasattr(injector, '__call__'):
+			return injector.__call__
 		else:
-			return cast(Callable[..., T_Inst], factory.__init__)
+			return cast(Callable[..., T_Inst], injector.__init__)
 
-	def __pluck_annotations(self, annotated: Callable[..., T_Inst]) -> dict[str, type]:
+	def __pluck_annotations(self, annotated: Callable[..., Any]) -> dict[str, type]:
 		"""引数のアノテーションを取得
 
 		Args:
-			annotated (Callable[..., T_Inst]): 呼び出し対象の関数
+			annotated (Callable[..., Any]): 呼び出し対象の関数
 		Returns:
 			dict[str, type]: 引数のアノテーションリスト
 		"""
 		annos = getattr(annotated, '__annotations__', {}) if hasattr(annotated, '__annotations__') else {}
 		return {key: anno for key, anno in annos.items() if key != 'return'}
 
-	def currying(self, factory: T_Injector, expect: type[T_Curried]) -> T_Curried:
+	def currying(self, factory: Injector[Any], expect: type[T_Curried]) -> T_Curried:
 		"""指定のファクトリーをカリー化して返却
 
 		Args:
-			factory (T_Injector): ファクトリー(関数/メソッド/クラス)
+			factory (Injector[Any]): ファクトリー(関数/メソッド/クラス)
 			expect (type[T_Curried]): カリー化後に期待する関数シグネチャー
 		Returns:
 			T_Curried: カリー化後の関数
@@ -209,11 +210,11 @@ class DI:
 
 		return cast(T_Curried, lambda *remain_args: factory(*curried_args, *remain_args))
 
-	def invoke(self, factory: type[T_Inst] | Callable[..., T_Inst]) -> T_Inst:
+	def invoke(self, factory: Injector[T_Inst]) -> T_Inst:
 		"""ファクトリーを代替実行し、インスタンスを生成
 
 		Args:
-			factory (type[T_Inst] | Callable[..., T_Inst]): ファクトリー(関数/メソッド/クラス)
+			factory (Injector[T_Inst]): ファクトリー(関数/メソッド/クラス)
 		Returns:
 			T_Inst: 生成したインスタンス
 		Note:
@@ -235,7 +236,7 @@ class DI:
 		return di
 
 
-ModuleDefinitions: TypeAlias = dict[str, str | Callable[..., T_Inst]]
+ModuleDefinitions: TypeAlias = dict[str, str | Injector[Any]]
 
 
 class LazyDI(DI):
@@ -261,12 +262,12 @@ class LazyDI(DI):
 		super().__init__()
 		self.__definitions: ModuleDefinitions = {}
 
-	def __register(self, symbol_path: str, injector: str | Callable[..., T_Inst]) -> None:
+	def __register(self, symbol_path: str, injector: str | Injector[Any]) -> None:
 		"""マッピングの登録を追加
 
 		Args:
 			symbol_path (str): シンボル型のパス
-			injector (str | Callable[..., T_Inst]): ファクトリー、またはパス
+			injector (str | Injector[Any]): ファクトリー、またはパス
 		Raises:
 			ValueError: 登録済みのシンボルを指定
 		"""
@@ -285,11 +286,11 @@ class LazyDI(DI):
 			del self.__definitions[symbol_path]
 
 	@override
-	def can_resolve(self, symbol: type[T_Inst]) -> bool:
+	def can_resolve(self, symbol: type[Any]) -> bool:
 		"""シンボルが解決できるか判定
 
 		Args:
-			symbol (type): シンボル
+			symbol (type[Any]): シンボル
 		Returns:
 			bool: True = 解決できる
 		"""
@@ -305,23 +306,23 @@ class LazyDI(DI):
 		"""
 		return symbol_path in self.__definitions
 
-	def __symbolize(self, symbol: type[T_Inst]) -> str:
+	def __symbolize(self, symbol: type[Any]) -> str:
 		"""シンボルが解決できるか判定
 
 		Args:
-			symbol (type[T_Inst]): シンボル
+			symbol (type[Any]): シンボル
 		Returns:
 			str: シンボルパス
 		"""
 		return fullyname(self._acceptable_symbol(symbol))
 
 	@override
-	def bind(self, symbol: type[T_Inst], injector: T_Injector) -> None:
+	def bind(self, symbol: type[T_Inst], injector: Injector[T_Inst]) -> None:
 		"""シンボルとファクトリーのマッピングを登録
 
 		Args:
 			symbol (type[T_Inst]): シンボル
-			injector (T_Injector): ファクトリー(関数/メソッド/クラス)
+			injector (Injector[T_Inst]): ファクトリー(関数/メソッド/クラス)
 		Raises:
 			ValueError: 登録済みのシンボルを指定
 		"""
@@ -332,11 +333,11 @@ class LazyDI(DI):
 		return super().bind(symbol, injector)
 
 	@override
-	def unbind(self, symbol: type[T_Inst]) -> None:
+	def unbind(self, symbol: type[Any]) -> None:
 		"""シンボルとファクトリーのマッピングを解除
 
 		Args:
-			symbol (type[T_Inst]): シンボル
+			symbol (type[Any]): シンボル
 		"""
 		if self.can_resolve(symbol):
 			self.__unregister(self.__symbolize(symbol))

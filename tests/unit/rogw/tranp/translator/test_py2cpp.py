@@ -12,7 +12,7 @@ from rogw.tranp.translator.option import TranslatorOptions
 from rogw.tranp.translator.py2cpp import Py2Cpp
 from rogw.tranp.view.render import Renderer
 from tests.test.fixture import Fixture
-from tests.test.helper import data_provider
+from tests.test.helper import data_provider, profiler
 
 
 def _ast(before: str, after: str) -> str:
@@ -188,6 +188,7 @@ class TestPy2Cpp(TestCase):
 		options = TranslatorOptions(verbose=False)
 		return Py2Cpp(self.fixture.get(Symbols), renderer, options)
 
+	@profiler('cumtime')
 	@data_provider([
 		(_ast('import.typing', ''), defs.Import, '// #include "typing.h"'),
 

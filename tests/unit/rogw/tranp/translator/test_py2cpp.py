@@ -118,7 +118,7 @@ class BlockExpects:
 }();"""
 
 	ForOps_enumerate_for_index_key = \
-"""auto __for_iterates_1716 = [&]() -> std::map<int, std::string> {
+"""auto __for_iterates_1692 = [&]() -> std::map<int, std::string> {
 	std::map<int, std::string> __ret;
 	int __index = 0;
 	for (auto& __entry : keys) {
@@ -126,7 +126,7 @@ class BlockExpects:
 	}
 	return __ret;
 }();
-for (auto& [index, key] : __for_iterates_1716) {
+for (auto& [index, key] : __for_iterates_1692) {
 
 }"""
 

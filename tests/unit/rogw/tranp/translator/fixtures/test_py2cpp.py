@@ -75,7 +75,7 @@ class CVarOps:
 	def sum(self) -> None:
 		a = Base()
 		ap: Base[CP] = a
-		# a2 = a + ap FIXME 実体参照する方法を検討
+		a2 = a + ap
 
 class FuncOps:
 	def print(self) -> None:

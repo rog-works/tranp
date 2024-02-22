@@ -45,6 +45,7 @@ def _ast(before: str, after: str) -> str:
 		'CVarOps.local_move.block': f'{_CVarOps}.class_def_raw.block.function_def[3].function_def_raw.block',
 		'CVarOps.param_move.block': f'{_CVarOps}.class_def_raw.block.function_def[4].function_def_raw.block',
 		'CVarOps.invoke_method.block': f'{_CVarOps}.class_def_raw.block.function_def[5].function_def_raw.block',
+		'CVarOps.sum.block': f'{_CVarOps}.class_def_raw.block.function_def[6].function_def_raw.block',
 
 		'FuncOps.print.block': f'{_FuncOps}.class_def_raw.block.function_def.function_def_raw.block',
 
@@ -118,7 +119,7 @@ class BlockExpects:
 }();"""
 
 	ForOps_enumerate_for_index_key = \
-"""auto __for_iterates_1692 = [&]() -> std::map<int, std::string> {
+"""auto __for_iterates_1705 = [&]() -> std::map<int, std::string> {
 	std::map<int, std::string> __ret;
 	int __index = 0;
 	for (auto& __entry : keys) {
@@ -126,7 +127,7 @@ class BlockExpects:
 	}
 	return __ret;
 }();
-for (auto& [index, key] : __for_iterates_1692) {
+for (auto& [index, key] : __for_iterates_1705) {
 
 }"""
 
@@ -220,6 +221,10 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarOps.param_move.block', 'assign[5]'), defs.MoveAssign, 'ap = &(a2);'),
 
 		(_ast('CVarOps.invoke_method.block', 'funccall[2]'), defs.FuncCall, 'this->invoke_method(*(asp), (asp).get(), asp);'),
+
+		(_ast('CVarOps.sum.block', 'assign[0]'), defs.MoveAssign, 'Base a = Base();'),
+		(_ast('CVarOps.sum.block', 'anno_assign'), defs.AnnoAssign, 'Base* ap = &(a);'),
+		(_ast('CVarOps.sum.block', 'assign[2]'), defs.MoveAssign, 'Base a2 = a + *(ap);'),
 
 		(_ast('FuncOps.print.block', 'funccall'), defs.FuncCall, 'printf("message. %d, %f, %s", 1, 1.0, "abc");'),
 

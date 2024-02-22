@@ -141,6 +141,42 @@ class Py2Cpp:
 		else:
 			return self.view.render('cvar_move', vars={'move': move.name, 'value': org_value_str})
 
+	def to_calculable_value(self, value_node: Node, org_value_str: str) -> str:
+		"""C++変数型を考慮し、値を演算可能な形式に変換する
+
+		Args:
+			value_node (Node): 値ノード
+			org_value_str (str): 元の値
+		Returns:
+			str: 値
+		"""
+		if value_node.is_a(defs.Literal):
+			return org_value_str
+
+		value_raw = self.symbols.type_of(value_node)
+		if self.cvars.is_addr(self.cvars.key_from(value_raw)):
+			return self.to_cvar_value(CVars.Moves.ToActual, org_value_str)
+
+		return org_value_str
+
+	def unpack_cvar_raw(self, value_raw: SymbolRaw) -> SymbolRaw:
+		"""シンボルがC++変数型のシンボルだった場合は実体型をアンパック。それ以外はそのまま返却
+
+		Args:
+			value_raw (SymbolRaw): 値のシンボル
+		Returns:
+			SymbolRaw: シンボル
+		"""
+		if not self.cvars.is_addr(self.cvars.key_from(value_raw)):
+			return value_raw
+
+		# 実体の型を取得出来るまで参照元を辿る
+		for origin in value_raw.hierarchy():
+			if not self.cvars.is_addr(self.cvars.key_from(origin)):
+				return origin
+
+		raise LogicError(f'Unexpected operand. value: {value_raw}')
+
 	def unpack_function_template_types(self, node: defs.Function) -> list[str]:
 		"""ファンクションのテンプレート型名をアンパック
 
@@ -159,10 +195,10 @@ class Py2Cpp:
 	# Intercept
 
 	def intercept_factor(self, node: defs.Factor, operator: SymbolRaw, value: SymbolRaw) -> list[SymbolRaw]:
-		return [operator, self.actualize_operand(value)]
+		return [operator, self.unpack_cvar_raw(value)]
 
 	def intercept_not_compare(self, node: defs.NotCompare, operator: SymbolRaw, value: SymbolRaw) -> list[SymbolRaw]:
-		return [operator, self.actualize_operand(value)]
+		return [operator, self.unpack_cvar_raw(value)]
 
 	def intercept_or_compare(self, node: defs.OrCompare, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> list[SymbolRaw]:
 		return self.each_intercept_binary_operator(node, left, operator, right)
@@ -192,18 +228,7 @@ class Py2Cpp:
 		return self.each_intercept_binary_operator(node, left, operator, right)
 
 	def each_intercept_binary_operator(self, node: Node, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> list[SymbolRaw]:
-		return [self.actualize_operand(left), operator, *[self.actualize_operand(in_right) for in_right in right]]
-
-	def actualize_operand(self, value: SymbolRaw) -> SymbolRaw:
-		if not self.cvars.is_addr(self.cvars.key_from(value)):
-			return value
-
-		# 実体の型を取得出来るまで参照元を辿る
-		for origin in value.hierarchy():
-			if not self.cvars.is_addr(self.cvars.key_from(origin)):
-				return origin
-
-		raise LogicError(f'Unexpected operand. value: {value}')
+		return [self.unpack_cvar_raw(left), operator, *[self.unpack_cvar_raw(in_right) for in_right in right]]
 
 	# General
 
@@ -648,10 +673,12 @@ class Py2Cpp:
 	# Operator
 
 	def on_factor(self, node: defs.Factor, operator: str, value: str) -> str:
-		return f'{operator}{value}'
+		calculable_value = f'{operator}{self.to_calculable_value(node, value)}'
+		return self.view.render('unary_operator', vars={'operator': operator, 'value': calculable_value})
 
 	def on_not_compare(self, node: defs.NotCompare, operator: str, value: str) -> str:
-		return f'!{value}'
+		calculable_value = f'{operator}{self.to_calculable_value(node, value)}'
+		return self.view.render('unary_operator', vars={'operator': '!', 'value': calculable_value})
 
 	def on_or_compare(self, node: defs.OrCompare, left: str, operator: str, right: list[str]) -> str:
 		return self.proc_binary_operator(node, left, '||', right)
@@ -681,8 +708,9 @@ class Py2Cpp:
 		return self.proc_binary_operator(node, left, operator, right)
 
 	def proc_binary_operator(self, node: defs.BinaryOperator, left: str, operator: str, right: list[str]) -> str:
-		joined_right = f' {operator} '.join(right)
-		return f'{left} {operator} {joined_right}'
+		left_value = self.to_calculable_value(node.left, left)
+		right_values = [self.to_calculable_value(in_node, right[index]) for index, in_node in enumerate(node.right)]
+		return self.view.render('binary_operator', vars={'left': left_value, 'operator': operator, 'right': right_values})
 
 	# Literal
 

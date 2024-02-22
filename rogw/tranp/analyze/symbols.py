@@ -114,7 +114,7 @@ class Symbols:
 		elif isinstance(node, defs.Reference):
 			return self.__from_reference(node)
 		elif isinstance(node, defs.Type):
-			return self.resolve(node)
+			return self.__resolve_procedural(node)
 		elif isinstance(node, defs.ClassDef):
 			return self.resolve(node)
 		elif isinstance(node, defs.Literal):
@@ -267,7 +267,7 @@ class ProceduralResolver:
 			Procedure[SymbolRaw]: プロシージャー
 		"""
 		handlers = {key: getattr(self, key) for key in ProceduralResolver.__dict__.keys() if key.startswith('on_')}
-		procedure = Procedure[SymbolRaw]()
+		procedure = Procedure[SymbolRaw](verbose=False)
 		for key, handler in handlers.items():
 			procedure.on(key, handler)
 
@@ -347,6 +347,9 @@ class ProceduralResolver:
 
 	def on_aug_assign(self, node: defs.AugAssign, receiver: SymbolRaw, operator: SymbolRaw, value: SymbolRaw) -> SymbolRaw:
 		return receiver
+
+	def on_return(self, node: defs.Return, return_value: SymbolRaw) -> SymbolRaw:
+		return return_value
 
 	# Primary
 

@@ -658,7 +658,7 @@ class TestDefinition(TestCase):
 		# Generic - List/Dict/Callable/Custom
 		('a: list[int] = []', 'file_input.anno_assign.typed_getitem', defs.ListType),
 		('a: dict[str, int] = {}', 'file_input.anno_assign.typed_getitem', defs.DictType),
-		('def func() -> Callable[[], None]: ...', 'file_input.function_def.function_def_raw.return_type.typed_getitem', defs.CallableType),
+		('def func() -> Callable[[], None]: ...', 'file_input.function_def.function_def_raw.typed_getitem', defs.CallableType),
 		('class B(A[T]): ...', 'file_input.class_def.class_def_raw.typed_arguments.typed_argvalue.typed_getitem', defs.CustomType),
 		('a: A.B[A.B[A.B], A.B] = {}', 'file_input.anno_assign.typed_getitem', defs.CustomType),
 		('a: A.B[A.B[A.B], A.B] = {}', 'file_input.anno_assign.typed_getitem.typed_slices.typed_getitem', defs.CustomType),
@@ -666,7 +666,7 @@ class TestDefinition(TestCase):
 		('a: str | None = None', 'file_input.anno_assign.typed_or_expr', defs.UnionType),
 		# Null
 		('a: str | None = None', 'file_input.anno_assign.typed_or_expr.typed_none', defs.NullType),
-		('def func(a: int) -> None: ...', 'file_input.function_def.function_def_raw.return_type.typed_none', defs.NullType),
+		('def func(a: int) -> None: ...', 'file_input.function_def.function_def_raw.typed_none', defs.NullType),
 	])
 	def test_type(self, source: str, full_path: str, expected: type[defs.Type]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Type)

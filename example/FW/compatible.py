@@ -8,10 +8,10 @@ class Vector(CObject):
 		self.y: float = y
 		self.z: float = z
 
-	def __add__(self, other: 'Vector | float') -> 'Vector':
+	def __add__(self, other: 'Vector | float | int') -> 'Vector':
 		raise NotImplementedError()
 
-	def __sub__(self, other: 'Vector | float') -> 'Vector':
+	def __sub__(self, other: 'Vector | float | int') -> 'Vector':
 		raise NotImplementedError()
 
 class IntVector(CObject):
@@ -20,10 +20,10 @@ class IntVector(CObject):
 		self.y: int = y
 		self.z: int = z
 
-	def __add__(self, other: 'IntVector | float') -> 'IntVector':
+	def __add__(self, other: 'IntVector | float | int') -> 'IntVector':
 		raise NotImplementedError()
 
-	def __sub__(self, other: 'IntVector | float') -> 'IntVector':
+	def __sub__(self, other: 'IntVector | float | int') -> 'IntVector':
 		raise NotImplementedError()
 
 class Box3d(CObject):

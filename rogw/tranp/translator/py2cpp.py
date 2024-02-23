@@ -60,7 +60,7 @@ class Py2Cpp:
 		return self.__procedure.exec(root)
 
 	def to_symbol_path(self, raw: SymbolRaw) -> str:
-		"""名前空間によるシンボルの参照名を取得。MoveAssignなど、型を補完する際に利用
+		"""名前空間によるシンボルの参照名を取得 (MoveAssignなど、型を補完する際に利用)
 
 		Args:
 			raw (SymbolRaw): シンボル
@@ -71,7 +71,22 @@ class Py2Cpp:
 			'Class' -> 'NS::Class'
 			'dict<A, B>' -> 'dict<NS::A, NS::B>'
 		"""
-		return DSN.join(*DSN.elements(raw.make_shorthand(use_alias=True, path_method='namespace')), delimiter='::')
+		unpacked_raw = CVars.unpack_with_nullable(self.symbols, raw)
+		return DSN.join(*DSN.elements(unpacked_raw.make_shorthand(use_alias=True, path_method='namespace')), delimiter='::')
+
+	def to_symbol_name(self, var_type_raw: SymbolRaw) -> str:
+		"""明示されたタイプよりシンボルの参照名を取得 (主にAnnoAssignで利用)
+
+		Args:
+			var_type_raw (SymbolRaw): シンボル
+		Returns:
+			str: C++用のシンボルの参照名
+		Note:
+			# 生成例
+			'Union<Class[CP], None>' -> 'Class[CP]'
+		"""
+		unpacked_raw = CVars.unpack_with_nullable(self.symbols, var_type_raw)
+		return unpacked_raw.make_shorthand(use_alias=True)
 
 	def accepted_cvar_value(self, accept_raw: SymbolRaw, value_node: Node, value_raw: SymbolRaw, value_str: str, declared: bool = False) -> str:
 		"""受け入れ出来る形式に変換(代入の右辺値/実引数/返却値)
@@ -296,21 +311,30 @@ class Py2Cpp:
 		return self.view.render(node.classification, vars={**function_vars, **closure_vars})
 
 	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], generic_types: list[str], comment: str, statements: list[str]) -> str:
+		# XXX クラス変数とそれ以外のステートメントを分離
+		decl_class_var_statements: list[str] = []
+		other_statements: list[str] = []
+		for index, statement in enumerate(node.statements):
+			if isinstance(statement, defs.AnnoAssign):
+				decl_class_var_statements.append(statements[index])
+			else:
+				other_statements.append(statements[index])
+
 		# XXX メンバー変数の展開方法を検討
 		vars: list[str] = []
-		for var in node.class_vars:
-			class_var_name = var.tokens
-			var_type = self.symbols.type_of(var.declare.as_a(defs.AnnoAssign).var_type).make_shorthand(use_alias=True)
-			class_var_vars = {'is_static': True, 'access': defs.to_access(class_var_name), 'symbol': class_var_name, 'var_type': var_type}
-			vars.append(self.view.render('class_decl_var', vars=class_var_vars))
+		for index, class_var in enumerate(node.class_vars):
+			class_var_name = class_var.tokens
+			class_var_vars = {'access': defs.to_access(class_var_name), 'decl_class_var': decl_class_var_statements[index]}
+			vars.append(self.view.render('class_decl_class_var', vars=class_var_vars))
 
-		for var in node.this_vars:
-			this_var_name = var.tokens_without_this
-			var_type = self.symbols.type_of(var.declare.as_a(defs.AnnoAssign).var_type).make_shorthand(use_alias=True)
-			this_var_vars = {'is_static': False, 'access': defs.to_access(this_var_name), 'symbol': this_var_name, 'var_type': var_type}
-			vars.append(self.view.render('class_decl_var', vars=this_var_vars))
+		for this_var in node.this_vars:
+			this_var_name = this_var.tokens_without_this
+			var_type_raw = self.symbols.type_of(this_var.declare.as_a(defs.AnnoAssign).var_type)
+			var_type = self.to_symbol_name(var_type_raw)
+			this_var_vars = {'access': defs.to_access(this_var_name), 'symbol': this_var_name, 'var_type': var_type}
+			vars.append(self.view.render('class_decl_this_var', vars=this_var_vars))
 
-		class_vars = {'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'generic_types': generic_types, 'comment': comment, 'statements': statements, 'vars': vars}
+		class_vars = {'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'generic_types': generic_types, 'comment': comment, 'statements': other_statements, 'vars': vars}
 		return self.view.render(node.classification, vars=class_vars)
 
 	def on_enum(self, node: defs.Enum, symbol: str, decorators: list[str], inherits: list[str], generic_types: list[str], comment: str, statements: list[str]) -> str:
@@ -574,7 +598,7 @@ class Py2Cpp:
 			return 'len', None
 		elif calls == 'print':
 			return 'print', None
-		elif calls == 'list':
+		elif isinstance(node.calls, defs.Variable) and node.calls.tokens == 'list':
 			return 'new_list', None
 		elif isinstance(node.calls, defs.Variable) and node.calls.tokens in ['int', 'float', 'bool', 'str']:
 			# FIXME callsは__alias__によって別名になる可能性があるためノードから直接取得。全体的に見直しが必要そう

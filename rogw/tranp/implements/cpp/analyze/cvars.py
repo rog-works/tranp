@@ -161,7 +161,7 @@ class CVars:
 		if symbols.is_a(symbol, None):
 			return cpp.CP.__name__
 
-		var_type = cls.__resolve_var_type(symbols, symbol)
+		var_type = cls.unpack_with_nullable(symbols, symbol)
 		keys = [attr.types.symbol.tokens for attr in var_type.attrs]
 		if len(keys) > 0 and keys[0] in cls.keys():
 			return keys[0]
@@ -169,8 +169,8 @@ class CVars:
 		return cpp.CRaw.__name__
 
 	@classmethod
-	def __resolve_var_type(cls, symbols: Symbols, symbol: SymbolRaw) -> SymbolRaw:
-		"""シンボルの変数の型を解決(Nullableを考慮)
+	def unpack_with_nullable(cls, symbols: Symbols, symbol: SymbolRaw) -> SymbolRaw:
+		"""Nullableのシンボルの変数の型をアンパック。Nullable以外の型はそのまま返却
 
 		Args:
 			symbols (Symbols): シンボルリゾルバー

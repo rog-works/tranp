@@ -18,18 +18,19 @@ from tests.test.helper import data_provider, profiler
 def _ast(before: str, after: str) -> str:
 	__begin_class = 9
 	_Base = f'file_input.class_def[{__begin_class + 0}]'
-	_CVarOps = f'file_input.class_def[{__begin_class + 1}]'
-	_FuncOps = f'file_input.class_def[{__begin_class + 2}]'
-	_EnumOps = f'file_input.class_def[{__begin_class + 3}]'
-	_AccessOps = f'file_input.class_def[{__begin_class + 4}]'
-	_Alias = f'file_input.class_def[{__begin_class + 5}]'
-	_CompOps = f'file_input.class_def[{__begin_class + 6}]'
-	_ForOps = f'file_input.class_def[{__begin_class + 7}]'
-	_ListOps = f'file_input.class_def[{__begin_class + 8}]'
-	_DictOps = f'file_input.class_def[{__begin_class + 9}]'
-	_CastOps = f'file_input.class_def[{__begin_class + 10}]'
-	_Nullable = f'file_input.class_def[{__begin_class + 11}]'
-	_Template = f'file_input.class_def[{__begin_class + 12}]'
+	_DeclOps = f'file_input.class_def[{__begin_class + 1}]'
+	_CVarOps = f'file_input.class_def[{__begin_class + 2}]'
+	_FuncOps = f'file_input.class_def[{__begin_class + 3}]'
+	_EnumOps = f'file_input.class_def[{__begin_class + 4}]'
+	_AccessOps = f'file_input.class_def[{__begin_class + 5}]'
+	_Alias = f'file_input.class_def[{__begin_class + 6}]'
+	_CompOps = f'file_input.class_def[{__begin_class + 7}]'
+	_ForOps = f'file_input.class_def[{__begin_class + 8}]'
+	_ListOps = f'file_input.class_def[{__begin_class + 9}]'
+	_DictOps = f'file_input.class_def[{__begin_class + 10}]'
+	_CastOps = f'file_input.class_def[{__begin_class + 11}]'
+	_Nullable = f'file_input.class_def[{__begin_class + 12}]'
+	_Template = f'file_input.class_def[{__begin_class + 13}]'
 	_template_func = f'file_input.function_def'
 
 	aliases = {
@@ -38,6 +39,8 @@ def _ast(before: str, after: str) -> str:
 		'directive': 'file_input.funccall',
 
 		'DSI': 'file_input.class_assign',
+
+		'DeclOps': f'{_DeclOps}',
 
 		'CVarOps.ret_raw.return': f'{_CVarOps}.class_def_raw.block.function_def[0].function_def_raw.block.return_stmt',
 		'CVarOps.ret_cp.return': f'{_CVarOps}.class_def_raw.block.function_def[1].function_def_raw.block.return_stmt',
@@ -79,6 +82,7 @@ def _ast(before: str, after: str) -> str:
 		'DictOps.pop.block': f'{_DictOps}.class_def_raw.block.function_def[1].function_def_raw.block',
 		'DictOps.keys.block': f'{_DictOps}.class_def_raw.block.function_def[2].function_def_raw.block',
 		'DictOps.values.block': f'{_DictOps}.class_def_raw.block.function_def[3].function_def_raw.block',
+		'DictOps.decl.block': f'{_DictOps}.class_def_raw.block.function_def[4].function_def_raw.block',
 
 		'CastOps.cast_binary.block': f'{_CastOps}.class_def_raw.block.function_def[0].function_def_raw.block',
 		'CastOps.cast_string.block': f'{_CastOps}.class_def_raw.block.function_def[1].function_def_raw.block',
@@ -196,6 +200,8 @@ class TestPy2Cpp(TestCase):
 
 		(_ast('DSI', ''), defs.AltClass, 'using DSI = std::map<std::string, int>;'),
 
+		(_ast('DeclOps', ''), defs.Class, '/** DeclOps */\nclass DeclOps {\n\tpublic: static Base* class_var = nullptr;\n\tpublic: Base* inst_var;\n\t/** Constructor */\n\tpublic: DeclOps() : inst_var(nullptr) {\n\t}\n};'),
+
 		(_ast('CVarOps.ret_raw.return', ''), defs.Return, 'return Base();'),
 		(_ast('CVarOps.ret_cp.return', ''), defs.Return, 'return new Base();'),
 		(_ast('CVarOps.ret_csp.return', ''), defs.Return, 'return std::make_shared<Base>();'),
@@ -286,6 +292,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('DictOps.pop.block', 'assign[2]'), defs.MoveAssign, BlockExpects.DictOps_pop_assign_value1),
 		(_ast('DictOps.keys.block', 'assign[1]'), defs.MoveAssign, BlockExpects.DictOps_keys_assign_keys),
 		(_ast('DictOps.values.block', 'assign[1]'), defs.MoveAssign, BlockExpects.DictOps_values_assign_values),
+		(_ast('DictOps.decl.block', 'assign'), defs.MoveAssign, 'std::map<int, std::vector<int>> d = {\n\t{1, {\n\t{1},\n\t{2},\n\t{3},\n}},\n};'),
 
 		(_ast('CastOps.cast_binary.block', 'assign[0]'), defs.MoveAssign, 'int f_to_n = (int)(1.0);'),
 		(_ast('CastOps.cast_binary.block', 'assign[1]'), defs.MoveAssign, 'float n_to_f = (float)(1);'),

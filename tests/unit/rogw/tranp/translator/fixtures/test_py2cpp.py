@@ -25,6 +25,12 @@ class Base(CObject):
 	def __truediv__(self, other: Base) -> Base: ...
 	def __neg__(self) -> Base: ...
 
+class DeclOps:
+	class_var: Base[CP] | None = None
+
+	def __init__(self) -> None:
+		self.inst_var: Base[CP] | None = None
+
 class CVarOps:
 	def ret_raw(self) -> Base:
 		return Base()
@@ -206,6 +212,9 @@ class DictOps:
 	def values(self) -> None:
 		kvs = {'a': 1}
 		values = list(kvs.values())
+
+	def decl(self) -> None:
+		d = {1: [1, 2, 3]}
 
 class CastOps:
 	def cast_binary(self) -> None:

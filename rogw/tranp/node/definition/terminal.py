@@ -1,4 +1,4 @@
-from rogw.tranp.lang.implementation import implements, override
+from rogw.tranp.lang.implementation import override
 from rogw.tranp.node.embed import Meta, accept_tags
 from rogw.tranp.node.interface import IDomain, ITerminal
 from rogw.tranp.node.node import Node

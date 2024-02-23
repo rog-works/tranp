@@ -115,12 +115,12 @@ class CellMesh {
 	}
 	/**
 	 * 必須セルに必要な6面インデックスを取得
-	 * @param needCellIndex 必須セルインデックス
+	 * @param need_cell_index 必須セルインデックス
 	 * @return 6面インデックスリスト
 	 * @note needCells専用
 	 */
 	public: static std::vector<int> need_cell_face_indexs(int need_cell_index) {
-		std::map<int, list<int>> to_faces = {
+		std::map<int, std::vector<int>> to_faces = {
 			{(int)(CellMesh::NeedCellIndexs::Bottom0), {
 			{(int)(CellMesh::FaceIndexs::Bottom)},
 			{(int)(CellMesh::FaceIndexs::Back)},
@@ -174,12 +174,12 @@ class CellMesh {
 	}
 	/**
 	 * 6面方向の先のセルの周辺に存在する必須セルへの方向を示す6面インデックスを取得
-	 * @param faceIndex 6面インデックス
+	 * @param face_index 6面インデックス
 	 * @return 6面インデックスリスト
 	 * @note needCells専用
 	 */
 	public: static std::vector<int> around_need_cell_face_indexs(int face_index) {
-		std::map<int, list<int>> to_faces = {
+		std::map<int, std::vector<int>> to_faces = {
 			{(int)(CellMesh::FaceIndexs::Left), {
 			{(int)(CellMesh::FaceIndexs::Back)},
 			{(int)(CellMesh::FaceIndexs::Front)},

@@ -10,6 +10,7 @@ def default_definitions() -> ModuleDefinitions:
 	return {
 		'rogw.tranp.analyze.db.SymbolDB': 'rogw.tranp.analyze.db.make_db',
 		'rogw.tranp.analyze.finder.SymbolFinder': 'rogw.tranp.analyze.finder.SymbolFinder',
+		'rogw.tranp.analyze.plugin.PluginProvider': 'rogw.tranp.providers.analyze.plugin_provider',
 		'rogw.tranp.analyze.processor.Preprocessors': 'rogw.tranp.analyze.preprocessors.preprocessors',
 		'rogw.tranp.analyze.symbols.Symbols': 'rogw.tranp.analyze.symbols.Symbols',
 		'rogw.tranp.app.env.Env': 'rogw.tranp.providers.app.make_env',

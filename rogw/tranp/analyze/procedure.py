@@ -1,8 +1,9 @@
-from typing import Any, Callable, Generic, TypeVar, cast
+from typing import Generic, TypeVar, cast
 
 from rogw.tranp.ast.dsn import DSN
 from rogw.tranp.errors import LogicError
-from rogw.tranp.lang.eventemitter import EventEmitter
+from rogw.tranp.lang.eventemitter import Callback, EventEmitter
+from rogw.tranp.lang.implementation import implements
 from rogw.tranp.node.node import Node
 
 T_Ret = TypeVar('T_Ret')
@@ -29,21 +30,27 @@ class Procedure(Generic[T_Ret]):
 		self.__verbose = verbose
 		self.__emitter = EventEmitter[T_Ret]()
 
-	def on(self, action: str, handler: Callable[..., T_Ret]) -> None:
+	@implements
+	def on(self, action: str, callback: Callback[T_Ret]) -> None:
 		"""イベントハンドラーを登録
 
 		Args:
 			action (str): アクション名
-			handler (Callable[..., T_Ret]): ハンドラー
+			callback (Callback[T_Ret]): ハンドラー
+		Note:
+			@see eventemitter.IObservable を実装
 		"""
-		self.__emitter.on(action, handler)
+		self.__emitter.on(action, callback)
 
-	def off(self, action: str, handler: Callable[..., T_Ret]) -> None:
+	@implements
+	def off(self, action: str, handler: Callback[T_Ret]) -> None:
 		"""イベントハンドラーを解除
 
 		Args:
 			action (str): アクション名
-			handler (Callable[..., T_Ret]): ハンドラー
+			callback (Callback[T_Ret]): ハンドラー
+		Note:
+			@see eventemitter.IObservable を実装
 		"""
 		self.__emitter.off(action, handler)
 

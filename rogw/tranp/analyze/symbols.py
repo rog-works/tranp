@@ -686,7 +686,7 @@ class ProceduralResolver:
 			return self.symbols.type_of_primitive(dict).to.literal(node).extends(key_type, value_type)
 
 	def on_null(self, node: defs.Null) -> SymbolRaw:
-		return self.symbols.type_of_primitive(None)
+		return self.symbols.type_of_primitive(None).to.literal(node)
 
 	# Expression
 

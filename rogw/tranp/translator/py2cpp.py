@@ -31,7 +31,6 @@ class Py2Cpp:
 		"""
 		self.symbols = symbols
 		self.view = render
-		self.cvars = CVars(self.symbols)
 		self.__procedure = self.__make_procedure(options)
 		self.__register_intercept_to_symbols()
 
@@ -103,7 +102,7 @@ class Py2Cpp:
 			* `return ${value_str};`
 		"""
 		value_on_new = isinstance(value_node, defs.FuncCall) and self.symbols.type_of(value_node.calls).types.is_a(defs.Class)
-		move = self.cvars.analyze_move(accept_raw, value_raw, value_on_new, declared)
+		move = CVars.analyze_move(self.symbols, accept_raw, value_raw, value_on_new, declared)
 		if move == CVars.Moves.Deny:
 			raise LogicError(f'Unacceptable value move. accept: {str(accept_raw)}, value: {str(value_raw)}, value_on_new: {value_on_new}, declared: {declared}')
 
@@ -124,7 +123,7 @@ class Py2Cpp:
 			* `for (auto& [dest_a, dest_b, ...] : ${value_str}) { /** some */ }`
 		"""
 		value_on_new = isinstance(value_node, defs.FuncCall) and self.symbols.type_of(value_node.calls).types.is_a(defs.Class)
-		move = self.cvars.move_by(cpp.CRef.__name__, self.cvars.key_from(value_raw), value_on_new, declared)
+		move = CVars.move_by(cpp.CRef.__name__, CVars.key_from(self.symbols, value_raw), value_on_new, declared)
 		if move == CVars.Moves.Deny:
 			raise LogicError(f'Unacceptable value move. value: {str(value_raw)}, value_on_new: {value_on_new}, declared: {declared}')
 
@@ -147,7 +146,7 @@ class Py2Cpp:
 			return value_str
 
 		value_raw = self.symbols.type_of(value_node)
-		if self.cvars.is_addr(self.cvars.key_from(value_raw)):
+		if CVars.is_addr(CVars.key_from(self.symbols, value_raw)):
 			return self.to_cvar_value(CVars.Moves.ToActual, value_str)
 
 		return value_str
@@ -176,12 +175,12 @@ class Py2Cpp:
 		Returns:
 			SymbolRaw: シンボル
 		"""
-		if not self.cvars.is_addr(self.cvars.key_from(value_raw)):
+		if not CVars.is_addr(CVars.key_from(self.symbols, value_raw)):
 			return value_raw
 
 		# 実体の型を取得出来るまで参照元を辿る
 		for origin in value_raw.hierarchy():
-			if not self.cvars.is_addr(self.cvars.key_from(origin)):
+			if not CVars.is_addr(CVars.key_from(self.symbols, origin)):
 				return origin
 
 		raise LogicError(f'Unreachable code. value: {value_raw}')
@@ -486,7 +485,7 @@ class Py2Cpp:
 			prop = ClassSymbolMaker.domain_name(prop_symbol.types, use_alias=True)
 
 		def is_cvar_receiver() -> bool:
-			return len(receiver_symbol.attrs) > 0 and receiver_symbol.attrs[0].types.symbol.tokens in self.cvars.keys()
+			return len(receiver_symbol.attrs) > 0 and receiver_symbol.attrs[0].types.symbol.tokens in CVars.keys()
 
 		def is_this_var() -> bool:
 			return node.receiver.is_a(defs.ThisRef)
@@ -523,7 +522,7 @@ class Py2Cpp:
 			return node.tokens
 
 	def on_indexer(self, node: defs.Indexer, receiver: str, key: str) -> str:
-		if key in self.cvars.keys():
+		if key in CVars.keys():
 			# XXX 互換用の型は不要なので除外
 			return receiver
 		else:
@@ -568,7 +567,7 @@ class Py2Cpp:
 
 		var_type_index = 1 if is_0_null else 0
 		var_type_node = node.or_types[var_type_index]
-		is_addr_p = isinstance(var_type_node, defs.CustomType) and self.cvars.is_addr_p(var_type_node.template_types[0].type_name.tokens)
+		is_addr_p = isinstance(var_type_node, defs.CustomType) and CVars.is_addr_p(var_type_node.template_types[0].type_name.tokens)
 		if not is_addr_p:
 			raise LogicError(f'Unexpected UnionType. with not pointer. symbol: {node.fullyname}, var_type: {var_type_node}')
 
@@ -800,18 +799,12 @@ class CVars:
 		UnpackSp = 5
 		Deny = 6
 
-	def __init__(self, symbols: Symbols) -> None:
-		"""インスタンスを生成
-
-		Args:
-			symbols (Symbols): シンボルリゾルバー
-		"""
-		self.symbols = symbols
-
-	def analyze_move(self, accept: SymbolRaw, value: SymbolRaw, value_on_new: bool, declared: bool) -> Moves:
+	@classmethod
+	def analyze_move(cls, symbols: Symbols, accept: SymbolRaw, value: SymbolRaw, value_on_new: bool, declared: bool) -> Moves:
 		"""移動操作を解析
 
 		Args:
+			symbols (Symbols): シンボルリゾルバー
 			accept (SymbolRaw): 受け入れ側
 			value (SymbolRaw): 入力側
 			value_on_new (bool): True = インスタンス生成
@@ -819,11 +812,12 @@ class CVars:
 		Returns:
 			Moves: 移動操作の種別
 		"""
-		accept_key = self.key_from(accept)
-		value_key = self.key_from(value)
-		return self.move_by(accept_key, value_key, value_on_new, declared)
+		accept_key = cls.key_from(symbols, accept)
+		value_key = cls.key_from(symbols, value)
+		return cls.move_by(accept_key, value_key, value_on_new, declared)
 
-	def move_by(self, accept_key: str, value_key: str, value_on_new: bool, declared: bool) -> Moves:
+	@classmethod
+	def move_by(cls, accept_key: str, value_key: str, value_on_new: bool, declared: bool) -> Moves:
 		"""移動操作を解析
 
 		Args:
@@ -834,29 +828,30 @@ class CVars:
 		Returns:
 			Moves: 移動操作の種別
 		"""
-		if self.is_raw_ref(accept_key) and not declared:
-			return self.Moves.Deny
+		if cls.is_raw_ref(accept_key) and not declared:
+			return cls.Moves.Deny
 
-		if self.is_addr_sp(accept_key) and self.is_raw(value_key) and value_on_new:
-			return self.Moves.MakeSp
-		elif self.is_addr_p(accept_key) and self.is_raw(value_key) and value_on_new:
-			return self.Moves.New
-		elif self.is_addr_p(accept_key) and self.is_raw(value_key):
-			return self.Moves.ToAddress
-		elif self.is_raw(accept_key) and self.is_addr(value_key):
-			return self.Moves.ToActual
-		elif self.is_addr_p(accept_key) and self.is_addr_sp(value_key):
-			return self.Moves.UnpackSp
-		elif self.is_addr_p(accept_key) and self.is_addr_p(value_key):
-			return self.Moves.Copy
-		elif self.is_addr_sp(accept_key) and self.is_addr_sp(value_key):
-			return self.Moves.Copy
-		elif self.is_raw(accept_key) and self.is_raw(value_key):
-			return self.Moves.Copy
+		if cls.is_addr_sp(accept_key) and cls.is_raw(value_key) and value_on_new:
+			return cls.Moves.MakeSp
+		elif cls.is_addr_p(accept_key) and cls.is_raw(value_key) and value_on_new:
+			return cls.Moves.New
+		elif cls.is_addr_p(accept_key) and cls.is_raw(value_key):
+			return cls.Moves.ToAddress
+		elif cls.is_raw(accept_key) and cls.is_addr(value_key):
+			return cls.Moves.ToActual
+		elif cls.is_addr_p(accept_key) and cls.is_addr_sp(value_key):
+			return cls.Moves.UnpackSp
+		elif cls.is_addr_p(accept_key) and cls.is_addr_p(value_key):
+			return cls.Moves.Copy
+		elif cls.is_addr_sp(accept_key) and cls.is_addr_sp(value_key):
+			return cls.Moves.Copy
+		elif cls.is_raw(accept_key) and cls.is_raw(value_key):
+			return cls.Moves.Copy
 		else:
-			return self.Moves.Deny
+			return cls.Moves.Deny
 
-	def is_raw(self, key: str) -> bool:
+	@classmethod
+	def is_raw(cls, key: str) -> bool:
 		"""実体か判定
 
 		Args:
@@ -866,7 +861,8 @@ class CVars:
 		"""
 		return key in [cpp.CRaw.__name__, cpp.CRef.__name__]
 
-	def is_addr(self, key: str) -> bool:
+	@classmethod
+	def is_addr(cls, key: str) -> bool:
 		"""アドレスか判定
 
 		Args:
@@ -876,7 +872,8 @@ class CVars:
 		"""
 		return key in [cpp.CP.__name__, cpp.CSP.__name__]
 
-	def is_raw_ref(self, key: str) -> bool:
+	@classmethod
+	def is_raw_ref(cls, key: str) -> bool:
 		"""参照か判定
 
 		Args:
@@ -886,7 +883,8 @@ class CVars:
 		"""
 		return key == cpp.CRef.__name__
 
-	def is_addr_p(self, key: str) -> bool:
+	@classmethod
+	def is_addr_p(cls, key: str) -> bool:
 		"""ポインターか判定
 
 		Args:
@@ -896,7 +894,8 @@ class CVars:
 		"""
 		return key == cpp.CP.__name__
 
-	def is_addr_sp(self, key: str) -> bool:
+	@classmethod
+	def is_addr_sp(cls, key: str) -> bool:
 		"""スマートポインターか判定
 
 		Args:
@@ -906,7 +905,8 @@ class CVars:
 		"""
 		return key == cpp.CSP.__name__
 
-	def keys(self) -> list[str]:
+	@classmethod
+	def keys(cls) -> list[str]:
 		"""C++変数型の種別キー一覧を生成
 
 		Returns:
@@ -914,30 +914,34 @@ class CVars:
 		"""
 		return [cvar.__name__ for cvar in [cpp.CP, cpp.CSP, cpp.CRef, cpp.CRaw]]
 
-	def key_from(self, symbol: SymbolRaw) -> str:
+	@classmethod
+	def key_from(cls, symbols: Symbols, symbol: SymbolRaw) -> str:
 		"""シンボルからC++変数型の種別キーを取得
 
 		Args:
+			symbols (Symbols): シンボルリゾルバー
 			symbol (SymbolRaw): シンボル
 		Returns:
 			str: 種別キー
 		Note:
 			nullはポインターとして扱う
 		"""
-		if self.symbols.is_a(symbol, None):
+		if symbols.is_a(symbol, None):
 			return cpp.CP.__name__
 
-		var_type = self.__resolve_var_type(symbol)
+		var_type = cls.__resolve_var_type(symbols, symbol)
 		keys = [attr.types.symbol.tokens for attr in var_type.attrs]
-		if len(keys) > 0 and keys[0] in self.keys():
+		if len(keys) > 0 and keys[0] in cls.keys():
 			return keys[0]
 
 		return cpp.CRaw.__name__
 
-	def __resolve_var_type(self, symbol: SymbolRaw) -> SymbolRaw:
+	@classmethod
+	def __resolve_var_type(cls, symbols: Symbols, symbol: SymbolRaw) -> SymbolRaw:
 		"""シンボルの変数の型を解決(Nullableを考慮)
 
 		Args:
+			symbols (Symbols): シンボルリゾルバー
 			symbol (SymbolRaw): シンボル
 		Returns:
 			SymbolRaw: 変数の型
@@ -945,9 +949,9 @@ class CVars:
 			許容するNullableの書式 (例: 'Class[CP] | None')
 			@see Py2Cpp.on_union_type
 		"""
-		if self.symbols.is_a(symbol, UnionType) and len(symbol.attrs) == 2:
-			is_0_null = self.symbols.is_a(symbol.attrs[0], None)
-			is_1_null = self.symbols.is_a(symbol.attrs[1], None)
+		if symbols.is_a(symbol, UnionType) and len(symbol.attrs) == 2:
+			is_0_null = symbols.is_a(symbol.attrs[0], None)
+			is_1_null = symbols.is_a(symbol.attrs[1], None)
 			if is_0_null != is_1_null:
 				return symbol.attrs[1 if is_0_null else 0]
 

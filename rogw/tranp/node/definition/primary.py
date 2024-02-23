@@ -100,7 +100,7 @@ class Declable(Fragment, ISymbol, ITerminal):
 	@property
 	@implements
 	def declare(self) -> Node:
-		parent_tags = ['assign_namelist', 'for_namelist', 'except_clause']
+		parent_tags = ['assign_namelist', 'for_namelist', 'except_clause', 'typedparam']
 		if self._full_path.parent_tag in parent_tags and isinstance(self.parent, IDeclaration):
 			return self.parent
 

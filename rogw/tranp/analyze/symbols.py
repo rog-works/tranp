@@ -561,14 +561,69 @@ class ProceduralResolver:
 	def on_not_compare(self, node: defs.NotCompare, operator: SymbolRaw, value: SymbolRaw) -> SymbolRaw:
 		return value
 
-	def on_or_compare(self, node: defs.OrCompare, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> SymbolRaw:
-		return self.each_binary_operator(node, left, right, '__or__')
+	def on_or_compare(self, node: defs.OrCompare, elements: list[SymbolRaw]) -> SymbolRaw:
+		return self.each_binary_operator(node, elements)
 
-	def on_and_compare(self, node: defs.AndCompare, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> SymbolRaw:
-		return self.each_binary_operator(node, left, right, '__and__')
+	def on_and_compare(self, node: defs.AndCompare, elements: list[SymbolRaw]) -> SymbolRaw:
+		return self.each_binary_operator(node, elements)
 
-	def on_comparison(self, node: defs.Comparison, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> SymbolRaw:
+	def on_comparison(self, node: defs.Comparison, elements: list[SymbolRaw]) -> SymbolRaw:
+		return self.each_binary_operator(node, elements)
+
+	def on_or_bitwise(self, node: defs.OrBitwise, elements: list[SymbolRaw]) -> SymbolRaw:
+		return self.each_binary_operator(node, elements)
+
+	def on_xor_bitwise(self, node: defs.XorBitwise, elements: list[SymbolRaw]) -> SymbolRaw:
+		return self.each_binary_operator(node, elements)
+
+	def on_and_bitwise(self, node: defs.AndBitwise, elements: list[SymbolRaw]) -> SymbolRaw:
+		return self.each_binary_operator(node, elements)
+
+	def on_shift_bitwise(self, node: defs.Sum, elements: list[SymbolRaw]) -> SymbolRaw:
+		return self.each_binary_operator(node, elements)
+
+	def on_sum(self, node: defs.Sum, elements: list[SymbolRaw]) -> SymbolRaw:
+		return self.each_binary_operator(node, elements)
+
+	def on_term(self, node: defs.Term, elements: list[SymbolRaw]) -> SymbolRaw:
+		return self.each_binary_operator(node, elements)
+
+	def each_binary_operator(self, node: defs.BinaryOperator, elements: list[SymbolRaw]) -> SymbolRaw:
+		node_of_elements = node.elements
+		left = elements[0]
+		for index in range(int((len(elements) - 1) / 2)):
+			operator = node_of_elements[index * 2 + 1].as_a(defs.Terminal)
+			right = elements[index * 2 + 2]
+			left = self.proc_binary_operator(node, left, operator, right)
+
+		return left
+
+	def proc_binary_operator(self, node: defs.BinaryOperator, left: SymbolRaw, operator: defs.Terminal, right: SymbolRaw) -> SymbolRaw:
+		method_name = self.operator_to_method_name(operator.tokens)
+
+		# FIXME __class_getitem__と同様にクラスチェーンを考慮する必要あり
+		in_left = [method for method in left.types.as_a(defs.Class).methods if method.domain_name == method_name]
+		in_right = [method for method in right.types.as_a(defs.Class).methods if method.domain_name == method_name]
+		methods = [*in_left, *in_right]
+		if len(methods) == 0:
+			raise LogicError(f'Operation not allowed. {node}, {str(left)} {operator.tokens} {str(right)}')
+
+		for method in methods:
+			with_left = method in in_left
+			other = method.parameters[-1]
+			var_types = other.var_type.or_types if isinstance(other.var_type, defs.UnionType) else [other.var_type]
+			for var_type in var_types:
+				type_raw = self.symbols.resolve(var_type.as_a(defs.Type))
+				if (with_left and type_raw == right) or (not with_left and type_raw == left):
+					return self.symbols.resolve(method.return_type)
+
+		raise LogicError(f'Operation not allowed. {node}, {str(left)} {operator.tokens} {str(right)}')
+
+	def operator_to_method_name(self, operator: str) -> str:
 		operators = {
+			# Comparison
+			'or': '__or__',
+			'and': '__and__',
 			'==': '__eq__',
 			'<': '__lt__',
 			'>': '__gt__',
@@ -580,65 +635,20 @@ class ProceduralResolver:
 			'not.in': '__contains__',  # XXX 型推論的に同じなので代用
 			'is': '__eq__',  # XXX 型推論的に同じなので代用
 			'is.not': '__eq__',  # XXX 型推論的に同じなので代用
-		}
-		return self.each_binary_operator(node, left, right, operators[node.operator.tokens])
-
-	def on_or_bitwise(self, node: defs.OrBitwise, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> SymbolRaw:
-		return self.each_binary_operator(node, left, right, '__or__')
-
-	def on_xor_bitwise(self, node: defs.XorBitwise, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> SymbolRaw:
-		return self.each_binary_operator(node, left, right, '__xor__')
-
-	def on_and_bitwise(self, node: defs.AndBitwise, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> SymbolRaw:
-		return self.each_binary_operator(node, left, right, '__and__')
-
-	def on_shift_bitwise(self, node: defs.Sum, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> SymbolRaw:
-		operators = {
+			# Bitwise
+			'|': '__or__',
+			'^': '__xor__',
+			'&': '__and__',
 			'<<': '__lshift__',
 			'>>': '__rshift__',
-		}
-		return self.each_binary_operator(node, left, right, operators[node.operator.tokens])
-
-	def on_sum(self, node: defs.Sum, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> SymbolRaw:
-		operators = {
+			# Arthmetic
 			'+': '__add__',
 			'-': '__sub__',
-		}
-		return self.each_binary_operator(node, left, right, operators[node.operator.tokens])
-
-	def on_term(self, node: defs.Term, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> SymbolRaw:
-		operators = {
 			'*': '__mul__',
 			'/': '__truediv__',
 			'%': '__mod__',
 		}
-		return self.each_binary_operator(node, left, right, operators[node.operator.tokens])
-
-	def each_binary_operator(self, node: defs.BinaryOperator, left: SymbolRaw, right: list[SymbolRaw], operator: str) -> SymbolRaw:
-		symbol = self.proc_binary_operator(node, left, right[0], operator)
-		for in_right in right[1:]:
-			symbol = self.proc_binary_operator(node, symbol, in_right, operator)
-
-		return symbol
-
-	def proc_binary_operator(self, node: defs.BinaryOperator, left: SymbolRaw, right: SymbolRaw, operator: str) -> SymbolRaw:
-		# FIXME __class_getitem__と同様にクラスチェーンを考慮する必要あり
-		in_left = [method for method in left.types.as_a(defs.Class).methods if method.symbol.tokens == operator]
-		in_right = [method for method in right.types.as_a(defs.Class).methods if method.symbol.tokens == operator]
-		methods = [*in_left, *in_right]
-		if len(methods) == 0:
-			raise LogicError(f'Operation not allowed. {node}, {str(left)} {operator} {str(right)}')
-
-		for method in methods:
-			with_left = method in in_left
-			other = method.parameters[-1]
-			var_types = other.var_type.or_types if isinstance(other.var_type, defs.UnionType) else [other.var_type]
-			for var_type in var_types:
-				type_raw = self.symbols.resolve(var_type.as_a(defs.Type))
-				if (with_left and type_raw == right) or (not with_left and type_raw == left):
-					return self.symbols.resolve(method.return_type)
-
-		raise LogicError(f'Operation not allowed. {node}, {str(left)} {operator} {str(right)}')
+		return operators[operator]
 
 	# Literal
 

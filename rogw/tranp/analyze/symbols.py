@@ -566,7 +566,7 @@ class ProceduralResolver:
 
 	# Operator
 
-	def on_factor(self, node: defs.Sum, operator: SymbolRaw, value: SymbolRaw) -> SymbolRaw:
+	def on_factor(self, node: defs.Factor, operator: SymbolRaw, value: SymbolRaw) -> SymbolRaw:
 		return value
 
 	def on_not_compare(self, node: defs.NotCompare, operator: SymbolRaw, value: SymbolRaw) -> SymbolRaw:

@@ -209,35 +209,42 @@ class Py2Cpp:
 	def intercept_not_compare(self, node: defs.NotCompare, operator: SymbolRaw, value: SymbolRaw) -> list[SymbolRaw]:
 		return [operator, self.unpack_cvar_raw(value)]
 
-	def intercept_or_compare(self, node: defs.OrCompare, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> list[SymbolRaw]:
-		return self.each_intercept_binary_operator(node, left, operator, right)
+	def intercept_or_compare(self, node: defs.OrCompare, elements: list[SymbolRaw]) -> list[SymbolRaw]:
+		return self.each_intercept_binary_operator(node, elements)
 
-	def intercept_and_compare(self, node: defs.AndCompare, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> list[SymbolRaw]:
-		return self.each_intercept_binary_operator(node, left, operator, right)
+	def intercept_and_compare(self, node: defs.AndCompare, elements: list[SymbolRaw]) -> list[SymbolRaw]:
+		return self.each_intercept_binary_operator(node, elements)
 
-	def intercept_comparison(self, node: defs.Comparison, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> list[SymbolRaw]:
-		return self.each_intercept_binary_operator(node, left, operator, right)
+	def intercept_comparison(self, node: defs.Comparison, elements: list[SymbolRaw]) -> list[SymbolRaw]:
+		return self.each_intercept_binary_operator(node, elements)
 
-	def intercept_or_bitwise(self, node: defs.OrBitwise, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> list[SymbolRaw]:
-		return self.each_intercept_binary_operator(node, left, operator, right)
+	def intercept_or_bitwise(self, node: defs.OrBitwise, elements: list[SymbolRaw]) -> list[SymbolRaw]:
+		return self.each_intercept_binary_operator(node, elements)
 
-	def intercept_xor_bitwise(self, node: defs.XorBitwise, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> list[SymbolRaw]:
-		return self.each_intercept_binary_operator(node, left, operator, right)
+	def intercept_xor_bitwise(self, node: defs.XorBitwise, elements: list[SymbolRaw]) -> list[SymbolRaw]:
+		return self.each_intercept_binary_operator(node, elements)
 
-	def intercept_and_bitwise(self, node: defs.AndBitwise, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> list[SymbolRaw]:
-		return self.each_intercept_binary_operator(node, left, operator, right)
+	def intercept_and_bitwise(self, node: defs.AndBitwise, elements: list[SymbolRaw]) -> list[SymbolRaw]:
+		return self.each_intercept_binary_operator(node, elements)
 
-	def intercept_shift_bitwise(self, node: defs.ShiftBitwise, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> list[SymbolRaw]:
-		return self.each_intercept_binary_operator(node, left, operator, right)
+	def intercept_shift_bitwise(self, node: defs.ShiftBitwise, elements: list[SymbolRaw]) -> list[SymbolRaw]:
+		return self.each_intercept_binary_operator(node, elements)
 
-	def intercept_sum(self, node: defs.Sum, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> list[SymbolRaw]:
-		return self.each_intercept_binary_operator(node, left, operator, right)
+	def intercept_sum(self, node: defs.Sum, elements: list[SymbolRaw]) -> list[SymbolRaw]:
+		return self.each_intercept_binary_operator(node, elements)
 
-	def intercept_term(self, node: defs.Term, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> list[SymbolRaw]:
-		return self.each_intercept_binary_operator(node, left, operator, right)
+	def intercept_term(self, node: defs.Term, elements: list[SymbolRaw]) -> list[SymbolRaw]:
+		return self.each_intercept_binary_operator(node, elements)
 
-	def each_intercept_binary_operator(self, node: Node, left: SymbolRaw, operator: SymbolRaw, right: list[SymbolRaw]) -> list[SymbolRaw]:
-		return [self.unpack_cvar_raw(left), operator, *[self.unpack_cvar_raw(in_right) for in_right in right]]
+	def each_intercept_binary_operator(self, node: defs.BinaryOperator, elements: list[SymbolRaw]) -> list[SymbolRaw]:
+		first = self.unpack_cvar_raw(elements[0])
+		unpacked_elements = [first]
+		for index in range(int((len(elements) - 1) / 2)):
+			operator = elements[index * 2 + 1]
+			right = self.unpack_cvar_raw(elements[index * 2 + 2])
+			unpacked_elements.extend([operator, right])
+
+		return unpacked_elements
 
 	# General
 
@@ -689,37 +696,43 @@ class Py2Cpp:
 		calculable_value = self.calculable_cvar_value(node, value)
 		return self.view.render('unary_operator', vars={'operator': '!', 'value': calculable_value})
 
-	def on_or_compare(self, node: defs.OrCompare, left: str, operator: str, right: list[str]) -> str:
-		return self.proc_binary_operator(node, left, '||', right)
+	def on_or_compare(self, node: defs.OrCompare, elements: list[str]) -> str:
+		return self.proc_binary_operator(node, elements)
 
-	def on_and_compare(self, node: defs.AndCompare, left: str, operator: str, right: list[str]) -> str:
-		return self.proc_binary_operator(node, left, '&&', right)
+	def on_and_compare(self, node: defs.AndCompare, elements: list[str]) -> str:
+		return self.proc_binary_operator(node, elements)
 
-	def on_comparison(self, node: defs.Comparison, left: str, operator: str, right: list[str]) -> str:
-		return self.proc_binary_operator(node, left, operator, right)
+	def on_comparison(self, node: defs.Comparison, elements: list[str]) -> str:
+		return self.proc_binary_operator(node, elements)
 
-	def on_or_bitwise(self, node: defs.OrBitwise, left: str, operator: str, right: list[str]) -> str:
-		return self.proc_binary_operator(node, left, operator, right)
+	def on_or_bitwise(self, node: defs.OrBitwise, elements: list[str]) -> str:
+		return self.proc_binary_operator(node, elements)
 
-	def on_xor_bitwise(self, node: defs.XorBitwise, left: str, operator: str, right: list[str]) -> str:
-		return self.proc_binary_operator(node, left, operator, right)
+	def on_xor_bitwise(self, node: defs.XorBitwise, elements: list[str]) -> str:
+		return self.proc_binary_operator(node, elements)
 
-	def on_and_bitwise(self, node: defs.AndBitwise, left: str, operator: str, right: list[str]) -> str:
-		return self.proc_binary_operator(node, left, operator, right)
+	def on_and_bitwise(self, node: defs.AndBitwise, elements: list[str]) -> str:
+		return self.proc_binary_operator(node, elements)
 
-	def on_shift_bitwise(self, node: defs.ShiftBitwise, left: str, operator: str, right: list[str]) -> str:
-		return self.proc_binary_operator(node, left, operator, right)
+	def on_shift_bitwise(self, node: defs.ShiftBitwise, elements: list[str]) -> str:
+		return self.proc_binary_operator(node, elements)
 
-	def on_sum(self, node: defs.Sum, left: str, operator: str, right: list[str]) -> str:
-		return self.proc_binary_operator(node, left, operator, right)
+	def on_sum(self, node: defs.Sum, elements: list[str]) -> str:
+		return self.proc_binary_operator(node, elements)
 
-	def on_term(self, node: defs.Term, left: str, operator: str, right: list[str]) -> str:
-		return self.proc_binary_operator(node, left, operator, right)
+	def on_term(self, node: defs.Term, elements: list[str]) -> str:
+		return self.proc_binary_operator(node, elements)
 
-	def proc_binary_operator(self, node: defs.BinaryOperator, left: str, operator: str, right: list[str]) -> str:
-		left_value = self.calculable_cvar_value(node.left, left)
-		right_values = [self.calculable_cvar_value(in_node, right[index]) for index, in_node in enumerate(node.right)]
-		return self.view.render('binary_operator', vars={'left': left_value, 'operator': operator, 'right': right_values})
+	def proc_binary_operator(self, node: defs.BinaryOperator, elements: list[str]) -> str:
+		node_of_elements = node.elements
+		first = self.calculable_cvar_value(node_of_elements[0], elements[0])
+		calculatable_elements = [first]
+		for index in range(int((len(elements) - 1) / 2)):
+			operator = elements[index * 2 + 1]
+			right = self.calculable_cvar_value(node_of_elements[index * 2 + 2], elements[index * 2 + 2])
+			calculatable_elements.extend([operator, right])
+
+		return self.view.render('binary_operator', vars={'elements': calculatable_elements})
 
 	# Literal
 

@@ -6,7 +6,7 @@ from rogw.tranp.node.serializer import serialize
 from tests.test.fixture import Fixture
 from tests.test.helper import data_provider
 
-T_Sum = TypedDict('T_Sum', {'left': str, 'operator': str, 'right': list[str]})
+T_Sum = TypedDict('T_Sum', {'elements': list[str]})
 T_FileInput = TypedDict('T_FileInput', {'statements': list[T_Sum]})
 
 
@@ -17,7 +17,7 @@ class TestSerializer(TestCase):
 		(
 			'1 + 2',
 			'file_input',
-			{'statements': [{'left': '1', 'operator': '+', 'right': ['2']}]},
+			{'statements': [{'elements': ['1', '+', '2']}]},
 		),
 	])
 	def test_serialize(self, source: str, full_path: str, expected: dict[str, Any]) -> None:

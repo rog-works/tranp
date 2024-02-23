@@ -54,7 +54,7 @@ class SyntaxParserOfLark:
 				'algorithem': self.__setting.algorithem,
 			}
 
-		@self.__cache.get('parser.cache', identity=identity())
+		@self.__cache.get('parser.cache', identity=identity(), format='bin')
 		def instantiate() -> LarkStored:
 			return LarkStored(Lark(
 				self.__loader.load(self.__setting.grammar),

@@ -5,6 +5,7 @@ from types import MethodType
 from typing import Any, Callable, cast
 
 from rogw.tranp.analyze.db import SymbolDB
+from rogw.tranp.analyze.plugin import PluginProvider
 from rogw.tranp.analyze.symbol import SymbolRaw
 from rogw.tranp.analyze.symbols import Symbols
 from rogw.tranp.app.app import App
@@ -14,6 +15,7 @@ from rogw.tranp.ast.query import Query
 from rogw.tranp.bin.io import readline
 import rogw.tranp.compatible.python.classes as classes
 from rogw.tranp.errors import LogicError
+from rogw.tranp.implements.cpp.providers.analyze import plugin_provider
 from rogw.tranp.io.cache import CacheProvider
 from rogw.tranp.lang.locator import Locator
 from rogw.tranp.lang.module import fullyname
@@ -284,6 +286,7 @@ if __name__ == '__main__':
 			fullyname(Args): Args,
 			fullyname(ParserSetting): make_parser_setting,
 			fullyname(ModulePath): make_module_path,
+			fullyname(PluginProvider): plugin_provider,
 		}).run(task_menu)
 	except KeyboardInterrupt:
 		pass

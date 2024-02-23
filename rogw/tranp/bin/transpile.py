@@ -1,9 +1,11 @@
 import os
 import sys
 
+from rogw.tranp.analyze.plugin import PluginProvider
 from rogw.tranp.app.app import App
 from rogw.tranp.ast.parser import ParserSetting
 import rogw.tranp.compatible.python.embed as __alias__
+from rogw.tranp.implements.cpp.providers.analyze import plugin_provider
 from rogw.tranp.lang.error import stacktrace
 from rogw.tranp.lang.module import fullyname
 from rogw.tranp.module.types import ModulePath
@@ -79,5 +81,6 @@ if __name__ == '__main__':
 		fullyname(Py2Cpp): Py2Cpp,
 		fullyname(ParserSetting): make_parser_setting,
 		fullyname(ModulePath): make_module_path,
+		fullyname(PluginProvider): plugin_provider,
 	}
 	App(definitions).run(task)

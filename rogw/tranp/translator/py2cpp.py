@@ -1,6 +1,4 @@
-from enum import Enum
 import re
-from types import UnionType
 from typing import cast
 
 from rogw.tranp.analyze.procedure import Procedure
@@ -11,6 +9,8 @@ from rogw.tranp.ast.dsn import DSN
 import rogw.tranp.compatible.cpp.object as cpp
 import rogw.tranp.compatible.python.embed as __alias__
 from rogw.tranp.errors import LogicError
+from rogw.tranp.implements.cpp.analyze.cvars import CVars
+from rogw.tranp.lang.implementation import injectable
 import rogw.tranp.node.definition as defs
 from rogw.tranp.node.definition.statement_compound import ClassSymbolMaker
 from rogw.tranp.node.node import Node
@@ -21,18 +21,18 @@ from rogw.tranp.view.render import Renderer
 class Py2Cpp:
 	"""Python -> C++のトランスパイラー"""
 
+	@injectable
 	def __init__(self, symbols: Symbols, render: Renderer, options: TranslatorOptions) -> None:
 		"""インスタンスを生成
 
 		Args:
-			symbols (Symbols): シンボルリゾルバー
-			render (Renderer): ソースレンダー
-			options (TranslatorOptions): 実行オプション
+			symbols (Symbols): シンボルリゾルバー @inject
+			render (Renderer): ソースレンダー @inject
+			options (TranslatorOptions): 実行オプション @inject
 		"""
 		self.symbols = symbols
 		self.view = render
 		self.__procedure = self.__make_procedure(options)
-		self.__register_intercept_to_symbols()
 
 	def __make_procedure(self, options: TranslatorOptions) -> Procedure[str]:
 		"""プロシージャーを生成
@@ -48,18 +48,6 @@ class Py2Cpp:
 			procedure.on(key, handler)
 
 		return procedure
-
-	def __register_intercept_to_symbols(self) -> None:
-		"""シンボルリゾルバーにインターセプトハンドラーを登録
-
-		Note:
-			実体はProceduralResolverにon_enter系のイベントハンドラーを登録
-			@see ProceduralResolver.on
-		"""
-		handlers = {key: getattr(self, key) for key in Py2Cpp.__dict__.keys() if key.startswith('intercept_')}
-		for key, handler in handlers.items():
-			action = f'on_enter_{key.split('intercept_')[1]}'
-			self.symbols.on(action, handler)
 
 	def translate(self, root: Node) -> str:
 		"""起点のノードからASTを再帰的に解析し、C++にトランスパイル
@@ -167,24 +155,6 @@ class Py2Cpp:
 		else:
 			return self.view.render('cvar_move', vars={'move': move.name, 'value': value_str})
 
-	def unpack_cvar_raw(self, value_raw: SymbolRaw) -> SymbolRaw:
-		"""C++変数型を考慮し、シンボルの実体型を取得。C++のアドレス変数型以外はそのまま返却
-
-		Args:
-			value_raw (SymbolRaw): 値のシンボル
-		Returns:
-			SymbolRaw: シンボル
-		"""
-		if not CVars.is_addr(CVars.key_from(self.symbols, value_raw)):
-			return value_raw
-
-		# 実体の型を取得出来るまで参照元を辿る
-		for origin in value_raw.hierarchy():
-			if not CVars.is_addr(CVars.key_from(self.symbols, origin)):
-				return origin
-
-		raise LogicError(f'Unreachable code. value: {value_raw}')
-
 	def unpack_function_template_types(self, node: defs.Function) -> list[str]:
 		"""ファンクションのテンプレート型名をアンパック
 
@@ -199,51 +169,6 @@ class Py2Cpp:
 			.other_case().schema(lambda: {'parameters': function_raw.attrs[1:-1], 'returns': function_raw.attrs[-1]}) \
 			.build(reflection.Function)
 		return [types.domain_name for types in function_ref.templates()]
-
-	# Intercept
-
-	def intercept_factor(self, node: defs.Factor, operator: SymbolRaw, value: SymbolRaw) -> list[SymbolRaw]:
-		return [operator, self.unpack_cvar_raw(value)]
-
-	def intercept_not_compare(self, node: defs.NotCompare, operator: SymbolRaw, value: SymbolRaw) -> list[SymbolRaw]:
-		return [operator, self.unpack_cvar_raw(value)]
-
-	def intercept_or_compare(self, node: defs.OrCompare, elements: list[SymbolRaw]) -> list[SymbolRaw]:
-		return self.each_intercept_binary_operator(node, elements)
-
-	def intercept_and_compare(self, node: defs.AndCompare, elements: list[SymbolRaw]) -> list[SymbolRaw]:
-		return self.each_intercept_binary_operator(node, elements)
-
-	def intercept_comparison(self, node: defs.Comparison, elements: list[SymbolRaw]) -> list[SymbolRaw]:
-		return self.each_intercept_binary_operator(node, elements)
-
-	def intercept_or_bitwise(self, node: defs.OrBitwise, elements: list[SymbolRaw]) -> list[SymbolRaw]:
-		return self.each_intercept_binary_operator(node, elements)
-
-	def intercept_xor_bitwise(self, node: defs.XorBitwise, elements: list[SymbolRaw]) -> list[SymbolRaw]:
-		return self.each_intercept_binary_operator(node, elements)
-
-	def intercept_and_bitwise(self, node: defs.AndBitwise, elements: list[SymbolRaw]) -> list[SymbolRaw]:
-		return self.each_intercept_binary_operator(node, elements)
-
-	def intercept_shift_bitwise(self, node: defs.ShiftBitwise, elements: list[SymbolRaw]) -> list[SymbolRaw]:
-		return self.each_intercept_binary_operator(node, elements)
-
-	def intercept_sum(self, node: defs.Sum, elements: list[SymbolRaw]) -> list[SymbolRaw]:
-		return self.each_intercept_binary_operator(node, elements)
-
-	def intercept_term(self, node: defs.Term, elements: list[SymbolRaw]) -> list[SymbolRaw]:
-		return self.each_intercept_binary_operator(node, elements)
-
-	def each_intercept_binary_operator(self, node: defs.BinaryOperator, elements: list[SymbolRaw]) -> list[SymbolRaw]:
-		first = self.unpack_cvar_raw(elements[0])
-		unpacked_elements = [first]
-		for index in range(int((len(elements) - 1) / 2)):
-			operator = elements[index * 2 + 1]
-			right = self.unpack_cvar_raw(elements[index * 2 + 2])
-			unpacked_elements.extend([operator, right])
-
-		return unpacked_elements
 
 	# General
 
@@ -773,186 +698,3 @@ class Py2Cpp:
 
 	def on_fallback(self, node: Node) -> str:
 		return node.tokens
-
-
-class CVars:
-	"""C++変数型の操作ユーティリティー"""
-
-	class Moves(Enum):
-		"""移動操作の種別
-
-		Attributes:
-			Copy: 実体と実体、アドレスとアドレスのコピー
-			New: メモリ確保(生ポインター)
-			MakeSp: メモリ確保(スマートポインター)
-			ToActual: アドレス変数を実体参照
-			ToAddress: 実体からアドレス変数に変換
-			UnpackSp: スマートポインターから生ポインターに変換
-			Deny: 不正な移動操作
-		"""
-
-		Copy = 0
-		New = 1
-		MakeSp = 2
-		ToActual = 3
-		ToAddress = 4
-		UnpackSp = 5
-		Deny = 6
-
-	@classmethod
-	def analyze_move(cls, symbols: Symbols, accept: SymbolRaw, value: SymbolRaw, value_on_new: bool, declared: bool) -> Moves:
-		"""移動操作を解析
-
-		Args:
-			symbols (Symbols): シンボルリゾルバー
-			accept (SymbolRaw): 受け入れ側
-			value (SymbolRaw): 入力側
-			value_on_new (bool): True = インスタンス生成
-			declared (bool): True = 変数宣言時
-		Returns:
-			Moves: 移動操作の種別
-		"""
-		accept_key = cls.key_from(symbols, accept)
-		value_key = cls.key_from(symbols, value)
-		return cls.move_by(accept_key, value_key, value_on_new, declared)
-
-	@classmethod
-	def move_by(cls, accept_key: str, value_key: str, value_on_new: bool, declared: bool) -> Moves:
-		"""移動操作を解析
-
-		Args:
-			accept_key (str): 受け入れ側
-			value_key (str): 入力側
-			value_on_new (bool): True = インスタンス生成
-			declared (bool): True = 変数宣言時
-		Returns:
-			Moves: 移動操作の種別
-		"""
-		if cls.is_raw_ref(accept_key) and not declared:
-			return cls.Moves.Deny
-
-		if cls.is_addr_sp(accept_key) and cls.is_raw(value_key) and value_on_new:
-			return cls.Moves.MakeSp
-		elif cls.is_addr_p(accept_key) and cls.is_raw(value_key) and value_on_new:
-			return cls.Moves.New
-		elif cls.is_addr_p(accept_key) and cls.is_raw(value_key):
-			return cls.Moves.ToAddress
-		elif cls.is_raw(accept_key) and cls.is_addr(value_key):
-			return cls.Moves.ToActual
-		elif cls.is_addr_p(accept_key) and cls.is_addr_sp(value_key):
-			return cls.Moves.UnpackSp
-		elif cls.is_addr_p(accept_key) and cls.is_addr_p(value_key):
-			return cls.Moves.Copy
-		elif cls.is_addr_sp(accept_key) and cls.is_addr_sp(value_key):
-			return cls.Moves.Copy
-		elif cls.is_raw(accept_key) and cls.is_raw(value_key):
-			return cls.Moves.Copy
-		else:
-			return cls.Moves.Deny
-
-	@classmethod
-	def is_raw(cls, key: str) -> bool:
-		"""実体か判定
-
-		Args:
-			key (str): C++変数型の種別キー
-		Returns:
-			bool: True = 実体
-		"""
-		return key in [cpp.CRaw.__name__, cpp.CRef.__name__]
-
-	@classmethod
-	def is_addr(cls, key: str) -> bool:
-		"""アドレスか判定
-
-		Args:
-			key (str): C++変数型の種別キー
-		Returns:
-			bool: True = アドレス
-		"""
-		return key in [cpp.CP.__name__, cpp.CSP.__name__]
-
-	@classmethod
-	def is_raw_ref(cls, key: str) -> bool:
-		"""参照か判定
-
-		Args:
-			key (str): C++変数型の種別キー
-		Returns:
-			bool: True = 参照
-		"""
-		return key == cpp.CRef.__name__
-
-	@classmethod
-	def is_addr_p(cls, key: str) -> bool:
-		"""ポインターか判定
-
-		Args:
-			key (str): C++変数型の種別キー
-		Returns:
-			bool: True = ポインター
-		"""
-		return key == cpp.CP.__name__
-
-	@classmethod
-	def is_addr_sp(cls, key: str) -> bool:
-		"""スマートポインターか判定
-
-		Args:
-			key (str): C++変数型の種別キー
-		Returns:
-			bool: True = スマートポインター
-		"""
-		return key == cpp.CSP.__name__
-
-	@classmethod
-	def keys(cls) -> list[str]:
-		"""C++変数型の種別キー一覧を生成
-
-		Returns:
-			list[str]: 種別キー一覧
-		"""
-		return [cvar.__name__ for cvar in [cpp.CP, cpp.CSP, cpp.CRef, cpp.CRaw]]
-
-	@classmethod
-	def key_from(cls, symbols: Symbols, symbol: SymbolRaw) -> str:
-		"""シンボルからC++変数型の種別キーを取得
-
-		Args:
-			symbols (Symbols): シンボルリゾルバー
-			symbol (SymbolRaw): シンボル
-		Returns:
-			str: 種別キー
-		Note:
-			nullはポインターとして扱う
-		"""
-		if symbols.is_a(symbol, None):
-			return cpp.CP.__name__
-
-		var_type = cls.__resolve_var_type(symbols, symbol)
-		keys = [attr.types.symbol.tokens for attr in var_type.attrs]
-		if len(keys) > 0 and keys[0] in cls.keys():
-			return keys[0]
-
-		return cpp.CRaw.__name__
-
-	@classmethod
-	def __resolve_var_type(cls, symbols: Symbols, symbol: SymbolRaw) -> SymbolRaw:
-		"""シンボルの変数の型を解決(Nullableを考慮)
-
-		Args:
-			symbols (Symbols): シンボルリゾルバー
-			symbol (SymbolRaw): シンボル
-		Returns:
-			SymbolRaw: 変数の型
-		Note:
-			許容するNullableの書式 (例: 'Class[CP] | None')
-			@see Py2Cpp.on_union_type
-		"""
-		if symbols.is_a(symbol, UnionType) and len(symbol.attrs) == 2:
-			is_0_null = symbols.is_a(symbol.attrs[0], None)
-			is_1_null = symbols.is_a(symbol.attrs[1], None)
-			if is_0_null != is_1_null:
-				return symbol.attrs[1 if is_0_null else 0]
-
-		return symbol

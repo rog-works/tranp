@@ -1,7 +1,7 @@
 from types import UnionType
-from typing import Callable
 
 from rogw.tranp.analyze.db import SymbolDB
+from rogw.tranp.analyze.plugin import PluginProvider
 from rogw.tranp.analyze.symbol import SymbolRaw
 from rogw.tranp.analyze.procedure import Procedure
 import rogw.tranp.analyze.reflection as reflection
@@ -9,7 +9,8 @@ from rogw.tranp.analyze.finder import SymbolFinder
 import rogw.tranp.compatible.python.classes as classes
 from rogw.tranp.compatible.python.types import Primitives
 from rogw.tranp.errors import LogicError, NotFoundError
-from rogw.tranp.lang.implementation import injectable
+from rogw.tranp.lang.eventemitter import Callback
+from rogw.tranp.lang.implementation import implements, injectable
 import rogw.tranp.node.definition as defs
 from rogw.tranp.node.node import Node
 
@@ -18,16 +19,49 @@ class Symbols:
 	"""シンボルテーブルを参照してシンボルの型を解決する機能を提供"""
 
 	@injectable
-	def __init__(self, db: SymbolDB, finder: SymbolFinder) -> None:
+	def __init__(self, db: SymbolDB, finder: SymbolFinder, plugins: PluginProvider) -> None:
 		"""インスタンスを生成
 
 		Args:
 			db (SymbolDB): シンボルテーブル @inject
 			finder (SymbolFinder): シンボル検索 @inject
+			plugins (PluginProvider): プラグインプロバイダー @inject
 		"""
 		self.__raws = db.raws
 		self.__finder = finder
-		self.__handlers: dict[str, list[Callable[..., SymbolRaw]]] = {}
+		self.__handlers: dict[str, list[Callback[SymbolRaw]]] = {}
+
+		for plugin in plugins():
+			plugin.register(self)
+
+	@implements
+	def on(self, action: str, callback: Callback[SymbolRaw]) -> None:
+		"""イベントハンドラーを登録
+
+		Args:
+			action (str): アクション名
+			callback (Callback[SymbolRaw]): ハンドラー
+		Note:
+			@see eventemitter.IObservable を実装
+		"""
+		if action not in self.__handlers:
+			self.__handlers[action] = []
+
+		if callback not in self.__handlers[action]:
+			self.__handlers[action].append(callback)
+
+	@implements
+	def off(self, action: str, callback: Callback[SymbolRaw]) -> None:
+		"""イベントハンドラーを解除
+
+		Args:
+			action (str): アクション名
+			callback (Callback[SymbolRaw]): ハンドラー
+		Note:
+			@see eventemitter.IObservable を実装
+		"""
+		if action in self.__handlers:
+			self.__handlers[action].remove(callback)
 
 	def is_a(self, symbol: SymbolRaw, primitive_type: type[Primitives] | None) -> bool:
 		"""シンボルの型を判定
@@ -239,29 +273,6 @@ class Symbols:
 
 		return None
 
-	def on(self, action: str, handler: Callable[..., SymbolRaw]) -> None:
-		"""イベントハンドラーを登録
-
-		Args:
-			action (str): アクション名
-			handler (Callable[..., T_Ret]): ハンドラー
-		"""
-		if action not in self.__handlers:
-			self.__handlers[action] = []
-
-		if handler not in self.__handlers[action]:
-			self.__handlers[action].append(handler)
-
-	def off(self, action: str, handler: Callable[..., SymbolRaw]) -> None:
-		"""イベントハンドラーを解除
-
-		Args:
-			action (str): アクション名
-			handler (Callable[..., T_Ret]): ハンドラー
-		"""
-		if action in self.__handlers:
-			self.__handlers[action].remove(handler)
-
 	def __resolve_procedural(self, node: Node) -> SymbolRaw:
 		"""ノードを展開してシンボルを解決
 
@@ -305,12 +316,12 @@ class ProceduralResolver:
 
 		return procedure
 
-	def on(self, action: str, handler: Callable[..., SymbolRaw]) -> None:
+	def on(self, action: str, handler: Callback[SymbolRaw]) -> None:
 		"""イベントハンドラーを登録
 
 		Args:
 			action (str): アクション名
-			handler (Callable[..., T_Ret]): ハンドラー
+			handler (Callback[SymbolRaw]): ハンドラー
 		"""
 		self.__procedure.on(action, handler)
 

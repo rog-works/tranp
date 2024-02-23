@@ -135,7 +135,7 @@ class Procedure(Generic[T_Ret]):
 		if (begin - consumed) != len(results):
 			raise LogicError(f'Result not match. node: {node}, event: {begin - consumed}, results: {len(results)}')
 
-		self.__stack.extend(reversed(results))
+		self.__stack.extend(results)
 
 	def __exit(self, node: Node) -> None:
 		"""指定のノードのプロセス処理(実行後)

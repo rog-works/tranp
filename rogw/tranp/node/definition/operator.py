@@ -79,7 +79,7 @@ class Term(BinaryOperator): pass
 class TenaryOperator(Operator):
 	@property
 	@Meta.embed(Node, expandable)
-	def then(self) -> Node:
+	def primary(self) -> Node:
 		return self._at(0)
 
 	@property
@@ -89,5 +89,5 @@ class TenaryOperator(Operator):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def reject(self) -> Node:
+	def secondary(self) -> Node:
 		return self._at(2)

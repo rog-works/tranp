@@ -8,6 +8,7 @@
 			"options": [
 				"analyze.test_db.TestSymbolDB",
 				"analyze.test_symbols.TestSymbols.test_from_fullyname",
+				"analyze.test_symbols.TestSymbols.test_from_fullyname_error",
 				"analyze.test_symbols.TestSymbols.test_type_of",
 				"node.test_definition.TestDefinition.test_block",
 				"node.test_definition.TestDefinition.test_list_comp",

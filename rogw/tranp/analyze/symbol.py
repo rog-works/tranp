@@ -31,6 +31,7 @@ class Roles(Enum):
 	Generic = 'Generic'
 	Literal = 'Literal'
 	Reference = 'Reference'
+	Result = 'Result'
 
 	@property
 	def has_entity(self) -> bool:
@@ -824,12 +825,46 @@ class SymbolReference(Symbol):
 		return self._clone(origin=self.origin, via=self.via, context=self._context)
 
 
+class SymbolResult(Symbol):
+	def __init__(self, origin: 'ResultOrigins', via: defs.Operator) -> None:
+		"""インスタンスを生成
+
+		Args:
+			origin (ResultOrigins): スタックシンボル
+			via (Operator): 参照元のノード
+		"""
+		super().__init__(origin)
+		self._via = via
+
+	@property
+	@override
+	def via(self) -> defs.Node:
+		"""Node: 参照元のノード"""
+		return self._via
+
+	@property
+	@implements
+	def role(self) -> Roles:
+		"""Roles: シンボルの役割"""
+		return Roles.Result
+
+	@override
+	def clone(self) -> 'SymbolResult':
+		"""インスタンスを複製
+
+		Returns:
+			T_Sym: 複製したインスタンス
+		"""
+		return self._clone(origin=self.origin, via=self.via)
+
+
 ImportOrigins: TypeAlias = SymbolOrigin | SymbolVar
 ClassOrigins: TypeAlias = SymbolOrigin | SymbolImport
 VarOrigins: TypeAlias = SymbolOrigin | Symbol
 GenericOrigins: TypeAlias = SymbolOrigin | Symbol
 RefOrigins: TypeAlias = SymbolOrigin | Symbol
 LiteralOrigins: TypeAlias = SymbolClass
+ResultOrigins: TypeAlias = SymbolClass
 
 
 class SymbolWrapper:
@@ -903,3 +938,13 @@ class SymbolWrapper:
 			SymbolReference: シンボル
 		"""
 		return SymbolReference(self._raw.one_of(RefOrigins), via, context)
+
+	def result(self, via: defs.Operator) -> SymbolResult:
+		"""ラップしたシンボルを生成(結果系ノード用)
+
+		Args:
+			via (Operator): 結果系ノード ※現状は演算ノードのみ
+		Returns:
+			SymbolResult: シンボル
+		"""
+		return SymbolResult(self._raw.one_of(ResultOrigins), via)

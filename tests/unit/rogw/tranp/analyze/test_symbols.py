@@ -1,9 +1,11 @@
+import re
 from unittest import TestCase
 
 from rogw.tranp.analyze.symbols import Symbols
 from rogw.tranp.ast.dsn import DSN
 import rogw.tranp.compatible.python.classes as classes
 from rogw.tranp.compatible.python.types import Primitives
+from rogw.tranp.errors import LogicError
 from tests.test.fixture import Fixture
 from tests.test.helper import data_provider
 
@@ -12,7 +14,7 @@ def _ast(before: str, after: str) -> str:
 	_func = 'file_input.function_def'
 	_Base = 'file_input.class_def[7]'
 	_Sub = 'file_input.class_def[8]'
-	_Ops = 'file_input.class_def[9]'
+	_CalcOps = 'file_input.class_def[9]'
 	_AliasOps = 'file_input.class_def[10]'
 	_TupleOps = 'file_input.class_def[11]'
 	_CompOps = 'file_input.class_def[12]'
@@ -141,14 +143,16 @@ class TestSymbols(TestCase):
 		('__main__.Sub.decl_locals.if.for.i', 'int'),
 		('__main__.Sub.decl_locals.if.for.try.e', 'Exception'),
 
-		('__main__.Ops.sum.n', 'int'),
-		('__main__.Ops.sum.nb0', 'int'),
-		('__main__.Ops.sum.nb1', 'int'),
-		('__main__.Ops.sum.fn0', 'float'),
-		('__main__.Ops.sum.fn1', 'float'),
-		('__main__.Ops.sum.fn2', 'float'),
-		('__main__.Ops.sum.fb0', 'float'),
-		('__main__.Ops.sum.fb1', 'float'),
+		('__main__.CalcOps.sum.n', 'int'),
+		('__main__.CalcOps.sum.nb0', 'int'),
+		('__main__.CalcOps.sum.nb1', 'int'),
+		('__main__.CalcOps.sum.fn0', 'float'),
+		('__main__.CalcOps.sum.fn1', 'float'),
+		('__main__.CalcOps.sum.fn2', 'float'),
+		('__main__.CalcOps.sum.fb0', 'float'),
+		('__main__.CalcOps.sum.fb1', 'float'),
+		('__main__.CalcOps.tenary.n', 'int'),
+		('__main__.CalcOps.tenary.s_or_null', 'Union<str, None>'),
 
 		('__main__.AliasOps.func', 'func(AliasOps, Z2=Z) -> None'),
 		('__main__.AliasOps.func.z2', 'Z2=Z'),
@@ -195,6 +199,14 @@ class TestSymbols(TestCase):
 		symbols = self.fixture.get(Symbols)
 		symbol = symbols.from_fullyname(fullyname)
 		self.assertEqual(str(symbol), expected)
+
+	@data_provider([
+		('__main__.CalcOps.tenary.n_or_s', r'Tenary operation allowes only Nullable.'),
+	])
+	def test_from_fullyname_error(self, fullyname: str, expected: re.Pattern[str]) -> None:
+		symbols = self.fixture.get(Symbols)
+		with self.assertRaisesRegex(LogicError, expected):
+			str(symbols.from_fullyname(fullyname))
 
 	@data_provider([
 		(int, _mod('classes', int.__name__)),

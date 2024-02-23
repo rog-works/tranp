@@ -661,6 +661,20 @@ class ProceduralResolver:
 		}
 		return operators[operator]
 
+	def on_tenary_operator(self, node: defs.TenaryOperator, primary: SymbolRaw, condition: SymbolRaw, secondary: SymbolRaw) -> SymbolRaw:
+		"""Note: 返却型が異なる場合はNullableのUnion型のみ許可する"""
+		if primary == secondary:
+			return primary
+
+		primary_is_null = self.symbols.is_a(primary, None)
+		secondary_is_null = self.symbols.is_a(secondary, None)
+		if primary_is_null == secondary_is_null:
+			raise LogicError(f'Tenary operation allowes only Nullable. node: {node}, primary: {primary}, secondary: {secondary}')
+
+		var_type = secondary if primary_is_null else primary
+		null_type = primary if primary_is_null else secondary
+		return self.symbols.type_of_primitive(UnionType).to.result(node).extends(var_type, null_type)
+
 	# Literal
 
 	def on_integer(self, node: defs.Integer) -> SymbolRaw:

@@ -75,7 +75,7 @@ class Sub(Base):
 		a1 = a + 1
 		a = a1 + 1
 
-class Ops:
+class CalcOps:
 	def sum(self) -> None:
 		n = 1 + 1
 		nb0 = 1 + True
@@ -85,6 +85,11 @@ class Ops:
 		fn2 = 1.0 + 1.0
 		fb0 = 1.0 + True
 		fb1 = True + 1.0
+
+	def tenary(self) -> None:
+		n = 1 if 2 else 3
+		s_or_null = 'a' if n else None
+		n_or_s = 1 if n else 'a'  # エラーケース
 
 class AliasOps:
 	def func(self, z2: Z2) -> None:

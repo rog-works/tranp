@@ -95,6 +95,7 @@ def symbol_mapping() -> SymbolMapping:
 			'shift_expr': defs.ShiftBitwise,
 			'sum': defs.Sum,
 			'term': defs.Term,
+			'tenary_test': defs.TenaryOperator,
 			# 'group_expr': defs.Group,
 			# -- Literal --
 			'number': defs.Number,

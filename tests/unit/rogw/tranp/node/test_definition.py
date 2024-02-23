@@ -824,6 +824,16 @@ class TestDefinition(TestCase):
 			else:
 				self.assertEqual(type(element), in_expected)
 
+	@data_provider([
+		('a if b else c', 'file_input.tenary_test', {'then': defs.Variable, 'condition': defs.Variable, 'reject': defs.Variable}),
+		('a = 1 if True else 2', 'file_input.assign.tenary_test', {'then': defs.Integer, 'condition': defs.Truthy, 'reject': defs.Integer}),
+	])
+	def test_tenary_operator(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.TenaryOperator)
+		self.assertEqual(type(node.then), expected['then'])
+		self.assertEqual(type(node.condition), expected['condition'])
+		self.assertEqual(type(node.reject), expected['reject'])
+
 	# Literal
 
 	@data_provider([

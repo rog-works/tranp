@@ -4,7 +4,10 @@ from rogw.tranp.node.embed import Meta, accept_tags, expandable
 from rogw.tranp.node.node import Node
 
 
-class UnaryOperator(Node):
+class Operator(Node): ...
+
+
+class UnaryOperator(Operator):
 	@property
 	@override
 	def tokens(self) -> str:
@@ -21,7 +24,7 @@ class UnaryOperator(Node):
 		return self._at(1)
 
 
-class BinaryOperator(Node):
+class BinaryOperator(Operator):
 	@property
 	@Meta.embed(Node, expandable)
 	def elements(self) -> list[Node]:
@@ -70,3 +73,21 @@ class Sum(BinaryOperator): pass
 
 @Meta.embed(Node, accept_tags('term'))
 class Term(BinaryOperator): pass
+
+
+@Meta.embed(Node, accept_tags('tenary_test'))
+class TenaryOperator(Operator):
+	@property
+	@Meta.embed(Node, expandable)
+	def then(self) -> Node:
+		return self._at(0)
+
+	@property
+	@Meta.embed(Node, expandable)
+	def condition(self) -> Node:
+		return self._at(1)
+
+	@property
+	@Meta.embed(Node, expandable)
+	def reject(self) -> Node:
+		return self._at(2)

@@ -129,15 +129,89 @@ class CellMesh:
 		return IntVector(x, y, z)
 
 	@classmethod
+	def need_cell_face_indexs(cls, need_cell_index: int) -> list[int]:
+		"""必須セルに必要な6面インデックスを取得
+
+		Args:
+			need_cell_index (int): 必須セルインデックス
+		Returns:
+			list[int]: 6面インデックスリスト
+		Note:
+			needCells専用
+		"""
+		to_faces = {
+			int(cls.NeedCellIndexs.Bottom0): [int(cls.FaceIndexs.Bottom), int(cls.FaceIndexs.Back)],
+			int(cls.NeedCellIndexs.Bottom1): [int(cls.FaceIndexs.Bottom), int(cls.FaceIndexs.Left)],
+			int(cls.NeedCellIndexs.Bottom2): [int(cls.FaceIndexs.Bottom), int(cls.FaceIndexs.Right)],
+			int(cls.NeedCellIndexs.Bottom3): [int(cls.FaceIndexs.Bottom), int(cls.FaceIndexs.Front)],
+			int(cls.NeedCellIndexs.Middle0): [int(cls.FaceIndexs.Back), int(cls.FaceIndexs.Left)],
+			int(cls.NeedCellIndexs.Middle1): [int(cls.FaceIndexs.Back), int(cls.FaceIndexs.Right)],
+			int(cls.NeedCellIndexs.Middle2): [int(cls.FaceIndexs.Front), int(cls.FaceIndexs.Left)],
+			int(cls.NeedCellIndexs.Middle3): [int(cls.FaceIndexs.Front), int(cls.FaceIndexs.Right)],
+			int(cls.NeedCellIndexs.Top0): [int(cls.FaceIndexs.Top), int(cls.FaceIndexs.Back)],
+			int(cls.NeedCellIndexs.Top1): [int(cls.FaceIndexs.Top), int(cls.FaceIndexs.Left)],
+			int(cls.NeedCellIndexs.Top2): [int(cls.FaceIndexs.Top), int(cls.FaceIndexs.Right)],
+			int(cls.NeedCellIndexs.Top3): [int(cls.FaceIndexs.Top), int(cls.FaceIndexs.Front)],
+		}
+		return to_faces[need_cell_index]
+
+	@classmethod
+	def around_need_cell_face_indexs(cls, face_index: int) -> list[int]:
+		"""
+		6面方向の先のセルの周辺に存在する必須セルへの方向を示す6面インデックスを取得
+
+		Args:
+			face_index (int): 6面インデックス
+		Returns:
+			list[int]: 6面インデックスリスト
+		Note:
+			needCells専用
+		"""
+		to_faces = {
+			int(cls.FaceIndexs.Left): [int(cls.FaceIndexs.Back), int(cls.FaceIndexs.Front), int(cls.FaceIndexs.Bottom), int(cls.FaceIndexs.Top)],
+			int(cls.FaceIndexs.Right): [int(cls.FaceIndexs.Back), int(cls.FaceIndexs.Front), int(cls.FaceIndexs.Bottom), int(cls.FaceIndexs.Top)],
+			int(cls.FaceIndexs.Back): [int(cls.FaceIndexs.Left), int(cls.FaceIndexs.Right), int(cls.FaceIndexs.Bottom), int(cls.FaceIndexs.Top)],
+			int(cls.FaceIndexs.Front): [int(cls.FaceIndexs.Left), int(cls.FaceIndexs.Right), int(cls.FaceIndexs.Bottom), int(cls.FaceIndexs.Top)],
+			int(cls.FaceIndexs.Bottom): [int(cls.FaceIndexs.Left), int(cls.FaceIndexs.Right), int(cls.FaceIndexs.Back), int(cls.FaceIndexs.Front)],
+			int(cls.FaceIndexs.Top): [int(cls.FaceIndexs.Left), int(cls.FaceIndexs.Right), int(cls.FaceIndexs.Back), int(cls.FaceIndexs.Front)],
+		}
+		return to_faces[face_index]
+
+	@classmethod
+	def offset_cell_to_face_index(cls, offset_cell: IntVector) -> int:
+		"""
+		オフセットセル座標(3x3x3)を6面インデックスに変換
+
+		Args:
+			offset_cell (IntVector): オフセットセル座標(3x3x3)
+		Returns:
+			int: 6面インデックス
+		"""
+		offset_index = cls.offset_cell_to_index(offset_cell)
+		to_faces = {
+			int(cls.OffsetIndexs.Left): int(cls.FaceIndexs.Left),
+			int(cls.OffsetIndexs.Right): int(cls.FaceIndexs.Right),
+			int(cls.OffsetIndexs.Back): int(cls.FaceIndexs.Back),
+			int(cls.OffsetIndexs.Front): int(cls.FaceIndexs.Front),
+			int(cls.OffsetIndexs.Bottom): int(cls.FaceIndexs.Bottom),
+			int(cls.OffsetIndexs.Top): int(cls.FaceIndexs.Top),
+		}
+		if offset_index not in to_faces:
+			print('Fatal Error! offset_index: %d', offset_index)
+			return 0
+
+		return to_faces[offset_index]
+
+	@classmethod
 	def face_index_to_vector(cls, face_index: int) -> IntVector:
 		"""6面インデックスからベクトルに変換
 
 		Args:
 			face_index (int): 6面インデックス
 		Returns:
-			FIntVector: ベクトル
+			IntVector: ベクトル
 		"""
-		map: dict[CellMesh.FaceIndexs, IntVector] = {
+		to_vector: dict[CellMesh.FaceIndexs, IntVector] = {
 			CellMesh.FaceIndexs.Left: IntVector(-1, 0, 0),
 			CellMesh.FaceIndexs.Right: IntVector(1, 0, 0),
 			CellMesh.FaceIndexs.Back: IntVector(0, -1, 0),
@@ -145,7 +219,7 @@ class CellMesh:
 			CellMesh.FaceIndexs.Bottom: IntVector(0, 0, -1),
 			CellMesh.FaceIndexs.Top: IntVector(0, 0, 1),
 		}
-		return map[CellMesh.FaceIndexs(face_index)]
+		return to_vector[CellMesh.FaceIndexs(face_index)]
 
 	@classmethod
 	def to_cell_box(cls, cell: IntVector, unit: int) -> Box3d:

@@ -114,12 +114,139 @@ class CellMesh {
 		return IntVector(x, y, z);
 	}
 	/**
+	 * 必須セルに必要な6面インデックスを取得
+	 * @param needCellIndex 必須セルインデックス
+	 * @return 6面インデックスリスト
+	 * @note needCells専用
+	 */
+	public: static std::vector<int> need_cell_face_indexs(int need_cell_index) {
+		std::map<int, list<int>> to_faces = {
+			{(int)(CellMesh::NeedCellIndexs::Bottom0), {
+			{(int)(CellMesh::FaceIndexs::Bottom)},
+			{(int)(CellMesh::FaceIndexs::Back)},
+		}},
+			{(int)(CellMesh::NeedCellIndexs::Bottom1), {
+			{(int)(CellMesh::FaceIndexs::Bottom)},
+			{(int)(CellMesh::FaceIndexs::Left)},
+		}},
+			{(int)(CellMesh::NeedCellIndexs::Bottom2), {
+			{(int)(CellMesh::FaceIndexs::Bottom)},
+			{(int)(CellMesh::FaceIndexs::Right)},
+		}},
+			{(int)(CellMesh::NeedCellIndexs::Bottom3), {
+			{(int)(CellMesh::FaceIndexs::Bottom)},
+			{(int)(CellMesh::FaceIndexs::Front)},
+		}},
+			{(int)(CellMesh::NeedCellIndexs::Middle0), {
+			{(int)(CellMesh::FaceIndexs::Back)},
+			{(int)(CellMesh::FaceIndexs::Left)},
+		}},
+			{(int)(CellMesh::NeedCellIndexs::Middle1), {
+			{(int)(CellMesh::FaceIndexs::Back)},
+			{(int)(CellMesh::FaceIndexs::Right)},
+		}},
+			{(int)(CellMesh::NeedCellIndexs::Middle2), {
+			{(int)(CellMesh::FaceIndexs::Front)},
+			{(int)(CellMesh::FaceIndexs::Left)},
+		}},
+			{(int)(CellMesh::NeedCellIndexs::Middle3), {
+			{(int)(CellMesh::FaceIndexs::Front)},
+			{(int)(CellMesh::FaceIndexs::Right)},
+		}},
+			{(int)(CellMesh::NeedCellIndexs::Top0), {
+			{(int)(CellMesh::FaceIndexs::Top)},
+			{(int)(CellMesh::FaceIndexs::Back)},
+		}},
+			{(int)(CellMesh::NeedCellIndexs::Top1), {
+			{(int)(CellMesh::FaceIndexs::Top)},
+			{(int)(CellMesh::FaceIndexs::Left)},
+		}},
+			{(int)(CellMesh::NeedCellIndexs::Top2), {
+			{(int)(CellMesh::FaceIndexs::Top)},
+			{(int)(CellMesh::FaceIndexs::Right)},
+		}},
+			{(int)(CellMesh::NeedCellIndexs::Top3), {
+			{(int)(CellMesh::FaceIndexs::Top)},
+			{(int)(CellMesh::FaceIndexs::Front)},
+		}},
+		};
+		return to_faces[need_cell_index];
+	}
+	/**
+	 * 6面方向の先のセルの周辺に存在する必須セルへの方向を示す6面インデックスを取得
+	 * @param faceIndex 6面インデックス
+	 * @return 6面インデックスリスト
+	 * @note needCells専用
+	 */
+	public: static std::vector<int> around_need_cell_face_indexs(int face_index) {
+		std::map<int, list<int>> to_faces = {
+			{(int)(CellMesh::FaceIndexs::Left), {
+			{(int)(CellMesh::FaceIndexs::Back)},
+			{(int)(CellMesh::FaceIndexs::Front)},
+			{(int)(CellMesh::FaceIndexs::Bottom)},
+			{(int)(CellMesh::FaceIndexs::Top)},
+		}},
+			{(int)(CellMesh::FaceIndexs::Right), {
+			{(int)(CellMesh::FaceIndexs::Back)},
+			{(int)(CellMesh::FaceIndexs::Front)},
+			{(int)(CellMesh::FaceIndexs::Bottom)},
+			{(int)(CellMesh::FaceIndexs::Top)},
+		}},
+			{(int)(CellMesh::FaceIndexs::Back), {
+			{(int)(CellMesh::FaceIndexs::Left)},
+			{(int)(CellMesh::FaceIndexs::Right)},
+			{(int)(CellMesh::FaceIndexs::Bottom)},
+			{(int)(CellMesh::FaceIndexs::Top)},
+		}},
+			{(int)(CellMesh::FaceIndexs::Front), {
+			{(int)(CellMesh::FaceIndexs::Left)},
+			{(int)(CellMesh::FaceIndexs::Right)},
+			{(int)(CellMesh::FaceIndexs::Bottom)},
+			{(int)(CellMesh::FaceIndexs::Top)},
+		}},
+			{(int)(CellMesh::FaceIndexs::Bottom), {
+			{(int)(CellMesh::FaceIndexs::Left)},
+			{(int)(CellMesh::FaceIndexs::Right)},
+			{(int)(CellMesh::FaceIndexs::Back)},
+			{(int)(CellMesh::FaceIndexs::Front)},
+		}},
+			{(int)(CellMesh::FaceIndexs::Top), {
+			{(int)(CellMesh::FaceIndexs::Left)},
+			{(int)(CellMesh::FaceIndexs::Right)},
+			{(int)(CellMesh::FaceIndexs::Back)},
+			{(int)(CellMesh::FaceIndexs::Front)},
+		}},
+		};
+		return to_faces[face_index];
+	}
+	/**
+	 * オフセットセル座標(3x3x3)を6面インデックスに変換
+	 * @param offset_cell オフセットセル座標(3x3x3)
+	 * @return 6面インデックス
+	 */
+	public: static int offset_cell_to_face_index(IntVector offset_cell) {
+		int offset_index = CellMesh::offset_cell_to_index(offset_cell);
+		std::map<int, int> to_faces = {
+			{(int)(CellMesh::OffsetIndexs::Left), (int)(CellMesh::FaceIndexs::Left)},
+			{(int)(CellMesh::OffsetIndexs::Right), (int)(CellMesh::FaceIndexs::Right)},
+			{(int)(CellMesh::OffsetIndexs::Back), (int)(CellMesh::FaceIndexs::Back)},
+			{(int)(CellMesh::OffsetIndexs::Front), (int)(CellMesh::FaceIndexs::Front)},
+			{(int)(CellMesh::OffsetIndexs::Bottom), (int)(CellMesh::FaceIndexs::Bottom)},
+			{(int)(CellMesh::OffsetIndexs::Top), (int)(CellMesh::FaceIndexs::Top)},
+		};
+		if (offset_index not.in to_faces) {
+			printf("Fatal Error! offset_index: %d", offset_index);
+			return 0;
+		}
+		return to_faces[offset_index];
+	}
+	/**
 	 * 6面インデックスからベクトルに変換
 	 * @param face_index 6面インデックス
 	 * @return ベクトル
 	 */
 	public: static IntVector face_index_to_vector(int face_index) {
-		std::map<CellMesh::FaceIndexs, IntVector> map = {
+		std::map<CellMesh::FaceIndexs, IntVector> to_vector = {
 			{CellMesh::FaceIndexs::Left, IntVector(-1, 0, 0)},
 			{CellMesh::FaceIndexs::Right, IntVector(1, 0, 0)},
 			{CellMesh::FaceIndexs::Back, IntVector(0, -1, 0)},
@@ -127,7 +254,7 @@ class CellMesh {
 			{CellMesh::FaceIndexs::Bottom, IntVector(0, 0, -1)},
 			{CellMesh::FaceIndexs::Top, IntVector(0, 0, 1)},
 		};
-		return map[CellMesh::FaceIndexs(face_index)];
+		return to_vector[CellMesh::FaceIndexs(face_index)];
 	}
 	/**
 	 * セルのバウンドボックスを取得

@@ -88,7 +88,8 @@ class CalcOps:
 
 	def tenary(self) -> None:
 		n = 1 if 2 else 3
-		s_or_null = 'a' if n else None
+		s = 'a' if True else 'b'
+		s_or_null = 'a' if n else None  # エラーケース
 		n_or_s = 1 if n else 'a'  # エラーケース
 
 class AliasOps:

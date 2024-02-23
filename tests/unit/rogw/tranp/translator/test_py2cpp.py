@@ -1,4 +1,5 @@
 import os
+import re
 from unittest import TestCase
 
 from rogw.tranp.analyze.symbols import Symbols
@@ -231,6 +232,8 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarOps.binary_calc.block', 'assign[3]'), defs.MoveAssign, 'Base div = a / *(ap);'),
 		(_ast('CVarOps.binary_calc.block', 'assign[4]'), defs.MoveAssign, 'Base calc = a + *(ap) * a - *(ap) / a;'),
 
+		(_ast('CVarOps.tenary_calc.block', 'assign[0]'), defs.MoveAssign, 'Base a2 = true ? a : Base();'),
+
 		(_ast('FuncOps.print.block', 'funccall'), defs.FuncCall, 'printf("message. %d, %f, %s", 1, 1.0, "abc");'),
 
 		(_ast('EnumOps.Values', ''), defs.Enum, '/** Values */\npublic: enum class Values {\n\tA = 0,\n\tB = 1,\n};'),
@@ -318,25 +321,28 @@ class TestPy2Cpp(TestCase):
 		self.assertEqual(actual, expected)
 
 	@data_provider([
-		(_ast('CVarOps.local_move.block', 'if_stmt[6].block.assign[0]'), defs.MoveAssign),
-		(_ast('CVarOps.local_move.block', 'if_stmt[6].block.assign[1]'), defs.MoveAssign),
-		(_ast('CVarOps.local_move.block', 'if_stmt[6].block.assign[3]'), defs.MoveAssign),
-		(_ast('CVarOps.local_move.block', 'if_stmt[7].block.assign[0]'), defs.MoveAssign),
-		(_ast('CVarOps.local_move.block', 'if_stmt[7].block.assign[1]'), defs.MoveAssign),
-		(_ast('CVarOps.local_move.block', 'if_stmt[7].block.assign[2]'), defs.MoveAssign),
-		(_ast('CVarOps.local_move.block', 'if_stmt[7].block.assign[3]'), defs.MoveAssign),
+		(_ast('CVarOps.local_move.block', 'if_stmt[6].block.assign[0]'), r'Unacceptable value move.'),
+		(_ast('CVarOps.local_move.block', 'if_stmt[6].block.assign[1]'), r'Unacceptable value move.'),
+		(_ast('CVarOps.local_move.block', 'if_stmt[6].block.assign[3]'), r'Unacceptable value move.'),
+		(_ast('CVarOps.local_move.block', 'if_stmt[7].block.assign[0]'), r'Unacceptable value move.'),
+		(_ast('CVarOps.local_move.block', 'if_stmt[7].block.assign[1]'), r'Unacceptable value move.'),
+		(_ast('CVarOps.local_move.block', 'if_stmt[7].block.assign[2]'), r'Unacceptable value move.'),
+		(_ast('CVarOps.local_move.block', 'if_stmt[7].block.assign[3]'), r'Unacceptable value move.'),
 
-		(_ast('CVarOps.param_move.block', 'assign[6]'), defs.MoveAssign),
-		(_ast('CVarOps.param_move.block', 'assign[7]'), defs.MoveAssign),
+		(_ast('CVarOps.param_move.block', 'assign[6]'), r'Unacceptable value move.'),
+		(_ast('CVarOps.param_move.block', 'assign[7]'), r'Unacceptable value move.'),
 
-		(_ast('CVarOps.invoke_method.block', 'funccall[0]'), defs.FuncCall),
-		(_ast('CVarOps.invoke_method.block', 'funccall[1]'), defs.FuncCall),
+		(_ast('CVarOps.invoke_method.block', 'funccall[0]'), r'Unacceptable value move.'),
+		(_ast('CVarOps.invoke_method.block', 'funccall[1]'), r'Unacceptable value move.'),
 
-		(_ast('Nullable.invalid_params', ''), defs.Method),
-		(_ast('Nullable.invalid_returns', ''), defs.Method),
+		(_ast('CVarOps.tenary_calc.block', 'assign[1]'), r'Tenary operation not allowed.'),
+		(_ast('CVarOps.tenary_calc.block', 'assign[2]'), r'Tenary operation not allowed.'),
+
+		(_ast('Nullable.invalid_params', ''), r'Unexpected UnionType.'),
+		(_ast('Nullable.invalid_returns', ''), r'Unexpected UnionType.'),
 	])
-	def test_exec_error(self, full_path: str, expected_type: type[Node]) -> None:
+	def test_exec_error(self, full_path: str, expected: re.Pattern) -> None:
 		translator = self.translator()
-		node = self.fixture.shared_nodes.by(full_path).as_a(expected_type)
-		with self.assertRaises(LogicError):
+		node = self.fixture.shared_nodes.by(full_path)
+		with self.assertRaisesRegex(LogicError, expected):
 			translator.translate(node)

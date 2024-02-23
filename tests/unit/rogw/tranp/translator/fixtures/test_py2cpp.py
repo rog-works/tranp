@@ -88,8 +88,9 @@ class CVarOps:
 		calc = a + ap * a - ap / a
 
 	def tenary_calc(self, a: Base, ap: Base[CP]) -> None:
-		neg_a = -a
-		neg_ap = -ap
+		a2 = a if True else Base()
+		ap_or_null = ap if True else None  # エラーケース
+		a_or_ap = a if True else ap  # エラーケース
 
 class FuncOps:
 	def print(self) -> None:

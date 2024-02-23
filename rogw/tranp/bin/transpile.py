@@ -21,12 +21,14 @@ class Args:
 		self.grammar = args['grammar']
 		self.source = args['source']
 		self.template_dir = args['template_dir']
+		self.verbose = args['verbose'] == 'on'
 
 	def __parse_argv(self, argv: list[str]) -> dict[str, str]:
 		args = {
-			'grammar': '',
-			'source': '',
-			'template_dir': '', 
+			'grammar': 'data/grammar.lark',
+			'source': 'example/example.py',
+			'template_dir': 'example/template',
+			'verbose': 'off',
 		}
 		while argv:
 			arg = argv.pop(0)
@@ -36,6 +38,8 @@ class Args:
 				args['source'] = argv.pop(0)
 			elif arg == '-t':
 				args['template_dir'] = argv.pop(0)
+			elif arg == '-v':
+				args['verbose'] = 'on'
 
 		return args
 
@@ -50,8 +54,8 @@ def make_renderer(args: Args) -> Renderer:
 	return Renderer(args.template_dir)
 
 
-def make_options() -> TranslatorOptions:
-	return TranslatorOptions(verbose=True)
+def make_options(args: Args) -> TranslatorOptions:
+	return TranslatorOptions(verbose=args.verbose)
 
 
 def make_parser_setting(args: Args) -> ParserSetting:

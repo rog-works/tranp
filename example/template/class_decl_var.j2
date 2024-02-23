@@ -1,5 +1,0 @@
-{%- if is_static -%}
-{{- access }}: static {% include 'type_py2cpp.j2' %} {{ symbol -}};
-{%- else -%}
-{{- access }}: {% include 'type_py2cpp.j2' %} {{ symbol -}};
-{%- endif -%}

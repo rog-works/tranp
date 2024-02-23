@@ -1,8 +1,4 @@
-{%- if var_type.startswith('list') -%}
-std::vector<{{ var_type[5:-1] }}>
-{%- elif var_type.startswith('dict') -%}
-std::map<{{ var_type[5:-1] }}>
-{%- elif var_type.endswith('<CP>') -%}
+{%- if var_type.endswith('<CP>') -%}
 {{ var_type[:-4] }}*
 {%- elif var_type.endswith('<CSP>') -%}
 std::shared_ptr<{{ var_type[:-5] }}>

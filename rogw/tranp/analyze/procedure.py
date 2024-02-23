@@ -120,11 +120,13 @@ class Procedure(Generic[T_Ret]):
 		if not self.__emitter.observed(handler_name):
 			return
 
+		begin = len(self.__stack)
 		event = self.__make_event(node)
+		consumed = len(self.__stack)
 		result = self.__emit_proxy(handler_name, node, **event)
 		results = cast(list[T_Ret], result)  # FIXME 公開しているイベントハンドラーの定義と異なる形式を期待
-		if len(event) != len(results):
-			raise LogicError(f'Result not match. node: {node}, event: {len(event)}, results: {len(results)}')
+		if (begin - consumed) != len(results):
+			raise LogicError(f'Result not match. node: {node}, event: {begin - consumed}, results: {len(results)}')
 
 		self.__stack.extend(reversed(results))
 

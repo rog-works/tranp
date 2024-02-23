@@ -227,6 +227,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarOps.binary_calc.block', 'assign[3]'), defs.MoveAssign, 'Base sub = a - *(ap);'),
 		(_ast('CVarOps.binary_calc.block', 'assign[4]'), defs.MoveAssign, 'Base mul = a * *(ap);'),
 		(_ast('CVarOps.binary_calc.block', 'assign[5]'), defs.MoveAssign, 'Base div = a / *(ap);'),
+		(_ast('CVarOps.binary_calc.block', 'assign[6]'), defs.MoveAssign, 'Base calc = a + *(ap) * a - *(ap) / a;'),
 
 		(_ast('FuncOps.print.block', 'funccall'), defs.FuncCall, 'printf("message. %d, %f, %s", 1, 1.0, "abc");'),
 

@@ -82,6 +82,7 @@ class CVarOps:
 		sub = a - ap
 		mul = a * ap
 		div = a / ap
+		calc = a + ap * a - ap / a
 
 class FuncOps:
 	def print(self) -> None:

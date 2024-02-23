@@ -23,6 +23,7 @@ class Base(CObject):
 	def __sub__(self, other: Base) -> Base: ...
 	def __mul__(self, other: Base) -> Base: ...
 	def __truediv__(self, other: Base) -> Base: ...
+	def __neg__(self) -> Base: ...
 
 class CVarOps:
 	def ret_raw(self) -> Base:
@@ -75,14 +76,20 @@ class CVarOps:
 		self.invoke_method(ap, ap, ap)  # エラーケース
 		self.invoke_method(asp, asp, asp)  # エラーケース
 
-	def binary_calc(self) -> None:
-		a = Base()
-		ap: Base[CP] = a
+	def unary_calc(self, a: Base, ap: Base[CP]) -> None:
+		neg_a = -a
+		neg_a2 = -ap
+
+	def binary_calc(self, a: Base, ap: Base[CP]) -> None:
 		add = a + ap
 		sub = a - ap
 		mul = a * ap
 		div = a / ap
 		calc = a + ap * a - ap / a
+
+	def tenary_calc(self, a: Base, ap: Base[CP]) -> None:
+		neg_a = -a
+		neg_ap = -ap
 
 class FuncOps:
 	def print(self) -> None:

@@ -44,7 +44,9 @@ def _ast(before: str, after: str) -> str:
 		'CVarOps.local_move.block': f'{_CVarOps}.class_def_raw.block.function_def[3].function_def_raw.block',
 		'CVarOps.param_move.block': f'{_CVarOps}.class_def_raw.block.function_def[4].function_def_raw.block',
 		'CVarOps.invoke_method.block': f'{_CVarOps}.class_def_raw.block.function_def[5].function_def_raw.block',
-		'CVarOps.binary_calc.block': f'{_CVarOps}.class_def_raw.block.function_def[6].function_def_raw.block',
+		'CVarOps.unary_calc.block': f'{_CVarOps}.class_def_raw.block.function_def[6].function_def_raw.block',
+		'CVarOps.binary_calc.block': f'{_CVarOps}.class_def_raw.block.function_def[7].function_def_raw.block',
+		'CVarOps.tenary_calc.block': f'{_CVarOps}.class_def_raw.block.function_def[8].function_def_raw.block',
 
 		'FuncOps.print.block': f'{_FuncOps}.class_def_raw.block.function_def.function_def_raw.block',
 
@@ -220,13 +222,14 @@ class TestPy2Cpp(TestCase):
 
 		(_ast('CVarOps.invoke_method.block', 'funccall[2]'), defs.FuncCall, 'this->invoke_method(*(asp), (asp).get(), asp);'),
 
-		(_ast('CVarOps.binary_calc.block', 'assign[0]'), defs.MoveAssign, 'Base a = Base();'),
-		(_ast('CVarOps.binary_calc.block', 'anno_assign'), defs.AnnoAssign, 'Base* ap = &(a);'),
-		(_ast('CVarOps.binary_calc.block', 'assign[2]'), defs.MoveAssign, 'Base add = a + *(ap);'),
-		(_ast('CVarOps.binary_calc.block', 'assign[3]'), defs.MoveAssign, 'Base sub = a - *(ap);'),
-		(_ast('CVarOps.binary_calc.block', 'assign[4]'), defs.MoveAssign, 'Base mul = a * *(ap);'),
-		(_ast('CVarOps.binary_calc.block', 'assign[5]'), defs.MoveAssign, 'Base div = a / *(ap);'),
-		(_ast('CVarOps.binary_calc.block', 'assign[6]'), defs.MoveAssign, 'Base calc = a + *(ap) * a - *(ap) / a;'),
+		(_ast('CVarOps.unary_calc.block', 'assign[0]'), defs.MoveAssign, 'Base neg_a = -a;'),
+		(_ast('CVarOps.unary_calc.block', 'assign[1]'), defs.MoveAssign, 'Base neg_a2 = -*(ap);'),
+
+		(_ast('CVarOps.binary_calc.block', 'assign[0]'), defs.MoveAssign, 'Base add = a + *(ap);'),
+		(_ast('CVarOps.binary_calc.block', 'assign[1]'), defs.MoveAssign, 'Base sub = a - *(ap);'),
+		(_ast('CVarOps.binary_calc.block', 'assign[2]'), defs.MoveAssign, 'Base mul = a * *(ap);'),
+		(_ast('CVarOps.binary_calc.block', 'assign[3]'), defs.MoveAssign, 'Base div = a / *(ap);'),
+		(_ast('CVarOps.binary_calc.block', 'assign[4]'), defs.MoveAssign, 'Base calc = a + *(ap) * a - *(ap) / a;'),
 
 		(_ast('FuncOps.print.block', 'funccall'), defs.FuncCall, 'printf("message. %d, %f, %s", 1, 1.0, "abc");'),
 

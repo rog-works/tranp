@@ -24,18 +24,8 @@ class UnaryOperator(Node):
 class BinaryOperator(Node):
 	@property
 	@Meta.embed(Node, expandable)
-	def left(self) -> Node:
-		return self._at(0)
-
-	@property
-	@Meta.embed(Node, expandable)
-	def operator(self) -> Terminal:
-		return self._at(1).as_a(Terminal)
-
-	@property
-	@Meta.embed(Node, expandable)
-	def right(self) -> list[Node]:
-		return self._children()[2:]
+	def elements(self) -> list[Node]:
+		return self._children()
 
 
 @Meta.embed(Node, accept_tags('factor'))

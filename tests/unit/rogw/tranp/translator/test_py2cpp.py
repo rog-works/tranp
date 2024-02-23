@@ -13,6 +13,7 @@ from rogw.tranp.translator.py2cpp import Py2Cpp
 from rogw.tranp.view.render import Renderer
 from tests.test.fixture import Fixture
 from tests.test.helper import data_provider, profiler
+from tests.unit.rogw.tranp.translator.fixtures.test_py2cpp_expect import BlockExpects
 
 
 def _ast(before: str, after: str) -> str:
@@ -105,86 +106,6 @@ def _ast(before: str, after: str) -> str:
 	return DSN.join(aliases[before], after)
 
 
-class BlockExpects:
-	CompOps_list_comp_assign_values1 = \
-"""std::vector<int> values1 = [this, &]() -> std::vector<int> {
-	std::vector<int> __ret;
-	for (auto& value : values0) {
-		__ret.push_back(value);
-	}
-	return __ret;
-}();"""
-
-	CompOps_dict_comp_assign_kvs1 = \
-"""std::map<std::string, CompOps::C> kvs1 = [this, &]() -> std::map<std::string, CompOps::C> {
-	std::map<std::string, CompOps::C> __ret;
-	for (auto& [key, value] : kvs0.items()) {
-		__ret.emplace({key, value});
-	}
-	return __ret;
-}();"""
-
-	ForOps_enumerate_for_index_key = \
-"""for (auto& [index, key] : [&]() -> std::map<int, std::string> {
-	std::map<int, std::string> __ret;
-	int __index = 0;
-	for (auto& __entry : keys) {
-		__ret.emplace(__index++, __entry);
-	}
-	return __ret;
-}()) {
-
-}"""
-
-	ListOps_pop_assign_value0 = \
-"""int value0 = [&]() -> int {
-	auto __iter = values.begin() + 1;
-	auto __copy = *__iter;
-	values.erase(__iter);
-	return __copy;
-}();"""
-
-	ListOps_pop_assign_value1 = \
-"""int value1 = [&]() -> int {
-	auto __iter = values.end() - 1;
-	auto __copy = *__iter;
-	values.erase(__iter);
-	return __copy;
-}();"""
-
-	DictOps_pop_assign_value0 = \
-"""int value0 = [&]() -> int {
-	auto __copy = values["a"];
-	values.erase("a");
-	return __copy;
-}();"""
-
-	DictOps_pop_assign_value1 = \
-"""int value1 = [&]() -> int {
-	auto __copy = values["b"];
-	values.erase("b");
-	return __copy;
-}();"""
-
-	DictOps_keys_assign_keys = \
-"""std::vector<std::string> keys = [&]() -> std::vector<std::string> {
-	std::vector<std::string> __ret;
-	for (auto [__key, _] : kvs) {
-		__ret.push_back(__key);
-	}
-	return __ret;
-}();"""
-
-	DictOps_values_assign_values = \
-"""std::vector<int> values = [&]() -> std::vector<int> {
-	std::vector<int> __ret;
-	for (auto [_, __value] : kvs) {
-		__ret.push_back(__value);
-	}
-	return __ret;
-}();"""
-
-
 class TestPy2Cpp(TestCase):
 	fixture = Fixture.make(__file__)
 
@@ -200,7 +121,7 @@ class TestPy2Cpp(TestCase):
 
 		(_ast('DSI', ''), defs.AltClass, 'using DSI = std::map<std::string, int>;'),
 
-		(_ast('DeclOps', ''), defs.Class, '/** DeclOps */\nclass DeclOps {\n\tpublic: static Base* class_var = nullptr;\n\tpublic: Base* inst_var;\n\t/** Constructor */\n\tpublic: DeclOps() : inst_var(nullptr) {\n\t}\n};'),
+		(_ast('DeclOps', ''), defs.Class, BlockExpects.DeclOps),
 
 		(_ast('CVarOps.ret_raw.return', ''), defs.Return, 'return Base();'),
 		(_ast('CVarOps.ret_cp.return', ''), defs.Return, 'return new Base();'),

@@ -26,7 +26,8 @@ class Base(CObject):
 	def __neg__(self) -> Base: ...
 
 class DeclOps:
-	class_var: Base[CP] | None = None
+	class_bp: Base[CP] | None = None
+	class_map: dict[str, dict[str, list[int]]] = {'a': {'b': [1]}}
 
 	def __init__(self) -> None:
 		self.inst_var: Base[CP] | None = None

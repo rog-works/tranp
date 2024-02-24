@@ -448,7 +448,7 @@ class ProceduralResolver:
 				# XXX (例: '__class_getitem__(cls: type[T], *: Any) -> Any')
 				class_type = getitem.attrs[0].attrs[0] if len(getitem.attrs[0].attrs) > 0 else getitem.attrs[0]
 				getitem_ref = reflection.Builder(getitem) \
-					.schema(lambda: {'klass': class_type, 'parameters': getitem.attrs[1:-2], 'returns': getitem.attrs[-1]}) \
+					.schema(lambda: {'klass': class_type, 'parameters': getitem.attrs[1:-1], 'returns': getitem.attrs[-1]}) \
 					.build(reflection.ClassMethod)
 				return getitem_ref.returns(receiver, *getitem.attrs[1:-2])
 			except NotFoundError:
@@ -612,23 +612,35 @@ class ProceduralResolver:
 	def proc_binary_operator(self, node: defs.BinaryOperator, left: SymbolRaw, operator: defs.Terminal, right: SymbolRaw) -> SymbolRaw:
 		method_name = self.operator_to_method_name(operator.tokens)
 
-		# FIXME __class_getitem__と同様にクラスチェーンを考慮する必要あり
-		in_left = [method for method in left.types.as_a(defs.Class).methods if method.domain_name == method_name]
-		in_right = [method for method in right.types.as_a(defs.Class).methods if method.domain_name == method_name]
-		methods = [*in_left, *in_right]
-		if len(methods) == 0:
-			raise LogicError(f'Operation not allowed. {node}, {str(left)} {operator.tokens} {str(right)}')
+		operands: list[SymbolRaw] = [left, right]
+		methods: list[SymbolRaw | None] = [None, None]
+		for index, operand in enumerate(operands):
+			try:
+				methods[index] = self.symbols.resolve(operand.types, method_name)
+			except NotFoundError:
+				pass
 
-		for method in methods:
-			with_left = method in in_left
-			other = method.parameters[-1]
-			var_types = other.var_type.or_types if isinstance(other.var_type, defs.UnionType) else [other.var_type]
-			for var_type in var_types:
-				type_raw = self.symbols.resolve(var_type.as_a(defs.Type))
-				if (with_left and type_raw == right) or (not with_left and type_raw == left):
-					return self.symbols.resolve(method.return_type)
+		if methods[0] is None and methods[1] is None:
+			raise LogicError(f'Operation not allowed. {method_name} not defined. {node}, {str(left)} {operator.tokens} {str(right)}')
 
-		raise LogicError(f'Operation not allowed. {node}, {str(left)} {operator.tokens} {str(right)}')
+		for index, candidate in enumerate(methods):
+			if candidate is None:
+				continue
+
+			method = candidate
+			method_ref = reflection.Builder(method) \
+				.schema(lambda: {'klass': method.attrs[0], 'parameters': method.attrs[1:-1], 'returns': method.attrs[-1]}) \
+				.build(reflection.Method)
+
+			with_left = index == 0
+			receiver = left if with_left else right
+			other = right if with_left else left
+			actual_other = method_ref.parameter(0, receiver, other)
+			var_types = actual_other.attrs if self.symbols.is_a(actual_other, UnionType) else [actual_other]
+			if other in var_types:
+				return method.attrs[-1]
+
+		raise LogicError(f'Operation not allowed. signature not match. {node}, {str(left)} {operator.tokens} {str(right)}')
 
 	def operator_to_method_name(self, operator: str) -> str:
 		operators = {

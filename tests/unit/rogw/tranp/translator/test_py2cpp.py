@@ -2,10 +2,13 @@ import os
 import re
 from unittest import TestCase
 
+from rogw.tranp.analyze.plugin import PluginProvider
 from rogw.tranp.analyze.symbols import Symbols
 from rogw.tranp.app.io import appdir
 from rogw.tranp.ast.dsn import DSN
 from rogw.tranp.errors import LogicError
+from rogw.tranp.implements.cpp.providers.analyze import plugin_provider
+from rogw.tranp.lang.module import fullyname
 import rogw.tranp.node.definition as defs
 from rogw.tranp.node.node import Node
 from rogw.tranp.translator.option import TranslatorOptions
@@ -110,7 +113,7 @@ def _ast(before: str, after: str) -> str:
 
 
 class TestPy2Cpp(TestCase):
-	fixture = Fixture.make(__file__)
+	fixture = Fixture.make(__file__, {fullyname(PluginProvider): plugin_provider})
 
 	def translator(self) -> Py2Cpp:
 		renderer = Renderer(os.path.join(appdir(), 'example/template'))

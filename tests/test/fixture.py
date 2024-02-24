@@ -1,13 +1,11 @@
 import os
 from typing import cast
 
-from rogw.tranp.analyze.plugin import PluginProvider
 from rogw.tranp.app.app import App
 from rogw.tranp.app.io import appdir
 from rogw.tranp.ast.entry import Entry
 from rogw.tranp.ast.parser import SyntaxParser
 from rogw.tranp.ast.query import Query
-from rogw.tranp.implements.cpp.providers.analyze import plugin_provider
 from rogw.tranp.io.cache import CacheProvider
 from rogw.tranp.lang.di import ModuleDefinitions
 from rogw.tranp.lang.locator import T_Inst
@@ -23,11 +21,12 @@ class Fixture:
 	"""フィクスチャーマネージャー"""
 
 	@classmethod
-	def make(cls, filepath: str) -> 'Fixture':
+	def make(cls, filepath: str, definitions: ModuleDefinitions = {}) -> 'Fixture':
 		"""インスタンスを生成
 
 		Args:
 			filepath (str): テストファイルのパス
+			definitions (ModuleDefinitions): モジュール定義 (default = {})
 		Returns:
 			Fixture: インスタンス
 		Examples:
@@ -40,16 +39,17 @@ class Fixture:
 		without_ext = rel_path.split('.')[0]
 		elems =  [elem for elem in without_ext.split(os.path.sep) if elem]
 		test_module_path = '.'.join(elems)
-		return cls(test_module_path)
+		return cls(test_module_path, definitions)
 
-	def __init__(self, test_module_path: str) -> None:
+	def __init__(self, test_module_path: str, definitions: ModuleDefinitions) -> None:
 		"""インスタンスを生成
 
 		Args:
 			test_module_path (str): テストファイルのモジュールパス
+			definitions (ModuleDefinitions): モジュール定義
 		"""
 		self.__test_module_path = test_module_path
-		self.__app = App(self.__definitions())
+		self.__app = App({**self.__definitions(), **definitions})
 
 	def __definitions(self) -> ModuleDefinitions:
 		"""モジュール定義を生成
@@ -57,10 +57,7 @@ class Fixture:
 		Returns:
 			ModuleDefinitions: モジュール定義
 		"""
-		return {
-			fullyname(ModulePath): self.__module_path,
-			fullyname(PluginProvider): plugin_provider,  # XXX C++用を使うと遅くなるので利用範囲を限定する方法を検討
-		}
+		return {fullyname(ModulePath): self.__module_path}
 
 	def __module_path(self) -> ModulePath:
 		"""メインモジュールのモジュールパスを取得

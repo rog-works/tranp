@@ -196,6 +196,10 @@ class ListOps:
 		value0 = values.pop(1)
 		value1 = values.pop()
 
+	def contains(self) -> None:
+		values = [1]
+		b = 1 in values
+
 class DictOps:
 	def len(self) -> None:
 		kvs = {'a': 1}

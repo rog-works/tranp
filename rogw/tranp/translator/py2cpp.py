@@ -132,11 +132,11 @@ class Py2Cpp:
 
 		return self.to_cvar_value(move, value_str)
 
-	def calculable_cvar_value(self, value_node: Node, value_str: str) -> str:
+	def calculable_cvar_value(self, value_raw: SymbolRaw, value_str: str) -> str:
 		"""受け入れ出来る形式に変換(1,2項演算用)
 
 		Args:
-			value_node (Node): 値ノード
+			value_raw (SymbolRaw): 値のシンボル
 			value_str (str): 入力値
 		Returns:
 			str: 変換後の入力値
@@ -145,10 +145,6 @@ class Py2Cpp:
 			* `not_v = !${value_str};`
 			* `add_v = left + ${value_str};`
 		"""
-		if value_node.is_a(defs.Literal):
-			return value_str
-
-		value_raw = self.symbols.type_of(value_node)
 		if CVars.is_addr(CVars.key_from(self.symbols, value_raw)):
 			return self.to_cvar_value(CVars.Moves.ToActual, value_str)
 
@@ -592,6 +588,10 @@ class Py2Cpp:
 		return self.accepted_cvar_value(parameter, arg_node.value, arg_value, arg_value_str)
 
 	def analyze_func_call_spec(self, node: defs.FuncCall, calls: str) -> tuple[str, SymbolRaw | None]:
+		"""
+		Note:
+			FIXME callsは__alias__によって別名になる可能性があるため、実装名が欲しい場合はノードから直接取得すること。全体的な見直しが必要かも
+		"""
 		if calls == 'directive':
 			return 'directive', None
 		elif calls == 'len':
@@ -601,7 +601,6 @@ class Py2Cpp:
 		elif isinstance(node.calls, defs.Variable) and node.calls.tokens == 'list':
 			return 'new_list', None
 		elif isinstance(node.calls, defs.Variable) and node.calls.tokens in ['int', 'float', 'bool', 'str']:
-			# FIXME callsは__alias__によって別名になる可能性があるためノードから直接取得。全体的に見直しが必要そう
 			org_calls = node.calls.tokens
 			casted_types = {'int': int, 'float': float, 'bool': bool, 'str': str}
 			from_raw = self.symbols.type_of(node.arguments[0])
@@ -637,11 +636,11 @@ class Py2Cpp:
 	# Operator
 
 	def on_factor(self, node: defs.Factor, operator: str, value: str) -> str:
-		calculable_value = self.calculable_cvar_value(node.value, value)
+		calculable_value = self.calculable_cvar_value(self.symbols.type_of(node.value), value)
 		return self.view.render('unary_operator', vars={'operator': operator, 'value': calculable_value})
 
 	def on_not_compare(self, node: defs.NotCompare, operator: str, value: str) -> str:
-		calculable_value = self.calculable_cvar_value(node.value, value)
+		calculable_value = self.calculable_cvar_value(self.symbols.type_of(node.value), value)
 		return self.view.render('unary_operator', vars={'operator': '!', 'value': calculable_value})
 
 	def on_or_compare(self, node: defs.OrCompare, elements: list[str]) -> str:
@@ -673,14 +672,15 @@ class Py2Cpp:
 
 	def proc_binary_operator(self, node: defs.BinaryOperator, elements: list[str]) -> str:
 		node_of_elements = node.elements
-		first = self.calculable_cvar_value(node_of_elements[0], elements[0])
-		calculatable_elements = [first]
+		left_raw = self.symbols.type_of(node_of_elements[0])
+		left = self.calculable_cvar_value(left_raw, elements[0])
 		for index in range(int((len(elements) - 1) / 2)):
 			operator = elements[index * 2 + 1]
-			right = self.calculable_cvar_value(node_of_elements[index * 2 + 2], elements[index * 2 + 2])
-			calculatable_elements.extend([operator, right])
+			right_raw = self.symbols.type_of(node_of_elements[index * 2 + 2])
+			right = self.calculable_cvar_value(right_raw, elements[index * 2 + 2])
+			left = self.view.render('binary_operator', vars={'left': left, 'operator': operator, 'right': right, 'right_is_dict': self.symbols.is_a(right_raw, dict)})
 
-		return self.view.render('binary_operator', vars={'elements': calculatable_elements})
+		return left
 
 	def on_tenary_operator(self, node: defs.TenaryOperator, primary: str, condition: str, secondary: str) -> str:
 		return self.view.render(node.classification, vars={'primary': primary, 'condition': condition, 'secondary': secondary})

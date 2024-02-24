@@ -14,6 +14,12 @@ class Vector(CObject):
 	def __sub__(self, other: 'Vector | float | int') -> 'Vector':
 		raise NotImplementedError()
 
+	def __mul__(self, other: 'Vector | float | int') -> 'Vector':
+		raise NotImplementedError()
+
+	def __truediv__(self, other: 'Vector | float | int') -> 'Vector':
+		raise NotImplementedError()
+
 class IntVector(CObject):
 	def __init__(self, x: int, y: int, z: int) -> None:
 		self.x: int = x

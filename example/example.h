@@ -257,6 +257,40 @@ class CellMesh {
 		return to_vector[CellMesh::FaceIndexs(face_index)];
 	}
 	/**
+	 * 6面インデックスを反転
+	 * @param face_index 6面インデックス
+	 * @return 反転した6面インデックス
+	 */
+	public: static int invert_face_index(int face_index) {
+		std::map<int, int> to_faces = {
+			{(int)(CellMesh::FaceIndexs::Left), (int)(CellMesh::FaceIndexs::Right)},
+			{(int)(CellMesh::FaceIndexs::Right), (int)(CellMesh::FaceIndexs::Left)},
+			{(int)(CellMesh::FaceIndexs::Back), (int)(CellMesh::FaceIndexs::Front)},
+			{(int)(CellMesh::FaceIndexs::Front), (int)(CellMesh::FaceIndexs::Back)},
+			{(int)(CellMesh::FaceIndexs::Bottom), (int)(CellMesh::FaceIndexs::Top)},
+			{(int)(CellMesh::FaceIndexs::Top), (int)(CellMesh::FaceIndexs::Bottom)},
+		};
+		return to_faces[face_index];
+	}
+	/**
+	 * 面のバウンドボックスから6面インデックスに変換
+	 * @param face_box 面のバウンドボックス
+	 * @param unit 単位
+	 * @return 6面インデックス
+	 */
+	public: static int face_box_to_face_index(Box3d face_box, int unit) {
+		Vector cell_center_location = face_box.min + unit / 2;
+		IntVector cell = CellMesh::to_cell(cell_center_location, unit);
+		Vector cell_base_location = CellMesh::from_cell(cell, unit);
+		Vector face_size = face_box.max - face_box.min;
+		Vector face_offset_location = face_box.min - cell_base_location;
+		Vector face_center_location = (face_offset_location + face_size) * 3 / 2;
+		IntVector face_offset = CellMesh::to_cell(face_center_location, unit);
+		int face_index = CellMesh::offset_cell_to_face_index(face_offset);
+		printf("cell: (%d, %d, %d), face_offset: (%d, %d, %d), face_size: (%.2f, %.2f, %.2f), cell_base_location: (%.2f, %.2f, %.2f), cell_center_location: (%.2f, %.2f, %.2f), face_offset_location: (%.2f, %.2f, %.2f), face_center_location: (%.2f, %.2f, %.2f), result: %d", cell.x, cell.y, cell.z, face_offset.x, face_offset.y, face_offset.z, face_size.x, face_size.y, face_size.z, cell_base_location.x, cell_base_location.y, cell_base_location.z, cell_center_location.x, cell_center_location.y, cell_center_location.z, face_offset_location.x, face_offset_location.y, face_offset_location.z, face_center_location.x, face_center_location.y, face_center_location.z, face_index);
+		return face_index;
+	}
+	/**
 	 * セルのバウンドボックスを取得
 	 * @param cell セル座標
 	 * @param unit 単位
@@ -294,6 +328,27 @@ class CellMesh {
 			}
 			return __ret;
 		}();
+	}
+	/**
+	 * セルの6面を囲うバウンドボックスを取得
+
+	囲うために実際のバウンドボックスより10%大きいサイズになる点に注意
+	 * @param coll_box セルのバウンドボックス
+	 * @param unit 単位
+	 * @return 面毎のバウンドボックスリスト
+	 */
+	public: static std::vector<Box3d> to_polygon_boxs(Box3d cell_box, int unit) {
+		float offset = unit / 10;
+		Vector min = cell_box.min;
+		Vector max = cell_box.max;
+		return {
+			{Box3d(Vector(min.x - offset, min.y - offset, min.z - offset), Vector(min.x + offset, max.y + offset, max.z + offset))},
+			{Box3d(Vector(max.x - offset, min.y - offset, min.z - offset), Vector(max.x + offset, max.y + offset, max.z + offset))},
+			{Box3d(Vector(min.x - offset, min.y - offset, min.z - offset), Vector(max.x + offset, min.y + offset, max.z + offset))},
+			{Box3d(Vector(min.x - offset, max.y - offset, min.z - offset), Vector(max.x + offset, max.y + offset, max.z + offset))},
+			{Box3d(Vector(min.x - offset, min.y - offset, min.z - offset), Vector(max.x + offset, max.y + offset, min.z + offset))},
+			{Box3d(Vector(min.x - offset, min.y - offset, max.z - offset), Vector(max.x + offset, max.y + offset, max.z + offset))},
+		};
 	}
 	/**
 	 * セルの8頂点の頂点IDを取得する

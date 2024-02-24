@@ -222,6 +222,46 @@ class CellMesh:
 		return to_vector[CellMesh.FaceIndexs(face_index)]
 
 	@classmethod
+	def invert_face_index(cls, face_index: int) -> int:
+		"""6面インデックスを反転
+
+		Args:
+			face_index (int): 6面インデックス
+		Returns:
+			int: 反転した6面インデックス
+		"""
+		to_faces = {
+			int(cls.FaceIndexs.Left): int(cls.FaceIndexs.Right),
+			int(cls.FaceIndexs.Right): int(cls.FaceIndexs.Left),
+			int(cls.FaceIndexs.Back): int(cls.FaceIndexs.Front),
+			int(cls.FaceIndexs.Front): int(cls.FaceIndexs.Back),
+			int(cls.FaceIndexs.Bottom): int(cls.FaceIndexs.Top),
+			int(cls.FaceIndexs.Top): int(cls.FaceIndexs.Bottom),
+		}
+		return to_faces[face_index]
+
+	@classmethod
+	def face_box_to_face_index(cls, face_box: Box3d, unit: int) -> int:
+		"""面のバウンドボックスから6面インデックスに変換
+
+		Args:
+			face_box (Box3d): 面のバウンドボックス
+			unit (int): 単位
+		Returns:
+			int: 6面インデックス
+		"""
+		cell_center_location = face_box.min + unit / 2
+		cell = cls.to_cell(cell_center_location, unit)
+		cell_base_location = cls.from_cell(cell, unit)
+		face_size = face_box.max - face_box.min
+		face_offset_location = face_box.min - cell_base_location
+		face_center_location = (face_offset_location + face_size) * 3 / 2
+		face_offset = cls.to_cell(face_center_location, unit)
+		face_index = cls.offset_cell_to_face_index(face_offset)
+		print('cell: (%d, %d, %d), face_offset: (%d, %d, %d), face_size: (%.2f, %.2f, %.2f), cell_base_location: (%.2f, %.2f, %.2f), cell_center_location: (%.2f, %.2f, %.2f), face_offset_location: (%.2f, %.2f, %.2f), face_center_location: (%.2f, %.2f, %.2f), result: %d', cell.x, cell.y, cell.z, face_offset.x, face_offset.y, face_offset.z, face_size.x, face_size.y, face_size.z, cell_base_location.x, cell_base_location.y, cell_base_location.z, cell_center_location.x, cell_center_location.y, cell_center_location.z, face_offset_location.x, face_offset_location.y, face_offset_location.z, face_center_location.x, face_center_location.y, face_center_location.z, face_index)
+		return face_index
+
+	@classmethod
 	def to_cell_box(cls, cell: IntVector, unit: int) -> Box3d:
 		"""セルのバウンドボックスを取得
 
@@ -259,6 +299,29 @@ class CellMesh:
 			Vector(min.x, max.y, max.z),
 		]
 		return [Box3d(position - offset,  position + offset) for position in positions]
+
+	@classmethod
+	def to_polygon_boxs(cls, cell_box: Box3d, unit: int) -> list[Box3d]:
+		"""セルの6面を囲うバウンドボックスを取得
+		囲うために実際のバウンドボックスより10%大きいサイズになる点に注意
+
+		Args:
+			coll_box (Box3d): セルのバウンドボックス
+			unit (int): 単位
+		Returns:
+			list[Box3d]: 面毎のバウンドボックスリスト
+		"""
+		offset = unit / 10
+		min = cell_box.min
+		max = cell_box.max
+		return [
+			Box3d(Vector(min.x - offset, min.y - offset, min.z - offset), Vector(min.x + offset, max.y + offset, max.z + offset)),
+			Box3d(Vector(max.x - offset, min.y - offset, min.z - offset), Vector(max.x + offset, max.y + offset, max.z + offset)),
+			Box3d(Vector(min.x - offset, min.y - offset, min.z - offset), Vector(max.x + offset, min.y + offset, max.z + offset)),
+			Box3d(Vector(min.x - offset, max.y - offset, min.z - offset), Vector(max.x + offset, max.y + offset, max.z + offset)),
+			Box3d(Vector(min.x - offset, min.y - offset, min.z - offset), Vector(max.x + offset, max.y + offset, min.z + offset)),
+			Box3d(Vector(min.x - offset, min.y - offset, max.z - offset), Vector(max.x + offset, max.y + offset, max.z + offset)),
+		]
 
 	@classmethod
 	def by_vertex_ids(cls, mesh: Mesh[CP], cell: IntVector, unit: int) -> list[int]:

@@ -1,7 +1,7 @@
 {%- if operator == 'in' and right_is_dict -%}
 {{ right }}.contains({{ left }})
 {%- elif operator == 'not.in' and right_is_dict -%}
-(!{{ right }}.contains({{ operator }} {{ left }}))
+(!{{ right }}.contains({{ left }}))
 {%- elif operator == 'in' and not right_is_dict -%}
 (std::find({{ right }}.begin(), {{ right }}.end(), {{ left }}) != {{ right }}.end())
 {%- elif operator == 'not.in' and not right_is_dict -%}

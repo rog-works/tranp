@@ -198,7 +198,8 @@ class ListOps:
 
 	def contains(self) -> None:
 		values = [1]
-		b = 1 in values
+		b_in = 1 in values
+		b_not_in = 1 not in values
 
 class DictOps:
 	def len(self) -> None:
@@ -220,6 +221,11 @@ class DictOps:
 
 	def decl(self) -> None:
 		d = {1: [1, 2, 3]}
+
+	def contains(self) -> None:
+		d = {'a': 1}
+		b_in = 'a' in d
+		b_not_in = 'a' not in d
 
 class CastOps:
 	def cast_binary(self) -> None:

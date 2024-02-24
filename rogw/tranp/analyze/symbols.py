@@ -611,7 +611,6 @@ class ProceduralResolver:
 
 	def proc_binary_operator(self, node: defs.BinaryOperator, left: SymbolRaw, operator: defs.Terminal, right: SymbolRaw) -> SymbolRaw:
 		method_name = self.operator_to_method_name(operator.tokens)
-
 		operands: list[SymbolRaw] = [left, right]
 		methods: list[SymbolRaw | None] = [None, None]
 		for index, operand in enumerate(operands):

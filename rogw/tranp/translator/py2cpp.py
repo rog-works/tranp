@@ -435,22 +435,18 @@ class Py2Cpp:
 		def is_this_var() -> bool:
 			return node.receiver.is_a(defs.ThisRef)
 
-		def is_static_access() -> bool:
+		def is_class_access() -> bool:
 			# XXX superは一般的には親クラスのインスタンスへの参照だが、C++ではクラス参照と同じ修飾子によってアクセスするため、例外的に判定に加える
 			is_class_alias = isinstance(node.receiver, (defs.ClassRef, defs.Super))
-			# XXX clsとsuperを除くクラス参照の場合は、必ず「A」または「A.B」の形式になる。その場合、シンボルの完全参照名の末尾と必ず一致する
-			# XXX @see Symbols.on_relay
-			# is_class_access = node.receiver.is_a(defs.Relay, defs.Variable) and receiver_symbol.types.fullyname.endswith(node.receiver.domain_name)
-			# FIXME Symbolsと一貫性がないがこの判定の方が期待通りの結果になる
-			is_class_access = node.receiver.is_a(defs.Relay, defs.Variable) and receiver_symbol.decl.is_a(defs.Class)
-			return is_class_alias or is_class_access
+			is_class_var_relay = node.receiver.is_a(defs.Relay, defs.Variable) and receiver_symbol.decl.is_a(defs.Class)
+			return is_class_alias or is_class_var_relay
 
 		if is_cvar_receiver():
 			cvar_type = receiver_symbol.attrs[0].types.symbol.tokens
 			return self.view.render(node.classification, vars={'receiver': receiver, 'accessor': cvar_type, 'prop': prop})
 		elif is_this_var():
 			return self.view.render(node.classification, vars={'receiver': receiver, 'accessor': 'arrow', 'prop': prop})
-		elif is_static_access():
+		elif is_class_access():
 			return self.view.render(node.classification, vars={'receiver': receiver, 'accessor': 'static', 'prop': prop})
 		else:
 			return self.view.render(node.classification, vars={'receiver': receiver, 'accessor': 'dot', 'prop': prop})

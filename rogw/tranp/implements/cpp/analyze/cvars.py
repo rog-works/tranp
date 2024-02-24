@@ -14,11 +14,11 @@ class CVars:
 		"""移動操作の種別
 
 		Attributes:
-			Copy: 実体と実体、アドレスとアドレスのコピー
+			Copy: 同種のコピー(実体 = 実体、アドレス = アドレス)
 			New: メモリ確保(生ポインター)
 			MakeSp: メモリ確保(スマートポインター)
 			ToActual: アドレス変数を実体参照
-			ToAddress: 実体からアドレス変数に変換
+			ToAddress: 実体/参照から生ポインターに変換
 			UnpackSp: スマートポインターから生ポインターに変換
 			Deny: 不正な移動操作
 		"""
@@ -30,6 +30,19 @@ class CVars:
 		ToAddress = 4
 		UnpackSp = 5
 		Deny = 6
+
+	class Accessors(Enum):
+		"""アクセス修飾子の種別
+
+		Attributes:
+			Raw: 実体/参照
+			Address: ポインター/スマートポインター
+			Static: クラス
+		"""
+
+		Raw = 0
+		Address = 1
+		Static = 2
 
 	@classmethod
 	def analyze_move(cls, symbols: Symbols, accept: SymbolRaw, value: SymbolRaw, value_on_new: bool, declared: bool) -> Moves:
@@ -199,3 +212,20 @@ class CVars:
 				return symbol.attrs[1 if is_0_null else 0]
 
 		return symbol
+
+	@classmethod
+	def to_accessor(cls, key: str) -> Accessors:
+		"""C++変数型に応じたアクセス修飾子に変換
+
+		Args:
+			key (str): C++変数型の種別キー
+		Returns:
+			Accessors: アクセス修飾子種別
+		"""
+		accessors = {
+			cpp.CRaw.__name__: cls.Accessors.Raw,
+			cpp.CRef.__name__: cls.Accessors.Raw,
+			cpp.CP.__name__: cls.Accessors.Address,
+			cpp.CSP.__name__: cls.Accessors.Address,
+		}
+		return accessors[key]

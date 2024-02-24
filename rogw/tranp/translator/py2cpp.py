@@ -424,15 +424,16 @@ class Py2Cpp:
 
 	def on_relay(self, node: defs.Relay, receiver: str) -> str:
 		receiver_symbol = self.symbols.type_of(node.receiver)
+		accessor = self.analyze_relay_accessor(node, receiver_symbol)
 		prop_symbol = self.symbols.type_of_property(receiver_symbol.types, node.prop)
-		prop = node.prop.tokens
+		prop = node.prop.domain_name
 		if isinstance(prop_symbol.decl, defs.ClassDef):
 			prop = ClassSymbolMaker.domain_name(prop_symbol.types, use_alias=True)
 
-		def is_cvar_receiver() -> bool:
-			return len(receiver_symbol.attrs) > 0 and receiver_symbol.attrs[0].types.symbol.tokens in CVars.keys()
+		return self.view.render(node.classification, vars={'receiver': receiver, 'accessor': accessor, 'prop': prop})
 
-		def is_this_var() -> bool:
+	def analyze_relay_accessor(self, node: defs.Relay, receiver_symbol: SymbolRaw) -> str:
+		def is_this_access() -> bool:
 			return node.receiver.is_a(defs.ThisRef)
 
 		def is_class_access() -> bool:
@@ -441,15 +442,17 @@ class Py2Cpp:
 			is_class_var_relay = node.receiver.is_a(defs.Relay, defs.Variable) and receiver_symbol.decl.is_a(defs.Class)
 			return is_class_alias or is_class_var_relay
 
-		if is_cvar_receiver():
-			cvar_type = receiver_symbol.attrs[0].types.symbol.tokens
-			return self.view.render(node.classification, vars={'receiver': receiver, 'accessor': cvar_type, 'prop': prop})
-		elif is_this_var():
-			return self.view.render(node.classification, vars={'receiver': receiver, 'accessor': 'arrow', 'prop': prop})
+		def is_cspec_access() -> bool:
+			return not CVars.is_raw_raw(CVars.key_from(self.symbols, receiver_symbol))
+
+		if is_this_access():
+			return CVars.Accessors.Address.name
 		elif is_class_access():
-			return self.view.render(node.classification, vars={'receiver': receiver, 'accessor': 'static', 'prop': prop})
+			return CVars.Accessors.Static.name
+		elif is_cspec_access():
+			return CVars.to_accessor(CVars.key_from(self.symbols, receiver_symbol)).name
 		else:
-			return self.view.render(node.classification, vars={'receiver': receiver, 'accessor': 'dot', 'prop': prop})
+			return CVars.Accessors.Raw.name
 
 	def on_class_ref(self, node: defs.ClassRef) -> str:
 		return node.class_symbol.tokens
@@ -532,7 +535,7 @@ class Py2Cpp:
 		elif spec == 'len':
 			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
 		elif spec == 'print':
-			# XXX 愚直に対応すると実引数の型推論がかなり重く、その割に出力メッセージの柔軟性が低くメリットが薄いため、関数名の置き換えのみを行う簡易的な対応とする
+			# XXX 愚直に対応すると実引数の型推論のコストが高く、その割に出力メッセージの柔軟性が下がりメリットが薄いため、関数名の置き換えのみを行う簡易的な対応とする
 			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
 		elif spec == 'new_list':
 			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)

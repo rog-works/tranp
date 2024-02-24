@@ -4,7 +4,7 @@ from rogw.tranp.compatible.cpp.enum import CEnum
 
 directive('#pragma once')
 
-from example.FW.compatible import Box3d, IntVector, Mesh, MeshRaw, Vector
+from example.FW.compatible import Box3d, IntVector, IntVector2, Mesh, MeshRaw, Vector
 
 class CellMesh:
 	"""セル(メッシュ)関連のライブラリー"""
@@ -334,10 +334,10 @@ class CellMesh:
 		Returns:
 			list[int]: 頂点IDリスト
 		"""
-		outIds = [-1, -1, -1, -1, -1, -1, -1, -1]
+		out_ids = [-1, -1, -1, -1, -1, -1, -1, -1]
 		def closure(origin: MeshRaw[CRef, CConst]) -> None:
-			cellBox = cls.to_cell_box(cell, unit)
-			boxs = cls.to_vertex_boxs(cellBox, unit)
+			cell_box = cls.to_cell_box(cell, unit)
+			boxs = cls.to_vertex_boxs(cell_box, unit)
 			for i, box in enumerate(boxs):
 				for vi in origin.vertex_indices_itr():
 					# 実体がない(参照カウント0)インデックスを除外
@@ -346,9 +346,87 @@ class CellMesh:
 
 					v = origin.get_vertex(vi)
 					if box.contains(v):
-						outIds[i] = vi
+						out_ids[i] = vi
 						break
 
 		mesh.process_mesh(closure)
 
-		return outIds
+		return out_ids
+
+	@classmethod
+	def byPolygonIdsImpl(cls, mesh: Mesh[CP], start: IntVector, unit: int) -> dict[IntVector, list[IntVector2]]:
+		"""
+		指定のセル座標から3x3x3の範囲に存在するセルの6面のポリゴンIDを取得する
+
+		Args:
+			mesh (Mesh*): メッシュ
+			start (IntVector): 取得開始セル座標
+			unit (int): 単位
+		Returns:
+			dict[IntVector, list[IntVector2]]: ポリゴンIDリスト
+		"""
+		cell_on_faces: dict[IntVector, dict[int, IntVector2]] = {}
+
+		def closure(origin: MeshRaw[CRef]) -> None:
+			size = IntVector(3, 3, 3)
+			box = Box3d(cls.from_cell(start), cls.from_cell(start + size))
+			for ti in origin.triangle_indices_itr():
+				# 実体がない(参照カウント0)インデックスを除外
+				if not origin.is_triangle(ti):
+					continue
+
+				# box.Contains(faceBox)の場合、targetBoxがbox内に完全に内包される場合のみtrue
+				face_box = origin.get_tri_bounds(ti)
+				if not box.contains(face_box):
+					continue
+
+				# XXX toCell(faceBox.Min, unit)とすると、面のバウンドボックスとセル座標がズレてしまうため、中心座標を元にセル座標を算出する
+				center_location = face_box.min + unit / 2
+				cell = cls.to_cell(center_location, unit)
+				face_index = cls.face_box_to_face_index(face_box, unit)
+				if cell not in cell_on_faces:
+					cell_on_faces[cell] = {}
+
+				if face_index not in cell_on_faces[cell]:
+					cell_on_faces[cell][face_index] = IntVector2(ti, -1)
+				else:
+					cell_on_faces[cell][face_index].y = ti
+
+				# 辺で接するもう一方のセルも追加
+				cell2 = cell + cls.face_index_to_vector(face_index)
+				face_index2 = cls.invert_face_index(face_index)
+				if cell2 not in cell_on_faces:
+					cell_on_faces[cell2] = {}
+
+				if face_index2 not in cell_on_faces[cell2]:
+					cell_on_faces[cell2][face_index2] = IntVector2(ti, -1)
+				else:
+					cell_on_faces[cell2][face_index2].y = ti
+
+				print('Collect polygon. ti: %d, start: (%d, %d, %d), cell: (%d, %d, %d), faceIndex: %d, cell2: (%d, %d, %d), faceIndex2: %d, faceBox.min: (%f, %f, %f), faceBox.max: (%f, %f, %f), box.min: (%f, %f, %f), box.max: (%f, %f, %f)', ti, start.x, start.y, start.z, cell.x, cell.y, cell.z, face_index, cell2.x, cell2.y, cell2.z, face_index2, face_box.min.x, face_box.min.y, face_box.min.z, face_box.max.x, face_box.max.y, face_box.max.z, box.min.x, box.min.y, box.min.z, box.max.x, box.max.y, box.max.z)
+
+		mesh.process_mesh(closure)
+
+		# XXX 不要な判定だが、実装中は一旦ガード節を設ける
+		for cell, in_faces in cell_on_faces.items():
+			for face_index, face in in_faces.items():
+				if face.x != face.y and face.y == -1:
+					print('Found invalid face. cell: (%d, %d, %d), face_index: (%d), pid: (%d, %d)', cell.x, cell.y, cell.z, face_index, face.x, face.y)
+					face.x = -1
+					face.y = -1
+
+		out_ids: dict[IntVector, list[IntVector2]] = {}
+		for i in range(int(cls.OffsetIndexs.Max)):
+			offset = cls.offset_index_to_cell(i)
+			cell = start + offset
+
+			out_ids[cell] = [IntVector2(-1, -1) for _ in range(int(cls.FaceIndexs.Max))]
+
+			if cell not in cell_on_faces:
+				continue
+
+			for face_index, face in cell_on_faces[cell].items():
+				out_ids[cell][face_index] = face
+				print('Found faces. cell: (%d, %d, %d), faceindex: %d, pid: (%d, %d)', cell.x, cell.y, cell.z, face_index, face.x, face.y)
+
+		return out_ids

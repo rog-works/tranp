@@ -655,7 +655,7 @@ class ProceduralResolver:
 			'in': '__contains__',
 			'not.in': '__contains__',  # XXX 型推論的に同じなので代用
 			'is': '__eq__',  # XXX 型推論的に同じなので代用
-			'is.not': '__eq__',  # XXX 型推論的に同じなので代用
+			'is.not': '__not__',  # XXX 型推論的に同じなので代用
 			# Bitwise
 			'|': '__or__',
 			'^': '__xor__',

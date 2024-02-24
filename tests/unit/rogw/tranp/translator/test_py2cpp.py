@@ -154,12 +154,16 @@ class TestPy2Cpp(TestCase):
 
 		(_ast('CVarOps.unary_calc.block', 'assign[0]'), defs.MoveAssign, 'Base neg_a = -a;'),
 		(_ast('CVarOps.unary_calc.block', 'assign[1]'), defs.MoveAssign, 'Base neg_a2 = -*(ap);'),
+		(_ast('CVarOps.unary_calc.block', 'assign[2]'), defs.MoveAssign, 'Base neg_a3 = -*(asp);'),
+		(_ast('CVarOps.unary_calc.block', 'assign[3]'), defs.MoveAssign, 'Base& neg_a4 = -ar;'),  # FIXME 実体を返しているので誤り
 
-		(_ast('CVarOps.binary_calc.block', 'assign[0]'), defs.MoveAssign, 'Base add = a + *(ap);'),
-		(_ast('CVarOps.binary_calc.block', 'assign[1]'), defs.MoveAssign, 'Base sub = a - *(ap);'),
-		(_ast('CVarOps.binary_calc.block', 'assign[2]'), defs.MoveAssign, 'Base mul = a * *(ap);'),
-		(_ast('CVarOps.binary_calc.block', 'assign[3]'), defs.MoveAssign, 'Base div = a / *(ap);'),
-		(_ast('CVarOps.binary_calc.block', 'assign[4]'), defs.MoveAssign, 'Base calc = a + *(ap) * a - *(ap) / a;'),
+		(_ast('CVarOps.binary_calc.block', 'assign[0]'), defs.MoveAssign, 'Base add = a + *(ap) + *(asp) + ar;'),
+		(_ast('CVarOps.binary_calc.block', 'assign[1]'), defs.MoveAssign, 'Base sub = a - *(ap) - *(asp) - ar;'),
+		(_ast('CVarOps.binary_calc.block', 'assign[2]'), defs.MoveAssign, 'Base mul = a * *(ap) * *(asp) * ar;'),
+		(_ast('CVarOps.binary_calc.block', 'assign[3]'), defs.MoveAssign, 'Base div = a / *(ap) / *(asp) / ar;'),
+		(_ast('CVarOps.binary_calc.block', 'assign[4]'), defs.MoveAssign, 'Base calc = a + *(ap) * *(asp) - ar / a;'),
+		(_ast('CVarOps.binary_calc.block', 'assign[5]'), defs.MoveAssign, 'bool is_a = a == *(ap) == *(asp) == ar;'),
+		(_ast('CVarOps.binary_calc.block', 'assign[6]'), defs.MoveAssign, 'bool is_not_a = a != *(ap) != *(asp) != ar;'),
 
 		(_ast('CVarOps.tenary_calc.block', 'assign[0]'), defs.MoveAssign, 'Base a2 = true ? a : Base();'),
 

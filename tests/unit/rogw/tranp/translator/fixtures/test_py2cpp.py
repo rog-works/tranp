@@ -19,6 +19,7 @@ class Base(CObject):
 		self.base_n: int = n
 
 	def call(self) -> None: ...
+	def __eq__(self, other: Base | bool) -> bool: ...  # FIXME Anyの実装
 	def __add__(self, other: Base) -> Base: ...
 	def __sub__(self, other: Base) -> Base: ...
 	def __mul__(self, other: Base) -> Base: ...
@@ -83,16 +84,20 @@ class CVarOps:
 		self.invoke_method(ap, ap, ap)  # エラーケース
 		self.invoke_method(asp, asp, asp)  # エラーケース
 
-	def unary_calc(self, a: Base, ap: Base[CP]) -> None:
+	def unary_calc(self, a: Base, ap: Base[CP], asp: Base[CSP], ar: Base[CRef]) -> None:
 		neg_a = -a
 		neg_a2 = -ap
+		neg_a3 = -asp
+		neg_a4 = -ar
 
-	def binary_calc(self, a: Base, ap: Base[CP]) -> None:
-		add = a + ap
-		sub = a - ap
-		mul = a * ap
-		div = a / ap
-		calc = a + ap * a - ap / a
+	def binary_calc(self, a: Base, ap: Base[CP], asp: Base[CSP], ar: Base[CRef]) -> None:
+		add = a + ap + asp + ar
+		sub = a - ap - asp - ar
+		mul = a * ap * asp * ar
+		div = a / ap / asp / ar
+		calc = a + ap * asp - ar / a
+		is_a = a is ap is asp is ar
+		is_not_a = a is not ap is not asp is not ar
 
 	def tenary_calc(self, a: Base, ap: Base[CP]) -> None:
 		a2 = a if True else Base()

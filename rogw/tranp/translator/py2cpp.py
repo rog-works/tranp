@@ -440,7 +440,9 @@ class Py2Cpp:
 			is_class_alias = isinstance(node.receiver, (defs.ClassRef, defs.Super))
 			# XXX clsとsuperを除くクラス参照の場合は、必ず「A」または「A.B」の形式になる。その場合、シンボルの完全参照名の末尾と必ず一致する
 			# XXX @see Symbols.on_relay
-			is_class_access = node.receiver.is_a(defs.Relay, defs.Variable) and receiver_symbol.types.fullyname.endswith(node.receiver.domain_name)
+			# is_class_access = node.receiver.is_a(defs.Relay, defs.Variable) and receiver_symbol.types.fullyname.endswith(node.receiver.domain_name)
+			# FIXME Symbolsと一貫性がないがこの判定の方が期待通りの結果になる
+			is_class_access = node.receiver.is_a(defs.Relay, defs.Variable) and receiver_symbol.decl.is_a(defs.Class)
 			return is_class_alias or is_class_access
 
 		if is_cvar_receiver():

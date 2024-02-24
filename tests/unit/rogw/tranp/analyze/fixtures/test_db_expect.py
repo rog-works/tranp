@@ -401,10 +401,7 @@ def expected_symbols() -> dict:
 		'rogw.tranp.compatible.python.template.T_Self': 'rogw.tranp.compatible.python.template.T_Self',
 		'enum.T_Self': 'rogw.tranp.compatible.python.template.T_Self',
 		'enum.Enum': 'enum.Enum',
-		'enum.Enum.__class_getitem__': 'enum.Enum.__class_getitem__',
 		'enum.Enum.__init__': 'enum.Enum.__init__',
-		'enum.Enum.__class_getitem__.cls': 'enum.Enum',
-		'enum.Enum.__class_getitem__.key': 'rogw.tranp.compatible.python.classes.str',
 		'enum.Enum.__init__.self': 'enum.Enum',
 		'enum.Enum.__init__.value': 'rogw.tranp.compatible.python.classes.int',
 	}

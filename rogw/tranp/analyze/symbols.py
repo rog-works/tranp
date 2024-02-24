@@ -437,23 +437,12 @@ class ProceduralResolver:
 		if isinstance(receiver.types, defs.AltClass):
 			receiver = receiver.attrs[0]
 
-		# クラス属性へのアクセスの場合は__class_getitem__経由で型を解決
-		# XXX clsの場合は必ずクラス参照。それ以外の場合は、必ず「A」または「A.B」の形式になる。その場合、シンボルの完全参照名の末尾と必ず一致する
-		# XXX @see Py2Cpp.on_relay
-		if node.receiver.is_a(defs.ClassRef) or (node.receiver.is_a(defs.Relay, defs.Variable) and receiver.types.fullyname.endswith(node.receiver.domain_name)):
-			try:
-				getitem = self.symbols.resolve(receiver.types, '__class_getitem__')
-				# XXX clsにタイプヒントが付与された場合、returnsの第1引数のreceiverと階層を合わせるためアンパックする ※タイプヒントが無い場合は必然的に階層が同じになる
-				# XXX (例: '__class_getitem__(cls: type[T], *: Any) -> Any')
-				class_type = getitem.attrs[0].attrs[0] if len(getitem.attrs[0].attrs) > 0 else getitem.attrs[0]
-				getitem_ref = reflection.Builder(getitem) \
-					.schema(lambda: {'klass': class_type, 'parameters': getitem.attrs[1:-1], 'returns': getitem.attrs[-1]}) \
-					.build(reflection.ClassMethod)
-				return getitem_ref.returns(receiver, *getitem.attrs[1:-2])
-			except NotFoundError:
-				pass
+		prop = self.symbols.type_of_property(receiver.types, node.prop)
+		# XXX Enum直下のDeclLocalVarは定数値であり、型としてはEnumそのものであるためreceiverを返却。特殊化より一般化する方法を検討
+		if isinstance(receiver.types, defs.Enum) and prop.decl.is_a(defs.DeclLocalVar):
+				return receiver
 
-		return self.symbols.type_of_property(receiver.types, node.prop).to.ref(node, context=receiver)
+		return prop.to.ref(node, context=receiver)
 
 	def on_class_ref(self, node: defs.ClassRef) -> SymbolRaw:
 		return self.symbols.resolve(node).to.ref(node)

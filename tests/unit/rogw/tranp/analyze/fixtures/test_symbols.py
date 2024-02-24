@@ -149,6 +149,15 @@ class EnumOps:
 		A = 0
 		B = 1
 
+	@classmethod
+	def cls_assign(cls) -> None:
+		a = cls.Values.A
+		d = {
+			cls.Values.A: 'A',
+			cls.Values.B: 'B',
+		}
+		da = d[cls.Values.A]
+
 	def assign(self) -> None:
 		a = EnumOps.Values.A
 		d = {
@@ -160,3 +169,7 @@ class EnumOps:
 	def cast(self) -> None:
 		e = EnumOps.Values(0)
 		n = int(EnumOps.Values.A)
+
+	def on_dict(self) -> None:
+		ddbs = {1: {1: Base()}}
+		s = ddbs[1][1].base_str

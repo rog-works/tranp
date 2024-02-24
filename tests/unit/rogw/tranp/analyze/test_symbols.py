@@ -199,11 +199,15 @@ class TestSymbols(TestCase):
 		('__main__.EnumOps.Values', 'Values'),
 		('__main__.EnumOps.Values.A', 'int'),  # Enumの定数値を直接参照するとEnum型ではなく、オリジナルの型になる ※情報を損なわないようにするため
 		('__main__.EnumOps.Values.B', 'int'),  # 〃
+		('__main__.EnumOps.cls_assign.a', 'Values'),
+		('__main__.EnumOps.cls_assign.d', 'dict<Values, str>'),
+		('__main__.EnumOps.cls_assign.da', 'str'),
 		('__main__.EnumOps.assign.a', 'Values'),
 		('__main__.EnumOps.assign.d', 'dict<Values, str>'),
 		('__main__.EnumOps.assign.da', 'str'),
 		('__main__.EnumOps.cast.e', 'Values'),
 		('__main__.EnumOps.cast.n', 'int'),
+		('__main__.EnumOps.on_dict.s', 'str'),
 	])
 	def test_from_fullyname(self, fullyname: str, expected: str) -> None:
 		symbols = self.fixture.get(Symbols)

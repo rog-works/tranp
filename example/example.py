@@ -354,7 +354,7 @@ class CellMesh:
 		return out_ids
 
 	@classmethod
-	def byPolygonIdsImpl(cls, mesh: Mesh[CP], start: IntVector, unit: int) -> dict[IntVector, list[IntVector2]]:
+	def by_polygon_ids_impl(cls, mesh: Mesh[CP], start: IntVector, unit: int) -> dict[IntVector, list[IntVector2]]:
 		"""
 		指定のセル座標から3x3x3の範囲に存在するセルの6面のポリゴンIDを取得する
 

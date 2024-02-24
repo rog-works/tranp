@@ -358,7 +358,7 @@ class CellMesh {
 	 * @return 頂点IDリスト
 	 */
 	public: static std::vector<int> by_vertex_ids(Mesh* mesh, IntVector cell, int unit) {
-		std::vector<int> outIds = {
+		std::vector<int> out_ids = {
 			{-1},
 			{-1},
 			{-1},
@@ -369,8 +369,8 @@ class CellMesh {
 			{-1},
 		};
 		auto closure = [&](const MeshRaw& origin) -> void {
-			Box3d cellBox = CellMesh::to_cell_box(cell, unit);
-			std::vector<Box3d> boxs = CellMesh::to_vertex_boxs(cellBox, unit);
+			Box3d cell_box = CellMesh::to_cell_box(cell, unit);
+			std::vector<Box3d> boxs = CellMesh::to_vertex_boxs(cell_box, unit);
 			for (auto& [i, box] : [&]() -> std::map<int, Box3d> {
 				std::map<int, Box3d> __ret;
 				int __index = 0;
@@ -385,13 +385,92 @@ class CellMesh {
 					}
 					Vector v = origin.get_vertex(vi);
 					if (box.contains(v)) {
-						outIds[i] = vi;
+						out_ids[i] = vi;
 						break;
 					}
 				}
 			}
 		}
 		mesh->process_mesh(closure);
-		return outIds;
+		return out_ids;
+	}
+	/**
+	 * 指定のセル座標から3x3x3の範囲に存在するセルの6面のポリゴンIDを取得する
+	 * @param mesh メッシュ
+	 * @param start 取得開始セル座標
+	 * @param unit 単位
+	 * @return ポリゴンIDリスト
+	 */
+	public: static std::map<IntVector, std::vector<IntVector2>> by_polygon_ids_impl(Mesh* mesh, IntVector start, int unit) {
+		std::map<IntVector, std::map<int, IntVector2>> cell_on_faces = {
+		};
+		auto closure = [&](MeshRaw& origin) -> void {
+			IntVector size = IntVector(3, 3, 3);
+			Box3d box = Box3d(CellMesh::from_cell(start), CellMesh::from_cell(start + size));
+			for (auto& ti : origin.triangle_indices_itr()) {
+				if (!origin.is_triangle(ti)) {
+					continue;
+				}
+				Box3d face_box = origin.get_tri_bounds(ti);
+				if (!box.contains(face_box)) {
+					continue;
+				}
+				Vector center_location = face_box.min + unit / 2;
+				IntVector cell = CellMesh::to_cell(center_location, unit);
+				int face_index = CellMesh::face_box_to_face_index(face_box, unit);
+				if ((!cell_on_faces.contains(cell))) {
+					cell_on_faces[cell] = {
+					};
+				}
+				if ((!cell_on_faces[cell].contains(face_index))) {
+					cell_on_faces[cell][face_index] = IntVector2(ti, -1);
+				} else {
+					cell_on_faces[cell][face_index].y = ti;
+				}
+				IntVector cell2 = cell + CellMesh::face_index_to_vector(face_index);
+				int face_index2 = CellMesh::invert_face_index(face_index);
+				if ((!cell_on_faces.contains(cell2))) {
+					cell_on_faces[cell2] = {
+					};
+				}
+				if ((!cell_on_faces[cell2].contains(face_index2))) {
+					cell_on_faces[cell2][face_index2] = IntVector2(ti, -1);
+				} else {
+					cell_on_faces[cell2][face_index2].y = ti;
+				}
+				printf("Collect polygon. ti: %d, start: (%d, %d, %d), cell: (%d, %d, %d), faceIndex: %d, cell2: (%d, %d, %d), faceIndex2: %d, faceBox.min: (%f, %f, %f), faceBox.max: (%f, %f, %f), box.min: (%f, %f, %f), box.max: (%f, %f, %f)", ti, start.x, start.y, start.z, cell.x, cell.y, cell.z, face_index, cell2.x, cell2.y, cell2.z, face_index2, face_box.min.x, face_box.min.y, face_box.min.z, face_box.max.x, face_box.max.y, face_box.max.z, box.min.x, box.min.y, box.min.z, box.max.x, box.max.y, box.max.z);
+			}
+		}
+		mesh->process_mesh(closure);
+		for (auto& [cell, in_faces] : cell_on_faces) {
+			for (auto& [face_index, face] : in_faces) {
+				if (face.x != face.y && face.y == -1) {
+					printf("Found invalid face. cell: (%d, %d, %d), face_index: (%d), pid: (%d, %d)", cell.x, cell.y, cell.z, face_index, face.x, face.y);
+					face.x = -1;
+					face.y = -1;
+				}
+			}
+		}
+		std::map<IntVector, std::vector<IntVector2>> out_ids = {
+		};
+		for (auto i = 0; i < (int)(CellMesh::OffsetIndexs::Max); i++) {
+			IntVector offset = CellMesh::offset_index_to_cell(i);
+			cell = start + offset;
+			out_ids[cell] = [&]() -> std::vector<IntVector2> {
+				std::vector<IntVector2> __ret;
+				for (auto& _ : range((int)(CellMesh::FaceIndexs::Max))) {
+					__ret.push_back(IntVector2(-1, -1));
+				}
+				return __ret;
+			}();
+			if ((!cell_on_faces.contains(cell))) {
+				continue;
+			}
+			for (auto& [face_index, face] : cell_on_faces[cell]) {
+				out_ids[cell][face_index] = face;
+				printf("Found faces. cell: (%d, %d, %d), faceindex: %d, pid: (%d, %d)", cell.x, cell.y, cell.z, face_index, face.x, face.y);
+			}
+		}
+		return out_ids;
 	}
 };

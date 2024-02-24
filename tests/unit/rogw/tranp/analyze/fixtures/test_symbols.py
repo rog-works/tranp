@@ -91,6 +91,10 @@ class CalcOps:
 		fb0 = 1.0 + True
 		fb1 = True + 1.0
 		result = 1 + n * fn0 - fb0 / 2
+		l_in = 1 in [1]
+		l_not_in = 1 not in [1]
+		n_is = 1 is 1
+		n_is_not = 1 is not 1
 
 	def tenary(self) -> None:
 		n = 1 if 2 else 3

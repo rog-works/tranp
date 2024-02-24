@@ -99,9 +99,13 @@ class CVarOps:
 		is_a = a is ap is asp is ar
 		is_not_a = a is not ap is not asp is not ar
 
-	def tenary_calc(self, a: Base, ap: Base[CP]) -> None:
+	def tenary_calc(self, a: Base, ap: Base[CP], asp: Base[CSP], ar: Base[CRef]) -> None:
 		a2 = a if True else Base()
-		ap_or_null = ap if True else None  # エラーケース
+		a3 = a if True else a
+		ap2 = ap if True else ap
+		asp2 = asp if True else asp
+		ar2 = ar if True else ar
+		ap_or_null = ap if True else None
 		a_or_ap = a if True else ap  # エラーケース
 
 class FuncOps:

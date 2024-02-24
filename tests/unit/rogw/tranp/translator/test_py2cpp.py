@@ -167,6 +167,11 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarOps.binary_calc.block', 'assign[6]'), defs.MoveAssign, 'bool is_not_a = a != *(ap) != *(asp) != ar;'),
 
 		(_ast('CVarOps.tenary_calc.block', 'assign[0]'), defs.MoveAssign, 'Base a2 = true ? a : Base();'),
+		(_ast('CVarOps.tenary_calc.block', 'assign[1]'), defs.MoveAssign, 'Base a3 = true ? a : a;'),
+		(_ast('CVarOps.tenary_calc.block', 'assign[2]'), defs.MoveAssign, 'Base* ap2 = true ? ap : ap;'),
+		(_ast('CVarOps.tenary_calc.block', 'assign[3]'), defs.MoveAssign, 'std::shared_ptr<Base> asp2 = true ? asp : asp;'),
+		(_ast('CVarOps.tenary_calc.block', 'assign[4]'), defs.MoveAssign, 'Base& ar2 = true ? ar : ar;'),
+		(_ast('CVarOps.tenary_calc.block', 'assign[5]'), defs.MoveAssign, 'Base* ap_or_null = true ? ap : nullptr;'),
 
 		(_ast('FuncOps.print.block', 'funccall'), defs.FuncCall, 'printf("message. %d, %f, %s", 1, 1.0, "abc");'),
 
@@ -276,8 +281,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarOps.invoke_method.block', 'funccall[0]'), r'Unacceptable value move.'),
 		(_ast('CVarOps.invoke_method.block', 'funccall[1]'), r'Unacceptable value move.'),
 
-		(_ast('CVarOps.tenary_calc.block', 'assign[1]'), r'Tenary operation not allowed.'),
-		(_ast('CVarOps.tenary_calc.block', 'assign[2]'), r'Tenary operation not allowed.'),
+		(_ast('CVarOps.tenary_calc.block', 'assign[6]'), r'Tenary operation not allowed.'),
 
 		(_ast('Nullable.invalid_params', ''), r'Unexpected UnionType.'),
 		(_ast('Nullable.invalid_returns', ''), r'Unexpected UnionType.'),

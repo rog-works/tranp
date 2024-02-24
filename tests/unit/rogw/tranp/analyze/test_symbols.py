@@ -153,6 +153,7 @@ class TestSymbols(TestCase):
 		('__main__.CalcOps.sum.fb1', 'float'),
 		('__main__.CalcOps.tenary.n', 'int'),
 		('__main__.CalcOps.tenary.s', 'str'),
+		('__main__.CalcOps.tenary.s_or_null', 'Union<str, None>'),
 
 		('__main__.AliasOps.func', 'func(AliasOps, Z2=Z) -> None'),
 		('__main__.AliasOps.func.z2', 'Z2=Z'),
@@ -201,7 +202,6 @@ class TestSymbols(TestCase):
 		self.assertEqual(str(symbol), expected)
 
 	@data_provider([
-		('__main__.CalcOps.tenary.s_or_null', r'Tenary operation not allowed.'),
 		('__main__.CalcOps.tenary.n_or_s', r'Tenary operation not allowed.'),
 	])
 	def test_from_fullyname_error(self, fullyname: str, expected: re.Pattern[str]) -> None:

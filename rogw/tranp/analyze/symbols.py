@@ -673,24 +673,14 @@ class ProceduralResolver:
 		return operators[operator]
 
 	def on_tenary_operator(self, node: defs.TenaryOperator, primary: SymbolRaw, condition: SymbolRaw, secondary: SymbolRaw) -> SymbolRaw:
-		"""Note: 返却型が一致している実装のみ許可"""
+		"""Note: 返却型が一致、またはNullableのみ許可"""
 		if primary == secondary:
 			return primary
 
-		raise LogicError(f'Tenary operation not allowed. different result types. node: {node}, primary: {primary}, secondary: {secondary}')
-
-	def tenary_operator_allow_nullable(self, node: defs.TenaryOperator, primary: SymbolRaw, condition: SymbolRaw, secondary: SymbolRaw) -> SymbolRaw:
-		"""3項演算の結果がNullableの場合にUnion型のシンボルを生成
-
-		Note:
-			XXX 3項演算は式の如何なる個所にも記述可能なため、安易にUnion型を許容すると解析・実装コストが闇雲に増大する
-			XXX 返却型を複数にする明確なメリットは無く、且つ3項演算を使わずともNullableを実現するコーディング手段はいくらでもあるため
-			XXX 対応するメリットは低いと判断し、一旦非対応
-		"""
 		primary_is_null = self.symbols.is_a(primary, None)
 		secondary_is_null = self.symbols.is_a(secondary, None)
 		if primary_is_null == secondary_is_null:
-			raise LogicError(f'Tenary operation allowes only Nullable. node: {node}, primary: {primary}, secondary: {secondary}')
+			raise LogicError(f'Tenary operation not allowed. only Nullable. node: {node}, primary: {primary}, secondary: {secondary}')
 
 		var_type = secondary if primary_is_null else primary
 		null_type = primary if primary_is_null else secondary

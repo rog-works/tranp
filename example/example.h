@@ -254,7 +254,7 @@ class CellMesh {
 			{CellMesh::FaceIndexs::Bottom, IntVector(0, 0, -1)},
 			{CellMesh::FaceIndexs::Top, IntVector(0, 0, 1)},
 		};
-		return to_vector[CellMesh::FaceIndexs(face_index)];
+		return to_vector[(CellMesh::FaceIndexs)(face_index)];
 	}
 	/**
 	 * 6面インデックスを反転
@@ -352,7 +352,7 @@ class CellMesh {
 	}
 	/**
 	 * セルの8頂点の頂点IDを取得する
-	 * @param mesh ダイナミックメッシュ
+	 * @param mesh メッシュ
 	 * @param cell セル座標
 	 * @param unit 単位
 	 * @return 頂点IDリスト

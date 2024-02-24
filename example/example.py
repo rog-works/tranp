@@ -328,7 +328,7 @@ class CellMesh:
 		"""セルの8頂点の頂点IDを取得する
 
 		Args:
-			mesh (*Mesh): ダイナミックメッシュ
+			mesh (*Mesh): メッシュ
 			cell (IntVector): セル座標
 			unit (int): 単位
 		Returns:

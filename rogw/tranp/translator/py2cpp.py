@@ -556,6 +556,9 @@ class Py2Cpp:
 		elif spec == 'dict_values':
 			var_type = self.to_symbol_path(cast(SymbolRaw, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': DSN.shift(calls, -1), 'var_type': var_type})
+		elif spec == 'new_enum':
+			var_type = self.to_symbol_path(cast(SymbolRaw, context))
+			return self.view.render(f'{node.classification}_cast_bin_to_bin', vars={**func_call_vars, 'var_type': var_type})
 		else:
 			return self.view.render(node.classification, vars=func_call_vars)
 
@@ -621,6 +624,10 @@ class Py2Cpp:
 				key_attr, value_attr = context.attrs
 				attr_indexs = {'pop': value_attr, 'keys': key_attr, 'values': value_attr}
 				return f'dict_{prop}', attr_indexs[prop]
+		elif isinstance(node.calls, (defs.Relay, defs.Variable)):
+			raw = self.symbols.type_of(node.calls)
+			if raw.types.is_a(defs.Enum):
+				return 'new_enum', raw
 
 		return 'otherwise', None
 

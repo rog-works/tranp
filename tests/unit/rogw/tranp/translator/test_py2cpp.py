@@ -155,7 +155,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarOps.unary_calc.block', 'assign[0]'), defs.MoveAssign, 'Base neg_a = -a;'),
 		(_ast('CVarOps.unary_calc.block', 'assign[1]'), defs.MoveAssign, 'Base neg_a2 = -*(ap);'),
 		(_ast('CVarOps.unary_calc.block', 'assign[2]'), defs.MoveAssign, 'Base neg_a3 = -*(asp);'),
-		(_ast('CVarOps.unary_calc.block', 'assign[3]'), defs.MoveAssign, 'Base& neg_a4 = -ar;'),  # FIXME 実体を返しているので誤り
+		(_ast('CVarOps.unary_calc.block', 'assign[3]'), defs.MoveAssign, 'Base neg_a4 = -ar;'),
 
 		(_ast('CVarOps.binary_calc.block', 'assign[0]'), defs.MoveAssign, 'Base add = a + *(ap) + *(asp) + ar;'),
 		(_ast('CVarOps.binary_calc.block', 'assign[1]'), defs.MoveAssign, 'Base sub = a - *(ap) - *(asp) - ar;'),

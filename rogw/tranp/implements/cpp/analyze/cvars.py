@@ -89,7 +89,7 @@ class CVars:
 		Args:
 			key (str): C++変数型の種別キー
 		Returns:
-			bool: True = 実体
+			bool: True = 実体/参照
 		"""
 		return key in [cpp.CRaw.__name__, cpp.CRef.__name__]
 
@@ -100,9 +100,20 @@ class CVars:
 		Args:
 			key (str): C++変数型の種別キー
 		Returns:
-			bool: True = アドレス
+			bool: True = ポインター/スマートポインター
 		"""
 		return key in [cpp.CP.__name__, cpp.CSP.__name__]
+
+	@classmethod
+	def is_raw_raw(cls, key: str) -> bool:
+		"""実体か判定
+
+		Args:
+			key (str): C++変数型の種別キー
+		Returns:
+			bool: True = 実体
+		"""
+		return key == cpp.CRaw.__name__
 
 	@classmethod
 	def is_raw_ref(cls, key: str) -> bool:

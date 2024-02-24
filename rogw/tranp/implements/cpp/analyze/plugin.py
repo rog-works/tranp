@@ -121,12 +121,13 @@ class CppPlugin(IPlugin):
 		Returns:
 			SymbolRaw: シンボル
 		"""
-		if not CVars.is_addr(CVars.key_from(self.symbols, value_raw)):
+		key = CVars.key_from(self.symbols, value_raw)
+		if CVars.is_raw_raw(key):
 			return value_raw
 
 		# 実体の型を取得出来るまで参照元を辿る
 		for origin in value_raw.hierarchy():
-			if not CVars.is_addr(CVars.key_from(self.symbols, origin)):
+			if CVars.is_raw_raw(CVars.key_from(self.symbols, origin)):
 				return origin
 
 		raise FatalError(f'Unexpected symbol schema. value: {value_raw}')

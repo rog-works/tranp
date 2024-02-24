@@ -143,6 +143,8 @@ class TestSymbols(TestCase):
 		('__main__.Sub.decl_locals.if.for.i', 'int'),
 		('__main__.Sub.decl_locals.if.for.try.e', 'Exception'),
 
+		('__main__.Sub.relay_access.s', 'str'),
+
 		('__main__.CalcOps.unary.n_neg', 'int'),
 		('__main__.CalcOps.unary.n_not', 'bool'),
 		('__main__.CalcOps.binary.n', 'int'),
@@ -207,7 +209,6 @@ class TestSymbols(TestCase):
 		('__main__.EnumOps.assign.da', 'str'),
 		('__main__.EnumOps.cast.e', 'Values'),
 		('__main__.EnumOps.cast.n', 'int'),
-		('__main__.EnumOps.on_dict.s', 'str'),
 	])
 	def test_from_fullyname(self, fullyname: str, expected: str) -> None:
 		symbols = self.fixture.get(Symbols)

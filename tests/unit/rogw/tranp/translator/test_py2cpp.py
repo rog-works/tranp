@@ -189,7 +189,9 @@ class TestPy2Cpp(TestCase):
 
 		(_ast('AccessOps.dot.block', 'funccall[0].arguments.argvalue'), defs.Argument, 'a.base_n'),
 		(_ast('AccessOps.dot.block', 'funccall[1].arguments.argvalue'), defs.Argument, 'a.sub_s'),
-		(_ast('AccessOps.dot.block', 'funccall[2].arguments.argvalue'), defs.Argument, 'a.call()'),
+		(_ast('AccessOps.dot.block', 'funccall[2].arguments.argvalue'), defs.Argument, 'a.sub_s.split'),
+		(_ast('AccessOps.dot.block', 'funccall[3].arguments.argvalue'), defs.Argument, 'a.call()'),
+		(_ast('AccessOps.dot.block', 'funccall[5].arguments.argvalue'), defs.Argument, 'dda[1][1].sub_s'),
 
 		(_ast('AccessOps.arrow.block', 'funccall[0].arguments.argvalue'), defs.Argument, 'this->base_n'),
 		(_ast('AccessOps.arrow.block', 'funccall[1].arguments.argvalue'), defs.Argument, 'this->sub_s'),

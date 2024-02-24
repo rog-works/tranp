@@ -75,6 +75,10 @@ class Sub(Base):
 		a1 = a + 1
 		a = a1 + 1
 
+	def relay_access(self) -> None:
+		ddb = {1: {1: Base()}}
+		s = ddb[1][1].base_str
+
 class CalcOps:
 	def unary(self) -> None:
 		n = 1
@@ -169,7 +173,3 @@ class EnumOps:
 	def cast(self) -> None:
 		e = EnumOps.Values(0)
 		n = int(EnumOps.Values.A)
-
-	def on_dict(self) -> None:
-		ddbs = {1: {1: Base()}}
-		s = ddbs[1][1].base_str

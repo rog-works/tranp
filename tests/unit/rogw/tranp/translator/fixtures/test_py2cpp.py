@@ -138,7 +138,10 @@ class AccessOps(Base):
 	def dot(self, a: AccessOps) -> None:
 		print(a.base_n)
 		print(a.sub_s)
+		print(a.sub_s.split)
 		print(a.call())
+		dda = {1: {1: a}}
+		print(dda[1][1].sub_s)
 
 	def arrow(self, ap: AccessOps[CP], asp: AccessOps[CSP]) -> None:
 		print(self.base_n)

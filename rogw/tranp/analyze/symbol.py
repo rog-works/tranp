@@ -320,6 +320,11 @@ class SymbolRaw(metaclass=ABCMeta):
 		"""str: オブジェクトの文字列表現"""
 		return self.shorthand
 
+	@override
+	def __hash__(self) -> int:
+		"""int: オブジェクトのハッシュ値"""
+		return hash(self.__repr__())
+
 	@property
 	def shorthand(self) -> str:
 		"""str: オブジェクトの短縮表記"""

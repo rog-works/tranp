@@ -114,7 +114,7 @@ class CppPlugin(IPlugin):
 		return unpacked_elements
 
 	def unpack_cvar_raw(self, value_raw: SymbolRaw) -> SymbolRaw:
-		"""C++変数型を考慮し、シンボルの実体型を取得。C++のアドレス変数型以外はそのまま返却
+		"""C++変数型を考慮し、シンボルの実体型を取得。実体型かnullはそのまま返却
 
 		Args:
 			value_raw (SymbolRaw): 値のシンボル
@@ -122,7 +122,7 @@ class CppPlugin(IPlugin):
 			SymbolRaw: シンボル
 		"""
 		key = CVars.key_from(self.symbols, value_raw)
-		if CVars.is_raw_raw(key):
+		if CVars.is_raw_raw(key) or self.symbols.is_a(value_raw, None):
 			return value_raw
 
 		# 実体の型を取得出来るまで参照元を辿る

@@ -234,7 +234,7 @@ class CellMesh {
 			{(int)(CellMesh::OffsetIndexs::Bottom), (int)(CellMesh::FaceIndexs::Bottom)},
 			{(int)(CellMesh::OffsetIndexs::Top), (int)(CellMesh::FaceIndexs::Top)},
 		};
-		if (offset_index not.in to_faces) {
+		if ((!to_faces.contains(offset_index))) {
 			printf("Fatal Error! offset_index: %d", offset_index);
 			return 0;
 		}

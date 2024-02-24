@@ -121,6 +121,10 @@ class EnumOps:
 		}
 		da = d[EnumOps.Values.A]
 
+	def cast(self) -> None:
+		e = EnumOps.Values(0)
+		n = int(EnumOps.Values.A)
+
 class AccessOps(Base):
 	def __init__(self) -> None:
 		super().__init__(0)

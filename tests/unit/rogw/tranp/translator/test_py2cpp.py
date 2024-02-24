@@ -55,8 +55,9 @@ def _ast(before: str, after: str) -> str:
 
 		'FuncOps.print.block': f'{_FuncOps}.class_def_raw.block.function_def.function_def_raw.block',
 
-		'EnumOps.assign.block': f'{_EnumOps}.class_def_raw.block.function_def.function_def_raw.block',
 		'EnumOps.Values': f'{_EnumOps}.class_def_raw.block.class_def',
+		'EnumOps.assign.block': f'{_EnumOps}.class_def_raw.block.function_def[1].function_def_raw.block',
+		'EnumOps.cast.block': f'{_EnumOps}.class_def_raw.block.function_def[2].function_def_raw.block',
 
 		'AccessOps.__init__': f'{_AccessOps}.class_def_raw.block.function_def[0]',
 		'AccessOps.dot.block': f'{_AccessOps}.class_def_raw.block.function_def[1].function_def_raw.block',
@@ -173,6 +174,8 @@ class TestPy2Cpp(TestCase):
 		(_ast('EnumOps.assign.block', 'assign[0]'), defs.MoveAssign, 'EnumOps::Values a = EnumOps::Values::A;'),
 		(_ast('EnumOps.assign.block', 'assign[1]'), defs.MoveAssign, 'std::map<EnumOps::Values, std::string> d = {\n\t{EnumOps::Values::A, "A"},\n\t{EnumOps::Values::B, "B"},\n};'),
 		(_ast('EnumOps.assign.block', 'assign[2]'), defs.MoveAssign, 'std::string da = d[EnumOps::Values::A];'),
+		(_ast('EnumOps.cast.block', 'assign[0]'), defs.MoveAssign, 'EnumOps::Values e = (EnumOps::Values)(0);'),
+		(_ast('EnumOps.cast.block', 'assign[1]'), defs.MoveAssign, 'int n = (int)(EnumOps::Values::A);'),
 
 		(_ast('AccessOps.__init__', ''), defs.Constructor, '/** Constructor */\npublic: AccessOps() : Base(0), sub_s("") {\n}'),
 

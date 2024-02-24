@@ -568,7 +568,7 @@ class ProceduralResolver:
 		return value
 
 	def on_not_compare(self, node: defs.NotCompare, operator: SymbolRaw, value: SymbolRaw) -> SymbolRaw:
-		return value
+		return self.symbols.type_of_primitive(bool).to.result(node)
 
 	def on_or_compare(self, node: defs.OrCompare, elements: list[SymbolRaw]) -> SymbolRaw:
 		return self.each_binary_operator(node, elements)

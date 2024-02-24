@@ -22,7 +22,7 @@ class Terminal(Node):
 			FIXME 比較演算子のみ暗黙的な展開を抑制 ※それ以外の演算子とASTの展開方式が異なるため
 			FIXME 比較演算子だけ抑制すれば良いとは限らないのでTerminalとExpressionの分離を検討
 		"""
-		return self.tag not in ['comp_op', 'comp_in', 'comp_not_in', 'comp_is_not']
+		return self.tag not in ['comp_op', 'comp_in', 'comp_not_in', 'comp_is', 'comp_is_not']
 
 
 @Meta.embed(Node, accept_tags('__empty__', 'const_none'))

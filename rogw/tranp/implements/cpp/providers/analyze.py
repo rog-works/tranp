@@ -7,7 +7,7 @@ from rogw.tranp.lang.locator import Currying
 
 
 @injectable
-def plugin_provider(currying: Currying) -> PluginProvider:
+def cpp_plugin_provider(currying: Currying) -> PluginProvider:
 	"""プラグインプロバイダーを生成
 
 	Args:

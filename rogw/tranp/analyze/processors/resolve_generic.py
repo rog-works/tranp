@@ -130,10 +130,12 @@ class ResolveGeneric:
 		Returns:
 			SymbolRaw: シンボル
 		"""
-		if not isinstance(t_type, defs.GenericType):
+		if isinstance(t_type, defs.UnionType):
+			return self.extends_for_union(raws, t_raw, t_type)
+		elif isinstance(t_type, defs.GenericType):
+			return self.extends_for_type(raws, t_raw, t_type)
+		else:
 			return t_raw
-
-		return self.extends_for_type(raws, t_raw, t_type)
 
 	def extends_for_function(self, raws: SymbolRaws, via: SymbolRaw, function: defs.Function) -> SymbolRaw:
 		"""ファンクション定義ノードを解析し、属性の型を取り込みシンボルを拡張

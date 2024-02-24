@@ -143,14 +143,17 @@ class TestSymbols(TestCase):
 		('__main__.Sub.decl_locals.if.for.i', 'int'),
 		('__main__.Sub.decl_locals.if.for.try.e', 'Exception'),
 
-		('__main__.CalcOps.sum.n', 'int'),
-		('__main__.CalcOps.sum.nb0', 'int'),
-		('__main__.CalcOps.sum.nb1', 'int'),
-		('__main__.CalcOps.sum.fn0', 'float'),
-		('__main__.CalcOps.sum.fn1', 'float'),
-		('__main__.CalcOps.sum.fn2', 'float'),
-		('__main__.CalcOps.sum.fb0', 'float'),
-		('__main__.CalcOps.sum.fb1', 'float'),
+		('__main__.CalcOps.unary.n_neg', 'int'),
+		('__main__.CalcOps.unary.n_not', 'bool'),
+		('__main__.CalcOps.binary.n', 'int'),
+		('__main__.CalcOps.binary.nb0', 'int'),
+		('__main__.CalcOps.binary.nb1', 'int'),
+		('__main__.CalcOps.binary.fn0', 'float'),
+		('__main__.CalcOps.binary.fn1', 'float'),
+		('__main__.CalcOps.binary.fn2', 'float'),
+		('__main__.CalcOps.binary.fb0', 'float'),
+		('__main__.CalcOps.binary.fb1', 'float'),
+		('__main__.CalcOps.binary.result', 'float'),
 		('__main__.CalcOps.tenary.n', 'int'),
 		('__main__.CalcOps.tenary.s', 'str'),
 		('__main__.CalcOps.tenary.s_or_null', 'Union<str, None>'),
@@ -190,11 +193,13 @@ class TestSymbols(TestCase):
 		('__main__.CompOps.dict_comp.kvs2', 'dict<str, int>'),
 
 		('__main__.EnumOps.Values', 'Values'),
-		('__main__.EnumOps.Values.A', 'int'),  # FIXME Relay経由でないとValuesにならない -> Valuesであるべきでは？
-		('__main__.EnumOps.Values.B', 'int'),  # FIXME 〃
+		('__main__.EnumOps.Values.A', 'int'),  # Enumの定数値を直接参照するとEnum型ではなく、オリジナルの型になる ※情報を損なわないようにするため
+		('__main__.EnumOps.Values.B', 'int'),  # 〃
 		('__main__.EnumOps.assign.a', 'Values'),
 		('__main__.EnumOps.assign.d', 'dict<Values, str>'),
 		('__main__.EnumOps.assign.da', 'str'),
+		('__main__.EnumOps.cast.e', 'Values'),
+		('__main__.EnumOps.cast.n', 'int'),
 	])
 	def test_from_fullyname(self, fullyname: str, expected: str) -> None:
 		symbols = self.fixture.get(Symbols)

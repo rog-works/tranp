@@ -76,7 +76,12 @@ class Sub(Base):
 		a = a1 + 1
 
 class CalcOps:
-	def sum(self) -> None:
+	def unary(self) -> None:
+		n = 1
+		n_neg = -n
+		n_not = not n
+
+	def binary(self) -> None:
 		n = 1 + 1
 		nb0 = 1 + True
 		nb1 = True + 1
@@ -85,6 +90,7 @@ class CalcOps:
 		fn2 = 1.0 + 1.0
 		fb0 = 1.0 + True
 		fb1 = True + 1.0
+		result = 1 + n * fn0 - fb0 / 2
 
 	def tenary(self) -> None:
 		n = 1 if 2 else 3
@@ -146,3 +152,7 @@ class EnumOps:
 			EnumOps.Values.B: 'B',
 		}
 		da = d[EnumOps.Values.A]
+
+	def cast(self) -> None:
+		e = EnumOps.Values(0)
+		n = int(EnumOps.Values.A)

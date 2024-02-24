@@ -438,10 +438,11 @@ class ProceduralResolver:
 			receiver = receiver.attrs[0]
 
 		# クラス属性へのアクセスの場合は__class_getitem__経由で型を解決
-		# FIXME on_superによって解決されたreceiverは、インスタンス属性へのアクセスと見做して除外する ※アクセス対象がクラスかインスタンスか区別出来ないため
-		if not node.receiver.is_a(defs.Super) and isinstance(receiver.decl, defs.Class):
+		# XXX clsの場合は必ずクラス参照。それ以外の場合は、必ず「A」または「A.B」の形式になる。その場合、シンボルの完全参照名の末尾と必ず一致する
+		# XXX @see Py2Cpp.on_relay
+		if node.receiver.is_a(defs.ClassRef) or (node.receiver.is_a(defs.Relay, defs.Variable) and receiver.types.fullyname.endswith(node.receiver.domain_name)):
 			try:
-				getitem = self.symbols.resolve(receiver.decl, '__class_getitem__')
+				getitem = self.symbols.resolve(receiver.types, '__class_getitem__')
 				# XXX clsにタイプヒントが付与された場合、returnsの第1引数のreceiverと階層を合わせるためアンパックする ※タイプヒントが無い場合は必然的に階層が同じになる
 				# XXX (例: '__class_getitem__(cls: type[T], *: Any) -> Any')
 				class_type = getitem.attrs[0].attrs[0] if len(getitem.attrs[0].attrs) > 0 else getitem.attrs[0]

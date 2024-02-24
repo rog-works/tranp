@@ -436,8 +436,11 @@ class Py2Cpp:
 			return node.receiver.is_a(defs.ThisRef)
 
 		def is_static_access() -> bool:
+			# XXX superは一般的には親クラスのインスタンスへの参照だが、C++ではクラス参照と同じ修飾子によってアクセスするため、例外的に判定に加える
 			is_class_alias = isinstance(node.receiver, (defs.ClassRef, defs.Super))
-			is_class_access = receiver_symbol.decl.is_a(defs.ClassDef)
+			# XXX clsとsuperを除くクラス参照の場合は、必ず「A」または「A.B」の形式になる。その場合、シンボルの完全参照名の末尾と必ず一致する
+			# XXX @see Symbols.on_relay
+			is_class_access = node.receiver.is_a(defs.Relay, defs.Variable) and receiver_symbol.types.fullyname.endswith(node.receiver.domain_name)
 			return is_class_alias or is_class_access
 
 		if is_cvar_receiver():

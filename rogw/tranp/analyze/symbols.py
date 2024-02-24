@@ -367,12 +367,10 @@ class ProceduralResolver:
 			iterates = iterates.attrs[0]
 
 		def resolve() -> SymbolRaw:
-			# FIXME __class_getitem__と同様にクラスチェーンを考慮する必要あり
-			methods = {method.symbol.tokens: method for method in iterates.types.as_a(defs.Class).methods if method.symbol.tokens in ['__next__', '__iter__']}
-			if '__next__' in methods:
-				return self.symbols.resolve(methods['__next__'])
-			else:
-				return self.symbols.resolve(methods['__iter__'])
+			try:
+				return self.symbols.resolve(iterates.types, '__next__')
+			except NotFoundError:
+				return self.symbols.resolve(iterates.types, '__iter__')
 
 		method = resolve()
 		schema = {

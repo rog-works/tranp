@@ -121,54 +121,18 @@ class CellMesh {
 	 */
 	public: static std::vector<int> need_cell_face_indexs(int need_cell_index) {
 		std::map<int, std::vector<int>> to_faces = {
-			{(int)(CellMesh::NeedCellIndexs::Bottom0), {
-			{(int)(CellMesh::FaceIndexs::Bottom)},
-			{(int)(CellMesh::FaceIndexs::Back)},
-		}},
-			{(int)(CellMesh::NeedCellIndexs::Bottom1), {
-			{(int)(CellMesh::FaceIndexs::Bottom)},
-			{(int)(CellMesh::FaceIndexs::Left)},
-		}},
-			{(int)(CellMesh::NeedCellIndexs::Bottom2), {
-			{(int)(CellMesh::FaceIndexs::Bottom)},
-			{(int)(CellMesh::FaceIndexs::Right)},
-		}},
-			{(int)(CellMesh::NeedCellIndexs::Bottom3), {
-			{(int)(CellMesh::FaceIndexs::Bottom)},
-			{(int)(CellMesh::FaceIndexs::Front)},
-		}},
-			{(int)(CellMesh::NeedCellIndexs::Middle0), {
-			{(int)(CellMesh::FaceIndexs::Back)},
-			{(int)(CellMesh::FaceIndexs::Left)},
-		}},
-			{(int)(CellMesh::NeedCellIndexs::Middle1), {
-			{(int)(CellMesh::FaceIndexs::Back)},
-			{(int)(CellMesh::FaceIndexs::Right)},
-		}},
-			{(int)(CellMesh::NeedCellIndexs::Middle2), {
-			{(int)(CellMesh::FaceIndexs::Front)},
-			{(int)(CellMesh::FaceIndexs::Left)},
-		}},
-			{(int)(CellMesh::NeedCellIndexs::Middle3), {
-			{(int)(CellMesh::FaceIndexs::Front)},
-			{(int)(CellMesh::FaceIndexs::Right)},
-		}},
-			{(int)(CellMesh::NeedCellIndexs::Top0), {
-			{(int)(CellMesh::FaceIndexs::Top)},
-			{(int)(CellMesh::FaceIndexs::Back)},
-		}},
-			{(int)(CellMesh::NeedCellIndexs::Top1), {
-			{(int)(CellMesh::FaceIndexs::Top)},
-			{(int)(CellMesh::FaceIndexs::Left)},
-		}},
-			{(int)(CellMesh::NeedCellIndexs::Top2), {
-			{(int)(CellMesh::FaceIndexs::Top)},
-			{(int)(CellMesh::FaceIndexs::Right)},
-		}},
-			{(int)(CellMesh::NeedCellIndexs::Top3), {
-			{(int)(CellMesh::FaceIndexs::Top)},
-			{(int)(CellMesh::FaceIndexs::Front)},
-		}},
+			{(int)(CellMesh::NeedCellIndexs::Bottom0), { {(int)(CellMesh::FaceIndexs::Bottom)}, {(int)(CellMesh::FaceIndexs::Back)}, }},
+			{(int)(CellMesh::NeedCellIndexs::Bottom1), { {(int)(CellMesh::FaceIndexs::Bottom)}, {(int)(CellMesh::FaceIndexs::Left)}, }},
+			{(int)(CellMesh::NeedCellIndexs::Bottom2), { {(int)(CellMesh::FaceIndexs::Bottom)}, {(int)(CellMesh::FaceIndexs::Right)}, }},
+			{(int)(CellMesh::NeedCellIndexs::Bottom3), { {(int)(CellMesh::FaceIndexs::Bottom)}, {(int)(CellMesh::FaceIndexs::Front)}, }},
+			{(int)(CellMesh::NeedCellIndexs::Middle0), { {(int)(CellMesh::FaceIndexs::Back)}, {(int)(CellMesh::FaceIndexs::Left)}, }},
+			{(int)(CellMesh::NeedCellIndexs::Middle1), { {(int)(CellMesh::FaceIndexs::Back)}, {(int)(CellMesh::FaceIndexs::Right)}, }},
+			{(int)(CellMesh::NeedCellIndexs::Middle2), { {(int)(CellMesh::FaceIndexs::Front)}, {(int)(CellMesh::FaceIndexs::Left)}, }},
+			{(int)(CellMesh::NeedCellIndexs::Middle3), { {(int)(CellMesh::FaceIndexs::Front)}, {(int)(CellMesh::FaceIndexs::Right)}, }},
+			{(int)(CellMesh::NeedCellIndexs::Top0), { {(int)(CellMesh::FaceIndexs::Top)}, {(int)(CellMesh::FaceIndexs::Back)}, }},
+			{(int)(CellMesh::NeedCellIndexs::Top1), { {(int)(CellMesh::FaceIndexs::Top)}, {(int)(CellMesh::FaceIndexs::Left)}, }},
+			{(int)(CellMesh::NeedCellIndexs::Top2), { {(int)(CellMesh::FaceIndexs::Top)}, {(int)(CellMesh::FaceIndexs::Right)}, }},
+			{(int)(CellMesh::NeedCellIndexs::Top3), { {(int)(CellMesh::FaceIndexs::Top)}, {(int)(CellMesh::FaceIndexs::Front)}, }},
 		};
 		return to_faces[need_cell_index];
 	}
@@ -180,42 +144,12 @@ class CellMesh {
 	 */
 	public: static std::vector<int> around_need_cell_face_indexs(int face_index) {
 		std::map<int, std::vector<int>> to_faces = {
-			{(int)(CellMesh::FaceIndexs::Left), {
-			{(int)(CellMesh::FaceIndexs::Back)},
-			{(int)(CellMesh::FaceIndexs::Front)},
-			{(int)(CellMesh::FaceIndexs::Bottom)},
-			{(int)(CellMesh::FaceIndexs::Top)},
-		}},
-			{(int)(CellMesh::FaceIndexs::Right), {
-			{(int)(CellMesh::FaceIndexs::Back)},
-			{(int)(CellMesh::FaceIndexs::Front)},
-			{(int)(CellMesh::FaceIndexs::Bottom)},
-			{(int)(CellMesh::FaceIndexs::Top)},
-		}},
-			{(int)(CellMesh::FaceIndexs::Back), {
-			{(int)(CellMesh::FaceIndexs::Left)},
-			{(int)(CellMesh::FaceIndexs::Right)},
-			{(int)(CellMesh::FaceIndexs::Bottom)},
-			{(int)(CellMesh::FaceIndexs::Top)},
-		}},
-			{(int)(CellMesh::FaceIndexs::Front), {
-			{(int)(CellMesh::FaceIndexs::Left)},
-			{(int)(CellMesh::FaceIndexs::Right)},
-			{(int)(CellMesh::FaceIndexs::Bottom)},
-			{(int)(CellMesh::FaceIndexs::Top)},
-		}},
-			{(int)(CellMesh::FaceIndexs::Bottom), {
-			{(int)(CellMesh::FaceIndexs::Left)},
-			{(int)(CellMesh::FaceIndexs::Right)},
-			{(int)(CellMesh::FaceIndexs::Back)},
-			{(int)(CellMesh::FaceIndexs::Front)},
-		}},
-			{(int)(CellMesh::FaceIndexs::Top), {
-			{(int)(CellMesh::FaceIndexs::Left)},
-			{(int)(CellMesh::FaceIndexs::Right)},
-			{(int)(CellMesh::FaceIndexs::Back)},
-			{(int)(CellMesh::FaceIndexs::Front)},
-		}},
+			{(int)(CellMesh::FaceIndexs::Left), { {(int)(CellMesh::FaceIndexs::Back)}, {(int)(CellMesh::FaceIndexs::Front)}, {(int)(CellMesh::FaceIndexs::Bottom)}, {(int)(CellMesh::FaceIndexs::Top)}, }},
+			{(int)(CellMesh::FaceIndexs::Right), { {(int)(CellMesh::FaceIndexs::Back)}, {(int)(CellMesh::FaceIndexs::Front)}, {(int)(CellMesh::FaceIndexs::Bottom)}, {(int)(CellMesh::FaceIndexs::Top)}, }},
+			{(int)(CellMesh::FaceIndexs::Back), { {(int)(CellMesh::FaceIndexs::Left)}, {(int)(CellMesh::FaceIndexs::Right)}, {(int)(CellMesh::FaceIndexs::Bottom)}, {(int)(CellMesh::FaceIndexs::Top)}, }},
+			{(int)(CellMesh::FaceIndexs::Front), { {(int)(CellMesh::FaceIndexs::Left)}, {(int)(CellMesh::FaceIndexs::Right)}, {(int)(CellMesh::FaceIndexs::Bottom)}, {(int)(CellMesh::FaceIndexs::Top)}, }},
+			{(int)(CellMesh::FaceIndexs::Bottom), { {(int)(CellMesh::FaceIndexs::Left)}, {(int)(CellMesh::FaceIndexs::Right)}, {(int)(CellMesh::FaceIndexs::Back)}, {(int)(CellMesh::FaceIndexs::Front)}, }},
+			{(int)(CellMesh::FaceIndexs::Top), { {(int)(CellMesh::FaceIndexs::Left)}, {(int)(CellMesh::FaceIndexs::Right)}, {(int)(CellMesh::FaceIndexs::Back)}, {(int)(CellMesh::FaceIndexs::Front)}, }},
 		};
 		return to_faces[face_index];
 	}
@@ -401,8 +335,7 @@ class CellMesh {
 	 * @return ポリゴンIDリスト
 	 */
 	public: static std::map<IntVector, std::vector<IntVector2>> by_polygon_ids_impl(Mesh* mesh, IntVector start, int unit) {
-		std::map<IntVector, std::map<int, IntVector2>> cell_on_faces = {
-		};
+		std::map<IntVector, std::map<int, IntVector2>> cell_on_faces = {};
 		auto closure = [&](MeshRaw& origin) -> void {
 			IntVector size = IntVector(3, 3, 3);
 			Box3d box = Box3d(CellMesh::from_cell(start), CellMesh::from_cell(start + size));
@@ -418,8 +351,7 @@ class CellMesh {
 				IntVector cell = CellMesh::to_cell(center_location, unit);
 				int face_index = CellMesh::face_box_to_face_index(face_box, unit);
 				if ((!cell_on_faces.contains(cell))) {
-					cell_on_faces[cell] = {
-					};
+					cell_on_faces[cell] = {};
 				}
 				if ((!cell_on_faces[cell].contains(face_index))) {
 					cell_on_faces[cell][face_index] = IntVector2(ti, -1);
@@ -429,8 +361,7 @@ class CellMesh {
 				IntVector cell2 = cell + CellMesh::face_index_to_vector(face_index);
 				int face_index2 = CellMesh::invert_face_index(face_index);
 				if ((!cell_on_faces.contains(cell2))) {
-					cell_on_faces[cell2] = {
-					};
+					cell_on_faces[cell2] = {};
 				}
 				if ((!cell_on_faces[cell2].contains(face_index2))) {
 					cell_on_faces[cell2][face_index2] = IntVector2(ti, -1);
@@ -450,8 +381,7 @@ class CellMesh {
 				}
 			}
 		}
-		std::map<IntVector, std::vector<IntVector2>> out_ids = {
-		};
+		std::map<IntVector, std::vector<IntVector2>> out_ids = {};
 		for (auto i = 0; i < (int)(CellMesh::OffsetIndexs::Max); i++) {
 			IntVector offset = CellMesh::offset_index_to_cell(i);
 			cell = start + offset;
@@ -514,8 +444,7 @@ class CellMesh {
 		IntVector start = IntVector(cell.x - 1, cell.y - 1, cell.z - 1);
 		std::map<IntVector, std::vector<IntVector2>> entries = CellMesh::by_polygon_ids_impl(mesh, start, unit);
 		std::vector<IntVector2> entry = entries[cell];
-		std::vector<IntVector> out_need_cells = {
-		};
+		std::vector<IntVector> out_need_cells = {};
 		for (auto i = 0; i < (int)(CellMesh::FaceIndexs::Max); i++) {
 			if (entry[i].x != -1) {
 				continue;
@@ -629,56 +558,20 @@ class CellMesh {
 				origin.enable_triangle_groups(0);
 			}
 			std::map<CellMesh::FaceIndexs, std::vector<IntVector>> uv_map = {
-				{CellMesh::FaceIndexs::Left, {
-				{IntVector(3, 2, 1)},
-				{IntVector(3, 1, 0)},
-			}},
-				{CellMesh::FaceIndexs::Right, {
-				{IntVector(2, 1, 0)},
-				{IntVector(2, 0, 3)},
-			}},
-				{CellMesh::FaceIndexs::Back, {
-				{IntVector(2, 1, 0)},
-				{IntVector(2, 0, 3)},
-			}},
-				{CellMesh::FaceIndexs::Front, {
-				{IntVector(3, 2, 1)},
-				{IntVector(3, 1, 0)},
-			}},
-				{CellMesh::FaceIndexs::Bottom, {
-				{IntVector(0, 1, 2)},
-				{IntVector(0, 2, 3)},
-			}},
-				{CellMesh::FaceIndexs::Top, {
-				{IntVector(0, 3, 2)},
-				{IntVector(0, 2, 1)},
-			}},
+				{CellMesh::FaceIndexs::Left, { {IntVector(3, 2, 1)}, {IntVector(3, 1, 0)}, }},
+				{CellMesh::FaceIndexs::Right, { {IntVector(2, 1, 0)}, {IntVector(2, 0, 3)}, }},
+				{CellMesh::FaceIndexs::Back, { {IntVector(2, 1, 0)}, {IntVector(2, 0, 3)}, }},
+				{CellMesh::FaceIndexs::Front, { {IntVector(3, 2, 1)}, {IntVector(3, 1, 0)}, }},
+				{CellMesh::FaceIndexs::Bottom, { {IntVector(0, 1, 2)}, {IntVector(0, 2, 3)}, }},
+				{CellMesh::FaceIndexs::Top, { {IntVector(0, 3, 2)}, {IntVector(0, 2, 1)}, }},
 			};
 			std::map<CellMesh::FaceIndexs, std::vector<IntVector>> polygon_map = {
-				{CellMesh::FaceIndexs::Left, {
-				{IntVector(0, 3, 7)},
-				{IntVector(0, 7, 4)},
-			}},
-				{CellMesh::FaceIndexs::Right, {
-				{IntVector(1, 5, 6)},
-				{IntVector(1, 6, 2)},
-			}},
-				{CellMesh::FaceIndexs::Back, {
-				{IntVector(0, 4, 5)},
-				{IntVector(0, 5, 1)},
-			}},
-				{CellMesh::FaceIndexs::Front, {
-				{IntVector(3, 2, 6)},
-				{IntVector(3, 6, 7)},
-			}},
-				{CellMesh::FaceIndexs::Bottom, {
-				{IntVector(0, 1, 2)},
-				{IntVector(0, 2, 3)},
-			}},
-				{CellMesh::FaceIndexs::Top, {
-				{IntVector(4, 7, 6)},
-				{IntVector(4, 6, 5)},
-			}},
+				{CellMesh::FaceIndexs::Left, { {IntVector(0, 3, 7)}, {IntVector(0, 7, 4)}, }},
+				{CellMesh::FaceIndexs::Right, { {IntVector(1, 5, 6)}, {IntVector(1, 6, 2)}, }},
+				{CellMesh::FaceIndexs::Back, { {IntVector(0, 4, 5)}, {IntVector(0, 5, 1)}, }},
+				{CellMesh::FaceIndexs::Front, { {IntVector(3, 2, 6)}, {IntVector(3, 6, 7)}, }},
+				{CellMesh::FaceIndexs::Bottom, { {IntVector(0, 1, 2)}, {IntVector(0, 2, 3)}, }},
+				{CellMesh::FaceIndexs::Top, { {IntVector(4, 7, 6)}, {IntVector(4, 6, 5)}, }},
 			};
 			for (auto i = 0; i < 6; i++) {
 				if (p_ids[i].x != -1) {

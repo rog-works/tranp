@@ -1,5 +1,9 @@
+{%- if items | length() == 0 -%}{}
+{%- elif items | length() == 1 -%}{{ '{' }}{{ items[0] }}{{ '}' }}
+{%- else -%}
 {
 {%- for key_value in items %}
-	{{ key_value }},
+	{{ key_value.split('\n') | join(' ') | replace('\t', '') }},
 {%- endfor %}
 }
+{%- endif %}

@@ -468,8 +468,7 @@ class CellMesh:
 
 	@classmethod
 	def need_cells(cls, mesh: Mesh[CP], cell: IntVector, unit: int) -> list[IntVector]:
-		"""
-		指定座標へのセル追加に必要な周辺セルを取得
+		"""指定座標へのセル追加に必要な周辺セルを取得
 
 		Args:
 			mesh (Mesh*): メッシュ
@@ -522,3 +521,28 @@ class CellMesh:
 			print('Need cells. cell: (%d, %d, %d)', need_cell.x, need_cell.y, need_cell.z)
 
 		return out_need_cells
+
+	@classmethod
+	def addable(cls, mesh: Mesh[CP], cell: IntVector, unit: int) -> bool:
+		"""指定座標にセル追加が出来るか判定
+
+		Args:
+			mesh (Mesh*): メッシュ
+			cell (IntVector): セル座標
+			unit (int): 単位
+		Returns:
+			bool: True = OK, False = NG(周辺セルが不足)
+		"""
+		return len(cls.need_cells(mesh, cell, unit)) == 0
+
+	@classmethod
+	def clear(cls, mesh: Mesh[CP]) -> None:
+		"""メッシュをクリーニングし、初期状態に戻す
+
+		Args:
+			mesh (Mesh*): メッシュ
+		"""
+		def closure(origin: MeshRaw[CRef]) -> None:
+			origin.clear()
+
+		mesh.edit_mesh(closure)

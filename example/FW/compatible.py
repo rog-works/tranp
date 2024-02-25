@@ -1,6 +1,6 @@
 from typing import Callable, Iterator
 
-from rogw.tranp.compatible.cpp.object import CObject
+from rogw.tranp.compatible.cpp.object import CObject, CRef
 
 class Vector(CObject):
 	def __init__(self, x: float = 0.0, y: float = 0.0, z: float = 0.0) -> None:
@@ -84,6 +84,12 @@ class MeshRaw(CObject):
 	def get_tri_bounds(self, index: int) -> Box3d:
 		raise NotImplementedError()
 
+	def clear(self) -> None:
+		raise NotImplementedError()
+
 class Mesh(CObject):
-	def process_mesh(self, callback: Callable[[MeshRaw], None]) -> None:
+	def process_mesh(self, callback: Callable[[MeshRaw[CRef]], None]) -> None:
+		raise NotImplementedError()
+
+	def edit_mesh(self, callback: Callable[[MeshRaw[CRef]], None]) -> None:
 		raise NotImplementedError()

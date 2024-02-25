@@ -557,4 +557,24 @@ class CellMesh {
 		}
 		return out_need_cells;
 	}
+	/**
+	 * 指定座標にセル追加が出来るか判定
+	 * @param mesh メッシュ
+	 * @param cell セル座標
+	 * @param unit 単位
+	 * @return True = OK, False = NG(周辺セルが不足)
+	 */
+	public: static bool addable(Mesh* mesh, IntVector cell, int unit) {
+		return CellMesh::need_cells(mesh, cell, unit).size() == 0;
+	}
+	/**
+	 * メッシュをクリーニングし、初期状態に戻す
+	 * @param mesh メッシュ
+	 */
+	public: static void clear(Mesh* mesh) {
+		auto closure = [&](MeshRaw& origin) -> void {
+			origin.clear();
+		}
+		mesh->edit_mesh(closure);
+	}
 };

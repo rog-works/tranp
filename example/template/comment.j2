@@ -1,5 +1,7 @@
 /**
- * {{ data.description }}
+{%- for line in data.description.split('\n') | select('!=', '') %}{# XXX larkのバグでLONG_STRINGの改行が倍になるため空行を削除 #}
+ * {{ line }}
+{%- endfor %}
 {%- for arg in data.args %}
  * @param {{ arg.name }} {{ arg.description }}
 {%- endfor %}

@@ -626,7 +626,7 @@ class ProceduralResolver:
 			actual_other = method_ref.parameter(0, receiver, other)
 			var_types = actual_other.attrs if self.symbols.is_a(actual_other, UnionType) else [actual_other]
 			if other in var_types:
-				return method.attrs[-1]
+				return method_ref.returns(receiver, actual_other)
 
 		raise LogicError(f'Operation not allowed. signature not match. {node}, {str(left)} {operator.tokens} {str(right)}')
 

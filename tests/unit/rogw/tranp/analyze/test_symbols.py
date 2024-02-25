@@ -145,6 +145,8 @@ class TestSymbols(TestCase):
 
 		('__main__.Sub.relay_access.s', 'str'),
 
+		('__main__.Sub.fill_list.n_x3', 'list<int>'),
+
 		('__main__.CalcOps.unary.n_neg', 'int'),
 		('__main__.CalcOps.unary.n_not', 'bool'),
 		('__main__.CalcOps.binary.n', 'int'),

@@ -711,15 +711,16 @@ class Py2Cpp:
 		if list_is_primary != list_is_secondary and operators[0] == '*':
 			default_raw, default = (primary_raw, primary) if list_is_primary else (secondary_raws[0], secondaries[0])
 			size_raw, size = (secondary_raws[0], secondaries[0]) if list_is_primary else (primary_raw, primary)
-			return self.proc_binary_operator_new_list(node, default_raw, size_raw, default, size)
+			return self.proc_binary_operator_fill_list(node, default_raw, size_raw, default, size)
 		else:
 			return self.proc_binary_operator_expression(node, primary_raw, secondary_raws, primary, operators, secondaries)
 
-	def proc_binary_operator_new_list(self, node: defs.BinaryOperator, default_raw: SymbolRaw, size_raw: SymbolRaw, default: str, size: str) -> str:
+	def proc_binary_operator_fill_list(self, node: defs.BinaryOperator, default_raw: SymbolRaw, size_raw: SymbolRaw, default: str, size: str) -> str:
 		value_type = self.to_symbol_path(default_raw.attrs[0])
-		calcable_default = self.calculable_cvar_value(default_raw, default)
+		# 必ず要素1の配列のリテラルになるので、前後の括弧を除外する FIXME 現状仕様を前提にした処理なので妥当性が低い
+		calcable_default = self.calculable_cvar_value(default_raw, default[1:-1])
 		calcable_size = self.calculable_cvar_value(size_raw, size)
-		return self.view.render('binary_operator_new_list', vars={'value_type': value_type, 'default': calcable_default, 'size': calcable_size})
+		return self.view.render('binary_operator_fill_list', vars={'value_type': value_type, 'default': calcable_default, 'size': calcable_size})
 
 	def proc_binary_operator_expression(self, node: defs.BinaryOperator, left_raw: SymbolRaw, right_raws: list[SymbolRaw], left: str, operators: list[str], rights: list[str]) -> str:
 		calcable_left = self.calculable_cvar_value(left_raw, left)

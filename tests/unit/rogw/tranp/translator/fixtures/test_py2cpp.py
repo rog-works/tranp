@@ -218,6 +218,9 @@ class ListOps:
 		b_in = 1 in values
 		b_not_in = 1 not in values
 
+	def fill(self, n: int) -> None:
+		n_x3 = [n] * 3
+
 class DictOps:
 	def len(self) -> None:
 		kvs = {'a': 1}

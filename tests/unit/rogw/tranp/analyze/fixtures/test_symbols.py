@@ -79,6 +79,9 @@ class Sub(Base):
 		ddb = {1: {1: Base()}}
 		s = ddb[1][1].base_str
 
+	def fill_list(self, n: int) -> None:
+		n_x3 = [n] * 3
+
 class CalcOps:
 	def unary(self) -> None:
 		n = 1

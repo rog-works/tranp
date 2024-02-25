@@ -234,7 +234,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('DictOps.pop.block', 'assign[2]'), defs.MoveAssign, BlockExpects.DictOps_pop_assign_value1),
 		(_ast('DictOps.keys.block', 'assign[1]'), defs.MoveAssign, BlockExpects.DictOps_keys_assign_keys),
 		(_ast('DictOps.values.block', 'assign[1]'), defs.MoveAssign, BlockExpects.DictOps_values_assign_values),
-		(_ast('DictOps.decl.block', 'assign'), defs.MoveAssign, 'std::map<int, std::vector<int>> d = {\n\t{1, {\n\t{1},\n\t{2},\n\t{3},\n}},\n};'),
+		(_ast('DictOps.decl.block', 'assign'), defs.MoveAssign, 'std::map<int, std::vector<int>> d = {{1, {\n\t{1},\n\t{2},\n\t{3},\n}}};'),
 		(_ast('DictOps.contains.block', 'assign[1]'), defs.MoveAssign, 'bool b_in = d.contains("a");'),
 		(_ast('DictOps.contains.block', 'assign[2]'), defs.MoveAssign, 'bool b_not_in = (!d.contains("a"));'),
 

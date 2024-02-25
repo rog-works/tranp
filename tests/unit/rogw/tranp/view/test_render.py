@@ -27,34 +27,15 @@ class TestRenderer(TestCase):
 		self.assertRender('move_assign', indent, vars, expected)
 
 	@data_provider([
-		(
-			{'values': ['1234', '2345']},
-			'\n'.join([
-				'{',
-				'	{1234},',
-				'	{2345},',
-				'}',
-			]),
-		),
-		({'values': []}, '{\n}'),
+		({'values': ['1234', '2345']},'{\n\t{1234},\n\t{2345},\n}'),
+		({'values': []}, '{}'),
 	])
 	def test_render_list(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('list', 0, vars, expected)
 
 	@data_provider([
-		(
-			{'items': [
-				'{hoge, 1}',
-				'{fuga, 2}',
-			]},
-			'\n'.join([
-				'{',
-				'	{hoge, 1},',
-				'	{fuga, 2},',
-				'}',
-			]),
-		),
-		({'items': []}, '{\n}'),
+		({'items': ['{hoge, 1}','{fuga, 2}']}, '{\n\t{hoge, 1},\n\t{fuga, 2},\n}'),
+		({'items': []}, '{}'),
 	])
 	def test_render_dict(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('dict', 0, vars, expected)

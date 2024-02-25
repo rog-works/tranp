@@ -338,7 +338,8 @@ class CellMesh:
 		def closure(origin: MeshRaw[CRef, CConst]) -> None:
 			cell_box = cls.to_cell_box(cell, unit)
 			boxs = cls.to_vertex_boxs(cell_box, unit)
-			for i, box in enumerate(boxs):
+			for i in range(len(boxs)):
+				box: Box3d[CRef] = boxs[i]
 				for vi in origin.vertex_indices_itr():
 					# 実体がない(参照カウント0)インデックスを除外
 					if not origin.is_vertex(vi):

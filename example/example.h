@@ -304,14 +304,8 @@ class CellMesh {
 		auto closure = [&](const MeshRaw& origin) -> void {
 			Box3d cell_box = CellMesh::to_cell_box(cell, unit);
 			std::vector<Box3d> boxs = CellMesh::to_vertex_boxs(cell_box, unit);
-			for (auto& [i, box] : [&]() -> std::map<int, Box3d> {
-				std::map<int, Box3d> __ret;
-				int __index = 0;
-				for (auto& __entry : boxs) {
-					__ret.emplace(__index++, __entry);
-				}
-				return __ret;
-			}()) {
+			for (auto i = 0; i < boxs.size(); i++) {
+				Box3d& box = boxs[i];
 				for (auto& vi : origin.vertex_indices_itr()) {
 					if (!origin.is_vertex(vi)) {
 						continue;

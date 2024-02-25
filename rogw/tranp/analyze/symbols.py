@@ -376,7 +376,8 @@ class ProceduralResolver:
 		schema = {
 			'klass': method.attrs[0],
 			'parameters': method.attrs[1:-1],
-			# XXX iter関数の動作再現として、__iter__の場合のみ戻り値内のT_Seqをアンパックする(期待値: `__iter__(self) -> Iterator[T_Seq]`)
+			# XXX iter関数の動作再現として、__iter__の場合のみ戻り値内のTをアンパックする
+			# XXX 期待値: `__iter__(self) -> Iterator[T]`
 			'returns': method.attrs[-1] if method.types.domain_name == '__next__' else method.attrs[-1].attrs[0],
 		}
 		method_ref = reflection.Builder(method).schema(lambda: schema).build(reflection.Method)

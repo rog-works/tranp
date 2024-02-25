@@ -217,7 +217,7 @@ class Py2Cpp:
 	def proc_for_enumerate(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		iterates = cast(re.Match, re.fullmatch(r'enumerate\((.+)\)', for_in))[1]
 		var_type = self.to_symbol_path(self.symbols.type_of(node.for_in).attrs[1])
-		return self.view.render(f'{node.classification}_enumerate', vars={'symbols': symbols, 'iterates': iterates, 'statements': statements, 'id': node.id, 'var_type': var_type})
+		return self.view.render(f'{node.classification}_enumerate', vars={'symbols': symbols, 'iterates': iterates, 'statements': statements, 'var_type': var_type})
 
 	def proc_for_dict_items(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		iterates = cast(re.Match, re.fullmatch(r'(.+)\.items\(\)', for_in))[1]
@@ -230,7 +230,16 @@ class Py2Cpp:
 		return self.view.render(node.classification, vars={'statements': statements, 'catches': catches})
 
 	def on_comp_for(self, node: defs.CompFor, symbols: list[str], for_in: str) -> str:
-		return self.view.render(node.classification, vars={'symbols': symbols, 'iterates': for_in})
+		"""Note: XXX range/enumerateは効率・可読性共に非常に悪いため非サポート"""
+		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Variable) and node.iterates.calls.tokens == range.__name__:
+			raise LogicError(f'Operation not allowed. "range" is not supported. node: {node}')
+		elif isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Variable) and node.iterates.calls.tokens == enumerate.__name__:
+			raise LogicError(f'Operation not allowed. "enumerate" is not supported. node: {node}')
+		elif isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Relay) and node.iterates.calls.prop.tokens == dict.items.__name__:
+			iterates = cast(re.Match, re.fullmatch(r'(.+)\.items\(\)', for_in))[1]
+			return self.view.render(node.classification, vars={'symbols': symbols, 'iterates': iterates})
+		else:
+			return self.view.render(node.classification, vars={'symbols': symbols, 'iterates': for_in})
 
 	def on_list_comp(self, node: defs.ListComp, projection: str, fors: list[str], condition: str) -> str:
 		projection_type_raw = self.symbols.type_of(node.projection)
@@ -683,15 +692,44 @@ class Py2Cpp:
 
 	def proc_binary_operator(self, node: defs.BinaryOperator, elements: list[str]) -> str:
 		node_of_elements = node.elements
-		left_raw = self.symbols.type_of(node_of_elements[0])
-		left = self.calculable_cvar_value(left_raw, elements[0])
-		for index in range(int((len(elements) - 1) / 2)):
-			operator = elements[index * 2 + 1]
-			right_raw = self.symbols.type_of(node_of_elements[index * 2 + 2])
-			right = self.calculable_cvar_value(right_raw, elements[index * 2 + 2])
-			left = self.view.render('binary_operator', vars={'left': left, 'operator': operator, 'right': right, 'right_is_dict': self.symbols.is_a(right_raw, dict)})
 
-		return left
+		# インデックスを算出
+		operator_indexs = range(1, len(node_of_elements), 2)
+		right_indexs = range(2, len(node_of_elements), 2)
+
+		# シンボルを解決
+		primary_raw = self.symbols.type_of(node_of_elements[0])
+		secondary_raws = [self.symbols.type_of(node_of_elements[index]) for index in right_indexs]
+
+		# 項目ごとに分離
+		primary = elements[0]
+		operators = [elements[index] for index in operator_indexs]
+		secondaries = [elements[index] for index in right_indexs]
+
+		list_is_primary = self.symbols.is_a(primary_raw, list)
+		list_is_secondary = self.symbols.is_a(secondary_raws[0], list)
+		if list_is_primary != list_is_secondary and operators[0] == '*':
+			default_raw, default = (primary_raw, primary) if list_is_primary else (secondary_raws[0], secondaries[0])
+			size_raw, size = (secondary_raws[0], secondaries[0]) if list_is_primary else (primary_raw, primary)
+			return self.proc_binary_operator_new_list(node, default_raw, size_raw, default, size)
+		else:
+			return self.proc_binary_operator_expression(node, primary_raw, secondary_raws, primary, operators, secondaries)
+
+	def proc_binary_operator_new_list(self, node: defs.BinaryOperator, default_raw: SymbolRaw, size_raw: SymbolRaw, default: str, size: str) -> str:
+		value_type = self.to_symbol_path(default_raw.attrs[0])
+		calcable_default = self.calculable_cvar_value(default_raw, default)
+		calcable_size = self.calculable_cvar_value(size_raw, size)
+		return self.view.render('binary_operator_new_list', vars={'value_type': value_type, 'default': calcable_default, 'size': calcable_size})
+
+	def proc_binary_operator_expression(self, node: defs.BinaryOperator, left_raw: SymbolRaw, right_raws: list[SymbolRaw], left: str, operators: list[str], rights: list[str]) -> str:
+		calcable_left = self.calculable_cvar_value(left_raw, left)
+		for index, right_raw in enumerate(right_raws):
+			operator = operators[index]
+			right = rights[index]
+			calcable_right = self.calculable_cvar_value(right_raw, right)
+			calcable_left = self.view.render('binary_operator', vars={'left': calcable_left, 'operator': operator, 'right': calcable_right, 'right_is_dict': self.symbols.is_a(right_raw, dict)})
+
+		return calcable_left
 
 	def on_tenary_operator(self, node: defs.TenaryOperator, primary: str, condition: str, secondary: str) -> str:
 		return self.view.render(node.classification, vars={'primary': primary, 'condition': condition, 'secondary': secondary})

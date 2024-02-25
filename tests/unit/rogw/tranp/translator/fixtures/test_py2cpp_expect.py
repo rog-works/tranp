@@ -21,7 +21,7 @@ class DeclOps {
 	CompOps_dict_comp_assign_kvs1 = \
 """std::map<std::string, CompOps::C> kvs1 = [this, &]() -> std::map<std::string, CompOps::C> {
 	std::map<std::string, CompOps::C> __ret;
-	for (auto& [key, value] : kvs0.items()) {
+	for (auto& [key, value] : kvs0) {
 		__ret.emplace({key, value});
 	}
 	return __ret;

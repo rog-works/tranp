@@ -421,7 +421,7 @@ class CellMesh:
 			offset = cls.offset_index_to_cell(i)
 			cell = start + offset
 
-			out_ids[cell] = [IntVector2(-1, -1) for _ in range(int(cls.FaceIndexs.Max))]
+			out_ids[cell] = [IntVector2(-1, -1)] * int(cls.FaceIndexs.Max)
 
 			if cell not in cell_on_faces:
 				continue

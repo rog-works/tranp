@@ -379,13 +379,7 @@ class CellMesh {
 		for (auto i = 0; i < (int)(CellMesh::OffsetIndexs::Max); i++) {
 			IntVector offset = CellMesh::offset_index_to_cell(i);
 			cell = start + offset;
-			out_ids[cell] = [&]() -> std::vector<IntVector2> {
-				std::vector<IntVector2> __ret;
-				for (auto& _ : range((int)(CellMesh::FaceIndexs::Max))) {
-					__ret.push_back(IntVector2(-1, -1));
-				}
-				return __ret;
-			}();
+			out_ids[cell] = std::vector<IntVector2>((int)(CellMesh::FaceIndexs::Max), IntVector2(-1, -1));
 			if ((!cell_on_faces.contains(cell))) {
 				continue;
 			}

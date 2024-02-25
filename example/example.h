@@ -504,4 +504,57 @@ class CellMesh {
 		}
 		return result;
 	}
+	/**
+	 * 指定座標へのセル追加に必要な周辺セルを取得
+	 * @param mesh メッシュ
+	 * @param cell セル座標
+	 * @param unit 単位
+	 * @return セル座標リスト
+	 */
+	public: static std::vector<IntVector> need_cells(Mesh* mesh, IntVector cell, int unit) {
+		IntVector start = IntVector(cell.x - 1, cell.y - 1, cell.z - 1);
+		std::map<IntVector, std::vector<IntVector2>> entries = CellMesh::by_polygon_ids_impl(mesh, start, unit);
+		std::vector<IntVector2> entry = entries[cell];
+		std::vector<IntVector> out_need_cells = {
+		};
+		for (auto i = 0; i < (int)(CellMesh::FaceIndexs::Max); i++) {
+			if (entry[i].x != -1) {
+				continue;
+			}
+			IntVector next = cell + CellMesh::face_index_to_vector(i);
+			std::vector<IntVector2> next_entry = entries[next];
+			for (auto& next_face_index : CellMesh::around_need_cell_face_indexs(i)) {
+				IntVector2 next_face = next_entry[next_face_index];
+				if (next_face.x == -1) {
+					continue;
+				}
+				IntVector candidate = next + CellMesh::face_index_to_vector(next_face_index);
+				if ((std::find(out_need_cells.begin(), out_need_cells.end(), candidate) != out_need_cells.end())) {
+					continue;
+				}
+				out_need_cells.push_back(candidate);
+				printf("Collect candidate. candidate: (%d, %d, %d)", candidate.x, candidate.y, candidate.z);
+			}
+		}
+		for (auto i = 0; i < (int)(CellMesh::NeedCellIndexs::Max); i++) {
+			for (auto& face_index : CellMesh::need_cell_face_indexs(i)) {
+				IntVector2 face = entry[face_index];
+				if (face.x == -1) {
+					continue;
+				}
+				IntVector vector = CellMesh::face_index_to_vector(face_index);
+				next = cell + vector;
+				for (auto& next_face_index : CellMesh::around_need_cell_face_indexs(face_index)) {
+					IntVector next_vector = CellMesh::face_index_to_vector(next_face_index);
+					candidate = next + next_vector;
+					out_need_cells.remove(candidate);
+					printf("Remove candidates. faceIndex: %d, cell: (%d, %d, %d), vector: (%d, %d, %d), nextFaceIndex: %d, next: (%d, %d, %d), nextVector: (%d, %d, %d), candidate: (%d, %d, %d)", face_index, cell.x, cell.y, cell.z, vector.x, vector.y, vector.z, next_face_index, next.x, next.y, next.z, next_vector.x, next_vector.y, next_vector.z, candidate.x, candidate.y, candidate.z);
+				}
+			}
+		}
+		for (auto& need_cell : out_need_cells) {
+			printf("Need cells. cell: (%d, %d, %d)", need_cell.x, need_cell.y, need_cell.z);
+		}
+		return out_need_cells;
+	}
 };

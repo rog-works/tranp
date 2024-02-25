@@ -465,3 +465,60 @@ class CellMesh:
 			print('Found faces by cell. i: %d, cell: (%d, %d, %d), start: (%d, %d, %d), face: (%d, %d, %d), result: (%d, %d)', i, cell.x, cell.y, cell.z, start.x, start.y, start.z, faces[i].x, faces[i].y, faces[i].z, result[i].x, result[i].y)
 
 		return result
+
+	@classmethod
+	def need_cells(cls, mesh: Mesh[CP], cell: IntVector, unit: int) -> list[IntVector]:
+		"""
+		指定座標へのセル追加に必要な周辺セルを取得
+
+		Args:
+			mesh (Mesh*): メッシュ
+			cell (IntVector): セル座標
+			unit (int): 単位
+		Returns:
+			list[IntVector]: セル座標リスト
+		"""
+		start = IntVector(cell.x - 1, cell.y - 1, cell.z - 1)
+		entries = cls.by_polygon_ids_impl(mesh, start, unit)
+		entry = entries[cell]
+
+		# 6面方向の先にセルが存在しない場合、その周辺セルを候補として抽出
+		out_need_cells: list[IntVector] = []
+		for i in range(int(cls.FaceIndexs.Max)):
+			if entry[i].x != -1:
+				continue
+
+			next = cell + cls.face_index_to_vector(i)
+			next_entry = entries[next]
+			for next_face_index in cls.around_need_cell_face_indexs(i):
+				next_face = next_entry[next_face_index]
+				if next_face.x == -1:
+					continue
+
+				candidate = next + cls.face_index_to_vector(next_face_index)
+				if candidate in out_need_cells:
+					continue
+
+				out_need_cells.append(candidate)
+
+				print('Collect candidate. candidate: (%d, %d, %d)', candidate.x, candidate.y, candidate.z)
+
+		# 必須セルに必要な面方向の先にセルが存在する場合、その周辺セルを候補から削除する
+		for i in range(int(cls.NeedCellIndexs.Max)):
+			for face_index in cls.need_cell_face_indexs(i):
+				face = entry[face_index]
+				if face.x == -1:
+					continue
+
+				vector = cls.face_index_to_vector(face_index)
+				next = cell + vector
+				for next_face_index in cls.around_need_cell_face_indexs(face_index):
+					next_vector = cls.face_index_to_vector(next_face_index)
+					candidate = next + next_vector
+					out_need_cells.remove(candidate)
+					print('Remove candidates. faceIndex: %d, cell: (%d, %d, %d), vector: (%d, %d, %d), nextFaceIndex: %d, next: (%d, %d, %d), nextVector: (%d, %d, %d), candidate: (%d, %d, %d)', face_index, cell.x, cell.y, cell.z, vector.x, vector.y, vector.z, next_face_index, next.x, next.y, next.z, next_vector.x, next_vector.y, next_vector.z, candidate.x, candidate.y, candidate.z)
+
+		for need_cell in out_need_cells:
+			print('Need cells. cell: (%d, %d, %d)', need_cell.x, need_cell.y, need_cell.z)
+
+		return out_need_cells

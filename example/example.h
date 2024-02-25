@@ -577,4 +577,148 @@ class CellMesh {
 		}
 		mesh->edit_mesh(closure);
 	}
+	/**
+	 * 指定のセル座標にセルを追加
+
+
+
+	# 追加条件:
+
+	周辺セルの不足によってトポロジーが崩れないことが条件
+
+	辺のみ接触する隣接セルが存在する場合が上記の条件に抵触する
+	 * @param mesh メッシュ
+	 * @param cell セル座標
+	 * @param unit 単位 (default = 100cm)
+	 */
+	public: static void add_cell(Mesh* mesh, IntVector cell, int unit = 100) {
+		if (!CellMesh::addable(mesh, cell, unit)) {
+			printf("Cannot be added due to lack of surrounding cells. cell: (%d, %d, %d)", cell.x, cell.y, cell.z);
+		}
+		auto closure = [&](MeshRaw& origin) -> void {
+			std::vector<int> v_ids = CellMesh::by_vertex_ids(mesh, cell, unit);
+			std::vector<IntVector2> p_ids = CellMesh::by_polygon_ids(mesh, cell, unit);
+			float f_unit = (float)(unit);
+			std::vector<Vector> verts = {
+				{Vector(0, 0, 0)},
+				{Vector(f_unit, 0, 0)},
+				{Vector(f_unit, f_unit, 0)},
+				{Vector(0, f_unit, 0)},
+				{Vector(0, 0, f_unit)},
+				{Vector(f_unit, 0, f_unit)},
+				{Vector(f_unit, f_unit, f_unit)},
+				{Vector(0, f_unit, f_unit)},
+			};
+			Vector start = CellMesh::from_cell(cell);
+			for (auto i = 0; i < 8; i++) {
+				if (v_ids[i] == -1) {
+					Vector pos = start + verts[i];
+					v_ids[i] = origin.append_vertex(pos);
+					printf("Add Vertex. i: %d, vid: %d, pos: (%f, %f, %f)", i, v_ids[i], pos.x, pos.y, pos.z);
+				}
+			}
+			printf("Vertexs: %d, %d, %d, %d, %d, %d, %d, %d", v_ids[0], v_ids[1], v_ids[2], v_ids[3], v_ids[4], v_ids[5], v_ids[6], v_ids[7]);
+			printf("Polygons: {%d, %d}, {%d, %d}, {%d, %d}, {%d, %d}, {%d, %d}, {%d, %d}", p_ids[0].x, p_ids[0].y, p_ids[1].x, p_ids[1].y, p_ids[2].x, p_ids[2].y, p_ids[3].x, p_ids[3].y, p_ids[4].x, p_ids[4].y, p_ids[5].x, p_ids[5].y);
+			std::map<int, Vector2> uvs = {
+				{0, Vector2(0.0, 0.0)},
+				{1, Vector2(1.0, 0.0)},
+				{2, Vector2(1.0, 1.0)},
+				{3, Vector2(0.0, 1.0)},
+			};
+			if (!origin.has_attributes()) {
+				origin.enable_attributes();
+			}
+			if (origin.attributes().num_uv_layers() == 0) {
+				origin.attributes().set_num_uv_layers(1);
+			}
+			if (!origin.has_triangle_groups()) {
+				origin.enable_triangle_groups(0);
+			}
+			std::map<CellMesh::FaceIndexs, std::vector<IntVector>> uv_map = {
+				{CellMesh::FaceIndexs::Left, {
+				{IntVector(3, 2, 1)},
+				{IntVector(3, 1, 0)},
+			}},
+				{CellMesh::FaceIndexs::Right, {
+				{IntVector(2, 1, 0)},
+				{IntVector(2, 0, 3)},
+			}},
+				{CellMesh::FaceIndexs::Back, {
+				{IntVector(2, 1, 0)},
+				{IntVector(2, 0, 3)},
+			}},
+				{CellMesh::FaceIndexs::Front, {
+				{IntVector(3, 2, 1)},
+				{IntVector(3, 1, 0)},
+			}},
+				{CellMesh::FaceIndexs::Bottom, {
+				{IntVector(0, 1, 2)},
+				{IntVector(0, 2, 3)},
+			}},
+				{CellMesh::FaceIndexs::Top, {
+				{IntVector(0, 3, 2)},
+				{IntVector(0, 2, 1)},
+			}},
+			};
+			std::map<CellMesh::FaceIndexs, std::vector<IntVector>> polygon_map = {
+				{CellMesh::FaceIndexs::Left, {
+				{IntVector(0, 3, 7)},
+				{IntVector(0, 7, 4)},
+			}},
+				{CellMesh::FaceIndexs::Right, {
+				{IntVector(1, 5, 6)},
+				{IntVector(1, 6, 2)},
+			}},
+				{CellMesh::FaceIndexs::Back, {
+				{IntVector(0, 4, 5)},
+				{IntVector(0, 5, 1)},
+			}},
+				{CellMesh::FaceIndexs::Front, {
+				{IntVector(3, 2, 6)},
+				{IntVector(3, 6, 7)},
+			}},
+				{CellMesh::FaceIndexs::Bottom, {
+				{IntVector(0, 1, 2)},
+				{IntVector(0, 2, 3)},
+			}},
+				{CellMesh::FaceIndexs::Top, {
+				{IntVector(4, 7, 6)},
+				{IntVector(4, 6, 5)},
+			}},
+			};
+			for (auto i = 0; i < 6; i++) {
+				if (p_ids[i].x != -1) {
+					origin.remove_triangle(p_ids[i].x);
+					origin.remove_triangle(p_ids[i].y);
+				}
+			}
+			UV uv_overlay = origin.attributes().primary_uv();
+			for (auto i = 0; i < 6; i++) {
+				if (p_ids[i].x != -1) {
+					continue;
+				}
+				CellMesh::FaceIndexs key = (CellMesh::FaceIndexs)(i);
+				std::vector<IntVector> polygon_entry = polygon_map[key];
+				std::vector<IntVector> uv_entry = uv_map[key];
+				int p_groupId = origin.max_group_id();
+				for (auto j = 0; i < 2; j++) {
+					IntVector& p = polygon_entry[j];
+					IntVector polygon = IntVector(v_ids[p.x], v_ids[p.y], v_ids[p.z]);
+					int polygon_id = origin.append_triangle(polygon);
+					printf("Add Triangle. i: %d, j: %d, p: (%d, %d, %d), vid: (%d, %d, %d), result: %d, group: %d", i, j, p.x, p.y, p.z, v_ids[p.x], v_ids[p.y], v_ids[p.z], polygon_id, p_groupId);
+					if (polygon_id < 0) {
+						printf("Failed Add Triangle. i: %d, j: %d, p: (%d, %d, %d), vid: (%d, %d, %d), result: %d, group: %d", i, j, p.x, p.y, p.z, v_ids[p.x], v_ids[p.y], v_ids[p.z], polygon_id, p_groupId);
+						continue;
+					}
+					origin.set_triangle_group(polygon_id, p_groupId);
+					IntVector& uv_indexs = uv_entry[j];
+					int uv_id1 = uv_overlay.append_element(uvs[uv_indexs.x]);
+					int uv_id2 = uv_overlay.append_element(uvs[uv_indexs.y]);
+					int uv_id3 = uv_overlay.append_element(uvs[uv_indexs.z]);
+					uv_overlay.set_triangle(polygon_id, IntVector(uv_id1, uv_id2, uv_id3), true);
+				}
+			}
+		}
+		mesh->edit_mesh(closure);
+	}
 };

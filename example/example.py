@@ -4,7 +4,7 @@ from rogw.tranp.compatible.cpp.enum import CEnum
 
 directive('#pragma once')
 
-from example.FW.compatible import Box3d, IntVector, IntVector2, Mesh, MeshRaw, Vector
+from example.FW.compatible import Box3d, IntVector, IntVector2, Mesh, MeshRaw, Vector, Vector2
 
 class CellMesh:
 	"""セル(メッシュ)関連のライブラリー"""
@@ -544,5 +544,132 @@ class CellMesh:
 		"""
 		def closure(origin: MeshRaw[CRef]) -> None:
 			origin.clear()
+
+		mesh.edit_mesh(closure)
+
+	@classmethod
+	def add_cell(cls, mesh: Mesh[CP], cell: IntVector, unit: int = 100) -> None:
+		"""指定のセル座標にセルを追加
+
+		# 追加条件:
+		周辺セルの不足によってトポロジーが崩れないことが条件
+		辺のみ接触する隣接セルが存在する場合が上記の条件に抵触する
+
+		Args:
+			mesh (Mesh*): メッシュ
+			cell (IntVector): セル座標
+			unit (int): 単位 (default = 100cm)
+		"""
+		if not cls.addable(mesh, cell, unit):
+			print('Cannot be added due to lack of surrounding cells. cell: (%d, %d, %d)', cell.x, cell.y, cell.z)
+
+		def closure(origin: MeshRaw[CRef]) -> None:
+			v_ids = cls.by_vertex_ids(mesh, cell, unit)
+			p_ids = cls.by_polygon_ids(mesh, cell, unit)
+
+			# 頂点オーダー
+			#    4-----5  Z
+			#   /|    /|  |
+			#  / 0---/-1  +---- X
+			# 7-----6 /  /
+			# |/    |/  /
+			# 3-----2  Y
+			f_unit = float(unit)
+			verts = [
+				# 下部
+				Vector(0, 0, 0),
+				Vector(f_unit, 0, 0),
+				Vector(f_unit, f_unit, 0),
+				Vector(0, f_unit, 0),
+				# 上部
+				Vector(0, 0, f_unit),
+				Vector(f_unit, 0, f_unit),
+				Vector(f_unit, f_unit, f_unit),
+				Vector(0, f_unit, f_unit),
+			]
+			start = cls.from_cell(cell)
+			for i in range(8):
+				if v_ids[i] == -1:
+					pos = start + verts[i]
+					v_ids[i] = origin.append_vertex(pos)
+
+					print('Add Vertex. i: %d, vid: %d, pos: (%f, %f, %f)', i, v_ids[i], pos.x, pos.y, pos.z)
+				# else:
+				# 	pos = start + verts[i];
+				# 	print('Reuse Vertex. i: %d, vid: %d, pos: (%f, %f, %f)', i, vIds[i], pos.x, pos.y, pos.z)
+
+			print('Vertexs: %d, %d, %d, %d, %d, %d, %d, %d', v_ids[0], v_ids[1], v_ids[2], v_ids[3], v_ids[4], v_ids[5], v_ids[6], v_ids[7])
+			print('Polygons: {%d, %d}, {%d, %d}, {%d, %d}, {%d, %d}, {%d, %d}, {%d, %d}', p_ids[0].x, p_ids[0].y, p_ids[1].x, p_ids[1].y, p_ids[2].x, p_ids[2].y, p_ids[3].x, p_ids[3].y, p_ids[4].x, p_ids[4].y, p_ids[5].x, p_ids[5].y)
+
+			uvs = {
+				0: Vector2(0.0, 0.0),
+				1: Vector2(1.0, 0.0),
+				2: Vector2(1.0, 1.0),
+				3: Vector2(0.0, 1.0),
+			}
+
+			if not origin.has_attributes():
+				origin.enable_attributes()
+
+			if origin.attributes().num_uv_layers() == 0:
+				origin.attributes().set_num_uv_layers(1)
+
+			if not origin.has_triangle_groups():
+				origin.enable_triangle_groups(0)
+
+			uv_map = {
+				cls.FaceIndexs.Left: [IntVector(3, 2, 1), IntVector(3, 1, 0)],
+				cls.FaceIndexs.Right: [IntVector(2, 1, 0), IntVector(2, 0, 3)],
+				cls.FaceIndexs.Back: [IntVector(2, 1, 0), IntVector(2, 0, 3)],
+				cls.FaceIndexs.Front: [IntVector(3, 2, 1), IntVector(3, 1, 0)],
+				cls.FaceIndexs.Bottom: [IntVector(0, 1, 2), IntVector(0, 2, 3)],
+				cls.FaceIndexs.Top: [IntVector(0, 3, 2), IntVector(0, 2, 1)],
+			}
+
+			polygon_map = {
+				cls.FaceIndexs.Left: [IntVector(0, 3, 7), IntVector(0, 7, 4)],
+				cls.FaceIndexs.Right: [IntVector(1, 5, 6), IntVector(1, 6, 2)],
+				cls.FaceIndexs.Back: [IntVector(0, 4, 5), IntVector(0, 5, 1)],
+				cls.FaceIndexs.Front: [IntVector(3, 2, 6), IntVector(3, 6, 7)],
+				cls.FaceIndexs.Bottom: [IntVector(0, 1, 2), IntVector(0, 2, 3)],
+				cls.FaceIndexs.Top: [IntVector(4, 7, 6), IntVector(4, 6, 5)],
+			}
+
+			# 隣接セルと重なった面を削除
+			# ※トポロジーが崩れるため、面の追加より先に削除を行う
+			# ※頂点やトライアングルグループは自動的に削除されるので何もしなくて良い
+			for i in range(6):
+				if p_ids[i].x != -1:
+					origin.remove_triangle(p_ids[i].x)
+					origin.remove_triangle(p_ids[i].y)
+
+			# 隣接セルと重なっていない新規の面を追加
+			uv_overlay = origin.attributes().primary_uv()
+			for i in range(6):
+				if p_ids[i].x != -1:
+					continue
+
+				key = cls.FaceIndexs(i)
+				polygon_entry = polygon_map[key]  # FIXME auto&
+				uv_entry = uv_map[key]  # FIXME auto&
+				p_groupId = origin.max_group_id()
+				for j in range(2):
+					p: IntVector[CRef] = polygon_entry[j]
+					polygon = IntVector(v_ids[p.x], v_ids[p.y], v_ids[p.z])
+					polygon_id = origin.append_triangle(polygon)
+
+					print('Add Triangle. i: %d, j: %d, p: (%d, %d, %d), vid: (%d, %d, %d), result: %d, group: %d', i, j, p.x, p.y, p.z, v_ids[p.x], v_ids[p.y], v_ids[p.z], polygon_id, p_groupId)
+
+					if polygon_id < 0:
+						print('Failed Add Triangle. i: %d, j: %d, p: (%d, %d, %d), vid: (%d, %d, %d), result: %d, group: %d', i, j, p.x, p.y, p.z, v_ids[p.x], v_ids[p.y], v_ids[p.z], polygon_id, p_groupId)
+						continue
+
+					origin.set_triangle_group(polygon_id, p_groupId)
+
+					uv_indexs: IntVector[CRef] = uv_entry[j]
+					uv_id1 = uv_overlay.append_element(uvs[uv_indexs.x])
+					uv_id2 = uv_overlay.append_element(uvs[uv_indexs.y])
+					uv_id3 = uv_overlay.append_element(uvs[uv_indexs.z])
+					uv_overlay.set_triangle(polygon_id, IntVector(uv_id1, uv_id2, uv_id3), True)
 
 		mesh.edit_mesh(closure)

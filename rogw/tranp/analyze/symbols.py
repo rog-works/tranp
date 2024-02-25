@@ -590,10 +590,14 @@ class ProceduralResolver:
 
 	def each_binary_operator(self, node: defs.BinaryOperator, elements: list[SymbolRaw]) -> SymbolRaw:
 		node_of_elements = node.elements
+
+		operator_indexs = range(1, len(node_of_elements), 2)
+		right_indexs = range(2, len(node_of_elements), 2)
+
 		left = elements[0]
-		for index in range(int((len(elements) - 1) / 2)):
-			operator = node_of_elements[index * 2 + 1].as_a(defs.Terminal)
-			right = elements[index * 2 + 2]
+		for index, right_index in enumerate(right_indexs):
+			operator = node_of_elements[operator_indexs[index]].as_a(defs.Terminal)
+			right = elements[right_index]
 			left = self.proc_binary_operator(node, left, operator, right)
 
 		return left

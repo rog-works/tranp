@@ -473,4 +473,35 @@ class CellMesh {
 		}
 		return out_ids;
 	}
+	/**
+	 * セルの6面のポリゴンIDを取得する
+	 * @param mesh メッシュ
+	 * @param cell セル座標
+	 * @param unit 単位
+	 * @return ポリゴンIDリスト
+	 */
+	public: static std::vector<IntVector2> by_polygon_ids(Mesh* mesh, IntVector cell, int unit) {
+		IntVector start = IntVector(cell.x - 1, cell.y - 1, cell.z - 1);
+		std::map<IntVector, std::vector<IntVector2>> entries = CellMesh::by_polygon_ids_impl(mesh, start, unit);
+		std::vector<IntVector> faces = {
+			{start + IntVector(0, 1, 1)},
+			{start + IntVector(2, 1, 1)},
+			{start + IntVector(1, 0, 1)},
+			{start + IntVector(1, 2, 1)},
+			{start + IntVector(1, 1, 0)},
+			{start + IntVector(1, 1, 2)},
+		};
+		std::vector<IntVector2> result = {
+			{entries[faces[0]][(int)(CellMesh::FaceIndexs::Right)]},
+			{entries[faces[1]][(int)(CellMesh::FaceIndexs::Left)]},
+			{entries[faces[2]][(int)(CellMesh::FaceIndexs::Front)]},
+			{entries[faces[3]][(int)(CellMesh::FaceIndexs::Back)]},
+			{entries[faces[4]][(int)(CellMesh::FaceIndexs::Top)]},
+			{entries[faces[5]][(int)(CellMesh::FaceIndexs::Bottom)]},
+		};
+		for (auto i = 0; i < (int)(CellMesh::FaceIndexs::Max); i++) {
+			printf("Found faces by cell. i: %d, cell: (%d, %d, %d), start: (%d, %d, %d), face: (%d, %d, %d), result: (%d, %d)", i, cell.x, cell.y, cell.z, start.x, start.y, start.z, faces[i].x, faces[i].y, faces[i].z, result[i].x, result[i].y);
+		}
+		return result;
+	}
 };

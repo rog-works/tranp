@@ -430,3 +430,38 @@ class CellMesh:
 				print('Found faces. cell: (%d, %d, %d), faceindex: %d, pid: (%d, %d)', cell.x, cell.y, cell.z, face_index, face.x, face.y)
 
 		return out_ids
+
+	@classmethod
+	def by_polygon_ids(cls, mesh: Mesh[CP], cell: IntVector, unit: int) -> list[IntVector2]:
+		"""セルの6面のポリゴンIDを取得する
+
+		Args:
+			mesh (Mesh*): メッシュ
+			cell (IntVector): セル座標
+			unit (int): 単位
+		Returns:
+			list[IntVector2]: ポリゴンIDリスト
+		"""
+		start = IntVector(cell.x - 1, cell.y - 1, cell.z - 1)
+		entries = cls.by_polygon_ids_impl(mesh, start, unit)
+		faces = [
+			start + IntVector(0, 1, 1),
+			start + IntVector(2, 1, 1),
+			start + IntVector(1, 0, 1),
+			start + IntVector(1, 2, 1),
+			start + IntVector(1, 1, 0),
+			start + IntVector(1, 1, 2),
+		]
+		result = [
+			entries[faces[0]][int(cls.FaceIndexs.Right)],
+			entries[faces[1]][int(cls.FaceIndexs.Left)],
+			entries[faces[2]][int(cls.FaceIndexs.Front)],
+			entries[faces[3]][int(cls.FaceIndexs.Back)],
+			entries[faces[4]][int(cls.FaceIndexs.Top)],
+			entries[faces[5]][int(cls.FaceIndexs.Bottom)],
+		]
+
+		for i in range(int(cls.FaceIndexs.Max)):
+			print('Found faces by cell. i: %d, cell: (%d, %d, %d), start: (%d, %d, %d), face: (%d, %d, %d), result: (%d, %d)', i, cell.x, cell.y, cell.z, start.x, start.y, start.z, faces[i].x, faces[i].y, faces[i].z, result[i].x, result[i].y)
+
+		return result

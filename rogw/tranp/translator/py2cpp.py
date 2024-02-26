@@ -437,7 +437,8 @@ class Py2Cpp:
 		raise NotImplementedError(f'Not supported CallableType. symbol: {node.fullyname}')
 
 	def on_custom_type(self, node: defs.CustomType, type_name: str, template_types: list[str]) -> str:
-		return self.view.render(node.classification, vars={'type_name': type_name, 'cvar_type': template_types[0], 'cmutable': template_types[1] if len(template_types) == 2 else ''})
+		# XXX @see Symbol.make_shorthand
+		return self.view.render('type_py2cpp', vars={'var_type': f'{type_name}<{", ".join(template_types)}>'})
 
 	def on_union_type(self, node: defs.UnionType, or_types: list[str]) -> str:
 		"""
@@ -487,23 +488,38 @@ class Py2Cpp:
 			var_type = self.to_symbol_path(cast(SymbolRaw, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'var_type': var_type})
 		elif spec == 'list_pop':
+			receiver = re.sub(r'(->|::|\.)pop$', '', calls)
 			var_type = self.to_symbol_path(cast(SymbolRaw, context))
-			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': DSN.shift(calls, -1), 'var_type': var_type})
+			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
 		elif spec == 'dict_pop':
+			receiver = re.sub(r'(->|::|\.)pop$', '', calls)
 			var_type = self.to_symbol_path(cast(SymbolRaw, context))
-			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': DSN.shift(calls, -1), 'var_type': var_type})
+			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
 		elif spec == 'dict_keys':
+			receiver = re.sub(r'(->|::|\.)keys$', '', calls)
 			var_type = self.to_symbol_path(cast(SymbolRaw, context))
-			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': DSN.shift(calls, -1), 'var_type': var_type})
+			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
 		elif spec == 'dict_values':
+			receiver = re.sub(r'(->|::|\.)values$', '', calls)
 			var_type = self.to_symbol_path(cast(SymbolRaw, context))
-			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': DSN.shift(calls, -1), 'var_type': var_type})
+			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
 		elif spec == 'new_enum':
 			var_type = self.to_symbol_path(cast(SymbolRaw, context))
 			return self.view.render(f'{node.classification}_cast_bin_to_bin', vars={**func_call_vars, 'var_type': var_type})
+		elif spec.startswith('to_cvar_'):
+			cvar_type = spec.split('to_cvar_')[1]
+			return self.view.render(f'{node.classification}_to_cvar', vars={**func_call_vars, 'cvar_type': cvar_type})
 		elif spec.startswith('cvar_to_'):
+			receiver = re.sub(r'(->|::|\.)(raw|ref|addr)$', '', calls)
 			move = spec.split('cvar_to_')[1]
-			return self.view.render(f'{node.classification}_cvar_to', vars={**func_call_vars, 'receiver': DSN.shift(calls, -1), 'move': move})
+			return self.view.render(f'{node.classification}_cvar_to', vars={**func_call_vars, 'receiver': receiver, 'move': move})
+		elif spec == 'new_cvar_p':
+			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
+		elif spec == 'new_cvar_sp':
+			new_type_raw = self.symbols.type_of(node.arguments[0])
+			var_type = self.to_symbol_path(new_type_raw)
+			initializer = cast(re.Match, re.fullmatch(r'[^(]+\(([^)]+)\)', arguments[0]))[1]
+			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'var_type': var_type, 'initializer': initializer})
 		else:
 			return self.view.render(node.classification, vars=func_call_vars)
 
@@ -541,16 +557,25 @@ class Py2Cpp:
 				key_attr, value_attr = context.attrs
 				attr_indexs = {'pop': value_attr, 'keys': key_attr, 'values': value_attr}
 				return f'dict_{prop}', attr_indexs[prop]
-		elif isinstance(node.calls, (defs.Relay, defs.Variable)):
-			raw = self.symbols.type_of(node.calls)
-			if raw.types.is_a(defs.Enum):
-				return 'new_enum', raw
 		elif isinstance(node.calls, defs.Relay) and node.calls.prop.tokens in ['raw', 'ref', 'addr']:
 			context = self.symbols.type_of(node.calls).context
 			cvar_key = CVars.key_from(self.symbols, context)
 			if not CVars.is_raw_raw(cvar_key):
 				move = CVars.to_move(cvar_key, node.calls.prop.tokens)
 				return f'cvar_to_{move.name}', None
+		elif isinstance(node.calls, defs.Relay) and node.calls.prop.tokens == 'new':
+			context = self.symbols.type_of(node.calls).context
+			cvar_key = CVars.key_from(self.symbols, context)
+			if CVars.is_addr_p(cvar_key):
+				return f'new_cvar_p', None
+			elif CVars.is_addr_sp(cvar_key):
+				return f'new_cvar_sp', None
+		elif isinstance(node.calls, defs.Variable) and node.calls.tokens in CVars.keys():
+			return f'to_cvar_{node.calls.tokens}', None
+		elif isinstance(node.calls, (defs.Relay, defs.Variable)):
+			raw = self.symbols.type_of(node.calls)
+			if raw.types.is_a(defs.Enum):
+				return 'new_enum', raw
 
 		return 'otherwise', None
 

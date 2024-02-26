@@ -36,18 +36,18 @@ class DeclOps:
 
 class CVarOps:
 	def ret_raw(self) -> Base:
-		return Base(n=0)
+		return Base(0)
 
 	def ret_cp(self) -> CP[Base]:
-		return CP.new(Base, n=0)
+		return CP.new(Base(0))
 
 	def ret_csp(self) -> CSP[Base]:
-		return CSP.new(Base, n=0)
+		return CSP.new(Base(0))
 
 	def local_move(self) -> None:
 		a: Base = Base(0)
 		ap: CP[Base] = CP(a)
-		asp: CSP[Base] = CSP.new(Base, n=0)
+		asp: CSP[Base] = CSP.new(Base(0))
 		ar: CRef[Base] = CRef(a)
 		if True:
 			a = a
@@ -65,10 +65,10 @@ class CVarOps:
 			asp = asp
 			# asp = ar  # 構文的にNG
 		if True:
-			ar = CRef(a)  # エラーケース
-			ar = ap.ref()  # エラーケース
-			ar = asp.ref()  # エラーケース
-			ar = ar  # エラーケース
+			ar = CRef(a)  # C++ではNG
+			ar = ap.ref()  # C++ではNG
+			ar = asp.ref()  # C++ではNG
+			ar = ar  # C++ではNG
 
 	def param_move(self, a: Base, ap: CP[Base], asp: CSP[Base], ar: CRef[Base]) -> None:
 		a1 = a
@@ -78,7 +78,7 @@ class CVarOps:
 		a = a1
 		ap = CP(a2)
 		# asp = a3  # 構文的にNG
-		ar = CRef(a4)  # エラーケース
+		ar = CRef(a4)  # C++ではNG
 
 	def invoke_method(self, a: Base, ap: CP[Base], asp: CSP[Base]) -> None:
 		# self.invoke_method(a, CP(a), a)  # 構文的にNG

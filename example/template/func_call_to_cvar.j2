@@ -1,0 +1,5 @@
+{%- if cvar_type == 'CP' -%}
+&({{ arguments[0] }}){% if is_statement %};{% endif %}
+{%- else -%}
+{{ arguments[0] }}{% if is_statement %};{% endif %}
+{%- endif -%}

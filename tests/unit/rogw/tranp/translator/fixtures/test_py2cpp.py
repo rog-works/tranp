@@ -147,12 +147,12 @@ class AccessOps(Base):
 		print(self.base_n)
 		print(self.sub_s)
 		print(self.call())
-		print(ap.raw().base_n)
-		print(ap.raw().sub_s)
-		print(ap.raw().call())
-		print(asp.raw().base_n)
-		print(asp.raw().sub_s)
-		print(asp.raw().call())
+		print(ap.on().base_n)
+		print(ap.on().sub_s)
+		print(ap.on().call())
+		print(asp.on().base_n)
+		print(asp.on().sub_s)
+		print(asp.on().call())
 
 	def double_colon(self) -> None:
 		super().call()

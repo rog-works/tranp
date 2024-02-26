@@ -17,6 +17,9 @@ class CVar(Generic[T]):
 	def __init__(self, origin: T) -> None:
 		self.__origin = origin
 
+	def on(self) -> T:
+		return self.__origin
+
 	def raw(self) -> T:
 		return self.__origin
 

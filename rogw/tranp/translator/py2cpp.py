@@ -367,15 +367,20 @@ class Py2Cpp:
 
 	def on_relay(self, node: defs.Relay, receiver: str) -> str:
 		receiver_symbol = self.symbols.type_of(node.receiver)
-		accessor = self.analyze_relay_accessor(node, receiver_symbol)
 		prop_symbol = self.symbols.type_of_property(receiver_symbol.types, node.prop)
 		prop = node.prop.domain_name
 		if isinstance(prop_symbol.decl, defs.ClassDef):
 			prop = ClassSymbolMaker.domain_name(prop_symbol.types, use_alias=True)
 
-		return self.view.render(node.classification, vars={'receiver': receiver, 'accessor': accessor, 'prop': prop})
+		spec, accessor = self.analyze_relay_access_spec(node, receiver_symbol)
+		relay_vars = {'receiver': receiver, 'accessor': accessor, 'prop': prop}
+		if spec == 'cvar_on':
+			cvar_receiver = re.sub(r'(->|::|\.)on\(\)$', '', receiver)
+			return self.view.render(node.classification, vars={**relay_vars, 'receiver': cvar_receiver})
+		else:
+			return self.view.render(node.classification, vars=relay_vars)
 
-	def analyze_relay_accessor(self, node: defs.Relay, receiver_symbol: SymbolRaw) -> str:
+	def analyze_relay_access_spec(self, node: defs.Relay, receiver_symbol: SymbolRaw) -> tuple[str, str]:
 		def is_this_access() -> bool:
 			return node.receiver.is_a(defs.ThisRef)
 
@@ -385,17 +390,18 @@ class Py2Cpp:
 			is_class_var_relay = node.receiver.is_a(defs.Relay, defs.Variable) and receiver_symbol.decl.is_a(defs.Class)
 			return is_class_alias or is_class_var_relay
 
-		def is_cspec_access() -> bool:
-			return not CVars.is_raw_raw(CVars.key_from(self.symbols, receiver_symbol))
+		def is_cvar_access() -> bool:
+			return isinstance(node.receiver, defs.FuncCall) and isinstance(node.receiver.calls, defs.Relay) and node.receiver.calls.prop.domain_name == 'on'
 
 		if is_this_access():
-			return CVars.Accessors.Address.name
+			return 'this', CVars.Accessors.Address.name
 		elif is_class_access():
-			return CVars.Accessors.Static.name
-		elif is_cspec_access():
-			return CVars.to_accessor(CVars.key_from(self.symbols, receiver_symbol)).name
+			return 'class', CVars.Accessors.Static.name
+		elif is_cvar_access():
+			calls_raw = self.symbols.type_of(cast(defs.FuncCall, node.receiver).calls)
+			return 'cvar_on', CVars.to_accessor(CVars.key_from(self.symbols, calls_raw.context)).name
 		else:
-			return CVars.Accessors.Raw.name
+			return 'raw', CVars.Accessors.Raw.name
 
 	def on_class_ref(self, node: defs.ClassRef) -> str:
 		return node.class_symbol.tokens
@@ -506,13 +512,13 @@ class Py2Cpp:
 		elif spec == 'new_enum':
 			var_type = self.to_symbol_path(cast(SymbolRaw, context))
 			return self.view.render(f'{node.classification}_cast_bin_to_bin', vars={**func_call_vars, 'var_type': var_type})
-		elif spec.startswith('to_cvar_'):
-			cvar_type = spec.split('to_cvar_')[1]
-			return self.view.render(f'{node.classification}_to_cvar', vars={**func_call_vars, 'cvar_type': cvar_type})
 		elif spec.startswith('cvar_to_'):
 			receiver = re.sub(r'(->|::|\.)(raw|ref|addr)$', '', calls)
 			move = spec.split('cvar_to_')[1]
 			return self.view.render(f'{node.classification}_cvar_to', vars={**func_call_vars, 'receiver': receiver, 'move': move})
+		elif spec.startswith('to_cvar_'):
+			cvar_type = spec.split('to_cvar_')[1]
+			return self.view.render(f'{node.classification}_to_cvar', vars={**func_call_vars, 'cvar_type': cvar_type})
 		elif spec == 'new_cvar_p':
 			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
 		elif spec == 'new_cvar_sp':
@@ -563,6 +569,8 @@ class Py2Cpp:
 			if not CVars.is_raw_raw(cvar_key):
 				move = CVars.to_move(cvar_key, node.calls.prop.tokens)
 				return f'cvar_to_{move.name}', None
+		elif isinstance(node.calls, defs.Variable) and node.calls.tokens in CVars.keys():
+			return f'to_cvar_{node.calls.tokens}', None
 		elif isinstance(node.calls, defs.Relay) and node.calls.prop.tokens == 'new':
 			context = self.symbols.type_of(node.calls).context
 			cvar_key = CVars.key_from(self.symbols, context)
@@ -570,8 +578,6 @@ class Py2Cpp:
 				return f'new_cvar_p', None
 			elif CVars.is_addr_sp(cvar_key):
 				return f'new_cvar_sp', None
-		elif isinstance(node.calls, defs.Variable) and node.calls.tokens in CVars.keys():
-			return f'to_cvar_{node.calls.tokens}', None
 		elif isinstance(node.calls, (defs.Relay, defs.Variable)):
 			raw = self.symbols.type_of(node.calls)
 			if raw.types.is_a(defs.Enum):

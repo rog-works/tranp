@@ -109,6 +109,12 @@ class CVarOps:
 		ap_or_null = ap if True else None
 		a_or_ap = a if True else ap  # エラーケース
 
+	def declare(self) -> None:
+		arr = [1]
+		arr_p = CP(arr)
+		arr_sp = CRef.new(arr)
+		arr_r = CRef(arr)
+
 class FuncOps:
 	def print(self) -> None:
 		print('message. %d, %f, %s', 1, 1.0, 'abc')
@@ -143,7 +149,7 @@ class AccessOps(Base):
 		dda = {1: {1: a}}
 		print(dda[1][1].sub_s)
 
-	def arrow(self, ap: CP[AccessOps], asp: CSP[AccessOps]) -> None:
+	def arrow(self, ap: CP[AccessOps], asp: CSP[AccessOps], arr_p: CP[list[int]]) -> None:
 		print(self.base_n)
 		print(self.sub_s)
 		print(self.call())
@@ -163,6 +169,11 @@ class AccessOps(Base):
 			EnumOps.Values.A: 'A',
 			EnumOps.Values.B: 'B',
 		}
+
+	def indexer(self, arr_p: CP[list[int]], arr_sp: CSP[list[int]], arr_ar: CRef[list[int]]) -> None:
+		print(arr_p.on()[0])
+		print(arr_sp.on()[0])
+		print(arr_ar.on()[0])
 
 @__alias__('Alias2')
 class Alias:

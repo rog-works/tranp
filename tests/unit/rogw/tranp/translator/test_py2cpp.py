@@ -55,6 +55,7 @@ def _ast(before: str, after: str) -> str:
 		'CVarOps.unary_calc.block': f'{_CVarOps}.class_def_raw.block.function_def[6].function_def_raw.block',
 		'CVarOps.binary_calc.block': f'{_CVarOps}.class_def_raw.block.function_def[7].function_def_raw.block',
 		'CVarOps.tenary_calc.block': f'{_CVarOps}.class_def_raw.block.function_def[8].function_def_raw.block',
+		'CVarOps.declare.block': f'{_CVarOps}.class_def_raw.block.function_def[9].function_def_raw.block',
 
 		'FuncOps.print.block': f'{_FuncOps}.class_def_raw.block.function_def.function_def_raw.block',
 
@@ -66,6 +67,7 @@ def _ast(before: str, after: str) -> str:
 		'AccessOps.dot.block': f'{_AccessOps}.class_def_raw.block.function_def[1].function_def_raw.block',
 		'AccessOps.arrow.block': f'{_AccessOps}.class_def_raw.block.function_def[2].function_def_raw.block',
 		'AccessOps.double_colon.block': f'{_AccessOps}.class_def_raw.block.function_def[3].function_def_raw.block',
+		'AccessOps.indexer.block': f'{_AccessOps}.class_def_raw.block.function_def[4].function_def_raw.block',
 
 		'Alias.Inner': f'{_Alias}.class_def_raw.block.class_def',
 		'Alias.__init__': f'{_Alias}.class_def_raw.block.function_def[1]',
@@ -182,6 +184,10 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarOps.tenary_calc.block', 'assign[4]'), defs.MoveAssign, 'Base& ar2 = true ? ar : ar;'),
 		(_ast('CVarOps.tenary_calc.block', 'assign[5]'), defs.MoveAssign, 'Base* ap_or_null = true ? ap : nullptr;'),
 
+		(_ast('CVarOps.declare.block', 'assign[1]'), defs.MoveAssign, 'std::vector<int>* arr_p = &(arr);'),
+		(_ast('CVarOps.declare.block', 'assign[2]'), defs.MoveAssign, 'std::shared_ptr<std::vector<int>> arr_sp = std::make_shared<std::vector<int>>(arr);'),
+		(_ast('CVarOps.declare.block', 'assign[3]'), defs.MoveAssign, 'std::vector<int>& arr_r = arr;'),
+
 		(_ast('FuncOps.print.block', 'funccall'), defs.FuncCall, 'printf("message. %d, %f, %s", 1, 1.0, "abc");'),
 
 		(_ast('EnumOps.Values', ''), defs.Enum, '/** Values */\npublic: enum class Values {\n\tA = 0,\n\tB = 1,\n};'),
@@ -214,6 +220,10 @@ class TestPy2Cpp(TestCase):
 		(_ast('AccessOps.double_colon.block', 'funccall[2].arguments.argvalue'), defs.Argument, 'AccessOps::class_base_n'),
 		(_ast('AccessOps.double_colon.block', 'funccall[3].arguments.argvalue'), defs.Argument, 'EnumOps::Values::A'),
 		(_ast('AccessOps.double_colon.block', 'anno_assign'), defs.AnnoAssign, 'std::map<EnumOps::Values, std::string> d = {\n\t{EnumOps::Values::A, "A"},\n\t{EnumOps::Values::B, "B"},\n};'),
+
+		(_ast('AccessOps.indexer.block', 'funccall[0].arguments.argvalue'), defs.Argument, 'arr_p[0]'),
+		(_ast('AccessOps.indexer.block', 'funccall[1].arguments.argvalue'), defs.Argument, 'arr_sp[0]'),
+		(_ast('AccessOps.indexer.block', 'funccall[2].arguments.argvalue'), defs.Argument, 'arr_ar[0]'),
 
 		(_ast('Alias.Inner', ''), defs.Class, '/** Inner2 */\nclass Inner2 {\n\n};'),
 		(_ast('Alias.__init__', ''), defs.Constructor, '/** Constructor */\npublic: Alias2() : inner(Alias2::Inner2()) {\n}'),

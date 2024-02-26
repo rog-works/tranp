@@ -1,0 +1,9 @@
+{%- if move == 'ToAddress' %}
+&{{ receiver }}{% if is_statement %};{% endif %}
+{%- elif move == 'ToActual' %}
+*{{ receiver }}{% if is_statement %};{% endif %}
+{%- elid move == 'UnpackSp' %}
+{{ receiver }}.get(){% if is_statement %};{% endif %}
+{%- else %}{# move == 'Copy' #}
+{{ receiver }}{% if is_statement %};{% endif %}
+{%- endif %}

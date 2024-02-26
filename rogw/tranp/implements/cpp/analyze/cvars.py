@@ -228,3 +228,20 @@ class CVars:
 			cpp.CSP.__name__: cls.Accessors.Address,
 		}
 		return accessors[key]
+
+	@classmethod
+	def to_move(cls, key: str, method: str) -> Moves:
+		moves = {
+			'CP.raw': CVars.Moves.ToActual,
+			'CP.ref': CVars.Moves.ToActual,
+			'CSP.raw': CVars.Moves.ToActual,
+			'CSP.ref': CVars.Moves.ToActual,
+			'CSP.addr': CVars.Moves.UnpackSp,
+			'CRef.raw': CVars.Moves.Copy,
+			'CRef.addr': CVars.Moves.ToAddress,
+		}
+		move_key = f'{key}.{method}'
+		if move_key in moves:
+			return moves[move_key]
+
+		return CVars.Moves.Deny

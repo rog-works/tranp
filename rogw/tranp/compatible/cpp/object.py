@@ -1,4 +1,3 @@
-from abc import ABCMeta, abstractclassmethod
 from typing import Callable, Generic, ParamSpec, TypeVar
 
 from rogw.tranp.errors import FatalError
@@ -8,13 +7,14 @@ T = TypeVar('T')
 P = ParamSpec('P')
 
 
-class CVar(Generic[T], metaclass=ABCMeta):
-	@abstractclassmethod
-	def __class_getitem__(cls, var_type: type[T]) -> type[CVar[T]]:
-		raise NotImplementedError()
+class CVar(Generic[T]):
+	# XXX 成り立たないためコメントアウト
+	# @abstractclassmethod
+	# def __class_getitem__(cls, var_type: type[T]) -> 'type[CVar[T]]':
+	# 	raise NotImplementedError()
 
 	@classmethod
-	def new(cls, ctor: Callable[P, T], *args: P.args, **kwargs: P.kwargs) -> CVar[T]:
+	def new(cls, ctor: Callable[P, T], *args: P.args, **kwargs: P.kwargs) -> 'CVar[T]':
 		raise FatalError(f'Method not allowed. method: "new", cls: {cls}, ctor: {ctor}')
 
 	def __init__(self, origin: T) -> None:
@@ -33,11 +33,11 @@ class CVar(Generic[T], metaclass=ABCMeta):
 class CP(CVar[T]):
 	@classmethod
 	@implements
-	def __class_getitem__(cls, var_type: type[T]) -> type['CP[T]']:
+	def __class_getitem__(cls, var_type: type[T]) -> 'type[CP[T]]':
 		return CP[var_type]
 
 	@classmethod
-	def new(cls, ctor: Callable[P, T], *args: P.args, **kwargs: P.kwargs) -> CP[T]:
+	def new(cls, ctor: Callable[P, T], *args: P.args, **kwargs: P.kwargs) -> 'CP[T]':
 		return cls(ctor(*args, **kwargs))
 
 	@override
@@ -48,11 +48,11 @@ class CP(CVar[T]):
 class CSP(CVar[T]):
 	@classmethod
 	@implements
-	def __class_getitem__(cls, var_type: type[T]) -> type['CSP[T]']:
+	def __class_getitem__(cls, var_type: type[T]) -> 'type[CSP[T]]':
 		return CSP[var_type]
 
 	@classmethod
-	def new(cls, ctor: Callable[P, T], *args: P.args, **kwargs: P.kwargs) -> CSP[T]:
+	def new(cls, ctor: Callable[P, T], *args: P.args, **kwargs: P.kwargs) -> 'CSP[T]':
 		return cls(ctor(*args, **kwargs))
 
 	@override
@@ -67,7 +67,7 @@ class CSP(CVar[T]):
 class CRef(CVar[T]):
 	@classmethod
 	@implements
-	def __class_getitem__(cls, var_type: type[T]) -> type['CRef[T]']:
+	def __class_getitem__(cls, var_type: type[T]) -> 'type[CRef[T]]':
 		return CRef[var_type]
 
 	@override
@@ -78,7 +78,7 @@ class CRef(CVar[T]):
 class CRaw(CVar[T]):
 	@classmethod
 	@implements
-	def __class_getitem__(cls, var_type: type[T]) -> type['CRaw[T]']:
+	def __class_getitem__(cls, var_type: type[T]) -> 'type[CRaw[T]]':
 		return CRaw[var_type]
 
 	@override
@@ -88,55 +88,3 @@ class CRaw(CVar[T]):
 	@override
 	def addr(self) -> 'CP[T]':
 		return CP(self.raw())
-
-
-class CP_Const(CVar[T]):
-	@classmethod
-	@implements
-	def __class_getitem__(cls, var_type: type[T]) -> type['CP_Const[T]']:
-		return CP_Const[var_type]
-
-	@override
-	def ref(self) -> 'CRef_Const[T]':
-		return CRef_Const(self.raw())
-
-
-class CSP_Const(CVar[T]):
-	@classmethod
-	@implements
-	def __class_getitem__(cls, var_type: type[T]) -> type['CSP_Const[T]']:
-		return CSP_Const[var_type]
-
-	@override
-	def ref(self) -> 'CRef_Const[T]':
-		return CRef_Const(self.raw())
-
-	@override
-	def addr(self) -> 'CP_Const[T]':
-		return CP_Const(self.raw())
-
-
-class CRef_Const(CVar[T]):
-	@classmethod
-	@implements
-	def __class_getitem__(cls, var_type: type[T]) -> type['CRef_Const[T]']:
-		return CRef_Const[var_type]
-
-	@override
-	def addr(self) -> 'CRef_Const[T]':
-		return CRef_Const(self.raw())
-
-
-class CRaw_Const(CVar[T]):
-	@classmethod
-	@implements
-	def __class_getitem__(cls, var_type: type[T]) -> type['CRaw_Const[T]']:
-		return CRaw_Const[var_type]
-
-	@override
-	def ref(self) -> 'CRef_Const[T]':
-		return CRef_Const(self.raw())
-
-	@override
-	def addr(self) -> 'CP_Const[T]':
-		return CP_Const(self.raw())

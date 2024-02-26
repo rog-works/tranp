@@ -1,0 +1,7 @@
+{%- if accessor == 'Static' -%}
+{{ receiver }}::{{ prop }}
+{%- elif accessor == 'Address' -%}
+{{ receiver }}->{{ prop }}
+{%- else -%}
+{{ receiver }}.{{ prop }}
+{%- endif -%}

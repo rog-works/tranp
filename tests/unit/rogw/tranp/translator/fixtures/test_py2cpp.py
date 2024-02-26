@@ -268,10 +268,10 @@ class Nullable:
 	def var_move(self, base: Base, sp: CSP[Base]) -> Base:
 		p: CP[Base] | None = None
 		p = CP(base)
-		p = sp.addr()
 		p = None
+		p = sp.addr()
 		if p:
-			return p
+			return p.raw()
 
 		raise Exception()
 

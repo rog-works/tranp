@@ -1,4 +1,5 @@
 import re
+from types import UnionType
 from typing import cast
 
 from rogw.tranp.analyze.procedure import Procedure
@@ -71,7 +72,7 @@ class Py2Cpp:
 			'Class' -> 'NS::Class'
 			'dict<A, B>' -> 'dict<NS::A, NS::B>'
 		"""
-		unpacked_raw = CVars.unpack_with_nullable(self.symbols, raw)
+		unpacked_raw = self.force_unpack_nullable(raw)
 		return DSN.join(*DSN.elements(unpacked_raw.make_shorthand(use_alias=True, path_method='namespace')), delimiter='::')
 
 	def to_symbol_name(self, var_type_raw: SymbolRaw) -> str:
@@ -85,24 +86,28 @@ class Py2Cpp:
 			# 生成例
 			'Union<Class[CP], None>' -> 'Class[CP]'
 		"""
-		unpacked_raw = CVars.unpack_with_nullable(self.symbols, var_type_raw)
+		unpacked_raw = self.force_unpack_nullable(var_type_raw)
 		return unpacked_raw.make_shorthand(use_alias=True)
 
-	def to_cvar_value(self, move: 'CVars.Moves', value_str: str) -> str:
-		"""C++変数型を考慮した変数移動操作の値に変換
+	def force_unpack_nullable(self, symbol: SymbolRaw) -> SymbolRaw:
+		"""Nullableのシンボルの変数の型をアンパック。Nullable以外の型はそのまま返却
 
 		Args:
-			move (Moves): C++変数型の移動操作
-			value_str (str): 入力値
+			symbol (SymbolRaw): シンボル
 		Returns:
-			str: 変換後の入力値
+			SymbolRaw: 変数の型
+		Note:
+			許容するNullableの書式 (例: 'Class | None')
+			@see ProcedureResolver.force_unpack_nullable
+			FIXME あらゆる個所でUnionをアンパックする必要がある懸念
 		"""
-		if move == CVars.Moves.MakeSp:
-			# XXX 関数名(クラス名)と引数を分離。必ず取得できるので警告を抑制(期待値: `Class(a, b, c)`)
-			matches = cast(re.Match, re.fullmatch(r'([^(]+)\((.*)\)', value_str))
-			return self.view.render('cvar_move', vars={'move': move.name, 'var_type': matches[1], 'arguments': matches[2]})
-		else:
-			return self.view.render('cvar_move', vars={'move': move.name, 'value': value_str})
+		if self.symbols.is_a(symbol, UnionType) and len(symbol.attrs) == 2:
+			is_0_null = self.symbols.is_a(symbol.attrs[0], None)
+			is_1_null = self.symbols.is_a(symbol.attrs[1], None)
+			if is_0_null != is_1_null:
+				return symbol.attrs[1 if is_0_null else 0]
+
+		return symbol
 
 	def unpack_function_template_types(self, node: defs.Function) -> list[str]:
 		"""ファンクションのテンプレート型名をアンパック
@@ -367,6 +372,7 @@ class Py2Cpp:
 
 	def on_relay(self, node: defs.Relay, receiver: str) -> str:
 		receiver_symbol = self.symbols.type_of(node.receiver)
+		receiver_symbol = self.force_unpack_nullable(receiver_symbol)
 		prop_symbol = self.symbols.type_of_property(receiver_symbol.types, node.prop)
 		prop = node.prop.domain_name
 		if isinstance(prop_symbol.decl, defs.ClassDef):

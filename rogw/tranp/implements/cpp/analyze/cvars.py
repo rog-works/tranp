@@ -1,5 +1,4 @@
 from enum import Enum
-from types import UnionType
 
 from rogw.tranp.analyze.symbol import SymbolRaw
 from rogw.tranp.analyze.symbols import Symbols
@@ -184,33 +183,10 @@ class CVars:
 		"""
 		if symbols.is_a(symbol, None):
 			return cpp.CP.__name__
-
-		var_type = cls.unpack_with_nullable(symbols, symbol)
-		if var_type.types.domain_name in cls.keys():
-			return var_type.types.domain_name
-
-		return cpp.CRaw.__name__
-
-	@classmethod
-	def unpack_with_nullable(cls, symbols: Symbols, symbol: SymbolRaw) -> SymbolRaw:
-		"""Nullableのシンボルの変数の型をアンパック。Nullable以外の型はそのまま返却
-
-		Args:
-			symbols (Symbols): シンボルリゾルバー
-			symbol (SymbolRaw): シンボル
-		Returns:
-			SymbolRaw: 変数の型
-		Note:
-			許容するNullableの書式 (例: 'CP[Class] | None')
-			@see Py2Cpp.on_union_type
-		"""
-		if symbols.is_a(symbol, UnionType) and len(symbol.attrs) == 2:
-			is_0_null = symbols.is_a(symbol.attrs[0], None)
-			is_1_null = symbols.is_a(symbol.attrs[1], None)
-			if is_0_null != is_1_null:
-				return symbol.attrs[1 if is_0_null else 0]
-
-		return symbol
+		elif symbol.types.domain_name in cls.keys():
+			return symbol.types.domain_name
+		else:
+			return cpp.CRaw.__name__
 
 	@classmethod
 	def to_accessor(cls, key: str) -> Accessors:

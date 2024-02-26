@@ -380,7 +380,6 @@ class Py2Cpp:
 		spec, accessor = self.analyze_relay_access_spec(node, receiver_symbol)
 		relay_vars = {'receiver': receiver, 'accessor': accessor, 'prop': prop}
 		if spec == 'cvar_on':
-			# FIXME on_func_callに移動
 			cvar_receiver = re.sub(r'(->|::|\.)on\(\)$', '', receiver)
 			return self.view.render(node.classification, vars={**relay_vars, 'receiver': cvar_receiver})
 		else:
@@ -396,18 +395,22 @@ class Py2Cpp:
 			is_class_var_relay = node.receiver.is_a(defs.Relay, defs.Variable) and receiver_symbol.decl.is_a(defs.Class)
 			return is_class_alias or is_class_var_relay
 
-		def is_cvar_access() -> bool:
-			return isinstance(node.receiver, defs.FuncCall) and isinstance(node.receiver.calls, defs.Relay) and node.receiver.calls.prop.domain_name == 'on'
+		def is_on_method() -> bool:
+			return isinstance(node.receiver, defs.FuncCall) \
+				and isinstance(node.receiver.calls, defs.Relay) \
+				and node.receiver.calls.prop.domain_name == 'on'
 
 		if is_this_access():
 			return 'this', CVars.Accessors.Address.name
 		elif is_class_access():
 			return 'class', CVars.Accessors.Static.name
-		elif is_cvar_access():
+		elif is_on_method():
 			calls_raw = self.symbols.type_of(cast(defs.FuncCall, node.receiver).calls)
-			return 'cvar_on', CVars.to_accessor(CVars.key_from(self.symbols, calls_raw.context)).name
-		else:
-			return 'raw', CVars.Accessors.Raw.name
+			cvar_key = CVars.key_from(self.symbols, calls_raw.context)
+			if not CVars.is_raw_raw(cvar_key):
+				return 'cvar_on', CVars.to_accessor(cvar_key).name
+
+		return 'raw', CVars.Accessors.Raw.name
 
 	def on_class_ref(self, node: defs.ClassRef) -> str:
 		return node.class_symbol.tokens
@@ -426,7 +429,26 @@ class Py2Cpp:
 			return node.tokens
 
 	def on_indexer(self, node: defs.Indexer, receiver: str, key: str) -> str:
-		return f'{receiver}[{key}]'
+		spec = self.analyze_indexer_spec(node)
+		if spec == 'cvar_on':
+			cvar_receiver = re.sub(r'(->|::|\.)on\(\)$', '', receiver)
+			return self.view.render(node.classification, vars={'receiver': cvar_receiver, 'key': key})
+		else:
+			return self.view.render(node.classification, vars={'receiver': receiver, 'key': key})
+
+	def analyze_indexer_spec(self, node: defs.Indexer) -> str:
+		def is_on_method() -> bool:
+			return isinstance(node.receiver, defs.FuncCall) \
+				and isinstance(node.receiver.calls, defs.Relay) \
+				and node.receiver.calls.prop.domain_name == 'on'
+
+		if is_on_method():
+			calls_raw = self.symbols.type_of(cast(defs.FuncCall, node.receiver).calls)
+			cvar_key = CVars.key_from(self.symbols, calls_raw.context)
+			if not CVars.is_raw_raw(cvar_key):
+				return 'cvar_on'
+
+		return 'otherwise'
 
 	def on_relay_of_type(self, node: defs.RelayOfType, receiver: str) -> str:
 		receiver_symbol = self.symbols.type_of(node.receiver)

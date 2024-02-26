@@ -186,9 +186,8 @@ class CVars:
 			return cpp.CP.__name__
 
 		var_type = cls.unpack_with_nullable(symbols, symbol)
-		keys = [attr.types.symbol.tokens for attr in var_type.attrs]
-		if len(keys) > 0 and keys[0] in cls.keys():
-			return keys[0]
+		if var_type.types.domain_name in cls.keys():
+			return var_type.types.domain_name
 
 		return cpp.CRaw.__name__
 
@@ -202,7 +201,7 @@ class CVars:
 		Returns:
 			SymbolRaw: 変数の型
 		Note:
-			許容するNullableの書式 (例: 'Class[CP] | None')
+			許容するNullableの書式 (例: 'CP[Class] | None')
 			@see Py2Cpp.on_union_type
 		"""
 		if symbols.is_a(symbol, UnionType) and len(symbol.attrs) == 2:

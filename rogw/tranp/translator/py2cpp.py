@@ -7,7 +7,6 @@ import rogw.tranp.analyze.reflection as reflection
 from rogw.tranp.analyze.symbol import SymbolRaw
 from rogw.tranp.analyze.symbols import Symbols
 from rogw.tranp.ast.dsn import DSN
-import rogw.tranp.compatible.cpp.object as cpp
 import rogw.tranp.compatible.python.embed as __alias__
 from rogw.tranp.errors import LogicError
 from rogw.tranp.implements.cpp.analyze.cvars import CVars
@@ -381,6 +380,7 @@ class Py2Cpp:
 		spec, accessor = self.analyze_relay_access_spec(node, receiver_symbol)
 		relay_vars = {'receiver': receiver, 'accessor': accessor, 'prop': prop}
 		if spec == 'cvar_on':
+			# FIXME on_func_callに移動
 			cvar_receiver = re.sub(r'(->|::|\.)on\(\)$', '', receiver)
 			return self.view.render(node.classification, vars={**relay_vars, 'receiver': cvar_receiver})
 		else:

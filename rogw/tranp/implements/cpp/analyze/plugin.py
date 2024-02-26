@@ -68,7 +68,7 @@ class CppPlugin(IPlugin):
 		Returns:
 			dict[str, Callable[..., SymbolRaw]]: ハンドラー一覧
 		"""
-		return {key: getattr(self, key) for key in self.__class__.__dict__.keys() if key.startswith('on_')}
+		return {}
 
 	def on_factor(self, node: defs.Factor, operator: SymbolRaw, value: SymbolRaw) -> list[SymbolRaw]:
 		return [operator, self.unpack_cvar_raw(value)]

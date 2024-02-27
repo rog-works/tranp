@@ -297,8 +297,8 @@ class ClassDef(Node, IDomain, IScope, IDeclaration, ISymbol):
 	def _decl_vars_with(self, allow: type[T_Declable]) -> dict[str, T_Declable]:
 		return VarsCollector.collect(self, allow)
 
-	def _generic_types_from_hint(self) -> list[Type]:
-		"""デコレーターで設定したジェネリックのテンプレートタイプを取り込む
+	def _inherit_generic_types(self) -> list[Type]:
+		"""継承したテンプレートタイプを取得
 
 		Returns:
 			list[Type]: テンプレートタイプのリスト
@@ -473,9 +473,9 @@ class Class(ClassDef):
 	@Meta.embed(Node, expandable)
 	def generic_types(self) -> list[Type]:
 		candidates = [inherit.as_a(CustomType) for inherit in self.__org_inherits if inherit.type_name.tokens == Generic.__name__]
-		from_defs = candidates[0].template_types if len(candidates) == 1 else []
-		from_hint = self._generic_types_from_hint()
-		return [*from_defs, *from_hint]
+		definitions = candidates[0].template_types if len(candidates) == 1 else []
+		inherits = self._inherit_generic_types()
+		return [*definitions, *inherits]
 
 	@property
 	@override

@@ -112,7 +112,7 @@ class CVarOps:
 	def declare(self) -> None:
 		arr = [1]
 		arr_p = CP(arr)
-		arr_sp = CRef.new(arr)
+		arr_sp = CSP.new([1])
 		arr_r = CRef(arr)
 
 class FuncOps:

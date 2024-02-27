@@ -9,7 +9,7 @@ def __actual__(name: str) -> Callable[[T], T]:
 	Args:
 		name (str): 名前
 	Returns:
-		Callable[[T], T]: デコレート対象の関数
+		Callable[[T], T]: デコレート対象
 	Examples:
 		```python
 		@__actual__('type')
@@ -28,7 +28,7 @@ def __alias__(name: str) -> Callable[[T], T]:
 	Args:
 		name (str): 名前
 	Returns:
-		Callable[[T], T]: デコレート対象の関数
+		Callable[[T], T]: デコレート対象
 	Examples:
 		```python
 		@__alias__('std::string')
@@ -42,23 +42,25 @@ def __alias__(name: str) -> Callable[[T], T]:
 
 
 def __hint_generic__(*template_types: TypeVar) -> Callable[[T], T]:
-	"""静的解析のヒントとなる情報を埋め込む(ジェネリック用)
+	"""静的解析のヒントとなる情報を埋め込む(ジェネリッククラス用)
 
 	Args:
 		*template_types (TypeVar): テンプレートタイプのリスト
 	Returns:
-		Callable[[T], T]: デコレート対象の関数
+		Callable[[T], T]: デコレート対象
 	Note:
-		# 利用目的
-		ランタイム上でしか判断できない情報を静的解析出来るようにするため、クラス・ファンクションに補足情報を埋め込む
+		継承した親クラスがジェネリッククラスか否かはシンタックスから判断できないため、
+		派生クラスに継承したテンプレートタイプを埋め込み、静的に解決出来るようにする
 	Examples:
 		```python
 		T = TypeVar('T')
 
 		class GenericBase(Generic[T]): ...
 
+		class GenericUnknown(GenericBase[T]): ...
+
 		@__hint_generic__(T)
-		class GenericSub(GenericBase[T]): ...
+		class GenericKnownT(GenericBase[T]): ...
 		```
 	"""
 	def decorator(wrapped: T) -> T:

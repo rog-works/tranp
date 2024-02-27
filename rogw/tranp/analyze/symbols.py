@@ -549,11 +549,15 @@ class ProceduralResolver:
 				.build(reflection.Constructor)
 			return func.returns(*arguments)
 		else:
+			# FIXME 呼び出しスキームに一貫性が無いため修正を検討
 			func = reflection.Builder(actual_calls) \
+				.case(reflection.ClassMethod).schema(lambda: {'parameters': actual_calls.attrs[1:-1], 'returns': actual_calls.attrs[-1]}) \
 				.case(reflection.Method).schema(lambda: {'klass': actual_calls.attrs[0], 'parameters': actual_calls.attrs[1:-1], 'returns': actual_calls.attrs[-1]}) \
 				.other_case().schema(lambda: {'parameters': actual_calls.attrs[:-1], 'returns': actual_calls.attrs[-1]}) \
 				.build(reflection.Function)
-			if func.is_a(reflection.Method):
+			if func.is_a(reflection.ClassMethod):
+				return func.returns(*arguments)
+			elif func.is_a(reflection.Method):
 				return func.returns(actual_calls.context, *arguments)
 			else:
 				return func.returns(*arguments)

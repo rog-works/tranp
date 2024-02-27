@@ -17,9 +17,9 @@ class CVars:
 		exchanger_key (str): 属性変換メソッドの名前
 	"""
 
-	relay_key: ClassVar[str] = cpp.CVar.on.__name__
-	allocator_key: ClassVar[str] = cpp.CP.new.__name__
-	exchanger_keys: ClassVar[list[str]] = [cpp.CVar.raw.__name__, cpp.CP.ref.__name__, cpp.CSP.addr.__name__]
+	relay_key: ClassVar[str] = 'on'
+	allocator_key: ClassVar[str] = 'new'
+	exchanger_keys: ClassVar[list[str]] = ['raw', 'ref', 'addr']
 
 	class Moves(Enum):
 		"""移動操作の種別

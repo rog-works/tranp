@@ -245,7 +245,7 @@ class ClassMethod(Method):
 		Returns:
 			SymbolRaw: 実行時型
 		Note:
-			* FIXME 継承元のMethodと一貫性がないため修正を検討
+			FIXME 継承元のMethodと一貫性がないため修正を検討
 		"""
 		# FIXME クラスがジェネリック型の場合、クラスのTは呼び出し時に未知である場合がほとんどであり、
 		# FIXME 引数のTによる実体型の補完を妨害してしまうため、ファンクションのスキームで呼び出すことで一旦解決する
@@ -264,7 +264,7 @@ class Constructor(Method):
 		Returns:
 			SymbolRaw: 実行時型
 		Note:
-			FIXME: 継承元のMethodと一貫性がないため修正を検討
+			FIXME 継承元のMethodと一貫性がないため修正を検討
 		"""
 		# FIXME クラスがジェネリック型の場合、クラスのTは呼び出し時に未知である場合がほとんどであり、
 		# FIXME 引数のTによる実体型の補完を妨害してしまうため、ファンクションのスキームで呼び出すことで一旦解決する

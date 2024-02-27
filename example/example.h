@@ -301,7 +301,7 @@ class CellMesh {
 			{-1},
 			{-1},
 		};
-		auto closure = [&](const MeshRaw& origin) -> void {
+		auto closure = [&](MeshRaw& origin) -> void {
 			Box3d cell_box = CellMesh::to_cell_box(cell, unit);
 			std::vector<Box3d> boxs = CellMesh::to_vertex_boxs(cell_box, unit);
 			for (auto i = 0; i < boxs.size(); i++) {
@@ -573,8 +573,8 @@ class CellMesh {
 					continue;
 				}
 				CellMesh::FaceIndexs key = (CellMesh::FaceIndexs)(i);
-				std::vector<IntVector> polygon_entry = polygon_map[key];
-				std::vector<IntVector> uv_entry = uv_map[key];
+				std::vector<IntVector>& polygon_entry = polygon_map[key];
+				std::vector<IntVector>& uv_entry = uv_map[key];
 				int p_groupId = origin.max_group_id();
 				for (auto j = 0; i < 2; j++) {
 					IntVector& p = polygon_entry[j];

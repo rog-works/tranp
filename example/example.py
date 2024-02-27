@@ -654,19 +654,19 @@ class CellMesh:
 				key = cls.FaceIndexs(i)
 				polygon_entry = CRef(polygon_map[key])
 				uv_entry = CRef(uv_map[key])
-				p_groupId = origin.on().max_group_id()
+				p_group_id = origin.on().max_group_id()
 				for j in range(2):
 					p = CRef(polygon_entry.on()[j])
 					polygon = IntVector(v_ids[p.on().x], v_ids[p.on().y], v_ids[p.on().z])
 					polygon_id = origin.on().append_triangle(polygon)
 
-					print('Add Triangle. i: %d, j: %d, p: (%d, %d, %d), vid: (%d, %d, %d), result: %d, group: %d', i, j, p.on().x, p.on().y, p.on().z, v_ids[p.on().x], v_ids[p.on().y], v_ids[p.on().z], polygon_id, p_groupId)
+					print('Add Triangle. i: %d, j: %d, p: (%d, %d, %d), vid: (%d, %d, %d), result: %d, group: %d', i, j, p.on().x, p.on().y, p.on().z, v_ids[p.on().x], v_ids[p.on().y], v_ids[p.on().z], polygon_id, p_group_id)
 
 					if polygon_id < 0:
-						print('Failed Add Triangle. i: %d, j: %d, p: (%d, %d, %d), vid: (%d, %d, %d), result: %d, group: %d', i, j, p.on().x, p.on().y, p.on().z, v_ids[p.on().x], v_ids[p.on().y], v_ids[p.on().z], polygon_id, p_groupId)
+						print('Failed Add Triangle. i: %d, j: %d, p: (%d, %d, %d), vid: (%d, %d, %d), result: %d, group: %d', i, j, p.on().x, p.on().y, p.on().z, v_ids[p.on().x], v_ids[p.on().y], v_ids[p.on().z], polygon_id, p_group_id)
 						continue
 
-					origin.on().set_triangle_group(polygon_id, p_groupId)
+					origin.on().set_triangle_group(polygon_id, p_group_id)
 
 					uv_indexs = CRef(uv_entry.on()[j])
 					uv_id1 = uv_overlay.append_element(uvs[uv_indexs.on().x])

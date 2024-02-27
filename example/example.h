@@ -575,17 +575,17 @@ class CellMesh {
 				CellMesh::FaceIndexs key = (CellMesh::FaceIndexs)(i);
 				std::vector<IntVector>& polygon_entry = polygon_map[key];
 				std::vector<IntVector>& uv_entry = uv_map[key];
-				int p_groupId = origin.max_group_id();
+				int p_group_id = origin.max_group_id();
 				for (auto j = 0; i < 2; j++) {
 					IntVector& p = polygon_entry[j];
 					IntVector polygon = IntVector(v_ids[p.x], v_ids[p.y], v_ids[p.z]);
 					int polygon_id = origin.append_triangle(polygon);
-					printf("Add Triangle. i: %d, j: %d, p: (%d, %d, %d), vid: (%d, %d, %d), result: %d, group: %d", i, j, p.x, p.y, p.z, v_ids[p.x], v_ids[p.y], v_ids[p.z], polygon_id, p_groupId);
+					printf("Add Triangle. i: %d, j: %d, p: (%d, %d, %d), vid: (%d, %d, %d), result: %d, group: %d", i, j, p.x, p.y, p.z, v_ids[p.x], v_ids[p.y], v_ids[p.z], polygon_id, p_group_id);
 					if (polygon_id < 0) {
-						printf("Failed Add Triangle. i: %d, j: %d, p: (%d, %d, %d), vid: (%d, %d, %d), result: %d, group: %d", i, j, p.x, p.y, p.z, v_ids[p.x], v_ids[p.y], v_ids[p.z], polygon_id, p_groupId);
+						printf("Failed Add Triangle. i: %d, j: %d, p: (%d, %d, %d), vid: (%d, %d, %d), result: %d, group: %d", i, j, p.x, p.y, p.z, v_ids[p.x], v_ids[p.y], v_ids[p.z], polygon_id, p_group_id);
 						continue;
 					}
-					origin.set_triangle_group(polygon_id, p_groupId);
+					origin.set_triangle_group(polygon_id, p_group_id);
 					IntVector& uv_indexs = uv_entry[j];
 					int uv_id1 = uv_overlay.append_element(uvs[uv_indexs.x]);
 					int uv_id2 = uv_overlay.append_element(uvs[uv_indexs.y]);

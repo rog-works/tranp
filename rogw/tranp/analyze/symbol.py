@@ -618,7 +618,7 @@ class Symbol(SymbolRaw):
 class SymbolImport(Symbol):
 	"""シンボル(インポート)"""
 
-	def __init__(self, origin: 'ImportOrigins', via: defs.Node) -> None:
+	def __init__(self, origin: 'ImportOrigins', via: Node) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -642,7 +642,7 @@ class SymbolImport(Symbol):
 
 	@property
 	@override
-	def via(self) -> defs.Node:
+	def via(self) -> Node:
 		"""Node: 参照元のノード"""
 		return self._via
 
@@ -731,7 +731,7 @@ class SymbolGeneric(Symbol):
 
 	@property
 	@override
-	def via(self) -> defs.Node:
+	def via(self) -> Node:
 		"""Node: 参照元のノード"""
 		return self._via
 
@@ -764,7 +764,7 @@ class SymbolLiteral(Symbol):
 
 	@property
 	@override
-	def via(self) -> defs.Node:
+	def via(self) -> Node:
 		"""Node: 参照元のノード"""
 		return self._via
 
@@ -799,7 +799,7 @@ class SymbolReference(Symbol):
 
 	@property
 	@override
-	def via(self) -> defs.Node:
+	def via(self) -> Node:
 		"""Node: 参照元のノード"""
 		return self._via
 
@@ -846,7 +846,7 @@ class SymbolResult(Symbol):
 
 	@property
 	@override
-	def via(self) -> defs.Node:
+	def via(self) -> Node:
 		"""Node: 参照元のノード"""
 		return self._via
 

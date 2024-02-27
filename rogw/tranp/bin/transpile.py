@@ -13,6 +13,7 @@ from rogw.tranp.node.node import Node
 from rogw.tranp.translator.option import TranslatorOptions
 from rogw.tranp.translator.py2cpp import Py2Cpp
 from rogw.tranp.view.render import Renderer, Writer
+from tests.test.helper import profiler
 
 
 class Args:
@@ -69,11 +70,15 @@ def make_module_path(args: Args) -> ModulePath:
 
 
 def task(translator: Py2Cpp, root: Node, writer: Writer) -> None:
-	try:
-		writer.put(translator.translate(root))
-		writer.flush()
-	except Exception as e:
-		print(''.join(stacktrace(e)))
+	@profiler('cumtime')
+	def run() -> None:
+		try:
+			writer.put(translator.translate(root))
+			writer.flush()
+		except Exception as e:
+			print(''.join(stacktrace(e)))
+
+	run()
 
 
 if __name__ == '__main__':

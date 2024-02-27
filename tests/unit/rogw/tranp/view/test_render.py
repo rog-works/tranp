@@ -4,7 +4,7 @@ from unittest import TestCase
 
 from rogw.tranp.view.render import Renderer
 from rogw.tranp.app.io import appdir
-from tests.test.helper import data_provider
+from rogw.tranp.test.helper import data_provider
 
 
 class Fixture:

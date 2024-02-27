@@ -12,8 +12,8 @@ from rogw.tranp.node.node import Node
 from rogw.tranp.node.query import Nodes
 from rogw.tranp.node.resolver import NodeResolver
 from rogw.tranp.providers.module import module_path_dummy
+from rogw.tranp.test.helper import data_provider
 from rogw.tranp.tp_lark.entry import EntryOfLark
-from tests.test.helper import data_provider
 
 
 class Root(Node): pass

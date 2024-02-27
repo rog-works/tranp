@@ -2,9 +2,8 @@ from typing import Any, TypedDict
 from unittest import TestCase
 
 from rogw.tranp.node.serializer import serialize
-
+from rogw.tranp.test.helper import data_provider
 from tests.test.fixture import Fixture
-from tests.test.helper import data_provider
 
 T_Sum = TypedDict('T_Sum', {'elements': list[str]})
 T_FileInput = TypedDict('T_FileInput', {'statements': list[T_Sum]})

@@ -5,8 +5,8 @@ from lark import Token, Tree
 
 from rogw.tranp.ast.entry import Entry
 from rogw.tranp.ast.finder import ASTFinder
+from rogw.tranp.test.helper import data_provider
 from rogw.tranp.tp_lark.entry import EntryOfLark
-from tests.test.helper import data_provider
 
 class Fixture:
 	@classmethod

@@ -6,8 +6,8 @@ from rogw.tranp.lang.implementation import override
 import rogw.tranp.node.definition as defs  # XXX テストを拡充するため実装クラスを使用
 from rogw.tranp.node.embed import Meta, actualized
 from rogw.tranp.node.node import Node, T_Node
+from rogw.tranp.test.helper import data_provider
 from tests.test.fixture import Fixture
-from tests.test.helper import data_provider
 
 
 class TestNode(TestCase):

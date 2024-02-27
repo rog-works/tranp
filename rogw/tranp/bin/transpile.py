@@ -13,7 +13,7 @@ from rogw.tranp.node.node import Node
 from rogw.tranp.translator.option import TranslatorOptions
 from rogw.tranp.translator.py2cpp import Py2Cpp
 from rogw.tranp.view.render import Renderer, Writer
-from tests.test.helper import profiler
+from rogw.tranp.lang.profile import profiler
 
 
 class Args:

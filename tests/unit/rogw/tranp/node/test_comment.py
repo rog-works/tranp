@@ -2,8 +2,7 @@ from typing import Any
 from unittest import TestCase
 
 from rogw.tranp.lang.comment import Comment
-
-from tests.test.helper import data_provider
+from rogw.tranp.test.helper import data_provider
 
 
 class TestComment(TestCase):

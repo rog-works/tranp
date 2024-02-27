@@ -2,8 +2,8 @@ from typing import Any
 from unittest import TestCase
 
 import rogw.tranp.node.definition as defs
+from rogw.tranp.test.helper import data_provider
 from tests.test.fixture import Fixture
-from tests.test.helper import data_provider
 
 
 def _mod(before: str) -> str:

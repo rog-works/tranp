@@ -2,7 +2,7 @@ from typing import Any, NamedTuple
 from unittest import TestCase
 
 from rogw.tranp.lang.sequence import index_of, last_index_of, deep_copy, update, expand
-from tests.test.helper import data_provider
+from rogw.tranp.test.helper import data_provider
 
 
 class Each(NamedTuple):

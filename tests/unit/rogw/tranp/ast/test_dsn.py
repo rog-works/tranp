@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from rogw.tranp.ast.dsn import DSN
-from tests.test.helper import data_provider
+from rogw.tranp.test.helper import data_provider
 
 
 class TestDSN(TestCase):

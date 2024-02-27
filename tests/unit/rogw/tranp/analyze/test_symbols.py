@@ -6,8 +6,8 @@ from rogw.tranp.ast.dsn import DSN
 import rogw.tranp.compatible.python.classes as classes
 from rogw.tranp.compatible.python.types import Primitives
 from rogw.tranp.errors import LogicError
+from rogw.tranp.test.helper import data_provider
 from tests.test.fixture import Fixture
-from tests.test.helper import data_provider
 
 
 def _ast(before: str, after: str) -> str:

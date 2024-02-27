@@ -6,16 +6,6 @@ T = TypeVar('T')
 
 
 class CVar(Generic[T]):
-	# XXX 成り立たないためコメントアウト
-	# @abstractclassmethod
-	# def __class_getitem__(cls, var_type: type[T]) -> 'type[CVar[T]]':
-	# 	raise Exception()
-
-	@classmethod
-	def new(cls, origin: T) -> 'CVar[T]':
-		# XXX 一旦Exceptionで対応
-		raise Exception(f'Method not allowed. method: "new", cls: {cls}, origin: {origin}')
-
 	def __init__(self, origin: T) -> None:
 		self.__origin = origin
 
@@ -24,14 +14,6 @@ class CVar(Generic[T]):
 
 	def raw(self) -> T:
 		return self.__origin
-
-	def ref(self) -> 'CVar[T]':
-		# XXX 一旦Exceptionで対応
-		raise Exception(f'Method not allowed. method: "ref" self: {self}, origin: {self.__origin}')
-
-	def addr(self) -> 'CVar[T]':
-		# XXX 一旦Exceptionで対応
-		raise Exception(f'Method not allowed. method: "addr", self: {self}, origin: {self.__origin}')
 
 
 @__hint_generic__(T)

@@ -389,26 +389,26 @@ class Py2Cpp:
 		def is_this_access() -> bool:
 			return node.receiver.is_a(defs.ThisRef)
 
+		def is_on_method() -> bool:
+			return isinstance(node.receiver, defs.FuncCall) \
+				and isinstance(node.receiver.calls, defs.Relay) \
+				and node.receiver.calls.prop.domain_name == 'on'
+
 		def is_class_access() -> bool:
 			# XXX superは一般的には親クラスのインスタンスへの参照だが、C++ではクラス参照と同じ修飾子によってアクセスするため、例外的に判定に加える
 			is_class_alias = isinstance(node.receiver, (defs.ClassRef, defs.Super))
 			is_class_var_relay = node.receiver.is_a(defs.Relay, defs.Variable) and receiver_symbol.decl.is_a(defs.Class)
 			return is_class_alias or is_class_var_relay
 
-		def is_on_method() -> bool:
-			return isinstance(node.receiver, defs.FuncCall) \
-				and isinstance(node.receiver.calls, defs.Relay) \
-				and node.receiver.calls.prop.domain_name == 'on'
-
 		if is_this_access():
 			return 'this', CVars.Accessors.Address.name
-		elif is_class_access():
-			return 'class', CVars.Accessors.Static.name
 		elif is_on_method():
 			calls_raw = self.symbols.type_of(cast(defs.FuncCall, node.receiver).calls)
 			cvar_key = CVars.key_from(self.symbols, calls_raw.context)
 			if not CVars.is_raw_raw(cvar_key):
 				return 'cvar_on', CVars.to_accessor(cvar_key).name
+		elif is_class_access():
+			return 'class', CVars.Accessors.Static.name
 
 		return 'raw', CVars.Accessors.Raw.name
 
@@ -549,9 +549,12 @@ class Py2Cpp:
 			return self.view.render(f'{node.classification}_to_cvar', vars={**func_call_vars, 'cvar_type': cvar_type})
 		elif spec == 'new_cvar_p':
 			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
+		elif spec == 'new_cvar_sp_list':
+			var_type = self.to_symbol_path(cast(SymbolRaw, context))
+			initializer = arguments[0]
+			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'var_type': var_type, 'initializer': initializer})
 		elif spec == 'new_cvar_sp':
-			new_type_raw = self.symbols.type_of(node.arguments[0])
-			var_type = self.to_symbol_path(new_type_raw)
+			var_type = self.to_symbol_path(cast(SymbolRaw, context))
 			initializer = cast(re.Match, re.fullmatch(r'[^(]+\(([^)]+)\)', arguments[0]))[1]
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'var_type': var_type, 'initializer': initializer})
 		else:
@@ -605,7 +608,9 @@ class Py2Cpp:
 			if CVars.is_addr_p(cvar_key):
 				return f'new_cvar_p', None
 			elif CVars.is_addr_sp(cvar_key):
-				return f'new_cvar_sp', None
+				new_type_raw = self.symbols.type_of(node.arguments[0])
+				spec = 'new_cvar_sp_list' if self.symbols.is_a(new_type_raw, list) else 'new_cvar_sp'
+				return spec, new_type_raw
 		elif isinstance(node.calls, (defs.Relay, defs.Variable)):
 			raw = self.symbols.type_of(node.calls)
 			if raw.types.is_a(defs.Enum):

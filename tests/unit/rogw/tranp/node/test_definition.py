@@ -6,7 +6,7 @@ from rogw.tranp.test.helper import data_provider
 from tests.test.fixture import Fixture
 
 
-def _mod(before: str) -> str:
+def _ast(before: str) -> str:
 	_T = 'file_input.template_assign'
 	_global_n = 'file_input.assign'
 	_global_s = 'file_input.anno_assign'
@@ -25,8 +25,9 @@ def _mod(before: str) -> str:
 		'Class.class_method': f'{_Class}.class_def_raw.block.function_def[1]',
 		'Class.__init__': f'{_Class}.class_def_raw.block.function_def[2]',
 		'Class.__init__.method_in_closure': f'{_Class}.class_def_raw.block.function_def[2].function_def_raw.block.function_def',
-		'Class.public_method': f'{_Class}.class_def_raw.block.function_def[3]',
-		'Class._protected_method': f'{_Class}.class_def_raw.block.function_def[4]',
+		'Class.property_method': f'{_Class}.class_def_raw.block.function_def[3]',
+		'Class.public_method': f'{_Class}.class_def_raw.block.function_def[4]',
+		'Class._protected_method': f'{_Class}.class_def_raw.block.function_def[5]',
 		'func': f'{_func}',
 		'func.func_in_closure': f'{_func}.function_def_raw.block.function_def',
 		'Class2': f'{_Class2}',
@@ -214,7 +215,7 @@ class TestDefinition(TestCase):
 		self.assertEqual(type(node.condition), expected['condition'])
 
 	@data_provider([
-		(_mod('Class.class_method'), {
+		(_ast('Class.class_method'), {
 			'type': defs.ClassMethod,
 			'symbol': 'class_method',
 			'access': 'public',
@@ -232,7 +233,7 @@ class TestDefinition(TestCase):
 			# Belong class only
 			'class_symbol': 'Class',
 		}),
-		(_mod('Class.__init__'), {
+		(_ast('Class.__init__'), {
 			'type': defs.Constructor,
 			'symbol': '__init__',
 			'access': 'public',
@@ -257,7 +258,7 @@ class TestDefinition(TestCase):
 			# Constructor only
 			'this_vars': ['self.n', 'self.s'],
 		}),
-		(_mod('Class.__init__.method_in_closure'), {
+		(_ast('Class.__init__.method_in_closure'), {
 			'type': defs.Closure,
 			'symbol': 'method_in_closure',
 			'access': 'public',
@@ -272,7 +273,26 @@ class TestDefinition(TestCase):
 			# Closure only
 			'binded_this': True,
 		}),
-		(_mod('Class.public_method'), {
+		(_ast('Class.property_method'), {
+			'type': defs.Method,
+			'symbol': 'property_method',
+			'access': 'public',
+			'decorators': ['property'],
+			'parameters': [
+				{'symbol': 'self', 'var_type': 'Empty', 'default_value': 'Empty'},
+			],
+			'return': defs.VarOfType,
+			'decl_vars': [
+				{'symbol': 'self', 'decl_type': defs.Parameter},
+			],
+			'actual_symbol': None,
+			'alias_symbol': None,
+			# Belong class only
+			'class_symbol': 'Class',
+			# Method only
+			'is_property': True,
+		}),
+		(_ast('Class.public_method'), {
 			'type': defs.Method,
 			'symbol': 'public_method',
 			'access': 'public',
@@ -291,8 +311,10 @@ class TestDefinition(TestCase):
 			'alias_symbol': 'alias',
 			# Belong class only
 			'class_symbol': 'Class',
+			# Method only
+			'is_property': False,
 		}),
-		(_mod('Class._protected_method'), {
+		(_ast('Class._protected_method'), {
 			'type': defs.Method,
 			'symbol': '_protected_method',
 			'access': 'protected',
@@ -310,8 +332,10 @@ class TestDefinition(TestCase):
 			'alias_symbol': None,
 			# Belong class only
 			'class_symbol': 'Class',
+			# Method only
+			'is_property': False,
 		}),
-		(_mod('func'), {
+		(_ast('func'), {
 			'type': defs.Function,
 			'symbol': 'func',
 			'access': 'public',
@@ -327,7 +351,7 @@ class TestDefinition(TestCase):
 			'actual_symbol': None,
 			'alias_symbol': None,
 		}),
-		(_mod('func.func_in_closure'), {
+		(_ast('func.func_in_closure'), {
 			'type': defs.Closure,
 			'symbol': 'func_in_closure',
 			'access': 'public',
@@ -375,11 +399,14 @@ class TestDefinition(TestCase):
 		if isinstance(node, defs.Constructor):
 			self.assertEqual([this_var.tokens for this_var in node.this_vars], expected['this_vars'])
 
+		if isinstance(node, defs.Method):
+			self.assertEqual(node.is_property, expected['is_property'])
+
 		if isinstance(node, defs.Closure):
 			self.assertEqual(node.binded_this, expected['binded_this'])
 
 	@data_provider([
-		(_mod('Base'), {
+		(_ast('Base'), {
 			'symbol': 'Base',
 			'decorators': [],
 			'inherits': [],
@@ -392,20 +419,20 @@ class TestDefinition(TestCase):
 			'actual_symbol': None,
 			'alias_symbol': None,
 		}),
-		(_mod('Class'), {
+		(_ast('Class'), {
 			'symbol': 'Class',
 			'decorators': ['__alias__'],
 			'inherits': ['Base'],
 			'generic_types': [],
 			'constructor_exists': True,
 			'class_methods': ['class_method'],
-			'methods': ['public_method', '_protected_method'],
+			'methods': ['property_method', 'public_method', '_protected_method'],
 			'class_vars': ['cn'],
 			'this_vars': ['self.n', 'self.s'],
 			'actual_symbol': None,
 			'alias_symbol': 'Alias',
 		}),
-		(_mod('Class2'), {
+		(_ast('Class2'), {
 			'symbol': 'Actual',
 			'decorators': ['__actual__'],
 			'inherits': [],
@@ -418,7 +445,7 @@ class TestDefinition(TestCase):
 			'actual_symbol': 'Actual',
 			'alias_symbol': None,
 		}),
-		(_mod('GenBase'), {
+		(_ast('GenBase'), {
 			'symbol': 'GenBase',
 			'decorators': [],
 			'inherits': [],
@@ -431,7 +458,7 @@ class TestDefinition(TestCase):
 			'actual_symbol': None,
 			'alias_symbol': None,
 		}),
-		(_mod('GenSub'), {
+		(_ast('GenSub'), {
 			'symbol': 'GenSub',
 			'decorators': ['__hint_generic__'],
 			'inherits': ['GenBase'],
@@ -467,7 +494,7 @@ class TestDefinition(TestCase):
 		self.assertEqual([type(in_type) for in_type in node.generic_types], expected['generic_types'])
 
 	@data_provider([
-		(_mod('Values'), {
+		(_ast('Values'), {
 			'symbol': 'Values',
 			'vars': [
 				{'symbol': 'A', 'value': '0'},

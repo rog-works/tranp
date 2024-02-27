@@ -425,6 +425,10 @@ class Method(Function):
 	def class_types(self) -> ClassDef:
 		return self.parent.as_a(Block).parent.as_a(ClassDef)
 
+	@property
+	def is_property(self) -> bool:
+		return len([decorator for decorator in self.decorators if decorator.path.tokens == 'property']) == 1
+
 
 @Meta.embed(Node, actualized(via=Function))
 class Closure(Function):

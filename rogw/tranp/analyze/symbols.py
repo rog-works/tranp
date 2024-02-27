@@ -464,9 +464,14 @@ class ProceduralResolver:
 		prop = self.symbols.type_of_property(accessable_receiver.types, node.prop)
 		# XXX Enum直下のDeclLocalVarは定数値であり、型としてはEnumそのものであるためreceiverを返却。特殊化より一般化する方法を検討
 		if isinstance(accessable_receiver.types, defs.Enum) and prop.decl.is_a(defs.DeclLocalVar):
-				return accessable_receiver
-
-		return prop.to.ref(node, context=accessable_receiver)
+			return accessable_receiver.to.ref(node, context=accessable_receiver)
+		elif isinstance(prop.decl, defs.Method) and prop.decl.is_property:
+			method = reflection.Builder(prop) \
+				.schema(lambda: {'klass': prop.attrs[0], 'parameters': prop.attrs[1:-1], 'returns': prop.attrs[-1]}) \
+				.build(reflection.Method)
+			return method.returns(receiver).to.ref(node, context=accessable_receiver)
+		else:
+			return prop.to.ref(node, context=accessable_receiver)
 
 	def on_class_ref(self, node: defs.ClassRef) -> SymbolRaw:
 		return self.symbols.resolve(node).to.ref(node)

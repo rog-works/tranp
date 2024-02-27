@@ -1,7 +1,6 @@
 from typing import Callable
 
 from rogw.tranp.analyze.plugin import IPlugin, PluginProvider
-from rogw.tranp.implements.cpp.analyze.plugin import CppPlugin
 from rogw.tranp.lang.implementation import injectable
 from rogw.tranp.lang.locator import Currying
 
@@ -15,5 +14,5 @@ def cpp_plugin_provider(currying: Currying) -> PluginProvider:
 	Returns:
 		PluginProvider: プラグインプロバイダー
 	"""
-	classes: list[type[IPlugin]] = [CppPlugin]
+	classes: list[type[IPlugin]] = []
 	return lambda: [currying(ctor, Callable[[], IPlugin])() for ctor in classes]

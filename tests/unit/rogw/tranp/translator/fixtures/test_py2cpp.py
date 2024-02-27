@@ -51,14 +51,14 @@ class CVarOps:
 		ar: CRef[Base] = CRef(a)
 		if True:
 			a = a
-			a = ap.raw()
-			a = asp.raw()
-			a = ar.raw()
+			a = ap.raw
+			a = asp.raw
+			a = ar.raw
 		if True:
 			ap = CP(a)
 			ap = ap
-			ap = asp.addr()
-			ap = ar.addr()
+			ap = asp.addr
+			ap = ar.addr
 		if True:
 			# asp = a  # 構文的にNG
 			# asp = ap  # 構文的にNG
@@ -66,15 +66,15 @@ class CVarOps:
 			# asp = ar  # 構文的にNG
 		if True:
 			ar = CRef(a)  # C++ではNG
-			ar = ap.ref()  # C++ではNG
-			ar = asp.ref()  # C++ではNG
+			ar = ap.ref  # C++ではNG
+			ar = asp.ref  # C++ではNG
 			ar = ar  # C++ではNG
 
 	def param_move(self, a: Base, ap: CP[Base], asp: CSP[Base], ar: CRef[Base]) -> None:
 		a1 = a
-		a2: Base = ap.raw()
-		a3: Base = asp.raw()
-		a4: Base = ar.raw()
+		a2: Base = ap.raw
+		a3: Base = asp.raw
+		a4: Base = ar.raw
 		a = a1
 		ap = CP(a2)
 		# asp = a3  # 構文的にNG
@@ -82,23 +82,23 @@ class CVarOps:
 
 	def invoke_method(self, a: Base, ap: CP[Base], asp: CSP[Base]) -> None:
 		# self.invoke_method(a, CP(a), a)  # 構文的にNG
-		# self.invoke_method(ap.raw(), ap, ap)  # 構文的にNG
-		self.invoke_method(asp.raw(), asp.addr(), asp)
+		# self.invoke_method(ap.raw, ap, ap)  # 構文的にNG
+		self.invoke_method(asp.raw, asp.addr, asp)
 
 	def unary_calc(self, a: Base, ap: CP[Base], asp: CSP[Base], ar: CRef[Base]) -> None:
 		neg_a = -a
-		neg_a2 = -ap.raw()
-		neg_a3 = -asp.raw()
-		neg_a4 = -ar.raw()
+		neg_a2 = -ap.raw
+		neg_a3 = -asp.raw
+		neg_a4 = -ar.raw
 
 	def binary_calc(self, a: Base, ap: CP[Base], asp: CSP[Base], ar: CRef[Base]) -> None:
-		add = a + ap.raw() + asp.raw() + ar.raw()
-		sub = a - ap.raw() - asp.raw() - ar.raw()
-		mul = a * ap.raw() * asp.raw() * ar.raw()
-		div = a / ap.raw() / asp.raw() / ar.raw()
-		calc = a + ap.raw() * asp.raw() - ar.raw() / a
-		is_a = a is ap.raw() is asp.raw() is ar.raw()
-		is_not_a = a is not ap.raw() is not asp.raw() is not ar.raw()
+		add = a + ap.raw + asp.raw + ar.raw
+		sub = a - ap.raw - asp.raw - ar.raw
+		mul = a * ap.raw * asp.raw * ar.raw
+		div = a / ap.raw / asp.raw / ar.raw
+		calc = a + ap.raw * asp.raw - ar.raw / a
+		is_a = a is ap.raw is asp.raw is ar.raw
+		is_not_a = a is not ap.raw is not asp.raw is not ar.raw
 
 	def tenary_calc(self, a: Base, ap: CP[Base], asp: CSP[Base], ar: CRef[Base]) -> None:
 		a2 = a if True else Base()
@@ -153,12 +153,12 @@ class AccessOps(Base):
 		print(self.base_n)
 		print(self.sub_s)
 		print(self.call())
-		print(ap.on().base_n)
-		print(ap.on().sub_s)
-		print(ap.on().call())
-		print(asp.on().base_n)
-		print(asp.on().sub_s)
-		print(asp.on().call())
+		print(ap.on.base_n)
+		print(ap.on.sub_s)
+		print(ap.on.call())
+		print(asp.on.base_n)
+		print(asp.on.sub_s)
+		print(asp.on.call())
 
 	def double_colon(self) -> None:
 		super().call()
@@ -171,9 +171,9 @@ class AccessOps(Base):
 		}
 
 	def indexer(self, arr_p: CP[list[int]], arr_sp: CSP[list[int]], arr_ar: CRef[list[int]]) -> None:
-		print(arr_p.on()[0])
-		print(arr_sp.on()[0])
-		print(arr_ar.on()[0])
+		print(arr_p.on[0])
+		print(arr_sp.on[0])
+		print(arr_ar.on[0])
 
 @__alias__('Alias2')
 class Alias:
@@ -280,9 +280,9 @@ class Nullable:
 		p: CP[Base] | None = None
 		p = CP(base)
 		p = None
-		p = sp.addr()
+		p = sp.addr
 		if p:
-			return p.raw()
+			return p.raw
 
 		raise Exception()
 

@@ -380,7 +380,7 @@ class Py2Cpp:
 		spec, accessor = self.analyze_relay_access_spec(node, receiver_symbol)
 		relay_vars = {'receiver': receiver, 'accessor': accessor, 'prop': prop}
 		if spec == 'cvar_on':
-			cvar_receiver = re.sub(r'(->|::|\.)on\(\)$', '', receiver)
+			cvar_receiver = re.sub(rf'(->|::|\.){CVars.relay_key}\(\)$', '', receiver)
 			return self.view.render(node.classification, vars={**relay_vars, 'receiver': cvar_receiver})
 		else:
 			return self.view.render(node.classification, vars=relay_vars)
@@ -389,10 +389,10 @@ class Py2Cpp:
 		def is_this_access() -> bool:
 			return node.receiver.is_a(defs.ThisRef)
 
-		def is_on_method() -> bool:
+		def is_on_cvar_relay() -> bool:
 			return isinstance(node.receiver, defs.FuncCall) \
 				and isinstance(node.receiver.calls, defs.Relay) \
-				and node.receiver.calls.prop.domain_name == 'on'
+				and node.receiver.calls.prop.domain_name == CVars.relay_key
 
 		def is_class_access() -> bool:
 			# XXX superは一般的には親クラスのインスタンスへの参照だが、C++ではクラス参照と同じ修飾子によってアクセスするため、例外的に判定に加える
@@ -402,7 +402,7 @@ class Py2Cpp:
 
 		if is_this_access():
 			return 'this', CVars.Accessors.Address.name
-		elif is_on_method():
+		elif is_on_cvar_relay():
 			calls_raw = self.symbols.type_of(cast(defs.FuncCall, node.receiver).calls)
 			cvar_key = CVars.key_from(self.symbols, calls_raw.context)
 			if not CVars.is_raw_raw(cvar_key):
@@ -431,18 +431,18 @@ class Py2Cpp:
 	def on_indexer(self, node: defs.Indexer, receiver: str, key: str) -> str:
 		spec = self.analyze_indexer_spec(node)
 		if spec == 'cvar_on':
-			cvar_receiver = re.sub(r'(->|::|\.)on\(\)$', '', receiver)
+			cvar_receiver = re.sub(rf'(->|::|\.){CVars.relay_key}\(\)$', '', receiver)
 			return self.view.render(node.classification, vars={'receiver': cvar_receiver, 'key': key})
 		else:
 			return self.view.render(node.classification, vars={'receiver': receiver, 'key': key})
 
 	def analyze_indexer_spec(self, node: defs.Indexer) -> str:
-		def is_on_method() -> bool:
+		def is_on_cvar_relay() -> bool:
 			return isinstance(node.receiver, defs.FuncCall) \
 				and isinstance(node.receiver.calls, defs.Relay) \
-				and node.receiver.calls.prop.domain_name == 'on'
+				and node.receiver.calls.prop.domain_name == CVars.relay_key
 
-		if is_on_method():
+		if is_on_cvar_relay():
 			calls_raw = self.symbols.type_of(cast(defs.FuncCall, node.receiver).calls)
 			cvar_key = CVars.key_from(self.symbols, calls_raw.context)
 			if not CVars.is_raw_raw(cvar_key):
@@ -594,7 +594,7 @@ class Py2Cpp:
 				key_attr, value_attr = context.attrs
 				attr_indexs = {'pop': value_attr, 'keys': key_attr, 'values': value_attr}
 				return f'dict_{prop}', attr_indexs[prop]
-		elif isinstance(node.calls, defs.Relay) and node.calls.prop.tokens in ['raw', 'ref', 'addr']:
+		elif isinstance(node.calls, defs.Relay) and node.calls.prop.tokens in CVars.exchanger_keys:
 			context = self.symbols.type_of(node.calls).context
 			cvar_key = CVars.key_from(self.symbols, context)
 			if not CVars.is_raw_raw(cvar_key):
@@ -602,7 +602,7 @@ class Py2Cpp:
 				return f'cvar_to_{move.name}', None
 		elif isinstance(node.calls, defs.Variable) and node.calls.tokens in CVars.keys():
 			return f'to_cvar_{node.calls.tokens}', None
-		elif isinstance(node.calls, defs.Relay) and node.calls.prop.tokens == 'new':
+		elif isinstance(node.calls, defs.Relay) and node.calls.prop.tokens == CVars.allocator_key:
 			context = self.symbols.type_of(node.calls).context
 			cvar_key = CVars.key_from(self.symbols, context)
 			if CVars.is_addr_p(cvar_key):

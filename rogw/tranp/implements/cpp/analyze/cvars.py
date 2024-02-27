@@ -1,13 +1,25 @@
 from enum import Enum
+from typing import ClassVar
 
 from rogw.tranp.analyze.symbol import SymbolRaw
 from rogw.tranp.analyze.symbols import Symbols
 import rogw.tranp.compatible.cpp.object as cpp
 import rogw.tranp.compatible.python.embed as __alias__
+from rogw.tranp.lang.implementation import deprecated
 
 
 class CVars:
-	"""C++変数型の操作ユーティリティー"""
+	"""C++変数型の操作ユーティリティー
+
+	Attributes:
+		relay_key (str): リレー代替メソッドの名前
+		allocator_key (str): メモリ生成メソッドの名前
+		exchanger_key (str): 属性変換メソッドの名前
+	"""
+
+	relay_key: ClassVar[str] = cpp.CVar.on.__name__
+	allocator_key: ClassVar[str] = cpp.CP.new.__name__
+	exchanger_keys: ClassVar[list[str]] = [cpp.CVar.raw.__name__, cpp.CP.ref.__name__, cpp.CSP.addr.__name__]
 
 	class Moves(Enum):
 		"""移動操作の種別
@@ -44,6 +56,7 @@ class CVars:
 		Static = 2
 
 	@classmethod
+	@deprecated
 	def analyze_move(cls, symbols: Symbols, accept: SymbolRaw, value: SymbolRaw, value_on_new: bool, declared: bool) -> Moves:
 		"""移動操作を解析
 
@@ -55,12 +68,15 @@ class CVars:
 			declared (bool): True = 変数宣言時
 		Returns:
 			Moves: 移動操作の種別
+		Note:
+			@deprecated 未使用のため削除を検討
 		"""
 		accept_key = cls.key_from(symbols, accept)
 		value_key = cls.key_from(symbols, value)
 		return cls.move_by(accept_key, value_key, value_on_new, declared)
 
 	@classmethod
+	@deprecated
 	def move_by(cls, accept_key: str, value_key: str, value_on_new: bool, declared: bool) -> Moves:
 		"""移動操作を解析
 
@@ -71,6 +87,8 @@ class CVars:
 			declared (bool): True = 変数宣言時
 		Returns:
 			Moves: 移動操作の種別
+		Note:
+			@deprecated 未使用のため削除を検討
 		"""
 		if cls.is_raw_ref(accept_key) and not declared:
 			return cls.Moves.Deny

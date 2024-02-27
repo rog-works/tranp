@@ -23,6 +23,7 @@ class Args:
 		self.source = args['source']
 		self.template_dir = args['template_dir']
 		self.verbose = args['verbose'] == 'on'
+		self.profile = args['profile']
 
 	def __parse_argv(self, argv: list[str]) -> dict[str, str]:
 		args = {
@@ -30,6 +31,7 @@ class Args:
 			'source': 'example/example.py',
 			'template_dir': 'example/template',
 			'verbose': 'off',
+			'profile': 'off',
 		}
 		while argv:
 			arg = argv.pop(0)
@@ -41,6 +43,8 @@ class Args:
 				args['template_dir'] = argv.pop(0)
 			elif arg == '-v':
 				args['verbose'] = 'on'
+			elif arg == '-p':
+				args['profile'] = argv.pop(0)
 
 		return args
 
@@ -69,8 +73,7 @@ def make_module_path(args: Args) -> ModulePath:
 	return ModulePath('__main__', module_path)
 
 
-def task(translator: Py2Cpp, root: Node, writer: Writer) -> None:
-	@profiler('cumtime')
+def task(translator: Py2Cpp, root: Node, writer: Writer, args: Args) -> None:
 	def run() -> None:
 		try:
 			writer.put(translator.translate(root))
@@ -78,7 +81,10 @@ def task(translator: Py2Cpp, root: Node, writer: Writer) -> None:
 		except Exception as e:
 			print(''.join(stacktrace(e)))
 
-	run()
+	if args.profile in ['tottime', 'cumtime']:
+		profiler(args.profile)(run)()
+	else:
+		run()
 
 
 if __name__ == '__main__':

@@ -7,10 +7,11 @@ import rogw.tranp.compatible.python.embed as __alias__
 from rogw.tranp.errors import FatalError
 from rogw.tranp.implements.cpp.analyze.cvars import CVars
 from rogw.tranp.lang.eventemitter import IObservable
-from rogw.tranp.lang.implementation import implements
+from rogw.tranp.lang.implementation import deprecated, implements
 import rogw.tranp.node.definition as defs
 
 
+@deprecated
 class CppPlugin(IPlugin):
 	"""C++用プラグイン
 
@@ -19,6 +20,7 @@ class CppPlugin(IPlugin):
 		# 変換例
 		'Class[CP]' -> 'Class'
 		'Class[CSP]' -> 'Class'
+		@deprecated 実質未使用のため削除を検討
 	"""
 
 	def __init__(self) -> None:
@@ -68,7 +70,7 @@ class CppPlugin(IPlugin):
 		Returns:
 			dict[str, Callable[..., SymbolRaw]]: ハンドラー一覧
 		"""
-		return {key: getattr(self, key) for key in self.__class__.__dict__.keys() if key.startswith('on_')}
+		return {}
 
 	def on_factor(self, node: defs.Factor, operator: SymbolRaw, value: SymbolRaw) -> list[SymbolRaw]:
 		return [operator, self.unpack_cvar_raw(value)]

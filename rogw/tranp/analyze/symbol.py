@@ -275,7 +275,10 @@ class SymbolRaw(metaclass=ABCMeta):
 			T_Raw: 複製したインスタンス
 		"""
 		new = self.__class__(**kwargs)
-		return new.extends(*[attr.clone() for attr in self.attrs])
+		if self.attrs:
+			return new.extends(*[attr.clone() for attr in self.attrs])
+
+		return new
 
 	@property	
 	def has_entity(self) -> bool:

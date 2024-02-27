@@ -1,4 +1,5 @@
 import re
+from types import UnionType
 from typing import cast
 
 from rogw.tranp.analyze.procedure import Procedure
@@ -6,7 +7,6 @@ import rogw.tranp.analyze.reflection as reflection
 from rogw.tranp.analyze.symbol import SymbolRaw
 from rogw.tranp.analyze.symbols import Symbols
 from rogw.tranp.ast.dsn import DSN
-import rogw.tranp.compatible.cpp.object as cpp
 import rogw.tranp.compatible.python.embed as __alias__
 from rogw.tranp.errors import LogicError
 from rogw.tranp.implements.cpp.analyze.cvars import CVars
@@ -71,7 +71,7 @@ class Py2Cpp:
 			'Class' -> 'NS::Class'
 			'dict<A, B>' -> 'dict<NS::A, NS::B>'
 		"""
-		unpacked_raw = CVars.unpack_with_nullable(self.symbols, raw)
+		unpacked_raw = self.force_unpack_nullable(raw)
 		return DSN.join(*DSN.elements(unpacked_raw.make_shorthand(use_alias=True, path_method='namespace')), delimiter='::')
 
 	def to_symbol_name(self, var_type_raw: SymbolRaw) -> str:
@@ -85,86 +85,28 @@ class Py2Cpp:
 			# 生成例
 			'Union<Class[CP], None>' -> 'Class[CP]'
 		"""
-		unpacked_raw = CVars.unpack_with_nullable(self.symbols, var_type_raw)
+		unpacked_raw = self.force_unpack_nullable(var_type_raw)
 		return unpacked_raw.make_shorthand(use_alias=True)
 
-	def accepted_cvar_value(self, accept_raw: SymbolRaw, value_node: Node, value_raw: SymbolRaw, value_str: str, declared: bool = False) -> str:
-		"""受け入れ出来る形式に変換(代入の右辺値/実引数/返却値)
+	def force_unpack_nullable(self, symbol: SymbolRaw) -> SymbolRaw:
+		"""Nullableのシンボルの変数の型をアンパック。Nullable以外の型はそのまま返却
 
 		Args:
-			accept_raw (SymbolRaw): シンボル(受け入れ側)
-			value_raw (SymbolRaw): シンボル(入力側)
-			value_str (str): 入力値
-			declared (bool): True = 変数宣言時
+			symbol (SymbolRaw): シンボル
 		Returns:
-			str: 変換後の入力値
+			SymbolRaw: 変数の型
 		Note:
-			# 期待する書式
-			* `Class a = ${value_str};`
-			* `func(${value_str}, ...);`
-			* `return ${value_str};`
+			許容するNullableの書式 (例: 'Class | None')
+			@see ProcedureResolver.force_unpack_nullable
+			FIXME あらゆる個所でUnionをアンパックする必要がある懸念
 		"""
-		value_on_new = isinstance(value_node, defs.FuncCall) and self.symbols.type_of(value_node.calls).types.is_a(defs.Class)
-		move = CVars.analyze_move(self.symbols, accept_raw, value_raw, value_on_new, declared)
-		if move == CVars.Moves.Deny:
-			raise LogicError(f'Unacceptable value move. accept: {str(accept_raw)}, value: {str(value_raw)}, value_on_new: {value_on_new}, declared: {declared}')
+		if self.symbols.is_a(symbol, UnionType) and len(symbol.attrs) == 2:
+			is_0_null = self.symbols.is_a(symbol.attrs[0], None)
+			is_1_null = self.symbols.is_a(symbol.attrs[1], None)
+			if is_0_null != is_1_null:
+				return symbol.attrs[1 if is_0_null else 0]
 
-		return self.to_cvar_value(move, value_str)
-
-	def iterable_cvar_value(self, value_node: Node, value_raw: SymbolRaw, value_str: str, declared: bool = False) -> str:
-		"""受け入れ出来る形式に変換(分割代入の右辺値)
-
-		Args:
-			value_raw (SymbolRaw): シンボル(入力側)
-			value_str (str): 入力値
-			declared (bool): True = 変数宣言時
-		Returns:
-			str: 変換後の入力値
-		Note:
-			# 期待する書式
-			* `auto& [dest_a, dest_b, ...] = ${value_str};`
-			* `for (auto& [dest_a, dest_b, ...] : ${value_str}) { /** some */ }`
-		"""
-		value_on_new = isinstance(value_node, defs.FuncCall) and self.symbols.type_of(value_node.calls).types.is_a(defs.Class)
-		move = CVars.move_by(cpp.CRef.__name__, CVars.key_from(self.symbols, value_raw), value_on_new, declared)
-		if move == CVars.Moves.Deny:
-			raise LogicError(f'Unacceptable value move. value: {str(value_raw)}, value_on_new: {value_on_new}, declared: {declared}')
-
-		return self.to_cvar_value(move, value_str)
-
-	def calculable_cvar_value(self, value_raw: SymbolRaw, value_str: str) -> str:
-		"""受け入れ出来る形式に変換(1,2項演算用)
-
-		Args:
-			value_raw (SymbolRaw): 値のシンボル
-			value_str (str): 入力値
-		Returns:
-			str: 変換後の入力値
-		Note:
-			# 期待する書式
-			* `not_v = !${value_str};`
-			* `add_v = left + ${value_str};`
-		"""
-		if CVars.is_addr(CVars.key_from(self.symbols, value_raw)):
-			return self.to_cvar_value(CVars.Moves.ToActual, value_str)
-
-		return value_str
-
-	def to_cvar_value(self, move: 'CVars.Moves', value_str: str) -> str:
-		"""C++変数型を考慮した変数移動操作の値に変換
-
-		Args:
-			move (Moves): C++変数型の移動操作
-			value_str (str): 入力値
-		Returns:
-			str: 変換後の入力値
-		"""
-		if move == CVars.Moves.MakeSp:
-			# XXX 関数名(クラス名)と引数を分離。必ず取得できるので警告を抑制(期待値: `Class(a, b, c)`)
-			matches = cast(re.Match, re.fullmatch(r'([^(]+)\((.*)\)', value_str))
-			return self.view.render('cvar_move', vars={'move': move.name, 'var_type': matches[1], 'arguments': matches[2]})
-		else:
-			return self.view.render('cvar_move', vars={'move': move.name, 'value': value_str})
+		return symbol
 
 	def unpack_function_template_types(self, node: defs.Function) -> list[str]:
 		"""ファンクションのテンプレート型名をアンパック
@@ -373,23 +315,19 @@ class Py2Cpp:
 		value_raw = self.symbols.type_of(node.value)
 		declared = receiver_raw.decl.declare == node
 		var_type = self.to_symbol_path(value_raw) if declared else ''
-		accepted_value = self.accepted_cvar_value(receiver_raw, node.value, self.symbols.type_of(node.value), value, declared=declared)
-		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': accepted_value})
+		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': value})
 
 	def proc_move_assign_unpack(self, node: defs.MoveAssign, receivers: list[str], value: str) -> str:
-		accepted_value = self.iterable_cvar_value(node.value, self.symbols.type_of(node.value), value, declared=True)
-		return self.view.render(f'{node.classification}_unpack', vars={'receivers': receivers, 'value': accepted_value})
+		return self.view.render(f'{node.classification}_unpack', vars={'receivers': receivers, 'value': value})
 
 	def on_anno_assign(self, node: defs.AnnoAssign, receiver: str, var_type: str, value: str) -> str:
-		accepted_value = self.accepted_cvar_value(self.symbols.type_of(node.receiver), node.value, self.symbols.type_of(node.value), value, declared=True)
-		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': accepted_value})
+		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': value})
 
 	def on_aug_assign(self, node: defs.AugAssign, receiver: str, operator: str, value: str) -> str:
 		return self.view.render(node.classification, vars={'receiver': receiver, 'operator': operator, 'value': value})
 
 	def on_return(self, node: defs.Return, return_value: str) -> str:
-		accepted_value = self.accepted_cvar_value(self.symbols.type_of(node.function).attrs[-1], node.return_value, self.symbols.type_of(node.return_value), return_value)
-		return self.view.render(node.classification, vars={'return_value': accepted_value})
+		return self.view.render(node.classification, vars={'return_value': return_value})
 
 	def on_throw(self, node: defs.Throw, throws: str, via: str) -> str:
 		return self.view.render(node.classification, vars={'throws': throws, 'via': via})
@@ -433,17 +371,28 @@ class Py2Cpp:
 
 	def on_relay(self, node: defs.Relay, receiver: str) -> str:
 		receiver_symbol = self.symbols.type_of(node.receiver)
-		accessor = self.analyze_relay_accessor(node, receiver_symbol)
+		receiver_symbol = self.force_unpack_nullable(receiver_symbol)
 		prop_symbol = self.symbols.type_of_property(receiver_symbol.types, node.prop)
 		prop = node.prop.domain_name
 		if isinstance(prop_symbol.decl, defs.ClassDef):
 			prop = ClassSymbolMaker.domain_name(prop_symbol.types, use_alias=True)
 
-		return self.view.render(node.classification, vars={'receiver': receiver, 'accessor': accessor, 'prop': prop})
+		spec, accessor = self.analyze_relay_access_spec(node, receiver_symbol)
+		relay_vars = {'receiver': receiver, 'accessor': accessor, 'prop': prop}
+		if spec == 'cvar_on':
+			cvar_receiver = re.sub(rf'(->|::|\.){CVars.relay_key}\(\)$', '', receiver)
+			return self.view.render(node.classification, vars={**relay_vars, 'receiver': cvar_receiver})
+		else:
+			return self.view.render(node.classification, vars=relay_vars)
 
-	def analyze_relay_accessor(self, node: defs.Relay, receiver_symbol: SymbolRaw) -> str:
+	def analyze_relay_access_spec(self, node: defs.Relay, receiver_symbol: SymbolRaw) -> tuple[str, str]:
 		def is_this_access() -> bool:
 			return node.receiver.is_a(defs.ThisRef)
+
+		def is_on_cvar_relay() -> bool:
+			return isinstance(node.receiver, defs.FuncCall) \
+				and isinstance(node.receiver.calls, defs.Relay) \
+				and node.receiver.calls.prop.domain_name == CVars.relay_key
 
 		def is_class_access() -> bool:
 			# XXX superは一般的には親クラスのインスタンスへの参照だが、C++ではクラス参照と同じ修飾子によってアクセスするため、例外的に判定に加える
@@ -451,17 +400,17 @@ class Py2Cpp:
 			is_class_var_relay = node.receiver.is_a(defs.Relay, defs.Variable) and receiver_symbol.decl.is_a(defs.Class)
 			return is_class_alias or is_class_var_relay
 
-		def is_cspec_access() -> bool:
-			return not CVars.is_raw_raw(CVars.key_from(self.symbols, receiver_symbol))
-
 		if is_this_access():
-			return CVars.Accessors.Address.name
+			return 'this', CVars.Accessors.Address.name
+		elif is_on_cvar_relay():
+			calls_raw = self.symbols.type_of(cast(defs.FuncCall, node.receiver).calls)
+			cvar_key = CVars.key_from(self.symbols, calls_raw.context)
+			if not CVars.is_raw_raw(cvar_key):
+				return 'cvar_on', CVars.to_accessor(cvar_key).name
 		elif is_class_access():
-			return CVars.Accessors.Static.name
-		elif is_cspec_access():
-			return CVars.to_accessor(CVars.key_from(self.symbols, receiver_symbol)).name
-		else:
-			return CVars.Accessors.Raw.name
+			return 'class', CVars.Accessors.Static.name
+
+		return 'raw', CVars.Accessors.Raw.name
 
 	def on_class_ref(self, node: defs.ClassRef) -> str:
 		return node.class_symbol.tokens
@@ -480,11 +429,26 @@ class Py2Cpp:
 			return node.tokens
 
 	def on_indexer(self, node: defs.Indexer, receiver: str, key: str) -> str:
-		if key in CVars.keys():
-			# XXX 互換用の型は不要なので除外
-			return receiver
+		spec = self.analyze_indexer_spec(node)
+		if spec == 'cvar_on':
+			cvar_receiver = re.sub(rf'(->|::|\.){CVars.relay_key}\(\)$', '', receiver)
+			return self.view.render(node.classification, vars={'receiver': cvar_receiver, 'key': key})
 		else:
-			return f'{receiver}[{key}]'
+			return self.view.render(node.classification, vars={'receiver': receiver, 'key': key})
+
+	def analyze_indexer_spec(self, node: defs.Indexer) -> str:
+		def is_on_cvar_relay() -> bool:
+			return isinstance(node.receiver, defs.FuncCall) \
+				and isinstance(node.receiver.calls, defs.Relay) \
+				and node.receiver.calls.prop.domain_name == CVars.relay_key
+
+		if is_on_cvar_relay():
+			calls_raw = self.symbols.type_of(cast(defs.FuncCall, node.receiver).calls)
+			cvar_key = CVars.key_from(self.symbols, calls_raw.context)
+			if not CVars.is_raw_raw(cvar_key):
+				return 'cvar_on'
+
+		return 'otherwise'
 
 	def on_relay_of_type(self, node: defs.RelayOfType, receiver: str) -> str:
 		receiver_symbol = self.symbols.type_of(node.receiver)
@@ -507,12 +471,13 @@ class Py2Cpp:
 		raise NotImplementedError(f'Not supported CallableType. symbol: {node.fullyname}')
 
 	def on_custom_type(self, node: defs.CustomType, type_name: str, template_types: list[str]) -> str:
-		return self.view.render(node.classification, vars={'type_name': type_name, 'cvar_type': template_types[0], 'cmutable': template_types[1] if len(template_types) == 2 else ''})
+		# XXX @see Symbol.make_shorthand
+		return self.view.render('type_py2cpp', vars={'var_type': f'{type_name}<{", ".join(template_types)}>'})
 
 	def on_union_type(self, node: defs.UnionType, or_types: list[str]) -> str:
 		"""
 		Note:
-			Union型はNullableのみ許可 (変換例: 'Class[CP] | None' -> 'Class*'
+			Union型はNullableのみ許可 (変換例: 'CP[Class] | None' -> 'Class*'
 			@see CVars.__resolve_var_type
 		"""
 		if len(node.or_types) != 2:
@@ -525,7 +490,7 @@ class Py2Cpp:
 
 		var_type_index = 1 if is_0_null else 0
 		var_type_node = node.or_types[var_type_index]
-		is_addr_p = isinstance(var_type_node, defs.CustomType) and CVars.is_addr_p(var_type_node.template_types[0].type_name.tokens)
+		is_addr_p = isinstance(var_type_node, defs.CustomType) and CVars.is_addr_p(var_type_node.domain_name)
 		if not is_addr_p:
 			raise LogicError(f'Unexpected UnionType. with not pointer. symbol: {node.fullyname}, var_type: {var_type_node}')
 
@@ -535,10 +500,9 @@ class Py2Cpp:
 		return 'void'
 
 	def on_func_call(self, node: defs.FuncCall, calls: str, arguments: list[str]) -> str:
-		accepted_arguments = self.accepted_arguments(node, arguments)
 		is_statement = node.parent.is_a(defs.Block)
 		spec, context = self.analyze_func_call_spec(node, calls)
-		func_call_vars = {'calls': calls, 'arguments': accepted_arguments, 'is_statement': is_statement}
+		func_call_vars = {'calls': calls, 'arguments': arguments, 'is_statement': is_statement}
 		if spec == 'directive':
 			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
 		elif spec == 'len':
@@ -558,50 +522,43 @@ class Py2Cpp:
 			var_type = self.to_symbol_path(cast(SymbolRaw, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'var_type': var_type})
 		elif spec == 'list_pop':
+			receiver = re.sub(r'(->|::|\.)pop$', '', calls)
 			var_type = self.to_symbol_path(cast(SymbolRaw, context))
-			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': DSN.shift(calls, -1), 'var_type': var_type})
+			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
 		elif spec == 'dict_pop':
+			receiver = re.sub(r'(->|::|\.)pop$', '', calls)
 			var_type = self.to_symbol_path(cast(SymbolRaw, context))
-			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': DSN.shift(calls, -1), 'var_type': var_type})
+			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
 		elif spec == 'dict_keys':
+			receiver = re.sub(r'(->|::|\.)keys$', '', calls)
 			var_type = self.to_symbol_path(cast(SymbolRaw, context))
-			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': DSN.shift(calls, -1), 'var_type': var_type})
+			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
 		elif spec == 'dict_values':
+			receiver = re.sub(r'(->|::|\.)values$', '', calls)
 			var_type = self.to_symbol_path(cast(SymbolRaw, context))
-			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': DSN.shift(calls, -1), 'var_type': var_type})
+			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
 		elif spec == 'new_enum':
 			var_type = self.to_symbol_path(cast(SymbolRaw, context))
 			return self.view.render(f'{node.classification}_cast_bin_to_bin', vars={**func_call_vars, 'var_type': var_type})
+		elif spec.startswith('cvar_to_'):
+			receiver = re.sub(r'(->|::|\.)(raw|ref|addr)$', '', calls)
+			move = spec.split('cvar_to_')[1]
+			return self.view.render(f'{node.classification}_cvar_to', vars={**func_call_vars, 'receiver': receiver, 'move': move})
+		elif spec.startswith('to_cvar_'):
+			cvar_type = spec.split('to_cvar_')[1]
+			return self.view.render(f'{node.classification}_to_cvar', vars={**func_call_vars, 'cvar_type': cvar_type})
+		elif spec == 'new_cvar_p':
+			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
+		elif spec == 'new_cvar_sp_list':
+			var_type = self.to_symbol_path(cast(SymbolRaw, context))
+			initializer = arguments[0]
+			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'var_type': var_type, 'initializer': initializer})
+		elif spec == 'new_cvar_sp':
+			var_type = self.to_symbol_path(cast(SymbolRaw, context))
+			initializer = cast(re.Match, re.fullmatch(r'[^(]+\(([^)]+)\)', arguments[0]))[1]
+			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'var_type': var_type, 'initializer': initializer})
 		else:
 			return self.view.render(node.classification, vars=func_call_vars)
-
-	def accepted_arguments(self, node: defs.FuncCall, arguments: list[str]) -> list[str]:
-		calls_raw = self.symbols.type_of(node.calls)
-		node_arguments = node.arguments
-		return [self.process_argument(calls_raw, index, node_arguments[index], argument) for index, argument in enumerate(arguments)]
-
-	def process_argument(self, org_calls: SymbolRaw, arg_index: int, arg_node: defs.Argument, arg_value_str: str) -> str:
-		def resolve_calls(org_calls: SymbolRaw) -> SymbolRaw:
-			if isinstance(org_calls.types, defs.Class):
-				return self.symbols.type_of_constructor(org_calls.types)
-
-			return org_calls
-
-		def actualize_parameter(calls: SymbolRaw, arg_value: SymbolRaw) -> SymbolRaw:
-			calls_ref = reflection.Builder(calls) \
-				.case(reflection.Method).schema(lambda: {'klass': calls.attrs[0], 'parameters': calls.attrs[1:-1], 'returns': calls.attrs[-1]}) \
-				.other_case().schema(lambda: {'parameters': calls.attrs[:-1], 'returns': calls.attrs[-1]}) \
-				.build(reflection.Function)
-			if isinstance(calls_ref, reflection.Constructor):
-				return calls_ref.parameter(arg_index, org_calls, arg_value)
-			elif isinstance(calls_ref, reflection.Method):
-				return calls_ref.parameter(arg_index, calls_ref.symbol.context, arg_value)
-			else:
-				return calls_ref.parameter(arg_index, arg_value)
-
-		arg_value = self.symbols.type_of(arg_node.value)
-		parameter = actualize_parameter(resolve_calls(org_calls), arg_value)
-		return self.accepted_cvar_value(parameter, arg_node.value, arg_value, arg_value_str)
 
 	def analyze_func_call_spec(self, node: defs.FuncCall, calls: str) -> tuple[str, SymbolRaw | None]:
 		"""
@@ -637,6 +594,23 @@ class Py2Cpp:
 				key_attr, value_attr = context.attrs
 				attr_indexs = {'pop': value_attr, 'keys': key_attr, 'values': value_attr}
 				return f'dict_{prop}', attr_indexs[prop]
+		elif isinstance(node.calls, defs.Relay) and node.calls.prop.tokens in CVars.exchanger_keys:
+			context = self.symbols.type_of(node.calls).context
+			cvar_key = CVars.key_from(self.symbols, context)
+			if not CVars.is_raw_raw(cvar_key):
+				move = CVars.to_move(cvar_key, node.calls.prop.tokens)
+				return f'cvar_to_{move.name}', None
+		elif isinstance(node.calls, defs.Variable) and node.calls.tokens in CVars.keys():
+			return f'to_cvar_{node.calls.tokens}', None
+		elif isinstance(node.calls, defs.Relay) and node.calls.prop.tokens == CVars.allocator_key:
+			context = self.symbols.type_of(node.calls).context
+			cvar_key = CVars.key_from(self.symbols, context)
+			if CVars.is_addr_p(cvar_key):
+				return f'new_cvar_p', None
+			elif CVars.is_addr_sp(cvar_key):
+				new_type_raw = self.symbols.type_of(node.arguments[0])
+				spec = 'new_cvar_sp_list' if self.symbols.is_a(new_type_raw, list) else 'new_cvar_sp'
+				return spec, new_type_raw
 		elif isinstance(node.calls, (defs.Relay, defs.Variable)):
 			raw = self.symbols.type_of(node.calls)
 			if raw.types.is_a(defs.Enum):
@@ -656,12 +630,10 @@ class Py2Cpp:
 	# Operator
 
 	def on_factor(self, node: defs.Factor, operator: str, value: str) -> str:
-		calculable_value = self.calculable_cvar_value(self.symbols.type_of(node.value), value)
-		return self.view.render('unary_operator', vars={'operator': operator, 'value': calculable_value})
+		return self.view.render('unary_operator', vars={'operator': operator, 'value': value})
 
 	def on_not_compare(self, node: defs.NotCompare, operator: str, value: str) -> str:
-		calculable_value = self.calculable_cvar_value(self.symbols.type_of(node.value), value)
-		return self.view.render('unary_operator', vars={'operator': '!', 'value': calculable_value})
+		return self.view.render('unary_operator', vars={'operator': '!', 'value': value})
 
 	def on_or_compare(self, node: defs.OrCompare, elements: list[str]) -> str:
 		return self.proc_binary_operator(node, elements)
@@ -717,20 +689,17 @@ class Py2Cpp:
 
 	def proc_binary_operator_fill_list(self, node: defs.BinaryOperator, default_raw: SymbolRaw, size_raw: SymbolRaw, default: str, size: str) -> str:
 		value_type = self.to_symbol_path(default_raw.attrs[0])
-		# 必ず要素1の配列のリテラルになるので、前後の括弧を除外する FIXME 現状仕様を前提にした処理なので妥当性が低い
-		calcable_default = self.calculable_cvar_value(default_raw, default[1:-1])
-		calcable_size = self.calculable_cvar_value(size_raw, size)
-		return self.view.render('binary_operator_fill_list', vars={'value_type': value_type, 'default': calcable_default, 'size': calcable_size})
+		# 必ず要素1の配列のリテラルになるので、defaultの前後の括弧を除外する FIXME 現状仕様を前提にした処理なので妥当性が低い
+		return self.view.render('binary_operator_fill_list', vars={'value_type': value_type, 'default': default[1:-1], 'size': size})
 
 	def proc_binary_operator_expression(self, node: defs.BinaryOperator, left_raw: SymbolRaw, right_raws: list[SymbolRaw], left: str, operators: list[str], rights: list[str]) -> str:
-		calcable_left = self.calculable_cvar_value(left_raw, left)
+		primary = left
 		for index, right_raw in enumerate(right_raws):
 			operator = operators[index]
-			right = rights[index]
-			calcable_right = self.calculable_cvar_value(right_raw, right)
-			calcable_left = self.view.render('binary_operator', vars={'left': calcable_left, 'operator': operator, 'right': calcable_right, 'right_is_dict': self.symbols.is_a(right_raw, dict)})
+			secondary = rights[index]
+			primary = self.view.render('binary_operator', vars={'left': primary, 'operator': operator, 'right': secondary, 'right_is_dict': self.symbols.is_a(right_raw, dict)})
 
-		return calcable_left
+		return primary
 
 	def on_tenary_operator(self, node: defs.TenaryOperator, primary: str, condition: str, secondary: str) -> str:
 		return self.view.render(node.classification, vars={'primary': primary, 'condition': condition, 'secondary': secondary})

@@ -192,10 +192,26 @@ class Method(Function):
 		Returns:
 			SymbolRaw: 実行時型
 		"""
-		# コンストラクターの場合はファンクションスキームで呼び出す XXX 一貫性がない
-		if self.symbol.types.is_a(defs.Constructor):
-			return super().returns(*arguments)
+		return self._method_returns(*arguments)
 
+	def _function_returns(self, *arguments: SymbolRaw) -> SymbolRaw:
+		"""戻り値の実行時型を解決(Function/Closure/ClassMethod/Constructor用)
+
+		Args:
+			*arguments (SymbolRaw): 引数リスト(実行時型)
+		Returns:
+			SymbolRaw: 実行時型
+		"""
+		return super().returns(*arguments)
+
+	def _method_returns(self, *arguments: SymbolRaw) -> SymbolRaw:
+		"""戻り値の実行時型を解決(Method専用)
+
+		Args:
+			*arguments (SymbolRaw): 引数リスト(実行時型)
+		Returns:
+			SymbolRaw: 実行時型
+		"""
 		t_map_returns = TemplateManipulator.unpack_templates(returns=self.schema.returns)
 		if len(t_map_returns) == 0:
 			return self.schema.returns
@@ -220,12 +236,39 @@ class Method(Function):
 
 class ClassMethod(Method):
 	"""クラスメソッド"""
-	...
+	@override
+	def returns(self, *arguments: SymbolRaw) -> SymbolRaw:
+		"""戻り値の実行時型を解決
+
+		Args:
+			*arguments (SymbolRaw): 引数リスト(実行時型)
+		Returns:
+			SymbolRaw: 実行時型
+		Note:
+			FIXME 継承元のMethodと一貫性がないため修正を検討
+		"""
+		# FIXME クラスがジェネリック型の場合、クラスのTは呼び出し時に未知である場合がほとんどであり、
+		# FIXME 引数のTによる実体型の補完を妨害してしまうため、ファンクションのスキームで呼び出すことで一旦解決する
+		return self._function_returns(*arguments)
 
 
 class Constructor(Method):
 	"""コンストラクター"""
-	...
+
+	@override
+	def returns(self, *arguments: SymbolRaw) -> SymbolRaw:
+		"""戻り値の実行時型を解決
+
+		Args:
+			*arguments (SymbolRaw): 引数リスト(実行時型)
+		Returns:
+			SymbolRaw: 実行時型
+		Note:
+			FIXME 継承元のMethodと一貫性がないため修正を検討
+		"""
+		# FIXME クラスがジェネリック型の場合、クラスのTは呼び出し時に未知である場合がほとんどであり、
+		# FIXME 引数のTによる実体型の補完を妨害してしまうため、ファンクションのスキームで呼び出すことで一旦解決する
+		return self._function_returns(*arguments)
 
 
 TemplateMap: TypeAlias = dict[str, defs.TemplateClass]

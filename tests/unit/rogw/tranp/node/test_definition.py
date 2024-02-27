@@ -6,6 +6,36 @@ from tests.test.fixture import Fixture
 from tests.test.helper import data_provider
 
 
+def _mod(before: str) -> str:
+	_T = 'file_input.template_assign'
+	_global_n = 'file_input.assign'
+	_global_s = 'file_input.anno_assign'
+	_Value = 'file_input.class_def[6]'
+	_Base = 'file_input.class_def[7]'
+	_Class = 'file_input.class_def[8]'
+	_func = 'file_input.function_def'
+	_Class2 = 'file_input.class_def[10]'
+	_GenBase = 'file_input.class_def[11]'
+	_GenSub = 'file_input.class_def[12]'
+
+	_map = {
+		'Values': f'{_Value}',
+		'Base': f'{_Base}',
+		'Class': f'{_Class}',
+		'Class.class_method': f'{_Class}.class_def_raw.block.function_def[1]',
+		'Class.__init__': f'{_Class}.class_def_raw.block.function_def[2]',
+		'Class.__init__.method_in_closure': f'{_Class}.class_def_raw.block.function_def[2].function_def_raw.block.function_def',
+		'Class.public_method': f'{_Class}.class_def_raw.block.function_def[3]',
+		'Class._protected_method': f'{_Class}.class_def_raw.block.function_def[4]',
+		'func': f'{_func}',
+		'func.func_in_closure': f'{_func}.function_def_raw.block.function_def',
+		'Class2': f'{_Class2}',
+		'GenBase': f'{_GenBase}',
+		'GenSub': f'{_GenSub}',
+	}
+	return _map[before]
+
+
 class TestDefinition(TestCase):
 	fixture = Fixture.make(__file__)
 
@@ -13,7 +43,21 @@ class TestDefinition(TestCase):
 
 	@data_provider([
 		({
-			'statements': [defs.Import, defs.Import, defs.Enum, defs.Class, defs.Class, defs.Function, defs.Class, defs.MoveAssign, defs.AnnoAssign],
+			'statements': [
+				defs.Import,
+				defs.Import,
+				defs.Import,
+				defs.TemplateClass,
+				defs.MoveAssign,
+				defs.AnnoAssign,
+				defs.Enum,
+				defs.Class,
+				defs.Class,
+				defs.Function,
+				defs.Class,
+				defs.Class,
+				defs.Class,
+			],
 			'decl_vars': [defs.DeclLocalVar, defs.DeclLocalVar],
 		},),
 	])
@@ -170,7 +214,7 @@ class TestDefinition(TestCase):
 		self.assertEqual(type(node.condition), expected['condition'])
 
 	@data_provider([
-		('file_input.class_def[4].class_def_raw.block.function_def[1]', {
+		(_mod('Class.class_method'), {
 			'type': defs.ClassMethod,
 			'symbol': 'class_method',
 			'access': 'public',
@@ -188,7 +232,7 @@ class TestDefinition(TestCase):
 			# Belong class only
 			'class_symbol': 'Class',
 		}),
-		('file_input.class_def[4].class_def_raw.block.function_def[2]', {
+		(_mod('Class.__init__'), {
 			'type': defs.Constructor,
 			'symbol': '__init__',
 			'access': 'public',
@@ -213,7 +257,7 @@ class TestDefinition(TestCase):
 			# Constructor only
 			'this_vars': ['self.n', 'self.s'],
 		}),
-		('file_input.class_def[4].class_def_raw.block.function_def[2].function_def_raw.block.function_def', {
+		(_mod('Class.__init__.method_in_closure'), {
 			'type': defs.Closure,
 			'symbol': 'method_in_closure',
 			'access': 'public',
@@ -228,7 +272,7 @@ class TestDefinition(TestCase):
 			# Closure only
 			'binded_this': True,
 		}),
-		('file_input.class_def[4].class_def_raw.block.function_def[3]', {
+		(_mod('Class.public_method'), {
 			'type': defs.Method,
 			'symbol': 'public_method',
 			'access': 'public',
@@ -248,7 +292,7 @@ class TestDefinition(TestCase):
 			# Belong class only
 			'class_symbol': 'Class',
 		}),
-		('file_input.class_def[4].class_def_raw.block.function_def[4]', {
+		(_mod('Class._protected_method'), {
 			'type': defs.Method,
 			'symbol': '_protected_method',
 			'access': 'protected',
@@ -267,7 +311,7 @@ class TestDefinition(TestCase):
 			# Belong class only
 			'class_symbol': 'Class',
 		}),
-		('file_input.function_def', {
+		(_mod('func'), {
 			'type': defs.Function,
 			'symbol': 'func',
 			'access': 'public',
@@ -283,7 +327,7 @@ class TestDefinition(TestCase):
 			'actual_symbol': None,
 			'alias_symbol': None,
 		}),
-		('file_input.function_def.function_def_raw.block.function_def', {
+		(_mod('func.func_in_closure'), {
 			'type': defs.Closure,
 			'symbol': 'func_in_closure',
 			'access': 'public',
@@ -335,7 +379,7 @@ class TestDefinition(TestCase):
 			self.assertEqual(node.binded_this, expected['binded_this'])
 
 	@data_provider([
-		('file_input.class_def[3]', {
+		(_mod('Base'), {
 			'symbol': 'Base',
 			'decorators': [],
 			'inherits': [],
@@ -348,7 +392,7 @@ class TestDefinition(TestCase):
 			'actual_symbol': None,
 			'alias_symbol': None,
 		}),
-		('file_input.class_def[4]', {
+		(_mod('Class'), {
 			'symbol': 'Class',
 			'decorators': ['__alias__'],
 			'inherits': ['Base'],
@@ -361,7 +405,7 @@ class TestDefinition(TestCase):
 			'actual_symbol': None,
 			'alias_symbol': 'Alias',
 		}),
-		('file_input.class_def[6]', {
+		(_mod('Class2'), {
 			'symbol': 'Actual',
 			'decorators': ['__actual__'],
 			'inherits': [],
@@ -372,6 +416,32 @@ class TestDefinition(TestCase):
 			'class_vars': [],
 			'this_vars': [],
 			'actual_symbol': 'Actual',
+			'alias_symbol': None,
+		}),
+		(_mod('GenBase'), {
+			'symbol': 'GenBase',
+			'decorators': [],
+			'inherits': [],
+			'generic_types': ['T'],
+			'constructor_exists': False,
+			'class_methods': [],
+			'methods': [],
+			'class_vars': [],
+			'this_vars': [],
+			'actual_symbol': None,
+			'alias_symbol': None,
+		}),
+		(_mod('GenSub'), {
+			'symbol': 'GenSub',
+			'decorators': ['__hint_generic__'],
+			'inherits': ['GenBase'],
+			'generic_types': ['T'],
+			'constructor_exists': False,
+			'class_methods': [],
+			'methods': [],
+			'class_vars': [],
+			'this_vars': [],
+			'actual_symbol': None,
 			'alias_symbol': None,
 		}),
 	])
@@ -397,7 +467,7 @@ class TestDefinition(TestCase):
 		self.assertEqual([type(in_type) for in_type in node.generic_types], expected['generic_types'])
 
 	@data_provider([
-		('file_input.class_def[2]', {
+		(_mod('Values'), {
 			'symbol': 'Values',
 			'vars': [
 				{'symbol': 'A', 'value': '0'},

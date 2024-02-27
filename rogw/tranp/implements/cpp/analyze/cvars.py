@@ -1,14 +1,25 @@
 from enum import Enum
-from types import UnionType
+from typing import ClassVar
 
 from rogw.tranp.analyze.symbol import SymbolRaw
 from rogw.tranp.analyze.symbols import Symbols
 import rogw.tranp.compatible.cpp.object as cpp
 import rogw.tranp.compatible.python.embed as __alias__
+from rogw.tranp.lang.implementation import deprecated
 
 
 class CVars:
-	"""C++変数型の操作ユーティリティー"""
+	"""C++変数型の操作ユーティリティー
+
+	Attributes:
+		relay_key (str): リレー代替メソッドの名前
+		allocator_key (str): メモリ生成メソッドの名前
+		exchanger_key (str): 属性変換メソッドの名前
+	"""
+
+	relay_key: ClassVar[str] = cpp.CVar.on.__name__
+	allocator_key: ClassVar[str] = cpp.CP.new.__name__
+	exchanger_keys: ClassVar[list[str]] = [cpp.CVar.raw.__name__, cpp.CP.ref.__name__, cpp.CSP.addr.__name__]
 
 	class Moves(Enum):
 		"""移動操作の種別
@@ -45,6 +56,7 @@ class CVars:
 		Static = 2
 
 	@classmethod
+	@deprecated
 	def analyze_move(cls, symbols: Symbols, accept: SymbolRaw, value: SymbolRaw, value_on_new: bool, declared: bool) -> Moves:
 		"""移動操作を解析
 
@@ -56,12 +68,15 @@ class CVars:
 			declared (bool): True = 変数宣言時
 		Returns:
 			Moves: 移動操作の種別
+		Note:
+			@deprecated 未使用のため削除を検討
 		"""
 		accept_key = cls.key_from(symbols, accept)
 		value_key = cls.key_from(symbols, value)
 		return cls.move_by(accept_key, value_key, value_on_new, declared)
 
 	@classmethod
+	@deprecated
 	def move_by(cls, accept_key: str, value_key: str, value_on_new: bool, declared: bool) -> Moves:
 		"""移動操作を解析
 
@@ -72,6 +87,8 @@ class CVars:
 			declared (bool): True = 変数宣言時
 		Returns:
 			Moves: 移動操作の種別
+		Note:
+			@deprecated 未使用のため削除を検討
 		"""
 		if cls.is_raw_ref(accept_key) and not declared:
 			return cls.Moves.Deny
@@ -184,34 +201,10 @@ class CVars:
 		"""
 		if symbols.is_a(symbol, None):
 			return cpp.CP.__name__
-
-		var_type = cls.unpack_with_nullable(symbols, symbol)
-		keys = [attr.types.symbol.tokens for attr in var_type.attrs]
-		if len(keys) > 0 and keys[0] in cls.keys():
-			return keys[0]
-
-		return cpp.CRaw.__name__
-
-	@classmethod
-	def unpack_with_nullable(cls, symbols: Symbols, symbol: SymbolRaw) -> SymbolRaw:
-		"""Nullableのシンボルの変数の型をアンパック。Nullable以外の型はそのまま返却
-
-		Args:
-			symbols (Symbols): シンボルリゾルバー
-			symbol (SymbolRaw): シンボル
-		Returns:
-			SymbolRaw: 変数の型
-		Note:
-			許容するNullableの書式 (例: 'Class[CP] | None')
-			@see Py2Cpp.on_union_type
-		"""
-		if symbols.is_a(symbol, UnionType) and len(symbol.attrs) == 2:
-			is_0_null = symbols.is_a(symbol.attrs[0], None)
-			is_1_null = symbols.is_a(symbol.attrs[1], None)
-			if is_0_null != is_1_null:
-				return symbol.attrs[1 if is_0_null else 0]
-
-		return symbol
+		elif symbol.types.domain_name in cls.keys():
+			return symbol.types.domain_name
+		else:
+			return cpp.CRaw.__name__
 
 	@classmethod
 	def to_accessor(cls, key: str) -> Accessors:
@@ -229,3 +222,20 @@ class CVars:
 			cpp.CSP.__name__: cls.Accessors.Address,
 		}
 		return accessors[key]
+
+	@classmethod
+	def to_move(cls, key: str, method: str) -> Moves:
+		moves = {
+			'CP.raw': CVars.Moves.ToActual,
+			'CP.ref': CVars.Moves.ToActual,
+			'CSP.raw': CVars.Moves.ToActual,
+			'CSP.ref': CVars.Moves.ToActual,
+			'CSP.addr': CVars.Moves.UnpackSp,
+			'CRef.raw': CVars.Moves.Copy,
+			'CRef.addr': CVars.Moves.ToAddress,
+		}
+		move_key = f'{key}.{method}'
+		if move_key in moves:
+			return moves[move_key]
+
+		return CVars.Moves.Deny

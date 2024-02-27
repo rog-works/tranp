@@ -335,6 +335,26 @@ class ProceduralResolver:
 		"""
 		return self.__procedure.exec(node)
 
+	def force_unpack_nullable(self, symbol: SymbolRaw) -> SymbolRaw:
+		"""Nullableのシンボルの変数の型をアンパック。Nullable以外の型はそのまま返却
+
+		Args:
+			symbol (SymbolRaw): シンボル
+		Returns:
+			SymbolRaw: 変数の型
+		Note:
+			許容するNullableの書式 (例: 'Class | None')
+			@see Py2Cpp.force_unpack_nullable
+			FIXME あらゆる個所でUnionをアンパックする必要がある懸念
+		"""
+		if self.symbols.is_a(symbol, UnionType) and len(symbol.attrs) == 2:
+			is_0_null = self.symbols.is_a(symbol.attrs[0], None)
+			is_1_null = self.symbols.is_a(symbol.attrs[1], None)
+			if is_0_null != is_1_null:
+				return symbol.attrs[1 if is_0_null else 0]
+
+		return symbol
+
 	# Fallback
 
 	def on_fallback(self, node: Node) -> SymbolRaw:
@@ -438,12 +458,15 @@ class ProceduralResolver:
 		if isinstance(receiver.types, defs.AltClass):
 			receiver = receiver.attrs[0]
 
-		prop = self.symbols.type_of_property(receiver.types, node.prop)
-		# XXX Enum直下のDeclLocalVarは定数値であり、型としてはEnumそのものであるためreceiverを返却。特殊化より一般化する方法を検討
-		if isinstance(receiver.types, defs.Enum) and prop.decl.is_a(defs.DeclLocalVar):
-				return receiver
+		# XXX 強制的にNullableを解除する ※on_relayに到達した時点でnullが期待値であることはあり得ないと言う前提
+		accessable_receiver = self.force_unpack_nullable(receiver)
 
-		return prop.to.ref(node, context=receiver)
+		prop = self.symbols.type_of_property(accessable_receiver.types, node.prop)
+		# XXX Enum直下のDeclLocalVarは定数値であり、型としてはEnumそのものであるためreceiverを返却。特殊化より一般化する方法を検討
+		if isinstance(accessable_receiver.types, defs.Enum) and prop.decl.is_a(defs.DeclLocalVar):
+				return accessable_receiver
+
+		return prop.to.ref(node, context=accessable_receiver)
 
 	def on_class_ref(self, node: defs.ClassRef) -> SymbolRaw:
 		return self.symbols.resolve(node).to.ref(node)
@@ -526,11 +549,15 @@ class ProceduralResolver:
 				.build(reflection.Constructor)
 			return func.returns(*arguments)
 		else:
+			# FIXME 呼び出しスキームに一貫性が無いため修正を検討
 			func = reflection.Builder(actual_calls) \
+				.case(reflection.ClassMethod).schema(lambda: {'parameters': actual_calls.attrs[1:-1], 'returns': actual_calls.attrs[-1]}) \
 				.case(reflection.Method).schema(lambda: {'klass': actual_calls.attrs[0], 'parameters': actual_calls.attrs[1:-1], 'returns': actual_calls.attrs[-1]}) \
 				.other_case().schema(lambda: {'parameters': actual_calls.attrs[:-1], 'returns': actual_calls.attrs[-1]}) \
 				.build(reflection.Function)
-			if func.is_a(reflection.Method):
+			if func.is_a(reflection.ClassMethod):
+				return func.returns(*arguments)
+			elif func.is_a(reflection.Method):
 				return func.returns(actual_calls.context, *arguments)
 			else:
 				return func.returns(*arguments)

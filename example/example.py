@@ -1,4 +1,4 @@
-from rogw.tranp.compatible.cpp.object import CP, CConst, CRef
+from rogw.tranp.compatible.cpp.object import CP, CRef
 from rogw.tranp.compatible.cpp.preprocess import directive
 from rogw.tranp.compatible.cpp.enum import CEnum
 
@@ -324,7 +324,7 @@ class CellMesh:
 		]
 
 	@classmethod
-	def by_vertex_ids(cls, mesh: Mesh[CP], cell: IntVector, unit: int) -> list[int]:
+	def by_vertex_ids(cls, mesh: CP[Mesh], cell: IntVector, unit: int) -> list[int]:
 		"""セルの8頂点の頂点IDを取得する
 
 		Args:
@@ -335,27 +335,28 @@ class CellMesh:
 			list[int]: 頂点IDリスト
 		"""
 		out_ids = [-1, -1, -1, -1, -1, -1, -1, -1]
-		def closure(origin: MeshRaw[CRef, CConst]) -> None:
+		# FIXME CRef_Const
+		def closure(origin: CRef[MeshRaw]) -> None:
 			cell_box = cls.to_cell_box(cell, unit)
 			boxs = cls.to_vertex_boxs(cell_box, unit)
 			for i in range(len(boxs)):
-				box: Box3d[CRef] = boxs[i]
-				for vi in origin.vertex_indices_itr():
+				box = CRef(boxs[i])
+				for vi in origin.on().vertex_indices_itr():
 					# 実体がない(参照カウント0)インデックスを除外
-					if not origin.is_vertex(vi):
+					if not origin.on().is_vertex(vi):
 						continue
 
-					v = origin.get_vertex(vi)
-					if box.contains(v):
+					v = origin.on().get_vertex(vi)
+					if box.on().contains(v):
 						out_ids[i] = vi
 						break
 
-		mesh.process_mesh(closure)
+		mesh.on().process_mesh(closure)
 
 		return out_ids
 
 	@classmethod
-	def by_polygon_ids_impl(cls, mesh: Mesh[CP], start: IntVector, unit: int) -> dict[IntVector, list[IntVector2]]:
+	def by_polygon_ids_impl(cls, mesh: CP[Mesh], start: IntVector, unit: int) -> dict[IntVector, list[IntVector2]]:
 		"""
 		指定のセル座標から3x3x3の範囲に存在するセルの6面のポリゴンIDを取得する
 
@@ -368,16 +369,16 @@ class CellMesh:
 		"""
 		cell_on_faces: dict[IntVector, dict[int, IntVector2]] = {}
 
-		def closure(origin: MeshRaw[CRef]) -> None:
+		def closure(origin: CRef[MeshRaw]) -> None:
 			size = IntVector(3, 3, 3)
 			box = Box3d(cls.from_cell(start), cls.from_cell(start + size))
-			for ti in origin.triangle_indices_itr():
+			for ti in origin.on().triangle_indices_itr():
 				# 実体がない(参照カウント0)インデックスを除外
-				if not origin.is_triangle(ti):
+				if not origin.on().is_triangle(ti):
 					continue
 
 				# box.Contains(faceBox)の場合、targetBoxがbox内に完全に内包される場合のみtrue
-				face_box = origin.get_tri_bounds(ti)
+				face_box = origin.on().get_tri_bounds(ti)
 				if not box.contains(face_box):
 					continue
 
@@ -406,7 +407,7 @@ class CellMesh:
 
 				print('Collect polygon. ti: %d, start: (%d, %d, %d), cell: (%d, %d, %d), faceIndex: %d, cell2: (%d, %d, %d), faceIndex2: %d, faceBox.min: (%f, %f, %f), faceBox.max: (%f, %f, %f), box.min: (%f, %f, %f), box.max: (%f, %f, %f)', ti, start.x, start.y, start.z, cell.x, cell.y, cell.z, face_index, cell2.x, cell2.y, cell2.z, face_index2, face_box.min.x, face_box.min.y, face_box.min.z, face_box.max.x, face_box.max.y, face_box.max.z, box.min.x, box.min.y, box.min.z, box.max.x, box.max.y, box.max.z)
 
-		mesh.process_mesh(closure)
+		mesh.on().process_mesh(closure)
 
 		# XXX 不要な判定だが、実装中は一旦ガード節を設ける
 		for cell, in_faces in cell_on_faces.items():
@@ -433,7 +434,7 @@ class CellMesh:
 		return out_ids
 
 	@classmethod
-	def by_polygon_ids(cls, mesh: Mesh[CP], cell: IntVector, unit: int) -> list[IntVector2]:
+	def by_polygon_ids(cls, mesh: CP[Mesh], cell: IntVector, unit: int) -> list[IntVector2]:
 		"""セルの6面のポリゴンIDを取得する
 
 		Args:
@@ -468,7 +469,7 @@ class CellMesh:
 		return result
 
 	@classmethod
-	def need_cells(cls, mesh: Mesh[CP], cell: IntVector, unit: int) -> list[IntVector]:
+	def need_cells(cls, mesh: CP[Mesh], cell: IntVector, unit: int) -> list[IntVector]:
 		"""指定座標へのセル追加に必要な周辺セルを取得
 
 		Args:
@@ -524,7 +525,7 @@ class CellMesh:
 		return out_need_cells
 
 	@classmethod
-	def addable(cls, mesh: Mesh[CP], cell: IntVector, unit: int) -> bool:
+	def addable(cls, mesh: CP[Mesh], cell: IntVector, unit: int) -> bool:
 		"""指定座標にセル追加が出来るか判定
 
 		Args:
@@ -537,19 +538,19 @@ class CellMesh:
 		return len(cls.need_cells(mesh, cell, unit)) == 0
 
 	@classmethod
-	def clear(cls, mesh: Mesh[CP]) -> None:
+	def clear(cls, mesh: CP[Mesh]) -> None:
 		"""メッシュをクリーニングし、初期状態に戻す
 
 		Args:
 			mesh (Mesh*): メッシュ
 		"""
-		def closure(origin: MeshRaw[CRef]) -> None:
-			origin.clear()
+		def closure(origin: CRef[MeshRaw]) -> None:
+			origin.on().clear()
 
-		mesh.edit_mesh(closure)
+		mesh.on().edit_mesh(closure)
 
 	@classmethod
-	def add_cell(cls, mesh: Mesh[CP], cell: IntVector, unit: int = 100) -> None:
+	def add_cell(cls, mesh: CP[Mesh], cell: IntVector, unit: int = 100) -> None:
 		"""指定のセル座標にセルを追加
 
 		# 追加条件:
@@ -564,7 +565,7 @@ class CellMesh:
 		if not cls.addable(mesh, cell, unit):
 			print('Cannot be added due to lack of surrounding cells. cell: (%d, %d, %d)', cell.x, cell.y, cell.z)
 
-		def closure(origin: MeshRaw[CRef]) -> None:
+		def closure(origin: CRef[MeshRaw]) -> None:
 			v_ids = cls.by_vertex_ids(mesh, cell, unit)
 			p_ids = cls.by_polygon_ids(mesh, cell, unit)
 
@@ -592,7 +593,7 @@ class CellMesh:
 			for i in range(8):
 				if v_ids[i] == -1:
 					pos = start + verts[i]
-					v_ids[i] = origin.append_vertex(pos)
+					v_ids[i] = origin.on().append_vertex(pos)
 
 					print('Add Vertex. i: %d, vid: %d, pos: (%f, %f, %f)', i, v_ids[i], pos.x, pos.y, pos.z)
 				# else:
@@ -609,14 +610,14 @@ class CellMesh:
 				3: Vector2(0.0, 1.0),
 			}
 
-			if not origin.has_attributes():
-				origin.enable_attributes()
+			if not origin.on().has_attributes():
+				origin.on().enable_attributes()
 
-			if origin.attributes().num_uv_layers() == 0:
-				origin.attributes().set_num_uv_layers(1)
+			if origin.on().attributes().num_uv_layers() == 0:
+				origin.on().attributes().set_num_uv_layers(1)
 
-			if not origin.has_triangle_groups():
-				origin.enable_triangle_groups(0)
+			if not origin.on().has_triangle_groups():
+				origin.on().enable_triangle_groups(0)
 
 			uv_map = {
 				cls.FaceIndexs.Left: [IntVector(3, 2, 1), IntVector(3, 1, 0)],
@@ -641,36 +642,36 @@ class CellMesh:
 			# ※頂点やトライアングルグループは自動的に削除されるので何もしなくて良い
 			for i in range(6):
 				if p_ids[i].x != -1:
-					origin.remove_triangle(p_ids[i].x)
-					origin.remove_triangle(p_ids[i].y)
+					origin.on().remove_triangle(p_ids[i].x)
+					origin.on().remove_triangle(p_ids[i].y)
 
 			# 隣接セルと重なっていない新規の面を追加
-			uv_overlay = origin.attributes().primary_uv()
+			uv_overlay = origin.on().attributes().primary_uv()
 			for i in range(6):
 				if p_ids[i].x != -1:
 					continue
 
 				key = cls.FaceIndexs(i)
-				polygon_entry = polygon_map[key]  # FIXME auto&
-				uv_entry = uv_map[key]  # FIXME auto&
-				p_groupId = origin.max_group_id()
+				polygon_entry = CRef(polygon_map[key])
+				uv_entry = CRef(uv_map[key])
+				p_group_id = origin.on().max_group_id()
 				for j in range(2):
-					p: IntVector[CRef] = polygon_entry[j]
-					polygon = IntVector(v_ids[p.x], v_ids[p.y], v_ids[p.z])
-					polygon_id = origin.append_triangle(polygon)
+					p = CRef(polygon_entry.on()[j])
+					polygon = IntVector(v_ids[p.on().x], v_ids[p.on().y], v_ids[p.on().z])
+					polygon_id = origin.on().append_triangle(polygon)
 
-					print('Add Triangle. i: %d, j: %d, p: (%d, %d, %d), vid: (%d, %d, %d), result: %d, group: %d', i, j, p.x, p.y, p.z, v_ids[p.x], v_ids[p.y], v_ids[p.z], polygon_id, p_groupId)
+					print('Add Triangle. i: %d, j: %d, p: (%d, %d, %d), vid: (%d, %d, %d), result: %d, group: %d', i, j, p.on().x, p.on().y, p.on().z, v_ids[p.on().x], v_ids[p.on().y], v_ids[p.on().z], polygon_id, p_group_id)
 
 					if polygon_id < 0:
-						print('Failed Add Triangle. i: %d, j: %d, p: (%d, %d, %d), vid: (%d, %d, %d), result: %d, group: %d', i, j, p.x, p.y, p.z, v_ids[p.x], v_ids[p.y], v_ids[p.z], polygon_id, p_groupId)
+						print('Failed Add Triangle. i: %d, j: %d, p: (%d, %d, %d), vid: (%d, %d, %d), result: %d, group: %d', i, j, p.on().x, p.on().y, p.on().z, v_ids[p.on().x], v_ids[p.on().y], v_ids[p.on().z], polygon_id, p_group_id)
 						continue
 
-					origin.set_triangle_group(polygon_id, p_groupId)
+					origin.on().set_triangle_group(polygon_id, p_group_id)
 
-					uv_indexs: IntVector[CRef] = uv_entry[j]
-					uv_id1 = uv_overlay.append_element(uvs[uv_indexs.x])
-					uv_id2 = uv_overlay.append_element(uvs[uv_indexs.y])
-					uv_id3 = uv_overlay.append_element(uvs[uv_indexs.z])
+					uv_indexs = CRef(uv_entry.on()[j])
+					uv_id1 = uv_overlay.append_element(uvs[uv_indexs.on().x])
+					uv_id2 = uv_overlay.append_element(uvs[uv_indexs.on().y])
+					uv_id3 = uv_overlay.append_element(uvs[uv_indexs.on().z])
 					uv_overlay.set_triangle(polygon_id, IntVector(uv_id1, uv_id2, uv_id3), True)
 
-		mesh.edit_mesh(closure)
+		mesh.on().edit_mesh(closure)

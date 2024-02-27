@@ -1,8 +1,8 @@
 from typing import Callable, Iterator
 
-from rogw.tranp.compatible.cpp.object import CObject, CRef
+from rogw.tranp.compatible.cpp.object import CRef
 
-class Vector(CObject):
+class Vector:
 	def __init__(self, x: float = 0.0, y: float = 0.0, z: float = 0.0) -> None:
 		self.x: float = x
 		self.y: float = y
@@ -20,7 +20,7 @@ class Vector(CObject):
 	def __truediv__(self, other: 'Vector | float | int') -> 'Vector':
 		raise NotImplementedError()
 
-class Vector2(CObject):
+class Vector2:
 	def __init__(self, x: float = 0.0, y: float = 0.0) -> None:
 		self.x: float = x
 		self.y: float = y
@@ -37,7 +37,7 @@ class Vector2(CObject):
 	def __truediv__(self, other: 'Vector2 | float | int') -> 'Vector2':
 		raise NotImplementedError()
 
-class IntVector(CObject):
+class IntVector:
 	def __init__(self, x: int = 0, y: int = 0, z: int = 0) -> None:
 		self.x: int = x
 		self.y: int = y
@@ -49,7 +49,7 @@ class IntVector(CObject):
 	def __sub__(self, other: 'IntVector | float | int') -> 'IntVector':
 		raise NotImplementedError()
 
-class IntVector2(CObject):
+class IntVector2:
 	def __init__(self, x: int = 0, y: int = 0) -> None:
 		self.x: int = x
 		self.y: int = y
@@ -60,7 +60,7 @@ class IntVector2(CObject):
 	def __sub__(self, other: 'IntVector2 | float | int') -> 'IntVector2':
 		raise NotImplementedError()
 
-class Box3d(CObject):
+class Box3d:
 	"""3Dレンジオブジェクト
 
 	Attributes:
@@ -98,7 +98,7 @@ class Attributes:
 	def set_num_uv_layers(self, num: int) -> None:
 		raise NotImplementedError()
 
-class MeshRaw(CObject):
+class MeshRaw:
 	# Vertex ----------
 
 	def is_vertex(self, index: int) -> bool:
@@ -160,9 +160,9 @@ class MeshRaw(CObject):
 	def clear(self) -> None:
 		raise NotImplementedError()
 
-class Mesh(CObject):
-	def process_mesh(self, callback: Callable[[MeshRaw[CRef]], None]) -> None:
+class Mesh:
+	def process_mesh(self, callback: Callable[[CRef[MeshRaw]], None]) -> None:
 		raise NotImplementedError()
 
-	def edit_mesh(self, callback: Callable[[MeshRaw[CRef]], None]) -> None:
+	def edit_mesh(self, callback: Callable[[CRef[MeshRaw]], None]) -> None:
 		raise NotImplementedError()

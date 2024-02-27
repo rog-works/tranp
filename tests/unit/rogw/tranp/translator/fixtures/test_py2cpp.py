@@ -1,7 +1,7 @@
 from typing import Generic, TypeAlias, TypeVar
 
 from rogw.tranp.compatible.cpp.enum import CEnum
-from rogw.tranp.compatible.cpp.object import CObject, CP, CRef, CSP
+from rogw.tranp.compatible.cpp.object import CP, CRef, CSP
 from rogw.tranp.compatible.cpp.preprocess import directive
 from rogw.tranp.compatible.python.embed import __alias__
 
@@ -12,10 +12,10 @@ T2 = TypeVar('T2')
 
 DSI: TypeAlias = dict[str, int]
 
-class Base(CObject):
+class Base:
 	class_base_n: int = 0
 
-	def __init__(self, n: int = 0) -> None:
+	def __init__(self, n: int) -> None:
 		self.base_n: int = n
 
 	def call(self) -> None: ...
@@ -28,79 +28,79 @@ class Base(CObject):
 	def __neg__(self) -> Base: ...
 
 class DeclOps:
-	class_bp: Base[CP] | None = None
+	class_bp: CP[Base] | None = None
 	class_map: dict[str, dict[str, list[int]]] = {'a': {'b': [1]}}
 
 	def __init__(self) -> None:
-		self.inst_var: Base[CP] | None = None
+		self.inst_var: CP[Base] | None = None
 
 class CVarOps:
 	def ret_raw(self) -> Base:
-		return Base()
+		return Base(0)
 
-	def ret_cp(self) -> Base[CP]:
-		return Base()
+	def ret_cp(self) -> CP[Base]:
+		return CP.new(Base(0))
 
-	def ret_csp(self) -> Base[CSP]:
-		return Base()
+	def ret_csp(self) -> CSP[Base]:
+		return CSP.new(Base(0))
 
 	def local_move(self) -> None:
-		a: Base = Base()
-		ap: Base[CP] = a
-		asp: Base[CSP] = Base()
-		ar: Base[CRef] = a
+		a: Base = Base(0)
+		ap: CP[Base] = CP(a)
+		asp: CSP[Base] = CSP.new(Base(0))
+		ar: CRef[Base] = CRef(a)
 		if True:
 			a = a
-			a = ap
-			a = asp
-			a = ar
+			a = ap.raw()
+			a = asp.raw()
+			a = ar.raw()
 		if True:
-			ap = a
+			ap = CP(a)
 			ap = ap
-			ap = asp
-			ap = ar
+			ap = asp.addr()
+			ap = ar.addr()
 		if True:
-			asp = a  # エラーケース
-			asp = ap  # エラーケース
+			# asp = a  # 構文的にNG
+			# asp = ap  # 構文的にNG
 			asp = asp
-			asp = ar  # エラーケース
+			# asp = ar  # 構文的にNG
 		if True:
-			ar = a  # エラーケース
-			ar = ap  # エラーケース
-			ar = asp  # エラーケース
-			ar = ar  # エラーケース
+			ar = CRef(a)  # C++ではNG
+			ar = ap.ref()  # C++ではNG
+			ar = asp.ref()  # C++ではNG
+			ar = ar  # C++ではNG
 
-	def param_move(self, a: Base, ap: Base[CP], asp: Base[CSP], ar: Base[CRef]) -> None:
+	def param_move(self, a: Base, ap: CP[Base], asp: CSP[Base], ar: CRef[Base]) -> None:
 		a1 = a
-		a2: Base = ap
-		a3: Base = asp
-		a4: Base = ar
+		a2: Base = ap.raw()
+		a3: Base = asp.raw()
+		a4: Base = ar.raw()
 		a = a1
-		ap = a2
-		asp = a3  # エラーケース
-		ar = a4  # エラーケース
+		ap = CP(a2)
+		# asp = a3  # 構文的にNG
+		ar = CRef(a4)  # C++ではNG
 
-	def invoke_method(self, a: Base, ap: Base[CP], asp: Base[CSP]) -> None:
-		self.invoke_method(a, a, a)
-		self.invoke_method(ap, ap, ap)  # エラーケース
-		self.invoke_method(asp, asp, asp)  # エラーケース
+	def invoke_method(self, a: Base, ap: CP[Base], asp: CSP[Base]) -> None:
+		# self.invoke_method(a, CP(a), a)  # 構文的にNG
+		# self.invoke_method(ap.raw(), ap, ap)  # 構文的にNG
+		self.invoke_method(asp.raw(), asp.addr(), asp)
 
-	def unary_calc(self, a: Base, ap: Base[CP], asp: Base[CSP], ar: Base[CRef]) -> None:
+	def unary_calc(self, a: Base, ap: CP[Base], asp: CSP[Base], ar: CRef[Base]) -> None:
 		neg_a = -a
-		neg_a2 = -ap
-		neg_a3 = -asp
-		neg_a4 = -ar
+		neg_a2 = -ap.raw()
+		neg_a3 = -asp.raw()
+		neg_a4 = -ar.raw()
 
-	def binary_calc(self, a: Base, ap: Base[CP], asp: Base[CSP], ar: Base[CRef]) -> None:
-		add = a + ap + asp + ar
-		sub = a - ap - asp - ar
-		mul = a * ap * asp * ar
-		div = a / ap / asp / ar
-		calc = a + ap * asp - ar / a
-		is_a = a is ap is asp is ar
-		is_not_a = a is not ap is not asp is not ar
+	def binary_calc(self, a: Base, ap: CP[Base], asp: CSP[Base], ar: CRef[Base]) -> None:
+		add = a + ap.raw() + asp.raw() + ar.raw()
+		sub = a - ap.raw() - asp.raw() - ar.raw()
+		mul = a * ap.raw() * asp.raw() * ar.raw()
+		div = a / ap.raw() / asp.raw() / ar.raw()
+		calc = a + ap.raw() * asp.raw() - ar.raw() / a
+		is_a = a is ap.raw() is asp.raw() is ar.raw()
+		is_not_a = a is not ap.raw() is not asp.raw() is not ar.raw()
 
-	def tenary_calc(self, a: Base, ap: Base[CP], asp: Base[CSP], ar: Base[CRef]) -> None:
+	def tenary_calc(self, a: Base, ap: CP[Base], asp: CSP[Base], ar: CRef[Base]) -> None:
 		a2 = a if True else Base()
 		a3 = a if True else a
 		ap2 = ap if True else ap
@@ -108,6 +108,12 @@ class CVarOps:
 		ar2 = ar if True else ar
 		ap_or_null = ap if True else None
 		a_or_ap = a if True else ap  # エラーケース
+
+	def declare(self) -> None:
+		arr = [1]
+		arr_p = CP(arr)
+		arr_sp = CSP.new([1])
+		arr_r = CRef(arr)
 
 class FuncOps:
 	def print(self) -> None:
@@ -143,16 +149,16 @@ class AccessOps(Base):
 		dda = {1: {1: a}}
 		print(dda[1][1].sub_s)
 
-	def arrow(self, ap: AccessOps[CP], asp: AccessOps[CSP]) -> None:
+	def arrow(self, ap: CP[AccessOps], asp: CSP[AccessOps], arr_p: CP[list[int]]) -> None:
 		print(self.base_n)
 		print(self.sub_s)
 		print(self.call())
-		print(ap.base_n)
-		print(ap.sub_s)
-		print(ap.call())
-		print(asp.base_n)
-		print(asp.sub_s)
-		print(asp.call())
+		print(ap.on().base_n)
+		print(ap.on().sub_s)
+		print(ap.on().call())
+		print(asp.on().base_n)
+		print(asp.on().sub_s)
+		print(asp.on().call())
 
 	def double_colon(self) -> None:
 		super().call()
@@ -163,6 +169,11 @@ class AccessOps(Base):
 			EnumOps.Values.A: 'A',
 			EnumOps.Values.B: 'B',
 		}
+
+	def indexer(self, arr_p: CP[list[int]], arr_sp: CSP[list[int]], arr_ar: CRef[list[int]]) -> None:
+		print(arr_p.on()[0])
+		print(arr_sp.on()[0])
+		print(arr_ar.on()[0])
 
 @__alias__('Alias2')
 class Alias:
@@ -261,17 +272,17 @@ class CastOps:
 		s_to_f = float(f_to_s)
 
 class Nullable:
-	def params(self, p: Base[CP] | None) -> None: ...
-	def returns(self) -> Base[CP] | None: ...
+	def params(self, p: CP[Base] | None) -> None: ...
+	def returns(self) -> CP[Base] | None: ...
 	def invlid_params(self, base: Base | None) -> None: ...  # エラーケース
 	def invlid_returns(self) -> Base | None: ...  # エラーケース
-	def var_move(self, base: Base, sp: Base[CSP]) -> Base:
-		p: Base[CP] | None = None
-		p = base
-		p = sp
+	def var_move(self, base: Base, sp: CSP[Base]) -> Base:
+		p: CP[Base] | None = None
+		p = CP(base)
 		p = None
+		p = sp.addr()
 		if p:
-			return p
+			return p.raw()
 
 		raise Exception()
 

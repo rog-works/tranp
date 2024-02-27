@@ -1,5 +1,12 @@
+from typing import Generic, TypeVar
+
 from rogw.tranp.compatible.cpp.enum import CEnum
-from rogw.tranp.compatible.python.embed import __actual__, __alias__
+from rogw.tranp.compatible.python.embed import __actual__, __alias__, __hint_generic__
+
+T = TypeVar('T')
+
+global_n = 0
+global_s: str = ''
 
 class Values(CEnum):
 	A = 0
@@ -45,5 +52,7 @@ def func(b: bool) -> None:
 @__actual__('Actual')
 class Class2: ...
 
-a = 0
-b: str = ''
+class GenBase(Generic[T]): ...
+
+@__hint_generic__(T)
+class GenSub(GenBase[T]): ...

@@ -55,6 +55,7 @@ def _ast(before: str, after: str) -> str:
 		'CVarOps.unary_calc.block': f'{_CVarOps}.class_def_raw.block.function_def[6].function_def_raw.block',
 		'CVarOps.binary_calc.block': f'{_CVarOps}.class_def_raw.block.function_def[7].function_def_raw.block',
 		'CVarOps.tenary_calc.block': f'{_CVarOps}.class_def_raw.block.function_def[8].function_def_raw.block',
+		'CVarOps.declare.block': f'{_CVarOps}.class_def_raw.block.function_def[9].function_def_raw.block',
 
 		'FuncOps.print.block': f'{_FuncOps}.class_def_raw.block.function_def.function_def_raw.block',
 
@@ -66,6 +67,7 @@ def _ast(before: str, after: str) -> str:
 		'AccessOps.dot.block': f'{_AccessOps}.class_def_raw.block.function_def[1].function_def_raw.block',
 		'AccessOps.arrow.block': f'{_AccessOps}.class_def_raw.block.function_def[2].function_def_raw.block',
 		'AccessOps.double_colon.block': f'{_AccessOps}.class_def_raw.block.function_def[3].function_def_raw.block',
+		'AccessOps.indexer.block': f'{_AccessOps}.class_def_raw.block.function_def[4].function_def_raw.block',
 
 		'Alias.Inner': f'{_Alias}.class_def_raw.block.class_def',
 		'Alias.__init__': f'{_Alias}.class_def_raw.block.function_def[1]',
@@ -130,13 +132,13 @@ class TestPy2Cpp(TestCase):
 
 		(_ast('DeclOps', ''), defs.Class, BlockExpects.DeclOps),
 
-		(_ast('CVarOps.ret_raw.return', ''), defs.Return, 'return Base();'),
-		(_ast('CVarOps.ret_cp.return', ''), defs.Return, 'return new Base();'),
-		(_ast('CVarOps.ret_csp.return', ''), defs.Return, 'return std::make_shared<Base>();'),
+		(_ast('CVarOps.ret_raw.return', ''), defs.Return, 'return Base(0);'),
+		(_ast('CVarOps.ret_cp.return', ''), defs.Return, 'return new Base(0);'),
+		(_ast('CVarOps.ret_csp.return', ''), defs.Return, 'return std::make_shared<Base>(0);'),
 
-		(_ast('CVarOps.local_move.block', 'anno_assign[0]'), defs.AnnoAssign, 'Base a = Base();'),
+		(_ast('CVarOps.local_move.block', 'anno_assign[0]'), defs.AnnoAssign, 'Base a = Base(0);'),
 		(_ast('CVarOps.local_move.block', 'anno_assign[1]'), defs.AnnoAssign, 'Base* ap = &(a);'),
-		(_ast('CVarOps.local_move.block', 'anno_assign[2]'), defs.AnnoAssign, 'std::shared_ptr<Base> asp = std::make_shared<Base>();'),
+		(_ast('CVarOps.local_move.block', 'anno_assign[2]'), defs.AnnoAssign, 'std::shared_ptr<Base> asp = std::make_shared<Base>(0);'),
 		(_ast('CVarOps.local_move.block', 'anno_assign[3]'), defs.AnnoAssign, 'Base& ar = a;'),
 		(_ast('CVarOps.local_move.block', 'if_stmt[4].block.assign[0]'), defs.MoveAssign, 'a = a;'),
 		(_ast('CVarOps.local_move.block', 'if_stmt[4].block.assign[1]'), defs.MoveAssign, 'a = *(ap);'),
@@ -146,7 +148,11 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarOps.local_move.block', 'if_stmt[5].block.assign[1]'), defs.MoveAssign, 'ap = ap;'),
 		(_ast('CVarOps.local_move.block', 'if_stmt[5].block.assign[2]'), defs.MoveAssign, 'ap = (asp).get();'),
 		(_ast('CVarOps.local_move.block', 'if_stmt[5].block.assign[3]'), defs.MoveAssign, 'ap = &(ar);'),
-		(_ast('CVarOps.local_move.block', 'if_stmt[6].block.assign[2]'), defs.MoveAssign, 'asp = asp;'),
+		(_ast('CVarOps.local_move.block', 'if_stmt[6].block.assign'), defs.MoveAssign, 'asp = asp;'),
+		(_ast('CVarOps.local_move.block', 'if_stmt[7].block.assign[0]'), defs.MoveAssign, 'ar = a;'),  # XXX C++ではNGだが要件等 ※型推論のコストをかけてまでエラー判定が必要なのか微妙
+		(_ast('CVarOps.local_move.block', 'if_stmt[7].block.assign[1]'), defs.MoveAssign, 'ar = *(ap);'),  # 〃
+		(_ast('CVarOps.local_move.block', 'if_stmt[7].block.assign[2]'), defs.MoveAssign, 'ar = *(asp);'),  # 〃
+		(_ast('CVarOps.local_move.block', 'if_stmt[7].block.assign[3]'), defs.MoveAssign, 'ar = ar;'),  # 〃
 
 		(_ast('CVarOps.param_move.block', 'assign[0]'), defs.MoveAssign, 'Base a1 = a;'),
 		(_ast('CVarOps.param_move.block', 'anno_assign[1]'), defs.AnnoAssign, 'Base a2 = *(ap);'),
@@ -154,8 +160,9 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarOps.param_move.block', 'anno_assign[3]'), defs.AnnoAssign, 'Base a4 = ar;'),
 		(_ast('CVarOps.param_move.block', 'assign[4]'), defs.MoveAssign, 'a = a1;'),
 		(_ast('CVarOps.param_move.block', 'assign[5]'), defs.MoveAssign, 'ap = &(a2);'),
+		(_ast('CVarOps.param_move.block', 'assign[6]'), defs.MoveAssign, 'ar = a4;'),  # XXX C++ではNGだが要件等 ※型推論のコストをかけてまでエラー判定が必要なのか微妙
 
-		(_ast('CVarOps.invoke_method.block', 'funccall[2]'), defs.FuncCall, 'this->invoke_method(*(asp), (asp).get(), asp);'),
+		(_ast('CVarOps.invoke_method.block', 'funccall'), defs.FuncCall, 'this->invoke_method(*(asp), (asp).get(), asp);'),
 
 		(_ast('CVarOps.unary_calc.block', 'assign[0]'), defs.MoveAssign, 'Base neg_a = -a;'),
 		(_ast('CVarOps.unary_calc.block', 'assign[1]'), defs.MoveAssign, 'Base neg_a2 = -*(ap);'),
@@ -176,6 +183,10 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarOps.tenary_calc.block', 'assign[3]'), defs.MoveAssign, 'std::shared_ptr<Base> asp2 = true ? asp : asp;'),
 		(_ast('CVarOps.tenary_calc.block', 'assign[4]'), defs.MoveAssign, 'Base& ar2 = true ? ar : ar;'),
 		(_ast('CVarOps.tenary_calc.block', 'assign[5]'), defs.MoveAssign, 'Base* ap_or_null = true ? ap : nullptr;'),
+
+		(_ast('CVarOps.declare.block', 'assign[1]'), defs.MoveAssign, 'std::vector<int>* arr_p = &(arr);'),
+		(_ast('CVarOps.declare.block', 'assign[2]'), defs.MoveAssign, 'std::shared_ptr<std::vector<int>> arr_sp = std::shared_ptr<std::vector<int>>(new std::vector<int>({1}));'),
+		(_ast('CVarOps.declare.block', 'assign[3]'), defs.MoveAssign, 'std::vector<int>& arr_r = arr;'),
 
 		(_ast('FuncOps.print.block', 'funccall'), defs.FuncCall, 'printf("message. %d, %f, %s", 1, 1.0, "abc");'),
 
@@ -209,6 +220,10 @@ class TestPy2Cpp(TestCase):
 		(_ast('AccessOps.double_colon.block', 'funccall[2].arguments.argvalue'), defs.Argument, 'AccessOps::class_base_n'),
 		(_ast('AccessOps.double_colon.block', 'funccall[3].arguments.argvalue'), defs.Argument, 'EnumOps::Values::A'),
 		(_ast('AccessOps.double_colon.block', 'anno_assign'), defs.AnnoAssign, 'std::map<EnumOps::Values, std::string> d = {\n\t{EnumOps::Values::A, "A"},\n\t{EnumOps::Values::B, "B"},\n};'),
+
+		(_ast('AccessOps.indexer.block', 'funccall[0].arguments.argvalue'), defs.Argument, 'arr_p[0]'),
+		(_ast('AccessOps.indexer.block', 'funccall[1].arguments.argvalue'), defs.Argument, 'arr_sp[0]'),
+		(_ast('AccessOps.indexer.block', 'funccall[2].arguments.argvalue'), defs.Argument, 'arr_ar[0]'),
 
 		(_ast('Alias.Inner', ''), defs.Class, '/** Inner2 */\nclass Inner2 {\n\n};'),
 		(_ast('Alias.__init__', ''), defs.Constructor, '/** Constructor */\npublic: Alias2() : inner(Alias2::Inner2()) {\n}'),
@@ -254,8 +269,8 @@ class TestPy2Cpp(TestCase):
 		(_ast('Nullable.returns', ''), defs.Method, '/** returns */\npublic: Base* returns() {\n\n}'),
 		(_ast('Nullable.var_move.block', 'anno_assign'), defs.AnnoAssign, 'Base* p = nullptr;'),
 		(_ast('Nullable.var_move.block', 'assign[1]'), defs.MoveAssign, 'p = &(base);'),
-		(_ast('Nullable.var_move.block', 'assign[2]'), defs.MoveAssign, 'p = (sp).get();'),
-		(_ast('Nullable.var_move.block', 'assign[3]'), defs.MoveAssign, 'p = nullptr;'),
+		(_ast('Nullable.var_move.block', 'assign[2]'), defs.MoveAssign, 'p = nullptr;'),
+		(_ast('Nullable.var_move.block', 'assign[3]'), defs.MoveAssign, 'p = (sp).get();'),
 		(_ast('Nullable.var_move.block', 'if_stmt.block.return_stmt'), defs.Return, 'return *(p);'),
 
 		(_ast('Template.T2Class', ''), defs.Class, '/** T2Class */\ntemplate<typename T2>\nclass T2Class {\n\n};'),
@@ -274,20 +289,6 @@ class TestPy2Cpp(TestCase):
 		self.assertEqual(actual, expected)
 
 	@data_provider([
-		(_ast('CVarOps.local_move.block', 'if_stmt[6].block.assign[0]'), r'Unacceptable value move.'),
-		(_ast('CVarOps.local_move.block', 'if_stmt[6].block.assign[1]'), r'Unacceptable value move.'),
-		(_ast('CVarOps.local_move.block', 'if_stmt[6].block.assign[3]'), r'Unacceptable value move.'),
-		(_ast('CVarOps.local_move.block', 'if_stmt[7].block.assign[0]'), r'Unacceptable value move.'),
-		(_ast('CVarOps.local_move.block', 'if_stmt[7].block.assign[1]'), r'Unacceptable value move.'),
-		(_ast('CVarOps.local_move.block', 'if_stmt[7].block.assign[2]'), r'Unacceptable value move.'),
-		(_ast('CVarOps.local_move.block', 'if_stmt[7].block.assign[3]'), r'Unacceptable value move.'),
-
-		(_ast('CVarOps.param_move.block', 'assign[6]'), r'Unacceptable value move.'),
-		(_ast('CVarOps.param_move.block', 'assign[7]'), r'Unacceptable value move.'),
-
-		(_ast('CVarOps.invoke_method.block', 'funccall[0]'), r'Unacceptable value move.'),
-		(_ast('CVarOps.invoke_method.block', 'funccall[1]'), r'Unacceptable value move.'),
-
 		(_ast('CVarOps.tenary_calc.block', 'assign[6]'), r'Tenary operation not allowed.'),
 
 		(_ast('Nullable.invalid_params', ''), r'Unexpected UnionType.'),

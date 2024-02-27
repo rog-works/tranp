@@ -35,6 +35,10 @@ class Class(Base):
 		def method_in_closure() -> None:
 			for i in range(10): ...
 
+	@property
+	def property_method(self) -> int:
+		return 0
+
 	@__alias__('alias')
 	def public_method(self, n: int) -> Values:
 		try:

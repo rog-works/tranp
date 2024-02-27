@@ -25,12 +25,17 @@ class Sub(Base):
 		super().__init__()
 		self.numbers: list[int] = []
 
+	@property
+	def first_number(self) -> int:
+		return self.numbers[0]
+
 	def local_ref(self) -> None:
 		value = False
 		print(value)
 
 	def member_ref(self) -> None:
 		print(self.numbers)
+		print(self.first_number)
 
 	def member_write(self) -> None:
 		self.x.nx = 2

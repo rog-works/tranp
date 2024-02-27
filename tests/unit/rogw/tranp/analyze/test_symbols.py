@@ -11,13 +11,29 @@ from tests.test.fixture import Fixture
 
 
 def _ast(before: str, after: str) -> str:
+	_start = 6
 	_func = 'file_input.function_def'
-	_Base = 'file_input.class_def[7]'
-	_Sub = 'file_input.class_def[8]'
-	_CalcOps = 'file_input.class_def[9]'
-	_AliasOps = 'file_input.class_def[10]'
-	_TupleOps = 'file_input.class_def[11]'
-	_CompOps = 'file_input.class_def[12]'
+	_Base = f'file_input.class_def[{_start + 1}]'
+	_Sub = f'file_input.class_def[{_start + 2}]'
+	_Sub_init = f'{_Sub}.class_def_raw.block.function_def[1]'
+	_Sub_first_number = f'{_Sub}.class_def_raw.block.function_def[2]'
+	_Sub_local_ref = f'{_Sub}.class_def_raw.block.function_def[3]'
+	_Sub_member_ref = f'{_Sub}.class_def_raw.block.function_def[4]'
+	_Sub_member_write = f'{_Sub}.class_def_raw.block.function_def[5]'
+	_Sub_param_ref = f'{_Sub}.class_def_raw.block.function_def[6]'
+	_Sub_list_ref = f'{_Sub}.class_def_raw.block.function_def[7]'
+	_Sub_base_ref = f'{_Sub}.class_def_raw.block.function_def[8]'
+	_Sub_returns = f'{_Sub}.class_def_raw.block.function_def[9]'
+	_Sub_invoke_method = f'{_Sub}.class_def_raw.block.function_def[10]'
+	_Sub_decl_with_pop = f'{_Sub}.class_def_raw.block.function_def[11]'
+	_Sub_decl_locals = f'{_Sub}.class_def_raw.block.function_def[12]'
+	_Sub_assign_with_param = f'{_Sub}.class_def_raw.block.function_def[13]'
+	_Sub_relay_access = f'{_Sub}.class_def_raw.block.function_def[14]'
+	_Sub_fill_list = f'{_Sub}.class_def_raw.block.function_def[15]'
+	_CalcOps = f'file_input.class_def[{_start + 3}]'
+	_AliasOps = f'file_input.class_def[{_start + 4}]'
+	_TupleOps = f'file_input.class_def[{_start + 5}]'
+	_CompOps = f'file_input.class_def[{_start + 6}]'
 
 	aliases = {
 		'__main__.import.xyz': 'file_input.import_stmt[2]',
@@ -38,25 +54,27 @@ def _ast(before: str, after: str) -> str:
 		'Sub.C.class_func.params': f'{_Sub}.class_def_raw.block.class_def.class_def_raw.block.function_def.function_def_raw.parameters',
 		'Sub.C.class_func.return': f'{_Sub}.class_def_raw.block.class_def.class_def_raw.block.function_def.function_def_raw.typed_getitem',
 		'Sub.C.class_func.block': f'{_Sub}.class_def_raw.block.class_def.class_def_raw.block.function_def.function_def_raw.block',
-		'Sub.__init__.params': f'{_Sub}.class_def_raw.block.function_def[1].function_def_raw.parameters',
-		'Sub.__init__.return': f'{_Sub}.class_def_raw.block.function_def[1].function_def_raw.typed_none',
-		'Sub.__init__.block': f'{_Sub}.class_def_raw.block.function_def[1].function_def_raw.block',
-		'Sub.local_ref.params': f'{_Sub}.class_def_raw.block.function_def[2].function_def_raw.parameters',
-		'Sub.local_ref.return': f'{_Sub}.class_def_raw.block.function_def[2].function_def_raw.typed_none',
-		'Sub.local_ref.block': f'{_Sub}.class_def_raw.block.function_def[2].function_def_raw.block',
-		'Sub.member_ref.block': f'{_Sub}.class_def_raw.block.function_def[3].function_def_raw.block',
-		'Sub.member_write.block': f'{_Sub}.class_def_raw.block.function_def[4].function_def_raw.block',
-		'Sub.param_ref.params': f'{_Sub}.class_def_raw.block.function_def[5].function_def_raw.parameters',
-		'Sub.param_ref.block': f'{_Sub}.class_def_raw.block.function_def[5].function_def_raw.block',
-		'Sub.list_ref.params': f'{_Sub}.class_def_raw.block.function_def[6].function_def_raw.parameters',
-		'Sub.list_ref.block': f'{_Sub}.class_def_raw.block.function_def[6].function_def_raw.block',
-		'Sub.base_ref.block': f'{_Sub}.class_def_raw.block.function_def[7].function_def_raw.block',
-		'Sub.returns.return': f'{_Sub}.class_def_raw.block.function_def[8].function_def_raw.typed_var',
-		'Sub.returns.block': f'{_Sub}.class_def_raw.block.function_def[8].function_def_raw.block',
-		'Sub.invoke_method.block': f'{_Sub}.class_def_raw.block.function_def[9].function_def_raw.block',
-		'Sub.decl_with_pop.block': f'{_Sub}.class_def_raw.block.function_def[10].function_def_raw.block',
-		'Sub.decl_locals.block': f'{_Sub}.class_def_raw.block.function_def[11].function_def_raw.block',
-		'Sub.decl_locals.closure.block': f'{_Sub}.class_def_raw.block.function_def[11].function_def_raw.block.function_def.function_def_raw.block',
+		'Sub.__init__.params': f'{_Sub_init}.function_def_raw.parameters',
+		'Sub.__init__.return': f'{_Sub_init}.function_def_raw.typed_none',
+		'Sub.__init__.block': f'{_Sub_init}.function_def_raw.block',
+		'Sub.__init__.block': f'{_Sub_init}.function_def_raw.block',
+		'Sub.first_number.block': f'{_Sub_first_number}.function_def_raw.block',
+		'Sub.local_ref.params': f'{_Sub_local_ref}.function_def_raw.parameters',
+		'Sub.local_ref.return': f'{_Sub_local_ref}.function_def_raw.typed_none',
+		'Sub.local_ref.block': f'{_Sub_local_ref}.function_def_raw.block',
+		'Sub.member_ref.block': f'{_Sub_member_ref}.function_def_raw.block',
+		'Sub.member_write.block': f'{_Sub_member_write}.function_def_raw.block',
+		'Sub.param_ref.params': f'{_Sub_param_ref}.function_def_raw.parameters',
+		'Sub.param_ref.block': f'{_Sub_param_ref}.function_def_raw.block',
+		'Sub.list_ref.params': f'{_Sub_list_ref}.function_def_raw.parameters',
+		'Sub.list_ref.block': f'{_Sub_list_ref}.function_def_raw.block',
+		'Sub.base_ref.block': f'{_Sub_base_ref}.function_def_raw.block',
+		'Sub.returns.return': f'{_Sub_returns}.function_def_raw.typed_var',
+		'Sub.returns.block': f'{_Sub_returns}.function_def_raw.block',
+		'Sub.invoke_method.block': f'{_Sub_invoke_method}.function_def_raw.block',
+		'Sub.decl_with_pop.block': f'{_Sub_decl_with_pop}.function_def_raw.block',
+		'Sub.decl_locals.block': f'{_Sub_decl_locals}.function_def_raw.block',
+		'Sub.decl_locals.closure.block': f'{_Sub_decl_locals}.function_def_raw.block.function_def.function_def_raw.block',
 
 		'CompOps.list_comp.block': f'{_CompOps}.class_def_raw.block.function_def[0].function_def_raw.block',
 	}
@@ -279,13 +297,16 @@ class TestSymbols(TestCase):
 		(_ast('Sub.__init__.block', 'anno_assign.typed_getitem'), _mod('classes', 'list'), 'list<int>'),
 		(_ast('Sub.__init__.block', 'anno_assign.list'), _mod('classes', 'list'), 'list<Unknown>'),  # XXX 空のリストは型を補完できないためlist<Unknown>になる
 
+		(_ast('Sub.first_number.block', 'return_stmt'), _mod('classes', 'int'), 'int'),
+
 		(_ast('Sub.local_ref.params', 'paramvalue.typedparam.name'), '__main__.Sub', 'Sub'),
 		(_ast('Sub.local_ref.block', 'assign'), _mod('classes', 'bool'), 'bool'),
 		(_ast('Sub.local_ref.block', 'funccall.var'), _mod('classes', 'print'), 'print(Any) -> None'),
 		(_ast('Sub.local_ref.block', 'funccall.arguments.argvalue'), _mod('classes', 'bool'), 'bool'),
 		(_ast('Sub.local_ref.return', ''), _mod('classes', 'None'), 'None'),
 
-		(_ast('Sub.member_ref.block', 'funccall.arguments.argvalue'), _mod('classes', 'list'), 'list<int>'),
+		(_ast('Sub.member_ref.block', 'funccall[0].arguments.argvalue'), _mod('classes', 'list'), 'list<int>'),
+		(_ast('Sub.member_ref.block', 'funccall[1].arguments.argvalue'), _mod('classes', 'int'), 'int'),
 
 		(_ast('Sub.member_write.block', 'assign[0].assign_namelist.getattr'), _mod('classes', 'int'), 'int'),
 		(_ast('Sub.member_write.block', 'assign[0].number'), _mod('classes', 'int'), 'int'),

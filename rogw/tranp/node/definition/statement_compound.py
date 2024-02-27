@@ -1,13 +1,13 @@
 from typing import Generic, TypeVar
 
 from rogw.tranp.ast.dsn import DSN
-from rogw.tranp.compatible.python.embed import __actual__, __alias__
+from rogw.tranp.compatible.python.embed import __actual__, __alias__, __hint_generic__
 from rogw.tranp.lang.implementation import implements, override
 from rogw.tranp.lang.sequence import flatten, last_index_of
 from rogw.tranp.node.definition.accessor import to_access
 from rogw.tranp.node.definition.element import Decorator, Parameter
 from rogw.tranp.node.definition.literal import Comment, String
-from rogw.tranp.node.definition.primary import CustomType, DeclClassVar, DeclLocalVar, Declable, ForIn, InheritArgument, DeclThisParam, DeclThisVar, Type, TypesName
+from rogw.tranp.node.definition.primary import Argument, CustomType, DeclClassVar, DeclLocalVar, Declable, ForIn, InheritArgument, DeclThisParam, DeclThisVar, Type, TypesName, VarOfType, Variable
 from rogw.tranp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from rogw.tranp.node.definition.terminal import Empty
 from rogw.tranp.node.embed import Meta, accept_tags, actualized, expandable
@@ -297,6 +297,23 @@ class ClassDef(Node, IDomain, IScope, IDeclaration, ISymbol):
 	def _decl_vars_with(self, allow: type[T_Declable]) -> dict[str, T_Declable]:
 		return VarsCollector.collect(self, allow)
 
+	def _generic_types_from_hint(self) -> list[Type]:
+		"""デコレーターで設定したジェネリックのテンプレートタイプを取り込む
+
+		Returns:
+			list[Type]: テンプレートタイプのリスト
+		"""
+		candidates = [decorator for decorator in self.decorators if decorator.path.tokens == __hint_generic__.__name__]
+		if len(candidates) == 0:
+			return []
+
+		def make_type_dummy(org_argument: Argument) -> Type:
+			# XXX VarOfTypeのスキームが変わると破綻するので注意
+			return org_argument.dirty_child(VarOfType, 'typed_var', domain_name=org_argument.tokens, type_name=org_argument)
+
+		hint = candidates[0]
+		return [make_type_dummy(argument) for argument in hint.arguments]
+
 	def ancestor_classes(self) -> list['ClassDef']:
 		"""Note: XXX 振る舞いとして必然性のないメソッド。ユースケースはClassSymbolMakerとの連携のみ"""
 		ancestors: list[ClassDef] = []
@@ -456,7 +473,9 @@ class Class(ClassDef):
 	@Meta.embed(Node, expandable)
 	def generic_types(self) -> list[Type]:
 		candidates = [inherit.as_a(CustomType) for inherit in self.__org_inherits if inherit.type_name.tokens == Generic.__name__]
-		return candidates[0].template_types if len(candidates) == 1 else []
+		from_defs = candidates[0].template_types if len(candidates) == 1 else []
+		from_hint = self._generic_types_from_hint()
+		return [*from_defs, *from_hint]
 
 	@property
 	@override

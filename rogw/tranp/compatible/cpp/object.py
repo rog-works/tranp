@@ -1,6 +1,6 @@
 from typing import Generic, TypeVar
 
-from rogw.tranp.compatible.python.embed import __hint__
+from rogw.tranp.compatible.python.embed import __hint_generic__
 
 T = TypeVar('T')
 
@@ -34,7 +34,7 @@ class CVar(Generic[T]):
 		raise Exception(f'Method not allowed. method: "addr", self: {self}, origin: {self.__origin}')
 
 
-@__hint__({'generic_types': T})
+@__hint_generic__(T)
 class CP(CVar[T]):
 	@classmethod
 	def __class_getitem__(cls, var_type: type[T]) -> 'type[CP[T]]':
@@ -48,7 +48,7 @@ class CP(CVar[T]):
 		return CRef(self.raw())
 
 
-@__hint__({'generic_types': T})
+@__hint_generic__(T)
 class CSP(CVar[T]):
 	@classmethod
 	def __class_getitem__(cls, var_type: type[T]) -> 'type[CSP[T]]':
@@ -65,7 +65,7 @@ class CSP(CVar[T]):
 		return CP(self.raw())
 
 
-@__hint__({'generic_types': T})
+@__hint_generic__(T)
 class CRef(CVar[T]):
 	@classmethod
 	def __class_getitem__(cls, var_type: type[T]) -> 'type[CRef[T]]':
@@ -75,7 +75,7 @@ class CRef(CVar[T]):
 		return CP(self.raw())
 
 
-@__hint__({'generic_types': T})
+@__hint_generic__(T)
 class CRaw(CVar[T]):
 	@classmethod
 	def __class_getitem__(cls, var_type: type[T]) -> 'type[CRaw[T]]':

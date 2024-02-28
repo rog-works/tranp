@@ -8,11 +8,17 @@ import rogw.tranp.analyze.reflection as reflection
 from rogw.tranp.analyze.finder import SymbolFinder
 import rogw.tranp.compatible.python.classes as classes
 from rogw.tranp.compatible.python.types import Standards
-from rogw.tranp.errors import LogicError, NotFoundError
+from rogw.tranp.errors import Error, LogicError, NotFoundError
+from rogw.tranp.lang.error import raises
 from rogw.tranp.lang.eventemitter import Callback
 from rogw.tranp.lang.implementation import implements, injectable
 import rogw.tranp.node.definition as defs
 from rogw.tranp.node.node import Node
+
+
+class LexError(Error): ...
+class ImplementationError(LexError): ...
+class SymbolNotFoundError(LexError): ...
 
 
 class Symbols:
@@ -74,16 +80,18 @@ class Symbols:
 		"""
 		return symbol.types == self.type_of_standard(standard_type).types
 
+	@raises(ImplementationError, NotFoundError)
 	def get_object(self) -> SymbolRaw:
 		"""objectのシンボルを取得
 
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			LogicError: objectが未実装
+			ImplementationError: objectが未実装
 		"""
-		return self.__finder.get_object(self.__raws)
+		return self.__finder.by_object(self.__raws)
 
+	@raises(SymbolNotFoundError, NotFoundError)
 	def from_fullyname(self, fullyname: str) -> SymbolRaw:
 		"""完全参照名からシンボルを解決
 
@@ -92,10 +100,11 @@ class Symbols:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			NotFoundError: シンボルが見つからない
+			SymbolNotFoundError: シンボルが見つからない
 		"""
 		return self.__finder.by(self.__raws, fullyname)
 
+	@raises(ImplementationError, NotFoundError)
 	def type_of_standard(self, standard_type: type[Standards] | None) -> SymbolRaw:
 		"""標準クラスのシンボルを解決
 
@@ -104,10 +113,11 @@ class Symbols:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			NotFoundError: シンボルが見つからない
+			ImplementationError: 標準クラスが未実装
 		"""
 		return self.__finder.by_standard(self.__raws, standard_type)
 
+	@raises(SymbolNotFoundError, NotFoundError)
 	def type_of_property(self, types: defs.ClassDef, prop: defs.Var) -> SymbolRaw:
 		"""クラス定義ノードと変数参照ノードからプロパティーのシンボルを解決
 
@@ -117,10 +127,11 @@ class Symbols:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			NotFoundError: シンボルが見つからない
+			SymbolNotFoundError: シンボルが見つからない
 		"""
 		return self.resolve(types, prop.tokens)
 
+	@raises(ImplementationError, NotFoundError)
 	def type_of_constructor(self, types: defs.Class) -> SymbolRaw:
 		"""クラス定義ノードからコンストラクターのシンボルを解決
 
@@ -129,12 +140,13 @@ class Symbols:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			NotFoundError: シンボルが見つからない
+			ImplementationError: コンストラクターの実装ミス
 		Note:
 			FIXME Pythonのコンストラクターに依存したコードはNG。再度検討
 		"""
 		return self.resolve(types, '__init__')
 
+	@raises(SymbolNotFoundError, NotFoundError)
 	def type_of(self, node: Node) -> SymbolRaw:
 		"""シンボル系/式ノードからシンボルを解決 XXX 万能過ぎるので細分化を検討
 
@@ -143,7 +155,7 @@ class Symbols:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			NotFoundError: シンボルが見つからない
+			SymbolNotFoundError: シンボルが見つからない
 		"""
 		if isinstance(node, defs.Declable):
 			return self.resolve(node)
@@ -217,6 +229,7 @@ class Symbols:
 			# CompFor
 			return self.__resolve_procedural(node.for_in)
 
+	@raises(SymbolNotFoundError, NotFoundError)
 	def resolve(self, symbolic: defs.Symbolic, prop_name: str = '') -> SymbolRaw:
 		"""シンボルテーブルからシンボルを解決
 
@@ -226,7 +239,7 @@ class Symbols:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			NotFoundError: シンボルが見つからない
+			SymbolNotFoundError: シンボルが見つからない
 		"""
 		found_raw = self.__resolve_raw(symbolic, prop_name)
 		if found_raw is not None:

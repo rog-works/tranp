@@ -3,7 +3,7 @@ from types import UnionType
 from rogw.tranp.analyze.symbol import SymbolRaw, SymbolRaws
 from rogw.tranp.ast.dsn import DSN
 from rogw.tranp.compatible.python.types import Standards
-from rogw.tranp.errors import LogicError, NotFoundError
+from rogw.tranp.errors import NotFoundError
 from rogw.tranp.lang.implementation import injectable
 from rogw.tranp.module.types import LibraryPaths
 import rogw.tranp.node.definition as defs
@@ -21,7 +21,7 @@ class SymbolFinder:
 		"""
 		self.__library_paths = library_paths
 
-	def get_object(self, raws: SymbolRaws) -> SymbolRaw:
+	def by_object(self, raws: SymbolRaws) -> SymbolRaw:
 		"""objectのシンボルを取得
 
 		Args:
@@ -29,7 +29,7 @@ class SymbolFinder:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			LogicError: objectが未実装
+			NotFoundError: objectが未実装
 		Note:
 			必ず存在すると言う前提。見つからない場合は実装ミス
 		"""
@@ -37,7 +37,7 @@ class SymbolFinder:
 		if raw is not None:
 			return raw
 
-		raise LogicError('Implementaion of object class is required.')
+		raise NotFoundError('Implementaion of object class is required.')
 
 	def by(self, raws: SymbolRaws, fullyname: str) -> SymbolRaw:
 		"""完全参照名からシンボルを取得

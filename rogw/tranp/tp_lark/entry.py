@@ -81,8 +81,8 @@ class EntryOfLark(Entry):
 		"""
 		if type(self.__entry) is Tree and self.__entry._meta is not None:
 			return {
-				'begin': (self.__entry._meta.end_line, self.__entry._meta.end_column),
-				'end': (self.__entry._meta.line, self.__entry._meta.column),
+				'begin': (self.__entry._meta.line, self.__entry._meta.column),
+				'end': (self.__entry._meta.end_line, self.__entry._meta.end_column),
 			}
 		elif type(self.__entry) is Token and self.__entry.line and self.__entry.column and self.__entry.end_line and self.__entry.end_column:
 			return {

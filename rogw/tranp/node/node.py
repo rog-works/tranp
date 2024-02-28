@@ -2,6 +2,7 @@ import functools
 from typing import Any, Iterator, TypeVar, cast
 
 from rogw.tranp.ast.dsn import DSN
+from rogw.tranp.ast.entry import SourceMap
 from rogw.tranp.ast.path import EntryPath
 from rogw.tranp.ast.query import Query
 from rogw.tranp.errors import LogicError, NotFoundError
@@ -141,6 +142,11 @@ class Node:
 	def id(self) -> int:
 		"""int: AST上のID"""
 		return self.__nodes.id(self.full_path)
+
+	@property
+	def source_map(self) -> SourceMap:
+		"""SourceMap: ソースマップ"""
+		return self.__nodes.source_map(self.full_path)
 
 	@property
 	def tokens(self) -> str:
@@ -515,9 +521,9 @@ class Node:
 			T_Node: プロキシノード
 		Note:
 			XXX シンボルエイリアスにのみ使う想定。ダーティーな実装のため濫用は厳禁
-			XXX classificationのみ固定で擬態クラスを模倣して上書き
+			XXX classification/source_mapは固定で上書き
 		"""
-		overrides = {**overrides, 'classification': snakelize(self.__class__.__name__)}
+		overrides = {**overrides, 'classification': snakelize(self.__class__.__name__), 'source_map': {'begin': (0, 0), 'end': (0, 0)}}
 
 		class Proxy(self.__class__):
 			def __getattribute__(self, __name: str) -> Any:

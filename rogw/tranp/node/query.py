@@ -1,7 +1,7 @@
 import re
 
 from rogw.tranp.ast.cache import EntryCache
-from rogw.tranp.ast.entry import Entry
+from rogw.tranp.ast.entry import Entry, SourceMap
 from rogw.tranp.ast.finder import ASTFinder
 from rogw.tranp.ast.path import EntryPath
 from rogw.tranp.ast.query import Query
@@ -220,7 +220,7 @@ class Nodes(Query[Node]):
 
 	@implements
 	def id(self, full_path: str) -> int:
-		"""指定のパスのIDを取得
+		"""指定のパスのエントリーのIDを取得
 
 		Args:
 			full_path (str): フルパス
@@ -228,3 +228,14 @@ class Nodes(Query[Node]):
 			int: ID
 		"""
 		return self.__entries.index_of(full_path)
+
+	@implements
+	def source_map(self, full_path: str) -> SourceMap:
+		"""指定のパスのエントリーのソースマップを取得
+
+		Args:
+			full_path (str): フルパス
+		Returns:
+			SourceMap: ソースマップ
+		"""
+		return self.__entries.by(full_path).source_map

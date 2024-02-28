@@ -1,6 +1,8 @@
 from abc import ABCMeta, abstractmethod
 from typing import Generic, TypeVar
 
+from rogw.tranp.ast.entry import SourceMap
+
 T = TypeVar('T')
 
 
@@ -114,11 +116,22 @@ class Query(Generic[T], metaclass=ABCMeta):
 
 	@abstractmethod
 	def id(self, full_path: str) -> int:
-		"""指定のパスのIDを取得
+		"""指定のパスのエントリーのIDを取得
 
 		Args:
 			full_path (str): フルパス
 		Returns:
 			int: ID
+		"""
+		raise NotImplementedError()
+
+	@abstractmethod
+	def source_map(self, full_path: str) -> SourceMap:
+		"""指定のパスのエントリーのソースマップを取得
+
+		Args:
+			full_path (str): フルパス
+		Returns:
+			SourceMap: ソースマップ
 		"""
 		raise NotImplementedError()

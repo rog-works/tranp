@@ -3,23 +3,23 @@ from unittest import TestCase
 
 from rogw.tranp.ast.cache import EntryCache
 
-T_Entry: TypeAlias = tuple[str, list] | tuple[str, str]
+DictTreeEntry: TypeAlias = tuple[str, list] | tuple[str, str]
 
 
 class TestEntryCache(TestCase):
 	def test_exists(self) -> None:
-		cache = EntryCache[T_Entry]()
+		cache = EntryCache[DictTreeEntry]()
 		cache.add('root', ('root', []))
 		self.assertEqual(cache.exists('root'), True)
 
 	def test_by(self) -> None:
-		cache = EntryCache[T_Entry]()
+		cache = EntryCache[DictTreeEntry]()
 		root = ('root', [])
 		cache.add('root', root)
 		self.assertEqual(cache.by('root'), root)
 
 	def test_group_by(self) -> None:
-		cache = EntryCache[T_Entry]()
+		cache = EntryCache[DictTreeEntry]()
 		root = ('root', [
 			('term_a', ''),
 			('tree_a', [
@@ -41,6 +41,6 @@ class TestEntryCache(TestCase):
 		self.assertEqual(under_tree_a, [tree_a, tree_a[1][0]])
 
 	def test_add(self) -> None:
-		cache = EntryCache[T_Entry]()
+		cache = EntryCache[DictTreeEntry]()
 		cache.add('root', ('root', []))
 		self.assertEqual(cache.exists('root'), True)

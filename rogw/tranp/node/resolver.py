@@ -1,7 +1,10 @@
 from typing import Callable
 
 from rogw.tranp.ast.resolver import Resolver, SymbolMapping
+from rogw.tranp.errors import LogicError
+from rogw.tranp.lang.error import raises
 from rogw.tranp.lang.locator import Currying
+from rogw.tranp.node.errors import UnresolvedNodeError
 from rogw.tranp.node.node import Node
 
 
@@ -29,6 +32,7 @@ class NodeResolver:
 		"""
 		return self.__resolver.can_resolve(symbol)
 
+	@raises(UnresolvedNodeError, LogicError)
 	def resolve(self, symbol: str, full_path: str) -> Node:
 		"""ノードのインスタンスを解決
 
@@ -38,7 +42,7 @@ class NodeResolver:
 		Returns:
 			Node: 解決したノード
 		Raises:
-			LogicError: シンボルの解決に失敗
+			UnresolvedNodeError: ノードの解決に失敗
 		"""
 		if full_path in self.__insts:
 			return self.__insts[full_path]

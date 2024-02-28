@@ -2,14 +2,16 @@ import functools
 from typing import Any, Iterator, TypeVar, cast
 
 from rogw.tranp.ast.dsn import DSN
+from rogw.tranp.ast.entry import SourceMap
 from rogw.tranp.ast.path import EntryPath
 from rogw.tranp.ast.query import Query
-from rogw.tranp.errors import LogicError, NotFoundError
+from rogw.tranp.errors import LogicError
 from rogw.tranp.lang.implementation import deprecated, injectable, override
 from rogw.tranp.lang.sequence import flatten
 from rogw.tranp.lang.string import snakelize
 from rogw.tranp.module.types import ModulePath
 from rogw.tranp.node.embed import EmbedKeys, Meta
+from rogw.tranp.node.errors import IllegalConvertionError, NodeNotFoundError
 from rogw.tranp.node.interface import IDomain, IScope, ITerminal
 
 T_Node = TypeVar('T_Node', bound='Node')
@@ -62,13 +64,13 @@ class Node:
 		Returns:
 			bool: True = 同じ
 		Raises:
-			ValueError: Node以外のオブジェクトを指定
+			LogicError: Node以外のオブジェクトを指定 XXX 出力する例外は要件等
 		"""
 		if other is None:
 			return False
 
 		if not isinstance(other, Node):
-			raise ValueError(f'Not allowed comparison. other: {type(other)}')
+			raise LogicError(f'Not allowed comparison. other: {type(other)}')
 
 		return self.__repr__() == other.__repr__()
 
@@ -141,6 +143,11 @@ class Node:
 	def id(self) -> int:
 		"""int: AST上のID"""
 		return self.__nodes.id(self.full_path)
+
+	@property
+	def source_map(self) -> SourceMap:
+		"""SourceMap: ソースマップ"""
+		return self.__nodes.source_map(self.full_path)
 
 	@property
 	def tokens(self) -> str:
@@ -272,7 +279,7 @@ class Node:
 		Returns:
 			Node: ノード
 		Raises:
-			NotFoundError: ノードが存在しない
+			NodeNotFound: ノードが存在しない
 		"""
 		return self.__nodes.by(self._full_path.joined(relative_path))
 
@@ -284,11 +291,11 @@ class Node:
 		Returns:
 			Node: ノード
 		Raises:
-			NotFoundError: ノードが存在しない
+			NodeNotFound: ノードが存在しない
 		"""
 		children = self._children()
 		if index < 0 or len(children) <= index:
-			raise NotFoundError(str(self), index)
+			raise NodeNotFoundError(str(self), index)
 
 		return children[index]
 
@@ -301,11 +308,11 @@ class Node:
 		Returns:
 			Node: ノード
 		Raises:
-			NotFoundError: 子が存在しない
+			NodeNotFound: 子が存在しない
 		"""
 		under = self._under_expand()
 		if index < 0 or len(under) <= index:
-			raise NotFoundError(str(self), index)
+			raise NodeNotFoundError(str(self), index)
 
 		return under[index]
 
@@ -318,7 +325,7 @@ class Node:
 		Returns:
 			list[Node]: ノードリスト
 		Raises:
-			NotFoundError: 基点のノードが存在しない
+			NodeNotFound: 基点のノードが存在しない
 		"""
 		via = self._full_path.joined(relative_path)
 		return [node for node in self.__nodes.siblings(via) if node.full_path != self.full_path]
@@ -332,7 +339,7 @@ class Node:
 		Returns:
 			list[Node]: ノードリスト
 		Raises:
-			NotFoundError: 基点のノードが存在しない
+			NodeNotFound: 基点のノードが存在しない
 		"""
 		via = self._full_path.joined(relative_path)
 		return self.__nodes.children(via)
@@ -345,7 +352,7 @@ class Node:
 		Returns:
 			Node: ノード
 		Raises:
-			NotFoundError: ノードが存在しない
+			NodeNotFound: ノードが存在しない
 		"""
 		return self.__nodes.ancestor(self.full_path, tag)
 
@@ -383,7 +390,7 @@ class Node:
 		Returns:
 			T_Node: 具象クラスのインスタンス
 		Raises:
-			LogicError: 許可されない変換先を指定
+			InvalidConvertionError: 許可されない変換先を指定
 		Note:
 			## 変換条件
 			1. 変換先と継承関係
@@ -393,10 +400,10 @@ class Node:
 			return cast(T_Node, self)
 
 		if not issubclass(to_class, self.__class__):
-			raise LogicError(str(self), to_class)
+			raise IllegalConvertionError(str(self), to_class)
 
 		if not self.__acceptable_by(to_class):
-			raise LogicError(str(self), to_class)
+			raise IllegalConvertionError(str(self), to_class)
 
 		return cast(T_Node, to_class(self.__nodes, self.__module_path, self.full_path))
 
@@ -437,7 +444,7 @@ class Node:
 		Returns:
 			T_Node: インスタンス
 		Raises:
-			LogicError: 指定のクラスと合致しない
+			InvalidConvertionError: 指定のクラスと合致しない
 		Examples:
 			```python
 			@property
@@ -453,7 +460,7 @@ class Node:
 			if self.is_a(expects):
 				return cast(T_Node, self)
 
-		raise LogicError(str(self), expects)
+		raise IllegalConvertionError(str(self), expects)
 
 	@classmethod
 	def match_feature(cls, via: 'Node') -> bool:
@@ -515,9 +522,10 @@ class Node:
 			T_Node: プロキシノード
 		Note:
 			XXX シンボルエイリアスにのみ使う想定。ダーティーな実装のため濫用は厳禁
-			XXX classificationのみ固定で擬態クラスを模倣して上書き
+			XXX classification/source_mapは固定で上書き
 		"""
-		overrides = {**overrides, 'classification': snakelize(self.__class__.__name__)}
+		source_map: SourceMap = {'begin': (0, 0), 'end': (0, 0)}
+		overrides = {**overrides, 'classification': snakelize(self.__class__.__name__), 'source_map': source_map}
 
 		class Proxy(self.__class__):
 			def __getattribute__(self, __name: str) -> Any:

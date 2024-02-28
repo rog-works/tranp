@@ -1,13 +1,13 @@
 import re
 
 from rogw.tranp.ast.cache import EntryCache
-from rogw.tranp.ast.entry import Entry
+from rogw.tranp.ast.entry import Entry, SourceMap
 from rogw.tranp.ast.finder import ASTFinder
 from rogw.tranp.ast.path import EntryPath
 from rogw.tranp.ast.query import Query
-from rogw.tranp.errors import NotFoundError
 from rogw.tranp.io.memo import Memoize
 from rogw.tranp.lang.implementation import implements
+from rogw.tranp.node.errors import NodeNotFoundError
 from rogw.tranp.node.node import Node
 from rogw.tranp.node.resolver import NodeResolver
 
@@ -59,7 +59,7 @@ class Nodes(Query[Node]):
 		Returns:
 			Node: ノード
 		Raises:
-			NotFoundError: ノードが存在しない
+			NodeNotFound: ノードが存在しない
 		"""
 		entry = self.__entries.by(full_path)
 		return self.__resolve(entry, full_path)
@@ -73,7 +73,7 @@ class Nodes(Query[Node]):
 		Returns:
 			Node: ノード
 		Raises:
-			NotFoundError: 親が存在しない
+			NodeNotFound: 親が存在しない
 		"""
 		memo = self.__memo.get(self.parent)
 		@memo(via)
@@ -85,7 +85,7 @@ class Nodes(Query[Node]):
 
 				forwards = forwards.shift(-1)
 
-			raise NotFoundError(via)
+			raise NodeNotFoundError(via)
 
 		return factory()
 
@@ -99,7 +99,7 @@ class Nodes(Query[Node]):
 		Returns:
 			Node: ノード
 		Raises:
-			NotFoundError: 指定のエントリータグを持つ親が存在しない
+			NodeNotFound: 指定のエントリータグを持つ親が存在しない
 		"""
 		memo = self.__memo.get(self.ancestor)
 		@memo(f'{via}#{tag}')
@@ -108,7 +108,7 @@ class Nodes(Query[Node]):
 			elems = list(reversed(base.de_identify().elements))
 			index = elems.index(tag)
 			if index == -1:
-				raise NotFoundError(via, tag)
+				raise NodeNotFoundError(via, tag)
 
 			slices = len(elems) - index
 			found_path = EntryPath.join(*base.elements[:slices])
@@ -125,11 +125,11 @@ class Nodes(Query[Node]):
 		Returns:
 			list[Node]: ノードリスト
 		Raises:
-			NotFoundError: 基点のノードが存在しない
+			NodeNotFound: 基点のノードが存在しない
 		"""
 		uplayer_path = EntryPath(via).shift(-1)
 		if not uplayer_path.valid:
-			raise NotFoundError(via)
+			raise NodeNotFoundError(via)
 
 		regular = re.compile(rf'{uplayer_path.escaped_origin}\.[^.]+')
 		tester = lambda _, path: regular.fullmatch(path) is not None
@@ -145,7 +145,7 @@ class Nodes(Query[Node]):
 		Returns:
 			list[Node]: ノードリスト
 		Raises:
-			NotFoundError: 基点のノードが存在しない
+			NodeNotFound: 基点のノードが存在しない
 		"""
 		memo = self.__memo.get(self.children)
 		@memo(via)
@@ -166,7 +166,7 @@ class Nodes(Query[Node]):
 		Returns:
 			list[Node]: ノードリスト
 		Raises:
-			NotFoundError: 基点のノードが存在しない
+			NodeNotFound: 基点のノードが存在しない
 		"""
 		memo = self.__memo.get(self.expand)
 		@memo(via)
@@ -220,7 +220,7 @@ class Nodes(Query[Node]):
 
 	@implements
 	def id(self, full_path: str) -> int:
-		"""指定のパスのIDを取得
+		"""指定のパスのエントリーのIDを取得
 
 		Args:
 			full_path (str): フルパス
@@ -228,3 +228,14 @@ class Nodes(Query[Node]):
 			int: ID
 		"""
 		return self.__entries.index_of(full_path)
+
+	@implements
+	def source_map(self, full_path: str) -> SourceMap:
+		"""指定のパスのエントリーのソースマップを取得
+
+		Args:
+			full_path (str): フルパス
+		Returns:
+			SourceMap: ソースマップ
+		"""
+		return self.__entries.by(full_path).source_map

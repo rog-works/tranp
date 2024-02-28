@@ -4,16 +4,16 @@ from unittest import TestCase
 from rogw.tranp.ast.entry import Entry
 from rogw.tranp.lang.implementation import implements
 
-T_Entry: TypeAlias = tuple[str, list] | tuple[str, str] | None
+DictTreeEntry: TypeAlias = tuple[str, list] | tuple[str, str] | None
 
 
 class EntryImpl(Entry):
-	def __init__(self, entry: T_Entry) -> None:
+	def __init__(self, entry: DictTreeEntry) -> None:
 		self.__entry = entry
 
 	@property
 	@implements
-	def source(self) -> T_Entry:
+	def source(self) -> DictTreeEntry:
 		return self.__entry
 
 	@property
@@ -31,7 +31,7 @@ class EntryImpl(Entry):
 
 	@property
 	@implements
-	def children(self) -> list[T_Entry]:
+	def children(self) -> list[DictTreeEntry]:
 		return self.__entry[1] if self.__entry is not None and type(self.__entry[1]) is list else []
 
 	@property
@@ -71,3 +71,6 @@ class TestEntry(TestCase):
 
 	def test_is_empty(self) -> None:
 		self.assertEqual(EntryImpl(('term_a', 'a')).is_empty, False)
+
+	def test_source_map(self) -> None:
+		self.assertEqual(EntryImpl(('term_a', 'a')).source_map, {'begin': (0, 0), 'end': (0, 0)})

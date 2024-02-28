@@ -2,11 +2,11 @@ import os
 import re
 from unittest import TestCase
 
+from rogw.tranp.analyze.errors import ProcessingError, UnresolvedSymbolError
 from rogw.tranp.analyze.plugin import PluginProvider
 from rogw.tranp.analyze.symbols import Symbols
 from rogw.tranp.app.io import appdir
 from rogw.tranp.ast.dsn import DSN
-from rogw.tranp.errors import LogicError
 from rogw.tranp.implements.cpp.providers.analyze import cpp_plugin_provider
 from rogw.tranp.lang.module import fullyname
 from rogw.tranp.lang.profile import profiler
@@ -294,13 +294,13 @@ class TestPy2Cpp(TestCase):
 		self.assertEqual(actual, expected)
 
 	@data_provider([
-		(_ast('CVarOps.tenary_calc.block', 'assign[7]'), r'Tenary operation not allowed.'),
+		(_ast('CVarOps.tenary_calc.block', 'assign[7]'), UnresolvedSymbolError, r'Only Nullable.'),
 
-		(_ast('Nullable.invalid_params', ''), r'Unexpected UnionType.'),
-		(_ast('Nullable.invalid_returns', ''), r'Unexpected UnionType.'),
+		(_ast('Nullable.invalid_params', ''), ProcessingError, r'Unexpected UnionType.'),
+		(_ast('Nullable.invalid_returns', ''), ProcessingError, r'Unexpected UnionType.'),
 	])
-	def test_exec_error(self, full_path: str, expected: re.Pattern) -> None:
+	def test_exec_error(self, full_path: str, expected_error: type[Exception], expected: re.Pattern) -> None:
 		translator = self.translator()
 		node = self.fixture.shared_nodes.by(full_path)
-		with self.assertRaisesRegex(LogicError, expected):
+		with self.assertRaisesRegex(expected_error, expected):
 			translator.translate(node)

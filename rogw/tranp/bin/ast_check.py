@@ -10,8 +10,8 @@ from lark.indenter import PythonIndenter
 from rogw.tranp.app.io import appdir
 from rogw.tranp.bin.io import readline
 
-T_Options = TypedDict('T_Options', {'source': str, 'output': str})
-T_Args = TypedDict('T_Args', {'runner': str, 'grammar': str, 'options': T_Options})
+Options = TypedDict('Options', {'source': str})
+Args = TypedDict('Args', {'runner': str, 'grammar': str, 'options': Options})
 
 
 def load_file(filename: str) -> str:
@@ -74,36 +74,19 @@ def run_parse(parser: Lark, source: str) -> None:
 	print(parser.parse(load_file(source)).pretty())
 
 
-def run_parse_to_save(parser: Lark, source: str, output: str) -> None:
-	tree = parser.parse(load_file(source))
-	pretty = '\n# '.join(tree.pretty().split('\n'))
-	lines = [
-		'from lark import Tree, Token',
-		'def fixture() -> Tree:',
-		f'	return {str(tree)}',
-		'# ==========',
-		f'# {pretty}',
-	]
-	with open(os.path.join(appdir(), output), mode='wb') as f:
-		f.write(('\n'.join(lines)).encode('utf-8'))
-
-
-def main(runner: str, grammar: str, options: T_Options) -> None:
+def main(runner: str, grammar: str, options: Options) -> None:
 	parser = Lark(load_file(grammar), start='file_input', postlex=PythonIndenter(), parser='lalr')
 
 	if runner == 'interactive':
 		run_interactive(parser)
 	elif runner == 'file':
 		run_parse(parser, options['source'])
-	elif runner == 'output':
-		run_parse_to_save(parser, options['source'], options['output'])
 
 
-def parse_args(argv: list[str]) -> T_Args:
+def parse_args(argv: list[str]) -> Args:
 	runner = 'interactive'
 	grammar = ''
 	source = ''
-	output = ''
 
 	while(len(argv)):
 		value = argv.pop(0)
@@ -114,16 +97,12 @@ def parse_args(argv: list[str]) -> T_Args:
 			source = argv.pop(0)
 		elif value == '-g':
 			grammar = argv.pop(0)
-		elif value == '-o':
-			runner = 'output'
-			output = argv.pop(0)
 
 	return {
 		'runner': runner,
 		'grammar': grammar,
 		'options': {
 			'source': source,
-			'output': output,
 		},
 	}
 

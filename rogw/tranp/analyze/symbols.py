@@ -1,6 +1,7 @@
 from types import UnionType
 
 from rogw.tranp.analyze.db import SymbolDB
+from rogw.tranp.analyze.errors import LexicalError, OperationNotAllowedError, UnresolvedSymbolError
 from rogw.tranp.analyze.plugin import PluginProvider
 from rogw.tranp.analyze.symbol import SymbolRaw
 from rogw.tranp.analyze.procedure import Procedure
@@ -8,7 +9,7 @@ import rogw.tranp.analyze.reflection as reflection
 from rogw.tranp.analyze.finder import SymbolFinder
 import rogw.tranp.compatible.python.classes as classes
 from rogw.tranp.compatible.python.types import Standards
-from rogw.tranp.errors import LogicError, NotFoundError
+from rogw.tranp.lang.error import raises
 from rogw.tranp.lang.eventemitter import Callback
 from rogw.tranp.lang.implementation import implements, injectable
 import rogw.tranp.node.definition as defs
@@ -63,6 +64,7 @@ class Symbols:
 		if action in self.__handlers:
 			self.__handlers[action].remove(callback)
 
+	@raises(UnresolvedSymbolError, LexicalError)
 	def is_a(self, symbol: SymbolRaw, standard_type: type[Standards] | None) -> bool:
 		"""シンボルの型を判定
 
@@ -71,19 +73,23 @@ class Symbols:
 			standard_type (type[Standards] | None): 標準クラス
 		Return:
 			bool: True = 指定の型と一致
+		Raises:
+			UnresolvedSymbolError: 標準クラスが未実装
 		"""
 		return symbol.types == self.type_of_standard(standard_type).types
 
+	@raises(UnresolvedSymbolError, LexicalError)
 	def get_object(self) -> SymbolRaw:
 		"""objectのシンボルを取得
 
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			LogicError: objectが未実装
+			UnresolvedSymbolError: objectが未実装
 		"""
 		return self.__finder.get_object(self.__raws)
 
+	@raises(UnresolvedSymbolError, LexicalError)
 	def from_fullyname(self, fullyname: str) -> SymbolRaw:
 		"""完全参照名からシンボルを解決
 
@@ -92,10 +98,11 @@ class Symbols:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			NotFoundError: シンボルが見つからない
+			UnresolvedSymbolError: シンボルの解決に失敗
 		"""
 		return self.__finder.by(self.__raws, fullyname)
 
+	@raises(UnresolvedSymbolError, LexicalError)
 	def type_of_standard(self, standard_type: type[Standards] | None) -> SymbolRaw:
 		"""標準クラスのシンボルを解決
 
@@ -104,10 +111,11 @@ class Symbols:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			NotFoundError: シンボルが見つからない
+			UnresolvedSymbolError: 標準クラスが未実装
 		"""
 		return self.__finder.by_standard(self.__raws, standard_type)
 
+	@raises(UnresolvedSymbolError, LexicalError)
 	def type_of_property(self, types: defs.ClassDef, prop: defs.Var) -> SymbolRaw:
 		"""クラス定義ノードと変数参照ノードからプロパティーのシンボルを解決
 
@@ -117,10 +125,11 @@ class Symbols:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			NotFoundError: シンボルが見つからない
+			UnresolvedSymbolError: シンボルの解決に失敗
 		"""
 		return self.resolve(types, prop.tokens)
 
+	@raises(UnresolvedSymbolError, LexicalError)
 	def type_of_constructor(self, types: defs.Class) -> SymbolRaw:
 		"""クラス定義ノードからコンストラクターのシンボルを解決
 
@@ -129,12 +138,13 @@ class Symbols:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			NotFoundError: シンボルが見つからない
+			UnresolvedSymbolError: コンストラクターの実装ミス
 		Note:
 			FIXME Pythonのコンストラクターに依存したコードはNG。再度検討
 		"""
 		return self.resolve(types, '__init__')
 
+	@raises(UnresolvedSymbolError, LexicalError)
 	def type_of(self, node: Node) -> SymbolRaw:
 		"""シンボル系/式ノードからシンボルを解決 XXX 万能過ぎるので細分化を検討
 
@@ -143,7 +153,7 @@ class Symbols:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			NotFoundError: シンボルが見つからない
+			UnresolvedSymbolError: シンボルの解決に失敗
 		"""
 		if isinstance(node, defs.Declable):
 			return self.resolve(node)
@@ -170,7 +180,7 @@ class Symbols:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			NotFoundError: シンボルが見つからない
+			LexicalError: シンボルの解決に失敗
 		"""
 		if isinstance(node, defs.Var):
 			return self.resolve(node)
@@ -186,7 +196,7 @@ class Symbols:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			NotFoundError: シンボルが見つからない
+			LexicalError: シンボルの解決に失敗
 		"""
 		if isinstance(node, defs.For):
 			return self.__resolve_procedural(node.for_in)
@@ -202,7 +212,7 @@ class Symbols:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			NotFoundError: シンボルが見つからない
+			LexicalError: シンボルの解決に失敗
 		"""
 		if isinstance(node, defs.Comprehension):
 			projection_type = list if node.is_a(defs.ListComp) else dict
@@ -217,6 +227,7 @@ class Symbols:
 			# CompFor
 			return self.__resolve_procedural(node.for_in)
 
+	@raises(UnresolvedSymbolError, LexicalError)
 	def resolve(self, symbolic: defs.Symbolic, prop_name: str = '') -> SymbolRaw:
 		"""シンボルテーブルからシンボルを解決
 
@@ -226,13 +237,13 @@ class Symbols:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			NotFoundError: シンボルが見つからない
+			UnresolvedSymbolError: シンボルの解決に失敗
 		"""
 		found_raw = self.__resolve_raw(symbolic, prop_name)
 		if found_raw is not None:
 			return found_raw
 
-		raise NotFoundError(f'SymbolRaw not defined. symbolic: {symbolic.fullyname}, prop_name: {prop_name}')
+		raise UnresolvedSymbolError(f'symbolic: {symbolic.fullyname}, prop_name: {prop_name}')
 
 	def __resolve_raw(self, symbolic: defs.Symbolic, prop_name: str) -> SymbolRaw | None:
 		"""シンボル系ノードからシンボルを解決。未検出の場合はNoneを返却
@@ -281,7 +292,7 @@ class Symbols:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			NotFoundError: シンボルが見つからない
+			ProcessingError: シンボルの解決に失敗
 		"""
 		procedure = ProceduralResolver(self)
 		for key, handlers in self.__handlers.items():
@@ -347,6 +358,8 @@ class ProceduralResolver:
 			node (Node): ノード
 		Returns:
 			SymbolRaw: シンボル
+		Raises:
+			ProcessingError: 実行エラー
 		"""
 		return self.__procedure.exec(node)
 
@@ -404,7 +417,7 @@ class ProceduralResolver:
 		def resolve() -> SymbolRaw:
 			try:
 				return self.symbols.resolve(iterates.types, '__next__')
-			except NotFoundError:
+			except UnresolvedSymbolError:
 				return self.symbols.resolve(iterates.types, '__iter__')
 
 		method = resolve()
@@ -656,11 +669,11 @@ class ProceduralResolver:
 		for index, operand in enumerate(operands):
 			try:
 				methods[index] = self.symbols.resolve(operand.types, method_name)
-			except NotFoundError:
+			except UnresolvedSymbolError:
 				pass
 
 		if methods[0] is None and methods[1] is None:
-			raise LogicError(f'Operation not allowed. {method_name} not defined. {node}, {str(left)} {operator.tokens} {str(right)}')
+			raise OperationNotAllowedError(f'"{method_name}" not defined. {node}, {str(left)} {operator.tokens} {str(right)}')
 
 		for index, candidate in enumerate(methods):
 			if candidate is None:
@@ -679,7 +692,7 @@ class ProceduralResolver:
 			if other in var_types:
 				return method_ref.returns(receiver, actual_other)
 
-		raise LogicError(f'Operation not allowed. signature not match. {node}, {str(left)} {operator.tokens} {str(right)}')
+		raise OperationNotAllowedError(f'Signature not match. {node}, {str(left)} {operator.tokens} {str(right)}')
 
 	def operator_to_method_name(self, operator: str) -> str:
 		operators = {
@@ -720,7 +733,7 @@ class ProceduralResolver:
 		primary_is_null = self.symbols.is_a(primary, None)
 		secondary_is_null = self.symbols.is_a(secondary, None)
 		if primary_is_null == secondary_is_null:
-			raise LogicError(f'Tenary operation not allowed. only Nullable. node: {node}, primary: {primary}, secondary: {secondary}')
+			raise OperationNotAllowedError(f'Only Nullable. node: {node}, primary: {primary}, secondary: {secondary}')
 
 		var_type = secondary if primary_is_null else primary
 		null_type = primary if primary_is_null else secondary

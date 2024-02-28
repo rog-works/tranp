@@ -4,7 +4,7 @@ from rogw.tranp.node.embed import Meta, accept_tags, expandable
 from rogw.tranp.node.node import Node
 
 
-class Operator(Node): ...
+class Operator(Node): pass
 
 
 class UnaryOperator(Operator):

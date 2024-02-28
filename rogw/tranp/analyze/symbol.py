@@ -2,7 +2,7 @@ from abc import ABCMeta, abstractmethod
 from enum import Enum
 from typing import Any, Callable, Iterator, TypeAlias, TypeVar
 
-from rogw.tranp.errors import LogicError
+from rogw.tranp.errors import FatalError, LogicError
 from rogw.tranp.lang.implementation import implements, injectable, override
 import rogw.tranp.node.definition as defs
 from rogw.tranp.node.definition.statement_compound import ClassSymbolMaker
@@ -294,13 +294,13 @@ class SymbolRaw(metaclass=ABCMeta):
 		Returns:
 			bool: True = 同じ
 		Raises:
-			ValueError: 継承関係の無いオブジェクトを指定
+			LogicError: 継承関係の無いオブジェクトを指定 XXX 出力する例外は要件等
 		"""
 		if other is None:
 			return False
 
 		if not isinstance(other, SymbolRaw):
-			raise ValueError(f'Not allowed comparison. other: {type(other)}')
+			raise LogicError(f'Not allowed comparison. other: {type(other)}')
 
 		return other.__repr__() == self.__repr__()
 
@@ -381,10 +381,10 @@ class SymbolRaw(metaclass=ABCMeta):
 		Returns:
 			T_Raw: インスタンス
 		Raises:
-			LogicError: 実体の無いインスタンスに実行
-			LogicError: 拡張済みのインスタンスに再度実行
+			LogicError: 実体の無いインスタンスに実行 XXX 出力する例外は要件等
+			LogicError: 拡張済みのインスタンスに再度実行 XXX 出力する例外は要件等
 		"""
-		raise LogicError(f'Not allowd extends. symbol: {self.types.fullyname}')
+		raise LogicError(f'Not allowed extends. symbol: {self.types.fullyname}')
 
 	@property
 	def to(self) -> 'SymbolWrapper':
@@ -403,7 +403,7 @@ class SymbolRaw(metaclass=ABCMeta):
 		Returns:
 			T_Raw: インスタンス
 		Raises:
-			LogidError: 継承関係が無い型を指定
+			LogidError: 継承関係が無い型を指定 XXX 出力する例外は要件等
 		"""
 		if isinstance(self, expects):
 			return self
@@ -431,7 +431,7 @@ class SymbolOrigin(SymbolRaw):
 		if self.__raws is not None:
 			return self.__raws
 
-		raise LogicError(f'Unreachable code.')
+		raise FatalError(f'Unreachable code.')
 
 	@implements
 	def set_raws(self, raws: SymbolRaws) -> None:

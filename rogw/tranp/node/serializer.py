@@ -14,6 +14,8 @@ def serialize(node: Node, schema: type[T]) -> T:
 		schema (type[T]): シリアライズスキーマ
 	Returns:
 		T: シリアライズしたdict
+	Raises:
+		LogicError: 未対応の型が存在
 	"""
 	out = {
 		in_key: __serialize_value(getattr(node, in_key), in_schema)
@@ -30,6 +32,8 @@ def __serialize_value(value: list[Node] | Node, schema: type) -> Any:
 		schema (type[T]): シリアライズスキーマ
 	Returns:
 		Any: シリアライズした値
+	Raises:
+		LogicError: 未対応の型が存在
 	"""
 	if hasattr(schema, '__annotations__') and isinstance(value, Node):
 		return serialize(value, schema)

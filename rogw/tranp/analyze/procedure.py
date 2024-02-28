@@ -1,7 +1,9 @@
 from typing import Generic, TypeVar, cast
 
+from rogw.tranp.analyze.errors import ProcessingError
 from rogw.tranp.ast.dsn import DSN
 from rogw.tranp.errors import LogicError
+from rogw.tranp.lang.error import raises
 from rogw.tranp.lang.eventemitter import Callback, EventEmitter
 from rogw.tranp.lang.implementation import implements
 from rogw.tranp.node.node import Node
@@ -58,6 +60,7 @@ class Procedure(Generic[T_Ret]):
 		"""イベントハンドラーの登録を全て解除"""
 		self.__emitter.clear()
 
+	@raises(ProcessingError, LogicError)
 	def exec(self, root: Node) -> T_Ret:
 		"""指定のルート要素から逐次処理し、結果を出力
 
@@ -65,6 +68,8 @@ class Procedure(Generic[T_Ret]):
 			root (Node): ルート要素
 		Returns:
 			T_Ret: 結果
+		Raises:
+			ProcessingError: 実行エラー
 		"""
 		flatted = root.calculated()
 		flatted.append(root)  # XXX 自身が含まれないので末尾に追加
@@ -113,7 +118,7 @@ class Procedure(Generic[T_Ret]):
 		elif self.__emitter.observed('on_fallback'):
 			self.__run_action(node, 'on_fallback')
 		else:
-			raise LogicError(f'Handler not defined. node: {str(node)}')
+			raise LogicError(f'Handler not defined. node: {node}')
 
 	def __enter(self, node: Node) -> None:
 		"""指定のノードのプロセス処理(実行前)
@@ -152,7 +157,7 @@ class Procedure(Generic[T_Ret]):
 		org_result = self.__stack_pop()
 		new_result = self.__emit_proxy(handler_name, node, result=org_result)
 		if new_result is None:
-			raise LogicError('Result is null.')
+			raise LogicError(f'Result is null. node: {node}')
 
 		self.__stack.append(new_result)
 
@@ -195,17 +200,22 @@ class Procedure(Generic[T_Ret]):
 			node (Node): ノード
 		Returns:
 			dict[str, Node | T_Ret | list[T_Ret]]: イベントデータ
+		Raises:
+			LogicError: スタックが不足
 		"""
-		event: dict[str, T_Ret | list[T_Ret]] = {}
-		prop_keys = reversed(node.prop_keys())
-		for prop_key in prop_keys:
-			if self.__is_prop_list_by(node, prop_key):
-				counts = len(getattr(node, prop_key))
-				event[prop_key] = list(reversed([self.__stack_pop() for _ in range(counts)]))
-			else:
-				event[prop_key] = self.__stack_pop()
+		try:
+			event: dict[str, T_Ret | list[T_Ret]] = {}
+			prop_keys = reversed(node.prop_keys())
+			for prop_key in prop_keys:
+				if self.__is_prop_list_by(node, prop_key):
+					counts = len(getattr(node, prop_key))
+					event[prop_key] = list(reversed([self.__stack_pop() for _ in range(counts)]))
+				else:
+					event[prop_key] = self.__stack_pop()
 
-		return event
+			return event
+		except LogicError as e:
+			raise LogicError(f'{str(e)} node: {node}')
 
 	def __is_prop_list_by(self, node: Node, prop_key: str) -> bool:
 		"""展開プロパティーがリストか判定
@@ -241,15 +251,29 @@ class Procedure(Generic[T_Ret]):
 			stacks (tuple[int, int, int]): スタック数(実行前, 実行, 実行後)
 			result (T_Ret | None): 結果
 		"""
+		if self.__verbose:
+			data = self.__make_log_data(node, handler_name, stacks, result)
+			joined_data = ', '.join([f'{key}: {value}' for key, value in data.items()])
+			indent = ' ' * DSN.elem_counts(node.full_path)
+			self.__put_log(f'{indent} {joined_data}')
+
+	def __make_log_data(self, node: Node, handler_name: str, stacks: tuple[int, int, int], result: T_Ret | None) -> dict[str, str]:
+		"""プロセス処理のログデータを生成
+
+		Args:
+			node (Node): ノード
+			handler_name (str): ハンドラー名
+			stacks (tuple[int, int, int]): スタック数(実行前, 実行, 実行後)
+			result (T_Ret | None): 結果
+		Returns:
+			dict[str, str]: ログデータ
+		"""
 		result_str = str(result).replace('\n', '\\n')
-		indent = ' ' * DSN.elem_counts(node.full_path)
-		data = {
+		return {
 			str(node): handler_name,
 			'stacks': ' -> '.join(map(str, stacks)),
 			'result': result_str if len(result_str) < 50 else f'{result_str[:50]}...',
 		}
-		joined_data = ', '.join([f'{key}: {value}' for key, value in data.items()])
-		self.__put_log(f'{indent} {joined_data}')
 
 	def __put_log(self, *strs: str) -> None:
 		"""ログ出力

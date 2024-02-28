@@ -1,7 +1,7 @@
 import re
 from unittest import TestCase
 
-from lark import Token, Tree
+import lark
 
 from rogw.tranp.ast.entry import Entry
 from rogw.tranp.ast.finder import ASTFinder
@@ -11,18 +11,18 @@ from rogw.tranp.tp_lark.entry import EntryOfLark
 class Fixture:
 	@classmethod
 	def tree(cls) -> Entry:
-		tree = Tree('root', [
-			Tree('tree_a', [
+		tree = lark.Tree('root', [
+			lark.Tree('tree_a', [
 				None,
-				Token('token_a', ''),
-				Tree('tree_b', []),
-				Tree('tree_b', [
-					Token('token_b', ''),
+				lark.Token('token_a', ''),
+				lark.Tree('tree_b', []),
+				lark.Tree('tree_b', [
+					lark.Token('token_b', ''),
 				]),
-				Token('token_a', ''),
-				Token('token_c', ''),
+				lark.Token('token_a', ''),
+				lark.Token('token_c', ''),
 			]),
-			Token('token_d', ''),
+			lark.Token('token_d', ''),
 		])
 		return EntryOfLark(tree)
 

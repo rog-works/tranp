@@ -3,9 +3,9 @@ from typing import Any, TypedDict
 
 from rogw.tranp.lang.implementation import implements
 
-T_Token = TypedDict('T_Token', {'name': str, 'value': str})
-T_Tree = TypedDict('T_Tree', {'name': str, 'children': list['T_Tree | T_Token | None']})
-T_Entry = T_Tree | T_Token | None
+DictToken = TypedDict('DictToken', {'name': str, 'value': str})
+DictTree = TypedDict('DictTree', {'name': str, 'children': list['DictTree | DictToken | None']})
+DictTreeEntry = DictTree | DictToken | None
 
 SourceMap = TypedDict('SourceMap', {'begin': tuple[int, int], 'end': tuple[int, int]})
 
@@ -82,18 +82,18 @@ class Entry(metaclass=ABCMeta):
 class EntryOfDict(Entry):
 	"""連想配列のエントリー実装"""
 
-	def __init__(self, entry: T_Entry) -> None:
+	def __init__(self, entry: DictTreeEntry) -> None:
 		"""インスタンスを生成
 
 		Args:
-			entry (T_Entry): エントリー
+			entry (DictTreeEntry): エントリー
 		"""
 		self.__entry = entry
 
 	@property
 	@implements
-	def source(self) -> T_Entry:
-		"""T_Entry: オリジナルのエントリー"""
+	def source(self) -> DictTreeEntry:
+		"""DictTreeEntry: オリジナルのエントリー"""
 		return self.__entry
 
 	@property

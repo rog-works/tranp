@@ -2,7 +2,7 @@ from typing import cast
 
 import lark
 
-from rogw.tranp.ast.entry import Entry, SourceMap, T_Entry, T_Tree
+from rogw.tranp.ast.entry import Entry, SourceMap, DictTreeEntry, DictTree
 from rogw.tranp.lang.implementation import implements, override
 
 
@@ -95,27 +95,27 @@ class EntryOfLark(Entry):
 
 class Serialization:
 	@classmethod
-	def dumps(cls, root: lark.Tree) -> T_Tree:
+	def dumps(cls, root: lark.Tree) -> DictTree:
 		"""連想配列にシリアライズ
 
 		Args:
 			root (lark.Tree): ツリー
 		Returns:
-			T_Tree: シリアライズツリー
+			DictTree: シリアライズツリー
 		"""
-		return cast(T_Tree, cls.__dumps(root))
+		return cast(DictTree, cls.__dumps(root))
 
 	@classmethod
-	def __dumps(cls, entry: lark.Tree | lark.Token | None) -> T_Entry:
+	def __dumps(cls, entry: lark.Tree | lark.Token | None) -> DictTreeEntry:
 		"""連想配列にシリアライズ
 
 		Args:
 			entry (lark.Tree | lark.Token | None): エントリー
 		Returns:
-			T_Entry: シリアライズエントリー
+			DictTreeEntry: シリアライズエントリー
 		"""
 		if type(entry) is lark.Tree:
-			children: list[T_Entry] = []
+			children: list[DictTreeEntry] = []
 			for child in entry.children:
 				children.append(cls.__dumps(child))
 
@@ -126,28 +126,28 @@ class Serialization:
 			return None
 
 	@classmethod
-	def loads(cls, root: T_Tree) -> lark.Tree:
+	def loads(cls, root: DictTree) -> lark.Tree:
 		"""連想配列からデシリアライズ
 
 		Args:
-			root (T_Tree): シリアライズツリー
+			root (DictTree): シリアライズツリー
 		Returns:
 			lark.Tree: ツリー
 		"""
 		return cast(lark.Tree, cls.__loads(root))
 
 	@classmethod
-	def __loads(cls, entry: T_Entry) -> lark.Tree | lark.Token | None:
+	def __loads(cls, entry: DictTreeEntry) -> lark.Tree | lark.Token | None:
 		"""連想配列からデシリアライズ
 
 		Args:
-			entry (T_Entry): シリアライズエントリー
+			entry (DictTreeEntry): シリアライズエントリー
 		Returns:
 			lark.Tree | lark.Token | None: エントリー
 		"""
 		if type(entry) is dict and 'children' in entry:
 			children: list[lark.Tree | lark.Token | None] = []
-			for child in cast(list[T_Entry], entry['children']):
+			for child in cast(list[DictTreeEntry], entry['children']):
 				children.append(cls.__loads(child))
 
 			return lark.Tree(entry['name'], children)

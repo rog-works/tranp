@@ -294,7 +294,7 @@ class SymbolRaw(metaclass=ABCMeta):
 		Returns:
 			bool: True = 同じ
 		Raises:
-			LogicError: 継承関係の無いオブジェクトを指定 XXX 出力例外を要件等
+			LogicError: 継承関係の無いオブジェクトを指定 XXX 出力する例外は要件等
 		"""
 		if other is None:
 			return False
@@ -381,8 +381,8 @@ class SymbolRaw(metaclass=ABCMeta):
 		Returns:
 			T_Raw: インスタンス
 		Raises:
-			LogicError: 実体の無いインスタンスに実行 XXX 出力例外を要件等
-			LogicError: 拡張済みのインスタンスに再度実行 XXX 出力例外を要件等
+			LogicError: 実体の無いインスタンスに実行 XXX 出力する例外は要件等
+			LogicError: 拡張済みのインスタンスに再度実行 XXX 出力する例外は要件等
 		"""
 		raise LogicError(f'Not allowed extends. symbol: {self.types.fullyname}')
 
@@ -403,7 +403,7 @@ class SymbolRaw(metaclass=ABCMeta):
 		Returns:
 			T_Raw: インスタンス
 		Raises:
-			LogidError: 継承関係が無い型を指定 XXX 出力例外を要件等
+			LogidError: 継承関係が無い型を指定 XXX 出力する例外は要件等
 		"""
 		if isinstance(self, expects):
 			return self

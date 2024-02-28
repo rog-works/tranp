@@ -64,7 +64,7 @@ class Node:
 		Returns:
 			bool: True = 同じ
 		Raises:
-			LogicError: Node以外のオブジェクトを指定 XXX 出力例外を要件等
+			LogicError: Node以外のオブジェクトを指定 XXX 出力する例外は要件等
 		"""
 		if other is None:
 			return False

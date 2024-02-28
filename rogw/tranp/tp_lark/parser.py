@@ -1,7 +1,7 @@
 import json
 from typing import IO, cast
 
-from lark import Lark, Tree
+import lark
 from lark.indenter import PythonIndenter
 
 from rogw.tranp.ast.entry import Entry
@@ -40,7 +40,7 @@ class SyntaxParserOfLark:
 		parser = self.__load_parser()
 		return self.__load_entry(parser, module_path)
 
-	def __load_parser(self) -> Lark:
+	def __load_parser(self) -> lark.Lark:
 		"""シンタックスパーサーをロード
 
 		Returns:
@@ -56,7 +56,7 @@ class SyntaxParserOfLark:
 
 		@self.__cache.get('parser.cache', identity=identity(), format='bin')
 		def instantiate() -> LarkStored:
-			return LarkStored(Lark(
+			return LarkStored(lark.Lark(
 				self.__loader.load(self.__setting.grammar),
 				start=self.__setting.start,
 				parser=self.__setting.algorithem,
@@ -66,7 +66,7 @@ class SyntaxParserOfLark:
 
 		return instantiate().lark
 
-	def __load_entry(self, parser: Lark, module_path: str) -> Entry:
+	def __load_entry(self, parser: lark.Lark, module_path: str) -> Entry:
 		"""シンタックスツリーをロード
 
 		Args:
@@ -92,7 +92,7 @@ class SyntaxParserOfLark:
 
 		return instantiate().entry
 
-	def dirty_get_origin(self) -> Lark:
+	def dirty_get_origin(self) -> lark.Lark:
 		"""Larkインスタンスを取得(デバッグ用)
 
 		Returns:
@@ -106,7 +106,7 @@ class SyntaxParserOfLark:
 class LarkStored:
 	"""ストア(Lark版)"""
 
-	def __init__(self, lark: Lark) -> None:
+	def __init__(self, lark: lark.Lark) -> None:
 		""""インスタンスを生成
 
 		Args:
@@ -123,7 +123,7 @@ class LarkStored:
 		Returns:
 			LarkStored: インスタンス
 		"""
-		return LarkStored(Lark.load(stream))
+		return LarkStored(lark.Lark.load(stream))
 
 	def save(self, stream: IO) -> None:
 		""""インスタンスを保存
@@ -155,7 +155,7 @@ class EntryStored:
 			EntryStored: インスタンス
 		"""
 		data = json.load(stream)
-		tree = cast(Tree, Serialization.loads(data))
+		tree = cast(lark.Tree, Serialization.loads(data))
 		return EntryStored(EntryOfLark(tree))
 
 	def save(self, stream: IO) -> None:
@@ -164,5 +164,5 @@ class EntryStored:
 		Args:
 			stream (IO): IO
 		"""
-		data = Serialization.dumps(cast(Tree, self.entry.source))
+		data = Serialization.dumps(cast(lark.Tree, self.entry.source))
 		stream.write(json.dumps(data).encode('utf-8'))

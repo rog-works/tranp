@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from lark import Token, Tree
+import lark
 
 from rogw.tranp.ast.entry import Entry
 from rogw.tranp.ast.resolver import SymbolMapping
@@ -43,21 +43,21 @@ class Fixture:
 
 	@classmethod
 	def __tree(cls) -> Entry:
-		tree = Tree('root', [
-			Tree('tree_a', [
+		tree = lark.Tree('root', [
+			lark.Tree('tree_a', [
 				None,
-				Token('token_a', 'a.a'),
-				Tree('tree_b', []),
-				Tree('tree_b', [
-					Token('token_b', 'a.b.b'),
+				lark.Token('token_a', 'a.a'),
+				lark.Tree('tree_b', []),
+				lark.Tree('tree_b', [
+					lark.Token('token_b', 'a.b.b'),
 				]),
-				Token('token_a', 'a.a'),
-				Token('token_c', 'a.c'),
+				lark.Token('token_a', 'a.a'),
+				lark.Token('token_c', 'a.c'),
 			]),
-			Token('term_a', 'a'),
-			Tree('tree_c', [
-				Tree('skip_tree_a', [
-					Token('term_a', 'c.a.a'),
+			lark.Token('term_a', 'a'),
+			lark.Tree('tree_c', [
+				lark.Tree('skip_tree_a', [
+					lark.Token('term_a', 'c.a.a'),
 				]),
 			]),
 		])

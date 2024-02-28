@@ -1,6 +1,6 @@
 from typing import cast
 
-from lark import Token, Tree
+import lark
 
 from rogw.tranp.ast.entry import Entry, SourceMap, T_Entry, T_Tree
 from rogw.tranp.lang.implementation import implements, override
@@ -9,7 +9,7 @@ from rogw.tranp.lang.implementation import implements, override
 class EntryOfLark(Entry):
 	"""エントリーへの要素アクセスを代替するプロクシー"""
 
-	def __init__(self, entry: Tree | Token | None) -> None:
+	def __init__(self, entry: lark.Tree | lark.Token | None) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -19,7 +19,7 @@ class EntryOfLark(Entry):
 
 	@property
 	@implements
-	def source(self) -> Tree | Token | None:
+	def source(self) -> lark.Tree | lark.Token | None:
 		"""Tree | Token | None: オリジナルのエントリー"""
 		return self.__entry
 
@@ -27,9 +27,9 @@ class EntryOfLark(Entry):
 	@implements
 	def name(self) -> str:
 		"""str: エントリー名 @note: 空の場合を考慮"""
-		if type(self.__entry) is Tree:
+		if type(self.__entry) is lark.Tree:
 			return self.__entry.data
-		elif type(self.__entry) is Token:
+		elif type(self.__entry) is lark.Token:
 			return self.__entry.type
 		else:
 			return self.empty_name
@@ -38,25 +38,25 @@ class EntryOfLark(Entry):
 	@implements
 	def has_child(self) -> bool:
 		"""bool: True = 子を持つエントリー"""
-		return type(self.__entry) is Tree
+		return type(self.__entry) is lark.Tree
 
 	@property
 	@implements
 	def children(self) -> list[Entry]:
 		"""list[Entry]: 配下のエントリーリスト"""
-		return [EntryOfLark(in_entry) for in_entry in self.__entry.children] if type(self.__entry) is Tree else []
+		return [EntryOfLark(in_entry) for in_entry in self.__entry.children] if type(self.__entry) is lark.Tree else []
 
 	@property
 	@implements
 	def is_terminal(self) -> bool:
 		"""bool: True = 終端記号"""
-		return type(self.__entry) is Token
+		return type(self.__entry) is lark.Token
 
 	@property
 	@implements
 	def value(self) -> str:
 		"""str: 終端記号の値"""
-		return self.__entry.value if type(self.__entry) is Token else ''
+		return self.__entry.value if type(self.__entry) is lark.Token else ''
 
 	@property
 	@implements
@@ -79,12 +79,12 @@ class EntryOfLark(Entry):
 			begin (tuple[int, int]): 開始位置(行/列)
 			end (tuple[int, int]): 終了位置(行/列)
 		"""
-		if type(self.__entry) is Tree and self.__entry._meta is not None:
+		if type(self.__entry) is lark.Tree and self.__entry._meta is not None:
 			return {
 				'begin': (self.__entry._meta.line, self.__entry._meta.column),
 				'end': (self.__entry._meta.end_line, self.__entry._meta.end_column),
 			}
-		elif type(self.__entry) is Token and self.__entry.line and self.__entry.column and self.__entry.end_line and self.__entry.end_column:
+		elif type(self.__entry) is lark.Token and self.__entry.line and self.__entry.column and self.__entry.end_line and self.__entry.end_column:
 			return {
 				'begin': (self.__entry.line, self.__entry.column),
 				'end': (self.__entry.end_line, self.__entry.end_column),
@@ -95,63 +95,63 @@ class EntryOfLark(Entry):
 
 class Serialization:
 	@classmethod
-	def dumps(cls, root: Tree) -> T_Tree:
+	def dumps(cls, root: lark.Tree) -> T_Tree:
 		"""連想配列にシリアライズ
 
 		Args:
-			root (Tree): ツリー
+			root (lark.Tree): ツリー
 		Returns:
 			T_Tree: シリアライズツリー
 		"""
 		return cast(T_Tree, cls.__dumps(root))
 
 	@classmethod
-	def __dumps(cls, entry: Tree | Token | None) -> T_Entry:
+	def __dumps(cls, entry: lark.Tree | lark.Token | None) -> T_Entry:
 		"""連想配列にシリアライズ
 
 		Args:
-			entry (Tree | Token | None): エントリー
+			entry (lark.Tree | lark.Token | None): エントリー
 		Returns:
 			T_Entry: シリアライズエントリー
 		"""
-		if type(entry) is Tree:
+		if type(entry) is lark.Tree:
 			children: list[T_Entry] = []
 			for child in entry.children:
 				children.append(cls.__dumps(child))
 
 			return {'name': str(entry.data), 'children': children}
-		elif type(entry) is Token:
+		elif type(entry) is lark.Token:
 			return {'name': entry.type, 'value': entry.value}
 		else:
 			return None
 
 	@classmethod
-	def loads(cls, root: T_Tree) -> Tree:
+	def loads(cls, root: T_Tree) -> lark.Tree:
 		"""連想配列からデシリアライズ
 
 		Args:
 			root (T_Tree): シリアライズツリー
 		Returns:
-			Tree: ツリー
+			lark.Tree: ツリー
 		"""
-		return cast(Tree, cls.__loads(root))
+		return cast(lark.Tree, cls.__loads(root))
 
 	@classmethod
-	def __loads(cls, entry: T_Entry) -> Tree | Token | None:
+	def __loads(cls, entry: T_Entry) -> lark.Tree | lark.Token | None:
 		"""連想配列からデシリアライズ
 
 		Args:
 			entry (T_Entry): シリアライズエントリー
 		Returns:
-			Tree | Token | None: エントリー
+			lark.Tree | lark.Token | None: エントリー
 		"""
 		if type(entry) is dict and 'children' in entry:
-			children: list[Tree | Token | None] = []
+			children: list[lark.Tree | lark.Token | None] = []
 			for child in cast(list[T_Entry], entry['children']):
 				children.append(cls.__loads(child))
 
-			return Tree(entry['name'], children)
+			return lark.Tree(entry['name'], children)
 		elif type(entry) is dict and 'value' in entry:
-			return Token(entry['name'], entry['value'])
+			return lark.Token(entry['name'], entry['value'])
 		else:
 			return None

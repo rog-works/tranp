@@ -294,13 +294,13 @@ class SymbolRaw(metaclass=ABCMeta):
 		Returns:
 			bool: True = 同じ
 		Raises:
-			ValueError: 継承関係の無いオブジェクトを指定
+			LogicError: 継承関係の無いオブジェクトを指定
 		"""
 		if other is None:
 			return False
 
 		if not isinstance(other, SymbolRaw):
-			raise ValueError(f'Not allowed comparison. other: {type(other)}')
+			raise LogicError(f'Not allowed comparison. other: {type(other)}')
 
 		return other.__repr__() == self.__repr__()
 

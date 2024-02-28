@@ -32,6 +32,8 @@ class Schema(Generic[T_Sym]):
 			key (str): プロパティー名
 		Returns:
 			T_Sym: シンボル | シンボルリスト
+		Raises:
+			LogicError: 存在しないキーを指定
 		"""
 		if key in self.__schemata:
 			return self.__schemata[key]
@@ -397,6 +399,8 @@ class Builder:
 			expect (type[T_Ref]): 期待するレスポンス型
 		Returns:
 			T_Ref: 生成したインスタンス
+		Raises:
+			LogicError: ビルド対象が期待する型と不一致
 		"""
 		ctors: dict[type[defs.ClassDef], type[Reflection]] = {
 			defs.Function: Function,

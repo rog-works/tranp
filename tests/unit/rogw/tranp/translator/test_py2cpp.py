@@ -100,9 +100,9 @@ def _ast(before: str, after: str) -> str:
 
 		'Nullable.params': f'{_Nullable}.class_def_raw.block.function_def[0]',
 		'Nullable.returns': f'{_Nullable}.class_def_raw.block.function_def[1]',
-		'Nullable.invalid_params': f'{_Nullable}.class_def_raw.block.function_def[2]',
-		'Nullable.invalid_returns': f'{_Nullable}.class_def_raw.block.function_def[3]',
-		'Nullable.var_move.block': f'{_Nullable}.class_def_raw.block.function_def[4].function_def_raw.block',
+		'Nullable.invalid_params': f'{_Nullable}.class_def_raw.block.function_def[3]',
+		'Nullable.invalid_returns': f'{_Nullable}.class_def_raw.block.function_def[5]',
+		'Nullable.var_move.block': f'{_Nullable}.class_def_raw.block.function_def[6].function_def_raw.block',
 
 		'Template.T2Class': f'{_Template}.class_def_raw.block.class_def',
 		'Template.__init__': f'{_Template}.class_def_raw.block.function_def[1]',
@@ -150,10 +150,10 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarOps.local_move.block', 'if_stmt[5].block.assign[2]'), defs.MoveAssign, 'ap = (asp).get();'),
 		(_ast('CVarOps.local_move.block', 'if_stmt[5].block.assign[3]'), defs.MoveAssign, 'ap = &(ar);'),
 		(_ast('CVarOps.local_move.block', 'if_stmt[6].block.assign'), defs.MoveAssign, 'asp = asp;'),
-		(_ast('CVarOps.local_move.block', 'if_stmt[7].block.assign[0]'), defs.MoveAssign, 'ar = a;'),  # XXX C++ではNGだが要件等 ※型推論のコストをかけてまでエラー判定が必要なのか微妙
-		(_ast('CVarOps.local_move.block', 'if_stmt[7].block.assign[1]'), defs.MoveAssign, 'ar = *(ap);'),  # 〃
-		(_ast('CVarOps.local_move.block', 'if_stmt[7].block.assign[2]'), defs.MoveAssign, 'ar = *(asp);'),  # 〃
-		(_ast('CVarOps.local_move.block', 'if_stmt[7].block.assign[3]'), defs.MoveAssign, 'ar = ar;'),  # 〃
+		(_ast('CVarOps.local_move.block', 'if_stmt[7].block.assign[1]'), defs.MoveAssign, 'ar = a;'),  # XXX C++ではNGだが要件等 ※型推論のコストをかけてまでエラー判定が必要なのか微妙
+		(_ast('CVarOps.local_move.block', 'if_stmt[7].block.assign[3]'), defs.MoveAssign, 'ar = *(ap);'),  # 〃
+		(_ast('CVarOps.local_move.block', 'if_stmt[7].block.assign[5]'), defs.MoveAssign, 'ar = *(asp);'),  # 〃
+		(_ast('CVarOps.local_move.block', 'if_stmt[7].block.assign[7]'), defs.MoveAssign, 'ar = ar;'),  # 〃
 
 		(_ast('CVarOps.param_move.block', 'assign[0]'), defs.MoveAssign, 'Base a1 = a;'),
 		(_ast('CVarOps.param_move.block', 'anno_assign[1]'), defs.AnnoAssign, 'Base a2 = *(ap);'),
@@ -161,7 +161,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarOps.param_move.block', 'anno_assign[3]'), defs.AnnoAssign, 'Base a4 = ar;'),
 		(_ast('CVarOps.param_move.block', 'assign[4]'), defs.MoveAssign, 'a = a1;'),
 		(_ast('CVarOps.param_move.block', 'assign[5]'), defs.MoveAssign, 'ap = &(a2);'),
-		(_ast('CVarOps.param_move.block', 'assign[6]'), defs.MoveAssign, 'ar = a4;'),  # XXX C++ではNGだが要件等 ※型推論のコストをかけてまでエラー判定が必要なのか微妙
+		(_ast('CVarOps.param_move.block', 'assign[8]'), defs.MoveAssign, 'ar = a4;'),  # XXX C++ではNGだが要件等 ※型推論のコストをかけてまでエラー判定が必要なのか微妙
 
 		(_ast('CVarOps.invoke_method.block', 'funccall'), defs.FuncCall, 'this->invoke_method(*(asp), (asp).get(), asp);'),
 
@@ -290,7 +290,7 @@ class TestPy2Cpp(TestCase):
 		self.assertEqual(actual, expected)
 
 	@data_provider([
-		(_ast('CVarOps.tenary_calc.block', 'assign[6]'), r'Tenary operation not allowed.'),
+		(_ast('CVarOps.tenary_calc.block', 'assign[7]'), r'Tenary operation not allowed.'),
 
 		(_ast('Nullable.invalid_params', ''), r'Unexpected UnionType.'),
 		(_ast('Nullable.invalid_returns', ''), r'Unexpected UnionType.'),

@@ -60,7 +60,8 @@ class SyntaxParserOfLark:
 				self.__loader.load(self.__setting.grammar),
 				start=self.__setting.start,
 				parser=self.__setting.algorithem,
-				postlex=PythonIndenter()
+				postlex=PythonIndenter(),
+				propagate_positions=True
 			))
 
 		return instantiate().lark

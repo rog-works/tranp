@@ -93,17 +93,17 @@ class Reflection:
 
 class Object(Reflection):
 	"""全クラスの基底クラス"""
-	...
+	pass
 
 
 class Type(Object):
 	"""全タイプ(クラス定義)の基底クラス"""
-	...
+	pass
 
 
 class Enum(Object):
 	"""Enum"""
-	...
+	pass
 
 
 class Instance(Object):
@@ -143,7 +143,7 @@ class Function(Object):
 
 		map_props = TemplateManipulator.unpack_symbols(parameters=list(arguments))
 		t_map_props = TemplateManipulator.unpack_templates(parameters=self.schemata.parameters)
-		updates = TemplateManipulator.make_updates(t_map_returns, t_map_props)
+		updates = TemplateManipulator.make_updates(t_map_returns, t_map_props, map_props)
 		return TemplateManipulator.apply(self.schema.returns.clone(), map_props, updates)
 
 	def templates(self) -> list[defs.TemplateClass]:
@@ -158,7 +158,7 @@ class Function(Object):
 
 class Closure(Function):
 	"""クロージャー"""
-	...
+	pass
 
 
 class Method(Function):
@@ -182,32 +182,12 @@ class Method(Function):
 		actual_klass, *_ = context
 		map_props = TemplateManipulator.unpack_symbols(klass=actual_klass)
 		t_map_props = TemplateManipulator.unpack_templates(klass=self.schema.klass)
-		updates = TemplateManipulator.make_updates(t_map_parameter, t_map_props)
+		updates = TemplateManipulator.make_updates(t_map_parameter, t_map_props, map_props)
 		return TemplateManipulator.apply(parameter.clone(), map_props, updates)
 
 	@override
 	def returns(self, *arguments: SymbolRaw) -> SymbolRaw:
 		"""戻り値の実行時型を解決
-
-		Args:
-			*arguments (SymbolRaw): 引数リスト(実行時型)
-		Returns:
-			SymbolRaw: 実行時型
-		"""
-		return self._method_returns(*arguments)
-
-	def _function_returns(self, *arguments: SymbolRaw) -> SymbolRaw:
-		"""戻り値の実行時型を解決(Function/Closure/ClassMethod/Constructor用)
-
-		Args:
-			*arguments (SymbolRaw): 引数リスト(実行時型)
-		Returns:
-			SymbolRaw: 実行時型
-		"""
-		return super().returns(*arguments)
-
-	def _method_returns(self, *arguments: SymbolRaw) -> SymbolRaw:
-		"""戻り値の実行時型を解決(Method専用)
 
 		Args:
 			*arguments (SymbolRaw): 引数リスト(実行時型)
@@ -221,7 +201,7 @@ class Method(Function):
 		actual_klass, *actual_arguments = arguments
 		map_props = TemplateManipulator.unpack_symbols(klass=actual_klass, parameters=actual_arguments)
 		t_map_props = TemplateManipulator.unpack_templates(klass=self.schema.klass, parameters=self.schemata.parameters)
-		updates = TemplateManipulator.make_updates(t_map_returns, t_map_props)
+		updates = TemplateManipulator.make_updates(t_map_returns, t_map_props, map_props)
 		return TemplateManipulator.apply(self.schema.returns.clone(), map_props, updates)
 
 	@override
@@ -238,39 +218,11 @@ class Method(Function):
 
 class ClassMethod(Method):
 	"""クラスメソッド"""
-	@override
-	def returns(self, *arguments: SymbolRaw) -> SymbolRaw:
-		"""戻り値の実行時型を解決
-
-		Args:
-			*arguments (SymbolRaw): 引数リスト(実行時型)
-		Returns:
-			SymbolRaw: 実行時型
-		Note:
-			FIXME 継承元のMethodと一貫性がないため修正を検討
-		"""
-		# FIXME クラスがジェネリック型の場合、クラスのTは呼び出し時に未知である場合がほとんどであり、
-		# FIXME 引数のTによる実体型の補完を妨害してしまうため、ファンクションのスキームで呼び出すことで一旦解決する
-		return self._function_returns(*arguments)
-
+	pass
 
 class Constructor(Method):
 	"""コンストラクター"""
-
-	@override
-	def returns(self, *arguments: SymbolRaw) -> SymbolRaw:
-		"""戻り値の実行時型を解決
-
-		Args:
-			*arguments (SymbolRaw): 引数リスト(実行時型)
-		Returns:
-			SymbolRaw: 実行時型
-		Note:
-			FIXME 継承元のMethodと一貫性がないため修正を検討
-		"""
-		# FIXME クラスがジェネリック型の場合、クラスのTは呼び出し時に未知である場合がほとんどであり、
-		# FIXME 引数のTによる実体型の補完を妨害してしまうため、ファンクションのスキームで呼び出すことで一旦解決する
-		return self._function_returns(*arguments)
+	pass
 
 
 TemplateMap: TypeAlias = dict[str, defs.TemplateClass]
@@ -305,18 +257,22 @@ class TemplateManipulator:
 		return seqs.expand(attrs, iter_key='attrs')
 
 	@classmethod
-	def make_updates(cls, t_map_primary: TemplateMap, t_map_props: TemplateMap) -> UpdateMap:
+	def make_updates(cls, t_map_primary: TemplateMap, t_map_props: TemplateMap, actual_props: SymbolMap) -> UpdateMap:
 		"""主体とサブを比較し、一致するテンプレートのパスを抽出
 
 		Args:
 			t_map_primary (TemplateMap): 主体
 			t_map_props (TemplateMap): サブ
+			actual_props (SymbolMap): シンボルのマップ表(実行時型)
 		Returns:
 			UpdateMap: 一致したパスのマップ表
 		"""
 		updates: UpdateMap = {}
 		for primary_path, t_primary in t_map_primary.items():
 			founds = [prop_path for prop_path, t_prop in t_map_props.items() if t_prop == t_primary]
+			# XXX ジェネリッククラスのクラスメソッドやコンストラクターの場合、
+			# XXX 呼び出し時に自己参照の実行時型が確定できず、テンプレートタイプが含まれてしまうので、除外する
+			founds = [found_path for found_path in founds if not actual_props[found_path].types.is_a(defs.TemplateClass)]
 			if founds:
 				updates[primary_path] = founds[0]
 

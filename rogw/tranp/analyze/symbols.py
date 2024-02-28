@@ -571,26 +571,23 @@ class ProceduralResolver:
 			# XXX この際のクラスのシンボルはSymbolReferenceになり、そのままだと属性の設定が出来ないため、SymbolVarに変換する
 			constroctur_calls = self.symbols.type_of_constructor(actual_calls.types)
 			func = reflection.Builder(constroctur_calls) \
-				.schema(lambda: {'parameters': constroctur_calls.attrs[1:-1], 'returns': actual_calls.to.var(actual_calls.decl)}) \
+				.schema(lambda: {'klass': constroctur_calls.attrs[0], 'parameters': constroctur_calls.attrs[1:-1], 'returns': actual_calls.to.var(actual_calls.decl)}) \
 				.build(reflection.Constructor)
-			return func.returns(*arguments)
+			return func.returns(constroctur_calls.attrs[0], *arguments)
 		elif isinstance(actual_calls.types, defs.Constructor):
 			# XXX コンストラクターを明示的に呼び出した場合
 			# XXX 戻り値の型を第1引数(自己参照)で補完
 			func = reflection.Builder(actual_calls) \
-				.schema(lambda: {'parameters': actual_calls.attrs[1:-1], 'returns': actual_calls.attrs[0]}) \
+				.schema(lambda: {'klass': actual_calls.attrs[0], 'parameters': actual_calls.attrs[1:-1], 'returns': actual_calls.attrs[0]}) \
 				.build(reflection.Constructor)
-			return func.returns(*arguments)
+			return func.returns(actual_calls.attrs[0], *arguments)
 		else:
 			# FIXME 呼び出しスキームに一貫性が無いため修正を検討
 			func = reflection.Builder(actual_calls) \
-				.case(reflection.ClassMethod).schema(lambda: {'parameters': actual_calls.attrs[1:-1], 'returns': actual_calls.attrs[-1]}) \
 				.case(reflection.Method).schema(lambda: {'klass': actual_calls.attrs[0], 'parameters': actual_calls.attrs[1:-1], 'returns': actual_calls.attrs[-1]}) \
 				.other_case().schema(lambda: {'parameters': actual_calls.attrs[:-1], 'returns': actual_calls.attrs[-1]}) \
 				.build(reflection.Function)
-			if func.is_a(reflection.ClassMethod):
-				return func.returns(*arguments)
-			elif func.is_a(reflection.Method):
+			if func.is_a(reflection.Method):
 				return func.returns(actual_calls.context, *arguments)
 			else:
 				return func.returns(*arguments)

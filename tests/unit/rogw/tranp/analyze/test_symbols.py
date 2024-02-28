@@ -1,13 +1,12 @@
 import re
 from types import UnionType
 from unittest import TestCase
-from rogw.tranp.analyze.errors import UnresolvedSymbolError
 
+from rogw.tranp.analyze.errors import UnresolvedSymbolError
 from rogw.tranp.analyze.symbols import Symbols
 from rogw.tranp.ast.dsn import DSN
 import rogw.tranp.compatible.python.classes as classes
 from rogw.tranp.compatible.python.types import Standards
-from rogw.tranp.errors import LogicError
 from rogw.tranp.test.helper import data_provider
 from tests.test.fixture import Fixture
 

@@ -180,7 +180,7 @@ class Symbols:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			LexError: シンボルの解決に失敗
+			LexicalError: シンボルの解決に失敗
 		"""
 		if isinstance(node, defs.Var):
 			return self.resolve(node)
@@ -196,7 +196,7 @@ class Symbols:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			LexError: シンボルの解決に失敗
+			LexicalError: シンボルの解決に失敗
 		"""
 		if isinstance(node, defs.For):
 			return self.__resolve_procedural(node.for_in)
@@ -212,7 +212,7 @@ class Symbols:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			LexError: シンボルの解決に失敗
+			LexicalError: シンボルの解決に失敗
 		"""
 		if isinstance(node, defs.Comprehension):
 			projection_type = list if node.is_a(defs.ListComp) else dict

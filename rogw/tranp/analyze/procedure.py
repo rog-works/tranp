@@ -28,7 +28,7 @@ class Procedure(Generic[T_Ret]):
 		Args:
 			verbose (bool): True = ログ出力
 		"""
-		self.__stack: list[T_Ret] = []
+		self.__stacks: list[list[T_Ret]] = []
 		self.__verbose = verbose
 		self.__emitter = EventEmitter[T_Ret]()
 
@@ -70,6 +70,23 @@ class Procedure(Generic[T_Ret]):
 			T_Ret: 結果
 		Raises:
 			ProcessingError: 実行エラー
+		Note:
+			実行処理はスタックされるため、このメソッドを再帰的に実行した場合でも順次解決される
+		"""
+		self.__stacks.append([])
+		result = self.__exec_impl(root)
+		self.__stacks.pop()
+		return result
+
+	def __exec_impl(self, root: Node) -> T_Ret:
+		"""指定のルート要素から逐次処理し、結果を出力
+
+		Args:
+			root (Node): ルート要素
+		Returns:
+			T_Ret: 結果
+		Raises:
+			LogicError: 実行エラー
 		"""
 		flatted = root.calculated()
 		flatted.append(root)  # XXX 自身が含まれないので末尾に追加
@@ -78,6 +95,11 @@ class Procedure(Generic[T_Ret]):
 			self.__process(node)
 
 		return self.__result()
+
+	@property
+	def __stack(self) -> list[T_Ret]:
+		"""str: 実行中のスタック"""
+		return self.__stacks[-1]
 
 	def __result(self) -> T_Ret:
 		"""結果を出力。結果は必ず1つでなければならない

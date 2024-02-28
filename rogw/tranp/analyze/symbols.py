@@ -31,9 +31,10 @@ class Symbols:
 		self.__raws = db.raws
 		self.__finder = finder
 		self.__handlers: dict[str, list[Callback[SymbolRaw]]] = {}
+		self.__procedural_resolver = ProceduralResolver(self)
 
 		for plugin in plugins():
-			plugin.register(self)
+			plugin.register(self.__procedural_resolver.procedure)
 
 	@implements
 	def on(self, action: str, callback: Callback[SymbolRaw]) -> None:
@@ -294,12 +295,7 @@ class Symbols:
 		Raises:
 			ProcessingError: シンボルの解決に失敗
 		"""
-		procedure = ProceduralResolver(self)
-		for key, handlers in self.__handlers.items():
-			for handler in handlers:
-				procedure.on(key, handler)
-
-		return procedure.resolve(node)
+		return self.__procedural_resolver.resolve(node)
 
 
 class ProceduralResolver:
@@ -312,7 +308,7 @@ class ProceduralResolver:
 			symbols (Symbols): シンボルリゾルバー
 		"""
 		self.symbols = symbols
-		self.__procedure = self.__make_procedure()
+		self.procedure = self.__make_procedure()
 
 	def __make_procedure(self) -> Procedure[SymbolRaw]:
 		"""プロシージャーを生成
@@ -327,30 +323,6 @@ class ProceduralResolver:
 
 		return procedure
 
-	@implements
-	def on(self, action: str, callback: Callback[SymbolRaw]) -> None:
-		"""イベントハンドラーを登録
-
-		Args:
-			action (str): アクション名
-			callback (Callback[SymbolRaw]): ハンドラー
-		Note:
-			@see eventemitter.IObservable を実装
-		"""
-		self.__procedure.on(action, callback)
-
-	@implements
-	def off(self, action: str, callback: Callback[SymbolRaw]) -> None:
-		"""イベントハンドラーを解除
-
-		Args:
-			action (str): アクション名
-			callback (Callback[SymbolRaw]): ハンドラー
-		Note:
-			@see eventemitter.IObservable を実装
-		"""
-		self.__procedure.off(action, callback)
-
 	def resolve(self, node: Node) -> SymbolRaw:
 		"""指定のノードからASTを再帰的に解析し、シンボルを解決
 
@@ -361,7 +333,7 @@ class ProceduralResolver:
 		Raises:
 			ProcessingError: 実行エラー
 		"""
-		return self.__procedure.exec(node)
+		return self.procedure.exec(node)
 
 	def force_unpack_nullable(self, symbol: SymbolRaw) -> SymbolRaw:
 		"""Nullableのシンボルの変数の型をアンパック。Nullable以外の型はそのまま返却

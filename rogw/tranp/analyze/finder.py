@@ -1,9 +1,9 @@
 from types import UnionType
 
+from rogw.tranp.analyze.errors import ImplementationError, SymbolNotDefinedError
 from rogw.tranp.analyze.symbol import SymbolRaw, SymbolRaws
 from rogw.tranp.ast.dsn import DSN
 from rogw.tranp.compatible.python.types import Standards
-from rogw.tranp.errors import NotFoundError
 from rogw.tranp.lang.implementation import injectable
 from rogw.tranp.module.types import LibraryPaths
 import rogw.tranp.node.definition as defs
@@ -29,7 +29,7 @@ class SymbolFinder:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			NotFoundError: objectが未実装
+			ImplementationError: objectが未実装
 		Note:
 			必ず存在すると言う前提。見つからない場合は実装ミス
 		"""
@@ -37,7 +37,7 @@ class SymbolFinder:
 		if raw is not None:
 			return raw
 
-		raise NotFoundError('Implementaion of object class is required.')
+		raise ImplementationError('"object" class is required.')
 
 	def by(self, raws: SymbolRaws, fullyname: str) -> SymbolRaw:
 		"""完全参照名からシンボルを取得
@@ -48,12 +48,12 @@ class SymbolFinder:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			NotFoundError: シンボルが見つからない
+			SymbolNotDefinedError: シンボルが見つからない
 		"""
 		if fullyname in raws:
 			return raws[fullyname]
 
-		raise NotFoundError(f'Symbol not defined. fullyname: {fullyname}')
+		raise SymbolNotDefinedError(f'fullyname: {fullyname}')
 
 	def by_standard(self, raws: SymbolRaws, standard_type: type[Standards] | None) -> SymbolRaw:
 		"""標準クラスのシンボルを取得
@@ -64,7 +64,7 @@ class SymbolFinder:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			NotFoundError: シンボルが見つからない
+			ImplementationError: 標準クラスが未実装
 		"""
 		domain_name = ''
 		if standard_type is None:
@@ -78,7 +78,7 @@ class SymbolFinder:
 		if raw is not None:
 			return raw
 
-		raise NotFoundError(f'Standard type not defined. name: {standard_type.__name__}')
+		raise ImplementationError(f'"{standard_type.__name__}" class is required.')
 
 	def by_symbolic(self, raws: SymbolRaws, node: defs.Symbolic) -> SymbolRaw:
 		"""シンボル系ノードからシンボルを取得
@@ -89,13 +89,13 @@ class SymbolFinder:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			NotFoundError: シンボルが見つからない
+			SymbolNotDefinedError: シンボルが見つからない
 		"""
 		raw = self.find_by_symbolic(raws, node)
 		if raw is not None:
 			return raw
 
-		raise NotFoundError(f'Symbol not defined. type: {node.fullyname}')
+		raise SymbolNotDefinedError(f'fullyname: {node.fullyname}')
 
 	def find_by_symbolic(self, raws: SymbolRaws, node: defs.Symbolic, prop_name: str = '') -> SymbolRaw | None:
 		"""シンボルを検索。未検出の場合はNoneを返却

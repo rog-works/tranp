@@ -1,6 +1,7 @@
 import re
 from types import UnionType
 from unittest import TestCase
+from rogw.tranp.analyze.errors import UnresolvedSymbolError
 
 from rogw.tranp.analyze.symbols import Symbols
 from rogw.tranp.ast.dsn import DSN
@@ -237,11 +238,11 @@ class TestSymbols(TestCase):
 		self.assertEqual(str(symbol), expected)
 
 	@data_provider([
-		('__main__.CalcOps.tenary.n_or_s', r'Tenary operation not allowed.'),
+		('__main__.CalcOps.tenary.n_or_s', UnresolvedSymbolError, r'Only Nullable.'),
 	])
-	def test_from_fullyname_error(self, fullyname: str, expected: re.Pattern[str]) -> None:
+	def test_from_fullyname_error(self, fullyname: str, expected_error: type[Exception], expected: re.Pattern[str]) -> None:
 		symbols = self.fixture.get(Symbols)
-		with self.assertRaisesRegex(LogicError, expected):
+		with self.assertRaisesRegex(expected_error, expected):
 			str(symbols.from_fullyname(fullyname))
 
 	@data_provider([

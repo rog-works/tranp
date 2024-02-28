@@ -61,7 +61,7 @@ class String(Literal, ITerminal):
 
 
 @Meta.embed(Node, actualized(via=String))
-class Comment(String):
+class DocString(String):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
 		text = via.tokens

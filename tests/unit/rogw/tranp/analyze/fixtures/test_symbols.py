@@ -12,6 +12,7 @@ value: int = 0
 class Base(Z):
 	def __init__(self) -> None:
 		self.base_str: str = ''
+		# comment
 
 class Sub(Base):
 	class C:
@@ -112,7 +113,8 @@ class CalcOps:
 		n = 1 if 2 else 3
 		s = 'a' if True else 'b'
 		s_or_null = 'a' if n else None
-		n_or_s = 1 if n else 'a'  # エラーケース
+		# エラーケース
+		n_or_s = 1 if n else 'a'
 
 class AliasOps:
 	def func(self, z2: Z2) -> None:
@@ -140,7 +142,8 @@ class TupleOps:
 		for pair10 in d: ...
 
 	def unpack_assign(self) -> None:
-		a, b = {'a': 1}  # XXX Pythonのシンタックス上は不正
+		# XXX Pythonのシンタックス上は不正
+		a, b = {'a': 1}
 
 class CompOps:
 	def list_comp(self) -> None:

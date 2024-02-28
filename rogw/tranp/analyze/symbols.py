@@ -722,7 +722,7 @@ class ProceduralResolver:
 	def on_string(self, node: defs.String) -> SymbolRaw:
 		return self.symbols.type_of_primitive(str)
 
-	def on_comment(self, node: defs.Comment) -> SymbolRaw:
+	def on_doc_string(self, node: defs.DocString) -> SymbolRaw:
 		return self.symbols.type_of_primitive(str)
 
 	def on_truthy(self, node: defs.Truthy) -> SymbolRaw:

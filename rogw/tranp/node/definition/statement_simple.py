@@ -118,6 +118,13 @@ class Break(Node, ITerminal): pass
 class Continue(Node, ITerminal): pass
 
 
+@Meta.embed(Node, accept_tags('comment_stmt'))
+class Comment(Node, ITerminal):
+	@property
+	def text(self) -> str:
+		return self.tokens[1:]
+
+
 @Meta.embed(Node, accept_tags('import_stmt'))
 class Import(Node):
 	@property

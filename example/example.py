@@ -578,12 +578,10 @@ class CellMesh:
 			# 3-----2  Y
 			f_unit = float(unit)
 			verts = [
-				# 下部
 				Vector(0, 0, 0),
 				Vector(f_unit, 0, 0),
 				Vector(f_unit, f_unit, 0),
 				Vector(0, f_unit, 0),
-				# 上部
 				Vector(0, 0, f_unit),
 				Vector(f_unit, 0, f_unit),
 				Vector(f_unit, f_unit, f_unit),

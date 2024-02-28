@@ -6,7 +6,7 @@ from rogw.tranp.lang.implementation import implements, override
 from rogw.tranp.lang.sequence import flatten, last_index_of
 from rogw.tranp.node.definition.accessor import to_access
 from rogw.tranp.node.definition.element import Decorator, Parameter
-from rogw.tranp.node.definition.literal import Comment, String
+from rogw.tranp.node.definition.literal import DocString, String
 from rogw.tranp.node.definition.primary import Argument, CustomType, DeclClassVar, DeclLocalVar, Declable, ForIn, InheritArgument, DeclThisParam, DeclThisVar, Type, TypesName, VarOfType, Variable
 from rogw.tranp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from rogw.tranp.node.definition.terminal import Empty
@@ -244,8 +244,8 @@ class ClassDef(Node, IDomain, IScope, IDeclaration, ISymbol):
 		return []
 
 	@property
-	def comment(self) -> Comment | Empty:
-		found_comment = [statement for statement in self._org_statements if isinstance(statement, Comment)]
+	def comment(self) -> DocString | Empty:
+		found_comment = [statement for statement in self._org_statements if isinstance(statement, DocString)]
 		if len(found_comment):
 			return found_comment.pop()
 
@@ -253,7 +253,7 @@ class ClassDef(Node, IDomain, IScope, IDeclaration, ISymbol):
 
 	@property
 	def statements(self) -> list[Node]:
-		return [statement for statement in self._org_statements if not statement.is_a(Comment)]
+		return [statement for statement in self._org_statements if not statement.is_a(DocString)]
 
 	@property
 	def _org_statements(self) -> list[Node]:
@@ -358,7 +358,7 @@ class Function(ClassDef):
 	@property
 	@override
 	@Meta.embed(Node, expandable)
-	def comment(self) -> Comment | Empty:
+	def comment(self) -> DocString | Empty:
 		return super().comment
 
 	@property
@@ -484,7 +484,7 @@ class Class(ClassDef):
 	@property
 	@override
 	@Meta.embed(Node, expandable)
-	def comment(self) -> Comment | Empty:
+	def comment(self) -> DocString | Empty:
 		return super().comment
 
 	@property

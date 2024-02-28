@@ -618,6 +618,14 @@ class TestDefinition(TestCase):
 		self.assertEqual(type(self.fixture.custom_nodes(source).by(full_path)), defs.Continue)
 
 	@data_provider([
+		('# abc', 'file_input.comment_stmt'),
+		('# abc\na\n# def', 'file_input.comment_stmt[2]'),
+		('if True:\n\t# abc\n\t...', 'file_input.if_stmt.block.comment_stmt'),
+	])
+	def test_comment(self, source: str, full_path: str) -> None:
+		self.assertEqual(type(self.fixture.custom_nodes(source).by(full_path)), defs.Comment)
+
+	@data_provider([
 		('from a.b.c import A, B', 'file_input.import_stmt', {'import_path': 'a.b.c', 'import_symbols': ['A', 'B']}),
 		('from a.b.c import (A, B)', 'file_input.import_stmt', {'import_path': 'a.b.c', 'import_symbols': ['A', 'B']}),
 	])

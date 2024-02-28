@@ -112,7 +112,8 @@ class TupleOps:
 		for pair10 in d: ...
 
 	def unpack_assign(self) -> None:
-		a, b = {'a': 1}  # XXX Pythonのシンタックス上は不正
+		# XXX Pythonのシンタックス上は不正
+		a, b = {'a': 1}
 
 class CompOps:
 	def list_comp(self) -> None:

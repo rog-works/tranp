@@ -417,7 +417,7 @@ class ProceduralResolver:
 		def resolve() -> SymbolRaw:
 			try:
 				return self.symbols.resolve(iterates.types, '__next__')
-			except NotFoundError:
+			except SymbolNotFoundError:
 				return self.symbols.resolve(iterates.types, '__iter__')
 
 		method = resolve()
@@ -669,7 +669,7 @@ class ProceduralResolver:
 		for index, operand in enumerate(operands):
 			try:
 				methods[index] = self.symbols.resolve(operand.types, method_name)
-			except NotFoundError:
+			except SymbolNotFoundError:
 				pass
 
 		if methods[0] is None and methods[1] is None:

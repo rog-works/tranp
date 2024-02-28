@@ -1,6 +1,6 @@
 import re
-from types import UnionType
-from typing import cast
+from types import NoneType, UnionType
+from typing import Self, cast
 
 from rogw.tranp.analyze.procedure import Procedure
 import rogw.tranp.analyze.reflection as reflection
@@ -16,6 +16,8 @@ from rogw.tranp.node.definition.statement_compound import ClassSymbolMaker
 from rogw.tranp.node.node import Node
 from rogw.tranp.translator.option import TranslatorOptions
 from rogw.tranp.view.render import Renderer
+
+import rogw.tranp.translator.lex as lex
 
 
 class Py2Cpp:
@@ -257,6 +259,25 @@ class Py2Cpp:
 		closure_vars = {'binded_this': node.binded_this}
 		return self.view.render(node.classification, vars={**function_vars, **closure_vars})
 
+	def skeleton_on_class(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], generic_types: list[str], comment: str, statements: list[str]) -> str:
+		class_ref = lex.Reflection(node).as_a(lex.Class)
+
+		decl_vars: list[str] = []
+		decl_class_var_indexs: list[int] = []
+		for class_var_ref in class_ref.class_vars:
+			index = class_ref.statements.index(class_var_ref.declare)
+			decl_class_var = self.view.render('class_decl_class_var', vars={'access': class_var_ref.access.name, 'decl_class_var': statements[index]})
+			decl_vars.append(decl_class_var)
+			decl_class_var_indexs.append(index)
+
+		for this_var_ref in class_ref.this_vars:
+			decl_this_var = self.view.render('class_decl_this_var', vars={'access': this_var_ref.access.name, 'symbol': this_var_ref.name, 'var_type': this_var_ref.types.name})
+			decl_vars.append(decl_this_var)
+
+		remain_statements = list(lex.Finder.where(statements, row=lex.Query.index(*decl_class_var_indexs).to_not()).values())
+		class_vars = {'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'generic_types': generic_types, 'comment': comment, 'statements': remain_statements, 'decl_vars': decl_vars}
+		return self.view.render(node.classification, vars=class_vars)
+
 	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], generic_types: list[str], comment: str, statements: list[str]) -> str:
 		# XXX クラス変数とそれ以外のステートメントを分離
 		decl_class_var_statements: list[str] = []
@@ -388,6 +409,39 @@ class Py2Cpp:
 			return self.view.render(f'{node.classification}_cvar_to', vars={**relay_vars, 'receiver': cvar_receiver, 'move': move})
 		else:
 			return self.view.render(node.classification, vars=relay_vars)
+
+	def skeleton_on_relay(self, node: defs.Relay, receiver: str) -> str:
+		receiver_ref = lex.Reflection(node.receiver).as_a(lex.Object)
+		receiver_ref.on('short_hand', lambda module_path, namespace, name, alias: f'{namespace}.{alias or name}')
+		if lex.is_a(receiver_ref, lex.Body | lex.Null):
+			receiver_ref = receiver_ref.unpack(lex.Body)
+
+		prop_ref = receiver_ref.props(node.prop.tokens)
+
+		if lex.is_a(receiver_ref, lex.CVar) and lex.is_a(prop_ref, lex.CVar.on):
+			cvar_receiver = lex.Finder.where(receiver, left=lex.Query.any, right=lex.Query.match(prop_ref.name))
+			return self.view.render(node.classification, vars={'receiver': str(cvar_receiver), 'accessor': receiver_ref.accessor.name, 'prop': prop_ref.name})
+		elif lex.is_a(receiver_ref, CVar) and lex.one_of(prop_ref, *receiver_ref.types.exchanges):
+			keys = [method.name for method in receiver_ref.types.exchanges]
+			cvar_receiver = receiver.query(left=lex.Query.Any, right=lex.Query.Or(keys))
+			move = receiver_ref.move_of(prop_ref)
+			return self.view.render(node.classification, vars={'receiver': str(cvar_receiver), 'accessor': receiver_ref.accessor.name, 'prop': prop_ref.name, 'move': move.name})
+		else:
+			return self.view.render(node.classification, vars={'receiver': str(receiver), 'accessor': receiver_ref.accessor.name, 'prop': prop_ref.name})
+
+	def skeleton_relay_access_spec(self, node: defs.Relay) -> tuple[str, str]:
+		receiver_ref = lex.Reflection(node.receiver)
+		prop_ref = receiver_ref.props(node.prop.tokens)
+		if lex.is_a(receiver_ref, lex.This):
+			return 'this', CVar.Accessors.Address.name
+		if lex.is_a(receiver_ref, lex.Class):
+			return 'class', CVar.Accessors.Static.name
+		elif lex.is_a(receiver_ref, CVar) and lex.is_a(prop_ref, receiver_ref.types.relay):
+			return 'cvar_on', receiver_ref.accessor.name
+		elif lex.is_a(receiver_ref, CVar) and lex.one_of(prop_ref, *receiver_ref.types.exchanges):
+			return 'cvar_to', receiver_ref.accessor.name
+		else:
+			return 'raw', CVar.Accessors.Raw.name
 
 	def analyze_relay_access_spec(self, node: defs.Relay, receiver_symbol: SymbolRaw) -> tuple[str, str]:
 		def is_this_access() -> bool:

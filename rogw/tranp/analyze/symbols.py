@@ -87,7 +87,7 @@ class Symbols:
 		Raises:
 			UnresolvedSymbolError: objectが未実装
 		"""
-		return self.__finder.by_object(self.__raws)
+		return self.__finder.get_object(self.__raws)
 
 	@raises(UnresolvedSymbolError, LexicalError)
 	def from_fullyname(self, fullyname: str) -> SymbolRaw:

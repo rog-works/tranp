@@ -21,7 +21,7 @@ class SymbolFinder:
 		"""
 		self.__library_paths = library_paths
 
-	def by_object(self, raws: SymbolRaws) -> SymbolRaw:
+	def get_object(self, raws: SymbolRaws) -> SymbolRaw:
 		"""objectのシンボルを取得
 
 		Args:
@@ -29,7 +29,7 @@ class SymbolFinder:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			ImplementationError: objectが未実装
+			MustBeImplementedError: objectが未実装
 		Note:
 			必ず存在すると言う前提。見つからない場合は実装ミス
 		"""
@@ -64,7 +64,7 @@ class SymbolFinder:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			ImplementationError: 標準クラスが未実装
+			MustBeImplementedError: 標準クラスが未実装
 		"""
 		domain_name = ''
 		if standard_type is None:

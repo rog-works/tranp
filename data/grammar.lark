@@ -14,6 +14,7 @@ file_input: (_NEWLINE | statement)*
 	| pass_stmt
 	| break_stmt
 	| continue_stmt
+	| comment_stmt
 
 ?compound_stmt: function_def
 	| if_stmt
@@ -152,6 +153,7 @@ raise_stmt: "raise" primary ["from" name]
 break_stmt: "break"
 pass_stmt: "pass"
 continue_stmt: "continue"
+comment_stmt: COMMENT
 
 // # Expressions
 
@@ -258,17 +260,14 @@ comp_for: "for" for_namelist comp_for_in
 // @custom
 comp_for_in: "in" or_test
 
-// # Typeing elements
-
-// TODO func_type_comment: LONG_STRING
-
 // Python terminals
 
-%import python (name, string, number, NAME, STRING, LONG_STRING, DEC_NUMBER, FLOAT_NUMBER, HEX_NUMBER, COMMENT, _NEWLINE)
+%import python (name, string, number, NAME, STRING, LONG_STRING, DEC_NUMBER, FLOAT_NUMBER, HEX_NUMBER, COMMENT)
 
 // Other terminals
 
+_NEWLINE: ( /\r?\n[\t ]*/ )+
+
 %ignore /[\t \f]+/ // White Spaces
 %ignore /\\[\t \f]*\r?\n/ // Empty Lines
-%ignore COMMENT
 %declare _INDENT _DEDENT // @note Need for `parse(..., postlex=PythonIndender)`

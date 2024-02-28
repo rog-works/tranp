@@ -71,3 +71,6 @@ class TestEntry(TestCase):
 
 	def test_is_empty(self) -> None:
 		self.assertEqual(EntryImpl(('term_a', 'a')).is_empty, False)
+
+	def test_source_map(self) -> None:
+		self.assertEqual(EntryImpl(('term_a', 'a')).source_map, {'begin': (0, 0), 'end': (0, 0)})

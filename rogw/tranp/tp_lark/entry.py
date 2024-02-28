@@ -1,9 +1,9 @@
-from typing import cast, override
+from typing import cast
 
 from lark import Token, Tree
 
 from rogw.tranp.ast.entry import Entry, SourceMap, T_Entry, T_Tree
-from rogw.tranp.lang.implementation import implements
+from rogw.tranp.lang.implementation import implements, override
 
 
 class EntryOfLark(Entry):

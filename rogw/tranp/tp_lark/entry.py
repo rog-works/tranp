@@ -1,8 +1,8 @@
-from typing import Any, cast
+from typing import cast, override
 
 from lark import Token, Tree
 
-from rogw.tranp.ast.entry import Entry, T_Entry, T_Tree
+from rogw.tranp.ast.entry import Entry, SourceMap, T_Entry, T_Tree
 from rogw.tranp.lang.implementation import implements
 
 
@@ -69,6 +69,28 @@ class EntryOfLark(Entry):
 			例) function_def: "def" name "(" [parameters] ")" "->" ":" block
 		"""
 		return self.__entry is None
+
+	@property
+	@override
+	def source_map(self) -> SourceMap:
+		"""SourceMap: ソースマップ
+
+		Note:
+			begin (tuple[int, int]): 開始位置(行/列)
+			end (tuple[int, int]): 終了位置(行/列)
+		"""
+		if type(self.__entry) is Tree and self.__entry._meta is not None:
+			return {
+				'begin': (self.__entry._meta.end_line, self.__entry._meta.end_column),
+				'end': (self.__entry._meta.line, self.__entry._meta.column),
+			}
+		elif type(self.__entry) is Token and self.__entry.line and self.__entry.column and self.__entry.end_line and self.__entry.end_column:
+			return {
+				'begin': (self.__entry.line, self.__entry.column),
+				'end': (self.__entry.end_line, self.__entry.end_column),
+			}
+		else:
+			return {'begin': (0, 0), 'end': (0, 0)}
 
 
 class Serialization:

@@ -7,6 +7,8 @@ T_Token = TypedDict('T_Token', {'name': str, 'value': str})
 T_Tree = TypedDict('T_Tree', {'name': str, 'children': list['T_Tree | T_Token | None']})
 T_Entry = T_Tree | T_Token | None
 
+SourceMap = TypedDict('SourceMap', {'begin': tuple[int, int], 'end': tuple[int, int]})
+
 
 class Entry(metaclass=ABCMeta):
 	"""ASTの各要素に対応するエントリーの抽象基底クラス"""
@@ -60,10 +62,21 @@ class Entry(metaclass=ABCMeta):
 		raise NotImplementedError()
 
 	@property
+	def source_map(self) -> SourceMap:
+		"""SourceMap: ソースマップ
+
+		Note:
+			begin (tuple[int, int]): 開始位置(行/列)
+			end (tuple[int, int]): 終了位置(行/列)
+		"""
+		return {'begin': (0, 0), 'end': (0, 0)}
+
+	@property
 	def empty_name(self) -> str:
 		"""str: 空のエントリー名"""
 		# XXX 定数化を検討
 		return '__empty__'
+
 
 
 class EntryOfDict(Entry):

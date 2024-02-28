@@ -301,12 +301,14 @@ class CellMesh {
 			{-1},
 			{-1},
 		};
+		// FIXME CRef_Const
 		auto closure = [&](MeshRaw& origin) -> void {
 			Box3d cell_box = CellMesh::to_cell_box(cell, unit);
 			std::vector<Box3d> boxs = CellMesh::to_vertex_boxs(cell_box, unit);
 			for (auto i = 0; i < boxs.size(); i++) {
 				Box3d& box = boxs[i];
 				for (auto& vi : origin.vertex_indices_itr()) {
+					// 実体がない(参照カウント0)インデックスを除外
 					if (!origin.is_vertex(vi)) {
 						continue;
 					}
@@ -334,13 +336,16 @@ class CellMesh {
 			IntVector size = IntVector(3, 3, 3);
 			Box3d box = Box3d(CellMesh::from_cell(start), CellMesh::from_cell(start + size));
 			for (auto& ti : origin.triangle_indices_itr()) {
+				// 実体がない(参照カウント0)インデックスを除外
 				if (!origin.is_triangle(ti)) {
 					continue;
 				}
+				// box.Contains(faceBox)の場合、targetBoxがbox内に完全に内包される場合のみtrue
 				Box3d face_box = origin.get_tri_bounds(ti);
 				if (!box.contains(face_box)) {
 					continue;
 				}
+				// XXX toCell(faceBox.Min, unit)とすると、面のバウンドボックスとセル座標がズレてしまうため、中心座標を元にセル座標を算出する
 				Vector center_location = face_box.min + unit / 2;
 				IntVector cell = CellMesh::to_cell(center_location, unit);
 				int face_index = CellMesh::face_box_to_face_index(face_box, unit);
@@ -352,6 +357,7 @@ class CellMesh {
 				} else {
 					cell_on_faces[cell][face_index].y = ti;
 				}
+				// 辺で接するもう一方のセルも追加
 				IntVector cell2 = cell + CellMesh::face_index_to_vector(face_index);
 				int face_index2 = CellMesh::invert_face_index(face_index);
 				if ((!cell_on_faces.contains(cell2))) {
@@ -366,6 +372,7 @@ class CellMesh {
 			}
 		}
 		mesh->process_mesh(closure);
+		// XXX 不要な判定だが、実装中は一旦ガード節を設ける
 		for (auto& [cell, in_faces] : cell_on_faces) {
 			for (auto& [face_index, face] : in_faces) {
 				if (face.x != face.y && face.y == -1) {
@@ -432,6 +439,7 @@ class CellMesh {
 		IntVector start = IntVector(cell.x - 1, cell.y - 1, cell.z - 1);
 		std::map<IntVector, std::vector<IntVector2>> entries = CellMesh::by_polygon_ids_impl(mesh, start, unit);
 		std::vector<IntVector2> entry = entries[cell];
+		// 6面方向の先にセルが存在しない場合、その周辺セルを候補として抽出
 		std::vector<IntVector> out_need_cells = {};
 		for (auto i = 0; i < (int)(CellMesh::FaceIndexs::Max); i++) {
 			if (entry[i].x != -1) {
@@ -452,6 +460,7 @@ class CellMesh {
 				printf("Collect candidate. candidate: (%d, %d, %d)", candidate.x, candidate.y, candidate.z);
 			}
 		}
+		// 必須セルに必要な面方向の先にセルが存在する場合、その周辺セルを候補から削除する
 		for (auto i = 0; i < (int)(CellMesh::NeedCellIndexs::Max); i++) {
 			for (auto& face_index : CellMesh::need_cell_face_indexs(i)) {
 				IntVector2 face = entry[face_index];
@@ -509,6 +518,13 @@ class CellMesh {
 		auto closure = [&](MeshRaw& origin) -> void {
 			std::vector<int> v_ids = CellMesh::by_vertex_ids(mesh, cell, unit);
 			std::vector<IntVector2> p_ids = CellMesh::by_polygon_ids(mesh, cell, unit);
+			// 頂点オーダー
+			//    4-----5  Z
+			//   /|    /|  |
+			//  / 0---/-1  +---- X
+			// 7-----6 /  /
+			// |/    |/  /
+			// 3-----2  Y
 			float f_unit = (float)(unit);
 			std::vector<Vector> verts = {
 				{Vector(0, 0, 0)},
@@ -527,6 +543,9 @@ class CellMesh {
 					v_ids[i] = origin.append_vertex(pos);
 					printf("Add Vertex. i: %d, vid: %d, pos: (%f, %f, %f)", i, v_ids[i], pos.x, pos.y, pos.z);
 				}
+				// else:
+				// 	pos = start + verts[i];
+				// 	print('Reuse Vertex. i: %d, vid: %d, pos: (%f, %f, %f)', i, vIds[i], pos.x, pos.y, pos.z)
 			}
 			printf("Vertexs: %d, %d, %d, %d, %d, %d, %d, %d", v_ids[0], v_ids[1], v_ids[2], v_ids[3], v_ids[4], v_ids[5], v_ids[6], v_ids[7]);
 			printf("Polygons: {%d, %d}, {%d, %d}, {%d, %d}, {%d, %d}, {%d, %d}, {%d, %d}", p_ids[0].x, p_ids[0].y, p_ids[1].x, p_ids[1].y, p_ids[2].x, p_ids[2].y, p_ids[3].x, p_ids[3].y, p_ids[4].x, p_ids[4].y, p_ids[5].x, p_ids[5].y);
@@ -561,12 +580,16 @@ class CellMesh {
 				{CellMesh::FaceIndexs::Bottom, { {IntVector(0, 1, 2)}, {IntVector(0, 2, 3)}, }},
 				{CellMesh::FaceIndexs::Top, { {IntVector(4, 7, 6)}, {IntVector(4, 6, 5)}, }},
 			};
+			// 隣接セルと重なった面を削除
+			// ※トポロジーが崩れるため、面の追加より先に削除を行う
+			// ※頂点やトライアングルグループは自動的に削除されるので何もしなくて良い
 			for (auto i = 0; i < 6; i++) {
 				if (p_ids[i].x != -1) {
 					origin.remove_triangle(p_ids[i].x);
 					origin.remove_triangle(p_ids[i].y);
 				}
 			}
+			// 隣接セルと重なっていない新規の面を追加
 			UV uv_overlay = origin.attributes().primary_uv();
 			for (auto i = 0; i < 6; i++) {
 				if (p_ids[i].x != -1) {

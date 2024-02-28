@@ -104,7 +104,7 @@ class Symbols:
 		"""クラス定義ノードからコンストラクターのシンボルを解決
 
 		Args:
-			class (Class): クラス定義ノード
+			types (Class): クラス定義ノード
 		Returns:
 			SymbolRaw: シンボル
 		Raises:

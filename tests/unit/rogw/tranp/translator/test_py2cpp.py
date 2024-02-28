@@ -47,6 +47,8 @@ def _ast(before: str, after: str) -> str:
 
 		'DeclOps': f'{_DeclOps}',
 
+		'Base.block': f'{_Base}.class_def_raw.block',
+
 		'CVarOps.ret_raw.return': f'{_CVarOps}.class_def_raw.block.function_def[0].function_def_raw.block.return_stmt',
 		'CVarOps.ret_cp.return': f'{_CVarOps}.class_def_raw.block.function_def[1].function_def_raw.block.return_stmt',
 		'CVarOps.ret_csp.return': f'{_CVarOps}.class_def_raw.block.function_def[2].function_def_raw.block.return_stmt',
@@ -132,6 +134,8 @@ class TestPy2Cpp(TestCase):
 		(_ast('DSI', ''), defs.AltClass, 'using DSI = std::map<std::string, int>;'),
 
 		(_ast('DeclOps', ''), defs.Class, BlockExpects.DeclOps),
+
+		(_ast('Base.block', 'comment_stmt[3]'), defs.Comment, '// FIXME other: Any'),
 
 		(_ast('CVarOps.ret_raw.return', ''), defs.Return, 'return Base(0);'),
 		(_ast('CVarOps.ret_cp.return', ''), defs.Return, 'return new Base(0);'),

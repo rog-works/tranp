@@ -12,6 +12,7 @@ value: int = 0
 class Base(Z):
 	def __init__(self) -> None:
 		self.base_str: str = ''
+		# comment
 
 class Sub(Base):
 	class C:

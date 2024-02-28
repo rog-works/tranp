@@ -273,6 +273,7 @@ class TestSymbols(TestCase):
 		(_ast('Base.__init__.block', 'anno_assign.assign_namelist.getattr'), _mod('classes', 'str'), 'str'),
 		(_ast('Base.__init__.block', 'anno_assign.typed_var'), _mod('classes', 'str'), 'str'),
 		(_ast('Base.__init__.block', 'anno_assign.string'), _mod('classes', 'str'), 'str'),
+		(_ast('Base.__init__.block', 'comment_stmt'), _mod('classes', 'Unknown'), 'Unknown'),
 
 		(_ast('Sub', ''), '__main__.Sub', 'Sub'),
 		(_ast('Sub', 'class_def_raw.name'), '__main__.Sub', 'Sub'),

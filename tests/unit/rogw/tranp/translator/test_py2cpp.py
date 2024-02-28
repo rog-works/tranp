@@ -126,6 +126,7 @@ class TestPy2Cpp(TestCase):
 		options = TranslatorOptions(verbose=False)
 		return Py2Cpp(self.fixture.get(Symbols), renderer, options)
 
+	@profiler('cumtime')
 	@data_provider([
 		(_ast('import.typing', ''), defs.Import, '// #include "typing.h"'),
 

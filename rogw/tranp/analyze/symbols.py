@@ -7,7 +7,7 @@ from rogw.tranp.analyze.procedure import Procedure
 import rogw.tranp.analyze.reflection as reflection
 from rogw.tranp.analyze.finder import SymbolFinder
 import rogw.tranp.compatible.python.classes as classes
-from rogw.tranp.compatible.python.types import Primitives
+from rogw.tranp.compatible.python.types import Standards
 from rogw.tranp.errors import LogicError, NotFoundError
 from rogw.tranp.lang.eventemitter import Callback
 from rogw.tranp.lang.implementation import implements, injectable
@@ -63,16 +63,16 @@ class Symbols:
 		if action in self.__handlers:
 			self.__handlers[action].remove(callback)
 
-	def is_a(self, symbol: SymbolRaw, primitive_type: type[Primitives] | None) -> bool:
+	def is_a(self, symbol: SymbolRaw, standard_type: type[Standards] | None) -> bool:
 		"""シンボルの型を判定
 
 		Args:
 			symbol (SymbolRaw): シンボル
-			primitive_type (type[Primitives] | None): プリミティブ型
+			standard_type (type[Standards] | None): 標準クラス
 		Return:
 			bool: True = 指定の型と一致
 		"""
-		return symbol.types == self.type_of_primitive(primitive_type).types
+		return symbol.types == self.type_of_standard(standard_type).types
 
 	def get_object(self) -> SymbolRaw:
 		"""objectのシンボルを取得
@@ -96,17 +96,17 @@ class Symbols:
 		"""
 		return self.__finder.by(self.__raws, fullyname)
 
-	def type_of_primitive(self, primitive_type: type[Primitives] | None) -> SymbolRaw:
-		"""プリミティブ型のシンボルを解決
+	def type_of_standard(self, standard_type: type[Standards] | None) -> SymbolRaw:
+		"""標準クラスのシンボルを解決
 
 		Args:
-			primitive_type (type[Primitives] | None): プリミティブ型
+			standard_type (type[Standard] | None): 標準クラス
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
 			NotFoundError: シンボルが見つからない
 		"""
-		return self.__finder.by_primitive(self.__raws, primitive_type)
+		return self.__finder.by_standard(self.__raws, standard_type)
 
 	def type_of_property(self, types: defs.ClassDef, prop: defs.Var) -> SymbolRaw:
 		"""クラス定義ノードと変数参照ノードからプロパティーのシンボルを解決
@@ -206,7 +206,7 @@ class Symbols:
 		"""
 		if isinstance(node, defs.Comprehension):
 			projection_type = list if node.is_a(defs.ListComp) else dict
-			origin = self.type_of_primitive(projection_type)
+			origin = self.type_of_standard(projection_type)
 			projection = self.__resolve_procedural(node.projection)
 			# XXX 属性の扱いの違いを吸収
 			# XXX list: int
@@ -379,7 +379,7 @@ class ProceduralResolver:
 			# 対象
 			* Terminal(Operator)
 		"""
-		return self.symbols.type_of_primitive(classes.Unknown)
+		return self.symbols.type_of_standard(classes.Unknown)
 
 	# Statement compound
 
@@ -496,7 +496,7 @@ class ProceduralResolver:
 
 	def on_argument_label(self, node: defs.ArgumentLabel) -> SymbolRaw:
 		"""Note: labelに型はないのでUnknownを返す"""
-		return self.symbols.type_of_primitive(classes.Unknown)
+		return self.symbols.type_of_standard(classes.Unknown)
 
 	def on_variable(self, node: defs.Var) -> SymbolRaw:
 		return self.symbols.resolve(node).to.ref(node)
@@ -532,10 +532,10 @@ class ProceduralResolver:
 		return type_name.to.generic(node).extends(*template_types)
 
 	def on_union_type(self, node: defs.UnionType, or_types: list[SymbolRaw]) -> SymbolRaw:
-		return self.symbols.type_of_primitive(UnionType).to.generic(node).extends(*or_types)
+		return self.symbols.type_of_standard(UnionType).to.generic(node).extends(*or_types)
 
 	def on_null_type(self, node: defs.NullType) -> SymbolRaw:
-		return self.symbols.type_of_primitive(None)
+		return self.symbols.type_of_standard(None)
 
 	def on_func_call(self, node: defs.FuncCall, calls: SymbolRaw, arguments: list[SymbolRaw]) -> SymbolRaw:
 		"""
@@ -606,7 +606,7 @@ class ProceduralResolver:
 		return value
 
 	def on_not_compare(self, node: defs.NotCompare, operator: SymbolRaw, value: SymbolRaw) -> SymbolRaw:
-		return self.symbols.type_of_primitive(bool).to.result(node)
+		return self.symbols.type_of_standard(bool).to.result(node)
 
 	def on_or_compare(self, node: defs.OrCompare, elements: list[SymbolRaw]) -> SymbolRaw:
 		return self.each_binary_operator(node, elements)
@@ -724,45 +724,45 @@ class ProceduralResolver:
 
 		var_type = secondary if primary_is_null else primary
 		null_type = primary if primary_is_null else secondary
-		return self.symbols.type_of_primitive(UnionType).to.result(node).extends(var_type, null_type)
+		return self.symbols.type_of_standard(UnionType).to.result(node).extends(var_type, null_type)
 
 	# Literal
 
 	def on_integer(self, node: defs.Integer) -> SymbolRaw:
-		return self.symbols.type_of_primitive(int)
+		return self.symbols.type_of_standard(int)
 
 	def on_float(self, node: defs.Float) -> SymbolRaw:
-		return self.symbols.type_of_primitive(float)
+		return self.symbols.type_of_standard(float)
 
 	def on_string(self, node: defs.String) -> SymbolRaw:
-		return self.symbols.type_of_primitive(str)
+		return self.symbols.type_of_standard(str)
 
 	def on_doc_string(self, node: defs.DocString) -> SymbolRaw:
-		return self.symbols.type_of_primitive(str)
+		return self.symbols.type_of_standard(str)
 
 	def on_truthy(self, node: defs.Truthy) -> SymbolRaw:
-		return self.symbols.type_of_primitive(bool)
+		return self.symbols.type_of_standard(bool)
 
 	def on_falsy(self, node: defs.Falsy) -> SymbolRaw:
-		return self.symbols.type_of_primitive(bool)
+		return self.symbols.type_of_standard(bool)
 
 	def on_pair(self, node: defs.Pair, first: SymbolRaw, second: SymbolRaw) -> SymbolRaw:
-		return self.symbols.type_of_primitive(classes.Pair).to.literal(node).extends(first, second)
+		return self.symbols.type_of_standard(classes.Pair).to.literal(node).extends(first, second)
 
 	def on_list(self, node: defs.List, values: list[SymbolRaw]) -> SymbolRaw:
-		value_type = values[0] if len(values) > 0 else self.symbols.type_of_primitive(classes.Unknown)
-		return self.symbols.type_of_primitive(list).to.literal(node).extends(value_type)
+		value_type = values[0] if len(values) > 0 else self.symbols.type_of_standard(classes.Unknown)
+		return self.symbols.type_of_standard(list).to.literal(node).extends(value_type)
 
 	def on_dict(self, node: defs.Dict, items: list[SymbolRaw]) -> SymbolRaw:
 		if len(items) == 0:
-			unknown_type = self.symbols.type_of_primitive(classes.Unknown)
-			return self.symbols.type_of_primitive(dict).to.literal(node).extends(unknown_type, unknown_type)
+			unknown_type = self.symbols.type_of_standard(classes.Unknown)
+			return self.symbols.type_of_standard(dict).to.literal(node).extends(unknown_type, unknown_type)
 		else:
 			key_type, value_type = items[0].attrs
-			return self.symbols.type_of_primitive(dict).to.literal(node).extends(key_type, value_type)
+			return self.symbols.type_of_standard(dict).to.literal(node).extends(key_type, value_type)
 
 	def on_null(self, node: defs.Null) -> SymbolRaw:
-		return self.symbols.type_of_primitive(None).to.literal(node)
+		return self.symbols.type_of_standard(None).to.literal(node)
 
 	# Expression
 
@@ -773,4 +773,4 @@ class ProceduralResolver:
 
 	def on_empty(self, node: defs.Empty) -> SymbolRaw:
 		# XXX 厳密にいうとNullとEmptyは別だが、実用上はほぼ同じなので代用
-		return self.symbols.type_of_primitive(None)
+		return self.symbols.type_of_standard(None)

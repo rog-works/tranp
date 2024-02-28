@@ -584,7 +584,7 @@ class Py2Cpp:
 			casted_types = {'int': int, 'float': float, 'bool': bool, 'str': str}
 			from_raw = self.symbols.type_of(node.arguments[0])
 			to_type = casted_types[org_calls]
-			to_raw = self.symbols.type_of_primitive(to_type)
+			to_raw = self.symbols.type_of_standard(to_type)
 			if self.symbols.is_a(from_raw, str):
 				return 'cast_str_to_bin', to_raw
 			elif to_type == str:

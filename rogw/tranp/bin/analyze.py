@@ -192,7 +192,7 @@ def task_analyze(org_parser: SyntaxParser, cache: CacheProvider) -> None:
 			try:
 				return symbols.from_fullyname(name)
 			except LogicError:
-				return symbols.type_of_primitive(classes.Unknown)
+				return symbols.type_of_standard(classes.Unknown)
 
 		lark = cast(SyntaxParserOfLark, org_parser).dirty_get_origin()
 		root = EntryOfLark(lark.parse(f'{"\n".join(lines)}\n'))

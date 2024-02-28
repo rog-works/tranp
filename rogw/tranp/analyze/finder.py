@@ -2,7 +2,7 @@ from types import UnionType
 
 from rogw.tranp.analyze.symbol import SymbolRaw, SymbolRaws
 from rogw.tranp.ast.dsn import DSN
-from rogw.tranp.compatible.python.types import Primitives
+from rogw.tranp.compatible.python.types import Standards
 from rogw.tranp.errors import LogicError, NotFoundError
 from rogw.tranp.lang.implementation import injectable
 from rogw.tranp.module.types import LibraryPaths
@@ -55,30 +55,30 @@ class SymbolFinder:
 
 		raise NotFoundError(f'Symbol not defined. fullyname: {fullyname}')
 
-	def by_primitive(self, raws: SymbolRaws, primitive_type: type[Primitives] | None) -> SymbolRaw:
-		"""プリミティブ型のシンボルを取得
+	def by_standard(self, raws: SymbolRaws, standard_type: type[Standards] | None) -> SymbolRaw:
+		"""標準クラスのシンボルを取得
 
 		Args:
 			raws (SymbolRaws): シンボルテーブル
-			primitive_type (type[Primitives] | None): プリミティブ型
+			standard_type (type[Standards] | None): 標準クラス
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
 			NotFoundError: シンボルが見つからない
 		"""
 		domain_name = ''
-		if primitive_type is None:
+		if standard_type is None:
 			domain_name = 'None'
-		elif primitive_type is UnionType:
+		elif standard_type is UnionType:
 			domain_name = 'Union'
 		else:
-			domain_name = primitive_type.__name__
+			domain_name = standard_type.__name__
 
 		raw = self.__find_raw(raws, self.__library_paths, domain_name)
 		if raw is not None:
 			return raw
 
-		raise NotFoundError(f'Primitive not defined. name: {primitive_type.__name__}')
+		raise NotFoundError(f'Standard type not defined. name: {standard_type.__name__}')
 
 	def by_symbolic(self, raws: SymbolRaws, node: defs.Symbolic) -> SymbolRaw:
 		"""シンボル系ノードからシンボルを取得

@@ -1,10 +1,11 @@
 import re
+from types import UnionType
 from unittest import TestCase
 
 from rogw.tranp.analyze.symbols import Symbols
 from rogw.tranp.ast.dsn import DSN
 import rogw.tranp.compatible.python.classes as classes
-from rogw.tranp.compatible.python.types import Primitives
+from rogw.tranp.compatible.python.types import Standards
 from rogw.tranp.errors import LogicError
 from rogw.tranp.test.helper import data_provider
 from tests.test.fixture import Fixture
@@ -100,10 +101,10 @@ class TestSymbols(TestCase):
 		('__main__.AliasOps.func.d', list, False),
 		('__main__.AliasOps.func.d', dict, False),  # XXX エイリアスはdictそのものではないが要検討
 	])
-	def test_is_a(self, fullyname: str, primitive_type: type[Primitives], expected: bool) -> None:
+	def test_is_a(self, fullyname: str, standard_type: type[Standards], expected: bool) -> None:
 		symbols = self.fixture.get(Symbols)
 		symbol = symbols.from_fullyname(fullyname)
-		self.assertEqual(symbols.is_a(symbol, primitive_type), expected)
+		self.assertEqual(symbols.is_a(symbol, standard_type), expected)
 
 	@data_provider([
 		('__main__.TypeAlias', 'TypeAlias'),
@@ -253,11 +254,12 @@ class TestSymbols(TestCase):
 		(list, _mod('classes', list.__name__)),
 		(dict, _mod('classes', dict.__name__)),
 		(classes.Unknown, _mod('classes', classes.Unknown.__name__)),
+		(UnionType, _mod('classes', 'Union')),
 		(None, _mod('classes', 'None')),
 	])
-	def test_type_of_primitive(self, primitive_type: type[Primitives] | None, expected: str) -> None:
+	def test_type_of_standard(self, standard_type: type[Standards] | None, expected: str) -> None:
 		symbols = self.fixture.get(Symbols)
-		self.assertEqual(symbols.type_of_primitive(primitive_type).types.fullyname, expected)
+		self.assertEqual(symbols.type_of_standard(standard_type).types.fullyname, expected)
 
 	@data_provider([
 		(_ast('__main__.import.xyz', 'import_names.name'), _mod('xyz', 'Z'), 'Z'),

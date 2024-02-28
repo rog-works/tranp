@@ -111,7 +111,7 @@ class Comment(NamedTuple):
 		Args:
 			block (str): ブロックのテキスト
 		Returns:
-			list[CommentAttribute]: 属性コメントリスト
+			list[Comment.Attribute]: 属性コメントリスト
 		"""
 		if len(block) == 0:
 			return []
@@ -134,7 +134,7 @@ class Comment(NamedTuple):
 		Args:
 			block (str): ブロックのテキスト
 		Returns:
-			CommentType: 型コメント
+			Comment.Type: 型コメント
 		"""
 		matches = re.fullmatch(r'([^:]+):\s*(.+)', block)
 		if not matches:
@@ -150,7 +150,7 @@ class Comment(NamedTuple):
 		Args:
 			block (str): ブロックのテキスト
 		Returns:
-			list[CommentType]: 型コメントリスト
+			list[Comment.Type]: 型コメントリスト
 		"""
 		if len(block) == 0:
 			return []

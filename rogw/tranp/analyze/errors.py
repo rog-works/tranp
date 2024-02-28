@@ -22,5 +22,5 @@ class OperationNotAllowedError(LexError):
 	pass
 
 class ProcessingError(LexError):
-	"""意味解析中のランタイムエラー"""
+	"""意味解析中の未特定の実行エラー"""
 	pass

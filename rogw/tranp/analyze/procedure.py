@@ -3,6 +3,7 @@ from typing import Generic, TypeVar, cast
 from rogw.tranp.analyze.errors import ProcessingError
 from rogw.tranp.ast.dsn import DSN
 from rogw.tranp.errors import LogicError
+from rogw.tranp.lang.error import raises
 from rogw.tranp.lang.eventemitter import Callback, EventEmitter
 from rogw.tranp.lang.implementation import implements
 from rogw.tranp.node.node import Node
@@ -59,6 +60,7 @@ class Procedure(Generic[T_Ret]):
 		"""イベントハンドラーの登録を全て解除"""
 		self.__emitter.clear()
 
+	@raises(ProcessingError, LogicError)
 	def exec(self, root: Node) -> T_Ret:
 		"""指定のルート要素から逐次処理し、結果を出力
 
@@ -69,16 +71,13 @@ class Procedure(Generic[T_Ret]):
 		Raises:
 			ProcessingError: 実行エラー
 		"""
-		try:
-			flatted = root.calculated()
-			flatted.append(root)  # XXX 自身が含まれないので末尾に追加
+		flatted = root.calculated()
+		flatted.append(root)  # XXX 自身が含まれないので末尾に追加
 
-			for node in flatted:
-				self.__process(node)
+		for node in flatted:
+			self.__process(node)
 
-			return self.__result()
-		except LogicError as e:
-			raise ProcessingError(f'root: {root}') from e
+		return self.__result()
 
 	def __result(self) -> T_Ret:
 		"""結果を出力。結果は必ず1つでなければならない

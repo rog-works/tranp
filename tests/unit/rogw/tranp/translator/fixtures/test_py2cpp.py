@@ -19,8 +19,10 @@ class Base:
 		self.base_n: int = n
 
 	def call(self) -> None: ...
-	def __eq__(self, other: Base | bool) -> bool: ...  # FIXME Anyの実装
-	def __not__(self, other: Base | bool) -> bool: ...  # FIXME Anyの実装
+	# FIXME other: Any
+	def __eq__(self, other: Base | bool) -> bool: ...
+	# FIXME other: Any
+	def __not__(self, other: Base | bool) -> bool: ...
 	def __add__(self, other: Base) -> Base: ...
 	def __sub__(self, other: Base) -> Base: ...
 	def __mul__(self, other: Base) -> Base: ...
@@ -65,10 +67,14 @@ class CVarOps:
 			asp = asp
 			# asp = ar  # 構文的にNG
 		if True:
-			ar = CRef(a)  # C++ではNG
-			ar = ap.ref  # C++ではNG
-			ar = asp.ref  # C++ではNG
-			ar = ar  # C++ではNG
+			# C++ではNG
+			ar = CRef(a)
+			# C++ではNG
+			ar = ap.ref
+			# C++ではNG
+			ar = asp.ref
+			# C++ではNG
+			ar = ar
 
 	def param_move(self, a: Base, ap: CP[Base], asp: CSP[Base], ar: CRef[Base]) -> None:
 		a1 = a
@@ -78,7 +84,8 @@ class CVarOps:
 		a = a1
 		ap = CP(a2)
 		# asp = a3  # 構文的にNG
-		ar = CRef(a4)  # C++ではNG
+		# C++ではNG
+		ar = CRef(a4)
 
 	def invoke_method(self, a: Base, ap: CP[Base], asp: CSP[Base]) -> None:
 		# self.invoke_method(a, CP(a), a)  # 構文的にNG
@@ -107,7 +114,8 @@ class CVarOps:
 		asp2 = asp if True else asp
 		ar2 = ar if True else ar
 		ap_or_null = ap if True else None
-		a_or_ap = a if True else ap  # エラーケース
+		# エラーケース
+		a_or_ap = a if True else ap
 
 	def declare(self) -> None:
 		arr = [1]
@@ -274,8 +282,10 @@ class CastOps:
 class Nullable:
 	def params(self, p: CP[Base] | None) -> None: ...
 	def returns(self) -> CP[Base] | None: ...
-	def invlid_params(self, base: Base | None) -> None: ...  # エラーケース
-	def invlid_returns(self) -> Base | None: ...  # エラーケース
+	# エラーケース
+	def invlid_params(self, base: Base | None) -> None: ...
+	# エラーケース
+	def invlid_returns(self) -> Base | None: ...
 	def var_move(self, base: Base, sp: CSP[Base]) -> Base:
 		p: CP[Base] | None = None
 		p = CP(base)

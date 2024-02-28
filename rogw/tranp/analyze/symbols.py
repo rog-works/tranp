@@ -10,8 +10,7 @@ from rogw.tranp.analyze.finder import SymbolFinder
 import rogw.tranp.compatible.python.classes as classes
 from rogw.tranp.compatible.python.types import Standards
 from rogw.tranp.lang.error import raises
-from rogw.tranp.lang.eventemitter import Callback
-from rogw.tranp.lang.implementation import implements, injectable
+from rogw.tranp.lang.implementation import injectable
 import rogw.tranp.node.definition as defs
 from rogw.tranp.node.node import Node
 
@@ -30,40 +29,10 @@ class Symbols:
 		"""
 		self.__raws = db.raws
 		self.__finder = finder
-		self.__handlers: dict[str, list[Callback[SymbolRaw]]] = {}
 		self.__procedural_resolver = ProceduralResolver(self)
 
 		for plugin in plugins():
 			plugin.register(self.__procedural_resolver.procedure)
-
-	@implements
-	def on(self, action: str, callback: Callback[SymbolRaw]) -> None:
-		"""イベントハンドラーを登録
-
-		Args:
-			action (str): アクション名
-			callback (Callback[SymbolRaw]): ハンドラー
-		Note:
-			@see eventemitter.IObservable を実装
-		"""
-		if action not in self.__handlers:
-			self.__handlers[action] = []
-
-		if callback not in self.__handlers[action]:
-			self.__handlers[action].append(callback)
-
-	@implements
-	def off(self, action: str, callback: Callback[SymbolRaw]) -> None:
-		"""イベントハンドラーを解除
-
-		Args:
-			action (str): アクション名
-			callback (Callback[SymbolRaw]): ハンドラー
-		Note:
-			@see eventemitter.IObservable を実装
-		"""
-		if action in self.__handlers:
-			self.__handlers[action].remove(callback)
 
 	@raises(UnresolvedSymbolError, LexicalError)
 	def is_a(self, symbol: SymbolRaw, standard_type: type[Standards] | None) -> bool:
@@ -344,7 +313,6 @@ class ProceduralResolver:
 			SymbolRaw: 変数の型
 		Note:
 			許容するNullableの書式 (例: 'Class | None')
-			@see Py2Cpp.force_unpack_nullable
 			FIXME あらゆる個所でUnionをアンパックする必要がある懸念
 		"""
 		if self.symbols.is_a(symbol, UnionType) and len(symbol.attrs) == 2:
@@ -458,7 +426,7 @@ class ProceduralResolver:
 		if isinstance(receiver.types, defs.AltClass):
 			receiver = receiver.attrs[0]
 
-		# XXX 強制的にNullableを解除する ※on_relayに到達した時点でnullが期待値であることはあり得ないと言う前提
+		# XXX 強制的にNullableを解除する ※on_relayに到達した時点でnullが期待値であることはあり得ないと言う想定
 		accessable_receiver = self.force_unpack_nullable(receiver)
 
 		prop = self.symbols.type_of_property(accessable_receiver.types, node.prop)
@@ -480,7 +448,7 @@ class ProceduralResolver:
 		return self.symbols.resolve(node).to.ref(node)
 
 	def on_argument_label(self, node: defs.ArgumentLabel) -> SymbolRaw:
-		"""Note: labelに型はないのでUnknownを返す"""
+		"""Note: labelに型はないのでUnknownを返却"""
 		return self.symbols.type_of_standard(classes.Unknown)
 
 	def on_variable(self, node: defs.Var) -> SymbolRaw:

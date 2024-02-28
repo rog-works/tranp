@@ -1,5 +1,4 @@
 import re
-from typing import cast
 
 from rogw.tranp.ast.dsn import DSN
 from rogw.tranp.errors import LogicError

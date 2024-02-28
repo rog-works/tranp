@@ -43,7 +43,7 @@ class Procedure(Generic[T_Ret]):
 		self.__emitter.on(action, callback)
 
 	@implements
-	def off(self, action: str, handler: Callback[T_Ret]) -> None:
+	def off(self, action: str, callback: Callback[T_Ret]) -> None:
 		"""イベントハンドラーを解除
 
 		Args:
@@ -52,7 +52,7 @@ class Procedure(Generic[T_Ret]):
 		Note:
 			@see eventemitter.IObservable を実装
 		"""
-		self.__emitter.off(action, handler)
+		self.__emitter.off(action, callback)
 
 	def clear_handler(self) -> None:
 		"""イベントハンドラーの登録を全て解除"""

@@ -316,14 +316,29 @@ class ProceduralResolver:
 
 		return procedure
 
-	def on(self, action: str, handler: Callback[SymbolRaw]) -> None:
+	@implements
+	def on(self, action: str, callback: Callback[SymbolRaw]) -> None:
 		"""イベントハンドラーを登録
 
 		Args:
 			action (str): アクション名
-			handler (Callback[SymbolRaw]): ハンドラー
+			callback (Callback[SymbolRaw]): ハンドラー
+		Note:
+			@see eventemitter.IObservable を実装
 		"""
-		self.__procedure.on(action, handler)
+		self.__procedure.on(action, callback)
+
+	@implements
+	def off(self, action: str, callback: Callback[SymbolRaw]) -> None:
+		"""イベントハンドラーを解除
+
+		Args:
+			action (str): アクション名
+			callback (Callback[SymbolRaw]): ハンドラー
+		Note:
+			@see eventemitter.IObservable を実装
+		"""
+		self.__procedure.off(action, callback)
 
 	def resolve(self, node: Node) -> SymbolRaw:
 		"""指定のノードからASTを再帰的に解析し、シンボルを解決

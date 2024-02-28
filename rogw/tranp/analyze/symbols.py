@@ -358,6 +358,8 @@ class ProceduralResolver:
 			node (Node): ノード
 		Returns:
 			SymbolRaw: シンボル
+		Raises:
+			ProcessingError: 実行エラー
 		"""
 		return self.__procedure.exec(node)
 

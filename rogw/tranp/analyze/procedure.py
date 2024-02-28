@@ -1,5 +1,6 @@
 from typing import Generic, TypeVar, cast
 
+from rogw.tranp.analyze.errors import ProcessingError
 from rogw.tranp.ast.dsn import DSN
 from rogw.tranp.errors import LogicError
 from rogw.tranp.lang.eventemitter import Callback, EventEmitter
@@ -65,14 +66,19 @@ class Procedure(Generic[T_Ret]):
 			root (Node): ルート要素
 		Returns:
 			T_Ret: 結果
+		Raises:
+			ProcessingError: 実行エラー
 		"""
-		flatted = root.calculated()
-		flatted.append(root)  # XXX 自身が含まれないので末尾に追加
+		try:
+			flatted = root.calculated()
+			flatted.append(root)  # XXX 自身が含まれないので末尾に追加
 
-		for node in flatted:
-			self.__process(node)
+			for node in flatted:
+				self.__process(node)
 
-		return self.__result()
+			return self.__result()
+		except LogicError as e:
+			raise ProcessingError(f'root: {root}') from e
 
 	def __result(self) -> T_Ret:
 		"""結果を出力。結果は必ず1つでなければならない

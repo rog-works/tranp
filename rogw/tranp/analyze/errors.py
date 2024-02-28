@@ -20,3 +20,7 @@ class SymbolNotDefinedError(LexError):
 class OperationNotAllowedError(LexError):
 	"""許可されない(または未実装)の演算を指定"""
 	pass
+
+class ProcessingError(LexError):
+	"""意味解析中のランタイムエラー"""
+	pass

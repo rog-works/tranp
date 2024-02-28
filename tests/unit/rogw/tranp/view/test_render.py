@@ -359,5 +359,5 @@ class TestRenderer(TestCase):
 			]),
 		),
 	])
-	def test_render_comment(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('comment', 0, vars, expected)
+	def test_render_doc_string(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('doc_string', 0, vars, expected)

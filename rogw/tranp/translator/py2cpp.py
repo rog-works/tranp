@@ -342,7 +342,7 @@ class Py2Cpp:
 		return 'continue;'
 
 	def on_comment(self, node: defs.Comment) -> str:
-		return f'// {node.text}'
+		return f'//{node.text}'
 
 	def on_import(self, node: defs.Import, import_symbols: list[str]) -> str:
 		module_path = node.import_path.tokens

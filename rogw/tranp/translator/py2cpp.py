@@ -341,6 +341,9 @@ class Py2Cpp:
 	def on_continue(self, node: defs.Continue) -> str:
 		return 'continue;'
 
+	def on_comment(self, node: defs.Comment) -> str:
+		return f'// {node.text}'
+
 	def on_import(self, node: defs.Import, import_symbols: list[str]) -> str:
 		module_path = node.import_path.tokens
 		text = self.view.render(node.classification, vars={'module_path': module_path})
@@ -706,7 +709,7 @@ class Py2Cpp:
 	def on_string(self, node: defs.String) -> str:
 		return node.tokens.replace("'", '"')
 
-	def on_comment(self, node: defs.Comment) -> str:
+	def on_doc_string(self, node: defs.DocString) -> str:
 		return self.view.render(node.classification, vars={'data': node.data})
 
 	def on_truthy(self, node: defs.Truthy) -> str:

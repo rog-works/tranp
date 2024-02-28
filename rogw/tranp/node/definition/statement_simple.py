@@ -1,3 +1,5 @@
+import re
+
 from rogw.tranp.lang.implementation import implements, override
 from rogw.tranp.node.definition.primary import FuncCall, ImportPath, Indexer, Reference, Declable, Type, Var
 from rogw.tranp.node.definition.terminal import Empty, Terminal
@@ -116,6 +118,13 @@ class Break(Node, ITerminal): pass
 
 @Meta.embed(Node, accept_tags('break_stmt'))
 class Continue(Node, ITerminal): pass
+
+
+@Meta.embed(Node, accept_tags('comment_stmt'))
+class Comment(Node, ITerminal):
+	@property
+	def text(self) -> str:
+		return re.sub(r'^#\s+', '', self.tokens)
 
 
 @Meta.embed(Node, accept_tags('import_stmt'))

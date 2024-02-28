@@ -11,7 +11,7 @@ from rogw.tranp.node.definition.literal import (
 	Integer,
 	Float,
 	# string
-	Comment,
+	DocString,
 	String,
 	# bool
 	Boolean,
@@ -148,6 +148,8 @@ from rogw.tranp.node.definition.statement_simple import (
 	Pass,
 	Break,
 	Continue,
+	# comment
+	Comment,
 	# import
 	Import,
 )

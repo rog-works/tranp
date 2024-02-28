@@ -43,6 +43,7 @@ def symbol_mapping() -> SymbolMapping:
 			'pass_stmt': defs.Pass,
 			'break_stmt': defs.Break,
 			'continue_stmt': defs.Continue,
+			'comment_stmt': defs.Comment,
 			'import_stmt': defs.Import,
 			# -- Primary --
 			'getattr': defs.Fragment,

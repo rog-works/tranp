@@ -14,7 +14,7 @@ file_input: (_NEWLINE | statement)*
 	| pass_stmt
 	| break_stmt
 	| continue_stmt
-	| comment_stmt
+	| comment_stmt // @custom
 
 ?compound_stmt: function_def
 	| if_stmt
@@ -153,6 +153,7 @@ raise_stmt: "raise" primary ["from" name]
 break_stmt: "break"
 pass_stmt: "pass"
 continue_stmt: "continue"
+// @custom
 comment_stmt: COMMENT
 
 // # Expressions

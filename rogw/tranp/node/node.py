@@ -5,6 +5,7 @@ from rogw.tranp.ast.dsn import DSN
 from rogw.tranp.ast.entry import SourceMap
 from rogw.tranp.ast.path import EntryPath
 from rogw.tranp.ast.query import Query
+from rogw.tranp.errors import LogicError
 from rogw.tranp.lang.implementation import deprecated, injectable, override
 from rogw.tranp.lang.sequence import flatten
 from rogw.tranp.lang.string import snakelize
@@ -63,13 +64,13 @@ class Node:
 		Returns:
 			bool: True = 同じ
 		Raises:
-			ValueError: Node以外のオブジェクトを指定
+			LogicError: Node以外のオブジェクトを指定 XXX 出力例外を要件等
 		"""
 		if other is None:
 			return False
 
 		if not isinstance(other, Node):
-			raise ValueError(f'Not allowed comparison. other: {type(other)}')
+			raise LogicError(f'Not allowed comparison. other: {type(other)}')
 
 		return self.__repr__() == other.__repr__()
 

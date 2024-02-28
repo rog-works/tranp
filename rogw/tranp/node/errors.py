@@ -1,5 +1,6 @@
 from rogw.tranp.errors import Error
 
+
 class SyntaxError(Error):
 	"""シンタックス解析由来のエラー"""
 	pass
@@ -14,4 +15,8 @@ class UnresolvedNodeError(SyntaxError):
 
 class IllegalConvertionError(SyntaxError):
 	"""派生クラスへの変換時に不正な変換先を指定"""
+	pass
+
+class InvalidRelationError(SyntaxError):
+	"""ノード間の不正なリレーション"""
 	pass

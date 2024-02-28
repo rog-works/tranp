@@ -2,12 +2,12 @@ import re
 from typing import Union, cast
 
 from rogw.tranp.ast.dsn import DSN
-from rogw.tranp.errors import LogicError
 from rogw.tranp.lang.implementation import implements, override
 from rogw.tranp.lang.sequence import flatten, last_index_of
 from rogw.tranp.node.definition.literal import Literal
 from rogw.tranp.node.definition.terminal import Empty
 from rogw.tranp.node.embed import Meta, accept_tags, actualized, expandable
+from rogw.tranp.node.errors import InvalidRelationError
 from rogw.tranp.node.interface import IDomain, IScope, ITerminal
 from rogw.tranp.node.node import Node
 from rogw.tranp.node.promise import IDeclaration, ISymbol
@@ -100,11 +100,15 @@ class Declable(Fragment, ISymbol, ITerminal):
 	@property
 	@implements
 	def declare(self) -> Node:
+		"""
+		Raises:
+			InvalidRelationError: 不正な親子関係
+		"""
 		parent_tags = ['assign_namelist', 'for_namelist', 'except_clause', 'typedparam']
 		if self._full_path.parent_tag in parent_tags and isinstance(self.parent, IDeclaration):
 			return self.parent
 
-		raise LogicError(f'Unexpected parent. node: {self}, parent: {self.parent}')
+		raise InvalidRelationError(f'node: {self}, parent: {self.parent}')
 
 
 class DeclVar(Declable): pass

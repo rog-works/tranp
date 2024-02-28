@@ -1,6 +1,6 @@
 from types import UnionType
 
-from rogw.tranp.analyze.errors import ImplementationError, SymbolNotDefinedError
+from rogw.tranp.analyze.errors import MustBeImplementedError, SymbolNotDefinedError
 from rogw.tranp.analyze.symbol import SymbolRaw, SymbolRaws
 from rogw.tranp.ast.dsn import DSN
 from rogw.tranp.compatible.python.types import Standards
@@ -37,7 +37,7 @@ class SymbolFinder:
 		if raw is not None:
 			return raw
 
-		raise ImplementationError('"object" class is required.')
+		raise MustBeImplementedError('"object" class is required.')
 
 	def by(self, raws: SymbolRaws, fullyname: str) -> SymbolRaw:
 		"""完全参照名からシンボルを取得
@@ -78,7 +78,7 @@ class SymbolFinder:
 		if raw is not None:
 			return raw
 
-		raise ImplementationError(f'"{standard_type.__name__}" class is required.')
+		raise MustBeImplementedError(f'"{standard_type.__name__}" class is required.')
 
 	def by_symbolic(self, raws: SymbolRaws, node: defs.Symbolic) -> SymbolRaw:
 		"""シンボル系ノードからシンボルを取得

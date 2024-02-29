@@ -14,15 +14,12 @@ from rogw.tranp.node.node import Node
 from rogw.tranp.node.promise import IDeclaration, ISymbol
 
 
-@Meta.embed(Node, accept_tags('getattr', 'var', 'name'))
-class Fragment(Node, IDomain):
+class Declable(Node, IDomain, ISymbol, ITerminal):
 	@property
 	@override
 	def domain_name(self) -> str:
 		return self.tokens
 
-
-class Declable(Fragment, ISymbol, ITerminal):
 	@property
 	@implements
 	def symbol(self) -> 'Declable':
@@ -129,7 +126,11 @@ class ImportName(DeclName):
 		return FragmentMatcher.in_decl_import(via)
 
 
-class Reference(Fragment): pass
+class Reference(Node, IDomain):
+	@property
+	@override
+	def domain_name(self) -> str:
+		return self.tokens
 
 
 @Meta.embed(Node, accept_tags('getattr'))
@@ -159,6 +160,7 @@ class Relay(Reference):
 		return self._at(1).as_a(Variable)
 
 
+@Meta.embed(Node, accept_tags('var'))
 class Var(Reference, ITerminal): pass
 
 

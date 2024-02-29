@@ -47,7 +47,6 @@ from rogw.tranp.node.definition.operator import (
 	TenaryOperator,
 )
 from rogw.tranp.node.definition.primary import (
-	Fragment,
 	# declable
 	Declable,
 	DeclVar,

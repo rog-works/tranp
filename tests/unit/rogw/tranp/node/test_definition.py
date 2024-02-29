@@ -656,6 +656,12 @@ class TestDefinition(TestCase):
 		('class B(A): ...', 'file_input.class_def.class_def_raw.name', defs.TypesName),
 		('def func(a: int) -> None: ...', 'file_input.function_def.function_def_raw.name', defs.TypesName),
 		('from path.to import A', 'file_input.import_stmt.import_names.name', defs.ImportName),
+	])
+	def test_declable(self, source: str, full_path: str, expected: type) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Declable)
+		self.assertEqual(type(node), expected)
+
+	@data_provider([
 		# Reference - Relay
 		('a(self.v)', 'file_input.funccall.arguments.argvalue.getattr', defs.Relay),
 		('a().b', 'file_input.getattr', defs.Relay),
@@ -693,8 +699,8 @@ class TestDefinition(TestCase):
 		('a(b=c)', 'file_input.funccall.arguments.argvalue.var', defs.Variable),
 		('class B(A):\n\tb: int = a', 'file_input.class_def.class_def_raw.block.anno_assign.var', defs.Variable),
 	])
-	def test_fragment(self, source: str, full_path: str, expected: type) -> None:
-		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Fragment)
+	def test_reference(self, source: str, full_path: str, expected: type) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Reference)
 		self.assertEqual(type(node), expected)
 
 	@data_provider([

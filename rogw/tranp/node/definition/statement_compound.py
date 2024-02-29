@@ -340,7 +340,7 @@ class Function(ClassDef):
 	@override
 	@Meta.embed(Node, expandable)
 	def decorators(self) -> list[Decorator]:
-		return [node.as_a(Decorator) for node in self._children('decorators')] if self._exists('decorators') else []
+		return super().decorators
 
 	@property
 	@Meta.embed(Node, expandable)

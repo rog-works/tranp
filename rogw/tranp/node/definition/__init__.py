@@ -1,6 +1,6 @@
 from typing import TypeAlias
 
-from rogw.tranp.node.definition.accessor import to_access
+from rogw.tranp.node.definition.accessible import to_access, PythonClassOperations
 from rogw.tranp.node.definition.element import Decorator, Parameter
 from rogw.tranp.node.definition.expression import Group
 from rogw.tranp.node.definition.general import Entrypoint

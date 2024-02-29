@@ -4,7 +4,8 @@ from rogw.tranp.ast.dsn import DSN
 from rogw.tranp.compatible.python.embed import __actual__, __alias__, __hint_generic__
 from rogw.tranp.lang.implementation import implements, override
 from rogw.tranp.lang.sequence import flatten, last_index_of
-from rogw.tranp.node.definition.accessor import to_access
+from rogw.tranp.node.accessible import ClassOperations
+from rogw.tranp.node.definition.accessible import PythonClassOperations, to_access
 from rogw.tranp.node.definition.element import Decorator, Parameter
 from rogw.tranp.node.definition.literal import DocString, String
 from rogw.tranp.node.definition.primary import Argument, CustomType, DeclClassVar, DeclLocalVar, Declable, ForIn, InheritArgument, DeclThisParam, DeclThisVar, Type, TypesName, VarOfType, Variable
@@ -238,6 +239,10 @@ class ClassDef(Node, IDomain, IScope, IDeclaration, ISymbol):
 	@property
 	def access(self) -> str:
 		return to_access(self.symbol.tokens)
+
+	@property
+	def operations(self) -> ClassOperations:
+		return PythonClassOperations()
 
 	@property
 	def decorators(self) -> list[Decorator]:

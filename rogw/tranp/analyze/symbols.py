@@ -109,10 +109,8 @@ class Symbols:
 			SymbolRaw: シンボル
 		Raises:
 			UnresolvedSymbolError: コンストラクターの実装ミス
-		Note:
-			FIXME Pythonのコンストラクターに依存したコードはNG。再度検討
 		"""
-		return self.resolve(types, '__init__')
+		return self.resolve(types, types.operations.constructor)
 
 	@raises(UnresolvedSymbolError, LexicalError)
 	def type_of(self, node: Node) -> SymbolRaw:
@@ -354,19 +352,22 @@ class ProceduralResolver:
 		if isinstance(iterates.types, defs.AltClass):
 			iterates = iterates.attrs[0]
 
-		def resolve() -> SymbolRaw:
+		def resolve_method() -> tuple[SymbolRaw, str]:
 			try:
-				return self.symbols.resolve(iterates.types, '__next__')
+				return self.symbols.resolve(iterates.types, iterates.types.operations.iterator), 'iterator'
 			except UnresolvedSymbolError:
-				return self.symbols.resolve(iterates.types, '__iter__')
+				return self.symbols.resolve(iterates.types, iterates.types.operations.iterable), 'iterable'
 
-		method = resolve()
+		method, solution = resolve_method()
+		# XXX iteratorの場合は、戻り値の型をそのまま使用
+		# XXX iterableの場合は、戻り値の型が`Iterator<T>`と言う想定でアンパックする
+		# XXX # メソッドシグネチャーの期待値
+		# XXX `iterator(self) -> T`
+		# XXX `iterable(self) -> Iterator<T>`
 		schema = {
 			'klass': method.attrs[0],
 			'parameters': method.attrs[1:-1],
-			# XXX iter関数の動作再現として、__iter__の場合のみ戻り値内のTをアンパックする
-			# XXX 期待値: `__iter__(self) -> Iterator[T]`
-			'returns': method.attrs[-1] if method.types.domain_name == '__next__' else method.attrs[-1].attrs[0],
+			'returns': method.attrs[-1] if solution == 'iterator' else method.attrs[-1].attrs[0],
 		}
 		method_ref = reflection.Builder(method).schema(lambda: schema).build(reflection.Method)
 		return method_ref.returns(iterates)
@@ -599,17 +600,17 @@ class ProceduralResolver:
 		return left
 
 	def proc_binary_operator(self, node: defs.BinaryOperator, left: SymbolRaw, operator: defs.Terminal, right: SymbolRaw) -> SymbolRaw:
-		method_name = self.operator_to_method_name(operator.tokens)
+		operator_name = operator.tokens
 		operands: list[SymbolRaw] = [left, right]
 		methods: list[SymbolRaw | None] = [None, None]
 		for index, operand in enumerate(operands):
 			try:
-				methods[index] = self.symbols.resolve(operand.types, method_name)
+				methods[index] = self.symbols.resolve(operand.types, operand.types.operations.operation_by(operator_name))
 			except UnresolvedSymbolError:
 				pass
 
 		if methods[0] is None and methods[1] is None:
-			raise OperationNotAllowedError(f'"{method_name}" not defined. {node}, {str(left)} {operator.tokens} {str(right)}')
+			raise OperationNotAllowedError(f'"{operator_name}" not defined. {node}, {str(left)} {operator.tokens} {str(right)}')
 
 		for index, candidate in enumerate(methods):
 			if candidate is None:
@@ -629,37 +630,6 @@ class ProceduralResolver:
 				return method_ref.returns(receiver, actual_other)
 
 		raise OperationNotAllowedError(f'Signature not match. {node}, {str(left)} {operator.tokens} {str(right)}')
-
-	def operator_to_method_name(self, operator: str) -> str:
-		operators = {
-			# Comparison
-			'or': '__or__',
-			'and': '__and__',
-			'==': '__eq__',
-			'<': '__lt__',
-			'>': '__gt__',
-			'<=': '__le__',
-			'>=': '__ge__',
-			'<>': '__not__',
-			'!=': '__not__',
-			'in': '__contains__',
-			'not.in': '__contains__',  # XXX 型推論的に同じなので代用
-			'is': '__eq__',  # XXX 型推論的に同じなので代用
-			'is.not': '__not__',  # XXX 型推論的に同じなので代用
-			# Bitwise
-			'|': '__or__',
-			'^': '__xor__',
-			'&': '__and__',
-			'<<': '__lshift__',
-			'>>': '__rshift__',
-			# Arthmetic
-			'+': '__add__',
-			'-': '__sub__',
-			'*': '__mul__',
-			'/': '__truediv__',
-			'%': '__mod__',
-		}
-		return operators[operator]
 
 	def on_tenary_operator(self, node: defs.TenaryOperator, primary: SymbolRaw, condition: SymbolRaw, secondary: SymbolRaw) -> SymbolRaw:
 		"""Note: 返却型が一致、またはNullableのみ許可"""

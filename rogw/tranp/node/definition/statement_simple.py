@@ -1,5 +1,5 @@
 from rogw.tranp.lang.implementation import implements, override
-from rogw.tranp.node.definition.primary import FuncCall, ImportPath, Indexer, Reference, Declable, Type, Var
+from rogw.tranp.node.definition.primary import FuncCall, ImportPath, Indexer, Reference, Declable, Type, Variable
 from rogw.tranp.node.definition.terminal import Empty, Terminal
 from rogw.tranp.node.embed import Meta, accept_tags, expandable
 from rogw.tranp.node.interface import ITerminal
@@ -97,8 +97,8 @@ class Return(Node):
 class Throw(Node):
 	@property
 	@Meta.embed(Node, expandable)
-	def throws(self) -> FuncCall | Var:
-		return self._at(0).one_of(FuncCall | Var)
+	def throws(self) -> FuncCall | Variable:
+		return self._at(0).one_of(FuncCall | Variable)
 
 	@property
 	@Meta.embed(Node, expandable)

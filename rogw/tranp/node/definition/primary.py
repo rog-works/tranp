@@ -171,7 +171,6 @@ class Relay(Reference):
 		return self._at(1).as_a(Variable)
 
 
-@Meta.embed(Node, accept_tags('var'))
 class Var(Reference, ITerminal): pass
 
 

@@ -62,12 +62,12 @@ from rogw.tranp.node.definition.primary import (
 	TypesName,
 	ImportName,
 	# reference
+	ArgumentLabel,
 	Reference,
 	Relay,
 	Var,
 	ClassRef,
 	ThisRef,
-	ArgumentLabel,
 	Variable,
 	# path
 	Path,

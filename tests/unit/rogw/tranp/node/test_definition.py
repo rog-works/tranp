@@ -639,6 +639,13 @@ class TestDefinition(TestCase):
 	# Primary
 
 	@data_provider([
+		('a(b=c)', 'file_input.funccall.arguments.argvalue.name', defs.ArgumentLabel),
+	])
+	def test_argument_label(self, source: str, full_path: str, expected: type) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.ArgumentLabel)
+		self.assertEqual(type(node), expected)
+
+	@data_provider([
 		# Declable - Local
 		('a = 0', 'file_input.assign.assign_namelist.var', defs.DeclLocalVar),
 		('a: int = 0', 'file_input.anno_assign.assign_namelist.var', defs.DeclLocalVar),
@@ -683,8 +690,6 @@ class TestDefinition(TestCase):
 		('a(cls.v)', 'file_input.funccall.arguments.argvalue.getattr.var', defs.ClassRef),
 		('self', 'file_input.var', defs.ThisRef),
 		('a(self.v)', 'file_input.funccall.arguments.argvalue.getattr.var', defs.ThisRef),
-		# Reference - Label
-		('a(b=c)', 'file_input.funccall.arguments.argvalue.name', defs.ArgumentLabel),
 		# Reference - Variable
 		('a', 'file_input.var', defs.Variable),
 		('a()', 'file_input.funccall.var', defs.Variable),

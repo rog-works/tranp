@@ -14,6 +14,17 @@ from rogw.tranp.node.node import Node
 from rogw.tranp.node.promise import IDeclaration, ISymbol
 
 
+@Meta.embed(Node, accept_tags('name'))
+class ArgumentLabel(Node):
+	@classmethod
+	def match_feature(cls, via: Node) -> bool:
+		return via._full_path.parent_tag == 'argvalue'
+
+	@property
+	def invoker(self) -> 'FuncCall':
+		return self._ancestor('funccall').as_a(FuncCall)
+
+
 class Declable(Node, IDomain, ISymbol, ITerminal):
 	@property
 	@override
@@ -180,17 +191,6 @@ class ThisRef(Var):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
 		return via.tokens == 'self'
-
-
-@Meta.embed(Node, accept_tags('name'))
-class ArgumentLabel(Var):
-	@classmethod
-	def match_feature(cls, via: Node) -> bool:
-		return via._full_path.parent_tag == 'argvalue'
-
-	@property
-	def invoker(self) -> 'FuncCall':
-		return self._ancestor('funccall').as_a(FuncCall)
 
 
 @Meta.embed(Node, accept_tags('var', 'name'))

@@ -57,6 +57,7 @@ def symbol_mapping() -> SymbolMapping:
 			defs.Comment: ['comment_stmt'],
 			defs.Import: ['import_stmt'],
 			# -- Primary --
+			defs.ArgumentLabel: ['name'],
 			defs.DeclClassVar: ['var'],
 			defs.DeclThisVar: ['getattr'],
 			defs.DeclClassParam: ['name'],
@@ -68,7 +69,6 @@ def symbol_mapping() -> SymbolMapping:
 			defs.Relay: ['getattr'],
 			defs.ClassRef: ['var'],
 			defs.ThisRef: ['var'],
-			defs.ArgumentLabel: ['name'],
 			defs.Variable: ['var', 'name'],
 			defs.ImportPath: ['dotted_name'],
 			defs.DecoratorPath: ['dotted_name'],

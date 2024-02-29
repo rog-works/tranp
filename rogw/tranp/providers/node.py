@@ -5,10 +5,22 @@ from rogw.tranp.node.node import Node
 
 
 def entrypoint(query: Query[Node]) -> Node:
+	"""エントリーポイントを解決
+
+	Args:
+		query (Query[Node]): ノードクエリー
+	Returns:
+		Node: エントリーポイント
+	"""
 	return query.by('file_input')
 
 
 def symbol_mapping() -> SymbolMapping:
+	"""ノードのシンボルマッピングデータを生成
+
+	Returns:
+		SymbolMapping: シンボルマッピングデータ
+	"""
 	return SymbolMapping(
 		symbols={
 			# -- General --

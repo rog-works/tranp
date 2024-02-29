@@ -155,7 +155,7 @@ class Symbols:
 		if isinstance(node, defs.Var):
 			return self.resolve(node)
 		else:
-			# defs.Relay
+			# defs.Relay/defs.Indexer
 			return self.__resolve_procedural(node)
 
 	def __from_flow(self, node: defs.For | defs.Catch) -> SymbolRaw:

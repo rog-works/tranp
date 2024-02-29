@@ -57,14 +57,14 @@ class DeclVar(Declable): pass
 class DeclClassVar(DeclVar):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
-		return FragmentMatcher.is_decl_class_var(via)
+		return DeclableMatcher.is_decl_class_var(via)
 
 
 @Meta.embed(Node, accept_tags('getattr'))
 class DeclThisVar(DeclVar):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
-		return FragmentMatcher.is_decl_this_var(via)
+		return DeclableMatcher.is_decl_this_var(via)
 
 	@property
 	@override
@@ -86,20 +86,20 @@ class DeclThisVar(DeclVar):
 class DeclLocalVar(DeclVar):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
-		return FragmentMatcher.is_decl_local_var(via)
+		return DeclableMatcher.is_decl_local_var(via)
 
 
 @Meta.embed(Node, accept_tags('name'))
 class DeclParam(DeclLocalVar):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
-		return FragmentMatcher.is_param(via)
+		return DeclableMatcher.is_param(via)
 
 
 class DeclClassParam(DeclParam):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
-		return FragmentMatcher.is_param_class(via)
+		return DeclableMatcher.is_param_class(via)
 
 	@property
 	def class_types(self) -> Node:
@@ -109,7 +109,7 @@ class DeclClassParam(DeclParam):
 class DeclThisParam(DeclParam):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
-		return FragmentMatcher.is_param_this(via)
+		return DeclableMatcher.is_param_this(via)
 
 	@property
 	def class_types(self) -> Node:
@@ -123,7 +123,7 @@ class DeclName(Declable): pass
 class TypesName(DeclName):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
-		return FragmentMatcher.in_decl_class_type(via)
+		return DeclableMatcher.in_decl_class_type(via)
 
 	@property
 	def class_types(self) -> Node:
@@ -134,7 +134,7 @@ class TypesName(DeclName):
 class ImportName(DeclName):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
-		return FragmentMatcher.in_decl_import(via)
+		return DeclableMatcher.in_decl_import(via)
 
 
 class Reference(Node, IDomain):
@@ -153,10 +153,10 @@ class Relay(Reference):
 
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
-		if FragmentMatcher.is_decl_local_var(via) or FragmentMatcher.is_decl_this_var(via):
+		if DeclableMatcher.is_decl_local_var(via) or DeclableMatcher.is_decl_this_var(via):
 			return False
 
-		if FragmentMatcher.in_decl_class_type(via) or FragmentMatcher.in_decl_import(via):
+		if DeclableMatcher.in_decl_class_type(via) or DeclableMatcher.in_decl_import(via):
 			return False
 
 		return True
@@ -557,12 +557,21 @@ class DictComp(Comprehension):
 	pass
 
 
-class FragmentMatcher:
+class DeclableMatcher:
+	"""変数宣言ノードマッチャー"""
+
 	@classmethod
 	def is_decl_class_var(cls, via: Node) -> bool:
-		"""Note: マッチング対象: クラス変数宣言"""
-		# XXX ASTへの依存度が非常に高い判定なので注意
-		# XXX 期待するパス: class_def_raw.block.anno_assign.assign_namelist.(getattr|var|name)
+		"""マッチング判定 (マッチング対象: クラス変数宣言)
+
+		Args:
+			via (Node): ノード
+		Returns:
+			bool: True = 対象
+		Note:
+			XXX ASTへの依存度が非常に高い判定なので注意
+			XXX 期待するパス: class_def_raw.block.anno_assign.assign_namelist.(getattr|var|name)
+		"""
 		via_full_path = EntryPath(via.full_path)
 		elems = via_full_path.de_identify().elements
 		actual_class_def_at = last_index_of(elems, 'class_def_raw')
@@ -575,7 +584,13 @@ class FragmentMatcher:
 
 	@classmethod
 	def is_decl_this_var(cls, via: Node) -> bool:
-		"""Note: マッチング対象: インスタンス変数宣言"""
+		"""マッチング判定 (マッチング対象: インスタンス変数宣言)
+
+		Args:
+			via (Node): ノード
+		Returns:
+			bool: True = 対象
+		"""
 		via_full_path = EntryPath(via.full_path)
 		in_decl_var = via_full_path.de_identify().shift(-1).origin.endswith('anno_assign.assign_namelist')
 		is_property = re.fullmatch(r'self.\w+', via.tokens) is not None
@@ -584,7 +599,13 @@ class FragmentMatcher:
 
 	@classmethod
 	def is_param_class(cls, via: Node) -> bool:
-		"""Note: マッチング対象: 仮引数(clsのみ)"""
+		"""マッチング判定 (マッチング対象: 仮引数(clsのみ))
+
+		Args:
+			via (Node): ノード
+		Returns:
+			bool: True = 対象
+		"""
 		via_full_path = EntryPath(via.full_path)
 		tokens = via.tokens
 		in_decl_var = via_full_path.parent_tag == 'typedparam'
@@ -594,7 +615,13 @@ class FragmentMatcher:
 
 	@classmethod
 	def is_param_this(cls, via: Node) -> bool:
-		"""Note: マッチング対象: 仮引数(selfのみ)"""
+		"""マッチング判定 (マッチング対象: 仮引数(selfのみ))
+
+		Args:
+			via (Node): ノード
+		Returns:
+			bool: True = 対象
+		"""
 		via_full_path = EntryPath(via.full_path)
 		tokens = via.tokens
 		in_decl_var = via_full_path.parent_tag == 'typedparam'
@@ -604,7 +631,13 @@ class FragmentMatcher:
 
 	@classmethod
 	def is_param(cls, via: Node) -> bool:
-		"""Note: マッチング対象: 仮引数(cls/self以外)"""
+		"""マッチング判定 (マッチング対象: 仮引数(cls/self以外))
+
+		Args:
+			via (Node): ノード
+		Returns:
+			bool: True = 対象
+		"""
 		via_full_path = EntryPath(via.full_path)
 		tokens = via.tokens
 		in_decl_param = via_full_path.parent_tag == 'typedparam'
@@ -613,7 +646,13 @@ class FragmentMatcher:
 
 	@classmethod
 	def is_decl_local_var(cls, via: Node) -> bool:
-		"""Note: マッチング対象: ローカル変数宣言"""
+		"""マッチング判定 (マッチング対象: ローカル変数宣言)
+
+		Args:
+			via (Node): ノード
+		Returns:
+			bool: True = 対象
+		"""
 		# For/Catch/Comprehension
 		via_full_path = EntryPath(via.full_path)
 		is_identified_by_name_only = via_full_path.parent_tag in ['for_namelist', 'except_clause']
@@ -631,10 +670,24 @@ class FragmentMatcher:
 
 	@classmethod
 	def in_decl_class_type(cls, via: Node) -> bool:
+		"""マッチング判定 (マッチング対象: クラス宣言)
+
+		Args:
+			via (Node): ノード
+		Returns:
+			bool: True = 対象
+		"""
 		via_full_path = EntryPath(via.full_path)
 		return via_full_path.parent_tag in ['class_def_raw', 'function_def_raw']
 
 	@classmethod
 	def in_decl_import(cls, via: Node) -> bool:
+		"""マッチング判定 (マッチング対象: インポート)
+
+		Args:
+			via (Node): ノード
+		Returns:
+			bool: True = 対象
+		"""
 		via_full_path = EntryPath(via.full_path)
 		return via_full_path.parent_tag == 'import_names'

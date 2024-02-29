@@ -196,7 +196,11 @@ class ThisRef(Var):
 
 @Meta.embed(Node, accept_tags('var', 'name'))
 class Variable(Var):
-	"""Note: XXX 'var'/'name'のmatch_featureループの終着点として排他的に決定(実質的なフォールバック)"""
+	"""
+	Note:
+		XXX 'var'/'name'のmatch_featureループの終着点として排他的に決定(実質的なフォールバック)
+		XXX 'var'だけで本質的には問題ないはずだが、AltClass.symbol/TemplateClass.symbolで'name'が使われており、受け口が無いとエラーになるため'name'を受け入れ
+	"""
 	pass
 
 

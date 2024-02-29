@@ -465,7 +465,7 @@ class Node:
 	@classmethod
 	def match_feature(cls, via: 'Node') -> bool:
 		"""引数のノードが自身の特徴と一致するか判定
-		一致すると判断されたノードはactualizeにより変換される
+		一致すると判断されたノードはResolverより実体化される
 		条件判定は派生クラス側で実装
 
 		Args:
@@ -483,7 +483,7 @@ class Node:
 			return via.parent.tag == 'xxx'
 			```
 		"""
-		return False
+		return True
 
 	def _feature_classes(self) -> list[type['Node']]:
 		"""メタデータより自身に紐づけられた特徴クラス(=派生クラス)を抽出

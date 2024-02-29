@@ -54,16 +54,16 @@ class TestResolver(TestCase):
 		resolver.register('a', A)
 		resolver.register('b', B)
 		resolver.register('c', C)
-		self.assertEqual(resolver.resolve('a'), A)
-		self.assertEqual(resolver.resolve('b'), B)
-		self.assertEqual(resolver.resolve('c'), C)
+		self.assertEqual(resolver.resolve('a'), [A])
+		self.assertEqual(resolver.resolve('b'), [B])
+		self.assertEqual(resolver.resolve('c'), [C])
 
 	def test_fallback(self) -> None:
 		resolver = Resolver[A]()
 		resolver.register('a', A)
 		resolver.fallback(B)
-		self.assertEqual(resolver.resolve('a'), A)
-		self.assertEqual(resolver.resolve('b'), B)
+		self.assertEqual(resolver.resolve('a'), [A])
+		self.assertEqual(resolver.resolve('b'), [B])
 
 	def test_clear(self) -> None:
 		resolver = Resolver[A]()

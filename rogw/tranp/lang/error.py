@@ -1,6 +1,7 @@
 import traceback
-from typing import Any, Callable, ParamSpec
+from typing import Callable, ParamSpec, TypeVar
 
+T_Ret = TypeVar('T_Ret')
 P = ParamSpec('P')
 
 
@@ -15,7 +16,7 @@ def stacktrace(error: Exception) -> list[str]:
 	return traceback.format_exception(type(error), error, error.__traceback__)
 
 
-def raises(raise_error: type[Exception], *handle_errors: type[Exception]) -> Callable[[Callable[P, Any]], Callable[P, Any]]:
+def raises(raise_error: type[Exception], *handle_errors: type[Exception]) -> Callable[[Callable[P, T_Ret]], Callable[P, T_Ret]]:
 	"""内部で発生した例外をラップし、新たな例外で再出力するデコレーターを生成
 
 	Args:
@@ -33,8 +34,8 @@ def raises(raise_error: type[Exception], *handle_errors: type[Exception]) -> Cal
 		> DomainError
 		```
 	"""
-	def decorator(wrapper_func: Callable[P, Any]) -> Callable[P, Any]:
-		def wrapper(*args: P.args, **kwargs: P.kwargs) -> Any:
+	def decorator(wrapper_func: Callable[P, T_Ret]) -> Callable[P, T_Ret]:
+		def wrapper(*args: P.args, **kwargs: P.kwargs) -> T_Ret:
 			try:
 				return wrapper_func(*args, **kwargs)
 			except handle_errors as e:

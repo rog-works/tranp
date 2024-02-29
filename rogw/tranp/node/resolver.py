@@ -47,9 +47,15 @@ class NodeResolver:
 		if full_path in self.__insts:
 			return self.__insts[full_path]
 
-		ctor = self.__resolver.resolve(symbol)
-		self.__insts[full_path] = self.__invoker(ctor, full_path).actualize()
-		return self.__insts[full_path]
+		ctors = self.__resolver.resolve(symbol)
+		# XXX match_feature用の仮ノードを生成
+		dummy = self.__invoker(Node, full_path)
+		for ctor in ctors:
+			if ctor.match_feature(dummy):
+				self.__insts[full_path] = self.__invoker(ctor, full_path)
+				return self.__insts[full_path]
+
+		raise UnresolvedNodeError(symbol, full_path)
 
 	def clear(self) -> None:
 		"""インスタンスのマッピング情報を削除"""

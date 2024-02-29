@@ -241,7 +241,7 @@ class ClassDef(Node, IDomain, IScope, IDeclaration, ISymbol):
 
 	@property
 	def decorators(self) -> list[Decorator]:
-		return []
+		return [node.as_a(Decorator) for node in self._children('decorators')] if self._exists('decorators') else []
 
 	@property
 	def comment(self) -> DocString | Empty:
@@ -385,9 +385,10 @@ class Function(ClassDef):
 class ClassMethod(Function):
 	@classmethod
 	@override
-	def match_feature(cls, via: Function) -> bool:
-		decorators = via.decorators
-		return len(decorators) > 0 and decorators[0].path.tokens == 'classmethod'
+	def match_feature(cls, via: Node) -> bool:
+		# @see ClassDef.decorators
+		decorators = via._children('decorators') if via._exists('decorators') else []
+		return len(decorators) > 0 and decorators[0].as_a(Decorator).path.tokens == 'classmethod'
 
 	@property
 	def class_types(self) -> ClassDef:
@@ -398,8 +399,9 @@ class ClassMethod(Function):
 class Constructor(Function):
 	@classmethod
 	@override
-	def match_feature(cls, via: Function) -> bool:
-		return via.symbol.tokens == '__init__'
+	def match_feature(cls, via: Node) -> bool:
+		# @see Function.symbol
+		return via._by('function_def_raw.name').tokens == '__init__'
 
 	@property
 	def class_types(self) -> ClassDef:
@@ -414,12 +416,17 @@ class Constructor(Function):
 class Method(Function):
 	@classmethod
 	@override
-	def match_feature(cls, via: Function) -> bool:
-		if via.symbol.tokens == '__init__':
+	def match_feature(cls, via: Node) -> bool:
+		# @see Function.symbol
+		if via._by('function_def_raw.name').tokens == '__init__':
 			return False
 
-		parameters = via.parameters
-		return len(parameters) > 0 and parameters[0].symbol.is_a(DeclThisParam)
+		# @see Function.parameters
+		if not via._exists('function_def_raw.parameters'):
+			return False
+
+		parameters = via._children('function_def_raw.parameters')
+		return len(parameters) > 0 and parameters[0].as_a(Parameter).symbol.is_a(DeclThisParam)
 
 	@property
 	def class_types(self) -> ClassDef:
@@ -434,7 +441,7 @@ class Method(Function):
 class Closure(Function):
 	@classmethod
 	@override
-	def match_feature(cls, via: Function) -> bool:
+	def match_feature(cls, via: Node) -> bool:
 		elems = via._full_path.de_identify().elements
 		actual_function_def_at = last_index_of(elems, 'function_def_raw')
 		expect_function_def_at = max(0, len(elems) - 3)
@@ -464,7 +471,7 @@ class Class(ClassDef):
 	@override
 	@Meta.embed(Node, expandable)
 	def decorators(self) -> list[Decorator]:
-		return [node.as_a(Decorator) for node in self._children('decorators')] if self._exists('decorators') else []
+		return super().decorators
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -535,9 +542,14 @@ class Class(ClassDef):
 class Enum(Class):
 	@classmethod
 	@override
-	def match_feature(cls, via: Class) -> bool:
+	def match_feature(cls, via: Node) -> bool:
+		# @see Class.__org_inherits
+		if not via._exists('class_def_raw.typed_arguments'):
+			return False
+
+		inherits = via._children('class_def_raw.typed_arguments')
 		# XXX CEnumの継承に依存するのは微妙なので、修正を検討
-		return 'CEnum' in [inherit.type_name.tokens for inherit in via.inherits]
+		return 'CEnum' in [inherit.as_a(InheritArgument).class_type.tokens for inherit in inherits]
 
 	@property
 	def vars(self) -> list[DeclLocalVar]:

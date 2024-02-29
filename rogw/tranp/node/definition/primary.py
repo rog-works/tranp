@@ -2,6 +2,7 @@ import re
 from typing import Union, cast
 
 from rogw.tranp.ast.dsn import DSN
+from rogw.tranp.ast.path import EntryPath
 from rogw.tranp.lang.implementation import implements, override
 from rogw.tranp.lang.sequence import flatten, last_index_of
 from rogw.tranp.node.definition.literal import Literal
@@ -19,76 +20,6 @@ class Fragment(Node, IDomain):
 	@override
 	def domain_name(self) -> str:
 		return self.tokens
-
-	@property
-	def is_decl_class_var(self) -> bool:
-		"""Note: マッチング対象: クラス変数宣言"""
-		# XXX ASTへの依存度が非常に高い判定なので注意
-		# XXX 期待するパス: class_def_raw.block.anno_assign.assign_namelist.(getattr|var|name)
-		elems = self._full_path.de_identify().elements
-		actual_class_def_at = last_index_of(elems, 'class_def_raw')
-		expect_class_def_at = max(0, len(elems) - 5)
-		in_decl_class_var = actual_class_def_at == expect_class_def_at
-		in_decl_var = self._full_path.de_identify().shift(-1).origin.endswith('anno_assign.assign_namelist')
-		is_local = DSN.elem_counts(self.tokens) == 1
-		is_receiver = self._full_path.last[1] in [0, -1]  # 代入式の左辺が対象
-		return in_decl_var and in_decl_class_var and is_local and is_receiver
-
-	@property
-	def is_decl_this_var(self) -> bool:
-		"""Note: マッチング対象: インスタンス変数宣言"""
-		in_decl_var = self._full_path.de_identify().shift(-1).origin.endswith('anno_assign.assign_namelist')
-		is_property = re.fullmatch(r'self.\w+', self.tokens) is not None
-		is_receiver = self._full_path.last[1] in [0, -1]  # 代入式の左辺が対象
-		return in_decl_var and is_property and is_receiver
-
-	@property
-	def is_param_class(self) -> bool:
-		"""Note: マッチング対象: 仮引数(clsのみ)"""
-		tokens = self.tokens
-		in_decl_var = self._full_path.parent_tag == 'typedparam'
-		is_class = tokens == 'cls'
-		is_local = DSN.elem_counts(tokens) == 1
-		return in_decl_var and is_class and is_local
-
-	@property
-	def is_param_this(self) -> bool:
-		"""Note: マッチング対象: 仮引数(selfのみ)"""
-		tokens = self.tokens
-		in_decl_var = self._full_path.parent_tag == 'typedparam'
-		is_this = tokens == 'self'
-		is_local = DSN.elem_counts(tokens) == 1
-		return in_decl_var and is_this and is_local
-
-	@property
-	def is_decl_local_var(self) -> bool:
-		"""Note: マッチング対象: ローカル変数宣言/仮引数(cls/self以外)"""
-		# For/Catch/Comprehension
-		is_identified_by_name_only = self._full_path.parent_tag in ['for_namelist', 'except_clause']
-		if is_identified_by_name_only and self._full_path.last_tag == 'name':
-			return True
-
-		# Parameter(cls/self以外)
-		tokens = self.tokens
-		in_decl_param = self._full_path.parent_tag == 'typedparam'
-		is_class_or_this = tokens in ['cls', 'self']
-		if in_decl_param:
-			return not is_class_or_this
-
-		# Assign
-		parent_tags = self._full_path.de_identify().shift(-1).elements[-2:]
-		for_assign, for_namelist = parent_tags if len(parent_tags) >= 2 else ['', '']
-		in_decl_var = for_assign in ['assign', 'anno_assign'] and for_namelist == 'assign_namelist'
-		is_local = DSN.elem_counts(tokens) == 1
-		return in_decl_var and not is_class_or_this and is_local
-
-	@property
-	def in_decl_class_type(self) -> bool:
-		return self._full_path.parent_tag in ['class_def_raw', 'function_def_raw']
-
-	@property
-	def in_decl_import(self) -> bool:
-		return self._full_path.parent_tag == 'import_names'
 
 
 class Declable(Fragment, ISymbol, ITerminal):
@@ -117,15 +48,15 @@ class DeclVar(Declable): pass
 @Meta.embed(Node, accept_tags('var'), actualized(via=Fragment))
 class DeclClassVar(DeclVar):
 	@classmethod
-	def match_feature(cls, via: Fragment) -> bool:
-		return via.is_decl_class_var
+	def match_feature(cls, via: Node) -> bool:
+		return FragmentMatcher.is_decl_class_var(via)
 
 
 @Meta.embed(Node, accept_tags('getattr'), actualized(via=Fragment))
 class DeclThisVar(DeclVar):
 	@classmethod
-	def match_feature(cls, via: Fragment) -> bool:
-		return via.is_decl_this_var
+	def match_feature(cls, via: Node) -> bool:
+		return FragmentMatcher.is_decl_this_var(via)
 
 	@property
 	@override
@@ -149,8 +80,8 @@ class DeclBlockVar(DeclVar): pass
 @Meta.embed(Node, accept_tags('name'), actualized(via=Fragment))
 class DeclClassParam(DeclBlockVar):
 	@classmethod
-	def match_feature(cls, via: Fragment) -> bool:
-		return via.is_param_class
+	def match_feature(cls, via: Node) -> bool:
+		return FragmentMatcher.is_param_class(via)
 
 	@property
 	def class_types(self) -> Node:
@@ -160,8 +91,8 @@ class DeclClassParam(DeclBlockVar):
 @Meta.embed(Node, accept_tags('name'), actualized(via=Fragment))
 class DeclThisParam(DeclBlockVar):
 	@classmethod
-	def match_feature(cls, via: Fragment) -> bool:
-		return via.is_param_this
+	def match_feature(cls, via: Node) -> bool:
+		return FragmentMatcher.is_param_this(via)
 
 	@property
 	def class_types(self) -> Node:
@@ -171,8 +102,8 @@ class DeclThisParam(DeclBlockVar):
 @Meta.embed(Node, accept_tags('var', 'name'), actualized(via=Fragment))
 class DeclLocalVar(DeclBlockVar):
 	@classmethod
-	def match_feature(cls, via: Fragment) -> bool:
-		return via.is_decl_local_var
+	def match_feature(cls, via: Node) -> bool:
+		return FragmentMatcher.is_decl_local_var(via)
 
 
 class DeclName(Declable): pass
@@ -181,8 +112,8 @@ class DeclName(Declable): pass
 @Meta.embed(Node, accept_tags('name'), actualized(via=Fragment))
 class TypesName(DeclName):
 	@classmethod
-	def match_feature(cls, via: Fragment) -> bool:
-		return via.in_decl_class_type
+	def match_feature(cls, via: Node) -> bool:
+		return FragmentMatcher.in_decl_class_type(via)
 
 	@property
 	def class_types(self) -> Node:
@@ -192,8 +123,8 @@ class TypesName(DeclName):
 @Meta.embed(Node, accept_tags('name'), actualized(via=Fragment))
 class ImportName(DeclName):
 	@classmethod
-	def match_feature(cls, via: Fragment) -> bool:
-		return via.in_decl_import
+	def match_feature(cls, via: Node) -> bool:
+		return FragmentMatcher.in_decl_import(via)
 
 
 class Reference(Fragment): pass
@@ -207,11 +138,11 @@ class Relay(Reference):
 		return DSN.join(self.receiver.domain_name, self.prop.tokens)
 
 	@classmethod
-	def match_feature(cls, via: Fragment) -> bool:
-		if via.is_decl_local_var or via.is_decl_this_var:
+	def match_feature(cls, via: Node) -> bool:
+		if FragmentMatcher.is_decl_local_var(via) or FragmentMatcher.is_decl_this_var(via):
 			return False
 
-		if via.in_decl_class_type or via.in_decl_import:
+		if FragmentMatcher.in_decl_class_type(via) or FragmentMatcher.in_decl_import(via):
 			return False
 
 		return True
@@ -232,7 +163,7 @@ class Var(Reference, ITerminal): pass
 @Meta.embed(Node, accept_tags('var'), actualized(via=Fragment))
 class ClassRef(Var):
 	@classmethod
-	def match_feature(cls, via: Fragment) -> bool:
+	def match_feature(cls, via: Node) -> bool:
 		return via.tokens == 'cls'
 
 	@property
@@ -243,14 +174,14 @@ class ClassRef(Var):
 @Meta.embed(Node, accept_tags('var'), actualized(via=Fragment))
 class ThisRef(Var):
 	@classmethod
-	def match_feature(cls, via: Fragment) -> bool:
+	def match_feature(cls, via: Node) -> bool:
 		return via.tokens == 'self'
 
 
 @Meta.embed(Node, accept_tags('name'), actualized(via=Fragment))
 class ArgumentLabel(Var):
 	@classmethod
-	def match_feature(cls, via: Fragment) -> bool:
+	def match_feature(cls, via: Node) -> bool:
 		return via._full_path.parent_tag == 'argvalue'
 
 	@property
@@ -261,7 +192,7 @@ class ArgumentLabel(Var):
 @Meta.embed(Node, accept_tags('var', 'name'), actualized(via=Fragment))
 class Variable(Var):
 	@classmethod
-	def match_feature(cls, via: Fragment) -> bool:
+	def match_feature(cls, via: Node) -> bool:
 		"""Note: XXX actualizeループの結果を元に排他的に決定(実質的なフォールバック)"""
 		return True
 
@@ -350,8 +281,8 @@ class GenericType(Type):
 class ListType(GenericType):
 	@classmethod
 	@override
-	def match_feature(cls, via: GenericType) -> bool:
-		return via.type_name.tokens == 'list'
+	def match_feature(cls, via: Node) -> bool:
+		return via._at(0).tokens == 'list'
 
 	@property
 	@override
@@ -364,8 +295,8 @@ class ListType(GenericType):
 class DictType(GenericType):
 	@classmethod
 	@override
-	def match_feature(cls, via: GenericType) -> bool:
-		return via.type_name.tokens == 'dict'
+	def match_feature(cls, via: Node) -> bool:
+		return via._at(0).tokens == 'dict'
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -389,7 +320,7 @@ class DictType(GenericType):
 class CallableType(GenericType):
 	@classmethod
 	@override
-	def match_feature(cls, via: GenericType) -> bool:
+	def match_feature(cls, via: Node) -> bool:
 		"""Note: XXX TypeParametersはTypeではないため、template_typesは使わないこと"""
 		children = via._children('typed_slices')
 		return len(children) == 2 and children[0].is_a(TypeParameters)
@@ -414,7 +345,7 @@ class CallableType(GenericType):
 class CustomType(GenericType):
 	@classmethod
 	@override
-	def match_feature(cls, via: GenericType) -> bool:
+	def match_feature(cls, via: Node) -> bool:
 		"""Note: その他のGenericTypeと排他関係。実質的なフォールバック"""
 		return True
 
@@ -482,8 +413,8 @@ class FuncCall(Node, IDomain):
 class Super(FuncCall):
 	@classmethod
 	@override
-	def match_feature(cls, via: FuncCall) -> bool:
-		return via.calls.tokens == 'super'
+	def match_feature(cls, via: Node) -> bool:
+		return via._at(0).tokens == 'super'
 
 	@property
 	def super_class_symbol(self) -> Type:
@@ -621,3 +552,82 @@ class ListComp(Comprehension):
 @Meta.embed(Node, accept_tags('dict_comp'))
 class DictComp(Comprehension):
 	pass
+
+
+class FragmentMatcher:
+	@classmethod
+	def is_decl_class_var(cls, via: Node) -> bool:
+		"""Note: マッチング対象: クラス変数宣言"""
+		# XXX ASTへの依存度が非常に高い判定なので注意
+		# XXX 期待するパス: class_def_raw.block.anno_assign.assign_namelist.(getattr|var|name)
+		via_full_path = EntryPath(via.full_path)
+		elems = via_full_path.de_identify().elements
+		actual_class_def_at = last_index_of(elems, 'class_def_raw')
+		expect_class_def_at = max(0, len(elems) - 5)
+		in_decl_class_var = actual_class_def_at == expect_class_def_at
+		in_decl_var = via_full_path.de_identify().shift(-1).origin.endswith('anno_assign.assign_namelist')
+		is_local = DSN.elem_counts(via.tokens) == 1
+		is_receiver = via_full_path.last[1] in [0, -1]  # 代入式の左辺が対象
+		return in_decl_var and in_decl_class_var and is_local and is_receiver
+
+	@classmethod
+	def is_decl_this_var(cls, via: Node) -> bool:
+		"""Note: マッチング対象: インスタンス変数宣言"""
+		via_full_path = EntryPath(via.full_path)
+		in_decl_var = via_full_path.de_identify().shift(-1).origin.endswith('anno_assign.assign_namelist')
+		is_property = re.fullmatch(r'self.\w+', via.tokens) is not None
+		is_receiver = via_full_path.last[1] in [0, -1]  # 代入式の左辺が対象
+		return in_decl_var and is_property and is_receiver
+
+	@classmethod
+	def is_param_class(cls, via: Node) -> bool:
+		"""Note: マッチング対象: 仮引数(viaのみ)"""
+		via_full_path = EntryPath(via.full_path)
+		tokens = via.tokens
+		in_decl_var = via_full_path.parent_tag == 'typedparam'
+		is_class = tokens == 'cls'
+		is_local = DSN.elem_counts(tokens) == 1
+		return in_decl_var and is_class and is_local
+
+	@classmethod
+	def is_param_this(cls, via: Node) -> bool:
+		"""Note: マッチング対象: 仮引数(viaのみ)"""
+		via_full_path = EntryPath(via.full_path)
+		tokens = via.tokens
+		in_decl_var = via_full_path.parent_tag == 'typedparam'
+		is_this = tokens == 'self'
+		is_local = DSN.elem_counts(tokens) == 1
+		return in_decl_var and is_this and is_local
+
+	@classmethod
+	def is_decl_local_var(cls, via: Node) -> bool:
+		"""Note: マッチング対象: ローカル変数宣言/仮引数(via/via以外)"""
+		# For/Catch/Comprehension
+		via_full_path = EntryPath(via.full_path)
+		is_identified_by_name_only = via_full_path.parent_tag in ['for_namelist', 'except_clause']
+		if is_identified_by_name_only and via_full_path.last_tag == 'name':
+			return True
+
+		# Parameter(via/via以外)
+		tokens = via.tokens
+		in_decl_param = via_full_path.parent_tag == 'typedparam'
+		is_class_or_this = tokens in ['cls', 'self']
+		if in_decl_param:
+			return not is_class_or_this
+
+		# Assign
+		parent_tags = via_full_path.de_identify().shift(-1).elements[-2:]
+		for_assign, for_namelist = parent_tags if len(parent_tags) >= 2 else ['', '']
+		in_decl_var = for_assign in ['assign', 'anno_assign'] and for_namelist == 'assign_namelist'
+		is_local = DSN.elem_counts(tokens) == 1
+		return in_decl_var and not is_class_or_this and is_local
+
+	@classmethod
+	def in_decl_class_type(cls, via: Node) -> bool:
+		via_full_path = EntryPath(via.full_path)
+		return via_full_path.parent_tag in ['class_def_raw', 'function_def_raw']
+
+	@classmethod
+	def in_decl_import(cls, via: Node) -> bool:
+		via_full_path = EntryPath(via.full_path)
+		return via_full_path.parent_tag == 'import_names'

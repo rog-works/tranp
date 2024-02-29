@@ -346,3 +346,14 @@ class LazyDI(DI):
 		"""
 		injector = self.__definitions[symbol_path]
 		self.bind(load_module_path(symbol_path), injector if callable(injector) else load_module_path(injector))
+
+	@override
+	def clone(self: Self) -> Self:
+		"""シンボルのマッピング情報のみコピーした複製を生成
+
+		Returns:
+			Self: 複製したインスタンス
+		"""
+		di = super().clone()
+		di.__definitions = self.__definitions.copy()
+		return di

@@ -132,6 +132,13 @@ class TypesName(DeclName):
 		return self.parent
 
 
+@Meta.embed(Node, accept_tags('var'))
+class AltTypesName(TypesName):
+	@classmethod
+	def match_feature(cls, via: Node) -> bool:
+		return DeclableMatcher.in_decl_alt_class_type(via)
+
+
 @Meta.embed(Node, accept_tags('name'))
 class ImportName(DeclName):
 	@classmethod
@@ -151,10 +158,11 @@ class Relay(Reference, IDomain):
 
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
-		if DeclableMatcher.is_decl_local_var(via) or DeclableMatcher.is_decl_this_var(via):
-			return False
-
-		if DeclableMatcher.in_decl_class_type(via) or DeclableMatcher.in_decl_import(via):
+		if DeclableMatcher.is_decl_local_var(via) \
+			or DeclableMatcher.is_decl_this_var(via) \
+			or DeclableMatcher.in_decl_class_type(via) \
+			or DeclableMatcher.in_decl_alt_class_type(via) \
+			or DeclableMatcher.in_decl_import(via):
 			return False
 
 		return True
@@ -683,6 +691,25 @@ class DeclableMatcher:
 		"""
 		via_full_path = EntryPath(via.full_path)
 		return via_full_path.parent_tag in ['class_def_raw', 'function_def_raw']
+
+	@classmethod
+	def in_decl_alt_class_type(cls, via: Node) -> bool:
+		"""マッチング判定 (マッチング対象: タイプ再定義/テンプレートタイプ宣言)
+
+		Args:
+			via (Node): ノード
+		Returns:
+			bool: True = 対象
+		"""
+		via_full_path = EntryPath(via.full_path)
+		if via_full_path.parent_tag != 'assign_namelist':
+			return False
+
+		elems = via_full_path.de_identify().elements
+		expect_assign_at = len(elems) - 3
+		is_class_assign = last_index_of(elems, 'class_assign') == expect_assign_at
+		is_template_assign = last_index_of(elems, 'template_assign') == expect_assign_at
+		return is_class_assign or is_template_assign
 
 	@classmethod
 	def in_decl_import(cls, via: Node) -> bool:

@@ -60,6 +60,7 @@ from rogw.tranp.node.definition.primary import (
 	# declable - name
 	DeclName,
 	TypesName,
+	AltTypesName,
 	ImportName,
 	# reference
 	ArgumentLabel,

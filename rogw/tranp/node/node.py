@@ -401,10 +401,10 @@ class Node:
 			return cast(T_Node, self)
 
 		if not issubclass(to_class, self.__class__):
-			raise IllegalConvertionError(str(self), to_class)
+			raise IllegalConvertionError(self, to_class)
 
 		if not self.__acceptable_by(to_class):
-			raise IllegalConvertionError(str(self), to_class)
+			raise IllegalConvertionError(self, to_class)
 
 		return cast(T_Node, to_class(self.__nodes, self.__module_path, self.full_path))
 

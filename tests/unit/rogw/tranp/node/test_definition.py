@@ -646,22 +646,24 @@ class TestDefinition(TestCase):
 		self.assertEqual(type(node), expected)
 
 	@data_provider([
-		# Declable - Local
+		# Local
 		('a = 0', 'file_input.assign.assign_namelist.var', defs.DeclLocalVar),
 		('a: int = 0', 'file_input.anno_assign.assign_namelist.var', defs.DeclLocalVar),
 		('for i in range(1): ...', 'file_input.for_stmt.for_namelist.name', defs.DeclLocalVar),
 		('try: ...\nexcept Exception as e: ...', 'file_input.try_stmt.except_clauses.except_clause.name', defs.DeclLocalVar),
-		('def func(a: int) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.DeclParam),
 		('class B(A):\n\ta = 0', 'file_input.class_def.class_def_raw.block.assign.assign_namelist.var', defs.DeclLocalVar),  # XXX MoveAssignはクラス変数の宣言にはならない設計
-		# Declable - Class/This
+		# Class/This
 		('class B(A):\n\tb: int = a', 'file_input.class_def.class_def_raw.block.anno_assign.assign_namelist.var', defs.DeclClassVar),
 		('self.b: int = self.a', 'file_input.anno_assign.assign_namelist.getattr', defs.DeclThisVar),
-		# Declable - Param Class/This
+		# Param/Class/This
+		('def func(a: int) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.DeclParam),
 		('def func(cls) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.DeclClassParam),
 		('def func(self) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.DeclThisParam),
-		# Declable - Name
+		# Name
 		('class B(A): ...', 'file_input.class_def.class_def_raw.name', defs.TypesName),
 		('def func(a: int) -> None: ...', 'file_input.function_def.function_def_raw.name', defs.TypesName),
+		('A: TypeAlias = int', 'file_input.class_assign.assign_namelist.var', defs.AltTypesName),
+		('T = TypeVar("T")', 'file_input.template_assign.assign_namelist.var', defs.AltTypesName),
 		('from path.to import A', 'file_input.import_stmt.import_names.name', defs.ImportName),
 	])
 	def test_declable(self, source: str, full_path: str, expected: type) -> None:
@@ -669,7 +671,7 @@ class TestDefinition(TestCase):
 		self.assertEqual(type(node), expected)
 
 	@data_provider([
-		# Reference - Relay
+		# Relay
 		('a(self.v)', 'file_input.funccall.arguments.argvalue.getattr', defs.Relay),
 		('a().b', 'file_input.getattr', defs.Relay),
 		('a[0].b', 'file_input.getattr', defs.Relay),
@@ -685,12 +687,12 @@ class TestDefinition(TestCase):
 		('self.a()', 'file_input.funccall.getattr', defs.Relay),
 		('self.a.b', 'file_input.getattr', defs.Relay),
 		('self.a[0]', 'file_input.getitem.getattr', defs.Relay),
-		# Reference - Class/This
+		# Class/This
 		('cls', 'file_input.var', defs.ClassRef),
 		('a(cls.v)', 'file_input.funccall.arguments.argvalue.getattr.var', defs.ClassRef),
 		('self', 'file_input.var', defs.ThisRef),
 		('a(self.v)', 'file_input.funccall.arguments.argvalue.getattr.var', defs.ThisRef),
-		# Reference - Variable
+		# Variable
 		('a', 'file_input.var', defs.Variable),
 		('a()', 'file_input.funccall.var', defs.Variable),
 		('a().b', 'file_input.getattr.name', defs.Variable),

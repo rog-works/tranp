@@ -65,6 +65,7 @@ def symbol_mapping() -> SymbolMapping:
 			defs.DeclParam: ['name'],
 			defs.DeclLocalVar: ['var', 'name'],
 			defs.TypesName: ['name'],
+			defs.AltTypesName: ['var'],
 			defs.ImportName: ['name'],
 			defs.Relay: ['getattr'],
 			defs.ClassRef: ['var'],

@@ -35,6 +35,8 @@ def _ast(before: str, after: str) -> str:
 	_AliasOps = f'file_input.class_def[{_start + 4}]'
 	_TupleOps = f'file_input.class_def[{_start + 5}]'
 	_CompOps = f'file_input.class_def[{_start + 6}]'
+	_EnumOps = f'file_input.class_def[{_start + 7}]'
+	_Nullable = f'file_input.class_def[{_start + 8}]'
 
 	aliases = {
 		'__main__.import.xyz': 'file_input.import_stmt[2]',
@@ -78,6 +80,9 @@ def _ast(before: str, after: str) -> str:
 		'Sub.decl_locals.closure.block': f'{_Sub_decl_locals}.function_def_raw.block.function_def.function_def_raw.block',
 
 		'CompOps.list_comp.block': f'{_CompOps}.class_def_raw.block.function_def[0].function_def_raw.block',
+
+		'Nullable.returns.return': f'{_Nullable}.class_def_raw.block.function_def[1].function_def_raw.typed_or_expr',
+		'Nullable.var_move.block': f'{_Nullable}.class_def_raw.block.function_def[2].function_def_raw.block',
 	}
 	return DSN.join(aliases[before], after)
 
@@ -230,6 +235,12 @@ class TestSymbols(TestCase):
 		('__main__.EnumOps.assign.da', 'str'),
 		('__main__.EnumOps.cast.e', 'Values'),
 		('__main__.EnumOps.cast.n', 'int'),
+
+		('__main__.Nullable.params.base', 'Union<Base, None>'),
+		('__main__.Nullable.accessible.sub', 'Union<Sub, None>'),
+		('__main__.Nullable.accessible.subs', 'Union<list<Sub>, None>'),
+		('__main__.Nullable.accessible.s', 'str'),
+		('__main__.Nullable.accessible.n', 'int'),
 	])
 	def test_from_fullyname(self, fullyname: str, expected: str) -> None:
 		symbols = self.fixture.get(Symbols)
@@ -238,6 +249,7 @@ class TestSymbols(TestCase):
 
 	@data_provider([
 		('__main__.CalcOps.tenary.n_or_s', UnresolvedSymbolError, r'Only Nullable.'),
+		('__main__.Nullable.accessible.arr', UnresolvedSymbolError, r'Only Nullable.'),
 	])
 	def test_from_fullyname_error(self, fullyname: str, expected_error: type[Exception], expected: re.Pattern[str]) -> None:
 		symbols = self.fixture.get(Symbols)
@@ -340,6 +352,9 @@ class TestSymbols(TestCase):
 
 		(_ast('CompOps.list_comp.block', 'aug_assign.assign_namelist.var'), _mod('classes', 'int'), 'int'),
 		(_ast('CompOps.list_comp.block', 'aug_assign.getitem'), _mod('classes', 'float'), 'float'),
+
+		(_ast('Nullable.returns.return', ''), _mod('classes', 'Union'), 'Union<Base, None>'),
+		(_ast('Nullable.var_move.block', 'if_stmt.block.return_stmt'), _mod('classes', 'str'), 'str'),
 	])
 	def test_type_of(self, full_path: str, expected: str, attrs_expected: str) -> None:
 		symbols = self.fixture.get(Symbols)

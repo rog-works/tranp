@@ -184,3 +184,21 @@ class EnumOps:
 	def cast(self) -> None:
 		e = EnumOps.Values(0)
 		n = int(EnumOps.Values.A)
+
+class Nullable:
+	def params(self, base: Base | None) -> None: ...
+	def returns(self) -> Base | None: ...
+	def var_move(self, base: Base) -> str:
+		base_or_null: Base | None = None
+		base_or_null = None
+		base_or_null = base
+		if base_or_null:
+			return base_or_null.base_str
+
+		raise Exception()
+
+	def accessible(self, sub: Sub | None, subs: list[Sub] | None) -> None:
+		s = sub.base_str if sub else ''
+		n = sub.first_number if sub else 0
+		# エラーケース
+		arr = subs[0] if subs else []

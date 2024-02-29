@@ -1,12 +1,6 @@
 from unittest import TestCase
 
-from rogw.tranp.node.embed import (
-	EmbedKeys,
-	Meta,
-	accept_tags,
-	actualized,
-	expandable,
-)
+from rogw.tranp.node.embed import EmbedKeys, Meta, accept_tags, expandable
 
 
 class TestMeta(TestCase):
@@ -33,15 +27,6 @@ class TestMeta(TestCase):
 
 		class_meta: list[str] = Meta.dig_for_class(MetaHolder, B, EmbedKeys.AcceptTags, default=[])
 		self.assertEqual(class_meta, ['hoge'])
-
-	def test_actualized(self) -> None:
-		class MetaHolder: pass
-		class Base: pass
-		@Meta.embed(MetaHolder, actualized(via=Base))
-		class Sub(Base): pass
-
-		class_meta = Meta.dig_by_key_for_class(MetaHolder, EmbedKeys.Actualized, value_type=type)
-		self.assertEqual(class_meta[Sub], Base)
 
 	def test_expandable(self) -> None:
 		class MetaHolder: pass

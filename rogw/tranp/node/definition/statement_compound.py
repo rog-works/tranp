@@ -10,7 +10,7 @@ from rogw.tranp.node.definition.literal import DocString, String
 from rogw.tranp.node.definition.primary import Argument, CustomType, DeclClassVar, DeclLocalVar, Declable, ForIn, InheritArgument, DeclThisParam, DeclThisVar, Type, TypesName, VarOfType, Variable
 from rogw.tranp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from rogw.tranp.node.definition.terminal import Empty
-from rogw.tranp.node.embed import Meta, accept_tags, actualized, expandable
+from rogw.tranp.node.embed import Meta, accept_tags, expandable
 from rogw.tranp.node.interface import IDomain, IScope
 from rogw.tranp.node.node import Node
 from rogw.tranp.node.promise import IDeclaration, ISymbol, StatementBlock
@@ -381,7 +381,7 @@ class Function(ClassDef):
 		return [*parameters, *local_vars]
 
 
-@Meta.embed(Node, actualized(via=Function))
+@Meta.embed(Node)
 class ClassMethod(Function):
 	@classmethod
 	@override
@@ -395,7 +395,7 @@ class ClassMethod(Function):
 		return self.parent.as_a(Block).parent.as_a(ClassDef)
 
 
-@Meta.embed(Node, actualized(via=Function))
+@Meta.embed(Node)
 class Constructor(Function):
 	@classmethod
 	@override
@@ -412,7 +412,7 @@ class Constructor(Function):
 		return list(self._decl_vars_with(DeclThisVar).values())
 
 
-@Meta.embed(Node, actualized(via=Function))
+@Meta.embed(Node)
 class Method(Function):
 	@classmethod
 	@override
@@ -437,7 +437,7 @@ class Method(Function):
 		return len([decorator for decorator in self.decorators if decorator.path.tokens == 'property']) == 1
 
 
-@Meta.embed(Node, actualized(via=Function))
+@Meta.embed(Node)
 class Closure(Function):
 	@classmethod
 	@override
@@ -538,7 +538,7 @@ class Class(ClassDef):
 		return self.constructor.this_vars if self.constructor_exists else []
 
 
-@Meta.embed(Node, actualized(via=Class))
+@Meta.embed(Node)
 class Enum(Class):
 	@classmethod
 	@override

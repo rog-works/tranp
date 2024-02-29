@@ -1,10 +1,9 @@
-from typing import Callable
 from unittest import TestCase
 
 from rogw.tranp.lang.locator import Invoker
 from rogw.tranp.lang.implementation import override
 import rogw.tranp.node.definition as defs  # XXX テストを拡充するため実装クラスを使用
-from rogw.tranp.node.embed import Meta, actualized
+from rogw.tranp.node.embed import Meta
 from rogw.tranp.node.node import Node, T_Node
 from rogw.tranp.test.helper import data_provider
 from tests.test.fixture import Fixture
@@ -356,21 +355,6 @@ class TestNode(TestCase):
 		node_b = invoker(NodeA, 'node_b')
 		self.assertEqual(NodeA.match_feature(node_a), True)
 		self.assertEqual(NodeA.match_feature(node_b), False)
-
-	def test_actualize(self) -> None:
-		class NodeA(Node): pass
-
-		@Meta.embed(Node, actualized(via=NodeA))
-		class NodeB(NodeA):
-			@classmethod
-			@override
-			def match_feature(cls, via: Node) -> bool:
-				return via.tag == 'node_b'
-
-		invoker = self.fixture.get(Invoker)
-		node = invoker(NodeA, 'node_b')
-		self.assertEqual(type(node), NodeA)
-		self.assertEqual(type(node.actualize()), NodeB)
 
 	def test_dirty_proxify(self) -> None:
 		node = self.fixture.shared_nodes.by('file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[0].number')

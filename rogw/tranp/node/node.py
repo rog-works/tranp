@@ -473,7 +473,6 @@ class Node:
 		Returns:
 			bool: True = 一致
 		Note:
-			@see actualize, _feature_classes
 			## 注意点
 			このメソッド内で引数のviaを元に親ノードをインスタンス化すると無限ループするため、その様に実装してはならない
 			```python
@@ -484,34 +483,6 @@ class Node:
 			```
 		"""
 		return True
-
-	def _feature_classes(self) -> list[type['Node']]:
-		"""メタデータより自身に紐づけられた特徴クラス(=派生クラス)を抽出
-
-		Returns:
-			list[type[Node]]: 特徴クラスのリスト
-		"""
-		classes: dict[type[Node], bool] = {}
-		for ctor in self.__embed_classes(self.__class__):
-			meta = Meta.dig_by_key_for_class(Node, EmbedKeys.Actualized, value_type=type)
-			classes = {**classes, **{feature_class: True for feature_class, via_class in meta.items() if via_class is ctor}}
-
-		return list(classes.keys())
-
-	def actualize(self: T_Node) -> T_Node:
-		"""ASTの相関関係より判断した実体としてより適切な具象クラスのインスタンスに変換。条件は具象側で実装
-
-		Returns:
-			T_Node: 具象クラスのインスタンス
-		"""
-		for feature_class in self._feature_classes():
-			if not self.__acceptable_by(feature_class):
-				continue
-
-			if feature_class.match_feature(self):
-				return self.as_a(feature_class)
-
-		return self
 
 	def dirty_proxify(self: T_Node, **overrides: Any) -> T_Node:
 		"""プロキシノードを生成

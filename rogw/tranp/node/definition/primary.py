@@ -7,7 +7,7 @@ from rogw.tranp.lang.implementation import implements, override
 from rogw.tranp.lang.sequence import flatten, last_index_of
 from rogw.tranp.node.definition.literal import Literal
 from rogw.tranp.node.definition.terminal import Empty
-from rogw.tranp.node.embed import Meta, accept_tags, actualized, expandable
+from rogw.tranp.node.embed import Meta, accept_tags, expandable
 from rogw.tranp.node.errors import InvalidRelationError
 from rogw.tranp.node.interface import IDomain, IScope, ITerminal
 from rogw.tranp.node.node import Node
@@ -45,14 +45,14 @@ class Declable(Fragment, ISymbol, ITerminal):
 class DeclVar(Declable): pass
 
 
-@Meta.embed(Node, accept_tags('var'), actualized(via=Fragment))
+@Meta.embed(Node, accept_tags('var'))
 class DeclClassVar(DeclVar):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
 		return FragmentMatcher.is_decl_class_var(via)
 
 
-@Meta.embed(Node, accept_tags('getattr'), actualized(via=Fragment))
+@Meta.embed(Node, accept_tags('getattr'))
 class DeclThisVar(DeclVar):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
@@ -77,7 +77,7 @@ class DeclThisVar(DeclVar):
 class DeclBlockVar(DeclVar): pass
 
 
-@Meta.embed(Node, accept_tags('name'), actualized(via=Fragment))
+@Meta.embed(Node, accept_tags('name'))
 class DeclClassParam(DeclBlockVar):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
@@ -88,7 +88,7 @@ class DeclClassParam(DeclBlockVar):
 		return self._ancestor('class_def')
 
 
-@Meta.embed(Node, accept_tags('name'), actualized(via=Fragment))
+@Meta.embed(Node, accept_tags('name'))
 class DeclThisParam(DeclBlockVar):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
@@ -99,7 +99,7 @@ class DeclThisParam(DeclBlockVar):
 		return self._ancestor('class_def')
 
 
-@Meta.embed(Node, accept_tags('var', 'name'), actualized(via=Fragment))
+@Meta.embed(Node, accept_tags('var', 'name'))
 class DeclLocalVar(DeclBlockVar):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
@@ -109,7 +109,7 @@ class DeclLocalVar(DeclBlockVar):
 class DeclName(Declable): pass
 
 
-@Meta.embed(Node, accept_tags('name'), actualized(via=Fragment))
+@Meta.embed(Node, accept_tags('name'))
 class TypesName(DeclName):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
@@ -120,7 +120,7 @@ class TypesName(DeclName):
 		return self.parent
 
 
-@Meta.embed(Node, accept_tags('name'), actualized(via=Fragment))
+@Meta.embed(Node, accept_tags('name'))
 class ImportName(DeclName):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
@@ -130,7 +130,7 @@ class ImportName(DeclName):
 class Reference(Fragment): pass
 
 
-@Meta.embed(Node, accept_tags('getattr'), actualized(via=Fragment))
+@Meta.embed(Node, accept_tags('getattr'))
 class Relay(Reference):
 	@property
 	@override
@@ -160,7 +160,7 @@ class Relay(Reference):
 class Var(Reference, ITerminal): pass
 
 
-@Meta.embed(Node, accept_tags('var'), actualized(via=Fragment))
+@Meta.embed(Node, accept_tags('var'))
 class ClassRef(Var):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
@@ -171,14 +171,14 @@ class ClassRef(Var):
 		return cast(ISymbol, self._ancestor('class_def')).symbol.as_a(TypesName)
 
 
-@Meta.embed(Node, accept_tags('var'), actualized(via=Fragment))
+@Meta.embed(Node, accept_tags('var'))
 class ThisRef(Var):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
 		return via.tokens == 'self'
 
 
-@Meta.embed(Node, accept_tags('name'), actualized(via=Fragment))
+@Meta.embed(Node, accept_tags('name'))
 class ArgumentLabel(Var):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
@@ -189,7 +189,7 @@ class ArgumentLabel(Var):
 		return self._ancestor('funccall').as_a(FuncCall)
 
 
-@Meta.embed(Node, accept_tags('var', 'name'), actualized(via=Fragment))
+@Meta.embed(Node, accept_tags('var', 'name'))
 class Variable(Var):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
@@ -201,14 +201,14 @@ class Variable(Var):
 class Path(Node, ITerminal): pass
 
 
-@Meta.embed(Node, actualized(via=Path))
+@Meta.embed(Node)
 class ImportPath(Path):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
 		return via._full_path.parent_tag == 'import_stmt'
 
 
-@Meta.embed(Node, actualized(via=Path))
+@Meta.embed(Node)
 class DecoratorPath(Path):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
@@ -277,7 +277,7 @@ class GenericType(Type):
 		return self.template_types[0]
 
 
-@Meta.embed(Node, actualized(via=GenericType))
+@Meta.embed(Node)
 class ListType(GenericType):
 	@classmethod
 	@override
@@ -291,7 +291,7 @@ class ListType(GenericType):
 		return self.primary_type
 
 
-@Meta.embed(Node, actualized(via=GenericType))
+@Meta.embed(Node)
 class DictType(GenericType):
 	@classmethod
 	@override
@@ -316,7 +316,7 @@ class DictType(GenericType):
 		return self.template_types[1]
 
 
-@Meta.embed(Node, actualized(via=GenericType))
+@Meta.embed(Node)
 class CallableType(GenericType):
 	@classmethod
 	@override
@@ -341,7 +341,7 @@ class CallableType(GenericType):
 		return self._children('typed_slices')[0].as_a(TypeParameters).type_params
 
 
-@Meta.embed(Node, actualized(via=GenericType))
+@Meta.embed(Node)
 class CustomType(GenericType):
 	@classmethod
 	@override
@@ -409,7 +409,7 @@ class FuncCall(Node, IDomain):
 		return [index for index, in_argument in enumerate(self.arguments) if in_argument == argument].pop()
 
 
-@Meta.embed(Node, actualized(via=FuncCall))
+@Meta.embed(Node)
 class Super(FuncCall):
 	@classmethod
 	@override

@@ -89,7 +89,7 @@ class Py2Cpp:
 		return unpacked_raw.make_shorthand(use_alias=True)
 
 	def force_unpack_nullable(self, symbol: SymbolRaw) -> SymbolRaw:
-		"""Nullableのシンボルの変数の型をアンパック。Nullable以外の型はそのまま返却
+		"""Nullableのシンボルの変数の型をアンパック。Nullable以外の型はそのまま返却 (主にRelayで利用)
 
 		Args:
 			symbol (SymbolRaw): シンボル
@@ -98,7 +98,6 @@ class Py2Cpp:
 		Note:
 			許容するNullableの書式 (例: 'Class | None')
 			@see ProcedureResolver.force_unpack_nullable
-			FIXME あらゆる個所でUnionをアンパックする必要がある懸念
 		"""
 		if self.symbols.is_a(symbol, UnionType) and len(symbol.attrs) == 2:
 			is_0_null = self.symbols.is_a(symbol.attrs[0], None)

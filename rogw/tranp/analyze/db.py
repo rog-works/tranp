@@ -1,9 +1,9 @@
-from typing import Callable, NamedTuple
+from typing import NamedTuple
 
 from rogw.tranp.analyze.processor import Preprocessors
 from rogw.tranp.analyze.symbol import SymbolRaws
 from rogw.tranp.lang.implementation import injectable
-from rogw.tranp.lang.locator import Currying
+from rogw.tranp.lang.locator import Invoker
 
 
 class SymbolDB(NamedTuple):
@@ -17,18 +17,17 @@ class SymbolDB(NamedTuple):
 
 
 @injectable
-def make_db(currying: Currying, preprocessors: Preprocessors) -> SymbolDB:
+def make_db(invoker: Invoker, preprocessors: Preprocessors) -> SymbolDB:
 	"""シンボルテーブルを生成
 
 	Args:
-		currying (Currying): カリー化関数 @inject
+		invoker (Invoker): ファクトリー関数 @inject
 		preprocessors (Preprocessors): プリプロセッサープロバイダー @inject
 	Returns:
 		SymbolDB: シンボルテーブル
 	"""
 	raws = SymbolRaws()
 	for proc in preprocessors():
-		invoker = currying(proc, Callable[[SymbolRaws], SymbolRaws])
-		raws = invoker(raws)
+		raws = invoker(proc, raws)
 
 	return SymbolDB(raws)

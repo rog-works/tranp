@@ -1,18 +1,16 @@
-from typing import Callable
-
 from rogw.tranp.analyze.plugin import IPlugin, PluginProvider
 from rogw.tranp.lang.implementation import injectable
-from rogw.tranp.lang.locator import Currying
+from rogw.tranp.lang.locator import Invoker
 
 
 @injectable
-def cpp_plugin_provider(currying: Currying) -> PluginProvider:
+def cpp_plugin_provider(invoker: Invoker) -> PluginProvider:
 	"""プラグインプロバイダーを生成
 
 	Args:
-		currying: カリー化関数 @inject
+		invoker: ファクトリー関数 @inject
 	Returns:
 		PluginProvider: プラグインプロバイダー
 	"""
 	classes: list[type[IPlugin]] = []
-	return lambda: [currying(ctor, Callable[[], IPlugin])() for ctor in classes]
+	return lambda: [invoker(ctor) for ctor in classes]

@@ -6,7 +6,7 @@ from rogw.tranp.ast.entry import Entry
 from rogw.tranp.ast.resolver import SymbolMapping
 from rogw.tranp.ast.query import Query
 from rogw.tranp.lang.di import DI
-from rogw.tranp.lang.locator import Currying, Locator
+from rogw.tranp.lang.locator import Invoker, Locator
 from rogw.tranp.module.types import ModulePath
 from rogw.tranp.node.node import Node
 from rogw.tranp.node.query import Nodes
@@ -32,7 +32,7 @@ class Fixture:
 	def di(cls) -> DI:
 		di = DI()
 		di.bind(Locator, lambda: di)
-		di.bind(Currying, lambda: di.currying)
+		di.bind(Invoker, lambda: di.invoke)
 		di.bind(Query[Node], Nodes)
 		di.bind(NodeResolver, NodeResolver)
 		di.bind(ModulePath, module_path_dummy)

@@ -1,7 +1,7 @@
 from typing import Callable
 from unittest import TestCase
 
-from rogw.tranp.lang.locator import Currying
+from rogw.tranp.lang.locator import Invoker
 from rogw.tranp.lang.implementation import override
 import rogw.tranp.node.definition as defs  # XXX テストを拡充するため実装クラスを使用
 from rogw.tranp.node.embed import Meta, actualized
@@ -351,9 +351,9 @@ class TestNode(TestCase):
 			def match_feature(cls, via: Node) -> bool:
 				return via.tag == 'node_a'
 
-		currying = self.fixture.get(Currying)
-		node_a = currying(NodeA, Callable[[str], Node])('node_a')
-		node_b = currying(NodeA, Callable[[str], Node])('node_b')
+		invoker = self.fixture.get(Invoker)
+		node_a = invoker(NodeA, 'node_a')
+		node_b = invoker(NodeA, 'node_b')
 		self.assertEqual(NodeA.match_feature(node_a), True)
 		self.assertEqual(NodeA.match_feature(node_b), False)
 
@@ -367,8 +367,8 @@ class TestNode(TestCase):
 			def match_feature(cls, via: Node) -> bool:
 				return via.tag == 'node_b'
 
-		currying = self.fixture.get(Currying)
-		node = currying(NodeA, Callable[[str], Node])('node_b')
+		invoker = self.fixture.get(Invoker)
+		node = invoker(NodeA, 'node_b')
 		self.assertEqual(type(node), NodeA)
 		self.assertEqual(type(node.actualize()), NodeB)
 

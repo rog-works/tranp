@@ -1,17 +1,15 @@
-from typing import Callable
-
-from rogw.tranp.analyze.processor import Preprocessor, Preprocessors
+from rogw.tranp.analyze.processor import Preprocessors
 import rogw.tranp.analyze.processors as procs
 from rogw.tranp.lang.implementation import injectable
-from rogw.tranp.lang.locator import Currying
+from rogw.tranp.lang.locator import Invoker
 
 
 @injectable
-def preprocessors(currying: Currying) -> Preprocessors:
+def preprocessors(invoker: Invoker) -> Preprocessors:
 	"""プリプロセッサープロバイダーを生成
 
 	Args:
-		currying (Currying): カリー化関数 @inject
+		invoker (Inboker): ファクトリー関数 @inject
 	Returns:
 		Preprocessors: プリプロセッサープロバイダー
 	"""
@@ -20,4 +18,4 @@ def preprocessors(currying: Currying) -> Preprocessors:
 		procs.ResolveGeneric,
 		procs.ResolveUnknown,
 	]
-	return lambda: [currying(proc, Callable[[], Preprocessor])() for proc in ctors]
+	return lambda: [invoker(proc) for proc in ctors]

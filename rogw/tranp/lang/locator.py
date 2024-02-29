@@ -1,7 +1,6 @@
 from typing import Any, Callable, Protocol, TypeAlias, TypeVar
 
 T_Inst = TypeVar('T_Inst')
-T_Curried = TypeVar('T_Curried', bound=Callable)
 
 Injector: TypeAlias = type[T_Inst] | Callable[..., T_Inst]
 
@@ -31,36 +30,24 @@ class Locator(Protocol):
 		"""
 		...
 
-	def currying(self, factory: Injector[Any], expect: type[T_Curried]) -> T_Curried:
-		"""指定のファクトリーをカリー化して返却
-
-		Args:
-			factory (Injector[Any]): ファクトリー(関数/メソッド/クラス)
-			expect (type[T_Curried]): カリー化後に期待する関数シグネチャー
-		Returns:
-			T_Curried: カリー化後の関数
-		Note:
-			ロケーターが解決可能なシンボルを引数リストの前方から省略していき、
-			解決不能なシンボルを残した関数が返却値となる
-		"""
-		...
-
-	def invoke(self, factory: Injector[T_Inst]) -> T_Inst:
+	def invoke(self, factory: Injector[T_Inst], *remain_args: Any) -> T_Inst:
 		"""ファクトリーを代替実行し、インスタンスを生成
 
 		Args:
 			factory (Injector[T_Inst]): ファクトリー(関数/メソッド/クラス)
+			*remain_args (Any): 残りの位置引数
 		Returns:
 			T_Inst: 生成したインスタンス
 		Note:
-			このメソッドを通して生成したインスタンスはキャッシュされず、毎回生成される
+			* ロケーターが解決可能なシンボルをファクトリーの引数リストの前方から省略していき、解決不能な引数を残りの位置引数として受け取る
+			* このメソッドを通して生成したインスタンスはキャッシュされず、毎回生成される
 		"""
 		...
 
 
-class Currying(Protocol):
-	"""カリー化関数プロトコル"""
+class Invoker(Protocol):
+	"""ファクトリー関数プロトコル"""
 
-	def __call__(self, factory: Injector[Any], expect: type[T_Curried]) -> T_Curried:
-		"""Note: @see Locator.currying"""
+	def __call__(self, factory: Injector[T_Inst], *remain_args: Any) -> T_Inst:
+		"""Note: @see Locator.invoke"""
 		...

@@ -1,9 +1,8 @@
-from typing import Callable
-
 from rogw.tranp.ast.resolver import Resolver, SymbolMapping
 from rogw.tranp.errors import LogicError
 from rogw.tranp.lang.error import raises
-from rogw.tranp.lang.locator import Currying
+from rogw.tranp.lang.implementation import injectable
+from rogw.tranp.lang.locator import Invoker
 from rogw.tranp.node.errors import UnresolvedNodeError
 from rogw.tranp.node.node import Node
 
@@ -11,14 +10,15 @@ from rogw.tranp.node.node import Node
 class NodeResolver:
 	"""ノードリゾルバー。解決したノードとパスをマッピングして管理"""
 
-	def __init__(self, currying: Currying, settings: SymbolMapping) -> None:
+	@injectable
+	def __init__(self, invoker: Invoker, settings: SymbolMapping) -> None:
 		"""インスタンスを生成
 
 		Args:
-			currying (Currying): カリー化関数
-			settings (Settings): マッピング設定データ
+			invoker (Invoker): ファクトリー関数 @inject
+			settings (Settings): マッピング設定データ @inject
 		"""
-		self.__currying = currying
+		self.__invoker = invoker
 		self.__resolver = Resolver[Node].load(settings)
 		self.__insts: dict[str, Node] = {}
 
@@ -48,8 +48,7 @@ class NodeResolver:
 			return self.__insts[full_path]
 
 		ctor = self.__resolver.resolve(symbol)
-		factory = self.__currying(ctor, Callable[[str], ctor])
-		self.__insts[full_path] = factory(full_path).actualize()
+		self.__insts[full_path] = self.__invoker(ctor, full_path).actualize()
 		return self.__insts[full_path]
 
 	def clear(self) -> None:

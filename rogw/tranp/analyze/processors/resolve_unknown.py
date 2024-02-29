@@ -3,7 +3,7 @@ from typing import Callable, cast
 from rogw.tranp.analyze.symbol import SymbolProxy, SymbolRaw, SymbolRaws
 from rogw.tranp.analyze.symbols import Symbols
 from rogw.tranp.lang.implementation import injectable
-from rogw.tranp.lang.locator import Currying
+from rogw.tranp.lang.locator import Invoker
 import rogw.tranp.node.definition as defs
 from rogw.tranp.node.node import Node
 from rogw.tranp.node.promise import IDeclaration
@@ -18,13 +18,13 @@ class ResolveUnknown:
 		* For/CompForの展開変数
 	"""
 	@injectable
-	def __init__(self, currying: Currying) -> None:
+	def __init__(self, invoker: Invoker) -> None:
 		"""インスタンスを生成
 
 		Args:
-			currying (Curring): カリー化関数 @inject
+			invoker (Invoker): ファクトリー関数 @inject
 		"""
-		self.curring = currying
+		self.invoker = invoker
 
 	@injectable
 	def __call__(self, raws: SymbolRaws) -> SymbolRaws:
@@ -71,7 +71,7 @@ class ResolveUnknown:
 		Returns:
 			Callable[[], SymbolRaw]: シンボルリゾルバー
 		"""
-		return lambda: self.curring(self.resolver, Callable[[SymbolRaw, Node], SymbolRaw])(raw, value_node)
+		return lambda: self.invoker(self.resolver, raw, value_node)
 
 	def unpack_value(self, var_raw: SymbolRaw, value_raw: SymbolRaw) -> SymbolRaw:
 		"""右辺値の型をアンパックして左辺の変数の型を解決

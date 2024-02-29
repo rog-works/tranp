@@ -1,4 +1,3 @@
-from typing import Callable
 from unittest import TestCase
 
 from rogw.tranp.lang.di import DI
@@ -66,21 +65,14 @@ class TestDI(TestCase):
 		self.assertEqual(type(di.resolve(X)), X)
 		self.assertEqual(type(di.resolve(Y)), Y)
 
-	def test_currying(self) -> None:
+	def test_invoke(self) -> None:
 		def factory(a: A, x: X, suffix: str) -> str:
 			return f'{a.__class__.__name__}.{x.__class__.__name__}.{suffix}'
 
 		di = DI()
 		di.bind(A, B)
 		di.bind(X, X)
-		curried = di.currying(factory, Callable[[str], str])
-		self.assertEqual(curried('hogefuga'), 'B.X.hogefuga')
-
-	def test_invoke(self) -> None:
-		di = DI()
-		di.bind(X, X)
-		di.bind(Y, Y)
-		self.assertEqual(type(di.resolve(Y)), Y)
+		self.assertEqual(di.invoke(factory, 'hogefuga'), 'B.X.hogefuga')
 
 	def test_clone(self) -> None:
 		di = DI()

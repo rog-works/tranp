@@ -2,7 +2,7 @@ import os
 
 from rogw.tranp.app.env import Env
 from rogw.tranp.lang.di import DI, LazyDI, ModuleDefinitions
-from rogw.tranp.lang.locator import Currying, Locator
+from rogw.tranp.lang.locator import Invoker, Locator
 
 
 def di_container(definitions: ModuleDefinitions) -> DI:
@@ -15,7 +15,7 @@ def di_container(definitions: ModuleDefinitions) -> DI:
 	"""
 	di = LazyDI.instantiate(definitions)
 	di.bind(Locator, lambda: di)
-	di.bind(Currying, lambda: di.currying)
+	di.bind(Invoker, lambda: di.invoke)
 	return di
 
 

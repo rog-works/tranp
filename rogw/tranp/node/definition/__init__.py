@@ -53,11 +53,11 @@ from rogw.tranp.node.definition.primary import (
 	DeclVar,
 	DeclClassVar,
 	DeclThisVar,
-	# declable - block
-	DeclBlockVar,
+	# declable - local
+	DeclLocalVar,
+	DeclParam,
 	DeclClassParam,
 	DeclThisParam,
-	DeclLocalVar,
 	# declable - name
 	DeclName,
 	TypesName,

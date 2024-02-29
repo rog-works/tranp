@@ -395,7 +395,7 @@ class A:
 				'        | | +-var_type: <Empty: __main__.A.__init__.Empty>',
 				'        | | +-default_value: <Empty: __main__.A.__init__.Empty>',
 				'        | +-<Parameter: __main__.A.__init__.parameter@20>',
-				'        |   +-symbol: <DeclLocalVar: __main__.A.__init__.n>',
+				'        |   +-symbol: <DeclParam: __main__.A.__init__.n>',
 				'        |   +-var_type: <VarOfType: __main__.A.__init__.int>',
 				'        |   +-default_value: <Empty: __main__.A.__init__.Empty>',
 				'        +-return_type: <NullType: __main__.A.__init__.None>',

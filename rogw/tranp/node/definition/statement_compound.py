@@ -4,13 +4,14 @@ from rogw.tranp.ast.dsn import DSN
 from rogw.tranp.compatible.python.embed import __actual__, __alias__, __hint_generic__
 from rogw.tranp.lang.implementation import implements, override
 from rogw.tranp.lang.sequence import flatten, last_index_of
-from rogw.tranp.node.definition.accessor import to_access
+from rogw.tranp.node.accessible import ClassOperations
+from rogw.tranp.node.definition.accessible import PythonClassOperations, to_access
 from rogw.tranp.node.definition.element import Decorator, Parameter
 from rogw.tranp.node.definition.literal import DocString, String
 from rogw.tranp.node.definition.primary import Argument, CustomType, DeclClassVar, DeclLocalVar, Declable, ForIn, InheritArgument, DeclThisParam, DeclThisVar, Type, TypesName, VarOfType, Variable
 from rogw.tranp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from rogw.tranp.node.definition.terminal import Empty
-from rogw.tranp.node.embed import Meta, accept_tags, actualized, expandable
+from rogw.tranp.node.embed import Meta, accept_tags, expandable
 from rogw.tranp.node.interface import IDomain, IScope
 from rogw.tranp.node.node import Node
 from rogw.tranp.node.promise import IDeclaration, ISymbol, StatementBlock
@@ -240,8 +241,12 @@ class ClassDef(Node, IDomain, IScope, IDeclaration, ISymbol):
 		return to_access(self.symbol.tokens)
 
 	@property
+	def operations(self) -> ClassOperations:
+		return PythonClassOperations()
+
+	@property
 	def decorators(self) -> list[Decorator]:
-		return []
+		return [node.as_a(Decorator) for node in self._children('decorators')] if self._exists('decorators') else []
 
 	@property
 	def comment(self) -> DocString | Empty:
@@ -340,7 +345,7 @@ class Function(ClassDef):
 	@override
 	@Meta.embed(Node, expandable)
 	def decorators(self) -> list[Decorator]:
-		return [node.as_a(Decorator) for node in self._children('decorators')] if self._exists('decorators') else []
+		return super().decorators
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -381,25 +386,27 @@ class Function(ClassDef):
 		return [*parameters, *local_vars]
 
 
-@Meta.embed(Node, actualized(via=Function))
+@Meta.embed(Node)
 class ClassMethod(Function):
 	@classmethod
 	@override
-	def match_feature(cls, via: Function) -> bool:
-		decorators = via.decorators
-		return len(decorators) > 0 and decorators[0].path.tokens == 'classmethod'
+	def match_feature(cls, via: Node) -> bool:
+		# @see ClassDef.decorators
+		decorators = via._children('decorators') if via._exists('decorators') else []
+		return len(decorators) > 0 and decorators[0].as_a(Decorator).path.tokens == 'classmethod'
 
 	@property
 	def class_types(self) -> ClassDef:
 		return self.parent.as_a(Block).parent.as_a(ClassDef)
 
 
-@Meta.embed(Node, actualized(via=Function))
+@Meta.embed(Node)
 class Constructor(Function):
 	@classmethod
 	@override
-	def match_feature(cls, via: Function) -> bool:
-		return via.symbol.tokens == '__init__'
+	def match_feature(cls, via: Node) -> bool:
+		# @see Function.symbol
+		return via._by('function_def_raw.name').tokens == '__init__'
 
 	@property
 	def class_types(self) -> ClassDef:
@@ -410,16 +417,21 @@ class Constructor(Function):
 		return list(self._decl_vars_with(DeclThisVar).values())
 
 
-@Meta.embed(Node, actualized(via=Function))
+@Meta.embed(Node)
 class Method(Function):
 	@classmethod
 	@override
-	def match_feature(cls, via: Function) -> bool:
-		if via.symbol.tokens == '__init__':
+	def match_feature(cls, via: Node) -> bool:
+		# @see Function.symbol
+		if via._by('function_def_raw.name').tokens == '__init__':
 			return False
 
-		parameters = via.parameters
-		return len(parameters) > 0 and parameters[0].symbol.is_a(DeclThisParam)
+		# @see Function.parameters
+		if not via._exists('function_def_raw.parameters'):
+			return False
+
+		parameters = via._children('function_def_raw.parameters')
+		return len(parameters) > 0 and parameters[0].as_a(Parameter).symbol.is_a(DeclThisParam)
 
 	@property
 	def class_types(self) -> ClassDef:
@@ -430,11 +442,11 @@ class Method(Function):
 		return len([decorator for decorator in self.decorators if decorator.path.tokens == 'property']) == 1
 
 
-@Meta.embed(Node, actualized(via=Function))
+@Meta.embed(Node)
 class Closure(Function):
 	@classmethod
 	@override
-	def match_feature(cls, via: Function) -> bool:
+	def match_feature(cls, via: Node) -> bool:
 		elems = via._full_path.de_identify().elements
 		actual_function_def_at = last_index_of(elems, 'function_def_raw')
 		expect_function_def_at = max(0, len(elems) - 3)
@@ -464,7 +476,7 @@ class Class(ClassDef):
 	@override
 	@Meta.embed(Node, expandable)
 	def decorators(self) -> list[Decorator]:
-		return [node.as_a(Decorator) for node in self._children('decorators')] if self._exists('decorators') else []
+		return super().decorators
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -531,13 +543,18 @@ class Class(ClassDef):
 		return self.constructor.this_vars if self.constructor_exists else []
 
 
-@Meta.embed(Node, actualized(via=Class))
+@Meta.embed(Node)
 class Enum(Class):
 	@classmethod
 	@override
-	def match_feature(cls, via: Class) -> bool:
+	def match_feature(cls, via: Node) -> bool:
+		# @see Class.__org_inherits
+		if not via._exists('class_def_raw.typed_arguments'):
+			return False
+
+		inherits = via._children('class_def_raw.typed_arguments')
 		# XXX CEnumの継承に依存するのは微妙なので、修正を検討
-		return 'CEnum' in [inherit.type_name.tokens for inherit in via.inherits]
+		return 'CEnum' in [inherit.as_a(InheritArgument).class_type.tokens for inherit in inherits]
 
 	@property
 	def vars(self) -> list[DeclLocalVar]:

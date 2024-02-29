@@ -3,7 +3,7 @@ import rogw.tranp.compatible.python.classes as classes
 from rogw.tranp.lang.comment import Comment as CommentData
 from rogw.tranp.lang.implementation import implements, override
 from rogw.tranp.node.definition.terminal import Terminal
-from rogw.tranp.node.embed import Meta, accept_tags, actualized, expandable
+from rogw.tranp.node.embed import Meta, accept_tags, expandable
 from rogw.tranp.node.interface import IDomain, ITerminal
 from rogw.tranp.node.node import Node
 
@@ -24,7 +24,7 @@ class Literal(Node, IDomain):
 class Number(Literal, ITerminal): pass
 
 
-@Meta.embed(Node, actualized(via=Number))
+@Meta.embed(Node)
 class Integer(Number):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
@@ -36,7 +36,7 @@ class Integer(Number):
 		return int.__name__
 
 
-@Meta.embed(Node, actualized(via=Number))
+@Meta.embed(Node)
 class Float(Number):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
@@ -60,7 +60,7 @@ class String(Literal, ITerminal):
 		return self.tokens[1:-1]
 
 
-@Meta.embed(Node, actualized(via=String))
+@Meta.embed(Node)
 class DocString(String):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:

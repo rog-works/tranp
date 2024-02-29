@@ -25,7 +25,7 @@ class Terminal(Node):
 		return self.tag not in ['comp_op', 'comp_in', 'comp_not_in', 'comp_is', 'comp_is_not']
 
 
-@Meta.embed(Node, accept_tags('__empty__', 'const_none'))
+@Meta.embed(Node, accept_tags('__empty__'))
 class Empty(Node, IDomain, ITerminal):
 	@property
 	@override

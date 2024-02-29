@@ -16,7 +16,7 @@ class SymbolMapping(Generic[T]):
 		fallback (type[T] | None): 未定義のシンボルを指定した際のフォールバック型
 	"""
 
-	symbols: dict[str, type[T]] = field(default_factory=dict)
+	symbols: dict[type[T], list[str]] = field(default_factory=dict)
 	fallback: type[T] | None = None
 
 
@@ -37,15 +37,16 @@ class Resolver(Generic[T]):
 			Resolver[T]: 生成したインスタンス
 		"""
 		inst = cls()
-		for symbol, ctor in mapping.symbols.items():
-			inst.register(symbol, ctor)
+		for ctor, symbols in mapping.symbols.items():
+			for symbol in symbols:
+				inst.register(symbol, ctor)
 
 		inst.fallback(mapping.fallback)
 		return inst
 
 	def __init__(self) -> None:
 		"""インスタンスを生成"""
-		self.__ctors: dict[str, type[T]] = {}
+		self.__ctors: dict[str, list[type[T]]] = {}
 		self.__fallback: type[T] | None = None
 
 	@property
@@ -70,7 +71,10 @@ class Resolver(Generic[T]):
 			symbol (str): シンボル名
 			ctor (type[T]): 紐づける型
 		"""
-		self.__ctors[symbol] = ctor
+		if symbol not in self.__ctors:
+			self.__ctors[symbol] = []
+
+		self.__ctors[symbol].append(ctor)
 
 	def unregister(self, symbol: str) -> None:
 		"""シンボルと型のマッピングを解除
@@ -89,13 +93,13 @@ class Resolver(Generic[T]):
 		"""
 		self.__fallback = ctor
 
-	def resolve(self, symbol: str) -> type[T]:
+	def resolve(self, symbol: str) -> list[type[T]]:
 		"""シンボルに紐づく型を解決
 
 		Args:
 			symbol (str): シンボル名
 		Returns:
-			type[T]: 解決した型
+			list[type[T]]: 解決した型
 		Raises:
 			LogicError: シンボルの解決に失敗
 		"""
@@ -103,7 +107,7 @@ class Resolver(Generic[T]):
 			return self.__ctors[symbol]
 
 		if self.__fallback:
-			return self.__fallback
+			return [self.__fallback]
 
 		raise LogicError(symbol)
 

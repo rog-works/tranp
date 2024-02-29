@@ -316,6 +316,7 @@ class Node:
 
 		return under[index]
 
+	@deprecated
 	def _siblings(self, relative_path: str = '') -> list['Node']:
 		"""指定のパスを基準に同階層のノードをフェッチ
 		パスを省略した場合は自身と同階層を検索し、自身を除いたノードを返却
@@ -465,7 +466,7 @@ class Node:
 	@classmethod
 	def match_feature(cls, via: 'Node') -> bool:
 		"""引数のノードが自身の特徴と一致するか判定
-		一致すると判断されたノードはactualizeにより変換される
+		一致すると判断されたノードはResolverより実体化される
 		条件判定は派生クラス側で実装
 
 		Args:
@@ -473,7 +474,6 @@ class Node:
 		Returns:
 			bool: True = 一致
 		Note:
-			@see actualize, _feature_classes
 			## 注意点
 			このメソッド内で引数のviaを元に親ノードをインスタンス化すると無限ループするため、その様に実装してはならない
 			```python
@@ -483,35 +483,7 @@ class Node:
 			return via.parent.tag == 'xxx'
 			```
 		"""
-		return False
-
-	def _feature_classes(self) -> list[type['Node']]:
-		"""メタデータより自身に紐づけられた特徴クラス(=派生クラス)を抽出
-
-		Returns:
-			list[type[Node]]: 特徴クラスのリスト
-		"""
-		classes: dict[type[Node], bool] = {}
-		for ctor in self.__embed_classes(self.__class__):
-			meta = Meta.dig_by_key_for_class(Node, EmbedKeys.Actualized, value_type=type)
-			classes = {**classes, **{feature_class: True for feature_class, via_class in meta.items() if via_class is ctor}}
-
-		return list(classes.keys())
-
-	def actualize(self: T_Node) -> T_Node:
-		"""ASTの相関関係より判断した実体としてより適切な具象クラスのインスタンスに変換。条件は具象側で実装
-
-		Returns:
-			T_Node: 具象クラスのインスタンス
-		"""
-		for feature_class in self._feature_classes():
-			if not self.__acceptable_by(feature_class):
-				continue
-
-			if feature_class.match_feature(self):
-				return self.as_a(feature_class)
-
-		return self
+		return True
 
 	def dirty_proxify(self: T_Node, **overrides: Any) -> T_Node:
 		"""プロキシノードを生成

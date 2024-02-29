@@ -1,6 +1,6 @@
 from typing import TypeAlias
 
-from rogw.tranp.node.definition.accessor import to_access
+from rogw.tranp.node.definition.accessible import to_access, PythonClassOperations
 from rogw.tranp.node.definition.element import Decorator, Parameter
 from rogw.tranp.node.definition.expression import Group
 from rogw.tranp.node.definition.general import Entrypoint
@@ -47,35 +47,33 @@ from rogw.tranp.node.definition.operator import (
 	TenaryOperator,
 )
 from rogw.tranp.node.definition.primary import (
-	Fragment,
 	# declable
 	Declable,
 	DeclVar,
 	DeclClassVar,
 	DeclThisVar,
-	# declable - block
-	DeclBlockVar,
+	# declable - local
+	DeclLocalVar,
+	DeclParam,
 	DeclClassParam,
 	DeclThisParam,
-	DeclLocalVar,
 	# declable - name
 	DeclName,
 	TypesName,
 	ImportName,
 	# reference
+	ArgumentLabel,
 	Reference,
 	Relay,
 	Var,
 	ClassRef,
 	ThisRef,
-	ArgumentLabel,
 	Variable,
+	Indexer,
 	# path
 	Path,
 	ImportPath,
 	DecoratorPath,
-	# indexer
-	Indexer,
 	# type
 	Type,
 	GeneralType,
@@ -157,6 +155,6 @@ from rogw.tranp.node.definition.terminal import Terminal, Empty
 
 DeclVars: TypeAlias = Parameter | Declable
 DeclAll: TypeAlias = Parameter | Declable | ClassDef
-Symbolic: TypeAlias = Declable | Reference | Type | Literal | ClassDef
-RefAll: TypeAlias = Reference | Indexer | FuncCall
+Symbolic: TypeAlias = Declable | Relay | Var | Type | Literal | ClassDef
+RefAll: TypeAlias = Reference | FuncCall
 Generized: TypeAlias = Type | Literal | ClassDef

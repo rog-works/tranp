@@ -639,12 +639,19 @@ class TestDefinition(TestCase):
 	# Primary
 
 	@data_provider([
+		('a(b=c)', 'file_input.funccall.arguments.argvalue.name', defs.ArgumentLabel),
+	])
+	def test_argument_label(self, source: str, full_path: str, expected: type) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.ArgumentLabel)
+		self.assertEqual(type(node), expected)
+
+	@data_provider([
 		# Declable - Local
 		('a = 0', 'file_input.assign.assign_namelist.var', defs.DeclLocalVar),
 		('a: int = 0', 'file_input.anno_assign.assign_namelist.var', defs.DeclLocalVar),
 		('for i in range(1): ...', 'file_input.for_stmt.for_namelist.name', defs.DeclLocalVar),
 		('try: ...\nexcept Exception as e: ...', 'file_input.try_stmt.except_clauses.except_clause.name', defs.DeclLocalVar),
-		('def func(a: int) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.DeclLocalVar),
+		('def func(a: int) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.DeclParam),
 		('class B(A):\n\ta = 0', 'file_input.class_def.class_def_raw.block.assign.assign_namelist.var', defs.DeclLocalVar),  # XXX MoveAssignはクラス変数の宣言にはならない設計
 		# Declable - Class/This
 		('class B(A):\n\tb: int = a', 'file_input.class_def.class_def_raw.block.anno_assign.assign_namelist.var', defs.DeclClassVar),
@@ -656,6 +663,12 @@ class TestDefinition(TestCase):
 		('class B(A): ...', 'file_input.class_def.class_def_raw.name', defs.TypesName),
 		('def func(a: int) -> None: ...', 'file_input.function_def.function_def_raw.name', defs.TypesName),
 		('from path.to import A', 'file_input.import_stmt.import_names.name', defs.ImportName),
+	])
+	def test_declable(self, source: str, full_path: str, expected: type) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Declable)
+		self.assertEqual(type(node), expected)
+
+	@data_provider([
 		# Reference - Relay
 		('a(self.v)', 'file_input.funccall.arguments.argvalue.getattr', defs.Relay),
 		('a().b', 'file_input.getattr', defs.Relay),
@@ -677,8 +690,6 @@ class TestDefinition(TestCase):
 		('a(cls.v)', 'file_input.funccall.arguments.argvalue.getattr.var', defs.ClassRef),
 		('self', 'file_input.var', defs.ThisRef),
 		('a(self.v)', 'file_input.funccall.arguments.argvalue.getattr.var', defs.ThisRef),
-		# Reference - Label
-		('a(b=c)', 'file_input.funccall.arguments.argvalue.name', defs.ArgumentLabel),
 		# Reference - Variable
 		('a', 'file_input.var', defs.Variable),
 		('a()', 'file_input.funccall.var', defs.Variable),
@@ -693,8 +704,8 @@ class TestDefinition(TestCase):
 		('a(b=c)', 'file_input.funccall.arguments.argvalue.var', defs.Variable),
 		('class B(A):\n\tb: int = a', 'file_input.class_def.class_def_raw.block.anno_assign.var', defs.Variable),
 	])
-	def test_fragment(self, source: str, full_path: str, expected: type) -> None:
-		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Fragment)
+	def test_reference(self, source: str, full_path: str, expected: type) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Reference)
 		self.assertEqual(type(node), expected)
 
 	@data_provider([
@@ -724,15 +735,6 @@ class TestDefinition(TestCase):
 		self.assertEqual(type(node.prop), defs.Variable)
 
 	@data_provider([
-		('from path.to import A', 'file_input.import_stmt.dotted_name', {'type': defs.ImportPath, 'path': 'path.to'}),
-		('@path.to(a, b)\ndef func() -> None: ...', 'file_input.function_def.decorators.decorator.dotted_name', {'type': defs.DecoratorPath, 'path': 'path.to'}),
-	])
-	def test_path(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
-		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Path)
-		self.assertEqual(type(node), expected['type'])
-		self.assertEqual(node.tokens, expected['path'])
-
-	@data_provider([
 		('a[0]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Variable, 'key': '0', 'key_type': defs.Integer}),
 		('a[b]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Variable, 'key': 'b', 'key_type': defs.Variable}),
 		('a[b()]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Variable, 'key': 'b', 'key_type': defs.FuncCall}),
@@ -747,6 +749,15 @@ class TestDefinition(TestCase):
 		self.assertEqual(type(node.receiver), expected['receiver_type'])
 		self.assertEqual(node.key.tokens, expected['key'])
 		self.assertEqual(type(node.key), expected['key_type'])
+
+	@data_provider([
+		('from path.to import A', 'file_input.import_stmt.dotted_name', {'type': defs.ImportPath, 'path': 'path.to'}),
+		('@path.to(a, b)\ndef func() -> None: ...', 'file_input.function_def.decorators.decorator.dotted_name', {'type': defs.DecoratorPath, 'path': 'path.to'}),
+	])
+	def test_path(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Path)
+		self.assertEqual(type(node), expected['type'])
+		self.assertEqual(node.tokens, expected['path'])
 
 	@data_provider([
 		# General

@@ -9,7 +9,6 @@ class EmbedKeys(NamedTuple):
 	"""埋め込みキー一覧"""
 
 	AcceptTags = 'accept_tags'
-	Actualized = 'actualized'
 	Expandable = 'expandable'
 
 
@@ -231,26 +230,6 @@ def accept_tags(*tags: str) -> MetaFactory:
 		```
 	"""
 	return lambda: {EmbedKeys.AcceptTags: list(tags)}
-
-
-def actualized(via: type) -> MetaFactory:
-	"""引数の基底クラスからノード生成時に最適化対象としての情報を埋め込む(クラス用)
-
-	Args:
-		via (type): 基底クラス
-	Returns:
-		MetaFactory: 埋め込み関数
-	Examples:
-		```python
-		class Base:
-			...
-
-		@Meta.embed(Node, actualized(via=Base))
-		class Sub(Base):
-			...
-		```
-	"""
-	return lambda: {EmbedKeys.Actualized: via}
 
 
 def expandable() -> dict[str, Any]:

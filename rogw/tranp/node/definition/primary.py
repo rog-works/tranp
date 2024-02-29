@@ -84,6 +84,8 @@ class DeclThisVar(DeclVar):
 
 @Meta.embed(Node, accept_tags('var', 'name'))
 class DeclLocalVar(DeclVar):
+	"""Note: XXX 'var'だけで本質的には問題ないはずだが、For.symbols/Catch.symbolで'name'が使われているため、これを取り込むため'name'を受け入れ"""
+
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
 		return DeclableMatcher.is_decl_local_var(via)
@@ -194,10 +196,8 @@ class ThisRef(Var):
 
 @Meta.embed(Node, accept_tags('var', 'name'))
 class Variable(Var):
-	@classmethod
-	def match_feature(cls, via: Node) -> bool:
-		"""Note: XXX actualizeループの結果を元に排他的に決定(実質的なフォールバック)"""
-		return True
+	"""Note: XXX 'var'/'name'のmatch_featureループの終着点として排他的に決定(実質的なフォールバック)"""
+	pass
 
 
 @Meta.embed(Node, accept_tags('getitem'))

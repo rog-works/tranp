@@ -1,5 +1,5 @@
 from rogw.tranp.lang.implementation import implements, override
-from rogw.tranp.node.definition.primary import FuncCall, ImportPath, Indexer, Reference, Declable, Type, Variable
+from rogw.tranp.node.definition.primary import FuncCall, ImportPath, Reference, Declable, Type, Variable
 from rogw.tranp.node.definition.terminal import Empty, Terminal
 from rogw.tranp.node.embed import Meta, accept_tags, expandable
 from rogw.tranp.node.interface import ITerminal
@@ -9,8 +9,8 @@ from rogw.tranp.node.promise import IDeclaration
 
 class Assign(Node):
 	@property
-	def receivers(self) -> list[Declable | Reference | Indexer]:
-		return [node.one_of(Declable | Reference | Indexer) for node in self._children('assign_namelist')]
+	def receivers(self) -> list[Declable | Reference]:
+		return [node.one_of(Declable | Reference) for node in self._children('assign_namelist')]
 
 	@property
 	def _elements(self) -> list[Node]:
@@ -22,7 +22,7 @@ class MoveAssign(Assign, IDeclaration):
 	@property
 	@override
 	@Meta.embed(Node, expandable)
-	def receivers(self) -> list[Declable | Reference | Indexer]:
+	def receivers(self) -> list[Declable | Reference]:
 		return super().receivers
 
 	@property
@@ -65,7 +65,7 @@ class AnnoAssign(Assign, IDeclaration):
 class AugAssign(Assign):
 	@property
 	@Meta.embed(Node, expandable)
-	def receiver(self) -> Declable | Reference | Indexer:
+	def receiver(self) -> Declable | Reference:
 		return super().receivers[0]
 
 	@property

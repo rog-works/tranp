@@ -137,15 +137,11 @@ class ImportName(DeclName):
 		return DeclableMatcher.in_decl_import(via)
 
 
-class Reference(Node, IDomain):
-	@property
-	@override
-	def domain_name(self) -> str:
-		return self.tokens
+class Reference(Node): pass
 
 
 @Meta.embed(Node, accept_tags('getattr'))
-class Relay(Reference):
+class Relay(Reference, IDomain):
 	@property
 	@override
 	def domain_name(self) -> str:
@@ -163,15 +159,19 @@ class Relay(Reference):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def receiver(self) -> 'Reference | FuncCall | Indexer | Generator| Literal':
-		return self._at(0).one_of(Reference | FuncCall | Indexer | Generator | Literal)
+	def receiver(self) -> 'Reference | FuncCall | Generator| Literal':
+		return self._at(0).one_of(Reference | FuncCall | Generator | Literal)
 
 	@property
 	def prop(self) -> 'Variable':
 		return self._at(1).as_a(Variable)
 
 
-class Var(Reference, ITerminal): pass
+class Var(Reference, IDomain, ITerminal):
+	@property
+	@override
+	def domain_name(self) -> str:
+		return self.tokens
 
 
 @Meta.embed(Node, accept_tags('var'))
@@ -200,6 +200,19 @@ class Variable(Var):
 		return True
 
 
+@Meta.embed(Node, accept_tags('getitem'))
+class Indexer(Reference):
+	@property
+	@Meta.embed(Node, expandable)
+	def receiver(self) -> 'Reference | FuncCall | Generator':
+		return self._at(0).one_of(Reference | FuncCall | Generator)
+
+	@property
+	@Meta.embed(Node, expandable)
+	def key(self) -> Node:
+		return self._children('slices')[0]
+
+
 @Meta.embed(Node, accept_tags('dotted_name'))
 class Path(Node, ITerminal): pass
 
@@ -216,19 +229,6 @@ class DecoratorPath(Path):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
 		return via._full_path.parent_tag == 'decorator'
-
-
-@Meta.embed(Node, accept_tags('getitem'))
-class Indexer(Node):
-	@property
-	@Meta.embed(Node, expandable)
-	def receiver(self) -> 'Reference | FuncCall | Indexer | Generator':
-		return self._at(0).one_of(Reference | FuncCall | Indexer | Generator)
-
-	@property
-	@Meta.embed(Node, expandable)
-	def key(self) -> Node:
-		return self._children('slices')[0]
 
 
 class Type(Node, IDomain):

@@ -785,12 +785,12 @@ class SymbolLiteral(Symbol):
 
 
 class SymbolReference(Symbol):
-	def __init__(self, origin: 'RefOrigins', via: defs.Reference | defs.Indexer, context: SymbolRaw | None = None) -> None:
+	def __init__(self, origin: 'RefOrigins', via: defs.Reference, context: SymbolRaw | None = None) -> None:
 		"""インスタンスを生成
 
 		Args:
 			origin (RefOrigins): スタックシンボル
-			via (Reference | Indexer): 参照元のノード
+			via (Reference): 参照元のノード
 			context (SymbolRaw | None): コンテキストのシンボル (default = None)
 		"""
 		super().__init__(origin)
@@ -936,11 +936,11 @@ class SymbolWrapper:
 		"""
 		return SymbolLiteral(self._raw.one_of(LiteralOrigins), via)
 
-	def ref(self, via: defs.Reference | defs.Indexer, context: SymbolRaw | None = None) -> SymbolReference:
+	def ref(self, via: defs.Reference, context: SymbolRaw | None = None) -> SymbolReference:
 		"""ラップしたシンボルを生成(参照ノード用)
 
 		Args:
-			via (Reference | Indexer): 参照系ノード
+			via (Reference): 参照系ノード
 			context (SymbolRaw | None): コンテキストのシンボル (default = None)
 		Returns:
 			SymbolReference: シンボル

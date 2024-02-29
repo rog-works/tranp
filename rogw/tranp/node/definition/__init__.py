@@ -69,12 +69,11 @@ from rogw.tranp.node.definition.primary import (
 	ClassRef,
 	ThisRef,
 	Variable,
+	Indexer,
 	# path
 	Path,
 	ImportPath,
 	DecoratorPath,
-	# indexer
-	Indexer,
 	# type
 	Type,
 	GeneralType,
@@ -157,5 +156,5 @@ from rogw.tranp.node.definition.terminal import Terminal, Empty
 DeclVars: TypeAlias = Parameter | Declable
 DeclAll: TypeAlias = Parameter | Declable | ClassDef
 Symbolic: TypeAlias = Declable | Reference | Type | Literal | ClassDef
-RefAll: TypeAlias = Reference | Indexer | FuncCall
+RefAll: TypeAlias = Reference | FuncCall
 Generized: TypeAlias = Type | Literal | ClassDef

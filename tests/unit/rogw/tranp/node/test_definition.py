@@ -735,15 +735,6 @@ class TestDefinition(TestCase):
 		self.assertEqual(type(node.prop), defs.Variable)
 
 	@data_provider([
-		('from path.to import A', 'file_input.import_stmt.dotted_name', {'type': defs.ImportPath, 'path': 'path.to'}),
-		('@path.to(a, b)\ndef func() -> None: ...', 'file_input.function_def.decorators.decorator.dotted_name', {'type': defs.DecoratorPath, 'path': 'path.to'}),
-	])
-	def test_path(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
-		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Path)
-		self.assertEqual(type(node), expected['type'])
-		self.assertEqual(node.tokens, expected['path'])
-
-	@data_provider([
 		('a[0]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Variable, 'key': '0', 'key_type': defs.Integer}),
 		('a[b]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Variable, 'key': 'b', 'key_type': defs.Variable}),
 		('a[b()]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Variable, 'key': 'b', 'key_type': defs.FuncCall}),
@@ -758,6 +749,15 @@ class TestDefinition(TestCase):
 		self.assertEqual(type(node.receiver), expected['receiver_type'])
 		self.assertEqual(node.key.tokens, expected['key'])
 		self.assertEqual(type(node.key), expected['key_type'])
+
+	@data_provider([
+		('from path.to import A', 'file_input.import_stmt.dotted_name', {'type': defs.ImportPath, 'path': 'path.to'}),
+		('@path.to(a, b)\ndef func() -> None: ...', 'file_input.function_def.decorators.decorator.dotted_name', {'type': defs.DecoratorPath, 'path': 'path.to'}),
+	])
+	def test_path(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Path)
+		self.assertEqual(type(node), expected['type'])
+		self.assertEqual(node.tokens, expected['path'])
 
 	@data_provider([
 		# General

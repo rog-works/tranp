@@ -161,7 +161,7 @@ class Relay(Reference, IDomain):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def receiver(self) -> 'Reference | FuncCall | Generator| Literal':
+	def receiver(self) -> 'Reference | FuncCall | Generator | Literal':
 		return self._at(0).one_of(Reference | FuncCall | Generator | Literal)
 
 	@property
@@ -562,7 +562,7 @@ class DictComp(Comprehension):
 
 
 class DeclableMatcher:
-	"""変数宣言ノードマッチャー"""
+	"""変数宣言ノードのマッチングヘルパー"""
 
 	@classmethod
 	def is_decl_class_var(cls, via: Node) -> bool:

@@ -316,6 +316,7 @@ class Node:
 
 		return under[index]
 
+	@deprecated
 	def _siblings(self, relative_path: str = '') -> list['Node']:
 		"""指定のパスを基準に同階層のノードをフェッチ
 		パスを省略した場合は自身と同階層を検索し、自身を除いたノードを返却

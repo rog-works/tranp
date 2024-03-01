@@ -1,15 +1,15 @@
 import functools
 from typing import Any, Iterator, TypeVar, cast
 
-from rogw.tranp.syntax.ast.dsn import DSN
-from rogw.tranp.syntax.ast.entry import SourceMap
-from rogw.tranp.syntax.ast.path import EntryPath
-from rogw.tranp.syntax.ast.query import Query
 from rogw.tranp.errors import LogicError
 from rogw.tranp.lang.implementation import deprecated, injectable, override
 from rogw.tranp.lang.sequence import flatten
 from rogw.tranp.lang.string import snakelize
 from rogw.tranp.module.types import ModulePath
+from rogw.tranp.syntax.ast.dsn import DSN
+from rogw.tranp.syntax.ast.entry import SourceMap
+from rogw.tranp.syntax.ast.path import EntryPath
+from rogw.tranp.syntax.ast.query import Query
 from rogw.tranp.syntax.node.embed import EmbedKeys, Meta
 from rogw.tranp.syntax.errors import IllegalConvertionError, NodeNotFoundError
 from rogw.tranp.syntax.node.interface import IDomain, IScope, ITerminal

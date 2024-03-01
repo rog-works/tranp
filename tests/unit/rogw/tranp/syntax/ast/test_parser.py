@@ -1,11 +1,10 @@
 from unittest import TestCase
 
-from rogw.tranp.syntax.ast.parser import SyntaxParser
 from rogw.tranp.lang.implementation import implements
 from tests.unit.rogw.tranp.syntax.ast.test_entry import EntryImpl
 
 
-class SyntaxParserImpl(SyntaxParser):
+class SyntaxParserImpl:
 	@implements
 	def parse(self, module_path: str) -> EntryImpl:
 		return EntryImpl(('root', []))

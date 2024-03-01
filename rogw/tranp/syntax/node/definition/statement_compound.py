@@ -1,9 +1,9 @@
 from typing import Generic, TypeVar
 
-from rogw.tranp.syntax.ast.dsn import DSN
 from rogw.tranp.compatible.python.embed import __actual__, __alias__, __hint_generic__
 from rogw.tranp.lang.implementation import implements, override
 from rogw.tranp.lang.sequence import flatten, last_index_of
+from rogw.tranp.syntax.ast.dsn import DSN
 from rogw.tranp.syntax.node.accessible import ClassOperations
 from rogw.tranp.syntax.node.definition.accessible import PythonClassOperations, to_access
 from rogw.tranp.syntax.node.definition.element import Decorator, Parameter

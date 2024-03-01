@@ -1,6 +1,6 @@
+from rogw.tranp.module.types import ModulePath
 from rogw.tranp.syntax.ast.entry import Entry
 from rogw.tranp.syntax.ast.parser import ParserSetting, SyntaxParser
-from rogw.tranp.module.types import ModulePath
 
 
 def parser_setting() -> ParserSetting:

@@ -1,12 +1,12 @@
 import re
 
+from rogw.tranp.io.memo import Memoize
+from rogw.tranp.lang.implementation import implements
 from rogw.tranp.syntax.ast.cache import EntryCache
 from rogw.tranp.syntax.ast.entry import Entry, SourceMap
 from rogw.tranp.syntax.ast.finder import ASTFinder
 from rogw.tranp.syntax.ast.path import EntryPath
 from rogw.tranp.syntax.ast.query import Query
-from rogw.tranp.io.memo import Memoize
-from rogw.tranp.lang.implementation import implements
 from rogw.tranp.syntax.errors import NodeNotFoundError
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.syntax.node.resolver import NodeResolver

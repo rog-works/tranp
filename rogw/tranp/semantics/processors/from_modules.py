@@ -1,9 +1,9 @@
 from dataclasses import dataclass, field
 
-from rogw.tranp.syntax.ast.dsn import DSN
 import rogw.tranp.compatible.python.classes as classes
 from rogw.tranp.lang.implementation import injectable
 from rogw.tranp.module.modules import Module, Modules
+from rogw.tranp.syntax.ast.dsn import DSN
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.semantics.finder import SymbolFinder
 from rogw.tranp.semantics.symbol import SymbolOrigin, SymbolRaw, SymbolRaws

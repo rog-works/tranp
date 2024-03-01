@@ -5,26 +5,26 @@ from types import MethodType
 from typing import Any, Callable, cast
 
 from rogw.tranp.app.app import App
-from rogw.tranp.syntax.ast.entry import Entry
-from rogw.tranp.syntax.ast.parser import ParserSetting, SyntaxParser
-from rogw.tranp.syntax.ast.query import Query
 from rogw.tranp.bin.io import readline
 import rogw.tranp.compatible.python.classes as classes
 from rogw.tranp.errors import LogicError
 from rogw.tranp.implements.cpp.providers.semantics import cpp_plugin_provider
+from rogw.tranp.implements.syntax.lark.entry import EntryOfLark
+from rogw.tranp.implements.syntax.lark.parser import SyntaxParserOfLark
 from rogw.tranp.io.cache import CacheProvider
 from rogw.tranp.lang.locator import Locator
 from rogw.tranp.lang.module import fullyname
 from rogw.tranp.module.module import Module
 from rogw.tranp.module.types import ModulePath
-import rogw.tranp.syntax.node.definition as defs
-from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.semantics.db import SymbolDB
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.semantics.symbol import SymbolRaw
 from rogw.tranp.semantics.symbols import Symbols
-from rogw.tranp.tp_lark.entry import EntryOfLark
-from rogw.tranp.tp_lark.parser import SyntaxParserOfLark
+from rogw.tranp.syntax.ast.entry import Entry
+from rogw.tranp.syntax.ast.parser import ParserSetting, SyntaxParser
+from rogw.tranp.syntax.ast.query import Query
+import rogw.tranp.syntax.node.definition as defs
+from rogw.tranp.syntax.node.node import Node
 
 
 class Args:

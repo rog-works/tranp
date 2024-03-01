@@ -2,9 +2,9 @@ import re
 from types import UnionType
 from unittest import TestCase
 
-from rogw.tranp.syntax.ast.dsn import DSN
 import rogw.tranp.compatible.python.classes as classes
 from rogw.tranp.compatible.python.types import Standards
+from rogw.tranp.syntax.ast.dsn import DSN
 from rogw.tranp.semantics.errors import UnresolvedSymbolError
 from rogw.tranp.semantics.symbols import Symbols
 from rogw.tranp.test.helper import data_provider

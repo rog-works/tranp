@@ -4,12 +4,12 @@ from typing import IO, cast
 import lark
 from lark.indenter import PythonIndenter
 
-from rogw.tranp.syntax.ast.entry import Entry
-from rogw.tranp.syntax.ast.parser import ParserSetting
+from rogw.tranp.implements.syntax.lark.entry import EntryOfLark, Serialization
 from rogw.tranp.io.cache import CacheProvider
 from rogw.tranp.io.loader import IFileLoader
 from rogw.tranp.lang.implementation import implements, injectable
-from rogw.tranp.tp_lark.entry import EntryOfLark, Serialization
+from rogw.tranp.syntax.ast.entry import Entry
+from rogw.tranp.syntax.ast.parser import ParserSetting
 
 
 class SyntaxParserOfLark:

@@ -3,10 +3,10 @@ from unittest import TestCase
 
 import lark
 
+from rogw.tranp.implements.syntax.lark.entry import EntryOfLark
 from rogw.tranp.syntax.ast.entry import Entry
 from rogw.tranp.syntax.ast.finder import ASTFinder
 from rogw.tranp.test.helper import data_provider
-from rogw.tranp.tp_lark.entry import EntryOfLark
 
 class Fixture:
 	@classmethod

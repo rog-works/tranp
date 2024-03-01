@@ -2,11 +2,11 @@ import re
 from types import UnionType
 from typing import cast
 
-from rogw.tranp.syntax.ast.dsn import DSN
 from rogw.tranp.errors import LogicError
 from rogw.tranp.i18n.i18n import I18n
 from rogw.tranp.implements.cpp.semantics.cvars import CVars
 from rogw.tranp.lang.implementation import injectable
+from rogw.tranp.syntax.ast.dsn import DSN
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.semantics.naming import ClassDomainNaming

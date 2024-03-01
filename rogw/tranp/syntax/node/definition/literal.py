@@ -1,7 +1,7 @@
-from rogw.tranp.syntax.ast.dsn import DSN
 import rogw.tranp.compatible.python.classes as classes
 from rogw.tranp.lang.comment import Comment as CommentData
 from rogw.tranp.lang.implementation import implements, override
+from rogw.tranp.syntax.ast.dsn import DSN
 from rogw.tranp.syntax.node.definition.terminal import Terminal
 from rogw.tranp.syntax.node.embed import Meta, accept_tags, expandable
 from rogw.tranp.syntax.node.interface import IDomain, ITerminal

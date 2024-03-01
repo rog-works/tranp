@@ -1,7 +1,7 @@
 import re
 
-from rogw.tranp.syntax.ast.dsn import DSN
 from rogw.tranp.errors import LogicError
+from rogw.tranp.syntax.ast.dsn import DSN
 
 
 class EntryPath:

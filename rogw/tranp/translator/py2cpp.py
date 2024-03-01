@@ -2,19 +2,18 @@ import re
 from types import UnionType
 from typing import cast
 
-from rogw.tranp.analyze.naming import ClassDomainNaming
-from rogw.tranp.analyze.procedure import Procedure
-import rogw.tranp.analyze.reflection as reflection
-from rogw.tranp.analyze.symbol import ClassShorthandNaming, SymbolRaw
-from rogw.tranp.analyze.symbols import Symbols
-from rogw.tranp.ast.dsn import DSN
-import rogw.tranp.compatible.python.embed as __alias__
 from rogw.tranp.errors import LogicError
 from rogw.tranp.i18n.i18n import I18n
-from rogw.tranp.implements.cpp.analyze.cvars import CVars
+from rogw.tranp.implements.cpp.semantics.cvars import CVars
 from rogw.tranp.lang.implementation import injectable
-import rogw.tranp.node.definition as defs
-from rogw.tranp.node.node import Node
+from rogw.tranp.syntax.ast.dsn import DSN
+import rogw.tranp.syntax.node.definition as defs
+from rogw.tranp.syntax.node.node import Node
+from rogw.tranp.semantics.naming import ClassDomainNaming
+from rogw.tranp.semantics.procedure import Procedure
+import rogw.tranp.semantics.reflection as reflection
+from rogw.tranp.semantics.symbol import ClassShorthandNaming, SymbolRaw
+from rogw.tranp.semantics.symbols import Symbols
 from rogw.tranp.translator.option import TranslatorOptions
 from rogw.tranp.view.render import Renderer
 

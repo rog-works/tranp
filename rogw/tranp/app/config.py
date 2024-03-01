@@ -19,6 +19,8 @@ def default_definitions() -> ModuleDefinitions:
 		'rogw.tranp.ast.resolver.SymbolMapping': 'rogw.tranp.providers.node.symbol_mapping',
 		'rogw.tranp.ast.parser.ParserSetting': 'rogw.tranp.providers.ast.parser_setting',
 		'rogw.tranp.ast.parser.SyntaxParser': 'rogw.tranp.tp_lark.parser.SyntaxParserOfLark',
+		'rogw.tranp.i18n.i18n.I18n': 'rogw.tranp.i18n.i18n.I18n',
+		'rogw.tranp.i18n.i18n.TranslationMapping': 'rogw.tranp.i18n.i18n.translation_mapping_empty',
 		'rogw.tranp.io.cache.CacheProvider': 'rogw.tranp.io.cache.CacheProvider',
 		'rogw.tranp.io.cache.CacheSetting': 'rogw.tranp.providers.io.cache_setting',
 		'rogw.tranp.io.loader.IFileLoader': 'rogw.tranp.app.io.FileLoader',

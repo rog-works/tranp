@@ -2,10 +2,10 @@ from abc import ABCMeta, abstractmethod
 from enum import Enum
 from typing import Any, Callable, Iterator, TypeAlias, TypeVar
 
+from rogw.tranp.analyze.naming import AliasHandler, ClassDomainNaming
 from rogw.tranp.errors import FatalError, LogicError
 from rogw.tranp.lang.implementation import implements, injectable, override
 import rogw.tranp.node.definition as defs
-from rogw.tranp.node.definition.statement_compound import ClassSymbolMaker
 from rogw.tranp.node.node import Node
 
 T_Raw = TypeVar('T_Raw', bound='SymbolRaw')
@@ -331,37 +331,8 @@ class SymbolRaw(metaclass=ABCMeta):
 	@property
 	def shorthand(self) -> str:
 		"""str: オブジェクトの短縮表記"""
-		return self.make_shorthand()
+		return ClassShorthander.domain_name(self)
 
-	def make_shorthand(self, use_alias: bool = False, path_method: str = 'domain') -> str:
-		"""オブジェクトの短縮表記を生成
-
-		Args:
-			use_alias (bool): True = エイリアスの名前を優先 (default = False)
-			path_method (str): 参照名の種別 (default = 'domain')
-		Returns:
-			str: 短縮表記
-		Note:
-			# 書式
-			* types=AltClass: ${alias}=${actual}
-			* types=Function: ${domain_name}(...${arguments}) -> ${return}
-			* role=Var/Generic/Literal/Reference: ${domain_name}<...${attributes}>
-			* その他: ${domain_name}
-		"""
-		symbol_name = ClassSymbolMaker.symbol_name(self.types, use_alias, path_method)
-		if len(self.attrs) > 0:
-			if self.types.is_a(defs.AltClass):
-				attrs = [attr.make_shorthand(use_alias, path_method) for attr in self.attrs]
-				return f'{symbol_name}={attrs[0]}'
-			elif self.types.is_a(defs.Function):
-				attrs = [attr.make_shorthand(use_alias, path_method) for attr in self.attrs]
-				return f'{symbol_name}({", ".join(attrs[:-1])}) -> {attrs[-1]}'
-			elif self.role in [Roles.Var, Roles.Generic, Roles.Literal, Roles.Reference]:
-				attrs = [attr.make_shorthand(use_alias, path_method) for attr in self.attrs]
-				return f'{symbol_name}<{", ".join(attrs)}>'
-
-		return symbol_name
-	
 	def hierarchy(self) -> Iterator['SymbolRaw']:
 		"""参照元を辿るイテレーターを取得
 
@@ -956,3 +927,76 @@ class SymbolWrapper:
 			SymbolResult: シンボル
 		"""
 		return SymbolResult(self._raw.one_of(ResultOrigins), via)
+
+
+class ClassShorthander:
+	"""クラスの短縮表記生成モジュール
+
+	Note:
+		# 書式
+		* types=AltClass: ${alias}=${actual}
+		* types=Function: ${domain_name}(...${arguments}) -> ${return}
+		* role=Var/Generic/Literal/Reference: ${domain_name}<...${attributes}>
+		* その他: ${domain_name}
+	"""
+
+	@classmethod
+	def domain_name(cls, raw: SymbolRaw, alias_handler: AliasHandler | None = None) -> str:
+		"""クラスの短縮表記を生成(ドメイン名)
+
+		Args:
+			raw (SymbolRaw): シンボル
+			alias_handler (AliasHandler | None): エイリアス解決ハンドラー (default = None)
+		Returns:
+			str: 短縮表記
+		"""
+		return cls.__make_impl(raw, alias_handler, 'domain')
+
+	@classmethod
+	def fullyname(cls, raw: SymbolRaw, alias_handler: AliasHandler | None = None) -> str:
+		"""クラスの短縮表記を生成(完全参照名)
+
+		Args:
+			raw (SymbolRaw): シンボル
+			alias_handler (AliasHandler | None): エイリアス解決ハンドラー (default = None)
+		Returns:
+			str: 短縮表記
+		"""
+		return cls.__make_impl(raw, alias_handler, 'fully')
+
+	@classmethod
+	def accessible_name(cls, raw: SymbolRaw, alias_handler: AliasHandler | None = None) -> str:
+		"""クラスの短縮表記を生成(名前空間上の参照名)
+
+		Args:
+			raw (SymbolRaw): シンボル
+			alias_handler (AliasHandler | None): エイリアス解決ハンドラー (default = None)
+		Returns:
+			str: 短縮表記
+		"""
+		return cls.__make_impl(raw, alias_handler, 'accessible')
+
+	@classmethod
+	def __make_impl(cls, raw: SymbolRaw, alias_handler: AliasHandler | None = None, path_method: str = 'domain') -> str:
+		"""クラスの短縮表記を生成
+
+		Args:
+			raw (SymbolRaw): シンボル
+			alias_handler (AliasHandler | None): エイリアス解決ハンドラー (default = None)
+			path_method ('domain' | 'fully' | 'namespace'): パス生成方式 (default = 'domain') @see analyze.naming.ClassDomainNaming
+		Returns:
+			str: 短縮表記
+		"""
+		symbol_name = ClassDomainNaming.make_manualy(raw.types, alias_handler, path_method)
+		if len(raw.attrs) > 0:
+			if raw.types.is_a(defs.AltClass):
+				attrs = [cls.__make_impl(attr, alias_handler, path_method) for attr in raw.attrs]
+				return f'{symbol_name}={attrs[0]}'
+			elif raw.types.is_a(defs.Function):
+				attrs = [cls.__make_impl(attr, alias_handler, path_method) for attr in raw.attrs]
+				return f'{symbol_name}({", ".join(attrs[:-1])}) -> {attrs[-1]}'
+			elif raw.role in [Roles.Var, Roles.Generic, Roles.Literal, Roles.Reference]:
+				attrs = [cls.__make_impl(attr, alias_handler, path_method) for attr in raw.attrs]
+				return f'{symbol_name}<{", ".join(attrs)}>'
+
+		return symbol_name

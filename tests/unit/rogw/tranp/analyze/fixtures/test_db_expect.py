@@ -401,7 +401,6 @@ def expected_symbols() -> dict:
 		'rogw.tranp.compatible.python.embed.__hint_generic__.decorator': 'rogw.tranp.compatible.python.embed.__hint_generic__.decorator',
 		'rogw.tranp.compatible.python.embed.__actual__.name': 'rogw.tranp.compatible.python.classes.str',
 		'rogw.tranp.compatible.python.embed.__actual__.decorator.wrapped': 'rogw.tranp.compatible.python.embed.T',
-		'rogw.tranp.compatible.python.embed.__alias__.name': 'rogw.tranp.compatible.python.classes.str',
 		'rogw.tranp.compatible.python.embed.__alias__.decorator.wrapped': 'rogw.tranp.compatible.python.embed.T',
 		'rogw.tranp.compatible.python.embed.__hint_generic__.template_types': 'typing.TypeVar',
 		'rogw.tranp.compatible.python.embed.__hint_generic__.decorator.wrapped': 'rogw.tranp.compatible.python.embed.T',

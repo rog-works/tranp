@@ -183,9 +183,9 @@ class AccessOps(Base):
 		print(arr_sp.on[0])
 		print(arr_ar.on[0])
 
-@__alias__('Alias2')
+@__alias__()
 class Alias:
-	@__alias__('Inner2')
+	@__alias__()
 	class Inner: ...
 
 	def __init__(self) -> None:

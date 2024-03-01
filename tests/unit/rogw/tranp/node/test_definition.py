@@ -229,7 +229,7 @@ class TestDefinition(TestCase):
 				{'symbol': 'lb', 'decl_type': defs.DeclLocalVar},
 			],
 			'actual_symbol': None,
-			'alias_symbol': None,
+			'has_alias': False,
 			# Belong class only
 			'class_symbol': 'Class',
 		}),
@@ -252,7 +252,7 @@ class TestDefinition(TestCase):
 				{'symbol': 'lb', 'decl_type': defs.DeclLocalVar},
 			],
 			'actual_symbol': None,
-			'alias_symbol': None,
+			'has_alias': False,
 			# Belong class only
 			'class_symbol': 'Class',
 			# Constructor only
@@ -269,7 +269,7 @@ class TestDefinition(TestCase):
 				{'symbol': 'i', 'decl_type': defs.DeclLocalVar},
 			],
 			'actual_symbol': None,
-			'alias_symbol': None,
+			'has_alias': False,
 			# Closure only
 			'binded_this': True,
 		}),
@@ -286,7 +286,7 @@ class TestDefinition(TestCase):
 				{'symbol': 'self', 'decl_type': defs.Parameter},
 			],
 			'actual_symbol': None,
-			'alias_symbol': None,
+			'has_alias': False,
 			# Belong class only
 			'class_symbol': 'Class',
 			# Method only
@@ -308,7 +308,7 @@ class TestDefinition(TestCase):
 				{'symbol': 'e', 'decl_type': defs.DeclLocalVar},
 			],
 			'actual_symbol': None,
-			'alias_symbol': 'alias',
+			'has_alias': True,
 			# Belong class only
 			'class_symbol': 'Class',
 			# Method only
@@ -329,7 +329,7 @@ class TestDefinition(TestCase):
 				{'symbol': 's', 'decl_type': defs.Parameter},
 			],
 			'actual_symbol': None,
-			'alias_symbol': None,
+			'has_alias': False,
 			# Belong class only
 			'class_symbol': 'Class',
 			# Method only
@@ -349,7 +349,7 @@ class TestDefinition(TestCase):
 				{'symbol': 'lb', 'decl_type': defs.DeclLocalVar},
 			],
 			'actual_symbol': None,
-			'alias_symbol': None,
+			'has_alias': False,
 		}),
 		(_ast('func.func_in_closure'), {
 			'type': defs.Closure,
@@ -364,7 +364,7 @@ class TestDefinition(TestCase):
 				{'symbol': 'n', 'decl_type': defs.Parameter},
 			],
 			'actual_symbol': None,
-			'alias_symbol': None,
+			'has_alias': False,
 			# Closure only
 			'binded_this': False,
 		}),
@@ -391,7 +391,7 @@ class TestDefinition(TestCase):
 			self.assertEqual(decl_var.symbol.tokens, in_expected['symbol'])
 
 		self.assertEqual(node.actual_symbol, expected['actual_symbol'])
-		self.assertEqual(node.alias_symbol, expected['alias_symbol'])
+		self.assertEqual(node.has_alias, expected['has_alias'])
 
 		if isinstance(node, (defs.ClassMethod, defs.Constructor, defs.Method)):
 			self.assertEqual(node.class_types.symbol.tokens, expected['class_symbol'])
@@ -417,7 +417,7 @@ class TestDefinition(TestCase):
 			'class_vars': [],
 			'this_vars': [],
 			'actual_symbol': None,
-			'alias_symbol': None,
+			'has_alias': False,
 		}),
 		(_ast('Class'), {
 			'symbol': 'Class',
@@ -430,7 +430,7 @@ class TestDefinition(TestCase):
 			'class_vars': ['cn'],
 			'this_vars': ['self.n', 'self.s'],
 			'actual_symbol': None,
-			'alias_symbol': 'Alias',
+			'has_alias': True,
 		}),
 		(_ast('Class2'), {
 			'symbol': 'Actual',
@@ -443,7 +443,7 @@ class TestDefinition(TestCase):
 			'class_vars': [],
 			'this_vars': [],
 			'actual_symbol': 'Actual',
-			'alias_symbol': None,
+			'has_alias': False,
 		}),
 		(_ast('GenBase'), {
 			'symbol': 'GenBase',
@@ -456,7 +456,7 @@ class TestDefinition(TestCase):
 			'class_vars': [],
 			'this_vars': [],
 			'actual_symbol': None,
-			'alias_symbol': None,
+			'has_alias': False,
 		}),
 		(_ast('GenSub'), {
 			'symbol': 'GenSub',
@@ -469,7 +469,7 @@ class TestDefinition(TestCase):
 			'class_vars': [],
 			'this_vars': [],
 			'actual_symbol': None,
-			'alias_symbol': None,
+			'has_alias': False,
 		}),
 	])
 	def test_class(self, full_path: str, expected: dict[str, Any]) -> None:
@@ -483,7 +483,7 @@ class TestDefinition(TestCase):
 		self.assertEqual([var.tokens for var in node.class_vars], expected['class_vars'])
 		self.assertEqual([var.tokens for var in node.this_vars], expected['this_vars'])
 		self.assertEqual(node.actual_symbol, expected['actual_symbol'])
-		self.assertEqual(node.alias_symbol, expected['alias_symbol'])
+		self.assertEqual(node.has_alias, expected['has_alias'])
 
 	@data_provider([
 		('class A(Generic[T]): ...', 'file_input.class_def', {'generic_types': [defs.VarOfType]}),

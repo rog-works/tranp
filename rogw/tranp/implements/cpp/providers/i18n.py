@@ -5,7 +5,7 @@ def translation_mapping() -> TranslationMapping:
 	"""翻訳マッピングデータを生成
 
 	Returns:
-		I18nMapping: 翻訳マッピングデータ
+		TranslationMapping: 翻訳マッピングデータ
 	"""
 	return TranslationMapping(to={
 		'aliases.rogw.tranp.compatible.python.classes.str': 'std::string',

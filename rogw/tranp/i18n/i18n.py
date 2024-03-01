@@ -48,6 +48,6 @@ def translation_mapping_empty() -> TranslationMapping:
 	"""翻訳マッピングデータを生成(空)
 
 	Returns:
-		I18nMapping: 翻訳マッピングデータ
+		TranslationMapping: 翻訳マッピングデータ
 	"""
 	return TranslationMapping(to={})

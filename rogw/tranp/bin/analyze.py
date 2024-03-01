@@ -5,9 +5,9 @@ from types import MethodType
 from typing import Any, Callable, cast
 
 from rogw.tranp.app.app import App
-from rogw.tranp.ast.entry import Entry
-from rogw.tranp.ast.parser import ParserSetting, SyntaxParser
-from rogw.tranp.ast.query import Query
+from rogw.tranp.syntax.ast.entry import Entry
+from rogw.tranp.syntax.ast.parser import ParserSetting, SyntaxParser
+from rogw.tranp.syntax.ast.query import Query
 from rogw.tranp.bin.io import readline
 import rogw.tranp.compatible.python.classes as classes
 from rogw.tranp.errors import LogicError
@@ -17,8 +17,8 @@ from rogw.tranp.lang.locator import Locator
 from rogw.tranp.lang.module import fullyname
 from rogw.tranp.module.module import Module
 from rogw.tranp.module.types import ModulePath
-import rogw.tranp.node.definition as defs
-from rogw.tranp.node.node import Node
+import rogw.tranp.syntax.node.definition as defs
+from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.semantics.db import SymbolDB
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.semantics.symbol import SymbolRaw

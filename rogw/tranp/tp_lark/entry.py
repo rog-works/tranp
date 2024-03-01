@@ -2,7 +2,7 @@ from typing import cast
 
 import lark
 
-from rogw.tranp.ast.entry import Entry, SourceMap, DictTreeEntry, DictTree
+from rogw.tranp.syntax.ast.entry import Entry, SourceMap, DictTreeEntry, DictTree
 from rogw.tranp.lang.implementation import implements, override
 
 

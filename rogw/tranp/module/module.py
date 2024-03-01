@@ -1,6 +1,6 @@
 from rogw.tranp.lang.implementation import injectable, override
 from rogw.tranp.module.types import ModulePath
-from rogw.tranp.node.node import Node
+from rogw.tranp.syntax.node.node import Node
 
 
 class Module:

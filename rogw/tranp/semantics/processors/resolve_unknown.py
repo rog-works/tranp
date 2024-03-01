@@ -2,9 +2,9 @@ from typing import Callable, cast
 
 from rogw.tranp.lang.implementation import injectable
 from rogw.tranp.lang.locator import Invoker
-import rogw.tranp.node.definition as defs
-from rogw.tranp.node.node import Node
-from rogw.tranp.node.promise import IDeclaration
+import rogw.tranp.syntax.node.definition as defs
+from rogw.tranp.syntax.node.node import Node
+from rogw.tranp.syntax.node.promise import IDeclaration
 from rogw.tranp.semantics.symbol import SymbolProxy, SymbolRaw, SymbolRaws
 from rogw.tranp.semantics.symbols import Symbols
 

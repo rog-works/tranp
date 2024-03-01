@@ -4,8 +4,8 @@ from typing import IO, cast
 import lark
 from lark.indenter import PythonIndenter
 
-from rogw.tranp.ast.entry import Entry
-from rogw.tranp.ast.parser import ParserSetting
+from rogw.tranp.syntax.ast.entry import Entry
+from rogw.tranp.syntax.ast.parser import ParserSetting
 from rogw.tranp.io.cache import CacheProvider
 from rogw.tranp.io.loader import IFileLoader
 from rogw.tranp.lang.implementation import implements, injectable

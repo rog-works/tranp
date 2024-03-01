@@ -1,10 +1,10 @@
 from typing import Callable, Generic, TypeAlias, TypeVar
 
-from rogw.tranp.ast.dsn import DSN
+from rogw.tranp.syntax.ast.dsn import DSN
 from rogw.tranp.errors import LogicError
 from rogw.tranp.lang.implementation import override
 import rogw.tranp.lang.sequence as seqs
-import rogw.tranp.node.definition as defs
+import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.semantics.symbol import SymbolRaw
 
 T_Ref = TypeVar('T_Ref', bound='Reflection')

@@ -5,8 +5,8 @@ import rogw.tranp.compatible.python.classes as classes
 from rogw.tranp.compatible.python.types import Standards
 from rogw.tranp.lang.error import raises
 from rogw.tranp.lang.implementation import injectable
-import rogw.tranp.node.definition as defs
-from rogw.tranp.node.node import Node
+import rogw.tranp.syntax.node.definition as defs
+from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.semantics.db import SymbolDB
 from rogw.tranp.semantics.errors import SemanticsError, OperationNotAllowedError, UnresolvedSymbolError
 from rogw.tranp.semantics.finder import SymbolFinder

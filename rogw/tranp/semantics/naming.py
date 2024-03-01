@@ -1,7 +1,7 @@
 from typing import Protocol
 
-from rogw.tranp.ast.dsn import DSN
-import rogw.tranp.node.definition as defs
+from rogw.tranp.syntax.ast.dsn import DSN
+import rogw.tranp.syntax.node.definition as defs
 
 
 class AliasHandler(Protocol):

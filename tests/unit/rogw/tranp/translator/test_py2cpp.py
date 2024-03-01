@@ -3,14 +3,14 @@ import re
 from unittest import TestCase
 
 from rogw.tranp.app.io import appdir
-from rogw.tranp.ast.dsn import DSN
+from rogw.tranp.syntax.ast.dsn import DSN
 from rogw.tranp.i18n.i18n import TranslationMapping
 from rogw.tranp.implements.cpp.providers.i18n import translation_mapping
 from rogw.tranp.implements.cpp.providers.semantics import cpp_plugin_provider
 from rogw.tranp.lang.module import fullyname
 from rogw.tranp.lang.profile import profiler
-import rogw.tranp.node.definition as defs
-from rogw.tranp.node.node import Node
+import rogw.tranp.syntax.node.definition as defs
+from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.semantics.errors import ProcessingError, UnresolvedSymbolError
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.test.helper import data_provider

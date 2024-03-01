@@ -2,7 +2,7 @@ import os
 import sys
 
 from rogw.tranp.app.app import App
-from rogw.tranp.ast.parser import ParserSetting
+from rogw.tranp.syntax.ast.parser import ParserSetting
 from rogw.tranp.i18n.i18n import TranslationMapping
 from rogw.tranp.implements.cpp.providers.semantics import cpp_plugin_provider
 from rogw.tranp.implements.cpp.providers.i18n import translation_mapping
@@ -10,7 +10,7 @@ from rogw.tranp.lang.error import stacktrace
 from rogw.tranp.lang.module import fullyname
 from rogw.tranp.lang.profile import profiler
 from rogw.tranp.module.types import ModulePath
-from rogw.tranp.node.node import Node
+from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.translator.option import TranslatorOptions
 from rogw.tranp.translator.py2cpp import Py2Cpp

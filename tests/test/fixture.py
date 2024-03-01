@@ -3,16 +3,16 @@ from typing import cast
 
 from rogw.tranp.app.app import App
 from rogw.tranp.app.io import appdir
-from rogw.tranp.ast.entry import Entry
-from rogw.tranp.ast.parser import SyntaxParser
-from rogw.tranp.ast.query import Query
+from rogw.tranp.syntax.ast.entry import Entry
+from rogw.tranp.syntax.ast.parser import SyntaxParser
+from rogw.tranp.syntax.ast.query import Query
 from rogw.tranp.io.cache import CacheProvider
 from rogw.tranp.lang.di import ModuleDefinitions
 from rogw.tranp.lang.locator import T_Inst
 from rogw.tranp.lang.module import fullyname
 from rogw.tranp.module.module import Module
 from rogw.tranp.module.types import ModulePath
-from rogw.tranp.node.node import Node
+from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.tp_lark.entry import EntryOfLark
 from rogw.tranp.tp_lark.parser import SyntaxParserOfLark
 

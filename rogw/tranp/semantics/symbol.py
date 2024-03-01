@@ -4,8 +4,8 @@ from typing import Any, Callable, Iterator, TypeAlias, TypeVar
 
 from rogw.tranp.errors import FatalError, LogicError
 from rogw.tranp.lang.implementation import implements, injectable, override
-import rogw.tranp.node.definition as defs
-from rogw.tranp.node.node import Node
+import rogw.tranp.syntax.node.definition as defs
+from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.semantics.naming import AliasHandler, ClassDomainNaming
 
 T_Raw = TypeVar('T_Raw', bound='SymbolRaw')

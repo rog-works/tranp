@@ -1,7 +1,7 @@
-from rogw.tranp.ast.query import Query
-from rogw.tranp.ast.resolver import SymbolMapping
-import rogw.tranp.node.definition as defs
-from rogw.tranp.node.node import Node
+from rogw.tranp.syntax.ast.query import Query
+from rogw.tranp.syntax.ast.resolver import SymbolMapping
+import rogw.tranp.syntax.node.definition as defs
+from rogw.tranp.syntax.node.node import Node
 
 
 def entrypoint(query: Query[Node]) -> Node:

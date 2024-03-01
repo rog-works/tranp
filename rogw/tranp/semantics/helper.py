@@ -7,31 +7,31 @@ from rogw.tranp.syntax.ast.dsn import DSN
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.semantics.symbol import Reflection
 
-T_Ref = TypeVar('T_Ref', bound='Reflected')
-T_Sym = TypeVar('T_Sym', Reflection, list[Reflection], 'Object')
+T_Helper = TypeVar('T_Helper', bound='Helper')
+T_Schemata = TypeVar('T_Schemata', Reflection, list[Reflection])
 
 InjectSchemata: TypeAlias = dict[str, Reflection | list[Reflection]]
 Injector: TypeAlias = Callable[[], InjectSchemata]
 
 
-class Schema(Generic[T_Sym]):
+class Schema(Generic[T_Schemata]):
 	"""シンボルをスキーマとして管理"""
 
-	def __init__(self, schemata: dict[str, T_Sym]) -> None:
+	def __init__(self, schemata: dict[str, T_Schemata]) -> None:
 		"""インスタンスを生成
 
 		Args:
-			schemata (dict[str, T_Sym]): プロパティー名とシンボルのマップ情報
+			schemata (T_Schemata:): プロパティー名とシンボルのマップ情報
 		"""
 		self.__schemata = schemata
 
-	def __getattr__(self, key: str) -> T_Sym:
+	def __getattr__(self, key: str) -> T_Schemata:
 		"""プロパティー名に対応するシンボルを取得
 
 		Args:
 			key (str): プロパティー名
 		Returns:
-			T_Sym: シンボル | シンボルリスト
+			T_Schemata:: シンボル | シンボルリスト
 		Raises:
 			LogicError: 存在しないキーを指定 XXX 出力する例外は要件等
 		"""
@@ -41,80 +41,32 @@ class Schema(Generic[T_Sym]):
 		raise LogicError(f'Schema not defined. key: {key}')
 
 
-class Reflected:
-	"""リフレクション"""
+class Helper:
+	"""テンプレート解決ヘルパー"""
 
 	def __init__(self, symbol: Reflection, schemata: InjectSchemata) -> None:
 		"""インスタンスを生成
 
 		Args:
-			symbol (SymbolRaw): シンボル
+			symbol (Reflection): シンボル
 			schemata (InjectSchemata): プロパティー名とシンボルのマップ情報
 		"""
 		self.symbol = symbol
 		self.schema = Schema[Reflection]({key: schema for key, schema in schemata.items() if isinstance(schema, Reflection)})
 		self.schemata = Schema[list[Reflection]]({key: schema for key, schema in schemata.items() if type(schema) is list})
 
-	@property
-	def types(self) -> defs.ClassDef:
-		"""ClassDef: シンボルの型(クラス定義ノード)"""
-		return self.symbol.types
-
-	@property
-	def shorthand(self) -> str:
-		"""str: シンボルの短縮表記"""
-		return str(self.symbol)
-
-	def is_a(self, *ctors: type['Reflected']) -> bool:
+	def is_a(self, *ctors: type['Helper']) -> bool:
 		"""指定のクラスと同じか派生クラスか判定
 
 		Args:
-			*ctors (type[Reflection]): 比較対象
+			*ctors (type[Helper]): 比較対象
 		Returns:
 			bool: True = 同種
 		"""
 		return isinstance(self, ctors)
 
-	def as_a(self, ctor: type[T_Ref]) -> T_Ref:
-		"""指定のクラスと同じか派生クラスであればキャスト。一致しない場合はエラーを出力
 
-		Args:
-			ctor (type[T_Ref]): 比較対象
-		Returns:
-			T_Ref: キャスト後のインスタンス
-		Raises:
-			LogicError: 派生関係が無いクラスを指定
-		"""
-		if isinstance(self, ctor):
-			return self
-
-		raise LogicError(f'Cast not allowed. from: {self.__class__}, to: {ctor}')
-
-
-class Object(Reflected):
-	"""全クラスの基底クラス"""
-	pass
-
-
-class Type(Object):
-	"""全タイプ(クラス定義)の基底クラス"""
-	pass
-
-
-class Enum(Object):
-	"""Enum"""
-	pass
-
-
-class Instance(Object):
-	"""クラスインスタンスの基底クラス"""
-
-	@property
-	def is_static(self) -> bool:
-		...
-
-
-class Function(Object):
+class Function(Helper):
 	"""全ファンクションの基底クラス。メソッド/クロージャー以外のファンクションが対象"""
 
 	def parameter(self, index: int, *context: Reflection) -> Reflection:
@@ -122,9 +74,9 @@ class Function(Object):
 
 		Args:
 			index (int): 引数のインデックス
-			*context (SymbolRaw): コンテキスト(0: 引数(実行時型))
+			*context (Reflection): コンテキスト(0: 引数(実行時型))
 		Returns:
-			SymbolRaw: 実行時型
+			Reflection: 実行時型
 		"""
 		argument, *_ = context
 		return argument
@@ -133,9 +85,9 @@ class Function(Object):
 		"""戻り値の実行時型を解決
 
 		Args:
-			*arguments (SymbolRaw): 引数リスト(実行時型)
+			*arguments (Reflection): 引数リスト(実行時型)
 		Returns:
-			SymbolRaw: 実行時型
+			Reflection: 実行時型
 		"""
 		t_map_returns = TemplateManipulator.unpack_templates(returns=self.schema.returns)
 		if len(t_map_returns) == 0:
@@ -170,9 +122,9 @@ class Method(Function):
 
 		Args:
 			index (int): 引数のインデックス
-			*context (SymbolRaw): コンテキスト(0: レシーバー(実行時型), 1: 引数(実行時型))
+			*context (Reflection): コンテキスト(0: レシーバー(実行時型), 1: 引数(実行時型))
 		Returns:
-			SymbolRaw: 実行時型
+			Reflection: 実行時型
 		"""
 		parameter = self.schemata.parameters[index]
 		t_map_parameter = TemplateManipulator.unpack_templates(parameter=parameter)
@@ -190,9 +142,9 @@ class Method(Function):
 		"""戻り値の実行時型を解決
 
 		Args:
-			*arguments (SymbolRaw): 引数リスト(実行時型)
+			*arguments (Reflection): 引数リスト(実行時型)
 		Returns:
-			SymbolRaw: 実行時型
+			Reflection: 実行時型
 		"""
 		t_map_returns = TemplateManipulator.unpack_templates(returns=self.schema.returns)
 		if len(t_map_returns) == 0:
@@ -238,7 +190,7 @@ class TemplateManipulator:
 		"""シンボル/属性からテンプレート型(タイプ再定義ノード)を平坦化して抽出
 
 		Args:
-			**attrs (SymbolRaw | list[SymbolRaw]): シンボル/属性
+			**attrs (Reflection | list[Reflection]): シンボル/属性
 		Returns:
 			TemplateMap: パスとテンプレート型(タイプ再定義ノード)のマップ表
 		"""
@@ -250,7 +202,7 @@ class TemplateManipulator:
 		"""シンボル/属性を平坦化して抽出
 
 		Args:
-			**attrs (SymbolRaw | list[SymbolRaw]): シンボル/属性
+			**attrs (Reflection | list[Reflection]): シンボル/属性
 		Returns:
 			SymbolMap: パスとシンボルのマップ表
 		"""
@@ -283,11 +235,11 @@ class TemplateManipulator:
 		"""シンボルに実行時型を適用する
 
 		Args:
-			primary (SymbolRaw): 適用するシンボル
+			primary (Reflection): 適用するシンボル
 			actual_props (SymbolMap): シンボルのマップ表(実行時型)
 			updates (UpdateMap): 更新表
 		Returns:
-			SymbolRaw: 適用後のシンボル
+			Reflection: 適用後のシンボル
 		"""
 		primary_bodies = [prop_path for primary_path, prop_path in updates.items() if DSN.elem_counts(primary_path) == 1]
 		if primary_bodies:
@@ -301,13 +253,13 @@ class TemplateManipulator:
 
 
 class Builder:
-	"""リフレクションビルダー"""
+	"""ヘルパービルダー"""
 
 	def __init__(self, symbol: Reflection) -> None:
 		"""インスタンスを生成
 
 		Args:
-			symbol (SymbolRaw): シンボル
+			symbol (Reflection): シンボル
 		"""
 		self.__symbol = symbol
 		self.__case_of_injectors: dict[str, Injector] = {'__default__': lambda: {}}
@@ -317,7 +269,7 @@ class Builder:
 		"""str: 編集中のキー"""
 		return list(self.__case_of_injectors.keys())[-1]
 
-	def case(self, expect: type[Reflected]) -> 'Builder':
+	def case(self, expect: type[Helper]) -> 'Builder':
 		"""ケースを挿入
 
 		Args:
@@ -348,41 +300,39 @@ class Builder:
 		self.__case_of_injectors[self.__current_key] = injector
 		return self
 
-	def build(self, expect: type[T_Ref]) -> T_Ref:
-		"""リフレクションを生成
+	def build(self, expect: type[T_Helper]) -> T_Helper:
+		"""ヘルパーを生成
 
 		Args:
-			expect (type[T_Ref]): 期待するレスポンス型
+			expect (type[T_Helper]): 期待するレスポンス型
 		Returns:
-			T_Ref: 生成したインスタンス
+			T_Helper: 生成したインスタンス
 		Raises:
 			LogicError: ビルド対象が期待する型と不一致 XXX 出力する例外は要件等
 		"""
-		ctors: dict[type[defs.ClassDef], type[Reflected]] = {
+		ctors: dict[type[defs.ClassDef], type[Helper]] = {
 			defs.Function: Function,
 			defs.ClassMethod: ClassMethod,
 			defs.Method: Method,
 			defs.Constructor: Constructor,
-			defs.Enum: Enum,
-			defs.Class: Type,
 		}
-		ctor = ctors.get(self.__symbol.types.__class__, Object)
+		ctor = ctors.get(self.__symbol.types.__class__, Function)
 		if not issubclass(ctor, expect):
 			raise LogicError(f'Unexpected build class. symbol: {self.__symbol}, resolved: {ctor}, expect: {expect}')
 
 		injector = self.__resolve_injector(ctor)
 		return ctor(self.__symbol, injector())
 
-	def __resolve_injector(self, ctor: type[Reflected]) -> Injector:
+	def __resolve_injector(self, ctor: type[Helper]) -> Injector:
 		"""生成時に注入するスキーマを取得
 
 		Args:
-			ctor (type[Reflection]): 生成する型
+			ctor (type[Helper]): 生成する型
 		Returns:
 			Injector: スキーマファクトリー
 		"""
 		for ctor_ in ctor.__mro__:
-			if not issubclass(ctor_, Reflected):
+			if not issubclass(ctor_, Helper):
 				break
 
 			if ctor_.__name__ in self.__case_of_injectors:

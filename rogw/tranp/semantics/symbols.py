@@ -1,6 +1,6 @@
 from types import UnionType
 
-import rogw.tranp.semantics.reflection as reflection
+import rogw.tranp.semantics.helper as helper
 import rogw.tranp.compatible.python.classes as classes
 from rogw.tranp.compatible.python.types import Standards
 from rogw.tranp.lang.error import raises
@@ -368,7 +368,7 @@ class ProceduralResolver:
 			'parameters': method.attrs[1:-1],
 			'returns': method.attrs[-1] if solution == 'iterator' else method.attrs[-1].attrs[0],
 		}
-		method_ref = reflection.Builder(method).schema(lambda: schema).build(reflection.Method)
+		method_ref = helper.Builder(method).schema(lambda: schema).build(helper.Method)
 		return method_ref.returns(iterates)
 
 	# Function/Class Elements
@@ -438,9 +438,9 @@ class ProceduralResolver:
 		if isinstance(accessable_receiver.types, defs.Enum) and prop.decl.is_a(defs.DeclLocalVar):
 			return accessable_receiver.to.ref(node, context=accessable_receiver)
 		elif isinstance(prop.decl, defs.Method) and prop.decl.is_property:
-			method = reflection.Builder(prop) \
+			method = helper.Builder(prop) \
 				.schema(lambda: {'klass': prop.attrs[0], 'parameters': prop.attrs[1:-1], 'returns': prop.attrs[-1]}) \
-				.build(reflection.Method)
+				.build(helper.Method)
 			return method.returns(receiver).to.ref(node, context=accessable_receiver)
 		else:
 			return prop.to.ref(node, context=accessable_receiver)
@@ -510,23 +510,23 @@ class ProceduralResolver:
 			# XXX 戻り値の型をクラスのシンボルで補完
 			# XXX この際のクラスのシンボルはSymbolReferenceになり、そのままだと属性の設定が出来ないため、SymbolVarに変換する
 			constroctur_calls = self.symbols.type_of_constructor(actual_calls.types)
-			func = reflection.Builder(constroctur_calls) \
+			func = helper.Builder(constroctur_calls) \
 				.schema(lambda: {'klass': constroctur_calls.attrs[0], 'parameters': constroctur_calls.attrs[1:-1], 'returns': actual_calls.to.var(actual_calls.decl)}) \
-				.build(reflection.Constructor)
+				.build(helper.Constructor)
 			return func.returns(constroctur_calls.attrs[0], *arguments)
 		elif isinstance(actual_calls.types, defs.Constructor):
 			# XXX コンストラクターを明示的に呼び出した場合
 			# XXX 戻り値の型を第1引数(自己参照)で補完
-			func = reflection.Builder(actual_calls) \
+			func = helper.Builder(actual_calls) \
 				.schema(lambda: {'klass': actual_calls.attrs[0], 'parameters': actual_calls.attrs[1:-1], 'returns': actual_calls.attrs[0]}) \
-				.build(reflection.Constructor)
+				.build(helper.Constructor)
 			return func.returns(actual_calls.attrs[0], *arguments)
 		else:
-			func = reflection.Builder(actual_calls) \
-				.case(reflection.Method).schema(lambda: {'klass': actual_calls.attrs[0], 'parameters': actual_calls.attrs[1:-1], 'returns': actual_calls.attrs[-1]}) \
+			func = helper.Builder(actual_calls) \
+				.case(helper.Method).schema(lambda: {'klass': actual_calls.attrs[0], 'parameters': actual_calls.attrs[1:-1], 'returns': actual_calls.attrs[-1]}) \
 				.other_case().schema(lambda: {'parameters': actual_calls.attrs[:-1], 'returns': actual_calls.attrs[-1]}) \
-				.build(reflection.Function)
-			if func.is_a(reflection.Method):
+				.build(helper.Function)
+			if func.is_a(helper.Method):
 				return func.returns(actual_calls.context, *arguments)
 			else:
 				return func.returns(*arguments)
@@ -616,9 +616,9 @@ class ProceduralResolver:
 				continue
 
 			method = candidate
-			method_ref = reflection.Builder(method) \
+			method_ref = helper.Builder(method) \
 				.schema(lambda: {'klass': method.attrs[0], 'parameters': method.attrs[1:-1], 'returns': method.attrs[-1]}) \
-				.build(reflection.Method)
+				.build(helper.Method)
 
 			with_left = index == 0
 			receiver = left if with_left else right

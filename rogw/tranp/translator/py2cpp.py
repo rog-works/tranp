@@ -5,7 +5,7 @@ from typing import cast
 from rogw.tranp.analyze.naming import ClassDomainNaming
 from rogw.tranp.analyze.procedure import Procedure
 import rogw.tranp.analyze.reflection as reflection
-from rogw.tranp.analyze.symbol import ClassShorthander, SymbolRaw
+from rogw.tranp.analyze.symbol import ClassShorthandNaming, SymbolRaw
 from rogw.tranp.analyze.symbols import Symbols
 from rogw.tranp.ast.dsn import DSN
 import rogw.tranp.compatible.python.embed as __alias__
@@ -75,7 +75,7 @@ class Py2Cpp:
 			'dict<A, B>' -> 'dict<NS::A, NS::B>'
 		"""
 		unpacked_raw = self.force_unpack_nullable(raw)
-		shorthand = ClassShorthander.accessible_name(unpacked_raw, alias_handler=self.i18n.t)
+		shorthand = ClassShorthandNaming.accessible_name(unpacked_raw, alias_handler=self.i18n.t)
 		return DSN.join(*DSN.elements(shorthand), delimiter='::')
 
 	def to_domain_name(self, var_type_raw: SymbolRaw) -> str:
@@ -90,7 +90,7 @@ class Py2Cpp:
 			'Union<CP<Class>, None>' -> 'Class<CP>'
 		"""
 		unpacked_raw = self.force_unpack_nullable(var_type_raw)
-		return ClassShorthander.domain_name(unpacked_raw, alias_handler=self.i18n.t)
+		return ClassShorthandNaming.domain_name(unpacked_raw, alias_handler=self.i18n.t)
 
 	def to_domain_name_by_class(self, types: defs.ClassDef) -> str:
 		"""明示された型からドメイン名を取得

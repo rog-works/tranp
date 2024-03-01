@@ -331,7 +331,7 @@ class SymbolRaw(metaclass=ABCMeta):
 	@property
 	def shorthand(self) -> str:
 		"""str: オブジェクトの短縮表記"""
-		return ClassShorthander.domain_name(self)
+		return ClassShorthandNaming.domain_name(self)
 
 	def hierarchy(self) -> Iterator['SymbolRaw']:
 		"""参照元を辿るイテレーターを取得
@@ -929,7 +929,7 @@ class SymbolWrapper:
 		return SymbolResult(self._raw.one_of(ResultOrigins), via)
 
 
-class ClassShorthander:
+class ClassShorthandNaming:
 	"""クラスの短縮表記生成モジュール
 
 	Note:

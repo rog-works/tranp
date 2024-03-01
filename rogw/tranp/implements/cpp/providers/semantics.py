@@ -1,6 +1,6 @@
-from rogw.tranp.semantics.plugin import IPlugin, PluginProvider
 from rogw.tranp.lang.implementation import injectable
 from rogw.tranp.lang.locator import Invoker
+from rogw.tranp.semantics.plugin import IPlugin, PluginProvider
 
 
 @injectable

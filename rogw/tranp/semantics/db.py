@@ -1,9 +1,9 @@
 from typing import NamedTuple
 
-from rogw.tranp.semantics.processor import Preprocessors
-from rogw.tranp.semantics.symbol import SymbolRaws
 from rogw.tranp.lang.implementation import injectable
 from rogw.tranp.lang.locator import Invoker
+from rogw.tranp.semantics.processor import Preprocessors
+from rogw.tranp.semantics.symbol import SymbolRaws
 
 
 class SymbolDB(NamedTuple):

@@ -1,9 +1,9 @@
 from typing import TypeAlias, cast
 
-from rogw.tranp.semantics.finder import SymbolFinder
-from rogw.tranp.semantics.symbol import SymbolRaw, SymbolRaws
 from rogw.tranp.lang.implementation import injectable
 import rogw.tranp.node.definition as defs
+from rogw.tranp.semantics.finder import SymbolFinder
+from rogw.tranp.semantics.symbol import SymbolRaw, SymbolRaws
 
 TargetDeclTypes: TypeAlias = defs.GenericType | defs.Function | defs.AltClass | defs.Class
 

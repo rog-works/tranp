@@ -1,12 +1,12 @@
 from types import UnionType
 
-from rogw.tranp.semantics.errors import MustBeImplementedError, SymbolNotDefinedError
-from rogw.tranp.semantics.symbol import SymbolRaw, SymbolRaws
 from rogw.tranp.ast.dsn import DSN
 from rogw.tranp.compatible.python.types import Standards
 from rogw.tranp.lang.implementation import injectable
 from rogw.tranp.module.types import LibraryPaths
 import rogw.tranp.node.definition as defs
+from rogw.tranp.semantics.errors import MustBeImplementedError, SymbolNotDefinedError
+from rogw.tranp.semantics.symbol import SymbolRaw, SymbolRaws
 
 
 class SymbolFinder:

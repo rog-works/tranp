@@ -1,11 +1,10 @@
 from enum import Enum
 from typing import ClassVar
 
+import rogw.tranp.compatible.cpp.object as cpp
+from rogw.tranp.lang.implementation import deprecated
 from rogw.tranp.semantics.symbol import SymbolRaw
 from rogw.tranp.semantics.symbols import Symbols
-import rogw.tranp.compatible.cpp.object as cpp
-import rogw.tranp.compatible.python.embed as __alias__
-from rogw.tranp.lang.implementation import deprecated
 
 
 class CVars:

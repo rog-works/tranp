@@ -11,7 +11,7 @@ from rogw.tranp.ast.dsn import DSN
 import rogw.tranp.compatible.python.embed as __alias__
 from rogw.tranp.errors import LogicError
 from rogw.tranp.i18n.i18n import I18n
-from rogw.tranp.implements.cpp.analyze.cvars import CVars
+from rogw.tranp.implements.cpp.semantics.cvars import CVars
 from rogw.tranp.lang.implementation import injectable
 import rogw.tranp.node.definition as defs
 from rogw.tranp.node.node import Node

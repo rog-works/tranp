@@ -8,7 +8,7 @@ def translation_mapping() -> TranslationMapping:
 		I18nMapping: 翻訳マッピングデータ
 	"""
 	return TranslationMapping(to={
-		'aliases.rogw.tranp.compatible.python.classes.String': 'std::string',
-		'aliases.rogw.tranp.compatible.python.classes.List': 'std::vector',
-		'aliases.rogw.tranp.compatible.python.classes.Dict': 'std::map',
+		'aliases.rogw.tranp.compatible.python.classes.str': 'std::string',
+		'aliases.rogw.tranp.compatible.python.classes.list': 'std::vector',
+		'aliases.rogw.tranp.compatible.python.classes.dict': 'std::map',
 	})

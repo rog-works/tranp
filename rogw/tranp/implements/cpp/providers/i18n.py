@@ -10,5 +10,6 @@ def translation_mapping() -> TranslationMapping:
 	return TranslationMapping(to={
 		'aliases.rogw.tranp.compatible.python.classes.str': 'std::string',
 		'aliases.rogw.tranp.compatible.python.classes.list': 'std::vector',
+		'aliases.rogw.tranp.compatible.python.classes.list.append': 'push_back',
 		'aliases.rogw.tranp.compatible.python.classes.dict': 'std::map',
 	})

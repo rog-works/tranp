@@ -33,3 +33,12 @@ class PluginProvider(Protocol):
 			list[IPlugin]: プラグインリスト
 		"""
 		...
+
+
+def plugin_provider_empty() -> PluginProvider:
+	"""プラグインプロバイダーを生成(空)
+
+	Returns:
+		PluginProvider: プラグインプロバイダー
+	"""
+	return lambda: []

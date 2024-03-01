@@ -10,7 +10,7 @@ def default_definitions() -> ModuleDefinitions:
 	return {
 		'rogw.tranp.semantics.db.SymbolDB': 'rogw.tranp.semantics.db.make_db',
 		'rogw.tranp.semantics.finder.SymbolFinder': 'rogw.tranp.semantics.finder.SymbolFinder',
-		'rogw.tranp.semantics.plugin.PluginProvider': 'rogw.tranp.providers.analyze.plugin_provider',
+		'rogw.tranp.semantics.plugin.PluginProvider': 'rogw.tranp.semantics.plugin.plugin_provider_empty',
 		'rogw.tranp.semantics.processor.Preprocessors': 'rogw.tranp.semantics.preprocessors.preprocessors',
 		'rogw.tranp.semantics.symbols.Symbols': 'rogw.tranp.semantics.symbols.Symbols',
 		'rogw.tranp.app.env.Env': 'rogw.tranp.providers.app.make_env',

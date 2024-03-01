@@ -341,7 +341,7 @@ class ProceduralResolver:
 			* list: list<int>
 			* dict: dict<str, int>
 			* func_call: func<..., T> -> T = list<int> | dict<str, int>
-			* variable: list<int> | dict<str, int>
+			* var: list<int> | dict<str, int>
 			* relay: list<int> | dict<str, int>
 			* indexer: list<int> | dict<str, int>
 			## 無視してよい
@@ -419,8 +419,8 @@ class ProceduralResolver:
 
 	def on_relay(self, node: defs.Relay, receiver: SymbolRaw) -> SymbolRaw:
 		# # receiver
-		# variable.prop: a.b: A.T
-		# variable.func_call: a.b(): A.b() -> T
+		# var.prop: a.b: A.T
+		# var.func_call: a.b(): A.b() -> T
 		# relay.prop: a.b.c
 		# relay.func_call: a.b.c()
 		# func_call.prop: a.b().c
@@ -495,7 +495,7 @@ class ProceduralResolver:
 		Note:
 			# calls
 			* relay: a.b()
-			* variable: a()
+			* var: a()
 			* indexer: a[0]()
 			* func_call: a()()
 			# arguments

@@ -282,7 +282,7 @@ class ClassDef(Node, IDomain, IScope, IDeclaration, ISymbol):
 		return self._dig_embedder(__alias__.__name__) is not None
 
 	def ancestor_classes(self) -> list['ClassDef']:
-		"""Note: XXX 振る舞いとして必然性のないメソッド。ユースケースはClassSymbolMakerとの連携のみ"""
+		"""Note: XXX 振る舞いとして必然性のないメソッド。ユースケースはClassDomainNamingとの連携のみ"""
 		ancestors: list[ClassDef] = []
 		ancestor = self.parent
 		while ancestor._full_path.contains('class_def'):

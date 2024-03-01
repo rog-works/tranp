@@ -1,42 +1,13 @@
-from abc import ABCMeta, abstractmethod
-from enum import Enum
-from typing import Any, Callable, Iterator, TypeAlias, TypeVar
+from typing import Any, Callable, Iterator, Self, TypeAlias, TypeVar
 
 from rogw.tranp.errors import FatalError, LogicError
 from rogw.tranp.lang.implementation import implements, injectable, override
+from rogw.tranp.semantics.reflected import Container, IReflection, IWrapper, Roles, T_Raw
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.semantics.naming import AliasHandler, ClassDomainNaming
 
-T_Raw = TypeVar('T_Raw', bound='SymbolRaw')
 T_Sym = TypeVar('T_Sym', bound='Symbol')
-
-
-class Roles(Enum):
-	"""シンボルの役割
-
-	Attributes:
-		Origin: 定義元。クラス定義ノードが対象。属性は保有しない
-		Import: Originの複製。属性は保有しない
-		Class: クラス定義ノードが対象。クラスはGeneric型、ファンクションは関数シグネチャーを属性として保有
-		Var: 変数宣言ノードが対象。Generic型の属性を保有
-		Generic: タイプノードが対象。Generic型の属性を保有
-		Literal: リテラルノードが対象。Generic型の属性を保有
-		Reference: 参照系ノードが対象。属性は保有しない
-	"""
-	Origin = 'Origin'
-	Import = 'Import'
-	Class = 'Class'
-	Var = 'Var'
-	Generic = 'Generic'
-	Literal = 'Literal'
-	Reference = 'Reference'
-	Result = 'Result'
-
-	@property
-	def has_entity(self) -> bool:
-		"""bool: True = 実体を持つ"""
-		return self in [Roles.Origin, Roles.Class, Roles.Var, Roles.Generic, Roles.Literal]
 
 
 class SymbolProxy:
@@ -125,8 +96,37 @@ class SymbolProxy:
 		return self.new_raw.__str__()
 
 
-class SymbolRaws(dict[str, T_Raw]):
+class SymbolRaws(Container[T_Raw]):
 	"""シンボルテーブル"""
+
+	@classmethod
+	@override
+	def new(cls, *raws: Self | dict[str, T_Raw]) -> Self:
+		"""シンボルテーブルを結合した新たなインスタンスを生成
+
+		Args:
+			*raws (Self | dict[str, T_Raw]): シンボルテーブルリスト
+		Returns:
+			Self: 生成したインスタンス
+		"""
+		return cls().merge(*raws)
+
+	@override
+	def merge(self, *raws: Self | dict[str, T_Raw]) -> Self:
+		"""指定のシンボルテーブルと結合
+
+		Args:
+			*raws (Self | dict[str, T_Raw]): シンボルテーブルリスト
+		Returns:
+			Self: 自己参照
+		"""
+		for in_raws in raws:
+			self.update(**in_raws)
+
+		for raw in self.values():
+			raw.set_raws(self)
+
+		return self
 
 	@override
 	def __setitem__(self, key: str, raw: T_Raw) -> None:
@@ -139,151 +139,135 @@ class SymbolRaws(dict[str, T_Raw]):
 		raw.set_raws(self)
 		super().__setitem__(key, raw)
 
-	@classmethod
-	def new(cls, *raws: 'SymbolRaws | dict[str, T_Raw]') -> 'SymbolRaws':
-		"""シンボルテーブルを結合した新たなインスタンスを生成
 
-		Args:
-			*raws (SymbolRaws | dict[str, SymbolRaw]): シンボルテーブルリスト
-		Returns:
-			SymbolRaws: 生成したインスタンス
-		"""
-		return cls().merge(*raws)
+class SymbolRaw(IReflection):
+	"""シンボル"""
 
-	def merge(self, *raws: 'SymbolRaws | dict[str, T_Raw]') -> 'SymbolRaws':
-		"""指定のシンボルテーブルと結合
-
-		Args:
-			*raws (SymbolRaws | dict[str, SymbolRaw]): シンボルテーブルリスト
-		Returns:
-			SymbolRaws: 自己参照
-		"""
-		for in_raws in raws:
-			self.update(**in_raws)
-
-		for raw in self.values():
-			raw.set_raws(self)
-
-		return self
-
-
-class SymbolRaw(metaclass=ABCMeta):
-	"""シンボル
-
-	Attributes:
-		ref_fullyname (str): 完全参照名
-		org_fullyname (str): 完全参照名(オリジナル)
-		types (ClassDef): クラス定義ノード
-		decl (DeclAll): クラス/変数宣言ノード
-		role (Roles): シンボルの役割
-		attrs (list[SymbolRaw]): 属性シンボルリスト
-		origin (SymbolRaw | None): スタックシンボル (default = None)
-		via (Node | None): 参照元のノード (default = None)
-		context (SymbolRaw| None): コンテキストのシンボル (default = None)
-	Note:
-		# contextのユースケース
-		* Relay/Indexerのreceiverを設定。on_func_call等で実行時型の補完に使用
-	"""
+	@injectable
+	def __init__(self) -> None:
+		"""インスタンスを生成"""
+		self.__raws: Container | None = None
 
 	@property
-	@abstractmethod
-	def _raws(self) -> SymbolRaws:
-		"""SymbolRaws: 所属するシンボルテーブル"""
-		...
+	@implements
+	def _raws(self) -> Container:
+		"""Container: 所属するシンボルテーブル"""
+		if self.__raws is not None:
+			return self.__raws
 
-	@abstractmethod
-	def set_raws(self, raws: SymbolRaws) -> None:
+		raise FatalError(f'Unreachable code.')
+
+	@implements
+	def set_raws(self, raws: Container) -> None:
 		"""所属するシンボルテーブルを設定
 
 		Args:
-			raws (SymbolRaws): シンボルテーブル
+			raws (Container): シンボルテーブル
 		"""
-		...
+		self.__raws = raws
 
 	@property
-	@abstractmethod
-	def ref_fullyname(self) -> str:
-		"""str: 完全参照名"""
-		...
-
-	@property
-	@abstractmethod
-	def org_fullyname(self) -> str:
-		"""str: 完全参照名(オリジナル)"""
-		...
-
-	@property
-	@abstractmethod
-	def types(self) -> defs.ClassDef:
-		"""ClassDef: クラス定義ノード"""
-		...
-
-	@property
-	@abstractmethod
-	def decl(self) -> defs.DeclAll:
-		"""DeclAll: クラス/変数宣言ノード"""
-		...
-
-	@property
-	@abstractmethod
-	def role(self) -> Roles:
-		"""Roles: シンボルの役割"""
-		...
-
-	@property
-	@abstractmethod
-	def attrs(self) -> list['SymbolRaw']:
-		"""list[SymbolRaw]: 属性シンボルリスト"""
-		...
-
-	@property
-	def origin(self) -> 'SymbolRaw | None':
+	@implements
+	def origin(self) -> IReflection | None:
 		"""SymbolRaw | None: スタックシンボル"""
 		return None
 
 	@property
+	@implements
 	def via(self) -> Node | None:
 		"""Node | None: 参照元のノード"""
 		return None
 
 	@property
-	def context(self) -> 'SymbolRaw':
+	@implements
+	def context(self) -> IReflection:
 		"""コンテキストを取得
 
 		Returns:
-			SymbolRaw: コンテキストのシンボル
+			IReflection: コンテキストのシンボル
 		Raises:
 			LogicError: コンテキストが無い状態で使用
 		"""
 		raise LogicError(f'Context is null. symbol: {str(self)}, fullyname: {self.ref_fullyname}')
 
-	@abstractmethod
-	def clone(self: T_Raw) -> T_Raw:
-		"""インスタンスを複製
+	@property	
+	@implements
+	def has_entity(self) -> bool:
+		"""bool: True = 実体を持つ"""
+		return self.role.has_entity
 
-		Returns:
-			T_Raw: 複製したインスタンス
-		"""
-		...
-
-	def _clone(self: T_Raw, **kwargs: Any) -> T_Raw:
+	def _clone(self: Self, **kwargs: Any) -> Self:
 		"""インスタンスを複製
 
 		Args:
 			**kwargs (Any): コンストラクター
 		Returns:
-			T_Raw: 複製したインスタンス
+			Self: 複製したインスタンス
 		"""
 		new = self.__class__(**kwargs)
+		new.__raws = self.__raws
 		if self.attrs:
 			return new.extends(*[attr.clone() for attr in self.attrs])
 
 		return new
 
-	@property	
-	def has_entity(self) -> bool:
-		"""bool: True = 実体を持つ"""
-		return self.role.has_entity
+	@property
+	@implements
+	def shorthand(self) -> str:
+		"""str: オブジェクトの短縮表記"""
+		return ClassShorthandNaming.domain_name(self)
+
+	@implements
+	def hierarchy(self) -> Iterator[IReflection]:
+		"""参照元を辿るイテレーターを取得
+
+		Returns:
+			Iterator[IReflection]: イテレーター
+		"""
+		curr = self
+		while curr:
+			yield curr
+			curr = curr.origin
+
+	@implements
+	def extends(self: Self, *attrs: IReflection) -> Self:
+		"""シンボルが保有する型を拡張情報として属性に取り込む
+
+		Args:
+			*attrs (IReflection): 属性シンボルリスト
+		Returns:
+			Self: インスタンス
+		Raises:
+			LogicError: 実体の無いインスタンスに実行 XXX 出力する例外は要件等
+			LogicError: 拡張済みのインスタンスに再度実行 XXX 出力する例外は要件等
+		"""
+		raise LogicError(f'Not allowed extends. symbol: {self.types.fullyname}')
+
+	@property
+	@implements
+	def to(self) -> 'SymbolWrapper':
+		"""ラッパーファクトリーを生成
+
+		Returns:
+			IWrapper: ラッパーファクトリー
+		"""
+		return SymbolWrapper(self)
+
+	@implements
+	def one_of(self, expects: type[T_Raw]) -> T_Raw:
+		"""期待する型と同種ならキャスト
+
+		Args:
+			expects (type[T_Raw]): 期待する型
+		Returns:
+			T_Raw: インスタンス
+		Raises:
+			LogidError: 継承関係が無い型を指定 XXX 出力する例外は要件等
+		"""
+		if isinstance(self, expects):
+			return self
+
+		raise LogicError(f'Not allowed conversion. self: {str(self)}, from: {self.__class__.__name__}, to: {expects}')
 
 	@override
 	def __eq__(self, other: object) -> bool:
@@ -299,7 +283,7 @@ class SymbolRaw(metaclass=ABCMeta):
 		if other is None:
 			return False
 
-		if not isinstance(other, SymbolRaw):
+		if not isinstance(other, IReflection):
 			raise LogicError(f'Not allowed comparison. other: {type(other)}')
 
 		return other.__repr__() == self.__repr__()
@@ -328,59 +312,6 @@ class SymbolRaw(metaclass=ABCMeta):
 		"""int: オブジェクトのハッシュ値"""
 		return hash(self.__repr__())
 
-	@property
-	def shorthand(self) -> str:
-		"""str: オブジェクトの短縮表記"""
-		return ClassShorthandNaming.domain_name(self)
-
-	def hierarchy(self) -> Iterator['SymbolRaw']:
-		"""参照元を辿るイテレーターを取得
-
-		Returns:
-			Iterator[SymbolRaw]: イテレーター
-		"""
-		curr = self
-		while curr:
-			yield curr
-			curr = curr.origin
-
-	def extends(self: T_Raw, *attrs: 'SymbolRaw') -> T_Raw:
-		"""シンボルが保有する型を拡張情報として属性に取り込む
-
-		Args:
-			*attrs (SymbolRaw): 属性シンボルリスト
-		Returns:
-			T_Raw: インスタンス
-		Raises:
-			LogicError: 実体の無いインスタンスに実行 XXX 出力する例外は要件等
-			LogicError: 拡張済みのインスタンスに再度実行 XXX 出力する例外は要件等
-		"""
-		raise LogicError(f'Not allowed extends. symbol: {self.types.fullyname}')
-
-	@property
-	def to(self) -> 'SymbolWrapper':
-		"""ラッパーファクトリーを生成
-
-		Returns:
-			SymbolWrapper: ラッパーファクトリー
-		"""
-		return SymbolWrapper(self)
-
-	def one_of(self, expects: type[T_Raw]) -> T_Raw:
-		"""期待する型と同種ならキャスト
-
-		Args:
-			expects (type[T_Raw]): 期待する型
-		Returns:
-			T_Raw: インスタンス
-		Raises:
-			LogidError: 継承関係が無い型を指定 XXX 出力する例外は要件等
-		"""
-		if isinstance(self, expects):
-			return self
-
-		raise LogicError(f'Not allowed conversion. self: {str(self)}, from: {self.__class__.__name__}, to: {expects}')
-
 
 class SymbolOrigin(SymbolRaw):
 	"""シンボル(クラス定義のオリジナル)"""
@@ -392,26 +323,8 @@ class SymbolOrigin(SymbolRaw):
 		Args:
 			types (ClassDef): クラス定義ノード
 		"""
-		self.__raws: SymbolRaws | None = None
+		super().__init__()
 		self._types = types
-
-	@property
-	@implements
-	def _raws(self) -> SymbolRaws:
-		"""SymbolRaws: 所属するシンボルテーブル"""
-		if self.__raws is not None:
-			return self.__raws
-
-		raise FatalError(f'Unreachable code.')
-
-	@implements
-	def set_raws(self, raws: SymbolRaws) -> None:
-		"""所属するシンボルテーブルを設定
-
-		Args:
-			raws (SymbolRaws): シンボルテーブル
-		"""
-		self.__raws = raws
 
 	@property
 	@implements
@@ -445,16 +358,16 @@ class SymbolOrigin(SymbolRaw):
 
 	@property
 	@implements
-	def attrs(self) -> list['SymbolRaw']:
-		"""list[SymbolRaw]: 属性シンボルリスト"""
+	def attrs(self) -> list[IReflection]:
+		"""list[IReflection]: 属性シンボルリスト"""
 		return []
 
 	@implements
-	def clone(self: T_Raw) -> T_Raw:
+	def clone(self: Self) -> Self:
 		"""インスタンスを複製
 
 		Returns:
-			T_Raw: 複製したインスタンス
+			Self: 複製したインスタンス
 		"""
 		return self._clone(types=self.types)
 
@@ -469,24 +382,8 @@ class Symbol(SymbolRaw):
 			origin (SymbolOrigin | Symbol): スタックシンボル
 		"""
 		super().__init__()
-		self.__raws = origin._raws
 		self._origin = origin
-		self._attrs: list[SymbolRaw] = []
-
-	@property
-	@implements
-	def _raws(self) -> SymbolRaws:
-		"""SymbolRaws: 所属するシンボルテーブル"""
-		return self.__raws
-
-	@implements
-	def set_raws(self, raws: SymbolRaws) -> None:
-		"""所属するシンボルテーブルを設定
-
-		Args:
-			raws (SymbolRaws): シンボルテーブル
-		"""
-		self.__raws = raws
+		self._attrs: list[IReflection] = []
 
 	@property
 	@implements
@@ -514,11 +411,11 @@ class Symbol(SymbolRaw):
 
 	@property
 	@implements
-	def attrs(self) -> list['SymbolRaw']:
+	def attrs(self) -> list[IReflection]:
 		"""属性シンボルリストを取得
 
 		Returns:
-			list[SymbolRaw]: 属性シンボルリスト
+			list[IReflection]: 属性シンボルリスト
 		Note:
 			# 属性の評価順序
 			1. 自身に設定された属性
@@ -535,43 +432,43 @@ class Symbol(SymbolRaw):
 
 	@property
 	@override
-	def origin(self) -> SymbolRaw:
-		"""SymbolRaw: スタックシンボル"""
+	def origin(self) -> IReflection:
+		"""IReflection: スタックシンボル"""
 		return self._origin
 
 	@property
-	def _shared_origin(self) -> SymbolRaw:
+	def _shared_origin(self) -> IReflection:
 		"""シンボルテーブル上に存在する共有シンボルを取得
 
 		Returns:
-			SymbolRaw: シンボルテーブル上に存在する共有されたシンボル
+			IReflection: シンボルテーブル上に存在する共有されたシンボル
 		Note:
 			属性を取得する際にのみ利用 @see attrs
 		"""
-		if self._origin.org_fullyname in self.__raws:
-			origin = self.__raws[self._origin.org_fullyname]
+		if self._origin.org_fullyname in self._raws:
+			origin = self._raws[self._origin.org_fullyname]
 			if id(origin) != id(self):
 				return origin
 
 		return self._origin
 
 	@implements
-	def clone(self: T_Sym) -> T_Sym:
+	def clone(self: Self) -> Self:
 		"""インスタンスを複製
 
 		Returns:
-			T_Sym: 複製したインスタンス
+			Self: 複製したインスタンス
 		"""
 		return self._clone(origin=self.origin)
 
 	@override
-	def extends(self: T_Sym, *attrs: 'SymbolRaw') -> T_Sym:
+	def extends(self: Self, *attrs: IReflection) -> Self:
 		"""シンボルが保持する型を拡張情報として属性に取り込む
 
 		Args:
-			*attrs (SymbolRaw): 属性シンボルリスト
+			*attrs (IReflection): 属性シンボルリスト
 		Returns:
-			SymbolRaw: インスタンス
+			Self: インスタンス
 		Raises:
 			LogicError: 実体の無いインスタンスに実行
 			LogicError: 拡張済みのインスタンスに再度実行
@@ -600,7 +497,7 @@ class SymbolImport(Symbol):
 		self._via = via
 
 	@property
-	@implements
+	@override
 	def ref_fullyname(self) -> str:
 		"""str: 完全参照名"""
 		return self.org_fullyname.replace(self.types.module_path, self.via.module_path)
@@ -618,11 +515,11 @@ class SymbolImport(Symbol):
 		return self._via
 
 	@override
-	def clone(self: T_Sym) -> T_Sym:
+	def clone(self: Self) -> Self:
 		"""インスタンスを複製
 
 		Returns:
-			T_Sym: 複製したインスタンス
+			Self: 複製したインスタンス
 		"""
 		return self._clone(origin=self.origin, via=self.via)
 
@@ -634,8 +531,8 @@ class SymbolClass(Symbol):
 		"""インスタンスを生成
 
 		Args:
-			origin (SymbolOrigin | SymbolImport): スタックシンボル
-			via (Node): 参照元のノード
+			origin (SymbolOrigins): スタックシンボル
+			decl (ClassDef): クラス定義ノード
 		"""
 		super().__init__(origin)
 		self._decl = decl
@@ -653,17 +550,23 @@ class SymbolClass(Symbol):
 		return Roles.Class
 
 	@override
-	def clone(self: T_Sym) -> T_Sym:
+	def clone(self: Self) -> Self:
 		"""インスタンスを複製
 
 		Returns:
-			T_Sym: 複製したインスタンス
+			Self: 複製したインスタンス
 		"""
 		return self._clone(origin=self.origin, decl=self.decl)
 
 
 class SymbolVar(Symbol):
 	def __init__(self, origin: 'VarOrigins', decl: defs.DeclAll) -> None:
+		"""インスタンスを生成
+
+		Args:
+			origin (SymbolOrigin | SymbolImport): スタックシンボル
+			decl (DeclAll): クラス/変数宣言ノード
+		"""
 		super().__init__(origin)
 		self._decl = decl
 
@@ -680,11 +583,11 @@ class SymbolVar(Symbol):
 		return Roles.Var
 
 	@override
-	def clone(self: T_Sym) -> T_Sym:
+	def clone(self: Self) -> Self:
 		"""インスタンスを複製
 
 		Returns:
-			T_Sym: 複製したインスタンス
+			Self: 複製したインスタンス
 		"""
 		return self._clone(origin=self.origin, decl=self.decl)
 
@@ -695,7 +598,7 @@ class SymbolGeneric(Symbol):
 
 		Args:
 			origin (SymbolOrigin | SymbolImport): スタックシンボル
-			via (Node): 参照元のノード
+			via (Type): 参照元のノード
 		"""
 		super().__init__(origin)
 		self._via = via
@@ -713,11 +616,11 @@ class SymbolGeneric(Symbol):
 		return Roles.Generic
 
 	@override
-	def clone(self: T_Sym) -> T_Sym:
+	def clone(self: Self) -> Self:
 		"""インスタンスを複製
 
 		Returns:
-			T_Sym: 複製したインスタンス
+			Self: 複製したインスタンス
 		"""
 		return self._clone(origin=self.origin, via=self.via)
 
@@ -746,11 +649,11 @@ class SymbolLiteral(Symbol):
 		return Roles.Literal
 
 	@override
-	def clone(self: T_Sym) -> T_Sym:
+	def clone(self: Self) -> Self:
 		"""インスタンスを複製
 
 		Returns:
-			T_Sym: 複製したインスタンス
+			Self: 複製したインスタンス
 		"""
 		return self._clone(origin=self.origin, via=self.via)
 
@@ -781,6 +684,7 @@ class SymbolReference(Symbol):
 		return Roles.Reference
 
 	@property
+	@override
 	def context(self) -> SymbolRaw:
 		"""コンテキストを取得
 
@@ -792,14 +696,14 @@ class SymbolReference(Symbol):
 		if self._context is not None:
 			return self._context
 
-		return super().context
+		raise LogicError(f'Context is null. symbol: {str(self)}, fullyname: {self.ref_fullyname}')
 
 	@override
-	def clone(self) -> 'SymbolReference':
+	def clone(self: Self) -> Self:
 		"""インスタンスを複製
 
 		Returns:
-			T_Sym: 複製したインスタンス
+			Self: 複製したインスタンス
 		"""
 		return self._clone(origin=self.origin, via=self.via, context=self._context)
 
@@ -828,11 +732,11 @@ class SymbolResult(Symbol):
 		return Roles.Result
 
 	@override
-	def clone(self) -> 'SymbolResult':
+	def clone(self: Self) -> Self:
 		"""インスタンスを複製
 
 		Returns:
-			T_Sym: 複製したインスタンス
+			Self: 複製したインスタンス
 		"""
 		return self._clone(origin=self.origin, via=self.via)
 
@@ -846,7 +750,7 @@ LiteralOrigins: TypeAlias = SymbolClass
 ResultOrigins: TypeAlias = SymbolClass
 
 
-class SymbolWrapper:
+class SymbolWrapper(IWrapper):
 	"""シンボルラッパーファクトリー"""
 
 	def __init__(self, raw: SymbolRaw) -> None:
@@ -941,11 +845,11 @@ class ClassShorthandNaming:
 	"""
 
 	@classmethod
-	def domain_name(cls, raw: SymbolRaw, alias_handler: AliasHandler | None = None) -> str:
+	def domain_name(cls, raw: IReflection, alias_handler: AliasHandler | None = None) -> str:
 		"""クラスの短縮表記を生成(ドメイン名)
 
 		Args:
-			raw (SymbolRaw): シンボル
+			raw (IReflection): シンボル
 			alias_handler (AliasHandler | None): エイリアス解決ハンドラー (default = None)
 		Returns:
 			str: 短縮表記
@@ -953,11 +857,11 @@ class ClassShorthandNaming:
 		return cls.__make_impl(raw, alias_handler, 'domain')
 
 	@classmethod
-	def fullyname(cls, raw: SymbolRaw, alias_handler: AliasHandler | None = None) -> str:
+	def fullyname(cls, raw: IReflection, alias_handler: AliasHandler | None = None) -> str:
 		"""クラスの短縮表記を生成(完全参照名)
 
 		Args:
-			raw (SymbolRaw): シンボル
+			raw (IReflection): シンボル
 			alias_handler (AliasHandler | None): エイリアス解決ハンドラー (default = None)
 		Returns:
 			str: 短縮表記
@@ -965,11 +869,11 @@ class ClassShorthandNaming:
 		return cls.__make_impl(raw, alias_handler, 'fully')
 
 	@classmethod
-	def accessible_name(cls, raw: SymbolRaw, alias_handler: AliasHandler | None = None) -> str:
+	def accessible_name(cls, raw: IReflection, alias_handler: AliasHandler | None = None) -> str:
 		"""クラスの短縮表記を生成(名前空間上の参照名)
 
 		Args:
-			raw (SymbolRaw): シンボル
+			raw (IReflection): シンボル
 			alias_handler (AliasHandler | None): エイリアス解決ハンドラー (default = None)
 		Returns:
 			str: 短縮表記
@@ -977,11 +881,11 @@ class ClassShorthandNaming:
 		return cls.__make_impl(raw, alias_handler, 'accessible')
 
 	@classmethod
-	def __make_impl(cls, raw: SymbolRaw, alias_handler: AliasHandler | None = None, path_method: str = 'domain') -> str:
+	def __make_impl(cls, raw: IReflection, alias_handler: AliasHandler | None = None, path_method: str = 'domain') -> str:
 		"""クラスの短縮表記を生成
 
 		Args:
-			raw (SymbolRaw): シンボル
+			raw (IReflection): シンボル
 			alias_handler (AliasHandler | None): エイリアス解決ハンドラー (default = None)
 			path_method ('domain' | 'fully' | 'namespace'): パス生成方式 (default = 'domain') @see analyze.naming.ClassDomainNaming
 		Returns:

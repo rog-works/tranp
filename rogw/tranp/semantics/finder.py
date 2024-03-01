@@ -1,7 +1,7 @@
 from types import UnionType
 
-from rogw.tranp.analyze.errors import MustBeImplementedError, SymbolNotDefinedError
-from rogw.tranp.analyze.symbol import SymbolRaw, SymbolRaws
+from rogw.tranp.semantics.errors import MustBeImplementedError, SymbolNotDefinedError
+from rogw.tranp.semantics.symbol import SymbolRaw, SymbolRaws
 from rogw.tranp.ast.dsn import DSN
 from rogw.tranp.compatible.python.types import Standards
 from rogw.tranp.lang.implementation import injectable

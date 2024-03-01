@@ -4,10 +4,10 @@ import json
 from types import MethodType
 from typing import Any, Callable, cast
 
-from rogw.tranp.analyze.db import SymbolDB
-from rogw.tranp.analyze.plugin import PluginProvider
-from rogw.tranp.analyze.symbol import SymbolRaw
-from rogw.tranp.analyze.symbols import Symbols
+from rogw.tranp.semantics.db import SymbolDB
+from rogw.tranp.semantics.plugin import PluginProvider
+from rogw.tranp.semantics.symbol import SymbolRaw
+from rogw.tranp.semantics.symbols import Symbols
 from rogw.tranp.app.app import App
 from rogw.tranp.ast.entry import Entry
 from rogw.tranp.ast.parser import ParserSetting, SyntaxParser

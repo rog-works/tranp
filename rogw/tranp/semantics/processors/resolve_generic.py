@@ -1,7 +1,7 @@
 from typing import TypeAlias, cast
 
-from rogw.tranp.analyze.finder import SymbolFinder
-from rogw.tranp.analyze.symbol import SymbolRaw, SymbolRaws
+from rogw.tranp.semantics.finder import SymbolFinder
+from rogw.tranp.semantics.symbol import SymbolRaw, SymbolRaws
 from rogw.tranp.lang.implementation import injectable
 import rogw.tranp.node.definition as defs
 

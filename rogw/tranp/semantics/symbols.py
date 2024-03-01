@@ -1,12 +1,12 @@
 from types import UnionType
 
-from rogw.tranp.analyze.db import SymbolDB
-from rogw.tranp.analyze.errors import SemanticsError, OperationNotAllowedError, UnresolvedSymbolError
-from rogw.tranp.analyze.plugin import PluginProvider
-from rogw.tranp.analyze.symbol import SymbolRaw
-from rogw.tranp.analyze.procedure import Procedure
-import rogw.tranp.analyze.reflection as reflection
-from rogw.tranp.analyze.finder import SymbolFinder
+from rogw.tranp.semantics.db import SymbolDB
+from rogw.tranp.semantics.errors import SemanticsError, OperationNotAllowedError, UnresolvedSymbolError
+from rogw.tranp.semantics.plugin import PluginProvider
+from rogw.tranp.semantics.symbol import SymbolRaw
+from rogw.tranp.semantics.procedure import Procedure
+import rogw.tranp.semantics.reflection as reflection
+from rogw.tranp.semantics.finder import SymbolFinder
 import rogw.tranp.compatible.python.classes as classes
 from rogw.tranp.compatible.python.types import Standards
 from rogw.tranp.lang.error import raises

@@ -1,6 +1,6 @@
 from typing import Generic, TypeVar, cast
 
-from rogw.tranp.analyze.errors import ProcessingError
+from rogw.tranp.semantics.errors import ProcessingError
 from rogw.tranp.ast.dsn import DSN
 from rogw.tranp.errors import LogicError
 from rogw.tranp.lang.error import raises

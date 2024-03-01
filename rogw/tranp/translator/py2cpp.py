@@ -2,11 +2,11 @@ import re
 from types import UnionType
 from typing import cast
 
-from rogw.tranp.analyze.naming import ClassDomainNaming
-from rogw.tranp.analyze.procedure import Procedure
-import rogw.tranp.analyze.reflection as reflection
-from rogw.tranp.analyze.symbol import ClassShorthandNaming, SymbolRaw
-from rogw.tranp.analyze.symbols import Symbols
+from rogw.tranp.semantics.naming import ClassDomainNaming
+from rogw.tranp.semantics.procedure import Procedure
+import rogw.tranp.semantics.reflection as reflection
+from rogw.tranp.semantics.symbol import ClassShorthandNaming, SymbolRaw
+from rogw.tranp.semantics.symbols import Symbols
 from rogw.tranp.ast.dsn import DSN
 import rogw.tranp.compatible.python.embed as __alias__
 from rogw.tranp.errors import LogicError

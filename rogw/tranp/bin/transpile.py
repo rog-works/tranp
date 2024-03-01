@@ -1,7 +1,7 @@
 import os
 import sys
 
-from rogw.tranp.analyze.plugin import PluginProvider
+from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.app.app import App
 from rogw.tranp.ast.parser import ParserSetting
 import rogw.tranp.compatible.python.embed as __alias__

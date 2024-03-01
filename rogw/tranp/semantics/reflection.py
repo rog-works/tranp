@@ -1,6 +1,6 @@
 from typing import Callable, Generic, TypeAlias, TypeVar
 
-from rogw.tranp.analyze.symbol import SymbolRaw
+from rogw.tranp.semantics.symbol import SymbolRaw
 from rogw.tranp.ast.dsn import DSN
 from rogw.tranp.errors import LogicError
 from rogw.tranp.lang.implementation import override

@@ -2,8 +2,8 @@ import os
 import re
 from unittest import TestCase
 
-from rogw.tranp.analyze.errors import ProcessingError, UnresolvedSymbolError
-from rogw.tranp.analyze.plugin import PluginProvider
+from rogw.tranp.semantics.errors import ProcessingError, UnresolvedSymbolError
+from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.app.io import appdir
 from rogw.tranp.ast.dsn import DSN
 from rogw.tranp.i18n.i18n import TranslationMapping

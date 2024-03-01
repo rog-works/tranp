@@ -1,4 +1,4 @@
-from rogw.tranp.analyze.plugin import PluginProvider
+from rogw.tranp.semantics.plugin import PluginProvider
 
 
 def plugin_provider() -> PluginProvider:

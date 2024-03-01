@@ -1,7 +1,7 @@
 from typing import Callable, cast
 
-from rogw.tranp.analyze.symbol import SymbolProxy, SymbolRaw, SymbolRaws
-from rogw.tranp.analyze.symbols import Symbols
+from rogw.tranp.semantics.symbol import SymbolProxy, SymbolRaw, SymbolRaws
+from rogw.tranp.semantics.symbols import Symbols
 from rogw.tranp.lang.implementation import injectable
 from rogw.tranp.lang.locator import Invoker
 import rogw.tranp.node.definition as defs

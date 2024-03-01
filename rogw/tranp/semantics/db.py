@@ -1,7 +1,7 @@
 from typing import NamedTuple
 
-from rogw.tranp.analyze.processor import Preprocessors
-from rogw.tranp.analyze.symbol import SymbolRaws
+from rogw.tranp.semantics.processor import Preprocessors
+from rogw.tranp.semantics.symbol import SymbolRaws
 from rogw.tranp.lang.implementation import injectable
 from rogw.tranp.lang.locator import Invoker
 

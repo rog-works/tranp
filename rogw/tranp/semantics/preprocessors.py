@@ -1,5 +1,5 @@
-from rogw.tranp.analyze.processor import Preprocessors
-import rogw.tranp.analyze.processors as procs
+from rogw.tranp.semantics.processor import Preprocessors
+import rogw.tranp.semantics.processors as procs
 from rogw.tranp.lang.implementation import injectable
 from rogw.tranp.lang.locator import Invoker
 

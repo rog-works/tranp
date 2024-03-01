@@ -1,8 +1,8 @@
 from typing import Callable, cast
 
-from rogw.tranp.analyze.plugin import IPlugin
-from rogw.tranp.analyze.symbol import SymbolRaw
-from rogw.tranp.analyze.symbols import Symbols
+from rogw.tranp.semantics.plugin import IPlugin
+from rogw.tranp.semantics.symbol import SymbolRaw
+from rogw.tranp.semantics.symbols import Symbols
 import rogw.tranp.compatible.python.embed as __alias__
 from rogw.tranp.errors import FatalError
 from rogw.tranp.implements.cpp.analyze.cvars import CVars

@@ -1,8 +1,8 @@
 from unittest import TestCase
 
-from rogw.tranp.analyze.db import SymbolDB
+from rogw.tranp.semantics.db import SymbolDB
 from tests.test.fixture import Fixture
-from tests.unit.rogw.tranp.analyze.fixtures.test_db_expect import expected_symbols
+from tests.unit.rogw.tranp.semantics.fixtures.test_db_expect import expected_symbols
 
 
 class TestSymbolDB(TestCase):

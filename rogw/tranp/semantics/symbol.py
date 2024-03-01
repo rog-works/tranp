@@ -2,101 +2,14 @@ from typing import Any, Callable, Iterator, Self, TypeAlias, TypeVar
 
 from rogw.tranp.errors import FatalError, LogicError
 from rogw.tranp.lang.implementation import implements, injectable, override
-from rogw.tranp.semantics.reflected import Container, IReflection, IWrapper, Roles
+from rogw.tranp.semantics.reflected import DB, IReflection, IWrapper, Roles
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.semantics.naming import AliasHandler, ClassDomainNaming
 
 T_Raw = TypeVar('T_Raw', bound='Reflection')
 
-
-class SymbolProxy:
-	"""シンボルプロクシー
-	* 拡張設定を遅延処理
-	* 参照順序の自動的な解決
-	* 不必要な拡張設定を省略
-
-	Note:
-		シンボルの登録順序と参照順序が重要なインスタンスに関して使用 ※現状はResolveUnknownでのみ使用
-	"""
-
-	def __init__(self, org_raw: 'Reflection', extender: Callable[[], 'Reflection']) -> None:
-		"""インスタンスを生成
-
-		Args:
-			org_raw (SymbolRaw): オリジナル
-			extender (Callable[[], SymbolRaw]): シンボル拡張設定ファクトリー
-		"""
-		super().__setattr__('org_raw', org_raw)
-		super().__setattr__('extender', extender)
-		super().__setattr__('new_raw', None)
-
-	@override
-	def __getattr__(self, key: str) -> Any:
-		"""属性を取得
-
-		Args:
-			key (str): 属性のキー
-		Returns:
-			Any: 属性の値
-		"""
-		if key in ['set_raws', '_raws']:
-			return getattr(self.org_raw, key)
-
-		if self.new_raw is None:
-			super().__setattr__('new_raw', self.extender())
-
-		return getattr(self.new_raw, key)
-
-	@override
-	def __setattr__(self, key: str, value: Any) -> None:
-		"""属性を設定
-
-		Args:
-			key (str): 属性のキー
-			value (Any): 属性の値
-		"""
-		if key in ['set_raws', '_raws']:
-			setattr(self.org_raw, key, value)
-
-		if self.new_raw is None:
-			super().__setattr__('new_raw', self.extender())
-
-		setattr(self.new_raw, key, value)
-
-	@override
-	def __eq__(self, other: object) -> bool:
-		"""比較演算子のオーバーロード
-
-		Args:
-			other (object): 比較対象
-		Returns:
-			bool: True = 同じ
-		"""
-		if self.new_raw is None:
-			super().__setattr__('new_raw', self.extender())
-
-		return self.new_raw == other
-
-	@override
-	def __repr__(self) -> str:
-		"""str: オブジェクトのシリアライズ表現"""
-		if self.new_raw is None:
-			super().__setattr__('new_raw', self.extender())
-
-		return self.new_raw.__repr__()
-
-
-	@override
-	def __str__(self) -> str:
-		"""str: オブジェクトの文字列表現"""
-		if self.new_raw is None:
-			super().__setattr__('new_raw', self.extender())
-
-		return self.new_raw.__str__()
-
-
-SymbolRaws: TypeAlias = Container['Reflection']
+SymbolRaws: TypeAlias = DB['Reflection']
 
 
 class Reflection(IReflection):
@@ -169,7 +82,7 @@ class Reflection(IReflection):
 		"""インスタンスを複製
 
 		Args:
-			**kwargs (Any): コンストラクター
+			**kwargs (Any): コンストラクターの引数
 		Returns:
 			Self: 複製したインスタンス
 		"""
@@ -230,7 +143,7 @@ class Reflection(IReflection):
 		Returns:
 			T_Raw: インスタンス
 		Raises:
-			LogidError: 継承関係が無い型を指定 XXX 出力する例外は要件等
+			LogicError: 継承関係が無い型を指定 XXX 出力する例外は要件等
 		"""
 		if isinstance(self, expects):
 			return self
@@ -627,7 +540,7 @@ class ReflectionReference(ReflectionImpl):
 		Args:
 			origin (RefOrigins): スタックシンボル
 			via (Reference): 参照元のノード
-			context (SymbolRaw | None): コンテキストのシンボル (default = None)
+			context (Reflection | None): コンテキストのシンボル (default = None)
 		"""
 		super().__init__(origin)
 		self._via = via
@@ -703,6 +616,92 @@ class ReflectionResult(ReflectionImpl):
 		return self._clone(origin=self.origin, via=self.via)
 
 
+class SymbolProxy:
+	"""シンボルプロクシー
+	* 拡張設定を遅延処理
+	* 参照順序の自動的な解決
+	* 不必要な拡張設定を省略
+
+	Note:
+		シンボルの登録順序と参照順序が重要なインスタンスに関して使用 ※現状はResolveUnknownでのみ使用
+	"""
+
+	def __init__(self, org_raw: Reflection, extender: Callable[[], Reflection]) -> None:
+		"""インスタンスを生成
+
+		Args:
+			org_raw (Reflection): オリジナル
+			extender (Callable[[], Reflection]): シンボル拡張設定ファクトリー
+		"""
+		super().__setattr__('org_raw', org_raw)
+		super().__setattr__('extender', extender)
+		super().__setattr__('new_raw', None)
+
+	@override
+	def __getattr__(self, key: str) -> Any:
+		"""属性を取得
+
+		Args:
+			key (str): 属性のキー
+		Returns:
+			Any: 属性の値
+		"""
+		if key in ['set_raws', '_raws']:
+			return getattr(self.org_raw, key)
+
+		if self.new_raw is None:
+			super().__setattr__('new_raw', self.extender())
+
+		return getattr(self.new_raw, key)
+
+	@override
+	def __setattr__(self, key: str, value: Any) -> None:
+		"""属性を設定
+
+		Args:
+			key (str): 属性のキー
+			value (Any): 属性の値
+		"""
+		if key in ['set_raws', '_raws']:
+			setattr(self.org_raw, key, value)
+
+		if self.new_raw is None:
+			super().__setattr__('new_raw', self.extender())
+
+		setattr(self.new_raw, key, value)
+
+	@override
+	def __eq__(self, other: object) -> bool:
+		"""比較演算子のオーバーロード
+
+		Args:
+			other (object): 比較対象
+		Returns:
+			bool: True = 同じ
+		"""
+		if self.new_raw is None:
+			super().__setattr__('new_raw', self.extender())
+
+		return self.new_raw == other
+
+	@override
+	def __repr__(self) -> str:
+		"""str: オブジェクトのシリアライズ表現"""
+		if self.new_raw is None:
+			super().__setattr__('new_raw', self.extender())
+
+		return self.new_raw.__repr__()
+
+
+	@override
+	def __str__(self) -> str:
+		"""str: オブジェクトの文字列表現"""
+		if self.new_raw is None:
+			super().__setattr__('new_raw', self.extender())
+
+		return self.new_raw.__str__()
+
+
 ImportOrigins: TypeAlias = Symbol | ReflectionVar
 ClassOrigins: TypeAlias = Symbol | ReflectionImport
 VarOrigins: TypeAlias = Symbol | ReflectionImpl
@@ -719,7 +718,7 @@ class SymbolWrapper(IWrapper):
 		"""インスタンスを生成
 
 		Args:
-			raw (SymbolRaw): シンボル
+			raw (Reflection): シンボル
 		"""
 		self._raw = raw
 
@@ -778,7 +777,7 @@ class SymbolWrapper(IWrapper):
 
 		Args:
 			via (Reference): 参照系ノード
-			context (SymbolRaw | None): コンテキストのシンボル (default = None)
+			context (Reflection | None): コンテキストのシンボル (default = None)
 		Returns:
 			SymbolReference: シンボル
 		"""

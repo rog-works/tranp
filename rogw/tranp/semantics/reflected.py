@@ -6,7 +6,7 @@ from rogw.tranp.lang.implementation import override
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 
-T_Raw = TypeVar('T_Raw', bound='IReflection')
+T_Ref = TypeVar('T_Ref', bound='IReflection')
 
 
 class Roles(Enum):
@@ -36,25 +36,25 @@ class Roles(Enum):
 		return self in [Roles.Origin, Roles.Class, Roles.Var, Roles.Generic, Roles.Literal]
 
 
-class Container(dict[str, T_Raw]):
+class DB(dict[str, T_Ref]):
 	"""シンボルテーブル"""
 
 	@classmethod
-	def new(cls, *raws: Self | dict[str, T_Raw]) -> Self:
+	def new(cls, *raws: Self | dict[str, T_Ref]) -> Self:
 		"""シンボルテーブルを結合した新たなインスタンスを生成
 
 		Args:
-			*raws (Self | dict[str, T_Raw]): シンボルテーブルリスト
+			*raws (Self | dict[str, T_Ref]): シンボルテーブルリスト
 		Returns:
 			Self: 生成したインスタンス
 		"""
 		return cls().merge(*raws)
 
-	def merge(self, *raws: Self | dict[str, T_Raw]) -> Self:
+	def merge(self, *raws: Self | dict[str, T_Ref]) -> Self:
 		"""指定のシンボルテーブルと結合
 
 		Args:
-			*raws (Self | dict[str, T_Raw]): シンボルテーブルリスト
+			*raws (Self | dict[str, T_Ref]): シンボルテーブルリスト
 		Returns:
 			Self: 自己参照
 		"""
@@ -67,12 +67,12 @@ class Container(dict[str, T_Raw]):
 		return self
 
 	@override
-	def __setitem__(self, key: str, raw: T_Raw) -> None:
+	def __setitem__(self, key: str, raw: T_Ref) -> None:
 		"""配列要素設定のオーバーロード
 
 		Args:
 			key (str): 要素名
-			raw (T_Raw): シンボル
+			raw (T_Ref): シンボル
 		"""
 		raw.set_raws(self)
 		super().__setitem__(key, raw)
@@ -103,16 +103,16 @@ class IReflection(metaclass=ABCMeta):
 
 	@property
 	@abstractmethod
-	def _raws(self) -> Container:
-		"""Container: 所属するシンボルテーブル"""
+	def _raws(self) -> DB:
+		"""DB: 所属するシンボルテーブル"""
 		...
 
 	@abstractmethod
-	def set_raws(self, raws: Container) -> None:
+	def set_raws(self, raws: DB) -> None:
 		"""所属するシンボルテーブルを設定
 
 		Args:
-			raws (Container): シンボルテーブル
+			raws (DB): シンボルテーブル
 		"""
 		...
 
@@ -207,13 +207,13 @@ class IReflection(metaclass=ABCMeta):
 		...
 
 	@abstractmethod
-	def extends(self: T_Raw, *attrs: 'IReflection') -> T_Raw:
+	def extends(self: Self, *attrs: 'IReflection') -> Self:
 		"""シンボルが保有する型を拡張情報として属性に取り込む
 
 		Args:
 			*attrs (IReflection): 属性シンボルリスト
 		Returns:
-			T_Raw: インスタンス
+			T_Ref: インスタンス
 		Raises:
 			LogicError: 実体の無いインスタンスに実行 XXX 出力する例外は要件等
 			LogicError: 拡張済みのインスタンスに再度実行 XXX 出力する例外は要件等
@@ -231,14 +231,14 @@ class IReflection(metaclass=ABCMeta):
 		...
 
 	@abstractmethod
-	def one_of(self, expects: type[T_Raw]) -> T_Raw:
+	def one_of(self, expects: type[T_Ref]) -> T_Ref:
 		"""期待する型と同種ならキャスト
 
 		Args:
-			expects (type[T_Raw]): 期待する型
+			expects (type[T_Ref]): 期待する型
 		Returns:
-			T_Raw: インスタンス
+			T_Ref: インスタンス
 		Raises:
-			LogidError: 継承関係が無い型を指定 XXX 出力する例外は要件等
+			LogicError: 継承関係が無い型を指定 XXX 出力する例外は要件等
 		"""
 		...

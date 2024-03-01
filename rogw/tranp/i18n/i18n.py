@@ -7,7 +7,18 @@ class TranslationMapping(NamedTuple):
 	Attributes:
 		to (dict[str, str]): {翻訳キー: 翻訳後}
 	"""
+
 	to: dict[str, str] = {}
+
+	def merge(self, to: dict[str, str]) -> 'TranslationMapping':
+		"""追加のマッピングデータとマージ
+
+		Args:
+			to (dict[str, str]): {翻訳キー: 翻訳後}
+		Returns:
+			TranslationMapping: インスタンス
+		"""
+		return TranslationMapping(to={**self.to, **to})
 
 
 class I18n:

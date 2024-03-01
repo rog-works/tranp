@@ -123,7 +123,10 @@ class TestPy2Cpp(TestCase):
 	fixture = Fixture.make(__file__, {
 		fullyname(Py2Cpp): Py2Cpp,
 		fullyname(PluginProvider): cpp_plugin_provider,
-		fullyname(TranslationMapping): translation_mapping,
+		fullyname(TranslationMapping): lambda: translation_mapping().merge({
+			'aliases.__main__.Alias': 'Alias2',
+			'aliases.__main__.Alias.Inner': 'Inner2',
+		}),
 		fullyname(TranslatorOptions): lambda: TranslatorOptions(verbose=False),
 		fullyname(Renderer): lambda: Renderer(os.path.join(appdir(), 'example/template')),
 	})

@@ -22,16 +22,16 @@ def __actual__(name: str) -> Callable[[T], T]:
 	return decorator
 
 
-def __alias__(name: str) -> Callable[[T], T]:
-	"""トランスパイル後に出力される名称を埋め込む
+def __alias__() -> Callable[[T], T]:
+	"""トランスパイル後に名称変更を行う対象としてタグ付けする
 
-	Args:
-		name (str): 名前
 	Returns:
 		Callable[[T], T]: デコレート対象
+	Note:
+		@see analyze.naming.ClassDomainNaming
 	Examples:
 		```python
-		@__alias__('std::string')
+		@__alias__()
 		class String: ...
 		```
 	"""

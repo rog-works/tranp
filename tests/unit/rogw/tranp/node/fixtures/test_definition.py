@@ -14,7 +14,7 @@ class Values(CEnum):
 
 class Base: ...
 
-@__alias__('Alias')
+@__alias__()
 class Class(Base):
 	cn: int = 0
 
@@ -39,7 +39,7 @@ class Class(Base):
 	def property_method(self) -> int:
 		return 0
 
-	@__alias__('alias')
+	@__alias__()
 	def public_method(self, n: int) -> Values:
 		try:
 			raise Exception()

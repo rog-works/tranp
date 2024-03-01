@@ -2,17 +2,18 @@ import re
 from types import UnionType
 from typing import cast
 
+from rogw.tranp.analyze.naming import ClassDomainNaming
 from rogw.tranp.analyze.procedure import Procedure
 import rogw.tranp.analyze.reflection as reflection
-from rogw.tranp.analyze.symbol import SymbolRaw
+from rogw.tranp.analyze.symbol import ClassShorthandNaming, SymbolRaw
 from rogw.tranp.analyze.symbols import Symbols
 from rogw.tranp.ast.dsn import DSN
 import rogw.tranp.compatible.python.embed as __alias__
 from rogw.tranp.errors import LogicError
+from rogw.tranp.i18n.i18n import I18n
 from rogw.tranp.implements.cpp.analyze.cvars import CVars
 from rogw.tranp.lang.implementation import injectable
 import rogw.tranp.node.definition as defs
-from rogw.tranp.node.definition.statement_compound import ClassSymbolMaker
 from rogw.tranp.node.node import Node
 from rogw.tranp.translator.option import TranslatorOptions
 from rogw.tranp.view.render import Renderer
@@ -22,16 +23,18 @@ class Py2Cpp:
 	"""Python -> C++のトランスパイラー"""
 
 	@injectable
-	def __init__(self, symbols: Symbols, render: Renderer, options: TranslatorOptions) -> None:
+	def __init__(self, symbols: Symbols, render: Renderer, i18n: I18n, options: TranslatorOptions) -> None:
 		"""インスタンスを生成
 
 		Args:
 			symbols (Symbols): シンボルリゾルバー @inject
 			render (Renderer): ソースレンダー @inject
+			i18n (I18n): 国際化対応モジュール @inject
 			options (TranslatorOptions): 実行オプション @inject
 		"""
 		self.symbols = symbols
 		self.view = render
+		self.i18n = i18n
 		self.__procedure = self.__make_procedure(options)
 
 	def __make_procedure(self, options: TranslatorOptions) -> Procedure[str]:
@@ -59,34 +62,45 @@ class Py2Cpp:
 		"""
 		return self.__procedure.exec(root)
 
-	def to_symbol_path(self, raw: SymbolRaw) -> str:
-		"""名前空間によるシンボルの参照名を取得 (MoveAssignなど、型を補完する際に利用)
+	def to_accessible_name(self, raw: SymbolRaw) -> str:
+		"""型推論によって補完する際の名前空間上の参照名を取得 (主にMoveAssignで利用)
 
 		Args:
 			raw (SymbolRaw): シンボル
 		Returns:
-			str: C++用のシンボルの完全参照名
+			str: 名前空間上の参照名
 		Note:
 			# 生成例
 			'Class' -> 'NS::Class'
 			'dict<A, B>' -> 'dict<NS::A, NS::B>'
 		"""
 		unpacked_raw = self.force_unpack_nullable(raw)
-		return DSN.join(*DSN.elements(unpacked_raw.make_shorthand(use_alias=True, path_method='namespace')), delimiter='::')
+		shorthand = ClassShorthandNaming.accessible_name(unpacked_raw, alias_handler=self.i18n.t)
+		return DSN.join(*DSN.elements(shorthand), delimiter='::')
 
-	def to_symbol_name(self, var_type_raw: SymbolRaw) -> str:
-		"""明示されたタイプよりシンボルの参照名を取得 (主にAnnoAssignで利用)
+	def to_domain_name(self, var_type_raw: SymbolRaw) -> str:
+		"""明示された型からドメイン名を取得 (主にAnnoAssignで利用)
 
 		Args:
 			var_type_raw (SymbolRaw): シンボル
 		Returns:
-			str: C++用のシンボルの参照名
+			str: ドメイン名
 		Note:
 			# 生成例
-			'Union<Class[CP], None>' -> 'Class[CP]'
+			'Union<CP<Class>, None>' -> 'Class<CP>'
 		"""
 		unpacked_raw = self.force_unpack_nullable(var_type_raw)
-		return unpacked_raw.make_shorthand(use_alias=True)
+		return ClassShorthandNaming.domain_name(unpacked_raw, alias_handler=self.i18n.t)
+
+	def to_domain_name_by_class(self, types: defs.ClassDef) -> str:
+		"""明示された型からドメイン名を取得
+
+		Args:
+			types (ClassDef): クラス宣言ノード
+		Returns:
+			str: 型の参照名
+		"""
+		return ClassDomainNaming.domain_name(types, alias_handler=self.i18n.t)
 
 	def force_unpack_nullable(self, symbol: SymbolRaw) -> SymbolRaw:
 		"""Nullableのシンボルの変数の型をアンパック。Nullable以外の型はそのまま返却 (主にRelayで利用)
@@ -157,7 +171,7 @@ class Py2Cpp:
 
 	def proc_for_enumerate(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		iterates = cast(re.Match, re.fullmatch(r'enumerate\((.+)\)', for_in))[1]
-		var_type = self.to_symbol_path(self.symbols.type_of(node.for_in).attrs[1])
+		var_type = self.to_accessible_name(self.symbols.type_of(node.for_in).attrs[1])
 		return self.view.render(f'{node.classification}_enumerate', vars={'symbols': symbols, 'iterates': iterates, 'statements': statements, 'var_type': var_type})
 
 	def proc_for_dict_items(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
@@ -184,14 +198,14 @@ class Py2Cpp:
 
 	def on_list_comp(self, node: defs.ListComp, projection: str, fors: list[str], condition: str) -> str:
 		projection_type_raw = self.symbols.type_of(node.projection)
-		projection_type = self.to_symbol_path(projection_type_raw)
+		projection_type = self.to_accessible_name(projection_type_raw)
 		comp_vars = {'projection': projection, 'comp_for': fors[0], 'condition': condition, 'projection_types': [projection_type], 'binded_this': node.binded_this}
 		return self.view.render(node.classification, vars=comp_vars)
 
 	def on_dict_comp(self, node: defs.DictComp, projection: str, fors: list[str], condition: str) -> str:
 		projection_type_raw = self.symbols.type_of(node.projection)
-		projection_type_key = self.to_symbol_path(projection_type_raw.attrs[0])
-		projection_type_value = self.to_symbol_path(projection_type_raw.attrs[1])
+		projection_type_key = self.to_accessible_name(projection_type_raw.attrs[0])
+		projection_type_value = self.to_accessible_name(projection_type_raw.attrs[1])
 		comp_vars = {'projection': projection, 'comp_for': fors[0], 'condition': condition, 'projection_types': [projection_type_key, projection_type_value], 'binded_this': node.binded_this}
 		return self.view.render(node.classification, vars=comp_vars)
 
@@ -237,7 +251,7 @@ class Py2Cpp:
 			this_var_name = this_var.tokens_without_this
 			initializers.append({'symbol': this_var_name, 'value': initialize_value})
 
-		class_name = ClassSymbolMaker.domain_name(node.class_types, use_alias=True)
+		class_name = self.to_domain_name_by_class(node.class_types)
 		template_types = self.unpack_function_template_types(node)
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': normal_statements, 'template_types': template_types}
 		method_vars = {'access': node.access, 'class_symbol': class_name}
@@ -276,7 +290,7 @@ class Py2Cpp:
 		for this_var in node.this_vars:
 			this_var_name = this_var.tokens_without_this
 			var_type_raw = self.symbols.type_of(this_var.declare.as_a(defs.AnnoAssign).var_type)
-			var_type = self.to_symbol_name(var_type_raw)
+			var_type = self.to_domain_name(var_type_raw)
 			this_var_vars = {'access': defs.to_access(this_var_name), 'symbol': this_var_name, 'var_type': var_type}
 			vars.append(self.view.render('class_decl_this_var', vars=this_var_vars))
 
@@ -313,7 +327,7 @@ class Py2Cpp:
 		receiver_raw = self.symbols.type_of(node.receivers[0])
 		value_raw = self.symbols.type_of(node.value)
 		declared = receiver_raw.decl.declare == node
-		var_type = self.to_symbol_path(value_raw) if declared else ''
+		var_type = self.to_accessible_name(value_raw) if declared else ''
 		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': value})
 
 	def proc_move_assign_unpack(self, node: defs.MoveAssign, receivers: list[str], value: str) -> str:
@@ -366,7 +380,7 @@ class Py2Cpp:
 		return node.tokens
 
 	def on_types_name(self, node: defs.TypesName) -> str:
-		return ClassSymbolMaker.domain_name(node.class_types.as_a(defs.ClassDef), use_alias=True)
+		return self.to_domain_name_by_class(node.class_types.as_a(defs.ClassDef))
 
 	def on_import_name(self, node: defs.ImportName) -> str:
 		return node.tokens
@@ -377,7 +391,7 @@ class Py2Cpp:
 		prop_symbol = self.symbols.type_of_property(receiver_symbol.types, node.prop)
 		prop = node.prop.domain_name
 		if isinstance(prop_symbol.decl, defs.ClassDef):
-			prop = ClassSymbolMaker.domain_name(prop_symbol.types, use_alias=True)
+			prop = self.to_domain_name_by_class(prop_symbol.types)
 
 		spec, accessor = self.analyze_relay_access_spec(node, receiver_symbol)
 		relay_vars = {'receiver': receiver, 'accessor': accessor, 'prop': prop}
@@ -435,7 +449,7 @@ class Py2Cpp:
 	def on_variable(self, node: defs.Variable) -> str:
 		symbol = self.symbols.type_of(node)
 		if isinstance(symbol.decl, defs.ClassDef):
-			return ClassSymbolMaker.domain_name(symbol.types, use_alias=True)
+			return self.to_domain_name_by_class(symbol.types)
 		else:
 			return node.tokens
 
@@ -462,12 +476,12 @@ class Py2Cpp:
 	def on_relay_of_type(self, node: defs.RelayOfType, receiver: str) -> str:
 		receiver_symbol = self.symbols.type_of(node.receiver)
 		prop_symbol = self.symbols.type_of_property(receiver_symbol.types, node.prop)
-		type_name = ClassSymbolMaker.domain_name(prop_symbol.types, use_alias=True)
+		type_name = self.to_domain_name_by_class(prop_symbol.types)
 		return self.view.render(node.classification, vars={'receiver': receiver, 'type_name': type_name})
 
 	def on_var_of_type(self, node: defs.VarOfType) -> str:
 		symbol = self.symbols.type_of(node)
-		type_name = ClassSymbolMaker.domain_name(symbol.types, use_alias=True)
+		type_name = self.to_domain_name_by_class(symbol.types)
 		return self.view.render(node.classification, vars={'type_name': type_name})
 
 	def on_list_type(self, node: defs.ListType, type_name: str, value_type: str) -> str:
@@ -522,32 +536,32 @@ class Py2Cpp:
 		elif spec == 'new_list':
 			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
 		elif spec == 'cast_bin_to_bin':
-			var_type = self.to_symbol_path(cast(SymbolRaw, context))
+			var_type = self.to_accessible_name(cast(SymbolRaw, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'var_type': var_type})
 		elif spec == 'cast_str_to_bin':
-			var_type = self.to_symbol_path(cast(SymbolRaw, context))
+			var_type = self.to_accessible_name(cast(SymbolRaw, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'var_type': var_type})
 		elif spec == 'cast_bin_to_str':
-			var_type = self.to_symbol_path(cast(SymbolRaw, context))
+			var_type = self.to_accessible_name(cast(SymbolRaw, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'var_type': var_type})
 		elif spec == 'list_pop':
 			receiver = re.sub(r'(->|::|\.)pop$', '', calls)
-			var_type = self.to_symbol_path(cast(SymbolRaw, context))
+			var_type = self.to_accessible_name(cast(SymbolRaw, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
 		elif spec == 'dict_pop':
 			receiver = re.sub(r'(->|::|\.)pop$', '', calls)
-			var_type = self.to_symbol_path(cast(SymbolRaw, context))
+			var_type = self.to_accessible_name(cast(SymbolRaw, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
 		elif spec == 'dict_keys':
 			receiver = re.sub(r'(->|::|\.)keys$', '', calls)
-			var_type = self.to_symbol_path(cast(SymbolRaw, context))
+			var_type = self.to_accessible_name(cast(SymbolRaw, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
 		elif spec == 'dict_values':
 			receiver = re.sub(r'(->|::|\.)values$', '', calls)
-			var_type = self.to_symbol_path(cast(SymbolRaw, context))
+			var_type = self.to_accessible_name(cast(SymbolRaw, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
 		elif spec == 'new_enum':
-			var_type = self.to_symbol_path(cast(SymbolRaw, context))
+			var_type = self.to_accessible_name(cast(SymbolRaw, context))
 			return self.view.render(f'{node.classification}_cast_bin_to_bin', vars={**func_call_vars, 'var_type': var_type})
 		elif spec.startswith('to_cvar_'):
 			cvar_type = spec.split('to_cvar_')[1]
@@ -555,11 +569,11 @@ class Py2Cpp:
 		elif spec == 'new_cvar_p':
 			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
 		elif spec == 'new_cvar_sp_list':
-			var_type = self.to_symbol_path(cast(SymbolRaw, context))
+			var_type = self.to_accessible_name(cast(SymbolRaw, context))
 			initializer = arguments[0]
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'var_type': var_type, 'initializer': initializer})
 		elif spec == 'new_cvar_sp':
-			var_type = self.to_symbol_path(cast(SymbolRaw, context))
+			var_type = self.to_accessible_name(cast(SymbolRaw, context))
 			initializer = cast(re.Match, re.fullmatch(r'[^(]+\(([^)]+)\)', arguments[0]))[1]
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'var_type': var_type, 'initializer': initializer})
 		else:
@@ -687,7 +701,7 @@ class Py2Cpp:
 			return self.proc_binary_operator_expression(node, primary_raw, secondary_raws, primary, operators, secondaries)
 
 	def proc_binary_operator_fill_list(self, node: defs.BinaryOperator, default_raw: SymbolRaw, size_raw: SymbolRaw, default: str, size: str) -> str:
-		value_type = self.to_symbol_path(default_raw.attrs[0])
+		value_type = self.to_accessible_name(default_raw.attrs[0])
 		# 必ず要素1の配列のリテラルになるので、defaultの前後の括弧を除外する FIXME 現状仕様を前提にした処理なので妥当性が低い
 		return self.view.render('binary_operator_fill_list', vars={'value_type': value_type, 'default': default[1:-1], 'size': size})
 

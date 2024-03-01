@@ -133,7 +133,6 @@ from rogw.tranp.node.definition.statement_compound import (
 	TemplateClass,
 	# utility
 	VarsCollector,
-	ClassSymbolMaker,
 )
 from rogw.tranp.node.definition.statement_simple import (
 	# assign

@@ -274,30 +274,23 @@ class ClassDef(Node, IDomain, IScope, IDeclaration, ISymbol):
 
 	@property
 	def actual_symbol(self) -> str | None:
-		return self._attr_symbol(__actual__.__name__)
+		embedder = self._dig_embedder(__actual__.__name__)
+		return embedder.arguments[0].value.as_a(String).plain if embedder else None
 
 	@property
-	def alias_symbol(self) -> str | None:
-		return self._attr_symbol(__alias__.__name__)
+	def has_alias(self) -> bool:
+		return self._dig_embedder(__alias__.__name__) is not None
 
-	def _attr_symbol(self, identifier: str) -> str | None:
-		"""デコレーターで設定した別名をシンボル名として取り込む
+	def ancestor_classes(self) -> list['ClassDef']:
+		"""Note: XXX 振る舞いとして必然性のないメソッド。ユースケースはClassDomainNamingとの連携のみ"""
+		ancestors: list[ClassDef] = []
+		ancestor = self.parent
+		while ancestor._full_path.contains('class_def'):
+			found = ancestor._ancestor('class_def').as_a(ClassDef)
+			ancestors.append(found)
+			ancestor = found.parent
 
-		Args:
-			identifier (str): 識別名
-		Returns:
-			str | None: 別名
-		Examples:
-			```python
-			@__actual__('int')
-			class Integer: ...
-			```
-		"""
-		candidates = [decorator for decorator in self.decorators if decorator.path.tokens == identifier]
-		if len(candidates) == 0:
-			return None
-
-		return candidates[0].arguments[0].value.as_a(String).plain
+		return ancestors
 
 	def _decl_vars_with(self, allow: type[T_Declable]) -> dict[str, T_Declable]:
 		return VarsCollector.collect(self, allow)
@@ -308,27 +301,31 @@ class ClassDef(Node, IDomain, IScope, IDeclaration, ISymbol):
 		Returns:
 			list[Type]: テンプレートタイプのリスト
 		"""
-		candidates = [decorator for decorator in self.decorators if decorator.path.tokens == __hint_generic__.__name__]
-		if len(candidates) == 0:
+		embedder = self._dig_embedder(__hint_generic__.__name__)
+		if embedder is None:
 			return []
 
 		def make_type_dummy(org_argument: Argument) -> Type:
 			# XXX VarOfTypeのスキームが変わると破綻するので注意
 			return org_argument.dirty_child(VarOfType, 'typed_var', domain_name=org_argument.tokens, type_name=org_argument)
 
-		hint = candidates[0]
-		return [make_type_dummy(argument) for argument in hint.arguments]
+		return [make_type_dummy(argument) for argument in embedder.arguments]
 
-	def ancestor_classes(self) -> list['ClassDef']:
-		"""Note: XXX 振る舞いとして必然性のないメソッド。ユースケースはClassSymbolMakerとの連携のみ"""
-		ancestors: list[ClassDef] = []
-		ancestor = self.parent
-		while ancestor._full_path.contains('class_def'):
-			found = ancestor._ancestor('class_def').as_a(ClassDef)
-			ancestors.append(found)
-			ancestor = found.parent
+	def _dig_embedder(self, identifier: str) -> Decorator | None:
+		"""埋め込みデコレーターを取得
 
-		return ancestors
+		Args:
+			identifier (str): 識別名
+		Returns:
+			Decorator | None: デコレーター
+		Examples:
+			```python
+			@__actual__('int')
+			class Integer: ...
+			```
+		"""
+		embeders = [decorator for decorator in self.decorators if decorator.path.tokens == identifier]
+		return embeders[0] if len(embeders) > 0 else None
 
 
 @Meta.embed(Node, accept_tags('function_def'))
@@ -623,25 +620,3 @@ class VarsCollector:
 	@classmethod
 	def _merged(cls, decl_vars: dict[str, T_Declable], allow_vars: dict[str, T_Declable]) -> dict[str, T_Declable]:
 		return {**decl_vars, **{name: symbol for name, symbol in allow_vars.items() if name not in decl_vars}}
-
-
-class ClassSymbolMaker:
-	@classmethod
-	def symbol_name(cls, types: ClassDef, use_alias: bool = False, path_method: str = 'domain') -> str:
-		if path_method == 'fully':
-			return DSN.join(types.module_path, cls._make_namespace(types, use_alias), cls.domain_name(types, use_alias))
-		elif path_method == 'namespace':
-			return DSN.join(cls._make_namespace(types, use_alias), cls.domain_name(types, use_alias))
-		else:
-			return cls.domain_name(types, use_alias)
-
-	@classmethod
-	def domain_name(cls, types: ClassDef, use_alias: bool = False) -> str:
-		return types.alias_symbol or types.domain_name if use_alias else types.domain_name
-
-	@classmethod
-	def _make_namespace(cls, types: ClassDef, use_alias: bool = False) -> str:
-		if not use_alias:
-			return DSN.shift(DSN.relativefy(types.namespace, types.module_path), -1)
-
-		return DSN.join(*[cls.domain_name(ancestor, use_alias=True) for ancestor in types.ancestor_classes()])

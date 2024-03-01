@@ -86,12 +86,12 @@ class Symbols:
 		return self.__finder.by_standard(self.__raws, standard_type)
 
 	@raises(UnresolvedSymbolError, LexicalError)
-	def type_of_property(self, types: defs.ClassDef, prop: defs.Variable) -> SymbolRaw:
+	def type_of_property(self, types: defs.ClassDef, prop: defs.Var) -> SymbolRaw:
 		"""クラス定義ノードと変数参照ノードからプロパティーのシンボルを解決
 
 		Args:
 			types (ClassDef): クラス定義ノード
-			prop (Variable): 変数参照ノード
+			prop (Var): 変数参照ノード
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
@@ -451,7 +451,7 @@ class ProceduralResolver:
 	def on_this_ref(self, node: defs.ThisRef) -> SymbolRaw:
 		return self.symbols.resolve(node).to.ref(node)
 
-	def on_variable(self, node: defs.Variable) -> SymbolRaw:
+	def on_var(self, node: defs.Var) -> SymbolRaw:
 		return self.symbols.resolve(node).to.ref(node)
 
 	def on_indexer(self, node: defs.Indexer, receiver: SymbolRaw, key: SymbolRaw) -> SymbolRaw:

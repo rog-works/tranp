@@ -69,7 +69,6 @@ from rogw.tranp.node.definition.primary import (
 	Var,
 	ClassRef,
 	ThisRef,
-	Variable,
 	Indexer,
 	# path
 	Path,

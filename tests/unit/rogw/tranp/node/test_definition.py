@@ -146,23 +146,23 @@ class TestDefinition(TestCase):
 
 	@data_provider([
 		('[a for a in {}]', 'file_input.list_comp', {
-			'projection': defs.Variable,
+			'projection': defs.Var,
 			'fors': [{'symbols': ['a'], 'iterates': defs.Dict}],
 			'condition': defs.Empty,
 		}),
 		('[a for a in [] if a == 0]', 'file_input.list_comp', {
-			'projection': defs.Variable,
+			'projection': defs.Var,
 			'fors': [{'symbols': ['a'], 'iterates': defs.List}],
 			'condition': defs.Comparison,
 		}),
 		('[a for a in [] for b in []]', 'file_input.list_comp', {
-			'projection': defs.Variable,
+			'projection': defs.Var,
 			'fors': [{'symbols': ['a'],
 			 'iterates': defs.List}, {'symbols': ['b'], 'iterates': defs.List}],
 			 'condition': defs.Empty,
 		}),
 		('[a for a in [b for b in []]]', 'file_input.list_comp', {
-			'projection': defs.Variable,
+			'projection': defs.Var,
 			'fors': [{'symbols': ['a'], 'iterates': defs.ListComp}],
 			'condition': defs.Empty,
 		}),
@@ -565,7 +565,7 @@ class TestDefinition(TestCase):
 		self.assertEqual(type(node.value), expected['value'])
 
 	@data_provider([
-		('a += 1', 'file_input.aug_assign', {'receiver': 'a', 'receiver_type': defs.Variable, 'operator': '+=', 'value': defs.Integer}),
+		('a += 1', 'file_input.aug_assign', {'receiver': 'a', 'receiver_type': defs.Var, 'operator': '+=', 'value': defs.Integer}),
 		('a.b -= 1.0', 'file_input.aug_assign', {'receiver': 'a.b', 'receiver_type': defs.Relay, 'operator': '-=', 'value': defs.Float}),
 		('a[0] *= 0', 'file_input.aug_assign', {'receiver': 'a.0', 'receiver_type': defs.Indexer, 'operator': '*=', 'value': defs.Integer}),
 	])
@@ -586,8 +586,8 @@ class TestDefinition(TestCase):
 
 	@data_provider([
 		('raise Exception()', 'file_input.raise_stmt', {'throws': defs.FuncCall, 'via': defs.Empty}),
-		('raise Exception() from e', 'file_input.raise_stmt', {'throws': defs.FuncCall, 'via': defs.Variable}),
-		('raise e', 'file_input.raise_stmt', {'throws': defs.Variable, 'via': defs.Empty}),
+		('raise Exception() from e', 'file_input.raise_stmt', {'throws': defs.FuncCall, 'via': defs.Var}),
+		('raise e', 'file_input.raise_stmt', {'throws': defs.Var, 'via': defs.Empty}),
 	])
 	def test_throw(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Throw)
@@ -692,19 +692,19 @@ class TestDefinition(TestCase):
 		('a(cls.v)', 'file_input.funccall.arguments.argvalue.getattr.var', defs.ClassRef),
 		('self', 'file_input.var', defs.ThisRef),
 		('a(self.v)', 'file_input.funccall.arguments.argvalue.getattr.var', defs.ThisRef),
-		# Variable
-		('a', 'file_input.var', defs.Variable),
-		('a()', 'file_input.funccall.var', defs.Variable),
-		('a().b', 'file_input.getattr.name', defs.Variable),
-		('a[0]', 'file_input.getitem.var', defs.Variable),
-		('a[0].b', 'file_input.getattr.getitem.var', defs.Variable),
-		('a[0].b', 'file_input.getattr.name', defs.Variable),
-		('a.b.c', 'file_input.getattr.getattr.var', defs.Variable),
-		('raise e', 'file_input.raise_stmt.var', defs.Variable),
-		('raise E() from e', 'file_input.raise_stmt.funccall.var', defs.Variable),
-		('raise E() from e', 'file_input.raise_stmt.name', defs.Variable),
-		('a(b=c)', 'file_input.funccall.arguments.argvalue.var', defs.Variable),
-		('class B(A):\n\tb: int = a', 'file_input.class_def.class_def_raw.block.anno_assign.var', defs.Variable),
+		# Var
+		('a', 'file_input.var', defs.Var),
+		('a()', 'file_input.funccall.var', defs.Var),
+		('a().b', 'file_input.getattr.name', defs.Var),
+		('a[0]', 'file_input.getitem.var', defs.Var),
+		('a[0].b', 'file_input.getattr.getitem.var', defs.Var),
+		('a[0].b', 'file_input.getattr.name', defs.Var),
+		('a.b.c', 'file_input.getattr.getattr.var', defs.Var),
+		('raise e', 'file_input.raise_stmt.var', defs.Var),
+		('raise E() from e', 'file_input.raise_stmt.funccall.var', defs.Var),
+		('raise E() from e', 'file_input.raise_stmt.name', defs.Var),
+		('a(b=c)', 'file_input.funccall.arguments.argvalue.var', defs.Var),
+		('class B(A):\n\tb: int = a', 'file_input.class_def.class_def_raw.block.anno_assign.var', defs.Var),
 	])
 	def test_reference(self, source: str, full_path: str, expected: type) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Reference)
@@ -719,10 +719,10 @@ class TestDefinition(TestCase):
 		('self.a()', 'file_input.funccall.getattr', defs.ThisRef),
 		('self.a[0]', 'file_input.getitem.getattr', defs.ThisRef),
 		('a(self.v)', 'file_input.funccall.arguments.argvalue.getattr', defs.ThisRef),
-		('a.b', 'file_input.getattr', defs.Variable),
-		('a.b()', 'file_input.funccall.getattr', defs.Variable),
-		('a.b[0]', 'file_input.getitem.getattr', defs.Variable),
-		('a.b.c', 'file_input.getattr.getattr', defs.Variable),
+		('a.b', 'file_input.getattr', defs.Var),
+		('a.b()', 'file_input.funccall.getattr', defs.Var),
+		('a.b[0]', 'file_input.getitem.getattr', defs.Var),
+		('a.b.c', 'file_input.getattr.getattr', defs.Var),
 		# left(Indexer)
 		('a[0].b', 'file_input.getattr', defs.Indexer),
 		# left(FuncCall)
@@ -734,14 +734,14 @@ class TestDefinition(TestCase):
 	def test_relay(self, source: str, full_path: str, expected: type) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Relay)
 		self.assertEqual(type(node.receiver), expected)
-		self.assertEqual(type(node.prop), defs.Variable)
+		self.assertEqual(type(node.prop), defs.Var)
 
 	@data_provider([
-		('a[0]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Variable, 'key': '0', 'key_type': defs.Integer}),
-		('a[b]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Variable, 'key': 'b', 'key_type': defs.Variable}),
-		('a[b()]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Variable, 'key': 'b', 'key_type': defs.FuncCall}),
-		('a[b.c]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Variable, 'key': 'b.c', 'key_type': defs.Relay}),
-		('a[b[0]]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Variable, 'key': 'b.0', 'key_type': defs.Indexer}),
+		('a[0]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Var, 'key': '0', 'key_type': defs.Integer}),
+		('a[b]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Var, 'key': 'b', 'key_type': defs.Var}),
+		('a[b()]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Var, 'key': 'b', 'key_type': defs.FuncCall}),
+		('a[b.c]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Var, 'key': 'b.c', 'key_type': defs.Relay}),
+		('a[b[0]]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Var, 'key': 'b.0', 'key_type': defs.Indexer}),
 		('a()["b"]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.FuncCall, 'key': '"b"', 'key_type': defs.String}),
 		('a[0]["b"]', 'file_input.getitem', {'receiver': 'a.0', 'receiver_type': defs.Indexer, 'key': '"b"', 'key_type': defs.String}),
 	])
@@ -846,13 +846,13 @@ class TestDefinition(TestCase):
 	@data_provider([
 		('a(b, c)', 'file_input.funccall', {
 			'type': defs.FuncCall,
-			'calls': {'symbol': 'a', 'var_type': defs.Variable},
-			'arguments': [{'symbol': 'b', 'var_type': defs.Variable}, {'symbol': 'c', 'var_type': defs.Variable}]
+			'calls': {'symbol': 'a', 'var_type': defs.Var},
+			'arguments': [{'symbol': 'b', 'var_type': defs.Var}, {'symbol': 'c', 'var_type': defs.Var}]
 		}),
 		('super(b, c)', 'file_input.funccall', {
 			'type': defs.Super,
-			'calls': {'symbol': 'super', 'var_type': defs.Variable},
-			'arguments': [{'symbol': 'b', 'var_type': defs.Variable}, {'symbol': 'c', 'var_type': defs.Variable}]
+			'calls': {'symbol': 'super', 'var_type': defs.Var},
+			'arguments': [{'symbol': 'b', 'var_type': defs.Var}, {'symbol': 'c', 'var_type': defs.Var}]
 		}),
 	])
 	def test_func_call(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
@@ -867,8 +867,8 @@ class TestDefinition(TestCase):
 			self.assertEqual(type(argument.value), in_expected['var_type'])
 
 	@data_provider([
-		('a(b)', 'file_input.funccall.arguments.argvalue', {'label': 'Empty', 'value': defs.Variable}),
-		('a(label=b)', 'file_input.funccall.arguments.argvalue', {'label': 'label', 'value': defs.Variable}),
+		('a(b)', 'file_input.funccall.arguments.argvalue', {'label': 'Empty', 'value': defs.Var}),
+		('a(label=b)', 'file_input.funccall.arguments.argvalue', {'label': 'label', 'value': defs.Var}),
 	])
 	def test_argument(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Argument)
@@ -943,7 +943,7 @@ class TestDefinition(TestCase):
 				self.assertEqual(type(element), in_expected)
 
 	@data_provider([
-		('a if b else c', 'file_input.tenary_test', {'primary': defs.Variable, 'condition': defs.Variable, 'secondary': defs.Variable}),
+		('a if b else c', 'file_input.tenary_test', {'primary': defs.Var, 'condition': defs.Var, 'secondary': defs.Var}),
 		('a = 1 if True else 2', 'file_input.assign.tenary_test', {'primary': defs.Integer, 'condition': defs.Truthy, 'secondary': defs.Integer}),
 	])
 	def test_tenary_operator(self, source: str, full_path: str, expected: dict[str, Any]) -> None:

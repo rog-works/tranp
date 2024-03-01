@@ -173,10 +173,11 @@ class Relay(Reference, IDomain):
 		return self._at(0).one_of(Reference | FuncCall | Generator | Literal)
 
 	@property
-	def prop(self) -> 'Variable':
-		return self._at(1).as_a(Variable)
+	def prop(self) -> 'Var':
+		return self._at(1).as_a(Var)
 
 
+@Meta.embed(Node, accept_tags('var', 'name'))
 class Var(Reference, IDomain, ITerminal):
 	@property
 	@override
@@ -200,16 +201,6 @@ class ThisRef(Var):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
 		return via.tokens == 'self'
-
-
-@Meta.embed(Node, accept_tags('var', 'name'))
-class Variable(Var):
-	"""
-	Note:
-		XXX 'var'/'name'のmatch_featureループの終着点として排他的に決定(実質的なフォールバック)
-		XXX 'var'だけで本質的には問題ないはずだが、AltClass.symbol/TemplateClass.symbolで'name'が使われており、受け口が無いとエラーになるため'name'を受け入れ
-	"""
-	pass
 
 
 @Meta.embed(Node, accept_tags('getitem'))
@@ -267,8 +258,8 @@ class RelayOfType(GeneralType):
 		return self._at(0).one_of(RelayOfType | VarOfType)
 
 	@property
-	def prop(self) -> Variable:
-		return self._at(1).as_a(Variable)
+	def prop(self) -> Var:
+		return self._at(1).as_a(Var)
 
 
 @Meta.embed(Node, accept_tags('typed_var'))

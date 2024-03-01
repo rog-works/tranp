@@ -20,6 +20,8 @@ def symbol_mapping() -> SymbolMapping:
 
 	Returns:
 		SymbolMapping: シンボルマッピングデータ
+	Note:
+		登録順にmatch_featureで評価されるため、整形目的で並び順を変更しないこと
 	"""
 	return SymbolMapping[Node](
 		symbols={
@@ -70,7 +72,7 @@ def symbol_mapping() -> SymbolMapping:
 			defs.Relay: ['getattr'],
 			defs.ClassRef: ['var'],
 			defs.ThisRef: ['var'],
-			defs.Variable: ['var', 'name'],
+			defs.Var: ['var', 'name'],
 			defs.Indexer: ['getitem'],
 			defs.ImportPath: ['dotted_name'],
 			defs.DecoratorPath: ['dotted_name'],

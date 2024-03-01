@@ -156,9 +156,9 @@ class Py2Cpp:
 		return iterates
 
 	def on_for(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
-		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Variable) and node.iterates.calls.tokens == range.__name__:
+		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Var) and node.iterates.calls.tokens == range.__name__:
 			return self.proc_for_range(node, symbols, for_in, statements)
-		elif isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Variable) and node.iterates.calls.tokens == enumerate.__name__:
+		elif isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Var) and node.iterates.calls.tokens == enumerate.__name__:
 			return self.proc_for_enumerate(node, symbols, for_in, statements)
 		elif isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Relay) and node.iterates.calls.prop.tokens == dict.items.__name__:
 			return self.proc_for_dict_items(node, symbols, for_in, statements)
@@ -186,9 +186,9 @@ class Py2Cpp:
 
 	def on_comp_for(self, node: defs.CompFor, symbols: list[str], for_in: str) -> str:
 		"""Note: XXX range/enumerateは効率・可読性共に非常に悪いため非サポート"""
-		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Variable) and node.iterates.calls.tokens == range.__name__:
+		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Var) and node.iterates.calls.tokens == range.__name__:
 			raise LogicError(f'Operation not allowed. "range" is not supported. node: {node}')
-		elif isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Variable) and node.iterates.calls.tokens == enumerate.__name__:
+		elif isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Var) and node.iterates.calls.tokens == enumerate.__name__:
 			raise LogicError(f'Operation not allowed. "enumerate" is not supported. node: {node}')
 		elif isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Relay) and node.iterates.calls.prop.tokens == dict.items.__name__:
 			iterates = cast(re.Match, re.fullmatch(r'(.+)\.items\(\)', for_in))[1]
@@ -418,7 +418,7 @@ class Py2Cpp:
 		def is_class_access() -> bool:
 			# XXX superは一般的には親クラスのインスタンスへの参照だが、C++ではクラス参照と同じ修飾子によってアクセスするため、例外的に判定に加える
 			is_class_alias = isinstance(node.receiver, (defs.ClassRef, defs.Super))
-			is_class_var_relay = node.receiver.is_a(defs.Relay, defs.Variable) and receiver_symbol.decl.is_a(defs.Class)
+			is_class_var_relay = node.receiver.is_a(defs.Relay, defs.Var) and receiver_symbol.decl.is_a(defs.Class)
 			return is_class_alias or is_class_var_relay
 
 		if is_this_access():
@@ -446,7 +446,7 @@ class Py2Cpp:
 	def on_argument_label(self, node: defs.ArgumentLabel) -> str:
 		return node.tokens
 
-	def on_variable(self, node: defs.Variable) -> str:
+	def on_var(self, node: defs.Var) -> str:
 		symbol = self.symbols.type_of(node)
 		if isinstance(symbol.decl, defs.ClassDef):
 			return self.to_domain_name_by_class(symbol.types)
@@ -590,9 +590,9 @@ class Py2Cpp:
 			return 'len', None
 		elif calls == 'print':
 			return 'print', None
-		elif isinstance(node.calls, defs.Variable) and node.calls.tokens == 'list':
+		elif isinstance(node.calls, defs.Var) and node.calls.tokens == 'list':
 			return 'new_list', None
-		elif isinstance(node.calls, defs.Variable) and node.calls.tokens in ['int', 'float', 'bool', 'str']:
+		elif isinstance(node.calls, defs.Var) and node.calls.tokens in ['int', 'float', 'bool', 'str']:
 			org_calls = node.calls.tokens
 			casted_types = {'int': int, 'float': float, 'bool': bool, 'str': str}
 			from_raw = self.symbols.type_of(node.arguments[0])
@@ -613,7 +613,7 @@ class Py2Cpp:
 				key_attr, value_attr = context.attrs
 				attr_indexs = {'pop': value_attr, 'keys': key_attr, 'values': value_attr}
 				return f'dict_{prop}', attr_indexs[prop]
-		elif isinstance(node.calls, defs.Variable) and node.calls.tokens in CVars.keys():
+		elif isinstance(node.calls, defs.Var) and node.calls.tokens in CVars.keys():
 			return f'to_cvar_{node.calls.tokens}', None
 		elif isinstance(node.calls, defs.Relay) and node.calls.prop.tokens == CVars.allocator_key:
 			context = self.symbols.type_of(node.calls).context
@@ -624,7 +624,7 @@ class Py2Cpp:
 				new_type_raw = self.symbols.type_of(node.arguments[0])
 				spec = 'new_cvar_sp_list' if self.symbols.is_a(new_type_raw, list) else 'new_cvar_sp'
 				return spec, new_type_raw
-		elif isinstance(node.calls, (defs.Relay, defs.Variable)):
+		elif isinstance(node.calls, (defs.Relay, defs.Var)):
 			raw = self.symbols.type_of(node.calls)
 			if raw.types.is_a(defs.Enum):
 				return 'new_enum', raw

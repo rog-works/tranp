@@ -8,7 +8,7 @@ from rogw.tranp.node.accessible import ClassOperations
 from rogw.tranp.node.definition.accessible import PythonClassOperations, to_access
 from rogw.tranp.node.definition.element import Decorator, Parameter
 from rogw.tranp.node.definition.literal import DocString, String
-from rogw.tranp.node.definition.primary import Argument, CustomType, DeclClassVar, DeclLocalVar, Declable, ForIn, InheritArgument, DeclThisParam, DeclThisVar, Type, TypesName, VarOfType, Variable
+from rogw.tranp.node.definition.primary import Argument, CustomType, DeclClassVar, DeclLocalVar, Declable, ForIn, InheritArgument, DeclThisParam, DeclThisVar, Type, TypesName, VarOfType
 from rogw.tranp.node.definition.statement_simple import AnnoAssign, MoveAssign
 from rogw.tranp.node.definition.terminal import Empty
 from rogw.tranp.node.embed import Meta, accept_tags, expandable

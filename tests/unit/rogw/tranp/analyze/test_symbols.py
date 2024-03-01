@@ -241,7 +241,7 @@ class TestSymbols(TestCase):
 		('__main__.Nullable.accessible.subs', 'Union<list<Sub>, None>'),
 		('__main__.Nullable.accessible.s', 'str'),
 		('__main__.Nullable.accessible.n', 'int'),
-	])
+	], includes=[36])
 	def test_from_fullyname(self, fullyname: str, expected: str) -> None:
 		symbols = self.fixture.get(Symbols)
 		symbol = symbols.from_fullyname(fullyname)

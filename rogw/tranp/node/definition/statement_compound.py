@@ -274,12 +274,12 @@ class ClassDef(Node, IDomain, IScope, IDeclaration, ISymbol):
 
 	@property
 	def actual_symbol(self) -> str | None:
-		embeder = self._dig_embeder(__actual__.__name__)
-		return embeder.arguments[0].value.as_a(String).plain if embeder else None
+		embedder = self._dig_embedder(__actual__.__name__)
+		return embedder.arguments[0].value.as_a(String).plain if embedder else None
 
 	@property
 	def has_alias(self) -> bool:
-		return self._dig_embeder(__alias__.__name__) is not None
+		return self._dig_embedder(__alias__.__name__) is not None
 
 	def ancestor_classes(self) -> list['ClassDef']:
 		"""Note: XXX 振る舞いとして必然性のないメソッド。ユースケースはClassSymbolMakerとの連携のみ"""
@@ -301,17 +301,17 @@ class ClassDef(Node, IDomain, IScope, IDeclaration, ISymbol):
 		Returns:
 			list[Type]: テンプレートタイプのリスト
 		"""
-		embeder = self._dig_embeder(__hint_generic__.__name__)
-		if embeder is None:
+		embedder = self._dig_embedder(__hint_generic__.__name__)
+		if embedder is None:
 			return []
 
 		def make_type_dummy(org_argument: Argument) -> Type:
 			# XXX VarOfTypeのスキームが変わると破綻するので注意
 			return org_argument.dirty_child(VarOfType, 'typed_var', domain_name=org_argument.tokens, type_name=org_argument)
 
-		return [make_type_dummy(argument) for argument in embeder.arguments]
+		return [make_type_dummy(argument) for argument in embedder.arguments]
 
-	def _dig_embeder(self, identifier: str) -> Decorator | None:
+	def _dig_embedder(self, identifier: str) -> Decorator | None:
 		"""埋め込みデコレーターを取得
 
 		Args:

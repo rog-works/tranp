@@ -1,11 +1,11 @@
 from rogw.tranp.errors import Error
 
 
-class LexicalError(Error):
+class SemanticsError(Error):
 	"""意味解析由来のエラー"""
 	pass
 
-class UnresolvedSymbolError(LexicalError):
+class UnresolvedSymbolError(SemanticsError):
 	"""シンボルの解決に失敗
 
 	Note:
@@ -15,18 +15,18 @@ class UnresolvedSymbolError(LexicalError):
 	"""
 	pass
 
-class MustBeImplementedError(LexicalError):
+class MustBeImplementedError(SemanticsError):
 	"""必須の機能(クラス/ファンクション)の実装漏れ"""
 	pass
 
-class SymbolNotDefinedError(LexicalError):
+class SymbolNotDefinedError(SemanticsError):
 	"""未定義のシンボルを検索"""
 	pass
 
-class OperationNotAllowedError(LexicalError):
+class OperationNotAllowedError(SemanticsError):
 	"""シンボル同士の許可されない(または未実装)の演算を指定"""
 	pass
 
-class ProcessingError(LexicalError):
+class ProcessingError(SemanticsError):
 	"""意味解析中の未特定の実行エラー"""
 	pass

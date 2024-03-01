@@ -1,7 +1,7 @@
 from types import UnionType
 
 from rogw.tranp.analyze.db import SymbolDB
-from rogw.tranp.analyze.errors import LexicalError, OperationNotAllowedError, UnresolvedSymbolError
+from rogw.tranp.analyze.errors import SemanticsError, OperationNotAllowedError, UnresolvedSymbolError
 from rogw.tranp.analyze.plugin import PluginProvider
 from rogw.tranp.analyze.symbol import SymbolRaw
 from rogw.tranp.analyze.procedure import Procedure
@@ -34,7 +34,7 @@ class Symbols:
 		for plugin in plugins():
 			plugin.register(self.__procedural_resolver.procedure)
 
-	@raises(UnresolvedSymbolError, LexicalError)
+	@raises(UnresolvedSymbolError, SemanticsError)
 	def is_a(self, symbol: SymbolRaw, standard_type: type[Standards] | None) -> bool:
 		"""シンボルの型を判定
 
@@ -48,7 +48,7 @@ class Symbols:
 		"""
 		return symbol.types == self.type_of_standard(standard_type).types
 
-	@raises(UnresolvedSymbolError, LexicalError)
+	@raises(UnresolvedSymbolError, SemanticsError)
 	def get_object(self) -> SymbolRaw:
 		"""objectのシンボルを取得
 
@@ -59,7 +59,7 @@ class Symbols:
 		"""
 		return self.__finder.get_object(self.__raws)
 
-	@raises(UnresolvedSymbolError, LexicalError)
+	@raises(UnresolvedSymbolError, SemanticsError)
 	def from_fullyname(self, fullyname: str) -> SymbolRaw:
 		"""完全参照名からシンボルを解決
 
@@ -72,7 +72,7 @@ class Symbols:
 		"""
 		return self.__finder.by(self.__raws, fullyname)
 
-	@raises(UnresolvedSymbolError, LexicalError)
+	@raises(UnresolvedSymbolError, SemanticsError)
 	def type_of_standard(self, standard_type: type[Standards] | None) -> SymbolRaw:
 		"""標準クラスのシンボルを解決
 
@@ -85,7 +85,7 @@ class Symbols:
 		"""
 		return self.__finder.by_standard(self.__raws, standard_type)
 
-	@raises(UnresolvedSymbolError, LexicalError)
+	@raises(UnresolvedSymbolError, SemanticsError)
 	def type_of_property(self, types: defs.ClassDef, prop: defs.Var) -> SymbolRaw:
 		"""クラス定義ノードと変数参照ノードからプロパティーのシンボルを解決
 
@@ -99,7 +99,7 @@ class Symbols:
 		"""
 		return self.resolve(types, prop.tokens)
 
-	@raises(UnresolvedSymbolError, LexicalError)
+	@raises(UnresolvedSymbolError, SemanticsError)
 	def type_of_constructor(self, types: defs.Class) -> SymbolRaw:
 		"""クラス定義ノードからコンストラクターのシンボルを解決
 
@@ -112,7 +112,7 @@ class Symbols:
 		"""
 		return self.resolve(types, types.operations.constructor)
 
-	@raises(UnresolvedSymbolError, LexicalError)
+	@raises(UnresolvedSymbolError, SemanticsError)
 	def type_of(self, node: Node) -> SymbolRaw:
 		"""シンボル系/式ノードからシンボルを解決 XXX 万能過ぎるので細分化を検討
 
@@ -148,7 +148,7 @@ class Symbols:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			LexicalError: シンボルの解決に失敗
+			SemanticsError: シンボルの解決に失敗
 		"""
 		if isinstance(node, defs.Var):
 			return self.resolve(node)
@@ -164,7 +164,7 @@ class Symbols:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			LexicalError: シンボルの解決に失敗
+			SemanticsError: シンボルの解決に失敗
 		"""
 		if isinstance(node, defs.For):
 			return self.__resolve_procedural(node.for_in)
@@ -180,7 +180,7 @@ class Symbols:
 		Returns:
 			SymbolRaw: シンボル
 		Raises:
-			LexicalError: シンボルの解決に失敗
+			SemanticsError: シンボルの解決に失敗
 		"""
 		if isinstance(node, defs.Comprehension):
 			projection_type = list if node.is_a(defs.ListComp) else dict
@@ -195,7 +195,7 @@ class Symbols:
 			# CompFor
 			return self.__resolve_procedural(node.for_in)
 
-	@raises(UnresolvedSymbolError, LexicalError)
+	@raises(UnresolvedSymbolError, SemanticsError)
 	def resolve(self, symbolic: defs.Symbolic, prop_name: str = '') -> SymbolRaw:
 		"""シンボルテーブルからシンボルを解決
 

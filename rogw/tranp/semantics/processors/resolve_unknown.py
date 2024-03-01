@@ -5,7 +5,7 @@ from rogw.tranp.lang.locator import Invoker
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.syntax.node.promise import IDeclaration
-from rogw.tranp.semantics.symbol import SymbolProxy, SymbolRaw, SymbolRaws
+from rogw.tranp.semantics.symbol import SymbolProxy, Reflection, SymbolRaws
 from rogw.tranp.semantics.symbols import Symbols
 
 
@@ -48,7 +48,7 @@ class ResolveUnknown:
 		return raws
 
 	@injectable
-	def resolver(self, symbols: Symbols, var_raw: SymbolRaw, value_node: Node) -> SymbolRaw:
+	def resolver(self, symbols: Symbols, var_raw: Reflection, value_node: Node) -> Reflection:
 		"""シンボルの右辺値を解決したシンボルを生成
 
 		Args:
@@ -62,7 +62,7 @@ class ResolveUnknown:
 		"""
 		return self.unpack_value(var_raw, symbols.type_of(value_node)).to.var(var_raw.decl)
 
-	def make_resolver(self, raw: SymbolRaw, value_node: Node) -> Callable[[], SymbolRaw]:
+	def make_resolver(self, raw: Reflection, value_node: Node) -> Callable[[], Reflection]:
 		"""シンボルリゾルバーを生成
 
 		Args:
@@ -73,7 +73,7 @@ class ResolveUnknown:
 		"""
 		return lambda: self.invoker(self.resolver, raw, value_node)
 
-	def unpack_value(self, var_raw: SymbolRaw, value_raw: SymbolRaw) -> SymbolRaw:
+	def unpack_value(self, var_raw: Reflection, value_raw: Reflection) -> Reflection:
 		"""右辺値の型をアンパックして左辺の変数の型を解決
 
 		Args:

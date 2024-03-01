@@ -2,6 +2,7 @@ from abc import ABCMeta, abstractmethod
 from enum import Enum
 from typing import Iterator, Self, TypeVar
 
+from rogw.tranp.lang.implementation import override
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 
@@ -47,7 +48,7 @@ class Container(dict[str, T_Raw]):
 		Returns:
 			Self: 生成したインスタンス
 		"""
-		raise NotImplementedError()
+		return cls().merge(*raws)
 
 	def merge(self, *raws: Self | dict[str, T_Raw]) -> Self:
 		"""指定のシンボルテーブルと結合
@@ -57,7 +58,24 @@ class Container(dict[str, T_Raw]):
 		Returns:
 			Self: 自己参照
 		"""
-		raise NotImplementedError()
+		for in_raws in raws:
+			self.update(**in_raws)
+
+		for raw in self.values():
+			raw.set_raws(self)
+
+		return self
+
+	@override
+	def __setitem__(self, key: str, raw: T_Raw) -> None:
+		"""配列要素設定のオーバーロード
+
+		Args:
+			key (str): 要素名
+			raw (T_Raw): シンボル
+		"""
+		raw.set_raws(self)
+		super().__setitem__(key, raw)
 
 
 class IWrapper:

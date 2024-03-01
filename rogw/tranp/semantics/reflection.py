@@ -5,12 +5,12 @@ from rogw.tranp.lang.implementation import override
 import rogw.tranp.lang.sequence as seqs
 from rogw.tranp.syntax.ast.dsn import DSN
 import rogw.tranp.syntax.node.definition as defs
-from rogw.tranp.semantics.symbol import SymbolRaw
+from rogw.tranp.semantics.symbol import Reflection
 
-T_Ref = TypeVar('T_Ref', bound='Reflection')
-T_Sym = TypeVar('T_Sym', SymbolRaw, list[SymbolRaw], 'Object')
+T_Ref = TypeVar('T_Ref', bound='Reflected')
+T_Sym = TypeVar('T_Sym', Reflection, list[Reflection], 'Object')
 
-InjectSchemata: TypeAlias = dict[str, SymbolRaw | list[SymbolRaw]]
+InjectSchemata: TypeAlias = dict[str, Reflection | list[Reflection]]
 Injector: TypeAlias = Callable[[], InjectSchemata]
 
 
@@ -41,10 +41,10 @@ class Schema(Generic[T_Sym]):
 		raise LogicError(f'Schema not defined. key: {key}')
 
 
-class Reflection:
+class Reflected:
 	"""リフレクション"""
 
-	def __init__(self, symbol: SymbolRaw, schemata: InjectSchemata) -> None:
+	def __init__(self, symbol: Reflection, schemata: InjectSchemata) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -52,8 +52,8 @@ class Reflection:
 			schemata (InjectSchemata): プロパティー名とシンボルのマップ情報
 		"""
 		self.symbol = symbol
-		self.schema = Schema[SymbolRaw]({key: schema for key, schema in schemata.items() if isinstance(schema, SymbolRaw)})
-		self.schemata = Schema[list[SymbolRaw]]({key: schema for key, schema in schemata.items() if type(schema) is list})
+		self.schema = Schema[Reflection]({key: schema for key, schema in schemata.items() if isinstance(schema, Reflection)})
+		self.schemata = Schema[list[Reflection]]({key: schema for key, schema in schemata.items() if type(schema) is list})
 
 	@property
 	def types(self) -> defs.ClassDef:
@@ -65,7 +65,7 @@ class Reflection:
 		"""str: シンボルの短縮表記"""
 		return str(self.symbol)
 
-	def is_a(self, *ctors: type['Reflection']) -> bool:
+	def is_a(self, *ctors: type['Reflected']) -> bool:
 		"""指定のクラスと同じか派生クラスか判定
 
 		Args:
@@ -91,7 +91,7 @@ class Reflection:
 		raise LogicError(f'Cast not allowed. from: {self.__class__}, to: {ctor}')
 
 
-class Object(Reflection):
+class Object(Reflected):
 	"""全クラスの基底クラス"""
 	pass
 
@@ -117,7 +117,7 @@ class Instance(Object):
 class Function(Object):
 	"""全ファンクションの基底クラス。メソッド/クロージャー以外のファンクションが対象"""
 
-	def parameter(self, index: int, *context: SymbolRaw) -> SymbolRaw:
+	def parameter(self, index: int, *context: Reflection) -> Reflection:
 		"""引数の実行時型を解決
 
 		Args:
@@ -129,7 +129,7 @@ class Function(Object):
 		argument, *_ = context
 		return argument
 
-	def returns(self, *arguments: SymbolRaw) -> SymbolRaw:
+	def returns(self, *arguments: Reflection) -> Reflection:
 		"""戻り値の実行時型を解決
 
 		Args:
@@ -165,7 +165,7 @@ class Method(Function):
 	"""全メソッドの基底クラス。クラスメソッド/コンストラクター以外のメソッドが対象"""
 
 	@override
-	def parameter(self, index: int, *context: SymbolRaw) -> SymbolRaw:
+	def parameter(self, index: int, *context: Reflection) -> Reflection:
 		"""引数の実行時型を解決
 
 		Args:
@@ -186,7 +186,7 @@ class Method(Function):
 		return TemplateManipulator.apply(parameter.clone(), map_props, updates)
 
 	@override
-	def returns(self, *arguments: SymbolRaw) -> SymbolRaw:
+	def returns(self, *arguments: Reflection) -> Reflection:
 		"""戻り値の実行時型を解決
 
 		Args:
@@ -226,7 +226,7 @@ class Constructor(Method):
 
 
 TemplateMap: TypeAlias = dict[str, defs.TemplateClass]
-SymbolMap: TypeAlias = dict[str, SymbolRaw]
+SymbolMap: TypeAlias = dict[str, Reflection]
 UpdateMap: TypeAlias = dict[str, str]
 
 
@@ -234,7 +234,7 @@ class TemplateManipulator:
 	"""テンプレート操作"""
 
 	@classmethod
-	def unpack_templates(cls, **attrs: SymbolRaw | list[SymbolRaw]) -> TemplateMap:
+	def unpack_templates(cls, **attrs: Reflection | list[Reflection]) -> TemplateMap:
 		"""シンボル/属性からテンプレート型(タイプ再定義ノード)を平坦化して抽出
 
 		Args:
@@ -246,7 +246,7 @@ class TemplateManipulator:
 		return {path: attr.types for path, attr in expand_attrs.items() if isinstance(attr.types, defs.TemplateClass)}
 
 	@classmethod
-	def unpack_symbols(cls, **attrs: SymbolRaw | list[SymbolRaw]) -> SymbolMap:
+	def unpack_symbols(cls, **attrs: Reflection | list[Reflection]) -> SymbolMap:
 		"""シンボル/属性を平坦化して抽出
 
 		Args:
@@ -279,7 +279,7 @@ class TemplateManipulator:
 		return updates
 
 	@classmethod
-	def apply(cls, primary: SymbolRaw, actual_props: SymbolMap, updates: UpdateMap) -> SymbolRaw:
+	def apply(cls, primary: Reflection, actual_props: SymbolMap, updates: UpdateMap) -> Reflection:
 		"""シンボルに実行時型を適用する
 
 		Args:
@@ -303,7 +303,7 @@ class TemplateManipulator:
 class Builder:
 	"""リフレクションビルダー"""
 
-	def __init__(self, symbol: SymbolRaw) -> None:
+	def __init__(self, symbol: Reflection) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -317,7 +317,7 @@ class Builder:
 		"""str: 編集中のキー"""
 		return list(self.__case_of_injectors.keys())[-1]
 
-	def case(self, expect: type[Reflection]) -> 'Builder':
+	def case(self, expect: type[Reflected]) -> 'Builder':
 		"""ケースを挿入
 
 		Args:
@@ -358,7 +358,7 @@ class Builder:
 		Raises:
 			LogicError: ビルド対象が期待する型と不一致 XXX 出力する例外は要件等
 		"""
-		ctors: dict[type[defs.ClassDef], type[Reflection]] = {
+		ctors: dict[type[defs.ClassDef], type[Reflected]] = {
 			defs.Function: Function,
 			defs.ClassMethod: ClassMethod,
 			defs.Method: Method,
@@ -373,7 +373,7 @@ class Builder:
 		injector = self.__resolve_injector(ctor)
 		return ctor(self.__symbol, injector())
 
-	def __resolve_injector(self, ctor: type[Reflection]) -> Injector:
+	def __resolve_injector(self, ctor: type[Reflected]) -> Injector:
 		"""生成時に注入するスキーマを取得
 
 		Args:
@@ -382,7 +382,7 @@ class Builder:
 			Injector: スキーマファクトリー
 		"""
 		for ctor_ in ctor.__mro__:
-			if not issubclass(ctor_, Reflection):
+			if not issubclass(ctor_, Reflected):
 				break
 
 			if ctor_.__name__ in self.__case_of_injectors:

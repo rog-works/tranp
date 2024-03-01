@@ -3,7 +3,7 @@ from typing import ClassVar
 
 import rogw.tranp.compatible.cpp.object as cpp
 from rogw.tranp.lang.implementation import deprecated
-from rogw.tranp.semantics.symbol import SymbolRaw
+from rogw.tranp.semantics.symbol import Reflection
 from rogw.tranp.semantics.symbols import Symbols
 
 
@@ -56,7 +56,7 @@ class CVars:
 
 	@classmethod
 	@deprecated
-	def analyze_move(cls, symbols: Symbols, accept: SymbolRaw, value: SymbolRaw, value_on_new: bool, declared: bool) -> Moves:
+	def analyze_move(cls, symbols: Symbols, accept: Reflection, value: Reflection, value_on_new: bool, declared: bool) -> Moves:
 		"""移動操作を解析
 
 		Args:
@@ -187,7 +187,7 @@ class CVars:
 		return [cvar.__name__ for cvar in [cpp.CP, cpp.CSP, cpp.CRef, cpp.CRaw]]
 
 	@classmethod
-	def key_from(cls, symbols: Symbols, symbol: SymbolRaw) -> str:
+	def key_from(cls, symbols: Symbols, symbol: Reflection) -> str:
 		"""シンボルからC++変数型の種別キーを取得
 
 		Args:

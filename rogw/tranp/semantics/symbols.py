@@ -12,7 +12,7 @@ from rogw.tranp.semantics.errors import SemanticsError, OperationNotAllowedError
 from rogw.tranp.semantics.finder import SymbolFinder
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.semantics.procedure import Procedure
-from rogw.tranp.semantics.symbol import SymbolRaw
+from rogw.tranp.semantics.symbol import Reflection
 
 
 class Symbols:
@@ -35,7 +35,7 @@ class Symbols:
 			plugin.register(self.__procedural_resolver.procedure)
 
 	@raises(UnresolvedSymbolError, SemanticsError)
-	def is_a(self, symbol: SymbolRaw, standard_type: type[Standards] | None) -> bool:
+	def is_a(self, symbol: Reflection, standard_type: type[Standards] | None) -> bool:
 		"""シンボルの型を判定
 
 		Args:
@@ -49,7 +49,7 @@ class Symbols:
 		return symbol.types == self.type_of_standard(standard_type).types
 
 	@raises(UnresolvedSymbolError, SemanticsError)
-	def get_object(self) -> SymbolRaw:
+	def get_object(self) -> Reflection:
 		"""objectのシンボルを取得
 
 		Returns:
@@ -60,7 +60,7 @@ class Symbols:
 		return self.__finder.get_object(self.__raws)
 
 	@raises(UnresolvedSymbolError, SemanticsError)
-	def from_fullyname(self, fullyname: str) -> SymbolRaw:
+	def from_fullyname(self, fullyname: str) -> Reflection:
 		"""完全参照名からシンボルを解決
 
 		Args:
@@ -73,7 +73,7 @@ class Symbols:
 		return self.__finder.by(self.__raws, fullyname)
 
 	@raises(UnresolvedSymbolError, SemanticsError)
-	def type_of_standard(self, standard_type: type[Standards] | None) -> SymbolRaw:
+	def type_of_standard(self, standard_type: type[Standards] | None) -> Reflection:
 		"""標準クラスのシンボルを解決
 
 		Args:
@@ -86,7 +86,7 @@ class Symbols:
 		return self.__finder.by_standard(self.__raws, standard_type)
 
 	@raises(UnresolvedSymbolError, SemanticsError)
-	def type_of_property(self, types: defs.ClassDef, prop: defs.Var) -> SymbolRaw:
+	def type_of_property(self, types: defs.ClassDef, prop: defs.Var) -> Reflection:
 		"""クラス定義ノードと変数参照ノードからプロパティーのシンボルを解決
 
 		Args:
@@ -100,7 +100,7 @@ class Symbols:
 		return self.resolve(types, prop.tokens)
 
 	@raises(UnresolvedSymbolError, SemanticsError)
-	def type_of_constructor(self, types: defs.Class) -> SymbolRaw:
+	def type_of_constructor(self, types: defs.Class) -> Reflection:
 		"""クラス定義ノードからコンストラクターのシンボルを解決
 
 		Args:
@@ -113,7 +113,7 @@ class Symbols:
 		return self.resolve(types, types.operations.constructor)
 
 	@raises(UnresolvedSymbolError, SemanticsError)
-	def type_of(self, node: Node) -> SymbolRaw:
+	def type_of(self, node: Node) -> Reflection:
 		"""シンボル系/式ノードからシンボルを解決 XXX 万能過ぎるので細分化を検討
 
 		Args:
@@ -140,7 +140,7 @@ class Symbols:
 		else:
 			return self.__resolve_procedural(node)
 
-	def __from_reference(self, node: defs.Reference) -> SymbolRaw:
+	def __from_reference(self, node: defs.Reference) -> Reflection:
 		"""シンボル参照ノードからシンボルを解決
 
 		Args:
@@ -156,7 +156,7 @@ class Symbols:
 			# defs.Relay/defs.Indexer
 			return self.__resolve_procedural(node)
 
-	def __from_flow(self, node: defs.For | defs.Catch) -> SymbolRaw:
+	def __from_flow(self, node: defs.For | defs.Catch) -> Reflection:
 		"""制御構文ノードからシンボルを解決
 
 		Args:
@@ -172,7 +172,7 @@ class Symbols:
 			# defs.Catch
 			return self.resolve(node.var_type)
 
-	def __from_comprehension(self, node: defs.Comprehension | defs.CompFor) -> SymbolRaw:
+	def __from_comprehension(self, node: defs.Comprehension | defs.CompFor) -> Reflection:
 		"""リスト内包表記関連ノードからシンボルを解決
 
 		Args:
@@ -196,7 +196,7 @@ class Symbols:
 			return self.__resolve_procedural(node.for_in)
 
 	@raises(UnresolvedSymbolError, SemanticsError)
-	def resolve(self, symbolic: defs.Symbolic, prop_name: str = '') -> SymbolRaw:
+	def resolve(self, symbolic: defs.Symbolic, prop_name: str = '') -> Reflection:
 		"""シンボルテーブルからシンボルを解決
 
 		Args:
@@ -213,7 +213,7 @@ class Symbols:
 
 		raise UnresolvedSymbolError(f'symbolic: {symbolic.fullyname}, prop_name: {prop_name}')
 
-	def __resolve_raw(self, symbolic: defs.Symbolic, prop_name: str) -> SymbolRaw | None:
+	def __resolve_raw(self, symbolic: defs.Symbolic, prop_name: str) -> Reflection | None:
 		"""シンボル系ノードからシンボルを解決。未検出の場合はNoneを返却
 
 		Args:
@@ -228,7 +228,7 @@ class Symbols:
 
 		return symbol_raw
 
-	def __resolve_raw_recursive(self, types: defs.Class, prop_name: str) -> SymbolRaw | None:
+	def __resolve_raw_recursive(self, types: defs.Class, prop_name: str) -> Reflection | None:
 		"""クラスの継承チェーンを辿ってシンボルを解決。未検出の場合はNoneを返却
 
 		Args:
@@ -252,7 +252,7 @@ class Symbols:
 
 		return None
 
-	def __resolve_procedural(self, node: Node) -> SymbolRaw:
+	def __resolve_procedural(self, node: Node) -> Reflection:
 		"""ノードを展開してシンボルを解決
 
 		Args:
@@ -277,20 +277,20 @@ class ProceduralResolver:
 		self.symbols = symbols
 		self.procedure = self.__make_procedure()
 
-	def __make_procedure(self) -> Procedure[SymbolRaw]:
+	def __make_procedure(self) -> Procedure[Reflection]:
 		"""プロシージャーを生成
 
 		Returns:
 			Procedure[SymbolRaw]: プロシージャー
 		"""
 		handlers = {key: getattr(self, key) for key in ProceduralResolver.__dict__.keys() if key.startswith('on_')}
-		procedure = Procedure[SymbolRaw](verbose=False)
+		procedure = Procedure[Reflection](verbose=False)
 		for key, handler in handlers.items():
 			procedure.on(key, handler)
 
 		return procedure
 
-	def resolve(self, node: Node) -> SymbolRaw:
+	def resolve(self, node: Node) -> Reflection:
 		"""指定のノードからASTを再帰的に解析し、シンボルを解決
 
 		Args:
@@ -302,7 +302,7 @@ class ProceduralResolver:
 		"""
 		return self.procedure.exec(node)
 
-	def force_unpack_nullable(self, symbol: SymbolRaw) -> SymbolRaw:
+	def force_unpack_nullable(self, symbol: Reflection) -> Reflection:
 		"""Nullableのシンボルの変数の型をアンパック。Nullable以外の型はそのまま返却 (主にRelayで利用)
 
 		Args:
@@ -322,7 +322,7 @@ class ProceduralResolver:
 
 	# Fallback
 
-	def on_fallback(self, node: Node) -> SymbolRaw:
+	def on_fallback(self, node: Node) -> Reflection:
 		"""
 		Note:
 			シンボルとして解釈出来ないノードが対象。一律Unknownとして返却
@@ -333,7 +333,7 @@ class ProceduralResolver:
 
 	# Statement compound
 
-	def on_for_in(self, node: defs.ForIn, iterates: SymbolRaw) -> SymbolRaw:
+	def on_for_in(self, node: defs.ForIn, iterates: Reflection) -> Reflection:
 		"""
 		Note:
 			# iterates
@@ -351,7 +351,7 @@ class ProceduralResolver:
 		if isinstance(iterates.types, defs.AltClass):
 			iterates = iterates.attrs[0]
 
-		def resolve_method() -> tuple[SymbolRaw, str]:
+		def resolve_method() -> tuple[Reflection, str]:
 			try:
 				return self.symbols.resolve(iterates.types, iterates.types.operations.iterator), 'iterator'
 			except UnresolvedSymbolError:
@@ -373,51 +373,51 @@ class ProceduralResolver:
 
 	# Function/Class Elements
 
-	def on_parameter(self, node: defs.Parameter, symbol: SymbolRaw, var_type: SymbolRaw, default_value: SymbolRaw) -> SymbolRaw:
+	def on_parameter(self, node: defs.Parameter, symbol: Reflection, var_type: Reflection, default_value: Reflection) -> Reflection:
 		return symbol
 
 	# Statement simple
 
-	def on_anno_assign(self, node: defs.AnnoAssign, receiver: SymbolRaw, var_type: SymbolRaw, value: SymbolRaw) -> SymbolRaw:
+	def on_anno_assign(self, node: defs.AnnoAssign, receiver: Reflection, var_type: Reflection, value: Reflection) -> Reflection:
 		return receiver
 
-	def on_move_assign(self, node: defs.MoveAssign, receivers: list[SymbolRaw], value: SymbolRaw) -> SymbolRaw:
+	def on_move_assign(self, node: defs.MoveAssign, receivers: list[Reflection], value: Reflection) -> Reflection:
 		return value
 
-	def on_aug_assign(self, node: defs.AugAssign, receiver: SymbolRaw, operator: SymbolRaw, value: SymbolRaw) -> SymbolRaw:
+	def on_aug_assign(self, node: defs.AugAssign, receiver: Reflection, operator: Reflection, value: Reflection) -> Reflection:
 		return receiver
 
-	def on_return(self, node: defs.Return, return_value: SymbolRaw) -> SymbolRaw:
+	def on_return(self, node: defs.Return, return_value: Reflection) -> Reflection:
 		return return_value
 
 	# Primary
 
-	def on_argument_label(self, node: defs.ArgumentLabel) -> SymbolRaw:
+	def on_argument_label(self, node: defs.ArgumentLabel) -> Reflection:
 		"""Note: labelに型はないのでUnknownを返却"""
 		return self.symbols.type_of_standard(classes.Unknown)
 
-	def on_decl_class_var(self, node: defs.DeclClassVar) -> SymbolRaw:
+	def on_decl_class_var(self, node: defs.DeclClassVar) -> Reflection:
 		return self.symbols.resolve(node)
 
-	def on_decl_this_var(self, node: defs.DeclThisVar) -> SymbolRaw:
+	def on_decl_this_var(self, node: defs.DeclThisVar) -> Reflection:
 		return self.symbols.resolve(node)
 
-	def on_decl_class_param(self, node: defs.DeclClassParam) -> SymbolRaw:
+	def on_decl_class_param(self, node: defs.DeclClassParam) -> Reflection:
 		return self.symbols.resolve(node)
 
-	def on_decl_this_param(self, node: defs.DeclThisParam) -> SymbolRaw:
+	def on_decl_this_param(self, node: defs.DeclThisParam) -> Reflection:
 		return self.symbols.resolve(node)
 
-	def on_decl_local_var(self, node: defs.DeclLocalVar) -> SymbolRaw:
+	def on_decl_local_var(self, node: defs.DeclLocalVar) -> Reflection:
 		return self.symbols.resolve(node)
 
-	def on_types_name(self, node: defs.TypesName) -> SymbolRaw:
+	def on_types_name(self, node: defs.TypesName) -> Reflection:
 		return self.symbols.resolve(node)
 
-	def on_import_name(self, node: defs.ImportName) -> SymbolRaw:
+	def on_import_name(self, node: defs.ImportName) -> Reflection:
 		return self.symbols.resolve(node)
 
-	def on_relay(self, node: defs.Relay, receiver: SymbolRaw) -> SymbolRaw:
+	def on_relay(self, node: defs.Relay, receiver: Reflection) -> Reflection:
 		# # receiver
 		# var.prop: a.b: A.T
 		# var.func_call: a.b(): A.b() -> T
@@ -445,16 +445,16 @@ class ProceduralResolver:
 		else:
 			return prop.to.ref(node, context=accessable_receiver)
 
-	def on_class_ref(self, node: defs.ClassRef) -> SymbolRaw:
+	def on_class_ref(self, node: defs.ClassRef) -> Reflection:
 		return self.symbols.resolve(node).to.ref(node)
 
-	def on_this_ref(self, node: defs.ThisRef) -> SymbolRaw:
+	def on_this_ref(self, node: defs.ThisRef) -> Reflection:
 		return self.symbols.resolve(node).to.ref(node)
 
-	def on_var(self, node: defs.Var) -> SymbolRaw:
+	def on_var(self, node: defs.Var) -> Reflection:
 		return self.symbols.resolve(node).to.ref(node)
 
-	def on_indexer(self, node: defs.Indexer, receiver: SymbolRaw, key: SymbolRaw) -> SymbolRaw:
+	def on_indexer(self, node: defs.Indexer, receiver: Reflection, key: Reflection) -> Reflection:
 		if receiver.types.is_a(defs.AltClass):
 			receiver = receiver.attrs[0]
 
@@ -468,29 +468,29 @@ class ProceduralResolver:
 			# XXX この状況で何が取得されるべきかは利用側で判断することとする
 			return receiver.to.ref(node, context=receiver)
 
-	def on_relay_of_type(self, node: defs.RelayOfType, receiver: SymbolRaw) -> SymbolRaw:
+	def on_relay_of_type(self, node: defs.RelayOfType, receiver: Reflection) -> Reflection:
 		"""Note: XXX Pythonではtypeをアンパックする構文が存在しないためAltClassも同様に扱う"""
 		return self.symbols.type_of_property(receiver.types, node.prop)
 
-	def on_var_of_type(self, node: defs.VarOfType) -> SymbolRaw:
+	def on_var_of_type(self, node: defs.VarOfType) -> Reflection:
 		return self.symbols.resolve(node)
 
-	def on_list_type(self, node: defs.ListType, type_name: SymbolRaw, value_type: SymbolRaw) -> SymbolRaw:
+	def on_list_type(self, node: defs.ListType, type_name: Reflection, value_type: Reflection) -> Reflection:
 		return type_name.to.generic(node).extends(value_type)
 
-	def on_dict_type(self, node: defs.DictType, type_name: SymbolRaw, key_type: SymbolRaw, value_type: SymbolRaw) -> SymbolRaw:
+	def on_dict_type(self, node: defs.DictType, type_name: Reflection, key_type: Reflection, value_type: Reflection) -> Reflection:
 		return type_name.to.generic(node).extends(key_type, value_type)
 
-	def on_custom_type(self, node: defs.CustomType, type_name: SymbolRaw, template_types: list[SymbolRaw]) -> SymbolRaw:
+	def on_custom_type(self, node: defs.CustomType, type_name: Reflection, template_types: list[Reflection]) -> Reflection:
 		return type_name.to.generic(node).extends(*template_types)
 
-	def on_union_type(self, node: defs.UnionType, or_types: list[SymbolRaw]) -> SymbolRaw:
+	def on_union_type(self, node: defs.UnionType, or_types: list[Reflection]) -> Reflection:
 		return self.symbols.type_of_standard(UnionType).to.generic(node).extends(*or_types)
 
-	def on_null_type(self, node: defs.NullType) -> SymbolRaw:
+	def on_null_type(self, node: defs.NullType) -> Reflection:
 		return self.symbols.type_of_standard(None)
 
-	def on_func_call(self, node: defs.FuncCall, calls: SymbolRaw, arguments: list[SymbolRaw]) -> SymbolRaw:
+	def on_func_call(self, node: defs.FuncCall, calls: Reflection, arguments: list[Reflection]) -> Reflection:
 		"""
 		Note:
 			# calls
@@ -531,60 +531,60 @@ class ProceduralResolver:
 			else:
 				return func.returns(*arguments)
 
-	def on_super(self, node: defs.Super, calls: SymbolRaw, arguments: list[SymbolRaw]) -> SymbolRaw:
+	def on_super(self, node: defs.Super, calls: Reflection, arguments: list[Reflection]) -> Reflection:
 		return self.symbols.resolve(node.super_class_symbol)
 
-	def on_argument(self, node: defs.Argument, label: SymbolRaw, value: SymbolRaw) -> SymbolRaw:
+	def on_argument(self, node: defs.Argument, label: Reflection, value: Reflection) -> Reflection:
 		return value
 
-	def on_inherit_argument(self, node: defs.InheritArgument, class_type: SymbolRaw) -> SymbolRaw:
+	def on_inherit_argument(self, node: defs.InheritArgument, class_type: Reflection) -> Reflection:
 		return class_type
 
-	def on_comp_for(self, node: defs.CompFor, symbols: list[SymbolRaw], for_in: SymbolRaw) -> SymbolRaw:
+	def on_comp_for(self, node: defs.CompFor, symbols: list[Reflection], for_in: Reflection) -> Reflection:
 		return for_in
 
-	def on_list_comp(self, node: defs.ListComp, projection: SymbolRaw, fors: list[SymbolRaw], condition: SymbolRaw) -> SymbolRaw:
+	def on_list_comp(self, node: defs.ListComp, projection: Reflection, fors: list[Reflection], condition: Reflection) -> Reflection:
 		return projection
 
-	def on_dict_comp(self, node: defs.ListComp, projection: SymbolRaw, fors: list[SymbolRaw], condition: SymbolRaw) -> SymbolRaw:
+	def on_dict_comp(self, node: defs.ListComp, projection: Reflection, fors: list[Reflection], condition: Reflection) -> Reflection:
 		return projection
 
 	# Operator
 
-	def on_factor(self, node: defs.Factor, operator: SymbolRaw, value: SymbolRaw) -> SymbolRaw:
+	def on_factor(self, node: defs.Factor, operator: Reflection, value: Reflection) -> Reflection:
 		return value
 
-	def on_not_compare(self, node: defs.NotCompare, operator: SymbolRaw, value: SymbolRaw) -> SymbolRaw:
+	def on_not_compare(self, node: defs.NotCompare, operator: Reflection, value: Reflection) -> Reflection:
 		return self.symbols.type_of_standard(bool).to.result(node)
 
-	def on_or_compare(self, node: defs.OrCompare, elements: list[SymbolRaw]) -> SymbolRaw:
+	def on_or_compare(self, node: defs.OrCompare, elements: list[Reflection]) -> Reflection:
 		return self.each_binary_operator(node, elements)
 
-	def on_and_compare(self, node: defs.AndCompare, elements: list[SymbolRaw]) -> SymbolRaw:
+	def on_and_compare(self, node: defs.AndCompare, elements: list[Reflection]) -> Reflection:
 		return self.each_binary_operator(node, elements)
 
-	def on_comparison(self, node: defs.Comparison, elements: list[SymbolRaw]) -> SymbolRaw:
+	def on_comparison(self, node: defs.Comparison, elements: list[Reflection]) -> Reflection:
 		return self.each_binary_operator(node, elements)
 
-	def on_or_bitwise(self, node: defs.OrBitwise, elements: list[SymbolRaw]) -> SymbolRaw:
+	def on_or_bitwise(self, node: defs.OrBitwise, elements: list[Reflection]) -> Reflection:
 		return self.each_binary_operator(node, elements)
 
-	def on_xor_bitwise(self, node: defs.XorBitwise, elements: list[SymbolRaw]) -> SymbolRaw:
+	def on_xor_bitwise(self, node: defs.XorBitwise, elements: list[Reflection]) -> Reflection:
 		return self.each_binary_operator(node, elements)
 
-	def on_and_bitwise(self, node: defs.AndBitwise, elements: list[SymbolRaw]) -> SymbolRaw:
+	def on_and_bitwise(self, node: defs.AndBitwise, elements: list[Reflection]) -> Reflection:
 		return self.each_binary_operator(node, elements)
 
-	def on_shift_bitwise(self, node: defs.Sum, elements: list[SymbolRaw]) -> SymbolRaw:
+	def on_shift_bitwise(self, node: defs.Sum, elements: list[Reflection]) -> Reflection:
 		return self.each_binary_operator(node, elements)
 
-	def on_sum(self, node: defs.Sum, elements: list[SymbolRaw]) -> SymbolRaw:
+	def on_sum(self, node: defs.Sum, elements: list[Reflection]) -> Reflection:
 		return self.each_binary_operator(node, elements)
 
-	def on_term(self, node: defs.Term, elements: list[SymbolRaw]) -> SymbolRaw:
+	def on_term(self, node: defs.Term, elements: list[Reflection]) -> Reflection:
 		return self.each_binary_operator(node, elements)
 
-	def each_binary_operator(self, node: defs.BinaryOperator, elements: list[SymbolRaw]) -> SymbolRaw:
+	def each_binary_operator(self, node: defs.BinaryOperator, elements: list[Reflection]) -> Reflection:
 		node_of_elements = node.elements
 
 		operator_indexs = range(1, len(node_of_elements), 2)
@@ -598,10 +598,10 @@ class ProceduralResolver:
 
 		return left
 
-	def proc_binary_operator(self, node: defs.BinaryOperator, left: SymbolRaw, operator: defs.Terminal, right: SymbolRaw) -> SymbolRaw:
+	def proc_binary_operator(self, node: defs.BinaryOperator, left: Reflection, operator: defs.Terminal, right: Reflection) -> Reflection:
 		operator_name = operator.tokens
-		operands: list[SymbolRaw] = [left, right]
-		methods: list[SymbolRaw | None] = [None, None]
+		operands: list[Reflection] = [left, right]
+		methods: list[Reflection | None] = [None, None]
 		for index, operand in enumerate(operands):
 			try:
 				methods[index] = self.symbols.resolve(operand.types, operand.types.operations.operation_by(operator_name))
@@ -630,7 +630,7 @@ class ProceduralResolver:
 
 		raise OperationNotAllowedError(f'Signature not match. {node}, {str(left)} {operator.tokens} {str(right)}')
 
-	def on_tenary_operator(self, node: defs.TenaryOperator, primary: SymbolRaw, condition: SymbolRaw, secondary: SymbolRaw) -> SymbolRaw:
+	def on_tenary_operator(self, node: defs.TenaryOperator, primary: Reflection, condition: Reflection, secondary: Reflection) -> Reflection:
 		"""Note: 返却型が一致、またはNullableのみ許可"""
 		if primary == secondary:
 			return primary
@@ -646,32 +646,32 @@ class ProceduralResolver:
 
 	# Literal
 
-	def on_integer(self, node: defs.Integer) -> SymbolRaw:
+	def on_integer(self, node: defs.Integer) -> Reflection:
 		return self.symbols.type_of_standard(int)
 
-	def on_float(self, node: defs.Float) -> SymbolRaw:
+	def on_float(self, node: defs.Float) -> Reflection:
 		return self.symbols.type_of_standard(float)
 
-	def on_string(self, node: defs.String) -> SymbolRaw:
+	def on_string(self, node: defs.String) -> Reflection:
 		return self.symbols.type_of_standard(str)
 
-	def on_doc_string(self, node: defs.DocString) -> SymbolRaw:
+	def on_doc_string(self, node: defs.DocString) -> Reflection:
 		return self.symbols.type_of_standard(str)
 
-	def on_truthy(self, node: defs.Truthy) -> SymbolRaw:
+	def on_truthy(self, node: defs.Truthy) -> Reflection:
 		return self.symbols.type_of_standard(bool)
 
-	def on_falsy(self, node: defs.Falsy) -> SymbolRaw:
+	def on_falsy(self, node: defs.Falsy) -> Reflection:
 		return self.symbols.type_of_standard(bool)
 
-	def on_pair(self, node: defs.Pair, first: SymbolRaw, second: SymbolRaw) -> SymbolRaw:
+	def on_pair(self, node: defs.Pair, first: Reflection, second: Reflection) -> Reflection:
 		return self.symbols.type_of_standard(classes.Pair).to.literal(node).extends(first, second)
 
-	def on_list(self, node: defs.List, values: list[SymbolRaw]) -> SymbolRaw:
+	def on_list(self, node: defs.List, values: list[Reflection]) -> Reflection:
 		value_type = values[0] if len(values) > 0 else self.symbols.type_of_standard(classes.Unknown)
 		return self.symbols.type_of_standard(list).to.literal(node).extends(value_type)
 
-	def on_dict(self, node: defs.Dict, items: list[SymbolRaw]) -> SymbolRaw:
+	def on_dict(self, node: defs.Dict, items: list[Reflection]) -> Reflection:
 		if len(items) == 0:
 			unknown_type = self.symbols.type_of_standard(classes.Unknown)
 			return self.symbols.type_of_standard(dict).to.literal(node).extends(unknown_type, unknown_type)
@@ -679,16 +679,16 @@ class ProceduralResolver:
 			key_type, value_type = items[0].attrs
 			return self.symbols.type_of_standard(dict).to.literal(node).extends(key_type, value_type)
 
-	def on_null(self, node: defs.Null) -> SymbolRaw:
+	def on_null(self, node: defs.Null) -> Reflection:
 		return self.symbols.type_of_standard(None).to.literal(node)
 
 	# Expression
 
-	def on_group(self, node: defs.Group, expression: SymbolRaw) -> SymbolRaw:
+	def on_group(self, node: defs.Group, expression: Reflection) -> Reflection:
 		return expression
 
 	# Terminal
 
-	def on_empty(self, node: defs.Empty) -> SymbolRaw:
+	def on_empty(self, node: defs.Empty) -> Reflection:
 		# XXX 厳密にいうとNullとEmptyは別だが、実用上はほぼ同じなので代用
 		return self.symbols.type_of_standard(None)

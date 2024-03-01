@@ -6,7 +6,7 @@ from rogw.tranp.lang.eventemitter import IObservable
 from rogw.tranp.lang.implementation import deprecated, implements
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.semantics.plugin import IPlugin
-from rogw.tranp.semantics.symbol import SymbolRaw
+from rogw.tranp.semantics.symbol import Reflection
 from rogw.tranp.semantics.symbols import Symbols
 
 
@@ -63,7 +63,7 @@ class CppPlugin(IPlugin):
 
 		self.__symbols = None
 
-	def __interceptors(self) -> dict[str, Callable[..., SymbolRaw]]:
+	def __interceptors(self) -> dict[str, Callable[..., Reflection]]:
 		"""インターセプトハンドラーの一覧を取得
 
 		Returns:
@@ -71,40 +71,40 @@ class CppPlugin(IPlugin):
 		"""
 		return {}
 
-	def on_factor(self, node: defs.Factor, operator: SymbolRaw, value: SymbolRaw) -> list[SymbolRaw]:
+	def on_factor(self, node: defs.Factor, operator: Reflection, value: Reflection) -> list[Reflection]:
 		return [operator, self.unpack_cvar_raw(value)]
 
-	def on_not_compare(self, node: defs.NotCompare, operator: SymbolRaw, value: SymbolRaw) -> list[SymbolRaw]:
+	def on_not_compare(self, node: defs.NotCompare, operator: Reflection, value: Reflection) -> list[Reflection]:
 		return [operator, self.unpack_cvar_raw(value)]
 
-	def on_or_compare(self, node: defs.OrCompare, elements: list[SymbolRaw]) -> list[SymbolRaw]:
+	def on_or_compare(self, node: defs.OrCompare, elements: list[Reflection]) -> list[Reflection]:
 		return self.each_on_binary_operator(node, elements)
 
-	def on_and_compare(self, node: defs.AndCompare, elements: list[SymbolRaw]) -> list[SymbolRaw]:
+	def on_and_compare(self, node: defs.AndCompare, elements: list[Reflection]) -> list[Reflection]:
 		return self.each_on_binary_operator(node, elements)
 
-	def on_comparison(self, node: defs.Comparison, elements: list[SymbolRaw]) -> list[SymbolRaw]:
+	def on_comparison(self, node: defs.Comparison, elements: list[Reflection]) -> list[Reflection]:
 		return self.each_on_binary_operator(node, elements)
 
-	def on_or_bitwise(self, node: defs.OrBitwise, elements: list[SymbolRaw]) -> list[SymbolRaw]:
+	def on_or_bitwise(self, node: defs.OrBitwise, elements: list[Reflection]) -> list[Reflection]:
 		return self.each_on_binary_operator(node, elements)
 
-	def on_xor_bitwise(self, node: defs.XorBitwise, elements: list[SymbolRaw]) -> list[SymbolRaw]:
+	def on_xor_bitwise(self, node: defs.XorBitwise, elements: list[Reflection]) -> list[Reflection]:
 		return self.each_on_binary_operator(node, elements)
 
-	def on_and_bitwise(self, node: defs.AndBitwise, elements: list[SymbolRaw]) -> list[SymbolRaw]:
+	def on_and_bitwise(self, node: defs.AndBitwise, elements: list[Reflection]) -> list[Reflection]:
 		return self.each_on_binary_operator(node, elements)
 
-	def on_shift_bitwise(self, node: defs.ShiftBitwise, elements: list[SymbolRaw]) -> list[SymbolRaw]:
+	def on_shift_bitwise(self, node: defs.ShiftBitwise, elements: list[Reflection]) -> list[Reflection]:
 		return self.each_on_binary_operator(node, elements)
 
-	def on_sum(self, node: defs.Sum, elements: list[SymbolRaw]) -> list[SymbolRaw]:
+	def on_sum(self, node: defs.Sum, elements: list[Reflection]) -> list[Reflection]:
 		return self.each_on_binary_operator(node, elements)
 
-	def on_term(self, node: defs.Term, elements: list[SymbolRaw]) -> list[SymbolRaw]:
+	def on_term(self, node: defs.Term, elements: list[Reflection]) -> list[Reflection]:
 		return self.each_on_binary_operator(node, elements)
 
-	def each_on_binary_operator(self, node: defs.BinaryOperator, elements: list[SymbolRaw]) -> list[SymbolRaw]:
+	def each_on_binary_operator(self, node: defs.BinaryOperator, elements: list[Reflection]) -> list[Reflection]:
 		first = self.unpack_cvar_raw(elements[0])
 		unpacked_elements = [first]
 		for index in range(int((len(elements) - 1) / 2)):
@@ -114,7 +114,7 @@ class CppPlugin(IPlugin):
 
 		return unpacked_elements
 
-	def unpack_cvar_raw(self, value_raw: SymbolRaw) -> SymbolRaw:
+	def unpack_cvar_raw(self, value_raw: Reflection) -> Reflection:
 		"""C++変数型を考慮し、シンボルの実体型を取得。実体型かnullはそのまま返却
 
 		Args:

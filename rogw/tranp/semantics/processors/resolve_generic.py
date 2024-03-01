@@ -3,7 +3,7 @@ from typing import TypeAlias, cast
 from rogw.tranp.lang.implementation import injectable
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.semantics.finder import SymbolFinder
-from rogw.tranp.semantics.symbol import SymbolRaw, SymbolRaws
+from rogw.tranp.semantics.symbol import Reflection, SymbolRaws
 
 TargetDeclTypes: TypeAlias = defs.GenericType | defs.Function | defs.AltClass | defs.Class
 
@@ -41,7 +41,7 @@ class ResolveGeneric:
 
 		return raws
 
-	def fetch_decl_type(self, raw: SymbolRaw) -> defs.Type | defs.ClassDef | None:
+	def fetch_decl_type(self, raw: Reflection) -> defs.Type | defs.ClassDef | None:
 		"""シンボルの型(タイプ/クラス定義ノード)を取得。型が不明な場合はNoneを返却
 
 		Args:
@@ -62,7 +62,7 @@ class ResolveGeneric:
 		# 型指定が無いため全てUnknown
 		return None
 
-	def extends_generic(self, raws: SymbolRaws, via: SymbolRaw, decl_type: TargetDeclTypes) -> SymbolRaw:
+	def extends_generic(self, raws: SymbolRaws, via: Reflection, decl_type: TargetDeclTypes) -> Reflection:
 		"""ジェネリックタイプ/クラス定義ノードを解析し、属性の型を取り込みシンボルを拡張
 
 		Args:
@@ -81,7 +81,7 @@ class ResolveGeneric:
 		else:
 			return self.extends_for_class(raws, via, decl_type)
 
-	def extends_for_union(self, raws: SymbolRaws, via: SymbolRaw, union_type: defs.UnionType) -> SymbolRaw:
+	def extends_for_union(self, raws: SymbolRaws, via: Reflection, union_type: defs.UnionType) -> Reflection:
 		"""ユニオンタイプノードを解析し、属性の型を取り込みシンボルを拡張
 
 		Args:
@@ -91,7 +91,7 @@ class ResolveGeneric:
 		Returns:
 			SymbolRaw: シンボル
 		"""
-		attrs: list[SymbolRaw] = []
+		attrs: list[Reflection] = []
 		for or_type in union_type.or_types:
 			t_raw = self.finder.by_symbolic(raws, or_type)
 			if isinstance(or_type, defs.UnionType):
@@ -103,7 +103,7 @@ class ResolveGeneric:
 
 		return via.to.generic(union_type).extends(*attrs)
 
-	def extends_for_type(self, raws: SymbolRaws, via: SymbolRaw, generic_type: defs.GenericType) -> SymbolRaw:
+	def extends_for_type(self, raws: SymbolRaws, via: Reflection, generic_type: defs.GenericType) -> Reflection:
 		"""ジェネリックタイプノードを解析し、属性の型を取り込みシンボルを拡張
 
 		Args:
@@ -113,14 +113,14 @@ class ResolveGeneric:
 		Returns:
 			SymbolRaw: シンボル
 		"""
-		attrs: list[SymbolRaw] = []
+		attrs: list[Reflection] = []
 		for t_type in generic_type.template_types:
 			t_raw = self.finder.by_symbolic(raws, t_type)
 			attrs.append(self.expand_attr(raws, t_raw, t_type))
 
 		return via.to.generic(generic_type).extends(*attrs)
 
-	def expand_attr(self, raws: SymbolRaws, t_raw: SymbolRaw, t_type: defs.Type) -> SymbolRaw:
+	def expand_attr(self, raws: SymbolRaws, t_raw: Reflection, t_type: defs.Type) -> Reflection:
 		"""タイプノードを属性として展開
 
 		Args:
@@ -137,7 +137,7 @@ class ResolveGeneric:
 		else:
 			return t_raw
 
-	def extends_for_function(self, raws: SymbolRaws, via: SymbolRaw, function: defs.Function) -> SymbolRaw:
+	def extends_for_function(self, raws: SymbolRaws, via: Reflection, function: defs.Function) -> Reflection:
 		"""ファンクション定義ノードを解析し、属性の型を取り込みシンボルを拡張
 
 		Args:
@@ -147,7 +147,7 @@ class ResolveGeneric:
 		Returns:
 			SymbolRaw: シンボル
 		"""
-		attrs: list[SymbolRaw] = []
+		attrs: list[Reflection] = []
 		for parameter in function.parameters:
 			# cls/selfにタイプヒントが無い場合のみ補完
 			if isinstance(parameter.symbol, (defs.DeclClassParam, defs.DeclThisParam)) and parameter.var_type.is_a(defs.Empty):
@@ -161,7 +161,7 @@ class ResolveGeneric:
 		attrs.append(self.expand_attr(raws, t_raw, function.return_type))
 		return via.to.types(function).extends(*attrs)
 
-	def extends_for_alt_class(self, raws: SymbolRaws, via: SymbolRaw, types: defs.AltClass) -> SymbolRaw:
+	def extends_for_alt_class(self, raws: SymbolRaws, via: Reflection, types: defs.AltClass) -> Reflection:
 		"""タイプ再定義ノードを解析し、属性の型を取り込みシンボルを拡張
 
 		Args:
@@ -174,7 +174,7 @@ class ResolveGeneric:
 		t_raw = self.finder.by_symbolic(raws, types.actual_type).to.generic(types.actual_type)
 		return via.to.types(types).extends(self.expand_attr(raws, t_raw, types.actual_type))
 
-	def extends_for_class(self, raws: SymbolRaws, via: SymbolRaw, types: defs.Class) -> SymbolRaw:
+	def extends_for_class(self, raws: SymbolRaws, via: Reflection, types: defs.Class) -> Reflection:
 		"""クラス定義ノードを解析し、属性の型を取り込みシンボルを拡張
 
 		Args:

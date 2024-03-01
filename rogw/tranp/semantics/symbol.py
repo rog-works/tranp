@@ -2,12 +2,12 @@ from typing import Any, Callable, Iterator, Self, TypeAlias, TypeVar
 
 from rogw.tranp.errors import FatalError, LogicError
 from rogw.tranp.lang.implementation import implements, injectable, override
-from rogw.tranp.semantics.reflected import Container, IReflection, IWrapper, Roles, T_Raw
+from rogw.tranp.semantics.reflected import Container, IReflection, IWrapper, Roles
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.semantics.naming import AliasHandler, ClassDomainNaming
 
-T_Sym = TypeVar('T_Sym', bound='Symbol')
+T_Raw = TypeVar('T_Raw', bound='Reflection')
 
 
 class SymbolProxy:
@@ -20,7 +20,7 @@ class SymbolProxy:
 		シンボルの登録順序と参照順序が重要なインスタンスに関して使用 ※現状はResolveUnknownでのみ使用
 	"""
 
-	def __init__(self, org_raw: 'SymbolRaw', extender: Callable[[], 'SymbolRaw']) -> None:
+	def __init__(self, org_raw: 'Reflection', extender: Callable[[], 'Reflection']) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -96,80 +96,49 @@ class SymbolProxy:
 		return self.new_raw.__str__()
 
 
-class SymbolRaws(Container[T_Raw]):
-	"""シンボルテーブル"""
-
-	@classmethod
-	@override
-	def new(cls, *raws: Self | dict[str, T_Raw]) -> Self:
-		"""シンボルテーブルを結合した新たなインスタンスを生成
-
-		Args:
-			*raws (Self | dict[str, T_Raw]): シンボルテーブルリスト
-		Returns:
-			Self: 生成したインスタンス
-		"""
-		return cls().merge(*raws)
-
-	@override
-	def merge(self, *raws: Self | dict[str, T_Raw]) -> Self:
-		"""指定のシンボルテーブルと結合
-
-		Args:
-			*raws (Self | dict[str, T_Raw]): シンボルテーブルリスト
-		Returns:
-			Self: 自己参照
-		"""
-		for in_raws in raws:
-			self.update(**in_raws)
-
-		for raw in self.values():
-			raw.set_raws(self)
-
-		return self
-
-	@override
-	def __setitem__(self, key: str, raw: T_Raw) -> None:
-		"""配列要素設定のオーバーロード
-
-		Args:
-			key (str): 要素名
-			raw (T_Raw): シンボル
-		"""
-		raw.set_raws(self)
-		super().__setitem__(key, raw)
+SymbolRaws: TypeAlias = Container['Reflection']
 
 
-class SymbolRaw(IReflection):
-	"""シンボル"""
+class Reflection(IReflection):
+	"""リフレクション(基底)"""
 
 	@injectable
-	def __init__(self) -> None:
-		"""インスタンスを生成"""
-		self.__raws: Container | None = None
+	def __init__(self, raws: SymbolRaws | None = None) -> None:
+		"""インスタンスを生成
+
+		Args:
+			raws (SymbolRaws | None): シンボルテーブル (default = None)
+		"""
+		self.__raws = raws
 
 	@property
 	@implements
-	def _raws(self) -> Container:
-		"""Container: 所属するシンボルテーブル"""
+	def _raws(self) -> SymbolRaws:
+		"""SymbolRaws: 所属するシンボルテーブル"""
 		if self.__raws is not None:
 			return self.__raws
 
 		raise FatalError(f'Unreachable code.')
 
 	@implements
-	def set_raws(self, raws: Container) -> None:
+	def set_raws(self, raws: SymbolRaws) -> None:
 		"""所属するシンボルテーブルを設定
 
 		Args:
-			raws (Container): シンボルテーブル
+			raws (SymbolRaws): シンボルテーブル
 		"""
 		self.__raws = raws
 
 	@property
 	@implements
-	def origin(self) -> IReflection | None:
-		"""SymbolRaw | None: スタックシンボル"""
+	def attrs(self) -> list['Reflection']:
+		"""list[Reflection]: 属性シンボルリスト"""
+		return []
+
+	@property
+	@implements
+	def origin(self) -> 'Reflection | None':
+		"""Reflection | None: スタックシンボル"""
 		return None
 
 	@property
@@ -180,11 +149,11 @@ class SymbolRaw(IReflection):
 
 	@property
 	@implements
-	def context(self) -> IReflection:
+	def context(self) -> 'Reflection':
 		"""コンテキストを取得
 
 		Returns:
-			IReflection: コンテキストのシンボル
+			Reflection: コンテキストのシンボル
 		Raises:
 			LogicError: コンテキストが無い状態で使用
 		"""
@@ -205,7 +174,6 @@ class SymbolRaw(IReflection):
 			Self: 複製したインスタンス
 		"""
 		new = self.__class__(**kwargs)
-		new.__raws = self.__raws
 		if self.attrs:
 			return new.extends(*[attr.clone() for attr in self.attrs])
 
@@ -218,11 +186,11 @@ class SymbolRaw(IReflection):
 		return ClassShorthandNaming.domain_name(self)
 
 	@implements
-	def hierarchy(self) -> Iterator[IReflection]:
+	def hierarchy(self) -> Iterator['Reflection']:
 		"""参照元を辿るイテレーターを取得
 
 		Returns:
-			Iterator[IReflection]: イテレーター
+			Iterator[Reflection]: イテレーター
 		"""
 		curr = self
 		while curr:
@@ -230,11 +198,11 @@ class SymbolRaw(IReflection):
 			curr = curr.origin
 
 	@implements
-	def extends(self: Self, *attrs: IReflection) -> Self:
+	def extends(self: Self, *attrs: 'Reflection') -> Self:
 		"""シンボルが保有する型を拡張情報として属性に取り込む
 
 		Args:
-			*attrs (IReflection): 属性シンボルリスト
+			*attrs (Reflection): 属性シンボルリスト
 		Returns:
 			Self: インスタンス
 		Raises:
@@ -313,7 +281,7 @@ class SymbolRaw(IReflection):
 		return hash(self.__repr__())
 
 
-class SymbolOrigin(SymbolRaw):
+class Symbol(Reflection):
 	"""シンボル(クラス定義のオリジナル)"""
 
 	@injectable
@@ -356,12 +324,6 @@ class SymbolOrigin(SymbolRaw):
 		"""Roles: シンボルの役割"""
 		return Roles.Origin
 
-	@property
-	@implements
-	def attrs(self) -> list[IReflection]:
-		"""list[IReflection]: 属性シンボルリスト"""
-		return []
-
 	@implements
 	def clone(self: Self) -> Self:
 		"""インスタンスを複製
@@ -372,18 +334,18 @@ class SymbolOrigin(SymbolRaw):
 		return self._clone(types=self.types)
 
 
-class Symbol(SymbolRaw):
-	"""シンボル(基底)"""
+class ReflectionImpl(Reflection):
+	"""リフレクションの共通実装(基底)"""
 
-	def __init__(self, origin: 'SymbolOrigin | Symbol') -> None:
+	def __init__(self, origin: 'Symbol | ReflectionImpl') -> None:
 		"""インスタンスを生成
 
 		Args:
-			origin (SymbolOrigin | Symbol): スタックシンボル
+			origin (Symbol | ReflectionImpl): スタックシンボル
 		"""
-		super().__init__()
+		super().__init__(origin._raws)
 		self._origin = origin
-		self._attrs: list[IReflection] = []
+		self._attrs: list[Reflection] = []
 
 	@property
 	@implements
@@ -411,11 +373,11 @@ class Symbol(SymbolRaw):
 
 	@property
 	@implements
-	def attrs(self) -> list[IReflection]:
+	def attrs(self) -> list[Reflection]:
 		"""属性シンボルリストを取得
 
 		Returns:
-			list[IReflection]: 属性シンボルリスト
+			list[Reflection]: 属性シンボルリスト
 		Note:
 			# 属性の評価順序
 			1. 自身に設定された属性
@@ -432,16 +394,16 @@ class Symbol(SymbolRaw):
 
 	@property
 	@override
-	def origin(self) -> IReflection:
-		"""IReflection: スタックシンボル"""
+	def origin(self) -> Reflection:
+		"""Reflection: スタックシンボル"""
 		return self._origin
 
 	@property
-	def _shared_origin(self) -> IReflection:
+	def _shared_origin(self) -> Reflection:
 		"""シンボルテーブル上に存在する共有シンボルを取得
 
 		Returns:
-			IReflection: シンボルテーブル上に存在する共有されたシンボル
+			Reflection: シンボルテーブル上に存在する共有されたシンボル
 		Note:
 			属性を取得する際にのみ利用 @see attrs
 		"""
@@ -462,18 +424,18 @@ class Symbol(SymbolRaw):
 		return self._clone(origin=self.origin)
 
 	@override
-	def extends(self: Self, *attrs: IReflection) -> Self:
+	def extends(self: Self, *attrs: Reflection) -> Self:
 		"""シンボルが保持する型を拡張情報として属性に取り込む
 
 		Args:
-			*attrs (IReflection): 属性シンボルリスト
+			*attrs (Reflection): 属性シンボルリスト
 		Returns:
 			Self: インスタンス
 		Raises:
 			LogicError: 実体の無いインスタンスに実行
 			LogicError: 拡張済みのインスタンスに再度実行
 		"""
-		if isinstance(self, SymbolReference):
+		if isinstance(self, ReflectionReference):
 			raise LogicError(f'Not allowd extends. symbol: {self.types.fullyname}')
 
 		if self._attrs:
@@ -483,7 +445,7 @@ class Symbol(SymbolRaw):
 		return self
 
 
-class SymbolImport(Symbol):
+class ReflectionImport(ReflectionImpl):
 	"""シンボル(インポート)"""
 
 	def __init__(self, origin: 'ImportOrigins', via: Node) -> None:
@@ -524,7 +486,7 @@ class SymbolImport(Symbol):
 		return self._clone(origin=self.origin, via=self.via)
 
 
-class SymbolClass(Symbol):
+class ReflectionClass(ReflectionImpl):
 	"""シンボル(クラス定義)"""
 
 	def __init__(self, origin: 'ClassOrigins', decl: defs.ClassDef) -> None:
@@ -559,7 +521,7 @@ class SymbolClass(Symbol):
 		return self._clone(origin=self.origin, decl=self.decl)
 
 
-class SymbolVar(Symbol):
+class ReflectionVar(ReflectionImpl):
 	def __init__(self, origin: 'VarOrigins', decl: defs.DeclAll) -> None:
 		"""インスタンスを生成
 
@@ -592,7 +554,7 @@ class SymbolVar(Symbol):
 		return self._clone(origin=self.origin, decl=self.decl)
 
 
-class SymbolGeneric(Symbol):
+class ReflectionGeneric(ReflectionImpl):
 	def __init__(self, origin: 'GenericOrigins', via: defs.Type) -> None:
 		"""インスタンスを生成
 
@@ -625,7 +587,7 @@ class SymbolGeneric(Symbol):
 		return self._clone(origin=self.origin, via=self.via)
 
 
-class SymbolLiteral(Symbol):
+class ReflectionLiteral(ReflectionImpl):
 	def __init__(self, origin: 'LiteralOrigins', via: defs.Literal | defs.Comprehension) -> None:
 		"""インスタンスを生成
 
@@ -658,8 +620,8 @@ class SymbolLiteral(Symbol):
 		return self._clone(origin=self.origin, via=self.via)
 
 
-class SymbolReference(Symbol):
-	def __init__(self, origin: 'RefOrigins', via: defs.Reference, context: SymbolRaw | None = None) -> None:
+class ReflectionReference(ReflectionImpl):
+	def __init__(self, origin: 'RefOrigins', via: defs.Reference, context: Reflection | None = None) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -685,11 +647,11 @@ class SymbolReference(Symbol):
 
 	@property
 	@override
-	def context(self) -> SymbolRaw:
+	def context(self) -> Reflection:
 		"""コンテキストを取得
 
 		Returns:
-			SymbolRaw: コンテキストのシンボル
+			Reflection: コンテキストのシンボル
 		Raises:
 			LogicError: コンテキストが無いシンボルで使用
 		"""
@@ -708,7 +670,7 @@ class SymbolReference(Symbol):
 		return self._clone(origin=self.origin, via=self.via, context=self._context)
 
 
-class SymbolResult(Symbol):
+class ReflectionResult(ReflectionImpl):
 	def __init__(self, origin: 'ResultOrigins', via: defs.Operator) -> None:
 		"""インスタンスを生成
 
@@ -741,19 +703,19 @@ class SymbolResult(Symbol):
 		return self._clone(origin=self.origin, via=self.via)
 
 
-ImportOrigins: TypeAlias = SymbolOrigin | SymbolVar
-ClassOrigins: TypeAlias = SymbolOrigin | SymbolImport
-VarOrigins: TypeAlias = SymbolOrigin | Symbol
-GenericOrigins: TypeAlias = SymbolOrigin | Symbol
-RefOrigins: TypeAlias = SymbolOrigin | Symbol
-LiteralOrigins: TypeAlias = SymbolClass
-ResultOrigins: TypeAlias = SymbolClass
+ImportOrigins: TypeAlias = Symbol | ReflectionVar
+ClassOrigins: TypeAlias = Symbol | ReflectionImport
+VarOrigins: TypeAlias = Symbol | ReflectionImpl
+GenericOrigins: TypeAlias = Symbol | ReflectionImpl
+RefOrigins: TypeAlias = Symbol | ReflectionImpl
+LiteralOrigins: TypeAlias = ReflectionClass
+ResultOrigins: TypeAlias = ReflectionClass
 
 
 class SymbolWrapper(IWrapper):
 	"""シンボルラッパーファクトリー"""
 
-	def __init__(self, raw: SymbolRaw) -> None:
+	def __init__(self, raw: Reflection) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -761,7 +723,7 @@ class SymbolWrapper(IWrapper):
 		"""
 		self._raw = raw
 
-	def imports(self, via: defs.Import) -> SymbolImport:
+	def imports(self, via: defs.Import) -> ReflectionImport:
 		"""ラップしたシンボルを生成(インポートノード用)
 
 		Args:
@@ -769,9 +731,9 @@ class SymbolWrapper(IWrapper):
 		Returns:
 			SymbolImport: シンボル
 		"""
-		return SymbolImport(self._raw.one_of(ImportOrigins), via)
+		return ReflectionImport(self._raw.one_of(ImportOrigins), via)
 
-	def types(self, decl: defs.ClassDef) -> SymbolClass:
+	def types(self, decl: defs.ClassDef) -> ReflectionClass:
 		"""ラップしたシンボルを生成(クラス定義ノード用)
 
 		Args:
@@ -779,9 +741,9 @@ class SymbolWrapper(IWrapper):
 		Returns:
 			SymbolClass: シンボル
 		"""
-		return SymbolClass(self._raw.one_of(ClassOrigins), decl)
+		return ReflectionClass(self._raw.one_of(ClassOrigins), decl)
 
-	def var(self, decl: defs.DeclAll) -> SymbolVar:
+	def var(self, decl: defs.DeclAll) -> ReflectionVar:
 		"""ラップしたシンボルを生成(変数宣言ノード用)
 
 		Args:
@@ -789,9 +751,9 @@ class SymbolWrapper(IWrapper):
 		Returns:
 			SymbolVar: シンボル
 		"""
-		return SymbolVar(self._raw.one_of(VarOrigins), decl)
+		return ReflectionVar(self._raw.one_of(VarOrigins), decl)
 
-	def generic(self, via: defs.Type) -> SymbolGeneric:
+	def generic(self, via: defs.Type) -> ReflectionGeneric:
 		"""ラップしたシンボルを生成(タイプノード用)
 
 		Args:
@@ -799,9 +761,9 @@ class SymbolWrapper(IWrapper):
 		Returns:
 			SymbolGeneric: シンボル
 		"""
-		return SymbolGeneric(self._raw.one_of(GenericOrigins), via)
+		return ReflectionGeneric(self._raw.one_of(GenericOrigins), via)
 
-	def literal(self, via: defs.Literal | defs.Comprehension) -> SymbolLiteral:
+	def literal(self, via: defs.Literal | defs.Comprehension) -> ReflectionLiteral:
 		"""ラップしたシンボルを生成(リテラルノード用)
 
 		Args:
@@ -809,9 +771,9 @@ class SymbolWrapper(IWrapper):
 		Returns:
 			SymbolLiteral: シンボル
 		"""
-		return SymbolLiteral(self._raw.one_of(LiteralOrigins), via)
+		return ReflectionLiteral(self._raw.one_of(LiteralOrigins), via)
 
-	def ref(self, via: defs.Reference, context: SymbolRaw | None = None) -> SymbolReference:
+	def ref(self, via: defs.Reference, context: Reflection | None = None) -> ReflectionReference:
 		"""ラップしたシンボルを生成(参照ノード用)
 
 		Args:
@@ -820,9 +782,9 @@ class SymbolWrapper(IWrapper):
 		Returns:
 			SymbolReference: シンボル
 		"""
-		return SymbolReference(self._raw.one_of(RefOrigins), via, context)
+		return ReflectionReference(self._raw.one_of(RefOrigins), via, context)
 
-	def result(self, via: defs.Operator) -> SymbolResult:
+	def result(self, via: defs.Operator) -> ReflectionResult:
 		"""ラップしたシンボルを生成(結果系ノード用)
 
 		Args:
@@ -830,7 +792,7 @@ class SymbolWrapper(IWrapper):
 		Returns:
 			SymbolResult: シンボル
 		"""
-		return SymbolResult(self._raw.one_of(ResultOrigins), via)
+		return ReflectionResult(self._raw.one_of(ResultOrigins), via)
 
 
 class ClassShorthandNaming:

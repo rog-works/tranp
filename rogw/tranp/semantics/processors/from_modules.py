@@ -6,7 +6,7 @@ from rogw.tranp.module.modules import Module, Modules
 from rogw.tranp.syntax.ast.dsn import DSN
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.semantics.finder import SymbolFinder
-from rogw.tranp.semantics.symbol import SymbolOrigin, SymbolRaw, SymbolRaws
+from rogw.tranp.semantics.symbol import Symbol, Reflection, SymbolRaws
 
 
 @dataclass
@@ -121,7 +121,7 @@ class FromModules:
 		entrypoint = module.entrypoint.as_a(defs.Entrypoint)
 		for node in entrypoint.flatten():
 			if isinstance(node, defs.ClassDef):
-				raws[node.fullyname] = SymbolOrigin(node)
+				raws[node.fullyname] = Symbol(node)
 
 			if type(node) is defs.Import:
 				import_nodes.append(node)
@@ -141,7 +141,7 @@ class FromModules:
 
 		return Expanded(raws, decl_vars, import_nodes)
 
-	def resolve_type_symbol(self, raws: SymbolRaws, var: defs.DeclVars) -> SymbolRaw:
+	def resolve_type_symbol(self, raws: SymbolRaws, var: defs.DeclVars) -> Reflection:
 		"""シンボルテーブルから変数の型のシンボルを解決
 
 		Args:
@@ -179,7 +179,7 @@ class FromModules:
 
 		return None
 
-	def sorted_raws(self, raws: SymbolRaws, module_orders: list[str]) -> dict[str, SymbolRaw]:
+	def sorted_raws(self, raws: SymbolRaws, module_orders: list[str]) -> dict[str, Reflection]:
 		"""シンボルテーブルをモジュールのロード順に並び替え
 
 		Args:
@@ -189,7 +189,7 @@ class FromModules:
 			dict[str, SymbolRaw]: 並び替え後のシンボルテーブル
 		"""
 		orders = {index: key for index, key in enumerate(module_orders)}
-		def order(entry: tuple[str, SymbolRaw]) -> int:
+		def order(entry: tuple[str, Reflection]) -> int:
 			key, _ = entry
 			for index, module_path in orders.items():
 				if module_path in key:

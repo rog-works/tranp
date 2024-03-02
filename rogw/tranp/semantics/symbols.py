@@ -1,6 +1,6 @@
 from types import UnionType
 
-import rogw.tranp.semantics.helper as helper
+import rogw.tranp.semantics.helper.template as template
 import rogw.tranp.compatible.python.classes as classes
 from rogw.tranp.compatible.python.types import Standards
 from rogw.tranp.lang.error import raises
@@ -368,8 +368,8 @@ class ProceduralResolver:
 			'parameters': method.attrs[1:-1],
 			'returns': method.attrs[-1] if solution == 'iterator' else method.attrs[-1].attrs[0],
 		}
-		method_ref = helper.Builder(method).schema(lambda: schema).build(helper.Method)
-		return method_ref.returns(iterates)
+		function_helper = template.HelperBuilder(method).schema(lambda: schema).build(template.Method)
+		return function_helper.returns(iterates)
 
 	# Function/Class Elements
 
@@ -438,10 +438,10 @@ class ProceduralResolver:
 		if isinstance(accessable_receiver.types, defs.Enum) and prop.decl.is_a(defs.DeclLocalVar):
 			return accessable_receiver.to.ref(node, context=accessable_receiver)
 		elif isinstance(prop.decl, defs.Method) and prop.decl.is_property:
-			method = helper.Builder(prop) \
+			function_helper = template.HelperBuilder(prop) \
 				.schema(lambda: {'klass': prop.attrs[0], 'parameters': prop.attrs[1:-1], 'returns': prop.attrs[-1]}) \
-				.build(helper.Method)
-			return method.returns(receiver).to.ref(node, context=accessable_receiver)
+				.build(template.Method)
+			return function_helper.returns(receiver).to.ref(node, context=accessable_receiver)
 		else:
 			return prop.to.ref(node, context=accessable_receiver)
 
@@ -510,26 +510,26 @@ class ProceduralResolver:
 			# XXX 戻り値の型をクラスのシンボルで補完
 			# XXX この際のクラスのシンボルはSymbolReferenceになり、そのままだと属性の設定が出来ないため、SymbolVarに変換する
 			constroctur_calls = self.symbols.type_of_constructor(actual_calls.types)
-			func = helper.Builder(constroctur_calls) \
+			function_helper = template.HelperBuilder(constroctur_calls) \
 				.schema(lambda: {'klass': constroctur_calls.attrs[0], 'parameters': constroctur_calls.attrs[1:-1], 'returns': actual_calls.to.var(actual_calls.decl)}) \
-				.build(helper.Constructor)
-			return func.returns(constroctur_calls.attrs[0], *arguments)
+				.build(template.Constructor)
+			return function_helper.returns(constroctur_calls.attrs[0], *arguments)
 		elif isinstance(actual_calls.types, defs.Constructor):
 			# XXX コンストラクターを明示的に呼び出した場合
 			# XXX 戻り値の型を第1引数(自己参照)で補完
-			func = helper.Builder(actual_calls) \
+			function_helper = template.HelperBuilder(actual_calls) \
 				.schema(lambda: {'klass': actual_calls.attrs[0], 'parameters': actual_calls.attrs[1:-1], 'returns': actual_calls.attrs[0]}) \
-				.build(helper.Constructor)
-			return func.returns(actual_calls.attrs[0], *arguments)
+				.build(template.Constructor)
+			return function_helper.returns(actual_calls.attrs[0], *arguments)
 		else:
-			func = helper.Builder(actual_calls) \
-				.case(helper.Method).schema(lambda: {'klass': actual_calls.attrs[0], 'parameters': actual_calls.attrs[1:-1], 'returns': actual_calls.attrs[-1]}) \
+			function_helper = template.HelperBuilder(actual_calls) \
+				.case(template.Method).schema(lambda: {'klass': actual_calls.attrs[0], 'parameters': actual_calls.attrs[1:-1], 'returns': actual_calls.attrs[-1]}) \
 				.other_case().schema(lambda: {'parameters': actual_calls.attrs[:-1], 'returns': actual_calls.attrs[-1]}) \
-				.build(helper.Function)
-			if func.is_a(helper.Method):
-				return func.returns(actual_calls.context, *arguments)
+				.build(template.Function)
+			if function_helper.is_a(template.Method):
+				return function_helper.returns(actual_calls.context, *arguments)
 			else:
-				return func.returns(*arguments)
+				return function_helper.returns(*arguments)
 
 	def on_super(self, node: defs.Super, calls: Reflection, arguments: list[Reflection]) -> Reflection:
 		return self.symbols.resolve(node.super_class_symbol)
@@ -616,17 +616,17 @@ class ProceduralResolver:
 				continue
 
 			method = candidate
-			method_ref = helper.Builder(method) \
+			function_helper = template.HelperBuilder(method) \
 				.schema(lambda: {'klass': method.attrs[0], 'parameters': method.attrs[1:-1], 'returns': method.attrs[-1]}) \
-				.build(helper.Method)
+				.build(template.Method)
 
 			with_left = index == 0
 			receiver = left if with_left else right
 			other = right if with_left else left
-			actual_other = method_ref.parameter(0, receiver, other)
+			actual_other = function_helper.parameter(0, receiver, other)
 			var_types = actual_other.attrs if self.symbols.is_a(actual_other, UnionType) else [actual_other]
 			if other in var_types:
-				return method_ref.returns(receiver, actual_other)
+				return function_helper.returns(receiver, actual_other)
 
 		raise OperationNotAllowedError(f'Signature not match. {node}, {str(left)} {operator.tokens} {str(right)}')
 

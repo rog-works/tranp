@@ -9,10 +9,11 @@ from rogw.tranp.lang.implementation import injectable
 from rogw.tranp.syntax.ast.dsn import DSN
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
-from rogw.tranp.semantics.naming import ClassDomainNaming
+from rogw.tranp.semantics.helper.naming import ClassDomainNaming
 from rogw.tranp.semantics.procedure import Procedure
-import rogw.tranp.semantics.helper as helper
-from rogw.tranp.semantics.symbol import ClassShorthandNaming, Reflection
+import rogw.tranp.semantics.helper.template as template
+from rogw.tranp.semantics.helper.naming import ClassShorthandNaming
+from rogw.tranp.semantics.symbol import Reflection
 from rogw.tranp.semantics.symbols import Symbols
 from rogw.tranp.translator.option import TranslatorOptions
 from rogw.tranp.view.render import Renderer
@@ -129,11 +130,11 @@ class Py2Cpp:
 			list[str]: テンプレート型名リスト
 		"""
 		function_raw = self.symbols.type_of(node)
-		function_ref = helper.Builder(function_raw) \
-			.case(helper.Method).schema(lambda: {'klass': function_raw.attrs[0], 'parameters': function_raw.attrs[1:-1], 'returns': function_raw.attrs[-1]}) \
+		function_helper = template.HelperBuilder(function_raw) \
+			.case(template.Method).schema(lambda: {'klass': function_raw.attrs[0], 'parameters': function_raw.attrs[1:-1], 'returns': function_raw.attrs[-1]}) \
 			.other_case().schema(lambda: {'parameters': function_raw.attrs[1:-1], 'returns': function_raw.attrs[-1]}) \
-			.build(helper.Function)
-		return [types.domain_name for types in function_ref.templates()]
+			.build(template.Function)
+		return [types.domain_name for types in function_helper.templates()]
 
 	# General
 

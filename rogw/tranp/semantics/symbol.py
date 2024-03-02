@@ -2,10 +2,10 @@ from typing import Any, Callable, Iterator, Self, TypeAlias, TypeVar
 
 from rogw.tranp.errors import FatalError, LogicError
 from rogw.tranp.lang.implementation import implements, injectable, override
+from rogw.tranp.semantics.helper.naming import ClassShorthandNaming
 from rogw.tranp.semantics.reflected import DB, IReflection, IWrapper, Roles
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
-from rogw.tranp.semantics.naming import AliasHandler, ClassDomainNaming
 
 T_Raw = TypeVar('T_Raw', bound='Reflection')
 
@@ -792,76 +792,3 @@ class SymbolWrapper(IWrapper):
 			SymbolResult: シンボル
 		"""
 		return ReflectionResult(self._raw.one_of(ResultOrigins), via)
-
-
-class ClassShorthandNaming:
-	"""クラスの短縮表記生成モジュール
-
-	Note:
-		# 書式
-		* types=AltClass: ${alias}=${actual}
-		* types=Function: ${domain_name}(...${arguments}) -> ${return}
-		* role=Var/Generic/Literal/Reference: ${domain_name}<...${attributes}>
-		* その他: ${domain_name}
-	"""
-
-	@classmethod
-	def domain_name(cls, raw: IReflection, alias_handler: AliasHandler | None = None) -> str:
-		"""クラスの短縮表記を生成(ドメイン名)
-
-		Args:
-			raw (IReflection): シンボル
-			alias_handler (AliasHandler | None): エイリアス解決ハンドラー (default = None)
-		Returns:
-			str: 短縮表記
-		"""
-		return cls.__make_impl(raw, alias_handler, 'domain')
-
-	@classmethod
-	def fullyname(cls, raw: IReflection, alias_handler: AliasHandler | None = None) -> str:
-		"""クラスの短縮表記を生成(完全参照名)
-
-		Args:
-			raw (IReflection): シンボル
-			alias_handler (AliasHandler | None): エイリアス解決ハンドラー (default = None)
-		Returns:
-			str: 短縮表記
-		"""
-		return cls.__make_impl(raw, alias_handler, 'fully')
-
-	@classmethod
-	def accessible_name(cls, raw: IReflection, alias_handler: AliasHandler | None = None) -> str:
-		"""クラスの短縮表記を生成(名前空間上の参照名)
-
-		Args:
-			raw (IReflection): シンボル
-			alias_handler (AliasHandler | None): エイリアス解決ハンドラー (default = None)
-		Returns:
-			str: 短縮表記
-		"""
-		return cls.__make_impl(raw, alias_handler, 'accessible')
-
-	@classmethod
-	def __make_impl(cls, raw: IReflection, alias_handler: AliasHandler | None = None, path_method: str = 'domain') -> str:
-		"""クラスの短縮表記を生成
-
-		Args:
-			raw (IReflection): シンボル
-			alias_handler (AliasHandler | None): エイリアス解決ハンドラー (default = None)
-			path_method ('domain' | 'fully' | 'namespace'): パス生成方式 (default = 'domain') @see analyze.naming.ClassDomainNaming
-		Returns:
-			str: 短縮表記
-		"""
-		symbol_name = ClassDomainNaming.make_manualy(raw.types, alias_handler, path_method)
-		if len(raw.attrs) > 0:
-			if raw.types.is_a(defs.AltClass):
-				attrs = [cls.__make_impl(attr, alias_handler, path_method) for attr in raw.attrs]
-				return f'{symbol_name}={attrs[0]}'
-			elif raw.types.is_a(defs.Function):
-				attrs = [cls.__make_impl(attr, alias_handler, path_method) for attr in raw.attrs]
-				return f'{symbol_name}({", ".join(attrs[:-1])}) -> {attrs[-1]}'
-			elif raw.role in [Roles.Var, Roles.Generic, Roles.Literal, Roles.Reference]:
-				attrs = [cls.__make_impl(attr, alias_handler, path_method) for attr in raw.attrs]
-				return f'{symbol_name}<{", ".join(attrs)}>'
-
-		return symbol_name

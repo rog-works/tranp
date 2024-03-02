@@ -252,7 +252,7 @@ class TemplateManipulator:
 		return primary
 
 
-class Builder:
+class HelperBuilder:
 	"""ヘルパービルダー"""
 
 	def __init__(self, symbol: Reflection) -> None:
@@ -269,33 +269,33 @@ class Builder:
 		"""str: 編集中のキー"""
 		return list(self.__case_of_injectors.keys())[-1]
 
-	def case(self, expect: type[Helper]) -> 'Builder':
+	def case(self, expect: type[Helper]) -> 'HelperBuilder':
 		"""ケースを挿入
 
 		Args:
 			expect (type[Reflection]): 対象のリフレクション型
 		Returns:
-			Builder: 自己参照
+			HelperBuilder: 自己参照
 		"""
 		self.__case_of_injectors[expect.__name__] = lambda: {}
 		return self
 
-	def other_case(self) -> 'Builder':
+	def other_case(self) -> 'HelperBuilder':
 		"""その他のケースを挿入
 
 		Returns:
-			Builder: 自己参照
+			HelperBuilder: 自己参照
 		"""
 		self.__case_of_injectors['__other__'] = lambda: {}
 		return self
 
-	def schema(self, injector: Injector) -> 'Builder':
+	def schema(self, injector: Injector) -> 'HelperBuilder':
 		"""編集中のケースにスキーマを追加
 
 		Args:
 			injector (Injector): スキーマファクトリー
 		Returns:
-			Builder: 自己参照
+			HelperBuilder: 自己参照
 		"""
 		self.__case_of_injectors[self.__current_key] = injector
 		return self

@@ -3,7 +3,7 @@ from typing import ClassVar
 
 import rogw.tranp.compatible.cpp.object as cpp
 from rogw.tranp.lang.implementation import deprecated
-from rogw.tranp.semantics.symbol import SymbolRaw
+from rogw.tranp.semantics.reflection import IReflection
 from rogw.tranp.semantics.symbols import Symbols
 
 
@@ -56,13 +56,13 @@ class CVars:
 
 	@classmethod
 	@deprecated
-	def analyze_move(cls, symbols: Symbols, accept: SymbolRaw, value: SymbolRaw, value_on_new: bool, declared: bool) -> Moves:
+	def analyze_move(cls, symbols: Symbols, accept: IReflection, value: IReflection, value_on_new: bool, declared: bool) -> Moves:
 		"""移動操作を解析
 
 		Args:
 			symbols (Symbols): シンボルリゾルバー
-			accept (SymbolRaw): 受け入れ側
-			value (SymbolRaw): 入力側
+			accept (IReflection): 受け入れ側
+			value (IReflection): 入力側
 			value_on_new (bool): True = インスタンス生成
 			declared (bool): True = 変数宣言時
 		Returns:
@@ -187,12 +187,12 @@ class CVars:
 		return [cvar.__name__ for cvar in [cpp.CP, cpp.CSP, cpp.CRef, cpp.CRaw]]
 
 	@classmethod
-	def key_from(cls, symbols: Symbols, symbol: SymbolRaw) -> str:
+	def key_from(cls, symbols: Symbols, symbol: IReflection) -> str:
 		"""シンボルからC++変数型の種別キーを取得
 
 		Args:
 			symbols (Symbols): シンボルリゾルバー
-			symbol (SymbolRaw): シンボル
+			symbol (IReflection): シンボル
 		Returns:
 			str: 種別キー
 		Note:

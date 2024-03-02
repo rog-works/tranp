@@ -6,7 +6,7 @@ from rogw.tranp.module.types import LibraryPaths
 from rogw.tranp.syntax.ast.dsn import DSN
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.semantics.errors import MustBeImplementedError, SymbolNotDefinedError
-from rogw.tranp.semantics.symbol import SymbolRaw, SymbolRaws
+from rogw.tranp.semantics.reflection import IReflection, SymbolRaws
 
 
 class SymbolFinder:
@@ -21,13 +21,13 @@ class SymbolFinder:
 		"""
 		self.__library_paths = library_paths
 
-	def get_object(self, raws: SymbolRaws) -> SymbolRaw:
+	def get_object(self, raws: SymbolRaws) -> IReflection:
 		"""objectのシンボルを取得
 
 		Args:
 			raws (SymbolRaws): シンボルテーブル
 		Returns:
-			SymbolRaw: シンボル
+			IReflection: シンボル
 		Raises:
 			MustBeImplementedError: objectが未実装
 		Note:
@@ -39,14 +39,14 @@ class SymbolFinder:
 
 		raise MustBeImplementedError('"object" class is required.')
 
-	def by(self, raws: SymbolRaws, fullyname: str) -> SymbolRaw:
+	def by(self, raws: SymbolRaws, fullyname: str) -> IReflection:
 		"""完全参照名からシンボルを取得
 
 		Args:
 			raws (SymbolRaws): シンボルテーブル
 			fullyname (str): 完全参照名
 		Returns:
-			SymbolRaw: シンボル
+			IReflection: シンボル
 		Raises:
 			SymbolNotDefinedError: シンボルが見つからない
 		"""
@@ -55,14 +55,14 @@ class SymbolFinder:
 
 		raise SymbolNotDefinedError(f'fullyname: {fullyname}')
 
-	def by_standard(self, raws: SymbolRaws, standard_type: type[Standards] | None) -> SymbolRaw:
+	def by_standard(self, raws: SymbolRaws, standard_type: type[Standards] | None) -> IReflection:
 		"""標準クラスのシンボルを取得
 
 		Args:
 			raws (SymbolRaws): シンボルテーブル
 			standard_type (type[Standards] | None): 標準クラス
 		Returns:
-			SymbolRaw: シンボル
+			IReflection: シンボル
 		Raises:
 			MustBeImplementedError: 標準クラスが未実装
 		"""
@@ -80,14 +80,14 @@ class SymbolFinder:
 
 		raise MustBeImplementedError(f'"{standard_type.__name__}" class is required.')
 
-	def by_symbolic(self, raws: SymbolRaws, node: defs.Symbolic) -> SymbolRaw:
+	def by_symbolic(self, raws: SymbolRaws, node: defs.Symbolic) -> IReflection:
 		"""シンボル系ノードからシンボルを取得
 
 		Args:
 			raws (SymbolRaws): シンボルテーブル
 			node: (Symbolic): シンボル系ノード
 		Returns:
-			SymbolRaw: シンボル
+			IReflection: シンボル
 		Raises:
 			SymbolNotDefinedError: シンボルが見つからない
 		"""
@@ -97,7 +97,7 @@ class SymbolFinder:
 
 		raise SymbolNotDefinedError(f'fullyname: {node.fullyname}')
 
-	def find_by_symbolic(self, raws: SymbolRaws, node: defs.Symbolic, prop_name: str = '') -> SymbolRaw | None:
+	def find_by_symbolic(self, raws: SymbolRaws, node: defs.Symbolic, prop_name: str = '') -> IReflection | None:
 		"""シンボルを検索。未検出の場合はNoneを返却
 
 		Args:
@@ -105,7 +105,7 @@ class SymbolFinder:
 			node (Symbolic): シンボル系ノード
 			prop_name (str): プロパティー名(default = '')
 		Returns:
-			SymbolRaw | None: シンボル
+			IReflection | None: シンボル
 		"""
 		def is_local_var_in_class_scope(scope: str) -> bool:
 			# XXX ローカル変数の参照は、クラス直下のスコープを参照できない
@@ -117,7 +117,7 @@ class SymbolFinder:
 		scopes = [scope for scope in self.__make_scopes(node.scope, allow_fallback_lib) if not is_local_var_in_class_scope(scope)]
 		return self.__find_raw(raws, scopes, domain_name)
 
-	def __find_raw(self, raws: SymbolRaws, scopes: list[str], domain_name: str) -> SymbolRaw | None:
+	def __find_raw(self, raws: SymbolRaws, scopes: list[str], domain_name: str) -> IReflection | None:
 		"""スコープを辿り、指定のドメイン名を持つシンボルを検索。未検出の場合はNoneを返却
 
 		Args:
@@ -125,7 +125,7 @@ class SymbolFinder:
 			scopes (list[str]): 探索スコープリスト
 			domain_name (str): ドメイン名
 		Returns:
-			SymbolRaw | None: シンボル
+			IReflection | None: シンボル
 		"""
 		candidates = [DSN.join(scope, domain_name) for scope in scopes]
 		for candidate in candidates:

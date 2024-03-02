@@ -168,7 +168,11 @@ class DI:
 
 			curried_args.append(self.resolve(anno))
 
-		expect_types = list(annos.values())[len(curried_args):]
+		expect_types = [
+			# XXX ジェネリック型の場合isinstanceで比較できないため、オリジナルの型を期待値として抽出
+			expect if not hasattr(expect, '__origin__') else getattr(expect, '__origin__')
+			for expect in list(annos.values())[len(curried_args):]
+		]
 		allow_types = [type(arg) for index, arg in enumerate(remain_args) if isinstance(arg, expect_types[index])]
 		if len(expect_types) != len(allow_types):
 			raise ValueError(f'Mismatch invoke arguments. factory: {factory}, expect: {expect_types}, actual: {[type(arg) for arg in remain_args]}')

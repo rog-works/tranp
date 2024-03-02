@@ -1,394 +1,324 @@
-from typing import Callable, Generic, TypeAlias, TypeVar
+from abc import ABCMeta, abstractmethod
+from enum import Enum
+from typing import Iterator, Self, TypeAlias, TypeVar
 
-from rogw.tranp.errors import LogicError
 from rogw.tranp.lang.implementation import override
-import rogw.tranp.lang.sequence as seqs
-from rogw.tranp.syntax.ast.dsn import DSN
 import rogw.tranp.syntax.node.definition as defs
-from rogw.tranp.semantics.symbol import SymbolRaw
+from rogw.tranp.syntax.node.node import Node
 
-T_Ref = TypeVar('T_Ref', bound='Reflection')
-T_Sym = TypeVar('T_Sym', SymbolRaw, list[SymbolRaw], 'Object')
-
-InjectSchemata: TypeAlias = dict[str, SymbolRaw | list[SymbolRaw]]
-Injector: TypeAlias = Callable[[], InjectSchemata]
+T_Ref = TypeVar('T_Ref', bound='IReflection')
 
 
-class Schema(Generic[T_Sym]):
-	"""シンボルをスキーマとして管理"""
+class Roles(Enum):
+	"""シンボルの役割
 
-	def __init__(self, schemata: dict[str, T_Sym]) -> None:
-		"""インスタンスを生成
-
-		Args:
-			schemata (dict[str, T_Sym]): プロパティー名とシンボルのマップ情報
-		"""
-		self.__schemata = schemata
-
-	def __getattr__(self, key: str) -> T_Sym:
-		"""プロパティー名に対応するシンボルを取得
-
-		Args:
-			key (str): プロパティー名
-		Returns:
-			T_Sym: シンボル | シンボルリスト
-		Raises:
-			LogicError: 存在しないキーを指定 XXX 出力する例外は要件等
-		"""
-		if key in self.__schemata:
-			return self.__schemata[key]
-
-		raise LogicError(f'Schema not defined. key: {key}')
-
-
-class Reflection:
-	"""リフレクション"""
-
-	def __init__(self, symbol: SymbolRaw, schemata: InjectSchemata) -> None:
-		"""インスタンスを生成
-
-		Args:
-			symbol (SymbolRaw): シンボル
-			schemata (InjectSchemata): プロパティー名とシンボルのマップ情報
-		"""
-		self.symbol = symbol
-		self.schema = Schema[SymbolRaw]({key: schema for key, schema in schemata.items() if isinstance(schema, SymbolRaw)})
-		self.schemata = Schema[list[SymbolRaw]]({key: schema for key, schema in schemata.items() if type(schema) is list})
+	Attributes:
+		Origin: 定義元。クラス定義ノードが対象。属性は保有しない
+		Import: Originの複製。属性は保有しない
+		Class: クラス定義ノードが対象。クラスはGeneric型、ファンクションは関数シグネチャーを属性として保有
+		Var: 変数宣言ノードが対象。Generic型の属性を保有
+		Generic: タイプノードが対象。Generic型の属性を保有
+		Literal: リテラルノードが対象。Generic型の属性を保有
+		Reference: 参照系ノードが対象。属性は保有しない
+	"""
+	Origin = 'Origin'
+	Import = 'Import'
+	Class = 'Class'
+	Var = 'Var'
+	Generic = 'Generic'
+	Literal = 'Literal'
+	Reference = 'Reference'
+	Result = 'Result'
 
 	@property
+	def has_entity(self) -> bool:
+		"""bool: True = 実体を持つ"""
+		return self in [Roles.Origin, Roles.Class, Roles.Var, Roles.Generic, Roles.Literal]
+
+
+class DB(dict[str, 'IReflection']):
+	"""シンボルテーブル"""
+
+	@classmethod
+	def new(cls, *raws: Self | dict[str, 'IReflection']) -> Self:
+		"""シンボルテーブルを結合した新たなインスタンスを生成
+
+		Args:
+			*raws (Self | dict[str, IReflection]): シンボルテーブルリスト
+		Returns:
+			Self: 生成したインスタンス
+		"""
+		return cls().merge(*raws)
+
+	def merge(self, *raws: Self | dict[str, 'IReflection']) -> Self:
+		"""指定のシンボルテーブルと結合
+
+		Args:
+			*raws (Self | dict[str, IReflection]): シンボルテーブルリスト
+		Returns:
+			Self: 自己参照
+		"""
+		for in_raws in raws:
+			self.update(**in_raws)
+
+		for raw in self.values():
+			raw.set_raws(self)
+
+		return self
+
+	@override
+	def __setitem__(self, key: str, raw: 'IReflection') -> None:
+		"""配列要素設定のオーバーロード
+
+		Args:
+			key (str): 要素名
+			raw (IReflection): シンボル
+		"""
+		raw.set_raws(self)
+		super().__setitem__(key, raw)
+
+
+class IReflection(metaclass=ABCMeta):
+	"""シンボル
+
+	Attributes:
+		ref_fullyname (str): 完全参照名
+		org_fullyname (str): 完全参照名(オリジナル)
+		types (ClassDef): クラス定義ノード
+		decl (DeclAll): クラス/変数宣言ノード
+		role (Roles): シンボルの役割
+		attrs (list[IReflection]): 属性シンボルリスト
+		origin (IReflection | None): スタックシンボル (default = None)
+		via (Node | None): 参照元のノード (default = None)
+		context (IReflection| None): コンテキストのシンボル (default = None)
+	Note:
+		# contextのユースケース
+		* Relay/Indexerのreceiverを設定。on_func_call等で実行時型の補完に使用
+	"""
+
+	@property
+	@abstractmethod
+	def _raws(self) -> DB:
+		"""DB: 所属するシンボルテーブル"""
+		...
+
+	@abstractmethod
+	def set_raws(self, raws: DB) -> None:
+		"""所属するシンボルテーブルを設定
+
+		Args:
+			raws (DB): シンボルテーブル
+		"""
+		...
+
+	@property
+	@abstractmethod
+	def ref_fullyname(self) -> str:
+		"""str: 完全参照名"""
+		...
+
+	@property
+	@abstractmethod
+	def org_fullyname(self) -> str:
+		"""str: 完全参照名(オリジナル)"""
+		...
+
+	@property
+	@abstractmethod
 	def types(self) -> defs.ClassDef:
-		"""ClassDef: シンボルの型(クラス定義ノード)"""
-		return self.symbol.types
+		"""ClassDef: クラス定義ノード"""
+		...
 
 	@property
-	def shorthand(self) -> str:
-		"""str: シンボルの短縮表記"""
-		return str(self.symbol)
+	@abstractmethod
+	def decl(self) -> defs.DeclAll:
+		"""DeclAll: クラス/変数宣言ノード"""
+		...
 
-	def is_a(self, *ctors: type['Reflection']) -> bool:
-		"""指定のクラスと同じか派生クラスか判定
+	@property
+	@abstractmethod
+	def role(self) -> Roles:
+		"""Roles: シンボルの役割"""
+		...
 
-		Args:
-			*ctors (type[Reflection]): 比較対象
+	@property
+	@abstractmethod
+	def attrs(self) -> list['IReflection']:
+		"""list[IReflection]: 属性シンボルリスト"""
+		...
+
+	@property
+	@abstractmethod
+	def origin(self) -> 'IReflection | None':
+		"""IReflection | None: スタックシンボル"""
+		...
+
+	@property
+	@abstractmethod
+	def via(self) -> Node | None:
+		"""Node | None: 参照元のノード"""
+		...
+
+	@property
+	@abstractmethod
+	def context(self) -> 'IReflection':
+		"""コンテキストを取得
+
 		Returns:
-			bool: True = 同種
-		"""
-		return isinstance(self, ctors)
-
-	def as_a(self, ctor: type[T_Ref]) -> T_Ref:
-		"""指定のクラスと同じか派生クラスであればキャスト。一致しない場合はエラーを出力
-
-		Args:
-			ctor (type[T_Ref]): 比較対象
-		Returns:
-			T_Ref: キャスト後のインスタンス
+			IReflection: コンテキストのシンボル
 		Raises:
-			LogicError: 派生関係が無いクラスを指定
+			LogicError: コンテキストが無い状態で使用
 		"""
-		if isinstance(self, ctor):
-			return self
+		...
 
-		raise LogicError(f'Cast not allowed. from: {self.__class__}, to: {ctor}')
+	@property	
+	@abstractmethod
+	def has_entity(self) -> bool:
+		"""bool: True = 実体を持つ"""
+		...
 
+	@abstractmethod
+	def clone(self: Self) -> Self:
+		"""インスタンスを複製
 
-class Object(Reflection):
-	"""全クラスの基底クラス"""
-	pass
-
-
-class Type(Object):
-	"""全タイプ(クラス定義)の基底クラス"""
-	pass
-
-
-class Enum(Object):
-	"""Enum"""
-	pass
-
-
-class Instance(Object):
-	"""クラスインスタンスの基底クラス"""
+		Returns:
+			Self: 複製したインスタンス
+		"""
+		...
 
 	@property
-	def is_static(self) -> bool:
+	@abstractmethod
+	def shorthand(self) -> str:
+		"""str: オブジェクトの短縮表記"""
+		...
+
+	@abstractmethod
+	def hierarchy(self) -> Iterator['IReflection']:
+		"""参照元を辿るイテレーターを取得
+
+		Returns:
+			Iterator[IReflection]: イテレーター
+		"""
+		...
+
+	@abstractmethod
+	def extends(self: Self, *attrs: 'IReflection') -> Self:
+		"""シンボルが保有する型を拡張情報として属性に取り込む
+
+		Args:
+			*attrs (IReflection): 属性シンボルリスト
+		Returns:
+			T_Ref: インスタンス
+		Raises:
+			LogicError: 実体の無いインスタンスに実行 XXX 出力する例外は要件等
+			LogicError: 拡張済みのインスタンスに再度実行 XXX 出力する例外は要件等
+		"""
+		...
+
+	@property
+	@abstractmethod
+	def to(self) -> 'IWrapper':
+		"""ラッパーファクトリーを生成
+
+		Returns:
+			SymbolWrapper: ラッパーファクトリー
+		"""
+		...
+
+	@abstractmethod
+	def one_of(self, expects: type[T_Ref]) -> T_Ref:
+		"""期待する型と同種ならキャスト
+
+		Args:
+			expects (type[T_Ref]): 期待する型
+		Returns:
+			T_Ref: インスタンス
+		Raises:
+			LogicError: 継承関係が無い型を指定 XXX 出力する例外は要件等
+		"""
 		...
 
 
-class Function(Object):
-	"""全ファンクションの基底クラス。メソッド/クロージャー以外のファンクションが対象"""
+SymbolRaws: TypeAlias = DB
 
-	def parameter(self, index: int, *context: SymbolRaw) -> SymbolRaw:
-		"""引数の実行時型を解決
 
-		Args:
-			index (int): 引数のインデックス
-			*context (SymbolRaw): コンテキスト(0: 引数(実行時型))
-		Returns:
-			SymbolRaw: 実行時型
-		"""
-		argument, *_ = context
-		return argument
+class IWrapper(metaclass=ABCMeta):
+	"""ラッパーファクトリー"""
 
-	def returns(self, *arguments: SymbolRaw) -> SymbolRaw:
-		"""戻り値の実行時型を解決
+	@abstractmethod
+	def imports(self, via: defs.Import) -> IReflection:
+		"""ラップしたシンボルを生成(インポートノード用)
 
 		Args:
-			*arguments (SymbolRaw): 引数リスト(実行時型)
+			via (Import): インポートノード
 		Returns:
-			SymbolRaw: 実行時型
+			IReflection: シンボル
 		"""
-		t_map_returns = TemplateManipulator.unpack_templates(returns=self.schema.returns)
-		if len(t_map_returns) == 0:
-			return self.schema.returns
+		...
 
-		map_props = TemplateManipulator.unpack_symbols(parameters=list(arguments))
-		t_map_props = TemplateManipulator.unpack_templates(parameters=self.schemata.parameters)
-		updates = TemplateManipulator.make_updates(t_map_returns, t_map_props, map_props)
-		return TemplateManipulator.apply(self.schema.returns.clone(), map_props, updates)
-
-	def templates(self) -> list[defs.TemplateClass]:
-		"""テンプレート型(タイプ再定義ノード)を取得
-
-		Returns:
-			list[TemplateClass]: テンプレート型リスト
-		"""
-		t_map_props = TemplateManipulator.unpack_templates(parameters=self.schemata.parameters, returns=self.schema.returns)
-		return list(t_map_props.values())
-
-
-class Closure(Function):
-	"""クロージャー"""
-	pass
-
-
-class Method(Function):
-	"""全メソッドの基底クラス。クラスメソッド/コンストラクター以外のメソッドが対象"""
-
-	@override
-	def parameter(self, index: int, *context: SymbolRaw) -> SymbolRaw:
-		"""引数の実行時型を解決
+	@abstractmethod
+	def types(self, decl: defs.ClassDef) -> IReflection:
+		"""ラップしたシンボルを生成(クラス定義ノード用)
 
 		Args:
-			index (int): 引数のインデックス
-			*context (SymbolRaw): コンテキスト(0: レシーバー(実行時型), 1: 引数(実行時型))
+			decl (ClassDef): クラス定義ノード
 		Returns:
-			SymbolRaw: 実行時型
+			IReflection: シンボル
 		"""
-		parameter = self.schemata.parameters[index]
-		t_map_parameter = TemplateManipulator.unpack_templates(parameter=parameter)
-		if len(t_map_parameter) == 0:
-			return parameter
+		...
 
-		actual_klass, *_ = context
-		map_props = TemplateManipulator.unpack_symbols(klass=actual_klass)
-		t_map_props = TemplateManipulator.unpack_templates(klass=self.schema.klass)
-		updates = TemplateManipulator.make_updates(t_map_parameter, t_map_props, map_props)
-		return TemplateManipulator.apply(parameter.clone(), map_props, updates)
-
-	@override
-	def returns(self, *arguments: SymbolRaw) -> SymbolRaw:
-		"""戻り値の実行時型を解決
+	@abstractmethod
+	def var(self, decl: defs.DeclAll) -> IReflection:
+		"""ラップしたシンボルを生成(変数宣言ノード用)
 
 		Args:
-			*arguments (SymbolRaw): 引数リスト(実行時型)
+			decl (ClassDef): 変数宣言ノード
 		Returns:
-			SymbolRaw: 実行時型
+			IReflection: シンボル
 		"""
-		t_map_returns = TemplateManipulator.unpack_templates(returns=self.schema.returns)
-		if len(t_map_returns) == 0:
-			return self.schema.returns
+		...
 
-		actual_klass, *actual_arguments = arguments
-		map_props = TemplateManipulator.unpack_symbols(klass=actual_klass, parameters=actual_arguments)
-		t_map_props = TemplateManipulator.unpack_templates(klass=self.schema.klass, parameters=self.schemata.parameters)
-		updates = TemplateManipulator.make_updates(t_map_returns, t_map_props, map_props)
-		return TemplateManipulator.apply(self.schema.returns.clone(), map_props, updates)
-
-	@override
-	def templates(self) -> list[defs.TemplateClass]:
-		"""テンプレート型(タイプ再定義ノード)を取得
-
-		Returns:
-			list[TemplateClass]: テンプレート型リスト
-		"""
-		t_map_props = TemplateManipulator.unpack_templates(klass=self.schema.klass, parameters=self.schemata.parameters, returns=self.schema.returns)
-		ignore_ts = [t for path, t in t_map_props.items() if path.startswith('klass')]
-		return list(set([t for t in t_map_props.values() if t not in ignore_ts]))
-
-
-class ClassMethod(Method):
-	"""クラスメソッド"""
-	pass
-
-class Constructor(Method):
-	"""コンストラクター"""
-	pass
-
-
-TemplateMap: TypeAlias = dict[str, defs.TemplateClass]
-SymbolMap: TypeAlias = dict[str, SymbolRaw]
-UpdateMap: TypeAlias = dict[str, str]
-
-
-class TemplateManipulator:
-	"""テンプレート操作"""
-
-	@classmethod
-	def unpack_templates(cls, **attrs: SymbolRaw | list[SymbolRaw]) -> TemplateMap:
-		"""シンボル/属性からテンプレート型(タイプ再定義ノード)を平坦化して抽出
+	@abstractmethod
+	def generic(self, via: defs.Type) -> IReflection:
+		"""ラップしたシンボルを生成(タイプノード用)
 
 		Args:
-			**attrs (SymbolRaw | list[SymbolRaw]): シンボル/属性
+			via (Type): タイプノード
 		Returns:
-			TemplateMap: パスとテンプレート型(タイプ再定義ノード)のマップ表
+			IReflection: シンボル
 		"""
-		expand_attrs = seqs.expand(attrs, iter_key='attrs')
-		return {path: attr.types for path, attr in expand_attrs.items() if isinstance(attr.types, defs.TemplateClass)}
+		...
 
-	@classmethod
-	def unpack_symbols(cls, **attrs: SymbolRaw | list[SymbolRaw]) -> SymbolMap:
-		"""シンボル/属性を平坦化して抽出
+	@abstractmethod
+	def literal(self, via: defs.Literal | defs.Comprehension) -> IReflection:
+		"""ラップしたシンボルを生成(リテラルノード用)
 
 		Args:
-			**attrs (SymbolRaw | list[SymbolRaw]): シンボル/属性
+			via (Literal | Comprehension): リテラル/リスト内包表記ノード
 		Returns:
-			SymbolMap: パスとシンボルのマップ表
+			IReflection: シンボル
 		"""
-		return seqs.expand(attrs, iter_key='attrs')
+		...
 
-	@classmethod
-	def make_updates(cls, t_map_primary: TemplateMap, t_map_props: TemplateMap, actual_props: SymbolMap) -> UpdateMap:
-		"""主体とサブを比較し、一致するテンプレートのパスを抽出
+	@abstractmethod
+	def ref(self, via: defs.Reference, context: IReflection | None = None) -> IReflection:
+		"""ラップしたシンボルを生成(参照ノード用)
 
 		Args:
-			t_map_primary (TemplateMap): 主体
-			t_map_props (TemplateMap): サブ
-			actual_props (SymbolMap): シンボルのマップ表(実行時型)
+			via (Reference): 参照系ノード
+			context (IReflection | None): コンテキストのシンボル (default = None)
 		Returns:
-			UpdateMap: 一致したパスのマップ表
+			IReflection: シンボル
 		"""
-		updates: UpdateMap = {}
-		for primary_path, t_primary in t_map_primary.items():
-			founds = [prop_path for prop_path, t_prop in t_map_props.items() if t_prop == t_primary]
-			# XXX ジェネリッククラスのクラスメソッドやコンストラクターの場合、
-			# XXX 呼び出し時に自己参照の実行時型が確定できず、テンプレートタイプが含まれてしまうので、除外する
-			founds = [found_path for found_path in founds if not actual_props[found_path].types.is_a(defs.TemplateClass)]
-			if founds:
-				updates[primary_path] = founds[0]
+		...
 
-		return updates
-
-	@classmethod
-	def apply(cls, primary: SymbolRaw, actual_props: SymbolMap, updates: UpdateMap) -> SymbolRaw:
-		"""シンボルに実行時型を適用する
+	@abstractmethod
+	def result(self, via: defs.Operator) -> IReflection:
+		"""ラップしたシンボルを生成(結果系ノード用)
 
 		Args:
-			primary (SymbolRaw): 適用するシンボル
-			actual_props (SymbolMap): シンボルのマップ表(実行時型)
-			updates (UpdateMap): 更新表
+			via (Operator): 結果系ノード ※現状は演算ノードのみ
 		Returns:
-			SymbolRaw: 適用後のシンボル
+			IReflection: シンボル
 		"""
-		primary_bodies = [prop_path for primary_path, prop_path in updates.items() if DSN.elem_counts(primary_path) == 1]
-		if primary_bodies:
-			return actual_props[primary_bodies[0]]
-
-		for primary_path, prop_path in updates.items():
-			attr_path = DSN.shift(primary_path, 1)
-			seqs.update(primary.attrs, attr_path, actual_props[prop_path], iter_key='attrs')
-
-		return primary
-
-
-class Builder:
-	"""リフレクションビルダー"""
-
-	def __init__(self, symbol: SymbolRaw) -> None:
-		"""インスタンスを生成
-
-		Args:
-			symbol (SymbolRaw): シンボル
-		"""
-		self.__symbol = symbol
-		self.__case_of_injectors: dict[str, Injector] = {'__default__': lambda: {}}
-
-	@property
-	def __current_key(self) -> str:
-		"""str: 編集中のキー"""
-		return list(self.__case_of_injectors.keys())[-1]
-
-	def case(self, expect: type[Reflection]) -> 'Builder':
-		"""ケースを挿入
-
-		Args:
-			expect (type[Reflection]): 対象のリフレクション型
-		Returns:
-			Builder: 自己参照
-		"""
-		self.__case_of_injectors[expect.__name__] = lambda: {}
-		return self
-
-	def other_case(self) -> 'Builder':
-		"""その他のケースを挿入
-
-		Returns:
-			Builder: 自己参照
-		"""
-		self.__case_of_injectors['__other__'] = lambda: {}
-		return self
-
-	def schema(self, injector: Injector) -> 'Builder':
-		"""編集中のケースにスキーマを追加
-
-		Args:
-			injector (Injector): スキーマファクトリー
-		Returns:
-			Builder: 自己参照
-		"""
-		self.__case_of_injectors[self.__current_key] = injector
-		return self
-
-	def build(self, expect: type[T_Ref]) -> T_Ref:
-		"""リフレクションを生成
-
-		Args:
-			expect (type[T_Ref]): 期待するレスポンス型
-		Returns:
-			T_Ref: 生成したインスタンス
-		Raises:
-			LogicError: ビルド対象が期待する型と不一致 XXX 出力する例外は要件等
-		"""
-		ctors: dict[type[defs.ClassDef], type[Reflection]] = {
-			defs.Function: Function,
-			defs.ClassMethod: ClassMethod,
-			defs.Method: Method,
-			defs.Constructor: Constructor,
-			defs.Enum: Enum,
-			defs.Class: Type,
-		}
-		ctor = ctors.get(self.__symbol.types.__class__, Object)
-		if not issubclass(ctor, expect):
-			raise LogicError(f'Unexpected build class. symbol: {self.__symbol}, resolved: {ctor}, expect: {expect}')
-
-		injector = self.__resolve_injector(ctor)
-		return ctor(self.__symbol, injector())
-
-	def __resolve_injector(self, ctor: type[Reflection]) -> Injector:
-		"""生成時に注入するスキーマを取得
-
-		Args:
-			ctor (type[Reflection]): 生成する型
-		Returns:
-			Injector: スキーマファクトリー
-		"""
-		for ctor_ in ctor.__mro__:
-			if not issubclass(ctor_, Reflection):
-				break
-
-			if ctor_.__name__ in self.__case_of_injectors:
-				return self.__case_of_injectors[ctor_.__name__]
-
-		if '__other__' in self.__case_of_injectors:
-			return self.__case_of_injectors['__other__']
-		else:
-			return self.__case_of_injectors['__default__']
+		...

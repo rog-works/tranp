@@ -9,10 +9,11 @@ from rogw.tranp.lang.implementation import injectable
 from rogw.tranp.syntax.ast.dsn import DSN
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
-from rogw.tranp.semantics.naming import ClassDomainNaming
+from rogw.tranp.semantics.helper.naming import ClassDomainNaming
 from rogw.tranp.semantics.procedure import Procedure
-import rogw.tranp.semantics.reflection as reflection
-from rogw.tranp.semantics.symbol import ClassShorthandNaming, SymbolRaw
+import rogw.tranp.semantics.helper.template as template
+from rogw.tranp.semantics.helper.naming import ClassShorthandNaming
+from rogw.tranp.semantics.reflection import IReflection
 from rogw.tranp.semantics.symbols import Symbols
 from rogw.tranp.translator.option import TranslatorOptions
 from rogw.tranp.view.render import Renderer
@@ -61,11 +62,11 @@ class Py2Cpp:
 		"""
 		return self.__procedure.exec(root)
 
-	def to_accessible_name(self, raw: SymbolRaw) -> str:
+	def to_accessible_name(self, raw: IReflection) -> str:
 		"""型推論によって補完する際の名前空間上の参照名を取得 (主にMoveAssignで利用)
 
 		Args:
-			raw (SymbolRaw): シンボル
+			raw (IReflection): シンボル
 		Returns:
 			str: 名前空間上の参照名
 		Note:
@@ -77,11 +78,11 @@ class Py2Cpp:
 		shorthand = ClassShorthandNaming.accessible_name(unpacked_raw, alias_handler=self.i18n.t)
 		return DSN.join(*DSN.elements(shorthand), delimiter='::')
 
-	def to_domain_name(self, var_type_raw: SymbolRaw) -> str:
+	def to_domain_name(self, var_type_raw: IReflection) -> str:
 		"""明示された型からドメイン名を取得 (主にAnnoAssignで利用)
 
 		Args:
-			var_type_raw (SymbolRaw): シンボル
+			var_type_raw (IReflection): シンボル
 		Returns:
 			str: ドメイン名
 		Note:
@@ -101,13 +102,13 @@ class Py2Cpp:
 		"""
 		return ClassDomainNaming.domain_name(types, alias_handler=self.i18n.t)
 
-	def force_unpack_nullable(self, symbol: SymbolRaw) -> SymbolRaw:
+	def force_unpack_nullable(self, symbol: IReflection) -> IReflection:
 		"""Nullableのシンボルの変数の型をアンパック。Nullable以外の型はそのまま返却 (主にRelayで利用)
 
 		Args:
-			symbol (SymbolRaw): シンボル
+			symbol (IReflection): シンボル
 		Returns:
-			SymbolRaw: 変数の型
+			IReflection: 変数の型
 		Note:
 			許容するNullableの書式 (例: 'Class | None')
 			@see ProcedureResolver.force_unpack_nullable
@@ -129,11 +130,11 @@ class Py2Cpp:
 			list[str]: テンプレート型名リスト
 		"""
 		function_raw = self.symbols.type_of(node)
-		function_ref = reflection.Builder(function_raw) \
-			.case(reflection.Method).schema(lambda: {'klass': function_raw.attrs[0], 'parameters': function_raw.attrs[1:-1], 'returns': function_raw.attrs[-1]}) \
+		function_helper = template.HelperBuilder(function_raw) \
+			.case(template.Method).schema(lambda: {'klass': function_raw.attrs[0], 'parameters': function_raw.attrs[1:-1], 'returns': function_raw.attrs[-1]}) \
 			.other_case().schema(lambda: {'parameters': function_raw.attrs[1:-1], 'returns': function_raw.attrs[-1]}) \
-			.build(reflection.Function)
-		return [types.domain_name for types in function_ref.templates()]
+			.build(template.Function)
+		return [types.domain_name for types in function_helper.templates()]
 
 	# General
 
@@ -404,7 +405,7 @@ class Py2Cpp:
 		else:
 			return self.view.render(node.classification, vars=relay_vars)
 
-	def analyze_relay_access_spec(self, node: defs.Relay, receiver_symbol: SymbolRaw) -> tuple[str, str]:
+	def analyze_relay_access_spec(self, node: defs.Relay, receiver_symbol: IReflection) -> tuple[str, str]:
 		def is_this_access() -> bool:
 			return node.receiver.is_a(defs.ThisRef)
 
@@ -535,32 +536,32 @@ class Py2Cpp:
 		elif spec == 'new_list':
 			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
 		elif spec == 'cast_bin_to_bin':
-			var_type = self.to_accessible_name(cast(SymbolRaw, context))
+			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'var_type': var_type})
 		elif spec == 'cast_str_to_bin':
-			var_type = self.to_accessible_name(cast(SymbolRaw, context))
+			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'var_type': var_type})
 		elif spec == 'cast_bin_to_str':
-			var_type = self.to_accessible_name(cast(SymbolRaw, context))
+			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'var_type': var_type})
 		elif spec == 'list_pop':
 			receiver = re.sub(r'(->|::|\.)pop$', '', calls)
-			var_type = self.to_accessible_name(cast(SymbolRaw, context))
+			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
 		elif spec == 'dict_pop':
 			receiver = re.sub(r'(->|::|\.)pop$', '', calls)
-			var_type = self.to_accessible_name(cast(SymbolRaw, context))
+			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
 		elif spec == 'dict_keys':
 			receiver = re.sub(r'(->|::|\.)keys$', '', calls)
-			var_type = self.to_accessible_name(cast(SymbolRaw, context))
+			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
 		elif spec == 'dict_values':
 			receiver = re.sub(r'(->|::|\.)values$', '', calls)
-			var_type = self.to_accessible_name(cast(SymbolRaw, context))
+			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
 		elif spec == 'new_enum':
-			var_type = self.to_accessible_name(cast(SymbolRaw, context))
+			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}_cast_bin_to_bin', vars={**func_call_vars, 'var_type': var_type})
 		elif spec.startswith('to_cvar_'):
 			cvar_type = spec.split('to_cvar_')[1]
@@ -568,17 +569,17 @@ class Py2Cpp:
 		elif spec == 'new_cvar_p':
 			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
 		elif spec == 'new_cvar_sp_list':
-			var_type = self.to_accessible_name(cast(SymbolRaw, context))
+			var_type = self.to_accessible_name(cast(IReflection, context))
 			initializer = arguments[0]
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'var_type': var_type, 'initializer': initializer})
 		elif spec == 'new_cvar_sp':
-			var_type = self.to_accessible_name(cast(SymbolRaw, context))
+			var_type = self.to_accessible_name(cast(IReflection, context))
 			initializer = cast(re.Match, re.fullmatch(r'[^(]+\(([^)]+)\)', arguments[0]))[1]
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'var_type': var_type, 'initializer': initializer})
 		else:
 			return self.view.render(node.classification, vars=func_call_vars)
 
-	def analyze_func_call_spec(self, node: defs.FuncCall, calls: str) -> tuple[str, SymbolRaw | None]:
+	def analyze_func_call_spec(self, node: defs.FuncCall, calls: str) -> tuple[str, IReflection | None]:
 		"""
 		Note:
 			FIXME callsは__alias__によって別名になる可能性があるため、実装名が欲しい場合はノードから直接取得すること。全体的な見直しが必要かも
@@ -699,12 +700,12 @@ class Py2Cpp:
 		else:
 			return self.proc_binary_operator_expression(node, primary_raw, secondary_raws, primary, operators, secondaries)
 
-	def proc_binary_operator_fill_list(self, node: defs.BinaryOperator, default_raw: SymbolRaw, size_raw: SymbolRaw, default: str, size: str) -> str:
+	def proc_binary_operator_fill_list(self, node: defs.BinaryOperator, default_raw: IReflection, size_raw: IReflection, default: str, size: str) -> str:
 		value_type = self.to_accessible_name(default_raw.attrs[0])
 		# 必ず要素1の配列のリテラルになるので、defaultの前後の括弧を除外する FIXME 現状仕様を前提にした処理なので妥当性が低い
 		return self.view.render('binary_operator_fill_list', vars={'value_type': value_type, 'default': default[1:-1], 'size': size})
 
-	def proc_binary_operator_expression(self, node: defs.BinaryOperator, left_raw: SymbolRaw, right_raws: list[SymbolRaw], left: str, operators: list[str], rights: list[str]) -> str:
+	def proc_binary_operator_expression(self, node: defs.BinaryOperator, left_raw: IReflection, right_raws: list[IReflection], left: str, operators: list[str], rights: list[str]) -> str:
 		primary = left
 		for index, right_raw in enumerate(right_raws):
 			operator = operators[index]

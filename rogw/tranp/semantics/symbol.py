@@ -722,73 +722,73 @@ class SymbolWrapper(IWrapper):
 		"""
 		self._raw = raw
 
-	def imports(self, via: defs.Import) -> ReflectionImport:
+	def imports(self, via: defs.Import) -> Reflection:
 		"""ラップしたシンボルを生成(インポートノード用)
 
 		Args:
 			via (Import): インポートノード
 		Returns:
-			SymbolImport: シンボル
+			Reflection: シンボル
 		"""
 		return ReflectionImport(self._raw.one_of(ImportOrigins), via)
 
-	def types(self, decl: defs.ClassDef) -> ReflectionClass:
+	def types(self, decl: defs.ClassDef) -> Reflection:
 		"""ラップしたシンボルを生成(クラス定義ノード用)
 
 		Args:
 			decl (ClassDef): クラス定義ノード
 		Returns:
-			SymbolClass: シンボル
+			Reflection: シンボル
 		"""
 		return ReflectionClass(self._raw.one_of(ClassOrigins), decl)
 
-	def var(self, decl: defs.DeclAll) -> ReflectionVar:
+	def var(self, decl: defs.DeclAll) -> Reflection:
 		"""ラップしたシンボルを生成(変数宣言ノード用)
 
 		Args:
 			decl (ClassDef): 変数宣言ノード
 		Returns:
-			SymbolVar: シンボル
+			Reflection: シンボル
 		"""
 		return ReflectionVar(self._raw.one_of(VarOrigins), decl)
 
-	def generic(self, via: defs.Type) -> ReflectionGeneric:
+	def generic(self, via: defs.Type) -> Reflection:
 		"""ラップしたシンボルを生成(タイプノード用)
 
 		Args:
 			via (Type): タイプノード
 		Returns:
-			SymbolGeneric: シンボル
+			Reflection: シンボル
 		"""
 		return ReflectionGeneric(self._raw.one_of(GenericOrigins), via)
 
-	def literal(self, via: defs.Literal | defs.Comprehension) -> ReflectionLiteral:
+	def literal(self, via: defs.Literal | defs.Comprehension) -> Reflection:
 		"""ラップしたシンボルを生成(リテラルノード用)
 
 		Args:
 			via (Literal | Comprehension): リテラル/リスト内包表記ノード
 		Returns:
-			SymbolLiteral: シンボル
+			Reflection: シンボル
 		"""
 		return ReflectionLiteral(self._raw.one_of(LiteralOrigins), via)
 
-	def ref(self, via: defs.Reference, context: Reflection | None = None) -> ReflectionReference:
+	def ref(self, via: defs.Reference, context: Reflection | None = None) -> Reflection:
 		"""ラップしたシンボルを生成(参照ノード用)
 
 		Args:
 			via (Reference): 参照系ノード
 			context (Reflection | None): コンテキストのシンボル (default = None)
 		Returns:
-			SymbolReference: シンボル
+			Reflection: シンボル
 		"""
 		return ReflectionReference(self._raw.one_of(RefOrigins), via, context)
 
-	def result(self, via: defs.Operator) -> ReflectionResult:
+	def result(self, via: defs.Operator) -> Reflection:
 		"""ラップしたシンボルを生成(結果系ノード用)
 
 		Args:
 			via (Operator): 結果系ノード ※現状は演算ノードのみ
 		Returns:
-			SymbolResult: シンボル
+			Reflection: シンボル
 		"""
 		return ReflectionResult(self._raw.one_of(ResultOrigins), via)

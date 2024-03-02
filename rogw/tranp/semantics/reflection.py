@@ -36,25 +36,25 @@ class Roles(Enum):
 		return self in [Roles.Origin, Roles.Class, Roles.Var, Roles.Generic, Roles.Literal]
 
 
-class DB(dict[str, T_Ref]):
+class DB(dict[str, 'IReflection']):
 	"""シンボルテーブル"""
 
 	@classmethod
-	def new(cls, *raws: Self | dict[str, T_Ref]) -> Self:
+	def new(cls, *raws: Self | dict[str, 'IReflection']) -> Self:
 		"""シンボルテーブルを結合した新たなインスタンスを生成
 
 		Args:
-			*raws (Self | dict[str, T_Ref]): シンボルテーブルリスト
+			*raws (Self | dict[str, IReflection]): シンボルテーブルリスト
 		Returns:
 			Self: 生成したインスタンス
 		"""
 		return cls().merge(*raws)
 
-	def merge(self, *raws: Self | dict[str, T_Ref]) -> Self:
+	def merge(self, *raws: Self | dict[str, 'IReflection']) -> Self:
 		"""指定のシンボルテーブルと結合
 
 		Args:
-			*raws (Self | dict[str, T_Ref]): シンボルテーブルリスト
+			*raws (Self | dict[str, IReflection]): シンボルテーブルリスト
 		Returns:
 			Self: 自己参照
 		"""
@@ -67,12 +67,12 @@ class DB(dict[str, T_Ref]):
 		return self
 
 	@override
-	def __setitem__(self, key: str, raw: T_Ref) -> None:
+	def __setitem__(self, key: str, raw: 'IReflection') -> None:
 		"""配列要素設定のオーバーロード
 
 		Args:
 			key (str): 要素名
-			raw (T_Ref): シンボル
+			raw (IReflection): シンボル
 		"""
 		raw.set_raws(self)
 		super().__setitem__(key, raw)
@@ -239,7 +239,7 @@ class IReflection(metaclass=ABCMeta):
 		...
 
 
-SymbolRaws: TypeAlias = DB[IReflection]
+SymbolRaws: TypeAlias = DB
 
 
 class IWrapper(metaclass=ABCMeta):

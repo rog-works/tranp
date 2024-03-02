@@ -3,8 +3,7 @@ from typing import NamedTuple
 from rogw.tranp.lang.implementation import injectable
 from rogw.tranp.lang.locator import Invoker
 from rogw.tranp.semantics.processor import Preprocessors
-from rogw.tranp.semantics.reflection import DB
-from rogw.tranp.semantics.reflection import IReflection, SymbolRaws
+from rogw.tranp.semantics.reflection import SymbolRaws
 
 
 class SymbolDB(NamedTuple):
@@ -14,8 +13,7 @@ class SymbolDB(NamedTuple):
 		raws: シンボルテーブル
 	"""
 
-	# XXX SymbolRawと等価
-	raws: DB[IReflection]
+	raws: SymbolRaws
 
 
 @injectable

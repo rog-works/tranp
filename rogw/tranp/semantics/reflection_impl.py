@@ -431,6 +431,8 @@ class ReflectionClass(ReflectionImpl):
 
 
 class ReflectionVar(ReflectionImpl):
+	"""シンボル(変数)"""
+
 	def __init__(self, origin: 'VarOrigins', decl: defs.DeclAll) -> None:
 		"""インスタンスを生成
 
@@ -464,6 +466,8 @@ class ReflectionVar(ReflectionImpl):
 
 
 class ReflectionGeneric(ReflectionImpl):
+	"""シンボル(ジェネリック型)"""
+
 	def __init__(self, origin: 'GenericOrigins', via: defs.Type) -> None:
 		"""インスタンスを生成
 
@@ -497,6 +501,8 @@ class ReflectionGeneric(ReflectionImpl):
 
 
 class ReflectionLiteral(ReflectionImpl):
+	"""シンボル(リテラル)"""
+
 	def __init__(self, origin: 'LiteralOrigins', via: defs.Literal | defs.Comprehension) -> None:
 		"""インスタンスを生成
 
@@ -530,6 +536,8 @@ class ReflectionLiteral(ReflectionImpl):
 
 
 class ReflectionReference(ReflectionImpl):
+	"""シンボル(参照)"""
+
 	def __init__(self, origin: 'RefOrigins', via: defs.Reference, context: IReflection | None = None) -> None:
 		"""インスタンスを生成
 
@@ -580,6 +588,8 @@ class ReflectionReference(ReflectionImpl):
 
 
 class ReflectionResult(ReflectionImpl):
+	"""シンボル(演算結果)"""
+
 	def __init__(self, origin: 'ResultOrigins', via: defs.Operator) -> None:
 		"""インスタンスを生成
 
@@ -850,10 +860,10 @@ class SymbolWrapper(IWrapper):
 
 	@implements
 	def var(self, decl: defs.DeclAll) -> IReflection:
-		"""ラップしたシンボルを生成(変数宣言ノード用)
+		"""ラップしたシンボルを生成(クラス/変数宣言ノード用)
 
 		Args:
-			decl (ClassDef): 変数宣言ノード
+			decl (DeclAll): クラス/変数宣言ノード
 		Returns:
 			IReflection: シンボル
 		"""

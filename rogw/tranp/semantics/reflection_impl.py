@@ -40,13 +40,13 @@ class Reflection(IReflection):
 
 	@property
 	@implements
-	def attrs(self) -> list['IReflection']:
+	def attrs(self) -> list[IReflection]:
 		"""list[IReflection]: 属性シンボルリスト"""
 		return []
 
 	@property
 	@implements
-	def origin(self) -> 'IReflection | None':
+	def origin(self) -> IReflection | None:
 		"""IReflection | None: スタックシンボル"""
 		return None
 
@@ -58,7 +58,7 @@ class Reflection(IReflection):
 
 	@property
 	@implements
-	def context(self) -> 'IReflection':
+	def context(self) -> IReflection:
 		"""コンテキストを取得
 
 		Returns:
@@ -95,7 +95,7 @@ class Reflection(IReflection):
 		return ClassShorthandNaming.domain_name(self)
 
 	@implements
-	def hierarchy(self) -> Iterator['IReflection']:
+	def hierarchy(self) -> Iterator[IReflection]:
 		"""参照元を辿るイテレーターを取得
 
 		Returns:
@@ -107,7 +107,7 @@ class Reflection(IReflection):
 			curr = curr.origin
 
 	@implements
-	def extends(self: Self, *attrs: 'IReflection') -> Self:
+	def extends(self: Self, *attrs: IReflection) -> Self:
 		"""シンボルが保有する型を拡張情報として属性に取り込む
 
 		Args:
@@ -706,7 +706,7 @@ class SymbolProxy(IReflection):
 
 	@property
 	@implements
-	def context(self) -> 'IReflection':
+	def context(self) -> IReflection:
 		"""コンテキストを取得
 
 		Returns:

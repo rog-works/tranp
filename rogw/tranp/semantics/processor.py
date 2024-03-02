@@ -1,6 +1,6 @@
 from typing import Callable, Protocol, TypeAlias
 
-from rogw.tranp.semantics.symbol import SymbolRaws
+from rogw.tranp.semantics.reflection import SymbolRaws
 
 
 # class Preprocessor(Protocol):

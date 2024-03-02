@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from enum import Enum
-from typing import Iterator, Self, TypeVar
+from typing import Iterator, Self, TypeAlias, TypeVar
 
 from rogw.tranp.lang.implementation import override
 import rogw.tranp.syntax.node.definition as defs
@@ -76,11 +76,6 @@ class DB(dict[str, T_Ref]):
 		"""
 		raw.set_raws(self)
 		super().__setitem__(key, raw)
-
-
-class IWrapper:
-	"""ラッパーファクトリー"""
-	...
 
 
 class IReflection(metaclass=ABCMeta):
@@ -240,5 +235,90 @@ class IReflection(metaclass=ABCMeta):
 			T_Ref: インスタンス
 		Raises:
 			LogicError: 継承関係が無い型を指定 XXX 出力する例外は要件等
+		"""
+		...
+
+
+SymbolRaws: TypeAlias = DB[IReflection]
+
+
+class IWrapper(metaclass=ABCMeta):
+	"""ラッパーファクトリー"""
+
+	@abstractmethod
+	def imports(self, via: defs.Import) -> IReflection:
+		"""ラップしたシンボルを生成(インポートノード用)
+
+		Args:
+			via (Import): インポートノード
+		Returns:
+			IReflection: シンボル
+		"""
+		...
+
+	@abstractmethod
+	def types(self, decl: defs.ClassDef) -> IReflection:
+		"""ラップしたシンボルを生成(クラス定義ノード用)
+
+		Args:
+			decl (ClassDef): クラス定義ノード
+		Returns:
+			IReflection: シンボル
+		"""
+		...
+
+	@abstractmethod
+	def var(self, decl: defs.DeclAll) -> IReflection:
+		"""ラップしたシンボルを生成(変数宣言ノード用)
+
+		Args:
+			decl (ClassDef): 変数宣言ノード
+		Returns:
+			IReflection: シンボル
+		"""
+		...
+
+	@abstractmethod
+	def generic(self, via: defs.Type) -> IReflection:
+		"""ラップしたシンボルを生成(タイプノード用)
+
+		Args:
+			via (Type): タイプノード
+		Returns:
+			IReflection: シンボル
+		"""
+		...
+
+	@abstractmethod
+	def literal(self, via: defs.Literal | defs.Comprehension) -> IReflection:
+		"""ラップしたシンボルを生成(リテラルノード用)
+
+		Args:
+			via (Literal | Comprehension): リテラル/リスト内包表記ノード
+		Returns:
+			IReflection: シンボル
+		"""
+		...
+
+	@abstractmethod
+	def ref(self, via: defs.Reference, context: IReflection | None = None) -> IReflection:
+		"""ラップしたシンボルを生成(参照ノード用)
+
+		Args:
+			via (Reference): 参照系ノード
+			context (IReflection | None): コンテキストのシンボル (default = None)
+		Returns:
+			IReflection: シンボル
+		"""
+		...
+
+	@abstractmethod
+	def result(self, via: defs.Operator) -> IReflection:
+		"""ラップしたシンボルを生成(結果系ノード用)
+
+		Args:
+			via (Operator): 結果系ノード ※現状は演算ノードのみ
+		Returns:
+			IReflection: シンボル
 		"""
 		...

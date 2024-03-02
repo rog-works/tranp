@@ -5,12 +5,12 @@ from rogw.tranp.lang.implementation import override
 import rogw.tranp.lang.sequence as seqs
 from rogw.tranp.syntax.ast.dsn import DSN
 import rogw.tranp.syntax.node.definition as defs
-from rogw.tranp.semantics.symbol import Reflection
+from rogw.tranp.semantics.reflection import IReflection
 
 T_Helper = TypeVar('T_Helper', bound='Helper')
-T_Schemata = TypeVar('T_Schemata', Reflection, list[Reflection])
+T_Schemata = TypeVar('T_Schemata', IReflection, list[IReflection])
 
-InjectSchemata: TypeAlias = dict[str, Reflection | list[Reflection]]
+InjectSchemata: TypeAlias = dict[str, IReflection | list[IReflection]]
 Injector: TypeAlias = Callable[[], InjectSchemata]
 
 
@@ -21,7 +21,7 @@ class Schema(Generic[T_Schemata]):
 		"""インスタンスを生成
 
 		Args:
-			schemata (T_Schemata:): プロパティー名とシンボルのマップ情報
+			schemata (T_Schemata): プロパティー名とシンボルのマップ情報
 		"""
 		self.__schemata = schemata
 
@@ -31,7 +31,7 @@ class Schema(Generic[T_Schemata]):
 		Args:
 			key (str): プロパティー名
 		Returns:
-			T_Schemata:: シンボル | シンボルリスト
+			T_Schemata: シンボル | シンボルリスト
 		Raises:
 			LogicError: 存在しないキーを指定 XXX 出力する例外は要件等
 		"""
@@ -44,7 +44,7 @@ class Schema(Generic[T_Schemata]):
 class Helper:
 	"""テンプレート解決ヘルパー"""
 
-	def __init__(self, symbol: Reflection, schemata: InjectSchemata) -> None:
+	def __init__(self, symbol: IReflection, schemata: InjectSchemata) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -52,8 +52,8 @@ class Helper:
 			schemata (InjectSchemata): プロパティー名とシンボルのマップ情報
 		"""
 		self.symbol = symbol
-		self.schema = Schema[Reflection]({key: schema for key, schema in schemata.items() if isinstance(schema, Reflection)})
-		self.schemata = Schema[list[Reflection]]({key: schema for key, schema in schemata.items() if type(schema) is list})
+		self.schema = Schema[IReflection]({key: schema for key, schema in schemata.items() if isinstance(schema, IReflection)})
+		self.schemata = Schema[list[IReflection]]({key: schema for key, schema in schemata.items() if type(schema) is list})
 
 	def is_a(self, *ctors: type['Helper']) -> bool:
 		"""指定のクラスと同じか派生クラスか判定
@@ -69,7 +69,7 @@ class Helper:
 class Function(Helper):
 	"""全ファンクションの基底クラス。メソッド/クロージャー以外のファンクションが対象"""
 
-	def parameter(self, index: int, *context: Reflection) -> Reflection:
+	def parameter(self, index: int, *context: IReflection) -> IReflection:
 		"""引数の実行時型を解決
 
 		Args:
@@ -81,7 +81,7 @@ class Function(Helper):
 		argument, *_ = context
 		return argument
 
-	def returns(self, *arguments: Reflection) -> Reflection:
+	def returns(self, *arguments: IReflection) -> IReflection:
 		"""戻り値の実行時型を解決
 
 		Args:
@@ -117,7 +117,7 @@ class Method(Function):
 	"""全メソッドの基底クラス。クラスメソッド/コンストラクター以外のメソッドが対象"""
 
 	@override
-	def parameter(self, index: int, *context: Reflection) -> Reflection:
+	def parameter(self, index: int, *context: IReflection) -> IReflection:
 		"""引数の実行時型を解決
 
 		Args:
@@ -138,7 +138,7 @@ class Method(Function):
 		return TemplateManipulator.apply(parameter.clone(), map_props, updates)
 
 	@override
-	def returns(self, *arguments: Reflection) -> Reflection:
+	def returns(self, *arguments: IReflection) -> IReflection:
 		"""戻り値の実行時型を解決
 
 		Args:
@@ -178,7 +178,7 @@ class Constructor(Method):
 
 
 TemplateMap: TypeAlias = dict[str, defs.TemplateClass]
-SymbolMap: TypeAlias = dict[str, Reflection]
+SymbolMap: TypeAlias = dict[str, IReflection]
 UpdateMap: TypeAlias = dict[str, str]
 
 
@@ -186,7 +186,7 @@ class TemplateManipulator:
 	"""テンプレート操作"""
 
 	@classmethod
-	def unpack_templates(cls, **attrs: Reflection | list[Reflection]) -> TemplateMap:
+	def unpack_templates(cls, **attrs: IReflection | list[IReflection]) -> TemplateMap:
 		"""シンボル/属性からテンプレート型(タイプ再定義ノード)を平坦化して抽出
 
 		Args:
@@ -198,7 +198,7 @@ class TemplateManipulator:
 		return {path: attr.types for path, attr in expand_attrs.items() if isinstance(attr.types, defs.TemplateClass)}
 
 	@classmethod
-	def unpack_symbols(cls, **attrs: Reflection | list[Reflection]) -> SymbolMap:
+	def unpack_symbols(cls, **attrs: IReflection | list[IReflection]) -> SymbolMap:
 		"""シンボル/属性を平坦化して抽出
 
 		Args:
@@ -231,7 +231,7 @@ class TemplateManipulator:
 		return updates
 
 	@classmethod
-	def apply(cls, primary: Reflection, actual_props: SymbolMap, updates: UpdateMap) -> Reflection:
+	def apply(cls, primary: IReflection, actual_props: SymbolMap, updates: UpdateMap) -> IReflection:
 		"""シンボルに実行時型を適用する
 
 		Args:
@@ -255,7 +255,7 @@ class TemplateManipulator:
 class HelperBuilder:
 	"""ヘルパービルダー"""
 
-	def __init__(self, symbol: Reflection) -> None:
+	def __init__(self, symbol: IReflection) -> None:
 		"""インスタンスを生成
 
 		Args:

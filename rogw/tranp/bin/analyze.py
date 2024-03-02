@@ -18,7 +18,7 @@ from rogw.tranp.module.module import Module
 from rogw.tranp.module.types import ModulePath
 from rogw.tranp.semantics.db import SymbolDB
 from rogw.tranp.semantics.plugin import PluginProvider
-from rogw.tranp.semantics.symbol import Reflection
+from rogw.tranp.semantics.reflection import IReflection
 from rogw.tranp.semantics.symbols import Symbols
 from rogw.tranp.syntax.ast.entry import Entry
 from rogw.tranp.syntax.ast.parser import ParserSetting, SyntaxParser
@@ -154,7 +154,7 @@ def dump_node_data(node: Node) -> dict[str, Any]:
 	return data
 
 
-def dump_symbol_data(symbol: Reflection) -> dict[str, Any]:
+def dump_symbol_data(symbol: IReflection) -> dict[str, Any]:
 	return {
 		'types_full_path': symbol.types.full_path,
 		'decl_full_path': symbol.decl.full_path,
@@ -188,7 +188,7 @@ def task_analyze(org_parser: SyntaxParser, cache: CacheProvider) -> None:
 		def new_parser(module_path: str) -> Entry:
 			return root if module_path == '__main__' else org_parser(module_path)
 
-		def resolve_symbol(symbols: Symbols, name: str) -> Reflection:
+		def resolve_symbol(symbols: Symbols, name: str) -> IReflection:
 			try:
 				return symbols.from_fullyname(name)
 			except LogicError:

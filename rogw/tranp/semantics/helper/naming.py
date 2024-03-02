@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from rogw.tranp.semantics.reflected import IReflection, Roles
+from rogw.tranp.semantics.reflection import IReflection, Roles
 from rogw.tranp.syntax.ast.dsn import DSN
 import rogw.tranp.syntax.node.definition as defs
 

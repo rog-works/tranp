@@ -1,13 +1,11 @@
-from typing import Any, Callable, Iterator, Self, TypeAlias, TypeVar
+from typing import Any, Callable, Iterator, Self, TypeAlias
 
 from rogw.tranp.errors import FatalError, LogicError
 from rogw.tranp.lang.implementation import implements, injectable, override
 from rogw.tranp.semantics.helper.naming import ClassShorthandNaming
-from rogw.tranp.semantics.reflection import DB, IReflection, IWrapper, Roles, SymbolRaws
+from rogw.tranp.semantics.reflection import DB, IReflection, IWrapper, Roles, SymbolRaws, T_Ref
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
-
-T_Raw = TypeVar('T_Raw', bound='IReflection')
 
 
 class Reflection(IReflection):
@@ -124,7 +122,7 @@ class Reflection(IReflection):
 
 	@property
 	@implements
-	def to(self) -> 'SymbolWrapper':
+	def to(self) -> IWrapper:
 		"""ラッパーファクトリーを生成
 
 		Returns:
@@ -133,13 +131,13 @@ class Reflection(IReflection):
 		return SymbolWrapper(self)
 
 	@implements
-	def one_of(self, expects: type[T_Raw]) -> T_Raw:
+	def one_of(self, expects: type[T_Ref]) -> T_Ref:
 		"""期待する型と同種ならキャスト
 
 		Args:
-			expects (type[T_Raw]): 期待する型
+			expects (type[T_Ref]): 期待する型
 		Returns:
-			T_Raw: インスタンス
+			T_Ref: インスタンス
 		Raises:
 			LogicError: 継承関係が無い型を指定 XXX 出力する例外は要件等
 		"""
@@ -773,13 +771,13 @@ class SymbolProxy(IReflection):
 		return self.__new_raw_proxy.to
 
 	@implements
-	def one_of(self, expects: type[T_Raw]) -> T_Raw:
+	def one_of(self, expects: type[T_Ref]) -> T_Ref:
 		"""期待する型と同種ならキャスト
 
 		Args:
 			expects (type[T_Ref]): 期待する型
 		Returns:
-			T_Raw: インスタンス
+			T_Ref: インスタンス
 		Raises:
 			LogicError: 継承関係が無い型を指定 XXX 出力する例外は要件等
 		"""

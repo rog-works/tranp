@@ -83,6 +83,10 @@ class Reflection(IReflection):
 			Self: 複製したインスタンス
 		"""
 		new = self.__class__(**kwargs)
+		# XXX 念のため明示的にコピー
+		if self.__raws and new.__raws is None:
+			new.__raws = self.__raws
+
 		if self.attrs:
 			return new.extends(*[attr.clone() for attr in self.attrs])
 

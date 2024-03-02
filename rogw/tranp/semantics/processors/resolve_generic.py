@@ -3,7 +3,7 @@ from typing import TypeAlias, cast
 from rogw.tranp.lang.implementation import injectable
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.semantics.finder import SymbolFinder
-from rogw.tranp.semantics.reflection import IReflection, SymbolRaws
+from rogw.tranp.semantics.reflection import IReflection, Roles, SymbolRaws
 
 TargetDeclTypes: TypeAlias = defs.GenericType | defs.Function | defs.AltClass | defs.Class
 
@@ -30,112 +30,55 @@ class ResolveGeneric:
 			SymbolRaws: シンボルテーブル
 		"""
 		for key, raw in raws.items():
-			if not raw.has_entity:
-				continue
-
-			decl_type = self.fetch_decl_type(raw)
-			if isinstance(decl_type, defs.UnionType):
-				raws[key] = self.extends_for_union(raws, raw, decl_type)
-			elif isinstance(decl_type, TargetDeclTypes):
-				raws[key] = self.extends_generic(raws, raw, decl_type)
+			if raw.role == Roles.Origin:
+				if isinstance(raw.types, defs.AltClass):
+					raws[key] = self.extends_for_alt_class(raws, raw, raw.types)
+				elif isinstance(raw.types, defs.Class):
+					raws[key] = self.extends_for_class(raws, raw, raw.types)
+				elif isinstance(raw.types, defs.Function):
+					raws[key] = self.extends_for_function(raws, raw, raw.types)
+			elif raw.role == Roles.Var:
+				if isinstance(raw.decl.declare, defs.Parameter) and isinstance(raw.decl.declare.var_type, defs.Type):
+					raws[key] = self.extends_for_type(raws, raw, raw.decl.declare.var_type)
+				elif isinstance(raw.decl.declare, (defs.AnnoAssign, defs.Catch)):
+					raws[key] = self.extends_for_type(raws, raw, raw.decl.declare.var_type)
 
 		return raws
 
-	def fetch_decl_type(self, raw: IReflection) -> defs.Type | defs.ClassDef | None:
-		"""シンボルの型(タイプ/クラス定義ノード)を取得。型が不明な場合はNoneを返却
-
-		Args:
-			raw (IReflection): シンボル
-		Returns:
-			Type | ClassDef | None: タイプ/クラス定義ノード。不明な場合はNone
-		"""
-		if isinstance(raw.decl.declare, defs.Parameter):
-			# XXX self/cls以外は型指定がある前提
-			if raw.decl.declare.var_type.is_a(defs.Type):
-				return raw.decl.declare.var_type.as_a(defs.Type)
-		elif isinstance(raw.decl.declare, (defs.AnnoAssign, defs.Catch)):
-			return raw.decl.declare.var_type
-		elif isinstance(raw.decl.declare, defs.ClassDef):
-			return raw.decl.declare
-
-		# MoveAssign, For
-		# 型指定が無いため全てUnknown
-		return None
-
-	def extends_generic(self, raws: SymbolRaws, via: IReflection, decl_type: TargetDeclTypes) -> IReflection:
+	def extends_for_type(self, raws: SymbolRaws, via: IReflection, decl_type: defs.Type) -> IReflection:
 		"""ジェネリックタイプ/クラス定義ノードを解析し、属性の型を取り込みシンボルを拡張
 
 		Args:
 			raws (SymbolRaws): シンボルテーブル
 			via (IReflection): シンボル
-			decl_type (TargetDeclTypes): ジェネリックタイプ/クラス定義ノード
+			decl_type (Type): タイプノード
 		Returns:
 			IReflection: シンボル
 		"""
-		if isinstance(decl_type, defs.GenericType):
-			return self.extends_for_type(raws, via, decl_type)
-		elif isinstance(decl_type, defs.Function):
-			return self.extends_for_function(raws, via, decl_type)
-		elif isinstance(decl_type, defs.AltClass):
-			return self.extends_for_alt_class(raws, via, decl_type)
+		if isinstance(decl_type, defs.UnionType):
+			return self.extends_for_type_by_secondaries(raws, via, decl_type, decl_type.or_types)
+		elif isinstance(decl_type, defs.GenericType):
+			return self.extends_for_type_by_secondaries(raws, via, decl_type, decl_type.template_types)
 		else:
-			return self.extends_for_class(raws, via, decl_type)
+			return via
 
-	def extends_for_union(self, raws: SymbolRaws, via: IReflection, union_type: defs.UnionType) -> IReflection:
-		"""ユニオンタイプノードを解析し、属性の型を取り込みシンボルを拡張
-
-		Args:
-			raws (SymbolRaws): シンボルテーブル
-			via (IReflection): シンボル
-			union_type (UnionType): ユニオンタイプノード
-		Returns:
-			IReflection: シンボル
-		"""
-		attrs: list[IReflection] = []
-		for or_type in union_type.or_types:
-			t_raw = self.finder.by_symbolic(raws, or_type)
-			if isinstance(or_type, defs.UnionType):
-				attrs.append(self.extends_for_union(raws, t_raw, or_type))
-			elif isinstance(or_type, TargetDeclTypes):
-				attrs.append(self.extends_generic(raws, t_raw, or_type))
-			else:
-				attrs.append(t_raw)
-
-		return via.to.generic(union_type).extends(*attrs)
-
-	def extends_for_type(self, raws: SymbolRaws, via: IReflection, generic_type: defs.GenericType) -> IReflection:
+	def extends_for_type_by_secondaries(self, raws: SymbolRaws, via: IReflection, primary_type: defs.GenericType | defs.UnionType, secondary_types: list[defs.Type]) -> IReflection:
 		"""ジェネリックタイプノードを解析し、属性の型を取り込みシンボルを拡張
 
 		Args:
 			raws (SymbolRaws): シンボルテーブル
 			via (IReflection): シンボル
-			generic_type (GenericType): ジェネリックタイプノード
+			primary_type (GenericType | UnionType): メインのタイプノード
+			secondary_types (list[Type]): サブのタイプノード
 		Returns:
 			IReflection: シンボル
 		"""
 		attrs: list[IReflection] = []
-		for t_type in generic_type.template_types:
-			t_raw = self.finder.by_symbolic(raws, t_type)
-			attrs.append(self.expand_attr(raws, t_raw, t_type))
+		for secondary_type in secondary_types:
+			secondary_raw = self.finder.by_symbolic(raws, secondary_type)
+			attrs.append(self.extends_for_type(raws, secondary_raw, secondary_type))
 
-		return via.to.generic(generic_type).extends(*attrs)
-
-	def expand_attr(self, raws: SymbolRaws, t_raw: IReflection, t_type: defs.Type) -> IReflection:
-		"""タイプノードを属性として展開
-
-		Args:
-			raws (SymbolRaws): シンボルテーブル
-			t_raw (IReflection): タイプノードのシンボル
-			t_type (Type): タイプノード
-		Returns:
-			IReflection: シンボル
-		"""
-		if isinstance(t_type, defs.UnionType):
-			return self.extends_for_union(raws, t_raw, t_type)
-		elif isinstance(t_type, defs.GenericType):
-			return self.extends_for_type(raws, t_raw, t_type)
-		else:
-			return t_raw
+		return via.to.generic(primary_type).extends(*attrs)
 
 	def extends_for_function(self, raws: SymbolRaws, via: IReflection, function: defs.Function) -> IReflection:
 		"""ファンクション定義ノードを解析し、属性の型を取り込みシンボルを拡張
@@ -149,30 +92,30 @@ class ResolveGeneric:
 		"""
 		attrs: list[IReflection] = []
 		for parameter in function.parameters:
-			# cls/selfにタイプヒントが無い場合のみ補完
+			# XXX cls/selfにタイプヒントが無い場合のみ補完
 			if isinstance(parameter.symbol, (defs.DeclClassParam, defs.DeclThisParam)) and parameter.var_type.is_a(defs.Empty):
 				attrs.append(self.finder.by_symbolic(raws, parameter.symbol))
 			else:
-				t_type = cast(defs.Type, parameter.var_type)
-				t_raw = self.finder.by_symbolic(raws, t_type).to.var(parameter)
-				attrs.append(self.expand_attr(raws, t_raw, t_type))
+				parameter_type = cast(defs.Type, parameter.var_type)
+				parameter_type_raw = self.finder.by_symbolic(raws, parameter_type)
+				attrs.append(self.extends_for_type(raws, parameter_type_raw, parameter_type))
 
-		t_raw = self.finder.by_symbolic(raws, function.return_type).to.generic(function.return_type)
-		attrs.append(self.expand_attr(raws, t_raw, function.return_type))
+		return_type_raw = self.finder.by_symbolic(raws, function.return_type)
+		attrs.append(self.extends_for_type(raws, return_type_raw, function.return_type))
 		return via.to.types(function).extends(*attrs)
 
-	def extends_for_alt_class(self, raws: SymbolRaws, via: IReflection, types: defs.AltClass) -> IReflection:
+	def extends_for_alt_class(self, raws: SymbolRaws, via: IReflection, alt_types: defs.AltClass) -> IReflection:
 		"""タイプ再定義ノードを解析し、属性の型を取り込みシンボルを拡張
 
 		Args:
 			raws (SymbolRaws): シンボルテーブル
 			via (IReflection): シンボル
-			types (AltClass): タイプ再定義ノード
+			alt_types (AltClass): タイプ再定義ノード
 		Returns:
 			IReflection: シンボル
 		"""
-		t_raw = self.finder.by_symbolic(raws, types.actual_type).to.generic(types.actual_type)
-		return via.to.types(types).extends(self.expand_attr(raws, t_raw, types.actual_type))
+		actual_type_raw = self.finder.by_symbolic(raws, alt_types.actual_type)
+		return via.to.types(alt_types).extends(self.extends_for_type(raws, actual_type_raw, alt_types.actual_type))
 
 	def extends_for_class(self, raws: SymbolRaws, via: IReflection, types: defs.Class) -> IReflection:
 		"""クラス定義ノードを解析し、属性の型を取り込みシンボルを拡張

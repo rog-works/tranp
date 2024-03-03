@@ -6,6 +6,7 @@ from rogw.tranp.module.modules import Module, Modules
 from rogw.tranp.semantics.finder import SymbolFinder
 from rogw.tranp.semantics.reflection import IReflection, SymbolRaws
 from rogw.tranp.semantics.reflection_impl import Symbol
+from rogw.tranp.syntax.ast.dsn import DSN
 import rogw.tranp.syntax.node.definition as defs
 
 
@@ -15,11 +16,13 @@ class Expanded(NamedTuple):
 	Attributes:
 		classes (dict[str, str]): クラス定義マップ
 		decl_vars (dict[str, str]): 変数宣言マップ
+		imports (dict[str, str]): インポートマップ
 		import_paths (list[str]): インポートパスリスト
 	"""
 
 	classes: dict[str, str] = {}
 	decl_vars: dict[str, str] = {}
+	imports: dict[str, str] = {}
 	import_paths: list[str] = []
 
 class ExpandModules:
@@ -68,13 +71,22 @@ class ExpandModules:
 				types = entrypoint.whole_by(full_path).as_a(defs.ClassDef)
 				expanded_raws[fullyname] = Symbol(types)
 
-		# 変数・インポートシンボルの展開
+		# インポートシンボルの展開
+		for module_path, expanded in expanded_modules.items():
+			entrypoint = self.modules.load(module_path).entrypoint.as_a(defs.Entrypoint)
+			for fullyname, full_path in expanded.imports.items():
+				import_name = entrypoint.whole_by(full_path).as_a(defs.ImportName)
+				import_node = import_name.declare.as_a(defs.Import)
+				raw = expanded_raws[DSN.join(import_node.import_path.tokens, import_name.tokens)]
+				expanded_raws[fullyname] = raw.to.imports(import_node)
+
+		# 変数宣言シンボルの展開
 		for module_path, expanded in expanded_modules.items():
 			entrypoint = self.modules.load(module_path).entrypoint.as_a(defs.Entrypoint)
 			for fullyname, full_path in expanded.decl_vars.items():
-				decl = entrypoint.whole_by(full_path).as_a(defs.Declable)
-				raw = self.resolve_type_symbol(raws, decl)
-				expanded_raws[fullyname] = raw.to.var(decl)
+				var = entrypoint.whole_by(full_path).as_a(defs.Declable)
+				raw = self.resolve_type_symbol(raws, var)
+				expanded_raws[fullyname] = raw.to.var(var)
 
 		return raws.merge(expanded_raws.sorted(list(expanded_modules.keys())))
 
@@ -91,13 +103,11 @@ class ExpandModules:
 
 		classes: dict[str, str] = {}
 		decl_vars: dict[str, str] = {}
+		imports: dict[str, str] = {}
 		import_paths: list[str] = []
 		for node in nodes:
 			if isinstance(node, defs.ClassDef):
 				classes[node.fullyname] = node.full_path
-
-			if isinstance(node, defs.Import):
-				decl_vars = {**decl_vars, **{symbol.fullyname: symbol.full_path for symbol in node.symbols}}
 
 			if isinstance(node, defs.Entrypoint):
 				decl_vars = {**decl_vars, **{var.fullyname: var.full_path for var in node.decl_vars}}
@@ -112,9 +122,10 @@ class ExpandModules:
 				decl_vars = {**decl_vars, **{var.fullyname: var.full_path for var in node.decl_vars}}
 
 			if isinstance(node, defs.Import):
+				imports = {**imports, **{symbol.fullyname: symbol.full_path for symbol in node.symbols}}
 				import_paths.append(node.import_path.tokens)
 
-		return Expanded(classes, decl_vars, import_paths)
+		return Expanded(classes, decl_vars, imports, import_paths)
 
 	def resolve_type_symbol(self, raws: SymbolRaws, var: defs.DeclVars) -> IReflection:
 		"""シンボルテーブルから変数の型のシンボルを解決

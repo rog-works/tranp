@@ -1,4 +1,4 @@
-from typing import Any, Iterator, Self, TypeAlias
+from typing import Any, Iterator, Self
 
 from rogw.tranp.errors import FatalError, LogicError
 from rogw.tranp.lang.implementation import implements, override

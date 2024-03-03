@@ -88,6 +88,12 @@ class Sub(Base):
 	def fill_list(self, n: int) -> None:
 		n_x3 = [n] * 3
 
+	def param_default(self, d: DSI = {}) -> int:
+		n = self.param_default() + 1
+		n2 = self.param_default({'a': 1}) + 1
+		keys = d.keys()
+		return d['a']
+
 class CalcOps:
 	def unary(self) -> None:
 		n = 1

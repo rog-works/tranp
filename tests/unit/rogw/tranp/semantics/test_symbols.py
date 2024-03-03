@@ -31,6 +31,7 @@ def _ast(before: str, after: str) -> str:
 	_Sub_assign_with_param = f'{_Sub}.class_def_raw.block.function_def[13]'
 	_Sub_relay_access = f'{_Sub}.class_def_raw.block.function_def[14]'
 	_Sub_fill_list = f'{_Sub}.class_def_raw.block.function_def[15]'
+	_Sub_param_default = f'{_Sub}.class_def_raw.block.function_def[16]'
 	_CalcOps = f'file_input.class_def[{_start + 3}]'
 	_AliasOps = f'file_input.class_def[{_start + 4}]'
 	_TupleOps = f'file_input.class_def[{_start + 5}]'
@@ -170,6 +171,11 @@ class TestSymbols(TestCase):
 		('__main__.Sub.relay_access.s', 'str'),
 
 		('__main__.Sub.fill_list.n_x3', 'list<int>'),
+
+		('__main__.Sub.param_default.d', 'DSI=dict<str, int>'),
+		('__main__.Sub.param_default.n', 'int'),
+		('__main__.Sub.param_default.n2', 'int'),
+		('__main__.Sub.param_default.keys', 'list<str>'),
 
 		('__main__.CalcOps.unary.n_neg', 'int'),
 		('__main__.CalcOps.unary.n_not', 'bool'),

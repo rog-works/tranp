@@ -404,12 +404,11 @@ class ReflectionImpl(Reflection):
 class ReflectionClass(ReflectionImpl):
 	"""シンボル(クラス定義)"""
 
-	def __init__(self, origin: 'ClassOrigins',) -> None:
+	def __init__(self, origin: Symbol) -> None:
 		"""インスタンスを生成
 
 		Args:
-			origin (SymbolOrigins): スタックシンボル
-			decl (ClassDef): クラス定義ノード
+			origin (Symbol): スタックシンボル
 		"""
 		super().__init__(origin)
 
@@ -423,12 +422,12 @@ class ReflectionClass(ReflectionImpl):
 class ReflectionImport(ReflectionImpl):
 	"""シンボル(インポート)"""
 
-	def __init__(self, origin: 'ImportOrigins', via: Node) -> None:
+	def __init__(self, origin: 'ReflectionClass | ReflectionVar', via: defs.Import) -> None:
 		"""インスタンスを生成
 
 		Args:
-			origin (SymbolOrigin | SymbolVar): スタックシンボル
-			via (Node): 参照元のノード
+			origin (ReflectionClass | ReflectionVar): スタックシンボル
+			via (Import): 参照元のノード
 		"""
 		super().__init__(origin)
 		self._via = via
@@ -437,7 +436,7 @@ class ReflectionImport(ReflectionImpl):
 	@override
 	def ref_fullyname(self) -> str:
 		"""str: 完全参照名"""
-		return self.org_fullyname.replace(self.types.module_path, self.via.module_path)
+		return self._via.fullyname
 
 	@property
 	@implements
@@ -447,8 +446,8 @@ class ReflectionImport(ReflectionImpl):
 
 	@property
 	@override
-	def via(self) -> Node:
-		"""Node: 参照元のノード"""
+	def via(self) -> defs.Import:
+		"""Import: 参照元のノード"""
 		return self._via
 
 	@override
@@ -654,8 +653,6 @@ class ReflectionResult(ReflectionImpl):
 
 
 
-ImportOrigins: TypeAlias = ReflectionClass | ReflectionVar
-ClassOrigins: TypeAlias = Symbol
 VarOrigins: TypeAlias = ReflectionImpl
 GenericOrigins: TypeAlias = ReflectionImpl
 RefOrigins: TypeAlias = ReflectionImpl
@@ -675,6 +672,15 @@ class SymbolWrapper(IWrapper):
 		self._raw = raw
 
 	@implements
+	def types(self) -> IReflection:
+		"""ラップしたシンボルを生成(クラス用)
+
+		Returns:
+			IReflection: シンボル
+		"""
+		return ReflectionClass(self._raw.one_of(Symbol))
+
+	@implements
 	def imports(self, via: defs.Import) -> IReflection:
 		"""ラップしたシンボルを生成(インポートノード用)
 
@@ -683,16 +689,7 @@ class SymbolWrapper(IWrapper):
 		Returns:
 			IReflection: シンボル
 		"""
-		return ReflectionImport(self._raw.one_of(ImportOrigins), via)
-
-	@implements
-	def types(self) -> IReflection:
-		"""ラップしたシンボルを生成(クラス用)
-
-		Returns:
-			IReflection: シンボル
-		"""
-		return ReflectionClass(self._raw.one_of(ClassOrigins))
+		return ReflectionImport(self._raw.one_of(ReflectionClass | ReflectionVar), via)
 
 	@implements
 	def var(self, decl: defs.DeclAll) -> IReflection:

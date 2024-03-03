@@ -164,7 +164,7 @@ def dump_symbol_data(symbol: IReflection) -> dict[str, Any]:
 		'decl': str(symbol.decl),
 		'origin': str(symbol.origin),
 		'attrs': [str(attr) for attr in symbol.attrs],
-		'hierarchy': [f'{via.role.name} -> {str(via.via or via.decl)}' for via in symbol.hierarchy()],
+		'hierarchy': [f'{layer.__class__.__name__} -> {str(layer.via or layer.decl)}' for layer in symbol.hierarchy()],
 	}
 
 

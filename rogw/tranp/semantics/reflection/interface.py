@@ -265,22 +265,22 @@ class IWrapper(metaclass=ABCMeta):
 		...
 
 	@abstractmethod
-	def var(self, decl: defs.DeclAll) -> IReflection:
+	def var(self, decl: defs.DeclVars) -> IReflection:
 		"""ラップしたシンボルを生成(変数)
 
 		Args:
-			decl (ClassDef): 変数宣言ノード
+			decl (DeclVars): 変数宣言ノード
 		Returns:
 			IReflection: シンボル
 		"""
 		...
 
 	@abstractmethod
-	def imports(self, via: defs.Import) -> IReflection:
+	def imports(self, via: defs.ImportName) -> IReflection:
 		"""ラップしたシンボルを生成(インポート)
 
 		Args:
-			via (Import): インポートノード
+			via (ImportName): インポート名ノード
 		Returns:
 			IReflection: シンボル
 		"""

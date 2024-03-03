@@ -127,7 +127,7 @@ class ExpandModules:
 				import_name = entrypoint.whole_by(full_path).as_a(defs.ImportName)
 				import_node = import_name.declare.as_a(defs.Import)
 				raw = expanded_raws[DSN.join(import_node.import_path.tokens, import_name.tokens)]
-				expanded_raws[fullyname] = raw.to.imports(import_node)
+				expanded_raws[fullyname] = raw.to.imports(import_name)
 
 		# 変数宣言シンボルの展開
 		for module_path, expanded in expanded_modules.items():

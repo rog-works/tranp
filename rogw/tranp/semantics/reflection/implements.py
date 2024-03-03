@@ -448,12 +448,12 @@ class ReflectionVar(ReflectionImpl):
 class ReflectionImport(ReflectionImpl):
 	"""シンボル(インポート)"""
 
-	def __init__(self, origin: ReflectionClass | ReflectionVar, via: defs.Import) -> None:
+	def __init__(self, origin: ReflectionClass | ReflectionVar, via: defs.ImportName) -> None:
 		"""インスタンスを生成
 
 		Args:
 			origin (ReflectionClass | ReflectionVar): スタックシンボル
-			via (Import): 参照元のノード
+			via (ImportName): 参照元のノード
 		"""
 		super().__init__(origin)
 		self._via = via
@@ -466,7 +466,7 @@ class ReflectionImport(ReflectionImpl):
 
 	@property
 	@override
-	def via(self) -> defs.Import:
+	def via(self) -> defs.ImportName:
 		"""Import: 参照元のノード"""
 		return self._via
 
@@ -602,11 +602,11 @@ class SymbolWrapper(IWrapper):
 		return ReflectionClass(self._raw.one_of(Symbol))
 
 	@implements
-	def imports(self, via: defs.Import) -> IReflection:
+	def imports(self, via: defs.ImportName) -> IReflection:
 		"""ラップしたシンボルを生成(インポート)
 
 		Args:
-			via (Import): インポートノード
+			via (ImportName): インポート名ノード
 		Returns:
 			IReflection: シンボル
 		"""

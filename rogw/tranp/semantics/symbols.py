@@ -512,26 +512,26 @@ class ProceduralResolver:
 			function_helper = template.HelperBuilder(constroctur_calls) \
 				.schema(lambda: {'klass': constroctur_calls.attrs[0], 'parameters': constroctur_calls.attrs[1:-1], 'returns': actual_calls}) \
 				.build(template.Constructor)
-			return function_helper.returns(constroctur_calls.attrs[0], *arguments)
+			return function_helper.returns(constroctur_calls.attrs[0], *arguments).to.relay(node, context=actual_calls)
 		elif isinstance(actual_calls.types, defs.Constructor):
 			# XXX コンストラクターを明示的に呼び出した場合
 			# XXX 戻り値の型を第1引数(自己参照)で補完
 			function_helper = template.HelperBuilder(actual_calls) \
 				.schema(lambda: {'klass': actual_calls.attrs[0], 'parameters': actual_calls.attrs[1:-1], 'returns': actual_calls.attrs[0]}) \
 				.build(template.Constructor)
-			return function_helper.returns(actual_calls.attrs[0], *arguments)
+			return function_helper.returns(actual_calls.attrs[0], *arguments).to.relay(node, context=actual_calls)
 		else:
 			function_helper = template.HelperBuilder(actual_calls) \
 				.case(template.Method).schema(lambda: {'klass': actual_calls.attrs[0], 'parameters': actual_calls.attrs[1:-1], 'returns': actual_calls.attrs[-1]}) \
 				.other_case().schema(lambda: {'parameters': actual_calls.attrs[:-1], 'returns': actual_calls.attrs[-1]}) \
 				.build(template.Function)
 			if function_helper.is_a(template.Method):
-				return function_helper.returns(actual_calls.context, *arguments)
+				return function_helper.returns(actual_calls.context, *arguments).to.relay(node, context=actual_calls)
 			else:
-				return function_helper.returns(*arguments)
+				return function_helper.returns(*arguments).to.relay(node, context=actual_calls)
 
 	def on_super(self, node: defs.Super, calls: IReflection, arguments: list[IReflection]) -> IReflection:
-		return self.symbols.resolve(node.super_class_symbol)
+		return self.symbols.resolve(node.super_class_symbol).to.relay(node, context=calls)
 
 	def on_argument(self, node: defs.Argument, label: IReflection, value: IReflection) -> IReflection:
 		return value
@@ -595,7 +595,7 @@ class ProceduralResolver:
 			right = elements[right_index]
 			left = self.proc_binary_operator(node, left, operator, right)
 
-		return left
+		return left.to.result(node)
 
 	def proc_binary_operator(self, node: defs.BinaryOperator, left: IReflection, operator: defs.Terminal, right: IReflection) -> IReflection:
 		operator_name = operator.tokens
@@ -646,22 +646,22 @@ class ProceduralResolver:
 	# Literal
 
 	def on_integer(self, node: defs.Integer) -> IReflection:
-		return self.symbols.type_of_standard(int)
+		return self.symbols.type_of_standard(int).to.literal(node)
 
 	def on_float(self, node: defs.Float) -> IReflection:
-		return self.symbols.type_of_standard(float)
+		return self.symbols.type_of_standard(float).to.literal(node)
 
 	def on_string(self, node: defs.String) -> IReflection:
-		return self.symbols.type_of_standard(str)
+		return self.symbols.type_of_standard(str).to.literal(node)
 
 	def on_doc_string(self, node: defs.DocString) -> IReflection:
-		return self.symbols.type_of_standard(str)
+		return self.symbols.type_of_standard(str).to.literal(node)
 
 	def on_truthy(self, node: defs.Truthy) -> IReflection:
-		return self.symbols.type_of_standard(bool)
+		return self.symbols.type_of_standard(bool).to.literal(node)
 
 	def on_falsy(self, node: defs.Falsy) -> IReflection:
-		return self.symbols.type_of_standard(bool)
+		return self.symbols.type_of_standard(bool).to.literal(node)
 
 	def on_pair(self, node: defs.Pair, first: IReflection, second: IReflection) -> IReflection:
 		return self.symbols.type_of_standard(classes.Pair).to.literal(node).extends(first, second)

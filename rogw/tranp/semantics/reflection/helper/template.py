@@ -5,7 +5,7 @@ from rogw.tranp.lang.implementation import override
 import rogw.tranp.lang.sequence as seqs
 from rogw.tranp.syntax.ast.dsn import DSN
 import rogw.tranp.syntax.node.definition as defs
-from rogw.tranp.semantics.reflection import IReflection
+from rogw.tranp.semantics.reflection.interface import IReflection
 
 T_Helper = TypeVar('T_Helper', bound='Helper')
 T_Schemata = TypeVar('T_Schemata', IReflection, list[IReflection])

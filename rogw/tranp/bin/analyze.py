@@ -16,9 +16,8 @@ from rogw.tranp.lang.locator import Locator
 from rogw.tranp.lang.module import fullyname
 from rogw.tranp.module.module import Module
 from rogw.tranp.module.types import ModulePath
-from rogw.tranp.semantics.db import SymbolDB
 from rogw.tranp.semantics.plugin import PluginProvider
-from rogw.tranp.semantics.reflection import IReflection
+from rogw.tranp.semantics.reflection import IReflection, SymbolDB
 from rogw.tranp.semantics.symbols import Symbols
 from rogw.tranp.syntax.ast.entry import Entry
 from rogw.tranp.syntax.ast.parser import ParserSetting, SyntaxParser

@@ -5,8 +5,7 @@ from rogw.tranp.lang.locator import Invoker
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.syntax.node.promise import IDeclaration
-from rogw.tranp.semantics.reflection import IReflection, SymbolRaws
-from rogw.tranp.semantics.reflection_impl import SymbolProxy
+from rogw.tranp.semantics.reflection import IReflection, SymbolProxy, SymbolRaws
 from rogw.tranp.semantics.symbols import Symbols
 
 

@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from enum import Enum
-from typing import Iterator, Self, TypeAlias, TypeVar
+from typing import Iterator, NamedTuple, Self, TypeAlias, TypeVar
 
 from rogw.tranp.lang.implementation import override
 import rogw.tranp.syntax.node.definition as defs
@@ -97,6 +97,19 @@ class DB(dict[str, 'IReflection']):
 		return self.__class__(dict(sorted(self.items(), key=order)))
 
 
+SymbolRaws: TypeAlias = DB
+
+
+class SymbolDB(NamedTuple):
+	"""シンボルテーブルを管理
+
+	Attributes:
+		raws: シンボルテーブル
+	"""
+
+	raws: SymbolRaws
+
+
 class IReflection(metaclass=ABCMeta):
 	"""シンボル
 
@@ -190,7 +203,7 @@ class IReflection(metaclass=ABCMeta):
 		"""
 		...
 
-	@property	
+	@property
 	@abstractmethod
 	def has_entity(self) -> bool:
 		"""bool: True = 実体を持つ"""
@@ -258,7 +271,6 @@ class IReflection(metaclass=ABCMeta):
 		...
 
 
-SymbolRaws: TypeAlias = DB
 
 
 class IWrapper(metaclass=ABCMeta):

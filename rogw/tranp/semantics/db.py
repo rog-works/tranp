@@ -1,18 +1,6 @@
-from typing import NamedTuple
-
 from rogw.tranp.lang.implementation import injectable
 from rogw.tranp.semantics.processor import Preprocessors
-from rogw.tranp.semantics.reflection import SymbolRaws
-
-
-class SymbolDB(NamedTuple):
-	"""シンボルテーブルを管理
-
-	Attributes:
-		raws: シンボルテーブル
-	"""
-
-	raws: SymbolRaws
+from rogw.tranp.semantics.reflection import SymbolRaws, SymbolDB
 
 
 @injectable

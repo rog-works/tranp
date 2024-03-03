@@ -508,10 +508,9 @@ class ProceduralResolver:
 		if isinstance(actual_calls.types, defs.Class):
 			# XXX クラス経由で暗黙的にコンストラクターを呼び出した場合
 			# XXX 戻り値の型をクラスのシンボルで補完
-			# XXX この際のクラスのシンボルはSymbolReferenceになり、そのままだと属性の設定が出来ないため、SymbolVarに変換する
 			constroctur_calls = self.symbols.type_of_constructor(actual_calls.types)
 			function_helper = template.HelperBuilder(constroctur_calls) \
-				.schema(lambda: {'klass': constroctur_calls.attrs[0], 'parameters': constroctur_calls.attrs[1:-1], 'returns': actual_calls.to.var(actual_calls.decl)}) \
+				.schema(lambda: {'klass': constroctur_calls.attrs[0], 'parameters': constroctur_calls.attrs[1:-1], 'returns': actual_calls}) \
 				.build(template.Constructor)
 			return function_helper.returns(constroctur_calls.attrs[0], *arguments)
 		elif isinstance(actual_calls.types, defs.Constructor):

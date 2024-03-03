@@ -391,9 +391,6 @@ class ReflectionImpl(Reflection):
 			LogicError: 実体の無いインスタンスに実行
 			LogicError: 拡張済みのインスタンスに再度実行
 		"""
-		if isinstance(self, ReflectionReference):
-			raise LogicError(f'Not allowd extends. symbol: {self.types.fullyname}')
-
 		if self._attrs:
 			raise LogicError(f'Already set attibutes. symbol: {self.types.fullyname}')
 		
@@ -463,19 +460,19 @@ class ReflectionImport(ReflectionImpl):
 class ReflectionVar(ReflectionImpl):
 	"""シンボル(変数)"""
 
-	def __init__(self, origin: 'VarOrigins', decl: defs.DeclAll) -> None:
+	def __init__(self, origin: ReflectionImpl, decl: defs.DeclVars) -> None:
 		"""インスタンスを生成
 
 		Args:
-			origin (SymbolOrigin | SymbolImport): スタックシンボル
-			decl (DeclAll): クラス/変数宣言ノード
+			origin (ReflectionImpl): スタックシンボル
+			decl (DeclVars): 変数宣言ノード
 		"""
 		super().__init__(origin)
 		self._decl = decl
 
 	@property
 	@override
-	def decl(self) -> defs.DeclAll:
+	def decl(self) -> defs.DeclVars:
 		"""DeclAll: クラス/変数宣言ノード"""
 		return self._decl
 
@@ -653,7 +650,6 @@ class ReflectionResult(ReflectionImpl):
 
 
 
-VarOrigins: TypeAlias = ReflectionImpl
 GenericOrigins: TypeAlias = ReflectionImpl
 RefOrigins: TypeAlias = ReflectionImpl
 LiteralOrigins: TypeAlias = ReflectionClass
@@ -692,15 +688,15 @@ class SymbolWrapper(IWrapper):
 		return ReflectionImport(self._raw.one_of(ReflectionClass | ReflectionVar), via)
 
 	@implements
-	def var(self, decl: defs.DeclAll) -> IReflection:
-		"""ラップしたシンボルを生成(クラス/変数宣言ノード用)
+	def var(self, decl: defs.DeclVars) -> IReflection:
+		"""ラップしたシンボルを生成(変数宣言ノード用)
 
 		Args:
-			decl (DeclAll): クラス/変数宣言ノード
+			decl (DeclVars): 変数宣言ノード
 		Returns:
 			IReflection: シンボル
 		"""
-		return ReflectionVar(self._raw.one_of(VarOrigins), decl)
+		return ReflectionVar(self._raw.one_of(ReflectionImpl), decl)
 
 	@implements
 	def generic(self, via: defs.Type) -> IReflection:

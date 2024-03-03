@@ -54,7 +54,7 @@ class ExpandModules:
 		"""
 		# モジュールを展開
 		load_index = 0
-		load_reserves = {self.modules.main.path: True}
+		load_reserves = {module.path: True for module in self.modules.requirements}
 		expanded_modules: dict[str, Expanded] = {}
 		while load_index < len(load_reserves):
 			module_path = list(load_reserves.keys())[load_index]
@@ -62,6 +62,7 @@ class ExpandModules:
 			expanded = self.expand_module(module)
 			load_reserves = {**load_reserves, **{import_path: True for import_path in expanded.import_paths}}
 			expanded_modules[module_path] = expanded
+			load_index += 1
 
 		# クラス定義シンボルの展開
 		expanded_raws = SymbolRaws()
@@ -84,9 +85,9 @@ class ExpandModules:
 		for module_path, expanded in expanded_modules.items():
 			entrypoint = self.modules.load(module_path).entrypoint.as_a(defs.Entrypoint)
 			for fullyname, full_path in expanded.decl_vars.items():
-				var = entrypoint.whole_by(full_path).as_a(defs.Declable)
-				raw = self.resolve_type_symbol(raws, var)
-				expanded_raws[fullyname] = raw.to.var(var)
+				var = entrypoint.whole_by(full_path).as_a(defs.DeclVars)
+				raw = self.resolve_type_symbol(expanded_raws, var)
+				expanded_raws[var.symbol.fullyname] = raw.to.var(var)
 
 		return raws.merge(expanded_raws.sorted(list(expanded_modules.keys())))
 

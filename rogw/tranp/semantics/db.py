@@ -1,19 +1,21 @@
-from typing import NamedTuple
+from typing import Callable, NamedTuple
 
 from rogw.tranp.lang.implementation import injectable
 from rogw.tranp.lang.locator import Invoker
+from rogw.tranp.semantics.initializers.expand_modules import ExpandModules
 from rogw.tranp.semantics.processor import Preprocessors
-from rogw.tranp.semantics.reflection import SymbolRaws
+from rogw.tranp.semantics.reflection import DB, SymbolRaws
 
 
-class SymbolDB(NamedTuple):
-	"""シンボルテーブルを管理
+@injectable
+def make_db_origin(invoker: Invoker) -> SymbolDBOrigin:
+	db = invoker(ExpandModules())
 
-	Attributes:
-		raws: シンボルテーブル
-	"""
+	initializers: list[Callable[..., DB[str]]] = []
+	for initializer in initializers:
+		db = initializer(db)
 
-	raws: SymbolRaws
+	return SymbolDBOrigin(db)
 
 
 @injectable

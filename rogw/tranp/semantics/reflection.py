@@ -1,11 +1,11 @@
 from abc import ABCMeta, abstractmethod
 from enum import Enum
-from typing import Iterator, Self, TypeAlias, TypeVar
+from typing import Iterator, NamedTuple, Self, TypeAlias, TypeVar
 
-from rogw.tranp.lang.implementation import override
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 
+T_Raw = TypeVar('T_Raw')
 T_Ref = TypeVar('T_Ref', bound='IReflection')
 
 
@@ -36,35 +36,8 @@ class Roles(Enum):
 		return self in [Roles.Origin, Roles.Class, Roles.Var, Roles.Generic, Roles.Literal]
 
 
-class DB(dict[str, 'IReflection']):
+class DB(dict[str, T_Raw]):
 	"""シンボルテーブル"""
-
-	@classmethod
-	def new(cls, *raws: Self | dict[str, 'IReflection']) -> Self:
-		"""シンボルテーブルを結合した新たなインスタンスを生成
-
-		Args:
-			*raws (Self | dict[str, IReflection]): シンボルテーブルリスト
-		Returns:
-			Self: 生成したインスタンス
-		"""
-		return cls().merge(*raws)
-
-	def merge(self, *raws: Self | dict[str, 'IReflection']) -> Self:
-		"""指定のシンボルテーブルと結合
-
-		Args:
-			*raws (Self | dict[str, IReflection]): シンボルテーブルリスト
-		Returns:
-			Self: 自己参照
-		"""
-		for in_raws in raws:
-			self.update(**in_raws)
-
-		for raw in self.values():
-			raw.set_raws(self)
-
-		return self
 
 	def sorted(self, module_orders: list[str]) -> Self:
 		"""モジュールのロード順に並び替た新しいインスタンスを生成
@@ -75,7 +48,7 @@ class DB(dict[str, 'IReflection']):
 			Self: 生成したインスタンス
 		"""
 		orders = {index: key for index, key in enumerate(module_orders)}
-		def order(entry: tuple[str, IReflection]) -> int:
+		def order(entry: tuple[str, T_Raw]) -> int:
 			key, _ = entry
 			for index, module_path in orders.items():
 				if module_path in key:
@@ -83,18 +56,7 @@ class DB(dict[str, 'IReflection']):
 
 			return -1
 
-		return self.new(dict(sorted(self.items(), key=order)))
-
-	@override
-	def __setitem__(self, key: str, raw: 'IReflection') -> None:
-		"""配列要素設定のオーバーロード
-
-		Args:
-			key (str): 要素名
-			raw (IReflection): シンボル
-		"""
-		raw.set_raws(self)
-		super().__setitem__(key, raw)
+		return self.__class__(dict(sorted(self.items(), key=order)))
 
 
 class IReflection(metaclass=ABCMeta):
@@ -114,21 +76,6 @@ class IReflection(metaclass=ABCMeta):
 		# contextのユースケース
 		* Relay/Indexerのreceiverを設定。on_func_call等で実行時型の補完に使用
 	"""
-
-	@property
-	@abstractmethod
-	def _raws(self) -> DB:
-		"""DB: 所属するシンボルテーブル"""
-		...
-
-	@abstractmethod
-	def set_raws(self, raws: DB) -> None:
-		"""所属するシンボルテーブルを設定
-
-		Args:
-			raws (DB): シンボルテーブル
-		"""
-		...
 
 	@property
 	@abstractmethod
@@ -258,9 +205,6 @@ class IReflection(metaclass=ABCMeta):
 		...
 
 
-SymbolRaws: TypeAlias = DB
-
-
 class IWrapper(metaclass=ABCMeta):
 	"""ラッパーファクトリー"""
 
@@ -341,3 +285,26 @@ class IWrapper(metaclass=ABCMeta):
 			IReflection: シンボル
 		"""
 		...
+
+
+SymbolRaws: TypeAlias = DB[IReflection]
+
+
+class SymbolDBOrigin(NamedTuple):
+	"""シンボルテーブルを管理
+
+	Attributes:
+		raws: シンボルテーブル
+	"""
+
+	raws: DB[str]
+
+
+class SymbolDB(NamedTuple):
+	"""シンボルテーブルを管理
+
+	Attributes:
+		raws: シンボルテーブル
+	"""
+
+	raws: SymbolRaws

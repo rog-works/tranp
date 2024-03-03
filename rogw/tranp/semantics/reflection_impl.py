@@ -1,54 +1,59 @@
-from typing import Any, Callable, Iterator, Self, TypeAlias
+from typing import Any, Callable, Iterator, NamedTuple, Self, TypeAlias
 
-from rogw.tranp.errors import FatalError, LogicError
+from rogw.tranp.errors import LogicError
 from rogw.tranp.lang.implementation import implements, injectable, override
+from rogw.tranp.module.modules import Modules
 from rogw.tranp.semantics.helper.naming import ClassShorthandNaming
-from rogw.tranp.semantics.reflection import DB, IReflection, IWrapper, Roles, SymbolRaws, T_Ref
+from rogw.tranp.semantics.reflection import DB, IReflection, IWrapper, Roles, SymbolDBOrigin, SymbolRaws, T_Ref
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
+
+
+class OriginData(NamedTuple):
+	fullyname: str
+	attrs: list['OriginData']
+
+	@classmethod
+	def from_raw(cls, raw: IReflection) -> 'OriginData':
+		...
+
+	def to_raw(self) -> IReflection:
+		...
 
 
 class Reflection(IReflection):
 	"""リフレクション(基底)"""
 
 	@injectable
-	def __init__(self, raws: SymbolRaws | None = None) -> None:
+	def __init__(self, modules: Modules, db: SymbolDBOrigin) -> None:
 		"""インスタンスを生成
 
 		Args:
-			raws (SymbolRaws | None): シンボルテーブル (default = None)
+			raws (DB[str]): シンボルテーブル @inject
 		"""
-		self.__raws = raws
-
-	@property
-	@implements
-	def _raws(self) -> SymbolRaws:
-		"""SymbolRaws: 所属するシンボルテーブル"""
-		if self.__raws is not None:
-			return self.__raws
-
-		raise FatalError(f'Unreachable code.')
-
-	@implements
-	def set_raws(self, raws: SymbolRaws) -> None:
-		"""所属するシンボルテーブルを設定
-
-		Args:
-			raws (SymbolRaws): シンボルテーブル
-		"""
-		self.__raws = raws
+		self._modules = modules
+		self._raws = db.raws
+		self._attrs: list[OriginData] = []
 
 	@property
 	@implements
 	def attrs(self) -> list[IReflection]:
-		"""list[IReflection]: 属性シンボルリスト"""
-		return []
+		"""属性シンボルリストを取得
 
-	@property
-	@implements
-	def origin(self) -> IReflection | None:
-		"""IReflection | None: スタックシンボル"""
-		return None
+		Returns:
+			list[IReflection]: 属性シンボルリスト
+		Note:
+			# 属性の評価順序
+			1. 自身に設定された属性
+			2. スタックシンボルに設定された属性
+		"""
+		if self._attrs:
+			return [attr.to_raw() for attr in self._attrs]
+
+		if self.origin:
+			return self.origin.attrs
+
+		return []
 
 	@property
 	@implements
@@ -83,11 +88,9 @@ class Reflection(IReflection):
 			Self: 複製したインスタンス
 		"""
 		new = self.__class__(**kwargs)
-		# XXX 念のため明示的にコピー
-		if self.__raws and new.__raws is None:
-			new.__raws = self.__raws
-
-		if self.attrs:
+		new._modules = self._modules
+		new._raws = self._raws
+		if self._attrs:
 			return new.extends(*[attr.clone() for attr in self.attrs])
 
 		return new
@@ -122,7 +125,11 @@ class Reflection(IReflection):
 			LogicError: 実体の無いインスタンスに実行 XXX 出力する例外は要件等
 			LogicError: 拡張済みのインスタンスに再度実行 XXX 出力する例外は要件等
 		"""
-		raise LogicError(f'Not allowed extends. symbol: {self.types.fullyname}')
+		if self._attrs:
+			raise LogicError(f'Already set attibutes. symbol: {self.types.fullyname}')
+		
+		self._attrs = [OriginData.from_raw(attr) for attr in attrs]
+		return self
 
 	@property
 	@implements
@@ -193,183 +200,66 @@ class Reflection(IReflection):
 		"""int: オブジェクトのハッシュ値"""
 		return hash(self.__repr__())
 
+	def _node_by(self, fullyname) -> Node:
+		...
 
-class Symbol(Reflection):
-	"""シンボル(クラス定義のオリジナル)"""
+
+class ReflectionContext(Reflection):
+	"""リフレクション(基底)"""
 
 	@injectable
-	def __init__(self, types: defs.ClassDef) -> None:
+	def __init__(self, modules: Modules, db: SymbolDBOrigin, origin: IReflection) -> None:
 		"""インスタンスを生成
 
 		Args:
-			types (ClassDef): クラス定義ノード
+			raws (DB[str]): シンボルテーブル @inject
 		"""
-		super().__init__()
-		self._types = types
+		super().__init__(modules, db)
+		self._origin = OriginData.from_raw(origin)
 
 	@property
 	@implements
 	def ref_fullyname(self) -> str:
 		"""str: 完全参照名"""
-		return self.org_fullyname
+		return self.origin.ref_fullyname
 
 	@property
 	@implements
 	def org_fullyname(self) -> str:
 		"""str: 完全参照名(オリジナル)"""
-		return self.types.fullyname
+		return self.origin.org_fullyname
 
 	@property
 	@implements
 	def types(self) -> defs.ClassDef:
 		"""ClassDef: クラス定義ノード"""
-		return self._types
+		return self.origin.types
 
 	@property
 	@implements
 	def decl(self) -> defs.DeclAll:
 		"""DeclAll: クラス/変数宣言ノード"""
-		return self.types
-
-	@property
-	@implements
-	def role(self) -> Roles:
-		"""Roles: シンボルの役割"""
-		return Roles.Origin
-
-	@implements
-	def clone(self: Self) -> Self:
-		"""インスタンスを複製
-
-		Returns:
-			Self: 複製したインスタンス
-		"""
-		return self._clone(types=self.types)
-
-
-class ReflectionImpl(Reflection):
-	"""リフレクションの共通実装(基底)"""
-
-	def __init__(self, origin: 'Symbol | ReflectionImpl') -> None:
-		"""インスタンスを生成
-
-		Args:
-			origin (Symbol | ReflectionImpl): スタックシンボル
-		"""
-		super().__init__(origin._raws)
-		self._origin = origin
-		self._attrs: list[IReflection] = []
-
-	@property
-	@implements
-	def ref_fullyname(self) -> str:
-		"""str: 完全参照名"""
-		return self._origin.ref_fullyname
-
-	@property
-	@implements
-	def org_fullyname(self) -> str:
-		"""str: 完全参照名(オリジナル)"""
-		return self._origin.org_fullyname
-
-	@property
-	@implements
-	def types(self) -> defs.ClassDef:
-		"""ClassDef: クラス定義ノード"""
-		return self._origin.types
-
-	@property
-	@implements
-	def decl(self) -> defs.DeclAll:
-		"""DeclAll: クラス/変数宣言ノード"""
-		return self._origin.decl
-
-	@property
-	@implements
-	def attrs(self) -> list[IReflection]:
-		"""属性シンボルリストを取得
-
-		Returns:
-			list[IReflection]: 属性シンボルリスト
-		Note:
-			# 属性の評価順序
-			1. 自身に設定された属性
-			2. スタックシンボルに設定された属性
-			3. シンボルテーブル上の参照元に設定された属性
-		"""
-		if self._attrs:
-			return self._attrs
-
-		if self.origin.attrs:
-			return self.origin.attrs
-
-		return self._shared_origin.attrs
+		return self.origin.decl
 
 	@property
 	@override
 	def origin(self) -> IReflection:
 		"""IReflection: スタックシンボル"""
-		return self._origin
-
-	@property
-	def _shared_origin(self) -> IReflection:
-		"""シンボルテーブル上に存在する共有シンボルを取得
-
-		Returns:
-			IReflection: シンボルテーブル上に存在する共有されたシンボル
-		Note:
-			属性を取得する際にのみ利用 @see attrs
-		"""
-		if self._origin.org_fullyname in self._raws:
-			origin = self._raws[self._origin.org_fullyname]
-			if id(origin) != id(self):
-				return origin
-
-		return self._origin
-
-	@implements
-	def clone(self: Self) -> Self:
-		"""インスタンスを複製
-
-		Returns:
-			Self: 複製したインスタンス
-		"""
-		return self._clone(origin=self.origin)
-
-	@override
-	def extends(self: Self, *attrs: IReflection) -> Self:
-		"""シンボルが保持する型を拡張情報として属性に取り込む
-
-		Args:
-			*attrs (IReflection): 属性シンボルリスト
-		Returns:
-			Self: インスタンス
-		Raises:
-			LogicError: 実体の無いインスタンスに実行
-			LogicError: 拡張済みのインスタンスに再度実行
-		"""
-		if isinstance(self, ReflectionReference):
-			raise LogicError(f'Not allowd extends. symbol: {self.types.fullyname}')
-
-		if self._attrs:
-			raise LogicError(f'Already set attibutes. symbol: {self.types.fullyname}')
-		
-		self._attrs = list(attrs)
-		return self
+		return self._origin.to_raw()
 
 
-class ReflectionImport(ReflectionImpl):
+class ReflectionImport(ReflectionContext):
 	"""シンボル(インポート)"""
 
-	def __init__(self, origin: 'ImportOrigins', via: Node) -> None:
+	def __init__(self, modules: Modules, db: SymbolDBOrigin, origin: IReflection, via: Node) -> None:
 		"""インスタンスを生成
 
 		Args:
 			origin (SymbolOrigin | SymbolVar): スタックシンボル
 			via (Node): 参照元のノード
 		"""
-		super().__init__(origin)
-		self._via = via
+		super().__init__(modules, db, origin)
+		self._via_path = via.full_path
 
 	@property
 	@override
@@ -387,7 +277,7 @@ class ReflectionImport(ReflectionImpl):
 	@override
 	def via(self) -> Node:
 		"""Node: 参照元のノード"""
-		return self._via
+		return self._node_by(self._via_path)
 
 	@override
 	def clone(self: Self) -> Self:

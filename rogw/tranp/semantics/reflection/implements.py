@@ -512,11 +512,11 @@ class ReflectionGeneric(ReflectionImpl):
 class ReflectionTemporary(ReflectionImpl):
 	"""シンボル(テンポラリー)"""
 
-	def __init__(self, origin: ReflectionClass, via: defs.Literal | defs.Comprehension | defs.Operator) -> None:
+	def __init__(self, origin: ReflectionClass | ReflectionGeneric, via: defs.Literal | defs.Comprehension | defs.Operator) -> None:
 		"""インスタンスを生成
 
 		Args:
-			origin (ReflectionClass): スタックシンボル
+			origin (ReflectionClass | ReflectionGeneric): スタックシンボル
 			via (Literal | Comprehension | Operator): テンポラリー系ノード
 		"""
 		super().__init__(origin)
@@ -654,7 +654,7 @@ class SymbolWrapper(IWrapper):
 		Returns:
 			IReflection: シンボル
 		"""
-		return ReflectionTemporary(self._raw.one_of(ReflectionClass), via)
+		return ReflectionTemporary(self._raw.one_of(ReflectionClass | ReflectionGeneric), via)
 
 	@implements
 	def relay(self, via: defs.Relay | defs.Indexer | defs.FuncCall, context: IReflection) -> IReflection:

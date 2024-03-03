@@ -401,6 +401,25 @@ class ReflectionImpl(Reflection):
 		return self
 
 
+class ReflectionClass(ReflectionImpl):
+	"""シンボル(クラス定義)"""
+
+	def __init__(self, origin: 'ClassOrigins',) -> None:
+		"""インスタンスを生成
+
+		Args:
+			origin (SymbolOrigins): スタックシンボル
+			decl (ClassDef): クラス定義ノード
+		"""
+		super().__init__(origin)
+
+	@property
+	@implements
+	def role(self) -> Roles:
+		"""Roles: シンボルの役割"""
+		return Roles.Class
+
+
 class ReflectionImport(ReflectionImpl):
 	"""シンボル(インポート)"""
 
@@ -440,41 +459,6 @@ class ReflectionImport(ReflectionImpl):
 			Self: 複製したインスタンス
 		"""
 		return self._clone(origin=self.origin, via=self.via)
-
-
-class ReflectionClass(ReflectionImpl):
-	"""シンボル(クラス定義)"""
-
-	def __init__(self, origin: 'ClassOrigins', decl: defs.ClassDef) -> None:
-		"""インスタンスを生成
-
-		Args:
-			origin (SymbolOrigins): スタックシンボル
-			decl (ClassDef): クラス定義ノード
-		"""
-		super().__init__(origin)
-		self._decl = decl
-
-	@property
-	@override
-	def decl(self) -> defs.DeclAll:
-		"""DeclAll: クラス/変数宣言ノード"""
-		return self._decl
-
-	@property
-	@implements
-	def role(self) -> Roles:
-		"""Roles: シンボルの役割"""
-		return Roles.Class
-
-	@override
-	def clone(self: Self) -> Self:
-		"""インスタンスを複製
-
-		Returns:
-			Self: 複製したインスタンス
-		"""
-		return self._clone(origin=self.origin, decl=self.decl)
 
 
 class ReflectionVar(ReflectionImpl):
@@ -670,11 +654,11 @@ class ReflectionResult(ReflectionImpl):
 
 
 
-ImportOrigins: TypeAlias = Symbol | ReflectionVar
-ClassOrigins: TypeAlias = Symbol | ReflectionImport
-VarOrigins: TypeAlias = Symbol | ReflectionImpl
-GenericOrigins: TypeAlias = Symbol | ReflectionImpl
-RefOrigins: TypeAlias = Symbol | ReflectionImpl
+ImportOrigins: TypeAlias = ReflectionClass | ReflectionVar
+ClassOrigins: TypeAlias = Symbol
+VarOrigins: TypeAlias = ReflectionImpl
+GenericOrigins: TypeAlias = ReflectionImpl
+RefOrigins: TypeAlias = ReflectionImpl
 LiteralOrigins: TypeAlias = ReflectionClass
 ResultOrigins: TypeAlias = ReflectionClass
 
@@ -702,15 +686,13 @@ class SymbolWrapper(IWrapper):
 		return ReflectionImport(self._raw.one_of(ImportOrigins), via)
 
 	@implements
-	def types(self, decl: defs.ClassDef) -> IReflection:
-		"""ラップしたシンボルを生成(クラス定義ノード用)
+	def types(self) -> IReflection:
+		"""ラップしたシンボルを生成(クラス用)
 
-		Args:
-			decl (ClassDef): クラス定義ノード
 		Returns:
 			IReflection: シンボル
 		"""
-		return ReflectionClass(self._raw.one_of(ClassOrigins), decl)
+		return ReflectionClass(self._raw.one_of(ClassOrigins))
 
 	@implements
 	def var(self, decl: defs.DeclAll) -> IReflection:

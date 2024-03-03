@@ -116,7 +116,9 @@ class ExpandModules:
 			entrypoint = self.modules.load(module_path).entrypoint.as_a(defs.Entrypoint)
 			for fullyname, full_path in expanded.classes.items():
 				types = entrypoint.whole_by(full_path).as_a(defs.ClassDef)
+				# FIXME シンボルとDBを紐付けるため、一旦DBに登録後にシンボルを変換する
 				expanded_raws[fullyname] = Symbol(types)
+				expanded_raws[fullyname] = expanded_raws[fullyname].to.types()
 
 		# インポートシンボルの展開
 		for module_path, expanded in expanded_modules.items():

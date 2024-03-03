@@ -286,11 +286,9 @@ class IWrapper(metaclass=ABCMeta):
 		...
 
 	@abstractmethod
-	def types(self, decl: defs.ClassDef) -> IReflection:
-		"""ラップしたシンボルを生成(クラス定義ノード用)
+	def types(self) -> IReflection:
+		"""ラップしたシンボルを生成(クラス用)
 
-		Args:
-			decl (ClassDef): クラス定義ノード
 		Returns:
 			IReflection: シンボル
 		"""

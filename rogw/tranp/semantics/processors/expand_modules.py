@@ -1,6 +1,9 @@
-from typing import NamedTuple
+import json
+from typing import IO, NamedTuple
 
 import rogw.tranp.compatible.python.classes as classes
+from rogw.tranp.io.cache import CacheProvider
+from rogw.tranp.io.loader import IFileLoader
 from rogw.tranp.lang.implementation import injectable
 from rogw.tranp.module.modules import Module, Modules
 from rogw.tranp.semantics.finder import SymbolFinder
@@ -25,6 +28,27 @@ class Expanded(NamedTuple):
 	imports: dict[str, str] = {}
 	import_paths: list[str] = []
 
+	@classmethod
+	def load(cls, stream: IO) -> 'Expanded':
+		""""インスタンスを復元
+
+		Args:
+			stream (IO): IO
+		Returns:
+			Store: インスタンス
+		"""
+		values = json.load(stream)
+		return Expanded(values[0], values[1], values[2], values[3])
+
+	def save(self, stream: IO) -> None:
+		""""インスタンスを保存
+
+		Args:
+			stream (IO): IO
+		"""
+		stream.write(json.dumps(self).encode('utf-8'))
+
+
 class ExpandModules:
 	"""モジュールからシンボルテーブルの生成
 	
@@ -33,15 +57,19 @@ class ExpandModules:
 	"""
 
 	@injectable
-	def __init__(self, modules: Modules, finder: SymbolFinder) -> None:
+	def __init__(self, modules: Modules, finder: SymbolFinder, caches: CacheProvider, loader: IFileLoader) -> None:
 		"""インスタンスを生成
 
 		Args:
 			modules (Modules): モジュールマネージャー @inject
 			finder (SymbolFinder): シンボル検索 @inject
+			caches (CacheProvider): キャッシュプロバイダー @inject
+			loader (IFileLoader): ファイルローダー @inject
 		"""
 		self.modules = modules
 		self.finder = finder
+		self.caches = caches
+		self.loader = loader
 
 	@injectable
 	def __call__(self, raws: SymbolRaws) -> SymbolRaws:
@@ -118,34 +146,41 @@ class ExpandModules:
 		Returns:
 			Expanded: 展開データ
 		"""
-		nodes = module.entrypoint.flatten()
-		nodes.append(module.entrypoint)
+		basepath = module.module_path.actual.replace('.', '/')
+		identity = {'mtime': str(self.loader.mtime(f'{basepath}.py'))}
 
-		classes: dict[str, str] = {}
-		decl_vars: dict[str, str] = {}
-		imports: dict[str, str] = {}
-		import_paths: list[str] = []
-		for node in nodes:
-			if isinstance(node, defs.ClassDef):
-				classes[node.fullyname] = node.full_path
+		@self.caches.get(f'{basepath}-raws', identity=identity, format='json')
+		def instantiate() -> Expanded:
+			nodes = module.entrypoint.flatten()
+			nodes.append(module.entrypoint)
 
-			if isinstance(node, defs.Entrypoint):
-				decl_vars = {**decl_vars, **{var.fullyname: var.full_path for var in node.decl_vars}}
-			elif isinstance(node, defs.Function):
-				decl_vars = {**decl_vars, **{var.fullyname: var.full_path for var in node.decl_vars}}
-			elif isinstance(node, defs.Enum):
-				decl_vars = {**decl_vars, **{var.fullyname: var.full_path for var in node.vars}}
-			elif isinstance(node, defs.Class):
-				decl_vars = {**decl_vars, **{var.fullyname: var.full_path for var in node.class_vars}}
-				decl_vars = {**decl_vars, **{var.fullyname: var.full_path for var in node.this_vars}}
-			elif isinstance(node, defs.Generator):
-				decl_vars = {**decl_vars, **{var.fullyname: var.full_path for var in node.decl_vars}}
+			classes: dict[str, str] = {}
+			decl_vars: dict[str, str] = {}
+			imports: dict[str, str] = {}
+			import_paths: list[str] = []
+			for node in nodes:
+				if isinstance(node, defs.ClassDef):
+					classes[node.fullyname] = node.full_path
 
-			if isinstance(node, defs.Import):
-				imports = {**imports, **{symbol.fullyname: symbol.full_path for symbol in node.symbols}}
-				import_paths.append(node.import_path.tokens)
+				if isinstance(node, defs.Entrypoint):
+					decl_vars = {**decl_vars, **{var.fullyname: var.full_path for var in node.decl_vars}}
+				elif isinstance(node, defs.Function):
+					decl_vars = {**decl_vars, **{var.fullyname: var.full_path for var in node.decl_vars}}
+				elif isinstance(node, defs.Enum):
+					decl_vars = {**decl_vars, **{var.fullyname: var.full_path for var in node.vars}}
+				elif isinstance(node, defs.Class):
+					decl_vars = {**decl_vars, **{var.fullyname: var.full_path for var in node.class_vars}}
+					decl_vars = {**decl_vars, **{var.fullyname: var.full_path for var in node.this_vars}}
+				elif isinstance(node, defs.Generator):
+					decl_vars = {**decl_vars, **{var.fullyname: var.full_path for var in node.decl_vars}}
 
-		return Expanded(classes, decl_vars, imports, import_paths)
+				if isinstance(node, defs.Import):
+					imports = {**imports, **{symbol.fullyname: symbol.full_path for symbol in node.symbols}}
+					import_paths.append(node.import_path.tokens)
+
+			return Expanded(classes, decl_vars, imports, import_paths)
+
+		return instantiate()
 
 	def resolve_type_symbol(self, raws: SymbolRaws, var: defs.DeclVars) -> IReflection:
 		"""シンボルテーブルから変数の型のシンボルを解決

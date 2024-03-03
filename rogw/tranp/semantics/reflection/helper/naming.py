@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from rogw.tranp.semantics.reflection.interface import IReflection, Roles
+from rogw.tranp.semantics.reflection.interface import IReflection
 from rogw.tranp.syntax.ast.dsn import DSN
 import rogw.tranp.syntax.node.definition as defs
 
@@ -13,7 +13,7 @@ class AliasHandler(Protocol):
 
 		Args:
 			key (str): エイリアスキー
-			fallback (str): 存在しない場合の代用値(default = '')
+			fallback (str): 存在しない場合の代用値 (default = '')
 		Returns:
 			str: エイリアス
 		Note:
@@ -105,8 +105,7 @@ class ClassShorthandNaming:
 		# 書式
 		* types=AltClass: ${alias}=${actual}
 		* types=Function: ${domain_name}(...${arguments}) -> ${return}
-		* role=Var/Generic/Literal/Reference: ${domain_name}<...${attributes}>
-		* その他: ${domain_name}
+		* その他: ${domain_name}<...${attributes}>
 	"""
 
 	@classmethod

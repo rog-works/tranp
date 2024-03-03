@@ -473,7 +473,7 @@ class ReflectionVar(ReflectionImpl):
 	@property
 	@override
 	def decl(self) -> defs.DeclVars:
-		"""DeclAll: クラス/変数宣言ノード"""
+		"""DeclVars: 変数宣言ノード"""
 		return self._decl
 
 	@property
@@ -495,11 +495,11 @@ class ReflectionVar(ReflectionImpl):
 class ReflectionGeneric(ReflectionImpl):
 	"""シンボル(ジェネリック型)"""
 
-	def __init__(self, origin: 'GenericOrigins', via: defs.Type) -> None:
+	def __init__(self, origin: ReflectionClass | ReflectionImport | ReflectionVar, via: defs.Type) -> None:
 		"""インスタンスを生成
 
 		Args:
-			origin (SymbolOrigin | SymbolImport): スタックシンボル
+			origin (ReflectionClass | ReflectionImport | ReflectionVar): スタックシンボル
 			via (Type): 参照元のノード
 		"""
 		super().__init__(origin)
@@ -507,8 +507,8 @@ class ReflectionGeneric(ReflectionImpl):
 
 	@property
 	@override
-	def via(self) -> Node:
-		"""Node: 参照元のノード"""
+	def via(self) -> defs.Type:
+		"""Type: 参照元のノード"""
 		return self._via
 
 	@property
@@ -650,7 +650,6 @@ class ReflectionResult(ReflectionImpl):
 
 
 
-GenericOrigins: TypeAlias = ReflectionImpl
 RefOrigins: TypeAlias = ReflectionImpl
 LiteralOrigins: TypeAlias = ReflectionClass
 ResultOrigins: TypeAlias = ReflectionClass
@@ -707,7 +706,7 @@ class SymbolWrapper(IWrapper):
 		Returns:
 			IReflection: シンボル
 		"""
-		return ReflectionGeneric(self._raw.one_of(GenericOrigins), via)
+		return ReflectionGeneric(self._raw.one_of(ReflectionClass | ReflectionImport | ReflectionVar), via)
 
 	@implements
 	def literal(self, via: defs.Literal | defs.Comprehension) -> IReflection:

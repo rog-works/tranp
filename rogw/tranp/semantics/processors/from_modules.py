@@ -3,11 +3,11 @@ from dataclasses import dataclass, field
 import rogw.tranp.compatible.python.classes as classes
 from rogw.tranp.lang.implementation import injectable
 from rogw.tranp.module.modules import Module, Modules
-from rogw.tranp.syntax.ast.dsn import DSN
-import rogw.tranp.syntax.node.definition as defs
+from rogw.tranp.semantics.reflection_impl import Symbol
 from rogw.tranp.semantics.finder import SymbolFinder
 from rogw.tranp.semantics.reflection import IReflection, SymbolRaws
-from rogw.tranp.semantics.reflection_impl import Symbol
+from rogw.tranp.syntax.ast.dsn import DSN
+import rogw.tranp.syntax.node.definition as defs
 
 
 @dataclass
@@ -19,6 +19,7 @@ class Expanded:
 		decl_vars (list[DeclVars]): 変数リスト
 		import_nodes (list[Import]): インポートリスト
 	"""
+
 	raws: SymbolRaws = field(default_factory=SymbolRaws)
 	decl_vars: list[defs.DeclVars] = field(default_factory=list)
 	import_nodes: list[defs.Import] = field(default_factory=list)
@@ -32,25 +33,25 @@ class FromModules:
 	"""
 
 	@injectable
-	def __init__(self, finder: SymbolFinder) -> None:
+	def __init__(self, modules: Modules, finder: SymbolFinder) -> None:
 		"""インスタンスを生成
 
 		Args:
+			modules (Modules): モジュールマネージャー @inject
 			finder (SymbolFinder): シンボル検索 @inject
 		"""
+		self.modules = modules
 		self.finder = finder
 
-	@injectable
-	def __call__(self, modules: Modules, raws: SymbolRaws) -> SymbolRaws:
+	def __call__(self, raws: SymbolRaws) -> SymbolRaws:
 		"""シンボルテーブルを生成
 
 		Args:
-			modules (Modules): モジュールマネージャー @inject
 			raws (SymbolRaws): シンボルテーブル
 		Returns:
 			SymbolRaws: シンボルテーブル
 		"""
-		main = modules.main
+		main = self.modules.main
 
 		# メインモジュールを展開
 		expands: dict[Module, Expanded] = {}
@@ -58,12 +59,12 @@ class FromModules:
 
 		# インポートモジュールを全て展開
 		import_index = 0
-		import_modules_from_main = [modules.load(node.import_path.tokens) for node in expands[main].import_nodes]
-		import_modules: dict[str, Module] = {**{module.path: module for module in modules.libralies}, **{module.path: module for module in import_modules_from_main}}
+		import_modules_from_main = [self.modules.load(node.import_path.tokens) for node in expands[main].import_nodes]
+		import_modules: dict[str, Module] = {**{module.path: module for module in self.modules.libralies}, **{module.path: module for module in import_modules_from_main}}
 		while import_index < len(import_modules):
 			import_module = list(import_modules.values())[import_index]
 			expanded = self.expand_module(import_module)
-			import_modules_from_depended = [modules.load(node.import_path.tokens) for node in expanded.import_nodes]
+			import_modules_from_depended = [self.modules.load(node.import_path.tokens) for node in expanded.import_nodes]
 			import_modules = {**import_modules, **{module.path: module for module in import_modules_from_depended}}
 			expands[import_module] = expanded
 			import_index += 1
@@ -74,8 +75,8 @@ class FromModules:
 
 			# 標準ライブラリを展開
 			core_primary_raws = SymbolRaws()
-			if expand_module not in modules.libralies:
-				for core_module in modules.libralies:
+			if expand_module not in self.modules.libralies:
+				for core_module in self.modules.libralies:
 					# 第1層で宣言されているシンボルに限定
 					entrypoint = core_module.entrypoint.as_a(defs.Entrypoint)
 					primary_symbol_names = [node.fullyname for node in entrypoint.statements if isinstance(node, defs.DeclAll)]
@@ -89,7 +90,7 @@ class FromModules:
 			for import_node in expand_target.import_nodes:
 				# import句で明示されたシンボルに限定
 				imported_symbol_names = [symbol.tokens for symbol in import_node.import_symbols]
-				import_module = modules.load(import_node.import_path.tokens)
+				import_module = self.modules.load(import_node.import_path.tokens)
 				expanded = expands[import_module]
 				filtered_raws = [expanded.raws[DSN.join(import_module.path, name)].to.imports(import_node) for name in imported_symbol_names]
 				filtered_db = {raw.ref_fullyname: raw for raw in filtered_raws}
@@ -105,7 +106,7 @@ class FromModules:
 		for expanded in expands.values():
 			combine_raws.merge(expanded.raws)
 
-		raws.merge(self.sorted_raws(combine_raws, [module.path for module in expands.keys()]))
+		raws.merge(combine_raws.sorted([module.path for module in expands.keys()]))
 		return raws
 
 	def expand_module(self, module: Module) -> Expanded:
@@ -179,23 +180,3 @@ class FromModules:
 			return None
 
 		return None
-
-	def sorted_raws(self, raws: SymbolRaws, module_orders: list[str]) -> dict[str, IReflection]:
-		"""シンボルテーブルをモジュールのロード順に並び替え
-
-		Args:
-			raws (SymbolRaws): シンボルテーブル
-			module_orders (list[str]): ロード順のモジュール名リスト
-		Returns:
-			dict[str, IReflection]: 並び替え後のシンボルテーブル
-		"""
-		orders = {index: key for index, key in enumerate(module_orders)}
-		def order(entry: tuple[str, IReflection]) -> int:
-			key, _ = entry
-			for index, module_path in orders.items():
-				if module_path in key:
-					return index
-
-			return -1
-
-		return dict(sorted(raws.items(), key=order))

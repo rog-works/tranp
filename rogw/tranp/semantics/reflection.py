@@ -77,6 +77,25 @@ class DB(dict[str, 'IReflection']):
 		raw.set_raws(self)
 		super().__setitem__(key, raw)
 
+	def sorted(self, module_orders: list[str]) -> Self:
+		"""モジュールのロード順に並び替えた新しいインスタンスを生成
+
+		Args:
+			module_orders (list[str]): ロード順のモジュール名リスト
+		Returns:
+			Self: 生成したインスタンス
+		"""
+		orders = {index: key for index, key in enumerate(module_orders)}
+		def order(entry: tuple[str, IReflection]) -> int:
+			key, _ = entry
+			for index, module_path in orders.items():
+				if module_path in key:
+					return index
+
+			return -1
+
+		return self.__class__(dict(sorted(self.items(), key=order)))
+
 
 class IReflection(metaclass=ABCMeta):
 	"""シンボル

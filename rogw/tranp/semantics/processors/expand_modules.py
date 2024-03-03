@@ -1,8 +1,26 @@
+from typing import NamedTuple
+
+import rogw.tranp.compatible.python.classes as classes
 from rogw.tranp.lang.implementation import injectable
 from rogw.tranp.module.modules import Module, Modules
-from rogw.tranp.semantics.reflection import SymbolRaws
+from rogw.tranp.semantics.finder import SymbolFinder
+from rogw.tranp.semantics.reflection import IReflection, SymbolRaws
+from rogw.tranp.semantics.reflection_impl import Symbol
 import rogw.tranp.syntax.node.definition as defs
 
+
+class Expanded(NamedTuple):
+	"""展開時のテンポラリーデータ
+
+	Attributes:
+		classes (dict[str, str]): クラス定義マップ
+		decl_vars (dict[str, str]): 変数宣言マップ
+		import_paths (list[str]): インポートパスリスト
+	"""
+
+	classes: dict[str, str] = {}
+	decl_vars: dict[str, str] = {}
+	import_paths: list[str] = []
 
 class ExpandModules:
 	"""モジュールからシンボルテーブルの生成
@@ -12,63 +30,126 @@ class ExpandModules:
 	"""
 
 	@injectable
-	def __call__(self, modules: Modules, raws: SymbolRaws) -> SymbolRaws:
-		"""シンボルテーブルを生成
+	def __init__(self, modules: Modules, finder: SymbolFinder) -> None:
+		"""インスタンスを生成
 
 		Args:
 			modules (Modules): モジュールマネージャー @inject
+			finder (SymbolFinder): シンボル検索 @inject
+		"""
+		self.modules = modules
+		self.finder = finder
+
+	@injectable
+	def __call__(self, raws: SymbolRaws) -> SymbolRaws:
+		"""シンボルテーブルを生成
+
+		Args:
 			raws (SymbolRaws): シンボルテーブル
 		Returns:
 			SymbolRaws: シンボルテーブル
 		"""
 		# モジュールを展開
 		load_index = 0
-		load_reserves = {modules.main.path: True}
-		raw_map: dict[str, str] = {}
+		load_reserves = {self.modules.main.path: True}
+		expanded_modules: dict[str, Expanded] = {}
 		while load_index < len(load_reserves):
 			module_path = list(load_reserves.keys())[load_index]
-			module = modules.load(module_path)
-			expanded_map, import_paths = self.expand_module(module)
-			load_reserves = {**load_reserves, **{import_path: True for import_path in import_paths}}
-			raw_map = {**raw_map, **expanded_map}
+			module = self.modules.load(module_path)
+			expanded = self.expand_module(module)
+			load_reserves = {**load_reserves, **{import_path: True for import_path in expanded.import_paths}}
+			expanded_modules[module_path] = expanded
 
-		# FIXME impl
+		# クラス定義シンボルの展開
+		expanded_raws = SymbolRaws()
+		for module_path, expanded in expanded_modules.items():
+			entrypoint = self.modules.load(module_path).entrypoint.as_a(defs.Entrypoint)
+			for fullyname, full_path in expanded.classes.items():
+				types = entrypoint.whole_by(full_path).as_a(defs.ClassDef)
+				expanded_raws[fullyname] = Symbol(types)
 
-		return raws
+		# 変数・インポートシンボルの展開
+		for module_path, expanded in expanded_modules.items():
+			entrypoint = self.modules.load(module_path).entrypoint.as_a(defs.Entrypoint)
+			for fullyname, full_path in expanded.decl_vars.items():
+				decl = entrypoint.whole_by(full_path).as_a(defs.Declable)
+				raw = self.resolve_type_symbol(raws, decl)
+				expanded_raws[fullyname] = raw.to.var(decl)
 
-	def expand_module(self, module: Module) -> tuple[dict[str, str], list[str]]:
+		return raws.merge(expanded_raws.sorted(list(expanded_modules.keys())))
+
+	def expand_module(self, module: Module) -> Expanded:
 		"""モジュールのシンボル・インポートパスを展開
 
 		Args:
 			module (Module): モジュール
 		Returns:
-			tuple[dict[str, str], list[str]]: (シンボルマップ, インポートパスリスト)
+			Expanded: 展開データ
 		"""
 		nodes = module.entrypoint.flatten()
 		nodes.append(module.entrypoint)
 
-		raw_map: dict[str, str] = {}
+		classes: dict[str, str] = {}
+		decl_vars: dict[str, str] = {}
 		import_paths: list[str] = []
 		for node in nodes:
 			if isinstance(node, defs.ClassDef):
-				raw_map[node.fullyname] = node.full_path
+				classes[node.fullyname] = node.full_path
 
 			if isinstance(node, defs.Import):
-				raw_map = {**raw_map, **{symbol.fullyname: symbol.full_path for symbol in node.import_symbols}}
+				decl_vars = {**decl_vars, **{symbol.fullyname: symbol.full_path for symbol in node.import_symbols}}
 
 			if isinstance(node, defs.Entrypoint):
-				raw_map = {**raw_map, **{var.fullyname: var.full_path for var in node.decl_vars}}
+				decl_vars = {**decl_vars, **{var.fullyname: var.full_path for var in node.decl_vars}}
 			elif isinstance(node, defs.Function):
-				raw_map = {**raw_map, **{var.fullyname: var.full_path for var in node.decl_vars}}
+				decl_vars = {**decl_vars, **{var.fullyname: var.full_path for var in node.decl_vars}}
 			elif isinstance(node, defs.Enum):
-				raw_map = {**raw_map, **{var.fullyname: var.full_path for var in node.vars}}
+				decl_vars = {**decl_vars, **{var.fullyname: var.full_path for var in node.vars}}
 			elif isinstance(node, defs.Class):
-				raw_map = {**raw_map, **{var.fullyname: var.full_path for var in node.class_vars}}
-				raw_map = {**raw_map, **{var.fullyname: var.full_path for var in node.this_vars}}
+				decl_vars = {**decl_vars, **{var.fullyname: var.full_path for var in node.class_vars}}
+				decl_vars = {**decl_vars, **{var.fullyname: var.full_path for var in node.this_vars}}
 			elif isinstance(node, defs.Generator):
-				raw_map = {**raw_map, **{var.fullyname: var.full_path for var in node.decl_vars}}
+				decl_vars = {**decl_vars, **{var.fullyname: var.full_path for var in node.decl_vars}}
 
 			if isinstance(node, defs.Import):
 				import_paths.append(node.import_path.tokens)
 
-		return raw_map, import_paths
+		return Expanded(classes, decl_vars, import_paths)
+
+	def resolve_type_symbol(self, raws: SymbolRaws, var: defs.DeclVars) -> IReflection:
+		"""シンボルテーブルから変数の型のシンボルを解決
+
+		Args:
+			raws (SymbolRaws): シンボルテーブル
+			var (DeclVars): 変数宣言ノード
+		Returns:
+			IReflection: シンボル
+		"""
+		decl_type = self.fetch_decl_type(var)
+		if decl_type is not None:
+			return self.finder.by_symbolic(raws, decl_type)
+		else:
+			return self.finder.by_standard(raws, classes.Unknown)
+
+	def fetch_decl_type(self, var: defs.DeclVars) -> defs.Type | defs.ClassDef | None:
+		"""変数の型(タイプ/クラス定義ノード)を取得。型が不明な場合はNoneを返却
+
+		Args:
+			var (DeclVars): 変数宣言ノード
+		Returns:
+			Type | ClassDef | None: タイプ/クラス定義ノード。不明な場合はNone
+		"""
+		if isinstance(var.declare, defs.Parameter):
+			if isinstance(var.declare.symbol, defs.DeclClassParam):
+				return var.declare.symbol.class_types.as_a(defs.ClassDef)
+			elif isinstance(var.declare.symbol, defs.DeclThisParam):
+				return var.declare.symbol.class_types.as_a(defs.ClassDef)
+			else:
+				return var.declare.var_type.as_a(defs.Type)
+		elif isinstance(var.declare, (defs.AnnoAssign, defs.Catch)):
+			return var.declare.var_type
+		elif isinstance(var.declare, (defs.MoveAssign, defs.For, defs.CompFor)):
+			# 型指定が無いため全てUnknown
+			return None
+
+		return None

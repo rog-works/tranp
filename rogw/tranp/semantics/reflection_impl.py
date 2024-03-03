@@ -1,7 +1,7 @@
 from typing import Any, Callable, Iterator, Self, TypeAlias
 
 from rogw.tranp.errors import FatalError, LogicError
-from rogw.tranp.lang.implementation import implements, injectable, override
+from rogw.tranp.lang.implementation import implements, override
 from rogw.tranp.semantics.helper.naming import ClassShorthandNaming
 from rogw.tranp.semantics.reflection import DB, IReflection, IWrapper, Roles, SymbolRaws, T_Ref
 import rogw.tranp.syntax.node.definition as defs
@@ -11,7 +11,6 @@ from rogw.tranp.syntax.node.node import Node
 class Reflection(IReflection):
 	"""リフレクション(基底)"""
 
-	@injectable
 	def __init__(self, raws: SymbolRaws | None = None) -> None:
 		"""インスタンスを生成
 
@@ -197,7 +196,6 @@ class Reflection(IReflection):
 class Symbol(Reflection):
 	"""シンボル(クラス定義のオリジナル)"""
 
-	@injectable
 	def __init__(self, types: defs.ClassDef) -> None:
 		"""インスタンスを生成
 

@@ -5,8 +5,7 @@ from rogw.tranp.lang.locator import Invoker
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.syntax.node.promise import IDeclaration
-from rogw.tranp.semantics.reflection import IReflection, SymbolRaws
-from rogw.tranp.semantics.reflection_impl import SymbolProxy
+from rogw.tranp.semantics.reflection import IReflection, SymbolProxy, SymbolRaws
 from rogw.tranp.semantics.symbols import Symbols
 
 
@@ -58,9 +57,9 @@ class ResolveUnknown:
 		Returns:
 			IReflection: 解決したシンボル
 		Note:
-			XXX 変数宣言のシンボルのため、roleをVarに変更
+			変数宣言のシンボルのため、RolesをVarに変更
 		"""
-		return self.unpack_value(var_raw, symbols.type_of(value_node)).to.var(var_raw.decl)
+		return self.unpack_value(var_raw, symbols.type_of(value_node)).to.var(var_raw.decl.as_a(defs.DeclVars))
 
 	def make_resolver(self, raw: IReflection, value_node: Node) -> Callable[[], IReflection]:
 		"""シンボルリゾルバーを生成

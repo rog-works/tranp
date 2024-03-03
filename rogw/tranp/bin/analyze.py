@@ -16,9 +16,8 @@ from rogw.tranp.lang.locator import Locator
 from rogw.tranp.lang.module import fullyname
 from rogw.tranp.module.module import Module
 from rogw.tranp.module.types import ModulePath
-from rogw.tranp.semantics.db import SymbolDB
 from rogw.tranp.semantics.plugin import PluginProvider
-from rogw.tranp.semantics.reflection import IReflection
+from rogw.tranp.semantics.reflection import IReflection, SymbolDB
 from rogw.tranp.semantics.symbols import Symbols
 from rogw.tranp.syntax.ast.entry import Entry
 from rogw.tranp.syntax.ast.parser import ParserSetting, SyntaxParser
@@ -165,7 +164,7 @@ def dump_symbol_data(symbol: IReflection) -> dict[str, Any]:
 		'decl': str(symbol.decl),
 		'origin': str(symbol.origin),
 		'attrs': [str(attr) for attr in symbol.attrs],
-		'hierarchy': [f'{via.role.name} -> {str(via.via or via.decl)}' for via in symbol.hierarchy()],
+		'hierarchy': [f'{layer.__class__.__name__} -> {str(layer.via or layer.decl)}' for layer in symbol.hierarchy()],
 	}
 
 

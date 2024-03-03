@@ -9,10 +9,9 @@ from rogw.tranp.lang.implementation import injectable
 from rogw.tranp.syntax.ast.dsn import DSN
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
-from rogw.tranp.semantics.helper.naming import ClassDomainNaming
 from rogw.tranp.semantics.procedure import Procedure
-import rogw.tranp.semantics.helper.template as template
-from rogw.tranp.semantics.helper.naming import ClassShorthandNaming
+import rogw.tranp.semantics.reflection.helper.template as template
+from rogw.tranp.semantics.reflection.helper.naming import ClassDomainNaming, ClassShorthandNaming
 from rogw.tranp.semantics.reflection import IReflection
 from rogw.tranp.semantics.symbols import Symbols
 from rogw.tranp.translator.option import TranslatorOptions

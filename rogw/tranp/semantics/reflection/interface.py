@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from enum import Enum
-from typing import Iterator, Self, TypeAlias, TypeVar
+from typing import Iterator, NamedTuple, Self, TypeAlias, TypeVar
 
 from rogw.tranp.lang.implementation import override
 import rogw.tranp.syntax.node.definition as defs
@@ -14,26 +14,13 @@ class Roles(Enum):
 
 	Attributes:
 		Origin: 定義元。クラス定義ノードが対象。属性は保有しない
-		Import: Originの複製。属性は保有しない
 		Class: クラス定義ノードが対象。クラスはGeneric型、ファンクションは関数シグネチャーを属性として保有
 		Var: 変数宣言ノードが対象。Generic型の属性を保有
-		Generic: タイプノードが対象。Generic型の属性を保有
-		Literal: リテラルノードが対象。Generic型の属性を保有
-		Reference: 参照系ノードが対象。属性は保有しない
 	"""
+
 	Origin = 'Origin'
-	Import = 'Import'
 	Class = 'Class'
 	Var = 'Var'
-	Generic = 'Generic'
-	Literal = 'Literal'
-	Reference = 'Reference'
-	Result = 'Result'
-
-	@property
-	def has_entity(self) -> bool:
-		"""bool: True = 実体を持つ"""
-		return self in [Roles.Origin, Roles.Class, Roles.Var, Roles.Generic, Roles.Literal]
 
 
 class DB(dict[str, 'IReflection']):
@@ -95,6 +82,19 @@ class DB(dict[str, 'IReflection']):
 			return -1
 
 		return self.__class__(dict(sorted(self.items(), key=order)))
+
+
+SymbolRaws: TypeAlias = DB
+
+
+class SymbolDB(NamedTuple):
+	"""シンボルテーブルを管理
+
+	Attributes:
+		raws: シンボルテーブル
+	"""
+
+	raws: SymbolRaws
 
 
 class IReflection(metaclass=ABCMeta):
@@ -190,12 +190,6 @@ class IReflection(metaclass=ABCMeta):
 		"""
 		...
 
-	@property	
-	@abstractmethod
-	def has_entity(self) -> bool:
-		"""bool: True = 実体を持つ"""
-		...
-
 	@abstractmethod
 	def clone(self: Self) -> Self:
 		"""インスタンスを複製
@@ -258,40 +252,35 @@ class IReflection(metaclass=ABCMeta):
 		...
 
 
-SymbolRaws: TypeAlias = DB
-
-
 class IWrapper(metaclass=ABCMeta):
 	"""ラッパーファクトリー"""
 
 	@abstractmethod
-	def imports(self, via: defs.Import) -> IReflection:
-		"""ラップしたシンボルを生成(インポートノード用)
+	def types(self) -> IReflection:
+		"""ラップしたシンボルを生成(クラス)
 
-		Args:
-			via (Import): インポートノード
 		Returns:
 			IReflection: シンボル
 		"""
 		...
 
 	@abstractmethod
-	def types(self, decl: defs.ClassDef) -> IReflection:
-		"""ラップしたシンボルを生成(クラス定義ノード用)
+	def var(self, decl: defs.DeclVars) -> IReflection:
+		"""ラップしたシンボルを生成(変数)
 
 		Args:
-			decl (ClassDef): クラス定義ノード
+			decl (DeclVars): 変数宣言ノード
 		Returns:
 			IReflection: シンボル
 		"""
 		...
 
 	@abstractmethod
-	def var(self, decl: defs.DeclAll) -> IReflection:
-		"""ラップしたシンボルを生成(変数宣言ノード用)
+	def imports(self, via: defs.ImportName) -> IReflection:
+		"""ラップしたシンボルを生成(インポート)
 
 		Args:
-			decl (ClassDef): 変数宣言ノード
+			via (ImportName): インポート名ノード
 		Returns:
 			IReflection: シンボル
 		"""
@@ -299,7 +288,7 @@ class IWrapper(metaclass=ABCMeta):
 
 	@abstractmethod
 	def generic(self, via: defs.Type) -> IReflection:
-		"""ラップしたシンボルを生成(タイプノード用)
+		"""ラップしたシンボルを生成(タイプ拡張)
 
 		Args:
 			via (Type): タイプノード
@@ -309,34 +298,34 @@ class IWrapper(metaclass=ABCMeta):
 		...
 
 	@abstractmethod
-	def literal(self, via: defs.Literal | defs.Comprehension) -> IReflection:
-		"""ラップしたシンボルを生成(リテラルノード用)
+	def literal(self, via: defs.Literal) -> IReflection:
+		"""ラップしたシンボルを生成(リテラル)
 
 		Args:
-			via (Literal | Comprehension): リテラル/リスト内包表記ノード
+			via (Literal | Comprehension): リテラルノード
 		Returns:
 			IReflection: シンボル
 		"""
 		...
 
 	@abstractmethod
-	def ref(self, via: defs.Reference, context: IReflection | None = None) -> IReflection:
-		"""ラップしたシンボルを生成(参照ノード用)
+	def result(self, via: defs.Operator | defs.Comprehension) -> IReflection:
+		"""ラップしたシンボルを生成(結果)
 
 		Args:
-			via (Reference): 参照系ノード
-			context (IReflection | None): コンテキストのシンボル (default = None)
+			via (Operator): 結果系ノード 演算/リスト内包表記ノード
 		Returns:
 			IReflection: シンボル
 		"""
 		...
 
 	@abstractmethod
-	def result(self, via: defs.Operator) -> IReflection:
-		"""ラップしたシンボルを生成(結果系ノード用)
+	def relay(self, via: defs.Relay | defs.Indexer | defs.FuncCall, context: IReflection) -> IReflection:
+		"""ラップしたシンボルを生成(参照リレー)
 
 		Args:
-			via (Operator): 結果系ノード ※現状は演算ノードのみ
+			via (Relay | Indexer | FuncCall): 参照系ノード
+			context (IReflection): コンテキストのシンボル
 		Returns:
 			IReflection: シンボル
 		"""

@@ -27,7 +27,7 @@ class ResolveGeneric:
 			SymbolRaws: シンボルテーブル
 		"""
 		for key, raw in raws.items():
-			if raw.role == Roles.Origin:
+			if raw.role == Roles.Class:
 				if isinstance(raw.types, defs.AltClass):
 					raws[key] = self.extends_for_alt_class(raws, raw, raw.types)
 				elif isinstance(raw.types, defs.Class):
@@ -64,7 +64,7 @@ class ResolveGeneric:
 
 		return_type_raw = self.finder.by_symbolic(raws, function.return_type)
 		attrs.append(self.extends_for_type(raws, return_type_raw, function.return_type))
-		return via.to.types(function).extends(*attrs)
+		return via.extends(*attrs)
 
 	def extends_for_alt_class(self, raws: SymbolRaws, via: IReflection, alt_types: defs.AltClass) -> IReflection:
 		"""宣言ノードを解析し、属性の型を取り込みシンボルを拡張(タイプ再定義用)
@@ -77,7 +77,7 @@ class ResolveGeneric:
 			IReflection: シンボル
 		"""
 		actual_type_raw = self.finder.by_symbolic(raws, alt_types.actual_type)
-		return via.to.types(alt_types).extends(self.extends_for_type(raws, actual_type_raw, alt_types.actual_type))
+		return via.extends(self.extends_for_type(raws, actual_type_raw, alt_types.actual_type))
 
 	def extends_for_class(self, raws: SymbolRaws, via: IReflection, types: defs.Class) -> IReflection:
 		"""宣言ノードを解析し、属性の型を取り込みシンボルを拡張(クラス定義用)
@@ -90,7 +90,7 @@ class ResolveGeneric:
 			IReflection: シンボル
 		"""
 		attrs = [self.finder.by_symbolic(raws, generic_type) for generic_type in types.generic_types]
-		return via.to.types(types).extends(*attrs)
+		return via.extends(*attrs)
 
 	def extends_for_var(self, raws: SymbolRaws, via: IReflection, decl_type: defs.Type) -> IReflection:
 		"""宣言ノードを解析し、属性の型を取り込みシンボルを拡張(変数宣言用)

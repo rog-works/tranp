@@ -14,26 +14,17 @@ class Roles(Enum):
 
 	Attributes:
 		Origin: 定義元。クラス定義ノードが対象。属性は保有しない
-		Import: Originの複製。属性は保有しない
 		Class: クラス定義ノードが対象。クラスはGeneric型、ファンクションは関数シグネチャーを属性として保有
 		Var: 変数宣言ノードが対象。Generic型の属性を保有
-		Generic: タイプノードが対象。Generic型の属性を保有
 		Literal: リテラルノードが対象。Generic型の属性を保有
 		Reference: 参照系ノードが対象。属性は保有しない
 	"""
 	Origin = 'Origin'
-	Import = 'Import'
 	Class = 'Class'
 	Var = 'Var'
-	Generic = 'Generic'
 	Literal = 'Literal'
 	Reference = 'Reference'
 	Result = 'Result'
-
-	@property
-	def has_entity(self) -> bool:
-		"""bool: True = 実体を持つ"""
-		return self in [Roles.Origin, Roles.Class, Roles.Var, Roles.Generic, Roles.Literal]
 
 
 class DB(dict[str, 'IReflection']):
@@ -201,12 +192,6 @@ class IReflection(metaclass=ABCMeta):
 		Raises:
 			LogicError: コンテキストが無い状態で使用
 		"""
-		...
-
-	@property
-	@abstractmethod
-	def has_entity(self) -> bool:
-		"""bool: True = 実体を持つ"""
 		...
 
 	@abstractmethod

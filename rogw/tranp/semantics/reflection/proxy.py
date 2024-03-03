@@ -110,12 +110,6 @@ class SymbolProxy(IReflection):
 		"""
 		return self.__new_raw_proxy.context
 
-	@property
-	@implements
-	def has_entity(self) -> bool:
-		"""bool: True = 実体を持つ"""
-		return self.__new_raw_proxy.has_entity
-
 	@implements
 	def clone(self) -> IReflection:
 		"""インスタンスを複製

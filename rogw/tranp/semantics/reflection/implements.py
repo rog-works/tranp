@@ -97,12 +97,6 @@ class Reflection(IReflection):
 		"""
 		raise LogicError(f'Context is null. symbol: {str(self)}, fullyname: {self.ref_fullyname}')
 
-	@property
-	@implements
-	def has_entity(self) -> bool:
-		"""bool: True = 実体を持つ"""
-		return self.role.has_entity
-
 	# @abstractmethod
 	# def clone(self: Self) -> Self:
 	# 	"""インスタンスを複製
@@ -439,7 +433,7 @@ class ReflectionImport(ReflectionImpl):
 	@implements
 	def role(self) -> Roles:
 		"""Roles: シンボルの役割"""
-		return Roles.Import
+		return self.origin.role
 
 	@property
 	@override
@@ -515,7 +509,7 @@ class ReflectionGeneric(ReflectionImpl):
 	@implements
 	def role(self) -> Roles:
 		"""Roles: シンボルの役割"""
-		return Roles.Generic
+		return self.origin.role
 
 	@override
 	def clone(self: Self) -> Self:

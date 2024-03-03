@@ -164,7 +164,7 @@ class ClassShorthandNaming:
 			elif raw.types.is_a(defs.Function):
 				attrs = [cls.__make_impl(attr, alias_handler, path_method) for attr in raw.attrs]
 				return f'{symbol_name}({", ".join(attrs[:-1])}) -> {attrs[-1]}'
-			elif raw.role in [Roles.Var, Roles.Generic, Roles.Literal, Roles.Reference]:
+			else:
 				attrs = [cls.__make_impl(attr, alias_handler, path_method) for attr in raw.attrs]
 				return f'{symbol_name}<{", ".join(attrs)}>'
 

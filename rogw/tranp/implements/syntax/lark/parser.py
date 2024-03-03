@@ -16,17 +16,17 @@ class SyntaxParserOfLark:
 	"""シンタックスパーサー(Lark版)"""
 
 	@injectable
-	def __init__(self, loader: IFileLoader, setting: ParserSetting, cache: CacheProvider) -> None:
+	def __init__(self, loader: IFileLoader, setting: ParserSetting, caches: CacheProvider) -> None:
 		"""インスタンスを生成
 
 		Args:
 			loader (IFileLoader): ファイルローダー @inject
 			setting (ParserSetting): パーサー設定データ @inject
-			cache (CacheProvider): キャッシュプロバイダー @inject
+			caches (CacheProvider): キャッシュプロバイダー @inject
 		"""
 		self.__loader = loader
 		self.__setting = setting
-		self.__cache = cache
+		self.__caches = caches
 
 	@implements
 	def __call__(self, module_path: str) -> Entry:
@@ -54,7 +54,7 @@ class SyntaxParserOfLark:
 				'algorithem': self.__setting.algorithem,
 			}
 
-		@self.__cache.get('parser.cache', identity=identity(), format='bin')
+		@self.__caches.get('parser.cache', identity=identity(), format='bin')
 		def instantiate() -> LarkStored:
 			return LarkStored(lark.Lark(
 				self.__loader.load(self.__setting.grammar),
@@ -86,7 +86,7 @@ class SyntaxParserOfLark:
 		def load_source() -> str:
 			return self.__loader.load(source_path())
 
-		@self.__cache.get(basepath, identity=identity(), format='json')
+		@self.__caches.get(basepath, identity=identity(), format='json')
 		def instantiate() -> EntryStored:
 			return EntryStored(EntryOfLark(parser.parse(load_source())))
 

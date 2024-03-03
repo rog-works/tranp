@@ -11,6 +11,7 @@ class IDeclaration:
 		* ClassDef | 1 on 1
 		* AnnoAssign | 1 on 1
 		* MoveAssign | 1 on n
+		* Import | 1 on n
 		* Parameter | 1 on 1
 		* For | 1 on n
 		* Catch | 1 on 1

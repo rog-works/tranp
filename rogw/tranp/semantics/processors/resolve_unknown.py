@@ -27,7 +27,6 @@ class ResolveUnknown:
 		"""
 		self.invoker = invoker
 
-	@injectable
 	def __call__(self, raws: SymbolRaws) -> SymbolRaws:
 		"""シンボルテーブルを生成
 

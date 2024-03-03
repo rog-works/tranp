@@ -30,6 +30,11 @@ class Modules:
 		"""list[Module]: 標準ライブラリーモジュールリスト"""
 		return [self.load(module_path) for module_path in self.__library_paths]
 
+	@property
+	def requirements(self) -> list[Module]:
+		"""list[Module]: 必須モジュールリスト"""
+		return [*self.libralies, self.main]
+
 	def load(self, module_path: str) -> Module:
 		"""モジュールをロード。ロードしたモジュールはパスとマッピングしてキャッシュ
 

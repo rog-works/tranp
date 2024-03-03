@@ -18,7 +18,6 @@ class ResolveGeneric:
 		"""
 		self.finder = finder
 
-	@injectable
 	def __call__(self, raws: SymbolRaws) -> SymbolRaws:
 		"""シンボルテーブルを生成
 

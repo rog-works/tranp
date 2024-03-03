@@ -1,5 +1,5 @@
 from rogw.tranp.lang.implementation import implements, override
-from rogw.tranp.syntax.node.definition.primary import FuncCall, ImportPath, Reference, Declable, Type, Var
+from rogw.tranp.syntax.node.definition.primary import FuncCall, ImportName, ImportPath, Reference, Declable, Type, Var
 from rogw.tranp.syntax.node.definition.terminal import Empty, Terminal
 from rogw.tranp.syntax.node.embed import Meta, accept_tags, expandable
 from rogw.tranp.syntax.node.interface import ITerminal
@@ -126,12 +126,12 @@ class Comment(Node, ITerminal):
 
 
 @Meta.embed(Node, accept_tags('import_stmt'))
-class Import(Node):
+class Import(Node, IDeclaration):
 	@property
 	def import_path(self) -> ImportPath:
 		return self._by('dotted_name').as_a(ImportPath)
 
 	@property
 	@Meta.embed(Node, expandable)
-	def import_symbols(self) -> list[Declable]:
-		return [node.as_a(Declable) for node in self._children('import_names')]
+	def symbols(self) -> list[ImportName]:
+		return [node.as_a(ImportName) for node in self._children('import_names')]

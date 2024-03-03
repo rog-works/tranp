@@ -52,7 +52,16 @@ class ExpandModules:
 		Returns:
 			SymbolRaws: シンボルテーブル
 		"""
-		# モジュールを展開
+		expanded_modules = self.expand_modules()
+		expanded_raws = self.expanded_to_raws(expanded_modules)
+		return raws.merge(expanded_raws)
+
+	def expand_modules(self) -> dict[str, Expanded]:
+		"""全モジュールを展開
+
+		Returns:
+			dict[str, Expanded]: 展開データ
+		"""
 		load_index = 0
 		load_reserves = {module.path: True for module in self.modules.requirements}
 		expanded_modules: dict[str, Expanded] = {}
@@ -64,6 +73,16 @@ class ExpandModules:
 			expanded_modules[module_path] = expanded
 			load_index += 1
 
+		return expanded_modules
+
+	def expanded_to_raws(self, expanded_modules: dict[str, Expanded]) -> SymbolRaws:
+		"""展開データからシンボルテーブルを生成
+
+		Args:
+			expanded_modules (dict[str, Expanded]): 展開データ
+		Returns:
+			SymbolRaws: シンボルテーブル
+		"""
 		# クラス定義シンボルの展開
 		expanded_raws = SymbolRaws()
 		for module_path, expanded in expanded_modules.items():
@@ -89,7 +108,7 @@ class ExpandModules:
 				raw = self.resolve_type_symbol(expanded_raws, var)
 				expanded_raws[var.symbol.fullyname] = raw.to.var(var)
 
-		return raws.merge(expanded_raws.sorted(list(expanded_modules.keys())))
+		return expanded_raws.sorted(list(expanded_modules.keys()))
 
 	def expand_module(self, module: Module) -> Expanded:
 		"""モジュールのシンボル・インポートパスを展開

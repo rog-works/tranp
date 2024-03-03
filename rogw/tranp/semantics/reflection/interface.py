@@ -271,8 +271,6 @@ class IReflection(metaclass=ABCMeta):
 		...
 
 
-
-
 class IWrapper(metaclass=ABCMeta):
 	"""ラッパーファクトリー"""
 

@@ -190,7 +190,7 @@ class Symbols:
 			# XXX list: int
 			# XXX dict: Pair<str, int>
 			attrs = [projection] if projection_type is list else projection.attrs
-			return origin.to.literal(node).extends(*attrs)
+			return origin.to.result(node).extends(*attrs)
 		else:
 			# CompFor
 			return self.__resolve_procedural(node.for_in)
@@ -436,37 +436,37 @@ class ProceduralResolver:
 		prop = self.symbols.type_of_property(accessable_receiver.types, node.prop)
 		# XXX Enum直下のDeclLocalVarは定数値であり、型としてはEnumそのものであるためreceiverを返却。特殊化より一般化する方法を検討
 		if isinstance(accessable_receiver.types, defs.Enum) and prop.decl.is_a(defs.DeclLocalVar):
-			return accessable_receiver.to.ref(node, context=accessable_receiver)
+			return accessable_receiver.to.relay(node, context=accessable_receiver)
 		elif isinstance(prop.decl, defs.Method) and prop.decl.is_property:
 			function_helper = template.HelperBuilder(prop) \
 				.schema(lambda: {'klass': prop.attrs[0], 'parameters': prop.attrs[1:-1], 'returns': prop.attrs[-1]}) \
 				.build(template.Method)
-			return function_helper.returns(receiver).to.ref(node, context=accessable_receiver)
+			return function_helper.returns(receiver).to.relay(node, context=accessable_receiver)
 		else:
-			return prop.to.ref(node, context=accessable_receiver)
+			return prop.to.relay(node, context=accessable_receiver)
 
 	def on_class_ref(self, node: defs.ClassRef) -> IReflection:
-		return self.symbols.resolve(node).to.ref(node)
+		return self.symbols.resolve(node)
 
 	def on_this_ref(self, node: defs.ThisRef) -> IReflection:
-		return self.symbols.resolve(node).to.ref(node)
+		return self.symbols.resolve(node)
 
 	def on_var(self, node: defs.Var) -> IReflection:
-		return self.symbols.resolve(node).to.ref(node)
+		return self.symbols.resolve(node)
 
 	def on_indexer(self, node: defs.Indexer, receiver: IReflection, key: IReflection) -> IReflection:
 		if receiver.types.is_a(defs.AltClass):
 			receiver = receiver.attrs[0]
 
 		if self.symbols.is_a(receiver, list):
-			return receiver.attrs[0].to.ref(node, context=receiver)
+			return receiver.attrs[0].to.relay(node, context=receiver)
 		elif self.symbols.is_a(receiver, dict):
-			return receiver.attrs[1].to.ref(node, context=receiver)
+			return receiver.attrs[1].to.relay(node, context=receiver)
 		else:
 			# XXX コレクション型以外は全て通常のクラスである想定
 			# XXX keyに何が入るべきか特定できないためreceiverをそのまま返却
 			# XXX この状況で何が取得されるべきかは利用側で判断することとする
-			return receiver.to.ref(node, context=receiver)
+			return receiver.to.relay(node, context=receiver)
 
 	def on_relay_of_type(self, node: defs.RelayOfType, receiver: IReflection) -> IReflection:
 		"""Note: XXX Pythonではtypeをアンパックする構文が存在しないためAltClassも同様に扱う"""

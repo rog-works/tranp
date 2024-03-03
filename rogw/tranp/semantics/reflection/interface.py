@@ -16,15 +16,11 @@ class Roles(Enum):
 		Origin: 定義元。クラス定義ノードが対象。属性は保有しない
 		Class: クラス定義ノードが対象。クラスはGeneric型、ファンクションは関数シグネチャーを属性として保有
 		Var: 変数宣言ノードが対象。Generic型の属性を保有
-		Literal: リテラルノードが対象。Generic型の属性を保有
-		Reference: 参照系ノードが対象。属性は保有しない
 	"""
+
 	Origin = 'Origin'
 	Class = 'Class'
 	Var = 'Var'
-	Literal = 'Literal'
-	Reference = 'Reference'
-	Result = 'Result'
 
 
 class DB(dict[str, 'IReflection']):
@@ -260,19 +256,8 @@ class IWrapper(metaclass=ABCMeta):
 	"""ラッパーファクトリー"""
 
 	@abstractmethod
-	def imports(self, via: defs.Import) -> IReflection:
-		"""ラップしたシンボルを生成(インポートノード用)
-
-		Args:
-			via (Import): インポートノード
-		Returns:
-			IReflection: シンボル
-		"""
-		...
-
-	@abstractmethod
 	def types(self) -> IReflection:
-		"""ラップしたシンボルを生成(クラス用)
+		"""ラップしたシンボルを生成(クラス)
 
 		Returns:
 			IReflection: シンボル
@@ -281,7 +266,7 @@ class IWrapper(metaclass=ABCMeta):
 
 	@abstractmethod
 	def var(self, decl: defs.DeclAll) -> IReflection:
-		"""ラップしたシンボルを生成(変数宣言ノード用)
+		"""ラップしたシンボルを生成(変数)
 
 		Args:
 			decl (ClassDef): 変数宣言ノード
@@ -291,8 +276,19 @@ class IWrapper(metaclass=ABCMeta):
 		...
 
 	@abstractmethod
+	def imports(self, via: defs.Import) -> IReflection:
+		"""ラップしたシンボルを生成(インポート)
+
+		Args:
+			via (Import): インポートノード
+		Returns:
+			IReflection: シンボル
+		"""
+		...
+
+	@abstractmethod
 	def generic(self, via: defs.Type) -> IReflection:
-		"""ラップしたシンボルを生成(タイプノード用)
+		"""ラップしたシンボルを生成(タイプ拡張)
 
 		Args:
 			via (Type): タイプノード
@@ -302,34 +298,34 @@ class IWrapper(metaclass=ABCMeta):
 		...
 
 	@abstractmethod
-	def literal(self, via: defs.Literal | defs.Comprehension) -> IReflection:
-		"""ラップしたシンボルを生成(リテラルノード用)
+	def literal(self, via: defs.Literal) -> IReflection:
+		"""ラップしたシンボルを生成(リテラル)
 
 		Args:
-			via (Literal | Comprehension): リテラル/リスト内包表記ノード
+			via (Literal | Comprehension): リテラルノード
 		Returns:
 			IReflection: シンボル
 		"""
 		...
 
 	@abstractmethod
-	def ref(self, via: defs.Reference, context: IReflection | None = None) -> IReflection:
-		"""ラップしたシンボルを生成(参照ノード用)
+	def result(self, via: defs.Operator | defs.Comprehension) -> IReflection:
+		"""ラップしたシンボルを生成(結果)
 
 		Args:
-			via (Reference): 参照系ノード
-			context (IReflection | None): コンテキストのシンボル (default = None)
+			via (Operator): 結果系ノード 演算/リスト内包表記ノード
 		Returns:
 			IReflection: シンボル
 		"""
 		...
 
 	@abstractmethod
-	def result(self, via: defs.Operator) -> IReflection:
-		"""ラップしたシンボルを生成(結果系ノード用)
+	def relay(self, via: defs.Relay | defs.Indexer | defs.FuncCall, context: IReflection) -> IReflection:
+		"""ラップしたシンボルを生成(参照リレー)
 
 		Args:
-			via (Operator): 結果系ノード ※現状は演算ノードのみ
+			via (Relay | Indexer | FuncCall): 参照系ノード
+			context (IReflection): コンテキストのシンボル
 		Returns:
 			IReflection: シンボル
 		"""

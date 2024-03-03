@@ -626,15 +626,13 @@ class TestDefinition(TestCase):
 		self.assertEqual(type(self.fixture.custom_nodes(source).by(full_path)), defs.Comment)
 
 	@data_provider([
-		('from a.b.c import A, B', 'file_input.import_stmt', {'import_path': 'a.b.c', 'import_symbols': ['A', 'B']}),
-		('from a.b.c import (A, B)', 'file_input.import_stmt', {'import_path': 'a.b.c', 'import_symbols': ['A', 'B']}),
+		('from a.b.c import A, B', 'file_input.import_stmt', {'import_path': 'a.b.c', 'symbols': ['A', 'B']}),
+		('from a.b.c import (A, B)', 'file_input.import_stmt', {'import_path': 'a.b.c', 'symbols': ['A', 'B']}),
 	])
 	def test_import(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes(source).by(full_path).as_a(defs.Import)
 		self.assertEqual(node.import_path.tokens, expected['import_path'])
-		self.assertEqual(len(node.import_symbols), len(expected['import_symbols']))
-		for index, symbol in enumerate(node.import_symbols):
-			self.assertEqual(symbol.tokens, expected['import_symbols'][index])
+		self.assertEqual([symbol.tokens for symbol in node.symbols], expected['symbols'])
 
 	# Primary
 

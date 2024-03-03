@@ -89,7 +89,7 @@ class FromModules:
 			imported_raws = SymbolRaws()
 			for import_node in expand_target.import_nodes:
 				# import句で明示されたシンボルに限定
-				imported_symbol_names = [symbol.tokens for symbol in import_node.import_symbols]
+				imported_symbol_names = [symbol.tokens for symbol in import_node.symbols]
 				import_module = self.modules.load(import_node.import_path.tokens)
 				expanded = expands[import_module]
 				filtered_raws = [expanded.raws[DSN.join(import_module.path, name)].to.imports(import_node) for name in imported_symbol_names]

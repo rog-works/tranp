@@ -97,7 +97,7 @@ class ExpandModules:
 				classes[node.fullyname] = node.full_path
 
 			if isinstance(node, defs.Import):
-				decl_vars = {**decl_vars, **{symbol.fullyname: symbol.full_path for symbol in node.import_symbols}}
+				decl_vars = {**decl_vars, **{symbol.fullyname: symbol.full_path for symbol in node.symbols}}
 
 			if isinstance(node, defs.Entrypoint):
 				decl_vars = {**decl_vars, **{var.fullyname: var.full_path for var in node.decl_vars}}

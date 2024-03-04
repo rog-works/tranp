@@ -1,4 +1,4 @@
-from typing import Callable, cast
+from typing import Callable
 
 from rogw.tranp.errors import FatalError
 from rogw.tranp.implements.cpp.semantics.cvars import CVars
@@ -19,7 +19,7 @@ class CppPlugin(IPlugin):
 		# 変換例
 		'Class[CP]' -> 'Class'
 		'Class[CSP]' -> 'Class'
-		@deprecated 実質未使用のため削除を検討
+		@deprecated 未使用のため削除を検討
 	"""
 
 	def __init__(self) -> None:
@@ -135,4 +135,3 @@ class CppPlugin(IPlugin):
 				return origin
 
 		raise FatalError(f'Unexpected symbol schema. value: {value_raw}')
-

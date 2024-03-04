@@ -8,7 +8,7 @@ from rogw.tranp.semantics.reflections import Reflections
 
 
 class CVars:
-	"""C++変数型の操作ユーティリティー
+	"""C++型変数の操作ユーティリティー
 
 	Attributes:
 		relay_key (str): リレー代替メソッドの名前
@@ -53,63 +53,6 @@ class CVars:
 		Raw = 0
 		Address = 1
 		Static = 2
-
-	@classmethod
-	@deprecated
-	def analyze_move(cls, reflections: Reflections, accept: IReflection, value: IReflection, value_on_new: bool, declared: bool) -> Moves:
-		"""移動操作を解析
-
-		Args:
-			reflections (Reflections): シンボルリゾルバー
-			accept (IReflection): 受け入れ側
-			value (IReflection): 入力側
-			value_on_new (bool): True = インスタンス生成
-			declared (bool): True = 変数宣言時
-		Returns:
-			Moves: 移動操作の種別
-		Note:
-			@deprecated 未使用のため削除を検討
-		"""
-		accept_key = cls.key_from(reflections, accept)
-		value_key = cls.key_from(reflections, value)
-		return cls.move_by(accept_key, value_key, value_on_new, declared)
-
-	@classmethod
-	@deprecated
-	def move_by(cls, accept_key: str, value_key: str, value_on_new: bool, declared: bool) -> Moves:
-		"""移動操作を解析
-
-		Args:
-			accept_key (str): 受け入れ側
-			value_key (str): 入力側
-			value_on_new (bool): True = インスタンス生成
-			declared (bool): True = 変数宣言時
-		Returns:
-			Moves: 移動操作の種別
-		Note:
-			@deprecated 未使用のため削除を検討
-		"""
-		if cls.is_raw_ref(accept_key) and not declared:
-			return cls.Moves.Deny
-
-		if cls.is_addr_sp(accept_key) and cls.is_raw(value_key) and value_on_new:
-			return cls.Moves.MakeSp
-		elif cls.is_addr_p(accept_key) and cls.is_raw(value_key) and value_on_new:
-			return cls.Moves.New
-		elif cls.is_addr_p(accept_key) and cls.is_raw(value_key):
-			return cls.Moves.ToAddress
-		elif cls.is_raw(accept_key) and cls.is_addr(value_key):
-			return cls.Moves.ToActual
-		elif cls.is_addr_p(accept_key) and cls.is_addr_sp(value_key):
-			return cls.Moves.UnpackSp
-		elif cls.is_addr_p(accept_key) and cls.is_addr_p(value_key):
-			return cls.Moves.Copy
-		elif cls.is_addr_sp(accept_key) and cls.is_addr_sp(value_key):
-			return cls.Moves.Copy
-		elif cls.is_raw(accept_key) and cls.is_raw(value_key):
-			return cls.Moves.Copy
-		else:
-			return cls.Moves.Deny
 
 	@classmethod
 	def is_raw(cls, key: str) -> bool:
@@ -224,6 +167,14 @@ class CVars:
 
 	@classmethod
 	def to_move(cls, key: str, method: str) -> Moves:
+		"""C++変数型の各メソッドに応じた移動操作の種別に変換
+
+		Args:
+			key (str): C++変数型の種別キー
+			method (str): メソッド名
+		Returns:
+			Moves: 移動操作の種別
+		"""
 		moves = {
 			'CP.raw': CVars.Moves.ToActual,
 			'CP.ref': CVars.Moves.ToActual,
@@ -238,3 +189,60 @@ class CVars:
 			return moves[move_key]
 
 		return CVars.Moves.Deny
+
+	@classmethod
+	@deprecated
+	def analyze_move(cls, reflections: Reflections, accept: IReflection, value: IReflection, value_on_new: bool, declared: bool) -> Moves:
+		"""移動操作を解析
+
+		Args:
+			reflections (Reflections): シンボルリゾルバー
+			accept (IReflection): 受け入れ側
+			value (IReflection): 入力側
+			value_on_new (bool): True = インスタンス生成
+			declared (bool): True = 変数宣言時
+		Returns:
+			Moves: 移動操作の種別
+		Note:
+			@deprecated 未使用のため削除を検討
+		"""
+		accept_key = cls.key_from(reflections, accept)
+		value_key = cls.key_from(reflections, value)
+		return cls.move_by(accept_key, value_key, value_on_new, declared)
+
+	@classmethod
+	@deprecated
+	def move_by(cls, accept_key: str, value_key: str, value_on_new: bool, declared: bool) -> Moves:
+		"""移動操作を解析
+
+		Args:
+			accept_key (str): 受け入れ側
+			value_key (str): 入力側
+			value_on_new (bool): True = インスタンス生成
+			declared (bool): True = 変数宣言時
+		Returns:
+			Moves: 移動操作の種別
+		Note:
+			@deprecated 未使用のため削除を検討
+		"""
+		if cls.is_raw_ref(accept_key) and not declared:
+			return cls.Moves.Deny
+
+		if cls.is_addr_sp(accept_key) and cls.is_raw(value_key) and value_on_new:
+			return cls.Moves.MakeSp
+		elif cls.is_addr_p(accept_key) and cls.is_raw(value_key) and value_on_new:
+			return cls.Moves.New
+		elif cls.is_addr_p(accept_key) and cls.is_raw(value_key):
+			return cls.Moves.ToAddress
+		elif cls.is_raw(accept_key) and cls.is_addr(value_key):
+			return cls.Moves.ToActual
+		elif cls.is_addr_p(accept_key) and cls.is_addr_sp(value_key):
+			return cls.Moves.UnpackSp
+		elif cls.is_addr_p(accept_key) and cls.is_addr_p(value_key):
+			return cls.Moves.Copy
+		elif cls.is_addr_sp(accept_key) and cls.is_addr_sp(value_key):
+			return cls.Moves.Copy
+		elif cls.is_raw(accept_key) and cls.is_raw(value_key):
+			return cls.Moves.Copy
+		else:
+			return cls.Moves.Deny

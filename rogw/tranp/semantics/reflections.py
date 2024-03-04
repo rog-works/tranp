@@ -29,10 +29,19 @@ class Reflections:
 		"""
 		self.__raws = db_provider.db
 		self.__finder = finder
-		self.__procedural_resolver = ProceduralResolver(self)
+		self.__plugins = plugins
+		self.__procedural: ProceduralResolver | None = None
 
-		for plugin in plugins():
-			plugin.register(self.__procedural_resolver.procedure)
+	@property
+	def __procedural_resolver(self) -> 'ProceduralResolver':
+		"""ProceduralResolver: プロシージャルリゾルバー"""
+		if self.__procedural is None:
+			self.__procedural = ProceduralResolver(self)
+
+			for plugin in self.__plugins():
+				plugin.register(self.__procedural.procedure)
+
+		return self.__procedural
 
 	@raises(UnresolvedSymbolError, SemanticsError)
 	def is_a(self, symbol: IReflection, standard_type: type[Standards] | None) -> bool:

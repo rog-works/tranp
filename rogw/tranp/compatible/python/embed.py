@@ -28,7 +28,7 @@ def __alias__() -> Callable[[T], T]:
 	Returns:
 		Callable[[T], T]: デコレート対象
 	Note:
-		@see analyze.naming.ClassDomainNaming
+		@see semantics.reflection.helper.naming.ClassDomainNaming
 	Examples:
 		```python
 		@__alias__()

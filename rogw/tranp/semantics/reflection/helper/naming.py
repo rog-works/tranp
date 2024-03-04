@@ -151,7 +151,7 @@ class ClassShorthandNaming:
 		Args:
 			raw (IReflection): シンボル
 			alias_handler (AliasHandler | None): エイリアス解決ハンドラー (default = None)
-			path_method ('domain' | 'fully' | 'namespace'): パス生成方式 (default = 'domain') @see analyze.naming.ClassDomainNaming
+			path_method ('domain' | 'fully' | 'namespace'): パス生成方式 (default = 'domain') @see helper.naming.ClassDomainNaming
 		Returns:
 			str: 短縮表記
 		"""

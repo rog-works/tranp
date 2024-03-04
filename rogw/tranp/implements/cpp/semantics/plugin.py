@@ -7,7 +7,7 @@ from rogw.tranp.lang.implementation import deprecated, implements
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.semantics.plugin import IPlugin
 from rogw.tranp.semantics.reflection import IReflection
-from rogw.tranp.semantics.symbols import Symbols
+from rogw.tranp.semantics.reflections import Reflections
 
 
 @deprecated
@@ -24,13 +24,13 @@ class CppPlugin(IPlugin):
 
 	def __init__(self) -> None:
 		"""インスタンスを生成"""
-		self.__symbols: Symbols | None = None
+		self.__reflections: Reflections | None = None
 
 	@property
-	def symbols(self) -> Symbols:
+	def reflections(self) -> Reflections:
 		"""Symbols: シンボルリゾルバー"""
-		if self.__symbols is not None:
-			return self.__symbols
+		if self.__reflections is not None:
+			return self.__reflections
 
 		raise FatalError('Symbols is null')
 
@@ -41,11 +41,14 @@ class CppPlugin(IPlugin):
 		Args:
 			observer (IObserver): オブザーバー
 		"""
-		self.__symbols = cast(Symbols, observer)
+		if not isinstance(observer, Reflections):
+			raise FatalError('Diffrerent observer.')
+
+		self.__reflections = observer
 
 		for key, handler in self.__interceptors().items():
 			action = f'on_enter_{key.split('on_')[1]}'
-			self.symbols.on(action, handler)
+			observer.on(action, handler)
 
 	@implements
 	def unregister(self, observer: IObservable) -> None:
@@ -54,14 +57,14 @@ class CppPlugin(IPlugin):
 		Args:
 			observer (IObserver): オブザーバー
 		"""
-		if self.__symbols != observer:
+		if self.__reflections != observer:
 			raise FatalError('Diffrerent observer.')
 
 		for key, handler in self.__interceptors.items():
 			action = f'on_enter_{key.split('on_')[1]}'
-			self.symbols.off(action, handler)
+			observer.off(action, handler)
 
-		self.__symbols = None
+		self.__reflections = None
 
 	def __interceptors(self) -> dict[str, Callable[..., IReflection]]:
 		"""インターセプトハンドラーの一覧を取得
@@ -122,13 +125,13 @@ class CppPlugin(IPlugin):
 		Returns:
 			IReflection: シンボル
 		"""
-		key = CVars.key_from(self.symbols, value_raw)
-		if CVars.is_raw_raw(key) or self.symbols.is_a(value_raw, None):
+		key = CVars.key_from(self.reflections, value_raw)
+		if CVars.is_raw_raw(key) or self.reflections.is_a(value_raw, None):
 			return value_raw
 
 		# 実体の型を取得出来るまで参照元を辿る
 		for origin in value_raw.hierarchy():
-			if CVars.is_raw_raw(CVars.key_from(self.symbols, origin)):
+			if CVars.is_raw_raw(CVars.key_from(self.reflections, origin)):
 				return origin
 
 		raise FatalError(f'Unexpected symbol schema. value: {value_raw}')

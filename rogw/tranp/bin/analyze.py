@@ -18,7 +18,7 @@ from rogw.tranp.module.module import Module
 from rogw.tranp.module.types import ModulePath
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.semantics.reflection import IReflection, SymbolDB
-from rogw.tranp.semantics.symbols import Symbols
+from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.syntax.ast.entry import Entry
 from rogw.tranp.syntax.ast.parser import ParserSetting, SyntaxParser
 from rogw.tranp.syntax.ast.query import Query
@@ -88,7 +88,7 @@ def task_pretty(nodes: Query[Node]) -> None:
 	print(nodes.by('file_input').pretty())
 
 
-def task_class(db: SymbolDB, symbols: Symbols) -> None:
+def task_class(db: SymbolDB, reflections: Reflections) -> None:
 	names = {raw.decl.fullyname: True for raw in db.raws.values() if raw.decl.is_a(defs.Class)}
 	prompt = '\n'.join([
 		'==============',
@@ -100,23 +100,23 @@ def task_class(db: SymbolDB, symbols: Symbols) -> None:
 	])
 	name = readline(prompt)
 	print('--------------')
-	print(symbols.from_fullyname(name).types.pretty(1))
+	print(reflections.from_fullyname(name).types.pretty(1))
 
 
-def task_symbol(symbols: Symbols) -> None:
+def task_symbol(reflections: Reflections) -> None:
 	prompt = '\n'.join([
 		'==============',
 		'Symbol fullyname here:',
 	])
 	name = readline(prompt)
 
-	symbol = symbols.from_fullyname(name)
+	symbol = reflections.from_fullyname(name)
 
 	print('--------------')
 	print(json.dumps(dump_symbol_data(symbol), indent=2))
 
 
-def task_node(module: Module, symbols: Symbols) -> None:
+def task_node(module: Module, reflections: Reflections) -> None:
 	prompt = '\n'.join([
 		'==============',
 		'Node fullyname here:',
@@ -127,7 +127,7 @@ def task_node(module: Module, symbols: Symbols) -> None:
 
 	if len(candidates):
 		node = candidates[0]
-		symbol = symbols.type_of(node)
+		symbol = reflections.type_of(node)
 
 		print('--------------')
 		print('Node')
@@ -187,11 +187,11 @@ def task_analyze(org_parser: SyntaxParser, cache: CacheProvider) -> None:
 		def new_parser(module_path: str) -> Entry:
 			return root if module_path == '__main__' else org_parser(module_path)
 
-		def resolve_symbol(symbols: Symbols, name: str) -> IReflection:
+		def resolve_symbol(reflections: Reflections, name: str) -> IReflection:
 			try:
-				return symbols.from_fullyname(name)
+				return reflections.from_fullyname(name)
 			except LogicError:
-				return symbols.type_of_standard(classes.Unknown)
+				return reflections.type_of_standard(classes.Unknown)
 
 		lark = cast(SyntaxParserOfLark, org_parser).dirty_get_origin()
 		root = EntryOfLark(lark.parse(f'{"\n".join(lines)}\n'))
@@ -200,10 +200,10 @@ def task_analyze(org_parser: SyntaxParser, cache: CacheProvider) -> None:
 		app = App({**org_definitions, **new_difinitions})
 
 		db = app.resolve(SymbolDB)
-		symbols = app.resolve(Symbols)
+		reflections = app.resolve(Reflections)
 
 		main_raws = {key: raw for key, raw in db.raws.items() if raw.decl.module_path == '__main__'}
-		main_symbols = {key: str(resolve_symbol(symbols, key)) for key, _ in main_raws.items()}
+		main_symbols = {key: str(resolve_symbol(reflections, key)) for key, _ in main_raws.items()}
 		found_symbols = '\n'.join([f'{key}: {symbol_type}' for key, symbol_type in main_symbols.items()])
 		node = app.resolve(Query[Node]).by('file_input')
 		return (found_symbols, node.pretty())

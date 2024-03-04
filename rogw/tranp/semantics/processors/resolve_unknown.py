@@ -6,7 +6,7 @@ import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.syntax.node.promise import IDeclaration
 from rogw.tranp.semantics.reflection import IReflection, SymbolProxy, SymbolRaws
-from rogw.tranp.semantics.symbols import Symbols
+from rogw.tranp.semantics.reflections import Reflections
 
 
 class ResolveUnknown:
@@ -47,11 +47,11 @@ class ResolveUnknown:
 		return raws
 
 	@injectable
-	def resolver(self, symbols: Symbols, var_raw: IReflection, value_node: Node) -> IReflection:
+	def resolver(self, reflections: Reflections, var_raw: IReflection, value_node: Node) -> IReflection:
 		"""シンボルの右辺値を解決したシンボルを生成
 
 		Args:
-			symbols (Symbols): シンボルリゾルバー @inject
+			reflections (Reflections): シンボルリゾルバー @inject
 			var_raw (IReflection): 変数宣言シンボル
 			value_node (Node): 右辺値ノード
 		Returns:
@@ -59,7 +59,7 @@ class ResolveUnknown:
 		Note:
 			変数宣言のシンボルのため、RolesをVarに変更
 		"""
-		return self.unpack_value(var_raw, symbols.type_of(value_node)).to.var(var_raw.decl.as_a(defs.DeclVars))
+		return self.unpack_value(var_raw, reflections.type_of(value_node)).to.var(var_raw.decl.as_a(defs.DeclVars))
 
 	def make_resolver(self, raw: IReflection, value_node: Node) -> Callable[[], IReflection]:
 		"""シンボルリゾルバーを生成

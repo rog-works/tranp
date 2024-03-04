@@ -6,7 +6,7 @@ import rogw.tranp.compatible.python.classes as classes
 from rogw.tranp.compatible.python.types import Standards
 from rogw.tranp.syntax.ast.dsn import DSN
 from rogw.tranp.semantics.errors import UnresolvedSymbolError
-from rogw.tranp.semantics.symbols import Symbols
+from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.test.helper import data_provider
 from tests.test.fixture import Fixture
 
@@ -96,7 +96,7 @@ def _mod(before: str, after: str) -> str:
 	return DSN.join(aliases[before], after)
 
 
-class TestSymbols(TestCase):
+class TestReflections(TestCase):
 	fixture = Fixture.make(__file__)
 
 	@data_provider([
@@ -108,9 +108,9 @@ class TestSymbols(TestCase):
 		('__main__.AliasOps.func.d', dict, False),  # XXX エイリアスはdictそのものではないが要検討
 	])
 	def test_is_a(self, fullyname: str, standard_type: type[Standards], expected: bool) -> None:
-		symbols = self.fixture.get(Symbols)
-		symbol = symbols.from_fullyname(fullyname)
-		self.assertEqual(symbols.is_a(symbol, standard_type), expected)
+		reflections = self.fixture.get(Reflections)
+		symbol = reflections.from_fullyname(fullyname)
+		self.assertEqual(reflections.is_a(symbol, standard_type), expected)
 
 	@data_provider([
 		('__main__.TypeAlias', 'TypeAlias'),
@@ -249,8 +249,8 @@ class TestSymbols(TestCase):
 		('__main__.Nullable.accessible.n', 'int'),
 	])
 	def test_from_fullyname(self, fullyname: str, expected: str) -> None:
-		symbols = self.fixture.get(Symbols)
-		symbol = symbols.from_fullyname(fullyname)
+		reflections = self.fixture.get(Reflections)
+		symbol = reflections.from_fullyname(fullyname)
 		self.assertEqual(str(symbol), expected)
 
 	@data_provider([
@@ -258,9 +258,9 @@ class TestSymbols(TestCase):
 		('__main__.Nullable.accessible.arr', UnresolvedSymbolError, r'Only Nullable.'),
 	])
 	def test_from_fullyname_error(self, fullyname: str, expected_error: type[Exception], expected: re.Pattern[str]) -> None:
-		symbols = self.fixture.get(Symbols)
+		reflections = self.fixture.get(Reflections)
 		with self.assertRaisesRegex(expected_error, expected):
-			str(symbols.from_fullyname(fullyname))
+			str(reflections.from_fullyname(fullyname))
 
 	@data_provider([
 		(int, _mod('classes', int.__name__)),
@@ -276,8 +276,8 @@ class TestSymbols(TestCase):
 		(None, _mod('classes', 'None')),
 	])
 	def test_type_of_standard(self, standard_type: type[Standards] | None, expected: str) -> None:
-		symbols = self.fixture.get(Symbols)
-		self.assertEqual(symbols.type_of_standard(standard_type).types.fullyname, expected)
+		reflections = self.fixture.get(Reflections)
+		self.assertEqual(reflections.type_of_standard(standard_type).types.fullyname, expected)
 
 	@data_provider([
 		(_ast('__main__.import.xyz', 'import_names.name'), _mod('xyz', 'Z'), 'Z'),
@@ -363,8 +363,8 @@ class TestSymbols(TestCase):
 		(_ast('Nullable.var_move.block', 'if_stmt.block.return_stmt'), _mod('classes', 'str'), 'str'),
 	])
 	def test_type_of(self, full_path: str, expected: str, attrs_expected: str) -> None:
-		symbols = self.fixture.get(Symbols)
+		reflections = self.fixture.get(Reflections)
 		node = self.fixture.shared_nodes.by(full_path)
-		symbol = symbols.type_of(node)
+		symbol = reflections.type_of(node)
 		self.assertEqual(symbol.types.fullyname, expected)
 		self.assertEqual(str(symbol), attrs_expected)

@@ -13,7 +13,7 @@ from rogw.tranp.semantics.procedure import Procedure
 import rogw.tranp.semantics.reflection.helper.template as template
 from rogw.tranp.semantics.reflection.helper.naming import ClassDomainNaming, ClassShorthandNaming
 from rogw.tranp.semantics.reflection import IReflection
-from rogw.tranp.semantics.symbols import Symbols
+from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.translator.option import TranslatorOptions
 from rogw.tranp.view.render import Renderer
 
@@ -22,16 +22,16 @@ class Py2Cpp:
 	"""Python -> C++のトランスパイラー"""
 
 	@injectable
-	def __init__(self, symbols: Symbols, render: Renderer, i18n: I18n, options: TranslatorOptions) -> None:
+	def __init__(self, reflections: Reflections, render: Renderer, i18n: I18n, options: TranslatorOptions) -> None:
 		"""インスタンスを生成
 
 		Args:
-			symbols (Symbols): シンボルリゾルバー @inject
+			reflections (Reflections): シンボルリゾルバー @inject
 			render (Renderer): ソースレンダー @inject
 			i18n (I18n): 国際化対応モジュール @inject
 			options (TranslatorOptions): 実行オプション @inject
 		"""
-		self.symbols = symbols
+		self.reflections = reflections
 		self.view = render
 		self.i18n = i18n
 		self.__procedure = self.__make_procedure(options)
@@ -112,9 +112,9 @@ class Py2Cpp:
 			許容するNullableの書式 (例: 'Class | None')
 			@see ProcedureResolver.force_unpack_nullable
 		"""
-		if self.symbols.is_a(symbol, UnionType) and len(symbol.attrs) == 2:
-			is_0_null = self.symbols.is_a(symbol.attrs[0], None)
-			is_1_null = self.symbols.is_a(symbol.attrs[1], None)
+		if self.reflections.is_a(symbol, UnionType) and len(symbol.attrs) == 2:
+			is_0_null = self.reflections.is_a(symbol.attrs[0], None)
+			is_1_null = self.reflections.is_a(symbol.attrs[1], None)
 			if is_0_null != is_1_null:
 				return symbol.attrs[1 if is_0_null else 0]
 
@@ -128,7 +128,7 @@ class Py2Cpp:
 		Returns:
 			list[str]: テンプレート型名リスト
 		"""
-		function_raw = self.symbols.type_of(node)
+		function_raw = self.reflections.type_of(node)
 		function_helper = template.HelperBuilder(function_raw) \
 			.case(template.Method).schema(lambda: {'klass': function_raw.attrs[0], 'parameters': function_raw.attrs[1:-1], 'returns': function_raw.attrs[-1]}) \
 			.other_case().schema(lambda: {'parameters': function_raw.attrs[1:-1], 'returns': function_raw.attrs[-1]}) \
@@ -170,7 +170,7 @@ class Py2Cpp:
 
 	def proc_for_enumerate(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		iterates = cast(re.Match, re.fullmatch(r'enumerate\((.+)\)', for_in))[1]
-		var_type = self.to_accessible_name(self.symbols.type_of(node.for_in).attrs[1])
+		var_type = self.to_accessible_name(self.reflections.type_of(node.for_in).attrs[1])
 		return self.view.render(f'{node.classification}_enumerate', vars={'symbols': symbols, 'iterates': iterates, 'statements': statements, 'var_type': var_type})
 
 	def proc_for_dict_items(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
@@ -196,13 +196,13 @@ class Py2Cpp:
 			return self.view.render(node.classification, vars={'symbols': symbols, 'iterates': for_in})
 
 	def on_list_comp(self, node: defs.ListComp, projection: str, fors: list[str], condition: str) -> str:
-		projection_type_raw = self.symbols.type_of(node.projection)
+		projection_type_raw = self.reflections.type_of(node.projection)
 		projection_type = self.to_accessible_name(projection_type_raw)
 		comp_vars = {'projection': projection, 'comp_for': fors[0], 'condition': condition, 'projection_types': [projection_type], 'binded_this': node.binded_this}
 		return self.view.render(node.classification, vars=comp_vars)
 
 	def on_dict_comp(self, node: defs.DictComp, projection: str, fors: list[str], condition: str) -> str:
-		projection_type_raw = self.symbols.type_of(node.projection)
+		projection_type_raw = self.reflections.type_of(node.projection)
 		projection_type_key = self.to_accessible_name(projection_type_raw.attrs[0])
 		projection_type_value = self.to_accessible_name(projection_type_raw.attrs[1])
 		comp_vars = {'projection': projection, 'comp_for': fors[0], 'condition': condition, 'projection_types': [projection_type_key, projection_type_value], 'binded_this': node.binded_this}
@@ -288,7 +288,7 @@ class Py2Cpp:
 
 		for this_var in node.this_vars:
 			this_var_name = this_var.tokens_without_this
-			var_type_raw = self.symbols.type_of(this_var.declare.as_a(defs.AnnoAssign).var_type)
+			var_type_raw = self.reflections.type_of(this_var.declare.as_a(defs.AnnoAssign).var_type)
 			var_type = self.to_domain_name(var_type_raw)
 			this_var_vars = {'access': defs.to_access(this_var_name), 'symbol': this_var_name, 'var_type': var_type}
 			vars.append(self.view.render('class_decl_this_var', vars=this_var_vars))
@@ -323,8 +323,8 @@ class Py2Cpp:
 			return self.proc_move_assign_unpack(node, receivers, value)
 
 	def proc_move_assign_single(self, node: defs.MoveAssign, receiver: str, value: str) -> str:
-		receiver_raw = self.symbols.type_of(node.receivers[0])
-		value_raw = self.symbols.type_of(node.value)
+		receiver_raw = self.reflections.type_of(node.receivers[0])
+		value_raw = self.reflections.type_of(node.value)
 		declared = receiver_raw.decl.declare == node
 		var_type = self.to_accessible_name(value_raw) if declared else ''
 		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': value})
@@ -385,9 +385,9 @@ class Py2Cpp:
 		return node.tokens
 
 	def on_relay(self, node: defs.Relay, receiver: str) -> str:
-		receiver_symbol = self.symbols.type_of(node.receiver)
+		receiver_symbol = self.reflections.type_of(node.receiver)
 		receiver_symbol = self.force_unpack_nullable(receiver_symbol)
-		prop_symbol = self.symbols.type_of_property(receiver_symbol.types, node.prop)
+		prop_symbol = self.reflections.type_of_property(receiver_symbol.types, node.prop)
 		prop = node.prop.domain_name
 		if isinstance(prop_symbol.decl, defs.ClassDef):
 			prop = self.to_domain_name_by_class(prop_symbol.types)
@@ -423,11 +423,11 @@ class Py2Cpp:
 		if is_this_access():
 			return 'this', CVars.Accessors.Address.name
 		elif is_on_cvar_relay():
-			cvar_key = CVars.key_from(self.symbols, receiver_symbol.context)
+			cvar_key = CVars.key_from(self.reflections, receiver_symbol.context)
 			if not CVars.is_raw_raw(cvar_key):
 				return 'cvar_on', CVars.to_accessor(cvar_key).name
 		elif is_on_cvar_exchanger():
-			cvar_key = CVars.key_from(self.symbols, receiver_symbol)
+			cvar_key = CVars.key_from(self.reflections, receiver_symbol)
 			move = CVars.to_move(cvar_key, node.prop.domain_name)
 			if not CVars.is_raw_raw(cvar_key):
 				return f'cvar_to_{move.name}', CVars.to_accessor(cvar_key).name
@@ -446,7 +446,7 @@ class Py2Cpp:
 		return node.tokens
 
 	def on_var(self, node: defs.Var) -> str:
-		symbol = self.symbols.type_of(node)
+		symbol = self.reflections.type_of(node)
 		if isinstance(symbol.decl, defs.ClassDef):
 			return self.to_domain_name_by_class(symbol.types)
 		else:
@@ -465,21 +465,21 @@ class Py2Cpp:
 			return isinstance(node.receiver, defs.Relay) and node.receiver.prop.domain_name == CVars.relay_key
 
 		if is_on_cvar_relay():
-			receiver_symbol = self.symbols.type_of(node.receiver)
-			cvar_key = CVars.key_from(self.symbols, receiver_symbol.context)
+			receiver_symbol = self.reflections.type_of(node.receiver)
+			cvar_key = CVars.key_from(self.reflections, receiver_symbol.context)
 			if not CVars.is_raw_raw(cvar_key):
 				return 'cvar_on'
 
 		return 'otherwise'
 
 	def on_relay_of_type(self, node: defs.RelayOfType, receiver: str) -> str:
-		receiver_symbol = self.symbols.type_of(node.receiver)
-		prop_symbol = self.symbols.type_of_property(receiver_symbol.types, node.prop)
+		receiver_symbol = self.reflections.type_of(node.receiver)
+		prop_symbol = self.reflections.type_of_property(receiver_symbol.types, node.prop)
 		type_name = self.to_domain_name_by_class(prop_symbol.types)
 		return self.view.render(node.classification, vars={'receiver': receiver, 'type_name': type_name})
 
 	def on_var_of_type(self, node: defs.VarOfType) -> str:
-		symbol = self.symbols.type_of(node)
+		symbol = self.reflections.type_of(node)
 		type_name = self.to_domain_name_by_class(symbol.types)
 		return self.view.render(node.classification, vars={'type_name': type_name})
 
@@ -594,10 +594,10 @@ class Py2Cpp:
 		elif isinstance(node.calls, defs.Var) and node.calls.tokens in ['int', 'float', 'bool', 'str']:
 			org_calls = node.calls.tokens
 			casted_types = {'int': int, 'float': float, 'bool': bool, 'str': str}
-			from_raw = self.symbols.type_of(node.arguments[0])
+			from_raw = self.reflections.type_of(node.arguments[0])
 			to_type = casted_types[org_calls]
-			to_raw = self.symbols.type_of_standard(to_type)
-			if self.symbols.is_a(from_raw, str):
+			to_raw = self.reflections.type_of_standard(to_type)
+			if self.reflections.is_a(from_raw, str):
 				return 'cast_str_to_bin', to_raw
 			elif to_type == str:
 				return 'cast_bin_to_str', from_raw
@@ -605,26 +605,26 @@ class Py2Cpp:
 				return 'cast_bin_to_bin', to_raw
 		elif isinstance(node.calls, defs.Relay) and node.calls.prop.tokens in ['pop', 'keys', 'values']:
 			prop = node.calls.prop.tokens
-			context = self.symbols.type_of(node.calls).context
-			if self.symbols.is_a(context, list) and prop == 'pop':
+			context = self.reflections.type_of(node.calls).context
+			if self.reflections.is_a(context, list) and prop == 'pop':
 				return 'list_pop', context.attrs[0]
-			elif self.symbols.is_a(context, dict) and prop in ['pop', 'keys', 'values']:
+			elif self.reflections.is_a(context, dict) and prop in ['pop', 'keys', 'values']:
 				key_attr, value_attr = context.attrs
 				attr_indexs = {'pop': value_attr, 'keys': key_attr, 'values': value_attr}
 				return f'dict_{prop}', attr_indexs[prop]
 		elif isinstance(node.calls, defs.Var) and node.calls.tokens in CVars.keys():
 			return f'to_cvar_{node.calls.tokens}', None
 		elif isinstance(node.calls, defs.Relay) and node.calls.prop.tokens == CVars.allocator_key:
-			context = self.symbols.type_of(node.calls).context
-			cvar_key = CVars.key_from(self.symbols, context)
+			context = self.reflections.type_of(node.calls).context
+			cvar_key = CVars.key_from(self.reflections, context)
 			if CVars.is_addr_p(cvar_key):
 				return f'new_cvar_p', None
 			elif CVars.is_addr_sp(cvar_key):
-				new_type_raw = self.symbols.type_of(node.arguments[0])
-				spec = 'new_cvar_sp_list' if self.symbols.is_a(new_type_raw, list) else 'new_cvar_sp'
+				new_type_raw = self.reflections.type_of(node.arguments[0])
+				spec = 'new_cvar_sp_list' if self.reflections.is_a(new_type_raw, list) else 'new_cvar_sp'
 				return spec, new_type_raw
 		elif isinstance(node.calls, (defs.Relay, defs.Var)):
-			raw = self.symbols.type_of(node.calls)
+			raw = self.reflections.type_of(node.calls)
 			if raw.types.is_a(defs.Enum):
 				return 'new_enum', raw
 
@@ -682,16 +682,16 @@ class Py2Cpp:
 		right_indexs = range(2, len(node_of_elements), 2)
 
 		# シンボルを解決
-		primary_raw = self.symbols.type_of(node_of_elements[0])
-		secondary_raws = [self.symbols.type_of(node_of_elements[index]) for index in right_indexs]
+		primary_raw = self.reflections.type_of(node_of_elements[0])
+		secondary_raws = [self.reflections.type_of(node_of_elements[index]) for index in right_indexs]
 
 		# 項目ごとに分離
 		primary = elements[0]
 		operators = [elements[index] for index in operator_indexs]
 		secondaries = [elements[index] for index in right_indexs]
 
-		list_is_primary = self.symbols.is_a(primary_raw, list)
-		list_is_secondary = self.symbols.is_a(secondary_raws[0], list)
+		list_is_primary = self.reflections.is_a(primary_raw, list)
+		list_is_secondary = self.reflections.is_a(secondary_raws[0], list)
 		if list_is_primary != list_is_secondary and operators[0] == '*':
 			default_raw, default = (primary_raw, primary) if list_is_primary else (secondary_raws[0], secondaries[0])
 			size_raw, size = (secondary_raws[0], secondaries[0]) if list_is_primary else (primary_raw, primary)
@@ -709,7 +709,7 @@ class Py2Cpp:
 		for index, right_raw in enumerate(right_raws):
 			operator = operators[index]
 			secondary = rights[index]
-			primary = self.view.render('binary_operator', vars={'left': primary, 'operator': operator, 'right': secondary, 'right_is_dict': self.symbols.is_a(right_raw, dict)})
+			primary = self.view.render('binary_operator', vars={'left': primary, 'operator': operator, 'right': secondary, 'right_is_dict': self.reflections.is_a(right_raw, dict)})
 
 		return primary
 

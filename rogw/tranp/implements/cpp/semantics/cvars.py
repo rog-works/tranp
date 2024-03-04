@@ -4,7 +4,7 @@ from typing import ClassVar
 import rogw.tranp.compatible.cpp.object as cpp
 from rogw.tranp.lang.implementation import deprecated
 from rogw.tranp.semantics.reflection import IReflection
-from rogw.tranp.semantics.symbols import Symbols
+from rogw.tranp.semantics.reflections import Reflections
 
 
 class CVars:
@@ -56,11 +56,11 @@ class CVars:
 
 	@classmethod
 	@deprecated
-	def analyze_move(cls, symbols: Symbols, accept: IReflection, value: IReflection, value_on_new: bool, declared: bool) -> Moves:
+	def analyze_move(cls, reflections: Reflections, accept: IReflection, value: IReflection, value_on_new: bool, declared: bool) -> Moves:
 		"""移動操作を解析
 
 		Args:
-			symbols (Symbols): シンボルリゾルバー
+			reflections (Reflections): シンボルリゾルバー
 			accept (IReflection): 受け入れ側
 			value (IReflection): 入力側
 			value_on_new (bool): True = インスタンス生成
@@ -70,8 +70,8 @@ class CVars:
 		Note:
 			@deprecated 未使用のため削除を検討
 		"""
-		accept_key = cls.key_from(symbols, accept)
-		value_key = cls.key_from(symbols, value)
+		accept_key = cls.key_from(reflections, accept)
+		value_key = cls.key_from(reflections, value)
 		return cls.move_by(accept_key, value_key, value_on_new, declared)
 
 	@classmethod
@@ -187,18 +187,18 @@ class CVars:
 		return [cvar.__name__ for cvar in [cpp.CP, cpp.CSP, cpp.CRef, cpp.CRaw]]
 
 	@classmethod
-	def key_from(cls, symbols: Symbols, symbol: IReflection) -> str:
+	def key_from(cls, reflections: Reflections, symbol: IReflection) -> str:
 		"""シンボルからC++変数型の種別キーを取得
 
 		Args:
-			symbols (Symbols): シンボルリゾルバー
+			reflections (Reflections): シンボルリゾルバー
 			symbol (IReflection): シンボル
 		Returns:
 			str: 種別キー
 		Note:
 			nullはポインターとして扱う
 		"""
-		if symbols.is_a(symbol, None):
+		if reflections.is_a(symbol, None):
 			return cpp.CP.__name__
 		elif symbol.types.domain_name in cls.keys():
 			return symbol.types.domain_name

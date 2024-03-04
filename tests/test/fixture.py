@@ -8,7 +8,7 @@ from rogw.tranp.implements.syntax.lark.parser import SyntaxParserOfLark
 from rogw.tranp.io.cache import CacheProvider
 from rogw.tranp.lang.di import ModuleDefinitions
 from rogw.tranp.lang.locator import T_Inst
-from rogw.tranp.lang.module import fullyname
+from rogw.tranp.lang.module import filepath_to_module_path, fullyname
 from rogw.tranp.module.module import Module
 from rogw.tranp.module.types import ModulePath
 from rogw.tranp.syntax.ast.entry import Entry
@@ -19,6 +19,20 @@ from rogw.tranp.syntax.node.node import Node
 
 class Fixture:
 	"""フィクスチャーマネージャー"""
+
+	@classmethod
+	def fixture_module_path(cls, filepath: str) -> str:
+		"""フィクスチャーのモジュールパスを取得
+
+		Args:
+			filepath (str): テストファイルのパス
+		Returns:
+			str: フィクスチャーのモジュールパス
+		"""
+		module_path = filepath_to_module_path(filepath, appdir())
+		elems = module_path.split('.')
+		dirpath, filename = '.'.join(elems[:-1]), elems[-1]
+		return '.'.join([dirpath, 'fixtures', filename])
 
 	@classmethod
 	def make(cls, filepath: str, definitions: ModuleDefinitions = {}) -> 'Fixture':
@@ -35,20 +49,16 @@ class Fixture:
 				fixture = Fixture.make(__file__)
 			```
 		"""
-		rel_path = filepath.split(appdir())[1]
-		without_ext = rel_path.split('.')[0]
-		elems =  [elem for elem in without_ext.split(os.path.sep) if elem]
-		test_module_path = '.'.join(elems)
-		return cls(test_module_path, definitions)
+		return cls(cls.fixture_module_path(filepath), definitions)
 
-	def __init__(self, test_module_path: str, definitions: ModuleDefinitions) -> None:
+	def __init__(self, fixture_module_path: str, definitions: ModuleDefinitions) -> None:
 		"""インスタンスを生成
 
 		Args:
-			test_module_path (str): テストファイルのモジュールパス
+			fixture_module_path (str): フィクスチャーのモジュールパス
 			definitions (ModuleDefinitions): モジュール定義
 		"""
-		self.__test_module_path = test_module_path
+		self.__fixture_module_path = fixture_module_path
 		self.__app = App({**self.__definitions(), **definitions})
 
 	def __definitions(self) -> ModuleDefinitions:
@@ -65,10 +75,7 @@ class Fixture:
 		Args:
 			ModulePath: モジュールパス
 		"""
-		elems = self.__test_module_path.split('.')
-		dirpath, filename = '.'.join(elems[:-1]), elems[-1]
-		fixture_module_path = '.'.join([dirpath, 'fixtures', filename])
-		return ModulePath(fixture_module_path, fixture_module_path)
+		return ModulePath(self.__fixture_module_path, self.__fixture_module_path)
 
 	def get(self, symbol: type[T_Inst]) -> T_Inst:
 		"""テスト用アプリケーションからシンボルに対応したインスタンスを取得

@@ -21,7 +21,7 @@ from tests.test.fixture import Fixture
 from tests.unit.rogw.tranp.translator.fixtures.test_py2cpp_expect import BlockExpects
 
 
-def _ast(before: str, after: str) -> str:
+class ASTMapping:
 	__begin_class = 9
 	_Base = f'file_input.class_def[{__begin_class + 0}]'
 	_DeclOps = f'file_input.class_def[{__begin_class + 1}]'
@@ -117,17 +117,26 @@ def _ast(before: str, after: str) -> str:
 
 		'template_func': f'{_template_func}',
 	}
-	return DSN.join(aliases[before], after)
+
+
+def _ast(before: str, after: str) -> str:
+	return DSN.join(ASTMapping.aliases[before], after)
+
+
+def fixture_translation_mapping() -> TranslationMapping:
+	fixture_module_path = Fixture.fixture_module_path(__file__)
+	fixture_translations = {
+		f'aliases.{fixture_module_path}.Alias': 'Alias2',
+		f'aliases.{fixture_module_path}.Alias.Inner': 'Inner2',
+	}
+	return translation_mapping().merge(fixture_translations)
 
 
 class TestPy2Cpp(TestCase):
 	fixture = Fixture.make(__file__, {
 		fullyname(Py2Cpp): Py2Cpp,
 		fullyname(PluginProvider): cpp_plugin_provider,
-		fullyname(TranslationMapping): lambda: translation_mapping().merge({
-			'aliases.__main__.Alias': 'Alias2',
-			'aliases.__main__.Alias.Inner': 'Inner2',
-		}),
+		fullyname(TranslationMapping): fixture_translation_mapping,
 		fullyname(TranslatorOptions): lambda: TranslatorOptions(verbose=False),
 		fullyname(Renderer): lambda: Renderer(os.path.join(appdir(), 'example/template')),
 	})

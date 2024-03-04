@@ -441,7 +441,7 @@ class ProceduralResolver:
 			function_helper = template.HelperBuilder(prop) \
 				.schema(lambda: {'klass': prop.attrs[0], 'parameters': prop.attrs[1:-1], 'returns': prop.attrs[-1]}) \
 				.build(template.Method)
-			return function_helper.returns(receiver).to.relay(node, context=accessable_receiver)
+			return function_helper.returns(accessable_receiver).to.relay(node, context=accessable_receiver)
 		else:
 			return prop.to.relay(node, context=accessable_receiver)
 

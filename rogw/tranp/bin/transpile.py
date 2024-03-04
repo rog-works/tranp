@@ -75,7 +75,7 @@ def make_parser_setting(args: Args) -> ParserSetting:
 def make_module_path(args: Args) -> ModulePath:
 	basepath, _ = os.path.splitext(args.input)
 	module_path = basepath.replace('/', '.')
-	return ModulePath('__main__', module_path)
+	return ModulePath(module_path, module_path)
 
 
 def task(translator: Py2Cpp, root: Node, writer: Writer, args: Args) -> None:

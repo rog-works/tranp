@@ -16,14 +16,15 @@ class Modules:
 			loader (ModuleLoader): モジュールローダー @inject
 			library_paths (LibraryPaths): 標準ライブラリーパスリスト @inject
 		"""
-		self.__modules: dict[str, Module] = {'__main__': main}
+		self.__main = main
+		self.__modules: dict[str, Module] = {main.path: main}
 		self.__loader = loader
 		self.__library_paths = library_paths
 
 	@property
 	def main(self) -> Module:
 		"""Module: メインモジュール"""
-		return self.__modules['__main__']
+		return self.__main
 
 	@property
 	def libralies(self) -> list[Module]:

@@ -68,7 +68,7 @@ class Fixture:
 		elems = self.__test_module_path.split('.')
 		dirpath, filename = '.'.join(elems[:-1]), elems[-1]
 		fixture_module_path = '.'.join([dirpath, 'fixtures', filename])
-		return ModulePath('__main__', fixture_module_path)
+		return ModulePath(fixture_module_path, fixture_module_path)
 
 	def get(self, symbol: type[T_Inst]) -> T_Inst:
 		"""テスト用アプリケーションからシンボルに対応したインスタンスを取得

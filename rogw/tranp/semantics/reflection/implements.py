@@ -392,7 +392,7 @@ class ReflectionImpl(Reflection):
 		return self
 
 
-class ReflectionClass(ReflectionImpl):
+class Class(ReflectionImpl):
 	"""シンボル(クラス)"""
 
 	def __init__(self, origin: Symbol) -> None:
@@ -410,7 +410,7 @@ class ReflectionClass(ReflectionImpl):
 		return Roles.Class
 
 
-class ReflectionVar(ReflectionImpl):
+class Var(ReflectionImpl):
 	"""シンボル(変数)"""
 
 	def __init__(self, origin: ReflectionImpl, decl: defs.DeclVars) -> None:
@@ -445,10 +445,10 @@ class ReflectionVar(ReflectionImpl):
 		return self._clone(origin=self.origin, decl=self.decl)
 
 
-class ReflectionImport(ReflectionImpl):
+class Import(ReflectionImpl):
 	"""シンボル(インポート)"""
 
-	def __init__(self, origin: ReflectionClass | ReflectionVar, via: defs.ImportName) -> None:
+	def __init__(self, origin: Class | Var, via: defs.ImportName) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -480,10 +480,10 @@ class ReflectionImport(ReflectionImpl):
 		return self._clone(origin=self.origin, via=self.via)
 
 
-class ReflectionGeneric(ReflectionImpl):
+class Extend(ReflectionImpl):
 	"""シンボル(タイプ拡張)"""
 
-	def __init__(self, origin: ReflectionClass | ReflectionImport | ReflectionVar, via: defs.Type) -> None:
+	def __init__(self, origin: Class | Import | Var, via: defs.Type) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -509,10 +509,10 @@ class ReflectionGeneric(ReflectionImpl):
 		return self._clone(origin=self.origin, via=self.via)
 
 
-class ReflectionTemporary(ReflectionImpl):
+class Temporary(ReflectionImpl):
 	"""シンボル(テンポラリー)"""
 
-	def __init__(self, origin: ReflectionClass | ReflectionGeneric, via: defs.Literal | defs.Comprehension | defs.Operator) -> None:
+	def __init__(self, origin: Class | Extend, via: defs.Literal | defs.Comprehension | defs.Operator) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -538,7 +538,7 @@ class ReflectionTemporary(ReflectionImpl):
 		return self._clone(origin=self.origin, via=self.via)
 
 
-class ReflectionContext(ReflectionImpl):
+class Context(ReflectionImpl):
 	"""シンボル(コンテキスト)"""
 
 	def __init__(self, origin: ReflectionImpl, via: defs.Relay | defs.Indexer | defs.FuncCall, context: IReflection) -> None:
@@ -599,7 +599,7 @@ class SymbolWrapper(IWrapper):
 		Returns:
 			IReflection: シンボル
 		"""
-		return ReflectionClass(self._raw.one_of(Symbol))
+		return Class(self._raw.one_of(Symbol))
 
 	@implements
 	def imports(self, via: defs.ImportName) -> IReflection:
@@ -610,7 +610,7 @@ class SymbolWrapper(IWrapper):
 		Returns:
 			IReflection: シンボル
 		"""
-		return ReflectionImport(self._raw.one_of(ReflectionClass | ReflectionVar), via)
+		return Import(self._raw.one_of(Class | Var), via)
 
 	@implements
 	def var(self, decl: defs.DeclVars) -> IReflection:
@@ -621,7 +621,7 @@ class SymbolWrapper(IWrapper):
 		Returns:
 			IReflection: シンボル
 		"""
-		return ReflectionVar(self._raw.one_of(ReflectionImpl), decl)
+		return Var(self._raw.one_of(ReflectionImpl), decl)
 
 	@implements
 	def generic(self, via: defs.Type) -> IReflection:
@@ -632,7 +632,7 @@ class SymbolWrapper(IWrapper):
 		Returns:
 			IReflection: シンボル
 		"""
-		return ReflectionGeneric(self._raw.one_of(ReflectionClass | ReflectionImport | ReflectionVar), via)
+		return Extend(self._raw.one_of(Class | Import | Var), via)
 
 	@implements
 	def literal(self, via: defs.Literal) -> IReflection:
@@ -643,7 +643,7 @@ class SymbolWrapper(IWrapper):
 		Returns:
 			IReflection: シンボル
 		"""
-		return ReflectionTemporary(self._raw.one_of(ReflectionClass), via)
+		return Temporary(self._raw.one_of(Class), via)
 
 	@implements
 	def result(self, via: defs.Operator | defs.Comprehension) -> IReflection:
@@ -654,7 +654,7 @@ class SymbolWrapper(IWrapper):
 		Returns:
 			IReflection: シンボル
 		"""
-		return ReflectionTemporary(self._raw.one_of(ReflectionClass | ReflectionGeneric), via)
+		return Temporary(self._raw.one_of(Class | Extend), via)
 
 	@implements
 	def relay(self, via: defs.Relay | defs.Indexer | defs.FuncCall, context: IReflection) -> IReflection:
@@ -666,4 +666,4 @@ class SymbolWrapper(IWrapper):
 		Returns:
 			IReflection: シンボル
 		"""
-		return ReflectionContext(self._raw.one_of(ReflectionImpl), via, context)
+		return Context(self._raw.one_of(ReflectionImpl), via, context)

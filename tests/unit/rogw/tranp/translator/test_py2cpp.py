@@ -60,6 +60,7 @@ def _ast(before: str, after: str) -> str:
 		'CVarOps.binary_calc.block': f'{_CVarOps}.class_def_raw.block.function_def[7].function_def_raw.block',
 		'CVarOps.tenary_calc.block': f'{_CVarOps}.class_def_raw.block.function_def[8].function_def_raw.block',
 		'CVarOps.declare.block': f'{_CVarOps}.class_def_raw.block.function_def[9].function_def_raw.block',
+		'CVarOps.default_param.block': f'{_CVarOps}.class_def_raw.block.function_def[10].function_def_raw.block',
 
 		'FuncOps.print.block': f'{_FuncOps}.class_def_raw.block.function_def.function_def_raw.block',
 
@@ -197,6 +198,9 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarOps.declare.block', 'assign[1]'), defs.MoveAssign, 'std::vector<int>* arr_p = &(arr);'),
 		(_ast('CVarOps.declare.block', 'assign[2]'), defs.MoveAssign, 'std::shared_ptr<std::vector<int>> arr_sp = std::shared_ptr<std::vector<int>>(new std::vector<int>({1}));'),
 		(_ast('CVarOps.declare.block', 'assign[3]'), defs.MoveAssign, 'std::vector<int>& arr_r = arr;'),
+
+		(_ast('CVarOps.default_param.block', 'assign[0]'), defs.MoveAssign, 'int n = ap ? ap->base_n : 0;'),
+		(_ast('CVarOps.default_param.block', 'assign[1]'), defs.MoveAssign, 'int n2 = this->default_param();'),
 
 		(_ast('FuncOps.print.block', 'funccall'), defs.FuncCall, 'printf("message. %d, %f, %s", 1, 1.0, "abc");'),
 

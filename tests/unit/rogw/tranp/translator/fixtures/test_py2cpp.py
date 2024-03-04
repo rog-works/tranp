@@ -123,6 +123,11 @@ class CVarOps:
 		arr_sp = CSP.new([1])
 		arr_r = CRef(arr)
 
+	def default_param(self, ap: CP[Base] | None = None) -> int:
+		n = ap.on.base_n if ap else 0
+		n2 = self.default_param()
+		return n
+
 class FuncOps:
 	def print(self) -> None:
 		print('message. %d, %f, %s', 1, 1.0, 'abc')

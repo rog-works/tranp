@@ -30,13 +30,13 @@ class Args:
 	def __init__(self) -> None:
 		args = self.__parse_argv(sys.argv[1:])
 		self.grammar = args['grammar']
-		self.source = args['source']
+		self.input = args['input']
 		self.options = args['options']
 
 	def __parse_argv(self, argv: list[str]) -> dict[str, Any]:
 		args = {
 			'grammar': 'data/grammar.lark',
-			'source': 'example/example.py',
+			'input': 'example/example.py',
 			'options': {},
 		}
 		while argv:
@@ -63,7 +63,7 @@ def make_parser_setting(args: Args) -> ParserSetting:
 
 
 def make_module_path(args: Args) -> ModulePath:
-	basepath, _ = os.path.splitext(args.source)
+	basepath, _ = os.path.splitext(args.input)
 	module_path = basepath.replace('/', '.')
 	return ModulePath('__main__', module_path)
 
@@ -177,7 +177,7 @@ def task_help() -> None:
 		'$ bash bin/analyze.sh [-g ${path}] [-s ${path}]',
 		'# Options',
 		'* -g: Grammar file path. defalut = "data/grammar.lark"',
-		'* -s: Python sorce code file path. default = "example/example.py"',
+		'* -i: Python source code input file path. default = "example/example.py"',
 	]
 	print('\n'.join(lines))
 

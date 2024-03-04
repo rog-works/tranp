@@ -21,7 +21,8 @@ class Args:
 	def __init__(self) -> None:
 		args = self.__parse_argv(sys.argv[1:])
 		self.grammar = args['grammar']
-		self.source = args['source']
+		self.input = args['input']
+		self.output = args['output']
 		self.template_dir = args['template_dir']
 		self.verbose = args['verbose'] == 'on'
 		self.profile = args['profile']
@@ -29,7 +30,8 @@ class Args:
 	def __parse_argv(self, argv: list[str]) -> dict[str, str]:
 		args = {
 			'grammar': 'data/grammar.lark',
-			'source': 'example/example.py',
+			'input': 'example/example.py',
+			'output': '',
 			'template_dir': 'example/template',
 			'verbose': 'off',
 			'profile': 'off',
@@ -38,8 +40,10 @@ class Args:
 			arg = argv.pop(0)
 			if arg == '-g':
 				args['grammar'] = argv.pop(0)
-			elif arg == '-s':
-				args['source'] = argv.pop(0)
+			elif arg == '-i':
+				args['input'] = argv.pop(0)
+			elif arg == '-o':
+				args['output'] = argv.pop(0)
 			elif arg == '-t':
 				args['template_dir'] = argv.pop(0)
 			elif arg == '-v':
@@ -51,8 +55,8 @@ class Args:
 
 
 def make_writer(args: Args) -> Writer:
-	basepath, _ = os.path.splitext(args.source)
-	output = f'{basepath}.h'
+	basepath, _ = os.path.splitext(args.input)
+	output = args.output if args.output else f'{basepath}.h'
 	return Writer(output)
 
 
@@ -69,7 +73,7 @@ def make_parser_setting(args: Args) -> ParserSetting:
 
 
 def make_module_path(args: Args) -> ModulePath:
-	basepath, _ = os.path.splitext(args.source)
+	basepath, _ = os.path.splitext(args.input)
 	module_path = basepath.replace('/', '.')
 	return ModulePath('__main__', module_path)
 

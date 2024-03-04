@@ -73,7 +73,7 @@
 			"module":"rogw.tranp.bin.transpile",
 			"args": [
 				"-g", "data/grammar.lark",
-				"-s", "example/example.py",
+				"-i", "example/example.py",
 				"-t", "example/template",
 			],
 			"cwd": "${workspaceFolder}",

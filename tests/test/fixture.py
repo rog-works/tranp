@@ -1,4 +1,3 @@
-import os
 from typing import cast
 
 from rogw.tranp.app.app import App

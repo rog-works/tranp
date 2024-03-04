@@ -1,4 +1,5 @@
 from importlib import import_module
+import os
 import sys
 from typing import Any, Callable
 
@@ -59,3 +60,18 @@ def fullyname(ctor: type) -> str:
 		str: 完全参照名
 	"""
 	return '.'.join([ctor.__module__, ctor.__name__])
+
+
+def filepath_to_module_path(filepath: str, basedir: str) -> str:
+	"""モジュールのファイルパスからモジュールパスに変換
+
+	Args:
+		filepath (str): モジュールの絶対パス
+		basedir (str): 基準ディレクトリーのパス
+	Returns:
+		str: モジュールパス
+	"""
+	rel_path = filepath.split(basedir)[1]
+	without_ext = rel_path.split('.')[0]
+	elems =  [elem for elem in without_ext.split(os.path.sep) if elem]
+	return '.'.join(elems)

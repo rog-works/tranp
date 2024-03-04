@@ -30,13 +30,13 @@ class Args:
 	def __init__(self) -> None:
 		args = self.__parse_argv(sys.argv[1:])
 		self.grammar = args['grammar']
-		self.source = args['source']
+		self.input = args['input']
 		self.options = args['options']
 
 	def __parse_argv(self, argv: list[str]) -> dict[str, Any]:
 		args = {
 			'grammar': 'data/grammar.lark',
-			'source': 'example/example.py',
+			'input': 'example/example.py',
 			'options': {},
 		}
 		while argv:
@@ -63,9 +63,9 @@ def make_parser_setting(args: Args) -> ParserSetting:
 
 
 def make_module_path(args: Args) -> ModulePath:
-	basepath, _ = os.path.splitext(args.source)
+	basepath, _ = os.path.splitext(args.input)
 	module_path = basepath.replace('/', '.')
-	return ModulePath('__main__', module_path)
+	return ModulePath(module_path, module_path)
 
 
 def task_db(db_provider: SymbolDBProvider) -> None:
@@ -177,36 +177,39 @@ def task_help() -> None:
 		'$ bash bin/analyze.sh [-g ${path}] [-s ${path}]',
 		'# Options',
 		'* -g: Grammar file path. defalut = "data/grammar.lark"',
-		'* -s: Python sorce code file path. default = "example/example.py"',
+		'* -i: Python source code input file path. default = "example/example.py"',
 	]
 	print('\n'.join(lines))
 
 
-def task_analyze(org_parser: SyntaxParser, cache: CacheProvider) -> None:
-	def make_result() -> tuple[str, str]:
+def task_analyze(main_module_path: ModulePath, org_parser: SyntaxParser, cache: CacheProvider) -> None:
+	def new_app() -> App:
 		def new_parser(module_path: str) -> Entry:
-			return root if module_path == '__main__' else org_parser(module_path)
-
-		def resolve_symbol(reflections: Reflections, name: str) -> IReflection:
-			try:
-				return reflections.from_fullyname(name)
-			except LogicError:
-				return reflections.type_of_standard(classes.Unknown)
+			return root if module_path == main_module_path.actual else org_parser(module_path)
 
 		lark = cast(SyntaxParserOfLark, org_parser).dirty_get_origin()
 		root = EntryOfLark(lark.parse(f'{"\n".join(lines)}\n'))
 		new_difinitions = {fullyname(SyntaxParser): lambda: new_parser}
 		org_definitions = {fullyname(CacheProvider): lambda: cache}
 		app = App({**org_definitions, **new_difinitions})
+		return app
 
+	def make_result() -> tuple[str, str]:
+		app = new_app()
 		db_provider = app.resolve(SymbolDBProvider)
 		reflections = app.resolve(Reflections)
 
-		main_raws = {key: raw for key, raw in db_provider.db.items() if raw.decl.module_path == '__main__'}
+		main_raws = {key: raw for key, raw in db_provider.db.items() if raw.decl.module_path == main_module_path.ref_name}
 		main_symbols = {key: str(resolve_symbol(reflections, key)) for key, _ in main_raws.items()}
 		found_symbols = '\n'.join([f'{key}: {symbol_type}' for key, symbol_type in main_symbols.items()])
 		node = app.resolve(Query[Node]).by('file_input')
 		return (found_symbols, node.pretty())
+
+	def resolve_symbol(reflections: Reflections, name: str) -> IReflection:
+		try:
+			return reflections.from_fullyname(name)
+		except LogicError:
+			return reflections.type_of_standard(classes.Unknown)
 
 	while True:
 		title = '\n'.join([

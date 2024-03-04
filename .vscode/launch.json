@@ -17,7 +17,7 @@
 				"translator.test_py2cpp.TestPy2Cpp.test_exec_error",
 				"view.test_render.TestRenderer.test_render_function",
 			],
-			"default": "analyze.test_db.TestSymbolDB",
+			"default": "semantics.test_provider.TestProvider",
 		}
 	],
 	"configurations": [
@@ -73,7 +73,7 @@
 			"module":"rogw.tranp.bin.transpile",
 			"args": [
 				"-g", "data/grammar.lark",
-				"-s", "example/example.py",
+				"-i", "example/example.py",
 				"-t", "example/template",
 			],
 			"cwd": "${workspaceFolder}",
@@ -99,7 +99,7 @@
 			"module":"rogw.tranp.bin.analyze",
 			"args": [
 				"-g", "data/grammar.lark",
-				// "-s", "tests/unit/rogw/tranp/analyze/fixtures/test_symbols.py",
+				// "-i", "tests/unit/rogw/tranp/semantics/fixtures/test_reflections.py",
 			],
 			"cwd": "${workspaceFolder}",
 			"windows": {

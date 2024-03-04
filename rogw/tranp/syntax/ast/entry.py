@@ -78,7 +78,6 @@ class Entry(metaclass=ABCMeta):
 		return '__empty__'
 
 
-
 class EntryOfDict(Entry):
 	"""連想配列のエントリー実装"""
 

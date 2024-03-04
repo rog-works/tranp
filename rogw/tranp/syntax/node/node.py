@@ -160,12 +160,12 @@ class Node:
 		return self.__nodes.parent(self.full_path)
 
 	def prop_keys(self) -> list[str]:
-		"""展開プロパティーのメソッド名を取得。対象のプロパティーは埋め込まれたメタデータを基に抽出
+		"""展開プロパティーのメソッド名を取得
 
 		Returns:
 			list[str]: 展開プロパティーのメソッド名リスト
 		Note:
-			@see trans.node.embed.expandable
+			@see embed.expandable
 		"""
 		prop_keys: list[str] = []
 		for ctor in self.__embed_classes(self.__class__):
@@ -173,6 +173,23 @@ class Node:
 			prop_keys = [*prop_keys, *[name for name, _ in meta.items()]]
 
 		return prop_keys
+
+	def accept_tags(self) -> list[str]:
+		"""受け入れタグリストを取得
+
+		Returns:
+			list[str]: 受け入れタグリスト
+		Note:
+			派生クラスによって上書きする仕様
+			@see embed.accept_tags
+		"""
+		accept_tags: list[str] = []
+		for ctor in self.__embed_classes(self.__class__):
+			in_accept_tags = Meta.dig_for_class(Node, ctor, EmbedKeys.AcceptTags, default=[])
+			if len(in_accept_tags) > 0:
+				accept_tags = in_accept_tags
+
+		return accept_tags
 
 	def __embed_classes(self, via: type[T_Node]) -> list[type['Node']]:
 		"""対象のクラス自身を含む継承関係のあるクラスを基底クラス順に取得。取得されるクラスはメタデータと関連する派生クラスに限定
@@ -383,69 +400,30 @@ class Node:
 		"""
 		return isinstance(self, ctor)
 
-	def as_a(self, to_class: type[T_Node]) -> T_Node:
-		"""指定の具象クラスに変換。変換先が派生クラスの場合のみ変換し、同じか基底クラスの場合は何もしない
+	def as_a(self, expect: type[T_Node]) -> T_Node:
+		"""指定のクラスと同じか派生クラスか判定し、合致すればそのままインスタンスを返す。継承関係の無いクラスを指定すると例外を出力
 
 		Args:
-			to_class (type[T_Node]): 変換先の具象クラス
+			expect (type[T_Node]): 期待するクラス
 		Returns:
-			T_Node: 具象クラスのインスタンス
+			T_Node: インスタンス
 		Raises:
 			InvalidConvertionError: 許可されない変換先を指定
-		Note:
-			## 変換条件
-			1. 変換先と継承関係
-			2. 受け入れタグが設定
 		"""
-		if self.is_a(to_class):
+		if self.is_a(expect):
 			return cast(T_Node, self)
 
-		if not issubclass(to_class, self.__class__):
-			raise IllegalConvertionError(self, to_class)
-
-		if not self.__acceptable_by(to_class):
-			raise IllegalConvertionError(self, to_class)
-
-		return cast(T_Node, to_class(self.__nodes, self.__module_path, self.full_path))
-
-	def __acceptable_by(self, to_class: type[T_Node]) -> bool:
-		"""指定の具象クラスへの変換が受け入れられるか判定
-
-		Args:
-			to_class (type[T_Node]): 変換先の具象クラス
-		Returns:
-			bool: True = 受け入れ出来る
-		"""
-		accept_tags = self.__accept_tags(to_class)
-		return len(accept_tags) == 0 or self.tag in accept_tags
-
-	def __accept_tags(self, to_class: type[T_Node]) -> list[str]:
-		"""メタデータより変換先の受け入れタグリストを取得
-
-		Args:
-			to_class (type[T_Node]): 変換先の具象クラス
-		Returns:
-			list[str]: 受け入れタグリスト
-		Note:
-			派生クラスによって上書きする仕様 @see embed.accept_tags
-		"""
-		accept_tags: list[str] = []
-		for ctor in self.__embed_classes(to_class):
-			in_accept_tags = Meta.dig_for_class(Node, ctor, EmbedKeys.AcceptTags, default=[])
-			if len(in_accept_tags) > 0:
-				accept_tags = in_accept_tags
-
-		return accept_tags
+		raise IllegalConvertionError(self, expect)
 
 	def one_of(self, expects: type[T_Node]) -> T_Node:
-		"""指定のクラスと同じか派生クラスか判定し、合致すればそのままインスタンスを返す。いずれのクラスでもない場合はエラーを出力
+		"""指定のクラスと同じか派生クラスか判定し、合致すればそのままインスタンスを返す。合致するクラスが1件以外の場合は例外を出力
 
 		Args:
 			expects (T_Node): 期待するクラス(型/共用型)
 		Returns:
 			T_Node: インスタンス
 		Raises:
-			InvalidConvertionError: 指定のクラスと合致しない
+			InvalidConvertionError: 合致するクラスが1件以外
 		Examples:
 			```python
 			@property

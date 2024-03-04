@@ -244,11 +244,11 @@ class Node:
 			flattenとの相違点は並び順のみ
 		"""
 		path_of_nodes = {node.full_path: node for node in self.__procedural_flow()}
-		sorted_paths = self.__calclation_order(enumerate(path_of_nodes.keys()))
+		sorted_paths = self.__ast_order(enumerate(path_of_nodes.keys()))
 		return [path_of_nodes[full_path] for full_path in sorted_paths]
 
-	def __calclation_order(self, index_of_paths: Iterator[tuple[int, str]]) -> list[str]:
-		"""インデックスとフルパスを元にツリーの計算順序にソート
+	def __ast_order(self, index_of_paths: Iterator[tuple[int, str]]) -> list[str]:
+		"""インデックスとフルパスを元にASTの評価順序にソート
 
 		Args:
 			index_of_paths (Iterator[tuple[int, str]]): (インデックス, フルパス)形式のイテレーター

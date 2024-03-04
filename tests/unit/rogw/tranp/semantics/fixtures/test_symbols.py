@@ -91,7 +91,7 @@ class Sub(Base):
 	def param_default(self, d: DSI = {}) -> int:
 		n = self.param_default() + 1
 		n2 = self.param_default({'a': 1}) + 1
-		keys = d.keys()
+		keys = list(d.keys())
 		return d['a']
 
 class CalcOps:

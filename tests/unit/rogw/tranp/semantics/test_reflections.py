@@ -2,7 +2,7 @@ import re
 from types import UnionType
 from unittest import TestCase
 
-import rogw.tranp.compatible.python.classes as classes
+import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.compatible.python.types import Standards
 from rogw.tranp.syntax.ast.dsn import DSN
 from rogw.tranp.semantics.errors import UnresolvedSymbolError
@@ -91,7 +91,7 @@ def _ast(before: str, after: str) -> str:
 def _mod(before: str, after: str) -> str:
 	aliases = {
 		'xyz': 'tests.unit.rogw.tranp.semantics.fixtures.test_provider_xyz',
-		'classes': 'rogw.tranp.compatible.python.classes',
+		'classes': 'rogw.tranp.compatible.libralies.classes',
 	}
 	return DSN.join(aliases[before], after)
 

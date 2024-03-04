@@ -1,7 +1,7 @@
 from types import UnionType
 
 import rogw.tranp.semantics.reflection.helper.template as template
-import rogw.tranp.compatible.python.classes as classes
+import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.compatible.python.types import Standards
 from rogw.tranp.lang.error import raises
 from rogw.tranp.lang.implementation import injectable

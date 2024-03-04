@@ -24,7 +24,7 @@ def library_paths() -> list[str]:
 	Returns:
 		list[str]: パスリスト
 	"""
-	return ['rogw.tranp.compatible.python.classes']
+	return ['rogw.tranp.compatible.libralies.classes']
 
 
 def module_loader(locator: Locator) -> ModuleLoader:

@@ -6,7 +6,7 @@ from typing import Any, Callable, cast
 
 from rogw.tranp.app.app import App
 from rogw.tranp.bin.io import readline
-import rogw.tranp.compatible.python.classes as classes
+import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.errors import LogicError
 from rogw.tranp.implements.cpp.providers.semantics import cpp_plugin_provider
 from rogw.tranp.implements.syntax.lark.entry import EntryOfLark

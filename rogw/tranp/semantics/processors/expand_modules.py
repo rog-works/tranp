@@ -1,7 +1,7 @@
 import json
 from typing import IO, NamedTuple
 
-import rogw.tranp.compatible.python.classes as classes
+import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.io.cache import CacheProvider
 from rogw.tranp.io.loader import IFileLoader
 from rogw.tranp.lang.implementation import injectable

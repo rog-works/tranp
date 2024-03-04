@@ -23,7 +23,7 @@ class Env:
 		"""
 		paths = [
 			os.getcwd(),
-			os.path.join(os.getcwd(), 'rogw/tranp/compatible/python'),
+			os.path.join(os.getcwd(), 'rogw/tranp/compatible/libralies'),
 		]
 		return {'PYTHONPATH': {path: path for path in paths}}
 

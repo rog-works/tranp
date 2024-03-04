@@ -1,4 +1,4 @@
-import rogw.tranp.compatible.python.classes as classes
+import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.lang.comment import Comment as CommentData
 from rogw.tranp.lang.implementation import implements, override
 from rogw.tranp.syntax.ast.dsn import DSN

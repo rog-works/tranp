@@ -1,7 +1,7 @@
 import re
 
 from rogw.tranp.io.memo import Memoize
-from rogw.tranp.lang.implementation import implements
+from rogw.tranp.lang.implementation import implements, injectable
 from rogw.tranp.syntax.ast.cache import EntryCache
 from rogw.tranp.syntax.ast.entry import Entry, SourceMap
 from rogw.tranp.syntax.ast.finder import ASTFinder
@@ -15,12 +15,13 @@ from rogw.tranp.syntax.node.resolver import NodeResolver
 class Nodes(Query[Node]):
 	"""ノードクエリーインターフェイス。ASTを元にノードの探索し、リゾルバーを介してインスタンスを解決"""
 
+	@injectable
 	def __init__(self, resolver: NodeResolver, root: Entry) -> None:
 		"""インスタンスを生成
 
 		Args:
-			resolver (NodeResolver): ノードリゾルバー
-			root (Entry): ASTのルート要素
+			resolver (NodeResolver): ノードリゾルバー @inject
+			root (Entry): ASTのルート要素 @inject
 		"""
 		self.__memo = Memoize()
 		self.__resolver = resolver
@@ -59,7 +60,7 @@ class Nodes(Query[Node]):
 		Returns:
 			Node: ノード
 		Raises:
-			NodeNotFound: ノードが存在しない
+			NodeNotFoundError: ノードが存在しない
 		"""
 		entry = self.__entries.by(full_path)
 		return self.__resolve(entry, full_path)
@@ -73,7 +74,7 @@ class Nodes(Query[Node]):
 		Returns:
 			Node: ノード
 		Raises:
-			NodeNotFound: 親が存在しない
+			NodeNotFoundError: 親が存在しない
 		"""
 		memo = self.__memo.get(self.parent)
 		@memo(via)
@@ -99,7 +100,7 @@ class Nodes(Query[Node]):
 		Returns:
 			Node: ノード
 		Raises:
-			NodeNotFound: 指定のエントリータグを持つ親が存在しない
+			NodeNotFoundError: 指定のエントリータグを持つ親が存在しない
 		"""
 		memo = self.__memo.get(self.ancestor)
 		@memo(f'{via}#{tag}')
@@ -125,7 +126,7 @@ class Nodes(Query[Node]):
 		Returns:
 			list[Node]: ノードリスト
 		Raises:
-			NodeNotFound: 基点のノードが存在しない
+			NodeNotFoundError: 基点のノードが存在しない
 		"""
 		uplayer_path = EntryPath(via).shift(-1)
 		if not uplayer_path.valid:
@@ -145,7 +146,7 @@ class Nodes(Query[Node]):
 		Returns:
 			list[Node]: ノードリスト
 		Raises:
-			NodeNotFound: 基点のノードが存在しない
+			NodeNotFoundError: 基点のノードが存在しない
 		"""
 		memo = self.__memo.get(self.children)
 		@memo(via)
@@ -166,7 +167,7 @@ class Nodes(Query[Node]):
 		Returns:
 			list[Node]: ノードリスト
 		Raises:
-			NodeNotFound: 基点のノードが存在しない
+			NodeNotFoundError: 基点のノードが存在しない
 		"""
 		memo = self.__memo.get(self.expand)
 		@memo(via)

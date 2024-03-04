@@ -306,7 +306,7 @@ class Node:
 		Returns:
 			Node: ノード
 		Raises:
-			NodeNotFound: ノードが存在しない
+			NodeNotFoundError: ノードが存在しない
 		"""
 		return self.__nodes.by(self._full_path.joined(relative_path))
 
@@ -318,7 +318,7 @@ class Node:
 		Returns:
 			Node: ノード
 		Raises:
-			NodeNotFound: ノードが存在しない
+			NodeNotFoundError: ノードが存在しない
 		"""
 		children = self._children()
 		if index < 0 or len(children) <= index:
@@ -335,7 +335,7 @@ class Node:
 		Returns:
 			Node: ノード
 		Raises:
-			NodeNotFound: 子が存在しない
+			NodeNotFoundError: 子が存在しない
 		"""
 		under = self._under_expand()
 		if index < 0 or len(under) <= index:
@@ -353,7 +353,7 @@ class Node:
 		Returns:
 			list[Node]: ノードリスト
 		Raises:
-			NodeNotFound: 基点のノードが存在しない
+			NodeNotFoundError: 基点のノードが存在しない
 		"""
 		via = self._full_path.joined(relative_path)
 		return [node for node in self.__nodes.siblings(via) if node.full_path != self.full_path]
@@ -367,7 +367,7 @@ class Node:
 		Returns:
 			list[Node]: ノードリスト
 		Raises:
-			NodeNotFound: 基点のノードが存在しない
+			NodeNotFoundError: 基点のノードが存在しない
 		"""
 		via = self._full_path.joined(relative_path)
 		return self.__nodes.children(via)
@@ -380,7 +380,7 @@ class Node:
 		Returns:
 			Node: ノード
 		Raises:
-			NodeNotFound: ノードが存在しない
+			NodeNotFoundError: ノードが存在しない
 		"""
 		return self.__nodes.ancestor(self.full_path, tag)
 

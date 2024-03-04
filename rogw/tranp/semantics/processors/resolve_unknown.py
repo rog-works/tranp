@@ -5,7 +5,7 @@ from rogw.tranp.lang.locator import Invoker
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.syntax.node.promise import IDeclaration
-from rogw.tranp.semantics.reflection import IReflection, SymbolProxy, SymbolRaws
+from rogw.tranp.semantics.reflection import IReflection, SymbolProxy, SymbolDB
 from rogw.tranp.semantics.reflections import Reflections
 
 
@@ -26,7 +26,7 @@ class ResolveUnknown:
 		"""
 		self.invoker = invoker
 
-	def __call__(self, raws: SymbolRaws) -> SymbolRaws:
+	def __call__(self, raws: SymbolDB) -> SymbolDB:
 		"""シンボルテーブルを生成
 
 		Args:

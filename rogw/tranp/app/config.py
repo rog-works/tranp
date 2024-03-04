@@ -22,7 +22,7 @@ def default_definitions() -> ModuleDefinitions:
 		'rogw.tranp.semantics.finder.SymbolFinder': 'rogw.tranp.semantics.finder.SymbolFinder',
 		'rogw.tranp.semantics.plugin.PluginProvider': 'rogw.tranp.semantics.plugin.plugin_provider_empty',
 		'rogw.tranp.semantics.processor.Preprocessors': 'rogw.tranp.semantics.preprocessors.preprocessors',
-		'rogw.tranp.semantics.reflection.interface.SymbolDB': 'rogw.tranp.semantics.db.make_db',
+		'rogw.tranp.semantics.reflection.interface.SymbolDBProvider': 'rogw.tranp.semantics.provider.make_db',
 		'rogw.tranp.semantics.reflections.Reflections': 'rogw.tranp.semantics.reflections.Reflections',
 		'rogw.tranp.syntax.ast.entry.Entry': 'rogw.tranp.providers.ast.make_entrypoint',
 		'rogw.tranp.syntax.ast.query.Query': 'rogw.tranp.syntax.node.query.Nodes',

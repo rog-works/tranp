@@ -1,19 +1,19 @@
 from rogw.tranp.lang.implementation import injectable
 from rogw.tranp.semantics.processor import Preprocessors
-from rogw.tranp.semantics.reflection import SymbolRaws, SymbolDB
+from rogw.tranp.semantics.reflection import SymbolDB, SymbolDBProvider
 
 
 @injectable
-def make_db(preprocessors: Preprocessors) -> SymbolDB:
+def make_db(preprocessors: Preprocessors) -> SymbolDBProvider:
 	"""シンボルテーブルを生成
 
 	Args:
 		preprocessors (Preprocessors): プリプロセッサープロバイダー @inject
 	Returns:
-		SymbolDB: シンボルテーブル
+		SymbolDBProvider: シンボルテーブル
 	"""
-	raws = SymbolRaws()
+	raws = SymbolDB()
 	for proc in preprocessors():
 		raws = proc(raws)
 
-	return SymbolDB(raws)
+	return SymbolDBProvider(raws)

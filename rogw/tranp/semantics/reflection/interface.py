@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from enum import Enum
-from typing import Iterator, NamedTuple, Self, TypeAlias, TypeVar
+from typing import Iterator, NamedTuple, Self, TypeVar
 
 from rogw.tranp.lang.implementation import override
 import rogw.tranp.syntax.node.definition as defs
@@ -23,7 +23,7 @@ class Roles(Enum):
 	Var = 'Var'
 
 
-class DB(dict[str, 'IReflection']):
+class SymbolDB(dict[str, 'IReflection']):
 	"""シンボルテーブル"""
 
 	@classmethod
@@ -84,17 +84,14 @@ class DB(dict[str, 'IReflection']):
 		return self.__class__(dict(sorted(self.items(), key=order)))
 
 
-SymbolRaws: TypeAlias = DB
-
-
-class SymbolDB(NamedTuple):
-	"""シンボルテーブルを管理
+class SymbolDBProvider(NamedTuple):
+	"""シンボルテーブルプロバイダー
 
 	Attributes:
 		raws: シンボルテーブル
 	"""
 
-	raws: SymbolRaws
+	raws: SymbolDB
 
 
 class IReflection(metaclass=ABCMeta):
@@ -117,16 +114,16 @@ class IReflection(metaclass=ABCMeta):
 
 	@property
 	@abstractmethod
-	def _raws(self) -> DB:
-		"""DB: 所属するシンボルテーブル"""
+	def _raws(self) -> SymbolDB:
+		"""SymbolDB: 所属するシンボルテーブル"""
 		...
 
 	@abstractmethod
-	def set_raws(self, raws: DB) -> None:
+	def set_raws(self, raws: SymbolDB) -> None:
 		"""所属するシンボルテーブルを設定
 
 		Args:
-			raws (DB): シンボルテーブル
+			raws (SymbolDB): シンボルテーブル
 		"""
 		...
 

@@ -7,7 +7,7 @@ from rogw.tranp.lang.error import raises
 from rogw.tranp.lang.implementation import injectable
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
-from rogw.tranp.semantics.db import SymbolDB
+from rogw.tranp.semantics.provider import SymbolDBProvider
 from rogw.tranp.semantics.errors import SemanticsError, OperationNotAllowedError, UnresolvedSymbolError
 from rogw.tranp.semantics.finder import SymbolFinder
 from rogw.tranp.semantics.plugin import PluginProvider
@@ -19,11 +19,11 @@ class Reflections:
 	"""シンボルテーブルを参照してシンボルの型を解決する機能を提供"""
 
 	@injectable
-	def __init__(self, db: SymbolDB, finder: SymbolFinder, plugins: PluginProvider) -> None:
+	def __init__(self, db: SymbolDBProvider, finder: SymbolFinder, plugins: PluginProvider) -> None:
 		"""インスタンスを生成
 
 		Args:
-			db (SymbolDB): シンボルテーブル @inject
+			db (SymbolDBProvider): シンボルテーブル @inject
 			finder (SymbolFinder): シンボル検索 @inject
 			plugins (PluginProvider): プラグインプロバイダー @inject
 		"""

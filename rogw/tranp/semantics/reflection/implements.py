@@ -3,7 +3,7 @@ from typing import Any, Iterator, Self
 from rogw.tranp.errors import FatalError, LogicError
 from rogw.tranp.lang.implementation import implements, override
 from rogw.tranp.semantics.reflection.helper.naming import ClassShorthandNaming
-from rogw.tranp.semantics.reflection.interface import IReflection, IWrapper, Roles, SymbolRaws, T_Ref
+from rogw.tranp.semantics.reflection.interface import IReflection, IWrapper, Roles, SymbolDB, T_Ref
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 
@@ -11,7 +11,7 @@ from rogw.tranp.syntax.node.node import Node
 class Reflection(IReflection):
 	"""リフレクション(基底)"""
 
-	def __init__(self, raws: SymbolRaws | None) -> None:
+	def __init__(self, raws: SymbolDB | None) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -21,7 +21,7 @@ class Reflection(IReflection):
 
 	@property
 	@implements
-	def _raws(self) -> SymbolRaws:
+	def _raws(self) -> SymbolDB:
 		"""SymbolRaws: 所属するシンボルテーブル"""
 		if self.__raws is not None:
 			return self.__raws
@@ -29,7 +29,7 @@ class Reflection(IReflection):
 		raise FatalError(f'Unreachable code.')
 
 	@implements
-	def set_raws(self, raws: SymbolRaws) -> None:
+	def set_raws(self, raws: SymbolDB) -> None:
 		"""所属するシンボルテーブルを設定
 
 		Args:

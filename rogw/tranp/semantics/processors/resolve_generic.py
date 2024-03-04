@@ -3,7 +3,7 @@ from typing import cast
 from rogw.tranp.lang.implementation import injectable
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.semantics.finder import SymbolFinder
-from rogw.tranp.semantics.reflection import IReflection, Roles, SymbolRaws
+from rogw.tranp.semantics.reflection import IReflection, Roles, SymbolDB
 
 
 class ResolveGeneric:
@@ -18,7 +18,7 @@ class ResolveGeneric:
 		"""
 		self.finder = finder
 
-	def __call__(self, raws: SymbolRaws) -> SymbolRaws:
+	def __call__(self, raws: SymbolDB) -> SymbolDB:
 		"""シンボルテーブルを生成
 
 		Args:
@@ -42,7 +42,7 @@ class ResolveGeneric:
 
 		return raws
 
-	def extends_for_function(self, raws: SymbolRaws, via: IReflection, function: defs.Function) -> IReflection:
+	def extends_for_function(self, raws: SymbolDB, via: IReflection, function: defs.Function) -> IReflection:
 		"""宣言ノードを解析し、属性の型を取り込みシンボルを拡張(ファンクション定義用)
 
 		Args:
@@ -66,7 +66,7 @@ class ResolveGeneric:
 		attrs.append(self.extends_for_type(raws, return_type_raw, function.return_type))
 		return via.extends(*attrs)
 
-	def extends_for_alt_class(self, raws: SymbolRaws, via: IReflection, alt_types: defs.AltClass) -> IReflection:
+	def extends_for_alt_class(self, raws: SymbolDB, via: IReflection, alt_types: defs.AltClass) -> IReflection:
 		"""宣言ノードを解析し、属性の型を取り込みシンボルを拡張(タイプ再定義用)
 
 		Args:
@@ -79,7 +79,7 @@ class ResolveGeneric:
 		actual_type_raw = self.finder.by_symbolic(raws, alt_types.actual_type)
 		return via.extends(self.extends_for_type(raws, actual_type_raw, alt_types.actual_type))
 
-	def extends_for_class(self, raws: SymbolRaws, via: IReflection, types: defs.Class) -> IReflection:
+	def extends_for_class(self, raws: SymbolDB, via: IReflection, types: defs.Class) -> IReflection:
 		"""宣言ノードを解析し、属性の型を取り込みシンボルを拡張(クラス定義用)
 
 		Args:
@@ -92,7 +92,7 @@ class ResolveGeneric:
 		attrs = [self.finder.by_symbolic(raws, generic_type) for generic_type in types.generic_types]
 		return via.extends(*attrs)
 
-	def extends_for_var(self, raws: SymbolRaws, via: IReflection, decl_type: defs.Type) -> IReflection:
+	def extends_for_var(self, raws: SymbolDB, via: IReflection, decl_type: defs.Type) -> IReflection:
 		"""宣言ノードを解析し、属性の型を取り込みシンボルを拡張(変数宣言用)
 
 		Args:
@@ -104,7 +104,7 @@ class ResolveGeneric:
 		"""
 		return via.extends(*self.extends_for_type(raws, via, decl_type).attrs)
 
-	def extends_for_type(self, raws: SymbolRaws, via: IReflection, decl_type: defs.Type) -> IReflection:
+	def extends_for_type(self, raws: SymbolDB, via: IReflection, decl_type: defs.Type) -> IReflection:
 		"""タイプノードを解析し、属性の型を取り込みシンボルを拡張
 
 		Args:
@@ -121,7 +121,7 @@ class ResolveGeneric:
 		else:
 			return via
 
-	def extends_for_type_by_secondaries(self, raws: SymbolRaws, via: IReflection, primary_type: defs.GenericType | defs.UnionType, secondary_types: list[defs.Type]) -> IReflection:
+	def extends_for_type_by_secondaries(self, raws: SymbolDB, via: IReflection, primary_type: defs.GenericType | defs.UnionType, secondary_types: list[defs.Type]) -> IReflection:
 		"""ジェネリックタイプノードを解析し、属性の型を取り込みシンボルを拡張
 
 		Args:

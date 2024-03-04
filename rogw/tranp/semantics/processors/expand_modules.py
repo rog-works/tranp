@@ -7,7 +7,7 @@ from rogw.tranp.io.loader import IFileLoader
 from rogw.tranp.lang.implementation import injectable
 from rogw.tranp.module.modules import Module, Modules
 from rogw.tranp.semantics.finder import SymbolFinder
-from rogw.tranp.semantics.reflection import IReflection, Symbol, SymbolRaws
+from rogw.tranp.semantics.reflection import IReflection, Symbol, SymbolDB
 from rogw.tranp.syntax.ast.dsn import DSN
 import rogw.tranp.syntax.node.definition as defs
 
@@ -71,7 +71,7 @@ class ExpandModules:
 		self.loader = loader
 
 	@injectable
-	def __call__(self, raws: SymbolRaws) -> SymbolRaws:
+	def __call__(self, raws: SymbolDB) -> SymbolDB:
 		"""シンボルテーブルを生成
 
 		Args:
@@ -102,7 +102,7 @@ class ExpandModules:
 
 		return expanded_modules
 
-	def expanded_to_raws(self, expanded_modules: dict[str, Expanded]) -> SymbolRaws:
+	def expanded_to_raws(self, expanded_modules: dict[str, Expanded]) -> SymbolDB:
 		"""展開データからシンボルテーブルを生成
 
 		Args:
@@ -111,7 +111,7 @@ class ExpandModules:
 			SymbolRaws: シンボルテーブル
 		"""
 		# クラス定義シンボルの展開
-		expanded_raws = SymbolRaws()
+		expanded_raws = SymbolDB()
 		for module_path, expanded in expanded_modules.items():
 			entrypoint = self.modules.load(module_path).entrypoint.as_a(defs.Entrypoint)
 			for fullyname, full_path in expanded.classes.items():
@@ -183,7 +183,7 @@ class ExpandModules:
 
 		return instantiate()
 
-	def resolve_type_symbol(self, raws: SymbolRaws, var: defs.DeclVars) -> IReflection:
+	def resolve_type_symbol(self, raws: SymbolDB, var: defs.DeclVars) -> IReflection:
 		"""シンボルテーブルから変数の型のシンボルを解決
 
 		Args:

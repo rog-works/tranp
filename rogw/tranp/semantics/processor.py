@@ -1,12 +1,12 @@
 from typing import Protocol
 
-from rogw.tranp.semantics.reflection import SymbolRaws
+from rogw.tranp.semantics.reflection import SymbolDB
 
 
 class Preprocessor(Protocol):
 	"""プリプロセッサープロトコル"""
 
-	def __call__(self, raws: SymbolRaws) -> SymbolRaws:
+	def __call__(self, raws: SymbolDB) -> SymbolDB:
 		"""シンボルテーブルを生成
 
 		Args:

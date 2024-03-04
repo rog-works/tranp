@@ -1,15 +1,15 @@
 from unittest import TestCase
 
-from rogw.tranp.semantics.db import SymbolDB
+from rogw.tranp.semantics.provider import SymbolDBProvider
 from tests.test.fixture import Fixture
-from tests.unit.rogw.tranp.semantics.fixtures.test_db_expect import expected_symbols
+from tests.unit.rogw.tranp.semantics.fixtures.test_provider_expect import expected_symbols
 
 
-class TestSymbolDB(TestCase):
+class TestProvider(TestCase):
 	fixture = Fixture.make(__file__)
 
-	def test___init__(self) -> None:
-		db = self.fixture.get(SymbolDB)
+	def test_make_db(self) -> None:
+		db = self.fixture.get(SymbolDBProvider)
 
 		try:
 			expected = expected_symbols()

@@ -6,7 +6,7 @@ from rogw.tranp.module.types import LibraryPaths
 from rogw.tranp.syntax.ast.dsn import DSN
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.semantics.errors import MustBeImplementedError, SymbolNotDefinedError
-from rogw.tranp.semantics.reflection import IReflection, SymbolRaws
+from rogw.tranp.semantics.reflection import IReflection, SymbolDB
 
 
 class SymbolFinder:
@@ -21,7 +21,7 @@ class SymbolFinder:
 		"""
 		self.__library_paths = library_paths
 
-	def get_object(self, raws: SymbolRaws) -> IReflection:
+	def get_object(self, raws: SymbolDB) -> IReflection:
 		"""objectのシンボルを取得
 
 		Args:
@@ -39,7 +39,7 @@ class SymbolFinder:
 
 		raise MustBeImplementedError('"object" class is required.')
 
-	def by(self, raws: SymbolRaws, fullyname: str) -> IReflection:
+	def by(self, raws: SymbolDB, fullyname: str) -> IReflection:
 		"""完全参照名からシンボルを取得
 
 		Args:
@@ -55,7 +55,7 @@ class SymbolFinder:
 
 		raise SymbolNotDefinedError(f'fullyname: {fullyname}')
 
-	def by_standard(self, raws: SymbolRaws, standard_type: type[Standards] | None) -> IReflection:
+	def by_standard(self, raws: SymbolDB, standard_type: type[Standards] | None) -> IReflection:
 		"""標準クラスのシンボルを取得
 
 		Args:
@@ -80,7 +80,7 @@ class SymbolFinder:
 
 		raise MustBeImplementedError(f'"{standard_type.__name__}" class is required.')
 
-	def by_symbolic(self, raws: SymbolRaws, node: defs.Symbolic) -> IReflection:
+	def by_symbolic(self, raws: SymbolDB, node: defs.Symbolic) -> IReflection:
 		"""シンボル系ノードからシンボルを取得
 
 		Args:
@@ -97,7 +97,7 @@ class SymbolFinder:
 
 		raise SymbolNotDefinedError(f'fullyname: {node.fullyname}')
 
-	def find_by_symbolic(self, raws: SymbolRaws, node: defs.Symbolic, prop_name: str = '') -> IReflection | None:
+	def find_by_symbolic(self, raws: SymbolDB, node: defs.Symbolic, prop_name: str = '') -> IReflection | None:
 		"""シンボルを検索。未検出の場合はNoneを返却
 
 		Args:
@@ -117,7 +117,7 @@ class SymbolFinder:
 		scopes = [scope for scope in self.__make_scopes(node.scope, allow_fallback_lib) if not is_local_var_in_class_scope(scope)]
 		return self.__find_raw(raws, scopes, domain_name)
 
-	def __find_raw(self, raws: SymbolRaws, scopes: list[str], domain_name: str) -> IReflection | None:
+	def __find_raw(self, raws: SymbolDB, scopes: list[str], domain_name: str) -> IReflection | None:
 		"""スコープを辿り、指定のドメイン名を持つシンボルを検索。未検出の場合はNoneを返却
 
 		Args:

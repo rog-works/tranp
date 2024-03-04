@@ -17,7 +17,7 @@ from rogw.tranp.lang.module import fullyname
 from rogw.tranp.module.module import Module
 from rogw.tranp.module.types import ModulePath
 from rogw.tranp.semantics.plugin import PluginProvider
-from rogw.tranp.semantics.reflection import IReflection, SymbolDB
+from rogw.tranp.semantics.reflection import IReflection, SymbolDBProvider
 from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.syntax.ast.entry import Entry
 from rogw.tranp.syntax.ast.parser import ParserSetting, SyntaxParser
@@ -68,7 +68,7 @@ def make_module_path(args: Args) -> ModulePath:
 	return ModulePath('__main__', module_path)
 
 
-def task_db(db: SymbolDB) -> None:
+def task_db(db: SymbolDBProvider) -> None:
 	title = '\n'.join([
 		'==============',
 		'Symbol DB',
@@ -88,7 +88,7 @@ def task_pretty(nodes: Query[Node]) -> None:
 	print(nodes.by('file_input').pretty())
 
 
-def task_class(db: SymbolDB, reflections: Reflections) -> None:
+def task_class(db: SymbolDBProvider, reflections: Reflections) -> None:
 	names = {raw.decl.fullyname: True for raw in db.raws.values() if raw.decl.is_a(defs.Class)}
 	prompt = '\n'.join([
 		'==============',
@@ -199,7 +199,7 @@ def task_analyze(org_parser: SyntaxParser, cache: CacheProvider) -> None:
 		org_definitions = {fullyname(CacheProvider): lambda: cache}
 		app = App({**org_definitions, **new_difinitions})
 
-		db = app.resolve(SymbolDB)
+		db = app.resolve(SymbolDBProvider)
 		reflections = app.resolve(Reflections)
 
 		main_raws = {key: raw for key, raw in db.raws.items() if raw.decl.module_path == '__main__'}

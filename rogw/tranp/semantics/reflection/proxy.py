@@ -1,7 +1,7 @@
 from typing import Callable, Iterator
 
 from rogw.tranp.lang.implementation import implements, override
-from rogw.tranp.semantics.reflection.interface import DB, IReflection, IWrapper, Roles, T_Ref
+from rogw.tranp.semantics.reflection.interface import SymbolDB, IReflection, IWrapper, Roles, T_Ref
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 
@@ -37,16 +37,16 @@ class SymbolProxy(IReflection):
 
 	@property
 	@implements
-	def _raws(self) -> DB:
-		"""DB: 所属するシンボルテーブル"""
+	def _raws(self) -> SymbolDB:
+		"""SymbolDB: 所属するシンボルテーブル"""
 		return self.__org_raw._raws
 
 	@implements
-	def set_raws(self, raws: DB) -> None:
+	def set_raws(self, raws: SymbolDB) -> None:
 		"""所属するシンボルテーブルを設定
 
 		Args:
-			raws (DB): シンボルテーブル
+			raws (SymbolDB): シンボルテーブル
 		"""
 		self.__org_raw.set_raws(raws)
 

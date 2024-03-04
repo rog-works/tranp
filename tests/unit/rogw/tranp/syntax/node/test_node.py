@@ -265,9 +265,9 @@ class TestNode(TestCase):
 			'file_input.class_def.class_def_raw.block.function_def[2].function_def_raw.block.elipsis',
 		]),
 	])
-	def test_flatten(self, full_path: str, expected: list[str]) -> None:
+	def test_procedural_flow(self, full_path: str, expected: list[str]) -> None:
 		node = self.fixture.shared_nodes.by(full_path)
-		all = [in_node.full_path for in_node in node.flatten()]
+		all = [in_node.full_path for in_node in node.procedural()]
 		try:
 			self.assertEqual(all, expected)
 		except AssertionError:
@@ -314,9 +314,9 @@ class TestNode(TestCase):
 			'file_input.class_def.class_def_raw.block.function_def[2]',
 		]),
 	])
-	def test_calculated(self, full_path: str, expected: list[str]) -> None:
+	def test_procedural_ast(self, full_path: str, expected: list[str]) -> None:
 		node = self.fixture.shared_nodes.by(full_path)
-		all = [in_node.full_path for in_node in node.calculated()]
+		all = [in_node.full_path for in_node in node.procedural(order='ast')]
 		try:
 			self.assertEqual(all, expected)
 		except AssertionError:

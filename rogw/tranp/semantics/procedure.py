@@ -88,7 +88,7 @@ class Procedure(Generic[T_Ret]):
 		Raises:
 			LogicError: 実行エラー
 		"""
-		flatted = root.calculated()
+		flatted = root.procedural(order='ast')
 		flatted.append(root)  # XXX 自身が含まれないので末尾に追加
 
 		for node in flatted:

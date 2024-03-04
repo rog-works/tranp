@@ -123,7 +123,7 @@ def task_node(module: Module, symbols: Symbols) -> None:
 	])
 	name = readline(prompt)
 
-	candidates = [node for node in module.entrypoint.flatten() if node.fullyname == name]
+	candidates = [node for node in module.entrypoint.procedural() if node.fullyname == name]
 
 	if len(candidates):
 		node = candidates[0]

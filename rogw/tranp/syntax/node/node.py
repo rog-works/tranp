@@ -1,5 +1,5 @@
 import functools
-from typing import Any, Iterator, TypeVar, cast
+from typing import Any, Iterator, Literal, TypeVar, cast
 
 from rogw.tranp.errors import LogicError
 from rogw.tranp.lang.implementation import deprecated, injectable, override
@@ -204,36 +204,46 @@ class Node:
 		classes = [ctor for ctor in via.__mro__ if issubclass(ctor, Node) and ctor is not Node]
 		return list(reversed(classes))
 
-	def flatten(self) -> list['Node']:
+	def procedural(self, order: Literal['flow', 'ast'] = 'flow') -> list['Node']:
 		"""下位のノードを再帰的に展開し、1次元に平坦化して取得
+
+		Args:
+			order (Literal['flow' | 'ast']): 並び順 (default = 'flow')
+		Returns:
+			list[Node]: ノードリスト
+		Note:
+			# orderの使い分け
+			* 'flow': ノードのプロパティーの定義順で出力する場合
+			* 'ast': ASTの評価順序で出力する場合
+		"""
+		return self.__procedural_flow() if order == 'flow' else self.__procedural_ast()
+
+	def __procedural_flow(self) -> list['Node']:
+		"""下位のノードを再帰的に展開し、1次元に平坦化して取得(プロパティー定義順)
 
 		Returns:
 			list[Node]: ノードリスト
 		Note:
 			# 優先順位
-				1. 終端要素は空を返す
-				2. 展開プロパティーのノードを使う
-				3. 下位ノードを使う
-			# 使い分け
-				* 終端記号に紐づくノードが欲しい場合は_under_expand
-				* 下位のノードを全て洗い出す場合はflatten
-				* ASTの計算順序の並びで欲しい場合はcalculated
+			1. 終端要素は空を返す
+			2. 展開プロパティーのノードを使う
+			3. 下位ノードを使う
 		"""
 		if not self.can_expand:
 			return []
 
 		under = self.__prop_expand() or self._under_expand()
-		return list(flatten([[node, *node.flatten()] for node in under]))
+		return list(flatten([[node, *node.procedural()] for node in under]))
 
-	def calculated(self) -> list['Node']:
-		"""ASTの計算順序に合わせた順序で配下のノードを1次元に展開
+	def __procedural_ast(self) -> list['Node']:
+		"""下位のノードを再帰的に展開し、1次元に平坦化して取得(AST準拠)
 
 		Returns:
 			list[Node]: ノードリスト
 		Note:
 			flattenとの相違点は並び順のみ
 		"""
-		path_of_nodes = {node.full_path: node for node in self.flatten()}
+		path_of_nodes = {node.full_path: node for node in self.__procedural_flow()}
 		sorted_paths = self.__calclation_order(enumerate(path_of_nodes.keys()))
 		return [path_of_nodes[full_path] for full_path in sorted_paths]
 

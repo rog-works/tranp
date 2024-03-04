@@ -152,7 +152,7 @@ class ExpandModules:
 
 		@self.caches.get(f'{basepath}-raws', identity=identity, format='json')
 		def instantiate() -> Expanded:
-			nodes = module.entrypoint.flatten()
+			nodes = module.entrypoint.procedural()
 			nodes.append(module.entrypoint)
 
 			classes: dict[str, str] = {}

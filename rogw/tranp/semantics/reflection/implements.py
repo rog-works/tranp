@@ -11,31 +11,31 @@ from rogw.tranp.syntax.node.node import Node
 class Reflection(IReflection):
 	"""リフレクション(基底)"""
 
-	def __init__(self, raws: SymbolDB | None) -> None:
+	def __init__(self, db: SymbolDB | None) -> None:
 		"""インスタンスを生成
 
 		Args:
-			raws (SymbolRaws | None): シンボルテーブル
+			db (SymbolDB | None): シンボルテーブル
 		"""
-		self.__raws = raws
+		self.__raws = db
 
 	@property
 	@implements
-	def _raws(self) -> SymbolDB:
-		"""SymbolRaws: 所属するシンボルテーブル"""
+	def _db(self) -> SymbolDB:
+		"""SymbolDB: 所属するシンボルテーブル"""
 		if self.__raws is not None:
 			return self.__raws
 
 		raise FatalError(f'Unreachable code.')
 
 	@implements
-	def set_raws(self, raws: SymbolDB) -> None:
+	def set_db(self, db: SymbolDB) -> None:
 		"""所属するシンボルテーブルを設定
 
 		Args:
-			raws (SymbolRaws): シンボルテーブル
+			db (SymbolDB): シンボルテーブル
 		"""
-		self.__raws = raws
+		self.__raws = db
 
 	# @property
 	# @implements
@@ -235,7 +235,7 @@ class Symbol(Reflection):
 		Args:
 			types (ClassDef): クラス定義ノード
 		"""
-		super().__init__(raws=None)
+		super().__init__(db=None)
 		self._types = types
 
 	@property
@@ -287,7 +287,7 @@ class ReflectionImpl(Reflection):
 		Args:
 			origin (Symbol | ReflectionImpl): スタックシンボル
 		"""
-		super().__init__(origin._raws)
+		super().__init__(origin._db)
 		self._origin = origin
 		self._attrs: list[IReflection] = []
 
@@ -357,8 +357,8 @@ class ReflectionImpl(Reflection):
 		Note:
 			属性を取得する際にのみ利用 @see attrs
 		"""
-		if self._origin.org_fullyname in self._raws:
-			origin = self._raws[self._origin.org_fullyname]
+		if self._origin.org_fullyname in self._db:
+			origin = self._db[self._origin.org_fullyname]
 			if id(origin) != id(self):
 				return origin
 

@@ -26,25 +26,25 @@ class ResolveUnknown:
 		"""
 		self.invoker = invoker
 
-	def __call__(self, raws: SymbolDB) -> SymbolDB:
+	def __call__(self, db: SymbolDB) -> SymbolDB:
 		"""シンボルテーブルを生成
 
 		Args:
-			raws (SymbolRaws): シンボルテーブル @inject
+			db (SymbolDB): シンボルテーブル @inject
 		Returns:
-			SymbolRaws: シンボルテーブル
+			SymbolDB: シンボルテーブル
 		"""
 
-		for key, raw in raws.items():
+		for key, raw in db.items():
 			if not isinstance(raw.decl, defs.Declable):
 				continue
 
 			if isinstance(raw.decl.declare, defs.MoveAssign):
-				raws[key] = SymbolProxy(raw, self.make_resolver(raw, raw.decl.declare.value))
+				db[key] = SymbolProxy(raw, self.make_resolver(raw, raw.decl.declare.value))
 			elif isinstance(raw.decl.declare, (defs.For, defs.CompFor)):
-				raws[key] = SymbolProxy(raw, self.make_resolver(raw, raw.decl.declare.for_in))
+				db[key] = SymbolProxy(raw, self.make_resolver(raw, raw.decl.declare.for_in))
 
-		return raws
+		return db
 
 	@injectable
 	def resolver(self, reflections: Reflections, var_raw: IReflection, value_node: Node) -> IReflection:

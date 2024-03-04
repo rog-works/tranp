@@ -37,18 +37,18 @@ class SymbolProxy(IReflection):
 
 	@property
 	@implements
-	def _raws(self) -> SymbolDB:
+	def _db(self) -> SymbolDB:
 		"""SymbolDB: 所属するシンボルテーブル"""
-		return self.__org_raw._raws
+		return self.__org_raw._db
 
 	@implements
-	def set_raws(self, raws: SymbolDB) -> None:
+	def set_db(self, db: SymbolDB) -> None:
 		"""所属するシンボルテーブルを設定
 
 		Args:
-			raws (SymbolDB): シンボルテーブル
+			db (SymbolDB): シンボルテーブル
 		"""
-		self.__org_raw.set_raws(raws)
+		self.__org_raw.set_db(db)
 
 	@property
 	@implements

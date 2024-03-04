@@ -10,10 +10,10 @@ def make_db(preprocessors: Preprocessors) -> SymbolDBProvider:
 	Args:
 		preprocessors (Preprocessors): プリプロセッサープロバイダー @inject
 	Returns:
-		SymbolDBProvider: シンボルテーブル
+		SymbolDBProvider: シンボルテーブルプロバイダー
 	"""
-	raws = SymbolDB()
+	db = SymbolDB()
 	for proc in preprocessors():
-		raws = proc(raws)
+		db = proc(db)
 
-	return SymbolDBProvider(raws)
+	return SymbolDBProvider(db)

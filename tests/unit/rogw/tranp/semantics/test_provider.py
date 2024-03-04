@@ -9,18 +9,18 @@ class TestProvider(TestCase):
 	fixture = Fixture.make(__file__)
 
 	def test_make_db(self) -> None:
-		db = self.fixture.get(SymbolDBProvider)
+		db = self.fixture.get(SymbolDBProvider).db
 
 		try:
 			expected = expected_symbols()
 			for expected_path, expected_org_path in expected.items():
-				self.assertEqual('ok' if expected_path in db.raws else expected_path, 'ok')
-				self.assertEqual(db.raws[expected_path].org_fullyname, expected_org_path)
+				self.assertEqual('ok' if expected_path in db else expected_path, 'ok')
+				self.assertEqual(db[expected_path].org_fullyname, expected_org_path)
 
-			for key, _ in db.raws.items():
+			for key, _ in db.items():
 				self.assertEqual('ok' if key in expected else key, 'ok')
 
-			self.assertEqual(len(db.raws), len(expected))
+			self.assertEqual(len(db), len(expected))
 		except AssertionError as e:
-			print('\n', '\n'.join([f"'{key}': '{raw.org_fullyname}'," for key, raw in db.raws.items()]))
+			print('\n', '\n'.join([f"'{key}': '{raw.org_fullyname}'," for key, raw in db.items()]))
 			raise

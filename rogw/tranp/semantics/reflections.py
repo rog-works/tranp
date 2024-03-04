@@ -19,15 +19,15 @@ class Reflections:
 	"""シンボルテーブルを参照してシンボルの型を解決する機能を提供"""
 
 	@injectable
-	def __init__(self, db: SymbolDBProvider, finder: SymbolFinder, plugins: PluginProvider) -> None:
+	def __init__(self, db_provider: SymbolDBProvider, finder: SymbolFinder, plugins: PluginProvider) -> None:
 		"""インスタンスを生成
 
 		Args:
-			db (SymbolDBProvider): シンボルテーブル @inject
+			db_provider (SymbolDBProvider): シンボルテーブルプロバイダー @inject
 			finder (SymbolFinder): シンボル検索 @inject
 			plugins (PluginProvider): プラグインプロバイダー @inject
 		"""
-		self.__raws = db.raws
+		self.__raws = db_provider.db
 		self.__finder = finder
 		self.__procedural_resolver = ProceduralResolver(self)
 

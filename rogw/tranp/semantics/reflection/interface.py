@@ -27,29 +27,29 @@ class SymbolDB(dict[str, 'IReflection']):
 	"""シンボルテーブル"""
 
 	@classmethod
-	def new(cls, *raws: Self | dict[str, 'IReflection']) -> Self:
+	def new(cls, *db: Self | dict[str, 'IReflection']) -> Self:
 		"""シンボルテーブルを結合した新たなインスタンスを生成
 
 		Args:
-			*raws (Self | dict[str, IReflection]): シンボルテーブルリスト
+			*db (Self | dict[str, IReflection]): シンボルテーブルリスト
 		Returns:
 			Self: 生成したインスタンス
 		"""
-		return cls().merge(*raws)
+		return cls().merge(*db)
 
-	def merge(self, *raws: Self | dict[str, 'IReflection']) -> Self:
+	def merge(self, *db: Self | dict[str, 'IReflection']) -> Self:
 		"""指定のシンボルテーブルと結合
 
 		Args:
-			*raws (Self | dict[str, IReflection]): シンボルテーブルリスト
+			*db (Self | dict[str, IReflection]): シンボルテーブルリスト
 		Returns:
 			Self: 自己参照
 		"""
-		for in_raws in raws:
+		for in_raws in db:
 			self.update(**in_raws)
 
 		for raw in self.values():
-			raw.set_raws(self)
+			raw.set_db(self)
 
 		return self
 
@@ -61,7 +61,7 @@ class SymbolDB(dict[str, 'IReflection']):
 			key (str): 要素名
 			raw (IReflection): シンボル
 		"""
-		raw.set_raws(self)
+		raw.set_db(self)
 		super().__setitem__(key, raw)
 
 	def sorted(self, module_orders: list[str]) -> Self:
@@ -91,7 +91,7 @@ class SymbolDBProvider(NamedTuple):
 		raws: シンボルテーブル
 	"""
 
-	raws: SymbolDB
+	db: SymbolDB
 
 
 class IReflection(metaclass=ABCMeta):
@@ -114,16 +114,16 @@ class IReflection(metaclass=ABCMeta):
 
 	@property
 	@abstractmethod
-	def _raws(self) -> SymbolDB:
+	def _db(self) -> SymbolDB:
 		"""SymbolDB: 所属するシンボルテーブル"""
 		...
 
 	@abstractmethod
-	def set_raws(self, raws: SymbolDB) -> None:
+	def set_db(self, db: SymbolDB) -> None:
 		"""所属するシンボルテーブルを設定
 
 		Args:
-			raws (SymbolDB): シンボルテーブル
+			db (SymbolDB): シンボルテーブル
 		"""
 		...
 

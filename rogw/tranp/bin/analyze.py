@@ -68,14 +68,14 @@ def make_module_path(args: Args) -> ModulePath:
 	return ModulePath('__main__', module_path)
 
 
-def task_db(db: SymbolDBProvider) -> None:
+def task_db(db_provider: SymbolDBProvider) -> None:
 	title = '\n'.join([
 		'==============',
 		'Symbol DB',
 		'--------------',
 	])
 	print(title)
-	print(json.dumps([f'{key}: {raw.org_fullyname}' for key, raw in db.raws.items()], indent=2))
+	print(json.dumps([f'{key}: {raw.org_fullyname}' for key, raw in db_provider.db.items()], indent=2))
 
 
 def task_pretty(nodes: Query[Node]) -> None:
@@ -88,8 +88,8 @@ def task_pretty(nodes: Query[Node]) -> None:
 	print(nodes.by('file_input').pretty())
 
 
-def task_class(db: SymbolDBProvider, reflections: Reflections) -> None:
-	names = {raw.decl.fullyname: True for raw in db.raws.values() if raw.decl.is_a(defs.Class)}
+def task_class(db_provider: SymbolDBProvider, reflections: Reflections) -> None:
+	names = {raw.decl.fullyname: True for raw in db_provider.db.values() if raw.decl.is_a(defs.Class)}
 	prompt = '\n'.join([
 		'==============',
 		'Class List',
@@ -199,10 +199,10 @@ def task_analyze(org_parser: SyntaxParser, cache: CacheProvider) -> None:
 		org_definitions = {fullyname(CacheProvider): lambda: cache}
 		app = App({**org_definitions, **new_difinitions})
 
-		db = app.resolve(SymbolDBProvider)
+		db_provider = app.resolve(SymbolDBProvider)
 		reflections = app.resolve(Reflections)
 
-		main_raws = {key: raw for key, raw in db.raws.items() if raw.decl.module_path == '__main__'}
+		main_raws = {key: raw for key, raw in db_provider.db.items() if raw.decl.module_path == '__main__'}
 		main_symbols = {key: str(resolve_symbol(reflections, key)) for key, _ in main_raws.items()}
 		found_symbols = '\n'.join([f'{key}: {symbol_type}' for key, symbol_type in main_symbols.items()])
 		node = app.resolve(Query[Node]).by('file_input')

@@ -6,13 +6,13 @@ from rogw.tranp.semantics.reflection import SymbolDB
 class Preprocessor(Protocol):
 	"""プリプロセッサープロトコル"""
 
-	def __call__(self, raws: SymbolDB) -> SymbolDB:
+	def __call__(self, db: SymbolDB) -> SymbolDB:
 		"""シンボルテーブルを生成
 
 		Args:
-			raws (SymbolRaws): シンボルテーブル
+			db (SymbolDB): シンボルテーブル
 		Returns:
-			SymbolRaws: シンボルテーブル
+			SymbolDB: シンボルテーブル
 		"""
 		...
 

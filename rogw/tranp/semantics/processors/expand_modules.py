@@ -71,17 +71,17 @@ class ExpandModules:
 		self.loader = loader
 
 	@injectable
-	def __call__(self, raws: SymbolDB) -> SymbolDB:
+	def __call__(self, db: SymbolDB) -> SymbolDB:
 		"""シンボルテーブルを生成
 
 		Args:
-			raws (SymbolRaws): シンボルテーブル
+			db (SymbolDB): シンボルテーブル
 		Returns:
-			SymbolRaws: シンボルテーブル
+			SymbolDB: シンボルテーブル
 		"""
 		expanded_modules = self.expand_modules()
 		expanded_raws = self.expanded_to_raws(expanded_modules)
-		return raws.merge(expanded_raws)
+		return db.merge(expanded_raws)
 
 	def expand_modules(self) -> dict[str, Expanded]:
 		"""全モジュールを展開
@@ -108,7 +108,7 @@ class ExpandModules:
 		Args:
 			expanded_modules (dict[str, Expanded]): 展開データ
 		Returns:
-			SymbolRaws: シンボルテーブル
+			SymbolDB: シンボルテーブル
 		"""
 		# クラス定義シンボルの展開
 		expanded_raws = SymbolDB()
@@ -183,20 +183,20 @@ class ExpandModules:
 
 		return instantiate()
 
-	def resolve_type_symbol(self, raws: SymbolDB, var: defs.DeclVars) -> IReflection:
+	def resolve_type_symbol(self, db: SymbolDB, var: defs.DeclVars) -> IReflection:
 		"""シンボルテーブルから変数の型のシンボルを解決
 
 		Args:
-			raws (SymbolRaws): シンボルテーブル
+			db (SymbolDB): シンボルテーブル
 			var (DeclVars): 変数宣言ノード
 		Returns:
 			IReflection: シンボル
 		"""
 		decl_type = self.fetch_decl_type(var)
 		if decl_type is not None:
-			return self.finder.by_symbolic(raws, decl_type)
+			return self.finder.by_symbolic(db, decl_type)
 		else:
-			return self.finder.by_standard(raws, classes.Unknown)
+			return self.finder.by_standard(db, classes.Unknown)
 
 	def fetch_decl_type(self, var: defs.DeclVars) -> defs.Type | defs.ClassDef | None:
 		"""変数の型(タイプ/クラス定義ノード)を取得。型が不明な場合はNoneを返却

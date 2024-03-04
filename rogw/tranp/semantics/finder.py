@@ -21,11 +21,11 @@ class SymbolFinder:
 		"""
 		self.__library_paths = library_paths
 
-	def get_object(self, raws: SymbolDB) -> IReflection:
+	def get_object(self, db: SymbolDB) -> IReflection:
 		"""objectのシンボルを取得
 
 		Args:
-			raws (SymbolRaws): シンボルテーブル
+			db (SymbolDB): シンボルテーブル
 		Returns:
 			IReflection: シンボル
 		Raises:
@@ -33,33 +33,33 @@ class SymbolFinder:
 		Note:
 			必ず存在すると言う前提。見つからない場合は実装ミス
 		"""
-		raw = self.__find_raw(raws, self.__library_paths, object.__name__)
+		raw = self.__find_raw(db, self.__library_paths, object.__name__)
 		if raw is not None:
 			return raw
 
 		raise MustBeImplementedError('"object" class is required.')
 
-	def by(self, raws: SymbolDB, fullyname: str) -> IReflection:
+	def by(self, db: SymbolDB, fullyname: str) -> IReflection:
 		"""完全参照名からシンボルを取得
 
 		Args:
-			raws (SymbolRaws): シンボルテーブル
+			db (SymbolDB): シンボルテーブル
 			fullyname (str): 完全参照名
 		Returns:
 			IReflection: シンボル
 		Raises:
 			SymbolNotDefinedError: シンボルが見つからない
 		"""
-		if fullyname in raws:
-			return raws[fullyname]
+		if fullyname in db:
+			return db[fullyname]
 
 		raise SymbolNotDefinedError(f'fullyname: {fullyname}')
 
-	def by_standard(self, raws: SymbolDB, standard_type: type[Standards] | None) -> IReflection:
+	def by_standard(self, db: SymbolDB, standard_type: type[Standards] | None) -> IReflection:
 		"""標準クラスのシンボルを取得
 
 		Args:
-			raws (SymbolRaws): シンボルテーブル
+			db (SymbolDB): シンボルテーブル
 			standard_type (type[Standards] | None): 標準クラス
 		Returns:
 			IReflection: シンボル
@@ -74,34 +74,34 @@ class SymbolFinder:
 		else:
 			domain_name = standard_type.__name__
 
-		raw = self.__find_raw(raws, self.__library_paths, domain_name)
+		raw = self.__find_raw(db, self.__library_paths, domain_name)
 		if raw is not None:
 			return raw
 
 		raise MustBeImplementedError(f'"{standard_type.__name__}" class is required.')
 
-	def by_symbolic(self, raws: SymbolDB, node: defs.Symbolic) -> IReflection:
+	def by_symbolic(self, db: SymbolDB, node: defs.Symbolic) -> IReflection:
 		"""シンボル系ノードからシンボルを取得
 
 		Args:
-			raws (SymbolRaws): シンボルテーブル
+			db (SymbolDB): シンボルテーブル
 			node: (Symbolic): シンボル系ノード
 		Returns:
 			IReflection: シンボル
 		Raises:
 			SymbolNotDefinedError: シンボルが見つからない
 		"""
-		raw = self.find_by_symbolic(raws, node)
+		raw = self.find_by_symbolic(db, node)
 		if raw is not None:
 			return raw
 
 		raise SymbolNotDefinedError(f'fullyname: {node.fullyname}')
 
-	def find_by_symbolic(self, raws: SymbolDB, node: defs.Symbolic, prop_name: str = '') -> IReflection | None:
+	def find_by_symbolic(self, db: SymbolDB, node: defs.Symbolic, prop_name: str = '') -> IReflection | None:
 		"""シンボルを検索。未検出の場合はNoneを返却
 
 		Args:
-			raws (SymbolRaws): シンボルテーブル
+			db (SymbolDB): シンボルテーブル
 			node (Symbolic): シンボル系ノード
 			prop_name (str): プロパティー名(default = '')
 		Returns:
@@ -109,19 +109,19 @@ class SymbolFinder:
 		"""
 		def is_local_var_in_class_scope(scope: str) -> bool:
 			# XXX ローカル変数の参照は、クラス直下のスコープを参照できない
-			return node.is_a(defs.Var) and scope in raws and raws[scope].types.is_a(defs.Class)
+			return node.is_a(defs.Var) and scope in db and db[scope].types.is_a(defs.Class)
 
 		domain_name = DSN.join(node.domain_name, prop_name)
 		# ドメイン名の要素数が1つの場合のみ標準ライブラリーへのフォールバックを許可する(プライマリー以外のモジュールへのフォールバックを抑制)
 		allow_fallback_lib = DSN.elem_counts(domain_name) == 1
 		scopes = [scope for scope in self.__make_scopes(node.scope, allow_fallback_lib) if not is_local_var_in_class_scope(scope)]
-		return self.__find_raw(raws, scopes, domain_name)
+		return self.__find_raw(db, scopes, domain_name)
 
-	def __find_raw(self, raws: SymbolDB, scopes: list[str], domain_name: str) -> IReflection | None:
+	def __find_raw(self, db: SymbolDB, scopes: list[str], domain_name: str) -> IReflection | None:
 		"""スコープを辿り、指定のドメイン名を持つシンボルを検索。未検出の場合はNoneを返却
 
 		Args:
-			raws (SymbolRaws): シンボルテーブル
+			db (SymbolDB): シンボルテーブル
 			scopes (list[str]): 探索スコープリスト
 			domain_name (str): ドメイン名
 		Returns:
@@ -129,8 +129,8 @@ class SymbolFinder:
 		"""
 		candidates = [DSN.join(scope, domain_name) for scope in scopes]
 		for candidate in candidates:
-			if candidate in raws:
-				return raws[candidate]
+			if candidate in db:
+				return db[candidate]
 
 		return None
 

@@ -153,6 +153,9 @@ def dump_node_data(node: Node) -> dict[str, Any]:
 
 
 def dump_symbol_data(symbol: IReflection) -> dict[str, Any]:
+	def attr_formatter(attr: IReflection) -> str:
+		return f'{attr.__class__.__name__}:{str(attr.role)}:{str(attr)} at {str(attr.via or attr.decl)}'
+
 	return {
 		'types_full_path': symbol.types.full_path,
 		'decl_full_path': symbol.decl.full_path,
@@ -162,10 +165,10 @@ def dump_symbol_data(symbol: IReflection) -> dict[str, Any]:
 		'types': str(symbol.types),
 		'decl': str(symbol.decl),
 		'role': str(symbol.role),
-		'origin': str(symbol.origin),
+		'origin': attr_formatter(symbol.origin) if symbol.origin else str(symbol.origin),
 		'via': str(symbol.via),
-		'attrs': [str(attr) for attr in symbol.attrs],
-		'hierarchy': [f'{layer.__class__.__name__} -> {str(layer.via or layer.decl)}' for layer in symbol.hierarchy()],
+		'attrs': [attr_formatter(attr) for attr in symbol.attrs],
+		'hierarchy': [attr_formatter(layer) for layer in symbol.hierarchy()],
 	}
 
 

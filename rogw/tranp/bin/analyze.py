@@ -102,23 +102,10 @@ def task_class(db_provider: SymbolDBProvider, reflections: Reflections) -> None:
 	print(reflections.from_fullyname(name).types.pretty(1))
 
 
-def task_symbol(reflections: Reflections) -> None:
+def task_symbol(module: Module, reflections: Reflections) -> None:
 	prompt = '\n'.join([
 		'==============',
-		'Symbol fullyname here:',
-	])
-	name = readline(prompt)
-
-	symbol = reflections.from_fullyname(name)
-
-	print('--------------')
-	print(json.dumps(dump_symbol_data(symbol), indent=2))
-
-
-def task_node(module: Module, reflections: Reflections) -> None:
-	prompt = '\n'.join([
-		'==============',
-		'Node fullyname here:',
+		'Node/Symbol fullyname here:',
 	])
 	name = readline(prompt)
 
@@ -241,7 +228,6 @@ def task_menu(locator: Locator) -> None:
 		'* (a)nalyze : Interactive Syntax Analyzer',
 		'* (c)lass   : Show Class Information',
 		'* (d)b      : Show Symbol DB',
-		'* (n)ode    : Analyze Node',
 		'* (p)retty  : Show AST',
 		'* (s)ymbol  : Show Symbol Information',
 		'* (h)elp    : Show Usage',
@@ -255,7 +241,6 @@ def task_menu(locator: Locator) -> None:
 		'a': task_analyze,
 		'c': task_class,
 		'd': task_db,
-		'n': task_node,
 		'p': task_pretty,
 		's': task_symbol,
 		'h': task_help,

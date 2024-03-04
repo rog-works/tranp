@@ -184,20 +184,9 @@ def task_help() -> None:
 
 
 def task_analyze(org_parser: SyntaxParser, cache: CacheProvider) -> None:
-	dummy_module_path = module_path_dummy()
+	def make_result() -> str:
+		dummy_module_path = module_path_dummy()
 
-	def make_result() -> tuple[str, str]:
-		app = new_app()
-		db_provider = app.resolve(SymbolDBProvider)
-		reflections = app.resolve(Reflections)
-
-		main_raws = {key: raw for key, raw in db_provider.db.items() if raw.decl.module_path == dummy_module_path.ref_name}
-		main_symbols = {key: str(resolve_symbol(reflections, key)) for key, _ in main_raws.items()}
-		found_symbols = '\n'.join([f'{key}: {symbol_type}' for key, symbol_type in main_symbols.items()])
-		entrypoint = app.resolve(Node)
-		return (found_symbols, entrypoint.pretty())
-
-	def new_app() -> App:
 		def new_parser(module_path: str) -> Entry:
 			return root if module_path == dummy_module_path.actual else org_parser(module_path)
 
@@ -208,13 +197,7 @@ def task_analyze(org_parser: SyntaxParser, cache: CacheProvider) -> None:
 			fullyname(ModulePath): lambda: dummy_module_path,
 			fullyname(CacheProvider): lambda: cache,
 		}
-		return App(difinitions)
-
-	def resolve_symbol(reflections: Reflections, name: str) -> IReflection:
-		try:
-			return reflections.from_fullyname(name)
-		except LogicError:
-			return reflections.type_of_standard(classes.Unknown)
+		return App(difinitions).resolve(Node).pretty()
 
 	while True:
 		title = '\n'.join([
@@ -231,13 +214,9 @@ def task_analyze(org_parser: SyntaxParser, cache: CacheProvider) -> None:
 
 			lines.append(line)
 
-		symbols, ast = make_result()
+		ast = make_result()
 
 		lines = [
-			'==============',
-			'Symbols',
-			'--------------',
-			symbols,
 			'==============',
 			'AST',
 			'--------------',

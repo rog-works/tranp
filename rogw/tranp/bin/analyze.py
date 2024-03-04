@@ -16,6 +16,7 @@ from rogw.tranp.lang.locator import Locator
 from rogw.tranp.lang.module import fullyname
 from rogw.tranp.module.module import Module
 from rogw.tranp.module.types import ModulePath
+from rogw.tranp.providers.module import module_path_dummy
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.semantics.reflection import IReflection, SymbolDBProvider
 from rogw.tranp.semantics.reflections import Reflections
@@ -182,28 +183,32 @@ def task_help() -> None:
 	print('\n'.join(lines))
 
 
-def task_analyze(main_module_path: ModulePath, org_parser: SyntaxParser, cache: CacheProvider) -> None:
-	def new_app() -> App:
-		def new_parser(module_path: str) -> Entry:
-			return root if module_path == main_module_path.actual else org_parser(module_path)
-
-		lark = cast(SyntaxParserOfLark, org_parser).dirty_get_origin()
-		root = EntryOfLark(lark.parse(f'{"\n".join(lines)}\n'))
-		new_difinitions = {fullyname(SyntaxParser): lambda: new_parser}
-		org_definitions = {fullyname(CacheProvider): lambda: cache}
-		app = App({**org_definitions, **new_difinitions})
-		return app
+def task_analyze(org_parser: SyntaxParser, cache: CacheProvider) -> None:
+	dummy_module_path = module_path_dummy()
 
 	def make_result() -> tuple[str, str]:
 		app = new_app()
 		db_provider = app.resolve(SymbolDBProvider)
 		reflections = app.resolve(Reflections)
 
-		main_raws = {key: raw for key, raw in db_provider.db.items() if raw.decl.module_path == main_module_path.ref_name}
+		main_raws = {key: raw for key, raw in db_provider.db.items() if raw.decl.module_path == dummy_module_path.ref_name}
 		main_symbols = {key: str(resolve_symbol(reflections, key)) for key, _ in main_raws.items()}
 		found_symbols = '\n'.join([f'{key}: {symbol_type}' for key, symbol_type in main_symbols.items()])
-		node = app.resolve(Query[Node]).by('file_input')
-		return (found_symbols, node.pretty())
+		entrypoint = app.resolve(Node)
+		return (found_symbols, entrypoint.pretty())
+
+	def new_app() -> App:
+		def new_parser(module_path: str) -> Entry:
+			return root if module_path == dummy_module_path.actual else org_parser(module_path)
+
+		lark = cast(SyntaxParserOfLark, org_parser).dirty_get_origin()
+		root = EntryOfLark(lark.parse(f'{"\n".join(lines)}\n'))
+		difinitions = {
+			fullyname(SyntaxParser): lambda: new_parser,
+			fullyname(ModulePath): lambda: dummy_module_path,
+			fullyname(CacheProvider): lambda: cache,
+		}
+		return App(difinitions)
 
 	def resolve_symbol(reflections: Reflections, name: str) -> IReflection:
 		try:

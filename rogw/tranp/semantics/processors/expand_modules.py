@@ -147,10 +147,6 @@ class ExpandModules:
 		Returns:
 			Expanded: 展開データ
 		"""
-		basepath = module.module_path.actual.replace('.', '/')
-		identity = {'mtime': str(self.loader.mtime(f'{basepath}.py'))}
-
-		@self.caches.get(f'{basepath}-raws', identity=identity, format='json')
 		def instantiate() -> Expanded:
 			nodes = module.entrypoint.procedural()
 			nodes.append(module.entrypoint)
@@ -181,7 +177,14 @@ class ExpandModules:
 
 			return Expanded(classes, decl_vars, imports, import_paths)
 
-		return instantiate()
+		# XXX ファイルの実体が存在しない場合は、メモリーから直接パースしたモジュールと見做してキャッシュは省略する
+		basepath = module.module_path.actual.replace('.', '/')
+		if not self.loader.exists(f'{basepath}.py'):
+			return instantiate()
+
+		identity = {'mtime': str(self.loader.mtime(f'{basepath}.py'))}
+		decorator = self.caches.get(f'{basepath}-raws', identity=identity, format='json')
+		return decorator(instantiate)()
 
 	def resolve_type_symbol(self, db: SymbolDB, var: defs.DeclVars) -> IReflection:
 		"""シンボルテーブルから変数の型のシンボルを解決

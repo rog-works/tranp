@@ -29,6 +29,17 @@ class FileLoader(IFileLoader):
 		self.__env = env
 
 	@implements
+	def exists(self, filepath: str) -> bool:
+		"""ファイルが存在するか判定
+
+		Args:
+			filepath (str): 実行ディレクトリーからの相対パス。または絶対パス
+		Returns:
+			bool: True = 存在する
+		"""
+		return self.__resolve_filepath(filepath) is not None
+
+	@implements
 	def load(self, filepath: str) -> str:
 		"""ファイルをロード
 

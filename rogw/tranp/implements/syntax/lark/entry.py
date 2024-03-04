@@ -1,8 +1,8 @@
-from typing import cast
+from typing import TypedDict, cast
 
 import lark
 
-from rogw.tranp.syntax.ast.entry import Entry, SourceMap, DictTreeEntry, DictTree
+from rogw.tranp.syntax.ast.entry import Entry, SourceMap
 from rogw.tranp.lang.implementation import implements, override
 
 
@@ -79,11 +79,14 @@ class EntryOfLark(Entry):
 			begin (tuple[int, int]): 開始位置(行/列)
 			end (tuple[int, int]): 終了位置(行/列)
 		"""
-		if type(self.__entry) is lark.Tree and self.__entry._meta is not None:
-			return {
-				'begin': (self.__entry._meta.line, self.__entry._meta.column),
-				'end': (self.__entry._meta.end_line, self.__entry._meta.end_column),
-			}
+		if type(self.__entry) is lark.Tree and self.__entry.meta is not None and not self.__entry.meta.empty:
+			try:
+				return {
+					'begin': (self.__entry.meta.line, self.__entry.meta.column),
+					'end': (self.__entry.meta.end_line, self.__entry.meta.end_column),
+				}
+			except Exception as e:
+				raise
 		elif type(self.__entry) is lark.Token and self.__entry.line and self.__entry.column and self.__entry.end_line and self.__entry.end_column:
 			return {
 				'begin': (self.__entry.line, self.__entry.column),
@@ -93,7 +96,14 @@ class EntryOfLark(Entry):
 			return {'begin': (0, 0), 'end': (0, 0)}
 
 
+DictToken = TypedDict('DictToken', {'name': str, 'value': str, 'source_map': SourceMap})
+DictTree = TypedDict('DictTree', {'name': str, 'children': list['DictToken | DictTree | None'], 'source_map': SourceMap})
+DictTreeEntry = DictToken | DictTree | None
+
+
 class Serialization:
+	"""Larkエントリーのシリアライザー"""
+
 	@classmethod
 	def dumps(cls, root: lark.Tree) -> DictTree:
 		"""連想配列にシリアライズ
@@ -114,14 +124,15 @@ class Serialization:
 		Returns:
 			DictTreeEntry: シリアライズエントリー
 		"""
-		if type(entry) is lark.Tree:
+		proxy = EntryOfLark(entry)
+		if proxy.has_child:
 			children: list[DictTreeEntry] = []
-			for child in entry.children:
-				children.append(cls.__dumps(child))
+			for child in proxy.children:
+				children.append(cls.__dumps(child.source))
 
-			return {'name': str(entry.data), 'children': children}
-		elif type(entry) is lark.Token:
-			return {'name': entry.type, 'value': entry.value}
+			return {'name': proxy.name, 'children': children, 'source_map': proxy.source_map}
+		elif not proxy.is_empty:
+			return {'name': proxy.name, 'value': proxy.value, 'source_map': proxy.source_map}
 		else:
 			return None
 
@@ -150,8 +161,19 @@ class Serialization:
 			for child in cast(list[DictTreeEntry], entry['children']):
 				children.append(cls.__loads(child))
 
-			return lark.Tree(entry['name'], children)
+			meta = lark.tree.Meta()
+			meta.line = entry['source_map']['begin'][0]
+			meta.column = entry['source_map']['begin'][1]
+			meta.end_line = entry['source_map']['end'][0]
+			meta.end_column = entry['source_map']['end'][1]
+			meta.empty = False
+			return lark.Tree(entry['name'], children, meta)
 		elif type(entry) is dict and 'value' in entry:
-			return lark.Token(entry['name'], entry['value'])
+			token = lark.Token(entry['name'], entry['value'])
+			token.line = entry['source_map']['begin'][0]
+			token.column = entry['source_map']['begin'][1]
+			token.end_line = entry['source_map']['end'][0]
+			token.end_column = entry['source_map']['end'][1]
+			return token
 		else:
 			return None

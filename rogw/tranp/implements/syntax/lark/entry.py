@@ -80,18 +80,23 @@ class EntryOfLark(Entry):
 			end (tuple[int, int]): 終了位置(行/列)
 		"""
 		if type(self.__entry) is lark.Tree and self.__entry.meta is not None and not self.__entry.meta.empty:
-			try:
-				return {
-					'begin': (self.__entry.meta.line, self.__entry.meta.column),
-					'end': (self.__entry.meta.end_line, self.__entry.meta.end_column),
-				}
-			except Exception as e:
-				raise
+			# XXX Larkの改行数が2倍になるバグの対処
+			source_map = (
+				int((self.__entry.meta.line + 1) / 2),
+				self.__entry.meta.column,
+				int((self.__entry.meta.end_line + 1) / 2),
+				self.__entry.meta.end_column,
+			)
+			return {'begin': (source_map[0], source_map[1]), 'end': (source_map[0], source_map[1])}
 		elif type(self.__entry) is lark.Token and self.__entry.line and self.__entry.column and self.__entry.end_line and self.__entry.end_column:
-			return {
-				'begin': (self.__entry.line, self.__entry.column),
-				'end': (self.__entry.end_line, self.__entry.end_column),
-			}
+			# XXX Larkの改行数が2倍になるバグの対処
+			source_map = (
+				int((self.__entry.line + 1) / 2),
+				self.__entry.column,
+				int((self.__entry.end_line + 1) / 2),
+				self.__entry.end_column,
+			)
+			return {'begin': (source_map[0], source_map[1]), 'end': (source_map[0], source_map[1])}
 		else:
 			return {'begin': (0, 0), 'end': (0, 0)}
 

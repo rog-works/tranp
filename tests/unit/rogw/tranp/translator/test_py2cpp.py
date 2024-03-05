@@ -141,7 +141,6 @@ class TestPy2Cpp(TestCase):
 		fullyname(Renderer): lambda: Renderer(os.path.join(appdir(), 'example/template')),
 	})
 
-	@profiler('cumtime')
 	@data_provider([
 		(_ast('import.typing', ''), defs.Import, '// #include "typing.h"'),
 

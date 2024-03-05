@@ -56,24 +56,29 @@ class Args:
 		return args
 
 
+@injectable
 def make_writer(args: Args) -> Writer:
 	basepath, _ = os.path.splitext(args.input)
 	output = args.output if args.output else f'{basepath}.h'
 	return Writer(output)
 
 
+@injectable
 def make_renderer(args: Args) -> Renderer:
 	return Renderer(args.template_dir)
 
 
+@injectable
 def make_options(args: Args) -> TranslatorOptions:
 	return TranslatorOptions(verbose=args.verbose)
 
 
+@injectable
 def make_parser_setting(args: Args) -> ParserSetting:
 	return ParserSetting(grammar=args.grammar)
 
 
+@injectable
 def make_module_paths(args: Args) -> ModulePaths:
 	basepath, extention = os.path.splitext(args.input)
 	return ModulePaths([ModulePath(basepath.replace('/', '.'), language=extention[1:])])

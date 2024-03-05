@@ -37,21 +37,6 @@ def module_paths() -> ModulePaths:
 	return ModulePaths([ModulePath('example.example', language='py')])
 
 
-def module_dependency_provider() -> ModuleDependencyProvider:
-	"""モジュールの依存プロバイダーを生成
-
-	Returns:
-		ModuleDependencyProvider: モジュールの依存プロバイダー
-	"""
-	return lambda: {
-		'rogw.tranp.module.module.Module': 'rogw.tranp.module.module.Module',
-		'rogw.tranp.syntax.ast.entry.Entry': 'rogw.tranp.providers.ast.make_entrypoint',
-		'rogw.tranp.syntax.ast.query.Query': 'rogw.tranp.syntax.node.query.Nodes',
-		'rogw.tranp.syntax.node.node.Node': 'rogw.tranp.providers.node.entrypoint',
-		'rogw.tranp.syntax.node.resolver.NodeResolver': 'rogw.tranp.syntax.node.resolver.NodeResolver',
-	}
-
-
 @injectable
 def module_loader(locator: Locator, dependency_provider: ModuleDependencyProvider) -> ModuleLoader:
 	"""モジュールローダーを生成

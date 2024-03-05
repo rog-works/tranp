@@ -6,7 +6,7 @@
 			"description": "Select test case",
 			"id": "testCases",
 			"options": [
-				"semantics.test_provider.TestProvider",
+				"semantics.reflection.test_symbol_db.TestSymbolDB",
 				"semantics.test_reflections.TestReflections.test_from_fullyname",
 				"semantics.test_reflections.TestReflections.test_from_fullyname_error",
 				"semantics.test_reflections.TestReflections.test_type_of",
@@ -17,7 +17,7 @@
 				"translator.test_py2cpp.TestPy2Cpp.test_exec_error",
 				"view.test_render.TestRenderer.test_render_function",
 			],
-			"default": "semantics.test_provider.TestProvider",
+			"default": "semantics.reflection.test_symbol_db.TestSymbolDB",
 		}
 	],
 	"configurations": [

@@ -95,7 +95,7 @@ def _ast(before: str, after: str) -> str:
 
 def _mod(before: str, after: str) -> str:
 	aliases = {
-		'xyz': 'tests.unit.rogw.tranp.semantics.fixtures.test_provider_xyz',
+		'xyz': 'tests.unit.rogw.tranp.semantics.reflection.fixtures.test_symbol_db_xyz',
 		'classes': 'rogw.tranp.compatible.libralies.classes',
 	}
 	return DSN.join(aliases[before], after)

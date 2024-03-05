@@ -1,11 +1,11 @@
 from unittest import TestCase
 
-from rogw.tranp.semantics.provider import SymbolDBProvider
+from rogw.tranp.semantics.reflection import SymbolDBProvider
 from tests.test.fixture import Fixture
-from tests.unit.rogw.tranp.semantics.fixtures.test_provider_expect import expected_symbols
+from tests.unit.rogw.tranp.semantics.reflection.fixtures.test_symbol_db_expect import expected_symbols
 
 
-class TestProvider(TestCase):
+class TestSymbolDB(TestCase):
 	fixture = Fixture.make(__file__)
 
 	def test_make_db(self) -> None:

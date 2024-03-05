@@ -12,7 +12,7 @@ def parser_setting() -> ParserSetting:
 	return ParserSetting(grammar='data/grammar.lark')
 
 
-def make_entrypoint(module_path: ModulePath, parser: SyntaxParser) -> Entry:
+def make_root_entry(module_path: ModulePath, parser: SyntaxParser) -> Entry:
 	"""ASTのルート要素を生成
 
 	Args:

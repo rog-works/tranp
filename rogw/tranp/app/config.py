@@ -1,4 +1,5 @@
 from rogw.tranp.lang.di import ModuleDefinitions
+from rogw.tranp.module.loader import ModuleDependencyProvider
 
 
 def default_definitions() -> ModuleDefinitions:
@@ -14,17 +15,32 @@ def default_definitions() -> ModuleDefinitions:
 		'rogw.tranp.io.cache.CacheProvider': 'rogw.tranp.io.cache.CacheProvider',
 		'rogw.tranp.io.cache.CacheSetting': 'rogw.tranp.providers.io.cache_setting',
 		'rogw.tranp.io.loader.IFileLoader': 'rogw.tranp.app.io.FileLoader',
-		'rogw.tranp.module.loader.ModuleDependencyProvider': 'rogw.tranp.providers.module.module_dependency_provider',
+		'rogw.tranp.module.loader.ModuleDependencyProvider': 'rogw.tranp.app.config.module_dependency_provider',
 		'rogw.tranp.module.loader.ModuleLoader': 'rogw.tranp.providers.module.module_loader',
 		'rogw.tranp.module.modules.Modules': 'rogw.tranp.module.modules.Modules',
 		'rogw.tranp.module.types.LibraryPaths': 'rogw.tranp.providers.module.library_paths',
 		'rogw.tranp.module.types.ModulePaths': 'rogw.tranp.providers.module.module_paths',
 		'rogw.tranp.semantics.finder.SymbolFinder': 'rogw.tranp.semantics.finder.SymbolFinder',
-		'rogw.tranp.semantics.plugin.PluginProvider': 'rogw.tranp.semantics.plugin.plugin_provider_empty',
+		'rogw.tranp.semantics.plugin.PluginProvider': 'rogw.tranp.providers.semantics.plugin.plugin_provider_empty',
 		'rogw.tranp.semantics.processor.Preprocessors': 'rogw.tranp.semantics.preprocessors.preprocessors',
-		'rogw.tranp.semantics.reflection.interface.SymbolDBProvider': 'rogw.tranp.semantics.provider.make_db',
+		'rogw.tranp.semantics.reflection.interface.SymbolDBProvider': 'rogw.tranp.providers.semantics.reflection.make_db',
 		'rogw.tranp.semantics.reflections.Reflections': 'rogw.tranp.semantics.reflections.Reflections',
-		'rogw.tranp.syntax.ast.resolver.SymbolMapping': 'rogw.tranp.providers.node.symbol_mapping',
-		'rogw.tranp.syntax.ast.parser.ParserSetting': 'rogw.tranp.providers.ast.parser_setting',
+		'rogw.tranp.syntax.ast.resolver.SymbolMapping': 'rogw.tranp.providers.syntax.node.symbol_mapping',
+		'rogw.tranp.syntax.ast.parser.ParserSetting': 'rogw.tranp.providers.syntax.ast.parser_setting',
 		'rogw.tranp.syntax.ast.parser.SyntaxParser': 'rogw.tranp.implements.syntax.lark.parser.SyntaxParserOfLark',
+	}
+
+
+def module_dependency_provider() -> ModuleDependencyProvider:
+	"""モジュールの依存プロバイダーを生成
+
+	Returns:
+		ModuleDependencyProvider: モジュールの依存プロバイダー
+	"""
+	return lambda: {
+		'rogw.tranp.module.module.Module': 'rogw.tranp.module.module.Module',
+		'rogw.tranp.syntax.ast.entry.Entry': 'rogw.tranp.providers.syntax.ast.make_root_entry',
+		'rogw.tranp.syntax.ast.query.Query': 'rogw.tranp.syntax.node.query.Nodes',
+		'rogw.tranp.syntax.node.node.Node': 'rogw.tranp.providers.syntax.node.entrypoint',
+		'rogw.tranp.syntax.node.resolver.NodeResolver': 'rogw.tranp.syntax.node.resolver.NodeResolver',
 	}

@@ -69,6 +69,52 @@ def make_module_path(args: Args) -> ModulePath:
 	return ModulePath(module_path, module_path)
 
 
+def task_analyze(org_parser: SyntaxParser, cache: CacheProvider) -> None:
+	def make_result() -> str:
+		dummy_module_path = module_path_dummy()
+
+		def new_parser(module_path: str) -> Entry:
+			return root if module_path == dummy_module_path.actual else org_parser(module_path)
+
+		lark = cast(SyntaxParserOfLark, org_parser).dirty_get_origin()
+		root = EntryOfLark(lark.parse(f'{"\n".join(lines)}\n'))
+		difinitions = {
+			fullyname(SyntaxParser): lambda: new_parser,
+			fullyname(ModulePath): lambda: dummy_module_path,
+			fullyname(CacheProvider): lambda: cache,
+		}
+		return App(difinitions).resolve(Node).pretty()
+
+	while True:
+		title = '\n'.join([
+			'==============',
+			'Python code here:'
+		])
+		print(title)
+
+		lines: list[str] = []
+		while True:
+			line = readline()
+			if not line:
+				break
+
+			lines.append(line)
+
+		ast = make_result()
+
+		lines = [
+			'==============',
+			'AST',
+			'--------------',
+			ast,
+			'--------------',
+		]
+		print('\n'.join(lines))
+
+		if readline('(e)xit?:') == 'e':
+			break
+
+
 def task_db(db_provider: SymbolDBProvider) -> None:
 	title = '\n'.join([
 		'==============',
@@ -77,16 +123,6 @@ def task_db(db_provider: SymbolDBProvider) -> None:
 	])
 	print(title)
 	print(json.dumps([f'{key}: {raw.org_fullyname}' for key, raw in db_provider.db.items()], indent=2))
-
-
-def task_pretty(nodes: Query[Node]) -> None:
-	title = '\n'.join([
-		'==============',
-		'AST',
-		'--------------',
-	])
-	print(title)
-	print(nodes.by('file_input').pretty())
 
 
 def task_class(db_provider: SymbolDBProvider, reflections: Reflections) -> None:
@@ -104,30 +140,46 @@ def task_class(db_provider: SymbolDBProvider, reflections: Reflections) -> None:
 	print(reflections.from_fullyname(name).types.pretty(1))
 
 
-def task_symbol(module: Module, reflections: Reflections) -> None:
-	prompt = '\n'.join([
+def task_pretty(nodes: Query[Node]) -> None:
+	title = '\n'.join([
 		'==============',
-		'Node/Symbol fullyname here:',
+		'AST',
+		'--------------',
 	])
-	name = readline(prompt)
+	print(title)
+	print(nodes.by('file_input').pretty())
 
-	candidates = [node for node in module.entrypoint.procedural() if node.fullyname == name]
 
-	if len(candidates):
-		node = candidates[0]
-		symbol = reflections.type_of(node)
+def task_symbol(module: Module, reflections: Reflections) -> None:
+	while True:
+		prompt = '\n'.join([
+			'==============',
+			'Node/Symbol fullyname here:',
+		])
+		name = readline(prompt)
 
-		print('--------------')
-		print('Node')
-		print('--------------')
-		print(json.dumps(dump_node_data(node), indent=2))
-		print('--------------')
-		print('Type of')
-		print('--------------')
-		print(json.dumps(dump_symbol_data(symbol), indent=2))
-	else:
-		print('--------------')
-		print('Not found')
+		candidates = [node for node in module.entrypoint.procedural() if node.fullyname == name]
+
+		if len(candidates):
+			node = candidates[0]
+			symbol = reflections.type_of(node)
+
+			print('--------------')
+			print('Node')
+			print('--------------')
+			print(json.dumps(dump_node_data(node), indent=2))
+			print('--------------')
+			print('Type of')
+			print('--------------')
+			print(json.dumps(dump_symbol_data(symbol), indent=2))
+			print('--------------')
+		else:
+			print('--------------')
+			print('Not found')
+			print('--------------')
+
+		if readline('(e)xit?:') == 'e':
+			break
 
 
 def dump_node_data(node: Node) -> dict[str, Any]:
@@ -182,52 +234,6 @@ def task_help() -> None:
 		'* -i: Python source code input file path. default = "example/example.py"',
 	]
 	print('\n'.join(lines))
-
-
-def task_analyze(org_parser: SyntaxParser, cache: CacheProvider) -> None:
-	def make_result() -> str:
-		dummy_module_path = module_path_dummy()
-
-		def new_parser(module_path: str) -> Entry:
-			return root if module_path == dummy_module_path.actual else org_parser(module_path)
-
-		lark = cast(SyntaxParserOfLark, org_parser).dirty_get_origin()
-		root = EntryOfLark(lark.parse(f'{"\n".join(lines)}\n'))
-		difinitions = {
-			fullyname(SyntaxParser): lambda: new_parser,
-			fullyname(ModulePath): lambda: dummy_module_path,
-			fullyname(CacheProvider): lambda: cache,
-		}
-		return App(difinitions).resolve(Node).pretty()
-
-	while True:
-		title = '\n'.join([
-			'==============',
-			'Python code here:'
-		])
-		print(title)
-
-		lines: list[str] = []
-		while True:
-			line = readline()
-			if not line:
-				break
-
-			lines.append(line)
-
-		ast = make_result()
-
-		lines = [
-			'==============',
-			'AST',
-			'--------------',
-			ast,
-			'--------------',
-		]
-		print('\n'.join(lines))
-
-		if readline('(e)xit?:') == 'e':
-			break
 
 
 def task_menu(locator: Locator) -> None:

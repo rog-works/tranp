@@ -43,7 +43,11 @@ class Node:
 	@override
 	def __str__(self) -> str:
 		"""str: オブジェクトの文字列表現"""
-		return f'<{self.__class__.__name__}: {self.fullyname}>'
+		source_map = self.source_map
+		source_map_begin = ', '.join(map(str, source_map['begin']))
+		source_map_end = ', '.join(map(str, source_map['end']))
+		joined_source_map = f'({source_map_begin})..({source_map_end})'
+		return f'<{self.__class__.__name__}: {self.fullyname} {joined_source_map}>'
 
 	@override
 	def __repr__(self) -> str:
@@ -423,7 +427,7 @@ class Node:
 		if self.is_a(expect):
 			return cast(T_Node, self)
 
-		raise IllegalConvertionError(self, expect)
+		raise IllegalConvertionError(str(self), expect)
 
 	def one_of(self, expects: type[T_Node]) -> T_Node:
 		"""指定のクラスと同じか派生クラスか判定し、合致すればそのままインスタンスを返す。合致するクラスが1件以外の場合は例外を出力

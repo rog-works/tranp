@@ -95,7 +95,28 @@ class ClassDomainNaming:
 		if not alias_handler:
 			return DSN.shift(DSN.relativefy(types.namespace, types.module_path), -1)
 
-		return DSN.join(*[cls.domain_name(ancestor, alias_handler) for ancestor in types.ancestor_classes()])
+		return DSN.join(*[cls.domain_name(ancestor, alias_handler) for ancestor in cls.__ancestor_classes(types)])
+
+	@classmethod
+	def __ancestor_classes(cls, types: defs.ClassDef) -> list[defs.ClassDef]:
+		"""名前空間を持つ親クラスを全て抽出
+
+		Args:
+			types (ClassDef): 起点のクラス宣言ノード
+		Returns:
+			list[ClassDef]: 親クラスのノード
+		Note:
+			XXX 設計的にはIScopeを判断材料とするべき
+		"""
+		curr = types.parent
+		ancestors: list[defs.ClassDef] = []
+		while not isinstance(curr, defs.Entrypoint):
+			if isinstance(curr, defs.ClassDef):
+				ancestors.append(curr)
+
+			curr = curr.parent
+
+		return ancestors
 
 
 class ClassShorthandNaming:

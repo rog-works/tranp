@@ -277,17 +277,6 @@ class ClassDef(Node, IDomain, IScope, IDeclaration, ISymbol):
 		embedder = self._dig_embedder(__actual__.__name__)
 		return embedder.arguments[0].value.as_a(String).plain if embedder else None
 
-	def ancestor_classes(self) -> list['ClassDef']:
-		"""Note: XXX 振る舞いとして必然性のないメソッド。ユースケースはClassDomainNamingとの連携のみ"""
-		ancestors: list[ClassDef] = []
-		ancestor = self.parent
-		while ancestor._full_path.contains('class_def'):
-			found = ancestor._ancestor('class_def').as_a(ClassDef)
-			ancestors.append(found)
-			ancestor = found.parent
-
-		return ancestors
-
 	def _decl_vars_with(self, allow: type[T_Declable]) -> dict[str, T_Declable]:
 		return VarsCollector.collect(self, allow)
 

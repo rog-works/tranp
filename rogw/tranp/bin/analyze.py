@@ -10,6 +10,7 @@ from rogw.tranp.implements.cpp.providers.semantics import cpp_plugin_provider
 from rogw.tranp.implements.syntax.lark.entry import EntryOfLark
 from rogw.tranp.implements.syntax.lark.parser import SyntaxParserOfLark
 from rogw.tranp.io.cache import CacheProvider
+from rogw.tranp.lang.implementation import injectable
 from rogw.tranp.lang.locator import Locator
 from rogw.tranp.lang.module import fullyname
 from rogw.tranp.module.modules import Modules
@@ -71,6 +72,7 @@ def fetch_main_entrypoint(modules: Modules, module_paths: ModulePaths) -> defs.E
 	return modules.load(module_paths[0].path).entrypoint.as_a(defs.Entrypoint)
 
 
+@injectable
 def task_analyze(org_parser: SyntaxParser, cache: CacheProvider) -> None:
 	def make_result() -> str:
 		dummy_module_path = module_path_dummy()
@@ -116,6 +118,7 @@ def task_analyze(org_parser: SyntaxParser, cache: CacheProvider) -> None:
 			break
 
 
+@injectable
 def task_db(db_provider: SymbolDBProvider) -> None:
 	title = '\n'.join([
 		'==============',
@@ -126,6 +129,7 @@ def task_db(db_provider: SymbolDBProvider) -> None:
 	print(json.dumps([f'{key}: {raw.org_fullyname}' for key, raw in db_provider.db.items()], indent=2))
 
 
+@injectable
 def task_class(db_provider: SymbolDBProvider, reflections: Reflections) -> None:
 	names = {raw.decl.fullyname: True for raw in db_provider.db.values() if raw.decl.is_a(defs.Class)}
 	prompt = '\n'.join([
@@ -141,6 +145,7 @@ def task_class(db_provider: SymbolDBProvider, reflections: Reflections) -> None:
 	print(reflections.from_fullyname(name).types.pretty(1))
 
 
+@injectable
 def task_pretty(modules: Modules, module_paths: ModulePaths) -> None:
 	entrypoint = fetch_main_entrypoint(modules, module_paths)
 	title = '\n'.join([
@@ -152,6 +157,7 @@ def task_pretty(modules: Modules, module_paths: ModulePaths) -> None:
 	print(entrypoint.pretty())
 
 
+@injectable
 def task_symbol(modules: Modules, module_paths: ModulePaths, reflections: Reflections) -> None:
 	while True:
 		prompt = '\n'.join([
@@ -239,6 +245,7 @@ def task_help() -> None:
 	print('\n'.join(lines))
 
 
+@injectable
 def task_menu(locator: Locator) -> None:
 	prompt = '\n'.join([
 		'==============',

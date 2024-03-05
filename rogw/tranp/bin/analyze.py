@@ -63,9 +63,9 @@ def make_parser_setting(args: Args) -> ParserSetting:
 	return ParserSetting(grammar=args.grammar)
 
 
-def make_module_paths(args: Args) -> list[ModulePath]:
+def make_module_paths(args: Args) -> ModulePaths:
 	basepath, extention = os.path.splitext(args.input)
-	return [ModulePath(basepath.replace('/', '.'), language=extention[1:])]
+	return ModulePaths([ModulePath(basepath.replace('/', '.'), language=extention[1:])])
 
 
 def fetch_main_entrypoint(modules: Modules, module_paths: ModulePaths) -> defs.Entrypoint:

@@ -205,16 +205,36 @@ class DI:
 		annos = getattr(annotated, '__annotations__', {}) if hasattr(annotated, '__annotations__') else {}
 		return {key: anno for key, anno in annos.items() if key != 'return'}
 
-	def clone(self: Self) -> Self:
-		"""シンボルのマッピング情報のみコピーした複製を生成
+	def _clone(self) -> Self:
+		"""インスタンスを複製
 
 		Returns:
 			Self: 複製したインスタンス
 		"""
 		di = self.__class__()
-		for symbol, injector in self.__injectors.items():
-			di.bind(symbol, injector)
+		di.__instances = self.__instances.copy()
+		di.__injectors = self.__injectors.copy()
+		return di
 
+	def combine(self, other: Self) -> Self:
+		"""マージ対象と合成した新たなインスタンスを生成
+
+		Args:
+			other (Self): マージ対象のインスタンス
+		Returns:
+			Self: 合成したインスタンス
+		Note:
+			* 戻り値の型はレシーバーのインスタンスに倣う
+			* 同じシンボルはマージ対象のインスタンスで上書きされる
+		Raises:
+			TypeError: マージ対象が自身と相違した派生クラス
+		"""
+		if not isinstance(self, other.__class__):
+			raise TypeError(f'Merging not allowed. not related. self: {self.__class__}, other: {other.__class__}')
+
+		di = self._clone()
+		di.__instances = {**di.__instances, **other.__instances}
+		di.__injectors = {**di.__injectors, **other.__injectors}
 		return di
 
 
@@ -222,13 +242,13 @@ class LazyDI(DI):
 	"""遅延ロードDIコンテナー。マッピングを文字列で管理し、型解決時までモジュールの読み込みを遅延させる"""
 
 	@classmethod
-	def instantiate(cls, definitions: ModuleDefinitions) -> 'LazyDI':
+	def instantiate(cls, definitions: ModuleDefinitions) -> Self:
 		"""インスタンスを生成
 
 		Args:
 			definitions (ModuleDefinitions): モジュール定義
 		Returns:
-			LazyDI: インスタンス
+			Self: インスタンス
 		"""
 		di = cls()
 		for symbol_path, injector in definitions.items():
@@ -352,12 +372,30 @@ class LazyDI(DI):
 		self.bind(load_module_path(symbol_path), injector if callable(injector) else load_module_path(injector))
 
 	@override
-	def clone(self: Self) -> Self:
-		"""シンボルのマッピング情報のみコピーした複製を生成
+	def _clone(self: Self) -> Self:
+		"""インスタンスを複製
 
 		Returns:
 			Self: 複製したインスタンス
 		"""
-		di = super().clone()
+		di = super()._clone()
 		di.__definitions = self.__definitions.copy()
+		return di
+
+	@override
+	def combine(self, other: Self) -> Self:
+		"""マージ対象と合成した新たなインスタンスを生成
+
+		Args:
+			other (Self): マージ対象のインスタンス
+		Returns:
+			Self: 合成したインスタンス
+		Note:
+			* 戻り値の型はレシーバーのインスタンスに倣う
+			* 同じシンボルはマージ対象のインスタンスで上書きされる
+		Raises:
+			TypeError: マージ対象が自身と相違した派生クラス
+		"""
+		di = super().combine(other)
+		di.__definitions = {**self.__definitions, **other.__definitions}
 		return di

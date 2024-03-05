@@ -9,10 +9,11 @@ from rogw.tranp.lang.di import ModuleDefinitions
 from rogw.tranp.lang.locator import T_Inst
 from rogw.tranp.lang.module import filepath_to_module_path, fullyname
 from rogw.tranp.module.module import Module
-from rogw.tranp.module.types import ModulePath
+from rogw.tranp.module.modules import Modules
+from rogw.tranp.module.types import ModulePath, ModulePaths
 from rogw.tranp.syntax.ast.entry import Entry
 from rogw.tranp.syntax.ast.parser import SyntaxParser
-from rogw.tranp.syntax.ast.query import Query
+import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 
 
@@ -66,15 +67,7 @@ class Fixture:
 		Returns:
 			ModuleDefinitions: モジュール定義
 		"""
-		return {fullyname(ModulePath): self.__module_path}
-
-	def __module_path(self) -> ModulePath:
-		"""メインモジュールのモジュールパスを取得
-
-		Args:
-			ModulePath: モジュールパス
-		"""
-		return ModulePath(self.__fixture_module_path, self.__fixture_module_path)
+		return {fullyname(ModulePaths): lambda: [ModulePath(self.__fixture_module_path, language='py')]}
 
 	def get(self, symbol: type[T_Inst]) -> T_Inst:
 		"""テスト用アプリケーションからシンボルに対応したインスタンスを取得
@@ -87,24 +80,33 @@ class Fixture:
 		return self.__app.resolve(symbol)
 
 	@property
-	def main(self) -> Module:
-		"""Module: メインモジュール"""
-		return self.__app.resolve(Module)
+	def shared_module(self) -> Module:
+		"""Module: 共有フィクスチャーモジュール"""
+		return self.__app.resolve(Modules).load(self.__fixture_module_path)
 
-	@property
-	def shared_nodes(self) -> Query[Node]:
-		"""Query[Node]: 共有フィクスチャーのノードクエリー"""
-		return self.__app.resolve(Query[Node])
+	def shared_nodes_by(self, full_path: str) -> Node:
+		"""共有フィクスチャーのノードを取得
 
-	def custom_nodes(self, source_code: str) -> Query[Node]:
-		"""ソースコードをビルドし、ノードクエリーを生成
+		Args:
+			full_path (str): フルパス
+		Returns:
+			Node: ノード
+		"""
+		return self.shared_module.entrypoint.as_a(defs.Entrypoint).whole_by(full_path)
+
+	def custom_nodes_by(self, source_code: str, full_path: str) -> Node:
+		"""共有フィクスチャーのノードを取得
 
 		Args:
 			source_code (str): ソースコード
+			full_path (str): フルパス
 		Returns:
-			Query[Node]: カスタムのノードクエリー
+			Node: ノード
 		"""
-		return self.custom_app(source_code).resolve(Query[Node])
+		app = self.custom_app(source_code)
+		custom_module_path = app.resolve(ModulePaths)[0]
+		custom_module = app.resolve(Modules).load(custom_module_path.path)
+		return custom_module.entrypoint.as_a(defs.Entrypoint).whole_by(full_path)
 
 	def custom_app(self, source_code: str) -> App:
 		"""ソースコードからカスタムアプリケーションを生成
@@ -114,17 +116,19 @@ class Fixture:
 		Returns:
 			App: アプリケーション
 		"""
+		custom_module_path = ModulePath('__main__', language='py')
+
 		def syntax_parser() -> SyntaxParser:
 			org_parser = self.__app.resolve(SyntaxParser)
-			test_module_path = self.__app.resolve(ModulePath)
 			lark = cast(SyntaxParserOfLark, org_parser).dirty_get_origin()
 			root = EntryOfLark(lark.parse(f'{source_code}\n'))
 			def new_parser(module_path: str) -> Entry:
-				return root if module_path == test_module_path.actual else org_parser(module_path)
+				return root if module_path == custom_module_path.path else org_parser(module_path)
 
 			return new_parser
 
 		new_definitions = {
+			fullyname(ModulePaths): lambda: [custom_module_path],
 			fullyname(SyntaxParser): syntax_parser,
 			fullyname(CacheProvider): lambda: self.__app.resolve(CacheProvider),
 		}

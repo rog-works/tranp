@@ -10,17 +10,17 @@ from rogw.tranp.implements.cpp.providers.semantics import cpp_plugin_provider
 from rogw.tranp.implements.syntax.lark.entry import EntryOfLark
 from rogw.tranp.implements.syntax.lark.parser import SyntaxParserOfLark
 from rogw.tranp.io.cache import CacheProvider
+from rogw.tranp.lang.implementation import injectable
 from rogw.tranp.lang.locator import Locator
 from rogw.tranp.lang.module import fullyname
-from rogw.tranp.module.module import Module
-from rogw.tranp.module.types import ModulePath
+from rogw.tranp.module.modules import Modules
+from rogw.tranp.module.types import ModulePath, ModulePaths
 from rogw.tranp.providers.module import module_path_dummy
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.semantics.reflection import IReflection, SymbolDBProvider
 from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.syntax.ast.entry import Entry
 from rogw.tranp.syntax.ast.parser import ParserSetting, SyntaxParser
-from rogw.tranp.syntax.ast.query import Query
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 
@@ -59,31 +59,36 @@ def now() -> str:
 	return datetime.now(zone).strftime('%Y-%m-%d %H:%M:%S')
 
 
+@injectable
 def make_parser_setting(args: Args) -> ParserSetting:
 	return ParserSetting(grammar=args.grammar)
 
 
-def make_module_path(args: Args) -> ModulePath:
-	basepath, _ = os.path.splitext(args.input)
-	module_path = basepath.replace('/', '.')
-	return ModulePath(module_path, module_path)
+@injectable
+def make_module_paths(args: Args) -> ModulePaths:
+	basepath, extention = os.path.splitext(args.input)
+	return ModulePaths([ModulePath(basepath.replace('/', '.'), language=extention[1:])])
 
 
+def fetch_main_entrypoint(modules: Modules, module_paths: ModulePaths) -> defs.Entrypoint:
+	return modules.load(module_paths[0].path).entrypoint.as_a(defs.Entrypoint)
+
+
+@injectable
 def task_analyze(org_parser: SyntaxParser, cache: CacheProvider) -> None:
 	def make_result() -> str:
 		dummy_module_path = module_path_dummy()
 
 		def new_parser(module_path: str) -> Entry:
-			return root if module_path == dummy_module_path.actual else org_parser(module_path)
+			return root if module_path == dummy_module_path.path else org_parser(module_path)
 
 		lark = cast(SyntaxParserOfLark, org_parser).dirty_get_origin()
 		root = EntryOfLark(lark.parse(f'{"\n".join(lines)}\n'))
 		difinitions = {
 			fullyname(SyntaxParser): lambda: new_parser,
-			fullyname(ModulePath): lambda: dummy_module_path,
 			fullyname(CacheProvider): lambda: cache,
 		}
-		return App(difinitions).resolve(Node).pretty()
+		return App(difinitions).resolve(Modules).load(dummy_module_path.path).entrypoint.pretty()
 
 	while True:
 		title = '\n'.join([
@@ -115,6 +120,7 @@ def task_analyze(org_parser: SyntaxParser, cache: CacheProvider) -> None:
 			break
 
 
+@injectable
 def task_db(db_provider: SymbolDBProvider) -> None:
 	title = '\n'.join([
 		'==============',
@@ -125,6 +131,7 @@ def task_db(db_provider: SymbolDBProvider) -> None:
 	print(json.dumps([f'{key}: {raw.org_fullyname}' for key, raw in db_provider.db.items()], indent=2))
 
 
+@injectable
 def task_class(db_provider: SymbolDBProvider, reflections: Reflections) -> None:
 	names = {raw.decl.fullyname: True for raw in db_provider.db.values() if raw.decl.is_a(defs.Class)}
 	prompt = '\n'.join([
@@ -140,17 +147,20 @@ def task_class(db_provider: SymbolDBProvider, reflections: Reflections) -> None:
 	print(reflections.from_fullyname(name).types.pretty(1))
 
 
-def task_pretty(nodes: Query[Node]) -> None:
+@injectable
+def task_pretty(modules: Modules, module_paths: ModulePaths) -> None:
+	entrypoint = fetch_main_entrypoint(modules, module_paths)
 	title = '\n'.join([
 		'==============',
 		'AST',
 		'--------------',
 	])
 	print(title)
-	print(nodes.by('file_input').pretty())
+	print(entrypoint.pretty())
 
 
-def task_symbol(module: Module, reflections: Reflections) -> None:
+@injectable
+def task_symbol(modules: Modules, module_paths: ModulePaths, reflections: Reflections) -> None:
 	while True:
 		prompt = '\n'.join([
 			'==============',
@@ -158,7 +168,8 @@ def task_symbol(module: Module, reflections: Reflections) -> None:
 		])
 		name = readline(prompt)
 
-		candidates = [node for node in module.entrypoint.procedural() if node.fullyname == name]
+		entrypoint = fetch_main_entrypoint(modules, module_paths)
+		candidates = [node for node in entrypoint.procedural() if node.fullyname == name]
 
 		if len(candidates):
 			node = candidates[0]
@@ -236,6 +247,7 @@ def task_help() -> None:
 	print('\n'.join(lines))
 
 
+@injectable
 def task_menu(locator: Locator) -> None:
 	prompt = '\n'.join([
 		'==============',
@@ -275,8 +287,8 @@ if __name__ == '__main__':
 	try:
 		App({
 			fullyname(Args): Args,
+			fullyname(ModulePaths): make_module_paths,
 			fullyname(ParserSetting): make_parser_setting,
-			fullyname(ModulePath): make_module_path,
 			fullyname(PluginProvider): cpp_plugin_provider,
 		}).run(task_menu)
 	except KeyboardInterrupt:

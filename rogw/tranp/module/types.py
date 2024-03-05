@@ -1,17 +1,26 @@
-from dataclasses import dataclass
+from typing import NamedTuple
 
-@dataclass
-class ModulePath:
+
+class ModulePath(NamedTuple):
 	"""モジュールパスを管理
 
 	Attributes:
-		ref_name (str): 参照名
-		actual (str): 実体(実ファイルと対応)
+		path (str): モジュールパス (書式: 'path.to.module')
+		language (str): 言語タグ (例: 'py'=Python, 'js'=JavaScript, 'cpp'=C++)
 	"""
-	ref_name: str
-	actual: str
+	path: str
+	language: str
 
 
-class LibraryPaths(list[str]):
+class ModulePaths(list[ModulePath]):
+	"""処理対象モジュールのパスリスト
+
+	Note:
+		間接的にインポートされ、暗黙的に利用されるだけのモジュールは含めない
+	"""
+	...
+
+
+class LibraryPaths(list[ModulePath]):
 	"""標準ライブラリモジュールのパスリストの代替クラス。型解決以外で使用することはない"""
 	...

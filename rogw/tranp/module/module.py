@@ -25,7 +25,7 @@ class Module:
 	@property
 	def path(self) -> str:
 		"""str: モジュールパス"""
-		return self.__module_path.ref_name
+		return self.__module_path.path
 
 	@property
 	def entrypoint(self) -> Node:

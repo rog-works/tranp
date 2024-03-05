@@ -6,9 +6,11 @@ from rogw.tranp.i18n.i18n import TranslationMapping
 from rogw.tranp.implements.cpp.providers.i18n import translation_mapping
 from rogw.tranp.implements.cpp.providers.semantics import cpp_plugin_provider
 from rogw.tranp.lang.error import stacktrace
+from rogw.tranp.lang.implementation import injectable
 from rogw.tranp.lang.module import fullyname
 from rogw.tranp.lang.profile import profiler
-from rogw.tranp.module.types import ModulePath
+from rogw.tranp.module.modules import Modules
+from rogw.tranp.module.types import ModulePath, ModulePaths
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.syntax.ast.parser import ParserSetting
 from rogw.tranp.syntax.node.node import Node
@@ -54,34 +56,45 @@ class Args:
 		return args
 
 
+@injectable
 def make_writer(args: Args) -> Writer:
 	basepath, _ = os.path.splitext(args.input)
 	output = args.output if args.output else f'{basepath}.h'
 	return Writer(output)
 
 
+@injectable
 def make_renderer(args: Args) -> Renderer:
 	return Renderer(args.template_dir)
 
 
+@injectable
 def make_options(args: Args) -> TranslatorOptions:
 	return TranslatorOptions(verbose=args.verbose)
 
 
+@injectable
 def make_parser_setting(args: Args) -> ParserSetting:
 	return ParserSetting(grammar=args.grammar)
 
 
-def make_module_path(args: Args) -> ModulePath:
-	basepath, _ = os.path.splitext(args.input)
-	module_path = basepath.replace('/', '.')
-	return ModulePath(module_path, module_path)
+@injectable
+def make_module_paths(args: Args) -> ModulePaths:
+	basepath, extention = os.path.splitext(args.input)
+	return ModulePaths([ModulePath(basepath.replace('/', '.'), language=extention[1:])])
 
 
-def task(translator: Py2Cpp, root: Node, writer: Writer, args: Args) -> None:
+def fetch_main_entrypoint(modules: Modules, module_paths: ModulePaths) -> Node:
+	"""Note: FIXME 複数の出力対象に対応"""
+	return modules.load(module_paths[0].path).entrypoint
+
+
+@injectable
+def task(translator: Py2Cpp, modules: Modules, module_paths: ModulePaths, writer: Writer, args: Args) -> None:
 	def run() -> None:
 		try:
-			writer.put(translator.translate(root))
+			entrypoint = fetch_main_entrypoint(modules, module_paths)
+			writer.put(translator.translate(entrypoint))
 			writer.flush()
 		except Exception as e:
 			print(''.join(stacktrace(e)))
@@ -95,13 +108,13 @@ def task(translator: Py2Cpp, root: Node, writer: Writer, args: Args) -> None:
 if __name__ == '__main__':
 	definitions = {
 		fullyname(Args): Args,
-		fullyname(Writer): make_writer,
-		fullyname(Renderer): make_renderer,
-		fullyname(TranslatorOptions): make_options,
-		fullyname(Py2Cpp): Py2Cpp,
+		fullyname(ModulePaths): make_module_paths,
 		fullyname(ParserSetting): make_parser_setting,
-		fullyname(ModulePath): make_module_path,
 		fullyname(PluginProvider): cpp_plugin_provider,
+		fullyname(Py2Cpp): Py2Cpp,
+		fullyname(Renderer): make_renderer,
 		fullyname(TranslationMapping): translation_mapping,
+		fullyname(TranslatorOptions): make_options,
+		fullyname(Writer): make_writer,
 	}
 	App(definitions).run(task)

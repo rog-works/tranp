@@ -19,7 +19,7 @@ class SymbolFinder:
 		Args:
 			library_paths (LibraryPaths): 標準ライブラリーパスリスト @inject
 		"""
-		self.__library_paths = library_paths
+		self.__library_paths = [module_path.path for module_path in library_paths]
 
 	def get_object(self, db: SymbolDB) -> IReflection:
 		"""objectのシンボルを取得

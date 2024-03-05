@@ -74,10 +74,52 @@ class TestDI(TestCase):
 		di.bind(X, X)
 		self.assertEqual(di.invoke(factory, 'hogefuga'), 'B.X.hogefuga')
 
-	def test_clone(self) -> None:
-		di = DI()
-		di.bind(A, A)
-		cloned = di.clone()
-		self.assertEqual(type(di.resolve(A)), A)
-		self.assertEqual(type(cloned.resolve(A)), A)
-		self.assertNotEqual(di.resolve(A), cloned.resolve(A))
+	def test_combine(self) -> None:
+		di1 = DI()
+		di1.bind(A, A)
+		di1.bind(B, B)
+		di1.bind(X, X)
+
+		di2 = DI()
+		di2.bind(A, A)
+		di2.bind(X, X)
+		di2.bind(Y, Y)
+
+		# 通常利用でシンボル解決できるか確認
+		combined_before = di1.combine(di2)
+		self.assertEqual(type(di1.resolve(A)), A)
+		self.assertEqual(type(di1.resolve(X)), X)
+		self.assertEqual(type(di2.resolve(A)), A)
+		self.assertEqual(type(di2.resolve(Y)), Y)
+		self.assertEqual(type(combined_before.resolve(A)), A)
+		self.assertEqual(type(combined_before.resolve(X)), X)
+		self.assertEqual(type(combined_before.resolve(Y)), Y)
+
+		# シンボル解決前に合成した場合、一致しないことを確認
+		self.assertNotEqual(di1.resolve(A), combined_before.resolve(A))
+		self.assertNotEqual(di1.resolve(X), combined_before.resolve(X))
+		self.assertNotEqual(di2.resolve(A), combined_before.resolve(A))
+		self.assertNotEqual(di2.resolve(Y), combined_before.resolve(Y))
+
+		# シンボル解決後に合成した場合、合成元と一致することを確認
+		# 同じシンボルはdi2で上書きされることを確認
+		combined_after = di1.combine(di2)
+		self.assertNotEqual(di1.resolve(A), combined_after.resolve(A))
+		self.assertNotEqual(di1.resolve(X), combined_after.resolve(X))
+		self.assertEqual(di2.resolve(A), combined_after.resolve(A))
+		self.assertEqual(di2.resolve(X), combined_after.resolve(X))
+		self.assertEqual(di2.resolve(Y), combined_after.resolve(Y))
+
+		# rebindにより誤ってオリジナルのDIが影響を受けないか確認
+		combined_after.rebind(A, B)
+		self.assertEqual(type(di1.resolve(A)), A)
+		self.assertEqual(type(di2.resolve(A)), A)
+		self.assertNotEqual(di1.resolve(A), combined_after.resolve(A))
+		self.assertNotEqual(di2.resolve(A), combined_after.resolve(A))
+
+		# combineにより誤ってオリジナルのDIが影響を受けないか確認
+		with self.assertRaises(ValueError):
+			di1.resolve(Y)
+
+		with self.assertRaises(ValueError):
+			di2.resolve(B)

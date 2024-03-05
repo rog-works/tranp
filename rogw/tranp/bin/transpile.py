@@ -6,8 +6,10 @@ from rogw.tranp.i18n.i18n import TranslationMapping
 from rogw.tranp.implements.cpp.providers.i18n import translation_mapping
 from rogw.tranp.implements.cpp.providers.semantics import cpp_plugin_provider
 from rogw.tranp.lang.error import stacktrace
+from rogw.tranp.lang.implementation import injectable
 from rogw.tranp.lang.module import fullyname
 from rogw.tranp.lang.profile import profiler
+from rogw.tranp.module.modules import Modules
 from rogw.tranp.module.types import ModulePath, ModulePaths
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.syntax.ast.parser import ParserSetting
@@ -77,10 +79,17 @@ def make_module_paths(args: Args) -> list[ModulePath]:
 	return [ModulePath(basepath.replace('/', '.'), language=extention[1:])]
 
 
-def task(translator: Py2Cpp, root: Node, writer: Writer, args: Args) -> None:
+def fetch_main_entrypoint(modules: Modules, module_paths: ModulePaths) -> Node:
+	"""Note: FIXME 複数の出力対象に対応"""
+	return modules.load(module_paths[0].path).entrypoint
+
+
+@injectable
+def task(translator: Py2Cpp, modules: Modules, module_paths: ModulePaths, writer: Writer, args: Args) -> None:
 	def run() -> None:
 		try:
-			writer.put(translator.translate(root))
+			entrypoint = fetch_main_entrypoint(modules, module_paths)
+			writer.put(translator.translate(entrypoint))
 			writer.flush()
 		except Exception as e:
 			print(''.join(stacktrace(e)))

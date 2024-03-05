@@ -2,7 +2,7 @@ import os
 import sys
 import json
 from types import MethodType
-from typing import Any, Callable, cast
+from typing import Any, Callable, TypedDict, cast
 
 from rogw.tranp.app.app import App
 from rogw.tranp.bin.io import readline
@@ -24,6 +24,8 @@ from rogw.tranp.syntax.ast.query import Query
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 
+ArgsDict = TypedDict('ArgsData', {'grammar': str, 'input': str, 'options': dict[str, str]})
+
 
 class Args:
 	def __init__(self) -> None:
@@ -32,8 +34,8 @@ class Args:
 		self.input = args['input']
 		self.options = args['options']
 
-	def __parse_argv(self, argv: list[str]) -> dict[str, Any]:
-		args = {
+	def __parse_argv(self, argv: list[str]) -> ArgsDict:
+		args: ArgsDict = {
 			'grammar': 'data/grammar.lark',
 			'input': 'example/example.py',
 			'options': {},
@@ -42,8 +44,8 @@ class Args:
 			arg = argv.pop(0)
 			if arg == '-g':
 				args['grammar'] = argv.pop(0)
-			elif arg == '-s':
-				args['source'] = argv.pop(0)
+			elif arg == '-i':
+				args['input'] = argv.pop(0)
 			elif arg.startswith('-'):
 				args['options'][arg[1:]] = argv.pop(0)
 

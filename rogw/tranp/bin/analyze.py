@@ -59,10 +59,12 @@ def now() -> str:
 	return datetime.now(zone).strftime('%Y-%m-%d %H:%M:%S')
 
 
+@injectable
 def make_parser_setting(args: Args) -> ParserSetting:
 	return ParserSetting(grammar=args.grammar)
 
 
+@injectable
 def make_module_paths(args: Args) -> ModulePaths:
 	basepath, extention = os.path.splitext(args.input)
 	return ModulePaths([ModulePath(basepath.replace('/', '.'), language=extention[1:])])

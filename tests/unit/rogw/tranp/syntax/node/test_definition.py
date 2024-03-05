@@ -10,7 +10,7 @@ def _ast(before: str) -> str:
 	_T = 'file_input.template_assign'
 	_global_n = 'file_input.assign'
 	_global_s = 'file_input.anno_assign'
-	_Value = 'file_input.class_def[6]'
+	_Values = 'file_input.class_def[6]'
 	_Base = 'file_input.class_def[7]'
 	_Class = 'file_input.class_def[8]'
 	_func = 'file_input.function_def'
@@ -19,7 +19,7 @@ def _ast(before: str) -> str:
 	_GenSub = 'file_input.class_def[12]'
 
 	_map = {
-		'Values': f'{_Value}',
+		'Values': f'{_Values}',
 		'Base': f'{_Base}',
 		'Class': f'{_Class}',
 		'Class.class_method': f'{_Class}.class_def_raw.block.function_def[1]',
@@ -229,7 +229,6 @@ class TestDefinition(TestCase):
 				{'symbol': 'lb', 'decl_type': defs.DeclLocalVar},
 			],
 			'actual_symbol': None,
-			'has_alias': False,
 			# Belong class only
 			'class_symbol': 'Class',
 		}),
@@ -252,7 +251,6 @@ class TestDefinition(TestCase):
 				{'symbol': 'lb', 'decl_type': defs.DeclLocalVar},
 			],
 			'actual_symbol': None,
-			'has_alias': False,
 			# Belong class only
 			'class_symbol': 'Class',
 			# Constructor only
@@ -269,7 +267,6 @@ class TestDefinition(TestCase):
 				{'symbol': 'i', 'decl_type': defs.DeclLocalVar},
 			],
 			'actual_symbol': None,
-			'has_alias': False,
 			# Closure only
 			'binded_this': True,
 		}),
@@ -286,7 +283,6 @@ class TestDefinition(TestCase):
 				{'symbol': 'self', 'decl_type': defs.Parameter},
 			],
 			'actual_symbol': None,
-			'has_alias': False,
 			# Belong class only
 			'class_symbol': 'Class',
 			# Method only
@@ -296,7 +292,7 @@ class TestDefinition(TestCase):
 			'type': defs.Method,
 			'symbol': 'public_method',
 			'access': 'public',
-			'decorators': ['__alias__'],
+			'decorators': [],
 			'parameters': [
 				{'symbol': 'self', 'var_type': 'Empty', 'default_value': 'Empty'},
 				{'symbol': 'n', 'var_type': 'int', 'default_value': 'Empty'},
@@ -308,7 +304,6 @@ class TestDefinition(TestCase):
 				{'symbol': 'e', 'decl_type': defs.DeclLocalVar},
 			],
 			'actual_symbol': None,
-			'has_alias': True,
 			# Belong class only
 			'class_symbol': 'Class',
 			# Method only
@@ -329,7 +324,6 @@ class TestDefinition(TestCase):
 				{'symbol': 's', 'decl_type': defs.Parameter},
 			],
 			'actual_symbol': None,
-			'has_alias': False,
 			# Belong class only
 			'class_symbol': 'Class',
 			# Method only
@@ -349,7 +343,6 @@ class TestDefinition(TestCase):
 				{'symbol': 'lb', 'decl_type': defs.DeclLocalVar},
 			],
 			'actual_symbol': None,
-			'has_alias': False,
 		}),
 		(_ast('func.func_in_closure'), {
 			'type': defs.Closure,
@@ -364,7 +357,6 @@ class TestDefinition(TestCase):
 				{'symbol': 'n', 'decl_type': defs.Parameter},
 			],
 			'actual_symbol': None,
-			'has_alias': False,
 			# Closure only
 			'binded_this': False,
 		}),
@@ -391,7 +383,6 @@ class TestDefinition(TestCase):
 			self.assertEqual(decl_var.symbol.tokens, in_expected['symbol'])
 
 		self.assertEqual(node.actual_symbol, expected['actual_symbol'])
-		self.assertEqual(node.has_alias, expected['has_alias'])
 
 		if isinstance(node, (defs.ClassMethod, defs.Constructor, defs.Method)):
 			self.assertEqual(node.class_types.symbol.tokens, expected['class_symbol'])
@@ -417,11 +408,10 @@ class TestDefinition(TestCase):
 			'class_vars': [],
 			'this_vars': [],
 			'actual_symbol': None,
-			'has_alias': False,
 		}),
 		(_ast('Class'), {
 			'symbol': 'Class',
-			'decorators': ['__alias__'],
+			'decorators': [],
 			'inherits': ['Base'],
 			'generic_types': [],
 			'constructor_exists': True,
@@ -430,7 +420,6 @@ class TestDefinition(TestCase):
 			'class_vars': ['cn'],
 			'this_vars': ['self.n', 'self.s'],
 			'actual_symbol': None,
-			'has_alias': True,
 		}),
 		(_ast('Class2'), {
 			'symbol': 'Actual',
@@ -443,7 +432,6 @@ class TestDefinition(TestCase):
 			'class_vars': [],
 			'this_vars': [],
 			'actual_symbol': 'Actual',
-			'has_alias': False,
 		}),
 		(_ast('GenBase'), {
 			'symbol': 'GenBase',
@@ -456,7 +444,6 @@ class TestDefinition(TestCase):
 			'class_vars': [],
 			'this_vars': [],
 			'actual_symbol': None,
-			'has_alias': False,
 		}),
 		(_ast('GenSub'), {
 			'symbol': 'GenSub',
@@ -469,7 +456,6 @@ class TestDefinition(TestCase):
 			'class_vars': [],
 			'this_vars': [],
 			'actual_symbol': None,
-			'has_alias': False,
 		}),
 	])
 	def test_class(self, full_path: str, expected: dict[str, Any]) -> None:
@@ -483,7 +469,6 @@ class TestDefinition(TestCase):
 		self.assertEqual([var.tokens for var in node.class_vars], expected['class_vars'])
 		self.assertEqual([var.tokens for var in node.this_vars], expected['this_vars'])
 		self.assertEqual(node.actual_symbol, expected['actual_symbol'])
-		self.assertEqual(node.has_alias, expected['has_alias'])
 
 	@data_provider([
 		('class A(Generic[T]): ...', 'file_input.class_def', {'generic_types': [defs.VarOfType]}),

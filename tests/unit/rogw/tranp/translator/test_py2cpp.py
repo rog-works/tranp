@@ -22,7 +22,7 @@ from tests.unit.rogw.tranp.translator.fixtures.test_py2cpp_expect import BlockEx
 
 
 class ASTMapping:
-	__begin_class = 9
+	__begin_class = 8
 	_Base = f'file_input.class_def[{__begin_class + 0}]'
 	_DeclOps = f'file_input.class_def[{__begin_class + 1}]'
 	_CVarOps = f'file_input.class_def[{__begin_class + 2}]'

@@ -1,6 +1,6 @@
 from typing import Generic, TypeVar
 
-from rogw.tranp.compatible.python.embed import __actual__, __alias__, __hint_generic__
+from rogw.tranp.compatible.python.embed import __actual__, __hint_generic__
 from rogw.tranp.lang.implementation import implements, override
 from rogw.tranp.lang.sequence import flatten, last_index_of
 from rogw.tranp.syntax.ast.dsn import DSN
@@ -276,10 +276,6 @@ class ClassDef(Node, IDomain, IScope, IDeclaration, ISymbol):
 	def actual_symbol(self) -> str | None:
 		embedder = self._dig_embedder(__actual__.__name__)
 		return embedder.arguments[0].value.as_a(String).plain if embedder else None
-
-	@property
-	def has_alias(self) -> bool:
-		return self._dig_embedder(__alias__.__name__) is not None
 
 	def ancestor_classes(self) -> list['ClassDef']:
 		"""Note: XXX 振る舞いとして必然性のないメソッド。ユースケースはClassDomainNamingとの連携のみ"""

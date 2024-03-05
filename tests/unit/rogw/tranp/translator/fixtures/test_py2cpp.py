@@ -3,7 +3,6 @@ from typing import Generic, TypeAlias, TypeVar
 from rogw.tranp.compatible.cpp.enum import CEnum
 from rogw.tranp.compatible.cpp.object import CP, CRef, CSP
 from rogw.tranp.compatible.cpp.preprocess import directive
-from rogw.tranp.compatible.python.embed import __alias__
 
 directive('#pragma once')
 
@@ -188,9 +187,7 @@ class AccessOps(Base):
 		print(arr_sp.on[0])
 		print(arr_ar.on[0])
 
-@__alias__()
 class Alias:
-	@__alias__()
 	class Inner: ...
 
 	def __init__(self) -> None:

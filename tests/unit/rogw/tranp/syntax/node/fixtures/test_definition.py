@@ -1,7 +1,7 @@
 from typing import Generic, TypeVar
 
 from rogw.tranp.compatible.cpp.enum import CEnum
-from rogw.tranp.compatible.python.embed import __actual__, __alias__, __hint_generic__
+from rogw.tranp.compatible.python.embed import __actual__, __hint_generic__
 
 T = TypeVar('T')
 
@@ -14,7 +14,6 @@ class Values(CEnum):
 
 class Base: ...
 
-@__alias__()
 class Class(Base):
 	cn: int = 0
 
@@ -39,7 +38,6 @@ class Class(Base):
 	def property_method(self) -> int:
 		return 0
 
-	@__alias__()
 	def public_method(self, n: int) -> Values:
 		try:
 			raise Exception()

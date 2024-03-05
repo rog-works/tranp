@@ -22,25 +22,6 @@ def __actual__(name: str) -> Callable[[T], T]:
 	return decorator
 
 
-def __alias__() -> Callable[[T], T]:
-	"""トランスパイル後に名称変更を行う対象としてタグ付けする
-
-	Returns:
-		Callable[[T], T]: デコレート対象
-	Note:
-		@see semantics.reflection.helper.naming.ClassDomainNaming
-	Examples:
-		```python
-		@__alias__()
-		class String: ...
-		```
-	"""
-	def decorator(wrapped: T) -> T:
-		return wrapped
-
-	return decorator
-
-
 def __hint_generic__(*template_types: TypeVar) -> Callable[[T], T]:
 	"""静的解析のヒントとなる情報を埋め込む(ジェネリッククラス用)
 

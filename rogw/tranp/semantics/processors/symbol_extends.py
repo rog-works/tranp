@@ -6,8 +6,8 @@ from rogw.tranp.semantics.finder import SymbolFinder
 from rogw.tranp.semantics.reflection import IReflection, Roles, SymbolDB
 
 
-class ResolveGeneric:
-	"""Genericのシンボルを解決"""
+class SymbolExtends:
+	"""シンボルに属性を付与して拡張"""
 
 	@injectable
 	def __init__(self, finder: SymbolFinder) -> None:

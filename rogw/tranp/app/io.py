@@ -54,8 +54,8 @@ class FileLoader(IFileLoader):
 		if found_filepath is None:
 			raise FileNotFoundError(f'No such file or directory. filepath: {filepath}')
 
-		with open(found_filepath, mode='r', encoding='utf-8') as f:
-			return '\n'.join(f.readlines())
+		with open(found_filepath, mode='rb') as f:
+			return f.read().decode('utf-8')
 
 	@implements
 	def mtime(self, filepath: str) -> float:

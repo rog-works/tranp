@@ -131,10 +131,19 @@ def task_symbol(module: Module, reflections: Reflections) -> None:
 def dump_node_data(node: Node) -> dict[str, Any]:
 	data: dict[str, Any] = {}
 	for key in dir(node):
+		# FIXME constructorを安易にNullableにしたくないので一旦ガード節で対処
+		if isinstance(node, defs.Class) and key == 'constructor':
+			if not node.constructor_exists:
+				continue
+
 		attr = getattr(node, key)
 		attr_type = type(attr)
 		if not key.startswith('_') and attr_type is not MethodType:
 			data[key] = str(attr) if attr_type is not list else list(map(str, attr))
+
+			# XXX Class等はtokensが極端に長くなるため省略
+			if key == 'tokens' and len(data[key]) > 50:
+				data[key] = f'{data[key][:50]}...'
 
 	return data
 

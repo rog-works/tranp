@@ -8,7 +8,7 @@ from rogw.tranp.implements.cpp.providers.semantics import cpp_plugin_provider
 from rogw.tranp.lang.error import stacktrace
 from rogw.tranp.lang.module import fullyname
 from rogw.tranp.lang.profile import profiler
-from rogw.tranp.module.types import ModulePath
+from rogw.tranp.module.types import ModulePath, ModulePaths
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.syntax.ast.parser import ParserSetting
 from rogw.tranp.syntax.node.node import Node
@@ -72,10 +72,9 @@ def make_parser_setting(args: Args) -> ParserSetting:
 	return ParserSetting(grammar=args.grammar)
 
 
-def make_module_path(args: Args) -> ModulePath:
-	basepath, _ = os.path.splitext(args.input)
-	module_path = basepath.replace('/', '.')
-	return ModulePath(module_path, module_path)
+def make_module_paths(args: Args) -> list[ModulePath]:
+	basepath, extention = os.path.splitext(args.input)
+	return [ModulePath(basepath.replace('/', '.'), language=extention[1:])]
 
 
 def task(translator: Py2Cpp, root: Node, writer: Writer, args: Args) -> None:
@@ -95,13 +94,13 @@ def task(translator: Py2Cpp, root: Node, writer: Writer, args: Args) -> None:
 if __name__ == '__main__':
 	definitions = {
 		fullyname(Args): Args,
-		fullyname(Writer): make_writer,
-		fullyname(Renderer): make_renderer,
-		fullyname(TranslatorOptions): make_options,
-		fullyname(Py2Cpp): Py2Cpp,
+		fullyname(ModulePaths): make_module_paths,
 		fullyname(ParserSetting): make_parser_setting,
-		fullyname(ModulePath): make_module_path,
 		fullyname(PluginProvider): cpp_plugin_provider,
+		fullyname(Py2Cpp): Py2Cpp,
+		fullyname(Renderer): make_renderer,
 		fullyname(TranslationMapping): translation_mapping,
+		fullyname(TranslatorOptions): make_options,
+		fullyname(Writer): make_writer,
 	}
 	App(definitions).run(task)

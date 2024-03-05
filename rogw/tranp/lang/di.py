@@ -232,7 +232,7 @@ class LazyDI(DI):
 		"""
 		di = cls()
 		for symbol_path, injector in definitions.items():
-			di.__register(symbol_path, injector)
+			di.register(symbol_path, injector)
 
 		return di
 
@@ -241,7 +241,7 @@ class LazyDI(DI):
 		super().__init__()
 		self.__definitions: ModuleDefinitions = {}
 
-	def __register(self, symbol_path: str, injector: str | Injector[Any]) -> None:
+	def register(self, symbol_path: str, injector: str | Injector[Any]) -> None:
 		"""マッピングの登録を追加
 
 		Args:
@@ -255,7 +255,7 @@ class LazyDI(DI):
 
 		self.__definitions[symbol_path] = injector
 
-	def __unregister(self, symbol_path: str) -> None:
+	def unregister(self, symbol_path: str) -> None:
 		"""マッピングの登録を解除
 
 		Args:
@@ -307,7 +307,7 @@ class LazyDI(DI):
 		"""
 		symbol_path = self.__symbolize(symbol)
 		if not self.__can_resolve(symbol_path):
-			self.__register(symbol_path, injector)
+			self.register(symbol_path, injector)
 
 		return super().bind(symbol, injector)
 
@@ -319,7 +319,7 @@ class LazyDI(DI):
 			symbol (type[Any]): シンボル
 		"""
 		if self.can_resolve(symbol):
-			self.__unregister(self.__symbolize(symbol))
+			self.unregister(self.__symbolize(symbol))
 
 		super().unbind(symbol)
 

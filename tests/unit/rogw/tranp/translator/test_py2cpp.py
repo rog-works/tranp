@@ -307,7 +307,7 @@ class TestPy2Cpp(TestCase):
 	])
 	def test_exec(self, full_path: str, expected_type: type[Node], expected: str) -> None:
 		translator = self.fixture.get(Py2Cpp)
-		node = self.fixture.shared_nodes.by(full_path).as_a(expected_type)
+		node = self.fixture.shared_nodes_by(full_path).as_a(expected_type)
 		actual = translator.translate(node)
 		self.assertEqual(actual, expected)
 
@@ -319,6 +319,6 @@ class TestPy2Cpp(TestCase):
 	])
 	def test_exec_error(self, full_path: str, expected_error: type[Exception], expected: re.Pattern) -> None:
 		translator = self.fixture.get(Py2Cpp)
-		node = self.fixture.shared_nodes.by(full_path)
+		node = self.fixture.shared_nodes_by(full_path)
 		with self.assertRaisesRegex(expected_error, expected):
 			translator.translate(node)

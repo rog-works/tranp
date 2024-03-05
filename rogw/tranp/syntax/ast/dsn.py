@@ -117,10 +117,10 @@ class DSN:
 		Returns:
 			str: 相対パス
 		"""
-		if not origin.startswith(f'{starts}.'):
+		if starts != origin and not origin.startswith(f'{starts}{delimiter}'):
 			return origin
 
-		elems = [elem for elem in origin.split(f'{starts}{delimiter}')[1].split(delimiter)]
+		elems = [elem for elem in origin.split(starts)[1].split(delimiter)]
 		return cls.join(*elems)
 
 	@classmethod

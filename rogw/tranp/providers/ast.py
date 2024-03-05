@@ -21,4 +21,4 @@ def make_entrypoint(module_path: ModulePath, parser: SyntaxParser) -> Entry:
 	Returns:
 		Entry: ASTのルート要素
 	"""
-	return parser(module_path.actual)
+	return parser(module_path.path)

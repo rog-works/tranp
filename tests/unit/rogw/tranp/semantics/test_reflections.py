@@ -370,7 +370,7 @@ class TestReflections(TestCase):
 	])
 	def test_type_of(self, full_path: str, expected: str, attrs_expected: str) -> None:
 		reflections = self.fixture.get(Reflections)
-		node = self.fixture.shared_nodes.by(full_path)
+		node = self.fixture.shared_nodes_by(full_path)
 		symbol = reflections.type_of(node)
 		self.assertEqual(symbol.types.fullyname, expected)
 		self.assertEqual(str(symbol), attrs_expected)

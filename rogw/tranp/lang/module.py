@@ -72,6 +72,6 @@ def filepath_to_module_path(filepath: str, basedir: str) -> str:
 		str: モジュールパス
 	"""
 	rel_path = filepath.split(basedir)[1]
-	without_ext = rel_path.split('.')[0]
-	elems =  [elem for elem in without_ext.split(os.path.sep) if elem]
+	basepath, _ = os.path.splitext(rel_path)
+	elems =  [elem for elem in basepath.split(os.path.sep) if elem]
 	return '.'.join(elems)

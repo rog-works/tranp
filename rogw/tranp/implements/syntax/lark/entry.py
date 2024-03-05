@@ -1,4 +1,4 @@
-from typing import TypedDict, cast
+from typing import TypeAlias, TypedDict, cast
 
 import lark
 
@@ -96,84 +96,93 @@ class EntryOfLark(Entry):
 			return {'begin': (0, 0), 'end': (0, 0)}
 
 
-DictToken = TypedDict('DictToken', {'name': str, 'value': str, 'source_map': SourceMap})
-DictTree = TypedDict('DictTree', {'name': str, 'children': list['DictToken | DictTree | None'], 'source_map': SourceMap})
-DictTreeEntry = DictToken | DictTree | None
+DumpSourceMap: TypeAlias = tuple[int, int, int, int]
+DumpToken = TypedDict('DictToken', {'name': str, 'value': str, 'source_map': DumpSourceMap})
+DumpTree = TypedDict('DictTree', {'name': str, 'children': list['DumpToken | DumpTree | None'], 'source_map': DumpSourceMap})
+DumpTreeEntry = DumpToken | DumpTree | None
 
 
 class Serialization:
 	"""Larkエントリーのシリアライザー"""
 
 	@classmethod
-	def dumps(cls, root: lark.Tree) -> DictTree:
+	def dumps(cls, root: lark.Tree) -> DumpTree:
 		"""連想配列にシリアライズ
 
 		Args:
 			root (lark.Tree): ツリー
 		Returns:
-			DictTree: シリアライズツリー
+			DumpTree: シリアライズツリー
 		"""
-		return cast(DictTree, cls.__dumps(root))
+		return cast(DumpTree, cls.__dumps(root))
 
 	@classmethod
-	def __dumps(cls, entry: lark.Tree | lark.Token | None) -> DictTreeEntry:
+	def __dumps(cls, entry: lark.Tree | lark.Token | None) -> DumpTreeEntry:
 		"""連想配列にシリアライズ
 
 		Args:
 			entry (lark.Tree | lark.Token | None): エントリー
 		Returns:
-			DictTreeEntry: シリアライズエントリー
+			DumpTreeEntry: シリアライズエントリー
 		"""
 		proxy = EntryOfLark(entry)
+		source_map = (
+			proxy.source_map['begin'][0],
+			proxy.source_map['begin'][1],
+			proxy.source_map['end'][0],
+			proxy.source_map['end'][1],
+		)
 		if proxy.has_child:
-			children: list[DictTreeEntry] = []
+			children: list[DumpTreeEntry] = []
 			for child in proxy.children:
 				children.append(cls.__dumps(child.source))
 
-			return {'name': proxy.name, 'children': children, 'source_map': proxy.source_map}
+			return {'name': proxy.name, 'children': children, 'source_map': source_map}
 		elif not proxy.is_empty:
-			return {'name': proxy.name, 'value': proxy.value, 'source_map': proxy.source_map}
+			return {'name': proxy.name, 'value': proxy.value, 'source_map': source_map}
 		else:
 			return None
 
 	@classmethod
-	def loads(cls, root: DictTree) -> lark.Tree:
+	def loads(cls, root: DumpTree) -> lark.Tree:
 		"""連想配列からデシリアライズ
 
 		Args:
-			root (DictTree): シリアライズツリー
+			root (DumpTree): シリアライズツリー
 		Returns:
 			lark.Tree: ツリー
 		"""
 		return cast(lark.Tree, cls.__loads(root))
 
 	@classmethod
-	def __loads(cls, entry: DictTreeEntry) -> lark.Tree | lark.Token | None:
+	def __loads(cls, entry: DumpTreeEntry) -> lark.Tree | lark.Token | None:
 		"""連想配列からデシリアライズ
 
 		Args:
-			entry (DictTreeEntry): シリアライズエントリー
+			entry (DumpTreeEntry): シリアライズエントリー
 		Returns:
 			lark.Tree | lark.Token | None: エントリー
 		"""
 		if type(entry) is dict and 'children' in entry:
+			entry_tree = cast(DumpTree, entry)
 			children: list[lark.Tree | lark.Token | None] = []
-			for child in cast(list[DictTreeEntry], entry['children']):
+			for child in cast(list[DumpTreeEntry], entry_tree['children']):
 				children.append(cls.__loads(child))
 
 			meta = lark.tree.Meta()
-			meta.line = entry['source_map']['begin'][0]
-			meta.column = entry['source_map']['begin'][1]
-			meta.end_line = entry['source_map']['end'][0]
-			meta.end_column = entry['source_map']['end'][1]
+			meta.line = entry_tree['source_map'][0]
+			meta.column = entry_tree['source_map'][1]
+			meta.end_line = entry_tree['source_map'][2]
+			meta.end_column = entry_tree['source_map'][3]
 			meta.empty = False
-			return lark.Tree(entry['name'], children, meta)
+			return lark.Tree(entry_tree['name'], children, meta)
 		elif type(entry) is dict and 'value' in entry:
-			token = lark.Token(entry['name'], entry['value'])
-			token.line = entry['source_map']['begin'][0]
-			token.column = entry['source_map']['begin'][1]
-			token.end_line = entry['source_map']['end'][0]
-			token.end_column = entry['source_map']['end'][1]
+			entry_token = cast(DumpToken, entry)
+			token = lark.Token(entry_token['name'], entry_token['value'])
+			token.line = entry_token['source_map'][0]
+			token.column = entry_token['source_map'][1]
+			token.end_line = entry_token['source_map'][2]
+			token.end_column = entry_token['source_map'][3]
 			return token
 		else:
 			return None

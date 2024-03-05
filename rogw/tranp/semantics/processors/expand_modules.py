@@ -45,7 +45,7 @@ class Expanded(NamedTuple):
 		Args:
 			stream (IO): IO
 		"""
-		stream.write(json.dumps(self).encode('utf-8'))
+		stream.write(json.dumps(self, separators=(',', ':')).encode('utf-8'))
 
 
 class ExpandModules:

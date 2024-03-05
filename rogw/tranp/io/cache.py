@@ -47,7 +47,7 @@ class Cached(Generic[T]):
 		Returns:
 			str: 一意な識別子
 		"""
-		data = json.dumps(identity)
+		data = json.dumps(identity, separators=(',', ':'))
 		return hashlib.md5(data.encode('utf-8')).hexdigest()
 
 	def __init__(self, stored: T, factory: Callable[[], T], identity: dict[str, str], basedir: str, **options: Any) -> None:

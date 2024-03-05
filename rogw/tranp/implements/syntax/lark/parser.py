@@ -165,4 +165,4 @@ class EntryStored:
 			stream (IO): IO
 		"""
 		data = Serialization.dumps(cast(lark.Tree, self.entry.source))
-		stream.write(json.dumps(data).encode('utf-8'))
+		stream.write(json.dumps(data, separators=(',', ':')).encode('utf-8'))

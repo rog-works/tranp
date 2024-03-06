@@ -21,7 +21,7 @@ from rogw.tranp.module.types import ModulePath, ModulePaths
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.syntax.ast.parser import ParserSetting
 from rogw.tranp.syntax.node.node import Node
-from rogw.tranp.translator.types import ITranslator, TranslatorOptions
+from rogw.tranp.translator.types import ITranslator, MetaHeaderInjector, TranslatorOptions
 from rogw.tranp.view.render import Renderer
 
 ArgsDict = TypedDict('ArgsDict', {'grammar': str, 'template_dir': str, 'input_dir': str, 'output_dir': str, 'output_lang': str, 'excludes': list[str], 'force': bool, 'verbose': bool, 'profile': str})
@@ -82,6 +82,14 @@ def make_renderer(args: Args) -> Renderer:
 
 
 @injectable
+def make_mata_header_injector(metas: AppMetaProvider) -> MetaHeaderInjector:
+	def injector(module_path: ModulePath) -> str:
+		return metas.new(module_path).to_header()
+
+	return injector
+
+
+@injectable
 def make_options(args: Args) -> TranslatorOptions:
 	return TranslatorOptions(verbose=args.verbose)
 
@@ -127,12 +135,7 @@ def task(translator: ITranslator, modules: Modules, module_paths: ModulePaths, a
 				if not args.force and not metas.can_update(module_path, args.output_lang, new_meta):
 					continue
 
-				entrypoint = fetch_entrypoint(modules, module_path)
-				translated = translator.translate(entrypoint)
-
-				meta_header = f'// @tranp.meta: {str(new_meta)}'  # FIXME トランスレーターに任せる方法を検討
-				content = '\n'.join([meta_header, translated])
-
+				content = translator.translate(modules.load(module_path.path))
 				writer = Writer(output_filepath(module_path, args))
 				writer.put(content)
 				writer.flush()
@@ -149,6 +152,7 @@ if __name__ == '__main__':
 	definitions = {
 		fullyname(AppMetaProvider): AppMetaProvider,
 		fullyname(Args): Args,
+		fullyname(MetaHeaderInjector): make_mata_header_injector,
 		fullyname(ModulePaths): make_module_paths,
 		fullyname(ParserSetting): make_parser_setting,
 		fullyname(PluginProvider): cpp_plugin_provider,

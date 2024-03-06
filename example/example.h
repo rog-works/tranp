@@ -1,4 +1,4 @@
-// @tranp.meta: {"version":"1.0.0","origin":{"filepath":"example/example.py","hash":"ac994b8d706311f3fa02e67ac3571ce2"},"translator":{"module":"rogw.tranp.translator.py2cpp.Py2Cpp","version":"1.0.0"}}
+// @tranp.meta: {"version":"1.0.0","origin":{"filepath":"example/example.py","hash":"ac994b8d706311f3fa02e67ac3571ce2"},"translator":{"module":"rogw.tranp.implements.cpp.translator.py2cpp.Py2Cpp","version":"1.0.0"}}
 // #include "rogw/tranp/compatible/cpp/object.h"
 // #include "rogw/tranp/compatible/cpp/preprocess.h"
 // #include "rogw/tranp/compatible/cpp/enum.h"

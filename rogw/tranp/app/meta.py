@@ -6,6 +6,7 @@ from typing import Any
 from rogw.tranp.errors import LogicError
 from rogw.tranp.io.loader import IFileLoader
 from rogw.tranp.lang.annotation import injectable
+from rogw.tranp.lang.locator import Locator
 from rogw.tranp.module.types import ModulePath
 from rogw.tranp.syntax.ast.dsn import DSN
 from rogw.tranp.translator.types import ITranslator
@@ -29,8 +30,8 @@ class AppMeta:
 
 	@property
 	def identity(self) -> str:
-		"""str: 一意性識別子"""
-		return hashlib.md5(str(self).encode('utf-8')).hexdigest()
+		"""str: 一意な識別子"""
+		return hashlib.md5(self.to_json().encode('utf-8')).hexdigest()
 
 	def __eq__(self, other: Any) -> bool:
 		"""比較演算子のおバーロード
@@ -47,24 +48,44 @@ class AppMeta:
 
 		return self.identity == other.identity
 
-	def __str__(self) -> str:
-		"""str: オブジェクトの文字列表現"""
+	def to_json(self) -> str:
+		"""JSONにシリアライズ
+
+		Returns:
+			str: JSON文字列
+		"""
 		return json.dumps({'version': self.version, 'origin': self.origin, 'translator': self.translator}, separators=(',', ':'))
+
+	def to_header(self) -> str:
+		"""ヘッダーに変換
+
+		Returns:
+			str: メタヘッダー
+		"""
+		return f'@tranp.meta: {self.to_json()}'
 
 
 class AppMetaProvider:
 	"""メタ情報プロバイダー"""
 
 	@injectable
-	def __init__(self, translator: ITranslator, loader: IFileLoader) -> None:
+	def __init__(self, locator: Locator) -> None:
 		"""インスタンスを生成
 
 		Args:
-			translator (ITranslator): トランスレーター
-			loader (IFileLoader): ファイルローダー
+			locator (Locator): ロケーター
 		"""
-		self.__translator = translator
-		self.__loader = loader
+		self.__locator = locator
+
+	@property
+	def __translator(self) -> ITranslator:
+		"""ITranslator: トランスレーター"""
+		return self.__locator.resolve(ITranslator)
+
+	@property
+	def __loader(self) -> IFileLoader:
+		"""IFileLoader: ファイルローダー"""
+		return self.__locator.resolve(IFileLoader)
 
 	def can_update(self, module_path: ModulePath, to_language: str, new_meta: AppMeta) -> bool:
 		"""翻訳後のソースと比較して更新可否を判定

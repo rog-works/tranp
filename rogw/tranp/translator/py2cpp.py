@@ -2,6 +2,7 @@ import re
 from types import UnionType
 from typing import cast
 
+from rogw.tranp.dsn.translation import import_dsn
 from rogw.tranp.errors import LogicError
 from rogw.tranp.i18n.i18n import I18n
 from rogw.tranp.implements.cpp.semantics.cvars import CVars
@@ -359,7 +360,7 @@ class Py2Cpp:
 	def on_import(self, node: defs.Import, symbols: list[str]) -> str:
 		module_path = node.import_path.tokens
 		text = self.view.render(node.classification, vars={'module_path': module_path})
-		return self.i18n.t(DSN.join('imports', module_path), text)
+		return self.i18n.t(import_dsn(module_path), text)
 
 	# Primary
 

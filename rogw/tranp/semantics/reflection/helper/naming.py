@@ -1,5 +1,6 @@
 from typing import Protocol
 
+from rogw.tranp.dsn.translation import alias_dsn
 from rogw.tranp.semantics.reflection.interface import IReflection
 from rogw.tranp.syntax.ast.dsn import DSN
 import rogw.tranp.syntax.node.definition as defs
@@ -38,7 +39,7 @@ class ClassDomainNaming:
 			# エイリアスの解決時に要求するキー名の書式
 			'aliases.${fullyname}'
 		"""
-		return alias_handler(DSN.join('aliases', types.fullyname), fallback=types.domain_name) if alias_handler else types.domain_name
+		return alias_handler(alias_dsn(types.fullyname), fallback=types.domain_name) if alias_handler else types.domain_name
 
 	@classmethod
 	def fullyname(cls, types: defs.ClassDef, alias_handler: AliasHandler | None = None) -> str:

@@ -6,7 +6,7 @@ from rogw.tranp.dsn.translation import import_dsn
 from rogw.tranp.errors import LogicError
 from rogw.tranp.i18n.i18n import I18n
 from rogw.tranp.implements.cpp.semantics.cvars import CVars
-from rogw.tranp.lang.annotation import duck_typed, injectable
+from rogw.tranp.lang.annotation import implements, injectable
 from rogw.tranp.semantics.procedure import Procedure
 import rogw.tranp.semantics.reflection.helper.template as template
 from rogw.tranp.semantics.reflection.helper.naming import ClassDomainNaming, ClassShorthandNaming
@@ -15,12 +15,12 @@ from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.syntax.ast.dsn import DSN
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
-from rogw.tranp.translator.option import TranslatorOptions
+from rogw.tranp.translator.types import ITranslator, TranslatorOptions
 from rogw.tranp.version import Versions
 from rogw.tranp.view.render import Renderer
 
 
-class Py2Cpp:
+class Py2Cpp(ITranslator):
 	"""Python -> C++のトランスパイラー"""
 
 	@injectable
@@ -53,21 +53,22 @@ class Py2Cpp:
 
 		return procedure
 
+	@property
+	@implements
+	def version(self) -> str:
+		"""str: バージョン"""
+		return Versions.py2cpp
+
+	@implements
 	def translate(self, root: Node) -> str:
-		"""起点のノードからASTを再帰的に解析し、C++にトランスパイル
+		"""起点のノードからASTを再帰的に解析してトランスパイル
 
 		Args:
 			root (Node): 起点のノード
 		Returns:
-			str: C++のソースコード
+			str: トランスパイル後のソースコード
 		"""
 		return self.__procedure.exec(root)
-
-	@property
-	@duck_typed
-	def version(self) -> str:
-		"""str: バージョン"""
-		return Versions.py2cpp
 
 	def to_accessible_name(self, raw: IReflection) -> str:
 		"""型推論によって補完する際の名前空間上の参照名を取得 (主にMoveAssignで利用)

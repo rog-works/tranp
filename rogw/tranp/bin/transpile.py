@@ -2,7 +2,7 @@ import glob
 import os
 import re
 import sys
-from typing import TypedDict, cast
+from typing import TypedDict
 
 from rogw.tranp.app.app import App
 from rogw.tranp.app.meta import AppMetaProvider
@@ -10,6 +10,7 @@ from rogw.tranp.errors import LogicError
 from rogw.tranp.i18n.i18n import TranslationMapping
 from rogw.tranp.implements.cpp.providers.i18n import translation_mapping_cpp
 from rogw.tranp.implements.cpp.providers.semantics import cpp_plugin_provider
+from rogw.tranp.implements.cpp.translator.py2cpp import Py2Cpp
 from rogw.tranp.io.writer import Writer
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.lang.error import stacktrace
@@ -20,9 +21,7 @@ from rogw.tranp.module.types import ModulePath, ModulePaths
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.syntax.ast.parser import ParserSetting
 from rogw.tranp.syntax.node.node import Node
-from rogw.tranp.translator.option import TranslatorOptions
-from rogw.tranp.translator.py2cpp import Py2Cpp
-from rogw.tranp.version import IVersion
+from rogw.tranp.translator.types import ITranslator, TranslatorOptions
 from rogw.tranp.view.render import Renderer
 
 ArgsDict = TypedDict('ArgsDict', {'grammar': str, 'template_dir': str, 'input_dir': str, 'output_dir': str, 'output_lang': str, 'excludes': list[str], 'force': bool, 'verbose': bool, 'profile': str})
@@ -120,10 +119,9 @@ def output_filepath(module_path: ModulePath, args: Args) -> str:
 
 
 @injectable
-def task(translator_: IVersion, modules: Modules, module_paths: ModulePaths, args: Args, metas: AppMetaProvider) -> None:
+def task(translator: ITranslator, modules: Modules, module_paths: ModulePaths, args: Args, metas: AppMetaProvider) -> None:
 	def run() -> None:
 		try:
-			translator = cast(Py2Cpp, translator_)  # FIXME ITranslatorに変更を検討
 			for module_path in module_paths:
 				new_meta = metas.new(module_path)
 				if not args.force and not metas.can_update(module_path, args.output_lang, new_meta):
@@ -149,14 +147,14 @@ def task(translator_: IVersion, modules: Modules, module_paths: ModulePaths, arg
 
 if __name__ == '__main__':
 	definitions = {
+		fullyname(AppMetaProvider): AppMetaProvider,
 		fullyname(Args): Args,
 		fullyname(ModulePaths): make_module_paths,
 		fullyname(ParserSetting): make_parser_setting,
 		fullyname(PluginProvider): cpp_plugin_provider,
-		fullyname(IVersion): Py2Cpp,  # FIXME ITranslatorに変更を検討
+		fullyname(ITranslator): Py2Cpp,
 		fullyname(Renderer): make_renderer,
 		fullyname(TranslationMapping): translation_mapping_cpp,
 		fullyname(TranslatorOptions): make_options,
-		fullyname(AppMetaProvider): AppMetaProvider,
 	}
 	App(definitions).run(task)

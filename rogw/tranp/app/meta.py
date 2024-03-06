@@ -1,4 +1,3 @@
-
 import hashlib
 import json
 import os
@@ -9,7 +8,8 @@ from rogw.tranp.io.loader import IFileLoader
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.module.types import ModulePath
 from rogw.tranp.syntax.ast.dsn import DSN
-from rogw.tranp.version import IVersion, Versions
+from rogw.tranp.translator.types import ITranslator
+from rogw.tranp.version import Versions
 
 
 class AppMeta:
@@ -56,11 +56,11 @@ class AppMetaProvider:
 	"""メタ情報プロバイダー"""
 
 	@injectable
-	def __init__(self, translator: IVersion, loader: IFileLoader) -> None:
+	def __init__(self, translator: ITranslator, loader: IFileLoader) -> None:
 		"""インスタンスを生成
 
 		Args:
-			translator (IVersion): トランスレーター
+			translator (ITranslator): トランスレーター
 			loader (IFileLoader): ファイルローダー
 		"""
 		self.__translator = translator

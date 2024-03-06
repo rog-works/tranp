@@ -1,13 +1,4 @@
-from typing import ClassVar, Protocol
-
-
-class IVersion(Protocol):
-	"""バージョン管理プロトコル"""
-
-	@property
-	def version(self) -> str:
-		"""str: バージョン"""
-		...
+from typing import ClassVar
 
 
 class Versions:

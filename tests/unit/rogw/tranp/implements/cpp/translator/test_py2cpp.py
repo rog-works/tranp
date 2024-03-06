@@ -7,6 +7,7 @@ from rogw.tranp.dsn.translation import alias_dsn
 from rogw.tranp.i18n.i18n import TranslationMapping
 from rogw.tranp.implements.cpp.providers.i18n import translation_mapping_cpp
 from rogw.tranp.implements.cpp.providers.semantics import cpp_plugin_provider
+from rogw.tranp.implements.cpp.translator.py2cpp import Py2Cpp
 from rogw.tranp.lang.module import fullyname
 from rogw.tranp.lang.profile import profiler
 from rogw.tranp.syntax.ast.dsn import DSN
@@ -15,11 +16,10 @@ from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.semantics.errors import ProcessingError, UnresolvedSymbolError
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.test.helper import data_provider
-from rogw.tranp.translator.option import TranslatorOptions
-from rogw.tranp.translator.py2cpp import Py2Cpp
+from rogw.tranp.translator.types import TranslatorOptions
 from rogw.tranp.view.render import Renderer
 from tests.test.fixture import Fixture
-from tests.unit.rogw.tranp.translator.fixtures.test_py2cpp_expect import BlockExpects
+from tests.unit.rogw.tranp.implements.cpp.translator.fixtures.test_py2cpp_expect import BlockExpects
 
 
 class ASTMapping:

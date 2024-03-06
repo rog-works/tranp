@@ -3,6 +3,7 @@ import re
 from unittest import TestCase
 
 from rogw.tranp.app.io import appdir
+from rogw.tranp.dsn.translation import alias_dsn
 from rogw.tranp.i18n.i18n import TranslationMapping
 from rogw.tranp.implements.cpp.providers.i18n import translation_mapping_cpp
 from rogw.tranp.implements.cpp.providers.semantics import cpp_plugin_provider
@@ -126,8 +127,8 @@ def _ast(before: str, after: str) -> str:
 def fixture_translation_mapping() -> TranslationMapping:
 	fixture_module_path = Fixture.fixture_module_path(__file__)
 	fixture_translations = {
-		f'aliases.{fixture_module_path}.Alias': 'Alias2',
-		f'aliases.{fixture_module_path}.Alias.Inner': 'Inner2',
+		alias_dsn(f'{fixture_module_path}.Alias'): 'Alias2',
+		alias_dsn(f'{fixture_module_path}.Alias.Inner'): 'Inner2',
 	}
 	return translation_mapping_cpp().merge(fixture_translations)
 

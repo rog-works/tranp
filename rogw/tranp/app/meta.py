@@ -66,7 +66,14 @@ class AppMeta:
 
 
 class AppMetaProvider:
-	"""メタ情報プロバイダー"""
+	"""メタ情報プロバイダー
+
+	Note:
+		FIXME 依存関係が悪い、効率悪い、とにかく扱いにくいので改善を検討
+		FIXME * Versions.appに依存するとトランスレーターに委譲できない
+		FIXME * トランスレーターから欲しい情報は全て静的な情報でインスタンスは必要ない
+		FIXME * 同じファイルをストレージから何度もロードするため効率が悪い
+	"""
 
 	@injectable
 	def __init__(self, locator: Locator) -> None:

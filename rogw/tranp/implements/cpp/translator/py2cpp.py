@@ -72,6 +72,8 @@ class Py2Cpp(ITranslator):
 			str: トランスパイル後のソースコード
 		"""
 		translated = self.__procedure.exec(module.entrypoint)
+		# FIXME Procedureで全て処理できないと一貫性がなく見落としやすい
+		# FIXME 理想はon_entrypointで処理すること
 		return self.view.render('translate', vars={'translated': translated, 'header': self.meta_header(module.module_path)})
 
 	def to_accessible_name(self, raw: IReflection) -> str:

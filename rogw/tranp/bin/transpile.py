@@ -1,10 +1,15 @@
+import glob
 import os
+import re
 import sys
+from typing import TypedDict
 
 from rogw.tranp.app.app import App
+from rogw.tranp.errors import LogicError
 from rogw.tranp.i18n.i18n import TranslationMapping
 from rogw.tranp.implements.cpp.providers.i18n import translation_mapping_cpp
 from rogw.tranp.implements.cpp.providers.semantics import cpp_plugin_provider
+from rogw.tranp.io.writer import Writer
 from rogw.tranp.lang.error import stacktrace
 from rogw.tranp.lang.implementation import injectable
 from rogw.tranp.lang.module import fullyname
@@ -16,51 +21,54 @@ from rogw.tranp.syntax.ast.parser import ParserSetting
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.translator.option import TranslatorOptions
 from rogw.tranp.translator.py2cpp import Py2Cpp
-from rogw.tranp.view.render import Renderer, Writer
+from rogw.tranp.view.render import Renderer
+
+ArgsDict = TypedDict('ArgsDict', {'grammar': str, 'template_dir': str, 'input_dir': str, 'output_dir': str, 'output_lang': str, 'excludes': list[str], 'verbose': bool, 'profile': str})
 
 
 class Args:
 	def __init__(self) -> None:
 		args = self.__parse_argv(sys.argv[1:])
 		self.grammar = args['grammar']
-		self.input = args['input']
-		self.output = args['output']
 		self.template_dir = args['template_dir']
-		self.verbose = args['verbose'] == 'on'
+		self.input_dir = args['input_dir']
+		self.output_dir = args['output_dir']
+		self.output_lang = args['output_lang']
+		self.excludes = args['excludes']
+		self.verbose = args['verbose']
 		self.profile = args['profile']
 
-	def __parse_argv(self, argv: list[str]) -> dict[str, str]:
-		args = {
+	def __parse_argv(self, argv: list[str]) -> ArgsDict:
+		args: ArgsDict = {
 			'grammar': 'data/grammar.lark',
-			'input': 'example/example.py',
-			'output': '',
+			'input_dir': 'example/**/*.py',
+			'output_dir': './',
+			'output_lang': 'h',
+			'excludes': ['example/FW/*'],
 			'template_dir': 'example/template',
-			'verbose': 'off',
-			'profile': 'off',
+			'verbose': False,
+			'profile': 'none',
 		}
 		while argv:
 			arg = argv.pop(0)
 			if arg == '-g':
 				args['grammar'] = argv.pop(0)
-			elif arg == '-i':
-				args['input'] = argv.pop(0)
-			elif arg == '-o':
-				args['output'] = argv.pop(0)
 			elif arg == '-t':
 				args['template_dir'] = argv.pop(0)
+			elif arg == '-i':
+				args['input_dir'] = argv.pop(0)
+			elif arg == '-o':
+				args['output_dir'] = argv.pop(0)
+			elif arg == '-l':
+				args['output_lang'] = argv.pop(0)
+			elif arg == '-e':
+				args['excludes'] = argv.pop(0).split(';')
 			elif arg == '-v':
-				args['verbose'] = 'on'
+				args['verbose'] = argv.pop(0) == 'on'
 			elif arg == '-p':
 				args['profile'] = argv.pop(0)
 
 		return args
-
-
-@injectable
-def make_writer(args: Args) -> Writer:
-	basepath, _ = os.path.splitext(args.input)
-	output = args.output if args.output else f'{basepath}.h'
-	return Writer(output)
 
 
 @injectable
@@ -80,22 +88,40 @@ def make_parser_setting(args: Args) -> ParserSetting:
 
 @injectable
 def make_module_paths(args: Args) -> ModulePaths:
-	basepath, extention = os.path.splitext(args.input)
-	return ModulePaths([ModulePath(basepath.replace('/', '.'), language=extention[1:])])
+	candidate_filepaths = glob.glob(args.input_dir, recursive=True)
+	exclude_exps = [re.compile(rf'{exclude.replace("*", '.*')}') for exclude in args.excludes]
+	module_paths = ModulePaths()
+	for filepath in candidate_filepaths:
+		excluded = len([True for exclude_exp in exclude_exps if exclude_exp.fullmatch(filepath)]) > 0
+		if not excluded:
+			basepath, extention = os.path.splitext(filepath)
+			module_paths.append(ModulePath(basepath.replace('/', '.'), language=extention[1:]))
+
+	if len(module_paths) == 0:
+		raise LogicError(f'No target found. input_dir: {args.input_dir}, excludes: {args.excludes}')
+
+	return module_paths
 
 
-def fetch_main_entrypoint(modules: Modules, module_paths: ModulePaths) -> Node:
-	"""Note: FIXME 複数の出力対象に対応"""
-	return modules.load(module_paths[0].path).entrypoint
+def fetch_entrypoint(modules: Modules, module_path: ModulePath) -> Node:
+	return modules.load(module_path.path).entrypoint
+
+
+def output_filepath(module_path: ModulePath, args: Args) -> str:
+	basepath = module_path.path.replace('.', '/')
+	filepath = f'{basepath}.{args.output_lang}'
+	return os.path.abspath(os.path.join(args.output_dir, filepath))
 
 
 @injectable
-def task(translator: Py2Cpp, modules: Modules, module_paths: ModulePaths, writer: Writer, args: Args) -> None:
+def task(translator: Py2Cpp, modules: Modules, module_paths: ModulePaths, args: Args) -> None:
 	def run() -> None:
 		try:
-			entrypoint = fetch_main_entrypoint(modules, module_paths)
-			writer.put(translator.translate(entrypoint))
-			writer.flush()
+			for module_path in module_paths:
+				entrypoint = fetch_entrypoint(modules, module_path)
+				writer = Writer(output_filepath(module_path, args))
+				writer.put(translator.translate(entrypoint))
+				writer.flush()
 		except Exception as e:
 			print(''.join(stacktrace(e)))
 
@@ -115,6 +141,5 @@ if __name__ == '__main__':
 		fullyname(Renderer): make_renderer,
 		fullyname(TranslationMapping): translation_mapping_cpp,
 		fullyname(TranslatorOptions): make_options,
-		fullyname(Writer): make_writer,
 	}
 	App(definitions).run(task)

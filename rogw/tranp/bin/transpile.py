@@ -5,23 +5,25 @@ import sys
 from typing import TypedDict
 
 from rogw.tranp.app.app import App
-from rogw.tranp.app.meta import AppMetaProvider
 from rogw.tranp.errors import LogicError
 from rogw.tranp.i18n.i18n import TranslationMapping
 from rogw.tranp.implements.cpp.providers.i18n import translation_mapping_cpp
 from rogw.tranp.implements.cpp.providers.semantics import cpp_plugin_provider
 from rogw.tranp.implements.cpp.translator.py2cpp import Py2Cpp
+from rogw.tranp.io.loader import IFileLoader
 from rogw.tranp.io.writer import Writer
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.lang.error import stacktrace
 from rogw.tranp.lang.module import fullyname
 from rogw.tranp.lang.profile import profiler
+from rogw.tranp.meta.header import MetaHeader
+from rogw.tranp.meta.types import ModuleMeta, ModuleMetaInjector
 from rogw.tranp.module.modules import Modules
 from rogw.tranp.module.types import ModulePath, ModulePaths
 from rogw.tranp.semantics.plugin import PluginProvider
+from rogw.tranp.syntax.ast.dsn import DSN
 from rogw.tranp.syntax.ast.parser import ParserSetting
-from rogw.tranp.syntax.node.node import Node
-from rogw.tranp.translator.types import ITranslator, MetaHeaderInjector, TranslatorOptions
+from rogw.tranp.translator.types import ITranslator, TranslatorOptions
 from rogw.tranp.view.render import Renderer
 
 ArgsDict = TypedDict('ArgsDict', {'grammar': str, 'template_dir': str, 'input_dir': str, 'output_dir': str, 'output_lang': str, 'excludes': list[str], 'force': bool, 'verbose': bool, 'profile': str})
@@ -82,11 +84,27 @@ def make_renderer(args: Args) -> Renderer:
 
 
 @injectable
-def make_mata_header_injector(metas: AppMetaProvider) -> MetaHeaderInjector:
-	def injector(module_path: ModulePath) -> str:
-		return metas.new(module_path).to_header()
+def make_module_mata_injector(module_paths: ModulePaths, loader: IFileLoader) -> ModuleMetaInjector:
+	def injector(module_path: str) -> ModuleMeta:
+		index = [module_path.path for module_path in module_paths].index(module_path)
+		target_module_path = module_paths[index]
+		basepath = target_module_path.path.replace('.', '/')
+		filepath = DSN.join(basepath, target_module_path.language)
+		return {'hash': loader.hash(filepath), 'path': module_path}
 
 	return injector
+
+
+def load_meta_header_json(module_path: ModulePath, loader: IFileLoader) -> str | None:
+	basepath = module_path.path.replace('.', '/')
+	filepath = DSN.join(basepath, module_path.language)
+	content = loader.load(filepath)
+	header_begin = content.find(MetaHeader.Tag)
+	if header_begin == -1:
+		return None
+
+	header_end = content.find('\n', header_begin)
+	return content[header_begin:header_end]
 
 
 @injectable
@@ -116,10 +134,6 @@ def make_module_paths(args: Args) -> ModulePaths:
 	return module_paths
 
 
-def fetch_entrypoint(modules: Modules, module_path: ModulePath) -> Node:
-	return modules.load(module_path.path).entrypoint
-
-
 def output_filepath(module_path: ModulePath, args: Args) -> str:
 	basepath = module_path.path.replace('.', '/')
 	filepath = f'{basepath}.{args.output_lang}'
@@ -127,13 +141,17 @@ def output_filepath(module_path: ModulePath, args: Args) -> str:
 
 
 @injectable
-def task(translator: ITranslator, modules: Modules, module_paths: ModulePaths, args: Args, metas: AppMetaProvider) -> None:
+def task(translator: ITranslator, modules: Modules, module_paths: ModulePaths, args: Args, loader: IFileLoader) -> None:
 	def run() -> None:
 		try:
+			module_meta_injector = make_module_mata_injector(module_paths, loader)
 			for module_path in module_paths:
-				new_meta = metas.new(module_path)
-				if not args.force and not metas.can_update(module_path, args.output_lang, new_meta):
-					continue
+				header_json = load_meta_header_json(module_path, loader)
+				if header_json:
+					new_meta = MetaHeader(module_meta_injector(module_path.path), translator.meta)
+					old_meta = MetaHeader.from_json(header_json)
+					if not args.force and not new_meta == old_meta:
+						continue
 
 				content = translator.translate(modules.load(module_path.path))
 				writer = Writer(output_filepath(module_path, args))
@@ -150,9 +168,8 @@ def task(translator: ITranslator, modules: Modules, module_paths: ModulePaths, a
 
 if __name__ == '__main__':
 	definitions = {
-		fullyname(AppMetaProvider): AppMetaProvider,
 		fullyname(Args): Args,
-		fullyname(MetaHeaderInjector): make_mata_header_injector,
+		fullyname(ModuleMetaInjector): make_module_mata_injector,
 		fullyname(ModulePaths): make_module_paths,
 		fullyname(ParserSetting): make_parser_setting,
 		fullyname(PluginProvider): cpp_plugin_provider,

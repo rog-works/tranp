@@ -2,11 +2,15 @@ import re
 from types import UnionType
 from typing import cast
 
+from rogw.tranp.data.version import Versions
 from rogw.tranp.dsn.translation import import_dsn
 from rogw.tranp.errors import LogicError
 from rogw.tranp.i18n.i18n import I18n
 from rogw.tranp.implements.cpp.semantics.cvars import CVars
 from rogw.tranp.lang.annotation import implements, injectable
+from rogw.tranp.lang.module import fullyname
+from rogw.tranp.meta.header import MetaHeader
+from rogw.tranp.meta.types import ModuleMetaInjector, TranslatorMeta
 from rogw.tranp.module.module import Module
 from rogw.tranp.semantics.procedure import Procedure
 import rogw.tranp.semantics.reflection.helper.template as template
@@ -16,8 +20,7 @@ from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.syntax.ast.dsn import DSN
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
-from rogw.tranp.translator.types import ITranslator, MetaHeaderInjector, TranslatorOptions
-from rogw.tranp.version import Versions
+from rogw.tranp.translator.types import ITranslator, TranslatorOptions
 from rogw.tranp.view.render import Renderer
 
 
@@ -25,20 +28,20 @@ class Py2Cpp(ITranslator):
 	"""Python -> C++のトランスパイラー"""
 
 	@injectable
-	def __init__(self, reflections: Reflections, render: Renderer, i18n: I18n, meta_header: MetaHeaderInjector, options: TranslatorOptions) -> None:
+	def __init__(self, reflections: Reflections, render: Renderer, i18n: I18n, module_meta_injector: ModuleMetaInjector, options: TranslatorOptions) -> None:
 		"""インスタンスを生成
 
 		Args:
 			reflections (Reflections): シンボルリゾルバー @inject
 			render (Renderer): ソースレンダー @inject
 			i18n (I18n): 国際化対応モジュール @inject
-			meta_header (MetaHeaderInjector): メタヘッダー注入 @inject
+			module_meta_injector (ModuleMetaInjector): モジュールのメタ情報注入 @inject
 			options (TranslatorOptions): 実行オプション @inject
 		"""
 		self.reflections = reflections
 		self.view = render
 		self.i18n = i18n
-		self.meta_header = meta_header
+		self.module_meta_injector = module_meta_injector
 		self.__procedure = self.__make_procedure(options)
 
 	def __make_procedure(self, options: TranslatorOptions) -> Procedure[str]:
@@ -58,9 +61,9 @@ class Py2Cpp(ITranslator):
 
 	@property
 	@implements
-	def version(self) -> str:
-		"""str: バージョン"""
-		return Versions.py2cpp
+	def meta(self) -> TranslatorMeta:
+		"""TranslatorMeta: トランスレーターのメタ情報"""
+		return {'version': Versions.py2cpp, 'module': fullyname(Py2Cpp)}
 
 	@implements
 	def translate(self, module: Module) -> str:
@@ -71,10 +74,7 @@ class Py2Cpp(ITranslator):
 		Returns:
 			str: トランスパイル後のソースコード
 		"""
-		translated = self.__procedure.exec(module.entrypoint)
-		# FIXME Procedureで全て処理できないと一貫性がなく見落としやすい
-		# FIXME 理想はon_entrypointで処理すること
-		return self.view.render('translate', vars={'translated': translated, 'header': self.meta_header(module.module_path)})
+		return self.__procedure.exec(module.entrypoint)
 
 	def to_accessible_name(self, raw: IReflection) -> str:
 		"""型推論によって補完する際の名前空間上の参照名を取得 (主にMoveAssignで利用)
@@ -153,7 +153,8 @@ class Py2Cpp(ITranslator):
 	# General
 
 	def on_entrypoint(self, node: defs.Entrypoint, statements: list[str]) -> str:
-		return self.view.render(node.classification, vars={'statements': statements})
+		meta_header = MetaHeader(self.module_meta_injector(node.module_path), self.meta)
+		return self.view.render(node.classification, vars={'statements': statements, 'meta_header': meta_header.to_header_str()})
 
 	# Statement - compound
 

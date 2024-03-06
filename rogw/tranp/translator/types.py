@@ -1,8 +1,8 @@
 from abc import ABCMeta, abstractmethod
-from typing import NamedTuple, Protocol
+from typing import NamedTuple
 
+from rogw.tranp.meta.types import TranslatorMeta
 from rogw.tranp.module.module import Module
-from rogw.tranp.module.types import ModulePath
 
 
 class TranslatorOptions(NamedTuple):
@@ -11,25 +11,8 @@ class TranslatorOptions(NamedTuple):
 	Attributes:
 		verbose (bool): ログ出力フラグ
 	"""
+
 	verbose: bool
-
-
-class MetaHeaderInjector(Protocol):
-	"""メタヘッダー注入プロトコル
-
-	Note:
-		このプロトコルの出力がトランスパイル後のファイルの先頭に挿入される
-	"""
-
-	def __call__(self, module_path: ModulePath) -> str:
-		"""メタヘッダーを生成
-
-		Args:
-			module_path (ModulePath): モジュールパス
-		Returns:
-			str: メタヘッダー
-		"""
-		...
 
 
 class ITranslator(metaclass=ABCMeta):
@@ -37,8 +20,8 @@ class ITranslator(metaclass=ABCMeta):
 
 	@property
 	@abstractmethod
-	def version(self) -> str:
-		"""str: バージョン"""
+	def meta(self) -> TranslatorMeta:
+		"""TranslatorMeta: トランスレーターのメタ情報"""
 		...
 
 	@abstractmethod

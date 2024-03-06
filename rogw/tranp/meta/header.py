@@ -13,13 +13,30 @@ class MetaHeader:
 	Tag: ClassVar = '@tranp.meta'
 
 	@classmethod
+	def try_from_content(cls, content: str) -> Self | None:
+		"""テキストデータからインスタンスの復元を試行。メタヘッダーが存在しない場合はNoneを返却
+
+		Args:
+			content (str): テキストデータ
+		Returns:
+			Self | None: 復元したインスタンス。またはNone
+		"""
+		header_begin = content.find(MetaHeader.Tag)
+		if header_begin == -1:
+			return None
+
+		json_begin = header_begin + len(MetaHeader.Tag) + 1
+		json_end = content.find('\n', json_begin)
+		return cls.from_json(content[json_begin:json_end])
+
+	@classmethod
 	def from_json(cls, json_str: str) -> Self:
 		"""JSON文字列からインスタンスを復元
 
 		Args:
 			json_str (str): JSON文字列
 		Returns:
-			Self: インスタンス
+			Self: 復元したインスタンス
 		"""
 		raw = json.loads(json_str)
 		return cls(raw['module'], raw['transpiler'], raw['version'])

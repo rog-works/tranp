@@ -122,20 +122,13 @@ def make_module_mata_factory(module_paths: ModulePaths, loader: IFileLoader) -> 
 	return handler
 
 
-def load_meta_header_json(module_path: ModulePath, loader: IFileLoader, args: Args) -> str | None:
+def try_load_meta_header(module_path: ModulePath, loader: IFileLoader, to_language: str) -> MetaHeader | None:
 	basepath = module_path.path.replace('.', '/')
-	filepath = DSN.join(basepath, args.output_lang)
+	filepath = DSN.join(basepath, to_language)
 	if not loader.exists(filepath):
 		return None
 
-	content = loader.load(filepath)
-	header_begin = content.find(MetaHeader.Tag)
-	if header_begin == -1:
-		return None
-
-	json_begin = header_begin + len(MetaHeader.Tag) + 1
-	json_end = content.find('\n', json_begin)
-	return content[json_begin:json_end]
+	return MetaHeader.try_from_content(loader.load(filepath))
 
 
 def output_filepath(module_path: ModulePath, args: Args) -> str:
@@ -149,12 +142,11 @@ def task(transpiler: ITranspiler, modules: Modules, module_paths: ModulePaths, a
 	module_meta_factory = make_module_mata_factory(module_paths, loader)
 
 	def can_update(module_path: ModulePath) -> bool:
-		header_json = load_meta_header_json(module_path, loader, args)
-		if not header_json:
+		old_meta = try_load_meta_header(module_path, loader, args.output_lang)
+		if not old_meta:
 			return True
 
 		new_meta = MetaHeader(module_meta_factory(module_path.path), transpiler.meta)
-		old_meta = MetaHeader.from_json(header_json)
 		return new_meta != old_meta
 
 	def run() -> None:

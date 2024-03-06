@@ -358,6 +358,13 @@ class Py2Cpp:
 		return f'//{node.text}'
 
 	def on_import(self, node: defs.Import, symbols: list[str]) -> str:
+		"""
+		Note:
+			* 通常、インポートは全てコメントアウトして出力
+			* 翻訳データにインポート置換用のDSNを登録することで、その行のみ有効な行として出力を変更
+			@see dsn.translation.import_dsn
+			@see i18n.I18n.t
+		"""
 		module_path = node.import_path.tokens
 		text = self.view.render(node.classification, vars={'module_path': module_path})
 		return self.i18n.t(import_dsn(module_path), text)

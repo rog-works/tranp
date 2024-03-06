@@ -18,6 +18,7 @@ class AliasHandler(Protocol):
 		Returns:
 			str: エイリアス
 		Note:
+			@see dsn.translation.alias_dsn
 			@see i18n.I18n.t
 		"""
 		...
@@ -35,9 +36,6 @@ class ClassDomainNaming:
 			alias_handler (AliasHandler | None): エイリアス解決ハンドラー (default = None)
 		Returns:
 			str: ドメイン名
-		Note:
-			# エイリアスの解決時に要求するキー名の書式
-			'aliases.${fullyname}'
 		"""
 		return alias_handler(alias_dsn(types.fullyname), fallback=types.domain_name) if alias_handler else types.domain_name
 
@@ -100,14 +98,14 @@ class ClassDomainNaming:
 
 	@classmethod
 	def __ancestor_classes(cls, types: defs.ClassDef) -> list[defs.ClassDef]:
-		"""名前空間を持つ親クラスを全て抽出
+		"""名前空間を持つ親クラスを再帰的に抽出
 
 		Args:
 			types (ClassDef): 起点のクラス宣言ノード
 		Returns:
-			list[ClassDef]: 親クラスのノード
+			list[ClassDef]: 親クラスのノードリスト
 		Note:
-			XXX 設計的にはIScopeを判断材料とするべき
+			FIXME 設計的にはIScopeを判断材料とするべき
 		"""
 		curr = types.parent
 		ancestors: list[defs.ClassDef] = []

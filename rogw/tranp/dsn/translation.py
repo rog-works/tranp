@@ -1,23 +1,29 @@
 from rogw.tranp.syntax.ast.dsn import DSN
 
 
-def alias_dsn(path: str) -> str:
+def alias_dsn(fullyname: str) -> str:
 	"""エイリアス用のDSNに変換
 
 	Args:
-		path (str): パス
+		fullyname (str): 完全参照名
 	Returns:
 		str: DSN
+	Note:
+		# エイリアス用DSNの書式
+		例: 'aliases.module.path.to.symbol'
 	"""
-	return DSN.join('aliases', path)
+	return DSN.join('aliases', fullyname)
 
 
-def import_dsn(path: str) -> str:
+def import_dsn(module_path: str) -> str:
 	"""インポート用のDSNに変換
 
 	Args:
-		path (str): パス
+		module_path (str): モジュールパス
 	Returns:
 		str: DSN
+	Note:
+		# インポート用DSNの書式
+		例: 'imports.module.path'
 	"""
-	return DSN.join('imports', path)
+	return DSN.join('imports', module_path)

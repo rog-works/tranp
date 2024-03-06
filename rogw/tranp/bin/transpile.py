@@ -23,7 +23,7 @@ from rogw.tranp.module.types import ModulePath, ModulePaths
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.syntax.ast.dsn import DSN
 from rogw.tranp.syntax.ast.parser import ParserSetting
-from rogw.tranp.transpiler.types import ITranspiler, TranslatorOptions
+from rogw.tranp.transpiler.types import ITranspiler, TranspilerOptions
 from rogw.tranp.view.render import Renderer
 
 ArgsDict = TypedDict('ArgsDict', {'grammar': str, 'template_dir': str, 'input_dir': str, 'output_dir': str, 'output_lang': str, 'excludes': list[str], 'force': bool, 'verbose': bool, 'profile': str})
@@ -84,8 +84,8 @@ def make_renderer(args: Args) -> Renderer:
 
 
 @injectable
-def make_options(args: Args) -> TranslatorOptions:
-	return TranslatorOptions(verbose=args.verbose)
+def make_options(args: Args) -> TranspilerOptions:
+	return TranspilerOptions(verbose=args.verbose)
 
 
 @injectable
@@ -176,6 +176,6 @@ if __name__ == '__main__':
 		fullyname(ITranspiler): Py2Cpp,
 		fullyname(Renderer): make_renderer,
 		fullyname(TranslationMapping): translation_mapping_cpp,
-		fullyname(TranslatorOptions): make_options,
+		fullyname(TranspilerOptions): make_options,
 	}
 	App(definitions).run(task)

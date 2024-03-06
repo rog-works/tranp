@@ -19,7 +19,7 @@ from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.syntax.ast.dsn import DSN
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
-from rogw.tranp.transpiler.types import ITranspiler, TranslatorOptions
+from rogw.tranp.transpiler.types import ITranspiler, TranspilerOptions
 from rogw.tranp.view.render import Renderer
 
 
@@ -27,7 +27,7 @@ class Py2Cpp(ITranspiler):
 	"""Python -> C++のトランスパイラー"""
 
 	@injectable
-	def __init__(self, reflections: Reflections, render: Renderer, i18n: I18n, module_meta_factory: ModuleMetaFactory, options: TranslatorOptions) -> None:
+	def __init__(self, reflections: Reflections, render: Renderer, i18n: I18n, module_meta_factory: ModuleMetaFactory, options: TranspilerOptions) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -43,7 +43,7 @@ class Py2Cpp(ITranspiler):
 		self.module_meta_factory = module_meta_factory
 		self.__procedure = self.__make_procedure(options)
 
-	def __make_procedure(self, options: TranslatorOptions) -> Procedure[str]:
+	def __make_procedure(self, options: TranspilerOptions) -> Procedure[str]:
 		"""プロシージャーを生成
 
 		Args:

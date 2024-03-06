@@ -16,7 +16,7 @@ from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.semantics.errors import ProcessingError, UnresolvedSymbolError
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.test.helper import data_provider
-from rogw.tranp.transpiler.types import TranslatorOptions
+from rogw.tranp.transpiler.types import TranspilerOptions
 from rogw.tranp.view.render import Renderer
 from tests.test.fixture import Fixture
 from tests.unit.rogw.tranp.implements.cpp.transpiler.fixtures.test_py2cpp_expect import BlockExpects
@@ -138,7 +138,7 @@ class TestPy2Cpp(TestCase):
 		fullyname(Py2Cpp): Py2Cpp,
 		fullyname(PluginProvider): cpp_plugin_provider,
 		fullyname(TranslationMapping): fixture_translation_mapping,
-		fullyname(TranslatorOptions): lambda: TranslatorOptions(verbose=False),
+		fullyname(TranspilerOptions): lambda: TranspilerOptions(verbose=False),
 		fullyname(Renderer): lambda: Renderer(os.path.join(appdir(), 'example/template')),
 	})
 

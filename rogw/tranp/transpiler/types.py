@@ -5,8 +5,8 @@ from rogw.tranp.meta.types import TranspilerMeta
 from rogw.tranp.syntax.node.node import Node
 
 
-class TranslatorOptions(NamedTuple):
-	"""オプション
+class TranspilerOptions(NamedTuple):
+	"""トランスパイルオプション
 
 	Attributes:
 		verbose (bool): ログ出力フラグ

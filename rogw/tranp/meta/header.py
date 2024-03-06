@@ -22,15 +22,17 @@ class MetaHeader:
 			Self: インスタンス
 		"""
 		raw = json.loads(json_str)
-		return cls(raw['module'], raw['translator'])
+		return cls(raw['module'], raw['translator'], raw['version'])
 
-	def __init__(self, module_meta: ModuleMeta, translator_meta: TranslatorMeta) -> None:
+	def __init__(self, module_meta: ModuleMeta, translator_meta: TranslatorMeta, app_version: str | None = None) -> None:
 		"""インスタンスを生成
 
 		Args:
 			module_meta (ModuleMeta): モジュールのメタ情報
 			translator_meta (TranslatorMeta): トランスレーターのメタ情報
+			app_version (str | None): アプリケーションバージョン (default = None)
 		"""
+		self.app_version = app_version or Versions.app
 		self.module_meta = module_meta
 		self.translator_meta = translator_meta
 
@@ -60,7 +62,7 @@ class MetaHeader:
 		Returns:
 			str: JSON文字列
 		"""
-		return json.dumps({'version': Versions.app, 'module': self.module_meta, 'translator': self.translator_meta})
+		return json.dumps({'version': self.app_version, 'module': self.module_meta, 'translator': self.translator_meta}, separators=(',', ':'))
 
 	def to_header_str(self) -> str:
 		"""メタヘッダー文字列に変換

@@ -84,30 +84,6 @@ def make_renderer(args: Args) -> Renderer:
 
 
 @injectable
-def make_module_mata_injector(module_paths: ModulePaths, loader: IFileLoader) -> ModuleMetaInjector:
-	def injector(module_path: str) -> ModuleMeta:
-		index = [module_path.path for module_path in module_paths].index(module_path)
-		target_module_path = module_paths[index]
-		basepath = target_module_path.path.replace('.', '/')
-		filepath = DSN.join(basepath, target_module_path.language)
-		return {'hash': loader.hash(filepath), 'path': module_path}
-
-	return injector
-
-
-def load_meta_header_json(module_path: ModulePath, loader: IFileLoader) -> str | None:
-	basepath = module_path.path.replace('.', '/')
-	filepath = DSN.join(basepath, module_path.language)
-	content = loader.load(filepath)
-	header_begin = content.find(MetaHeader.Tag)
-	if header_begin == -1:
-		return None
-
-	header_end = content.find('\n', header_begin)
-	return content[header_begin:header_end]
-
-
-@injectable
 def make_options(args: Args) -> TranslatorOptions:
 	return TranslatorOptions(verbose=args.verbose)
 
@@ -134,6 +110,31 @@ def make_module_paths(args: Args) -> ModulePaths:
 	return module_paths
 
 
+@injectable
+def make_module_mata_injector(module_paths: ModulePaths, loader: IFileLoader) -> ModuleMetaInjector:
+	def injector(module_path: str) -> ModuleMeta:
+		index = [module_path.path for module_path in module_paths].index(module_path)
+		target_module_path = module_paths[index]
+		basepath = target_module_path.path.replace('.', '/')
+		filepath = DSN.join(basepath, target_module_path.language)
+		return {'hash': loader.hash(filepath), 'path': module_path}
+
+	return injector
+
+
+def load_meta_header_json(module_path: ModulePath, loader: IFileLoader, args: Args) -> str | None:
+	basepath = module_path.path.replace('.', '/')
+	filepath = DSN.join(basepath, args.output_lang)
+	content = loader.load(filepath)
+	header_begin = content.find(MetaHeader.Tag)
+	if header_begin == -1:
+		return None
+
+	json_begin = header_begin + len(MetaHeader.Tag) + 1
+	json_end = content.find('\n', json_begin)
+	return content[json_begin:json_end]
+
+
 def output_filepath(module_path: ModulePath, args: Args) -> str:
 	basepath = module_path.path.replace('.', '/')
 	filepath = f'{basepath}.{args.output_lang}'
@@ -142,21 +143,25 @@ def output_filepath(module_path: ModulePath, args: Args) -> str:
 
 @injectable
 def task(translator: ITranslator, modules: Modules, module_paths: ModulePaths, args: Args, loader: IFileLoader) -> None:
+	module_meta_injector = make_module_mata_injector(module_paths, loader)
+
+	def can_update(module_path: ModulePath) -> bool:
+		header_json = load_meta_header_json(module_path, loader, args)
+		if not header_json:
+			return False
+
+		new_meta = MetaHeader(module_meta_injector(module_path.path), translator.meta)
+		old_meta = MetaHeader.from_json(header_json)
+		return new_meta != old_meta
+
 	def run() -> None:
 		try:
-			module_meta_injector = make_module_mata_injector(module_paths, loader)
 			for module_path in module_paths:
-				header_json = load_meta_header_json(module_path, loader)
-				if header_json:
-					new_meta = MetaHeader(module_meta_injector(module_path.path), translator.meta)
-					old_meta = MetaHeader.from_json(header_json)
-					if not args.force and not new_meta == old_meta:
-						continue
-
-				content = translator.translate(modules.load(module_path.path))
-				writer = Writer(output_filepath(module_path, args))
-				writer.put(content)
-				writer.flush()
+				if args.force or can_update(module_path):
+					content = translator.translate(modules.load(module_path.path))
+					writer = Writer(output_filepath(module_path, args))
+					writer.put(content)
+					writer.flush()
 		except Exception as e:
 			print(''.join(stacktrace(e)))
 

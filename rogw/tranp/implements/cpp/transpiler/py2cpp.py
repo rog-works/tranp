@@ -10,7 +10,7 @@ from rogw.tranp.implements.cpp.semantics.cvars import CVars
 from rogw.tranp.lang.annotation import implements, injectable
 from rogw.tranp.lang.module import fullyname
 from rogw.tranp.meta.header import MetaHeader
-from rogw.tranp.meta.types import ModuleMetaInjector, TranspilerMeta
+from rogw.tranp.meta.types import ModuleMetaFactory, TranspilerMeta
 from rogw.tranp.semantics.procedure import Procedure
 import rogw.tranp.semantics.reflection.helper.template as template
 from rogw.tranp.semantics.reflection.helper.naming import ClassDomainNaming, ClassShorthandNaming
@@ -27,20 +27,20 @@ class Py2Cpp(ITranspiler):
 	"""Python -> C++のトランスパイラー"""
 
 	@injectable
-	def __init__(self, reflections: Reflections, render: Renderer, i18n: I18n, module_meta_injector: ModuleMetaInjector, options: TranslatorOptions) -> None:
+	def __init__(self, reflections: Reflections, render: Renderer, i18n: I18n, module_meta_factory: ModuleMetaFactory, options: TranslatorOptions) -> None:
 		"""インスタンスを生成
 
 		Args:
 			reflections (Reflections): シンボルリゾルバー @inject
 			render (Renderer): ソースレンダー @inject
 			i18n (I18n): 国際化対応モジュール @inject
-			module_meta_injector (ModuleMetaInjector): モジュールのメタ情報注入 @inject
+			module_meta_factory (ModuleMetaFactory): モジュールのメタ情報ファクトリー @inject
 			options (TranslatorOptions): 実行オプション @inject
 		"""
 		self.reflections = reflections
 		self.view = render
 		self.i18n = i18n
-		self.module_meta_injector = module_meta_injector
+		self.module_meta_factory = module_meta_factory
 		self.__procedure = self.__make_procedure(options)
 
 	def __make_procedure(self, options: TranslatorOptions) -> Procedure[str]:
@@ -152,7 +152,7 @@ class Py2Cpp(ITranspiler):
 	# General
 
 	def on_entrypoint(self, node: defs.Entrypoint, statements: list[str]) -> str:
-		meta_header = MetaHeader(self.module_meta_injector(node.module_path), self.meta)
+		meta_header = MetaHeader(self.module_meta_factory(node.module_path), self.meta)
 		return self.view.render(node.classification, vars={'statements': statements, 'meta_header': meta_header.to_header_str()})
 
 	# Statement - compound

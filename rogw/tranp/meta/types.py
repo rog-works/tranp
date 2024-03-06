@@ -25,8 +25,8 @@ class TranspilerMeta(TypedDict):
 	module: str
 
 
-class ModuleMetaInjector(Protocol):
-	"""モジュールのメタ情報注入プロトコル"""
+class ModuleMetaFactory(Protocol):
+	"""モジュールのメタ情報ファクトリープロトコル"""
 
 	def __call__(self, module_path: str) -> ModuleMeta:
 		"""モジュールのメタ情報を生成

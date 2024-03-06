@@ -9,7 +9,7 @@ from rogw.tranp.errors import LogicError
 from rogw.tranp.i18n.i18n import TranslationMapping
 from rogw.tranp.implements.cpp.providers.i18n import translation_mapping_cpp
 from rogw.tranp.implements.cpp.providers.semantics import cpp_plugin_provider
-from rogw.tranp.implements.cpp.translator.py2cpp import Py2Cpp
+from rogw.tranp.implements.cpp.transpiler.py2cpp import Py2Cpp
 from rogw.tranp.io.loader import IFileLoader
 from rogw.tranp.io.writer import Writer
 from rogw.tranp.lang.annotation import injectable
@@ -23,7 +23,7 @@ from rogw.tranp.module.types import ModulePath, ModulePaths
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.syntax.ast.dsn import DSN
 from rogw.tranp.syntax.ast.parser import ParserSetting
-from rogw.tranp.translator.types import ITranslator, TranslatorOptions
+from rogw.tranp.transpiler.types import ITranspiler, TranslatorOptions
 from rogw.tranp.view.render import Renderer
 
 ArgsDict = TypedDict('ArgsDict', {'grammar': str, 'template_dir': str, 'input_dir': str, 'output_dir': str, 'output_lang': str, 'excludes': list[str], 'force': bool, 'verbose': bool, 'profile': str})
@@ -125,6 +125,9 @@ def make_module_mata_injector(module_paths: ModulePaths, loader: IFileLoader) ->
 def load_meta_header_json(module_path: ModulePath, loader: IFileLoader, args: Args) -> str | None:
 	basepath = module_path.path.replace('.', '/')
 	filepath = DSN.join(basepath, args.output_lang)
+	if not loader.exists(filepath):
+		return None
+
 	content = loader.load(filepath)
 	header_begin = content.find(MetaHeader.Tag)
 	if header_begin == -1:
@@ -142,15 +145,15 @@ def output_filepath(module_path: ModulePath, args: Args) -> str:
 
 
 @injectable
-def task(translator: ITranslator, modules: Modules, module_paths: ModulePaths, args: Args, loader: IFileLoader) -> None:
+def task(transpiler: ITranspiler, modules: Modules, module_paths: ModulePaths, args: Args, loader: IFileLoader) -> None:
 	module_meta_injector = make_module_mata_injector(module_paths, loader)
 
 	def can_update(module_path: ModulePath) -> bool:
 		header_json = load_meta_header_json(module_path, loader, args)
 		if not header_json:
-			return False
+			return True
 
-		new_meta = MetaHeader(module_meta_injector(module_path.path), translator.meta)
+		new_meta = MetaHeader(module_meta_injector(module_path.path), transpiler.meta)
 		old_meta = MetaHeader.from_json(header_json)
 		return new_meta != old_meta
 
@@ -158,7 +161,7 @@ def task(translator: ITranslator, modules: Modules, module_paths: ModulePaths, a
 		try:
 			for module_path in module_paths:
 				if args.force or can_update(module_path):
-					content = translator.translate(modules.load(module_path.path))
+					content = transpiler.transpile(modules.load(module_path.path).entrypoint)
 					writer = Writer(output_filepath(module_path, args))
 					writer.put(content)
 					writer.flush()
@@ -178,7 +181,7 @@ if __name__ == '__main__':
 		fullyname(ModulePaths): make_module_paths,
 		fullyname(ParserSetting): make_parser_setting,
 		fullyname(PluginProvider): cpp_plugin_provider,
-		fullyname(ITranslator): Py2Cpp,
+		fullyname(ITranspiler): Py2Cpp,
 		fullyname(Renderer): make_renderer,
 		fullyname(TranslationMapping): translation_mapping_cpp,
 		fullyname(TranslatorOptions): make_options,

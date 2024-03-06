@@ -4,7 +4,7 @@ from typing import Any, ClassVar, Self
 
 from rogw.tranp.data.version import Versions
 from rogw.tranp.errors import LogicError
-from rogw.tranp.meta.types import ModuleMeta, TranslatorMeta
+from rogw.tranp.meta.types import ModuleMeta, TranspilerMeta
 
 
 class MetaHeader:
@@ -22,14 +22,14 @@ class MetaHeader:
 			Self: インスタンス
 		"""
 		raw = json.loads(json_str)
-		return cls(raw['module'], raw['translator'], raw['version'])
+		return cls(raw['module'], raw['transpiler'], raw['version'])
 
-	def __init__(self, module_meta: ModuleMeta, translator_meta: TranslatorMeta, app_version: str | None = None) -> None:
+	def __init__(self, module_meta: ModuleMeta, translator_meta: TranspilerMeta, app_version: str | None = None) -> None:
 		"""インスタンスを生成
 
 		Args:
 			module_meta (ModuleMeta): モジュールのメタ情報
-			translator_meta (TranslatorMeta): トランスレーターのメタ情報
+			translator_meta (TranspilerMeta): トランスパイラーのメタ情報
 			app_version (str | None): アプリケーションバージョン (default = None)
 		"""
 		self.app_version = app_version or Versions.app
@@ -62,7 +62,7 @@ class MetaHeader:
 		Returns:
 			str: JSON文字列
 		"""
-		return json.dumps({'version': self.app_version, 'module': self.module_meta, 'translator': self.translator_meta}, separators=(',', ':'))
+		return json.dumps({'version': self.app_version, 'module': self.module_meta, 'transpiler': self.translator_meta}, separators=(',', ':'))
 
 	def to_header_str(self) -> str:
 		"""メタヘッダー文字列に変換

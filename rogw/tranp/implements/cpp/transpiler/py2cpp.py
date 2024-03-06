@@ -10,8 +10,7 @@ from rogw.tranp.implements.cpp.semantics.cvars import CVars
 from rogw.tranp.lang.annotation import implements, injectable
 from rogw.tranp.lang.module import fullyname
 from rogw.tranp.meta.header import MetaHeader
-from rogw.tranp.meta.types import ModuleMetaInjector, TranslatorMeta
-from rogw.tranp.module.module import Module
+from rogw.tranp.meta.types import ModuleMetaInjector, TranspilerMeta
 from rogw.tranp.semantics.procedure import Procedure
 import rogw.tranp.semantics.reflection.helper.template as template
 from rogw.tranp.semantics.reflection.helper.naming import ClassDomainNaming, ClassShorthandNaming
@@ -20,11 +19,11 @@ from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.syntax.ast.dsn import DSN
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
-from rogw.tranp.translator.types import ITranslator, TranslatorOptions
+from rogw.tranp.transpiler.types import ITranspiler, TranslatorOptions
 from rogw.tranp.view.render import Renderer
 
 
-class Py2Cpp(ITranslator):
+class Py2Cpp(ITranspiler):
 	"""Python -> C++のトランスパイラー"""
 
 	@injectable
@@ -61,20 +60,20 @@ class Py2Cpp(ITranslator):
 
 	@property
 	@implements
-	def meta(self) -> TranslatorMeta:
-		"""TranslatorMeta: トランスレーターのメタ情報"""
+	def meta(self) -> TranspilerMeta:
+		"""TranspilerMeta: トランスパイラーのメタ情報"""
 		return {'version': Versions.py2cpp, 'module': fullyname(Py2Cpp)}
 
 	@implements
-	def translate(self, module: Module) -> str:
-		"""対象のモジュールを解析してトランスパイル
+	def transpile(self, root: Node) -> str:
+		"""起点のノードから解析してトランスパイルしたソースコードを返却
 
 		Args:
-			module (Module): モジュール
+			root (Node): 起点のノード
 		Returns:
 			str: トランスパイル後のソースコード
 		"""
-		return self.__procedure.exec(module.entrypoint)
+		return self.__procedure.exec(root)
 
 	def to_accessible_name(self, raw: IReflection) -> str:
 		"""型推論によって補完する際の名前空間上の参照名を取得 (主にMoveAssignで利用)

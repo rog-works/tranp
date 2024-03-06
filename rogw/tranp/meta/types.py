@@ -13,12 +13,12 @@ class ModuleMeta(TypedDict):
 	path: str
 
 
-class TranslatorMeta(TypedDict):
-	"""トランスレーターのメタ情報
+class TranspilerMeta(TypedDict):
+	"""トランスパイラーのメタ情報
 
 	Attributes:
 		version (str): バージョン
-		module (str): トランスレーター実装クラスのモジュールパス
+		module (str): トランスパイラー実装クラスのモジュールパス
 	"""
 
 	version: str

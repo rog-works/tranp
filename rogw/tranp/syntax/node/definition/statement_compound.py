@@ -1,7 +1,7 @@
 from typing import Generic, TypeVar
 
 from rogw.tranp.compatible.python.embed import __actual__, __hint_generic__
-from rogw.tranp.lang.annotation import implements, override
+from rogw.tranp.lang.annotation import duck_typed, implements, override
 from rogw.tranp.lang.sequence import flatten, last_index_of
 from rogw.tranp.syntax.ast.dsn import DSN
 from rogw.tranp.syntax.node.accessible import ClassOperations
@@ -22,6 +22,7 @@ T_Declable = TypeVar('T_Declable', bound=Declable)
 @Meta.embed(Node, accept_tags('block'))
 class Block(Node):
 	@property
+	@duck_typed
 	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:
 		return self._children()
@@ -53,6 +54,7 @@ class ElseIf(FlowPart):
 		return self._at(0)
 
 	@property
+	@duck_typed
 	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:
 		return self.block.statements
@@ -70,6 +72,7 @@ class If(FlowEnter):
 		return self._at(0)
 
 	@property
+	@duck_typed
 	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:
 		return self.block.statements
@@ -113,6 +116,7 @@ class While(FlowEnter):
 		return self._at(0)
 
 	@property
+	@duck_typed
 	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:
 		return self.block.statements
@@ -136,6 +140,7 @@ class For(FlowEnter, IDeclaration):
 		return self._by('for_in').as_a(ForIn)
 
 	@property
+	@duck_typed
 	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:
 		return self.block.statements
@@ -164,6 +169,7 @@ class Catch(FlowPart, IDeclaration):
 		return self._by('name').as_a(DeclLocalVar)
 
 	@property
+	@duck_typed
 	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:
 		return self.block.statements
@@ -181,6 +187,7 @@ class Catch(FlowPart, IDeclaration):
 @Meta.embed(Node, accept_tags('try_stmt'))
 class Try(FlowEnter):
 	@property
+	@duck_typed
 	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:
 		return self.block.statements
@@ -257,6 +264,7 @@ class ClassDef(Node, IDomain, IScope, IDeclaration, ISymbol):
 		return self.dirty_child(Empty, '__empty__', tokens='')
 
 	@property
+	@duck_typed
 	def statements(self) -> list[Node]:
 		return [statement for statement in self._org_statements if not statement.is_a(DocString)]
 
@@ -350,6 +358,7 @@ class Function(ClassDef):
 
 	@property
 	@override
+	@duck_typed
 	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:
 		return super().statements
@@ -483,6 +492,7 @@ class Class(ClassDef):
 
 	@property
 	@override
+	@duck_typed
 	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:
 		return super().statements

@@ -1,11 +1,11 @@
 from unittest import TestCase
 
-from rogw.tranp.lang.annotation import implements
+from rogw.tranp.lang.annotation import duck_typed
 from tests.unit.rogw.tranp.syntax.ast.test_entry import EntryImpl
 
 
 class SyntaxParserImpl:
-	@implements
+	@duck_typed
 	def parse(self, module_path: str) -> EntryImpl:
 		return EntryImpl(('root', []))
 

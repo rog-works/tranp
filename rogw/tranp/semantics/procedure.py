@@ -1,7 +1,7 @@
 from typing import Generic, TypeVar, cast
 
 from rogw.tranp.errors import LogicError
-from rogw.tranp.lang.annotation import implements
+from rogw.tranp.lang.annotation import duck_typed
 from rogw.tranp.lang.error import raises
 from rogw.tranp.lang.eventemitter import Callback, EventEmitter
 from rogw.tranp.syntax.ast.dsn import DSN
@@ -32,7 +32,7 @@ class Procedure(Generic[T_Ret]):
 		self.__verbose = verbose
 		self.__emitter = EventEmitter[T_Ret]()
 
-	@implements
+	@duck_typed
 	def on(self, action: str, callback: Callback[T_Ret]) -> None:
 		"""イベントハンドラーを登録
 
@@ -40,11 +40,11 @@ class Procedure(Generic[T_Ret]):
 			action (str): アクション名
 			callback (Callback[T_Ret]): ハンドラー
 		Note:
-			@see eventemitter.IObservable を実装
+			@see lang.eventemitter.IObservable.on
 		"""
 		self.__emitter.on(action, callback)
 
-	@implements
+	@duck_typed
 	def off(self, action: str, callback: Callback[T_Ret]) -> None:
 		"""イベントハンドラーを解除
 
@@ -52,7 +52,7 @@ class Procedure(Generic[T_Ret]):
 			action (str): アクション名
 			callback (Callback[T_Ret]): ハンドラー
 		Note:
-			@see eventemitter.IObservable を実装
+			@see lang.eventemitter.IObservable.off
 		"""
 		self.__emitter.off(action, callback)
 

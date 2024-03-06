@@ -7,7 +7,7 @@ from lark.indenter import PythonIndenter
 from rogw.tranp.implements.syntax.lark.entry import EntryOfLark, Serialization
 from rogw.tranp.io.cache import CacheProvider
 from rogw.tranp.io.loader import IFileLoader
-from rogw.tranp.lang.annotation import implements, injectable
+from rogw.tranp.lang.annotation import duck_typed, injectable
 from rogw.tranp.syntax.ast.entry import Entry
 from rogw.tranp.syntax.ast.parser import ParserSetting
 
@@ -28,7 +28,7 @@ class SyntaxParserOfLark:
 		self.__setting = setting
 		self.__caches = caches
 
-	@implements
+	@duck_typed
 	def __call__(self, module_path: str) -> Entry:
 		"""モジュールを解析してシンタックスツリーを生成
 
@@ -36,6 +36,8 @@ class SyntaxParserOfLark:
 			module_path (str): モジュールパス
 		Returns:
 			Entry: シンタックスツリーのルートエントリー
+		Note:
+			@see syntax.ast.parser.SyntaxParser
 		"""
 		parser = self.__load_parser()
 		return self.__load_entry(parser, module_path)

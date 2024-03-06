@@ -1,4 +1,4 @@
-from rogw.tranp.lang.annotation import override
+from rogw.tranp.lang.annotation import duck_typed, override
 from rogw.tranp.syntax.ast.dsn import DSN
 from rogw.tranp.syntax.node.definition.primary import DeclLocalVar
 from rogw.tranp.syntax.node.definition.statement_compound import VarsCollector
@@ -29,6 +29,7 @@ class Entrypoint(Node):
 		return self.module_path
 
 	@property
+	@duck_typed
 	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:
 		return self._children()

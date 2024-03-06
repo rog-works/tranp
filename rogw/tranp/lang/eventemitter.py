@@ -1,6 +1,6 @@
 from typing import Any, Callable, Generic, Protocol, TypeAlias, TypeVar
 
-from rogw.tranp.lang.annotation import implements
+from rogw.tranp.lang.annotation import duck_typed
 
 T_Ret = TypeVar('T_Ret')
 
@@ -36,7 +36,7 @@ class EventEmitter(Generic[T_Ret]):
 		"""インスタンスを生成"""
 		self.__handlers: dict[str, list[Callback[T_Ret]]] = {}
 
-	@implements
+	@duck_typed
 	def on(self, action: str, callback: Callback[T_Ret]) -> None:
 		"""イベントハンドラーを登録
 
@@ -44,7 +44,7 @@ class EventEmitter(Generic[T_Ret]):
 			action (str): イベントタグ
 			callback (Callback[T_Ret]): イベントハンドラー
 		Note:
-			@see IObservable を実装
+			@see IObservable.on
 		"""
 		if action not in self.__handlers:
 			self.__handlers[action] = []
@@ -52,7 +52,7 @@ class EventEmitter(Generic[T_Ret]):
 		if callback not in self.__handlers[action]:
 			self.__handlers[action].append(callback)
 
-	@implements
+	@duck_typed
 	def off(self, action: str, callback: Callback[T_Ret]) -> None:
 		"""イベントハンドラーを解除
 
@@ -60,7 +60,7 @@ class EventEmitter(Generic[T_Ret]):
 			action (str): イベントタグ
 			callback (Callback[T_Ret]): イベントハンドラー
 		Note:
-			@see IObservable を実装
+			@see IObservable.off
 		"""
 		if action not in self.__handlers:
 			raise ValueError()

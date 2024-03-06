@@ -146,7 +146,7 @@ class Py2Cpp:
 	# General
 
 	def on_entrypoint(self, node: defs.Entrypoint, statements: list[str]) -> str:
-		return self.view.render('block', vars={'statements': statements})
+		return self.view.render(node.classification, vars={'statements': statements})
 
 	# Statement - compound
 

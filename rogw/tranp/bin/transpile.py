@@ -2,9 +2,10 @@ import glob
 import os
 import re
 import sys
-from typing import TypedDict
+from typing import TypedDict, cast
 
 from rogw.tranp.app.app import App
+from rogw.tranp.app.meta import AppMetaProvider
 from rogw.tranp.errors import LogicError
 from rogw.tranp.i18n.i18n import TranslationMapping
 from rogw.tranp.implements.cpp.providers.i18n import translation_mapping_cpp
@@ -21,9 +22,10 @@ from rogw.tranp.syntax.ast.parser import ParserSetting
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.translator.option import TranslatorOptions
 from rogw.tranp.translator.py2cpp import Py2Cpp
+from rogw.tranp.version import IVersion
 from rogw.tranp.view.render import Renderer
 
-ArgsDict = TypedDict('ArgsDict', {'grammar': str, 'template_dir': str, 'input_dir': str, 'output_dir': str, 'output_lang': str, 'excludes': list[str], 'verbose': bool, 'profile': str})
+ArgsDict = TypedDict('ArgsDict', {'grammar': str, 'template_dir': str, 'input_dir': str, 'output_dir': str, 'output_lang': str, 'excludes': list[str], 'force': bool, 'verbose': bool, 'profile': str})
 
 
 class Args:
@@ -35,6 +37,7 @@ class Args:
 		self.output_dir = args['output_dir']
 		self.output_lang = args['output_lang']
 		self.excludes = args['excludes']
+		self.force = args['force']
 		self.verbose = args['verbose']
 		self.profile = args['profile']
 
@@ -46,6 +49,7 @@ class Args:
 			'output_lang': 'h',
 			'excludes': ['example/FW/*'],
 			'template_dir': 'example/template',
+			'force': False,
 			'verbose': False,
 			'profile': 'none',
 		}
@@ -63,6 +67,8 @@ class Args:
 				args['output_lang'] = argv.pop(0)
 			elif arg == '-e':
 				args['excludes'] = argv.pop(0).split(';')
+			elif arg == '-f':
+				args['force'] = True
 			elif arg == '-v':
 				args['verbose'] = argv.pop(0) == 'on'
 			elif arg == '-p':
@@ -114,13 +120,23 @@ def output_filepath(module_path: ModulePath, args: Args) -> str:
 
 
 @injectable
-def task(translator: Py2Cpp, modules: Modules, module_paths: ModulePaths, args: Args) -> None:
+def task(translator_: IVersion, modules: Modules, module_paths: ModulePaths, args: Args, metas: AppMetaProvider) -> None:
 	def run() -> None:
 		try:
+			translator = cast(Py2Cpp, translator_)  # FIXME ITranslatorに変更を検討
 			for module_path in module_paths:
+				new_meta = metas.new(module_path)
+				if not args.force and not metas.can_update(module_path, args.output_lang, new_meta):
+					continue
+
 				entrypoint = fetch_entrypoint(modules, module_path)
+				translated = translator.translate(entrypoint)
+
+				meta_header = f'// @tranp.meta: {str(new_meta)}'  # FIXME トランスレーターに任せる方法を検討
+				content = '\n'.join([meta_header, translated])
+
 				writer = Writer(output_filepath(module_path, args))
-				writer.put(translator.translate(entrypoint))
+				writer.put(content)
 				writer.flush()
 		except Exception as e:
 			print(''.join(stacktrace(e)))
@@ -137,9 +153,10 @@ if __name__ == '__main__':
 		fullyname(ModulePaths): make_module_paths,
 		fullyname(ParserSetting): make_parser_setting,
 		fullyname(PluginProvider): cpp_plugin_provider,
-		fullyname(Py2Cpp): Py2Cpp,
+		fullyname(IVersion): Py2Cpp,  # FIXME ITranslatorに変更を検討
 		fullyname(Renderer): make_renderer,
 		fullyname(TranslationMapping): translation_mapping_cpp,
 		fullyname(TranslatorOptions): make_options,
+		fullyname(AppMetaProvider): AppMetaProvider,
 	}
 	App(definitions).run(task)

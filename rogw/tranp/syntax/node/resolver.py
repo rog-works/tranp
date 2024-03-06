@@ -1,6 +1,6 @@
 from rogw.tranp.errors import LogicError
+from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.lang.error import raises
-from rogw.tranp.lang.implementation import injectable
 from rogw.tranp.lang.locator import Invoker
 from rogw.tranp.syntax.ast.resolver import Resolver, SymbolMapping
 from rogw.tranp.syntax.errors import UnresolvedNodeError

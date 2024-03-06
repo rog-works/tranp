@@ -1,4 +1,4 @@
-from rogw.tranp.lang.implementation import override
+from rogw.tranp.lang.annotation import override
 from rogw.tranp.syntax.node.definition.terminal import Terminal
 from rogw.tranp.syntax.node.embed import Meta, accept_tags, expandable
 from rogw.tranp.syntax.node.node import Node

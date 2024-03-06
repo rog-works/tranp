@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from typing import Any, TypedDict
 
-from rogw.tranp.lang.implementation import implements
+from rogw.tranp.lang.annotation import implements
 
 DictToken = TypedDict('DictToken', {'name': str, 'value': str})
 DictTree = TypedDict('DictTree', {'name': str, 'children': list['DictTree | DictToken | None']})

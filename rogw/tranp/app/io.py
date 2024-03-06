@@ -2,7 +2,7 @@ import os
 
 from rogw.tranp.app.env import Env
 from rogw.tranp.io.loader import IFileLoader
-from rogw.tranp.lang.implementation import implements, injectable
+from rogw.tranp.lang.annotation import implements, injectable
 
 
 def appdir() -> str:

@@ -10,8 +10,8 @@ from rogw.tranp.i18n.i18n import TranslationMapping
 from rogw.tranp.implements.cpp.providers.i18n import translation_mapping_cpp
 from rogw.tranp.implements.cpp.providers.semantics import cpp_plugin_provider
 from rogw.tranp.io.writer import Writer
+from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.lang.error import stacktrace
-from rogw.tranp.lang.implementation import injectable
 from rogw.tranp.lang.module import fullyname
 from rogw.tranp.lang.profile import profiler
 from rogw.tranp.module.modules import Modules

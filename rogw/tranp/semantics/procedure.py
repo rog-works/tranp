@@ -1,9 +1,9 @@
 from typing import Generic, TypeVar, cast
 
 from rogw.tranp.errors import LogicError
+from rogw.tranp.lang.annotation import implements
 from rogw.tranp.lang.error import raises
 from rogw.tranp.lang.eventemitter import Callback, EventEmitter
-from rogw.tranp.lang.implementation import implements
 from rogw.tranp.syntax.ast.dsn import DSN
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.semantics.errors import ProcessingError

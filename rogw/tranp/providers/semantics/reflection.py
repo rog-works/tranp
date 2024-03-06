@@ -1,4 +1,4 @@
-from rogw.tranp.lang.implementation import injectable
+from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.semantics.processor import Preprocessors
 from rogw.tranp.semantics.reflection import SymbolDB, SymbolDBProvider
 

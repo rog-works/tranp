@@ -3,8 +3,8 @@ from types import UnionType
 import rogw.tranp.semantics.reflection.helper.template as template
 import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.compatible.python.types import Standards
+from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.lang.error import raises
-from rogw.tranp.lang.implementation import injectable
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.semantics.errors import SemanticsError, OperationNotAllowedError, UnresolvedSymbolError

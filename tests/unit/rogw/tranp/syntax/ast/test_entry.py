@@ -2,7 +2,7 @@ from typing import TypeAlias
 from unittest import TestCase
 
 from rogw.tranp.syntax.ast.entry import Entry
-from rogw.tranp.lang.implementation import implements
+from rogw.tranp.lang.annotation import implements
 
 DictTreeEntry: TypeAlias = tuple[str, list] | tuple[str, str] | None
 

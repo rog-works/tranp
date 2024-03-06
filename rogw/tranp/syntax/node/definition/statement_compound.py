@@ -1,7 +1,7 @@
 from typing import Generic, TypeVar
 
 from rogw.tranp.compatible.python.embed import __actual__, __hint_generic__
-from rogw.tranp.lang.implementation import implements, override
+from rogw.tranp.lang.annotation import implements, override
 from rogw.tranp.lang.sequence import flatten, last_index_of
 from rogw.tranp.syntax.ast.dsn import DSN
 from rogw.tranp.syntax.node.accessible import ClassOperations

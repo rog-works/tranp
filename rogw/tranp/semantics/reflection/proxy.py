@@ -1,6 +1,6 @@
 from typing import Callable, Iterator
 
-from rogw.tranp.lang.implementation import implements, override
+from rogw.tranp.lang.annotation import implements, override
 from rogw.tranp.semantics.reflection.interface import SymbolDB, IReflection, IWrapper, Roles, T_Ref
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node

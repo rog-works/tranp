@@ -1,7 +1,7 @@
 from typing import Any, Iterator, Self
 
 from rogw.tranp.errors import FatalError, LogicError
-from rogw.tranp.lang.implementation import implements, override
+from rogw.tranp.lang.annotation import implements, override
 from rogw.tranp.semantics.reflection.helper.naming import ClassShorthandNaming
 from rogw.tranp.semantics.reflection.interface import IReflection, IWrapper, Roles, SymbolDB, T_Ref
 import rogw.tranp.syntax.node.definition as defs

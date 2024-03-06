@@ -1,7 +1,7 @@
 from typing import cast
 
+from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.lang.di import DI, LazyDI
-from rogw.tranp.lang.implementation import injectable
 from rogw.tranp.lang.locator import Invoker, Locator
 from rogw.tranp.module.types import ModulePath, ModulePaths
 from rogw.tranp.module.module import Module

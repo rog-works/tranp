@@ -3,7 +3,7 @@ from typing import TypeAlias, TypedDict, cast
 import lark
 
 from rogw.tranp.syntax.ast.entry import Entry, SourceMap
-from rogw.tranp.lang.implementation import implements, override
+from rogw.tranp.lang.annotation import implements, override
 
 
 class EntryOfLark(Entry):

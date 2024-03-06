@@ -1,4 +1,4 @@
-from rogw.tranp.lang.implementation import implements, override
+from rogw.tranp.lang.annotation import implements, override
 from rogw.tranp.syntax.node.definition.primary import FuncCall, ImportName, ImportPath, Reference, Declable, Type, Var
 from rogw.tranp.syntax.node.definition.terminal import Empty, Terminal
 from rogw.tranp.syntax.node.embed import Meta, accept_tags, expandable

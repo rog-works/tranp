@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from rogw.tranp.lang.implementation import implements
+from rogw.tranp.lang.annotation import implements
 from tests.unit.rogw.tranp.syntax.ast.test_entry import EntryImpl
 
 

@@ -1,6 +1,6 @@
 import rogw.tranp.compatible.libralies.classes as classes
+from rogw.tranp.lang.annotation import implements, override
 from rogw.tranp.lang.comment import Comment as CommentData
-from rogw.tranp.lang.implementation import implements, override
 from rogw.tranp.syntax.ast.dsn import DSN
 from rogw.tranp.syntax.node.definition.terminal import Terminal
 from rogw.tranp.syntax.node.embed import Meta, accept_tags, expandable

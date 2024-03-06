@@ -2,7 +2,7 @@ import functools
 from typing import Any, Iterator, Literal, TypeVar, cast
 
 from rogw.tranp.errors import LogicError
-from rogw.tranp.lang.implementation import deprecated, injectable, override
+from rogw.tranp.lang.annotation import deprecated, injectable, override
 from rogw.tranp.lang.sequence import flatten
 from rogw.tranp.lang.string import snakelize
 from rogw.tranp.module.types import ModulePath

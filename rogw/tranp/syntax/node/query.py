@@ -1,7 +1,7 @@
 import re
 
 from rogw.tranp.io.memo import Memoize
-from rogw.tranp.lang.implementation import implements, injectable
+from rogw.tranp.lang.annotation import implements, injectable
 from rogw.tranp.syntax.ast.cache import EntryCache
 from rogw.tranp.syntax.ast.entry import Entry, SourceMap
 from rogw.tranp.syntax.ast.finder import ASTFinder

@@ -1,6 +1,6 @@
 from typing import cast
 
-from rogw.tranp.lang.implementation import injectable
+from rogw.tranp.lang.annotation import injectable
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.semantics.finder import SymbolFinder
 from rogw.tranp.semantics.reflection import IReflection, Roles, SymbolDB

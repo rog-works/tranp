@@ -2,7 +2,7 @@ from abc import ABCMeta, abstractmethod
 from enum import Enum
 from typing import Iterator, NamedTuple, Self, TypeVar
 
-from rogw.tranp.lang.implementation import override
+from rogw.tranp.lang.annotation import override
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 

@@ -4,7 +4,7 @@ from typing import IO, NamedTuple
 import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.io.cache import CacheProvider
 from rogw.tranp.io.loader import IFileLoader
-from rogw.tranp.lang.implementation import injectable
+from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.module.modules import Module, Modules
 from rogw.tranp.semantics.finder import SymbolFinder
 from rogw.tranp.semantics.reflection import IReflection, Symbol, SymbolDB

@@ -1,4 +1,4 @@
-from rogw.tranp.lang.implementation import injectable
+from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.module.module import Module
 from rogw.tranp.module.loader import ModuleLoader
 from rogw.tranp.module.types import LibraryPaths, ModulePath, ModulePaths

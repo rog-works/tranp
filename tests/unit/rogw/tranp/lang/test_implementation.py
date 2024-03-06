@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from rogw.tranp.lang.implementation import implements, override
+from rogw.tranp.lang.annotation import implements, override
 
 class A:
 	@property

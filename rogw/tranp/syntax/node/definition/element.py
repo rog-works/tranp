@@ -1,4 +1,4 @@
-from rogw.tranp.lang.implementation import implements
+from rogw.tranp.lang.annotation import implements
 from rogw.tranp.syntax.node.definition.primary import Argument, DeclParam, DecoratorPath, Type
 from rogw.tranp.syntax.node.definition.terminal import Empty
 from rogw.tranp.syntax.node.embed import Meta, accept_tags, expandable

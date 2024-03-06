@@ -1,7 +1,7 @@
 from types import FunctionType, MethodType
 from typing import Any, Callable, Self, TypeAlias, cast
 
-from rogw.tranp.lang.implementation import implements, override
+from rogw.tranp.lang.annotation import implements, override
 from rogw.tranp.lang.locator import Injector, T_Inst
 from rogw.tranp.lang.module import fullyname, load_module_path
 

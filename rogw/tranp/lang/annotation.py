@@ -1,39 +1,58 @@
-from typing import Callable
+from typing import TypeVar
+
+T = TypeVar('T')
 
 
-class ValueAnnotation:
-	def __init__(self, origin: type) -> None:
-		self.__type = origin
+def override(wrapped: T) -> T:
+	"""オーバーライドを表すアノテーション。何も変更せずラップ対象を返す
 
-	@property
-	def org_type(self) -> type:
-		return self.__type
-
-	@property
-	def is_generic(self) -> bool:
-		return hasattr(self.__type, '__origin__')
-
-	@property
-	def is_list(self) -> bool:
-		return self.is_generic and self.origin is list
-
-	@property
-	def origin(self) -> type:
-		return getattr(self.__type, '__origin__')
+	Args:
+		wrapped (T): ラップ対象
+	Returns:
+		T: ラップ対象
+	"""
+	return wrapped
 
 
-class FunctionAnnotation:
-	def __init__(self, func: Callable) -> None:
-		self.__func = func
+def implements(wrapped: T) -> T:
+	"""インターフェイスの実装を表すアノテーション。何も変更せずラップ対象を返す
 
-	@property
-	def args(self) -> dict[str, ValueAnnotation]:
-		return {key: ValueAnnotation(in_type) for key, in_type in self.__annos.items() if key != 'return'}
+	Args:
+		wrapped (T): ラップ対象
+	Returns:
+		T: ラップ対象
+	"""
+	return wrapped
 
-	@property
-	def return_type(self) -> ValueAnnotation:
-		return ValueAnnotation(self.__annos['return'])
 
-	@property
-	def __annos(self) -> dict[str, type]:
-		return self.__func.__annotations__
+def duck_typed(wrapped: T) -> T:
+	"""プロトコルへの準拠を表すアノテーション。何も変更せずラップ対象を返す
+
+	Args:
+		wrapped (T): ラップ対象
+	Returns:
+		T: ラップ対象
+	"""
+	return wrapped
+
+
+def deprecated(wrapped: T) -> T:
+	"""非推奨のアノテーション。何も変更せずラップ対象を返す
+
+	Args:
+		wrapped (T): ラップ対象
+	Returns:
+		T: ラップ対象
+	"""
+	return wrapped
+
+
+def injectable(wrapped: T) -> T:
+	"""DIよりインジェクションが可能であることを表すアノテーション。何も変更せずラップ対象を返す
+
+	Args:
+		wrapped (T): ラップ対象
+	Returns:
+		T: ラップ対象
+	"""
+	return wrapped

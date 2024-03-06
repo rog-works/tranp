@@ -7,7 +7,7 @@ from lark.indenter import PythonIndenter
 from rogw.tranp.implements.syntax.lark.entry import EntryOfLark, Serialization
 from rogw.tranp.io.cache import CacheProvider
 from rogw.tranp.io.loader import IFileLoader
-from rogw.tranp.lang.implementation import implements, injectable
+from rogw.tranp.lang.annotation import implements, injectable
 from rogw.tranp.syntax.ast.entry import Entry
 from rogw.tranp.syntax.ast.parser import ParserSetting
 

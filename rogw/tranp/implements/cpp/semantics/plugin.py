@@ -2,8 +2,8 @@ from typing import Callable
 
 from rogw.tranp.errors import FatalError
 from rogw.tranp.implements.cpp.semantics.cvars import CVars
+from rogw.tranp.lang.annotation import deprecated, implements
 from rogw.tranp.lang.eventemitter import IObservable
-from rogw.tranp.lang.implementation import deprecated, implements
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.semantics.plugin import IPlugin
 from rogw.tranp.semantics.reflection import IReflection

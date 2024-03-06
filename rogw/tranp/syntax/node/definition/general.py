@@ -1,4 +1,4 @@
-from rogw.tranp.lang.implementation import override
+from rogw.tranp.lang.annotation import override
 from rogw.tranp.syntax.ast.dsn import DSN
 from rogw.tranp.syntax.node.definition.primary import DeclLocalVar
 from rogw.tranp.syntax.node.definition.statement_compound import VarsCollector

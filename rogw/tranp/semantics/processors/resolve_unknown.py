@@ -1,6 +1,6 @@
 from typing import Callable, cast
 
-from rogw.tranp.lang.implementation import injectable
+from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.lang.locator import Invoker
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node

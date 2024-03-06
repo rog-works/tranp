@@ -10,7 +10,7 @@ from rogw.tranp.implements.cpp.providers.semantics import cpp_plugin_provider
 from rogw.tranp.implements.syntax.lark.entry import EntryOfLark
 from rogw.tranp.implements.syntax.lark.parser import SyntaxParserOfLark
 from rogw.tranp.io.cache import CacheProvider
-from rogw.tranp.lang.implementation import injectable
+from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.lang.locator import Locator
 from rogw.tranp.lang.module import fullyname
 from rogw.tranp.module.modules import Modules

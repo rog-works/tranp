@@ -6,7 +6,7 @@ import os
 import re
 from typing import Any, Callable, Generic, IO, Protocol, TypeVar
 
-from rogw.tranp.lang.implementation import implements
+from rogw.tranp.lang.annotation import implements
 
 
 class Stored(Protocol):

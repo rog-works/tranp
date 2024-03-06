@@ -1,6 +1,6 @@
 from typing import Any, Callable, Generic, Protocol, TypeAlias, TypeVar
 
-from rogw.tranp.lang.implementation import implements
+from rogw.tranp.lang.annotation import implements
 
 T_Ret = TypeVar('T_Ret')
 

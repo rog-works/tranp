@@ -82,7 +82,7 @@ class TestRenderer(TestCase):
 		self.assertRender('return', 0, vars, expected)
 
 	@data_provider([
-		({'module_path': 'module.path.to'}, '#include "module/path/to.h"'),
+		({'module_path': 'module.path.to'}, '// #include "module/path/to.h"'),
 	])
 	def test_render_import(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('import', 0, vars, expected)

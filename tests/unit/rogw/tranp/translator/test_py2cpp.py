@@ -4,7 +4,7 @@ from unittest import TestCase
 
 from rogw.tranp.app.io import appdir
 from rogw.tranp.i18n.i18n import TranslationMapping
-from rogw.tranp.implements.cpp.providers.i18n import translation_mapping
+from rogw.tranp.implements.cpp.providers.i18n import translation_mapping_cpp
 from rogw.tranp.implements.cpp.providers.semantics import cpp_plugin_provider
 from rogw.tranp.lang.module import fullyname
 from rogw.tranp.lang.profile import profiler
@@ -129,7 +129,7 @@ def fixture_translation_mapping() -> TranslationMapping:
 		f'aliases.{fixture_module_path}.Alias': 'Alias2',
 		f'aliases.{fixture_module_path}.Alias.Inner': 'Inner2',
 	}
-	return translation_mapping().merge(fixture_translations)
+	return translation_mapping_cpp().merge(fixture_translations)
 
 
 class TestPy2Cpp(TestCase):

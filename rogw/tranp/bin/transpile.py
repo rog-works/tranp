@@ -3,7 +3,7 @@ import sys
 
 from rogw.tranp.app.app import App
 from rogw.tranp.i18n.i18n import TranslationMapping
-from rogw.tranp.implements.cpp.providers.i18n import translation_mapping
+from rogw.tranp.implements.cpp.providers.i18n import translation_mapping_cpp
 from rogw.tranp.implements.cpp.providers.semantics import cpp_plugin_provider
 from rogw.tranp.lang.error import stacktrace
 from rogw.tranp.lang.implementation import injectable
@@ -113,7 +113,7 @@ if __name__ == '__main__':
 		fullyname(PluginProvider): cpp_plugin_provider,
 		fullyname(Py2Cpp): Py2Cpp,
 		fullyname(Renderer): make_renderer,
-		fullyname(TranslationMapping): translation_mapping,
+		fullyname(TranslationMapping): translation_mapping_cpp,
 		fullyname(TranslatorOptions): make_options,
 		fullyname(Writer): make_writer,
 	}

@@ -2,7 +2,7 @@
 // #include "rogw/tranp/compatible/cpp/preprocess.h"
 // #include "rogw/tranp/compatible/cpp/enum.h"
 #pragma once
-#include "example/FW/compatible.h"
+#include "FW/compatible.h"
 /**
  * セル(メッシュ)関連のライブラリー
  */

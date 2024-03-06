@@ -359,7 +359,7 @@ class Py2Cpp:
 	def on_import(self, node: defs.Import, symbols: list[str]) -> str:
 		module_path = node.import_path.tokens
 		text = self.view.render(node.classification, vars={'module_path': module_path})
-		return text if module_path.startswith('example.FW') else f'// {text}'
+		return self.i18n.t(DSN.join('imports', module_path), text)
 
 	# Primary
 

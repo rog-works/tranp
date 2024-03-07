@@ -10,6 +10,7 @@ def default_definitions() -> ModuleDefinitions:
 	"""
 	return {
 		'rogw.tranp.app.env.Env': 'rogw.tranp.providers.app.make_env',
+		'rogw.tranp.data.meta.types.ModuleMetaFactory': 'rogw.tranp.providers.module.module_meta_factory',
 		'rogw.tranp.i18n.i18n.I18n': 'rogw.tranp.i18n.i18n.I18n',
 		'rogw.tranp.i18n.i18n.TranslationMapping': 'rogw.tranp.i18n.i18n.translation_mapping_empty',
 		'rogw.tranp.io.cache.CacheProvider': 'rogw.tranp.io.cache.CacheProvider',

@@ -2,6 +2,8 @@ import re
 from types import UnionType
 from typing import cast
 
+from rogw.tranp.data.meta.header import MetaHeader
+from rogw.tranp.data.meta.types import ModuleMetaFactory, TranspilerMeta
 from rogw.tranp.data.version import Versions
 from rogw.tranp.dsn.translation import import_dsn
 from rogw.tranp.errors import LogicError
@@ -9,8 +11,6 @@ from rogw.tranp.i18n.i18n import I18n
 from rogw.tranp.implements.cpp.semantics.cvars import CVars
 from rogw.tranp.lang.annotation import implements, injectable
 from rogw.tranp.lang.module import fullyname
-from rogw.tranp.meta.header import MetaHeader
-from rogw.tranp.meta.types import ModuleMetaFactory, TranspilerMeta
 from rogw.tranp.semantics.procedure import Procedure
 import rogw.tranp.semantics.reflection.helper.template as template
 from rogw.tranp.semantics.reflection.helper.naming import ClassDomainNaming, ClassShorthandNaming

@@ -5,6 +5,8 @@ import sys
 from typing import TypedDict
 
 from rogw.tranp.app.app import App
+from rogw.tranp.data.meta.header import MetaHeader
+from rogw.tranp.data.meta.types import ModuleMetaFactory
 from rogw.tranp.errors import LogicError
 from rogw.tranp.i18n.i18n import TranslationMapping
 from rogw.tranp.implements.cpp.providers.i18n import translation_mapping_cpp
@@ -16,8 +18,6 @@ from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.lang.error import stacktrace
 from rogw.tranp.lang.module import fullyname
 from rogw.tranp.lang.profile import profiler
-from rogw.tranp.meta.header import MetaHeader
-from rogw.tranp.meta.types import ModuleMeta, ModuleMetaFactory
 from rogw.tranp.module.modules import Modules
 from rogw.tranp.module.types import ModulePath, ModulePaths
 from rogw.tranp.semantics.plugin import PluginProvider
@@ -110,18 +110,6 @@ def make_module_paths(args: Args) -> ModulePaths:
 	return module_paths
 
 
-@injectable
-def make_module_mata_factory(module_paths: ModulePaths, loader: IFileLoader) -> ModuleMetaFactory:
-	def handler(module_path: str) -> ModuleMeta:
-		index = [module_path.path for module_path in module_paths].index(module_path)
-		target_module_path = module_paths[index]
-		basepath = target_module_path.path.replace('.', '/')
-		filepath = DSN.join(basepath, target_module_path.language)
-		return {'hash': loader.hash(filepath), 'path': module_path}
-
-	return handler
-
-
 def try_load_meta_header(module_path: ModulePath, loader: IFileLoader, to_language: str) -> MetaHeader | None:
 	basepath = module_path.path.replace('.', '/')
 	filepath = DSN.join(basepath, to_language)
@@ -138,9 +126,7 @@ def output_filepath(module_path: ModulePath, args: Args) -> str:
 
 
 @injectable
-def task(transpiler: ITranspiler, modules: Modules, module_paths: ModulePaths, args: Args, loader: IFileLoader) -> None:
-	module_meta_factory = make_module_mata_factory(module_paths, loader)
-
+def task(transpiler: ITranspiler, modules: Modules, module_paths: ModulePaths, args: Args, module_meta_factory: ModuleMetaFactory, loader: IFileLoader) -> None:
 	def can_update(module_path: ModulePath) -> bool:
 		old_meta = try_load_meta_header(module_path, loader, args.output_lang)
 		if not old_meta:
@@ -169,7 +155,6 @@ def task(transpiler: ITranspiler, modules: Modules, module_paths: ModulePaths, a
 if __name__ == '__main__':
 	definitions = {
 		fullyname(Args): Args,
-		fullyname(ModuleMetaFactory): make_module_mata_factory,
 		fullyname(ModulePaths): make_module_paths,
 		fullyname(ParserSetting): make_parser_setting,
 		fullyname(PluginProvider): cpp_plugin_provider,

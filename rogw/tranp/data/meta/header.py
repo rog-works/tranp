@@ -2,9 +2,9 @@ import hashlib
 import json
 from typing import Any, ClassVar, Self
 
+from rogw.tranp.data.meta.types import ModuleMeta, TranspilerMeta
 from rogw.tranp.data.version import Versions
 from rogw.tranp.errors import LogicError
-from rogw.tranp.meta.types import ModuleMeta, TranspilerMeta
 
 
 class MetaHeader:

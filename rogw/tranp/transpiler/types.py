@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from typing import NamedTuple
 
-from rogw.tranp.meta.types import TranspilerMeta
+from rogw.tranp.data.meta.types import TranspilerMeta
 from rogw.tranp.syntax.node.node import Node
 
 

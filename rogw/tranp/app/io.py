@@ -1,3 +1,4 @@
+import hashlib
 import os
 
 from rogw.tranp.app.env import Env
@@ -27,6 +28,8 @@ class FileLoader(IFileLoader):
 			env (Env): 環境変数 @inject
 		"""
 		self.__env = env
+		# XXX トランスパイルの情報埋め込みと実行判定に用いるためハッシュ値をキャッシュ
+		self.__hashs: dict[str, str] = {}
 
 	@implements
 	def exists(self, filepath: str) -> bool:
@@ -55,7 +58,9 @@ class FileLoader(IFileLoader):
 			raise FileNotFoundError(f'No such file or directory. filepath: {filepath}')
 
 		with open(found_filepath, mode='rb') as f:
-			return f.read().decode('utf-8')
+			content_bytes = f.read()
+			self.__hashs[found_filepath] = hashlib.md5(content_bytes).hexdigest()
+			return content_bytes.decode('utf-8')
 
 	@implements
 	def mtime(self, filepath: str) -> float:
@@ -73,6 +78,27 @@ class FileLoader(IFileLoader):
 			raise FileNotFoundError(f'No such file or directory. filepath: {filepath}')
 
 		return os.path.getmtime(found_filepath)
+
+	@implements
+	def hash(self, filepath: str) -> str:
+		"""ファイルのハッシュ値を取得
+
+		Args:
+			filepath (str): 実行ディレクトリーからの相対パス。または絶対パス
+		Returns:
+			str: ハッシュ値
+		Raises:
+			FileNotFoundError: 存在しないファイルを指定
+		"""
+		found_filepath = self.__resolve_filepath(filepath)
+		if found_filepath is None:
+			raise FileNotFoundError(f'No such file or directory. filepath: {filepath}')
+
+		# XXX ハッシュ値をキャッシュさせるためにロードを実行
+		if found_filepath not in self.__hashs:
+			self.load(found_filepath)
+
+		return self.__hashs[found_filepath]
 
 	def __resolve_filepath(self, filepath: str) -> str | None:
 		"""ファイルパスを解決。未検出の場合はNoneを返却

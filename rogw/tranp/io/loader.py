@@ -40,3 +40,16 @@ class IFileLoader(metaclass=ABCMeta):
 			FileNotFoundError: 存在しないファイルを指定
 		"""
 		...
+
+	@abstractmethod
+	def hash(self, filepath: str) -> str:
+		"""ファイルのハッシュ値を取得
+
+		Args:
+			filepath (str): 実行ディレクトリーからの相対パス。または絶対パス
+		Returns:
+			str: ハッシュ値
+		Raises:
+			FileNotFoundError: 存在しないファイルを指定
+		"""
+		...

@@ -7,6 +7,7 @@ from rogw.tranp.dsn.translation import alias_dsn
 from rogw.tranp.i18n.i18n import TranslationMapping
 from rogw.tranp.implements.cpp.providers.i18n import translation_mapping_cpp
 from rogw.tranp.implements.cpp.providers.semantics import cpp_plugin_provider
+from rogw.tranp.implements.cpp.transpiler.py2cpp import Py2Cpp
 from rogw.tranp.lang.module import fullyname
 from rogw.tranp.lang.profile import profiler
 from rogw.tranp.syntax.ast.dsn import DSN
@@ -15,11 +16,10 @@ from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.semantics.errors import ProcessingError, UnresolvedSymbolError
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.test.helper import data_provider
-from rogw.tranp.translator.option import TranslatorOptions
-from rogw.tranp.translator.py2cpp import Py2Cpp
+from rogw.tranp.transpiler.types import TranspilerOptions
 from rogw.tranp.view.render import Renderer
 from tests.test.fixture import Fixture
-from tests.unit.rogw.tranp.translator.fixtures.test_py2cpp_expect import BlockExpects
+from tests.unit.rogw.tranp.implements.cpp.transpiler.fixtures.test_py2cpp_expect import BlockExpects
 
 
 class ASTMapping:
@@ -138,7 +138,7 @@ class TestPy2Cpp(TestCase):
 		fullyname(Py2Cpp): Py2Cpp,
 		fullyname(PluginProvider): cpp_plugin_provider,
 		fullyname(TranslationMapping): fixture_translation_mapping,
-		fullyname(TranslatorOptions): lambda: TranslatorOptions(verbose=False),
+		fullyname(TranspilerOptions): lambda: TranspilerOptions(verbose=False),
 		fullyname(Renderer): lambda: Renderer(os.path.join(appdir(), 'example/template')),
 	})
 
@@ -307,9 +307,9 @@ class TestPy2Cpp(TestCase):
 		(_ast('template_func', ''), defs.Function, '/** template_func */\ntemplate<typename T>\nT template_func(T v) {\n\n}'),
 	])
 	def test_exec(self, full_path: str, expected_type: type[Node], expected: str) -> None:
-		translator = self.fixture.get(Py2Cpp)
+		transpiler = self.fixture.get(Py2Cpp)
 		node = self.fixture.shared_nodes_by(full_path).as_a(expected_type)
-		actual = translator.translate(node)
+		actual = transpiler.transpile(node)
 		self.assertEqual(actual, expected)
 
 	@data_provider([
@@ -319,7 +319,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('Nullable.invalid_returns', ''), ProcessingError, r'Unexpected UnionType.'),
 	])
 	def test_exec_error(self, full_path: str, expected_error: type[Exception], expected: re.Pattern) -> None:
-		translator = self.fixture.get(Py2Cpp)
+		transpiler = self.fixture.get(Py2Cpp)
 		node = self.fixture.shared_nodes_by(full_path)
 		with self.assertRaisesRegex(expected_error, expected):
-			translator.translate(node)
+			transpiler.transpile(node)

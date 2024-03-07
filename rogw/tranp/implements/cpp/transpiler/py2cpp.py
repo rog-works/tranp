@@ -2,11 +2,15 @@ import re
 from types import UnionType
 from typing import cast
 
+from rogw.tranp.data.meta.header import MetaHeader
+from rogw.tranp.data.meta.types import ModuleMetaFactory, TranspilerMeta
+from rogw.tranp.data.version import Versions
 from rogw.tranp.dsn.translation import import_dsn
 from rogw.tranp.errors import LogicError
 from rogw.tranp.i18n.i18n import I18n
 from rogw.tranp.implements.cpp.semantics.cvars import CVars
-from rogw.tranp.lang.annotation import duck_typed, injectable
+from rogw.tranp.lang.annotation import implements, injectable
+from rogw.tranp.lang.module import fullyname
 from rogw.tranp.semantics.procedure import Procedure
 import rogw.tranp.semantics.reflection.helper.template as template
 from rogw.tranp.semantics.reflection.helper.naming import ClassDomainNaming, ClassShorthandNaming
@@ -15,30 +19,31 @@ from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.syntax.ast.dsn import DSN
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
-from rogw.tranp.translator.option import TranslatorOptions
-from rogw.tranp.version import Versions
+from rogw.tranp.transpiler.types import ITranspiler, TranspilerOptions
 from rogw.tranp.view.render import Renderer
 
 
-class Py2Cpp:
+class Py2Cpp(ITranspiler):
 	"""Python -> C++のトランスパイラー"""
 
 	@injectable
-	def __init__(self, reflections: Reflections, render: Renderer, i18n: I18n, options: TranslatorOptions) -> None:
+	def __init__(self, reflections: Reflections, render: Renderer, i18n: I18n, module_meta_factory: ModuleMetaFactory, options: TranspilerOptions) -> None:
 		"""インスタンスを生成
 
 		Args:
 			reflections (Reflections): シンボルリゾルバー @inject
 			render (Renderer): ソースレンダー @inject
 			i18n (I18n): 国際化対応モジュール @inject
+			module_meta_factory (ModuleMetaFactory): モジュールのメタ情報ファクトリー @inject
 			options (TranslatorOptions): 実行オプション @inject
 		"""
 		self.reflections = reflections
 		self.view = render
 		self.i18n = i18n
+		self.module_meta_factory = module_meta_factory
 		self.__procedure = self.__make_procedure(options)
 
-	def __make_procedure(self, options: TranslatorOptions) -> Procedure[str]:
+	def __make_procedure(self, options: TranspilerOptions) -> Procedure[str]:
 		"""プロシージャーを生成
 
 		Args:
@@ -53,21 +58,22 @@ class Py2Cpp:
 
 		return procedure
 
-	def translate(self, root: Node) -> str:
-		"""起点のノードからASTを再帰的に解析し、C++にトランスパイル
+	@property
+	@implements
+	def meta(self) -> TranspilerMeta:
+		"""TranspilerMeta: トランスパイラーのメタ情報"""
+		return {'version': Versions.py2cpp, 'module': fullyname(Py2Cpp)}
+
+	@implements
+	def transpile(self, root: Node) -> str:
+		"""起点のノードから解析してトランスパイルしたソースコードを返却
 
 		Args:
 			root (Node): 起点のノード
 		Returns:
-			str: C++のソースコード
+			str: トランスパイル後のソースコード
 		"""
 		return self.__procedure.exec(root)
-
-	@property
-	@duck_typed
-	def version(self) -> str:
-		"""str: バージョン"""
-		return Versions.py2cpp
 
 	def to_accessible_name(self, raw: IReflection) -> str:
 		"""型推論によって補完する際の名前空間上の参照名を取得 (主にMoveAssignで利用)
@@ -146,7 +152,8 @@ class Py2Cpp:
 	# General
 
 	def on_entrypoint(self, node: defs.Entrypoint, statements: list[str]) -> str:
-		return self.view.render(node.classification, vars={'statements': statements})
+		meta_header = MetaHeader(self.module_meta_factory(node.module_path), self.meta)
+		return self.view.render(node.classification, vars={'statements': statements, 'meta_header': meta_header.to_header_str()})
 
 	# Statement - compound
 

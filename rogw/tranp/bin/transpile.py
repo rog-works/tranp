@@ -1,53 +1,63 @@
-import glob
 import os
-import re
 import sys
-from typing import TypedDict, cast
+from typing import TypedDict
 
 from rogw.tranp.app.app import App
-from rogw.tranp.app.meta import AppMetaProvider
-from rogw.tranp.errors import LogicError
+from rogw.tranp.data.meta.header import MetaHeader
+from rogw.tranp.data.meta.types import ModuleMetaFactory
 from rogw.tranp.i18n.i18n import TranslationMapping
 from rogw.tranp.implements.cpp.providers.i18n import translation_mapping_cpp
 from rogw.tranp.implements.cpp.providers.semantics import cpp_plugin_provider
+from rogw.tranp.implements.cpp.transpiler.py2cpp import Py2Cpp
+from rogw.tranp.io.loader import IFileLoader
 from rogw.tranp.io.writer import Writer
 from rogw.tranp.lang.annotation import injectable
+from rogw.tranp.lang.di import ModuleDefinitions
 from rogw.tranp.lang.error import stacktrace
 from rogw.tranp.lang.module import fullyname
 from rogw.tranp.lang.profile import profiler
+from rogw.tranp.module.includer import include_module_paths
 from rogw.tranp.module.modules import Modules
 from rogw.tranp.module.types import ModulePath, ModulePaths
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.syntax.ast.parser import ParserSetting
 from rogw.tranp.syntax.node.node import Node
-from rogw.tranp.translator.option import TranslatorOptions
-from rogw.tranp.translator.py2cpp import Py2Cpp
-from rogw.tranp.version import IVersion
+from rogw.tranp.transpiler.types import ITranspiler, TranspilerOptions
 from rogw.tranp.view.render import Renderer
 
-ArgsDict = TypedDict('ArgsDict', {'grammar': str, 'template_dir': str, 'input_dir': str, 'output_dir': str, 'output_lang': str, 'excludes': list[str], 'force': bool, 'verbose': bool, 'profile': str})
+ArgsDict = TypedDict('ArgsDict', {'grammar': str, 'template_dir': str, 'input_glob': str, 'exclude_patterns': list[str], 'output_dir': str, 'output_language': str, 'force': bool, 'verbose': bool, 'profile': str})
 
 
 class Args:
+	"""コマンド引数"""
+
 	def __init__(self) -> None:
+		"""インスタンスを生成"""
 		args = self.__parse_argv(sys.argv[1:])
 		self.grammar = args['grammar']
 		self.template_dir = args['template_dir']
-		self.input_dir = args['input_dir']
+		self.input_glob = args['input_glob']
+		self.exclude_patterns = args['exclude_patterns']
 		self.output_dir = args['output_dir']
-		self.output_lang = args['output_lang']
-		self.excludes = args['excludes']
+		self.output_language = args['output_language']
 		self.force = args['force']
 		self.verbose = args['verbose']
 		self.profile = args['profile']
 
 	def __parse_argv(self, argv: list[str]) -> ArgsDict:
+		"""コマンド引数をパース
+
+		Args:
+			argv (list[str]): コマンド引数リスト
+		Returns:
+			ArgsDict: パースしたコマンド引数
+		"""
 		args: ArgsDict = {
 			'grammar': 'data/grammar.lark',
-			'input_dir': 'example/**/*.py',
+			'input_glob': 'example/**/*.py',
 			'output_dir': './',
-			'output_lang': 'h',
-			'excludes': ['example/FW/*'],
+			'output_language': 'h',
+			'exclude_patterns': ['example/FW/*'],
 			'template_dir': 'example/template',
 			'force': False,
 			'verbose': False,
@@ -60,13 +70,13 @@ class Args:
 			elif arg == '-t':
 				args['template_dir'] = argv.pop(0)
 			elif arg == '-i':
-				args['input_dir'] = argv.pop(0)
+				args['input_glob'] = argv.pop(0)
 			elif arg == '-o':
 				args['output_dir'] = argv.pop(0)
 			elif arg == '-l':
-				args['output_lang'] = argv.pop(0)
+				args['output_language'] = argv.pop(0)
 			elif arg == '-e':
-				args['excludes'] = argv.pop(0).split(';')
+				args['exclude_patterns'] = argv.pop(0).split(';')
 			elif arg == '-f':
 				args['force'] = True
 			elif arg == '-v':
@@ -77,86 +87,138 @@ class Args:
 		return args
 
 
-@injectable
-def make_renderer(args: Args) -> Renderer:
-	return Renderer(args.template_dir)
+class TranspileApp:
+	"""トランスパイルアプリケーション"""
 
+	@classmethod
+	@injectable
+	def make_renderer(cls, args: Args) -> Renderer:
+		"""Renderer: レンダー"""
+		return Renderer(args.template_dir)
 
-@injectable
-def make_options(args: Args) -> TranslatorOptions:
-	return TranslatorOptions(verbose=args.verbose)
+	@classmethod
+	@injectable
+	def make_options(cls, args: Args) -> TranspilerOptions:
+		"""TranspilerOptions: トランスパイルオプション"""
+		return TranspilerOptions(verbose=args.verbose)
 
+	@classmethod
+	@injectable
+	def make_parser_setting(cls, args: Args) -> ParserSetting:
+		"""ParserSetting: シンタックスパーサー設定データ"""
+		return ParserSetting(grammar=args.grammar)
 
-@injectable
-def make_parser_setting(args: Args) -> ParserSetting:
-	return ParserSetting(grammar=args.grammar)
+	@classmethod
+	@injectable
+	def make_module_paths(cls, args: Args) -> ModulePaths:
+		"""ModulePaths: モジュールパスリスト"""
+		return include_module_paths(args.input_glob, args.exclude_patterns)
 
+	@classmethod
+	def definitions(cls) -> ModuleDefinitions:
+		"""ModuleDefinitions: モジュール定義"""
+		return {
+			fullyname(Args): Args,
+			fullyname(ITranspiler): Py2Cpp,
+			fullyname(ModulePaths): cls.make_module_paths,
+			fullyname(ParserSetting): cls.make_parser_setting,
+			fullyname(PluginProvider): cpp_plugin_provider,  # FIXME C++固定
+			fullyname(Renderer): cls.make_renderer,
+			fullyname(TranslationMapping): translation_mapping_cpp,  # FIXME C++固定
+			fullyname(TranspilerOptions): cls.make_options,
+		}
 
-@injectable
-def make_module_paths(args: Args) -> ModulePaths:
-	candidate_filepaths = glob.glob(args.input_dir, recursive=True)
-	exclude_exps = [re.compile(rf'{exclude.replace("*", '.*')}') for exclude in args.excludes]
-	module_paths = ModulePaths()
-	for filepath in candidate_filepaths:
-		excluded = len([True for exclude_exp in exclude_exps if exclude_exp.fullmatch(filepath)]) > 0
-		if not excluded:
-			basepath, extention = os.path.splitext(filepath)
-			module_paths.append(ModulePath(basepath.replace('/', '.'), language=extention[1:]))
+	@classmethod
+	@injectable
+	def run(cls, loader: IFileLoader, args: Args, module_paths: ModulePaths, modules: Modules, module_meta_factory: ModuleMetaFactory, transpiler: ITranspiler) -> None:
+		"""アプリケーションを実行
 
-	if len(module_paths) == 0:
-		raise LogicError(f'No target found. input_dir: {args.input_dir}, excludes: {args.excludes}')
+		Args:
+			loader (IFilerLoader): ファイルローダー
+			args (Args): コマンド引数
+			module_paths (ModulePaths): モジュールパスリスト
+			modules (Modules): モジュールリスト
+			module_meta_factory (ModuleMetaFactory): モジュールのメタ情報ファクトリー
+			transpiler (ITranspiler): トランスパイラー
+		"""
+		app = cls(loader, args, module_paths, modules, module_meta_factory, transpiler)
+		if args.profile in ['tottime', 'cumtime']:
+			profiler(args.profile)(app.exec)()
+		else:
+			app.exec()
 
-	return module_paths
+	def __init__(self, loader: IFileLoader, args: Args, module_paths: ModulePaths, modules: Modules, module_meta_factory: ModuleMetaFactory, transpiler: ITranspiler) -> None:
+		"""インスタンスを生成 Args: @see run"""
+		self.loader = loader
+		self.module_paths = module_paths
+		self.modules = modules
+		self.args = args
+		self.module_meta_factory = module_meta_factory
+		self.transpiler = transpiler
 
+	def try_load_meta_header(self, module_path: ModulePath) -> MetaHeader | None:
+		"""トランスパイル済みのファイルからメタヘッダーの読み込みを試行
 
-def fetch_entrypoint(modules: Modules, module_path: ModulePath) -> Node:
-	return modules.load(module_path.path).entrypoint
+		Args:
+			module_path (ModulePath)
+		Returns:
+			MetaHeader | None: メタヘッダー。ファイル・メタヘッダーが存在しない場合はNone
+		"""
+		filepath = self.output_filepath(module_path)
+		if not self.loader.exists(filepath):
+			return None
 
+		return MetaHeader.try_from_content(self.loader.load(filepath))
 
-def output_filepath(module_path: ModulePath, args: Args) -> str:
-	basepath = module_path.path.replace('.', '/')
-	filepath = f'{basepath}.{args.output_lang}'
-	return os.path.abspath(os.path.join(args.output_dir, filepath))
+	def output_filepath(self, module_path: ModulePath) -> str:
+		"""トランスパイル後のファイルパスを生成
 
+		Args:
+			module_path (ModulePath)
+		Returns:
+			str: ファイルパス
+		"""
+		basepath = module_path.path.replace('.', '/')
+		filepath = f'{basepath}.{self.args.output_language}'
+		return os.path.abspath(os.path.join(self.args.output_dir, filepath))
 
-@injectable
-def task(translator_: IVersion, modules: Modules, module_paths: ModulePaths, args: Args, metas: AppMetaProvider) -> None:
-	def run() -> None:
-		try:
-			translator = cast(Py2Cpp, translator_)  # FIXME ITranslatorに変更を検討
-			for module_path in module_paths:
-				new_meta = metas.new(module_path)
-				if not args.force and not metas.can_update(module_path, args.output_lang, new_meta):
-					continue
+	def can_transpile(self, module_path: ModulePath) -> bool:
+		"""トランスパイルを実行するか判定
 
-				entrypoint = fetch_entrypoint(modules, module_path)
-				translated = translator.translate(entrypoint)
+		Args:
+			module_path (ModulePath)
+		Returns:
+			bool: True = 実行
+		"""
+		old_meta = self.try_load_meta_header(module_path)
+		if not old_meta:
+			return True
 
-				meta_header = f'// @tranp.meta: {str(new_meta)}'  # FIXME トランスレーターに任せる方法を検討
-				content = '\n'.join([meta_header, translated])
+		new_meta = MetaHeader(self.module_meta_factory(module_path.path), self.transpiler.meta)
+		return new_meta != old_meta
 
-				writer = Writer(output_filepath(module_path, args))
+	def by_entrypoint(self, module_path: ModulePath) -> Node:
+		"""エントリーポイントのノードを取得
+
+		Args:
+			module_path (ModulePath)
+		Returns:
+			Node: ノード
+		"""
+		return self.modules.load(module_path.path).entrypoint
+
+	def exec(self) -> None:
+		"""トランスパイルの実行"""
+		for module_path in self.module_paths:
+			if self.args.force or self.can_transpile(module_path):
+				content = self.transpiler.transpile(self.by_entrypoint(module_path))
+				writer = Writer(self.output_filepath(module_path))
 				writer.put(content)
 				writer.flush()
-		except Exception as e:
-			print(''.join(stacktrace(e)))
-
-	if args.profile in ['tottime', 'cumtime']:
-		profiler(args.profile)(run)()
-	else:
-		run()
 
 
 if __name__ == '__main__':
-	definitions = {
-		fullyname(Args): Args,
-		fullyname(ModulePaths): make_module_paths,
-		fullyname(ParserSetting): make_parser_setting,
-		fullyname(PluginProvider): cpp_plugin_provider,
-		fullyname(IVersion): Py2Cpp,  # FIXME ITranslatorに変更を検討
-		fullyname(Renderer): make_renderer,
-		fullyname(TranslationMapping): translation_mapping_cpp,
-		fullyname(TranslatorOptions): make_options,
-		fullyname(AppMetaProvider): AppMetaProvider,
-	}
-	App(definitions).run(task)
+	try:
+		App(TranspileApp.definitions()).run(TranspileApp.run)
+	except Exception as e:
+		print(''.join(stacktrace(e)))

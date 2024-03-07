@@ -29,7 +29,9 @@ class SymbolExtends:
 		Returns:
 			SymbolDB: シンボルテーブル
 		"""
-		for key, raw in db.items():
+		for key, raw_ in db.items():
+			# XXX 必然性を感じにくい切り替え処理。いっそSymbolProxyを前提にした方が良いのでは？
+			raw = raw_.org_raw if isinstance(raw_, SymbolProxy) else raw_
 			if raw.role == Roles.Class:
 				if isinstance(raw.types, defs.AltClass):
 					db[key] = SymbolProxy(raw, self.make_resolver_for_alt_class(raw))

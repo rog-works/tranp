@@ -41,17 +41,17 @@ class MetaHeader:
 		raw = json.loads(json_str)
 		return cls(raw['module'], raw['transpiler'], raw['version'])
 
-	def __init__(self, module_meta: ModuleMeta, translator_meta: TranspilerMeta, app_version: str | None = None) -> None:
+	def __init__(self, module_meta: ModuleMeta, transpiler_meta: TranspilerMeta, app_version: str | None = None) -> None:
 		"""インスタンスを生成
 
 		Args:
 			module_meta (ModuleMeta): モジュールのメタ情報
-			translator_meta (TranspilerMeta): トランスパイラーのメタ情報
+			transpiler_meta (TranspilerMeta): トランスパイラーのメタ情報
 			app_version (str | None): アプリケーションバージョン (default = None)
 		"""
 		self.app_version = app_version or Versions.app
 		self.module_meta = module_meta
-		self.translator_meta = translator_meta
+		self.transpiler_meta = transpiler_meta
 
 	@property
 	def identity(self) -> str:
@@ -59,7 +59,7 @@ class MetaHeader:
 		return hashlib.md5(self.to_json().encode('utf-8')).hexdigest()
 
 	def __eq__(self, other: Any) -> bool:
-		"""比較演算子のおバーロード
+		"""比較演算子のオーバーロード
 		
 		Args:
 			other (Any): 比較対象
@@ -79,7 +79,7 @@ class MetaHeader:
 		Returns:
 			str: JSON文字列
 		"""
-		return json.dumps({'version': self.app_version, 'module': self.module_meta, 'transpiler': self.translator_meta}, separators=(',', ':'))
+		return json.dumps({'version': self.app_version, 'module': self.module_meta, 'transpiler': self.transpiler_meta}, separators=(',', ':'))
 
 	def to_header_str(self) -> str:
 		"""メタヘッダー文字列に変換

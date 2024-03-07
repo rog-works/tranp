@@ -28,6 +28,7 @@ class FileLoader(IFileLoader):
 			env (Env): 環境変数 @inject
 		"""
 		self.__env = env
+		# XXX トランスパイルの情報埋め込みと実行判定に用いるためハッシュ値をキャッシュ
 		self.__hashs: dict[str, str] = {}
 
 	@implements

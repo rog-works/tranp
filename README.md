@@ -15,12 +15,6 @@ Tranp (TRANslator on Python)
 $ pip install -r requirements.txt -t vendor/
 ```
 
-## Interactive Python AST Viewer
-
-```
-$ bash bin/ast.sh
-```
-
 ## Symbol Analyzer Tool
 
 ```
@@ -30,7 +24,7 @@ $ bash bin/analyze.sh
 ## Transpile from Python to C++
 
 ```
-$ bash bin/transpile.sh path/to/origin.py
+$ bash bin/transpile.sh -i 'path/to/**/*.py' -o path/to
 ```
 
 ## Testing via tests/

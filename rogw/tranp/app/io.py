@@ -111,7 +111,7 @@ class FileLoader(IFileLoader):
 			環境変数のPYTHONPATHの登録順に探索
 		"""
 		if os.path.isabs(filepath):
-			return filepath
+			return filepath if os.path.isfile(filepath) else None
 
 		for path in self.__env.paths:
 			abs_filepath = os.path.abspath(os.path.join(path, filepath))

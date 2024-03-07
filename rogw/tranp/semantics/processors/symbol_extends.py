@@ -1,6 +1,8 @@
-from typing import cast
+from typing import Callable, cast
 
 from rogw.tranp.lang.annotation import injectable
+from rogw.tranp.lang.locator import Invoker
+from rogw.tranp.semantics.reflection.proxy import SymbolProxy
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.semantics.finder import SymbolFinder
 from rogw.tranp.semantics.reflection import IReflection, Roles, SymbolDB
@@ -10,13 +12,14 @@ class SymbolExtends:
 	"""シンボルに属性を付与して拡張"""
 
 	@injectable
-	def __init__(self, finder: SymbolFinder) -> None:
+	def __init__(self, finder: SymbolFinder, invoker: Invoker) -> None:
 		"""インスタンスを生成
 
 		Args:
 			finder (SymbolFinder): シンボル検索 @inject
 		"""
 		self.finder = finder
+		self.invoker = invoker
 
 	def __call__(self, db: SymbolDB) -> SymbolDB:
 		"""シンボルテーブルを生成
@@ -29,18 +32,30 @@ class SymbolExtends:
 		for key, raw in db.items():
 			if raw.role == Roles.Class:
 				if isinstance(raw.types, defs.AltClass):
-					db[key] = self.extends_for_alt_class(db, raw, raw.types)
+					db[key] = SymbolProxy(raw, self.make_resolver_for_alt_class(raw))
 				elif isinstance(raw.types, defs.Class):
-					db[key] = self.extends_for_class(db, raw, raw.types)
+					db[key] = SymbolProxy(raw, self.make_resolver_for_class(raw))
 				elif isinstance(raw.types, defs.Function):
-					db[key] = self.extends_for_function(db, raw, raw.types)
+					db[key] = SymbolProxy(raw, self.make_resolver_for_function(raw))
 			elif raw.role == Roles.Var:
 				if isinstance(raw.decl.declare, defs.Parameter) and isinstance(raw.decl.declare.var_type, defs.Type):
-					db[key] = self.extends_for_var(db, raw, raw.decl.declare.var_type)
+					db[key] = SymbolProxy(raw, self.make_resolver_for_var(raw, raw.decl.declare.var_type))
 				elif isinstance(raw.decl.declare, (defs.AnnoAssign, defs.Catch)):
-					db[key] = self.extends_for_var(db, raw, raw.decl.declare.var_type)
+					db[key] = SymbolProxy(raw, self.make_resolver_for_var(raw, raw.decl.declare.var_type))
 
 		return db
+	
+	def make_resolver_for_alt_class(self, raw: IReflection) -> Callable[[], IReflection]:
+		return lambda: self.invoker(self.extends_for_alt_class, raw, raw.types)
+
+	def make_resolver_for_class(self, raw: IReflection) -> Callable[[], IReflection]:
+		return lambda: self.invoker(self.extends_for_class, raw, raw.types)
+
+	def make_resolver_for_function(self, raw: IReflection) -> Callable[[], IReflection]:
+		return lambda: self.invoker(self.extends_for_function, raw, raw.types)
+
+	def make_resolver_for_var(self, raw: IReflection, decl_type: defs.Type) -> Callable[[], IReflection]:
+		return lambda: self.invoker(self.extends_for_var, raw, decl_type)
 
 	def extends_for_function(self, db: SymbolDB, via: IReflection, function: defs.Function) -> IReflection:
 		"""宣言ノードを解析し、属性の型を取り込みシンボルを拡張(ファンクション定義用)

@@ -59,10 +59,10 @@ class SymbolExtends:
 				attrs.append(self.finder.by_symbolic(db, parameter.symbol))
 			else:
 				parameter_type = cast(defs.Type, parameter.var_type)
-				parameter_type_raw = self.finder.by_symbolic(db, parameter_type)
+				parameter_type_raw = self.resolve_type_symbol(db, parameter_type)
 				attrs.append(self.extends_for_type(db, parameter_type_raw, parameter_type))
 
-		return_type_raw = self.finder.by_symbolic(db, function.return_type)
+		return_type_raw = self.resolve_type_symbol(db, function.return_type)
 		attrs.append(self.extends_for_type(db, return_type_raw, function.return_type))
 		return via.extends(*attrs)
 
@@ -76,7 +76,7 @@ class SymbolExtends:
 		Returns:
 			IReflection: シンボル
 		"""
-		actual_type_raw = self.finder.by_symbolic(db, alt_types.actual_type)
+		actual_type_raw = self.resolve_type_symbol(db, alt_types.actual_type)
 		return via.extends(self.extends_for_type(db, actual_type_raw, alt_types.actual_type))
 
 	def extends_for_class(self, db: SymbolDB, via: IReflection, types: defs.Class) -> IReflection:
@@ -89,7 +89,7 @@ class SymbolExtends:
 		Returns:
 			IReflection: シンボル
 		"""
-		attrs = [self.finder.by_symbolic(db, generic_type) for generic_type in types.generic_types]
+		attrs = [self.resolve_type_symbol(db, generic_type) for generic_type in types.generic_types]
 		return via.extends(*attrs)
 
 	def extends_for_var(self, db: SymbolDB, via: IReflection, decl_type: defs.Type) -> IReflection:
@@ -134,7 +134,21 @@ class SymbolExtends:
 		"""
 		attrs: list[IReflection] = []
 		for secondary_type in secondary_types:
-			secondary_raw = self.finder.by_symbolic(db, secondary_type)
+			secondary_raw = self.resolve_type_symbol(db, secondary_type)
 			attrs.append(self.extends_for_type(db, secondary_raw, secondary_type))
 
 		return via.to.generic(primary_type).extends(*attrs)
+
+	def resolve_type_symbol(self, db: SymbolDB, decl_type: defs.Type) -> IReflection:
+		"""タイプノードのシンボルを解決
+
+		Args:
+			db (SymbolDB): シンボルテーブル
+			decl_type (Type): タイプノード
+		Returns:
+			IReflection: シンボル
+		"""
+		if isinstance(decl_type, defs.RelayOfType):
+			return self.finder.manualy_resolve_relay_type(db, decl_type)
+		else:
+			return self.finder.by_symbolic(db, decl_type)

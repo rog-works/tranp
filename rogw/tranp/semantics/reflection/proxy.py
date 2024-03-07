@@ -41,6 +41,11 @@ class SymbolProxy(IReflection):
 		return self.__org_raw
 
 	@property
+	def new_raw(self) -> IReflection:
+		"""IReflection: 拡張後のシンボル XXX Proxyであることの意味を損なうインターフェイス"""
+		return self.__new_raw_proxy
+
+	@property
 	@implements
 	def _db(self) -> SymbolDB:
 		"""SymbolDB: 所属するシンボルテーブル"""

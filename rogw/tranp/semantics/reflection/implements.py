@@ -357,9 +357,15 @@ class ReflectionImpl(Reflection):
 		Note:
 			属性を取得する際にのみ利用 @see attrs
 		"""
+		from rogw.tranp.semantics.reflection.proxy import SymbolProxy  # FIXME 循環参照
+
 		if self._origin.org_fullyname in self._db:
 			origin = self._db[self._origin.org_fullyname]
-			if id(origin) != id(self):
+			# FIXME 共有シンボルがSymbolProxyの場合、共有シンボルの参照はSymbolProxyを指し、プロパティーは実体(Reflectionの派生クラス)を参照するため
+			# FIXME `id(origin) != id(self)`の判定が常に真になり、無限ループしてしまう ※origin=SymbolProxy, self=Reflectionの派生クラス)
+			# FIXME 無限ループを避けるため、共有シンボルがSymbolProxyの場合は実体を取得して比較する
+			origin_ = origin.new_raw if type(origin) is SymbolProxy else origin
+			if id(origin_) != id(self):
 				return origin
 
 		return self._origin

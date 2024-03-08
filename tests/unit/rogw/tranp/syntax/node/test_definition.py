@@ -227,12 +227,12 @@ class TestDefinition(TestCase):
 				{'symbol': 'self', 'var_type': 'Empty', 'default_value': 'Empty'},
 			],
 			'return': defs.VarOfType,
-			'is_abstract': True,
 			'decl_vars': [
 				{'symbol': 'self', 'decl_type': defs.Parameter},
 			],
 			'actual_symbol': None,
 			# Belong class only
+			'is_abstract': True,
 			'class_symbol': 'Base',
 			# Method only
 			'is_property': False,
@@ -246,13 +246,13 @@ class TestDefinition(TestCase):
 				{'symbol': 'cls', 'var_type': 'Empty', 'default_value': 'Empty'},
 			],
 			'return': defs.VarOfType,
-			'is_abstract': False,
 			'decl_vars': [
 				{'symbol': 'cls', 'decl_type': defs.Parameter},
 				{'symbol': 'lb', 'decl_type': defs.DeclLocalVar},
 			],
 			'actual_symbol': None,
 			# Belong class only
+			'is_abstract': False,
 			'class_symbol': 'Class',
 		}),
 		(_ast('Class.__init__'), {
@@ -266,7 +266,6 @@ class TestDefinition(TestCase):
 				{'symbol': 's', 'var_type': 'str', 'default_value': 'Empty'},
 			],
 			'return': defs.NullType,
-			'is_abstract': False,
 			'decl_vars': [
 				{'symbol': 'self', 'decl_type': defs.Parameter},
 				{'symbol': 'n', 'decl_type': defs.Parameter},
@@ -276,6 +275,7 @@ class TestDefinition(TestCase):
 			],
 			'actual_symbol': None,
 			# Belong class only
+			'is_abstract': False,
 			'class_symbol': 'Class',
 			# Constructor only
 			'this_vars': ['self.n', 'self.s'],
@@ -287,7 +287,6 @@ class TestDefinition(TestCase):
 			'decorators': [],
 			'parameters': [],
 			'return': defs.NullType,
-			'is_abstract': False,
 			'decl_vars': [
 				{'symbol': 'i', 'decl_type': defs.DeclLocalVar},
 			],
@@ -304,12 +303,12 @@ class TestDefinition(TestCase):
 				{'symbol': 'self', 'var_type': 'Empty', 'default_value': 'Empty'},
 			],
 			'return': defs.VarOfType,
-			'is_abstract': False,
 			'decl_vars': [
 				{'symbol': 'self', 'decl_type': defs.Parameter},
 			],
 			'actual_symbol': None,
 			# Belong class only
+			'is_abstract': False,
 			'class_symbol': 'Class',
 			# Method only
 			'is_property': True,
@@ -324,7 +323,6 @@ class TestDefinition(TestCase):
 				{'symbol': 'n', 'var_type': 'int', 'default_value': 'Empty'},
 			],
 			'return': defs.VarOfType,
-			'is_abstract': False,
 			'decl_vars': [
 				{'symbol': 'self', 'decl_type': defs.Parameter},
 				{'symbol': 'n', 'decl_type': defs.Parameter},
@@ -332,6 +330,7 @@ class TestDefinition(TestCase):
 			],
 			'actual_symbol': None,
 			# Belong class only
+			'is_abstract': False,
 			'class_symbol': 'Class',
 			# Method only
 			'is_property': False,
@@ -346,13 +345,13 @@ class TestDefinition(TestCase):
 				{'symbol': 's', 'var_type': 'str', 'default_value': 'Empty'},
 			],
 			'return': defs.ListType,
-			'is_abstract': False,
 			'decl_vars': [
 				{'symbol': 'self', 'decl_type': defs.Parameter},
 				{'symbol': 's', 'decl_type': defs.Parameter},
 			],
 			'actual_symbol': None,
 			# Belong class only
+			'is_abstract': False,
 			'class_symbol': 'Class',
 			# Method only
 			'is_property': False,
@@ -366,7 +365,6 @@ class TestDefinition(TestCase):
 				{'symbol': 'b', 'var_type': 'bool', 'default_value': 'Empty'},
 			],
 			'return': defs.NullType,
-			'is_abstract': False,
 			'decl_vars': [
 				{'symbol': 'b', 'decl_type': defs.Parameter},
 				{'symbol': 'lb', 'decl_type': defs.DeclLocalVar},
@@ -382,7 +380,6 @@ class TestDefinition(TestCase):
 				{'symbol': 'n', 'var_type': 'int', 'default_value': 'Empty'},
 			],
 			'return': defs.NullType,
-			'is_abstract': False,
 			'decl_vars': [
 				{'symbol': 'n', 'decl_type': defs.Parameter},
 			],
@@ -405,7 +402,6 @@ class TestDefinition(TestCase):
 			self.assertEqual(parameter.default_value.tokens if not parameter.default_value.is_a(defs.Empty) else 'Empty', in_expected['default_value'])
 
 		self.assertEqual(type(node.return_type), expected['return'])
-		self.assertEqual(node.is_abstract, expected['is_abstract'])
 		self.assertEqual(type(node.block), defs.Block)
 		self.assertEqual(len(node.decl_vars), len(expected['decl_vars']))
 		for index, decl_var in enumerate(node.decl_vars):
@@ -416,6 +412,7 @@ class TestDefinition(TestCase):
 		self.assertEqual(node.actual_symbol, expected['actual_symbol'])
 
 		if isinstance(node, (defs.ClassMethod, defs.Constructor, defs.Method)):
+			self.assertEqual(node.is_abstract, expected['is_abstract'])
 			self.assertEqual(node.class_types.symbol.tokens, expected['class_symbol'])
 
 		if isinstance(node, defs.Constructor):

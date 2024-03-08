@@ -1,7 +1,8 @@
+from abc import abstractmethod
 from typing import Generic, TypeAlias, TypeVar
 
 from rogw.tranp.compatible.cpp.enum import CEnum
-from rogw.tranp.compatible.cpp.object import CP, CPConst, CRef, CSP, CRefConst, CSPConst
+from rogw.tranp.compatible.cpp.object import CP, CPConst, CRef, CSP
 from rogw.tranp.compatible.cpp.preprocess import directive
 
 directive('#pragma once')
@@ -12,44 +13,49 @@ T2 = TypeVar('T2')
 DSI: TypeAlias = dict[str, int]
 
 class Base:
+	@abstractmethod
+	def sub_implements(self) -> None: ...
+
+class Sub(Base):
 	class_base_n: int = 0
 
 	def __init__(self, n: int) -> None:
 		self.base_n: int = n
 
+	def sub_implements(self) -> None: ...
 	def call(self) -> None: ...
 	# FIXME other: Any
-	def __eq__(self, other: Base | bool) -> bool: ...
+	def __eq__(self, other: Sub | bool) -> bool: ...
 	# FIXME other: Any
-	def __not__(self, other: Base | bool) -> bool: ...
-	def __add__(self, other: Base) -> Base: ...
-	def __sub__(self, other: Base) -> Base: ...
-	def __mul__(self, other: Base) -> Base: ...
-	def __truediv__(self, other: Base) -> Base: ...
-	def __neg__(self) -> Base: ...
+	def __not__(self, other: Sub | bool) -> bool: ...
+	def __add__(self, other: Sub) -> Sub: ...
+	def __sub__(self, other: Sub) -> Sub: ...
+	def __mul__(self, other: Sub) -> Sub: ...
+	def __truediv__(self, other: Sub) -> Sub: ...
+	def __neg__(self) -> Sub: ...
 
 class DeclOps:
-	class_bp: CP[Base] | None = None
+	class_bp: CP[Sub] | None = None
 	class_map: dict[str, dict[str, list[int]]] = {'a': {'b': [1]}}
 
 	def __init__(self) -> None:
-		self.inst_var: CP[Base] | None = None
+		self.inst_var: CP[Sub] | None = None
 
 class CVarOps:
-	def ret_raw(self) -> Base:
-		return Base(0)
+	def ret_raw(self) -> Sub:
+		return Sub(0)
 
-	def ret_cp(self) -> CP[Base]:
-		return CP.new(Base(0))
+	def ret_cp(self) -> CP[Sub]:
+		return CP.new(Sub(0))
 
-	def ret_csp(self) -> CSP[Base]:
-		return CSP.new(Base(0))
+	def ret_csp(self) -> CSP[Sub]:
+		return CSP.new(Sub(0))
 
 	def local_move(self) -> None:
-		a: Base = Base(0)
-		ap: CP[Base] = CP(a)
-		asp: CSP[Base] = CSP.new(Base(0))
-		ar: CRef[Base] = CRef(a)
+		a: Sub = Sub(0)
+		ap: CP[Sub] = CP(a)
+		asp: CSP[Sub] = CSP.new(Sub(0))
+		ar: CRef[Sub] = CRef(a)
 		if True:
 			a = a
 			a = ap.raw
@@ -75,29 +81,29 @@ class CVarOps:
 			# C++ではNG
 			ar = ar
 
-	def param_move(self, a: Base, ap: CP[Base], asp: CSP[Base], ar: CRef[Base]) -> None:
+	def param_move(self, a: Sub, ap: CP[Sub], asp: CSP[Sub], ar: CRef[Sub]) -> None:
 		a1 = a
-		a2: Base = ap.raw
-		a3: Base = asp.raw
-		a4: Base = ar.raw
+		a2: Sub = ap.raw
+		a3: Sub = asp.raw
+		a4: Sub = ar.raw
 		a = a1
 		ap = CP(a2)
 		# asp = a3  # 構文的にNG
 		# C++ではNG
 		ar = CRef(a4)
 
-	def invoke_method(self, a: Base, ap: CP[Base], asp: CSP[Base]) -> None:
+	def invoke_method(self, a: Sub, ap: CP[Sub], asp: CSP[Sub]) -> None:
 		# self.invoke_method(a, CP(a), a)  # 構文的にNG
 		# self.invoke_method(ap.raw, ap, ap)  # 構文的にNG
 		self.invoke_method(asp.raw, asp.addr, asp)
 
-	def unary_calc(self, a: Base, ap: CP[Base], asp: CSP[Base], ar: CRef[Base]) -> None:
+	def unary_calc(self, a: Sub, ap: CP[Sub], asp: CSP[Sub], ar: CRef[Sub]) -> None:
 		neg_a = -a
 		neg_a2 = -ap.raw
 		neg_a3 = -asp.raw
 		neg_a4 = -ar.raw
 
-	def binary_calc(self, a: Base, ap: CP[Base], asp: CSP[Base], ar: CRef[Base]) -> None:
+	def binary_calc(self, a: Sub, ap: CP[Sub], asp: CSP[Sub], ar: CRef[Sub]) -> None:
 		add = a + ap.raw + asp.raw + ar.raw
 		sub = a - ap.raw - asp.raw - ar.raw
 		mul = a * ap.raw * asp.raw * ar.raw
@@ -106,8 +112,8 @@ class CVarOps:
 		is_a = a is ap.raw is asp.raw is ar.raw
 		is_not_a = a is not ap.raw is not asp.raw is not ar.raw
 
-	def tenary_calc(self, a: Base, ap: CP[Base], asp: CSP[Base], ar: CRef[Base]) -> None:
-		a2 = a if True else Base()
+	def tenary_calc(self, a: Sub, ap: CP[Sub], asp: CSP[Sub], ar: CRef[Sub]) -> None:
+		a2 = a if True else Sub()
 		a3 = a if True else a
 		ap2 = ap if True else ap
 		asp2 = asp if True else asp
@@ -122,12 +128,12 @@ class CVarOps:
 		arr_sp = CSP.new([1])
 		arr_r = CRef(arr)
 
-	def default_param(self, ap: CP[Base] | None = None) -> int:
+	def default_param(self, ap: CP[Sub] | None = None) -> int:
 		n = ap.on.base_n if ap else 0
 		n2 = self.default_param()
 		return n
 
-	def const_move(self, a: Base, ap: CP[Base], asp: CSP[Base], r: CRef[Base]) -> None:
+	def const_move(self, a: Sub, ap: CP[Sub], asp: CSP[Sub], r: CRef[Sub]) -> None:
 		ap_const0 = CPConst(a)
 		a0 = ap_const0.raw
 		r0_const = ap_const0.ref
@@ -166,7 +172,7 @@ class EnumOps:
 		e = EnumOps.Values(0)
 		n = int(EnumOps.Values.A)
 
-class AccessOps(Base):
+class AccessOps(Sub):
 	def __init__(self) -> None:
 		super().__init__(0)
 		self.sub_s: str = ''
@@ -192,7 +198,7 @@ class AccessOps(Base):
 
 	def double_colon(self) -> None:
 		super().call()
-		print(Base.class_base_n)
+		print(Sub.class_base_n)
 		print(AccessOps.class_base_n)
 		print(EnumOps.Values.A)
 		d: dict[EnumOps.Values, str] = {
@@ -300,14 +306,14 @@ class CastOps:
 		s_to_f = float(f_to_s)
 
 class Nullable:
-	def params(self, p: CP[Base] | None) -> None: ...
-	def returns(self) -> CP[Base] | None: ...
+	def params(self, p: CP[Sub] | None) -> None: ...
+	def returns(self) -> CP[Sub] | None: ...
 	# エラーケース
-	def invlid_params(self, base: Base | None) -> None: ...
+	def invlid_params(self, base: Sub | None) -> None: ...
 	# エラーケース
-	def invlid_returns(self) -> Base | None: ...
-	def var_move(self, base: Base, sp: CSP[Base]) -> Base:
-		p: CP[Base] | None = None
+	def invlid_returns(self) -> Sub | None: ...
+	def var_move(self, base: Sub, sp: CSP[Sub]) -> Sub:
+		p: CP[Sub] | None = None
 		p = CP(base)
 		p = None
 		p = sp.addr

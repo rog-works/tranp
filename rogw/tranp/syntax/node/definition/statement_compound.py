@@ -369,16 +369,16 @@ class Function(ClassDef):
 		return self._by('function_def_raw.block').as_a(Block)
 
 	@property
-	def is_abstract(self) -> bool:
-		return len([True for decorator in self.decorators if decorator.path.tokens == 'abstractmethod']) == 1
-
-	@property
 	def decl_vars(self) -> list[Parameter | DeclLocalVar]:
 		parameters = self.parameters
 		# XXX 共通化の方法を検討 @see collect_decl_vars_with
 		parameter_names = [DSN.join(parameter.symbol.namespace, parameter.symbol.domain_name) for parameter in parameters]
 		local_vars = [var for fullyname, var in self._decl_vars_with(DeclLocalVar).items() if fullyname not in parameter_names]
 		return [*parameters, *local_vars]
+
+	@property
+	def _is_abstract(self) -> bool:
+		return len([True for decorator in self.decorators if decorator.path.tokens == 'abstractmethod']) == 1
 
 
 @Meta.embed(Node)
@@ -389,6 +389,10 @@ class ClassMethod(Function):
 		# @see ClassDef.decorators
 		decorators = via._children('decorators') if via._exists('decorators') else []
 		return len(decorators) > 0 and decorators[0].as_a(Decorator).path.tokens == 'classmethod'
+
+	@property
+	def is_abstract(self) -> bool:
+		return super()._is_abstract
 
 	@property
 	def class_types(self) -> ClassDef:
@@ -402,6 +406,10 @@ class Constructor(Function):
 	def match_feature(cls, via: Node) -> bool:
 		# @see Function.symbol
 		return via._by('function_def_raw.name').tokens == '__init__'
+
+	@property
+	def is_abstract(self) -> bool:
+		return super()._is_abstract
 
 	@property
 	def class_types(self) -> ClassDef:
@@ -429,12 +437,16 @@ class Method(Function):
 		return len(parameters) > 0 and parameters[0].as_a(Parameter).symbol.is_a(DeclThisParam)
 
 	@property
-	def class_types(self) -> ClassDef:
-		return self.parent.as_a(Block).parent.as_a(ClassDef)
+	def is_abstract(self) -> bool:
+		return super()._is_abstract
 
 	@property
 	def is_property(self) -> bool:
 		return len([decorator for decorator in self.decorators if decorator.path.tokens == 'property']) == 1
+
+	@property
+	def class_types(self) -> ClassDef:
+		return self.parent.as_a(Block).parent.as_a(ClassDef)
 
 
 @Meta.embed(Node)

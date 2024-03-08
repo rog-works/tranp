@@ -12,5 +12,5 @@ template<typename {{ template_type }}>
 {{ access }}:{{ ' ' -}}
 {% endif -%}
 {% if is_abstract %}virtual {% endif -%}
-{{ class_symbol }}({{ parameters | select('!=', 'self') | join(', ') }}) {% include('constructor_initializer.j2') -%}
-{% if not is_abstract %}{% include('function_block.j2') %}{% else %};{% endif -%}
+{{ class_symbol }}({{ parameters | select('!=', 'self') | join(', ') }}){% include('constructor_initializer.j2') -%}
+{% if not is_abstract %} {% include('function_block.j2') %}{% else %};{% endif -%}

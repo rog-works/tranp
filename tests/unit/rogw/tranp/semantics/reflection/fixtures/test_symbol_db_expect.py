@@ -390,6 +390,7 @@ def expected_symbols() -> dict:
 		'rogw.tranp.compatible.python.embed.__actual__.decorator.wrapped': 'rogw.tranp.compatible.python.embed.T',
 		'rogw.tranp.compatible.python.embed.__hint_generic__.template_types': 'typing.TypeVar',
 		'rogw.tranp.compatible.python.embed.__hint_generic__.decorator.wrapped': 'rogw.tranp.compatible.python.embed.T',
+		'rogw.tranp.compatible.python.template.T': 'rogw.tranp.compatible.python.template.T',
 		'rogw.tranp.compatible.python.template.T_Key': 'rogw.tranp.compatible.python.template.T_Key',
 		'rogw.tranp.compatible.python.template.T_Value': 'rogw.tranp.compatible.python.template.T_Value',
 		'rogw.tranp.compatible.python.template.T_Self': 'rogw.tranp.compatible.python.template.T_Self',

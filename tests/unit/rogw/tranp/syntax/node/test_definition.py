@@ -7,16 +7,17 @@ from tests.test.fixture import Fixture
 
 
 def _ast(before: str) -> str:
+	_class_begin = 7
 	_T = 'file_input.template_assign'
 	_global_n = 'file_input.assign'
 	_global_s = 'file_input.anno_assign'
-	_Values = 'file_input.class_def[6]'
-	_Base = 'file_input.class_def[7]'
-	_Class = 'file_input.class_def[8]'
+	_Values = f'file_input.class_def[{_class_begin + 0}]'
+	_Base = f'file_input.class_def[{_class_begin + 1}]'
+	_Class = f'file_input.class_def[{_class_begin + 2}]'
 	_func = 'file_input.function_def'
-	_Class2 = 'file_input.class_def[10]'
-	_GenBase = 'file_input.class_def[11]'
-	_GenSub = 'file_input.class_def[12]'
+	_Class2 = f'file_input.class_def[{_class_begin + 4}]'
+	_GenBase = f'file_input.class_def[{_class_begin + 5}]'
+	_GenSub = f'file_input.class_def[{_class_begin + 6}]'
 
 	_map = {
 		'Values': f'{_Values}',
@@ -46,6 +47,7 @@ class TestDefinition(TestCase):
 	@data_provider([
 		({
 			'statements': [
+				defs.Import,
 				defs.Import,
 				defs.Import,
 				defs.Import,

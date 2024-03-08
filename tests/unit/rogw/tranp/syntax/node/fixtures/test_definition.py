@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from typing import Generic, TypeVar
 
 from rogw.tranp.compatible.cpp.enum import CEnum

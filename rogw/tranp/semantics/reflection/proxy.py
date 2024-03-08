@@ -1,12 +1,12 @@
 from typing import Callable, Iterator
 
 from rogw.tranp.lang.annotation import implements, override
-from rogw.tranp.semantics.reflection.interface import SymbolDB, IReflection, IWrapper, Roles, T_Ref
+from rogw.tranp.semantics.reflection.interface import ISymbolProxy, SymbolDB, IReflection, IWrapper, Roles, T_Ref
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 
 
-class SymbolProxy(IReflection):
+class SymbolProxy(IReflection, ISymbolProxy):
 	"""シンボルプロクシー
 	* 拡張設定を遅延処理
 	* 参照順序の自動的な解決
@@ -37,6 +37,20 @@ class SymbolProxy(IReflection):
 
 	@property
 	@implements
+	def org_raw(self) -> IReflection:
+		"""オリジナルのシンボルを取得
+
+		Returns:
+			IReflection: オリジナルのシンボル
+		Note:
+			XXX * プリプロセッサー内で無限ループを防ぐ目的で実装
+			XXX * それ以外の目的で使用するのはNG
+			@see semantics.reflection.interface.SymbolDB.items_in_preprocess
+		"""
+		return self.__org_raw
+
+	@property
+	@implements
 	def _db(self) -> SymbolDB:
 		"""SymbolDB: 所属するシンボルテーブル"""
 		return self.__org_raw._db
@@ -49,6 +63,20 @@ class SymbolProxy(IReflection):
 			db (SymbolDB): シンボルテーブル
 		"""
 		self.__org_raw.set_db(db)
+
+	@property
+	@implements
+	def _actual_addr(self) -> int:
+		"""実体のアドレス(ID)を取得
+
+		Returns:
+			int: アドレス(ID)
+		Note:
+			* XXX このメソッドはSymbolProxyによる無限ループを防ぐ目的で実装 @seeを参照
+			* XXX 上記以外の目的で使用することは無い
+			@see semantics.reflection.implements.Reflection._shared_origin
+		"""
+		return id(self.__new_raw_proxy)
 
 	@property
 	@implements

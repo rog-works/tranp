@@ -1,5 +1,3 @@
-from types import UnionType
-
 import rogw.tranp.semantics.reflection.helper.template as template
 import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.compatible.python.types import Standards
@@ -26,7 +24,7 @@ class Reflections:
 			finder (SymbolFinder): シンボル検索 @inject
 			plugins (PluginProvider): プラグインプロバイダー @inject
 		"""
-		self.__raws = db_provider.db
+		self.__db = db_provider.db
 		self.__finder = finder
 		self.__plugins = plugins
 		self.__procedural: ProceduralResolver | None = None
@@ -65,7 +63,7 @@ class Reflections:
 		Raises:
 			UnresolvedSymbolError: objectが未実装
 		"""
-		return self.__finder.get_object(self.__raws)
+		return self.__finder.get_object(self.__db)
 
 	@raises(UnresolvedSymbolError, SemanticsError)
 	def from_fullyname(self, fullyname: str) -> IReflection:
@@ -78,7 +76,7 @@ class Reflections:
 		Raises:
 			UnresolvedSymbolError: シンボルの解決に失敗
 		"""
-		return self.__finder.by(self.__raws, fullyname)
+		return self.__finder.by(self.__db, fullyname)
 
 	@raises(UnresolvedSymbolError, SemanticsError)
 	def type_of_standard(self, standard_type: type[Standards] | None) -> IReflection:
@@ -91,7 +89,7 @@ class Reflections:
 		Raises:
 			UnresolvedSymbolError: 標準クラスが未実装
 		"""
-		return self.__finder.by_standard(self.__raws, standard_type)
+		return self.__finder.by_standard(self.__db, standard_type)
 
 	@raises(UnresolvedSymbolError, SemanticsError)
 	def type_of_property(self, types: defs.ClassDef, prop: defs.Var) -> IReflection:
@@ -230,7 +228,7 @@ class Reflections:
 		Returns:
 			IReflection | None: シンボルデータ
 		"""
-		symbol_raw = self.__finder.find_by_symbolic(self.__raws, symbolic, prop_name)
+		symbol_raw = self.__finder.find_by_symbolic(self.__db, symbolic, prop_name)
 		if symbol_raw is None and isinstance(symbolic, defs.Class):
 			symbol_raw = self.__resolve_raw_recursive(symbolic, prop_name)
 
@@ -246,7 +244,7 @@ class Reflections:
 			IReflection | None: シンボルデータ
 		"""
 		for inherit_type in types.inherits:
-			inherit_type_raw = self.__finder.by_symbolic(self.__raws, inherit_type)
+			inherit_type_raw = self.__finder.by_symbolic(self.__db, inherit_type)
 			found_raw = self.__resolve_raw(inherit_type_raw.types, prop_name)
 			if found_raw:
 				return found_raw
@@ -320,7 +318,7 @@ class ProceduralResolver:
 		Note:
 			許容するNullableの書式 (例: 'Class | None')
 		"""
-		if self.reflections.is_a(symbol, UnionType) and len(symbol.attrs) == 2:
+		if self.reflections.is_a(symbol, classes.Union) and len(symbol.attrs) == 2:
 			is_0_null = self.reflections.is_a(symbol.attrs[0], None)
 			is_1_null = self.reflections.is_a(symbol.attrs[1], None)
 			if is_0_null != is_1_null:
@@ -489,11 +487,14 @@ class ProceduralResolver:
 	def on_dict_type(self, node: defs.DictType, type_name: IReflection, key_type: IReflection, value_type: IReflection) -> IReflection:
 		return type_name.to.generic(node).extends(key_type, value_type)
 
+	def on_callable_type(self, node: defs.CallableType, type_name: IReflection, parameters: list[IReflection], return_type: IReflection) -> IReflection:
+		return type_name.to.generic(node).extends(*parameters, return_type)
+
 	def on_custom_type(self, node: defs.CustomType, type_name: IReflection, template_types: list[IReflection]) -> IReflection:
 		return type_name.to.generic(node).extends(*template_types)
 
 	def on_union_type(self, node: defs.UnionType, or_types: list[IReflection]) -> IReflection:
-		return self.reflections.type_of_standard(UnionType).to.generic(node).extends(*or_types)
+		return self.reflections.type_of_standard(classes.Union).to.generic(node).extends(*or_types)
 
 	def on_null_type(self, node: defs.NullType) -> IReflection:
 		return self.reflections.type_of_standard(None)
@@ -631,7 +632,7 @@ class ProceduralResolver:
 			receiver = left if with_left else right
 			other = right if with_left else left
 			actual_other = function_helper.parameter(0, receiver, other)
-			var_types = actual_other.attrs if self.reflections.is_a(actual_other, UnionType) else [actual_other]
+			var_types = actual_other.attrs if self.reflections.is_a(actual_other, classes.Union) else [actual_other]
 			if other in var_types:
 				return function_helper.returns(receiver, actual_other)
 
@@ -649,7 +650,7 @@ class ProceduralResolver:
 
 		var_type = secondary if primary_is_null else primary
 		null_type = primary if primary_is_null else secondary
-		return self.reflections.type_of_standard(UnionType).to.result(node).extends(var_type, null_type)
+		return self.reflections.type_of_standard(classes.Union).to.result(node).extends(var_type, null_type)
 
 	# Literal
 

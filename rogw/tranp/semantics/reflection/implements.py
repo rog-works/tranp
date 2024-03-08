@@ -8,7 +8,7 @@ import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 
 
-class Reflection(IReflection):
+class ReflectionBase(IReflection):
 	"""リフレクション(基底)"""
 
 	def __init__(self, db: SymbolDB | None) -> None:
@@ -17,14 +17,14 @@ class Reflection(IReflection):
 		Args:
 			db (SymbolDB | None): シンボルテーブル
 		"""
-		self.__raws = db
+		self.__db = db
 
 	@property
 	@implements
 	def _db(self) -> SymbolDB:
 		"""SymbolDB: 所属するシンボルテーブル"""
-		if self.__raws is not None:
-			return self.__raws
+		if self.__db is not None:
+			return self.__db
 
 		raise FatalError(f'Unreachable code.')
 
@@ -35,7 +35,21 @@ class Reflection(IReflection):
 		Args:
 			db (SymbolDB): シンボルテーブル
 		"""
-		self.__raws = db
+		self.__db = db
+
+	@property
+	@implements
+	def _actual_addr(self) -> int:
+		"""実体のアドレス(ID)を取得
+
+		Returns:
+			int: アドレス(ID)
+		Note:
+			* XXX このメソッドはSymbolProxyによる無限ループを防ぐ目的で実装 @seeを参照
+			* XXX 上記以外の目的で使用することは無い
+			@see semantics.reflection.implements.Reflection._shared_origin
+		"""
+		return id(self)
 
 	# @property
 	# @implements
@@ -116,8 +130,8 @@ class Reflection(IReflection):
 		"""
 		new = self.__class__(**kwargs)
 		# XXX 念のため明示的にコピー
-		if self.__raws and new.__raws is None:
-			new.__raws = self.__raws
+		if self.__db and new.__db is None:
+			new.__db = self.__db
 
 		if self.attrs:
 			return new.extends(*[attr.clone() for attr in self.attrs])
@@ -226,7 +240,7 @@ class Reflection(IReflection):
 		return hash(self.__repr__())
 
 
-class Symbol(Reflection):
+class Symbol(ReflectionBase):
 	"""シンボル(クラス定義のオリジナル)"""
 
 	def __init__(self, types: defs.ClassDef) -> None:
@@ -278,14 +292,14 @@ class Symbol(Reflection):
 		return self._clone(types=self.types)
 
 
-class ReflectionImpl(Reflection):
+class Reflection(ReflectionBase):
 	"""リフレクションの共通実装(基底)"""
 
-	def __init__(self, origin: 'Symbol | ReflectionImpl') -> None:
+	def __init__(self, origin: 'Symbol | Reflection') -> None:
 		"""インスタンスを生成
 
 		Args:
-			origin (Symbol | ReflectionImpl): スタックシンボル
+			origin (Symbol | Reflection): スタックシンボル
 		"""
 		super().__init__(origin._db)
 		self._origin = origin
@@ -359,7 +373,8 @@ class ReflectionImpl(Reflection):
 		"""
 		if self._origin.org_fullyname in self._db:
 			origin = self._db[self._origin.org_fullyname]
-			if id(origin) != id(self):
+			# XXX 実体のアドレス同士で比較することで無限ループを防止
+			if origin._actual_addr != self._actual_addr:
 				return origin
 
 		return self._origin
@@ -392,7 +407,7 @@ class ReflectionImpl(Reflection):
 		return self
 
 
-class Class(ReflectionImpl):
+class Class(Reflection):
 	"""シンボル(クラス)"""
 
 	def __init__(self, origin: Symbol) -> None:
@@ -410,14 +425,14 @@ class Class(ReflectionImpl):
 		return Roles.Class
 
 
-class Var(ReflectionImpl):
+class Var(Reflection):
 	"""シンボル(変数)"""
 
-	def __init__(self, origin: ReflectionImpl, decl: defs.DeclVars) -> None:
+	def __init__(self, origin: Reflection, decl: defs.DeclVars) -> None:
 		"""インスタンスを生成
 
 		Args:
-			origin (ReflectionImpl): スタックシンボル
+			origin (Reflection): スタックシンボル
 			decl (DeclVars): 変数宣言ノード
 		"""
 		super().__init__(origin)
@@ -445,7 +460,7 @@ class Var(ReflectionImpl):
 		return self._clone(origin=self.origin, decl=self.decl)
 
 
-class Import(ReflectionImpl):
+class Import(Reflection):
 	"""シンボル(インポート)"""
 
 	def __init__(self, origin: Class | Var, via: defs.ImportName) -> None:
@@ -480,7 +495,7 @@ class Import(ReflectionImpl):
 		return self._clone(origin=self.origin, via=self.via)
 
 
-class Extend(ReflectionImpl):
+class Extend(Reflection):
 	"""シンボル(タイプ拡張)"""
 
 	def __init__(self, origin: Class | Import | Var, via: defs.Type) -> None:
@@ -509,7 +524,7 @@ class Extend(ReflectionImpl):
 		return self._clone(origin=self.origin, via=self.via)
 
 
-class Temporary(ReflectionImpl):
+class Temporary(Reflection):
 	"""シンボル(テンポラリー)"""
 
 	def __init__(self, origin: Class | Extend, via: defs.Literal | defs.Comprehension | defs.Operator) -> None:
@@ -538,14 +553,14 @@ class Temporary(ReflectionImpl):
 		return self._clone(origin=self.origin, via=self.via)
 
 
-class Context(ReflectionImpl):
+class Context(Reflection):
 	"""シンボル(コンテキスト)"""
 
-	def __init__(self, origin: ReflectionImpl, via: defs.Relay | defs.Indexer | defs.FuncCall, context: IReflection) -> None:
+	def __init__(self, origin: Reflection, via: defs.Relay | defs.Indexer | defs.FuncCall, context: IReflection) -> None:
 		"""インスタンスを生成
 
 		Args:
-			origin (ReflectionImpl): スタックシンボル
+			origin (Reflection): スタックシンボル
 			via (defs.Relay | defs.Indexer | defs.FuncCall): 参照元のノード
 			context (IReflection): コンテキストのシンボル
 		"""
@@ -621,7 +636,7 @@ class SymbolWrapper(IWrapper):
 		Returns:
 			IReflection: シンボル
 		"""
-		return Var(self._raw.one_of(ReflectionImpl), decl)
+		return Var(self._raw.one_of(Reflection), decl)
 
 	@implements
 	def generic(self, via: defs.Type) -> IReflection:
@@ -666,4 +681,4 @@ class SymbolWrapper(IWrapper):
 		Returns:
 			IReflection: シンボル
 		"""
-		return Context(self._raw.one_of(ReflectionImpl), via, context)
+		return Context(self._raw.one_of(Reflection), via, context)

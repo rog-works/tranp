@@ -27,7 +27,7 @@ class SymbolDB(dict[str, 'IReflection']):
 	"""シンボルテーブル"""
 
 	@classmethod
-	def new(cls, *db: Self | dict[str, 'IReflection']) -> Self:
+	def new(cls, *dbs: Self | dict[str, 'IReflection']) -> Self:
 		"""シンボルテーブルを結合した新たなインスタンスを生成
 
 		Args:
@@ -35,9 +35,9 @@ class SymbolDB(dict[str, 'IReflection']):
 		Returns:
 			Self: 生成したインスタンス
 		"""
-		return cls().merge(*db)
+		return cls().merge(*dbs)
 
-	def merge(self, *db: Self | dict[str, 'IReflection']) -> Self:
+	def merge(self, *dbs: Self | dict[str, 'IReflection']) -> Self:
 		"""指定のシンボルテーブルと結合
 
 		Args:
@@ -45,8 +45,8 @@ class SymbolDB(dict[str, 'IReflection']):
 		Returns:
 			Self: 自己参照
 		"""
-		for in_raws in db:
-			self.update(**in_raws)
+		for in_db in dbs:
+			self.update(**in_db)
 
 		for raw in self.values():
 			raw.set_db(self)
@@ -83,12 +83,27 @@ class SymbolDB(dict[str, 'IReflection']):
 
 		return self.__class__(dict(sorted(self.items(), key=order)))
 
+	def items_in_preprocess(self) -> Iterator[tuple[str, 'IReflection']]:
+		"""プリプロセッサー専用のアイテムイテレーター
+
+		Returns:
+			Iterator[tuple[str, 'IReflection']]: イテレーター
+		Note:
+			XXX * プリプロセッサー内ではSymbolProxyのオリジナルを参照することで無限ループを防止する @seeを参照
+			XXX * それ以外の目的で使用するのはNG
+			@see semantics.processors.symbol_extends.SymbolExtends
+			@see semantics.processors.resolve_unknown.ResolveUnknown
+		"""
+		for key, raw in self.items():
+			org_raw = raw.org_raw if isinstance(raw, ISymbolProxy) else raw
+			yield (key, org_raw)
+
 
 class SymbolDBProvider(NamedTuple):
 	"""シンボルテーブルプロバイダー
 
 	Attributes:
-		raws: シンボルテーブル
+		db: シンボルテーブル
 	"""
 
 	db: SymbolDB
@@ -124,6 +139,20 @@ class IReflection(metaclass=ABCMeta):
 
 		Args:
 			db (SymbolDB): シンボルテーブル
+		"""
+		...
+
+	@property
+	@abstractmethod
+	def _actual_addr(self) -> int:
+		"""実体のアドレス(ID)を取得
+
+		Returns:
+			int: アドレス(ID)
+		Note:
+			XXX * このメソッドはSymbolProxyによる無限ループを防ぐ目的で実装 @seeを参照
+			XXX * 上記以外の目的で使用することはNG
+			@see semantics.reflection.implements.Reflection._shared_origin
 		"""
 		...
 
@@ -325,5 +354,23 @@ class IWrapper(metaclass=ABCMeta):
 			context (IReflection): コンテキストのシンボル
 		Returns:
 			IReflection: シンボル
+		"""
+		...
+
+
+class ISymbolProxy(metaclass=ABCMeta):
+	"""シンボルプロクシー専用のインターフェイス"""
+
+	@property
+	@abstractmethod
+	def org_raw(self) -> 'IReflection':
+		"""オリジナルのシンボルを取得
+
+		Returns:
+			IReflection: オリジナルのシンボル
+		Note:
+			XXX * プリプロセッサー内で無限ループを防ぐ目的で実装
+			XXX * それ以外の目的で使用するのはNG
+			@see semantics.reflection.interface.SymbolDB.items_in_preprocess
 		"""
 		...

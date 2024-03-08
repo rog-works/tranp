@@ -1,7 +1,4 @@
-from types import UnionType
-
 from rogw.tranp.compatible.python.types import Standards
-from rogw.tranp.errors import LogicError
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.module.types import LibraryPaths
 from rogw.tranp.syntax.ast.dsn import DSN
@@ -70,8 +67,6 @@ class SymbolFinder:
 		domain_name = ''
 		if standard_type is None:
 			domain_name = 'None'
-		elif standard_type is UnionType:
-			domain_name = 'Union'
 		else:
 			domain_name = standard_type.__name__
 
@@ -146,39 +141,3 @@ class SymbolFinder:
 		"""
 		scopes_of_node = [DSN.left(scope, DSN.elem_counts(scope) - i) for i in range(DSN.elem_counts(scope))]
 		return [*scopes_of_node, *(self.__library_paths if allow_fallback_lib else [])]
-
-	def manualy_resolve_relay_type(self, db: SymbolDB, relay_type: defs.RelayOfType) -> IReflection:
-		"""リレータイプノードのシンボルを解決
-
-		Args:
-			db (SymbolDB): シンボルテーブル
-			relay_type (Type): リレータイプノード
-		Returns:
-			IReflection: シンボル
-		Raises:
-			SymbolNotDefinedError: シンボルが見つからない
-			LogicError: 結果が1つ以外。実装ミスと見做される @see semantics.procedure.Procedure.__result
-		Note:
-			FIXME * シンボル解決の役割はReflectionsであり、SymbolFinderに実装すると一貫性がなくなる
-			FIXME * 継承チェーンの考慮はReflectionsに実装されている
-		"""
-		stack: list[IReflection] = []
-		expanded = relay_type.procedural(order='ast')
-		expanded.append(relay_type)
-		for node in expanded:
-			if isinstance(node, defs.RelayOfType):
-				receiver = stack.pop()
-				raw = self.find_by_symbolic(db, receiver.types, node.prop.tokens)
-				if raw is None:
-					raise SymbolNotDefinedError(str(relay_type))
-
-				stack.append(raw)
-			elif isinstance(node, defs.VarOfType):
-				stack.append(self.by_symbolic(db, node))
-			else:
-				raise SymbolNotDefinedError(str(relay_type))
-
-		if len(stack) != 1:
-			raise LogicError(f'Invalid number of stacks. {len(stack)} != 1')
-
-		return stack.pop()

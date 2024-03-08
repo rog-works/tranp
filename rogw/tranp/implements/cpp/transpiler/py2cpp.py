@@ -1,7 +1,7 @@
 import re
-from types import UnionType
 from typing import cast
 
+import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.data.meta.header import MetaHeader
 from rogw.tranp.data.meta.types import ModuleMetaFactory, TranspilerMeta
 from rogw.tranp.data.version import Versions
@@ -126,7 +126,7 @@ class Py2Cpp(ITranspiler):
 			許容するNullableの書式 (例: 'Class | None')
 			@see ProcedureResolver.force_unpack_nullable
 		"""
-		if self.reflections.is_a(symbol, UnionType) and len(symbol.attrs) == 2:
+		if self.reflections.is_a(symbol, classes.Union) and len(symbol.attrs) == 2:
 			is_0_null = self.reflections.is_a(symbol.attrs[0], None)
 			is_1_null = self.reflections.is_a(symbol.attrs[1], None)
 			if is_0_null != is_1_null:

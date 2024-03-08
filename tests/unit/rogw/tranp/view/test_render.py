@@ -10,7 +10,7 @@ from rogw.tranp.test.helper import data_provider
 class Fixture:
 	@classmethod
 	def renderer(cls) -> Renderer:
-		return Renderer(os.path.abspath(os.path.join(appdir(), 'example/template')))
+		return Renderer(os.path.abspath(os.path.join(appdir(), 'data/cpp/template')))
 
 
 class TestRenderer(TestCase):

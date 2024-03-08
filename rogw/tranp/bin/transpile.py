@@ -58,7 +58,7 @@ class Args:
 			'output_dir': './',
 			'output_language': 'h',
 			'exclude_patterns': ['example/FW/*'],
-			'template_dir': 'example/template',
+			'template_dir': 'data/cpp/template',
 			'force': False,
 			'verbose': False,
 			'profile': 'none',

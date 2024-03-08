@@ -139,7 +139,7 @@ class TestPy2Cpp(TestCase):
 		fullyname(PluginProvider): cpp_plugin_provider,
 		fullyname(TranslationMapping): fixture_translation_mapping,
 		fullyname(TranspilerOptions): lambda: TranspilerOptions(verbose=False),
-		fullyname(Renderer): lambda: Renderer(os.path.join(appdir(), 'example/template')),
+		fullyname(Renderer): lambda: Renderer(os.path.join(appdir(), 'data/cpp/template')),
 	})
 
 	@data_provider([

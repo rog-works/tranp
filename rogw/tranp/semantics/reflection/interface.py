@@ -31,7 +31,7 @@ class SymbolDB(dict[str, 'IReflection']):
 		"""シンボルテーブルを結合した新たなインスタンスを生成
 
 		Args:
-			*db (Self | dict[str, IReflection]): シンボルテーブルリスト
+			*dbs (Self | dict[str, IReflection]): シンボルテーブルリスト
 		Returns:
 			Self: 生成したインスタンス
 		"""
@@ -41,7 +41,7 @@ class SymbolDB(dict[str, 'IReflection']):
 		"""指定のシンボルテーブルと結合
 
 		Args:
-			*db (Self | dict[str, IReflection]): シンボルテーブルリスト
+			*dbs (Self | dict[str, IReflection]): シンボルテーブルリスト
 		Returns:
 			Self: 自己参照
 		"""

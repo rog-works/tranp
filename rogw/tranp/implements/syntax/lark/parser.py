@@ -83,7 +83,10 @@ class SyntaxParserOfLark:
 			return f'{basepath}.py'
 
 		def identity() -> dict[str, str]:
-			return {'mtime': str(self.__loader.mtime(source_path()))}
+			return {
+				'grammar_mtime': str(self.__loader.mtime(self.__setting.grammar)),
+				'mtime': str(self.__loader.mtime(source_path()))
+			}
 
 		def load_source() -> str:
 			return self.__loader.load(source_path())

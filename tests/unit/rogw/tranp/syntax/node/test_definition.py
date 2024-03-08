@@ -781,14 +781,14 @@ class TestDefinition(TestCase):
 		('a: str | None = None', 'file_input.anno_assign.typed_or_expr.typed_var', defs.VarOfType),
 		('self.a: int = 0', 'file_input.anno_assign.typed_var', defs.VarOfType),
 		('try: ...\nexcept A.E as e: ...', 'file_input.try_stmt.except_clauses.except_clause.typed_getattr', defs.RelayOfType),
-		('class B(A): ...', 'file_input.class_def.class_def_raw.typed_arguments.typed_argvalue.typed_var', defs.VarOfType),
+		('class B(A): ...', 'file_input.class_def.class_def_raw.inherit_arguments.typed_argvalue.typed_var', defs.VarOfType),
 		('def func(a: int) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.typed_var', defs.VarOfType),
 		('a: A.B[A.B[A.B], A.B] = {}', 'file_input.anno_assign.typed_getitem.typed_slices.typed_getattr', defs.RelayOfType),
 		# Generic - List/Dict/Callable/Custom
 		('a: list[int] = []', 'file_input.anno_assign.typed_getitem', defs.ListType),
 		('a: dict[str, int] = {}', 'file_input.anno_assign.typed_getitem', defs.DictType),
 		('def func() -> Callable[[], None]: ...', 'file_input.function_def.function_def_raw.typed_getitem', defs.CallableType),
-		('class B(A[T]): ...', 'file_input.class_def.class_def_raw.typed_arguments.typed_argvalue.typed_getitem', defs.CustomType),
+		('class B(A[T]): ...', 'file_input.class_def.class_def_raw.inherit_arguments.typed_argvalue.typed_getitem', defs.CustomType),
 		('a: A.B[A.B[A.B], A.B] = {}', 'file_input.anno_assign.typed_getitem', defs.CustomType),
 		('a: A.B[A.B[A.B], A.B] = {}', 'file_input.anno_assign.typed_getitem.typed_slices.typed_getitem', defs.CustomType),
 		# Union
@@ -887,7 +887,7 @@ class TestDefinition(TestCase):
 		self.assertEqual(type(node.value), expected['value'])
 
 	@data_provider([
-		('class B(A): ...', 'file_input.class_def.class_def_raw.typed_arguments.typed_argvalue', {'class_type': defs.VarOfType}),
+		('class B(A): ...', 'file_input.class_def.class_def_raw.inherit_arguments.typed_argvalue', {'class_type': defs.VarOfType}),
 	])
 	def test_inherit_argument(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.InheritArgument)

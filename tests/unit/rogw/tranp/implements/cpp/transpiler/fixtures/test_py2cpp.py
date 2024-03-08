@@ -1,4 +1,4 @@
-from abc import abstractmethod
+from abc import ABCMeta, abstractmethod
 from typing import Generic, TypeAlias, TypeVar
 
 from rogw.tranp.compatible.cpp.enum import CEnum
@@ -12,7 +12,7 @@ T2 = TypeVar('T2')
 
 DSI: TypeAlias = dict[str, int]
 
-class Base:
+class Base(metaclass=ABCMeta):
 	@abstractmethod
 	def sub_implements(self) -> None: ...
 

@@ -520,10 +520,10 @@ class Class(ClassDef):
 
 	@property
 	def __org_inherits(self) -> list[Type]:
-		if not self._exists('class_def_raw.typed_arguments'):
+		if not self._exists('class_def_raw.inherit_arguments'):
 			return []
 
-		return [node.as_a(InheritArgument).class_type for node in self._children('class_def_raw.typed_arguments')]
+		return [node.class_type for node in self._children('class_def_raw.inherit_arguments') if isinstance(node, InheritArgument)]
 
 	@property
 	def constructor_exists(self) -> bool:
@@ -557,12 +557,12 @@ class Enum(Class):
 	@override
 	def match_feature(cls, via: Node) -> bool:
 		# @see Class.__org_inherits
-		if not via._exists('class_def_raw.typed_arguments'):
+		if not via._exists('class_def_raw.inherit_arguments'):
 			return False
 
-		inherits = via._children('class_def_raw.typed_arguments')
+		inherits = via._children('class_def_raw.inherit_arguments')
 		# XXX CEnumの継承に依存するのは微妙なので、修正を検討
-		return 'CEnum' in [inherit.as_a(InheritArgument).class_type.tokens for inherit in inherits]
+		return 'CEnum' in [inherit.class_type.tokens for inherit in inherits if isinstance(inherit, InheritArgument)]
 
 	@property
 	def vars(self) -> list[DeclLocalVar]:

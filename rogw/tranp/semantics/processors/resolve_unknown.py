@@ -35,9 +35,7 @@ class ResolveUnknown:
 			SymbolDB: シンボルテーブル
 		"""
 
-		for key, raw_ in db.items():
-			# XXX 必然性を感じにくい切り替え処理。いっそSymbolProxyを前提にした方が良いのでは？
-			raw = raw_.org_raw if isinstance(raw_, SymbolProxy) else raw_
+		for key, raw in db.items_in_preprocess():
 			if not isinstance(raw.decl, defs.Declable):
 				continue
 

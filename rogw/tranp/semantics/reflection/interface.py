@@ -83,6 +83,24 @@ class SymbolDB(dict[str, 'IReflection']):
 
 		return self.__class__(dict(sorted(self.items(), key=order)))
 
+	def items_in_preprocess(self) -> Iterator[tuple[str, 'IReflection']]:
+		"""プリプロセッサー専用のアイテムイテレーター
+
+		Returns:
+			Iterator[tuple[str, 'IReflection']]: イテレーター
+		Note:
+			XXX * プリプロセッサー内ではSymbolProxyのオリジナルを参照することで無限ループを防止する目的で実装 @seeを参照
+			XXX * それ以外の目的で使用するのはNG
+			XXX * 実装に依存したインターフェイスは微妙なので改善を検討
+			@see semantics.processors.symbol_extends.SymbolExtends
+			@see semantics.processors.resolve_unknown.ResolveUnknown
+		"""
+		from rogw.tranp.semantics.reflection.proxy import SymbolProxy  # FIXME 循環参照
+
+		for key, raw in self.items():
+			org_raw = raw.org_raw if isinstance(raw, SymbolProxy) else raw
+			yield (key, org_raw)
+
 
 class SymbolDBProvider(NamedTuple):
 	"""シンボルテーブルプロバイダー
@@ -135,8 +153,9 @@ class IReflection(metaclass=ABCMeta):
 		Returns:
 			int: アドレス(ID)
 		Note:
-			* XXX このメソッドはSymbolProxyによる無限ループを防ぐ目的で実装 @seeを参照
-			* XXX 上記以外の目的で使用することは無い
+			XXX * このメソッドはSymbolProxyによる無限ループを防ぐ目的で実装 @seeを参照
+			XXX * 上記以外の目的で使用することはNG
+			XXX * 実装に依存したインターフェイスは微妙なので改善を検討
 			@see semantics.reflection.implements.Reflection._shared_origin
 		"""
 		...

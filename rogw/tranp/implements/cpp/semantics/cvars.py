@@ -74,7 +74,7 @@ class CVars:
 		Returns:
 			bool: True = ポインター/スマートポインター
 		"""
-		return key in [cpp.CP.__name__, cpp.CSP.__name__]
+		return key in [cpp.CP.__name__, cpp.CSP.__name__, cpp.CPConst.__name__]
 
 	@classmethod
 	def is_raw_raw(cls, key: str) -> bool:
@@ -107,7 +107,7 @@ class CVars:
 		Returns:
 			bool: True = ポインター
 		"""
-		return key == cpp.CP.__name__
+		return key in [cpp.CP.__name__, cpp.CPConst.__name__]
 
 	@classmethod
 	def is_addr_sp(cls, key: str) -> bool:
@@ -127,7 +127,7 @@ class CVars:
 		Returns:
 			list[str]: 種別キー一覧
 		"""
-		return [cvar.__name__ for cvar in [cpp.CP, cpp.CSP, cpp.CRef, cpp.CRefConst, cpp.CRaw]]
+		return [cvar.__name__ for cvar in [cpp.CP, cpp.CSP, cpp.CRef, cpp.CPConst, cpp.CRefConst, cpp.CRaw]]
 
 	@classmethod
 	def key_from(cls, reflections: Reflections, symbol: IReflection) -> str:
@@ -158,11 +158,12 @@ class CVars:
 			Accessors: アクセス修飾子種別
 		"""
 		accessors = {
-			cpp.CRaw.__name__: cls.Accessors.Raw,
-			cpp.CRef.__name__: cls.Accessors.Raw,
-			cpp.CRefConst.__name__: cls.Accessors.Raw,
 			cpp.CP.__name__: cls.Accessors.Address,
 			cpp.CSP.__name__: cls.Accessors.Address,
+			cpp.CRef.__name__: cls.Accessors.Raw,
+			cpp.CPConst.__name__: cls.Accessors.Address,
+			cpp.CRefConst.__name__: cls.Accessors.Raw,
+			cpp.CRaw.__name__: cls.Accessors.Raw,
 		}
 		return accessors[key]
 
@@ -179,13 +180,17 @@ class CVars:
 		moves = {
 			f'{cpp.CP.__name__}.raw': CVars.Moves.ToActual,
 			f'{cpp.CP.__name__}.ref': CVars.Moves.ToActual,
+			f'{cpp.CP.__name__}.const': CVars.Moves.Copy,
 			f'{cpp.CSP.__name__}.raw': CVars.Moves.ToActual,
 			f'{cpp.CSP.__name__}.ref': CVars.Moves.ToActual,
 			f'{cpp.CSP.__name__}.addr': CVars.Moves.UnpackSp,
 			f'{cpp.CRef.__name__}.raw': CVars.Moves.Copy,
 			f'{cpp.CRef.__name__}.addr': CVars.Moves.ToAddress,
 			f'{cpp.CRef.__name__}.const': CVars.Moves.Copy,
+			f'{cpp.CPConst.__name__}.raw': CVars.Moves.ToActual,
+			f'{cpp.CPConst.__name__}.ref': CVars.Moves.ToActual,
 			f'{cpp.CRefConst.__name__}.raw': CVars.Moves.Copy,
+			f'{cpp.CRefConst.__name__}.addr': CVars.Moves.ToAddress,
 		}
 		move_key = f'{key}.{method}'
 		if move_key in moves:

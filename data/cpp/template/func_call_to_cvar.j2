@@ -1,4 +1,4 @@
-{%- if cvar_type == 'CP' -%}
+{%- if cvar_type in ['CP', 'CPConst'] -%}
 &({{ arguments[0] }}){% if is_statement %};{% endif %}
 {%- else -%}
 {{ arguments[0] }}{% if is_statement %};{% endif %}

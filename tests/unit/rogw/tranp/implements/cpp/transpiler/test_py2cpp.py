@@ -214,7 +214,10 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarOps.default_param.block', 'assign[0]'), defs.MoveAssign, 'int n = ap ? ap->base_n : 0;'),
 		(_ast('CVarOps.default_param.block', 'assign[1]'), defs.MoveAssign, 'int n2 = this->default_param();'),
 
-		(_ast('CVarOps.const_move.block', 'assign'), defs.MoveAssign, 'const Base& a2 = a;'),
+		(_ast('CVarOps.const_move.block', 'assign[0]'), defs.MoveAssign, 'const Base* ap_const = &(a);'),
+		(_ast('CVarOps.const_move.block', 'assign[1]'), defs.MoveAssign, 'const Base& r_const = a;'),
+		(_ast('CVarOps.const_move.block', 'assign[2]'), defs.MoveAssign, 'const Base* ap_const2 = &(r_const);'),
+		(_ast('CVarOps.const_move.block', 'assign[3]'), defs.MoveAssign, 'const Base& r_const2 = *(ap_const2);'),
 
 		(_ast('FuncOps.print.block', 'funccall'), defs.FuncCall, 'printf("message. %d, %f, %s", 1, 1.0, "abc");'),
 

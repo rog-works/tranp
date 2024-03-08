@@ -1,7 +1,1 @@
-auto {{ symbol }} = [{% if binded_this %}this, {% endif %}&]({{ parameters | join(', ') }}) -> {{ return_type }} {
-{%- filter indent('\t') %}
-{%- for statement in statements %}
-{{ statement }}
-{%- endfor %}
-{%- endfilter %}
-}
+auto {{ symbol }} = [{% if binded_this %}this, {% endif %}&]({{ parameters | join(', ') }}) -> {{ return_type }} {% include('function_block.j2') %}

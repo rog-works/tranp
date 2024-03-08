@@ -2,18 +2,15 @@
 {%- for decorator in decorators | select('!=', '') %}
 {{ decorator }}
 {%- endfor %}
-{%- if not template_types %}
-{{ access }}: {{ return_type }} {{ symbol }}({{ parameters | select('!=', 'self') | join(', ') }}) {
-{%- else %}
+{%- if template_types %}
 {{ access }}:
 {%- for template_type in template_types %}
 template<typename {{ template_type }}>
 {%- endfor %}
-{{ return_type }} {{ symbol }}({{ parameters | select('!=', 'self') | join(', ') }}) {
 {%- endif %}
-{%- filter indent('\t') %}
-{%- for statement in statements %}
-{{ statement }}
-{%- endfor %}
-{%- endfilter %}
-}
+{% if not template_types -%}
+{{ access }}:{{ ' ' -}}
+{% endif -%}
+{% if is_abstract %}virtual {% endif -%}
+{{ return_type }} {{ symbol }}({{ parameters | select('!=', 'self') | join(', ') }}){{ '' -}}
+{% if not is_abstract %} {% include('function_block.j2') %}{% else %};{% endif -%}

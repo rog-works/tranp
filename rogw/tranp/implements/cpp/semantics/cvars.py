@@ -74,7 +74,7 @@ class CVars:
 		Returns:
 			bool: True = ポインター/スマートポインター
 		"""
-		return key in [cpp.CP.__name__, cpp.CSP.__name__, cpp.CPConst.__name__]
+		return key in [cpp.CP.__name__, cpp.CSP.__name__, cpp.CPConst.__name__, cpp.CSPConst.__name__]
 
 	@classmethod
 	def is_raw_raw(cls, key: str) -> bool:
@@ -118,7 +118,7 @@ class CVars:
 		Returns:
 			bool: True = スマートポインター
 		"""
-		return key == cpp.CSP.__name__
+		return key in [cpp.CSP.__name__, cpp.CSPConst.__name__]
 
 	@classmethod
 	def keys(cls) -> list[str]:
@@ -127,7 +127,7 @@ class CVars:
 		Returns:
 			list[str]: 種別キー一覧
 		"""
-		return [cvar.__name__ for cvar in [cpp.CP, cpp.CSP, cpp.CRef, cpp.CPConst, cpp.CRefConst, cpp.CRaw]]
+		return [cvar.__name__ for cvar in [cpp.CP, cpp.CSP, cpp.CRef, cpp.CPConst, cpp.CSPConst, cpp.CRefConst, cpp.CRaw]]
 
 	@classmethod
 	def key_from(cls, reflections: Reflections, symbol: IReflection) -> str:
@@ -162,6 +162,7 @@ class CVars:
 			cpp.CSP.__name__: cls.Accessors.Address,
 			cpp.CRef.__name__: cls.Accessors.Raw,
 			cpp.CPConst.__name__: cls.Accessors.Address,
+			cpp.CSPConst.__name__: cls.Accessors.Address,
 			cpp.CRefConst.__name__: cls.Accessors.Raw,
 			cpp.CRaw.__name__: cls.Accessors.Raw,
 		}
@@ -184,11 +185,15 @@ class CVars:
 			f'{cpp.CSP.__name__}.raw': CVars.Moves.ToActual,
 			f'{cpp.CSP.__name__}.ref': CVars.Moves.ToActual,
 			f'{cpp.CSP.__name__}.addr': CVars.Moves.UnpackSp,
+			f'{cpp.CSP.__name__}.const': CVars.Moves.Copy,
 			f'{cpp.CRef.__name__}.raw': CVars.Moves.Copy,
 			f'{cpp.CRef.__name__}.addr': CVars.Moves.ToAddress,
 			f'{cpp.CRef.__name__}.const': CVars.Moves.Copy,
 			f'{cpp.CPConst.__name__}.raw': CVars.Moves.ToActual,
 			f'{cpp.CPConst.__name__}.ref': CVars.Moves.ToActual,
+			f'{cpp.CSPConst.__name__}.raw': CVars.Moves.ToActual,
+			f'{cpp.CSPConst.__name__}.ref': CVars.Moves.ToActual,
+			f'{cpp.CSPConst.__name__}.addr': CVars.Moves.UnpackSp,
 			f'{cpp.CRefConst.__name__}.raw': CVars.Moves.Copy,
 			f'{cpp.CRefConst.__name__}.addr': CVars.Moves.ToAddress,
 		}

@@ -88,6 +88,11 @@ class CSP(CVar[T]):
 		"""ポインターを返却する参照変換代替メソッド。C++では`get`に相当"""
 		return CP(self.raw)
 
+	@property
+	def const(self) -> 'CSPConst[T]':
+		"""Constを返却する参照変換代替メソッド。C++では削除"""
+		return CSPConst(self.raw)
+
 
 @__hint_generic__(T)
 class CRef(CVar[T]):
@@ -134,6 +139,32 @@ class CPConst(CVar[T]):
 	def ref(self) -> 'CRefConst[T]':
 		"""Const参照を返却する参照変換代替メソッド。C++では`*`に相当"""
 		return CRefConst(self.raw)
+
+
+@__hint_generic__(T)
+class CSPConst(CVar[T]):
+	"""C++型変数の互換クラス(Constスマートポインター)"""
+
+	@classmethod
+	def __class_getitem__(cls, var_type: type[T]) -> 'type[CSPConst[T]]':
+		"""C++型変数でラップしたタイプを返却
+
+		Args:
+			var_type (type[T]): 実体の型
+		Returns:
+			type[CSPConst[T]]: ラップした型
+		"""
+		return CSPConst[var_type]
+
+	@property
+	def ref(self) -> 'CRefConst[T]':
+		"""Const参照を返却する参照変換代替メソッド。C++では`*`に相当"""
+		return CRefConst(self.raw)
+
+	@property
+	def addr(self) -> 'CPConst[T]':
+		"""Constポインターを返却する参照変換代替メソッド。C++では`get`に相当"""
+		return CPConst(self.raw)
 
 
 @__hint_generic__(T)

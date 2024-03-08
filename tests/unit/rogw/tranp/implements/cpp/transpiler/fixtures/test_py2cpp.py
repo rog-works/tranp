@@ -1,7 +1,7 @@
 from typing import Generic, TypeAlias, TypeVar
 
 from rogw.tranp.compatible.cpp.enum import CEnum
-from rogw.tranp.compatible.cpp.object import CP, CPConst, CRef, CSP, CRefConst
+from rogw.tranp.compatible.cpp.object import CP, CPConst, CRef, CSP, CRefConst, CSPConst
 from rogw.tranp.compatible.cpp.preprocess import directive
 
 directive('#pragma once')
@@ -127,11 +127,23 @@ class CVarOps:
 		n2 = self.default_param()
 		return n
 
-	def const_move(self, a: Base, ap: CP[Base], r: CRef[Base]) -> None:
-		ap_const = CPConst(a)
-		r_const = CRefConst(a)
-		ap_const2 = r_const.addr
-		r_const2 = ap_const2.ref
+	def const_move(self, a: Base, ap: CP[Base], asp: CSP[Base], r: CRef[Base]) -> None:
+		ap_const0 = CPConst(a)
+		a0 = ap_const0.raw
+		r0_const = ap_const0.ref
+
+		ap_const1 = ap.const
+		a1 = ap_const1.raw
+		r_const1 = ap_const1.ref
+
+		asp_const2 = asp.const
+		a2 = asp_const2.raw
+		r_const2 = asp_const2.ref
+		ap_const2 = asp_const2.addr
+
+		r_const3 = r.const
+		a3 = r_const3.raw
+		ap_const3 = r_const3.addr
 
 class FuncOps:
 	def print(self) -> None:

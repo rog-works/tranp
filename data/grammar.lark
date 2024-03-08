@@ -78,7 +78,6 @@ parameters: paramvalue ("," paramvalue)* ["," starparam] | starparam
 starparam: "*" typedparam
 
 // @custom
-typed_arguments: typed_argvalue ("," typed_argvalue)*
 typed_argvalue: typed_expression
 
 // @custom

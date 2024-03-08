@@ -1,7 +1,4 @@
-from types import UnionType
-
 from rogw.tranp.compatible.python.types import Standards
-from rogw.tranp.errors import LogicError
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.module.types import LibraryPaths
 from rogw.tranp.syntax.ast.dsn import DSN
@@ -70,8 +67,6 @@ class SymbolFinder:
 		domain_name = ''
 		if standard_type is None:
 			domain_name = 'None'
-		elif standard_type is UnionType:
-			domain_name = 'Union'
 		else:
 			domain_name = standard_type.__name__
 

@@ -1,5 +1,3 @@
-from types import UnionType
-
 import rogw.tranp.semantics.reflection.helper.template as template
 import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.compatible.python.types import Standards
@@ -320,7 +318,7 @@ class ProceduralResolver:
 		Note:
 			許容するNullableの書式 (例: 'Class | None')
 		"""
-		if self.reflections.is_a(symbol, UnionType) and len(symbol.attrs) == 2:
+		if self.reflections.is_a(symbol, classes.Union) and len(symbol.attrs) == 2:
 			is_0_null = self.reflections.is_a(symbol.attrs[0], None)
 			is_1_null = self.reflections.is_a(symbol.attrs[1], None)
 			if is_0_null != is_1_null:
@@ -496,7 +494,7 @@ class ProceduralResolver:
 		return type_name.to.generic(node).extends(*template_types)
 
 	def on_union_type(self, node: defs.UnionType, or_types: list[IReflection]) -> IReflection:
-		return self.reflections.type_of_standard(UnionType).to.generic(node).extends(*or_types)
+		return self.reflections.type_of_standard(classes.Union).to.generic(node).extends(*or_types)
 
 	def on_null_type(self, node: defs.NullType) -> IReflection:
 		return self.reflections.type_of_standard(None)
@@ -634,7 +632,7 @@ class ProceduralResolver:
 			receiver = left if with_left else right
 			other = right if with_left else left
 			actual_other = function_helper.parameter(0, receiver, other)
-			var_types = actual_other.attrs if self.reflections.is_a(actual_other, UnionType) else [actual_other]
+			var_types = actual_other.attrs if self.reflections.is_a(actual_other, classes.Union) else [actual_other]
 			if other in var_types:
 				return function_helper.returns(receiver, actual_other)
 
@@ -652,7 +650,7 @@ class ProceduralResolver:
 
 		var_type = secondary if primary_is_null else primary
 		null_type = primary if primary_is_null else secondary
-		return self.reflections.type_of_standard(UnionType).to.result(node).extends(var_type, null_type)
+		return self.reflections.type_of_standard(classes.Union).to.result(node).extends(var_type, null_type)
 
 	# Literal
 

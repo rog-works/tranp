@@ -1,5 +1,4 @@
 import re
-from types import UnionType
 from unittest import TestCase
 
 import rogw.tranp.compatible.libralies.classes as classes
@@ -278,7 +277,7 @@ class TestReflections(TestCase):
 		(list, _mod('classes', list.__name__)),
 		(dict, _mod('classes', dict.__name__)),
 		(classes.Unknown, _mod('classes', classes.Unknown.__name__)),
-		(UnionType, _mod('classes', 'Union')),
+		(classes.Union, _mod('classes', 'Union')),
 		(None, _mod('classes', 'None')),
 	])
 	def test_type_of_standard(self, standard_type: type[Standards] | None, expected: str) -> None:

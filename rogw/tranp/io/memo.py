@@ -37,29 +37,27 @@ class Memoize:
 	"""キャッシュプロバイダー
 
 	Examples:
-		# Good
 		```python
+		# Good
 		class Data:
 			def __init__(self) -> None:
 				self.__memo = Memoize()
 
 			def get_very_slow(self, name: str) -> Result:
-				memo = self.__memo.get(self.slowly)
+				memo = self.__memo.get(self.get_very_slow)
 				@memo(name)
 				def factory() -> Result:
-					# very slow getter
+					# some very slow process
 					return result
 
 				return factory()
-		```
 
 		# Bad
-		```python
 		memo = Memoize()
 		class Data:
 			@memo()
 			def get_very_slow(self, name: str) -> Result:
-				# very slow getter
+				# some very slow process
 				return result
 		```
 	"""

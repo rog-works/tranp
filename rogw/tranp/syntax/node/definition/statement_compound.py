@@ -369,6 +369,10 @@ class Function(ClassDef):
 		return self._by('function_def_raw.block').as_a(Block)
 
 	@property
+	def is_abstract(self) -> bool:
+		return len([True for decorator in self.decorators if decorator.path.tokens == 'abstractmethod']) == 1
+
+	@property
 	def decl_vars(self) -> list[Parameter | DeclLocalVar]:
 		parameters = self.parameters
 		# XXX 共通化の方法を検討 @see collect_decl_vars_with

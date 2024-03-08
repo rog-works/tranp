@@ -21,6 +21,7 @@ def _ast(before: str) -> str:
 	_map = {
 		'Values': f'{_Values}',
 		'Base': f'{_Base}',
+		'Base.public_method': f'{_Base}.class_def_raw.block.function_def',
 		'Class': f'{_Class}',
 		'Class.class_method': f'{_Class}.class_def_raw.block.function_def[1]',
 		'Class.__init__': f'{_Class}.class_def_raw.block.function_def[2]',
@@ -215,6 +216,25 @@ class TestDefinition(TestCase):
 		self.assertEqual(type(node.condition), expected['condition'])
 
 	@data_provider([
+		(_ast('Base.public_method'), {
+			'type': defs.Method,
+			'symbol': 'public_method',
+			'access': 'public',
+			'decorators': ['abstractmethod'],
+			'parameters': [
+				{'symbol': 'self', 'var_type': 'Empty', 'default_value': 'Empty'},
+			],
+			'return': defs.VarOfType,
+			'is_abstract': True,
+			'decl_vars': [
+				{'symbol': 'self', 'decl_type': defs.Parameter},
+			],
+			'actual_symbol': None,
+			# Belong class only
+			'class_symbol': 'Base',
+			# Method only
+			'is_property': False,
+		}),
 		(_ast('Class.class_method'), {
 			'type': defs.ClassMethod,
 			'symbol': 'class_method',
@@ -224,6 +244,7 @@ class TestDefinition(TestCase):
 				{'symbol': 'cls', 'var_type': 'Empty', 'default_value': 'Empty'},
 			],
 			'return': defs.VarOfType,
+			'is_abstract': False,
 			'decl_vars': [
 				{'symbol': 'cls', 'decl_type': defs.Parameter},
 				{'symbol': 'lb', 'decl_type': defs.DeclLocalVar},
@@ -243,6 +264,7 @@ class TestDefinition(TestCase):
 				{'symbol': 's', 'var_type': 'str', 'default_value': 'Empty'},
 			],
 			'return': defs.NullType,
+			'is_abstract': False,
 			'decl_vars': [
 				{'symbol': 'self', 'decl_type': defs.Parameter},
 				{'symbol': 'n', 'decl_type': defs.Parameter},
@@ -263,6 +285,7 @@ class TestDefinition(TestCase):
 			'decorators': [],
 			'parameters': [],
 			'return': defs.NullType,
+			'is_abstract': False,
 			'decl_vars': [
 				{'symbol': 'i', 'decl_type': defs.DeclLocalVar},
 			],
@@ -279,6 +302,7 @@ class TestDefinition(TestCase):
 				{'symbol': 'self', 'var_type': 'Empty', 'default_value': 'Empty'},
 			],
 			'return': defs.VarOfType,
+			'is_abstract': False,
 			'decl_vars': [
 				{'symbol': 'self', 'decl_type': defs.Parameter},
 			],
@@ -298,6 +322,7 @@ class TestDefinition(TestCase):
 				{'symbol': 'n', 'var_type': 'int', 'default_value': 'Empty'},
 			],
 			'return': defs.VarOfType,
+			'is_abstract': False,
 			'decl_vars': [
 				{'symbol': 'self', 'decl_type': defs.Parameter},
 				{'symbol': 'n', 'decl_type': defs.Parameter},
@@ -319,6 +344,7 @@ class TestDefinition(TestCase):
 				{'symbol': 's', 'var_type': 'str', 'default_value': 'Empty'},
 			],
 			'return': defs.ListType,
+			'is_abstract': False,
 			'decl_vars': [
 				{'symbol': 'self', 'decl_type': defs.Parameter},
 				{'symbol': 's', 'decl_type': defs.Parameter},
@@ -338,6 +364,7 @@ class TestDefinition(TestCase):
 				{'symbol': 'b', 'var_type': 'bool', 'default_value': 'Empty'},
 			],
 			'return': defs.NullType,
+			'is_abstract': False,
 			'decl_vars': [
 				{'symbol': 'b', 'decl_type': defs.Parameter},
 				{'symbol': 'lb', 'decl_type': defs.DeclLocalVar},
@@ -353,6 +380,7 @@ class TestDefinition(TestCase):
 				{'symbol': 'n', 'var_type': 'int', 'default_value': 'Empty'},
 			],
 			'return': defs.NullType,
+			'is_abstract': False,
 			'decl_vars': [
 				{'symbol': 'n', 'decl_type': defs.Parameter},
 			],
@@ -375,6 +403,7 @@ class TestDefinition(TestCase):
 			self.assertEqual(parameter.default_value.tokens if not parameter.default_value.is_a(defs.Empty) else 'Empty', in_expected['default_value'])
 
 		self.assertEqual(type(node.return_type), expected['return'])
+		self.assertEqual(node.is_abstract, expected['is_abstract'])
 		self.assertEqual(type(node.block), defs.Block)
 		self.assertEqual(len(node.decl_vars), len(expected['decl_vars']))
 		for index, decl_var in enumerate(node.decl_vars):
@@ -404,7 +433,7 @@ class TestDefinition(TestCase):
 			'template_types': [],
 			'constructor_exists': False,
 			'class_methods': [],
-			'methods': [],
+			'methods': ['public_method'],
 			'class_vars': [],
 			'this_vars': [],
 			'actual_symbol': None,

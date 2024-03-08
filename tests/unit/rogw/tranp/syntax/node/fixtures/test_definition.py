@@ -12,7 +12,9 @@ class Values(CEnum):
 	A = 0
 	B = 1
 
-class Base: ...
+class Base:
+	@abstractmethod
+	def public_method(self) -> Values: ...
 
 class Class(Base):
 	cn: int = 0

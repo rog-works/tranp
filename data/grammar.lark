@@ -47,7 +47,11 @@ decorator: "@" dotted_name ["(" [arguments] ")"] _NEWLINE
 // @decl `class class_name(parent1, parent2, ...):`
 // @lark classdef: "class" name ["(" [arguments] ")"] ":" block
 class_def: [decorators] class_def_raw
-class_def_raw: "class" name ["(" [typed_arguments] ")"] ":" block
+class_def_raw: "class" name ["(" [inherit_arguments] ")"] ":" block
+
+// @custom
+inherit_arguments: (typed_argvalue | metaclass_argvalue) ("," (typed_argvalue | metaclass_argvalue))*
+metaclass_argvalue: "metaclass" "=" typed_expression
 
 // # Function definitions
 

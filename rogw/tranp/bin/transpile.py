@@ -93,30 +93,58 @@ class TranspileApp:
 	@classmethod
 	@injectable
 	def make_renderer(cls, args: Args) -> Renderer:
-		"""Renderer: レンダー"""
+		"""テンプレートレンダーを生成
+
+		Args:
+			args (Args): コマンド引数 @inject
+		Returns:
+			Renderer: テンプレートレンダー
+		"""
 		return Renderer(args.template_dir)
 
 	@classmethod
 	@injectable
 	def make_options(cls, args: Args) -> TranspilerOptions:
-		"""TranspilerOptions: トランスパイルオプション"""
+		"""トランスパイルオプションを生成
+
+		Args:
+			args (Args): コマンド引数 @inject
+		Returns:
+			TranspilerOptions: トランスパイルオプション
+		"""
 		return TranspilerOptions(verbose=args.verbose)
 
 	@classmethod
 	@injectable
 	def make_parser_setting(cls, args: Args) -> ParserSetting:
-		"""ParserSetting: シンタックスパーサー設定データ"""
+		"""シンタックスパーサー設定データを生成
+
+		Args:
+			args (Args): コマンド引数 @inject
+		Returns:
+			ParserSetting: シンタックスパーサー設定データ
+		"""
 		return ParserSetting(grammar=args.grammar)
 
 	@classmethod
 	@injectable
 	def make_module_paths(cls, args: Args) -> ModulePaths:
-		"""ModulePaths: モジュールパスリスト"""
+		"""モジュールパスリストを生成
+
+		Args:
+			args (Args): コマンド引数 @inject
+		Returns:
+			ModulePaths: モジュールパスリスト
+		"""
 		return include_module_paths(args.input_glob, args.exclude_patterns)
 
 	@classmethod
 	def definitions(cls) -> ModuleDefinitions:
-		"""ModuleDefinitions: モジュール定義"""
+		"""モジュール定義を生成
+
+		Returns:
+			ModuleDefinitions: モジュール定義
+		"""
 		return {
 			fullyname(Args): Args,
 			fullyname(ITranspiler): Py2Cpp,
@@ -134,12 +162,12 @@ class TranspileApp:
 		"""アプリケーションを実行
 
 		Args:
-			loader (IFilerLoader): ファイルローダー
-			args (Args): コマンド引数
-			module_paths (ModulePaths): モジュールパスリスト
-			modules (Modules): モジュールリスト
-			module_meta_factory (ModuleMetaFactory): モジュールのメタ情報ファクトリー
-			transpiler (ITranspiler): トランスパイラー
+			loader (IFilerLoader): ファイルローダー @inject
+			args (Args): コマンド引数 @inject
+			module_paths (ModulePaths): モジュールパスリスト @inject
+			modules (Modules): モジュールリスト @inject
+			module_meta_factory (ModuleMetaFactory): モジュールのメタ情報ファクトリー @inject
+			transpiler (ITranspiler): トランスパイラー @inject
 		"""
 		app = cls(loader, args, module_paths, modules, module_meta_factory, transpiler)
 		if args.profile in ['tottime', 'cumtime']:

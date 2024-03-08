@@ -302,7 +302,7 @@ class TestReflections(TestCase):
 
 		(_ast('Sub', ''), f'{fixture_module_path}.Sub', 'Sub'),
 		(_ast('Sub', 'class_def_raw.name'), f'{fixture_module_path}.Sub', 'Sub'),
-		(_ast('Sub', 'class_def_raw.typed_arguments.typed_argvalue.typed_var'), f'{fixture_module_path}.Base', 'Base'),
+		(_ast('Sub', 'class_def_raw.inherit_arguments.typed_argvalue.typed_var'), f'{fixture_module_path}.Base', 'Base'),
 
 		(_ast('Sub.C', ''), f'{fixture_module_path}.Sub.C', 'C'),
 		(_ast('Sub.C.block', 'anno_assign.assign_namelist.var'), _mod('classes', 'str'), 'str'),

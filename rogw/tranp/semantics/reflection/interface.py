@@ -27,7 +27,7 @@ class SymbolDB(dict[str, 'IReflection']):
 	"""シンボルテーブル"""
 
 	@classmethod
-	def new(cls, *db: Self | dict[str, 'IReflection']) -> Self:
+	def new(cls, *dbs: Self | dict[str, 'IReflection']) -> Self:
 		"""シンボルテーブルを結合した新たなインスタンスを生成
 
 		Args:
@@ -35,9 +35,9 @@ class SymbolDB(dict[str, 'IReflection']):
 		Returns:
 			Self: 生成したインスタンス
 		"""
-		return cls().merge(*db)
+		return cls().merge(*dbs)
 
-	def merge(self, *db: Self | dict[str, 'IReflection']) -> Self:
+	def merge(self, *dbs: Self | dict[str, 'IReflection']) -> Self:
 		"""指定のシンボルテーブルと結合
 
 		Args:
@@ -45,8 +45,8 @@ class SymbolDB(dict[str, 'IReflection']):
 		Returns:
 			Self: 自己参照
 		"""
-		for in_raws in db:
-			self.update(**in_raws)
+		for in_db in dbs:
+			self.update(**in_db)
 
 		for raw in self.values():
 			raw.set_db(self)
@@ -88,7 +88,7 @@ class SymbolDBProvider(NamedTuple):
 	"""シンボルテーブルプロバイダー
 
 	Attributes:
-		raws: シンボルテーブル
+		db: シンボルテーブル
 	"""
 
 	db: SymbolDB

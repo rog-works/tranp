@@ -17,14 +17,14 @@ class Reflection(IReflection):
 		Args:
 			db (SymbolDB | None): シンボルテーブル
 		"""
-		self.__raws = db
+		self.__db = db
 
 	@property
 	@implements
 	def _db(self) -> SymbolDB:
 		"""SymbolDB: 所属するシンボルテーブル"""
-		if self.__raws is not None:
-			return self.__raws
+		if self.__db is not None:
+			return self.__db
 
 		raise FatalError(f'Unreachable code.')
 
@@ -35,7 +35,7 @@ class Reflection(IReflection):
 		Args:
 			db (SymbolDB): シンボルテーブル
 		"""
-		self.__raws = db
+		self.__db = db
 
 	# @property
 	# @implements
@@ -116,8 +116,8 @@ class Reflection(IReflection):
 		"""
 		new = self.__class__(**kwargs)
 		# XXX 念のため明示的にコピー
-		if self.__raws and new.__raws is None:
-			new.__raws = self.__raws
+		if self.__db and new.__db is None:
+			new.__db = self.__db
 
 		if self.attrs:
 			return new.extends(*[attr.clone() for attr in self.attrs])

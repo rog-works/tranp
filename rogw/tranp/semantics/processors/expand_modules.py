@@ -80,8 +80,8 @@ class ExpandModules:
 			SymbolDB: シンボルテーブル
 		"""
 		expanded_modules = self.expand_modules()
-		expanded_raws = self.expanded_to_raws(expanded_modules)
-		return db.merge(expanded_raws)
+		expanded_db = self.expanded_to_db(expanded_modules)
+		return db.merge(expanded_db)
 
 	def expand_modules(self) -> dict[str, Expanded]:
 		"""全モジュールを展開
@@ -102,7 +102,7 @@ class ExpandModules:
 
 		return expanded_modules
 
-	def expanded_to_raws(self, expanded_modules: dict[str, Expanded]) -> SymbolDB:
+	def expanded_to_db(self, expanded_modules: dict[str, Expanded]) -> SymbolDB:
 		"""展開データからシンボルテーブルを生成
 
 		Args:
@@ -111,14 +111,14 @@ class ExpandModules:
 			SymbolDB: シンボルテーブル
 		"""
 		# クラス定義シンボルの展開
-		expanded_raws = SymbolDB()
+		expanded_db = SymbolDB()
 		for module_path, expanded in expanded_modules.items():
 			entrypoint = self.modules.load(module_path).entrypoint.as_a(defs.Entrypoint)
 			for fullyname, full_path in expanded.classes.items():
 				types = entrypoint.whole_by(full_path).as_a(defs.ClassDef)
 				# FIXME シンボルとDBを紐付けるため、一旦DBに登録後にシンボルを変換する
-				expanded_raws[fullyname] = Symbol(types)
-				expanded_raws[fullyname] = expanded_raws[fullyname].to.types()
+				expanded_db[fullyname] = Symbol(types)
+				expanded_db[fullyname] = expanded_db[fullyname].to.types()
 
 		# インポートシンボルの展開
 		for module_path, expanded in expanded_modules.items():
@@ -126,18 +126,18 @@ class ExpandModules:
 			for fullyname, full_path in expanded.imports.items():
 				import_name = entrypoint.whole_by(full_path).as_a(defs.ImportName)
 				import_node = import_name.declare.as_a(defs.Import)
-				raw = expanded_raws[DSN.join(import_node.import_path.tokens, import_name.tokens)]
-				expanded_raws[fullyname] = raw.to.imports(import_name)
+				raw = expanded_db[DSN.join(import_node.import_path.tokens, import_name.tokens)]
+				expanded_db[fullyname] = raw.to.imports(import_name)
 
 		# 変数宣言シンボルの展開
 		for module_path, expanded in expanded_modules.items():
 			entrypoint = self.modules.load(module_path).entrypoint.as_a(defs.Entrypoint)
 			for fullyname, full_path in expanded.decl_vars.items():
 				var = entrypoint.whole_by(full_path).as_a(defs.DeclVars)
-				raw = self.resolve_type_symbol(expanded_raws, var)
-				expanded_raws[var.symbol.fullyname] = raw.to.var(var)
+				raw = self.resolve_type_symbol(expanded_db, var)
+				expanded_db[var.symbol.fullyname] = raw.to.var(var)
 
-		return expanded_raws.sorted(list(expanded_modules.keys()))
+		return expanded_db.sorted(list(expanded_modules.keys()))
 
 	def expand_module(self, module: Module) -> Expanded:
 		"""モジュールのシンボル・インポートパスを展開
@@ -184,7 +184,7 @@ class ExpandModules:
 			return instantiate()
 
 		identity = {'mtime': str(self.loader.mtime(filepath))}
-		decorator = self.caches.get(f'{basepath}-raws', identity=identity, format='json')
+		decorator = self.caches.get(f'{basepath}-symbol-db', identity=identity, format='json')
 		return decorator(instantiate)()
 
 	def resolve_type_symbol(self, db: SymbolDB, var: defs.DeclVars) -> IReflection:

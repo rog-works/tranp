@@ -26,7 +26,7 @@ class Reflections:
 			finder (SymbolFinder): シンボル検索 @inject
 			plugins (PluginProvider): プラグインプロバイダー @inject
 		"""
-		self.__raws = db_provider.db
+		self.__db = db_provider.db
 		self.__finder = finder
 		self.__plugins = plugins
 		self.__procedural: ProceduralResolver | None = None
@@ -65,7 +65,7 @@ class Reflections:
 		Raises:
 			UnresolvedSymbolError: objectが未実装
 		"""
-		return self.__finder.get_object(self.__raws)
+		return self.__finder.get_object(self.__db)
 
 	@raises(UnresolvedSymbolError, SemanticsError)
 	def from_fullyname(self, fullyname: str) -> IReflection:
@@ -78,7 +78,7 @@ class Reflections:
 		Raises:
 			UnresolvedSymbolError: シンボルの解決に失敗
 		"""
-		return self.__finder.by(self.__raws, fullyname)
+		return self.__finder.by(self.__db, fullyname)
 
 	@raises(UnresolvedSymbolError, SemanticsError)
 	def type_of_standard(self, standard_type: type[Standards] | None) -> IReflection:
@@ -91,7 +91,7 @@ class Reflections:
 		Raises:
 			UnresolvedSymbolError: 標準クラスが未実装
 		"""
-		return self.__finder.by_standard(self.__raws, standard_type)
+		return self.__finder.by_standard(self.__db, standard_type)
 
 	@raises(UnresolvedSymbolError, SemanticsError)
 	def type_of_property(self, types: defs.ClassDef, prop: defs.Var) -> IReflection:
@@ -230,7 +230,7 @@ class Reflections:
 		Returns:
 			IReflection | None: シンボルデータ
 		"""
-		symbol_raw = self.__finder.find_by_symbolic(self.__raws, symbolic, prop_name)
+		symbol_raw = self.__finder.find_by_symbolic(self.__db, symbolic, prop_name)
 		if symbol_raw is None and isinstance(symbolic, defs.Class):
 			symbol_raw = self.__resolve_raw_recursive(symbolic, prop_name)
 
@@ -246,7 +246,7 @@ class Reflections:
 			IReflection | None: シンボルデータ
 		"""
 		for inherit_type in types.inherits:
-			inherit_type_raw = self.__finder.by_symbolic(self.__raws, inherit_type)
+			inherit_type_raw = self.__finder.by_symbolic(self.__db, inherit_type)
 			found_raw = self.__resolve_raw(inherit_type_raw.types, prop_name)
 			if found_raw:
 				return found_raw

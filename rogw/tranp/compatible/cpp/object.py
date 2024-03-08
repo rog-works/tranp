@@ -18,12 +18,12 @@ class CVar(Generic[T]):
 
 	@property
 	def on(self) -> T:
-		"""実体を返却するリレー代替メソッド。C++では実体型では`.`、アドレス型では`->`に相当"""
+		"""実体を返却するリレー代替メソッド。C++では実体型は`.`、アドレス型は`->`に相当"""
 		return self.__origin
 
 	@property
 	def raw(self) -> T:
-		"""実体を返却する実体参照代替メソッド。C++では実体型では削除、アドレス型では`*`に相当"""
+		"""実体を返却する実体参照代替メソッド。C++では実体型は削除、アドレス型は`*`に相当"""
 		return self.__origin
 
 
@@ -51,6 +51,11 @@ class CP(CVar[T]):
 	def ref(self) -> 'CRef[T]':
 		"""参照を返却する参照変換代替メソッド。C++では`*`に相当"""
 		return CRef(self.raw)
+
+	@property
+	def const(self) -> 'CPConst[T]':
+		"""Constを返却する参照変換代替メソッド。C++では削除"""
+		return CPConst(self.raw)
 
 
 @__hint_generic__(T)
@@ -83,6 +88,11 @@ class CSP(CVar[T]):
 		"""ポインターを返却する参照変換代替メソッド。C++では`get`に相当"""
 		return CP(self.raw)
 
+	@property
+	def const(self) -> 'CSPConst[T]':
+		"""Constを返却する参照変換代替メソッド。C++では削除"""
+		return CSPConst(self.raw)
+
 
 @__hint_generic__(T)
 class CRef(CVar[T]):
@@ -103,6 +113,79 @@ class CRef(CVar[T]):
 	def addr(self) -> 'CP[T]':
 		"""ポインターを返却する参照変換代替メソッド。C++では`&`に相当"""
 		return CP(self.raw)
+
+	@property
+	def const(self) -> 'CRefConst[T]':
+		"""Constを返却する参照変換代替メソッド。C++では削除"""
+		return CRefConst(self.raw)
+
+
+@__hint_generic__(T)
+class CPConst(CVar[T]):
+	"""C++型変数の互換クラス(Constポインター)"""
+
+	@classmethod
+	def __class_getitem__(cls, var_type: type[T]) -> 'type[CPConst[T]]':
+		"""C++型変数でラップしたタイプを返却
+
+		Args:
+			var_type (type[T]): 実体の型
+		Returns:
+			type[CPConst[T]]: ラップした型
+		"""
+		return CPConst[var_type]
+
+	@property
+	def ref(self) -> 'CRefConst[T]':
+		"""Const参照を返却する参照変換代替メソッド。C++では`*`に相当"""
+		return CRefConst(self.raw)
+
+
+@__hint_generic__(T)
+class CSPConst(CVar[T]):
+	"""C++型変数の互換クラス(Constスマートポインター)"""
+
+	@classmethod
+	def __class_getitem__(cls, var_type: type[T]) -> 'type[CSPConst[T]]':
+		"""C++型変数でラップしたタイプを返却
+
+		Args:
+			var_type (type[T]): 実体の型
+		Returns:
+			type[CSPConst[T]]: ラップした型
+		"""
+		return CSPConst[var_type]
+
+	@property
+	def ref(self) -> 'CRefConst[T]':
+		"""Const参照を返却する参照変換代替メソッド。C++では`*`に相当"""
+		return CRefConst(self.raw)
+
+	@property
+	def addr(self) -> 'CPConst[T]':
+		"""Constポインターを返却する参照変換代替メソッド。C++では`get`に相当"""
+		return CPConst(self.raw)
+
+
+@__hint_generic__(T)
+class CRefConst(CVar[T]):
+	"""C++型変数の互換クラス(Const参照)"""
+
+	@classmethod
+	def __class_getitem__(cls, var_type: type[T]) -> 'type[CRefConst[T]]':
+		"""C++型変数でラップしたタイプを返却
+
+		Args:
+			var_type (type[T]): 実体の型
+		Returns:
+			type[CRefConst[T]]: ラップした型
+		"""
+		return CRefConst[var_type]
+
+	@property
+	def addr(self) -> 'CPConst[T]':
+		"""Constポインターを返却する参照変換代替メソッド。C++では`get`に相当"""
+		return CPConst(self.raw)
 
 
 @__hint_generic__(T)

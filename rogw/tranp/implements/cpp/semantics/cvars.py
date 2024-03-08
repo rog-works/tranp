@@ -18,7 +18,7 @@ class CVars:
 
 	relay_key: ClassVar[str] = 'on'
 	allocator_key: ClassVar[str] = 'new'
-	exchanger_keys: ClassVar[list[str]] = ['raw', 'ref', 'addr']
+	exchanger_keys: ClassVar[list[str]] = ['raw', 'ref', 'addr', 'const']
 
 	class Moves(Enum):
 		"""移動操作の種別
@@ -63,7 +63,7 @@ class CVars:
 		Returns:
 			bool: True = 実体/参照
 		"""
-		return key in [cpp.CRaw.__name__, cpp.CRef.__name__]
+		return key in [cpp.CRaw.__name__, cpp.CRef.__name__, cpp.CRefConst.__name__]
 
 	@classmethod
 	def is_addr(cls, key: str) -> bool:
@@ -74,7 +74,7 @@ class CVars:
 		Returns:
 			bool: True = ポインター/スマートポインター
 		"""
-		return key in [cpp.CP.__name__, cpp.CSP.__name__]
+		return key in [cpp.CP.__name__, cpp.CSP.__name__, cpp.CPConst.__name__, cpp.CSPConst.__name__]
 
 	@classmethod
 	def is_raw_raw(cls, key: str) -> bool:
@@ -96,7 +96,7 @@ class CVars:
 		Returns:
 			bool: True = 参照
 		"""
-		return key == cpp.CRef.__name__
+		return key in [cpp.CRef.__name__, cpp.CRefConst.__name__]
 
 	@classmethod
 	def is_addr_p(cls, key: str) -> bool:
@@ -107,7 +107,7 @@ class CVars:
 		Returns:
 			bool: True = ポインター
 		"""
-		return key == cpp.CP.__name__
+		return key in [cpp.CP.__name__, cpp.CPConst.__name__]
 
 	@classmethod
 	def is_addr_sp(cls, key: str) -> bool:
@@ -118,7 +118,7 @@ class CVars:
 		Returns:
 			bool: True = スマートポインター
 		"""
-		return key == cpp.CSP.__name__
+		return key in [cpp.CSP.__name__, cpp.CSPConst.__name__]
 
 	@classmethod
 	def keys(cls) -> list[str]:
@@ -127,7 +127,7 @@ class CVars:
 		Returns:
 			list[str]: 種別キー一覧
 		"""
-		return [cvar.__name__ for cvar in [cpp.CP, cpp.CSP, cpp.CRef, cpp.CRaw]]
+		return [cvar.__name__ for cvar in [cpp.CP, cpp.CSP, cpp.CRef, cpp.CPConst, cpp.CSPConst, cpp.CRefConst, cpp.CRaw]]
 
 	@classmethod
 	def key_from(cls, reflections: Reflections, symbol: IReflection) -> str:
@@ -158,10 +158,13 @@ class CVars:
 			Accessors: アクセス修飾子種別
 		"""
 		accessors = {
-			cpp.CRaw.__name__: cls.Accessors.Raw,
-			cpp.CRef.__name__: cls.Accessors.Raw,
 			cpp.CP.__name__: cls.Accessors.Address,
 			cpp.CSP.__name__: cls.Accessors.Address,
+			cpp.CRef.__name__: cls.Accessors.Raw,
+			cpp.CPConst.__name__: cls.Accessors.Address,
+			cpp.CSPConst.__name__: cls.Accessors.Address,
+			cpp.CRefConst.__name__: cls.Accessors.Raw,
+			cpp.CRaw.__name__: cls.Accessors.Raw,
 		}
 		return accessors[key]
 
@@ -176,13 +179,23 @@ class CVars:
 			Moves: 移動操作の種別
 		"""
 		moves = {
-			'CP.raw': CVars.Moves.ToActual,
-			'CP.ref': CVars.Moves.ToActual,
-			'CSP.raw': CVars.Moves.ToActual,
-			'CSP.ref': CVars.Moves.ToActual,
-			'CSP.addr': CVars.Moves.UnpackSp,
-			'CRef.raw': CVars.Moves.Copy,
-			'CRef.addr': CVars.Moves.ToAddress,
+			f'{cpp.CP.__name__}.raw': CVars.Moves.ToActual,
+			f'{cpp.CP.__name__}.ref': CVars.Moves.ToActual,
+			f'{cpp.CP.__name__}.const': CVars.Moves.Copy,
+			f'{cpp.CSP.__name__}.raw': CVars.Moves.ToActual,
+			f'{cpp.CSP.__name__}.ref': CVars.Moves.ToActual,
+			f'{cpp.CSP.__name__}.addr': CVars.Moves.UnpackSp,
+			f'{cpp.CSP.__name__}.const': CVars.Moves.Copy,
+			f'{cpp.CRef.__name__}.raw': CVars.Moves.Copy,
+			f'{cpp.CRef.__name__}.addr': CVars.Moves.ToAddress,
+			f'{cpp.CRef.__name__}.const': CVars.Moves.Copy,
+			f'{cpp.CPConst.__name__}.raw': CVars.Moves.ToActual,
+			f'{cpp.CPConst.__name__}.ref': CVars.Moves.ToActual,
+			f'{cpp.CSPConst.__name__}.raw': CVars.Moves.ToActual,
+			f'{cpp.CSPConst.__name__}.ref': CVars.Moves.ToActual,
+			f'{cpp.CSPConst.__name__}.addr': CVars.Moves.UnpackSp,
+			f'{cpp.CRefConst.__name__}.raw': CVars.Moves.Copy,
+			f'{cpp.CRefConst.__name__}.addr': CVars.Moves.ToAddress,
 		}
 		move_key = f'{key}.{method}'
 		if move_key in moves:

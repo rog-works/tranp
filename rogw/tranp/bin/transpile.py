@@ -1,12 +1,11 @@
 import os
 import sys
-from typing import TypedDict
+from typing import TypedDict, cast
 
 from rogw.tranp.app.app import App
 from rogw.tranp.data.meta.header import MetaHeader
 from rogw.tranp.data.meta.types import ModuleMetaFactory
 from rogw.tranp.i18n.i18n import TranslationMapping
-from rogw.tranp.implements.cpp.providers.i18n import translation_mapping_cpp
 from rogw.tranp.implements.cpp.providers.semantics import cpp_plugin_provider
 from rogw.tranp.implements.cpp.transpiler.py2cpp import Py2Cpp
 from rogw.tranp.io.loader import IFileLoader
@@ -24,8 +23,9 @@ from rogw.tranp.syntax.ast.parser import ParserSetting
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.transpiler.types import ITranspiler, TranspilerOptions
 from rogw.tranp.view.render import Renderer
+import yaml
 
-ArgsDict = TypedDict('ArgsDict', {'grammar': str, 'template_dir': str, 'input_glob': str, 'exclude_patterns': list[str], 'output_dir': str, 'output_language': str, 'force': bool, 'verbose': bool, 'profile': str})
+ArgsDict = TypedDict('ArgsDict', {'grammar': str, 'template_dir': str, 'i18n': str, 'input_glob': str, 'exclude_patterns': list[str], 'output_dir': str, 'output_language': str, 'force': bool, 'verbose': bool, 'profile': str})
 
 
 class Args:
@@ -36,6 +36,7 @@ class Args:
 		args = self.__parse_argv(sys.argv[1:])
 		self.grammar = args['grammar']
 		self.template_dir = args['template_dir']
+		self.i18n = args['i18n']
 		self.input_glob = args['input_glob']
 		self.exclude_patterns = args['exclude_patterns']
 		self.output_dir = args['output_dir']
@@ -54,11 +55,12 @@ class Args:
 		"""
 		args: ArgsDict = {
 			'grammar': 'data/grammar.lark',
+			'template_dir': 'data/cpp/template',
+			'i18n': 'data/cpp/i18n.yaml',
 			'input_glob': 'example/**/*.py',
 			'output_dir': './',
 			'output_language': 'h',
 			'exclude_patterns': ['example/FW/*'],
-			'template_dir': 'data/cpp/template',
 			'force': False,
 			'verbose': False,
 			'profile': 'none',
@@ -69,6 +71,8 @@ class Args:
 				args['grammar'] = argv.pop(0)
 			elif arg == '-t':
 				args['template_dir'] = argv.pop(0)
+			elif arg == '--i18n':
+				args['i18n'] = argv.pop(0)
 			elif arg == '-i':
 				args['input_glob'] = argv.pop(0)
 			elif arg == '-o':
@@ -128,6 +132,20 @@ class TranspileApp:
 
 	@classmethod
 	@injectable
+	def make_translation_mapping(cls, loader: IFileLoader, args: Args) -> TranslationMapping:
+		"""翻訳マッピングデータを生成
+
+		Args:
+			loader (IFileLoader): ファイルローダー @inject
+			args (Args): コマンド引数 @inject
+		Returns:
+			TranslationMapping: 翻訳マッピングデータ
+		"""
+		mapping = cast(dict[str, str], yaml.safe_load(loader.load(args.i18n)))
+		return TranslationMapping(to=mapping)
+
+	@classmethod
+	@injectable
 	def make_module_paths(cls, args: Args) -> ModulePaths:
 		"""モジュールパスリストを生成
 
@@ -152,7 +170,7 @@ class TranspileApp:
 			fullyname(ParserSetting): cls.make_parser_setting,
 			fullyname(PluginProvider): cpp_plugin_provider,  # FIXME C++固定
 			fullyname(Renderer): cls.make_renderer,
-			fullyname(TranslationMapping): translation_mapping_cpp,  # FIXME C++固定
+			fullyname(TranslationMapping): cls.make_translation_mapping,
 			fullyname(TranspilerOptions): cls.make_options,
 		}
 

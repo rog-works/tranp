@@ -128,7 +128,7 @@ class SymbolExtends:
 		Returns:
 			IReflection: シンボル
 		"""
-		attrs = [reflections.type_of(generic_type) for generic_type in types.generic_types]
+		attrs = [reflections.type_of(template_type) for template_type in types.template_types]
 		return via.extends(*attrs)
 
 	def extends_for_var(self, reflections: Reflections, via: IReflection, decl_type: defs.Type) -> IReflection:

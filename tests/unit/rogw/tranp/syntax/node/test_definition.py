@@ -401,7 +401,7 @@ class TestDefinition(TestCase):
 			'symbol': 'Base',
 			'decorators': [],
 			'inherits': [],
-			'generic_types': [],
+			'template_types': [],
 			'constructor_exists': False,
 			'class_methods': [],
 			'methods': [],
@@ -413,7 +413,7 @@ class TestDefinition(TestCase):
 			'symbol': 'Class',
 			'decorators': [],
 			'inherits': ['Base'],
-			'generic_types': [],
+			'template_types': [],
 			'constructor_exists': True,
 			'class_methods': ['class_method'],
 			'methods': ['property_method', 'public_method', '_protected_method'],
@@ -425,7 +425,7 @@ class TestDefinition(TestCase):
 			'symbol': 'Actual',
 			'decorators': ['__actual__'],
 			'inherits': [],
-			'generic_types': [],
+			'template_types': [],
 			'constructor_exists': False,
 			'class_methods': [],
 			'methods': [],
@@ -437,7 +437,7 @@ class TestDefinition(TestCase):
 			'symbol': 'GenBase',
 			'decorators': [],
 			'inherits': [],
-			'generic_types': ['T'],
+			'template_types': ['T'],
 			'constructor_exists': False,
 			'class_methods': [],
 			'methods': [],
@@ -449,7 +449,7 @@ class TestDefinition(TestCase):
 			'symbol': 'GenSub',
 			'decorators': ['__hint_generic__'],
 			'inherits': ['GenBase'],
-			'generic_types': ['T'],
+			'template_types': ['T'],
 			'constructor_exists': False,
 			'class_methods': [],
 			'methods': [],
@@ -463,7 +463,7 @@ class TestDefinition(TestCase):
 		self.assertEqual(node.symbol.tokens, expected['symbol'])
 		self.assertEqual([decorator.path.tokens for decorator in node.decorators], expected['decorators'])
 		self.assertEqual([inherit.type_name.tokens for inherit in node.inherits], expected['inherits'])
-		self.assertEqual([in_type.type_name.tokens for in_type in node.generic_types], expected['generic_types'])
+		self.assertEqual([in_type.type_name.tokens for in_type in node.template_types], expected['template_types'])
 		self.assertEqual(node.constructor_exists, expected['constructor_exists'])
 		self.assertEqual([method.symbol.tokens for method in node.methods], expected['methods'])
 		self.assertEqual([var.tokens for var in node.class_vars], expected['class_vars'])
@@ -471,12 +471,12 @@ class TestDefinition(TestCase):
 		self.assertEqual(node.actual_symbol, expected['actual_symbol'])
 
 	@data_provider([
-		('class A(Generic[T]): ...', 'file_input.class_def', {'generic_types': [defs.VarOfType]}),
-		('class A(Generic[T1, T2]): ...', 'file_input.class_def', {'generic_types': [defs.VarOfType, defs.VarOfType]}),
+		('class A(Generic[T]): ...', 'file_input.class_def', {'template_types': [defs.VarOfType]}),
+		('class A(Generic[T1, T2]): ...', 'file_input.class_def', {'template_types': [defs.VarOfType, defs.VarOfType]}),
 	])
-	def test_class_generic_types(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+	def test_class_template_types(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Class)
-		self.assertEqual([type(in_type) for in_type in node.generic_types], expected['generic_types'])
+		self.assertEqual([type(in_type) for in_type in node.template_types], expected['template_types'])
 
 	@data_provider([
 		(_ast('Values'), {

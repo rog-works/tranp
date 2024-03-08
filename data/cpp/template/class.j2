@@ -4,8 +4,8 @@
 {%- for decorator in decorators | select('!=', '') %}
 {{ decorator }}
 {%- endfor %}
-{%- for generic_type in generic_types %}
-template<typename {{ generic_type }}>
+{%- for template_type in template_types %}
+template<typename {{ template_type }}>
 {%- endfor %}
 class {{ symbol }}{%- if _inherits %} : public {{ _inherits | join(', ') }}{%- endif %} {
 {%- if vars -%}

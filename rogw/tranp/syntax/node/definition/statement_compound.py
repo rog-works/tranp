@@ -277,7 +277,7 @@ class ClassDef(Node, IDomain, IScope, IDeclaration, ISymbol):
 		raise NotImplementedError()
 
 	@property
-	def generic_types(self) -> list[Type]:
+	def template_types(self) -> list[Type]:
 		return []
 
 	@property
@@ -288,7 +288,7 @@ class ClassDef(Node, IDomain, IScope, IDeclaration, ISymbol):
 	def _decl_vars_with(self, allow: type[T_Declable]) -> dict[str, T_Declable]:
 		return VarsCollector.collect(self, allow)
 
-	def _inherit_generic_types(self) -> list[Type]:
+	def _inherit_template_types(self) -> list[Type]:
 		"""継承したテンプレートタイプを取得
 
 		Returns:
@@ -478,10 +478,10 @@ class Class(ClassDef):
 	@property
 	@override
 	@Meta.embed(Node, expandable)
-	def generic_types(self) -> list[Type]:
+	def template_types(self) -> list[Type]:
 		candidates = [inherit.as_a(CustomType) for inherit in self.__org_inherits if inherit.type_name.tokens == Generic.__name__]
 		definitions = candidates[0].template_types if len(candidates) == 1 else []
-		inherits = self._inherit_generic_types()
+		inherits = self._inherit_template_types()
 		return [*definitions, *inherits]
 
 	@property

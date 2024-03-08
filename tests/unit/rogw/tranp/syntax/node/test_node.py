@@ -382,7 +382,7 @@ class A:
 				'    +-symbol: <TypesName: __main__.A.A (2, 7)..(2, 8)>',
 				'    +-decorators:',
 				'    +-inherits:',
-				'    +-generic_types:',
+				'    +-template_types:',
 				'    +-comment: <Proxy: __main__.A.Empty (0, 0)..(0, 0)>',
 				'    +-statements:',
 				'      +-<Constructor: __main__.A.__init__ (3, 2)..(11, 1)>',

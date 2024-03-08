@@ -284,7 +284,7 @@ class Py2Cpp(ITranspiler):
 		closure_vars = {'binded_this': node.binded_this}
 		return self.view.render(node.classification, vars={**function_vars, **closure_vars})
 
-	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], generic_types: list[str], comment: str, statements: list[str]) -> str:
+	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], template_types: list[str], comment: str, statements: list[str]) -> str:
 		# XXX クラス変数とそれ以外のステートメントを分離
 		decl_class_var_statements: list[str] = []
 		other_statements: list[str] = []
@@ -308,10 +308,10 @@ class Py2Cpp(ITranspiler):
 			this_var_vars = {'access': defs.to_access(this_var_name), 'symbol': this_var_name, 'var_type': var_type}
 			vars.append(self.view.render('class_decl_this_var', vars=this_var_vars))
 
-		class_vars = {'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'generic_types': generic_types, 'comment': comment, 'statements': other_statements, 'vars': vars}
+		class_vars = {'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'template_types': template_types, 'comment': comment, 'statements': other_statements, 'vars': vars}
 		return self.view.render(node.classification, vars=class_vars)
 
-	def on_enum(self, node: defs.Enum, symbol: str, decorators: list[str], inherits: list[str], generic_types: list[str], comment: str, statements: list[str]) -> str:
+	def on_enum(self, node: defs.Enum, symbol: str, decorators: list[str], inherits: list[str], template_types: list[str], comment: str, statements: list[str]) -> str:
 		add_vars = {}
 		if not node.parent.is_a(defs.Entrypoint):
 			add_vars = {'access': node.access}

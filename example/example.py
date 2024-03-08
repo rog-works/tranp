@@ -1,4 +1,4 @@
-from rogw.tranp.compatible.cpp.object import CP, CRef
+from rogw.tranp.compatible.cpp.object import CP, CRef, CRefConst
 from rogw.tranp.compatible.cpp.preprocess import directive
 from rogw.tranp.compatible.cpp.enum import CEnum
 
@@ -336,8 +336,7 @@ class CellMesh:
 			list[int]: 頂点IDリスト
 		"""
 		out_ids = [-1, -1, -1, -1, -1, -1, -1, -1]
-		# FIXME CRef_Const
-		def closure(origin: CRef[MeshRaw]) -> None:
+		def closure(origin: CRefConst[MeshRaw]) -> None:
 			cell_box = cls.to_cell_box(cell, unit)
 			boxs = cls.to_vertex_boxs(cell_box, unit)
 			for i in range(len(boxs)):

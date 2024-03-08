@@ -4,14 +4,14 @@
 std::shared_ptr<{{ var_type[4:-1] }}>
 {%- elif var_type.startswith('CRef<') -%}
 {{ var_type[5:-1] }}&
-{%- elif var_type.startswith('CP_Const<') -%}
-const {{ var_type[9:-1] }}*
-{%- elif var_type.startswith('CSP_Const<') -%}
-const std::shared_ptr<{{ var_type[10:-1] }}>
-{%- elif var_type.startswith('CRef_Const<') -%}
-const {{ var_type[11:-1] }}&
-{%- elif var_type.startswith('CRaw_Const<') -%}
-const {{ var_type[11:-1] }}&
+{%- elif var_type.startswith('CPConst<') -%}
+const {{ var_type[8:-1] }}*
+{%- elif var_type.startswith('CSPConst<') -%}
+const std::shared_ptr<{{ var_type[9:-1] }}>
+{%- elif var_type.startswith('CRefConst<') -%}
+const {{ var_type[10:-1] }}&
+{%- elif var_type.startswith('CRawConst<') -%}
+const {{ var_type[10:-1] }}&
 {%- else -%}
 {{ var_type }}
 {%- endif -%}

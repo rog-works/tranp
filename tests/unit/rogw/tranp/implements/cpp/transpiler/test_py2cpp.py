@@ -63,6 +63,7 @@ class ASTMapping:
 		'CVarOps.tenary_calc.block': f'{_CVarOps}.class_def_raw.block.function_def[8].function_def_raw.block',
 		'CVarOps.declare.block': f'{_CVarOps}.class_def_raw.block.function_def[9].function_def_raw.block',
 		'CVarOps.default_param.block': f'{_CVarOps}.class_def_raw.block.function_def[10].function_def_raw.block',
+		'CVarOps.const_move.block': f'{_CVarOps}.class_def_raw.block.function_def[11].function_def_raw.block',
 
 		'FuncOps.print.block': f'{_FuncOps}.class_def_raw.block.function_def.function_def_raw.block',
 
@@ -212,6 +213,8 @@ class TestPy2Cpp(TestCase):
 
 		(_ast('CVarOps.default_param.block', 'assign[0]'), defs.MoveAssign, 'int n = ap ? ap->base_n : 0;'),
 		(_ast('CVarOps.default_param.block', 'assign[1]'), defs.MoveAssign, 'int n2 = this->default_param();'),
+
+		(_ast('CVarOps.const_move.block', 'assign'), defs.MoveAssign, 'const Base& a2 = a;'),
 
 		(_ast('FuncOps.print.block', 'funccall'), defs.FuncCall, 'printf("message. %d, %f, %s", 1, 1.0, "abc");'),
 

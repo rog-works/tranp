@@ -1,4 +1,4 @@
-// @tranp.meta: {"version":"1.0.0","module":{"hash":"a58097d76777a560239878f43474a3e2","path":"example.example"},"transpiler":{"version":"1.0.0","module":"rogw.tranp.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
+// @tranp.meta: {"version":"1.0.0","module":{"hash":"36d3e591290a8b562c1ad0a08d3e81d3","path":"example.example"},"transpiler":{"version":"1.0.0","module":"rogw.tranp.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
 // #include "rogw/tranp/compatible/cpp/object.h"
 // #include "rogw/tranp/compatible/cpp/preprocess.h"
 // #include "rogw/tranp/compatible/cpp/enum.h"
@@ -303,8 +303,7 @@ class CellMesh {
 			{-1},
 			{-1},
 		};
-		// FIXME CRef_Const
-		auto closure = [&](MeshRaw& origin) -> void {
+		auto closure = [&](const MeshRaw& origin) -> void {
 			Box3d cell_box = CellMesh::to_cell_box(cell, unit);
 			std::vector<Box3d> boxs = CellMesh::to_vertex_boxs(cell_box, unit);
 			for (auto i = 0; i < boxs.size(); i++) {

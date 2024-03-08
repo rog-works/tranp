@@ -1,6 +1,6 @@
 from typing import Callable, Iterator
 
-from rogw.tranp.compatible.cpp.object import CRef
+from rogw.tranp.compatible.cpp.object import CRef, CRefConst
 
 class Vector:
 	def __init__(self, x: float = 0.0, y: float = 0.0, z: float = 0.0) -> None:
@@ -161,8 +161,8 @@ class MeshRaw:
 		raise NotImplementedError()
 
 class Mesh:
-	def process_mesh(self, callback: Callable[[CRef[MeshRaw]], None]) -> None:
+	def process_mesh(self, callback: Callable[[CRef[MeshRaw]], None] | Callable[[CRefConst[MeshRaw]], None]) -> None:
 		raise NotImplementedError()
 
-	def edit_mesh(self, callback: Callable[[CRef[MeshRaw]], None]) -> None:
+	def edit_mesh(self, callback: Callable[[CRef[MeshRaw]], None] | Callable[[CRefConst[MeshRaw]], None]) -> None:
 		raise NotImplementedError()

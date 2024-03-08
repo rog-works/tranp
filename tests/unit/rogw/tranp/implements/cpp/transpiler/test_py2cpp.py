@@ -8,6 +8,7 @@ from rogw.tranp.i18n.i18n import TranslationMapping
 from rogw.tranp.implements.cpp.providers.i18n import translation_mapping_cpp
 from rogw.tranp.implements.cpp.providers.semantics import cpp_plugin_provider
 from rogw.tranp.implements.cpp.transpiler.py2cpp import Py2Cpp
+from rogw.tranp.io.loader import IFileLoader
 from rogw.tranp.lang.module import fullyname
 from rogw.tranp.lang.profile import profiler
 from rogw.tranp.syntax.ast.dsn import DSN
@@ -124,13 +125,13 @@ def _ast(before: str, after: str) -> str:
 	return DSN.join(ASTMapping.aliases[before], after)
 
 
-def fixture_translation_mapping() -> TranslationMapping:
+def fixture_translation_mapping(loader: IFileLoader) -> TranslationMapping:
 	fixture_module_path = Fixture.fixture_module_path(__file__)
 	fixture_translations = {
 		alias_dsn(f'{fixture_module_path}.Alias'): 'Alias2',
 		alias_dsn(f'{fixture_module_path}.Alias.Inner'): 'Inner2',
 	}
-	return translation_mapping_cpp().merge(fixture_translations)
+	return translation_mapping_cpp(loader).merge(fixture_translations)
 
 
 class TestPy2Cpp(TestCase):

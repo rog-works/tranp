@@ -5,6 +5,7 @@ from rogw.tranp.compatible.cpp.enum import CEnum
 directive('#pragma once')
 
 from example.FW.compatible import Box3d, IntVector, IntVector2, Mesh, MeshRaw, Vector, Vector2
+from example.FW.core import log_error, log_info, log_warning
 
 class CellMesh:
 	"""セル(メッシュ)関連のライブラリー"""
@@ -197,7 +198,7 @@ class CellMesh:
 			int(cls.OffsetIndexs.Top): int(cls.FaceIndexs.Top),
 		}
 		if offset_index not in to_faces:
-			print('Fatal Error! offset_index: %d', offset_index)
+			log_error('Fatal Error! offset_index: %d', offset_index)
 			return 0
 
 		return to_faces[offset_index]
@@ -258,7 +259,7 @@ class CellMesh:
 		face_center_location = (face_offset_location + face_size) * 3 / 2
 		face_offset = cls.to_cell(face_center_location, unit)
 		face_index = cls.offset_cell_to_face_index(face_offset)
-		print('cell: (%d, %d, %d), face_offset: (%d, %d, %d), face_size: (%.2f, %.2f, %.2f), cell_base_location: (%.2f, %.2f, %.2f), cell_center_location: (%.2f, %.2f, %.2f), face_offset_location: (%.2f, %.2f, %.2f), face_center_location: (%.2f, %.2f, %.2f), result: %d', cell.x, cell.y, cell.z, face_offset.x, face_offset.y, face_offset.z, face_size.x, face_size.y, face_size.z, cell_base_location.x, cell_base_location.y, cell_base_location.z, cell_center_location.x, cell_center_location.y, cell_center_location.z, face_offset_location.x, face_offset_location.y, face_offset_location.z, face_center_location.x, face_center_location.y, face_center_location.z, face_index)
+		log_info('cell: (%d, %d, %d), face_offset: (%d, %d, %d), face_size: (%.2f, %.2f, %.2f), cell_base_location: (%.2f, %.2f, %.2f), cell_center_location: (%.2f, %.2f, %.2f), face_offset_location: (%.2f, %.2f, %.2f), face_center_location: (%.2f, %.2f, %.2f), result: %d', cell.x, cell.y, cell.z, face_offset.x, face_offset.y, face_offset.z, face_size.x, face_size.y, face_size.z, cell_base_location.x, cell_base_location.y, cell_base_location.z, cell_center_location.x, cell_center_location.y, cell_center_location.z, face_offset_location.x, face_offset_location.y, face_offset_location.z, face_center_location.x, face_center_location.y, face_center_location.z, face_index)
 		return face_index
 
 	@classmethod
@@ -405,7 +406,7 @@ class CellMesh:
 				else:
 					cell_on_faces[cell2][face_index2].y = ti
 
-				print('Collect polygon. ti: %d, start: (%d, %d, %d), cell: (%d, %d, %d), faceIndex: %d, cell2: (%d, %d, %d), faceIndex2: %d, faceBox.min: (%f, %f, %f), faceBox.max: (%f, %f, %f), box.min: (%f, %f, %f), box.max: (%f, %f, %f)', ti, start.x, start.y, start.z, cell.x, cell.y, cell.z, face_index, cell2.x, cell2.y, cell2.z, face_index2, face_box.min.x, face_box.min.y, face_box.min.z, face_box.max.x, face_box.max.y, face_box.max.z, box.min.x, box.min.y, box.min.z, box.max.x, box.max.y, box.max.z)
+				log_info('Collect polygon. ti: %d, start: (%d, %d, %d), cell: (%d, %d, %d), faceIndex: %d, cell2: (%d, %d, %d), faceIndex2: %d, faceBox.min: (%f, %f, %f), faceBox.max: (%f, %f, %f), box.min: (%f, %f, %f), box.max: (%f, %f, %f)', ti, start.x, start.y, start.z, cell.x, cell.y, cell.z, face_index, cell2.x, cell2.y, cell2.z, face_index2, face_box.min.x, face_box.min.y, face_box.min.z, face_box.max.x, face_box.max.y, face_box.max.z, box.min.x, box.min.y, box.min.z, box.max.x, box.max.y, box.max.z)
 
 		mesh.on.process_mesh(closure)
 
@@ -413,7 +414,7 @@ class CellMesh:
 		for cell, in_faces in cell_on_faces.items():
 			for face_index, face in in_faces.items():
 				if face.x != face.y and face.y == -1:
-					print('Found invalid face. cell: (%d, %d, %d), face_index: (%d), pid: (%d, %d)', cell.x, cell.y, cell.z, face_index, face.x, face.y)
+					log_error('Found invalid face. cell: (%d, %d, %d), face_index: (%d), pid: (%d, %d)', cell.x, cell.y, cell.z, face_index, face.x, face.y)
 					face.x = -1
 					face.y = -1
 
@@ -429,7 +430,7 @@ class CellMesh:
 
 			for face_index, face in cell_on_faces[cell].items():
 				out_ids[cell][face_index] = face
-				print('Found faces. cell: (%d, %d, %d), faceindex: %d, pid: (%d, %d)', cell.x, cell.y, cell.z, face_index, face.x, face.y)
+				log_info('Found faces. cell: (%d, %d, %d), faceindex: %d, pid: (%d, %d)', cell.x, cell.y, cell.z, face_index, face.x, face.y)
 
 		return out_ids
 
@@ -464,7 +465,7 @@ class CellMesh:
 		]
 
 		for i in range(int(cls.FaceIndexs.Max)):
-			print('Found faces by cell. i: %d, cell: (%d, %d, %d), start: (%d, %d, %d), face: (%d, %d, %d), result: (%d, %d)', i, cell.x, cell.y, cell.z, start.x, start.y, start.z, faces[i].x, faces[i].y, faces[i].z, result[i].x, result[i].y)
+			log_info('Found faces by cell. i: %d, cell: (%d, %d, %d), start: (%d, %d, %d), face: (%d, %d, %d), result: (%d, %d)', i, cell.x, cell.y, cell.z, start.x, start.y, start.z, faces[i].x, faces[i].y, faces[i].z, result[i].x, result[i].y)
 
 		return result
 
@@ -502,7 +503,7 @@ class CellMesh:
 
 				out_need_cells.append(candidate)
 
-				print('Collect candidate. candidate: (%d, %d, %d)', candidate.x, candidate.y, candidate.z)
+				log_info('Collect candidate. candidate: (%d, %d, %d)', candidate.x, candidate.y, candidate.z)
 
 		# 必須セルに必要な面方向の先にセルが存在する場合、その周辺セルを候補から削除する
 		for i in range(int(cls.NeedCellIndexs.Max)):
@@ -517,10 +518,10 @@ class CellMesh:
 					next_vector = cls.face_index_to_vector(next_face_index)
 					candidate = next + next_vector
 					out_need_cells.remove(candidate)
-					print('Remove candidates. faceIndex: %d, cell: (%d, %d, %d), vector: (%d, %d, %d), nextFaceIndex: %d, next: (%d, %d, %d), nextVector: (%d, %d, %d), candidate: (%d, %d, %d)', face_index, cell.x, cell.y, cell.z, vector.x, vector.y, vector.z, next_face_index, next.x, next.y, next.z, next_vector.x, next_vector.y, next_vector.z, candidate.x, candidate.y, candidate.z)
+					log_info('Remove candidates. faceIndex: %d, cell: (%d, %d, %d), vector: (%d, %d, %d), nextFaceIndex: %d, next: (%d, %d, %d), nextVector: (%d, %d, %d), candidate: (%d, %d, %d)', face_index, cell.x, cell.y, cell.z, vector.x, vector.y, vector.z, next_face_index, next.x, next.y, next.z, next_vector.x, next_vector.y, next_vector.z, candidate.x, candidate.y, candidate.z)
 
 		for need_cell in out_need_cells:
-			print('Need cells. cell: (%d, %d, %d)', need_cell.x, need_cell.y, need_cell.z)
+			log_info('Need cells. cell: (%d, %d, %d)', need_cell.x, need_cell.y, need_cell.z)
 
 		return out_need_cells
 
@@ -563,7 +564,7 @@ class CellMesh:
 			unit (int): 単位 (default = 100cm)
 		"""
 		if not cls.addable(mesh, cell, unit):
-			print('Cannot be added due to lack of surrounding cells. cell: (%d, %d, %d)', cell.x, cell.y, cell.z)
+			log_warning('Cannot be added due to lack of surrounding cells. cell: (%d, %d, %d)', cell.x, cell.y, cell.z)
 
 		def closure(origin: CRef[MeshRaw]) -> None:
 			v_ids = cls.by_vertex_ids(mesh, cell, unit)
@@ -598,8 +599,8 @@ class CellMesh:
 				# 	pos = start + verts[i];
 				# 	print('Reuse Vertex. i: %d, vid: %d, pos: (%f, %f, %f)', i, vIds[i], pos.x, pos.y, pos.z)
 
-			print('Vertexs: %d, %d, %d, %d, %d, %d, %d, %d', v_ids[0], v_ids[1], v_ids[2], v_ids[3], v_ids[4], v_ids[5], v_ids[6], v_ids[7])
-			print('Polygons: {%d, %d}, {%d, %d}, {%d, %d}, {%d, %d}, {%d, %d}, {%d, %d}', p_ids[0].x, p_ids[0].y, p_ids[1].x, p_ids[1].y, p_ids[2].x, p_ids[2].y, p_ids[3].x, p_ids[3].y, p_ids[4].x, p_ids[4].y, p_ids[5].x, p_ids[5].y)
+			log_info('Vertexs: %d, %d, %d, %d, %d, %d, %d, %d', v_ids[0], v_ids[1], v_ids[2], v_ids[3], v_ids[4], v_ids[5], v_ids[6], v_ids[7])
+			log_info('Polygons: {%d, %d}, {%d, %d}, {%d, %d}, {%d, %d}, {%d, %d}, {%d, %d}', p_ids[0].x, p_ids[0].y, p_ids[1].x, p_ids[1].y, p_ids[2].x, p_ids[2].y, p_ids[3].x, p_ids[3].y, p_ids[4].x, p_ids[4].y, p_ids[5].x, p_ids[5].y)
 
 			uvs = {
 				0: Vector2(0.0, 0.0),
@@ -658,10 +659,10 @@ class CellMesh:
 					polygon = IntVector(v_ids[p.on.x], v_ids[p.on.y], v_ids[p.on.z])
 					polygon_id = origin.on.append_triangle(polygon)
 
-					print('Add Triangle. i: %d, j: %d, p: (%d, %d, %d), vid: (%d, %d, %d), result: %d, group: %d', i, j, p.on.x, p.on.y, p.on.z, v_ids[p.on.x], v_ids[p.on.y], v_ids[p.on.z], polygon_id, p_group_id)
+					log_info('Add Triangle. i: %d, j: %d, p: (%d, %d, %d), vid: (%d, %d, %d), result: %d, group: %d', i, j, p.on.x, p.on.y, p.on.z, v_ids[p.on.x], v_ids[p.on.y], v_ids[p.on.z], polygon_id, p_group_id)
 
 					if polygon_id < 0:
-						print('Failed Add Triangle. i: %d, j: %d, p: (%d, %d, %d), vid: (%d, %d, %d), result: %d, group: %d', i, j, p.on.x, p.on.y, p.on.z, v_ids[p.on.x], v_ids[p.on.y], v_ids[p.on.z], polygon_id, p_group_id)
+						log_error('Failed Add Triangle. i: %d, j: %d, p: (%d, %d, %d), vid: (%d, %d, %d), result: %d, group: %d', i, j, p.on.x, p.on.y, p.on.z, v_ids[p.on.x], v_ids[p.on.y], v_ids[p.on.z], polygon_id, p_group_id)
 						continue
 
 					origin.on.set_triangle_group(polygon_id, p_group_id)

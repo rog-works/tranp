@@ -45,15 +45,43 @@ class SymbolExtends:
 		return db
 	
 	def make_resolver_for_alt_class(self, raw: IReflection) -> Callable[[], IReflection]:
+		"""シンボルリゾルバーを生成(タイプ再定義用)
+
+		Args:
+			raw (IReflection): シンボル
+		Returns:
+			Callable[[], IReflection]: シンボルリゾルバー
+		"""
 		return lambda: self.invoker(self.extends_for_alt_class, raw, raw.types)
 
 	def make_resolver_for_class(self, raw: IReflection) -> Callable[[], IReflection]:
+		"""シンボルリゾルバーを生成(クラス定義用)
+
+		Args:
+			raw (IReflection): シンボル
+		Returns:
+			Callable[[], IReflection]: シンボルリゾルバー
+		"""
 		return lambda: self.invoker(self.extends_for_class, raw, raw.types)
 
 	def make_resolver_for_function(self, raw: IReflection) -> Callable[[], IReflection]:
+		"""シンボルリゾルバーを生成(ファンクション定義用)
+
+		Args:
+			raw (IReflection): シンボル
+		Returns:
+			Callable[[], IReflection]: シンボルリゾルバー
+		"""
 		return lambda: self.invoker(self.extends_for_function, raw, raw.types)
 
 	def make_resolver_for_var(self, raw: IReflection, decl_type: defs.Type) -> Callable[[], IReflection]:
+		"""シンボルリゾルバーを生成(変数宣言用)
+
+		Args:
+			raw (IReflection): シンボル
+		Returns:
+			Callable[[], IReflection]: シンボルリゾルバー
+		"""
 		return lambda: self.invoker(self.extends_for_var, raw, decl_type)
 
 	def extends_for_function(self, reflections: Reflections, via: IReflection, function: defs.Function) -> IReflection:

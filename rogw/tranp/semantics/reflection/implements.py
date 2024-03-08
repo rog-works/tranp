@@ -37,6 +37,20 @@ class Reflection(IReflection):
 		"""
 		self.__db = db
 
+	@property
+	@implements
+	def _actual_addr(self) -> int:
+		"""実体のアドレス(ID)を取得
+
+		Returns:
+			int: アドレス(ID)
+		Note:
+			* XXX このメソッドはSymbolProxyによる無限ループを防ぐ目的で実装 @seeを参照
+			* XXX 上記以外の目的で使用することは無い
+			@see semantics.reflection.implements.Reflection._shared_origin
+		"""
+		return id(self)
+
 	# @property
 	# @implements
 	# def ref_fullyname(self) -> str:
@@ -357,15 +371,10 @@ class ReflectionImpl(Reflection):
 		Note:
 			属性を取得する際にのみ利用 @see attrs
 		"""
-		from rogw.tranp.semantics.reflection.proxy import SymbolProxy  # FIXME 循環参照
-
 		if self._origin.org_fullyname in self._db:
 			origin = self._db[self._origin.org_fullyname]
-			# FIXME 共有シンボルがSymbolProxyの場合、共有シンボルの参照はSymbolProxyを指し、プロパティーは実体(Reflectionの派生クラス)を参照するため
-			# FIXME `id(origin) != id(self)`の判定が常に真になり、無限ループしてしまう ※origin=SymbolProxy, self=Reflectionの派生クラス)
-			# FIXME 無限ループを避けるため、共有シンボルがSymbolProxyの場合は実体を取得して比較する
-			origin_ = origin.new_raw if type(origin) is SymbolProxy else origin
-			if id(origin_) != id(self):
+			# XXX 実体のアドレス同士で比較することで無限ループを防止
+			if origin._actual_addr != self._actual_addr:
 				return origin
 
 		return self._origin

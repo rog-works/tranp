@@ -129,6 +129,20 @@ class IReflection(metaclass=ABCMeta):
 
 	@property
 	@abstractmethod
+	def _actual_addr(self) -> int:
+		"""実体のアドレス(ID)を取得
+
+		Returns:
+			int: アドレス(ID)
+		Note:
+			* XXX このメソッドはSymbolProxyによる無限ループを防ぐ目的で実装 @seeを参照
+			* XXX 上記以外の目的で使用することは無い
+			@see semantics.reflection.implements.Reflection._shared_origin
+		"""
+		...
+
+	@property
+	@abstractmethod
 	def ref_fullyname(self) -> str:
 		"""str: 完全参照名"""
 		...

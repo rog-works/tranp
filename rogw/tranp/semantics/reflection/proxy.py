@@ -41,11 +41,6 @@ class SymbolProxy(IReflection):
 		return self.__org_raw
 
 	@property
-	def new_raw(self) -> IReflection:
-		"""IReflection: 拡張後のシンボル XXX Proxyであることの意味を損なうインターフェイス"""
-		return self.__new_raw_proxy
-
-	@property
 	@implements
 	def _db(self) -> SymbolDB:
 		"""SymbolDB: 所属するシンボルテーブル"""
@@ -59,6 +54,20 @@ class SymbolProxy(IReflection):
 			db (SymbolDB): シンボルテーブル
 		"""
 		self.__org_raw.set_db(db)
+
+	@property
+	@implements
+	def _actual_addr(self) -> int:
+		"""実体のアドレス(ID)を取得
+
+		Returns:
+			int: アドレス(ID)
+		Note:
+			* XXX このメソッドはSymbolProxyによる無限ループを防ぐ目的で実装 @seeを参照
+			* XXX 上記以外の目的で使用することは無い
+			@see semantics.reflection.implements.Reflection._shared_origin
+		"""
+		return id(self.__new_raw_proxy)
 
 	@property
 	@implements

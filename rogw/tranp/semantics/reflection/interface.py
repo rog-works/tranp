@@ -89,16 +89,13 @@ class SymbolDB(dict[str, 'IReflection']):
 		Returns:
 			Iterator[tuple[str, 'IReflection']]: イテレーター
 		Note:
-			XXX * プリプロセッサー内ではSymbolProxyのオリジナルを参照することで無限ループを防止する目的で実装 @seeを参照
+			XXX * プリプロセッサー内ではSymbolProxyのオリジナルを参照することで無限ループを防止する @seeを参照
 			XXX * それ以外の目的で使用するのはNG
-			XXX * 実装に依存したインターフェイスは微妙なので改善を検討
 			@see semantics.processors.symbol_extends.SymbolExtends
 			@see semantics.processors.resolve_unknown.ResolveUnknown
 		"""
-		from rogw.tranp.semantics.reflection.proxy import SymbolProxy  # FIXME 循環参照
-
 		for key, raw in self.items():
-			org_raw = raw.org_raw if isinstance(raw, SymbolProxy) else raw
+			org_raw = raw.org_raw if isinstance(raw, ISymbolProxy) else raw
 			yield (key, org_raw)
 
 
@@ -155,7 +152,6 @@ class IReflection(metaclass=ABCMeta):
 		Note:
 			XXX * このメソッドはSymbolProxyによる無限ループを防ぐ目的で実装 @seeを参照
 			XXX * 上記以外の目的で使用することはNG
-			XXX * 実装に依存したインターフェイスは微妙なので改善を検討
 			@see semantics.reflection.implements.Reflection._shared_origin
 		"""
 		...
@@ -358,5 +354,23 @@ class IWrapper(metaclass=ABCMeta):
 			context (IReflection): コンテキストのシンボル
 		Returns:
 			IReflection: シンボル
+		"""
+		...
+
+
+class ISymbolProxy(metaclass=ABCMeta):
+	"""シンボルプロクシー専用のインターフェイス"""
+
+	@property
+	@abstractmethod
+	def org_raw(self) -> 'IReflection':
+		"""オリジナルのシンボルを取得
+
+		Returns:
+			IReflection: オリジナルのシンボル
+		Note:
+			XXX * プリプロセッサー内で無限ループを防ぐ目的で実装
+			XXX * それ以外の目的で使用するのはNG
+			@see semantics.reflection.interface.SymbolDB.items_in_preprocess
 		"""
 		...

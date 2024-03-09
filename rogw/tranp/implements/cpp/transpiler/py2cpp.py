@@ -159,7 +159,7 @@ class Py2Cpp(ITranspiler):
 		Note:
 			C++ではClassMethodの仮想関数はないので非対応
 		"""
-		return len([decorator for decorator in method.decorators if decorator.path.tokens == 'allow_override']) > 0
+		return len([decorator for decorator in method.decorators if decorator.path.tokens == '__allow_override__']) > 0
 
 	# General
 

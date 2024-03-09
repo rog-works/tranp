@@ -24,7 +24,7 @@ from tests.unit.rogw.tranp.implements.cpp.transpiler.fixtures.test_py2cpp_expect
 
 
 class ASTMapping:
-	__begin_class = 9
+	__begin_class = 10
 	_Base = f'file_input.class_def[{__begin_class + 0}]'
 	_Sub = f'file_input.class_def[{__begin_class + 1}]'
 	_DeclOps = f'file_input.class_def[{__begin_class + 2}]'
@@ -51,7 +51,8 @@ class ASTMapping:
 
 		'DeclOps': f'{_DeclOps}',
 
-		'Base.sub_implements': f'{_Base}.class_def_raw.block.function_def',
+		'Base.sub_implements': f'{_Base}.class_def_raw.block.function_def[0]',
+		'Base.allowed_overrides': f'{_Base}.class_def_raw.block.function_def[1]',
 
 		'Sub.block': f'{_Sub}.class_def_raw.block',
 
@@ -157,6 +158,8 @@ class TestPy2Cpp(TestCase):
 		(_ast('DeclOps', ''), defs.Class, BlockExpects.DeclOps),
 
 		(_ast('Base.sub_implements', ''), defs.Function, '/** sub_implements */\npublic: virtual void sub_implements();'),
+
+		(_ast('Base.allowed_overrides', ''), defs.Function, '/** allowed_overrides */\npublic: virtual int allowed_overrides() {\n\treturn 1;\n}'),
 
 		(_ast('Sub.block', 'comment_stmt[4]'), defs.Comment, '// FIXME other: Any'),
 

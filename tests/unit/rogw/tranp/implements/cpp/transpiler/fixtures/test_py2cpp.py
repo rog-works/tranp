@@ -1,6 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from typing import Generic, TypeAlias, TypeVar
 
+from rogw.tranp.compatible.cpp.embed import __allow_override__
 from rogw.tranp.compatible.cpp.enum import CEnum
 from rogw.tranp.compatible.cpp.object import CP, CPConst, CRef, CSP
 from rogw.tranp.compatible.cpp.preprocess import directive
@@ -15,6 +16,10 @@ DSI: TypeAlias = dict[str, int]
 class Base(metaclass=ABCMeta):
 	@abstractmethod
 	def sub_implements(self) -> None: ...
+
+	@__allow_override__
+	def allowed_overrides(self) -> int:
+		return 1
 
 class Sub(Base):
 	class_base_n: int = 0

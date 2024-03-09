@@ -25,7 +25,7 @@ from rogw.tranp.transpiler.types import ITranspiler, TranspilerOptions
 from rogw.tranp.view.render import Renderer
 import yaml
 
-ArgsDict = TypedDict('ArgsDict', {'grammar': str, 'template_dir': str, 'i18n': str, 'input_glob': str, 'exclude_patterns': list[str], 'output_dir': str, 'output_language': str, 'force': bool, 'verbose': bool, 'profile': str})
+ArgsDict = TypedDict('ArgsDict', {'grammar': str, 'template_dir': str, 'trans_mapping': str, 'input_glob': str, 'exclude_patterns': list[str], 'output_dir': str, 'output_language': str, 'force': bool, 'verbose': bool, 'profile': str})
 
 
 class Args:
@@ -36,7 +36,7 @@ class Args:
 		args = self.__parse_argv(sys.argv[1:])
 		self.grammar = args['grammar']
 		self.template_dir = args['template_dir']
-		self.i18n = args['i18n']
+		self.trans_mapping = args['trans_mapping']
 		self.input_glob = args['input_glob']
 		self.exclude_patterns = args['exclude_patterns']
 		self.output_dir = args['output_dir']
@@ -56,7 +56,7 @@ class Args:
 		args: ArgsDict = {
 			'grammar': 'data/grammar.lark',
 			'template_dir': 'data/cpp/template',
-			'i18n': 'data/cpp/i18n.yaml',
+			'trans_mapping': 'data/cpp/i18n.yaml',
 			'input_glob': 'example/**/*.py',
 			'output_dir': './',
 			'output_language': 'h',
@@ -72,7 +72,7 @@ class Args:
 			elif arg == '-t':
 				args['template_dir'] = argv.pop(0)
 			elif arg == '--i18n':
-				args['i18n'] = argv.pop(0)
+				args['trans_mapping'] = argv.pop(0)
 			elif arg == '-i':
 				args['input_glob'] = argv.pop(0)
 			elif arg == '-o':
@@ -141,7 +141,7 @@ class TranspileApp:
 		Returns:
 			TranslationMapping: 翻訳マッピングデータ
 		"""
-		mapping = cast(dict[str, str], yaml.safe_load(loader.load(args.i18n)))
+		mapping = cast(dict[str, str], yaml.safe_load(loader.load(args.trans_mapping)))
 		return TranslationMapping(to=mapping)
 
 	@classmethod

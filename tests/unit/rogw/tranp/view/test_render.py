@@ -231,7 +231,7 @@ class TestRenderer(TestCase):
 			{
 				'symbol': 'func',
 				'decorators': ['deco(A, B)'],
-				'parameters': ['string text', 'int value = 1'],
+				'parameters': ['std::string text', 'int value = 1'],
 				'return_type': 'int',
 				'comment': '',
 				'statements': ['return value + 1;'],
@@ -240,7 +240,26 @@ class TestRenderer(TestCase):
 			'\n'.join([
 				'/** func */',
 				'deco(A, B)',
-				'int func(string text, int value = 1) {',
+				'int func(std::string text, int value = 1) {',
+				'	return value + 1;',
+				'}',
+			]),
+		),
+		(
+			'closure',
+			{
+				'symbol': 'closure',
+				# 'decorators': [],
+				'parameters': ['std::string text', 'int value = 1'],
+				'return_type': 'int',
+				# 'comment': '',
+				'statements': ['return value + 1;'],
+				# 'template_types': [],
+				# closure only
+				'binded_this': True,
+			},
+			'\n'.join([
+				'auto closure = [this, &](std::string text, int value = 1) -> int {',
 				'	return value + 1;',
 				'}',
 			]),

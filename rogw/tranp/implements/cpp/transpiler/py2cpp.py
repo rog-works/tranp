@@ -149,6 +149,18 @@ class Py2Cpp(ITranspiler):
 			.build(template.Function)
 		return [types.domain_name for types in function_helper.templates()]
 
+	def allow_override_from_method(self, method: defs.ClassMethod | defs.Constructor | defs.Method) -> bool:
+		"""仮想関数の判定
+
+		Args:
+			method (Constructur | Method): メソッド系ノード
+		Returns:
+			bool: True = 仮想関数
+		Note:
+			C++ではClassMethodの仮想関数はないので非対応
+		"""
+		return len([decorator for decorator in method.decorators if decorator.path.tokens == 'allow_override']) > 0
+
 	# General
 
 	def on_entrypoint(self, node: defs.Entrypoint, statements: list[str]) -> str:
@@ -268,14 +280,14 @@ class Py2Cpp(ITranspiler):
 		class_name = self.to_domain_name_by_class(node.class_types)
 		template_types = self.unpack_function_template_types(node)
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': normal_statements, 'template_types': template_types}
-		method_vars = {'access': node.access, 'is_abstract': node.is_abstract, 'class_symbol': class_name}
+		method_vars = {'access': node.access, 'is_abstract': node.is_abstract, 'class_symbol': class_name, 'allow_override': self.allow_override_from_method(node)}
 		constructor_vars = {'initializers': initializers, 'super_initializer': super_initializer}
 		return self.view.render(node.classification, vars={**function_vars, **method_vars, **constructor_vars})
 
 	def on_method(self, node: defs.Method, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		template_types = self.unpack_function_template_types(node)
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types}
-		method_vars = {'access': node.access, 'is_abstract': node.is_abstract, 'class_symbol': node.class_types.symbol.tokens}
+		method_vars = {'access': node.access, 'is_abstract': node.is_abstract, 'class_symbol': node.class_types.symbol.tokens, 'allow_override': self.allow_override_from_method(node)}
 		return self.view.render(node.classification, vars={**function_vars, **method_vars})
 
 	def on_closure(self, node: defs.Closure, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:

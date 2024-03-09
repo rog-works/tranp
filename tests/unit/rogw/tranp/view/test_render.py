@@ -235,6 +235,7 @@ class TestRenderer(TestCase):
 				'return_type': 'int',
 				'comment': '',
 				'statements': ['return value + 1;'],
+				'template_types': [],
 			},
 			'\n'.join([
 				'/** func */',
@@ -247,14 +248,19 @@ class TestRenderer(TestCase):
 		(
 			'constructor',
 			{
-				'access': 'public',
 				'symbol': '__init__',
-				'class_symbol': 'Hoge',
 				'decorators': [],
 				'parameters': ['int base_n = 1', 'int value = 2'],
 				'return_type': 'void',
 				'comment': '',
 				'statements': ['this->x = value;'],
+				'template_types': [],
+				# belongs class only
+				'access': 'public',
+				'class_symbol': 'Hoge',
+				'is_abstract': False,
+				'allow_override': False,
+				# constructor only
 				'initializers': [{'symbol': 'a', 'value': '1'}],
 				'super_initializer': {'parent': 'Base', 'arguments': 'base_n'},
 			},
@@ -268,14 +274,18 @@ class TestRenderer(TestCase):
 		(
 			'class_method',
 			{
-				'access': 'public',
 				'symbol': 'static_method',
-				'class_symbol': 'Hoge',
 				'decorators': [],
 				'parameters': [],
 				'return_type': 'int',
 				'comment': '',
 				'statements': ['return 1;'],
+				'template_types': [],
+				# belongs class only
+				'access': 'public',
+				'class_symbol': 'Hoge',
+				'is_abstract': False,
+				'allow_override': False,
 			},
 			'\n'.join([
 				'/** static_method */',
@@ -287,16 +297,18 @@ class TestRenderer(TestCase):
 		(
 			'method',
 			{
-				'access': 'public',
 				'symbol': 'method',
-				'class_symbol': 'Hoge',
 				'decorators': [],
 				'parameters': ['int value = 1'],
 				'return_type': 'void',
-				'is_abstract': False,
 				'comment': '',
 				'statements': ['this->x = value;'],
 				'template_types': [],
+				# belongs class only
+				'access': 'public',
+				'class_symbol': 'Hoge',
+				'is_abstract': False,
+				'allow_override': False,
 			},
 			'\n'.join([
 				'/** method */',
@@ -308,42 +320,46 @@ class TestRenderer(TestCase):
 		(
 			'method',
 			{
-				'access': 'public',
-				'symbol': 'method',
-				'class_symbol': 'Hoge',
+				'symbol': 'abstract_method',
 				'decorators': [],
 				'parameters': ['int value = 1'],
 				'return_type': 'void',
-				'is_abstract': True,
 				'comment': '',
 				'statements': [],
 				'template_types': [],
+				# belongs class only
+				'access': 'public',
+				'class_symbol': 'Hoge',
+				'is_abstract': True,
+				'allow_override': False,
 			},
 			'\n'.join([
-				'/** method */',
-				'public: virtual void method(int value = 1);',
+				'/** abstract_method */',
+				'public: virtual void abstract_method(int value = 1);',
 			]),
 		),
 		(
 			'method',
 			{
-				'access': 'public',
-				'symbol': 'method',
-				'class_symbol': 'Hoge',
+				'symbol': 'template_method',
 				'decorators': [],
 				'parameters': ['int value = 1'],
 				'return_type': 'void',
-				'is_abstract': False,
 				'comment': '',
 				'statements': ['this->x = value;'],
 				'template_types': ['T', 'T2'],
+				# belongs class only
+				'access': 'public',
+				'class_symbol': 'Hoge',
+				'is_abstract': False,
+				'allow_override': False,
 			},
 			'\n'.join([
-				'/** method */',
+				'/** template_method */',
 				'public:',
 				'template<typename T>',
 				'template<typename T2>',
-				'void method(int value = 1) {',
+				'void template_method(int value = 1) {',
 				'	this->x = value;',
 				'}',
 			]),

@@ -320,7 +320,7 @@ class TestRenderer(TestCase):
 		(
 			'method',
 			{
-				'symbol': 'abstract_method',
+				'symbol': 'pure_virtual_method',
 				'decorators': [],
 				'parameters': ['int value = 1'],
 				'return_type': 'void',
@@ -334,8 +334,31 @@ class TestRenderer(TestCase):
 				'allow_override': False,
 			},
 			'\n'.join([
-				'/** abstract_method */',
-				'public: virtual void abstract_method(int value = 1);',
+				'/** pure_virtual_method */',
+				'public: virtual void pure_virtual_method(int value = 1);',
+			]),
+		),
+		(
+			'method',
+			{
+				'symbol': 'allow_override_method',
+				'decorators': [],
+				'parameters': ['int value = 1'],
+				'return_type': 'void',
+				'comment': '',
+				'statements': ['this->x = value;'],
+				'template_types': [],
+				# belongs class only
+				'access': 'public',
+				'class_symbol': 'Hoge',
+				'is_abstract': False,
+				'allow_override': True,
+			},
+			'\n'.join([
+				'/** allow_override_method */',
+				'public: virtual void allow_override_method(int value = 1) {',
+				'	this->x = value;',
+				'}',
 			]),
 		),
 		(

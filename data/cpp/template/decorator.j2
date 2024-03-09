@@ -1,4 +1,4 @@
-{%- if path not in ['classmethod', 'abstractmethod', '__alias__'] %}
+{%- if path not in ['classmethod', 'abstractmethod', '__alias__', '__allow_override__'] %}
 {{- path -}}(
 	{%- for argument in arguments -%}
 		{%- if loop.index0 > 0 %}, {% endif -%}

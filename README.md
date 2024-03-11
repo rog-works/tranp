@@ -1,9 +1,11 @@
 Tranp (TRANspiler on Python)
 ===
 
+[![test](https://github.com/rog-works/tranp/actions/workflows/test.yml/badge.svg)](https://github.com/rog-works/tranp/actions/workflows/test.yml)
+
 # Dependencies
 
-* Python 3.10
+* Python 3.12
 * pip 22.2.1
 * Lark 1.1.8
 

@@ -23,7 +23,16 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+        pip install pytest-cov coverage
     
     - name: Test with pytest
       run: |
-        bash bin/test.sh
+        bash bin/ci-test.sh
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4-beta
+      with:
+        flags: smart-tests
+        verbose: true
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

@@ -5,24 +5,21 @@ appdir=${cwd}/..
 
 target=
 if [ "$1" != "" ]; then
-	target=$(echo "$1" | sed -e 's/\//\./g')
-	target=$(echo "$target" | sed -e 's/\.py$//g')
+	target=$1
 fi
 
 if [ "$2" != "" ]; then
-	target=${target}.$2
+	target="$1::$2"
 fi
 
 if [ "$3" != "" ]; then
-	target=${target}.$3
+	target="$1::$2::$3"
 fi
 
 source ${cwd}/.env.sh
 
 if [ "$target" == "" ]; then
-	echo python -m unittest discover ${appdir}/tests/
-	python -m unittest discover ${appdir}/tests/
+	pytest ${appdir}/tests/unit --ignore-glob=**/fixtures/*
 else
-	echo python -m unittest ${target}
-	python -m unittest ${target}
+	pytest ${target}
 fi

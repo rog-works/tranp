@@ -1,4 +1,4 @@
-Tranp (TRANslator on Python)
+Tranp (TRANspiler on Python)
 ===
 
 # Dependencies

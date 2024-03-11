@@ -232,9 +232,9 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarOps.const_move.block', 'assign[6]'), defs.MoveAssign, 'const Sub& r_const1 = *(ap_const1);'),
 
 		(_ast('CVarOps.const_move.block', 'assign[7]'), defs.MoveAssign, 'const std::shared_ptr<Sub> asp_const2 = asp;'),
-		(_ast('CVarOps.const_move.block', 'assign[8]'), defs.MoveAssign, 'Sub a2 = *(asp_const2);'),
-		(_ast('CVarOps.const_move.block', 'assign[9]'), defs.MoveAssign, 'const Sub& r_const2 = *(asp_const2);'),
-		(_ast('CVarOps.const_move.block', 'assign[10]'), defs.MoveAssign, 'const Sub* ap_const2 = (asp_const2).get();'),
+		(_ast('CVarOps.const_move.block', 'assign[8]'), defs.MoveAssign, 'Sub a2 = *(asp_const2);'),  # XXX 本来の期待値は`std::shared_ptr<Sub>`の様な気がするが、CVarsはただのプロクシーとして実装しているため、操作結果はCSPとほぼ同等になる
+		(_ast('CVarOps.const_move.block', 'assign[9]'), defs.MoveAssign, 'const Sub& r_const2 = *(asp_const2);'),  # 〃
+		(_ast('CVarOps.const_move.block', 'assign[10]'), defs.MoveAssign, 'const Sub* ap_const2 = (asp_const2).get();'),  # 〃
 
 		(_ast('CVarOps.const_move.block', 'assign[11]'), defs.MoveAssign, 'const Sub& r_const3 = r;'),
 		(_ast('CVarOps.const_move.block', 'assign[12]'), defs.MoveAssign, 'Sub a3 = r_const3;'),

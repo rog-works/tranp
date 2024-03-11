@@ -63,7 +63,7 @@ class CVars:
 		Returns:
 			bool: True = 実体/参照
 		"""
-		return key in [cpp.CRaw.__name__, cpp.CRef.__name__, cpp.CRefConst.__name__]
+		return key in [cpp.CRaw.__name__, cpp.CRef.__name__, cpp.CRawConst.__name__, cpp.CRefConst.__name__]
 
 	@classmethod
 	def is_addr(cls, key: str) -> bool:
@@ -85,7 +85,7 @@ class CVars:
 		Returns:
 			bool: True = 実体
 		"""
-		return key == cpp.CRaw.__name__
+		return key in [cpp.CRaw.__name__, cpp.CRawConst.__name__]
 
 	@classmethod
 	def is_raw_ref(cls, key: str) -> bool:
@@ -127,7 +127,7 @@ class CVars:
 		Returns:
 			list[str]: 種別キー一覧
 		"""
-		return [cvar.__name__ for cvar in [cpp.CP, cpp.CSP, cpp.CRef, cpp.CPConst, cpp.CSPConst, cpp.CRefConst, cpp.CRaw]]
+		return [cvar.__name__ for cvar in [cpp.CP, cpp.CSP, cpp.CRef, cpp.CPConst, cpp.CSPConst, cpp.CRefConst, cpp.CRawConst, cpp.CRaw]]
 
 	@classmethod
 	def key_from(cls, reflections: Reflections, symbol: IReflection) -> str:
@@ -164,6 +164,7 @@ class CVars:
 			cpp.CPConst.__name__: cls.Accessors.Address,
 			cpp.CSPConst.__name__: cls.Accessors.Address,
 			cpp.CRefConst.__name__: cls.Accessors.Raw,
+			cpp.CRawConst.__name__: cls.Accessors.Raw,
 			cpp.CRaw.__name__: cls.Accessors.Raw,
 		}
 		return accessors[key]
@@ -196,6 +197,9 @@ class CVars:
 			f'{cpp.CSPConst.__name__}.addr': CVars.Moves.UnpackSp,
 			f'{cpp.CRefConst.__name__}.raw': CVars.Moves.Copy,
 			f'{cpp.CRefConst.__name__}.addr': CVars.Moves.ToAddress,
+			f'{cpp.CRawConst.__name__}.raw': CVars.Moves.Copy,
+			f'{cpp.CRawConst.__name__}.ref': CVars.Moves.Copy,
+			f'{cpp.CRawConst.__name__}.addr': CVars.Moves.ToAddress,
 		}
 		move_key = f'{key}.{method}'
 		if move_key in moves:

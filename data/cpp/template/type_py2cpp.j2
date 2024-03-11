@@ -11,7 +11,7 @@ const std::shared_ptr<{{ var_type[9:-1] }}>
 {%- elif var_type.startswith('CRefConst<') -%}
 const {{ var_type[10:-1] }}&
 {%- elif var_type.startswith('CRawConst<') -%}
-const {{ var_type[10:-1] }}&
+const {{ var_type[10:-1] }}
 {%- else -%}
 {{ var_type }}
 {%- endif -%}

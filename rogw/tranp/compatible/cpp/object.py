@@ -189,6 +189,32 @@ class CRefConst(CVar[T]):
 
 
 @__hint_generic__(T)
+class CRawConst(CVar[T]):
+	"""C++型変数の互換クラス(Const)"""
+
+	@classmethod
+	def __class_getitem__(cls, var_type: type[T]) -> 'type[CRawConst[T]]':
+		"""C++型変数でラップしたタイプを返却
+
+		Args:
+			var_type (type[T]): 実体の型
+		Returns:
+			type[CRefConst[T]]: ラップした型
+		"""
+		return CRawConst[var_type]
+
+	@property
+	def ref(self) -> 'CRefConst[T]':
+		"""Const参照を返却する参照変換代替メソッド。C++では`*`に相当"""
+		return CRefConst(self.raw)
+
+	@property
+	def addr(self) -> 'CPConst[T]':
+		"""Constポインターを返却する参照変換代替メソッド。C++では`&`に相当"""
+		return CPConst(self.raw)
+
+
+@__hint_generic__(T)
 class CRaw(CVar[T]):
 	"""C++型変数の互換クラス(実体)"""
 

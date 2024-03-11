@@ -222,22 +222,23 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarOps.default_param.block', 'assign[0]'), defs.MoveAssign, 'int n = ap ? ap->base_n : 0;'),
 		(_ast('CVarOps.default_param.block', 'assign[1]'), defs.MoveAssign, 'int n2 = this->default_param();'),
 
-		(_ast('CVarOps.const_move.block', 'assign[0]'), defs.MoveAssign, 'const Sub* ap_const0 = &(a);'),
-		(_ast('CVarOps.const_move.block', 'assign[1]'), defs.MoveAssign, 'Sub a0 = *(ap_const0);'),
-		(_ast('CVarOps.const_move.block', 'assign[2]'), defs.MoveAssign, 'const Sub& r0_const = *(ap_const0);'),
+		(_ast('CVarOps.const_move.block', 'assign[0]'), defs.MoveAssign, 'const Sub a_const0 = a;'),
+		(_ast('CVarOps.const_move.block', 'assign[1]'), defs.MoveAssign, 'Sub a0 = a_const0;'),
+		(_ast('CVarOps.const_move.block', 'assign[2]'), defs.MoveAssign, 'const Sub& r0_const = a_const0;'),
+		(_ast('CVarOps.const_move.block', 'assign[3]'), defs.MoveAssign, 'const Sub* ap0_const = &(a_const0);'),
 
-		(_ast('CVarOps.const_move.block', 'assign[3]'), defs.MoveAssign, 'const Sub* ap_const1 = ap;'),
-		(_ast('CVarOps.const_move.block', 'assign[4]'), defs.MoveAssign, 'Sub a1 = *(ap_const1);'),
-		(_ast('CVarOps.const_move.block', 'assign[5]'), defs.MoveAssign, 'const Sub& r_const1 = *(ap_const1);'),
+		(_ast('CVarOps.const_move.block', 'assign[4]'), defs.MoveAssign, 'const Sub* ap_const1 = ap;'),
+		(_ast('CVarOps.const_move.block', 'assign[5]'), defs.MoveAssign, 'Sub a1 = *(ap_const1);'),
+		(_ast('CVarOps.const_move.block', 'assign[6]'), defs.MoveAssign, 'const Sub& r_const1 = *(ap_const1);'),
 
-		(_ast('CVarOps.const_move.block', 'assign[6]'), defs.MoveAssign, 'const std::shared_ptr<Sub> asp_const2 = asp;'),
-		(_ast('CVarOps.const_move.block', 'assign[7]'), defs.MoveAssign, 'Sub a2 = *(asp_const2);'),
-		(_ast('CVarOps.const_move.block', 'assign[8]'), defs.MoveAssign, 'const Sub& r_const2 = *(asp_const2);'),
-		(_ast('CVarOps.const_move.block', 'assign[9]'), defs.MoveAssign, 'const Sub* ap_const2 = (asp_const2).get();'),
+		(_ast('CVarOps.const_move.block', 'assign[7]'), defs.MoveAssign, 'const std::shared_ptr<Sub> asp_const2 = asp;'),
+		(_ast('CVarOps.const_move.block', 'assign[8]'), defs.MoveAssign, 'Sub a2 = *(asp_const2);'),
+		(_ast('CVarOps.const_move.block', 'assign[9]'), defs.MoveAssign, 'const Sub& r_const2 = *(asp_const2);'),
+		(_ast('CVarOps.const_move.block', 'assign[10]'), defs.MoveAssign, 'const Sub* ap_const2 = (asp_const2).get();'),
 
-		(_ast('CVarOps.const_move.block', 'assign[10]'), defs.MoveAssign, 'const Sub& r_const3 = r;'),
-		(_ast('CVarOps.const_move.block', 'assign[11]'), defs.MoveAssign, 'Sub a3 = r_const3;'),
-		(_ast('CVarOps.const_move.block', 'assign[12]'), defs.MoveAssign, 'const Sub* ap_const3 = &(r_const3);'),
+		(_ast('CVarOps.const_move.block', 'assign[11]'), defs.MoveAssign, 'const Sub& r_const3 = r;'),
+		(_ast('CVarOps.const_move.block', 'assign[12]'), defs.MoveAssign, 'Sub a3 = r_const3;'),
+		(_ast('CVarOps.const_move.block', 'assign[13]'), defs.MoveAssign, 'const Sub* ap_const3 = &(r_const3);'),
 
 		(_ast('FuncOps.print.block', 'funccall'), defs.FuncCall, 'printf("message. %d, %f, %s", 1, 1.0, "abc");'),
 

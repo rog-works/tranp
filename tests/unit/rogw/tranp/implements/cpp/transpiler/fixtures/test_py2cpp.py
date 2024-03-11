@@ -3,7 +3,7 @@ from typing import Generic, TypeAlias, TypeVar
 
 from rogw.tranp.compatible.cpp.embed import __allow_override__
 from rogw.tranp.compatible.cpp.enum import CEnum
-from rogw.tranp.compatible.cpp.object import CP, CPConst, CRef, CSP
+from rogw.tranp.compatible.cpp.object import CP, CPConst, CRawConst, CRef, CSP
 from rogw.tranp.compatible.cpp.preprocess import directive
 
 directive('#pragma once')
@@ -139,9 +139,10 @@ class CVarOps:
 		return n
 
 	def const_move(self, a: Sub, ap: CP[Sub], asp: CSP[Sub], r: CRef[Sub]) -> None:
-		ap_const0 = CPConst(a)
-		a0 = ap_const0.raw
-		r0_const = ap_const0.ref
+		a_const0 = CRawConst(a)
+		a0 = a_const0.raw
+		r0_const = a_const0.ref
+		ap0_const = a_const0.addr
 
 		ap_const1 = ap.const
 		a1 = ap_const1.raw

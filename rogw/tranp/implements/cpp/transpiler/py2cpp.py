@@ -463,8 +463,7 @@ class Py2Cpp(ITranspiler):
 		elif is_on_cvar_exchanger():
 			cvar_key = CVars.key_from(self.reflections, receiver_symbol)
 			move = CVars.to_move(cvar_key, node.prop.domain_name)
-			if not CVars.is_raw_raw(cvar_key):
-				return f'cvar_to_{move.name}', CVars.to_accessor(cvar_key).name
+			return f'cvar_to_{move.name}', CVars.to_accessor(cvar_key).name
 		elif is_class_access():
 			return 'class', CVars.Accessors.Static.name
 

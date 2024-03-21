@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-from rogw.tranp.app.io import appdir
+from rogw.tranp.app.dir import tranp_dir
 
 
 def readline(prompt: str = '') -> str:
@@ -17,6 +17,6 @@ def readline(prompt: str = '') -> str:
 	if prompt:
 		print(prompt)
 
-	input_filepath = os.path.join(appdir(), 'bin/_input.sh')
+	input_filepath = os.path.join(tranp_dir(), 'bin/_input.sh')
 	res = subprocess.run(['bash', input_filepath], stdout=subprocess.PIPE)
 	return res.stdout.decode('utf-8').rstrip()

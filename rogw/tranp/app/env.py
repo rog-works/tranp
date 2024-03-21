@@ -1,33 +1,40 @@
 import os
-from typing import Any
+from typing import TypedDict, cast
 
+from rogw.tranp.app.dir import tranp_dir
 from rogw.tranp.lang.dict import deep_merge
+
+EnvDict = TypedDict('EnvDict', {'PYTHONPATH': dict[str, str]})
 
 
 class Env:
-	"""環境変数"""
+	"""環境変数
 
-	def __init__(self, env: dict[str, Any]) -> None:
+	Note:
+		実行ディレクトリーとPythonのコアライブラリーのパスは必ず通った設定になる
+	"""
+
+	def __init__(self, env: EnvDict) -> None:
 		"""インスタンスを生成
 
 		Args:
-			env (dict[str, Any]): 環境変数データ
+			env (EnvDict): 環境変数データ
 		"""
-		self.__env = deep_merge(self.__default_env(), env)
+		self.__env = cast(EnvDict, deep_merge(cast(dict, self.__default_env()), cast(dict, env)))
 
-	def __default_env(self) -> dict[str, Any]:
+	def __default_env(self) -> EnvDict:
 		"""環境変数のデフォルトデータを生成
 
 		Returns:
-			dict[str, Any]: 環境変数データ
+			EnvDict: 環境変数データ
 		"""
 		paths = [
 			os.getcwd(),
-			os.path.join(os.getcwd(), 'rogw/tranp/compatible/libralies'),
+			os.path.join(tranp_dir(), 'rogw/tranp/compatible/libralies'),
 		]
 		return {'PYTHONPATH': {path: path for path in paths}}
 
 	@property
 	def paths(self) -> list[str]:
 		"""list[str]: パスリスト"""
-		return self.__env['PYTHONPATH'].values()
+		return list(self.__env['PYTHONPATH'].values())

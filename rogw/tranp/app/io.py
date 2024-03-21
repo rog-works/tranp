@@ -6,17 +6,6 @@ from rogw.tranp.io.loader import IFileLoader
 from rogw.tranp.lang.annotation import implements, injectable
 
 
-def appdir() -> str:
-	"""アプリケーションのルートディレクトリーを取得
-
-	Returns:
-		str: ルートディレクトリーの絶対パス
-	Note:
-		このモジュールを起点にルートディレクトリーを算出
-	"""
-	return os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
-
-
 class FileLoader(IFileLoader):
 	"""ファイルローダー"""
 

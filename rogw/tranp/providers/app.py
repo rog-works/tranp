@@ -1,5 +1,6 @@
 import os
 
+from rogw.tranp.app.dir import tranp_dir
 from rogw.tranp.app.env import Env
 from rogw.tranp.lang.di import DI, LazyDI, ModuleDefinitions
 from rogw.tranp.lang.locator import Invoker, Locator
@@ -19,13 +20,16 @@ def di_container(definitions: ModuleDefinitions) -> DI:
 	return di
 
 
-def make_env() -> Env:
-	"""環境変数を生成
+def make_example_env() -> Env:
+	"""環境変数を生成(example用)
 
 	Returns:
 		Env: 環境変数
 	"""
-	paths = [os.path.join(os.getcwd(), 'example')]
+	paths = [
+		tranp_dir(),
+		os.path.join(tranp_dir(), 'example')
+	]
 	return Env({
 		'PYTHONPATH': {path: path for path in paths},
 	})

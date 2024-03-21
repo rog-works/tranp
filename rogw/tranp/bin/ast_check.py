@@ -7,7 +7,7 @@ from typing import TypedDict
 from lark import Lark
 from lark.indenter import PythonIndenter
 
-from rogw.tranp.app.io import appdir
+from rogw.tranp.app.dir import tranp_dir
 from rogw.tranp.bin.io import readline
 
 Options = TypedDict('Options', {'source': str})
@@ -15,7 +15,7 @@ Args = TypedDict('Args', {'runner': str, 'grammar': str, 'options': Options})
 
 
 def load_file(filename: str) -> str:
-	filepath = os.path.join(appdir(), filename)
+	filepath = os.path.join(tranp_dir(), filename)
 	with open(filepath) as f:
 		return ''.join(f.readlines())
 
@@ -52,7 +52,7 @@ def readline(prompt: str = '') -> str:
 	if prompt:
 		print(prompt)
 
-	input_filepath = os.path.join(appdir(), 'bin/_input.sh')
+	input_filepath = os.path.join(tranp_dir(), 'bin/_input.sh')
 	res = subprocess.run(['bash', input_filepath], stdout=subprocess.PIPE)
 	return res.stdout.decode('utf-8').rstrip()
 

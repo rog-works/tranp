@@ -2,15 +2,15 @@ import os
 from typing import Any
 from unittest import TestCase
 
-from rogw.tranp.view.render import Renderer
-from rogw.tranp.app.io import appdir
+from rogw.tranp.app.dir import tranp_dir
 from rogw.tranp.test.helper import data_provider
+from rogw.tranp.view.render import Renderer
 
 
 class Fixture:
 	@classmethod
 	def renderer(cls) -> Renderer:
-		return Renderer(os.path.abspath(os.path.join(appdir(), 'data/cpp/template')))
+		return Renderer(os.path.abspath(os.path.join(tranp_dir(), 'data/cpp/template')))
 
 
 class TestRenderer(TestCase):

@@ -1,7 +1,7 @@
 from typing import cast
 
 from rogw.tranp.app.app import App
-from rogw.tranp.app.io import appdir
+from rogw.tranp.app.dir import tranp_dir
 from rogw.tranp.implements.syntax.lark.entry import EntryOfLark
 from rogw.tranp.implements.syntax.lark.parser import SyntaxParserOfLark
 from rogw.tranp.io.cache import CacheProvider
@@ -29,7 +29,7 @@ class Fixture:
 		Returns:
 			str: フィクスチャーのモジュールパス
 		"""
-		module_path = filepath_to_module_path(filepath, appdir())
+		module_path = filepath_to_module_path(filepath, tranp_dir())
 		elems = module_path.split('.')
 		dirpath, filename = '.'.join(elems[:-1]), elems[-1]
 		return '.'.join([dirpath, 'fixtures', filename])

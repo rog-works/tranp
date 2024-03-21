@@ -2,7 +2,7 @@ import os
 import re
 from unittest import TestCase
 
-from rogw.tranp.app.io import appdir
+from rogw.tranp.app.dir import tranp_dir
 from rogw.tranp.dsn.translation import alias_dsn
 from rogw.tranp.i18n.i18n import TranslationMapping
 from rogw.tranp.implements.cpp.providers.i18n import translation_mapping_cpp
@@ -145,7 +145,7 @@ class TestPy2Cpp(TestCase):
 		fullyname(PluginProvider): cpp_plugin_provider,
 		fullyname(TranslationMapping): fixture_translation_mapping,
 		fullyname(TranspilerOptions): lambda: TranspilerOptions(verbose=False),
-		fullyname(Renderer): lambda: Renderer(os.path.join(appdir(), 'data/cpp/template')),
+		fullyname(Renderer): lambda: Renderer(os.path.join(tranp_dir(), 'data/cpp/template')),
 	})
 
 	@data_provider([

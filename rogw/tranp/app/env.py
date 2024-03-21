@@ -1,11 +1,16 @@
 import os
 from typing import Any
 
+from rogw.tranp.app.dir import tranp_dir
 from rogw.tranp.lang.dict import deep_merge
 
 
 class Env:
-	"""環境変数"""
+	"""環境変数
+
+	Note:
+		実行ディレクトリーとPythonのコアライブラリーのパスは必ず通った設定になる
+	"""
 
 	def __init__(self, env: dict[str, Any]) -> None:
 		"""インスタンスを生成
@@ -23,7 +28,7 @@ class Env:
 		"""
 		paths = [
 			os.getcwd(),
-			os.path.join(os.getcwd(), 'rogw/tranp/compatible/libralies'),
+			os.path.join(tranp_dir(), 'rogw/tranp/compatible/libralies'),
 		]
 		return {'PYTHONPATH': {path: path for path in paths}}
 

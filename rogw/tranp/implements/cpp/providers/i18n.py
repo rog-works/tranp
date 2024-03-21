@@ -14,5 +14,5 @@ def translation_mapping_cpp(loader: IFileLoader) -> TranslationMapping:
 	Returns:
 		TranslationMapping: 翻訳マッピングデータ
 	"""
-	mapping = cast(dict[str, str], yaml.safe_load(loader.load('data/cpp/i18n.yaml')))
+	mapping = cast(dict[str, str], yaml.safe_load(loader.load('data/cpp/i18n.yml')))
 	return TranslationMapping(to=mapping)

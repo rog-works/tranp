@@ -218,7 +218,7 @@ class TranspileApp:
 		"""トランスパイル済みのファイルからメタヘッダーの読み込みを試行
 
 		Args:
-			module_path (ModulePath)
+			module_path (ModulePath): モジュールパス
 		Returns:
 			MetaHeader | None: メタヘッダー。ファイル・メタヘッダーが存在しない場合はNone
 		"""
@@ -232,7 +232,7 @@ class TranspileApp:
 		"""トランスパイル後のファイルパスを生成
 
 		Args:
-			module_path (ModulePath)
+			module_path (ModulePath): モジュールパス
 		Returns:
 			str: ファイルパス
 		"""
@@ -244,7 +244,7 @@ class TranspileApp:
 		"""トランスパイルを実行するか判定
 
 		Args:
-			module_path (ModulePath)
+			module_path (ModulePath): モジュールパス
 		Returns:
 			bool: True = 実行
 		"""
@@ -259,7 +259,7 @@ class TranspileApp:
 		"""エントリーポイントのノードを取得
 
 		Args:
-			module_path (ModulePath)
+			module_path (ModulePath): モジュールパス
 		Returns:
 			Node: ノード
 		"""

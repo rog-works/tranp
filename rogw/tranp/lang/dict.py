@@ -1,4 +1,4 @@
-from typing import TypeAlias
+from typing import Any, TypeAlias
 
 _Node: TypeAlias = int | float | str | dict | list
 
@@ -15,7 +15,7 @@ def pluck(node: _Node, path: str) -> _Node:
 		return node
 
 
-def deep_merge(d1: dict, d2: dict) -> dict:
+def deep_merge(d1: dict[Any, Any], d2: dict[Any, Any]) -> dict:
 	merged = d1.copy()
 	for key, value in d2.items():
 		if isinstance(value, dict) and key in merged and isinstance(merged[key], dict):

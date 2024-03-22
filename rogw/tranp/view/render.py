@@ -2,7 +2,7 @@ from typing import Any, Protocol, Union, TypedDict
 
 from jinja2 import Environment, FileSystemLoader
 
-from rogw.tranp.dsn.translation import alias_dsn
+from rogw.tranp.dsn.translation import to_classes_alias, to_cpp_alias
 
 
 class Translator(Protocol):
@@ -34,8 +34,8 @@ class Renderer:
 			translator (Translator): 翻訳関数
 		"""
 		self.__renderer = Environment(loader=FileSystemLoader(template_dir, encoding='utf-8'))
-		self.__renderer.globals['i18n_classes'] = lambda key: translator(alias_dsn(f'rogw.tranp.compatible.libralies.classes.{key}'))
-		self.__renderer.globals['i18n_cpp'] = lambda key: translator(alias_dsn(f'rogw.tranp.compatible.cpp.classes.{key}'))
+		self.__renderer.globals['i18n_classes'] = lambda key: translator(to_classes_alias(key))
+		self.__renderer.globals['i18n_cpp'] = lambda key: translator(to_cpp_alias(key))  # FIXME C++に直接依存するのはNG
 
 	def render(self, template: str, indent: int = 0, vars: Union[TypedDict, dict[str, Any]] = {}) -> str:
 		"""テンプレートをレンダリング

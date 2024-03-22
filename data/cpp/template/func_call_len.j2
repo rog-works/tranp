@@ -1,1 +1,1 @@
-{{ arguments | join(', ') }}.size(){% if is_statement %};{% endif %}
+{{ arguments | join(', ') }}.{{ i18n_cpp('container.size') }}(){% if is_statement %};{% endif %}

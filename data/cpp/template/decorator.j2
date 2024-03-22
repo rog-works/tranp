@@ -1,8 +1,3 @@
 {%- if path not in ['classmethod', 'abstractmethod', '__alias__', '__allow_override__'] %}
-{{- path -}}(
-	{%- for argument in arguments -%}
-		{%- if loop.index0 > 0 %}, {% endif -%}
-		{{- argument -}}
-	{%- endfor -%}
-)
+{{- path }}({{ arguments | join(', ') }})
 {%- endif %}

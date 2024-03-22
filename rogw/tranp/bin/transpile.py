@@ -40,6 +40,7 @@ ConfigDict = TypedDict('ConfigDict', {
 	'exclude_patterns': list[str],
 	'output_dir': str,
 	'output_language': str,
+	'di': dict[str, str],
 	'force': bool,
 	'verbose': bool,
 	'profile': str,
@@ -60,6 +61,7 @@ class Config:
 		self.exclude_patterns = config['exclude_patterns']
 		self.output_dir = config['output_dir']
 		self.output_language = config['output_language']
+		self.di = config.get('di', {})
 		self.force = config.get('force', args['force'])
 		self.verbose = config.get('verbose', args['verbose'])
 		self.profile = config.get('profile', args['profile'])
@@ -176,8 +178,9 @@ class TranspileApp:
 		Returns:
 			ModuleDefinitions: モジュール定義
 		"""
-		return {
-			fullyname(Config): Config,
+		config = Config()
+		definitions = {
+			fullyname(Config): lambda: config,
 			fullyname(ITranspiler): Py2Cpp,
 			fullyname(ModulePaths): cls.make_module_paths,
 			fullyname(ParserSetting): cls.make_parser_setting,
@@ -186,6 +189,7 @@ class TranspileApp:
 			fullyname(TranslationMapping): cls.make_translation_mapping,
 			fullyname(TranspilerOptions): cls.make_options,
 		}
+		return {**definitions, **config.di}
 
 	@classmethod
 	@injectable

@@ -1,13 +1,13 @@
 {%- if var_type.startswith('CP<') -%}
 {{ var_type[3:-1] }}*
 {%- elif var_type.startswith('CSP<') -%}
-std::shared_ptr<{{ var_type[4:-1] }}>
+{{ i18n_cpp('shared_ptr') }}<{{ var_type[4:-1] }}>
 {%- elif var_type.startswith('CRef<') -%}
 {{ var_type[5:-1] }}&
 {%- elif var_type.startswith('CPConst<') -%}
 const {{ var_type[8:-1] }}*
 {%- elif var_type.startswith('CSPConst<') -%}
-const std::shared_ptr<{{ var_type[9:-1] }}>
+const {{ i18n_cpp('shared_ptr') }}<{{ var_type[9:-1] }}>
 {%- elif var_type.startswith('CRefConst<') -%}
 const {{ var_type[10:-1] }}&
 {%- elif var_type.startswith('CRawConst<') -%}

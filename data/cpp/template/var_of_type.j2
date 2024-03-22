@@ -1,5 +1,5 @@
 {%- if type_name == 'str' -%}
-std::string
+{{ i18n_classes('str') }}
 {%- else -%}
 {{ type_name }}
 {%- endif -%}

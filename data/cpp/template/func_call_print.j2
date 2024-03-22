@@ -1,1 +1,1 @@
-printf({{ arguments | join(', ') }}){% if is_statement %};{% endif %}
+{{ i18n_classes('print') }}({{ arguments | join(', ') }}){% if is_statement %};{% endif %}

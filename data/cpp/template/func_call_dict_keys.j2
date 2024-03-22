@@ -1,7 +1,7 @@
-[&]() -> std::vector<{{ var_type }}> {
-	std::vector<{{ var_type }}> __ret;
+[&]() -> {{ i18n_classes('list') }}<{{ var_type }}> {
+	{{ i18n_classes('list') }}<{{ var_type }}> __ret;
 	for (auto [__key, _] : {{ receiver }}) {
-		__ret.push_back(__key);
+		__ret.{{ i18n_classes('list.append') }}(__key);
 	}
 	return __ret;
 }()

@@ -10,7 +10,7 @@ from rogw.tranp.view.render import Renderer
 class Fixture:
 	@classmethod
 	def renderer(cls) -> Renderer:
-		return Renderer(os.path.abspath(os.path.join(tranp_dir(), 'data/cpp/template')))
+		return Renderer(os.path.join(tranp_dir(), 'data/cpp/template'), lambda key: key)
 
 
 class TestRenderer(TestCase):

@@ -1,12 +1,12 @@
-[{% if binded_this %}this, {% endif %}&]() -> std::map<{{ projection_types[0] }}, {{ projection_types[1] }}> {
-	std::map<{{ projection_types[0] }}, {{ projection_types[1] }}> __ret;
+[{% if binded_this %}this, {% endif %}&]() -> {{ i18n_classes('dict') }}<{{ projection_types[0] }}, {{ projection_types[1] }}> {
+	{{ i18n_classes('dict') }}<{{ projection_types[0] }}, {{ projection_types[1] }}> __ret;
 	for ({{ comp_for }}) {
 		{%- if condition %}
 		if ({{ condition }}) {
-			__ret.emplace({{ projection }});
+			__ret.{{ i18n_classes('dict.append') }}({{ projection }});
 		}
 		{%- else %}
-		__ret.emplace({{ projection }});
+		__ret.{{ i18n_classes('dict.append') }}({{ projection }});
 		{%- endif %}
 	}
 	return __ret;

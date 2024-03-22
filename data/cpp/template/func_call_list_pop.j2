@@ -1,6 +1,6 @@
 [&]() -> {{ var_type }} {
-	auto __iter = {{ receiver }}.{% if arguments %}begin() + {{ arguments[0] }}{% else %}end() - 1{% endif %};
+	auto __iter = {{ receiver }}.{% if arguments %}{{ i18n_classes('list.iter_begin') }}() + {{ arguments[0] }}{% else %}{{ i18n_classes('list.iter_end') }}() - 1{% endif %};
 	auto __copy = *__iter;
-	{{ receiver }}.erase(__iter);
+	{{ receiver }}.{{ i18n_classes('list.pop') }}(__iter);
 	return __copy;
 }(){% if is_statement %};{% endif %}

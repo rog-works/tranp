@@ -113,6 +113,7 @@ class TranspileApp:
 
 		Args:
 			config (Config): コンフィグ @inject
+			i18n (I18n): 国際化対応モジュール @inject
 		Returns:
 			Renderer: テンプレートレンダー
 		"""

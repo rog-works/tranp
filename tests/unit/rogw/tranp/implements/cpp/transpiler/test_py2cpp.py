@@ -4,7 +4,7 @@ from unittest import TestCase
 
 from rogw.tranp.app.dir import tranp_dir
 from rogw.tranp.dsn.translation import alias_dsn
-from rogw.tranp.i18n.i18n import TranslationMapping
+from rogw.tranp.i18n.i18n import I18n, TranslationMapping
 from rogw.tranp.implements.cpp.providers.i18n import translation_mapping_cpp
 from rogw.tranp.implements.cpp.providers.semantics import cpp_plugin_provider
 from rogw.tranp.implements.cpp.transpiler.py2cpp import Py2Cpp
@@ -139,13 +139,17 @@ def fixture_translation_mapping(loader: IFileLoader) -> TranslationMapping:
 	return translation_mapping_cpp(loader).merge(fixture_translations)
 
 
+def make_renderer(i18n: I18n) -> Renderer:
+	return Renderer(os.path.join(tranp_dir(), 'data/cpp/template'), i18n.t)
+
+
 class TestPy2Cpp(TestCase):
 	fixture = Fixture.make(__file__, {
 		fullyname(Py2Cpp): Py2Cpp,
 		fullyname(PluginProvider): cpp_plugin_provider,
 		fullyname(TranslationMapping): fixture_translation_mapping,
 		fullyname(TranspilerOptions): lambda: TranspilerOptions(verbose=False),
-		fullyname(Renderer): lambda: Renderer(os.path.join(tranp_dir(), 'data/cpp/template')),
+		fullyname(Renderer): make_renderer,
 	})
 
 	@data_provider([

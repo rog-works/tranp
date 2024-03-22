@@ -1,19 +1,41 @@
-from typing import Any, Union, TypedDict
+from typing import Any, Protocol, Union, TypedDict
 
 from jinja2 import Environment, FileSystemLoader
 
+from rogw.tranp.dsn.translation import alias_dsn
+
+
+class Translator(Protocol):
+	"""翻訳関数プロトコル
+
+	Note:
+		@see tranp.i18n.i18n.I18n.t
+	"""
+
+	def __call__(self, key: str) -> str:
+		"""翻訳キーに対応する文字列に変換
+
+		Args:
+			key (str): 翻訳キー
+		Returns:
+			str: 翻訳後の文字列
+		"""
+		...
 
 
 class Renderer:
 	"""テンプレートレンダー"""
 
-	def __init__(self, template_dir: str) -> None:
+	def __init__(self, template_dir: str, translator: Translator) -> None:
 		"""インスタンスを生成
 
 		Args:
 			template_dir (str): テンプレートファイルのディレクトリー
+			translator (Translator): 翻訳関数
 		"""
 		self.__renderer = Environment(loader=FileSystemLoader(template_dir, encoding='utf-8'))
+		self.__renderer.globals['i18n_classes'] = lambda key: translator(alias_dsn(f'rogw.tranp.compatible.libralies.classes.{key}'))
+		self.__renderer.globals['i18n_cpp'] = lambda key: translator(alias_dsn(f'rogw.tranp.compatible.cpp.classes.{key}'))
 
 	def render(self, template: str, indent: int = 0, vars: Union[TypedDict, dict[str, Any]] = {}) -> str:
 		"""テンプレートをレンダリング

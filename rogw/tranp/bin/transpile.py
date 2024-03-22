@@ -7,7 +7,7 @@ import yaml
 from rogw.tranp.app.app import App
 from rogw.tranp.data.meta.header import MetaHeader
 from rogw.tranp.data.meta.types import ModuleMetaFactory
-from rogw.tranp.i18n.i18n import TranslationMapping
+from rogw.tranp.i18n.i18n import I18n, TranslationMapping
 from rogw.tranp.implements.cpp.providers.semantics import cpp_plugin_provider
 from rogw.tranp.implements.cpp.transpiler.py2cpp import Py2Cpp
 from rogw.tranp.io.loader import IFileLoader
@@ -108,7 +108,7 @@ class TranspileApp:
 
 	@classmethod
 	@injectable
-	def make_renderer(cls, config: Config) -> Renderer:
+	def make_renderer(cls, config: Config, i18n: I18n) -> Renderer:
 		"""テンプレートレンダーを生成
 
 		Args:
@@ -116,7 +116,7 @@ class TranspileApp:
 		Returns:
 			Renderer: テンプレートレンダー
 		"""
-		return Renderer(config.template_dir)
+		return Renderer(config.template_dir, i18n.t)
 
 	@classmethod
 	@injectable

@@ -4,4 +4,5 @@
 {{ access }}:
 {%- include('function_attributes.j2') %}
 {%- endif %}
-{% if not (_decorators or template_types) %}{{ access }}: {% endif %}static {{ return_type }} {{ symbol }}({{ parameters | select('!=', 'cls') | join(', ') }}) {% include('function_block.j2') -%}
+{% if not (_decorators or template_types) %}{{ access }}: {% endif -%}
+static {{ return_type }} {{ symbol }}({{ parameters | select('!=', 'cls') | join(', ') }}) {% include('function_block.j2') -%}

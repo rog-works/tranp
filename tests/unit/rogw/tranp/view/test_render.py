@@ -736,6 +736,32 @@ class TestRenderer(TestCase):
 			]),
 		),
 		(
+			'class_method',
+			{
+				'symbol': 'static_method',
+				'decorators': ['deco(A, B)'],
+				'parameters': [],
+				'return_type': 'int',
+				'comment': '',
+				'statements': ['return 1;'],
+				'template_types': ['T'],
+				# belongs class only
+				'access': 'public',
+				'class_symbol': 'Hoge',
+				'is_abstract': False,
+				'allow_override': False,
+			},
+			'\n'.join([
+				'/** static_method */',
+				'public:',
+				'template<typename T>',
+				'deco(A, B)',
+				'static int static_method() {',
+				'	return 1;',
+				'}',
+			]),
+		),
+		(
 			'method',
 			{
 				'symbol': 'method',

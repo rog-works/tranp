@@ -1,8 +1,6 @@
 {%- if comment %}{{ comment }}{% else %}/** {{ symbol }} */{% endif %}
-{%- for decorator in decorators | select('!=', '') %}
-{{ decorator }}
-{%- endfor %}
-{%- for template_type in template_types %}
-template<typename {{ template_type }}>
-{%- endfor %}
+{%- set _decorators = decorators | select('!=', '') | join('\n') %}
+{%- if _decorators or template_types %}
+{%- include('function_attributes.j2') %}
+{%- endif %}
 {{ return_type }} {{ symbol }}({{ parameters | join(', ') }}) {% include('function_block.j2') %}

@@ -657,10 +657,11 @@ class TestRenderer(TestCase):
 				'return_type': 'int',
 				'comment': '',
 				'statements': ['return value + 1;'],
-				'template_types': [],
+				'template_types': ['T'],
 			},
 			'\n'.join([
 				'/** func */',
+				'template<typename T>',
 				'deco(A, B)',
 				'int func(std::string text, int value = 1) {',
 				'	return value + 1;',
@@ -713,6 +714,33 @@ class TestRenderer(TestCase):
 			]),
 		),
 		(
+			'constructor',
+			{
+				'symbol': '__init__',
+				'decorators': ['deco(A, B)'],
+				'parameters': [],
+				'return_type': 'void',
+				'comment': '',
+				'statements': [],
+				'template_types': ['T'],
+				# belongs class only
+				'access': 'public',
+				'class_symbol': 'Hoge',
+				'is_abstract': True,
+				'allow_override': False,
+				# constructor only
+				'initializers': [],
+				'super_initializer': {},
+			},
+			'\n'.join([
+				'/** Constructor */',
+				'public:',
+				'template<typename T>',
+				'deco(A, B)',
+				'virtual Hoge();',
+			]),
+		),
+		(
 			'class_method',
 			{
 				'symbol': 'static_method',
@@ -732,6 +760,31 @@ class TestRenderer(TestCase):
 				'/** static_method */',
 				'public: static int static_method() {',
 				'	return 1;',
+				'}',
+			]),
+		),
+		(
+			'class_method',
+			{
+				'symbol': 'static_method',
+				'decorators': ['deco(A, B)'],
+				'parameters': [],
+				'return_type': 'void',
+				'comment': '',
+				'statements': [],
+				'template_types': ['T'],
+				# belongs class only
+				'access': 'public',
+				'class_symbol': 'Hoge',
+				'is_abstract': False,
+				'allow_override': False,
+			},
+			'\n'.join([
+				'/** static_method */',
+				'public:',
+				'template<typename T>',
+				'deco(A, B)',
+				'static void static_method() {',
 				'}',
 			]),
 		),

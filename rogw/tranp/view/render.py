@@ -26,14 +26,14 @@ class Translator(Protocol):
 class Renderer:
 	"""テンプレートレンダー"""
 
-	def __init__(self, template_dir: str, translator: Translator) -> None:
+	def __init__(self, template_dirs: list[str], translator: Translator) -> None:
 		"""インスタンスを生成
 
 		Args:
-			template_dir (str): テンプレートファイルのディレクトリー
+			template_dirs (list[str]): テンプレートファイルのディレクトリーリスト
 			translator (Translator): 翻訳関数
 		"""
-		self.__renderer = Environment(loader=FileSystemLoader(template_dir, encoding='utf-8'))
+		self.__renderer = Environment(loader=FileSystemLoader(template_dirs, encoding='utf-8'))
 		self.__renderer.globals['i18n_classes'] = lambda key: translator(to_classes_alias(key))
 		self.__renderer.globals['i18n_cpp'] = lambda key: translator(to_cpp_alias(key))  # FIXME C++に直接依存するのはNG
 

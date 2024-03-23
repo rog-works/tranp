@@ -140,7 +140,7 @@ def fixture_translation_mapping(loader: IFileLoader) -> TranslationMapping:
 
 
 def make_renderer(i18n: I18n) -> Renderer:
-	return Renderer(os.path.join(tranp_dir(), 'data/cpp/template'), i18n.t)
+	return Renderer([os.path.join(tranp_dir(), 'data/cpp/template')], i18n.t)
 
 
 class TestPy2Cpp(TestCase):

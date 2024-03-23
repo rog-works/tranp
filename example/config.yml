@@ -1,5 +1,6 @@
 grammar: data/grammar.lark
-template_dir: data/cpp/template
+template_dirs:
+  - data/cpp/template
 trans_mapping: data/cpp/i18n.yml
 input_glob: example/**/*.py
 output_dir: ./

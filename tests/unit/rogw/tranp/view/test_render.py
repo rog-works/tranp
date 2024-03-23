@@ -31,7 +31,7 @@ class Fixture:
 		def translator(key: str) -> str:
 			return trans_mapping.get(key, key)
 
-		return Renderer(os.path.join(tranp_dir(), 'data/cpp/template'), translator)
+		return Renderer([os.path.join(tranp_dir(), 'data/cpp/template')], translator)
 
 
 class TestRenderer(TestCase):

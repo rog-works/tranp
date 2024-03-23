@@ -34,7 +34,7 @@ ArgsDict = TypedDict('ArgsDict', {
 })
 ConfigDict = TypedDict('ConfigDict', {
 	'grammar': str,
-	'template_dir': str,
+	'template_dirs': list[str],
 	'trans_mapping': str,
 	'input_glob': str,
 	'exclude_patterns': list[str],
@@ -55,7 +55,7 @@ class Config:
 		args = self.__parse_argv(sys.argv[1:])
 		config = self.__load_config(args['config'])
 		self.grammar = config['grammar']
-		self.template_dir = config['template_dir']
+		self.template_dirs = config['template_dirs']
 		self.trans_mapping = config['trans_mapping']
 		self.input_glob = config['input_glob']
 		self.exclude_patterns = config['exclude_patterns']
@@ -119,7 +119,7 @@ class TranspileApp:
 		Returns:
 			Renderer: テンプレートレンダー
 		"""
-		return Renderer(config.template_dir, i18n.t)
+		return Renderer(config.template_dirs, i18n.t)
 
 	@classmethod
 	@injectable

@@ -230,6 +230,10 @@ class Alias:
 		a = Alias()
 		i = Alias.Inner()
 
+	@classmethod
+	def class_method(cls) -> None:
+		Alias.class_method()
+
 class CompOps:
 	class C:
 		...

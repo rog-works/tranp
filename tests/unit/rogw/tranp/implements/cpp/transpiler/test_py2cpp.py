@@ -5,7 +5,7 @@ from unittest import TestCase
 from rogw.tranp.app.dir import tranp_dir
 from rogw.tranp.dsn.translation import alias_dsn
 from rogw.tranp.i18n.i18n import I18n, TranslationMapping
-from rogw.tranp.implements.cpp.providers.i18n import translation_mapping_cpp
+from rogw.tranp.implements.cpp.providers.i18n import example_translation_mapping_cpp
 from rogw.tranp.implements.cpp.providers.semantics import cpp_plugin_provider
 from rogw.tranp.implements.cpp.transpiler.py2cpp import Py2Cpp
 from rogw.tranp.io.loader import IFileLoader
@@ -86,6 +86,7 @@ class ASTMapping:
 		'Alias.in_param_return': f'{_Alias}.class_def_raw.block.function_def[2]',
 		'Alias.in_param_return2': f'{_Alias}.class_def_raw.block.function_def[3]',
 		'Alias.in_local.block': f'{_Alias}.class_def_raw.block.function_def[4].function_def_raw.block',
+		'Alias.class_method.block': f'{_Alias}.class_def_raw.block.function_def[5].function_def_raw.block',
 
 		'CompOps.list_comp.block': f'{_CompOps}.class_def_raw.block.function_def[1].function_def_raw.block',
 		'CompOps.dict_comp.block': f'{_CompOps}.class_def_raw.block.function_def[2].function_def_raw.block',
@@ -136,7 +137,7 @@ def fixture_translation_mapping(loader: IFileLoader) -> TranslationMapping:
 		alias_dsn(f'{fixture_module_path}.Alias'): 'Alias2',
 		alias_dsn(f'{fixture_module_path}.Alias.Inner'): 'Inner2',
 	}
-	return translation_mapping_cpp(loader).merge(fixture_translations)
+	return example_translation_mapping_cpp(loader).merge(fixture_translations)
 
 
 def make_renderer(i18n: I18n) -> Renderer:
@@ -287,6 +288,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('Alias.in_param_return2', ''), defs.Method, '/** in_param_return2 */\npublic: Alias2::Inner2 in_param_return2(Alias2::Inner2 i) {\n\n}'),
 		(_ast('Alias.in_local.block', 'assign[0]'), defs.MoveAssign, 'Alias2 a = Alias2();'),
 		(_ast('Alias.in_local.block', 'assign[1]'), defs.MoveAssign, 'Alias2::Inner2 i = Alias2::Inner2();'),
+		(_ast('Alias.class_method.block', 'funccall'), defs.FuncCall, 'Alias2::class_method();'),
 
 		(_ast('CompOps.list_comp.block', 'assign[1]'), defs.MoveAssign, BlockExpects.CompOps_list_comp_assign_values1),
 		(_ast('CompOps.dict_comp.block', 'assign[1]'), defs.MoveAssign, BlockExpects.CompOps_dict_comp_assign_kvs1),

@@ -72,7 +72,7 @@ class DeclOps {
 	DictOps_keys_assign_keys = \
 """std::vector<std::string> keys = [&]() -> std::vector<std::string> {
 	std::vector<std::string> __ret;
-	for (auto [__key, _] : kvs) {
+	for (auto& [__key, _] : kvs) {
 		__ret.push_back(__key);
 	}
 	return __ret;
@@ -81,7 +81,7 @@ class DeclOps {
 	DictOps_values_assign_values = \
 """std::vector<int> values = [&]() -> std::vector<int> {
 	std::vector<int> __ret;
-	for (auto [_, __value] : kvs) {
+	for (auto& [_, __value] : kvs) {
 		__ret.push_back(__value);
 	}
 	return __ret;

@@ -1,6 +1,6 @@
 [&]() -> {{ i18n_classes('list') }}<{{ var_type }}> {
 	{{ i18n_classes('list') }}<{{ var_type }}> __ret;
-	for (auto [__key, _] : {{ receiver }}) {
+	for (auto& [__key, _] : {{ receiver }}) {
 		__ret.{{ i18n_classes('list.append') }}(__key);
 	}
 	return __ret;

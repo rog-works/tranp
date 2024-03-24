@@ -496,7 +496,7 @@ class TestRenderer(TestCase):
 			'\n'.join([
 				'[&]() -> std::vector<int> {',
 				'	std::vector<int> __ret;',
-				'	for (auto [__key, _] : items) {',
+				'	for (auto& [__key, _] : items) {',
 				'		__ret.push_back(__key);',
 				'	}',
 				'	return __ret;',
@@ -536,7 +536,7 @@ class TestRenderer(TestCase):
 			'\n'.join([
 				'[&]() -> std::vector<int> {',
 				'	std::vector<int> __ret;',
-				'	for (auto [_, __value] : items) {',
+				'	for (auto& [_, __value] : items) {',
 				'		__ret.push_back(__value);',
 				'	}',
 				'	return __ret;',

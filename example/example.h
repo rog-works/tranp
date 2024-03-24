@@ -8,7 +8,7 @@
 /**
  * セル(メッシュ)関連のライブラリー
  */
-class CellMesh {
+class CellMesh2 {
 	/**
 	 * セルの8頂点インデックス
 	 */
@@ -182,15 +182,15 @@ class CellMesh {
 	 * @return ベクトル
 	 */
 	public: static IntVector face_index_to_vector(int face_index) {
-		std::map<CellMesh::FaceIndexs, IntVector> to_vector = {
-			{CellMesh::FaceIndexs::Left, IntVector(-1, 0, 0)},
-			{CellMesh::FaceIndexs::Right, IntVector(1, 0, 0)},
-			{CellMesh::FaceIndexs::Back, IntVector(0, -1, 0)},
-			{CellMesh::FaceIndexs::Front, IntVector(0, 1, 0)},
-			{CellMesh::FaceIndexs::Bottom, IntVector(0, 0, -1)},
-			{CellMesh::FaceIndexs::Top, IntVector(0, 0, 1)},
+		std::map<CellMesh2::FaceIndexs, IntVector> to_vector = {
+			{CellMesh2::FaceIndexs::Left, IntVector(-1, 0, 0)},
+			{CellMesh2::FaceIndexs::Right, IntVector(1, 0, 0)},
+			{CellMesh2::FaceIndexs::Back, IntVector(0, -1, 0)},
+			{CellMesh2::FaceIndexs::Front, IntVector(0, 1, 0)},
+			{CellMesh2::FaceIndexs::Bottom, IntVector(0, 0, -1)},
+			{CellMesh2::FaceIndexs::Top, IntVector(0, 0, 1)},
 		};
-		return to_vector[(CellMesh::FaceIndexs)(face_index)];
+		return to_vector[(CellMesh2::FaceIndexs)(face_index)];
 	}
 	/**
 	 * 6面インデックスを反転
@@ -566,7 +566,7 @@ class CellMesh {
 			if (!origin.has_triangle_groups()) {
 				origin.enable_triangle_groups(0);
 			}
-			std::map<CellMesh::FaceIndexs, std::vector<IntVector>> uv_map = {
+			std::map<CellMesh2::FaceIndexs, std::vector<IntVector>> uv_map = {
 				{CellMesh::FaceIndexs::Left, { {IntVector(3, 2, 1)}, {IntVector(3, 1, 0)}, }},
 				{CellMesh::FaceIndexs::Right, { {IntVector(2, 1, 0)}, {IntVector(2, 0, 3)}, }},
 				{CellMesh::FaceIndexs::Back, { {IntVector(2, 1, 0)}, {IntVector(2, 0, 3)}, }},
@@ -574,7 +574,7 @@ class CellMesh {
 				{CellMesh::FaceIndexs::Bottom, { {IntVector(0, 1, 2)}, {IntVector(0, 2, 3)}, }},
 				{CellMesh::FaceIndexs::Top, { {IntVector(0, 3, 2)}, {IntVector(0, 2, 1)}, }},
 			};
-			std::map<CellMesh::FaceIndexs, std::vector<IntVector>> polygon_map = {
+			std::map<CellMesh2::FaceIndexs, std::vector<IntVector>> polygon_map = {
 				{CellMesh::FaceIndexs::Left, { {IntVector(0, 3, 7)}, {IntVector(0, 7, 4)}, }},
 				{CellMesh::FaceIndexs::Right, { {IntVector(1, 5, 6)}, {IntVector(1, 6, 2)}, }},
 				{CellMesh::FaceIndexs::Back, { {IntVector(0, 4, 5)}, {IntVector(0, 5, 1)}, }},
@@ -597,7 +597,7 @@ class CellMesh {
 				if (p_ids[i].x != -1) {
 					continue;
 				}
-				CellMesh::FaceIndexs key = (CellMesh::FaceIndexs)(i);
+				CellMesh2::FaceIndexs key = (CellMesh2::FaceIndexs)(i);
 				std::vector<IntVector>& polygon_entry = polygon_map[key];
 				std::vector<IntVector>& uv_entry = uv_map[key];
 				int p_group_id = origin.max_group_id();

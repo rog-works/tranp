@@ -22,7 +22,7 @@ class DeclOps {
 """std::map<std::string, CompOps::C> kvs1 = [this, &]() -> std::map<std::string, CompOps::C> {
 	std::map<std::string, CompOps::C> __ret;
 	for (auto& [key, value] : kvs0) {
-		__ret.emplace({key, value});
+		__ret[key] = value;
 	}
 	return __ret;
 }();"""
@@ -32,7 +32,7 @@ class DeclOps {
 	std::map<int, std::string> __ret;
 	int __index = 0;
 	for (auto& __entry : keys) {
-		__ret.emplace(__index++, __entry);
+		__ret[__index++] = __entry;
 	}
 	return __ret;
 }()) {

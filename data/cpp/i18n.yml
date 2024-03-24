@@ -1,6 +1,5 @@
 # @see dsn.translation.alias_dsn
 aliases.rogw.tranp.compatible.libralies.classes.dict: std::map
-aliases.rogw.tranp.compatible.libralies.classes.dict.append: emplace
 aliases.rogw.tranp.compatible.libralies.classes.dict.in: contains
 aliases.rogw.tranp.compatible.libralies.classes.list: std::vector
 aliases.rogw.tranp.compatible.libralies.classes.list.append: push_back

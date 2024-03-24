@@ -495,7 +495,8 @@ class Py2Cpp(ITranspiler):
 		return 'raw', CVars.Accessors.Raw.name
 
 	def on_class_ref(self, node: defs.ClassRef) -> str:
-		return node.class_symbol.tokens
+		symbol = self.reflections.resolve(node.class_symbol)
+		return self.to_domain_name(symbol)
 
 	def on_this_ref(self, node: defs.ThisRef) -> str:
 		return 'this'

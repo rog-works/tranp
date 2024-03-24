@@ -218,6 +218,10 @@ class AccessOps(Sub):
 		print(arr_ar.on[0])
 
 class Alias:
+	class Values(CEnum):
+		A = 1
+		B = 2
+
 	class Inner: ...
 
 	def __init__(self) -> None:
@@ -231,8 +235,17 @@ class Alias:
 		i = Alias.Inner()
 
 	@classmethod
-	def class_method(cls) -> None:
-		Alias.class_method()
+	def in_class_method(cls) -> None:
+		cls.in_class_method()
+		a = cls.Values.A
+		d = {
+			cls.Values.A: cls.Values.B,
+			cls.Values.B: cls.Values.A,
+		}
+		d2 = {
+			int(cls.Values.A): [int(cls.Values.B)],
+			int(cls.Values.B): [int(cls.Values.A)],
+		}
 
 class CompOps:
 	class C:

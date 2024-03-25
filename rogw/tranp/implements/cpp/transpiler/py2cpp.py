@@ -582,7 +582,7 @@ class Py2Cpp(ITranspiler):
 
 	def on_func_call(self, node: defs.FuncCall, calls: str, arguments: list[str]) -> str:
 		is_statement = node.parent.is_a(defs.Block)
-		spec, context = self.analyze_func_call_spec(node, calls)
+		spec, context = self.analyze_func_call_spec(node)
 		func_call_vars = {'calls': calls, 'arguments': arguments, 'is_statement': is_statement}
 		if spec == 'directive':
 			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
@@ -603,22 +603,22 @@ class Py2Cpp(ITranspiler):
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'var_type': var_type})
 		elif spec == 'list_pop':
-			receiver = re.sub(r'(->|::|\.)pop$', '', calls)
+			receiver = re.sub(r'(->|::|\.)\w+$', '', calls)
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
 		elif spec == 'dict_pop':
-			receiver = re.sub(r'(->|::|\.)pop$', '', calls)
+			receiver = re.sub(r'(->|::|\.)\w+$', '', calls)
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
 		elif spec == 'dict_keys':
-			receiver = re.sub(r'(->|::|\.)keys$', '', calls)
+			receiver = re.sub(r'(->|::|\.)\w+$', '', calls)
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
 		elif spec == 'dict_values':
-			receiver = re.sub(r'(->|::|\.)values$', '', calls)
+			receiver = re.sub(r'(->|::|\.)\w+$', '', calls)
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
-		elif spec == 'new_enum':
+		elif spec == 'cast_enum':
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}_cast_bin_to_bin', vars={**func_call_vars, 'var_type': var_type})
 		elif spec.startswith('to_cvar_'):
@@ -637,55 +637,58 @@ class Py2Cpp(ITranspiler):
 		else:
 			return self.view.render(node.classification, vars=func_call_vars)
 
-	def analyze_func_call_spec(self, node: defs.FuncCall, calls: str) -> tuple[str, IReflection | None]:
+	def analyze_func_call_spec(self, node: defs.FuncCall) -> tuple[str, IReflection | None]:
 		"""
 		Note:
-			FIXME callsは__alias__によって別名になる可能性があるため、実装名が欲しい場合はノードから直接取得すること。全体的な見直しが必要かも
+			XXX callsは別名になる可能性があるため、ノードから取得したcallsを使用する
 		"""
-		if calls == 'directive':
-			return 'directive', None
-		elif calls == 'len':
-			return 'len', None
-		elif calls == 'print':
-			return 'print', None
-		elif isinstance(node.calls, defs.Var) and node.calls.tokens == 'list':
-			return 'cast_list', None
-		elif isinstance(node.calls, defs.Var) and node.calls.tokens in ['int', 'float', 'bool', 'str']:
-			org_calls = node.calls.tokens
-			casted_types = {'int': int, 'float': float, 'bool': bool, 'str': str}
-			from_raw = self.reflections.type_of(node.arguments[0])
-			to_type = casted_types[org_calls]
-			to_raw = self.reflections.type_of_standard(to_type)
-			if self.reflections.is_a(from_raw, str):
-				return 'cast_str_to_bin', to_raw
-			elif to_type == str:
-				return 'cast_bin_to_str', from_raw
-			else:
-				return 'cast_bin_to_bin', to_raw
-		elif isinstance(node.calls, defs.Relay) and node.calls.prop.tokens in ['pop', 'keys', 'values']:
+		if isinstance(node.calls, defs.Var):
+			calls = node.calls.tokens
+			if calls == 'directive':
+				return 'directive', None
+			elif calls == 'len':
+				return 'len', None
+			elif calls == 'print':
+				return 'print', None
+			elif calls == 'list':
+				return 'cast_list', None
+			elif calls in ['int', 'float', 'bool', 'str']:
+				casted_types = {'int': int, 'float': float, 'bool': bool, 'str': str}
+				from_raw = self.reflections.type_of(node.arguments[0])
+				to_type = casted_types[calls]
+				to_raw = self.reflections.type_of_standard(to_type)
+				if self.reflections.is_a(from_raw, str):
+					return 'cast_str_to_bin', to_raw
+				elif to_type == str:
+					return 'cast_bin_to_str', from_raw
+				else:
+					return 'cast_bin_to_bin', to_raw
+			elif calls in CVars.keys():
+				return f'to_cvar_{calls}', None
+		elif isinstance(node.calls, defs.Relay):
 			prop = node.calls.prop.tokens
-			context = self.reflections.type_of(node.calls).context
-			if self.reflections.is_a(context, list) and prop == 'pop':
-				return 'list_pop', context.attrs[0]
-			elif self.reflections.is_a(context, dict) and prop in ['pop', 'keys', 'values']:
-				key_attr, value_attr = context.attrs
-				attr_indexs = {'pop': value_attr, 'keys': key_attr, 'values': value_attr}
-				return f'dict_{prop}', attr_indexs[prop]
-		elif isinstance(node.calls, defs.Var) and node.calls.tokens in CVars.keys():
-			return f'to_cvar_{node.calls.tokens}', None
-		elif isinstance(node.calls, defs.Relay) and node.calls.prop.tokens == CVars.allocator_key:
-			context = self.reflections.type_of(node.calls).context
-			cvar_key = CVars.key_from(self.reflections, context)
-			if CVars.is_addr_p(cvar_key):
-				return f'new_cvar_p', None
-			elif CVars.is_addr_sp(cvar_key):
-				new_type_raw = self.reflections.type_of(node.arguments[0])
-				spec = 'new_cvar_sp_list' if self.reflections.is_a(new_type_raw, list) else 'new_cvar_sp'
-				return spec, new_type_raw
-		elif isinstance(node.calls, (defs.Relay, defs.Var)):
+			if prop in ['pop', 'keys', 'values']:
+				context = self.reflections.type_of(node.calls).context
+				if self.reflections.is_a(context, list) and prop == 'pop':
+					return 'list_pop', context.attrs[0]
+				elif self.reflections.is_a(context, dict) and prop in ['pop', 'keys', 'values']:
+					key_attr, value_attr = context.attrs
+					attr_indexs = {'pop': value_attr, 'keys': key_attr, 'values': value_attr}
+					return f'dict_{prop}', attr_indexs[prop]
+			elif prop == CVars.allocator_key:
+				context = self.reflections.type_of(node.calls).context
+				cvar_key = CVars.key_from(self.reflections, context)
+				if CVars.is_addr_p(cvar_key):
+					return f'new_cvar_p', None
+				elif CVars.is_addr_sp(cvar_key):
+					new_type_raw = self.reflections.type_of(node.arguments[0])
+					spec = 'new_cvar_sp_list' if self.reflections.is_a(new_type_raw, list) else 'new_cvar_sp'
+					return spec, new_type_raw
+
+		if isinstance(node.calls, (defs.Relay, defs.Var)):
 			raw = self.reflections.type_of(node.calls)
 			if raw.types.is_a(defs.Enum):
-				return 'new_enum', raw
+				return 'cast_enum', raw
 
 		return 'otherwise', None
 

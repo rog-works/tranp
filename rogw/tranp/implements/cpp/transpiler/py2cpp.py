@@ -1,6 +1,7 @@
 import re
 from typing import cast
 
+from rogw.tranp.compatible.cpp.preprocess import directive
 import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.data.meta.header import MetaHeader
 from rogw.tranp.data.meta.types import ModuleMetaFactory, TranspilerMeta
@@ -217,16 +218,16 @@ class Py2Cpp(ITranspiler):
 			return self.view.render(node.classification, vars={'symbols': symbols, 'iterates': for_in, 'statements': statements})
 
 	def proc_for_range(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
-		last_index = cast(re.Match, re.fullmatch(r'range\((.+)\)', for_in))[1]
+		last_index = cast(re.Match, re.fullmatch(r'\w+\((.+)\)', for_in))[1]  # 期待値: 'range(arguments...)'
 		return self.view.render(f'{node.classification}_range', vars={'symbol': symbols[0], 'last_index': last_index, 'statements': statements})
 
 	def proc_for_enumerate(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
-		iterates = cast(re.Match, re.fullmatch(r'enumerate\((.+)\)', for_in))[1]
+		iterates = cast(re.Match, re.fullmatch(r'\w+\((.+)\)', for_in))[1]  # 期待値: 'enumerate(arguments...)'
 		var_type = self.to_accessible_name(self.reflections.type_of(node.for_in).attrs[1])
 		return self.view.render(f'{node.classification}_enumerate', vars={'symbols': symbols, 'iterates': iterates, 'statements': statements, 'var_type': var_type})
 
 	def proc_for_dict_items(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
-		iterates = cast(re.Match, re.fullmatch(r'(.+)\.items\(\)', for_in))[1]
+		iterates = cast(re.Match, re.fullmatch(r'(.+)\.\w+\(\)', for_in))[1]  # 期待値: 'iterates.items()'
 		return self.view.render(f'{node.classification}_dict_items', vars={'symbols': symbols, 'iterates': iterates, 'statements': statements})
 
 	def on_catch(self, node: defs.Catch, var_type: str, symbol: str, statements: list[str]) -> str:
@@ -242,7 +243,7 @@ class Py2Cpp(ITranspiler):
 		elif isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Var) and node.iterates.calls.tokens == enumerate.__name__:
 			raise LogicError(f'Operation not allowed. "enumerate" is not supported. node: {node}')
 		elif isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Relay) and node.iterates.calls.prop.tokens == dict.items.__name__:
-			iterates = cast(re.Match, re.fullmatch(r'(.+)\.items\(\)', for_in))[1]
+			iterates = cast(re.Match, re.fullmatch(r'(.+)\.\w+\(\)', for_in))[1]  # 期待値: 'iterates.items()'
 			return self.view.render(node.classification, vars={'symbols': symbols, 'iterates': iterates})
 		else:
 			return self.view.render(node.classification, vars={'symbols': symbols, 'iterates': for_in})
@@ -603,19 +604,19 @@ class Py2Cpp(ITranspiler):
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'var_type': var_type})
 		elif spec == 'list_pop':
-			receiver = re.sub(r'(->|::|\.)\w+$', '', calls)
+			receiver = re.sub(r'(->|::|\.)\w+$', '', calls)  # 期待値: 'receiver.pop'
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
 		elif spec == 'dict_pop':
-			receiver = re.sub(r'(->|::|\.)\w+$', '', calls)
+			receiver = re.sub(r'(->|::|\.)\w+$', '', calls)  # 期待値: 'receiver.pop'
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
 		elif spec == 'dict_keys':
-			receiver = re.sub(r'(->|::|\.)\w+$', '', calls)
+			receiver = re.sub(r'(->|::|\.)\w+$', '', calls)  # 期待値: 'receiver.keys'
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
 		elif spec == 'dict_values':
-			receiver = re.sub(r'(->|::|\.)\w+$', '', calls)
+			receiver = re.sub(r'(->|::|\.)\w+$', '', calls)  # 期待値: 'receiver.values'
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
 		elif spec == 'cast_enum':
@@ -644,11 +645,11 @@ class Py2Cpp(ITranspiler):
 		"""
 		if isinstance(node.calls, defs.Var):
 			calls = node.calls.tokens
-			if calls == 'directive':
+			if calls == directive.__name__:
 				return 'directive', None
-			elif calls == 'len':
+			elif calls == len.__name__:
 				return 'len', None
-			elif calls == 'print':
+			elif calls == print.__name__:
 				return 'print', None
 			elif calls == 'list':
 				return 'cast_list', None

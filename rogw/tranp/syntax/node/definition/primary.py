@@ -9,7 +9,7 @@ from rogw.tranp.syntax.errors import InvalidRelationError
 from rogw.tranp.syntax.node.definition.literal import Literal
 from rogw.tranp.syntax.node.definition.terminal import Empty
 from rogw.tranp.syntax.node.embed import Meta, accept_tags, expandable
-from rogw.tranp.syntax.node.interface import IDomain, IScope, ITerminal
+from rogw.tranp.syntax.node.interface import IDomain, INamespace, IScope, ITerminal
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.syntax.node.promise import IDeclaration, ISymbol
 
@@ -75,7 +75,7 @@ class DeclThisVar(DeclVar):
 	@override
 	def fullyname(self) -> str:
 		"""Note: XXX クラス直下に配置するため例外的にスコープを調整"""
-		return DSN.join(self._ancestor('class_def').scope, self.domain_name)
+		return DSN.join(self._ancestor('class_def').fullyname, self.domain_name)
 
 	@property
 	def tokens_without_this(self) -> str:
@@ -493,29 +493,13 @@ class Generator(Node):
 		raise NotImplementedError()
 
 
-class Comprehension(Generator, IDomain, IScope):
+class Comprehension(Generator, IDomain, IScope, INamespace):
 	"""Note: XXX 属するカテゴリーは何が最適か検討。無名関数に近い？"""
 
 	@property
 	@override
 	def domain_name(self) -> str:
 		return DSN.identify(self.classification, self.id)
-
-	@property
-	@override
-	def fullyname(self) -> str:
-		"""Note: XXX スコープが自身を表すためスコープをそのまま返却"""
-		return self.scope
-
-	@property
-	@implements
-	def scope_part(self) -> str:
-		return self.domain_name
-
-	@property
-	@implements
-	def namespace_part(self) -> str:
-		return self.domain_name
 
 	@property
 	@Meta.embed(Node, expandable)

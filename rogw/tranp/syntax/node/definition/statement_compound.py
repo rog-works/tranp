@@ -12,7 +12,7 @@ from rogw.tranp.syntax.node.definition.primary import Argument, CustomType, Decl
 from rogw.tranp.syntax.node.definition.statement_simple import AnnoAssign, MoveAssign
 from rogw.tranp.syntax.node.definition.terminal import Empty
 from rogw.tranp.syntax.node.embed import Meta, accept_tags, expandable
-from rogw.tranp.syntax.node.interface import IDomain, IScope
+from rogw.tranp.syntax.node.interface import IDomain, INamespace, IScope
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.syntax.node.promise import IDeclaration, ISymbol, StatementBlock
 
@@ -29,20 +29,7 @@ class Block(Node):
 
 
 class Flow(Node): pass
-
-
-class FlowEnter(Flow, IScope):
-	@property
-	@implements
-	def scope_part(self) -> str:
-		return self.classification
-
-	@property
-	@implements
-	def namespace_part(self) -> str:
-		return ''
-
-
+class FlowEnter(Flow, IScope): pass
 class FlowPart(Flow): pass
 
 
@@ -206,27 +193,11 @@ class Try(FlowEnter):
 		return [self.block, *[catch.block for catch in self.catches]]
 
 
-class ClassDef(Node, IDomain, IScope, IDeclaration, ISymbol):
+class ClassDef(Node, IDomain, IScope, INamespace, IDeclaration, ISymbol):
 	@property
 	@override
 	def domain_name(self) -> str:
 		return self.symbol.tokens
-
-	@property
-	@override
-	def fullyname(self) -> str:
-		"""Note: XXX スコープが自身を表すためスコープをそのまま返却"""
-		return self.scope
-
-	@property
-	@implements
-	def scope_part(self) -> str:
-		return self.domain_name
-
-	@property
-	@implements
-	def namespace_part(self) -> str:
-		return self.domain_name
 
 	@property
 	@implements

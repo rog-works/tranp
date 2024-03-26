@@ -2,18 +2,18 @@ class IScope:
 	"""スコープインターフェイス
 
 	Note:
-		対象: クラス/ファンクション/フロー構文/リスト内包表記
+		対象: クラス/ファンクション/リスト内包表記/フロー構文
 	"""
+	pass
 
-	@property
-	def scope_part(self) -> str:
-		"""str: スコープパート名 Note: 実装対象以外は空文字。対象: クラス/ファンクション/ブロック"""
-		raise NotImplementedError()
 
-	@property
-	def namespace_part(self) -> str:
-		"""str: 名前空間パート名 Note: 実装対象以外は空文字。対象: クラス"""
-		raise NotImplementedError()
+class INamespace:
+	"""名前空間インターフェイス
+
+	Note:
+		対象: クラス/ファンクション/リスト内包表記
+	"""
+	pass
 
 
 class ITerminal:
@@ -29,6 +29,6 @@ class IDomain:
 	"""ドメインインターフェイス
 
 	Note:
-		対象: クラス/ファンクション/シンボル/リテラル
+		対象: クラス/ファンクション/リスト内包表記/シンボル/リテラル
 	"""
 	pass

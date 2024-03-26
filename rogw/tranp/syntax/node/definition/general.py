@@ -20,12 +20,12 @@ class Entrypoint(Node):
 
 	@property
 	@override
-	def namespace(self) -> str:
+	def scope(self) -> str:
 		return self.module_path
 
 	@property
 	@override
-	def scope(self) -> str:
+	def namespace(self) -> str:
 		return self.module_path
 
 	@property

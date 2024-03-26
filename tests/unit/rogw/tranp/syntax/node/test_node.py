@@ -88,32 +88,44 @@ class TestNode(TestCase):
 		self.assertEqual(node.classification, expected)
 
 	@data_provider([
+		# General
 		('...', 'file_input', '__main__'),
-		('class A: ...', 'file_input.class_def', '__main__.A'),
+		# Block
 		('class A: ...', 'file_input.class_def.class_def_raw.block', '__main__.A'),
-		('class E(CEnum): ...', 'file_input.class_def', '__main__.E'),
-		('def func() -> None: ...', 'file_input.function_def', '__main__.func'),
+		# Flow
 		('if True: ...', 'file_input.if_stmt', '__main__.if'),
 		('for i in [0]: ...', 'file_input.for_stmt', '__main__.for'),
 		('while True: ...', 'file_input.while_stmt', '__main__.while'),
-		('1', 'file_input.number', '__main__'),
+		# ClassDef
+		('def func() -> None: ...', 'file_input.function_def', '__main__.func'),
+		('class A: ...', 'file_input.class_def', '__main__.A'),
+		('class E(CEnum): ...', 'file_input.class_def', '__main__.E'),
+		# Primary
 		('[a for a in []]', 'file_input.list_comp', '__main__.list_comp@1'),
 		('{a: b for a, b in {}}', 'file_input.dict_comp', '__main__.dict_comp@1'),
+		# Literal
+		('1', 'file_input.number', '__main__'),
 	])
 	def test_scope(self, source: str, full_path: str, expected: str) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path)
 		self.assertEqual(node.scope, expected)
 
 	@data_provider([
+		# General
 		('...', 'file_input', '__main__'),
-		('class A: ...', 'file_input.class_def', '__main__.A'),
+		# Block
 		('class A: ...', 'file_input.class_def.class_def_raw.block', '__main__.A'),
-		('class E(CEnum): ...', 'file_input.class_def', '__main__.E'),
-		('def func() -> None: ...', 'file_input.function_def', '__main__.func'),
+		# Flow
 		('if 1: ...', 'file_input.if_stmt', '__main__'),
-		('1', 'file_input.number', '__main__'),
+		# ClassDef
+		('def func() -> None: ...', 'file_input.function_def', '__main__.func'),
+		('class A: ...', 'file_input.class_def', '__main__.A'),
+		('class E(CEnum): ...', 'file_input.class_def', '__main__.E'),
+		# Primary
 		('[a for a in []]', 'file_input.list_comp', '__main__.list_comp@1'),
 		('{a: b for a, b in {}}', 'file_input.dict_comp', '__main__.dict_comp@1'),
+		# Literal
+		('1', 'file_input.number', '__main__'),
 	])
 	def test_namespace(self, source: str, full_path: str, expected: str) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path)

@@ -14,6 +14,32 @@ from rogw.tranp.syntax.node.interface import IDeclaration, ISymbol
 from rogw.tranp.syntax.node.node import Node
 
 
+@Meta.embed(Node, accept_tags('argvalue'))
+class Argument(Node):
+	@property
+	@Meta.embed(Node, expandable)
+	def label(self) -> 'ArgumentLabel | Empty':
+		children = self._children()
+		if len(children) == 2:
+			return children[0].as_a(ArgumentLabel)
+
+		return self.dirty_child(Empty, '__empty__', tokens='')
+
+	@property
+	@Meta.embed(Node, expandable)
+	def value(self) -> Node:
+		children = self._children()
+		return children[1] if len(children) == 2 else children[0]
+
+
+@Meta.embed(Node, accept_tags('typed_argvalue'))
+class InheritArgument(Node):
+	@property
+	@Meta.embed(Node, expandable)
+	def class_type(self) -> 'Type':
+		return self._at(0).as_a(Type)
+
+
 @Meta.embed(Node, accept_tags('name'))
 class ArgumentLabel(Node):
 	@classmethod
@@ -429,32 +455,6 @@ class Super(FuncCall):
 		decl_class = self._ancestor('class_def').as_a(Class)
 		# XXX 簡易化のため単一継承と言う前提。MROは考慮せず先頭要素を直系の親クラスとする
 		return decl_class.inherits[0].type_name
-
-
-@Meta.embed(Node, accept_tags('argvalue'))
-class Argument(Node):
-	@property
-	@Meta.embed(Node, expandable)
-	def label(self) -> ArgumentLabel | Empty:
-		children = self._children()
-		if len(children) == 2:
-			return children[0].as_a(ArgumentLabel)
-
-		return self.dirty_child(Empty, '__empty__', tokens='')
-
-	@property
-	@Meta.embed(Node, expandable)
-	def value(self) -> Node:
-		children = self._children()
-		return children[1] if len(children) == 2 else children[0]
-
-
-@Meta.embed(Node, accept_tags('typed_argvalue'))
-class InheritArgument(Node):
-	@property
-	@Meta.embed(Node, expandable)
-	def class_type(self) -> Type:
-		return self._at(0).as_a(Type)
 
 
 @Meta.embed(Node, accept_tags('elipsis'))

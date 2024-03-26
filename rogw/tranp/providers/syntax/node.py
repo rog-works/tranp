@@ -59,6 +59,8 @@ def symbol_mapping() -> SymbolMapping:
 			defs.Comment: ['comment_stmt'],
 			defs.Import: ['import_stmt'],
 			# -- Primary --
+			defs.Argument: ['argvalue'],
+			defs.InheritArgument: ['typed_argvalue'],
 			defs.ArgumentLabel: ['name'],
 			defs.DeclClassVar: ['var'],
 			defs.DeclThisVar: ['getattr'],
@@ -87,8 +89,6 @@ def symbol_mapping() -> SymbolMapping:
 			defs.TypeParameters: ['typed_list'],
 			defs.Super: ['funccall'],
 			defs.FuncCall: ['funccall'],
-			defs.Argument: ['argvalue'],
-			defs.InheritArgument: ['typed_argvalue'],
 			defs.Elipsis: ['elipsis'],
 			defs.ForIn: ['for_in', 'comp_for_in'],
 			defs.CompFor: ['comp_for'],

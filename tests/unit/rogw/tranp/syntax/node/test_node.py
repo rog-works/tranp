@@ -106,6 +106,8 @@ class TestNode(TestCase):
 		('class A:\n\tdef method(self) -> None:\n\t\tdef closure() -> None: ...', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.function_def', defs.Closure, 'closure', '__main__.A.method.closure'),
 		('class A: ...', 'file_input.class_def', defs.Class, 'A', '__main__.A'),
 		('class E(CEnum): ...', 'file_input.class_def', defs.Enum, 'E', '__main__.E'),
+		('B: TypeAlias = A', 'file_input.class_assign', defs.AltClass, 'B', '__main__.B'),
+		('T = TypeVar("T")', 'file_input.template_assign', defs.TemplateClass, 'T', '__main__.T'),
 		# Elements
 		('def func(n: int) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue', defs.Parameter, '', '__main__.func.parameter@7'),
 		('@deco\ndef func(n: int) -> None: ...', 'file_input.function_def.decorators.decorator', defs.Decorator, '', '__main__.func.decorator@3'),
@@ -121,6 +123,10 @@ class TestNode(TestCase):
 		('continue', 'file_input.continue_stmt', defs.Continue, '', '__main__.continue@1'),
 		('# abc', 'file_input.comment_stmt', defs.Comment, '', '__main__.comment@1'),
 		('from a.b.c import A', 'file_input.import_stmt', defs.Import, '', '__main__.import@1'),
+		# Primary - Argument
+		('a(0)', 'file_input.funccall.arguments.argvalue', defs.Argument, '', '__main__.argument@6'),
+		('class B(A): ...', 'file_input.class_def.class_def_raw.inherit_arguments.typed_argvalue', defs.InheritArgument, '', '__main__.B.inherit_argument@7'),  # XXX Typeと同じでは？
+		('a(n=0)', 'file_input.funccall.arguments.argvalue.name', defs.ArgumentLabel, '', '__main__.argument_label@7'),
 		# Primary - Var
 		('class A:\n\ta: int = 0', 'file_input.class_def.class_def_raw.block.anno_assign.assign_namelist.var', defs.DeclClassVar, 'a', '__main__.A.a'),
 		('class A:\n\tdef __init__(self) -> None:\n\t\tself.a: int = 0', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.anno_assign.assign_namelist.getattr', defs.DeclThisVar, 'a', '__main__.A.a'),
@@ -162,9 +168,6 @@ class TestNode(TestCase):
 		('a(0)\nfor i in b(): ...', 'file_input.funccall', defs.FuncCall, 'func_call@1', '__main__.func_call@1'),
 		('a(0)\nfor i in b(): ...', 'file_input.for_stmt.for_in.funccall', defs.FuncCall, 'func_call@14', '__main__.for.func_call@14'),
 		('super()', 'file_input.funccall', defs.Super, 'super@1', '__main__.super@1'),
-		# Primary - Argument
-		('a(0)', 'file_input.funccall.arguments.argvalue', defs.Argument, '', '__main__.argument@6'),
-		('class B(A): ...', 'file_input.class_def.class_def_raw.inherit_arguments.typed_argvalue', defs.InheritArgument, '', '__main__.B.inherit_argument@7'),  # XXX Typeと同じでは？
 		# Primary - Elipsis
 		('...', 'file_input.elipsis', defs.Elipsis, '', '__main__.elipsis@1'),
 		# Primary - Generator
@@ -203,12 +206,8 @@ class TestNode(TestCase):
 		('try: ...\nexcept Exception as e: ...', 'file_input.try_stmt.except_clauses.except_clause', defs.Catch, '__main__.try', '__main__'),
 		# Statement compound - ClassDef
 		('def func() -> None: ...', 'file_input.function_def', defs.Function, '__main__', '__main__'),
-		('def func() -> None: ...', 'file_input.function_def.function_def_raw.name', defs.TypesName, '__main__.func', '__main__.func'),
-		('def func() -> None: ...', 'file_input.function_def.function_def_raw.typed_none', defs.NullType, '__main__.func', '__main__.func'),
 		('class A: ...', 'file_input.class_def', defs.Class, '__main__', '__main__'),
-		('class A: ...', 'file_input.class_def.class_def_raw.name', defs.TypesName, '__main__.A', '__main__.A'),
 		('class E(CEnum): ...', 'file_input.class_def', defs.Enum, '__main__', '__main__'),
-		('class E(CEnum): ...', 'file_input.class_def.class_def_raw.name', defs.TypesName, '__main__.E', '__main__.E'),
 		('B: TypeAlias = A', 'file_input.class_assign', defs.AltClass, '__main__', '__main__'),
 		('T = TypeVar("T")', 'file_input.template_assign', defs.TemplateClass, '__main__', '__main__'),
 		# Elements
@@ -226,8 +225,11 @@ class TestNode(TestCase):
 		('continue', 'file_input.continue_stmt', defs.Continue, '__main__', '__main__'),
 		('# abc', 'file_input.comment_stmt', defs.Comment, '__main__', '__main__'),
 		('from a.b.c import A', 'file_input.import_stmt', defs.Import, '__main__', '__main__'),
+		# Primary - Argument
+		('a(0)', 'file_input.funccall.arguments.argvalue', defs.Argument, '__main__', '__main__'),
+		('class B(A): ...', 'file_input.class_def.class_def_raw.inherit_arguments.typed_argvalue', defs.InheritArgument, '__main__.B', '__main__.B'),
+		('a(n=0)', 'file_input.funccall.arguments.argvalue.name', defs.ArgumentLabel, '__main__', '__main__'),
 		# Primary - Var
-		('func(n=1)', 'file_input.funccall.arguments.argvalue.name', defs.ArgumentLabel, '__main__', '__main__'),
 		('class A:\n\ta: int = 0', 'file_input.class_def.class_def_raw.block.anno_assign.assign_namelist.var', defs.DeclClassVar, '__main__.A', '__main__.A'),
 		('class A:\n\tdef __init__(self) -> None:\n\t\tself.a: int = 0', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.anno_assign.assign_namelist.getattr', defs.DeclThisVar, '__main__.A.__init__', '__main__.A.__init__'),
 		('class A:\n\t@classmethod\n\tdef c_method(cls) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.DeclClassParam, '__main__.A.c_method', '__main__.A.c_method'),
@@ -235,6 +237,8 @@ class TestNode(TestCase):
 		('a: int = 0', 'file_input.anno_assign.assign_namelist.var', defs.DeclLocalVar, '__main__', '__main__'),
 		# Primary - Name
 		('class A: ...', 'file_input.class_def.class_def_raw.name', defs.TypesName, '__main__.A', '__main__.A'),
+		('def func() -> None: ...', 'file_input.function_def.function_def_raw.name', defs.TypesName, '__main__.func', '__main__.func'),
+		('class E(CEnum): ...', 'file_input.class_def.class_def_raw.name', defs.TypesName, '__main__.E', '__main__.E'),
 		('B: TypeAlias = A', 'file_input.class_assign.assign_namelist.var', defs.AltTypesName, '__main__.B', '__main__.B'),
 		('from a.b.c import A', 'file_input.import_stmt.import_names.name', defs.ImportName, '__main__', '__main__'),
 		# Primary - Reference
@@ -255,12 +259,10 @@ class TestNode(TestCase):
 		('a: A[B, C] = {}', 'file_input.anno_assign.typed_getitem', defs.CustomType, '__main__', '__main__'),
 		('a: A | B = A', 'file_input.anno_assign.typed_or_expr', defs.UnionType, '__main__', '__main__'),
 		('a: None = None', 'file_input.anno_assign.typed_none', defs.NullType, '__main__', '__main__'),
+		('def func() -> None: ...', 'file_input.function_def.function_def_raw.typed_none', defs.NullType, '__main__.func', '__main__.func'),
 		# Primary - FuncCall
 		('a(0)', 'file_input.funccall', defs.FuncCall, '__main__', '__main__'),
 		('super()', 'file_input.funccall', defs.Super, '__main__', '__main__'),
-		# Primary - Argument
-		('a(0)', 'file_input.funccall.arguments.argvalue', defs.Argument, '__main__', '__main__'),
-		('class B(A): ...', 'file_input.class_def.class_def_raw.inherit_arguments.typed_argvalue', defs.InheritArgument, '__main__.B', '__main__.B'),
 		# Primary - Elipsis
 		('...', 'file_input.elipsis', defs.Elipsis, '__main__', '__main__'),
 		# Primary - Generator

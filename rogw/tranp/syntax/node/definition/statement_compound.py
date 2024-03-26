@@ -5,6 +5,7 @@ from rogw.tranp.lang.annotation import duck_typed, implements, override
 from rogw.tranp.lang.sequence import flatten, last_index_of
 from rogw.tranp.syntax.ast.dsn import DSN
 from rogw.tranp.syntax.node.accessible import ClassOperations
+from rogw.tranp.syntax.node.behavior import IDomain, INamespace, IScope
 from rogw.tranp.syntax.node.definition.accessible import PythonClassOperations, to_access
 from rogw.tranp.syntax.node.definition.element import Decorator, Parameter
 from rogw.tranp.syntax.node.definition.literal import DocString, String
@@ -12,9 +13,8 @@ from rogw.tranp.syntax.node.definition.primary import Argument, CustomType, Decl
 from rogw.tranp.syntax.node.definition.statement_simple import AnnoAssign, MoveAssign
 from rogw.tranp.syntax.node.definition.terminal import Empty
 from rogw.tranp.syntax.node.embed import Meta, accept_tags, expandable
-from rogw.tranp.syntax.node.interface import IDomain, INamespace, IScope
+from rogw.tranp.syntax.node.interface import IDeclaration, ISymbol, StatementBlock
 from rogw.tranp.syntax.node.node import Node
-from rogw.tranp.syntax.node.promise import IDeclaration, ISymbol, StatementBlock
 
 T_Declable = TypeVar('T_Declable', bound=Declable)
 

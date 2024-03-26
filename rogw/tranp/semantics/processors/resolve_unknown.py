@@ -3,8 +3,8 @@ from typing import Callable, cast
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.lang.locator import Invoker
 import rogw.tranp.syntax.node.definition as defs
+from rogw.tranp.syntax.node.interface import IDeclaration
 from rogw.tranp.syntax.node.node import Node
-from rogw.tranp.syntax.node.promise import IDeclaration
 from rogw.tranp.semantics.reflection import IReflection, SymbolProxy, SymbolDB
 from rogw.tranp.semantics.reflections import Reflections
 

@@ -6,12 +6,12 @@ from rogw.tranp.lang.sequence import flatten, last_index_of
 from rogw.tranp.syntax.ast.dsn import DSN
 from rogw.tranp.syntax.ast.path import EntryPath
 from rogw.tranp.syntax.errors import InvalidRelationError
+from rogw.tranp.syntax.node.behavior import IDomain, INamespace, IScope, ITerminal
 from rogw.tranp.syntax.node.definition.literal import Literal
 from rogw.tranp.syntax.node.definition.terminal import Empty
 from rogw.tranp.syntax.node.embed import Meta, accept_tags, expandable
-from rogw.tranp.syntax.node.interface import IDomain, INamespace, IScope, ITerminal
+from rogw.tranp.syntax.node.interface import IDeclaration, ISymbol
 from rogw.tranp.syntax.node.node import Node
-from rogw.tranp.syntax.node.promise import IDeclaration, ISymbol
 
 
 @Meta.embed(Node, accept_tags('name'))

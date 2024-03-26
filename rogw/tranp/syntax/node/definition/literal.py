@@ -2,9 +2,9 @@ import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.lang.annotation import implements, override
 from rogw.tranp.lang.comment import Comment as CommentData
 from rogw.tranp.syntax.ast.dsn import DSN
+from rogw.tranp.syntax.node.behavior import IDomain, ITerminal
 from rogw.tranp.syntax.node.definition.terminal import Terminal
 from rogw.tranp.syntax.node.embed import Meta, accept_tags, expandable
-from rogw.tranp.syntax.node.interface import IDomain, ITerminal
 from rogw.tranp.syntax.node.node import Node
 
 

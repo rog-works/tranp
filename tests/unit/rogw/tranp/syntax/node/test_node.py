@@ -90,9 +90,9 @@ class TestNode(TestCase):
 	@data_provider([
 		# General
 		('...', 'file_input', defs.Entrypoint, '__main__', '__main__'),
-		# Block
+		# Statement compound - Block
 		('class A: ...', 'file_input.class_def.class_def_raw.block', defs.Block, '__main__.A', '__main__.A'),
-		# Flow
+		# Statement compound - Flow
 		('if True: ...', 'file_input.if_stmt', defs.If, '__main__', '__main__'),
 		('if True: ...', 'file_input.if_stmt.const_true.', defs.Truthy, '__main__.if', '__main__'),
 		('while True: ...', 'file_input.while_stmt', defs.While, '__main__', '__main__'),
@@ -101,9 +101,10 @@ class TestNode(TestCase):
 		('for i in [0]: ...', 'file_input.for_stmt.for_namelist.name', defs.DeclLocalVar, '__main__.for', '__main__'),
 		('try: ...\nexcept Exception as e: ...', 'file_input.try_stmt', defs.Try, '__main__', '__main__'),
 		('try: ...\nexcept Exception as e: ...', 'file_input.try_stmt.except_clauses.except_clause', defs.Catch, '__main__.try', '__main__'),
-		# ClassDef
+		# Statement compound - ClassDef
 		('def func() -> None: ...', 'file_input.function_def', defs.Function, '__main__', '__main__'),
 		('def func() -> None: ...', 'file_input.function_def.function_def_raw.name', defs.TypesName, '__main__.func', '__main__.func'),
+		('def func() -> None: ...', 'file_input.function_def.function_def_raw.typed_none', defs.NullType, '__main__.func', '__main__.func'),
 		('class A: ...', 'file_input.class_def', defs.Class, '__main__', '__main__'),
 		('class A: ...', 'file_input.class_def.class_def_raw.name', defs.TypesName, '__main__.A', '__main__.A'),
 		('class E(CEnum): ...', 'file_input.class_def', defs.Enum, '__main__', '__main__'),
@@ -124,7 +125,7 @@ class TestNode(TestCase):
 		('# abc', 'file_input.comment_stmt', defs.Comment, '__main__', '__main__'),
 		('continue', 'file_input.continue_stmt', defs.Continue, '__main__', '__main__'),
 		('from a.b.c import A', 'file_input.import_stmt', defs.Import, '__main__', '__main__'),
-		# Primary
+		# Primary - Declable
 		('func(n=1)', 'file_input.funccall.arguments.argvalue.name', defs.ArgumentLabel, '__main__', '__main__'),
 		('class A:\n\ta: int = 0', 'file_input.class_def.class_def_raw.block.anno_assign.assign_namelist.var', defs.DeclClassVar, '__main__.A', '__main__.A'),
 		('class A:\n\tdef __init__(self) -> None:\n\t\tself.a: int = 0', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.anno_assign.assign_namelist.getattr', defs.DeclThisVar, '__main__.A.__init__', '__main__.A.__init__'),
@@ -134,6 +135,23 @@ class TestNode(TestCase):
 		('class A: ...', 'file_input.class_def.class_def_raw.name', defs.TypesName, '__main__.A', '__main__.A'),
 		('B: TypeAlias = A', 'file_input.class_assign.assign_namelist.var', defs.AltTypesName, '__main__.B', '__main__.B'),
 		('from a.b.c import A', 'file_input.import_stmt.import_names.name', defs.ImportName, '__main__', '__main__'),
+		('a.b', 'file_input.getattr', defs.Relay, '__main__', '__main__'),
+		('class A:\n\t@classmethod\n\tdef c_method(cls) -> None:\n\t\tprint(cls)', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.funccall.arguments.argvalue.var', defs.ClassRef, '__main__.A.c_method', '__main__.A.c_method'),
+		('class A:\n\tdef method(self) -> None:\n\t\tprint(self)', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.funccall.arguments.argvalue.var', defs.ThisRef, '__main__.A.method', '__main__.A.method'),
+		('a', 'file_input.var', defs.Var, '__main__', '__main__'),
+		('a[b]', 'file_input.getitem', defs.Indexer, '__main__', '__main__'),
+		('from a.b.c import A', 'file_input.import_stmt.dotted_name', defs.ImportPath, '__main__', '__main__'),
+		('@deco\ndef func() -> None: ...', 'file_input.function_def.decorators.decorator.dotted_name', defs.DecoratorPath, '__main__.func', '__main__.func'),
+		# Primary - Type
+		('a: A.B = 0', 'file_input.anno_assign.typed_getattr', defs.RelayOfType, '__main__', '__main__'),
+		('a: int = 0', 'file_input.anno_assign.typed_var', defs.VarOfType, '__main__', '__main__'),
+		('a: list[int] = []', 'file_input.anno_assign.typed_getitem', defs.ListType, '__main__', '__main__'),
+		('a: dict[str, int] = {}', 'file_input.anno_assign.typed_getitem', defs.DictType, '__main__', '__main__'),
+		('a: Callable[[], None] = {}', 'file_input.anno_assign.typed_getitem', defs.CallableType, '__main__', '__main__'),
+		('a: A[B, C] = {}', 'file_input.anno_assign.typed_getitem', defs.CustomType, '__main__', '__main__'),
+		('a: A | B = A', 'file_input.anno_assign.typed_or_expr', defs.UnionType, '__main__', '__main__'),
+		('a: None = None', 'file_input.anno_assign.typed_none', defs.NullType, '__main__', '__main__'),
+		# Primary - Generator
 		('[a for a in []]', 'file_input.list_comp', defs.ListComp, '__main__', '__main__'),
 		('[a for a in []]', 'file_input.list_comp.comprehension.comp_fors.comp_for.for_namelist.name', defs.DeclLocalVar, '__main__.list_comp@1', '__main__.list_comp@1'),
 		('{a: b for a, b in {}}', 'file_input.dict_comp', defs.DictComp, '__main__', '__main__'),
@@ -185,7 +203,13 @@ class TestNode(TestCase):
 		self.assertEqual(node.can_expand, expected)
 
 	@data_provider([
-		# ClassDef
+		# Statement compound - Block
+		('if True: ...', 'file_input.if_stmt.block', defs.Block, '', '__main__.if.block@3'),
+		# Statement compound - Flow
+		('if True: ...', 'file_input.if_stmt', defs.If, '', '__main__.if@1'),
+		('[a for a in []]', 'file_input.list_comp', defs.ListComp, 'list_comp@1', '__main__.list_comp@1'),
+		('{a: b for a, b in {}}', 'file_input.dict_comp', defs.DictComp, 'dict_comp@1', '__main__.dict_comp@1'),
+		# Statement compound - ClassDef
 		('def func() -> None: ...', 'file_input.function_def', defs.Function, 'func', '__main__.func'),
 		('class A:\n\t@classmethod\n\tdef c_method(cls) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def', defs.ClassMethod, 'c_method', '__main__.A.c_method'),
 		('class A:\n\tdef __init__(self) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def', defs.Constructor, '__init__', '__main__.A.__init__'),
@@ -193,7 +217,11 @@ class TestNode(TestCase):
 		('class A:\n\tdef method(self) -> None:\n\t\tdef closure() -> None: ...', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.function_def', defs.Closure, 'closure', '__main__.A.method.closure'),
 		('class A: ...', 'file_input.class_def', defs.Class, 'A', '__main__.A'),
 		('class E(CEnum): ...', 'file_input.class_def', defs.Enum, 'E', '__main__.E'),
-		# Declable
+		# Statement simple - Assign
+		('a = 0', 'file_input.assign', defs.MoveAssign, '', '__main__.move_assign@1'),
+		('a: int = 0', 'file_input.anno_assign', defs.AnnoAssign, '', '__main__.anno_assign@1'),
+		('a += 1', 'file_input.aug_assign', defs.AugAssign, '', '__main__.aug_assign@1'),
+		# Primary - Declable
 		('class A:\n\ta: int = 0', 'file_input.class_def.class_def_raw.block.anno_assign.assign_namelist.var', defs.DeclClassVar, 'a', '__main__.A.a'),
 		('class A:\n\tdef __init__(self) -> None:\n\t\tself.a: int = 0', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.anno_assign.assign_namelist.getattr', defs.DeclThisVar, 'a', '__main__.A.a'),
 		('class A:\n\t@classmethod\n\tdef c_method(cls) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.DeclClassParam, 'cls', '__main__.A.c_method.cls'),
@@ -206,7 +234,7 @@ class TestNode(TestCase):
 		('[a for a in []]', 'file_input.list_comp.comprehension.comp_fors.comp_for.for_namelist.name', defs.DeclLocalVar, 'a', '__main__.list_comp@1.a'),
 		('{a: b for a, b in {}}', 'file_input.dict_comp.comprehension.comp_fors.comp_for.for_namelist.name[0]', defs.DeclLocalVar, 'a', '__main__.dict_comp@1.a'),
 		('{a: b for a, b in {}}', 'file_input.dict_comp.comprehension.comp_fors.comp_for.for_namelist.name[1]', defs.DeclLocalVar, 'b', '__main__.dict_comp@1.b'),
-		# Reference
+		# Primary - Reference
 		('a.b', 'file_input.getattr', defs.Relay, 'a.b', '__main__.a.b'),
 		('if True:\n\tif True:\n\t\ta.b', 'file_input.if_stmt.block.if_stmt.block.getattr', defs.Relay, 'a.b', '__main__.if.if.a.b'),
 		('class A:\n\t@classmethod\n\tdef c_method(cls) -> None:\n\t\tprint(cls)', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.funccall.arguments.argvalue.var', defs.ClassRef, 'cls', '__main__.A.c_method.cls'),
@@ -214,7 +242,7 @@ class TestNode(TestCase):
 		('a', 'file_input.var', defs.Var, 'a', '__main__.a'),
 		('{"a": 1}.items()', 'file_input.funccall.getattr', defs.Relay, 'dict@3.items', '__main__.dict@3.items'),
 		('a[0].items()', 'file_input.funccall.getattr', defs.Relay, 'items', '__main__.items'),  # XXX Indexerに名前は不要ではあるが一意性が無くて良いのか検討
-		# Type
+		# Primary - Type
 		('a: int = 0', 'file_input.anno_assign.typed_var', defs.VarOfType, 'int', '__main__.int'),
 		('if True:\n\ta: int = 0', 'file_input.if_stmt.block.anno_assign.typed_var', defs.VarOfType, 'int', '__main__.if.int'),
 		('a: list[int] = []', 'file_input.anno_assign.typed_getitem', defs.ListType, 'list', '__main__.list'),
@@ -222,6 +250,10 @@ class TestNode(TestCase):
 		('a: Callable[[int], None] = {}', 'file_input.anno_assign.typed_getitem', defs.CallableType, 'Callable', '__main__.Callable'),
 		('a: int | str = 0', 'file_input.anno_assign.typed_or_expr', defs.UnionType, 'Union', '__main__.Union'),
 		('def func() -> None: ...', 'file_input.function_def.function_def_raw.typed_none', defs.NullType, 'None', '__main__.func.None'),
+		# Primary - FuncCall
+		('a(0)', 'file_input.funccall', defs.FuncCall, 'func_call@1', '__main__.func_call@1'),
+		('a(0)\nfor i in b(): ...', 'file_input.funccall', defs.FuncCall, 'func_call@1', '__main__.func_call@1'),
+		('a(0)\nfor i in b(): ...', 'file_input.for_stmt.for_in.funccall', defs.FuncCall, 'func_call@14', '__main__.for.func_call@14'),
 		# Literal
 		('1', 'file_input.number', defs.Integer, 'int@1', '__main__.int@1'),
 		('1.0', 'file_input.number', defs.Float, 'float@1', '__main__.float@1'),
@@ -232,19 +264,6 @@ class TestNode(TestCase):
 		('[1]', 'file_input.list', defs.List, 'list@1', '__main__.list@1'),
 		('{1: 2}', 'file_input.dict', defs.Dict, 'dict@1', '__main__.dict@1'),
 		('None', 'file_input.const_none', defs.Null, 'None', '__main__.None'),
-		# Statement compound
-		('if True: ...', 'file_input.if_stmt.block', defs.Block, '', '__main__.if.block@3'),
-		('if True: ...', 'file_input.if_stmt', defs.If, '', '__main__.if@1'),
-		('[a for a in []]', 'file_input.list_comp', defs.ListComp, 'list_comp@1', '__main__.list_comp@1'),
-		('{a: b for a, b in {}}', 'file_input.dict_comp', defs.DictComp, 'dict_comp@1', '__main__.dict_comp@1'),
-		# Statement simple
-		('a = 0', 'file_input.assign', defs.MoveAssign, '', '__main__.move_assign@1'),
-		('a: int = 0', 'file_input.anno_assign', defs.AnnoAssign, '', '__main__.anno_assign@1'),
-		('a += 1', 'file_input.aug_assign', defs.AugAssign, '', '__main__.aug_assign@1'),
-		# Primary
-		('a(0)', 'file_input.funccall', defs.FuncCall, 'func_call@1', '__main__.func_call@1'),
-		('a(0)\nfor i in b(): ...', 'file_input.funccall', defs.FuncCall, 'func_call@1', '__main__.func_call@1'),
-		('a(0)\nfor i in b(): ...', 'file_input.for_stmt.for_in.funccall', defs.FuncCall, 'func_call@14', '__main__.for.func_call@14'),
 	])
 	def test_i_domain(self, source: str, full_path: str, types: type[T_Node], expected_name: bool, expected_fully: str) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path)

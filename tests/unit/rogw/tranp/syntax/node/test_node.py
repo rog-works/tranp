@@ -89,25 +89,27 @@ class TestNode(TestCase):
 
 	@data_provider([
 		# General
-		('...', 'file_input', '__main__'),
+		('...', 'file_input', defs.Entrypoint, '__main__'),
 		# Block
-		('class A: ...', 'file_input.class_def.class_def_raw.block', '__main__.A'),
+		('class A: ...', 'file_input.class_def.class_def_raw.block', defs.Block, '__main__.A'),
 		# Flow
-		('if True: ...', 'file_input.if_stmt', '__main__.if'),
-		('for i in [0]: ...', 'file_input.for_stmt', '__main__.for'),
-		('while True: ...', 'file_input.while_stmt', '__main__.while'),
+		('if True: ...', 'file_input.if_stmt', defs.If, '__main__.if'),
+		('while True: ...', 'file_input.while_stmt', defs.While, '__main__.while'),
+		('for i in [0]: ...', 'file_input.for_stmt', defs.For, '__main__.for'),
+		('try: ...\nexcept Exception as e: ...', 'file_input.try_stmt', defs.Try, '__main__.try'),
+		('try: ...\nexcept Exception as e: ...', 'file_input.try_stmt.except_clauses.except_clause', defs.Catch, '__main__.try'),
 		# ClassDef
-		('def func() -> None: ...', 'file_input.function_def', '__main__.func'),
-		('class A: ...', 'file_input.class_def', '__main__.A'),
-		('class E(CEnum): ...', 'file_input.class_def', '__main__.E'),
+		('def func() -> None: ...', 'file_input.function_def', defs.Function, '__main__.func'),
+		('class A: ...', 'file_input.class_def', defs.Class, '__main__.A'),
+		('class E(CEnum): ...', 'file_input.class_def', defs.Enum, '__main__.E'),
 		# Primary
-		('[a for a in []]', 'file_input.list_comp', '__main__.list_comp@1'),
-		('{a: b for a, b in {}}', 'file_input.dict_comp', '__main__.dict_comp@1'),
+		('[a for a in []]', 'file_input.list_comp', defs.ListComp, '__main__.list_comp@1'),
+		('{a: b for a, b in {}}', 'file_input.dict_comp', defs.DictComp, '__main__.dict_comp@1'),
 		# Literal
-		('1', 'file_input.number', '__main__'),
+		('1', 'file_input.number', defs.Integer, '__main__'),
 	])
-	def test_scope(self, source: str, full_path: str, expected: str) -> None:
-		node = self.fixture.custom_nodes_by(source, full_path)
+	def test_scope(self, source: str, full_path: str, types: type[Node], expected: str) -> None:
+		node = self.fixture.custom_nodes_by(source, full_path).as_a(types)
 		self.assertEqual(node.scope, expected)
 
 	@data_provider([

@@ -89,74 +89,62 @@ class TestNode(TestCase):
 
 	@data_provider([
 		# General
-		('...', 'file_input', defs.Entrypoint, '__main__'),
+		('...', 'file_input', defs.Entrypoint, '__main__', '__main__'),
 		# Block
-		('class A: ...', 'file_input.class_def.class_def_raw.block', defs.Block, '__main__.A'),
+		('class A: ...', 'file_input.class_def.class_def_raw.block', defs.Block, '__main__.A', '__main__.A'),
 		# Flow
-		('if True: ...', 'file_input.if_stmt', defs.If, '__main__.if'),
-		('while True: ...', 'file_input.while_stmt', defs.While, '__main__.while'),
-		('for i in [0]: ...', 'file_input.for_stmt', defs.For, '__main__.for'),
-		('try: ...\nexcept Exception as e: ...', 'file_input.try_stmt', defs.Try, '__main__.try'),
-		('try: ...\nexcept Exception as e: ...', 'file_input.try_stmt.except_clauses.except_clause', defs.Catch, '__main__.try'),
+		('if True: ...', 'file_input.if_stmt', defs.If, '__main__', '__main__'),
+		('if True: ...', 'file_input.if_stmt.const_true.', defs.Truthy, '__main__.if', '__main__'),
+		('while True: ...', 'file_input.while_stmt', defs.While, '__main__', '__main__'),
+		('while True: ...', 'file_input.while_stmt.const_true', defs.Truthy, '__main__.while', '__main__'),
+		('for i in [0]: ...', 'file_input.for_stmt', defs.For, '__main__', '__main__'),
+		('for i in [0]: ...', 'file_input.for_stmt.for_namelist.name', defs.DeclLocalVar, '__main__.for', '__main__'),
+		('try: ...\nexcept Exception as e: ...', 'file_input.try_stmt', defs.Try, '__main__', '__main__'),
+		('try: ...\nexcept Exception as e: ...', 'file_input.try_stmt.except_clauses.except_clause', defs.Catch, '__main__.try', '__main__'),
 		# ClassDef
-		('def func() -> None: ...', 'file_input.function_def', defs.Function, '__main__.func'),
-		('class A: ...', 'file_input.class_def', defs.Class, '__main__.A'),
-		('class E(CEnum): ...', 'file_input.class_def', defs.Enum, '__main__.E'),
-		('B: TypeAlias = A', 'file_input.class_assign', defs.AltClass, '__main__.B'),
-		('T = TypeVar("T")', 'file_input.template_assign', defs.TemplateClass, '__main__.T'),
+		('def func() -> None: ...', 'file_input.function_def', defs.Function, '__main__', '__main__'),
+		('def func() -> None: ...', 'file_input.function_def.function_def_raw.name', defs.TypesName, '__main__.func', '__main__.func'),
+		('class A: ...', 'file_input.class_def', defs.Class, '__main__', '__main__'),
+		('class A: ...', 'file_input.class_def.class_def_raw.name', defs.TypesName, '__main__.A', '__main__.A'),
+		('class E(CEnum): ...', 'file_input.class_def', defs.Enum, '__main__', '__main__'),
+		('class E(CEnum): ...', 'file_input.class_def.class_def_raw.name', defs.TypesName, '__main__.E', '__main__.E'),
+		('B: TypeAlias = A', 'file_input.class_assign', defs.AltClass, '__main__', '__main__'),
+		('T = TypeVar("T")', 'file_input.template_assign', defs.TemplateClass, '__main__', '__main__'),
 		# Elements
-		('def func(n: int) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue', defs.Parameter, '__main__.func'),
-		('@deco\ndef func(n: int) -> None: ...', 'file_input.function_def.decorators.decorator', defs.Decorator, '__main__.func'),
+		('def func(n: int) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue', defs.Parameter, '__main__.func', '__main__.func'),
+		('@deco\ndef func(n: int) -> None: ...', 'file_input.function_def.decorators.decorator', defs.Decorator, '__main__.func', '__main__.func'),
 		# Statement simple
-		('a: int = 0', 'file_input.anno_assign', defs.AnnoAssign, '__main__'),
-		('a = 0', 'file_input.assign', defs.MoveAssign, '__main__'),
-		('a += 0', 'file_input.aug_assign', defs.AugAssign, '__main__'),
-		('def func() -> int:\n\treturn 0', 'file_input.function_def.function_def_raw.block.return_stmt', defs.Return, '__main__.func'),
-		('raise Exception()', 'file_input.raise_stmt', defs.Throw, '__main__'),
-		('pass', 'file_input.pass_stmt', defs.Pass, '__main__'),
-		('break', 'file_input.break_stmt', defs.Break, '__main__'),
-		('# abc', 'file_input.comment_stmt', defs.Comment, '__main__'),
-		('continue', 'file_input.continue_stmt', defs.Continue, '__main__'),
-		('from a.b.c import A', 'file_input.import_stmt', defs.Import, '__main__'),
+		('a: int = 0', 'file_input.anno_assign', defs.AnnoAssign, '__main__', '__main__'),
+		('a = 0', 'file_input.assign', defs.MoveAssign, '__main__', '__main__'),
+		('a += 0', 'file_input.aug_assign', defs.AugAssign, '__main__', '__main__'),
+		('def func() -> int:\n\treturn 0', 'file_input.function_def.function_def_raw.block.return_stmt', defs.Return, '__main__.func', '__main__.func'),
+		('raise Exception()', 'file_input.raise_stmt', defs.Throw, '__main__', '__main__'),
+		('pass', 'file_input.pass_stmt', defs.Pass, '__main__', '__main__'),
+		('break', 'file_input.break_stmt', defs.Break, '__main__', '__main__'),
+		('# abc', 'file_input.comment_stmt', defs.Comment, '__main__', '__main__'),
+		('continue', 'file_input.continue_stmt', defs.Continue, '__main__', '__main__'),
+		('from a.b.c import A', 'file_input.import_stmt', defs.Import, '__main__', '__main__'),
 		# Primary
-		('func(n=1)', 'file_input.funccall.arguments.argvalue.name', defs.ArgumentLabel, '__main__'),
-		('class A:\n\ta: int = 0', 'file_input.class_def.class_def_raw.block.anno_assign.assign_namelist.var', defs.DeclClassVar, '__main__.A'),
-		('class A:\n\tdef __init__(self) -> None:\n\t\tself.a: int = 0', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.anno_assign.assign_namelist.getattr', defs.DeclThisVar, '__main__.A.__init__'),
-		('class A:\n\t@classmethod\n\tdef c_method(cls) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.DeclClassParam, '__main__.A.c_method'),
-		('class A:\n\tdef method(self) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.DeclThisParam, '__main__.A.method'),
-		('a: int = 0', 'file_input.anno_assign.assign_namelist.var', defs.DeclLocalVar, '__main__'),
-		('class A: ...', 'file_input.class_def.class_def_raw.name', defs.TypesName, '__main__.A'),
-		('B: TypeAlias = A', 'file_input.class_assign.assign_namelist.var', defs.AltTypesName, '__main__.B'),
-		('from a.b.c import A', 'file_input.import_stmt.import_names.name', defs.ImportName, '__main__'),
-		('[a for a in []]', 'file_input.list_comp', defs.ListComp, '__main__.list_comp@1'),
-		('{a: b for a, b in {}}', 'file_input.dict_comp', defs.DictComp, '__main__.dict_comp@1'),
+		('func(n=1)', 'file_input.funccall.arguments.argvalue.name', defs.ArgumentLabel, '__main__', '__main__'),
+		('class A:\n\ta: int = 0', 'file_input.class_def.class_def_raw.block.anno_assign.assign_namelist.var', defs.DeclClassVar, '__main__.A', '__main__.A'),
+		('class A:\n\tdef __init__(self) -> None:\n\t\tself.a: int = 0', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.anno_assign.assign_namelist.getattr', defs.DeclThisVar, '__main__.A.__init__', '__main__.A.__init__'),
+		('class A:\n\t@classmethod\n\tdef c_method(cls) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.DeclClassParam, '__main__.A.c_method', '__main__.A.c_method'),
+		('class A:\n\tdef method(self) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.DeclThisParam, '__main__.A.method', '__main__.A.method'),
+		('a: int = 0', 'file_input.anno_assign.assign_namelist.var', defs.DeclLocalVar, '__main__', '__main__'),
+		('class A: ...', 'file_input.class_def.class_def_raw.name', defs.TypesName, '__main__.A', '__main__.A'),
+		('B: TypeAlias = A', 'file_input.class_assign.assign_namelist.var', defs.AltTypesName, '__main__.B', '__main__.B'),
+		('from a.b.c import A', 'file_input.import_stmt.import_names.name', defs.ImportName, '__main__', '__main__'),
+		('[a for a in []]', 'file_input.list_comp', defs.ListComp, '__main__', '__main__'),
+		('[a for a in []]', 'file_input.list_comp.comprehension.comp_fors.comp_for.for_namelist.name', defs.DeclLocalVar, '__main__.list_comp@1', '__main__.list_comp@1'),
+		('{a: b for a, b in {}}', 'file_input.dict_comp', defs.DictComp, '__main__', '__main__'),
+		('{a: b for a, b in {}}', 'file_input.dict_comp.comprehension.comp_fors.comp_for.for_namelist.name[0]', defs.DeclLocalVar, '__main__.dict_comp@1', '__main__.dict_comp@1'),
 		# Literal
-		('1', 'file_input.number', defs.Integer, '__main__'),
+		('1', 'file_input.number', defs.Integer, '__main__', '__main__'),
 	])
-	def test_scope(self, source: str, full_path: str, types: type[Node], expected: str) -> None:
+	def test_scope_and_namespace(self, source: str, full_path: str, types: type[Node], expected_scope: str, expected_namespace: str) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(types)
-		self.assertEqual(node.scope, expected)
-
-	@data_provider([
-		# General
-		('...', 'file_input', '__main__'),
-		# Block
-		('class A: ...', 'file_input.class_def.class_def_raw.block', '__main__.A'),
-		# Flow
-		('if 1: ...', 'file_input.if_stmt', '__main__'),
-		# ClassDef
-		('def func() -> None: ...', 'file_input.function_def', '__main__.func'),
-		('class A: ...', 'file_input.class_def', '__main__.A'),
-		('class E(CEnum): ...', 'file_input.class_def', '__main__.E'),
-		# Primary
-		('[a for a in []]', 'file_input.list_comp', '__main__.list_comp@1'),
-		('{a: b for a, b in {}}', 'file_input.dict_comp', '__main__.dict_comp@1'),
-		# Literal
-		('1', 'file_input.number', '__main__'),
-	])
-	def test_namespace(self, source: str, full_path: str, expected: str) -> None:
-		node = self.fixture.custom_nodes_by(source, full_path)
-		self.assertEqual(node.namespace, expected)
+		self.assertEqual(node.scope, expected_scope)
+		self.assertEqual(node.namespace, expected_namespace)
 
 	@data_provider([
 		('...', 'file_input', ''),

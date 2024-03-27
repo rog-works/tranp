@@ -1,6 +1,9 @@
+from typing import Iterator
+
 from rogw.tranp.compatible.python.types import Standards
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.module.types import LibraryPaths
+from rogw.tranp.semantics.reflection.interface import ISymbolProxy
 from rogw.tranp.syntax.ast.dsn import DSN
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.semantics.errors import MustBeImplementedError, SymbolNotDefinedError
@@ -111,9 +114,48 @@ class SymbolFinder:
 		# ドメイン名の要素数が1つの場合のみ標準ライブラリーへのフォールバックを許可する(プライマリー以外のモジュールへのフォールバックを抑制)
 		allow_fallback_lib = DSN.elem_counts(domain_name) == 1
 		scopes = [scope for scope in self.__make_scopes(node.scope, allow_fallback_lib) if not is_local_var_in_class_scope(scope)]
-		return self.__find_raw(db, scopes, domain_name)
+		if not isinstance(node, defs.Type):
+			return self.__find_raw(db, scopes, domain_name)
+		else:
+			return self.__find_raw_for_type(db, scopes, domain_name)
 
 	def __find_raw(self, db: SymbolDB, scopes: list[str], domain_name: str) -> IReflection | None:
+		"""シンボルを検索。未検出の場合はNoneを返却 (汎用)
+
+		Args:
+			db (SymbolDB): シンボルテーブル
+			scopes (list[str]): 探索スコープリスト
+			domain_name (str): ドメイン名
+		Returns:
+			IReflection | None: シンボル
+		"""
+		for raw in self.__each_find_raw(db, scopes, domain_name):
+			return raw
+
+		return None
+
+	def __find_raw_for_type(self, db: SymbolDB, scopes: list[str], domain_name: str) -> IReflection | None:
+		"""シンボルを検索。未検出の場合はNoneを返却 (タイプノード専用)
+
+		Args:
+			db (SymbolDB): シンボルテーブル
+			scopes (list[str]): 探索スコープリスト
+			domain_name (str): ドメイン名
+		Returns:
+			IReflection | None: シンボル
+		Note:
+			シンボル系ノードがタイプの場合はクラスかタイプのみを検索対象とする
+		"""
+		for raw in self.__each_find_raw(db, scopes, domain_name):
+			# XXX このモジュールでISymbolProxyの参照が妥当か再検討
+			# XXX タイプノードが参照するシンボルはUnknownになることが無いため、オリジナルの型と拡張後の型は必ず一致する
+			org_raw = raw.org_raw if isinstance(raw, ISymbolProxy) else raw
+			if org_raw.types.is_a(defs.Class, defs.AltClass, defs.TemplateClass, defs.Type):
+				return raw
+
+		return None
+
+	def __each_find_raw(self, db: SymbolDB, scopes: list[str], domain_name: str) -> Iterator[IReflection]:
 		"""スコープを辿り、指定のドメイン名を持つシンボルを検索。未検出の場合はNoneを返却
 
 		Args:
@@ -123,12 +165,10 @@ class SymbolFinder:
 		Returns:
 			IReflection | None: シンボル
 		"""
-		candidates = [DSN.join(scope, domain_name) for scope in scopes]
-		for candidate in candidates:
-			if candidate in db:
-				return db[candidate]
-
-		return None
+		for scope in scopes:
+			fullyname = DSN.join(scope, domain_name)
+			if fullyname in db:
+				yield db[fullyname]
 
 	def __make_scopes(self, scope: str, allow_fallback_lib: bool = True) -> list[str]:
 		"""スコープを元に探索スコープのリストを生成

@@ -33,6 +33,7 @@ class ASTMapping:
 	_Sub_relay_access = f'{_Sub}.class_def_raw.block.function_def[14]'
 	_Sub_fill_list = f'{_Sub}.class_def_raw.block.function_def[15]'
 	_Sub_param_default = f'{_Sub}.class_def_raw.block.function_def[16]'
+	_Sub_Base = f'{_Sub}.class_def_raw.block.function_def[17]'
 	_CalcOps = f'file_input.class_def[{_start + 3}]'
 	_AliasOps = f'file_input.class_def[{_start + 4}]'
 	_TupleOps = f'file_input.class_def[{_start + 5}]'
@@ -80,6 +81,7 @@ class ASTMapping:
 		'Sub.decl_with_pop.block': f'{_Sub_decl_with_pop}.function_def_raw.block',
 		'Sub.decl_locals.block': f'{_Sub_decl_locals}.function_def_raw.block',
 		'Sub.decl_locals.closure.block': f'{_Sub_decl_locals}.function_def_raw.block.function_def.function_def_raw.block',
+		'Sub.Base.return': f'{_Sub_Base}.function_def_raw.typed_var',
 
 		'CompOps.list_comp.block': f'{_CompOps}.class_def_raw.block.function_def[0].function_def_raw.block',
 
@@ -360,6 +362,8 @@ class TestReflections(TestCase):
 
 		(_ast('Sub.decl_locals.block', 'if_stmt.block.assign.assign_namelist.var'), _mod('classes', 'int'), 'int'),
 		(_ast('Sub.decl_locals.closure.block', 'assign.assign_namelist.var'), _mod('classes', 'list'), 'list<int>'),
+
+		(_ast('Sub.Base.return', ''), f'{fixture_module_path}.Base', 'Base'),
 
 		(_ast('CompOps.list_comp.block', 'aug_assign.assign_namelist.var'), _mod('classes', 'int'), 'int'),
 		(_ast('CompOps.list_comp.block', 'aug_assign.getitem'), _mod('classes', 'float'), 'float'),

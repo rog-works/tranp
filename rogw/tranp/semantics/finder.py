@@ -111,7 +111,7 @@ class SymbolFinder:
 			return node.is_a(defs.Var) and scope in db and db[scope].types.is_a(defs.Class)
 
 		domain_name = DSN.join(node.domain_name, prop_name)
-		# ドメイン名の要素数が1つの場合のみ標準ライブラリーへのフォールバックを許可する(プライマリー以外のモジュールへのフォールバックを抑制)
+		# ドメイン名の要素数が1つの場合のみ標準ライブラリーへのフォールバックを許可する(2層目以降のシンボルへのフォールバックを抑制)
 		allow_fallback_lib = DSN.elem_counts(domain_name) == 1
 		scopes = [scope for scope in self.__make_scopes(node.scope, allow_fallback_lib) if not is_local_var_in_class_scope(scope)]
 		if not isinstance(node, defs.Type):
@@ -150,20 +150,20 @@ class SymbolFinder:
 			# XXX このモジュールでISymbolProxyの参照が妥当か再検討
 			# XXX タイプノードが参照するシンボルはUnknownになることが無いため、オリジナルの型と拡張後の型は必ず一致する
 			org_raw = raw.org_raw if isinstance(raw, ISymbolProxy) else raw
-			if org_raw.types.is_a(defs.Class, defs.AltClass, defs.TemplateClass, defs.Type):
+			if org_raw.types.is_a(defs.ClassOrType):
 				return raw
 
 		return None
 
 	def __each_find_raw(self, db: SymbolDB, scopes: list[str], domain_name: str) -> Iterator[IReflection]:
-		"""スコープを辿り、指定のドメイン名を持つシンボルを検索。未検出の場合はNoneを返却
+		"""スコープを辿り、指定のドメイン名を持つシンボルを検索
 
 		Args:
 			db (SymbolDB): シンボルテーブル
 			scopes (list[str]): 探索スコープリスト
 			domain_name (str): ドメイン名
 		Returns:
-			IReflection | None: シンボル
+			Iterator[IReflection]: イテレーター
 		"""
 		for scope in scopes:
 			fullyname = DSN.join(scope, domain_name)

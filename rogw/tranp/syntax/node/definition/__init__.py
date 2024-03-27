@@ -155,3 +155,4 @@ from rogw.tranp.syntax.node.definition.terminal import Terminal, Empty
 DeclVars: TypeAlias = Parameter | Declable
 DeclAll: TypeAlias = Parameter | Declable | ClassDef
 Symbolic: TypeAlias = Declable | Relay | Var | Type | Literal | ClassDef
+ClassOrType: TypeAlias = Class | AltClass | TemplateClass | Type

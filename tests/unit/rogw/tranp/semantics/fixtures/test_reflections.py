@@ -94,6 +94,9 @@ class Sub(Base):
 		keys = list(d.keys())
 		return d['a']
 
+	def Base(self) -> Base:
+		...
+
 class CalcOps:
 	def unary(self) -> None:
 		n = 1

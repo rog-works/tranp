@@ -10,9 +10,9 @@ from rogw.tranp.syntax.ast.dsn import DSN
 from rogw.tranp.syntax.ast.entry import SourceMap
 from rogw.tranp.syntax.ast.path import EntryPath
 from rogw.tranp.syntax.ast.query import Query
-from rogw.tranp.syntax.node.embed import EmbedKeys, Meta
 from rogw.tranp.syntax.errors import IllegalConvertionError, NodeNotFoundError
-from rogw.tranp.syntax.node.interface import IDomain, IScope, ITerminal
+from rogw.tranp.syntax.node.embed import EmbedKeys, Meta
+from rogw.tranp.syntax.node.behavior import IDomain, INamespace, IScope, ITerminal
 
 T_Node = TypeVar('T_Node', bound='Node')
 
@@ -112,29 +112,26 @@ class Node:
 		Note:
 			# 命名規則
 			* IDomainを実装(ClassDef/Declare/Reference/Type/FuncCall/Literal/Empty): scope.domain_name
-			* IScopeを実装(FlowEntry): scope@id
 			* その他: scope.classification@id
 		"""
 		if isinstance(self, IDomain):
 			return DSN.join(self.scope, self.domain_name)
-		elif isinstance(self, IScope):
-			return DSN.identify(self.scope, self.id)
 		else:
 			return DSN.join(self.scope, DSN.identify(self.classification, self.id))
 
 	@property
 	def scope(self) -> str:
-		"""str: 自身が所有するスコープ。FQDNに相当"""
-		if isinstance(self, IScope):
-			return DSN.join(self.parent.scope, self.scope_part)
+		"""str: 自身が所属するスコープ"""
+		if isinstance(self.parent, IScope):
+			return DSN.join(self.parent.scope, self.parent.domain_name or self.parent.classification)
 		else:
 			return self.parent.scope
 
 	@property
 	def namespace(self) -> str:
-		"""str: 自身が所有する名前空間。スコープのエイリアス"""
-		if isinstance(self, IScope):
-			return DSN.join(self.parent.namespace, self.namespace_part)
+		"""str: 自身が所属する名前空間"""
+		if isinstance(self.parent, INamespace):
+			return DSN.join(self.parent.namespace, self.parent.domain_name)
 		else:
 			return self.parent.namespace
 

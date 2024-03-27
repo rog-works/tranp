@@ -1,34 +1,61 @@
-class IScope:
-	"""スコープインターフェイス
+from typing import Protocol
+
+from rogw.tranp.syntax.node.node import Node
+
+
+class IDeclaration:
+	"""シンボルを宣言するノードの共通インターフェイス
 
 	Note:
-		対象: クラス/ファンクション/フロー構文/リスト内包表記
+		# 対象 | 1 on 1/n
+		* ClassDef | 1 on 1
+		* AnnoAssign | 1 on 1
+		* MoveAssign | 1 on n
+		* Import | 1 on n
+		* Parameter | 1 on 1
+		* For | 1 on n
+		* Catch | 1 on 1
+		* Comprehension | 1 on n
 	"""
 
 	@property
-	def scope_part(self) -> str:
-		"""str: スコープパート名 Note: 実装対象以外は空文字。対象: クラス/ファンクション/ブロック"""
+	def symbols(self) -> list[Node]:
+		"""list[Node]: シンボルとなるDeclableノードのリスト"""
+		raise NotImplementedError()
+
+
+class ISymbol:
+	"""シンボルとなるノードの共通インターフェイス
+
+	Note:
+		# 対象 | 宣言 | シンボル
+		* ClassDef | o | o
+		* Declable | x | o
+		* Parameter | o | o
+	"""
+
+	@property
+	def symbol(self) -> Node:
+		"""Node: 自身、または配下のシンボルノード"""
 		raise NotImplementedError()
 
 	@property
-	def namespace_part(self) -> str:
-		"""str: 名前空間パート名 Note: 実装対象以外は空文字。対象: クラス"""
+	def declare(self) -> Node:
+		"""Node: 自身、または親であるシンボル宣言ノード"""
 		raise NotImplementedError()
 
 
-class ITerminal:
-	"""終端要素インターフェイス。配下の要素の展開可否を扱う。終端記号とは別の概念である点に注意
+class StatementBlock(Protocol):
+	"""ステートメントを所持するノードの共通インターフェイス
 
 	Note:
-		対象: 名前宣言/変数参照/リテラル(コレクション以外)/フロー構文(pass/break/continue)/インポート/終端記号
+		# 対象
+		* Entrypoint
+		* Block
+		* ClassDef
 	"""
-	pass
 
-
-class IDomain:
-	"""ドメインインターフェイス
-
-	Note:
-		対象: クラス/ファンクション/シンボル/リテラル
-	"""
-	pass
+	@property
+	def statements(self) -> list[Node]:
+		"""list[Node]: ステートメントノードリスト"""
+		...

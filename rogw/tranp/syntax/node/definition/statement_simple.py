@@ -1,10 +1,10 @@
 from rogw.tranp.lang.annotation import implements, override
+from rogw.tranp.syntax.node.behavior import ITerminal
 from rogw.tranp.syntax.node.definition.primary import FuncCall, ImportName, ImportPath, Reference, Declable, Type, Var
 from rogw.tranp.syntax.node.definition.terminal import Empty, Terminal
 from rogw.tranp.syntax.node.embed import Meta, accept_tags, expandable
-from rogw.tranp.syntax.node.interface import ITerminal
+from rogw.tranp.syntax.node.interface import IDeclaration
 from rogw.tranp.syntax.node.node import Node
-from rogw.tranp.syntax.node.promise import IDeclaration
 
 
 class Assign(Node):

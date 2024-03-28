@@ -124,7 +124,8 @@ for_in: "in" expression
 
 // @lark try_stmt: "try" ":" suite except_clauses ["else" block] [finally] | "try" ":" suite finally
 // @lark except_clause: "except" [test ["as" name]] ":" suite
-try_stmt: "try" ":" block except_clauses
+try_stmt: try_clause except_clauses
+try_clause: "try" ":" block
 except_clauses: except_clause+
 // @note XXX typed_expressionの箇所は本来は式だが、クラス以外を指定する事はまずないので簡易化しておく
 except_clause: "except" typed_expression ["as" name] ":" block

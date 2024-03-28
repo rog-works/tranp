@@ -36,6 +36,7 @@ def symbol_mapping() -> SymbolMapping:
 			defs.While: ['while_stmt'],
 			defs.For: ['for_stmt'],
 			defs.Catch: ['except_clause'],
+			defs.TryClause: ['try_clause'],
 			defs.Try: ['try_stmt'],
 			defs.ClassMethod: ['function_def'],
 			defs.Constructor: ['function_def'],

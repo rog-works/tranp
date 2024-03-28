@@ -118,6 +118,7 @@ from rogw.tranp.syntax.node.definition.statement_compound import (
 	ForIn,
 	For,
 	Catch,
+	TryClause,
 	Try,
 	# class
 	ClassDef,

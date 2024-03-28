@@ -194,6 +194,19 @@ class Catch(FlowPart, IDeclaration):
 		return self._by('block').as_a(Block)
 
 
+@Meta.embed(Node, accept_tags('try_clause'))
+class TryClause(FlowPart):
+	@property
+	@duck_typed
+	@Meta.embed(Node, expandable)
+	def statements(self) -> list[Node]:
+		return self.block.statements
+
+	@property
+	def block(self) -> Block:
+		return self._by('block').as_a(Block)
+
+
 @Meta.embed(Node, accept_tags('try_stmt'))
 class Try(FlowEnter):
 	@property
@@ -208,8 +221,12 @@ class Try(FlowEnter):
 		return [node.as_a(Catch) for node in self._by('except_clauses')._children()]
 
 	@property
+	def try_clause(self) -> TryClause:
+		return self._by('try_clause').as_a(TryClause)
+
+	@property
 	def block(self) -> Block:
-		return self._by('block').as_a(Block)
+		return self.try_clause.block
 
 	@property
 	def having_blocks(self) -> list[Block]:

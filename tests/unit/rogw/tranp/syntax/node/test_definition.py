@@ -82,7 +82,7 @@ class TestDefinition(TestCase):
 		('if True:\n\ta = 0\n\tif True: a = 1', 'file_input.if_stmt.if_clause.block', {'statements': [defs.MoveAssign, defs.If]}),
 		('if True:\n\ta = 0\n\tfor i in range(1): a = 1', 'file_input.if_stmt.if_clause.block', {'statements': [defs.MoveAssign, defs.For]}),
 		('if True:\n\ttry:\n\t\ta = 0\n\texcept Exception as e: ...', 'file_input.if_stmt.if_clause.block', {'statements': [defs.Try]}),
-		('try:\n\ta = 0\nexcept Exception as e: ...', 'file_input.try_stmt.block', {'statements': [defs.MoveAssign]}),
+		('try:\n\ta = 0\nexcept Exception as e: ...', 'file_input.try_stmt.try_clause.block', {'statements': [defs.MoveAssign]}),
 		('def func(a: int) -> None:\n\ta1 = a\n\ta = a1', 'file_input.function_def.function_def_raw.block', {'statements': [defs.MoveAssign, defs.MoveAssign]}),
 	])
 	def test_block(self, source: str, full_path: str, expected: dict[str, list[type]]) -> None:

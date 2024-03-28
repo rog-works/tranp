@@ -62,7 +62,9 @@ class Sub(Base):
 			for i in range(a):
 				try:
 					i = 0
+					t = 0
 				except Exception as e:
+					t = 1
 					raise e
 
 		def closure() -> list[int]:
@@ -74,7 +76,7 @@ class Sub(Base):
 		elif a == 2:
 			c = 1
 		else:
-			c = 1
+			c = 2
 
 		return closure()[0]
 

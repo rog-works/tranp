@@ -107,7 +107,8 @@ class TestDefinition(TestCase):
 		self.assertEqual(type(node.condition), expected['condition'])
 		self.assertEqual([type(statement) for statement in node.statements], expected['statements'])
 		self.assertEqual(len(node.else_ifs), expected['else_ifs'])
-		self.assertEqual([type(statement) for statement in node.else_statements], expected['else_statements'])
+		if isinstance(node.else_body, defs.Else):
+			self.assertEqual([type(statement) for statement in node.else_body.statements], expected['else_statements'])
 
 	@data_provider([
 		('while True: ...', 'file_input.while_stmt', {'condition': defs.Truthy, 'statements': [defs.Elipsis]}),

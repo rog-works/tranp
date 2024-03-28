@@ -111,6 +111,7 @@ from rogw.tranp.syntax.node.definition.statement_compound import (
 	FlowEnter,
 	FlowPart,
 	ElseIf,
+	Else,
 	If,
 	While,
 	ForIn,

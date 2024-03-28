@@ -59,6 +59,26 @@ class ElseIf(FlowPart):
 		return self._by('block').as_a(Block)
 
 
+@Meta.embed(Node, accept_tags('block'))
+class Else(FlowPart):
+	@classmethod
+	@override
+	def match_feature(cls, via: Node) -> bool:
+		is_under_if = via._full_path.parent_tag == 'if_stmt'
+		is_else_block = via._full_path.last[1] == 3
+		return is_under_if and is_else_block
+
+	@property
+	@duck_typed
+	@Meta.embed(Node, expandable)
+	def statements(self) -> list[Node]:
+		return self._children()
+
+	@property
+	def block(self) -> Block:
+		return self.dirty_child(Block, 'block', statements=self.statements)
+
+
 @Meta.embed(Node, accept_tags('if_stmt'))
 class If(FlowEnter):
 	@property
@@ -79,17 +99,12 @@ class If(FlowEnter):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def else_statements(self) -> list[Node]:
-		block = self.else_block
-		return block.statements if isinstance(block, Block) else []
+	def else_body(self) -> Else | Empty:
+		return self._at(3).one_of(Else | Empty)
 	
 	@property
 	def block(self) -> Block:
 		return self._at(1).as_a(Block)
-
-	@property
-	def else_block(self) -> Block | Empty:
-		return self._at(3).one_of(Block | Empty)
 
 	@property
 	def having_blocks(self) -> list[Block]:
@@ -97,8 +112,8 @@ class If(FlowEnter):
 		for else_if in self.else_ifs:
 			blocks.append(else_if.block)
 
-		if isinstance(self.else_block, Block):
-			blocks.append(self.else_block)
+		if isinstance(self.else_body, Else):
+			blocks.append(self.else_body.block)
 
 		return blocks
 

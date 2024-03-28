@@ -371,6 +371,12 @@ class TestRenderer(TestCase):
 		self.assertRender('else_if', 0, vars, expected)
 
 	@data_provider([
+		({'statements': ['pass;']}, 'pass;'),
+	])
+	def test_render_else(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('else', 0, vars, expected)
+
+	@data_provider([
 		({'meta_header': '@tranp.meta: {"version":"1.0.0"}', 'statements': [ 'int x = 0;', ]}, '// @tranp.meta: {"version":"1.0.0"}\nint x = 0;\n'),
 	])
 	def test_render_entrypoint(self, vars: dict[str, Any], expected: str) -> None:

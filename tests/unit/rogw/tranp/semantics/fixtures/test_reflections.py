@@ -68,12 +68,23 @@ class Sub(Base):
 			for i in range(a):
 				try:
 					i = 0
+					t = 0
 				except Exception as e:
+					t = 1
 					raise e
+			t = 2
 
 		def closure() -> list[int]:
 			b = [1]
 			return b
+
+		if a == 1:
+			c = 0
+		elif a == 2:
+			c = 1
+		else:
+			c = 2
+		c = 3
 
 		return closure()[0]
 

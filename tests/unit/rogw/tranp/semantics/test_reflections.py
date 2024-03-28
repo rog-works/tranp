@@ -349,11 +349,11 @@ class TestReflections(TestCase):
 		(_ast('Sub.decl_with_pop.block', 'assign.assign_namelist.var'), _mod('classes', 'int'), 'int'),
 		(_ast('Sub.decl_with_pop.block', 'assign.funccall'), _mod('classes', 'int'), 'int'),
 
-		(_ast('Sub.decl_locals.block', 'if_stmt.if_clause.block.assign.assign_namelist.var'), _mod('classes', 'int'), 'int'),
+		(_ast('Sub.decl_locals.block', 'if_stmt[1].if_clause.block.assign[0].assign_namelist.var'), _mod('classes', 'int'), 'int'),
 		(_ast('Sub.decl_locals.closure.block', 'assign.assign_namelist.var'), _mod('classes', 'list'), 'list<int>'),
 
-		(_ast('Sub.decl_locals.block', 'if_stmt.if_clause.block.for_stmt.for_namelist.name'), _mod('classes', 'int'), 'int'),
-		(_ast('Sub.decl_locals.block', 'if_stmt.if_clause.block.for_stmt.block.try_stmt.except_clauses.except_clause.name'), _mod('classes', 'Exception'), 'Exception'),
+		(_ast('Sub.decl_locals.block', 'if_stmt[1].if_clause.block.for_stmt.for_namelist.name'), _mod('classes', 'int'), 'int'),
+		(_ast('Sub.decl_locals.block', 'if_stmt[1].if_clause.block.for_stmt.block.try_stmt.except_clauses.except_clause.name'), _mod('classes', 'Exception'), 'Exception'),
 
 		(_ast('Sub.Base.return', ''), f'{fixture_module_path}.Base', 'Base'),
 

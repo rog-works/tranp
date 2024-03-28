@@ -12,6 +12,7 @@ value: int = 0
 class Base(Z):
 	def __init__(self) -> None:
 		self.base_str: str = ''
+		# comment
 
 class Sub(Base):
 	class C:
@@ -25,12 +26,17 @@ class Sub(Base):
 		super().__init__()
 		self.numbers: list[int] = []
 
+	@property
+	def first_number(self) -> int:
+		return self.numbers[0]
+
 	def local_ref(self) -> None:
 		value = False
 		print(value)
 
 	def member_ref(self) -> None:
 		print(self.numbers)
+		print(self.first_number)
 
 	def member_write(self) -> None:
 		self.x.nx = 2
@@ -86,8 +92,29 @@ class Sub(Base):
 		a1 = a + 1
 		a = a1 + 1
 
-class Ops:
-	def sum(self) -> None:
+	def relay_access(self) -> None:
+		ddb = {1: {1: Base()}}
+		s = ddb[1][1].base_str
+
+	def fill_list(self, n: int) -> None:
+		n_x3 = [n] * 3
+
+	def param_default(self, d: DSI = {}) -> int:
+		n = self.param_default() + 1
+		n2 = self.param_default({'a': 1}) + 1
+		keys = list(d.keys())
+		return d['a']
+
+	def Base(self) -> Base:
+		...
+
+class CalcOps:
+	def unary(self) -> None:
+		n = 1
+		n_neg = -n
+		n_not = not n
+
+	def binary(self) -> None:
 		n = 1 + 1
 		nb0 = 1 + True
 		nb1 = True + 1
@@ -96,6 +123,18 @@ class Ops:
 		fn2 = 1.0 + 1.0
 		fb0 = 1.0 + True
 		fb1 = True + 1.0
+		result = 1 + n * fn0 - fb0 / 2
+		l_in = 1 in [1]
+		l_not_in = 1 not in [1]
+		n_is = 1 is 1
+		n_is_not = 1 is not 1
+
+	def tenary(self) -> None:
+		n = 1 if 2 else 3
+		s = 'a' if True else 'b'
+		s_or_null = 'a' if n else None
+		# エラーケース
+		# n_or_s = 1 if n else 'a'
 
 class AliasOps:
 	def func(self, z2: Z2) -> None:
@@ -145,6 +184,15 @@ class EnumOps:
 		A = 0
 		B = 1
 
+	@classmethod
+	def cls_assign(cls) -> None:
+		a = cls.Values.A
+		d = {
+			cls.Values.A: 'A',
+			cls.Values.B: 'B',
+		}
+		da = d[cls.Values.A]
+
 	def assign(self) -> None:
 		a = EnumOps.Values.A
 		d = {
@@ -152,3 +200,25 @@ class EnumOps:
 			EnumOps.Values.B: 'B',
 		}
 		da = d[EnumOps.Values.A]
+
+	def cast(self) -> None:
+		e = EnumOps.Values(0)
+		n = int(EnumOps.Values.A)
+
+class Nullable:
+	def params(self, base: Base | None) -> None: ...
+	def returns(self) -> Base | None: ...
+	def var_move(self, base: Base) -> str:
+		base_or_null: Base | None = None
+		base_or_null = None
+		base_or_null = base
+		if base_or_null:
+			return base_or_null.base_str
+
+		raise Exception()
+
+	def accessible(self, sub: Sub | None, subs: list[Sub] | None) -> None:
+		s = sub.base_str if sub else ''
+		n = sub.first_number if sub else 0
+		# エラーケース
+		# arr = subs[0] if subs else []

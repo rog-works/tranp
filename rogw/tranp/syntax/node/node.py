@@ -122,18 +122,20 @@ class Node:
 	@property
 	def scope(self) -> str:
 		"""str: 自身が所属するスコープ"""
-		if isinstance(self.parent, IScope):
-			return DSN.join(self.parent.scope, self.parent.domain_name or self.parent.classification)
+		parent = self.parent
+		if isinstance(parent, IScope):
+			return DSN.join(parent.scope, parent.domain_name or parent.classification)
 		else:
-			return self.parent.scope
+			return parent.scope
 
 	@property
 	def namespace(self) -> str:
 		"""str: 自身が所属する名前空間"""
-		if isinstance(self.parent, INamespace):
-			return DSN.join(self.parent.namespace, self.parent.domain_name)
+		parent = self.parent
+		if isinstance(parent, INamespace):
+			return DSN.join(parent.namespace, parent.domain_name)
 		else:
-			return self.parent.namespace
+			return parent.namespace
 
 	@property
 	def can_expand(self) -> bool:
@@ -533,9 +535,9 @@ class Node:
 		def expand_lines(node: Node, begin: str, after: str) -> list[str]:
 			"""str: ノード内の要素を展開して行リストを返却"""
 			lines: list[str] = []
-			for j, ln_line in enumerate(node.pretty(depth - 1).split('\n')):
+			for j, in_line in enumerate(node.pretty(depth - 1).split('\n')):
 				prefix = begin if j == 0 else after
-				lines.append(f'{prefix}{ln_line}')
+				lines.append(f'{prefix}{in_line}')
 
 			return lines
 

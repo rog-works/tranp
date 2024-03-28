@@ -256,7 +256,7 @@ class ClassDef(Node, IDomain, IScope, INamespace, IDeclaration, ISymbol):
 		embedder = self._dig_embedder(__actual__.__name__)
 		return embedder.arguments[0].value.as_a(String).plain if embedder else None
 
-	def _decl_vars_with(self, allow: type[T_Declable]) -> dict[str, T_Declable]:
+	def _decl_vars_with(self, allow: type[T_Declable]) -> list[T_Declable]:
 		return VarsCollector.collect(self, allow)
 
 	def _inherit_template_types(self) -> list[Type]:
@@ -343,8 +343,8 @@ class Function(ClassDef):
 	def decl_vars(self) -> list[Parameter | DeclLocalVar]:
 		parameters = self.parameters
 		# XXX 共通化の方法を検討 @see collect_decl_vars_with
-		parameter_names = [DSN.join(parameter.symbol.namespace, parameter.symbol.domain_name) for parameter in parameters]
-		local_vars = [var for fullyname, var in self._decl_vars_with(DeclLocalVar).items() if fullyname not in parameter_names]
+		parameter_names = [parameter.symbol.domain_name for parameter in parameters]
+		local_vars = [var for var in self._decl_vars_with(DeclLocalVar) if var.symbol.domain_name not in parameter_names]
 		return [*parameters, *local_vars]
 
 	@property
@@ -388,7 +388,7 @@ class Constructor(Function):
 
 	@property
 	def this_vars(self) -> list[DeclThisVar]:
-		return list(self._decl_vars_with(DeclThisVar).values())
+		return self._decl_vars_with(DeclThisVar)
 
 
 @Meta.embed(Node)
@@ -515,7 +515,7 @@ class Class(ClassDef):
 
 	@property
 	def class_vars(self) -> list[DeclClassVar]:
-		return list(self._decl_vars_with(DeclClassVar).values())
+		return self._decl_vars_with(DeclClassVar)
 
 	@property
 	def this_vars(self) -> list[DeclThisVar]:
@@ -576,14 +576,26 @@ class VarsCollector:
 	"""宣言変数コレクター"""
 
 	@classmethod
-	def collect(cls, block: StatementBlock, allow: type[T_Declable]) -> dict[str, T_Declable]:
+	def collect(cls, block: StatementBlock, allow: type[T_Declable]) -> list[T_Declable]:
 		"""対象のブロック内で宣言した変数を収集する
 
 		Args:
 			block (StatementBlock): ブロック
 			allow (type[T_Declable]): 収集対象の宣言ノード
 		Returns:
-			dict[str, T_Declable]: (名前空間上の参照名、宣言ノード)
+			list[T_Declable]: 宣言ノードリスト
+		"""
+		return list(cls._collect_impl(block, allow).values())
+
+	@classmethod
+	def _collect_impl(cls, block: StatementBlock, allow: type[T_Declable]) -> dict[str, T_Declable]:
+		"""対象のブロック内で宣言した変数を収集する
+
+		Args:
+			block (StatementBlock): ブロック
+			allow (type[T_Declable]): 収集対象の宣言ノード
+		Returns:
+			dict[str, T_Declable]: 完全参照名と宣言ノードのマップ表
 		"""
 		decl_vars: dict[str, T_Declable] = {}
 		for node in block.statements:
@@ -597,9 +609,9 @@ class VarsCollector:
 
 			if isinstance(node, (If, Try)):
 				for in_block in node.having_blocks:
-					decl_vars = cls._merged(decl_vars, cls.collect(in_block, allow))
+					decl_vars = cls._merged(decl_vars, cls._collect_impl(in_block, allow))
 			elif isinstance(node, (While, For)):
-				decl_vars = cls._merged(decl_vars, cls.collect(node.block, allow))
+				decl_vars = cls._merged(decl_vars, cls._collect_impl(node.block, allow))
 
 		return decl_vars
 
@@ -612,11 +624,9 @@ class VarsCollector:
 			declare (IDeclaration: 変数宣言ノード
 			allow (type[T_Declable]): 収集対象の宣言ノード
 		Returns:
-			dict[str, T_Declable]: (参照名、宣言ノード)
-		Note:
-			XXX 共通化の方法を検討 @see Function.decl_vars
+			dict[str, T_Declable]: 完全参照名と宣言ノードのマップ表
 		"""
-		allow_vars = {DSN.join(symbol.namespace, symbol.domain_name): symbol for symbol in declare.symbols if isinstance(symbol, allow)}
+		allow_vars = {symbol.fullyname: symbol for symbol in declare.symbols if isinstance(symbol, allow)}
 		return cls._merged(decl_vars, allow_vars)
 
 	@classmethod
@@ -627,8 +637,23 @@ class VarsCollector:
 			decl_vars (dict[str, T_Declable]): 収集済みの宣言ノード
 			allow_vars (dict[str, T_Declable]): 追加の宣言ノード
 		Returns:
-			dict[str, T_Declable]: (名前空間上の参照名、宣言ノード)
-		Note:
-			XXX 共通化の方法を検討 @see Function.decl_vars
+			dict[str, T_Declable]: 完全参照名と宣言ノードのマップ表
 		"""
-		return {**decl_vars, **{name: symbol for name, symbol in allow_vars.items() if name not in decl_vars}}
+		merged = decl_vars
+		for allow_fullyname, allow_var in allow_vars.items():
+			if allow_fullyname in decl_vars:
+				continue
+
+			relationed = False
+			for decl_var in decl_vars.values():
+				if decl_var.domain_name != allow_var.domain_name:
+					continue
+
+				if allow_var.scope.startswith(decl_var.scope):
+					relationed = True
+					break
+
+			if not relationed:
+				merged[allow_fullyname] = allow_var
+
+		return merged

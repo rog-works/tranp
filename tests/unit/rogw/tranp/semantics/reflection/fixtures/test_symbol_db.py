@@ -69,6 +69,11 @@ class Sub(Base):
 			b = [1]
 			return b
 
+		if a:
+			c = 0
+		else:
+			c = 1
+
 		return closure()[0]
 
 	def assign_with_param(self, a: int) -> None:

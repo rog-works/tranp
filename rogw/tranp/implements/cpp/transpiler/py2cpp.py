@@ -198,8 +198,11 @@ class Py2Cpp(ITranspiler):
 	def on_else_if(self, node: defs.ElseIf, condition: str, statements: list[str]) -> str:
 		return self.view.render(node.classification, vars={'condition': condition, 'statements': statements})
 
-	def on_if(self, node: defs.If, condition: str, statements: list[str], else_ifs: list[str], else_statements: list[str]) -> str:
-		return self.view.render(node.classification, vars={'condition': condition, 'statements': statements, 'else_ifs': else_ifs, 'else_statements': else_statements})
+	def on_else(self, node: defs.Else, statements: list[str]) -> str:
+		return self.view.render(node.classification, vars={'statements': statements})
+
+	def on_if(self, node: defs.If, condition: str, statements: list[str], else_ifs: list[str], else_clause: str) -> str:
+		return self.view.render(node.classification, vars={'condition': condition, 'statements': statements, 'else_ifs': else_ifs, 'else_clause': else_clause})
 
 	def on_while(self, node: defs.While, condition: str, statements: list[str]) -> str:
 		return self.view.render(node.classification, vars={'condition': condition, 'statements': statements})

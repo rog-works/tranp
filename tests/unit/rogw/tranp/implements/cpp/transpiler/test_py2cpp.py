@@ -177,19 +177,19 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarOps.local_move.block', 'anno_assign[1]'), defs.AnnoAssign, 'Sub* ap = &(a);'),
 		(_ast('CVarOps.local_move.block', 'anno_assign[2]'), defs.AnnoAssign, 'std::shared_ptr<Sub> asp = std::make_shared<Sub>(0);'),
 		(_ast('CVarOps.local_move.block', 'anno_assign[3]'), defs.AnnoAssign, 'Sub& ar = a;'),
-		(_ast('CVarOps.local_move.block', 'if_stmt[4].block.assign[0]'), defs.MoveAssign, 'a = a;'),
-		(_ast('CVarOps.local_move.block', 'if_stmt[4].block.assign[1]'), defs.MoveAssign, 'a = *(ap);'),
-		(_ast('CVarOps.local_move.block', 'if_stmt[4].block.assign[2]'), defs.MoveAssign, 'a = *(asp);'),
-		(_ast('CVarOps.local_move.block', 'if_stmt[4].block.assign[3]'), defs.MoveAssign, 'a = ar;'),
-		(_ast('CVarOps.local_move.block', 'if_stmt[5].block.assign[0]'), defs.MoveAssign, 'ap = &(a);'),
-		(_ast('CVarOps.local_move.block', 'if_stmt[5].block.assign[1]'), defs.MoveAssign, 'ap = ap;'),
-		(_ast('CVarOps.local_move.block', 'if_stmt[5].block.assign[2]'), defs.MoveAssign, 'ap = (asp).get();'),
-		(_ast('CVarOps.local_move.block', 'if_stmt[5].block.assign[3]'), defs.MoveAssign, 'ap = &(ar);'),
-		(_ast('CVarOps.local_move.block', 'if_stmt[6].block.assign'), defs.MoveAssign, 'asp = asp;'),
-		(_ast('CVarOps.local_move.block', 'if_stmt[7].block.assign[1]'), defs.MoveAssign, 'ar = a;'),  # XXX C++ではNGだが要件等 ※型推論のコストをかけてまでエラー判定が必要なのか微妙
-		(_ast('CVarOps.local_move.block', 'if_stmt[7].block.assign[3]'), defs.MoveAssign, 'ar = *(ap);'),  # 〃
-		(_ast('CVarOps.local_move.block', 'if_stmt[7].block.assign[5]'), defs.MoveAssign, 'ar = *(asp);'),  # 〃
-		(_ast('CVarOps.local_move.block', 'if_stmt[7].block.assign[7]'), defs.MoveAssign, 'ar = ar;'),  # 〃
+		(_ast('CVarOps.local_move.block', 'if_stmt[4].if_clause.block.assign[0]'), defs.MoveAssign, 'a = a;'),
+		(_ast('CVarOps.local_move.block', 'if_stmt[4].if_clause.block.assign[1]'), defs.MoveAssign, 'a = *(ap);'),
+		(_ast('CVarOps.local_move.block', 'if_stmt[4].if_clause.block.assign[2]'), defs.MoveAssign, 'a = *(asp);'),
+		(_ast('CVarOps.local_move.block', 'if_stmt[4].if_clause.block.assign[3]'), defs.MoveAssign, 'a = ar;'),
+		(_ast('CVarOps.local_move.block', 'if_stmt[5].if_clause.block.assign[0]'), defs.MoveAssign, 'ap = &(a);'),
+		(_ast('CVarOps.local_move.block', 'if_stmt[5].if_clause.block.assign[1]'), defs.MoveAssign, 'ap = ap;'),
+		(_ast('CVarOps.local_move.block', 'if_stmt[5].if_clause.block.assign[2]'), defs.MoveAssign, 'ap = (asp).get();'),
+		(_ast('CVarOps.local_move.block', 'if_stmt[5].if_clause.block.assign[3]'), defs.MoveAssign, 'ap = &(ar);'),
+		(_ast('CVarOps.local_move.block', 'if_stmt[6].if_clause.block.assign'), defs.MoveAssign, 'asp = asp;'),
+		(_ast('CVarOps.local_move.block', 'if_stmt[7].if_clause.block.assign[1]'), defs.MoveAssign, 'ar = a;'),  # XXX C++ではNGだが要件等 ※型推論のコストをかけてまでエラー判定が必要なのか微妙
+		(_ast('CVarOps.local_move.block', 'if_stmt[7].if_clause.block.assign[3]'), defs.MoveAssign, 'ar = *(ap);'),  # 〃
+		(_ast('CVarOps.local_move.block', 'if_stmt[7].if_clause.block.assign[5]'), defs.MoveAssign, 'ar = *(asp);'),  # 〃
+		(_ast('CVarOps.local_move.block', 'if_stmt[7].if_clause.block.assign[7]'), defs.MoveAssign, 'ar = ar;'),  # 〃
 
 		(_ast('CVarOps.param_move.block', 'assign[0]'), defs.MoveAssign, 'Sub a1 = a;'),
 		(_ast('CVarOps.param_move.block', 'anno_assign[1]'), defs.AnnoAssign, 'Sub a2 = *(ap);'),
@@ -333,7 +333,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('Nullable.var_move.block', 'assign[1]'), defs.MoveAssign, 'p = &(base);'),
 		(_ast('Nullable.var_move.block', 'assign[2]'), defs.MoveAssign, 'p = nullptr;'),
 		(_ast('Nullable.var_move.block', 'assign[3]'), defs.MoveAssign, 'p = (sp).get();'),
-		(_ast('Nullable.var_move.block', 'if_stmt.block.return_stmt'), defs.Return, 'return *(p);'),
+		(_ast('Nullable.var_move.block', 'if_stmt.if_clause.block.return_stmt'), defs.Return, 'return *(p);'),
 
 		(_ast('Template.T2Class', ''), defs.Class, '/** T2Class */\ntemplate<typename T2>\nclass T2Class {\n\n};'),
 		(_ast('Template.__init__', ''), defs.Constructor, '/** Constructor */\npublic: Template(T v) {\n\n}'),

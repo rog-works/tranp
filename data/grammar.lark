@@ -110,9 +110,11 @@ argvalue: expression | name "=" expression
 
 // @lark while_stmt: "while" test ":" suite ["else" block]
 // @lark for_stmt: "for" exprlist "in" testlist ":" suite ["else" block]
-if_stmt: "if" expression ":" block elifs ["else" ":" block]
-elifs: elif_*
-elif_: "elif" expression ":" block
+if_stmt: if_clause elif_clauses [else_clause]
+if_clause: "if" expression ":" block
+elif_clauses: elif_clause*
+elif_clause: "elif" expression ":" block
+else_clause: "else" ":" block
 while_stmt: "while" expression ":" block
 for_stmt: "for" for_namelist for_in ":" block
 // @custom
@@ -122,7 +124,8 @@ for_in: "in" expression
 
 // @lark try_stmt: "try" ":" suite except_clauses ["else" block] [finally] | "try" ":" suite finally
 // @lark except_clause: "except" [test ["as" name]] ":" suite
-try_stmt: "try" ":" block except_clauses
+try_stmt: try_clause except_clauses
+try_clause: "try" ":" block
 except_clauses: except_clause+
 // @note XXX typed_expressionの箇所は本来は式だが、クラス以外を指定する事はまずないので簡易化しておく
 except_clause: "except" typed_expression ["as" name] ":" block

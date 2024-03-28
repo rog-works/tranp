@@ -5,17 +5,9 @@ if ({{ condition }}) {
 {%- endfor %}
 {%- endfilter %}
 {%- for else_if in else_ifs %}
-{%- filter indent('\t') %}
 {{ else_if }}
-{%- endfilter %}
 {%- endfor %}
-{%- if else_statements %}
-} else {
-{%- for else_statement in else_statements %}
-{%- filter indent('\t') %}
-{%- if loop.index0 > 0 %}{{ '\n' }}{% endif %}
-{{ else_statement }}
-{%- endfilter %}
-{%- endfor %}
+{%- if else_clause %}
+{{ else_clause }}
 {%- endif %}
 }

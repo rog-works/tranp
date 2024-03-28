@@ -28,13 +28,20 @@ class Block(Node):
 		return self._children()
 
 
-class Flow(Node): pass
-class FlowEnter(Flow, IScope): pass
+class Flow(Node, IDomain, IScope):
+	@property
+	@override
+	def domain_name(self) -> str:
+		# XXX 一意な名称を持たないためIDで代用
+		return DSN.identify(self.classification, self.id)
+
+
+class FlowEnter(Flow): pass
 class FlowPart(Flow): pass
 
 
-@Meta.embed(Node, accept_tags('elif_'))
-class ElseIf(FlowPart):
+@Meta.embed(Node, accept_tags('if_clause'))
+class IfClause(FlowPart):
 	@property
 	@Meta.embed(Node, expandable)
 	def condition(self) -> Node:
@@ -51,12 +58,29 @@ class ElseIf(FlowPart):
 		return self._by('block').as_a(Block)
 
 
+@Meta.embed(Node, accept_tags('elif_clause'))
+class ElseIf(IfClause): pass
+
+
+@Meta.embed(Node, accept_tags('else_clause'))
+class Else(FlowPart):
+	@property
+	@duck_typed
+	@Meta.embed(Node, expandable)
+	def statements(self) -> list[Node]:
+		return self.block.statements
+
+	@property
+	def block(self) -> Block:
+		return self._by('block').as_a(Block)
+
+
 @Meta.embed(Node, accept_tags('if_stmt'))
 class If(FlowEnter):
 	@property
 	@Meta.embed(Node, expandable)
 	def condition(self) -> Node:
-		return self._at(0)
+		return self.if_clause.condition
 
 	@property
 	@duck_typed
@@ -67,21 +91,20 @@ class If(FlowEnter):
 	@property
 	@Meta.embed(Node, expandable)
 	def else_ifs(self) -> list[ElseIf]:
-		return [node.as_a(ElseIf) for node in self._by('elifs')._children()]
+		return [node.as_a(ElseIf) for node in self._by('elif_clauses')._children()]
 
 	@property
 	@Meta.embed(Node, expandable)
-	def else_statements(self) -> list[Node]:
-		block = self.else_block
-		return block.statements if isinstance(block, Block) else []
+	def else_clause(self) -> Else | Empty:
+		return self._at(2).one_of(Else | Empty)
+
+	@property
+	def if_clause(self) -> IfClause:
+		return self._by('if_clause').as_a(IfClause)
 	
 	@property
 	def block(self) -> Block:
-		return self._at(1).as_a(Block)
-
-	@property
-	def else_block(self) -> Block | Empty:
-		return self._at(3).one_of(Block | Empty)
+		return self.if_clause.block
 
 	@property
 	def having_blocks(self) -> list[Block]:
@@ -89,8 +112,8 @@ class If(FlowEnter):
 		for else_if in self.else_ifs:
 			blocks.append(else_if.block)
 
-		if isinstance(self.else_block, Block):
-			blocks.append(self.else_block)
+		if isinstance(self.else_clause, Else):
+			blocks.append(self.else_clause.block)
 
 		return blocks
 
@@ -171,6 +194,19 @@ class Catch(FlowPart, IDeclaration):
 		return self._by('block').as_a(Block)
 
 
+@Meta.embed(Node, accept_tags('try_clause'))
+class TryClause(FlowPart):
+	@property
+	@duck_typed
+	@Meta.embed(Node, expandable)
+	def statements(self) -> list[Node]:
+		return self.block.statements
+
+	@property
+	def block(self) -> Block:
+		return self._by('block').as_a(Block)
+
+
 @Meta.embed(Node, accept_tags('try_stmt'))
 class Try(FlowEnter):
 	@property
@@ -185,8 +221,12 @@ class Try(FlowEnter):
 		return [node.as_a(Catch) for node in self._by('except_clauses')._children()]
 
 	@property
+	def try_clause(self) -> TryClause:
+		return self._by('try_clause').as_a(TryClause)
+
+	@property
 	def block(self) -> Block:
-		return self._by('block').as_a(Block)
+		return self.try_clause.block
 
 	@property
 	def having_blocks(self) -> list[Block]:
@@ -256,7 +296,7 @@ class ClassDef(Node, IDomain, IScope, INamespace, IDeclaration, ISymbol):
 		embedder = self._dig_embedder(__actual__.__name__)
 		return embedder.arguments[0].value.as_a(String).plain if embedder else None
 
-	def _decl_vars_with(self, allow: type[T_Declable]) -> dict[str, T_Declable]:
+	def _decl_vars_with(self, allow: type[T_Declable]) -> list[T_Declable]:
 		return VarsCollector.collect(self, allow)
 
 	def _inherit_template_types(self) -> list[Type]:
@@ -342,9 +382,9 @@ class Function(ClassDef):
 	@property
 	def decl_vars(self) -> list[Parameter | DeclLocalVar]:
 		parameters = self.parameters
-		# XXX 共通化の方法を検討 @see collect_decl_vars_with
-		parameter_names = [DSN.join(parameter.symbol.namespace, parameter.symbol.domain_name) for parameter in parameters]
-		local_vars = [var for fullyname, var in self._decl_vars_with(DeclLocalVar).items() if fullyname not in parameter_names]
+		parameter_names = [parameter.symbol.domain_name for parameter in parameters]
+		# 仮引数と変数宣言をマージ(仮引数と同じドメイン名の変数は除外)
+		local_vars = [var for var in self._decl_vars_with(DeclLocalVar) if var.symbol.domain_name not in parameter_names]
 		return [*parameters, *local_vars]
 
 	@property
@@ -388,7 +428,7 @@ class Constructor(Function):
 
 	@property
 	def this_vars(self) -> list[DeclThisVar]:
-		return list(self._decl_vars_with(DeclThisVar).values())
+		return self._decl_vars_with(DeclThisVar)
 
 
 @Meta.embed(Node)
@@ -515,7 +555,7 @@ class Class(ClassDef):
 
 	@property
 	def class_vars(self) -> list[DeclClassVar]:
-		return list(self._decl_vars_with(DeclClassVar).values())
+		return self._decl_vars_with(DeclClassVar)
 
 	@property
 	def this_vars(self) -> list[DeclThisVar]:
@@ -573,8 +613,30 @@ class TemplateClass(ClassDef):
 
 
 class VarsCollector:
+	"""変数宣言コレクター"""
+
 	@classmethod
-	def collect(cls, block: StatementBlock, allow: type[T_Declable]) -> dict[str, T_Declable]:
+	def collect(cls, block: StatementBlock, allow: type[T_Declable]) -> list[T_Declable]:
+		"""対象のブロック内で宣言した変数を収集する
+
+		Args:
+			block (StatementBlock): ブロック
+			allow (type[T_Declable]): 収集対象の変数宣言ノード
+		Returns:
+			list[T_Declable]: 宣言ノードリスト
+		"""
+		return list(cls._collect_impl(block, allow).values())
+
+	@classmethod
+	def _collect_impl(cls, block: StatementBlock, allow: type[T_Declable]) -> dict[str, T_Declable]:
+		"""対象のブロック内で宣言した変数を収集する
+
+		Args:
+			block (StatementBlock): ブロック
+			allow (type[T_Declable]): 収集対象の変数宣言ノード
+		Returns:
+			dict[str, T_Declable]: 完全参照名と変数宣言ノードのマップ表
+		"""
 		decl_vars: dict[str, T_Declable] = {}
 		for node in block.statements:
 			if isinstance(node, (AnnoAssign, MoveAssign)):
@@ -587,18 +649,55 @@ class VarsCollector:
 
 			if isinstance(node, (If, Try)):
 				for in_block in node.having_blocks:
-					decl_vars = cls._merged(decl_vars, cls.collect(in_block, allow))
+					decl_vars = cls._merged(decl_vars, cls._collect_impl(in_block, allow))
 			elif isinstance(node, (While, For)):
-				decl_vars = cls._merged(decl_vars, cls.collect(node.block, allow))
+				decl_vars = cls._merged(decl_vars, cls._collect_impl(node.block, allow))
 
 		return decl_vars
 
 	@classmethod
-	def _merged_by(cls, decl_vars: dict[str, T_Declable], declare: IDeclaration, allow: type[T_Declable]) -> dict[str, T_Declable]:
-		# XXX 共通化の方法を検討 @see Function.decl_vars
-		allow_vars = {DSN.join(symbol.namespace, symbol.domain_name): symbol for symbol in declare.symbols if isinstance(symbol, allow)}
-		return cls._merged(decl_vars, allow_vars)
+	def _merged_by(cls, decl_vars: dict[str, T_Declable], add_declare: IDeclaration, allow: type[T_Declable]) -> dict[str, T_Declable]:
+		"""シンボル宣言ノード内の変数を収集済みデータに合成する
+
+		Args:
+			decl_vars (dict[str, T_Declable]): 収集済みの変数宣言ノード
+			add_declare (IDeclaration: 追加対象のシンボル宣言ノード
+			allow (type[T_Declable]): 収集対象の変数宣言ノード
+		Returns:
+			dict[str, T_Declable]: 完全参照名と変数宣言ノードのマップ表
+		"""
+		add_vars = {symbol.fullyname: symbol for symbol in add_declare.symbols if isinstance(symbol, allow)}
+		return cls._merged(decl_vars, add_vars)
 
 	@classmethod
-	def _merged(cls, decl_vars: dict[str, T_Declable], allow_vars: dict[str, T_Declable]) -> dict[str, T_Declable]:
-		return {**decl_vars, **{name: symbol for name, symbol in allow_vars.items() if name not in decl_vars}}
+	def _merged(cls, decl_vars: dict[str, T_Declable], add_vers: dict[str, T_Declable]) -> dict[str, T_Declable]:
+		"""追加対象の変数を収集済みデータに合成する
+
+		Args:
+			decl_vars (dict[str, T_Declable]): 収集済みの変数宣言ノード
+			add_vars (dict[str, T_Declable]): 追加の変数宣言ノード
+		Returns:
+			dict[str, T_Declable]: 完全参照名と変数宣言ノードのマップ表
+		Note:
+			# 追加条件
+			1. 新規の完全参照名
+			2. 追加対象のスコープと既存データのスコープに相関性が無い
+		"""
+		merged = decl_vars
+		for add_fullyname, add_var in add_vers.items():
+			if add_fullyname in decl_vars:
+				continue
+
+			relationed = False
+			for decl_var in decl_vars.values():
+				if decl_var.domain_name != add_var.domain_name:
+					continue
+
+				if add_var.scope.startswith(decl_var.scope):
+					relationed = True
+					break
+
+			if not relationed:
+				merged[add_fullyname] = add_var
+
+		return merged

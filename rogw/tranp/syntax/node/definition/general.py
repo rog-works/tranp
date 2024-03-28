@@ -36,7 +36,7 @@ class Entrypoint(Node):
 
 	@property
 	def decl_vars(self) -> list[DeclLocalVar]:
-		return list(VarsCollector.collect(self, DeclLocalVar).values())
+		return VarsCollector.collect(self, DeclLocalVar)
 
 	def whole_by(self, full_path: str) -> Node:
 		return self._by(DSN.relativefy(full_path, self.full_path))

@@ -6,16 +6,20 @@ from rogw.tranp.compatible.python.embed import __actual__, __hint_generic__
 
 T = TypeVar('T')
 
+
 global_n = 0
 global_s: str = ''
+
 
 class Values(CEnum):
 	A = 0
 	B = 1
 
+
 class Base:
 	@abstractmethod
 	def public_method(self) -> Values: ...
+
 
 class Class(Base):
 	cn: int = 0
@@ -49,15 +53,19 @@ class Class(Base):
 
 	def _protected_method(self, s: str) -> list[int]: ...
 
+
 def func(b: bool) -> None:
 	lb = b
 
 	def func_in_closure(n: int) -> None: ...
 
+
 @__actual__('Actual')
 class Class2: ...
 
+
 class GenBase(Generic[T]): ...
+
 
 @__hint_generic__(T)
 class GenSub(GenBase[T]): ...

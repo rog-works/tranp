@@ -12,5 +12,6 @@ class A:
 	def method2(self) -> None:
 		...
 
+
 def func() -> None:
 	...

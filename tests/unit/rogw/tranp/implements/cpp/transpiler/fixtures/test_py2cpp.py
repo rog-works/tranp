@@ -3,7 +3,7 @@ from typing import Generic, TypeAlias, TypeVar
 
 from rogw.tranp.compatible.cpp.embed import __allow_override__
 from rogw.tranp.compatible.cpp.enum import CEnum
-from rogw.tranp.compatible.cpp.object import CP, CPConst, CRawConst, CRef, CSP
+from rogw.tranp.compatible.cpp.object import CP, CRawConst, CRef, CSP
 from rogw.tranp.compatible.cpp.preprocess import directive
 
 directive('#pragma once')
@@ -13,6 +13,7 @@ T2 = TypeVar('T2')
 
 DSI: TypeAlias = dict[str, int]
 
+
 class Base(metaclass=ABCMeta):
 	@abstractmethod
 	def sub_implements(self) -> None: ...
@@ -20,6 +21,7 @@ class Base(metaclass=ABCMeta):
 	@__allow_override__
 	def allowed_overrides(self) -> int:
 		return 1
+
 
 class Sub(Base):
 	class_base_n: int = 0
@@ -39,12 +41,14 @@ class Sub(Base):
 	def __truediv__(self, other: Sub) -> Sub: ...
 	def __neg__(self) -> Sub: ...
 
+
 class DeclOps:
 	class_bp: CP[Sub] | None = None
 	class_map: dict[str, dict[str, list[int]]] = {'a': {'b': [1]}}
 
 	def __init__(self) -> None:
 		self.inst_var: CP[Sub] | None = None
+
 
 class CVarOps:
 	def ret_raw(self) -> Sub:
@@ -157,9 +161,11 @@ class CVarOps:
 		a3 = r_const3.raw
 		ap_const3 = r_const3.addr
 
+
 class FuncOps:
 	def print(self) -> None:
 		print('message. %d, %f, %s', 1, 1.0, 'abc')
+
 
 class EnumOps:
 	class Values(CEnum):
@@ -177,6 +183,7 @@ class EnumOps:
 	def cast(self) -> None:
 		e = EnumOps.Values(0)
 		n = int(EnumOps.Values.A)
+
 
 class AccessOps(Sub):
 	def __init__(self) -> None:
@@ -217,6 +224,7 @@ class AccessOps(Sub):
 		print(arr_sp.on[0])
 		print(arr_ar.on[0])
 
+
 class Alias:
 	class Values(CEnum):
 		A = 1
@@ -247,6 +255,7 @@ class Alias:
 			int(cls.Values.B): [int(cls.Values.A)],
 		}
 
+
 class CompOps:
 	class C:
 		...
@@ -259,6 +268,7 @@ class CompOps:
 		kvs0 = {'a': CompOps.C()}
 		kvs1 = {key: value for key, value in kvs0.items()}
 
+
 class ForOps:
 	def range(self) -> None:
 		for i in range(10): ...
@@ -270,6 +280,7 @@ class ForOps:
 	def dict_items(self) -> None:
 		kvs = {'a': 1}
 		for key, value in kvs.items(): ...
+
 
 class ListOps:
 	def len(self) -> None:
@@ -288,6 +299,7 @@ class ListOps:
 
 	def fill(self, n: int) -> None:
 		n_x3 = [n] * 3
+
 
 class DictOps:
 	def len(self) -> None:
@@ -315,6 +327,7 @@ class DictOps:
 		b_in = 'a' in d
 		b_not_in = 'a' not in d
 
+
 class CastOps:
 	def cast_binary(self) -> None:
 		f_to_n = int(1.0)
@@ -327,6 +340,7 @@ class CastOps:
 		f_to_s = str(1.0)
 		s_to_n = int(n_to_s)
 		s_to_f = float(f_to_s)
+
 
 class Nullable:
 	def params(self, p: CP[Sub] | None) -> None: ...
@@ -345,6 +359,7 @@ class Nullable:
 
 		raise Exception()
 
+
 class Template(Generic[T]):
 	class T2Class(Generic[T2]): ...
 
@@ -355,5 +370,6 @@ class Template(Generic[T]):
 	def class_method_t_and_class_t(cls, v: T, v2: T2) -> T2: ...
 	def method_t(self, v2: T2) -> T2: ...
 	def method_t_and_class_t(self, v: T, v2: T2) -> T2: ...
+
 
 def template_func(v: T) -> T: ...

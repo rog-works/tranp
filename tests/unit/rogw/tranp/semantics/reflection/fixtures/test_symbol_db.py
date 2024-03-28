@@ -7,12 +7,15 @@ DSI: TypeAlias = dict[str, int]
 DSI2: TypeAlias = dict[str, DSI]
 Z2: TypeAlias = Z
 
+
 value: int = 0
+
 
 class Base(Z):
 	def __init__(self) -> None:
 		self.base_str: str = ''
 		# comment
+
 
 class Sub(Base):
 	class C:
@@ -108,6 +111,7 @@ class Sub(Base):
 	def Base(self) -> Base:
 		...
 
+
 class CalcOps:
 	def unary(self) -> None:
 		n = 1
@@ -136,6 +140,7 @@ class CalcOps:
 		# エラーケース
 		# n_or_s = 1 if n else 'a'
 
+
 class AliasOps:
 	def func(self, z2: Z2) -> None:
 		d: DSI = {'s': value}
@@ -147,6 +152,7 @@ class AliasOps:
 
 		z2_in_x = z2.x
 		new_z2_in_x = Z2().x
+
 
 class TupleOps:
 	def unpack(self) -> None:
@@ -165,6 +171,7 @@ class TupleOps:
 		# XXX Pythonのシンタックス上は不正
 		a, b = {'a': 1}
 
+
 class CompOps:
 	def list_comp(self) -> None:
 		values0 = [value for value in [1, 2, 3]]
@@ -178,6 +185,7 @@ class CompOps:
 		kvs0 = {key: index for index, key in enumerate(['a', 'b', 'c'])}
 		kvs1: dict[str, int] = {key: index for index, key in enumerate(['a', 'b', 'c'])}
 		kvs2 = {key: index for key, index in kvs0.items()}
+
 
 class EnumOps:
 	class Values(CEnum):
@@ -204,6 +212,7 @@ class EnumOps:
 	def cast(self) -> None:
 		e = EnumOps.Values(0)
 		n = int(EnumOps.Values.A)
+
 
 class Nullable:
 	def params(self, base: Base | None) -> None: ...

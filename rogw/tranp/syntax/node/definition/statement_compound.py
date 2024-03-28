@@ -30,7 +30,7 @@ class Block(Node):
 
 class Flow(Node): pass
 class FlowEnter(Flow, IScope): pass
-class FlowPart(Flow): pass
+class FlowPart(Flow, IScope): pass
 
 
 @Meta.embed(Node, accept_tags('elif_'))

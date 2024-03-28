@@ -173,7 +173,7 @@ class TestReflections(TestCase):
 		(f'{fixture_module_path}.Sub.decl_locals.closure', 'closure() -> list<int>'),
 		(f'{fixture_module_path}.Sub.decl_locals.closure.b', 'list<int>'),
 		(f'{fixture_module_path}.Sub.decl_locals.if.for.i', 'int'),
-		(f'{fixture_module_path}.Sub.decl_locals.if.for.try.e', 'Exception'),
+		(f'{fixture_module_path}.Sub.decl_locals.if.for.try.catch.e', 'Exception'),
 
 		(f'{fixture_module_path}.Sub.relay_access.s', 'str'),
 

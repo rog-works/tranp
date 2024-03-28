@@ -69,8 +69,10 @@ class Sub(Base):
 			b = [1]
 			return b
 
-		if a:
+		if a == 1:
 			c = 0
+		elif a == 2:
+			c = 1
 		else:
 			c = 1
 

@@ -66,6 +66,7 @@ class Sub(Base):
 				except Exception as e:
 					t = 1
 					raise e
+			t = 2
 
 		def closure() -> list[int]:
 			b = [1]
@@ -77,6 +78,7 @@ class Sub(Base):
 			c = 1
 		else:
 			c = 2
+		c = 3
 
 		return closure()[0]
 

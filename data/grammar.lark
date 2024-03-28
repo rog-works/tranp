@@ -110,9 +110,11 @@ argvalue: expression | name "=" expression
 
 // @lark while_stmt: "while" test ":" suite ["else" block]
 // @lark for_stmt: "for" exprlist "in" testlist ":" suite ["else" block]
-if_stmt: "if" expression ":" block elifs ["else" ":" block]
-elifs: elif_*
-elif_: "elif" expression ":" block
+if_stmt: if_body elifs [else_body]
+if_body: "if" expression ":" block
+elifs: elif_body*
+elif_body: "elif" expression ":" block
+else_body: "else" ":" block
 while_stmt: "while" expression ":" block
 for_stmt: "for" for_namelist for_in ":" block
 // @custom

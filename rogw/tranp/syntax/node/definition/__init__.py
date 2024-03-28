@@ -110,7 +110,7 @@ from rogw.tranp.syntax.node.definition.statement_compound import (
 	Flow,
 	FlowEnter,
 	FlowPart,
-	IfBody,
+	IfClause,
 	ElseIf,
 	Else,
 	If,

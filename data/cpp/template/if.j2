@@ -7,7 +7,7 @@ if ({{ condition }}) {
 {%- for else_if in else_ifs %}
 {{ else_if }}
 {%- endfor %}
-{%- if else_body %}
-{{ else_body }}
+{%- if else_clause %}
+{{ else_clause }}
 {%- endif %}
 }

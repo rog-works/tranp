@@ -731,7 +731,7 @@
        43    0.000    0.000    0.000    0.000 {built-in method posix._path_normpath}
        25    0.000    0.000    0.001    0.000 statement_compound.py:240(access)
       162    0.000    0.000    0.000    0.000 {method 'update' of 'set' objects}
-       23    0.000    0.000    0.000    0.000 statement_compound.py:100(else_body)
+       23    0.000    0.000    0.000    0.000 statement_compound.py:100(else_clause)
         9    0.000    0.000    0.002    0.000 py2cpp.py:223(proc_for_range)
        16    0.000    0.000    0.000    0.000 _compiler.py:465(_get_charset_prefix)
        20    0.000    0.000    0.000    0.000 compiler.py:1698(visit_Compare)

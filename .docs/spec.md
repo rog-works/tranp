@@ -101,7 +101,7 @@ rules:
     properties:
       expression: $ref: '#/rules/expression'
       block: $ref: '#/rules/block'
-      elifs:
+      elif_clauses:
         type: array
         items: $ref: '#/rules/elif'
       else:

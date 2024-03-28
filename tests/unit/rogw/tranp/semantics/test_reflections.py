@@ -349,11 +349,11 @@ class TestReflections(TestCase):
 		(_ast('Sub.decl_with_pop.block', 'assign.assign_namelist.var'), _mod('classes', 'int'), 'int'),
 		(_ast('Sub.decl_with_pop.block', 'assign.funccall'), _mod('classes', 'int'), 'int'),
 
-		(_ast('Sub.decl_locals.block', 'if_stmt.if_body.block.assign.assign_namelist.var'), _mod('classes', 'int'), 'int'),
+		(_ast('Sub.decl_locals.block', 'if_stmt.if_clause.block.assign.assign_namelist.var'), _mod('classes', 'int'), 'int'),
 		(_ast('Sub.decl_locals.closure.block', 'assign.assign_namelist.var'), _mod('classes', 'list'), 'list<int>'),
 
-		(_ast('Sub.decl_locals.block', 'if_stmt.if_body.block.for_stmt.for_namelist.name'), _mod('classes', 'int'), 'int'),
-		(_ast('Sub.decl_locals.block', 'if_stmt.if_body.block.for_stmt.block.try_stmt.except_clauses.except_clause.name'), _mod('classes', 'Exception'), 'Exception'),
+		(_ast('Sub.decl_locals.block', 'if_stmt.if_clause.block.for_stmt.for_namelist.name'), _mod('classes', 'int'), 'int'),
+		(_ast('Sub.decl_locals.block', 'if_stmt.if_clause.block.for_stmt.block.try_stmt.except_clauses.except_clause.name'), _mod('classes', 'Exception'), 'Exception'),
 
 		(_ast('Sub.Base.return', ''), f'{fixture_module_path}.Base', 'Base'),
 
@@ -373,7 +373,7 @@ class TestReflections(TestCase):
 		(_ast('CompOps.list_comp.block', 'aug_assign.getitem'), _mod('classes', 'float'), 'float'),
 
 		(_ast('Nullable.returns.return', ''), _mod('classes', 'Union'), 'Union<Base, None>'),
-		(_ast('Nullable.var_move.block', 'if_stmt.if_body.block.return_stmt'), _mod('classes', 'str'), 'str'),
+		(_ast('Nullable.var_move.block', 'if_stmt.if_clause.block.return_stmt'), _mod('classes', 'str'), 'str'),
 	])
 	def test_type_of(self, full_path: str, expected: str, attrs_expected: str) -> None:
 		reflections = self.fixture.get(Reflections)

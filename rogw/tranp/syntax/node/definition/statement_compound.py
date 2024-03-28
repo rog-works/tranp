@@ -40,8 +40,8 @@ class FlowEnter(Flow): pass
 class FlowPart(Flow): pass
 
 
-@Meta.embed(Node, accept_tags('if_body'))
-class IfBody(FlowPart):
+@Meta.embed(Node, accept_tags('if_clause'))
+class IfClause(FlowPart):
 	@property
 	@Meta.embed(Node, expandable)
 	def condition(self) -> Node:
@@ -58,11 +58,11 @@ class IfBody(FlowPart):
 		return self._by('block').as_a(Block)
 
 
-@Meta.embed(Node, accept_tags('elif_body'))
-class ElseIf(IfBody): pass
+@Meta.embed(Node, accept_tags('elif_clause'))
+class ElseIf(IfClause): pass
 
 
-@Meta.embed(Node, accept_tags('else_body'))
+@Meta.embed(Node, accept_tags('else_clause'))
 class Else(FlowPart):
 	@property
 	@duck_typed
@@ -80,7 +80,7 @@ class If(FlowEnter):
 	@property
 	@Meta.embed(Node, expandable)
 	def condition(self) -> Node:
-		return self.if_body.condition
+		return self.if_clause.condition
 
 	@property
 	@duck_typed
@@ -91,20 +91,20 @@ class If(FlowEnter):
 	@property
 	@Meta.embed(Node, expandable)
 	def else_ifs(self) -> list[ElseIf]:
-		return [node.as_a(ElseIf) for node in self._by('elifs')._children()]
+		return [node.as_a(ElseIf) for node in self._by('elif_clauses')._children()]
 
 	@property
 	@Meta.embed(Node, expandable)
-	def else_body(self) -> Else | Empty:
+	def else_clause(self) -> Else | Empty:
 		return self._at(2).one_of(Else | Empty)
 
 	@property
-	def if_body(self) -> IfBody:
-		return self._by('if_body').as_a(IfBody)
+	def if_clause(self) -> IfClause:
+		return self._by('if_clause').as_a(IfClause)
 	
 	@property
 	def block(self) -> Block:
-		return self.if_body.block
+		return self.if_clause.block
 
 	@property
 	def having_blocks(self) -> list[Block]:
@@ -112,8 +112,8 @@ class If(FlowEnter):
 		for else_if in self.else_ifs:
 			blocks.append(else_if.block)
 
-		if isinstance(self.else_body, Else):
-			blocks.append(self.else_body.block)
+		if isinstance(self.else_clause, Else):
+			blocks.append(self.else_clause.block)
 
 		return blocks
 

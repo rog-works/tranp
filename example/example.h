@@ -386,7 +386,7 @@ class CellMesh2 {
 		std::map<IntVector, std::vector<IntVector2>> out_ids = {};
 		for (auto i = 0; i < (int)(CellMesh2::OffsetIndexs::Max); i++) {
 			IntVector offset = CellMesh2::offset_index_to_cell(i);
-			cell = start + offset;
+			IntVector cell = start + offset;
 			out_ids[cell] = std::vector<IntVector2>((int)(CellMesh2::FaceIndexs::Max), IntVector2(-1, -1));
 			if ((!cell_on_faces.contains(cell))) {
 				continue;
@@ -469,10 +469,10 @@ class CellMesh2 {
 					continue;
 				}
 				IntVector vector = CellMesh2::face_index_to_vector(face_index);
-				next = cell + vector;
+				IntVector next = cell + vector;
 				for (auto& next_face_index : CellMesh2::around_need_cell_face_indexs(face_index)) {
 					IntVector next_vector = CellMesh2::face_index_to_vector(next_face_index);
-					candidate = next + next_vector;
+					IntVector candidate = next + next_vector;
 					out_need_cells.remove(candidate);
 					log_info("Remove candidates. faceIndex: %d, cell: (%d, %d, %d), vector: (%d, %d, %d), nextFaceIndex: %d, next: (%d, %d, %d), nextVector: (%d, %d, %d), candidate: (%d, %d, %d)", face_index, cell.x, cell.y, cell.z, vector.x, vector.y, vector.z, next_face_index, next.x, next.y, next.z, next_vector.x, next_vector.y, next_vector.z, candidate.x, candidate.y, candidate.z);
 				}

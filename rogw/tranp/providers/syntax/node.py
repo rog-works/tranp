@@ -29,7 +29,9 @@ def symbol_mapping() -> SymbolMapping:
 			defs.Entrypoint: ['file_input'],
 			# -- Statement compound --
 			defs.Block: ['block'],
-			defs.ElseIf: ['elif_'],
+			defs.IfBody: ['if_body'],
+			defs.ElseIf: ['elif_body'],
+			defs.Else: ['else_body'],
 			defs.If: ['if_stmt'],
 			defs.While: ['while_stmt'],
 			defs.For: ['for_stmt'],

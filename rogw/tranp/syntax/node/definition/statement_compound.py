@@ -28,9 +28,17 @@ class Block(Node):
 		return self._children()
 
 
-class Flow(Node): pass
-class FlowEnter(Flow, IScope): pass
-class FlowPart(Flow, IScope): pass
+class Flow(Node, IScope):
+	@property
+	@override
+	def domain_name(self) -> str:
+		# FIXME 内包する変数宣言を区別するために実装。IDomainを設定するか要検討
+		# XXX 一意な名称を持たないためIDで代用
+		return DSN.identify(self.classification, self.id)
+
+
+class FlowEnter(Flow): pass
+class FlowPart(Flow): pass
 
 
 @Meta.embed(Node, accept_tags('elif_'))

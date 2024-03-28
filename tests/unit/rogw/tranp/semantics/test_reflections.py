@@ -172,8 +172,8 @@ class TestReflections(TestCase):
 		(f'{fixture_module_path}.Sub.decl_locals.a', 'int'),
 		(f'{fixture_module_path}.Sub.decl_locals.closure', 'closure() -> list<int>'),
 		(f'{fixture_module_path}.Sub.decl_locals.closure.b', 'list<int>'),
-		(f'{fixture_module_path}.Sub.decl_locals.if.for.i', 'int'),
-		(f'{fixture_module_path}.Sub.decl_locals.if.for.try.catch.e', 'Exception'),
+		(f'{fixture_module_path}.Sub.decl_locals.if@611.for@628.i', 'int'),
+		(f'{fixture_module_path}.Sub.decl_locals.if@611.for@628.try@643.catch@653.e', 'Exception'),
 
 		(f'{fixture_module_path}.Sub.relay_access.s', 'str'),
 
@@ -213,16 +213,16 @@ class TestReflections(TestCase):
 		(f'{fixture_module_path}.AliasOps.func.z2_in_x', 'X'),
 		(f'{fixture_module_path}.AliasOps.func.new_z2_in_x', 'X'),
 
-		(f'{fixture_module_path}.TupleOps.unpack.for.key0', 'str'),
-		(f'{fixture_module_path}.TupleOps.unpack.for.value0', 'int'),
-		(f'{fixture_module_path}.TupleOps.unpack.for.value1', 'int'),
-		(f'{fixture_module_path}.TupleOps.unpack.for.key1', 'str'),
-		(f'{fixture_module_path}.TupleOps.unpack.for.pair0', 'Pair<str, int>'),
-		(f'{fixture_module_path}.TupleOps.unpack.for.key10', 'str'),
-		(f'{fixture_module_path}.TupleOps.unpack.for.value10', 'DSI=dict<str, int>'),
-		(f'{fixture_module_path}.TupleOps.unpack.for.value11', 'DSI=dict<str, int>'),
-		(f'{fixture_module_path}.TupleOps.unpack.for.key11', 'str'),
-		(f'{fixture_module_path}.TupleOps.unpack.for.pair10', 'Pair<str, DSI=dict<str, int>>'),
+		(f'{fixture_module_path}.TupleOps.unpack.for@1386.key0', 'str'),
+		(f'{fixture_module_path}.TupleOps.unpack.for@1386.value0', 'int'),
+		(f'{fixture_module_path}.TupleOps.unpack.for@1406.value1', 'int'),
+		(f'{fixture_module_path}.TupleOps.unpack.for@1424.key1', 'str'),
+		(f'{fixture_module_path}.TupleOps.unpack.for@1442.pair0', 'Pair<str, int>'),
+		(f'{fixture_module_path}.TupleOps.unpack.for@1473.key10', 'str'),
+		(f'{fixture_module_path}.TupleOps.unpack.for@1473.value10', 'DSI=dict<str, int>'),
+		(f'{fixture_module_path}.TupleOps.unpack.for@1490.value11', 'DSI=dict<str, int>'),
+		(f'{fixture_module_path}.TupleOps.unpack.for@1505.key11', 'str'),
+		(f'{fixture_module_path}.TupleOps.unpack.for@1520.pair10', 'Pair<str, DSI=dict<str, int>>'),
 
 		(f'{fixture_module_path}.TupleOps.unpack_assign.a', 'str'),  # XXX Pythonのシンタックス上は不正。一旦保留
 		(f'{fixture_module_path}.TupleOps.unpack_assign.b', 'int'),  # XXX 〃

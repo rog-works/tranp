@@ -573,8 +573,18 @@ class TemplateClass(ClassDef):
 
 
 class VarsCollector:
+	"""宣言変数コレクター"""
+
 	@classmethod
 	def collect(cls, block: StatementBlock, allow: type[T_Declable]) -> dict[str, T_Declable]:
+		"""対象のブロック内で宣言した変数を収集する
+
+		Args:
+			block (StatementBlock): ブロック
+			allow (type[T_Declable]): 収集対象の宣言ノード
+		Returns:
+			dict[str, T_Declable]: (名前空間上の参照名、宣言ノード)
+		"""
 		decl_vars: dict[str, T_Declable] = {}
 		for node in block.statements:
 			if isinstance(node, (AnnoAssign, MoveAssign)):
@@ -595,10 +605,30 @@ class VarsCollector:
 
 	@classmethod
 	def _merged_by(cls, decl_vars: dict[str, T_Declable], declare: IDeclaration, allow: type[T_Declable]) -> dict[str, T_Declable]:
-		# XXX 共通化の方法を検討 @see Function.decl_vars
+		"""宣言ノードのマップ表を合成する
+
+		Args:
+			decl_vars (dict[str, T_Declable]): 収集済みの宣言ノード
+			declare (IDeclaration: 変数宣言ノード
+			allow (type[T_Declable]): 収集対象の宣言ノード
+		Returns:
+			dict[str, T_Declable]: (参照名、宣言ノード)
+		Note:
+			XXX 共通化の方法を検討 @see Function.decl_vars
+		"""
 		allow_vars = {DSN.join(symbol.namespace, symbol.domain_name): symbol for symbol in declare.symbols if isinstance(symbol, allow)}
 		return cls._merged(decl_vars, allow_vars)
 
 	@classmethod
 	def _merged(cls, decl_vars: dict[str, T_Declable], allow_vars: dict[str, T_Declable]) -> dict[str, T_Declable]:
+		"""宣言ノードのマップ表を合成する
+
+		Args:
+			decl_vars (dict[str, T_Declable]): 収集済みの宣言ノード
+			allow_vars (dict[str, T_Declable]): 追加の宣言ノード
+		Returns:
+			dict[str, T_Declable]: (名前空間上の参照名、宣言ノード)
+		Note:
+			XXX 共通化の方法を検討 @see Function.decl_vars
+		"""
 		return {**decl_vars, **{name: symbol for name, symbol in allow_vars.items() if name not in decl_vars}}

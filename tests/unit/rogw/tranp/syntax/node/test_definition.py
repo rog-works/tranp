@@ -73,15 +73,15 @@ class TestDefinition(TestCase):
 	# Statement compound
 
 	@data_provider([
-		('if True: ...', 'file_input.if_stmt.block', {'statements': [defs.Elipsis]}),
-		('if True: a: int = 0', 'file_input.if_stmt.block', {'statements': [defs.AnnoAssign]}),
-		('if True: a = 0', 'file_input.if_stmt.block', {'statements': [defs.MoveAssign]}),
-		('if True: a += 0', 'file_input.if_stmt.block', {'statements': [defs.AugAssign]}),
-		('if True:\n\ta = 0\n\ta = a', 'file_input.if_stmt.block', {'statements': [defs.MoveAssign, defs.MoveAssign]}),
-		('if True:\n\ta = 0\n\tb = a', 'file_input.if_stmt.block', {'statements': [defs.MoveAssign, defs.MoveAssign]}),
-		('if True:\n\ta = 0\n\tif True: a = 1', 'file_input.if_stmt.block', {'statements': [defs.MoveAssign, defs.If]}),
-		('if True:\n\ta = 0\n\tfor i in range(1): a = 1', 'file_input.if_stmt.block', {'statements': [defs.MoveAssign, defs.For]}),
-		('if True:\n\ttry:\n\t\ta = 0\n\texcept Exception as e: ...', 'file_input.if_stmt.block', {'statements': [defs.Try]}),
+		('if True: ...', 'file_input.if_stmt.if_body.block', {'statements': [defs.Elipsis]}),
+		('if True: a: int = 0', 'file_input.if_stmt.if_body.block', {'statements': [defs.AnnoAssign]}),
+		('if True: a = 0', 'file_input.if_stmt.if_body.block', {'statements': [defs.MoveAssign]}),
+		('if True: a += 0', 'file_input.if_stmt.if_body.block', {'statements': [defs.AugAssign]}),
+		('if True:\n\ta = 0\n\ta = a', 'file_input.if_stmt.if_body.block', {'statements': [defs.MoveAssign, defs.MoveAssign]}),
+		('if True:\n\ta = 0\n\tb = a', 'file_input.if_stmt.if_body.block', {'statements': [defs.MoveAssign, defs.MoveAssign]}),
+		('if True:\n\ta = 0\n\tif True: a = 1', 'file_input.if_stmt.if_body.block', {'statements': [defs.MoveAssign, defs.If]}),
+		('if True:\n\ta = 0\n\tfor i in range(1): a = 1', 'file_input.if_stmt.if_body.block', {'statements': [defs.MoveAssign, defs.For]}),
+		('if True:\n\ttry:\n\t\ta = 0\n\texcept Exception as e: ...', 'file_input.if_stmt.if_body.block', {'statements': [defs.Try]}),
 		('try:\n\ta = 0\nexcept Exception as e: ...', 'file_input.try_stmt.block', {'statements': [defs.MoveAssign]}),
 		('def func(a: int) -> None:\n\ta1 = a\n\ta = a1', 'file_input.function_def.function_def_raw.block', {'statements': [defs.MoveAssign, defs.MoveAssign]}),
 	])
@@ -90,7 +90,7 @@ class TestDefinition(TestCase):
 		self.assertEqual([type(statement) for statement in node.statements], expected['statements'])
 
 	@data_provider([
-		('if True:\n\t...\nelif False: ...', 'file_input.if_stmt.elifs.elif_', {'condition': defs.Falsy, 'statements': [defs.Elipsis]}),
+		('if True:\n\t...\nelif False: ...', 'file_input.if_stmt.elifs.elif_body', {'condition': defs.Falsy, 'statements': [defs.Elipsis]}),
 	])
 	def test_else_if(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.ElseIf)
@@ -610,7 +610,7 @@ class TestDefinition(TestCase):
 
 	@data_provider([
 		('pass', 'file_input.pass_stmt'),
-		('if True: pass', 'file_input.if_stmt.block.pass_stmt'),
+		('if True: pass', 'file_input.if_stmt.if_body.block.pass_stmt'),
 	])
 	def test_pass(self, source: str, full_path: str) -> None:
 		self.assertEqual(type(self.fixture.custom_nodes_by(source, full_path)), defs.Pass)
@@ -634,7 +634,7 @@ class TestDefinition(TestCase):
 	@data_provider([
 		('# abc', 'file_input.comment_stmt'),
 		('# abc\na\n# def', 'file_input.comment_stmt[2]'),
-		('if True:\n\t# abc\n\t...', 'file_input.if_stmt.block.comment_stmt'),
+		('if True:\n\t# abc\n\t...', 'file_input.if_stmt.if_body.block.comment_stmt'),
 	])
 	def test_comment(self, source: str, full_path: str) -> None:
 		self.assertEqual(type(self.fixture.custom_nodes_by(source, full_path)), defs.Comment)
@@ -896,7 +896,7 @@ class TestDefinition(TestCase):
 
 	@data_provider([
 		('...', 'file_input.elipsis'),
-		('if True: ...', 'file_input.if_stmt.block.elipsis'),
+		('if True: ...', 'file_input.if_stmt.if_body.block.elipsis'),
 		('a = ...', 'file_input.assign.elipsis'),
 		('class A: ...', 'file_input.class_def.class_def_raw.block.elipsis'),
 	])

@@ -365,13 +365,13 @@ class TestRenderer(TestCase):
 		self.assertRender('doc_string', 0, vars, expected)
 
 	@data_provider([
-		({'condition': 'value == 1', 'statements': ['pass;']}, 'else if (value == 1) {\n\tpass;\n}'),
+		({'condition': 'value == 1', 'statements': ['pass;']}, '} else if (value == 1) {\n\tpass;'),
 	])
 	def test_render_else_if(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('else_if', 0, vars, expected)
 
 	@data_provider([
-		({'statements': ['pass;']}, 'pass;'),
+		({'statements': ['pass;']}, '} else {\n\tpass;'),
 	])
 	def test_render_else(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('else', 0, vars, expected)

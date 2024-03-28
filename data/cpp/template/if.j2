@@ -1,17 +1,12 @@
-if ({{ condition }}) {
+if {{ condition }} {
 {%- filter indent('\t') %}
 {%- for statement in statements %}
 {{ statement }}
 {%- endfor %}
 {%- endfilter %}
 {%- for else_if in else_ifs %}
-{%- filter indent('\t') %}
 {{ else_if }}
-{%- endfilter %}
-{%- endfor %}
 {%- if else_body %}
-} else {
-{%- filter indent('\t') %}
 {{ else_body }}
 {%- endfilter %}
 {%- endif %}

@@ -40,8 +40,8 @@ class FlowEnter(Flow): pass
 class FlowPart(Flow): pass
 
 
-@Meta.embed(Node, accept_tags('elif_'))
-class ElseIf(FlowPart):
+@Meta.embed(Node, accept_tags('if_body'))
+class IfBody(FlowPart):
 	@property
 	@Meta.embed(Node, expandable)
 	def condition(self) -> Node:
@@ -58,24 +58,21 @@ class ElseIf(FlowPart):
 		return self._by('block').as_a(Block)
 
 
-@Meta.embed(Node, accept_tags('block'))
-class Else(FlowPart):
-	@classmethod
-	@override
-	def match_feature(cls, via: Node) -> bool:
-		is_under_if = via._full_path.parent_tag == 'if_stmt'
-		is_else_block = via._full_path.last[1] == 3
-		return is_under_if and is_else_block
+@Meta.embed(Node, accept_tags('elif_body'))
+class ElseIf(IfBody): pass
 
+
+@Meta.embed(Node, accept_tags('else_body'))
+class Else(FlowPart):
 	@property
 	@duck_typed
 	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:
-		return self._children()
+		return self.block.statements
 
 	@property
 	def block(self) -> Block:
-		return self.dirty_child(Block, 'block', statements=self.statements)
+		return self._by('block').as_a(Block)
 
 
 @Meta.embed(Node, accept_tags('if_stmt'))
@@ -83,7 +80,7 @@ class If(FlowEnter):
 	@property
 	@Meta.embed(Node, expandable)
 	def condition(self) -> Node:
-		return self._at(0)
+		return self.if_body.condition
 
 	@property
 	@duck_typed
@@ -99,11 +96,15 @@ class If(FlowEnter):
 	@property
 	@Meta.embed(Node, expandable)
 	def else_body(self) -> Else | Empty:
-		return self._at(3).one_of(Else | Empty)
+		return self._at(2).one_of(Else | Empty)
+
+	@property
+	def if_body(self) -> IfBody:
+		return self._by('if_body').as_a(IfBody)
 	
 	@property
 	def block(self) -> Block:
-		return self._at(1).as_a(Block)
+		return self.if_body.block
 
 	@property
 	def having_blocks(self) -> list[Block]:

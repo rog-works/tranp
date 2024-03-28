@@ -83,6 +83,8 @@ class ASTMapping:
 		'Sub.decl_locals.closure.block': f'{_Sub_decl_locals}.function_def_raw.block.function_def.function_def_raw.block',
 		'Sub.Base.return': f'{_Sub_Base}.function_def_raw.typed_var',
 
+		'TupleOps.unpack.block': f'{_TupleOps}.class_def_raw.block.function_def[0].function_def_raw.block',
+
 		'CompOps.list_comp.block': f'{_CompOps}.class_def_raw.block.function_def[0].function_def_raw.block',
 
 		'Nullable.returns.return': f'{_Nullable}.class_def_raw.block.function_def[1].function_def_raw.typed_or_expr',
@@ -172,8 +174,6 @@ class TestReflections(TestCase):
 		(f'{fixture_module_path}.Sub.decl_locals.a', 'int'),
 		(f'{fixture_module_path}.Sub.decl_locals.closure', 'closure() -> list<int>'),
 		(f'{fixture_module_path}.Sub.decl_locals.closure.b', 'list<int>'),
-		(f'{fixture_module_path}.Sub.decl_locals.if@611.for@628.i', 'int'),
-		(f'{fixture_module_path}.Sub.decl_locals.if@611.for@628.try@643.catch@653.e', 'Exception'),
 
 		(f'{fixture_module_path}.Sub.relay_access.s', 'str'),
 
@@ -212,17 +212,6 @@ class TestReflections(TestCase):
 		(f'{fixture_module_path}.AliasOps.func.d2_in_dsi_in_v', 'int'),
 		(f'{fixture_module_path}.AliasOps.func.z2_in_x', 'X'),
 		(f'{fixture_module_path}.AliasOps.func.new_z2_in_x', 'X'),
-
-		(f'{fixture_module_path}.TupleOps.unpack.for@1386.key0', 'str'),
-		(f'{fixture_module_path}.TupleOps.unpack.for@1386.value0', 'int'),
-		(f'{fixture_module_path}.TupleOps.unpack.for@1406.value1', 'int'),
-		(f'{fixture_module_path}.TupleOps.unpack.for@1424.key1', 'str'),
-		(f'{fixture_module_path}.TupleOps.unpack.for@1442.pair0', 'Pair<str, int>'),
-		(f'{fixture_module_path}.TupleOps.unpack.for@1473.key10', 'str'),
-		(f'{fixture_module_path}.TupleOps.unpack.for@1473.value10', 'DSI=dict<str, int>'),
-		(f'{fixture_module_path}.TupleOps.unpack.for@1490.value11', 'DSI=dict<str, int>'),
-		(f'{fixture_module_path}.TupleOps.unpack.for@1505.key11', 'str'),
-		(f'{fixture_module_path}.TupleOps.unpack.for@1520.pair10', 'Pair<str, DSI=dict<str, int>>'),
 
 		(f'{fixture_module_path}.TupleOps.unpack_assign.a', 'str'),  # XXX Pythonのシンタックス上は不正。一旦保留
 		(f'{fixture_module_path}.TupleOps.unpack_assign.b', 'int'),  # XXX 〃
@@ -360,16 +349,31 @@ class TestReflections(TestCase):
 		(_ast('Sub.decl_with_pop.block', 'assign.assign_namelist.var'), _mod('classes', 'int'), 'int'),
 		(_ast('Sub.decl_with_pop.block', 'assign.funccall'), _mod('classes', 'int'), 'int'),
 
-		(_ast('Sub.decl_locals.block', 'if_stmt.block.assign.assign_namelist.var'), _mod('classes', 'int'), 'int'),
+		(_ast('Sub.decl_locals.block', 'if_stmt.if_body.block.assign.assign_namelist.var'), _mod('classes', 'int'), 'int'),
 		(_ast('Sub.decl_locals.closure.block', 'assign.assign_namelist.var'), _mod('classes', 'list'), 'list<int>'),
 
+		(_ast('Sub.decl_locals.block', 'if_stmt.if_body.block.for_stmt.for_namelist.name'), _mod('classes', 'int'), 'int'),
+		(_ast('Sub.decl_locals.block', 'if_stmt.if_body.block.for_stmt.block.try_stmt.except_clauses.except_clause.name'), _mod('classes', 'Exception'), 'Exception'),
+
 		(_ast('Sub.Base.return', ''), f'{fixture_module_path}.Base', 'Base'),
+
+		(_ast('TupleOps.unpack.block', 'for_stmt[0].for_namelist.name[0]'), _mod('classes', 'str'), 'str'),
+		(_ast('TupleOps.unpack.block', 'for_stmt[0].for_namelist.name[1]'), _mod('classes', 'int'), 'int'),
+		(_ast('TupleOps.unpack.block', 'for_stmt[1].for_namelist.name'), _mod('classes', 'int'), 'int'),
+		(_ast('TupleOps.unpack.block', 'for_stmt[2].for_namelist.name'), _mod('classes', 'str'), 'str'),
+		(_ast('TupleOps.unpack.block', 'for_stmt[3].for_namelist.name'), _mod('classes', 'Pair'), 'Pair<str, int>'),
+
+		(_ast('TupleOps.unpack.block', 'for_stmt[5].for_namelist.name[0]'), _mod('classes', 'str'), 'str'),
+		(_ast('TupleOps.unpack.block', 'for_stmt[5].for_namelist.name[1]'), f'{fixture_module_path}.DSI', 'DSI=dict<str, int>'),
+		(_ast('TupleOps.unpack.block', 'for_stmt[6].for_namelist.name'), f'{fixture_module_path}.DSI', 'DSI=dict<str, int>'),
+		(_ast('TupleOps.unpack.block', 'for_stmt[7].for_namelist.name'), _mod('classes', 'str'), 'str'),
+		(_ast('TupleOps.unpack.block', 'for_stmt[8].for_namelist.name'), _mod('classes', 'Pair'), 'Pair<str, DSI=dict<str, int>>'),
 
 		(_ast('CompOps.list_comp.block', 'aug_assign.assign_namelist.var'), _mod('classes', 'int'), 'int'),
 		(_ast('CompOps.list_comp.block', 'aug_assign.getitem'), _mod('classes', 'float'), 'float'),
 
 		(_ast('Nullable.returns.return', ''), _mod('classes', 'Union'), 'Union<Base, None>'),
-		(_ast('Nullable.var_move.block', 'if_stmt.block.return_stmt'), _mod('classes', 'str'), 'str'),
+		(_ast('Nullable.var_move.block', 'if_stmt.if_body.block.return_stmt'), _mod('classes', 'str'), 'str'),
 	])
 	def test_type_of(self, full_path: str, expected: str, attrs_expected: str) -> None:
 		reflections = self.fixture.get(Reflections)

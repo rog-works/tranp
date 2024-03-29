@@ -320,7 +320,7 @@ class CellMesh2 {
 					}
 				}
 			}
-		}
+		};
 		mesh->process_mesh(closure);
 		return out_ids;
 	}
@@ -371,7 +371,7 @@ class CellMesh2 {
 				}
 				log_info("Collect polygon. ti: %d, start: (%d, %d, %d), cell: (%d, %d, %d), faceIndex: %d, cell2: (%d, %d, %d), faceIndex2: %d, faceBox.min: (%f, %f, %f), faceBox.max: (%f, %f, %f), box.min: (%f, %f, %f), box.max: (%f, %f, %f)", ti, start.x, start.y, start.z, cell.x, cell.y, cell.z, face_index, cell2.x, cell2.y, cell2.z, face_index2, face_box.min.x, face_box.min.y, face_box.min.z, face_box.max.x, face_box.max.y, face_box.max.z, box.min.x, box.min.y, box.min.z, box.max.x, box.max.y, box.max.z);
 			}
-		}
+		};
 		mesh->process_mesh(closure);
 		// XXX 不要な判定だが、実装中は一旦ガード節を設ける
 		for (auto& [cell, in_faces] : cell_on_faces) {
@@ -500,7 +500,7 @@ class CellMesh2 {
 	public: static void clear(Mesh* mesh) {
 		auto closure = [&](MeshRaw& origin) -> void {
 			origin.clear();
-		}
+		};
 		mesh->edit_mesh(closure);
 	}
 	/**
@@ -618,7 +618,7 @@ class CellMesh2 {
 					uv_overlay.set_triangle(polygon_id, IntVector(uv_id1, uv_id2, uv_id3), true);
 				}
 			}
-		}
+		};
 		mesh->edit_mesh(closure);
 	}
 };

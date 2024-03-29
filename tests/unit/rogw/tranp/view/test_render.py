@@ -73,6 +73,11 @@ class TestRenderer(TestCase):
 		({'left': 'key', 'operator': 'not.in', 'right': 'items', 'right_is_dict': True}, '(!items.contains(key))'),
 		({'left': 'value', 'operator': 'in', 'right': 'values', 'right_is_dict': False}, '(std::find(values.begin(), values.end(), value) != values.end())'),
 		({'left': 'value', 'operator': 'not.in', 'right': 'values', 'right_is_dict': False}, '(std::find(values.begin(), values.end(), value) == values.end())'),
+	])
+	def test_render_binary_operator_in(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('binary_operator_in', 0, vars, expected)
+
+	@data_provider([
 		({'left': 'a', 'operator': 'is', 'right': 'b', 'right_is_dict': False}, 'a == b'),
 		({'left': 'a', 'operator': 'is.not', 'right': 'b', 'right_is_dict': False}, 'a != b'),
 		({'left': 'a', 'operator': 'and', 'right': 'b', 'right_is_dict': False}, 'a && b'),

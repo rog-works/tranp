@@ -779,7 +779,10 @@ class Py2Cpp(ITranspiler):
 		for index, right_raw in enumerate(right_raws):
 			operator = operators[index]
 			secondary = rights[index]
-			primary = self.view.render('binary_operator', vars={'left': primary, 'operator': operator, 'right': secondary, 'right_is_dict': self.reflections.is_a(right_raw, dict)})
+			if operator in ['in', 'not.in']:
+				primary = self.view.render('binary_operator_in', vars={'left': primary, 'operator': operator, 'right': secondary, 'right_is_dict': self.reflections.is_a(right_raw, dict)})
+			else:
+				primary = self.view.render('binary_operator', vars={'left': primary, 'operator': operator, 'right': secondary, 'right_is_dict': self.reflections.is_a(right_raw, dict)})
 
 		return primary
 

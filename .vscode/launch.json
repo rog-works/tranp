@@ -72,11 +72,8 @@
 			"request": "launch",
 			"module":"rogw.tranp.bin.transpile",
 			"args": [
-				"-g", "data/grammar.lark",
-				"-t", "data/cpp/template",
-				"-i", "example/**/*.py",
-				"-o", "./",
-				"-e", "example/FW/*",
+				"-c", "example/config.yml",
+				"-f",
 			],
 			"cwd": "${workspaceFolder}",
 			"windows": {

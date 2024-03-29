@@ -1,5 +1,5 @@
 {%- if symbols | length == 1 -%}
-auto& {{ symbols[0] }} : {{ iterates }}
+{% if is_const %}const {% endif %}auto& {{ symbols[0] }} : {{ iterates }}
 {%- else -%}
-auto& [{{ symbols | join(', ') }}] : {{ iterates }}
+{% if is_const %}const {% endif %}auto& [{{ symbols | join(', ') }}] : {{ iterates }}
 {%- endif -%}

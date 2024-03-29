@@ -226,8 +226,10 @@ class TestRenderer(TestCase):
 		self.assertRender('class', 0, vars, expected)
 
 	@data_provider([
-		({'symbols': ['value'], 'iterates': 'values'}, 'auto& value : values'),
-		({'symbols': ['key', 'value'], 'iterates': 'items'}, 'auto& [key, value] : items'),
+		({'symbols': ['value'], 'iterates': 'values', 'is_const': False}, 'auto& value : values'),
+		({'symbols': ['value'], 'iterates': 'values', 'is_const': True}, 'const auto& value : values'),
+		({'symbols': ['key', 'value'], 'iterates': 'items', 'is_const': False}, 'auto& [key, value] : items'),
+		({'symbols': ['key', 'value'], 'iterates': 'items', 'is_const': True}, 'const auto& [key, value] : items'),
 	])
 	def test_render_comp_for(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('comp_for', 0, vars, expected)
@@ -463,7 +465,8 @@ class TestRenderer(TestCase):
 		self.assertRender('for_range', 0, vars, expected)
 
 	@data_provider([
-		({'symbols': ['value'], 'iterates': 'values', 'statements': ['pass;']}, 'for (auto& value : values) {\n\tpass;\n}'),
+		({'symbols': ['value'], 'iterates': 'values', 'statements': ['pass;'], 'is_const': False}, 'for (auto& value : values) {\n\tpass;\n}'),
+		({'symbols': ['value'], 'iterates': 'values', 'statements': ['pass;'], 'is_const': True}, 'for (const auto& value : values) {\n\tpass;\n}'),
 	])
 	def test_render_for(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('for', 0, vars, expected)

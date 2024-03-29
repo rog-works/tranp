@@ -308,7 +308,7 @@ class FL_CellMesh {
 			std::vector<Box3d> boxs = FL_CellMesh::to_vertex_boxs(cell_box, unit);
 			for (auto i = 0; i < boxs.size(); i++) {
 				Box3d& box = boxs[i];
-				for (auto& vi : origin.vertex_indices_itr()) {
+				for (const auto& vi : origin.vertex_indices_itr()) {
 					// 実体がない(参照カウント0)インデックスを除外
 					if (!origin.is_vertex(vi)) {
 						continue;
@@ -336,7 +336,7 @@ class FL_CellMesh {
 		auto closure = [&](MeshRaw& origin) -> void {
 			IntVector size = IntVector(3, 3, 3);
 			Box3d box = Box3d(FL_CellMesh::from_cell(start), FL_CellMesh::from_cell(start + size));
-			for (auto& ti : origin.triangle_indices_itr()) {
+			for (const auto& ti : origin.triangle_indices_itr()) {
 				// 実体がない(参照カウント0)インデックスを除外
 				if (!origin.is_triangle(ti)) {
 					continue;

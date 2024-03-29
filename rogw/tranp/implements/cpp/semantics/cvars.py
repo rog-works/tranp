@@ -121,6 +121,17 @@ class CVars:
 		return key in [cpp.CSP.__name__, cpp.CSPConst.__name__]
 
 	@classmethod
+	def is_const(cls, key: str) -> bool:
+		"""Constか判定
+
+		Args:
+			key (str): C++変数型の種別キー
+		Returns:
+			bool: True = Const
+		"""
+		return key in [cpp.CPConst.__name__, cpp.CSPConst.__name__, cpp.CRefConst.__name__, cpp.CRawConst.__name__]
+
+	@classmethod
 	def keys(cls) -> list[str]:
 		"""C++変数型の種別キー一覧を生成
 

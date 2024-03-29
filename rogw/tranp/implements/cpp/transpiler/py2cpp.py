@@ -218,7 +218,9 @@ class Py2Cpp(ITranspiler):
 		elif isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Relay) and node.iterates.calls.prop.tokens == dict.items.__name__:
 			return self.proc_for_dict_items(node, symbols, for_in, statements)
 		else:
-			return self.view.render(node.classification, vars={'symbols': symbols, 'iterates': for_in, 'statements': statements})
+			for_in_symbol = self.reflections.type_of(node.for_in)
+			is_const = CVars.is_const(CVars.key_from(self.reflections, for_in_symbol))
+			return self.view.render(node.classification, vars={'symbols': symbols, 'iterates': for_in, 'statements': statements, 'is_const': is_const})
 
 	def proc_for_range(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		last_index = cast(re.Match, re.fullmatch(r'\w+\((.+)\)', for_in))[1]  # 期待値: 'range(arguments...)'
@@ -247,9 +249,11 @@ class Py2Cpp(ITranspiler):
 			raise LogicError(f'Operation not allowed. "enumerate" is not supported. node: {node}')
 		elif isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Relay) and node.iterates.calls.prop.tokens == dict.items.__name__:
 			iterates = cast(re.Match, re.fullmatch(r'(.+)\.\w+\(\)', for_in))[1]  # 期待値: 'iterates.items()'
-			return self.view.render(node.classification, vars={'symbols': symbols, 'iterates': iterates})
+			return self.view.render(node.classification, vars={'symbols': symbols, 'iterates': iterates, 'is_const': False})
 		else:
-			return self.view.render(node.classification, vars={'symbols': symbols, 'iterates': for_in})
+			for_in_symbol = self.reflections.type_of(node.for_in)
+			is_const = CVars.is_const(CVars.key_from(self.reflections, for_in_symbol))
+			return self.view.render(node.classification, vars={'symbols': symbols, 'iterates': for_in, 'is_const': is_const})
 
 	def on_list_comp(self, node: defs.ListComp, projection: str, fors: list[str], condition: str) -> str:
 		projection_type_raw = self.reflections.type_of(node.projection)

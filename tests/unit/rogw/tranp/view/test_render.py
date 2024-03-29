@@ -721,7 +721,8 @@ class TestRenderer(TestCase):
 			},
 			'\n'.join([
 				'/** Constructor */',
-				'public: Hoge(int base_n = 1, int value = 2) : Base(base_n), a(1) {',
+				'public:',
+				'Hoge(int base_n = 1, int value = 2) : Base(base_n), a(1) {',
 				'	this->x = value;',
 				'}',
 			]),
@@ -771,7 +772,8 @@ class TestRenderer(TestCase):
 			},
 			'\n'.join([
 				'/** static_method */',
-				'public: static int static_method() {',
+				'public:',
+				'static int static_method() {',
 				'	return 1;',
 				'}',
 			]),
@@ -819,7 +821,8 @@ class TestRenderer(TestCase):
 			},
 			'\n'.join([
 				'/** method */',
-				'public: void method(int value = 1) {',
+				'public:',
+				'void method(int value = 1) {',
 				'	this->x = value;',
 				'}',
 			]),
@@ -842,7 +845,8 @@ class TestRenderer(TestCase):
 			},
 			'\n'.join([
 				'/** pure_virtual_method */',
-				'public: virtual void pure_virtual_method(int value = 1);',
+				'public:',
+				'virtual void pure_virtual_method(int value = 1);',
 			]),
 		),
 		(
@@ -863,7 +867,8 @@ class TestRenderer(TestCase):
 			},
 			'\n'.join([
 				'/** allow_override_method */',
-				'public: virtual void allow_override_method(int value = 1) {',
+				'public:',
+				'virtual void allow_override_method(int value = 1) {',
 				'	this->x = value;',
 				'}',
 			]),

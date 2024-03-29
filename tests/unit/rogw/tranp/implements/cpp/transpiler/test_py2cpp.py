@@ -163,9 +163,9 @@ class TestPy2Cpp(TestCase):
 
 		(_ast('DeclOps', ''), defs.Class, BlockExpects.DeclOps),
 
-		(_ast('Base.sub_implements', ''), defs.Function, '/** sub_implements */\npublic: virtual void sub_implements();'),
+		(_ast('Base.sub_implements', ''), defs.Function, '/** sub_implements */\npublic:\nvirtual void sub_implements();'),
 
-		(_ast('Base.allowed_overrides', ''), defs.Function, '/** allowed_overrides */\npublic: virtual int allowed_overrides() {\n\treturn 1;\n}'),
+		(_ast('Base.allowed_overrides', ''), defs.Function, '/** allowed_overrides */\npublic:\nvirtual int allowed_overrides() {\n\treturn 1;\n}'),
 
 		(_ast('Sub.block', 'comment_stmt[4]'), defs.Comment, '// FIXME other: Any'),
 
@@ -255,7 +255,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('EnumOps.cast.block', 'assign[0]'), defs.MoveAssign, 'EnumOps::Values e = (EnumOps::Values)(0);'),
 		(_ast('EnumOps.cast.block', 'assign[1]'), defs.MoveAssign, 'int n = (int)(EnumOps::Values::A);'),
 
-		(_ast('AccessOps.__init__', ''), defs.Constructor, '/** Constructor */\npublic: AccessOps() : Sub(0), sub_s("") {\n}'),
+		(_ast('AccessOps.__init__', ''), defs.Constructor, '/** Constructor */\npublic:\nAccessOps() : Sub(0), sub_s("") {\n}'),
 
 		(_ast('AccessOps.dot.block', 'funccall[0].arguments.argvalue'), defs.Argument, 'a.base_n'),
 		(_ast('AccessOps.dot.block', 'funccall[1].arguments.argvalue'), defs.Argument, 'a.sub_s'),
@@ -284,9 +284,9 @@ class TestPy2Cpp(TestCase):
 		(_ast('AccessOps.indexer.block', 'funccall[2].arguments.argvalue'), defs.Argument, 'arr_ar[0]'),
 
 		(_ast('Alias.Inner', ''), defs.Class, '/** Inner2 */\nclass Inner2 {\n\n};'),
-		(_ast('Alias.__init__', ''), defs.Constructor, '/** Constructor */\npublic: Alias2() : inner(Alias2::Inner2()) {\n}'),
-		(_ast('Alias.in_param_return', ''), defs.Method, '/** in_param_return */\npublic: Alias2 in_param_return(Alias2 a) {\n\n}'),
-		(_ast('Alias.in_param_return2', ''), defs.Method, '/** in_param_return2 */\npublic: Alias2::Inner2 in_param_return2(Alias2::Inner2 i) {\n\n}'),
+		(_ast('Alias.__init__', ''), defs.Constructor, '/** Constructor */\npublic:\nAlias2() : inner(Alias2::Inner2()) {\n}'),
+		(_ast('Alias.in_param_return', ''), defs.Method, '/** in_param_return */\npublic:\nAlias2 in_param_return(Alias2 a) {\n\n}'),
+		(_ast('Alias.in_param_return2', ''), defs.Method, '/** in_param_return2 */\npublic:\nAlias2::Inner2 in_param_return2(Alias2::Inner2 i) {\n\n}'),
 		(_ast('Alias.in_local.block', 'assign[0]'), defs.MoveAssign, 'Alias2 a = Alias2();'),
 		(_ast('Alias.in_local.block', 'assign[1]'), defs.MoveAssign, 'Alias2::Inner2 i = Alias2::Inner2();'),
 		(_ast('Alias.in_class_method.block', 'funccall'), defs.FuncCall, 'Alias2::in_class_method();'),
@@ -327,8 +327,8 @@ class TestPy2Cpp(TestCase):
 		(_ast('CastOps.cast_string.block', 'assign[2]'), defs.MoveAssign, 'int s_to_n = atoi(n_to_s);'),
 		(_ast('CastOps.cast_string.block', 'assign[3]'), defs.MoveAssign, 'float s_to_f = atof(f_to_s);'),
 
-		(_ast('Nullable.params', ''), defs.Method, '/** params */\npublic: void params(Sub* p) {\n\n}'),
-		(_ast('Nullable.returns', ''), defs.Method, '/** returns */\npublic: Sub* returns() {\n\n}'),
+		(_ast('Nullable.params', ''), defs.Method, '/** params */\npublic:\nvoid params(Sub* p) {\n\n}'),
+		(_ast('Nullable.returns', ''), defs.Method, '/** returns */\npublic:\nSub* returns() {\n\n}'),
 		(_ast('Nullable.var_move.block', 'anno_assign'), defs.AnnoAssign, 'Sub* p = nullptr;'),
 		(_ast('Nullable.var_move.block', 'assign[1]'), defs.MoveAssign, 'p = &(base);'),
 		(_ast('Nullable.var_move.block', 'assign[2]'), defs.MoveAssign, 'p = nullptr;'),
@@ -336,7 +336,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('Nullable.var_move.block', 'if_stmt.if_clause.block.return_stmt'), defs.Return, 'return *(p);'),
 
 		(_ast('Template.T2Class', ''), defs.Class, '/** T2Class */\ntemplate<typename T2>\nclass T2Class {\n\n};'),
-		(_ast('Template.__init__', ''), defs.Constructor, '/** Constructor */\npublic: Template(T v) {\n\n}'),
+		(_ast('Template.__init__', ''), defs.Constructor, '/** Constructor */\npublic:\nTemplate(T v) {\n\n}'),
 		(_ast('Template.class_method_t', ''), defs.ClassMethod, '/** class_method_t */\npublic:\ntemplate<typename T2>\nstatic T2 class_method_t(T2 v2) {\n\n}'),
 		(_ast('Template.class_method_t_and_class_t', ''), defs.ClassMethod, '/** class_method_t_and_class_t */\npublic:\ntemplate<typename T2>\nstatic T2 class_method_t_and_class_t(T v, T2 v2) {\n\n}'),
 		(_ast('Template.method_t', ''), defs.Method, '/** method_t */\npublic:\ntemplate<typename T2>\nT2 method_t(T2 v2) {\n\n}'),

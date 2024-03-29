@@ -5,7 +5,8 @@ class DeclOps {
 	public: static std::map<std::string, std::map<std::string, std::vector<int>>> class_map = {{"a", {{"b", {1}}}}};
 	public: Sub* inst_var;
 	/** Constructor */
-	public: DeclOps() : inst_var(nullptr) {
+	public:
+	DeclOps() : inst_var(nullptr) {
 	}
 };"""
 

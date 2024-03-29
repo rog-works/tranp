@@ -1,10 +1,9 @@
 {%- if comment %}{{ comment }}{% else %}/** {{ symbol }} */{% endif %}
+{{ access }}:
 {%- set _decorators = decorators | select('!=', '') | join('\n') %}
 {%- if _decorators or template_types %}
-{{ access }}:
 {%- include('function_attributes.j2') %}
 {%- endif %}
-{% if not (_decorators or template_types) %}{{ access }}: {% endif -%}
 {% if is_abstract or allow_override %}virtual {% endif -%}
 {{ return_type }} {{ symbol }}({{ parameters | select('!=', 'self') | join(', ') }}){{ '' -}}
 {% if not is_abstract %} {% include('function_block.j2') %}{% else %};{% endif -%}

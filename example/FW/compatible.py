@@ -161,8 +161,8 @@ class MeshRaw:
 		raise NotImplementedError()
 
 class Mesh:
-	def process_mesh(self, callback: Callable[[CRef[MeshRaw]], None] | Callable[[CRefConst[MeshRaw]], None]) -> None:
+	def process_mesh(self, callback: Callable[[CRefConst[MeshRaw]], None]) -> None:
 		raise NotImplementedError()
 
-	def edit_mesh(self, callback: Callable[[CRef[MeshRaw]], None] | Callable[[CRefConst[MeshRaw]], None]) -> None:
+	def edit_mesh(self, callback: Callable[[CRef[MeshRaw]], None]) -> None:
 		raise NotImplementedError()

@@ -286,7 +286,7 @@ class CellMesh:
 		Returns:
 			list[Box3d]: 頂点毎のバウンドボックスリスト
 		"""
-		offset = unit / 10.0
+		offset = int(unit / 10)
 		min = cell_box.min
 		max = cell_box.max
 		positions = [
@@ -312,7 +312,7 @@ class CellMesh:
 		Returns:
 			list[Box3d]: 面毎のバウンドボックスリスト
 		"""
-		offset = unit / 10
+		offset = int(unit / 10)
 		min = cell_box.min
 		max = cell_box.max
 		return [
@@ -347,6 +347,7 @@ class CellMesh:
 						continue
 
 					v = origin.on.get_vertex(vi.raw)
+					# LogInfo('i: %d, box.min: (%f, %f, %f), box.max: (%f, %f, %f), v: (%f, %f, %f)', i, box.on.min.x, box.on.min.y, box.on.min.z, box.on.max.x, box.on.max.y, box.on.max.z, v.x, v.y, v.z)
 					if box.on.contains(v):
 						out_ids[i] = vi.raw
 						break
@@ -369,7 +370,7 @@ class CellMesh:
 		"""
 		cell_on_faces: dict[IntVector, dict[int, IntVector2]] = {}
 
-		def closure(origin: CRef[MeshRaw]) -> None:
+		def closure(origin: CRefConst[MeshRaw]) -> None:
 			size = IntVector(3, 3, 3)
 			box = Box3d(cls.from_cell(start), cls.from_cell(start + size))
 			for ti in origin.on.triangle_indices_itr():
@@ -588,7 +589,7 @@ class CellMesh:
 				Vector(0, f_unit, f_unit),
 			]
 			start = cls.from_cell(cell)
-			for i in range(8):
+			for i in range(int(CellMesh.VertexIndexs.Max)):
 				if v_ids[i] == -1:
 					pos = start + verts[i]
 					v_ids[i] = origin.on.append_vertex(pos)
@@ -638,14 +639,14 @@ class CellMesh:
 			# 隣接セルと重なった面を削除
 			# ※トポロジーが崩れるため、面の追加より先に削除を行う
 			# ※頂点やトライアングルグループは自動的に削除されるので何もしなくて良い
-			for i in range(6):
+			for i in range(int(CellMesh.FaceIndexs.Max)):
 				if p_ids[i].x != -1:
 					origin.on.remove_triangle(p_ids[i].x)
 					origin.on.remove_triangle(p_ids[i].y)
 
 			# 隣接セルと重なっていない新規の面を追加
 			uv_overlay = origin.on.attributes().on.primary_uv()
-			for i in range(6):
+			for i in range(int(CellMesh.FaceIndexs.Max)):
 				if p_ids[i].x != -1:
 					continue
 

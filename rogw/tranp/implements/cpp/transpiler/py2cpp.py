@@ -560,7 +560,7 @@ class Py2Cpp(ITranspiler):
 		raise NotImplementedError(f'Not supported CallableType. symbol: {node.fullyname}')
 
 	def on_custom_type(self, node: defs.CustomType, type_name: str, template_types: list[str]) -> str:
-		# XXX @see Symbol.make_shorthand
+		# XXX @see semantics.reflection.helper.naming.ClassShorthandNaming.domain_name
 		return self.view.render('type_py2cpp', vars={'var_type': f'{type_name}<{", ".join(template_types)}>'})
 
 	def on_union_type(self, node: defs.UnionType, or_types: list[str]) -> str:

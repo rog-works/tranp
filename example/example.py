@@ -667,9 +667,9 @@ class CellMesh:
 					origin.on.set_triangle_group(polygon_id, p_group_id)
 
 					uv_indexs = CRef(uv_entry.on[j])
-					uv_id1 = uv_overlay.append_element(uvs[uv_indexs.on.x])
-					uv_id2 = uv_overlay.append_element(uvs[uv_indexs.on.y])
-					uv_id3 = uv_overlay.append_element(uvs[uv_indexs.on.z])
-					uv_overlay.set_triangle(polygon_id, IntVector(uv_id1, uv_id2, uv_id3), True)
+					uv_id1 = uv_overlay.on.append_element(uvs[uv_indexs.on.x])
+					uv_id2 = uv_overlay.on.append_element(uvs[uv_indexs.on.y])
+					uv_id3 = uv_overlay.on.append_element(uvs[uv_indexs.on.z])
+					uv_overlay.on.set_triangle(polygon_id, IntVector(uv_id1, uv_id2, uv_id3), True)
 
 		mesh.on.edit_mesh(closure)

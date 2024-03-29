@@ -1,6 +1,6 @@
 from typing import Callable, Iterator
 
-from rogw.tranp.compatible.cpp.object import CRef, CRefConst
+from rogw.tranp.compatible.cpp.object import CP, CRef, CRefConst
 
 class Vector:
 	def __init__(self, x: float = 0.0, y: float = 0.0, z: float = 0.0) -> None:
@@ -92,7 +92,7 @@ class Attributes:
 	def num_uv_layers(self) -> int:
 		raise NotImplementedError()
 
-	def primary_uv(self) -> UV:
+	def primary_uv(self) -> CP[UV]:
 		raise NotImplementedError()
 
 	def set_num_uv_layers(self, num: int) -> None:

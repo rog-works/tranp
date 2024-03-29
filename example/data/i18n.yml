@@ -18,7 +18,7 @@ aliases.rogw.tranp.compatible.cpp.classes.vector.begin: begin
 aliases.rogw.tranp.compatible.cpp.classes.vector.end: end
 aliases.rogw.tranp.compatible.cpp.classes.vector.erase: erase
 # example
-aliases.example.example.CellMesh: CellMesh2
+aliases.example.example.CellMesh: FL_CellMesh
 # @see dsn.translation.import_dsn
 imports.example.FW.compatible: '#include "FW/compatible.h"'
 imports.example.FW.core: '#include "FW/core.h"'

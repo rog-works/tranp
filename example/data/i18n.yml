@@ -4,6 +4,7 @@ aliases.rogw.tranp.compatible.libralies.classes.dict: std::map
 aliases.rogw.tranp.compatible.libralies.classes.dict.in: contains
 aliases.rogw.tranp.compatible.libralies.classes.list: std::vector
 aliases.rogw.tranp.compatible.libralies.classes.list.append: push_back
+aliases.rogw.tranp.compatible.libralies.classes.list.remove: erase
 aliases.rogw.tranp.compatible.libralies.classes.print: printf
 aliases.rogw.tranp.compatible.libralies.classes.str: std::string
 # cpp
@@ -16,7 +17,6 @@ aliases.rogw.tranp.compatible.cpp.classes.shared_ptr: std::shared_ptr
 aliases.rogw.tranp.compatible.cpp.classes.to_string: std::to_string
 aliases.rogw.tranp.compatible.cpp.classes.vector.begin: begin
 aliases.rogw.tranp.compatible.cpp.classes.vector.end: end
-aliases.rogw.tranp.compatible.cpp.classes.vector.erase: erase
 # example
 aliases.example.example.CellMesh: FL_CellMesh
 # @see dsn.translation.import_dsn

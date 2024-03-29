@@ -16,6 +16,7 @@ class Fixture:
 			to_classes_alias('dict'): 'std::map',
 			to_classes_alias('list'): 'std::vector',
 			to_classes_alias('list.append'): 'push_back',
+			to_classes_alias('list.remove'): 'erase',
 			to_classes_alias('print'): 'printf',
 			to_classes_alias('str'): 'std::string',
 			to_cpp_alias('container.size'): 'size',
@@ -25,7 +26,6 @@ class Fixture:
 			to_cpp_alias('to_string'): 'std::to_string',
 			to_cpp_alias('vector.begin'): 'begin',
 			to_cpp_alias('vector.end'): 'end',
-			to_cpp_alias('vector.erase'): 'erase',
 		}
 		def translator(key: str) -> str:
 			return trans_mapping.get(key, key)

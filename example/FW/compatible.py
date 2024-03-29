@@ -1,6 +1,6 @@
 from typing import Callable, Iterator
 
-from rogw.tranp.compatible.cpp.object import CP, CRef, CRefConst
+from rogw.tranp.compatible.cpp.object import CP, CRawConst, CRef, CRefConst
 
 class Vector:
 	def __init__(self, x: float = 0.0, y: float = 0.0, z: float = 0.0) -> None:
@@ -104,7 +104,7 @@ class MeshRaw:
 	def is_vertex(self, index: int) -> bool:
 		raise NotImplementedError()
 
-	def vertex_indices_itr(self) -> Iterator[int]:
+	def vertex_indices_itr(self) -> Iterator[CRawConst[int]]:
 		raise NotImplementedError()
 
 	def get_vertex(self, index: int) -> Vector:
@@ -118,7 +118,7 @@ class MeshRaw:
 	def is_triangle(self, index: int) -> bool:
 		raise NotImplementedError()
 
-	def triangle_indices_itr(self) -> Iterator[int]:
+	def triangle_indices_itr(self) -> Iterator[CRawConst[int]]:
 		raise NotImplementedError()
 
 	def get_tri_bounds(self, index: int) -> Box3d:
@@ -152,7 +152,7 @@ class MeshRaw:
 	def enable_attributes(self) -> None:
 		raise NotImplementedError()
 
-	def attributes(self) -> Attributes:
+	def attributes(self) -> CP[Attributes]:
 		raise NotImplementedError()
 
 	# Common ----------

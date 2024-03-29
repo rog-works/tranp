@@ -343,12 +343,12 @@ class CellMesh:
 				box = CRef(boxs[i])
 				for vi in origin.on.vertex_indices_itr():
 					# 実体がない(参照カウント0)インデックスを除外
-					if not origin.on.is_vertex(vi):
+					if not origin.on.is_vertex(vi.raw):
 						continue
 
-					v = origin.on.get_vertex(vi)
+					v = origin.on.get_vertex(vi.raw)
 					if box.on.contains(v):
-						out_ids[i] = vi
+						out_ids[i] = vi.raw
 						break
 
 		mesh.on.process_mesh(closure)
@@ -374,11 +374,11 @@ class CellMesh:
 			box = Box3d(cls.from_cell(start), cls.from_cell(start + size))
 			for ti in origin.on.triangle_indices_itr():
 				# 実体がない(参照カウント0)インデックスを除外
-				if not origin.on.is_triangle(ti):
+				if not origin.on.is_triangle(ti.raw):
 					continue
 
 				# box.Contains(faceBox)の場合、targetBoxがbox内に完全に内包される場合のみtrue
-				face_box = origin.on.get_tri_bounds(ti)
+				face_box = origin.on.get_tri_bounds(ti.raw)
 				if not box.contains(face_box):
 					continue
 
@@ -390,9 +390,9 @@ class CellMesh:
 					cell_on_faces[cell] = {}
 
 				if face_index not in cell_on_faces[cell]:
-					cell_on_faces[cell][face_index] = IntVector2(ti, -1)
+					cell_on_faces[cell][face_index] = IntVector2(ti.raw, -1)
 				else:
-					cell_on_faces[cell][face_index].y = ti
+					cell_on_faces[cell][face_index].y = ti.raw
 
 				# 辺で接するもう一方のセルも追加
 				cell2 = cell + cls.face_index_to_vector(face_index)
@@ -401,9 +401,9 @@ class CellMesh:
 					cell_on_faces[cell2] = {}
 
 				if face_index2 not in cell_on_faces[cell2]:
-					cell_on_faces[cell2][face_index2] = IntVector2(ti, -1)
+					cell_on_faces[cell2][face_index2] = IntVector2(ti.raw, -1)
 				else:
-					cell_on_faces[cell2][face_index2].y = ti
+					cell_on_faces[cell2][face_index2].y = ti.raw
 
 				log_info('Collect polygon. ti: %d, start: (%d, %d, %d), cell: (%d, %d, %d), faceIndex: %d, cell2: (%d, %d, %d), faceIndex2: %d, faceBox.min: (%f, %f, %f), faceBox.max: (%f, %f, %f), box.min: (%f, %f, %f), box.max: (%f, %f, %f)', ti, start.x, start.y, start.z, cell.x, cell.y, cell.z, face_index, cell2.x, cell2.y, cell2.z, face_index2, face_box.min.x, face_box.min.y, face_box.min.z, face_box.max.x, face_box.max.y, face_box.max.z, box.min.x, box.min.y, box.min.z, box.max.x, box.max.y, box.max.z)
 
@@ -611,8 +611,8 @@ class CellMesh:
 			if not origin.on.has_attributes():
 				origin.on.enable_attributes()
 
-			if origin.on.attributes().num_uv_layers() == 0:
-				origin.on.attributes().set_num_uv_layers(1)
+			if origin.on.attributes().on.num_uv_layers() == 0:
+				origin.on.attributes().on.set_num_uv_layers(1)
 
 			if not origin.on.has_triangle_groups():
 				origin.on.enable_triangle_groups(0)
@@ -644,7 +644,7 @@ class CellMesh:
 					origin.on.remove_triangle(p_ids[i].y)
 
 			# 隣接セルと重なっていない新規の面を追加
-			uv_overlay = origin.on.attributes().primary_uv()
+			uv_overlay = origin.on.attributes().on.primary_uv()
 			for i in range(6):
 				if p_ids[i].x != -1:
 					continue

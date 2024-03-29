@@ -1,4 +1,4 @@
-// @tranp.meta: {"version":"1.0.0","module":{"hash":"de97a31f13eda2164c9b51d58441a894","path":"example.example"},"transpiler":{"version":"1.0.0","module":"rogw.tranp.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
+// @tranp.meta: {"version":"1.0.0","module":{"hash":"792bfbb2beb01e2a26e350a41a98e355","path":"example.example"},"transpiler":{"version":"1.0.0","module":"rogw.tranp.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
 // #include "rogw/tranp/compatible/cpp/object.h"
 // #include "rogw/tranp/compatible/cpp/preprocess.h"
 // #include "rogw/tranp/compatible/cpp/enum.h"
@@ -473,7 +473,7 @@ class FL_CellMesh {
 				for (auto& next_face_index : FL_CellMesh::around_need_cell_face_indexs(face_index)) {
 					IntVector next_vector = FL_CellMesh::face_index_to_vector(next_face_index);
 					IntVector candidate = next + next_vector;
-					out_need_cells.remove(candidate);
+					out_need_cells.erase(candidate);
 					log_info("Remove candidates. faceIndex: %d, cell: (%d, %d, %d), vector: (%d, %d, %d), nextFaceIndex: %d, next: (%d, %d, %d), nextVector: (%d, %d, %d), candidate: (%d, %d, %d)", face_index, cell.x, cell.y, cell.z, vector.x, vector.y, vector.z, next_face_index, next.x, next.y, next.z, next_vector.x, next_vector.y, next_vector.z, candidate.x, candidate.y, candidate.z);
 				}
 			}
@@ -560,8 +560,8 @@ class FL_CellMesh {
 			if (!origin.has_attributes()) {
 				origin.enable_attributes();
 			}
-			if (origin.attributes().num_uv_layers() == 0) {
-				origin.attributes().set_num_uv_layers(1);
+			if (origin.attributes()->num_uv_layers() == 0) {
+				origin.attributes()->set_num_uv_layers(1);
 			}
 			if (!origin.has_triangle_groups()) {
 				origin.enable_triangle_groups(0);
@@ -592,7 +592,7 @@ class FL_CellMesh {
 				}
 			}
 			// 隣接セルと重なっていない新規の面を追加
-			UV* uv_overlay = origin.attributes().primary_uv();
+			UV* uv_overlay = origin.attributes()->primary_uv();
 			for (auto i = 0; i < 6; i++) {
 				if (p_ids[i].x != -1) {
 					continue;

@@ -689,7 +689,7 @@ class TestRenderer(TestCase):
 			'\n'.join([
 				'auto closure = [this, &](std::string text, int value = 1) -> int {',
 				'	return value + 1;',
-				'}',
+				'};',
 			]),
 		),
 		(

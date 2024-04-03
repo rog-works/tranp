@@ -27,25 +27,3 @@ def import_dsn(module_path: str) -> str:
 		例: 'imports.module.path'
 	"""
 	return DSN.join('imports', module_path)
-
-
-def to_classes_alias(key: str) -> str:
-	"""標準ライブラリーのエイリアスDSNに変換
-
-	Args:
-		key (str): キー名
-	Returns:
-		str: DSN
-	"""
-	return alias_dsn(f'rogw.tranp.compatible.libralies.classes.{key}')
-
-
-def to_cpp_alias(key: str) -> str:
-	"""C++のエイリアスDSNに変換 FIXME C++に直接依存するのはNG
-
-	Args:
-		key (str): キー名
-	Returns:
-		str: DSN
-	"""
-	return alias_dsn(f'rogw.tranp.compatible.cpp.classes.{key}')

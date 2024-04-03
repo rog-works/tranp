@@ -3,7 +3,7 @@ from typing import Any, Protocol, Union, TypedDict
 
 from jinja2 import Environment, FileSystemLoader
 
-from rogw.tranp.dsn.translation import to_classes_alias, to_cpp_alias
+from rogw.tranp.dsn.translation import alias_dsn
 
 
 class Translator(Protocol):
@@ -35,8 +35,7 @@ class Renderer:
 			translator (Translator): 翻訳関数
 		"""
 		self.__renderer = Environment(loader=FileSystemLoader(template_dirs, encoding='utf-8'))
-		self.__renderer.globals['i18n_classes'] = lambda key: translator(to_classes_alias(key))
-		self.__renderer.globals['i18n_cpp'] = lambda key: translator(to_cpp_alias(key))  # FIXME C++に直接依存するのはNG
+		self.__renderer.globals['i18n'] = lambda prefix, key: translator(f'{translator(alias_dsn(prefix))}.{key}')
 		self.__renderer.globals['reg_match'] = lambda pattern, string: re.fullmatch(pattern, string)
 		self.__renderer.globals['reg_replace'] = lambda pattern, replace, string: re.sub(pattern, replace, string)
 

@@ -1,4 +1,4 @@
-// @tranp.meta: {"version":"1.0.0","module":{"hash":"792bfbb2beb01e2a26e350a41a98e355","path":"example.example"},"transpiler":{"version":"1.0.0","module":"rogw.tranp.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
+// @tranp.meta: {"version":"1.0.0","module":{"hash":"327c44eec16afa57162ca94e2daa6449","path":"example.example"},"transpiler":{"version":"1.0.0","module":"rogw.tranp.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
 // #include "rogw/tranp/compatible/cpp/object.h"
 // #include "rogw/tranp/compatible/cpp/preprocess.h"
 // #include "rogw/tranp/compatible/cpp/enum.h"
@@ -72,7 +72,8 @@ class FL_CellMesh {
 	 * @return セル座標
 	 * @note 単位の倍数に近い座標で変換を行うのは不正確になり得るため注意が必要
 	 */
-	public: static IntVector to_cell(Vector location, int unit = 100) {
+	public:
+	static IntVector to_cell(Vector location, int unit = 100) {
 		IntVector cell = IntVector((int)(location.x), (int)(location.y), (int)(location.z));
 		return IntVector((int)(cell.x / unit) + (location.x < 0 ? -1 : 0), (int)(cell.y / unit) + (location.y < 0 ? -1 : 0), (int)(cell.z / unit) + (location.z < 0 ? -1 : 0));
 	}
@@ -82,7 +83,8 @@ class FL_CellMesh {
 	 * @param unit 単位(default = 100cm)
 	 * @return 座標
 	 */
-	public: static Vector from_cell(IntVector cell, int unit = 100) {
+	public:
+	static Vector from_cell(IntVector cell, int unit = 100) {
 		return Vector((float)(cell.x * unit), (float)(cell.y * unit), (float)(cell.z * unit));
 	}
 	/**
@@ -92,7 +94,8 @@ class FL_CellMesh {
 	 * @return セルの中心座標
 	 * @note 単位の倍数に近い座標で変換を行うのは不正確になり得るため注意が必要
 	 */
-	public: static Vector to_center(Vector location, int unit = 100) {
+	public:
+	static Vector to_center(Vector location, int unit = 100) {
 		Vector based = FL_CellMesh::from_cell(FL_CellMesh::to_cell(location, unit), unit);
 		return based + (int)(unit / 2);
 	}
@@ -101,7 +104,8 @@ class FL_CellMesh {
 	 * @param offset_cell オフセットセル座標(3x3x3)
 	 * @return オフセットインデックス(3x3x3)
 	 */
-	public: static int offset_cell_to_index(IntVector offset_cell) {
+	public:
+	static int offset_cell_to_index(IntVector offset_cell) {
 		return offset_cell.z * 9 + offset_cell.y * 3 + offset_cell.x;
 	}
 	/**
@@ -109,7 +113,8 @@ class FL_CellMesh {
 	 * @param offset_index オフセットインデックス(3x3x3)
 	 * @return オフセットセル座標(3x3x3)
 	 */
-	public: static IntVector offset_index_to_cell(int offset_index) {
+	public:
+	static IntVector offset_index_to_cell(int offset_index) {
 		int x = (int)(offset_index % 3);
 		int y = (int)(offset_index % 9 / 3);
 		int z = (int)(offset_index / 9);
@@ -121,7 +126,8 @@ class FL_CellMesh {
 	 * @return 6面インデックスリスト
 	 * @note needCells専用
 	 */
-	public: static std::vector<int> need_cell_face_indexs(int need_cell_index) {
+	public:
+	static std::vector<int> need_cell_face_indexs(int need_cell_index) {
 		std::map<int, std::vector<int>> to_faces = {
 			{(int)(FL_CellMesh::NeedCellIndexs::Bottom0), { {(int)(FL_CellMesh::FaceIndexs::Bottom)}, {(int)(FL_CellMesh::FaceIndexs::Back)}, }},
 			{(int)(FL_CellMesh::NeedCellIndexs::Bottom1), { {(int)(FL_CellMesh::FaceIndexs::Bottom)}, {(int)(FL_CellMesh::FaceIndexs::Left)}, }},
@@ -144,7 +150,8 @@ class FL_CellMesh {
 	 * @return 6面インデックスリスト
 	 * @note needCells専用
 	 */
-	public: static std::vector<int> around_need_cell_face_indexs(int face_index) {
+	public:
+	static std::vector<int> around_need_cell_face_indexs(int face_index) {
 		std::map<int, std::vector<int>> to_faces = {
 			{(int)(FL_CellMesh::FaceIndexs::Left), { {(int)(FL_CellMesh::FaceIndexs::Back)}, {(int)(FL_CellMesh::FaceIndexs::Front)}, {(int)(FL_CellMesh::FaceIndexs::Bottom)}, {(int)(FL_CellMesh::FaceIndexs::Top)}, }},
 			{(int)(FL_CellMesh::FaceIndexs::Right), { {(int)(FL_CellMesh::FaceIndexs::Back)}, {(int)(FL_CellMesh::FaceIndexs::Front)}, {(int)(FL_CellMesh::FaceIndexs::Bottom)}, {(int)(FL_CellMesh::FaceIndexs::Top)}, }},
@@ -160,7 +167,8 @@ class FL_CellMesh {
 	 * @param offset_cell オフセットセル座標(3x3x3)
 	 * @return 6面インデックス
 	 */
-	public: static int offset_cell_to_face_index(IntVector offset_cell) {
+	public:
+	static int offset_cell_to_face_index(IntVector offset_cell) {
 		int offset_index = FL_CellMesh::offset_cell_to_index(offset_cell);
 		std::map<int, int> to_faces = {
 			{(int)(FL_CellMesh::OffsetIndexs::Left), (int)(FL_CellMesh::FaceIndexs::Left)},
@@ -181,7 +189,8 @@ class FL_CellMesh {
 	 * @param face_index 6面インデックス
 	 * @return ベクトル
 	 */
-	public: static IntVector face_index_to_vector(int face_index) {
+	public:
+	static IntVector face_index_to_vector(int face_index) {
 		std::map<FL_CellMesh::FaceIndexs, IntVector> to_vector = {
 			{FL_CellMesh::FaceIndexs::Left, IntVector(-1, 0, 0)},
 			{FL_CellMesh::FaceIndexs::Right, IntVector(1, 0, 0)},
@@ -197,7 +206,8 @@ class FL_CellMesh {
 	 * @param face_index 6面インデックス
 	 * @return 反転した6面インデックス
 	 */
-	public: static int invert_face_index(int face_index) {
+	public:
+	static int invert_face_index(int face_index) {
 		std::map<int, int> to_faces = {
 			{(int)(FL_CellMesh::FaceIndexs::Left), (int)(FL_CellMesh::FaceIndexs::Right)},
 			{(int)(FL_CellMesh::FaceIndexs::Right), (int)(FL_CellMesh::FaceIndexs::Left)},
@@ -214,7 +224,8 @@ class FL_CellMesh {
 	 * @param unit 単位
 	 * @return 6面インデックス
 	 */
-	public: static int face_box_to_face_index(Box3d face_box, int unit) {
+	public:
+	static int face_box_to_face_index(Box3d face_box, int unit) {
 		Vector cell_center_location = face_box.min + unit / 2;
 		IntVector cell = FL_CellMesh::to_cell(cell_center_location, unit);
 		Vector cell_base_location = FL_CellMesh::from_cell(cell, unit);
@@ -232,7 +243,8 @@ class FL_CellMesh {
 	 * @param unit 単位
 	 * @return バウンドボックス
 	 */
-	public: static Box3d to_cell_box(IntVector cell, int unit) {
+	public:
+	static Box3d to_cell_box(IntVector cell, int unit) {
 		Vector min_location = FL_CellMesh::from_cell(cell, unit);
 		Vector max_location = FL_CellMesh::from_cell(cell + IntVector(1, 1, 1), unit);
 		return Box3d(min_location, max_location);
@@ -243,8 +255,9 @@ class FL_CellMesh {
 	 * @param unit 単位
 	 * @return 頂点毎のバウンドボックスリスト
 	 */
-	public: static std::vector<Box3d> to_vertex_boxs(Box3d cell_box, int unit) {
-		float offset = unit / 10.0;
+	public:
+	static std::vector<Box3d> to_vertex_boxs(Box3d cell_box, int unit) {
+		int offset = (int)(unit / 10);
 		Vector min = cell_box.min;
 		Vector max = cell_box.max;
 		std::vector<Vector> positions = {
@@ -272,8 +285,9 @@ class FL_CellMesh {
 	 * @param unit 単位
 	 * @return 面毎のバウンドボックスリスト
 	 */
-	public: static std::vector<Box3d> to_polygon_boxs(Box3d cell_box, int unit) {
-		float offset = unit / 10;
+	public:
+	static std::vector<Box3d> to_polygon_boxs(Box3d cell_box, int unit) {
+		int offset = (int)(unit / 10);
 		Vector min = cell_box.min;
 		Vector max = cell_box.max;
 		return {
@@ -292,7 +306,8 @@ class FL_CellMesh {
 	 * @param unit 単位
 	 * @return 頂点IDリスト
 	 */
-	public: static std::vector<int> by_vertex_ids(Mesh* mesh, IntVector cell, int unit) {
+	public:
+	static std::vector<int> by_vertex_ids(Mesh* mesh, IntVector cell, int unit) {
 		std::vector<int> out_ids = {
 			{-1},
 			{-1},
@@ -314,6 +329,7 @@ class FL_CellMesh {
 						continue;
 					}
 					Vector v = origin.get_vertex(vi);
+					// LogInfo('i: %d, box.min: (%f, %f, %f), box.max: (%f, %f, %f), v: (%f, %f, %f)', i, box.on.min.x, box.on.min.y, box.on.min.z, box.on.max.x, box.on.max.y, box.on.max.z, v.x, v.y, v.z)
 					if (box.contains(v)) {
 						out_ids[i] = vi;
 						break;
@@ -331,9 +347,10 @@ class FL_CellMesh {
 	 * @param unit 単位
 	 * @return ポリゴンIDリスト
 	 */
-	public: static std::map<IntVector, std::vector<IntVector2>> by_polygon_ids_impl(Mesh* mesh, IntVector start, int unit) {
+	public:
+	static std::map<IntVector, std::vector<IntVector2>> by_polygon_ids_impl(Mesh* mesh, IntVector start, int unit) {
 		std::map<IntVector, std::map<int, IntVector2>> cell_on_faces = {};
-		auto closure = [&](MeshRaw& origin) -> void {
+		auto closure = [&](const MeshRaw& origin) -> void {
 			IntVector size = IntVector(3, 3, 3);
 			Box3d box = Box3d(FL_CellMesh::from_cell(start), FL_CellMesh::from_cell(start + size));
 			for (const auto& ti : origin.triangle_indices_itr()) {
@@ -405,7 +422,8 @@ class FL_CellMesh {
 	 * @param unit 単位
 	 * @return ポリゴンIDリスト
 	 */
-	public: static std::vector<IntVector2> by_polygon_ids(Mesh* mesh, IntVector cell, int unit) {
+	public:
+	static std::vector<IntVector2> by_polygon_ids(Mesh* mesh, IntVector cell, int unit) {
 		IntVector start = IntVector(cell.x - 1, cell.y - 1, cell.z - 1);
 		std::map<IntVector, std::vector<IntVector2>> entries = FL_CellMesh::by_polygon_ids_impl(mesh, start, unit);
 		std::vector<IntVector> faces = {
@@ -436,7 +454,8 @@ class FL_CellMesh {
 	 * @param unit 単位
 	 * @return セル座標リスト
 	 */
-	public: static std::vector<IntVector> need_cells(Mesh* mesh, IntVector cell, int unit) {
+	public:
+	static std::vector<IntVector> need_cells(Mesh* mesh, IntVector cell, int unit) {
 		IntVector start = IntVector(cell.x - 1, cell.y - 1, cell.z - 1);
 		std::map<IntVector, std::vector<IntVector2>> entries = FL_CellMesh::by_polygon_ids_impl(mesh, start, unit);
 		std::vector<IntVector2> entry = entries[cell];
@@ -490,14 +509,16 @@ class FL_CellMesh {
 	 * @param unit 単位
 	 * @return True = OK, False = NG(周辺セルが不足)
 	 */
-	public: static bool addable(Mesh* mesh, IntVector cell, int unit) {
+	public:
+	static bool addable(Mesh* mesh, IntVector cell, int unit) {
 		return FL_CellMesh::need_cells(mesh, cell, unit).size() == 0;
 	}
 	/**
 	 * メッシュをクリーニングし、初期状態に戻す
 	 * @param mesh メッシュ
 	 */
-	public: static void clear(Mesh* mesh) {
+	public:
+	static void clear(Mesh* mesh) {
 		auto closure = [&](MeshRaw& origin) -> void {
 			origin.clear();
 		};
@@ -513,7 +534,8 @@ class FL_CellMesh {
 	 * @param cell セル座標
 	 * @param unit 単位 (default = 100cm)
 	 */
-	public: static void add_cell(Mesh* mesh, IntVector cell, int unit = 100) {
+	public:
+	static void add_cell(Mesh* mesh, IntVector cell, int unit = 100) {
 		if (!FL_CellMesh::addable(mesh, cell, unit)) {
 			log_warning("Cannot be added due to lack of surrounding cells. cell: (%d, %d, %d)", cell.x, cell.y, cell.z);
 		}
@@ -539,7 +561,7 @@ class FL_CellMesh {
 				{Vector(0, f_unit, f_unit)},
 			};
 			Vector start = FL_CellMesh::from_cell(cell);
-			for (auto i = 0; i < 8; i++) {
+			for (auto i = 0; i < (int)(FL_CellMesh::VertexIndexs::Max); i++) {
 				if (v_ids[i] == -1) {
 					Vector pos = start + verts[i];
 					v_ids[i] = origin.append_vertex(pos);
@@ -585,7 +607,7 @@ class FL_CellMesh {
 			// 隣接セルと重なった面を削除
 			// ※トポロジーが崩れるため、面の追加より先に削除を行う
 			// ※頂点やトライアングルグループは自動的に削除されるので何もしなくて良い
-			for (auto i = 0; i < 6; i++) {
+			for (auto i = 0; i < (int)(FL_CellMesh::FaceIndexs::Max); i++) {
 				if (p_ids[i].x != -1) {
 					origin.remove_triangle(p_ids[i].x);
 					origin.remove_triangle(p_ids[i].y);
@@ -593,7 +615,7 @@ class FL_CellMesh {
 			}
 			// 隣接セルと重なっていない新規の面を追加
 			UV* uv_overlay = origin.attributes()->primary_uv();
-			for (auto i = 0; i < 6; i++) {
+			for (auto i = 0; i < (int)(FL_CellMesh::FaceIndexs::Max); i++) {
 				if (p_ids[i].x != -1) {
 					continue;
 				}

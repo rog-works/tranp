@@ -1,47 +1,33 @@
 import os
-from typing import Any
+from typing import Any, cast
 from unittest import TestCase
 
+import yaml
+
 from rogw.tranp.app.dir import tranp_dir
-from rogw.tranp.dsn.translation import alias_dsn
 from rogw.tranp.test.helper import data_provider
 from rogw.tranp.view.render import Renderer
 
 
 class Fixture:
-	@classmethod
-	def renderer(cls) -> Renderer:
-		trans_mapping = {
-			# prefix
-			alias_dsn('classes'): 'aliases.rogw.tranp.compatible.libralies.classes',
-			alias_dsn('cpp'): 'aliases.rogw.tranp.compatible.cpp.classes',
-			# classes
-			alias_dsn('rogw.tranp.compatible.libralies.classes.dict.in'): 'contains',
-			alias_dsn('rogw.tranp.compatible.libralies.classes.dict'): 'std::map',
-			alias_dsn('rogw.tranp.compatible.libralies.classes.list'): 'std::vector',
-			alias_dsn('rogw.tranp.compatible.libralies.classes.list.append'): 'push_back',
-			alias_dsn('rogw.tranp.compatible.libralies.classes.list.remove'): 'erase',
-			alias_dsn('rogw.tranp.compatible.libralies.classes.print'): 'printf',
-			alias_dsn('rogw.tranp.compatible.libralies.classes.str'): 'std::string',
-			# cpp
-			alias_dsn('rogw.tranp.compatible.cpp.classes.container.size'): 'size',
-			alias_dsn('rogw.tranp.compatible.cpp.classes.make_shared'): 'std::make_shared',
-			alias_dsn('rogw.tranp.compatible.cpp.classes.map.erase'): 'erase',
-			alias_dsn('rogw.tranp.compatible.cpp.classes.shared_ptr'): 'std::shared_ptr',
-			alias_dsn('rogw.tranp.compatible.cpp.classes.to_string'): 'std::to_string',
-			alias_dsn('rogw.tranp.compatible.cpp.classes.vector.begin'): 'begin',
-			alias_dsn('rogw.tranp.compatible.cpp.classes.vector.end'): 'end',
-		}
+	def __init__(self) -> None:
+		# 効率化のためexampleのマッピングデータを利用
+		trans_mapping = self.__load_trans_mapping(os.path.join(tranp_dir(), 'example/data/i18n.yml'))
 		def translator(key: str) -> str:
 			return trans_mapping.get(key, key)
 
-		return Renderer([os.path.join(tranp_dir(), 'data/cpp/template')], translator)
+		self.renderer = Renderer([os.path.join(tranp_dir(), 'data/cpp/template')], translator)
+
+	def __load_trans_mapping(self, filepath: str) -> dict[str, str]:
+		with open(filepath) as f:
+			return cast(dict[str, str], yaml.safe_load(f))
 
 
 class TestRenderer(TestCase):
+	__fixture = Fixture()
+
 	def assertRender(self, template: str, indent: int, vars: dict[str, Any], expected: str) -> None:
-		renderer = Fixture.renderer()
-		actual = renderer.render(template, indent=indent, vars=vars)
+		actual = self.__fixture.renderer.render(template, indent=indent, vars=vars)
 		self.assertEqual(actual, expected)
 
 	@data_provider([

@@ -3,7 +3,7 @@ from typing import Any
 from unittest import TestCase
 
 from rogw.tranp.app.dir import tranp_dir
-from rogw.tranp.dsn.translation import to_classes_alias, to_cpp_alias
+from rogw.tranp.dsn.translation import alias_dsn
 from rogw.tranp.test.helper import data_provider
 from rogw.tranp.view.render import Renderer
 
@@ -12,20 +12,25 @@ class Fixture:
 	@classmethod
 	def renderer(cls) -> Renderer:
 		trans_mapping = {
-			to_classes_alias('dict.in'): 'contains',
-			to_classes_alias('dict'): 'std::map',
-			to_classes_alias('list'): 'std::vector',
-			to_classes_alias('list.append'): 'push_back',
-			to_classes_alias('list.remove'): 'erase',
-			to_classes_alias('print'): 'printf',
-			to_classes_alias('str'): 'std::string',
-			to_cpp_alias('container.size'): 'size',
-			to_cpp_alias('make_shared'): 'std::make_shared',
-			to_cpp_alias('map.erase'): 'erase',
-			to_cpp_alias('shared_ptr'): 'std::shared_ptr',
-			to_cpp_alias('to_string'): 'std::to_string',
-			to_cpp_alias('vector.begin'): 'begin',
-			to_cpp_alias('vector.end'): 'end',
+			# prefix
+			alias_dsn('classes'): 'aliases.rogw.tranp.compatible.libralies.classes',
+			alias_dsn('cpp'): 'aliases.rogw.tranp.compatible.cpp.classes',
+			# classes
+			alias_dsn('rogw.tranp.compatible.libralies.classes.dict.in'): 'contains',
+			alias_dsn('rogw.tranp.compatible.libralies.classes.dict'): 'std::map',
+			alias_dsn('rogw.tranp.compatible.libralies.classes.list'): 'std::vector',
+			alias_dsn('rogw.tranp.compatible.libralies.classes.list.append'): 'push_back',
+			alias_dsn('rogw.tranp.compatible.libralies.classes.list.remove'): 'erase',
+			alias_dsn('rogw.tranp.compatible.libralies.classes.print'): 'printf',
+			alias_dsn('rogw.tranp.compatible.libralies.classes.str'): 'std::string',
+			# cpp
+			alias_dsn('rogw.tranp.compatible.cpp.classes.container.size'): 'size',
+			alias_dsn('rogw.tranp.compatible.cpp.classes.make_shared'): 'std::make_shared',
+			alias_dsn('rogw.tranp.compatible.cpp.classes.map.erase'): 'erase',
+			alias_dsn('rogw.tranp.compatible.cpp.classes.shared_ptr'): 'std::shared_ptr',
+			alias_dsn('rogw.tranp.compatible.cpp.classes.to_string'): 'std::to_string',
+			alias_dsn('rogw.tranp.compatible.cpp.classes.vector.begin'): 'begin',
+			alias_dsn('rogw.tranp.compatible.cpp.classes.vector.end'): 'end',
 		}
 		def translator(key: str) -> str:
 			return trans_mapping.get(key, key)
@@ -464,7 +469,7 @@ class TestRenderer(TestCase):
 		self.assertRender('for_enumerate', 0, vars, expected)
 
 	@data_provider([
-		({'symbol': 'index', 'last_index': 'limit', 'statements': ['pass;']}, 'for (auto index = 0; i < limit; index++) {\n\tpass;\n}'),
+		({'symbol': 'index', 'last_index': 'limit', 'statements': ['pass;']}, 'for (auto index = 0; index < limit; index++) {\n\tpass;\n}'),
 	])
 	def test_render_for_range(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('for_range', 0, vars, expected)

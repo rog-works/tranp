@@ -711,8 +711,8 @@ class TestRenderer(TestCase):
 				'super_initializer': {'parent': 'Base', 'arguments': 'base_n'},
 			},
 			'\n'.join([
-				'/** Constructor */',
 				'public:',
+				'/** Constructor */',
 				'Hoge(int base_n = 1, int value = 2) : Base(base_n), a(1) {',
 				'	this->x = value;',
 				'}',
@@ -738,8 +738,8 @@ class TestRenderer(TestCase):
 				'super_initializer': {},
 			},
 			'\n'.join([
-				'/** Constructor */',
 				'public:',
+				'/** Constructor */',
 				'template<typename T>',
 				'deco(A, B)',
 				'virtual Hoge();',
@@ -762,8 +762,8 @@ class TestRenderer(TestCase):
 				'allow_override': False,
 			},
 			'\n'.join([
-				'/** static_method */',
 				'public:',
+				'/** static_method */',
 				'static int static_method() {',
 				'	return 1;',
 				'}',
@@ -786,8 +786,8 @@ class TestRenderer(TestCase):
 				'allow_override': False,
 			},
 			'\n'.join([
-				'/** static_method */',
 				'public:',
+				'/** static_method */',
 				'template<typename T>',
 				'deco(A, B)',
 				'static void static_method() {',
@@ -811,8 +811,8 @@ class TestRenderer(TestCase):
 				'allow_override': False,
 			},
 			'\n'.join([
-				'/** method */',
 				'public:',
+				'/** method */',
 				'void method(int value = 1) {',
 				'	this->x = value;',
 				'}',
@@ -835,8 +835,8 @@ class TestRenderer(TestCase):
 				'allow_override': False,
 			},
 			'\n'.join([
-				'/** pure_virtual_method */',
 				'public:',
+				'/** pure_virtual_method */',
 				'virtual void pure_virtual_method(int value = 1);',
 			]),
 		),
@@ -857,8 +857,8 @@ class TestRenderer(TestCase):
 				'allow_override': True,
 			},
 			'\n'.join([
-				'/** allow_override_method */',
 				'public:',
+				'/** allow_override_method */',
 				'virtual void allow_override_method(int value = 1) {',
 				'	this->x = value;',
 				'}',
@@ -881,8 +881,8 @@ class TestRenderer(TestCase):
 				'allow_override': False,
 			},
 			'\n'.join([
-				'/** template_method */',
 				'public:',
+				'/** template_method */',
 				'template<typename T>',
 				'template<typename T2>',
 				'void template_method(int value = 1) {',

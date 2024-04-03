@@ -4,8 +4,8 @@ class DeclOps {
 	public: static Sub* class_bp = nullptr;
 	public: static std::map<std::string, std::map<std::string, std::vector<int>>> class_map = {{"a", {{"b", {1}}}}};
 	public: Sub* inst_var;
-	/** Constructor */
 	public:
+	/** Constructor */
 	DeclOps() : inst_var(nullptr) {
 	}
 };"""

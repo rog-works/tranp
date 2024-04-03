@@ -1,4 +1,4 @@
-for (auto {{ symbol }} = 0; i < {{ last_index }}; {{ symbol }}++) {
+for (auto {{ symbol }} = 0; {{ symbol }} < {{ last_index }}; {{ symbol }}++) {
 {%- filter indent('\t') %}
 {%- for statement in statements %}
 {{ statement }}

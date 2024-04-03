@@ -623,7 +623,7 @@ class FL_CellMesh {
 				std::vector<IntVector>& polygon_entry = polygon_map[key];
 				std::vector<IntVector>& uv_entry = uv_map[key];
 				int p_group_id = origin.max_group_id();
-				for (auto j = 0; i < 2; j++) {
+				for (auto j = 0; j < 2; j++) {
 					IntVector& p = polygon_entry[j];
 					IntVector polygon = IntVector(v_ids[p.x], v_ids[p.y], v_ids[p.z]);
 					int polygon_id = origin.append_triangle(polygon);

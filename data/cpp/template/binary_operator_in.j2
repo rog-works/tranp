@@ -1,9 +1,9 @@
 {%- if operator == 'in' and right_is_dict -%}
-{{ right }}.{{ i18n_classes('dict.in') }}({{ left }})
+{{ right }}.{{ i18n('classes', 'dict.in') }}({{ left }})
 {%- elif operator == 'not.in' and right_is_dict -%}
-(!{{ right }}.{{ i18n_classes('dict.in') }}({{ left }}))
+(!{{ right }}.{{ i18n('classes', 'dict.in') }}({{ left }}))
 {%- elif operator == 'in' and not right_is_dict -%}
-(std::find({{ right }}.{{ i18n_cpp('vector.begin') }}(), {{ right }}.{{ i18n_cpp('vector.end') }}(), {{ left }}) != {{ right }}.{{ i18n_cpp('vector.end') }}())
+(std::find({{ right }}.{{ i18n('cpp', 'vector.begin') }}(), {{ right }}.{{ i18n('cpp', 'vector.end') }}(), {{ left }}) != {{ right }}.{{ i18n('cpp', 'vector.end') }}())
 {%- elif operator == 'not.in' and not right_is_dict -%}
-(std::find({{ right }}.{{ i18n_cpp('vector.begin') }}(), {{ right }}.{{ i18n_cpp('vector.end') }}(), {{ left }}) == {{ right }}.{{ i18n_cpp('vector.end') }}())
+(std::find({{ right }}.{{ i18n('cpp', 'vector.begin') }}(), {{ right }}.{{ i18n('cpp', 'vector.end') }}(), {{ left }}) == {{ right }}.{{ i18n('cpp', 'vector.end') }}())
 {%- endif -%}

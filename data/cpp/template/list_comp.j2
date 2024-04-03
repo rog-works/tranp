@@ -1,12 +1,12 @@
-[{% if binded_this %}this, {% endif %}&]() -> {{ i18n_classes('list') }}<{{ projection_types[0] }}> {
-	{{ i18n_classes('list') }}<{{ projection_types[0] }}> __ret;
+[{% if binded_this %}this, {% endif %}&]() -> {{ i18n('classes', 'list') }}<{{ projection_types[0] }}> {
+	{{ i18n('classes', 'list') }}<{{ projection_types[0] }}> __ret;
 	for ({{ comp_for }}) {
 		{%- if condition %}
 		if ({{ condition }}) {
-			__ret.{{ i18n_classes('list.append') }}({{ projection }});
+			__ret.{{ i18n('classes', 'list.append') }}({{ projection }});
 		}
 		{%- else %}
-		__ret.{{ i18n_classes('list.append') }}({{ projection }});
+		__ret.{{ i18n('classes', 'list.append') }}({{ projection }});
 		{%- endif %}
 	}
 	return __ret;

@@ -1,5 +1,5 @@
-[{% if binded_this %}this, {% endif %}&]() -> {{ i18n_classes('dict') }}<{{ projection_types[0] }}, {{ projection_types[1] }}> {
-	{{ i18n_classes('dict') }}<{{ projection_types[0] }}, {{ projection_types[1] }}> __ret;
+[{% if binded_this %}this, {% endif %}&]() -> {{ i18n('classes', 'dict') }}<{{ projection_types[0] }}, {{ projection_types[1] }}> {
+	{{ i18n('classes', 'dict') }}<{{ projection_types[0] }}, {{ projection_types[1] }}> __ret;
 	for ({{ comp_for }}) {
 		{#- 期待値: 'auto& [key, value] : iterates' #}
 		{%- set _key, _value = comp_for.split(' : ')[0][7:-1].split(', ') %}

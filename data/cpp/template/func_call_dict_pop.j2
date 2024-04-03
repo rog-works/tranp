@@ -1,5 +1,5 @@
 [&]() -> {{ var_type }} {
 	auto __copy = {{ receiver }}[{{ arguments[0] }}];
-	{{ receiver }}.{{ i18n_cpp('map.erase') }}({{ arguments[0] }});
+	{{ receiver }}.{{ i18n('cpp', 'map.erase') }}({{ arguments[0] }});
 	return __copy;
 }(){% if is_statement %};{% endif %}

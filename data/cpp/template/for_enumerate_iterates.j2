@@ -1,5 +1,5 @@
-[&]() -> {{ i18n_classes('dict') }}<int, {{ var_type }}> {
-	{{ i18n_classes('dict') }}<int, {{ var_type }}> __ret;
+[&]() -> {{ i18n('classes', 'dict') }}<int, {{ var_type }}> {
+	{{ i18n('classes', 'dict') }}<int, {{ var_type }}> __ret;
 	{#- 静的束縛を考慮するならiteratesをラムダの外側で一旦変数化すれば良い。ただし無駄な複製コストが増えるので現状の実装の方が効率は良い #}
 	int __index = 0;
 	for (auto& __entry : {{ iterates }}) {

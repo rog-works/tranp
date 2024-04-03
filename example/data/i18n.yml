@@ -1,4 +1,7 @@
 # @see dsn.translation.alias_dsn
+# prefix
+aliases.classes: aliases.rogw.tranp.compatible.libralies.classes
+aliases.cpp: aliases.rogw.tranp.compatible.cpp.classes
 # classes
 aliases.rogw.tranp.compatible.libralies.classes.dict: std::map
 aliases.rogw.tranp.compatible.libralies.classes.dict.in: contains

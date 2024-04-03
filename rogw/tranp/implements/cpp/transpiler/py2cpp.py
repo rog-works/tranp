@@ -386,8 +386,8 @@ class Py2Cpp(ITranspiler):
 		receiver_raw = self.reflections.type_of(node.receivers[0])
 		value_raw = self.reflections.type_of(node.value)
 		declared = receiver_raw.decl.declare == node
-		var_type = self.to_accessible_name(value_raw) if declared else ''
-		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': value})
+		var_type = self.to_accessible_name(value_raw)
+		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': value, 'declared': declared})
 
 	def proc_move_assign_unpack(self, node: defs.MoveAssign, receivers: list[str], value: str) -> str:
 		return self.view.render(f'{node.classification}_unpack', vars={'receivers': receivers, 'value': value})

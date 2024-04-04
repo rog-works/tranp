@@ -59,7 +59,7 @@ class ResolveUnknown:
 		Note:
 			変数宣言のシンボルのため、RolesをVarに変更
 		"""
-		return self.unpack_value(var_raw, reflections.type_of(value_node)).to.var(var_raw.decl.as_a(defs.DeclVars))
+		return self.unpack_value(var_raw, reflections.type_of(value_node)).to.var(var_raw.decl.as_a(defs.Declable))
 
 	def make_resolver(self, raw: IReflection, value_node: Node) -> Callable[[], IReflection]:
 		"""シンボルリゾルバーを生成

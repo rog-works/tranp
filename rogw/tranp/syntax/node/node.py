@@ -421,7 +421,7 @@ class Node:
 		Returns:
 			T_Node: インスタンス
 		Raises:
-			InvalidConvertionError: 許可されない変換先を指定
+			IllegalConvertionError: 許可されない変換先を指定
 		"""
 		if self.is_a(expect):
 			return cast(T_Node, self)
@@ -436,7 +436,7 @@ class Node:
 		Returns:
 			T_Node: インスタンス
 		Raises:
-			InvalidConvertionError: 合致するクラスが1件以外
+			IllegalConvertionError: 合致するクラスが1件以外
 		Examples:
 			```python
 			@property
@@ -480,7 +480,7 @@ class Node:
 		Returns:
 			T_Node: プロキシノード
 		Note:
-			XXX シンボルエイリアスにのみ使う想定。ダーティーな実装のため濫用は厳禁
+			XXX ダーティーな実装のため濫用は厳禁
 			XXX classification/source_mapは固定で上書き
 		"""
 		source_map: SourceMap = {'begin': (0, 0), 'end': (0, 0)}

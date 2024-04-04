@@ -134,7 +134,10 @@ class ExpandModules:
 		for module_path, expanded in expanded_modules.items():
 			entrypoint = self.modules.load(module_path).entrypoint.as_a(defs.Entrypoint)
 			for fullyname, full_path in expanded.decl_vars.items():
-				var = entrypoint.whole_by(full_path).as_a(defs.DeclVars)
+				# FIXME Pylance v2023.11.10まではUnion型のTemplateのアンパックが出来たが、それ以降のバージョンでは出来なくなった。出来ない方が誤りなのでは？
+				# FIXME 一旦one_ofに変更＆型の直接指定で対処
+				# FIXME var = entrypoint.whole_by(full_path).as_a(defs.DeclVars)
+				var = entrypoint.whole_by(full_path).one_of(defs.Parameter, defs.Declable)
 				raw = self.resolve_type_symbol(expanded_db, var)
 				expanded_db[var.symbol.fullyname] = raw.to.var(var)
 

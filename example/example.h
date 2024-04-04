@@ -65,6 +65,7 @@ class FL_CellMesh {
 		Top3 = 11,
 		Max = 12,
 	};
+	public:
 	/**
 	 * セル座標に変換
 	 * @param location 座標
@@ -72,21 +73,21 @@ class FL_CellMesh {
 	 * @return セル座標
 	 * @note 単位の倍数に近い座標で変換を行うのは不正確になり得るため注意が必要
 	 */
-	public:
 	static IntVector to_cell(Vector location, int unit = 100) {
 		IntVector cell = IntVector((int)(location.x), (int)(location.y), (int)(location.z));
 		return IntVector((int)(cell.x / unit) + (location.x < 0 ? -1 : 0), (int)(cell.y / unit) + (location.y < 0 ? -1 : 0), (int)(cell.z / unit) + (location.z < 0 ? -1 : 0));
 	}
+	public:
 	/**
 	 * セル座標を座標に変換
 	 * @param cell セル座標
 	 * @param unit 単位(default = 100cm)
 	 * @return 座標
 	 */
-	public:
 	static Vector from_cell(IntVector cell, int unit = 100) {
 		return Vector((float)(cell.x * unit), (float)(cell.y * unit), (float)(cell.z * unit));
 	}
+	public:
 	/**
 	 * 座標からセルの中心座標に変換
 	 * @param location 座標
@@ -94,39 +95,38 @@ class FL_CellMesh {
 	 * @return セルの中心座標
 	 * @note 単位の倍数に近い座標で変換を行うのは不正確になり得るため注意が必要
 	 */
-	public:
 	static Vector to_center(Vector location, int unit = 100) {
 		Vector based = FL_CellMesh::from_cell(FL_CellMesh::to_cell(location, unit), unit);
 		return based + (int)(unit / 2);
 	}
+	public:
 	/**
 	 * オフセットセル座標(3x3x3)をオフセットインデックスに変換
 	 * @param offset_cell オフセットセル座標(3x3x3)
 	 * @return オフセットインデックス(3x3x3)
 	 */
-	public:
 	static int offset_cell_to_index(IntVector offset_cell) {
 		return offset_cell.z * 9 + offset_cell.y * 3 + offset_cell.x;
 	}
+	public:
 	/**
 	 * オフセットインデックス(3x3x3)からオフセットセル座標に変換
 	 * @param offset_index オフセットインデックス(3x3x3)
 	 * @return オフセットセル座標(3x3x3)
 	 */
-	public:
 	static IntVector offset_index_to_cell(int offset_index) {
 		int x = (int)(offset_index % 3);
 		int y = (int)(offset_index % 9 / 3);
 		int z = (int)(offset_index / 9);
 		return IntVector(x, y, z);
 	}
+	public:
 	/**
 	 * 必須セルに必要な6面インデックスを取得
 	 * @param need_cell_index 必須セルインデックス
 	 * @return 6面インデックスリスト
 	 * @note needCells専用
 	 */
-	public:
 	static std::vector<int> need_cell_face_indexs(int need_cell_index) {
 		std::map<int, std::vector<int>> to_faces = {
 			{(int)(FL_CellMesh::NeedCellIndexs::Bottom0), { {(int)(FL_CellMesh::FaceIndexs::Bottom)}, {(int)(FL_CellMesh::FaceIndexs::Back)}, }},
@@ -144,13 +144,13 @@ class FL_CellMesh {
 		};
 		return to_faces[need_cell_index];
 	}
+	public:
 	/**
 	 * 6面方向の先のセルの周辺に存在する必須セルへの方向を示す6面インデックスを取得
 	 * @param face_index 6面インデックス
 	 * @return 6面インデックスリスト
 	 * @note needCells専用
 	 */
-	public:
 	static std::vector<int> around_need_cell_face_indexs(int face_index) {
 		std::map<int, std::vector<int>> to_faces = {
 			{(int)(FL_CellMesh::FaceIndexs::Left), { {(int)(FL_CellMesh::FaceIndexs::Back)}, {(int)(FL_CellMesh::FaceIndexs::Front)}, {(int)(FL_CellMesh::FaceIndexs::Bottom)}, {(int)(FL_CellMesh::FaceIndexs::Top)}, }},
@@ -162,12 +162,12 @@ class FL_CellMesh {
 		};
 		return to_faces[face_index];
 	}
+	public:
 	/**
 	 * オフセットセル座標(3x3x3)を6面インデックスに変換
 	 * @param offset_cell オフセットセル座標(3x3x3)
 	 * @return 6面インデックス
 	 */
-	public:
 	static int offset_cell_to_face_index(IntVector offset_cell) {
 		int offset_index = FL_CellMesh::offset_cell_to_index(offset_cell);
 		std::map<int, int> to_faces = {
@@ -184,12 +184,12 @@ class FL_CellMesh {
 		}
 		return to_faces[offset_index];
 	}
+	public:
 	/**
 	 * 6面インデックスからベクトルに変換
 	 * @param face_index 6面インデックス
 	 * @return ベクトル
 	 */
-	public:
 	static IntVector face_index_to_vector(int face_index) {
 		std::map<FL_CellMesh::FaceIndexs, IntVector> to_vector = {
 			{FL_CellMesh::FaceIndexs::Left, IntVector(-1, 0, 0)},
@@ -201,12 +201,12 @@ class FL_CellMesh {
 		};
 		return to_vector[(FL_CellMesh::FaceIndexs)(face_index)];
 	}
+	public:
 	/**
 	 * 6面インデックスを反転
 	 * @param face_index 6面インデックス
 	 * @return 反転した6面インデックス
 	 */
-	public:
 	static int invert_face_index(int face_index) {
 		std::map<int, int> to_faces = {
 			{(int)(FL_CellMesh::FaceIndexs::Left), (int)(FL_CellMesh::FaceIndexs::Right)},
@@ -218,13 +218,13 @@ class FL_CellMesh {
 		};
 		return to_faces[face_index];
 	}
+	public:
 	/**
 	 * 面のバウンドボックスから6面インデックスに変換
 	 * @param face_box 面のバウンドボックス
 	 * @param unit 単位
 	 * @return 6面インデックス
 	 */
-	public:
 	static int face_box_to_face_index(Box3d face_box, int unit) {
 		Vector cell_center_location = face_box.min + unit / 2;
 		IntVector cell = FL_CellMesh::to_cell(cell_center_location, unit);
@@ -237,25 +237,25 @@ class FL_CellMesh {
 		log_info("cell: (%d, %d, %d), face_offset: (%d, %d, %d), face_size: (%.2f, %.2f, %.2f), cell_base_location: (%.2f, %.2f, %.2f), cell_center_location: (%.2f, %.2f, %.2f), face_offset_location: (%.2f, %.2f, %.2f), face_center_location: (%.2f, %.2f, %.2f), result: %d", cell.x, cell.y, cell.z, face_offset.x, face_offset.y, face_offset.z, face_size.x, face_size.y, face_size.z, cell_base_location.x, cell_base_location.y, cell_base_location.z, cell_center_location.x, cell_center_location.y, cell_center_location.z, face_offset_location.x, face_offset_location.y, face_offset_location.z, face_center_location.x, face_center_location.y, face_center_location.z, face_index);
 		return face_index;
 	}
+	public:
 	/**
 	 * セルのバウンドボックスを取得
 	 * @param cell セル座標
 	 * @param unit 単位
 	 * @return バウンドボックス
 	 */
-	public:
 	static Box3d to_cell_box(IntVector cell, int unit) {
 		Vector min_location = FL_CellMesh::from_cell(cell, unit);
 		Vector max_location = FL_CellMesh::from_cell(cell + IntVector(1, 1, 1), unit);
 		return Box3d(min_location, max_location);
 	}
+	public:
 	/**
 	 * セルの8頂点を囲うバウンドボックスを取得
 	 * @param coll_box セルのバウンドボックス
 	 * @param unit 単位
 	 * @return 頂点毎のバウンドボックスリスト
 	 */
-	public:
 	static std::vector<Box3d> to_vertex_boxs(Box3d cell_box, int unit) {
 		int offset = (int)(unit / 10);
 		Vector min = cell_box.min;
@@ -278,6 +278,7 @@ class FL_CellMesh {
 			return __ret;
 		}();
 	}
+	public:
 	/**
 	 * セルの6面を囲うバウンドボックスを取得
 	 * 囲うために実際のバウンドボックスより10%大きいサイズになる点に注意
@@ -285,7 +286,6 @@ class FL_CellMesh {
 	 * @param unit 単位
 	 * @return 面毎のバウンドボックスリスト
 	 */
-	public:
 	static std::vector<Box3d> to_polygon_boxs(Box3d cell_box, int unit) {
 		int offset = (int)(unit / 10);
 		Vector min = cell_box.min;
@@ -299,6 +299,7 @@ class FL_CellMesh {
 			{Box3d(Vector(min.x - offset, min.y - offset, max.z - offset), Vector(max.x + offset, max.y + offset, max.z + offset))},
 		};
 	}
+	public:
 	/**
 	 * セルの8頂点の頂点IDを取得する
 	 * @param mesh メッシュ
@@ -306,7 +307,6 @@ class FL_CellMesh {
 	 * @param unit 単位
 	 * @return 頂点IDリスト
 	 */
-	public:
 	static std::vector<int> by_vertex_ids(Mesh* mesh, IntVector cell, int unit) {
 		std::vector<int> out_ids = {
 			{-1},
@@ -340,6 +340,7 @@ class FL_CellMesh {
 		mesh->process_mesh(closure);
 		return out_ids;
 	}
+	public:
 	/**
 	 * 指定のセル座標から3x3x3の範囲に存在するセルの6面のポリゴンIDを取得する
 	 * @param mesh メッシュ
@@ -347,7 +348,6 @@ class FL_CellMesh {
 	 * @param unit 単位
 	 * @return ポリゴンIDリスト
 	 */
-	public:
 	static std::map<IntVector, std::vector<IntVector2>> by_polygon_ids_impl(Mesh* mesh, IntVector start, int unit) {
 		std::map<IntVector, std::map<int, IntVector2>> cell_on_faces = {};
 		auto closure = [&](const MeshRaw& origin) -> void {
@@ -415,6 +415,7 @@ class FL_CellMesh {
 		}
 		return out_ids;
 	}
+	public:
 	/**
 	 * セルの6面のポリゴンIDを取得する
 	 * @param mesh メッシュ
@@ -422,7 +423,6 @@ class FL_CellMesh {
 	 * @param unit 単位
 	 * @return ポリゴンIDリスト
 	 */
-	public:
 	static std::vector<IntVector2> by_polygon_ids(Mesh* mesh, IntVector cell, int unit) {
 		IntVector start = IntVector(cell.x - 1, cell.y - 1, cell.z - 1);
 		std::map<IntVector, std::vector<IntVector2>> entries = FL_CellMesh::by_polygon_ids_impl(mesh, start, unit);
@@ -447,6 +447,7 @@ class FL_CellMesh {
 		}
 		return result;
 	}
+	public:
 	/**
 	 * 指定座標へのセル追加に必要な周辺セルを取得
 	 * @param mesh メッシュ
@@ -454,7 +455,6 @@ class FL_CellMesh {
 	 * @param unit 単位
 	 * @return セル座標リスト
 	 */
-	public:
 	static std::vector<IntVector> need_cells(Mesh* mesh, IntVector cell, int unit) {
 		IntVector start = IntVector(cell.x - 1, cell.y - 1, cell.z - 1);
 		std::map<IntVector, std::vector<IntVector2>> entries = FL_CellMesh::by_polygon_ids_impl(mesh, start, unit);
@@ -502,6 +502,7 @@ class FL_CellMesh {
 		}
 		return out_need_cells;
 	}
+	public:
 	/**
 	 * 指定座標にセル追加が出来るか判定
 	 * @param mesh メッシュ
@@ -509,21 +510,21 @@ class FL_CellMesh {
 	 * @param unit 単位
 	 * @return True = OK, False = NG(周辺セルが不足)
 	 */
-	public:
 	static bool addable(Mesh* mesh, IntVector cell, int unit) {
 		return FL_CellMesh::need_cells(mesh, cell, unit).size() == 0;
 	}
+	public:
 	/**
 	 * メッシュをクリーニングし、初期状態に戻す
 	 * @param mesh メッシュ
 	 */
-	public:
 	static void clear(Mesh* mesh) {
 		auto closure = [&](MeshRaw& origin) -> void {
 			origin.clear();
 		};
 		mesh->edit_mesh(closure);
 	}
+	public:
 	/**
 	 * 指定のセル座標にセルを追加
 	 *
@@ -534,7 +535,6 @@ class FL_CellMesh {
 	 * @param cell セル座標
 	 * @param unit 単位 (default = 100cm)
 	 */
-	public:
 	static void add_cell(Mesh* mesh, IntVector cell, int unit = 100) {
 		if (!FL_CellMesh::addable(mesh, cell, unit)) {
 			log_warning("Cannot be added due to lack of surrounding cells. cell: (%d, %d, %d)", cell.x, cell.y, cell.z);

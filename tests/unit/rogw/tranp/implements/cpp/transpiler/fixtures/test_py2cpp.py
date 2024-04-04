@@ -4,9 +4,11 @@ from typing import Generic, TypeAlias, TypeVar
 from rogw.tranp.compatible.cpp.embed import __allow_override__
 from rogw.tranp.compatible.cpp.enum import CEnum
 from rogw.tranp.compatible.cpp.object import CP, CRawConst, CRef, CSP
-from rogw.tranp.compatible.cpp.preprocess import directive
+from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 
-directive('#pragma once')
+c_pragma('once')
+c_include('<memory>')
+c_macro('MACRO()')
 
 T = TypeVar('T')
 T2 = TypeVar('T2')

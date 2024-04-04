@@ -24,7 +24,7 @@ from tests.unit.rogw.tranp.implements.cpp.transpiler.fixtures.test_py2cpp_expect
 
 
 class ASTMapping:
-	__begin_class = 10
+	__begin_class = 12
 	_Base = f'file_input.class_def[{__begin_class + 0}]'
 	_Sub = f'file_input.class_def[{__begin_class + 1}]'
 	_DeclOps = f'file_input.class_def[{__begin_class + 2}]'
@@ -45,7 +45,9 @@ class ASTMapping:
 	aliases = {
 		'import.typing': 'file_input.import_stmt[1]',
 
-		'directive': 'file_input.funccall',
+		'c_pragma': 'file_input.funccall[6]',
+		'c_include': 'file_input.funccall[7]',
+		'c_macro': 'file_input.funccall[8]',
 
 		'DSI': 'file_input.class_assign',
 
@@ -157,7 +159,9 @@ class TestPy2Cpp(TestCase):
 	@data_provider([
 		(_ast('import.typing', ''), defs.Import, '// #include "typing.h"'),
 
-		(_ast('directive', ''), defs.FuncCall, '#pragma once'),
+		(_ast('c_pragma', ''), defs.FuncCall, '#pragma once'),
+		(_ast('c_include', ''), defs.FuncCall, '#include <memory>'),
+		(_ast('c_macro', ''), defs.FuncCall, 'MACRO()'),
 
 		(_ast('DSI', ''), defs.AltClass, 'using DSI = std::map<std::string, int>;'),
 

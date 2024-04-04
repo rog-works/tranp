@@ -468,6 +468,25 @@ class TestRenderer(TestCase):
 		self.assertRender('for', 0, vars, expected)
 
 	@data_provider([
+		({'arguments': ['"<string>"']}, '#include <string>'),
+		({'arguments': ['"' '"path/to/module.h"' '"']}, '#include "path/to/module.h"'),
+	])
+	def test_render_func_call_c_include(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call_c_include', 0, vars, expected)
+
+	@data_provider([
+		({'arguments': ['"MACRO()"']}, 'MACRO()'),
+	])
+	def test_render_func_call_c_macro(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call_c_macro', 0, vars, expected)
+
+	@data_provider([
+		({'arguments': ['"once"']}, '#pragma once'),
+	])
+	def test_render_func_call_c_pragma(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call_c_pragma', 0, vars, expected)
+
+	@data_provider([
 		({'var_type': 'int', 'arguments': ['1.0f'], 'is_statement': True}, '(int)(1.0f);'),
 	])
 	def test_render_func_call_cast_bin_to_bin(self, vars: dict[str, Any], expected: str) -> None:
@@ -551,15 +570,6 @@ class TestRenderer(TestCase):
 	])
 	def test_render_func_call_dict_values(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('func_call_dict_values', 0, vars, expected)
-
-	@data_provider([
-		({'arguments': ["'" '#include "path/to/module.h"' "'"]}, '#include "path/to/module.h"'),
-		({'arguments': ['"#pragma once"']}, '#pragma once'),
-		({'arguments': ['"#ifdef A"']}, '#ifdef A'),
-		({'arguments': ['"#endif"']}, '#endif'),
-	])
-	def test_render_func_call_directive(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call_directive', 0, vars, expected)
 
 	@data_provider([
 		({'arguments': ['values'], 'is_statement': True}, 'values.size();'),

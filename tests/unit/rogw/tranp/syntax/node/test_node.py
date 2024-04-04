@@ -21,9 +21,9 @@ class TestNode(TestCase):
 		self.assertEqual(str(node), expected)
 
 	@data_provider([
-		('...', 'file_input', '<Entrypoint: file_input>'),
-		('class A: ...', 'file_input.class_def', '<Class: file_input.class_def>'),
-		('def func() -> None: ...', 'file_input.function_def', '<Function: file_input.function_def>'),
+		('...', 'file_input', '<Entrypoint: __main__ file_input>'),
+		('class A: ...', 'file_input.class_def', '<Class: __main__ file_input.class_def>'),
+		('def func() -> None: ...', 'file_input.function_def', '<Function: __main__ file_input.function_def>'),
 	])
 	def test___repr__(self, source: str, full_path: str, expected: str) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path)

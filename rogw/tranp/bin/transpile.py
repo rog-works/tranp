@@ -241,7 +241,7 @@ class TranspileApp:
 		Returns:
 			str: ファイルパス
 		"""
-		basepath = module_path.path.replace('.', '/')
+		basepath = module_path.path.replace('.', os.path.sep)
 		filepath = f'{basepath}.{self.config.output_language}'
 		return os.path.abspath(os.path.join(self.config.output_dir, filepath))
 

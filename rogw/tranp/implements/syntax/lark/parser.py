@@ -1,4 +1,5 @@
 import json
+import os
 from typing import IO, cast
 
 import lark
@@ -77,7 +78,7 @@ class SyntaxParserOfLark:
 		Returns:
 			Entry: シンタックスツリーのルートエントリー
 		"""
-		basepath = module_path.replace('.', '/')
+		basepath = module_path.replace('.', os.path.sep)
 
 		def source_path() -> str:
 			return f'{basepath}.py'

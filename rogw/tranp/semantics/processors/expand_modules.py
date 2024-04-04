@@ -1,4 +1,5 @@
 import json
+import os
 from typing import IO, NamedTuple
 
 import rogw.tranp.compatible.libralies.classes as classes
@@ -178,7 +179,7 @@ class ExpandModules:
 			return Expanded(classes, decl_vars, imports, import_paths)
 
 		# XXX ファイルの実体が存在しない場合は、メモリーから直接パースしたモジュールと見做してキャッシュは省略する
-		basepath = module.module_path.path.replace('.', '/')
+		basepath = module.module_path.path.replace('.', os.path.sep)
 		filepath = f'{basepath}.{module.module_path.language}'
 		if not self.loader.exists(filepath):
 			return instantiate()

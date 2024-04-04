@@ -24,7 +24,7 @@ def include_module_paths(input_glob: str, exclude_patterns: list[str]) -> Module
 		excluded = len([True for exclude_exp in exclude_exps if exclude_exp.fullmatch(filepath)]) > 0
 		if not excluded:
 			basepath, extention = os.path.splitext(filepath)
-			module_paths.append(ModulePath(basepath.replace('/', '.'), language=extention[1:]))
+			module_paths.append(ModulePath(basepath.replace(os.path.sep, '.'), language=extention[1:]))
 
 	if len(module_paths) == 0:
 		raise LogicError(f'No target found. input_dir: {input_glob}, excludes: {exclude_patterns}')

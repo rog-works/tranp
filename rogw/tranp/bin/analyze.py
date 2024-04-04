@@ -67,7 +67,7 @@ def make_parser_setting(args: Args) -> ParserSetting:
 @injectable
 def make_module_paths(args: Args) -> ModulePaths:
 	basepath, extention = os.path.splitext(args.input)
-	return ModulePaths([ModulePath(basepath.replace('/', '.'), language=extention[1:])])
+	return ModulePaths([ModulePath(basepath.replace(os.path.sep, '.'), language=extention[1:])])
 
 
 def fetch_main_entrypoint(modules: Modules, module_paths: ModulePaths) -> defs.Entrypoint:

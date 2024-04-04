@@ -1,8 +1,8 @@
 from rogw.tranp.compatible.cpp.object import CP, CRef, CRefConst
-from rogw.tranp.compatible.cpp.preprocess import directive
+from rogw.tranp.compatible.cpp.preprocess import c_pragma
 from rogw.tranp.compatible.cpp.enum import CEnum
 
-directive('#pragma once')
+c_pragma('once')
 
 from example.FW.compatible import Box3d, IntVector, IntVector2, Mesh, MeshRaw, Vector, Vector2
 from example.FW.core import log_error, log_info, log_warning

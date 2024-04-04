@@ -1,7 +1,7 @@
 import re
 from typing import cast
 
-from rogw.tranp.compatible.cpp.preprocess import directive
+from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.data.meta.header import MetaHeader
 from rogw.tranp.data.meta.types import ModuleMetaFactory, TranspilerMeta
@@ -593,7 +593,11 @@ class Py2Cpp(ITranspiler):
 		is_statement = node.parent.is_a(defs.Block)
 		spec, context = self.analyze_func_call_spec(node)
 		func_call_vars = {'calls': calls, 'arguments': arguments, 'is_statement': is_statement}
-		if spec == 'directive':
+		if spec == 'c_pragma':
+			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
+		elif spec == 'c_include':
+			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
+		elif spec == 'c_macro':
 			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
 		elif spec == 'len':
 			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
@@ -653,8 +657,12 @@ class Py2Cpp(ITranspiler):
 		"""
 		if isinstance(node.calls, defs.Var):
 			calls = node.calls.tokens
-			if calls == directive.__name__:
-				return 'directive', None
+			if calls == c_pragma.__name__:
+				return 'c_pragma', None
+			elif calls == c_include.__name__:
+				return 'c_include', None
+			elif calls == c_macro.__name__:
+				return 'c_macro', None
 			elif calls == len.__name__:
 				return 'len', None
 			elif calls == print.__name__:

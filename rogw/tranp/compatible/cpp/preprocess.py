@@ -1,12 +1,52 @@
-def directive(command: str) -> None:
-	"""ディレクティブを埋め込む
-	トランスパイル後はcommandの内容がそのまま出力される
+def c_pragma(command: str) -> None:
+	"""pragmaを埋め込む
 
 	Args:
 		command (str): コマンド
 	Examples:
 		```python
-		directive('#pragma once')
+		# python
+		pragma('once')
+		```
+
+		```cpp
+		// cpp
+		#pragma one
+		```
+	"""
+	...
+
+
+def c_include(command: str) -> None:
+	"""includeを埋め込む
+
+	Args:
+		command (str): コマンド
+	Examples:
+		```python
+		include('<stdio>')
+		```
+
+		```cpp
+		#include <stdio>
+		```
+	"""
+	...
+
+
+def c_macro(command: str) -> None:
+	"""マクロ呼び出しを埋め込む
+
+	Args:
+		command (str): コマンド
+	Examples:
+		```python
+		# python
+		macro('MACRO()')
+		```
+
+		```cpp
+		MACRO()
 		```
 	"""
 	...

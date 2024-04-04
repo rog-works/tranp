@@ -52,7 +52,7 @@ class Node:
 	@override
 	def __repr__(self) -> str:
 		"""str: オブジェクトのシリアライズ表現"""
-		return f'<{self.__class__.__name__}: {self.full_path}>'
+		return f'<{self.__class__.__name__}: {self.module_path} {self.full_path}>'
 
 	@override
 	def __hash__(self) -> int:

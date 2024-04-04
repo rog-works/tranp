@@ -96,7 +96,7 @@ class If(FlowEnter):
 	@property
 	@Meta.embed(Node, expandable)
 	def else_clause(self) -> Else | Empty:
-		return self._at(2).one_of(Else | Empty)
+		return self._at(2).one_of(Else, Empty)
 
 	@property
 	def if_clause(self) -> IfClause:
@@ -609,7 +609,7 @@ class TemplateClass(ClassDef):
 	@override
 	@Meta.embed(Node, expandable)
 	def constraints(self) -> Type | Empty:
-		return self._at(2).one_of(Type | Empty)
+		return self._at(2).one_of(Type, Empty)
 
 
 class VarsCollector:

@@ -1,4 +1,4 @@
-from typing import Protocol
+from typing import ClassVar, Protocol
 
 
 class ClassOperations(Protocol):
@@ -10,9 +10,9 @@ class ClassOperations(Protocol):
 		iterable: イテレータブルメソッドの名称
 	"""
 
-	constructor: str
-	iterator: str
-	iterable: str
+	constructor: ClassVar[str]
+	iterator: ClassVar[str]
+	iterable: ClassVar[str]
 
 	def operation_by(self, operator: str) -> str:
 		"""各種演算に対応するメソッドの名称を取得

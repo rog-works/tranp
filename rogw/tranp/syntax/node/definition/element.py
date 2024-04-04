@@ -23,7 +23,7 @@ class Parameter(Node, IDeclaration, ISymbol):
 	@property
 	@Meta.embed(Node, expandable)
 	def var_type(self) -> Type | Empty:
-		return self._children('typedparam')[1].one_of(Type | Empty)
+		return self._children('typedparam')[1].one_of(Type, Empty)
 
 	@property
 	@Meta.embed(Node, expandable)

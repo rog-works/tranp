@@ -265,11 +265,11 @@ class IReflection(metaclass=ABCMeta):
 		...
 
 	@abstractmethod
-	def one_of(self, expects: type[T_Ref]) -> T_Ref:
+	def one_of(self, *expects: type[T_Ref]) -> T_Ref:
 		"""期待する型と同種ならキャスト
 
 		Args:
-			expects (type[T_Ref]): 期待する型
+			*expects (type[T_Ref]): 期待する型
 		Returns:
 			T_Ref: インスタンス
 		Raises:

@@ -428,11 +428,11 @@ class Node:
 
 		raise IllegalConvertionError(str(self), expect)
 
-	def one_of(self, expects: type[T_Node]) -> T_Node:
+	def one_of(self, *expects: type[T_Node]) -> T_Node:
 		"""指定のクラスと同じか派生クラスか判定し、合致すればそのままインスタンスを返す。合致するクラスが1件以外の場合は例外を出力
 
 		Args:
-			expects (T_Node): 期待するクラス(型/共用型)
+			*expects (type[T_Node]): 期待するクラス(型/共用型)
 		Returns:
 			T_Node: インスタンス
 		Raises:
@@ -441,16 +441,12 @@ class Node:
 			```python
 			@property
 			def var_type(self) -> Type | Empty:
-				return self._at(1).one_of(Type | Empty)
+				return self._at(1).one_of(Type, Empty)
 			```
 		"""
-		if hasattr(expects, '__args__'):
-			inherits = [candidate for candidate in getattr(expects, '__args__', []) if isinstance(self, candidate)]
-			if len(inherits) == 1:
-				return cast(T_Node, self)
-		else:
-			if self.is_a(expects):
-				return cast(T_Node, self)
+		inherits = [candidate for candidate in expects if isinstance(self, candidate)]
+		if len(inherits) == 1:
+			return cast(T_Node, self)
 
 		raise IllegalConvertionError(str(self), expects)
 

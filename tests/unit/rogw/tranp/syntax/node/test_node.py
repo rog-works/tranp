@@ -441,7 +441,7 @@ class TestNode(TestCase):
 	def test_one_of(self) -> None:
 		node = self.fixture.shared_nodes_by('file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.parameters.paramvalue.typedparam.__empty__')
 		self.assertEqual(type(node), defs.Empty)
-		self.assertEqual(type(node.one_of(defs.Type | defs.Empty)), defs.Empty)
+		self.assertEqual(type(node.one_of(defs.Type, defs.Empty)), defs.Empty)
 
 	def test_match_feature(self) -> None:
 		class NodeA(Node):

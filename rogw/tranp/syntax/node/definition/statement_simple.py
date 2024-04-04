@@ -10,7 +10,7 @@ from rogw.tranp.syntax.node.node import Node
 class Assign(Node):
 	@property
 	def receivers(self) -> list[Declable | Reference]:
-		return [node.one_of(Declable | Reference) for node in self._children('assign_namelist')]
+		return [node.one_of(Declable, Reference) for node in self._children('assign_namelist')]
 
 	@property
 	def _elements(self) -> list[Node]:
@@ -98,12 +98,12 @@ class Throw(Node):
 	@property
 	@Meta.embed(Node, expandable)
 	def throws(self) -> FuncCall | Var:
-		return self._at(0).one_of(FuncCall | Var)
+		return self._at(0).one_of(FuncCall, Var)
 
 	@property
 	@Meta.embed(Node, expandable)
 	def via(self) -> Reference | Empty:
-		return self._at(1).one_of(Reference | Empty)
+		return self._at(1).one_of(Reference, Empty)
 
 
 @Meta.embed(Node, accept_tags('pass_stmt'))

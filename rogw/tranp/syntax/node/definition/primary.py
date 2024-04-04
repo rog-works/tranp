@@ -196,7 +196,7 @@ class Relay(Reference, IDomain):
 	@property
 	@Meta.embed(Node, expandable)
 	def receiver(self) -> 'Reference | FuncCall | Generator | Literal':
-		return self._at(0).one_of(Reference | FuncCall | Generator | Literal)
+		return self._at(0).one_of(Reference, FuncCall, Generator, Literal)
 
 	@property
 	def prop(self) -> 'Var':
@@ -234,7 +234,7 @@ class Indexer(Reference):
 	@property
 	@Meta.embed(Node, expandable)
 	def receiver(self) -> 'Reference | FuncCall | Generator':
-		return self._at(0).one_of(Reference | FuncCall | Generator)
+		return self._at(0).one_of(Reference, FuncCall, Generator)
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -281,7 +281,7 @@ class RelayOfType(GeneralType):
 	@property
 	@Meta.embed(Node, expandable)
 	def receiver(self) -> 'RelayOfType | VarOfType':
-		return self._at(0).one_of(RelayOfType | VarOfType)
+		return self._at(0).one_of(RelayOfType, VarOfType)
 
 	@property
 	def prop(self) -> Var:

@@ -181,11 +181,11 @@ class ReflectionBase(IReflection):
 		return SymbolWrapper(self)
 
 	@implements
-	def one_of(self, expects: type[T_Ref]) -> T_Ref:
+	def one_of(self, *expects: type[T_Ref]) -> T_Ref:
 		"""期待する型と同種ならキャスト
 
 		Args:
-			expects (type[T_Ref]): 期待する型
+			*expects (type[T_Ref]): 期待する型
 		Returns:
 			T_Ref: インスタンス
 		Raises:
@@ -625,7 +625,7 @@ class SymbolWrapper(IWrapper):
 		Returns:
 			IReflection: シンボル
 		"""
-		return Import(self._raw.one_of(Class | Var), via)
+		return Import(self._raw.one_of(Class, Var), via)
 
 	@implements
 	def var(self, decl: defs.DeclVars) -> IReflection:
@@ -647,7 +647,7 @@ class SymbolWrapper(IWrapper):
 		Returns:
 			IReflection: シンボル
 		"""
-		return Extend(self._raw.one_of(Class | Import | Var), via)
+		return Extend(self._raw.one_of(Class, Import, Var), via)
 
 	@implements
 	def literal(self, via: defs.Literal) -> IReflection:
@@ -669,7 +669,7 @@ class SymbolWrapper(IWrapper):
 		Returns:
 			IReflection: シンボル
 		"""
-		return Temporary(self._raw.one_of(Class | Extend), via)
+		return Temporary(self._raw.one_of(Class, Extend), via)
 
 	@implements
 	def relay(self, via: defs.Relay | defs.Indexer | defs.FuncCall, context: IReflection) -> IReflection:

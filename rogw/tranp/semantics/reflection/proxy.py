@@ -187,17 +187,17 @@ class SymbolProxy(IReflection, ISymbolProxy):
 		return self.__new_raw_proxy.to
 
 	@implements
-	def one_of(self, expects: type[T_Ref]) -> T_Ref:
+	def one_of(self, *expects: type[T_Ref]) -> T_Ref:
 		"""期待する型と同種ならキャスト
 
 		Args:
-			expects (type[T_Ref]): 期待する型
+			*expects (type[T_Ref]): 期待する型
 		Returns:
 			T_Ref: インスタンス
 		Raises:
 			LogicError: 継承関係が無い型を指定 XXX 出力する例外は要件等
 		"""
-		return self.__new_raw_proxy.one_of(expects)
+		return self.__new_raw_proxy.one_of(*expects)
 
 	@override
 	def __eq__(self, other: object) -> bool:

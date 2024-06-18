@@ -379,14 +379,13 @@ class Template(Generic[T]):
 
 
 class GenericOps(Generic[T]):
-	def __init__(self, initial: T) -> None:
-		self.value: T = initial
+	def __init__(self) -> None: ...
 
-	def temporal(self) -> None:
-		a = self.value
+	def temporal(self, value: T) -> None:
+		a = value
 
 	def new(self) -> None:
-		a = GenericOps[int](1)
+		a = GenericOps[int]()
 
 
 def template_func(v: T) -> T: ...

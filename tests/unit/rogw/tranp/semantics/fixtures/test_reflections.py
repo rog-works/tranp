@@ -236,15 +236,13 @@ class Nullable:
 T = TypeVar('T')
 
 class GenericOps(Generic[T]):
-	def __init__(self, initial: T) -> None:
-		self.value = initial
+	def __init__(self) -> None: ...
 
 	def temporal(self, value: T) -> None:
 		a = value
 
 	def new(self) -> None:
-		# FIXME 引数を取らないとTを解決できない
-		a = GenericOps[int](1)
+		a = GenericOps[int]()
 
 	def cast(self, sub: 'GenericOps[Sub]') -> None:
 		b = cast(GenericOps[Base], sub)

@@ -354,8 +354,8 @@ class TestPy2Cpp(TestCase):
 		(_ast('Template.method_t', ''), defs.Method, 'public:\n/** method_t */\ntemplate<typename T2>\nT2 method_t(T2 v2) {\n\n}'),
 		(_ast('Template.method_t_and_class_t', ''), defs.Method, 'public:\n/** method_t_and_class_t */\ntemplate<typename T2>\nT2 method_t_and_class_t(T v, T2 v2) {\n\n}'),
 
-		(_ast('GenericOps.temporal.block', 'assign'), defs.MoveAssign, 'T a = this->value;'),
-		(_ast('GenericOps.new.block', 'assign'), defs.MoveAssign, 'GenericOps<int> a = GenericOps<int>(1);'),
+		(_ast('GenericOps.temporal.block', 'assign'), defs.MoveAssign, 'T a = value;'),
+		(_ast('GenericOps.new.block', 'assign'), defs.MoveAssign, 'GenericOps<int> a = GenericOps<int>();'),
 
 		(_ast('template_func', ''), defs.Function, '/** template_func */\ntemplate<typename T>\nT template_func(T v) {\n\n}'),
 	])

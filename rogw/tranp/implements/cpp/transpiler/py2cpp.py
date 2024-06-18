@@ -462,7 +462,7 @@ class Py2Cpp(ITranspiler):
 
 		spec, accessor = self.analyze_relay_access_spec(node, receiver_symbol)
 		relay_vars = {'receiver': receiver, 'accessor': accessor, 'prop': prop}
-		if spec == 'cvar_on':
+		if spec == 'cvar_relay':
 			cvar_receiver = re.sub(rf'(->|::|\.){CVars.relay_key}$', '', receiver)
 			return self.view.render(node.classification, vars={**relay_vars, 'receiver': cvar_receiver})
 		elif spec.startswith('cvar_to_'):
@@ -493,7 +493,7 @@ class Py2Cpp(ITranspiler):
 		elif is_on_cvar_relay():
 			cvar_key = CVars.key_from(self.reflections, receiver_symbol.context)
 			if not CVars.is_raw_raw(cvar_key):
-				return 'cvar_on', CVars.to_accessor(cvar_key).name
+				return 'cvar_relay', CVars.to_accessor(cvar_key).name
 		elif is_on_cvar_exchanger():
 			cvar_key = CVars.key_from(self.reflections, receiver_symbol)
 			move = CVars.to_move(cvar_key, node.prop.domain_name)
@@ -522,7 +522,7 @@ class Py2Cpp(ITranspiler):
 
 	def on_indexer(self, node: defs.Indexer, receiver: str, key: str) -> str:
 		spec, context = self.analyze_indexer_spec(node)
-		if spec == 'cvar_on':
+		if spec == 'cvar_relay':
 			cvar_receiver = re.sub(rf'(->|::|\.){CVars.relay_key}$', '', receiver)
 			return self.view.render(node.classification, vars={'receiver': cvar_receiver, 'key': key})
 		elif spec == 'cvar':
@@ -545,7 +545,7 @@ class Py2Cpp(ITranspiler):
 			receiver_symbol = self.reflections.type_of(node.receiver)
 			cvar_key = CVars.key_from(self.reflections, receiver_symbol.context)
 			if not CVars.is_raw_raw(cvar_key):
-				return 'cvar_on', None
+				return 'cvar_relay', None
 		elif is_cvar():
 			return 'cvar', self.reflections.type_of(node)
 		else:

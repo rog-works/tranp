@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import cast, Generic, TypeAlias, TypeVar
+from typing import Generic, TypeAlias, TypeVar, cast
 
 from rogw.tranp.compatible.cpp.embed import __allow_override__
 from rogw.tranp.compatible.cpp.enum import CEnum

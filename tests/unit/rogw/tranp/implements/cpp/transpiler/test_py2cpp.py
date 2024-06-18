@@ -128,8 +128,8 @@ class ASTMapping:
 		'Template.method_t': f'{_Template}.class_def_raw.block.function_def[4]',
 		'Template.method_t_and_class_t': f'{_Template}.class_def_raw.block.function_def[5]',
 
-		'GenOps.temporal.block': f'{_GenOps}.class_def_raw.block.function_def[1].function_def_raw.block',
-		'GenOps.new.block': f'{_GenOps}.class_def_raw.block.function_def[2].function_def_raw.block',
+		'GenericOps.temporal.block': f'{_GenOps}.class_def_raw.block.function_def[1].function_def_raw.block',
+		'GenericOps.new.block': f'{_GenOps}.class_def_raw.block.function_def[2].function_def_raw.block',
 
 		'template_func': f'{_template_func}',
 	}
@@ -354,8 +354,8 @@ class TestPy2Cpp(TestCase):
 		(_ast('Template.method_t', ''), defs.Method, 'public:\n/** method_t */\ntemplate<typename T2>\nT2 method_t(T2 v2) {\n\n}'),
 		(_ast('Template.method_t_and_class_t', ''), defs.Method, 'public:\n/** method_t_and_class_t */\ntemplate<typename T2>\nT2 method_t_and_class_t(T v, T2 v2) {\n\n}'),
 
-		(_ast('GenOps.temporal.block', 'assign'), defs.MoveAssign, 'T a = this->value;'),
-		(_ast('GenOps.new.block', 'assign'), defs.MoveAssign, 'GenOps<int> a = GenOps<int>(1);'),
+		(_ast('GenericOps.temporal.block', 'assign'), defs.MoveAssign, 'T a = this->value;'),
+		(_ast('GenericOps.new.block', 'assign'), defs.MoveAssign, 'GenericOps<int> a = GenericOps<int>(1);'),
 
 		(_ast('template_func', ''), defs.Function, '/** template_func */\ntemplate<typename T>\nT template_func(T v) {\n\n}'),
 	])

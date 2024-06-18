@@ -235,7 +235,7 @@ class Nullable:
 
 T = TypeVar('T')
 
-class GenOps(Generic[T]):
+class GenericOps(Generic[T]):
 	def __init__(self, initial: T) -> None:
 		self.value = initial
 
@@ -244,8 +244,8 @@ class GenOps(Generic[T]):
 
 	def new(self) -> None:
 		# FIXME 引数を取らないとTを解決できない
-		a = GenOps[int](1)
+		a = GenericOps[int](1)
 
-	def cast(self, sub: 'GenOps[Sub]') -> None:
+	def cast(self, sub: 'GenericOps[Sub]') -> None:
 		# XXX 型の明示を消したい
-		b: GenOps[Base] = cast(GenOps[Base], sub)
+		b: GenericOps[Base] = cast(GenericOps[Base], sub)

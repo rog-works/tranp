@@ -92,8 +92,8 @@ class ASTMapping:
 		'Nullable.returns.return': f'{_Nullable}.class_def_raw.block.function_def[1].function_def_raw.typed_or_expr',
 		'Nullable.var_move.block': f'{_Nullable}.class_def_raw.block.function_def[2].function_def_raw.block',
 
-		'GenOps.new.block': f'{_GenOps}.class_def_raw.block.function_def[2].function_def_raw.block',
-		'GenOps.cast.block': f'{_GenOps}.class_def_raw.block.function_def[3].function_def_raw.block',
+		'GenericOps.new.block': f'{_GenOps}.class_def_raw.block.function_def[2].function_def_raw.block',
+		'GenericOps.cast.block': f'{_GenOps}.class_def_raw.block.function_def[3].function_def_raw.block',
 	}
 
 
@@ -249,9 +249,9 @@ class TestReflections(TestCase):
 		(f'{fixture_module_path}.Nullable.accessible.s', 'str'),
 		(f'{fixture_module_path}.Nullable.accessible.n', 'int'),
 
-		(f'{fixture_module_path}.GenOps.temporal.a', 'T'),
-		(f'{fixture_module_path}.GenOps.new.a', 'GenOps<int>'),
-		(f'{fixture_module_path}.GenOps.cast.b', 'GenOps<Base>'),
+		(f'{fixture_module_path}.GenericOps.temporal.a', 'T'),
+		(f'{fixture_module_path}.GenericOps.new.a', 'GenericOps<int>'),
+		(f'{fixture_module_path}.GenericOps.cast.b', 'GenericOps<Base>'),
 	])
 	def test_from_fullyname(self, fullyname: str, expected: str) -> None:
 		reflections = self.fixture.get(Reflections)
@@ -384,8 +384,8 @@ class TestReflections(TestCase):
 		(_ast('Nullable.returns.return', ''), _mod('classes', 'Union'), 'Union<Base, None>'),
 		(_ast('Nullable.var_move.block', 'if_stmt.if_clause.block.return_stmt'), _mod('classes', 'str'), 'str'),
 
-		(_ast('GenOps.new.block', 'assign.funccall'), f'{fixture_module_path}.GenOps', 'GenOps<int>'),
-		(_ast('GenOps.cast.block', 'anno_assign.funccall.arguments.argvalue[0]'), f'{fixture_module_path}.GenOps', 'GenOps<Base>'),
+		(_ast('GenericOps.new.block', 'assign.funccall'), f'{fixture_module_path}.GenericOps', 'GenericOps<int>'),
+		(_ast('GenericOps.cast.block', 'anno_assign.funccall.arguments.argvalue[0]'), f'{fixture_module_path}.GenericOps', 'GenericOps<Base>'),
 	])
 	def test_type_of(self, full_path: str, expected: str, attrs_expected: str) -> None:
 		reflections = self.fixture.get(Reflections)

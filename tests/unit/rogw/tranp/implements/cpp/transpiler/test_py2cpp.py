@@ -40,7 +40,7 @@ class ASTMapping:
 	_CastOps = f'file_input.class_def[{__begin_class + 12}]'
 	_Nullable = f'file_input.class_def[{__begin_class + 13}]'
 	_Template = f'file_input.class_def[{__begin_class + 14}]'
-	_GenOps = f'file_input.class_def[{__begin_class + 15}]'
+	_GenericOps = f'file_input.class_def[{__begin_class + 15}]'
 	_template_func = f'file_input.function_def'
 
 	aliases = {
@@ -128,8 +128,8 @@ class ASTMapping:
 		'Template.method_t': f'{_Template}.class_def_raw.block.function_def[4]',
 		'Template.method_t_and_class_t': f'{_Template}.class_def_raw.block.function_def[5]',
 
-		'GenericOps.temporal.block': f'{_GenOps}.class_def_raw.block.function_def[1].function_def_raw.block',
-		'GenericOps.new.block': f'{_GenOps}.class_def_raw.block.function_def[2].function_def_raw.block',
+		'GenericOps.temporal.block': f'{_GenericOps}.class_def_raw.block.function_def[1].function_def_raw.block',
+		'GenericOps.new.block': f'{_GenericOps}.class_def_raw.block.function_def[2].function_def_raw.block',
 
 		'template_func': f'{_template_func}',
 	}

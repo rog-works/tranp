@@ -41,7 +41,7 @@ class ASTMapping:
 	_EnumOps = f'file_input.class_def[{_start + 7}]'
 	_Nullable = f'file_input.class_def[{_start + 8}]'
 	_TypeT = '',
-	_GenOps = f'file_input.class_def[{_start + 10}]'
+	_GenericOps = f'file_input.class_def[{_start + 10}]'
 
 	aliases = {
 		f'{fixture_module_path}.import.xyz': 'file_input.import_stmt[2]',
@@ -92,8 +92,8 @@ class ASTMapping:
 		'Nullable.returns.return': f'{_Nullable}.class_def_raw.block.function_def[1].function_def_raw.typed_or_expr',
 		'Nullable.var_move.block': f'{_Nullable}.class_def_raw.block.function_def[2].function_def_raw.block',
 
-		'GenericOps.new.block': f'{_GenOps}.class_def_raw.block.function_def[2].function_def_raw.block',
-		'GenericOps.cast.block': f'{_GenOps}.class_def_raw.block.function_def[3].function_def_raw.block',
+		'GenericOps.new.block': f'{_GenericOps}.class_def_raw.block.function_def[2].function_def_raw.block',
+		'GenericOps.cast.block': f'{_GenericOps}.class_def_raw.block.function_def[3].function_def_raw.block',
 	}
 
 

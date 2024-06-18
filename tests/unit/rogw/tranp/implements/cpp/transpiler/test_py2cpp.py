@@ -337,8 +337,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('CastOps.cast_string.block', 'assign[3]'), defs.MoveAssign, 'float s_to_f = atof(f_to_s);'),
 
 		(_ast('CastOps.cast_class.block', 'anno_assign[0]'), defs.AnnoAssign, 'Base b = (Base)(sub);'),
-		# FIXME IndexerのGeneric対応
-		# (_ast('CastOps.cast_class.block', 'anno_assign[1]'), defs.AnnoAssign, 'Base* bp = (Base*)(sub_p);'),
+		(_ast('CastOps.cast_class.block', 'anno_assign[1]'), defs.AnnoAssign, 'Base* bp = (Base*)(sub_p);'),
 
 		(_ast('Nullable.params', ''), defs.Method, 'public:\n/** params */\nvoid params(Sub* p) {\n\n}'),
 		(_ast('Nullable.returns', ''), defs.Method, 'public:\n/** returns */\nSub* returns() {\n\n}'),
@@ -356,8 +355,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('Template.method_t_and_class_t', ''), defs.Method, 'public:\n/** method_t_and_class_t */\ntemplate<typename T2>\nT2 method_t_and_class_t(T v, T2 v2) {\n\n}'),
 
 		(_ast('GenOps.temporal.block', 'assign'), defs.MoveAssign, 'T a = this->value;'),
-		# FIXME FuncCall.receiverのGeneric対応
-		# (_ast('GenOps.new.block', 'assign'), defs.MoveAssign, 'GenOps<int> a = GenOps<int>(1);'),
+		(_ast('GenOps.new.block', 'assign'), defs.MoveAssign, 'GenOps<int> a = GenOps<int>(1);'),
 
 		(_ast('template_func', ''), defs.Function, '/** template_func */\ntemplate<typename T>\nT template_func(T v) {\n\n}'),
 	])

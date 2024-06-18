@@ -1,1 +1,2 @@
-({{ arguments[0] }})({{ arguments[1] }}){% if is_statement %};{% endif %}
+{%- set var_type = arguments[0] -%}
+({% include('type_py2cpp.j2') %})({{ arguments[1] }}){% if is_statement %};{% endif %}

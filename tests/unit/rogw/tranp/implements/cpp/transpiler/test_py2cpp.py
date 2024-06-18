@@ -40,6 +40,7 @@ class ASTMapping:
 	_CastOps = f'file_input.class_def[{__begin_class + 12}]'
 	_Nullable = f'file_input.class_def[{__begin_class + 13}]'
 	_Template = f'file_input.class_def[{__begin_class + 14}]'
+	_GenericOps = f'file_input.class_def[{__begin_class + 15}]'
 	_template_func = f'file_input.function_def'
 
 	aliases = {
@@ -112,6 +113,7 @@ class ASTMapping:
 
 		'CastOps.cast_binary.block': f'{_CastOps}.class_def_raw.block.function_def[0].function_def_raw.block',
 		'CastOps.cast_string.block': f'{_CastOps}.class_def_raw.block.function_def[1].function_def_raw.block',
+		'CastOps.cast_class.block': f'{_CastOps}.class_def_raw.block.function_def[2].function_def_raw.block',
 
 		'Nullable.params': f'{_Nullable}.class_def_raw.block.function_def[0]',
 		'Nullable.returns': f'{_Nullable}.class_def_raw.block.function_def[1]',
@@ -125,6 +127,9 @@ class ASTMapping:
 		'Template.class_method_t_and_class_t': f'{_Template}.class_def_raw.block.function_def[3]',
 		'Template.method_t': f'{_Template}.class_def_raw.block.function_def[4]',
 		'Template.method_t_and_class_t': f'{_Template}.class_def_raw.block.function_def[5]',
+
+		'GenericOps.temporal.block': f'{_GenericOps}.class_def_raw.block.function_def[1].function_def_raw.block',
+		'GenericOps.new.block': f'{_GenericOps}.class_def_raw.block.function_def[2].function_def_raw.block',
 
 		'template_func': f'{_template_func}',
 	}
@@ -331,6 +336,9 @@ class TestPy2Cpp(TestCase):
 		(_ast('CastOps.cast_string.block', 'assign[2]'), defs.MoveAssign, 'int s_to_n = atoi(n_to_s);'),
 		(_ast('CastOps.cast_string.block', 'assign[3]'), defs.MoveAssign, 'float s_to_f = atof(f_to_s);'),
 
+		(_ast('CastOps.cast_class.block', 'anno_assign[0]'), defs.AnnoAssign, 'Base b = (Base)(sub);'),
+		(_ast('CastOps.cast_class.block', 'anno_assign[1]'), defs.AnnoAssign, 'Base* bp = (Base*)(sub_p);'),
+
 		(_ast('Nullable.params', ''), defs.Method, 'public:\n/** params */\nvoid params(Sub* p) {\n\n}'),
 		(_ast('Nullable.returns', ''), defs.Method, 'public:\n/** returns */\nSub* returns() {\n\n}'),
 		(_ast('Nullable.var_move.block', 'anno_assign'), defs.AnnoAssign, 'Sub* p = nullptr;'),
@@ -345,6 +353,9 @@ class TestPy2Cpp(TestCase):
 		(_ast('Template.class_method_t_and_class_t', ''), defs.ClassMethod, 'public:\n/** class_method_t_and_class_t */\ntemplate<typename T2>\nstatic T2 class_method_t_and_class_t(T v, T2 v2) {\n\n}'),
 		(_ast('Template.method_t', ''), defs.Method, 'public:\n/** method_t */\ntemplate<typename T2>\nT2 method_t(T2 v2) {\n\n}'),
 		(_ast('Template.method_t_and_class_t', ''), defs.Method, 'public:\n/** method_t_and_class_t */\ntemplate<typename T2>\nT2 method_t_and_class_t(T v, T2 v2) {\n\n}'),
+
+		(_ast('GenericOps.temporal.block', 'assign'), defs.MoveAssign, 'T a = this->value;'),
+		(_ast('GenericOps.new.block', 'assign'), defs.MoveAssign, 'GenericOps<int> a = GenericOps<int>(1);'),
 
 		(_ast('template_func', ''), defs.Function, '/** template_func */\ntemplate<typename T>\nT template_func(T v) {\n\n}'),
 	])

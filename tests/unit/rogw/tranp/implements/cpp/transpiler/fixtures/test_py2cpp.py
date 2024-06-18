@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import Generic, TypeAlias, TypeVar
+from typing import Generic, TypeAlias, TypeVar, cast
 
 from rogw.tranp.compatible.cpp.embed import __allow_override__
 from rogw.tranp.compatible.cpp.enum import CEnum
@@ -34,14 +34,14 @@ class Sub(Base):
 	def sub_implements(self) -> None: ...
 	def call(self) -> None: ...
 	# FIXME other: Any
-	def __eq__(self, other: Sub | bool) -> bool: ...
+	def __eq__(self, other: 'Sub | bool') -> bool: ...
 	# FIXME other: Any
-	def __not__(self, other: Sub | bool) -> bool: ...
-	def __add__(self, other: Sub) -> Sub: ...
-	def __sub__(self, other: Sub) -> Sub: ...
-	def __mul__(self, other: Sub) -> Sub: ...
-	def __truediv__(self, other: Sub) -> Sub: ...
-	def __neg__(self) -> Sub: ...
+	def __not__(self, other: 'Sub | bool') -> bool: ...
+	def __add__(self, other: 'Sub') -> 'Sub': ...
+	def __sub__(self, other: 'Sub') -> 'Sub': ...
+	def __mul__(self, other: 'Sub') -> 'Sub': ...
+	def __truediv__(self, other: 'Sub') -> 'Sub': ...
+	def __neg__(self) -> 'Sub': ...
 
 
 class DeclOps:
@@ -192,7 +192,7 @@ class AccessOps(Sub):
 		super().__init__(0)
 		self.sub_s: str = ''
 
-	def dot(self, a: AccessOps) -> None:
+	def dot(self, a: 'AccessOps') -> None:
 		print(a.base_n)
 		print(a.sub_s)
 		print(a.sub_s.split)
@@ -200,7 +200,7 @@ class AccessOps(Sub):
 		dda = {1: {1: a}}
 		print(dda[1][1].sub_s)
 
-	def arrow(self, ap: CP[AccessOps], asp: CSP[AccessOps], arr_p: CP[list[int]]) -> None:
+	def arrow(self, ap: 'CP[AccessOps]', asp: 'CSP[AccessOps]', arr_p: CP[list[int]]) -> None:
 		print(self.base_n)
 		print(self.sub_s)
 		print(self.call())
@@ -343,6 +343,10 @@ class CastOps:
 		s_to_n = int(n_to_s)
 		s_to_f = float(f_to_s)
 
+	def cast_class(self, sub: Sub, sub_p: CP[Sub]) -> None:
+		b: Base = cast(Base, sub)
+		bp: CP[Base] = cast(CP[Base], sub_p)
+
 
 class Nullable:
 	def params(self, p: CP[Sub] | None) -> None: ...
@@ -372,6 +376,17 @@ class Template(Generic[T]):
 	def class_method_t_and_class_t(cls, v: T, v2: T2) -> T2: ...
 	def method_t(self, v2: T2) -> T2: ...
 	def method_t_and_class_t(self, v: T, v2: T2) -> T2: ...
+
+
+class GenericOps(Generic[T]):
+	def __init__(self, initial: T) -> None:
+		self.value: T = initial
+
+	def temporal(self) -> None:
+		a = self.value
+
+	def new(self) -> None:
+		a = GenericOps[int](1)
 
 
 def template_func(v: T) -> T: ...

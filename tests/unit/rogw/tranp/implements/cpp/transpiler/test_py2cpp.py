@@ -336,8 +336,8 @@ class TestPy2Cpp(TestCase):
 		(_ast('CastOps.cast_string.block', 'assign[2]'), defs.MoveAssign, 'int s_to_n = atoi(n_to_s);'),
 		(_ast('CastOps.cast_string.block', 'assign[3]'), defs.MoveAssign, 'float s_to_f = atof(f_to_s);'),
 
-		(_ast('CastOps.cast_class.block', 'anno_assign[0]'), defs.AnnoAssign, 'Base b = (Base)(sub);'),
-		(_ast('CastOps.cast_class.block', 'anno_assign[1]'), defs.AnnoAssign, 'Base* bp = (Base*)(sub_p);'),
+		(_ast('CastOps.cast_class.block', 'assign[0]'), defs.MoveAssign, 'Base b = (Base)(sub);'),
+		(_ast('CastOps.cast_class.block', 'assign[1]'), defs.MoveAssign, 'Base* bp = (Base*)(sub_p);'),
 
 		(_ast('Nullable.params', ''), defs.Method, 'public:\n/** params */\nvoid params(Sub* p) {\n\n}'),
 		(_ast('Nullable.returns', ''), defs.Method, 'public:\n/** returns */\nSub* returns() {\n\n}'),

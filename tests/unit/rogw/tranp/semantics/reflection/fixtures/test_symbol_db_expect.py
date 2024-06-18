@@ -445,7 +445,7 @@ def expected_symbols() -> dict:
 		'typing.Iterator': 'typing.Iterator',
 		'typing.Iterator.__next__': 'typing.Iterator.__next__',
 		'typing.Iterator.__next__.self': 'typing.Iterator',
-		'typing.cast.to': 'rogw.tranp.compatible.libralies.classes.type',
+		'typing.cast.to': 'typing.T_Value',
 		'typing.cast.value': 'typing.Any',
 		'rogw.tranp.compatible.python.embed.T': 'rogw.tranp.compatible.python.embed.T',
 		'rogw.tranp.compatible.python.embed.__actual__': 'rogw.tranp.compatible.python.embed.__actual__',

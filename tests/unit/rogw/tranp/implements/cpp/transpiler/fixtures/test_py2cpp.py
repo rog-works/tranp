@@ -344,8 +344,8 @@ class CastOps:
 		s_to_f = float(f_to_s)
 
 	def cast_class(self, sub: Sub, sub_p: CP[Sub]) -> None:
-		b: Base = cast(Base, sub)
-		bp: CP[Base] = cast(CP[Base], sub_p)
+		b = cast(Base, sub)
+		bp = cast(CP[Base], sub_p)
 
 
 class Nullable:

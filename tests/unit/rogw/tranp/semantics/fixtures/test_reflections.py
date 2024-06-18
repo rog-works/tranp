@@ -247,5 +247,4 @@ class GenericOps(Generic[T]):
 		a = GenericOps[int](1)
 
 	def cast(self, sub: 'GenericOps[Sub]') -> None:
-		# XXX 型の明示を消したい
-		b: GenericOps[Base] = cast(GenericOps[Base], sub)
+		b = cast(GenericOps[Base], sub)

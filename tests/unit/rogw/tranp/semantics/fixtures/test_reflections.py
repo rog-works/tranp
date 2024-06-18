@@ -1,4 +1,4 @@
-from typing import Generic, TypeAlias, TypeVar
+from typing import Generic, TypeAlias, TypeVar, cast
 
 from rogw.tranp.compatible.cpp.enum import CEnum
 from tests.unit.rogw.tranp.semantics.reflection.fixtures.test_symbol_db_xyz import Z
@@ -245,3 +245,7 @@ class GenOps(Generic[T]):
 	def new(self) -> None:
 		# FIXME 引数を取らないとTを解決できない
 		a = GenOps[int](1)
+
+	def cast(self, sub: 'GenOps[Sub]') -> None:
+		# XXX 型の明示を消したい
+		b: GenOps[Base] = cast(GenOps[Base], sub)

@@ -521,24 +521,40 @@ class Py2Cpp(ITranspiler):
 			return node.tokens
 
 	def on_indexer(self, node: defs.Indexer, receiver: str, key: str) -> str:
-		spec = self.analyze_indexer_spec(node)
+		spec, context = self.analyze_indexer_spec(node)
 		if spec == 'cvar_on':
 			cvar_receiver = re.sub(rf'(->|::|\.){CVars.relay_key}$', '', receiver)
 			return self.view.render(node.classification, vars={'receiver': cvar_receiver, 'key': key})
+		elif spec == 'cvar':
+			var_type = self.to_domain_name(cast(IReflection, context))
+			return self.view.render(f'{node.classification}_{spec}', vars={'var_type': var_type})
+		elif spec == 'class':
+			var_type = self.to_domain_name(cast(IReflection, context))
+			return self.view.render(f'{node.classification}_{spec}', vars={'var_type': var_type})
 		else:
 			return self.view.render(node.classification, vars={'receiver': receiver, 'key': key})
 
-	def analyze_indexer_spec(self, node: defs.Indexer) -> str:
+	def analyze_indexer_spec(self, node: defs.Indexer) -> tuple[str, IReflection | None]:
 		def is_on_cvar_relay() -> bool:
 			return isinstance(node.receiver, defs.Relay) and node.receiver.prop.domain_name == CVars.relay_key
+
+		def is_cvar() -> bool:
+			return node.receiver.domain_name in CVars.keys()
 
 		if is_on_cvar_relay():
 			receiver_symbol = self.reflections.type_of(node.receiver)
 			cvar_key = CVars.key_from(self.reflections, receiver_symbol.context)
 			if not CVars.is_raw_raw(cvar_key):
-				return 'cvar_on'
+				return 'cvar_on', None
+		elif is_cvar():
+			return 'cvar', self.reflections.type_of(node)
+		else:
+			receiver_symbol = self.reflections.type_of(node.receiver)
+			# XXX OK: Class[A], NG: Class[A][B]
+			if receiver_symbol.decl.is_a(defs.Class) and not node.receiver.is_a(defs.Indexer):
+				return 'class', self.reflections.type_of(node)
 
-		return 'otherwise'
+		return 'otherwise', None
 
 	def on_relay_of_type(self, node: defs.RelayOfType, receiver: str) -> str:
 		receiver_symbol = self.reflections.type_of(node.receiver)

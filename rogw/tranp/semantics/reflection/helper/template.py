@@ -48,7 +48,7 @@ class Helper:
 		"""インスタンスを生成
 
 		Args:
-			symbol (Reflection): シンボル
+			symbol (IReflection): シンボル
 			schemata (InjectSchemata): プロパティー名とシンボルのマップ情報
 		"""
 		self.symbol = symbol
@@ -91,9 +91,9 @@ class Function(Helper):
 
 		Args:
 			index (int): 引数のインデックス
-			*context (Reflection): コンテキスト(0: 引数(実行時型))
+			*context (IReflection): コンテキスト(0: 引数(実行時型))
 		Returns:
-			Reflection: 実行時型
+			IReflection: 実行時型
 		"""
 		argument, *_ = context
 		return argument
@@ -102,9 +102,9 @@ class Function(Helper):
 		"""戻り値の実行時型を解決
 
 		Args:
-			*arguments (Reflection): 引数リスト(実行時型)
+			*arguments (IReflection): 引数リスト(実行時型)
 		Returns:
-			Reflection: 実行時型
+			IReflection: 実行時型
 		"""
 		t_map_returns = TemplateManipulator.unpack_templates(returns=self.schema.returns)
 		if len(t_map_returns) == 0:
@@ -139,9 +139,9 @@ class Method(Function):
 
 		Args:
 			index (int): 引数のインデックス
-			*context (Reflection): コンテキスト(0: レシーバー(実行時型), 1: 引数(実行時型))
+			*context (IReflection): コンテキスト(0: レシーバー(実行時型), 1: 引数(実行時型))
 		Returns:
-			Reflection: 実行時型
+			IReflection: 実行時型
 		"""
 		parameter = self.schemata.parameters[index]
 		t_map_parameter = TemplateManipulator.unpack_templates(parameter=parameter)
@@ -159,9 +159,9 @@ class Method(Function):
 		"""戻り値の実行時型を解決
 
 		Args:
-			*arguments (Reflection): 引数リスト(実行時型)
+			*arguments (IReflection): 引数リスト(実行時型)
 		Returns:
-			Reflection: 実行時型
+			IReflection: 実行時型
 		"""
 		t_map_returns = TemplateManipulator.unpack_templates(returns=self.schema.returns)
 		if len(t_map_returns) == 0:
@@ -208,7 +208,7 @@ class TemplateManipulator:
 		"""シンボル/属性からテンプレート型(タイプ再定義ノード)を平坦化して抽出
 
 		Args:
-			**attrs (Reflection | list[Reflection]): シンボル/属性
+			**attrs (IReflection | list[IReflection]): シンボル/属性
 		Returns:
 			TemplateMap: パスとテンプレート型(タイプ再定義ノード)のマップ表
 		"""
@@ -220,7 +220,7 @@ class TemplateManipulator:
 		"""シンボル/属性を平坦化して抽出
 
 		Args:
-			**attrs (Reflection | list[Reflection]): シンボル/属性
+			**attrs (IReflection | list[IReflection]): シンボル/属性
 		Returns:
 			SymbolMap: パスとシンボルのマップ表
 		"""
@@ -253,11 +253,11 @@ class TemplateManipulator:
 		"""シンボルに実行時型を適用する
 
 		Args:
-			primary (Reflection): 適用するシンボル
+			primary (IReflection): 適用するシンボル
 			actual_props (SymbolMap): シンボルのマップ表(実行時型)
 			updates (UpdateMap): 更新表
 		Returns:
-			Reflection: 適用後のシンボル
+			IReflection: 適用後のシンボル
 		"""
 		primary_bodies = [prop_path for primary_path, prop_path in updates.items() if DSN.elem_counts(primary_path) == 1]
 		if primary_bodies:
@@ -277,7 +277,7 @@ class HelperBuilder:
 		"""インスタンスを生成
 
 		Args:
-			symbol (Reflection): シンボル
+			symbol (IReflection): シンボル
 		"""
 		self.__symbol = symbol
 		self.__case_of_injectors: dict[str, Injector] = {'__default__': lambda: {}}
@@ -291,7 +291,7 @@ class HelperBuilder:
 		"""ケースを挿入
 
 		Args:
-			expect (type[Reflection]): 対象のリフレクション型
+			expect (type[Helper]): 対象のヘルパー型
 		Returns:
 			HelperBuilder: 自己参照
 		"""
@@ -322,7 +322,7 @@ class HelperBuilder:
 		"""ヘルパーを生成
 
 		Args:
-			expect (type[T_Helper]): 期待するレスポンス型
+			expect (type[T_Helper]): 期待するヘルパーの型
 		Returns:
 			T_Helper: 生成したインスタンス
 		Raises:

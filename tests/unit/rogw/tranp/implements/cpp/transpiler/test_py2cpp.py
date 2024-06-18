@@ -112,6 +112,7 @@ class ASTMapping:
 
 		'CastOps.cast_binary.block': f'{_CastOps}.class_def_raw.block.function_def[0].function_def_raw.block',
 		'CastOps.cast_string.block': f'{_CastOps}.class_def_raw.block.function_def[1].function_def_raw.block',
+		'CastOps.cast_class.block': f'{_CastOps}.class_def_raw.block.function_def[2].function_def_raw.block',
 
 		'Nullable.params': f'{_Nullable}.class_def_raw.block.function_def[0]',
 		'Nullable.returns': f'{_Nullable}.class_def_raw.block.function_def[1]',
@@ -330,6 +331,8 @@ class TestPy2Cpp(TestCase):
 		(_ast('CastOps.cast_string.block', 'assign[1]'), defs.MoveAssign, 'std::string f_to_s = std::to_string(1.0);'),
 		(_ast('CastOps.cast_string.block', 'assign[2]'), defs.MoveAssign, 'int s_to_n = atoi(n_to_s);'),
 		(_ast('CastOps.cast_string.block', 'assign[3]'), defs.MoveAssign, 'float s_to_f = atof(f_to_s);'),
+
+		(_ast('CastOps.cast_class.block', 'anno_assign'), defs.AnnoAssign, 'Base b = (Base)(sub);'),
 
 		(_ast('Nullable.params', ''), defs.Method, 'public:\n/** params */\nvoid params(Sub* p) {\n\n}'),
 		(_ast('Nullable.returns', ''), defs.Method, 'public:\n/** returns */\nSub* returns() {\n\n}'),

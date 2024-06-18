@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import Generic, TypeAlias, TypeVar
+from typing import cast, Generic, TypeAlias, TypeVar
 
 from rogw.tranp.compatible.cpp.embed import __allow_override__
 from rogw.tranp.compatible.cpp.enum import CEnum
@@ -342,6 +342,9 @@ class CastOps:
 		f_to_s = str(1.0)
 		s_to_n = int(n_to_s)
 		s_to_f = float(f_to_s)
+
+	def cast_class(self, sub: Sub) -> None:
+		b: Base = cast(Base, sub)
 
 
 class Nullable:

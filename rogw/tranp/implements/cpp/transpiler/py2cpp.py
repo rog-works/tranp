@@ -604,6 +604,8 @@ class Py2Cpp(ITranspiler):
 		elif spec == 'print':
 			# XXX 愚直に対応すると実引数の型推論のコストが高く、その割に出力メッセージの柔軟性が下がりメリットが薄いため、関数名の置き換えのみを行う簡易的な対応とする
 			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
+		elif spec == 'cast':
+			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
 		elif spec == 'cast_list':
 			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
 		elif spec == 'cast_bin_to_bin':
@@ -667,6 +669,8 @@ class Py2Cpp(ITranspiler):
 				return 'len', None
 			elif calls == print.__name__:
 				return 'print', None
+			elif calls == cast.__name__:
+				return 'cast', None
 			elif calls == 'list':
 				return 'cast_list', None
 			elif calls in ['int', 'float', 'bool', 'str']:

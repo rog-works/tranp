@@ -550,7 +550,7 @@ class Py2Cpp(ITranspiler):
 			return 'cvar', self.reflections.type_of(node)
 		else:
 			receiver_symbol = self.reflections.type_of(node.receiver)
-			# XXX receiverがクラスである場合、ほぼ確実にGeneric型であるため、1次元参照のみ許可する
+			# XXX receiverがクラスである場合、ほぼ確実にGeneric型であるため、1次元参照のみ対象とする
 			# XXX OK: Class[A], NG: Class[A][B]
 			if receiver_symbol.decl.is_a(defs.Class) and not node.receiver.is_a(defs.Indexer):
 				return 'class', self.reflections.type_of(node)

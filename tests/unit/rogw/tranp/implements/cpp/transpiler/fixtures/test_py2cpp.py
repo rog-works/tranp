@@ -377,4 +377,15 @@ class Template(Generic[T]):
 	def method_t_and_class_t(self, v: T, v2: T2) -> T2: ...
 
 
+class GenOps(Generic[T]):
+	def __init__(self, initial: T) -> None:
+		self.value: T = initial
+
+	def temporal(self) -> None:
+		a = self.value
+
+	def new(self) -> None:
+		a = GenOps[int](1)
+
+
 def template_func(v: T) -> T: ...

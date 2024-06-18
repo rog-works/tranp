@@ -1,4 +1,4 @@
-from typing import TypeAlias
+from typing import Generic, TypeAlias, TypeVar
 
 from rogw.tranp.compatible.cpp.enum import CEnum
 from tests.unit.rogw.tranp.semantics.reflection.fixtures.test_symbol_db_xyz import Z
@@ -231,3 +231,17 @@ class Nullable:
 		n = sub.first_number if sub else 0
 		# エラーケース
 		arr = subs[0] if subs else []
+
+
+T = TypeVar('T')
+
+class GenOps(Generic[T]):
+	def __init__(self, initial: T) -> None:
+		self.value = initial
+
+	def temporal(self, value: T) -> None:
+		a = value
+
+	def new(self) -> None:
+		# FIXME 引数を取らないとTを解決できない
+		a = GenOps[int](1)

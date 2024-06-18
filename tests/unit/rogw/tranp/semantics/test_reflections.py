@@ -40,6 +40,8 @@ class ASTMapping:
 	_CompOps = f'file_input.class_def[{_start + 6}]'
 	_EnumOps = f'file_input.class_def[{_start + 7}]'
 	_Nullable = f'file_input.class_def[{_start + 8}]'
+	_TypeT = '',
+	_GenOps = f'file_input.class_def[{_start + 10}]'
 
 	aliases = {
 		f'{fixture_module_path}.import.xyz': 'file_input.import_stmt[2]',
@@ -89,6 +91,8 @@ class ASTMapping:
 
 		'Nullable.returns.return': f'{_Nullable}.class_def_raw.block.function_def[1].function_def_raw.typed_or_expr',
 		'Nullable.var_move.block': f'{_Nullable}.class_def_raw.block.function_def[2].function_def_raw.block',
+
+		'GenOps.new.block': f'{_GenOps}.class_def_raw.block.function_def[2].function_def_raw.block',
 	}
 
 
@@ -243,6 +247,9 @@ class TestReflections(TestCase):
 		(f'{fixture_module_path}.Nullable.accessible.subs', 'Union<list<Sub>, None>'),
 		(f'{fixture_module_path}.Nullable.accessible.s', 'str'),
 		(f'{fixture_module_path}.Nullable.accessible.n', 'int'),
+
+		(f'{fixture_module_path}.GenOps.temporal.a', 'T'),
+		(f'{fixture_module_path}.GenOps.new.a', 'GenOps<int>'),
 	])
 	def test_from_fullyname(self, fullyname: str, expected: str) -> None:
 		reflections = self.fixture.get(Reflections)
@@ -374,6 +381,8 @@ class TestReflections(TestCase):
 
 		(_ast('Nullable.returns.return', ''), _mod('classes', 'Union'), 'Union<Base, None>'),
 		(_ast('Nullable.var_move.block', 'if_stmt.if_clause.block.return_stmt'), _mod('classes', 'str'), 'str'),
+
+		(_ast('GenOps.new.block', 'assign.funccall'), f'{fixture_module_path}.GenOps', 'GenOps<int>'),
 	])
 	def test_type_of(self, full_path: str, expected: str, attrs_expected: str) -> None:
 		reflections = self.fixture.get(Reflections)

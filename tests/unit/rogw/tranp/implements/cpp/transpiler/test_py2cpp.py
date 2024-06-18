@@ -40,6 +40,7 @@ class ASTMapping:
 	_CastOps = f'file_input.class_def[{__begin_class + 12}]'
 	_Nullable = f'file_input.class_def[{__begin_class + 13}]'
 	_Template = f'file_input.class_def[{__begin_class + 14}]'
+	_GenOps = f'file_input.class_def[{__begin_class + 15}]'
 	_template_func = f'file_input.function_def'
 
 	aliases = {
@@ -126,6 +127,9 @@ class ASTMapping:
 		'Template.class_method_t_and_class_t': f'{_Template}.class_def_raw.block.function_def[3]',
 		'Template.method_t': f'{_Template}.class_def_raw.block.function_def[4]',
 		'Template.method_t_and_class_t': f'{_Template}.class_def_raw.block.function_def[5]',
+
+		'GenOps.temporal.block': f'{_GenOps}.class_def_raw.block.function_def[1].function_def_raw.block',
+		'GenOps.new.block': f'{_GenOps}.class_def_raw.block.function_def[2].function_def_raw.block',
 
 		'template_func': f'{_template_func}',
 	}
@@ -348,6 +352,10 @@ class TestPy2Cpp(TestCase):
 		(_ast('Template.class_method_t_and_class_t', ''), defs.ClassMethod, 'public:\n/** class_method_t_and_class_t */\ntemplate<typename T2>\nstatic T2 class_method_t_and_class_t(T v, T2 v2) {\n\n}'),
 		(_ast('Template.method_t', ''), defs.Method, 'public:\n/** method_t */\ntemplate<typename T2>\nT2 method_t(T2 v2) {\n\n}'),
 		(_ast('Template.method_t_and_class_t', ''), defs.Method, 'public:\n/** method_t_and_class_t */\ntemplate<typename T2>\nT2 method_t_and_class_t(T v, T2 v2) {\n\n}'),
+
+		(_ast('GenOps.temporal.block', 'assign'), defs.MoveAssign, 'T a = this->value;'),
+		# FIXME FuncCall.receiverのGeneric対応
+		# (_ast('GenOps.new.block', 'assign'), defs.MoveAssign, 'GenOps<int> a = GenOps<int>(1);'),
 
 		(_ast('template_func', ''), defs.Function, '/** template_func */\ntemplate<typename T>\nT template_func(T v) {\n\n}'),
 	])

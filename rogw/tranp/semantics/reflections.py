@@ -468,6 +468,11 @@ class ProceduralResolver:
 			return receiver.attrs[0].to.relay(node, context=receiver)
 		elif self.reflections.is_a(receiver, dict):
 			return receiver.attrs[1].to.relay(node, context=receiver)
+		elif receiver.types.is_a(defs.Class):
+			klass_helper = template.HelperBuilder(receiver) \
+				.schema(lambda: {'klass': receiver, 'template_types': receiver.attrs}) \
+				.build(template.Class)
+			return klass_helper.definition(key).to.relay(node, context=receiver)
 		else:
 			# XXX コレクション型以外は全て通常のクラスである想定
 			# XXX keyに何が入るべきか特定できないためreceiverをそのまま返却

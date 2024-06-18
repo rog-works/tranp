@@ -66,6 +66,23 @@ class Helper:
 		return isinstance(self, ctors)
 
 
+class Class(Helper):
+	"""クラス"""
+
+	def definition(self, *context: IReflection) -> IReflection:
+		"""クラス定義の実行時型を解決
+
+		Args:
+			*context (IReflection): コンテキスト
+		Returns:
+			IReflection: 実行時型
+		"""
+		map_props = TemplateManipulator.unpack_symbols(template_types=list(context))
+		t_map_props = TemplateManipulator.unpack_templates(template_types=self.schemata.template_types)
+		updates = TemplateManipulator.make_updates(t_map_props, t_map_props, map_props)
+		return TemplateManipulator.apply(self.schema.klass.clone(), map_props, updates)
+
+
 class Function(Helper):
 	"""全ファンクションの基底クラス。メソッド/クロージャー以外のファンクションが対象"""
 
@@ -171,6 +188,7 @@ class Method(Function):
 class ClassMethod(Method):
 	"""クラスメソッド"""
 	pass
+
 
 class Constructor(Method):
 	"""コンストラクター"""
@@ -311,6 +329,7 @@ class HelperBuilder:
 			LogicError: ビルド対象が期待する型と不一致 XXX 出力する例外は要件等
 		"""
 		ctors: dict[type[defs.ClassDef], type[Helper]] = {
+			defs.Class: Class,
 			defs.Function: Function,
 			defs.ClassMethod: ClassMethod,
 			defs.Method: Method,

@@ -42,17 +42,17 @@ def __struct__(wrapped: T) -> T:
 
 
 def __prop_meta__(name: str, meta: Any) -> Callable:
-	"""クラスにプロパティの付加情報を埋め込む
+	"""クラスにプロパティのメタ情報を埋め込む
 
 	Args:
 		name (str): プロパティ名
-		meta (Any): 付加するメタ情報
+		meta (Any): メタ情報
 	Returns:
 		Callable: デコレーター
 	Examples:
 		```python
-		@__prop_embed__('prop_a', 'A')
-		@__prop_embed__('prop_b', 'B')
+		@__prop_embed__('prop_a', '/** @var A */')
+		@__prop_embed__('prop_b', '/** @var B */')
 		class A:
 			def __init__(self, a: int, b: str) -> None:
 				self.prop_a: int = a

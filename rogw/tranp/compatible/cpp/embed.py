@@ -4,7 +4,7 @@ T = TypeVar('T')
 
 
 def __allow_override__(wrapped: T) -> T:
-	"""仮想関数としての情報を埋め込む
+	"""関数を仮想関数としてマークアップ
 
 	Args:
 		wrapped (T): ラップ対象
@@ -25,7 +25,7 @@ def __allow_override__(wrapped: T) -> T:
 
 
 def __struct__(wrapped: T) -> T:
-	"""構造体としての情報を埋め込む
+	"""クラスを構造体としてマークアップ
 
 	Args:
 		wrapped (T): ラップ対象
@@ -41,16 +41,18 @@ def __struct__(wrapped: T) -> T:
 	return wrapped
 
 
-def __props__(meta: dict[str, Any]) -> Callable:
-	"""プロパティの付加情報を埋め込む
+def __prop_meta__(name: str, meta: Any) -> Callable:
+	"""クラスにプロパティの付加情報を埋め込む
 
 	Args:
-		meta (dict[str, Any]): プロパティ毎の付加情報
+		name (str): プロパティ名
+		meta (Any): 付加するメタ情報
 	Returns:
 		Callable: デコレーター
 	Examples:
 		```python
-		@__props__({'prop_a': 'A', 'prop_b': 'B'})
+		@__prop_embed__('prop_a', 'A')
+		@__prop_embed__('prop_b', 'B')
 		class A:
 			def __init__(self, a: int, b: str) -> None:
 				self.prop_a: int = a

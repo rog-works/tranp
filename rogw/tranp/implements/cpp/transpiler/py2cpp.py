@@ -257,11 +257,10 @@ class Py2Cpp(ITranspiler):
 
 	def on_comp_for(self, node: defs.CompFor, symbols: list[str], for_in: str) -> str:
 		"""Note: XXX range/enumerateは効率・可読性共に非常に悪いため非サポート"""
-		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Var) and node.iterates.calls.tokens == range.__name__:
-			raise LogicError(f'Operation not allowed. "range" is not supported. node: {node}')
-		elif isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Var) and node.iterates.calls.tokens == enumerate.__name__:
-			raise LogicError(f'Operation not allowed. "enumerate" is not supported. node: {node}')
-		elif isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Relay) and node.iterates.calls.prop.tokens == dict.items.__name__:
+		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Var) and node.iterates.calls.tokens in [range.__name__, enumerate.__name__]:
+			raise LogicError(f'Operation not allowed. "{node.iterates.calls.tokens}" is not supported. node: {node}')
+
+		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Relay) and node.iterates.calls.prop.tokens == dict.items.__name__:
 			iterates = cast(re.Match, re.fullmatch(r'(.+)\.\w+\(\)', for_in))[1]  # 期待値: 'iterates.items()'
 			return self.view.render(node.classification, vars={'symbols': symbols, 'iterates': iterates, 'is_const': False})
 		else:

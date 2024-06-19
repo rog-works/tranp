@@ -7,7 +7,7 @@
 {%- for template_type in template_types %}
 template<typename {{ template_type }}>
 {%- endfor %}
-class {{ symbol }}{%- if _inherits %} : public {{ _inherits | join(', ') }}{%- endif %} {
+{% if is_struct %}struct{% else %}class{% endif %} {{ symbol }}{%- if _inherits %} : public {{ _inherits | join(', ') }}{%- endif %} {
 {%- if vars -%}
 {%- for var in vars %}
 	{{ var }}

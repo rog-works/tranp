@@ -22,3 +22,20 @@ def __allow_override__(wrapped: T) -> T:
 		```
 	"""
 	return wrapped
+
+
+def __struct__(wrapped: T) -> T:
+	"""構造体としての情報を埋め込む
+
+	Args:
+		wrapped (T): ラップ対象
+	Returns:
+		T: デコレート対象
+	Examples:
+		```python
+		@__struct__
+		class Struct:
+			...
+		```
+	"""
+	return wrapped

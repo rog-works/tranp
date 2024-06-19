@@ -41,6 +41,7 @@ class ASTMapping:
 	_Nullable = f'file_input.class_def[{__begin_class + 13}]'
 	_Template = f'file_input.class_def[{__begin_class + 14}]'
 	_GenericOps = f'file_input.class_def[{__begin_class + 15}]'
+	_Struct = f'file_input.class_def[{__begin_class + 16}]'
 	_template_func = f'file_input.function_def'
 
 	aliases = {
@@ -130,6 +131,8 @@ class ASTMapping:
 
 		'GenericOps.temporal.block': f'{_GenericOps}.class_def_raw.block.function_def[1].function_def_raw.block',
 		'GenericOps.new.block': f'{_GenericOps}.class_def_raw.block.function_def[2].function_def_raw.block',
+
+		'Struct': f'{_Struct}',
 
 		'template_func': f'{_template_func}',
 	}
@@ -356,6 +359,8 @@ class TestPy2Cpp(TestCase):
 
 		(_ast('GenericOps.temporal.block', 'assign'), defs.MoveAssign, 'T a = value;'),
 		(_ast('GenericOps.new.block', 'assign'), defs.MoveAssign, 'GenericOps<int> a = GenericOps<int>();'),
+
+		(_ast('Struct', ''), defs.Class, '/** Struct */\nstruct Struct {\n\n};'),
 
 		(_ast('template_func', ''), defs.Function, '/** template_func */\ntemplate<typename T>\nT template_func(T v) {\n\n}'),
 	])

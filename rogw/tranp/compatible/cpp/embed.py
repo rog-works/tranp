@@ -1,4 +1,4 @@
-from typing import TypeVar
+from typing import Any, Callable, TypeVar
 
 T = TypeVar('T')
 
@@ -39,3 +39,25 @@ def __struct__(wrapped: T) -> T:
 		```
 	"""
 	return wrapped
+
+
+def __props__(meta: dict[str, Any]) -> Callable:
+	"""プロパティの付加情報を埋め込む
+
+	Args:
+		meta (dict[str, Any]): プロパティ毎の付加情報
+	Returns:
+		Callable: デコレーター
+	Examples:
+		```python
+		@__props__({'prop_a': 'A', 'prop_b': 'B'})
+		class A:
+			def __init__(self, a: int, b: str) -> None:
+				self.prop_a: int = a
+				self.prop_b: str = b
+		```
+	"""
+	def decorator(wrapped: T) -> T:
+		return wrapped
+
+	return decorator

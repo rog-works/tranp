@@ -360,7 +360,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('GenericOps.temporal.block', 'assign'), defs.MoveAssign, 'T a = value;'),
 		(_ast('GenericOps.new.block', 'assign'), defs.MoveAssign, 'GenericOps<int> a = GenericOps<int>();'),
 
-		(_ast('Struct', ''), defs.Class, '/** Struct */\nstruct Struct {\n\n};'),
+		(_ast('Struct', ''), defs.Class, '/** Struct */\nstruct Struct {\n\tpublic: int a;\n\tpublic: std::string b;\n\tpublic:\n\t/** Constructor */\n\tStruct(int a, std::string b) : a(a), b(b) {\n\t}\n};'),
 
 		(_ast('template_func', ''), defs.Function, '/** template_func */\ntemplate<typename T>\nT template_func(T v) {\n\n}'),
 	])

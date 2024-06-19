@@ -1,7 +1,8 @@
+from abc import abstractmethod
 import re
 from typing import cast
 
-from rogw.tranp.compatible.cpp.embed import __struct__
+from rogw.tranp.compatible.cpp.embed import __allow_override__, __props__, __struct__
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.data.meta.header import MetaHeader
@@ -376,7 +377,8 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(node.classification, vars={'symbol': symbol, 'var_type': var_type, 'default_value': default_value})
 
 	def on_decorator(self, node: defs.Decorator, path: str, arguments: list[str]) -> str:
-		return self.view.render(node.classification, vars={'path': path, 'arguments': arguments})
+		ignore_names = ['classmethod', abstractmethod.__name__, __allow_override__.__name__, __struct__.__name__, __props__.__name__]
+		return self.view.render(node.classification, vars={'path': path, 'arguments': arguments, 'ignore_names': ignore_names})
 
 	# Statement - simple
 

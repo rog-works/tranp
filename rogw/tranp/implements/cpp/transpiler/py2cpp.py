@@ -233,8 +233,10 @@ class Py2Cpp(ITranspiler):
 			return self.proc_for_dict_items(node, symbols, for_in, statements)
 		else:
 			for_in_symbol = self.reflections.type_of(node.for_in)
+			# FIXME is_const/is_addr_pの対応に一貫性が無い。包括的な対応を検討
 			is_const = CVars.is_const(CVars.key_from(self.reflections, for_in_symbol))
-			return self.view.render(node.classification, vars={'symbols': symbols, 'iterates': for_in, 'statements': statements, 'is_const': is_const})
+			is_addr_p = CVars.is_addr_p(CVars.key_from(self.reflections, for_in_symbol))
+			return self.view.render(node.classification, vars={'symbols': symbols, 'iterates': for_in, 'statements': statements, 'is_const': is_const, 'is_addr_p': is_addr_p})
 
 	def proc_for_range(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		last_index = cast(re.Match, re.fullmatch(r'\w+\((.+)\)', for_in))[1]  # 期待値: 'range(arguments...)'
@@ -257,17 +259,19 @@ class Py2Cpp(ITranspiler):
 
 	def on_comp_for(self, node: defs.CompFor, symbols: list[str], for_in: str) -> str:
 		"""Note: XXX range/enumerateは効率・可読性共に非常に悪いため非サポート"""
-		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Var) and node.iterates.calls.tokens == range.__name__:
-			raise LogicError(f'Operation not allowed. "range" is not supported. node: {node}')
-		elif isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Var) and node.iterates.calls.tokens == enumerate.__name__:
-			raise LogicError(f'Operation not allowed. "enumerate" is not supported. node: {node}')
-		elif isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Relay) and node.iterates.calls.prop.tokens == dict.items.__name__:
+		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Var) and node.iterates.calls.tokens in [range.__name__, enumerate.__name__]:
+			raise LogicError(f'Operation not allowed. "{node.iterates.calls.tokens}" is not supported. node: {node}')
+
+		for_in_symbol = self.reflections.type_of(node.for_in)
+		# FIXME is_const/is_addr_pの対応に一貫性が無い。包括的な対応を検討
+		is_const = CVars.is_const(CVars.key_from(self.reflections, for_in_symbol))
+		is_addr_p = CVars.is_addr(CVars.key_from(self.reflections, for_in_symbol))
+
+		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Relay) and node.iterates.calls.prop.tokens == dict.items.__name__:
 			iterates = cast(re.Match, re.fullmatch(r'(.+)\.\w+\(\)', for_in))[1]  # 期待値: 'iterates.items()'
-			return self.view.render(node.classification, vars={'symbols': symbols, 'iterates': iterates, 'is_const': False})
+			return self.view.render(node.classification, vars={'symbols': symbols, 'iterates': iterates, 'is_const': is_const, 'is_addr_p': is_addr_p})
 		else:
-			for_in_symbol = self.reflections.type_of(node.for_in)
-			is_const = CVars.is_const(CVars.key_from(self.reflections, for_in_symbol))
-			return self.view.render(node.classification, vars={'symbols': symbols, 'iterates': for_in, 'is_const': is_const})
+			return self.view.render(node.classification, vars={'symbols': symbols, 'iterates': for_in, 'is_const': is_const, 'is_addr_p': is_addr_p})
 
 	def on_list_comp(self, node: defs.ListComp, projection: str, fors: list[str], condition: str) -> str:
 		projection_type_raw = self.reflections.type_of(node.projection)
@@ -356,7 +360,7 @@ class Py2Cpp(ITranspiler):
 				continue
 
 			# XXX __prop_meta__のシグネチャーに依存したマッチ式
-			matches = re.search(r'\(([^,]+),\s+([^)]+)\)', decorators[index])
+			matches = re.fullmatch(r'[^(]+\(([^,]+),\s+(.+)\)', decorators[index])
 			if not matches:
 				continue
 

@@ -1,4 +1,4 @@
-for ({% if is_const %}const {% endif %}auto& {% if symbols | length > 1 %}[{{ symbols | join(', ') }}]{% else %}{{ symbols[0] }}{% endif %} : {{ iterates }}) {
+for ({% if is_const %}const {% endif %}auto{% if not is_addr_p %}&{% endif %} {% if symbols | length > 1 %}[{{ symbols | join(', ') }}]{% else %}{{ symbols[0] }}{% endif %} : {{ iterates }}) {
 {%- filter indent('\t') %}
 {%- for statement in statements %}
 {{ statement }}

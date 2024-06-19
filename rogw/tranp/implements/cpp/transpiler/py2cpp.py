@@ -1,4 +1,3 @@
-from abc import abstractmethod
 import re
 from typing import cast
 
@@ -377,7 +376,7 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(node.classification, vars={'symbol': symbol, 'var_type': var_type, 'default_value': default_value})
 
 	def on_decorator(self, node: defs.Decorator, path: str, arguments: list[str]) -> str:
-		ignore_names = ['classmethod', abstractmethod.__name__, __allow_override__.__name__, __struct__.__name__, __props__.__name__]
+		ignore_names = ['classmethod', 'abstractmethod', __allow_override__.__name__, __struct__.__name__, __props__.__name__]
 		return self.view.render(node.classification, vars={'path': path, 'arguments': arguments, 'ignore_names': ignore_names})
 
 	# Statement - simple

@@ -1,3 +1,1 @@
-{%- if path not in ['classmethod', 'abstractmethod', '__allow_override__', '__struct__'] %}
 {{- path }}({{ arguments | join(', ') }})
-{%- endif %}

@@ -9,9 +9,11 @@ template<typename {{ template_type }}>
 {%- endfor %}
 {% if is_struct %}struct{% else %}class{% endif %} {{ symbol }}{%- if _inherits %} : public {{ _inherits | join(', ') }}{%- endif %} {
 {%- if vars -%}
+{%- filter indent('\t') %}
 {%- for var in vars %}
-	{{ var }}
+{{ var }}
 {%- endfor -%}
+{%- endfilter %}
 {%- endif %}
 {%- filter indent('\t') %}
 {%- for statement in statements %}

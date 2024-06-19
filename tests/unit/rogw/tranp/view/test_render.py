@@ -256,7 +256,6 @@ class TestRenderer(TestCase):
 		self.assertRender('constructor_initializer', 0, vars, expected)
 
 	@data_provider([
-		({'path': '__ignore_name__', 'arguments': [], 'ignore_names': ['__ignore_name__']}, ''),
 		({'path': 'deco', 'arguments': ['a', 'b']}, 'deco(a, b)'),
 	])
 	def test_render_decorator(self, vars: dict[str, Any], expected: str) -> None:

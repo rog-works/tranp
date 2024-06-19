@@ -188,6 +188,19 @@ class Py2Cpp(ITranspiler):
 		"""
 		return len([decorator for decorator in method.decorators if decorator.path.tokens == '__allow_override__']) > 0
 
+	def allow_decorators(self, decorators: list[str], deny_ignores: list[str] = []) -> list[str]:
+		"""トランスパイル済みのデコレーターリストから出力対象のみ抽出
+
+		Args:
+			decorators (list[str]): デコレーターリスト(トランスパイル済み)
+			deny_ignores (list[str]): 除外リストの無効化対象
+		Returns:
+			list[str]: 出力対象のデコレーターリスト
+		"""
+		ignore_names = ['classmethod', 'abstractmethod', __allow_override__.__name__, __prop_meta__.__name__, __struct__.__name__]
+		ignore_names = [name for name in ignore_names if name not in deny_ignores]
+		return [decorator for decorator in decorators if decorator.split('(')[0] not in ignore_names]
+
 	# General
 
 	def on_entrypoint(self, node: defs.Entrypoint, statements: list[str]) -> str:
@@ -270,11 +283,13 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(node.classification, vars=comp_vars)
 
 	def on_function(self, node: defs.Function, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
+		decorators = self.allow_decorators(decorators)
 		template_types = self.unpack_function_template_types(node)
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types}
 		return self.view.render(node.classification, vars=function_vars)
 
 	def on_class_method(self, node: defs.ClassMethod, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
+		decorators = self.allow_decorators(decorators)
 		template_types = self.unpack_function_template_types(node)
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types}
 		method_vars = {'access': node.access, 'is_abstract': node.is_abstract, 'class_symbol': node.class_types.symbol.tokens}
@@ -311,6 +326,7 @@ class Py2Cpp(ITranspiler):
 			this_var_name = this_var.tokens_without_this
 			initializers.append({'symbol': this_var_name, 'value': initialize_value})
 
+		decorators = self.allow_decorators(decorators)
 		class_name = self.to_domain_name_by_class(node.class_types)
 		template_types = self.unpack_function_template_types(node)
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': normal_statements, 'template_types': template_types}
@@ -319,6 +335,7 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(node.classification, vars={**function_vars, **method_vars, **constructor_vars})
 
 	def on_method(self, node: defs.Method, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
+		decorators = self.allow_decorators(decorators)
 		template_types = self.unpack_function_template_types(node)
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types}
 		method_vars = {'access': node.access, 'is_abstract': node.is_abstract, 'class_symbol': node.class_types.symbol.tokens, 'allow_override': self.allow_override_from_method(node)}
@@ -326,13 +343,29 @@ class Py2Cpp(ITranspiler):
 
 	def on_closure(self, node: defs.Closure, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		"""Note: closureでtemplate_typesは不要なので対応しない"""
+		decorators = self.allow_decorators(decorators)
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'statements': statements}
 		closure_vars = {'binded_this': node.binded_this}
 		return self.view.render(node.classification, vars={**function_vars, **closure_vars})
 
 	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], template_types: list[str], comment: str, statements: list[str]) -> str:
+		# XXX メンバー変数の埋め込み情報を取得
+		embed_this_var_vars: dict[str, str] = {}
+		for index, decorator in enumerate(node.decorators):
+			if decorator.path.tokens != __prop_meta__.__name__:
+				continue
+
+			matches = re.search(r'\(([^,]+),\s+([^)]+)\)', decorators[index])
+			if not matches:
+				continue
+
+			org_name, org_meta = matches[1], matches[2]
+			name = org_name[1:-1]
+			meta = org_meta[1:-1] if re.fullmatch('".+"', org_meta) else org_meta
+			embed_this_var_vars[name] = meta
+
 		# XXX 構造体の判定
-		is_struct = len([decorator for decorator in node.decorators if decorator.path.tokens == __struct__.__name__])
+		is_struct = len([decorator for decorator in decorators if decorator.startswith(__struct__.__name__)])
 
 		# XXX クラス変数とそれ以外のステートメントを分離
 		decl_class_var_statements: list[str] = []
@@ -354,9 +387,10 @@ class Py2Cpp(ITranspiler):
 			this_var_name = this_var.tokens_without_this
 			var_type_raw = self.reflections.type_of(this_var.declare.as_a(defs.AnnoAssign).var_type)
 			var_type = self.to_domain_name(var_type_raw)
-			this_var_vars = {'access': defs.to_access(this_var_name), 'symbol': this_var_name, 'var_type': var_type}
+			this_var_vars = {'access': defs.to_access(this_var_name), 'symbol': this_var_name, 'var_type': var_type, 'embed_var': embed_this_var_vars.get(this_var_name)}
 			vars.append(self.view.render('class_decl_this_var', vars=this_var_vars))
 
+		decorators = self.allow_decorators(decorators)
 		class_vars = {'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'template_types': template_types, 'comment': comment, 'statements': other_statements, 'vars': vars, 'is_struct': is_struct}
 		return self.view.render(node.classification, vars=class_vars)
 
@@ -376,8 +410,7 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(node.classification, vars={'symbol': symbol, 'var_type': var_type, 'default_value': default_value})
 
 	def on_decorator(self, node: defs.Decorator, path: str, arguments: list[str]) -> str:
-		ignore_names = ['classmethod', 'abstractmethod', __allow_override__.__name__, __prop_meta__.__name__, __struct__.__name__]
-		return self.view.render(node.classification, vars={'path': path, 'arguments': arguments, 'ignore_names': ignore_names})
+		return self.view.render(node.classification, vars={'path': path, 'arguments': arguments})
 
 	# Statement - simple
 

@@ -389,8 +389,8 @@ class GenericOps(Generic[T]):
 
 
 @__struct__
-@__prop_meta__('a', 123)
-@__prop_meta__('b', 234)
+@__prop_meta__('a', '/** @var A */')
+@__prop_meta__('b', '/** @var B */')
 class Struct:
 	def __init__(self, a: int, b: str) -> None:
 		self.a: int = a

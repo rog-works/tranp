@@ -217,6 +217,22 @@ class TestRenderer(TestCase):
 				'};',
 			]),
 		),
+		(
+			{
+				'symbol': 'Struct',
+				'decorators': [],
+				'inherits': [],
+				'vars': [],
+				'comment': '',
+				'statements': [],
+				'is_struct': True,
+			},
+			'\n'.join([
+				'/** Struct */',
+				'struct Struct {',
+				'};',
+			]),
+		),
 	])
 	def test_render_class(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('class', 0, vars, expected)
@@ -242,8 +258,8 @@ class TestRenderer(TestCase):
 	@data_provider([
 		({'path': 'classmethod', 'arguments': []}, ''),
 		({'path': 'abstractmethod', 'arguments': []}, ''),
-		({'path': '__alias__', 'arguments': []}, ''),
 		({'path': '__allow_override__', 'arguments': []}, ''),
+		({'path': '__struct__', 'arguments': []}, ''),
 		({'path': 'deco', 'arguments': ['a', 'b']}, 'deco(a, b)'),
 	])
 	def test_render_decorator(self, vars: dict[str, Any], expected: str) -> None:

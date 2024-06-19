@@ -1,5 +1,5 @@
 {%- if symbols | length == 1 -%}
-{% if is_const %}const {% endif %}auto& {{ symbols[0] }} : {{ iterates }}
+{% if is_const %}const {% endif %}auto{% if not is_addr %}&{% endif %} {{ symbols[0] }} : {{ iterates }}
 {%- else -%}
-{% if is_const %}const {% endif %}auto& [{{ symbols | join(', ') }}] : {{ iterates }}
+{% if is_const %}const {% endif %}auto{% if not is_addr %}&{% endif %} [{{ symbols | join(', ') }}] : {{ iterates }}
 {%- endif -%}

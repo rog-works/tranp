@@ -260,13 +260,15 @@ class Py2Cpp(ITranspiler):
 		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Var) and node.iterates.calls.tokens in [range.__name__, enumerate.__name__]:
 			raise LogicError(f'Operation not allowed. "{node.iterates.calls.tokens}" is not supported. node: {node}')
 
+		for_in_symbol = self.reflections.type_of(node.for_in)
+		is_const = CVars.is_const(CVars.key_from(self.reflections, for_in_symbol))
+		is_addr = CVars.is_addr(CVars.key_from(self.reflections, for_in_symbol))
+
 		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Relay) and node.iterates.calls.prop.tokens == dict.items.__name__:
 			iterates = cast(re.Match, re.fullmatch(r'(.+)\.\w+\(\)', for_in))[1]  # 期待値: 'iterates.items()'
-			return self.view.render(node.classification, vars={'symbols': symbols, 'iterates': iterates, 'is_const': False})
+			return self.view.render(node.classification, vars={'symbols': symbols, 'iterates': iterates, 'is_const': is_const, 'is_addr': is_addr})
 		else:
-			for_in_symbol = self.reflections.type_of(node.for_in)
-			is_const = CVars.is_const(CVars.key_from(self.reflections, for_in_symbol))
-			return self.view.render(node.classification, vars={'symbols': symbols, 'iterates': for_in, 'is_const': is_const})
+			return self.view.render(node.classification, vars={'symbols': symbols, 'iterates': for_in, 'is_const': is_const, 'is_addr': is_addr})
 
 	def on_list_comp(self, node: defs.ListComp, projection: str, fors: list[str], condition: str) -> str:
 		projection_type_raw = self.reflections.type_of(node.projection)

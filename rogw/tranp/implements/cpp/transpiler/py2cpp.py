@@ -355,11 +355,13 @@ class Py2Cpp(ITranspiler):
 			if decorator.path.tokens != __prop_meta__.__name__:
 				continue
 
+			# XXX __prop_meta__のシグネチャーに依存したマッチ式
 			matches = re.search(r'\(([^,]+),\s+([^)]+)\)', decorators[index])
 			if not matches:
 				continue
 
 			org_name, org_meta = matches[1], matches[2]
+			# XXX 文字列の引用符を削除。気が利きすぎている懸念があるので検討
 			name = org_name[1:-1]
 			meta = org_meta[1:-1] if re.fullmatch('".+"', org_meta) else org_meta
 			embed_this_var_vars[name] = meta

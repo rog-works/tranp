@@ -387,7 +387,7 @@ class Py2Cpp(ITranspiler):
 			this_var_name = this_var.tokens_without_this
 			var_type_raw = self.reflections.type_of(this_var.declare.as_a(defs.AnnoAssign).var_type)
 			var_type = self.to_domain_name(var_type_raw)
-			this_var_vars = {'access': defs.to_access(this_var_name), 'symbol': this_var_name, 'var_type': var_type, 'embed_var': embed_this_var_vars.get(this_var_name)}
+			this_var_vars = {'access': defs.to_access(this_var_name), 'symbol': this_var_name, 'var_type': var_type, 'embed_meta': embed_this_var_vars.get(this_var_name)}
 			vars.append(self.view.render('class_decl_this_var', vars=this_var_vars))
 
 		decorators = self.allow_decorators(decorators)

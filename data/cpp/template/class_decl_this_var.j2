@@ -1,1 +1,1 @@
-{{- access }}:{% if embed_var %}{{ '\n' }}{{ embed_var }}{{ '\n' }}{% else %}{{ ' ' }}{% endif %}{% include 'type_py2cpp.j2' %} {{ symbol -}};
+{{- access }}:{% if embed_meta %}{{ '\n' }}{{ embed_meta }}{{ '\n' }}{% else %}{{ ' ' }}{% endif %}{% include 'type_py2cpp.j2' %} {{ symbol -}};

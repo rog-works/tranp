@@ -356,7 +356,7 @@ class Py2Cpp(ITranspiler):
 				continue
 
 			# XXX __prop_meta__のシグネチャーに依存したマッチ式
-			matches = re.search(r'\(([^,]+),\s+([^)]+)\)', decorators[index])
+			matches = re.fullmatch(r'^[^(]+\(([^,]+),\s+(.+)\)$', decorators[index])
 			if not matches:
 				continue
 

@@ -41,17 +41,18 @@ def __struct__(wrapped: T) -> T:
 	return wrapped
 
 
-def __embed__(*meta: Any) -> Callable:
+def __embed__(key: str, meta: Any) -> Callable:
 	"""メタ情報を埋め込む
 
 	Args:
-		*meta (Any): メタ情報
+		key (str): キー
+		meta (Any): メタ情報
 	Returns:
 		Callable: デコレーター
 	Examples:
 		```python
-		@__embed__('prop', 'a', '/** @var A */')
-		@__embed__('prop', 'b', '/** @var B */')
+		@__embed__('prop.a', '/** @var A */')
+		@__embed__('prop.b', '/** @var B */')
 		class A:
 			def __init__(self, a: int, b: str) -> None:
 				self.a: int = a

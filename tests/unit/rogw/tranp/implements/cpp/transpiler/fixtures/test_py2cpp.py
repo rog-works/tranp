@@ -389,8 +389,8 @@ class GenericOps(Generic[T]):
 
 
 @__struct__
-@__embed__('prop', 'a', '/** @var A */')
-@__embed__('prop', 'b', '/** @var B */')
+@__embed__('prop.a', '/** @var A */')
+@__embed__('prop.b', '/** @var B */')
 class Struct:
 	def __init__(self, a: int, b: str) -> None:
 		self.a: int = a

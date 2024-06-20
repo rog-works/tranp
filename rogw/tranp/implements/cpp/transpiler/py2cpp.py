@@ -354,12 +354,12 @@ class Py2Cpp(ITranspiler):
 
 	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], template_types: list[str], comment: str, statements: list[str]) -> str:
 		# XXX メンバー変数の埋め込み情報を取得
-		embed_vars: list[str] = []
+		embed_vars: dict[str, str] = {}
 		for decorator in decorators:
 			if decorator.startswith(__embed__.__name__):
-				# XXX 展開内容: __embed__("prop", "a", Any) -> "prop", "a", Any
-				embed_var = decorator[len(__embed__.__name__) + 1:-1]
-				embed_vars.append(embed_var)
+				# XXX 展開内容: __embed__("prop.a", Any) -> "prop.a", Any
+				embed_key, embed_var = decorator[len(__embed__.__name__) + 1:-1].split(', ')
+				embed_vars[embed_key[1:-1]] = embed_var
 
 		# XXX 構造体の判定
 		is_struct = len([decorator for decorator in decorators if decorator.startswith(__struct__.__name__)])

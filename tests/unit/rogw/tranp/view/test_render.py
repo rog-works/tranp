@@ -734,7 +734,7 @@ class TestRenderer(TestCase):
 			},
 			'\n'.join([
 				'public:',
-				'/** Constructor */',
+				'/** __init__ */',
 				'Hoge(int base_n = 1, int value = 2) : Base(base_n), a(1) {',
 				'	this->x = value;',
 				'}',
@@ -761,7 +761,7 @@ class TestRenderer(TestCase):
 			},
 			'\n'.join([
 				'public:',
-				'/** Constructor */',
+				'/** __init__ */',
 				'template<typename T>',
 				'deco(A, B)',
 				'virtual Hoge();',

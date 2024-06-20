@@ -2,8 +2,8 @@
 {% if comment %}{{ comment }}{% else %}/** Constructor */{% endif %}
 {%- set _decorators = decorators | select('!=', '') | join('\n') %}
 {%- if _decorators or template_types %}
-{%- include('function_attributes.j2') %}
+{%- include('function/_attributes.j2') %}
 {%- endif %}
 {% if is_abstract or allow_override %}virtual {% endif -%}
-{{ class_symbol }}({{ parameters | select('!=', 'self') | join(', ') }}){% include('constructor_initializer.j2') -%}
-{% if not is_abstract %} {% include('function_block.j2') %}{% else %};{% endif -%}
+{{ class_symbol }}({{ parameters | select('!=', 'self') | join(', ') }}){% include('function/_initializer.j2') -%}
+{% if not is_abstract %} {% include('function/_block.j2') %}{% else %};{% endif -%}

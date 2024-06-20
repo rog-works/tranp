@@ -356,10 +356,16 @@ class Py2Cpp(ITranspiler):
 		# XXX メンバー変数の埋め込み情報を取得
 		embed_vars: dict[str, str] = {}
 		for decorator in decorators:
-			if decorator.startswith(__embed__.__name__):
-				# XXX 展開内容: __embed__("prop.a", Any) -> "prop.a", Any
-				embed_key, embed_var = decorator[len(__embed__.__name__) + 1:-1].split(', ')
-				embed_vars[embed_key[1:-1]] = embed_var
+				if not decorator.startswith(__embed__.__name__):
+						continue
+
+				# XXX __embed__のシグネチャーに依存したマッチ式
+				matches = re.fullmatch(r'[^(]+\(([^,]+),\s+(.+)\)', decorator)
+				if not matches:
+						continue
+
+				key, meta = matches[1][1:-1], matches[2]
+				embed_vars[key] = meta
 
 		# XXX 構造体の判定
 		is_struct = len([decorator for decorator in decorators if decorator.startswith(__struct__.__name__)])

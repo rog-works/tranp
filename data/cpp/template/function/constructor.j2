@@ -1,8 +1,7 @@
 {{ access }}:
 {% include('function/_comment.j2') %}
-{%- if decorators or template_types %}
-{%- include('function/_attributes.j2') %}
-{%- endif %}
+{%- include('function/_template_types.j2') %}
+{%- include('function/_decorators.j2') %}
 {% if is_abstract or allow_override %}virtual {% endif -%}
 {{ class_symbol }}({{ parameters | select('!=', 'self') | join(', ') }}){% include('function/_initializer.j2') -%}
 {% if not is_abstract %} {% include('function/_block.j2') %}{% else %};{% endif -%}

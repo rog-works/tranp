@@ -1,6 +1,5 @@
 {{ access }}:
 {% include('function/_comment.j2') %}
-{%- if decorators or template_types %}
-{%- include('function/_attributes.j2') %}
-{%- endif %}
+{%- include('function/_template_types.j2') %}
+{%- include('function/_decorators.j2') %}
 static {{ return_type }} {{ symbol }}({{ parameters | select('!=', 'cls') | join(', ') }}) {% include('function/_block.j2') -%}

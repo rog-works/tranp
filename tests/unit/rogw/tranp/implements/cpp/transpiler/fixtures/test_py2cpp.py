@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from typing import Generic, TypeAlias, TypeVar, cast
 
-from rogw.tranp.compatible.cpp.embed import __allow_override__, __prop_meta__, __struct__
+from rogw.tranp.compatible.cpp.embed import __allow_override__, __embed__, __struct__
 from rogw.tranp.compatible.cpp.enum import CEnum
 from rogw.tranp.compatible.cpp.object import CP, CRawConst, CRef, CSP
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
@@ -389,8 +389,8 @@ class GenericOps(Generic[T]):
 
 
 @__struct__
-@__prop_meta__('a', '/** @var A */')
-@__prop_meta__('b', '/** @var B */')
+@__embed__('prop', 'a', '/** @var A */')
+@__embed__('prop', 'b', '/** @var B */')
 class Struct:
 	def __init__(self, a: int, b: str) -> None:
 		self.a: int = a

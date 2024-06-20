@@ -1,7 +1,7 @@
 import re
 from typing import cast
 
-from rogw.tranp.compatible.cpp.embed import __allow_override__, __prop_meta__, __struct__
+from rogw.tranp.compatible.cpp.embed import __allow_override__, __embed__, __struct__
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.data.meta.header import MetaHeader
@@ -197,7 +197,7 @@ class Py2Cpp(ITranspiler):
 		Returns:
 			list[str]: 出力対象のデコレーターリスト
 		"""
-		ignore_names = ['classmethod', 'abstractmethod', __allow_override__.__name__, __prop_meta__.__name__, __struct__.__name__]
+		ignore_names = ['classmethod', 'abstractmethod', __allow_override__.__name__, __embed__.__name__, __struct__.__name__]
 		ignore_names = [name for name in ignore_names if name not in deny_ignores]
 		return [decorator for decorator in decorators if decorator.split('(')[0] not in ignore_names]
 
@@ -354,21 +354,12 @@ class Py2Cpp(ITranspiler):
 
 	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], template_types: list[str], comment: str, statements: list[str]) -> str:
 		# XXX メンバー変数の埋め込み情報を取得
-		embed_this_var_vars: dict[str, str] = {}
-		for index, decorator in enumerate(node.decorators):
-			if decorator.path.tokens != __prop_meta__.__name__:
-				continue
-
-			# XXX __prop_meta__のシグネチャーに依存したマッチ式
-			matches = re.fullmatch(r'[^(]+\(([^,]+),\s+(.+)\)', decorators[index])
-			if not matches:
-				continue
-
-			org_name, org_meta = matches[1], matches[2]
-			# XXX 文字列の引用符を削除。気が利きすぎている懸念があるので検討
-			name = org_name[1:-1]
-			meta = org_meta[1:-1] if re.fullmatch('".+"', org_meta) else org_meta
-			embed_this_var_vars[name] = meta
+		embed_vars: list[str] = []
+		for decorator in decorators:
+			if decorator.startswith(__embed__.__name__):
+				# XXX 展開内容: __embed__("prop", "a", Any) -> "prop", "a", Any
+				embed_var = decorator[len(__embed__.__name__) + 1:-1]
+				embed_vars.append(embed_var)
 
 		# XXX 構造体の判定
 		is_struct = len([decorator for decorator in decorators if decorator.startswith(__struct__.__name__)])
@@ -393,11 +384,11 @@ class Py2Cpp(ITranspiler):
 			this_var_name = this_var.tokens_without_this
 			var_type_raw = self.reflections.type_of(this_var.declare.as_a(defs.AnnoAssign).var_type)
 			var_type = self.to_domain_name(var_type_raw)
-			this_var_vars = {'access': defs.to_access(this_var_name), 'symbol': this_var_name, 'var_type': var_type, 'embed_meta': embed_this_var_vars.get(this_var_name)}
+			this_var_vars = {'access': defs.to_access(this_var_name), 'symbol': this_var_name, 'var_type': var_type, 'embed_vars': embed_vars}
 			vars.append(self.view.render(f'{node.classification}/_decl_this_var', vars=this_var_vars))
 
 		decorators = self.allow_decorators(decorators)
-		class_vars = {'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'template_types': template_types, 'comment': comment, 'statements': other_statements, 'vars': vars, 'is_struct': is_struct}
+		class_vars = {'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'template_types': template_types, 'comment': comment, 'statements': other_statements, 'vars': vars, 'is_struct': is_struct, 'embed_vars': embed_vars}
 		return self.view.render(f'{node.classification}/default', vars=class_vars)
 
 	def on_enum(self, node: defs.Enum, symbol: str, decorators: list[str], inherits: list[str], template_types: list[str], comment: str, statements: list[str]) -> str:

@@ -625,6 +625,10 @@ class SymbolWrapper(IWrapper):
 		Returns:
 			IReflection: シンボル
 		"""
+		# XXX indexファイルの場合、必然的に多重importになるためImportはそのまま返却
+		if isinstance(self._raw, Import):
+			return self._raw
+
 		return Import(self._raw.one_of(Class, Var), via)
 
 	@implements

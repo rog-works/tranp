@@ -91,17 +91,25 @@ class ExpandModules:
 			dict[str, Expanded]: 展開データ
 		"""
 		load_index = 0
-		load_reserves = {module.path: True for module in self.modules.requirements}
+		load_orders = [module.path for module in self.modules.requirements]
 		expanded_modules: dict[str, Expanded] = {}
-		while load_index < len(load_reserves):
-			module_path = list(load_reserves.keys())[load_index]
+		while load_index < len(load_orders):
+			module_path = load_orders[load_index]
+			if module_path in expanded_modules:
+				load_index = load_index + 1
+				continue
+
 			module = self.modules.load(module_path)
 			expanded = self.expand_module(module)
-			load_reserves = {**load_reserves, **{import_path: True for import_path in expanded.import_paths}}
+			import_paths = [import_path for import_path in expanded.import_paths if import_path not in expanded_modules.keys()]
 			expanded_modules[module_path] = expanded
-			load_index += 1
 
-		return expanded_modules
+			if len(import_paths) > 0:
+				load_orders = [*load_orders[:load_index], *import_paths, *load_orders[load_index:]]
+			else:
+				load_index = load_index + 1
+
+		return {module_path: expanded_modules[module_path] for module_path in load_orders}
 
 	def expanded_to_db(self, expanded_modules: dict[str, Expanded]) -> SymbolDB:
 		"""展開データからシンボルテーブルを生成

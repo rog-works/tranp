@@ -1,23 +1,7 @@
-{%- set _inherits = inherits | select('!=', 'CObject') | list %}
-
-{%- if comment %}{{ comment }}{% else %}/** {{ symbol }} */{% endif %}
-{%- for decorator in decorators | select('!=', '') %}
-{{ decorator }}
-{%- endfor %}
-{%- for template_type in template_types %}
-template<typename {{ template_type }}>
-{%- endfor %}
-{% if is_struct %}struct{% else %}class{% endif %} {{ symbol }}{%- if _inherits %} : public {{ _inherits | join(', ') }}{%- endif %} {
-{%- if vars -%}
-{%- filter indent('\t') %}
-{%- for var in vars %}
-{{ var }}
-{%- endfor -%}
-{%- endfilter %}
-{%- endif %}
-{%- filter indent('\t') %}
-{%- for statement in statements %}
-{{ statement }}
-{%- endfor %}
-{%- endfilter %}
+{%- include('class/_comment.j2') %}
+{%- include('class/_decorator.j2') %}
+{%- include('class/_template_types.j2') %}
+{% include('class/_classify.j2') %} {{ symbol }}{% include('class/_inherits.j2') %} {
+{%- include('class/_vars.j2') %}
+{%- include('class/_statements.j2') %}
 };

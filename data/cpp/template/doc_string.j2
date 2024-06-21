@@ -12,9 +12,23 @@
  * @throw {{ r.type }} {{ r.description }}
 {%- endfor %}
 {%- if data.note %}
+{%- if data.note.find('\n') != -1 %}
+ * @note
+{%- for line in data.note.split('\n') %}
+ * {{ line }}
+{%- endfor %}
+{%- else %}
  * @note {{ data.note }}
 {%- endif %}
+{%- endif %}
 {%- if data.examples %}
+{%- if data.examples.find('\n') != -1 %}
+ * @example
+{%- for line in data.examples.split('\n') %}
+ * {{ line }}
+{%- endfor %}
+{%- else %}
  * @example {{ data.examples }}
+{%- endif %}
 {%- endif %}
  */

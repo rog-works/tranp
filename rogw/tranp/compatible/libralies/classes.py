@@ -1,7 +1,26 @@
-from typing import Any, Generic, Iterator, Sequence
+from typing import Any, Callable, Generic, Iterator, Sequence
 
-from rogw.tranp.compatible.python.embed import __actual__
-from rogw.tranp.compatible.python.template import T_Key, T_Value
+from rogw.tranp.compatible.python.template import T, T_Key, T_Value
+
+# Embed
+
+def __actual__(name: str) -> Callable[[T], T]:
+	"""コード上で実際に用いる名称を埋め込む
+
+	Args:
+		name (str): 名前
+	Returns:
+		Callable[[T], T]: デコレート対象
+	Examples:
+		```python
+		@__actual__('type')
+		class Type: ...
+		```
+	"""
+	def decorator(wrapped: T) -> T:
+		return wrapped
+
+	return decorator
 
 # Type
 

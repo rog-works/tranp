@@ -129,8 +129,7 @@ class ExpandModules:
 				expanded_db[fullyname] = Symbol(types)
 				expanded_db[fullyname] = expanded_db[fullyname].to.types()
 
-		# インポートシンボルの展開
-		for module_path, expanded in expanded_modules.items():
+			# インポートシンボルの展開
 			entrypoint = self.modules.load(module_path).entrypoint.as_a(defs.Entrypoint)
 			for fullyname, full_path in expanded.imports.items():
 				import_name = entrypoint.whole_by(full_path).as_a(defs.ImportName)
@@ -138,8 +137,7 @@ class ExpandModules:
 				raw = expanded_db[DSN.join(import_node.import_path.tokens, import_name.tokens)]
 				expanded_db[fullyname] = raw.to.imports(import_name)
 
-		# 変数宣言シンボルの展開
-		for module_path, expanded in expanded_modules.items():
+			# 変数宣言シンボルの展開
 			entrypoint = self.modules.load(module_path).entrypoint.as_a(defs.Entrypoint)
 			for fullyname, full_path in expanded.decl_vars.items():
 				# FIXME Pylance v2023.11.10まではUnion型のTemplateのアンパックが出来たが、それ以降のバージョンでは出来なくなった。出来ない方が誤りなのでは？

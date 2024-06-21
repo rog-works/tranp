@@ -342,6 +342,7 @@ class CastOps:
 		f_to_s = str(1.0)
 		s_to_n = int(n_to_s)
 		s_to_f = float(f_to_s)
+		s_to_s = str('')
 
 	def cast_class(self, sub: Sub, sub_p: CP[Sub]) -> None:
 		b = cast(Base, sub)

@@ -370,6 +370,39 @@ class TestRenderer(TestCase):
 				' */',
 			]),
 		),
+		(
+			{
+				'data': {
+					'description': 'Description',
+					'attributes': [
+						{'name': 'a', 'type': 'A', 'description': 'A desc'},
+						{'name': 'b', 'type': 'B', 'description': 'B desc'},
+					],
+					'args': [],
+					'returns': {'type': '', 'description': ''},
+					'raises': [],
+					'note': '\n'.join([
+						'note1',
+						'note2',
+					]),
+					'examples': '\n'.join([
+						'example1',
+						'example2',
+					]),
+				},
+			},
+			'\n'.join([
+				'/**',
+				' * Description',
+				' * @note',
+				' * note1',
+				' * note2',
+				' * @example',
+				' * example1',
+				' * example2',
+				' */',
+			]),
+		),
 	])
 	def test_render_doc_string(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('doc_string', 0, vars, expected)

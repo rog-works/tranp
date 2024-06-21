@@ -124,7 +124,7 @@ class TestReflections(TestCase):
 	def test_is_a(self, fullyname: str, standard_type: type[Standards], expected: bool) -> None:
 		reflections = self.fixture.get(Reflections)
 		symbol = reflections.from_fullyname(fullyname)
-		self.assertEqual(reflections.is_a(symbol, standard_type), expected)
+		self.assertEqual(expected, reflections.is_a(symbol, standard_type))
 
 	@data_provider([
 		(f'{fixture_module_path}.TypeAlias', 'TypeAlias'),
@@ -256,7 +256,7 @@ class TestReflections(TestCase):
 	def test_from_fullyname(self, fullyname: str, expected: str) -> None:
 		reflections = self.fixture.get(Reflections)
 		symbol = reflections.from_fullyname(fullyname)
-		self.assertEqual(str(symbol), expected)
+		self.assertEqual(expected, str(symbol))
 
 	@data_provider([
 		(f'{fixture_module_path}.CalcOps.tenary.n_or_s', UnresolvedSymbolError, r'Only Nullable.'),
@@ -282,7 +282,7 @@ class TestReflections(TestCase):
 	])
 	def test_type_of_standard(self, standard_type: type[Standards] | None, expected: str) -> None:
 		reflections = self.fixture.get(Reflections)
-		self.assertEqual(reflections.type_of_standard(standard_type).types.fullyname, expected)
+		self.assertEqual(expected, reflections.type_of_standard(standard_type).types.fullyname)
 
 	@data_provider([
 		(_ast(f'{fixture_module_path}.import.xyz', 'import_names.name'), _mod('xyz', 'Z'), 'Z'),
@@ -391,5 +391,5 @@ class TestReflections(TestCase):
 		reflections = self.fixture.get(Reflections)
 		node = self.fixture.shared_nodes_by(full_path)
 		symbol = reflections.type_of(node)
-		self.assertEqual(symbol.types.fullyname, expected)
-		self.assertEqual(str(symbol), attrs_expected)
+		self.assertEqual(expected, symbol.types.fullyname)
+		self.assertEqual(attrs_expected, str(symbol))

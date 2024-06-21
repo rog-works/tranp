@@ -13,7 +13,7 @@ class TestEntryPath(TestCase):
 		(['a.b', ''], 'a.b'),
 	])
 	def test_join(self, elems: list[str], expected: str) -> None:
-		self.assertEqual(EntryPath.join(*elems).origin, expected)
+		self.assertEqual(expected, EntryPath.join(*elems).origin)
 
 	@data_provider([
 		('a.b', 'c', 0, 'a.b.c[0]'),
@@ -21,7 +21,7 @@ class TestEntryPath(TestCase):
 		('b.c', 'd', 0, 'b.c.d[0]'),
 	])
 	def test_identify(self, origin: str, entry_tag: str, index: int, expected: str) -> None:
-		self.assertEqual(EntryPath.identify(origin, entry_tag, index).origin, expected)
+		self.assertEqual(expected, EntryPath.identify(origin, entry_tag, index).origin)
 
 	@data_provider([
 		('a.b', True),
@@ -31,7 +31,7 @@ class TestEntryPath(TestCase):
 		('.', False),
 	])
 	def test_valid(self, origin: str, expected: bool) -> None:
-		self.assertEqual(EntryPath(origin).valid, expected)
+		self.assertEqual(expected, EntryPath(origin).valid)
 
 	@data_provider([
 		('a.b', ['a', 'b']),
@@ -41,7 +41,7 @@ class TestEntryPath(TestCase):
 		('.', []),
 	])
 	def test_elements(self, origin: str, expected: list[str]) -> None:
-		self.assertEqual(EntryPath(origin).elements, expected)
+		self.assertEqual(expected, EntryPath(origin).elements)
 
 	@data_provider([
 		('a', 'a'),
@@ -50,7 +50,7 @@ class TestEntryPath(TestCase):
 		('a.b[0].c[0]', r'a\.b\[0\]\.c\[0\]'),
 	])
 	def test_escaped_origin(self, origin: str, expected: str) -> None:
-		self.assertEqual(EntryPath(origin).escaped_origin, expected)
+		self.assertEqual(expected, EntryPath(origin).escaped_origin)
 
 	@data_provider([
 		('a', 'b', 'a.b'),
@@ -60,7 +60,7 @@ class TestEntryPath(TestCase):
 		('a.b', '', 'a.b'),
 	])
 	def test_joined(self, origin: str, relative: str, expected: str) -> None:
-		self.assertEqual(EntryPath(origin).joined(relative), expected)
+		self.assertEqual(expected, EntryPath(origin).joined(relative))
 
 	@data_provider([
 		('a', ('a', -1)),
@@ -69,7 +69,7 @@ class TestEntryPath(TestCase):
 		('a[1].b[0].c[0]', ('a', 1)),
 	])
 	def test_first(self, origin: str, expected: tuple[str, int]) -> None:
-		self.assertEqual(EntryPath(origin).first, expected)
+		self.assertEqual(expected, EntryPath(origin).first)
 
 	@data_provider([
 		('a', ('a', -1)),
@@ -78,7 +78,7 @@ class TestEntryPath(TestCase):
 		('a[1].b[0].c.d[2]', ('d', 2)),
 	])
 	def test_last(self, origin: str, expected: tuple[str, int]) -> None:
-		self.assertEqual(EntryPath(origin).last, expected)
+		self.assertEqual(expected, EntryPath(origin).last)
 
 	@data_provider([
 		('a', 'a'),
@@ -87,7 +87,7 @@ class TestEntryPath(TestCase):
 		('c[1].b[0].a[0]', 'c'),
 	])
 	def test_first_tag(self, origin: str, expected: str) -> None:
-		self.assertEqual(EntryPath(origin).first_tag, expected)
+		self.assertEqual(expected, EntryPath(origin).first_tag)
 
 	@data_provider([
 		('a', 'a'),
@@ -96,7 +96,7 @@ class TestEntryPath(TestCase):
 		('c[1].b[0].a[0]', 'a'),
 	])
 	def test_last_tag(self, origin: str, expected: str) -> None:
-		self.assertEqual(EntryPath(origin).last_tag, expected)
+		self.assertEqual(expected, EntryPath(origin).last_tag)
 
 	@data_provider([
 		('b.c', 'b'),
@@ -104,7 +104,7 @@ class TestEntryPath(TestCase):
 		('c[1].b[0].a[0]', 'b'),
 	])
 	def test_parent_tag(self, origin: str, expected: str) -> None:
-		self.assertEqual(EntryPath(origin).parent_tag, expected)
+		self.assertEqual(expected, EntryPath(origin).parent_tag)
 
 	@data_provider([
 		('a', 'a', True),
@@ -116,7 +116,7 @@ class TestEntryPath(TestCase):
 		('a[0].b.c[1]', '1', False),
 	])
 	def test_contains(self, origin: str, entry_tag: str, expected: bool) -> None:
-		self.assertEqual(EntryPath(origin).contains(entry_tag), expected)
+		self.assertEqual(expected, EntryPath(origin).contains(entry_tag))
 
 	@data_provider([
 		('a', ['a'], True),
@@ -127,7 +127,7 @@ class TestEntryPath(TestCase):
 		('a[0].b.c[1]', ['1'], False),
 	])
 	def test_consists_of_only(self, origin: str, entry_tags: list[str], expected: bool) -> None:
-		self.assertEqual(EntryPath(origin).consists_of_only(*entry_tags), expected)
+		self.assertEqual(expected, EntryPath(origin).consists_of_only(*entry_tags))
 
 	@data_provider([
 		('a', 'a'),
@@ -136,7 +136,7 @@ class TestEntryPath(TestCase):
 		('c[1].b[0].a[0]', 'c.b.a'),
 	])
 	def test_de_identify(self, origin: str, expected: bool) -> None:
-		self.assertEqual(EntryPath(origin).de_identify().origin, expected)
+		self.assertEqual(expected, EntryPath(origin).de_identify().origin)
 
 	@data_provider([
 		('b.c', 'b', 'c'),
@@ -144,7 +144,7 @@ class TestEntryPath(TestCase):
 		('c[1].b[0].a[0]', 'c[1].b[0]', 'a[0]'),
 	])
 	def test_relativefy(self, origin: str, starts: str, expected: bool) -> None:
-		self.assertEqual(EntryPath(origin).relativefy(starts).origin, expected)
+		self.assertEqual(expected, EntryPath(origin).relativefy(starts).origin)
 
 	@data_provider([
 		('b.c', 1, 'c'),
@@ -157,4 +157,4 @@ class TestEntryPath(TestCase):
 		('c[1].b[0].a[0]', -3, ''),
 	])
 	def test_shift(self, origin: str, skip: int, expected: bool) -> None:
-		self.assertEqual(EntryPath(origin).shift(skip).origin, expected)
+		self.assertEqual(expected, EntryPath(origin).shift(skip).origin)

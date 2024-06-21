@@ -67,8 +67,8 @@ class TestDefinition(TestCase):
 	])
 	def test_entrypoint(self, expected: dict[str, list[type]]) -> None:
 		node = self.fixture.shared_nodes_by('file_input').as_a(defs.Entrypoint)
-		self.assertEqual([type(statement) for statement in node.statements], expected['statements'])
-		self.assertEqual([type(decl_var) for decl_var in node.decl_vars], expected['decl_vars'])
+		self.assertEqual(expected['statements'], [type(statement) for statement in node.statements])
+		self.assertEqual(expected['decl_vars'], [type(decl_var) for decl_var in node.decl_vars])
 
 	# Statement compound
 
@@ -87,15 +87,15 @@ class TestDefinition(TestCase):
 	])
 	def test_block(self, source: str, full_path: str, expected: dict[str, list[type]]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Block)
-		self.assertEqual([type(statement) for statement in node.statements], expected['statements'])
+		self.assertEqual(expected['statements'], [type(statement) for statement in node.statements])
 
 	@data_provider([
 		('if True:\n\t...\nelif False: ...', 'file_input.if_stmt.elif_clauses.elif_clause', {'condition': defs.Falsy, 'statements': [defs.Elipsis]}),
 	])
 	def test_else_if(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.ElseIf)
-		self.assertEqual(type(node.condition), expected['condition'])
-		self.assertEqual([type(statement) for statement in node.statements], expected['statements'])
+		self.assertEqual(expected['condition'], type(node.condition))
+		self.assertEqual(expected['statements'], [type(statement) for statement in node.statements])
 
 	@data_provider([
 		('if True: ...', 'file_input.if_stmt', {'condition': defs.Truthy, 'statements': [defs.Elipsis], 'else_ifs': 0, 'else_statements': []}),
@@ -104,40 +104,40 @@ class TestDefinition(TestCase):
 	])
 	def test_if(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.If)
-		self.assertEqual(type(node.condition), expected['condition'])
-		self.assertEqual([type(statement) for statement in node.statements], expected['statements'])
-		self.assertEqual(len(node.else_ifs), expected['else_ifs'])
+		self.assertEqual(expected['condition'], type(node.condition))
+		self.assertEqual(expected['statements'], [type(statement) for statement in node.statements])
+		self.assertEqual(expected['else_ifs'], len(node.else_ifs))
 		if isinstance(node.else_clause, defs.Else):
-			self.assertEqual([type(statement) for statement in node.else_clause.statements], expected['else_statements'])
+			self.assertEqual(expected['else_statements'], [type(statement) for statement in node.else_clause.statements])
 
 	@data_provider([
 		('while True: ...', 'file_input.while_stmt', {'condition': defs.Truthy, 'statements': [defs.Elipsis]}),
 	])
 	def test_while(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.While)
-		self.assertEqual(type(node.condition), expected['condition'])
-		self.assertEqual([type(statement) for statement in node.statements], expected['statements'])
+		self.assertEqual(expected['condition'], type(node.condition))
+		self.assertEqual(expected['statements'], [type(statement) for statement in node.statements])
 
 	@data_provider([
 		('for i in range(1): ...', 'file_input.for_stmt', {'symbols': ['i'], 'iterates': defs.FuncCall, 'statements': [defs.Elipsis]}),
 	])
 	def test_for(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.For)
-		self.assertEqual([symbol.tokens for symbol in node.symbols], expected['symbols'])
-		self.assertEqual(len([symbol for symbol in node.symbols if symbol.is_a(defs.DeclLocalVar)]), len(expected['symbols']))
-		self.assertEqual(type(node.iterates), expected['iterates'])
-		self.assertEqual([type(statement) for statement in node.statements], expected['statements'])
+		self.assertEqual(expected['symbols'], [symbol.tokens for symbol in node.symbols])
+		self.assertEqual(len(expected['symbols']), len([symbol for symbol in node.symbols if symbol.is_a(defs.DeclLocalVar)]))
+		self.assertEqual(expected['iterates'], type(node.iterates))
+		self.assertEqual(expected['statements'], [type(statement) for statement in node.statements])
 
 	@data_provider([
 		('try:\n\t...\nexcept Exception as e: ...', 'file_input.try_stmt.except_clauses.except_clause', {'var_type': 'Exception', 'symbol': 'e', 'statements': [defs.Elipsis]}),
 	])
 	def test_catch(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Catch)
-		self.assertEqual(node.var_type.tokens, expected['var_type'])
-		self.assertEqual(type(node.var_type), defs.VarOfType)
-		self.assertEqual(node.symbol.tokens, expected['symbol'])
-		self.assertEqual(type(node.symbol), defs.DeclLocalVar)
-		self.assertEqual([type(statement) for statement in node.statements], expected['statements'])
+		self.assertEqual(expected['var_type'], node.var_type.tokens)
+		self.assertEqual(defs.VarOfType, type(node.var_type))
+		self.assertEqual(expected['symbol'], node.symbol.tokens)
+		self.assertEqual(defs.DeclLocalVar, type(node.symbol))
+		self.assertEqual(expected['statements'], [type(statement) for statement in node.statements])
 
 	@data_provider([
 		('try:\n\t...\nexcept Exception as e: ...', 'file_input.try_stmt', {'statements': [defs.Elipsis], 'catches': 1}),
@@ -145,8 +145,8 @@ class TestDefinition(TestCase):
 	])
 	def test_try(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Try)
-		self.assertEqual([type(statement) for statement in node.statements], expected['statements'])
-		self.assertEqual(len(node.catches), expected['catches'])
+		self.assertEqual(expected['statements'], [type(statement) for statement in node.statements])
+		self.assertEqual(expected['catches'], len(node.catches))
 
 	@data_provider([
 		('[a for a in {}]', 'file_input.list_comp', {
@@ -173,14 +173,14 @@ class TestDefinition(TestCase):
 	])
 	def test_list_comp(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.ListComp)
-		self.assertEqual(type(node.projection), expected['projection'])
-		self.assertEqual(len(node.fors), len(expected['fors']))
+		self.assertEqual(expected['projection'], type(node.projection))
+		self.assertEqual(len(expected['fors']), len(node.fors))
 		for index, in_for in enumerate(node.fors):
 			in_expected = expected['fors'][index]
-			self.assertEqual([symbol.tokens for symbol in in_for.symbols], in_expected['symbols'])
-			self.assertEqual(type(in_for.iterates), in_expected['iterates'])
+			self.assertEqual(in_expected['symbols'], [symbol.tokens for symbol in in_for.symbols])
+			self.assertEqual(in_expected['iterates'], type(in_for.iterates))
 
-		self.assertEqual(type(node.condition), expected['condition'])
+		self.assertEqual(expected['condition'], type(node.condition))
 
 	@data_provider([
 		('{key: value for key, value in {}.items()}', 'file_input.dict_comp', {
@@ -209,14 +209,14 @@ class TestDefinition(TestCase):
 	])
 	def test_dict_comp(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.DictComp)
-		self.assertEqual(type(node.projection), expected['projection'])
-		self.assertEqual(len(node.fors), len(expected['fors']))
+		self.assertEqual(expected['projection'], type(node.projection))
+		self.assertEqual(len(expected['fors']), len(node.fors))
 		for index, in_for in enumerate(node.fors):
 			in_expected = expected['fors'][index]
-			self.assertEqual([symbol.tokens for symbol in in_for.symbols], in_expected['symbols'])
-			self.assertEqual(type(in_for.iterates), in_expected['iterates'])
+			self.assertEqual(in_expected['symbols'], [symbol.tokens for symbol in in_for.symbols])
+			self.assertEqual(in_expected['iterates'], type(in_for.iterates))
 
-		self.assertEqual(type(node.condition), expected['condition'])
+		self.assertEqual(expected['condition'], type(node.condition))
 
 	@data_provider([
 		(_ast('Base.public_method'), {
@@ -391,39 +391,39 @@ class TestDefinition(TestCase):
 	])
 	def test_function(self, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.shared_nodes_by(full_path).as_a(defs.Function)
-		self.assertEqual(type(node), expected['type'])
-		self.assertEqual(node.symbol.tokens, expected['symbol'])
-		self.assertEqual(node.access, expected['access'])
-		self.assertEqual([decorator.path.tokens for decorator in node.decorators], expected['decorators'])
-		self.assertEqual(len(node.parameters), len(expected['parameters']))
+		self.assertEqual(expected['type'], type(node))
+		self.assertEqual(expected['symbol'], node.symbol.tokens)
+		self.assertEqual(expected['access'], node.access)
+		self.assertEqual(expected['decorators'], [decorator.path.tokens for decorator in node.decorators])
+		self.assertEqual(len(expected['parameters']), len(node.parameters))
 		for index, parameter in enumerate(node.parameters):
 			in_expected = expected['parameters'][index]
-			self.assertEqual(parameter.symbol.tokens, in_expected['symbol'])
-			self.assertEqual(parameter.var_type.tokens if not parameter.var_type.is_a(defs.Empty) else 'Empty', in_expected['var_type'])
-			self.assertEqual(parameter.default_value.tokens if not parameter.default_value.is_a(defs.Empty) else 'Empty', in_expected['default_value'])
+			self.assertEqual(in_expected['symbol'], parameter.symbol.tokens)
+			self.assertEqual(in_expected['var_type'], parameter.var_type.tokens if not parameter.var_type.is_a(defs.Empty) else 'Empty')
+			self.assertEqual(in_expected['default_value'], parameter.default_value.tokens if not parameter.default_value.is_a(defs.Empty) else 'Empty')
 
-		self.assertEqual(type(node.return_type), expected['return'])
-		self.assertEqual(type(node.block), defs.Block)
-		self.assertEqual(len(node.decl_vars), len(expected['decl_vars']))
+		self.assertEqual(expected['return'], type(node.return_type))
+		self.assertEqual(defs.Block, type(node.block))
+		self.assertEqual(len(expected['decl_vars']), len(node.decl_vars))
 		for index, decl_var in enumerate(node.decl_vars):
 			in_expected = expected['decl_vars'][index]
-			self.assertEqual(type(decl_var), in_expected['decl_type'])
-			self.assertEqual(decl_var.symbol.tokens, in_expected['symbol'])
+			self.assertEqual(in_expected['decl_type'], type(decl_var))
+			self.assertEqual(in_expected['symbol'], decl_var.symbol.tokens)
 
-		self.assertEqual(node.actual_symbol, expected['actual_symbol'])
+		self.assertEqual(expected['actual_symbol'], node.actual_symbol)
 
 		if isinstance(node, (defs.ClassMethod, defs.Constructor, defs.Method)):
-			self.assertEqual(node.is_abstract, expected['is_abstract'])
-			self.assertEqual(node.class_types.symbol.tokens, expected['class_symbol'])
+			self.assertEqual(expected['is_abstract'], node.is_abstract)
+			self.assertEqual(expected['class_symbol'], node.class_types.symbol.tokens)
 
 		if isinstance(node, defs.Constructor):
-			self.assertEqual([this_var.tokens for this_var in node.this_vars], expected['this_vars'])
+			self.assertEqual(expected['this_vars'], [this_var.tokens for this_var in node.this_vars])
 
 		if isinstance(node, defs.Method):
-			self.assertEqual(node.is_property, expected['is_property'])
+			self.assertEqual(expected['is_property'], node.is_property)
 
 		if isinstance(node, defs.Closure):
-			self.assertEqual(node.binded_this, expected['binded_this'])
+			self.assertEqual(expected['binded_this'], node.binded_this)
 
 	@data_provider([
 		(_ast('Base'), {
@@ -489,15 +489,15 @@ class TestDefinition(TestCase):
 	])
 	def test_class(self, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.shared_nodes_by(full_path).as_a(defs.Class)
-		self.assertEqual(node.symbol.tokens, expected['symbol'])
-		self.assertEqual([decorator.path.tokens for decorator in node.decorators], expected['decorators'])
-		self.assertEqual([inherit.type_name.tokens for inherit in node.inherits], expected['inherits'])
-		self.assertEqual([in_type.type_name.tokens for in_type in node.template_types], expected['template_types'])
-		self.assertEqual(node.constructor_exists, expected['constructor_exists'])
-		self.assertEqual([method.symbol.tokens for method in node.methods], expected['methods'])
-		self.assertEqual([var.tokens for var in node.class_vars], expected['class_vars'])
-		self.assertEqual([var.tokens for var in node.this_vars], expected['this_vars'])
-		self.assertEqual(node.actual_symbol, expected['actual_symbol'])
+		self.assertEqual(expected['symbol'], node.symbol.tokens)
+		self.assertEqual(expected['decorators'], [decorator.path.tokens for decorator in node.decorators])
+		self.assertEqual(expected['inherits'], [inherit.type_name.tokens for inherit in node.inherits])
+		self.assertEqual(expected['template_types'], [in_type.type_name.tokens for in_type in node.template_types])
+		self.assertEqual(expected['constructor_exists'], node.constructor_exists)
+		self.assertEqual(expected['methods'], [method.symbol.tokens for method in node.methods])
+		self.assertEqual(expected['class_vars'], [var.tokens for var in node.class_vars])
+		self.assertEqual(expected['this_vars'], [var.tokens for var in node.this_vars])
+		self.assertEqual(expected['actual_symbol'], node.actual_symbol)
 
 	@data_provider([
 		('class A(Generic[T]): ...', 'file_input.class_def', {'template_types': [defs.VarOfType]}),
@@ -505,7 +505,7 @@ class TestDefinition(TestCase):
 	])
 	def test_class_template_types(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Class)
-		self.assertEqual([type(in_type) for in_type in node.template_types], expected['template_types'])
+		self.assertEqual(expected['template_types'], [type(in_type) for in_type in node.template_types])
 
 	@data_provider([
 		(_ast('Values'), {
@@ -518,15 +518,15 @@ class TestDefinition(TestCase):
 	])
 	def test_enum(self, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.shared_nodes_by(full_path).as_a(defs.Enum)
-		self.assertEqual(node.symbol.tokens, expected['symbol'])
-		self.assertEqual(len(node.vars), len(expected['vars']))
+		self.assertEqual(expected['symbol'], node.symbol.tokens)
+		self.assertEqual(len(expected['vars']), len(node.vars))
 		for index, var in enumerate(node.vars):
 			in_expected = expected['vars'][index]
-			self.assertEqual(var.tokens, in_expected['symbol'])
-			self.assertEqual(var.declare.as_a(defs.MoveAssign).value.tokens, in_expected['value'])
-			self.assertEqual(type(var), defs.DeclLocalVar)
-			self.assertEqual(type(var.declare), defs.MoveAssign)
-			self.assertEqual(type(var.declare.as_a(defs.MoveAssign).value), defs.Integer)
+			self.assertEqual(in_expected['symbol'], var.tokens)
+			self.assertEqual(in_expected['value'], var.declare.as_a(defs.MoveAssign).value.tokens)
+			self.assertEqual(defs.DeclLocalVar, type(var))
+			self.assertEqual(defs.MoveAssign, type(var.declare))
+			self.assertEqual(defs.Integer, type(var.declare.as_a(defs.MoveAssign).value))
 
 	@data_provider([
 		('A: TypeAlias = int', 'file_input.class_assign', {'symbol': 'A', 'actual_type': defs.VarOfType}),
@@ -540,8 +540,8 @@ class TestDefinition(TestCase):
 	])
 	def test_alt_class(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.AltClass)
-		self.assertEqual(node.symbol.tokens, expected['symbol'])
-		self.assertEqual(type(node.actual_type), expected['actual_type'])
+		self.assertEqual(expected['symbol'], node.symbol.tokens)
+		self.assertEqual(expected['actual_type'], type(node.actual_type))
 
 	@data_provider([
 		('A = TypeVar("A")', 'file_input.template_assign', {'symbol': 'A', 'constraints': defs.Empty}),
@@ -550,8 +550,8 @@ class TestDefinition(TestCase):
 	])
 	def test_template_class(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.TemplateClass)
-		self.assertEqual(node.symbol.tokens, expected['symbol'])
-		self.assertEqual(type(node.constraints), expected['constraints'])
+		self.assertEqual(expected['symbol'], node.symbol.tokens)
+		self.assertEqual(expected['constraints'], type(node.constraints))
 
 	# Statement simple
 
@@ -562,10 +562,10 @@ class TestDefinition(TestCase):
 	])
 	def test_anno_assign(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.AnnoAssign)
-		self.assertEqual(node.receiver.tokens, expected['receiver'])
-		self.assertEqual(type(node.receiver), expected['receiver_type'])
-		self.assertEqual(type(node.var_type), expected['var_type'])
-		self.assertEqual(type(node.value), expected['value'])
+		self.assertEqual(expected['receiver'], node.receiver.tokens)
+		self.assertEqual(expected['receiver_type'], type(node.receiver))
+		self.assertEqual(expected['var_type'], type(node.var_type))
+		self.assertEqual(expected['value'], type(node.value))
 
 	@data_provider([
 		('a = {}', 'file_input.assign', {'receivers': ['a'], 'receiver_types': [defs.DeclLocalVar], 'value': defs.Dict}),
@@ -574,9 +574,9 @@ class TestDefinition(TestCase):
 	])
 	def test_move_assign(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.MoveAssign)
-		self.assertEqual([receiver.tokens for receiver in node.receivers], expected['receivers'])
-		self.assertEqual([type(receiver) for receiver in node.receivers], expected['receiver_types'])
-		self.assertEqual(type(node.value), expected['value'])
+		self.assertEqual(expected['receivers'], [receiver.tokens for receiver in node.receivers])
+		self.assertEqual(expected['receiver_types'], [type(receiver) for receiver in node.receivers])
+		self.assertEqual(expected['value'], type(node.value))
 
 	@data_provider([
 		('a += 1', 'file_input.aug_assign', {'receiver': 'a', 'receiver_type': defs.Var, 'operator': '+=', 'value': defs.Integer}),
@@ -585,10 +585,10 @@ class TestDefinition(TestCase):
 	])
 	def test_aug_assign(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.AugAssign)
-		self.assertEqual(node.receiver.tokens, expected['receiver'])
-		self.assertEqual(type(node.receiver), expected['receiver_type'])
-		self.assertEqual(node.operator.tokens, expected['operator'])
-		self.assertEqual(type(node.value), expected['value'])
+		self.assertEqual(expected['receiver'], node.receiver.tokens)
+		self.assertEqual(expected['receiver_type'], type(node.receiver))
+		self.assertEqual(expected['operator'], node.operator.tokens)
+		self.assertEqual(expected['value'], type(node.value))
 
 	@data_provider([
 		('def func() -> int: return 1', 'file_input.function_def.function_def_raw.block.return_stmt', {'return_value': defs.Integer}),
@@ -596,7 +596,7 @@ class TestDefinition(TestCase):
 	])
 	def test_return(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Return)
-		self.assertEqual(type(node.return_value), expected['return_value'])
+		self.assertEqual(expected['return_value'], type(node.return_value))
 
 	@data_provider([
 		('raise Exception()', 'file_input.raise_stmt', {'throws': defs.FuncCall, 'via': defs.Empty}),
@@ -605,15 +605,15 @@ class TestDefinition(TestCase):
 	])
 	def test_throw(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Throw)
-		self.assertEqual(type(node.throws), expected['throws'])
-		self.assertEqual(type(node.via), expected['via'])
+		self.assertEqual(expected['throws'], type(node.throws))
+		self.assertEqual(expected['via'], type(node.via))
 
 	@data_provider([
 		('pass', 'file_input.pass_stmt'),
 		('if True: pass', 'file_input.if_stmt.if_clause.block.pass_stmt'),
 	])
 	def test_pass(self, source: str, full_path: str) -> None:
-		self.assertEqual(type(self.fixture.custom_nodes_by(source, full_path)), defs.Pass)
+		self.assertEqual(defs.Pass, type(self.fixture.custom_nodes_by(source, full_path)))
 
 	@data_provider([
 		('break', 'file_input.break_stmt'),
@@ -621,7 +621,7 @@ class TestDefinition(TestCase):
 		('while True: break', 'file_input.while_stmt.block.break_stmt'),
 	])
 	def test_break(self, source: str, full_path: str) -> None:
-		self.assertEqual(type(self.fixture.custom_nodes_by(source, full_path)), defs.Break)
+		self.assertEqual(defs.Break, type(self.fixture.custom_nodes_by(source, full_path)))
 
 	@data_provider([
 		('continue', 'file_input.continue_stmt'),
@@ -629,7 +629,7 @@ class TestDefinition(TestCase):
 		('while True: continue', 'file_input.while_stmt.block.continue_stmt'),
 	])
 	def test_continue(self, source: str, full_path: str) -> None:
-		self.assertEqual(type(self.fixture.custom_nodes_by(source, full_path)), defs.Continue)
+		self.assertEqual(defs.Continue, type(self.fixture.custom_nodes_by(source, full_path)))
 
 	@data_provider([
 		('# abc', 'file_input.comment_stmt'),
@@ -637,7 +637,7 @@ class TestDefinition(TestCase):
 		('if True:\n\t# abc\n\t...', 'file_input.if_stmt.if_clause.block.comment_stmt'),
 	])
 	def test_comment(self, source: str, full_path: str) -> None:
-		self.assertEqual(type(self.fixture.custom_nodes_by(source, full_path)), defs.Comment)
+		self.assertEqual(defs.Comment, type(self.fixture.custom_nodes_by(source, full_path)))
 
 	@data_provider([
 		('from a.b.c import A, B', 'file_input.import_stmt', {'import_path': 'a.b.c', 'symbols': ['A', 'B']}),
@@ -645,8 +645,8 @@ class TestDefinition(TestCase):
 	])
 	def test_import(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Import)
-		self.assertEqual(node.import_path.tokens, expected['import_path'])
-		self.assertEqual([symbol.tokens for symbol in node.symbols], expected['symbols'])
+		self.assertEqual(expected['import_path'], node.import_path.tokens)
+		self.assertEqual(expected['symbols'], [symbol.tokens for symbol in node.symbols])
 
 	# Primary
 
@@ -655,7 +655,7 @@ class TestDefinition(TestCase):
 	])
 	def test_argument_label(self, source: str, full_path: str, expected: type) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.ArgumentLabel)
-		self.assertEqual(type(node), expected)
+		self.assertEqual(expected, type(node))
 
 	@data_provider([
 		# Local
@@ -680,7 +680,7 @@ class TestDefinition(TestCase):
 	])
 	def test_declable(self, source: str, full_path: str, expected: type) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Declable)
-		self.assertEqual(type(node), expected)
+		self.assertEqual(expected, type(node))
 
 	@data_provider([
 		# Relay
@@ -720,7 +720,7 @@ class TestDefinition(TestCase):
 	])
 	def test_reference(self, source: str, full_path: str, expected: type) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Reference)
-		self.assertEqual(type(node), expected)
+		self.assertEqual(expected, type(node))
 
 	@data_provider([
 		# left(Reference)
@@ -745,8 +745,8 @@ class TestDefinition(TestCase):
 	])
 	def test_relay(self, source: str, full_path: str, expected: type) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Relay)
-		self.assertEqual(type(node.receiver), expected)
-		self.assertEqual(type(node.prop), defs.Var)
+		self.assertEqual(expected, type(node.receiver))
+		self.assertEqual(defs.Var, type(node.prop))
 
 	@data_provider([
 		('a[0]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Var, 'key': '0', 'key_type': defs.Integer}),
@@ -759,10 +759,10 @@ class TestDefinition(TestCase):
 	])
 	def test_indexer(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Indexer)
-		self.assertEqual(node.receiver.tokens, expected['receiver'])
-		self.assertEqual(type(node.receiver), expected['receiver_type'])
-		self.assertEqual(node.key.tokens, expected['key'])
-		self.assertEqual(type(node.key), expected['key_type'])
+		self.assertEqual(expected['receiver'], node.receiver.tokens)
+		self.assertEqual(expected['receiver_type'], type(node.receiver))
+		self.assertEqual(expected['key'], node.key.tokens)
+		self.assertEqual(expected['key_type'], type(node.key))
 
 	@data_provider([
 		('from path.to import A', 'file_input.import_stmt.dotted_name', {'type': defs.ImportPath, 'path': 'path.to'}),
@@ -770,8 +770,8 @@ class TestDefinition(TestCase):
 	])
 	def test_path(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Path)
-		self.assertEqual(type(node), expected['type'])
-		self.assertEqual(node.tokens, expected['path'])
+		self.assertEqual(expected['type'], type(node))
+		self.assertEqual(expected['path'], node.tokens)
 
 	@data_provider([
 		# General
@@ -800,24 +800,24 @@ class TestDefinition(TestCase):
 	])
 	def test_type(self, source: str, full_path: str, expected: type[defs.Type]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Type)
-		self.assertEqual(type(node), expected)
+		self.assertEqual(expected, type(node))
 
 	@data_provider([
 		('a: list[int] = []', 'file_input.anno_assign.typed_getitem', {'type_name': 'list', 'value_type': defs.VarOfType}),
 	])
 	def test_list_type(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.ListType)
-		self.assertEqual(node.type_name.tokens, expected['type_name'])
-		self.assertEqual(type(node.value_type), expected['value_type'])
+		self.assertEqual(expected['type_name'], node.type_name.tokens)
+		self.assertEqual(expected['value_type'], type(node.value_type))
 
 	@data_provider([
 		('a: dict[str, int] = {}', 'file_input.anno_assign.typed_getitem', {'type_name': 'dict', 'key_type': defs.VarOfType, 'value_type': defs.VarOfType}),
 	])
 	def test_dict_type(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.DictType)
-		self.assertEqual(node.type_name.tokens, expected['type_name'])
-		self.assertEqual(type(node.key_type), expected['key_type'])
-		self.assertEqual(type(node.value_type), expected['value_type'])
+		self.assertEqual(expected['type_name'], node.type_name.tokens)
+		self.assertEqual(expected['key_type'], type(node.key_type))
+		self.assertEqual(expected['value_type'], type(node.value_type))
 
 	@data_provider([
 		('a: Callable[[], None] = ...', 'file_input.anno_assign.typed_getitem', {'type_name': 'Callable', 'parameters': [], 'return_type': defs.NullType}),
@@ -829,31 +829,31 @@ class TestDefinition(TestCase):
 	])
 	def test_callable_type(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.CallableType)
-		self.assertEqual(node.type_name.tokens, expected['type_name'])
-		self.assertEqual([type(parameter) for parameter in node.parameters], expected['parameters'])
-		self.assertEqual(type(node.return_type), expected['return_type'])
+		self.assertEqual(expected['type_name'], node.type_name.tokens)
+		self.assertEqual(expected['parameters'], [type(parameter) for parameter in node.parameters])
+		self.assertEqual(expected['return_type'], type(node.return_type))
 
 	@data_provider([
 		('a: A[str, int] = {}', 'file_input.anno_assign.typed_getitem', {'type_name': 'A', 'template_types': [defs.VarOfType, defs.VarOfType]}),
 	])
 	def test_custom_type(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.CustomType)
-		self.assertEqual(node.type_name.tokens, expected['type_name'])
-		self.assertEqual([type(in_type) for in_type in node.template_types], expected['template_types'])
+		self.assertEqual(expected['type_name'], node.type_name.tokens)
+		self.assertEqual(expected['template_types'], [type(in_type) for in_type in node.template_types])
 
 	@data_provider([
 		('a: str | int = {}', 'file_input.anno_assign.typed_or_expr', {'type_name': 'str.int', 'or_types': [defs.VarOfType, defs.VarOfType]}),
 	])
 	def test_union_type(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.UnionType)
-		self.assertEqual(node.type_name.tokens, expected['type_name'])
-		self.assertEqual([type(in_type) for in_type in node.or_types], expected['or_types'])
+		self.assertEqual(expected['type_name'], node.type_name.tokens)
+		self.assertEqual(expected['or_types'], [type(in_type) for in_type in node.or_types])
 
 	@data_provider([
 		('a: None = None', 'file_input.anno_assign.typed_none'),
 	])
 	def test_null_type(self, source: str, full_path: str) -> None:
-		self.assertEqual(type(self.fixture.custom_nodes_by(source, full_path)), defs.NullType)
+		self.assertEqual(defs.NullType, type(self.fixture.custom_nodes_by(source, full_path)))
 
 	@data_provider([
 		('a(b, c)', 'file_input.funccall', {
@@ -869,14 +869,14 @@ class TestDefinition(TestCase):
 	])
 	def test_func_call(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.FuncCall)
-		self.assertEqual(type(node), expected['type'])
-		self.assertEqual(node.calls.tokens, expected['calls']['symbol'])
-		self.assertEqual(type(node.calls), expected['calls']['var_type'])
-		self.assertEqual(len(node.arguments), len(expected['arguments']))
+		self.assertEqual(expected['type'], type(node))
+		self.assertEqual(expected['calls']['symbol'], node.calls.tokens)
+		self.assertEqual(expected['calls']['var_type'], type(node.calls))
+		self.assertEqual(len(expected['arguments']), len(node.arguments))
 		for index, argument in enumerate(node.arguments):
 			in_expected = expected['arguments'][index]
-			self.assertEqual(argument.value.tokens, in_expected['symbol'])
-			self.assertEqual(type(argument.value), in_expected['var_type'])
+			self.assertEqual(in_expected['symbol'], argument.value.tokens)
+			self.assertEqual(in_expected['var_type'], type(argument.value))
 
 	@data_provider([
 		('a(b)', 'file_input.funccall.arguments.argvalue', {'label': 'Empty', 'value': defs.Var}),
@@ -884,15 +884,15 @@ class TestDefinition(TestCase):
 	])
 	def test_argument(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Argument)
-		self.assertEqual(node.label.tokens if not node.label.is_a(defs.Empty) else 'Empty', expected['label'])
-		self.assertEqual(type(node.value), expected['value'])
+		self.assertEqual(expected['label'], node.label.tokens if not node.label.is_a(defs.Empty) else 'Empty')
+		self.assertEqual(expected['value'], type(node.value))
 
 	@data_provider([
 		('class B(A): ...', 'file_input.class_def.class_def_raw.inherit_arguments.typed_argvalue', {'class_type': defs.VarOfType}),
 	])
 	def test_inherit_argument(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.InheritArgument)
-		self.assertEqual(type(node.class_type), expected['class_type'])
+		self.assertEqual(expected['class_type'], type(node.class_type))
 
 	@data_provider([
 		('...', 'file_input.elipsis'),
@@ -901,7 +901,7 @@ class TestDefinition(TestCase):
 		('class A: ...', 'file_input.class_def.class_def_raw.block.elipsis'),
 	])
 	def test_elipsis(self, source: str, full_path: str) -> None:
-		self.assertEqual(type(self.fixture.custom_nodes_by(source, full_path)), defs.Elipsis)
+		self.assertEqual(defs.Elipsis, type(self.fixture.custom_nodes_by(source, full_path)))
 
 	# Operator
 
@@ -913,9 +913,9 @@ class TestDefinition(TestCase):
 	])
 	def test_unary_operator(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.UnaryOperator)
-		self.assertEqual(type(node), expected['type'])
-		self.assertEqual(node.operator.tokens, expected['operator'])
-		self.assertEqual(node.value.tokens, expected['value'])
+		self.assertEqual(expected['type'], type(node))
+		self.assertEqual(expected['operator'], node.operator.tokens)
+		self.assertEqual(expected['value'], node.value.tokens)
 
 	@data_provider([
 		('1 or 2', 'file_input.or_test', {'type': defs.OrCompare, 'elements': ['1', 'or', '2']}),
@@ -945,14 +945,14 @@ class TestDefinition(TestCase):
 	])
 	def test_binary_operator(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.BinaryOperator)
-		self.assertEqual(type(node), expected['type'])
-		self.assertEqual(len(node.elements), len(expected['elements']))
+		self.assertEqual(expected['type'], type(node))
+		self.assertEqual(len(expected['elements']), len(node.elements))
 		for index, element in enumerate(node.elements):
 			in_expected = expected['elements'][index]
 			if type(in_expected) is str:
-				self.assertEqual(element.tokens, in_expected)
+				self.assertEqual(in_expected, element.tokens)
 			else:
-				self.assertEqual(type(element), in_expected)
+				self.assertEqual(in_expected, type(element))
 
 	@data_provider([
 		('a if b else c', 'file_input.tenary_test', {'primary': defs.Var, 'condition': defs.Var, 'secondary': defs.Var}),
@@ -960,9 +960,9 @@ class TestDefinition(TestCase):
 	])
 	def test_tenary_operator(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.TenaryOperator)
-		self.assertEqual(type(node.primary), expected['primary'])
-		self.assertEqual(type(node.condition), expected['condition'])
-		self.assertEqual(type(node.secondary), expected['secondary'])
+		self.assertEqual(expected['primary'], type(node.primary))
+		self.assertEqual(expected['condition'], type(node.condition))
+		self.assertEqual(expected['secondary'], type(node.secondary))
 
 	# Literal
 
@@ -973,8 +973,8 @@ class TestDefinition(TestCase):
 	])
 	def test_number(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Number)
-		self.assertEqual(type(node), expected['type'])
-		self.assertEqual(node.tokens, expected['value'])
+		self.assertEqual(expected['type'], type(node))
+		self.assertEqual(expected['value'], node.tokens)
 
 	@data_provider([
 		("'abcd'", 'file_input.string', {'type': defs.String, 'value': "'abcd'"}),
@@ -982,39 +982,39 @@ class TestDefinition(TestCase):
 	])
 	def test_string(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.String)
-		self.assertEqual(type(node), expected['type'])
-		self.assertEqual(node.tokens, expected['value'])
+		self.assertEqual(expected['type'], type(node))
+		self.assertEqual(expected['value'], node.tokens)
 
 	@data_provider([
 		('True', 'file_input.const_true', defs.Truthy),
 		('False', 'file_input.const_false', defs.Falsy),
 	])
 	def test_boolean(self, source: str, full_path: str, expected: type) -> None:
-		self.assertEqual(type(self.fixture.custom_nodes_by(source, full_path)), expected)
+		self.assertEqual(expected, type(self.fixture.custom_nodes_by(source, full_path)))
 
 	@data_provider([
 		('a = [0, 1]', 'file_input.assign.list', [{'value': '0', 'value_type': defs.Integer}, {'value': '1', 'value_type': defs.Integer}]),
 	])
 	def test_list(self, source: str, full_path: str, expected: list[dict[str, Any]]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.List)
-		self.assertEqual(len(node.values), len(expected))
+		self.assertEqual(len(expected), len(node.values))
 		for index, value in enumerate(node.values):
-			self.assertEqual(value.tokens, expected[index]['value'])
-			self.assertEqual(type(value), expected[index]['value_type'])
+			self.assertEqual(expected[index]['value'], value.tokens)
+			self.assertEqual(expected[index]['value_type'], type(value))
 
 	@data_provider([
 		('a = {"b": 0, "c": 1}', 'file_input.assign.dict', [{'key': '"b"', 'value': '0', 'value_type': defs.Integer}, {'key': '"c"', 'value': '1', 'value_type': defs.Integer}]),
 	])
 	def test_dict(self, source: str, full_path: str, expected: list[dict[str, Any]]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Dict)
-		self.assertEqual(len(node.items), len(expected))
+		self.assertEqual(len(expected), len(node.items))
 		for index, item in enumerate(node.items):
-			self.assertEqual(item.first.tokens, expected[index]['key'])
-			self.assertEqual(item.second.tokens, expected[index]['value'])
-			self.assertEqual(type(item.second), expected[index]['value_type'])
+			self.assertEqual(expected[index]['key'], item.first.tokens)
+			self.assertEqual(expected[index]['value'], item.second.tokens)
+			self.assertEqual(expected[index]['value_type'], type(item.second))
 
 	@data_provider([
 		('None', 'file_input.const_none'),
 	])
 	def test_null(self, source: str, full_path: str) -> None:
-		self.assertEqual(type(self.fixture.custom_nodes_by(source, full_path)), defs.Null)
+		self.assertEqual(defs.Null, type(self.fixture.custom_nodes_by(source, full_path)))

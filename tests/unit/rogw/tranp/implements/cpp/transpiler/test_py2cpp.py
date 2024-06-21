@@ -267,7 +267,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('EnumOps.cast.block', 'assign[0]'), defs.MoveAssign, 'EnumOps::Values e = (EnumOps::Values)(0);'),
 		(_ast('EnumOps.cast.block', 'assign[1]'), defs.MoveAssign, 'int n = (int)(EnumOps::Values::A);'),
 
-		(_ast('AccessOps.__init__', ''), defs.Constructor, 'public:\n/** Constructor */\nAccessOps() : Sub(0), sub_s("") {\n}'),
+		(_ast('AccessOps.__init__', ''), defs.Constructor, 'public:\n/** __init__ */\nAccessOps() : Sub(0), sub_s("") {\n}'),
 
 		(_ast('AccessOps.dot.block', 'funccall[0].arguments.argvalue'), defs.Argument, 'a.base_n'),
 		(_ast('AccessOps.dot.block', 'funccall[1].arguments.argvalue'), defs.Argument, 'a.sub_s'),
@@ -296,7 +296,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('AccessOps.indexer.block', 'funccall[2].arguments.argvalue'), defs.Argument, 'arr_ar[0]'),
 
 		(_ast('Alias.Inner', ''), defs.Class, '/** Inner2 */\nclass Inner2 {\n\n};'),
-		(_ast('Alias.__init__', ''), defs.Constructor, 'public:\n/** Constructor */\nAlias2() : inner(Alias2::Inner2()) {\n}'),
+		(_ast('Alias.__init__', ''), defs.Constructor, 'public:\n/** __init__ */\nAlias2() : inner(Alias2::Inner2()) {\n}'),
 		(_ast('Alias.in_param_return', ''), defs.Method, 'public:\n/** in_param_return */\nAlias2 in_param_return(Alias2 a) {\n\n}'),
 		(_ast('Alias.in_param_return2', ''), defs.Method, 'public:\n/** in_param_return2 */\nAlias2::Inner2 in_param_return2(Alias2::Inner2 i) {\n\n}'),
 		(_ast('Alias.in_local.block', 'assign[0]'), defs.MoveAssign, 'Alias2 a = Alias2();'),
@@ -351,7 +351,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('Nullable.var_move.block', 'if_stmt.if_clause.block.return_stmt'), defs.Return, 'return *(p);'),
 
 		(_ast('Template.T2Class', ''), defs.Class, '/** T2Class */\ntemplate<typename T2>\nclass T2Class {\n\n};'),
-		(_ast('Template.__init__', ''), defs.Constructor, 'public:\n/** Constructor */\nTemplate(T v) {\n\n}'),
+		(_ast('Template.__init__', ''), defs.Constructor, 'public:\n/** __init__ */\nTemplate(T v) {\n\n}'),
 		(_ast('Template.class_method_t', ''), defs.ClassMethod, 'public:\n/** class_method_t */\ntemplate<typename T2>\nstatic T2 class_method_t(T2 v2) {\n\n}'),
 		(_ast('Template.class_method_t_and_class_t', ''), defs.ClassMethod, 'public:\n/** class_method_t_and_class_t */\ntemplate<typename T2>\nstatic T2 class_method_t_and_class_t(T v, T2 v2) {\n\n}'),
 		(_ast('Template.method_t', ''), defs.Method, 'public:\n/** method_t */\ntemplate<typename T2>\nT2 method_t(T2 v2) {\n\n}'),
@@ -360,7 +360,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('GenericOps.temporal.block', 'assign'), defs.MoveAssign, 'T a = value;'),
 		(_ast('GenericOps.new.block', 'assign'), defs.MoveAssign, 'GenericOps<int> a = GenericOps<int>();'),
 
-		(_ast('Struct', ''), defs.Class, '/** Struct */\nstruct Struct {\n\tpublic:\n\t/** @var A */\n\tint a;\n\tpublic:\n\t/** @var B */\n\tstd::string b;\n\tpublic:\n\t/** Constructor */\n\tStruct(int a, std::string b) : a(a), b(b) {\n\t}\n};'),
+		(_ast('Struct', ''), defs.Class, '/** Struct */\nstruct Struct {\n\tpublic: int a;\n\tpublic: std::string b;\n\tpublic:\n\t/** __init__ */\n\tStruct(int a, std::string b) : a(a), b(b) {\n\t}\n};'),
 
 		(_ast('template_func', ''), defs.Function, '/** template_func */\ntemplate<typename T>\nT template_func(T v) {\n\n}'),
 	])

@@ -1,9 +1,0 @@
-{%- set _decorators = decorators | select('!=', '') | join('\n') %}
-{%- set _joined_temp = template_types | join('>\ntemplate<typename ') %}
-{%- set _template_types = 'template<typename ' + _joined_temp + '>' if template_types else '' %}
-{%- if _template_types %}
-{{ _template_types }}
-{%- endif %}
-{%- if _decorators %}
-{{ _decorators }}
-{%- endif %}

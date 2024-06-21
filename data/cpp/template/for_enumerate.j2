@@ -1,7 +1,0 @@
-for (auto& {% if symbols | length > 1 %}[{{ symbols | join(', ') }}]{% else %}{{ symbols[0] }}{% endif %} : {% include 'for_enumerate_iterates.j2' %}) {
-{%- filter indent('\t') %}
-{%- for statement in statements %}
-{{ statement }}
-{%- endfor %}
-{%- endfilter %}
-}

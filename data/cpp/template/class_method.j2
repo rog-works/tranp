@@ -1,7 +1,0 @@
-{{ access }}:
-{% if comment %}{{ comment }}{% else %}/** {{ symbol }} */{% endif %}
-{%- set _decorators = decorators | select('!=', '') | join('\n') %}
-{%- if _decorators or template_types %}
-{%- include('function_attributes.j2') %}
-{%- endif %}
-static {{ return_type }} {{ symbol }}({{ parameters | select('!=', 'cls') | join(', ') }}) {% include('function_block.j2') -%}

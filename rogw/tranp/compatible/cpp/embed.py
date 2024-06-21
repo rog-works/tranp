@@ -41,22 +41,22 @@ def __struct__(wrapped: T) -> T:
 	return wrapped
 
 
-def __prop_meta__(name: str, meta: Any) -> Callable:
-	"""クラスにプロパティのメタ情報を埋め込む
+def __embed__(key: str, meta: Any) -> Callable:
+	"""メタ情報を埋め込む
 
 	Args:
-		name (str): プロパティ名
+		key (str): キー
 		meta (Any): メタ情報
 	Returns:
 		Callable: デコレーター
 	Examples:
 		```python
-		@__prop_embed__('prop_a', '/** @var A */')
-		@__prop_embed__('prop_b', '/** @var B */')
+		@__embed__('prop.a', '/** @var A */')
+		@__embed__('prop.b', '/** @var B */')
 		class A:
 			def __init__(self, a: int, b: str) -> None:
-				self.prop_a: int = a
-				self.prop_b: str = b
+				self.a: int = a
+				self.b: str = b
 		```
 	"""
 	def decorator(wrapped: T) -> T:

@@ -1,7 +1,7 @@
 import re
 from typing import cast
 
-from rogw.tranp.compatible.cpp.embed import __allow_override__, __prop_meta__, __struct__
+from rogw.tranp.compatible.cpp.embed import __allow_override__, __embed__, __struct__
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.data.meta.header import MetaHeader
@@ -186,7 +186,7 @@ class Py2Cpp(ITranspiler):
 		Note:
 			C++ではClassMethodの仮想関数はないので非対応
 		"""
-		return len([decorator for decorator in method.decorators if decorator.path.tokens == '__allow_override__']) > 0
+		return len([decorator for decorator in method.decorators if decorator.path.tokens == __allow_override__.__name__]) > 0
 
 	def allow_decorators(self, decorators: list[str], deny_ignores: list[str] = []) -> list[str]:
 		"""トランスパイル済みのデコレーターリストから出力対象のみ抽出
@@ -197,7 +197,7 @@ class Py2Cpp(ITranspiler):
 		Returns:
 			list[str]: 出力対象のデコレーターリスト
 		"""
-		ignore_names = ['classmethod', 'abstractmethod', __allow_override__.__name__, __prop_meta__.__name__, __struct__.__name__]
+		ignore_names = ['classmethod', 'abstractmethod', __allow_override__.__name__, __embed__.__name__, __struct__.__name__]
 		ignore_names = [name for name in ignore_names if name not in deny_ignores]
 		return [decorator for decorator in decorators if decorator.split('(')[0] not in ignore_names]
 
@@ -236,20 +236,20 @@ class Py2Cpp(ITranspiler):
 			# FIXME is_const/is_addr_pの対応に一貫性が無い。包括的な対応を検討
 			is_const = CVars.is_const(CVars.key_from(self.reflections, for_in_symbol))
 			is_addr_p = CVars.is_addr_p(CVars.key_from(self.reflections, for_in_symbol))
-			return self.view.render(node.classification, vars={'symbols': symbols, 'iterates': for_in, 'statements': statements, 'is_const': is_const, 'is_addr_p': is_addr_p})
+			return self.view.render(f'{node.classification}/default', vars={'symbols': symbols, 'iterates': for_in, 'statements': statements, 'is_const': is_const, 'is_addr_p': is_addr_p})
 
 	def proc_for_range(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		last_index = cast(re.Match, re.fullmatch(r'\w+\((.+)\)', for_in))[1]  # 期待値: 'range(arguments...)'
-		return self.view.render(f'{node.classification}_range', vars={'symbol': symbols[0], 'last_index': last_index, 'statements': statements})
+		return self.view.render(f'{node.classification}/range', vars={'symbol': symbols[0], 'last_index': last_index, 'statements': statements})
 
 	def proc_for_enumerate(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		iterates = cast(re.Match, re.fullmatch(r'\w+\((.+)\)', for_in))[1]  # 期待値: 'enumerate(arguments...)'
 		var_type = self.to_accessible_name(self.reflections.type_of(node.for_in).attrs[1])
-		return self.view.render(f'{node.classification}_enumerate', vars={'symbols': symbols, 'iterates': iterates, 'statements': statements, 'var_type': var_type})
+		return self.view.render(f'{node.classification}/enumerate', vars={'symbols': symbols, 'iterates': iterates, 'statements': statements, 'var_type': var_type})
 
 	def proc_for_dict_items(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		iterates = cast(re.Match, re.fullmatch(r'(.+)\.\w+\(\)', for_in))[1]  # 期待値: 'iterates.items()'
-		return self.view.render(f'{node.classification}_dict_items', vars={'symbols': symbols, 'iterates': iterates, 'statements': statements})
+		return self.view.render(f'{node.classification}/dict_items', vars={'symbols': symbols, 'iterates': iterates, 'statements': statements})
 
 	def on_catch(self, node: defs.Catch, var_type: str, symbol: str, statements: list[str]) -> str:
 		return self.view.render(node.classification, vars={'var_type': var_type, 'symbol': symbol, 'statements': statements})
@@ -269,35 +269,35 @@ class Py2Cpp(ITranspiler):
 
 		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Relay) and node.iterates.calls.prop.tokens == dict.items.__name__:
 			iterates = cast(re.Match, re.fullmatch(r'(.+)\.\w+\(\)', for_in))[1]  # 期待値: 'iterates.items()'
-			return self.view.render(node.classification, vars={'symbols': symbols, 'iterates': iterates, 'is_const': is_const, 'is_addr_p': is_addr_p})
+			return self.view.render(f'comp/{node.classification}', vars={'symbols': symbols, 'iterates': iterates, 'is_const': is_const, 'is_addr_p': is_addr_p})
 		else:
-			return self.view.render(node.classification, vars={'symbols': symbols, 'iterates': for_in, 'is_const': is_const, 'is_addr_p': is_addr_p})
+			return self.view.render(f'comp/{node.classification}', vars={'symbols': symbols, 'iterates': for_in, 'is_const': is_const, 'is_addr_p': is_addr_p})
 
 	def on_list_comp(self, node: defs.ListComp, projection: str, fors: list[str], condition: str) -> str:
 		projection_type_raw = self.reflections.type_of(node.projection)
 		projection_type = self.to_accessible_name(projection_type_raw)
 		comp_vars = {'projection': projection, 'comp_for': fors[0], 'condition': condition, 'projection_types': [projection_type], 'binded_this': node.binded_this}
-		return self.view.render(node.classification, vars=comp_vars)
+		return self.view.render(f'comp/{node.classification}', vars=comp_vars)
 
 	def on_dict_comp(self, node: defs.DictComp, projection: str, fors: list[str], condition: str) -> str:
 		projection_type_raw = self.reflections.type_of(node.projection)
 		projection_type_key = self.to_accessible_name(projection_type_raw.attrs[0])
 		projection_type_value = self.to_accessible_name(projection_type_raw.attrs[1])
 		comp_vars = {'projection': projection, 'comp_for': fors[0], 'condition': condition, 'projection_types': [projection_type_key, projection_type_value], 'binded_this': node.binded_this}
-		return self.view.render(node.classification, vars=comp_vars)
+		return self.view.render(f'comp/{node.classification}', vars=comp_vars)
 
 	def on_function(self, node: defs.Function, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		decorators = self.allow_decorators(decorators)
 		template_types = self.unpack_function_template_types(node)
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types}
-		return self.view.render(node.classification, vars=function_vars)
+		return self.view.render(f'function/{node.classification}', vars=function_vars)
 
 	def on_class_method(self, node: defs.ClassMethod, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		decorators = self.allow_decorators(decorators)
 		template_types = self.unpack_function_template_types(node)
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types}
 		method_vars = {'access': node.access, 'is_abstract': node.is_abstract, 'class_symbol': node.class_types.symbol.tokens}
-		return self.view.render(node.classification, vars={**function_vars, **method_vars})
+		return self.view.render(f'function/{node.classification}', vars={**function_vars, **method_vars})
 
 	def on_constructor(self, node: defs.Constructor, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		this_vars = node.this_vars
@@ -336,39 +336,36 @@ class Py2Cpp(ITranspiler):
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': normal_statements, 'template_types': template_types}
 		method_vars = {'access': node.access, 'is_abstract': node.is_abstract, 'class_symbol': class_name, 'allow_override': self.allow_override_from_method(node)}
 		constructor_vars = {'initializers': initializers, 'super_initializer': super_initializer}
-		return self.view.render(node.classification, vars={**function_vars, **method_vars, **constructor_vars})
+		return self.view.render(f'function/{node.classification}', vars={**function_vars, **method_vars, **constructor_vars})
 
 	def on_method(self, node: defs.Method, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		decorators = self.allow_decorators(decorators)
 		template_types = self.unpack_function_template_types(node)
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types}
 		method_vars = {'access': node.access, 'is_abstract': node.is_abstract, 'class_symbol': node.class_types.symbol.tokens, 'allow_override': self.allow_override_from_method(node)}
-		return self.view.render(node.classification, vars={**function_vars, **method_vars})
+		return self.view.render(f'function/{node.classification}', vars={**function_vars, **method_vars})
 
 	def on_closure(self, node: defs.Closure, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		"""Note: closureでtemplate_typesは不要なので対応しない"""
 		decorators = self.allow_decorators(decorators)
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'statements': statements}
 		closure_vars = {'binded_this': node.binded_this}
-		return self.view.render(node.classification, vars={**function_vars, **closure_vars})
+		return self.view.render(f'function/{node.classification}', vars={**function_vars, **closure_vars})
 
 	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], template_types: list[str], comment: str, statements: list[str]) -> str:
 		# XXX メンバー変数の埋め込み情報を取得
-		embed_this_var_vars: dict[str, str] = {}
-		for index, decorator in enumerate(node.decorators):
-			if decorator.path.tokens != __prop_meta__.__name__:
-				continue
+		embed_vars: dict[str, str] = {}
+		for decorator in decorators:
+				if not decorator.startswith(__embed__.__name__):
+						continue
 
-			# XXX __prop_meta__のシグネチャーに依存したマッチ式
-			matches = re.fullmatch(r'[^(]+\(([^,]+),\s+(.+)\)', decorators[index])
-			if not matches:
-				continue
+				# XXX __embed__のシグネチャーに依存したマッチ式
+				matches = re.fullmatch(r'[^(]+\(([^,]+),\s+(.+)\)', decorator)
+				if not matches:
+						continue
 
-			org_name, org_meta = matches[1], matches[2]
-			# XXX 文字列の引用符を削除。気が利きすぎている懸念があるので検討
-			name = org_name[1:-1]
-			meta = org_meta[1:-1] if re.fullmatch('".+"', org_meta) else org_meta
-			embed_this_var_vars[name] = meta
+				key, meta = matches[1][1:-1], matches[2]
+				embed_vars[key] = meta
 
 		# XXX 構造体の判定
 		is_struct = len([decorator for decorator in decorators if decorator.startswith(__struct__.__name__)])
@@ -387,18 +384,18 @@ class Py2Cpp(ITranspiler):
 		for index, class_var in enumerate(node.class_vars):
 			class_var_name = class_var.tokens
 			class_var_vars = {'access': defs.to_access(class_var_name), 'decl_class_var': decl_class_var_statements[index]}
-			vars.append(self.view.render('class_decl_class_var', vars=class_var_vars))
+			vars.append(self.view.render(f'{node.classification}/_decl_class_var', vars=class_var_vars))
 
 		for this_var in node.this_vars:
 			this_var_name = this_var.tokens_without_this
 			var_type_raw = self.reflections.type_of(this_var.declare.as_a(defs.AnnoAssign).var_type)
 			var_type = self.to_domain_name(var_type_raw)
-			this_var_vars = {'access': defs.to_access(this_var_name), 'symbol': this_var_name, 'var_type': var_type, 'embed_meta': embed_this_var_vars.get(this_var_name)}
-			vars.append(self.view.render('class_decl_this_var', vars=this_var_vars))
+			this_var_vars = {'access': defs.to_access(this_var_name), 'symbol': this_var_name, 'var_type': var_type, 'embed_vars': embed_vars}
+			vars.append(self.view.render(f'{node.classification}/_decl_this_var', vars=this_var_vars))
 
 		decorators = self.allow_decorators(decorators)
-		class_vars = {'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'template_types': template_types, 'comment': comment, 'statements': other_statements, 'vars': vars, 'is_struct': is_struct}
-		return self.view.render(node.classification, vars=class_vars)
+		class_vars = {'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'template_types': template_types, 'comment': comment, 'statements': other_statements, 'vars': vars, 'is_struct': is_struct, 'embed_vars': embed_vars}
+		return self.view.render(f'{node.classification}/default', vars=class_vars)
 
 	def on_enum(self, node: defs.Enum, symbol: str, decorators: list[str], inherits: list[str], template_types: list[str], comment: str, statements: list[str]) -> str:
 		add_vars = {}
@@ -432,16 +429,16 @@ class Py2Cpp(ITranspiler):
 		declared = receiver_raw.decl.declare == node
 		var_type = self.to_accessible_name(value_raw)
 		receiver_is_dict = isinstance(node.receivers[0], defs.Indexer) and self.reflections.is_a(self.reflections.type_of(node.receivers[0].receiver), dict)
-		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': value, 'declared': declared, 'receiver_is_dict': receiver_is_dict})
+		return self.view.render(f'assign/{node.classification}', vars={'receiver': receiver, 'var_type': var_type, 'value': value, 'declared': declared, 'receiver_is_dict': receiver_is_dict})
 
 	def proc_move_assign_unpack(self, node: defs.MoveAssign, receivers: list[str], value: str) -> str:
-		return self.view.render(f'{node.classification}_unpack', vars={'receivers': receivers, 'value': value})
+		return self.view.render(f'assign/{node.classification}_unpack', vars={'receivers': receivers, 'value': value})
 
 	def on_anno_assign(self, node: defs.AnnoAssign, receiver: str, var_type: str, value: str) -> str:
-		return self.view.render(node.classification, vars={'receiver': receiver, 'var_type': var_type, 'value': value})
+		return self.view.render(f'assign/{node.classification}', vars={'receiver': receiver, 'var_type': var_type, 'value': value})
 
 	def on_aug_assign(self, node: defs.AugAssign, receiver: str, operator: str, value: str) -> str:
-		return self.view.render(node.classification, vars={'receiver': receiver, 'operator': operator, 'value': value})
+		return self.view.render(f'assign/{node.classification}', vars={'receiver': receiver, 'operator': operator, 'value': value})
 
 	def on_return(self, node: defs.Return, return_value: str) -> str:
 		return self.view.render(node.classification, vars={'return_value': return_value})
@@ -508,13 +505,13 @@ class Py2Cpp(ITranspiler):
 		relay_vars = {'receiver': receiver, 'accessor': accessor, 'prop': prop}
 		if spec == 'cvar_relay':
 			cvar_receiver = re.sub(rf'(->|::|\.){CVars.relay_key}$', '', receiver)
-			return self.view.render(node.classification, vars={**relay_vars, 'receiver': cvar_receiver})
+			return self.view.render(f'{node.classification}/default', vars={**relay_vars, 'receiver': cvar_receiver})
 		elif spec.startswith('cvar_to_'):
 			cvar_receiver = re.sub(rf'(->|::|\.)({"|".join(CVars.exchanger_keys)})$', '', receiver)
 			move = spec.split('cvar_to_')[1]
-			return self.view.render(f'{node.classification}_cvar_to', vars={**relay_vars, 'receiver': cvar_receiver, 'move': move})
+			return self.view.render(f'{node.classification}/cvar_to', vars={**relay_vars, 'receiver': cvar_receiver, 'move': move})
 		else:
-			return self.view.render(node.classification, vars=relay_vars)
+			return self.view.render(f'{node.classification}/default', vars=relay_vars)
 
 	def analyze_relay_access_spec(self, node: defs.Relay, receiver_symbol: IReflection) -> tuple[str, str]:
 		def is_this_access() -> bool:
@@ -568,15 +565,15 @@ class Py2Cpp(ITranspiler):
 		spec, context = self.analyze_indexer_spec(node)
 		if spec == 'cvar_relay':
 			cvar_receiver = re.sub(rf'(->|::|\.){CVars.relay_key}$', '', receiver)
-			return self.view.render(node.classification, vars={'receiver': cvar_receiver, 'key': key})
+			return self.view.render(f'{node.classification}/default', vars={'receiver': cvar_receiver, 'key': key})
 		elif spec == 'cvar':
 			var_type = self.to_domain_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}_{spec}', vars={'var_type': var_type})
+			return self.view.render(f'{node.classification}/{spec}', vars={'var_type': var_type})
 		elif spec == 'class':
 			var_type = self.to_domain_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}_{spec}', vars={'var_type': var_type})
+			return self.view.render(f'{node.classification}/{spec}', vars={'var_type': var_type})
 		else:
-			return self.view.render(node.classification, vars={'receiver': receiver, 'key': key})
+			return self.view.render(f'{node.classification}/default', vars={'receiver': receiver, 'key': key})
 
 	def analyze_indexer_spec(self, node: defs.Indexer) -> tuple[str, IReflection | None]:
 		def is_on_cvar_relay() -> bool:
@@ -655,63 +652,63 @@ class Py2Cpp(ITranspiler):
 		spec, context = self.analyze_func_call_spec(node)
 		func_call_vars = {'calls': calls, 'arguments': arguments, 'is_statement': is_statement}
 		if spec == 'c_pragma':
-			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
+			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == 'c_include':
-			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
+			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == 'c_macro':
-			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
+			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == 'len':
-			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
+			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == 'print':
 			# XXX 愚直に対応すると実引数の型推論のコストが高く、その割に出力メッセージの柔軟性が下がりメリットが薄いため、関数名の置き換えのみを行う簡易的な対応とする
-			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
+			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == 'cast':
-			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
+			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == 'cast_list':
-			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
+			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == 'cast_bin_to_bin':
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'var_type': var_type})
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
 		elif spec == 'cast_str_to_bin':
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'var_type': var_type})
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
 		elif spec == 'cast_bin_to_str':
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'var_type': var_type})
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
 		elif spec == 'list_pop':
 			receiver = re.sub(r'(->|::|\.)\w+$', '', calls)  # 期待値: 'receiver.pop'
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
 		elif spec == 'dict_pop':
 			receiver = re.sub(r'(->|::|\.)\w+$', '', calls)  # 期待値: 'receiver.pop'
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
 		elif spec == 'dict_keys':
 			receiver = re.sub(r'(->|::|\.)\w+$', '', calls)  # 期待値: 'receiver.keys'
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
 		elif spec == 'dict_values':
 			receiver = re.sub(r'(->|::|\.)\w+$', '', calls)  # 期待値: 'receiver.values'
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
 		elif spec == 'cast_enum':
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}_cast_bin_to_bin', vars={**func_call_vars, 'var_type': var_type})
+			return self.view.render(f'{node.classification}/cast_bin_to_bin', vars={**func_call_vars, 'var_type': var_type})
 		elif spec.startswith('to_cvar_'):
 			cvar_type = spec.split('to_cvar_')[1]
-			return self.view.render(f'{node.classification}_to_cvar', vars={**func_call_vars, 'cvar_type': cvar_type})
+			return self.view.render(f'{node.classification}/to_cvar', vars={**func_call_vars, 'cvar_type': cvar_type})
 		elif spec == 'new_cvar_p':
-			return self.view.render(f'{node.classification}_{spec}', vars=func_call_vars)
+			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == 'new_cvar_sp_list':
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			initializer = arguments[0]
-			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'var_type': var_type, 'initializer': initializer})
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type, 'initializer': initializer})
 		elif spec == 'new_cvar_sp':
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			initializer = cast(re.Match, re.fullmatch(r'[^(]+\(([^)]+)\)', arguments[0]))[1]
-			return self.view.render(f'{node.classification}_{spec}', vars={**func_call_vars, 'var_type': var_type, 'initializer': initializer})
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type, 'initializer': initializer})
 		else:
-			return self.view.render(node.classification, vars=func_call_vars)
+			return self.view.render(f'{node.classification}/default', vars=func_call_vars)
 
 	def analyze_func_call_spec(self, node: defs.FuncCall) -> tuple[str, IReflection | None]:
 		"""
@@ -846,7 +843,7 @@ class Py2Cpp(ITranspiler):
 	def proc_binary_operator_fill_list(self, node: defs.BinaryOperator, default_raw: IReflection, size_raw: IReflection, default: str, size: str) -> str:
 		value_type = self.to_accessible_name(default_raw.attrs[0])
 		# 必ず要素1の配列のリテラルになるので、defaultの前後の括弧を除外する FIXME 現状仕様を前提にした処理なので妥当性が低い
-		return self.view.render('binary_operator_fill_list', vars={'value_type': value_type, 'default': default[1:-1], 'size': size})
+		return self.view.render('binary_operator/fill_list', vars={'value_type': value_type, 'default': default[1:-1], 'size': size})
 
 	def proc_binary_operator_expression(self, node: defs.BinaryOperator, left_raw: IReflection, right_raws: list[IReflection], left: str, operators: list[str], rights: list[str]) -> str:
 		primary = left
@@ -854,9 +851,9 @@ class Py2Cpp(ITranspiler):
 			operator = operators[index]
 			secondary = rights[index]
 			if operator in ['in', 'not.in']:
-				primary = self.view.render('binary_operator_in', vars={'left': primary, 'operator': operator, 'right': secondary, 'right_is_dict': self.reflections.is_a(right_raw, dict)})
+				primary = self.view.render('binary_operator/in', vars={'left': primary, 'operator': operator, 'right': secondary, 'right_is_dict': self.reflections.is_a(right_raw, dict)})
 			else:
-				primary = self.view.render('binary_operator', vars={'left': primary, 'operator': operator, 'right': secondary, 'right_is_dict': self.reflections.is_a(right_raw, dict)})
+				primary = self.view.render('binary_operator/default', vars={'left': primary, 'operator': operator, 'right': secondary, 'right_is_dict': self.reflections.is_a(right_raw, dict)})
 
 		return primary
 

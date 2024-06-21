@@ -186,7 +186,7 @@ class Py2Cpp(ITranspiler):
 		Note:
 			C++ではClassMethodの仮想関数はないので非対応
 		"""
-		return len([decorator for decorator in method.decorators if decorator.path.tokens == '__allow_override__']) > 0
+		return len([decorator for decorator in method.decorators if decorator.path.tokens == __allow_override__.__name__]) > 0
 
 	def allow_decorators(self, decorators: list[str], deny_ignores: list[str] = []) -> list[str]:
 		"""トランスパイル済みのデコレーターリストから出力対象のみ抽出

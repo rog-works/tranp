@@ -75,5 +75,5 @@ class TestSequence(TestCase):
 
 		path, value = test_values
 		update(new_entries, path, value)
-		self.assertNotEqual(entries, new_entries)
+		self.assertNotEqual(new_entries, entries)
 		self.assertEqual(value, expand(new_entries)[path])

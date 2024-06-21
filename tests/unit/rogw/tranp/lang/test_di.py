@@ -53,7 +53,7 @@ class TestDI(TestCase):
 		di.rebind(A, B)
 		self.assertEqual(True, di.can_resolve(A))
 		self.assertEqual(False, di.can_resolve(B))
-		self.assertNotEqual(type(di.resolve(A)), A)
+		self.assertNotEqual(A, type(di.resolve(A)))
 		self.assertEqual(B, type(di.resolve(A)))
 
 	def test_resolve(self) -> None:
@@ -96,16 +96,16 @@ class TestDI(TestCase):
 		self.assertEqual(Y, type(combined_before.resolve(Y)))
 
 		# シンボル解決前に合成した場合、一致しないことを確認
-		self.assertNotEqual(di1.resolve(A), combined_before.resolve(A))
-		self.assertNotEqual(di1.resolve(X), combined_before.resolve(X))
-		self.assertNotEqual(di2.resolve(A), combined_before.resolve(A))
-		self.assertNotEqual(di2.resolve(Y), combined_before.resolve(Y))
+		self.assertNotEqual(combined_before.resolve(A), di1.resolve(A))
+		self.assertNotEqual(combined_before.resolve(X), di1.resolve(X))
+		self.assertNotEqual(combined_before.resolve(A), di2.resolve(A))
+		self.assertNotEqual(combined_before.resolve(Y), di2.resolve(Y))
 
 		# シンボル解決後に合成した場合、合成元と一致することを確認
 		# 同じシンボルはdi2で上書きされることを確認
 		combined_after = di1.combine(di2)
-		self.assertNotEqual(di1.resolve(A), combined_after.resolve(A))
-		self.assertNotEqual(di1.resolve(X), combined_after.resolve(X))
+		self.assertNotEqual(combined_after.resolve(A), di1.resolve(A))
+		self.assertNotEqual(combined_after.resolve(X), di1.resolve(X))
 		self.assertEqual(combined_after.resolve(A), di2.resolve(A))
 		self.assertEqual(combined_after.resolve(X), di2.resolve(X))
 		self.assertEqual(combined_after.resolve(Y), di2.resolve(Y))
@@ -114,8 +114,8 @@ class TestDI(TestCase):
 		combined_after.rebind(A, B)
 		self.assertEqual(A, type(di1.resolve(A)))
 		self.assertEqual(A, type(di2.resolve(A)))
-		self.assertNotEqual(di1.resolve(A), combined_after.resolve(A))
-		self.assertNotEqual(di2.resolve(A), combined_after.resolve(A))
+		self.assertNotEqual(combined_after.resolve(A), di1.resolve(A))
+		self.assertNotEqual(combined_after.resolve(A), di2.resolve(A))
 
 		# combineにより誤ってオリジナルのDIが影響を受けないか確認
 		with self.assertRaises(ValueError):

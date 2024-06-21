@@ -672,6 +672,9 @@ class Py2Cpp(ITranspiler):
 		elif spec == 'cast_str_to_bin':
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
+		elif spec == 'cast_str_to_str':
+			var_type = self.to_accessible_name(cast(IReflection, context))
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
 		elif spec == 'cast_bin_to_str':
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
@@ -736,7 +739,9 @@ class Py2Cpp(ITranspiler):
 				from_raw = self.reflections.type_of(node.arguments[0])
 				to_type = casted_types[calls]
 				to_raw = self.reflections.type_of_standard(to_type)
-				if self.reflections.is_a(from_raw, str):
+				if self.reflections.is_a(from_raw, str) and self.reflections.is_a(to_raw, str):
+					return 'cast_str_to_str', to_raw
+				elif self.reflections.is_a(from_raw, str):
 					return 'cast_str_to_bin', to_raw
 				elif to_type == str:
 					return 'cast_bin_to_str', from_raw

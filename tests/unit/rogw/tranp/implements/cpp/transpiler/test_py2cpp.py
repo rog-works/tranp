@@ -338,6 +338,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('CastOps.cast_string.block', 'assign[1]'), defs.MoveAssign, 'std::string f_to_s = std::to_string(1.0);'),
 		(_ast('CastOps.cast_string.block', 'assign[2]'), defs.MoveAssign, 'int s_to_n = atoi(n_to_s);'),
 		(_ast('CastOps.cast_string.block', 'assign[3]'), defs.MoveAssign, 'float s_to_f = atof(f_to_s);'),
+		(_ast('CastOps.cast_string.block', 'assign[4]'), defs.MoveAssign, 'std::string s_to_s = std::string("");'),
 
 		(_ast('CastOps.cast_class.block', 'assign[0]'), defs.MoveAssign, 'Base b = (Base)(sub);'),
 		(_ast('CastOps.cast_class.block', 'assign[1]'), defs.MoveAssign, 'Base* bp = (Base*)(sub_p);'),

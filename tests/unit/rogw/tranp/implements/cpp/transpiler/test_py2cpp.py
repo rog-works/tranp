@@ -369,7 +369,7 @@ class TestPy2Cpp(TestCase):
 		transpiler = self.fixture.get(Py2Cpp)
 		node = self.fixture.shared_nodes_by(full_path).as_a(expected_type)
 		actual = transpiler.transpile(node)
-		self.assertEqual(actual, expected)
+		self.assertEqual(expected, actual)
 
 	@data_provider([
 		(_ast('CVarOps.tenary_calc.block', 'assign[7]'), UnresolvedSymbolError, r'Only Nullable.'),

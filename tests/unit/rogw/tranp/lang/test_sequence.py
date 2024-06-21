@@ -23,7 +23,7 @@ class TestSequence(TestCase):
 		([1, 2], 3, -1),
 	])
 	def test_index_of(self, arr: list[int], search: int, expected: int) -> None:
-		self.assertEqual(index_of(arr, search), expected)
+		self.assertEqual(expected, index_of(arr, search))
 
 	@data_provider([
 		([1, 2, 2, 1, 3], 1, 3),
@@ -32,7 +32,7 @@ class TestSequence(TestCase):
 		([1, 2, 2, 1, 3], 4, -1),
 	])
 	def test_last_index_of(self, arr: list[int], search: int, expected: int) -> None:
-		self.assertEqual(last_index_of(arr, search), expected)
+		self.assertEqual(expected, last_index_of(arr, search))
 
 	@data_provider([
 		([1, 2], None, {'0': 1, '1': 2}),
@@ -47,7 +47,7 @@ class TestSequence(TestCase):
 		([Each(1, [Each(2)]), Each(3)], 'attrs', {'0': Each(1, [Each(2)]), '0.0': Each(2), '1': Each(3)}),
 	])
 	def test_expand(self, entries: list | dict, iter_key: str | None, expected: dict[str, int]) -> None:
-		self.assertEqual(expand(entries, iter_key=iter_key), expected)
+		self.assertEqual(expected, expand(entries, iter_key=iter_key))
 
 	@data_provider([
 		([1, 2], '0', 3, None, [3, 2]),
@@ -62,7 +62,7 @@ class TestSequence(TestCase):
 	])
 	def test_update(self, entries: list | dict, path: str, value: int, iter_key: str | None, expected: list | dict) -> None:
 		update(entries, path, value, iter_key=iter_key)
-		self.assertEqual(entries, expected)
+		self.assertEqual(expected, entries)
 
 	@data_provider([
 		([1, 2], ('0', 3)),
@@ -71,9 +71,9 @@ class TestSequence(TestCase):
 	])
 	def test_deep_copy(self, entries: list, test_values: tuple[str, int]) -> None:
 		new_entries = deep_copy(entries)
-		self.assertEqual(entries, new_entries)
+		self.assertEqual(new_entries, entries)
 
 		path, value = test_values
 		update(new_entries, path, value)
-		self.assertNotEqual(entries, new_entries)
-		self.assertEqual(expand(new_entries)[path], value)
+		self.assertNotEqual(new_entries, entries)
+		self.assertEqual(value, expand(new_entries)[path])

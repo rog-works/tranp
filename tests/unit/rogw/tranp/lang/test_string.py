@@ -12,7 +12,7 @@ class TestString(TestCase):
 		('HogeFugaPiyo', 'Hogefugapiyo'),
 	])
 	def test_camelize(self, org: str, expected: str) -> None:
-		self.assertEqual(camelize(org), expected)
+		self.assertEqual(expected, camelize(org))
 
 	@data_provider([
 		('HogeFugaPiyo', 'hoge_fuga_piyo'),
@@ -21,4 +21,4 @@ class TestString(TestCase):
 		('Hoge_Fuga_Piyo', 'hoge__fuga__piyo'),
 	])
 	def test_snakelize(self, org: str, expected: str) -> None:
-		self.assertEqual(snakelize(org), expected)
+		self.assertEqual(expected, snakelize(org))

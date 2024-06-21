@@ -25,10 +25,10 @@ class TestImplementation(TestCase):
 
 
 		b = B()
-		self.assertEqual(b.prop_number, 1)
-		self.assertEqual(b.number_to_str(1), '1')
-		self.assertEqual(b.number_to_str.__annotations__['n'], int)
-		self.assertEqual(b.number_to_str.__annotations__['return'], str)
+		self.assertEqual(1, b.prop_number)
+		self.assertEqual('1', b.number_to_str(1))
+		self.assertEqual(int, b.number_to_str.__annotations__['n'])
+		self.assertEqual(str, b.number_to_str.__annotations__['return'])
 
 	def test_implements(self) -> None:
 		class B(A):
@@ -43,7 +43,7 @@ class TestImplementation(TestCase):
 
 
 		b = B()
-		self.assertEqual(b.prop_number, 1)
-		self.assertEqual(b.number_to_str(1), '1')
-		self.assertEqual(b.number_to_str.__annotations__['n'], int)
-		self.assertEqual(b.number_to_str.__annotations__['return'], str)
+		self.assertEqual(1, b.prop_number)
+		self.assertEqual('1', b.number_to_str(1))
+		self.assertEqual(int, b.number_to_str.__annotations__['n'])
+		self.assertEqual(str, b.number_to_str.__annotations__['return'])

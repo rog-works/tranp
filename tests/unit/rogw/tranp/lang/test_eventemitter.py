@@ -19,8 +19,8 @@ class TestEventEmitter(TestCase):
 		emitter = EventEmitter()
 		emitter.on('hoge', handler)
 		emitter.emit('hoge', v=v, s=s)
-		self.assertEqual(result['v'], v)
-		self.assertEqual(result['s'], s)
+		self.assertEqual(v, result['v'])
+		self.assertEqual(s, result['s'])
 
 	def test_on(self) -> None:
 		def handler():

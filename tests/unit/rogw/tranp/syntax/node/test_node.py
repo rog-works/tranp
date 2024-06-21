@@ -18,7 +18,7 @@ class TestNode(TestCase):
 	])
 	def test___str__(self, source: str, full_path: str, expected: str) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path)
-		self.assertEqual(str(node), expected)
+		self.assertEqual(expected, str(node))
 
 	@data_provider([
 		('...', 'file_input', '<Entrypoint: __main__ file_input>'),
@@ -27,7 +27,7 @@ class TestNode(TestCase):
 	])
 	def test___repr__(self, source: str, full_path: str, expected: str) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path)
-		self.assertEqual(node.__repr__(), expected)
+		self.assertEqual(expected, node.__repr__())
 
 	@data_provider([
 		('...', 'file_input', 'file_input', True),
@@ -37,7 +37,7 @@ class TestNode(TestCase):
 	def test___eq__(self, source: str, full_path_a: str, full_path_b: str, expected: bool) -> None:
 		node_a = self.fixture.custom_nodes_by(source, full_path_a)
 		node_b = self.fixture.custom_nodes_by(source, full_path_b)
-		self.assertEqual(node_a == node_b, expected)
+		self.assertEqual(expected, node_a == node_b)
 
 	@data_provider([
 		('...', 'file_input', '__main__'),
@@ -46,7 +46,7 @@ class TestNode(TestCase):
 	])
 	def test_module_path(self, source: str, full_path: str, expected: str) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path)
-		self.assertEqual(node.module_path, expected)
+		self.assertEqual(expected, node.module_path)
 
 	@data_provider([
 		('...', 'file_input', 'file_input'),
@@ -55,7 +55,7 @@ class TestNode(TestCase):
 	])
 	def test_full_path(self, source: str, full_path: str, expected: str) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path)
-		self.assertEqual(node.full_path, expected)
+		self.assertEqual(expected, node.full_path)
 
 	@data_provider([
 		('...', 'file_input', 'file_input'),
@@ -70,7 +70,7 @@ class TestNode(TestCase):
 	])
 	def test_tag(self, source: str, full_path: str, expected: str) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path)
-		self.assertEqual(node.tag, expected)
+		self.assertEqual(expected, node.tag)
 
 	@data_provider([
 		('...', 'file_input', 'entrypoint'),
@@ -85,7 +85,7 @@ class TestNode(TestCase):
 	])
 	def test_classification(self, source: str, full_path: str, expected: str) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path)
-		self.assertEqual(node.classification, expected)
+		self.assertEqual(expected, node.classification)
 
 	@data_provider([
 		# General
@@ -188,9 +188,9 @@ class TestNode(TestCase):
 	])
 	def test_domain(self, source: str, full_path: str, types: type[T_Node], expected_name: bool, expected_fully: str) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path)
-		self.assertEqual(type(node), types)
-		self.assertEqual(node.domain_name, expected_name)
-		self.assertEqual(node.fullyname, expected_fully)
+		self.assertEqual(types, type(node))
+		self.assertEqual(expected_name, node.domain_name)
+		self.assertEqual(expected_fully, node.fullyname)
 
 	@data_provider([
 		# General
@@ -281,8 +281,8 @@ class TestNode(TestCase):
 	])
 	def test_scope_and_namespace(self, source: str, full_path: str, types: type[Node], expected_scope: str, expected_namespace: str) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(types)
-		self.assertEqual(node.scope, expected_scope)
-		self.assertEqual(node.namespace, expected_namespace)
+		self.assertEqual(expected_scope, node.scope)
+		self.assertEqual(expected_namespace, node.namespace)
 
 	@data_provider([
 		('...', 'file_input', ''),
@@ -295,7 +295,7 @@ class TestNode(TestCase):
 	])
 	def test_tokens(self, source: str, full_path: str, expected: str) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path)
-		self.assertEqual(node.tokens, expected)
+		self.assertEqual(expected, node.tokens)
 
 	@data_provider([
 		('class A: ...', 'file_input.class_def', 'entrypoint'),
@@ -307,7 +307,7 @@ class TestNode(TestCase):
 	])
 	def test_parent(self, source: str, full_path: str, expected: str) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path)
-		self.assertEqual(node.parent.classification, expected)
+		self.assertEqual(expected, node.parent.classification)
 
 	@data_provider([
 		('...', 'file_input', True),
@@ -320,7 +320,7 @@ class TestNode(TestCase):
 	])
 	def test_can_expand(self, source: str, full_path: str, expected: bool) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path)
-		self.assertEqual(node.can_expand, expected)
+		self.assertEqual(expected, node.can_expand)
 
 	@data_provider([
 		('file_input.class_def', [
@@ -367,7 +367,7 @@ class TestNode(TestCase):
 		node = self.fixture.shared_nodes_by(full_path)
 		all = [in_node.full_path for in_node in node.procedural()]
 		try:
-			self.assertEqual(all, expected)
+			self.assertEqual(expected, all)
 		except AssertionError:
 			import json
 			print(json.dumps(all, indent=2))
@@ -418,7 +418,7 @@ class TestNode(TestCase):
 		node = self.fixture.shared_nodes_by(full_path)
 		all = [in_node.full_path for in_node in node.procedural(order='ast')]
 		try:
-			self.assertEqual(all, expected)
+			self.assertEqual(expected, all)
 		except AssertionError:
 			import json
 			print(json.dumps(all, indent=2))
@@ -426,22 +426,22 @@ class TestNode(TestCase):
 
 	def test_is_a(self) -> None:
 		node = self.fixture.shared_nodes_by('file_input.class_def.class_def_raw.block.function_def[1]')
-		self.assertEqual(node.is_a(defs.Function), True)
-		self.assertEqual(node.is_a(defs.ClassMethod), False)
-		self.assertEqual(node.is_a(defs.Method), True)
-		self.assertEqual(node.is_a(defs.Class), False)
-		self.assertEqual(node.is_a(defs.ClassDef), True)
+		self.assertEqual(True, node.is_a(defs.Function))
+		self.assertEqual(False, node.is_a(defs.ClassMethod))
+		self.assertEqual(True, node.is_a(defs.Method))
+		self.assertEqual(False, node.is_a(defs.Class))
+		self.assertEqual(True, node.is_a(defs.ClassDef))
 
 	def test_as_a(self) -> None:
 		node = self.fixture.shared_nodes_by('file_input.class_def.class_def_raw.block.function_def[1]')
-		self.assertEqual(type(node), defs.Method)
-		self.assertEqual(type(node.as_a(defs.Function)), defs.Method)
-		self.assertEqual(type(node.as_a(defs.ClassDef)), defs.Method)
+		self.assertEqual(defs.Method, type(node))
+		self.assertEqual(defs.Method, type(node.as_a(defs.Function)))
+		self.assertEqual(defs.Method, type(node.as_a(defs.ClassDef)))
 
 	def test_one_of(self) -> None:
 		node = self.fixture.shared_nodes_by('file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.parameters.paramvalue.typedparam.__empty__')
-		self.assertEqual(type(node), defs.Empty)
-		self.assertEqual(type(node.one_of(defs.Type, defs.Empty)), defs.Empty)
+		self.assertEqual(defs.Empty, type(node))
+		self.assertEqual(defs.Empty, type(node.one_of(defs.Type, defs.Empty)))
 
 	def test_match_feature(self) -> None:
 		class NodeA(Node):
@@ -453,16 +453,16 @@ class TestNode(TestCase):
 		entrypoint = self.fixture.custom_nodes_by('a\nb', 'file_input').as_a(defs.Entrypoint)
 		node_a = entrypoint.whole_by('file_input.var[0]')
 		node_b = entrypoint.whole_by('file_input.var[1]')
-		self.assertEqual(NodeA.match_feature(node_a), True)
-		self.assertEqual(NodeA.match_feature(node_b), False)
+		self.assertEqual(True, NodeA.match_feature(node_a))
+		self.assertEqual(False, NodeA.match_feature(node_b))
 
 	def test_dirty_proxify(self) -> None:
 		node = self.fixture.shared_nodes_by('file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[0].number')
 		proxy = node.dirty_proxify(tokens='10')
-		self.assertEqual(isinstance(node, defs.Number), True)
-		self.assertEqual(isinstance(proxy, defs.Number), True)
-		self.assertEqual(node.tokens, '1')
-		self.assertEqual(proxy.tokens, '10')
+		self.assertEqual(True, isinstance(node, defs.Number))
+		self.assertEqual(True, isinstance(proxy, defs.Number))
+		self.assertEqual('1', node.tokens)
+		self.assertEqual('10', proxy.tokens)
 
 	@data_provider([
 		("""
@@ -552,7 +552,7 @@ class A:
 		node = self.fixture.custom_nodes_by(source, full_path)
 
 		try:
-			self.assertEqual(node.pretty().split('\n'), expected)
+			self.assertEqual(expected, node.pretty().split('\n'))
 		except AssertionError:
 			print(node.pretty())
 			raise

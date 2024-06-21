@@ -48,7 +48,7 @@ class TestASTFinder(TestCase):
 	def test_exists(self, path: str, expected: bool) -> None:
 		tree = Fixture.tree()
 		finder = Fixture.finder()
-		self.assertEqual(finder.exists(tree, path), expected)
+		self.assertEqual(expected, finder.exists(tree, path))
 
 	@data_provider([
 		('root', 'root'),
@@ -64,7 +64,7 @@ class TestASTFinder(TestCase):
 	def test_pluck(self, path: str, expected: str) -> None:
 		tree = Fixture.tree()
 		finder = Fixture.finder()
-		self.assertEqual(finder.pluck(tree, path).name, expected)
+		self.assertEqual(expected, finder.pluck(tree, path).name)
 
 	@data_provider([
 		('root', r'.+\.token_b', ['root.tree_a.tree_b[3].token_b']),
@@ -78,7 +78,7 @@ class TestASTFinder(TestCase):
 		regular = re.compile(pattern)
 		tester = lambda _, in_path: regular.fullmatch(in_path) is not None
 		entries = finder.find(tree, via, tester)
-		self.assertEqual(list(entries.keys()), expected)
+		self.assertEqual(expected, list(entries.keys()))
 
 	@data_provider([
 		('root.tree_a', -1, [
@@ -109,4 +109,4 @@ class TestASTFinder(TestCase):
 		tree = Fixture.tree()
 		finder = Fixture.finder()
 		entry = finder.pluck(tree, via)
-		self.assertEqual(list(finder.full_pathfy(entry, via, depth).keys()), expected)
+		self.assertEqual(expected, list(finder.full_pathfy(entry, via, depth).keys()))

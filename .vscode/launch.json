@@ -54,6 +54,7 @@
 				"env": {
 					"PYTHONPATH": "${workspaceFolder};${workspaceFolder}/vendor",
 					"PYTHONDONTWRITEBYTECODE": "1",
+					// "PYDEVD_CONTAINER_RANDOM_ACCESS_MAX_ITEMS": "3000",
 				},
 			},
 			"linux": {
@@ -80,12 +81,14 @@
 				"env": {
 					"PYTHONPATH": "${workspaceFolder};${workspaceFolder}/vendor",
 					"PYTHONDONTWRITEBYTECODE": "1",
+					// "PYDEVD_CONTAINER_RANDOM_ACCESS_MAX_ITEMS": "3000",
 				},
 			},
 			"linux": {
 				"env": {
 					"PYTHONPATH": "${workspaceFolder}:${workspaceFolder}/vendor",
 					"PYTHONDONTWRITEBYTECODE": "1",
+					// "PYDEVD_CONTAINER_RANDOM_ACCESS_MAX_ITEMS": "3000",
 				},
 			},
 			"console": "integratedTerminal",

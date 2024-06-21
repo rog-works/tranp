@@ -24,7 +24,7 @@ from rogw.tranp.syntax.ast.parser import ParserSetting, SyntaxParser
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 
-ArgsDict = TypedDict('ArgsData', {'grammar': str, 'input': str, 'options': dict[str, str]})
+ArgsDict = TypedDict('ArgsDict', {'grammar': str, 'input': str, 'options': dict[str, str]})
 
 
 class Args:
@@ -67,7 +67,8 @@ def make_parser_setting(args: Args) -> ParserSetting:
 @injectable
 def make_module_paths(args: Args) -> ModulePaths:
 	basepath, extention = os.path.splitext(args.input)
-	return ModulePaths([ModulePath(basepath.replace(os.path.sep, '.'), language=extention[1:])])
+	# XXX このスクリプトではLinux形式で入力する想定のためos.path.sepは使用しない
+	return ModulePaths([ModulePath(basepath.replace('/', '.'), language=extention[1:])])
 
 
 def fetch_main_entrypoint(modules: Modules, module_paths: ModulePaths) -> defs.Entrypoint:

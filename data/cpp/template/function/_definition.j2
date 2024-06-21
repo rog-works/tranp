@@ -1,0 +1,2 @@
+{%- set _parameters = parameters | select('!=', 'cls') | select('!=', 'self') -%}
+{{- return_type }} {{ symbol }}({{ _parameters | join(', ') -}})

@@ -2,6 +2,10 @@
 {% include('function/_comment.j2') %}
 {%- include('function/_template_types.j2') %}
 {%- include('function/_decorators.j2') %}
-{% if is_abstract or allow_override %}virtual {% endif -%}
-{{ class_symbol }}({{ parameters | select('!=', 'self') | join(', ') }}){% include('function/_initializer.j2') -%}
-{% if not is_abstract %} {% include('function/_block.j2') %}{% else %};{% endif -%}
+{%- if is_abstract %}
+virtual {% include('function/_definition_constructor.j2') %};
+{%- elif allow_override %}
+virtual {% include('function/_definition_constructor.j2') %}{% include('function/_initializer.j2') %} {% include('function/_block.j2') %}
+{%- else %}
+{% include('function/_definition_constructor.j2') %}{% include('function/_initializer.j2') %} {% include('function/_block.j2') %}
+{%- endif %}

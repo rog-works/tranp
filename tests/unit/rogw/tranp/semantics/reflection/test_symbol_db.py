@@ -14,13 +14,13 @@ class TestSymbolDB(TestCase):
 		try:
 			expected = expected_symbols()
 			for expected_path, expected_org_path in expected.items():
-				self.assertEqual('ok' if expected_path in db else expected_path, 'ok')
-				self.assertEqual(db[expected_path].org_fullyname, expected_org_path)
+				self.assertEqual('ok', 'ok' if expected_path in db else expected_path)
+				self.assertEqual(expected_org_path, db[expected_path].org_fullyname)
 
 			for key, _ in db.items():
-				self.assertEqual('ok' if key in expected else key, 'ok')
+				self.assertEqual('ok', 'ok' if key in expected else key)
 
-			self.assertEqual(len(db), len(expected))
+			self.assertEqual(len(expected), len(db))
 		except AssertionError as e:
 			print('\n', '\n'.join([f"'{key}': '{raw.org_fullyname}'," for key, raw in db.items()]))
 			raise

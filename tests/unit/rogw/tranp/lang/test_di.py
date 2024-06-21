@@ -19,20 +19,20 @@ class TestDI(TestCase):
 		di = DI()
 		di.bind(A, B)
 		di.bind(X, X)
-		self.assertEqual(di.can_resolve(A), True)
-		self.assertEqual(di.can_resolve(B), False)
-		self.assertEqual(di.can_resolve(X), True)
-		self.assertEqual(di.can_resolve(Y), False)
+		self.assertEqual(True, di.can_resolve(A))
+		self.assertEqual(False, di.can_resolve(B))
+		self.assertEqual(True, di.can_resolve(X))
+		self.assertEqual(False, di.can_resolve(Y))
 
 	def test_bind(self) -> None:
 		di = DI()
 		di.bind(B, B)
 		di.bind(X, factory_x)
 		di.bind(Y, Y)
-		self.assertEqual(di.can_resolve(A), False)
-		self.assertEqual(di.can_resolve(B), True)
-		self.assertEqual(di.can_resolve(X), True)
-		self.assertEqual(di.can_resolve(Y), True)
+		self.assertEqual(False, di.can_resolve(A))
+		self.assertEqual(True, di.can_resolve(B))
+		self.assertEqual(True, di.can_resolve(X))
+		self.assertEqual(True, di.can_resolve(Y))
 
 	def test_unbind(self) -> None:
 		di = DI()
@@ -42,28 +42,28 @@ class TestDI(TestCase):
 		di.bind(Y, Y)
 		di.unbind(X)
 		di.unbind(Y)
-		self.assertEqual(di.can_resolve(A), True)
-		self.assertEqual(di.can_resolve(B), True)
-		self.assertEqual(di.can_resolve(X), False)
-		self.assertEqual(di.can_resolve(Y), False)
+		self.assertEqual(True, di.can_resolve(A))
+		self.assertEqual(True, di.can_resolve(B))
+		self.assertEqual(False, di.can_resolve(X))
+		self.assertEqual(False, di.can_resolve(Y))
 
 	def test_rebind(self) -> None:
 		di = DI()
 		di.bind(A, A)
 		di.rebind(A, B)
-		self.assertEqual(di.can_resolve(A), True)
-		self.assertEqual(di.can_resolve(B), False)
+		self.assertEqual(True, di.can_resolve(A))
+		self.assertEqual(False, di.can_resolve(B))
 		self.assertNotEqual(type(di.resolve(A)), A)
-		self.assertEqual(type(di.resolve(A)), B)
+		self.assertEqual(B, type(di.resolve(A)))
 
 	def test_resolve(self) -> None:
 		di = DI()
 		di.bind(A, B)
 		di.bind(X, factory_x)
 		di.bind(Y, Y)
-		self.assertEqual(type(di.resolve(A)), B)
-		self.assertEqual(type(di.resolve(X)), X)
-		self.assertEqual(type(di.resolve(Y)), Y)
+		self.assertEqual(B, type(di.resolve(A)))
+		self.assertEqual(X, type(di.resolve(X)))
+		self.assertEqual(Y, type(di.resolve(Y)))
 
 	def test_invoke(self) -> None:
 		def factory(a: A, x: X, suffix: str) -> str:
@@ -72,7 +72,7 @@ class TestDI(TestCase):
 		di = DI()
 		di.bind(A, B)
 		di.bind(X, X)
-		self.assertEqual(di.invoke(factory, 'hogefuga'), 'B.X.hogefuga')
+		self.assertEqual('B.X.hogefuga', di.invoke(factory, 'hogefuga'))
 
 	def test_combine(self) -> None:
 		di1 = DI()
@@ -87,13 +87,13 @@ class TestDI(TestCase):
 
 		# 通常利用でシンボル解決できるか確認
 		combined_before = di1.combine(di2)
-		self.assertEqual(type(di1.resolve(A)), A)
-		self.assertEqual(type(di1.resolve(X)), X)
-		self.assertEqual(type(di2.resolve(A)), A)
-		self.assertEqual(type(di2.resolve(Y)), Y)
-		self.assertEqual(type(combined_before.resolve(A)), A)
-		self.assertEqual(type(combined_before.resolve(X)), X)
-		self.assertEqual(type(combined_before.resolve(Y)), Y)
+		self.assertEqual(A, type(di1.resolve(A)))
+		self.assertEqual(X, type(di1.resolve(X)))
+		self.assertEqual(A, type(di2.resolve(A)))
+		self.assertEqual(Y, type(di2.resolve(Y)))
+		self.assertEqual(A, type(combined_before.resolve(A)))
+		self.assertEqual(X, type(combined_before.resolve(X)))
+		self.assertEqual(Y, type(combined_before.resolve(Y)))
 
 		# シンボル解決前に合成した場合、一致しないことを確認
 		self.assertNotEqual(di1.resolve(A), combined_before.resolve(A))
@@ -106,14 +106,14 @@ class TestDI(TestCase):
 		combined_after = di1.combine(di2)
 		self.assertNotEqual(di1.resolve(A), combined_after.resolve(A))
 		self.assertNotEqual(di1.resolve(X), combined_after.resolve(X))
-		self.assertEqual(di2.resolve(A), combined_after.resolve(A))
-		self.assertEqual(di2.resolve(X), combined_after.resolve(X))
-		self.assertEqual(di2.resolve(Y), combined_after.resolve(Y))
+		self.assertEqual(combined_after.resolve(A), di2.resolve(A))
+		self.assertEqual(combined_after.resolve(X), di2.resolve(X))
+		self.assertEqual(combined_after.resolve(Y), di2.resolve(Y))
 
 		# rebindにより誤ってオリジナルのDIが影響を受けないか確認
 		combined_after.rebind(A, B)
-		self.assertEqual(type(di1.resolve(A)), A)
-		self.assertEqual(type(di2.resolve(A)), A)
+		self.assertEqual(A, type(di1.resolve(A)))
+		self.assertEqual(A, type(di2.resolve(A)))
 		self.assertNotEqual(di1.resolve(A), combined_after.resolve(A))
 		self.assertNotEqual(di2.resolve(A), combined_after.resolve(A))
 

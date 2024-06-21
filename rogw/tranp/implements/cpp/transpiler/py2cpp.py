@@ -205,7 +205,7 @@ class Py2Cpp(ITranspiler):
 
 	def on_entrypoint(self, node: defs.Entrypoint, statements: list[str]) -> str:
 		meta_header = MetaHeader(self.module_meta_factory(node.module_path), self.meta)
-		return self.view.render(node.classification, vars={'statements': statements, 'meta_header': meta_header.to_header_str()})
+		return self.view.render(node.classification, vars={'statements': statements, 'meta_header': meta_header.to_header_str(), 'module_path': node.module_path})
 
 	# Statement - compound
 

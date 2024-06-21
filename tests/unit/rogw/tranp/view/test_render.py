@@ -420,7 +420,7 @@ class TestRenderer(TestCase):
 		self.assertRender(expected, 'else', 0, vars)
 
 	@data_provider([
-		({'meta_header': '@tranp.meta: {"version":"1.0.0"}', 'statements': [ 'int x = 0;', ]}, '// @tranp.meta: {"version":"1.0.0"}\nint x = 0;\n'),
+		({'statements': ['int x = 0;'], 'meta_header': '@tranp.meta: {"version":"1.0.0"}', 'module_path': 'path.to'}, '// @tranp.meta: {"version":"1.0.0"}\n#pragma once\nint x = 0;\n'),
 	])
 	def test_render_entrypoint(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender(expected, 'entrypoint', 0, vars)

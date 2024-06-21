@@ -1,25 +1,8 @@
 from typing import Callable, TypeVar
 
+from rogw.tranp.compatible.libralies.classes import __actual__
+
 T = TypeVar('T')
-
-
-def __actual__(name: str) -> Callable[[T], T]:
-	"""コード上で実際に用いる名称を埋め込む
-
-	Args:
-		name (str): 名前
-	Returns:
-		Callable[[T], T]: デコレート対象
-	Examples:
-		```python
-		@__actual__('type')
-		class Type: ...
-		```
-	"""
-	def decorator(wrapped: T) -> T:
-		return wrapped
-
-	return decorator
 
 
 def __hint_generic__(*template_types: TypeVar) -> Callable[[T], T]:

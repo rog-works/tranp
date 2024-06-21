@@ -9,3 +9,6 @@ class Y:
 
 class Z(Y):
 	nz: int = 0
+
+
+S = ''

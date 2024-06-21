@@ -863,7 +863,7 @@ class Py2Cpp(ITranspiler):
 	# Literal
 
 	def on_string(self, node: defs.String) -> str:
-		return node.tokens.replace("'", '"')
+		return ''.join(['"', node.tokens[1:-1], '"'])
 
 	def on_doc_string(self, node: defs.DocString) -> str:
 		return self.view.render(node.classification, vars={'data': node.data})

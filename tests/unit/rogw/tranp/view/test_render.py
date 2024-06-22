@@ -993,3 +993,10 @@ class TestRenderer(TestCase):
 	])
 	def test_render_return(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender(expected, 'return', 0, vars)
+
+	@data_provider([
+		({'label': '', 'value': 1}, '1'),
+		({'label': 'a', 'value': 1}, 'a=1'),
+	])
+	def test_render_argument(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender(expected, 'argument', 0, vars)

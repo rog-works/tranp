@@ -260,7 +260,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarOps.const_move.block', 'assign[13]'), defs.MoveAssign, 'const Sub* ap_const3 = &(r_const3);'),
 
 		(_ast('FuncOps.print.block', 'funccall'), defs.FuncCall, 'printf("message. %d, %f, %s", 1, 1.0, "abc");'),
-		(_ast('FuncOps.kw_params.block', 'assign'), defs.MoveAssign, 'std::string a = this->kw_params(1, 2);'),
+		(_ast('FuncOps.kw_params.block', 'assign'), defs.MoveAssign, 'std::string a = this->kw_params(a=1, b=2);'),
 
 		(_ast('EnumOps.Values', ''), defs.Enum, '/** Values */\npublic: enum class Values {\n\tA = 0,\n\tB = 1,\n};'),
 		(_ast('EnumOps.assign.block', 'assign[0]'), defs.MoveAssign, 'EnumOps::Values a = EnumOps::Values::A;'),

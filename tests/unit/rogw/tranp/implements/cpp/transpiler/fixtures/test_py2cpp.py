@@ -168,6 +168,10 @@ class FuncOps:
 	def print(self) -> None:
 		print('message. %d, %f, %s', 1, 1.0, 'abc')
 
+	def kw_params(self, **kwargs: int) -> str:
+		a = self.kw_params(a=1, b=2)
+		return ''
+
 
 class EnumOps:
 	class Values(CEnum):

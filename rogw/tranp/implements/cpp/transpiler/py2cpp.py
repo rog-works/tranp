@@ -359,11 +359,8 @@ class Py2Cpp(ITranspiler):
 				if not decorator.startswith(__embed__.__name__):
 						continue
 
-				# XXX __embed__のシグネチャーに依存したマッチ式
-				matches = re.fullmatch(r'[^(]+\(([^,]+),\s+(.+)\)', decorator)
-				if not matches:
-						continue
-
+				# 必ずマッチする想定のためcastで警告を抑制。XXX __embed__のシグネチャーに直接依存するのは微妙なので検討
+				matches = cast(re.Match, re.fullmatch(r'[^(]+\(([^,]+),\s+(.+)\)', decorator))
 				key, meta = matches[1][1:-1], matches[2]
 				embed_vars[key] = meta
 

@@ -398,9 +398,9 @@ class ProceduralResolver:
 
 	# Primary
 
-	def on_argument_label(self, node: defs.ArgumentLabel) -> IReflection:
-		"""Note: labelに型はないのでUnknownを返却"""
-		return self.reflections.type_of_standard(classes.Unknown)
+	def on_argument_label(self, node: defs.ArgumentLabel) -> None:
+		"""Note: XXX labelで結果を返却するとスタックが消費されずLogicErrorが発生する。現状は特に評価不要なため一旦何も返却しない対応とする"""
+		pass
 
 	def on_decl_class_var(self, node: defs.DeclClassVar) -> IReflection:
 		return self.reflections.resolve(node)

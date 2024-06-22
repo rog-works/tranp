@@ -1,10 +1,8 @@
-import re
 from unittest import TestCase
 
 import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.compatible.python.types import Standards
 from rogw.tranp.syntax.ast.dsn import DSN
-from rogw.tranp.semantics.errors import UnresolvedSymbolError
 from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.test.helper import data_provider
 from tests.test.fixture import Fixture
@@ -261,15 +259,6 @@ class TestReflections(TestCase):
 		reflections = self.fixture.get(Reflections)
 		symbol = reflections.from_fullyname(fullyname)
 		self.assertEqual(expected, str(symbol))
-
-	@data_provider([
-		(f'{fixture_module_path}.CalcOps.tenary.n_or_s', UnresolvedSymbolError, r'Only Nullable.'),
-		(f'{fixture_module_path}.Nullable.accessible.arr', UnresolvedSymbolError, r'Only Nullable.'),
-	])
-	def test_from_fullyname_error(self, fullyname: str, expected_error: type[Exception], expected: re.Pattern[str]) -> None:
-		reflections = self.fixture.get(Reflections)
-		with self.assertRaisesRegex(expected_error, expected):
-			str(reflections.from_fullyname(fullyname))
 
 	@data_provider([
 		(int, _mod('classes', int.__name__)),

@@ -1,5 +1,4 @@
 import os
-import re
 from unittest import TestCase
 
 from rogw.tranp.app.dir import tranp_dir
@@ -14,7 +13,6 @@ from rogw.tranp.lang.profile import profiler
 from rogw.tranp.syntax.ast.dsn import DSN
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
-from rogw.tranp.semantics.errors import ProcessingError, UnresolvedSymbolError
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.test.helper import data_provider
 from rogw.tranp.transpiler.types import TranspilerOptions

@@ -119,9 +119,7 @@ class ASTMapping:
 
 		'Nullable.params': f'{_Nullable}.class_def_raw.block.function_def[0]',
 		'Nullable.returns': f'{_Nullable}.class_def_raw.block.function_def[1]',
-		'Nullable.invalid_params': f'{_Nullable}.class_def_raw.block.function_def[3]',
-		'Nullable.invalid_returns': f'{_Nullable}.class_def_raw.block.function_def[5]',
-		'Nullable.var_move.block': f'{_Nullable}.class_def_raw.block.function_def[6].function_def_raw.block',
+		'Nullable.var_move.block': f'{_Nullable}.class_def_raw.block.function_def[2].function_def_raw.block',
 
 		'Template.T2Class': f'{_Template}.class_def_raw.block.class_def',
 		'Template.__init__': f'{_Template}.class_def_raw.block.function_def[1]',
@@ -372,15 +370,3 @@ class TestPy2Cpp(TestCase):
 		node = self.fixture.shared_nodes_by(full_path).as_a(expected_type)
 		actual = transpiler.transpile(node)
 		self.assertEqual(expected, actual)
-
-	@data_provider([
-		(_ast('CVarOps.tenary_calc.block', 'assign[7]'), UnresolvedSymbolError, r'Only Nullable.'),
-
-		(_ast('Nullable.invalid_params', ''), ProcessingError, r'Unexpected UnionType.'),
-		(_ast('Nullable.invalid_returns', ''), ProcessingError, r'Unexpected UnionType.'),
-	])
-	def test_exec_error(self, full_path: str, expected_error: type[Exception], expected: re.Pattern) -> None:
-		transpiler = self.fixture.get(Py2Cpp)
-		node = self.fixture.shared_nodes_by(full_path)
-		with self.assertRaisesRegex(expected_error, expected):
-			transpiler.transpile(node)

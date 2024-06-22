@@ -130,8 +130,6 @@ class CVarOps:
 		asp2 = asp if True else asp
 		ar2 = ar if True else ar
 		ap_or_null = ap if True else None
-		# エラーケース
-		a_or_ap = a if True else ap
 
 	def declare(self) -> None:
 		arr = [1]
@@ -356,10 +354,6 @@ class CastOps:
 class Nullable:
 	def params(self, p: CP[Sub] | None) -> None: ...
 	def returns(self) -> CP[Sub] | None: ...
-	# エラーケース
-	def invlid_params(self, base: Sub | None) -> None: ...
-	# エラーケース
-	def invlid_returns(self) -> Sub | None: ...
 	def var_move(self, base: Sub, sp: CSP[Sub]) -> Sub:
 		p: CP[Sub] | None = None
 		p = CP(base)

@@ -18,6 +18,7 @@ def _ast(before: str) -> str:
 	_Class2 = f'file_input.class_def[{_class_begin + 4}]'
 	_GenBase = f'file_input.class_def[{_class_begin + 5}]'
 	_GenSub = f'file_input.class_def[{_class_begin + 6}]'
+	_ParamOps = f'file_input.class_def[{_class_begin + 7}]'
 
 	_map = {
 		'Values': f'{_Values}',
@@ -35,6 +36,8 @@ def _ast(before: str) -> str:
 		'Class2': f'{_Class2}',
 		'GenBase': f'{_GenBase}',
 		'GenSub': f'{_GenSub}',
+		'ParamOps.star_params': f'{_ParamOps}.class_def_raw.block.function_def[0]',
+		'ParamOps.kw_params': f'{_ParamOps}.class_def_raw.block.function_def[1]',
 	}
 	return _map[before]
 
@@ -58,6 +61,7 @@ class TestDefinition(TestCase):
 				defs.Class,
 				defs.Class,
 				defs.Function,
+				defs.Class,
 				defs.Class,
 				defs.Class,
 				defs.Class,
@@ -387,6 +391,54 @@ class TestDefinition(TestCase):
 			'actual_symbol': None,
 			# Closure only
 			'binded_this': False,
+		}),
+		(_ast('ParamOps.star_params'), {
+			'type': defs.Method,
+			'symbol': 'star_params',
+			'access': 'public',
+			'decorators': [],
+			'parameters': [
+				{'symbol': 'self', 'var_type': 'Empty', 'default_value': 'Empty'},
+				{'symbol': 'n', 'var_type': 'int', 'default_value': 'Empty'},
+				{'symbol': 'args', 'var_type': 'str', 'default_value': 'Empty'},
+			],
+			'return': defs.NullType,
+			'decl_vars': [
+				{'symbol': 'self', 'decl_type': defs.Parameter},
+				{'symbol': 'n', 'decl_type': defs.Parameter},
+				{'symbol': 'args', 'decl_type': defs.Parameter},
+			],
+			'actual_symbol': None,
+			# Belong class only
+			'is_abstract': False,
+			'class_symbol': 'ParamOps',
+			# Method only
+			'is_property': False,
+		}),
+		(_ast('ParamOps.kw_params'), {
+			'type': defs.Method,
+			'symbol': 'kw_params',
+			'access': 'public',
+			'decorators': [],
+			'parameters': [
+				{'symbol': 'self', 'var_type': 'Empty', 'default_value': 'Empty'},
+				{'symbol': 's', 'var_type': 'str', 'default_value': 'Empty'},
+				{'symbol': 'args', 'var_type': 'int', 'default_value': 'Empty'},
+				{'symbol': 'kwargs', 'var_type': 'bool', 'default_value': 'Empty'},
+			],
+			'return': defs.NullType,
+			'decl_vars': [
+				{'symbol': 'self', 'decl_type': defs.Parameter},
+				{'symbol': 's', 'decl_type': defs.Parameter},
+				{'symbol': 'args', 'decl_type': defs.Parameter},
+				{'symbol': 'kwargs', 'decl_type': defs.Parameter},
+			],
+			'actual_symbol': None,
+			# Belong class only
+			'is_abstract': False,
+			'class_symbol': 'ParamOps',
+			# Method only
+			'is_property': False,
 		}),
 	])
 	def test_function(self, full_path: str, expected: dict[str, Any]) -> None:

@@ -6,11 +6,11 @@ from rogw.tranp.syntax.node.interface import IDeclaration, ISymbol
 from rogw.tranp.syntax.node.node import Node
 
 
-@Meta.embed(Node, accept_tags('paramvalue', 'starparam'))
+@Meta.embed(Node, accept_tags('paramvalue', 'starparam', 'kwparams'))
 class Parameter(Node, IDeclaration, ISymbol):
 	"""
 	Note:
-	* FIXME starparamを受け入れるが、現状は通常の引数と同様に扱う。一部の関数で必要になるため対処が必要
+	* FIXME starparam/kwparamsを受け入れるが、現状は通常の引数と同様に扱う。一部の関数で必要になるため対処が必要
 	* XXX ParameterにIDomainは実装しない(=domain_nameの実装) ※symbolと完全参照名が同じになってしまうため
 	"""
 
@@ -33,7 +33,7 @@ class Parameter(Node, IDeclaration, ISymbol):
 			node = self._at(1)
 			return node if isinstance(node, Empty) else node
 
-		# XXX starparamはデフォルト引数がないためダミーを生成
+		# XXX デフォルト引数のダミーを生成
 		return self.dirty_child(Empty, '__empty__', tokens='')
 
 	@property

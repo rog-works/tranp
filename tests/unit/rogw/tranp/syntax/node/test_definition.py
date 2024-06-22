@@ -400,6 +400,7 @@ class TestDefinition(TestCase):
 			'parameters': [
 				{'symbol': 'self', 'var_type': 'Empty', 'default_value': 'Empty'},
 				{'symbol': 'n', 'var_type': 'int', 'default_value': 'Empty'},
+				# FIXME list[str]になるように修正。現状は厳密な評価が不要なため対応は保留
 				{'symbol': 'args', 'var_type': 'str', 'default_value': 'Empty'},
 			],
 			'return': defs.NullType,
@@ -423,7 +424,9 @@ class TestDefinition(TestCase):
 			'parameters': [
 				{'symbol': 'self', 'var_type': 'Empty', 'default_value': 'Empty'},
 				{'symbol': 's', 'var_type': 'str', 'default_value': 'Empty'},
+				# FIXME list[str]になるように修正。現状は厳密な評価が不要なため対応は保留
 				{'symbol': 'args', 'var_type': 'int', 'default_value': 'Empty'},
+				# FIXME dict[str, bool]になるように修正。現状は厳密な評価が不要なため対応は保留
 				{'symbol': 'kwargs', 'var_type': 'bool', 'default_value': 'Empty'},
 			],
 			'return': defs.NullType,

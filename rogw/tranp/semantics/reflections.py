@@ -398,6 +398,12 @@ class ProceduralResolver:
 
 	# Primary
 
+	def on_argument(self, node: defs.Argument, label: IReflection, value: IReflection) -> IReflection:
+		return value
+
+	def on_inherit_argument(self, node: defs.InheritArgument, class_type: IReflection) -> IReflection:
+		return class_type
+
 	def on_argument_label(self, node: defs.ArgumentLabel) -> IReflection:
 		"""Note: labelに型はないのでUnknownを返却"""
 		return self.reflections.type_of_standard(classes.Unknown)
@@ -546,12 +552,6 @@ class ProceduralResolver:
 
 	def on_super(self, node: defs.Super, calls: IReflection, arguments: list[IReflection]) -> IReflection:
 		return self.reflections.resolve(node.super_class_symbol).to.relay(node, context=calls)
-
-	def on_argument(self, node: defs.Argument, label: IReflection, value: IReflection) -> IReflection:
-		return value
-
-	def on_inherit_argument(self, node: defs.InheritArgument, class_type: IReflection) -> IReflection:
-		return class_type
 
 	def on_comp_for(self, node: defs.CompFor, symbols: list[IReflection], for_in: IReflection) -> IReflection:
 		return for_in

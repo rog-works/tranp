@@ -472,6 +472,15 @@ class Py2Cpp(ITranspiler):
 
 	# Primary
 
+	def on_argument(self, node: defs.Argument, label: str, value: str) -> str:
+		return value
+
+	def on_inherit_argument(self, node: defs.InheritArgument, class_type: str) -> str:
+		return class_type
+
+	def on_argument_label(self, node: defs.ArgumentLabel) -> str:
+		return node.tokens
+
 	def on_decl_class_var(self, node: defs.DeclClassVar) -> str:
 		return node.tokens
 
@@ -775,15 +784,6 @@ class Py2Cpp(ITranspiler):
 
 	def on_super(self, node: defs.Super, calls: str, arguments: list[str]) -> str:
 		return node.super_class_symbol.tokens
-
-	def on_argument(self, node: defs.Argument, label: str, value: str) -> str:
-		return value
-
-	def on_inherit_argument(self, node: defs.InheritArgument, class_type: str) -> str:
-		return class_type
-
-	def on_argument_label(self, node: defs.ArgumentLabel) -> str:
-		return node.tokens
 
 	# Operator
 

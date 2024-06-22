@@ -205,7 +205,7 @@ class Py2Cpp(ITranspiler):
 
 	def on_entrypoint(self, node: defs.Entrypoint, statements: list[str]) -> str:
 		meta_header = MetaHeader(self.module_meta_factory(node.module_path), self.meta)
-		return self.view.render(node.classification, vars={'statements': statements, 'meta_header': meta_header.to_header_str()})
+		return self.view.render(node.classification, vars={'statements': statements, 'meta_header': meta_header.to_header_str(), 'module_path': node.module_path})
 
 	# Statement - compound
 
@@ -359,11 +359,8 @@ class Py2Cpp(ITranspiler):
 				if not decorator.startswith(__embed__.__name__):
 						continue
 
-				# XXX __embed__のシグネチャーに依存したマッチ式
-				matches = re.fullmatch(r'[^(]+\(([^,]+),\s+(.+)\)', decorator)
-				if not matches:
-						continue
-
+				# 必ずマッチする想定のためcastで警告を抑制。XXX __embed__のシグネチャーに直接依存するのは微妙なので検討
+				matches = cast(re.Match, re.fullmatch(r'[^(]+\(([^,]+),\s+(.+)\)', decorator))
 				key, meta = matches[1][1:-1], matches[2]
 				embed_vars[key] = meta
 
@@ -472,6 +469,15 @@ class Py2Cpp(ITranspiler):
 
 	# Primary
 
+	def on_argument(self, node: defs.Argument, label: str, value: str) -> str:
+		return self.view.render(node.classification, vars={'label': label, 'value': value})
+
+	def on_inherit_argument(self, node: defs.InheritArgument, class_type: str) -> str:
+		return class_type
+
+	def on_argument_label(self, node: defs.ArgumentLabel) -> str:
+		return node.tokens
+
 	def on_decl_class_var(self, node: defs.DeclClassVar) -> str:
 		return node.tokens
 
@@ -550,9 +556,6 @@ class Py2Cpp(ITranspiler):
 
 	def on_this_ref(self, node: defs.ThisRef) -> str:
 		return 'this'
-
-	def on_argument_label(self, node: defs.ArgumentLabel) -> str:
-		return node.tokens
 
 	def on_var(self, node: defs.Var) -> str:
 		symbol = self.reflections.type_of(node)
@@ -778,12 +781,6 @@ class Py2Cpp(ITranspiler):
 
 	def on_super(self, node: defs.Super, calls: str, arguments: list[str]) -> str:
 		return node.super_class_symbol.tokens
-
-	def on_argument(self, node: defs.Argument, label: str, value: str) -> str:
-		return value
-
-	def on_inherit_argument(self, node: defs.InheritArgument, class_type: str) -> str:
-		return class_type
 
 	# Operator
 

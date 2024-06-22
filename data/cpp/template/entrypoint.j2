@@ -1,2 +1,5 @@
 // {{ meta_header }}
-{% include 'block.j2' %}{{ '\n' }}
+#pragma once
+{%- for statement in statements %}
+{{ statement }}
+{%- endfor %}{{ '\n' }}

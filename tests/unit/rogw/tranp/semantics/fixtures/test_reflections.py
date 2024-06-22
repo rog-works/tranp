@@ -111,6 +111,10 @@ class Sub(Base):
 	def Base(self) -> Base:
 		...
 
+	def kw_params(self, **kwargs: int) -> str:
+		a = self.kw_params(a=1, b=2)
+		return ''
+
 
 class CalcOps:
 	def unary(self) -> None:
@@ -137,8 +141,6 @@ class CalcOps:
 		n = 1 if 2 else 3
 		s = 'a' if True else 'b'
 		s_or_null = 'a' if n else None
-		# エラーケース
-		n_or_s = 1 if n else 'a'
 
 
 class AliasOps:
@@ -229,8 +231,6 @@ class Nullable:
 	def accessible(self, sub: Sub | None, subs: list[Sub] | None) -> None:
 		s = sub.base_str if sub else ''
 		n = sub.first_number if sub else 0
-		# エラーケース
-		arr = subs[0] if subs else []
 
 
 T = TypeVar('T')

@@ -69,3 +69,11 @@ class GenBase(Generic[T]): ...
 
 @__hint_generic__(T)
 class GenSub(GenBase[T]): ...
+
+
+class ParamOps:
+	def star_params(self, n: int, *args: str) -> None:
+		self.star_params(1, '2', '3')
+
+	def kw_params(self, s: str, *args: int, **kwargs: bool) -> None:
+		self.kw_params('1', 2, 3, on=True, off=False)

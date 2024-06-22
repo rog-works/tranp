@@ -48,7 +48,7 @@ def symbol_mapping() -> SymbolMapping:
 			defs.AltClass: ['class_assign'],
 			defs.TemplateClass: ['template_assign'],
 			# -- Function/Class Elements --
-			defs.Parameter: ['paramvalue', 'starparam'],
+			defs.Parameter: ['paramvalue', 'starparam', 'kwparams'],
 			defs.Decorator: ['decorator'],
 			# -- Statement simple --
 			defs.MoveAssign: ['assign'],

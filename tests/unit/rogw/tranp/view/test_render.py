@@ -420,7 +420,7 @@ class TestRenderer(TestCase):
 		self.assertRender(expected, 'else', 0, vars)
 
 	@data_provider([
-		({'meta_header': '@tranp.meta: {"version":"1.0.0"}', 'statements': [ 'int x = 0;', ]}, '// @tranp.meta: {"version":"1.0.0"}\nint x = 0;\n'),
+		({'statements': ['int x = 0;'], 'meta_header': '@tranp.meta: {"version":"1.0.0"}', 'module_path': 'path.to'}, '// @tranp.meta: {"version":"1.0.0"}\n#pragma once\nint x = 0;\n'),
 	])
 	def test_render_entrypoint(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender(expected, 'entrypoint', 0, vars)
@@ -945,6 +945,31 @@ class TestRenderer(TestCase):
 				'}',
 			]),
 		),
+		(
+			'method',
+			{
+				'symbol': 'decorated_method',
+				'decorators': ['deco(A, B)'],
+				'parameters': ['int value = 1'],
+				'return_type': 'void',
+				'comment': '',
+				'statements': ['this->x = value;'],
+				'template_types': [],
+				# belongs class only
+				'access': 'public',
+				'class_symbol': 'Hoge',
+				'is_abstract': False,
+				'allow_override': False,
+			},
+			'\n'.join([
+				'public:',
+				'/** decorated_method */',
+				'deco(A, B)',
+				'void decorated_method(int value = 1) {',
+				'	this->x = value;',
+				'}',
+			]),
+		),
 	])
 	def test_render_function(self, template: str, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender(expected, f'function/{template}', 0, vars)
@@ -968,3 +993,10 @@ class TestRenderer(TestCase):
 	])
 	def test_render_return(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender(expected, 'return', 0, vars)
+
+	@data_provider([
+		({'label': '', 'value': 1}, '1'),
+		({'label': 'a', 'value': 1}, 'a=1'),
+	])
+	def test_render_argument(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender(expected, 'argument', 0, vars)

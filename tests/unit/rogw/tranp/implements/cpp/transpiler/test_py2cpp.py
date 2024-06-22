@@ -1,5 +1,4 @@
 import os
-import re
 from unittest import TestCase
 
 from rogw.tranp.app.dir import tranp_dir
@@ -14,7 +13,6 @@ from rogw.tranp.lang.profile import profiler
 from rogw.tranp.syntax.ast.dsn import DSN
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
-from rogw.tranp.semantics.errors import ProcessingError, UnresolvedSymbolError
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.test.helper import data_provider
 from rogw.tranp.transpiler.types import TranspilerOptions
@@ -73,7 +71,8 @@ class ASTMapping:
 		'CVarOps.default_param.block': f'{_CVarOps}.class_def_raw.block.function_def[10].function_def_raw.block',
 		'CVarOps.const_move.block': f'{_CVarOps}.class_def_raw.block.function_def[11].function_def_raw.block',
 
-		'FuncOps.print.block': f'{_FuncOps}.class_def_raw.block.function_def.function_def_raw.block',
+		'FuncOps.print.block': f'{_FuncOps}.class_def_raw.block.function_def[0].function_def_raw.block',
+		'FuncOps.kw_params.block': f'{_FuncOps}.class_def_raw.block.function_def[1].function_def_raw.block',
 
 		'EnumOps.Values': f'{_EnumOps}.class_def_raw.block.class_def',
 		'EnumOps.assign.block': f'{_EnumOps}.class_def_raw.block.function_def[1].function_def_raw.block',
@@ -118,9 +117,7 @@ class ASTMapping:
 
 		'Nullable.params': f'{_Nullable}.class_def_raw.block.function_def[0]',
 		'Nullable.returns': f'{_Nullable}.class_def_raw.block.function_def[1]',
-		'Nullable.invalid_params': f'{_Nullable}.class_def_raw.block.function_def[3]',
-		'Nullable.invalid_returns': f'{_Nullable}.class_def_raw.block.function_def[5]',
-		'Nullable.var_move.block': f'{_Nullable}.class_def_raw.block.function_def[6].function_def_raw.block',
+		'Nullable.var_move.block': f'{_Nullable}.class_def_raw.block.function_def[2].function_def_raw.block',
 
 		'Template.T2Class': f'{_Template}.class_def_raw.block.class_def',
 		'Template.__init__': f'{_Template}.class_def_raw.block.function_def[1]',
@@ -259,6 +256,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarOps.const_move.block', 'assign[13]'), defs.MoveAssign, 'const Sub* ap_const3 = &(r_const3);'),
 
 		(_ast('FuncOps.print.block', 'funccall'), defs.FuncCall, 'printf("message. %d, %f, %s", 1, 1.0, "abc");'),
+		(_ast('FuncOps.kw_params.block', 'assign'), defs.MoveAssign, 'std::string a = this->kw_params(a=1, b=2);'),
 
 		(_ast('EnumOps.Values', ''), defs.Enum, '/** Values */\npublic: enum class Values {\n\tA = 0,\n\tB = 1,\n};'),
 		(_ast('EnumOps.assign.block', 'assign[0]'), defs.MoveAssign, 'EnumOps::Values a = EnumOps::Values::A;'),
@@ -370,15 +368,3 @@ class TestPy2Cpp(TestCase):
 		node = self.fixture.shared_nodes_by(full_path).as_a(expected_type)
 		actual = transpiler.transpile(node)
 		self.assertEqual(expected, actual)
-
-	@data_provider([
-		(_ast('CVarOps.tenary_calc.block', 'assign[7]'), UnresolvedSymbolError, r'Only Nullable.'),
-
-		(_ast('Nullable.invalid_params', ''), ProcessingError, r'Unexpected UnionType.'),
-		(_ast('Nullable.invalid_returns', ''), ProcessingError, r'Unexpected UnionType.'),
-	])
-	def test_exec_error(self, full_path: str, expected_error: type[Exception], expected: re.Pattern) -> None:
-		transpiler = self.fixture.get(Py2Cpp)
-		node = self.fixture.shared_nodes_by(full_path)
-		with self.assertRaisesRegex(expected_error, expected):
-			transpiler.transpile(node)

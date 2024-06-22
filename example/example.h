@@ -1,4 +1,5 @@
 // @tranp.meta: {"version":"1.0.0","module":{"hash":"1ba02029e9df5f4ea099dd98edbe8b1a","path":"example.example"},"transpiler":{"version":"1.0.0","module":"rogw.tranp.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
+#pragma once
 // #include "rogw/tranp/compatible/cpp/object.h"
 // #include "rogw/tranp/compatible/cpp/preprocess.h"
 // #include "rogw/tranp/compatible/cpp/enum.h"

@@ -41,7 +41,7 @@ class InheritArgument(Node):
 
 
 @Meta.embed(Node, accept_tags('name'))
-class ArgumentLabel(Node):
+class ArgumentLabel(Node, ITerminal):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
 		return via._full_path.parent_tag == 'argvalue'

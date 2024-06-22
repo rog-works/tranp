@@ -34,6 +34,7 @@ class ASTMapping:
 	_Sub_fill_list = f'{_Sub}.class_def_raw.block.function_def[15]'
 	_Sub_param_default = f'{_Sub}.class_def_raw.block.function_def[16]'
 	_Sub_Base = f'{_Sub}.class_def_raw.block.function_def[17]'
+	_Sub_kw_params = f'{_Sub}.class_def_raw.block.function_def[18]'
 	_CalcOps = f'file_input.class_def[{_start + 3}]'
 	_AliasOps = f'file_input.class_def[{_start + 4}]'
 	_TupleOps = f'file_input.class_def[{_start + 5}]'
@@ -84,6 +85,7 @@ class ASTMapping:
 		'Sub.decl_locals.block': f'{_Sub_decl_locals}.function_def_raw.block',
 		'Sub.decl_locals.closure.block': f'{_Sub_decl_locals}.function_def_raw.block.function_def.function_def_raw.block',
 		'Sub.Base.return': f'{_Sub_Base}.function_def_raw.typed_var',
+		'Sub.kw_params.block': f'{_Sub_kw_params}.function_def_raw.block',
 
 		'TupleOps.unpack.block': f'{_TupleOps}.class_def_raw.block.function_def[0].function_def_raw.block',
 
@@ -188,6 +190,8 @@ class TestReflections(TestCase):
 		(f'{fixture_module_path}.Sub.param_default.n', 'int'),
 		(f'{fixture_module_path}.Sub.param_default.n2', 'int'),
 		(f'{fixture_module_path}.Sub.param_default.keys', 'list<str>'),
+
+		(f'{fixture_module_path}.Sub.kw_params.kwargs', 'int'),
 
 		(f'{fixture_module_path}.CalcOps.unary.n_neg', 'int'),
 		(f'{fixture_module_path}.CalcOps.unary.n_not', 'bool'),
@@ -365,6 +369,10 @@ class TestReflections(TestCase):
 		(_ast('Sub.decl_locals.block', 'if_stmt[1].if_clause.block.for_stmt.block.try_stmt.except_clauses.except_clause.name'), _mod('classes', 'Exception'), 'Exception'),
 
 		(_ast('Sub.Base.return', ''), f'{fixture_module_path}.Base', 'Base'),
+
+		(_ast('Sub.kw_params.block', 'assign'), _mod('classes', 'str'), 'str'),
+		(_ast('Sub.kw_params.block', 'assign.funccall.arguments.argvalue[0]'), _mod('classes', 'int'), 'int'),
+		(_ast('Sub.kw_params.block', 'assign.funccall.arguments.argvalue[1]'), _mod('classes', 'int'), 'int'),
 
 		(_ast('TupleOps.unpack.block', 'for_stmt[0].for_namelist.name[0]'), _mod('classes', 'str'), 'str'),
 		(_ast('TupleOps.unpack.block', 'for_stmt[0].for_namelist.name[1]'), _mod('classes', 'int'), 'int'),

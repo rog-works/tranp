@@ -111,6 +111,10 @@ class Sub(Base):
 	def Base(self) -> Base:
 		...
 
+	def kw_params(self, **kwargs: int) -> str:
+		a = self.kw_params(a=1, b=2)
+		return ''
+
 
 class CalcOps:
 	def unary(self) -> None:

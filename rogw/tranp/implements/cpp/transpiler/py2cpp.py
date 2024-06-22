@@ -551,10 +551,6 @@ class Py2Cpp(ITranspiler):
 	def on_this_ref(self, node: defs.ThisRef) -> str:
 		return 'this'
 
-	def on_argument_label(self, node: defs.ArgumentLabel) -> None:
-		"""Note: XXX labelで結果を返却するとスタックが消費されずLogicErrorが発生する。現状は特に評価不要なため一旦何も返却しない対応とする"""
-		pass
-
 	def on_var(self, node: defs.Var) -> str:
 		symbol = self.reflections.type_of(node)
 		if isinstance(symbol.decl, defs.ClassDef):
@@ -785,6 +781,9 @@ class Py2Cpp(ITranspiler):
 
 	def on_inherit_argument(self, node: defs.InheritArgument, class_type: str) -> str:
 		return class_type
+
+	def on_argument_label(self, node: defs.ArgumentLabel) -> str:
+		return node.tokens
 
 	# Operator
 

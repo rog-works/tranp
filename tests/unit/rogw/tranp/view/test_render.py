@@ -945,6 +945,31 @@ class TestRenderer(TestCase):
 				'}',
 			]),
 		),
+		(
+			'method',
+			{
+				'symbol': 'decorated_method',
+				'decorators': ['deco(A, B)'],
+				'parameters': ['int value = 1'],
+				'return_type': 'void',
+				'comment': '',
+				'statements': ['this->x = value;'],
+				'template_types': [],
+				# belongs class only
+				'access': 'public',
+				'class_symbol': 'Hoge',
+				'is_abstract': False,
+				'allow_override': False,
+			},
+			'\n'.join([
+				'public:',
+				'/** decorated_method */',
+				'deco(A, B)',
+				'void decorated_method(int value = 1) {',
+				'	this->x = value;',
+				'}',
+			]),
+		),
 	])
 	def test_render_function(self, template: str, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender(expected, f'function/{template}', 0, vars)

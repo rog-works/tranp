@@ -473,7 +473,7 @@ class Py2Cpp(ITranspiler):
 	# Primary
 
 	def on_argument(self, node: defs.Argument, label: str, value: str) -> str:
-		return value
+		return self.view.render(node.classification, vars={'label': label, 'value': value})
 
 	def on_inherit_argument(self, node: defs.InheritArgument, class_type: str) -> str:
 		return class_type

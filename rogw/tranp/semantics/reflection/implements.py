@@ -467,7 +467,7 @@ class Import(Reflection):
 		"""インスタンスを生成
 
 		Args:
-			origin (ReflectionClass | ReflectionVar): スタックシンボル
+			origin (Class | Var): スタックシンボル
 			via (ImportName): 参照元のノード
 		"""
 		super().__init__(origin)
@@ -502,7 +502,7 @@ class Extend(Reflection):
 		"""インスタンスを生成
 
 		Args:
-			origin (ReflectionClass | ReflectionImport | ReflectionVar): スタックシンボル
+			origin (Class | Import | Var): スタックシンボル
 			via (Type): 参照元のノード
 		"""
 		super().__init__(origin)
@@ -532,7 +532,7 @@ class Proxy(Reflection):
 
 		Args:
 			origin (Class | Import): スタックシンボル
-			via (Type): 参照元のノード
+			via (Reference): 参照元のノード
 		"""
 		super().__init__(origin)
 		self._via = via
@@ -560,7 +560,7 @@ class Temporary(Reflection):
 		"""インスタンスを生成
 
 		Args:
-			origin (ReflectionClass | ReflectionGeneric): スタックシンボル
+			origin (Class | Extend): スタックシンボル
 			via (Literal | Comprehension | Operator): テンポラリー系ノード
 		"""
 		super().__init__(origin)

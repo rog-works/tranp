@@ -9,9 +9,12 @@ class TypeVar: ...
 T = TypeVar('T')
 
 
-# FIXME 2重定義、且つ__actual__の定義なし
+# FIXME castの定義のため必要。classes側の定義は消さないこと
+# FIXME __actual__の未定義エラーは解決方法がないため一旦無視
 @__actual__('type')
 class Type(Generic[T]): ...
+
+
 class Iterator(Generic[T]):
 	def __next__(self) -> T: ...
 

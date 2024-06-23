@@ -114,7 +114,7 @@ class Py2Cpp(ITranspiler):
 			'Class' -> 'NS::Class'
 			'dict<A, B>' -> 'dict<NS::A, NS::B>'
 		"""
-		unpacked_raw = self.force_unpack_nullable(raw)
+		unpacked_raw = self.unpack_nullable(raw)
 		shorthand = ClassShorthandNaming.accessible_name(unpacked_raw, alias_handler=self.i18n.t)
 		return DSN.join(*DSN.elements(shorthand), delimiter='::')
 
@@ -129,7 +129,7 @@ class Py2Cpp(ITranspiler):
 			# 生成例
 			'Union<CP<Class>, None>' -> 'Class<CP>'
 		"""
-		unpacked_raw = self.force_unpack_nullable(var_type_raw)
+		unpacked_raw = self.unpack_nullable(var_type_raw)
 		return ClassShorthandNaming.domain_name(unpacked_raw, alias_handler=self.i18n.t)
 
 	def to_domain_name_by_class(self, types: defs.ClassDef) -> str:
@@ -142,7 +142,7 @@ class Py2Cpp(ITranspiler):
 		"""
 		return ClassDomainNaming.domain_name(types, alias_handler=self.i18n.t)
 
-	def force_unpack_nullable(self, symbol: IReflection) -> IReflection:
+	def unpack_nullable(self, symbol: IReflection) -> IReflection:
 		"""Nullableのシンボルの変数の型をアンパック。Nullable以外の型はそのまま返却 (主にRelayで利用)
 
 		Args:
@@ -151,7 +151,7 @@ class Py2Cpp(ITranspiler):
 			IReflection: 変数の型
 		Note:
 			許容するNullableの書式 (例: 'Class | None')
-			@see ProcedureResolver.force_unpack_nullable
+			@see ProcedureResolver.unpack_nullable
 		"""
 		if self.reflections.is_a(symbol, classes.Union) and len(symbol.attrs) == 2:
 			is_0_null = self.reflections.is_a(symbol.attrs[0], None)
@@ -160,6 +160,18 @@ class Py2Cpp(ITranspiler):
 				return symbol.attrs[1 if is_0_null else 0]
 
 		return symbol
+
+	def unpack_type_proxy(self, symbol: IReflection) -> IReflection:
+		"""typeのProxy型をアンパック
+
+		Args:
+			symbol (IReflection): シンボル
+		Returns:
+			IReflection: 変数の型
+		Note:
+			@see ProcedureResolver.unpack_type_proxy
+		"""
+		return symbol.attrs[0] if isinstance(symbol.decl, defs.Class) and self.reflections.is_a(symbol, type) else symbol
 
 	def unpack_function_template_types(self, node: defs.Function) -> list[str]:
 		"""ファンクションのテンプレート型名をアンパック
@@ -501,7 +513,9 @@ class Py2Cpp(ITranspiler):
 
 	def on_relay(self, node: defs.Relay, receiver: str) -> str:
 		receiver_symbol = self.reflections.type_of(node.receiver)
-		receiver_symbol = self.force_unpack_nullable(receiver_symbol)
+		receiver_symbol = self.unpack_nullable(receiver_symbol)
+		receiver_symbol = self.unpack_type_proxy(receiver_symbol)
+
 		prop_symbol = self.reflections.type_of_property(receiver_symbol.types, node.prop)
 		prop = node.prop.domain_name
 		if isinstance(prop_symbol.decl, defs.ClassDef):
@@ -552,13 +566,15 @@ class Py2Cpp(ITranspiler):
 
 	def on_class_ref(self, node: defs.ClassRef) -> str:
 		symbol = self.reflections.resolve(node.class_symbol)
-		return self.to_domain_name(symbol)
+		return self.to_domain_name(self.unpack_type_proxy(symbol))
 
 	def on_this_ref(self, node: defs.ThisRef) -> str:
 		return 'this'
 
 	def on_var(self, node: defs.Var) -> str:
 		symbol = self.reflections.type_of(node)
+		symbol = self.unpack_type_proxy(symbol)
+
 		if isinstance(symbol.decl, defs.ClassDef):
 			return self.to_domain_name_by_class(symbol.types)
 		else:
@@ -587,17 +603,17 @@ class Py2Cpp(ITranspiler):
 
 		if is_on_cvar_relay():
 			receiver_symbol = self.reflections.type_of(node.receiver)
+			receiver_symbol = self.unpack_type_proxy(receiver_symbol)
 			cvar_key = CVars.key_from(self.reflections, receiver_symbol.context)
 			if not CVars.is_raw_raw(cvar_key):
 				return 'cvar_relay', None
 		elif is_cvar():
-			return 'cvar', self.reflections.type_of(node)
+			symbol = self.reflections.type_of(node)
+			return 'cvar', self.unpack_type_proxy(symbol)
 		else:
-			receiver_symbol = self.reflections.type_of(node.receiver)
-			# XXX receiverがクラスである場合、ほぼ確実にGeneric型であるため、1次元参照のみ対象とする
-			# XXX OK: Class[A], NG: Class[A][B]
-			if receiver_symbol.decl.is_a(defs.Class) and not node.receiver.is_a(defs.Indexer):
-				return 'class', self.reflections.type_of(node)
+			symbol = self.reflections.type_of(node)
+			if self.reflections.is_a(symbol, type):
+				return 'class', self.unpack_type_proxy(symbol)
 
 		return 'otherwise', None
 
@@ -774,6 +790,7 @@ class Py2Cpp(ITranspiler):
 
 		if isinstance(node.calls, (defs.Relay, defs.Var)):
 			raw = self.reflections.type_of(node.calls)
+			raw = self.unpack_type_proxy(raw)
 			if raw.types.is_a(defs.Enum):
 				return 'cast_enum', raw
 

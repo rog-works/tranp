@@ -326,6 +326,28 @@ class ProceduralResolver:
 
 		return symbol
 
+	def unpack_alt_class(self, symbol: IReflection) -> IReflection:
+		"""AltClass型をアンパック
+
+		Args:
+			symbol (IReflection): シンボル
+		Returns:
+			IReflection: 変数の型
+		"""
+		return symbol.attrs[0] if isinstance(symbol.types, defs.AltClass) else symbol
+
+	def unpack_type_proxy(self, symbol: IReflection) -> IReflection:
+		"""typeのProxy型をアンパック
+
+		Args:
+			symbol (IReflection): シンボル
+		Returns:
+			IReflection: 変数の型
+		Note:
+			対象: type<T> -> T
+		"""
+		return symbol.attrs[0] if isinstance(symbol.decl, defs.Class) and self.reflections.is_a(symbol, type) else symbol
+
 	# Fallback
 
 	def on_fallback(self, node: Node) -> IReflection:
@@ -354,8 +376,7 @@ class ProceduralResolver:
 			* group: Any
 			* operator: Any
 		"""
-		if isinstance(iterates.types, defs.AltClass):
-			iterates = iterates.attrs[0]
+		iterates = self.unpack_alt_class(iterates)
 
 		def resolve_method() -> tuple[IReflection, str]:
 			try:
@@ -439,13 +460,14 @@ class ProceduralResolver:
 		# func_call.func_call: a.b().c()
 		# indexer.prop: a.b[0].c()
 		# indexer.func_call: a.b[1].c()
-		if isinstance(receiver.types, defs.AltClass):
-			receiver = receiver.attrs[0]
 
-		# XXX 強制的にNullableを解除する ※on_relayに到達した時点でnullが期待値であることはあり得ないと言う想定
-		accessable_receiver = self.force_unpack_nullable(receiver)
+		# AltClass/Nullableを解除
+		# XXX Nullable解除に関してはon_relayに到達した時点でnullが期待値であることはあり得ないと言う想定
+		accessable_receiver = self.unpack_alt_class(receiver)
+		accessable_receiver = self.force_unpack_nullable(accessable_receiver)
+
 		if self.reflections.is_a(accessable_receiver, type):
-			accessable_receiver = receiver.attrs[0]
+			accessable_receiver = self.unpack_type_proxy(receiver)
 			return self.proc_relay_class(node, accessable_receiver).to.relay(node, context=accessable_receiver)
 		else:
 			return self.proc_relay_object(node, accessable_receiver).to.relay(node, context=accessable_receiver)
@@ -487,20 +509,20 @@ class ProceduralResolver:
 		return self.reflections.type_of_standard(type).to.proxy(node).extends(symbol)
 
 	def on_indexer(self, node: defs.Indexer, receiver: IReflection, key: IReflection) -> IReflection:
-		if receiver.types.is_a(defs.AltClass):
-			receiver = receiver.attrs[0]
+		receiver = self.unpack_alt_class(receiver)
 
 		if self.reflections.is_a(receiver, list):
 			return receiver.attrs[0].to.relay(node, context=receiver)
 		elif self.reflections.is_a(receiver, dict):
 			return receiver.attrs[1].to.relay(node, context=receiver)
 		elif self.reflections.is_a(receiver, type):
-			_receiver = receiver.attrs[0]
-			_key = key.attrs[0]
+			_receiver = self.unpack_type_proxy(receiver)
+			_key = self.unpack_type_proxy(key)
 			klass_helper = template.HelperBuilder(_receiver) \
 				.schema(lambda: {'klass': _receiver, 'template_types': _receiver.attrs}) \
 				.build(template.Class)
-			return klass_helper.definition(_key).to.relay(node, context=_receiver)
+			klass_symbol = klass_helper.definition(_key)
+			return self.reflections.type_of_standard(type).to.proxy(node).extends(klass_symbol).to.relay(node, context=_receiver)
 		else:
 			# XXX コレクション型以外は全て通常のクラスである想定
 			# XXX keyに何が入るべきか特定できないためreceiverをそのまま返却
@@ -543,12 +565,8 @@ class ProceduralResolver:
 			# arguments
 			* expression
 		"""
-		actual_calls = calls
-		if isinstance(calls.types, defs.AltClass):
-			actual_calls = calls.attrs[0]
-
-		if self.reflections.is_a(actual_calls, type):
-			actual_calls = actual_calls.attrs[0]
+		actual_calls = self.unpack_alt_class(calls)
+		actual_calls = self.unpack_type_proxy(actual_calls)
 
 		if isinstance(actual_calls.types, defs.Class):
 			# XXX クラス経由で暗黙的にコンストラクターを呼び出した場合

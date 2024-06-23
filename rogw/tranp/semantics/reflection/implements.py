@@ -467,7 +467,7 @@ class Import(Reflection):
 		"""インスタンスを生成
 
 		Args:
-			origin (ReflectionClass | ReflectionVar): スタックシンボル
+			origin (Class | Var): スタックシンボル
 			via (ImportName): 参照元のノード
 		"""
 		super().__init__(origin)
@@ -502,7 +502,7 @@ class Extend(Reflection):
 		"""インスタンスを生成
 
 		Args:
-			origin (ReflectionClass | ReflectionImport | ReflectionVar): スタックシンボル
+			origin (Class | Import | Var): スタックシンボル
 			via (Type): 参照元のノード
 		"""
 		super().__init__(origin)
@@ -524,6 +524,35 @@ class Extend(Reflection):
 		return self._clone(origin=self.origin, via=self.via)
 
 
+class Proxy(Reflection):
+	"""シンボル(タイプ擬態)"""
+
+	def __init__(self, origin: Class | Import, via: defs.Reference) -> None:
+		"""インスタンスを生成
+
+		Args:
+			origin (Class | Import): スタックシンボル
+			via (Reference): 参照元のノード
+		"""
+		super().__init__(origin)
+		self._via = via
+
+	@property
+	@override
+	def via(self) -> defs.Reference:
+		"""Type: 参照元のノード"""
+		return self._via
+
+	@override
+	def clone(self: Self) -> Self:
+		"""インスタンスを複製
+
+		Returns:
+			Self: 複製したインスタンス
+		"""
+		return self._clone(origin=self.origin, via=self.via)
+
+
 class Temporary(Reflection):
 	"""シンボル(テンポラリー)"""
 
@@ -531,7 +560,7 @@ class Temporary(Reflection):
 		"""インスタンスを生成
 
 		Args:
-			origin (ReflectionClass | ReflectionGeneric): スタックシンボル
+			origin (Class | Extend): スタックシンボル
 			via (Literal | Comprehension | Operator): テンポラリー系ノード
 		"""
 		super().__init__(origin)
@@ -641,6 +670,17 @@ class SymbolWrapper(IWrapper):
 			IReflection: シンボル
 		"""
 		return Var(self._raw.one_of(Reflection), decl)
+
+	@implements
+	def proxy(self, via: defs.Reference) -> IReflection:
+		"""ラップしたシンボルを生成(タイプ擬態)
+
+		Args:
+			via (Reference): 参照系ノード
+		Returns:
+			IReflection: シンボル
+		"""
+		return Proxy(self._raw.one_of(Class, Import), via)
 
 	@implements
 	def generic(self, via: defs.Type) -> IReflection:

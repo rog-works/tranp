@@ -592,6 +592,11 @@ class AltClass(ClassDef):
 		return self._by('assign_namelist.var').as_a(TypesName)
 
 	@property
+	@override
+	def block(self) -> Block:
+		return self.dirty_child(Block, 'block', statements=[])
+
+	@property
 	@Meta.embed(Node, expandable)
 	def actual_type(self) -> Type:
 		return self._at(1).as_a(Type)
@@ -604,6 +609,11 @@ class TemplateClass(ClassDef):
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> TypesName:
 		return self._by('assign_namelist.var').as_a(TypesName)
+
+	@property
+	@override
+	def block(self) -> Block:
+		return self.dirty_child(Block, 'block', statements=[])
 
 	@property
 	@override

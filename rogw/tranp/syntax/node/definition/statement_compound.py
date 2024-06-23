@@ -1,6 +1,5 @@
 from typing import Generic, TypeVar
 
-from rogw.tranp.compatible.libralies.classes import Proxy
 from rogw.tranp.compatible.python.embed import __actual__, __hint_generic__
 from rogw.tranp.lang.annotation import duck_typed, implements, override
 from rogw.tranp.lang.sequence import flatten, last_index_of
@@ -501,16 +500,13 @@ class Class(ClassDef):
 	@Meta.embed(Node, expandable)
 	def inherits(self) -> list[Type]:
 		"""Note: XXX Genericは継承チェーンを考慮する必要がないため除外する"""
-		class_inherits = [inherit for inherit in self.__org_inherits if inherit.type_name.tokens not in [Generic.__name__, Proxy.__name__]]
-		proxies = [inherit.as_a(CustomType) for inherit in self.__org_inherits if inherit.type_name.tokens == Proxy.__name__]
-		proxy_inherits = proxies[0].template_types if proxies else []
-		return [*class_inherits, *proxy_inherits]
+		return [inherit for inherit in self.__org_inherits if inherit.type_name.tokens != Generic.__name__]
 
 	@property
 	@override
 	@Meta.embed(Node, expandable)
 	def template_types(self) -> list[Type]:
-		candidates = [inherit.as_a(CustomType) for inherit in self.__org_inherits if inherit.type_name.tokens in [Generic.__name__, Proxy.__name__]]
+		candidates = [inherit.as_a(CustomType) for inherit in self.__org_inherits if inherit.type_name.tokens == Generic.__name__]
 		definitions = candidates[0].template_types if len(candidates) == 1 else []
 		inherits = self._inherit_template_types()
 		return [*definitions, *inherits]

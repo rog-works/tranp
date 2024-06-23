@@ -313,6 +313,17 @@ class IWrapper(metaclass=ABCMeta):
 		...
 
 	@abstractmethod
+	def proxy(self, via: defs.Reference) -> IReflection:
+		"""ラップしたシンボルを生成(タイプ擬態)
+
+		Args:
+			via (Reference): 参照系ノード
+		Returns:
+			IReflection: シンボル
+		"""
+		...
+
+	@abstractmethod
 	def generic(self, via: defs.Type) -> IReflection:
 		"""ラップしたシンボルを生成(タイプ拡張)
 

@@ -382,7 +382,7 @@ class TestReflections(TestCase):
 		(_ast('Nullable.var_move.block', 'if_stmt.if_clause.block.return_stmt'), _mod('classes', 'str'), 'str'),
 
 		(_ast('GenericOps.new.block', 'assign.funccall'), f'{fixture_module_path}.GenericOps', 'GenericOps<int>'),
-		(_ast('GenericOps.cast.block', 'assign.funccall.arguments.argvalue[0]'), f'{fixture_module_path}.GenericOps', 'GenericOps<Base>'),
+		(_ast('GenericOps.cast.block', 'assign.funccall.arguments.argvalue[0]'), _mod('classes', 'type'), 'type<GenericOps<Base>>'),
 	])
 	def test_type_of(self, full_path: str, expected: str, attrs_expected: str) -> None:
 		reflections = self.fixture.get(Reflections)

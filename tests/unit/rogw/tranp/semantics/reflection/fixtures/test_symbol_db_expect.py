@@ -105,7 +105,6 @@ def expected_symbols() -> dict:
 		'rogw.tranp.compatible.libralies.classes.None': 'rogw.tranp.compatible.libralies.classes.None',
 		'rogw.tranp.compatible.libralies.classes.object': 'rogw.tranp.compatible.libralies.classes.object',
 		'rogw.tranp.compatible.libralies.classes.object.__init__': 'rogw.tranp.compatible.libralies.classes.object.__init__',
-		'rogw.tranp.compatible.libralies.classes.Proxy': 'rogw.tranp.compatible.libralies.classes.Proxy',
 		'rogw.tranp.compatible.libralies.classes.type': 'rogw.tranp.compatible.libralies.classes.type',
 		'rogw.tranp.compatible.libralies.classes.super': 'rogw.tranp.compatible.libralies.classes.super',
 		'rogw.tranp.compatible.libralies.classes.Exception': 'rogw.tranp.compatible.libralies.classes.Exception',

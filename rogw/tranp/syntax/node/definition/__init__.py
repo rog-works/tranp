@@ -47,6 +47,10 @@ from rogw.tranp.syntax.node.definition.operator import (
 	TenaryOperator,
 )
 from rogw.tranp.syntax.node.definition.primary import (
+	# argument
+	Argument,
+	InheritArgument,
+	ArgumentLabel,
 	# declable
 	Declable,
 	DeclVar,
@@ -63,7 +67,6 @@ from rogw.tranp.syntax.node.definition.primary import (
 	AltTypesName,
 	ImportName,
 	# reference
-	ArgumentLabel,
 	Reference,
 	Relay,
 	Var,
@@ -92,9 +95,6 @@ from rogw.tranp.syntax.node.definition.primary import (
 	# func call
 	FuncCall,
 	Super,
-	# argument
-	Argument,
-	InheritArgument,
 	# other
 	Elipsis,
 	# generator

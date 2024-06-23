@@ -477,7 +477,7 @@ class ProceduralResolver:
 		# XXX Enum直下のDeclLocalVarは定数値であり、型としてはEnumそのものであるためreceiverを返却。特殊化より一般化する方法を検討
 		if isinstance(receiver.types, defs.Enum) and prop.decl.is_a(defs.DeclLocalVar):
 			return receiver
-		elif isinstance(prop.decl, (defs.Class, defs.Enum)):
+		elif isinstance(prop.decl, defs.Class):
 			return self.reflections.type_of_standard(type).to.proxy(node).extends(prop)
 		else:
 			return prop
@@ -489,7 +489,7 @@ class ProceduralResolver:
 				.schema(lambda: {'klass': prop.attrs[0], 'parameters': prop.attrs[1:-1], 'returns': prop.attrs[-1]}) \
 				.build(template.Method)
 			return function_helper.returns(receiver)
-		elif isinstance(prop.decl, (defs.Class, defs.Enum)):
+		elif isinstance(prop.decl, defs.Class):
 			return self.reflections.type_of_standard(type).to.proxy(node).extends(prop)
 		else:
 			return prop

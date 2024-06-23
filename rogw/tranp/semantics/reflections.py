@@ -463,14 +463,14 @@ class ProceduralResolver:
 
 		# AltClass/Nullableを解除
 		# XXX Nullable解除に関してはon_relayに到達した時点でnullが期待値であることはあり得ないと言う想定
-		accessable_receiver = self.unpack_alt_class(receiver)
-		accessable_receiver = self.force_unpack_nullable(accessable_receiver)
+		unpacked_receiver = self.unpack_alt_class(receiver)
+		unpacked_receiver = self.force_unpack_nullable(unpacked_receiver)
 
-		if self.reflections.is_a(accessable_receiver, type):
-			accessable_receiver = self.unpack_type_proxy(receiver)
-			return self.proc_relay_class(node, accessable_receiver).to.relay(node, context=accessable_receiver)
+		if self.reflections.is_a(unpacked_receiver, type):
+			unpacked_receiver = self.unpack_type_proxy(receiver)
+			return self.proc_relay_class(node, unpacked_receiver).to.relay(node, context=unpacked_receiver)
 		else:
-			return self.proc_relay_object(node, accessable_receiver).to.relay(node, context=accessable_receiver)
+			return self.proc_relay_object(node, unpacked_receiver).to.relay(node, context=unpacked_receiver)
 
 	def proc_relay_class(self, node: defs.Relay, receiver: IReflection) -> IReflection:
 		prop = self.reflections.type_of_property(receiver.types, node.prop)
@@ -516,13 +516,13 @@ class ProceduralResolver:
 		elif self.reflections.is_a(receiver, dict):
 			return receiver.attrs[1].to.relay(node, context=receiver)
 		elif self.reflections.is_a(receiver, type):
-			_receiver = self.unpack_type_proxy(receiver)
-			_key = self.unpack_type_proxy(key)
-			klass_helper = template.HelperBuilder(_receiver) \
-				.schema(lambda: {'klass': _receiver, 'template_types': _receiver.attrs}) \
+			unpacked_receiver = self.unpack_type_proxy(receiver)
+			unpacked_key = self.unpack_type_proxy(key)
+			klass_helper = template.HelperBuilder(unpacked_receiver) \
+				.schema(lambda: {'klass': unpacked_receiver, 'template_types': unpacked_receiver.attrs}) \
 				.build(template.Class)
-			klass_symbol = klass_helper.definition(_key)
-			return self.reflections.type_of_standard(type).to.proxy(node).extends(klass_symbol).to.relay(node, context=_receiver)
+			klass_symbol = klass_helper.definition(unpacked_key)
+			return self.reflections.type_of_standard(type).to.proxy(node).extends(klass_symbol).to.relay(node, context=unpacked_receiver)
 		else:
 			# XXX コレクション型以外は全て通常のクラスである想定
 			# XXX keyに何が入るべきか特定できないためreceiverをそのまま返却

@@ -402,4 +402,10 @@ class Struct:
 		self.b: str = b
 
 
+class StringOps:
+	def methods(self, s: str) -> None:
+		a = s.startswith('')
+		b = s.endswith('')
+
+
 def template_func(v: T) -> T: ...

@@ -40,6 +40,7 @@ class ASTMapping:
 	_Template = f'file_input.class_def[{__begin_class + 14}]'
 	_GenericOps = f'file_input.class_def[{__begin_class + 15}]'
 	_Struct = f'file_input.class_def[{__begin_class + 16}]'
+	_StringOps = f'file_input.class_def[{__begin_class + 17}]'
 	_template_func = f'file_input.function_def'
 
 	aliases = {
@@ -130,6 +131,8 @@ class ASTMapping:
 		'GenericOps.new.block': f'{_GenericOps}.class_def_raw.block.function_def[2].function_def_raw.block',
 
 		'Struct': f'{_Struct}',
+
+		'StringOps.methods.block': f'{_StringOps}.class_def_raw.block.function_def.function_def_raw.block',
 
 		'template_func': f'{_template_func}',
 	}
@@ -305,11 +308,14 @@ class TestPy2Cpp(TestCase):
 		(_ast('Alias.in_class_method.block', 'assign[3]'), defs.MoveAssign, 'std::map<int, std::vector<int>> d2 = {\n\t{(int)(Alias2::Values::A), {(int)(Alias2::Values::B)}},\n\t{(int)(Alias2::Values::B), {(int)(Alias2::Values::A)}},\n};'),
 
 		(_ast('CompOps.list_comp.block', 'assign[1]'), defs.MoveAssign, BlockExpects.CompOps_list_comp_assign_values1),
-		(_ast('CompOps.dict_comp.block', 'assign[1]'), defs.MoveAssign, BlockExpects.CompOps_dict_comp_assign_kvs1),
+		(_ast('CompOps.dict_comp.block', 'assign[1]'), defs.MoveAssign, BlockExpects.CompOps_dict_comp_assign_kvs0_1),
+		(_ast('CompOps.dict_comp.block', 'assign[3]'), defs.MoveAssign, BlockExpects.CompOps_dict_comp_assign_kvsp_1),
+		(_ast('CompOps.dict_comp.block', 'assign[5]'), defs.MoveAssign, BlockExpects.CompOps_dict_comp_assign_kvs2),
 
 		(_ast('ForOps.range.block', 'for_stmt'), defs.For, 'for (auto i = 0; i < 10; i++) {\n\n}'),
 		(_ast('ForOps.enumerate.block', 'for_stmt'), defs.For, BlockExpects.ForOps_enumerate_for_index_key),
-		(_ast('ForOps.dict_items.block', 'for_stmt'), defs.For, 'for (auto& [key, value] : kvs) {\n\n}'),
+		(_ast('ForOps.dict_items.block', 'for_stmt[1]'), defs.For, 'for (auto& [key, value] : kvs) {\n\n}'),
+		(_ast('ForOps.dict_items.block', 'for_stmt[3]'), defs.For, 'for (auto& [key, value] : *(kvs_p)) {\n\n}'),
 
 		(_ast('ListOps.len.block', 'assign[1]'), defs.MoveAssign, 'int size_values = values.size();'),
 		(_ast('ListOps.pop.block', 'assign[1]'), defs.MoveAssign, BlockExpects.ListOps_pop_assign_value0),
@@ -360,6 +366,9 @@ class TestPy2Cpp(TestCase):
 		(_ast('GenericOps.new.block', 'assign'), defs.MoveAssign, 'GenericOps<int> a = GenericOps<int>();'),
 
 		(_ast('Struct', ''), defs.Class, '/** Struct */\nstruct Struct {\n\tpublic: int a;\n\tpublic: std::string b;\n\tpublic:\n\t/** __init__ */\n\tStruct(int a, std::string b) : a(a), b(b) {\n\t}\n};'),
+
+		(_ast('StringOps.methods.block', 'assign[0]'), defs.MoveAssign, 'bool a = s.starts_with("");'),
+		(_ast('StringOps.methods.block', 'assign[1]'), defs.MoveAssign, 'bool b = s.ends_with("");'),
 
 		(_ast('template_func', ''), defs.Function, '/** template_func */\ntemplate<typename T>\nT template_func(T v) {\n\n}'),
 	])

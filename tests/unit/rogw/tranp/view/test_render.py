@@ -235,7 +235,7 @@ class TestRenderer(TestCase):
 		),
 	])
 	def test_render_class(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender(expected, 'class/default', 0, vars)
+		self.assertRender(expected, 'class/class', 0, vars)
 
 	@data_provider([
 		({'symbols': ['value'], 'iterates': 'values', 'is_const': False}, 'auto& value : values'),
@@ -429,6 +429,7 @@ class TestRenderer(TestCase):
 		(
 			{
 				'symbol': 'Values',
+				'decorators': ['deco(A, B)'],
 				'comment': '',
 				'statements': [
 					'int A = 0;',
@@ -437,6 +438,7 @@ class TestRenderer(TestCase):
 			},
 			'\n'.join([
 				'/** Values */',
+				'deco(A, B)',
 				'enum class Values {',
 				'	A = 0,',
 				'	B = 1,',
@@ -445,7 +447,7 @@ class TestRenderer(TestCase):
 		),
 	])
 	def test_render_enum(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender(expected, 'enum', 0, vars)
+		self.assertRender(expected, 'class/enum', 0, vars)
 
 	@data_provider([
 		({'symbols': ['key', 'value'], 'iterates': 'items', 'statements': ['pass;']}, 'for (auto& [key, value] : items) {\n\tpass;\n}'),

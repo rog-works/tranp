@@ -1,0 +1,5 @@
+{%- include('class/_comment.j2') %}
+{%- include('class/_decorator.j2') %}
+{% if access %}{{ access }}: {% endif %}enum class {{ symbol }} {
+{%- include('class/_statements_enum.j2') %}
+};

@@ -10,6 +10,8 @@ aliases.rogw.tranp.compatible.libralies.classes.list.append: push_back
 aliases.rogw.tranp.compatible.libralies.classes.list.remove: erase
 aliases.rogw.tranp.compatible.libralies.classes.print: printf
 aliases.rogw.tranp.compatible.libralies.classes.str: std::string
+aliases.rogw.tranp.compatible.libralies.classes.str.endswith: ends_with
+aliases.rogw.tranp.compatible.libralies.classes.str.startswith: starts_with
 # cpp
 aliases.rogw.tranp.compatible.cpp.classes.container.size: size
 aliases.rogw.tranp.compatible.cpp.classes.map.begin: begin

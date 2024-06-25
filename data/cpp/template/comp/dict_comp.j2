@@ -1,8 +1,7 @@
 [{% if binded_this %}this, {% endif %}&]() -> {{ i18n('classes', 'dict') }}<{{ projection_types[0] }}, {{ projection_types[1] }}> {
 	{{ i18n('classes', 'dict') }}<{{ projection_types[0] }}, {{ projection_types[1] }}> __ret;
 	for ({{ comp_for }}) {
-		{#- XXX 期待値: 'auto& [key, value] : iterates' #}
-		{%- set _key, _value = reg_match('auto&? \\[([^,]+), (.+)\\] : .+', comp_for).group(1, 2) %}
+		{%- set _key, _value = parse_block(projection, '{}', ',', [0])[0] %}
 		{%- if condition %}
 		if ({{ condition }}) {
 			__ret[{{ _key }}] = {{ _value }};

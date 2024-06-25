@@ -269,8 +269,12 @@ class CompOps:
 		values1 = [value for value in values0]
 
 	def dict_comp(self) -> None:
-		kvs0 = {'a': CompOps.C()}
-		kvs1 = {key: value for key, value in kvs0.items()}
+		kvs0_0 = {'a': CompOps.C()}
+		kvs0_1 = {key: value for key, value in kvs0_0.items()}
+		kvsp_0 = CP(kvs0_0)
+		kvsp_1 = {key: value for key, value in kvsp_0.on.items()}
+		values = [[1, 2], [3, 4]]
+		kvs2 = {in_values[0]: in_values[1] for in_values in values}
 
 
 class ForOps:
@@ -284,6 +288,8 @@ class ForOps:
 	def dict_items(self) -> None:
 		kvs = {'a': 1}
 		for key, value in kvs.items(): ...
+		kvs_p = CP(kvs)
+		for key, value in kvs_p.on.items(): ...
 
 
 class ListOps:
@@ -394,6 +400,12 @@ class Struct:
 	def __init__(self, a: int, b: str) -> None:
 		self.a: int = a
 		self.b: str = b
+
+
+class StringOps:
+	def methods(self, s: str) -> None:
+		a = s.startswith('')
+		b = s.endswith('')
 
 
 def template_func(v: T) -> T: ...

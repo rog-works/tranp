@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from rogw.tranp.lang.string import camelize, parse_brakets, parse_block, snakelize
+from rogw.tranp.lang.string import camelize, parse_block, parse_pair_block, snakelize
 from rogw.tranp.test.helper import data_provider
 
 
@@ -24,20 +24,20 @@ class TestString(TestCase):
 		self.assertEqual(expected, snakelize(org))
 
 	@data_provider([
-		('()', '()', -1, ['()']),
-		('[]', '[]', -1, ['[]']),
-		('{}', '{}', -1, ['{}']),
-		('<>', '<>', -1, ['<>']),
-		('(a)', '()', -1, ['(a)']),
-		('(a, (b))', '()', -1, ['(a, (b))', '(b)']),
-		('{a: {b: c}}', '{}', -1, ['{a: {b: c}}', '{b: c}']),
-		('[a], [b], [c]', '[]', -1, ['[a]', '[b]', '[c]']),
-		('<a, <b>, <c>>', '<>', -1, ['<a, <b>, <c>>', '<b>', '<c>']),
-		('()', '()', 0, []),
-		('[a], [b], [c]', '[]', 1, ['[a]']),
+		('()', '()', [], ['()']),
+		('[]', '[]', [], ['[]']),
+		('{}', '{}', [], ['{}']),
+		('<>', '<>', [], ['<>']),
+		('(a)', '()', [], ['(a)']),
+		('(a, (b))', '()', [], ['(a, (b))', '(b)']),
+		('{a: {b: c}}', '{}', [], ['{a: {b: c}}', '{b: c}']),
+		('[a], [b], [c]', '[]', [], ['[a]', '[b]', '[c]']),
+		('<a, <b>, <c>>', '<>', [], ['<a, <b>, <c>>', '<b>', '<c>']),
+		('()', '()', [1], []),
+		('[a], [b], [c]', '[]', [0], ['[a]']),
 	])
-	def test_parse_brakets(self, text: str, brakets: str, limit: int, expected: list[str]) -> None:
-		self.assertEqual(expected, parse_brakets(text, brakets, limit))
+	def test_parse_block(self, text: str, brakets: str, groups: list[int], expected: list[str]) -> None:
+		self.assertEqual(expected, parse_block(text, brakets, groups))
 
 	@data_provider([
 		('{}', '{}', ':', [], []),
@@ -47,6 +47,7 @@ class TestString(TestCase):
 		('{{a: b}: {c: d}}', '{}', ':', [], [('{a: b}', '{c: d}'), ('a', 'b'), ('c', 'd')]),
 		('{{a: b}: {c: d}}', '{}', ':', [0, 2], [('{a: b}', '{c: d}'), ('c', 'd')]),
 		('(a, b)', '()', ',', [], [('a', 'b')]),
+		('(a, b, c)', '()', ',', [], [('a, b', 'c')]),
 	])
-	def test_parse_dict(self, text: str, brakets: str, delimiter: str, groups: list[int], expected: list[tuple[str]]) -> None:
-		self.assertEqual(expected, parse_block(text, brakets, delimiter, groups))
+	def test_parse_pair_block(self, text: str, brakets: str, delimiter: str, groups: list[int], expected: list[tuple[str]]) -> None:
+		self.assertEqual(expected, parse_pair_block(text, brakets, delimiter, groups))

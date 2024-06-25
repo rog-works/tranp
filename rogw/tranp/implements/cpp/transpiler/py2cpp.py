@@ -14,7 +14,7 @@ from rogw.tranp.implements.cpp.semantics.cvars import CVars
 from rogw.tranp.lang.annotation import duck_typed, implements, injectable
 from rogw.tranp.lang.eventemitter import Callback
 from rogw.tranp.lang.module import fullyname
-from rogw.tranp.lang.string import parse_block
+from rogw.tranp.lang.string import parse_pair_block
 from rogw.tranp.semantics.procedure import Procedure
 import rogw.tranp.semantics.reflection.helper.template as template
 from rogw.tranp.semantics.reflection.helper.naming import ClassDomainNaming, ClassShorthandNaming
@@ -381,7 +381,7 @@ class Py2Cpp(ITranspiler):
 						continue
 
 				# XXX __embed__のシグネチャーに依存するのは微妙なので再検討
-				key, meta = parse_block(decorator, '()', ',' [0])[0]
+				key, meta = parse_pair_block(decorator, '()', ',' [0])[0]
 				embed_vars[key[1:-1]] = meta
 
 		# XXX 構造体の判定

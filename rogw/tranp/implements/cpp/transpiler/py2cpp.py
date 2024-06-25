@@ -412,14 +412,14 @@ class Py2Cpp(ITranspiler):
 
 		decorators = self.allow_decorators(decorators)
 		class_vars = {'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'template_types': template_types, 'comment': comment, 'statements': other_statements, 'vars': vars, 'is_struct': is_struct, 'embed_vars': embed_vars}
-		return self.view.render(f'{node.classification}/default', vars=class_vars)
+		return self.view.render(f'{node.classification}/class', vars=class_vars)
 
 	def on_enum(self, node: defs.Enum, symbol: str, decorators: list[str], inherits: list[str], template_types: list[str], comment: str, statements: list[str]) -> str:
 		add_vars = {}
 		if not node.parent.is_a(defs.Entrypoint):
 			add_vars = {'access': node.access}
 
-		return self.view.render(node.classification, vars={'symbol': symbol, 'comment': comment, 'statements': statements, **add_vars})
+		return self.view.render(f'class/{node.classification}', vars={'symbol': symbol, 'decorators': decorators, 'comment': comment, 'statements': statements, **add_vars})
 
 	def on_alt_class(self, node: defs.AltClass, symbol: str, actual_type: str) -> str:
 		return self.view.render(node.classification, vars={'symbol': symbol, 'actual_type': actual_type})

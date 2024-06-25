@@ -1,8 +1,5 @@
-{%- if comment %}{{ comment }}{% else %}/** {{ symbol }} */{% endif %}
-{% if access %}{{ access }}: {% endif %}enum class {{ symbol }} {
 {%- filter indent('\t') %}
 {%- for statement in statements %}
 {{ statement.split(' ')[1:] | join(' ') | replace(';', ',') }}
 {%- endfor %}
 {%- endfilter %}
-};

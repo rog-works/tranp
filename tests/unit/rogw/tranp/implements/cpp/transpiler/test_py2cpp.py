@@ -306,6 +306,7 @@ class TestPy2Cpp(TestCase):
 
 		(_ast('CompOps.list_comp.block', 'assign[1]'), defs.MoveAssign, BlockExpects.CompOps_list_comp_assign_values1),
 		(_ast('CompOps.dict_comp.block', 'assign[1]'), defs.MoveAssign, BlockExpects.CompOps_dict_comp_assign_kvs1),
+		(_ast('CompOps.dict_comp.block', 'assign[3]'), defs.MoveAssign, BlockExpects.CompOps_dict_comp_assign_kvs2),
 
 		(_ast('ForOps.range.block', 'for_stmt'), defs.For, 'for (auto i = 0; i < 10; i++) {\n\n}'),
 		(_ast('ForOps.enumerate.block', 'for_stmt'), defs.For, BlockExpects.ForOps_enumerate_for_index_key),

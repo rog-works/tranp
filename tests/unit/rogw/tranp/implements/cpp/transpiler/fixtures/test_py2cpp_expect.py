@@ -28,6 +28,15 @@ class DeclOps {
 	return __ret;
 }();"""
 
+	CompOps_dict_comp_assign_kvs2 = \
+"""std::map<std::string, std::string> kvs2 = [this, &]() -> std::map<std::string, std::string> {
+	std::map<std::string, std::string> __ret;
+	for (auto& key : keys) {
+		__ret[key] = key;
+	}
+	return __ret;
+}();"""
+
 	ForOps_enumerate_for_index_key = \
 """for (auto& [index, key] : [&]() -> std::map<int, std::string> {
 	std::map<int, std::string> __ret;

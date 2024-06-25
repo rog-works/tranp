@@ -271,6 +271,8 @@ class CompOps:
 	def dict_comp(self) -> None:
 		kvs0 = {'a': CompOps.C()}
 		kvs1 = {key: value for key, value in kvs0.items()}
+		keys = kvs0.keys()
+		kvs2 = {key: key for key in keys}
 
 
 class ForOps:

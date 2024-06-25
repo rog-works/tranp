@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from rogw.tranp.lang.string import camelize, parse_brakets, parse_dict, snakelize
+from rogw.tranp.lang.string import camelize, parse_brakets, parse_block, snakelize
 from rogw.tranp.test.helper import data_provider
 
 
@@ -40,12 +40,13 @@ class TestString(TestCase):
 		self.assertEqual(expected, parse_brakets(text, brakets, limit))
 
 	@data_provider([
-		('{}', [], []),
-		('{a: b}', [], [('a', 'b')]),
-		('{a: {b: c}}', [], [('a', '{b: c}'), ('b', 'c')]),
-		('{{a: b}: c}', [], [('{a: b}', 'c'), ('a', 'b')]),
-		('{{a: b}: {c: d}}', [], [('{a: b}', '{c: d}'), ('a', 'b'), ('c', 'd')]),
-		('{{a: b}: {c: d}}', [0, 2], [('{a: b}', '{c: d}'), ('c', 'd')]),
+		('{}', '{}', ':', [], []),
+		('{a: b}', '{}', ':', [], [('a', 'b')]),
+		('{a: {b: c}}', '{}', ':', [], [('a', '{b: c}'), ('b', 'c')]),
+		('{{a: b}: c}', '{}', ':', [], [('{a: b}', 'c'), ('a', 'b')]),
+		('{{a: b}: {c: d}}', '{}', ':', [], [('{a: b}', '{c: d}'), ('a', 'b'), ('c', 'd')]),
+		('{{a: b}: {c: d}}', '{}', ':', [0, 2], [('{a: b}', '{c: d}'), ('c', 'd')]),
+		('(a, b)', '()', ',', [], [('a', 'b')]),
 	])
-	def test_parse_dict(self, text: str, groups: list[int], expected: list[tuple[str]]) -> None:
-		self.assertEqual(expected, parse_dict(text, groups))
+	def test_parse_dict(self, text: str, brakets: str, delimiter: str, groups: list[int], expected: list[tuple[str]]) -> None:
+		self.assertEqual(expected, parse_block(text, brakets, delimiter, groups))

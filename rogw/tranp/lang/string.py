@@ -50,29 +50,32 @@ def parse_brakets(text: str, brakets: str = '()', limit: int = -1) -> list[str]:
 	return [text[found[0]:found[1]] for index, found in enumerate(founds) if limit == -1 or index < limit]
 
 
-def parse_dict(text: str, groups: list[int] = []) -> list[tuple[str, str]]:
-	"""文字列内の連想配列を展開する
+def parse_block(text: str, brakets: str = '{}', delimiter: str = ':', groups: list[int] = []) -> list[tuple[str, str]]:
+	"""文字列内のブロックを展開する
 
 	Args:
 		text (str): 対象の文字列
+		brakets (str): 括弧のペア (default: '{}')
+		delimiter (str): 区切り文字 (default: ':')
 		groups (list[int]): レスポンス対象のインデックス。[]=無制限 (default: [])
 	Returns:
 		list[tuple[str, str]]: [[キー, 値], ...]
 	"""
+	chars = f'{brakets}{delimiter}'
 	founds: list[tuple[int, str, str]] = []
 	stack: list[tuple[int, int]] = []
 	index = 0
 	while index < len(text):
-		if text[index] not in '{:}':
+		if text[index] not in chars:
 			index = index + 1
 			continue
 
-		if text[index] == '{':
+		if text[index] == brakets[0]:
 			stack.append((index + 1, -1))
-		elif text[index] == ':':
+		elif text[index] == delimiter:
 			start = stack.pop()[0]
 			stack.append((start, index))
-		elif text[index] == '}' and len(stack) > 0 and stack[-1][1] != -1:
+		elif text[index] == brakets[1] and len(stack) > 0 and stack[-1][1] != -1:
 			start, delimit = stack.pop()
 			key = text[start:delimit]
 			value = text[delimit + 1:index]

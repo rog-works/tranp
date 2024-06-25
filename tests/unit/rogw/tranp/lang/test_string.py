@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from rogw.tranp.lang.string import camelize, snakelize
+from rogw.tranp.lang.string import camelize, parse_brakets, snakelize
 from rogw.tranp.test.helper import data_provider
 
 
@@ -22,3 +22,19 @@ class TestString(TestCase):
 	])
 	def test_snakelize(self, org: str, expected: str) -> None:
 		self.assertEqual(expected, snakelize(org))
+
+	@data_provider([
+		('()', '()', -1, ['()']),
+		('[]', '[]', -1, ['[]']),
+		('{}', '{}', -1, ['{}']),
+		('<>', '<>', -1, ['<>']),
+		('(a)', '()', -1, ['(a)']),
+		('(a, (b))', '()', -1, ['(a, (b))', '(b)']),
+		('{a: {b: c}}', '{}', -1, ['{a: {b: c}}', '{b: c}']),
+		('[a], [b], [c]', '[]', -1, ['[a]', '[b]', '[c]']),
+		('<a, <b>, <c>>', '<>', -1, ['<a, <b>, <c>>', '<b>', '<c>']),
+		('()', '()', 0, []),
+		('[a], [b], [c]', '[]', 1, ['[a]']),
+	])
+	def test_parse_brakets(self, text: str, brakets: str, limit: int, expected: list[str]) -> None:
+		self.assertEqual(expected, parse_brakets(text, brakets, limit))

@@ -36,7 +36,8 @@ class Renderer:
 		"""
 		self.__renderer = Environment(loader=FileSystemLoader(template_dirs, encoding='utf-8'))
 		self.__renderer.globals['i18n'] = lambda prefix, key: translator(f'{translator(alias_dsn(prefix))}.{key}')
-		self.__renderer.globals['reg_match'] = lambda pattern, string: re.fullmatch(pattern, string)
+		self.__renderer.globals['reg_match'] = lambda pattern, string: re.search(pattern, string)
+		self.__renderer.globals['reg_fullmatch'] = lambda pattern, string: re.fullmatch(pattern, string)
 		self.__renderer.globals['reg_replace'] = lambda pattern, replace, string: re.sub(pattern, replace, string)
 
 	def render(self, template: str, indent: int = 0, vars: Union[TypedDict, dict[str, Any]] = {}) -> str:

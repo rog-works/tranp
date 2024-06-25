@@ -1,8 +1,10 @@
 [{% if binded_this %}this, {% endif %}&]() -> {{ i18n('classes', 'dict') }}<{{ projection_types[0] }}, {{ projection_types[1] }}> {
 	{{ i18n('classes', 'dict') }}<{{ projection_types[0] }}, {{ projection_types[1] }}> __ret;
 	for ({{ comp_for }}) {
-		{#- XXX 期待値: 'auto& [key, value] : iterates' #}
-		{%- set _key, _value = reg_match('auto&? \\[([^,]+), (.+)\\] : .+', comp_for).group(1, 2) %}
+		{#- XXX 期待値1: 'auto& [key, value] : iterates' #}
+		{#- XXX 期待値2: 'auto& key : iterates' #}
+		{%- set matches = reg_match('^auto&? (?:\\[(\\w+), (\\w+)\\]|(\\w+)) : ', comp_for) %}
+		{%- set _key, _value = matches.group(1, 2) if matches.lastindex == 2 else (matches[3], matches[3]) %}
 		{%- if condition %}
 		if ({{ condition }}) {
 			__ret[{{ _key }}] = {{ _value }};

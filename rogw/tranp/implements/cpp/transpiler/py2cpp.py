@@ -264,7 +264,9 @@ class Py2Cpp(ITranspiler):
 
 	def proc_for_dict_items(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		# 期待値: 'iterates.items()'
-		iterates = cast(re.Match, re.fullmatch(r'(.+)\.\w+\(\)', for_in))[1]
+		iterates = cast(re.Match, re.fullmatch(r'(.+)(->|\.)\w+\(\)', for_in))[1]
+		# XXX 参照の変換方法が場当たり的で一貫性が無い。包括的な対応を検討
+		iterates = f'*({iterates})' if for_in.endswith('->items()') else iterates
 		return self.view.render(f'{node.classification}/dict_items', vars={'symbols': symbols, 'iterates': iterates, 'statements': statements})
 
 	def on_catch(self, node: defs.Catch, var_type: str, symbol: str, statements: list[str]) -> str:
@@ -285,7 +287,9 @@ class Py2Cpp(ITranspiler):
 
 		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Relay) and node.iterates.calls.prop.tokens == dict.items.__name__:
 			# 期待値: 'iterates.items()'
-			iterates = cast(re.Match, re.fullmatch(r'(.+)\.\w+\(\)', for_in))[1]
+			iterates = cast(re.Match, re.fullmatch(r'(.+)(->|\.)items\(\)', for_in))[1]
+			# XXX 参照の変換方法が場当たり的で一貫性が無い。包括的な対応を検討
+			iterates = f'*({iterates})' if for_in.endswith('->items()') else iterates
 			return self.view.render(f'comp/{node.classification}', vars={'symbols': symbols, 'iterates': iterates, 'is_const': is_const, 'is_addr_p': is_addr_p})
 		else:
 			return self.view.render(f'comp/{node.classification}', vars={'symbols': symbols, 'iterates': for_in, 'is_const': is_const, 'is_addr_p': is_addr_p})

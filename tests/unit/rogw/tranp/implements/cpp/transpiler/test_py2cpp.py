@@ -305,12 +305,14 @@ class TestPy2Cpp(TestCase):
 		(_ast('Alias.in_class_method.block', 'assign[3]'), defs.MoveAssign, 'std::map<int, std::vector<int>> d2 = {\n\t{(int)(Alias2::Values::A), {(int)(Alias2::Values::B)}},\n\t{(int)(Alias2::Values::B), {(int)(Alias2::Values::A)}},\n};'),
 
 		(_ast('CompOps.list_comp.block', 'assign[1]'), defs.MoveAssign, BlockExpects.CompOps_list_comp_assign_values1),
-		(_ast('CompOps.dict_comp.block', 'assign[1]'), defs.MoveAssign, BlockExpects.CompOps_dict_comp_assign_kvs1),
-		(_ast('CompOps.dict_comp.block', 'assign[3]'), defs.MoveAssign, BlockExpects.CompOps_dict_comp_assign_kvs2),
+		(_ast('CompOps.dict_comp.block', 'assign[1]'), defs.MoveAssign, BlockExpects.CompOps_dict_comp_assign_kvs0_1),
+		(_ast('CompOps.dict_comp.block', 'assign[3]'), defs.MoveAssign, BlockExpects.CompOps_dict_comp_assign_kvsp_1),
+		(_ast('CompOps.dict_comp.block', 'assign[5]'), defs.MoveAssign, BlockExpects.CompOps_dict_comp_assign_kvs2),
 
 		(_ast('ForOps.range.block', 'for_stmt'), defs.For, 'for (auto i = 0; i < 10; i++) {\n\n}'),
 		(_ast('ForOps.enumerate.block', 'for_stmt'), defs.For, BlockExpects.ForOps_enumerate_for_index_key),
-		(_ast('ForOps.dict_items.block', 'for_stmt'), defs.For, 'for (auto& [key, value] : kvs) {\n\n}'),
+		(_ast('ForOps.dict_items.block', 'for_stmt[1]'), defs.For, 'for (auto& [key, value] : kvs) {\n\n}'),
+		(_ast('ForOps.dict_items.block', 'for_stmt[3]'), defs.For, 'for (auto& [key, value] : *(kvs_p)) {\n\n}'),
 
 		(_ast('ListOps.len.block', 'assign[1]'), defs.MoveAssign, 'int size_values = values.size();'),
 		(_ast('ListOps.pop.block', 'assign[1]'), defs.MoveAssign, BlockExpects.ListOps_pop_assign_value0),

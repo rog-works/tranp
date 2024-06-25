@@ -19,10 +19,19 @@ class DeclOps {
 	return __ret;
 }();"""
 
-	CompOps_dict_comp_assign_kvs1 = \
-"""std::map<std::string, CompOps::C> kvs1 = [this, &]() -> std::map<std::string, CompOps::C> {
+	CompOps_dict_comp_assign_kvs0_1 = \
+"""std::map<std::string, CompOps::C> kvs0_1 = [this, &]() -> std::map<std::string, CompOps::C> {
 	std::map<std::string, CompOps::C> __ret;
-	for (auto& [key, value] : kvs0) {
+	for (auto& [key, value] : kvs0_0) {
+		__ret[key] = value;
+	}
+	return __ret;
+}();"""
+
+	CompOps_dict_comp_assign_kvsp_1 = \
+"""std::map<std::string, CompOps::C> kvsp_1 = [this, &]() -> std::map<std::string, CompOps::C> {
+	std::map<std::string, CompOps::C> __ret;
+	for (auto& [key, value] : *(kvsp_0)) {
 		__ret[key] = value;
 	}
 	return __ret;

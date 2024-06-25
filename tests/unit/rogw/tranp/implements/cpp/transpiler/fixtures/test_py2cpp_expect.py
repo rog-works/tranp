@@ -29,10 +29,10 @@ class DeclOps {
 }();"""
 
 	CompOps_dict_comp_assign_kvs2 = \
-"""std::map<std::string, std::string> kvs2 = [this, &]() -> std::map<std::string, std::string> {
-	std::map<std::string, std::string> __ret;
-	for (auto& key : keys) {
-		__ret[key] = key;
+"""std::map<int, int> kvs2 = [this, &]() -> std::map<int, int> {
+	std::map<int, int> __ret;
+	for (auto& in_values : values) {
+		__ret[in_values[0]] = in_values[1];
 	}
 	return __ret;
 }();"""

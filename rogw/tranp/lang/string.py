@@ -30,6 +30,8 @@ def parse_brakets(text: str, brakets: str = '()', limit: int = -1) -> list[str]:
 		text (str): 対象の文字列
 		brakets (str): 括弧のペア (default: '()')
 		limit (int): 展開上限。-1=無制限 (default: -1)
+	Returns:
+		list[str]: 展開したペアのリスト
 	"""
 	founds: list[tuple[int, int]] = []
 	stack: list[int] = []
@@ -46,3 +48,37 @@ def parse_brakets(text: str, brakets: str = '()', limit: int = -1) -> list[str]:
 
 	founds = sorted(founds, key=lambda entry: entry[0])
 	return [text[found[0]:found[1]] for index, found in enumerate(founds) if limit == -1 or index < limit]
+
+
+def parse_dict(text: str, groups: list[int] = []) -> list[tuple[str, str]]:
+	"""文字列内の連想配列を展開する
+
+	Args:
+		text (str): 対象の文字列
+		groups (list[int]): レスポンス対象のインデックス。[]=無制限 (default: [])
+	Returns:
+		list[tuple[str, str]]: [[キー, 値], ...]
+	"""
+	founds: list[tuple[int, str, str]] = []
+	stack: list[tuple[int, int]] = []
+	index = 0
+	while index < len(text):
+		if text[index] not in '{:}':
+			index = index + 1
+			continue
+
+		if text[index] == '{':
+			stack.append((index + 1, -1))
+		elif text[index] == ':':
+			start = stack.pop()[0]
+			stack.append((start, index))
+		elif text[index] == '}' and len(stack) > 0 and stack[-1][1] != -1:
+			start, delimit = stack.pop()
+			key = text[start:delimit]
+			value = text[delimit + 1:index]
+			founds.append((start, key, value.lstrip()))
+
+		index = index + 1
+
+	founds = sorted(founds, key=lambda entry: entry[0])
+	return [(found[1], found[2]) for index, found in enumerate(founds) if len(groups) == 0 or index in groups]

@@ -381,7 +381,7 @@ class Py2Cpp(ITranspiler):
 						continue
 
 				# XXX __embed__のシグネチャーに依存するのは微妙なので再検討
-				key, meta = parse_pair_block(decorator, '()', ',' [0])[0]
+				key, meta = parse_pair_block(decorator, '()', ',')[0]
 				embed_vars[key[1:-1]] = meta
 
 		# XXX 構造体の判定

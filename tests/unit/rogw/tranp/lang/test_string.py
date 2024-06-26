@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from rogw.tranp.lang.string import camelize, parse_block, parse_pair_block, snakelize
+from rogw.tranp.lang.string import camelize, parse_block, parse_braket_block, parse_pair_block, snakelize
 from rogw.tranp.test.helper import data_provider
 
 
@@ -24,30 +24,37 @@ class TestString(TestCase):
 		self.assertEqual(expected, snakelize(org))
 
 	@data_provider([
-		('()', '()', [], ['()']),
-		('[]', '[]', [], ['[]']),
-		('{}', '{}', [], ['{}']),
-		('<>', '<>', [], ['<>']),
-		('(a)', '()', [], ['(a)']),
-		('(a, (b))', '()', [], ['(a, (b))', '(b)']),
-		('{a: {b: c}}', '{}', [], ['{a: {b: c}}', '{b: c}']),
-		('[a], [b], [c]', '[]', [], ['[a]', '[b]', '[c]']),
-		('<a, <b>, <c>>', '<>', [], ['<a, <b>, <c>>', '<b>', '<c>']),
-		('()', '()', [1], []),
-		('[a], [b], [c]', '[]', [0], ['[a]']),
+		('()', '()', ['()']),
+		('[]', '[]', ['[]']),
+		('{}', '{}', ['{}']),
+		('<>', '<>', ['<>']),
+		('(a)', '()', ['(a)']),
+		('(a, (b))', '()', ['(a, (b))', '(b)']),
+		('{a: {b: c}}', '{}', ['{a: {b: c}}', '{b: c}']),
+		('[a], [b], [c]', '[]', ['[a]', '[b]', '[c]']),
+		('<a, <b>, <c>>', '<>', ['<a, <b>, <c>>', '<b>', '<c>']),
 	])
-	def test_parse_block(self, text: str, brakets: str, groups: list[int], expected: list[str]) -> None:
-		self.assertEqual(expected, parse_block(text, brakets, groups))
+	def test_parse_braket_block(self, text: str, brakets: str, expected: list[str]) -> None:
+		self.assertEqual(expected, parse_braket_block(text, brakets))
 
 	@data_provider([
-		('{}', '{}', ':', [], []),
-		('{a: b}', '{}', ':', [], [['a', 'b']]),
-		('{a: {b: c}}', '{}', ':', [], [['a', '{b: c}'], ['b', 'c']]),
-		('{{a: b}: c}', '{}', ':', [], [['{a: b}', 'c'], ['a', 'b']]),
-		('{{a: b}: {c: d}}', '{}', ':', [], [['{a: b}', '{c: d}'], ['a', 'b'], ['c', 'd']]),
-		('{{a: b}: {c: d}}', '{}', ':', [0, 2], [['{a: b}', '{c: d}'], ['c', 'd']]),
-		('(a, b)', '()', ',', [], [['a', 'b']]),
-		('(a, b, c)', '()', ',', [], [['a', 'b', 'c']]),
+		('', '', ':', []),
+		('{}', '{}', ':', [{'name': '', 'elems': ['']}]),
+		('{a: {b: c}}', '{}', ':', [{'name': '', 'elems': ['a', '{b: c}']}, {'name': '', 'elems': ['b', 'c']}]),
+		('tag<a, tag[1]<b>, c>', '<>', ',', [{'name': 'tag', 'elems': ['a', 'tag[1]<b>', 'c']}, {'name': 'tag[1]', 'elems': ['b']}]),
 	])
-	def test_parse_pair_block(self, text: str, brakets: str, delimiter: str, groups: list[int], expected: list[tuple[str]]) -> None:
-		self.assertEqual(expected, parse_pair_block(text, brakets, delimiter, groups))
+	def test_parse_block(self, text: str, brakets: str, delimiter: str, expected: list[dict[str, list[str]]]) -> None:
+		self.assertEqual(expected, parse_block(text, brakets, delimiter))
+
+	@data_provider([
+		('{}', '{}', ':', []),
+		('{a: b}', '{}', ':', [('a', 'b')]),
+		('{a: {b: c}}', '{}', ':', [('a', '{b: c}'), ('b', 'c')]),
+		('{{a: b}: c}', '{}', ':', [('{a: b}', 'c'), ('a', 'b')]),
+		('{{a: b}: {c: d}}', '{}', ':', [('{a: b}', '{c: d}'), ('a', 'b'), ('c', 'd')]),
+		('(a, b)', '()', ',', [('a', 'b')]),
+		('(a, b, c)', '()', ',', []),
+		('tag1(a, tag2(b), c)', '()', ',', []),
+	])
+	def test_parse_pair_block(self, text: str, brakets: str, delimiter: str, expected: list[tuple[str]]) -> None:
+		self.assertEqual(expected, parse_pair_block(text, brakets, delimiter))

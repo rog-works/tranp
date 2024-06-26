@@ -1,7 +1,7 @@
 [{% if binded_this %}this, {% endif %}&]() -> {{ i18n('classes', 'dict') }}<{{ projection_types[0] }}, {{ projection_types[1] }}> {
 	{{ i18n('classes', 'dict') }}<{{ projection_types[0] }}, {{ projection_types[1] }}> __ret;
 	for ({{ comp_for }}) {
-		{%- set _key, _value = parse_pair_block(projection, '{}', ',', [0])[0] %}
+		{%- set _key, _value = parse_pair_block(projection, '{}', ',')[0] %}
 		{%- if condition %}
 		if ({{ condition }}) {
 			__ret[{{ _key }}] = {{ _value }};

@@ -1,4 +1,5 @@
 import re
+from typing import TypedDict
 
 
 def camelize(org: str) -> str:
@@ -23,13 +24,12 @@ def snakelize(org: str) -> str:
 	return re.sub('^[_]+', '', re.sub('([A-Z])', r'_\1', org).lower())
 
 
-def parse_block(text: str, brakets: str = '()', groups: list[int] = []) -> list[str]:
+def parse_braket_block(text: str, brakets: str = '()') -> list[str]:
 	"""文字列内の括弧で囲われたブロックを展開する
 
 	Args:
 		text (str): 対象の文字列
 		brakets (str): 括弧のペア (default: '()')
-		groups (list[int]): レスポンス対象のインデックス。[]=無制限 (default: [])
 	Returns:
 		list[str]: 展開したブロックのリスト
 	"""
@@ -47,37 +47,47 @@ def parse_block(text: str, brakets: str = '()', groups: list[int] = []) -> list[
 		index = index + 1
 
 	founds = sorted(founds, key=lambda entry: entry[0])
-	return [text[found[0]:found[1]] for index, found in enumerate(founds) if len(groups) == 0 or index in groups]
+	return [text[found[0]:found[1]] for found in founds]
 
 
-def parse_pair_block(text: str, brakets: str = '{}', delimiter: str = ':', groups: list[int] = []) -> list[list[str]]:
-	"""文字列内のペアブロックを展開する。主に連想配列が対象
+BlockEntry = TypedDict('BlockEntry', {'name': str, 'elems': list[str]})
+
+
+def parse_block(text: str, brakets: str = '{}', delimiter: str = ':') -> list[BlockEntry]:
+	"""文字列内のブロックを展開する。対象: 連想配列, 関数コール
 
 	Args:
 		text (str): 対象の文字列
 		brakets (str): 括弧のペア (default: '{}')
 		delimiter (str): 区切り文字 (default: ':')
-		groups (list[int]): レスポンス対象のインデックス。[]=無制限 (default: [])
 	Returns:
-		list[tuple[str, str]]: [[キー, 値], ...]
+		list[BlockEntry]: [{'name': キー, 'elems': 値}, ...]
 	"""
 	chars = f'{brakets}{delimiter}'
-	founds: list[tuple[int, list[str]]] = []
-	stack: list[tuple[int, list[int]]] = []
+	founds: list[tuple[int, str, list[str]]] = []
+	stack: list[tuple[int, str, list[int]]] = []
 	index = 0
+	name = ''
 	while index < len(text):
 		if text[index] not in chars:
+			# 空白以外を名前の構成要素とする
+			if text[index] not in ' \n\t':
+				name = name + text[index]
+			else:
+				name = ''
+
 			index = index + 1
 			continue
 
 		if text[index] == brakets[0]:
-			stack.append((index + 1, []))
+			stack.append((index + 1, name, []))
+			name = ''
 		elif text[index] == delimiter:
-			peek = stack.pop()
-			peek[1].append(index)
-			stack.append(peek)
-		elif text[index] == brakets[1] and len(stack) > 0 and len(stack[-1][1]) > 0:
-			start, splits = stack.pop()
+			start, at_name, splits = stack.pop()
+			splits.append(index)
+			stack.append((start, at_name, splits))
+		elif text[index] == brakets[1] and len(stack) > 0:
+			start, at_name, splits = stack.pop()
 			offsets = [*splits, index]
 			curr = start
 			in_texts: list[str] = []
@@ -85,9 +95,22 @@ def parse_pair_block(text: str, brakets: str = '{}', delimiter: str = ':', group
 				in_texts.append(text[curr:offset].lstrip())
 				curr = offset + 1
 
-			founds.append((start, in_texts))
+			founds.append((start, at_name, in_texts))
 
 		index = index + 1
 
 	founds = sorted(founds, key=lambda entry: entry[0])
-	return [found[1] for index, found in enumerate(founds) if len(groups) == 0 or index in groups]
+	return [{'name': found[1], 'elems': found[2]} for found in founds]
+
+
+def parse_pair_block(text: str, brakets: str = '{}', delimiter: str = ':') -> list[tuple[str, str]]:
+	"""文字列内のペアブロックを展開する。主に連想配列が対象
+
+	Args:
+		text (str): 対象の文字列
+		brakets (str): 括弧のペア (default: '{}')
+		delimiter (str): 区切り文字 (default: ':')
+	Returns:
+		list[tuple[str, str]]: [(キー, 値), ...]
+	"""
+	return [(entry['elems'][0], entry['elems'][1]) for entry in parse_block(text, brakets, delimiter) if len(entry['elems']) == 2]

@@ -167,6 +167,12 @@ class CVarOps:
 		asp_to_vp = cast(CP[Void], asp.addr)
 		r_to_vp = cast(CP[Void], r.addr)
 
+	class CVarSchema:
+		def __init__(self) -> None:
+			self.np: CP[int] | None = None
+			self.arr: list[CP[int]] = []
+			self.m: dict[str, CP[int]] = {}
+
 
 class FuncOps:
 	def print(self) -> None:

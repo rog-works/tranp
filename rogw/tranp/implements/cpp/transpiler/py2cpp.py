@@ -405,8 +405,7 @@ class Py2Cpp(ITranspiler):
 
 		for this_var in node.this_vars:
 			this_var_name = this_var.tokens_without_this
-			var_type_raw = self.reflections.type_of(this_var.declare.as_a(defs.AnnoAssign).var_type)
-			var_type = self.to_domain_name(var_type_raw)
+			var_type = self.transpile(this_var.declare.as_a(defs.AnnoAssign).var_type)
 			this_var_vars = {'access': defs.to_access(this_var_name), 'symbol': this_var_name, 'var_type': var_type, 'embed_vars': embed_vars}
 			vars.append(self.view.render(f'{node.classification}/_decl_this_var', vars=this_var_vars))
 

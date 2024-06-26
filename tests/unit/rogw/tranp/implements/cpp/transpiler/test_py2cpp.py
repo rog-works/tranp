@@ -71,6 +71,7 @@ class ASTMapping:
 		'CVarOps.declare.block': f'{_CVarOps}.class_def_raw.block.function_def[9].function_def_raw.block',
 		'CVarOps.default_param.block': f'{_CVarOps}.class_def_raw.block.function_def[10].function_def_raw.block',
 		'CVarOps.const_move.block': f'{_CVarOps}.class_def_raw.block.function_def[11].function_def_raw.block',
+		'CVarOps.to_void.block': f'{_CVarOps}.class_def_raw.block.function_def[12].function_def_raw.block',
 
 		'FuncOps.print.block': f'{_FuncOps}.class_def_raw.block.function_def[0].function_def_raw.block',
 		'FuncOps.kw_params.block': f'{_FuncOps}.class_def_raw.block.function_def[1].function_def_raw.block',
@@ -257,6 +258,11 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarOps.const_move.block', 'assign[11]'), defs.MoveAssign, 'const Sub& r_const3 = r;'),
 		(_ast('CVarOps.const_move.block', 'assign[12]'), defs.MoveAssign, 'Sub a3 = r_const3;'),
 		(_ast('CVarOps.const_move.block', 'assign[13]'), defs.MoveAssign, 'const Sub* ap_const3 = &(r_const3);'),
+
+		(_ast('CVarOps.to_void.block', 'assign[0]'), defs.MoveAssign, 'void* a_to_vp = (void*)(&(a));'),
+		(_ast('CVarOps.to_void.block', 'assign[1]'), defs.MoveAssign, 'void* ap_to_vp = (void*)(ap);'),
+		(_ast('CVarOps.to_void.block', 'assign[2]'), defs.MoveAssign, 'void* asp_to_vp = (void*)((asp).get());'),
+		(_ast('CVarOps.to_void.block', 'assign[3]'), defs.MoveAssign, 'void* r_to_vp = (void*)(&(r));'),
 
 		(_ast('FuncOps.print.block', 'funccall'), defs.FuncCall, 'printf("message. %d, %f, %s", 1, 1.0, "abc");'),
 		(_ast('FuncOps.kw_params.block', 'assign'), defs.MoveAssign, 'std::string a = this->kw_params(a=1, b=2);'),

@@ -238,3 +238,7 @@ class CRaw(CVar[T]):
 	def addr(self) -> 'CP[T]':
 		"""ポインターを返却する参照変換代替メソッド。C++では`&`に相当"""
 		return CP(self.raw)
+
+
+class Void:
+	"""voidを表すクラス。主にvoid*での利用を想定"""

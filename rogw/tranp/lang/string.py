@@ -50,7 +50,7 @@ def parse_block(text: str, brakets: str = '()', groups: list[int] = []) -> list[
 	return [text[found[0]:found[1]] for index, found in enumerate(founds) if len(groups) == 0 or index in groups]
 
 
-def parse_pair_block(text: str, brakets: str = '{}', delimiter: str = ':', groups: list[int] = []) -> list[tuple[str, str]]:
+def parse_pair_block(text: str, brakets: str = '{}', delimiter: str = ':', groups: list[int] = []) -> list[list[str]]:
 	"""文字列内のペアブロックを展開する。主に連想配列が対象
 
 	Args:
@@ -62,8 +62,8 @@ def parse_pair_block(text: str, brakets: str = '{}', delimiter: str = ':', group
 		list[tuple[str, str]]: [[キー, 値], ...]
 	"""
 	chars = f'{brakets}{delimiter}'
-	founds: list[tuple[int, str, str]] = []
-	stack: list[tuple[int, int]] = []
+	founds: list[tuple[int, list[str]]] = []
+	stack: list[tuple[int, list[int]]] = []
 	index = 0
 	while index < len(text):
 		if text[index] not in chars:
@@ -71,17 +71,23 @@ def parse_pair_block(text: str, brakets: str = '{}', delimiter: str = ':', group
 			continue
 
 		if text[index] == brakets[0]:
-			stack.append((index + 1, -1))
+			stack.append((index + 1, []))
 		elif text[index] == delimiter:
-			start = stack.pop()[0]
-			stack.append((start, index))
-		elif text[index] == brakets[1] and len(stack) > 0 and stack[-1][1] != -1:
-			start, delimit = stack.pop()
-			key = text[start:delimit]
-			value = text[delimit + 1:index]
-			founds.append((start, key, value.lstrip()))
+			peek = stack.pop()
+			peek[1].append(index)
+			stack.append(peek)
+		elif text[index] == brakets[1] and len(stack) > 0 and len(stack[-1][1]) > 0:
+			start, splits = stack.pop()
+			offsets = [*splits, index]
+			curr = start
+			in_texts: list[str] = []
+			for offset in offsets:
+				in_texts.append(text[curr:offset].lstrip())
+				curr = offset + 1
+
+			founds.append((start, in_texts))
 
 		index = index + 1
 
 	founds = sorted(founds, key=lambda entry: entry[0])
-	return [(found[1], found[2]) for index, found in enumerate(founds) if len(groups) == 0 or index in groups]
+	return [found[1] for index, found in enumerate(founds) if len(groups) == 0 or index in groups]

@@ -41,13 +41,13 @@ class TestString(TestCase):
 
 	@data_provider([
 		('{}', '{}', ':', [], []),
-		('{a: b}', '{}', ':', [], [('a', 'b')]),
-		('{a: {b: c}}', '{}', ':', [], [('a', '{b: c}'), ('b', 'c')]),
-		('{{a: b}: c}', '{}', ':', [], [('{a: b}', 'c'), ('a', 'b')]),
-		('{{a: b}: {c: d}}', '{}', ':', [], [('{a: b}', '{c: d}'), ('a', 'b'), ('c', 'd')]),
-		('{{a: b}: {c: d}}', '{}', ':', [0, 2], [('{a: b}', '{c: d}'), ('c', 'd')]),
-		('(a, b)', '()', ',', [], [('a', 'b')]),
-		('(a, b, c)', '()', ',', [], [('a, b', 'c')]),
+		('{a: b}', '{}', ':', [], [['a', 'b']]),
+		('{a: {b: c}}', '{}', ':', [], [['a', '{b: c}'], ['b', 'c']]),
+		('{{a: b}: c}', '{}', ':', [], [['{a: b}', 'c'], ['a', 'b']]),
+		('{{a: b}: {c: d}}', '{}', ':', [], [['{a: b}', '{c: d}'], ['a', 'b'], ['c', 'd']]),
+		('{{a: b}: {c: d}}', '{}', ':', [0, 2], [['{a: b}', '{c: d}'], ['c', 'd']]),
+		('(a, b)', '()', ',', [], [['a', 'b']]),
+		('(a, b, c)', '()', ',', [], [['a', 'b', 'c']]),
 	])
 	def test_parse_pair_block(self, text: str, brakets: str, delimiter: str, groups: list[int], expected: list[tuple[str]]) -> None:
 		self.assertEqual(expected, parse_pair_block(text, brakets, delimiter, groups))

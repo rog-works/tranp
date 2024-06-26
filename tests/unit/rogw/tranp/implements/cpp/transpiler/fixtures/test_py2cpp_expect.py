@@ -2,11 +2,18 @@ class BlockExpects:
 	DeclOps = """/** DeclOps */
 class DeclOps {
 	public: static Sub* class_bp = nullptr;
-	public: static std::map<std::string, std::map<std::string, std::vector<int>>> class_map = {{"a", {{"b", {1}}}}};
+	public: static std::map<std::string, std::map<std::string, std::vector<int*>>> class_map = {{"a", {{"b", {}}}}};
 	public: Sub* inst_var;
+	public: std::vector<int*> inst_arr;
+	public: std::map<std::string, int*> inst_map;
 	public:
 	/** __init__ */
-	DeclOps() : inst_var(nullptr) {
+	DeclOps() : inst_var(nullptr), inst_arr({}), inst_map({}) {
+	}
+	public:
+	/** prop */
+	int prop() {
+		return 1;
 	}
 };"""
 

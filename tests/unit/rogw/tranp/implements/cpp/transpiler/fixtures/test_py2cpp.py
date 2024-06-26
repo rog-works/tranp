@@ -46,10 +46,16 @@ class Sub(Base):
 
 class DeclOps:
 	class_bp: CP[Sub] | None = None
-	class_map: dict[str, dict[str, list[int]]] = {'a': {'b': [1]}}
+	class_map: dict[str, dict[str, list[CP[int]]]] = {'a': {'b': []}}
 
 	def __init__(self) -> None:
 		self.inst_var: CP[Sub] | None = None
+		self.inst_arr: list[CP[int]] = []
+		self.inst_map: dict[str, CP[int]] = {}
+
+	@property
+	def prop(self) -> int:
+		return 1
 
 
 class CVarOps:
@@ -166,12 +172,6 @@ class CVarOps:
 		ap_to_vp = cast(CP[Void], ap)
 		asp_to_vp = cast(CP[Void], asp.addr)
 		r_to_vp = cast(CP[Void], r.addr)
-
-	class CVarSchema:
-		def __init__(self) -> None:
-			self.np: CP[int] | None = None
-			self.arr: list[CP[int]] = []
-			self.m: dict[str, CP[int]] = {}
 
 
 class FuncOps:

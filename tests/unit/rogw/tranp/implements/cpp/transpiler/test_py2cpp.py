@@ -72,7 +72,6 @@ class ASTMapping:
 		'CVarOps.default_param.block': f'{_CVarOps}.class_def_raw.block.function_def[10].function_def_raw.block',
 		'CVarOps.const_move.block': f'{_CVarOps}.class_def_raw.block.function_def[11].function_def_raw.block',
 		'CVarOps.to_void.block': f'{_CVarOps}.class_def_raw.block.function_def[12].function_def_raw.block',
-		'CVarOps.CVarSchema': f'{_CVarOps}.class_def_raw.block.class_def',
 
 		'FuncOps.print.block': f'{_FuncOps}.class_def_raw.block.function_def[0].function_def_raw.block',
 		'FuncOps.kw_params.block': f'{_FuncOps}.class_def_raw.block.function_def[1].function_def_raw.block',
@@ -264,8 +263,6 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarOps.to_void.block', 'assign[1]'), defs.MoveAssign, 'void* ap_to_vp = (void*)(ap);'),
 		(_ast('CVarOps.to_void.block', 'assign[2]'), defs.MoveAssign, 'void* asp_to_vp = (void*)((asp).get());'),
 		(_ast('CVarOps.to_void.block', 'assign[3]'), defs.MoveAssign, 'void* r_to_vp = (void*)(&(r));'),
-
-		(_ast('CVarOps.CVarSchema', ''), defs.Class, '/** CVarSchema */\nclass CVarSchema {\n\tpublic: int* np;\n\tpublic: std::vector<int*> arr;\n\tpublic: std::map<std::string, int*> m;\n\tpublic:\n\t/** __init__ */\n\tCVarSchema() : np(nullptr), arr({}), m({}) {\n\t}\n};'),
 
 		(_ast('FuncOps.print.block', 'funccall'), defs.FuncCall, 'printf("message. %d, %f, %s", 1, 1.0, "abc");'),
 		(_ast('FuncOps.kw_params.block', 'assign'), defs.MoveAssign, 'std::string a = this->kw_params(a=1, b=2);'),

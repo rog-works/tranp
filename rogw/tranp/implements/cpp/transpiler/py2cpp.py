@@ -210,7 +210,7 @@ class Py2Cpp(ITranspiler):
 		Returns:
 			list[str]: 出力対象のデコレーターリスト
 		"""
-		ignore_names = ['classmethod', 'abstractmethod', __allow_override__.__name__, __embed__.__name__, __struct__.__name__]
+		ignore_names = ['classmethod', 'abstractmethod', 'property', __allow_override__.__name__, __embed__.__name__, __struct__.__name__]
 		ignore_names = [name for name in ignore_names if name not in deny_ignores]
 		return [decorator for decorator in decorators if decorator.split('(')[0] not in ignore_names]
 

@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from rogw.tranp.lang.string import camelize, parse_block, parse_braket_block, parse_pair_block, snakelize
+from rogw.tranp.lang.string import camelize, parse_nested_block, parse_block, parse_braket_block, parse_pair_block, snakelize
 from rogw.tranp.test.helper import data_provider
 
 
@@ -58,3 +58,11 @@ class TestString(TestCase):
 	])
 	def test_parse_pair_block(self, text: str, brakets: str, delimiter: str, expected: list[tuple[str]]) -> None:
 		self.assertEqual(expected, parse_pair_block(text, brakets, delimiter))
+
+	@data_provider([
+		('(a, b)', '()', ',', '{delimiter} ', '{name}{open}{elems}{close}', '(a, b)'),
+		('{a: {b: c}}', '{}', ':', '{delimiter}', '{name}{open}{elems}{close}', '{a:{b:c}}'),
+	])
+	def test_parse(self, text: str, brakets: str, delimiter: str, join_format: str, block_format: str, expected: str) -> None:
+		entry = parse_nested_block(text, brakets, delimiter)
+		self.assertEqual(expected, entry.format(join_format, block_format))

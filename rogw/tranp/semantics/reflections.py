@@ -511,7 +511,9 @@ class ProceduralResolver:
 	def on_indexer(self, node: defs.Indexer, receiver: IReflection, keys: list[IReflection]) -> IReflection:
 		receiver = self.unpack_alt_class(receiver)
 
-		if self.reflections.is_a(receiver, list):
+		if node.sliced:
+			return receiver.to.relay(node, context=receiver)
+		elif self.reflections.is_a(receiver, list):
 			return receiver.attrs[0].to.relay(node, context=receiver)
 		elif self.reflections.is_a(receiver, dict):
 			return receiver.attrs[1].to.relay(node, context=receiver)

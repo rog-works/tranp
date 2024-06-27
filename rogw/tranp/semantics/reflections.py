@@ -508,7 +508,7 @@ class ProceduralResolver:
 
 		return self.reflections.type_of_standard(type).to.proxy(node).extends(symbol)
 
-	def on_indexer(self, node: defs.Indexer, receiver: IReflection, key: IReflection) -> IReflection:
+	def on_indexer(self, node: defs.Indexer, receiver: IReflection, keys: list[IReflection]) -> IReflection:
 		receiver = self.unpack_alt_class(receiver)
 
 		if self.reflections.is_a(receiver, list):
@@ -517,11 +517,11 @@ class ProceduralResolver:
 			return receiver.attrs[1].to.relay(node, context=receiver)
 		elif self.reflections.is_a(receiver, type):
 			unpacked_receiver = self.unpack_type_proxy(receiver)
-			unpacked_key = self.unpack_type_proxy(key)
+			unpacked_keys = [self.unpack_type_proxy(key) for key in keys]
 			klass_helper = template.HelperBuilder(unpacked_receiver) \
 				.schema(lambda: {'klass': unpacked_receiver, 'template_types': unpacked_receiver.attrs}) \
 				.build(template.Class)
-			klass_symbol = klass_helper.definition(unpacked_key)
+			klass_symbol = klass_helper.definition(*unpacked_keys)
 			return self.reflections.type_of_standard(type).to.proxy(node).extends(klass_symbol).to.relay(node, context=unpacked_receiver)
 		else:
 			# XXX コレクション型以外は全て通常のクラスである想定

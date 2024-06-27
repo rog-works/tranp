@@ -14,7 +14,7 @@ from rogw.tranp.implements.cpp.semantics.cvars import CVars
 from rogw.tranp.lang.annotation import duck_typed, implements, injectable
 from rogw.tranp.lang.eventemitter import Callback
 from rogw.tranp.lang.module import fullyname
-from rogw.tranp.lang.parser import parse_pair_block
+from rogw.tranp.lang.parser import parse_block_to_entry, parse_pair_block
 from rogw.tranp.semantics.procedure import Procedure
 import rogw.tranp.semantics.reflection.helper.template as template
 from rogw.tranp.semantics.reflection.helper.naming import ClassDomainNaming, ClassShorthandNaming
@@ -114,9 +114,14 @@ class Py2Cpp(ITranspiler):
 			# 生成例
 			'Class' -> 'NS::Class'
 			'dict<A, B>' -> 'dict<NS::A, NS::B>'
+			'CP<A>' -> 'NS::A*'
 		"""
 		unpacked_raw = self.unpack_nullable(raw)
 		shorthand = ClassShorthandNaming.accessible_name(unpacked_raw, alias_handler=self.i18n.t)
+		if len([True for key in CVars.keys() if key in shorthand]) > 0:
+			formatter = lambda entry: self.view.render('type_py2cpp', vars={'var_type': entry.format()}) if entry.name in CVars.keys() else None
+			shorthand = parse_block_to_entry(shorthand, '<>', ',').format(alt_formatter=formatter)
+
 		return DSN.join(*DSN.elements(shorthand), delimiter='::')
 
 	def to_domain_name(self, var_type_raw: IReflection) -> str:
@@ -405,7 +410,8 @@ class Py2Cpp(ITranspiler):
 
 		for this_var in node.this_vars:
 			this_var_name = this_var.tokens_without_this
-			var_type = self.transpile(this_var.declare.as_a(defs.AnnoAssign).var_type)
+			var_type_raw = self.reflections.type_of(this_var.declare.as_a(defs.AnnoAssign).var_type)
+			var_type = self.to_accessible_name(var_type_raw)
 			this_var_vars = {'access': defs.to_access(this_var_name), 'symbol': this_var_name, 'var_type': var_type, 'embed_vars': embed_vars}
 			vars.append(self.view.render(f'{node.classification}/_decl_this_var', vars=this_var_vars))
 

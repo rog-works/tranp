@@ -173,6 +173,10 @@ class CVarOps:
 		asp_to_vp = cast(CP[Void], asp.addr)
 		r_to_vp = cast(CP[Void], r.addr)
 
+	def local_decl(self, n: int) -> None:
+		p_arr = [CP(n)]
+		p_map = {n: CP(n)}
+
 
 class FuncOps:
 	def print(self) -> None:

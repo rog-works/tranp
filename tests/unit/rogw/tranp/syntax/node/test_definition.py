@@ -814,7 +814,7 @@ class TestDefinition(TestCase):
 		('a[:]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Var, 'keys': ['', '', ''], 'key_types': [defs.Empty]}),
 		('a[0:]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Var, 'keys': ['0', '', ''], 'key_types': [defs.Integer, defs.Empty]}),
 		('a[0:1]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Var, 'keys': ['0', '1', ''], 'key_types': [defs.Integer, defs.Empty]}),
-		('a[0:1:2]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Var, 'keys': ['0', '1', '2'], 'key_types': [defs.Integer]}),
+		('a[1:5:2]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Var, 'keys': ['1', '5', '2'], 'key_types': [defs.Integer]}),
 	])
 	def test_indexer(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Indexer)

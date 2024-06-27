@@ -81,6 +81,36 @@ class DeclOps {
 	return __copy;
 }();"""
 
+	ListOps_slice_assign_ns0 = \
+"""std::vector<int> ns0 = [&]() -> std::vector<int> {
+	std::vector<int> __ret;
+	int __index = 0;
+	int __start = 1;
+	int __end = ns.size();
+	for (auto& __value : ns) {
+		if (__index >= __start && __index < __end) {
+			__ret.push_back(__value);
+		}
+		__index++;
+	}
+	return __ret;
+}();"""
+
+	ListOps_slice_assign_ns1 = \
+"""std::vector<int> ns1 = [&]() -> std::vector<int> {
+	std::vector<int> __ret;
+	int __index = 0;
+	int __start = 0;
+	int __end = 5;
+	for (auto& __value : ns) {
+		if (__index >= __start && __index < __end) {
+			__ret.push_back(__value);
+		}
+		__index++;
+	}
+	return __ret;
+}();"""
+
 	DictOps_pop_assign_value0 = \
 """int value0 = [&]() -> int {
 	auto __copy = values["a"];

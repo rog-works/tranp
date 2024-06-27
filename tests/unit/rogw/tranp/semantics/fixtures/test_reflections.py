@@ -115,6 +115,17 @@ class Sub(Base):
 		a = self.kw_params(a=1, b=2)
 		return ''
 
+	def indexer_access(self) -> None:
+		ns = [1, 2, 3]
+		n0 = ns[0]
+		ss = ['1', '2', '3']
+		s0 = ss[0]
+		n_slice0 = ns[0:]
+		n_slice1 = ns[:1]
+		n_slice2 = ns[0:1]
+		s_slice = ss[0:5:2]
+		dsn = cast(dict[str, int], {})
+
 
 class CalcOps:
 	def unary(self) -> None:

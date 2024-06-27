@@ -106,6 +106,7 @@ class ASTMapping:
 		'ListOps.pop.block': f'{_ListOps}.class_def_raw.block.function_def[1].function_def_raw.block',
 		'ListOps.contains.block': f'{_ListOps}.class_def_raw.block.function_def[2].function_def_raw.block',
 		'ListOps.fill.block': f'{_ListOps}.class_def_raw.block.function_def[3].function_def_raw.block',
+		'ListOps.slice.block': f'{_ListOps}.class_def_raw.block.function_def[4].function_def_raw.block',
 
 		'DictOps.len.block': f'{_DictOps}.class_def_raw.block.function_def[0].function_def_raw.block',
 		'DictOps.pop.block': f'{_DictOps}.class_def_raw.block.function_def[1].function_def_raw.block',
@@ -333,6 +334,8 @@ class TestPy2Cpp(TestCase):
 		(_ast('ListOps.contains.block', 'assign[1]'), defs.MoveAssign, 'bool b_in = (std::find(values.begin(), values.end(), 1) != values.end());'),
 		(_ast('ListOps.contains.block', 'assign[2]'), defs.MoveAssign, 'bool b_not_in = (std::find(values.begin(), values.end(), 1) == values.end());'),
 		(_ast('ListOps.fill.block', 'assign'), defs.MoveAssign, 'std::vector<int> n_x3 = std::vector<int>(3, n);'),
+		(_ast('ListOps.slice.block', 'assign[0]'), defs.MoveAssign, BlockExpects.ListOps_slice_assign_ns0),
+		(_ast('ListOps.slice.block', 'assign[1]'), defs.MoveAssign, BlockExpects.ListOps_slice_assign_ns1),
 
 		(_ast('DictOps.len.block', 'assign[1]'), defs.MoveAssign, 'int size_kvs = kvs.size();'),
 		(_ast('DictOps.pop.block', 'assign[1]'), defs.MoveAssign, BlockExpects.DictOps_pop_assign_value0),
@@ -356,6 +359,7 @@ class TestPy2Cpp(TestCase):
 
 		(_ast('CastOps.cast_class.block', 'assign[0]'), defs.MoveAssign, 'Base b = (Base)(sub);'),
 		(_ast('CastOps.cast_class.block', 'assign[1]'), defs.MoveAssign, 'Base* bp = (Base*)(sub_p);'),
+		(_ast('CastOps.cast_class.block', 'assign[3]'), defs.MoveAssign, 'std::map<std::string, Base*> dsbp = (std::map<std::string, Base*>)(dssp);'),
 
 		(_ast('Nullable.params', ''), defs.Method, 'public:\n/** params */\nvoid params(Sub* p) {\n\n}'),
 		(_ast('Nullable.returns', ''), defs.Method, 'public:\n/** returns */\nSub* returns() {\n\n}'),

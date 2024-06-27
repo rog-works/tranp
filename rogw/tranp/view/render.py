@@ -4,7 +4,7 @@ from typing import Any, Protocol, Union, TypedDict
 from jinja2 import Environment, FileSystemLoader
 
 from rogw.tranp.dsn.translation import alias_dsn
-from rogw.tranp.lang.string import parse_pair_block
+from rogw.tranp.lang.parser import parse_pair_block
 
 
 class Translator(Protocol):

@@ -14,7 +14,7 @@ from rogw.tranp.implements.cpp.semantics.cvars import CVars
 from rogw.tranp.lang.annotation import duck_typed, implements, injectable
 from rogw.tranp.lang.eventemitter import Callback
 from rogw.tranp.lang.module import fullyname
-from rogw.tranp.lang.string import parse_pair_block
+from rogw.tranp.lang.parser import parse_pair_block
 from rogw.tranp.semantics.procedure import Procedure
 import rogw.tranp.semantics.reflection.helper.template as template
 from rogw.tranp.semantics.reflection.helper.naming import ClassDomainNaming, ClassShorthandNaming

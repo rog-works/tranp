@@ -9,6 +9,7 @@ class DeclOps {
 	public:
 	/** __init__ */
 	DeclOps() : inst_var(nullptr), inst_arr({}), inst_map({}) {
+		int n = this->prop();
 	}
 	public:
 	/** prop */

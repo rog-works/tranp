@@ -53,6 +53,7 @@ class DeclOps:
 		self.inst_var: CP[Sub] | None = None
 		self.inst_arr: list[CP[int]] = []
 		self.inst_map: dict[str, CP[int]] = {}
+		n = self.prop
 
 	@property
 	def prop(self) -> int:

@@ -1,7 +1,7 @@
 {%- if accessor == 'Static' -%}
-{{ receiver }}::{{ prop }}
+{{ receiver }}::{{ prop }}{% if is_property %}(){% endif %}
 {%- elif accessor == 'Address' -%}
-{{ receiver }}->{{ prop }}
+{{ receiver }}->{{ prop }}{% if is_property %}(){% endif %}
 {%- else -%}
-{{ receiver }}.{{ prop }}
+{{ receiver }}.{{ prop }}{% if is_property %}(){% endif %}
 {%- endif -%}

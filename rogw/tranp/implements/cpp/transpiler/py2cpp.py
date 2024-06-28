@@ -530,19 +530,20 @@ class Py2Cpp(ITranspiler):
 		receiver_symbol = self.unpack_type_proxy(receiver_symbol)
 
 		prop_symbol = self.reflections.type_of_property(receiver_symbol.types, node.prop)
+		is_property = isinstance(prop_symbol.decl, defs.Method) and prop_symbol.decl.is_property
 		prop = node.prop.domain_name
 		if isinstance(prop_symbol.decl, defs.ClassDef):
 			prop = self.to_domain_name_by_class(prop_symbol.types)
 
 		spec, accessor = self.analyze_relay_access_spec(node, receiver_symbol)
-		relay_vars = {'receiver': receiver, 'accessor': accessor, 'prop': prop}
+		relay_vars = {'receiver': receiver, 'accessor': accessor, 'prop': prop, 'is_property': is_property}
 		if spec == 'cvar_relay':
-			# 期待値: receiver.on
-			cvar_receiver = re.sub(rf'(->|::|\.){CVars.relay_key}$', '', receiver)
+			# 期待値: receiver.on()
+			cvar_receiver = re.sub(rf'(->|::|\.){CVars.relay_key}\(\)$', '', receiver)
 			return self.view.render(f'{node.classification}/default', vars={**relay_vars, 'receiver': cvar_receiver})
 		elif spec.startswith('cvar_to_'):
-			# 期待値: receiver.(raw|ref|addr|const)
-			cvar_receiver = re.sub(rf'(->|::|\.)({"|".join(CVars.exchanger_keys)})$', '', receiver)
+			# 期待値: receiver.raw()
+			cvar_receiver = re.sub(rf'(->|::|\.)({"|".join(CVars.exchanger_keys)})\(\)$', '', receiver)
 			move = spec.split('cvar_to_')[1]
 			return self.view.render(f'{node.classification}/cvar_to', vars={**relay_vars, 'receiver': cvar_receiver, 'move': move})
 		else:
@@ -603,8 +604,8 @@ class Py2Cpp(ITranspiler):
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={'receiver': receiver, 'keys': keys, 'var_type': var_type})
 		elif spec == 'cvar_relay':
-			# 期待値: receiver.on
-			cvar_receiver = re.sub(rf'(->|::|\.){CVars.relay_key}$', '', receiver)
+			# 期待値: receiver.on()
+			cvar_receiver = re.sub(rf'(->|::|\.){CVars.relay_key}\(\)$', '', receiver)
 			return self.view.render(f'{node.classification}/default', vars={'receiver': cvar_receiver, 'key': keys[0]})
 		elif spec == 'cvar':
 			var_type = self.to_accessible_name(cast(IReflection, context))

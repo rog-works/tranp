@@ -11,7 +11,7 @@ from rogw.tranp.dsn.translation import import_dsn
 from rogw.tranp.errors import LogicError
 from rogw.tranp.i18n.i18n import I18n
 from rogw.tranp.implements.cpp.semantics.cvars import CVars
-from rogw.tranp.lang.annotation import duck_typed, implements, injectable
+from rogw.tranp.lang.annotation import duck_typed, implements, injectable, override
 from rogw.tranp.lang.eventemitter import Callback
 from rogw.tranp.lang.module import fullyname
 from rogw.tranp.lang.parser import parse_block_to_entry, parse_pair_block
@@ -215,7 +215,7 @@ class Py2Cpp(ITranspiler):
 		Returns:
 			list[str]: 出力対象のデコレーターリスト
 		"""
-		ignore_names = ['classmethod', 'abstractmethod', 'property', __allow_override__.__name__, __embed__.__name__, __struct__.__name__]
+		ignore_names = ['classmethod', 'abstractmethod', 'property', implements.__name__, override.__name__, __allow_override__.__name__, __embed__.__name__, __struct__.__name__]
 		ignore_names = [name for name in ignore_names if name not in deny_ignores]
 		return [decorator for decorator in decorators if decorator.split('(')[0] not in ignore_names]
 
@@ -322,7 +322,7 @@ class Py2Cpp(ITranspiler):
 		decorators = self.allow_decorators(decorators)
 		template_types = self.unpack_function_template_types(node)
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types}
-		method_vars = {'access': node.access, 'is_abstract': node.is_abstract, 'class_symbol': node.class_types.symbol.tokens}
+		method_vars = {'access': node.access, 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'class_symbol': node.class_types.symbol.tokens}
 		return self.view.render(f'function/{node.classification}', vars={**function_vars, **method_vars})
 
 	def on_constructor(self, node: defs.Constructor, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
@@ -360,7 +360,7 @@ class Py2Cpp(ITranspiler):
 		class_name = self.to_domain_name_by_class(node.class_types)
 		template_types = self.unpack_function_template_types(node)
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': normal_statements, 'template_types': template_types}
-		method_vars = {'access': node.access, 'is_abstract': node.is_abstract, 'class_symbol': class_name, 'allow_override': self.allow_override_from_method(node)}
+		method_vars = {'access': node.access, 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'class_symbol': class_name, 'allow_override': self.allow_override_from_method(node)}
 		constructor_vars = {'initializers': initializers, 'super_initializer': super_initializer}
 		return self.view.render(f'function/{node.classification}', vars={**function_vars, **method_vars, **constructor_vars})
 
@@ -368,7 +368,7 @@ class Py2Cpp(ITranspiler):
 		decorators = self.allow_decorators(decorators)
 		template_types = self.unpack_function_template_types(node)
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types}
-		method_vars = {'access': node.access, 'is_abstract': node.is_abstract, 'class_symbol': node.class_types.symbol.tokens, 'allow_override': self.allow_override_from_method(node)}
+		method_vars = {'access': node.access, 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'class_symbol': node.class_types.symbol.tokens, 'allow_override': self.allow_override_from_method(node)}
 		return self.view.render(f'function/{node.classification}', vars={**function_vars, **method_vars})
 
 	def on_closure(self, node: defs.Closure, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:

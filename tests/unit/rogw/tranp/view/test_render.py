@@ -762,6 +762,7 @@ class TestRenderer(TestCase):
 				'access': 'public',
 				'class_symbol': 'Hoge',
 				'is_abstract': False,
+				'is_override': False,
 				'allow_override': False,
 				# constructor only
 				'initializers': [{'symbol': 'a', 'value': '1'}],
@@ -789,6 +790,7 @@ class TestRenderer(TestCase):
 				'access': 'public',
 				'class_symbol': 'Hoge',
 				'is_abstract': True,
+				'is_override': False,
 				'allow_override': False,
 				# constructor only
 				'initializers': [],
@@ -816,6 +818,7 @@ class TestRenderer(TestCase):
 				'access': 'public',
 				'class_symbol': 'Hoge',
 				'is_abstract': False,
+				'is_override': False,
 				'allow_override': False,
 			},
 			'\n'.join([
@@ -840,6 +843,7 @@ class TestRenderer(TestCase):
 				'access': 'public',
 				'class_symbol': 'Hoge',
 				'is_abstract': False,
+				'is_override': False,
 				'allow_override': False,
 			},
 			'\n'.join([
@@ -865,6 +869,7 @@ class TestRenderer(TestCase):
 				'access': 'public',
 				'class_symbol': 'Hoge',
 				'is_abstract': False,
+				'is_override': False,
 				'allow_override': False,
 			},
 			'\n'.join([
@@ -889,6 +894,7 @@ class TestRenderer(TestCase):
 				'access': 'public',
 				'class_symbol': 'Hoge',
 				'is_abstract': True,
+				'is_override': False,
 				'allow_override': False,
 			},
 			'\n'.join([
@@ -911,12 +917,38 @@ class TestRenderer(TestCase):
 				'access': 'public',
 				'class_symbol': 'Hoge',
 				'is_abstract': False,
+				'is_override': False,
 				'allow_override': True,
 			},
 			'\n'.join([
 				'public:',
 				'/** allow_override_method */',
 				'virtual void allow_override_method(int value = 1) {',
+				'	this->x = value;',
+				'}',
+			]),
+		),
+		(
+			'method',
+			{
+				'symbol': 'overrided_method',
+				'decorators': [],
+				'parameters': ['int value = 1'],
+				'return_type': 'void',
+				'comment': '',
+				'statements': ['this->x = value;'],
+				'template_types': [],
+				# belongs class only
+				'access': 'public',
+				'class_symbol': 'Hoge',
+				'is_abstract': False,
+				'is_override': True,
+				'allow_override': False,
+			},
+			'\n'.join([
+				'public:',
+				'/** overrided_method */',
+				'void overrided_method(int value = 1) override {',
 				'	this->x = value;',
 				'}',
 			]),
@@ -935,6 +967,7 @@ class TestRenderer(TestCase):
 				'access': 'public',
 				'class_symbol': 'Hoge',
 				'is_abstract': False,
+				'is_override': False,
 				'allow_override': False,
 			},
 			'\n'.join([
@@ -961,6 +994,7 @@ class TestRenderer(TestCase):
 				'access': 'public',
 				'class_symbol': 'Hoge',
 				'is_abstract': False,
+				'is_override': False,
 				'allow_override': False,
 			},
 			'\n'.join([

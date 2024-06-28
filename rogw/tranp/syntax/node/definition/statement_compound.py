@@ -387,9 +387,8 @@ class Function(ClassDef):
 		local_vars = [var for var in self._decl_vars_with(DeclLocalVar) if var.symbol.domain_name not in parameter_names]
 		return [*parameters, *local_vars]
 
-	@property
-	def _is_abstract(self) -> bool:
-		return len([True for decorator in self.decorators if decorator.path.tokens == 'abstractmethod']) == 1
+	def _has_annotation(self, *names: str) -> bool:
+		return len([True for decorator in self.decorators if decorator.path.tokens in names]) > 0
 
 
 @Meta.embed(Node)
@@ -403,7 +402,11 @@ class ClassMethod(Function):
 
 	@property
 	def is_abstract(self) -> bool:
-		return super()._is_abstract
+		return self._has_annotation('abstractmethod')
+
+	@property
+	def is_override(self) -> bool:
+		return self._has_annotation(implements.__name__, override.__name__)
 
 	@property
 	def class_types(self) -> ClassDef:
@@ -420,7 +423,11 @@ class Constructor(Function):
 
 	@property
 	def is_abstract(self) -> bool:
-		return super()._is_abstract
+		return self._has_annotation('abstractmethod')
+
+	@property
+	def is_override(self) -> bool:
+		return self._has_annotation(implements.__name__, override.__name__)
 
 	@property
 	def class_types(self) -> ClassDef:
@@ -449,11 +456,15 @@ class Method(Function):
 
 	@property
 	def is_abstract(self) -> bool:
-		return super()._is_abstract
+		return self._has_annotation('abstractmethod')
+
+	@property
+	def is_override(self) -> bool:
+		return self._has_annotation(implements.__name__, override.__name__)
 
 	@property
 	def is_property(self) -> bool:
-		return len([decorator for decorator in self.decorators if decorator.path.tokens == 'property']) == 1
+		return self._has_annotation('property')
 
 	@property
 	def class_types(self) -> ClassDef:

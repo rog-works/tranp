@@ -86,9 +86,11 @@ class DeclOps {
 	std::vector<int> __ret;
 	int __index = 0;
 	int __start = 1;
-	int __end = ns.size();
+	int __end = ns.size() - __start;
+	int __step = 0;
 	for (auto& __value : ns) {
-		if (__index >= __start && __index < __end) {
+		int __offset = __index >= __start ? __index - __start : 0;
+		if (__index >= __start && __index < __end && (__step > 0 && __offset % __step == 0)) {
 			__ret.push_back(__value);
 		}
 		__index++;
@@ -101,9 +103,28 @@ class DeclOps {
 	std::vector<int> __ret;
 	int __index = 0;
 	int __start = 0;
-	int __end = 5;
+	int __end = 5 - __start;
+	int __step = 0;
 	for (auto& __value : ns) {
-		if (__index >= __start && __index < __end) {
+		int __offset = __index >= __start ? __index - __start : 0;
+		if (__index >= __start && __index < __end && (__step > 0 && __offset % __step == 0)) {
+			__ret.push_back(__value);
+		}
+		__index++;
+	}
+	return __ret;
+}();"""
+
+	ListOps_slice_assign_ns2 = \
+"""std::vector<int> ns2 = [&]() -> std::vector<int> {
+	std::vector<int> __ret;
+	int __index = 0;
+	int __start = 3;
+	int __end = 9 - __start;
+	int __step = 2;
+	for (auto& __value : ns) {
+		int __offset = __index >= __start ? __index - __start : 0;
+		if (__index >= __start && __index < __end && (__step > 0 && __offset % __step == 0)) {
 			__ret.push_back(__value);
 		}
 		__index++;

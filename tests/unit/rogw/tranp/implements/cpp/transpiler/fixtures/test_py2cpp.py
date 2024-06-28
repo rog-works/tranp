@@ -329,6 +329,7 @@ class ListOps:
 	def slice(self, ns: list[int]) -> None:
 		ns0 = ns[1:]
 		ns1 = ns[:5]
+		ns2 = ns[3:9:2]
 
 
 class DictOps:

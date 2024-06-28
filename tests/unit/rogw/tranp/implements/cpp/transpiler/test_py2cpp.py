@@ -337,6 +337,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('ListOps.fill.block', 'assign'), defs.MoveAssign, 'std::vector<int> n_x3 = std::vector<int>(3, n);'),
 		(_ast('ListOps.slice.block', 'assign[0]'), defs.MoveAssign, BlockExpects.ListOps_slice_assign_ns0),
 		(_ast('ListOps.slice.block', 'assign[1]'), defs.MoveAssign, BlockExpects.ListOps_slice_assign_ns1),
+		(_ast('ListOps.slice.block', 'assign[2]'), defs.MoveAssign, BlockExpects.ListOps_slice_assign_ns2),
 
 		(_ast('DictOps.len.block', 'assign[1]'), defs.MoveAssign, 'int size_kvs = kvs.size();'),
 		(_ast('DictOps.pop.block', 'assign[1]'), defs.MoveAssign, BlockExpects.DictOps_pop_assign_value0),

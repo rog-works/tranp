@@ -191,14 +191,14 @@ class TestReflections(TestCase):
 
 		(f'{fixture_module_path}.Sub.kw_params.kwargs', 'int'),
 
-		(f'{fixture_module_path}.Sub.indexer_access.ns', 'list<int>'),
-		(f'{fixture_module_path}.Sub.indexer_access.n0', 'int'),
-		(f'{fixture_module_path}.Sub.indexer_access.ss', 'list<str>'),
+		(f'{fixture_module_path}.Sub.indexer_access.ns0', 'int'),
+		(f'{fixture_module_path}.Sub.indexer_access.ss0', 'str'),
 		(f'{fixture_module_path}.Sub.indexer_access.s0', 'str'),
-		(f'{fixture_module_path}.Sub.indexer_access.n_slice0', 'list<int>'),
-		(f'{fixture_module_path}.Sub.indexer_access.n_slice1', 'list<int>'),
-		(f'{fixture_module_path}.Sub.indexer_access.n_slice2', 'list<int>'),
-		(f'{fixture_module_path}.Sub.indexer_access.s_slice', 'list<str>'),
+		(f'{fixture_module_path}.Sub.indexer_access.ns_slice0', 'list<int>'),
+		(f'{fixture_module_path}.Sub.indexer_access.ns_slice1', 'list<int>'),
+		(f'{fixture_module_path}.Sub.indexer_access.ns_slice2', 'list<int>'),
+		(f'{fixture_module_path}.Sub.indexer_access.ss_slice', 'list<str>'),
+		(f'{fixture_module_path}.Sub.indexer_access.s_slice', 'str'),
 		(f'{fixture_module_path}.Sub.indexer_access.dsn', 'dict<str, int>'),
 
 		(f'{fixture_module_path}.CalcOps.unary.n_neg', 'int'),

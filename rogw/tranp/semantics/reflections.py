@@ -513,6 +513,8 @@ class ProceduralResolver:
 
 		if node.sliced:
 			return receiver.to.relay(node, context=receiver)
+		elif self.reflections.is_a(receiver, str):
+			return receiver.to.relay(node, context=receiver)
 		elif self.reflections.is_a(receiver, list):
 			return receiver.attrs[0].to.relay(node, context=receiver)
 		elif self.reflections.is_a(receiver, dict):

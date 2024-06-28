@@ -12,7 +12,6 @@ aliases.rogw.tranp.compatible.libralies.classes.print: printf
 aliases.rogw.tranp.compatible.libralies.classes.str: std::string
 aliases.rogw.tranp.compatible.libralies.classes.str.endswith: ends_with
 aliases.rogw.tranp.compatible.libralies.classes.str.startswith: starts_with
-aliases.rogw.tranp.compatible.cpp.object.Void: void
 # cpp
 aliases.rogw.tranp.compatible.cpp.classes.container.size: size
 aliases.rogw.tranp.compatible.cpp.classes.map.begin: begin
@@ -24,6 +23,7 @@ aliases.rogw.tranp.compatible.cpp.classes.string.slice: substr
 aliases.rogw.tranp.compatible.cpp.classes.to_string: std::to_string
 aliases.rogw.tranp.compatible.cpp.classes.vector.begin: begin
 aliases.rogw.tranp.compatible.cpp.classes.vector.end: end
+aliases.rogw.tranp.compatible.cpp.object.Void: void
 # example
 aliases.example.example.CellMesh: FL_CellMesh
 # @see dsn.translation.import_dsn

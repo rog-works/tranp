@@ -429,5 +429,9 @@ class StringOps:
 		a = s.startswith('')
 		b = s.endswith('')
 
+	def slice(self, s: str) -> None:
+		a = s[1:]
+		b = s[:5]
+
 
 def template_func(v: T) -> T: ...

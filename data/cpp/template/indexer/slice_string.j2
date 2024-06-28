@@ -1,0 +1,6 @@
+{%- set start = keys[0] if keys[0] else 0 -%}
+{%- if keys[1] -%}
+{{ receiver }}.{{ i18n('cpp', 'string.slice') }}({{ start }}, {{ keys[1] }} - {{ start }})
+{%- else -%}
+{{ receiver }}.{{ i18n('cpp', 'string.slice') }}({{ start }}, {{ receiver }}.{{ i18n('cpp', 'container.size') }}() - {{ start }})
+{%- endif -%}

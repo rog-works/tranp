@@ -20,6 +20,7 @@ aliases.rogw.tranp.compatible.cpp.classes.map.end: end
 aliases.rogw.tranp.compatible.cpp.classes.map.erase: erase
 aliases.rogw.tranp.compatible.cpp.classes.make_shared: std::make_shared
 aliases.rogw.tranp.compatible.cpp.classes.shared_ptr: std::shared_ptr
+aliases.rogw.tranp.compatible.cpp.classes.string.slice: substr
 aliases.rogw.tranp.compatible.cpp.classes.to_string: std::to_string
 aliases.rogw.tranp.compatible.cpp.classes.vector.begin: begin
 aliases.rogw.tranp.compatible.cpp.classes.vector.end: end

@@ -597,7 +597,9 @@ class Py2Cpp(ITranspiler):
 
 	def on_indexer(self, node: defs.Indexer, receiver: str, keys: list[str]) -> str:
 		spec, context = self.analyze_indexer_spec(node)
-		if spec == 'slice':
+		if spec == 'slice_string':
+			return self.view.render(f'{node.classification}/{spec}', vars={'receiver': receiver, 'keys': keys})
+		elif spec == 'slice_array':
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={'receiver': receiver, 'keys': keys, 'var_type': var_type})
 		elif spec == 'cvar_relay':
@@ -623,7 +625,7 @@ class Py2Cpp(ITranspiler):
 		if node.sliced:
 			receiver_symbol = self.reflections.type_of(node.receiver)
 			receiver_symbol = self.unpack_type_proxy(receiver_symbol)
-			return 'slice', receiver_symbol
+			return 'slice_string' if self.reflections.is_a(receiver_symbol, str) else 'slice_array', receiver_symbol
 		elif is_on_cvar_relay():
 			receiver_symbol = self.reflections.type_of(node.receiver)
 			receiver_symbol = self.unpack_type_proxy(receiver_symbol)

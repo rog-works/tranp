@@ -29,7 +29,7 @@ class SymbolExtends:
 			SymbolDB: シンボルテーブル
 		"""
 		for key, raw in db.items_in_preprocess():
-			if raw.role == Roles.Class:
+			if raw.origin.role == Roles.Origin:
 				if isinstance(raw.types, defs.AltClass):
 					db[key] = SymbolProxy(raw, self.make_resolver_for_alt_class(raw))
 				elif isinstance(raw.types, defs.Class):

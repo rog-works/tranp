@@ -89,9 +89,15 @@ class ReflectionBase(IReflection):
 
 	@property
 	@implements
-	def origin(self) -> IReflection | None:
-		"""IReflection | None: スタックシンボル"""
-		return None
+	def origin(self) -> IReflection:
+		"""スタックシンボルを取得
+
+		Returns:
+			IReflection: スタックシンボル
+		Raises:
+			LogicError: roleがOriginのインスタンスで使用
+		"""
+		raise LogicError(f'Origin is null. symbol: {str(self)}, fullyname: {self.ref_fullyname}')
 
 	@property
 	@implements
@@ -154,7 +160,7 @@ class ReflectionBase(IReflection):
 		curr = self
 		while curr:
 			yield curr
-			curr = curr.origin
+			curr = curr.origin if curr.role != Roles.Origin else None
 
 	@implements
 	def extends(self: Self, *attrs: IReflection) -> Self:

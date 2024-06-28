@@ -17,7 +17,7 @@ from rogw.tranp.module.modules import Modules
 from rogw.tranp.module.types import ModulePath, ModulePaths
 from rogw.tranp.providers.module import module_path_dummy
 from rogw.tranp.semantics.plugin import PluginProvider
-from rogw.tranp.semantics.reflection import IReflection, SymbolDBProvider
+from rogw.tranp.semantics.reflection import IReflection, Roles, SymbolDBProvider
 from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.syntax.ast.entry import Entry
 from rogw.tranp.syntax.ast.parser import ParserSetting, SyntaxParser
@@ -227,7 +227,7 @@ def dump_symbol_data(symbol: IReflection) -> dict[str, Any]:
 		'types': str(symbol.types),
 		'decl': str(symbol.decl),
 		'role': str(symbol.role),
-		'origin': attr_formatter(symbol.origin) if symbol.origin else str(symbol.origin),
+		'origin': attr_formatter(symbol.origin) if symbol.role != Roles.Origin else str(None),
 		'via': str(symbol.via),
 		'attrs': [attr_formatter(attr) for attr in symbol.attrs],
 		'hierarchy': [attr_formatter(layer) for layer in symbol.hierarchy()],

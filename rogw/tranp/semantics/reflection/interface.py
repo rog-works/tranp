@@ -194,8 +194,14 @@ class IReflection(metaclass=ABCMeta):
 
 	@property
 	@abstractmethod
-	def origin(self) -> 'IReflection | None':
-		"""IReflection | None: スタックシンボル"""
+	def origin(self) -> 'IReflection':
+		"""スタックシンボルを取得
+
+		Returns:
+			IReflection: スタックシンボル
+		Raises:
+			LogicError: roleがOriginのインスタンスで使用
+		"""
 		...
 
 	@property

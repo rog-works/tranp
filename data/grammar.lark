@@ -230,7 +230,9 @@ comment_stmt: COMMENT
 	| atom
 
 // @lark slice: test
-slices: slice | slice (("," slice)+ [","] | ",")
+slices: slice
+	| slice (("," slice)+ [","] | ",")
+	| [slice] ":" [slice] [":" slice] -> slice
 ?slice: expression
 
 ?atom: name -> var

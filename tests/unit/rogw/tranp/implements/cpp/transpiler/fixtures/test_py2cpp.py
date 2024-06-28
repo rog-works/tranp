@@ -326,6 +326,11 @@ class ListOps:
 	def fill(self, n: int) -> None:
 		n_x3 = [n] * 3
 
+	def slice(self, ns: list[int]) -> None:
+		ns0 = ns[1:]
+		ns1 = ns[:5]
+		ns2 = ns[3:9:2]
+
 
 class DictOps:
 	def len(self) -> None:
@@ -371,6 +376,8 @@ class CastOps:
 	def cast_class(self, sub: Sub, sub_p: CP[Sub]) -> None:
 		b = cast(Base, sub)
 		bp = cast(CP[Base], sub_p)
+		dssp = {'a': sub_p}
+		dsbp = cast(dict[str, CP[Base]], dssp)
 
 
 class Nullable:
@@ -422,6 +429,10 @@ class StringOps:
 	def methods(self, s: str) -> None:
 		a = s.startswith('')
 		b = s.endswith('')
+
+	def slice(self, s: str) -> None:
+		a = s[1:]
+		b = s[:5]
 
 
 def template_func(v: T) -> T: ...

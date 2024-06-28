@@ -595,20 +595,25 @@ class Py2Cpp(ITranspiler):
 		else:
 			return node.tokens
 
-	def on_indexer(self, node: defs.Indexer, receiver: str, key: str) -> str:
+	def on_indexer(self, node: defs.Indexer, receiver: str, keys: list[str]) -> str:
 		spec, context = self.analyze_indexer_spec(node)
-		if spec == 'cvar_relay':
+		if spec == 'slice_string':
+			return self.view.render(f'{node.classification}/{spec}', vars={'receiver': receiver, 'keys': keys})
+		elif spec == 'slice_array':
+			var_type = self.to_accessible_name(cast(IReflection, context))
+			return self.view.render(f'{node.classification}/{spec}', vars={'receiver': receiver, 'keys': keys, 'var_type': var_type})
+		elif spec == 'cvar_relay':
 			# 期待値: receiver.on
 			cvar_receiver = re.sub(rf'(->|::|\.){CVars.relay_key}$', '', receiver)
-			return self.view.render(f'{node.classification}/default', vars={'receiver': cvar_receiver, 'key': key})
+			return self.view.render(f'{node.classification}/default', vars={'receiver': cvar_receiver, 'key': keys[0]})
 		elif spec == 'cvar':
-			var_type = self.to_domain_name(cast(IReflection, context))
+			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={'var_type': var_type})
 		elif spec == 'class':
-			var_type = self.to_domain_name(cast(IReflection, context))
+			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={'var_type': var_type})
 		else:
-			return self.view.render(f'{node.classification}/default', vars={'receiver': receiver, 'key': key})
+			return self.view.render(f'{node.classification}/default', vars={'receiver': receiver, 'key': keys[0]})
 
 	def analyze_indexer_spec(self, node: defs.Indexer) -> tuple[str, IReflection | None]:
 		def is_on_cvar_relay() -> bool:
@@ -617,7 +622,12 @@ class Py2Cpp(ITranspiler):
 		def is_cvar() -> bool:
 			return node.receiver.domain_name in CVars.keys()
 
-		if is_on_cvar_relay():
+		if node.sliced:
+			receiver_symbol = self.reflections.type_of(node.receiver)
+			receiver_symbol = self.unpack_type_proxy(receiver_symbol)
+			spec = 'slice_string' if self.reflections.is_a(receiver_symbol, str) else 'slice_array'
+			return spec, receiver_symbol
+		elif is_on_cvar_relay():
 			receiver_symbol = self.reflections.type_of(node.receiver)
 			receiver_symbol = self.unpack_type_proxy(receiver_symbol)
 			cvar_key = CVars.key_from(self.reflections, receiver_symbol.context)

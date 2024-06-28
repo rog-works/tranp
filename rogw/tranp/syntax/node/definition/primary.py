@@ -238,8 +238,12 @@ class Indexer(Reference):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def key(self) -> Node:
-		return self._children('slices')[0]
+	def keys(self) -> list[Node]:
+		return self._children('slice' if self.sliced else 'slices')
+
+	@property
+	def sliced(self) -> bool:
+		return self._exists('slice')
 
 
 @Meta.embed(Node, accept_tags('dotted_name'))

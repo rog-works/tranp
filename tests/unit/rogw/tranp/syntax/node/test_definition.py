@@ -804,20 +804,25 @@ class TestDefinition(TestCase):
 		self.assertEqual(defs.Var, type(node.prop))
 
 	@data_provider([
-		('a[0]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Var, 'key': '0', 'key_type': defs.Integer}),
-		('a[b]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Var, 'key': 'b', 'key_type': defs.Var}),
-		('a[b()]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Var, 'key': 'b', 'key_type': defs.FuncCall}),
-		('a[b.c]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Var, 'key': 'b.c', 'key_type': defs.Relay}),
-		('a[b[0]]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Var, 'key': 'b.0', 'key_type': defs.Indexer}),
-		('a()["b"]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.FuncCall, 'key': '"b"', 'key_type': defs.String}),
-		('a[0]["b"]', 'file_input.getitem', {'receiver': 'a.0', 'receiver_type': defs.Indexer, 'key': '"b"', 'key_type': defs.String}),
+		('a[0]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Var, 'keys': ['0'], 'key_types': [defs.Integer]}),
+		('a[b]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Var, 'keys': ['b'], 'key_types': [defs.Var]}),
+		('a[b()]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Var, 'keys': ['b'], 'key_types': [defs.FuncCall]}),
+		('a[b.c]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Var, 'keys': ['b.c'], 'key_types': [defs.Relay]}),
+		('a[b[0]]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Var, 'keys': ['b.0'], 'key_types': [defs.Indexer]}),
+		('a()["b"]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.FuncCall, 'keys': ['"b"'], 'key_types': [defs.String]}),
+		('a[0]["b"]', 'file_input.getitem', {'receiver': 'a.0', 'receiver_type': defs.Indexer, 'keys': ['"b"'], 'key_types': [defs.String]}),
+		('a[:]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Var, 'keys': ['', '', ''], 'key_types': [defs.Empty]}),
+		('a[0:]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Var, 'keys': ['0', '', ''], 'key_types': [defs.Integer, defs.Empty]}),
+		('a[0:1]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Var, 'keys': ['0', '1', ''], 'key_types': [defs.Integer, defs.Empty]}),
+		('a[1:5:2]', 'file_input.getitem', {'receiver': 'a', 'receiver_type': defs.Var, 'keys': ['1', '5', '2'], 'key_types': [defs.Integer]}),
 	])
 	def test_indexer(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Indexer)
 		self.assertEqual(expected['receiver'], node.receiver.tokens)
 		self.assertEqual(expected['receiver_type'], type(node.receiver))
-		self.assertEqual(expected['key'], node.key.tokens)
-		self.assertEqual(expected['key_type'], type(node.key))
+		self.assertEqual(expected['keys'], [key.tokens for key in node.keys])
+		unexpected_key_types = [key for key in node.keys if type(key) not in expected['key_types']]
+		self.assertEqual('ok', 'ok' if len(unexpected_key_types) == 0 else unexpected_key_types)
 
 	@data_provider([
 		('from path.to import A', 'file_input.import_stmt.dotted_name', {'type': defs.ImportPath, 'path': 'path.to'}),

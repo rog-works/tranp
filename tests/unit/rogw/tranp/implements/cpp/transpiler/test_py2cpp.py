@@ -22,7 +22,7 @@ from tests.unit.rogw.tranp.implements.cpp.transpiler.fixtures.test_py2cpp_expect
 
 
 class ASTMapping:
-	__begin_class = 12
+	__begin_class = 13
 	_Base = f'file_input.class_def[{__begin_class + 0}]'
 	_Sub = f'file_input.class_def[{__begin_class + 1}]'
 	_DeclOps = f'file_input.class_def[{__begin_class + 2}]'
@@ -46,9 +46,9 @@ class ASTMapping:
 	aliases = {
 		'import.typing': 'file_input.import_stmt[1]',
 
-		'c_pragma': 'file_input.funccall[6]',
-		'c_include': 'file_input.funccall[7]',
-		'c_macro': 'file_input.funccall[8]',
+		'c_pragma': 'file_input.funccall[7]',
+		'c_include': 'file_input.funccall[8]',
+		'c_macro': 'file_input.funccall[9]',
 
 		'DSI': 'file_input.class_assign',
 

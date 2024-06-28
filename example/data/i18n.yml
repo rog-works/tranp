@@ -23,7 +23,6 @@ aliases.rogw.tranp.compatible.cpp.classes.string.slice: substr
 aliases.rogw.tranp.compatible.cpp.classes.to_string: std::to_string
 aliases.rogw.tranp.compatible.cpp.classes.vector.begin: begin
 aliases.rogw.tranp.compatible.cpp.classes.vector.end: end
-aliases.rogw.tranp.compatible.cpp.object.Void: void
 # example
 aliases.example.example.CellMesh: FL_CellMesh
 # @see dsn.translation.import_dsn

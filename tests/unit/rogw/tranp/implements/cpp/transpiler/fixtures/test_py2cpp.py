@@ -1,9 +1,10 @@
 from abc import ABCMeta, abstractmethod
 from typing import Generic, TypeAlias, TypeVar, cast
 
+from rogw.tranp.compatible.cpp.classes import void
 from rogw.tranp.compatible.cpp.embed import __allow_override__, __embed__, __struct__
 from rogw.tranp.compatible.cpp.enum import CEnum
-from rogw.tranp.compatible.cpp.object import CP, CRawConst, CRef, CSP, Void
+from rogw.tranp.compatible.cpp.object import CP, CRawConst, CRef, CSP
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 
 c_pragma('once')
@@ -168,10 +169,10 @@ class CVarOps:
 		ap_const3 = r_const3.addr
 
 	def to_void(self, a: Sub, ap: CP[Sub], asp: CSP[Sub], r: CRef[Sub]) -> None:
-		a_to_vp = cast(CP[Void], CP(a))
-		ap_to_vp = cast(CP[Void], ap)
-		asp_to_vp = cast(CP[Void], asp.addr)
-		r_to_vp = cast(CP[Void], r.addr)
+		a_to_vp = cast(CP[void], CP(a))
+		ap_to_vp = cast(CP[void], ap)
+		asp_to_vp = cast(CP[void], asp.addr)
+		r_to_vp = cast(CP[void], r.addr)
 
 	def local_decl(self, n: int) -> None:
 		p_arr = [CP(n)]

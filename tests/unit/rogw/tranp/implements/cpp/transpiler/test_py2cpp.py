@@ -179,7 +179,7 @@ class TestPy2Cpp(TestCase):
 
 		(_ast('DeclOps', ''), defs.Class, BlockExpects.DeclOps),
 
-		(_ast('Base.sub_implements', ''), defs.Function, 'public:\n/** sub_implements */\nvirtual void sub_implements();'),
+		(_ast('Base.sub_implements', ''), defs.Function, 'public:\n/** sub_implements */\nvirtual void sub_implements() = 0;'),
 
 		(_ast('Base.allowed_overrides', ''), defs.Function, 'public:\n/** allowed_overrides */\nvirtual int allowed_overrides() {\n\treturn 1;\n}'),
 

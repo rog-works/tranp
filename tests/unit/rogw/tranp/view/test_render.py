@@ -799,7 +799,7 @@ class TestRenderer(TestCase):
 				'/** __init__ */',
 				'template<typename T>',
 				'deco(A, B)',
-				'virtual Hoge();',
+				'virtual Hoge() = 0;',
 			]),
 		),
 		(
@@ -894,7 +894,7 @@ class TestRenderer(TestCase):
 			'\n'.join([
 				'public:',
 				'/** pure_virtual_method */',
-				'virtual void pure_virtual_method(int value = 1);',
+				'virtual void pure_virtual_method(int value = 1) = 0;',
 			]),
 		),
 		(

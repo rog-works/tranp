@@ -625,7 +625,8 @@ class Py2Cpp(ITranspiler):
 		if node.sliced:
 			receiver_symbol = self.reflections.type_of(node.receiver)
 			receiver_symbol = self.unpack_type_proxy(receiver_symbol)
-			return 'slice_string' if self.reflections.is_a(receiver_symbol, str) else 'slice_array', receiver_symbol
+			spec = 'slice_string' if self.reflections.is_a(receiver_symbol, str) else 'slice_array'
+			return spec, receiver_symbol
 		elif is_on_cvar_relay():
 			receiver_symbol = self.reflections.type_of(node.receiver)
 			receiver_symbol = self.unpack_type_proxy(receiver_symbol)

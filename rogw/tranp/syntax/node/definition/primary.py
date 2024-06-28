@@ -239,10 +239,7 @@ class Indexer(Reference):
 	@property
 	@Meta.embed(Node, expandable)
 	def keys(self) -> list[Node]:
-		if self.sliced:
-			return self._children('slice')
-		else:
-			return self._children('slices')
+		return self._children('slice' if self.sliced else 'slices')
 
 	@property
 	def sliced(self) -> bool:

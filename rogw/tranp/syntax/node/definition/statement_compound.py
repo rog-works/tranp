@@ -8,7 +8,7 @@ from rogw.tranp.syntax.node.accessible import ClassOperations
 from rogw.tranp.syntax.node.behavior import IDomain, INamespace, IScope
 from rogw.tranp.syntax.node.definition.accessible import PythonClassOperations, to_access
 from rogw.tranp.syntax.node.definition.element import Decorator, Parameter
-from rogw.tranp.syntax.node.definition.literal import DocString, String
+from rogw.tranp.syntax.node.definition.literal import Boolean, DocString, String
 from rogw.tranp.syntax.node.definition.primary import Argument, CustomType, DeclClassVar, DeclLocalVar, Declable, ForIn, InheritArgument, DeclThisParam, DeclThisVar, Type, TypesName, VarOfType
 from rogw.tranp.syntax.node.definition.statement_simple import AnnoAssign, MoveAssign
 from rogw.tranp.syntax.node.definition.terminal import Empty
@@ -627,10 +627,12 @@ class TemplateClass(ClassDef):
 		return self.dirty_child(Block, 'block', statements=[])
 
 	@property
-	@override
-	@Meta.embed(Node, expandable)
-	def constraints(self) -> Type | Empty:
+	def boundary(self) -> Type | Empty:
 		return self._at(2).one_of(Type, Empty)
+
+	@property
+	def covariant(self) -> Boolean | Empty:
+		return self._at(3).one_of(Boolean, Empty)
 
 
 class VarsCollector:

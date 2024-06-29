@@ -3,33 +3,34 @@ from typing import Generic, TypeVar
 from rogw.tranp.compatible.python.embed import __hint_generic__
 
 T = TypeVar('T')
+T_co = TypeVar('T_co', covariant=True)
 T_New = TypeVar('T_New')
 
 
-class CVar(Generic[T]):
+class CVar(Generic[T_co]):
 	"""C++型変数の互換クラス(基底)"""
 
-	def __init__(self, origin: T) -> None:
+	def __init__(self, origin: T_co) -> None:
 		"""インスタンスを生成
 
 		Args:
-			origin (T): 実体のインスタンス
+			origin (T_co): 実体のインスタンス
 		"""
 		self.__origin = origin
 
 	@property
-	def on(self) -> T:
+	def on(self) -> T_co:
 		"""実体を返却するリレー代替メソッド。C++では実体型は`.`、アドレス型は`->`に相当"""
 		return self.__origin
 
 	@property
-	def raw(self) -> T:
+	def raw(self) -> T_co:
 		"""実体を返却する実体参照代替メソッド。C++では実体型は削除、アドレス型は`*`に相当"""
 		return self.__origin
 
 
-@__hint_generic__(T)
-class CP(CVar[T]):
+@__hint_generic__(T_co)
+class CP(CVar[T_co]):
 	"""C++型変数の互換クラス(ポインター)"""
 
 	@classmethod
@@ -49,18 +50,18 @@ class CP(CVar[T]):
 		return CP(origin)
 
 	@property
-	def ref(self) -> 'CRef[T]':
+	def ref(self) -> 'CRef[T_co]':
 		"""参照を返却する参照変換代替メソッド。C++では`*`に相当"""
 		return CRef(self.raw)
 
 	@property
-	def const(self) -> 'CPConst[T]':
+	def const(self) -> 'CPConst[T_co]':
 		"""Constを返却する参照変換代替メソッド。C++では削除"""
 		return CPConst(self.raw)
 
 
-@__hint_generic__(T)
-class CSP(CVar[T]):
+@__hint_generic__(T_co)
+class CSP(CVar[T_co]):
 	"""C++型変数の互換クラス(スマートポインター)"""
 
 	@classmethod
@@ -80,23 +81,23 @@ class CSP(CVar[T]):
 		return CSP(origin)
 
 	@property
-	def ref(self) -> 'CRef[T]':
+	def ref(self) -> 'CRef[T_co]':
 		"""参照を返却する参照変換代替メソッド。C++では`*`に相当"""
 		return CRef(self.raw)
 
 	@property
-	def addr(self) -> 'CP[T]':
+	def addr(self) -> 'CP[T_co]':
 		"""ポインターを返却する参照変換代替メソッド。C++では`get`に相当"""
 		return CP(self.raw)
 
 	@property
-	def const(self) -> 'CSPConst[T]':
+	def const(self) -> 'CSPConst[T_co]':
 		"""Constを返却する参照変換代替メソッド。C++では削除"""
 		return CSPConst(self.raw)
 
 
-@__hint_generic__(T)
-class CRef(CVar[T]):
+@__hint_generic__(T_co)
+class CRef(CVar[T_co]):
 	"""C++型変数の互換クラス(参照)"""
 
 	@classmethod
@@ -111,18 +112,18 @@ class CRef(CVar[T]):
 		return CRef[var_type]
 
 	@property
-	def addr(self) -> 'CP[T]':
+	def addr(self) -> 'CP[T_co]':
 		"""ポインターを返却する参照変換代替メソッド。C++では`&`に相当"""
 		return CP(self.raw)
 
 	@property
-	def const(self) -> 'CRefConst[T]':
+	def const(self) -> 'CRefConst[T_co]':
 		"""Constを返却する参照変換代替メソッド。C++では削除"""
 		return CRefConst(self.raw)
 
 
-@__hint_generic__(T)
-class CPConst(CVar[T]):
+@__hint_generic__(T_co)
+class CPConst(CVar[T_co]):
 	"""C++型変数の互換クラス(Constポインター)"""
 
 	@classmethod
@@ -137,13 +138,13 @@ class CPConst(CVar[T]):
 		return CPConst[var_type]
 
 	@property
-	def ref(self) -> 'CRefConst[T]':
+	def ref(self) -> 'CRefConst[T_co]':
 		"""Const参照を返却する参照変換代替メソッド。C++では`*`に相当"""
 		return CRefConst(self.raw)
 
 
-@__hint_generic__(T)
-class CSPConst(CVar[T]):
+@__hint_generic__(T_co)
+class CSPConst(CVar[T_co]):
 	"""C++型変数の互換クラス(Constスマートポインター)"""
 
 	@classmethod
@@ -158,18 +159,18 @@ class CSPConst(CVar[T]):
 		return CSPConst[var_type]
 
 	@property
-	def ref(self) -> 'CRefConst[T]':
+	def ref(self) -> 'CRefConst[T_co]':
 		"""Const参照を返却する参照変換代替メソッド。C++では`*`に相当"""
 		return CRefConst(self.raw)
 
 	@property
-	def addr(self) -> 'CPConst[T]':
+	def addr(self) -> 'CPConst[T_co]':
 		"""Constポインターを返却する参照変換代替メソッド。C++では`get`に相当"""
 		return CPConst(self.raw)
 
 
-@__hint_generic__(T)
-class CRefConst(CVar[T]):
+@__hint_generic__(T_co)
+class CRefConst(CVar[T_co]):
 	"""C++型変数の互換クラス(Const参照)"""
 
 	@classmethod
@@ -184,13 +185,13 @@ class CRefConst(CVar[T]):
 		return CRefConst[var_type]
 
 	@property
-	def addr(self) -> 'CPConst[T]':
+	def addr(self) -> 'CPConst[T_co]':
 		"""Constポインターを返却する参照変換代替メソッド。C++では`get`に相当"""
 		return CPConst(self.raw)
 
 
-@__hint_generic__(T)
-class CRawConst(CVar[T]):
+@__hint_generic__(T_co)
+class CRawConst(CVar[T_co]):
 	"""C++型変数の互換クラス(Const)"""
 
 	@classmethod
@@ -205,18 +206,18 @@ class CRawConst(CVar[T]):
 		return CRawConst[var_type]
 
 	@property
-	def ref(self) -> 'CRefConst[T]':
+	def ref(self) -> 'CRefConst[T_co]':
 		"""Const参照を返却する参照変換代替メソッド。C++では`*`に相当"""
 		return CRefConst(self.raw)
 
 	@property
-	def addr(self) -> 'CPConst[T]':
+	def addr(self) -> 'CPConst[T_co]':
 		"""Constポインターを返却する参照変換代替メソッド。C++では`&`に相当"""
 		return CPConst(self.raw)
 
 
-@__hint_generic__(T)
-class CRaw(CVar[T]):
+@__hint_generic__(T_co)
+class CRaw(CVar[T_co]):
 	"""C++型変数の互換クラス(実体)"""
 
 	@classmethod
@@ -231,11 +232,11 @@ class CRaw(CVar[T]):
 		return CRaw[var_type]
 
 	@property
-	def ref(self) -> 'CRef[T]':
+	def ref(self) -> 'CRef[T_co]':
 		"""参照を返却する参照変換代替メソッド。C++では削除される"""
 		return CRef(self.raw)
 
 	@property
-	def addr(self) -> 'CP[T]':
+	def addr(self) -> 'CP[T_co]':
 		"""ポインターを返却する参照変換代替メソッド。C++では`&`に相当"""
 		return CP(self.raw)

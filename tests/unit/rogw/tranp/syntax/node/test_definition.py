@@ -599,14 +599,17 @@ class TestDefinition(TestCase):
 		self.assertEqual(expected['actual_type'], type(node.actual_type))
 
 	@data_provider([
-		('A = TypeVar("A")', 'file_input.template_assign', {'symbol': 'A', 'constraints': defs.Empty}),
-		('A = TypeVar("A", bound=X)', 'file_input.template_assign', {'symbol': 'A', 'constraints': defs.VarOfType}),
-		('A = TypeVar("A", bound=X.Y)', 'file_input.template_assign', {'symbol': 'A', 'constraints': defs.RelayOfType}),
+		('A = TypeVar("A")', 'file_input.template_assign', {'symbol': 'A', 'boundary': defs.Empty, 'covariant': defs.Empty}),
+		('A = TypeVar("A", bound=X)', 'file_input.template_assign', {'symbol': 'A', 'boundary': defs.VarOfType, 'covariant': defs.Empty}),
+		('A = TypeVar("A", bound=X.Y)', 'file_input.template_assign', {'symbol': 'A', 'boundary': defs.RelayOfType, 'covariant': defs.Empty}),
+		('A = TypeVar("A", covariant=True)', 'file_input.template_assign', {'symbol': 'A', 'boundary': defs.Empty, 'covariant': defs.Truthy}),
+		('A = TypeVar("A", bound=X, covariant=False)', 'file_input.template_assign', {'symbol': 'A', 'boundary': defs.VarOfType, 'covariant': defs.Falsy}),
 	])
 	def test_template_class(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.TemplateClass)
 		self.assertEqual(expected['symbol'], node.symbol.tokens)
-		self.assertEqual(expected['constraints'], type(node.constraints))
+		self.assertEqual(expected['boundary'], type(node.boundary))
+		self.assertEqual(expected['covariant'], type(node.covariant))
 
 	# Statement simple
 

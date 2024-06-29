@@ -151,7 +151,7 @@ anno_assign: assign_namelist ":" typed_expression ["=" expression]
 aug_assign: assign_namelist aug_assign_op expression
 // @custom
 class_assign: assign_namelist ":" "TypeAlias" "=" typed_expression
-template_assign: assign_namelist "=" "TypeVar" "(" string ["," "bound" "=" (typed_expression | "'" typed_expression "'")] ")"
+template_assign: assign_namelist "=" "TypeVar" "(" string ["," "bound" "=" (typed_expression | "'" typed_expression "'")] ["," "covariant" "=" atom] ")"
 
 !aug_assign_op: "+=" | "-=" | "*=" | "@=" | "/=" | "%=" | "&=" | "|=" | "^=" | "<<=" | ">>=" | "**=" | "//="
 

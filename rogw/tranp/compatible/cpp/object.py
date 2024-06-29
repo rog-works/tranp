@@ -3,6 +3,7 @@ from typing import Generic, TypeVar
 from rogw.tranp.compatible.python.embed import __hint_generic__
 
 T = TypeVar('T')
+T_New = TypeVar('T_New')
 
 
 class CVar(Generic[T]):
@@ -43,9 +44,9 @@ class CP(CVar[T]):
 		return CP[var_type]
 
 	@classmethod
-	def new(cls, origin: T) -> 'CP[T]':
+	def new(cls, origin: T_New) -> 'CP[T_New]':
 		"""メモリを生成し、CPラップ型を返却するメモリ生成代替メソッド。C++では`new`に相当"""
-		return cls(origin)
+		return CP(origin)
 
 	@property
 	def ref(self) -> 'CRef[T]':
@@ -74,9 +75,9 @@ class CSP(CVar[T]):
 		return CSP[var_type]
 
 	@classmethod
-	def new(cls, origin: T) -> 'CSP[T]':
+	def new(cls, origin: T_New) -> 'CSP[T_New]':
 		"""メモリを生成し、CPラップ型を返却するメモリ生成代替メソッド。C++では`std::make_shared`に相当"""
-		return cls(origin)
+		return CSP(origin)
 
 	@property
 	def ref(self) -> 'CRef[T]':

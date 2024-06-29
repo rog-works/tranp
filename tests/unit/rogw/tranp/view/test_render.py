@@ -688,6 +688,10 @@ class TestRenderer(TestCase):
 	@data_provider([
 		({'cvar_type': 'CP', 'arguments': ['n'], 'is_statement': True}, '&(n);'),
 		({'cvar_type': 'CPConst', 'arguments': ['n'], 'is_statement': True}, '&(n);'),
+		({'cvar_type': 'CP', 'arguments': ['this'], 'is_statement': True}, 'this;'),
+		({'cvar_type': 'CPConst', 'arguments': ['this'], 'is_statement': True}, 'this;'),
+		({'cvar_type': 'CP', 'arguments': ['this->n'], 'is_statement': True}, '&(this->n);'),
+		({'cvar_type': 'CPConst', 'arguments': ['this->n'], 'is_statement': True}, '&(this->n);'),
 		({'cvar_type': 'CSP', 'arguments': ['n'], 'is_statement': True}, 'n;'),
 		({'cvar_type': 'CSPConst', 'arguments': ['n'], 'is_statement': True}, 'n;'),
 		({'cvar_type': 'CRef', 'arguments': ['n'], 'is_statement': True}, 'n;'),

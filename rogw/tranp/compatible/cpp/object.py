@@ -1,4 +1,4 @@
-from typing import Generic, TypeVar
+from typing import Generic, TypeVar, cast
 
 from rogw.tranp.compatible.python.embed import __hint_generic__
 
@@ -74,6 +74,15 @@ class CSP(CVar[T_co]):
 			type[CSP[T]]: ラップした型
 		"""
 		return CSP[var_type]
+
+	@classmethod
+	def empty(cls) -> 'CSP[T_co]':
+		"""空のスマートポインターの初期化を代替するメソッド。C++では`std::shared_ptr<T>()`に相当
+
+		Note:
+			FIXME Python側の実装が完全に破綻しているので改善策を検討
+		"""
+		return cast(CSP[T_co], None)
 
 	@classmethod
 	def new(cls, origin: T_New) -> 'CSP[T_New]':

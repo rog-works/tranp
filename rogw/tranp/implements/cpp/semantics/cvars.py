@@ -17,6 +17,7 @@ class CVars:
 	"""
 
 	relay_key: ClassVar[str] = 'on'
+	empty_key: ClassVar[str] = 'empty'
 	allocator_key: ClassVar[str] = 'new'
 	exchanger_keys: ClassVar[list[str]] = ['raw', 'ref', 'addr', 'const']
 

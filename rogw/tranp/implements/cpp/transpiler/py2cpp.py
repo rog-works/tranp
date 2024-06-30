@@ -750,6 +750,9 @@ class Py2Cpp(ITranspiler):
 		elif spec.startswith('to_cvar_'):
 			cvar_type = spec.split('to_cvar_')[1]
 			return self.view.render(f'{node.classification}/to_cvar', vars={**func_call_vars, 'cvar_type': cvar_type})
+		elif spec == 'cvar_sp_empty':
+			var_type = self.to_accessible_name(cast(IReflection, context))
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
 		elif spec == 'new_cvar_p':
 			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == 'new_cvar_sp_list':
@@ -810,6 +813,9 @@ class Py2Cpp(ITranspiler):
 					key_attr, value_attr = context.attrs
 					attr_indexs = {'pop': value_attr, 'keys': key_attr, 'values': value_attr}
 					return f'dict_{prop}', attr_indexs[prop]
+			elif prop == CVars.empty_key:
+				context = self.reflections.type_of(node).attrs[0]
+				return 'cvar_sp_empty', context
 			elif prop == CVars.allocator_key:
 				context = self.reflections.type_of(node.calls).context
 				cvar_key = CVars.key_from(self.reflections, context)

@@ -559,6 +559,12 @@ class TestRenderer(TestCase):
 		self.assertRender(expected, 'func_call/cast_str_to_bin', 0, vars)
 
 	@data_provider([
+		({'var_type': 'int', 'is_statement': True}, 'std::shared_ptr<int>();'),
+	])
+	def test_render_func_call_cvar_sp_empty(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender(expected, 'func_call/cvar_sp_empty', 0, vars)
+
+	@data_provider([
 		(
 			{
 				'var_type': 'int',

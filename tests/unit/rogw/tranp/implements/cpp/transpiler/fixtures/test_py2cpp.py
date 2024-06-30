@@ -144,6 +144,8 @@ class CVarOps:
 		arr_p = CP(arr)
 		arr_sp = CSP.new([1])
 		arr_r = CRef(arr)
+		n_sp_empty = CSP[int].empty()
+		this_p = CP(self)
 
 	def default_param(self, ap: CP[Sub] | None = None) -> int:
 		n = ap.on.base_n if ap else 0

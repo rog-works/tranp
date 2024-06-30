@@ -759,7 +759,7 @@ class Py2Cpp(ITranspiler):
 		elif spec == 'new_cvar_sp':
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			# 期待値: receiver.new(a, b, c)
-			initializer = cast(re.Match, re.fullmatch(r'[^(]+\(([^)]+)\)', arguments[0]))[1]
+			initializer = cast(re.Match, re.fullmatch(r'^[^(]+\((.+)\)$', arguments[0]))[1]
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type, 'initializer': initializer})
 		else:
 			return self.view.render(f'{node.classification}/default', vars=func_call_vars)

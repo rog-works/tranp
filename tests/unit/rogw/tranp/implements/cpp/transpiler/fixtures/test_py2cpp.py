@@ -438,5 +438,8 @@ class StringOps:
 		a = s[1:]
 		b = s[:5]
 
+	def len(self, s: str) -> None:
+		a = len(s)
+
 
 def template_func(v: T) -> T: ...

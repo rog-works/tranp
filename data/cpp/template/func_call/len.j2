@@ -1,1 +1,5 @@
+{%- if var_type == i18n('classes', 'str') -%}
+{{ arguments | join(', ') }}.{{ i18n('cpp', 'string.size') }}(){% if is_statement %};{% endif %}
+{%- else -%}
 {{ arguments | join(', ') }}.{{ i18n('cpp', 'container.size') }}(){% if is_statement %};{% endif %}
+{%- endif -%}

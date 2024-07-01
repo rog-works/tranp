@@ -137,6 +137,7 @@ class ASTMapping:
 
 		'StringOps.methods.block': f'{_StringOps}.class_def_raw.block.function_def[0].function_def_raw.block',
 		'StringOps.slice.block': f'{_StringOps}.class_def_raw.block.function_def[1].function_def_raw.block',
+		'StringOps.len.block': f'{_StringOps}.class_def_raw.block.function_def[2].function_def_raw.block',
 
 		'template_func': f'{_template_func}',
 	}
@@ -389,6 +390,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('StringOps.methods.block', 'assign[1]'), defs.MoveAssign, 'bool b = s.ends_with("");'),
 		(_ast('StringOps.slice.block', 'assign[0]'), defs.MoveAssign, 'std::string a = s.substr(1, s.size() - 1);'),
 		(_ast('StringOps.slice.block', 'assign[1]'), defs.MoveAssign, 'std::string b = s.substr(0, 5 - 0);'),
+		(_ast('StringOps.len.block', 'assign'), defs.MoveAssign, 'int a = s.size();'),
 
 		(_ast('template_func', ''), defs.Function, '/** template_func */\ntemplate<typename T>\nT template_func(T v) {\n\n}'),
 	])

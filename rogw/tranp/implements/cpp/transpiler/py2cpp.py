@@ -704,7 +704,8 @@ class Py2Cpp(ITranspiler):
 		elif spec == 'c_macro':
 			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == 'len':
-			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
+			var_type = self.to_accessible_name(cast(IReflection, context))
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
 		elif spec == 'print':
 			# XXX 愚直に対応すると実引数の型推論のコストが高く、その割に出力メッセージの柔軟性が下がりメリットが薄いため、関数名の置き換えのみを行う簡易的な対応とする
 			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
@@ -781,7 +782,7 @@ class Py2Cpp(ITranspiler):
 			elif calls == c_macro.__name__:
 				return 'c_macro', None
 			elif calls == len.__name__:
-				return 'len', None
+				return 'len', self.reflections.type_of(node.arguments[0])
 			elif calls == print.__name__:
 				return 'print', None
 			elif calls == cast.__name__:

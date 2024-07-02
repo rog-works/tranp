@@ -266,10 +266,10 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarOps.const_move.block', 'assign[12]'), defs.MoveAssign, 'Sub a3 = r_const3;'),
 		(_ast('CVarOps.const_move.block', 'assign[13]'), defs.MoveAssign, 'const Sub* ap_const3 = &(r_const3);'),
 
-		(_ast('CVarOps.to_void.block', 'assign[0]'), defs.MoveAssign, 'void* a_to_vp = (void*)(&(a));'),
-		(_ast('CVarOps.to_void.block', 'assign[1]'), defs.MoveAssign, 'void* ap_to_vp = (void*)(ap);'),
-		(_ast('CVarOps.to_void.block', 'assign[2]'), defs.MoveAssign, 'void* asp_to_vp = (void*)((asp).get());'),
-		(_ast('CVarOps.to_void.block', 'assign[3]'), defs.MoveAssign, 'void* r_to_vp = (void*)(&(r));'),
+		(_ast('CVarOps.to_void.block', 'assign[0]'), defs.MoveAssign, 'void* a_to_vp = ((void*)(&(a)));'),
+		(_ast('CVarOps.to_void.block', 'assign[1]'), defs.MoveAssign, 'void* ap_to_vp = ((void*)(ap));'),
+		(_ast('CVarOps.to_void.block', 'assign[2]'), defs.MoveAssign, 'void* asp_to_vp = ((void*)((asp).get()));'),
+		(_ast('CVarOps.to_void.block', 'assign[3]'), defs.MoveAssign, 'void* r_to_vp = ((void*)(&(r)));'),
 
 		(_ast('CVarOps.local_decl.block', 'assign[0]'), defs.MoveAssign, 'std::vector<int*> p_arr = {&(n)};'),
 		(_ast('CVarOps.local_decl.block', 'assign[1]'), defs.MoveAssign, 'std::map<int, int*> p_map = {{n, &(n)}};'),
@@ -281,8 +281,8 @@ class TestPy2Cpp(TestCase):
 		(_ast('EnumOps.assign.block', 'assign[0]'), defs.MoveAssign, 'EnumOps::Values a = EnumOps::Values::A;'),
 		(_ast('EnumOps.assign.block', 'assign[1]'), defs.MoveAssign, 'std::map<EnumOps::Values, std::string> d = {\n\t{EnumOps::Values::A, "A"},\n\t{EnumOps::Values::B, "B"},\n};'),
 		(_ast('EnumOps.assign.block', 'assign[2]'), defs.MoveAssign, 'std::string da = d[EnumOps::Values::A];'),
-		(_ast('EnumOps.cast.block', 'assign[0]'), defs.MoveAssign, 'EnumOps::Values e = (EnumOps::Values)(0);'),
-		(_ast('EnumOps.cast.block', 'assign[1]'), defs.MoveAssign, 'int n = (int)(EnumOps::Values::A);'),
+		(_ast('EnumOps.cast.block', 'assign[0]'), defs.MoveAssign, 'EnumOps::Values e = ((EnumOps::Values)(0));'),
+		(_ast('EnumOps.cast.block', 'assign[1]'), defs.MoveAssign, 'int n = ((int)(EnumOps::Values::A));'),
 
 		(_ast('AccessOps.__init__', ''), defs.Constructor, 'public:\n/** __init__ */\nAccessOps() : Sub(0), sub_s("") {\n}'),
 
@@ -321,7 +321,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('Alias.in_class_method.block', 'funccall'), defs.FuncCall, 'Alias2::in_class_method();'),
 		(_ast('Alias.in_class_method.block', 'assign[1]'), defs.MoveAssign, 'Alias2::Values a = Alias2::Values::A;'),
 		(_ast('Alias.in_class_method.block', 'assign[2]'), defs.MoveAssign, 'std::map<Alias2::Values, Alias2::Values> d = {\n\t{Alias2::Values::A, Alias2::Values::B},\n\t{Alias2::Values::B, Alias2::Values::A},\n};'),
-		(_ast('Alias.in_class_method.block', 'assign[3]'), defs.MoveAssign, 'std::map<int, std::vector<int>> d2 = {\n\t{(int)(Alias2::Values::A), {(int)(Alias2::Values::B)}},\n\t{(int)(Alias2::Values::B), {(int)(Alias2::Values::A)}},\n};'),
+		(_ast('Alias.in_class_method.block', 'assign[3]'), defs.MoveAssign, 'std::map<int, std::vector<int>> d2 = {\n\t{((int)(Alias2::Values::A)), {((int)(Alias2::Values::B))}},\n\t{((int)(Alias2::Values::B)), {((int)(Alias2::Values::A))}},\n};'),
 		(_ast('Alias.InnerB.super_call.block', 'funccall'), defs.FuncCall, 'Alias2::Inner2::func();'),
 
 		(_ast('CompOps.list_comp.block', 'assign[1]'), defs.MoveAssign, BlockExpects.CompOps_list_comp_assign_values1),
@@ -353,10 +353,10 @@ class TestPy2Cpp(TestCase):
 		(_ast('DictOps.contains.block', 'assign[1]'), defs.MoveAssign, 'bool b_in = d.contains("a");'),
 		(_ast('DictOps.contains.block', 'assign[2]'), defs.MoveAssign, 'bool b_not_in = (!d.contains("a"));'),
 
-		(_ast('CastOps.cast_binary.block', 'assign[0]'), defs.MoveAssign, 'int f_to_n = (int)(1.0);'),
-		(_ast('CastOps.cast_binary.block', 'assign[1]'), defs.MoveAssign, 'float n_to_f = (float)(1);'),
-		(_ast('CastOps.cast_binary.block', 'assign[2]'), defs.MoveAssign, 'bool n_to_b = (bool)(1);'),
-		(_ast('CastOps.cast_binary.block', 'assign[3]'), defs.MoveAssign, 'int e_to_n = (int)(EnumOps::Values::A);'),
+		(_ast('CastOps.cast_binary.block', 'assign[0]'), defs.MoveAssign, 'int f_to_n = ((int)(1.0));'),
+		(_ast('CastOps.cast_binary.block', 'assign[1]'), defs.MoveAssign, 'float n_to_f = ((float)(1));'),
+		(_ast('CastOps.cast_binary.block', 'assign[2]'), defs.MoveAssign, 'bool n_to_b = ((bool)(1));'),
+		(_ast('CastOps.cast_binary.block', 'assign[3]'), defs.MoveAssign, 'int e_to_n = ((int)(EnumOps::Values::A));'),
 
 		(_ast('CastOps.cast_string.block', 'assign[0]'), defs.MoveAssign, 'std::string n_to_s = std::to_string(1);'),
 		(_ast('CastOps.cast_string.block', 'assign[1]'), defs.MoveAssign, 'std::string f_to_s = std::to_string(1.0);'),
@@ -364,9 +364,9 @@ class TestPy2Cpp(TestCase):
 		(_ast('CastOps.cast_string.block', 'assign[3]'), defs.MoveAssign, 'float s_to_f = atof(f_to_s);'),
 		(_ast('CastOps.cast_string.block', 'assign[4]'), defs.MoveAssign, 'std::string s_to_s = std::string("");'),
 
-		(_ast('CastOps.cast_class.block', 'assign[0]'), defs.MoveAssign, 'Base b = (Base)(sub);'),
-		(_ast('CastOps.cast_class.block', 'assign[1]'), defs.MoveAssign, 'Base* bp = (Base*)(sub_p);'),
-		(_ast('CastOps.cast_class.block', 'assign[3]'), defs.MoveAssign, 'std::map<std::string, Base*> dsbp = (std::map<std::string, Base*>)(dssp);'),
+		(_ast('CastOps.cast_class.block', 'assign[0]'), defs.MoveAssign, 'Base b = ((Base)(sub));'),
+		(_ast('CastOps.cast_class.block', 'assign[1]'), defs.MoveAssign, 'Base* bp = ((Base*)(sub_p));'),
+		(_ast('CastOps.cast_class.block', 'assign[3]'), defs.MoveAssign, 'std::map<std::string, Base*> dsbp = ((std::map<std::string, Base*>)(dssp));'),
 
 		(_ast('Nullable.params', ''), defs.Method, 'public:\n/** params */\nvoid params(Sub* p) {\n\n}'),
 		(_ast('Nullable.returns', ''), defs.Method, 'public:\n/** returns */\nSub* returns() {\n\n}'),

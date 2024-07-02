@@ -94,6 +94,7 @@ class ASTMapping:
 		'Alias.in_param_return2': f'{_Alias}.class_def_raw.block.function_def[4]',
 		'Alias.in_local.block': f'{_Alias}.class_def_raw.block.function_def[5].function_def_raw.block',
 		'Alias.in_class_method.block': f'{_Alias}.class_def_raw.block.function_def[6].function_def_raw.block',
+		'Alias.InnerB.super_call.block': f'{_Alias}.class_def_raw.block.class_def[7].class_def_raw.block.function_def.function_def_raw.block',
 
 		'CompOps.list_comp.block': f'{_CompOps}.class_def_raw.block.function_def[1].function_def_raw.block',
 		'CompOps.dict_comp.block': f'{_CompOps}.class_def_raw.block.function_def[2].function_def_raw.block',
@@ -311,7 +312,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('AccessOps.indexer.block', 'funccall[1].arguments.argvalue'), defs.Argument, 'arr_sp[0]'),
 		(_ast('AccessOps.indexer.block', 'funccall[2].arguments.argvalue'), defs.Argument, 'arr_ar[0]'),
 
-		(_ast('Alias.Inner', ''), defs.Class, '/** Inner2 */\nclass Inner2 {\n\n};'),
+		(_ast('Alias.Inner', ''), defs.Class, '/** Inner2 */\nclass Inner2 {\n\tpublic:\n\t/** func */\n\tvoid func() {\n\n\t}\n};'),
 		(_ast('Alias.__init__', ''), defs.Constructor, 'public:\n/** __init__ */\nAlias2() : inner(Alias2::Inner2()) {\n}'),
 		(_ast('Alias.in_param_return', ''), defs.Method, 'public:\n/** in_param_return */\nAlias2 in_param_return(Alias2 a) {\n\n}'),
 		(_ast('Alias.in_param_return2', ''), defs.Method, 'public:\n/** in_param_return2 */\nAlias2::Inner2 in_param_return2(Alias2::Inner2 i) {\n\n}'),
@@ -321,6 +322,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('Alias.in_class_method.block', 'assign[1]'), defs.MoveAssign, 'Alias2::Values a = Alias2::Values::A;'),
 		(_ast('Alias.in_class_method.block', 'assign[2]'), defs.MoveAssign, 'std::map<Alias2::Values, Alias2::Values> d = {\n\t{Alias2::Values::A, Alias2::Values::B},\n\t{Alias2::Values::B, Alias2::Values::A},\n};'),
 		(_ast('Alias.in_class_method.block', 'assign[3]'), defs.MoveAssign, 'std::map<int, std::vector<int>> d2 = {\n\t{(int)(Alias2::Values::A), {(int)(Alias2::Values::B)}},\n\t{(int)(Alias2::Values::B), {(int)(Alias2::Values::A)}},\n};'),
+		(_ast('Alias.InnerB.super_call.block', 'funccall'), defs.FuncCall, 'Alias2::Inner2::func();'),
 
 		(_ast('CompOps.list_comp.block', 'assign[1]'), defs.MoveAssign, BlockExpects.CompOps_list_comp_assign_values1),
 		(_ast('CompOps.dict_comp.block', 'assign[1]'), defs.MoveAssign, BlockExpects.CompOps_dict_comp_assign_kvs0_1),

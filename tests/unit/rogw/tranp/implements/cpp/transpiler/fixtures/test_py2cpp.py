@@ -255,7 +255,8 @@ class Alias:
 		A = 1
 		B = 2
 
-	class Inner: ...
+	class Inner:
+		def func(self) -> None: ...
 
 	def __init__(self) -> None:
 		self.inner: Alias.Inner = Alias.Inner()
@@ -279,6 +280,10 @@ class Alias:
 			int(cls.Values.A): [int(cls.Values.B)],
 			int(cls.Values.B): [int(cls.Values.A)],
 		}
+
+	class InnerB(Inner):
+		def super_call(self) -> None:
+			super().func()
 
 
 class CompOps:

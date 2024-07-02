@@ -226,6 +226,12 @@ class EnumOps:
 		e = EnumOps.Values(0)
 		n = int(EnumOps.Values.A)
 
+	def comparison(self) -> None:
+		a = EnumOps.Values.A == EnumOps.Values.B
+		b = EnumOps.Values.A != EnumOps.Values.B
+		c = EnumOps.Values.A is EnumOps.Values.B
+		d = EnumOps.Values.A is not EnumOps.Values.B
+
 
 class Nullable:
 	def params(self, base: Base | None) -> None: ...

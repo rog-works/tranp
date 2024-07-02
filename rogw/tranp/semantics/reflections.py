@@ -660,18 +660,22 @@ class ProceduralResolver:
 
 	def proc_binary_operator(self, node: defs.BinaryOperator, left: IReflection, operator: defs.Terminal, right: IReflection) -> IReflection:
 		operator_name = operator.tokens
-		operands: list[IReflection] = [left, right]
-		methods: list[IReflection | None] = [None, None]
-		for index, operand in enumerate(operands):
+		operands: dict[str, IReflection] = {'left': left, 'right': right}
+		methods: dict[str, IReflection] = {}
+		for key, operand in operands.items():
 			try:
-				methods[index] = self.reflections.resolve(operand.types, operand.types.operations.operation_by(operator_name))
+				methods[key] = self.reflections.resolve(operand.types, operand.types.operations.operation_by(operator_name))
 			except UnresolvedSymbolError:
 				pass
 
-		if methods[0] is None and methods[1] is None:
+		if 'left' not in methods and 'right' not in methods:
 			raise OperationNotAllowedError(f'"{operator_name}" not defined. {node}, {str(left)} {operator.tokens} {str(right)}')
 
-		for index, candidate in enumerate(methods):
+		# XXX 算術演算以外は返却型が左右で同じであるため(比較演算=bool, ビット演算=int)、メソッドの定義のみを条件とし、シグネチャーの検証は省略する
+		if not node.is_a(defs.Sum, defs.Term):
+			return methods['left'].attrs[-1] if 'left' in methods else methods['right'].attrs[-1]
+
+		for key, candidate in methods.items():
 			if candidate is None:
 				continue
 
@@ -680,9 +684,8 @@ class ProceduralResolver:
 				.schema(lambda: {'klass': method.attrs[0], 'parameters': method.attrs[1:-1], 'returns': method.attrs[-1]}) \
 				.build(template.Method)
 
-			with_left = index == 0
-			receiver = left if with_left else right
-			other = right if with_left else left
+			receiver = left if key == 'left' else right
+			other = right if key == 'left' else left
 			actual_other = function_helper.parameter(0, receiver, other)
 			var_types = actual_other.attrs if self.reflections.is_a(actual_other, classes.Union) else [actual_other]
 			if other in var_types:

@@ -254,6 +254,10 @@ class TestReflections(TestCase):
 		(f'{fixture_module_path}.EnumOps.assign.da', 'str'),
 		(f'{fixture_module_path}.EnumOps.cast.e', 'Values'),
 		(f'{fixture_module_path}.EnumOps.cast.n', 'int'),
+		(f'{fixture_module_path}.EnumOps.comparison.a', 'bool'),
+		(f'{fixture_module_path}.EnumOps.comparison.b', 'bool'),
+		(f'{fixture_module_path}.EnumOps.comparison.c', 'bool'),
+		(f'{fixture_module_path}.EnumOps.comparison.d', 'bool'),
 
 		(f'{fixture_module_path}.Nullable.params.base', 'Union<Base, None>'),
 		(f'{fixture_module_path}.Nullable.accessible.sub', 'Union<Sub, None>'),

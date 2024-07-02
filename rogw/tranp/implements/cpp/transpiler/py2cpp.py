@@ -351,10 +351,11 @@ class Py2Cpp(ITranspiler):
 		# メンバー変数の宣言用のデータを生成
 		initializers: list[dict[str, str]] = []
 		for index, this_var in enumerate(this_vars):
-			# XXX 代入式の右辺を取得。必ず取得できるのでキャストして警告を抑制 (期待値: `int this->a = 1234;`)
-			initialize_value = cast(re.Match[str], re.search(r'=\s*([^;]+);$', initializer_statements[index]))[1]
-			this_var_name = this_var.tokens_without_this
-			initializers.append({'symbol': this_var_name, 'value': initialize_value})
+			# XXX 代入式の右辺を取得 (期待値: `int this->a = 1234;`)
+			# XXX 右辺が存在しない場合は初期化はデフォルトコンストラクターに任せる形になる
+			matches = re.search(r'=\s*([^;]+);$', initializer_statements[index])
+			initializer = {'symbol': this_var.tokens_without_this, 'value': matches[1] if matches else ''}
+			initializers.append(initializer)
 
 		decorators = self.allow_decorators(decorators)
 		class_name = self.to_domain_name_by_class(node.class_types)

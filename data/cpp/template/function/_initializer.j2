@@ -4,6 +4,10 @@
 	{%- endif -%}
 	{%- for this_var in initializers -%}
 		{%- if loop.index0 or super_initializer %}, {% endif -%}
-		{{- this_var.symbol }}({{ this_var.value -}})
+		{%- if this_var.value -%}
+			{{- this_var.symbol }}({{ this_var.value -}})
+		{%- else -%}
+			{{- this_var.symbol }}({})
+		{%- endif -%}
 	{%- endfor -%}
 {%- endif -%}

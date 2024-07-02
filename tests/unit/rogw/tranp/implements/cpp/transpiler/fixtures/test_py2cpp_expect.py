@@ -3,12 +3,13 @@ class BlockExpects:
 class DeclOps {
 	public: static Sub* class_bp = nullptr;
 	public: static std::map<std::string, std::map<std::string, std::vector<int*>>> class_map = {{"a", {{"b", {}}}}};
-	public: Sub* inst_var;
+	public: Sub* inst_var0;
+	public: Sub inst_var1;
 	public: std::vector<int*> inst_arr;
 	public: std::map<std::string, int*> inst_map;
 	public:
 	/** __init__ */
-	DeclOps() : inst_var(nullptr), inst_arr({}), inst_map({}) {
+	DeclOps() : inst_var0(nullptr), inst_var1({}), inst_arr({}), inst_map({}) {
 		int n = this->prop();
 	}
 	public:

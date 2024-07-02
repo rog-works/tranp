@@ -50,7 +50,8 @@ class DeclOps:
 	class_map: dict[str, dict[str, list[CP[int]]]] = {'a': {'b': []}}
 
 	def __init__(self) -> None:
-		self.inst_var: CP[Sub] | None = None
+		self.inst_var0: CP[Sub] | None = None
+		self.inst_var1: Sub
 		self.inst_arr: list[CP[int]] = []
 		self.inst_map: dict[str, CP[int]] = {}
 		n = self.prop

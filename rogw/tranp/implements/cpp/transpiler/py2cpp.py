@@ -837,7 +837,8 @@ class Py2Cpp(ITranspiler):
 		return 'otherwise', None
 
 	def on_super(self, node: defs.Super, calls: str, arguments: list[str]) -> str:
-		return node.super_class_symbol.tokens
+		parent_symbol = self.reflections.type_of(node.super_class_symbol)
+		return self.to_accessible_name(parent_symbol)
 
 	# Operator
 

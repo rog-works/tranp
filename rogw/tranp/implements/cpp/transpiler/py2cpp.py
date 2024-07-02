@@ -469,8 +469,9 @@ class Py2Cpp(ITranspiler):
 	def on_throw(self, node: defs.Throw, throws: str, via: str) -> str:
 		return self.view.render(node.classification, vars={'throws': throws, 'via': via})
 
-	def on_pass(self, node: defs.Pass) -> None:
-		pass
+	def on_pass(self, node: defs.Pass) -> str:
+		# XXX statementsのスタック数が合わなくなるため出力
+		return ''
 
 	def on_break(self, node: defs.Break) -> str:
 		return 'break;'

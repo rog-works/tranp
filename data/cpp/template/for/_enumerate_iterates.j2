@@ -3,7 +3,10 @@
 	{#- 静的束縛を考慮するならiteratesをラムダの外側で一旦変数化すれば良い。ただし無駄な複製コストが増えるので現状の実装の方が効率は良い #}
 	int __index = 0;
 	for (auto& __entry : {{ iterates }}) {
-		__ret[__index++] = __entry;
+		{%- set receiver = '__ret' %}
+		{%- set key = '__index++' %}
+		{%- set value = '__entry' %}
+		{% include('assign/_assign_dict.j2') %};
 	}
 	return __ret;
 }()

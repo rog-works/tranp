@@ -1,1 +1,7 @@
-{% if declared %}{{ var_type }} {% endif %}{{ receiver }}{% if value %} = {{ value }}{% endif %};
+{%- if declared -%}
+{{ var_type }} {{ receiver }}{% if value %} = {{ value }}{% endif %};
+{%- elif receiver_is_dict -%}
+{% include('assign/_assign_dict.j2') %}
+{%- else -%}
+{{ receiver }}{% if value %} = {{ value }}{% endif %};
+{%- endif -%}

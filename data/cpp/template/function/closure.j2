@@ -1,1 +1,1 @@
-auto {{ symbol }} = [{% if binded_this %}this, {% endif %}&]({{ parameters | join(', ') }}) -> {{ return_type }} {% include('function/_block.j2') %};
+auto {{ symbol }} = [&{% if binded_this %}, this{% endif %}]({{ parameters | join(', ') }}) -> {{ return_type }} {% include('function/_block.j2') %};

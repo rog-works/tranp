@@ -289,7 +289,7 @@ class TestRenderer(TestCase):
 				'binded_this': True,
 			},
 			'\n'.join([
-				'[this, &]() -> std::map<int, float> {',
+				'[&, this]() -> std::map<int, float> {',
 				'	std::map<int, float> __ret;',
 				'	for (auto& [key, value] : items) {',
 				'		if (key == 1) {',
@@ -765,7 +765,7 @@ class TestRenderer(TestCase):
 				'binded_this': True,
 			},
 			'\n'.join([
-				'auto closure = [this, &](std::string text, int value = 1) -> int {',
+				'auto closure = [&, this](std::string text, int value = 1) -> int {',
 				'	return value + 1;',
 				'};',
 			]),

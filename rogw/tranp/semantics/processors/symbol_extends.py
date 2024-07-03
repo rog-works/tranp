@@ -128,21 +128,21 @@ class SymbolExtends:
 		Returns:
 			IReflection: シンボル
 		"""
-		def fetch_template_attrs(for_types: defs.Class) -> list[IReflection]:
-			attrs: list[IReflection] = []
+		def fetch_template_attrs(for_types: defs.Class) -> dict[defs.TemplateClass, IReflection]:
+			attrs: dict[defs.TemplateClass, IReflection] = {}
 			for template_type in for_types.template_types:
 				candidate = reflections.type_of(template_type)
-				if candidate.decl.is_a(defs.TemplateClass):
-					attrs.append(candidate)
+				if isinstance(candidate.decl, defs.TemplateClass):
+					attrs[candidate.decl] = candidate
 
 			return attrs
 
 		attrs = fetch_template_attrs(types)
 		for inherit in types.inherits:
 			inherit_attrs = fetch_template_attrs(reflections.type_of(inherit).types.as_a(defs.Class))
-			attrs.extend([attr for attr in inherit_attrs if attr not in attrs])
+			attrs = {**attrs, **{decl: attr for decl, attr in inherit_attrs.items() if decl not in attrs}}
 
-		return via.extends(*attrs)
+		return via.extends(*attrs.values())
 
 	def extends_for_var(self, reflections: Reflections, via: IReflection, decl_type: defs.Type) -> IReflection:
 		"""宣言ノードを解析し、属性の型を取り込みシンボルを拡張(変数宣言用)

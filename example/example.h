@@ -75,8 +75,8 @@ class FL_CellMesh {
 	 * @note 単位の倍数に近い座標で変換を行うのは不正確になり得るため注意が必要
 	 */
 	static IntVector to_cell(Vector location, int unit = 100) {
-		IntVector cell = IntVector((int)(location.x), (int)(location.y), (int)(location.z));
-		return IntVector((int)(cell.x / unit) + (location.x < 0 ? -1 : 0), (int)(cell.y / unit) + (location.y < 0 ? -1 : 0), (int)(cell.z / unit) + (location.z < 0 ? -1 : 0));
+		IntVector cell = IntVector(((int)(location.x)), ((int)(location.y)), ((int)(location.z)));
+		return IntVector(((int)(cell.x / unit)) + (location.x < 0 ? -1 : 0), ((int)(cell.y / unit)) + (location.y < 0 ? -1 : 0), ((int)(cell.z / unit)) + (location.z < 0 ? -1 : 0));
 	}
 	public:
 	/**
@@ -86,7 +86,7 @@ class FL_CellMesh {
 	 * @return 座標
 	 */
 	static Vector from_cell(IntVector cell, int unit = 100) {
-		return Vector((float)(cell.x * unit), (float)(cell.y * unit), (float)(cell.z * unit));
+		return Vector(((float)(cell.x * unit)), ((float)(cell.y * unit)), ((float)(cell.z * unit)));
 	}
 	public:
 	/**
@@ -98,7 +98,7 @@ class FL_CellMesh {
 	 */
 	static Vector to_center(Vector location, int unit = 100) {
 		Vector based = FL_CellMesh::from_cell(FL_CellMesh::to_cell(location, unit), unit);
-		return based + (int)(unit / 2);
+		return based + ((int)(unit / 2));
 	}
 	public:
 	/**
@@ -116,9 +116,9 @@ class FL_CellMesh {
 	 * @return オフセットセル座標(3x3x3)
 	 */
 	static IntVector offset_index_to_cell(int offset_index) {
-		int x = (int)(offset_index % 3);
-		int y = (int)(offset_index % 9 / 3);
-		int z = (int)(offset_index / 9);
+		int x = ((int)(offset_index % 3));
+		int y = ((int)(offset_index % 9 / 3));
+		int z = ((int)(offset_index / 9));
 		return IntVector(x, y, z);
 	}
 	public:
@@ -130,18 +130,18 @@ class FL_CellMesh {
 	 */
 	static std::vector<int> need_cell_face_indexs(int need_cell_index) {
 		std::map<int, std::vector<int>> to_faces = {
-			{(int)(FL_CellMesh::NeedCellIndexs::Bottom0), { {(int)(FL_CellMesh::FaceIndexs::Bottom)}, {(int)(FL_CellMesh::FaceIndexs::Back)}, }},
-			{(int)(FL_CellMesh::NeedCellIndexs::Bottom1), { {(int)(FL_CellMesh::FaceIndexs::Bottom)}, {(int)(FL_CellMesh::FaceIndexs::Left)}, }},
-			{(int)(FL_CellMesh::NeedCellIndexs::Bottom2), { {(int)(FL_CellMesh::FaceIndexs::Bottom)}, {(int)(FL_CellMesh::FaceIndexs::Right)}, }},
-			{(int)(FL_CellMesh::NeedCellIndexs::Bottom3), { {(int)(FL_CellMesh::FaceIndexs::Bottom)}, {(int)(FL_CellMesh::FaceIndexs::Front)}, }},
-			{(int)(FL_CellMesh::NeedCellIndexs::Middle0), { {(int)(FL_CellMesh::FaceIndexs::Back)}, {(int)(FL_CellMesh::FaceIndexs::Left)}, }},
-			{(int)(FL_CellMesh::NeedCellIndexs::Middle1), { {(int)(FL_CellMesh::FaceIndexs::Back)}, {(int)(FL_CellMesh::FaceIndexs::Right)}, }},
-			{(int)(FL_CellMesh::NeedCellIndexs::Middle2), { {(int)(FL_CellMesh::FaceIndexs::Front)}, {(int)(FL_CellMesh::FaceIndexs::Left)}, }},
-			{(int)(FL_CellMesh::NeedCellIndexs::Middle3), { {(int)(FL_CellMesh::FaceIndexs::Front)}, {(int)(FL_CellMesh::FaceIndexs::Right)}, }},
-			{(int)(FL_CellMesh::NeedCellIndexs::Top0), { {(int)(FL_CellMesh::FaceIndexs::Top)}, {(int)(FL_CellMesh::FaceIndexs::Back)}, }},
-			{(int)(FL_CellMesh::NeedCellIndexs::Top1), { {(int)(FL_CellMesh::FaceIndexs::Top)}, {(int)(FL_CellMesh::FaceIndexs::Left)}, }},
-			{(int)(FL_CellMesh::NeedCellIndexs::Top2), { {(int)(FL_CellMesh::FaceIndexs::Top)}, {(int)(FL_CellMesh::FaceIndexs::Right)}, }},
-			{(int)(FL_CellMesh::NeedCellIndexs::Top3), { {(int)(FL_CellMesh::FaceIndexs::Top)}, {(int)(FL_CellMesh::FaceIndexs::Front)}, }},
+			{((int)(FL_CellMesh::NeedCellIndexs::Bottom0)), { {((int)(FL_CellMesh::FaceIndexs::Bottom))}, {((int)(FL_CellMesh::FaceIndexs::Back))}, }},
+			{((int)(FL_CellMesh::NeedCellIndexs::Bottom1)), { {((int)(FL_CellMesh::FaceIndexs::Bottom))}, {((int)(FL_CellMesh::FaceIndexs::Left))}, }},
+			{((int)(FL_CellMesh::NeedCellIndexs::Bottom2)), { {((int)(FL_CellMesh::FaceIndexs::Bottom))}, {((int)(FL_CellMesh::FaceIndexs::Right))}, }},
+			{((int)(FL_CellMesh::NeedCellIndexs::Bottom3)), { {((int)(FL_CellMesh::FaceIndexs::Bottom))}, {((int)(FL_CellMesh::FaceIndexs::Front))}, }},
+			{((int)(FL_CellMesh::NeedCellIndexs::Middle0)), { {((int)(FL_CellMesh::FaceIndexs::Back))}, {((int)(FL_CellMesh::FaceIndexs::Left))}, }},
+			{((int)(FL_CellMesh::NeedCellIndexs::Middle1)), { {((int)(FL_CellMesh::FaceIndexs::Back))}, {((int)(FL_CellMesh::FaceIndexs::Right))}, }},
+			{((int)(FL_CellMesh::NeedCellIndexs::Middle2)), { {((int)(FL_CellMesh::FaceIndexs::Front))}, {((int)(FL_CellMesh::FaceIndexs::Left))}, }},
+			{((int)(FL_CellMesh::NeedCellIndexs::Middle3)), { {((int)(FL_CellMesh::FaceIndexs::Front))}, {((int)(FL_CellMesh::FaceIndexs::Right))}, }},
+			{((int)(FL_CellMesh::NeedCellIndexs::Top0)), { {((int)(FL_CellMesh::FaceIndexs::Top))}, {((int)(FL_CellMesh::FaceIndexs::Back))}, }},
+			{((int)(FL_CellMesh::NeedCellIndexs::Top1)), { {((int)(FL_CellMesh::FaceIndexs::Top))}, {((int)(FL_CellMesh::FaceIndexs::Left))}, }},
+			{((int)(FL_CellMesh::NeedCellIndexs::Top2)), { {((int)(FL_CellMesh::FaceIndexs::Top))}, {((int)(FL_CellMesh::FaceIndexs::Right))}, }},
+			{((int)(FL_CellMesh::NeedCellIndexs::Top3)), { {((int)(FL_CellMesh::FaceIndexs::Top))}, {((int)(FL_CellMesh::FaceIndexs::Front))}, }},
 		};
 		return to_faces[need_cell_index];
 	}
@@ -154,12 +154,12 @@ class FL_CellMesh {
 	 */
 	static std::vector<int> around_need_cell_face_indexs(int face_index) {
 		std::map<int, std::vector<int>> to_faces = {
-			{(int)(FL_CellMesh::FaceIndexs::Left), { {(int)(FL_CellMesh::FaceIndexs::Back)}, {(int)(FL_CellMesh::FaceIndexs::Front)}, {(int)(FL_CellMesh::FaceIndexs::Bottom)}, {(int)(FL_CellMesh::FaceIndexs::Top)}, }},
-			{(int)(FL_CellMesh::FaceIndexs::Right), { {(int)(FL_CellMesh::FaceIndexs::Back)}, {(int)(FL_CellMesh::FaceIndexs::Front)}, {(int)(FL_CellMesh::FaceIndexs::Bottom)}, {(int)(FL_CellMesh::FaceIndexs::Top)}, }},
-			{(int)(FL_CellMesh::FaceIndexs::Back), { {(int)(FL_CellMesh::FaceIndexs::Left)}, {(int)(FL_CellMesh::FaceIndexs::Right)}, {(int)(FL_CellMesh::FaceIndexs::Bottom)}, {(int)(FL_CellMesh::FaceIndexs::Top)}, }},
-			{(int)(FL_CellMesh::FaceIndexs::Front), { {(int)(FL_CellMesh::FaceIndexs::Left)}, {(int)(FL_CellMesh::FaceIndexs::Right)}, {(int)(FL_CellMesh::FaceIndexs::Bottom)}, {(int)(FL_CellMesh::FaceIndexs::Top)}, }},
-			{(int)(FL_CellMesh::FaceIndexs::Bottom), { {(int)(FL_CellMesh::FaceIndexs::Left)}, {(int)(FL_CellMesh::FaceIndexs::Right)}, {(int)(FL_CellMesh::FaceIndexs::Back)}, {(int)(FL_CellMesh::FaceIndexs::Front)}, }},
-			{(int)(FL_CellMesh::FaceIndexs::Top), { {(int)(FL_CellMesh::FaceIndexs::Left)}, {(int)(FL_CellMesh::FaceIndexs::Right)}, {(int)(FL_CellMesh::FaceIndexs::Back)}, {(int)(FL_CellMesh::FaceIndexs::Front)}, }},
+			{((int)(FL_CellMesh::FaceIndexs::Left)), { {((int)(FL_CellMesh::FaceIndexs::Back))}, {((int)(FL_CellMesh::FaceIndexs::Front))}, {((int)(FL_CellMesh::FaceIndexs::Bottom))}, {((int)(FL_CellMesh::FaceIndexs::Top))}, }},
+			{((int)(FL_CellMesh::FaceIndexs::Right)), { {((int)(FL_CellMesh::FaceIndexs::Back))}, {((int)(FL_CellMesh::FaceIndexs::Front))}, {((int)(FL_CellMesh::FaceIndexs::Bottom))}, {((int)(FL_CellMesh::FaceIndexs::Top))}, }},
+			{((int)(FL_CellMesh::FaceIndexs::Back)), { {((int)(FL_CellMesh::FaceIndexs::Left))}, {((int)(FL_CellMesh::FaceIndexs::Right))}, {((int)(FL_CellMesh::FaceIndexs::Bottom))}, {((int)(FL_CellMesh::FaceIndexs::Top))}, }},
+			{((int)(FL_CellMesh::FaceIndexs::Front)), { {((int)(FL_CellMesh::FaceIndexs::Left))}, {((int)(FL_CellMesh::FaceIndexs::Right))}, {((int)(FL_CellMesh::FaceIndexs::Bottom))}, {((int)(FL_CellMesh::FaceIndexs::Top))}, }},
+			{((int)(FL_CellMesh::FaceIndexs::Bottom)), { {((int)(FL_CellMesh::FaceIndexs::Left))}, {((int)(FL_CellMesh::FaceIndexs::Right))}, {((int)(FL_CellMesh::FaceIndexs::Back))}, {((int)(FL_CellMesh::FaceIndexs::Front))}, }},
+			{((int)(FL_CellMesh::FaceIndexs::Top)), { {((int)(FL_CellMesh::FaceIndexs::Left))}, {((int)(FL_CellMesh::FaceIndexs::Right))}, {((int)(FL_CellMesh::FaceIndexs::Back))}, {((int)(FL_CellMesh::FaceIndexs::Front))}, }},
 		};
 		return to_faces[face_index];
 	}
@@ -172,12 +172,12 @@ class FL_CellMesh {
 	static int offset_cell_to_face_index(IntVector offset_cell) {
 		int offset_index = FL_CellMesh::offset_cell_to_index(offset_cell);
 		std::map<int, int> to_faces = {
-			{(int)(FL_CellMesh::OffsetIndexs::Left), (int)(FL_CellMesh::FaceIndexs::Left)},
-			{(int)(FL_CellMesh::OffsetIndexs::Right), (int)(FL_CellMesh::FaceIndexs::Right)},
-			{(int)(FL_CellMesh::OffsetIndexs::Back), (int)(FL_CellMesh::FaceIndexs::Back)},
-			{(int)(FL_CellMesh::OffsetIndexs::Front), (int)(FL_CellMesh::FaceIndexs::Front)},
-			{(int)(FL_CellMesh::OffsetIndexs::Bottom), (int)(FL_CellMesh::FaceIndexs::Bottom)},
-			{(int)(FL_CellMesh::OffsetIndexs::Top), (int)(FL_CellMesh::FaceIndexs::Top)},
+			{((int)(FL_CellMesh::OffsetIndexs::Left)), ((int)(FL_CellMesh::FaceIndexs::Left))},
+			{((int)(FL_CellMesh::OffsetIndexs::Right)), ((int)(FL_CellMesh::FaceIndexs::Right))},
+			{((int)(FL_CellMesh::OffsetIndexs::Back)), ((int)(FL_CellMesh::FaceIndexs::Back))},
+			{((int)(FL_CellMesh::OffsetIndexs::Front)), ((int)(FL_CellMesh::FaceIndexs::Front))},
+			{((int)(FL_CellMesh::OffsetIndexs::Bottom)), ((int)(FL_CellMesh::FaceIndexs::Bottom))},
+			{((int)(FL_CellMesh::OffsetIndexs::Top)), ((int)(FL_CellMesh::FaceIndexs::Top))},
 		};
 		if ((!to_faces.contains(offset_index))) {
 			log_error("Fatal Error! offset_index: %d", offset_index);
@@ -200,7 +200,7 @@ class FL_CellMesh {
 			{FL_CellMesh::FaceIndexs::Bottom, IntVector(0, 0, -1)},
 			{FL_CellMesh::FaceIndexs::Top, IntVector(0, 0, 1)},
 		};
-		return to_vector[(FL_CellMesh::FaceIndexs)(face_index)];
+		return to_vector[((FL_CellMesh::FaceIndexs)(face_index))];
 	}
 	public:
 	/**
@@ -210,12 +210,12 @@ class FL_CellMesh {
 	 */
 	static int invert_face_index(int face_index) {
 		std::map<int, int> to_faces = {
-			{(int)(FL_CellMesh::FaceIndexs::Left), (int)(FL_CellMesh::FaceIndexs::Right)},
-			{(int)(FL_CellMesh::FaceIndexs::Right), (int)(FL_CellMesh::FaceIndexs::Left)},
-			{(int)(FL_CellMesh::FaceIndexs::Back), (int)(FL_CellMesh::FaceIndexs::Front)},
-			{(int)(FL_CellMesh::FaceIndexs::Front), (int)(FL_CellMesh::FaceIndexs::Back)},
-			{(int)(FL_CellMesh::FaceIndexs::Bottom), (int)(FL_CellMesh::FaceIndexs::Top)},
-			{(int)(FL_CellMesh::FaceIndexs::Top), (int)(FL_CellMesh::FaceIndexs::Bottom)},
+			{((int)(FL_CellMesh::FaceIndexs::Left)), ((int)(FL_CellMesh::FaceIndexs::Right))},
+			{((int)(FL_CellMesh::FaceIndexs::Right)), ((int)(FL_CellMesh::FaceIndexs::Left))},
+			{((int)(FL_CellMesh::FaceIndexs::Back)), ((int)(FL_CellMesh::FaceIndexs::Front))},
+			{((int)(FL_CellMesh::FaceIndexs::Front)), ((int)(FL_CellMesh::FaceIndexs::Back))},
+			{((int)(FL_CellMesh::FaceIndexs::Bottom)), ((int)(FL_CellMesh::FaceIndexs::Top))},
+			{((int)(FL_CellMesh::FaceIndexs::Top)), ((int)(FL_CellMesh::FaceIndexs::Bottom))},
 		};
 		return to_faces[face_index];
 	}
@@ -258,7 +258,7 @@ class FL_CellMesh {
 	 * @return 頂点毎のバウンドボックスリスト
 	 */
 	static std::vector<Box3d> to_vertex_boxs(Box3d cell_box, int unit) {
-		int offset = (int)(unit / 10);
+		int offset = ((int)(unit / 10));
 		Vector min = cell_box.min;
 		Vector max = cell_box.max;
 		std::vector<Vector> positions = {
@@ -288,7 +288,7 @@ class FL_CellMesh {
 	 * @return 面毎のバウンドボックスリスト
 	 */
 	static std::vector<Box3d> to_polygon_boxs(Box3d cell_box, int unit) {
-		int offset = (int)(unit / 10);
+		int offset = ((int)(unit / 10));
 		Vector min = cell_box.min;
 		Vector max = cell_box.max;
 		return {
@@ -402,10 +402,10 @@ class FL_CellMesh {
 			}
 		}
 		std::map<IntVector, std::vector<IntVector2>> out_ids = {};
-		for (auto i = 0; i < (int)(FL_CellMesh::OffsetIndexs::Max); i++) {
+		for (auto i = 0; i < ((int)(FL_CellMesh::OffsetIndexs::Max)); i++) {
 			IntVector offset = FL_CellMesh::offset_index_to_cell(i);
 			IntVector cell = start + offset;
-			out_ids[cell] = std::vector<IntVector2>((int)(FL_CellMesh::FaceIndexs::Max), IntVector2(-1, -1));
+			out_ids[cell] = std::vector<IntVector2>(((int)(FL_CellMesh::FaceIndexs::Max)), IntVector2(-1, -1));
 			if ((!cell_on_faces.contains(cell))) {
 				continue;
 			}
@@ -436,14 +436,14 @@ class FL_CellMesh {
 			{start + IntVector(1, 1, 2)},
 		};
 		std::vector<IntVector2> result = {
-			{entries[faces[0]][(int)(FL_CellMesh::FaceIndexs::Right)]},
-			{entries[faces[1]][(int)(FL_CellMesh::FaceIndexs::Left)]},
-			{entries[faces[2]][(int)(FL_CellMesh::FaceIndexs::Front)]},
-			{entries[faces[3]][(int)(FL_CellMesh::FaceIndexs::Back)]},
-			{entries[faces[4]][(int)(FL_CellMesh::FaceIndexs::Top)]},
-			{entries[faces[5]][(int)(FL_CellMesh::FaceIndexs::Bottom)]},
+			{entries[faces[0]][((int)(FL_CellMesh::FaceIndexs::Right))]},
+			{entries[faces[1]][((int)(FL_CellMesh::FaceIndexs::Left))]},
+			{entries[faces[2]][((int)(FL_CellMesh::FaceIndexs::Front))]},
+			{entries[faces[3]][((int)(FL_CellMesh::FaceIndexs::Back))]},
+			{entries[faces[4]][((int)(FL_CellMesh::FaceIndexs::Top))]},
+			{entries[faces[5]][((int)(FL_CellMesh::FaceIndexs::Bottom))]},
 		};
-		for (auto i = 0; i < (int)(FL_CellMesh::FaceIndexs::Max); i++) {
+		for (auto i = 0; i < ((int)(FL_CellMesh::FaceIndexs::Max)); i++) {
 			log_info("Found faces by cell. i: %d, cell: (%d, %d, %d), start: (%d, %d, %d), face: (%d, %d, %d), result: (%d, %d)", i, cell.x, cell.y, cell.z, start.x, start.y, start.z, faces[i].x, faces[i].y, faces[i].z, result[i].x, result[i].y);
 		}
 		return result;
@@ -462,7 +462,7 @@ class FL_CellMesh {
 		std::vector<IntVector2> entry = entries[cell];
 		// 6面方向の先にセルが存在しない場合、その周辺セルを候補として抽出
 		std::vector<IntVector> out_need_cells = {};
-		for (auto i = 0; i < (int)(FL_CellMesh::FaceIndexs::Max); i++) {
+		for (auto i = 0; i < ((int)(FL_CellMesh::FaceIndexs::Max)); i++) {
 			if (entry[i].x != -1) {
 				continue;
 			}
@@ -482,7 +482,7 @@ class FL_CellMesh {
 			}
 		}
 		// 必須セルに必要な面方向の先にセルが存在する場合、その周辺セルを候補から削除する
-		for (auto i = 0; i < (int)(FL_CellMesh::NeedCellIndexs::Max); i++) {
+		for (auto i = 0; i < ((int)(FL_CellMesh::NeedCellIndexs::Max)); i++) {
 			for (auto& face_index : FL_CellMesh::need_cell_face_indexs(i)) {
 				IntVector2 face = entry[face_index];
 				if (face.x == -1) {
@@ -550,7 +550,7 @@ class FL_CellMesh {
 			// 7-----6 /  /
 			// |/    |/  /
 			// 3-----2  Y
-			float f_unit = (float)(unit);
+			float f_unit = ((float)(unit));
 			std::vector<Vector> verts = {
 				{Vector(0, 0, 0)},
 				{Vector(f_unit, 0, 0)},
@@ -562,7 +562,7 @@ class FL_CellMesh {
 				{Vector(0, f_unit, f_unit)},
 			};
 			Vector start = FL_CellMesh::from_cell(cell);
-			for (auto i = 0; i < (int)(FL_CellMesh::VertexIndexs::Max); i++) {
+			for (auto i = 0; i < ((int)(FL_CellMesh::VertexIndexs::Max)); i++) {
 				if (v_ids[i] == -1) {
 					Vector pos = start + verts[i];
 					v_ids[i] = origin.append_vertex(pos);
@@ -608,7 +608,7 @@ class FL_CellMesh {
 			// 隣接セルと重なった面を削除
 			// ※トポロジーが崩れるため、面の追加より先に削除を行う
 			// ※頂点やトライアングルグループは自動的に削除されるので何もしなくて良い
-			for (auto i = 0; i < (int)(FL_CellMesh::FaceIndexs::Max); i++) {
+			for (auto i = 0; i < ((int)(FL_CellMesh::FaceIndexs::Max)); i++) {
 				if (p_ids[i].x != -1) {
 					origin.remove_triangle(p_ids[i].x);
 					origin.remove_triangle(p_ids[i].y);
@@ -616,11 +616,11 @@ class FL_CellMesh {
 			}
 			// 隣接セルと重なっていない新規の面を追加
 			UV* uv_overlay = origin.attributes()->primary_uv();
-			for (auto i = 0; i < (int)(FL_CellMesh::FaceIndexs::Max); i++) {
+			for (auto i = 0; i < ((int)(FL_CellMesh::FaceIndexs::Max)); i++) {
 				if (p_ids[i].x != -1) {
 					continue;
 				}
-				FL_CellMesh::FaceIndexs key = (FL_CellMesh::FaceIndexs)(i);
+				FL_CellMesh::FaceIndexs key = ((FL_CellMesh::FaceIndexs)(i));
 				std::vector<IntVector>& polygon_entry = polygon_map[key];
 				std::vector<IntVector>& uv_entry = uv_map[key];
 				int p_group_id = origin.max_group_id();

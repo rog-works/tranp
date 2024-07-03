@@ -128,8 +128,21 @@ class SymbolExtends:
 		Returns:
 			IReflection: シンボル
 		"""
-		attrs = [reflections.type_of(template_type) for template_type in types.template_types]
-		return via.extends(*attrs)
+		def fetch_template_attrs(for_types: defs.Class) -> dict[defs.TemplateClass, IReflection]:
+			attrs: dict[defs.TemplateClass, IReflection] = {}
+			for template_type in for_types.template_types:
+				candidate = reflections.type_of(template_type)
+				if isinstance(candidate.decl, defs.TemplateClass):
+					attrs[candidate.decl] = candidate
+
+			return attrs
+
+		attrs = fetch_template_attrs(types)
+		for inherit in types.inherits:
+			inherit_attrs = fetch_template_attrs(reflections.type_of(inherit).types.as_a(defs.Class))
+			attrs = {**attrs, **{decl: attr for decl, attr in inherit_attrs.items() if decl not in attrs}}
+
+		return via.extends(*attrs.values())
 
 	def extends_for_var(self, reflections: Reflections, via: IReflection, decl_type: defs.Type) -> IReflection:
 		"""宣言ノードを解析し、属性の型を取り込みシンボルを拡張(変数宣言用)

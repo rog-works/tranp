@@ -1,7 +1,5 @@
 from typing import Generic, TypeVar, cast
 
-from rogw.tranp.compatible.python.embed import __hint_generic__
-
 T = TypeVar('T')
 T_co = TypeVar('T_co', covariant=True)
 T_New = TypeVar('T_New')
@@ -29,7 +27,6 @@ class CVar(Generic[T_co]):
 		return self.__origin
 
 
-@__hint_generic__(T_co)
 class CP(CVar[T_co]):
 	"""C++型変数の互換クラス(ポインター)"""
 
@@ -60,7 +57,6 @@ class CP(CVar[T_co]):
 		return CPConst(self.raw)
 
 
-@__hint_generic__(T_co)
 class CSP(CVar[T_co]):
 	"""C++型変数の互換クラス(スマートポインター)"""
 
@@ -105,7 +101,6 @@ class CSP(CVar[T_co]):
 		return CSPConst(self.raw)
 
 
-@__hint_generic__(T_co)
 class CRef(CVar[T_co]):
 	"""C++型変数の互換クラス(参照)"""
 
@@ -131,7 +126,6 @@ class CRef(CVar[T_co]):
 		return CRefConst(self.raw)
 
 
-@__hint_generic__(T_co)
 class CPConst(CVar[T_co]):
 	"""C++型変数の互換クラス(Constポインター)"""
 
@@ -152,7 +146,6 @@ class CPConst(CVar[T_co]):
 		return CRefConst(self.raw)
 
 
-@__hint_generic__(T_co)
 class CSPConst(CVar[T_co]):
 	"""C++型変数の互換クラス(Constスマートポインター)"""
 
@@ -178,7 +171,6 @@ class CSPConst(CVar[T_co]):
 		return CPConst(self.raw)
 
 
-@__hint_generic__(T_co)
 class CRefConst(CVar[T_co]):
 	"""C++型変数の互換クラス(Const参照)"""
 
@@ -199,7 +191,6 @@ class CRefConst(CVar[T_co]):
 		return CPConst(self.raw)
 
 
-@__hint_generic__(T_co)
 class CRawConst(CVar[T_co]):
 	"""C++型変数の互換クラス(Const)"""
 
@@ -225,7 +216,6 @@ class CRawConst(CVar[T_co]):
 		return CPConst(self.raw)
 
 
-@__hint_generic__(T_co)
 class CRaw(CVar[T_co]):
 	"""C++型変数の互換クラス(実体)"""
 

@@ -1,6 +1,6 @@
 from typing import Generic, TypeVar
 
-from rogw.tranp.compatible.python.embed import __actual__, __hint_generic__
+from rogw.tranp.compatible.python.embed import __actual__
 from rogw.tranp.lang.annotation import duck_typed, implements, override
 from rogw.tranp.lang.sequence import flatten, last_index_of
 from rogw.tranp.syntax.ast.dsn import DSN
@@ -9,7 +9,7 @@ from rogw.tranp.syntax.node.behavior import IDomain, INamespace, IScope
 from rogw.tranp.syntax.node.definition.accessible import PythonClassOperations, to_access
 from rogw.tranp.syntax.node.definition.element import Decorator, Parameter
 from rogw.tranp.syntax.node.definition.literal import Boolean, DocString, String
-from rogw.tranp.syntax.node.definition.primary import Argument, CustomType, DeclClassVar, DeclLocalVar, Declable, ForIn, InheritArgument, DeclThisParam, DeclThisVar, Type, TypesName, VarOfType
+from rogw.tranp.syntax.node.definition.primary import CustomType, DeclClassVar, DeclLocalVar, Declable, ForIn, InheritArgument, DeclThisParam, DeclThisVar, Type, TypesName
 from rogw.tranp.syntax.node.definition.statement_simple import AnnoAssign, MoveAssign
 from rogw.tranp.syntax.node.definition.terminal import Empty
 from rogw.tranp.syntax.node.embed import Meta, accept_tags, expandable
@@ -299,22 +299,6 @@ class ClassDef(Node, IDomain, IScope, INamespace, IDeclaration, ISymbol):
 	def _decl_vars_with(self, allow: type[T_Declable]) -> list[T_Declable]:
 		return VarsCollector.collect(self, allow)
 
-	def _inherit_template_types(self) -> list[Type]:
-		"""継承したテンプレートタイプを取得
-
-		Returns:
-			list[Type]: テンプレートタイプのリスト
-		"""
-		embedder = self._dig_embedder(__hint_generic__.__name__)
-		if embedder is None:
-			return []
-
-		def make_type_dummy(org_argument: Argument) -> Type:
-			# XXX VarOfTypeのスキームが変わると破綻するので注意
-			return org_argument.dirty_child(VarOfType, 'typed_var', domain_name=org_argument.tokens, type_name=org_argument)
-
-		return [make_type_dummy(argument) for argument in embedder.arguments]
-
 	def _dig_embedder(self, identifier: str) -> Decorator | None:
 		"""埋め込みデコレーターを取得
 
@@ -517,10 +501,8 @@ class Class(ClassDef):
 	@override
 	@Meta.embed(Node, expandable)
 	def template_types(self) -> list[Type]:
-		candidates = [inherit.as_a(CustomType) for inherit in self.__org_inherits if inherit.type_name.tokens == Generic.__name__]
-		definitions = candidates[0].template_types if len(candidates) == 1 else []
-		inherits = self._inherit_template_types()
-		return [*definitions, *inherits]
+		candidates = [inherit for inherit in self.__org_inherits if isinstance(inherit, CustomType)]
+		return candidates[0].template_types if len(candidates) == 1 else []
 
 	@property
 	@override

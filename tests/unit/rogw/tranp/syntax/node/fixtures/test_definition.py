@@ -2,7 +2,7 @@ from abc import abstractmethod
 from typing import Generic, TypeVar
 
 from rogw.tranp.compatible.cpp.enum import CEnum
-from rogw.tranp.compatible.python.embed import __actual__, __hint_generic__
+from rogw.tranp.compatible.python.embed import __actual__
 
 T = TypeVar('T')
 
@@ -67,7 +67,6 @@ class Class2: ...
 class GenBase(Generic[T]): ...
 
 
-@__hint_generic__(T)
 class GenSub(GenBase[T]): ...
 
 

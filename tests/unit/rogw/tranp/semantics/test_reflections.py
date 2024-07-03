@@ -153,6 +153,9 @@ class TestReflections(TestCase):
 
 		(f'{fixture_module_path}.Sub.member_ref', 'member_ref(Sub) -> None'),
 		(f'{fixture_module_path}.Sub.member_ref.self', 'Sub'),
+		(f'{fixture_module_path}.Sub.member_ref.a', 'list<int>'),
+		(f'{fixture_module_path}.Sub.member_ref.b', 'int'),
+
 		(f'{fixture_module_path}.Sub.member_write', 'member_write(Sub) -> None'),
 		(f'{fixture_module_path}.Sub.member_write.self', 'Sub'),
 
@@ -325,10 +328,10 @@ class TestReflections(TestCase):
 		(_ast('Sub.__init__.return', ''), _mod('classes', 'None'), 'None'),
 		(_ast('Sub.__init__.block', 'funccall'), f'{fixture_module_path}.Base', 'Base'),
 		(_ast('Sub.__init__.block', 'funccall.getattr.funccall.var'), _mod('classes', 'super'), 'super'),
-		(_ast('Sub.__init__.block', 'anno_assign'), _mod('classes', 'list'), 'list<int>'),
-		(_ast('Sub.__init__.block', 'anno_assign.assign_namelist.getattr'), _mod('classes', 'list'), 'list<int>'),
-		(_ast('Sub.__init__.block', 'anno_assign.typed_getitem'), _mod('classes', 'list'), 'list<int>'),
-		(_ast('Sub.__init__.block', 'anno_assign.list'), _mod('classes', 'list'), 'list<Unknown>'),  # XXX 空のリストは型を補完できないためlist<Unknown>になる
+		(_ast('Sub.__init__.block', 'anno_assign[1]'), _mod('classes', 'list'), 'list<int>'),
+		(_ast('Sub.__init__.block', 'anno_assign[1].assign_namelist.getattr'), _mod('classes', 'list'), 'list<int>'),
+		(_ast('Sub.__init__.block', 'anno_assign[1].typed_getitem'), _mod('classes', 'list'), 'list<int>'),
+		(_ast('Sub.__init__.block', 'anno_assign[1].list'), _mod('classes', 'list'), 'list<Unknown>'),  # XXX 空のリストは型を補完できないためlist<Unknown>になる
 
 		(_ast('Sub.first_number.block', 'return_stmt'), _mod('classes', 'int'), 'int'),
 
@@ -337,9 +340,6 @@ class TestReflections(TestCase):
 		(_ast('Sub.local_ref.block', 'funccall.var'), _mod('classes', 'print'), 'print(Any) -> None'),
 		(_ast('Sub.local_ref.block', 'funccall.arguments.argvalue'), _mod('classes', 'bool'), 'bool'),
 		(_ast('Sub.local_ref.return', ''), _mod('classes', 'None'), 'None'),
-
-		(_ast('Sub.member_ref.block', 'funccall[0].arguments.argvalue'), _mod('classes', 'list'), 'list<int>'),
-		(_ast('Sub.member_ref.block', 'funccall[1].arguments.argvalue'), _mod('classes', 'int'), 'int'),
 
 		(_ast('Sub.member_write.block', 'assign[0].assign_namelist.getattr'), _mod('classes', 'int'), 'int'),
 		(_ast('Sub.member_write.block', 'assign[0].number'), _mod('classes', 'int'), 'int'),

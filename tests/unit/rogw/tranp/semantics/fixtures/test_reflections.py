@@ -28,6 +28,7 @@ class Sub(Base):
 	def __init__(self) -> None:
 		super().__init__()
 		self.numbers: list[int] = []
+		self.Z: Z = Z()
 
 	@property
 	def first_number(self) -> int:
@@ -38,8 +39,8 @@ class Sub(Base):
 		print(value)
 
 	def member_ref(self) -> None:
-		print(self.numbers)
-		print(self.first_number)
+		a = self.numbers
+		b = self.first_number
 
 	def member_write(self) -> None:
 		self.x.nx = 2

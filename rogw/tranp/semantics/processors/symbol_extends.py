@@ -128,7 +128,20 @@ class SymbolExtends:
 		Returns:
 			IReflection: シンボル
 		"""
-		attrs = [reflections.type_of(template_type) for template_type in types.template_types]
+		def fetch_template_attrs(for_types: defs.Class) -> list[IReflection]:
+			attrs: list[IReflection] = []
+			for template_type in for_types.template_types:
+				candidate = reflections.type_of(template_type)
+				if candidate.decl.is_a(defs.TemplateClass):
+					attrs.append(candidate)
+
+			return attrs
+
+		attrs = fetch_template_attrs(types)
+		for inherit in types.inherits:
+			inherit_attrs = fetch_template_attrs(reflections.type_of(inherit).types.as_a(defs.Class))
+			attrs.extend([attr for attr in inherit_attrs if attr not in attrs])
+
 		return via.extends(*attrs)
 
 	def extends_for_var(self, reflections: Reflections, via: IReflection, decl_type: defs.Type) -> IReflection:

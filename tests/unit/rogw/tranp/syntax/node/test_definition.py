@@ -531,7 +531,7 @@ class TestDefinition(TestCase):
 		}),
 		(_ast('GenSub'), {
 			'symbol': 'GenSub',
-			'decorators': ['__hint_generic__'],
+			'decorators': [],
 			'inherits': ['GenBase'],
 			'template_types': ['T'],
 			'constructor_exists': False,

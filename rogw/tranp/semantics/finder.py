@@ -150,7 +150,7 @@ class SymbolFinder:
 			# XXX このモジュールでISymbolProxyの参照が妥当か再検討
 			# XXX タイプノードが参照するシンボルはUnknownになることが無いため、オリジナルの型と拡張後の型は必ず一致する
 			org_raw = raw.org_raw if isinstance(raw, ISymbolProxy) else raw
-			if org_raw.types.is_a(defs.ClassOrType):
+			if org_raw.decl.is_a(defs.ClassOrType):
 				return raw
 
 		return None

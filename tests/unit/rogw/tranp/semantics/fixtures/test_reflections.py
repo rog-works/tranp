@@ -41,6 +41,7 @@ class Sub(Base):
 	def member_ref(self) -> None:
 		a = self.numbers
 		b = self.first_number
+		c = self.Z
 
 	def member_write(self) -> None:
 		self.x.nx = 2

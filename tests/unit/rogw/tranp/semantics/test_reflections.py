@@ -155,6 +155,7 @@ class TestReflections(TestCase):
 		(f'{fixture_module_path}.Sub.member_ref.self', 'Sub'),
 		(f'{fixture_module_path}.Sub.member_ref.a', 'list<int>'),
 		(f'{fixture_module_path}.Sub.member_ref.b', 'int'),
+		(f'{fixture_module_path}.Sub.member_ref.c', 'Z'),
 
 		(f'{fixture_module_path}.Sub.member_write', 'member_write(Sub) -> None'),
 		(f'{fixture_module_path}.Sub.member_write.self', 'Sub'),

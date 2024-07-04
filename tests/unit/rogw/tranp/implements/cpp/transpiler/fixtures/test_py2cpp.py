@@ -447,5 +447,9 @@ class StringOps:
 	def len(self, s: str) -> None:
 		a = len(s)
 
+	def format(self, s: str) -> None:
+		a = '{}'.format(1, 2, 3)
+		b = s.format(1, 2, 3)
+
 
 def template_func(v: T) -> T: ...

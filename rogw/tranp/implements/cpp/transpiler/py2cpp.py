@@ -711,6 +711,10 @@ class Py2Cpp(ITranspiler):
 		elif spec == 'print':
 			# XXX 愚直に対応すると実引数の型推論のコストが高く、その割に出力メッセージの柔軟性が下がりメリットが薄いため、関数名の置き換えのみを行う簡易的な対応とする
 			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
+		elif spec == 'str_format':
+			is_literal = node.calls.as_a(defs.Relay).receiver.is_a(defs.String)
+			receiver = re.sub(r'(->|::|\.)\w+$', '', calls)
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'is_literal': is_literal})
 		elif spec == 'cast':
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
@@ -818,6 +822,11 @@ class Py2Cpp(ITranspiler):
 					key_attr, value_attr = context.attrs
 					attr_indexs = {'pop': value_attr, 'keys': key_attr, 'values': value_attr}
 					return f'dict_{prop}', attr_indexs[prop]
+			elif prop == 'format':
+				if node.calls.receiver.is_a(defs.String):
+					return 'str_format', None
+				elif self.reflections.is_a(self.reflections.type_of(node.calls).context, str):
+					return 'str_format', None
 			elif prop == CVars.empty_key:
 				context = self.reflections.type_of(node).attrs[0]
 				return 'cvar_sp_empty', context

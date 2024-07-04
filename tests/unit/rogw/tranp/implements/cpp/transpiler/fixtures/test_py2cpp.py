@@ -448,7 +448,7 @@ class StringOps:
 		a = len(s)
 
 	def format(self, s: str) -> None:
-		a = '{}'.format(1, 2, 3)
+		a = '{}, {}, {}'.format(1, 2, 3)
 		b = s.format(1, 2, 3)
 
 

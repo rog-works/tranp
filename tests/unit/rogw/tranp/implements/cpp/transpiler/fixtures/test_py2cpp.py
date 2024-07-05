@@ -182,6 +182,10 @@ class CVarOps:
 		p_arr = [CP(n)]
 		p_map = {n: CP(n)}
 
+	def addr_calc(self, sp0: CP[Sub], sp1: CP[Sub], bp: CP[Base]) -> None:
+		a = sp0 - sp1
+		b = sp0 + sp1
+
 
 class FuncOps:
 	def print(self) -> None:

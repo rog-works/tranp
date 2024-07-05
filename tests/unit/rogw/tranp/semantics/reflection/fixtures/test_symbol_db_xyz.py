@@ -1,3 +1,6 @@
+from typing import TypeAlias
+
+
 class A:
 	nx: int = 0
 
@@ -5,7 +8,7 @@ class A:
 class B:
 	ny: int = 0
 	x: A = A()
-	AA: type[A] = A
+	AA: TypeAlias = A
 
 
 class C(B):

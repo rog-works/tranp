@@ -55,12 +55,12 @@ class ASTMapping:
 		'Base.__init__.block': f'{_Base}.class_def_raw.block.function_def.function_def_raw.block',
 
 		'Sub': f'{_Sub}',
-		'Sub.C': f'{_Sub}.class_def_raw.block.class_def',
-		'Sub.C.block': f'{_Sub}.class_def_raw.block.class_def.class_def_raw.block',
-		'Sub.C.class_func': f'{_Sub}.class_def_raw.block.class_def.class_def_raw.block.function_def',
-		'Sub.C.class_func.params': f'{_Sub}.class_def_raw.block.class_def.class_def_raw.block.function_def.function_def_raw.parameters',
-		'Sub.C.class_func.return': f'{_Sub}.class_def_raw.block.class_def.class_def_raw.block.function_def.function_def_raw.typed_getitem',
-		'Sub.C.class_func.block': f'{_Sub}.class_def_raw.block.class_def.class_def_raw.block.function_def.function_def_raw.block',
+		'Sub.Inner': f'{_Sub}.class_def_raw.block.class_def',
+		'Sub.Inner.block': f'{_Sub}.class_def_raw.block.class_def.class_def_raw.block',
+		'Sub.Inner.class_func': f'{_Sub}.class_def_raw.block.class_def.class_def_raw.block.function_def',
+		'Sub.Inner.class_func.params': f'{_Sub}.class_def_raw.block.class_def.class_def_raw.block.function_def.function_def_raw.parameters',
+		'Sub.Inner.class_func.return': f'{_Sub}.class_def_raw.block.class_def.class_def_raw.block.function_def.function_def_raw.typed_getitem',
+		'Sub.Inner.class_func.block': f'{_Sub}.class_def_raw.block.class_def.class_def_raw.block.function_def.function_def_raw.block',
 		'Sub.__init__.params': f'{_Sub_init}.function_def_raw.parameters',
 		'Sub.__init__.return': f'{_Sub_init}.function_def_raw.typed_none',
 		'Sub.__init__.block': f'{_Sub_init}.function_def_raw.block',
@@ -138,9 +138,9 @@ class TestReflections(TestCase):
 
 		(f'{fixture_module_path}.Sub', 'Sub'),
 
-		(f'{fixture_module_path}.Sub.C', 'C'),
-		(f'{fixture_module_path}.Sub.C.value', 'str'),
-		(f'{fixture_module_path}.Sub.C.class_func', 'class_func(C) -> dict<str, int>'),
+		(f'{fixture_module_path}.Sub.Inner', 'Inner'),
+		(f'{fixture_module_path}.Sub.Inner.value', 'str'),
+		(f'{fixture_module_path}.Sub.Inner.class_func', 'class_func(Inner) -> dict<str, int>'),
 
 		(f'{fixture_module_path}.Sub.numbers', 'list<int>'),
 
@@ -315,15 +315,15 @@ class TestReflections(TestCase):
 		(_ast('Sub', 'class_def_raw.name'), f'{fixture_module_path}.Sub', 'Sub'),
 		(_ast('Sub', 'class_def_raw.inherit_arguments.typed_argvalue.typed_var'), f'{fixture_module_path}.Base', 'Base'),
 
-		(_ast('Sub.C', ''), f'{fixture_module_path}.Sub.C', 'C'),
-		(_ast('Sub.C.block', 'anno_assign.assign_namelist.var'), _mod('classes', 'str'), 'str'),
-		(_ast('Sub.C.block', 'anno_assign.typed_var'), _mod('classes', 'str'), 'str'),
-		(_ast('Sub.C.block', 'anno_assign.string'), _mod('classes', 'str'), 'str'),
+		(_ast('Sub.Inner', ''), f'{fixture_module_path}.Sub.Inner', 'Inner'),
+		(_ast('Sub.Inner.block', 'anno_assign.assign_namelist.var'), _mod('classes', 'str'), 'str'),
+		(_ast('Sub.Inner.block', 'anno_assign.typed_var'), _mod('classes', 'str'), 'str'),
+		(_ast('Sub.Inner.block', 'anno_assign.string'), _mod('classes', 'str'), 'str'),
 
-		(_ast('Sub.C.class_func', ''), f'{fixture_module_path}.Sub.C.class_func', 'class_func(C) -> dict<str, int>'),
-		(_ast('Sub.C.class_func.params', 'paramvalue.typedparam.name'), f'{fixture_module_path}.Sub.C', 'C'),
-		(_ast('Sub.C.class_func.return', ''), _mod('classes', 'dict'), 'dict<str, int>'),
-		(_ast('Sub.C.class_func.block', 'return_stmt.dict'), _mod('classes', 'dict'), 'dict<str, int>'),
+		(_ast('Sub.Inner.class_func', ''), f'{fixture_module_path}.Sub.Inner.class_func', 'class_func(Inner) -> dict<str, int>'),
+		(_ast('Sub.Inner.class_func.params', 'paramvalue.typedparam.name'), f'{fixture_module_path}.Sub.Inner', 'Inner'),
+		(_ast('Sub.Inner.class_func.return', ''), _mod('classes', 'dict'), 'dict<str, int>'),
+		(_ast('Sub.Inner.class_func.block', 'return_stmt.dict'), _mod('classes', 'dict'), 'dict<str, int>'),
 
 		(_ast('Sub.__init__.params', 'paramvalue.typedparam.name'), f'{fixture_module_path}.Sub', 'Sub'),
 		(_ast('Sub.__init__.return', ''), _mod('classes', 'None'), 'None'),

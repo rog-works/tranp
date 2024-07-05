@@ -19,7 +19,7 @@ class Base(C):
 
 
 class Sub(Base):
-	class C:
+	class Inner:
 		value: str = ''
 
 		@classmethod
@@ -29,7 +29,7 @@ class Sub(Base):
 	def __init__(self) -> None:
 		super().__init__()
 		self.numbers: list[int] = []
-		self.Z: C = C()
+		self.C: C = C()
 
 	@property
 	def first_number(self) -> int:
@@ -42,11 +42,11 @@ class Sub(Base):
 	def member_ref(self) -> None:
 		a = self.numbers
 		b = self.first_number
-		c = self.Z
+		c = self.C
 
 	def member_write(self) -> None:
 		self.x.nx = 2
-		Sub.C.value = 'update'
+		Sub.Inner.value = 'update'
 
 	def param_ref(self, param: int) -> None:
 		print(param)

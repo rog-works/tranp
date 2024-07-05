@@ -1,17 +1,17 @@
 from typing import TypeAlias
 
 from rogw.tranp.compatible.cpp.enum import CEnum
-from tests.unit.rogw.tranp.semantics.reflection.fixtures.test_symbol_db_combine import S, Z
+from tests.unit.rogw.tranp.semantics.reflection.fixtures.test_symbol_db_combine import S, C
 
 DSI: TypeAlias = dict[str, int]
 DSI2: TypeAlias = dict[str, DSI]
-Z2: TypeAlias = Z
+Z2: TypeAlias = C
 
 
 value: int = 0
 
 
-class Base(Z):
+class Base(C):
 	def __init__(self) -> None:
 		self.base_str: str = S
 		# comment

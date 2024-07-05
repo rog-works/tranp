@@ -129,7 +129,7 @@ class TestReflections(TestCase):
 	@data_provider([
 		(f'{fixture_module_path}.TypeAlias', 'TypeAlias'),
 
-		(f'{fixture_module_path}.Z', 'Z'),
+		(f'{fixture_module_path}.C', 'C'),
 
 		(f'{fixture_module_path}.value', 'int'),
 
@@ -155,7 +155,7 @@ class TestReflections(TestCase):
 		(f'{fixture_module_path}.Sub.member_ref.self', 'Sub'),
 		(f'{fixture_module_path}.Sub.member_ref.a', 'list<int>'),
 		(f'{fixture_module_path}.Sub.member_ref.b', 'int'),
-		(f'{fixture_module_path}.Sub.member_ref.c', 'Z'),
+		(f'{fixture_module_path}.Sub.member_ref.c', 'C'),
 
 		(f'{fixture_module_path}.Sub.member_write', 'member_write(Sub) -> None'),
 		(f'{fixture_module_path}.Sub.member_write.self', 'Sub'),
@@ -224,15 +224,15 @@ class TestReflections(TestCase):
 		(f'{fixture_module_path}.CalcOps.tenary.s', 'str'),
 		(f'{fixture_module_path}.CalcOps.tenary.s_or_null', 'Union<str, None>'),
 
-		(f'{fixture_module_path}.AliasOps.func', 'func(AliasOps, Z2=Z) -> None'),
-		(f'{fixture_module_path}.AliasOps.func.z2', 'Z2=Z'),
+		(f'{fixture_module_path}.AliasOps.func', 'func(AliasOps, Z2=C) -> None'),
+		(f'{fixture_module_path}.AliasOps.func.z2', 'Z2=C'),
 		(f'{fixture_module_path}.AliasOps.func.d', 'DSI=dict<str, int>'),
 		(f'{fixture_module_path}.AliasOps.func.d_in_v', 'int'),
 		(f'{fixture_module_path}.AliasOps.func.d2', 'DSI2=dict<str, DSI=dict<str, int>>'),
 		(f'{fixture_module_path}.AliasOps.func.d2_in_dsi', 'DSI=dict<str, int>'),
 		(f'{fixture_module_path}.AliasOps.func.d2_in_dsi_in_v', 'int'),
-		(f'{fixture_module_path}.AliasOps.func.z2_in_x', 'X'),
-		(f'{fixture_module_path}.AliasOps.func.new_z2_in_x', 'X'),
+		(f'{fixture_module_path}.AliasOps.func.z2_in_x', 'A'),
+		(f'{fixture_module_path}.AliasOps.func.new_z2_in_x', 'A'),
 
 		(f'{fixture_module_path}.TupleOps.unpack_assign.a', 'str'),  # XXX Pythonのシンタックス上は不正。一旦保留
 		(f'{fixture_module_path}.TupleOps.unpack_assign.b', 'int'),  # XXX 〃
@@ -296,7 +296,7 @@ class TestReflections(TestCase):
 		self.assertEqual(expected, reflections.type_of_standard(standard_type).types.fullyname)
 
 	@data_provider([
-		(_ast(f'{fixture_module_path}.import.xyz', 'import_names.name'), _mod('xyz', 'Z'), 'Z'),
+		(_ast(f'{fixture_module_path}.import.xyz', 'import_names.name'), _mod('xyz', 'C'), 'C'),
 		(_ast(f'{fixture_module_path}.value', 'assign_namelist.var'), _mod('classes', 'int'), 'int'),
 		(_ast(f'{fixture_module_path}.value', 'typed_var'), _mod('classes', 'int'), 'int'),
 		(_ast(f'{fixture_module_path}.value', 'number'), _mod('classes', 'int'), 'int'),

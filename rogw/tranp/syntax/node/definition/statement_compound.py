@@ -9,7 +9,7 @@ from rogw.tranp.syntax.node.behavior import IDomain, INamespace, IScope
 from rogw.tranp.syntax.node.definition.accessible import PythonClassOperations, to_access
 from rogw.tranp.syntax.node.definition.element import Decorator, Parameter
 from rogw.tranp.syntax.node.definition.literal import Boolean, DocString, String
-from rogw.tranp.syntax.node.definition.primary import CustomType, DeclClassVar, DeclLocalVar, Declable, ForIn, InheritArgument, DeclThisParam, DeclThisVar, Type, TypesName
+from rogw.tranp.syntax.node.definition.primary import DeclClassVar, DeclLocalVar, Declable, ForIn, GenericType, InheritArgument, DeclThisParam, DeclThisVar, Type, TypesName, VarOfType
 from rogw.tranp.syntax.node.definition.statement_simple import AnnoAssign, MoveAssign
 from rogw.tranp.syntax.node.definition.terminal import Empty
 from rogw.tranp.syntax.node.embed import Meta, accept_tags, expandable
@@ -501,8 +501,22 @@ class Class(ClassDef):
 	@override
 	@Meta.embed(Node, expandable)
 	def template_types(self) -> list[Type]:
-		candidates = [inherit for inherit in self.__org_inherits if isinstance(inherit, CustomType)]
-		return candidates[0].template_types if len(candidates) == 1 else []
+		def fetch_template_types(t_type: GenericType) -> list[Type]:
+			template_types: list[Type] = []
+			for in_t_type in t_type.template_types:
+				if isinstance(in_t_type, GenericType):
+					template_types.extend(fetch_template_types(in_t_type))
+				elif isinstance(in_t_type, VarOfType):
+					template_types.append(in_t_type)
+
+			return template_types
+
+		template_types: list[Type] = []
+		for inherit in self.__org_inherits:
+			if isinstance(inherit, GenericType):
+				template_types.extend(fetch_template_types(inherit))
+
+		return template_types
 
 	@property
 	@override

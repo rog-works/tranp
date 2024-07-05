@@ -170,6 +170,35 @@ class SymbolFinder:
 			if fullyname in db:
 				yield db[fullyname]
 
+		raw = self.__fallback_imported_raw(db, scopes[0].module_path, domain_name)
+		if raw:
+			yield raw
+
+	def __fallback_imported_raw(self, db: SymbolDB, on_module_path: str, domain_name: str) -> IReflection | None:
+		"""ドメインが所属するモジュールからインポート先のモジュールのシンボルを探索
+
+		Args:
+			db (SymbolDB): シンボルテーブル
+			on_module_path (str): 所属モジュールのパス
+			domain_name (str): ドメイン名
+		Returns:
+			IReflection | None: シンボル。未定義の場合はNone
+		"""
+		locals = ModuleDSN.local_elems(ModuleDSN.full_joined(on_module_path, domain_name))
+		if len(locals) == 1:
+			return None
+
+		import_fullyname = ModuleDSN.full_joined(on_module_path, locals[0])
+		if import_fullyname not in db:
+			return None
+
+		import_raw = db[import_fullyname]
+		if not isinstance(import_raw.via, defs.ImportName):
+			return None
+
+		imported_fullyname = ModuleDSN.full_joined(import_raw.types.module_path, domain_name)
+		return db.get(imported_fullyname)
+
 	def __make_scopes(self, scope: str, allow_fallback_lib: bool = True) -> list[ModuleDSN]:
 		"""スコープを元に探索スコープのリストを生成
 

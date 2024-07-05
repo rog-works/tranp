@@ -35,6 +35,17 @@ class ModuleDSN:
 		return DSN.join(*local_elems)
 
 	@classmethod
+	def local_elems(cls, dsn: str) -> list[str]:
+		"""DSNからローカル要素リストを生成
+
+		Args:
+			dsn (str): DSN
+		Returns:
+			list[str]: ローカル要素リスト
+		"""
+		return cls.expanded(dsn)[1]
+
+	@classmethod
 	def local_elem_counts(cls, dsn: str) -> int:
 		"""DSNからローカル要素の数を算出
 
@@ -96,7 +107,7 @@ class ModuleDSN:
 	@property
 	def locals(self) -> list[str]:
 		"""list[str]: ローカル要素リスト"""
-		return self.expanded(self.local_path)[1]
+		return self.expanded(self.dsn)[1]
 
 	@property
 	def local_counts(self) -> int:

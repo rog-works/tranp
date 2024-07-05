@@ -154,8 +154,8 @@ def _ast(before: str, after: str) -> str:
 def fixture_translation_mapping(loader: IFileLoader) -> TranslationMapping:
 	fixture_module_path = Fixture.fixture_module_path(__file__)
 	fixture_translations = {
-		alias_dsn(ModuleDSN.full_join(fixture_module_path, 'Alias')): 'Alias2',
-		alias_dsn(ModuleDSN.full_join(fixture_module_path, 'Alias.Inner')): 'Inner2',
+		alias_dsn(ModuleDSN.full_joined(fixture_module_path, 'Alias')): 'Alias2',
+		alias_dsn(ModuleDSN.full_joined(fixture_module_path, 'Alias.Inner')): 'Inner2',
 	}
 	return example_translation_mapping_cpp(loader).merge(fixture_translations)
 

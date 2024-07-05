@@ -1,11 +1,12 @@
 from rogw.tranp.dsn.dsn import DSN
+from rogw.tranp.lang.annotation import override
 
 
 class ModuleDSN:
 	"""モジュールパスDSN"""
 
 	@classmethod
-	def full_join(cls, *elems: str) -> str:
+	def full_joined(cls, *elems: str) -> str:
 		"""要素を結合し、DSNを生成
 
 		Args:
@@ -20,10 +21,10 @@ class ModuleDSN:
 		if elems[0].find('#') != -1:
 			return DSN.join(*elems)
 
-		return DSN.join(elems[0], cls.local_join(*elems[1:]), delimiter='#')
+		return DSN.join(elems[0], cls.local_joined(*elems[1:]), delimiter='#')
 
 	@classmethod
-	def local_join(cls, *local_elems: str) -> str:
+	def local_joined(cls, *local_elems: str) -> str:
 		"""モジュール内のローカル要素を結合し、ローカルパスを生成
 
 		Args:
@@ -34,7 +35,7 @@ class ModuleDSN:
 		return DSN.join(*local_elems)
 
 	@classmethod
-	def local_counts(cls, dsn: str) -> int:
+	def local_elem_counts(cls, dsn: str) -> int:
 		"""DSNからローカル要素の数を算出
 
 		Args:
@@ -42,11 +43,11 @@ class ModuleDSN:
 		Returns:
 			int: ローカル要素の数
 		"""
-		_, local = cls.parse(dsn) if dsn.find('#') != -1 else ('', dsn)
+		_, local = cls.parsed(dsn) if dsn.find('#') != -1 else ('', dsn)
 		return DSN.elem_counts(local)
 
 	@classmethod
-	def parse(cls, dsn: str) -> tuple[str, str]:
+	def parsed(cls, dsn: str) -> tuple[str, str]:
 		"""DSNを解析し、モジュールパスとローカルパスに分離
 
 		Args:
@@ -58,7 +59,7 @@ class ModuleDSN:
 		return (elems[0], elems[1]) if len(elems) > 1 else (elems[0], '')
 
 	@classmethod
-	def expand(cls, dsn: str) -> tuple[str, list[str]]:
+	def expanded(cls, dsn: str) -> tuple[str, list[str]]:
 		"""DSNを解析し、モジュールパスとローカル要素に分離
 
 		Args:
@@ -66,7 +67,7 @@ class ModuleDSN:
 		Returns:
 			tuple[str, list[str]]: (モジュールパス, ローカル要素リスト)
 		"""
-		module_path, local = cls.parse(dsn)
+		module_path, local = cls.parsed(dsn)
 		return module_path, DSN.elements(local)
 
 	@classmethod
@@ -80,3 +81,44 @@ class ModuleDSN:
 			str: DSN
 		"""
 		return DSN.identify(dsn, id)
+
+	def __init__(self, dsn: str) -> None:
+		"""インスタンスを生成
+
+		Args:
+			dsn (str): DSN
+		"""
+		module_path, local_path = self.parsed(dsn)
+		self.dsn = self.full_joined(module_path, local_path)
+		self.module_path = module_path
+		self.local_path = local_path
+
+	@property
+	def locals(self) -> list[str]:
+		"""list[str]: ローカル要素リスト"""
+		return self.expanded(self.local_path)[1]
+
+	@property
+	def local_counts(self) -> int:
+		"""int: ローカル要素の数"""
+		return self.local_elem_counts(self.local_path)
+
+	def join(self, *locals: str) -> 'ModuleDSN':
+		"""現在のDSNにローカル要素を追加し、新たにDSNを生成
+
+		Args:
+			*locals (str): 追加するローカル要素リスト
+		Returns:
+			str: DSN
+		"""
+		return self.__class__(self.full_joined(self.dsn, *locals))
+
+	@override
+	def __repr__(self) -> str:
+		"""str: オブジェクトのシリアライズ表現"""
+		return f'<{self.__class__.__name__}: {self.dsn}>'
+
+	@override
+	def __hash__(self) -> int:
+		"""int: オブジェクトのハッシュ値"""
+		return hash(self.__repr__())

@@ -115,16 +115,16 @@ class Node:
 			* その他: scope.classification@id
 		"""
 		if isinstance(self, IDomain):
-			return ModuleDSN.full_join(self.scope, self.domain_name)
+			return ModuleDSN.full_joined(self.scope, self.domain_name)
 		else:
-			return ModuleDSN.identify(ModuleDSN.full_join(self.scope, self.classification), self.id)
+			return ModuleDSN.identify(ModuleDSN.full_joined(self.scope, self.classification), self.id)
 
 	@property
 	def scope(self) -> str:
 		"""str: 自身が所属するスコープ"""
 		parent = self.parent
 		if isinstance(parent, IScope):
-			return ModuleDSN.full_join(parent.scope, parent.domain_name or parent.classification)
+			return ModuleDSN.full_joined(parent.scope, parent.domain_name or parent.classification)
 		else:
 			return parent.scope
 
@@ -133,7 +133,7 @@ class Node:
 		"""str: 自身が所属する名前空間"""
 		parent = self.parent
 		if isinstance(parent, INamespace):
-			return ModuleDSN.full_join(parent.namespace, parent.domain_name)
+			return ModuleDSN.full_joined(parent.namespace, parent.domain_name)
 		else:
 			return parent.namespace
 

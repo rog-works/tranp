@@ -34,7 +34,7 @@ class SymbolFinder:
 		Note:
 			必ず存在すると言う前提。見つからない場合は実装ミス
 		"""
-		raw = self.__find_raw(db, [(module_path, '') for module_path in self.__library_paths], object.__name__)
+		raw = self.__find_raw(db, [ModuleDSN(module_path) for module_path in self.__library_paths], object.__name__)
 		if raw is not None:
 			return raw
 
@@ -73,7 +73,7 @@ class SymbolFinder:
 		else:
 			domain_name = standard_type.__name__
 
-		raw = self.__find_raw(db, [(module_path, '') for module_path in self.__library_paths], domain_name)
+		raw = self.__find_raw(db, [ModuleDSN(module_path) for module_path in self.__library_paths], domain_name)
 		if raw is not None:
 			return raw
 
@@ -106,26 +106,25 @@ class SymbolFinder:
 		Returns:
 			IReflection | None: シンボル
 		"""
-		def is_local_var_in_class_scope(elems: tuple[str, str]) -> bool:
-			scope = ModuleDSN.full_join(elems[0], elems[1])
+		def is_local_var_in_class_scope(scope: ModuleDSN) -> bool:
 			# XXX ローカル変数の参照は、クラス直下のスコープを参照できない
-			return node.is_a(defs.Var) and scope in db and db[scope].types.is_a(defs.Class)
+			return node.is_a(defs.Var) and scope.dsn in db and db[scope.dsn].types.is_a(defs.Class)
 
-		domain_name = ModuleDSN.local_join(node.domain_name, prop_name)
+		domain_name = ModuleDSN.local_joined(node.domain_name, prop_name)
 		# ドメイン名の要素数が1つの場合のみ標準ライブラリーへのフォールバックを許可する(2層目以降のシンボルへのフォールバックを抑制)
-		allow_fallback_lib = ModuleDSN.local_counts(domain_name) == 1
-		scopes = [elems for elems in self.__make_scopes(node.scope, allow_fallback_lib) if not is_local_var_in_class_scope(elems)]
+		allow_fallback_lib = ModuleDSN.local_elem_counts(domain_name) == 1
+		scopes = [scope for scope in self.__make_scopes(node.scope, allow_fallback_lib) if not is_local_var_in_class_scope(scope)]
 		if not isinstance(node, defs.Type):
 			return self.__find_raw(db, scopes, domain_name)
 		else:
 			return self.__find_raw_for_type(db, scopes, domain_name)
 
-	def __find_raw(self, db: SymbolDB, scopes: list[tuple[str, str]], domain_name: str) -> IReflection | None:
+	def __find_raw(self, db: SymbolDB, scopes: list[ModuleDSN], domain_name: str) -> IReflection | None:
 		"""シンボルを検索。未検出の場合はNoneを返却 (汎用)
 
 		Args:
 			db (SymbolDB): シンボルテーブル
-			scopes (list[str]): 探索スコープリスト
+			scopes (list[ModuleDSN]): 探索スコープリスト
 			domain_name (str): ドメイン名
 		Returns:
 			IReflection | None: シンボル
@@ -135,12 +134,12 @@ class SymbolFinder:
 
 		return None
 
-	def __find_raw_for_type(self, db: SymbolDB, scopes: list[tuple[str, str]], domain_name: str) -> IReflection | None:
+	def __find_raw_for_type(self, db: SymbolDB, scopes: list[ModuleDSN], domain_name: str) -> IReflection | None:
 		"""シンボルを検索。未検出の場合はNoneを返却 (タイプノード専用)
 
 		Args:
 			db (SymbolDB): シンボルテーブル
-			scopes (list[str]): 探索スコープリスト
+			scopes (list[ModuleDSN]): 探索スコープリスト
 			domain_name (str): ドメイン名
 		Returns:
 			IReflection | None: シンボル
@@ -156,34 +155,35 @@ class SymbolFinder:
 
 		return None
 
-	def __each_find_raw(self, db: SymbolDB, scopes: list[tuple[str, str]], domain_name: str) -> Iterator[IReflection]:
+	def __each_find_raw(self, db: SymbolDB, scopes: list[ModuleDSN], domain_name: str) -> Iterator[IReflection]:
 		"""スコープを辿り、指定のドメイン名を持つシンボルを検索
 
 		Args:
 			db (SymbolDB): シンボルテーブル
-			scopes (list[str]): 探索スコープリスト
+			scopes (list[ModuleDSN]): 探索スコープリスト
 			domain_name (str): ドメイン名
 		Returns:
 			Iterator[IReflection]: イテレーター
 		"""
-		for module_path, local_scope in scopes:
-			fullyname = ModuleDSN.full_join(module_path, local_scope, domain_name)
+		for scope in scopes:
+			fullyname = scope.join(domain_name).dsn
 			if fullyname in db:
 				yield db[fullyname]
 
-	def __make_scopes(self, scope: str, allow_fallback_lib: bool = True) -> list[tuple[str, str]]:
+	def __make_scopes(self, scope: str, allow_fallback_lib: bool = True) -> list[ModuleDSN]:
 		"""スコープを元に探索スコープのリストを生成
 
 		Args:
 			scope (str): スコープ
 			allow_fallback_lib (bool): True = 標準ライブラリーのパスを加える(default = True)
 		Returns:
-			list[str]: 探索スコープリスト
+			list[ModuleDSN]: 探索スコープリスト
 		"""
-		module_path, local_elems = ModuleDSN.expand(scope)
-		scopes_of_node = [(module_path, ModuleDSN.local_join(*local_elems[:i])) for i in range(len(local_elems) + 1)]
+		module_path, locals = ModuleDSN.expanded(scope)
+		module_dsn = ModuleDSN(module_path)
+		scopes_of_node = [module_dsn.join(*locals[:i]) for i in range(len(locals) + 1)]
 		scopes_of_node = list(reversed(scopes_of_node))
 		if allow_fallback_lib:
-			scopes_of_node.extend([(module_path, '') for module_path in self.__library_paths])
+			scopes_of_node.extend([ModuleDSN(module_path) for module_path in self.__library_paths])
 
 		return scopes_of_node

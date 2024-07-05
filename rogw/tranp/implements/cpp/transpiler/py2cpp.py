@@ -20,7 +20,7 @@ import rogw.tranp.semantics.reflection.helper.template as template
 from rogw.tranp.semantics.reflection.helper.naming import ClassDomainNaming, ClassShorthandNaming
 from rogw.tranp.semantics.reflection import IReflection
 from rogw.tranp.semantics.reflections import Reflections
-from rogw.tranp.syntax.ast.dsn import DSN
+from rogw.tranp.dsn.dsn import DSN
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.transpiler.types import ITranspiler, TranspilerOptions

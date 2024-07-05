@@ -1,6 +1,7 @@
 import re
 from unittest import TestCase
 
+from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.semantics.errors import UnresolvedSymbolError
 from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.test.helper import data_provider
@@ -12,7 +13,7 @@ class TestReflectionsError(TestCase):
 	fixture = Fixture.make(__file__)
 
 	@data_provider([
-		(f'{fixture_module_path}.InvalidOps.tenary_to_union_types.n_or_s', UnresolvedSymbolError, r'Only Nullable.'),
+		(ModuleDSN.full_join(fixture_module_path, 'InvalidOps.tenary_to_union_types.n_or_s'), UnresolvedSymbolError, r'Only Nullable.'),
 	])
 	def test_from_fullyname_error(self, fullyname: str, expected_error: type[Exception], expected: re.Pattern[str]) -> None:
 		reflections = self.fixture.get(Reflections)

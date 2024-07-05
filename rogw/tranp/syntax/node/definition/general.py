@@ -1,5 +1,5 @@
+from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.lang.annotation import duck_typed, override
-from rogw.tranp.syntax.ast.dsn import DSN
 from rogw.tranp.syntax.node.definition.primary import DeclLocalVar
 from rogw.tranp.syntax.node.definition.statement_compound import VarsCollector
 from rogw.tranp.syntax.node.embed import Meta, accept_tags, expandable

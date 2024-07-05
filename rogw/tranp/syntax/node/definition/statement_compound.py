@@ -1,9 +1,9 @@
 from typing import Generic, TypeVar
 
 from rogw.tranp.compatible.python.embed import __actual__
+from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.lang.annotation import duck_typed, implements, override
 from rogw.tranp.lang.sequence import flatten, last_index_of
-from rogw.tranp.syntax.ast.dsn import DSN
 from rogw.tranp.syntax.node.accessible import ClassOperations
 from rogw.tranp.syntax.node.behavior import IDomain, INamespace, IScope
 from rogw.tranp.syntax.node.definition.accessible import PythonClassOperations, to_access

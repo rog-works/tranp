@@ -9,7 +9,7 @@ from rogw.tranp.implements.cpp.transpiler.py2cpp import Py2Cpp
 from rogw.tranp.lang.module import fullyname
 from rogw.tranp.semantics.errors import ProcessingError, UnresolvedSymbolError
 from rogw.tranp.semantics.plugin import PluginProvider
-from rogw.tranp.syntax.ast.dsn import DSN
+from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.test.helper import data_provider
 from rogw.tranp.transpiler.types import TranspilerOptions
 from rogw.tranp.view.render import Renderer

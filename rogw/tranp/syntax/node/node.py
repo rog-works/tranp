@@ -1,12 +1,12 @@
 import functools
 from typing import Any, Iterator, Literal, TypeVar, cast
 
+from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.errors import LogicError
 from rogw.tranp.lang.annotation import deprecated, injectable, override
 from rogw.tranp.lang.sequence import flatten
 from rogw.tranp.lang.string import snakelize
 from rogw.tranp.module.types import ModulePath
-from rogw.tranp.syntax.ast.dsn import DSN
 from rogw.tranp.syntax.ast.entry import SourceMap
 from rogw.tranp.syntax.ast.path import EntryPath
 from rogw.tranp.syntax.ast.query import Query
@@ -115,16 +115,16 @@ class Node:
 			* その他: scope.classification@id
 		"""
 		if isinstance(self, IDomain):
-			return DSN.join(self.scope, self.domain_name)
+			return ModuleDSN.full_join(self.scope, self.domain_name)
 		else:
-			return DSN.join(self.scope, DSN.identify(self.classification, self.id))
+			return ModuleDSN.identify(ModuleDSN.full_join(self.scope, self.classification), self.id)
 
 	@property
 	def scope(self) -> str:
 		"""str: 自身が所属するスコープ"""
 		parent = self.parent
 		if isinstance(parent, IScope):
-			return DSN.join(parent.scope, parent.domain_name or parent.classification)
+			return ModuleDSN.full_join(parent.scope, parent.domain_name or parent.classification)
 		else:
 			return parent.scope
 
@@ -133,7 +133,7 @@ class Node:
 		"""str: 自身が所属する名前空間"""
 		parent = self.parent
 		if isinstance(parent, INamespace):
-			return DSN.join(parent.namespace, parent.domain_name)
+			return ModuleDSN.full_join(parent.namespace, parent.domain_name)
 		else:
 			return parent.namespace
 

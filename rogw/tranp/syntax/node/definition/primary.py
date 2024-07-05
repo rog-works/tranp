@@ -1,9 +1,9 @@
 import re
 from typing import Union, cast
 
+from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.lang.annotation import implements, override
 from rogw.tranp.lang.sequence import flatten, last_index_of
-from rogw.tranp.syntax.ast.dsn import DSN
 from rogw.tranp.syntax.ast.path import EntryPath
 from rogw.tranp.syntax.errors import InvalidRelationError
 from rogw.tranp.syntax.node.behavior import IDomain, INamespace, IScope, ITerminal

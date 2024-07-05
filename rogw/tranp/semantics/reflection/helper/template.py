@@ -3,7 +3,7 @@ from typing import Callable, Generic, TypeAlias, TypeVar
 from rogw.tranp.errors import LogicError
 from rogw.tranp.lang.annotation import override
 import rogw.tranp.lang.sequence as seqs
-from rogw.tranp.syntax.ast.dsn import DSN
+from rogw.tranp.dsn.dsn import DSN
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.semantics.reflection.interface import IReflection
 

@@ -2,7 +2,8 @@ from unittest import TestCase
 
 import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.compatible.python.types import Standards
-from rogw.tranp.syntax.ast.dsn import DSN
+from rogw.tranp.dsn.dsn import DSN
+from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.test.helper import data_provider
 from tests.test.fixture import Fixture
@@ -43,11 +44,11 @@ class ASTMapping:
 	_GenericOps = f'file_input.class_def[{_start + 10}]'
 
 	aliases = {
-		f'{fixture_module_path}.import.xyz': 'file_input.import_stmt[2]',
+		ModuleDSN.full_join(fixture_module_path, 'import.xyz'): 'file_input.import_stmt[2]',
 
-		f'{fixture_module_path}.value': 'file_input.anno_assign',
+		ModuleDSN.full_join(fixture_module_path, 'value'): 'file_input.anno_assign',
 
-		f'{fixture_module_path}.func.block': f'{_func}.function_def_raw.block',
+		ModuleDSN.full_join(fixture_module_path, 'func.block'): f'{_func}.function_def_raw.block',
 
 		'Base': f'{_Base}',
 		'Base.__init__.params': f'{_Base}.class_def_raw.block.function_def.function_def_raw.parameters',
@@ -106,7 +107,7 @@ def _mod(before: str, after: str) -> str:
 		'xyz': 'tests.unit.rogw.tranp.semantics.reflection.fixtures.test_symbol_db_xyz',
 		'classes': 'rogw.tranp.compatible.libralies.classes',
 	}
-	return DSN.join(aliases[before], after)
+	return ModuleDSN.full_join(aliases[before], after)
 
 
 class TestReflections(TestCase):
@@ -114,12 +115,12 @@ class TestReflections(TestCase):
 	fixture = Fixture.make(__file__)
 
 	@data_provider([
-		(f'{fixture_module_path}.Sub.decl_locals.a', list, False),
-		(f'{fixture_module_path}.Sub.decl_locals.closure.b', list, True),
-		(f'{fixture_module_path}.Sub.decl_locals.a', dict, False),
-		(f'{fixture_module_path}.Sub.decl_locals.closure.b', dict, False),
-		(f'{fixture_module_path}.AliasOps.func.d', list, False),
-		(f'{fixture_module_path}.AliasOps.func.d', dict, False),  # XXX エイリアスはdictそのものではないが要検討
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.decl_locals.a'), list, False),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.decl_locals.closure.b'), list, True),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.decl_locals.a'), dict, False),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.decl_locals.closure.b'), dict, False),
+		(ModuleDSN.full_join(fixture_module_path, 'AliasOps.func.d'), list, False),
+		(ModuleDSN.full_join(fixture_module_path, 'AliasOps.func.d'), dict, False),  # XXX エイリアスはdictそのものではないが要検討
 	])
 	def test_is_a(self, fullyname: str, standard_type: type[Standards], expected: bool) -> None:
 		reflections = self.fixture.get(Reflections)
@@ -127,151 +128,151 @@ class TestReflections(TestCase):
 		self.assertEqual(expected, reflections.is_a(symbol, standard_type))
 
 	@data_provider([
-		(f'{fixture_module_path}.TypeAlias', 'TypeAlias'),
+		(ModuleDSN.full_join(fixture_module_path, 'TypeAlias'), 'TypeAlias'),
 
-		(f'{fixture_module_path}.C', 'C'),
+		(ModuleDSN.full_join(fixture_module_path, 'C'), 'C'),
 
-		(f'{fixture_module_path}.value', 'int'),
+		(ModuleDSN.full_join(fixture_module_path, 'value'), 'int'),
 
-		(f'{fixture_module_path}.Base', 'Base'),
-		(f'{fixture_module_path}.Base.base_str', 'str'),
+		(ModuleDSN.full_join(fixture_module_path, 'Base'), 'Base'),
+		(ModuleDSN.full_join(fixture_module_path, 'Base.base_str'), 'str'),
 
-		(f'{fixture_module_path}.Sub', 'Sub'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub'), 'Sub'),
 
-		(f'{fixture_module_path}.Sub.Inner', 'Inner'),
-		(f'{fixture_module_path}.Sub.Inner.value', 'str'),
-		(f'{fixture_module_path}.Sub.Inner.class_func', 'class_func(Inner) -> dict<str, int>'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.Inner'), 'Inner'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.Inner.value'), 'str'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.Inner.class_func'), 'class_func(Inner) -> dict<str, int>'),
 
-		(f'{fixture_module_path}.Sub.numbers', 'list<int>'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.numbers'), 'list<int>'),
 
-		(f'{fixture_module_path}.Sub.__init__', '__init__(Sub) -> None'),
-		(f'{fixture_module_path}.Sub.__init__.self', 'Sub'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.__init__'), '__init__(Sub) -> None'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.__init__.self'), 'Sub'),
 
-		(f'{fixture_module_path}.Sub.local_ref', 'local_ref(Sub) -> None'),
-		(f'{fixture_module_path}.Sub.local_ref.self', 'Sub'),
-		(f'{fixture_module_path}.Sub.local_ref.value', 'bool'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.local_ref'), 'local_ref(Sub) -> None'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.local_ref.self'), 'Sub'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.local_ref.value'), 'bool'),
 
-		(f'{fixture_module_path}.Sub.member_ref', 'member_ref(Sub) -> None'),
-		(f'{fixture_module_path}.Sub.member_ref.self', 'Sub'),
-		(f'{fixture_module_path}.Sub.member_ref.a', 'list<int>'),
-		(f'{fixture_module_path}.Sub.member_ref.b', 'int'),
-		(f'{fixture_module_path}.Sub.member_ref.c', 'C'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.member_ref'), 'member_ref(Sub) -> None'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.member_ref.self'), 'Sub'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.member_ref.a'), 'list<int>'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.member_ref.b'), 'int'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.member_ref.c'), 'C'),
 
-		(f'{fixture_module_path}.Sub.member_write', 'member_write(Sub) -> None'),
-		(f'{fixture_module_path}.Sub.member_write.self', 'Sub'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.member_write'), 'member_write(Sub) -> None'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.member_write.self'), 'Sub'),
 
-		(f'{fixture_module_path}.Sub.param_ref', 'param_ref(Sub, int) -> None'),
-		(f'{fixture_module_path}.Sub.param_ref.self', 'Sub'),
-		(f'{fixture_module_path}.Sub.param_ref.param', 'int'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.param_ref'), 'param_ref(Sub, int) -> None'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.param_ref.self'), 'Sub'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.param_ref.param'), 'int'),
 
-		(f'{fixture_module_path}.Sub.list_ref', 'list_ref(Sub, list<Sub>) -> None'),
-		(f'{fixture_module_path}.Sub.list_ref.self', 'Sub'),
-		(f'{fixture_module_path}.Sub.list_ref.subs', 'list<Sub>'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.list_ref'), 'list_ref(Sub, list<Sub>) -> None'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.list_ref.self'), 'Sub'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.list_ref.subs'), 'list<Sub>'),
 
-		(f'{fixture_module_path}.Sub.base_ref', 'base_ref(Sub) -> None'),
-		(f'{fixture_module_path}.Sub.base_ref.self', 'Sub'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.base_ref'), 'base_ref(Sub) -> None'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.base_ref.self'), 'Sub'),
 
-		(f'{fixture_module_path}.Sub.returns', 'returns(Sub) -> str'),
-		(f'{fixture_module_path}.Sub.returns.self', 'Sub'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.returns'), 'returns(Sub) -> str'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.returns.self'), 'Sub'),
 
-		(f'{fixture_module_path}.Sub.invoke_method', 'invoke_method(Sub) -> None'),
-		(f'{fixture_module_path}.Sub.invoke_method.self', 'Sub'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.invoke_method'), 'invoke_method(Sub) -> None'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.invoke_method.self'), 'Sub'),
 
-		(f'{fixture_module_path}.Sub.decl_with_pop.poped', 'int'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.decl_with_pop.poped'), 'int'),
 
-		(f'{fixture_module_path}.Sub.decl_locals', 'decl_locals(Sub) -> int'),
-		(f'{fixture_module_path}.Sub.decl_locals.a', 'int'),
-		(f'{fixture_module_path}.Sub.decl_locals.closure', 'closure() -> list<int>'),
-		(f'{fixture_module_path}.Sub.decl_locals.closure.b', 'list<int>'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.decl_locals'), 'decl_locals(Sub) -> int'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.decl_locals.a'), 'int'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.decl_locals.closure'), 'closure() -> list<int>'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.decl_locals.closure.b'), 'list<int>'),
 
-		(f'{fixture_module_path}.Sub.relay_access.s', 'str'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.relay_access.s'), 'str'),
 
-		(f'{fixture_module_path}.Sub.fill_list.n_x3', 'list<int>'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.fill_list.n_x3'), 'list<int>'),
 
-		(f'{fixture_module_path}.Sub.param_default.d', 'DSI=dict<str, int>'),
-		(f'{fixture_module_path}.Sub.param_default.n', 'int'),
-		(f'{fixture_module_path}.Sub.param_default.n2', 'int'),
-		(f'{fixture_module_path}.Sub.param_default.keys', 'list<str>'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.param_default.d'), 'DSI=dict<str, int>'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.param_default.n'), 'int'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.param_default.n2'), 'int'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.param_default.keys'), 'list<str>'),
 
-		(f'{fixture_module_path}.Sub.kw_params.kwargs', 'int'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.kw_params.kwargs'), 'int'),
 
-		(f'{fixture_module_path}.Sub.indexer_access.ns0', 'int'),
-		(f'{fixture_module_path}.Sub.indexer_access.ss0', 'str'),
-		(f'{fixture_module_path}.Sub.indexer_access.s0', 'str'),
-		(f'{fixture_module_path}.Sub.indexer_access.ns_slice0', 'list<int>'),
-		(f'{fixture_module_path}.Sub.indexer_access.ns_slice1', 'list<int>'),
-		(f'{fixture_module_path}.Sub.indexer_access.ns_slice2', 'list<int>'),
-		(f'{fixture_module_path}.Sub.indexer_access.ss_slice', 'list<str>'),
-		(f'{fixture_module_path}.Sub.indexer_access.s_slice', 'str'),
-		(f'{fixture_module_path}.Sub.indexer_access.dsn', 'dict<str, int>'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.indexer_access.ns0'), 'int'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.indexer_access.ss0'), 'str'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.indexer_access.s0'), 'str'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.indexer_access.ns_slice0'), 'list<int>'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.indexer_access.ns_slice1'), 'list<int>'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.indexer_access.ns_slice2'), 'list<int>'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.indexer_access.ss_slice'), 'list<str>'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.indexer_access.s_slice'), 'str'),
+		(ModuleDSN.full_join(fixture_module_path, 'Sub.indexer_access.dsn'), 'dict<str, int>'),
 
-		(f'{fixture_module_path}.CalcOps.unary.n_neg', 'int'),
-		(f'{fixture_module_path}.CalcOps.unary.n_not', 'bool'),
-		(f'{fixture_module_path}.CalcOps.binary.n', 'int'),
-		(f'{fixture_module_path}.CalcOps.binary.nb0', 'int'),
-		(f'{fixture_module_path}.CalcOps.binary.nb1', 'int'),
-		(f'{fixture_module_path}.CalcOps.binary.fn0', 'float'),
-		(f'{fixture_module_path}.CalcOps.binary.fn1', 'float'),
-		(f'{fixture_module_path}.CalcOps.binary.fn2', 'float'),
-		(f'{fixture_module_path}.CalcOps.binary.fb0', 'float'),
-		(f'{fixture_module_path}.CalcOps.binary.fb1', 'float'),
-		(f'{fixture_module_path}.CalcOps.binary.result', 'float'),
-		(f'{fixture_module_path}.CalcOps.binary.l_in', 'bool'),
-		(f'{fixture_module_path}.CalcOps.binary.l_not_in', 'bool'),
-		(f'{fixture_module_path}.CalcOps.binary.n_is', 'bool'),
-		(f'{fixture_module_path}.CalcOps.binary.n_is_not', 'bool'),
-		(f'{fixture_module_path}.CalcOps.tenary.n', 'int'),
-		(f'{fixture_module_path}.CalcOps.tenary.s', 'str'),
-		(f'{fixture_module_path}.CalcOps.tenary.s_or_null', 'Union<str, None>'),
+		(ModuleDSN.full_join(fixture_module_path, 'CalcOps.unary.n_neg'), 'int'),
+		(ModuleDSN.full_join(fixture_module_path, 'CalcOps.unary.n_not'), 'bool'),
+		(ModuleDSN.full_join(fixture_module_path, 'CalcOps.binary.n'), 'int'),
+		(ModuleDSN.full_join(fixture_module_path, 'CalcOps.binary.nb0'), 'int'),
+		(ModuleDSN.full_join(fixture_module_path, 'CalcOps.binary.nb1'), 'int'),
+		(ModuleDSN.full_join(fixture_module_path, 'CalcOps.binary.fn0'), 'float'),
+		(ModuleDSN.full_join(fixture_module_path, 'CalcOps.binary.fn1'), 'float'),
+		(ModuleDSN.full_join(fixture_module_path, 'CalcOps.binary.fn2'), 'float'),
+		(ModuleDSN.full_join(fixture_module_path, 'CalcOps.binary.fb0'), 'float'),
+		(ModuleDSN.full_join(fixture_module_path, 'CalcOps.binary.fb1'), 'float'),
+		(ModuleDSN.full_join(fixture_module_path, 'CalcOps.binary.result'), 'float'),
+		(ModuleDSN.full_join(fixture_module_path, 'CalcOps.binary.l_in'), 'bool'),
+		(ModuleDSN.full_join(fixture_module_path, 'CalcOps.binary.l_not_in'), 'bool'),
+		(ModuleDSN.full_join(fixture_module_path, 'CalcOps.binary.n_is'), 'bool'),
+		(ModuleDSN.full_join(fixture_module_path, 'CalcOps.binary.n_is_not'), 'bool'),
+		(ModuleDSN.full_join(fixture_module_path, 'CalcOps.tenary.n'), 'int'),
+		(ModuleDSN.full_join(fixture_module_path, 'CalcOps.tenary.s'), 'str'),
+		(ModuleDSN.full_join(fixture_module_path, 'CalcOps.tenary.s_or_null'), 'Union<str, None>'),
 
-		(f'{fixture_module_path}.AliasOps.func', 'func(AliasOps, C2=C) -> None'),
-		(f'{fixture_module_path}.AliasOps.func.z2', 'C2=C'),
-		(f'{fixture_module_path}.AliasOps.func.d', 'DSI=dict<str, int>'),
-		(f'{fixture_module_path}.AliasOps.func.d_in_v', 'int'),
-		(f'{fixture_module_path}.AliasOps.func.d2', 'DSI2=dict<str, DSI=dict<str, int>>'),
-		(f'{fixture_module_path}.AliasOps.func.d2_in_dsi', 'DSI=dict<str, int>'),
-		(f'{fixture_module_path}.AliasOps.func.d2_in_dsi_in_v', 'int'),
-		(f'{fixture_module_path}.AliasOps.func.z2_in_x', 'A'),
-		(f'{fixture_module_path}.AliasOps.func.new_z2_in_x', 'A'),
+		(ModuleDSN.full_join(fixture_module_path, 'AliasOps.func'), 'func(AliasOps, C2=C) -> None'),
+		(ModuleDSN.full_join(fixture_module_path, 'AliasOps.func.z2'), 'C2=C'),
+		(ModuleDSN.full_join(fixture_module_path, 'AliasOps.func.d'), 'DSI=dict<str, int>'),
+		(ModuleDSN.full_join(fixture_module_path, 'AliasOps.func.d_in_v'), 'int'),
+		(ModuleDSN.full_join(fixture_module_path, 'AliasOps.func.d2'), 'DSI2=dict<str, DSI=dict<str, int>>'),
+		(ModuleDSN.full_join(fixture_module_path, 'AliasOps.func.d2_in_dsi'), 'DSI=dict<str, int>'),
+		(ModuleDSN.full_join(fixture_module_path, 'AliasOps.func.d2_in_dsi_in_v'), 'int'),
+		(ModuleDSN.full_join(fixture_module_path, 'AliasOps.func.z2_in_x'), 'A'),
+		(ModuleDSN.full_join(fixture_module_path, 'AliasOps.func.new_z2_in_x'), 'A'),
 
-		(f'{fixture_module_path}.TupleOps.unpack_assign.a', 'str'),  # XXX Pythonのシンタックス上は不正。一旦保留
-		(f'{fixture_module_path}.TupleOps.unpack_assign.b', 'int'),  # XXX 〃
+		(ModuleDSN.full_join(fixture_module_path, 'TupleOps.unpack_assign.a'), 'str'),  # XXX Pythonのシンタックス上は不正。一旦保留
+		(ModuleDSN.full_join(fixture_module_path, 'TupleOps.unpack_assign.b'), 'int'),  # XXX 〃
 
-		(f'{fixture_module_path}.CompOps.list_comp.values0', 'list<int>'),
-		(f'{fixture_module_path}.CompOps.list_comp.values1', 'list<int>'),
-		(f'{fixture_module_path}.CompOps.list_comp.values2', 'list<int>'),
-		(f'{fixture_module_path}.CompOps.list_comp.strs', 'list<str>'),
-		(f'{fixture_module_path}.CompOps.list_comp.value', 'int'),
+		(ModuleDSN.full_join(fixture_module_path, 'CompOps.list_comp.values0'), 'list<int>'),
+		(ModuleDSN.full_join(fixture_module_path, 'CompOps.list_comp.values1'), 'list<int>'),
+		(ModuleDSN.full_join(fixture_module_path, 'CompOps.list_comp.values2'), 'list<int>'),
+		(ModuleDSN.full_join(fixture_module_path, 'CompOps.list_comp.strs'), 'list<str>'),
+		(ModuleDSN.full_join(fixture_module_path, 'CompOps.list_comp.value'), 'int'),
 
-		(f'{fixture_module_path}.CompOps.dict_comp.kvs0', 'dict<str, int>'),
-		(f'{fixture_module_path}.CompOps.dict_comp.kvs1', 'dict<str, int>'),
-		(f'{fixture_module_path}.CompOps.dict_comp.kvs2', 'dict<str, int>'),
+		(ModuleDSN.full_join(fixture_module_path, 'CompOps.dict_comp.kvs0'), 'dict<str, int>'),
+		(ModuleDSN.full_join(fixture_module_path, 'CompOps.dict_comp.kvs1'), 'dict<str, int>'),
+		(ModuleDSN.full_join(fixture_module_path, 'CompOps.dict_comp.kvs2'), 'dict<str, int>'),
 
-		(f'{fixture_module_path}.EnumOps.Values', 'Values'),
-		(f'{fixture_module_path}.EnumOps.Values.A', 'int'),  # Enumの定数値を直接参照するとEnum型ではなく、オリジナルの型になる ※情報を損なわないようにするため
-		(f'{fixture_module_path}.EnumOps.Values.B', 'int'),  # 〃
-		(f'{fixture_module_path}.EnumOps.cls_assign.a', 'Values'),
-		(f'{fixture_module_path}.EnumOps.cls_assign.d', 'dict<Values, str>'),
-		(f'{fixture_module_path}.EnumOps.cls_assign.da', 'str'),
-		(f'{fixture_module_path}.EnumOps.assign.a', 'Values'),
-		(f'{fixture_module_path}.EnumOps.assign.d', 'dict<Values, str>'),
-		(f'{fixture_module_path}.EnumOps.assign.da', 'str'),
-		(f'{fixture_module_path}.EnumOps.cast.e', 'Values'),
-		(f'{fixture_module_path}.EnumOps.cast.n', 'int'),
-		(f'{fixture_module_path}.EnumOps.comparison.a', 'bool'),
-		(f'{fixture_module_path}.EnumOps.comparison.b', 'bool'),
-		(f'{fixture_module_path}.EnumOps.comparison.c', 'bool'),
-		(f'{fixture_module_path}.EnumOps.comparison.d', 'bool'),
+		(ModuleDSN.full_join(fixture_module_path, 'EnumOps.Values'), 'Values'),
+		(ModuleDSN.full_join(fixture_module_path, 'EnumOps.Values.A'), 'int'),  # Enumの定数値を直接参照するとEnum型ではなく、オリジナルの型になる ※情報を損なわないようにするため
+		(ModuleDSN.full_join(fixture_module_path, 'EnumOps.Values.B'), 'int'),  # 〃
+		(ModuleDSN.full_join(fixture_module_path, 'EnumOps.cls_assign.a'), 'Values'),
+		(ModuleDSN.full_join(fixture_module_path, 'EnumOps.cls_assign.d'), 'dict<Values, str>'),
+		(ModuleDSN.full_join(fixture_module_path, 'EnumOps.cls_assign.da'), 'str'),
+		(ModuleDSN.full_join(fixture_module_path, 'EnumOps.assign.a'), 'Values'),
+		(ModuleDSN.full_join(fixture_module_path, 'EnumOps.assign.d'), 'dict<Values, str>'),
+		(ModuleDSN.full_join(fixture_module_path, 'EnumOps.assign.da'), 'str'),
+		(ModuleDSN.full_join(fixture_module_path, 'EnumOps.cast.e'), 'Values'),
+		(ModuleDSN.full_join(fixture_module_path, 'EnumOps.cast.n'), 'int'),
+		(ModuleDSN.full_join(fixture_module_path, 'EnumOps.comparison.a'), 'bool'),
+		(ModuleDSN.full_join(fixture_module_path, 'EnumOps.comparison.b'), 'bool'),
+		(ModuleDSN.full_join(fixture_module_path, 'EnumOps.comparison.c'), 'bool'),
+		(ModuleDSN.full_join(fixture_module_path, 'EnumOps.comparison.d'), 'bool'),
 
-		(f'{fixture_module_path}.Nullable.params.base', 'Union<Base, None>'),
-		(f'{fixture_module_path}.Nullable.accessible.sub', 'Union<Sub, None>'),
-		(f'{fixture_module_path}.Nullable.accessible.subs', 'Union<list<Sub>, None>'),
-		(f'{fixture_module_path}.Nullable.accessible.s', 'str'),
-		(f'{fixture_module_path}.Nullable.accessible.n', 'int'),
+		(ModuleDSN.full_join(fixture_module_path, 'Nullable.params.base'), 'Union<Base, None>'),
+		(ModuleDSN.full_join(fixture_module_path, 'Nullable.accessible.sub'), 'Union<Sub, None>'),
+		(ModuleDSN.full_join(fixture_module_path, 'Nullable.accessible.subs'), 'Union<list<Sub>, None>'),
+		(ModuleDSN.full_join(fixture_module_path, 'Nullable.accessible.s'), 'str'),
+		(ModuleDSN.full_join(fixture_module_path, 'Nullable.accessible.n'), 'int'),
 
-		(f'{fixture_module_path}.GenericOps.temporal.a', 'T'),
-		(f'{fixture_module_path}.GenericOps.new.a', 'GenericOps<int>'),
-		(f'{fixture_module_path}.GenericOps.cast.b', 'GenericOps<Base>'),
+		(ModuleDSN.full_join(fixture_module_path, 'GenericOps.temporal.a'), 'T'),
+		(ModuleDSN.full_join(fixture_module_path, 'GenericOps.new.a'), 'GenericOps<int>'),
+		(ModuleDSN.full_join(fixture_module_path, 'GenericOps.cast.b'), 'GenericOps<Base>'),
 	])
 	def test_from_fullyname(self, fullyname: str, expected: str) -> None:
 		reflections = self.fixture.get(Reflections)
@@ -296,38 +297,38 @@ class TestReflections(TestCase):
 		self.assertEqual(expected, reflections.type_of_standard(standard_type).types.fullyname)
 
 	@data_provider([
-		(_ast(f'{fixture_module_path}.import.xyz', 'import_names.name'), _mod('xyz', 'C'), 'C'),
-		(_ast(f'{fixture_module_path}.value', 'assign_namelist.var'), _mod('classes', 'int'), 'int'),
-		(_ast(f'{fixture_module_path}.value', 'typed_var'), _mod('classes', 'int'), 'int'),
-		(_ast(f'{fixture_module_path}.value', 'number'), _mod('classes', 'int'), 'int'),
+		(_ast(ModuleDSN.full_join(fixture_module_path, 'import.xyz'), 'import_names.name'), _mod('xyz', 'C'), 'C'),
+		(_ast(ModuleDSN.full_join(fixture_module_path, 'value'), 'assign_namelist.var'), _mod('classes', 'int'), 'int'),
+		(_ast(ModuleDSN.full_join(fixture_module_path, 'value'), 'typed_var'), _mod('classes', 'int'), 'int'),
+		(_ast(ModuleDSN.full_join(fixture_module_path, 'value'), 'number'), _mod('classes', 'int'), 'int'),
 
-		(_ast('Base', ''), f'{fixture_module_path}.Base', 'Base'),
-		(_ast('Base', 'class_def_raw.name'), f'{fixture_module_path}.Base', 'Base'),
+		(_ast('Base', ''), ModuleDSN.full_join(fixture_module_path, 'Base'), 'Base'),
+		(_ast('Base', 'class_def_raw.name'), ModuleDSN.full_join(fixture_module_path, 'Base'), 'Base'),
 
-		(_ast('Base.__init__.params', 'paramvalue.typedparam.name'), f'{fixture_module_path}.Base', 'Base'),
+		(_ast('Base.__init__.params', 'paramvalue.typedparam.name'), ModuleDSN.full_join(fixture_module_path, 'Base'), 'Base'),
 		(_ast('Base.__init__.return', ''), _mod('classes', 'None'), 'None'),
 		(_ast('Base.__init__.block', 'anno_assign.assign_namelist.getattr'), _mod('classes', 'str'), 'str'),
 		(_ast('Base.__init__.block', 'anno_assign.typed_var'), _mod('classes', 'str'), 'str'),
 		(_ast('Base.__init__.block', 'anno_assign.string'), _mod('classes', 'str'), 'str'),
 		(_ast('Base.__init__.block', 'comment_stmt'), _mod('classes', 'Unknown'), 'Unknown'),
 
-		(_ast('Sub', ''), f'{fixture_module_path}.Sub', 'Sub'),
-		(_ast('Sub', 'class_def_raw.name'), f'{fixture_module_path}.Sub', 'Sub'),
-		(_ast('Sub', 'class_def_raw.inherit_arguments.typed_argvalue.typed_var'), f'{fixture_module_path}.Base', 'Base'),
+		(_ast('Sub', ''), ModuleDSN.full_join(fixture_module_path, 'Sub'), 'Sub'),
+		(_ast('Sub', 'class_def_raw.name'), ModuleDSN.full_join(fixture_module_path, 'Sub'), 'Sub'),
+		(_ast('Sub', 'class_def_raw.inherit_arguments.typed_argvalue.typed_var'), ModuleDSN.full_join(fixture_module_path, 'Base'), 'Base'),
 
-		(_ast('Sub.Inner', ''), f'{fixture_module_path}.Sub.Inner', 'Inner'),
+		(_ast('Sub.Inner', ''), ModuleDSN.full_join(fixture_module_path, 'Sub.Inner'), 'Inner'),
 		(_ast('Sub.Inner.block', 'anno_assign.assign_namelist.var'), _mod('classes', 'str'), 'str'),
 		(_ast('Sub.Inner.block', 'anno_assign.typed_var'), _mod('classes', 'str'), 'str'),
 		(_ast('Sub.Inner.block', 'anno_assign.string'), _mod('classes', 'str'), 'str'),
 
-		(_ast('Sub.Inner.class_func', ''), f'{fixture_module_path}.Sub.Inner.class_func', 'class_func(Inner) -> dict<str, int>'),
-		(_ast('Sub.Inner.class_func.params', 'paramvalue.typedparam.name'), f'{fixture_module_path}.Sub.Inner', 'Inner'),
+		(_ast('Sub.Inner.class_func', ''), ModuleDSN.full_join(fixture_module_path, 'Sub.Inner.class_func'), 'class_func(Inner) -> dict<str, int>'),
+		(_ast('Sub.Inner.class_func.params', 'paramvalue.typedparam.name'), ModuleDSN.full_join(fixture_module_path, 'Sub.Inner'), 'Inner'),
 		(_ast('Sub.Inner.class_func.return', ''), _mod('classes', 'dict'), 'dict<str, int>'),
 		(_ast('Sub.Inner.class_func.block', 'return_stmt.dict'), _mod('classes', 'dict'), 'dict<str, int>'),
 
-		(_ast('Sub.__init__.params', 'paramvalue.typedparam.name'), f'{fixture_module_path}.Sub', 'Sub'),
+		(_ast('Sub.__init__.params', 'paramvalue.typedparam.name'), ModuleDSN.full_join(fixture_module_path, 'Sub'), 'Sub'),
 		(_ast('Sub.__init__.return', ''), _mod('classes', 'None'), 'None'),
-		(_ast('Sub.__init__.block', 'funccall'), f'{fixture_module_path}.Base', 'Base'),
+		(_ast('Sub.__init__.block', 'funccall'), ModuleDSN.full_join(fixture_module_path, 'Base'), 'Base'),
 		(_ast('Sub.__init__.block', 'funccall.getattr.funccall.var'), _mod('classes', 'super'), 'super'),
 		(_ast('Sub.__init__.block', 'anno_assign[1]'), _mod('classes', 'list'), 'list<int>'),
 		(_ast('Sub.__init__.block', 'anno_assign[1].assign_namelist.getattr'), _mod('classes', 'list'), 'list<int>'),
@@ -336,7 +337,7 @@ class TestReflections(TestCase):
 
 		(_ast('Sub.first_number.block', 'return_stmt'), _mod('classes', 'int'), 'int'),
 
-		(_ast('Sub.local_ref.params', 'paramvalue.typedparam.name'), f'{fixture_module_path}.Sub', 'Sub'),
+		(_ast('Sub.local_ref.params', 'paramvalue.typedparam.name'), ModuleDSN.full_join(fixture_module_path, 'Sub'), 'Sub'),
 		(_ast('Sub.local_ref.block', 'assign'), _mod('classes', 'bool'), 'bool'),
 		(_ast('Sub.local_ref.block', 'funccall.var'), _mod('classes', 'print'), 'print(Any) -> None'),
 		(_ast('Sub.local_ref.block', 'funccall.arguments.argvalue'), _mod('classes', 'bool'), 'bool'),
@@ -347,11 +348,11 @@ class TestReflections(TestCase):
 		(_ast('Sub.member_write.block', 'assign[1].assign_namelist.getattr'), _mod('classes', 'str'), 'str'),
 		(_ast('Sub.member_write.block', 'assign[1].string'), _mod('classes', 'str'), 'str'),
 
-		(_ast('Sub.param_ref.params', 'paramvalue[0].typedparam.name'), f'{fixture_module_path}.Sub', 'Sub'),
+		(_ast('Sub.param_ref.params', 'paramvalue[0].typedparam.name'), ModuleDSN.full_join(fixture_module_path, 'Sub'), 'Sub'),
 		(_ast('Sub.param_ref.params', 'paramvalue[1].typedparam.name'), _mod('classes', 'int'), 'int'),
 		(_ast('Sub.param_ref.block', 'funccall.arguments.argvalue'), _mod('classes', 'int'), 'int'),
 
-		(_ast('Sub.list_ref.params', 'paramvalue[0].typedparam.name'), f'{fixture_module_path}.Sub', 'Sub'),
+		(_ast('Sub.list_ref.params', 'paramvalue[0].typedparam.name'), ModuleDSN.full_join(fixture_module_path, 'Sub'), 'Sub'),
 		(_ast('Sub.list_ref.params', 'paramvalue[1].typedparam.name'), _mod('classes', 'list'), 'list<Sub>'),
 		(_ast('Sub.list_ref.block', 'funccall[0].arguments.argvalue'), _mod('classes', 'int'), 'int'),
 		(_ast('Sub.list_ref.block', 'funccall[1].arguments.argvalue'), _mod('classes', 'list'), 'list<int>'),
@@ -361,7 +362,7 @@ class TestReflections(TestCase):
 		(_ast('Sub.returns.return', ''), _mod('classes', 'str'), 'str'),
 		(_ast('Sub.returns.block', 'return_stmt'), _mod('classes', 'str'), 'str'),
 
-		(_ast('Sub.invoke_method.block', 'funccall.getattr'), f'{fixture_module_path}.Sub.invoke_method', 'invoke_method(Sub) -> None'),
+		(_ast('Sub.invoke_method.block', 'funccall.getattr'), ModuleDSN.full_join(fixture_module_path, 'Sub.invoke_method'), 'invoke_method(Sub) -> None'),
 
 		(_ast('Sub.decl_with_pop.block', 'assign.assign_namelist.var'), _mod('classes', 'int'), 'int'),
 		(_ast('Sub.decl_with_pop.block', 'assign.funccall'), _mod('classes', 'int'), 'int'),
@@ -372,7 +373,7 @@ class TestReflections(TestCase):
 		(_ast('Sub.decl_locals.block', 'if_stmt[1].if_clause.block.for_stmt.for_namelist.name'), _mod('classes', 'int'), 'int'),
 		(_ast('Sub.decl_locals.block', 'if_stmt[1].if_clause.block.for_stmt.block.try_stmt.except_clauses.except_clause.name'), _mod('classes', 'Exception'), 'Exception'),
 
-		(_ast('Sub.Base.return', ''), f'{fixture_module_path}.Base', 'Base'),
+		(_ast('Sub.Base.return', ''), ModuleDSN.full_join(fixture_module_path, 'Base'), 'Base'),
 
 		(_ast('Sub.kw_params.block', 'assign'), _mod('classes', 'str'), 'str'),
 		(_ast('Sub.kw_params.block', 'assign.funccall.arguments.argvalue[0]'), _mod('classes', 'int'), 'int'),
@@ -385,8 +386,8 @@ class TestReflections(TestCase):
 		(_ast('TupleOps.unpack.block', 'for_stmt[3].for_namelist.name'), _mod('classes', 'Pair'), 'Pair<str, int>'),
 
 		(_ast('TupleOps.unpack.block', 'for_stmt[5].for_namelist.name[0]'), _mod('classes', 'str'), 'str'),
-		(_ast('TupleOps.unpack.block', 'for_stmt[5].for_namelist.name[1]'), f'{fixture_module_path}.DSI', 'DSI=dict<str, int>'),
-		(_ast('TupleOps.unpack.block', 'for_stmt[6].for_namelist.name'), f'{fixture_module_path}.DSI', 'DSI=dict<str, int>'),
+		(_ast('TupleOps.unpack.block', 'for_stmt[5].for_namelist.name[1]'), ModuleDSN.full_join(fixture_module_path, 'DSI'), 'DSI=dict<str, int>'),
+		(_ast('TupleOps.unpack.block', 'for_stmt[6].for_namelist.name'), ModuleDSN.full_join(fixture_module_path, 'DSI'), 'DSI=dict<str, int>'),
 		(_ast('TupleOps.unpack.block', 'for_stmt[7].for_namelist.name'), _mod('classes', 'str'), 'str'),
 		(_ast('TupleOps.unpack.block', 'for_stmt[8].for_namelist.name'), _mod('classes', 'Pair'), 'Pair<str, DSI=dict<str, int>>'),
 
@@ -396,7 +397,7 @@ class TestReflections(TestCase):
 		(_ast('Nullable.returns.return', ''), _mod('classes', 'Union'), 'Union<Base, None>'),
 		(_ast('Nullable.var_move.block', 'if_stmt.if_clause.block.return_stmt'), _mod('classes', 'str'), 'str'),
 
-		(_ast('GenericOps.new.block', 'assign.funccall'), f'{fixture_module_path}.GenericOps', 'GenericOps<int>'),
+		(_ast('GenericOps.new.block', 'assign.funccall'), ModuleDSN.full_join(fixture_module_path, 'GenericOps'), 'GenericOps<int>'),
 		(_ast('GenericOps.cast.block', 'assign.funccall.arguments.argvalue[0]'), _mod('classes', 'type'), 'type<GenericOps<Base>>'),
 	])
 	def test_type_of(self, full_path: str, expected: str, attrs_expected: str) -> None:

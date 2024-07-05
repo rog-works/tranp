@@ -4,7 +4,7 @@ from rogw.tranp.errors import LogicError
 from rogw.tranp.lang.annotation import duck_typed
 from rogw.tranp.lang.error import raises
 from rogw.tranp.lang.eventemitter import Callback, EventEmitter
-from rogw.tranp.syntax.ast.dsn import DSN
+from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.semantics.errors import ProcessingError
 

@@ -3,6 +3,7 @@ from typing import Any, Iterator, Literal, TypeVar, cast
 
 from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.errors import LogicError
+from rogw.tranp.io.memo import Memo
 from rogw.tranp.lang.annotation import deprecated, injectable, override
 from rogw.tranp.lang.sequence import flatten
 from rogw.tranp.lang.string import snakelize
@@ -39,10 +40,7 @@ class Node:
 		self.__nodes = nodes
 		self.__module_path = module_path
 		self._full_path = EntryPath(full_path)
-		# キャッシュ ※無限再帰を防ぐため、生成時は無効な状態とする
-		self._fullyname = ''
-		self._scope = ''
-		self._namespace = ''
+		self._memo = Memo()
 
 	@override
 	def __str__(self) -> str:
@@ -118,37 +116,40 @@ class Node:
 			* IDomainを実装(ClassDef/Declare/Reference/Type/FuncCall/Literal/Empty): scope.domain_name
 			* その他: scope.classification@id
 		"""
-		if not self._fullyname:
+		@self._memo('fullyname')
+		def factory() -> str:
 			if isinstance(self, IDomain):
-				self._fullyname = ModuleDSN.full_joined(self.scope, self.domain_name)
+				return ModuleDSN.full_joined(self.scope, self.domain_name)
 			else:
-				self._fullyname = ModuleDSN.identify(ModuleDSN.full_joined(self.scope, self.classification), self.id)
+				return ModuleDSN.identify(ModuleDSN.full_joined(self.scope, self.classification), self.id)
 
-		return self._fullyname
+		return factory()
 
 	@property
 	def scope(self) -> str:
 		"""str: 自身が所属するスコープ"""
-		if not self._scope:
+		@self._memo('scope')
+		def factory() -> str:
 			parent = self.parent
 			if isinstance(parent, IScope):
-				self._scope = ModuleDSN.full_joined(parent.scope, parent.domain_name or parent.classification)
+				return ModuleDSN.full_joined(parent.scope, parent.domain_name or parent.classification)
 			else:
-				self._scope = parent.scope
+				return parent.scope
 
-		return self._scope
+		return factory()
 
 	@property
 	def namespace(self) -> str:
 		"""str: 自身が所属する名前空間"""
-		if not self._namespace:
+		@self._memo('namespace')
+		def factory() -> str:
 			parent = self.parent
 			if isinstance(parent, INamespace):
-				self._namespace = ModuleDSN.full_joined(parent.namespace, parent.domain_name)
+				return ModuleDSN.full_joined(parent.namespace, parent.domain_name)
 			else:
-				self._namespace = parent.namespace
+				return parent.namespace
 
-		return self._namespace
+		return factory()
 
 	@property
 	def can_expand(self) -> bool:

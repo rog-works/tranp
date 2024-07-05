@@ -6,7 +6,7 @@ from tests.unit.rogw.tranp.semantics.reflection.fixtures.test_symbol_db_combine 
 
 DSI: TypeAlias = dict[str, int]
 DSI2: TypeAlias = dict[str, DSI]
-Z2: TypeAlias = C
+C2: TypeAlias = C
 
 
 value: int = 0
@@ -158,7 +158,7 @@ class CalcOps:
 
 
 class AliasOps:
-	def func(self, z2: Z2) -> None:
+	def func(self, z2: C2) -> None:
 		d: DSI = {'s': value}
 		d_in_v = d['s']
 
@@ -167,7 +167,7 @@ class AliasOps:
 		d2_in_dsi_in_v = d2['s2']['s']
 
 		z2_in_x = z2.x
-		new_z2_in_x = Z2().x
+		new_z2_in_x = C2().x
 
 
 class TupleOps:

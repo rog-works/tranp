@@ -224,8 +224,8 @@ class TestReflections(TestCase):
 		(f'{fixture_module_path}.CalcOps.tenary.s', 'str'),
 		(f'{fixture_module_path}.CalcOps.tenary.s_or_null', 'Union<str, None>'),
 
-		(f'{fixture_module_path}.AliasOps.func', 'func(AliasOps, Z2=C) -> None'),
-		(f'{fixture_module_path}.AliasOps.func.z2', 'Z2=C'),
+		(f'{fixture_module_path}.AliasOps.func', 'func(AliasOps, C2=C) -> None'),
+		(f'{fixture_module_path}.AliasOps.func.z2', 'C2=C'),
 		(f'{fixture_module_path}.AliasOps.func.d', 'DSI=dict<str, int>'),
 		(f'{fixture_module_path}.AliasOps.func.d_in_v', 'int'),
 		(f'{fixture_module_path}.AliasOps.func.d2', 'DSI2=dict<str, DSI=dict<str, int>>'),

@@ -89,7 +89,7 @@ class ModuleDSN:
 			dsn (str): DSN
 		"""
 		module_path, local_path = self.parsed(dsn)
-		self.dsn = self.full_joined(module_path, local_path)
+		self.dsn = dsn
 		self.module_path = module_path
 		self.local_path = local_path
 

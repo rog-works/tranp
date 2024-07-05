@@ -39,6 +39,10 @@ class Node:
 		self.__nodes = nodes
 		self.__module_path = module_path
 		self._full_path = EntryPath(full_path)
+		# キャッシュ ※無限再帰を防ぐため、生成時は無効な状態とする
+		self._fullyname = ''
+		self._scope = ''
+		self._namespace = ''
 
 	@override
 	def __str__(self) -> str:
@@ -114,28 +118,37 @@ class Node:
 			* IDomainを実装(ClassDef/Declare/Reference/Type/FuncCall/Literal/Empty): scope.domain_name
 			* その他: scope.classification@id
 		"""
-		if isinstance(self, IDomain):
-			return ModuleDSN.full_joined(self.scope, self.domain_name)
-		else:
-			return ModuleDSN.identify(ModuleDSN.full_joined(self.scope, self.classification), self.id)
+		if not self._fullyname:
+			if isinstance(self, IDomain):
+				self._fullyname = ModuleDSN.full_joined(self.scope, self.domain_name)
+			else:
+				self._fullyname = ModuleDSN.identify(ModuleDSN.full_joined(self.scope, self.classification), self.id)
+
+		return self._fullyname
 
 	@property
 	def scope(self) -> str:
 		"""str: 自身が所属するスコープ"""
-		parent = self.parent
-		if isinstance(parent, IScope):
-			return ModuleDSN.full_joined(parent.scope, parent.domain_name or parent.classification)
-		else:
-			return parent.scope
+		if not self._scope:
+			parent = self.parent
+			if isinstance(parent, IScope):
+				self._scope = ModuleDSN.full_joined(parent.scope, parent.domain_name or parent.classification)
+			else:
+				self._scope = parent.scope
+
+		return self._scope
 
 	@property
 	def namespace(self) -> str:
 		"""str: 自身が所属する名前空間"""
-		parent = self.parent
-		if isinstance(parent, INamespace):
-			return ModuleDSN.full_joined(parent.namespace, parent.domain_name)
-		else:
-			return parent.namespace
+		if not self._namespace:
+			parent = self.parent
+			if isinstance(parent, INamespace):
+				self._namespace = ModuleDSN.full_joined(parent.namespace, parent.domain_name)
+			else:
+				self._namespace = parent.namespace
+
+		return self._namespace
 
 	@property
 	def can_expand(self) -> bool:

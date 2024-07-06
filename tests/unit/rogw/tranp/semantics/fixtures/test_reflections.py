@@ -235,6 +235,9 @@ class EnumOps:
 		c = EnumOps.Values.A is EnumOps.Values.B
 		d = EnumOps.Values.A is not EnumOps.Values.B
 
+	def calc(self) -> None:
+		a = EnumOps.Values.A | EnumOps.Values.B
+
 
 class Nullable:
 	def params(self, base: Base | None) -> None: ...

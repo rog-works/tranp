@@ -16,15 +16,25 @@ class CEnum(Enum):
 	def __eq__(self, other: Any) -> bool:
 		"""比較演算
 
+		Args:
+			other (Any): 対象
 		Returns:
 			bool: True = 同じ
-		Note:
-			int型との比較を追加
 		"""
 		if type(other) is int:
 			return self.value == other
 
 		return super().__eq__(other)
+
+	def __or__(self, other: Any) -> int:
+		"""ビット演算(OR)
+
+		Args:
+			other (Any): 対象
+		Returns:
+			int: 演算結果
+		"""
+		return self.value | other
 
 	def __hash__(self) -> int:
 		"""インスタンスのハッシュ値を返す

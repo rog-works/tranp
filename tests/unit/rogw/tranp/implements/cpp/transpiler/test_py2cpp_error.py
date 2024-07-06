@@ -3,13 +3,13 @@ import re
 from unittest import TestCase
 
 from rogw.tranp.app.dir import tranp_dir
+from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.i18n.i18n import I18n
 from rogw.tranp.implements.cpp.providers.semantics import cpp_plugin_provider
 from rogw.tranp.implements.cpp.transpiler.py2cpp import Py2Cpp
 from rogw.tranp.lang.module import fullyname
 from rogw.tranp.semantics.errors import ProcessingError, UnresolvedSymbolError
 from rogw.tranp.semantics.plugin import PluginProvider
-from rogw.tranp.syntax.ast.dsn import DSN
 from rogw.tranp.test.helper import data_provider
 from rogw.tranp.transpiler.types import TranspilerOptions
 from rogw.tranp.view.render import Renderer
@@ -27,7 +27,7 @@ class ASTMapping:
 
 
 def _ast(before: str, after: str) -> str:
-	return DSN.join(ASTMapping.aliases[before], after)
+	return ModuleDSN.local_joined(ASTMapping.aliases[before], after)
 
 
 def make_renderer(i18n: I18n) -> Renderer:

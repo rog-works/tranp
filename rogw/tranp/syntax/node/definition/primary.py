@@ -1,9 +1,10 @@
 import re
 from typing import Union, cast
 
+from rogw.tranp.dsn.dsn import DSN
+from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.lang.annotation import implements, override
 from rogw.tranp.lang.sequence import flatten, last_index_of
-from rogw.tranp.syntax.ast.dsn import DSN
 from rogw.tranp.syntax.ast.path import EntryPath
 from rogw.tranp.syntax.errors import InvalidRelationError
 from rogw.tranp.syntax.node.behavior import IDomain, INamespace, IScope, ITerminal
@@ -101,7 +102,7 @@ class DeclThisVar(DeclVar):
 	@override
 	def fullyname(self) -> str:
 		"""Note: XXX クラス直下に配置するため例外的にスコープを調整"""
-		return DSN.join(self._ancestor('class_def').fullyname, self.domain_name)
+		return ModuleDSN.full_joined(self._ancestor('class_def').fullyname, self.domain_name)
 
 	@property
 	def tokens_without_this(self) -> str:
@@ -180,7 +181,7 @@ class Relay(Reference, IDomain):
 	@property
 	@override
 	def domain_name(self) -> str:
-		return DSN.join(self.receiver.domain_name, self.prop.tokens)
+		return ModuleDSN.local_joined(self.receiver.domain_name, self.prop.tokens)
 
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
@@ -428,7 +429,7 @@ class FuncCall(Node, IDomain):
 	@override
 	def domain_name(self) -> str:
 		# XXX 一意な名称を持たないためIDで代用
-		return DSN.identify(self.classification, self.id)
+		return ModuleDSN.identify(self.classification, self.id)
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -499,7 +500,7 @@ class Comprehension(Generator, IDomain, IScope, INamespace):
 	@property
 	@override
 	def domain_name(self) -> str:
-		return DSN.identify(self.classification, self.id)
+		return ModuleDSN.identify(self.classification, self.id)
 
 	@property
 	@Meta.embed(Node, expandable)

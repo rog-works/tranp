@@ -41,6 +41,26 @@ class CP(CVar[T_co]):
 		"""
 		return CP[var_type]
 
+	def __add__(self, other: 'CP[T_co]') -> int:
+		"""アドレス演算(加算)
+
+		Args:
+			other (CP[T_co]): 対象
+		Returns:
+			int: アドレス
+		"""
+		raise NotImplementedError()
+
+	def __sub__(self, other: 'CP[T_co]') -> int:
+		"""アドレス演算(減算)
+
+		Args:
+			other (CP[T_co]): 対象
+		Returns:
+			int: アドレス
+		"""
+		raise NotImplementedError()
+
 	@classmethod
 	def new(cls, origin: T_New) -> 'CP[T_New]':
 		"""メモリを生成し、CPラップ型を返却するメモリ生成代替メソッド。C++では`new`に相当"""

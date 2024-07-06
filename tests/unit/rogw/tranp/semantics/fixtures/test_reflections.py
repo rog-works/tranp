@@ -1,24 +1,25 @@
 from typing import Generic, TypeAlias, TypeVar, cast
 
 from rogw.tranp.compatible.cpp.enum import CEnum
-from tests.unit.rogw.tranp.semantics.reflection.fixtures.test_symbol_db_xyz import Z
+
+from tests.unit.rogw.tranp.semantics.reflection.fixtures.test_symbol_db_combine import B, C
 
 DSI: TypeAlias = dict[str, int]
 DSI2: TypeAlias = dict[str, DSI]
-Z2: TypeAlias = Z
+C2: TypeAlias = C
 
 
 value: int = 0
 
 
-class Base(Z):
+class Base(C):
 	def __init__(self) -> None:
 		self.base_str: str = ''
 		# comment
 
 
 class Sub(Base):
-	class C:
+	class Inner:
 		value: str = ''
 
 		@classmethod
@@ -28,7 +29,7 @@ class Sub(Base):
 	def __init__(self) -> None:
 		super().__init__()
 		self.numbers: list[int] = []
-		self.Z: Z = Z()
+		self.C: C = C()
 
 	@property
 	def first_number(self) -> int:
@@ -41,11 +42,11 @@ class Sub(Base):
 	def member_ref(self) -> None:
 		a = self.numbers
 		b = self.first_number
-		c = self.Z
+		c = self.C
 
 	def member_write(self) -> None:
 		self.x.nx = 2
-		Sub.C.value = 'update'
+		Sub.Inner.value = 'update'
 
 	def param_ref(self, param: int) -> None:
 		print(param)
@@ -157,7 +158,7 @@ class CalcOps:
 
 
 class AliasOps:
-	def func(self, z2: Z2) -> None:
+	def func(self, z2: C2) -> None:
 		d: DSI = {'s': value}
 		d_in_v = d['s']
 
@@ -166,7 +167,7 @@ class AliasOps:
 		d2_in_dsi_in_v = d2['s2']['s']
 
 		z2_in_x = z2.x
-		new_z2_in_x = Z2().x
+		new_z2_in_x = C2().x
 
 
 class TupleOps:
@@ -265,3 +266,7 @@ class GenericOps(Generic[T]):
 
 	def cast(self, sub: 'GenericOps[Sub]') -> None:
 		b = cast(GenericOps[Base], sub)
+
+
+def imported_inner_type_ref(b: C.AA) -> None:
+	a = C.AA()

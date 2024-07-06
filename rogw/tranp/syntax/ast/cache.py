@@ -1,7 +1,7 @@
 from typing import Generic, TypeVar
 
+from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.errors import NotFoundError
-from rogw.tranp.syntax.ast.dsn import DSN
 
 T = TypeVar('T')
 

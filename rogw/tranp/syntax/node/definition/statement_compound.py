@@ -1,15 +1,15 @@
 from typing import Generic, TypeVar
 
 from rogw.tranp.compatible.python.embed import __actual__
+from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.lang.annotation import duck_typed, implements, override
 from rogw.tranp.lang.sequence import flatten, last_index_of
-from rogw.tranp.syntax.ast.dsn import DSN
 from rogw.tranp.syntax.node.accessible import ClassOperations
 from rogw.tranp.syntax.node.behavior import IDomain, INamespace, IScope
 from rogw.tranp.syntax.node.definition.accessible import PythonClassOperations, to_access
 from rogw.tranp.syntax.node.definition.element import Decorator, Parameter
 from rogw.tranp.syntax.node.definition.literal import Boolean, DocString, String
-from rogw.tranp.syntax.node.definition.primary import CustomType, DeclClassVar, DeclLocalVar, Declable, ForIn, InheritArgument, DeclThisParam, DeclThisVar, Type, TypesName
+from rogw.tranp.syntax.node.definition.primary import DeclClassVar, DeclLocalVar, Declable, ForIn, GenericType, InheritArgument, DeclThisParam, DeclThisVar, Type, TypesName, VarOfType
 from rogw.tranp.syntax.node.definition.statement_simple import AnnoAssign, MoveAssign
 from rogw.tranp.syntax.node.definition.terminal import Empty
 from rogw.tranp.syntax.node.embed import Meta, accept_tags, expandable
@@ -33,7 +33,7 @@ class Flow(Node, IDomain, IScope):
 	@override
 	def domain_name(self) -> str:
 		# XXX 一意な名称を持たないためIDで代用
-		return DSN.identify(self.classification, self.id)
+		return ModuleDSN.identify(self.classification, self.id)
 
 
 class FlowEnter(Flow): pass
@@ -289,6 +289,7 @@ class ClassDef(Node, IDomain, IScope, INamespace, IDeclaration, ISymbol):
 
 	@property
 	def template_types(self) -> list[Type]:
+		"""Note: @see Class.template_types"""
 		return []
 
 	@property
@@ -501,8 +502,23 @@ class Class(ClassDef):
 	@override
 	@Meta.embed(Node, expandable)
 	def template_types(self) -> list[Type]:
-		candidates = [inherit for inherit in self.__org_inherits if isinstance(inherit, CustomType)]
-		return candidates[0].template_types if len(candidates) == 1 else []
+		"""Note: 厳密に言うとこのメソッドでテンプレートタイプを取得することはできず、候補のタイプノードである点に注意"""
+		def fetch_template_types(t_type: GenericType) -> list[Type]:
+			t_types: list[Type] = []
+			for in_t_type in t_type.template_types:
+				if isinstance(in_t_type, GenericType):
+					t_types.extend(fetch_template_types(in_t_type))
+				elif isinstance(in_t_type, VarOfType):
+					t_types.append(in_t_type)
+
+			return t_types
+
+		candidate_types: list[Type] = []
+		for inherit in self.__org_inherits:
+			if isinstance(inherit, GenericType):
+				candidate_types.extend(fetch_template_types(inherit))
+
+		return candidate_types
 
 	@property
 	@override

@@ -1,1 +1,1 @@
-(({{ var_type }})({{ arguments[1] }})){% if is_statement %};{% endif %}
+static_cast<{{ var_type }}>({{ arguments[1] }}){% if is_statement %};{% endif %}

@@ -1,4 +1,4 @@
-from rogw.tranp.syntax.ast.dsn import DSN
+from rogw.tranp.dsn.dsn import DSN
 
 
 def alias_dsn(fullyname: str) -> str:

@@ -534,7 +534,7 @@ class TestRenderer(TestCase):
 		self.assertRender(expected, 'func_call/c_pragma', 0, vars)
 
 	@data_provider([
-		({'var_type': 'int', 'arguments': ['1.0f'], 'is_statement': True}, '((int)(1.0f));'),
+		({'var_type': 'int', 'arguments': ['1.0f'], 'is_statement': True}, 'static_cast<int>(1.0f);'),
 	])
 	def test_render_func_call_cast_bin_to_bin(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender(expected, 'func_call/cast_bin_to_bin', 0, vars)
@@ -565,7 +565,7 @@ class TestRenderer(TestCase):
 		self.assertRender(expected, 'func_call/cast_str_to_str', 0, vars)
 
 	@data_provider([
-		({'var_type': 'Class*', 'arguments': ['CP<Class>', 'p'], 'is_statement': True}, '((Class*)(p));'),
+		({'var_type': 'Class*', 'arguments': ['CP<Class>', 'p'], 'is_statement': True}, 'static_cast<Class*>(p);'),
 	])
 	def test_render_func_call_cast(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender(expected, 'func_call/cast', 0, vars)

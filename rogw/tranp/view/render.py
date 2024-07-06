@@ -3,6 +3,7 @@ from typing import Any, Protocol, Union, TypedDict
 
 from jinja2 import Environment, FileSystemLoader
 
+from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.dsn.translation import alias_dsn
 from rogw.tranp.lang.parser import parse_pair_block
 
@@ -36,7 +37,7 @@ class Renderer:
 			translator (Translator): 翻訳関数
 		"""
 		self.__renderer = Environment(loader=FileSystemLoader(template_dirs, encoding='utf-8'))
-		self.__renderer.globals['i18n'] = lambda prefix, key: translator(f'{translator(alias_dsn(prefix))}.{key}')
+		self.__renderer.globals['i18n'] = lambda module_path, local: translator(ModuleDSN.full_joined(translator(alias_dsn(module_path)), local))
 		self.__renderer.globals['reg_match'] = lambda pattern, string: re.search(pattern, string)
 		self.__renderer.globals['reg_fullmatch'] = lambda pattern, string: re.fullmatch(pattern, string)
 		self.__renderer.globals['reg_replace'] = lambda pattern, replace, string: re.sub(pattern, replace, string)

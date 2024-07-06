@@ -1,10 +1,10 @@
 from typing import Iterator
 
 from rogw.tranp.compatible.python.types import Standards
+from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.module.types import LibraryPaths
 from rogw.tranp.semantics.reflection.interface import ISymbolProxy
-from rogw.tranp.syntax.ast.dsn import DSN
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.semantics.errors import MustBeImplementedError, SymbolNotDefinedError
 from rogw.tranp.semantics.reflection import IReflection, SymbolDB
@@ -34,7 +34,7 @@ class SymbolFinder:
 		Note:
 			必ず存在すると言う前提。見つからない場合は実装ミス
 		"""
-		raw = self.__find_raw(db, self.__library_paths, object.__name__)
+		raw = self.__find_raw(db, [ModuleDSN(module_path) for module_path in self.__library_paths], object.__name__)
 		if raw is not None:
 			return raw
 
@@ -73,7 +73,7 @@ class SymbolFinder:
 		else:
 			domain_name = standard_type.__name__
 
-		raw = self.__find_raw(db, self.__library_paths, domain_name)
+		raw = self.__find_raw(db, [ModuleDSN(module_path) for module_path in self.__library_paths], domain_name)
 		if raw is not None:
 			return raw
 
@@ -106,25 +106,36 @@ class SymbolFinder:
 		Returns:
 			IReflection | None: シンボル
 		"""
-		def is_local_var_in_class_scope(scope: str) -> bool:
+		def is_local_var_in_class_scope(scope: ModuleDSN) -> bool:
 			# XXX ローカル変数の参照は、クラス直下のスコープを参照できない
-			return node.is_a(defs.Var) and scope in db and db[scope].types.is_a(defs.Class)
+			return node.is_a(defs.Var) and scope.dsn in db and db[scope.dsn].types.is_a(defs.Class)
 
-		domain_name = DSN.join(node.domain_name, prop_name)
-		# ドメイン名の要素数が1つの場合のみ標準ライブラリーへのフォールバックを許可する(2層目以降のシンボルへのフォールバックを抑制)
-		allow_fallback_lib = DSN.elem_counts(domain_name) == 1
-		scopes = [scope for scope in self.__make_scopes(node.scope, allow_fallback_lib) if not is_local_var_in_class_scope(scope)]
+		domain_name = ModuleDSN.local_joined(node.domain_name, prop_name)
+		scopes = [scope for scope in self.__make_scopes(node.scope) if not is_local_var_in_class_scope(scope)]
 		if not isinstance(node, defs.Type):
 			return self.__find_raw(db, scopes, domain_name)
 		else:
 			return self.__find_raw_for_type(db, scopes, domain_name)
 
-	def __find_raw(self, db: SymbolDB, scopes: list[str], domain_name: str) -> IReflection | None:
+	def __make_scopes(self, scope: str) -> list[ModuleDSN]:
+		"""スコープを元に探索スコープのリストを生成
+
+		Args:
+			scope (str): スコープ
+		Returns:
+			list[ModuleDSN]: 探索スコープリスト
+		"""
+		module_path, elems = ModuleDSN.expanded(scope)
+		module_dsn = ModuleDSN(module_path)
+		scopes_of_node = [module_dsn.join(*elems[:i]) for i in range(len(elems) + 1)]
+		return list(reversed(scopes_of_node))
+
+	def __find_raw(self, db: SymbolDB, scopes: list[ModuleDSN], domain_name: str) -> IReflection | None:
 		"""シンボルを検索。未検出の場合はNoneを返却 (汎用)
 
 		Args:
 			db (SymbolDB): シンボルテーブル
-			scopes (list[str]): 探索スコープリスト
+			scopes (list[ModuleDSN]): 探索スコープリスト
 			domain_name (str): ドメイン名
 		Returns:
 			IReflection | None: シンボル
@@ -134,12 +145,12 @@ class SymbolFinder:
 
 		return None
 
-	def __find_raw_for_type(self, db: SymbolDB, scopes: list[str], domain_name: str) -> IReflection | None:
+	def __find_raw_for_type(self, db: SymbolDB, scopes: list[ModuleDSN], domain_name: str) -> IReflection | None:
 		"""シンボルを検索。未検出の場合はNoneを返却 (タイプノード専用)
 
 		Args:
 			db (SymbolDB): シンボルテーブル
-			scopes (list[str]): 探索スコープリスト
+			scopes (list[ModuleDSN]): 探索スコープリスト
 			domain_name (str): ドメイン名
 		Returns:
 			IReflection | None: シンボル
@@ -155,29 +166,96 @@ class SymbolFinder:
 
 		return None
 
-	def __each_find_raw(self, db: SymbolDB, scopes: list[str], domain_name: str) -> Iterator[IReflection]:
+	def __each_find_raw(self, db: SymbolDB, scopes: list[ModuleDSN], domain_name: str) -> Iterator[IReflection]:
 		"""スコープを辿り、指定のドメイン名を持つシンボルを検索
 
 		Args:
 			db (SymbolDB): シンボルテーブル
-			scopes (list[str]): 探索スコープリスト
+			scopes (list[ModuleDSN]): 探索スコープリスト
 			domain_name (str): ドメイン名
 		Returns:
 			Iterator[IReflection]: イテレーター
 		"""
 		for scope in scopes:
-			fullyname = DSN.join(scope, domain_name)
+			fullyname = scope.join(domain_name).dsn
 			if fullyname in db:
 				yield db[fullyname]
 
-	def __make_scopes(self, scope: str, allow_fallback_lib: bool = True) -> list[str]:
-		"""スコープを元に探索スコープのリストを生成
+		raw = self.__find_imported_raw(db, scopes[0].module_path, domain_name)
+		if raw:
+			yield raw
+
+		raw = self.__find_library_raw(db, domain_name)
+		if raw:
+			yield raw
+
+	def __find_imported_raw(self, db: SymbolDB, on_module_path: str, domain_name: str) -> IReflection | None:
+		"""ドメインが所属するモジュールのインポートノードを経由してシンボルを探索
 
 		Args:
-			scope (str): スコープ
-			allow_fallback_lib (bool): True = 標準ライブラリーのパスを加える(default = True)
+			db (SymbolDB): シンボルテーブル
+			on_module_path (str): 所属モジュールのパス
+			domain_name (str): ドメイン名
 		Returns:
-			list[str]: 探索スコープリスト
+			IReflection | None: シンボル。未定義の場合はNone
 		"""
-		scopes_of_node = [DSN.left(scope, DSN.elem_counts(scope) - i) for i in range(DSN.elem_counts(scope))]
-		return [*scopes_of_node, *(self.__library_paths if allow_fallback_lib else [])]
+		elems = ModuleDSN.expand_elements(domain_name)
+		import_fullyname = ModuleDSN.full_joined(on_module_path, elems[0])
+		if import_fullyname not in db:
+			return None
+
+		import_raw = db[import_fullyname]
+		if not isinstance(import_raw.via, defs.ImportName):
+			return None
+
+		imported_dsn = ModuleDSN.full_join(import_raw.types.module_path, elems[0])
+		return self.__find_raw_recursive(db, imported_dsn, elems[1:])
+
+	def __find_library_raw(self, db: SymbolDB, domain_name: str) -> IReflection | None:
+		"""標準ライブラリーのモジュールからシンボルを探索
+
+		Args:
+			db (SymbolDB): シンボルテーブル
+			domain_name (str): ドメイン名
+		Returns:
+			IReflection | None: シンボル。未定義の場合はNone
+		"""
+		elems = ModuleDSN.expand_elements(domain_name)
+		for module_path in self.__library_paths:
+			raw = self.__find_raw_recursive(db, ModuleDSN.full_join(module_path, elems[0]), elems[1:])
+			if raw:
+				return raw
+
+		return None
+
+	def __find_raw_recursive(self, db: SymbolDB, scope: ModuleDSN, elems: list[str]) -> IReflection | None:
+		"""シンボルを再帰的に探索
+
+		Args:
+			db (SymbolDB): シンボルテーブル
+			scope (ModuleDSN): スコープ
+			elems (list[str]): ドメイン名の要素リスト
+		Returns:
+			IReflection | None: シンボル。未定義の場合はNone
+		"""
+		if scope.dsn not in db:
+			return None
+
+		raw = db[scope.dsn]
+		if len(elems) == 0:
+			return raw
+
+		new_scope = scope.join(elems[0])
+		if new_scope.dsn in db:
+			return self.__find_raw_recursive(db, new_scope, elems[1:])
+
+		if not isinstance(raw.types, defs.Class):
+			return None
+
+		for inherit in raw.types.inherits:
+			inherit_elems = [*scope.elements[:-1], inherit.type_name.tokens, elems[0]]
+			inherit_scope = ModuleDSN.full_join(scope.module_path, *inherit_elems)
+			if inherit_scope.dsn in db:
+				return self.__find_raw_recursive(db, inherit_scope, elems[1:])
+
+		return None

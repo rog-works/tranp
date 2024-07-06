@@ -3,13 +3,13 @@ import os
 from typing import IO, NamedTuple
 
 import rogw.tranp.compatible.libralies.classes as classes
+from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.io.cache import CacheProvider
 from rogw.tranp.io.loader import IFileLoader
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.module.modules import Module, Modules
 from rogw.tranp.semantics.finder import SymbolFinder
 from rogw.tranp.semantics.reflection import IReflection, Symbol, SymbolDB
-from rogw.tranp.syntax.ast.dsn import DSN
 import rogw.tranp.syntax.node.definition as defs
 
 
@@ -134,7 +134,7 @@ class ExpandModules:
 			for fullyname, full_path in expanded.imports.items():
 				import_name = entrypoint.whole_by(full_path).as_a(defs.ImportName)
 				import_node = import_name.declare.as_a(defs.Import)
-				raw = expanded_db[DSN.join(import_node.import_path.tokens, import_name.tokens)]
+				raw = expanded_db[ModuleDSN.full_joined(import_node.import_path.tokens, import_name.tokens)]
 				expanded_db[fullyname] = raw.to.imports(import_name)
 
 			# 変数宣言シンボルの展開

@@ -524,6 +524,7 @@ class Py2Cpp(ITranspiler):
 		return self.to_domain_name_by_class(node.class_types.as_a(defs.ClassDef))
 
 	def on_import_name(self, node: defs.ImportName) -> str:
+		"""Note: @deprecated XXX ImportAsName内で利用されるだけでこのノードは展開されないためハンドラーは不要"""
 		return node.tokens
 
 	def on_import_as_name(self, node: defs.ImportAsName) -> str:

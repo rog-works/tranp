@@ -448,6 +448,7 @@ class ProceduralResolver:
 		return self.reflections.resolve(node)
 
 	def on_import_name(self, node: defs.ImportName) -> IReflection:
+		"""Note: @deprecated XXX ImportAsName内で利用されるだけでこのノードは展開されないためハンドラーは不要"""
 		return self.reflections.resolve(node)
 
 	def on_import_as_name(self, node: defs.ImportAsName) -> IReflection:

@@ -450,6 +450,9 @@ class ProceduralResolver:
 	def on_import_name(self, node: defs.ImportName) -> IReflection:
 		return self.reflections.resolve(node)
 
+	def on_import_as_name(self, node: defs.ImportAsName) -> IReflection:
+		return self.reflections.resolve(node)
+
 	def on_relay(self, node: defs.Relay, receiver: IReflection) -> IReflection:
 		# # receiver
 		# var.prop: a.b: A.T

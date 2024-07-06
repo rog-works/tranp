@@ -1,7 +1,7 @@
-from rogw.tranp.compatible.cpp.enum import CEnum
+from rogw.tranp.compatible.cpp.enum import CEnum as Enum
 
 class A:
-	class E(CEnum):
+	class E(Enum):
 		A = 1
 		B = 2
 

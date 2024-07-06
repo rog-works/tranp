@@ -173,6 +173,27 @@ class ImportName(DeclName):
 		return DeclableMatcher.in_decl_import(via)
 
 
+@Meta.embed(Node, accept_tags('import_as_name'))
+class ImportAsName(DeclName):
+	@property
+	@override
+	def domain_name(self) -> str:
+		return self.fore_name.tokens
+
+	@property
+	def fore_name(self) -> ImportName:
+		return self.alias if isinstance(self.alias, ImportName) else self.entity_name
+
+	@property
+	def entity_name(self) -> ImportName:
+		return self._at(0).as_a(ImportName)
+
+	@property
+	def alias(self) -> ImportName | Empty:
+		node = self._at(1)
+		return node if isinstance(node, ImportName) else node.as_a(Empty)
+
+
 class Reference(Node): pass
 
 
@@ -697,4 +718,4 @@ class DeclableMatcher:
 			bool: True = 対象
 		"""
 		via_full_path = EntryPath(via.full_path)
-		return via_full_path.parent_tag == 'import_as_names'
+		return via_full_path.parent_tag == 'import_as_name'

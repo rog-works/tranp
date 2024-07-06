@@ -581,8 +581,8 @@ class Enum(Class):
 			return False
 
 		inherits = via._children('class_def_raw.inherit_arguments')
-		# XXX CEnumの継承に依存するのは微妙なので、修正を検討
-		return 'CEnum' in [inherit.class_type.tokens for inherit in inherits if isinstance(inherit, InheritArgument)]
+		# XXX Enumと言うシンボル名に依存しない方法を検討
+		return 'Enum' in [inherit.class_type.tokens for inherit in inherits if isinstance(inherit, InheritArgument)]
 
 	@property
 	def vars(self) -> list[DeclLocalVar]:

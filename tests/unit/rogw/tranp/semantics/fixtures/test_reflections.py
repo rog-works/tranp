@@ -1,6 +1,6 @@
 from typing import Generic, TypeAlias, TypeVar, cast
 
-from rogw.tranp.compatible.cpp.enum import CEnum
+from rogw.tranp.compatible.cpp.enum import CEnum as Enum
 
 from tests.unit.rogw.tranp.semantics.reflection.fixtures.test_symbol_db_combine import B, C
 
@@ -204,7 +204,7 @@ class CompOps:
 
 
 class EnumOps:
-	class Values(CEnum):
+	class Values(Enum):
 		A = 0
 		B = 1
 

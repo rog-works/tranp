@@ -308,11 +308,11 @@ class IWrapper(metaclass=ABCMeta):
 		...
 
 	@abstractmethod
-	def imports(self, via: defs.ImportName) -> IReflection:
+	def imports(self, via: defs.ImportAsName) -> IReflection:
 		"""ラップしたシンボルを生成(インポート)
 
 		Args:
-			via (ImportName): インポート名ノード
+			via (ImportAsName): インポート名ノード
 		Returns:
 			IReflection: シンボル
 		"""

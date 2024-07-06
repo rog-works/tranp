@@ -3,7 +3,7 @@ from typing import Generic, TypeAlias, TypeVar, cast
 
 from rogw.tranp.compatible.cpp.classes import void
 from rogw.tranp.compatible.cpp.embed import __allow_override__, __embed__, __struct__
-from rogw.tranp.compatible.cpp.enum import CEnum
+from rogw.tranp.compatible.cpp.enum import CEnum as Enum
 from rogw.tranp.compatible.cpp.object import CP, CRawConst, CRef, CSP
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 
@@ -197,7 +197,7 @@ class FuncOps:
 
 
 class EnumOps:
-	class Values(CEnum):
+	class Values(Enum):
 		A = 0
 		B = 1
 
@@ -255,7 +255,7 @@ class AccessOps(Sub):
 
 
 class Alias:
-	class Values(CEnum):
+	class Values(Enum):
 		A = 1
 		B = 2
 

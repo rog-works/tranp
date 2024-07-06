@@ -1,6 +1,6 @@
 from typing import TypeAlias
 
-from rogw.tranp.compatible.cpp.enum import CEnum
+from rogw.tranp.compatible.cpp.enum import CEnum as Enum
 from tests.unit.rogw.tranp.semantics.reflection.fixtures.test_symbol_db_combine import S, C
 
 DSI: TypeAlias = dict[str, int]
@@ -188,7 +188,7 @@ class CompOps:
 
 
 class EnumOps:
-	class Values(CEnum):
+	class Values(Enum):
 		A = 0
 		B = 1
 

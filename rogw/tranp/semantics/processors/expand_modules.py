@@ -132,9 +132,9 @@ class ExpandModules:
 			# インポートシンボルの展開
 			entrypoint = self.modules.load(module_path).entrypoint.as_a(defs.Entrypoint)
 			for fullyname, full_path in expanded.imports.items():
-				import_name = entrypoint.whole_by(full_path).as_a(defs.ImportName)
+				import_name = entrypoint.whole_by(full_path).as_a(defs.ImportAsName)
 				import_node = import_name.declare.as_a(defs.Import)
-				raw = expanded_db[ModuleDSN.full_joined(import_node.import_path.tokens, import_name.tokens)]
+				raw = expanded_db[ModuleDSN.full_joined(import_node.import_path.tokens, import_name.entity_name.tokens)]
 				expanded_db[fullyname] = raw.to.imports(import_name)
 
 			# 変数宣言シンボルの展開

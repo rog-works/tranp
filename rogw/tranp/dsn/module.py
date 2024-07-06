@@ -59,8 +59,8 @@ class ModuleDSN:
 		return DSN.join(*elems)
 
 	@classmethod
-	def elements(cls, dsn_or_local: str) -> list[str]:
-		"""DSNまたはローカルパスをローカル要素に分解
+	def expand_elements(cls, dsn_or_local: str) -> list[str]:
+		"""DSNまたはローカルパスからローカル要素を分解
 
 		Args:
 			dsn_or_local (str): DSNまたはローカルパス
@@ -72,14 +72,14 @@ class ModuleDSN:
 
 	@classmethod
 	def local_elem_counts(cls, dsn_or_local: str) -> int:
-		"""含まれるローカル要素の数を算出
+		"""DSNまたはローカルパスに含まれるローカル要素の数を算出
 
 		Args:
 			dsn_or_local (str): DSNまたはローカルパス
 		Returns:
 			int: ローカル要素の数
 		"""
-		return len(cls.elements(dsn_or_local))
+		return len(cls.expand_elements(dsn_or_local))
 
 	@classmethod
 	def parsed(cls, dsn: str) -> tuple[str, str]:
@@ -129,12 +129,12 @@ class ModuleDSN:
 		self.local_path = local_path
 
 	@property
-	def locals(self) -> list[str]:
+	def elements(self) -> list[str]:
 		"""list[str]: ローカル要素リスト"""
-		return self.expanded(self.dsn)[1]
+		return self.expand_elements(self.local_path)
 
 	@property
-	def local_counts(self) -> int:
+	def elem_counts(self) -> int:
 		"""int: ローカル要素の数"""
 		return self.local_elem_counts(self.local_path)
 

@@ -200,7 +200,7 @@ class SymbolFinder:
 		Returns:
 			IReflection | None: シンボル。未定義の場合はNone
 		"""
-		elems = ModuleDSN.elements(domain_name)
+		elems = ModuleDSN.expand_elements(domain_name)
 		import_fullyname = ModuleDSN.full_joined(on_module_path, elems[0])
 		if import_fullyname not in db:
 			return None
@@ -221,7 +221,7 @@ class SymbolFinder:
 		Returns:
 			IReflection | None: シンボル。未定義の場合はNone
 		"""
-		elems = ModuleDSN.elements(domain_name)
+		elems = ModuleDSN.expand_elements(domain_name)
 		for module_path in self.__library_paths:
 			raw = self.__find_raw_recursive(db, ModuleDSN.full_join(module_path, elems[0]), elems[1:])
 			if raw:
@@ -254,7 +254,7 @@ class SymbolFinder:
 			return None
 
 		for inherit in raw.types.inherits:
-			inherit_elems = [*scope.locals[:-1], inherit.type_name.tokens, elems[0]]
+			inherit_elems = [*scope.elements[:-1], inherit.type_name.tokens, elems[0]]
 			inherit_scope = ModuleDSN.full_join(scope.module_path, *inherit_elems)
 			if inherit_scope.dsn in db:
 				return self.__find_raw_recursive(db, inherit_scope, elems[1:])

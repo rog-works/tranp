@@ -200,8 +200,8 @@ class SymbolFinder:
 		Returns:
 			IReflection | None: シンボル。未定義の場合はNone
 		"""
-		locals = ModuleDSN.local_elems(ModuleDSN.full_joined(on_module_path, domain_name))
-		import_fullyname = ModuleDSN.full_joined(on_module_path, locals[0])
+		elems = ModuleDSN.elements(domain_name)
+		import_fullyname = ModuleDSN.full_joined(on_module_path, elems[0])
 		if import_fullyname not in db:
 			return None
 
@@ -209,40 +209,54 @@ class SymbolFinder:
 		if not isinstance(import_raw.via, defs.ImportName):
 			return None
 
-		return self.__find_raw_recursive(db, import_raw, ModuleDSN(import_raw.types.module_path), locals)
+		imported_dsn = ModuleDSN.full_join(import_raw.types.module_path, elems[0])
+		return self.__find_raw_recursive(db, imported_dsn, elems[1:])
 
 	def __find_library_raw(self, db: SymbolDB, domain_name: str) -> IReflection | None:
 		"""標準ライブラリーのモジュールからシンボルを探索
 
 		Args:
 			db (SymbolDB): シンボルテーブル
-			on_module_path (str): 所属モジュールのパス
 			domain_name (str): ドメイン名
 		Returns:
 			IReflection | None: シンボル。未定義の場合はNone
 		"""
+		elems = ModuleDSN.elements(domain_name)
 		for module_path in self.__library_paths:
-			fullyname = ModuleDSN.full_joined(module_path, domain_name)
-			if fullyname in db:
-				return db[fullyname]
+			raw = self.__find_raw_recursive(db, ModuleDSN.full_join(module_path, elems[0]), elems[1:])
+			if raw:
+				return raw
 
 		return None
 
-	def __find_raw_recursive(self, db: SymbolDB, raw: IReflection, dsn: ModuleDSN, locals: list[str]) -> IReflection | None:
-		if len(locals) == 0:
+	def __find_raw_recursive(self, db: SymbolDB, scope: ModuleDSN, elems: list[str]) -> IReflection | None:
+		"""シンボルを再帰的に探索
+
+		Args:
+			db (SymbolDB): シンボルテーブル
+			scope (ModuleDSN): スコープ
+			elems (list[str]): ドメイン名の要素リスト
+		Returns:
+			IReflection | None: シンボル。未定義の場合はNone
+		"""
+		if scope.dsn not in db:
+			return None
+
+		raw = db[scope.dsn]
+		if len(elems) == 0:
 			return raw
 
-		new_dsn = dsn.join(locals[0])
-		if new_dsn.dsn in db:
-			return self.__find_raw_recursive(db, db[new_dsn.dsn], new_dsn, locals[1:])
+		new_scope = scope.join(elems[0])
+		if new_scope.dsn in db:
+			return self.__find_raw_recursive(db, new_scope, elems[1:])
 
 		if not isinstance(raw.types, defs.Class):
 			return None
 
 		for inherit in raw.types.inherits:
-			new_locals = [*dsn.locals[:-1], inherit.type_name.tokens, locals[0]]
-			inherit_dsn = ModuleDSN(ModuleDSN.full_joined(dsn.module_path, *new_locals))
-			if inherit_dsn.dsn in db:
-				return self.__find_raw_recursive(db, db[inherit_dsn.dsn], inherit_dsn, locals[1:])
+			inherit_elems = [*scope.locals[:-1], inherit.type_name.tokens, elems[0]]
+			inherit_scope = ModuleDSN.full_join(scope.module_path, *inherit_elems)
+			if inherit_scope.dsn in db:
+				return self.__find_raw_recursive(db, inherit_scope, elems[1:])
 
 		return None

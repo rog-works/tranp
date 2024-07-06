@@ -3,59 +3,83 @@ from rogw.tranp.lang.annotation import override
 
 
 class ModuleDSN:
-	"""モジュールパスDSN"""
+	"""モジュールパスDSN
+
+	Note:
+		* モジュールパスとローカルパスを結合した文字列
+		* モジュールパスとローカルパスの区切り文字は`#`
+		* それ以外の区切り文字は`.`
+		例: `module.path.to#local.symbol`
+	"""
 
 	@classmethod
-	def full_joined(cls, *elems: str) -> str:
+	def full_join(cls, dsn: str, *elems: str) -> 'ModuleDSN':
 		"""要素を結合し、DSNを生成
 
 		Args:
-			*elems (str): 要素リスト
+			dsn (str): DSN
+			*elems (str): ローカル要素リスト
+		Returns:
+			ModuleDSN: 生成したインスタンス
+		Note:
+			@see full_joined
+		"""
+		return cls(cls.full_joined(dsn, *elems))
+
+	@classmethod
+	def full_joined(cls, dsn: str, *elems: str) -> str:
+		"""要素を結合し、DSNを生成
+
+		Args:
+			dsn (str): DSN
+			*elems (str): ローカル要素リスト
 		Returns:
 			str: DSN
 		Note:
 			### 注意事項
-			* 必ずモジュールパスが先頭要素に入力されなければならない
+			* 先頭要素に必ずモジュールパスを含めること
 			* 先頭要素にモジュールパスの区切り文字が存在する場合は後続要素を結合するのみ
 		"""
-		if elems[0].find('#') != -1:
-			return DSN.join(*elems)
+		if dsn.find('#') != -1:
+			return DSN.join(dsn, *elems)
 
-		return DSN.join(elems[0], cls.local_joined(*elems[1:]), delimiter='#')
+		return DSN.join(dsn, cls.local_joined(*elems), delimiter='#')
 
 	@classmethod
-	def local_joined(cls, *local_elems: str) -> str:
+	def local_joined(cls, *elems: str) -> str:
 		"""モジュール内のローカル要素を結合し、ローカルパスを生成
 
 		Args:
-			*local_elems (str): ローカル要素リスト
+			*elems (str): ローカル要素リスト
 		Returns:
 			str: ローカルパス
+		Note:
+			このメソッドの返却値はローカルパスであり、モジュールDSNではない点に注意
 		"""
-		return DSN.join(*local_elems)
+		return DSN.join(*elems)
 
 	@classmethod
-	def local_elems(cls, dsn: str) -> list[str]:
-		"""DSNからローカル要素リストを生成
+	def elements(cls, dsn_or_local: str) -> list[str]:
+		"""DSNまたはローカルパスをローカル要素に分解
 
 		Args:
-			dsn (str): DSN
+			dsn_or_local (str): DSNまたはローカルパス
 		Returns:
 			list[str]: ローカル要素リスト
 		"""
-		return cls.expanded(dsn)[1]
+		_, local = cls.parsed(dsn_or_local) if dsn_or_local.find('#') != -1 else ('', dsn_or_local)
+		return DSN.elements(local)
 
 	@classmethod
-	def local_elem_counts(cls, dsn: str) -> int:
-		"""DSNからローカル要素の数を算出
+	def local_elem_counts(cls, dsn_or_local: str) -> int:
+		"""含まれるローカル要素の数を算出
 
 		Args:
-			dsn (str): DSN
+			dsn_or_local (str): DSNまたはローカルパス
 		Returns:
 			int: ローカル要素の数
 		"""
-		_, local = cls.parsed(dsn) if dsn.find('#') != -1 else ('', dsn)
-		return DSN.elem_counts(local)
+		return len(cls.elements(dsn_or_local))
 
 	@classmethod
 	def parsed(cls, dsn: str) -> tuple[str, str]:
@@ -78,8 +102,8 @@ class ModuleDSN:
 		Returns:
 			tuple[str, list[str]]: (モジュールパス, ローカル要素リスト)
 		"""
-		module_path, local = cls.parsed(dsn)
-		return module_path, DSN.elements(local)
+		module_path, local_path = cls.parsed(dsn)
+		return module_path, DSN.elements(local_path)
 
 	@classmethod
 	def identify(cls, dsn: str, id: int | str) -> str:
@@ -115,12 +139,12 @@ class ModuleDSN:
 		return self.local_elem_counts(self.local_path)
 
 	def join(self, *locals: str) -> 'ModuleDSN':
-		"""現在のDSNにローカル要素を追加し、新たにDSNを生成
+		"""DSNの末尾にローカル要素を追加し、新たにDSNを生成
 
 		Args:
 			*locals (str): 追加するローカル要素リスト
 		Returns:
-			str: DSN
+			ModuleDSN: 生成したインスタンス
 		"""
 		return self.__class__(self.full_joined(self.dsn, *locals))
 

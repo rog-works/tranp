@@ -289,6 +289,7 @@ class ClassDef(Node, IDomain, IScope, INamespace, IDeclaration, ISymbol):
 
 	@property
 	def template_types(self) -> list[Type]:
+		"""Note: @see Class.template_types"""
 		return []
 
 	@property
@@ -501,22 +502,23 @@ class Class(ClassDef):
 	@override
 	@Meta.embed(Node, expandable)
 	def template_types(self) -> list[Type]:
+		"""Note: 厳密に言うとこのメソッドでテンプレートタイプを取得することはできず、候補のタイプノードである点に注意"""
 		def fetch_template_types(t_type: GenericType) -> list[Type]:
-			template_types: list[Type] = []
+			t_types: list[Type] = []
 			for in_t_type in t_type.template_types:
 				if isinstance(in_t_type, GenericType):
-					template_types.extend(fetch_template_types(in_t_type))
+					t_types.extend(fetch_template_types(in_t_type))
 				elif isinstance(in_t_type, VarOfType):
-					template_types.append(in_t_type)
+					t_types.append(in_t_type)
 
-			return template_types
+			return t_types
 
-		template_types: list[Type] = []
+		candidate_types: list[Type] = []
 		for inherit in self.__org_inherits:
 			if isinstance(inherit, GenericType):
-				template_types.extend(fetch_template_types(inherit))
+				candidate_types.extend(fetch_template_types(inherit))
 
-		return template_types
+		return candidate_types
 
 	@property
 	@override

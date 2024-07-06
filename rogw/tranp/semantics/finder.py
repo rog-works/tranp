@@ -122,13 +122,12 @@ class SymbolFinder:
 
 		Args:
 			scope (str): スコープ
-			allow_fallback_lib (bool): True = 標準ライブラリーのパスを加える(default = True)
 		Returns:
 			list[ModuleDSN]: 探索スコープリスト
 		"""
-		module_path, locals = ModuleDSN.expanded(scope)
+		module_path, elems = ModuleDSN.expanded(scope)
 		module_dsn = ModuleDSN(module_path)
-		scopes_of_node = [module_dsn.join(*locals[:i]) for i in range(len(locals) + 1)]
+		scopes_of_node = [module_dsn.join(*elems[:i]) for i in range(len(elems) + 1)]
 		return list(reversed(scopes_of_node))
 
 	def __find_raw(self, db: SymbolDB, scopes: list[ModuleDSN], domain_name: str) -> IReflection | None:

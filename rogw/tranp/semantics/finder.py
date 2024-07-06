@@ -208,7 +208,7 @@ class SymbolFinder:
 		if not isinstance(import_raw.via, defs.ImportAsName):
 			return None
 
-		imported_dsn = ModuleDSN.full_join(import_raw.types.module_path, import_raw.via.fore_name.tokens)
+		imported_dsn = ModuleDSN.full_join(import_raw.types.module_path, import_raw.via.domain_name)
 		return self.__find_raw_recursive(db, imported_dsn, elems[1:])
 
 	def __find_library_raw(self, db: SymbolDB, domain_name: str) -> IReflection | None:

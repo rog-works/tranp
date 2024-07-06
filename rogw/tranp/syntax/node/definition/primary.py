@@ -177,15 +177,16 @@ class ImportName(DeclName):
 class ImportAsName(DeclName):
 	@property
 	@override
-	def domain_name(self) -> str:
-		return self.fore_name.tokens
+	def tokens(self) -> str:
+		return self.symbol.tokens
 
 	@property
-	def fore_name(self) -> ImportName:
-		return self.alias if isinstance(self.alias, ImportName) else self.entity_name
+	@override
+	def symbol(self) -> ImportName:
+		return self.alias if isinstance(self.alias, ImportName) else self.entity_symbol
 
 	@property
-	def entity_name(self) -> ImportName:
+	def entity_symbol(self) -> ImportName:
 		return self._at(0).as_a(ImportName)
 
 	@property

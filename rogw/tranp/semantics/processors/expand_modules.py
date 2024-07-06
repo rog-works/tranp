@@ -134,7 +134,7 @@ class ExpandModules:
 			for fullyname, full_path in expanded.imports.items():
 				import_name = entrypoint.whole_by(full_path).as_a(defs.ImportAsName)
 				import_node = import_name.declare.as_a(defs.Import)
-				raw = expanded_db[ModuleDSN.full_joined(import_node.import_path.tokens, import_name.entity_name.tokens)]
+				raw = expanded_db[ModuleDSN.full_joined(import_node.import_path.tokens, import_name.entity_symbol.tokens)]
 				expanded_db[fullyname] = raw.to.imports(import_name)
 
 			# 変数宣言シンボルの展開

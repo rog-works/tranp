@@ -527,7 +527,7 @@ class Py2Cpp(ITranspiler):
 		return node.tokens
 
 	def on_import_as_name(self, node: defs.ImportAsName) -> str:
-		return node.fore_name.tokens
+		return node.tokens
 
 	def on_relay(self, node: defs.Relay, receiver: str) -> str:
 		receiver_symbol = self.reflections.type_of(node.receiver)

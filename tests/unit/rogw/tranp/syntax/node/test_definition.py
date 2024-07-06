@@ -700,6 +700,9 @@ class TestDefinition(TestCase):
 	@data_provider([
 		('from a.b.c import A, B', 'file_input.import_stmt', {'import_path': 'a.b.c', 'symbols': ['A', 'B']}),
 		('from a.b.c import (A, B)', 'file_input.import_stmt', {'import_path': 'a.b.c', 'symbols': ['A', 'B']}),
+		('from a.b.c import A, B as C', 'file_input.import_stmt', {'import_path': 'a.b.c', 'symbols': ['A', 'C']}),
+		('from a.b.c import A as B, C', 'file_input.import_stmt', {'import_path': 'a.b.c', 'symbols': ['B', 'C']}),
+		('from a.b.c import (A as B, C as D)', 'file_input.import_stmt', {'import_path': 'a.b.c', 'symbols': ['B', 'D']}),
 	])
 	def test_import(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Import)

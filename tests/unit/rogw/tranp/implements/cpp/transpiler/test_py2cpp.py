@@ -11,7 +11,6 @@ from rogw.tranp.implements.cpp.transpiler.py2cpp import Py2Cpp
 from rogw.tranp.io.loader import IFileLoader
 from rogw.tranp.lang.module import fullyname
 from rogw.tranp.lang.profile import profiler
-from rogw.tranp.dsn.dsn import DSN
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.semantics.plugin import PluginProvider
@@ -148,7 +147,7 @@ class ASTMapping:
 
 
 def _ast(before: str, after: str) -> str:
-	return DSN.join(ASTMapping.aliases[before], after)
+	return ModuleDSN.local_joined(ASTMapping.aliases[before], after)
 
 
 def fixture_translation_mapping(loader: IFileLoader) -> TranslationMapping:

@@ -1,7 +1,7 @@
 from typing import Generic, TypeVar
 
 from rogw.tranp.compatible.python.embed import __actual__
-from rogw.tranp.dsn.dsn import DSN
+from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.lang.annotation import duck_typed, implements, override
 from rogw.tranp.lang.sequence import flatten, last_index_of
 from rogw.tranp.syntax.node.accessible import ClassOperations
@@ -33,7 +33,7 @@ class Flow(Node, IDomain, IScope):
 	@override
 	def domain_name(self) -> str:
 		# XXX 一意な名称を持たないためIDで代用
-		return DSN.identify(self.classification, self.id)
+		return ModuleDSN.identify(self.classification, self.id)
 
 
 class FlowEnter(Flow): pass

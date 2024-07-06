@@ -2,7 +2,6 @@ from unittest import TestCase
 
 import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.compatible.python.types import Standards
-from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.test.helper import data_provider
@@ -99,7 +98,7 @@ class ASTMapping:
 
 
 def _ast(before: str, after: str) -> str:
-	return DSN.join(ASTMapping.aliases[before], after)
+	return ModuleDSN.local_joined(ASTMapping.aliases[before], after)
 
 
 def _mod(before: str, after: str) -> str:

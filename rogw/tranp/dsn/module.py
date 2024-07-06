@@ -115,7 +115,7 @@ class ModuleDSN:
 		Returns:
 			str: DSN
 		"""
-		return DSN.identify(dsn, id)
+		return f'{dsn}@{id}'
 
 	def __init__(self, dsn: str) -> None:
 		"""インスタンスを生成

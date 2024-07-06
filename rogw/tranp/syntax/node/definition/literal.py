@@ -1,5 +1,5 @@
 import rogw.tranp.compatible.libralies.classes as classes
-from rogw.tranp.dsn.dsn import DSN
+from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.lang.annotation import implements, override
 from rogw.tranp.lang.comment import Comment as CommentData
 from rogw.tranp.syntax.node.behavior import IDomain, ITerminal
@@ -13,7 +13,7 @@ class Literal(Node, IDomain):
 	@override
 	def domain_name(self) -> str:
 		# XXX 一意な名称を持たないためIDで代用
-		return DSN.identify(self.literal_identifier, self.id)
+		return ModuleDSN.identify(self.literal_identifier, self.id)
 
 	@property
 	def literal_identifier(self) -> str:

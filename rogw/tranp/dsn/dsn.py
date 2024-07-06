@@ -122,15 +122,3 @@ class DSN:
 
 		elems = [elem for elem in origin.split(starts)[1].split(delimiter)]
 		return cls.join(*elems)
-
-	@classmethod
-	def identify(cls, origin: str, id: int | str) -> str:
-		"""IDを付与し、一意性を持ったドメイン名を生成
-
-		Args:
-			origin (str): ドメイン名
-			id (int | str): ID
-		Returns:
-			str: ドメイン名
-		"""
-		return f'{origin}@{id}'

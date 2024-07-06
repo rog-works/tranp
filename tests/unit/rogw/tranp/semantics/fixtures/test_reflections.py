@@ -2,7 +2,7 @@ from typing import Generic, TypeAlias, TypeVar, cast
 
 from rogw.tranp.compatible.cpp.enum import CEnum
 
-from tests.unit.rogw.tranp.semantics.reflection.fixtures.test_symbol_db_combine import C
+from tests.unit.rogw.tranp.semantics.reflection.fixtures.test_symbol_db_combine import B, C
 
 DSI: TypeAlias = dict[str, int]
 DSI2: TypeAlias = dict[str, DSI]
@@ -268,5 +268,5 @@ class GenericOps(Generic[T]):
 		b = cast(GenericOps[Base], sub)
 
 
-def imported_inner_type_ref() -> None:
+def imported_inner_type_ref(b: B.AA) -> None:
 	a = C.AA()

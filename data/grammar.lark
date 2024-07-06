@@ -27,9 +27,10 @@ file_input: (_NEWLINE | statement)*
 
 // @decl `from module.path.to import symbol1, symbol2, ...`
 // @lark import_from: "from" (dots? dotted_name | dots) "import" ("*" | "(" import_as_names ")" | import_as_names)
-import_stmt: "from" dotted_name "import" ("(" import_names ")" | import_names)
+import_stmt: "from" dotted_name "import" ("(" import_as_names ")" | import_as_names)
 dotted_name: name ("." name)*
-import_names: name ("," name)* [","]
+import_as_name: name ["as" name]
+import_as_names: import_as_name ("," import_as_name)* [","]
 
 // # Common elements
 

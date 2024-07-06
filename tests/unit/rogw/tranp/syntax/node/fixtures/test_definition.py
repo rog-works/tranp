@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import Generic, TypeVar
 
-from rogw.tranp.compatible.cpp.enum import CEnum
+from rogw.tranp.compatible.cpp.enum import CEnum as Enum
 from rogw.tranp.compatible.python.embed import __actual__
 
 T = TypeVar('T')
@@ -11,7 +11,7 @@ global_n = 0
 global_s: str = ''
 
 
-class Values(CEnum):
+class Values(Enum):
 	A = 0
 	B = 1
 

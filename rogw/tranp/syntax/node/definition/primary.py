@@ -70,7 +70,7 @@ class Declable(Node, IDomain, ISymbol, ITerminal):
 		Raises:
 			InvalidRelationError: 不正な親子関係
 		"""
-		parent_tags = ['assign_namelist', 'for_namelist', 'except_clause', 'typedparam', 'import_names']
+		parent_tags = ['assign_namelist', 'for_namelist', 'except_clause', 'typedparam', 'import_as_names']
 		if self._full_path.parent_tag in parent_tags and isinstance(self.parent, IDeclaration):
 			return self.parent
 
@@ -171,6 +171,28 @@ class ImportName(DeclName):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
 		return DeclableMatcher.in_decl_import(via)
+
+
+@Meta.embed(Node, accept_tags('import_as_name'))
+class ImportAsName(DeclName):
+	@property
+	@override
+	def tokens(self) -> str:
+		return self.symbol.tokens
+
+	@property
+	@override
+	def symbol(self) -> ImportName:
+		return self.alias if isinstance(self.alias, ImportName) else self.entity_symbol
+
+	@property
+	def entity_symbol(self) -> ImportName:
+		return self._at(0).as_a(ImportName)
+
+	@property
+	def alias(self) -> ImportName | Empty:
+		node = self._at(1)
+		return node if isinstance(node, ImportName) else node.as_a(Empty)
 
 
 class Reference(Node): pass
@@ -697,4 +719,4 @@ class DeclableMatcher:
 			bool: True = 対象
 		"""
 		via_full_path = EntryPath(via.full_path)
-		return via_full_path.parent_tag == 'import_names'
+		return via_full_path.parent_tag == 'import_as_name'

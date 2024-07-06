@@ -700,6 +700,9 @@ class TestDefinition(TestCase):
 	@data_provider([
 		('from a.b.c import A, B', 'file_input.import_stmt', {'import_path': 'a.b.c', 'symbols': ['A', 'B']}),
 		('from a.b.c import (A, B)', 'file_input.import_stmt', {'import_path': 'a.b.c', 'symbols': ['A', 'B']}),
+		('from a.b.c import A, B as C', 'file_input.import_stmt', {'import_path': 'a.b.c', 'symbols': ['A', 'C']}),
+		('from a.b.c import A as B, C', 'file_input.import_stmt', {'import_path': 'a.b.c', 'symbols': ['B', 'C']}),
+		('from a.b.c import (A as B, C as D)', 'file_input.import_stmt', {'import_path': 'a.b.c', 'symbols': ['B', 'D']}),
 	])
 	def test_import(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Import)
@@ -734,7 +737,11 @@ class TestDefinition(TestCase):
 		('def func(a: int) -> None: ...', 'file_input.function_def.function_def_raw.name', defs.TypesName),
 		('A: TypeAlias = int', 'file_input.class_assign.assign_namelist.var', defs.AltTypesName),
 		('T = TypeVar("T")', 'file_input.template_assign.assign_namelist.var', defs.AltTypesName),
-		('from path.to import A', 'file_input.import_stmt.import_names.name', defs.ImportName),
+		('from path.to import A', 'file_input.import_stmt.import_as_names.import_as_name.name', defs.ImportName),
+		('from path.to import A as B', 'file_input.import_stmt.import_as_names.import_as_name.name[0]', defs.ImportName),
+		('from path.to import A as B', 'file_input.import_stmt.import_as_names.import_as_name.name[1]', defs.ImportName),
+		('from path.to import A', 'file_input.import_stmt.import_as_names.import_as_name', defs.ImportAsName),
+		('from path.to import A as B', 'file_input.import_stmt.import_as_names.import_as_name', defs.ImportAsName),
 	])
 	def test_declable(self, source: str, full_path: str, expected: type) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Declable)

@@ -1,6 +1,6 @@
 from rogw.tranp.compatible.cpp.object import CP, CRef, CRefConst
 from rogw.tranp.compatible.cpp.preprocess import c_pragma
-from rogw.tranp.compatible.cpp.enum import CEnum
+from rogw.tranp.compatible.cpp.enum import CEnum as Enum
 
 c_pragma('once')
 
@@ -10,7 +10,7 @@ from example.FW.core import log_error, log_info, log_warning
 class CellMesh:
 	"""セル(メッシュ)関連のライブラリー"""
 
-	class VertexIndexs(CEnum):
+	class VertexIndexs(Enum):
 		"""セルの8頂点インデックス"""
 		BottomBackLeft = 0
 		BottomBackRight = 1
@@ -22,7 +22,7 @@ class CellMesh:
 		TopFrontRight = 7
 		Max = 8
 
-	class FaceIndexs(CEnum):
+	class FaceIndexs(Enum):
 		"""セルの6面インデックス"""
 		Left = 0
 		Right = 1
@@ -32,7 +32,7 @@ class CellMesh:
 		Top = 5
 		Max = 6
 
-	class OffsetIndexs(CEnum):
+	class OffsetIndexs(Enum):
 		"""オフセットインデックス(3x3x3)"""
 		Left = 12
 		Right = 14
@@ -42,7 +42,7 @@ class CellMesh:
 		Top = 22
 		Max = 27
 
-	class NeedCellIndexs(CEnum):
+	class NeedCellIndexs(Enum):
 		"""必須セルインデックス @note needCells専用"""
 		Bottom0 = 0
 		Bottom1 = 1

@@ -66,6 +66,7 @@ from rogw.tranp.syntax.node.definition.primary import (
 	TypesName,
 	AltTypesName,
 	ImportName,
+	ImportAsName,
 	# reference
 	Reference,
 	Relay,

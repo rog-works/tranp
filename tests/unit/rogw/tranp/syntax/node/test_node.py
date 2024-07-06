@@ -61,7 +61,7 @@ class TestNode(TestCase):
 		('...', 'file_input', 'file_input'),
 		('class A: ...', 'file_input.class_def', 'class_def'),
 		('class A: ...', 'file_input.class_def.class_def_raw.block', 'block'),
-		('class E(CEnum): ...', 'file_input.class_def', 'class_def'),
+		('class E(Enum): ...', 'file_input.class_def', 'class_def'),
 		('def func() -> None: ...', 'file_input.function_def', 'function_def'),
 		('if 1: ...', 'file_input.if_stmt', 'if_stmt'),
 		('1', 'file_input.number', 'number'),
@@ -76,7 +76,7 @@ class TestNode(TestCase):
 		('...', 'file_input', 'entrypoint'),
 		('class A: ...', 'file_input.class_def', 'class'),
 		('class A: ...', 'file_input.class_def.class_def_raw.block', 'block'),
-		('class E(CEnum): ...', 'file_input.class_def', 'enum'),
+		('class E(Enum): ...', 'file_input.class_def', 'enum'),
 		('def func() -> None: ...', 'file_input.function_def', 'function'),
 		('if 1: ...', 'file_input.if_stmt', 'if'),
 		('1', 'file_input.number', 'integer'),
@@ -107,7 +107,7 @@ class TestNode(TestCase):
 		('class A:\n\tdef method(self) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def', defs.Method, 'method', '__main__#A.method'),
 		('class A:\n\tdef method(self) -> None:\n\t\tdef closure() -> None: ...', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.function_def', defs.Closure, 'closure', '__main__#A.method.closure'),
 		('class A: ...', 'file_input.class_def', defs.Class, 'A', '__main__#A'),
-		('class E(CEnum): ...', 'file_input.class_def', defs.Enum, 'E', '__main__#E'),
+		('class E(Enum): ...', 'file_input.class_def', defs.Enum, 'E', '__main__#E'),
 		('B: TypeAlias = A', 'file_input.class_assign', defs.AltClass, 'B', '__main__#B'),
 		('T = TypeVar("T")', 'file_input.template_assign', defs.TemplateClass, 'T', '__main__#T'),
 		# Elements
@@ -143,7 +143,11 @@ class TestNode(TestCase):
 		# Primary - Name
 		('class A: ...', 'file_input.class_def.class_def_raw.name', defs.TypesName, 'A', '__main__#A.A'),
 		('B: TypeAlias = A', 'file_input.class_assign.assign_namelist.var', defs.AltTypesName, 'B', '__main__#B.B'),
-		('from a.b.c import A', 'file_input.import_stmt.import_names.name', defs.ImportName, 'A', '__main__#A'),
+		('from a.b.c import A', 'file_input.import_stmt.import_as_names.import_as_name.name', defs.ImportName, 'A', '__main__#A'),
+		('from a.b.c import A as B', 'file_input.import_stmt.import_as_names.import_as_name.name[0]', defs.ImportName, 'A', '__main__#A'),
+		('from a.b.c import A as B', 'file_input.import_stmt.import_as_names.import_as_name.name[1]', defs.ImportName, 'B', '__main__#B'),
+		('from a.b.c import A', 'file_input.import_stmt.import_as_names.import_as_name', defs.ImportAsName, 'A', '__main__#A'),
+		('from a.b.c import A as B', 'file_input.import_stmt.import_as_names.import_as_name', defs.ImportAsName, 'B', '__main__#B'),
 		# Primary - Reference
 		('a.b', 'file_input.getattr', defs.Relay, 'a.b', '__main__#a.b'),
 		('{"a": 1}.items()', 'file_input.funccall.getattr', defs.Relay, 'dict@3.items', '__main__#dict@3.items'),
@@ -211,7 +215,7 @@ class TestNode(TestCase):
 		# Statement compound - ClassDef
 		('def func() -> None: ...', 'file_input.function_def', defs.Function, '__main__', '__main__'),
 		('class A: ...', 'file_input.class_def', defs.Class, '__main__', '__main__'),
-		('class E(CEnum): ...', 'file_input.class_def', defs.Enum, '__main__', '__main__'),
+		('class E(Enum): ...', 'file_input.class_def', defs.Enum, '__main__', '__main__'),
 		('B: TypeAlias = A', 'file_input.class_assign', defs.AltClass, '__main__', '__main__'),
 		('T = TypeVar("T")', 'file_input.template_assign', defs.TemplateClass, '__main__', '__main__'),
 		# Elements
@@ -244,9 +248,9 @@ class TestNode(TestCase):
 		# Primary - Name
 		('class A: ...', 'file_input.class_def.class_def_raw.name', defs.TypesName, '__main__#A', '__main__#A'),
 		('def func() -> None: ...', 'file_input.function_def.function_def_raw.name', defs.TypesName, '__main__#func', '__main__#func'),
-		('class E(CEnum): ...', 'file_input.class_def.class_def_raw.name', defs.TypesName, '__main__#E', '__main__#E'),
+		('class E(Enum): ...', 'file_input.class_def.class_def_raw.name', defs.TypesName, '__main__#E', '__main__#E'),
 		('B: TypeAlias = A', 'file_input.class_assign.assign_namelist.var', defs.AltTypesName, '__main__#B', '__main__#B'),
-		('from a.b.c import A', 'file_input.import_stmt.import_names.name', defs.ImportName, '__main__', '__main__'),
+		('from a.b.c import A', 'file_input.import_stmt.import_as_names.import_as_name.name', defs.ImportName, '__main__', '__main__'),
 		# Primary - Reference
 		('a.b', 'file_input.getattr', defs.Relay, '__main__', '__main__'),
 		('class A:\n\t@classmethod\n\tdef c_method(cls) -> None:\n\t\tprint(cls)', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.funccall.arguments.argvalue.var', defs.ClassRef, '__main__#A.c_method', '__main__#A.c_method'),
@@ -288,7 +292,7 @@ class TestNode(TestCase):
 		('...', 'file_input', ''),
 		('class A: ...', 'file_input.class_def.class_def_raw.name', 'A'),
 		('class A: ...', 'file_input.class_def.class_def_raw.block', ''),
-		('class E(CEnum): ...', 'file_input.class_def.class_def_raw.name', 'E'),
+		('class E(Enum): ...', 'file_input.class_def.class_def_raw.name', 'E'),
 		('def func() -> None: ...', 'file_input.function_def.function_def_raw.name', 'func'),
 		('if 1: ...', 'file_input.if_stmt.if_clause.block', ''),
 		('1', 'file_input.number', '1'),
@@ -300,7 +304,7 @@ class TestNode(TestCase):
 	@data_provider([
 		('class A: ...', 'file_input.class_def', 'entrypoint'),
 		('class A: ...', 'file_input.class_def.class_def_raw.block', 'class'),
-		('class E(CEnum): ...', 'file_input.class_def', 'entrypoint'),
+		('class E(Enum): ...', 'file_input.class_def', 'entrypoint'),
 		('def func() -> None: ...', 'file_input.function_def', 'entrypoint'),
 		('if 1: ...', 'file_input.if_stmt', 'entrypoint'),
 		('1', 'file_input.number', 'entrypoint'),
@@ -313,7 +317,7 @@ class TestNode(TestCase):
 		('...', 'file_input', True),
 		('class A: ...', 'file_input.class_def', True),
 		('class A: ...', 'file_input.class_def.class_def_raw.block', True),
-		('class E(CEnum): ...', 'file_input.class_def', True),
+		('class E(Enum): ...', 'file_input.class_def', True),
 		('def func() -> None: ...', 'file_input.function_def', True),
 		('if 1: ...', 'file_input.if_stmt', True),
 		('1', 'file_input.number', False),

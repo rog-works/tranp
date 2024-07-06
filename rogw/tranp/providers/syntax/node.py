@@ -74,6 +74,7 @@ def symbol_mapping() -> SymbolMapping:
 			defs.TypesName: ['name'],
 			defs.AltTypesName: ['var'],
 			defs.ImportName: ['name'],
+			defs.ImportAsName: ['import_as_name'],
 			defs.Relay: ['getattr'],
 			defs.ClassRef: ['var'],
 			defs.ThisRef: ['var'],

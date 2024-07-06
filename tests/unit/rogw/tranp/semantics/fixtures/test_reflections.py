@@ -268,5 +268,5 @@ class GenericOps(Generic[T]):
 		b = cast(GenericOps[Base], sub)
 
 
-def imported_inner_type_ref(b: B.AA) -> None:
+def imported_inner_type_ref(b: C.AA) -> None:
 	a = C.AA()

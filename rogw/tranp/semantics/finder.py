@@ -209,8 +209,7 @@ class SymbolFinder:
 		if not isinstance(import_raw.via, defs.ImportName):
 			return None
 
-		imported_fullyname = ModuleDSN.full_joined(import_raw.types.module_path, domain_name)
-		return db.get(imported_fullyname)
+		return self.__find_raw_recursive(db, import_raw, ModuleDSN(import_raw.types.module_path), locals)
 
 	def __find_library_raw(self, db: SymbolDB, domain_name: str) -> IReflection | None:
 		"""標準ライブラリーのモジュールからシンボルを探索
@@ -226,5 +225,24 @@ class SymbolFinder:
 			fullyname = ModuleDSN.full_joined(module_path, domain_name)
 			if fullyname in db:
 				return db[fullyname]
+
+		return None
+
+	def __find_raw_recursive(self, db: SymbolDB, raw: IReflection, dsn: ModuleDSN, locals: list[str]) -> IReflection | None:
+		if len(locals) == 0:
+			return raw
+
+		new_dsn = dsn.join(locals[0])
+		if new_dsn.dsn in db:
+			return self.__find_raw_recursive(db, db[new_dsn.dsn], new_dsn, locals[1:])
+
+		if not isinstance(raw.types, defs.Class):
+			return None
+
+		for inherit in raw.types.inherits:
+			new_locals = [*dsn.locals[:-1], inherit.type_name.tokens, locals[0]]
+			inherit_dsn = ModuleDSN(ModuleDSN.full_joined(dsn.module_path, *new_locals))
+			if inherit_dsn.dsn in db:
+				return self.__find_raw_recursive(db, db[inherit_dsn.dsn], inherit_dsn, locals[1:])
 
 		return None

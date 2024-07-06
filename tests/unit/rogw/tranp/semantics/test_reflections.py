@@ -297,7 +297,7 @@ class TestReflections(TestCase):
 		self.assertEqual(expected, reflections.type_of_standard(standard_type).types.fullyname)
 
 	@data_provider([
-		(_ast(ModuleDSN.full_joined(fixture_module_path, 'import.xyz'), 'import_names[1].name'), _mod('xyz', 'C'), 'C'),
+		(_ast(ModuleDSN.full_joined(fixture_module_path, 'import.xyz'), 'import_names.name[1]'), _mod('xyz', 'C'), 'C'),
 		(_ast(ModuleDSN.full_joined(fixture_module_path, 'value'), 'assign_namelist.var'), _mod('classes', 'int'), 'int'),
 		(_ast(ModuleDSN.full_joined(fixture_module_path, 'value'), 'typed_var'), _mod('classes', 'int'), 'int'),
 		(_ast(ModuleDSN.full_joined(fixture_module_path, 'value'), 'number'), _mod('classes', 'int'), 'int'),
@@ -399,7 +399,7 @@ class TestReflections(TestCase):
 
 		(_ast('GenericOps.new.block', 'assign.funccall'), ModuleDSN.full_joined(fixture_module_path, 'GenericOps'), 'GenericOps<int>'),
 		(_ast('GenericOps.cast.block', 'assign.funccall.arguments.argvalue[0]'), _mod('classes', 'type'), 'type<GenericOps<Base>>'),
-	], includes=[22])
+	])
 	def test_type_of(self, full_path: str, expected: str, attrs_expected: str) -> None:
 		reflections = self.fixture.get(Reflections)
 		node = self.fixture.shared_nodes_by(full_path)

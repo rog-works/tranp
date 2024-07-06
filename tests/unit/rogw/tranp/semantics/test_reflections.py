@@ -297,7 +297,7 @@ class TestReflections(TestCase):
 		self.assertEqual(expected, reflections.type_of_standard(standard_type).types.fullyname)
 
 	@data_provider([
-		(_ast(ModuleDSN.full_joined(fixture_module_path, 'import.xyz'), 'import_names.name[1]'), _mod('xyz', 'C'), 'C'),
+		(_ast(ModuleDSN.full_joined(fixture_module_path, 'import.xyz'), 'import_as_names.name[2]'), _mod('xyz', 'C'), 'C'),
 		(_ast(ModuleDSN.full_joined(fixture_module_path, 'value'), 'assign_namelist.var'), _mod('classes', 'int'), 'int'),
 		(_ast(ModuleDSN.full_joined(fixture_module_path, 'value'), 'typed_var'), _mod('classes', 'int'), 'int'),
 		(_ast(ModuleDSN.full_joined(fixture_module_path, 'value'), 'number'), _mod('classes', 'int'), 'int'),

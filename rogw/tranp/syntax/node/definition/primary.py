@@ -70,7 +70,7 @@ class Declable(Node, IDomain, ISymbol, ITerminal):
 		Raises:
 			InvalidRelationError: 不正な親子関係
 		"""
-		parent_tags = ['assign_namelist', 'for_namelist', 'except_clause', 'typedparam', 'import_names']
+		parent_tags = ['assign_namelist', 'for_namelist', 'except_clause', 'typedparam', 'import_as_names']
 		if self._full_path.parent_tag in parent_tags and isinstance(self.parent, IDeclaration):
 			return self.parent
 
@@ -697,4 +697,4 @@ class DeclableMatcher:
 			bool: True = 対象
 		"""
 		via_full_path = EntryPath(via.full_path)
-		return via_full_path.parent_tag == 'import_names'
+		return via_full_path.parent_tag == 'import_as_names'

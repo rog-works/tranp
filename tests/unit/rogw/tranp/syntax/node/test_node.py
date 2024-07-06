@@ -143,7 +143,7 @@ class TestNode(TestCase):
 		# Primary - Name
 		('class A: ...', 'file_input.class_def.class_def_raw.name', defs.TypesName, 'A', '__main__#A.A'),
 		('B: TypeAlias = A', 'file_input.class_assign.assign_namelist.var', defs.AltTypesName, 'B', '__main__#B.B'),
-		('from a.b.c import A', 'file_input.import_stmt.import_names.name', defs.ImportName, 'A', '__main__#A'),
+		('from a.b.c import A', 'file_input.import_stmt.import_as_names.name', defs.ImportName, 'A', '__main__#A'),
 		# Primary - Reference
 		('a.b', 'file_input.getattr', defs.Relay, 'a.b', '__main__#a.b'),
 		('{"a": 1}.items()', 'file_input.funccall.getattr', defs.Relay, 'dict@3.items', '__main__#dict@3.items'),
@@ -246,7 +246,7 @@ class TestNode(TestCase):
 		('def func() -> None: ...', 'file_input.function_def.function_def_raw.name', defs.TypesName, '__main__#func', '__main__#func'),
 		('class E(CEnum): ...', 'file_input.class_def.class_def_raw.name', defs.TypesName, '__main__#E', '__main__#E'),
 		('B: TypeAlias = A', 'file_input.class_assign.assign_namelist.var', defs.AltTypesName, '__main__#B', '__main__#B'),
-		('from a.b.c import A', 'file_input.import_stmt.import_names.name', defs.ImportName, '__main__', '__main__'),
+		('from a.b.c import A', 'file_input.import_stmt.import_as_names.name', defs.ImportName, '__main__', '__main__'),
 		# Primary - Reference
 		('a.b', 'file_input.getattr', defs.Relay, '__main__', '__main__'),
 		('class A:\n\t@classmethod\n\tdef c_method(cls) -> None:\n\t\tprint(cls)', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.funccall.arguments.argvalue.var', defs.ClassRef, '__main__#A.c_method', '__main__#A.c_method'),

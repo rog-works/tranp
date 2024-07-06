@@ -734,7 +734,7 @@ class TestDefinition(TestCase):
 		('def func(a: int) -> None: ...', 'file_input.function_def.function_def_raw.name', defs.TypesName),
 		('A: TypeAlias = int', 'file_input.class_assign.assign_namelist.var', defs.AltTypesName),
 		('T = TypeVar("T")', 'file_input.template_assign.assign_namelist.var', defs.AltTypesName),
-		('from path.to import A', 'file_input.import_stmt.import_names.name', defs.ImportName),
+		('from path.to import A', 'file_input.import_stmt.import_as_names.name', defs.ImportName),
 	])
 	def test_declable(self, source: str, full_path: str, expected: type) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Declable)

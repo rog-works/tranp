@@ -134,4 +134,9 @@ class Import(Node, IDeclaration):
 	@property
 	@Meta.embed(Node, expandable)
 	def symbols(self) -> list[ImportName]:
-		return [node.as_a(ImportName) for node in self._children('import_names')]
+		names = self._children('import_as_names')
+		name_sets: list[tuple[Node, Node]] = []
+		for i in range(int(len(names) / 2)):
+			name_sets.append((names[i * 2], names[i * 2 + 1]))
+
+		return [alias if isinstance(alias, ImportName) else name.as_a(ImportName) for name, alias in name_sets]

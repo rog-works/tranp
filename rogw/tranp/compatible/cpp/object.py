@@ -1,30 +1,31 @@
+from abc import ABCMeta, abstractmethod
 from typing import Generic, TypeVar, cast
+
+from rogw.tranp.lang.annotation import implements
 
 T = TypeVar('T')
 T_co = TypeVar('T_co', covariant=True)
 T_New = TypeVar('T_New')
 
 
-class CVar(Generic[T_co]):
+class CVar(Generic[T_co], metaclass=ABCMeta):
 	"""C++型変数の互換クラス(基底)"""
 
-	def __init__(self, origin: T_co) -> None:
-		"""インスタンスを生成
-
-		Args:
-			origin (T_co): 実体のインスタンス
-		"""
-		self.__origin = origin
+	@property
+	@abstractmethod
+	def _origin(self) -> T_co:
+		"""T_co: 実体のインスタンス"""
+		...
 
 	@property
 	def on(self) -> T_co:
 		"""実体を返却するリレー代替メソッド。C++では実体型は`.`、アドレス型は`->`に相当"""
-		return self.__origin
+		return self._origin
 
 	@property
 	def raw(self) -> T_co:
 		"""実体を返却する実体参照代替メソッド。C++では実体型は削除、アドレス型は`*`に相当"""
-		return self.__origin
+		return self._origin
 
 
 class CP(CVar[T_co]):
@@ -41,25 +42,19 @@ class CP(CVar[T_co]):
 		"""
 		return CP[var_type]
 
-	def __add__(self, other: 'CP[T_co]') -> int:
-		"""アドレス演算(加算)
+	def __init__(self, origin: T_co) -> None:
+		"""インスタンスを生成
 
 		Args:
-			other (CP[T_co]): 対象
-		Returns:
-			int: アドレス
+			origin (T_co): 実体のインスタンス
 		"""
-		raise NotImplementedError()
+		self.__origin = origin
 
-	def __sub__(self, other: 'CP[T_co]') -> int:
-		"""アドレス演算(減算)
-
-		Args:
-			other (CP[T_co]): 対象
-		Returns:
-			int: アドレス
-		"""
-		raise NotImplementedError()
+	@property
+	@implements
+	def _origin(self) -> T_co:
+		"""T_co: 実体のインスタンス"""
+		return self.__origin
 
 	@classmethod
 	def new(cls, origin: T_New) -> 'CP[T_New]':
@@ -76,6 +71,26 @@ class CP(CVar[T_co]):
 		"""Constを返却する参照変換代替メソッド。C++では削除"""
 		return CPConst(self.raw)
 
+	def __add__(self, offset: int) -> int:
+		"""アドレス演算(加算)
+
+		Args:
+			offset (int): オフセット
+		Returns:
+			int: アドレス
+		"""
+		return id(self) + offset
+
+	def __sub__(self, other: 'CP[T_co]') -> int:
+		"""アドレス演算(減算)
+
+		Args:
+			other (CP[T_co]): 対象
+		Returns:
+			int: アドレス
+		"""
+		return id(self) - id(other)
+
 
 class CSP(CVar[T_co]):
 	"""C++型変数の互換クラス(スマートポインター)"""
@@ -91,14 +106,24 @@ class CSP(CVar[T_co]):
 		"""
 		return CSP[var_type]
 
+	def __init__(self, origin: T_co | None = None) -> None:
+		"""インスタンスを生成
+
+		Args:
+			origin (T_co | None): 実体のインスタンス (default = None)
+		"""
+		self.__origin = origin
+
+	@property
+	@implements
+	def _origin(self) -> T_co:
+		"""T_co: 実体のインスタンス"""
+		return cast(T_co, self.__origin)
+
 	@classmethod
 	def empty(cls) -> 'CSP[T_co]':
-		"""空のスマートポインターの初期化を代替するメソッド。C++では`std::shared_ptr<T>()`に相当
-
-		Note:
-			FIXME Python側の実装が完全に破綻しているので改善策を検討
-		"""
-		return cast(CSP[T_co], None)
+		"""空のスマートポインターの初期化を代替するメソッド。C++では`std::shared_ptr<T>()`に相当"""
+		return CSP[T_co]()
 
 	@classmethod
 	def new(cls, origin: T_New) -> 'CSP[T_New]':
@@ -135,6 +160,20 @@ class CRef(CVar[T_co]):
 		"""
 		return CRef[var_type]
 
+	def __init__(self, origin: T_co) -> None:
+		"""インスタンスを生成
+
+		Args:
+			origin (T_co): 実体のインスタンス
+		"""
+		self.__origin = origin
+
+	@property
+	@implements
+	def _origin(self) -> T_co:
+		"""T_co: 実体のインスタンス"""
+		return self.__origin
+
 	@property
 	def addr(self) -> 'CP[T_co]':
 		"""ポインターを返却する参照変換代替メソッド。C++では`&`に相当"""
@@ -160,6 +199,20 @@ class CPConst(CVar[T_co]):
 		"""
 		return CPConst[var_type]
 
+	def __init__(self, origin: T_co) -> None:
+		"""インスタンスを生成
+
+		Args:
+			origin (T_co): 実体のインスタンス
+		"""
+		self.__origin = origin
+
+	@property
+	@implements
+	def _origin(self) -> T_co:
+		"""T_co: 実体のインスタンス"""
+		return self.__origin
+
 	@property
 	def ref(self) -> 'CRefConst[T_co]':
 		"""Const参照を返却する参照変換代替メソッド。C++では`*`に相当"""
@@ -179,6 +232,20 @@ class CSPConst(CVar[T_co]):
 			type[CSPConst[T]]: ラップした型
 		"""
 		return CSPConst[var_type]
+
+	def __init__(self, origin: T_co) -> None:
+		"""インスタンスを生成
+
+		Args:
+			origin (T_co): 実体のインスタンス
+		"""
+		self.__origin = origin
+
+	@property
+	@implements
+	def _origin(self) -> T_co:
+		"""T_co: 実体のインスタンス"""
+		return self.__origin
 
 	@property
 	def ref(self) -> 'CRefConst[T_co]':
@@ -205,6 +272,20 @@ class CRefConst(CVar[T_co]):
 		"""
 		return CRefConst[var_type]
 
+	def __init__(self, origin: T_co) -> None:
+		"""インスタンスを生成
+
+		Args:
+			origin (T_co): 実体のインスタンス
+		"""
+		self.__origin = origin
+
+	@property
+	@implements
+	def _origin(self) -> T_co:
+		"""T_co: 実体のインスタンス"""
+		return self.__origin
+
 	@property
 	def addr(self) -> 'CPConst[T_co]':
 		"""Constポインターを返却する参照変換代替メソッド。C++では`get`に相当"""
@@ -224,6 +305,20 @@ class CRawConst(CVar[T_co]):
 			type[CRefConst[T]]: ラップした型
 		"""
 		return CRawConst[var_type]
+
+	def __init__(self, origin: T_co) -> None:
+		"""インスタンスを生成
+
+		Args:
+			origin (T_co): 実体のインスタンス
+		"""
+		self.__origin = origin
+
+	@property
+	@implements
+	def _origin(self) -> T_co:
+		"""T_co: 実体のインスタンス"""
+		return self.__origin
 
 	@property
 	def ref(self) -> 'CRefConst[T_co]':
@@ -249,6 +344,20 @@ class CRaw(CVar[T_co]):
 			type[CRaw[T]]: ラップした型
 		"""
 		return CRaw[var_type]
+
+	def __init__(self, origin: T_co) -> None:
+		"""インスタンスを生成
+
+		Args:
+			origin (T_co): 実体のインスタンス
+		"""
+		self.__origin = origin
+
+	@property
+	@implements
+	def _origin(self) -> T_co:
+		"""T_co: 実体のインスタンス"""
+		return self.__origin
 
 	@property
 	def ref(self) -> 'CRef[T_co]':

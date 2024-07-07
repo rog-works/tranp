@@ -184,7 +184,7 @@ class CVarOps:
 
 	def addr_calc(self, sp0: CP[Sub], sp1: CP[Sub], bp: CP[Base]) -> None:
 		a = sp0 - sp1
-		b = sp0 + sp1
+		b = sp0 + 1
 
 
 class FuncOps:

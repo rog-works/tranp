@@ -277,7 +277,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarOps.local_decl.block', 'assign[1]'), defs.MoveAssign, 'std::map<int, int*> p_map = {{n, &(n)}};'),
 
 		(_ast('CVarOps.addr_calc.block', 'assign[0]'), defs.MoveAssign, 'int a = sp0 - sp1;'),
-		(_ast('CVarOps.addr_calc.block', 'assign[1]'), defs.MoveAssign, 'int b = sp0 + sp1;'),
+		(_ast('CVarOps.addr_calc.block', 'assign[1]'), defs.MoveAssign, 'int b = sp0 + 1;'),
 
 		(_ast('FuncOps.print.block', 'funccall'), defs.FuncCall, 'printf("message. %d, %f, %s", 1, 1.0, "abc");'),
 		(_ast('FuncOps.kw_params.block', 'assign'), defs.MoveAssign, 'std::string a = this->kw_params(a=1, b=2);'),

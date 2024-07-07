@@ -1,31 +1,32 @@
-from abc import ABCMeta, abstractmethod
 from typing import Generic, TypeVar, cast
 
-from rogw.tranp.lang.annotation import implements
+from rogw.tranp.lang.annotation import override
 
 T = TypeVar('T')
 T_co = TypeVar('T_co', covariant=True)
 T_New = TypeVar('T_New')
 
 
-class CVar(Generic[T_co], metaclass=ABCMeta):
+class CVar(Generic[T_co]):
 	"""C++型変数の互換クラス(基底)"""
 
-	@property
-	@abstractmethod
-	def _origin(self) -> T_co:
-		"""T_co: 実体のインスタンス"""
-		...
+	def __init__(self, origin: T_co) -> None:
+		"""インスタンスを生成
+
+		Args:
+			origin (T_co): 実体のインスタンス
+		"""
+		self._origin: T_co | None = origin
 
 	@property
 	def on(self) -> T_co:
 		"""実体を返却するリレー代替メソッド。C++では実体型は`.`、アドレス型は`->`に相当"""
-		return self._origin
+		return cast(T_co, self._origin)
 
 	@property
 	def raw(self) -> T_co:
 		"""実体を返却する実体参照代替メソッド。C++では実体型は削除、アドレス型は`*`に相当"""
-		return self._origin
+		return cast(T_co, self._origin)
 
 
 class CP(CVar[T_co]):
@@ -41,20 +42,6 @@ class CP(CVar[T_co]):
 			type[CP[T]]: ラップした型
 		"""
 		return CP[var_type]
-
-	def __init__(self, origin: T_co) -> None:
-		"""インスタンスを生成
-
-		Args:
-			origin (T_co): 実体のインスタンス
-		"""
-		self.__origin = origin
-
-	@property
-	@implements
-	def _origin(self) -> T_co:
-		"""T_co: 実体のインスタンス"""
-		return self.__origin
 
 	@classmethod
 	def new(cls, origin: T_New) -> 'CP[T_New]':
@@ -106,19 +93,17 @@ class CSP(CVar[T_co]):
 		"""
 		return CSP[var_type]
 
+	@override
 	def __init__(self, origin: T_co | None = None) -> None:
 		"""インスタンスを生成
 
 		Args:
 			origin (T_co | None): 実体のインスタンス (default = None)
+		Note:
+			XXX 空の状態を実現するため、スマートポインターのみNull許容型とする
+			XXX 基底クラスのコンストラクターをシャドウイングしない方法を検討
 		"""
-		self.__origin = origin
-
-	@property
-	@implements
-	def _origin(self) -> T_co:
-		"""T_co: 実体のインスタンス"""
-		return cast(T_co, self.__origin)
+		self._origin: T_co | None = origin
 
 	@classmethod
 	def empty(cls) -> 'CSP[T_co]':
@@ -160,20 +145,6 @@ class CRef(CVar[T_co]):
 		"""
 		return CRef[var_type]
 
-	def __init__(self, origin: T_co) -> None:
-		"""インスタンスを生成
-
-		Args:
-			origin (T_co): 実体のインスタンス
-		"""
-		self.__origin = origin
-
-	@property
-	@implements
-	def _origin(self) -> T_co:
-		"""T_co: 実体のインスタンス"""
-		return self.__origin
-
 	@property
 	def addr(self) -> 'CP[T_co]':
 		"""ポインターを返却する参照変換代替メソッド。C++では`&`に相当"""
@@ -199,20 +170,6 @@ class CPConst(CVar[T_co]):
 		"""
 		return CPConst[var_type]
 
-	def __init__(self, origin: T_co) -> None:
-		"""インスタンスを生成
-
-		Args:
-			origin (T_co): 実体のインスタンス
-		"""
-		self.__origin = origin
-
-	@property
-	@implements
-	def _origin(self) -> T_co:
-		"""T_co: 実体のインスタンス"""
-		return self.__origin
-
 	@property
 	def ref(self) -> 'CRefConst[T_co]':
 		"""Const参照を返却する参照変換代替メソッド。C++では`*`に相当"""
@@ -232,20 +189,6 @@ class CSPConst(CVar[T_co]):
 			type[CSPConst[T]]: ラップした型
 		"""
 		return CSPConst[var_type]
-
-	def __init__(self, origin: T_co) -> None:
-		"""インスタンスを生成
-
-		Args:
-			origin (T_co): 実体のインスタンス
-		"""
-		self.__origin = origin
-
-	@property
-	@implements
-	def _origin(self) -> T_co:
-		"""T_co: 実体のインスタンス"""
-		return self.__origin
 
 	@property
 	def ref(self) -> 'CRefConst[T_co]':
@@ -272,20 +215,6 @@ class CRefConst(CVar[T_co]):
 		"""
 		return CRefConst[var_type]
 
-	def __init__(self, origin: T_co) -> None:
-		"""インスタンスを生成
-
-		Args:
-			origin (T_co): 実体のインスタンス
-		"""
-		self.__origin = origin
-
-	@property
-	@implements
-	def _origin(self) -> T_co:
-		"""T_co: 実体のインスタンス"""
-		return self.__origin
-
 	@property
 	def addr(self) -> 'CPConst[T_co]':
 		"""Constポインターを返却する参照変換代替メソッド。C++では`get`に相当"""
@@ -305,20 +234,6 @@ class CRawConst(CVar[T_co]):
 			type[CRefConst[T]]: ラップした型
 		"""
 		return CRawConst[var_type]
-
-	def __init__(self, origin: T_co) -> None:
-		"""インスタンスを生成
-
-		Args:
-			origin (T_co): 実体のインスタンス
-		"""
-		self.__origin = origin
-
-	@property
-	@implements
-	def _origin(self) -> T_co:
-		"""T_co: 実体のインスタンス"""
-		return self.__origin
 
 	@property
 	def ref(self) -> 'CRefConst[T_co]':
@@ -344,20 +259,6 @@ class CRaw(CVar[T_co]):
 			type[CRaw[T]]: ラップした型
 		"""
 		return CRaw[var_type]
-
-	def __init__(self, origin: T_co) -> None:
-		"""インスタンスを生成
-
-		Args:
-			origin (T_co): 実体のインスタンス
-		"""
-		self.__origin = origin
-
-	@property
-	@implements
-	def _origin(self) -> T_co:
-		"""T_co: 実体のインスタンス"""
-		return self.__origin
 
 	@property
 	def ref(self) -> 'CRef[T_co]':

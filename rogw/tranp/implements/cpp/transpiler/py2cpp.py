@@ -763,17 +763,22 @@ class Py2Cpp(ITranspiler):
 			cvar_type = spec.split('to_cvar_')[1]
 			return self.view.render(f'{node.classification}/to_cvar', vars={**func_call_vars, 'cvar_type': cvar_type})
 		elif spec == 'cvar_sp_empty':
+			# 期待値: CSP[A].empty()
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
 		elif spec == 'new_cvar_p':
+			# 期待値: CP.new(A(a, b, c))
 			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == 'new_cvar_sp_list':
+			# 期待値1: CSP.new([1, 2, 3])
+			# 期待値2: CSP.new(list[int]())
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			initializer = arguments[0]
+			empty_initializer = isinstance(node.arguments[0].value, defs.FuncCall) and len(node.arguments[0].value.arguments) == 0
+			initializer = ''  if empty_initializer else arguments[0]
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type, 'initializer': initializer})
 		elif spec == 'new_cvar_sp':
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			# 期待値: receiver.new(a, b, c)
+			# 期待値: CSP.new(A(a, b, c))
 			initializer = cast(re.Match, re.fullmatch(r'^[^(]+\((.+)\)$', arguments[0]))[1]
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type, 'initializer': initializer})
 		else:

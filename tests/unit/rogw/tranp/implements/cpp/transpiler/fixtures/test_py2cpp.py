@@ -143,7 +143,9 @@ class CVarOps:
 	def declare(self) -> None:
 		arr = [1]
 		arr_p = CP(arr)
+		arr_p2 = CP.new(list[int]())
 		arr_sp = CSP.new([1])
+		arr_sp2 = CSP.new(list[int]())
 		arr_r = CRef(arr)
 		n_sp_empty = CSP[int].empty()
 		this_p = CP(self)
@@ -184,7 +186,7 @@ class CVarOps:
 
 	def addr_calc(self, sp0: CP[Sub], sp1: CP[Sub], bp: CP[Base]) -> None:
 		a = sp0 - sp1
-		b = sp0 + sp1
+		b = sp0 + 1
 
 
 class FuncOps:

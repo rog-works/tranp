@@ -242,10 +242,12 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarOps.tenary_calc.block', 'assign[5]'), defs.MoveAssign, 'Sub* ap_or_null = true ? ap : nullptr;'),
 
 		(_ast('CVarOps.declare.block', 'assign[1]'), defs.MoveAssign, 'std::vector<int>* arr_p = &(arr);'),
-		(_ast('CVarOps.declare.block', 'assign[2]'), defs.MoveAssign, 'std::shared_ptr<std::vector<int>> arr_sp = std::shared_ptr<std::vector<int>>(new std::vector<int>({1}));'),
-		(_ast('CVarOps.declare.block', 'assign[3]'), defs.MoveAssign, 'std::vector<int>& arr_r = arr;'),
-		(_ast('CVarOps.declare.block', 'assign[4]'), defs.MoveAssign, 'std::shared_ptr<int> n_sp_empty = std::shared_ptr<int>();'),
-		(_ast('CVarOps.declare.block', 'assign[5]'), defs.MoveAssign, 'CVarOps* this_p = this;'),
+		(_ast('CVarOps.declare.block', 'assign[2]'), defs.MoveAssign, 'std::vector<int>* arr_p2 = new std::vector<int>();'),
+		(_ast('CVarOps.declare.block', 'assign[3]'), defs.MoveAssign, 'std::shared_ptr<std::vector<int>> arr_sp = std::shared_ptr<std::vector<int>>(new std::vector<int>({1}));'),
+		(_ast('CVarOps.declare.block', 'assign[4]'), defs.MoveAssign, 'std::shared_ptr<std::vector<int>> arr_sp2 = std::shared_ptr<std::vector<int>>(new std::vector<int>());'),
+		(_ast('CVarOps.declare.block', 'assign[5]'), defs.MoveAssign, 'std::vector<int>& arr_r = arr;'),
+		(_ast('CVarOps.declare.block', 'assign[6]'), defs.MoveAssign, 'std::shared_ptr<int> n_sp_empty = std::shared_ptr<int>();'),
+		(_ast('CVarOps.declare.block', 'assign[7]'), defs.MoveAssign, 'CVarOps* this_p = this;'),
 
 		(_ast('CVarOps.default_param.block', 'assign[0]'), defs.MoveAssign, 'int n = ap ? ap->base_n : 0;'),
 		(_ast('CVarOps.default_param.block', 'assign[1]'), defs.MoveAssign, 'int n2 = this->default_param();'),
@@ -277,7 +279,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarOps.local_decl.block', 'assign[1]'), defs.MoveAssign, 'std::map<int, int*> p_map = {{n, &(n)}};'),
 
 		(_ast('CVarOps.addr_calc.block', 'assign[0]'), defs.MoveAssign, 'int a = sp0 - sp1;'),
-		(_ast('CVarOps.addr_calc.block', 'assign[1]'), defs.MoveAssign, 'int b = sp0 + sp1;'),
+		(_ast('CVarOps.addr_calc.block', 'assign[1]'), defs.MoveAssign, 'int b = sp0 + 1;'),
 
 		(_ast('FuncOps.print.block', 'funccall'), defs.FuncCall, 'printf("message. %d, %f, %s", 1, 1.0, "abc");'),
 		(_ast('FuncOps.kw_params.block', 'assign'), defs.MoveAssign, 'std::string a = this->kw_params(a=1, b=2);'),

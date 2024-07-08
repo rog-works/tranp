@@ -1,5 +1,7 @@
 from enum import Enum
-from typing import Any
+from typing import Any, TypeVar
+
+T_Self = TypeVar('T_Self', bound='CEnum')
 
 
 class CEnum(Enum):
@@ -26,15 +28,15 @@ class CEnum(Enum):
 
 		return super().__eq__(other)
 
-	def __or__(self, other: Any) -> int:
+	def __or__(self, other: T_Self) -> T_Self:
 		"""ビット演算(OR)
 
 		Args:
-			other (Any): 対象
+			other (T_Self): 対象
 		Returns:
-			int: 演算結果
+			T_Self: 演算結果
 		"""
-		return self.value | other
+		return self.value | other.value
 
 	def __hash__(self) -> int:
 		"""インスタンスのハッシュ値を返す

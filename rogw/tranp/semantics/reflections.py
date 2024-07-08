@@ -675,10 +675,6 @@ class ProceduralResolver:
 		if 'left' not in methods and 'right' not in methods:
 			raise OperationNotAllowedError(f'"{operator_name}" not defined. {node}, {str(left)} {operator.tokens} {str(right)}')
 
-		# XXX 算術演算以外は返却型が左右で同じであるため(比較演算=bool, ビット演算=int)、メソッドの定義のみを条件とし、シグネチャーの検証は省略する
-		if not node.is_a(defs.Sum, defs.Term):
-			return methods['left'].attrs[-1] if 'left' in methods else methods['right'].attrs[-1]
-
 		for key, candidate in methods.items():
 			if candidate is None:
 				continue
@@ -691,6 +687,11 @@ class ProceduralResolver:
 			receiver = left if key == 'left' else right
 			other = right if key == 'left' else left
 			actual_other = function_helper.parameter(0, receiver, other)
+
+			# XXX 算術演算以外(比較/ビット演算)は返却型が左右で必ず同じであり、戻り値の型の選別が不要であるため省略する
+			if not node.is_a(defs.Sum, defs.Term):
+				return function_helper.returns(receiver, actual_other)
+
 			var_types = actual_other.attrs if self.reflections.is_a(actual_other, classes.Union) else [actual_other]
 			if other in var_types:
 				return function_helper.returns(receiver, actual_other)

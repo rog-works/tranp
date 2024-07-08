@@ -262,7 +262,7 @@ class TestReflections(TestCase):
 		(ModuleDSN.full_joined(fixture_module_path, 'EnumOps.comparison.b'), 'bool'),
 		(ModuleDSN.full_joined(fixture_module_path, 'EnumOps.comparison.c'), 'bool'),
 		(ModuleDSN.full_joined(fixture_module_path, 'EnumOps.comparison.d'), 'bool'),
-		(ModuleDSN.full_joined(fixture_module_path, 'EnumOps.calc.a'), 'int'),
+		(ModuleDSN.full_joined(fixture_module_path, 'EnumOps.calc.a'), 'Values'),
 
 		(ModuleDSN.full_joined(fixture_module_path, 'Nullable.params.base'), 'Union<Base, None>'),
 		(ModuleDSN.full_joined(fixture_module_path, 'Nullable.accessible.sub'), 'Union<Sub, None>'),

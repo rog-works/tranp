@@ -562,11 +562,11 @@ class Proxy(Reflection):
 class Temporary(Reflection):
 	"""シンボル(テンポラリー)"""
 
-	def __init__(self, origin: Class | Extend, via: defs.Literal | defs.Comprehension | defs.Operator) -> None:
+	def __init__(self, origin: 'Class | Extend | Context', via: defs.Literal | defs.Comprehension | defs.Operator) -> None:
 		"""インスタンスを生成
 
 		Args:
-			origin (Class | Extend): スタックシンボル
+			origin (Class | Extend | Context): スタックシンボル
 			via (Literal | Comprehension | Operator): テンポラリー系ノード
 		"""
 		super().__init__(origin)
@@ -718,8 +718,11 @@ class SymbolWrapper(IWrapper):
 			via (Operator | Comprehension): 結果系ノード 演算/リスト内包表記ノードのみ
 		Returns:
 			IReflection: シンボル
+		Note:
+			FIXME 「結果」と言う目的から考え得るコンテキストは無数に存在するため、self._rawの型制限は実質的に意味を成さず、
+			FIXME 現状テストでエラーが出ないのは、単にテストケースが不足しているだけだと考えられる
 		"""
-		return Temporary(self._raw.one_of(Class, Extend), via)
+		return Temporary(self._raw.one_of(Class, Extend, Context), via)
 
 	@implements
 	def relay(self, via: defs.Relay | defs.Indexer | defs.FuncCall, context: IReflection) -> IReflection:

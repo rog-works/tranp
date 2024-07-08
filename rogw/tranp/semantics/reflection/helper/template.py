@@ -148,9 +148,9 @@ class Method(Function):
 		if len(t_map_parameter) == 0:
 			return parameter
 
-		actual_klass, *_ = context
-		map_props = TemplateManipulator.unpack_symbols(klass=actual_klass)
-		t_map_props = TemplateManipulator.unpack_templates(klass=self.schema.klass)
+		actual_klass, actual_parameter = context
+		map_props = TemplateManipulator.unpack_symbols(klass=actual_klass, parameter=actual_parameter)
+		t_map_props = TemplateManipulator.unpack_templates(klass=self.schema.klass, parameter=parameter)
 		updates = TemplateManipulator.make_updates(t_map_parameter, t_map_props, map_props)
 		return TemplateManipulator.apply(parameter.clone(), map_props, updates)
 

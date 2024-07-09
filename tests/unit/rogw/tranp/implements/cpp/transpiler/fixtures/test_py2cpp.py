@@ -146,6 +146,8 @@ class CVarOps:
 		arr_p2 = CP.new(list[int]())
 		arr_sp = CSP.new([1])
 		arr_sp2 = CSP.new(list[int]())
+		arr_sp3 = CSP.new(list[int]() * 2)
+		arr_sp4 = CSP.new([0] * 2)
 		arr_r = CRef(arr)
 		n_sp_empty = CSP[int].empty()
 		this_p = CP(self)

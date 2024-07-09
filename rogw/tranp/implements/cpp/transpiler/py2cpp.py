@@ -15,7 +15,7 @@ from rogw.tranp.implements.cpp.semantics.cvars import CVars
 from rogw.tranp.lang.annotation import duck_typed, implements, injectable, override
 from rogw.tranp.lang.eventemitter import Callback
 from rogw.tranp.lang.module import fullyname
-from rogw.tranp.lang.parser import parse_block_to_entry, parse_pair_block
+from rogw.tranp.lang.parser import parse_block_to_entry, parse_bracket_block, parse_pair_block
 from rogw.tranp.semantics.procedure import Procedure
 import rogw.tranp.semantics.reflection.helper.template as template
 from rogw.tranp.semantics.reflection.helper.naming import ClassDomainNaming, ClassShorthandNaming
@@ -770,11 +770,17 @@ class Py2Cpp(ITranspiler):
 			# 期待値: CP.new(A(a, b, c))
 			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == 'new_cvar_sp_list':
-			# 期待値1: CSP.new([1, 2, 3])
-			# 期待値2: CSP.new(list[int]())
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			empty_initializer = isinstance(node.arguments[0].value, defs.FuncCall) and len(node.arguments[0].value.arguments) == 0
-			initializer = ''  if empty_initializer else arguments[0]
+			# 期待値1: CSP.new([1, 2, 3])
+			initializer = arguments[0]
+			# 期待値2: CSP.new(list[int]())
+			if isinstance(node.arguments[0].value, defs.FuncCall) and len(node.arguments[0].value.arguments) == 0:
+				initializer = ''
+			# 期待値3: ソース: CSP.new([0] * size) -> トランスパイル後: std::shared_ptr<std::vector<int>>(new std::vector<int>(size, 0))
+			# 期待値4: ソース: CSP.new(list[int]() * size) -> トランスパイル後: std::shared_ptr<std::vector<int>>(new std::vector<int>(size))
+			elif isinstance(node.arguments[0].value, defs.Term):
+				initializer = parse_bracket_block(initializer)[0][1:-1]
+
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type, 'initializer': initializer})
 		elif spec == 'new_cvar_sp':
 			var_type = self.to_accessible_name(cast(IReflection, context))
@@ -923,8 +929,8 @@ class Py2Cpp(ITranspiler):
 
 	def proc_binary_operator_fill_list(self, node: defs.BinaryOperator, default_raw: IReflection, size_raw: IReflection, default: str, size: str) -> str:
 		value_type = self.to_accessible_name(default_raw.attrs[0])
-		# 必ず要素1の配列のリテラルになるので、defaultの前後の括弧を除外する FIXME 現状仕様を前提にした処理なので妥当性が低い
-		return self.view.render('binary_operator/fill_list', vars={'value_type': value_type, 'default': default[1:-1], 'size': size})
+		default_is_list = default_raw.via and default_raw.via.is_a(defs.List)
+		return self.view.render('binary_operator/fill_list', vars={'value_type': value_type, 'default': default, 'size': size, 'default_is_list': default_is_list})
 
 	def proc_binary_operator_expression(self, node: defs.BinaryOperator, left_raw: IReflection, right_raws: list[IReflection], left: str, operators: list[str], rights: list[str]) -> str:
 		primary = left

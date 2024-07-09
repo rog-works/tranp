@@ -54,7 +54,8 @@ class TestRenderer(TestCase):
 		self.assertRender(expected, f'assign/{template}', 0, vars)
 
 	@data_provider([
-		({'value_type': 'float', 'size': '10', 'default': '100.0'}, 'std::vector<float>(10, 100.0)'),
+		({'value_type': 'float', 'size': '10', 'default': '{100.0}', 'default_is_list': True}, 'std::vector<float>(10, 100.0)'),
+		({'value_type': 'float', 'size': '10', 'default': 'std::vector<float>()', 'default_is_list': False}, 'std::vector<float>(10)'),
 	])
 	def test_render_binary_operator_fill_list(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender(expected, 'binary_operator/fill_list', 0, vars)

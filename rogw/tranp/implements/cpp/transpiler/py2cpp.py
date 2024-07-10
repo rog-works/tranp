@@ -8,7 +8,8 @@ from rogw.tranp.data.meta.header import MetaHeader
 from rogw.tranp.data.meta.types import ModuleMetaFactory, TranspilerMeta
 from rogw.tranp.data.version import Versions
 from rogw.tranp.dsn.dsn import DSN
-from rogw.tranp.dsn.translation import import_dsn
+from rogw.tranp.dsn.module import ModuleDSN
+from rogw.tranp.dsn.translation import alias_dsn, import_dsn
 from rogw.tranp.errors import LogicError
 from rogw.tranp.i18n.i18n import I18n
 from rogw.tranp.implements.cpp.semantics.cvars import CVars
@@ -354,7 +355,7 @@ class Py2Cpp(ITranspiler):
 			# XXX 代入式の右辺を取得 (期待値: `int this->a = 1234;`)
 			# XXX 右辺が存在しない場合は初期化はデフォルトコンストラクターに任せる形になる
 			matches = re.search(r'=\s*([^;]+);$', initializer_statements[index])
-			initializer = {'symbol': this_var.tokens_without_this, 'value': matches[1] if matches else ''}
+			initializer = {'symbol': self.i18n.t(alias_dsn(this_var.fullyname), this_var.domain_name), 'value': matches[1] if matches else ''}
 			initializers.append(initializer)
 
 		decorators = self.allow_decorators(decorators)
@@ -506,10 +507,11 @@ class Py2Cpp(ITranspiler):
 		return node.tokens
 
 	def on_decl_class_var(self, node: defs.DeclClassVar) -> str:
-		return node.tokens
+		return self.i18n.t(alias_dsn(node.fullyname), node.tokens)
 
 	def on_decl_this_var(self, node: defs.DeclThisVar) -> str:
-		return node.tokens.replace('self.', 'this->')
+		prop_name = self.i18n.t(alias_dsn(node.fullyname), node.domain_name)
+		return '->'.join(['this', prop_name])
 
 	def on_decl_class_param(self, node: defs.DeclClassParam) -> str:
 		return node.tokens

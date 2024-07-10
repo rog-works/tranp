@@ -154,7 +154,9 @@ def fixture_translation_mapping(loader: IFileLoader) -> TranslationMapping:
 	fixture_module_path = Fixture.fixture_module_path(__file__)
 	fixture_translations = {
 		alias_dsn(ModuleDSN.full_joined(fixture_module_path, 'Alias')): 'Alias2',
+		alias_dsn(ModuleDSN.full_joined(fixture_module_path, 'Alias.inner')): 'inner_b',
 		alias_dsn(ModuleDSN.full_joined(fixture_module_path, 'Alias.Inner')): 'Inner2',
+		alias_dsn(ModuleDSN.full_joined(fixture_module_path, 'Alias.Inner.V')): 'V2',
 	}
 	return example_translation_mapping_cpp(loader).merge(fixture_translations)
 
@@ -321,8 +323,8 @@ class TestPy2Cpp(TestCase):
 		(_ast('AccessOps.indexer.block', 'funccall[1].arguments.argvalue'), defs.Argument, 'arr_sp[0]'),
 		(_ast('AccessOps.indexer.block', 'funccall[2].arguments.argvalue'), defs.Argument, 'arr_ar[0]'),
 
-		(_ast('Alias.Inner', ''), defs.Class, '/** Inner2 */\nclass Inner2 {\n\tpublic:\n\t/** func */\n\tvoid func() {\n\n\t}\n};'),
-		(_ast('Alias.__init__', ''), defs.Constructor, 'public:\n/** __init__ */\nAlias2() : inner(Alias2::Inner2()) {\n}'),
+		(_ast('Alias.Inner', ''), defs.Class, '/** Inner2 */\nclass Inner2 {\n\tpublic: static int V2 = 0;\n\tpublic:\n\t/** func */\n\tvoid func() {\n\n\t}\n};'),
+		(_ast('Alias.__init__', ''), defs.Constructor, 'public:\n/** __init__ */\nAlias2() : inner_b(Alias2::Inner2()) {\n}'),
 		(_ast('Alias.in_param_return', ''), defs.Method, 'public:\n/** in_param_return */\nAlias2 in_param_return(Alias2 a) {\n\n}'),
 		(_ast('Alias.in_param_return2', ''), defs.Method, 'public:\n/** in_param_return2 */\nAlias2::Inner2 in_param_return2(Alias2::Inner2 i) {\n\n}'),
 		(_ast('Alias.in_local.block', 'assign[0]'), defs.MoveAssign, 'Alias2 a = Alias2();'),

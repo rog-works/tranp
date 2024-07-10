@@ -264,6 +264,8 @@ class Alias:
 		B = 2
 
 	class Inner:
+		V: int = 0
+
 		def func(self) -> None: ...
 
 	def __init__(self) -> None:

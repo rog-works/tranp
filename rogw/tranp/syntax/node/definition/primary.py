@@ -17,6 +17,8 @@ from rogw.tranp.syntax.node.node import Node
 
 @Meta.embed(Node, accept_tags('argvalue'))
 class Argument(Node):
+	""" Note: * FIXME starargs/kwargsを受け入れるが、現状は通常の引数と同様に扱う"""
+
 	@property
 	@Meta.embed(Node, expandable)
 	def label(self) -> 'ArgumentLabel | Empty':

@@ -10,3 +10,6 @@ class InvalidOps:
 
 	def yield_return(self) -> Iterator[int]:
 		yield 0
+
+	def delete_relay(self) -> None:
+		del self.delete_relay

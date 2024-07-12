@@ -24,15 +24,16 @@ class ASTMapping:
 	_Sub_list_ref = f'{_Sub}.class_def_raw.block.function_def[7]'
 	_Sub_base_ref = f'{_Sub}.class_def_raw.block.function_def[8]'
 	_Sub_returns = f'{_Sub}.class_def_raw.block.function_def[9]'
-	_Sub_invoke_method = f'{_Sub}.class_def_raw.block.function_def[10]'
-	_Sub_decl_with_pop = f'{_Sub}.class_def_raw.block.function_def[11]'
-	_Sub_decl_locals = f'{_Sub}.class_def_raw.block.function_def[12]'
-	_Sub_assign_with_param = f'{_Sub}.class_def_raw.block.function_def[13]'
-	_Sub_relay_access = f'{_Sub}.class_def_raw.block.function_def[14]'
-	_Sub_fill_list = f'{_Sub}.class_def_raw.block.function_def[15]'
-	_Sub_param_default = f'{_Sub}.class_def_raw.block.function_def[16]'
-	_Sub_Base = f'{_Sub}.class_def_raw.block.function_def[17]'
-	_Sub_kw_params = f'{_Sub}.class_def_raw.block.function_def[18]'
+	_Sub_yields = f'{_Sub}.class_def_raw.block.function_def[10]'
+	_Sub_invoke_method = f'{_Sub}.class_def_raw.block.function_def[11]'
+	_Sub_decl_with_pop = f'{_Sub}.class_def_raw.block.function_def[12]'
+	_Sub_decl_locals = f'{_Sub}.class_def_raw.block.function_def[13]'
+	_Sub_assign_with_param = f'{_Sub}.class_def_raw.block.function_def[14]'
+	_Sub_relay_access = f'{_Sub}.class_def_raw.block.function_def[15]'
+	_Sub_fill_list = f'{_Sub}.class_def_raw.block.function_def[16]'
+	_Sub_param_default = f'{_Sub}.class_def_raw.block.function_def[17]'
+	_Sub_Base = f'{_Sub}.class_def_raw.block.function_def[18]'
+	_Sub_kw_params = f'{_Sub}.class_def_raw.block.function_def[19]'
 	_CalcOps = f'file_input.class_def[{_start + 3}]'
 	_AliasOps = f'file_input.class_def[{_start + 4}]'
 	_TupleOps = f'file_input.class_def[{_start + 5}]'
@@ -78,6 +79,8 @@ class ASTMapping:
 		'Sub.base_ref.block': f'{_Sub_base_ref}.function_def_raw.block',
 		'Sub.returns.return': f'{_Sub_returns}.function_def_raw.typed_var',
 		'Sub.returns.block': f'{_Sub_returns}.function_def_raw.block',
+		'Sub.yields.yield': f'{_Sub_yields}.function_def_raw.typed_getitem',
+		'Sub.yields.block': f'{_Sub_yields}.function_def_raw.block',
 		'Sub.invoke_method.block': f'{_Sub_invoke_method}.function_def_raw.block',
 		'Sub.decl_with_pop.block': f'{_Sub_decl_with_pop}.function_def_raw.block',
 		'Sub.decl_locals.block': f'{_Sub_decl_locals}.function_def_raw.block',
@@ -105,6 +108,7 @@ def _mod(before: str, after: str) -> str:
 	aliases = {
 		'xyz': 'tests.unit.rogw.tranp.semantics.reflection.fixtures.test_symbol_db_xyz',
 		'classes': 'rogw.tranp.compatible.libralies.classes',
+		'typing': 'typing',
 	}
 	return ModuleDSN.full_joined(aliases[before], after)
 
@@ -361,6 +365,9 @@ class TestReflections(TestCase):
 
 		(_ast('Sub.returns.return', ''), _mod('classes', 'str'), 'str'),
 		(_ast('Sub.returns.block', 'return_stmt'), _mod('classes', 'str'), 'str'),
+
+		(_ast('Sub.yields.yield', ''), _mod('typing', 'Iterator'), 'Iterator<str>'),
+		(_ast('Sub.yields.block', 'yield_stmt'), _mod('classes', 'str'), 'str'),
 
 		(_ast('Sub.invoke_method.block', 'funccall.getattr'), ModuleDSN.full_joined(fixture_module_path, 'Sub.invoke_method'), 'invoke_method(Sub) -> None'),
 

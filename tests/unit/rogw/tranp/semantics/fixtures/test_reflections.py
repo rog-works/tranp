@@ -1,4 +1,4 @@
-from typing import Generic, TypeAlias, TypeVar, cast
+from typing import Generic, Iterator, TypeAlias, TypeVar, cast
 
 from rogw.tranp.compatible.cpp.enum import CEnum as Enum
 
@@ -60,6 +60,9 @@ class Sub(Base):
 
 	def returns(self) -> str:
 		return self.base_str
+
+	def yields(self) -> Iterator[str]:
+		yield self.base_str
 
 	def invoke_method(self) -> None:
 		self.invoke_method()

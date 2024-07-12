@@ -23,6 +23,7 @@ class ASTMapping:
 		'InvalidOps.tenary_to_union_types.block': f'{_InvalidOps}.class_def_raw.block.function_def[0].function_def_raw.block',
 		'InvalidOps.param_of_raw_or_null': f'{_InvalidOps}.class_def_raw.block.function_def[1]',
 		'InvalidOps.return_of_raw_or_null': f'{_InvalidOps}.class_def_raw.block.function_def[2]',
+		'InvalidOps.yield_return.block': f'{_InvalidOps}.class_def_raw.block.function_def[3].function_def_raw.block',
 	}
 
 
@@ -46,6 +47,7 @@ class TestPy2CppError(TestCase):
 		(_ast('InvalidOps.tenary_to_union_types.block', 'assign'), UnresolvedSymbolError, r'Only Nullable.'),
 		(_ast('InvalidOps.param_of_raw_or_null', ''), ProcessingError, r'Unexpected UnionType.'),
 		(_ast('InvalidOps.return_of_raw_or_null', ''), ProcessingError, r'Unexpected UnionType.'),
+		(_ast('InvalidOps.yield_return.block', 'yield_stmt'), NotImplementedError, r'Not supported yield return.'),
 	])
 	def test_exec_error(self, full_path: str, expected_error: type[Exception], expected: re.Pattern) -> None:
 		transpiler = self.fixture.get(Py2Cpp)

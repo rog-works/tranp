@@ -1,0 +1,5 @@
+{%- if target.list_or_dict == 'list' %}
+{{- target.receiver }}.{{ i18n('classes', 'list.remove') }}({{ target.receiver }}.{{ i18n('cpp', 'vector.begin') }}() + {{ target.key }})
+{%- else %}
+{{- target.receiver }}.{{ i18n('cpp', 'map.erase') }}({{ target.key }})
+{%- endif %}

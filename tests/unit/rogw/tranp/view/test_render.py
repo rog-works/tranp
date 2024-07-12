@@ -54,6 +54,14 @@ class TestRenderer(TestCase):
 		self.assertRender(expected, f'assign/{template}', 0, vars)
 
 	@data_provider([
+		({'targets': [{'receiver': 'l', 'key': '1', 'list_or_dict': 'list'}]}, 'l.erase(l.begin() + 1);'),
+		({'targets': [{'receiver': 'd', 'key': '"a"', 'list_or_dict': 'dict'}]}, 'd.erase("a");'),
+		({'targets': [{'receiver': 'l', 'key': '1', 'list_or_dict': 'list'}, {'receiver': 'd', 'key': '"a"', 'list_or_dict': 'dict'}]}, 'l.erase(l.begin() + 1);\nd.erase("a");'),
+	])
+	def test_render_delete(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender(expected, f'delete/default', 0, vars)
+
+	@data_provider([
 		({'value_type': 'float', 'size': '10', 'default': '{100.0}', 'default_is_list': True}, 'std::vector<float>(10, 100.0)'),
 		({'value_type': 'float', 'size': '10', 'default': 'std::vector<float>()', 'default_is_list': False}, 'std::vector<float>(10)'),
 	])

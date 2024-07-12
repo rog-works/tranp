@@ -464,6 +464,24 @@ class Py2Cpp(ITranspiler):
 	def on_aug_assign(self, node: defs.AugAssign, receiver: str, operator: str, value: str) -> str:
 		return self.view.render(f'assign/{node.classification}', vars={'receiver': receiver, 'operator': operator, 'value': value})
 
+	def on_delete(self, node: defs.Delete, targets: str) -> str:
+		target_types: list[str] = []
+		for target_node in node.targets:
+			if not isinstance(target_node, defs.Indexer):
+				raise LogicError(f'Unexpected delete target. supported type is list or dict. target: {target_node}')
+
+			target_symbol = self.reflections.type_of(target_node.receiver)
+			target_types.append('list' if self.reflections.is_a(target_symbol, list) else 'dict')
+
+		_targets: list[dict[str, str]] = []
+		for i in range(len(targets)):
+			target = targets[i]
+			# XXX 複雑な式に耐えられないので、修正を検討
+			elems = cast(re.Match, re.fullmatch(r'(.+)\[(.+)\]', target)).group(1, 2)
+			_targets.append({'receiver': elems[0], 'key': elems[1], 'list_or_dict': target_types[i]})
+
+		return self.view.render(f'{node.classification}/default', vars={'targets': _targets})
+
 	def on_return(self, node: defs.Return, return_value: str) -> str:
 		return self.view.render(node.classification, vars={'return_value': return_value})
 

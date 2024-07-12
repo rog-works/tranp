@@ -351,6 +351,9 @@ class ListOps:
 		ns1 = ns[:5]
 		ns2 = ns[3:9:2]
 
+	def delete(self, ns: list[int]) -> None:
+		del ns[1], ns[2]
+
 
 class DictOps:
 	def len(self) -> None:
@@ -377,6 +380,9 @@ class DictOps:
 		d = {'a': 1}
 		b_in = 'a' in d
 		b_not_in = 'a' not in d
+
+	def delete(self, dsn: dict[str, int]) -> None:
+		del dsn['a'], dsn['b']
 
 
 class CastOps:

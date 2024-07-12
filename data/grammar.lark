@@ -12,6 +12,7 @@ file_input: (_NEWLINE | statement)*
 	| import_stmt
 	| raise_stmt
 	| pass_stmt
+	| yield_stmt
 	| break_stmt
 	| continue_stmt
 	| comment_stmt // @custom
@@ -157,8 +158,10 @@ template_assign: assign_namelist "=" "TypeVar" "(" string ["," "bound" "=" (type
 !aug_assign_op: "+=" | "-=" | "*=" | "@=" | "/=" | "%=" | "&=" | "|=" | "^=" | "<<=" | ">>=" | "**=" | "//="
 
 // @lark return_stmt: "return" [testlist]
+// @lark yield_stmt: "yield" [testlist] | "yield" "from" test -> yield_from
 // @lark raise_stmt: raise [test ["from" test]]
 return_stmt: "return" [expression]
+yield_stmt: "yield" expression
 raise_stmt: "raise" primary ["from" name]
 break_stmt: "break"
 pass_stmt: "pass"

@@ -145,6 +145,7 @@ from rogw.tranp.syntax.node.definition.statement_simple import (
 	AugAssign,
 	# flow
 	Return,
+	Yield,
 	Throw,
 	Pass,
 	Break,

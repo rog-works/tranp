@@ -93,6 +93,19 @@ class Return(Node):
 		return self._ancestor('function_def')
 
 
+@Meta.embed(Node, accept_tags('yield_stmt'))
+class Yield(Node):
+	@property
+	@Meta.embed(Node, expandable)
+	def yield_value(self) -> Node:
+		return self._at(0)
+
+	@property
+	def function(self) -> Node:
+		"""Note: XXX 参照違反になるためNode型で返却"""
+		return self._ancestor('function_def')
+
+
 @Meta.embed(Node, accept_tags('raise_stmt'))
 class Throw(Node):
 	@property

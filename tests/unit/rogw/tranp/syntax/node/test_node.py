@@ -119,6 +119,7 @@ class TestNode(TestCase):
 		('a += 1', 'file_input.aug_assign', defs.AugAssign, '', '__main__#aug_assign@1'),
 		# Statement simple - Other
 		('def func() -> int:\n\treturn 0', 'file_input.function_def.function_def_raw.block.return_stmt', defs.Return, '', '__main__#func.return@11'),
+		('def func() -> Iterator[int]:\n\tyield 0', 'file_input.function_def.function_def_raw.block.yield_stmt', defs.Yield, '', '__main__#func.yield@16'),
 		('raise Exception()', 'file_input.raise_stmt', defs.Throw, '', '__main__#throw@1'),
 		('pass', 'file_input.pass_stmt', defs.Pass, '', '__main__#pass@1'),
 		('break', 'file_input.break_stmt', defs.Break, '', '__main__#break@1'),

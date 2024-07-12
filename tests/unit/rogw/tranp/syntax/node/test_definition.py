@@ -657,6 +657,13 @@ class TestDefinition(TestCase):
 		self.assertEqual(expected['return_value'], type(node.return_value))
 
 	@data_provider([
+		('def func() -> Iterator[int]: yield 1', 'file_input.function_def.function_def_raw.block.yield_stmt', {'yield_value': defs.Integer}),
+	])
+	def test_yield(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Yield)
+		self.assertEqual(expected['yield_value'], type(node.yield_value))
+
+	@data_provider([
 		('raise Exception()', 'file_input.raise_stmt', {'throws': defs.FuncCall, 'via': defs.Empty}),
 		('raise Exception() from e', 'file_input.raise_stmt', {'throws': defs.FuncCall, 'via': defs.Var}),
 		('raise e', 'file_input.raise_stmt', {'throws': defs.Var, 'via': defs.Empty}),

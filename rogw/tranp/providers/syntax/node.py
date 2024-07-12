@@ -55,6 +55,7 @@ def symbol_mapping() -> SymbolMapping:
 			defs.AnnoAssign: ['anno_assign'],
 			defs.AugAssign: ['aug_assign'],
 			defs.Return: ['return_stmt'],
+			defs.Yield: ['yield_stmt'],
 			defs.Throw: ['raise_stmt'],
 			defs.Pass: ['pass_stmt'],
 			defs.Break: ['break_stmt'],

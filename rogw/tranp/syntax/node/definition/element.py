@@ -57,4 +57,7 @@ class Decorator(Node):
 	@property
 	@Meta.embed(Node, expandable)
 	def arguments(self) -> list[Argument]:
-		return [node.as_a(Argument) for node in self._children('arguments')] if self._exists('arguments') else []
+		if not self._exists('arguments'):
+			return []
+
+		return [node for node in self._children('arguments') if isinstance(node, Argument)]

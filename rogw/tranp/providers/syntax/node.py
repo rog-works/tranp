@@ -64,7 +64,7 @@ def symbol_mapping() -> SymbolMapping:
 			defs.Comment: ['comment_stmt'],
 			defs.Import: ['import_stmt'],
 			# -- Primary --
-			defs.Argument: ['argvalue'],
+			defs.Argument: ['argvalue', 'starargs', 'kwargs'],
 			defs.InheritArgument: ['typed_argvalue'],
 			defs.ArgumentLabel: ['name'],
 			defs.DeclClassVar: ['var'],

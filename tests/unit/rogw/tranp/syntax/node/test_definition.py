@@ -966,8 +966,12 @@ class TestDefinition(TestCase):
 			self.assertEqual(in_expected['var_type'], type(argument.value))
 
 	@data_provider([
-		('a(b)', 'file_input.funccall.arguments.argvalue', {'label': 'Empty', 'value': defs.Var}),
-		('a(label=b)', 'file_input.funccall.arguments.argvalue', {'label': 'label', 'value': defs.Var}),
+		('a(a, 1, True)', 'file_input.funccall.arguments.argvalue[1]', {'label': 'Empty', 'value': defs.Integer}),
+		('a(1, *a, **b)', 'file_input.funccall.arguments.starargs', {'label': 'Empty', 'value': defs.Var}),
+		('a(*[], **c)', 'file_input.funccall.arguments.starargs', {'label': 'Empty', 'value': defs.List}),
+		('a(**{})', 'file_input.funccall.arguments.kwargs', {'label': 'Empty', 'value': defs.Dict}),
+		('a(1, **c)', 'file_input.funccall.arguments.kwargs', {'label': 'Empty', 'value': defs.Var}),
+		('a(a, label=b, c)', 'file_input.funccall.arguments.argvalue[1]', {'label': 'label', 'value': defs.Var}),
 	])
 	def test_argument(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Argument)

@@ -79,6 +79,14 @@ class AugAssign(Assign):
 		return self._elements[2]
 
 
+@Meta.embed(Node, accept_tags('del_stmt'))
+class Delete(Node):
+	@property
+	@Meta.embed(Node, expandable)
+	def targets(self) -> list[Reference]:
+		return [node.as_a(Reference) for node in self._children()]
+
+
 @Meta.embed(Node, accept_tags('return_stmt'))
 class Return(Node):
 	@property

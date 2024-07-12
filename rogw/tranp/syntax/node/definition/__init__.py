@@ -143,6 +143,7 @@ from rogw.tranp.syntax.node.definition.statement_simple import (
 	MoveAssign,
 	AnnoAssign,
 	AugAssign,
+	Delete,
 	# flow
 	Return,
 	Yield,

@@ -649,6 +649,16 @@ class TestDefinition(TestCase):
 		self.assertEqual(expected['value'], type(node.value))
 
 	@data_provider([
+		('del a', 'file_input.del_stmt', {'targets': [defs.Var]}),
+		('del a.b', 'file_input.del_stmt', {'targets': [defs.Relay]}),
+		('del a[0]', 'file_input.del_stmt', {'targets': [defs.Indexer]}),
+		('del a[A], a[B]', 'file_input.del_stmt', {'targets': [defs.Indexer, defs.Indexer]}),
+	])
+	def test_delete(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Delete)
+		self.assertEqual(expected['targets'], [type(node) for node in node.targets])
+
+	@data_provider([
 		('def func() -> int: return 1', 'file_input.function_def.function_def_raw.block.return_stmt', {'return_value': defs.Integer}),
 		('def func() -> None: return', 'file_input.function_def.function_def_raw.block.return_stmt', {'return_value': defs.Empty}),
 	])

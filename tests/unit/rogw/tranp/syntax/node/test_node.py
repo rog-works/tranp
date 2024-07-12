@@ -117,6 +117,7 @@ class TestNode(TestCase):
 		('a = 0', 'file_input.assign', defs.MoveAssign, '', '__main__#move_assign@1'),
 		('a: int = 0', 'file_input.anno_assign', defs.AnnoAssign, '', '__main__#anno_assign@1'),
 		('a += 1', 'file_input.aug_assign', defs.AugAssign, '', '__main__#aug_assign@1'),
+		('del a', 'file_input.del_stmt', defs.Delete, '', '__main__#delete@1'),
 		# Statement simple - Other
 		('def func() -> int:\n\treturn 0', 'file_input.function_def.function_def_raw.block.return_stmt', defs.Return, '', '__main__#func.return@11'),
 		('def func() -> Iterator[int]:\n\tyield 0', 'file_input.function_def.function_def_raw.block.yield_stmt', defs.Yield, '', '__main__#func.yield@16'),

@@ -467,6 +467,9 @@ class Py2Cpp(ITranspiler):
 	def on_return(self, node: defs.Return, return_value: str) -> str:
 		return self.view.render(node.classification, vars={'return_value': return_value})
 
+	def on_yield(self, node: defs.Yield, yield_value: str) -> str:
+		raise NotImplementedError(f'Not supported yield return. node: {node}')
+
 	def on_throw(self, node: defs.Throw, throws: str, via: str) -> str:
 		return self.view.render(node.classification, vars={'throws': throws, 'via': via})
 
@@ -670,7 +673,7 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(node.classification, vars={'type_name': type_name, 'key_type': key_type, 'value_type': value_type})
 
 	def on_callable_type(self, node: defs.CallableType, type_name: str, parameters: list[str], return_type: str) -> str:
-		raise NotImplementedError(f'Not supported CallableType. symbol: {node.fullyname}')
+		raise NotImplementedError(f'Not supported CallableType. node: {node}')
 
 	def on_custom_type(self, node: defs.CustomType, type_name: str, template_types: list[str]) -> str:
 		# XXX @see semantics.reflection.helper.naming.ClassShorthandNaming.domain_name

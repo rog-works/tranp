@@ -417,6 +417,10 @@ class ProceduralResolver:
 	def on_return(self, node: defs.Return, return_value: IReflection) -> IReflection:
 		return return_value
 
+	def on_yield(self, node: defs.Yield, yield_value: IReflection) -> IReflection:
+		"""Note: XXX Iteratorで囲うべきか検討。値としてだけみればこのままでも良い"""
+		return yield_value
+
 	# Primary
 
 	def on_argument(self, node: defs.Argument, label: IReflection, value: IReflection) -> IReflection:

@@ -41,7 +41,7 @@ class CP(CVar[T_co]):
 		Returns:
 			type[CP[T]]: ラップした型
 		"""
-		return CP[var_type]
+		return getattr(super(), '__class_getitem__')(var_type)
 
 	@classmethod
 	def new(cls, origin: T_New) -> 'CP[T_New]':
@@ -91,7 +91,7 @@ class CSP(CVar[T_co]):
 		Returns:
 			type[CSP[T]]: ラップした型
 		"""
-		return CSP[var_type]
+		return getattr(super(), '__class_getitem__')(var_type)
 
 	@override
 	def __init__(self, origin: T_co | None = None) -> None:
@@ -143,7 +143,7 @@ class CRef(CVar[T_co]):
 		Returns:
 			type[CRef[T]]: ラップした型
 		"""
-		return CRef[var_type]
+		return getattr(super(), '__class_getitem__')(var_type)
 
 	@property
 	def addr(self) -> 'CP[T_co]':
@@ -168,7 +168,7 @@ class CPConst(CVar[T_co]):
 		Returns:
 			type[CPConst[T]]: ラップした型
 		"""
-		return CPConst[var_type]
+		return getattr(super(), '__class_getitem__')(var_type)
 
 	@property
 	def ref(self) -> 'CRefConst[T_co]':
@@ -188,7 +188,7 @@ class CSPConst(CVar[T_co]):
 		Returns:
 			type[CSPConst[T]]: ラップした型
 		"""
-		return CSPConst[var_type]
+		return getattr(super(), '__class_getitem__')(var_type)
 
 	@property
 	def ref(self) -> 'CRefConst[T_co]':
@@ -213,7 +213,7 @@ class CRefConst(CVar[T_co]):
 		Returns:
 			type[CRefConst[T]]: ラップした型
 		"""
-		return CRefConst[var_type]
+		return getattr(super(), '__class_getitem__')(var_type)
 
 	@property
 	def addr(self) -> 'CPConst[T_co]':
@@ -233,7 +233,7 @@ class CRawConst(CVar[T_co]):
 		Returns:
 			type[CRefConst[T]]: ラップした型
 		"""
-		return CRawConst[var_type]
+		return getattr(super(), '__class_getitem__')(var_type)
 
 	@property
 	def ref(self) -> 'CRefConst[T_co]':
@@ -258,7 +258,7 @@ class CRaw(CVar[T_co]):
 		Returns:
 			type[CRaw[T]]: ラップした型
 		"""
-		return CRaw[var_type]
+		return getattr(super(), '__class_getitem__')(var_type)
 
 	@property
 	def ref(self) -> 'CRef[T_co]':

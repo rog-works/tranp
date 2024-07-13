@@ -157,11 +157,19 @@ class Null: ...
 
 @__actual__('object')
 class Object:
-	def __init__(self) -> None: ...
+	def __init__(self) -> None:
+		# XXX 本来はプロパティーでは？修正を検討
+		self.__class__: type[object] = object
 
 
 @__actual__('type')
-class Type(Generic[T]): ...
+class Type(Generic[T]):
+	def __init__(self) -> None:
+		# XXX 本来はプロパティーでは？修正を検討
+		self.__name__: str = ''
+		self.__module__: str = ''
+
+
 @__actual__('super')
 class Super: ...
 class Exception:

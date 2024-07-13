@@ -132,6 +132,11 @@ class Sub(Base):
 		s_slice = s[0:]
 		dsn = cast(dict[str, int], {})
 
+	def type_props(self, t: type) -> None:
+		a = t.__name__
+		b = t.__class__
+		c = t.__module__
+
 
 class CalcOps:
 	def unary(self) -> None:

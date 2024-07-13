@@ -209,6 +209,10 @@ class TestReflections(TestCase):
 		(ModuleDSN.full_joined(fixture_module_path, 'Sub.indexer_access.s_slice'), 'str'),
 		(ModuleDSN.full_joined(fixture_module_path, 'Sub.indexer_access.dsn'), 'dict<str, int>'),
 
+		(ModuleDSN.full_joined(fixture_module_path, 'Sub.type_props.a'), 'str'),
+		(ModuleDSN.full_joined(fixture_module_path, 'Sub.type_props.b'), 'type<object>'),
+		(ModuleDSN.full_joined(fixture_module_path, 'Sub.type_props.c'), 'str'),
+
 		(ModuleDSN.full_joined(fixture_module_path, 'CalcOps.unary.n_neg'), 'int'),
 		(ModuleDSN.full_joined(fixture_module_path, 'CalcOps.unary.n_not'), 'bool'),
 		(ModuleDSN.full_joined(fixture_module_path, 'CalcOps.binary.n'), 'int'),

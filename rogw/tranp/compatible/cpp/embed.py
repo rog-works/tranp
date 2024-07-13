@@ -25,7 +25,7 @@ def __allow_override__(wrapped: T) -> T:
 
 
 def __struct__(wrapped: T) -> T:
-	"""クラスを構造体としてマークアップ
+	"""クラスを構造体としてマークアップ。暗黙的に`__struct__`と言う属性を付与する
 
 	Args:
 		wrapped (T): ラップ対象
@@ -38,6 +38,9 @@ def __struct__(wrapped: T) -> T:
 			...
 		```
 	"""
+	if not hasattr(wrapped, '__struct__'):
+		setattr(wrapped, '__struct__', True)
+
 	return wrapped
 
 

@@ -74,6 +74,7 @@ class ASTMapping:
 		'CVarOps.to_void.block': f'{_CVarOps}.class_def_raw.block.function_def[12].function_def_raw.block',
 		'CVarOps.local_decl.block': f'{_CVarOps}.class_def_raw.block.function_def[13].function_def_raw.block',
 		'CVarOps.addr_calc.block': f'{_CVarOps}.class_def_raw.block.function_def[14].function_def_raw.block',
+		'CVarOps.raw.block': f'{_CVarOps}.class_def_raw.block.function_def[15].function_def_raw.block',
 
 		'FuncOps.print.block': f'{_FuncOps}.class_def_raw.block.function_def[0].function_def_raw.block',
 		'FuncOps.kw_params.block': f'{_FuncOps}.class_def_raw.block.function_def[1].function_def_raw.block',
@@ -286,6 +287,8 @@ class TestPy2Cpp(TestCase):
 
 		(_ast('CVarOps.addr_calc.block', 'assign[0]'), defs.MoveAssign, 'int a = sp0 - sp1;'),
 		(_ast('CVarOps.addr_calc.block', 'assign[1]'), defs.MoveAssign, 'int b = sp0 + 1;'),
+
+		(_ast('CVarOps.raw.block', 'return_stmt'), defs.Return, 'return p->raw();'),
 
 		(_ast('FuncOps.print.block', 'funccall'), defs.FuncCall, 'printf("message. %d, %f, %s", 1, 1.0, "abc");'),
 		(_ast('FuncOps.kw_params.block', 'assign'), defs.MoveAssign, 'std::string a = this->kw_params(a=1, b=2);'),

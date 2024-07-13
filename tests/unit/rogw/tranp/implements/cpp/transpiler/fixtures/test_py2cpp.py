@@ -190,6 +190,11 @@ class CVarOps:
 		a = sp0 - sp1
 		b = sp0 + 1
 
+	@property
+	def raw(self) -> int:
+		p = CP(self)
+		return p.on.raw
+
 
 class FuncOps:
 	def print(self) -> None:

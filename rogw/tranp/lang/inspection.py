@@ -213,8 +213,22 @@ class ClassAnnotation(Annotation):
 			Pythonではクラス変数とインスタンス変数の差が厳密ではないため、
 			このクラスではクラス直下に定義された変数をクラス変数と位置づける
 		"""
-		annos = {key: AnnotationResolver.resolve(prop) for key, prop in self._type.__annotations__.items()}
+		annos = {key: AnnotationResolver.resolve(prop) for key, prop in self.__recursive_annos(self._type).items()}
 		return {key: prop for key, prop in annos.items() if prop is not FunctionAnnotation}
+
+	def __recursive_annos(self, _type: type) -> dict[str, type]:
+		"""クラス階層を辿ってアノテーションを収集
+
+		Args:
+			_type (type): タイプ
+		Returns:
+			dict[str, type]: アノテーション一覧
+		"""
+		annos: dict[str, type] = {}
+		for inherit in reversed(_type.mro()):
+			annos = {**annos, **getattr(inherit, '__annotations__', {})}
+
+		return annos
 
 	@property
 	def self_vars(self) -> dict[str, Annotation]:
@@ -226,21 +240,46 @@ class ClassAnnotation(Annotation):
 			Pythonでは、クラスからインスタンス変数を確実に抜き出す方法が無いため、
 			クラスに記入されたDocStringを基にインスタンス変数のアノテーションを生成する
 		"""
-		docstring = Comment.parse(getattr(self._type, '__doc__', ''))
-		var_types: dict[str, type] = {attr.name: eval(attr.type) for attr in docstring.attributes}
+		docstrings = [Comment.parse(doc) for doc in self.__recursive_docs(self._type)]
+		var_types: dict[str, type] = {}
+		for docstring in docstrings:
+			var_types = {**var_types, **{attr.name: eval(attr.type) for attr in docstring.attributes}}
+
 		return {key: AnnotationResolver.resolve(prop) for key, prop in var_types.items()}
+
+	def __recursive_docs(self, _type: type) -> list[str]:
+		"""クラス階層を辿ってDocStringを収集
+
+		Args:
+			_type (type): タイプ
+		Returns:
+			list[str]: DocStringのリスト
+		"""
+		docs: list[str] = [getattr(inherit, '__doc__') for inherit in reversed(_type.mro()) if hasattr(inherit, '__doc__')]
+		return [doc for doc in docs if doc]
 
 	@property
 	def methods(self) -> dict[str, FunctionAnnotation]:
 		"""dict[str, FunctionAnnotation]: メソッド一覧"""
-		# XXX __dict__の値とgetattrで取得する値に相違があるため、getattrを使う
-		_methods: dict[str, FunctionType | MethodType] = {}
-		for key in self._type.__dict__.keys():
-			attr = getattr(self._type, key)
-			if isinstance(attr, (FunctionType, MethodType)):
-				_methods[key] = attr
+		return {key: FunctionAnnotation(prop) for key, prop in self.__recursive_methods(self._type).items()}
 
-		return {key: FunctionAnnotation(prop) for key, prop in _methods.items()}
+	def __recursive_methods(self, _type: type) -> dict[str, FunctionType | MethodType]:
+		"""クラス階層を辿ってメソッドを収集
+
+		Args:
+			_type (type): タイプ
+		Returns:
+			dict[str, FunctionType | MethodType]: メソッド一覧
+		"""
+		_methods: dict[str, FunctionType | MethodType] = {}
+		for inherit in reversed(_type.mro()):
+			for key in inherit.__dict__.keys():
+				# XXX getattrで取得する ※__dict__の値が想定外の型になるため
+				attr = getattr(inherit, key)
+				if isinstance(attr, (FunctionType, MethodType)):
+					_methods[key] = attr
+
+		return _methods
 
 
 class AnnotationResolver:

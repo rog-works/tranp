@@ -83,18 +83,20 @@ def func(n: int) -> str: ...
 
 
 class TestFunctionAnnotation(TestCase):
-	class Test:
+	class Base:
 		def __init__(self) -> None: ...
 		@classmethod
 		def cls_func(cls, n: int) -> str: ...
 		def self_func(self, l: list[int], d: dict[str, int]) -> tuple[int, str, bool]: ...
 
+	class Sub(Base): ...
+
 	@data_provider([
-		(Test.__init__, {'static': False, 'method': False, 'function': True}),  # FIXME 静的に取得するとFunctionTypeになり、メソッドであるか否かを判別できない
-		(Test.cls_func, {'static': True, 'method': True, 'function': False}),
-		(Test.self_func, {'static': False, 'method': False, 'function': True}),  # FIXME 静的に取得するとFunctionTypeになり、メソッドであるか否かを判別できない
-		(Test().cls_func, {'static': True, 'method': True, 'function': False}),
-		(Test().self_func, {'static': False, 'method': True, 'function': False}),
+		(Sub.__init__, {'static': False, 'method': False, 'function': True}),  # FIXME 静的に取得するとFunctionTypeになり、メソッドであるか否かを判別できない
+		(Sub.cls_func, {'static': True, 'method': True, 'function': False}),
+		(Sub.self_func, {'static': False, 'method': False, 'function': True}),  # FIXME 静的に取得するとFunctionTypeになり、メソッドであるか否かを判別できない
+		(Sub().cls_func, {'static': True, 'method': True, 'function': False}),
+		(Sub().self_func, {'static': False, 'method': True, 'function': False}),
 		(func, {'static': False, 'method': False, 'function': True}),
 	])
 	def test_states(self, origin: Callable, expected: dict[str, bool]) -> None:
@@ -104,17 +106,17 @@ class TestFunctionAnnotation(TestCase):
 		self.assertEqual(expected['function'], anno.is_function)
 
 	@data_provider([
-		(Test.cls_func, Test),
-		(Test().cls_func, Test),
-		(Test().self_func, Test),
+		(Sub.cls_func, Sub),
+		(Sub().cls_func, Sub),
+		(Sub().self_func, Sub),
 	])
 	def test_receiver(self, origin: Callable, expected: type) -> None:
 		anno = FunctionAnnotation(origin)
 		self.assertEqual(expected, anno.receiver if anno.is_static else anno.receiver.__class__)
 
 	@data_provider([
-		(Test.__init__,),  # FIXME 静的に取得するとreceiverを取得できない
-		(Test.self_func,),  # FIXME 静的に取得するとreceiverを取得できない
+		(Sub.__init__,),  # FIXME 静的に取得するとreceiverを取得できない
+		(Sub.self_func,),  # FIXME 静的に取得するとreceiverを取得できない
 		(func,),
 	])
 	def test_receiver_error(self, origin: Callable) -> None:
@@ -122,11 +124,11 @@ class TestFunctionAnnotation(TestCase):
 			FunctionAnnotation(origin).receiver
 
 	@data_provider([
-		(Test.__init__, {'args': {}, 'returns': None}),
-		(Test.cls_func, {'args': {'n': int}, 'returns': str}),
-		(Test.self_func, {'args': {'l': list, 'd': dict}, 'returns': tuple}),
-		(Test().cls_func, {'args': {'n': int}, 'returns': str}),
-		(Test().self_func, {'args': {'l': list, 'd': dict}, 'returns': tuple}),
+		(Sub.__init__, {'args': {}, 'returns': None}),
+		(Sub.cls_func, {'args': {'n': int}, 'returns': str}),
+		(Sub.self_func, {'args': {'l': list, 'd': dict}, 'returns': tuple}),
+		(Sub().cls_func, {'args': {'n': int}, 'returns': str}),
+		(Sub().self_func, {'args': {'l': list, 'd': dict}, 'returns': tuple}),
 		(func, {'args': {'n': int}, 'returns': str}),
 	])
 	def test_signature(self, origin: Callable, expected: dict[str, Any]) -> None:
@@ -136,32 +138,42 @@ class TestFunctionAnnotation(TestCase):
 
 
 class TestClassAnnotation(TestCase):
-	class Test:
-		"""DocStringによってインスタンス変数を明示する
-
+	class Base:
+		"""
 		Attributes:
 			d (dict[str, int]): dict
 		"""
 
 		n: int = 0
-		l: list[int] = []
 
 		def __init__(self) -> None:
 			self.d: dict[str, int] = {}
 
 		@classmethod
 		def cls_method(cls) -> None: ...
+
+	class Sub(Base):
+		"""
+		Attributes:
+			t (tuple[str, int, bool]): tuple
+		"""
+
+		l: list[int] = []
+
+		def __init__(self) -> None:
+			self.t: tuple[str, int, bool] = '', 0, False
+
 		def self_method(self) -> None: ...
 
 	@data_provider([
-		(Test, Test.__init__),
+		(Sub, Sub.__init__),
 	])
 	def test_constructor(self, origin: type, expected: Callable) -> None:
 		anno = ClassAnnotation(origin)
 		self.assertEqual(expected, anno.constructor.raw)
 
 	@data_provider([
-		(Test, {'class_vars': {'n': int, 'l': list}, 'self_vars': {'d': dict}, 'methods': ['__init__', 'cls_method', 'self_method']}),
+		(Sub, {'class_vars': {'n': int, 'l': list}, 'self_vars': {'d': dict, 't': tuple}, 'methods': ['__init__', 'cls_method', 'self_method']}),
 	])
 	def test_schema(self, origin: type, expected: dict[str, Any]) -> None:
 		anno = ClassAnnotation(origin)

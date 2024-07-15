@@ -215,9 +215,13 @@ class TestReflections(TestCase):
 
 		(ModuleDSN.full_joined(fixture_module_path, 'Sub.list_expand.a'), 'list<int>'),
 		(ModuleDSN.full_joined(fixture_module_path, 'Sub.list_expand.b'), 'list<list<int>>'),
+		(ModuleDSN.full_joined(fixture_module_path, 'Sub.list_expand.c'), 'list<int>'),
 
 		(ModuleDSN.full_joined(fixture_module_path, 'Sub.dict_expand.a'), 'dict<str, int>'),
 		(ModuleDSN.full_joined(fixture_module_path, 'Sub.dict_expand.b'), 'dict<str, dict<str, int>>'),
+
+		(ModuleDSN.full_joined(fixture_module_path, 'Sub.tuple_arg.a'), 'bool'),
+		(ModuleDSN.full_joined(fixture_module_path, 'Sub.tuple_arg.b'), 'bool'),
 
 		(ModuleDSN.full_joined(fixture_module_path, 'CalcOps.unary.n_neg'), 'int'),
 		(ModuleDSN.full_joined(fixture_module_path, 'CalcOps.unary.n_not'), 'bool'),

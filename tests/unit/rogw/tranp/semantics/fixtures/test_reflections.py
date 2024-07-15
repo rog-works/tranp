@@ -139,11 +139,16 @@ class Sub(Base):
 
 	def list_expand(self) -> None:
 		a = [1, *[]]
-		b = [*[], [1]]
+		b = [*[], [2]]
+		c = [*(1,), *[2]]
 
 	def dict_expand(self) -> None:
 		a = {'a': 1, **{}}
 		b = {**{}, 'a': {'b': 1}}
+
+	def tuple_arg(self) -> None:
+		a = isinstance(1, (int, float))
+		b = issubclass(int, (int, float))
 
 
 class CalcOps:

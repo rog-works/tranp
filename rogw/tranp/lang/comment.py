@@ -102,7 +102,7 @@ class Comment(NamedTuple):
 		seq_tags = findall(rf'({joined_tags}):', text)
 		description, *block_contents = elems
 		blocks = {tag: block_contents[index] for index, tag in enumerate(seq_tags)}
-		return description, blocks
+		return (description, blocks)
 
 	@classmethod
 	def parse_attributes(cls, block: str) -> list[Attribute]:

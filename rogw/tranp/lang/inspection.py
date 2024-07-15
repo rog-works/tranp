@@ -213,8 +213,7 @@ class ClassAnnotation(Annotation):
 			Pythonではクラス変数とインスタンス変数の差が厳密ではないため、
 			このクラスではクラス直下に定義された変数をクラス変数と位置づける
 		"""
-		annos = {key: AnnotationResolver.resolve(prop) for key, prop in self.__recursive_annos(self._type).items()}
-		return {key: prop for key, prop in annos.items() if prop is not FunctionAnnotation}
+		return {key: AnnotationResolver.resolve(prop) for key, prop in self.__recursive_annos(self._type).items()}
 
 	def __recursive_annos(self, _type: type) -> dict[str, type]:
 		"""クラス階層を辿ってアノテーションを収集
@@ -225,8 +224,8 @@ class ClassAnnotation(Annotation):
 			dict[str, type]: アノテーション一覧
 		"""
 		annos: dict[str, type] = {}
-		for inherit in reversed(_type.mro()):
-			annos = {**annos, **getattr(inherit, '__annotations__', {})}
+		for at_type in reversed(_type.mro()):
+			annos = {**annos, **getattr(at_type, '__annotations__', {})}
 
 		return annos
 
@@ -255,7 +254,7 @@ class ClassAnnotation(Annotation):
 		Returns:
 			list[str]: DocStringのリスト
 		"""
-		docs: list[str] = [getattr(inherit, '__doc__') for inherit in reversed(_type.mro()) if hasattr(inherit, '__doc__')]
+		docs: list[str] = [getattr(at_type, '__doc__') for at_type in reversed(_type.mro()) if hasattr(at_type, '__doc__')]
 		return [doc for doc in docs if doc]
 
 	@property
@@ -272,10 +271,10 @@ class ClassAnnotation(Annotation):
 			dict[str, FunctionType | MethodType]: メソッド一覧
 		"""
 		_methods: dict[str, FunctionType | MethodType] = {}
-		for inherit in reversed(_type.mro()):
-			for key in inherit.__dict__.keys():
+		for at_type in reversed(_type.mro()):
+			for key in at_type.__dict__.keys():
 				# XXX getattrで取得する ※__dict__の値が想定外の型になるため
-				attr = getattr(inherit, key)
+				attr = getattr(at_type, key)
 				if isinstance(attr, (FunctionType, MethodType)):
 					_methods[key] = attr
 

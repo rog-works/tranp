@@ -740,7 +740,14 @@ class ProceduralResolver:
 		return self.reflections.type_of_standard(classes.Pair).to.literal(node).extends(first, second)
 
 	def on_list(self, node: defs.List, values: list[IReflection]) -> IReflection:
-		value_type = values[0] if len(values) > 0 else self.reflections.type_of_standard(classes.Unknown)
+		unknown_type = self.reflections.type_of_standard(classes.Unknown)
+		known_types = []
+		for index, value in enumerate(values):
+			value_type = value if not node.values[index].is_a(defs.Expander) else value.attrs[0]
+			if value_type.types != unknown_type.types:
+				known_types.append(value_type)
+
+		value_type = known_types[0] if len(known_types) > 0 else unknown_type
 		return self.reflections.type_of_standard(list).to.literal(node).extends(value_type)
 
 	def on_dict(self, node: defs.Dict, items: list[IReflection]) -> IReflection:
@@ -748,8 +755,14 @@ class ProceduralResolver:
 			unknown_type = self.reflections.type_of_standard(classes.Unknown)
 			return self.reflections.type_of_standard(dict).to.literal(node).extends(unknown_type, unknown_type)
 		else:
-			key_type, value_type = items[0].attrs
+			unknown_type = self.reflections.type_of_standard(classes.Unknown)
+			known_items = [item for item in items if item.attrs[1].types != unknown_type.types]
+			item = known_items[0] if len(known_items) > 0 else items[0]
+			key_type, value_type = item.attrs
 			return self.reflections.type_of_standard(dict).to.literal(node).extends(key_type, value_type)
+
+	def on_tuple(self, node: defs.Tuple, values: list[IReflection]) -> IReflection:
+		return self.reflections.type_of_standard(tuple).to.literal(node).extends(*values)
 
 	def on_null(self, node: defs.Null) -> IReflection:
 		return self.reflections.type_of_standard(None).to.literal(node)
@@ -757,6 +770,9 @@ class ProceduralResolver:
 	# Expression
 
 	def on_group(self, node: defs.Group, expression: IReflection) -> IReflection:
+		return expression
+
+	def on_expander(self, node: defs.Expander, expression: IReflection) -> IReflection:
 		return expression
 
 	# Terminal

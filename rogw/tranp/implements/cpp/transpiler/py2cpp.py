@@ -993,6 +993,9 @@ class Py2Cpp(ITranspiler):
 	def on_dict(self, node: defs.Dict, items: list[str]) -> str:
 		return self.view.render(node.classification, vars={'items': items})
 
+	def on_tuple(self, node: defs.Tuple, values: list[str]) -> str:
+		raise LogicError(f'Not supported tuple. node: {node}')
+
 	def on_null(self, node: defs.Null) -> str:
 		return 'nullptr'
 
@@ -1000,6 +1003,9 @@ class Py2Cpp(ITranspiler):
 
 	def on_group(self, node: defs.Group, expression: str) -> str:
 		return f'({expression})'
+
+	def on_expander(self, node: defs.Expander, expression: str) -> str:
+		raise LogicError(f'Not supported list expand expression. node: {node}')
 
 	# Terminal
 

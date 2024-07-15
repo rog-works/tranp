@@ -3,6 +3,7 @@ from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.lang.annotation import implements, override
 from rogw.tranp.lang.comment import Comment as CommentData
 from rogw.tranp.syntax.node.behavior import IDomain, ITerminal
+from rogw.tranp.syntax.node.definition.expression import Expander
 from rogw.tranp.syntax.node.definition.terminal import Terminal
 from rogw.tranp.syntax.node.embed import Meta, accept_tags, expandable
 from rogw.tranp.syntax.node.node import Node
@@ -114,7 +115,7 @@ class Pair(Literal):
 class List(Literal):
 	@property
 	@Meta.embed(Node, expandable)
-	def values(self) -> list[Node]:
+	def values(self) -> list[Expander | Node]:
 		return self._children()
 
 	@property
@@ -127,13 +128,26 @@ class List(Literal):
 class Dict(Literal):
 	@property
 	@Meta.embed(Node, expandable)
-	def items(self) -> list[Pair]:
-		return [node.as_a(Pair) for node in self._children()]
+	def items(self) -> list[Pair | Node]:
+		return self._children()
 
 	@property
 	@implements
 	def literal_identifier(self) -> str:
 		return dict.__name__
+
+
+@Meta.embed(Node, accept_tags('tuple'))
+class Tuple(Literal):
+	@property
+	@Meta.embed(Node, expandable)
+	def values(self) -> list[Node]:
+		return self._children()
+
+	@property
+	@implements
+	def literal_identifier(self) -> str:
+		return tuple.__name__
 
 
 @Meta.embed(Node, accept_tags('const_none'))

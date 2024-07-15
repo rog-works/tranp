@@ -254,11 +254,12 @@ slices: slice
 	| "None" -> const_none
 	| string
 	| number
-	| group_expr
+	| "(" _tuple_inner? ")" -> tuple
 	| "[" _exprlist? "]" -> list
 	| "[" comprehension{expression} "]"  -> list_comp
 	| "{" _dict_exprlist? "}" -> dict
 	| "{" comprehension{key_value} "}" -> dict_comp
+	| group_expr
 	| "..." -> elipsis
 
 group_expr: "(" expression ")"
@@ -268,9 +269,14 @@ assign_namelist: expression | expression (("," expression)+ [","] | ",")
 // @lark ?exprlist: (expr|star_expr) | (expr|star_expr) (("," (expr|star_expr))+ [","]|",")
 for_namelist: name | name (("," name)+ [","] | ",")
 
-_exprlist: expression ("," expression)* [","]
+// @lark _tuple_inner: test_or_star_expr (("," test_or_star_expr)+ [","] | ",")
+_tuple_inner: expression (("," expression)+ [","] | ",")
 
-_dict_exprlist: key_value ("," key_value)* [","]
+// @lark _exprlist: test_or_star_expr (","  test_or_star_expr)* [","]
+_exprlist: (expression | star_expr) ("," (expression | star_expr))* [","]
+star_expr: "*" expression
+
+_dict_exprlist: (key_value | "**" expression) ("," (key_value | "**" expression))* [","]
 key_value: expression ":" expression
 
 // # Comprehensions & Generators

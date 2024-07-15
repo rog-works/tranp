@@ -137,6 +137,25 @@ class Sub(Base):
 		b = t.__class__
 		c = t.__module__
 
+	def list_expand(self) -> None:
+		a = [1, *[]]
+		b = [*[], [2]]
+		c = [*(1,), *[2]]
+
+	def dict_expand(self) -> None:
+		a = {'a': 1, **{}}
+		b = {**{}, 'a': {'b': 1}}
+
+	def tuple_arg(self) -> None:
+		a = isinstance(1, (int, float))
+		b = issubclass(int, (int, float))
+
+	def decl_tuple(self, p: tuple[int, int, int]) -> tuple[str, str, str]:
+		a = (1, 'a', False)
+		b = p
+		c = self.decl_tuple(p)
+		return ('', '', '')
+
 
 class CalcOps:
 	def unary(self) -> None:

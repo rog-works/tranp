@@ -14,6 +14,7 @@ class TestReflectionsError(TestCase):
 
 	@data_provider([
 		(ModuleDSN.full_joined(fixture_module_path, 'InvalidOps.tenary_to_union_types.n_or_s'), UnresolvedSymbolError, r'Only Nullable.'),
+		(ModuleDSN.full_joined(fixture_module_path, 'InvalidOps.tuple_expand.a'), IndexError, r'list index out of range'),
 	])
 	def test_from_fullyname_error(self, fullyname: str, expected_error: type[Exception], expected: re.Pattern[str]) -> None:
 		reflections = self.fixture.get(Reflections)

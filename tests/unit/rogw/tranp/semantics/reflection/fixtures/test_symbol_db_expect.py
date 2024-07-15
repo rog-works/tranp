@@ -4,6 +4,7 @@ def expected_symbols() -> dict:
 		'typing#Callable': 'typing#Callable',
 		'typing#Generic': 'typing#Generic',
 		'typing#NamedTuple': 'typing#NamedTuple',
+		'typing#Protocol': 'typing#Protocol',
 		'typing#Sequence': 'typing#Sequence',
 		'typing#TypeAlias': 'typing#TypeAlias',
 		'typing#TypeVar': 'typing#TypeVar',

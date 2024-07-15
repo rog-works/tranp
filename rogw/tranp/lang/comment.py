@@ -1,4 +1,4 @@
-import re
+from re import findall, fullmatch, split
 from typing import NamedTuple
 
 
@@ -98,8 +98,8 @@ class Comment(NamedTuple):
 		"""
 		tags = ['Attributes', 'Args', 'Returns', 'Raises', 'Note', 'Examples']
 		joined_tags = '|'.join(tags)
-		elems = cls.__each_trim(re.split(rf'(?:{joined_tags}):', text))
-		seq_tags = re.findall(rf'({joined_tags}):', text)
+		elems = cls.__each_trim(split(rf'(?:{joined_tags}):', text))
+		seq_tags = findall(rf'({joined_tags}):', text)
 		description, *block_contents = elems
 		blocks = {tag: block_contents[index] for index, tag in enumerate(seq_tags)}
 		return description, blocks
@@ -118,7 +118,7 @@ class Comment(NamedTuple):
 
 		attrs: list[Comment.Attribute] = []
 		for line in block.split('\n'):
-			matches = re.fullmatch(r'([^(]+)\(([^)]+)\)\s*:\s*(.+)', line)
+			matches = fullmatch(r'([^(]+)\(([^)]+)\)\s*:\s*(.+)', line)
 			if not matches:
 				continue
 
@@ -136,7 +136,7 @@ class Comment(NamedTuple):
 		Returns:
 			Comment.Type: 型コメント
 		"""
-		matches = re.fullmatch(r'([^:]+):\s*(.+)', block)
+		matches = fullmatch(r'([^:]+):\s*(.+)', block)
 		if not matches:
 			return Comment.Type('', '')
 
@@ -157,7 +157,7 @@ class Comment(NamedTuple):
 
 		raises: list[Comment.Type] = []
 		for line in block.split('\n'):
-			matches = re.fullmatch(r'([^:]+):\s*(.+)', line)
+			matches = fullmatch(r'([^:]+):\s*(.+)', line)
 			if not matches:
 				continue
 

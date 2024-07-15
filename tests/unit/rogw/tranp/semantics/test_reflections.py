@@ -223,6 +223,10 @@ class TestReflections(TestCase):
 		(ModuleDSN.full_joined(fixture_module_path, 'Sub.tuple_arg.a'), 'bool'),
 		(ModuleDSN.full_joined(fixture_module_path, 'Sub.tuple_arg.b'), 'bool'),
 
+		(ModuleDSN.full_joined(fixture_module_path, 'Sub.decl_tuple.a'), 'tuple<int, str, bool>'),
+		(ModuleDSN.full_joined(fixture_module_path, 'Sub.decl_tuple.b'), 'tuple<int, int, int>'),
+		(ModuleDSN.full_joined(fixture_module_path, 'Sub.decl_tuple.c'), 'tuple<str, str, str>'),
+
 		(ModuleDSN.full_joined(fixture_module_path, 'CalcOps.unary.n_neg'), 'int'),
 		(ModuleDSN.full_joined(fixture_module_path, 'CalcOps.unary.n_not'), 'bool'),
 		(ModuleDSN.full_joined(fixture_module_path, 'CalcOps.binary.n'), 'int'),

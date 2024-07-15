@@ -150,6 +150,12 @@ class Sub(Base):
 		a = isinstance(1, (int, float))
 		b = issubclass(int, (int, float))
 
+	def decl_tuple(self, p: tuple[int, int, int]) -> tuple[str, str, str]:
+		a = (1, 'a', False)
+		b = p
+		c = self.decl_tuple(p)
+		return ('', '', '')
+
 
 class CalcOps:
 	def unary(self) -> None:

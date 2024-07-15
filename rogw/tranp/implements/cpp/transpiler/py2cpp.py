@@ -1001,6 +1001,9 @@ class Py2Cpp(ITranspiler):
 	def on_group(self, node: defs.Group, expression: str) -> str:
 		return f'({expression})'
 
+	def on_expander(self, node: defs.Expander, expression: str) -> str:
+		raise LogicError(f'Not supported list expand expression. node: {node}')
+
 	# Terminal
 
 	def on_terminal(self, node: Node) -> str:

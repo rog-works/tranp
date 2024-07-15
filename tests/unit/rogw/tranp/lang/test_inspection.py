@@ -3,6 +3,7 @@ from types import NoneType
 from typing import Any, Callable, cast
 from unittest import TestCase
 
+from rogw.tranp.lang.annotation import override
 from rogw.tranp.lang.inspection import Annotation, AnnotationResolver, ClassAnnotation, FunctionAnnotation, ScalarAnnotation
 from rogw.tranp.test.helper import data_provider
 
@@ -88,6 +89,8 @@ class TestFunctionAnnotation(TestCase):
 		@classmethod
 		def cls_func(cls, n: int) -> str: ...
 		def self_func(self, l: list[int], d: dict[str, int]) -> tuple[int, str, bool]: ...
+		@property
+		def prop(self) -> int: ...
 
 	class Sub(Base): ...
 
@@ -95,6 +98,7 @@ class TestFunctionAnnotation(TestCase):
 		(Sub.__init__, {'static': False, 'method': False, 'function': True}),  # FIXME 静的に取得するとFunctionTypeになり、メソッドであるか否かを判別できない
 		(Sub.cls_func, {'static': True, 'method': True, 'function': False}),
 		(Sub.self_func, {'static': False, 'method': False, 'function': True}),  # FIXME 静的に取得するとFunctionTypeになり、メソッドであるか否かを判別できない
+		# FIXME (Sub.prop, {'static': False, 'method': False, 'function': False}),  # FIXME Functionですらない
 		(Sub().cls_func, {'static': True, 'method': True, 'function': False}),
 		(Sub().self_func, {'static': False, 'method': True, 'function': False}),
 		(func, {'static': False, 'method': False, 'function': True}),
@@ -127,6 +131,7 @@ class TestFunctionAnnotation(TestCase):
 		(Sub.__init__, {'args': {}, 'returns': None}),
 		(Sub.cls_func, {'args': {'n': int}, 'returns': str}),
 		(Sub.self_func, {'args': {'l': list, 'd': dict}, 'returns': tuple}),
+		# FIXME (Sub.prop, {'args': {}, 'returns': int}),
 		(Sub().cls_func, {'args': {'n': int}, 'returns': str}),
 		(Sub().self_func, {'args': {'l': list, 'd': dict}, 'returns': tuple}),
 		(func, {'args': {'n': int}, 'returns': str}),
@@ -139,29 +144,29 @@ class TestFunctionAnnotation(TestCase):
 
 class TestClassAnnotation(TestCase):
 	class Base:
-		"""
-		Attributes:
-			d (dict[str, int]): dict
-		"""
-
 		n: int = 0
 
 		def __init__(self) -> None:
 			self.d: dict[str, int] = {}
 
 		@classmethod
+		def __self_attributes__(cls) -> dict[str, type]:
+			return {'d': dict[str, int]}
+
+		@classmethod
 		def cls_method(cls) -> None: ...
 
 	class Sub(Base):
-		"""
-		Attributes:
-			t (tuple[str, int, bool]): tuple
-		"""
-
 		l: list[int] = []
 
 		def __init__(self) -> None:
 			self.t: tuple[str, int, bool] = '', 0, False
+
+		@classmethod
+		@override
+		def __self_attributes__(cls) -> dict[str, type]:
+			attrs = super().__self_attributes__()
+			return {**attrs, 't': tuple[str, int, bool]}
 
 		def self_method(self) -> None: ...
 
@@ -173,7 +178,7 @@ class TestClassAnnotation(TestCase):
 		self.assertEqual(expected, anno.constructor.raw)
 
 	@data_provider([
-		(Sub, {'class_vars': {'n': int, 'l': list}, 'self_vars': {'d': dict, 't': tuple}, 'methods': ['__init__', 'cls_method', 'self_method']}),
+		(Sub, {'class_vars': {'n': int, 'l': list}, 'self_vars': {'d': dict, 't': tuple}, 'methods': ['__init__', '__self_attributes__', 'cls_method', 'self_method']}),
 	])
 	def test_schema(self, origin: type, expected: dict[str, Any]) -> None:
 		anno = ClassAnnotation(origin)

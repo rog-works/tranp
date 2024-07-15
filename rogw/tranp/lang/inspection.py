@@ -3,7 +3,6 @@ from types import FunctionType, MethodType, NoneType, UnionType
 from typing import Any, Callable
 
 from rogw.tranp.lang.annotation import override
-from rogw.tranp.lang.comment import Comment
 
 
 class Annotation:
@@ -213,7 +212,7 @@ class ClassAnnotation(Annotation):
 			Pythonではクラス変数とインスタンス変数の差が厳密ではないため、
 			このクラスではクラス直下に定義された変数をクラス変数と位置づける
 		"""
-		return {key: AnnotationResolver.resolve(prop) for key, prop in self.__recursive_annos(self._type).items()}
+		return {key: AnnotationResolver.resolve(attr) for key, attr in self.__recursive_annos(self._type).items()}
 
 	def __recursive_annos(self, _type: type) -> dict[str, type]:
 		"""クラス階層を辿ってアノテーションを収集
@@ -236,26 +235,11 @@ class ClassAnnotation(Annotation):
 		Returns:
 			dict[str, Annotation]: インスタンス変数一覧
 		Note:
-			Pythonでは、クラスからインスタンス変数を確実に抜き出す方法が無いため、
-			クラスに記入されたDocStringを基にインスタンス変数のアノテーションを生成する
+			Pythonではインスタンス変数はオブジェクトに動的にバインドされるため、タイプから抜き出す方法が無い
+			そのため、独自の特殊メソッド`__self_attributes__`を実装することで対処する
 		"""
-		docstrings = [Comment.parse(doc) for doc in self.__recursive_docs(self._type)]
-		var_types: dict[str, type] = {}
-		for docstring in docstrings:
-			var_types = {**var_types, **{attr.name: eval(attr.type) for attr in docstring.attributes}}
-
-		return {key: AnnotationResolver.resolve(prop) for key, prop in var_types.items()}
-
-	def __recursive_docs(self, _type: type) -> list[str]:
-		"""クラス階層を辿ってDocStringを収集
-
-		Args:
-			_type (type): タイプ
-		Returns:
-			list[str]: DocStringのリスト
-		"""
-		docs: list[str] = [getattr(at_type, '__doc__') for at_type in reversed(_type.mro()) if hasattr(at_type, '__doc__')]
-		return [doc for doc in docs if doc]
+		factory = getattr(self._type, '__self_attributes__', lambda: {})
+		return {key: AnnotationResolver.resolve(attr) for key, attr in factory().items()}
 
 	@property
 	def methods(self) -> dict[str, FunctionAnnotation]:

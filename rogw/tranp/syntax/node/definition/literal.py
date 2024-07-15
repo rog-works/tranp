@@ -127,8 +127,8 @@ class List(Literal):
 class Dict(Literal):
 	@property
 	@Meta.embed(Node, expandable)
-	def items(self) -> list[Pair]:
-		return [node.as_a(Pair) for node in self._children()]
+	def items(self) -> list[Pair | Node]:
+		return self._children()
 
 	@property
 	@implements

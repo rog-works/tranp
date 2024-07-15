@@ -1095,14 +1095,18 @@ class TestDefinition(TestCase):
 
 	@data_provider([
 		('a = {"b": 0, "c": 1}', 'file_input.assign.dict', [{'key': '"b"', 'value': '0', 'value_type': defs.Integer}, {'key': '"c"', 'value': '1', 'value_type': defs.Integer}]),
+		('a = {"b": 0, **{}}', 'file_input.assign.dict', [{'key': '"b"', 'value': '0', 'value_type': defs.Integer}, {'value_type': defs.Dict}]),
 	])
 	def test_dict(self, source: str, full_path: str, expected: list[dict[str, Any]]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Dict)
 		self.assertEqual(len(expected), len(node.items))
 		for index, item in enumerate(node.items):
-			self.assertEqual(expected[index]['key'], item.first.tokens)
-			self.assertEqual(expected[index]['value'], item.second.tokens)
-			self.assertEqual(expected[index]['value_type'], type(item.second))
+			if isinstance(item, defs.Pair):
+				self.assertEqual(expected[index]['key'], item.first.tokens)
+				self.assertEqual(expected[index]['value'], item.second.tokens)
+				self.assertEqual(expected[index]['value_type'], type(item.second))
+			else:
+				self.assertEqual(expected[index]['value_type'], type(item))
 
 	@data_provider([
 		('None', 'file_input.const_none'),

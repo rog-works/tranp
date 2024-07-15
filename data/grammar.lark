@@ -270,7 +270,7 @@ for_namelist: name | name (("," name)+ [","] | ",")
 
 _exprlist: expression ("," expression)* [","]
 
-_dict_exprlist: key_value ("," key_value)* [","]
+_dict_exprlist: (key_value | "**" expression) ("," (key_value | "**" expression))* [","]
 key_value: expression ":" expression
 
 // # Comprehensions & Generators

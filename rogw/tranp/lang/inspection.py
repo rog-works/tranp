@@ -18,8 +18,8 @@ class SelfAttributes(Protocol):
 		...
 
 
-class Annotation:
-	"""アノテーション(基底クラス)"""
+class Typehint:
+	"""タイプヒント(基底クラス)"""
 
 	@property
 	def origin(self) -> type:
@@ -27,8 +27,8 @@ class Annotation:
 		...
 
 
-class ScalarAnnotation(Annotation):
-	"""アノテーション(値)
+class ScalarTypehint(Typehint):
+	"""タイプヒント(値)
 
 	Note:
 		### 対象のクラス
@@ -89,9 +89,9 @@ class ScalarAnnotation(Annotation):
 		return type(self._type) is EnumType
 
 	@property
-	def sub_types(self) -> list[Annotation]:
-		"""list[Annotation]: ジェネリック/Union型のサブタイプのリスト"""
-		return [AnnotationResolver.resolve(sub_type) for sub_type in self.__sub_annos]
+	def sub_types(self) -> list[Typehint]:
+		"""list[Typehint]: ジェネリック/Union型のサブタイプのリスト"""
+		return [Inspector.resolve(sub_type) for sub_type in self.__sub_annos]
 
 	@property
 	def __sub_annos(self) -> list[type]:
@@ -104,15 +104,15 @@ class ScalarAnnotation(Annotation):
 		return list(getattr(self.origin, '__members__').values())
 
 
-class FunctionAnnotation(Annotation):
-	"""アノテーション(関数)
+class FunctionTypehint(Typehint):
+	"""タイプヒント(関数)
 
 	Note:
 		### 対象のクラス
 		* 関数
 		* メソッド(クラス/インスタンス)
 		### 非対応
-		* ラムダ ※アノテーションが付けられないため
+		* ラムダ ※タイプヒントが付けられないため
 	"""
 
 	def __init__(self, func_or_class: Callable) -> None:
@@ -170,23 +170,23 @@ class FunctionAnnotation(Annotation):
 		return getattr(self._func, '__self__')
 
 	@property
-	def args(self) -> dict[str, Annotation]:
-		"""dict[str, Annotation]: 引数リスト"""
-		return {key: AnnotationResolver.resolve(in_type) for key, in_type in self.__annos.items() if key != 'return'}
+	def args(self) -> dict[str, Typehint]:
+		"""dict[str, Typehint]: 引数リスト"""
+		return {key: Inspector.resolve(in_type) for key, in_type in self.__annos.items() if key != 'return'}
 
 	@property
-	def returns(self) -> Annotation:
-		"""Annotation: 戻り値"""
-		return AnnotationResolver.resolve(self.__annos['return'])
+	def returns(self) -> Typehint:
+		"""Typehint: 戻り値"""
+		return Inspector.resolve(self.__annos['return'])
 
 	@property
 	def __annos(self) -> dict[str, type]:
-		"""dict[str, type]: アノテーションのリスト"""
+		"""dict[str, type]: タイプヒントのリスト"""
 		return self._func.__annotations__
 
 
-class ClassAnnotation(Annotation):
-	"""アノテーション(クラス)
+class ClassTypehint(Typehint):
+	"""タイプヒント(クラス)
 
 	Note:
 		### 対象のクラス
@@ -211,29 +211,29 @@ class ClassAnnotation(Annotation):
 		return self._type
 
 	@property
-	def constructor(self) -> FunctionAnnotation:
-		"""FunctionAnnotation: コンストラクター"""
-		return FunctionAnnotation(self._type.__init__)
+	def constructor(self) -> FunctionTypehint:
+		"""FunctionTypehint: コンストラクター"""
+		return FunctionTypehint(self._type.__init__)
 
 	@property
-	def class_vars(self) -> dict[str, Annotation]:
+	def class_vars(self) -> dict[str, Typehint]:
 		"""クラス変数の一覧を取得
 
 		Returns:
-			dict[str, Annotation]: クラス変数一覧
+			dict[str, Typehint]: クラス変数一覧
 		Note:
 			Pythonではクラス変数とインスタンス変数の差が厳密ではないため、
 			このクラスではクラス直下に定義された変数をクラス変数と位置づける
 		"""
-		return {key: AnnotationResolver.resolve(attr) for key, attr in self.__recursive_annos(self._type).items()}
+		return {key: Inspector.resolve(attr) for key, attr in self.__recursive_annos(self._type).items()}
 
 	def __recursive_annos(self, _type: type) -> dict[str, type]:
-		"""クラス階層を辿ってアノテーションを収集
+		"""クラス階層を辿ってタイプヒントを収集
 
 		Args:
 			_type (type): タイプ
 		Returns:
-			dict[str, type]: アノテーション一覧
+			dict[str, type]: タイプヒント一覧
 		"""
 		annos: dict[str, type] = {}
 		for at_type in reversed(_type.mro()):
@@ -242,11 +242,11 @@ class ClassAnnotation(Annotation):
 		return annos
 
 	@property
-	def self_vars(self) -> dict[str, Annotation]:
+	def self_vars(self) -> dict[str, Typehint]:
 		"""インスタンス変数の一覧を取得
 
 		Returns:
-			dict[str, Annotation]: インスタンス変数一覧
+			dict[str, Typehint]: インスタンス変数一覧
 		Note:
 			Pythonではインスタンス変数はオブジェクトに動的にバインドされるため、タイプから抜き出す方法が無い
 			そのため、独自の特殊メソッド`__self_attributes__`を実装することで対処する
@@ -256,12 +256,12 @@ class ClassAnnotation(Annotation):
 		if hasattr(self._type, SelfAttributes.__self_attributes__.__name__):
 			attrs = getattr(self._type, SelfAttributes.__self_attributes__.__name__)()
 
-		return {key: AnnotationResolver.resolve(attr) for key, attr in attrs.items()}
+		return {key: Inspector.resolve(attr) for key, attr in attrs.items()}
 
 	@property
-	def methods(self) -> dict[str, FunctionAnnotation]:
-		"""dict[str, FunctionAnnotation]: メソッド一覧"""
-		return {key: FunctionAnnotation(prop) for key, prop in self.__recursive_methods(self._type).items()}
+	def methods(self) -> dict[str, FunctionTypehint]:
+		"""dict[str, FunctionTypehint]: メソッド一覧"""
+		return {key: FunctionTypehint(prop) for key, prop in self.__recursive_methods(self._type).items()}
 
 	def __recursive_methods(self, _type: type) -> dict[str, FunctionType | MethodType]:
 		"""クラス階層を辿ってメソッドを収集
@@ -282,24 +282,24 @@ class ClassAnnotation(Annotation):
 		return _methods
 
 
-class AnnotationResolver:
-	"""アノテーションリゾルバー"""
+class Inspector:
+	"""タイプヒントリゾルバー"""
 
 	@classmethod
-	def resolve(cls, origin: type | FunctionType | MethodType) -> Annotation:
-		"""アノテーションを解決
+	def resolve(cls, origin: type | FunctionType | MethodType) -> Typehint:
+		"""タイプヒントを解決
 
 		Args:
 			origin (type | FunctionType | MethodType): タイプ
 		Returns:
-			Annotation: アノテーション
+			Typehint: タイプヒント
 		"""
 		if isinstance(origin, (FunctionType, MethodType)):
-			return FunctionAnnotation(origin)
+			return FunctionTypehint(origin)
 		elif cls.__is_scalar(origin):
-			return ScalarAnnotation(origin)
+			return ScalarTypehint(origin)
 		else:
-			return ClassAnnotation(origin)
+			return ClassTypehint(origin)
 
 	@classmethod
 	def __is_scalar(cls, origin: type) -> bool:

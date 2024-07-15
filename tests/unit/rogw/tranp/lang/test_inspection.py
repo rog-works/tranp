@@ -4,11 +4,11 @@ from typing import Any, Callable, cast
 from unittest import TestCase
 
 from rogw.tranp.lang.annotation import override
-from rogw.tranp.lang.inspection import Annotation, AnnotationResolver, ClassAnnotation, FunctionAnnotation, ScalarAnnotation
+from rogw.tranp.lang.inspection import Typehint, Inspector, ClassTypehint, FunctionTypehint, ScalarTypehint
 from rogw.tranp.test.helper import data_provider
 
 
-class TestScalarAnnotation(TestCase):
+class TestScalarTypehint(TestCase):
 	class Values(Enum):
 		A = 1
 
@@ -28,7 +28,7 @@ class TestScalarAnnotation(TestCase):
 		(Values, {'raw': Values, 'origin': Values}),
 	])
 	def test_origins(self, origin: type, expected: dict[str, type]) -> None:
-		anno = ScalarAnnotation(origin)
+		anno = ScalarTypehint(origin)
 		self.assertEqual(expected['raw'], anno.raw)
 		self.assertEqual(expected['origin'], anno.origin)
 
@@ -48,7 +48,7 @@ class TestScalarAnnotation(TestCase):
 		(Values, {'null': False, 'generic': False, 'list': False, 'union': False, 'nullable': False, 'enum': True}),
 	])
 	def test_states(self, origin: type, expected: dict[str, bool]) -> None:
-		anno = ScalarAnnotation(origin)
+		anno = ScalarTypehint(origin)
 		self.assertEqual(expected['null'], anno.is_null)
 		self.assertEqual(expected['generic'], anno.is_generic)
 		self.assertEqual(expected['list'], anno.is_list)
@@ -71,19 +71,19 @@ class TestScalarAnnotation(TestCase):
 		(Values, []),
 	])
 	def test_sub_types(self, origin: type, expected: list[type]) -> None:
-		self.assertEqual(expected, [cast(ScalarAnnotation, anno).origin for anno in ScalarAnnotation(origin).sub_types])
+		self.assertEqual(expected, [cast(ScalarTypehint, anno).origin for anno in ScalarTypehint(origin).sub_types])
 
 	@data_provider([
 		(Values, [Values.A]),
 	])
 	def test_enum_members(self, origin: EnumType, expected: list[Enum]) -> None:
-		self.assertEqual(expected, ScalarAnnotation(origin).enum_members)
+		self.assertEqual(expected, ScalarTypehint(origin).enum_members)
 
 
 def func(n: int) -> str: ...
 
 
-class TestFunctionAnnotation(TestCase):
+class TestFunctionTypehint(TestCase):
 	class Base:
 		def __init__(self) -> None: ...
 		@classmethod
@@ -104,7 +104,7 @@ class TestFunctionAnnotation(TestCase):
 		(func, {'static': False, 'method': False, 'function': True}),
 	])
 	def test_states(self, origin: Callable, expected: dict[str, bool]) -> None:
-		anno = FunctionAnnotation(origin)
+		anno = FunctionTypehint(origin)
 		self.assertEqual(expected['static'], anno.is_static)
 		self.assertEqual(expected['method'], anno.is_method)
 		self.assertEqual(expected['function'], anno.is_function)
@@ -115,7 +115,7 @@ class TestFunctionAnnotation(TestCase):
 		(Sub().self_func, Sub),
 	])
 	def test_receiver(self, origin: Callable, expected: type) -> None:
-		anno = FunctionAnnotation(origin)
+		anno = FunctionTypehint(origin)
 		self.assertEqual(expected, anno.receiver if anno.is_static else anno.receiver.__class__)
 
 	@data_provider([
@@ -125,7 +125,7 @@ class TestFunctionAnnotation(TestCase):
 	])
 	def test_receiver_error(self, origin: Callable) -> None:
 		with self.assertRaises(AttributeError):
-			FunctionAnnotation(origin).receiver
+			FunctionTypehint(origin).receiver
 
 	@data_provider([
 		(Sub.__init__, {'args': {}, 'returns': None}),
@@ -137,12 +137,12 @@ class TestFunctionAnnotation(TestCase):
 		(func, {'args': {'n': int}, 'returns': str}),
 	])
 	def test_signature(self, origin: Callable, expected: dict[str, Any]) -> None:
-		anno = FunctionAnnotation(origin)
+		anno = FunctionTypehint(origin)
 		self.assertEqual(expected['args'], {key: arg.origin for key, arg in anno.args.items()})
 		self.assertEqual(expected['returns'], anno.returns.origin)
 
 
-class TestClassAnnotation(TestCase):
+class TestClassTypehint(TestCase):
 	class Base:
 		n: int = 0
 
@@ -175,38 +175,38 @@ class TestClassAnnotation(TestCase):
 		(Sub, Sub.__init__),
 	])
 	def test_constructor(self, origin: type, expected: Callable) -> None:
-		anno = ClassAnnotation(origin)
+		anno = ClassTypehint(origin)
 		self.assertEqual(expected, anno.constructor.raw)
 
 	@data_provider([
 		(Sub, {'class_vars': {'n': int, 'l': list}, 'self_vars': {'d': dict, 't': tuple}, 'methods': ['__init__', '__self_attributes__', 'cls_method', 'self_method']}),
 	])
 	def test_schema(self, origin: type, expected: dict[str, Any]) -> None:
-		anno = ClassAnnotation(origin)
+		anno = ClassTypehint(origin)
 		self.assertEqual(expected['class_vars'], {key: var.origin for key, var in anno.class_vars.items()})
 		self.assertEqual(expected['self_vars'], {key: var.origin for key, var in anno.self_vars.items()})
 		self.assertEqual(expected['methods'], [key for key in anno.methods.keys()])
 
 
-class TestAnnotationResolver(TestCase):
+class TestInspector(TestCase):
 	@data_provider([
-		(int, ScalarAnnotation),
-		(str, ScalarAnnotation),
-		(float, ScalarAnnotation),
-		(bool, ScalarAnnotation),
-		(list, ScalarAnnotation),
-		(list[int], ScalarAnnotation),
-		(dict, ScalarAnnotation),
-		(dict[str, int], ScalarAnnotation),
-		(tuple[str, int, bool], ScalarAnnotation),
-		(int | str, ScalarAnnotation),
-		(type, ScalarAnnotation),
-		(type[str], ScalarAnnotation),
-		(None, ScalarAnnotation),
-		(type(None), ScalarAnnotation),
-		(func, FunctionAnnotation),
-		(AnnotationResolver.resolve, FunctionAnnotation),
-		(AnnotationResolver, ClassAnnotation),
+		(int, ScalarTypehint),
+		(str, ScalarTypehint),
+		(float, ScalarTypehint),
+		(bool, ScalarTypehint),
+		(list, ScalarTypehint),
+		(list[int], ScalarTypehint),
+		(dict, ScalarTypehint),
+		(dict[str, int], ScalarTypehint),
+		(tuple[str, int, bool], ScalarTypehint),
+		(int | str, ScalarTypehint),
+		(type, ScalarTypehint),
+		(type[str], ScalarTypehint),
+		(None, ScalarTypehint),
+		(type(None), ScalarTypehint),
+		(func, FunctionTypehint),
+		(Inspector.resolve, FunctionTypehint),
+		(Inspector, ClassTypehint),
 	])
-	def test_resolve(self, origin: type, expected: Annotation) -> None:
-		self.assertEqual(expected, type(AnnotationResolver.resolve(origin)))
+	def test_resolve(self, origin: type, expected: Typehint) -> None:
+		self.assertEqual(expected, type(Inspector.resolve(origin)))

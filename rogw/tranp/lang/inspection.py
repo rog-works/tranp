@@ -1,8 +1,21 @@
 from enum import Enum, EnumType
 from types import FunctionType, MethodType, NoneType, UnionType
-from typing import Any, Callable
+from typing import Any, Callable, Protocol
 
 from rogw.tranp.lang.annotation import override
+
+
+class SelfAttributes(Protocol):
+	"""インスタンス変数明示プロトコル"""
+
+	@classmethod
+	def __self_attributes__(cls) -> dict[str, type]:
+		"""インスタンス変数のスキーマを生成
+
+		Returns:
+			dict[str, type]: スキーマ
+		"""
+		...
 
 
 class Annotation:
@@ -237,9 +250,13 @@ class ClassAnnotation(Annotation):
 		Note:
 			Pythonではインスタンス変数はオブジェクトに動的にバインドされるため、タイプから抜き出す方法が無い
 			そのため、独自の特殊メソッド`__self_attributes__`を実装することで対処する
+			@see SelfAttributes
 		"""
-		factory = getattr(self._type, '__self_attributes__', lambda: {})
-		return {key: AnnotationResolver.resolve(attr) for key, attr in factory().items()}
+		attrs: dict[str, type] = {}
+		if hasattr(self._type, SelfAttributes.__self_attributes__.__name__):
+			attrs = getattr(self._type, SelfAttributes.__self_attributes__.__name__)()
+
+		return {key: AnnotationResolver.resolve(attr) for key, attr in attrs.items()}
 
 	@property
 	def methods(self) -> dict[str, FunctionAnnotation]:

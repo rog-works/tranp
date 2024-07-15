@@ -160,6 +160,7 @@ class TestClassAnnotation(TestCase):
 		l: list[int] = []
 
 		def __init__(self) -> None:
+			super().__init__()
 			self.t: tuple[str, int, bool] = '', 0, False
 
 		@classmethod

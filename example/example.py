@@ -362,7 +362,7 @@ class CellMesh:
 		指定のセル座標から3x3x3の範囲に存在するセルの6面のポリゴンIDを取得する
 
 		Args:
-			mesh (Mesh*): メッシュ
+			mesh (CP[Mesh]): メッシュ
 			start (IntVector): 取得開始セル座標
 			unit (int): 単位
 		Returns:
@@ -439,7 +439,7 @@ class CellMesh:
 		"""セルの6面のポリゴンIDを取得する
 
 		Args:
-			mesh (Mesh*): メッシュ
+			mesh (CP[Mesh]): メッシュ
 			cell (IntVector): セル座標
 			unit (int): 単位
 		Returns:
@@ -474,7 +474,7 @@ class CellMesh:
 		"""指定座標へのセル追加に必要な周辺セルを取得
 
 		Args:
-			mesh (Mesh*): メッシュ
+			mesh (CP[Mesh]): メッシュ
 			cell (IntVector): セル座標
 			unit (int): 単位
 		Returns:
@@ -530,7 +530,7 @@ class CellMesh:
 		"""指定座標にセル追加が出来るか判定
 
 		Args:
-			mesh (Mesh*): メッシュ
+			mesh (CP[Mesh]): メッシュ
 			cell (IntVector): セル座標
 			unit (int): 単位
 		Returns:
@@ -543,7 +543,7 @@ class CellMesh:
 		"""メッシュをクリーニングし、初期状態に戻す
 
 		Args:
-			mesh (Mesh*): メッシュ
+			mesh (CP[Mesh]): メッシュ
 		"""
 		def closure(origin: CRef[MeshRaw]) -> None:
 			origin.on.clear()
@@ -559,7 +559,7 @@ class CellMesh:
 		辺のみ接触する隣接セルが存在する場合が上記の条件に抵触する
 
 		Args:
-			mesh (Mesh*): メッシュ
+			mesh (CP[Mesh]): メッシュ
 			cell (IntVector): セル座標
 			unit (int): 単位 (default = 100cm)
 		"""

@@ -137,9 +137,13 @@ class Sub(Base):
 		b = t.__class__
 		c = t.__module__
 
-	def dict_unpack(self) -> None:
+	def list_expand(self) -> None:
+		a = [1, *[]]
+		b = [*[], [1]]
+
+	def dict_expand(self) -> None:
 		a = {'a': 1, **{}}
-		b = {**{}, 'a': 1}
+		b = {**{}, 'a': {'b': 1}}
 
 
 class CalcOps:

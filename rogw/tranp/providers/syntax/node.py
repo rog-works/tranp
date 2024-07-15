@@ -126,6 +126,7 @@ def symbol_mapping() -> SymbolMapping:
 			defs.Null: ['const_none'],
 			# -- Expression --
 			defs.Group: ['group_expr'],
+			defs.Expander: ['star_expr'],
 			# -- Terminal --
 			defs.Empty: ['__empty__'],
 		},

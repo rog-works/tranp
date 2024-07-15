@@ -8,3 +8,11 @@ class Group(Node):
 	@Meta.embed(Node, expandable)
 	def expression(self) -> Node:
 		return self._at(0)
+
+
+@Meta.embed(Node, accept_tags('star_expr'))
+class Expander(Node):
+	@property
+	@Meta.embed(Node, expandable)
+	def expression(self) -> Node:
+		return self._at(0)

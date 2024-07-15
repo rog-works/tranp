@@ -3,6 +3,7 @@ from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.lang.annotation import implements, override
 from rogw.tranp.lang.comment import Comment as CommentData
 from rogw.tranp.syntax.node.behavior import IDomain, ITerminal
+from rogw.tranp.syntax.node.definition.expression import Expander
 from rogw.tranp.syntax.node.definition.terminal import Terminal
 from rogw.tranp.syntax.node.embed import Meta, accept_tags, expandable
 from rogw.tranp.syntax.node.node import Node
@@ -114,7 +115,7 @@ class Pair(Literal):
 class List(Literal):
 	@property
 	@Meta.embed(Node, expandable)
-	def values(self) -> list[Node]:
+	def values(self) -> list[Expander | Node]:
 		return self._children()
 
 	@property

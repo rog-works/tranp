@@ -1085,13 +1085,17 @@ class TestDefinition(TestCase):
 
 	@data_provider([
 		('a = [0, 1]', 'file_input.assign.list', [{'value': '0', 'value_type': defs.Integer}, {'value': '1', 'value_type': defs.Integer}]),
+		('a = [0, *[]]', 'file_input.assign.list', [{'value': '0', 'value_type': defs.Integer}, {'value_type': defs.List}]),
 	])
 	def test_list(self, source: str, full_path: str, expected: list[dict[str, Any]]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.List)
 		self.assertEqual(len(expected), len(node.values))
 		for index, value in enumerate(node.values):
-			self.assertEqual(expected[index]['value'], value.tokens)
-			self.assertEqual(expected[index]['value_type'], type(value))
+			if not isinstance(value, defs.Expander):
+				self.assertEqual(expected[index]['value'], value.tokens)
+				self.assertEqual(expected[index]['value_type'], type(value))
+			else:
+				self.assertEqual(expected[index]['value_type'], type(value.expression))
 
 	@data_provider([
 		('a = {"b": 0, "c": 1}', 'file_input.assign.dict', [{'key': '"b"', 'value': '0', 'value_type': defs.Integer}, {'key': '"c"', 'value': '1', 'value_type': defs.Integer}]),

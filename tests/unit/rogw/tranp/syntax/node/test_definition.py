@@ -1117,8 +1117,9 @@ class TestDefinition(TestCase):
 				self.assertEqual(expected[index]['value_type'], type(item))
 
 	@data_provider([
+		('a = ()', 'file_input.assign.tuple', []),
 		('a = (1,)', 'file_input.assign.tuple', [{'value': '1', 'value_type': defs.Integer}]),
-		('a = (1, "a", True)', 'file_input.assign.tuple', [{'value': '1', 'value_type': defs.Integer}, {'value': '"a"', 'value_type': defs.String}, {'value': '', 'value_type': defs.Truthy}]),
+		('a = (1, "a", (True))', 'file_input.assign.tuple', [{'value': '1', 'value_type': defs.Integer}, {'value': '"a"', 'value_type': defs.String}, {'value': '', 'value_type': defs.Group}]),
 	])
 	def test_tuple(self, source: str, full_path: str, expected: list[dict[str, Any]]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Tuple)

@@ -213,6 +213,9 @@ class TestReflections(TestCase):
 		(ModuleDSN.full_joined(fixture_module_path, 'Sub.type_props.b'), 'type<object>'),
 		(ModuleDSN.full_joined(fixture_module_path, 'Sub.type_props.c'), 'str'),
 
+		(ModuleDSN.full_joined(fixture_module_path, 'Sub.dict_unpack.a'), 'dict<str, int>'),
+		(ModuleDSN.full_joined(fixture_module_path, 'Sub.dict_unpack.b'), 'dict<str, int>'),
+
 		(ModuleDSN.full_joined(fixture_module_path, 'CalcOps.unary.n_neg'), 'int'),
 		(ModuleDSN.full_joined(fixture_module_path, 'CalcOps.unary.n_not'), 'bool'),
 		(ModuleDSN.full_joined(fixture_module_path, 'CalcOps.binary.n'), 'int'),

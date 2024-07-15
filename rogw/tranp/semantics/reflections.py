@@ -748,7 +748,9 @@ class ProceduralResolver:
 			unknown_type = self.reflections.type_of_standard(classes.Unknown)
 			return self.reflections.type_of_standard(dict).to.literal(node).extends(unknown_type, unknown_type)
 		else:
-			key_type, value_type = items[0].attrs
+			pair_indexs = [index for index, item in enumerate(node.items) if item.is_a(defs.Pair)]
+			index = pair_indexs[0] if len(pair_indexs) > 0 else 0
+			key_type, value_type = items[index].attrs
 			return self.reflections.type_of_standard(dict).to.literal(node).extends(key_type, value_type)
 
 	def on_null(self, node: defs.Null) -> IReflection:

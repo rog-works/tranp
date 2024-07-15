@@ -137,6 +137,10 @@ class Sub(Base):
 		b = t.__class__
 		c = t.__module__
 
+	def dict_unpack(self) -> None:
+		a = {'a': 1, **{}}
+		b = {**{}, 'a': 1}
+
 
 class CalcOps:
 	def unary(self) -> None:

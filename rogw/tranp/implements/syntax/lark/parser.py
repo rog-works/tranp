@@ -11,6 +11,7 @@ from rogw.tranp.io.loader import IFileLoader
 from rogw.tranp.lang.annotation import duck_typed, injectable
 from rogw.tranp.syntax.ast.entry import Entry
 from rogw.tranp.syntax.ast.parser import ParserSetting
+from rogw.tranp.syntax.errors import SyntaxError
 
 
 class SyntaxParserOfLark:
@@ -77,6 +78,8 @@ class SyntaxParserOfLark:
 			module_path (str): モジュールパス
 		Returns:
 			Entry: シンタックスツリーのルートエントリー
+		Raises:
+			SyntaxError: ソースの解析に失敗
 		"""
 		basepath = module_path.replace('.', os.path.sep)
 
@@ -94,7 +97,10 @@ class SyntaxParserOfLark:
 
 		@self.__caches.get(basepath, identity=identity(), format='json')
 		def instantiate() -> EntryStored:
-			return EntryStored(EntryOfLark(parser.parse(load_source())))
+			try:
+				return EntryStored(EntryOfLark(parser.parse(load_source())))
+			except Exception as e:
+				raise SyntaxError(f'file: {source_path()}') from e
 
 		return instantiate().entry
 

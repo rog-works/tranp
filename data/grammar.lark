@@ -265,8 +265,9 @@ slices: slice
 group_expr: "(" expression ")"
 
 // @lark ?testlist_star_expr: test_or_star_expr | test_or_star_expr ("," test_or_star_expr)+ ","?  -> tuple | test_or_star_expr ","  -> tuple
-assign_namelist: expression | expression (("," expression)+ [","] | ",")
-// @lark ?exprlist: (expr|star_expr) | (expr|star_expr) (("," (expr|star_expr))+ [","]|",")
+// @note FIXME 本質的には"*"は末尾にだけ付与され得るので不正確。また、解析後に"*"が判定できなくなるため、型推論も正しくならない
+assign_namelist: expression | expression (("," ["*"]? expression)+ [","] | ",")
+// @lark ?exprlist: (expr|star_expr) | (expr|star_expr) (("," (expr|star_expr))+ [","] | ",")
 for_namelist: name | name (("," name)+ [","] | ",")
 
 // @lark _tuple_inner: test_or_star_expr (("," test_or_star_expr)+ [","] | ",")

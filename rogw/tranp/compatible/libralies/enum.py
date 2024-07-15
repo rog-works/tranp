@@ -1,6 +1,7 @@
 from typing import Any
 
 
+class EnumType: ...
 class Enum:
 	def __init__(self, value: int) -> None: ...
 	# comparison

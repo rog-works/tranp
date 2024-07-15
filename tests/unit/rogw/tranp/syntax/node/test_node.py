@@ -190,6 +190,7 @@ class TestNode(TestCase):
 		('{1: 2}', 'file_input.dict.key_value', defs.Pair, 'Pair@2', '__main__#Pair@2'),
 		('[1]', 'file_input.list', defs.List, 'list@1', '__main__#list@1'),
 		('{1: 2}', 'file_input.dict', defs.Dict, 'dict@1', '__main__#dict@1'),
+		('(1,)', 'file_input.tuple', defs.Tuple, 'tuple@1', '__main__#tuple@1'),
 		('None', 'file_input.const_none', defs.Null, 'None', '__main__#None'),
 	])
 	def test_domain(self, source: str, full_path: str, types: type[T_Node], expected_name: bool, expected_fully: str) -> None:

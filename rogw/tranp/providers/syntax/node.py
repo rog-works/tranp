@@ -123,6 +123,7 @@ def symbol_mapping() -> SymbolMapping:
 			defs.Pair: ['key_value'],
 			defs.List: ['list'],
 			defs.Dict: ['dict'],
+			defs.Tuple: ['tuple'],
 			defs.Null: ['const_none'],
 			# -- Expression --
 			defs.Group: ['group_expr'],

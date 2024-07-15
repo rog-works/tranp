@@ -137,6 +137,19 @@ class Dict(Literal):
 		return dict.__name__
 
 
+@Meta.embed(Node, accept_tags('tuple'))
+class Tuple(Literal):
+	@property
+	@Meta.embed(Node, expandable)
+	def values(self) -> list[Node]:
+		return self._children()
+
+	@property
+	@implements
+	def literal_identifier(self) -> str:
+		return tuple.__name__
+
+
 @Meta.embed(Node, accept_tags('const_none'))
 class Null(Literal, ITerminal):
 	@property

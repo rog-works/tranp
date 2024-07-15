@@ -761,6 +761,9 @@ class ProceduralResolver:
 			key_type, value_type = item.attrs
 			return self.reflections.type_of_standard(dict).to.literal(node).extends(key_type, value_type)
 
+	def on_tuple(self, node: defs.Tuple, values: list[IReflection]) -> IReflection:
+		return self.reflections.type_of_standard(tuple).to.literal(node).extends(*values)
+
 	def on_null(self, node: defs.Null) -> IReflection:
 		return self.reflections.type_of_standard(None).to.literal(node)
 

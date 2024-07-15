@@ -153,6 +153,7 @@ class TestDefinition(TestCase):
 		self.assertEqual(expected['catches'], len(node.catches))
 
 	@data_provider([
+		# FIXME Tupleのケースを追加
 		('[a for a in {}]', 'file_input.list_comp', {
 			'projection': defs.Var,
 			'fors': [{'symbols': ['a'], 'iterates': defs.Dict}],
@@ -875,6 +876,7 @@ class TestDefinition(TestCase):
 		# Generic - List/Dict/Callable/Custom
 		('a: list[int] = []', 'file_input.anno_assign.typed_getitem', defs.ListType),
 		('a: dict[str, int] = {}', 'file_input.anno_assign.typed_getitem', defs.DictType),
+		('a: tuple[str, int, bool] = ()', 'file_input.anno_assign.typed_getitem', defs.CustomType),
 		('def func() -> Callable[[], None]: ...', 'file_input.function_def.function_def_raw.typed_getitem', defs.CallableType),
 		('class B(A[T]): ...', 'file_input.class_def.class_def_raw.inherit_arguments.typed_argvalue.typed_getitem', defs.CustomType),
 		('a: A.B[A.B[A.B], A.B] = {}', 'file_input.anno_assign.typed_getitem', defs.CustomType),
@@ -970,6 +972,7 @@ class TestDefinition(TestCase):
 		('a(1, *a, **b)', 'file_input.funccall.arguments.starargs', {'label': 'Empty', 'value': defs.Var}),
 		('a(*[], **c)', 'file_input.funccall.arguments.starargs', {'label': 'Empty', 'value': defs.List}),
 		('a(**{})', 'file_input.funccall.arguments.kwargs', {'label': 'Empty', 'value': defs.Dict}),
+		('a(*())', 'file_input.funccall.arguments.starargs', {'label': 'Empty', 'value': defs.Tuple}),
 		('a(1, **c)', 'file_input.funccall.arguments.kwargs', {'label': 'Empty', 'value': defs.Var}),
 		('a(a, label=b, c)', 'file_input.funccall.arguments.argvalue[1]', {'label': 'label', 'value': defs.Var}),
 	])
@@ -1086,6 +1089,7 @@ class TestDefinition(TestCase):
 	@data_provider([
 		('a = [0, 1]', 'file_input.assign.list', [{'value': '0', 'value_type': defs.Integer}, {'value': '1', 'value_type': defs.Integer}]),
 		('a = [0, *[]]', 'file_input.assign.list', [{'value': '0', 'value_type': defs.Integer}, {'value_type': defs.List}]),
+		('a = [0, *()]', 'file_input.assign.list', [{'value': '0', 'value_type': defs.Integer}, {'value_type': defs.Tuple}]),
 	])
 	def test_list(self, source: str, full_path: str, expected: list[dict[str, Any]]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.List)
@@ -1111,6 +1115,17 @@ class TestDefinition(TestCase):
 				self.assertEqual(expected[index]['value_type'], type(item.second))
 			else:
 				self.assertEqual(expected[index]['value_type'], type(item))
+
+	@data_provider([
+		('a = (1,)', 'file_input.assign.tuple', [{'value': '1', 'value_type': defs.Integer}]),
+		('a = (1, "a", True)', 'file_input.assign.tuple', [{'value': '1', 'value_type': defs.Integer}, {'value': '"a"', 'value_type': defs.String}, {'value': '', 'value_type': defs.Truthy}]),
+	])
+	def test_tuple(self, source: str, full_path: str, expected: list[dict[str, Any]]) -> None:
+		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Tuple)
+		self.assertEqual(len(expected), len(node.values))
+		for index, value in enumerate(node.values):
+			self.assertEqual(expected[index]['value'], value.tokens)
+			self.assertEqual(expected[index]['value_type'], type(value))
 
 	@data_provider([
 		('None', 'file_input.const_none'),

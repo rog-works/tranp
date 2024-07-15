@@ -28,9 +28,9 @@ class TestScalarTypehint(TestCase):
 		(Values, {'raw': Values, 'origin': Values}),
 	])
 	def test_origins(self, origin: type, expected: dict[str, type]) -> None:
-		anno = ScalarTypehint(origin)
-		self.assertEqual(expected['raw'], anno.raw)
-		self.assertEqual(expected['origin'], anno.origin)
+		hint = ScalarTypehint(origin)
+		self.assertEqual(expected['raw'], hint.raw)
+		self.assertEqual(expected['origin'], hint.origin)
 
 	@data_provider([
 		(int, {'null': False, 'generic': False, 'list': False, 'union': False, 'nullable': False, 'enum': False}),
@@ -48,13 +48,13 @@ class TestScalarTypehint(TestCase):
 		(Values, {'null': False, 'generic': False, 'list': False, 'union': False, 'nullable': False, 'enum': True}),
 	])
 	def test_states(self, origin: type, expected: dict[str, bool]) -> None:
-		anno = ScalarTypehint(origin)
-		self.assertEqual(expected['null'], anno.is_null)
-		self.assertEqual(expected['generic'], anno.is_generic)
-		self.assertEqual(expected['list'], anno.is_list)
-		self.assertEqual(expected['union'], anno.is_union)
-		self.assertEqual(expected['nullable'], anno.is_nullable)
-		self.assertEqual(expected['enum'], anno.is_enum)
+		hint = ScalarTypehint(origin)
+		self.assertEqual(expected['null'], hint.is_null)
+		self.assertEqual(expected['generic'], hint.is_generic)
+		self.assertEqual(expected['list'], hint.is_list)
+		self.assertEqual(expected['union'], hint.is_union)
+		self.assertEqual(expected['nullable'], hint.is_nullable)
+		self.assertEqual(expected['enum'], hint.is_enum)
 
 	@data_provider([
 		(int, []),
@@ -71,7 +71,7 @@ class TestScalarTypehint(TestCase):
 		(Values, []),
 	])
 	def test_sub_types(self, origin: type, expected: list[type]) -> None:
-		self.assertEqual(expected, [cast(ScalarTypehint, anno).origin for anno in ScalarTypehint(origin).sub_types])
+		self.assertEqual(expected, [cast(ScalarTypehint, hint).origin for hint in ScalarTypehint(origin).sub_types])
 
 	@data_provider([
 		(Values, [Values.A]),
@@ -104,10 +104,10 @@ class TestFunctionTypehint(TestCase):
 		(func, {'static': False, 'method': False, 'function': True}),
 	])
 	def test_states(self, origin: Callable, expected: dict[str, bool]) -> None:
-		anno = FunctionTypehint(origin)
-		self.assertEqual(expected['static'], anno.is_static)
-		self.assertEqual(expected['method'], anno.is_method)
-		self.assertEqual(expected['function'], anno.is_function)
+		hint = FunctionTypehint(origin)
+		self.assertEqual(expected['static'], hint.is_static)
+		self.assertEqual(expected['method'], hint.is_method)
+		self.assertEqual(expected['function'], hint.is_function)
 
 	@data_provider([
 		(Sub.cls_func, Sub),
@@ -115,8 +115,8 @@ class TestFunctionTypehint(TestCase):
 		(Sub().self_func, Sub),
 	])
 	def test_receiver(self, origin: Callable, expected: type) -> None:
-		anno = FunctionTypehint(origin)
-		self.assertEqual(expected, anno.receiver if anno.is_static else anno.receiver.__class__)
+		hint = FunctionTypehint(origin)
+		self.assertEqual(expected, hint.receiver if hint.is_static else hint.receiver.__class__)
 
 	@data_provider([
 		(Sub.__init__,),  # FIXME 静的に取得するとreceiverを取得できない
@@ -137,9 +137,9 @@ class TestFunctionTypehint(TestCase):
 		(func, {'args': {'n': int}, 'returns': str}),
 	])
 	def test_signature(self, origin: Callable, expected: dict[str, Any]) -> None:
-		anno = FunctionTypehint(origin)
-		self.assertEqual(expected['args'], {key: arg.origin for key, arg in anno.args.items()})
-		self.assertEqual(expected['returns'], anno.returns.origin)
+		hint = FunctionTypehint(origin)
+		self.assertEqual(expected['args'], {key: arg.origin for key, arg in hint.args.items()})
+		self.assertEqual(expected['returns'], hint.returns.origin)
 
 
 class TestClassTypehint(TestCase):
@@ -175,17 +175,17 @@ class TestClassTypehint(TestCase):
 		(Sub, Sub.__init__),
 	])
 	def test_constructor(self, origin: type, expected: Callable) -> None:
-		anno = ClassTypehint(origin)
-		self.assertEqual(expected, anno.constructor.raw)
+		hint = ClassTypehint(origin)
+		self.assertEqual(expected, hint.constructor.raw)
 
 	@data_provider([
 		(Sub, {'class_vars': {'n': int, 'l': list}, 'self_vars': {'d': dict, 't': tuple}, 'methods': ['__init__', '__self_attributes__', 'cls_method', 'self_method']}),
 	])
 	def test_schema(self, origin: type, expected: dict[str, Any]) -> None:
-		anno = ClassTypehint(origin)
-		self.assertEqual(expected['class_vars'], {key: var.origin for key, var in anno.class_vars.items()})
-		self.assertEqual(expected['self_vars'], {key: var.origin for key, var in anno.self_vars.items()})
-		self.assertEqual(expected['methods'], [key for key in anno.methods.keys()])
+		hint = ClassTypehint(origin)
+		self.assertEqual(expected['class_vars'], {key: var.origin for key, var in hint.class_vars.items()})
+		self.assertEqual(expected['self_vars'], {key: var.origin for key, var in hint.self_vars.items()})
+		self.assertEqual(expected['methods'], [key for key in hint.methods.keys()])
 
 
 class TestInspector(TestCase):

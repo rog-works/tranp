@@ -1,6 +1,6 @@
 from enum import Enum, EnumType
 from types import FunctionType, MethodType, NoneType, UnionType
-from typing import Any, Callable, Literal, Protocol, TypeAlias
+from typing import Callable, Literal, Protocol, TypeAlias
 
 from rogw.tranp.lang.annotation import override
 
@@ -140,7 +140,13 @@ class FunctionTypehint(Typehint):
 
 	@property
 	def func_type(self) -> Literal['classmethod', 'method', 'function']:
-		"""Literal['classmethod', 'method', 'function']: 関数の種別"""
+		"""関数の種別を取得
+
+		Returns:
+			Literal['classmethod', 'method', 'function']: 関数の種別
+		Note:
+			XXX Pythonではメソッドはオブジェクトに動的にバインドされるため、タイプから関数オブジェクトを取得した場合、メソッドとして判定する方法がない ※Pythonの仕様
+		"""
 		if self.origin is classmethod or isinstance(getattr(self._func, '__self__', None), type):
 			return 'classmethod'
 		elif self.origin in [MethodType, property]:
@@ -161,7 +167,11 @@ class FunctionTypehint(Typehint):
 	@property
 	def __annos(self) -> dict[str, type]:
 		"""dict[str, type]: タイプヒントのリスト"""
-		return self._func.__annotations__
+		if hasattr(self._func, '__annotations__'):
+			return self._func.__annotations__
+		else:
+			# XXX propertyは`__annotations__`が無いため、元の関数オブジェクトを通して取得する
+			return getattr(self._func, 'fget').__annotations__
 
 
 class ClassTypehint(Typehint):
@@ -252,9 +262,7 @@ class ClassTypehint(Typehint):
 		"""
 		_methods: dict[str, FuncTypes] = {}
 		for at_type in reversed(_type.mro()):
-			for key in at_type.__dict__.keys():
-				# getattrで取得する ※__dict__の値と微妙な相違があるため
-				attr = getattr(at_type, key)
+			for key, attr in at_type.__dict__.items():
 				if isinstance(attr, FuncTypes):
 					_methods[key] = attr
 
@@ -269,7 +277,7 @@ class Inspector:
 		"""タイプヒントを解決
 
 		Args:
-			origin (type | FuncTypes): タイプ
+			origin (type | FuncTypes): タイプ、または関数オブジェクト
 		Returns:
 			Typehint: タイプヒント
 		"""

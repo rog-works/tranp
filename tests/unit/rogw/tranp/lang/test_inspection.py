@@ -95,9 +95,9 @@ class TestFunctionTypehint(TestCase):
 	class Sub(Base): ...
 
 	@data_provider([
-		(Sub.__init__, 'function'),  # XXX タイプから取得するとFunctionTypeになり、メソッドであるか否かを判別できない ※Pythonの仕様
+		(Sub.__init__, 'function'),  # XXX タイプから取得した場合、メソッドであるか否かを判別できない ※Pythonの仕様
 		(Sub.cls_func, 'classmethod'),
-		(Sub.self_func, 'function'),  # XXX タイプから取得するとFunctionTypeになり、メソッドであるか否かを判別できない ※Pythonの仕様
+		(Sub.self_func, 'function'),  # XXX タイプから取得した場合、メソッドであるか否かを判別できない ※Pythonの仕様
 		(Sub.prop, 'method'),
 		(Sub().cls_func, 'classmethod'),
 		(Sub().self_func, 'method'),
@@ -111,7 +111,7 @@ class TestFunctionTypehint(TestCase):
 		(Sub.__init__, {'args': {}, 'returns': None}),
 		(Sub.cls_func, {'args': {'n': int}, 'returns': str}),
 		(Sub.self_func, {'args': {'l': list, 'd': dict}, 'returns': tuple}),
-		# (Sub.prop, {'args': {}, 'returns': int}),
+		(Sub.prop, {'args': {}, 'returns': int}),
 		(Sub().cls_func, {'args': {'n': int}, 'returns': str}),
 		(Sub().self_func, {'args': {'l': list, 'd': dict}, 'returns': tuple}),
 		(func, {'args': {'n': int}, 'returns': str}),
@@ -151,6 +151,9 @@ class TestClassTypehint(TestCase):
 
 		def self_method(self) -> None: ...
 
+		@property
+		def prop(self) -> None: ...
+
 	@data_provider([
 		(Sub, Sub.__init__),
 	])
@@ -159,7 +162,11 @@ class TestClassTypehint(TestCase):
 		self.assertEqual(expected, hint.constructor.raw)
 
 	@data_provider([
-		(Sub, {'class_vars': {'n': int, 'l': list}, 'self_vars': {'d': dict, 't': tuple}, 'methods': ['__init__', '__self_attributes__', 'cls_method', 'self_method']}),
+		(Sub, {
+			'class_vars': {'n': int, 'l': list},
+			'self_vars': {'d': dict, 't': tuple},
+			'methods': ['__init__', '__self_attributes__', 'cls_method', 'self_method', 'prop'],
+		}),
 	])
 	def test_schema(self, origin: type, expected: dict[str, Any]) -> None:
 		hint = ClassTypehint(origin)

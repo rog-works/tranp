@@ -1,8 +1,10 @@
 from enum import Enum, EnumType
 from types import FunctionType, MethodType, NoneType, UnionType
-from typing import Any, Callable, Protocol
+from typing import Any, Callable, Literal, Protocol, TypeAlias
 
 from rogw.tranp.lang.annotation import override
+
+FuncTypes: TypeAlias = FunctionType | MethodType | property | classmethod
 
 
 class SelfAttributes(Protocol):
@@ -115,15 +117,15 @@ class FunctionTypehint(Typehint):
 		* ラムダ ※タイプヒントが付けられないため
 	"""
 
-	def __init__(self, func_or_class: Callable) -> None:
+	def __init__(self, func: FuncTypes | Callable) -> None:
 		"""インスタンスを生成
 
 		Args:
-			func_or_class (Callable): 関数・メソッド・クラス
+			func (FuncTypes | Callable): 関数オブジェクト
 		Note:
-			クラスを指定した場合は暗黙的にコンストラクターを展開する
+			XXX コンストラクターはFuncTypeに当てはまらないため、Callableとして受け付ける
 		"""
-		self._func = func_or_class if isinstance(func_or_class, (FunctionType, MethodType)) else func_or_class.__init__
+		self._func = func
 
 	@property
 	@override
@@ -132,42 +134,19 @@ class FunctionTypehint(Typehint):
 		return type(self._func)
 
 	@property
-	def raw(self) -> Callable:
-		"""Callable: 元の型"""
+	def raw(self) -> FuncTypes | Callable:
+		""" FuncTypes | Callable: 関数オブジェクト"""
 		return self._func
 
 	@property
-	def is_static(self) -> bool:
-		"""bool: True = クラスメソッド"""
-		return isinstance(getattr(self._func, '__self__', None), type)
-
-	@property
-	def is_method(self) -> bool:
-		"""bool: True = メソッド"""
-		return isinstance(self._func, MethodType)
-
-	@property
-	def is_function(self) -> bool:
-		"""bool: True = 関数"""
-		return isinstance(self._func, FunctionType)
-
-	@property
-	def receiver(self) -> Any:
-		"""メソッドレシーバーを返却。取得の成否、及び取得対象は生成元に依存する
-
-		Returns:
-			Any: メソッドレシーバー
-		Note:
-			### クラスから生成した場合
-			* クラスメソッド: クラス
-			* インスタンスメソッド: NG
-			### インスタンスから生成した場合
-			* クラスメソッド: クラス
-			* インスタンスメソッド: インスタンス
-		Raises:
-			TypeError: 関数、または取得できない条件で使用
-		"""
-		return getattr(self._func, '__self__')
+	def func_type(self) -> Literal['classmethod', 'method', 'function']:
+		"""Literal['classmethod', 'method', 'function']: 関数の種別"""
+		if self.origin is classmethod or isinstance(getattr(self._func, '__self__', None), type):
+			return 'classmethod'
+		elif self.origin in [MethodType, property]:
+			return 'method'
+		else:
+			return 'function'
 
 	@property
 	def args(self) -> dict[str, Typehint]:
@@ -263,20 +242,20 @@ class ClassTypehint(Typehint):
 		"""dict[str, FunctionTypehint]: メソッド一覧"""
 		return {key: FunctionTypehint(prop) for key, prop in self.__recursive_methods(self._type).items()}
 
-	def __recursive_methods(self, _type: type) -> dict[str, FunctionType | MethodType]:
+	def __recursive_methods(self, _type: type) -> dict[str, FuncTypes]:
 		"""クラス階層を辿ってメソッドを収集
 
 		Args:
 			_type (type): タイプ
 		Returns:
-			dict[str, FunctionType | MethodType]: メソッド一覧
+			dict[str, FuncTypes]: メソッド一覧
 		"""
-		_methods: dict[str, FunctionType | MethodType] = {}
+		_methods: dict[str, FuncTypes] = {}
 		for at_type in reversed(_type.mro()):
 			for key in at_type.__dict__.keys():
-				# XXX getattrで取得する ※__dict__の値が想定外の型になるため
+				# getattrで取得する ※__dict__の値と微妙な相違があるため
 				attr = getattr(at_type, key)
-				if isinstance(attr, (FunctionType, MethodType)):
+				if isinstance(attr, FuncTypes):
 					_methods[key] = attr
 
 		return _methods
@@ -286,15 +265,15 @@ class Inspector:
 	"""タイプヒントリゾルバー"""
 
 	@classmethod
-	def resolve(cls, origin: type | FunctionType | MethodType) -> Typehint:
+	def resolve(cls, origin: type | FuncTypes) -> Typehint:
 		"""タイプヒントを解決
 
 		Args:
-			origin (type | FunctionType | MethodType): タイプ
+			origin (type | FuncTypes): タイプ
 		Returns:
 			Typehint: タイプヒント
 		"""
-		if isinstance(origin, (FunctionType, MethodType)):
+		if isinstance(origin, FuncTypes):
 			return FunctionTypehint(origin)
 		elif cls.__is_scalar(origin):
 			return ScalarTypehint(origin)

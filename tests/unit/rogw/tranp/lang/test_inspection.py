@@ -95,43 +95,23 @@ class TestFunctionTypehint(TestCase):
 	class Sub(Base): ...
 
 	@data_provider([
-		(Sub.__init__, {'static': False, 'method': False, 'function': True}),  # FIXME 静的に取得するとFunctionTypeになり、メソッドであるか否かを判別できない
-		(Sub.cls_func, {'static': True, 'method': True, 'function': False}),
-		(Sub.self_func, {'static': False, 'method': False, 'function': True}),  # FIXME 静的に取得するとFunctionTypeになり、メソッドであるか否かを判別できない
-		# FIXME (Sub.prop, {'static': False, 'method': False, 'function': False}),  # FIXME Functionですらない
-		(Sub().cls_func, {'static': True, 'method': True, 'function': False}),
-		(Sub().self_func, {'static': False, 'method': True, 'function': False}),
-		(func, {'static': False, 'method': False, 'function': True}),
+		(Sub.__init__, 'function'),  # XXX タイプから取得するとFunctionTypeになり、メソッドであるか否かを判別できない ※Pythonの仕様
+		(Sub.cls_func, 'classmethod'),
+		(Sub.self_func, 'function'),  # XXX タイプから取得するとFunctionTypeになり、メソッドであるか否かを判別できない ※Pythonの仕様
+		(Sub.prop, 'method'),
+		(Sub().cls_func, 'classmethod'),
+		(Sub().self_func, 'method'),
+		(func, 'function'),
 	])
-	def test_states(self, origin: Callable, expected: dict[str, bool]) -> None:
+	def test_func_type(self, origin: Callable, expected: str) -> None:
 		hint = FunctionTypehint(origin)
-		self.assertEqual(expected['static'], hint.is_static)
-		self.assertEqual(expected['method'], hint.is_method)
-		self.assertEqual(expected['function'], hint.is_function)
-
-	@data_provider([
-		(Sub.cls_func, Sub),
-		(Sub().cls_func, Sub),
-		(Sub().self_func, Sub),
-	])
-	def test_receiver(self, origin: Callable, expected: type) -> None:
-		hint = FunctionTypehint(origin)
-		self.assertEqual(expected, hint.receiver if hint.is_static else hint.receiver.__class__)
-
-	@data_provider([
-		(Sub.__init__,),  # FIXME 静的に取得するとreceiverを取得できない
-		(Sub.self_func,),  # FIXME 静的に取得するとreceiverを取得できない
-		(func,),
-	])
-	def test_receiver_error(self, origin: Callable) -> None:
-		with self.assertRaises(AttributeError):
-			FunctionTypehint(origin).receiver
+		self.assertEqual(expected, hint.func_type)
 
 	@data_provider([
 		(Sub.__init__, {'args': {}, 'returns': None}),
 		(Sub.cls_func, {'args': {'n': int}, 'returns': str}),
 		(Sub.self_func, {'args': {'l': list, 'd': dict}, 'returns': tuple}),
-		# FIXME (Sub.prop, {'args': {}, 'returns': int}),
+		# (Sub.prop, {'args': {}, 'returns': int}),
 		(Sub().cls_func, {'args': {'n': int}, 'returns': str}),
 		(Sub().self_func, {'args': {'l': list, 'd': dict}, 'returns': tuple}),
 		(func, {'args': {'n': int}, 'returns': str}),

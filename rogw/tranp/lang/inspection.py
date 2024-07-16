@@ -20,6 +20,7 @@ class SelfAttributes(Protocol):
 		...
 
 
+
 class Typehint:
 	"""タイプヒント(基底クラス)"""
 
@@ -307,3 +308,36 @@ class Inspector:
 			return True
 		else:
 			return False
+
+	@classmethod
+	def validation(cls, aggregate: type['SelfAttributes'], factory: Callable[[], 'SelfAttributes'] | None = None) -> bool:
+		"""SelfAttributes準拠クラスのバリデーション
+
+		Args:
+			aggregate (type[SelfAttributes]): 検証クラス
+			factory (Callable[[], SelfAttributes] | None): インスタンスファクトリー (default = None)
+		Returns:
+			bool: True = 成功
+		Raises:
+			TypeError: 設計と相違したスキーマ
+			TypeError: インスタンスの生成に失敗
+		"""
+		if not hasattr(aggregate, SelfAttributes.__self_attributes__.__name__):
+			raise TypeError(f'"{SelfAttributes.__self_attributes__.__name__}" is not implemented. class: {aggregate}')
+
+		instance: SelfAttributes | None = None
+		try:
+			instance = factory() if factory else aggregate()
+		except Exception as e:
+			raise TypeError(f'Failed create instance. validation incomplete. class: {aggregate}, error: {e}')
+
+		hint = ClassTypehint(aggregate)
+		for key, attr_hint in hint.self_vars.items():
+			if not hasattr(instance, key):
+				raise TypeError(f'"{key}" is not defined. class: {aggregate}')
+
+			actual_type = type(getattr(instance, key))
+			if attr_hint.origin != actual_type:
+				raise TypeError(f'"{key}" is unexpected type. required "{attr_hint.origin}" from "{actual_type}". class: {aggregate}')
+
+		return True

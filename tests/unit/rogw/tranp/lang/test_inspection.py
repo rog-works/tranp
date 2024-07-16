@@ -4,7 +4,7 @@ from typing import Any, Callable, cast
 from unittest import TestCase
 
 from rogw.tranp.lang.annotation import override
-from rogw.tranp.lang.inspection import Typehint, Inspector, ClassTypehint, FunctionTypehint, ScalarTypehint
+from rogw.tranp.lang.inspection import SelfAttributes, Typehint, Inspector, ClassTypehint, FunctionTypehint, ScalarTypehint
 from rogw.tranp.test.helper import data_provider
 
 
@@ -197,3 +197,6 @@ class TestInspector(TestCase):
 	])
 	def test_resolve(self, origin: type, expected: Typehint) -> None:
 		self.assertEqual(expected, type(Inspector.resolve(origin)))
+
+	def test_validation(self) -> None:
+		self.assertTrue(Inspector.validation(TestClassTypehint.Sub))

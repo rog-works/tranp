@@ -1,4 +1,6 @@
-from typing import Generic, Iterator, TypeAlias, TypeVar, cast
+from os import path as os_path
+from typing import Any, Generic, Iterator, TypeAlias, TypeVar, cast
+from yaml import safe_load as yaml_safe_load
 
 from rogw.tranp.compatible.cpp.enum import CEnum as Enum
 
@@ -300,3 +302,10 @@ class GenericOps(Generic[T]):
 
 def imported_inner_type_ref(b: C.AA) -> None:
 	a = C.AA()
+
+
+class WithOps:
+	def file_load(self) -> None:
+		dir = os_path.dirname(__file__)
+		with open(os_path.join(dir, 'hoge.yml'), encoding='utf-8') as f:
+			content = cast(dict[str, Any], yaml_safe_load(f))

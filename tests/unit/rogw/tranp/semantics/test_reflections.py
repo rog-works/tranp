@@ -11,7 +11,8 @@ from tests.test.fixture import Fixture
 class ASTMapping:
 	fixture_module_path = Fixture.fixture_module_path(__file__)
 
-	_start = 6
+	_import_xyz = 4
+	_start = 8
 	_func = 'file_input.function_def'
 	_Base = f'file_input.class_def[{_start + 1}]'
 	_Sub = f'file_input.class_def[{_start + 2}]'
@@ -44,7 +45,7 @@ class ASTMapping:
 	_GenericOps = f'file_input.class_def[{_start + 10}]'
 
 	aliases = {
-		ModuleDSN.full_joined(fixture_module_path, 'import.xyz'): 'file_input.import_stmt[2]',
+		ModuleDSN.full_joined(fixture_module_path, 'import.xyz'): f'file_input.import_stmt[{_import_xyz}]',
 
 		ModuleDSN.full_joined(fixture_module_path, 'value'): 'file_input.anno_assign',
 
@@ -295,6 +296,8 @@ class TestReflections(TestCase):
 		(ModuleDSN.full_joined(fixture_module_path, 'GenericOps.temporal.a'), 'T'),
 		(ModuleDSN.full_joined(fixture_module_path, 'GenericOps.new.a'), 'GenericOps<int>'),
 		(ModuleDSN.full_joined(fixture_module_path, 'GenericOps.cast.b'), 'GenericOps<Base>'),
+
+		(ModuleDSN.full_joined(fixture_module_path, 'WithOps.file_load.content'), 'dict<str, Any>'),
 	])
 	def test_from_fullyname(self, fullyname: str, expected: str) -> None:
 		reflections = self.fixture.get(Reflections)

@@ -28,7 +28,7 @@ class Sub(Base):
 
 	def __init__(self) -> None:
 		super().__init__()
-		self.numbers: list[int] = []
+		self.numbers: 'list[int]' = []
 		self.C: C = C()
 
 	@property

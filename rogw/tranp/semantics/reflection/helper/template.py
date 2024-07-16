@@ -142,6 +142,8 @@ class Method(Function):
 			*context (IReflection): コンテキスト(0: レシーバー(実行時型), 1: 引数(実行時型))
 		Returns:
 			IReflection: 実行時型
+		Note:
+			FIXME Union型の引数にテンプレート型が含まれると解決に失敗する
 		"""
 		parameter = self.schemata.parameters[index]
 		t_map_parameter = TemplateManipulator.unpack_templates(parameter=parameter)
@@ -162,6 +164,8 @@ class Method(Function):
 			*arguments (IReflection): 引数リスト(実行時型)
 		Returns:
 			IReflection: 実行時型
+		Note:
+			FIXME Union型の引数にテンプレート型が含まれると解決に失敗する
 		"""
 		t_map_returns = TemplateManipulator.unpack_templates(returns=self.schema.returns)
 		if len(t_map_returns) == 0:

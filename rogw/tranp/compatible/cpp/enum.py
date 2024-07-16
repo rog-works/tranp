@@ -35,8 +35,28 @@ class CEnum(Enum):
 			other (T_Self): 対象
 		Returns:
 			T_Self: 演算結果
+		Note:
+			FIXME 正しいシグネチャーは`__ror__(self, other: Self | int) -> int`
 		"""
-		return self.value | other.value
+		if isinstance(other, type(self)):
+			return self.value | other.value
+		else:
+			return self.value | other
+
+	def __ror__(self, other: T_Self) -> T_Self:
+		"""ビット演算(OR/右)
+
+		Args:
+			other (T_Self): 対象
+		Returns:
+			T_Self: 演算結果
+		Note:
+			FIXME 正しいシグネチャーは`__ror__(self, other: Self | int) -> int`
+		"""
+		if isinstance(other, type(self)):
+			return self.value | other.value
+		else:
+			return self.value | other
 
 	def __hash__(self) -> int:
 		"""インスタンスのハッシュ値を返す

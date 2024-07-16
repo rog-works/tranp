@@ -43,6 +43,8 @@ class ResolveUnknown:
 				db[key] = SymbolProxy(raw, self.make_resolver(raw, raw.decl.declare.value))
 			elif isinstance(raw.decl.declare, (defs.For, defs.CompFor)):
 				db[key] = SymbolProxy(raw, self.make_resolver(raw, raw.decl.declare.for_in))
+			elif isinstance(raw.decl.declare, defs.WithEntry):
+				db[key] = SymbolProxy(raw, self.make_resolver(raw, raw.decl.declare.enter))
 
 		return db
 

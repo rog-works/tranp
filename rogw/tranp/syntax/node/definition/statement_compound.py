@@ -237,7 +237,7 @@ class Try(FlowEnter):
 class WithEntry(Node, IDeclaration):
 	@property
 	@Meta.embed(Node, expandable)
-	def expression(self) -> Node:
+	def enter(self) -> Node:
 		return self._at(0)
 
 	@property
@@ -245,6 +245,11 @@ class WithEntry(Node, IDeclaration):
 	def symbol(self) -> DeclLocalVar:
 		"""Note: XXX Pythonの仕様では省略出来るが実装を簡単にするため必須で実装"""
 		return self._by('name').as_a(DeclLocalVar)
+
+	@property
+	@implements
+	def symbols(self) -> list[DeclLocalVar]:
+		return [self.symbol]
 
 
 @Meta.embed(Node, accept_tags('with_stmt'))

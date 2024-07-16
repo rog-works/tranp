@@ -290,6 +290,8 @@ def expected_symbols() -> dict:
 		'rogw.tranp.compatible.libralies.classes#open.filepath': 'rogw.tranp.compatible.libralies.classes#str',
 		'rogw.tranp.compatible.libralies.classes#open.mode': 'rogw.tranp.compatible.libralies.classes#str',
 		'rogw.tranp.compatible.libralies.classes#open.encoding': 'rogw.tranp.compatible.libralies.classes#Union',
+		'rogw.tranp.compatible.libralies.classes#__file__': 'rogw.tranp.compatible.libralies.classes#str',
+		'rogw.tranp.compatible.libralies.classes#__name__': 'rogw.tranp.compatible.libralies.classes#str',
 		'enum#EnumType': 'enum#EnumType',
 		'enum#Enum': 'enum#Enum',
 		'enum#Enum.__init__': 'enum#Enum.__init__',

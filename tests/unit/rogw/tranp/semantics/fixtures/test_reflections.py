@@ -158,6 +158,9 @@ class Sub(Base):
 		c = self.decl_tuple(p)
 		return ('', '', '')
 
+	def imported_inner_type_ref(self, b: C.AA) -> None:
+		a = C.AA()
+
 
 class CalcOps:
 	def unary(self) -> None:
@@ -299,10 +302,6 @@ class GenericOps(Generic[T]):
 
 	def cast(self, sub: 'GenericOps[Sub]') -> None:
 		b = cast(GenericOps[Base], sub)
-
-
-def imported_inner_type_ref(b: C.AA) -> None:
-	a = C.AA()
 
 
 class WithOps:

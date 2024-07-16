@@ -1,10 +1,17 @@
 from enum import Enum, EnumType
 from types import FunctionType, MethodType, NoneType, UnionType
-from typing import Callable, Literal, Protocol, TypeAlias
+from typing import Callable, Protocol, TypeAlias
 
 from rogw.tranp.lang.annotation import override
 
 FuncTypes: TypeAlias = FunctionType | MethodType | property | classmethod
+
+
+class FuncClasses(Enum):
+	"""関数の種別"""
+	ClassMethod = 'ClassMethod'
+	Method = 'Method'
+	Function = 'function'
 
 
 class SelfAttributes(Protocol):
@@ -18,7 +25,6 @@ class SelfAttributes(Protocol):
 			dict[str, type]: スキーマ
 		"""
 		...
-
 
 
 class Typehint:
@@ -140,20 +146,20 @@ class FunctionTypehint(Typehint):
 		return self._func
 
 	@property
-	def func_type(self) -> Literal['classmethod', 'method', 'function']:
+	def func_class(self) -> FuncClasses:
 		"""関数の種別を取得
 
 		Returns:
-			Literal['classmethod', 'method', 'function']: 関数の種別
+			FuncClasses: 関数の種別
 		Note:
 			XXX Pythonではメソッドはオブジェクトに動的にバインドされるため、タイプから関数オブジェクトを取得した場合、メソッドとして判定する方法がない ※Pythonの仕様
 		"""
 		if self.origin is classmethod or isinstance(getattr(self._func, '__self__', None), type):
-			return 'classmethod'
+			return FuncClasses.ClassMethod
 		elif self.origin in [MethodType, property]:
-			return 'method'
+			return FuncClasses.Method
 		else:
-			return 'function'
+			return FuncClasses.Function
 
 	@property
 	def args(self) -> dict[str, Typehint]:
@@ -310,7 +316,7 @@ class Inspector:
 			return False
 
 	@classmethod
-	def validation(cls, aggregate: type['SelfAttributes'], factory: Callable[[], 'SelfAttributes'] | None = None) -> bool:
+	def validation(cls, aggregate: type[SelfAttributes], factory: Callable[[], SelfAttributes] | None = None) -> bool:
 		"""SelfAttributes準拠クラスのバリデーション
 
 		Args:

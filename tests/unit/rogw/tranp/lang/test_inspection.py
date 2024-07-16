@@ -4,7 +4,7 @@ from typing import Any, Callable, cast
 from unittest import TestCase
 
 from rogw.tranp.lang.annotation import override
-from rogw.tranp.lang.inspection import SelfAttributes, Typehint, Inspector, ClassTypehint, FunctionTypehint, ScalarTypehint
+from rogw.tranp.lang.inspection import FuncClasses, SelfAttributes, Typehint, Inspector, ClassTypehint, FunctionTypehint, ScalarTypehint
 from rogw.tranp.test.helper import data_provider
 
 
@@ -95,17 +95,17 @@ class TestFunctionTypehint(TestCase):
 	class Sub(Base): ...
 
 	@data_provider([
-		(Sub.__init__, 'function'),  # XXX タイプから取得した場合、メソッドであるか否かを判別できない ※Pythonの仕様
-		(Sub.cls_func, 'classmethod'),
-		(Sub.self_func, 'function'),  # XXX タイプから取得した場合、メソッドであるか否かを判別できない ※Pythonの仕様
-		(Sub.prop, 'method'),
-		(Sub().cls_func, 'classmethod'),
-		(Sub().self_func, 'method'),
-		(func, 'function'),
+		(Sub.__init__, FuncClasses.Function),  # XXX タイプから取得した場合、メソッドであるか否かを判別できない ※Pythonの仕様
+		(Sub.cls_func, FuncClasses.ClassMethod),
+		(Sub.self_func, FuncClasses.Function),  # XXX タイプから取得した場合、メソッドであるか否かを判別できない ※Pythonの仕様
+		(Sub.prop, FuncClasses.Method),
+		(Sub().cls_func, FuncClasses.ClassMethod),
+		(Sub().self_func, FuncClasses.Method),
+		(func, FuncClasses.Function),
 	])
-	def test_func_type(self, origin: Callable, expected: str) -> None:
+	def test_func_type(self, origin: Callable, expected: FuncClasses) -> None:
 		hint = FunctionTypehint(origin)
-		self.assertEqual(expected, hint.func_type)
+		self.assertEqual(expected, hint.func_class)
 
 	@data_provider([
 		(Sub.__init__, {'args': {}, 'returns': None}),

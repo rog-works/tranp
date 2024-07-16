@@ -4,7 +4,7 @@ from yaml import safe_load as yaml_safe_load
 
 from rogw.tranp.compatible.cpp.enum import CEnum as Enum
 
-from tests.unit.rogw.tranp.semantics.reflection.fixtures.test_symbol_db_combine import B, C
+from tests.unit.rogw.tranp.semantics.reflection.fixtures.test_symbol_db_combine import S, C
 
 DSI: TypeAlias = dict[str, int]
 DSI2: TypeAlias = dict[str, DSI]
@@ -16,7 +16,7 @@ value: int = 0
 
 class Base(C):
 	def __init__(self) -> None:
-		self.base_str: str = ''
+		self.base_str: str = S
 		# comment
 
 
@@ -286,6 +286,7 @@ class Nullable:
 
 
 T = TypeVar('T')
+
 
 class GenericOps(Generic[T]):
 	def __init__(self) -> None: ...

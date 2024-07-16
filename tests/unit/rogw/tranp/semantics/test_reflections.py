@@ -334,7 +334,7 @@ class TestReflections(TestCase):
 		(_ast('Base.__init__.return', ''), _mod('classes', 'None'), 'None'),
 		(_ast('Base.__init__.block', 'anno_assign.assign_namelist.getattr'), _mod('classes', 'str'), 'str'),
 		(_ast('Base.__init__.block', 'anno_assign.typed_var'), _mod('classes', 'str'), 'str'),
-		(_ast('Base.__init__.block', 'anno_assign.string'), _mod('classes', 'str'), 'str'),
+		(_ast('Base.__init__.block', 'anno_assign.var'), _mod('classes', 'str'), 'str'),
 		(_ast('Base.__init__.block', 'comment_stmt'), _mod('classes', 'Unknown'), 'Unknown'),
 
 		(_ast('Sub', ''), ModuleDSN.full_joined(fixture_module_path, 'Sub'), 'Sub'),

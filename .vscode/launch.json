@@ -16,7 +16,7 @@
 				"implements.cpp.transpiler.test_py2cpp.TestPy2Cpp.test_exec",
 				"implements.cpp.transpiler.test_py2cpp.TestPy2Cpp.test_exec_error",
 				"view.test_render.TestRenderer.test_render_function",
-				"lang.test_inspection.TestFunctionTypehint.test_signature",
+				"lang.test_inspection.TestInspector.test_validation",
 				"lang.test_parser.TestParser.test_parse_block_to_entry",
 			],
 			"default": "semantics.reflection.test_symbol_db.TestSymbolDB",

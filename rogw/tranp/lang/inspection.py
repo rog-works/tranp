@@ -198,7 +198,7 @@ class ClassTypehint(Typehint):
 	@override
 	def origin(self) -> type:
 		"""type: メインタイプ"""
-		return self._type
+		return getattr(self._type, '__origin__', self._type)
 
 	@property
 	def constructor(self) -> FunctionTypehint:
@@ -336,8 +336,8 @@ class Inspector:
 			if not hasattr(instance, key):
 				raise TypeError(f'"{key}" is not defined. class: {aggregate}')
 
-			actual_type = type(getattr(instance, key))
-			if attr_hint.origin != actual_type:
-				raise TypeError(f'"{key}" is unexpected type. required "{attr_hint.origin}" from "{actual_type}". class: {aggregate}')
+			actual = cls.resolve(type(getattr(instance, key)))
+			if attr_hint.origin != actual.origin:
+				raise TypeError(f'"{key}" is unexpected type. required "{attr_hint.origin}" from "{actual.origin}". class: {aggregate}')
 
 		return True

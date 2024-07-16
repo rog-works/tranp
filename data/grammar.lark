@@ -21,6 +21,7 @@ file_input: (_NEWLINE | statement)*
 ?compound_stmt: function_def
 	| if_stmt
 	| class_def
+	| with_stmt
 	| for_stmt
 	| try_stmt
 	| while_stmt
@@ -141,6 +142,10 @@ try_clause: "try" ":" block
 except_clauses: except_clause+
 // @note XXX typed_expressionの箇所は本来は式だが、クラス以外を指定する事はまずないので簡易化しておく
 except_clause: "except" typed_expression ["as" name] ":" block
+
+with_stmt: "with" with_items ":" block
+with_items: with_item ("," with_item)*
+with_item: expression ["as" name]
 
 // Match statement
 // @note switchの代替。3.10から導入。使わないので不要

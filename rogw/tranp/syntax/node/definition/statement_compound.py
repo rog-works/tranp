@@ -233,6 +233,38 @@ class Try(FlowEnter):
 		return [self.block, *[catch.block for catch in self.catches]]
 
 
+@Meta.embed(Node, accept_tags('with_item'))
+class WithEntry(Node, IDeclaration):
+	@property
+	@Meta.embed(Node, expandable)
+	def expression(self) -> Node:
+		return self._at(0)
+
+	@property
+	@Meta.embed(Node, expandable)
+	def symbol(self) -> DeclLocalVar:
+		"""Note: XXX Pythonの仕様では省略出来るが実装を簡単にするため必須で実装"""
+		return self._by('name').as_a(DeclLocalVar)
+
+
+@Meta.embed(Node, accept_tags('with_stmt'))
+class With(FlowEnter):
+	@property
+	@duck_typed
+	@Meta.embed(Node, expandable)
+	def statements(self) -> list[Node]:
+		return self.block.statements
+
+	@property
+	@Meta.embed(Node, expandable)
+	def entries(self) -> list[WithEntry]:
+		return [node.as_a(WithEntry) for node in self._by('with_items')._children()]
+
+	@property
+	def block(self) -> Block:
+		return self._by('block').as_a(Block)
+
+
 class ClassDef(Node, IDomain, IScope, INamespace, IDeclaration, ISymbol):
 	@property
 	@override
@@ -667,11 +699,14 @@ class VarsCollector:
 			elif isinstance(node, Try):
 				for catch in node.catches:
 					decl_vars = cls._merged_by(decl_vars, catch, allow)
+			elif isinstance(node, With):
+				for entry in node.entries:
+					decl_vars = cls._merged_by(decl_vars, entry, allow)
 
 			if isinstance(node, (If, Try)):
 				for in_block in node.having_blocks:
 					decl_vars = cls._merged(decl_vars, cls._collect_impl(in_block, allow))
-			elif isinstance(node, (While, For)):
+			elif isinstance(node, (While, For, With)):
 				decl_vars = cls._merged(decl_vars, cls._collect_impl(node.block, allow))
 
 		return decl_vars

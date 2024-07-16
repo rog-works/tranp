@@ -153,6 +153,15 @@ class TestDefinition(TestCase):
 		self.assertEqual(expected['catches'], len(node.catches))
 
 	@data_provider([
+		('with open(a) as f: ...', 'file_input.with_stmt', {'statements': [defs.Elipsis], 'entries': 1}),
+		('with open(a) as f, transaction() as t: ...', 'file_input.with_stmt', {'statements': [defs.Elipsis], 'entries': 2}),
+	])
+	def test_with(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.With)
+		self.assertEqual(expected['statements'], [type(statement) for statement in node.statements])
+		self.assertEqual(expected['entries'], len(node.entries))
+
+	@data_provider([
 		# FIXME Tupleのケースを追加
 		('[a for a in {}]', 'file_input.list_comp', {
 			'projection': defs.Var,

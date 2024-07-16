@@ -670,7 +670,7 @@ class DeclableMatcher:
 		"""
 		# For/Catch/Comprehension
 		via_full_path = EntryPath(via.full_path)
-		is_identified_by_name_only = via_full_path.parent_tag in ['for_namelist', 'except_clause']
+		is_identified_by_name_only = via_full_path.parent_tag in ['for_namelist', 'except_clause', 'with_item']
 		if is_identified_by_name_only and via_full_path.last_tag == 'name':
 			return True
 

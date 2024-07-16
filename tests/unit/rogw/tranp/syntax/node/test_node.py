@@ -215,6 +215,9 @@ class TestNode(TestCase):
 		('for i in [0]: ...', 'file_input.for_stmt.for_namelist.name', defs.DeclLocalVar, '__main__#for@1', '__main__'),
 		('try: ...\nexcept Exception as e: ...', 'file_input.try_stmt', defs.Try, '__main__', '__main__'),
 		('try: ...\nexcept Exception as e: ...', 'file_input.try_stmt.except_clauses.except_clause', defs.Catch, '__main__#try@1', '__main__'),
+		('with open(a) as f: ...', 'file_input.with_stmt', defs.With, '__main__', '__main__'),
+		('with open(a) as f: ...', 'file_input.with_stmt.with_items.with_item', defs.WithEntry, '__main__#with@1', '__main__'),
+		('with open(a) as f: ...', 'file_input.with_stmt.with_items.with_item.name', defs.DeclLocalVar, '__main__#with@1', '__main__'),
 		# Statement compound - ClassDef
 		('def func() -> None: ...', 'file_input.function_def', defs.Function, '__main__', '__main__'),
 		('class A: ...', 'file_input.class_def', defs.Class, '__main__', '__main__'),

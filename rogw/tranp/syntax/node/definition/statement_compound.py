@@ -139,7 +139,7 @@ class While(FlowEnter):
 @Meta.embed(Node, accept_tags('for_stmt'))
 class For(FlowEnter, IDeclaration):
 	@property
-	@implements
+	@duck_typed
 	@Meta.embed(Node, expandable)
 	def symbols(self) -> list[Declable]:
 		return [node.as_a(Declable) for node in self._children('for_namelist')]
@@ -185,7 +185,7 @@ class Catch(FlowPart, IDeclaration):
 		return self.block.statements
 
 	@property
-	@implements
+	@duck_typed
 	def symbols(self) -> list[Declable]:
 		return [self.symbol]
 
@@ -247,23 +247,23 @@ class WithEntry(Node, IDeclaration):
 		return self._by('name').as_a(DeclLocalVar)
 
 	@property
-	@implements
-	def symbols(self) -> list[DeclLocalVar]:
+	@duck_typed
+	def symbols(self) -> list[Declable]:
 		return [self.symbol]
 
 
 @Meta.embed(Node, accept_tags('with_stmt'))
 class With(FlowEnter):
 	@property
+	@Meta.embed(Node, expandable)
+	def entries(self) -> list[WithEntry]:
+		return [node.as_a(WithEntry) for node in self._by('with_items')._children()]
+
+	@property
 	@duck_typed
 	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:
 		return self.block.statements
-
-	@property
-	@Meta.embed(Node, expandable)
-	def entries(self) -> list[WithEntry]:
-		return [node.as_a(WithEntry) for node in self._by('with_items')._children()]
 
 	@property
 	def block(self) -> Block:
@@ -277,17 +277,17 @@ class ClassDef(Node, IDomain, IScope, INamespace, IDeclaration, ISymbol):
 		return self.symbol.tokens
 
 	@property
-	@implements
+	@duck_typed
 	def symbols(self) -> list[Declable]:
 		return [self.symbol]
 
 	@property
-	@implements
+	@duck_typed
 	def symbol(self) -> TypesName:
 		raise NotImplementedError()
 
 	@property
-	@implements
+	@duck_typed
 	def declare(self) -> 'ClassDef':
 		return self
 

@@ -15,6 +15,7 @@ class IDeclaration:
 		* Parameter | 1 on 1
 		* For | 1 on n
 		* Catch | 1 on 1
+		* WithEntry | 1 on 1
 		* Comprehension | 1 on n
 	"""
 
@@ -53,6 +54,10 @@ class StatementBlock(Protocol):
 		* Entrypoint
 		* Block
 		* ClassDef
+		* If/ElseIf/Else
+		* For/While
+		* Try/Catch
+		* With
 	"""
 
 	@property

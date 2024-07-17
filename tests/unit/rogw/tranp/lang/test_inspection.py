@@ -1,6 +1,6 @@
 from enum import Enum, EnumType
 from types import NoneType
-from typing import Any, Callable, cast
+from typing import Any, Callable, Generic, TypeVar, cast
 from unittest import TestCase
 
 from rogw.tranp.lang.annotation import override
@@ -154,8 +154,12 @@ class TestClassTypehint(TestCase):
 		@property
 		def prop(self) -> None: ...
 
+	T = TypeVar('T')
+	class Gen(Generic[T]): ...
+
 	@data_provider([
 		(Sub, Sub.__init__),
+		(Gen[str], Gen[str].__init__),
 	])
 	def test_constructor(self, origin: type, expected: Callable) -> None:
 		hint = ClassTypehint(origin)
@@ -163,13 +167,27 @@ class TestClassTypehint(TestCase):
 
 	@data_provider([
 		(Sub, {
+			'origin': Sub,
+			'raw': Sub,
+			'sub_types': [],
 			'class_vars': {'n': int, 'l': list},
 			'self_vars': {'d': dict, 't': tuple},
 			'methods': ['__init__', '__self_attributes__', 'cls_method', 'self_method', 'prop'],
 		}),
+		(Gen[str], {
+			'origin': Gen,
+			'raw': Gen[str],
+			'sub_types': [str],
+			'class_vars': {},
+			'self_vars': {},
+			'methods': [],
+		}),
 	])
 	def test_schema(self, origin: type, expected: dict[str, Any]) -> None:
 		hint = ClassTypehint(origin)
+		self.assertEqual(expected['origin'], hint.origin)
+		self.assertEqual(expected['raw'], hint.raw)
+		self.assertEqual(expected['sub_types'], [sub_type.origin for sub_type in hint.sub_types])
 		self.assertEqual(expected['class_vars'], {key: var.origin for key, var in hint.class_vars.items()})
 		self.assertEqual(expected['self_vars'], {key: var.origin for key, var in hint.self_vars.items()})
 		self.assertEqual(expected['methods'], [key for key in hint.methods.keys()])

@@ -207,6 +207,17 @@ class ClassTypehint(Typehint):
 		return getattr(self._type, '__origin__', self._type)
 
 	@property
+	def raw(self) -> type:
+		"""type: 元のタイプ"""
+		return self._type
+
+	@property
+	def sub_types(self) -> list[Typehint]:
+		"""list[Typehint]: ジェネリック型のサブタイプのリスト"""
+		sub_annos = getattr(self._type, '__args__', [])
+		return [Inspector.resolve(sub_type) for sub_type in sub_annos]
+
+	@property
 	def constructor(self) -> FunctionTypehint:
 		"""FunctionTypehint: コンストラクター"""
 		return FunctionTypehint(self._type.__init__)

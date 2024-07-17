@@ -1,11 +1,14 @@
-from typing import TypeAlias
+from os import path as os_path
+from typing import Any, Generic, Iterator, TypeAlias, TypeVar, cast
+from yaml import safe_load as yaml_safe_load
 
 from rogw.tranp.compatible.cpp.enum import CEnum as Enum
+
 from tests.unit.rogw.tranp.semantics.reflection.fixtures.test_symbol_db_combine import S, C
 
 DSI: TypeAlias = dict[str, int]
 DSI2: TypeAlias = dict[str, DSI]
-Z2: TypeAlias = C
+C2: TypeAlias = C
 
 
 value: int = 0
@@ -18,7 +21,7 @@ class Base(C):
 
 
 class Sub(Base):
-	class C:
+	class Inner:
 		value: str = ''
 
 		@classmethod
@@ -27,7 +30,8 @@ class Sub(Base):
 
 	def __init__(self) -> None:
 		super().__init__()
-		self.numbers: list[int] = []
+		self.numbers: 'list[int]' = []
+		self.C: C = C()
 
 	@property
 	def first_number(self) -> int:
@@ -38,12 +42,13 @@ class Sub(Base):
 		print(value)
 
 	def member_ref(self) -> None:
-		print(self.numbers)
-		print(self.first_number)
+		a = self.numbers
+		b = self.first_number
+		c = self.C
 
 	def member_write(self) -> None:
 		self.x.nx = 2
-		Sub.C.value = 'update'
+		Sub.Inner.value = 'update'
 
 	def param_ref(self, param: int) -> None:
 		print(param)
@@ -57,6 +62,9 @@ class Sub(Base):
 
 	def returns(self) -> str:
 		return self.base_str
+
+	def yields(self) -> Iterator[str]:
+		yield self.base_str
 
 	def invoke_method(self) -> None:
 		self.invoke_method()
@@ -111,6 +119,48 @@ class Sub(Base):
 	def Base(self) -> Base:
 		...
 
+	def kw_params(self, **kwargs: int) -> str:
+		a = self.kw_params(a=1, b=2)
+		return ''
+
+	def indexer_access(self, ns: list[int], ss: list[str], s: str) -> None:
+		ns0 = ns[0]
+		ss0 = ss[0]
+		s0 = s[0]
+		ns_slice0 = ns[0:]
+		ns_slice1 = ns[:1]
+		ns_slice2 = ns[0:1]
+		ss_slice = ss[0:5:2]
+		s_slice = s[0:]
+		dsn = cast(dict[str, int], {})
+
+	def type_props(self, t: type) -> None:
+		a = t.__name__
+		b = t.__class__
+		c = t.__module__
+
+	def list_expand(self) -> None:
+		a = [1, *[]]
+		b = [*[], [2]]
+		c = [*(1,), *[2]]
+
+	def dict_expand(self) -> None:
+		a = {'a': 1, **{}}
+		b = {**{}, 'a': {'b': 1}}
+
+	def tuple_arg(self) -> None:
+		a = isinstance(1, (int, float))
+		b = issubclass(int, (int, float))
+
+	def decl_tuple(self, p: tuple[int, int, int]) -> tuple[str, str, str]:
+		a = (1, 'a', False)
+		b = p
+		c = self.decl_tuple(p)
+		return ('', '', '')
+
+	def imported_inner_type_ref(self, b: C.AA) -> None:
+		a = C.AA()
+
 
 class CalcOps:
 	def unary(self) -> None:
@@ -137,12 +187,10 @@ class CalcOps:
 		n = 1 if 2 else 3
 		s = 'a' if True else 'b'
 		s_or_null = 'a' if n else None
-		# エラーケース
-		# n_or_s = 1 if n else 'a'
 
 
 class AliasOps:
-	def func(self, z2: Z2) -> None:
+	def func(self, z2: C2) -> None:
 		d: DSI = {'s': value}
 		d_in_v = d['s']
 
@@ -151,7 +199,7 @@ class AliasOps:
 		d2_in_dsi_in_v = d2['s2']['s']
 
 		z2_in_x = z2.x
-		new_z2_in_x = Z2().x
+		new_z2_in_x = C2().x
 
 
 class TupleOps:
@@ -213,6 +261,15 @@ class EnumOps:
 		e = EnumOps.Values(0)
 		n = int(EnumOps.Values.A)
 
+	def comparison(self) -> None:
+		a = EnumOps.Values.A == EnumOps.Values.B
+		b = EnumOps.Values.A != EnumOps.Values.B
+		c = EnumOps.Values.A is EnumOps.Values.B
+		d = EnumOps.Values.A is not EnumOps.Values.B
+
+	def calc(self) -> None:
+		a = EnumOps.Values.A | EnumOps.Values.B
+
 
 class Nullable:
 	def params(self, base: Base | None) -> None: ...
@@ -229,5 +286,26 @@ class Nullable:
 	def accessible(self, sub: Sub | None, subs: list[Sub] | None) -> None:
 		s = sub.base_str if sub else ''
 		n = sub.first_number if sub else 0
-		# エラーケース
-		# arr = subs[0] if subs else []
+
+
+T = TypeVar('T')
+
+
+class GenericOps(Generic[T]):
+	def __init__(self) -> None: ...
+
+	def temporal(self, value: T) -> None:
+		a = value
+
+	def new(self) -> None:
+		a = GenericOps[int]()
+
+	def cast(self, sub: 'GenericOps[Sub]') -> None:
+		b = cast(GenericOps[Base], sub)
+
+
+class WithOps:
+	def file_load(self) -> None:
+		dir = os_path.dirname(__file__)
+		with open(os_path.join(dir, 'hoge.yml'), encoding='utf-8') as f:
+			content = cast(dict[str, Any], yaml_safe_load(f))

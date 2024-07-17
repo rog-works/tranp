@@ -11,7 +11,8 @@ from tests.test.fixture import Fixture
 class ASTMapping:
 	fixture_module_path = Fixture.fixture_module_path(__file__)
 
-	_start = 6
+	_import_xyz = 4
+	_start = 8
 	_func = 'file_input.function_def'
 	_Base = f'file_input.class_def[{_start + 1}]'
 	_Sub = f'file_input.class_def[{_start + 2}]'
@@ -42,9 +43,10 @@ class ASTMapping:
 	_Nullable = f'file_input.class_def[{_start + 8}]'
 	_TypeT = '',
 	_GenericOps = f'file_input.class_def[{_start + 10}]'
+	_WithOps = f'file_input.class_def[{_start + 11}]'
 
 	aliases = {
-		ModuleDSN.full_joined(fixture_module_path, 'import.xyz'): 'file_input.import_stmt[2]',
+		ModuleDSN.full_joined(fixture_module_path, 'import.xyz'): f'file_input.import_stmt[{_import_xyz}]',
 
 		ModuleDSN.full_joined(fixture_module_path, 'value'): 'file_input.anno_assign',
 
@@ -97,6 +99,8 @@ class ASTMapping:
 
 		'GenericOps.new.block': f'{_GenericOps}.class_def_raw.block.function_def[2].function_def_raw.block',
 		'GenericOps.cast.block': f'{_GenericOps}.class_def_raw.block.function_def[3].function_def_raw.block',
+
+		'WithOps.file_load.block': f'{_WithOps}.class_def_raw.block.function_def.function_def_raw.block',
 	}
 
 
@@ -227,6 +231,9 @@ class TestReflections(TestCase):
 		(ModuleDSN.full_joined(fixture_module_path, 'Sub.decl_tuple.b'), 'tuple<int, int, int>'),
 		(ModuleDSN.full_joined(fixture_module_path, 'Sub.decl_tuple.c'), 'tuple<str, str, str>'),
 
+		(ModuleDSN.full_joined(fixture_module_path, 'Sub.imported_inner_type_ref.b'), 'AA=A'),
+		(ModuleDSN.full_joined(fixture_module_path, 'Sub.imported_inner_type_ref.a'), 'A'),
+
 		(ModuleDSN.full_joined(fixture_module_path, 'CalcOps.unary.n_neg'), 'int'),
 		(ModuleDSN.full_joined(fixture_module_path, 'CalcOps.unary.n_not'), 'bool'),
 		(ModuleDSN.full_joined(fixture_module_path, 'CalcOps.binary.n'), 'int'),
@@ -295,6 +302,8 @@ class TestReflections(TestCase):
 		(ModuleDSN.full_joined(fixture_module_path, 'GenericOps.temporal.a'), 'T'),
 		(ModuleDSN.full_joined(fixture_module_path, 'GenericOps.new.a'), 'GenericOps<int>'),
 		(ModuleDSN.full_joined(fixture_module_path, 'GenericOps.cast.b'), 'GenericOps<Base>'),
+
+		(ModuleDSN.full_joined(fixture_module_path, 'WithOps.file_load.dir'), 'str'),
 	])
 	def test_from_fullyname(self, fullyname: str, expected: str) -> None:
 		reflections = self.fixture.get(Reflections)
@@ -331,7 +340,7 @@ class TestReflections(TestCase):
 		(_ast('Base.__init__.return', ''), _mod('classes', 'None'), 'None'),
 		(_ast('Base.__init__.block', 'anno_assign.assign_namelist.getattr'), _mod('classes', 'str'), 'str'),
 		(_ast('Base.__init__.block', 'anno_assign.typed_var'), _mod('classes', 'str'), 'str'),
-		(_ast('Base.__init__.block', 'anno_assign.string'), _mod('classes', 'str'), 'str'),
+		(_ast('Base.__init__.block', 'anno_assign.var'), _mod('classes', 'str'), 'str'),
 		(_ast('Base.__init__.block', 'comment_stmt'), _mod('classes', 'Unknown'), 'Unknown'),
 
 		(_ast('Sub', ''), ModuleDSN.full_joined(fixture_module_path, 'Sub'), 'Sub'),
@@ -424,6 +433,9 @@ class TestReflections(TestCase):
 
 		(_ast('GenericOps.new.block', 'assign.funccall'), ModuleDSN.full_joined(fixture_module_path, 'GenericOps'), 'GenericOps<int>'),
 		(_ast('GenericOps.cast.block', 'assign.funccall.arguments.argvalue[0]'), _mod('classes', 'type'), 'type<GenericOps<Base>>'),
+
+		(_ast('WithOps.file_load.block', 'with_stmt.with_items.with_item'), _mod('typing', 'IO'), 'IO'),
+		(_ast('WithOps.file_load.block', 'with_stmt.block.assign'), _mod('classes', 'dict'), 'dict<str, Any>'),
 	])
 	def test_type_of(self, full_path: str, expected: str, attrs_expected: str) -> None:
 		reflections = self.fixture.get(Reflections)

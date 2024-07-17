@@ -3,7 +3,7 @@ from typing import Union, cast
 
 from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.dsn.module import ModuleDSN
-from rogw.tranp.lang.annotation import implements, override
+from rogw.tranp.lang.annotation import duck_typed, override
 from rogw.tranp.lang.sequence import flatten, last_index_of
 from rogw.tranp.syntax.ast.path import EntryPath
 from rogw.tranp.syntax.errors import InvalidRelationError
@@ -61,18 +61,18 @@ class Declable(Node, IDomain, ISymbol, ITerminal):
 		return self.tokens
 
 	@property
-	@implements
+	@duck_typed
 	def symbol(self) -> 'Declable':
 		return self
 
 	@property
-	@implements
+	@duck_typed
 	def declare(self) -> Node:
 		"""
 		Raises:
 			InvalidRelationError: 不正な親子関係
 		"""
-		parent_tags = ['assign_namelist', 'for_namelist', 'except_clause', 'typedparam', 'import_as_names']
+		parent_tags = ['assign_namelist', 'for_namelist', 'except_clause', 'with_item', 'typedparam', 'import_as_names']
 		if self._full_path.parent_tag in parent_tags and isinstance(self.parent, IDeclaration):
 			return self.parent
 
@@ -500,7 +500,7 @@ class ForIn(Node):
 @Meta.embed(Node, accept_tags('comp_for'))
 class CompFor(Node, IDeclaration):
 	@property
-	@implements
+	@duck_typed
 	@Meta.embed(Node, expandable)
 	def symbols(self) -> list[Declable]:
 		return [node.as_a(Declable) for node in self._children('for_namelist')]
@@ -668,9 +668,9 @@ class DeclableMatcher:
 		Returns:
 			bool: True = 対象
 		"""
-		# For/Catch/Comprehension
+		# For/Catch/WithEntry/Comprehension
 		via_full_path = EntryPath(via.full_path)
-		is_identified_by_name_only = via_full_path.parent_tag in ['for_namelist', 'except_clause']
+		is_identified_by_name_only = via_full_path.parent_tag in ['for_namelist', 'except_clause', 'with_item']
 		if is_identified_by_name_only and via_full_path.last_tag == 'name':
 			return True
 

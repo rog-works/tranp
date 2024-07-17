@@ -281,6 +281,12 @@ class Py2Cpp(ITranspiler):
 	def on_try(self, node: defs.Try, statements: list[str], catches: list[str]) -> str:
 		return self.view.render(node.classification, vars={'statements': statements, 'catches': catches})
 
+	def on_with_entry(self, node: defs.WithEntry, enter: str, symbol: str) -> str:
+		raise LogicError(f'Not supported with statement. node: {node}')
+
+	def on_with(self, node: defs.With, statements: list[str], entries: list[str]) -> str:
+		raise LogicError(f'Not supported with statement. node: {node}')
+
 	def on_comp_for(self, node: defs.CompFor, symbols: list[str], for_in: str) -> str:
 		"""Note: XXX range/enumerateは効率・可読性共に非常に悪いため非サポート"""
 		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Var) and node.iterates.calls.tokens in [range.__name__, enumerate.__name__]:

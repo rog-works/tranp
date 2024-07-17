@@ -122,6 +122,8 @@ from rogw.tranp.syntax.node.definition.statement_compound import (
 	Catch,
 	TryClause,
 	Try,
+	WithEntry,
+	With,
 	# class
 	ClassDef,
 	# class - function

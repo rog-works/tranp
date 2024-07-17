@@ -100,6 +100,7 @@ class TestNode(TestCase):
 		('for i in [0]: ...', 'file_input.for_stmt', defs.For, 'for@1', '__main__#for@1'),
 		('try: ...\nexcept Exception as e: ...', 'file_input.try_stmt', defs.Try, 'try@1', '__main__#try@1'),
 		('try: ...\nexcept Exception as e: ...', 'file_input.try_stmt.except_clauses.except_clause', defs.Catch, 'catch@6', '__main__#try@1.catch@6'),
+		('with open(a) as f: ...', 'file_input.with_stmt', defs.With, 'with@1', '__main__#with@1'),
 		# Statement compound - ClassDef
 		('def func() -> None: ...', 'file_input.function_def', defs.Function, 'func', '__main__#func'),
 		('class A:\n\t@classmethod\n\tdef c_method(cls) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def', defs.ClassMethod, 'c_method', '__main__#A.c_method'),
@@ -138,6 +139,7 @@ class TestNode(TestCase):
 		('class A:\n\tdef method(self) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.DeclThisParam, 'self', '__main__#A.method.self'),
 		('for i in range(1): ...', 'file_input.for_stmt.for_namelist.name', defs.DeclLocalVar, 'i', '__main__#for@1.i'),
 		('try:\n\ta\nexcept Exception as e: ...', 'file_input.try_stmt.except_clauses.except_clause.name', defs.DeclLocalVar, 'e', '__main__#try@1.catch@8.e'),
+		('with open(a) as f: ...', 'file_input.with_stmt.with_items.with_item.name', defs.DeclLocalVar, 'f', '__main__#with@1.f'),
 		('a = 0', 'file_input.assign.assign_namelist.var', defs.DeclLocalVar, 'a', '__main__#a'),
 		('[a for a in []]', 'file_input.list_comp.comprehension.comp_fors.comp_for.for_namelist.name', defs.DeclLocalVar, 'a', '__main__#list_comp@1.a'),
 		('{a: b for a, b in {}}', 'file_input.dict_comp.comprehension.comp_fors.comp_for.for_namelist.name[0]', defs.DeclLocalVar, 'a', '__main__#dict_comp@1.a'),
@@ -215,6 +217,8 @@ class TestNode(TestCase):
 		('for i in [0]: ...', 'file_input.for_stmt.for_namelist.name', defs.DeclLocalVar, '__main__#for@1', '__main__'),
 		('try: ...\nexcept Exception as e: ...', 'file_input.try_stmt', defs.Try, '__main__', '__main__'),
 		('try: ...\nexcept Exception as e: ...', 'file_input.try_stmt.except_clauses.except_clause', defs.Catch, '__main__#try@1', '__main__'),
+		('with open(a) as f: ...', 'file_input.with_stmt', defs.With, '__main__', '__main__'),
+		('with open(a) as f: ...', 'file_input.with_stmt.with_items.with_item', defs.WithEntry, '__main__#with@1', '__main__'),
 		# Statement compound - ClassDef
 		('def func() -> None: ...', 'file_input.function_def', defs.Function, '__main__', '__main__'),
 		('class A: ...', 'file_input.class_def', defs.Class, '__main__', '__main__'),

@@ -1,4 +1,4 @@
-from rogw.tranp.lang.annotation import implements, override
+from rogw.tranp.lang.annotation import duck_typed, override
 from rogw.tranp.syntax.node.behavior import ITerminal
 from rogw.tranp.syntax.node.definition.primary import FuncCall, ImportAsName, ImportPath, Reference, Declable, Type, Var
 from rogw.tranp.syntax.node.definition.terminal import Empty, Terminal
@@ -32,7 +32,7 @@ class MoveAssign(Assign, IDeclaration):
 		return node if isinstance(node, Empty) else node
 
 	@property
-	@implements
+	@duck_typed
 	def symbols(self) -> list[Declable]:
 		return [node for node in self.receivers if isinstance(node, Declable)]
 
@@ -56,7 +56,7 @@ class AnnoAssign(Assign, IDeclaration):
 		return node if isinstance(node, Empty) else node
 
 	@property
-	@implements
+	@duck_typed
 	def symbols(self) -> list[Declable]:
 		return [self.receiver]
 
@@ -153,6 +153,7 @@ class Import(Node, IDeclaration):
 		return self._by('dotted_name').as_a(ImportPath)
 
 	@property
+	@duck_typed
 	@Meta.embed(Node, expandable)
 	def symbols(self) -> list[ImportAsName]:
 		return [node.as_a(ImportAsName) for node in self._children('import_as_names')]

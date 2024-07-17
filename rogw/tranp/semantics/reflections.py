@@ -139,7 +139,7 @@ class Reflections:
 			return self.resolve(node)
 		elif isinstance(node, defs.Literal):
 			return self.__resolve_procedural(node)
-		elif isinstance(node, (defs.For, defs.Catch)):
+		elif isinstance(node, (defs.For, defs.Catch, defs.WithEntry)):
 			return self.__from_flow(node)
 		elif isinstance(node, (defs.Comprehension, defs.CompFor)):
 			return self.__from_comprehension(node)
@@ -162,11 +162,11 @@ class Reflections:
 			# defs.Relay/defs.Indexer
 			return self.__resolve_procedural(node)
 
-	def __from_flow(self, node: defs.For | defs.Catch) -> IReflection:
+	def __from_flow(self, node: defs.For | defs.Catch | defs.WithEntry) -> IReflection:
 		"""制御構文ノードからシンボルを解決
 
 		Args:
-			node (For | Catch): 制御構文ノード
+			node (For | Catch | WithEntry): 制御構文ノード
 		Returns:
 			IReflection: シンボル
 		Raises:
@@ -174,6 +174,8 @@ class Reflections:
 		"""
 		if isinstance(node, defs.For):
 			return self.__resolve_procedural(node.for_in)
+		elif isinstance(node, defs.WithEntry):
+			return self.__resolve_procedural(node.enter)
 		else:
 			# defs.Catch
 			return self.resolve(node.var_type)

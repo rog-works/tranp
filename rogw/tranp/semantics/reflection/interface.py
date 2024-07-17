@@ -2,6 +2,7 @@ from abc import ABCMeta, abstractmethod
 from enum import Enum
 from typing import Iterator, NamedTuple, Self, TypeVar
 
+from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.lang.annotation import override
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
@@ -72,14 +73,10 @@ class SymbolDB(dict[str, 'IReflection']):
 		Returns:
 			Self: 生成したインスタンス
 		"""
-		orders = {index: key for index, key in enumerate(module_orders)}
+		orders = {key: index for index, key in enumerate(module_orders)}
 		def order(entry: tuple[str, IReflection]) -> int:
-			key, _ = entry
-			for index, module_path in orders.items():
-				if module_path in key:
-					return index
-
-			return -1
+			in_module_path, _ = ModuleDSN.parsed(entry[0])
+			return orders.get(in_module_path, -1)
 
 		return self.__class__(dict(sorted(self.items(), key=order)))
 

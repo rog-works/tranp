@@ -38,6 +38,8 @@ def symbol_mapping() -> SymbolMapping:
 			defs.Catch: ['except_clause'],
 			defs.TryClause: ['try_clause'],
 			defs.Try: ['try_stmt'],
+			defs.WithEntry: ['with_item'],
+			defs.With: ['with_stmt'],
 			defs.ClassMethod: ['function_def'],
 			defs.Constructor: ['function_def'],
 			defs.Method: ['function_def'],

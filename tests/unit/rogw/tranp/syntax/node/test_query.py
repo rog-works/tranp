@@ -106,7 +106,7 @@ class TestNodes(TestCase):
 	])
 	def test_exists(self, path: str, expected: bool) -> None:
 		nodes = Fixture.nodes()
-		self.assertEqual(expected, nodes.exists(path))
+		self.assertEqual(nodes.exists(path), expected)
 
 	@data_provider([
 		('root', Root),
@@ -124,7 +124,7 @@ class TestNodes(TestCase):
 	def test_by(self, path: str, expected: type[Node]) -> None:
 		nodes = Fixture.nodes()
 		node = nodes.by(path)
-		self.assertEqual(expected, type(node))
+		self.assertEqual(type(node), expected)
 
 	@data_provider([
 		('root.tree_a', Root),
@@ -141,7 +141,7 @@ class TestNodes(TestCase):
 	def test_parent(self, via: str, expected: type[Node]) -> None:
 		nodes = Fixture.nodes()
 		node = nodes.parent(via)
-		self.assertEqual(expected, type(node))
+		self.assertEqual(type(node), expected)
 
 	@data_provider([
 		('root.tree_a', 'root', Root),
@@ -158,7 +158,7 @@ class TestNodes(TestCase):
 	def test_ancestor(self, via: str, tag: str, expected: type[Node]) -> None:
 		nodes = Fixture.nodes()
 		node = nodes.ancestor(via, tag)
-		self.assertEqual(expected, type(node))
+		self.assertEqual(type(node), expected)
 
 	@data_provider([
 		('root.tree_a', [TreeA, Terminal, TreeC]),
@@ -172,7 +172,7 @@ class TestNodes(TestCase):
 	def test_siblings(self, via: str, expected: type[Node]) -> None:
 		nodes = Fixture.nodes()
 		in_nodes = nodes.siblings(via)
-		self.assertEqual(expected, [type(node) for node in in_nodes])
+		self.assertEqual([type(node) for node in in_nodes], expected)
 
 	@data_provider([
 		('root', [TreeA, Terminal, TreeC]),
@@ -187,7 +187,7 @@ class TestNodes(TestCase):
 	def test_children(self, via: str, expected: type[Node]) -> None:
 		nodes = Fixture.nodes()
 		in_nodes = nodes.children(via)
-		self.assertEqual(expected, [type(node) for node in in_nodes])
+		self.assertEqual([type(node) for node in in_nodes], expected)
 
 	@data_provider([
 		('root', [TreeA, Terminal, TreeC]),
@@ -199,7 +199,7 @@ class TestNodes(TestCase):
 	def test_expand(self, via: str, expected: type[Node]) -> None:
 		nodes = Fixture.nodes()
 		in_nodes = nodes.expand(via)
-		self.assertEqual(expected, [type(node) for node in in_nodes])
+		self.assertEqual([type(node) for node in in_nodes], expected)
 
 	@data_provider([
 		('root.__empty__', NotFoundError),
@@ -218,4 +218,4 @@ class TestNodes(TestCase):
 	])
 	def test_values(self, via: str, expected: str) -> None:
 		nodes = Fixture.nodes()
-		self.assertEqual(expected, nodes.values(via))
+		self.assertEqual(nodes.values(via), expected)

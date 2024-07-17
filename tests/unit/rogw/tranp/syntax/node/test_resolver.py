@@ -98,8 +98,8 @@ class TestNodeResolver(TestCase):
 	])
 	def test_can_resolve(self, tag: str, expected: type[Node]) -> None:
 		resolver = Fixture.resolver()
-		self.assertEqual(expected, resolver.can_resolve(tag))
+		self.assertEqual(resolver.can_resolve(tag), expected)
 
 	def test_resolve(self) -> None:
 		resolver = Fixture.resolver()
-		self.assertEqual('root', resolver.resolve('root', 'root').full_path)
+		self.assertEqual(resolver.resolve('root', 'root').full_path, 'root')

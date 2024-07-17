@@ -10,13 +10,13 @@ class TestEntryCache(TestCase):
 	def test_exists(self) -> None:
 		cache = EntryCache[DictTreeEntry]()
 		cache.add('root', ('root', []))
-		self.assertEqual(True, cache.exists('root'))
+		self.assertEqual(cache.exists('root'), True)
 
 	def test_by(self) -> None:
 		cache = EntryCache[DictTreeEntry]()
 		root = ('root', [])
 		cache.add('root', root)
-		self.assertEqual(root, cache.by('root'))
+		self.assertEqual(cache.by('root'), root)
 
 	def test_group_by(self) -> None:
 		cache = EntryCache[DictTreeEntry]()
@@ -35,12 +35,12 @@ class TestEntryCache(TestCase):
 		cache.add('root.term_c', root[1][2])
 
 		under_root = list(cache.group_by('root').values())
-		self.assertEqual([root, root[1][0], tree_a, tree_a[1][0], root[1][2]], under_root)
+		self.assertEqual(under_root, [root, root[1][0], tree_a, tree_a[1][0], root[1][2]])
 
 		under_tree_a = list(cache.group_by('root.tree_a').values())
-		self.assertEqual([tree_a, tree_a[1][0]], under_tree_a)
+		self.assertEqual(under_tree_a, [tree_a, tree_a[1][0]])
 
 	def test_add(self) -> None:
 		cache = EntryCache[DictTreeEntry]()
 		cache.add('root', ('root', []))
-		self.assertEqual(True, cache.exists('root'))
+		self.assertEqual(cache.exists('root'), True)

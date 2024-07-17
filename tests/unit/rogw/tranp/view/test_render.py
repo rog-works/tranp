@@ -28,7 +28,7 @@ class TestRenderer(TestCase):
 
 	def assertRender(self, expected: str, template: str, indent: int, vars: dict[str, Any], ) -> None:
 		actual = self.__fixture.renderer.render(template, indent=indent, vars=vars)
-		self.assertEqual(expected, actual)
+		self.assertEqual(actual, expected)
 
 	@data_provider([
 		(1, {'receiver': 'hoge', 'value': '1234'}, '\thoge = 1234;'),

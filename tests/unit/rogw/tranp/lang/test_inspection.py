@@ -29,8 +29,8 @@ class TestScalarTypehint(TestCase):
 	])
 	def test_origins(self, origin: type, expected: dict[str, type]) -> None:
 		hint = ScalarTypehint(origin)
-		self.assertEqual(expected['raw'], hint.raw)
-		self.assertEqual(expected['origin'], hint.origin)
+		self.assertEqual(hint.raw, expected['raw'])
+		self.assertEqual(hint.origin, expected['origin'])
 
 	@data_provider([
 		(int, {'null': False, 'generic': False, 'list': False, 'union': False, 'nullable': False, 'enum': False}),
@@ -49,12 +49,12 @@ class TestScalarTypehint(TestCase):
 	])
 	def test_states(self, origin: type, expected: dict[str, bool]) -> None:
 		hint = ScalarTypehint(origin)
-		self.assertEqual(expected['null'], hint.is_null)
-		self.assertEqual(expected['generic'], hint.is_generic)
-		self.assertEqual(expected['list'], hint.is_list)
-		self.assertEqual(expected['union'], hint.is_union)
-		self.assertEqual(expected['nullable'], hint.is_nullable)
-		self.assertEqual(expected['enum'], hint.is_enum)
+		self.assertEqual(hint.is_null, expected['null'])
+		self.assertEqual(hint.is_generic, expected['generic'])
+		self.assertEqual(hint.is_list, expected['list'])
+		self.assertEqual(hint.is_union, expected['union'])
+		self.assertEqual(hint.is_nullable, expected['nullable'])
+		self.assertEqual(hint.is_enum, expected['enum'])
 
 	@data_provider([
 		(int, []),
@@ -71,13 +71,13 @@ class TestScalarTypehint(TestCase):
 		(Values, []),
 	])
 	def test_sub_types(self, origin: type, expected: list[type]) -> None:
-		self.assertEqual(expected, [cast(ScalarTypehint, hint).origin for hint in ScalarTypehint(origin).sub_types])
+		self.assertEqual([cast(ScalarTypehint, hint).origin for hint in ScalarTypehint(origin).sub_types], expected)
 
 	@data_provider([
 		(Values, [Values.A]),
 	])
 	def test_enum_members(self, origin: EnumType, expected: list[Enum]) -> None:
-		self.assertEqual(expected, ScalarTypehint(origin).enum_members)
+		self.assertEqual(ScalarTypehint(origin).enum_members, expected)
 
 
 def func(n: int) -> str: ...
@@ -105,7 +105,7 @@ class TestFunctionTypehint(TestCase):
 	])
 	def test_func_type(self, origin: Callable, expected: FuncClasses) -> None:
 		hint = FunctionTypehint(origin)
-		self.assertEqual(expected, hint.func_class)
+		self.assertEqual(hint.func_class, expected)
 
 	@data_provider([
 		(Sub.__init__, {'args': {}, 'returns': None}),
@@ -118,8 +118,8 @@ class TestFunctionTypehint(TestCase):
 	])
 	def test_signature(self, origin: Callable, expected: dict[str, Any]) -> None:
 		hint = FunctionTypehint(origin)
-		self.assertEqual(expected['args'], {key: arg.origin for key, arg in hint.args.items()})
-		self.assertEqual(expected['returns'], hint.returns.origin)
+		self.assertEqual({key: arg.origin for key, arg in hint.args.items()}, expected['args'])
+		self.assertEqual(hint.returns.origin, expected['returns'])
 
 
 class TestClassTypehint(TestCase):
@@ -163,7 +163,7 @@ class TestClassTypehint(TestCase):
 	])
 	def test_constructor(self, origin: type, expected: Callable) -> None:
 		hint = ClassTypehint(origin)
-		self.assertEqual(expected, hint.constructor.raw)
+		self.assertEqual(hint.constructor.raw, expected)
 
 	@data_provider([
 		(Sub, {
@@ -185,12 +185,12 @@ class TestClassTypehint(TestCase):
 	])
 	def test_schema(self, origin: type, expected: dict[str, Any]) -> None:
 		hint = ClassTypehint(origin)
-		self.assertEqual(expected['origin'], hint.origin)
-		self.assertEqual(expected['raw'], hint.raw)
-		self.assertEqual(expected['sub_types'], [sub_type.origin for sub_type in hint.sub_types])
-		self.assertEqual(expected['class_vars'], {key: var.origin for key, var in hint.class_vars.items()})
-		self.assertEqual(expected['self_vars'], {key: var.origin for key, var in hint.self_vars.items()})
-		self.assertEqual(expected['methods'], [key for key in hint.methods.keys()])
+		self.assertEqual(hint.origin, expected['origin'])
+		self.assertEqual(hint.raw, expected['raw'])
+		self.assertEqual([sub_type.origin for sub_type in hint.sub_types], expected['sub_types'])
+		self.assertEqual({key: var.origin for key, var in hint.class_vars.items()}, expected['class_vars'])
+		self.assertEqual({key: var.origin for key, var in hint.self_vars.items()}, expected['self_vars'])
+		self.assertEqual([key for key in hint.methods.keys()], expected['methods'])
 
 
 class TestInspector(TestCase):
@@ -214,7 +214,7 @@ class TestInspector(TestCase):
 		(Inspector, ClassTypehint),
 	])
 	def test_resolve(self, origin: type, expected: Typehint) -> None:
-		self.assertEqual(expected, type(Inspector.resolve(origin)))
+		self.assertEqual(type(Inspector.resolve(origin)), expected)
 
 	def test_validation(self) -> None:
 		self.assertTrue(Inspector.validation(TestClassTypehint.Sub))

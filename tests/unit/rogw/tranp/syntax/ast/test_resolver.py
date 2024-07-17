@@ -12,27 +12,27 @@ class C(B): pass
 class TestResolver(TestCase):
 	def test_accepts(self) -> None:
 		resolver = Resolver[A]()
-		self.assertEqual([], resolver.accepts)
+		self.assertEqual(resolver.accepts, [])
 		resolver.register('a', A)
-		self.assertEqual(['a'], resolver.accepts)
+		self.assertEqual(resolver.accepts, ['a'])
 		resolver.register('b', B)
-		self.assertEqual(['a', 'b'], resolver.accepts)
+		self.assertEqual(resolver.accepts, ['a', 'b'])
 		resolver.register('c', C)
-		self.assertEqual(['a', 'b', 'c'], resolver.accepts)
+		self.assertEqual(resolver.accepts, ['a', 'b', 'c'])
 
 	def test_can_resolve(self) -> None:
 		resolver = Resolver[A]()
-		self.assertEqual(False, resolver.can_resolve('a'))
+		self.assertEqual(resolver.can_resolve('a'), False)
 		resolver.register('a', A)
-		self.assertEqual(True, resolver.can_resolve('a'))
+		self.assertEqual(resolver.can_resolve('a'), True)
 
 	def test_register(self) -> None:
 		resolver = Resolver[A]()
-		self.assertEqual([], resolver.accepts)
+		self.assertEqual(resolver.accepts, [])
 		resolver.register('a', A)
 		resolver.register('b', B)
 		resolver.register('c', C)
-		self.assertEqual(['a', 'b', 'c'], resolver.accepts)
+		self.assertEqual(resolver.accepts, ['a', 'b', 'c'])
 
 		with self.assertRaises(LogicError):
 			resolver.resolve('d')
@@ -40,9 +40,9 @@ class TestResolver(TestCase):
 	def test_unregister(self) -> None:
 		resolver = Resolver[A]()
 		resolver.register('a', A)
-		self.assertEqual(['a'], resolver.accepts)
+		self.assertEqual(resolver.accepts, ['a'])
 		resolver.unregister('a')
-		self.assertEqual([], resolver.accepts)
+		self.assertEqual(resolver.accepts, [])
 
 		try:
 			resolver.unregister('a')
@@ -54,21 +54,21 @@ class TestResolver(TestCase):
 		resolver.register('a', A)
 		resolver.register('b', B)
 		resolver.register('c', C)
-		self.assertEqual([A], resolver.resolve('a'))
-		self.assertEqual([B], resolver.resolve('b'))
-		self.assertEqual([C], resolver.resolve('c'))
+		self.assertEqual(resolver.resolve('a'), [A])
+		self.assertEqual(resolver.resolve('b'), [B])
+		self.assertEqual(resolver.resolve('c'), [C])
 
 	def test_fallback(self) -> None:
 		resolver = Resolver[A]()
 		resolver.register('a', A)
 		resolver.fallback(B)
-		self.assertEqual([A], resolver.resolve('a'))
-		self.assertEqual([B], resolver.resolve('b'))
+		self.assertEqual(resolver.resolve('a'), [A])
+		self.assertEqual(resolver.resolve('b'), [B])
 
 	def test_clear(self) -> None:
 		resolver = Resolver[A]()
 		resolver.register('a', A)
 		resolver.register('b', B)
-		self.assertEqual(['a', 'b'], resolver.accepts)
+		self.assertEqual(resolver.accepts, ['a', 'b'])
 		resolver.clear()
-		self.assertEqual([], resolver.accepts)
+		self.assertEqual(resolver.accepts, [])

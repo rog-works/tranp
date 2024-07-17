@@ -22,4 +22,4 @@ class TestSerializer(TestCase):
 	def test_serialize(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path)
 		dump = serialize(node, T_FileInput)
-		self.assertEqual(expected, dump)
+		self.assertEqual(dump, expected)

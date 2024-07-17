@@ -13,7 +13,7 @@ class TestDSN(TestCase):
 		('a', 1),
 	])
 	def test_elem_counts(self, origin: str, expected: int) -> None:
-		self.assertEqual(expected, DSN.elem_counts(origin))
+		self.assertEqual(DSN.elem_counts(origin), expected)
 
 	@data_provider([
 		('a.b.c', ['a', 'b', 'c']),
@@ -25,7 +25,7 @@ class TestDSN(TestCase):
 		('', []),
 	])
 	def test_elements(self, origin: str, expected: list[str]) -> None:
-		self.assertEqual(expected, DSN.elements(origin))
+		self.assertEqual(DSN.elements(origin), expected)
 
 	@data_provider([
 		(['a', 'b', 'c'], 'a.b.c'),
@@ -35,7 +35,7 @@ class TestDSN(TestCase):
 		(['a', None], 'a'),
 	])
 	def test_join(self, elems: list[str], expected: str) -> None:
-		self.assertEqual(expected, DSN.join(*elems))
+		self.assertEqual(DSN.join(*elems), expected)
 
 	@data_provider([
 		('a.b.c', 2, 'a.b'),
@@ -46,7 +46,7 @@ class TestDSN(TestCase):
 		('.b.c', 1, 'b'),
 	])
 	def test_left(self, origin: str, counts: int, expected: str) -> None:
-		self.assertEqual(expected, DSN.left(origin, counts))
+		self.assertEqual(DSN.left(origin, counts), expected)
 
 	@data_provider([
 		('a.b.c', 2, 'b.c'),
@@ -57,7 +57,7 @@ class TestDSN(TestCase):
 		('.b.c', 3, 'b.c'),
 	])
 	def test_right(self, origin: str, counts: int, expected: str) -> None:
-		self.assertEqual(expected, DSN.right(origin, counts))
+		self.assertEqual(DSN.right(origin, counts), expected)
 
 	@data_provider([
 		('a.b.c', 'a'),
@@ -68,7 +68,7 @@ class TestDSN(TestCase):
 		('a.b.', 'a'),
 	])
 	def test_root(self, origin: str, expected: str) -> None:
-		self.assertEqual(expected, DSN.root(origin))
+		self.assertEqual(DSN.root(origin), expected)
 
 	@data_provider([
 		('a.b.c', 'b'),
@@ -79,4 +79,4 @@ class TestDSN(TestCase):
 		('a.b.', 'a'),
 	])
 	def test_parent(self, origin: str, expected: str) -> None:
-		self.assertEqual(expected, DSN.parent(origin))
+		self.assertEqual(DSN.parent(origin), expected)

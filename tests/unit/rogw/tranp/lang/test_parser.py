@@ -17,7 +17,7 @@ class TestParser(TestCase):
 		('<a, <b>, <c>>', '<>', ['<a, <b>, <c>>', '<b>', '<c>']),
 	])
 	def test_parse_bracket_block(self, text: str, brackets: str, expected: list[str]) -> None:
-		self.assertEqual(expected, parse_bracket_block(text, brackets))
+		self.assertEqual(parse_bracket_block(text, brackets), expected)
 
 	@data_provider([
 		('', '', ':', []),
@@ -26,7 +26,7 @@ class TestParser(TestCase):
 		('tag<a, tag[1]<b>, c>', '<>', ',', [{'name': 'tag', 'elems': ['a', 'tag[1]<b>', 'c']}, {'name': 'tag[1]', 'elems': ['b']}]),
 	])
 	def test_parse_block(self, text: str, brackets: str, delimiter: str, expected: list[dict[str, list[str]]]) -> None:
-		self.assertEqual(expected, parse_block(text, brackets, delimiter))
+		self.assertEqual(parse_block(text, brackets, delimiter), expected)
 
 	@data_provider([
 		('{}', '{}', ':', []),
@@ -39,7 +39,7 @@ class TestParser(TestCase):
 		('tag1(a, tag2(b), c)', '()', ',', []),
 	])
 	def test_parse_pair_block(self, text: str, brackets: str, delimiter: str, expected: list[tuple[str]]) -> None:
-		self.assertEqual(expected, parse_pair_block(text, brackets, delimiter))
+		self.assertEqual(parse_pair_block(text, brackets, delimiter), expected)
 
 	@data_provider([
 		('(a, b)', '()', ',', '{delimiter} ', '{name}{open}{elems}{close}', None, '(a, b)'),
@@ -48,4 +48,4 @@ class TestParser(TestCase):
 	])
 	def test_parse_block_to_entry(self, text: str, brackets: str, delimiter: str, join_format: str, block_format: str, alt_formatter: Entry.AltFormatter | None, expected: str) -> None:
 		entry = parse_block_to_entry(text, brackets, delimiter)
-		self.assertEqual(expected, entry.format(join_format, block_format, alt_formatter))
+		self.assertEqual(entry.format(join_format, block_format, alt_formatter), expected)

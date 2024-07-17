@@ -12,4 +12,4 @@ class SyntaxParserImpl:
 
 class TestSyntaxParser(TestCase):
 	def test_parse(self) -> None:
-		self.assertEqual('root', SyntaxParserImpl().parse('').name)
+		self.assertEqual(SyntaxParserImpl().parse('').name, 'root')

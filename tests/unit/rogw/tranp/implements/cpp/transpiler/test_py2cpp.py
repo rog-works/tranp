@@ -420,4 +420,4 @@ class TestPy2Cpp(TestCase):
 		transpiler = self.fixture.get(Py2Cpp)
 		node = self.fixture.shared_nodes_by(full_path).as_a(expected_type)
 		actual = transpiler.transpile(node)
-		self.assertEqual(expected, actual)
+		self.assertEqual(actual, expected)

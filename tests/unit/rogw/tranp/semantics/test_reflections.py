@@ -132,7 +132,7 @@ class TestReflections(TestCase):
 	def test_is_a(self, fullyname: str, standard_type: type[Standards], expected: bool) -> None:
 		reflections = self.fixture.get(Reflections)
 		symbol = reflections.from_fullyname(fullyname)
-		self.assertEqual(expected, reflections.is_a(symbol, standard_type))
+		self.assertEqual(reflections.is_a(symbol, standard_type), expected)
 
 	@data_provider([
 		(ModuleDSN.full_joined(fixture_module_path, 'TypeAlias'), 'TypeAlias'),
@@ -308,7 +308,7 @@ class TestReflections(TestCase):
 	def test_from_fullyname(self, fullyname: str, expected: str) -> None:
 		reflections = self.fixture.get(Reflections)
 		symbol = reflections.from_fullyname(fullyname)
-		self.assertEqual(expected, str(symbol))
+		self.assertEqual(str(symbol), expected)
 
 	@data_provider([
 		(int, _mod('classes', int.__name__)),
@@ -325,7 +325,7 @@ class TestReflections(TestCase):
 	])
 	def test_type_of_standard(self, standard_type: type[Standards] | None, expected: str) -> None:
 		reflections = self.fixture.get(Reflections)
-		self.assertEqual(expected, reflections.type_of_standard(standard_type).types.fullyname)
+		self.assertEqual(reflections.type_of_standard(standard_type).types.fullyname, expected)
 
 	@data_provider([
 		(_ast(ModuleDSN.full_joined(fixture_module_path, 'import.xyz'), 'import_as_names.import_as_name[1]'), _mod('xyz', 'C'), 'C'),
@@ -441,5 +441,5 @@ class TestReflections(TestCase):
 		reflections = self.fixture.get(Reflections)
 		node = self.fixture.shared_nodes_by(full_path)
 		symbol = reflections.type_of(node)
-		self.assertEqual(expected, symbol.types.fullyname)
-		self.assertEqual(attrs_expected, str(symbol))
+		self.assertEqual(symbol.types.fullyname, expected)
+		self.assertEqual(str(symbol), attrs_expected)

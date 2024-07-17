@@ -66,26 +66,26 @@ Attributes:
 	])
 	def test_comment(self, source: str, expected: dict[str, Any]) -> None:
 		comment = Comment.parse(source)
-		self.assertEqual(expected['description'], comment.description)
+		self.assertEqual(comment.description, expected['description'])
 		for index, elem in enumerate(comment.attributes):
 			in_expected = expected['attributes'][index]
-			self.assertEqual(in_expected['name'], elem.name)
-			self.assertEqual(in_expected['type'], elem.type)
-			self.assertEqual(in_expected['description'], elem.description)
+			self.assertEqual(elem.name, in_expected['name'])
+			self.assertEqual(elem.type, in_expected['type'])
+			self.assertEqual(elem.description, in_expected['description'])
 
 		for index, elem in enumerate(comment.args):
 			in_expected = expected['args'][index]
-			self.assertEqual(in_expected['name'], elem.name)
-			self.assertEqual(in_expected['type'], elem.type)
-			self.assertEqual(in_expected['description'], elem.description)
+			self.assertEqual(elem.name, in_expected['name'])
+			self.assertEqual(elem.type, in_expected['type'])
+			self.assertEqual(elem.description, in_expected['description'])
 
-		self.assertEqual(expected['returns']['type'], comment.returns.type)
-		self.assertEqual(expected['returns']['description'], comment.returns.description)
+		self.assertEqual(comment.returns.type, expected['returns']['type'])
+		self.assertEqual(comment.returns.description, expected['returns']['description'])
 
 		for index, elem in enumerate(comment.raises):
 			in_expected = expected['raises'][index]
-			self.assertEqual(in_expected['type'], elem.type)
-			self.assertEqual(in_expected['description'], elem.description)
+			self.assertEqual(elem.type, in_expected['type'])
+			self.assertEqual(elem.description, in_expected['description'])
 
-		self.assertEqual(expected['note'], comment.note)
-		self.assertEqual(expected['examples'], comment.examples)
+		self.assertEqual(comment.note, expected['note'])
+		self.assertEqual(comment.examples, expected['examples'])

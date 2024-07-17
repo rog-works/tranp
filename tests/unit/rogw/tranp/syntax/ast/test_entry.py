@@ -52,25 +52,25 @@ class EntryImpl(Entry):
 
 class TestEntry(TestCase):
 	def test_source(self) -> None:
-		self.assertEqual(('tree_a', []), EntryImpl(('tree_a', [])).source)
+		self.assertEqual(EntryImpl(('tree_a', [])).source, ('tree_a', []))
 
 	def test_name(self) -> None:
-		self.assertEqual('tree_a', EntryImpl(('tree_a', [])).name)
+		self.assertEqual(EntryImpl(('tree_a', [])).name, 'tree_a')
 
 	def test_has_child(self) -> None:
-		self.assertEqual(True, EntryImpl(('tree_a', [])).has_child)
+		self.assertEqual(EntryImpl(('tree_a', [])).has_child, True)
 
 	def test_children(self) -> None:
-		self.assertEqual([('term_a', 'a')], EntryImpl(('tree_a', [('term_a', 'a')])).children)
+		self.assertEqual(EntryImpl(('tree_a', [('term_a', 'a')])).children, [('term_a', 'a')])
 
 	def test_is_terminal(self) -> None:
-		self.assertEqual(True, EntryImpl(('term_a', 'a')).is_terminal)
+		self.assertEqual(EntryImpl(('term_a', 'a')).is_terminal, True)
 
 	def test_value(self) -> None:
-		self.assertEqual('a', EntryImpl(('term_a', 'a')).value)
+		self.assertEqual(EntryImpl(('term_a', 'a')).value, 'a')
 
 	def test_is_empty(self) -> None:
-		self.assertEqual(False, EntryImpl(('term_a', 'a')).is_empty)
+		self.assertEqual(EntryImpl(('term_a', 'a')).is_empty, False)
 
 	def test_source_map(self) -> None:
-		self.assertEqual({'begin': (0, 0), 'end': (0, 0)}, EntryImpl(('term_a', 'a')).source_map)
+		self.assertEqual(EntryImpl(('term_a', 'a')).source_map, {'begin': (0, 0), 'end': (0, 0)})

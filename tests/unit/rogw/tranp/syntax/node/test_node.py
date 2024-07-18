@@ -134,6 +134,7 @@ class TestNode(TestCase):
 		('a(n=0)', 'file_input.funccall.arguments.argvalue.name', defs.ArgumentLabel, '', '__main__#argument_label@7'),
 		# Primary - Var
 		('class A:\n\ta: ClassVar[int] = 0', 'file_input.class_def.class_def_raw.block.class_var_assign.assign_namelist.var', defs.DeclClassVar, 'a', '__main__#A.a'),
+		('class A:\n\ta: int', 'file_input.class_def.class_def_raw.block.anno_assign.assign_namelist.var', defs.DeclThisVarForward, 'a', '__main__#A.a'),
 		('class A:\n\tdef __init__(self) -> None:\n\t\tself.a: int = 0', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.anno_assign.assign_namelist.getattr', defs.DeclThisVar, 'a', '__main__#A.a'),
 		('class A:\n\t@classmethod\n\tdef c_method(cls) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.DeclClassParam, 'cls', '__main__#A.c_method.cls'),
 		('class A:\n\tdef method(self) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.DeclThisParam, 'self', '__main__#A.method.self'),
@@ -246,6 +247,7 @@ class TestNode(TestCase):
 		('a(n=0)', 'file_input.funccall.arguments.argvalue.name', defs.ArgumentLabel, '__main__', '__main__'),
 		# Primary - Var
 		('class A:\n\ta: ClassVar[int] = 0', 'file_input.class_def.class_def_raw.block.class_var_assign.assign_namelist.var', defs.DeclClassVar, '__main__#A', '__main__#A'),
+		('class A:\n\ta: int', 'file_input.class_def.class_def_raw.block.anno_assign.assign_namelist.var', defs.DeclThisVarForward, '__main__#A', '__main__#A'),
 		('class A:\n\tdef __init__(self) -> None:\n\t\tself.a: int = 0', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.anno_assign.assign_namelist.getattr', defs.DeclThisVar, '__main__#A.__init__', '__main__#A.__init__'),
 		('class A:\n\t@classmethod\n\tdef c_method(cls) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.DeclClassParam, '__main__#A.c_method', '__main__#A.c_method'),
 		('class A:\n\tdef method(self) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.DeclThisParam, '__main__#A.method', '__main__#A.method'),

@@ -83,20 +83,20 @@ class ASTMapping:
 		'EnumOps.assign.block': f'{_EnumOps}.class_def_raw.block.function_def[1].function_def_raw.block',
 		'EnumOps.cast.block': f'{_EnumOps}.class_def_raw.block.function_def[2].function_def_raw.block',
 
-		'AccessOps.__init__': f'{_AccessOps}.class_def_raw.block.function_def[0]',
-		'AccessOps.dot.block': f'{_AccessOps}.class_def_raw.block.function_def[1].function_def_raw.block',
-		'AccessOps.arrow.block': f'{_AccessOps}.class_def_raw.block.function_def[2].function_def_raw.block',
-		'AccessOps.double_colon.block': f'{_AccessOps}.class_def_raw.block.function_def[3].function_def_raw.block',
-		'AccessOps.indexer.block': f'{_AccessOps}.class_def_raw.block.function_def[4].function_def_raw.block',
+		'AccessOps.__init__': f'{_AccessOps}.class_def_raw.block.function_def[1]',
+		'AccessOps.dot.block': f'{_AccessOps}.class_def_raw.block.function_def[2].function_def_raw.block',
+		'AccessOps.arrow.block': f'{_AccessOps}.class_def_raw.block.function_def[3].function_def_raw.block',
+		'AccessOps.double_colon.block': f'{_AccessOps}.class_def_raw.block.function_def[4].function_def_raw.block',
+		'AccessOps.indexer.block': f'{_AccessOps}.class_def_raw.block.function_def[5].function_def_raw.block',
 
-		'Alias.Values': f'{_Alias}.class_def_raw.block.class_def[0]',
-		'Alias.Inner': f'{_Alias}.class_def_raw.block.class_def[1]',
-		'Alias.__init__': f'{_Alias}.class_def_raw.block.function_def[2]',
-		'Alias.in_param_return': f'{_Alias}.class_def_raw.block.function_def[3]',
-		'Alias.in_param_return2': f'{_Alias}.class_def_raw.block.function_def[4]',
-		'Alias.in_local.block': f'{_Alias}.class_def_raw.block.function_def[5].function_def_raw.block',
-		'Alias.in_class_method.block': f'{_Alias}.class_def_raw.block.function_def[6].function_def_raw.block',
-		'Alias.InnerB.super_call.block': f'{_Alias}.class_def_raw.block.class_def[7].class_def_raw.block.function_def.function_def_raw.block',
+		'Alias.__init__': f'{_Alias}.class_def_raw.block.function_def[1]',
+		'Alias.Values': f'{_Alias}.class_def_raw.block.class_def[2]',
+		'Alias.Inner': f'{_Alias}.class_def_raw.block.class_def[3]',
+		'Alias.in_param_return': f'{_Alias}.class_def_raw.block.function_def[4]',
+		'Alias.in_param_return2': f'{_Alias}.class_def_raw.block.function_def[5]',
+		'Alias.in_local.block': f'{_Alias}.class_def_raw.block.function_def[6].function_def_raw.block',
+		'Alias.in_class_method.block': f'{_Alias}.class_def_raw.block.function_def[7].function_def_raw.block',
+		'Alias.InnerB.super_call.block': f'{_Alias}.class_def_raw.block.class_def[8].class_def_raw.block.function_def.function_def_raw.block',
 
 		'CompOps.list_comp.block': f'{_CompOps}.class_def_raw.block.function_def[1].function_def_raw.block',
 		'CompOps.dict_comp.block': f'{_CompOps}.class_def_raw.block.function_def[2].function_def_raw.block',
@@ -192,7 +192,7 @@ class TestPy2Cpp(TestCase):
 
 		(_ast('Base.allowed_overrides', ''), defs.Function, 'public:\n/** allowed_overrides */\nvirtual int allowed_overrides() {\n\treturn 1;\n}'),
 
-		(_ast('Sub.block', 'comment_stmt[4]'), defs.Comment, '// FIXME other: Any'),
+		(_ast('Sub.block', 'comment_stmt[5]'), defs.Comment, '// FIXME other: Any'),
 
 		(_ast('CVarOps.ret_raw.return', ''), defs.Return, 'return Sub(0);'),
 		(_ast('CVarOps.ret_cp.return', ''), defs.Return, 'return new Sub(0);'),

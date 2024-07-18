@@ -42,7 +42,7 @@ class AnnoAssign(Assign, IDeclaration):
 	@property
 	@Meta.embed(Node, expandable)
 	def receiver(self) -> Declable:
-		return super().receivers[0].as_a(Declable)
+		return self.receivers[0].as_a(Declable)
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -66,7 +66,7 @@ class AugAssign(Assign):
 	@property
 	@Meta.embed(Node, expandable)
 	def receiver(self) -> Declable | Reference:
-		return super().receivers[0]
+		return self.receivers[0]
 
 	@property
 	@Meta.embed(Node, expandable)

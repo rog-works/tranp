@@ -90,9 +90,7 @@ class DeclClassVar(DeclVar):
 
 
 @Meta.embed(Node, accept_tags('var'))
-class DeclThisVarForward(Node, ITerminal):
-	"""Note: XXX 前方宣言として存在するだけのため、ただの終端要素として扱う"""
-
+class DeclThisVarForward(DeclVar):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
 		return DeclableMatcher.is_decl_this_var_forward(via)

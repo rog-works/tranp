@@ -15,23 +15,28 @@ value: int = 0
 
 
 class Base(C):
+	base_str: str
+
 	def __init__(self) -> None:
 		self.base_str: str = S
 		# comment
 
 
 class Sub(Base):
+	numbers: 'list[int]'
+	# C: C XXX Pythonの構文的に前方宣言はNG
+
+	def __init__(self) -> None:
+		super().__init__()
+		self.numbers: 'list[int]' = []
+		self.C: C = C()
+
 	class Inner:
 		value: ClassVar[str] = ''
 
 		@classmethod
 		def class_func(cls) -> dict[str, int]:
 			return {cls.value: value}
-
-	def __init__(self) -> None:
-		super().__init__()
-		self.numbers: 'list[int]' = []
-		self.C: C = C()
 
 	@property
 	def first_number(self) -> int:

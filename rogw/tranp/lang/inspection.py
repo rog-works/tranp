@@ -1,6 +1,6 @@
 from enum import Enum, EnumType
 from types import FunctionType, MethodType, NoneType, UnionType
-from typing import Callable, Protocol, TypeAlias
+from typing import Callable, ClassVar, TypeAlias, TypeVar
 
 from rogw.tranp.lang.annotation import override
 
@@ -14,25 +14,17 @@ class FuncClasses(Enum):
 	Function = 'function'
 
 
-class SelfAttributes(Protocol):
-	"""インスタンス変数明示プロトコル"""
-
-	@classmethod
-	def __self_attributes__(cls) -> dict[str, type]:
-		"""インスタンス変数のスキーマを生成
-
-		Returns:
-			dict[str, type]: スキーマ
-		"""
-		...
-
-
 class Typehint:
 	"""タイプヒント(基底クラス)"""
 
 	@property
 	def origin(self) -> type:
 		"""type: メインタイプ"""
+		...
+
+	@property
+	def raw(self) -> type | FuncTypes | Callable:
+		"""type | FuncTypes | Callable: 元のタイプ"""
 		...
 
 
@@ -63,6 +55,7 @@ class ScalarTypehint(Typehint):
 		return getattr(self._type, '__origin__', self._type)
 
 	@property
+	@override
 	def raw(self) -> type:
 		"""type: 元のタイプ"""
 		return self._type
@@ -141,6 +134,7 @@ class FunctionTypehint(Typehint):
 		return type(self._func)
 
 	@property
+	@override
 	def raw(self) -> FuncTypes | Callable:
 		""" FuncTypes | Callable: 関数オブジェクト"""
 		return self._func
@@ -207,6 +201,7 @@ class ClassTypehint(Typehint):
 		return getattr(self._type, '__origin__', self._type)
 
 	@property
+	@override
 	def raw(self) -> type:
 		"""type: 元のタイプ"""
 		return self._type
@@ -228,11 +223,19 @@ class ClassTypehint(Typehint):
 
 		Returns:
 			dict[str, Typehint]: クラス変数一覧
-		Note:
-			Pythonではクラス変数とインスタンス変数の差が厳密ではないため、
-			このクラスではクラス直下に定義された変数をクラス変数と位置づける
 		"""
-		return {key: Inspector.resolve(attr) for key, attr in self.__recursive_annos(self._type).items()}
+		annos = {key: anno for key, anno in self.__recursive_annos(self._type).items() if getattr(anno, '__origin__', anno) is ClassVar}
+		return {key: ClassTypehint(attr).sub_types[0] for key, attr in annos.items()}
+
+	@property
+	def self_vars(self) -> dict[str, Typehint]:
+		"""インスタンス変数の一覧を取得
+
+		Returns:
+			dict[str, Typehint]: インスタンス変数一覧
+		"""
+		annos = {key: anno for key, anno in self.__recursive_annos(self._type).items() if getattr(anno, '__origin__', anno) is not ClassVar}
+		return {key: Inspector.resolve(attr) for key, attr in annos.items()}
 
 	def __recursive_annos(self, _type: type) -> dict[str, type]:
 		"""クラス階層を辿ってタイプヒントを収集
@@ -247,23 +250,6 @@ class ClassTypehint(Typehint):
 			annos = {**annos, **getattr(at_type, '__annotations__', {})}
 
 		return annos
-
-	@property
-	def self_vars(self) -> dict[str, Typehint]:
-		"""インスタンス変数の一覧を取得
-
-		Returns:
-			dict[str, Typehint]: インスタンス変数一覧
-		Note:
-			Pythonではインスタンス変数はオブジェクトに動的にバインドされるため、タイプから抜き出す方法が無い
-			そのため、独自の特殊メソッド`__self_attributes__`を実装することで対処する
-			@see SelfAttributes
-		"""
-		attrs: dict[str, type] = {}
-		if hasattr(self._type, SelfAttributes.__self_attributes__.__name__):
-			attrs = getattr(self._type, SelfAttributes.__self_attributes__.__name__)()
-
-		return {key: Inspector.resolve(attr) for key, attr in attrs.items()}
 
 	@property
 	def methods(self) -> dict[str, FunctionTypehint]:
@@ -285,6 +271,9 @@ class ClassTypehint(Typehint):
 					_methods[key] = attr
 
 		return _methods
+
+
+T = TypeVar('T')
 
 
 class Inspector:
@@ -327,34 +316,24 @@ class Inspector:
 			return False
 
 	@classmethod
-	def validation(cls, aggregate: type[SelfAttributes], factory: Callable[[], SelfAttributes] | None = None) -> bool:
+	def validation(cls, klass: type[T], factory: Callable[[], T] | None = None) -> bool:
 		"""SelfAttributes準拠クラスのバリデーション
 
 		Args:
-			aggregate (type[SelfAttributes]): 検証クラス
-			factory (Callable[[], SelfAttributes] | None): インスタンスファクトリー (default = None)
+			klass (type[T]): 検証クラス
+			factory (Callable[[], T] | None): インスタンスファクトリー (default = None)
 		Returns:
 			bool: True = 成功
 		Raises:
-			TypeError: 設計と相違したスキーマ
-			TypeError: インスタンスの生成に失敗
+			TypeError: 設計と実体の不一致
 		"""
-		if not hasattr(aggregate, SelfAttributes.__self_attributes__.__name__):
-			raise TypeError(f'"{SelfAttributes.__self_attributes__.__name__}" is not implemented. class: {aggregate}')
-
-		instance: SelfAttributes | None = None
-		try:
-			instance = factory() if factory else aggregate()
-		except Exception as e:
-			raise TypeError(f'Failed create instance. validation incomplete. class: {aggregate}, error: {e}')
-
-		hint = ClassTypehint(aggregate)
-		for key, attr_hint in hint.self_vars.items():
-			if not hasattr(instance, key):
-				raise TypeError(f'"{key}" is not defined. class: {aggregate}')
-
-			actual = cls.resolve(type(getattr(instance, key)))
-			if attr_hint.origin != actual.origin:
-				raise TypeError(f'"{key}" is unexpected type. required "{attr_hint.origin}" from "{actual.origin}". class: {aggregate}')
+		hint = ClassTypehint(klass)
+		instance = factory() if factory else klass()
+		hint_keys = hint.self_vars.keys()
+		inst_keys = instance.__dict__.keys()
+		exists_from_hint = [key for key in hint_keys if key in inst_keys]
+		exists_from_inst = [key for key in inst_keys if key in hint_keys]
+		if len(exists_from_hint) != len(exists_from_inst):
+			raise TypeError(f'Schema not match. class: {klass.__name__}, expected self attributes: ({",".join(hint_keys)})')
 
 		return True

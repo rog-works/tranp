@@ -1,10 +1,9 @@
 from enum import Enum, EnumType
 from types import NoneType
-from typing import Any, Callable, Generic, TypeVar, cast
+from typing import Any, Callable, ClassVar, Generic, TypeVar, cast
 from unittest import TestCase
 
-from rogw.tranp.lang.annotation import override
-from rogw.tranp.lang.inspection import FuncClasses, SelfAttributes, Typehint, Inspector, ClassTypehint, FunctionTypehint, ScalarTypehint
+from rogw.tranp.lang.inspection import FuncClasses, Typehint, Inspector, ClassTypehint, FunctionTypehint, ScalarTypehint
 from rogw.tranp.test.helper import data_provider
 
 
@@ -124,30 +123,22 @@ class TestFunctionTypehint(TestCase):
 
 class TestClassTypehint(TestCase):
 	class Base:
-		n: int = 0
+		n: ClassVar[int] = 0
+		d: dict[str, int]
 
 		def __init__(self) -> None:
 			self.d: dict[str, int] = {}
 
 		@classmethod
-		def __self_attributes__(cls) -> dict[str, type]:
-			return {'d': dict[str, int]}
-
-		@classmethod
 		def cls_method(cls) -> None: ...
 
 	class Sub(Base):
-		l: list[int] = []
+		l: ClassVar[list[int]] = []
+		t: tuple[str, int, bool]
 
 		def __init__(self) -> None:
 			super().__init__()
 			self.t: tuple[str, int, bool] = '', 0, False
-
-		@classmethod
-		@override
-		def __self_attributes__(cls) -> dict[str, type]:
-			attrs = super().__self_attributes__()
-			return {**attrs, 't': tuple[str, int, bool]}
 
 		def self_method(self) -> None: ...
 
@@ -172,7 +163,7 @@ class TestClassTypehint(TestCase):
 			'sub_types': [],
 			'class_vars': {'n': int, 'l': list},
 			'self_vars': {'d': dict, 't': tuple},
-			'methods': ['__init__', '__self_attributes__', 'cls_method', 'self_method', 'prop'],
+			'methods': ['__init__', 'cls_method', 'self_method', 'prop'],
 		}),
 		(Gen[str], {
 			'origin': Gen,

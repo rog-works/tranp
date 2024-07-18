@@ -605,6 +605,9 @@ class DeclableMatcher:
 			via (Node): ノード
 		Returns:
 			bool: True = 対象
+		Note:
+			XXX ASTへの依存度が非常に高い判定なので注意
+			XXX 期待するパス: class_def_raw.block.anno_assign.assign_namelist.var
 		"""
 		via_full_path = EntryPath(via.full_path)
 		elems = via_full_path.de_identify().elements

@@ -37,7 +37,7 @@ class MoveAssign(Assign, IDeclaration):
 		return [node for node in self.receivers if isinstance(node, Declable)]
 
 
-@Meta.embed(Node, accept_tags('anno_assign'))
+@Meta.embed(Node, accept_tags('anno_assign', 'class_var_assign'))
 class AnnoAssign(Assign, IDeclaration):
 	@property
 	@Meta.embed(Node, expandable)

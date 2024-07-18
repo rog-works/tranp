@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import Generic, TypeAlias, TypeVar, cast
+from typing import ClassVar, Generic, TypeAlias, TypeVar, cast
 
 from rogw.tranp.compatible.cpp.classes import void
 from rogw.tranp.compatible.cpp.embed import __allow_override__, __embed__, __struct__
@@ -27,7 +27,7 @@ class Base(metaclass=ABCMeta):
 
 
 class Sub(Base):
-	class_base_n: int = 0
+	class_base_n: ClassVar[int] = 0
 
 	def __init__(self, n: int) -> None:
 		self.base_n: int = n
@@ -46,8 +46,8 @@ class Sub(Base):
 
 
 class DeclOps:
-	class_bp: CP[Sub] | None = None
-	class_map: dict[str, dict[str, list[CP[int]]]] = {'a': {'b': []}}
+	class_bp: ClassVar[CP[Sub] | None] = None
+	class_map: ClassVar[dict[str, dict[str, list[CP[int]]]]] = {'a': {'b': []}}
 
 	def __init__(self) -> None:
 		self.inst_var0: CP[Sub] | None = None
@@ -269,7 +269,7 @@ class Alias:
 		B = 2
 
 	class Inner:
-		V: int = 0
+		V: ClassVar[int] = 0
 
 		def func(self) -> None: ...
 

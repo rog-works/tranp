@@ -89,6 +89,15 @@ class DeclClassVar(DeclVar):
 		return DeclableMatcher.is_decl_class_var(via)
 
 
+@Meta.embed(Node, accept_tags('var'))
+class DeclThisVarForward(Node, ITerminal):
+	"""Note: XXX 前方宣言として存在するだけのため、ただの終端要素として扱う"""
+
+	@classmethod
+	def match_feature(cls, via: Node) -> bool:
+		return DeclableMatcher.is_decl_this_var_forward(via)
+
+
 @Meta.embed(Node, accept_tags('getattr'))
 class DeclThisVar(DeclVar):
 	@classmethod
@@ -583,9 +592,19 @@ class DeclableMatcher:
 			via (Node): ノード
 		Returns:
 			bool: True = 対象
-		Note:
-			XXX ASTへの依存度が非常に高い判定なので注意
-			XXX 期待するパス: class_def_raw.block.anno_assign.assign_namelist.(getattr|var|name)
+		"""
+		via_full_path = EntryPath(via.full_path)
+		is_decl_class_var = via_full_path.de_identify().shift(-1).origin.endswith('class_var_assign.assign_namelist')
+		return is_decl_class_var
+
+	@classmethod
+	def is_decl_this_var_forward(cls, via: Node) -> bool:
+		"""マッチング判定 (マッチング対象: インスタンス変数の前方宣言)
+
+		Args:
+			via (Node): ノード
+		Returns:
+			bool: True = 対象
 		"""
 		via_full_path = EntryPath(via.full_path)
 		elems = via_full_path.de_identify().elements

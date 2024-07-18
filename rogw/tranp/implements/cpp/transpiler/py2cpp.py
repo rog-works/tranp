@@ -536,6 +536,10 @@ class Py2Cpp(ITranspiler):
 	def on_decl_class_var(self, node: defs.DeclClassVar) -> str:
 		return self.i18n.t(alias_dsn(node.fullyname), node.tokens)
 
+	def on_decl_this_var_forward(self, node: defs.DeclThisVarForward) -> str:
+		"""Note: XXX 出力不要なのでコメントアウト"""
+		return f'// {node.tokens}'
+
 	def on_decl_this_var(self, node: defs.DeclThisVar) -> str:
 		prop_name = self.i18n.t(alias_dsn(node.fullyname), node.domain_name)
 		return '->'.join(['this', prop_name])

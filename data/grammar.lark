@@ -159,11 +159,12 @@ with_item: expression ["as" name]
 // @note XXX Pythonの仕様では本来assign以外は分割代入できない(=左辺にtupleを書けない)
 // @note XXX しかし、Larkの構文解析の仕様上、マッチ条件が短いほど優先度が高くなり
 // @note XXX assign_stmtのor条件が成り立たなくなるため、優先度を合わせるためにassign_namelistを共通で利用する
-?assign_stmt: assign | anno_assign | aug_assign | class_assign | template_assign
+?assign_stmt: assign | anno_assign | aug_assign | class_var_assign | class_assign | template_assign
 assign: assign_namelist ("=" expression)+
 anno_assign: assign_namelist ":" (typed_expression | "'" typed_expression "'") ["=" expression]
 aug_assign: assign_namelist aug_assign_op expression
 // @custom
+class_var_assign: assign_namelist ":" "ClassVar" "[" typed_expression "]" "=" expression
 class_assign: assign_namelist ":" "TypeAlias" "=" typed_expression
 template_assign: assign_namelist "=" "TypeVar" "(" string ["," "bound" "=" (typed_expression | "'" typed_expression "'")] ["," "covariant" "=" atom] ")"
 

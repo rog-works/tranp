@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Generic, TypeVar
+from typing import ClassVar, Generic, TypeVar
 
 from rogw.tranp.compatible.cpp.enum import CEnum as Enum
 from rogw.tranp.compatible.python.embed import __actual__
@@ -22,7 +22,7 @@ class Base:
 
 
 class Class(Base):
-	cn: int = 0
+	cn: ClassVar[int] = 0
 
 	@classmethod
 	def class_method(cls) -> bool:

@@ -56,6 +56,7 @@ from rogw.tranp.syntax.node.definition.primary import (
 	Declable,
 	DeclVar,
 	DeclClassVar,
+	DeclThisVarForward,
 	DeclThisVar,
 	# declable - local
 	DeclLocalVar,

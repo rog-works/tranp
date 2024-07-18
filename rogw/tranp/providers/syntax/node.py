@@ -54,7 +54,7 @@ def symbol_mapping() -> SymbolMapping:
 			defs.Decorator: ['decorator'],
 			# -- Statement simple --
 			defs.MoveAssign: ['assign'],
-			defs.AnnoAssign: ['anno_assign'],
+			defs.AnnoAssign: ['anno_assign', 'class_var_assign'],
 			defs.AugAssign: ['aug_assign'],
 			defs.Delete: ['del_stmt'],
 			defs.Return: ['return_stmt'],
@@ -70,6 +70,7 @@ def symbol_mapping() -> SymbolMapping:
 			defs.InheritArgument: ['typed_argvalue'],
 			defs.ArgumentLabel: ['name'],
 			defs.DeclClassVar: ['var'],
+			defs.DeclThisVarForward: ['var'],
 			defs.DeclThisVar: ['getattr'],
 			defs.DeclClassParam: ['name'],
 			defs.DeclThisParam: ['name'],

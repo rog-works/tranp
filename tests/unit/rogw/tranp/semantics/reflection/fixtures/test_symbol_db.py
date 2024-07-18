@@ -1,10 +1,10 @@
 from os import path as os_path
-from typing import Any, Generic, Iterator, TypeAlias, TypeVar, cast
+from typing import Any, ClassVar, Generic, Iterator, TypeAlias, TypeVar, cast
 from yaml import safe_load as yaml_safe_load
 
 from rogw.tranp.compatible.cpp.enum import CEnum as Enum
 
-from tests.unit.rogw.tranp.semantics.reflection.fixtures.test_symbol_db_combine import S, C
+from tests.unit.rogw.tranp.semantics.reflection.fixtures.test_symbol_db_combine import S, C, A
 
 DSI: TypeAlias = dict[str, int]
 DSI2: TypeAlias = dict[str, DSI]
@@ -22,7 +22,7 @@ class Base(C):
 
 class Sub(Base):
 	class Inner:
-		value: str = ''
+		value: ClassVar[str] = ''
 
 		@classmethod
 		def class_func(cls) -> dict[str, int]:
@@ -47,7 +47,7 @@ class Sub(Base):
 		c = self.C
 
 	def member_write(self) -> None:
-		self.x.nx = 2
+		A.nx = 2
 		Sub.Inner.value = 'update'
 
 	def param_ref(self, param: int) -> None:

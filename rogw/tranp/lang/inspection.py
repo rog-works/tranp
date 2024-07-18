@@ -181,9 +181,10 @@ class ClassTypehint(Typehint):
 	Note:
 		### 対象のクラス
 		* クラス全般
-		### 注意事項
-		* @see class_vars クラス変数の展開
-		* @see self_vars インスタンス変数の展開
+		### 留意事項
+		* クラス・インスタンス変数どちらもクラスの`__annotations__`から抽出
+		* クラス変数: ClassVarで明示
+		* インスタンス変数: ClassVar以外
 	"""
 
 	def __init__(self, class_type: type) -> None:

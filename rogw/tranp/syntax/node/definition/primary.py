@@ -91,6 +91,8 @@ class DeclClassVar(DeclVar):
 
 @Meta.embed(Node, accept_tags('var'))
 class DeclThisVarForward(DeclVar):
+	"""Note: XXX このノードはアノテーションのためだけに存在。型推論、トランスパイルどちらにしても無視する想定"""
+
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
 		return DeclableMatcher.is_decl_this_var_forward(via)

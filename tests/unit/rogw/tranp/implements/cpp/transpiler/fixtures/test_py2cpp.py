@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import Generic, TypeAlias, TypeVar, cast
+from typing import ClassVar, Generic, TypeAlias, TypeVar, cast
 
 from rogw.tranp.compatible.cpp.classes import void
 from rogw.tranp.compatible.cpp.embed import __allow_override__, __embed__, __struct__
@@ -27,7 +27,8 @@ class Base(metaclass=ABCMeta):
 
 
 class Sub(Base):
-	class_base_n: int = 0
+	class_base_n: ClassVar[int] = 0
+	base_n: int
 
 	def __init__(self, n: int) -> None:
 		self.base_n: int = n
@@ -46,8 +47,12 @@ class Sub(Base):
 
 
 class DeclOps:
-	class_bp: CP[Sub] | None = None
-	class_map: dict[str, dict[str, list[CP[int]]]] = {'a': {'b': []}}
+	class_bp: ClassVar[CP[Sub] | None] = None
+	class_map: ClassVar[dict[str, dict[str, list[CP[int]]]]] = {'a': {'b': []}}
+	inst_var0: CP[Sub] | None
+	inst_var1: Sub
+	inst_arr: list[CP[int]]
+	inst_map: dict[str, CP[int]]
 
 	def __init__(self) -> None:
 		self.inst_var0: CP[Sub] | None = None
@@ -224,6 +229,8 @@ class EnumOps:
 
 
 class AccessOps(Sub):
+	sub_s: str
+
 	def __init__(self) -> None:
 		super().__init__(0)
 		self.sub_s: str = ''
@@ -264,17 +271,19 @@ class AccessOps(Sub):
 
 
 class Alias:
+	inner: 'Alias.Inner'
+
+	def __init__(self) -> None:
+		self.inner: Alias.Inner = Alias.Inner()
+
 	class Values(Enum):
 		A = 1
 		B = 2
 
 	class Inner:
-		V: int = 0
+		V: ClassVar[int] = 0
 
 		def func(self) -> None: ...
-
-	def __init__(self) -> None:
-		self.inner: Alias.Inner = Alias.Inner()
 
 	def in_param_return(self, a: 'Alias') -> 'Alias': ...
 	def in_param_return2(self, i: 'Alias.Inner') -> 'Alias.Inner': ...
@@ -451,6 +460,9 @@ class GenericOps(Generic[T]):
 @__embed__('prop.a', '/** @var A */')
 @__embed__('prop.b', '/** @var B */')
 class Struct:
+	a: int
+	b: str
+
 	def __init__(self, a: int, b: str) -> None:
 		self.a: int = a
 		self.b: str = b

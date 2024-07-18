@@ -16,25 +16,25 @@ class ASTMapping:
 	_func = 'file_input.function_def'
 	_Base = f'file_input.class_def[{_start + 1}]'
 	_Sub = f'file_input.class_def[{_start + 2}]'
-	_Sub_init = f'{_Sub}.class_def_raw.block.function_def[1]'
-	_Sub_first_number = f'{_Sub}.class_def_raw.block.function_def[2]'
-	_Sub_local_ref = f'{_Sub}.class_def_raw.block.function_def[3]'
-	_Sub_member_ref = f'{_Sub}.class_def_raw.block.function_def[4]'
-	_Sub_member_write = f'{_Sub}.class_def_raw.block.function_def[5]'
-	_Sub_param_ref = f'{_Sub}.class_def_raw.block.function_def[6]'
-	_Sub_list_ref = f'{_Sub}.class_def_raw.block.function_def[7]'
-	_Sub_base_ref = f'{_Sub}.class_def_raw.block.function_def[8]'
-	_Sub_returns = f'{_Sub}.class_def_raw.block.function_def[9]'
-	_Sub_yields = f'{_Sub}.class_def_raw.block.function_def[10]'
-	_Sub_invoke_method = f'{_Sub}.class_def_raw.block.function_def[11]'
-	_Sub_decl_with_pop = f'{_Sub}.class_def_raw.block.function_def[12]'
-	_Sub_decl_locals = f'{_Sub}.class_def_raw.block.function_def[13]'
-	_Sub_assign_with_param = f'{_Sub}.class_def_raw.block.function_def[14]'
-	_Sub_relay_access = f'{_Sub}.class_def_raw.block.function_def[15]'
-	_Sub_fill_list = f'{_Sub}.class_def_raw.block.function_def[16]'
-	_Sub_param_default = f'{_Sub}.class_def_raw.block.function_def[17]'
-	_Sub_Base = f'{_Sub}.class_def_raw.block.function_def[18]'
-	_Sub_kw_params = f'{_Sub}.class_def_raw.block.function_def[19]'
+	_Sub_init = f'{_Sub}.class_def_raw.block.function_def[2]'
+	_Sub_first_number = f'{_Sub}.class_def_raw.block.function_def[4]'
+	_Sub_local_ref = f'{_Sub}.class_def_raw.block.function_def[5]'
+	_Sub_member_ref = f'{_Sub}.class_def_raw.block.function_def[6]'
+	_Sub_member_write = f'{_Sub}.class_def_raw.block.function_def[7]'
+	_Sub_param_ref = f'{_Sub}.class_def_raw.block.function_def[8]'
+	_Sub_list_ref = f'{_Sub}.class_def_raw.block.function_def[9]'
+	_Sub_base_ref = f'{_Sub}.class_def_raw.block.function_def[10]'
+	_Sub_returns = f'{_Sub}.class_def_raw.block.function_def[11]'
+	_Sub_yields = f'{_Sub}.class_def_raw.block.function_def[12]'
+	_Sub_invoke_method = f'{_Sub}.class_def_raw.block.function_def[13]'
+	_Sub_decl_with_pop = f'{_Sub}.class_def_raw.block.function_def[14]'
+	_Sub_decl_locals = f'{_Sub}.class_def_raw.block.function_def[15]'
+	_Sub_assign_with_param = f'{_Sub}.class_def_raw.block.function_def[16]'
+	_Sub_relay_access = f'{_Sub}.class_def_raw.block.function_def[17]'
+	_Sub_fill_list = f'{_Sub}.class_def_raw.block.function_def[18]'
+	_Sub_param_default = f'{_Sub}.class_def_raw.block.function_def[19]'
+	_Sub_Base = f'{_Sub}.class_def_raw.block.function_def[20]'
+	_Sub_kw_params = f'{_Sub}.class_def_raw.block.function_def[21]'
 	_CalcOps = f'file_input.class_def[{_start + 3}]'
 	_AliasOps = f'file_input.class_def[{_start + 4}]'
 	_TupleOps = f'file_input.class_def[{_start + 5}]'
@@ -348,9 +348,9 @@ class TestReflections(TestCase):
 		(_ast('Sub', 'class_def_raw.inherit_arguments.typed_argvalue.typed_var'), ModuleDSN.full_joined(fixture_module_path, 'Base'), 'Base'),
 
 		(_ast('Sub.Inner', ''), ModuleDSN.full_joined(fixture_module_path, 'Sub.Inner'), 'Inner'),
-		(_ast('Sub.Inner.block', 'anno_assign.assign_namelist.var'), _mod('classes', 'str'), 'str'),
-		(_ast('Sub.Inner.block', 'anno_assign.typed_var'), _mod('classes', 'str'), 'str'),
-		(_ast('Sub.Inner.block', 'anno_assign.string'), _mod('classes', 'str'), 'str'),
+		(_ast('Sub.Inner.block', 'class_var_assign.assign_namelist.var'), _mod('classes', 'str'), 'str'),
+		(_ast('Sub.Inner.block', 'class_var_assign.typed_var'), _mod('classes', 'str'), 'str'),
+		(_ast('Sub.Inner.block', 'class_var_assign.string'), _mod('classes', 'str'), 'str'),
 
 		(_ast('Sub.Inner.class_func', ''), ModuleDSN.full_joined(fixture_module_path, 'Sub.Inner.class_func'), 'class_func(Inner) -> dict<str, int>'),
 		(_ast('Sub.Inner.class_func.params', 'paramvalue.typedparam.name'), ModuleDSN.full_joined(fixture_module_path, 'Sub.Inner'), 'Inner'),

@@ -1,6 +1,6 @@
 from enum import Enum, EnumType
 from types import FunctionType, MethodType, NoneType, UnionType
-from typing import Callable, ClassVar, TypeAlias, TypeVar
+from typing import Callable, ClassVar, TypeAlias, TypeVar, Union
 
 from rogw.tranp.lang.annotation import override
 
@@ -35,7 +35,7 @@ class ScalarTypehint(Typehint):
 		### 対象のクラス
 		* int/str/float/bool
 		* list/dict/tuple/type
-		* UnionType
+		* Union/UnionType
 		* EnumType
 		* None/NoneType
 	"""
@@ -52,7 +52,11 @@ class ScalarTypehint(Typehint):
 	@override
 	def origin(self) -> type:
 		"""type: メインタイプ"""
-		return getattr(self._type, '__origin__', self._type)
+		if self.is_union:
+			# XXX Union型の場合はUnionTypeを返却。UnionTypeはtypeと互換性が無いと判断されるため実装例に倣う @see types.py UnionType
+			return type(int | str)
+		else:
+			return getattr(self._type, '__origin__', self._type)
 
 	@property
 	@override
@@ -68,17 +72,12 @@ class ScalarTypehint(Typehint):
 	@property
 	def is_generic(self) -> bool:
 		"""bool: True = ジェネリック型"""
-		return hasattr(self._type, '__origin__') or self.origin in [list, dict, tuple, type]
-
-	@property
-	def is_list(self) -> bool:
-		"""bool: True = リスト型"""
-		return self.origin is list
+		return getattr(self._type, '__origin__', self._type) in [list, dict, tuple, type]
 
 	@property
 	def is_union(self) -> bool:
 		"""bool: True = Union型"""
-		return type(self._type) is UnionType
+		return type(self._type) is UnionType or getattr(self._type, '__origin__', self._type) is Union
 
 	@property
 	def is_nullable(self) -> bool:
@@ -208,6 +207,11 @@ class ClassTypehint(Typehint):
 		return self._type
 
 	@property
+	def is_generic(self) -> bool:
+		"""bool: True = ジェネリック型"""
+		return hasattr(self._type, '__origin__')
+
+	@property
 	def sub_types(self) -> list[Typehint]:
 		"""list[Typehint]: ジェネリック型のサブタイプのリスト"""
 		sub_annos = getattr(self._type, '__args__', [])
@@ -309,7 +313,7 @@ class Inspector:
 			return True
 		elif getattr(origin, '__origin__', origin) in [list, dict, tuple, type]:
 			return True
-		elif type(origin) in [UnionType, EnumType]:
+		elif type(origin) in [UnionType, EnumType] or getattr(origin, '__origin__', origin) is Union:
 			return True
 		elif origin is None or origin is NoneType:
 			return True
@@ -318,7 +322,7 @@ class Inspector:
 
 	@classmethod
 	def validation(cls, klass: type[T], factory: Callable[[], T] | None = None) -> bool:
-		"""SelfAttributes準拠クラスのバリデーション
+		"""クラスの実装スキーマバリデーション
 
 		Args:
 			klass (type[T]): 検証クラス

@@ -16,6 +16,7 @@
 				"implements.cpp.transpiler.test_py2cpp.TestPy2Cpp.test_exec",
 				"implements.cpp.transpiler.test_py2cpp.TestPy2Cpp.test_exec_error",
 				"view.test_render.TestRenderer.test_render_function",
+				"lang.test_inspection.TestScalarTypehint.test_states",
 				"lang.test_inspection.TestClassTypehint.test_schema",
 				"lang.test_parser.TestParser.test_parse_block_to_entry",
 			],

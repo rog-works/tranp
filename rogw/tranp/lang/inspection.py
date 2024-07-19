@@ -1,7 +1,7 @@
 from enum import Enum, EnumType
 from importlib import import_module
 from types import FunctionType, MethodType, NoneType, UnionType
-from typing import Callable, ClassVar, TypeAlias, TypeVar, Union, cast
+from typing import Callable, ClassVar, TypeAlias, TypeVar, Union
 
 from rogw.tranp.lang.annotation import override
 

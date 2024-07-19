@@ -1,6 +1,7 @@
 from enum import Enum, EnumType
+from importlib import import_module
 from types import FunctionType, MethodType, NoneType, UnionType
-from typing import Callable, ClassVar, TypeAlias, TypeVar, Union
+from typing import Callable, ClassVar, TypeAlias, TypeVar, Union, cast
 
 from rogw.tranp.lang.annotation import override
 
@@ -157,21 +158,30 @@ class FunctionTypehint(Typehint):
 	@property
 	def args(self) -> dict[str, Typehint]:
 		"""dict[str, Typehint]: 引数リスト"""
-		return {key: Inspector.resolve(in_type) for key, in_type in self.__annos.items() if key != 'return'}
+		return {key: Inspector.resolve(in_type, self.__via_module_path) for key, in_type in self.__annos.items() if key != 'return'}
 
 	@property
 	def returns(self) -> Typehint:
 		"""Typehint: 戻り値"""
-		return Inspector.resolve(self.__annos['return'])
+		return Inspector.resolve(self.__annos['return'], self.__via_module_path)
+
+	@property
+	def __via_module_path(self) -> str:
+		"""str: 関数由来のモジュールパス"""
+		if isinstance(self._func, property):
+			# propertyは`__module__`が無いため、元の関数オブジェクトを通して取得する
+			return getattr(self._func, 'fget').__module__
+		else:
+			return self._func.__module__
 
 	@property
 	def __annos(self) -> dict[str, type]:
 		"""dict[str, type]: タイプヒントのリスト"""
-		if hasattr(self._func, '__annotations__'):
-			return self._func.__annotations__
-		else:
-			# XXX propertyは`__annotations__`が無いため、元の関数オブジェクトを通して取得する
+		if isinstance(self._func, property):
+			# propertyは`__annotations__`が無いため、元の関数オブジェクトを通して取得する
 			return getattr(self._func, 'fget').__annotations__
+		else:
+			return self._func.__annotations__
 
 
 class ClassTypehint(Typehint):
@@ -215,7 +225,7 @@ class ClassTypehint(Typehint):
 	def sub_types(self) -> list[Typehint]:
 		"""list[Typehint]: ジェネリック型のサブタイプのリスト"""
 		sub_annos = getattr(self._type, '__args__', [])
-		return [Inspector.resolve(sub_type) for sub_type in sub_annos]
+		return [Inspector.resolve(sub_type, self._type.__module__) for sub_type in sub_annos]
 
 	@property
 	def constructor(self) -> FunctionTypehint:
@@ -240,7 +250,7 @@ class ClassTypehint(Typehint):
 			dict[str, Typehint]: インスタンス変数一覧
 		"""
 		annos = {key: anno for key, anno in self.__recursive_annos(self._type).items() if getattr(anno, '__origin__', anno) is not ClassVar}
-		return {key: Inspector.resolve(attr) for key, attr in annos.items()}
+		return {key: Inspector.resolve(attr, self._type.__module__) for key, attr in annos.items()}
 
 	def __recursive_annos(self, _type: type) -> dict[str, type]:
 		"""クラス階層を辿ってタイプヒントを収集
@@ -252,7 +262,8 @@ class ClassTypehint(Typehint):
 		"""
 		annos: dict[str, type] = {}
 		for at_type in reversed(_type.mro()):
-			annos = {**annos, **getattr(at_type, '__annotations__', {})}
+			for key, anno in getattr(at_type, '__annotations__', {}).items():
+				annos[key] = _resolve_type_from_str(anno, at_type.__module__) if isinstance(anno, str) else anno
 
 		return annos
 
@@ -278,6 +289,23 @@ class ClassTypehint(Typehint):
 		return _methods
 
 
+def _resolve_type_from_str(type_str: str, via_module_path: str) -> type:
+	"""文字列のタイプヒントを解析してタイプを解決
+
+	Args:
+		type_str (str): タイプヒント
+		via_module_path (str): 由来のモジュールパス
+	Returns:
+		type: 解決したタイプ
+	Note:
+		* `eval`を使用して文字列からタイプを強引に解決する
+		* ユーザー定義型は由来のモジュール内によって明示されているシンボルのみ解決が出来る
+	"""
+	module = import_module(via_module_path)
+	depends = {key: symbol for key, symbol in module.__dict__.items() if not key.startswith('__')}
+	return eval(type_str, depends)
+
+
 T = TypeVar('T')
 
 
@@ -285,20 +313,42 @@ class Inspector:
 	"""タイプヒントリゾルバー"""
 
 	@classmethod
-	def resolve(cls, origin: type | FuncTypes) -> Typehint:
+	def resolve(cls, origin: str | type | FuncTypes, via_module_path: str = '') -> Typehint:
 		"""タイプヒントを解決
 
 		Args:
-			origin (type | FuncTypes): タイプ、または関数オブジェクト
+			origin (str | type | FuncTypes): タイプ、関数オブジェクト、または文字列のタイプヒント
+			via_module_path (str): 由来のモジュールパス。文字列のタイプヒントの場合のみ必須 (default = '')
 		Returns:
 			Typehint: タイプヒント
 		"""
-		if isinstance(origin, FuncTypes):
-			return FunctionTypehint(origin)
-		elif cls.__is_scalar(origin):
-			return ScalarTypehint(origin)
+		actual_origin = cls.__to_actual_origin(origin, via_module_path)
+		if isinstance(actual_origin, FuncTypes):
+			return FunctionTypehint(actual_origin)
+		elif cls.__is_scalar(actual_origin):
+			return ScalarTypehint(actual_origin)
 		else:
-			return ClassTypehint(origin)
+			return ClassTypehint(actual_origin)
+
+	@classmethod
+	def __to_actual_origin(cls, origin: str | type | FuncTypes, via_module_path: str) -> type | FuncTypes:
+		"""指定のオリジンから解決可能なオリジンに変換
+
+		Args:
+			origin (str | type | FuncTypes): タイプ、関数オブジェクト、または文字列のタイプヒント
+			via_module_path (str): 由来のモジュールパス。文字列のタイプヒントの場合のみ必須 (default = '')
+		Returns:
+			type | FuncTypes: オリジン
+		Raises:
+			ValueError: 由来が不明な場合に文字列のタイプヒントを使用
+		"""
+		if not isinstance(origin, str):
+			return origin
+
+		if len(via_module_path) == 0:
+			raise ValueError(f'Unresolved origin type. via module is empty. origin: {origin}')
+
+		return _resolve_type_from_str(origin, via_module_path)
 
 	@classmethod
 	def __is_scalar(cls, origin: type) -> bool:

@@ -30,7 +30,7 @@ class Sub(Base):
 	l: ClassVar[list[int]] = []
 	t: tuple[str, int, bool]
 	obj: Base | None
-	p: Gen[Base] | None
+	p: 'Gen[Base] | None'
 
 	def __init__(self) -> None:
 		super().__init__()
@@ -38,7 +38,7 @@ class Sub(Base):
 		self.obj: Base | None = None
 		self.p: Gen[Base] | None = None
 
-	def self_method(self, l: list[int], d: dict[str, int]) -> tuple[str, int, bool]: ...
+	def self_method(self, l: list[int], d: 'dict[str, int]') -> 'tuple[str, int, bool]': ...
 
 	@property
 	def prop(self) -> int: ...
@@ -228,6 +228,8 @@ class TestInspector(TestCase):
 		(type[str], ScalarTypehint),
 		(None, ScalarTypehint),
 		(type(None), ScalarTypehint),
+		(Base | None, ScalarTypehint),
+		(Gen[Base] | None, ScalarTypehint),
 		(func, FunctionTypehint),
 		(Inspector.resolve, FunctionTypehint),
 		(Inspector, ClassTypehint),

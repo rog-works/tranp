@@ -1,7 +1,7 @@
 from typing import Generic, TypeVar, cast
 
 from rogw.tranp.dsn.dsn import DSN
-from rogw.tranp.errors import LogicError
+from rogw.tranp.errors import FatalError, LogicError
 from rogw.tranp.lang.annotation import duck_typed
 from rogw.tranp.lang.error import raises
 from rogw.tranp.lang.eventemitter import Callback, EventEmitter
@@ -209,11 +209,14 @@ class Procedure(Generic[T_Ret]):
 			T_Ret | None: 結果
 		Raises:
 			LogicError: イベントデータが不正
+			FatalError: 未ハンドリングの不特定のエラー
 		"""
 		try:
 			return self.__emitter.emit(action, node=node, **event)
 		except TypeError as e:
 			raise LogicError(f'Invalid event schema. node: {node}, props: {node.prop_keys()}, event: {event}') from e
+		except Exception as e:
+			raise FatalError(f'Unhandled error. node: {node}, props: {node.prop_keys()}, event: {event}') from e
 
 	def __make_event(self, node: Node) -> dict[str, T_Ret | list[T_Ret]]:
 		"""ノードの展開プロパティーを元にイベントデータを生成

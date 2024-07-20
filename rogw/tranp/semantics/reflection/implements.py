@@ -1,7 +1,8 @@
 from typing import Any, Iterator, Self
 
-from rogw.tranp.errors import FatalError, LogicError
+from rogw.tranp.errors import FatalError
 from rogw.tranp.lang.annotation import implements, override
+from rogw.tranp.semantics.errors import SemanticsLogicError
 from rogw.tranp.semantics.reflection.helper.naming import ClassShorthandNaming
 from rogw.tranp.semantics.reflection.interface import IReflection, IWrapper, Roles, SymbolDB, T_Ref
 import rogw.tranp.syntax.node.definition as defs
@@ -95,9 +96,9 @@ class ReflectionBase(IReflection):
 		Returns:
 			IReflection: スタックシンボル
 		Raises:
-			LogicError: roleがOriginのインスタンスで使用
+			SemanticsLogicError: roleがOriginのインスタンスで使用
 		"""
-		raise LogicError(f'Origin is null. symbol: {str(self)}, fullyname: {self.ref_fullyname}')
+		raise SemanticsLogicError(f'Origin is null. symbol: {str(self)}, fullyname: {self.ref_fullyname}')
 
 	@property
 	@implements
@@ -113,9 +114,9 @@ class ReflectionBase(IReflection):
 		Returns:
 			IReflection: コンテキストのシンボル
 		Raises:
-			LogicError: コンテキストが無い状態で使用
+			SemanticsLogicError: コンテキストが無い状態で使用
 		"""
-		raise LogicError(f'Context is null. symbol: {str(self)}, fullyname: {self.ref_fullyname}')
+		raise SemanticsLogicError(f'Context is null. symbol: {str(self)}, fullyname: {self.ref_fullyname}')
 
 	# @abstractmethod
 	# def clone(self: Self) -> Self:
@@ -171,10 +172,10 @@ class ReflectionBase(IReflection):
 		Returns:
 			Self: インスタンス
 		Raises:
-			LogicError: 実体の無いインスタンスに実行 XXX 出力する例外は要件等
-			LogicError: 拡張済みのインスタンスに再度実行 XXX 出力する例外は要件等
+			SemanticsLogicError: 実体の無いインスタンスに実行 XXX 出力する例外は要件等
+			SemanticsLogicError: 拡張済みのインスタンスに再度実行 XXX 出力する例外は要件等
 		"""
-		raise LogicError(f'Not allowed extends. symbol: {self.types.fullyname}')
+		raise SemanticsLogicError(f'Not allowed extends. symbol: {self.types.fullyname}')
 
 	@property
 	@implements
@@ -195,12 +196,12 @@ class ReflectionBase(IReflection):
 		Returns:
 			T_Ref: インスタンス
 		Raises:
-			LogicError: 継承関係が無い型を指定 XXX 出力する例外は要件等
+			SemanticsLogicError: 継承関係が無い型を指定 XXX 出力する例外は要件等
 		"""
 		if isinstance(self, expects):
 			return self
 
-		raise LogicError(f'Not allowed conversion. self: {str(self)}, from: {self.__class__.__name__}, to: {expects}')
+		raise SemanticsLogicError(f'Not allowed conversion. self: {str(self)}, from: {self.__class__.__name__}, to: {expects}')
 
 	@override
 	def __eq__(self, other: object) -> bool:
@@ -211,13 +212,13 @@ class ReflectionBase(IReflection):
 		Returns:
 			bool: True = 同じ
 		Raises:
-			LogicError: 継承関係の無いオブジェクトを指定 XXX 出力する例外は要件等
+			SemanticsLogicError: 継承関係の無いオブジェクトを指定 XXX 出力する例外は要件等
 		"""
 		if other is None:
 			return False
 
 		if not isinstance(other, IReflection):
-			raise LogicError(f'Not allowed comparison. other: {type(other)}')
+			raise SemanticsLogicError(f'Not allowed comparison. other: {type(other)}')
 
 		return other.__repr__() == self.__repr__()
 
@@ -403,11 +404,11 @@ class Reflection(ReflectionBase):
 		Returns:
 			Self: インスタンス
 		Raises:
-			LogicError: 実体の無いインスタンスに実行
-			LogicError: 拡張済みのインスタンスに再度実行
+			SemanticsLogicError: 実体の無いインスタンスに実行
+			SemanticsLogicError: 拡張済みのインスタンスに再度実行
 		"""
 		if self._attrs:
-			raise LogicError(f'Already set attibutes. symbol: {self.types.fullyname}')
+			raise SemanticsLogicError(f'Already set attibutes. symbol: {self.types.fullyname}')
 		
 		self._attrs = list(attrs)
 		return self

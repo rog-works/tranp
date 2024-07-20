@@ -5,7 +5,7 @@ from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.lang.error import raises
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
-from rogw.tranp.semantics.errors import SemanticsError, OperationNotAllowedError, UnresolvedSymbolError
+from rogw.tranp.semantics.errors import OperationNotAllowedError, SemanticsLogicError, UnresolvedSymbolError
 from rogw.tranp.semantics.finder import SymbolFinder
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.semantics.procedure import Procedure
@@ -40,7 +40,7 @@ class Reflections:
 
 		return self.__procedural
 
-	@raises(UnresolvedSymbolError, SemanticsError)
+	@raises(UnresolvedSymbolError, SemanticsLogicError)
 	def is_a(self, symbol: IReflection, standard_type: type[Standards] | None) -> bool:
 		"""シンボルの型を判定
 
@@ -54,7 +54,7 @@ class Reflections:
 		"""
 		return symbol.types == self.type_of_standard(standard_type).types
 
-	@raises(UnresolvedSymbolError, SemanticsError)
+	@raises(UnresolvedSymbolError, SemanticsLogicError)
 	def get_object(self) -> IReflection:
 		"""objectのシンボルを取得
 
@@ -65,7 +65,7 @@ class Reflections:
 		"""
 		return self.__finder.get_object(self.__db)
 
-	@raises(UnresolvedSymbolError, SemanticsError)
+	@raises(UnresolvedSymbolError, SemanticsLogicError)
 	def from_fullyname(self, fullyname: str) -> IReflection:
 		"""完全参照名からシンボルを解決
 
@@ -78,7 +78,7 @@ class Reflections:
 		"""
 		return self.__finder.by(self.__db, fullyname)
 
-	@raises(UnresolvedSymbolError, SemanticsError)
+	@raises(UnresolvedSymbolError, SemanticsLogicError)
 	def type_of_standard(self, standard_type: type[Standards] | None) -> IReflection:
 		"""標準クラスのシンボルを解決
 
@@ -91,7 +91,7 @@ class Reflections:
 		"""
 		return self.__finder.by_standard(self.__db, standard_type)
 
-	@raises(UnresolvedSymbolError, SemanticsError)
+	@raises(UnresolvedSymbolError, SemanticsLogicError)
 	def type_of_property(self, types: defs.ClassDef, prop: defs.Var) -> IReflection:
 		"""クラス定義ノードと変数参照ノードからプロパティーのシンボルを解決
 
@@ -105,7 +105,7 @@ class Reflections:
 		"""
 		return self.resolve(types, prop.tokens)
 
-	@raises(UnresolvedSymbolError, SemanticsError)
+	@raises(UnresolvedSymbolError, SemanticsLogicError)
 	def type_of_constructor(self, types: defs.Class) -> IReflection:
 		"""クラス定義ノードからコンストラクターのシンボルを解決
 
@@ -118,7 +118,7 @@ class Reflections:
 		"""
 		return self.resolve(types, types.operations.constructor)
 
-	@raises(UnresolvedSymbolError, SemanticsError)
+	@raises(UnresolvedSymbolError, SemanticsLogicError)
 	def type_of(self, node: Node) -> IReflection:
 		"""シンボル系/式ノードからシンボルを解決 XXX 万能過ぎるので細分化を検討
 
@@ -203,7 +203,7 @@ class Reflections:
 			# CompFor
 			return self.__resolve_procedural(node.for_in)
 
-	@raises(UnresolvedSymbolError, SemanticsError)
+	@raises(UnresolvedSymbolError, SemanticsLogicError)
 	def resolve(self, symbolic: defs.Symbolic, prop_name: str = '') -> IReflection:
 		"""シンボルテーブルからシンボルを解決
 

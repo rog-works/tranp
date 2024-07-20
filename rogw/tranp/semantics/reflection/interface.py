@@ -197,7 +197,7 @@ class IReflection(metaclass=ABCMeta):
 		Returns:
 			IReflection: スタックシンボル
 		Raises:
-			LogicError: roleがOriginのインスタンスで使用
+			SemanticsLogicError: roleがOriginのインスタンスで使用
 		"""
 		...
 
@@ -215,7 +215,7 @@ class IReflection(metaclass=ABCMeta):
 		Returns:
 			IReflection: コンテキストのシンボル
 		Raises:
-			LogicError: コンテキストが無い状態で使用
+			SemanticsLogicError: コンテキストが無い状態で使用
 		"""
 		...
 
@@ -252,8 +252,8 @@ class IReflection(metaclass=ABCMeta):
 		Returns:
 			T_Ref: インスタンス
 		Raises:
-			LogicError: 実体の無いインスタンスに実行 XXX 出力する例外は要件等
-			LogicError: 拡張済みのインスタンスに再度実行 XXX 出力する例外は要件等
+			SemanticsLogicError: 実体の無いインスタンスに実行 XXX 出力する例外は要件等
+			SemanticsLogicError: 拡張済みのインスタンスに再度実行 XXX 出力する例外は要件等
 		"""
 		...
 
@@ -276,7 +276,7 @@ class IReflection(metaclass=ABCMeta):
 		Returns:
 			T_Ref: インスタンス
 		Raises:
-			LogicError: 継承関係が無い型を指定 XXX 出力する例外は要件等
+			SemanticsLogicError: 継承関係が無い型を指定 XXX 出力する例外は要件等
 		"""
 		...
 

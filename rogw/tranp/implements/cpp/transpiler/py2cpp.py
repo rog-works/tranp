@@ -17,6 +17,7 @@ from rogw.tranp.lang.annotation import duck_typed, implements, injectable, overr
 from rogw.tranp.lang.eventemitter import Callback
 from rogw.tranp.lang.module import fullyname
 from rogw.tranp.lang.parser import parse_block_to_entry, parse_bracket_block, parse_pair_block
+from rogw.tranp.semantics.errors import NotSupportedError
 from rogw.tranp.semantics.procedure import Procedure
 import rogw.tranp.semantics.reflection.helper.template as template
 from rogw.tranp.semantics.reflection.helper.naming import ClassDomainNaming, ClassShorthandNaming
@@ -282,10 +283,10 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(node.classification, vars={'statements': statements, 'catches': catches})
 
 	def on_with_entry(self, node: defs.WithEntry, enter: str, symbol: str) -> str:
-		raise LogicError(f'Not supported with statement. node: {node}')
+		raise NotSupportedError(f'Denied with statement. node: {node}')
 
 	def on_with(self, node: defs.With, statements: list[str], entries: list[str]) -> str:
-		raise LogicError(f'Not supported with statement. node: {node}')
+		raise NotSupportedError(f'Denied with statement. node: {node}')
 
 	def on_comp_for(self, node: defs.CompFor, symbols: list[str], for_in: str) -> str:
 		"""Note: XXX range/enumerateは効率・可読性共に非常に悪いため非サポート"""
@@ -492,7 +493,7 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(node.classification, vars={'return_value': return_value})
 
 	def on_yield(self, node: defs.Yield, yield_value: str) -> str:
-		raise NotImplementedError(f'Not supported yield return. node: {node}')
+		raise NotSupportedError(f'Denied yield return. node: {node}')
 
 	def on_throw(self, node: defs.Throw, throws: str, via: str) -> str:
 		return self.view.render(node.classification, vars={'throws': throws, 'via': via})
@@ -701,7 +702,7 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(node.classification, vars={'type_name': type_name, 'key_type': key_type, 'value_type': value_type})
 
 	def on_callable_type(self, node: defs.CallableType, type_name: str, parameters: list[str], return_type: str) -> str:
-		raise NotImplementedError(f'Not supported CallableType. node: {node}')
+		raise NotSupportedError(f'Denied Callable type. node: {node}')
 
 	def on_custom_type(self, node: defs.CustomType, type_name: str, template_types: list[str]) -> str:
 		# XXX @see semantics.reflection.helper.naming.ClassShorthandNaming.domain_name
@@ -1004,7 +1005,7 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(node.classification, vars={'items': items})
 
 	def on_tuple(self, node: defs.Tuple, values: list[str]) -> str:
-		raise LogicError(f'Not supported tuple. node: {node}')
+		raise NotSupportedError(f'Denied tuple literal. node: {node}')
 
 	def on_null(self, node: defs.Null) -> str:
 		return 'nullptr'
@@ -1015,7 +1016,7 @@ class Py2Cpp(ITranspiler):
 		return f'({expression})'
 
 	def on_expander(self, node: defs.Expander, expression: str) -> str:
-		raise LogicError(f'Not supported list expand expression. node: {node}')
+		raise NotSupportedError(f'Denied list expand expression. node: {node}')
 
 	# Terminal
 

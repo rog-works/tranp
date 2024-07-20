@@ -2,7 +2,7 @@ from rogw.tranp.errors import Error
 
 
 class SemanticsError(Error):
-	"""意味解析由来のエラー"""
+	"""意味解析由来のエラー(基底)"""
 	pass
 
 
@@ -17,18 +17,28 @@ class UnresolvedSymbolError(SemanticsError):
 	pass
 
 
-class MustBeImplementedError(SemanticsError):
+class SemanticsLogicError(SemanticsError):
+	"""意味解析由来のロジックエラー"""
+	pass
+
+
+class MustBeImplementedError(SemanticsLogicError):
 	"""必須の機能(クラス/ファンクション)の実装漏れ"""
 	pass
 
 
-class SymbolNotDefinedError(SemanticsError):
+class SymbolNotDefinedError(SemanticsLogicError):
 	"""未定義のシンボルを検索"""
 	pass
 
 
-class OperationNotAllowedError(SemanticsError):
+class OperationNotAllowedError(SemanticsLogicError):
 	"""シンボル同士の許可されない(または未実装)の演算を指定"""
+	pass
+
+
+class NotSupportedError(SemanticsLogicError):
+	"""非対応の機能を使用"""
 	pass
 
 

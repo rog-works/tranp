@@ -1,7 +1,7 @@
 from typing import Generic, TypeVar, cast
 
 from rogw.tranp.dsn.dsn import DSN
-from rogw.tranp.errors import FatalError, LogicError
+from rogw.tranp.errors import Error, FatalError, LogicError
 from rogw.tranp.lang.annotation import duck_typed
 from rogw.tranp.lang.error import raises
 from rogw.tranp.lang.eventemitter import Callback, EventEmitter
@@ -213,10 +213,13 @@ class Procedure(Generic[T_Ret]):
 		"""
 		try:
 			return self.__emitter.emit(action, node=node, **event)
-		except TypeError as e:
-			raise LogicError(f'Invalid event schema. node: {node}, props: {node.prop_keys()}, event: {event}') from e
 		except Exception as e:
-			raise FatalError(f'Unhandled error. node: {node}, props: {node.prop_keys()}, event: {event}') from e
+			if isinstance(e, TypeError):
+				raise LogicError(f'Invalid event schema. node: {node}, props: {node.prop_keys()}, event: {event}') from e
+			elif not isinstance(e, Error):
+				raise FatalError(f'Unhandled error. node: {node}, props: {node.prop_keys()}, event: {event}') from e
+
+			raise e
 
 	def __make_event(self, node: Node) -> dict[str, T_Ret | list[T_Ret]]:
 		"""ノードの展開プロパティーを元にイベントデータを生成

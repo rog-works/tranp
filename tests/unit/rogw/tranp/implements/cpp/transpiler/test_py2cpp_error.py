@@ -8,7 +8,7 @@ from rogw.tranp.i18n.i18n import I18n
 from rogw.tranp.implements.cpp.providers.semantics import cpp_plugin_provider
 from rogw.tranp.implements.cpp.transpiler.py2cpp import Py2Cpp
 from rogw.tranp.lang.module import fullyname
-from rogw.tranp.semantics.errors import ProcessingError, UnresolvedSymbolError
+from rogw.tranp.semantics.errors import NotSupportedError, ProcessingError, UnresolvedSymbolError
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.test.helper import data_provider
 from rogw.tranp.transpiler.types import TranspilerOptions
@@ -48,7 +48,7 @@ class TestPy2CppError(TestCase):
 		(_ast('InvalidOps.tenary_to_union_types.block', 'assign'), UnresolvedSymbolError, r'Only Nullable.'),
 		(_ast('InvalidOps.param_of_raw_or_null', ''), ProcessingError, r'Unexpected UnionType.'),
 		(_ast('InvalidOps.return_of_raw_or_null', ''), ProcessingError, r'Unexpected UnionType.'),
-		(_ast('InvalidOps.yield_return.block', 'yield_stmt'), NotImplementedError, r'Not supported yield return.'),
+		(_ast('InvalidOps.yield_return.block', 'yield_stmt'), NotSupportedError, r'Denied yield return.'),
 		(_ast('InvalidOps.delete_relay.block', 'del_stmt'), ProcessingError, r'Unexpected delete target.'),
 	])
 	def test_exec_error(self, full_path: str, expected_error: type[Exception], expected: re.Pattern) -> None:

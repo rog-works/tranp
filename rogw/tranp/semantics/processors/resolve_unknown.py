@@ -50,7 +50,7 @@ class ResolveUnknown:
 
 	@injectable
 	def resolver(self, reflections: Reflections, var_raw: IReflection, value_node: Node) -> IReflection:
-		"""シンボルの右辺値を解決したシンボルを生成
+		"""右辺値の型を解決してシンボルを生成
 
 		Args:
 			reflections (Reflections): シンボルリゾルバー @inject
@@ -61,7 +61,7 @@ class ResolveUnknown:
 		Note:
 			変数宣言のシンボルのため、RolesをVarに変更
 		"""
-		return self.unpack_value(var_raw, reflections.type_of(value_node)).to.var(var_raw.decl.as_a(defs.Declable))
+		return self.resolve_right_value(var_raw, reflections.type_of(value_node)).to.var(var_raw.decl.as_a(defs.Declable))
 
 	def make_resolver(self, raw: IReflection, value_node: Node) -> Callable[[], IReflection]:
 		"""シンボルリゾルバーを生成
@@ -74,8 +74,8 @@ class ResolveUnknown:
 		"""
 		return lambda: self.invoker(self.resolver, raw, value_node)
 
-	def unpack_value(self, var_raw: IReflection, value_raw: IReflection) -> IReflection:
-		"""右辺値の型をアンパックして左辺の変数の型を解決
+	def resolve_right_value(self, var_raw: IReflection, value_raw: IReflection) -> IReflection:
+		"""右辺値の型を解決
 
 		Args:
 			var_raw (IReflection): 変数宣言シンボル

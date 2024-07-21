@@ -200,6 +200,11 @@ class CVarOps:
 		p = CP(self)
 		return p.on.raw
 
+	@property
+	def prop_relay(self) -> 'CVarOps':
+		a = self.prop_relay.prop_relay
+		return self
+
 
 class FuncOps:
 	def print(self) -> None:

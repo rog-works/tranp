@@ -575,7 +575,7 @@ class Py2Cpp(ITranspiler):
 		if isinstance(prop_symbol.decl, defs.ClassDef):
 			prop = self.to_domain_name_by_class(prop_symbol.types)
 
-		spec, accessor = self.analyze_relay_access_spec(node, receiver_symbol)
+		spec, accessor = self.analyze_relay_access_spec(node, receiver_symbol, prop_symbol)
 		relay_vars = {'receiver': receiver, 'accessor': accessor, 'prop': prop, 'is_property': is_property}
 		if spec == 'cvar_relay':
 			# 期待値: receiver.on()
@@ -589,7 +589,7 @@ class Py2Cpp(ITranspiler):
 		else:
 			return self.view.render(f'{node.classification}/default', vars=relay_vars)
 
-	def analyze_relay_access_spec(self, node: defs.Relay, receiver_symbol: IReflection) -> tuple[str, str]:
+	def analyze_relay_access_spec(self, node: defs.Relay, receiver_symbol: IReflection, prop_symbol: IReflection) -> tuple[str, str]:
 		def is_this_access() -> bool:
 			return node.receiver.is_a(defs.ThisRef)
 
@@ -600,9 +600,16 @@ class Py2Cpp(ITranspiler):
 			return node.prop.domain_name in CVars.exchanger_keys
 
 		def is_class_access() -> bool:
-			# XXX superは一般的には親クラスのインスタンスへの参照だが、C++ではクラス参照と同じ修飾子によってアクセスするため、例外的に判定に加える
+			"""
+			Note:
+				### 判定条件
+				* cls.{Any}/super().{Any}
+				* Class.{class_var}/Class.{Class}/Enum.{Value}
+			"""
 			is_class_alias = isinstance(node.receiver, (defs.ClassRef, defs.Super))
-			is_class_var_relay = node.receiver.is_a(defs.Relay, defs.Var) and receiver_symbol.decl.is_a(defs.Class)
+			is_class_receiver = node.receiver.is_a(defs.Relay, defs.Var) and receiver_symbol.decl.is_a(defs.Class)
+			is_class_prop = prop_symbol.decl.is_a(defs.DeclClassVar) or prop_symbol.decl.is_a(defs.Class) or receiver_symbol.decl.is_a(defs.Enum)
+			is_class_var_relay = is_class_receiver and is_class_prop
 			return is_class_alias or is_class_var_relay
 
 		if is_this_access():

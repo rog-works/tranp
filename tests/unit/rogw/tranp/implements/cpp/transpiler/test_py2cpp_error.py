@@ -25,6 +25,7 @@ class ASTMapping:
 		'InvalidOps.return_of_raw_or_null': f'{_InvalidOps}.class_def_raw.block.function_def[2]',
 		'InvalidOps.yield_return.block': f'{_InvalidOps}.class_def_raw.block.function_def[3].function_def_raw.block',
 		'InvalidOps.delete_relay.block': f'{_InvalidOps}.class_def_raw.block.function_def[4].function_def_raw.block',
+		'InvalidOps.destruction_assign.block': f'{_InvalidOps}.class_def_raw.block.function_def[5].function_def_raw.block',
 	}
 
 
@@ -50,6 +51,7 @@ class TestPy2CppError(TestCase):
 		(_ast('InvalidOps.return_of_raw_or_null', ''), ProcessingError, r'Unexpected UnionType.'),
 		(_ast('InvalidOps.yield_return.block', 'yield_stmt'), NotSupportedError, r'Denied yield return.'),
 		(_ast('InvalidOps.delete_relay.block', 'del_stmt'), ProcessingError, r'Unexpected delete target.'),
+		(_ast('InvalidOps.destruction_assign.block', 'assign'), NotSupportedError, r'Denied destruction assign.'),
 	])
 	def test_exec_error(self, full_path: str, expected_error: type[Exception], expected: re.Pattern) -> None:
 		transpiler = self.fixture.get(Py2Cpp)

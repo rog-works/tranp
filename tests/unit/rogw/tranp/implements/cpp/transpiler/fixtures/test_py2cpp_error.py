@@ -13,3 +13,6 @@ class InvalidOps:
 
 	def delete_relay(self) -> None:
 		del self.delete_relay
+
+	def destruction_assign(self) -> None:
+		a, b = 'a.b'.split('.')

@@ -486,12 +486,21 @@ class Super(FuncCall):
 		return via._at(0).tokens == 'super'
 
 	@property
-	def super_class_symbol(self) -> Type:
+	def can_resolve_super(self) -> bool:
 		from rogw.tranp.syntax.node.definition.statement_compound import Class  # FIXME 循環参照
 
-		decl_class = self._ancestor('class_def').as_a(Class)
+		return len(self._fetch_decl_class().as_a(Class).inherits) > 0
+
+	@property
+	def super_class_symbol(self) -> Type:
+		"""Note: シンタックス上はobjectの暗黙的な継承を判断できないため、can_resolve_superで事前に確認が必要"""
+		from rogw.tranp.syntax.node.definition.statement_compound import Class  # FIXME 循環参照
+
 		# XXX 簡易化のため単一継承と言う前提。MROは考慮せず先頭要素を直系の親クラスとする
-		return decl_class.inherits[0].type_name
+		return self._fetch_decl_class().as_a(Class).inherits[0].type_name
+
+	def _fetch_decl_class(self) -> Node:
+		return self._ancestor('class_def')
 
 
 @Meta.embed(Node, accept_tags('elipsis'))

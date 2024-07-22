@@ -612,7 +612,10 @@ class ProceduralResolver:
 				return function_helper.returns(*arguments).to.relay(node, context=actual_calls)
 
 	def on_super(self, node: defs.Super, calls: IReflection, arguments: list[IReflection]) -> IReflection:
-		return self.reflections.resolve(node.super_class_symbol).to.relay(node, context=calls)
+		if node.can_resolve_super:
+			return self.reflections.resolve(node.super_class_symbol).to.relay(node, context=calls)
+		else:
+			return self.reflections.get_object().to.relay(node, context=calls)
 
 	def on_comp_for(self, node: defs.CompFor, symbols: list[IReflection], for_in: IReflection) -> IReflection:
 		return for_in

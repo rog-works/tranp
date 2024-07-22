@@ -42,8 +42,8 @@ class CVars:
 		UnpackSp = 5
 		Deny = 6
 
-	class Accessors(Enum):
-		"""アクセス修飾子の種別
+	class RelayOperators(Enum):
+		"""リレー演算子の種別
 
 		Attributes:
 			Raw: 実体/参照
@@ -161,23 +161,23 @@ class CVars:
 			return cpp.CRaw.__name__
 
 	@classmethod
-	def to_accessor(cls, key: str) -> Accessors:
-		"""C++変数型に応じたアクセス修飾子に変換
+	def to_operator(cls, key: str) -> RelayOperators:
+		"""C++変数型に応じたリレー演算子に変換
 
 		Args:
 			key (str): C++変数型の種別キー
 		Returns:
-			Accessors: アクセス修飾子種別
+			RelayOperators: リレー演算子
 		"""
 		accessors = {
-			cpp.CP.__name__: cls.Accessors.Address,
-			cpp.CSP.__name__: cls.Accessors.Address,
-			cpp.CRef.__name__: cls.Accessors.Raw,
-			cpp.CPConst.__name__: cls.Accessors.Address,
-			cpp.CSPConst.__name__: cls.Accessors.Address,
-			cpp.CRefConst.__name__: cls.Accessors.Raw,
-			cpp.CRawConst.__name__: cls.Accessors.Raw,
-			cpp.CRaw.__name__: cls.Accessors.Raw,
+			cpp.CP.__name__: cls.RelayOperators.Address,
+			cpp.CSP.__name__: cls.RelayOperators.Address,
+			cpp.CRef.__name__: cls.RelayOperators.Raw,
+			cpp.CPConst.__name__: cls.RelayOperators.Address,
+			cpp.CSPConst.__name__: cls.RelayOperators.Address,
+			cpp.CRefConst.__name__: cls.RelayOperators.Raw,
+			cpp.CRawConst.__name__: cls.RelayOperators.Raw,
+			cpp.CRaw.__name__: cls.RelayOperators.Raw,
 		}
 		return accessors[key]
 

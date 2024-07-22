@@ -6,7 +6,7 @@ from rogw.tranp.lang.annotation import duck_typed, implements, override
 from rogw.tranp.lang.sequence import flatten, last_index_of
 from rogw.tranp.syntax.node.accessible import ClassOperations
 from rogw.tranp.syntax.node.behavior import IDomain, INamespace, IScope
-from rogw.tranp.syntax.node.definition.accessible import PythonClassOperations, to_access
+from rogw.tranp.syntax.node.definition.accessible import PythonClassOperations, to_accessor
 from rogw.tranp.syntax.node.definition.element import Decorator, Parameter
 from rogw.tranp.syntax.node.definition.literal import Boolean, DocString, String
 from rogw.tranp.syntax.node.definition.primary import DeclClassVar, DeclLocalVar, Declable, ForIn, GenericType, InheritArgument, DeclThisParam, DeclThisVar, Type, TypesName, VarOfType
@@ -292,8 +292,8 @@ class ClassDef(Node, IDomain, IScope, INamespace, IDeclaration, ISymbol):
 		return self
 
 	@property
-	def access(self) -> str:
-		return to_access(self.symbol.tokens)
+	def accessor(self) -> str:
+		return to_accessor(self.symbol.tokens)
 
 	@property
 	def operations(self) -> ClassOperations:

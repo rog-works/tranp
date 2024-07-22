@@ -237,7 +237,7 @@ class TestDefinition(TestCase):
 		(_ast('Base.public_method'), {
 			'type': defs.Method,
 			'symbol': 'public_method',
-			'access': 'public',
+			'accessor': 'public',
 			'decorators': ['abstractmethod'],
 			'parameters': [
 				{'symbol': 'self', 'var_type': 'Empty', 'default_value': 'Empty'},
@@ -256,7 +256,7 @@ class TestDefinition(TestCase):
 		(_ast('Class.class_method'), {
 			'type': defs.ClassMethod,
 			'symbol': 'class_method',
-			'access': 'public',
+			'accessor': 'public',
 			'decorators': ['classmethod'],
 			'parameters': [
 				{'symbol': 'cls', 'var_type': 'Empty', 'default_value': 'Empty'},
@@ -274,7 +274,7 @@ class TestDefinition(TestCase):
 		(_ast('Class.__init__'), {
 			'type': defs.Constructor,
 			'symbol': '__init__',
-			'access': 'public',
+			'accessor': 'public',
 			'decorators': [],
 			'parameters': [
 				{'symbol': 'self', 'var_type': 'Empty', 'default_value': 'Empty'},
@@ -299,7 +299,7 @@ class TestDefinition(TestCase):
 		(_ast('Class.__init__.method_in_closure'), {
 			'type': defs.Closure,
 			'symbol': 'method_in_closure',
-			'access': 'public',
+			'accessor': 'public',
 			'decorators': [],
 			'parameters': [],
 			'return': defs.NullType,
@@ -313,7 +313,7 @@ class TestDefinition(TestCase):
 		(_ast('Class.property_method'), {
 			'type': defs.Method,
 			'symbol': 'property_method',
-			'access': 'public',
+			'accessor': 'public',
 			'decorators': ['property'],
 			'parameters': [
 				{'symbol': 'self', 'var_type': 'Empty', 'default_value': 'Empty'},
@@ -332,7 +332,7 @@ class TestDefinition(TestCase):
 		(_ast('Class.public_method'), {
 			'type': defs.Method,
 			'symbol': 'public_method',
-			'access': 'public',
+			'accessor': 'public',
 			'decorators': [],
 			'parameters': [
 				{'symbol': 'self', 'var_type': 'Empty', 'default_value': 'Empty'},
@@ -354,7 +354,7 @@ class TestDefinition(TestCase):
 		(_ast('Class._protected_method'), {
 			'type': defs.Method,
 			'symbol': '_protected_method',
-			'access': 'protected',
+			'accessor': 'protected',
 			'decorators': [],
 			'parameters': [
 				{'symbol': 'self', 'var_type': 'Empty', 'default_value': 'Empty'},
@@ -375,7 +375,7 @@ class TestDefinition(TestCase):
 		(_ast('func'), {
 			'type': defs.Function,
 			'symbol': 'func',
-			'access': 'public',
+			'accessor': 'public',
 			'decorators': [],
 			'parameters': [
 				{'symbol': 'b', 'var_type': 'bool', 'default_value': 'Empty'},
@@ -390,7 +390,7 @@ class TestDefinition(TestCase):
 		(_ast('func.func_in_closure'), {
 			'type': defs.Closure,
 			'symbol': 'func_in_closure',
-			'access': 'public',
+			'accessor': 'public',
 			'decorators': [],
 			'parameters': [
 				{'symbol': 'n', 'var_type': 'int', 'default_value': 'Empty'},
@@ -406,7 +406,7 @@ class TestDefinition(TestCase):
 		(_ast('ParamOps.star_params'), {
 			'type': defs.Method,
 			'symbol': 'star_params',
-			'access': 'public',
+			'accessor': 'public',
 			'decorators': [],
 			'parameters': [
 				{'symbol': 'self', 'var_type': 'Empty', 'default_value': 'Empty'},
@@ -430,7 +430,7 @@ class TestDefinition(TestCase):
 		(_ast('ParamOps.kw_params'), {
 			'type': defs.Method,
 			'symbol': 'kw_params',
-			'access': 'public',
+			'accessor': 'public',
 			'decorators': [],
 			'parameters': [
 				{'symbol': 'self', 'var_type': 'Empty', 'default_value': 'Empty'},
@@ -459,7 +459,7 @@ class TestDefinition(TestCase):
 		node = self.fixture.shared_nodes_by(full_path).as_a(defs.Function)
 		self.assertEqual(type(node), expected['type'])
 		self.assertEqual(node.symbol.tokens, expected['symbol'])
-		self.assertEqual(node.access, expected['access'])
+		self.assertEqual(node.accessor, expected['accessor'])
 		self.assertEqual([decorator.path.tokens for decorator in node.decorators], expected['decorators'])
 		self.assertEqual(len(expected['parameters']), len(node.parameters))
 		for index, parameter in enumerate(node.parameters):

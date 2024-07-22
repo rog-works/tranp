@@ -1,6 +1,6 @@
-{%- if accessor == 'Static' -%}
+{%- if operator == 'Static' -%}
 {{ receiver }}::{{ prop }}{% if is_property %}(){% endif %}
-{%- elif accessor == 'Address' -%}
+{%- elif operator == 'Address' -%}
 {{ receiver }}->{{ prop }}{% if is_property %}(){% endif %}
 {%- else -%}
 {{ receiver }}.{{ prop }}{% if is_property %}(){% endif %}

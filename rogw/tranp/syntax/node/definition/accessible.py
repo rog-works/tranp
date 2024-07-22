@@ -2,7 +2,7 @@ import re
 from typing import ClassVar
 
 
-def to_access(name: str) -> str:
+def to_accessor(name: str) -> str:
 	"""名前からアクセス修飾子に変換
 
 	Args:

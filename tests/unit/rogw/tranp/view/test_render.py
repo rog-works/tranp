@@ -104,13 +104,13 @@ class TestRenderer(TestCase):
 		self.assertRender('catch', 0, vars, expected)
 
 	@data_provider([
-		({'access': 'public', 'decl_class_var': 'float a'}, 'public: static float a'),
+		({'accessor': 'public', 'decl_class_var': 'float a'}, 'public: static float a'),
 	])
 	def test_render_class_decl_class_var(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('class/_decl_class_var', 0, vars, expected)
 
 	@data_provider([
-		({'access': 'public', 'var_type': 'float', 'symbol': 'a'}, 'public: float a;'),
+		({'accessor': 'public', 'var_type': 'float', 'symbol': 'a'}, 'public: float a;'),
 	])
 	def test_render_class_decl_this_var(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('class/_decl_this_var', 0, vars, expected)
@@ -791,7 +791,7 @@ class TestRenderer(TestCase):
 				'statements': ['this->x = value;'],
 				'template_types': [],
 				# belongs class only
-				'access': 'public',
+				'accessor': 'public',
 				'class_symbol': 'Hoge',
 				'is_abstract': False,
 				'is_override': False,
@@ -819,7 +819,7 @@ class TestRenderer(TestCase):
 				'statements': [],
 				'template_types': ['T'],
 				# belongs class only
-				'access': 'public',
+				'accessor': 'public',
 				'class_symbol': 'Hoge',
 				'is_abstract': True,
 				'is_override': False,
@@ -847,7 +847,7 @@ class TestRenderer(TestCase):
 				'statements': ['return 1;'],
 				'template_types': [],
 				# belongs class only
-				'access': 'public',
+				'accessor': 'public',
 				'class_symbol': 'Hoge',
 				'is_abstract': False,
 				'is_override': False,
@@ -872,7 +872,7 @@ class TestRenderer(TestCase):
 				'statements': [],
 				'template_types': ['T'],
 				# belongs class only
-				'access': 'public',
+				'accessor': 'public',
 				'class_symbol': 'Hoge',
 				'is_abstract': False,
 				'is_override': False,
@@ -898,7 +898,7 @@ class TestRenderer(TestCase):
 				'statements': ['this->x = value;'],
 				'template_types': [],
 				# belongs class only
-				'access': 'public',
+				'accessor': 'public',
 				'class_symbol': 'Hoge',
 				'is_abstract': False,
 				'is_override': False,
@@ -923,7 +923,7 @@ class TestRenderer(TestCase):
 				'statements': [],
 				'template_types': [],
 				# belongs class only
-				'access': 'public',
+				'accessor': 'public',
 				'class_symbol': 'Hoge',
 				'is_abstract': True,
 				'is_override': False,
@@ -946,7 +946,7 @@ class TestRenderer(TestCase):
 				'statements': ['this->x = value;'],
 				'template_types': [],
 				# belongs class only
-				'access': 'public',
+				'accessor': 'public',
 				'class_symbol': 'Hoge',
 				'is_abstract': False,
 				'is_override': False,
@@ -971,7 +971,7 @@ class TestRenderer(TestCase):
 				'statements': ['this->x = value;'],
 				'template_types': [],
 				# belongs class only
-				'access': 'public',
+				'accessor': 'public',
 				'class_symbol': 'Hoge',
 				'is_abstract': False,
 				'is_override': True,
@@ -996,7 +996,7 @@ class TestRenderer(TestCase):
 				'statements': ['this->x = value;'],
 				'template_types': ['T', 'T2'],
 				# belongs class only
-				'access': 'public',
+				'accessor': 'public',
 				'class_symbol': 'Hoge',
 				'is_abstract': False,
 				'is_override': False,
@@ -1023,7 +1023,7 @@ class TestRenderer(TestCase):
 				'statements': ['this->x = value;'],
 				'template_types': [],
 				# belongs class only
-				'access': 'public',
+				'accessor': 'public',
 				'class_symbol': 'Hoge',
 				'is_abstract': False,
 				'is_override': False,

@@ -221,6 +221,16 @@ class Py2Cpp(ITranspiler):
 		ignore_names = [name for name in ignore_names if name not in deny_ignores]
 		return [decorator for decorator in decorators if decorator.split('(')[0] not in ignore_names]
 
+	def to_accessor(self, accessor: str) -> str:
+		"""アクセス修飾子を翻訳
+
+		Args:
+			accessor (str): アクセス修飾子
+		Returns:
+			str: 翻訳後のアクセス修飾子
+		"""
+		return self.i18n.t(DSN.join(self.i18n.t(alias_dsn('lang')), 'accessor', accessor))
+
 	# General
 
 	def on_entrypoint(self, node: defs.Entrypoint, statements: list[str]) -> str:
@@ -330,7 +340,7 @@ class Py2Cpp(ITranspiler):
 		decorators = self.allow_decorators(decorators)
 		template_types = self.unpack_function_template_types(node)
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types}
-		method_vars = {'access': node.access, 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'class_symbol': node.class_types.symbol.tokens}
+		method_vars = {'accessor': self.to_accessor(node.accessor), 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'class_symbol': node.class_types.symbol.tokens}
 		return self.view.render(f'function/{node.classification}', vars={**function_vars, **method_vars})
 
 	def on_constructor(self, node: defs.Constructor, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
@@ -369,7 +379,7 @@ class Py2Cpp(ITranspiler):
 		class_name = self.to_domain_name_by_class(node.class_types)
 		template_types = self.unpack_function_template_types(node)
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': normal_statements, 'template_types': template_types}
-		method_vars = {'access': node.access, 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'class_symbol': class_name, 'allow_override': self.allow_override_from_method(node)}
+		method_vars = {'accessor': self.to_accessor(node.accessor), 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'class_symbol': class_name, 'allow_override': self.allow_override_from_method(node)}
 		constructor_vars = {'initializers': initializers, 'super_initializer': super_initializer}
 		return self.view.render(f'function/{node.classification}', vars={**function_vars, **method_vars, **constructor_vars})
 
@@ -377,7 +387,7 @@ class Py2Cpp(ITranspiler):
 		decorators = self.allow_decorators(decorators)
 		template_types = self.unpack_function_template_types(node)
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types}
-		method_vars = {'access': node.access, 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'class_symbol': node.class_types.symbol.tokens, 'allow_override': self.allow_override_from_method(node)}
+		method_vars = {'accessor': self.to_accessor(node.accessor), 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'class_symbol': node.class_types.symbol.tokens, 'allow_override': self.allow_override_from_method(node)}
 		return self.view.render(f'function/{node.classification}', vars={**function_vars, **method_vars})
 
 	def on_closure(self, node: defs.Closure, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
@@ -414,14 +424,14 @@ class Py2Cpp(ITranspiler):
 		vars: list[str] = []
 		for index, class_var in enumerate(node.class_vars):
 			class_var_name = class_var.tokens
-			class_var_vars = {'access': defs.to_access(class_var_name), 'decl_class_var': decl_class_var_statements[index]}
+			class_var_vars = {'accessor': self.to_accessor(defs.to_accessor(class_var_name)), 'decl_class_var': decl_class_var_statements[index]}
 			vars.append(self.view.render(f'{node.classification}/_decl_class_var', vars=class_var_vars))
 
 		for this_var in node.this_vars:
 			this_var_name = this_var.tokens_without_this
 			var_type_raw = self.reflections.type_of(this_var.declare.as_a(defs.AnnoAssign).var_type)
 			var_type = self.to_accessible_name(var_type_raw)
-			this_var_vars = {'access': defs.to_access(this_var_name), 'symbol': this_var_name, 'var_type': var_type, 'embed_vars': embed_vars}
+			this_var_vars = {'accessor': self.to_accessor(defs.to_accessor(this_var_name)), 'symbol': this_var_name, 'var_type': var_type, 'embed_vars': embed_vars}
 			vars.append(self.view.render(f'{node.classification}/_decl_this_var', vars=this_var_vars))
 
 		decorators = self.allow_decorators(decorators)
@@ -431,7 +441,7 @@ class Py2Cpp(ITranspiler):
 	def on_enum(self, node: defs.Enum, symbol: str, decorators: list[str], inherits: list[str], template_types: list[str], comment: str, statements: list[str]) -> str:
 		add_vars = {}
 		if not node.parent.is_a(defs.Entrypoint):
-			add_vars = {'access': node.access}
+			add_vars = {'accessor': self.to_accessor(node.accessor)}
 
 		return self.view.render(f'class/{node.classification}', vars={'symbol': symbol, 'decorators': decorators, 'comment': comment, 'statements': statements, **add_vars})
 
@@ -577,8 +587,8 @@ class Py2Cpp(ITranspiler):
 		if isinstance(prop_symbol.decl, defs.ClassDef):
 			prop = self.to_domain_name_by_class(prop_symbol.types)
 
-		spec, accessor = self.analyze_relay_access_spec(node, receiver_symbol, prop_symbol)
-		relay_vars = {'receiver': receiver, 'accessor': accessor, 'prop': prop, 'is_property': is_property}
+		spec, operator = self.analyze_relay_spec(node, receiver_symbol, prop_symbol)
+		relay_vars = {'receiver': receiver, 'operator': operator, 'prop': prop, 'is_property': is_property}
 		if spec == 'cvar_relay':
 			# 期待値: receiver.on()
 			cvar_receiver = re.sub(rf'(->|::|\.){CVars.relay_key}\(\)$', '', receiver)
@@ -591,8 +601,8 @@ class Py2Cpp(ITranspiler):
 		else:
 			return self.view.render(f'{node.classification}/default', vars=relay_vars)
 
-	def analyze_relay_access_spec(self, node: defs.Relay, receiver_symbol: IReflection, prop_symbol: IReflection) -> tuple[str, str]:
-		def is_this_access() -> bool:
+	def analyze_relay_spec(self, node: defs.Relay, receiver_symbol: IReflection, prop_symbol: IReflection) -> tuple[str, str]:
+		def is_this_relay() -> bool:
 			return node.receiver.is_a(defs.ThisRef)
 
 		def is_on_cvar_relay() -> bool:
@@ -601,7 +611,7 @@ class Py2Cpp(ITranspiler):
 		def is_on_cvar_exchanger() -> bool:
 			return node.prop.domain_name in CVars.exchanger_keys
 
-		def is_class_access() -> bool:
+		def is_class_relay() -> bool:
 			"""
 			Note:
 				### 判定条件
@@ -614,20 +624,20 @@ class Py2Cpp(ITranspiler):
 			is_class_var_relay = is_class_receiver and is_class_prop
 			return is_class_alias or is_class_var_relay
 
-		if is_this_access():
-			return 'this', CVars.Accessors.Address.name
+		if is_this_relay():
+			return 'this', CVars.RelayOperators.Address.name
 		elif is_on_cvar_relay():
 			cvar_key = CVars.key_from(self.reflections, receiver_symbol.context)
 			if not CVars.is_raw_raw(cvar_key):
-				return 'cvar_relay', CVars.to_accessor(cvar_key).name
+				return 'cvar_relay', CVars.to_operator(cvar_key).name
 		elif is_on_cvar_exchanger():
 			cvar_key = CVars.key_from(self.reflections, receiver_symbol)
 			move = CVars.to_move(cvar_key, node.prop.domain_name)
-			return f'cvar_to_{move.name}', CVars.to_accessor(cvar_key).name
-		elif is_class_access():
-			return 'class', CVars.Accessors.Static.name
+			return f'cvar_to_{move.name}', CVars.to_operator(cvar_key).name
+		elif is_class_relay():
+			return 'class', CVars.RelayOperators.Static.name
 
-		return 'raw', CVars.Accessors.Raw.name
+		return 'raw', CVars.RelayOperators.Raw.name
 
 	def on_class_ref(self, node: defs.ClassRef) -> str:
 		symbol = self.reflections.resolve(node.class_symbol)

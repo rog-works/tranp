@@ -2,6 +2,11 @@
 # prefix
 aliases.classes: aliases.rogw.tranp.compatible.libralies.classes
 aliases.cpp: aliases.rogw.tranp.compatible.cpp.classes
+aliases.lang: aliases.rogw.tranp.compatible.lang
+# lang
+aliases.rogw.tranp.compatible.lang.accessor.public: public
+aliases.rogw.tranp.compatible.lang.accessor.protected: protected
+aliases.rogw.tranp.compatible.lang.accessor.private: private
 # classes
 aliases.rogw.tranp.compatible.libralies.classes#dict: std::map
 aliases.rogw.tranp.compatible.libralies.classes#dict.in: contains

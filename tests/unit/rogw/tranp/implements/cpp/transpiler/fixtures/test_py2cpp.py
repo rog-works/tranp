@@ -491,4 +491,11 @@ class StringOps:
 		b = s.format(1, 2, 3)
 
 
+class AssignOps:
+	def assign(self) -> None:
+		a: int = 1
+		b = 'b'
+		b += str(a)
+
+
 def template_func(v: T) -> T: ...

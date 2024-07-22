@@ -41,6 +41,7 @@ class ASTMapping:
 	_GenericOps = f'file_input.class_def[{__begin_class + 15}]'
 	_Struct = f'file_input.class_def[{__begin_class + 16}]'
 	_StringOps = f'file_input.class_def[{__begin_class + 17}]'
+	_AssignOps = f'file_input.class_def[{__begin_class + 18}]'
 	_template_func = f'file_input.function_def'
 
 	aliases = {
@@ -145,6 +146,8 @@ class ASTMapping:
 		'StringOps.slice.block': f'{_StringOps}.class_def_raw.block.function_def[1].function_def_raw.block',
 		'StringOps.len.block': f'{_StringOps}.class_def_raw.block.function_def[2].function_def_raw.block',
 		'StringOps.format.block': f'{_StringOps}.class_def_raw.block.function_def[3].function_def_raw.block',
+
+		'AssignOps.assign.block': f'{_AssignOps}.class_def_raw.block.function_def.function_def_raw.block',
 
 		'template_func': f'{_template_func}',
 	}
@@ -417,6 +420,10 @@ class TestPy2Cpp(TestCase):
 		(_ast('StringOps.len.block', 'assign'), defs.MoveAssign, 'int a = s.size();'),
 		(_ast('StringOps.format.block', 'assign[0]'), defs.MoveAssign, 'std::string a = std::format("{}, {}, {}", 1, 2, 3);'),
 		(_ast('StringOps.format.block', 'assign[1]'), defs.MoveAssign, 'std::string b = std::format(s, 1, 2, 3);'),
+
+		(_ast('AssignOps.assign.block', 'anno_assign'), defs.AnnoAssign, 'int a = 1;'),
+		(_ast('AssignOps.assign.block', 'assign'), defs.MoveAssign, 'std::string b = "b";'),
+		(_ast('AssignOps.assign.block', 'aug_assign'), defs.AugAssign, 'b += std::to_string(a);'),
 
 		(_ast('template_func', ''), defs.Function, '/** template_func */\ntemplate<typename T>\nT template_func(T v) {\n\n}'),
 	])

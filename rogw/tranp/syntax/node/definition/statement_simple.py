@@ -69,7 +69,6 @@ class AugAssign(Assign):
 		return self.receivers[0]
 
 	@property
-	@Meta.embed(Node, expandable)
 	def operator(self) -> Terminal:
 		return self._elements[1].as_a(Terminal)
 

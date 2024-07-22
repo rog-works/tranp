@@ -470,8 +470,8 @@ class Py2Cpp(ITranspiler):
 	def on_anno_assign(self, node: defs.AnnoAssign, receiver: str, var_type: str, value: str) -> str:
 		return self.view.render(f'assign/{node.classification}', vars={'receiver': receiver, 'var_type': var_type, 'value': value})
 
-	def on_aug_assign(self, node: defs.AugAssign, receiver: str, operator: str, value: str) -> str:
-		return self.view.render(f'assign/{node.classification}', vars={'receiver': receiver, 'operator': operator, 'value': value})
+	def on_aug_assign(self, node: defs.AugAssign, receiver: str, value: str) -> str:
+		return self.view.render(f'assign/{node.classification}', vars={'receiver': receiver, 'operator': node.operator.tokens, 'value': value})
 
 	def on_delete(self, node: defs.Delete, targets: str) -> str:
 		target_types: list[str] = []

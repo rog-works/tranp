@@ -413,7 +413,7 @@ class ProceduralResolver:
 	def on_move_assign(self, node: defs.MoveAssign, receivers: list[IReflection], value: IReflection) -> IReflection:
 		return value
 
-	def on_aug_assign(self, node: defs.AugAssign, receiver: IReflection, operator: IReflection, value: IReflection) -> IReflection:
+	def on_aug_assign(self, node: defs.AugAssign, receiver: IReflection, value: IReflection) -> IReflection:
 		return receiver
 
 	def on_return(self, node: defs.Return, return_value: IReflection) -> IReflection:

@@ -292,6 +292,7 @@ def expected_symbols() -> dict:
 		'rogw.tranp.compatible.libralies.classes#None.__not__.self': 'rogw.tranp.compatible.libralies.classes#None',
 		'rogw.tranp.compatible.libralies.classes#None.__not__.other': 'typing#Any',
 		'rogw.tranp.compatible.libralies.classes#object.__class__': 'rogw.tranp.compatible.libralies.classes#type',
+		'rogw.tranp.compatible.libralies.classes#object.__dict__': 'rogw.tranp.compatible.libralies.classes#dict',
 		'rogw.tranp.compatible.libralies.classes#object.__init__.self': 'rogw.tranp.compatible.libralies.classes#object',
 		'rogw.tranp.compatible.libralies.classes#type.__name__': 'rogw.tranp.compatible.libralies.classes#str',
 		'rogw.tranp.compatible.libralies.classes#type.__module__': 'rogw.tranp.compatible.libralies.classes#str',

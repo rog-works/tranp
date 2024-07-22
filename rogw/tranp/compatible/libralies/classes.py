@@ -170,6 +170,7 @@ class Object:
 	def __init__(self) -> None:
 		# XXX 本来はプロパティーでは？修正を検討
 		self.__class__: type[object] = object
+		self.__dict__: dict[str, Any] = {}
 
 
 @__actual__('type')

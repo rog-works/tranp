@@ -1,5 +1,5 @@
 {%- if var_type == 'float' -%}
-atof({{ arguments[0] }}){% if is_statement %};{% endif %}
+{{ i18n('cpp', 'string.atof') }}({{ arguments[0] }}){% if is_statement %};{% endif %}
 {%- else -%}
-atoi({{ arguments[0] }}){% if is_statement %};{% endif %}
+{{ i18n('cpp', 'string.atoi') }}({{ arguments[0] }}){% if is_statement %};{% endif %}
 {%- endif -%}

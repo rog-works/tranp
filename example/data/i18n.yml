@@ -11,9 +11,12 @@ aliases.rogw.tranp.compatible.libralies.classes#list.remove: erase
 aliases.rogw.tranp.compatible.libralies.classes#print: printf
 aliases.rogw.tranp.compatible.libralies.classes#str: std::string
 aliases.rogw.tranp.compatible.libralies.classes#str.endswith: ends_with
+aliases.rogw.tranp.compatible.libralies.classes#str.find: find
 aliases.rogw.tranp.compatible.libralies.classes#str.startswith: starts_with
 # cpp
 aliases.rogw.tranp.compatible.cpp.classes#container.size: size
+aliases.rogw.tranp.compatible.cpp.classes#float.ftoa: std::to_string
+aliases.rogw.tranp.compatible.cpp.classes#int.itoa: std::to_string
 aliases.rogw.tranp.compatible.cpp.classes#map.begin: begin
 aliases.rogw.tranp.compatible.cpp.classes#map.end: end
 aliases.rogw.tranp.compatible.cpp.classes#map.erase: erase
@@ -23,7 +26,8 @@ aliases.rogw.tranp.compatible.cpp.classes#shared_ptr.get: get
 aliases.rogw.tranp.compatible.cpp.classes#string.format: std::format
 aliases.rogw.tranp.compatible.cpp.classes#string.size: size
 aliases.rogw.tranp.compatible.cpp.classes#string.slice: substr
-aliases.rogw.tranp.compatible.cpp.classes#to_string: std::to_string
+aliases.rogw.tranp.compatible.cpp.classes#string.atoi: atoi
+aliases.rogw.tranp.compatible.cpp.classes#string.atof: atof
 aliases.rogw.tranp.compatible.cpp.classes#vector.begin: begin
 aliases.rogw.tranp.compatible.cpp.classes#vector.end: end
 # example

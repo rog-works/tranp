@@ -1,1 +1,5 @@
-{{ i18n('cpp', 'to_string') }}({{ arguments[0] }}){% if is_statement %};{% endif %}
+{%- if var_type == 'float' -%}
+{{ i18n('cpp', 'float.ftoa') }}({{ arguments[0] }}){% if is_statement %};{% endif %}
+{%- else -%}
+{{ i18n('cpp', 'int.itoa') }}({{ arguments[0] }}){% if is_statement %};{% endif %}
+{%- endif -%}

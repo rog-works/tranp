@@ -239,6 +239,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarOps.binary_calc.block', 'assign[4]'), defs.MoveAssign, 'Sub calc = a + *(ap) * *(asp) - ar / a;'),
 		(_ast('CVarOps.binary_calc.block', 'assign[5]'), defs.MoveAssign, 'bool is_a = a == *(ap) == *(asp) == ar;'),
 		(_ast('CVarOps.binary_calc.block', 'assign[6]'), defs.MoveAssign, 'bool is_not_a = a != *(ap) != *(asp) != ar;'),
+		(_ast('CVarOps.binary_calc.block', 'assign[7]'), defs.MoveAssign, 'bool is_null = apn == nullptr && apn != nullptr;'),
 
 		(_ast('CVarOps.tenary_calc.block', 'assign[0]'), defs.MoveAssign, 'Sub a2 = true ? a : Sub();'),
 		(_ast('CVarOps.tenary_calc.block', 'assign[1]'), defs.MoveAssign, 'Sub a3 = true ? a : a;'),

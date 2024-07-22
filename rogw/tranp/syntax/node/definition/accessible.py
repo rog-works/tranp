@@ -38,8 +38,8 @@ class PythonClassOperations:
 		return self.__operators[operator]
 
 	__operators: ClassVar = {
-		'or': '__or__',  # FIXME &&と&は異なるため、これは誤り
-		'and': '__and__',  # FIXME ||と|は異なるため、これは誤り
+		'or': '__or__',  # FIXME &&に対応する特殊メソッドはない
+		'and': '__and__',  # FIXME 同上
 		'==': '__eq__',
 		'<': '__lt__',
 		'>': '__gt__',

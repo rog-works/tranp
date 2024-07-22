@@ -128,7 +128,7 @@ class CVarOps:
 		neg_a3 = -asp.raw
 		neg_a4 = -ar.raw
 
-	def binary_calc(self, a: Sub, ap: CP[Sub], asp: CSP[Sub], ar: CRef[Sub]) -> None:
+	def binary_calc(self, a: Sub, ap: CP[Sub], asp: CSP[Sub], ar: CRef[Sub], apn: CP[Sub] | None) -> None:
 		add = a + ap.raw + asp.raw + ar.raw
 		sub = a - ap.raw - asp.raw - ar.raw
 		mul = a * ap.raw * asp.raw * ar.raw
@@ -136,6 +136,7 @@ class CVarOps:
 		calc = a + ap.raw * asp.raw - ar.raw / a
 		is_a = a is ap.raw is asp.raw is ar.raw
 		is_not_a = a is not ap.raw is not asp.raw is not ar.raw
+		is_null = apn is None and apn is not None
 
 	def tenary_calc(self, a: Sub, ap: CP[Sub], asp: CSP[Sub], ar: CRef[Sub]) -> None:
 		a2 = a if True else Sub()

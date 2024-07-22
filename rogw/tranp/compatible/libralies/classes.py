@@ -172,6 +172,9 @@ class Object:
 		self.__class__: type[object] = object
 		self.__dict__: dict[str, Any] = {}
 
+	def __getattribute__(self, name: str) -> Any: ...
+	def __setattr__(self, name: str, value: Any) -> None: ...
+
 
 @__actual__('type')
 class Type(Generic[T]):

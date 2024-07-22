@@ -25,6 +25,12 @@ class Base(metaclass=ABCMeta):
 	def allowed_overrides(self) -> int:
 		return 1
 
+	@classmethod
+	def base_class_func(cls) -> int: ...
+
+	@property
+	def base_prop(self) -> str: ...
+
 
 class Sub(Base):
 	class_base_n: ClassVar[int] = 0
@@ -256,6 +262,7 @@ class AccessOps(Sub):
 		print(ap.on.base_n)
 		print(ap.on.sub_s)
 		print(ap.on.call())
+		print(ap.on.base_prop)
 		print(asp.on.base_n)
 		print(asp.on.sub_s)
 		print(asp.on.call())
@@ -263,6 +270,7 @@ class AccessOps(Sub):
 	def double_colon(self) -> None:
 		super().call()
 		print(Sub.class_base_n)
+		print(Sub.base_class_func())
 		print(AccessOps.class_base_n)
 		print(EnumOps.Values.A)
 		d: dict[EnumOps.Values, str] = {

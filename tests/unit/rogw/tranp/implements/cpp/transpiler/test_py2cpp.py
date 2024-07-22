@@ -193,7 +193,6 @@ class TestPy2Cpp(TestCase):
 		(_ast('DeclOps', ''), defs.Class, BlockExpects.DeclOps),
 
 		(_ast('Base.sub_implements', ''), defs.Function, 'public:\n/** sub_implements */\nvirtual void sub_implements() = 0;'),
-
 		(_ast('Base.allowed_overrides', ''), defs.Function, 'public:\n/** allowed_overrides */\nvirtual int allowed_overrides() {\n\treturn 1;\n}'),
 
 		(_ast('Sub.block', 'comment_stmt[5]'), defs.Comment, '// FIXME other: Any'),
@@ -321,14 +320,16 @@ class TestPy2Cpp(TestCase):
 		(_ast('AccessOps.arrow.block', 'funccall[3].arguments.argvalue'), defs.Argument, 'ap->base_n'),
 		(_ast('AccessOps.arrow.block', 'funccall[4].arguments.argvalue'), defs.Argument, 'ap->sub_s'),
 		(_ast('AccessOps.arrow.block', 'funccall[5].arguments.argvalue'), defs.Argument, 'ap->call()'),
-		(_ast('AccessOps.arrow.block', 'funccall[6].arguments.argvalue'), defs.Argument, 'asp->base_n'),
-		(_ast('AccessOps.arrow.block', 'funccall[7].arguments.argvalue'), defs.Argument, 'asp->sub_s'),
-		(_ast('AccessOps.arrow.block', 'funccall[8].arguments.argvalue'), defs.Argument, 'asp->call()'),
+		(_ast('AccessOps.arrow.block', 'funccall[6].arguments.argvalue'), defs.Argument, 'ap->base_prop()'),
+		(_ast('AccessOps.arrow.block', 'funccall[7].arguments.argvalue'), defs.Argument, 'asp->base_n'),
+		(_ast('AccessOps.arrow.block', 'funccall[8].arguments.argvalue'), defs.Argument, 'asp->sub_s'),
+		(_ast('AccessOps.arrow.block', 'funccall[9].arguments.argvalue'), defs.Argument, 'asp->call()'),
 
 		(_ast('AccessOps.double_colon.block', 'funccall[0]'), defs.FuncCall, 'Sub::call();'),
 		(_ast('AccessOps.double_colon.block', 'funccall[1].arguments.argvalue'), defs.Argument, 'Sub::class_base_n'),
-		(_ast('AccessOps.double_colon.block', 'funccall[2].arguments.argvalue'), defs.Argument, 'AccessOps::class_base_n'),
-		(_ast('AccessOps.double_colon.block', 'funccall[3].arguments.argvalue'), defs.Argument, 'EnumOps::Values::A'),
+		(_ast('AccessOps.double_colon.block', 'funccall[2].arguments.argvalue'), defs.Argument, 'Sub::base_class_func()'),
+		(_ast('AccessOps.double_colon.block', 'funccall[3].arguments.argvalue'), defs.Argument, 'AccessOps::class_base_n'),
+		(_ast('AccessOps.double_colon.block', 'funccall[4].arguments.argvalue'), defs.Argument, 'EnumOps::Values::A'),
 		(_ast('AccessOps.double_colon.block', 'anno_assign'), defs.AnnoAssign, 'std::map<EnumOps::Values, std::string> d = {\n\t{EnumOps::Values::A, "A"},\n\t{EnumOps::Values::B, "B"},\n};'),
 
 		(_ast('AccessOps.indexer.block', 'funccall[0].arguments.argvalue'), defs.Argument, 'arr_p[0]'),

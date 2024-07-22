@@ -606,11 +606,11 @@ class Py2Cpp(ITranspiler):
 			Note:
 				### 判定条件
 				* cls.{Any}/super().{Any}
-				* Class.{class_var}/Class.{Class}/Enum.{Value}
+				* Class.{DeclClassVar}/Class.{Class}/Class.{ClassMethod}/Enum.{Value}
 			"""
 			is_class_alias = isinstance(node.receiver, (defs.ClassRef, defs.Super))
 			is_class_receiver = node.receiver.is_a(defs.Relay, defs.Var) and receiver_symbol.decl.is_a(defs.Class)
-			is_class_prop = prop_symbol.decl.is_a(defs.DeclClassVar) or prop_symbol.decl.is_a(defs.Class) or receiver_symbol.decl.is_a(defs.Enum)
+			is_class_prop = prop_symbol.decl.is_a(defs.DeclClassVar) or prop_symbol.decl.is_a(defs.Class) or prop_symbol.decl.is_a(defs.ClassMethod) or receiver_symbol.decl.is_a(defs.Enum)
 			is_class_var_relay = is_class_receiver and is_class_prop
 			return is_class_alias or is_class_var_relay
 

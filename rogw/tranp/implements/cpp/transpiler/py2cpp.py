@@ -1025,7 +1025,7 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(node.classification, vars={'items': items})
 
 	def on_tuple(self, node: defs.Tuple, values: list[str]) -> str:
-		raise NotSupportedError(f'Denied tuple literal. node: {node}')
+		return self.view.render(node.classification, vars={'values': values})
 
 	def on_null(self, node: defs.Null) -> str:
 		return 'nullptr'

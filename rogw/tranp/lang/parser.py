@@ -222,7 +222,7 @@ def parse_block_to_entry(text: str, brackets: str = '{}', delimiter: str = ':') 
 				if len(elem) > 0:
 					entry.elems.append(elem)
 
-				offset += progress
+				offset += progress + 1
 				break
 
 			if tail == bracket_o:

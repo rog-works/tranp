@@ -1064,7 +1064,7 @@ class TestRenderer(TestCase):
 
 	@data_provider([
 		({'label': '', 'value': 1}, '1'),
-		({'label': 'a', 'value': 1}, 'a=1'),
+		({'label': 'a', 'value': 1}, '1'),
 	])
 	def test_render_argument(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('argument', 0, vars, expected)

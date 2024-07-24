@@ -214,7 +214,7 @@ class TestReflections(TestCase):
 		(ModuleDSN.full_joined(fixture_module_path, 'Sub.indexer_access.dsn'), 'dict<str, int>'),
 
 		(ModuleDSN.full_joined(fixture_module_path, 'Sub.type_props.a'), 'str'),
-		(ModuleDSN.full_joined(fixture_module_path, 'Sub.type_props.b'), 'type<object>'),
+		(ModuleDSN.full_joined(fixture_module_path, 'Sub.type_props.b'), 'type<Sub>'),
 		(ModuleDSN.full_joined(fixture_module_path, 'Sub.type_props.c'), 'str'),
 
 		(ModuleDSN.full_joined(fixture_module_path, 'Sub.list_expand.a'), 'list<int>'),

@@ -77,6 +77,7 @@ class ASTMapping:
 		'CVarOps.addr_calc.block': f'{_CVarOps}.class_def_raw.block.function_def[14].function_def_raw.block',
 		'CVarOps.raw.block': f'{_CVarOps}.class_def_raw.block.function_def[15].function_def_raw.block',
 		'CVarOps.prop_relay.block': f'{_CVarOps}.class_def_raw.block.function_def[16].function_def_raw.block',
+		'CVarOps.litelize.block': f'{_CVarOps}.class_def_raw.block.function_def[17].function_def_raw.block',
 
 		'FuncOps.print.block': f'{_FuncOps}.class_def_raw.block.function_def[0].function_def_raw.block',
 		'FuncOps.kw_params.block': f'{_FuncOps}.class_def_raw.block.function_def[1].function_def_raw.block',
@@ -173,6 +174,7 @@ def make_renderer(i18n: I18n) -> Renderer:
 
 
 class TestPy2Cpp(TestCase):
+	fixture_module_path = Fixture.fixture_module_path(__file__)
 	fixture = Fixture.make(__file__, {
 		fullyname(Py2Cpp): Py2Cpp,
 		fullyname(PluginProvider): cpp_plugin_provider,
@@ -295,6 +297,9 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarOps.raw.block', 'return_stmt'), defs.Return, 'return p->raw();'),
 
 		(_ast('CVarOps.prop_relay.block', 'assign'), defs.MoveAssign, 'CVarOps a = this->prop_relay().prop_relay();'),
+
+		(_ast('CVarOps.litelize.block', 'funccall[0]'), defs.FuncCall, 'printf("CVarOps");'),
+		(_ast('CVarOps.litelize.block', 'funccall[1]'), defs.FuncCall, f'printf("{fixture_module_path}");'),
 
 		(_ast('FuncOps.print.block', 'funccall'), defs.FuncCall, 'printf("message. %d, %f, %s", 1, 1.0, "abc");'),
 		(_ast('FuncOps.kw_params.block', 'assign'), defs.MoveAssign, 'std::string a = this->kw_params(1, 2);'),

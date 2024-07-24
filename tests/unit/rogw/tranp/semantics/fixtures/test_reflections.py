@@ -139,10 +139,10 @@ class Sub(Base):
 		s_slice = s[0:]
 		dsn = cast(dict[str, int], {})
 
-	def type_props(self, t: type) -> None:
-		a = t.__name__
-		b = t.__class__
-		c = t.__module__
+	def type_props(self) -> None:
+		a = self.__class__.__name__
+		b = self.__class__
+		c = self.__module__
 
 	def list_expand(self) -> None:
 		a = [1, *[]]

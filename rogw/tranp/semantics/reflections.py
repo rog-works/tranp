@@ -493,6 +493,12 @@ class ProceduralResolver:
 			return receiver
 		elif isinstance(prop.decl, defs.Class):
 			return self.reflections.type_of_standard(type).to.proxy(node).extends(prop)
+		elif isinstance(prop.decl, defs.Method) and prop.decl.is_property:
+			# FIXME クラスのプロパティメソッドは通常存在しないため、修正を検討
+			function_helper = template.HelperBuilder(prop) \
+				.schema(lambda: {'klass': prop.attrs[0], 'parameters': prop.attrs[1:-1], 'returns': prop.attrs[-1]}) \
+				.build(template.Method)
+			return function_helper.returns(receiver)
 		else:
 			return prop
 

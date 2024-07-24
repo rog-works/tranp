@@ -64,7 +64,7 @@ Attributes:
 			},
 		),
 	])
-	def test_comment(self, source: str, expected: dict[str, Any]) -> None:
+	def test_parse(self, source: str, expected: dict[str, Any]) -> None:
 		comment = Comment.parse(source)
 		self.assertEqual(comment.description, expected['description'])
 		for index, elem in enumerate(comment.attributes):

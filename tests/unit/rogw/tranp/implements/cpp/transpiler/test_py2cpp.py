@@ -417,7 +417,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('StringOps.methods.block', 'assign[0]'), defs.MoveAssign, 'bool a = s.starts_with("");'),
 		(_ast('StringOps.methods.block', 'assign[1]'), defs.MoveAssign, 'bool b = s.ends_with("");'),
 		(_ast('StringOps.slice.block', 'assign[0]'), defs.MoveAssign, 'std::string a = s.substr(1, s.size() - 1);'),
-		(_ast('StringOps.slice.block', 'assign[1]'), defs.MoveAssign, 'std::string b = s.substr(0, 5 - 0);'),
+		(_ast('StringOps.slice.block', 'assign[1]'), defs.MoveAssign, 'std::string b = s.substr(0, 5);'),
 		(_ast('StringOps.len.block', 'assign'), defs.MoveAssign, 'int a = s.size();'),
 		(_ast('StringOps.format.block', 'assign[0]'), defs.MoveAssign, 'std::string a = std::format("{}, {}, {}", 1, 2, 3);'),
 		(_ast('StringOps.format.block', 'assign[1]'), defs.MoveAssign, 'std::string b = std::format(s, 1, 2, 3);'),

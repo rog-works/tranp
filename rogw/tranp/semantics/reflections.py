@@ -233,6 +233,8 @@ class Reflections:
 		symbol_raw = self.__finder.find_by_symbolic(self.__db, symbolic, prop_name)
 		if symbol_raw is None and isinstance(symbolic, defs.Class):
 			symbol_raw = self.__resolve_raw_recursive(symbolic, prop_name)
+		elif symbol_raw is None and isinstance(symbolic, defs.Function):  # XXX 関数もオブジェクトなので誤りではないが検討の余地あり
+			symbol_raw = self.__resolve_raw_fallback(symbolic, prop_name)
 
 		return symbol_raw
 
@@ -251,7 +253,17 @@ class Reflections:
 			if found_raw:
 				return found_raw
 
-		# 全てのクラスはobjectを継承している前提のため、暗黙的にフォールバック
+		return self.__resolve_raw_fallback(types, prop_name)
+
+	def __resolve_raw_fallback(self, types: defs.Class | defs.Function, prop_name: str) -> IReflection | None:
+		"""再帰探査の最後にobjectからシンボルを解決。未検出の場合はNoneを返却
+
+		Args:
+			types (Class | Function): クラス・関数定義ノード
+			prop_name (str): プロパティー名(空文字の場合は無視される)
+		Returns:
+			IReflection | None: シンボルデータ
+		"""
 		super_type = self.get_object()
 		if super_type.types != types:
 			found_raw = self.__resolve_raw(super_type.types, prop_name)

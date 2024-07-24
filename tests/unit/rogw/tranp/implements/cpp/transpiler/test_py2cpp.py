@@ -300,6 +300,9 @@ class TestPy2Cpp(TestCase):
 
 		(_ast('CVarOps.litelize.block', 'funccall[0]'), defs.FuncCall, 'printf("CVarOps");'),
 		(_ast('CVarOps.litelize.block', 'funccall[1]'), defs.FuncCall, f'printf("{fixture_module_path}");'),
+		(_ast('CVarOps.litelize.block', 'funccall[2]'), defs.FuncCall, f'printf("{fixture_module_path}");'),
+		(_ast('CVarOps.litelize.block', 'funccall[3]'), defs.FuncCall, 'printf("Sub");'),
+		(_ast('CVarOps.litelize.block', 'funccall[4]'), defs.FuncCall, 'printf("call");'),
 
 		(_ast('FuncOps.print.block', 'funccall'), defs.FuncCall, 'printf("message. %d, %f, %s", 1, 1.0, "abc");'),
 		(_ast('FuncOps.kw_params.block', 'assign'), defs.MoveAssign, 'std::string a = this->kw_params(1, 2);'),

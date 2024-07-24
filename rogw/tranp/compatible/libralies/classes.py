@@ -167,21 +167,21 @@ class Null:
 
 @__actual__('object')
 class Object:
-	def __init__(self) -> None:
-		# XXX 本来はプロパティーでは？修正を検討
-		self.__class__: type[object] = object
-		self.__dict__: dict[str, Any] = {}
-
+	def __init__(self) -> None: ...
+	@property
+	def __class__(self: T) -> type[T]: ...
+	@property
+	def __module__(self) -> str: ...
+	@property
+	def __name__(self) -> str: ...
+	@property
+	def __dict__(self) -> dict[str, Any]: ...
 	def __getattribute__(self, name: str) -> Any: ...
 	def __setattr__(self, name: str, value: Any) -> None: ...
 
 
 @__actual__('type')
-class Type(Generic[T]):
-	def __init__(self) -> None:
-		# XXX 本来はプロパティーでは？修正を検討
-		self.__name__: str = ''
-		self.__module__: str = ''
+class Type(Generic[T]): ...
 
 
 @__actual__('super')

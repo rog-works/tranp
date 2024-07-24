@@ -598,6 +598,10 @@ class Py2Cpp(ITranspiler):
 			cvar_receiver = re.sub(rf'(->|::|\.)({"|".join(CVars.exchanger_keys)})\(\)$', '', receiver)
 			move = spec.split('cvar_to_')[1]
 			return self.view.render(f'{node.classification}/cvar_to', vars={**relay_vars, 'receiver': cvar_receiver, 'move': move})
+		elif spec.startswith('__module__'):
+			return self.view.render(f'{node.classification}/{spec}', vars={**relay_vars, 'module_path': receiver_symbol.types.module_path})
+		elif spec.startswith('__name__'):
+			return self.view.render(f'{node.classification}/{spec}', vars={**relay_vars, 'symbol': receiver_symbol.types.symbol.tokens})
 		else:
 			return self.view.render(f'{node.classification}/default', vars=relay_vars)
 
@@ -624,7 +628,9 @@ class Py2Cpp(ITranspiler):
 			is_class_var_relay = is_class_receiver and is_class_prop
 			return is_class_alias or is_class_var_relay
 
-		if is_this_relay():
+		if node.prop.tokens in ['__module__', '__name__']:
+			return node.prop.tokens, CVars.RelayOperators.Raw.name
+		elif is_this_relay():
 			return 'this', CVars.RelayOperators.Address.name
 		elif is_on_cvar_relay():
 			cvar_key = CVars.key_from(self.reflections, receiver_symbol.context)

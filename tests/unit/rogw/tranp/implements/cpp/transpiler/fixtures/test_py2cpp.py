@@ -212,6 +212,10 @@ class CVarOps:
 		a = self.prop_relay.prop_relay
 		return self
 
+	def litelize(self) -> None:
+		print(self.__class__.__name__)
+		print(self.__module__)
+
 
 class FuncOps:
 	def print(self) -> None:

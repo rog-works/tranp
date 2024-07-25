@@ -1,1 +1,13 @@
-{{ i18n('cpp', 'string.format') }}({{ receiver }}, {{ arguments | join(', ') }}){% if is_statement %};{% endif %}
+{%- set alt_receiver = namespace(at=receiver) -%}
+{%- set alt_arguments = namespace(at=[]) -%}
+{%- for i in range(formatters | length) -%}
+	{%- set formatter = formatters[i] -%}
+	{%- set tag = '{' + formatter.label + '}' -%}
+	{%- set alt_receiver.at = alt_receiver.at | replace(tag, formatter.tag) -%}
+	{%- if formatter.tag == '%s' and not formatter.is_literal -%}
+		{%- set alt_arguments.at = alt_arguments.at + ['(' + arguments[i] + ').c_str()'] -%}
+	{%- else -%}
+		{%- set alt_arguments.at = alt_arguments.at + [arguments[i]] -%}
+	{%- endif -%}
+{%- endfor -%}
+{{ i18n('cpp', 'string.format') }}({{ alt_receiver.at }}, {{ alt_arguments.at | join(', ') }}){% if is_statement %};{% endif %}

@@ -215,6 +215,9 @@ class CVarOps:
 	def litelize(self) -> None:
 		print(self.__class__.__name__)
 		print(self.__module__)
+		print(Sub.__module__)
+		print(Sub.__name__)
+		print(Sub.call.__name__)
 
 
 class FuncOps:

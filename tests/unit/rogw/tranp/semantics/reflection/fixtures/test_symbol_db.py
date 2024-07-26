@@ -15,23 +15,28 @@ value: int = 0
 
 
 class Base(C):
+	base_str: str
+
 	def __init__(self) -> None:
 		self.base_str: str = S
 		# comment
 
 
 class Sub(Base):
+	numbers: 'list[int]'
+	# C: C XXX Pythonの構文的に前方宣言はNG
+
+	def __init__(self) -> None:
+		super().__init__()
+		self.numbers: 'list[int]' = []
+		self.C: C = C()
+
 	class Inner:
 		value: ClassVar[str] = ''
 
 		@classmethod
 		def class_func(cls) -> dict[str, int]:
 			return {cls.value: value}
-
-	def __init__(self) -> None:
-		super().__init__()
-		self.numbers: 'list[int]' = []
-		self.C: C = C()
 
 	@property
 	def first_number(self) -> int:
@@ -134,10 +139,10 @@ class Sub(Base):
 		s_slice = s[0:]
 		dsn = cast(dict[str, int], {})
 
-	def type_props(self, t: type) -> None:
-		a = t.__name__
-		b = t.__class__
-		c = t.__module__
+	def type_props(self) -> None:
+		a = self.__class__.__name__
+		b = self.__class__
+		c = self.__module__
 
 	def list_expand(self) -> None:
 		a = [1, *[]]
@@ -215,7 +220,11 @@ class TupleOps:
 		for key11 in d.keys(): ...
 		for pair10 in d: ...
 
-	def unpack_assign(self) -> None:
+	def assign(self, index: int) -> None:
+		t = (1, 'a')
+		t0 = t[0]
+		t1 = t[1]
+		tu = t[index]
 		# XXX Pythonのシンタックス上は不正
 		a, b = {'a': 1}
 

@@ -552,12 +552,11 @@ class ProceduralResolver:
 		elif self.reflections.is_a(receiver, dict):
 			return receiver.attrs[1].to.relay(node, context=receiver)
 		elif self.reflections.is_a(receiver, type):
+			# この処理は実質的にCustomTypeの展開と等価
+			# XXX 不可解なスタックの解除と追加が連続して意味不明なので修正を検討
 			unpacked_receiver = self.unpack_type_proxy(receiver)
 			unpacked_keys = [self.unpack_type_proxy(key) for key in keys]
-			klass_helper = template.HelperBuilder(unpacked_receiver) \
-				.schema(lambda: {'klass': unpacked_receiver, 'template_types': unpacked_receiver.attrs}) \
-				.build(template.Class)
-			klass_symbol = klass_helper.definition(*unpacked_keys)
+			klass_symbol = unpacked_receiver.to.relay(node, context=unpacked_receiver).extends(*unpacked_keys)
 			return self.reflections.type_of_standard(type).to.proxy(node).extends(klass_symbol).to.relay(node, context=unpacked_receiver)
 		else:
 			# XXX コレクション型以外は全て通常のクラスである想定

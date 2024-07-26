@@ -781,7 +781,7 @@ class Py2Cpp(ITranspiler):
 			formatters: list[dict[str, Any]] = []
 			for argument in node.arguments:
 				arg_symbol = self.reflections.type_of(argument)
-				formatters.append({'label': argument.label.tokens, 'tag': to_tags.get(arg_symbol.types.domain_name, '%s'), 'is_literal': argument.value.is_a(defs.Literal)})
+				formatters.append({'label': argument.label.tokens, 'tag': to_tags.get(arg_symbol.types.domain_name, '%s'), 'var_type': arg_symbol.types.domain_name, 'is_literal': argument.value.is_a(defs.Literal)})
 
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'is_literal': is_literal, 'formatters': formatters})
 		elif spec == 'cast':

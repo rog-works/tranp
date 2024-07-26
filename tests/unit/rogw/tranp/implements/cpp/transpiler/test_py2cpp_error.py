@@ -51,7 +51,7 @@ class TestPy2CppError(TestCase):
 		(_ast('InvalidOps.return_of_raw_or_null', ''), ProcessingError, r'Unexpected UnionType.'),
 		(_ast('InvalidOps.yield_return.block', 'yield_stmt'), NotSupportedError, r'Denied yield return.'),
 		(_ast('InvalidOps.delete_relay.block', 'del_stmt'), ProcessingError, r'Unexpected delete target.'),
-		(_ast('InvalidOps.destruction_assign.block', 'assign'), NotSupportedError, r'Denied destruction assign.'),
+		(_ast('InvalidOps.destruction_assign.block', 'assign'), ProcessingError, r'Not allowed destruction assign.'),
 	])
 	def test_exec_error(self, full_path: str, expected_error: type[Exception], expected: re.Pattern) -> None:
 		transpiler = self.fixture.get(Py2Cpp)

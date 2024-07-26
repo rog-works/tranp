@@ -473,9 +473,12 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(f'assign/{node.classification}', vars={'receiver': receiver, 'var_type': var_type, 'value': value, 'declared': declared, 'receiver_is_dict': receiver_is_dict})
 
 	def proc_move_assign_destruction(self, node: defs.MoveAssign, receivers: list[str], value: str) -> str:
-		"""Note: FIXME C++で展開できるのはpair/tupleだけであり、要素数が不定のlist/dictはそもそも非対応"""
-		# return self.view.render(f'assign/{node.classification}_destruction', vars={'receivers': receivers, 'value': value})
-		raise NotSupportedError(f'Denied destruction assign. node: {node}')
+		"""Note: C++で分割代入できるのはtuple/pairのみ。Pythonではいずれもtupleのため、tuple以外は非対応"""
+		value_raw = self.reflections.type_of(node.value)
+		if not self.reflections.is_a(value_raw, tuple):
+			raise LogicError(f'Not allowed destruction assign. value must be a tuple. node: {node}')
+
+		return self.view.render(f'assign/{node.classification}_destruction', vars={'receivers': receivers, 'value': value})
 
 	def on_anno_assign(self, node: defs.AnnoAssign, receiver: str, var_type: str, value: str) -> str:
 		return self.view.render(f'assign/{node.classification}', vars={'receiver': receiver, 'var_type': var_type, 'value': value})

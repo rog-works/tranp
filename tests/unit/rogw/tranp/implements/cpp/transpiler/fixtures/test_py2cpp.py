@@ -511,6 +511,9 @@ class AssignOps:
 		a: int = 1
 		b = 'b'
 		b += str(a)
+		t = (1, 'a')
+		t0 = t[0]
+		t1 = t[1]
 
 
 def template_func(v: T) -> T: ...

@@ -431,8 +431,11 @@ class TestPy2Cpp(TestCase):
 		(_ast('StringOps.format.block', 'assign[1]'), defs.MoveAssign, 'std::string b = std::format(s, 1, 2, 3);'),
 
 		(_ast('AssignOps.assign.block', 'anno_assign'), defs.AnnoAssign, 'int a = 1;'),
-		(_ast('AssignOps.assign.block', 'assign'), defs.MoveAssign, 'std::string b = "b";'),
+		(_ast('AssignOps.assign.block', 'assign[1]'), defs.MoveAssign, 'std::string b = "b";'),
 		(_ast('AssignOps.assign.block', 'aug_assign'), defs.AugAssign, 'b += std::to_string(a);'),
+		(_ast('AssignOps.assign.block', 'assign[3]'), defs.MoveAssign, 'std::tuple<int, std::string> t = {1, "a"};'),
+		(_ast('AssignOps.assign.block', 'assign[4]'), defs.MoveAssign, 'int t0 = t[0];'),
+		(_ast('AssignOps.assign.block', 'assign[5]'), defs.MoveAssign, 'std::string t1 = t[1];'),
 
 		(_ast('template_func', ''), defs.Function, '/** template_func */\ntemplate<typename T>\nT template_func(T v) {\n\n}'),
 	])

@@ -155,7 +155,11 @@ class Dict(Sequence[tuple[T_Key, T_Value]]):
 
 @__actual__('tuple')
 class Tuple:
-	"""Note: FIXME 実装にはTypeVarTupleとUnpackの実装が必要"""
+	"""
+	Note:
+		XXX 本来の定義: `class Tuple(Sequence(tuple[*T_tuple])):`
+		XXX 実装にはTypeVarTupleとUnpackが必要だが、無くても問題ないため一旦対応は保留
+	"""
 
 
 @__actual__('None')

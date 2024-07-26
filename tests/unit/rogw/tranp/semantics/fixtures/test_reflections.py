@@ -220,7 +220,11 @@ class TupleOps:
 		for key11 in d.keys(): ...
 		for pair10 in d: ...
 
-	def unpack_assign(self) -> None:
+	def assign(self, index: int) -> None:
+		t = (1, 'a')
+		t0 = t[0]
+		t1 = t[1]
+		tu = t[index]
 		# XXX Pythonのシンタックス上は不正
 		a, b = {'a': 1}
 

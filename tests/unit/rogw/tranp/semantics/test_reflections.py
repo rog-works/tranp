@@ -263,8 +263,12 @@ class TestReflections(TestCase):
 		(ModuleDSN.full_joined(fixture_module_path, 'AliasOps.func.z2_in_x'), 'A'),
 		(ModuleDSN.full_joined(fixture_module_path, 'AliasOps.func.new_z2_in_x'), 'A'),
 
-		(ModuleDSN.full_joined(fixture_module_path, 'TupleOps.unpack_assign.a'), 'str'),  # XXX Pythonのシンタックス上は不正。一旦保留
-		(ModuleDSN.full_joined(fixture_module_path, 'TupleOps.unpack_assign.b'), 'int'),  # XXX 〃
+		(ModuleDSN.full_joined(fixture_module_path, 'TupleOps.assign.t'), 'tuple<int, str>'),
+		(ModuleDSN.full_joined(fixture_module_path, 'TupleOps.assign.t0'), 'int'),
+		(ModuleDSN.full_joined(fixture_module_path, 'TupleOps.assign.t1'), 'str'),
+		(ModuleDSN.full_joined(fixture_module_path, 'TupleOps.assign.tu'), 'Union<int, str>'),
+		(ModuleDSN.full_joined(fixture_module_path, 'TupleOps.assign.a'), 'str'),  # XXX Pythonのシンタックス上は不正。一旦保留
+		(ModuleDSN.full_joined(fixture_module_path, 'TupleOps.assign.b'), 'int'),  # XXX 〃
 
 		(ModuleDSN.full_joined(fixture_module_path, 'CompOps.list_comp.values0'), 'list<int>'),
 		(ModuleDSN.full_joined(fixture_module_path, 'CompOps.list_comp.values1'), 'list<int>'),

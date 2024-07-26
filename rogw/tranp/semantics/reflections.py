@@ -551,6 +551,14 @@ class ProceduralResolver:
 			return receiver.attrs[0].to.relay(node, context=receiver)
 		elif self.reflections.is_a(receiver, dict):
 			return receiver.attrs[1].to.relay(node, context=receiver)
+		elif self.reflections.is_a(receiver, tuple):
+			if keys[0].via and keys[0].via.is_a(defs.Integer):
+				# インデックスが判明している場合はその位置の型を返却
+				index = int(keys[0].via.as_a(defs.Integer).tokens)
+				return receiver.attrs[index].to.relay(node, context=receiver)
+			else:
+				# インデックスが不明の場合は共用型とする
+				return self.reflections.type_of_standard(classes.Union).to.relay(node, context=receiver).extends(*receiver.attrs)
 		elif self.reflections.is_a(receiver, type):
 			# この処理は実質的にCustomTypeの展開と等価
 			# XXX 不可解なスタックの解除と追加が連続して意味不明なので修正を検討

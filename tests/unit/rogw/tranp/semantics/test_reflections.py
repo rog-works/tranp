@@ -320,7 +320,6 @@ class TestReflections(TestCase):
 		(str, _mod('classes', str.__name__)),
 		(bool, _mod('classes', bool.__name__)),
 		(tuple, _mod('classes', tuple.__name__)),
-		(classes.Pair, _mod('classes', classes.Pair.__name__)),
 		(list, _mod('classes', list.__name__)),
 		(dict, _mod('classes', dict.__name__)),
 		(classes.Unknown, _mod('classes', classes.Unknown.__name__)),
@@ -421,13 +420,13 @@ class TestReflections(TestCase):
 		(_ast('TupleOps.unpack.block', 'for_stmt[0].for_namelist.name[1]'), _mod('classes', 'int'), 'int'),
 		(_ast('TupleOps.unpack.block', 'for_stmt[1].for_namelist.name'), _mod('classes', 'int'), 'int'),
 		(_ast('TupleOps.unpack.block', 'for_stmt[2].for_namelist.name'), _mod('classes', 'str'), 'str'),
-		(_ast('TupleOps.unpack.block', 'for_stmt[3].for_namelist.name'), _mod('classes', 'Pair'), 'Pair<str, int>'),
+		(_ast('TupleOps.unpack.block', 'for_stmt[3].for_namelist.name'), _mod('classes', 'tuple'), 'tuple<str, int>'),
 
 		(_ast('TupleOps.unpack.block', 'for_stmt[5].for_namelist.name[0]'), _mod('classes', 'str'), 'str'),
 		(_ast('TupleOps.unpack.block', 'for_stmt[5].for_namelist.name[1]'), ModuleDSN.full_joined(fixture_module_path, 'DSI'), 'DSI=dict<str, int>'),
 		(_ast('TupleOps.unpack.block', 'for_stmt[6].for_namelist.name'), ModuleDSN.full_joined(fixture_module_path, 'DSI'), 'DSI=dict<str, int>'),
 		(_ast('TupleOps.unpack.block', 'for_stmt[7].for_namelist.name'), _mod('classes', 'str'), 'str'),
-		(_ast('TupleOps.unpack.block', 'for_stmt[8].for_namelist.name'), _mod('classes', 'Pair'), 'Pair<str, DSI=dict<str, int>>'),
+		(_ast('TupleOps.unpack.block', 'for_stmt[8].for_namelist.name'), _mod('classes', 'tuple'), 'tuple<str, DSI=dict<str, int>>'),
 
 		(_ast('CompOps.list_comp.block', 'aug_assign.assign_namelist.var'), _mod('classes', 'int'), 'int'),
 		(_ast('CompOps.list_comp.block', 'aug_assign.getitem'), _mod('classes', 'float'), 'float'),

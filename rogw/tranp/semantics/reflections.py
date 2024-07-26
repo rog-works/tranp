@@ -196,7 +196,7 @@ class Reflections:
 			projection = self.__resolve_procedural(node.projection)
 			# XXX 属性の扱いの違いを吸収
 			# XXX list: int
-			# XXX dict: Pair<str, int>
+			# XXX dict: tuple<str, int>
 			attrs = [projection] if projection_type is list else projection.attrs
 			return origin.to.result(node).extends(*attrs)
 		else:
@@ -771,7 +771,7 @@ class ProceduralResolver:
 		return self.reflections.type_of_standard(bool).to.literal(node)
 
 	def on_pair(self, node: defs.Pair, first: IReflection, second: IReflection) -> IReflection:
-		return self.reflections.type_of_standard(classes.Pair).to.literal(node).extends(first, second)
+		return self.reflections.type_of_standard(tuple).to.literal(node).extends(first, second)
 
 	def on_list(self, node: defs.List, values: list[IReflection]) -> IReflection:
 		unknown_type = self.reflections.type_of_standard(classes.Unknown)

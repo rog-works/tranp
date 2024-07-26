@@ -108,7 +108,7 @@ class Pair(Literal):
 	@property
 	@implements
 	def literal_identifier(self) -> str:
-		return classes.Pair.__name__
+		return 'Pair'
 
 
 @Meta.embed(Node, accept_tags('list'))

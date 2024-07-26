@@ -1,14 +1,14 @@
 import re
-from typing import cast
+from typing import Any, cast
 
 from rogw.tranp.compatible.cpp.embed import __allow_override__, __embed__, __struct__
+from rogw.tranp.compatible.cpp.object import CP
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.data.meta.header import MetaHeader
 from rogw.tranp.data.meta.types import ModuleMetaFactory, TranspilerMeta
 from rogw.tranp.data.version import Versions
 from rogw.tranp.dsn.dsn import DSN
-from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.dsn.translation import alias_dsn, import_dsn
 from rogw.tranp.errors import LogicError
 from rogw.tranp.i18n.i18n import I18n
@@ -777,7 +777,13 @@ class Py2Cpp(ITranspiler):
 		elif spec == 'str_format':
 			is_literal = node.calls.as_a(defs.Relay).receiver.is_a(defs.String)
 			receiver = re.sub(r'(->|::|\.)\w+$', '', calls)
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'is_literal': is_literal})
+			to_tags = {int.__name__: '%d', float.__name__: '%f', str.__name__: '%s', CP.__name__: '%p'}
+			formatters: list[dict[str, Any]] = []
+			for argument in node.arguments:
+				arg_symbol = self.reflections.type_of(argument)
+				formatters.append({'label': argument.label.tokens, 'tag': to_tags.get(arg_symbol.types.domain_name, '%s'), 'var_type': arg_symbol.types.domain_name, 'is_literal': argument.value.is_a(defs.Literal)})
+
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'is_literal': is_literal, 'formatters': formatters})
 		elif spec == 'cast':
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})

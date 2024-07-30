@@ -604,7 +604,7 @@ class Py2Cpp(ITranspiler):
 		elif spec.startswith('__module__'):
 			return self.view.render(f'{node.classification}/{spec}', vars={**relay_vars, 'module_path': receiver_symbol.types.module_path})
 		elif spec.startswith('__name__'):
-			return self.view.render(f'{node.classification}/{spec}', vars={**relay_vars, 'symbol': receiver_symbol.types.symbol.tokens})
+			return self.view.render(f'{node.classification}/{spec}', vars={**relay_vars, 'symbol': self.to_domain_name_by_class(receiver_symbol.types)})
 		else:
 			return self.view.render(f'{node.classification}/default', vars=relay_vars)
 

@@ -77,7 +77,6 @@ class ASTMapping:
 		'CVarOps.addr_calc.block': f'{_CVarOps}.class_def_raw.block.function_def[14].function_def_raw.block',
 		'CVarOps.raw.block': f'{_CVarOps}.class_def_raw.block.function_def[15].function_def_raw.block',
 		'CVarOps.prop_relay.block': f'{_CVarOps}.class_def_raw.block.function_def[16].function_def_raw.block',
-		'CVarOps.litelize.block': f'{_CVarOps}.class_def_raw.block.function_def[17].function_def_raw.block',
 
 		'FuncOps.print.block': f'{_FuncOps}.class_def_raw.block.function_def[0].function_def_raw.block',
 		'FuncOps.kw_params.block': f'{_FuncOps}.class_def_raw.block.function_def[1].function_def_raw.block',
@@ -100,6 +99,7 @@ class ASTMapping:
 		'Alias.in_local.block': f'{_Alias}.class_def_raw.block.function_def[6].function_def_raw.block',
 		'Alias.in_class_method.block': f'{_Alias}.class_def_raw.block.function_def[7].function_def_raw.block',
 		'Alias.InnerB.super_call.block': f'{_Alias}.class_def_raw.block.class_def[8].class_def_raw.block.function_def.function_def_raw.block',
+		'Alias.litelize.block': f'{_Alias}.class_def_raw.block.function_def[9].function_def_raw.block',
 
 		'CompOps.list_comp.block': f'{_CompOps}.class_def_raw.block.function_def[1].function_def_raw.block',
 		'CompOps.dict_comp.block': f'{_CompOps}.class_def_raw.block.function_def[2].function_def_raw.block',
@@ -298,12 +298,6 @@ class TestPy2Cpp(TestCase):
 
 		(_ast('CVarOps.prop_relay.block', 'assign'), defs.MoveAssign, 'CVarOps a = this->prop_relay().prop_relay();'),
 
-		(_ast('CVarOps.litelize.block', 'funccall[0]'), defs.FuncCall, 'printf("CVarOps");'),
-		(_ast('CVarOps.litelize.block', 'funccall[1]'), defs.FuncCall, f'printf("{fixture_module_path}");'),
-		(_ast('CVarOps.litelize.block', 'funccall[2]'), defs.FuncCall, f'printf("{fixture_module_path}");'),
-		(_ast('CVarOps.litelize.block', 'funccall[3]'), defs.FuncCall, 'printf("Sub");'),
-		(_ast('CVarOps.litelize.block', 'funccall[4]'), defs.FuncCall, 'printf("call");'),
-
 		(_ast('FuncOps.print.block', 'funccall'), defs.FuncCall, 'printf("message. %d, %f, %s", 1, 1.0, "abc");'),
 		(_ast('FuncOps.kw_params.block', 'assign'), defs.MoveAssign, 'std::string a = this->kw_params(1, 2);'),
 
@@ -355,6 +349,11 @@ class TestPy2Cpp(TestCase):
 		(_ast('Alias.in_class_method.block', 'assign[2]'), defs.MoveAssign, 'std::map<Alias2::Values, Alias2::Values> d = {\n\t{Alias2::Values::A, Alias2::Values::B},\n\t{Alias2::Values::B, Alias2::Values::A},\n};'),
 		(_ast('Alias.in_class_method.block', 'assign[3]'), defs.MoveAssign, 'std::map<int, std::vector<int>> d2 = {\n\t{static_cast<int>(Alias2::Values::A), {static_cast<int>(Alias2::Values::B)}},\n\t{static_cast<int>(Alias2::Values::B), {static_cast<int>(Alias2::Values::A)}},\n};'),
 		(_ast('Alias.InnerB.super_call.block', 'funccall'), defs.FuncCall, 'Alias2::Inner2::func();'),
+		(_ast('Alias.litelize.block', 'funccall[0]'), defs.FuncCall, 'printf("Alias2");'),
+		(_ast('Alias.litelize.block', 'funccall[1]'), defs.FuncCall, f'printf("{fixture_module_path}");'),
+		(_ast('Alias.litelize.block', 'funccall[2]'), defs.FuncCall, f'printf("{fixture_module_path}");'),
+		(_ast('Alias.litelize.block', 'funccall[3]'), defs.FuncCall, 'printf("Inner2");'),
+		(_ast('Alias.litelize.block', 'funccall[4]'), defs.FuncCall, 'printf("in_local");'),
 
 		(_ast('CompOps.list_comp.block', 'assign[1]'), defs.MoveAssign, BlockExpects.CompOps_list_comp_assign_values1),
 		(_ast('CompOps.dict_comp.block', 'assign[1]'), defs.MoveAssign, BlockExpects.CompOps_dict_comp_assign_kvs0_1),

@@ -212,13 +212,6 @@ class CVarOps:
 		a = self.prop_relay.prop_relay
 		return self
 
-	def litelize(self) -> None:
-		print(self.__class__.__name__)
-		print(self.__module__)
-		print(Sub.__module__)
-		print(Sub.__name__)
-		print(Sub.call.__name__)
-
 
 class FuncOps:
 	def print(self) -> None:
@@ -329,6 +322,13 @@ class Alias:
 	class InnerB(Inner):
 		def super_call(self) -> None:
 			super().func()
+
+	def litelize(self) -> None:
+		print(self.__class__.__name__)
+		print(self.__module__)
+		print(Alias.__module__)
+		print(Alias.Inner.__name__)
+		print(Alias.in_local.__name__)
 
 
 class CompOps:

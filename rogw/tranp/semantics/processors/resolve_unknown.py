@@ -88,4 +88,5 @@ class ResolveUnknown:
 			return value_raw
 
 		index = decl_vars.index(var_raw.decl)
-		return value_raw.attrs[index]
+		actual_value_raw = value_raw.attrs[0] if value_raw.types.is_a(defs.AltClass) else value_raw
+		return actual_value_raw.attrs[index]

@@ -169,6 +169,18 @@ class Py2Cpp(ITranspiler):
 
 		return symbol
 
+	def unpack_alt_class(self, symbol: IReflection) -> IReflection:
+		"""AltClass型をアンパック
+
+		Args:
+			symbol (IReflection): シンボル
+		Returns:
+			IReflection: 変数の型
+		Note:
+			@see ProcedureResolver.unpack_alt_class
+		"""
+		return symbol.attrs[0] if isinstance(symbol.types, defs.AltClass) else symbol
+
 	def unpack_type_proxy(self, symbol: IReflection) -> IReflection:
 		"""typeのProxy型をアンパック
 
@@ -475,6 +487,7 @@ class Py2Cpp(ITranspiler):
 	def proc_move_assign_destruction(self, node: defs.MoveAssign, receivers: list[str], value: str) -> str:
 		"""Note: C++で分割代入できるのはtuple/pairのみ。Pythonではいずれもtupleのため、tuple以外は非対応"""
 		value_raw = self.reflections.type_of(node.value)
+		value_raw = self.unpack_alt_class(value_raw)
 		if not self.reflections.is_a(value_raw, tuple):
 			raise LogicError(f'Not allowed destruction assign. value must be a tuple. node: {node}')
 

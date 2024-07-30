@@ -1,7 +1,7 @@
 {%- if move == 'ToAddress' -%}
-&({{ receiver }}){% if is_statement %};{% endif %}
+(&({{ receiver }})){% if is_statement %};{% endif %}
 {%- elif move == 'ToActual' -%}
-*({{ receiver }}){% if is_statement %};{% endif %}
+(*({{ receiver }})){% if is_statement %};{% endif %}
 {%- elif move == 'UnpackSp' -%}
 ({{ receiver }}).{{ i18n('cpp', 'shared_ptr.get') }}(){% if is_statement %};{% endif %}
 {%- else %}{# move == 'Copy' -#}

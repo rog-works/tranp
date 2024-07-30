@@ -207,45 +207,45 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarOps.ret_csp.return', ''), defs.Return, 'return std::make_shared<Sub>(0);'),
 
 		(_ast('CVarOps.local_move.block', 'anno_assign[0]'), defs.AnnoAssign, 'Sub a = Sub(0);'),
-		(_ast('CVarOps.local_move.block', 'anno_assign[1]'), defs.AnnoAssign, 'Sub* ap = &(a);'),
+		(_ast('CVarOps.local_move.block', 'anno_assign[1]'), defs.AnnoAssign, 'Sub* ap = (&(a));'),
 		(_ast('CVarOps.local_move.block', 'anno_assign[2]'), defs.AnnoAssign, 'std::shared_ptr<Sub> asp = std::make_shared<Sub>(0);'),
 		(_ast('CVarOps.local_move.block', 'anno_assign[3]'), defs.AnnoAssign, 'Sub& ar = a;'),
 		(_ast('CVarOps.local_move.block', 'if_stmt[4].if_clause.block.assign[0]'), defs.MoveAssign, 'a = a;'),
-		(_ast('CVarOps.local_move.block', 'if_stmt[4].if_clause.block.assign[1]'), defs.MoveAssign, 'a = *(ap);'),
-		(_ast('CVarOps.local_move.block', 'if_stmt[4].if_clause.block.assign[2]'), defs.MoveAssign, 'a = *(asp);'),
+		(_ast('CVarOps.local_move.block', 'if_stmt[4].if_clause.block.assign[1]'), defs.MoveAssign, 'a = (*(ap));'),
+		(_ast('CVarOps.local_move.block', 'if_stmt[4].if_clause.block.assign[2]'), defs.MoveAssign, 'a = (*(asp));'),
 		(_ast('CVarOps.local_move.block', 'if_stmt[4].if_clause.block.assign[3]'), defs.MoveAssign, 'a = ar;'),
-		(_ast('CVarOps.local_move.block', 'if_stmt[5].if_clause.block.assign[0]'), defs.MoveAssign, 'ap = &(a);'),
+		(_ast('CVarOps.local_move.block', 'if_stmt[5].if_clause.block.assign[0]'), defs.MoveAssign, 'ap = (&(a));'),
 		(_ast('CVarOps.local_move.block', 'if_stmt[5].if_clause.block.assign[1]'), defs.MoveAssign, 'ap = ap;'),
 		(_ast('CVarOps.local_move.block', 'if_stmt[5].if_clause.block.assign[2]'), defs.MoveAssign, 'ap = (asp).get();'),
-		(_ast('CVarOps.local_move.block', 'if_stmt[5].if_clause.block.assign[3]'), defs.MoveAssign, 'ap = &(ar);'),
+		(_ast('CVarOps.local_move.block', 'if_stmt[5].if_clause.block.assign[3]'), defs.MoveAssign, 'ap = (&(ar));'),
 		(_ast('CVarOps.local_move.block', 'if_stmt[6].if_clause.block.assign'), defs.MoveAssign, 'asp = asp;'),
 		(_ast('CVarOps.local_move.block', 'if_stmt[7].if_clause.block.assign[1]'), defs.MoveAssign, 'ar = a;'),  # XXX C++ではNGだが要件等 ※型推論のコストをかけてまでエラー判定が必要なのか微妙
-		(_ast('CVarOps.local_move.block', 'if_stmt[7].if_clause.block.assign[3]'), defs.MoveAssign, 'ar = *(ap);'),  # 〃
-		(_ast('CVarOps.local_move.block', 'if_stmt[7].if_clause.block.assign[5]'), defs.MoveAssign, 'ar = *(asp);'),  # 〃
+		(_ast('CVarOps.local_move.block', 'if_stmt[7].if_clause.block.assign[3]'), defs.MoveAssign, 'ar = (*(ap));'),  # 〃
+		(_ast('CVarOps.local_move.block', 'if_stmt[7].if_clause.block.assign[5]'), defs.MoveAssign, 'ar = (*(asp));'),  # 〃
 		(_ast('CVarOps.local_move.block', 'if_stmt[7].if_clause.block.assign[7]'), defs.MoveAssign, 'ar = ar;'),  # 〃
 
 		(_ast('CVarOps.param_move.block', 'assign[0]'), defs.MoveAssign, 'Sub a1 = a;'),
-		(_ast('CVarOps.param_move.block', 'anno_assign[1]'), defs.AnnoAssign, 'Sub a2 = *(ap);'),
-		(_ast('CVarOps.param_move.block', 'anno_assign[2]'), defs.AnnoAssign, 'Sub a3 = *(asp);'),
+		(_ast('CVarOps.param_move.block', 'anno_assign[1]'), defs.AnnoAssign, 'Sub a2 = (*(ap));'),
+		(_ast('CVarOps.param_move.block', 'anno_assign[2]'), defs.AnnoAssign, 'Sub a3 = (*(asp));'),
 		(_ast('CVarOps.param_move.block', 'anno_assign[3]'), defs.AnnoAssign, 'Sub a4 = ar;'),
 		(_ast('CVarOps.param_move.block', 'assign[4]'), defs.MoveAssign, 'a = a1;'),
-		(_ast('CVarOps.param_move.block', 'assign[5]'), defs.MoveAssign, 'ap = &(a2);'),
+		(_ast('CVarOps.param_move.block', 'assign[5]'), defs.MoveAssign, 'ap = (&(a2));'),
 		(_ast('CVarOps.param_move.block', 'assign[8]'), defs.MoveAssign, 'ar = a4;'),  # XXX C++ではNGだが要件等 ※型推論のコストをかけてまでエラー判定が必要なのか微妙
 
-		(_ast('CVarOps.invoke_method.block', 'funccall'), defs.FuncCall, 'this->invoke_method(*(asp), (asp).get(), asp);'),
+		(_ast('CVarOps.invoke_method.block', 'funccall'), defs.FuncCall, 'this->invoke_method((*(asp)), (asp).get(), asp);'),
 
 		(_ast('CVarOps.unary_calc.block', 'assign[0]'), defs.MoveAssign, 'Sub neg_a = -a;'),
-		(_ast('CVarOps.unary_calc.block', 'assign[1]'), defs.MoveAssign, 'Sub neg_a2 = -*(ap);'),
-		(_ast('CVarOps.unary_calc.block', 'assign[2]'), defs.MoveAssign, 'Sub neg_a3 = -*(asp);'),
+		(_ast('CVarOps.unary_calc.block', 'assign[1]'), defs.MoveAssign, 'Sub neg_a2 = -(*(ap));'),
+		(_ast('CVarOps.unary_calc.block', 'assign[2]'), defs.MoveAssign, 'Sub neg_a3 = -(*(asp));'),
 		(_ast('CVarOps.unary_calc.block', 'assign[3]'), defs.MoveAssign, 'Sub neg_a4 = -ar;'),
 
-		(_ast('CVarOps.binary_calc.block', 'assign[0]'), defs.MoveAssign, 'Sub add = a + *(ap) + *(asp) + ar;'),
-		(_ast('CVarOps.binary_calc.block', 'assign[1]'), defs.MoveAssign, 'Sub sub = a - *(ap) - *(asp) - ar;'),
-		(_ast('CVarOps.binary_calc.block', 'assign[2]'), defs.MoveAssign, 'Sub mul = a * *(ap) * *(asp) * ar;'),
-		(_ast('CVarOps.binary_calc.block', 'assign[3]'), defs.MoveAssign, 'Sub div = a / *(ap) / *(asp) / ar;'),
-		(_ast('CVarOps.binary_calc.block', 'assign[4]'), defs.MoveAssign, 'Sub calc = a + *(ap) * *(asp) - ar / a;'),
-		(_ast('CVarOps.binary_calc.block', 'assign[5]'), defs.MoveAssign, 'bool is_a = a == *(ap) == *(asp) == ar;'),
-		(_ast('CVarOps.binary_calc.block', 'assign[6]'), defs.MoveAssign, 'bool is_not_a = a != *(ap) != *(asp) != ar;'),
+		(_ast('CVarOps.binary_calc.block', 'assign[0]'), defs.MoveAssign, 'Sub add = a + (*(ap)) + (*(asp)) + ar;'),
+		(_ast('CVarOps.binary_calc.block', 'assign[1]'), defs.MoveAssign, 'Sub sub = a - (*(ap)) - (*(asp)) - ar;'),
+		(_ast('CVarOps.binary_calc.block', 'assign[2]'), defs.MoveAssign, 'Sub mul = a * (*(ap)) * (*(asp)) * ar;'),
+		(_ast('CVarOps.binary_calc.block', 'assign[3]'), defs.MoveAssign, 'Sub div = a / (*(ap)) / (*(asp)) / ar;'),
+		(_ast('CVarOps.binary_calc.block', 'assign[4]'), defs.MoveAssign, 'Sub calc = a + (*(ap)) * (*(asp)) - ar / a;'),
+		(_ast('CVarOps.binary_calc.block', 'assign[5]'), defs.MoveAssign, 'bool is_a = a == (*(ap)) == (*(asp)) == ar;'),
+		(_ast('CVarOps.binary_calc.block', 'assign[6]'), defs.MoveAssign, 'bool is_not_a = a != (*(ap)) != (*(asp)) != ar;'),
 		(_ast('CVarOps.binary_calc.block', 'assign[7]'), defs.MoveAssign, 'bool is_null = apn == nullptr && apn != nullptr;'),
 
 		(_ast('CVarOps.tenary_calc.block', 'assign[0]'), defs.MoveAssign, 'Sub a2 = true ? a : Sub();'),
@@ -255,7 +255,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarOps.tenary_calc.block', 'assign[4]'), defs.MoveAssign, 'Sub& ar2 = true ? ar : ar;'),
 		(_ast('CVarOps.tenary_calc.block', 'assign[5]'), defs.MoveAssign, 'Sub* ap_or_null = true ? ap : nullptr;'),
 
-		(_ast('CVarOps.declare.block', 'assign[1]'), defs.MoveAssign, 'std::vector<int>* arr_p = &(arr);'),
+		(_ast('CVarOps.declare.block', 'assign[1]'), defs.MoveAssign, 'std::vector<int>* arr_p = (&(arr));'),
 		(_ast('CVarOps.declare.block', 'assign[2]'), defs.MoveAssign, 'std::vector<int>* arr_p2 = new std::vector<int>();'),
 		(_ast('CVarOps.declare.block', 'assign[3]'), defs.MoveAssign, 'std::shared_ptr<std::vector<int>> arr_sp = std::shared_ptr<std::vector<int>>(new std::vector<int>({1}));'),
 		(_ast('CVarOps.declare.block', 'assign[4]'), defs.MoveAssign, 'std::shared_ptr<std::vector<int>> arr_sp2 = std::shared_ptr<std::vector<int>>(new std::vector<int>());'),
@@ -271,28 +271,28 @@ class TestPy2Cpp(TestCase):
 		(_ast('CVarOps.const_move.block', 'assign[0]'), defs.MoveAssign, 'const Sub a_const0 = a;'),
 		(_ast('CVarOps.const_move.block', 'assign[1]'), defs.MoveAssign, 'Sub a0 = a_const0;'),
 		(_ast('CVarOps.const_move.block', 'assign[2]'), defs.MoveAssign, 'const Sub& r0_const = a_const0;'),
-		(_ast('CVarOps.const_move.block', 'assign[3]'), defs.MoveAssign, 'const Sub* ap0_const = &(a_const0);'),
+		(_ast('CVarOps.const_move.block', 'assign[3]'), defs.MoveAssign, 'const Sub* ap0_const = (&(a_const0));'),
 
 		(_ast('CVarOps.const_move.block', 'assign[4]'), defs.MoveAssign, 'const Sub* ap_const1 = ap;'),
-		(_ast('CVarOps.const_move.block', 'assign[5]'), defs.MoveAssign, 'Sub a1 = *(ap_const1);'),
-		(_ast('CVarOps.const_move.block', 'assign[6]'), defs.MoveAssign, 'const Sub& r_const1 = *(ap_const1);'),
+		(_ast('CVarOps.const_move.block', 'assign[5]'), defs.MoveAssign, 'Sub a1 = (*(ap_const1));'),
+		(_ast('CVarOps.const_move.block', 'assign[6]'), defs.MoveAssign, 'const Sub& r_const1 = (*(ap_const1));'),
 
 		(_ast('CVarOps.const_move.block', 'assign[7]'), defs.MoveAssign, 'const std::shared_ptr<Sub> asp_const2 = asp;'),
-		(_ast('CVarOps.const_move.block', 'assign[8]'), defs.MoveAssign, 'Sub a2 = *(asp_const2);'),  # XXX 本来の期待値は`std::shared_ptr<Sub>`の様な気がするが、CVarsはただのプロクシーとして実装しているため、操作結果はCSPとほぼ同等になる
-		(_ast('CVarOps.const_move.block', 'assign[9]'), defs.MoveAssign, 'const Sub& r_const2 = *(asp_const2);'),  # 〃
+		(_ast('CVarOps.const_move.block', 'assign[8]'), defs.MoveAssign, 'Sub a2 = (*(asp_const2));'),  # XXX 本来の期待値は`std::shared_ptr<Sub>`の様な気がするが、CVarsはただのプロクシーとして実装しているため、操作結果はCSPとほぼ同等になる
+		(_ast('CVarOps.const_move.block', 'assign[9]'), defs.MoveAssign, 'const Sub& r_const2 = (*(asp_const2));'),  # 〃
 		(_ast('CVarOps.const_move.block', 'assign[10]'), defs.MoveAssign, 'const Sub* ap_const2 = (asp_const2).get();'),  # 〃
 
 		(_ast('CVarOps.const_move.block', 'assign[11]'), defs.MoveAssign, 'const Sub& r_const3 = r;'),
 		(_ast('CVarOps.const_move.block', 'assign[12]'), defs.MoveAssign, 'Sub a3 = r_const3;'),
-		(_ast('CVarOps.const_move.block', 'assign[13]'), defs.MoveAssign, 'const Sub* ap_const3 = &(r_const3);'),
+		(_ast('CVarOps.const_move.block', 'assign[13]'), defs.MoveAssign, 'const Sub* ap_const3 = (&(r_const3));'),
 
-		(_ast('CVarOps.to_void.block', 'assign[0]'), defs.MoveAssign, 'void* a_to_vp = static_cast<void*>(&(a));'),
+		(_ast('CVarOps.to_void.block', 'assign[0]'), defs.MoveAssign, 'void* a_to_vp = static_cast<void*>((&(a)));'),
 		(_ast('CVarOps.to_void.block', 'assign[1]'), defs.MoveAssign, 'void* ap_to_vp = static_cast<void*>(ap);'),
 		(_ast('CVarOps.to_void.block', 'assign[2]'), defs.MoveAssign, 'void* asp_to_vp = static_cast<void*>((asp).get());'),
-		(_ast('CVarOps.to_void.block', 'assign[3]'), defs.MoveAssign, 'void* r_to_vp = static_cast<void*>(&(r));'),
+		(_ast('CVarOps.to_void.block', 'assign[3]'), defs.MoveAssign, 'void* r_to_vp = static_cast<void*>((&(r)));'),
 
-		(_ast('CVarOps.local_decl.block', 'assign[0]'), defs.MoveAssign, 'std::vector<int*> p_arr = {&(n)};'),
-		(_ast('CVarOps.local_decl.block', 'assign[1]'), defs.MoveAssign, 'std::map<int, int*> p_map = {{n, &(n)}};'),
+		(_ast('CVarOps.local_decl.block', 'assign[0]'), defs.MoveAssign, 'std::vector<int*> p_arr = {(&(n))};'),
+		(_ast('CVarOps.local_decl.block', 'assign[1]'), defs.MoveAssign, 'std::map<int, int*> p_map = {{n, (&(n))}};'),
 
 		(_ast('CVarOps.addr_calc.block', 'assign[0]'), defs.MoveAssign, 'int a = sp0 - sp1;'),
 		(_ast('CVarOps.addr_calc.block', 'assign[1]'), defs.MoveAssign, 'int b = sp0 + 1;'),
@@ -408,10 +408,10 @@ class TestPy2Cpp(TestCase):
 		(_ast('Nullable.params', ''), defs.Method, 'public:\n/** params */\nvoid params(Sub* p) {\n\n}'),
 		(_ast('Nullable.returns', ''), defs.Method, 'public:\n/** returns */\nSub* returns() {\n\n}'),
 		(_ast('Nullable.var_move.block', 'anno_assign'), defs.AnnoAssign, 'Sub* p = nullptr;'),
-		(_ast('Nullable.var_move.block', 'assign[1]'), defs.MoveAssign, 'p = &(base);'),
+		(_ast('Nullable.var_move.block', 'assign[1]'), defs.MoveAssign, 'p = (&(base));'),
 		(_ast('Nullable.var_move.block', 'assign[2]'), defs.MoveAssign, 'p = nullptr;'),
 		(_ast('Nullable.var_move.block', 'assign[3]'), defs.MoveAssign, 'p = (sp).get();'),
-		(_ast('Nullable.var_move.block', 'if_stmt.if_clause.block.return_stmt'), defs.Return, 'return *(p);'),
+		(_ast('Nullable.var_move.block', 'if_stmt.if_clause.block.return_stmt'), defs.Return, 'return (*(p));'),
 
 		(_ast('Template.T2Class', ''), defs.Class, '/** T2Class */\ntemplate<typename T2>\nclass T2Class {\n\n};'),
 		(_ast('Template.__init__', ''), defs.Constructor, 'public:\n/** __init__ */\nTemplate(T v) {\n\n}'),

@@ -18,6 +18,7 @@ aliases.rogw.tranp.compatible.libralies.classes#print: printf
 aliases.rogw.tranp.compatible.libralies.classes#str: std::string
 aliases.rogw.tranp.compatible.libralies.classes#str.endswith: ends_with
 aliases.rogw.tranp.compatible.libralies.classes#str.find: find
+aliases.rogw.tranp.compatible.libralies.classes#str.rfind: find_last_of
 aliases.rogw.tranp.compatible.libralies.classes#str.startswith: starts_with
 aliases.rogw.tranp.compatible.libralies.classes#tuple: std::tuple
 # cpp

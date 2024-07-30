@@ -809,6 +809,10 @@ class Py2Cpp(ITranspiler):
 			receiver = re.sub(r'(->|::|\.)\w+$', '', calls)
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
+		elif spec == 'list_extend':
+			# 期待値: 'receiver.extend'
+			receiver, operator = cast(re.Match, re.search(r'^(.+)(->|::|\.)\w+$', calls)).group(1, 2)
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator})
 		elif spec == 'dict_pop':
 			# 期待値: 'receiver.pop'
 			receiver = re.sub(r'(->|::|\.)\w+$', '', calls)
@@ -897,10 +901,10 @@ class Py2Cpp(ITranspiler):
 				return f'to_cvar_{calls}', None
 		elif isinstance(node.calls, defs.Relay):
 			prop = node.calls.prop.tokens
-			if prop in ['pop', 'keys', 'values']:
+			if prop in ['pop', 'extend', 'keys', 'values']:
 				context = self.reflections.type_of(node.calls).context
-				if self.reflections.is_a(context, list) and prop == 'pop':
-					return 'list_pop', context.attrs[0]
+				if self.reflections.is_a(context, list) and prop in ['pop', 'extend']:
+					return f'list_{prop}', context.attrs[0]
 				elif self.reflections.is_a(context, dict) and prop in ['pop', 'keys', 'values']:
 					key_attr, value_attr = context.attrs
 					attr_indexs = {'pop': value_attr, 'keys': key_attr, 'values': value_attr}

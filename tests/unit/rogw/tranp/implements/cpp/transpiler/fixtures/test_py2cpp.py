@@ -389,6 +389,9 @@ class ListOps:
 	def delete(self, ns: list[int]) -> None:
 		del ns[1], ns[2]
 
+	def extend(self, ns0: list[int], ns1: list[int]) -> None:
+		ns0.extend(ns1)
+
 
 class DictOps:
 	def len(self) -> None:

@@ -7,9 +7,10 @@ class DeclOps {
 	public: Sub inst_var1;
 	public: std::vector<int*> inst_arr;
 	public: std::map<std::string, int*> inst_map;
+	public: std::vector<TSII> inst_tsiis;
 	public:
 	/** __init__ */
-	DeclOps() : inst_var0(nullptr), inst_var1({}), inst_arr({}), inst_map({}) {
+	DeclOps() : inst_var0(nullptr), inst_var1({}), inst_arr({}), inst_map({}), inst_tsiis({}) {
 		int n = this->prop();
 	}
 	public:

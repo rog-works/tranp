@@ -120,6 +120,11 @@ class Py2Cpp(ITranspiler):
 		"""
 		unpacked_raw = self.unpack_nullable(raw)
 		shorthand = ClassShorthandNaming.accessible_name(unpacked_raw, alias_handler=self.i18n.t)
+		# XXX AltClassの拡張表現は不要なので削除
+		if unpacked_raw.types.is_a(defs.AltClass):
+			shorthand = re.sub(r'=.+$', '', shorthand)
+
+		# C++型変数の表記変換
 		if len([True for key in CVars.keys() if key in shorthand]) > 0:
 			formatter = lambda entry: self.view.render('type_py2cpp', vars={'var_type': entry.format()}) if entry.name in CVars.keys() else None
 			shorthand = parse_block_to_entry(shorthand, '<>', ',').format(alt_formatter=formatter)
@@ -441,8 +446,8 @@ class Py2Cpp(ITranspiler):
 
 		for this_var in node.this_vars:
 			this_var_name = this_var.tokens_without_this
-			var_type_raw = self.reflections.type_of(this_var.declare.as_a(defs.AnnoAssign).var_type)
-			var_type = self.to_accessible_name(var_type_raw)
+			# XXX 再帰的なトランスパイルで型名を解決
+			var_type = self.transpile(this_var.declare.as_a(defs.AnnoAssign).var_type)
 			this_var_vars = {'accessor': self.to_accessor(defs.to_accessor(this_var_name)), 'symbol': this_var_name, 'var_type': var_type, 'embed_vars': embed_vars}
 			vars.append(self.view.render(f'{node.classification}/_decl_this_var', vars=this_var_vars))
 

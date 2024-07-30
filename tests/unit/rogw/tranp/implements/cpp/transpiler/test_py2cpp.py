@@ -22,7 +22,7 @@ from tests.unit.rogw.tranp.implements.cpp.transpiler.fixtures.test_py2cpp_expect
 
 
 class ASTMapping:
-	__begin_class = 13
+	__begin_class = 14
 	_Base = f'file_input.class_def[{__begin_class + 0}]'
 	_Sub = f'file_input.class_def[{__begin_class + 1}]'
 	_DeclOps = f'file_input.class_def[{__begin_class + 2}]'
@@ -51,7 +51,8 @@ class ASTMapping:
 		'c_include': 'file_input.funccall[8]',
 		'c_macro': 'file_input.funccall[9]',
 
-		'DSI': 'file_input.class_assign',
+		'DSI': 'file_input.class_assign[12]',
+		'TSII': 'file_input.class_assign[13]',
 
 		'DeclOps': f'{_DeclOps}',
 
@@ -192,6 +193,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('c_macro', ''), defs.FuncCall, 'MACRO()'),
 
 		(_ast('DSI', ''), defs.AltClass, 'using DSI = std::map<std::string, int>;'),
+		(_ast('TSII', ''), defs.AltClass, 'using TSII = std::tuple<std::string, int, int>;'),
 
 		(_ast('DeclOps', ''), defs.Class, BlockExpects.DeclOps),
 
@@ -434,9 +436,8 @@ class TestPy2Cpp(TestCase):
 		(_ast('AssignOps.assign.block', 'anno_assign'), defs.AnnoAssign, 'int a = 1;'),
 		(_ast('AssignOps.assign.block', 'assign[1]'), defs.MoveAssign, 'std::string b = "b";'),
 		(_ast('AssignOps.assign.block', 'aug_assign'), defs.AugAssign, 'b += std::to_string(a);'),
-		(_ast('AssignOps.assign.block', 'assign[3]'), defs.MoveAssign, 'std::tuple<int, std::string> t = {1, "a"};'),
-		(_ast('AssignOps.assign.block', 'assign[4]'), defs.MoveAssign, 'int t0 = t[0];'),
-		(_ast('AssignOps.assign.block', 'assign[5]'), defs.MoveAssign, 'std::string t1 = t[1];'),
+		(_ast('AssignOps.assign.block', 'assign[3]'), defs.MoveAssign, 'TSII tsii = tsiis[0];'),
+		(_ast('AssignOps.assign.block', 'assign[4]'), defs.MoveAssign, 'auto [ts, ti1, ti2] = tsii;'),
 
 		(_ast('template_func', ''), defs.Function, '/** template_func */\ntemplate<typename T>\nT template_func(T v) {\n\n}'),
 	])

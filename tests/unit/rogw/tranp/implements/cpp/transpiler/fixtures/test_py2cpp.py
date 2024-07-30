@@ -15,6 +15,7 @@ T = TypeVar('T')
 T2 = TypeVar('T2')
 
 DSI: TypeAlias = dict[str, int]
+TSII: TypeAlias = tuple[str, int, int]
 
 
 class Base(metaclass=ABCMeta):
@@ -59,12 +60,14 @@ class DeclOps:
 	inst_var1: Sub
 	inst_arr: list[CP[int]]
 	inst_map: dict[str, CP[int]]
+	inst_tsiis: list[TSII]
 
 	def __init__(self) -> None:
 		self.inst_var0: CP[Sub] | None = None
 		self.inst_var1: Sub
 		self.inst_arr: list[CP[int]] = []
 		self.inst_map: dict[str, CP[int]] = {}
+		self.inst_tsiis: list[TSII] = []
 		n = self.prop
 
 	@property
@@ -510,13 +513,12 @@ class StringOps:
 
 
 class AssignOps:
-	def assign(self) -> None:
+	def assign(self, tsiis: list[TSII]) -> None:
 		a: int = 1
 		b = 'b'
 		b += str(a)
-		t = (1, 'a')
-		t0 = t[0]
-		t1 = t[1]
+		tsii = tsiis[0]
+		ts, ti1, ti2 = tsii
 
 
 def template_func(v: T) -> T: ...

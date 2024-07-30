@@ -699,6 +699,8 @@ class Py2Cpp(ITranspiler):
 		elif spec == 'class':
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={'var_type': var_type})
+		elif spec == 'tuple':
+			return self.view.render(f'{node.classification}/{spec}', vars={'receiver': receiver, 'key': keys[0]})
 		else:
 			return self.view.render(f'{node.classification}/default', vars={'receiver': receiver, 'key': keys[0]})
 
@@ -724,6 +726,11 @@ class Py2Cpp(ITranspiler):
 			symbol = self.reflections.type_of(node)
 			return 'cvar', self.unpack_type_proxy(symbol)
 		else:
+			receiver_symbol = self.reflections.type_of(node.receiver)
+			receiver_symbol = self.unpack_alt_class(receiver_symbol)
+			if self.reflections.is_a(receiver_symbol, tuple):
+				return 'tuple', None
+
 			symbol = self.reflections.type_of(node)
 			if self.reflections.is_a(symbol, type):
 				return 'class', self.unpack_type_proxy(symbol)

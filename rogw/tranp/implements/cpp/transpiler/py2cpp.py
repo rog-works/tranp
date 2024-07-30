@@ -779,14 +779,14 @@ class Py2Cpp(ITranspiler):
 			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == 'str_format':
 			is_literal = node.calls.as_a(defs.Relay).receiver.is_a(defs.String)
-			receiver = re.sub(r'(->|::|\.)\w+$', '', calls)
+			receiver, operator = cast(re.Match, re.search(r'^(.+)(->|::|\.)\w+$', calls)).group(1, 2)
 			to_tags = {int.__name__: '%d', float.__name__: '%f', str.__name__: '%s', CP.__name__: '%p'}
 			formatters: list[dict[str, Any]] = []
 			for argument in node.arguments:
 				arg_symbol = self.reflections.type_of(argument)
 				formatters.append({'label': argument.label.tokens, 'tag': to_tags.get(arg_symbol.types.domain_name, '%s'), 'var_type': arg_symbol.types.domain_name, 'is_literal': argument.value.is_a(defs.Literal)})
 
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'is_literal': is_literal, 'formatters': formatters})
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'is_literal': is_literal, 'formatters': formatters})
 		elif spec == 'cast':
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
@@ -806,28 +806,28 @@ class Py2Cpp(ITranspiler):
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
 		elif spec == 'list_pop':
 			# 期待値: 'receiver.pop'
-			receiver = re.sub(r'(->|::|\.)\w+$', '', calls)
+			receiver, operator = cast(re.Match, re.search(r'^(.+)(->|::|\.)\w+$', calls)).group(1, 2)
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'var_type': var_type})
 		elif spec == 'list_extend':
 			# 期待値: 'receiver.extend'
 			receiver, operator = cast(re.Match, re.search(r'^(.+)(->|::|\.)\w+$', calls)).group(1, 2)
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator})
 		elif spec == 'dict_pop':
 			# 期待値: 'receiver.pop'
-			receiver = re.sub(r'(->|::|\.)\w+$', '', calls)
+			receiver, operator = cast(re.Match, re.search(r'^(.+)(->|::|\.)\w+$', calls)).group(1, 2)
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'var_type': var_type})
 		elif spec == 'dict_keys':
 			# 期待値: 'receiver.keys'
-			receiver = re.sub(r'(->|::|\.)\w+$', '', calls)
+			receiver, operator = cast(re.Match, re.search(r'^(.+)(->|::|\.)\w+$', calls)).group(1, 2)
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'var_type': var_type})
 		elif spec == 'dict_values':
 			# 期待値: 'receiver.values'
-			receiver = re.sub(r'(->|::|\.)\w+$', '', calls)
+			receiver, operator = cast(re.Match, re.search(r'^(.+)(->|::|\.)\w+$', calls)).group(1, 2)
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'var_type': var_type})
 		elif spec == 'cast_enum':
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/cast_bin_to_bin', vars={**func_call_vars, 'var_type': var_type})

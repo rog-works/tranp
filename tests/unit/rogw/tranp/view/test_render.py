@@ -591,6 +591,7 @@ class TestRenderer(TestCase):
 			{
 				'var_type': 'int',
 				'receiver': 'items',
+				'operator': '.',
 			},
 			'\n'.join([
 				'[&]() -> std::vector<int> {',
@@ -611,6 +612,7 @@ class TestRenderer(TestCase):
 			{
 				'var_type': 'int',
 				'receiver': 'items',
+				'operator': '.',
 				'arguments': ['key'],
 				'is_statement': True,
 			},
@@ -631,6 +633,7 @@ class TestRenderer(TestCase):
 			{
 				'var_type': 'int',
 				'receiver': 'items',
+				'operator': '.',
 			},
 			'\n'.join([
 				'[&]() -> std::vector<int> {',
@@ -653,10 +656,17 @@ class TestRenderer(TestCase):
 		self.assertRender('func_call/len', 0, vars, expected)
 
 	@data_provider([
+		({'receiver': 'values', 'operator': '.', 'arguments': ['values2']}, 'values.insert(values.end(), values2)'),
+	])
+	def test_render_func_call_list_extend(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/list_extend', 0, vars, expected)
+
+	@data_provider([
 		(
 			{
 				'var_type': 'int',
 				'receiver': 'values',
+				'operator': '.',
 				'arguments': ['0'],
 				'is_statement': True,
 			},
@@ -673,6 +683,7 @@ class TestRenderer(TestCase):
 			{
 				'var_type': 'int',
 				'receiver': 'values',
+				'operator': '.',
 				'arguments': [],
 				'is_statement': True,
 			},

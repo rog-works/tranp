@@ -1,6 +1,6 @@
 [&]() -> {{ var_type }} {
-	auto __iter = {{ receiver }}.{% if arguments %}{{ i18n('cpp', 'vector.begin') }}() + {{ arguments[0] }}{% else %}{{ i18n('cpp', 'vector.end') }}() - 1{% endif %};
+	auto __iter = {{ receiver }}{{ operator }}{% if arguments %}{{ i18n('cpp', 'vector.begin') }}() + {{ arguments[0] }}{% else %}{{ i18n('cpp', 'vector.end') }}() - 1{% endif %};
 	auto __copy = *__iter;
-	{{ receiver }}.{{ i18n('classes', 'list.remove') }}(__iter);
+	{{ receiver }}{{ operator }}{{ i18n('classes', 'list.remove') }}(__iter);
 	return __copy;
 }(){% if is_statement %};{% endif %}

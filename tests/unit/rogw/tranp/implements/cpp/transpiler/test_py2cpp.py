@@ -115,7 +115,8 @@ class ASTMapping:
 		'ListOps.fill.block': f'{_ListOps}.class_def_raw.block.function_def[3].function_def_raw.block',
 		'ListOps.slice.block': f'{_ListOps}.class_def_raw.block.function_def[4].function_def_raw.block',
 		'ListOps.delete.block': f'{_ListOps}.class_def_raw.block.function_def[5].function_def_raw.block',
-		'ListOps.extend.block': f'{_ListOps}.class_def_raw.block.function_def[6].function_def_raw.block',
+		'ListOps.insert.block': f'{_ListOps}.class_def_raw.block.function_def[6].function_def_raw.block',
+		'ListOps.extend.block': f'{_ListOps}.class_def_raw.block.function_def[7].function_def_raw.block',
 
 		'DictOps.len.block': f'{_DictOps}.class_def_raw.block.function_def[0].function_def_raw.block',
 		'DictOps.pop.block': f'{_DictOps}.class_def_raw.block.function_def[1].function_def_raw.block',
@@ -378,6 +379,7 @@ class TestPy2Cpp(TestCase):
 		(_ast('ListOps.slice.block', 'assign[1]'), defs.MoveAssign, BlockExpects.ListOps_slice_assign_ns1),
 		(_ast('ListOps.slice.block', 'assign[2]'), defs.MoveAssign, BlockExpects.ListOps_slice_assign_ns2),
 		(_ast('ListOps.delete.block', 'del_stmt'), defs.Delete, 'ns.erase(ns.begin() + 1);\nns.erase(ns.begin() + 2);'),
+		(_ast('ListOps.insert.block', 'funccall'), defs.FuncCall, 'ns.insert(ns.begin() + 1, n);'),
 		(_ast('ListOps.extend.block', 'funccall'), defs.FuncCall, 'ns0.insert(ns0.end(), ns1);'),
 
 		(_ast('DictOps.len.block', 'assign[1]'), defs.MoveAssign, 'int size_kvs = kvs.size();'),

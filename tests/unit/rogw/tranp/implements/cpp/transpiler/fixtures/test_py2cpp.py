@@ -392,6 +392,9 @@ class ListOps:
 	def delete(self, ns: list[int]) -> None:
 		del ns[1], ns[2]
 
+	def insert(self, ns: list[int], n: int) -> None:
+		ns.insert(1, n)
+
 	def extend(self, ns0: list[int], ns1: list[int]) -> None:
 		ns0.extend(ns1)
 

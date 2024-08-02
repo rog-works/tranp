@@ -656,6 +656,12 @@ class TestRenderer(TestCase):
 		self.assertRender('func_call/len', 0, vars, expected)
 
 	@data_provider([
+		({'receiver': 'values', 'operator': '.', 'arguments': ['1', 'value']}, 'values.insert(values.begin() + 1, value)'),
+	])
+	def test_render_func_call_list_insert(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/list_insert', 0, vars, expected)
+
+	@data_provider([
 		({'receiver': 'values', 'operator': '.', 'arguments': ['values2']}, 'values.insert(values.end(), values2)'),
 	])
 	def test_render_func_call_list_extend(self, vars: dict[str, Any], expected: str) -> None:

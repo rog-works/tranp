@@ -5,7 +5,6 @@ from jinja2 import Environment, FileSystemLoader
 
 from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.dsn.translation import alias_dsn
-from rogw.tranp.lang.parser import parse_pair_block
 
 
 class Translator(Protocol):
@@ -41,7 +40,6 @@ class Renderer:
 		self.__renderer.globals['reg_match'] = lambda pattern, string: re.search(pattern, string)
 		self.__renderer.globals['reg_fullmatch'] = lambda pattern, string: re.fullmatch(pattern, string)
 		self.__renderer.globals['reg_replace'] = lambda pattern, replace, string: re.sub(pattern, replace, string)
-		self.__renderer.globals['parse_pair_block'] = parse_pair_block
 
 	def render(self, template: str, indent: int = 0, vars: Union[TypedDict, dict[str, Any]] = {}) -> str:
 		"""テンプレートをレンダリング

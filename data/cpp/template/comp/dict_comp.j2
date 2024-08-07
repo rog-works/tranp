@@ -2,7 +2,8 @@
 	{{ i18n('classes', 'dict') }}<{{ projection_types[0] }}, {{ projection_types[1] }}> __ret;
 	for ({{ comp_for }}) {
 		{%- set receiver = '__ret' %}
-		{%- set key, value = parse_pair_block(projection, '{}', ',')[0] %}
+		{%- set key = projection_key %}
+		{%- set value = projection_value %}
 		{%- if condition %}
 		if ({{ condition }}) {
 			{% include('assign/_assign_dict.j2') %};

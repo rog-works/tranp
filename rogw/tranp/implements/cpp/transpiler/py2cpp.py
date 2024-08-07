@@ -344,7 +344,10 @@ class Py2Cpp(ITranspiler):
 		projection_type_raw = self.reflections.type_of(node.projection)
 		projection_type_key = self.to_accessible_name(projection_type_raw.attrs[0])
 		projection_type_value = self.to_accessible_name(projection_type_raw.attrs[1])
-		comp_vars = {'projection': projection, 'comp_for': fors[0], 'condition': condition, 'projection_types': [projection_type_key, projection_type_value], 'binded_this': node.binded_this}
+		projection_pair_node = node.projection.as_a(defs.Pair)
+		projection_key = self.transpile(projection_pair_node.first)
+		projection_value = self.transpile(projection_pair_node.second)
+		comp_vars = {'projection_key': projection_key, 'projection_value': projection_value, 'comp_for': fors[0], 'condition': condition, 'projection_types': [projection_type_key, projection_type_value], 'binded_this': node.binded_this}
 		return self.view.render(f'comp/{node.classification}', vars=comp_vars)
 
 	def on_function(self, node: defs.Function, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:

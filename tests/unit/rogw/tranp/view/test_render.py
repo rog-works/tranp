@@ -274,7 +274,8 @@ class TestRenderer(TestCase):
 	@data_provider([
 		(
 			{
-				'projection': '{key, value}',
+				'projection_key': 'key',
+				'projection_value': 'value',
 				'comp_for': 'auto& [key, value] : items',
 				'condition': '',
 				'projection_types': ['int', 'float'],
@@ -292,7 +293,8 @@ class TestRenderer(TestCase):
 		),
 		(
 			{
-				'projection': '{key, value}',
+				'projection_key': 'key',
+				'projection_value': 'value',
 				'comp_for': 'auto& [key, value] : items',
 				'condition': 'key == 1',
 				'projection_types': ['int', 'float'],

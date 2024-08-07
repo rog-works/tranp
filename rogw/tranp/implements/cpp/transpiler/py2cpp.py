@@ -345,6 +345,7 @@ class Py2Cpp(ITranspiler):
 		projection_type_key = self.to_accessible_name(projection_type_raw.attrs[0])
 		projection_type_value = self.to_accessible_name(projection_type_raw.attrs[1])
 		projection_pair_node = node.projection.as_a(defs.Pair)
+		# XXX 再帰的なトランスパイルでkey/valueを解決
 		projection_key = self.transpile(projection_pair_node.first)
 		projection_value = self.transpile(projection_pair_node.second)
 		comp_vars = {'projection_key': projection_key, 'projection_value': projection_value, 'comp_for': fors[0], 'condition': condition, 'projection_types': [projection_type_key, projection_type_value], 'binded_this': node.binded_this}

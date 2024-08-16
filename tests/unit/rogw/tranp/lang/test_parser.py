@@ -26,6 +26,8 @@ class TestParser(TestCase):
 		('{}', '{}', ':', [{'name': '', 'elems': ['']}]),
 		('{a: {b: c}}', '{}', ':', [{'name': '', 'elems': ['a', '{b: c}']}, {'name': '', 'elems': ['b', 'c']}]),
 		('tag<a, tag[1]<b>, c>', '<>', ',', [{'name': 'tag', 'elems': ['a', 'tag[1]<b>', 'c']}, {'name': 'tag[1]', 'elems': ['b']}]),
+		('{{a, b}, {c, d(e, f)}}', '{}', ',', [{'name': '', 'elems': ['{a, b}', '{c, d(e, f)}']}, {'name': '', 'elems': ['a', 'b']}, {'name': '', 'elems': ['c', 'd(e, f)']}]),
+		('a(b, "c, d")', '()', ',', [{'name': 'a', 'elems': ['b', '"c, d"']}]),
 	])
 	def test_parse_block(self, text: str, brackets: str, delimiter: str, expected: list[dict[str, list[str]]]) -> None:
 		self.assertEqual(parse_block(text, brackets, delimiter), expected)

@@ -20,6 +20,7 @@ def parse_bracket_block(text: str, brackets: str = '()') -> list[str]:
 	stack: list[int] = []
 	index = 0
 	while index < len(text):
+		# 対象外のブロックをスキップ
 		if text[index] in other_pair:
 			other_index = other_pair.find(text[index])
 			if len(other_closes) > 0 and other_closes[-1] == other_pair[other_index]:
@@ -27,6 +28,7 @@ def parse_bracket_block(text: str, brackets: str = '()') -> list[str]:
 			else:
 				other_closes.append(other_pair[other_index + 1])
 
+		# ブロックの開閉
 		if len(other_closes) == 0 and text[index] in brackets:
 			if text[index] == brackets[0]:
 				stack.append(index)
@@ -34,7 +36,7 @@ def parse_bracket_block(text: str, brackets: str = '()') -> list[str]:
 				start = stack.pop()
 				founds.append((start, index + 1))
 
-		index = index + 1
+		index += 1
 
 	founds = sorted(founds, key=lambda entry: entry[0])
 	return [text[found[0]:found[1]] for found in founds]
@@ -54,24 +56,36 @@ def parse_block(text: str, brackets: str = '{}', delimiter: str = ':') -> list[D
 		list[DictEntry]: [{'name': キー, 'elems': [値, ...]}, ...]
 	Note:
 		分離の条件は括弧と区切り文字。parse_block_to_entryより低負荷
-		XXX 引用符で囲われた文字列内に区切り文字が含まれるケースには対応できない
 	"""
-	chars = f'{brackets}{delimiter}'
+	all_pair = ['[]', '()', '{}', '<>', '""', "''"]
+	other_pair = ''.join([in_brakets for in_brakets in all_pair if in_brakets != brackets])
+	other_closes: list[str] = []
+	block_charas = f'{brackets}{delimiter}'
 	founds: list[tuple[int, str, list[str]]] = []
 	stack: list[tuple[int, str, list[int]]] = []
 	index = 0
 	name = ''
 	while index < len(text):
-		if text[index] not in chars:
-			# 空白以外を名前の構成要素とする
+		# ブロックの名前を抽出(空白以外が対象)
+		if text[index] not in block_charas:
 			if text[index] not in ' \n\t':
 				name = name + text[index]
 			else:
 				name = ''
 
-			index = index + 1
+		# 対象外のブロックをスキップ
+		if text[index] in other_pair:
+			other_index = other_pair.find(text[index])
+			if len(other_closes) > 0 and other_closes[-1] == other_pair[other_index]:
+				other_closes.pop()
+			else:
+				other_closes.append(other_pair[other_index + 1])
+
+		if len(other_closes) > 0:
+			index += 1
 			continue
 
+		# ブロックの開閉
 		if text[index] == brackets[0]:
 			stack.append((index + 1, name, []))
 			name = ''
@@ -90,7 +104,7 @@ def parse_block(text: str, brackets: str = '{}', delimiter: str = ':') -> list[D
 
 			founds.append((start, at_name, in_texts))
 
-		index = index + 1
+		index += 1
 
 	founds = sorted(founds, key=lambda entry: entry[0])
 	return [{'name': found[1], 'elems': found[2]} for found in founds]
@@ -107,7 +121,6 @@ def parse_pair_block(text: str, brackets: str = '{}', delimiter: str = ':') -> l
 		list[tuple[str, str]]: [(キー, 値), ...]
 	Note:
 		分離の条件は括弧と区切り文字。parse_block_to_entryより低負荷
-		XXX 引用符で囲われた文字列内に区切り文字が含まれるケースには対応できない
 	"""
 	return [(entry['elems'][0], entry['elems'][1]) for entry in parse_block(text, brackets, delimiter) if len(entry['elems']) == 2]
 

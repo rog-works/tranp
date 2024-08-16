@@ -128,7 +128,7 @@ class DI:
 			di.resolve(Gen)  # OK
 			```
 		"""
-		return getattr(symbol, '__origin__') if hasattr(symbol, '__origin__') else symbol
+		return getattr(symbol, '__origin__', symbol)
 
 	def __find_symbol(self, symbol: type[T_Inst]) -> type[T_Inst] | None:
 		"""シンボルを検索
@@ -198,7 +198,7 @@ class DI:
 		Returns:
 			dict[str, type]: 引数のアノテーションリスト
 		"""
-		annos = getattr(annotated, '__annotations__', {}) if hasattr(annotated, '__annotations__') else {}
+		annos = getattr(annotated, '__annotations__', {})
 		return {key: anno for key, anno in annos.items() if key != 'return'}
 
 	def _clone(self) -> Self:

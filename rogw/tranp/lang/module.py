@@ -59,7 +59,7 @@ def fullyname(ctor: type) -> str:
 	Returns:
 		str: 完全参照名
 	"""
-	return '.'.join([ctor.__module__, ctor.__name__])
+	return f'{ctor.__module__}.{ctor.__name__}'
 
 
 def filepath_to_module_path(filepath: str, basedir: str) -> str:

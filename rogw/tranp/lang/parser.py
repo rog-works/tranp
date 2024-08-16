@@ -13,11 +13,21 @@ def parse_bracket_block(text: str, brackets: str = '()') -> list[str]:
 	Note:
 		分離の条件は括弧のみであり、最も低負荷
 	"""
+	all_pair = ['[]', '()', '{}', '<>', '""', "''"]
+	other_pair = ''.join([in_brakets for in_brakets in all_pair if in_brakets != brackets])
+	other_closes: list[str] = []
 	founds: list[tuple[int, int]] = []
 	stack: list[int] = []
 	index = 0
 	while index < len(text):
-		if text[index] in brackets:
+		if text[index] in other_pair:
+			other_index = other_pair.find(text[index])
+			if len(other_closes) > 0 and other_closes[-1] == other_pair[other_index]:
+				other_closes.pop()
+			else:
+				other_closes.append(other_pair[other_index + 1])
+
+		if len(other_closes) == 0 and text[index] in brackets:
 			if text[index] == brackets[0]:
 				stack.append(index)
 			else:

@@ -15,6 +15,8 @@ class TestParser(TestCase):
 		('{a: {b: c}}', '{}', ['{a: {b: c}}', '{b: c}']),
 		('[a], [b], [c]', '[]', ['[a]', '[b]', '[c]']),
 		('<a, <b>, <c>>', '<>', ['<a, <b>, <c>>', '<b>', '<c>']),
+		('{{a, b}, {c, d(e, f)}}', '{}', ['{{a, b}, {c, d(e, f)}}', '{a, b}', '{c, d(e, f)}']),
+		('((a), ("b, c"))', '()', ['((a), ("b, c"))', '(a)', '("b, c")']),
 	])
 	def test_parse_bracket_block(self, text: str, brackets: str, expected: list[str]) -> None:
 		self.assertEqual(parse_bracket_block(text, brackets), expected)

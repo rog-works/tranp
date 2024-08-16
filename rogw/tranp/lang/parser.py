@@ -28,7 +28,7 @@ def parse_bracket_block(text: str, brackets: str = '()') -> list[str]:
 			else:
 				other_closes.append(other_pair[other_index + 1])
 
-		# ブロックの開閉
+		# 対象のブロックの開閉
 		if len(other_closes) == 0 and text[index] in brackets:
 			if text[index] == brackets[0]:
 				stack.append(index)
@@ -85,7 +85,7 @@ def parse_block(text: str, brackets: str = '{}', delimiter: str = ':') -> list[D
 			index += 1
 			continue
 
-		# ブロックの開閉
+		# 対象のブロックの開閉
 		if text[index] == brackets[0]:
 			stack.append((index + 1, name, []))
 			name = ''

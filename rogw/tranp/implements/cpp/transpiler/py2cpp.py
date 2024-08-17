@@ -16,7 +16,7 @@ from rogw.tranp.implements.cpp.semantics.cvars import CVars
 from rogw.tranp.lang.annotation import duck_typed, implements, injectable, override
 from rogw.tranp.lang.eventemitter import Callback
 from rogw.tranp.lang.module import fullyname
-from rogw.tranp.lang.parser import parse_block_to_formatter, parse_bracket_block, parse_pair_block
+from rogw.tranp.lang.parser import BlockParser
 from rogw.tranp.semantics.errors import NotSupportedError
 from rogw.tranp.semantics.procedure import Procedure
 import rogw.tranp.semantics.reflection.helper.template as template
@@ -127,7 +127,7 @@ class Py2Cpp(ITranspiler):
 		# C++型変数の表記変換
 		if len([True for key in CVars.keys() if key in shorthand]) > 0:
 			formatter = lambda entry: self.view.render('type_py2cpp', vars={'var_type': entry.format()}) if entry.name in CVars.keys() else None
-			shorthand = parse_block_to_formatter(shorthand, '<>', ',').format(alt_formatter=formatter)
+			shorthand = BlockParser.parse_to_formatter(shorthand, '<>', ',').format(alt_formatter=formatter)
 
 		return DSN.join(*DSN.elements(shorthand), delimiter='::')
 
@@ -426,7 +426,7 @@ class Py2Cpp(ITranspiler):
 						continue
 
 				# XXX __embed__のシグネチャーに依存するのは微妙なので再検討
-				key, meta = parse_pair_block(decorator, '()', ',')[0]
+				key, meta = BlockParser.parse_pair(decorator, '()', ',')[0]
 				embed_vars[key[1:-1]] = meta
 
 		# XXX 構造体の判定
@@ -884,7 +884,7 @@ class Py2Cpp(ITranspiler):
 			# 期待値3: ソース: CSP.new([0] * size) -> トランスパイル後: std::shared_ptr<std::vector<int>>(new std::vector<int>(size, 0))
 			# 期待値4: ソース: CSP.new(list[int]() * size) -> トランスパイル後: std::shared_ptr<std::vector<int>>(new std::vector<int>(size))
 			elif isinstance(node.arguments[0].value, defs.Term):
-				initializer = parse_bracket_block(initializer)[0][1:-1]
+				initializer = BlockParser.parse_bracket(initializer)[0][1:-1]
 
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type, 'initializer': initializer})
 		elif spec == 'new_cvar_sp':

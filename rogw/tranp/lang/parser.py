@@ -351,6 +351,13 @@ def parse_pair_block(text: str, brackets: str = '{}', delimiter: str = ':') -> l
 	return [(entry['elems'][0], entry['elems'][1]) for entry in parse_block(text, brackets, delimiter) if len(entry['elems']) == 2]
 
 
+def parse_pair_block2(text: str, brackets: str = '{}', delimiter: str = ':') -> list[tuple[str, str]]:
+	root = BlockParser.parse(text, brackets, delimiter)
+	unders = sorted(list(root.each()), key=lambda entry: entry.depth)
+	pair_unders = [(unders[i * 2], unders[i * 2 + 1]) for i in range(int(len(unders) / 2)) if unders[i * 2].depth == unders[i * 2 + 1].depth]
+	return [(text[key.begin:key.end], text[value.begin:value.end]) for key, value in pair_unders]
+
+
 class Entry:
 	"""ブロックエントリーの構成要素を管理"""
 

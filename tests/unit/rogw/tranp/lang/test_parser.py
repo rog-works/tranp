@@ -41,9 +41,9 @@ class TestParser(TestCase):
 		('{{a, b}, {c, d(e, f)}}', '{}', ',', [('{a, b}', '{c, d(e, f)}'), ('a', 'b'), ('c', 'd(e, f)')]),
 		('a(b, "c, d")', '()', ',', [('b', '"c, d"')]),
 		('(a, b)', '()', ',', [('a', 'b')]),
+		('(a, b, c)', '()', ',', [('a', 'b')]),
 		('tag1(a, tag2(b))', '()', ',', [('a', 'tag2(b)')]),
-		('(a, b, c)', '()', ',', []),
-		('tag1(a, tag2(b), c)', '()', ',', []),
+		('tag1(a, tag2(b), c)', '()', ',', [('a', 'tag2(b)')]),
 	])
 	def test_parse_pair_block(self, text: str, brackets: str, delimiter: str, expected: list[tuple[str]]) -> None:
 		self.assertEqual(parse_pair_block(text, brackets, delimiter), expected)
@@ -79,6 +79,6 @@ class TestParser(TestCase):
 	])
 	def test_parse(self, text: str, brackets: str, delimiter: str, expected: list[tuple]) -> None:
 		actual = BlockParser.parse(text, brackets, delimiter)
-		entries = [actual, *[entry for entry in actual.each()]]
+		entries = [actual, *list(actual.each())]
 		for i, entry in enumerate(entries):
 			self.assertEqual((entry.begin, entry.end, entry.depth, entry.kind), expected[i])

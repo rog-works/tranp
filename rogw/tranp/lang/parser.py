@@ -56,7 +56,7 @@ class BlockParser:
 			elif kind == cls.Kinds.Element:
 				end = cls._parse_element(text, brackets, delimiter, index)
 				entries.append((index, end, kind))
-				index = end + 1
+				index = end
 			else:
 				break
 
@@ -79,6 +79,9 @@ class BlockParser:
 			return index, cls.Kinds.Block
 		elif text[index] == brackets[1]:
 			return index, cls.Kinds.End
+
+		if text[index] in delimiter:
+			index += 1
 
 		value_begin = index
 		end_tokens_of_element = f'{brackets}{delimiter}'

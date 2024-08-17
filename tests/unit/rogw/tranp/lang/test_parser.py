@@ -59,12 +59,20 @@ class TestParser(TestCase):
 		self.assertEqual(entry.format(join_format, block_format, alt_formatter), expected)
 
 	@data_provider([
+		('{a, {b, c}, e}', '{}', ',', [
+			(0, 14, BlockParser.Kinds.Block),
+			(1, 2, BlockParser.Kinds.Element),
+			(4, 10, BlockParser.Kinds.Block),
+			(5, 6, BlockParser.Kinds.Element),
+			(8, 9, BlockParser.Kinds.Element),
+			(12, 13, BlockParser.Kinds.Element),
+		]),
 		('a{"b": b(1, 2), "c,d": {"e": 3}}', '{}', ':,', [
-			(0, 33, BlockParser.Kinds.Block),
+			(0, 32, BlockParser.Kinds.Block),
 			(2, 5, BlockParser.Kinds.Element),
 			(7, 14, BlockParser.Kinds.Element),
 			(16, 21, BlockParser.Kinds.Element),
-			(23, 32, BlockParser.Kinds.Block),
+			(23, 31, BlockParser.Kinds.Block),
 			(24, 27, BlockParser.Kinds.Element),
 			(29, 30, BlockParser.Kinds.Element)
 		]),

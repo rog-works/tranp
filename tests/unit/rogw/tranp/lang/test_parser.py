@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from rogw.tranp.lang.parser import Entry, BlockParser, parse_block_to_entry, parse_bracket_block, parse_pair_block
+from rogw.tranp.lang.parser import BlockFormatter, BlockParser, parse_block_to_formatter, parse_bracket_block, parse_pair_block
 from rogw.tranp.test.helper import data_provider
 
 
@@ -67,6 +67,6 @@ class TestParser(TestCase):
 		('a<b, c<d>>', '<>', ',', '{delimiter} ', '{name}{open}{elems}{close}', lambda entry: entry.format(block_format='{elems}*') if entry.name == 'c' else None, 'a<b, d*>'),
 		('std::map<CP<A>, CP<B>>', '<>', ',', '{delimiter} ', '{name}{open}{elems}{close}', lambda entry: entry.delimiter.join(entry.elems) if entry.name == 'CP' else None, 'std::map<A, B>'),
 	])
-	def test_parse_block_to_entry(self, text: str, brackets: str, delimiter: str, join_format: str, block_format: str, alt_formatter: Entry.AltFormatter | None, expected: str) -> None:
-		entry = parse_block_to_entry(text, brackets, delimiter)
+	def test_parse_block_to_formatter(self, text: str, brackets: str, delimiter: str, join_format: str, block_format: str, alt_formatter: BlockFormatter.AltFormatter | None, expected: str) -> None:
+		entry = parse_block_to_formatter(text, brackets, delimiter)
 		self.assertEqual(entry.format(join_format, block_format, alt_formatter), expected)

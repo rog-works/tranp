@@ -73,15 +73,15 @@ class BlockParser:
 		index = begin
 		entries: list[BlockParser.Entry] = []
 		while index < len(text):
-			kind, entry_begin, pos_for_kind = cls._analyze_entry(text, brackets, delimiter, index)
+			kind, entry_begin, index_for_kind = cls._analyze_entry(text, brackets, delimiter, index)
 			index = entry_begin
 			if kind == cls.Kinds.Block:
-				end, in_entries = cls._parse_block(text, brackets, delimiter, pos_for_kind + 1, depth)
+				end, in_entries = cls._parse_block(text, brackets, delimiter, index_for_kind + 1, depth)
 				entries.append(cls.Entry(index, end, depth, kind, in_entries))
 				index = end + 1
 			elif kind == cls.Kinds.Element:
-				entries.append(cls.Entry(index, pos_for_kind, depth, kind, []))
-				index = pos_for_kind
+				entries.append(cls.Entry(index, index_for_kind, depth, kind, []))
+				index = index_for_kind
 			else:
 				break
 
@@ -218,53 +218,24 @@ def parse_pair_block(text: str, brackets: str = '{}', delimiter: str = ':') -> l
 	return [(text[key.begin:key.end], text[value.begin:value.end]) for key, value in pair_unders]
 
 
-class Entry:
-	"""ブロックエントリーの構成要素を管理"""
+class BlockFormatter:
+	"""ブロックフォーマッター"""
 
-	type AltFormatter = Callable[[Entry], str | None]
+	type AltFormatter = Callable[[BlockFormatter], str | None]
 
-	def __init__(self, before: str, brackets: str, delimiter: str) -> None:
+	def __init__(self, name: str, brackets: str, delimiter: str) -> None:
 		"""インスタンスを生成
 
 		Args:
-			before (str): 開始ブロックの前置詞
+			name (str): ブロックの名前
 			brackets (str): 括弧のペア
 			delimiter (str): 区切り文字
 		"""
-		self.before = before
+		self.name = name
 		self.open = brackets[0]
 		self.close = brackets[1]
 		self.delimiter = delimiter
-		self.elems: list[str | Entry] = []
-
-	def __str__(self) -> str:
-		"""str: 文字列表現"""
-		return self.format()
-
-	def __iter__(self) -> 'Iterator[str | Entry]':
-		"""Iterator[str | Entry]: 要素のイテレーター"""
-		for elem in self.flatten():
-			yield elem
-
-	@property
-	def name(self) -> str:
-		"""str: ブロックの名前。前置詞を左トリムした文字列"""
-		return self.before.lstrip()
-
-	def flatten(self) -> 'list[str | Entry]':
-		"""全ての要素を平坦化して取得
-
-		Returns:
-			list[str | Entry]: 要素リスト
-		"""
-		elems: list[str | Entry] = []
-		for elem in self.elems:
-			if isinstance(elem, str):
-				elems.append(elem)
-			else:
-				elems.extend(elem.flatten())
-
-		return elems
+		self.elems: list[str | BlockFormatter] = []
 
 	def format(self, join_format: str = '{delimiter} ', block_format: str = '{name}{open}{elems}{close}', alt_formatter: AltFormatter | None = None) -> str:
 		"""指定した書式で文字列に変換
@@ -279,7 +250,6 @@ class Entry:
 			### join_fomart
 				* delimiter: 区切り文字
 			### block_fomart
-				* before: 開始ブロックの前置詞
 				* name: ブロックの名前
 				* open: 括弧(開)
 				* close: 括弧(閉)
@@ -292,33 +262,29 @@ class Entry:
 
 		join_spliter = join_format.format(delimiter=self.delimiter)
 		elems = join_spliter.join([elem.lstrip() if isinstance(elem, str) else elem.format(join_format, block_format, alt_formatter) for elem in self.elems])
-		return block_format.format(before=self.before, name=self.name, open=self.open, close=self.close, elems=elems)
+		return block_format.format(name=self.name, open=self.open, close=self.close, elems=elems)
 
 
-def parse_block_to_entry(text: str, brackets: str = '{}', delimiter: str = ':') -> Entry:
-	"""文字列内の連想配列/関数コールの入れ子構造のブロックを展開する
+def parse_block_to_formatter(text: str, brackets: str = '{}', delimiter: str = ':') -> BlockFormatter:
+	"""文字列内の連想配列/関数コールの入れ子構造のブロックを展開し、フォーマッターを返却
 
 	Args:
 		text (str): 対象の文字列
 		brackets (str): 括弧のペア (default: '{}')
 		delimiter (str): 区切り文字 (default: ':')
 	Returns:
-		Entry: 展開したブロックエントリー
-	Raises:
-		ValueError: 開閉ブロックが存在しない/対応関係が不正
-	Note:
-		展開したブロックに変換処理が必要な場合に有用
+		BlockFormatter: ブロックフォーマッター
 	"""
-	def parse(entry: BlockParser.Entry) -> Entry:
+	def to_formatter(entry: BlockParser.Entry) -> BlockFormatter:
 		end = text.find(brackets[0], entry.begin)
-		own = Entry(text[entry.begin:end], brackets, delimiter)
+		own = BlockFormatter(text[entry.begin:end], brackets, delimiter)
 		for in_entry in entry.entries:
 			if in_entry.kind == BlockParser.Kinds.Block:
-				own.elems.append(parse(in_entry))
+				own.elems.append(to_formatter(in_entry))
 			else:
 				own.elems.append(text[in_entry.begin:in_entry.end])
 
 		return own
 
 	root = BlockParser.parse(text, brackets, delimiter)
-	return parse(root)
+	return to_formatter(root)

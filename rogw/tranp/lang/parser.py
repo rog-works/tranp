@@ -1,6 +1,5 @@
 from enum import Enum
-import re
-from typing import Callable, Iterator, TypedDict
+from typing import Callable, Iterator
 
 
 class BlockParser:
@@ -192,104 +191,14 @@ def parse_bracket_block(text: str, brackets: str = '()') -> list[str]:
 		brackets (str): 括弧のペア (default: '()')
 	Returns:
 		list[str]: 展開したブロックのリスト
-	Note:
-		分離の条件は括弧のみであり、最も低負荷
 	"""
-	all_pair = ['[]', '()', '{}', '<>', '""', "''"]
-	other_pair = ''.join([in_brakets for in_brakets in all_pair if in_brakets != brackets])
-	other_closes: list[str] = []
-	founds: list[tuple[int, int]] = []
-	stack: list[int] = []
-	index = 0
-	while index < len(text):
-		# 対象外のブロックをスキップ
-		if text[index] in other_pair:
-			other_index = other_pair.find(text[index])
-			if len(other_closes) > 0 and other_closes[-1] == other_pair[other_index]:
-				other_closes.pop()
-			else:
-				other_closes.append(other_pair[other_index + 1])
+	root = BlockParser.parse(text, brackets, '')
+	blocks = []
+	for entry in [root, *root.unders()]:
+		if entry.kind == BlockParser.Kinds.Block:
+			blocks.append(text[entry.begin:entry.end])
 
-		# 対象のブロックの開閉
-		if len(other_closes) == 0 and text[index] in brackets:
-			if text[index] == brackets[0]:
-				stack.append(index)
-			else:
-				start = stack.pop()
-				founds.append((start, index + 1))
-
-		index += 1
-
-	founds = sorted(founds, key=lambda entry: entry[0])
-	return [text[found[0]:found[1]] for found in founds]
-
-
-DictEntry = TypedDict('DictEntry', {'name': str, 'elems': list[str]})
-
-
-def parse_block(text: str, brackets: str = '{}', delimiter: str = ':') -> list[DictEntry]:
-	"""文字列内の連想配列/関数コールの入れ子構造のブロックを展開する
-
-	Args:
-		text (str): 対象の文字列
-		brackets (str): 括弧のペア (default: '{}')
-		delimiter (str): 区切り文字 (default: ':')
-	Returns:
-		list[DictEntry]: [{'name': キー, 'elems': [値, ...]}, ...]
-	Note:
-		分離の条件は括弧と区切り文字。parse_block_to_entryより低負荷
-	"""
-	all_pair = ['[]', '()', '{}', '<>', '""', "''"]
-	other_pair = ''.join([in_brakets for in_brakets in all_pair if in_brakets != brackets])
-	other_closes: list[str] = []
-	block_charas = f'{brackets}{delimiter}'
-	founds: list[tuple[int, str, list[str]]] = []
-	stack: list[tuple[int, str, list[int]]] = []
-	index = 0
-	name = ''
-	while index < len(text):
-		# ブロックの名前を抽出(空白以外が対象)
-		if text[index] not in block_charas:
-			if text[index] not in ' \n\t':
-				name = name + text[index]
-			else:
-				name = ''
-
-		# 対象外のブロックをスキップ
-		if text[index] in other_pair:
-			other_index = other_pair.find(text[index])
-			if len(other_closes) > 0 and other_closes[-1] == other_pair[other_index]:
-				other_closes.pop()
-			else:
-				other_closes.append(other_pair[other_index + 1])
-
-		if len(other_closes) > 0:
-			index += 1
-			continue
-
-		# 対象のブロックの開閉
-		if text[index] == brackets[0]:
-			stack.append((index + 1, name, []))
-			name = ''
-		elif text[index] == delimiter:
-			start, at_name, splits = stack.pop()
-			splits.append(index)
-			stack.append((start, at_name, splits))
-		elif text[index] == brackets[1] and len(stack) > 0:
-			start, at_name, splits = stack.pop()
-			offsets = [*splits, index]
-			curr = start
-			in_texts: list[str] = []
-			for offset in offsets:
-				in_texts.append(text[curr:offset].lstrip())
-				curr = offset + 1
-
-			founds.append((start, at_name, in_texts))
-
-		index += 1
-
-	founds = sorted(founds, key=lambda entry: entry[0])
-	return [{'name': found[1], 'elems': found[2]} for found in founds]
+	return blocks
 
 
 def parse_pair_block(text: str, brackets: str = '{}', delimiter: str = ':') -> list[tuple[str, str]]:
@@ -301,13 +210,7 @@ def parse_pair_block(text: str, brackets: str = '{}', delimiter: str = ':') -> l
 		delimiter (str): 区切り文字 (default: ':')
 	Returns:
 		list[tuple[str, str]]: [(キー, 値), ...]
-	Note:
-		分離の条件は括弧と区切り文字。parse_block_to_entryより低負荷
 	"""
-	return [(entry['elems'][0], entry['elems'][1]) for entry in parse_block(text, brackets, delimiter) if len(entry['elems']) == 2]
-
-
-def parse_pair_block2(text: str, brackets: str = '{}', delimiter: str = ':') -> list[tuple[str, str]]:
 	root = BlockParser.parse(text, brackets, delimiter)
 	unders = sorted(root.unders(), key=lambda entry: entry.depth)
 	pair_unders = [(unders[i * 2], unders[i * 2 + 1]) for i in range(int(len(unders) / 2)) if unders[i * 2].depth == unders[i * 2 + 1].depth]
@@ -403,50 +306,18 @@ def parse_block_to_entry(text: str, brackets: str = '{}', delimiter: str = ':') 
 	Raises:
 		ValueError: 開閉ブロックが存在しない/対応関係が不正
 	Note:
-		分離の条件は括弧と区切り文字。parse_blockより2倍程度高負荷
 		展開したブロックに変換処理が必要な場合に有用
-		XXX 引用符で囲われた文字列内に区切り文字が含まれるケースには対応できない
 	"""
-	bracket_o = brackets[0]
-	bracket_c = brackets[1]
-	bracket_o_escaped = re.sub(r'([\[\(])', r'\\\1', bracket_o)
-	bracket_c_escaped = re.sub(r'([\]\)])', r'\\\1', bracket_c)
-	brackets_escaped = f'{bracket_o_escaped}{bracket_c_escaped}'
-	matcher_begin = re.compile(rf'[^{bracket_o_escaped}]*{bracket_o_escaped}')
-	matcher_elem = re.compile(rf'[^{brackets_escaped}{delimiter}]*[{brackets_escaped}{delimiter}]')
+	def parse(entry: BlockParser.Entry) -> Entry:
+		end = text.find(brackets[0], entry.begin)
+		own = Entry(text[entry.begin:end], brackets, delimiter)
+		for in_entry in entry.entries:
+			if in_entry.kind == BlockParser.Kinds.Block:
+				own.elems.append(parse(in_entry))
+			else:
+				own.elems.append(text[in_entry.begin:in_entry.end])
 
-	def parse(in_text: str) -> tuple[int, Entry]:
-		begin = matcher_begin.match(in_text)
-		if begin is None:
-			raise ValueError('Not found open bracket. text: {text}')
+		return own
 
-		entry = Entry(begin[0][:-1], brackets, delimiter)
-		remain = in_text[len(begin[0]):]
-		offset = 0
-		while len(remain) > 0:
-			matches = matcher_elem.match(remain)
-			if matches is None:
-				raise ValueError('Not found close bracket. text: {text}')
-
-			progress = len(matches[0])
-			elem, tail = matches[0][:-1], matches[0][-1]
-			if tail == bracket_c:
-				if len(elem) > 0:
-					entry.elems.append(elem)
-
-				offset += progress + 1
-				break
-
-			if tail == bracket_o:
-				in_progress, in_entry = parse(remain)
-				entry.elems.append(in_entry)
-				offset += in_progress
-				remain = remain[in_progress:]
-			elif tail == delimiter:
-				entry.elems.append(elem)
-				offset += progress
-				remain = remain[progress:]
-
-		return len(begin[0]) + offset, entry
-
-	return parse(text)[1]
+	root = BlockParser.parse(text, brackets, delimiter)
+	return parse(root)

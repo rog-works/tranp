@@ -196,7 +196,8 @@ def parse_bracket_block(text: str, brackets: str = '()') -> list[str]:
 	blocks = []
 	for entry in [root, *root.unders()]:
 		if entry.kind == BlockParser.Kinds.Block:
-			blocks.append(text[entry.begin:entry.end])
+			block_begin = text.find(brackets[0], entry.begin)
+			blocks.append(text[block_begin:entry.end])
 
 	return blocks
 

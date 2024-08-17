@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from rogw.tranp.lang.parser import Entry, parse_block, parse_block_to_entry, parse_bracket_block, parse_pair_block
+from rogw.tranp.lang.parser import Entry, BlockParser, parse_block, parse_block_to_entry, parse_bracket_block, parse_pair_block
 from rogw.tranp.test.helper import data_provider
 
 
@@ -57,3 +57,17 @@ class TestParser(TestCase):
 	def test_parse_block_to_entry(self, text: str, brackets: str, delimiter: str, join_format: str, block_format: str, alt_formatter: Entry.AltFormatter | None, expected: str) -> None:
 		entry = parse_block_to_entry(text, brackets, delimiter)
 		self.assertEqual(entry.format(join_format, block_format, alt_formatter), expected)
+
+	@data_provider([
+		('a{"b": b(1, 2), "c,d": {"e": 3}}', '{}', ':,', [
+			(0, 33, BlockParser.Kinds.Block),
+			(2, 5, BlockParser.Kinds.Element),
+			(7, 14, BlockParser.Kinds.Element),
+			(16, 21, BlockParser.Kinds.Element),
+			(23, 32, BlockParser.Kinds.Block),
+			(24, 27, BlockParser.Kinds.Element),
+			(29, 30, BlockParser.Kinds.Element)
+		]),
+	])
+	def test_parse(self, text: str, brackets: str, delimiter: str, expected: list[tuple[str]]) -> None:
+		self.assertEqual(BlockParser.parse(text, brackets, delimiter), expected)

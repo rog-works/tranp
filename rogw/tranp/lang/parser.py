@@ -1,5 +1,200 @@
+from enum import Enum
 import re
-from typing import Callable, Iterator, TypedDict
+from typing import Callable, Iterator, TypeAlias, TypedDict
+
+
+class BlockParser:
+	"""ブロックパーサー"""
+
+	_all_pair = ['[]', '()', '{}', '<>', '""', "''"]
+
+	class Kinds(Enum):
+		"""エントリーの種別"""
+		Element = 'element'
+		Block = 'block'
+		End = 'end'
+
+	Info: TypeAlias = tuple[int, int, Kinds]
+	Entry: TypeAlias = Info | list[Info]
+
+	@classmethod
+	def parse(cls, text: str, brackets: str = '()', delimiter: str = ',') -> list[Entry]:
+		"""ブロックを表す文字列を解析。ブロックと要素に分解し、エントリーリストとして返却
+
+		Args:
+			text (str): 解析対象の文字列
+			brackets (str): 括弧のペア (default = '()')
+			delimiter (str): 区切り文字 (default = ',')
+		Returns:
+			list[Entry]: ブロック/要素のリスト
+		"""
+		return cls._parse(text, brackets, delimiter, 0)[1]
+
+	@classmethod
+	def _parse(cls, text: str, brackets: str, delimiter: str, begin: int) -> tuple[int, list[Entry]]:
+		"""ブロックを表す文字列を解析。ブロックと要素に分解し、エントリーリストとして返却
+
+		Args:
+			text (str): 解析対象の文字列
+			brackets (str): 括弧のペア
+			delimiter (str): 区切り文字
+			begin (int): 開始位置
+		Returns:
+			tuple[int, list[Entry]]: (読み取り終了位置, ブロック/要素のリスト)
+		"""
+		index = begin
+		entries: list[BlockParser.Entry] = []
+		while index < len(text):
+			value_begin, kind = cls._analyze_kind(text, brackets, delimiter, index)
+			index = value_begin
+			if kind == cls.Kinds.Block:
+				end = cls._parse_name(text, brackets, delimiter, index)
+				end, in_entries = cls._parse_block(text, brackets, delimiter, end + 1)
+				entries.append((index, end, kind))
+				entries.extend(in_entries)
+				index = end + 1
+			elif kind == cls.Kinds.Element:
+				end = cls._parse_element(text, brackets, delimiter, index)
+				entries.append((index, end, kind))
+				index = end + 1
+			else:
+				break
+
+		return index, entries
+
+	@classmethod
+	def _analyze_kind(cls, text: str, brackets: str, delimiter: str, begin: int) -> tuple[int, Kinds]:
+		"""エントリーの種別を解析
+
+		Args:
+			text (str): 解析対象の文字列
+			brackets (str): 括弧のペア
+			delimiter (str): 区切り文字
+			begin (int): 開始位置
+		Returns:
+			tuple[int, Kinds]: (読み取り終了位置, エントリーの種別)
+		"""
+		index = begin
+		if text[index] == brackets[0]:
+			return index, cls.Kinds.Block
+		elif text[index] == brackets[1]:
+			return index, cls.Kinds.End
+
+		value_begin = index
+		end_tokens_of_element = f'{brackets}{delimiter}'
+		while index < len(text):
+			if text[index] == brackets[0]:
+				return value_begin, cls.Kinds.Block
+			elif text[index] in end_tokens_of_element:
+				return value_begin, cls.Kinds.Element
+
+			if text[index] in ' \n\t':
+				value_begin = index + 1
+
+			index += 1
+
+		return index, cls.Kinds.End
+
+	@classmethod
+	def _parse_element(cls, text: str, brackets: str, delimiter: str, begin: int) -> int:
+		"""要素を解析
+
+		Args:
+			text (str): 解析対象の文字列
+			brackets (str): 括弧のペア
+			delimiter (str): 区切り文字
+			begin (int): 開始位置
+		Returns:
+			int: 読み取り終了位置
+		"""
+		index = begin
+		end_tokens = f'{brackets}{delimiter}'
+		other_tokens = ''.join([pair for pair in cls._all_pair if pair != brackets])
+		while index < len(text):
+			if text[index] in other_tokens:
+				index = cls._skip_other_block(text, other_tokens, index)
+				continue
+
+			if text[index] in end_tokens:
+				break
+
+			index += 1
+
+		return index
+
+	@classmethod
+	def _parse_name(cls, text: str, brackets: str, delimiter: str, begin: int) -> int:
+		"""ブロックの名前を解析
+
+		Args:
+			text (str): 解析対象の文字列
+			brackets (str): 括弧のペア
+			delimiter (str): 区切り文字
+			begin (int): 開始位置
+		Returns:
+			int: 読み取り終了位置
+		"""
+		index = begin
+		while index < len(text):
+			if text[index] == brackets[0]:
+				break
+
+			index += 1
+
+		return index
+
+	@classmethod
+	def _parse_block(cls, text: str, brackets: str, delimiter: str, begin: int) -> tuple[int, list[Entry]]:
+		"""ブロックを解析
+
+		Args:
+			text (str): 解析対象の文字列
+			brackets (str): 括弧のペア
+			delimiter (str): 区切り文字
+			begin (int): 開始位置
+		Returns:
+			tuple[int, list[Entry]]: (読み取り終了位置, ブロック/要素のリスト)
+		"""
+		index = begin
+		entries: list[BlockParser.Entry] = []
+		while index < len(text):
+			if text[index] == brackets[1]:
+				index += 1
+				break
+
+			in_progress, in_entries = cls._parse(text, brackets, delimiter, index)
+			entries.extend(in_entries)
+			index = in_progress
+
+		return index, entries
+
+	@classmethod
+	def _skip_other_block(cls, text: str, other_tokens: str, begin: int) -> int:
+		"""対象外のブロックをスキップ
+
+		Args:
+			text (str): 解析対象の文字列
+			other_tokens (str): 対象外の括弧のペア
+			begin (int): 開始位置
+		Returns:
+			int: 読み取り終了位置
+		"""
+		index = begin
+		other_closes: list[str] = []
+		while index < len(text):
+			if text[index] in other_tokens:
+				other_index = other_tokens.find(text[index])
+				if len(other_closes) > 0 and other_closes[-1] == other_tokens[other_index]:
+					other_closes.pop()
+				else:
+					other_closes.append(other_tokens[other_index + 1])
+
+			index += 1
+
+			if len(other_closes) == 0:
+				break
+
+		return index
 
 
 def parse_bracket_block(text: str, brackets: str = '()') -> list[str]:

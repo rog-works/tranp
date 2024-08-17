@@ -1,6 +1,6 @@
 from enum import Enum
 import re
-from typing import Callable, Iterator, TypeAlias, TypedDict
+from typing import Callable, Iterator, TypedDict
 
 
 class BlockParser:
@@ -14,11 +14,15 @@ class BlockParser:
 		Block = 'block'
 		End = 'end'
 
-	Info: TypeAlias = tuple[int, int, Kinds]
-	Entry: TypeAlias = Info | list[Info]
+	class Entry:
+		def __init__(self, begin: int, end: int, kind: 'BlockParser.Kinds', entries: list['BlockParser.Entry']) -> None:
+			self.begin = begin
+			self.end = end
+			self.kind = kind
+			self.entries = entries
 
 	@classmethod
-	def parse(cls, text: str, brackets: str = '()', delimiter: str = ',') -> list[Entry]:
+	def parse(cls, text: str, brackets: str = '()', delimiter: str = ',') -> list['BlockParser.Entry']:
 		"""ブロックを表す文字列を解析。ブロックと要素に分解し、エントリーリストとして返却
 
 		Args:
@@ -31,7 +35,7 @@ class BlockParser:
 		return cls._parse(text, brackets, delimiter, 0)[1]
 
 	@classmethod
-	def _parse(cls, text: str, brackets: str, delimiter: str, begin: int) -> tuple[int, list[Entry]]:
+	def _parse(cls, text: str, brackets: str, delimiter: str, begin: int) -> tuple[int, list['BlockParser.Entry']]:
 		"""ブロックを表す文字列を解析。ブロックと要素に分解し、エントリーリストとして返却
 
 		Args:
@@ -50,12 +54,11 @@ class BlockParser:
 			if kind == cls.Kinds.Block:
 				end = cls._parse_name(text, brackets, delimiter, index)
 				end, in_entries = cls._parse_block(text, brackets, delimiter, end + 1)
-				entries.append((index, end, kind))
-				entries.extend(in_entries)
+				entries.append(BlockParser.Entry(index, end, kind, in_entries))
 				index = end + 1
 			elif kind == cls.Kinds.Element:
 				end = cls._parse_element(text, brackets, delimiter, index)
-				entries.append((index, end, kind))
+				entries.append(BlockParser.Entry(index, end, kind, []))
 				index = end
 			else:
 				break
@@ -147,7 +150,7 @@ class BlockParser:
 		return index
 
 	@classmethod
-	def _parse_block(cls, text: str, brackets: str, delimiter: str, begin: int) -> tuple[int, list[Entry]]:
+	def _parse_block(cls, text: str, brackets: str, delimiter: str, begin: int) -> tuple[int, list['BlockParser.Entry']]:
 		"""ブロックを解析
 
 		Args:

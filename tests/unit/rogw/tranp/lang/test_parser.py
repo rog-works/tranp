@@ -59,23 +59,36 @@ class TestParser(TestCase):
 		self.assertEqual(entry.format(join_format, block_format, alt_formatter), expected)
 
 	@data_provider([
-		('{a, {b, c}, e}', '{}', ',', [
-			(0, 14, BlockParser.Kinds.Block),
-			(1, 2, BlockParser.Kinds.Element),
-			(4, 10, BlockParser.Kinds.Block),
-			(5, 6, BlockParser.Kinds.Element),
-			(8, 9, BlockParser.Kinds.Element),
-			(12, 13, BlockParser.Kinds.Element),
-		]),
-		('a{"b": b(1, 2), "c,d": {"e": 3}}', '{}', ':,', [
-			(0, 32, BlockParser.Kinds.Block),
-			(2, 5, BlockParser.Kinds.Element),
-			(7, 14, BlockParser.Kinds.Element),
-			(16, 21, BlockParser.Kinds.Element),
-			(23, 31, BlockParser.Kinds.Block),
-			(24, 27, BlockParser.Kinds.Element),
-			(29, 30, BlockParser.Kinds.Element)
-		]),
+		('{a, {b, c}, e}', '{}', ',', {
+			'entry': (0, 14, BlockParser.Kinds.Block), 'entries': [
+				{'entry': (1, 2, BlockParser.Kinds.Element)},
+				{'entry': (4, 10, BlockParser.Kinds.Block), 'entries': [
+					{'entry': (5, 6, BlockParser.Kinds.Element)},
+					{'entry': (8, 9, BlockParser.Kinds.Element)},
+				]},
+				{'entry': (12, 13, BlockParser.Kinds.Element)}
+			],
+		}),
+		('a{"b": b(1, 2), "c,d": {"e": 3}}', '{}', ':,', {
+			'entry': (0, 32, BlockParser.Kinds.Block), 'entries': [
+				{'entry': (2, 5, BlockParser.Kinds.Element)},
+				{'entry': (7, 14, BlockParser.Kinds.Element)},
+				{'entry': (16, 21, BlockParser.Kinds.Element)},
+				{'entry': (23, 31, BlockParser.Kinds.Block), 'entries': [
+					{'entry': (24, 27, BlockParser.Kinds.Element)},
+					{'entry': (29, 30, BlockParser.Kinds.Element)},
+				]},
+			],
+		}),
 	])
-	def test_parse(self, text: str, brackets: str, delimiter: str, expected: list[tuple[str]]) -> None:
-		self.assertEqual(BlockParser.parse(text, brackets, delimiter), expected)
+	def test_parse(self, text: str, brackets: str, delimiter: str, expected: dict) -> None:
+		actual = BlockParser.parse(text, brackets, delimiter)
+		self.assertBlockEntry(actual[0], expected)
+
+	def assertBlockEntry(self, entry: BlockParser.Entry, expected: dict) -> None:
+		self.assertEqual((entry.begin, entry.end, entry.kind), expected['entry'])
+
+		if entry.kind == BlockParser.Kinds.Block:
+			self.assertEqual(len(entry.entries), len(expected['entries']))
+			for i, in_entry in enumerate(entry.entries):
+				self.assertBlockEntry(in_entry, expected['entries'][i])

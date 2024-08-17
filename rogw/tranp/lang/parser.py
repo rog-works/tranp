@@ -19,6 +19,7 @@ class BlockParser:
 
 		def __init__(self, begin: int, end: int, depth: int, kind: 'BlockParser.Kinds', entries: list['BlockParser.Entry']) -> None:
 			"""インスタンスを生成
+
 			Args:
 				begin (int): 開始位置
 				end (int): 終了位置
@@ -32,22 +33,21 @@ class BlockParser:
 			self.kind = kind
 			self.entries = entries
 
-		def each(self) -> Iterator['BlockParser.Entry']:
+		def unders(self) -> list['BlockParser.Entry']:
 			"""配下の全エントリーを取得
 
 			Args:
-				Iterator[Entry]: エントリー
+				list[Entry]: エントリー
 			"""
+			unders: list[BlockParser.Entry] = []
 			for entry in self.entries:
-				yield entry
+				unders.extend([entry, *entry.unders()])
 
-				if entry.kind == BlockParser.Kinds.Block:
-					for in_entry in entry.each():
-						yield in_entry
+			return unders
 
 	@classmethod
 	def parse(cls, text: str, brackets: str = '()', delimiter: str = ',') -> 'BlockParser.Entry':
-		"""ブロックを表す文字列を解析。ブロックと要素に分解し、ルートのエントリーを返却
+		"""ブロックを表す文字列を解析。ブロックと要素をエントリーとして分解し、ルートのエントリーを返却
 
 		Args:
 			text (str): 解析対象の文字列
@@ -60,7 +60,7 @@ class BlockParser:
 
 	@classmethod
 	def _parse(cls, text: str, brackets: str, delimiter: str, begin: int, depth: int) -> tuple[int, list['BlockParser.Entry']]:
-		"""ブロックを表す文字列を解析。ブロックと要素に分解し、エントリーリストとして返却
+		"""ブロックを表す文字列を解析。ブロックと要素をエントリーとして分解し、エントリーリストを返却
 
 		Args:
 			text (str): 解析対象の文字列
@@ -309,7 +309,7 @@ def parse_pair_block(text: str, brackets: str = '{}', delimiter: str = ':') -> l
 
 def parse_pair_block2(text: str, brackets: str = '{}', delimiter: str = ':') -> list[tuple[str, str]]:
 	root = BlockParser.parse(text, brackets, delimiter)
-	unders = sorted(list(root.each()), key=lambda entry: entry.depth)
+	unders = sorted(list(root.unders()), key=lambda entry: entry.depth)
 	pair_unders = [(unders[i * 2], unders[i * 2 + 1]) for i in range(int(len(unders) / 2)) if unders[i * 2].depth == unders[i * 2 + 1].depth]
 	return [(text[key.begin:key.end], text[value.begin:value.end]) for key, value in pair_unders]
 

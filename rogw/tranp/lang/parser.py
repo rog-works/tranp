@@ -32,6 +32,19 @@ class BlockParser:
 			self.kind = kind
 			self.entries = entries
 
+		def each(self) -> Iterator['BlockParser.Entry']:
+			"""配下の全エントリーを取得
+
+			Args:
+				Iterator[Entry]: エントリー
+			"""
+			for entry in self.entries:
+				yield entry
+
+				if entry.kind == BlockParser.Kinds.Block:
+					for in_entry in entry.each():
+						yield in_entry
+
 	@classmethod
 	def parse(cls, text: str, brackets: str = '()', delimiter: str = ',') -> 'BlockParser.Entry':
 		"""ブロックを表す文字列を解析。ブロックと要素に分解し、ルートのエントリーを返却

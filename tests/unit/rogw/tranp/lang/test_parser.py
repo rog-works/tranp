@@ -83,7 +83,7 @@ class TestParser(TestCase):
 	])
 	def test_parse(self, text: str, brackets: str, delimiter: str, expected: dict) -> None:
 		actual = BlockParser.parse(text, brackets, delimiter)
-		self.assertBlockEntry(actual[0], expected)
+		self.assertBlockEntry(actual, expected)
 
 	def assertBlockEntry(self, entry: BlockParser.Entry, expected: dict) -> None:
 		self.assertEqual((entry.begin, entry.end, entry.depth, entry.kind), expected['entry'])

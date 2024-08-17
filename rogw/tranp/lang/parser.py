@@ -33,17 +33,17 @@ class BlockParser:
 			self.entries = entries
 
 	@classmethod
-	def parse(cls, text: str, brackets: str = '()', delimiter: str = ',') -> list['BlockParser.Entry']:
-		"""ブロックを表す文字列を解析。ブロックと要素に分解し、エントリーリストとして返却
+	def parse(cls, text: str, brackets: str = '()', delimiter: str = ',') -> 'BlockParser.Entry':
+		"""ブロックを表す文字列を解析。ブロックと要素に分解し、ルートのエントリーを返却
 
 		Args:
 			text (str): 解析対象の文字列
 			brackets (str): 括弧のペア (default = '()')
 			delimiter (str): 区切り文字 (default = ',')
 		Returns:
-			list[Entry]: ブロック/要素のリスト
+			Entry: エントリー
 		"""
-		return cls._parse(text, brackets, delimiter, 0, 0)[1]
+		return cls._parse(text, brackets, delimiter, 0, 0)[1][0]
 
 	@classmethod
 	def _parse(cls, text: str, brackets: str, delimiter: str, begin: int, depth: int) -> tuple[int, list['BlockParser.Entry']]:
@@ -56,7 +56,7 @@ class BlockParser:
 			begin (int): 開始位置
 			depth (int): 深度
 		Returns:
-			tuple[int, list[Entry]]: (読み取り終了位置, ブロック/要素のリスト)
+			tuple[int, list[Entry]]: (読み取り終了位置, エントリーのリスト)
 		"""
 		index = begin
 		entries: list[BlockParser.Entry] = []
@@ -171,7 +171,7 @@ class BlockParser:
 			begin (int): 開始位置
 			depth (int): 深度
 		Returns:
-			tuple[int, list[Entry]]: (読み取り終了位置, ブロック/要素のリスト)
+			tuple[int, list[Entry]]: (読み取り終了位置, エントリーのリスト)
 		"""
 		index = begin
 		entries: list[BlockParser.Entry] = []

@@ -520,6 +520,7 @@ class AssignOps:
 		a: int = 1
 		b = 'b'
 		b += str(a)
+		tsiis2 = tsiis
 		tsii = tsiis[0]
 		ts, ti1, ti2 = tsii
 

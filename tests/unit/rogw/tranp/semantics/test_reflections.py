@@ -3,6 +3,7 @@ from unittest import TestCase
 import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.compatible.python.types import Standards
 from rogw.tranp.dsn.module import ModuleDSN
+from rogw.tranp.semantics.reflection.helper.naming import ClassShorthandNaming
 from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.test.helper import data_provider
 from tests.test.fixture import Fixture
@@ -312,7 +313,7 @@ class TestReflections(TestCase):
 	def test_from_fullyname(self, fullyname: str, expected: str) -> None:
 		reflections = self.fixture.get(Reflections)
 		symbol = reflections.from_fullyname(fullyname)
-		self.assertEqual(str(symbol), expected)
+		self.assertEqual(ClassShorthandNaming.domain_name_for_debug(symbol), expected)
 
 	@data_provider([
 		(int, _mod('classes', int.__name__)),
@@ -445,4 +446,4 @@ class TestReflections(TestCase):
 		node = self.fixture.shared_nodes_by(full_path)
 		symbol = reflections.type_of(node)
 		self.assertEqual(symbol.types.fullyname, expected)
-		self.assertEqual(str(symbol), attrs_expected)
+		self.assertEqual(ClassShorthandNaming.domain_name_for_debug(symbol), attrs_expected)

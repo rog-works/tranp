@@ -175,7 +175,7 @@ class ClassShorthandNaming:
 
 	@classmethod
 	def domain_name_for_debug(cls, raw: IReflection, alias_handler: AliasHandler | None = None) -> str:
-		"""クラスの短縮表記を生成(デバッグ名/デバッグ用)
+		"""クラスの短縮表記を生成(ドメイン名/デバッグ用)
 
 		Args:
 			raw (IReflection): シンボル

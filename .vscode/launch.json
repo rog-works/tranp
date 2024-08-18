@@ -19,7 +19,7 @@
 				"lang.test_inspection.TestScalarTypehint.test_states",
 				"lang.test_inspection.TestFunctionTypehint.test_signature",
 				"lang.test_inspection.TestClassTypehint.test_schema",
-				"lang.test_parser.TestParser.test_parse_block_to_entry",
+				"lang.test_parser.TestParser.test_parse_pair_block",
 			],
 			"default": "semantics.reflection.test_symbol_db.TestSymbolDB",
 		}

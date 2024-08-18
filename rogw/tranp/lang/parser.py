@@ -1,154 +1,65 @@
-import re
-from typing import Callable, Iterator, TypedDict
+from enum import Enum
+from typing import Callable, Iterator, TypeAlias
 
 
-def parse_bracket_block(text: str, brackets: str = '()') -> list[str]:
-	"""文字列内の括弧で囲われた入れ子構造のブロックを展開する
-
-	Args:
-		text (str): 対象の文字列
-		brackets (str): 括弧のペア (default: '()')
-	Returns:
-		list[str]: 展開したブロックのリスト
-	Note:
-		分離の条件は括弧のみであり、最も低負荷
-	"""
-	founds: list[tuple[int, int]] = []
-	stack: list[int] = []
-	index = 0
-	while index < len(text):
-		if text[index] in brackets:
-			if text[index] == brackets[0]:
-				stack.append(index)
-			else:
-				start = stack.pop()
-				founds.append((start, index + 1))
-
-		index = index + 1
-
-	founds = sorted(founds, key=lambda entry: entry[0])
-	return [text[found[0]:found[1]] for found in founds]
-
-
-DictEntry = TypedDict('DictEntry', {'name': str, 'elems': list[str]})
-
-
-def parse_block(text: str, brackets: str = '{}', delimiter: str = ':') -> list[DictEntry]:
-	"""文字列内の連想配列/関数コールの入れ子構造のブロックを展開する
-
-	Args:
-		text (str): 対象の文字列
-		brackets (str): 括弧のペア (default: '{}')
-		delimiter (str): 区切り文字 (default: ':')
-	Returns:
-		list[DictEntry]: [{'name': キー, 'elems': [値, ...]}, ...]
-	Note:
-		分離の条件は括弧と区切り文字。parse_block_to_entryより低負荷
-		XXX 引用符で囲われた文字列内に区切り文字が含まれるケースには対応できない
-	"""
-	chars = f'{brackets}{delimiter}'
-	founds: list[tuple[int, str, list[str]]] = []
-	stack: list[tuple[int, str, list[int]]] = []
-	index = 0
-	name = ''
-	while index < len(text):
-		if text[index] not in chars:
-			# 空白以外を名前の構成要素とする
-			if text[index] not in ' \n\t':
-				name = name + text[index]
-			else:
-				name = ''
-
-			index = index + 1
-			continue
-
-		if text[index] == brackets[0]:
-			stack.append((index + 1, name, []))
-			name = ''
-		elif text[index] == delimiter:
-			start, at_name, splits = stack.pop()
-			splits.append(index)
-			stack.append((start, at_name, splits))
-		elif text[index] == brackets[1] and len(stack) > 0:
-			start, at_name, splits = stack.pop()
-			offsets = [*splits, index]
-			curr = start
-			in_texts: list[str] = []
-			for offset in offsets:
-				in_texts.append(text[curr:offset].lstrip())
-				curr = offset + 1
-
-			founds.append((start, at_name, in_texts))
-
-		index = index + 1
-
-	founds = sorted(founds, key=lambda entry: entry[0])
-	return [{'name': found[1], 'elems': found[2]} for found in founds]
-
-
-def parse_pair_block(text: str, brackets: str = '{}', delimiter: str = ':') -> list[tuple[str, str]]:
-	"""文字列内の連想配列の入れ子構造のブロックを展開する
-
-	Args:
-		text (str): 対象の文字列
-		brackets (str): 括弧のペア (default: '{}')
-		delimiter (str): 区切り文字 (default: ':')
-	Returns:
-		list[tuple[str, str]]: [(キー, 値), ...]
-	Note:
-		分離の条件は括弧と区切り文字。parse_block_to_entryより低負荷
-		XXX 引用符で囲われた文字列内に区切り文字が含まれるケースには対応できない
-	"""
-	return [(entry['elems'][0], entry['elems'][1]) for entry in parse_block(text, brackets, delimiter) if len(entry['elems']) == 2]
+class Kinds(Enum):
+	"""エントリーの種別"""
+	Element = 'element'
+	Block = 'block'
+	End = 'end'
 
 
 class Entry:
-	"""ブロックエントリーの構成要素を管理"""
+	"""エントリー(ブロック/要素)"""
 
-	type AltFormatter = Callable[[Entry], str | None]
-
-	def __init__(self, before: str, brackets: str, delimiter: str) -> None:
+	def __init__(self, begin: int, end: int, depth: int, kind: Kinds, entries: list['Entry']) -> None:
 		"""インスタンスを生成
 
 		Args:
-			before (str): 開始ブロックの前置詞
+			begin (int): 開始位置
+			end (int): 終了位置
+			depth (int): 深度
+			kind (Kinds): エントリーの種別
+			entries (Entry): 配下のエントリーリスト
+		"""
+		self.begin = begin
+		self.end = end
+		self.depth = depth
+		self.kind = kind
+		self.entries = entries
+
+	def unders(self) -> Iterator['Entry']:
+		"""配下の全エントリーを取得
+
+		Args:
+			Iterator[Entry]: エントリー
+		"""
+		for entry in self.entries:
+			yield entry
+
+			for in_entry in entry.entries:
+				yield in_entry
+
+
+AltFormatter: TypeAlias = Callable[['BlockFormatter'], str | None]
+
+
+class BlockFormatter:
+	"""ブロックフォーマッター"""
+
+	def __init__(self, name: str, brackets: str, delimiter: str) -> None:
+		"""インスタンスを生成
+
+		Args:
+			name (str): ブロックの名前
 			brackets (str): 括弧のペア
 			delimiter (str): 区切り文字
 		"""
-		self.before = before
+		self.name = name
 		self.open = brackets[0]
 		self.close = brackets[1]
 		self.delimiter = delimiter
-		self.elems: list[str | Entry] = []
-
-	def __str__(self) -> str:
-		"""str: 文字列表現"""
-		return self.format()
-
-	def __iter__(self) -> 'Iterator[str | Entry]':
-		"""Iterator[str | Entry]: 要素のイテレーター"""
-		for elem in self.flatten():
-			yield elem
-
-	@property
-	def name(self) -> str:
-		"""str: ブロックの名前。前置詞を左トリムした文字列"""
-		return self.before.lstrip()
-
-	def flatten(self) -> 'list[str | Entry]':
-		"""全ての要素を平坦化して取得
-
-		Returns:
-			list[str | Entry]: 要素リスト
-		"""
-		elems: list[str | Entry] = []
-		for elem in self.elems:
-			if isinstance(elem, str):
-				elems.append(elem)
-			else:
-				elems.extend(elem.flatten())
-
-		return elems
+		self.elems: list[str | BlockFormatter] = []
 
 	def format(self, join_format: str = '{delimiter} ', block_format: str = '{name}{open}{elems}{close}', alt_formatter: AltFormatter | None = None) -> str:
 		"""指定した書式で文字列に変換
@@ -163,7 +74,6 @@ class Entry:
 			### join_fomart
 				* delimiter: 区切り文字
 			### block_fomart
-				* before: 開始ブロックの前置詞
 				* name: ブロックの名前
 				* open: 括弧(開)
 				* close: 括弧(閉)
@@ -176,65 +86,208 @@ class Entry:
 
 		join_spliter = join_format.format(delimiter=self.delimiter)
 		elems = join_spliter.join([elem.lstrip() if isinstance(elem, str) else elem.format(join_format, block_format, alt_formatter) for elem in self.elems])
-		return block_format.format(before=self.before, name=self.name, open=self.open, close=self.close, elems=elems)
+		return block_format.format(name=self.name, open=self.open, close=self.close, elems=elems)
 
 
-def parse_block_to_entry(text: str, brackets: str = '{}', delimiter: str = ':') -> Entry:
-	"""文字列内の連想配列/関数コールの入れ子構造のブロックを展開する
+class BlockParser:
+	"""ブロックパーサー"""
 
-	Args:
-		text (str): 対象の文字列
-		brackets (str): 括弧のペア (default: '{}')
-		delimiter (str): 区切り文字 (default: ':')
-	Returns:
-		Entry: 展開したブロックエントリー
-	Raises:
-		ValueError: 開閉ブロックが存在しない/対応関係が不正
-	Note:
-		分離の条件は括弧と区切り文字。parse_blockより2倍程度高負荷
-		展開したブロックに変換処理が必要な場合に有用
-		XXX 引用符で囲われた文字列内に区切り文字が含まれるケースには対応できない
-	"""
-	bracket_o = brackets[0]
-	bracket_c = brackets[1]
-	bracket_o_escaped = re.sub(r'([\[\(])', r'\\\1', bracket_o)
-	bracket_c_escaped = re.sub(r'([\]\)])', r'\\\1', bracket_c)
-	brackets_escaped = f'{bracket_o_escaped}{bracket_c_escaped}'
-	matcher_begin = re.compile(rf'[^{bracket_o_escaped}]*{bracket_o_escaped}')
-	matcher_elem = re.compile(rf'[^{brackets_escaped}{delimiter}]*[{brackets_escaped}{delimiter}]')
+	_all_pair = ['[]', '()', '{}', '<>', '""', "''"]
 
-	def parse(in_text: str) -> tuple[int, Entry]:
-		begin = matcher_begin.match(in_text)
-		if begin is None:
-			raise ValueError('Not found open bracket. text: {text}')
+	@classmethod
+	def parse(cls, text: str, brackets: str = '()', delimiter: str = ',') -> Entry:
+		"""ブロックを表す文字列を解析。ブロックと要素をエントリーとして分解し、ルートのエントリーを返却
 
-		entry = Entry(begin[0][:-1], brackets, delimiter)
-		remain = in_text[len(begin[0]):]
-		offset = 0
-		while len(remain) > 0:
-			matches = matcher_elem.match(remain)
-			if matches is None:
-				raise ValueError('Not found close bracket. text: {text}')
+		Args:
+			text (str): 解析対象の文字列
+			brackets (str): 括弧のペア (default = '()')
+			delimiter (str): 区切り文字 (default = ',')
+		Returns:
+			Entry: エントリー
+		"""
+		return cls._parse(text, brackets, delimiter, 0, 0)[1][0]
 
-			progress = len(matches[0])
-			elem, tail = matches[0][:-1], matches[0][-1]
-			if tail == bracket_c:
-				if len(elem) > 0:
-					entry.elems.append(elem)
+	@classmethod
+	def _parse(cls, text: str, brackets: str, delimiter: str, begin: int, depth: int) -> tuple[int, list[Entry]]:
+		"""ブロックを表す文字列を解析。ブロックと要素をエントリーとして分解し、エントリーリストを返却
 
-				offset += progress + 1
+		Args:
+			text (str): 解析対象の文字列
+			brackets (str): 括弧のペア
+			delimiter (str): 区切り文字
+			begin (int): 開始位置
+			depth (int): 深度
+		Returns:
+			tuple[int, list[Entry]]: (読み取り終了位置, エントリーのリスト)
+		"""
+		index = begin
+		entries: list[Entry] = []
+		while index < len(text):
+			kind, entry_begin, index_for_kind = cls._analyze_entry(text, brackets, delimiter, index)
+			index = entry_begin
+			if kind == Kinds.Block:
+				end, in_entries = cls._parse_block(text, brackets, delimiter, index_for_kind + 1, depth)
+				entries.append(Entry(index, end, depth, kind, in_entries))
+				index = end + 1
+			elif kind == Kinds.Element:
+				entries.append(Entry(index, index_for_kind, depth, kind, []))
+				index = index_for_kind
+			else:
 				break
 
-			if tail == bracket_o:
-				in_progress, in_entry = parse(remain)
-				entry.elems.append(in_entry)
-				offset += in_progress
-				remain = remain[in_progress:]
-			elif tail == delimiter:
-				entry.elems.append(elem)
-				offset += progress
-				remain = remain[progress:]
+		return index, entries
 
-		return len(begin[0]) + offset, entry
+	@classmethod
+	def _analyze_entry(cls, text: str, brackets: str, delimiter: str, begin: int) -> tuple[Kinds, int, int]:
+		"""エントリーの開始位置/種別を解析
 
-	return parse(text)[1]
+		Args:
+			text (str): 解析対象の文字列
+			brackets (str): 括弧のペア
+			delimiter (str): 区切り文字
+			begin (int): 開始位置
+		Returns:
+			tuple[Kinds, int, int]: (エントリーの種別, エントリーの開始位置, ブロックの開始位置/要素の終了位置)
+		"""
+		index = begin
+		if text[index] == brackets[0]:
+			return Kinds.Block, index, index
+		elif text[index] == brackets[1]:
+			return Kinds.End, index, -1
+
+		if text[index] in delimiter:
+			index += 1
+
+		entry_begin = index
+		end_tokens_of_element = f'{brackets}{delimiter}'
+		other_tokens = ''.join([pair for pair in cls._all_pair if pair != brackets])
+		while index < len(text):
+			if text[index] in other_tokens:
+				index = cls._skip_other_block(text, other_tokens, index)
+				continue
+
+			if text[index] == brackets[0]:
+				return Kinds.Block, entry_begin, index
+			elif text[index] in end_tokens_of_element:
+				return Kinds.Element, entry_begin, index
+
+			if text[index] in ' \n\t':
+				entry_begin = index + 1
+
+			index += 1
+
+		return Kinds.End, index, -1
+
+	@classmethod
+	def _skip_other_block(cls, text: str, other_tokens: str, begin: int) -> int:
+		"""対象外のブロックをスキップ
+
+		Args:
+			text (str): 解析対象の文字列
+			other_tokens (str): 対象外の括弧のペア
+			begin (int): 開始位置
+		Returns:
+			int: 読み取り終了位置
+		"""
+		index = begin
+		other_closes: list[str] = []
+		while index < len(text):
+			if text[index] in other_tokens:
+				other_index = other_tokens.find(text[index])
+				if len(other_closes) > 0 and other_closes[-1] == other_tokens[other_index]:
+					other_closes.pop()
+				else:
+					other_closes.append(other_tokens[other_index + 1])
+
+			index += 1
+
+			if len(other_closes) == 0:
+				break
+
+		return index
+
+	@classmethod
+	def _parse_block(cls, text: str, brackets: str, delimiter: str, begin: int, depth: int) -> tuple[int, list[Entry]]:
+		"""ブロックを解析
+
+		Args:
+			text (str): 解析対象の文字列
+			brackets (str): 括弧のペア
+			delimiter (str): 区切り文字
+			begin (int): 開始位置
+			depth (int): 深度
+		Returns:
+			tuple[int, list[Entry]]: (読み取り終了位置, エントリーのリスト)
+		"""
+		index = begin
+		entries: list[Entry] = []
+		while index < len(text):
+			if text[index] == brackets[1]:
+				index += 1
+				break
+
+			in_progress, in_entries = cls._parse(text, brackets, delimiter, index, depth + 1)
+			entries.extend(in_entries)
+			index = in_progress
+
+		return index, entries
+
+	@classmethod
+	def parse_bracket(cls, text: str, brackets: str = '()') -> list[str]:
+		"""文字列内の括弧で囲われた入れ子構造のブロックを展開する
+
+		Args:
+			text (str): 対象の文字列
+			brackets (str): 括弧のペア (default: '()')
+		Returns:
+			list[str]: 展開したブロックのリスト
+		"""
+		root = cls.parse(text, brackets, '')
+		blocks = []
+		for entry in [root, *root.unders()]:
+			if entry.kind == Kinds.Block:
+				block_begin = text.find(brackets[0], entry.begin)
+				blocks.append(text[block_begin:entry.end])
+
+		return blocks
+
+	@classmethod
+	def parse_pair(cls, text: str, brackets: str = '{}', delimiter: str = ':') -> list[tuple[str, str]]:
+		"""文字列内の連想配列の入れ子構造のブロックを展開する
+
+		Args:
+			text (str): 対象の文字列
+			brackets (str): 括弧のペア (default: '{}')
+			delimiter (str): 区切り文字 (default: ':')
+		Returns:
+			list[tuple[str, str]]: [(キー, 値), ...]
+		"""
+		root = cls.parse(text, brackets, delimiter)
+		unders = sorted(root.unders(), key=lambda entry: entry.depth)
+		pair_unders = [(unders[i * 2], unders[i * 2 + 1]) for i in range(int(len(unders) / 2)) if unders[i * 2].depth == unders[i * 2 + 1].depth]
+		return [(text[key.begin:key.end], text[value.begin:value.end]) for key, value in pair_unders]
+
+	@classmethod
+	def parse_to_formatter(cls, text: str, brackets: str = '{}', delimiter: str = ':') -> BlockFormatter:
+		"""文字列内の連想配列/関数コールの入れ子構造のブロックを展開し、フォーマッターを返却
+
+		Args:
+			text (str): 対象の文字列
+			brackets (str): 括弧のペア (default: '{}')
+			delimiter (str): 区切り文字 (default: ':')
+		Returns:
+			BlockFormatter: ブロックフォーマッター
+		"""
+		def to_formatter(entry: Entry) -> BlockFormatter:
+			end = text.find(brackets[0], entry.begin)
+			formatter = BlockFormatter(text[entry.begin:end], brackets, delimiter)
+			for in_entry in entry.entries:
+				if in_entry.kind == Kinds.Block:
+					formatter.elems.append(to_formatter(in_entry))
+				else:
+					formatter.elems.append(text[in_entry.begin:in_entry.end])
+
+			return formatter
+
+		root = cls.parse(text, brackets, delimiter)
+		return to_formatter(root)

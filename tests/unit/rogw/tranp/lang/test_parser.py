@@ -55,8 +55,8 @@ class TestParser(TestCase):
 		('a(b, "c, d")', '()', ',', [('b', '"c, d"')]),
 		('(a, b)', '()', ',', [('a', 'b')]),
 		('(a, b, c)', '()', ',', [('a', 'b')]),
-		('tag1(a, tag2(b))', '()', ',', [('a', 'tag2(b)')]),
-		('tag1(a, tag2(b), c)', '()', ',', [('a', 'tag2(b)')]),
+		('tag(a, tag[A, B](b))', '()', ',', [('a', 'tag[A, B](b)')]),
+		('tag(a, tag[A, B](b), c)', '()', ',', [('a', 'tag[A, B](b)')]),
 	])
 	def test_parse_pair(self, text: str, brackets: str, delimiter: str, expected: list[tuple[str]]) -> None:
 		self.assertEqual(BlockParser.parse_pair(text, brackets, delimiter), expected)

@@ -192,8 +192,8 @@ class ClassShorthandNaming:
 		Args:
 			raw (IReflection): シンボル
 			alias_handler (AliasHandler | None): エイリアス解決ハンドラー
-			path_method (PathMethods): パス生成方式 (default = Domain)
-			omit_attrs (list[type[Node]]): 拡張情報の省略対象
+			path_method (PathMethods): パス生成方式
+			omit_attrs (list[type[Node]]): 拡張情報の省略対象 (default = [AltClass])
 		Returns:
 			str: 短縮表記
 		"""

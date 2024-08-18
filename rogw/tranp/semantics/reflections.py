@@ -191,14 +191,7 @@ class Reflections:
 			SemanticsError: シンボルの解決に失敗
 		"""
 		if isinstance(node, defs.Comprehension):
-			projection_type = list if node.is_a(defs.ListComp) else dict
-			origin = self.type_of_standard(projection_type)
-			projection = self.__resolve_procedural(node.projection)
-			# XXX 属性の扱いの違いを吸収
-			# XXX list: int
-			# XXX dict: tuple<str, int>
-			attrs = [projection] if projection_type is list else projection.attrs
-			return origin.to.result(node).extends(*attrs)
+			return self.__resolve_procedural(node)
 		else:
 			# CompFor
 			return self.__resolve_procedural(node.for_in)
@@ -646,10 +639,10 @@ class ProceduralResolver:
 		return for_in
 
 	def on_list_comp(self, node: defs.ListComp, projection: IReflection, fors: list[IReflection], condition: IReflection) -> IReflection:
-		return projection
+		return self.reflections.type_of_standard(list).to.result(node).extends(projection)
 
 	def on_dict_comp(self, node: defs.ListComp, projection: IReflection, fors: list[IReflection], condition: IReflection) -> IReflection:
-		return projection
+		return self.reflections.type_of_standard(dict).to.result(node).extends(*projection.attrs)
 
 	# Operator
 

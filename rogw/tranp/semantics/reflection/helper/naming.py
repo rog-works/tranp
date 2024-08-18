@@ -1,9 +1,11 @@
+from enum import Enum
 from typing import Protocol
 
 from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.dsn.translation import alias_dsn
 from rogw.tranp.semantics.reflection.interface import IReflection
 import rogw.tranp.syntax.node.definition as defs
+from rogw.tranp.syntax.node.node import Node
 
 
 class AliasHandler(Protocol):
@@ -22,6 +24,13 @@ class AliasHandler(Protocol):
 			@see i18n.I18n.t
 		"""
 		...
+
+
+class PathMethods(Enum):
+	"""パス生成方式"""
+	Domain = 'domain'
+	Fully = 'fully'
+	Accessible = 'accessible'
 
 
 class ClassDomainNaming:
@@ -64,19 +73,19 @@ class ClassDomainNaming:
 		return DSN.join(cls.__namespace(types, alias_handler), cls.domain_name(types, alias_handler))
 
 	@classmethod
-	def make_manualy(cls, types: defs.ClassDef, alias_handler: AliasHandler | None = None, path_method: str = 'domain') -> str:
+	def make_manualy(cls, types: defs.ClassDef, alias_handler: AliasHandler | None = None, path_method: PathMethods = PathMethods.Domain) -> str:
 		"""クラスのドメイン名を生成
 
 		Args:
 			types (ClassDef): クラス宣言ノード
 			alias_handler (AliasHandler | None): エイリアス解決ハンドラー (default = None)
-			path_method ('domain' | 'fully' | 'namespace'): パス生成方式 (default = 'domain')
+			path_method (PathMethods): パス生成方式 (default = Domain)
 		Returns:
 			str: ドメイン名
 		"""
-		if path_method == 'fully':
+		if path_method == PathMethods.Fully:
 			return cls.fullyname(types, alias_handler)
-		if path_method == 'accessible':
+		if path_method == PathMethods.Accessible:
 			return cls.accessible_name(types, alias_handler)
 		else:
 			return cls.domain_name(types, alias_handler)
@@ -138,7 +147,7 @@ class ClassShorthandNaming:
 		Returns:
 			str: 短縮表記
 		"""
-		return cls.__make_impl(raw, alias_handler, 'domain')
+		return cls.__make_impl(raw, alias_handler, PathMethods.Domain)
 
 	@classmethod
 	def fullyname(cls, raw: IReflection, alias_handler: AliasHandler | None = None) -> str:
@@ -150,7 +159,7 @@ class ClassShorthandNaming:
 		Returns:
 			str: 短縮表記
 		"""
-		return cls.__make_impl(raw, alias_handler, 'fully')
+		return cls.__make_impl(raw, alias_handler, PathMethods.Fully)
 
 	@classmethod
 	def accessible_name(cls, raw: IReflection, alias_handler: AliasHandler | None = None) -> str:
@@ -162,29 +171,43 @@ class ClassShorthandNaming:
 		Returns:
 			str: 短縮表記
 		"""
-		return cls.__make_impl(raw, alias_handler, 'accessible')
+		return cls.__make_impl(raw, alias_handler, PathMethods.Accessible)
 
 	@classmethod
-	def __make_impl(cls, raw: IReflection, alias_handler: AliasHandler | None = None, path_method: str = 'domain') -> str:
-		"""クラスの短縮表記を生成
+	def domain_name_for_debug(cls, raw: IReflection, alias_handler: AliasHandler | None = None) -> str:
+		"""クラスの短縮表記を生成(ドメイン名/デバッグ用)
 
 		Args:
 			raw (IReflection): シンボル
 			alias_handler (AliasHandler | None): エイリアス解決ハンドラー (default = None)
-			path_method ('domain' | 'fully' | 'namespace'): パス生成方式 (default = 'domain') @see helper.naming.ClassDomainNaming
+		Returns:
+			str: 短縮表記
+		"""
+		return cls.__make_impl(raw, alias_handler, PathMethods.Domain, omit_attrs=[])
+
+	@classmethod
+	def __make_impl(cls, raw: IReflection, alias_handler: AliasHandler | None, path_method: PathMethods, omit_attrs: list[type[Node]] = [defs.AltClass]) -> str:
+		"""クラスの短縮表記を生成
+
+		Args:
+			raw (IReflection): シンボル
+			alias_handler (AliasHandler | None): エイリアス解決ハンドラー
+			path_method (PathMethods): パス生成方式
+			omit_attrs (list[type[Node]]): 拡張情報の省略対象 (default = [AltClass])
 		Returns:
 			str: 短縮表記
 		"""
 		symbol_name = ClassDomainNaming.make_manualy(raw.types, alias_handler, path_method)
-		if len(raw.attrs) > 0:
+		adding_attrs = len(omit_attrs) == 0 or not issubclass(type(raw.types), *omit_attrs)
+		if adding_attrs and len(raw.attrs) > 0:
 			if raw.types.is_a(defs.AltClass):
-				attrs = [cls.__make_impl(attr, alias_handler, path_method) for attr in raw.attrs]
+				attrs = [cls.__make_impl(attr, alias_handler, path_method, omit_attrs) for attr in raw.attrs]
 				return f'{symbol_name}={attrs[0]}'
 			elif raw.types.is_a(defs.Function):
-				attrs = [cls.__make_impl(attr, alias_handler, path_method) for attr in raw.attrs]
+				attrs = [cls.__make_impl(attr, alias_handler, path_method, omit_attrs) for attr in raw.attrs]
 				return f'{symbol_name}({", ".join(attrs[:-1])}) -> {attrs[-1]}'
 			else:
-				attrs = [cls.__make_impl(attr, alias_handler, path_method) for attr in raw.attrs]
+				attrs = [cls.__make_impl(attr, alias_handler, path_method, omit_attrs) for attr in raw.attrs]
 				return f'{symbol_name}<{", ".join(attrs)}>'
 
 		return symbol_name

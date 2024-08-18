@@ -120,9 +120,6 @@ class Py2Cpp(ITranspiler):
 		"""
 		unpacked_raw = self.unpack_nullable(raw)
 		shorthand = ClassShorthandNaming.accessible_name(unpacked_raw, alias_handler=self.i18n.t)
-		# XXX AltClassの拡張表現は不要なので削除
-		if unpacked_raw.types.is_a(defs.AltClass):
-			shorthand = re.sub(r'=.+$', '', shorthand)
 
 		# C++型変数の表記変換
 		if len([True for key in CVars.keys() if key in shorthand]) > 0:

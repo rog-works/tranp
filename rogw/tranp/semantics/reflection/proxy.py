@@ -1,7 +1,7 @@
 from typing import Callable, Iterator
 
 from rogw.tranp.lang.annotation import implements, override
-from rogw.tranp.semantics.reflection.interface import ISymbolProxy, SymbolDB, IReflection, IWrapper, Roles, T_Ref
+from rogw.tranp.semantics.reflection.interface import ISymbolProxy, IReflection, T_Ref
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 
@@ -51,62 +51,39 @@ class SymbolProxy(IReflection, ISymbolProxy):
 
 	@property
 	@implements
-	def _db(self) -> SymbolDB:
-		"""SymbolDB: 所属するシンボルテーブル"""
-		return self.__org_raw._db
-
-	@implements
-	def set_db(self, db: SymbolDB) -> None:
-		"""所属するシンボルテーブルを設定
-
-		Args:
-			db (SymbolDB): シンボルテーブル
-		"""
-		self.__org_raw.set_db(db)
-
-	@property
-	@implements
-	def _actual_addr(self) -> int:
-		"""実体のアドレス(ID)を取得
-
-		Returns:
-			int: アドレス(ID)
-		Note:
-			* XXX このメソッドはSymbolProxyによる無限ループを防ぐ目的で実装 @seeを参照
-			* XXX 上記以外の目的で使用することは無い
-			@see semantics.reflection.implements.Reflection._shared_origin
-		"""
-		return id(self.__new_raw_proxy)
-
-	@property
-	@implements
-	def ref_fullyname(self) -> str:
-		"""str: 完全参照名"""
-		return self.__new_raw_proxy.ref_fullyname
-
-	@property
-	@implements
-	def org_fullyname(self) -> str:
-		"""str: 完全参照名(オリジナル)"""
-		return self.__new_raw_proxy.org_fullyname
-
-	@property
-	@implements
 	def types(self) -> defs.ClassDef:
-		"""ClassDef: クラス定義ノード"""
+		"""ClassDef: 型を表すノード"""
 		return self.__new_raw_proxy.types
 
 	@property
 	@implements
 	def decl(self) -> defs.DeclAll:
-		"""DeclAll: クラス/変数宣言ノード"""
+		"""DeclAll: 定義元のノード"""
 		return self.__new_raw_proxy.decl
 
 	@property
 	@implements
-	def role(self) -> Roles:
-		"""Roles: シンボルの役割"""
-		return self.__new_raw_proxy.role
+	def node(self) -> Node:
+		"""Node: ノード"""
+		return self.__new_raw_proxy.node
+
+	@property
+	@implements
+	def origin(self) -> IReflection:
+		"""IReflection: 型のシンボル"""
+		return self.__new_raw_proxy.origin
+
+	@property
+	@implements
+	def via(self) -> IReflection:
+		"""IReflection: スタックシンボル"""
+		return self.__new_raw_proxy.via
+
+	@property
+	@implements
+	def context(self) -> IReflection:
+		"""IReflection: コンテキストを取得 Raises: SemanticsLogicError: コンテキストが無い状態で使用"""
+		return self.__new_raw_proxy.context
 
 	@property
 	@implements
@@ -114,38 +91,48 @@ class SymbolProxy(IReflection, ISymbolProxy):
 		"""list[IReflection]: 属性シンボルリスト"""
 		return self.__new_raw_proxy.attrs
 
-	@property
 	@implements
-	def origin(self) -> IReflection | None:
-		"""IReflection | None: スタックシンボル"""
-		return self.__new_raw_proxy.origin
+	def declare(self, decl: defs.DeclVars, origin: 'IReflection | None' = None) -> 'IReflection':
+		"""定義ノードをスタック
 
-	@property
-	@implements
-	def via(self) -> Node | None:
-		"""Node | None: 参照元のノード"""
-		return self.__new_raw_proxy.via
+		Args:
+			decl (DeclVars): 定義元のノード
+		Returns:
+			IReflection: リフレクション
+		"""
+		return self.__new_raw_proxy.declare(decl)
 
-	@property
 	@implements
-	def context(self) -> IReflection:
-		"""コンテキストを取得
+	def stack_by(self, node: Node) -> 'IReflection':
+		"""ノードをスタック
+
+		Args:
+			node (Node): ノード
+		Returns:
+			IReflection: リフレクション
+		"""
+		return self.__new_raw_proxy.stack_by(node)
+
+	@implements
+	def stack_by_self(self) -> 'IReflection':
+		"""自身を参照としてスタック
 
 		Returns:
-			IReflection: コンテキストのシンボル
-		Raises:
-			LogicError: コンテキストが無い状態で使用
+			IReflection: リフレクション
 		"""
-		return self.__new_raw_proxy.context
+		return self.__new_raw_proxy.stack_by_self()
 
 	@implements
-	def clone(self) -> IReflection:
-		"""インスタンスを複製
+	def to(self, node: Node, origin: 'IReflection') -> 'IReflection':
+		"""ノードをスタックし、型のシンボルを移行
 
+		Args:
+			node (Node): ノード
+			origin (IReflection): 型のシンボル
 		Returns:
-			IReflection: 複製したインスタンス
+			IReflection: リフレクション
 		"""
-		return self.__new_raw_proxy.clone()
+		return self.__new_raw_proxy.to(node, origin)
 
 	@property
 	@implements
@@ -154,13 +141,13 @@ class SymbolProxy(IReflection, ISymbolProxy):
 		return self.__new_raw_proxy.shorthand
 
 	@implements
-	def hierarchy(self) -> Iterator[IReflection]:
+	def stacktrace(self) -> Iterator[IReflection]:
 		"""参照元を辿るイテレーターを取得
 
 		Returns:
 			Iterator[IReflection]: イテレーター
 		"""
-		return self.__new_raw_proxy.hierarchy()
+		return self.__new_raw_proxy.stacktrace()
 
 	@implements
 	def extends(self, *attrs: IReflection) -> IReflection:
@@ -175,16 +162,6 @@ class SymbolProxy(IReflection, ISymbolProxy):
 			LogicError: 拡張済みのインスタンスに再度実行 XXX 出力する例外は要件等
 		"""
 		return self.__new_raw_proxy.extends(*attrs)
-
-	@property
-	@implements
-	def to(self) -> 'IWrapper':
-		"""ラッパーファクトリーを生成
-
-		Returns:
-			SymbolWrapper: ラッパーファクトリー
-		"""
-		return self.__new_raw_proxy.to
 
 	@implements
 	def one_of(self, *expects: type[T_Ref]) -> T_Ref:

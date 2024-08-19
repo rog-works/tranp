@@ -4,10 +4,10 @@ from rogw.tranp.compatible.python.types import Standards
 from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.module.types import LibraryPaths
-from rogw.tranp.semantics.reflection.interface import ISymbolProxy
-import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.semantics.errors import MustBeImplementedError, SymbolNotDefinedError
+from rogw.tranp.semantics.reflection.interface import ISymbolProxy
 from rogw.tranp.semantics.reflection import IReflection, SymbolDB
+import rogw.tranp.syntax.node.definition as defs
 
 
 class SymbolFinder:
@@ -205,10 +205,10 @@ class SymbolFinder:
 			return None
 
 		import_raw = db[import_fullyname]
-		if not isinstance(import_raw.via, defs.ImportAsName):
+		if not isinstance(import_raw.node, defs.ImportAsName):
 			return None
 
-		imported_dsn = ModuleDSN.full_join(import_raw.types.module_path, import_raw.via.domain_name)
+		imported_dsn = ModuleDSN.full_join(import_raw.types.module_path, import_raw.node.domain_name)
 		return self.__find_raw_recursive(db, imported_dsn, elems[1:])
 
 	def __find_library_raw(self, db: SymbolDB, domain_name: str) -> IReflection | None:

@@ -17,7 +17,7 @@ from rogw.tranp.module.modules import Modules
 from rogw.tranp.module.types import ModulePath, ModulePaths
 from rogw.tranp.providers.module import module_path_dummy
 from rogw.tranp.semantics.plugin import PluginProvider
-from rogw.tranp.semantics.reflection import IReflection, Roles, SymbolDBProvider
+from rogw.tranp.semantics.reflection import IReflection, SymbolDBProvider
 from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.syntax.ast.entry import Entry
 from rogw.tranp.syntax.ast.parser import ParserSetting, SyntaxParser
@@ -129,7 +129,7 @@ def task_db(db_provider: SymbolDBProvider) -> None:
 		'--------------',
 	])
 	print(title)
-	print(json.dumps([f'{key}: {raw.org_fullyname}' for key, raw in db_provider.db.items()], indent=2))
+	print(json.dumps([f'{key}: {raw.types.fullyname}' for key, raw in db_provider.db.items()], indent=2))
 
 
 @injectable
@@ -216,21 +216,19 @@ def dump_node_data(node: Node) -> dict[str, Any]:
 
 def dump_symbol_data(symbol: IReflection) -> dict[str, Any]:
 	def attr_formatter(attr: IReflection) -> str:
-		return f'{attr.__class__.__name__}:{str(attr.role)}:{str(attr)} at {str(attr.via or attr.decl)}'
+		return f'{attr.__class__.__name__}:{str(attr)} at {str(attr.node or attr.decl)}'
 
 	return {
 		'types_full_path': symbol.types.full_path,
 		'decl_full_path': symbol.decl.full_path,
 		'shorthand': str(symbol),
-		'ref_fullyname': symbol.ref_fullyname,
-		'org_fullyname': symbol.org_fullyname,
+		'fullyname': symbol.types.fullyname,
 		'types': str(symbol.types),
 		'decl': str(symbol.decl),
-		'role': str(symbol.role),
-		'origin': attr_formatter(symbol.origin) if symbol.role != Roles.Origin else str(None),
-		'via': str(symbol.via),
+		'origin': attr_formatter(symbol.origin),
+		'via': str(symbol.node),
 		'attrs': [attr_formatter(attr) for attr in symbol.attrs],
-		'hierarchy': [attr_formatter(layer) for layer in symbol.hierarchy()],
+		'hierarchy': [attr_formatter(layer) for layer in symbol.stacktrace()],
 	}
 
 

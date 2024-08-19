@@ -4,8 +4,8 @@ from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.errors import LogicError
 from rogw.tranp.lang.annotation import override
 import rogw.tranp.lang.sequence as seqs
-import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.semantics.reflection.interface import IReflection
+import rogw.tranp.syntax.node.definition as defs
 
 T_Helper = TypeVar('T_Helper', bound='Helper')
 T_Schemata = TypeVar('T_Schemata', IReflection, list[IReflection])
@@ -80,7 +80,7 @@ class Class(Helper):
 		map_props = TemplateManipulator.unpack_symbols(template_types=list(context))
 		t_map_props = TemplateManipulator.unpack_templates(template_types=self.schemata.template_types)
 		updates = TemplateManipulator.make_updates(t_map_props, t_map_props, map_props)
-		return TemplateManipulator.apply(self.schema.klass.clone(), map_props, updates)
+		return TemplateManipulator.apply(self.schema.klass.stack_by_self(), map_props, updates)
 
 
 class Function(Helper):
@@ -113,7 +113,7 @@ class Function(Helper):
 		map_props = TemplateManipulator.unpack_symbols(parameters=list(arguments))
 		t_map_props = TemplateManipulator.unpack_templates(parameters=self.schemata.parameters)
 		updates = TemplateManipulator.make_updates(t_map_returns, t_map_props, map_props)
-		return TemplateManipulator.apply(self.schema.returns.clone(), map_props, updates)
+		return TemplateManipulator.apply(self.schema.returns.stack_by_self(), map_props, updates)
 
 	def templates(self) -> list[defs.TemplateClass]:
 		"""テンプレート型(タイプ再定義ノード)を取得
@@ -154,7 +154,7 @@ class Method(Function):
 		map_props = TemplateManipulator.unpack_symbols(klass=actual_klass, parameter=actual_parameter)
 		t_map_props = TemplateManipulator.unpack_templates(klass=self.schema.klass, parameter=parameter)
 		updates = TemplateManipulator.make_updates(t_map_parameter, t_map_props, map_props)
-		return TemplateManipulator.apply(parameter.clone(), map_props, updates)
+		return TemplateManipulator.apply(parameter.stack_by_self(), map_props, updates)
 
 	@override
 	def returns(self, *arguments: IReflection) -> IReflection:
@@ -175,7 +175,7 @@ class Method(Function):
 		map_props = TemplateManipulator.unpack_symbols(klass=actual_klass, parameters=actual_arguments)
 		t_map_props = TemplateManipulator.unpack_templates(klass=self.schema.klass, parameters=self.schemata.parameters)
 		updates = TemplateManipulator.make_updates(t_map_returns, t_map_props, map_props)
-		return TemplateManipulator.apply(self.schema.returns.clone(), map_props, updates)
+		return TemplateManipulator.apply(self.schema.returns.stack_by_self(), map_props, updates)
 
 	@override
 	def templates(self) -> list[defs.TemplateClass]:
@@ -263,15 +263,16 @@ class TemplateManipulator:
 		Returns:
 			IReflection: 適用後のシンボル
 		"""
+		attrs = seqs.deep_copy(primary.attrs)
 		primary_bodies = [prop_path for primary_path, prop_path in updates.items() if DSN.elem_counts(primary_path) == 1]
 		if primary_bodies:
 			return actual_props[primary_bodies[0]]
 
 		for primary_path, prop_path in updates.items():
 			attr_path = DSN.shift(primary_path, 1)
-			seqs.update(primary.attrs, attr_path, actual_props[prop_path], iter_key='attrs')
+			seqs.update(attrs, attr_path, actual_props[prop_path], iter_key='attrs')
 
-		return primary
+		return primary.extends(*attrs)
 
 
 class HelperBuilder:

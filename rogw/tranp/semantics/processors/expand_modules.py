@@ -9,7 +9,8 @@ from rogw.tranp.io.loader import IFileLoader
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.module.modules import Module, Modules
 from rogw.tranp.semantics.finder import SymbolFinder
-from rogw.tranp.semantics.reflection import IReflection, Symbol, SymbolDB
+from rogw.tranp.semantics.reflection import IReflection, SymbolDB
+from rogw.tranp.semantics.reflection.implements import Symbol
 import rogw.tranp.syntax.node.definition as defs
 
 
@@ -125,9 +126,7 @@ class ExpandModules:
 			entrypoint = self.modules.load(module_path).entrypoint.as_a(defs.Entrypoint)
 			for fullyname, full_path in expanded.classes.items():
 				types = entrypoint.whole_by(full_path).as_a(defs.ClassDef)
-				# FIXME シンボルとDBを紐付けるため、一旦DBに登録後にシンボルを変換する
-				expanded_db[fullyname] = Symbol(types)
-				expanded_db[fullyname] = expanded_db[fullyname].to.types()
+				expanded_db[fullyname] = Symbol(types).stack_by_self()
 
 			# インポートシンボルの展開
 			entrypoint = self.modules.load(module_path).entrypoint.as_a(defs.Entrypoint)
@@ -135,7 +134,7 @@ class ExpandModules:
 				import_name = entrypoint.whole_by(full_path).as_a(defs.ImportAsName)
 				import_node = import_name.declare.as_a(defs.Import)
 				raw = expanded_db[ModuleDSN.full_joined(import_node.import_path.tokens, import_name.entity_symbol.tokens)]
-				expanded_db[fullyname] = raw.to.imports(import_name)
+				expanded_db[fullyname] = raw.stack_by(import_name)
 
 			# 変数宣言シンボルの展開
 			entrypoint = self.modules.load(module_path).entrypoint.as_a(defs.Entrypoint)
@@ -145,7 +144,7 @@ class ExpandModules:
 				# FIXME var = entrypoint.whole_by(full_path).as_a(defs.DeclVars)
 				var = entrypoint.whole_by(full_path).one_of(defs.Parameter, defs.Declable)
 				raw = self.resolve_type_symbol(expanded_db, var)
-				expanded_db[var.symbol.fullyname] = raw.to.var(var)
+				expanded_db[var.symbol.fullyname] = raw.declare(var)
 
 		return expanded_db.sorted(list(expanded_modules.keys()))
 

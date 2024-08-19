@@ -130,7 +130,7 @@ class CppPlugin(IPlugin):
 			return value_raw
 
 		# 実体の型を取得出来るまで参照元を辿る
-		for origin in value_raw.hierarchy():
+		for origin in value_raw.stacktrace():
 			if CVars.is_raw_raw(CVars.key_from(self.reflections, origin)):
 				return origin
 

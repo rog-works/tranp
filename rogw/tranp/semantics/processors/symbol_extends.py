@@ -31,16 +31,16 @@ class SymbolExtends:
 		for _, raw in db.items():
 			if raw.node.is_a(defs.ClassDef):
 				if isinstance(raw.types, defs.AltClass):
-					raw.on('attrs', self.make_resolver_for_alt_class(raw))
+					raw.add_on('attrs', self.make_resolver_for_alt_class(raw))
 				elif isinstance(raw.types, defs.Class):
-					raw.on('attrs', self.make_resolver_for_class(raw))
+					raw.add_on('attrs', self.make_resolver_for_class(raw))
 				elif isinstance(raw.types, defs.Function):
-					raw.on('attrs', self.make_resolver_for_function(raw))
+					raw.add_on('attrs', self.make_resolver_for_function(raw))
 			elif raw.node.one_of(defs.Parameter, defs.Declable):
 				if isinstance(raw.decl.declare, defs.Parameter) and isinstance(raw.decl.declare.var_type, defs.Type):
-					raw.on('attrs', self.make_resolver_for_var(raw))
+					raw.add_on('attrs', self.make_resolver_for_var(raw))
 				elif isinstance(raw.decl.declare, (defs.AnnoAssign, defs.Catch)):
-					raw.on('attrs', self.make_resolver_for_var(raw))
+					raw.add_on('attrs', self.make_resolver_for_var(raw))
 
 		return db
 	

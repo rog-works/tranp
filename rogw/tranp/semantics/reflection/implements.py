@@ -3,7 +3,7 @@ from typing import Iterator, Literal, Self
 from rogw.tranp.lang.annotation import implements, override
 from rogw.tranp.semantics.errors import SemanticsLogicError
 from rogw.tranp.semantics.reflection.helper.naming import ClassShorthandNaming
-from rogw.tranp.semantics.reflection.interface import IReflection, Addon, T_Ref
+from rogw.tranp.semantics.reflection.interface import Addons, IReflection, Addon, T_Ref
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 
@@ -132,7 +132,7 @@ class ReflectionBase(IReflection):
 		raise SemanticsLogicError(f'Not allowed extends. symbol: {self.types.fullyname}')
 
 	@implements
-	def on(self, key: Literal['origin', 'attrs'], addon: Addon) -> None:
+	def add_on(self, key: Literal['origin', 'attrs'], addon: Addon) -> None:
 		"""アドオンを有効化
 		
 		Args:
@@ -250,8 +250,7 @@ class Reflection(ReflectionBase):
 		self._origin = origin
 		self._via = via if via else origin.via
 		self._attrs: list[IReflection] = []
-		self._addons: dict[Literal['origin', 'attrs'], Addon] = {}
-		self._addon_cache: dict[Literal['origin', 'attrs'], list[IReflection]] = {}
+		self._addons = Addons()
 
 	@property
 	@implements
@@ -275,11 +274,8 @@ class Reflection(ReflectionBase):
 	@override
 	def origin(self) -> IReflection:
 		"""IReflection: 型のシンボル"""
-		if 'origin' in self._addons:
-			if 'origin' not in self._addon_cache:
-				self._addon_cache['origin'] = self._addons['origin']()
-
-			return self._addon_cache['origin'][0]
+		if self._addons.active('origin'):
+			return self._addons.origin
 
 		return self._origin
 
@@ -298,14 +294,12 @@ class Reflection(ReflectionBase):
 			list[IReflection]: 属性シンボルリスト
 		Note:
 			### 属性の評価順序
-			1. 自身に設定された属性
-			2. 型のシンボルチェーンに設定された属性
+			1. アドオンから注入された属性
+			2. 自身に設定された属性
+			3. 型のシンボルに設定された属性
 		"""
-		if 'attrs' in self._addons:
-			if 'attrs' not in self._addon_cache:
-				self._addon_cache['attrs'] = self._addons['attrs']()
-
-			return self._addon_cache['attrs']
+		if self._addons.active('attrs'):
+			return self._addons.attrs
 
 		if self._attrs:
 			return self._attrs
@@ -335,14 +329,11 @@ class Reflection(ReflectionBase):
 		return self
 
 	@override
-	def on(self, key: Literal['origin', 'attrs'], addon: Addon) -> None:
+	def add_on(self, key: Literal['origin', 'attrs'], addon: Addon) -> None:
 		"""アドオンを有効化
 		
 		Args:
 			key (Literal['origin', 'attrs']): キー
 			addon (Addon): アドオン
 		"""
-		if key in self._addon_cache:
-			del self._addon_cache[key]
-
-		self._addons[key] = addon
+		self._addons.activate(key, addon)

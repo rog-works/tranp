@@ -2,6 +2,7 @@ from abc import ABCMeta, abstractmethod
 from typing import Iterator, Literal, NamedTuple, Protocol, Self, TypeVar
 
 from rogw.tranp.dsn.module import ModuleDSN
+from rogw.tranp.semantics.errors import SemanticsLogicError
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 
@@ -59,14 +60,6 @@ class SymbolDBProvider(NamedTuple):
 	"""
 
 	db: SymbolDB
-
-
-class Addon(Protocol):
-	"""シンボル拡張アドオンプロトコル"""
-
-	def __call__(self) -> list['IReflection']:
-		"""list[IReflection]: シンボルリスト"""
-		...
 
 
 class IReflection(metaclass=ABCMeta):
@@ -200,7 +193,7 @@ class IReflection(metaclass=ABCMeta):
 		...
 
 	@abstractmethod
-	def on(self, key: Literal['origin', 'attrs'], addon: Addon) -> None:
+	def add_on(self, key: Literal['origin', 'attrs'], addon: 'Addon') -> None:
 		"""アドオンを有効化
 		
 		Args:
@@ -222,3 +215,63 @@ class IReflection(metaclass=ABCMeta):
 		"""
 		...
 
+
+class Addon(Protocol):
+	"""シンボル拡張アドオンプロトコル"""
+
+	def __call__(self) -> list[IReflection]:
+		"""list[IReflection]: シンボルリスト"""
+		...
+
+
+class Addons:
+	"""アドオンマネージャー"""
+
+	def __init__(self) -> None:
+		"""インスタンスを生成"""
+		self._addons: dict[str, Addon] = {}
+		self._cache: dict[str, list[IReflection]] = {}
+
+	@property
+	def origin(self) -> IReflection:
+		"""IReflection: 型のシンボル"""
+		if not self.active('origin'):
+			raise SemanticsLogicError('Has no origin')
+
+		if 'origin' not in self._cache:
+			self._cache['origin'] = self._addons['origin']()
+
+		return self._cache['origin'][0]
+
+	@property
+	def attrs(self) -> list[IReflection]:
+		"""list[IReflection]: 属性シンボルリスト"""
+		if not self.active('attrs'):
+			raise SemanticsLogicError('Has no attrs')
+
+		if 'attrs' not in self._cache:
+			self._cache['attrs'] = self._addons['attrs']()
+
+		return self._cache['attrs']
+
+	def active(self, key: Literal['origin', 'attrs']) -> bool:
+		"""アドオンが有効か判定
+
+		Args:
+			key (Literal['origin', 'attrs']): キー
+		Returns:
+			bool: True = 有効
+		"""
+		return key in self._addons
+
+	def activate(self, key: Literal['origin', 'attrs'], addon: Addon) -> None:
+		"""アドオンを有効化
+
+		Args:
+			key (Literal['origin', 'attrs']): キー
+			addon (Addon): アドオン
+		"""
+		if key in self._cache:
+			del self._cache[key]
+
+		self._addons[key] = addon

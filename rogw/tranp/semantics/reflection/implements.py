@@ -1,9 +1,9 @@
-from typing import Iterator, Self
+from typing import Iterator, Literal, Self
 
 from rogw.tranp.lang.annotation import implements, override
 from rogw.tranp.semantics.errors import SemanticsLogicError
 from rogw.tranp.semantics.reflection.helper.naming import ClassShorthandNaming
-from rogw.tranp.semantics.reflection.interface import IReflection, T_Ref
+from rogw.tranp.semantics.reflection.interface import IReflection, Addon, T_Ref
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 
@@ -132,6 +132,16 @@ class ReflectionBase(IReflection):
 		raise SemanticsLogicError(f'Not allowed extends. symbol: {self.types.fullyname}')
 
 	@implements
+	def on(self, key: Literal['origin', 'attrs'], addon: Addon) -> None:
+		"""アドオンを有効化
+		
+		Args:
+			key (Literal['origin', 'attrs']): キー
+			addon (Addon): アドオン
+		"""
+		raise SemanticsLogicError(f'Not allowed on. symbol: {self.types.fullyname}')
+
+	@implements
 	def one_of(self, *expects: type[T_Ref]) -> T_Ref:
 		"""期待する型と同種ならキャスト
 
@@ -240,12 +250,14 @@ class Reflection(ReflectionBase):
 		self._origin = origin
 		self._via = via if via else origin.via
 		self._attrs: list[IReflection] = []
+		self._addons: dict[Literal['origin', 'attrs'], Addon] = {}
+		self._addon_cache: dict[Literal['origin', 'attrs'], list[IReflection]] = {}
 
 	@property
 	@implements
 	def types(self) -> defs.ClassDef:
 		"""ClassDef: 型を表すノード"""
-		return self._origin.types
+		return self.origin.types
 
 	@property
 	@implements
@@ -263,6 +275,12 @@ class Reflection(ReflectionBase):
 	@override
 	def origin(self) -> IReflection:
 		"""IReflection: 型のシンボル"""
+		if 'origin' in self._addons:
+			if 'origin' not in self._addon_cache:
+				self._addon_cache['origin'] = self._addons['origin']()
+
+			return self._addon_cache['origin'][0]
+
 		return self._origin
 
 	@property
@@ -283,19 +301,18 @@ class Reflection(ReflectionBase):
 			1. 自身に設定された属性
 			2. 型のシンボルチェーンに設定された属性
 		"""
+		if 'attrs' in self._addons:
+			if 'attrs' not in self._addon_cache:
+				self._addon_cache['attrs'] = self._addons['attrs']()
+
+			return self._addon_cache['attrs']
+
 		if self._attrs:
 			return self._attrs
 
-		curr = self.origin
-		index = 0
-		while curr:
-			attrs = curr.attrs
-			if attrs:
-				return attrs
-
-			curr = curr.origin if curr.origin != curr or id(curr.origin) != id(curr) else None
-
-			index += 1
+		attrs = self.origin.attrs
+		if attrs:
+			return attrs
 
 		return []
 
@@ -316,3 +333,16 @@ class Reflection(ReflectionBase):
 		
 		self._attrs = list(attrs)
 		return self
+
+	@override
+	def on(self, key: Literal['origin', 'attrs'], addon: Addon) -> None:
+		"""アドオンを有効化
+		
+		Args:
+			key (Literal['origin', 'attrs']): キー
+			addon (Addon): アドオン
+		"""
+		if key in self._addon_cache:
+			del self._addon_cache[key]
+
+		self._addons[key] = addon

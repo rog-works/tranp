@@ -1,8 +1,8 @@
-from typing import Callable, cast
+from typing import cast
 
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.lang.locator import Invoker
-from rogw.tranp.semantics.reflection.proxy import SymbolProxy
+from rogw.tranp.semantics.reflection.interface import Addon
 from rogw.tranp.semantics.reflections import Reflections
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.semantics.reflection import IReflection, SymbolDB
@@ -28,23 +28,23 @@ class SymbolExtends:
 		Returns:
 			SymbolDB: シンボルテーブル
 		"""
-		for key, raw in db.items_in_preprocess():
+		for _, raw in db.items():
 			if raw.node.is_a(defs.ClassDef):
 				if isinstance(raw.types, defs.AltClass):
-					db[key] = SymbolProxy(raw, self.make_resolver_for_alt_class(raw))
+					raw.on('attrs', self.make_resolver_for_alt_class(raw))
 				elif isinstance(raw.types, defs.Class):
-					db[key] = SymbolProxy(raw, self.make_resolver_for_class(raw))
+					raw.on('attrs', self.make_resolver_for_class(raw))
 				elif isinstance(raw.types, defs.Function):
-					db[key] = SymbolProxy(raw, self.make_resolver_for_function(raw))
+					raw.on('attrs', self.make_resolver_for_function(raw))
 			elif raw.node.one_of(defs.Parameter, defs.Declable):
 				if isinstance(raw.decl.declare, defs.Parameter) and isinstance(raw.decl.declare.var_type, defs.Type):
-					db[key] = SymbolProxy(raw, self.make_resolver_for_var(raw))
+					raw.on('attrs', self.make_resolver_for_var(raw))
 				elif isinstance(raw.decl.declare, (defs.AnnoAssign, defs.Catch)):
-					db[key] = SymbolProxy(raw, self.make_resolver_for_var(raw))
+					raw.on('attrs', self.make_resolver_for_var(raw))
 
 		return db
 	
-	def make_resolver_for_alt_class(self, raw: IReflection) -> Callable[[], IReflection]:
+	def make_resolver_for_alt_class(self, raw: IReflection) -> Addon:
 		"""シンボルリゾルバーを生成(タイプ再定義用)
 
 		Args:
@@ -52,9 +52,9 @@ class SymbolExtends:
 		Returns:
 			Callable[[], IReflection]: シンボルリゾルバー
 		"""
-		return lambda: self.invoker(self.extends_for_alt_class, raw)
+		return lambda: self.invoker(self.attrs_for_alt_class, raw)
 
-	def make_resolver_for_class(self, raw: IReflection) -> Callable[[], IReflection]:
+	def make_resolver_for_class(self, raw: IReflection) -> Addon:
 		"""シンボルリゾルバーを生成(クラス定義用)
 
 		Args:
@@ -62,9 +62,9 @@ class SymbolExtends:
 		Returns:
 			Callable[[], IReflection]: シンボルリゾルバー
 		"""
-		return lambda: self.invoker(self.extends_for_class, raw)
+		return lambda: self.invoker(self.attrs_for_class, raw)
 
-	def make_resolver_for_function(self, raw: IReflection) -> Callable[[], IReflection]:
+	def make_resolver_for_function(self, raw: IReflection) -> Addon:
 		"""シンボルリゾルバーを生成(ファンクション定義用)
 
 		Args:
@@ -72,9 +72,9 @@ class SymbolExtends:
 		Returns:
 			Callable[[], IReflection]: シンボルリゾルバー
 		"""
-		return lambda: self.invoker(self.extends_for_function, raw)
+		return lambda: self.invoker(self.attrs_for_function, raw)
 
-	def make_resolver_for_var(self, raw: IReflection) -> Callable[[], IReflection]:
+	def make_resolver_for_var(self, raw: IReflection) -> Addon:
 		"""シンボルリゾルバーを生成(変数宣言用)
 
 		Args:
@@ -82,9 +82,10 @@ class SymbolExtends:
 		Returns:
 			Callable[[], IReflection]: シンボルリゾルバー
 		"""
-		return lambda: self.invoker(self.extends_for_var, raw)
+		return lambda: self.invoker(self.attrs_for_var, raw)
 
-	def extends_for_function(self, reflections: Reflections, via: IReflection) -> IReflection:
+	@injectable
+	def attrs_for_function(self, reflections: Reflections, via: IReflection) -> list[IReflection]:
 		"""宣言ノードを解析し、属性の型を取り込みシンボルを拡張(ファンクション定義用)
 
 		Args:
@@ -104,9 +105,10 @@ class SymbolExtends:
 				attrs.append(reflections.type_of(parameter_type))
 
 		attrs.append(reflections.type_of(func.return_type))
-		return via.extends(*attrs)
+		return attrs
 
-	def extends_for_alt_class(self, reflections: Reflections, via: IReflection) -> IReflection:
+	@injectable
+	def attrs_for_alt_class(self, reflections: Reflections, via: IReflection) -> list[IReflection]:
 		"""宣言ノードを解析し、属性の型を取り込みシンボルを拡張(タイプ再定義用)
 
 		Args:
@@ -116,9 +118,10 @@ class SymbolExtends:
 			IReflection: シンボル
 		"""
 		alt_types = via.types.as_a(defs.AltClass)
-		return via.extends(reflections.type_of(alt_types.actual_type))
+		return [reflections.type_of(alt_types.actual_type)]
 
-	def extends_for_class(self, reflections: Reflections, via: IReflection) -> IReflection:
+	@injectable
+	def attrs_for_class(self, reflections: Reflections, via: IReflection) -> list[IReflection]:
 		"""宣言ノードを解析し、属性の型を取り込みシンボルを拡張(クラス定義用)
 
 		Args:
@@ -142,9 +145,10 @@ class SymbolExtends:
 			inherit_attrs = fetch_template_attrs(reflections.type_of(inherit).types.as_a(defs.Class))
 			attrs = {**attrs, **{decl: attr for decl, attr in inherit_attrs.items() if decl not in attrs}}
 
-		return via.extends(*attrs.values())
+		return list(attrs.values())
 
-	def extends_for_var(self, reflections: Reflections, via: IReflection) -> IReflection:
+	@injectable
+	def attrs_for_var(self, reflections: Reflections, via: IReflection) -> list[IReflection]:
 		"""宣言ノードを解析し、属性の型を取り込みシンボルを拡張(変数宣言用)
 
 		Args:
@@ -154,4 +158,4 @@ class SymbolExtends:
 			IReflection: シンボル
 		"""
 		decl_type = via.decl.declare.one_of(defs.Parameter, defs.AnnoAssign, defs.Catch).var_type
-		return via.extends(*reflections.type_of(decl_type).attrs)
+		return reflections.type_of(decl_type).attrs

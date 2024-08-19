@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import Iterator, NamedTuple, Self, TypeVar
+from typing import Iterator, Literal, NamedTuple, Protocol, Self, TypeVar
 
 from rogw.tranp.dsn.module import ModuleDSN
 import rogw.tranp.syntax.node.definition as defs
@@ -50,21 +50,6 @@ class SymbolDB(dict[str, 'IReflection']):
 
 		return self.__class__(dict(sorted(self.items(), key=order)))
 
-	def items_in_preprocess(self) -> Iterator[tuple[str, 'IReflection']]:
-		"""プリプロセッサー専用のアイテムイテレーター
-
-		Returns:
-			Iterator[tuple[str, 'IReflection']]: イテレーター
-		Note:
-			XXX * プリプロセッサー内ではSymbolProxyのオリジナルを参照することで無限ループを防止する @seeを参照
-			XXX * それ以外の目的で使用するのはNG
-			@see semantics.processors.symbol_extends.SymbolExtends
-			@see semantics.processors.resolve_unknown.ResolveUnknown
-		"""
-		for key, raw in self.items():
-			org_raw = raw.org_raw if isinstance(raw, ISymbolProxy) else raw
-			yield (key, org_raw)
-
 
 class SymbolDBProvider(NamedTuple):
 	"""シンボルテーブルプロバイダー
@@ -74,6 +59,14 @@ class SymbolDBProvider(NamedTuple):
 	"""
 
 	db: SymbolDB
+
+
+class Addon(Protocol):
+	"""シンボル拡張アドオンプロトコル"""
+
+	def __call__(self) -> list['IReflection']:
+		"""list[IReflection]: シンボルリスト"""
+		...
 
 
 class IReflection(metaclass=ABCMeta):
@@ -199,10 +192,20 @@ class IReflection(metaclass=ABCMeta):
 		Args:
 			*attrs (IReflection): 属性シンボルリスト
 		Returns:
-			T_Ref: インスタンス
+			Self: インスタンス
 		Raises:
 			SemanticsLogicError: 実体の無いインスタンスに実行 XXX 出力する例外は要件等
 			SemanticsLogicError: 拡張済みのインスタンスに再度実行 XXX 出力する例外は要件等
+		"""
+		...
+
+	@abstractmethod
+	def on(self, key: Literal['origin', 'attrs'], addon: Addon) -> None:
+		"""アドオンを有効化
+		
+		Args:
+			key (Literal['origin', 'attrs']): キー
+			addon (Addon): アドオン
 		"""
 		...
 
@@ -219,20 +222,3 @@ class IReflection(metaclass=ABCMeta):
 		"""
 		...
 
-
-class ISymbolProxy(metaclass=ABCMeta):
-	"""シンボルプロクシー専用のインターフェイス"""
-
-	@property
-	@abstractmethod
-	def org_raw(self) -> 'IReflection':
-		"""オリジナルのシンボルを取得
-
-		Returns:
-			IReflection: オリジナルのシンボル
-		Note:
-			XXX * プリプロセッサー内で無限ループを防ぐ目的で実装
-			XXX * それ以外の目的で使用するのはNG
-			@see semantics.reflection.interface.SymbolDB.items_in_preprocess
-		"""
-		...

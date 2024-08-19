@@ -1,11 +1,12 @@
-from typing import Callable, cast
+from typing import cast
 
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.lang.locator import Invoker
+from rogw.tranp.semantics.reflection.interface import Addon
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.interface import IDeclaration
 from rogw.tranp.syntax.node.node import Node
-from rogw.tranp.semantics.reflection import IReflection, SymbolProxy, SymbolDB
+from rogw.tranp.semantics.reflection import IReflection, SymbolDB
 from rogw.tranp.semantics.reflections import Reflections
 
 
@@ -36,20 +37,20 @@ class ResolveUnknown:
 			SymbolDB: シンボルテーブル
 		"""
 
-		for key, raw in db.items_in_preprocess():
+		for _, raw in db.items():
 			if not isinstance(raw.decl, defs.Declable):
 				continue
 
 			if isinstance(raw.decl.declare, defs.MoveAssign):
-				db[key] = SymbolProxy(raw, self.make_resolver(raw, raw.decl.declare.value))
+				raw.on('origin', self.make_resolver(raw, raw.decl.declare.value))
 			elif isinstance(raw.decl.declare, (defs.For, defs.CompFor)):
-				db[key] = SymbolProxy(raw, self.make_resolver(raw, raw.decl.declare.for_in))
+				raw.on('origin', self.make_resolver(raw, raw.decl.declare.for_in))
 			elif isinstance(raw.decl.declare, defs.WithEntry):
-				db[key] = SymbolProxy(raw, self.make_resolver(raw, raw.decl.declare.enter))
+				raw.on('origin', self.make_resolver(raw, raw.decl.declare.enter))
 
 		return db
 
-	def make_resolver(self, raw: IReflection, value_node: Node) -> Callable[[], IReflection]:
+	def make_resolver(self, raw: IReflection, value_node: Node) -> Addon:
 		"""シンボルリゾルバーを生成
 
 		Args:
@@ -58,7 +59,7 @@ class ResolveUnknown:
 		Returns:
 			Callable[[], IReflection]: シンボルリゾルバー
 		"""
-		return lambda: self.invoker(self.resolver, raw, value_node)
+		return lambda: [self.invoker(self.resolver, raw, value_node)]
 
 	@injectable
 	def resolver(self, reflections: Reflections, var_raw: IReflection, value_node: Node) -> IReflection:
@@ -70,8 +71,6 @@ class ResolveUnknown:
 			value_node (Node): 右辺値ノード
 		Returns:
 			IReflection: 解決したシンボル
-		Note:
-			変数宣言のシンボルのため、RolesをVarに変更
 		"""
 		return self.resolve_right_value(var_raw, reflections.type_of(value_node))
 

@@ -5,7 +5,6 @@ from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.module.types import LibraryPaths
 from rogw.tranp.semantics.errors import MustBeImplementedError, SymbolNotDefinedError
-from rogw.tranp.semantics.reflection.interface import ISymbolProxy
 from rogw.tranp.semantics.reflection import IReflection, SymbolDB
 import rogw.tranp.syntax.node.definition as defs
 
@@ -158,10 +157,7 @@ class SymbolFinder:
 			シンボル系ノードがタイプの場合はクラスかタイプのみを検索対象とする
 		"""
 		for raw in self.__each_find_raw(db, scopes, domain_name):
-			# XXX このモジュールでISymbolProxyの参照が妥当か再検討
-			# XXX タイプノードが参照するシンボルはUnknownになることが無いため、オリジナルの型と拡張後の型は必ず一致する
-			org_raw = raw.org_raw if isinstance(raw, ISymbolProxy) else raw
-			if org_raw.decl.is_a(defs.ClassOrType):
+			if raw.decl.is_a(defs.ClassOrType):
 				return raw
 
 		return None

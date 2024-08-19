@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from rogw.tranp.semantics.reflection import SymbolDB
+from rogw.tranp.semantics.reflection.interface import SymbolDB
 
 
 class Preprocessor(Protocol):

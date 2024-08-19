@@ -5,9 +5,9 @@ from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.lang.error import raises
 from rogw.tranp.semantics.errors import OperationNotAllowedError, SemanticsLogicError, UnresolvedSymbolError
 from rogw.tranp.semantics.finder import SymbolFinder
+from rogw.tranp.semantics.reflection.interface import IReflection, SymbolDBProvider
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.semantics.procedure import Procedure
-from rogw.tranp.semantics.reflection import IReflection, SymbolDBProvider
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 

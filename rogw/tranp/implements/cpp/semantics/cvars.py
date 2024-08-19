@@ -3,7 +3,7 @@ from typing import ClassVar
 
 import rogw.tranp.compatible.cpp.object as cpp
 from rogw.tranp.lang.annotation import deprecated
-from rogw.tranp.semantics.reflection import IReflection
+from rogw.tranp.semantics.reflection.interface import IReflection
 from rogw.tranp.semantics.reflections import Reflections
 
 

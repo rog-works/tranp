@@ -9,8 +9,8 @@ from rogw.tranp.io.loader import IFileLoader
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.module.modules import Module, Modules
 from rogw.tranp.semantics.finder import SymbolFinder
-from rogw.tranp.semantics.reflection import IReflection, SymbolDB
 from rogw.tranp.semantics.reflection.implements import Symbol
+from rogw.tranp.semantics.reflection.interface import IReflection, SymbolDB
 import rogw.tranp.syntax.node.definition as defs
 
 

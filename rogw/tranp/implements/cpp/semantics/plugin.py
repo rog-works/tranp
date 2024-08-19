@@ -4,10 +4,10 @@ from rogw.tranp.errors import FatalError
 from rogw.tranp.implements.cpp.semantics.cvars import CVars
 from rogw.tranp.lang.annotation import deprecated, implements
 from rogw.tranp.lang.eventemitter import IObservable
-import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.semantics.plugin import IPlugin
-from rogw.tranp.semantics.reflection import IReflection
+from rogw.tranp.semantics.reflection.interface import IReflection
 from rogw.tranp.semantics.reflections import Reflections
+import rogw.tranp.syntax.node.definition as defs
 
 
 @deprecated

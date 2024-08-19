@@ -5,7 +5,7 @@ from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.module.types import LibraryPaths
 from rogw.tranp.semantics.errors import MustBeImplementedError, SymbolNotDefinedError
-from rogw.tranp.semantics.reflection import IReflection, SymbolDB
+from rogw.tranp.semantics.reflection.interface import IReflection, SymbolDB
 import rogw.tranp.syntax.node.definition as defs
 
 

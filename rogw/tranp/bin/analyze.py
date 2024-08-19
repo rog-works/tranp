@@ -16,9 +16,9 @@ from rogw.tranp.lang.module import fullyname
 from rogw.tranp.module.modules import Modules
 from rogw.tranp.module.types import ModulePath, ModulePaths
 from rogw.tranp.providers.module import module_path_dummy
-from rogw.tranp.semantics.plugin import PluginProvider
-from rogw.tranp.semantics.reflection import IReflection, SymbolDBProvider
+from rogw.tranp.semantics.reflection.interface import IReflection, SymbolDBProvider
 from rogw.tranp.semantics.reflections import Reflections
+from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.syntax.ast.entry import Entry
 from rogw.tranp.syntax.ast.parser import ParserSetting, SyntaxParser
 import rogw.tranp.syntax.node.definition as defs

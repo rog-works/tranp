@@ -68,30 +68,22 @@ class IReflection(metaclass=ABCMeta):
 
 	@abstractmethod
 	def declare(self, decl: defs.DeclVars, origin: 'IReflection | None' = None) -> 'IReflection':
-		"""定義ノードをスタック
+		"""定義ノードをスタックし、型のシンボルを移行。型のシンボル省略時はそのまま引き継ぐ
 
 		Args:
 			decl (DeclVars): 定義元のノード
+			origin (IReflection | None): 型のシンボル (default = None)
 		Returns:
 			IReflection: リフレクション
 		"""
 		...
 
 	@abstractmethod
-	def stack_by(self, node: Node) -> 'IReflection':
-		"""ノードをスタック
+	def stack(self, node: Node | None = None) -> 'IReflection':
+		"""ノードをスタック。ノード省略時は自分自身をスタック
 
 		Args:
-			node (Node): ノード
-		Returns:
-			IReflection: リフレクション
-		"""
-		...
-
-	@abstractmethod
-	def stack_by_self(self) -> 'IReflection':
-		"""自身を参照としてスタック
-
+			node (Node | None): ノード (default = None)
 		Returns:
 			IReflection: リフレクション
 		"""
@@ -162,8 +154,8 @@ class IReflection(metaclass=ABCMeta):
 		...
 
 	@abstractmethod
-	def clone(self) -> 'IReflection':
-		"""インスタンスを複製
+	def to_temporary(self) -> 'IReflection':
+		"""インスタンスをテンプレート用に複製
 
 		Returns:
 			IReflection: 複製したインスタンス

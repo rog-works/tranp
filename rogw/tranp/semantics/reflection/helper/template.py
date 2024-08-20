@@ -80,7 +80,7 @@ class Class(Helper):
 		map_props = TemplateManipulator.unpack_symbols(template_types=list(context))
 		t_map_props = TemplateManipulator.unpack_templates(template_types=self.schemata.template_types)
 		updates = TemplateManipulator.make_updates(t_map_props, t_map_props, map_props)
-		return TemplateManipulator.apply(self.schema.klass.clone(), map_props, updates)
+		return TemplateManipulator.apply(self.schema.klass.to_temporary(), map_props, updates)
 
 
 class Function(Helper):
@@ -113,7 +113,7 @@ class Function(Helper):
 		map_props = TemplateManipulator.unpack_symbols(parameters=list(arguments))
 		t_map_props = TemplateManipulator.unpack_templates(parameters=self.schemata.parameters)
 		updates = TemplateManipulator.make_updates(t_map_returns, t_map_props, map_props)
-		return TemplateManipulator.apply(self.schema.returns.clone(), map_props, updates)
+		return TemplateManipulator.apply(self.schema.returns.to_temporary(), map_props, updates)
 
 	def templates(self) -> list[defs.TemplateClass]:
 		"""テンプレート型(タイプ再定義ノード)を取得
@@ -154,7 +154,7 @@ class Method(Function):
 		map_props = TemplateManipulator.unpack_symbols(klass=actual_klass, parameter=actual_parameter)
 		t_map_props = TemplateManipulator.unpack_templates(klass=self.schema.klass, parameter=parameter)
 		updates = TemplateManipulator.make_updates(t_map_parameter, t_map_props, map_props)
-		return TemplateManipulator.apply(parameter.clone(), map_props, updates)
+		return TemplateManipulator.apply(parameter.to_temporary(), map_props, updates)
 
 	@override
 	def returns(self, *arguments: IReflection) -> IReflection:
@@ -175,7 +175,7 @@ class Method(Function):
 		map_props = TemplateManipulator.unpack_symbols(klass=actual_klass, parameters=actual_arguments)
 		t_map_props = TemplateManipulator.unpack_templates(klass=self.schema.klass, parameters=self.schemata.parameters)
 		updates = TemplateManipulator.make_updates(t_map_returns, t_map_props, map_props)
-		return TemplateManipulator.apply(self.schema.returns.clone(), map_props, updates)
+		return TemplateManipulator.apply(self.schema.returns.to_temporary(), map_props, updates)
 
 	@override
 	def templates(self) -> list[defs.TemplateClass]:

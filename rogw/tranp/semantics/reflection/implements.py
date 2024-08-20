@@ -10,7 +10,7 @@ from rogw.tranp.syntax.node.node import Node
 
 
 class Options:
-	"""インスタンス化オプション"""
+	"""生成オプション"""
 
 	def __init__(self,
 		types: defs.ClassDef | None = None,
@@ -37,6 +37,17 @@ class Options:
 
 class ReflectionBase(IReflection):
 	"""リフレクション(基底)"""
+
+	def __init__(self, options: Options) -> None:
+		"""インスタンスを生成
+
+		Args:
+			options (Options): 生成オプション
+		Note:
+			* インターフェイスの共通化のため定義
+			* 基底クラスでは特に何も行わない
+		"""
+		...
 
 	# @property
 	# @abstractmethod
@@ -85,35 +96,26 @@ class ReflectionBase(IReflection):
 
 	@implements
 	def declare(self, decl: defs.DeclVars, origin: IReflection | None = None) -> IReflection:
-		"""定義ノードをスタック
+		"""定義ノードをスタックし、型のシンボルを移行。型のシンボル省略時はそのまま引き継ぐ
 
 		Args:
 			decl (DeclVars): 定義元のノード
-			origin (IReflection | None)
+			origin (IReflection | None): 型のシンボル (default = None)
 		Returns:
 			IReflection: リフレクション
 		"""
 		return Reflection(Options(decl=decl, node=decl, origin=origin if origin else self))
 
 	@implements
-	def stack_by(self, node: Node) -> IReflection:
-		"""ノードをスタック
+	def stack(self, node: Node | None = None) -> IReflection:
+		"""ノードをスタック。ノード省略時は自分自身をスタック
 
 		Args:
-			node (Node): ノード
+			node (Node | None): ノード (default = None)
 		Returns:
 			IReflection: リフレクション
 		"""
-		return Reflection(Options(node=node, origin=self))
-
-	@implements
-	def stack_by_self(self) -> IReflection:
-		"""自身を参照としてスタック
-
-		Returns:
-			IReflection: リフレクション
-		"""
-		return Reflection(Options(node=self.node, origin=self))
+		return Reflection(Options(node=node if node else self.node, origin=self))
 
 	@implements
 	def to(self, node: Node, origin: IReflection) -> IReflection:
@@ -186,14 +188,14 @@ class ReflectionBase(IReflection):
 		raise SemanticsLogicError(f'Not allowed conversion. self: {str(self)}, from: {self.__class__.__name__}, to: {expects}')
 
 	@implements
-	def clone(self) -> IReflection:
-		"""インスタンスを複製
+	def to_temporary(self) -> IReflection:
+		"""インスタンスをテンプレート用に複製
 
 		Returns:
 			IReflection: 複製したインスタンス
 		"""
-		new = self.stack_by_self()
-		new.extends(*[attr.clone() for attr in self.attrs])
+		new = self.stack()
+		new.extends(*[attr.to_temporary() for attr in self.attrs])
 		return new
 
 	@override
@@ -254,14 +256,14 @@ class Symbol(ReflectionBase):
 		"""
 		return cls(Options(types=types))
 
-	def __init__(self, option: Options) -> None:
+	def __init__(self, options: Options) -> None:
 		"""インスタンスを生成
 
 		Args:
-			types (ClassDef): クラス定義ノード
+			options (Options): 生成オプション
 		"""
-		super().__init__()
-		self._types = safe_cast(option.types)
+		super().__init__(options)
+		self._types = safe_cast(options.types)
 
 	@property
 	@implements
@@ -285,17 +287,17 @@ class Symbol(ReflectionBase):
 class Reflection(ReflectionBase):
 	"""リフレクションの共通実装(基底)"""
 
-	def __init__(self, option: Options) -> None:
+	def __init__(self, options: Options) -> None:
 		"""インスタンスを生成
 
 		Args:
-			option (Option): オプション
+			options (Options): 生成オプション
 		"""
-		super().__init__()
-		self._node = safe_cast(option.node)
-		self._origin = safe_cast(option.origin)
-		self._decl = option.decl if option.decl else self._origin.decl
-		self._via = option.via if option.via else self._origin.via
+		super().__init__(options)
+		self._node = safe_cast(options.node)
+		self._origin = safe_cast(options.origin)
+		self._decl = options.decl if options.decl else self._origin.decl
+		self._via = options.via if options.via else self._origin.via
 		self._attrs: list[IReflection] = []
 		self._addons = Addons()
 

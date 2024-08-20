@@ -224,11 +224,6 @@ class ReflectionBase(IReflection):
 			'types': self.types.fullyname,
 			'attrs': [attr.__repr__() for attr in self.attrs],
 		}
-
-		__debug = False
-		if __debug:
-			return f'{self.__class__.__name__}({id(self)}): {str(data)}'
-
 		return str(data)
 
 	@override

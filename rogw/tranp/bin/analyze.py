@@ -229,7 +229,7 @@ def dump_symbol_data(symbol: IReflection) -> dict[str, Any]:
 		'origin': attr_formatter(symbol.origin),
 		'via': str(symbol.node),
 		'attrs': [attr_formatter(attr) for attr in symbol.attrs],
-		'hierarchy': [attr_formatter(layer) for layer in symbol.stacktrace()],
+		'stacktrace': [attr_formatter(layer) for layer in symbol.stacktrace()],
 	}
 
 

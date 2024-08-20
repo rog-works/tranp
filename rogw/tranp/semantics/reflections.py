@@ -367,45 +367,6 @@ class ProceduralResolver:
 		"""
 		return self.reflections.type_of_standard(classes.Unknown).stack(node)
 
-	# Statement compound
-
-	def on_for_in(self, node: defs.ForIn, iterates: IReflection) -> IReflection:
-		"""
-		Note:
-			# iterates
-			## 無視できない
-			* list: list<int>
-			* dict: dict<str, int>
-			* func_call: func<..., T> -> T = list<int> | dict<str, int>
-			* var: list<int> | dict<str, int>
-			* relay: list<int> | dict<str, int>
-			* indexer: list<int> | dict<str, int>
-			## 無視してよい
-			* group: Any
-			* operator: Any
-		"""
-		iterates = self.unpack_alt_class(iterates)
-
-		def resolve_method() -> tuple[IReflection, str]:
-			try:
-				return self.reflections.resolve(iterates.types, iterates.types.operations.iterator), 'iterator'
-			except UnresolvedSymbolError:
-				return self.reflections.resolve(iterates.types, iterates.types.operations.iterable), 'iterable'
-
-		method, solution = resolve_method()
-		# XXX iteratorの場合は、戻り値の型をそのまま使用
-		# XXX iterableの場合は、戻り値の型が`Iterator<T>`と言う想定でアンパックする
-		# XXX # メソッドシグネチャーの期待値
-		# XXX `iterator(self) -> T`
-		# XXX `iterable(self) -> Iterator<T>`
-		schema = {
-			'klass': method.attrs[0],
-			'parameters': method.attrs[1:-1],
-			'returns': method.attrs[-1] if solution == 'iterator' else method.attrs[-1].attrs[0],
-		}
-		function_helper = template.HelperBuilder(method).schema(lambda: schema).build(template.Method)
-		return function_helper.returns(iterates).stack(node)
-
 	# Function/Class Elements
 
 	def on_parameter(self, node: defs.Parameter, symbol: IReflection, var_type: IReflection, default_value: IReflection) -> IReflection:
@@ -413,11 +374,11 @@ class ProceduralResolver:
 
 	# Statement simple
 
-	def on_anno_assign(self, node: defs.AnnoAssign, receiver: IReflection, var_type: IReflection, value: IReflection) -> IReflection:
-		return receiver.stack(node)
-
 	def on_move_assign(self, node: defs.MoveAssign, receivers: list[IReflection], value: IReflection) -> IReflection:
 		return value.stack(node)
+
+	def on_anno_assign(self, node: defs.AnnoAssign, receiver: IReflection, var_type: IReflection, value: IReflection) -> IReflection:
+		return receiver.stack(node)
 
 	def on_aug_assign(self, node: defs.AugAssign, receiver: IReflection, value: IReflection) -> IReflection:
 		return receiver.stack(node)
@@ -451,13 +412,13 @@ class ProceduralResolver:
 	def on_decl_this_var(self, node: defs.DeclThisVar) -> IReflection:
 		return self.reflections.resolve(node).stack(node)
 
+	def on_decl_local_var(self, node: defs.DeclLocalVar) -> IReflection:
+		return self.reflections.resolve(node).stack(node)
+
 	def on_decl_class_param(self, node: defs.DeclClassParam) -> IReflection:
 		return self.reflections.resolve(node).stack(node)
 
 	def on_decl_this_param(self, node: defs.DeclThisParam) -> IReflection:
-		return self.reflections.resolve(node).stack(node)
-
-	def on_decl_local_var(self, node: defs.DeclLocalVar) -> IReflection:
 		return self.reflections.resolve(node).stack(node)
 
 	def on_types_name(self, node: defs.TypesName) -> IReflection:
@@ -520,19 +481,19 @@ class ProceduralResolver:
 		else:
 			return prop
 
-	def on_class_ref(self, node: defs.ClassRef) -> IReflection:
-		symbol = self.reflections.resolve(node)
-		return self.reflections.type_of_standard(type).stack(node).extends(symbol)
-
-	def on_this_ref(self, node: defs.ThisRef) -> IReflection:
-		return self.reflections.resolve(node).stack(node)
-
 	def on_var(self, node: defs.Var) -> IReflection:
 		symbol = self.reflections.resolve(node)
 		if not symbol.decl.is_a(defs.Class):
 			return symbol.stack(node)
 
 		return self.reflections.type_of_standard(type).stack(node).extends(symbol)
+
+	def on_class_ref(self, node: defs.ClassRef) -> IReflection:
+		symbol = self.reflections.resolve(node)
+		return self.reflections.type_of_standard(type).stack(node).extends(symbol)
+
+	def on_this_ref(self, node: defs.ThisRef) -> IReflection:
+		return self.reflections.resolve(node).stack(node)
 
 	def on_indexer(self, node: defs.Indexer, receiver: IReflection, keys: list[IReflection]) -> IReflection:
 		unpacked_receiver = self.unpack_alt_class(receiver)
@@ -635,6 +596,43 @@ class ProceduralResolver:
 			return calls.to(node, self.reflections.resolve(node.super_class_symbol))
 		else:
 			return calls.to(node, self.reflections.get_object())
+
+	def on_for_in(self, node: defs.ForIn, iterates: IReflection) -> IReflection:
+		"""
+		Note:
+			# iterates
+			## 無視できない
+			* list: list<int>
+			* dict: dict<str, int>
+			* func_call: func<..., T> -> T = list<int> | dict<str, int>
+			* var: list<int> | dict<str, int>
+			* relay: list<int> | dict<str, int>
+			* indexer: list<int> | dict<str, int>
+			## 無視してよい
+			* group: Any
+			* operator: Any
+		"""
+		iterates = self.unpack_alt_class(iterates)
+
+		def resolve_method() -> tuple[IReflection, str]:
+			try:
+				return self.reflections.resolve(iterates.types, iterates.types.operations.iterator), 'iterator'
+			except UnresolvedSymbolError:
+				return self.reflections.resolve(iterates.types, iterates.types.operations.iterable), 'iterable'
+
+		method, solution = resolve_method()
+		# XXX iteratorの場合は、戻り値の型をそのまま使用
+		# XXX iterableの場合は、戻り値の型が`Iterator<T>`と言う想定でアンパックする
+		# XXX # メソッドシグネチャーの期待値
+		# XXX `iterator(self) -> T`
+		# XXX `iterable(self) -> Iterator<T>`
+		schema = {
+			'klass': method.attrs[0],
+			'parameters': method.attrs[1:-1],
+			'returns': method.attrs[-1] if solution == 'iterator' else method.attrs[-1].attrs[0],
+		}
+		function_helper = template.HelperBuilder(method).schema(lambda: schema).build(template.Method)
+		return function_helper.returns(iterates).stack(node)
 
 	def on_comp_for(self, node: defs.CompFor, symbols: list[IReflection], for_in: IReflection) -> IReflection:
 		return for_in.stack(node)

@@ -59,30 +59,20 @@ class ResolveUnknown:
 		Returns:
 			Addon: アドオン
 		"""
-		return lambda: [self.invoker(self.resolver, raw, value_node)]
+		return lambda: [self.invoker(self.resolve_right_value, raw, value_node)]
 
 	@injectable
-	def resolver(self, reflections: Reflections, var_raw: IReflection, value_node: Node) -> IReflection:
-		"""右辺値の型を解決してシンボルを生成
+	def resolve_right_value(self, reflections: Reflections, var_raw: IReflection, value_node: Node) -> IReflection:
+		"""右辺値の型を解決し、変数宣言シンボルを生成
 
 		Args:
 			reflections (Reflections): シンボルリゾルバー @inject
 			var_raw (IReflection): 変数宣言シンボル
 			value_node (Node): 右辺値ノード
 		Returns:
-			IReflection: 解決したシンボル
+			IReflection: シンボル
 		"""
-		return self.resolve_right_value(var_raw, reflections.type_of(value_node))
-
-	def resolve_right_value(self, var_raw: IReflection, value_raw: IReflection) -> IReflection:
-		"""右辺値の型を解決
-
-		Args:
-			var_raw (IReflection): 変数宣言シンボル
-			value_raw (IReflection): 変数宣言時の右辺値シンボル
-		Returns:
-			IReflection: 変数の型
-		"""
+		value_raw = reflections.type_of(value_node)
 		decl_vars = cast(IDeclaration, var_raw.decl.declare).symbols
 		if len(decl_vars) == 1:
 			return var_raw.declare(var_raw.node.as_a(defs.Declable), value_raw)

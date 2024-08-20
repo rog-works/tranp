@@ -100,8 +100,8 @@ class EntryOfLark(Entry):
 
 
 DumpSourceMap: TypeAlias = tuple[int, int, int, int]
-DumpToken = TypedDict('DictToken', {'name': str, 'value': str, 'source_map': DumpSourceMap})
-DumpTree = TypedDict('DictTree', {'name': str, 'children': list['DumpToken | DumpTree | None'], 'source_map': DumpSourceMap})
+DumpToken = TypedDict('DumpToken', {'name': str, 'value': str, 'source_map': DumpSourceMap})
+DumpTree = TypedDict('DumpTree', {'name': str, 'children': list['DumpToken | DumpTree | None'], 'source_map': DumpSourceMap})
 DumpTreeEntry = DumpToken | DumpTree | None
 
 

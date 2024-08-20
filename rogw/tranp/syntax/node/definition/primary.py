@@ -1,9 +1,10 @@
 import re
-from typing import Union, cast
+from typing import Union
 
 from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.lang.annotation import duck_typed, override
+from rogw.tranp.lang.convertion import as_a
 from rogw.tranp.lang.sequence import flatten, last_index_of
 from rogw.tranp.syntax.ast.path import EntryPath
 from rogw.tranp.syntax.errors import InvalidRelationError
@@ -253,7 +254,7 @@ class ClassRef(Var):
 
 	@property
 	def class_symbol(self) -> TypesName:
-		return cast(ISymbol, self._ancestor('class_def')).symbol.as_a(TypesName)
+		return as_a(ISymbol, self._ancestor('class_def')).symbol.as_a(TypesName)
 
 
 @Meta.embed(Node, accept_tags('var'))

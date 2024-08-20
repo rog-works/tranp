@@ -17,7 +17,8 @@ from rogw.tranp.module.modules import Modules
 from rogw.tranp.module.types import ModulePath, ModulePaths
 from rogw.tranp.providers.module import module_path_dummy
 from rogw.tranp.semantics.plugin import PluginProvider
-from rogw.tranp.semantics.reflection import IReflection, Roles, SymbolDBProvider
+from rogw.tranp.semantics.reflection.db import SymbolDBProvider
+from rogw.tranp.semantics.reflection.interface import IReflection
 from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.syntax.ast.entry import Entry
 from rogw.tranp.syntax.ast.parser import ParserSetting, SyntaxParser
@@ -129,7 +130,7 @@ def task_db(db_provider: SymbolDBProvider) -> None:
 		'--------------',
 	])
 	print(title)
-	print(json.dumps([f'{key}: {raw.org_fullyname}' for key, raw in db_provider.db.items()], indent=2))
+	print(json.dumps([f'{key}: {raw.types.fullyname}' for key, raw in db_provider.db.items()], indent=2))
 
 
 @injectable
@@ -165,12 +166,12 @@ def task_symbol(modules: Modules, module_paths: ModulePaths, reflections: Reflec
 	while True:
 		prompt = '\n'.join([
 			'==============',
-			'Node/Symbol fullyname or full_path here:',
+			'Node/Symbol fullyname or full_path or id here:',
 		])
 		name = readline(prompt)
 
 		entrypoint = fetch_main_entrypoint(modules, module_paths)
-		candidates = [node for node in entrypoint.procedural() if node.fullyname == name or node.full_path == name]
+		candidates = [node for node in entrypoint.procedural() if node.fullyname == name or node.full_path == name or str(node.id) == name]
 
 		if len(candidates):
 			node = candidates[0]
@@ -216,21 +217,19 @@ def dump_node_data(node: Node) -> dict[str, Any]:
 
 def dump_symbol_data(symbol: IReflection) -> dict[str, Any]:
 	def attr_formatter(attr: IReflection) -> str:
-		return f'{attr.__class__.__name__}:{str(attr.role)}:{str(attr)} at {str(attr.via or attr.decl)}'
+		return f'{attr.__class__.__name__}:{str(attr)} at {str(attr.node or attr.decl)}'
 
 	return {
 		'types_full_path': symbol.types.full_path,
 		'decl_full_path': symbol.decl.full_path,
 		'shorthand': str(symbol),
-		'ref_fullyname': symbol.ref_fullyname,
-		'org_fullyname': symbol.org_fullyname,
 		'types': str(symbol.types),
 		'decl': str(symbol.decl),
-		'role': str(symbol.role),
-		'origin': attr_formatter(symbol.origin) if symbol.role != Roles.Origin else str(None),
-		'via': str(symbol.via),
+		'node': str(symbol.node),
+		'origin': attr_formatter(symbol.origin),
+		'via': attr_formatter(symbol.via),
 		'attrs': [attr_formatter(attr) for attr in symbol.attrs],
-		'hierarchy': [attr_formatter(layer) for layer in symbol.hierarchy()],
+		'stacktrace': [attr_formatter(layer) for layer in symbol.stacktrace()],
 	}
 
 

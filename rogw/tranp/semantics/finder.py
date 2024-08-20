@@ -4,10 +4,10 @@ from rogw.tranp.compatible.python.types import Standards
 from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.module.types import LibraryPaths
-from rogw.tranp.semantics.reflection.interface import ISymbolProxy
-import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.semantics.errors import MustBeImplementedError, SymbolNotDefinedError
-from rogw.tranp.semantics.reflection import IReflection, SymbolDB
+from rogw.tranp.semantics.reflection.db import SymbolDB
+from rogw.tranp.semantics.reflection.interface import IReflection
+import rogw.tranp.syntax.node.definition as defs
 
 
 class SymbolFinder:
@@ -158,10 +158,7 @@ class SymbolFinder:
 			シンボル系ノードがタイプの場合はクラスかタイプのみを検索対象とする
 		"""
 		for raw in self.__each_find_raw(db, scopes, domain_name):
-			# XXX このモジュールでISymbolProxyの参照が妥当か再検討
-			# XXX タイプノードが参照するシンボルはUnknownになることが無いため、オリジナルの型と拡張後の型は必ず一致する
-			org_raw = raw.org_raw if isinstance(raw, ISymbolProxy) else raw
-			if org_raw.decl.is_a(defs.ClassOrType):
+			if raw.decl.is_a(defs.ClassOrType):
 				return raw
 
 		return None
@@ -205,10 +202,10 @@ class SymbolFinder:
 			return None
 
 		import_raw = db[import_fullyname]
-		if not isinstance(import_raw.via, defs.ImportAsName):
+		if not isinstance(import_raw.node, defs.ImportAsName):
 			return None
 
-		imported_dsn = ModuleDSN.full_join(import_raw.types.module_path, import_raw.via.domain_name)
+		imported_dsn = ModuleDSN.full_join(import_raw.types.module_path, import_raw.node.domain_name)
 		return self.__find_raw_recursive(db, imported_dsn, elems[1:])
 
 	def __find_library_raw(self, db: SymbolDB, domain_name: str) -> IReflection | None:

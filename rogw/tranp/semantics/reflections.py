@@ -1,15 +1,16 @@
+from rogw.tranp.semantics.reflection.db import SymbolDBProvider
 import rogw.tranp.semantics.reflection.helper.template as template
 import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.compatible.python.types import Standards
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.lang.error import raises
-import rogw.tranp.syntax.node.definition as defs
-from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.semantics.errors import OperationNotAllowedError, SemanticsLogicError, UnresolvedSymbolError
 from rogw.tranp.semantics.finder import SymbolFinder
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.semantics.procedure import Procedure
-from rogw.tranp.semantics.reflection import IReflection, SymbolDBProvider
+from rogw.tranp.semantics.reflection.interface import IReflection
+import rogw.tranp.syntax.node.definition as defs
+from rogw.tranp.syntax.node.node import Node
 
 
 class Reflections:
@@ -364,7 +365,7 @@ class ProceduralResolver:
 			# 対象
 			* Terminal(Operator)
 		"""
-		return self.reflections.type_of_standard(classes.Unknown)
+		return self.reflections.type_of_standard(classes.Unknown).stack(node)
 
 	# Statement compound
 
@@ -403,71 +404,71 @@ class ProceduralResolver:
 			'returns': method.attrs[-1] if solution == 'iterator' else method.attrs[-1].attrs[0],
 		}
 		function_helper = template.HelperBuilder(method).schema(lambda: schema).build(template.Method)
-		return function_helper.returns(iterates)
+		return function_helper.returns(iterates).stack(node)
 
 	# Function/Class Elements
 
 	def on_parameter(self, node: defs.Parameter, symbol: IReflection, var_type: IReflection, default_value: IReflection) -> IReflection:
-		return symbol
+		return symbol.stack(node)
 
 	# Statement simple
 
 	def on_anno_assign(self, node: defs.AnnoAssign, receiver: IReflection, var_type: IReflection, value: IReflection) -> IReflection:
-		return receiver
+		return receiver.stack(node)
 
 	def on_move_assign(self, node: defs.MoveAssign, receivers: list[IReflection], value: IReflection) -> IReflection:
-		return value
+		return value.stack(node)
 
 	def on_aug_assign(self, node: defs.AugAssign, receiver: IReflection, value: IReflection) -> IReflection:
-		return receiver
+		return receiver.stack(node)
 
 	def on_return(self, node: defs.Return, return_value: IReflection) -> IReflection:
-		return return_value
+		return return_value.stack(node)
 
 	def on_yield(self, node: defs.Yield, yield_value: IReflection) -> IReflection:
 		"""Note: XXX Iteratorで囲うべきか検討。値としてだけみればこのままでも良い"""
-		return yield_value
+		return yield_value.stack(node)
 
 	# Primary
 
 	def on_argument(self, node: defs.Argument, label: IReflection, value: IReflection) -> IReflection:
-		return value
+		return value.stack(node)
 
 	def on_inherit_argument(self, node: defs.InheritArgument, class_type: IReflection) -> IReflection:
-		return class_type
+		return class_type.stack(node)
 
 	def on_argument_label(self, node: defs.ArgumentLabel) -> IReflection:
 		"""Note: labelに型はないのでUnknownを返却"""
-		return self.reflections.type_of_standard(classes.Unknown)
+		return self.reflections.type_of_standard(classes.Unknown).stack(node)
 
 	def on_decl_class_var(self, node: defs.DeclClassVar) -> IReflection:
-		return self.reflections.resolve(node)
+		return self.reflections.resolve(node).stack(node)
 
 	def on_decl_this_var_forward(self, node: defs.DeclThisVarForward) -> IReflection:
 		"""Note: XXX 型を評価する必要がないのでUnknownを返却"""
-		return self.reflections.type_of_standard(classes.Unknown)
+		return self.reflections.type_of_standard(classes.Unknown).stack(node)
 
 	def on_decl_this_var(self, node: defs.DeclThisVar) -> IReflection:
-		return self.reflections.resolve(node)
+		return self.reflections.resolve(node).stack(node)
 
 	def on_decl_class_param(self, node: defs.DeclClassParam) -> IReflection:
-		return self.reflections.resolve(node)
+		return self.reflections.resolve(node).stack(node)
 
 	def on_decl_this_param(self, node: defs.DeclThisParam) -> IReflection:
-		return self.reflections.resolve(node)
+		return self.reflections.resolve(node).stack(node)
 
 	def on_decl_local_var(self, node: defs.DeclLocalVar) -> IReflection:
-		return self.reflections.resolve(node)
+		return self.reflections.resolve(node).stack(node)
 
 	def on_types_name(self, node: defs.TypesName) -> IReflection:
-		return self.reflections.resolve(node)
+		return self.reflections.resolve(node).stack(node)
 
 	def on_import_name(self, node: defs.ImportName) -> IReflection:
 		"""Note: @deprecated XXX ImportAsName内で利用されるだけでこのノードは展開されないためハンドラーは不要"""
-		return self.reflections.resolve(node)
+		return self.reflections.resolve(node).stack(node)
 
 	def on_import_as_name(self, node: defs.ImportAsName) -> IReflection:
-		return self.reflections.resolve(node)
+		return self.reflections.resolve(node).stack(node)
 
 	def on_relay(self, node: defs.Relay, receiver: IReflection) -> IReflection:
 		# # receiver
@@ -487,9 +488,9 @@ class ProceduralResolver:
 
 		if self.reflections.is_a(unpacked_receiver, type):
 			unpacked_receiver = self.unpack_type_proxy(receiver)
-			return self.proc_relay_class(node, unpacked_receiver).to.relay(node, context=unpacked_receiver)
+			return unpacked_receiver.to(node, self.proc_relay_class(node, unpacked_receiver))
 		else:
-			return self.proc_relay_object(node, unpacked_receiver).to.relay(node, context=unpacked_receiver)
+			return unpacked_receiver.to(node, self.proc_relay_object(node, unpacked_receiver))
 
 	def proc_relay_class(self, node: defs.Relay, receiver: IReflection) -> IReflection:
 		prop = self.reflections.type_of_property(receiver.types, node.prop)
@@ -497,7 +498,7 @@ class ProceduralResolver:
 		if isinstance(receiver.types, defs.Enum) and prop.decl.is_a(defs.DeclLocalVar):
 			return receiver
 		elif isinstance(prop.decl, defs.Class):
-			return self.reflections.type_of_standard(type).to.proxy(node).extends(prop)
+			return self.reflections.type_of_standard(type).stack().extends(prop)
 		elif isinstance(prop.decl, defs.Method) and prop.decl.is_property:
 			# FIXME クラスのプロパティメソッドは通常存在しないため、修正を検討
 			function_helper = template.HelperBuilder(prop) \
@@ -515,80 +516,80 @@ class ProceduralResolver:
 				.build(template.Method)
 			return function_helper.returns(receiver)
 		elif isinstance(prop.decl, defs.Class):
-			return self.reflections.type_of_standard(type).to.proxy(node).extends(prop)
+			return self.reflections.type_of_standard(type).stack().extends(prop)
 		else:
 			return prop
 
 	def on_class_ref(self, node: defs.ClassRef) -> IReflection:
 		symbol = self.reflections.resolve(node)
-		return self.reflections.type_of_standard(type).to.proxy(node).extends(symbol)
+		return self.reflections.type_of_standard(type).stack(node).extends(symbol)
 
 	def on_this_ref(self, node: defs.ThisRef) -> IReflection:
-		return self.reflections.resolve(node)
+		return self.reflections.resolve(node).stack(node)
 
 	def on_var(self, node: defs.Var) -> IReflection:
 		symbol = self.reflections.resolve(node)
 		if not symbol.decl.is_a(defs.Class):
-			return symbol
+			return symbol.stack(node)
 
-		return self.reflections.type_of_standard(type).to.proxy(node).extends(symbol)
+		return self.reflections.type_of_standard(type).stack(node).extends(symbol)
 
 	def on_indexer(self, node: defs.Indexer, receiver: IReflection, keys: list[IReflection]) -> IReflection:
-		receiver = self.unpack_alt_class(receiver)
+		unpacked_receiver = self.unpack_alt_class(receiver)
 
 		if node.sliced:
-			return receiver.to.relay(node, context=receiver)
-		elif self.reflections.is_a(receiver, str):
-			return receiver.to.relay(node, context=receiver)
-		elif self.reflections.is_a(receiver, list):
-			return receiver.attrs[0].to.relay(node, context=receiver)
-		elif self.reflections.is_a(receiver, dict):
-			return receiver.attrs[1].to.relay(node, context=receiver)
-		elif self.reflections.is_a(receiver, tuple):
-			if keys[0].via and keys[0].via.is_a(defs.Integer):
+			return unpacked_receiver.stack(node)
+		elif self.reflections.is_a(unpacked_receiver, str):
+			return unpacked_receiver.stack(node)
+		elif self.reflections.is_a(unpacked_receiver, list):
+			return unpacked_receiver.to(node, unpacked_receiver.attrs[0])
+		elif self.reflections.is_a(unpacked_receiver, dict):
+			return unpacked_receiver.to(node, unpacked_receiver.attrs[1])
+		elif self.reflections.is_a(unpacked_receiver, tuple):
+			if keys[0].node and keys[0].node.is_a(defs.Integer):
 				# インデックスが判明している場合はその位置の型を返却
-				index = int(keys[0].via.as_a(defs.Integer).tokens)
-				return receiver.attrs[index].to.relay(node, context=receiver)
+				index = int(keys[0].node.as_a(defs.Integer).tokens)
+				return unpacked_receiver.to(node, unpacked_receiver.attrs[index])
 			else:
 				# インデックスが不明の場合は共用型とする
-				return self.reflections.type_of_standard(classes.Union).to.relay(node, context=receiver).extends(*receiver.attrs)
-		elif self.reflections.is_a(receiver, type):
+				return unpacked_receiver.to(node, self.reflections.type_of_standard(classes.Union)).extends(*unpacked_receiver.attrs)
+		elif self.reflections.is_a(unpacked_receiver, type):
 			# この処理は実質的にCustomTypeの展開と等価
 			# XXX 不可解なスタックの解除と追加が連続して意味不明なので修正を検討
-			unpacked_receiver = self.unpack_type_proxy(receiver)
+			unpacked_receiver = self.unpack_type_proxy(unpacked_receiver)
 			unpacked_keys = [self.unpack_type_proxy(key) for key in keys]
-			klass_symbol = unpacked_receiver.to.relay(node, context=unpacked_receiver).extends(*unpacked_keys)
-			return self.reflections.type_of_standard(type).to.proxy(node).extends(klass_symbol).to.relay(node, context=unpacked_receiver)
+			klass_symbol = unpacked_receiver.stack().extends(*unpacked_keys)
+			return unpacked_receiver.to(node, self.reflections.type_of_standard(type)).extends(klass_symbol)
 		else:
 			# XXX コレクション型以外は全て通常のクラスである想定
 			# XXX keyに何が入るべきか特定できないためreceiverをそのまま返却
 			# XXX この状況で何が取得されるべきかは利用側で判断することとする
-			return receiver.to.relay(node, context=receiver)
+			return unpacked_receiver.stack(node)
 
 	def on_relay_of_type(self, node: defs.RelayOfType, receiver: IReflection) -> IReflection:
 		"""Note: XXX Pythonではtypeをアンパックする構文が存在しないためAltClassも同様に扱う"""
-		return self.reflections.type_of_property(receiver.types, node.prop)
+		return receiver.to(node, self.reflections.type_of_property(receiver.types, node.prop))
 
 	def on_var_of_type(self, node: defs.VarOfType) -> IReflection:
-		return self.reflections.resolve(node)
+		return self.reflections.resolve(node).stack(node)
 
 	def on_list_type(self, node: defs.ListType, type_name: IReflection, value_type: IReflection) -> IReflection:
-		return type_name.to.generic(node).extends(value_type)
+		return type_name.stack(node).extends(value_type)
 
 	def on_dict_type(self, node: defs.DictType, type_name: IReflection, key_type: IReflection, value_type: IReflection) -> IReflection:
-		return type_name.to.generic(node).extends(key_type, value_type)
+		return type_name.stack(node).extends(key_type, value_type)
 
 	def on_callable_type(self, node: defs.CallableType, type_name: IReflection, parameters: list[IReflection], return_type: IReflection) -> IReflection:
-		return type_name.to.generic(node).extends(*parameters, return_type)
+		return type_name.stack(node).extends(*parameters, return_type)
 
 	def on_custom_type(self, node: defs.CustomType, type_name: IReflection, template_types: list[IReflection]) -> IReflection:
-		return type_name.to.generic(node).extends(*template_types)
+		return type_name.stack(node).extends(*template_types)
 
 	def on_union_type(self, node: defs.UnionType, or_types: list[IReflection]) -> IReflection:
-		return self.reflections.type_of_standard(classes.Union).to.generic(node).extends(*or_types)
+		return self.reflections.type_of_standard(classes.Union).stack(node).extends(*or_types)
 
 	def on_null_type(self, node: defs.NullType) -> IReflection:
-		return self.reflections.type_of_standard(None)
+		return self.reflections.type_of_standard(None).stack(node)
 
 	def on_func_call(self, node: defs.FuncCall, calls: IReflection, arguments: list[IReflection]) -> IReflection:
 		"""
@@ -611,73 +612,73 @@ class ProceduralResolver:
 			function_helper = template.HelperBuilder(constroctur_calls) \
 				.schema(lambda: {'klass': constroctur_calls.attrs[0], 'parameters': constroctur_calls.attrs[1:-1], 'returns': actual_calls}) \
 				.build(template.Constructor)
-			return function_helper.returns(constroctur_calls.attrs[0], *arguments).to.relay(node, context=actual_calls)
+			return actual_calls.to(node, function_helper.returns(constroctur_calls.attrs[0], *arguments))
 		elif isinstance(actual_calls.types, defs.Constructor):
 			# XXX コンストラクターを明示的に呼び出した場合
 			# XXX 戻り値の型を第1引数(自己参照)で補完
 			function_helper = template.HelperBuilder(actual_calls) \
 				.schema(lambda: {'klass': actual_calls.attrs[0], 'parameters': actual_calls.attrs[1:-1], 'returns': actual_calls.attrs[0]}) \
 				.build(template.Constructor)
-			return function_helper.returns(actual_calls.attrs[0], *arguments).to.relay(node, context=actual_calls)
+			return actual_calls.to(node, function_helper.returns(actual_calls.attrs[0], *arguments))
 		else:
 			function_helper = template.HelperBuilder(actual_calls) \
 				.case(template.Method).schema(lambda: {'klass': actual_calls.attrs[0], 'parameters': actual_calls.attrs[1:-1], 'returns': actual_calls.attrs[-1]}) \
 				.other_case().schema(lambda: {'parameters': actual_calls.attrs[:-1], 'returns': actual_calls.attrs[-1]}) \
 				.build(template.Function)
 			if function_helper.is_a(template.Method):
-				return function_helper.returns(actual_calls.context, *arguments).to.relay(node, context=actual_calls)
+				return actual_calls.to(node, function_helper.returns(actual_calls.context, *arguments))
 			else:
-				return function_helper.returns(*arguments).to.relay(node, context=actual_calls)
+				return actual_calls.to(node, function_helper.returns(*arguments))
 
 	def on_super(self, node: defs.Super, calls: IReflection, arguments: list[IReflection]) -> IReflection:
 		if node.can_resolve_super:
-			return self.reflections.resolve(node.super_class_symbol).to.relay(node, context=calls)
+			return calls.to(node, self.reflections.resolve(node.super_class_symbol))
 		else:
-			return self.reflections.get_object().to.relay(node, context=calls)
+			return calls.to(node, self.reflections.get_object())
 
 	def on_comp_for(self, node: defs.CompFor, symbols: list[IReflection], for_in: IReflection) -> IReflection:
-		return for_in
+		return for_in.stack(node)
 
 	def on_list_comp(self, node: defs.ListComp, projection: IReflection, fors: list[IReflection], condition: IReflection) -> IReflection:
-		return self.reflections.type_of_standard(list).to.result(node).extends(projection)
+		return projection.to(node, self.reflections.type_of_standard(list)).extends(projection)
 
 	def on_dict_comp(self, node: defs.ListComp, projection: IReflection, fors: list[IReflection], condition: IReflection) -> IReflection:
-		return self.reflections.type_of_standard(dict).to.result(node).extends(*projection.attrs)
+		return projection.to(node, self.reflections.type_of_standard(dict)).extends(*projection.attrs)
 
 	# Operator
 
 	def on_factor(self, node: defs.Factor, operator: IReflection, value: IReflection) -> IReflection:
-		return value
+		return value.stack(node)
 
 	def on_not_compare(self, node: defs.NotCompare, operator: IReflection, value: IReflection) -> IReflection:
-		return self.reflections.type_of_standard(bool).to.result(node)
+		return value.to(node, self.reflections.type_of_standard(bool))
 
 	def on_or_compare(self, node: defs.OrCompare, elements: list[IReflection]) -> IReflection:
-		return self.each_binary_operator(node, elements)
+		return self.each_binary_operator(node, elements).stack(node)
 
 	def on_and_compare(self, node: defs.AndCompare, elements: list[IReflection]) -> IReflection:
-		return self.each_binary_operator(node, elements)
+		return self.each_binary_operator(node, elements).stack(node)
 
 	def on_comparison(self, node: defs.Comparison, elements: list[IReflection]) -> IReflection:
-		return self.each_binary_operator(node, elements)
+		return self.each_binary_operator(node, elements).stack(node)
 
 	def on_or_bitwise(self, node: defs.OrBitwise, elements: list[IReflection]) -> IReflection:
-		return self.each_binary_operator(node, elements)
+		return self.each_binary_operator(node, elements).stack(node)
 
 	def on_xor_bitwise(self, node: defs.XorBitwise, elements: list[IReflection]) -> IReflection:
-		return self.each_binary_operator(node, elements)
+		return self.each_binary_operator(node, elements).stack(node)
 
 	def on_and_bitwise(self, node: defs.AndBitwise, elements: list[IReflection]) -> IReflection:
-		return self.each_binary_operator(node, elements)
+		return self.each_binary_operator(node, elements).stack(node)
 
 	def on_shift_bitwise(self, node: defs.Sum, elements: list[IReflection]) -> IReflection:
-		return self.each_binary_operator(node, elements)
+		return self.each_binary_operator(node, elements).stack(node)
 
 	def on_sum(self, node: defs.Sum, elements: list[IReflection]) -> IReflection:
-		return self.each_binary_operator(node, elements)
+		return self.each_binary_operator(node, elements).stack(node)
 
 	def on_term(self, node: defs.Term, elements: list[IReflection]) -> IReflection:
-		return self.each_binary_operator(node, elements)
+		return self.each_binary_operator(node, elements).stack(node)
 
 	def each_binary_operator(self, node: defs.BinaryOperator, elements: list[IReflection]) -> IReflection:
 		node_of_elements = node.elements
@@ -691,7 +692,7 @@ class ProceduralResolver:
 			right = elements[right_index]
 			left = self.proc_binary_operator(node, left, operator, right)
 
-		return left.to.result(node)
+		return left
 
 	def proc_binary_operator(self, node: defs.BinaryOperator, left: IReflection, operator: defs.Terminal, right: IReflection) -> IReflection:
 		operator_name = operator.tokens
@@ -732,7 +733,7 @@ class ProceduralResolver:
 	def on_tenary_operator(self, node: defs.TenaryOperator, primary: IReflection, condition: IReflection, secondary: IReflection) -> IReflection:
 		"""Note: 返却型が一致、またはNullableのみ許可"""
 		if primary == secondary:
-			return primary
+			return primary.stack(node)
 
 		primary_is_null = self.reflections.is_a(primary, None)
 		secondary_is_null = self.reflections.is_a(secondary, None)
@@ -741,30 +742,30 @@ class ProceduralResolver:
 
 		var_type = secondary if primary_is_null else primary
 		null_type = primary if primary_is_null else secondary
-		return self.reflections.type_of_standard(classes.Union).to.result(node).extends(var_type, null_type)
+		return primary.to(node, self.reflections.type_of_standard(classes.Union)).extends(var_type, null_type)
 
 	# Literal
 
 	def on_integer(self, node: defs.Integer) -> IReflection:
-		return self.reflections.type_of_standard(int).to.literal(node)
+		return self.reflections.type_of_standard(int).stack(node)
 
 	def on_float(self, node: defs.Float) -> IReflection:
-		return self.reflections.type_of_standard(float).to.literal(node)
+		return self.reflections.type_of_standard(float).stack(node)
 
 	def on_string(self, node: defs.String) -> IReflection:
-		return self.reflections.type_of_standard(str).to.literal(node)
+		return self.reflections.type_of_standard(str).stack(node)
 
 	def on_doc_string(self, node: defs.DocString) -> IReflection:
-		return self.reflections.type_of_standard(str).to.literal(node)
+		return self.reflections.type_of_standard(str).stack(node)
 
 	def on_truthy(self, node: defs.Truthy) -> IReflection:
-		return self.reflections.type_of_standard(bool).to.literal(node)
+		return self.reflections.type_of_standard(bool).stack(node)
 
 	def on_falsy(self, node: defs.Falsy) -> IReflection:
-		return self.reflections.type_of_standard(bool).to.literal(node)
+		return self.reflections.type_of_standard(bool).stack(node)
 
 	def on_pair(self, node: defs.Pair, first: IReflection, second: IReflection) -> IReflection:
-		return self.reflections.type_of_standard(tuple).to.literal(node).extends(first, second)
+		return self.reflections.type_of_standard(tuple).stack(node).extends(first, second)
 
 	def on_list(self, node: defs.List, values: list[IReflection]) -> IReflection:
 		unknown_type = self.reflections.type_of_standard(classes.Unknown)
@@ -775,35 +776,35 @@ class ProceduralResolver:
 				known_types.append(value_type)
 
 		value_type = known_types[0] if len(known_types) > 0 else unknown_type
-		return self.reflections.type_of_standard(list).to.literal(node).extends(value_type)
+		return self.reflections.type_of_standard(list).stack(node).extends(value_type)
 
 	def on_dict(self, node: defs.Dict, items: list[IReflection]) -> IReflection:
 		if len(items) == 0:
 			unknown_type = self.reflections.type_of_standard(classes.Unknown)
-			return self.reflections.type_of_standard(dict).to.literal(node).extends(unknown_type, unknown_type)
+			return self.reflections.type_of_standard(dict).stack(node).extends(unknown_type, unknown_type)
 		else:
 			unknown_type = self.reflections.type_of_standard(classes.Unknown)
 			known_items = [item for item in items if item.attrs[1].types != unknown_type.types]
 			item = known_items[0] if len(known_items) > 0 else items[0]
 			key_type, value_type = item.attrs
-			return self.reflections.type_of_standard(dict).to.literal(node).extends(key_type, value_type)
+			return self.reflections.type_of_standard(dict).stack(node).extends(key_type, value_type)
 
 	def on_tuple(self, node: defs.Tuple, values: list[IReflection]) -> IReflection:
-		return self.reflections.type_of_standard(tuple).to.literal(node).extends(*values)
+		return self.reflections.type_of_standard(tuple).stack(node).extends(*values)
 
 	def on_null(self, node: defs.Null) -> IReflection:
-		return self.reflections.type_of_standard(None).to.literal(node)
+		return self.reflections.type_of_standard(None).stack(node)
 
 	# Expression
 
 	def on_group(self, node: defs.Group, expression: IReflection) -> IReflection:
-		return expression
+		return expression.stack(node)
 
 	def on_expander(self, node: defs.Expander, expression: IReflection) -> IReflection:
-		return expression
+		return expression.stack(node)
 
 	# Terminal
 
 	def on_empty(self, node: defs.Empty) -> IReflection:
 		# XXX 厳密にいうとNullとEmptyは別だが、実用上はほぼ同じなので代用
-		return self.reflections.type_of_standard(None)
+		return self.reflections.type_of_standard(None).stack(node)

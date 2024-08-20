@@ -1,21 +1,22 @@
-from typing import Callable, cast
-
 from rogw.tranp.lang.annotation import injectable
+from rogw.tranp.lang.convertion import as_a
 from rogw.tranp.lang.locator import Invoker
+from rogw.tranp.semantics.reflection.db import SymbolDB
+from rogw.tranp.semantics.reflection.interface import Addon, IReflection
+from rogw.tranp.semantics.reflections import Reflections
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.interface import IDeclaration
 from rogw.tranp.syntax.node.node import Node
-from rogw.tranp.semantics.reflection import IReflection, SymbolProxy, SymbolDB
-from rogw.tranp.semantics.reflections import Reflections
 
 
 class ResolveUnknown:
 	"""Unknownのシンボルを解決
 
 	Note:
-		# Unknownになる条件
+		### Unknownになる条件
 		* MoveAssignの代入変数
 		* For/CompForの展開変数
+		* WithEntryの展開変数
 	"""
 	@injectable
 	def __init__(self, invoker: Invoker) -> None:
@@ -35,58 +36,46 @@ class ResolveUnknown:
 			SymbolDB: シンボルテーブル
 		"""
 
-		for key, raw in db.items_in_preprocess():
+		for raw in db.values():
 			if not isinstance(raw.decl, defs.Declable):
 				continue
 
 			if isinstance(raw.decl.declare, defs.MoveAssign):
-				db[key] = SymbolProxy(raw, self.make_resolver(raw, raw.decl.declare.value))
+				raw.add_on('origin', self.make_addon(raw, raw.decl.declare.value))
 			elif isinstance(raw.decl.declare, (defs.For, defs.CompFor)):
-				db[key] = SymbolProxy(raw, self.make_resolver(raw, raw.decl.declare.for_in))
+				raw.add_on('origin', self.make_addon(raw, raw.decl.declare.for_in))
 			elif isinstance(raw.decl.declare, defs.WithEntry):
-				db[key] = SymbolProxy(raw, self.make_resolver(raw, raw.decl.declare.enter))
+				raw.add_on('origin', self.make_addon(raw, raw.decl.declare.enter))
 
 		return db
 
+	def make_addon(self, raw: IReflection, value_node: Node) -> Addon:
+		"""アドオンを生成
+
+		Args:
+			var_raw (IReflection): 変数宣言シンボル
+			value_node (Node): 右辺値ノード
+		Returns:
+			Addon: アドオン
+		"""
+		return lambda: [self.invoker(self.resolve_right_value, raw, value_node)]
+
 	@injectable
-	def resolver(self, reflections: Reflections, var_raw: IReflection, value_node: Node) -> IReflection:
-		"""右辺値の型を解決してシンボルを生成
+	def resolve_right_value(self, reflections: Reflections, var_raw: IReflection, value_node: Node) -> IReflection:
+		"""右辺値の型を解決し、変数宣言シンボルを生成
 
 		Args:
 			reflections (Reflections): シンボルリゾルバー @inject
 			var_raw (IReflection): 変数宣言シンボル
 			value_node (Node): 右辺値ノード
 		Returns:
-			IReflection: 解決したシンボル
-		Note:
-			変数宣言のシンボルのため、RolesをVarに変更
+			IReflection: シンボル
 		"""
-		return self.resolve_right_value(var_raw, reflections.type_of(value_node)).to.var(var_raw.decl.as_a(defs.Declable))
-
-	def make_resolver(self, raw: IReflection, value_node: Node) -> Callable[[], IReflection]:
-		"""シンボルリゾルバーを生成
-
-		Args:
-			var_raw (IReflection): 変数宣言シンボル
-			value_node (Node): 右辺値ノード
-		Returns:
-			Callable[[], IReflection]: シンボルリゾルバー
-		"""
-		return lambda: self.invoker(self.resolver, raw, value_node)
-
-	def resolve_right_value(self, var_raw: IReflection, value_raw: IReflection) -> IReflection:
-		"""右辺値の型を解決
-
-		Args:
-			var_raw (IReflection): 変数宣言シンボル
-			value_raw (IReflection): 変数宣言時の右辺値シンボル
-		Returns:
-			IReflection: 変数の型
-		"""
-		decl_vars = cast(IDeclaration, var_raw.decl.declare).symbols
+		value_raw = reflections.type_of(value_node)
+		decl_vars = as_a(IDeclaration, var_raw.decl.declare).symbols
 		if len(decl_vars) == 1:
-			return value_raw
+			return var_raw.declare(var_raw.node.as_a(defs.Declable), value_raw)
 
 		index = decl_vars.index(var_raw.decl)
 		actual_value_raw = value_raw.attrs[0] if value_raw.types.is_a(defs.AltClass) else value_raw
-		return actual_value_raw.attrs[index]
+		return var_raw.declare(var_raw.node.as_a(defs.Declable), actual_value_raw.attrs[index])

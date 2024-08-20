@@ -1,5 +1,3 @@
-from typing import cast
-
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.lang.locator import Invoker
 from rogw.tranp.semantics.reflection.db import SymbolDB
@@ -101,7 +99,7 @@ class SymbolExtends:
 			if isinstance(parameter.symbol, (defs.DeclClassParam, defs.DeclThisParam)) and parameter.var_type.is_a(defs.Empty):
 				attrs.append(reflections.resolve(parameter.symbol))
 			else:
-				parameter_type = cast(defs.Type, parameter.var_type)
+				parameter_type = parameter.var_type.as_a(defs.Type)
 				attrs.append(reflections.type_of(parameter_type))
 
 		attrs.append(reflections.type_of(func.return_type))

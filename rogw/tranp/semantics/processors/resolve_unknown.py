@@ -1,6 +1,5 @@
-from typing import cast
-
 from rogw.tranp.lang.annotation import injectable
+from rogw.tranp.lang.convertion import as_a
 from rogw.tranp.lang.locator import Invoker
 from rogw.tranp.semantics.reflection.db import SymbolDB
 from rogw.tranp.semantics.reflection.interface import Addon, IReflection
@@ -73,7 +72,7 @@ class ResolveUnknown:
 			IReflection: シンボル
 		"""
 		value_raw = reflections.type_of(value_node)
-		decl_vars = cast(IDeclaration, var_raw.decl.declare).symbols
+		decl_vars = as_a(IDeclaration, var_raw.decl.declare).symbols
 		if len(decl_vars) == 1:
 			return var_raw.declare(var_raw.node.as_a(defs.Declable), value_raw)
 

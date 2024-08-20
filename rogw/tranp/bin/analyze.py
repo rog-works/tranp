@@ -171,7 +171,7 @@ def task_symbol(modules: Modules, module_paths: ModulePaths, reflections: Reflec
 		name = readline(prompt)
 
 		entrypoint = fetch_main_entrypoint(modules, module_paths)
-		candidates = [node for node in entrypoint.procedural() if node.fullyname == name or node.full_path == name]
+		candidates = [node for node in entrypoint.procedural() if node.fullyname == name or node.full_path == name or str(node.id) == name]
 
 		if len(candidates):
 			node = candidates[0]

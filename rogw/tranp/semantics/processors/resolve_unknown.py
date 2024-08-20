@@ -42,22 +42,22 @@ class ResolveUnknown:
 				continue
 
 			if isinstance(raw.decl.declare, defs.MoveAssign):
-				raw.add_on('origin', self.make_resolver(raw, raw.decl.declare.value))
+				raw.add_on('origin', self.make_addon(raw, raw.decl.declare.value))
 			elif isinstance(raw.decl.declare, (defs.For, defs.CompFor)):
-				raw.add_on('origin', self.make_resolver(raw, raw.decl.declare.for_in))
+				raw.add_on('origin', self.make_addon(raw, raw.decl.declare.for_in))
 			elif isinstance(raw.decl.declare, defs.WithEntry):
-				raw.add_on('origin', self.make_resolver(raw, raw.decl.declare.enter))
+				raw.add_on('origin', self.make_addon(raw, raw.decl.declare.enter))
 
 		return db
 
-	def make_resolver(self, raw: IReflection, value_node: Node) -> Addon:
-		"""シンボルリゾルバーを生成
+	def make_addon(self, raw: IReflection, value_node: Node) -> Addon:
+		"""アドオンを生成
 
 		Args:
 			var_raw (IReflection): 変数宣言シンボル
 			value_node (Node): 右辺値ノード
 		Returns:
-			Callable[[], IReflection]: シンボルリゾルバー
+			Addon: アドオン
 		"""
 		return lambda: [self.invoker(self.resolver, raw, value_node)]
 

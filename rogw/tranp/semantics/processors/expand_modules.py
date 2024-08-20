@@ -127,7 +127,7 @@ class ExpandModules:
 			entrypoint = self.modules.load(module_path).entrypoint.as_a(defs.Entrypoint)
 			for fullyname, full_path in expanded.classes.items():
 				types = entrypoint.whole_by(full_path).as_a(defs.ClassDef)
-				expanded_db[fullyname] = Symbol(types).stack_by_self()
+				expanded_db[fullyname] = Symbol.from_types(types).stack_by_self()
 
 			# インポートシンボルの展開
 			entrypoint = self.modules.load(module_path).entrypoint.as_a(defs.Entrypoint)

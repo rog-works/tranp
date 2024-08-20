@@ -1,11 +1,38 @@
 from typing import Iterator, Literal, Self
 
 from rogw.tranp.lang.annotation import implements, override
+from rogw.tranp.lang.convertion import safe_cast
 from rogw.tranp.semantics.errors import SemanticsLogicError
 from rogw.tranp.semantics.reflection.helper.naming import ClassShorthandNaming
 from rogw.tranp.semantics.reflection.interface import Addons, IReflection, Addon, T_Ref
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
+
+
+class Options:
+	"""インスタンス化オプション"""
+
+	def __init__(self,
+		types: defs.ClassDef | None = None,
+		decl: defs.DeclVars | None = None,
+		node: Node | None = None,
+		origin: IReflection | None = None,
+		via: IReflection | None = None
+	) -> None:
+		"""インスタンスを生成
+
+		Args:
+			types (ClassDef | None): 型を表すノード (default = None)
+			decl (DeclVars | None): 定義元のノード (default = None)
+			node (Node | None): ノード (default = None)
+			origin (IReflection | None): 型のシンボル (default = None)
+			via (IReflection | None): スタックシンボル (default = None)
+		"""
+		self.types = types
+		self.decl = decl
+		self.node = node
+		self.origin = origin
+		self.via = via
 
 
 class ReflectionBase(IReflection):
@@ -37,7 +64,7 @@ class ReflectionBase(IReflection):
 
 	@property
 	@implements
-	def via(self) -> 'IReflection':
+	def via(self) -> IReflection:
 		"""IReflection: スタックシンボル"""
 		return self
 
@@ -57,18 +84,19 @@ class ReflectionBase(IReflection):
 		return []
 
 	@implements
-	def declare(self, decl: defs.DeclVars, origin: 'IReflection | None' = None) -> 'IReflection':
+	def declare(self, decl: defs.DeclVars, origin: IReflection | None = None) -> IReflection:
 		"""定義ノードをスタック
 
 		Args:
 			decl (DeclVars): 定義元のノード
+			origin (IReflection | None)
 		Returns:
 			IReflection: リフレクション
 		"""
-		return Reflection(decl, origin=origin if origin else self, decl=decl)
+		return Reflection(Options(decl=decl, node=decl, origin=origin if origin else self))
 
 	@implements
-	def stack_by(self, node: Node) -> 'IReflection':
+	def stack_by(self, node: Node) -> IReflection:
 		"""ノードをスタック
 
 		Args:
@@ -76,19 +104,19 @@ class ReflectionBase(IReflection):
 		Returns:
 			IReflection: リフレクション
 		"""
-		return Reflection(node, origin=self)
+		return Reflection(Options(node=node, origin=self))
 
 	@implements
-	def stack_by_self(self) -> 'IReflection':
+	def stack_by_self(self) -> IReflection:
 		"""自身を参照としてスタック
 
 		Returns:
 			IReflection: リフレクション
 		"""
-		return Reflection(self.node, origin=self)
+		return Reflection(Options(node=self.node, origin=self))
 
 	@implements
-	def to(self, node: Node, origin: 'IReflection') -> 'IReflection':
+	def to(self, node: Node, origin: IReflection) -> IReflection:
 		"""ノードをスタックし、型のシンボルを移行
 
 		Args:
@@ -97,7 +125,7 @@ class ReflectionBase(IReflection):
 		Returns:
 			IReflection: リフレクション
 		"""
-		return Reflection(node, origin=origin, via=self)
+		return Reflection(Options(node=node, origin=origin, via=self))
 
 	@property
 	@implements
@@ -158,7 +186,7 @@ class ReflectionBase(IReflection):
 		raise SemanticsLogicError(f'Not allowed conversion. self: {str(self)}, from: {self.__class__.__name__}, to: {expects}')
 
 	@implements
-	def clone(self) -> 'IReflection':
+	def clone(self) -> IReflection:
 		"""インスタンスを複製
 
 		Returns:
@@ -215,14 +243,25 @@ class ReflectionBase(IReflection):
 class Symbol(ReflectionBase):
 	"""シンボル(クラス定義のオリジナル)"""
 
-	def __init__(self, types: defs.ClassDef) -> None:
+	@classmethod
+	def from_types(cls, types: defs.ClassDef) -> 'Symbol':
+		"""インスタンスを生成
+
+		Args:
+			types (ClassDef): クラス定義ノード
+		Returns:
+			Symbol: インスタンス
+		"""
+		return cls(Options(types=types))
+
+	def __init__(self, option: Options) -> None:
 		"""インスタンスを生成
 
 		Args:
 			types (ClassDef): クラス定義ノード
 		"""
 		super().__init__()
-		self._types = types
+		self._types = safe_cast(option.types)
 
 	@property
 	@implements
@@ -246,20 +285,17 @@ class Symbol(ReflectionBase):
 class Reflection(ReflectionBase):
 	"""リフレクションの共通実装(基底)"""
 
-	def __init__(self, node: Node, origin: IReflection, via: IReflection | None = None, decl: defs.DeclVars | None = None) -> None:
+	def __init__(self, option: Options) -> None:
 		"""インスタンスを生成
 
 		Args:
-			node (Node): ノード
-			origin (IReflection): 型のシンボル
-			via (IReflection | None): スタックシンボル (default = None)
-			decl (DeclVars | None): 定義元のノード (default = None)
+			option (Option): オプション
 		"""
 		super().__init__()
-		self._node = node
-		self._decl = decl if decl else origin.decl
-		self._origin = origin
-		self._via = via if via else origin.via
+		self._node = safe_cast(option.node)
+		self._origin = safe_cast(option.origin)
+		self._decl = option.decl if option.decl else self._origin.decl
+		self._via = option.via if option.via else self._origin.via
 		self._attrs: list[IReflection] = []
 		self._addons = Addons()
 
@@ -292,7 +328,7 @@ class Reflection(ReflectionBase):
 
 	@property
 	@override
-	def via(self) -> 'IReflection':
+	def via(self) -> IReflection:
 		"""IReflection: スタックシンボル"""
 		return self._via
 

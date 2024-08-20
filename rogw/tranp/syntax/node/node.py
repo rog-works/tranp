@@ -49,7 +49,7 @@ class Node:
 		source_map_begin = ', '.join(map(str, source_map['begin']))
 		source_map_end = ', '.join(map(str, source_map['end']))
 		joined_source_map = f'({source_map_begin})..({source_map_end})'
-		return f'<{self.__class__.__name__}: {self.fullyname} {joined_source_map}>'
+		return f'<{self.__class__.__name__}: @{self.id} {self.fullyname} {joined_source_map}>'
 
 	@override
 	def __repr__(self) -> str:

@@ -166,7 +166,7 @@ def task_symbol(modules: Modules, module_paths: ModulePaths, reflections: Reflec
 	while True:
 		prompt = '\n'.join([
 			'==============',
-			'Node/Symbol fullyname or full_path here:',
+			'Node/Symbol fullyname or full_path or id here:',
 		])
 		name = readline(prompt)
 

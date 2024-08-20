@@ -223,11 +223,11 @@ def dump_symbol_data(symbol: IReflection) -> dict[str, Any]:
 		'types_full_path': symbol.types.full_path,
 		'decl_full_path': symbol.decl.full_path,
 		'shorthand': str(symbol),
-		'fullyname': symbol.types.fullyname,
 		'types': str(symbol.types),
 		'decl': str(symbol.decl),
+		'node': str(symbol.node),
 		'origin': attr_formatter(symbol.origin),
-		'via': str(symbol.node),
+		'via': attr_formatter(symbol.via),
 		'attrs': [attr_formatter(attr) for attr in symbol.attrs],
 		'stacktrace': [attr_formatter(layer) for layer in symbol.stacktrace()],
 	}

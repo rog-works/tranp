@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from rogw.tranp.semantics.reflection.interface import SymbolDBProvider
+from rogw.tranp.semantics.reflection.db import SymbolDBProvider
 from tests.test.fixture import Fixture
 from tests.unit.rogw.tranp.semantics.reflection.fixtures.test_symbol_db_expect import expected_symbols
 

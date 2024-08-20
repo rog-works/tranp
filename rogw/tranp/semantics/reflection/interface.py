@@ -161,6 +161,14 @@ class IReflection(metaclass=ABCMeta):
 		"""
 		...
 
+	@abstractmethod
+	def clone(self: Self) -> Self:
+		"""インスタンスを複製
+		Returns:
+			Self: 複製したインスタンス
+		"""
+		...
+
 
 class Addon(Protocol):
 	"""シンボル拡張アドオンプロトコル"""

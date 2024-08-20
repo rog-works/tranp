@@ -28,7 +28,7 @@ class SymbolExtends:
 		Returns:
 			SymbolDB: シンボルテーブル
 		"""
-		for _, raw in db.items():
+		for raw in db.values():
 			if raw.node.is_a(defs.ClassDef):
 				if isinstance(raw.types, defs.AltClass):
 					raw.add_on('attrs', self.make_resolver_for_alt_class(raw))

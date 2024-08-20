@@ -37,7 +37,7 @@ class ResolveUnknown:
 			SymbolDB: シンボルテーブル
 		"""
 
-		for _, raw in db.items():
+		for raw in db.values():
 			if not isinstance(raw.decl, defs.Declable):
 				continue
 

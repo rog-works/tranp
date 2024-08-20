@@ -162,10 +162,11 @@ class IReflection(metaclass=ABCMeta):
 		...
 
 	@abstractmethod
-	def clone(self: Self) -> Self:
+	def clone(self) -> 'IReflection':
 		"""インスタンスを複製
+
 		Returns:
-			Self: 複製したインスタンス
+			IReflection: 複製したインスタンス
 		"""
 		...
 

@@ -157,16 +157,16 @@ class ReflectionBase(IReflection):
 
 		raise SemanticsLogicError(f'Not allowed conversion. self: {str(self)}, from: {self.__class__.__name__}, to: {expects}')
 
-	# @abstractmethod
-	# def clone(self: Self) -> Self:
-	# 	"""インスタンスを複製
-	# 	Returns:
-	# 		Self: 複製したインスタンス
-	# 	"""
-	# 	...
+	@implements
+	def clone(self) -> 'IReflection':
+		"""インスタンスを複製
 
-	def _post_clone(self: Self, new: Self) -> None:
+		Returns:
+			IReflection: 複製したインスタンス
+		"""
+		new = self.stack_by_self()
 		new.extends(*[attr.clone() for attr in self.attrs])
+		return new
 
 	@override
 	def __eq__(self, other: object) -> bool:
@@ -241,16 +241,6 @@ class Symbol(ReflectionBase):
 	def node(self) -> Node:
 		"""Node: ノード"""
 		return self._types
-
-	@implements
-	def clone(self: Self) -> Self:
-		"""インスタンスを複製
-		Returns:
-			Self: 複製したインスタンス
-		"""
-		new = self.__class__(self._types)
-		self._post_clone(new)
-		return new
 
 
 class Reflection(ReflectionBase):
@@ -358,15 +348,3 @@ class Reflection(ReflectionBase):
 			addon (Addon): アドオン
 		"""
 		self._addons.activate(key, addon)
-
-	@implements
-	def clone(self: Self) -> Self:
-		"""インスタンスを複製
-		Returns:
-			Self: 複製したインスタンス
-		"""
-		origin = self.origin
-		decl = self._decl.one_of(defs.Parameter, defs.Declable) if not self._decl.is_a(defs.ClassDef) else None
-		new = self.__class__(self._node, origin, self._via, decl)
-		self._post_clone(new)
-		return new

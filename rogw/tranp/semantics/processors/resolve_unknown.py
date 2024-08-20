@@ -2,7 +2,8 @@ from typing import cast
 
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.lang.locator import Invoker
-from rogw.tranp.semantics.reflection.interface import Addon, IReflection, SymbolDB
+from rogw.tranp.semantics.reflection.db import SymbolDB
+from rogw.tranp.semantics.reflection.interface import Addon, IReflection
 from rogw.tranp.semantics.reflections import Reflections
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.interface import IDeclaration

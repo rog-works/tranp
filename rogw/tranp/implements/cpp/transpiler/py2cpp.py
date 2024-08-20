@@ -18,11 +18,11 @@ from rogw.tranp.lang.eventemitter import Callback
 from rogw.tranp.lang.module import fullyname
 from rogw.tranp.lang.parser import BlockParser
 from rogw.tranp.semantics.errors import NotSupportedError
+from rogw.tranp.semantics.procedure import Procedure
 import rogw.tranp.semantics.reflection.helper.template as template
 from rogw.tranp.semantics.reflection.helper.naming import ClassDomainNaming, ClassShorthandNaming
 from rogw.tranp.semantics.reflection.interface import IReflection
 from rogw.tranp.semantics.reflections import Reflections
-from rogw.tranp.semantics.procedure import Procedure
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.transpiler.types import ITranspiler, TranspilerOptions

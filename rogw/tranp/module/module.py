@@ -55,7 +55,7 @@ class Module:
 		return self.__loader.exists(self.filepath)
 
 	def identity(self) -> str:
-		"""モジュールの一意な識別子を取得
+		"""モジュールの一意な識別子を生成
 
 		Args:
 			str: 一意な識別子

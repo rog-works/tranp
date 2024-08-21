@@ -94,7 +94,7 @@ class ExpandModules:
 			dict[str, Expanded]: 展開データ
 		"""
 		load_index = 0
-		load_orders = [module.path for module in self.modules.requirements]
+		load_orders = [module.path for module in self.modules.dependencies()]
 		expanded_modules: dict[str, Expanded] = {}
 		while load_index < len(load_orders):
 			module_path = load_orders[load_index]

@@ -75,3 +75,15 @@ def filepath_to_module_path(filepath: str, basedir: str) -> str:
 	basepath, _ = os.path.splitext(rel_path)
 	elems =  [elem for elem in basepath.split(os.path.sep) if elem]
 	return '.'.join(elems)
+
+
+def module_path_to_filepath(module_path: str, extension: str = '') -> str:
+	"""モジュールパスからファイルパスに変換
+
+	Args:
+		module_path (str): モジュールパス
+		extension (str): 拡張子 (default = '')
+	Returns:
+		str: ファイルパス
+	"""
+	return f'{module_path.replace('.', os.path.sep)}{extension}'

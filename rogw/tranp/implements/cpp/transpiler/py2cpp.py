@@ -265,9 +265,6 @@ class Py2Cpp(ITranspiler):
 	def on_while(self, node: defs.While, condition: str, statements: list[str]) -> str:
 		return self.view.render(node.classification, vars={'condition': condition, 'statements': statements})
 
-	def on_for_in(self, node: defs.ForIn, iterates: str) -> str:
-		return iterates
-
 	def on_for(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Var) and node.iterates.calls.tokens == range.__name__:
 			return self.proc_for_range(node, symbols, for_in, statements)
@@ -311,42 +308,6 @@ class Py2Cpp(ITranspiler):
 
 	def on_with(self, node: defs.With, statements: list[str], entries: list[str]) -> str:
 		raise NotSupportedError(f'Denied with statement. node: {node}')
-
-	def on_comp_for(self, node: defs.CompFor, symbols: list[str], for_in: str) -> str:
-		"""Note: XXX range/enumerateは効率・可読性共に非常に悪いため非サポート"""
-		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Var) and node.iterates.calls.tokens in [range.__name__, enumerate.__name__]:
-			raise LogicError(f'Operation not allowed. "{node.iterates.calls.tokens}" is not supported. node: {node}')
-
-		for_in_symbol = self.reflections.type_of(node.for_in)
-		# FIXME is_const/is_addr_pの対応に一貫性が無い。包括的な対応を検討
-		is_const = CVars.is_const(CVars.key_from(self.reflections, for_in_symbol))
-		is_addr_p = CVars.is_addr(CVars.key_from(self.reflections, for_in_symbol))
-
-		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Relay) and node.iterates.calls.prop.tokens == dict.items.__name__:
-			# 期待値: 'iterates.items()'
-			iterates = cast(re.Match, re.fullmatch(r'(.+)(->|\.)items\(\)', for_in))[1]
-			# XXX 参照の変換方法が場当たり的で一貫性が無い。包括的な対応を検討
-			iterates = f'*({iterates})' if for_in.endswith('->items()') else iterates
-			return self.view.render(f'comp/{node.classification}', vars={'symbols': symbols, 'iterates': iterates, 'is_const': is_const, 'is_addr_p': is_addr_p})
-		else:
-			return self.view.render(f'comp/{node.classification}', vars={'symbols': symbols, 'iterates': for_in, 'is_const': is_const, 'is_addr_p': is_addr_p})
-
-	def on_list_comp(self, node: defs.ListComp, projection: str, fors: list[str], condition: str) -> str:
-		projection_type_raw = self.reflections.type_of(node.projection)
-		projection_type = self.to_accessible_name(projection_type_raw)
-		comp_vars = {'projection': projection, 'comp_for': fors[0], 'condition': condition, 'projection_types': [projection_type], 'binded_this': node.binded_this}
-		return self.view.render(f'comp/{node.classification}', vars=comp_vars)
-
-	def on_dict_comp(self, node: defs.DictComp, projection: str, fors: list[str], condition: str) -> str:
-		projection_type_raw = self.reflections.type_of(node.projection)
-		projection_type_key = self.to_accessible_name(projection_type_raw.attrs[0])
-		projection_type_value = self.to_accessible_name(projection_type_raw.attrs[1])
-		projection_pair_node = node.projection.as_a(defs.Pair)
-		# XXX 再帰的なトランスパイルでkey/valueを解決
-		projection_key = self.transpile(projection_pair_node.first)
-		projection_value = self.transpile(projection_pair_node.second)
-		comp_vars = {'projection_key': projection_key, 'projection_value': projection_value, 'comp_for': fors[0], 'condition': condition, 'projection_types': [projection_type_key, projection_type_value], 'binded_this': node.binded_this}
-		return self.view.render(f'comp/{node.classification}', vars=comp_vars)
 
 	def on_function(self, node: defs.Function, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		decorators = self.allow_decorators(decorators)
@@ -579,13 +540,13 @@ class Py2Cpp(ITranspiler):
 		prop_name = self.i18n.t(alias_dsn(node.fullyname), node.domain_name)
 		return f'this->{prop_name}'
 
+	def on_decl_local_var(self, node: defs.DeclLocalVar) -> str:
+		return node.tokens
+
 	def on_decl_class_param(self, node: defs.DeclClassParam) -> str:
 		return node.tokens
 
 	def on_decl_this_param(self, node: defs.DeclThisParam) -> str:
-		return node.tokens
-
-	def on_decl_local_var(self, node: defs.DeclLocalVar) -> str:
 		return node.tokens
 
 	def on_types_name(self, node: defs.TypesName) -> str:
@@ -667,13 +628,6 @@ class Py2Cpp(ITranspiler):
 
 		return 'raw', CVars.RelayOperators.Raw.name
 
-	def on_class_ref(self, node: defs.ClassRef) -> str:
-		symbol = self.reflections.resolve(node.class_symbol)
-		return self.to_domain_name(self.unpack_type_proxy(symbol))
-
-	def on_this_ref(self, node: defs.ThisRef) -> str:
-		return 'this'
-
 	def on_var(self, node: defs.Var) -> str:
 		symbol = self.reflections.type_of(node)
 		symbol = self.unpack_type_proxy(symbol)
@@ -682,6 +636,13 @@ class Py2Cpp(ITranspiler):
 			return self.to_domain_name_by_class(symbol.types)
 		else:
 			return node.tokens
+
+	def on_class_ref(self, node: defs.ClassRef) -> str:
+		symbol = self.reflections.resolve(node.class_symbol)
+		return self.to_domain_name(self.unpack_type_proxy(symbol))
+
+	def on_this_ref(self, node: defs.ThisRef) -> str:
+		return 'this'
 
 	def on_indexer(self, node: defs.Indexer, receiver: str, keys: list[str]) -> str:
 		spec, context = self.analyze_indexer_spec(node)
@@ -969,6 +930,45 @@ class Py2Cpp(ITranspiler):
 		"""Note: C++では暗黙的な基底クラスが存在しないため、必ず解決が可能"""
 		parent_symbol = self.reflections.type_of(node.super_class_symbol)
 		return self.to_accessible_name(parent_symbol)
+
+	def on_for_in(self, node: defs.ForIn, iterates: str) -> str:
+		return iterates
+
+	def on_comp_for(self, node: defs.CompFor, symbols: list[str], for_in: str) -> str:
+		"""Note: XXX range/enumerateは効率・可読性共に非常に悪いため非サポート"""
+		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Var) and node.iterates.calls.tokens in [range.__name__, enumerate.__name__]:
+			raise LogicError(f'Operation not allowed. "{node.iterates.calls.tokens}" is not supported. node: {node}')
+
+		for_in_symbol = self.reflections.type_of(node.for_in)
+		# FIXME is_const/is_addr_pの対応に一貫性が無い。包括的な対応を検討
+		is_const = CVars.is_const(CVars.key_from(self.reflections, for_in_symbol))
+		is_addr_p = CVars.is_addr(CVars.key_from(self.reflections, for_in_symbol))
+
+		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Relay) and node.iterates.calls.prop.tokens == dict.items.__name__:
+			# 期待値: 'iterates.items()'
+			iterates = cast(re.Match, re.fullmatch(r'(.+)(->|\.)items\(\)', for_in))[1]
+			# XXX 参照の変換方法が場当たり的で一貫性が無い。包括的な対応を検討
+			iterates = f'*({iterates})' if for_in.endswith('->items()') else iterates
+			return self.view.render(f'comp/{node.classification}', vars={'symbols': symbols, 'iterates': iterates, 'is_const': is_const, 'is_addr_p': is_addr_p})
+		else:
+			return self.view.render(f'comp/{node.classification}', vars={'symbols': symbols, 'iterates': for_in, 'is_const': is_const, 'is_addr_p': is_addr_p})
+
+	def on_list_comp(self, node: defs.ListComp, projection: str, fors: list[str], condition: str) -> str:
+		projection_type_raw = self.reflections.type_of(node.projection)
+		projection_type = self.to_accessible_name(projection_type_raw)
+		comp_vars = {'projection': projection, 'comp_for': fors[0], 'condition': condition, 'projection_types': [projection_type], 'binded_this': node.binded_this}
+		return self.view.render(f'comp/{node.classification}', vars=comp_vars)
+
+	def on_dict_comp(self, node: defs.DictComp, projection: str, fors: list[str], condition: str) -> str:
+		projection_type_raw = self.reflections.type_of(node.projection)
+		projection_type_key = self.to_accessible_name(projection_type_raw.attrs[0])
+		projection_type_value = self.to_accessible_name(projection_type_raw.attrs[1])
+		projection_pair_node = node.projection.as_a(defs.Pair)
+		# XXX 再帰的なトランスパイルでkey/valueを解決
+		projection_key = self.transpile(projection_pair_node.first)
+		projection_value = self.transpile(projection_pair_node.second)
+		comp_vars = {'projection_key': projection_key, 'projection_value': projection_value, 'comp_for': fors[0], 'condition': condition, 'projection_types': [projection_type_key, projection_type_value], 'binded_this': node.binded_this}
+		return self.view.render(f'comp/{node.classification}', vars=comp_vars)
 
 	# Operator
 

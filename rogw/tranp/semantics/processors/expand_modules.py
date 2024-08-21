@@ -1,12 +1,11 @@
 import json
-import os
 from typing import IO, NamedTuple
 
 import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.io.cache import CacheProvider
 from rogw.tranp.io.loader import IFileLoader
-from rogw.tranp.lang.annotation import injectable
+from rogw.tranp.lang.annotation import duck_typed, injectable
 from rogw.tranp.module.modules import Module, Modules
 from rogw.tranp.semantics.finder import SymbolFinder
 from rogw.tranp.semantics.reflection.db import SymbolDB
@@ -31,6 +30,7 @@ class Expanded(NamedTuple):
 	import_paths: list[str] = []
 
 	@classmethod
+	@duck_typed
 	def load(cls, stream: IO) -> 'Expanded':
 		""""インスタンスを復元
 
@@ -42,6 +42,7 @@ class Expanded(NamedTuple):
 		values = json.load(stream)
 		return Expanded(values[0], values[1], values[2], values[3])
 
+	@duck_typed
 	def save(self, stream: IO) -> None:
 		""""インスタンスを保存
 
@@ -93,7 +94,7 @@ class ExpandModules:
 			dict[str, Expanded]: 展開データ
 		"""
 		load_index = 0
-		load_orders = [module.path for module in self.modules.requirements]
+		load_orders = [module.path for module in self.modules.dependencies()]
 		expanded_modules: dict[str, Expanded] = {}
 		while load_index < len(load_orders):
 			module_path = load_orders[load_index]
@@ -188,12 +189,11 @@ class ExpandModules:
 			return Expanded(classes, decl_vars, imports, import_paths)
 
 		# XXX ファイルの実体が存在しない場合は、メモリーから直接パースしたモジュールと見做してキャッシュは省略する
-		basepath = module.module_path.path.replace('.', os.path.sep)
-		filepath = f'{basepath}.{module.module_path.language}'
-		if not self.loader.exists(filepath):
+		if not module.in_storage():
 			return instantiate()
 
-		identity = {'mtime': str(self.loader.mtime(filepath))}
+		identity = {'hash': module.identity()}
+		basepath = '.'.join(module.filepath.split('.')[:-1])
 		decorator = self.caches.get(f'{basepath}-symbol-db', identity=identity, format='json')
 		return decorator(instantiate)()
 

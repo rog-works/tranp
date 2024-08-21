@@ -15,7 +15,7 @@ from rogw.tranp.io.writer import Writer
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.lang.di import ModuleDefinitions
 from rogw.tranp.lang.error import stacktrace
-from rogw.tranp.lang.module import fullyname
+from rogw.tranp.lang.module import fullyname, module_path_to_filepath
 from rogw.tranp.lang.profile import profiler
 from rogw.tranp.module.includer import include_module_paths
 from rogw.tranp.module.modules import Modules
@@ -241,8 +241,7 @@ class TranspileApp:
 		Returns:
 			str: ファイルパス
 		"""
-		basepath = module_path.path.replace('.', os.path.sep)
-		filepath = f'{basepath}.{self.config.output_language}'
+		filepath = module_path_to_filepath(module_path.path, f'.{self.config.output_language}')
 		return os.path.abspath(os.path.join(self.config.output_dir, filepath))
 
 	def can_transpile(self, module_path: ModulePath) -> bool:

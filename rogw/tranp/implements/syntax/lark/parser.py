@@ -1,5 +1,4 @@
 import json
-import os
 from typing import IO, cast
 
 import lark
@@ -9,6 +8,7 @@ from rogw.tranp.implements.syntax.lark.entry import EntryOfLark, Serialization
 from rogw.tranp.io.cache import CacheProvider
 from rogw.tranp.io.loader import IFileLoader
 from rogw.tranp.lang.annotation import duck_typed, injectable
+from rogw.tranp.lang.module import module_path_to_filepath
 from rogw.tranp.syntax.ast.entry import Entry
 from rogw.tranp.syntax.ast.parser import ParserSetting
 from rogw.tranp.syntax.errors import SyntaxError
@@ -81,7 +81,7 @@ class SyntaxParserOfLark:
 		Raises:
 			SyntaxError: ソースの解析に失敗
 		"""
-		basepath = module_path.replace('.', os.path.sep)
+		basepath = module_path_to_filepath(module_path)
 
 		def source_path() -> str:
 			return f'{basepath}.py'

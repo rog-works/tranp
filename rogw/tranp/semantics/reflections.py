@@ -158,7 +158,7 @@ class Reflections:
 			SemanticsError: シンボルの解決に失敗
 		"""
 		if isinstance(node, defs.Var):
-			return self.resolve(node)
+			return self.__resolve_procedural(node)
 		else:
 			# defs.Relay/defs.Indexer
 			return self.__resolve_procedural(node)

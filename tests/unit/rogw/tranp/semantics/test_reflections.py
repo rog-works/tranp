@@ -364,7 +364,7 @@ class TestReflections(TestCase):
 		(_ast('Sub.__init__.params', 'paramvalue.typedparam.name'), ModuleDSN.full_joined(fixture_module_path, 'Sub'), 'Sub'),
 		(_ast('Sub.__init__.return', ''), _mod('classes', 'None'), 'None'),
 		(_ast('Sub.__init__.block', 'funccall'), ModuleDSN.full_joined(fixture_module_path, 'Base'), 'Base'),
-		(_ast('Sub.__init__.block', 'funccall.getattr.funccall.var'), _mod('classes', 'super'), 'super'),
+		(_ast('Sub.__init__.block', 'funccall.getattr.funccall.var'), _mod('classes', 'super'), 'super() -> Any'),
 		(_ast('Sub.__init__.block', 'anno_assign[1]'), _mod('classes', 'list'), 'list<int>'),
 		(_ast('Sub.__init__.block', 'anno_assign[1].assign_namelist.getattr'), _mod('classes', 'list'), 'list<int>'),
 		(_ast('Sub.__init__.block', 'anno_assign[1].typed_getitem'), _mod('classes', 'list'), 'list<int>'),

@@ -5,7 +5,7 @@ import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.io.cache import CacheProvider
 from rogw.tranp.io.loader import IFileLoader
-from rogw.tranp.lang.annotation import injectable
+from rogw.tranp.lang.annotation import duck_typed, injectable
 from rogw.tranp.module.modules import Module, Modules
 from rogw.tranp.semantics.finder import SymbolFinder
 from rogw.tranp.semantics.reflection.db import SymbolDB
@@ -30,6 +30,7 @@ class Expanded(NamedTuple):
 	import_paths: list[str] = []
 
 	@classmethod
+	@duck_typed
 	def load(cls, stream: IO) -> 'Expanded':
 		""""インスタンスを復元
 
@@ -41,6 +42,7 @@ class Expanded(NamedTuple):
 		values = json.load(stream)
 		return Expanded(values[0], values[1], values[2], values[3])
 
+	@duck_typed
 	def save(self, stream: IO) -> None:
 		""""インスタンスを保存
 

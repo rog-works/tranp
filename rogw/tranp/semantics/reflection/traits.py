@@ -24,7 +24,7 @@ class ObjectTrait(Trait, IObject):
 		"""配下のプロパティーを取得
 
 		Args:
-			name (str): 名前
+			prop (Var): 変数参照ノード
 		Returns:
 			IReflection: シンボル
 		"""

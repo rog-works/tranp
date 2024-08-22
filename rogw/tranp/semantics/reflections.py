@@ -9,6 +9,7 @@ from rogw.tranp.semantics.finder import SymbolFinder
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.semantics.procedure import Procedure
 from rogw.tranp.semantics.reflection.interface import IReflection
+import rogw.tranp.semantics.reflection.definitions as refs
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 
@@ -487,7 +488,7 @@ class ProceduralResolver:
 			return prop
 
 	def proc_relay_object(self, node: defs.Relay, receiver: IReflection) -> IReflection:
-		prop = self.reflections.type_of_property(receiver.types, node.prop)
+		prop = receiver.impl(refs.Class).prop_of(node.prop)
 		if isinstance(prop.decl, defs.Method) and prop.decl.is_property:
 			function_helper = template.HelperBuilder(prop) \
 				.schema(lambda: {'klass': prop.attrs[0], 'parameters': prop.attrs[1:-1], 'returns': prop.attrs[-1]}) \

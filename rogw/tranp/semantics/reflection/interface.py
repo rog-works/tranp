@@ -159,7 +159,7 @@ class IReflection(metaclass=ABCMeta):
 		...
 
 	@abstractmethod
-	def as_a(self, expect: type[T_Ref]) -> T_Ref:
+	def impl(self, expect: type[T_Ref]) -> T_Ref:
 		"""期待する型と同じインターフェイスを実装していればキャスト
 
 		Args:
@@ -167,7 +167,7 @@ class IReflection(metaclass=ABCMeta):
 		Returns:
 			T_Ref: インスタンス
 		Note:
-			SemanticsLogicError: インターフェイスが無い型を指定 XXX 出力する例外は要件等
+			SemanticsLogicError: インターフェイスが未実装 XXX 出力する例外は要件等
 		"""
 		...
 
@@ -233,7 +233,6 @@ class Addons:
 		self._addons[key] = addon
 
 
-T = TypeVar('T')
 T_Trait = TypeVar('T_Trait', bound='Trait')
 
 

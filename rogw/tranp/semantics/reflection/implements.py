@@ -187,7 +187,7 @@ class ReflectionBase(IReflection):
 		raise SemanticsLogicError(f'Operation not allowed. symbol: {self.types.fullyname}')
 
 	@implements
-	def as_a(self, expect: type[T_Ref]) -> T_Ref:
+	def impl(self, expect: type[T_Ref]) -> T_Ref:
 		"""期待する型と同じインターフェイスを実装していればキャスト
 
 		Args:
@@ -195,7 +195,7 @@ class ReflectionBase(IReflection):
 		Returns:
 			T_Ref: インスタンス
 		Raises:
-			SemanticsLogicError: 継承関係が無い型を指定 XXX 出力する例外は要件等
+			SemanticsLogicError: インターフェイスが未実装 XXX 出力する例外は要件等
 		"""
 		if self._traits.implements(expect):
 			return cast(expect, self)
@@ -257,7 +257,7 @@ class Symbol(ReflectionBase):
 	"""シンボル(クラス定義のオリジナル)"""
 
 	@classmethod
-	def from_types(cls, traits: Traits, types: defs.ClassDef) -> 'Symbol':
+	def instantiate(cls, traits: Traits, types: defs.ClassDef) -> 'Symbol':
 		"""インスタンスを生成
 
 		Args:

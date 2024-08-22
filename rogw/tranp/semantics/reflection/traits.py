@@ -46,6 +46,17 @@ class ObjectTrait(TraitImpl, IObject):
 		"""
 		return symbol.to(prop, self.reflections.type_of_property(symbol.types, prop))
 
+	@implements
+	def constructor(self, symbol: IReflection) -> IReflection:
+		"""コンストラクターを取得
+
+		Args:
+			symbol (IReflection): シンボル ※Traitsから暗黙的に入力される
+		Returns:
+			IReflection: シンボル
+		"""
+		return symbol.to(symbol.types, self.reflections.type_of_constructor(symbol.types.as_a(defs.Class)))
+
 
 class FunctionTrait(TraitImpl, IFunction):
 	"""トレイト実装(ファンクション)"""
@@ -61,7 +72,7 @@ class FunctionTrait(TraitImpl, IFunction):
 			IReflection: シンボル
 		"""
 		if symbol.types.is_a(defs.Constructor):
-			schema = {'klass': symbol.attrs[0], 'parameters': symbol.attrs[1:-1], 'returns': symbol.attrs[0]}
+			schema = {'klass': symbol.attrs[0], 'parameters': symbol.attrs[1:-1], 'returns': symbol.context}
 			function_helper = templates.HelperBuilder(symbol).schema(lambda: schema).build(templates.Constructor)
 			return function_helper.returns(symbol.context, *arguments)
 		elif symbol.types.is_a(defs.Method, defs.ClassMethod):

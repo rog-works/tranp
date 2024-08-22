@@ -232,24 +232,20 @@ class Addons:
 		self._addons[key] = addon
 
 
-T_Trait = TypeVar('T_Trait', bound='Trait')
-
-
 class Trait:
 	"""インターフェイス拡張トレイト(基底)"""
 
 	@injectable
-	def __init__(self, *injects: Any, symbol: IReflection) -> None:
+	def __init__(self, *injects: Any) -> None:
 		"""インスタンスを生成
 
 		Args:
 			*injects (Any): 任意の注入引数 @inject
-			symbol (IReflection): 拡張対象のインスタンス
 		"""
-		self.symbol = symbol
+		...
 
-	@classmethod
-	def interface(cls) -> type[Any]:
+	@property
+	def implements(self) -> type[Any]:
 		"""実装インターフェイスを取得
 
 		Returns:
@@ -258,20 +254,20 @@ class Trait:
 			* 以下の様に継承されていると見做し、MROの末尾(-2)から実装インターフェイスを取得する
 			* `class TraitImpl(Trait, IInterface): ...` -> (TraitImpl, Trait, IInterface, object)
 		"""
-		return cls.mro()[-2]
+		return self.__class__.mro()[-2]
 
-	@classmethod
-	def impl_methods(cls) -> list[str]:
+	@property
+	def impl_methods(self) -> list[str]:
 		"""実装メソッド名リスト
 
 		Returns:
 			list[str]: メソッド名リスト
 		"""
-		return [key for key, value in cls.interface().__dict__.items() if isinstance(value, FunctionType)]
+		return [key for key, value in self.implements.__dict__.items() if isinstance(value, FunctionType)]
 
 
 class TraitProvider(Protocol):
-	"""トレイトプロバイダー"""
+	"""トレイトプロバイダープロトコル"""
 
 	def __call__(self) -> list[Trait]:
 		"""トレイトリストを取得
@@ -292,22 +288,22 @@ class Traits:
 			provider (TraitProvider): トレイトプロバイダー
 		"""
 		self.__provider = provider
-		self.__instances: dict[type[Any], Trait] = {}
-		self.__methods: dict[str, Trait] = {}
+		self.__interfaces: list[type[Any]] = []
+		self.__method_on_trait: dict[str, Trait] = {}
 
 	def __ensure_traits(self) -> None:
-		"""トレイトを生成
+		"""トレイトをインスタンス化
 
 		Note:
 			インスタンス生成時にDIを利用するため、トレイト参照時まで生成を遅らせる
 		"""
 		traits = self.__provider()
-		methods: dict[str, Trait] = {}
+		method_on_trait: dict[str, Trait] = {}
 		for trait in traits:
-			methods = {**methods, **{name: trait for name in trait.impl_methods()}}
+			method_on_trait = {**method_on_trait, **{name: trait for name in trait.impl_methods}}
 
-		self.__instances = {trait.interface(): trait for trait in traits}
-		self.__methods = methods
+		self.__interfaces = [trait.implements for trait in traits]
+		self.__method_on_trait = method_on_trait
 
 	def implements(self, expect: type[T_Ref]) -> bool:
 		"""指定のクラスが所有するインターフェイスが実装されているか判定
@@ -317,12 +313,12 @@ class Traits:
 		Returns:
 			bool: True = 実装
 		"""
-		if len(self.__instances) == 0:
+		if len(self.__interfaces) == 0:
 			self.__ensure_traits()
 
 		requirements: list[type[Any]] = [inherit for inherit in expect.mro() if not isinstance(inherit, (IReflection, object))]
 		for required in requirements:
-			if required not in self.__instances:
+			if required not in self.__interfaces:
 				return False
 
 		return True
@@ -334,12 +330,12 @@ class Traits:
 			name (str): メソッド名
 			symbol (IReflection): 拡張対象のインスタンス
 		Returns:
-			Callable[..., Any]: メソッド
+			Callable[..., Any]: メソッドアダプター
 		Raises:
-			SemanticsLogicError: トレイトが未実装
+			SemanticsLogicError: トレイトのメソッドが未実装
 		"""
-		if name not in self.__methods:
-			raise SemanticsLogicError(f'Operation not allowed. symbol: {symbol}, name: {name}')
+		if name not in self.__method_on_trait:
+			raise SemanticsLogicError(f'Method not defined. symbol: {symbol}, name: {name}')
 
-		trait = self.__methods[name]
+		trait = self.__method_on_trait[name]
 		return lambda *args: getattr(trait, name)(*args, symbol=symbol)

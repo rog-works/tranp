@@ -6,10 +6,10 @@ from rogw.tranp.semantics.errors import OperationNotAllowedError, SemanticsLogic
 from rogw.tranp.semantics.finder import SymbolFinder
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.semantics.procedure import Procedure
-from rogw.tranp.semantics.reflection.db import SymbolDBProvider
 from rogw.tranp.semantics.reflection.base import IReflection
-import rogw.tranp.semantics.reflection.helper.template as templates
+from rogw.tranp.semantics.reflection.db import SymbolDBProvider
 import rogw.tranp.semantics.reflection.definitions as refs
+import rogw.tranp.semantics.reflection.helper.template as templates
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 
@@ -581,11 +581,8 @@ class ProceduralResolver:
 		if isinstance(actual_calls.types, defs.Class):
 			# XXX クラス経由で暗黙的にコンストラクターを呼び出した場合
 			# XXX 戻り値の型をクラスのシンボルで補完
-			constroctur_calls = self.reflections.type_of_constructor(actual_calls.types)
-			function_helper = templates.HelperBuilder(constroctur_calls) \
-				.schema(lambda: {'klass': constroctur_calls.attrs[0], 'parameters': constroctur_calls.attrs[1:-1], 'returns': actual_calls}) \
-				.build(templates.Constructor)
-			return actual_calls.to(node, function_helper.returns(constroctur_calls.attrs[0], *arguments))
+			constructor_calls = actual_calls.impl(refs.Class).constructor()
+			return actual_calls.to(node, constructor_calls.impl(refs.Function).returns(*arguments))
 		elif isinstance(actual_calls.types, defs.Constructor):
 			# XXX コンストラクターを明示的に呼び出した場合
 			# XXX 戻り値の型を第1引数(自己参照)で補完

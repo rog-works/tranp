@@ -1,4 +1,4 @@
-from typing import Callable, Iterator, Literal, Self, cast
+from typing import Any, Callable, Iterator, Literal, Self, cast
 
 from rogw.tranp.lang.annotation import implements, override
 from rogw.tranp.lang.convertion import safe_cast
@@ -240,15 +240,15 @@ class ReflectionBase(IReflection):
 		"""int: オブジェクトのハッシュ値"""
 		return hash(self.__repr__())
 	
-	def __getattr__(self, name: str) -> Callable:
+	def __getattr__(self, name: str) -> Callable[..., Any]:
 		"""トレイトからメソッドを取得
 
 		Args:
 			name (str): メソッド名
 		Returns:
-			Callable: メソッド
+			Callable[..., Any]: メソッド
 		Note:
-			XXX このメソッドを実装すると、存在しないプロパティーを誤って参照した際に警告されなくなる欠点があるため、要検討
+			XXX このメソッドを実装すると、存在しないプロパティーを誤って参照した際に警告されないため、要検討
 		"""
 		return self._traits.get(name, self)
 

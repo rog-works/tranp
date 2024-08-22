@@ -1,9 +1,8 @@
 from abc import ABCMeta, abstractmethod
 from types import FunctionType
-from typing import Any, Callable, Generic, Iterator, Literal, Protocol, Self, TypeVar
+from typing import Any, Callable, Iterator, Literal, Protocol, Self, TypeVar
 
 from rogw.tranp.lang.annotation import injectable
-from rogw.tranp.lang.inspection import ClassTypehint
 from rogw.tranp.semantics.errors import SemanticsLogicError
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
@@ -328,14 +327,14 @@ class Traits:
 
 		return True
 
-	def get(self, name: str, symbol: IReflection) -> Callable:
+	def get(self, name: str, symbol: IReflection) -> Callable[..., Any]:
 		"""トレイトのメソッドを取得
 
 		Args:
 			name (str): メソッド名
 			symbol (IReflection): 拡張対象のインスタンス
 		Returns:
-			Callable: メソッド
+			Callable[..., Any]: メソッド
 		Raises:
 			SemanticsLogicError: トレイトが未実装
 		"""

@@ -1,6 +1,8 @@
 from abc import ABCMeta, abstractmethod
-from typing import Iterator, Literal, Protocol, Self, TypeVar
+from types import FunctionType
+from typing import Any, Callable, Generic, Iterator, Literal, Protocol, Self, TypeVar
 
+from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.semantics.errors import SemanticsLogicError
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
@@ -64,6 +66,12 @@ class IReflection(metaclass=ABCMeta):
 	@abstractmethod
 	def attrs(self) -> list['IReflection']:
 		"""list[IReflection]: 属性シンボルリスト"""
+		...
+
+	@property
+	@abstractmethod
+	def _traits(self) -> 'Traits':
+		"""Traits: トレイトマネージャー"""
 		...
 
 	@abstractmethod
@@ -131,6 +139,15 @@ class IReflection(metaclass=ABCMeta):
 		...
 
 	@abstractmethod
+	def to_temporary(self) -> 'IReflection':
+		"""インスタンスをテンプレート用に複製
+
+		Returns:
+			IReflection: 複製したインスタンス
+		"""
+		...
+
+	@abstractmethod
 	def add_on(self, key: Literal['origin', 'attrs'], addon: 'Addon') -> None:
 		"""アドオンを有効化
 		
@@ -141,24 +158,15 @@ class IReflection(metaclass=ABCMeta):
 		...
 
 	@abstractmethod
-	def one_of(self, *expects: type[T_Ref]) -> T_Ref:
-		"""期待する型と同種ならキャスト
+	def as_a(self, expect: type[T_Ref]) -> T_Ref:
+		"""期待する型と同じインターフェイスを実装していればキャスト
 
 		Args:
-			*expects (type[T_Ref]): 期待する型
+			expect (type[T_Ref]): 期待する型
 		Returns:
 			T_Ref: インスタンス
-		Raises:
-			SemanticsLogicError: 継承関係が無い型を指定 XXX 出力する例外は要件等
-		"""
-		...
-
-	@abstractmethod
-	def to_temporary(self) -> 'IReflection':
-		"""インスタンスをテンプレート用に複製
-
-		Returns:
-			IReflection: 複製したインスタンス
+		Note:
+			SemanticsLogicError: インターフェイスが無い型を指定 XXX 出力する例外は要件等
 		"""
 		...
 
@@ -222,3 +230,116 @@ class Addons:
 			del self._cache[key]
 
 		self._addons[key] = addon
+
+
+T = TypeVar('T')
+T_Trait = TypeVar('T_Trait', bound='Trait')
+
+
+class Trait(Generic[T]):
+	"""インターフェイス拡張トレイト(基底)"""
+
+	@injectable
+	def __init__(self, *injects: Any, symbol: IReflection) -> None:
+		"""インスタンスを生成
+
+		Args:
+			*injects (Any): 任意の注入引数 @inject
+			symbol (IReflection): 拡張対象のインスタンス
+		"""
+		self.symbol = symbol
+
+	@classmethod
+	def interface(cls) -> type[T]:
+		"""実装インターフェイスを取得
+
+		Returns:
+			type[T]: クラス
+		"""
+		return getattr(cls, '__args__')[0]
+
+	@classmethod
+	def impl_methods(cls) -> list[str]:
+		"""実装メソッド名リスト
+
+		Returns:
+			list[str]: メソッド名リスト
+		"""
+		return [key for key, value in cls.interface.__dict__.items() if isinstance(value, FunctionType)]
+
+
+class TraitProvider(Protocol):
+	"""トレイトプロバイダープロトコル"""
+
+	def traits(self) -> list[type[Trait]]:
+		"""トレイトのクラスリストを取得
+
+		Returns:
+			list[type[Trait]]: トレイトのクラスリスト
+		"""
+		...
+
+	def factory(self, trait: type[T_Trait], symbol: IReflection) -> T_Trait:
+		"""トレイトをインスタンス化
+
+		Args:
+			trait (type[T_Trait]): トレイトのクラス
+			symbol (IReflection): 拡張対象のインスタンス
+		Returns:
+			T_Trait: 生成したインスタンス
+		"""
+		...
+
+
+class Traits:
+	"""トレイトマネージャー"""
+
+	def __init__(self, provider: TraitProvider) -> None:
+		"""インスタンスを生成
+
+		Args:
+			provider (TraitsProvider): トレイトプロバイダー
+		"""
+		self.__provider = provider
+		self.__interface_of_trait = {trait.interface(): trait for trait in self.__provider.traits()}
+		method_to_trait: dict[str, type[Trait]] = {}
+		for trait in self.__interface_of_trait.values():
+			method_to_trait = {**method_to_trait, **{name: trait for name in trait.impl_methods()}}
+
+		self.__method_to_trait = method_to_trait
+		self.__instances: dict[type[Trait], Trait] = {}
+
+	def implements(self, expect: type[T_Ref]) -> bool:
+		"""指定のクラスが所有するインターフェイスが実装されているか判定
+
+		Args:
+			expect (type[T_Ref]): 期待するインターフェイス
+		Returns:
+			bool: True = 実装
+		"""
+		requirements = [inherit for inherit in expect.mro() if not isinstance(inherit, (IReflection, object))]
+		for required in requirements:
+			if required not in self.__interface_of_trait:
+				return False
+
+		return True
+
+	def get(self, name: str, symbol: IReflection) -> Callable:
+		"""トレイトのメソッドを取得
+
+		Args:
+			name (str): メソッド名
+			symbol (IReflection): 拡張対象のインスタンス
+		Returns:
+			Callable: メソッド
+		Raises:
+			SemanticsLogicError: トレイトが未実装
+		"""
+		if name not in self.__method_to_trait:
+			raise SemanticsLogicError(f'Operation not allowed. symbol: {symbol}, name: {name}')
+
+		trait = self.__method_to_trait[name]
+		if trait not in self.__instances:
+			self.__instances[trait] = self.__provider.factory(trait, symbol)
+
+		return getattr(self.__instances[trait], name)

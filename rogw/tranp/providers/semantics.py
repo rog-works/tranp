@@ -4,7 +4,7 @@ from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.semantics.processor import Preprocessors
 from rogw.tranp.semantics.reflection.db import SymbolDB, SymbolDBProvider
 from rogw.tranp.semantics.reflection.interface import IReflection, ITraitProvider, T_Trait, Trait
-from rogw.tranp.semantics.reflection.traits import ObjectTrait
+from rogw.tranp.semantics.reflection.traits import export_classes
 
 
 @injectable
@@ -51,9 +51,7 @@ class TraitProvider(ITraitProvider):
 		Returns:
 			list[type[Trait]]: トレイトのクラスリスト
 		"""
-		return [
-			ObjectTrait,
-		]
+		return export_classes()
 
 	@implements
 	def factory(self, trait: type[T_Trait], symbol: IReflection) -> T_Trait:

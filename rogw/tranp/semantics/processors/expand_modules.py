@@ -10,7 +10,7 @@ from rogw.tranp.module.modules import Module, Modules
 from rogw.tranp.semantics.finder import SymbolFinder
 from rogw.tranp.semantics.reflection.db import SymbolDB
 from rogw.tranp.semantics.reflection.implements import Symbol
-from rogw.tranp.semantics.reflection.interface import IReflection
+from rogw.tranp.semantics.reflection.interface import IReflection, ITraitProvider, Traits
 import rogw.tranp.syntax.node.definition as defs
 
 
@@ -60,7 +60,7 @@ class ExpandModules:
 	"""
 
 	@injectable
-	def __init__(self, modules: Modules, finder: SymbolFinder, caches: CacheProvider, loader: IFileLoader) -> None:
+	def __init__(self, modules: Modules, finder: SymbolFinder, caches: CacheProvider, loader: IFileLoader, trait_provider: ITraitProvider) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -68,11 +68,13 @@ class ExpandModules:
 			finder (SymbolFinder): シンボル検索 @inject
 			caches (CacheProvider): キャッシュプロバイダー @inject
 			loader (IFileLoader): ファイルローダー @inject
+			trait_provider (ITraitProvider): トレイトプロバイダー @inject
 		"""
 		self.modules = modules
 		self.finder = finder
 		self.caches = caches
 		self.loader = loader
+		self.traits = Traits.from_provider(trait_provider)
 
 	@injectable
 	def __call__(self, db: SymbolDB) -> SymbolDB:
@@ -128,7 +130,7 @@ class ExpandModules:
 			entrypoint = self.modules.load(module_path).entrypoint.as_a(defs.Entrypoint)
 			for fullyname, full_path in expanded.classes.items():
 				types = entrypoint.whole_by(full_path).as_a(defs.ClassDef)
-				expanded_db[fullyname] = Symbol.from_types(types).stack()
+				expanded_db[fullyname] = Symbol.from_types(self.traits, types).stack()
 
 			# インポートシンボルの展開
 			entrypoint = self.modules.load(module_path).entrypoint.as_a(defs.Entrypoint)

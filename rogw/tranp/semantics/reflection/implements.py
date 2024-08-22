@@ -38,16 +38,14 @@ class Options:
 class ReflectionBase(IReflection):
 	"""リフレクション(基底)"""
 
-	def __init__(self, options: Options) -> None:
+	def __init__(self, traits: Traits, options: Options) -> None:
 		"""インスタンスを生成
 
 		Args:
+			traits (Traits): トレイトマネージャー
 			options (Options): 生成オプション
-		Note:
-			* インターフェイスの共通化のため定義
-			* 基底クラスでは特に何も行わない
 		"""
-		...
+		self.__traits = traits
 
 	# @property
 	# @abstractmethod
@@ -98,7 +96,7 @@ class ReflectionBase(IReflection):
 	@implements
 	def _traits(self) -> Traits:
 		"""Traits: トレイトマネージャー"""
-		raise SemanticsLogicError(f'Operation not allowed. symbol: {self.types.fullyname}')
+		return self.__traits
 
 	@implements
 	def declare(self, decl: defs.DeclVars, origin: IReflection | None = None) -> IReflection:
@@ -110,7 +108,7 @@ class ReflectionBase(IReflection):
 		Returns:
 			IReflection: リフレクション
 		"""
-		return Reflection(Options(decl=decl, node=decl, origin=origin if origin else self))
+		return Reflection(self.__traits.clone(), Options(decl=decl, node=decl, origin=origin if origin else self))
 
 	@implements
 	def stack(self, node: Node | None = None) -> IReflection:
@@ -121,7 +119,7 @@ class ReflectionBase(IReflection):
 		Returns:
 			IReflection: リフレクション
 		"""
-		return Reflection(Options(node=node if node else self.node, origin=self))
+		return Reflection(self.__traits.clone(), Options(node=node if node else self.node, origin=self))
 
 	@implements
 	def to(self, node: Node, origin: IReflection) -> IReflection:
@@ -133,7 +131,7 @@ class ReflectionBase(IReflection):
 		Returns:
 			IReflection: リフレクション
 		"""
-		return Reflection(Options(node=node, origin=origin, via=self))
+		return Reflection(self.__traits.clone(), Options(node=node, origin=origin, via=self))
 
 	@property
 	@implements
@@ -259,23 +257,25 @@ class Symbol(ReflectionBase):
 	"""シンボル(クラス定義のオリジナル)"""
 
 	@classmethod
-	def from_types(cls, types: defs.ClassDef) -> 'Symbol':
+	def from_types(cls, traits: Traits, types: defs.ClassDef) -> 'Symbol':
 		"""インスタンスを生成
 
 		Args:
+			traits (Traits): トレイトマネージャー
 			types (ClassDef): クラス定義ノード
 		Returns:
 			Symbol: インスタンス
 		"""
-		return cls(Options(types=types))
+		return cls(traits, Options(types=types))
 
-	def __init__(self, options: Options) -> None:
+	def __init__(self, traits: Traits, options: Options) -> None:
 		"""インスタンスを生成
 
 		Args:
+			traits (Traits): トレイトマネージャー
 			options (Options): 生成オプション
 		"""
-		super().__init__(options)
+		super().__init__(traits, options)
 		self._types = safe_cast(options.types)
 
 	@property
@@ -300,13 +300,13 @@ class Symbol(ReflectionBase):
 class Reflection(ReflectionBase):
 	"""リフレクションの共通実装(基底)"""
 
-	def __init__(self, options: Options) -> None:
+	def __init__(self, traits: Traits, options: Options) -> None:
 		"""インスタンスを生成
 
 		Args:
 			options (Options): 生成オプション
 		"""
-		super().__init__(options)
+		super().__init__(traits, options)
 		self._node = safe_cast(options.node)
 		self._origin = safe_cast(options.origin)
 		self._decl = options.decl if options.decl else self._origin.decl

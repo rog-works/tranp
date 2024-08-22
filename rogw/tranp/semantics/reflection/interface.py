@@ -3,6 +3,7 @@ from types import FunctionType
 from typing import Any, Callable, Generic, Iterator, Literal, Protocol, Self, TypeVar
 
 from rogw.tranp.lang.annotation import injectable
+from rogw.tranp.lang.inspection import ClassTypehint
 from rogw.tranp.semantics.errors import SemanticsLogicError
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
@@ -236,7 +237,7 @@ T = TypeVar('T')
 T_Trait = TypeVar('T_Trait', bound='Trait')
 
 
-class Trait(Generic[T]):
+class Trait:
 	"""インターフェイス拡張トレイト(基底)"""
 
 	@injectable
@@ -250,13 +251,16 @@ class Trait(Generic[T]):
 		self.symbol = symbol
 
 	@classmethod
-	def interface(cls) -> type[T]:
+	def interface(cls) -> type[Any]:
 		"""実装インターフェイスを取得
 
 		Returns:
-			type[T]: クラス
+			type[Any]: クラス
+		Note:
+			* 以下の様に継承されていると見做してMROから実装インターフェイスを取得する
+			* `class TraitImpl(Trait, IInterface): ...`
 		"""
-		return getattr(cls, '__args__')[0]
+		return cls.mro()[2]
 
 	@classmethod
 	def impl_methods(cls) -> list[str]:
@@ -265,7 +269,7 @@ class Trait(Generic[T]):
 		Returns:
 			list[str]: メソッド名リスト
 		"""
-		return [key for key, value in cls.interface.__dict__.items() if isinstance(value, FunctionType)]
+		return [key for key, value in cls.interface().__dict__.items() if isinstance(value, FunctionType)]
 
 
 class ITraitProvider(metaclass=ABCMeta):
@@ -296,19 +300,33 @@ class ITraitProvider(metaclass=ABCMeta):
 class Traits:
 	"""トレイトマネージャー"""
 
-	def __init__(self, provider: ITraitProvider) -> None:
+	@classmethod
+	def from_provider(cls, provider: ITraitProvider) -> 'Traits':
 		"""インスタンスを生成
 
 		Args:
 			provider (TraitsProvider): トレイトプロバイダー
+		Returns:
+			Traits: インスタンス
+		"""
+		classes = {trait.interface(): trait for trait in provider.traits()}
+		methods: dict[str, type[Trait]] = {}
+		for trait in classes.values():
+			methods = {**methods, **{name: trait for name in trait.impl_methods()}}
+
+		return cls(provider, classes, methods)
+
+	def __init__(self, provider: ITraitProvider, classes: dict[type[Any], type[Trait]], methods: dict[str, type[Trait]]) -> None:
+		"""インスタンスを生成
+
+		Args:
+			provider (TraitsProvider): トレイトプロバイダー
+			classes (dict[type[Any], type[Trait]]): トレイトのクラス一覧
+			methods (dict[str, type[Trait]]): トレイトのメソッド一覧
 		"""
 		self.__provider = provider
-		self.__interface_of_trait = {trait.interface(): trait for trait in self.__provider.traits()}
-		method_to_trait: dict[str, type[Trait]] = {}
-		for trait in self.__interface_of_trait.values():
-			method_to_trait = {**method_to_trait, **{name: trait for name in trait.impl_methods()}}
-
-		self.__method_to_trait = method_to_trait
+		self.__classes = classes
+		self.__methods = methods
 		self.__instances: dict[type[Trait], Trait] = {}
 
 	def implements(self, expect: type[T_Ref]) -> bool:
@@ -321,7 +339,7 @@ class Traits:
 		"""
 		requirements = [inherit for inherit in expect.mro() if not isinstance(inherit, (IReflection, object))]
 		for required in requirements:
-			if required not in self.__interface_of_trait:
+			if required not in self.__classes:
 				return False
 
 		return True
@@ -337,11 +355,19 @@ class Traits:
 		Raises:
 			SemanticsLogicError: トレイトが未実装
 		"""
-		if name not in self.__method_to_trait:
+		if name not in self.__methods:
 			raise SemanticsLogicError(f'Operation not allowed. symbol: {symbol}, name: {name}')
 
-		trait = self.__method_to_trait[name]
+		trait = self.__methods[name]
 		if trait not in self.__instances:
 			self.__instances[trait] = self.__provider.factory(trait, symbol)
 
 		return getattr(self.__instances[trait], name)
+
+	def clone(self) -> 'Traits':
+		"""インスタンスの複製を生成
+
+		Retturns:
+			Traits: 複製したインスタンス
+		"""
+		return self.__class__(self.__provider, self.__classes, self.__methods)

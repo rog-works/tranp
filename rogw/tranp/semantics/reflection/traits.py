@@ -5,7 +5,7 @@ from rogw.tranp.semantics.reflections import Reflections
 import rogw.tranp.syntax.node.definition as defs
 
 
-class ObjectTrait(Trait[IObject], IObject):
+class ObjectTrait(Trait, IObject):
 	"""トレイト(オブジェクト)"""
 
 	@override
@@ -29,3 +29,14 @@ class ObjectTrait(Trait[IObject], IObject):
 			IReflection: シンボル
 		"""
 		return self.reflections.type_of_property(self.symbol.types, prop)
+
+
+def export_classes() -> list[type[Trait]]:
+	"""公開トレイトのクラスリストを取得
+
+	Returns:
+		list[type[Trait]]: トレイトのクラスリスト
+	"""
+	return [
+		ObjectTrait,
+	]

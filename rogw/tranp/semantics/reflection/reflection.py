@@ -4,7 +4,7 @@ from rogw.tranp.lang.annotation import implements, override
 from rogw.tranp.lang.convertion import safe_cast
 from rogw.tranp.semantics.errors import SemanticsLogicError
 from rogw.tranp.semantics.reflection.helper.naming import ClassShorthandNaming
-from rogw.tranp.semantics.reflection.interface import Addons, IReflection, Addon, T_Ref, Traits
+from rogw.tranp.semantics.reflection.base import Addons, IReflection, Addon, T_Ref, Traits
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 

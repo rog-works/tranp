@@ -1,4 +1,4 @@
-from rogw.tranp.semantics.reflection.interface import IReflection
+from rogw.tranp.semantics.reflection.base import IReflection
 import rogw.tranp.syntax.node.definition as defs
 
 

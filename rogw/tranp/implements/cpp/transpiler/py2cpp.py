@@ -20,8 +20,8 @@ from rogw.tranp.lang.parser import BlockParser
 from rogw.tranp.semantics.errors import NotSupportedError
 from rogw.tranp.semantics.procedure import Procedure
 import rogw.tranp.semantics.reflection.helper.template as templates
+from rogw.tranp.semantics.reflection.base import IReflection
 from rogw.tranp.semantics.reflection.helper.naming import ClassDomainNaming, ClassShorthandNaming
-from rogw.tranp.semantics.reflection.interface import IReflection
 from rogw.tranp.semantics.reflections import Reflections
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node

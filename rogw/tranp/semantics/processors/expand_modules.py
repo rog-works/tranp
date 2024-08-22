@@ -8,9 +8,9 @@ from rogw.tranp.io.loader import IFileLoader
 from rogw.tranp.lang.annotation import duck_typed, injectable
 from rogw.tranp.module.modules import Module, Modules
 from rogw.tranp.semantics.finder import SymbolFinder
+from rogw.tranp.semantics.reflection.base import IReflection, TraitProvider, Traits
 from rogw.tranp.semantics.reflection.db import SymbolDB
-from rogw.tranp.semantics.reflection.implements import Symbol
-from rogw.tranp.semantics.reflection.interface import IReflection, TraitProvider, Traits
+from rogw.tranp.semantics.reflection.reflection import Symbol
 import rogw.tranp.syntax.node.definition as defs
 
 

@@ -1,7 +1,7 @@
 from rogw.tranp.lang.annotation import implements, override
-from rogw.tranp.semantics.reflection.extensions import IFunction, IObject
+from rogw.tranp.semantics.reflection.base import IReflection, Trait
 import rogw.tranp.semantics.reflection.helper.template as templates
-from rogw.tranp.semantics.reflection.interface import IReflection, Trait
+from rogw.tranp.semantics.reflection.interfaces import IFunction, IObject
 from rogw.tranp.semantics.reflections import Reflections
 import rogw.tranp.syntax.node.definition as defs
 

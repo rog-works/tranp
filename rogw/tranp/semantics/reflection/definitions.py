@@ -1,5 +1,5 @@
-from rogw.tranp.semantics.reflection.extensions import IFunction, IObject
-from rogw.tranp.semantics.reflection.interface import IReflection
+from rogw.tranp.semantics.reflection.base import IReflection
+from rogw.tranp.semantics.reflection.interfaces import IFunction, IObject
 
 
 class Class(IReflection, IObject):

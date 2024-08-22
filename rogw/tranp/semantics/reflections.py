@@ -1,5 +1,3 @@
-from rogw.tranp.semantics.reflection.db import SymbolDBProvider
-import rogw.tranp.semantics.reflection.helper.template as templates
 import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.compatible.python.types import Standards
 from rogw.tranp.lang.annotation import injectable
@@ -8,7 +6,9 @@ from rogw.tranp.semantics.errors import OperationNotAllowedError, SemanticsLogic
 from rogw.tranp.semantics.finder import SymbolFinder
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.semantics.procedure import Procedure
-from rogw.tranp.semantics.reflection.interface import IReflection
+from rogw.tranp.semantics.reflection.db import SymbolDBProvider
+from rogw.tranp.semantics.reflection.base import IReflection
+import rogw.tranp.semantics.reflection.helper.template as templates
 import rogw.tranp.semantics.reflection.definitions as refs
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node

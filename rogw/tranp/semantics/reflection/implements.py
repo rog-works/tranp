@@ -108,7 +108,7 @@ class ReflectionBase(IReflection):
 		Returns:
 			IReflection: リフレクション
 		"""
-		return Reflection(self.__traits.clone(), Options(decl=decl, node=decl, origin=origin if origin else self))
+		return Reflection(self.__traits, Options(decl=decl, node=decl, origin=origin if origin else self))
 
 	@implements
 	def stack(self, node: Node | None = None) -> IReflection:
@@ -119,7 +119,7 @@ class ReflectionBase(IReflection):
 		Returns:
 			IReflection: リフレクション
 		"""
-		return Reflection(self.__traits.clone(), Options(node=node if node else self.node, origin=self))
+		return Reflection(self.__traits, Options(node=node if node else self.node, origin=self))
 
 	@implements
 	def to(self, node: Node, origin: IReflection) -> IReflection:
@@ -131,7 +131,7 @@ class ReflectionBase(IReflection):
 		Returns:
 			IReflection: リフレクション
 		"""
-		return Reflection(self.__traits.clone(), Options(node=node, origin=origin, via=self))
+		return Reflection(self.__traits, Options(node=node, origin=origin, via=self))
 
 	@property
 	@implements
@@ -268,6 +268,7 @@ class Symbol(ReflectionBase):
 		"""
 		return cls(traits, Options(types=types))
 
+	@override
 	def __init__(self, traits: Traits, options: Options) -> None:
 		"""インスタンスを生成
 
@@ -300,10 +301,12 @@ class Symbol(ReflectionBase):
 class Reflection(ReflectionBase):
 	"""リフレクションの共通実装(基底)"""
 
+	@override
 	def __init__(self, traits: Traits, options: Options) -> None:
 		"""インスタンスを生成
 
 		Args:
+			traits (Traits): トレイトマネージャー
 			options (Options): 生成オプション
 		"""
 		super().__init__(traits, options)

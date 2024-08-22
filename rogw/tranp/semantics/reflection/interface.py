@@ -271,27 +271,14 @@ class Trait:
 		return [key for key, value in cls.interface().__dict__.items() if isinstance(value, FunctionType)]
 
 
-class ITraitProvider(metaclass=ABCMeta):
+class TraitProvider(Protocol):
 	"""トレイトプロバイダー"""
 
-	@abstractmethod
-	def traits(self) -> list[type[Trait]]:
-		"""トレイトのクラスリストを取得
+	def __call__(self) -> list[Trait]:
+		"""トレイトリストを取得
 
 		Returns:
-			list[type[Trait]]: トレイトのクラスリスト
-		"""
-		...
-
-	@abstractmethod
-	def factory(self, trait: type[T_Trait], symbol: IReflection) -> T_Trait:
-		"""トレイトをインスタンス化
-
-		Args:
-			trait (type[T_Trait]): トレイトのクラス
-			symbol (IReflection): 拡張対象のインスタンス
-		Returns:
-			T_Trait: 生成したインスタンス
+			list[Trait]: トレイトリスト
 		"""
 		...
 
@@ -299,34 +286,29 @@ class ITraitProvider(metaclass=ABCMeta):
 class Traits:
 	"""トレイトマネージャー"""
 
-	@classmethod
-	def from_provider(cls, provider: ITraitProvider) -> 'Traits':
+	def __init__(self, provider: TraitProvider) -> None:
 		"""インスタンスを生成
 
 		Args:
-			provider (TraitsProvider): トレイトプロバイダー
-		Returns:
-			Traits: インスタンス
-		"""
-		classes = {trait.interface(): trait for trait in provider.traits()}
-		methods: dict[str, type[Trait]] = {}
-		for trait in classes.values():
-			methods = {**methods, **{name: trait for name in trait.impl_methods()}}
-
-		return cls(provider, classes, methods)
-
-	def __init__(self, provider: ITraitProvider, classes: dict[type[Any], type[Trait]], methods: dict[str, type[Trait]]) -> None:
-		"""インスタンスを生成
-
-		Args:
-			provider (TraitsProvider): トレイトプロバイダー
-			classes (dict[type[Any], type[Trait]]): トレイトのクラス一覧
-			methods (dict[str, type[Trait]]): トレイトのメソッド一覧
+			provider (TraitProvider): トレイトプロバイダー
 		"""
 		self.__provider = provider
-		self.__classes = classes
+		self.__instances: dict[type[Any], Trait] = {}
+		self.__methods: dict[str, Trait] = {}
+
+	def __ensure_traits(self) -> None:
+		"""トレイトを生成
+
+		Note:
+			インスタンス生成時にDIを利用するため、トレイト参照時まで生成を遅らせる
+		"""
+		traits = self.__provider()
+		methods: dict[str, Trait] = {}
+		for trait in traits:
+			methods = {**methods, **{name: trait for name in trait.impl_methods()}}
+
+		self.__instances = {trait.interface(): trait for trait in traits}
 		self.__methods = methods
-		self.__instances: dict[type[Trait], Trait] = {}
 
 	def implements(self, expect: type[T_Ref]) -> bool:
 		"""指定のクラスが所有するインターフェイスが実装されているか判定
@@ -336,9 +318,12 @@ class Traits:
 		Returns:
 			bool: True = 実装
 		"""
-		requirements = [inherit for inherit in expect.mro() if not isinstance(inherit, (IReflection, object))]
+		if len(self.__instances) == 0:
+			self.__ensure_traits()
+
+		requirements: list[type[Any]] = [inherit for inherit in expect.mro() if not isinstance(inherit, (IReflection, object))]
 		for required in requirements:
-			if required not in self.__classes:
+			if required not in self.__instances:
 				return False
 
 		return True
@@ -358,15 +343,4 @@ class Traits:
 			raise SemanticsLogicError(f'Operation not allowed. symbol: {symbol}, name: {name}')
 
 		trait = self.__methods[name]
-		if trait not in self.__instances:
-			self.__instances[trait] = self.__provider.factory(trait, symbol)
-
-		return getattr(self.__instances[trait], name)
-
-	def clone(self) -> 'Traits':
-		"""インスタンスの複製を生成
-
-		Retturns:
-			Traits: 複製したインスタンス
-		"""
-		return self.__class__(self.__provider, self.__classes, self.__methods)
+		return lambda *args: getattr(trait, name)(*args, symbol=symbol)

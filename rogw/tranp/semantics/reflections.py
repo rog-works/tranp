@@ -133,11 +133,11 @@ class Reflections:
 		if isinstance(node, defs.Declable):
 			return self.resolve(node)
 		elif isinstance(node, defs.Reference):
-			return self.__from_reference(node)
+			return self.__resolve_procedural(node)
 		elif isinstance(node, defs.Type):
 			return self.__resolve_procedural(node)
 		elif isinstance(node, defs.ClassDef):
-			return self.resolve(node)
+			return self.__from_class_def(node)
 		elif isinstance(node, defs.Literal):
 			return self.__resolve_procedural(node)
 		elif isinstance(node, (defs.For, defs.Catch, defs.WithEntry)):
@@ -147,21 +147,21 @@ class Reflections:
 		else:
 			return self.__resolve_procedural(node)
 
-	def __from_reference(self, node: defs.Reference) -> IReflection:
-		"""シンボル参照ノードからシンボルを解決
+	def __from_class_def(self, node: defs.ClassDef) -> IReflection:
+		"""クラス定義ノードからシンボルを解決
 
 		Args:
-			node (Reference): 参照ノード
+			node (ClassDef): クラス定義ノード
 		Returns:
 			IReflection: シンボル
 		Raises:
 			SemanticsError: シンボルの解決に失敗
 		"""
-		if isinstance(node, defs.Var):
-			return self.__resolve_procedural(node)
+		if isinstance(node, defs.Class):
+			return self.type_of_standard(type).stack(node).extends(self.resolve(node))
 		else:
-			# defs.Relay/defs.Indexer
-			return self.__resolve_procedural(node)
+			# defs.Function
+			return self.resolve(node)
 
 	def __from_flow(self, node: defs.For | defs.Catch | defs.WithEntry) -> IReflection:
 		"""制御構文ノードからシンボルを解決

@@ -579,14 +579,8 @@ class ProceduralResolver:
 		actual_calls = self.unpack_type_proxy(actual_calls)
 
 		if isinstance(actual_calls.types, defs.Class):
-			# XXX クラス経由で暗黙的にコンストラクターを呼び出した場合
-			# XXX 戻り値の型をクラスのシンボルで補完
 			constructor_calls = actual_calls.impl(refs.Class).constructor()
 			return actual_calls.to(node, constructor_calls.impl(refs.Function).returns(*arguments))
-		elif isinstance(actual_calls.types, defs.Constructor):
-			# XXX コンストラクターを明示的に呼び出した場合
-			# XXX 戻り値の型を第1引数(自己参照)で補完
-			return actual_calls.to(node, actual_calls.impl(refs.Function).returns(*arguments))
 		else:
 			return actual_calls.to(node, actual_calls.impl(refs.Function).returns(*arguments))
 

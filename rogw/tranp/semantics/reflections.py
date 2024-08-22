@@ -131,7 +131,7 @@ class Reflections:
 			UnresolvedSymbolError: シンボルの解決に失敗
 		"""
 		if isinstance(node, defs.Declable):
-			return self.resolve(node)
+			return self.__from_declable(node)
 		elif isinstance(node, defs.Reference):
 			return self.__resolve_procedural(node)
 		elif isinstance(node, defs.Type):
@@ -147,6 +147,23 @@ class Reflections:
 		else:
 			return self.__resolve_procedural(node)
 
+	def __from_declable(self, node: defs.Declable) -> IReflection:
+		"""シンボル宣言ノードからシンボルを解決
+
+		Args:
+			node (ClassDef): シンボル宣言ノード
+		Returns:
+			IReflection: シンボル
+		Raises:
+			SemanticsError: シンボルの解決に失敗
+		"""
+		if isinstance(node, defs.DeclClassParam) and isinstance(node.declare.as_a(defs.Parameter).var_type, defs.Empty):
+			return self.type_of_standard(type).stack(node).extends(self.resolve(node))
+		elif isinstance(node, defs.TypesName) and isinstance(node.parent, defs.Class):
+			return self.type_of_standard(type).stack(node).extends(self.resolve(node))
+		else:
+			return self.resolve(node).stack(node)
+
 	def __from_class_def(self, node: defs.ClassDef) -> IReflection:
 		"""クラス定義ノードからシンボルを解決
 
@@ -161,7 +178,7 @@ class Reflections:
 			return self.type_of_standard(type).stack(node).extends(self.resolve(node))
 		else:
 			# defs.Function
-			return self.resolve(node)
+			return self.resolve(node).stack(node)
 
 	def __from_flow(self, node: defs.For | defs.Catch | defs.WithEntry) -> IReflection:
 		"""制御構文ノードからシンボルを解決
@@ -179,7 +196,7 @@ class Reflections:
 			return self.__resolve_procedural(node.enter)
 		else:
 			# defs.Catch
-			return self.resolve(node.var_type)
+			return self.resolve(node.var_type).stack(node)
 
 	def __from_comprehension(self, node: defs.Comprehension | defs.CompFor) -> IReflection:
 		"""リスト内包表記関連ノードからシンボルを解決

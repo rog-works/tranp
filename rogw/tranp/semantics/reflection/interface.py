@@ -268,9 +268,10 @@ class Trait(Generic[T]):
 		return [key for key, value in cls.interface.__dict__.items() if isinstance(value, FunctionType)]
 
 
-class TraitProvider(Protocol):
-	"""トレイトプロバイダープロトコル"""
+class ITraitProvider(metaclass=ABCMeta):
+	"""トレイトプロバイダー"""
 
+	@abstractmethod
 	def traits(self) -> list[type[Trait]]:
 		"""トレイトのクラスリストを取得
 
@@ -279,6 +280,7 @@ class TraitProvider(Protocol):
 		"""
 		...
 
+	@abstractmethod
 	def factory(self, trait: type[T_Trait], symbol: IReflection) -> T_Trait:
 		"""トレイトをインスタンス化
 
@@ -294,7 +296,7 @@ class TraitProvider(Protocol):
 class Traits:
 	"""トレイトマネージャー"""
 
-	def __init__(self, provider: TraitProvider) -> None:
+	def __init__(self, provider: ITraitProvider) -> None:
 		"""インスタンスを生成
 
 		Args:

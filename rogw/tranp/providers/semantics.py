@@ -1,9 +1,9 @@
-from rogw.tranp.lang.annotation import duck_typed, injectable
+from rogw.tranp.lang.annotation import duck_typed, implements, injectable
 from rogw.tranp.lang.locator import Invoker
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.semantics.processor import Preprocessors
 from rogw.tranp.semantics.reflection.db import SymbolDB, SymbolDBProvider
-from rogw.tranp.semantics.reflection.interface import IReflection, T_Trait, Trait
+from rogw.tranp.semantics.reflection.interface import IReflection, ITraitProvider, T_Trait, Trait
 from rogw.tranp.semantics.reflection.traits import ObjectTrait
 
 
@@ -32,8 +32,7 @@ def plugin_provider_empty() -> PluginProvider:
 	return lambda: []
 
 
-@duck_typed
-class TraitsProviderImpl:
+class TraitProvider(ITraitProvider):
 	"""トレイトプロバイダー"""
 
 	@injectable
@@ -45,6 +44,7 @@ class TraitsProviderImpl:
 		"""
 		self.__invoker = invoker
 
+	@implements
 	def traits(self) -> list[type[Trait]]:
 		"""トレイトのクラスリストを取得
 
@@ -55,6 +55,7 @@ class TraitsProviderImpl:
 			ObjectTrait,
 		]
 
+	@implements
 	def factory(self, trait: type[T_Trait], symbol: IReflection) -> T_Trait:
 		"""トレイトをインスタンス化
 
@@ -64,4 +65,4 @@ class TraitsProviderImpl:
 		Returns:
 			T_Trait: 生成したインスタンス
 		"""
-		return self.__invoker(trait)
+		return self.__invoker(trait, symbol)

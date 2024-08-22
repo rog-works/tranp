@@ -221,9 +221,9 @@ class ExpandModules:
 			Type | ClassDef | None: タイプ/クラス定義ノード。不明な場合はNone
 		"""
 		if isinstance(var.declare, defs.Parameter):
-			if isinstance(var.declare.symbol, defs.DeclClassParam):
+			if isinstance(var.declare.symbol, defs.DeclClassParam) and isinstance(var.declare.var_type, defs.Empty):
 				return var.declare.symbol.class_types.as_a(defs.ClassDef)
-			elif isinstance(var.declare.symbol, defs.DeclThisParam):
+			elif isinstance(var.declare.symbol, defs.DeclThisParam) and isinstance(var.declare.var_type, defs.Empty):
 				return var.declare.symbol.class_types.as_a(defs.ClassDef)
 			else:
 				return var.declare.var_type.as_a(defs.Type)

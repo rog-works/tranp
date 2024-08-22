@@ -14,3 +14,15 @@ class IObject:
 			IReflection: シンボル
 		"""
 		...
+
+
+class IFunction:
+	def returns(self, *arguments: IReflection) -> IReflection:
+		"""戻り値の実体型を解決
+
+		Args:
+			*arguments (IReflection): 引数リスト
+		Returns:
+			IReflection: シンボル
+		"""
+		...

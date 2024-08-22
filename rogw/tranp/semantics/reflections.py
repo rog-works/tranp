@@ -1,5 +1,5 @@
 from rogw.tranp.semantics.reflection.db import SymbolDBProvider
-import rogw.tranp.semantics.reflection.helper.template as template
+import rogw.tranp.semantics.reflection.helper.template as templates
 import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.compatible.python.types import Standards
 from rogw.tranp.lang.annotation import injectable
@@ -472,7 +472,7 @@ class ProceduralResolver:
 			return unpacked_receiver.to(node, self.proc_relay_object(node, unpacked_receiver))
 
 	def proc_relay_class(self, node: defs.Relay, receiver: IReflection) -> IReflection:
-		prop = self.reflections.type_of_property(receiver.types, node.prop)
+		prop = receiver.impl(refs.Class).prop_of(node.prop)
 		# XXX Enum直下のDeclLocalVarは定数値であり、型としてはEnumそのものであるためreceiverを返却。特殊化より一般化する方法を検討
 		if isinstance(receiver.types, defs.Enum) and prop.decl.is_a(defs.DeclLocalVar):
 			return receiver
@@ -480,20 +480,14 @@ class ProceduralResolver:
 			return self.reflections.type_of_standard(type).stack().extends(prop)
 		elif isinstance(prop.decl, defs.Method) and prop.decl.is_property:
 			# FIXME クラスのプロパティメソッドは通常存在しないため、修正を検討
-			function_helper = template.HelperBuilder(prop) \
-				.schema(lambda: {'klass': prop.attrs[0], 'parameters': prop.attrs[1:-1], 'returns': prop.attrs[-1]}) \
-				.build(template.Method)
-			return function_helper.returns(receiver)
+			return prop.impl(refs.Function).returns()
 		else:
 			return prop
 
 	def proc_relay_object(self, node: defs.Relay, receiver: IReflection) -> IReflection:
 		prop = receiver.impl(refs.Class).prop_of(node.prop)
 		if isinstance(prop.decl, defs.Method) and prop.decl.is_property:
-			function_helper = template.HelperBuilder(prop) \
-				.schema(lambda: {'klass': prop.attrs[0], 'parameters': prop.attrs[1:-1], 'returns': prop.attrs[-1]}) \
-				.build(template.Method)
-			return function_helper.returns(receiver)
+			return prop.impl(refs.Function).returns()
 		elif isinstance(prop.decl, defs.Class):
 			return self.reflections.type_of_standard(type).stack().extends(prop)
 		else:
@@ -588,26 +582,16 @@ class ProceduralResolver:
 			# XXX クラス経由で暗黙的にコンストラクターを呼び出した場合
 			# XXX 戻り値の型をクラスのシンボルで補完
 			constroctur_calls = self.reflections.type_of_constructor(actual_calls.types)
-			function_helper = template.HelperBuilder(constroctur_calls) \
+			function_helper = templates.HelperBuilder(constroctur_calls) \
 				.schema(lambda: {'klass': constroctur_calls.attrs[0], 'parameters': constroctur_calls.attrs[1:-1], 'returns': actual_calls}) \
-				.build(template.Constructor)
+				.build(templates.Constructor)
 			return actual_calls.to(node, function_helper.returns(constroctur_calls.attrs[0], *arguments))
 		elif isinstance(actual_calls.types, defs.Constructor):
 			# XXX コンストラクターを明示的に呼び出した場合
 			# XXX 戻り値の型を第1引数(自己参照)で補完
-			function_helper = template.HelperBuilder(actual_calls) \
-				.schema(lambda: {'klass': actual_calls.attrs[0], 'parameters': actual_calls.attrs[1:-1], 'returns': actual_calls.attrs[0]}) \
-				.build(template.Constructor)
-			return actual_calls.to(node, function_helper.returns(actual_calls.attrs[0], *arguments))
+			return actual_calls.to(node, actual_calls.impl(refs.Function).returns(*arguments))
 		else:
-			function_helper = template.HelperBuilder(actual_calls) \
-				.case(template.Method).schema(lambda: {'klass': actual_calls.attrs[0], 'parameters': actual_calls.attrs[1:-1], 'returns': actual_calls.attrs[-1]}) \
-				.other_case().schema(lambda: {'parameters': actual_calls.attrs[:-1], 'returns': actual_calls.attrs[-1]}) \
-				.build(template.Function)
-			if function_helper.is_a(template.Method):
-				return actual_calls.to(node, function_helper.returns(actual_calls.context, *arguments))
-			else:
-				return actual_calls.to(node, function_helper.returns(*arguments))
+			return actual_calls.to(node, actual_calls.impl(refs.Function).returns(*arguments))
 
 	def on_super(self, node: defs.Super, calls: IReflection, arguments: list[IReflection]) -> IReflection:
 		if node.can_resolve_super:
@@ -649,7 +633,7 @@ class ProceduralResolver:
 			'parameters': method.attrs[1:-1],
 			'returns': method.attrs[-1] if solution == 'iterator' else method.attrs[-1].attrs[0],
 		}
-		function_helper = template.HelperBuilder(method).schema(lambda: schema).build(template.Method)
+		function_helper = templates.HelperBuilder(method).schema(lambda: schema).build(templates.Method)
 		return function_helper.returns(iterates).stack(node)
 
 	def on_comp_for(self, node: defs.CompFor, symbols: list[IReflection], for_in: IReflection) -> IReflection:
@@ -728,9 +712,9 @@ class ProceduralResolver:
 				continue
 
 			method = candidate
-			function_helper = template.HelperBuilder(method) \
+			function_helper = templates.HelperBuilder(method) \
 				.schema(lambda: {'klass': method.attrs[0], 'parameters': method.attrs[1:-1], 'returns': method.attrs[-1]}) \
-				.build(template.Method)
+				.build(templates.Method)
 
 			receiver = left if key == 'left' else right
 			other = right if key == 'left' else left

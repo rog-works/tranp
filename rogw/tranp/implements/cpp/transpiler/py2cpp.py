@@ -19,7 +19,7 @@ from rogw.tranp.lang.module import fullyname
 from rogw.tranp.lang.parser import BlockParser
 from rogw.tranp.semantics.errors import NotSupportedError
 from rogw.tranp.semantics.procedure import Procedure
-import rogw.tranp.semantics.reflection.helper.template as template
+import rogw.tranp.semantics.reflection.helper.template as templates
 from rogw.tranp.semantics.reflection.helper.naming import ClassDomainNaming, ClassShorthandNaming
 from rogw.tranp.semantics.reflection.interface import IReflection
 from rogw.tranp.semantics.reflections import Reflections
@@ -204,10 +204,10 @@ class Py2Cpp(ITranspiler):
 			list[str]: テンプレート型名リスト
 		"""
 		function_raw = self.reflections.type_of(node)
-		function_helper = template.HelperBuilder(function_raw) \
-			.case(template.Method).schema(lambda: {'klass': function_raw.attrs[0], 'parameters': function_raw.attrs[1:-1], 'returns': function_raw.attrs[-1]}) \
+		function_helper = templates.HelperBuilder(function_raw) \
+			.case(templates.Method).schema(lambda: {'klass': function_raw.attrs[0], 'parameters': function_raw.attrs[1:-1], 'returns': function_raw.attrs[-1]}) \
 			.other_case().schema(lambda: {'parameters': function_raw.attrs[1:-1], 'returns': function_raw.attrs[-1]}) \
-			.build(template.Function)
+			.build(templates.Function)
 		return [types.domain_name for types in function_helper.templates()]
 
 	def allow_override_from_method(self, method: defs.ClassMethod | defs.Constructor | defs.Method) -> bool:

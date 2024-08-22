@@ -256,10 +256,10 @@ class Trait:
 		Returns:
 			type[Any]: クラス
 		Note:
-			* 以下の様に継承されていると見做してMROから実装インターフェイスを取得する
-			* `class TraitImpl(Trait, IInterface): ...`
+			* 以下の様に継承されていると見做し、MROの末尾(-2)から実装インターフェイスを取得する
+			* `class TraitImpl(Trait, IInterface): ...` -> (TraitImpl, Trait, IInterface, object)
 		"""
-		return cls.mro()[2]
+		return cls.mro()[-2]
 
 	@classmethod
 	def impl_methods(cls) -> list[str]:

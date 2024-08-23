@@ -25,6 +25,7 @@ def default_definitions() -> ModuleDefinitions:
 		'rogw.tranp.semantics.plugin.PluginProvider': 'rogw.tranp.providers.semantics.plugin_provider_empty',
 		'rogw.tranp.semantics.processor.Preprocessors': 'rogw.tranp.semantics.preprocessors.preprocessors',
 		'rogw.tranp.semantics.reflection.base.TraitProvider': 'rogw.tranp.providers.semantics.trait_provider',
+		'rogw.tranp.semantics.reflection.base.Traits': 'rogw.tranp.semantics.reflection.base.Traits',
 		'rogw.tranp.semantics.reflection.db.SymbolDBProvider': 'rogw.tranp.providers.semantics.make_db',
 		'rogw.tranp.semantics.reflections.Reflections': 'rogw.tranp.semantics.reflections.Reflections',
 		'rogw.tranp.syntax.ast.resolver.SymbolMapping': 'rogw.tranp.providers.syntax.node.symbol_mapping',

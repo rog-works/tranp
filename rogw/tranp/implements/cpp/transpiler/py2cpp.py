@@ -562,7 +562,7 @@ class Py2Cpp(ITranspiler):
 	def on_relay(self, node: defs.Relay, receiver: str) -> str:
 		receiver_symbol = self.reflections.type_of(node.receiver)
 		is_static = self.reflections.is_a(receiver_symbol, type)
-		receiver_symbol = self.unpack_nullable(receiver_symbol).impl(refs.Class).actualize()
+		receiver_symbol = receiver_symbol.impl(refs.Class).actualize()
 		prop_symbol = receiver_symbol.impl(refs.Class).prop_of(node.prop)
 
 		spec, operator = self.analyze_relay_spec(node, receiver_symbol, is_static)
@@ -596,7 +596,7 @@ class Py2Cpp(ITranspiler):
 			return node.prop.domain_name in CVars.exchanger_keys
 
 		def is_class_relay() -> bool:
-			return isinstance(receiver_symbol.node, defs.Super) or is_static
+			return is_static or isinstance(receiver_symbol.node, defs.Super)
 
 		if node.prop.tokens in ['__module__', '__name__']:
 			return node.prop.tokens, CVars.RelayOperators.Raw.name

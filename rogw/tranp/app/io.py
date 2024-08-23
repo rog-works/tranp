@@ -17,8 +17,8 @@ class FileLoader(IFileLoader):
 			env (Env): 環境変数 @inject
 		"""
 		self.__env = env
-		# XXX トランスパイルの情報埋め込みと実行判定に用いるためハッシュ値をキャッシュ
 		self.__hashs: dict[str, str] = {}
+		self.__mtimes: dict[str, float] = {}
 
 	@implements
 	def exists(self, filepath: str) -> bool:
@@ -66,7 +66,10 @@ class FileLoader(IFileLoader):
 		if found_filepath is None:
 			raise FileNotFoundError(f'No such file or directory. filepath: {filepath}')
 
-		return os.path.getmtime(found_filepath)
+		if found_filepath not in self.__mtimes:
+			self.__mtimes[found_filepath] = os.path.getmtime(found_filepath)
+
+		return self.__mtimes[found_filepath]
 
 	@implements
 	def hash(self, filepath: str) -> str:

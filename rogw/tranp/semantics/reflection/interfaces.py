@@ -36,7 +36,7 @@ class IConvertion:
 		"""プロクシー型(Union/TypeAlias/type)による階層化を解除し、実体型を取得。元々実体型である場合はそのまま返却
 
 		Args:
-			**injected (IReflection): シンボル入力用のキーワード引数 ※インターフェイス上は無視して問題ない
+			symbol (IReflection): シンボル ※Traitsから暗黙的に入力される
 		Returns:
 			Self: シンボル
 		Note:
@@ -44,6 +44,9 @@ class IConvertion:
 			* Class | None
 			* T<Class>
 			* type<Class>
+			### Selfの妥当性
+			* XXX 実質的に具象クラスはReflectionのみであり、アンパック後も型は変化しない
+			* XXX リフレクション拡張の型(=Self)として継続して利用できる方が効率が良い
 		"""
 		...
 

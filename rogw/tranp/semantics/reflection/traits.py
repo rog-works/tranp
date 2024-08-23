@@ -158,8 +158,8 @@ class IteratorTrait(TraitImpl, IIterator):
 		method = symbol.to(symbol.types, self._resolve_method(symbol))
 		iterates = method.impl(refs.Function).returns()
 		# メソッド毎の返却値の違いを吸収
-		# iterator: () -> T
-		# iterable: () -> Iterator<T>
+		# __iter__() -> T
+		# __next__() -> Iterator<T>
 		return iterates.attrs[0] if self.reflections.is_a(iterates, cast(type, Iterator)) else iterates
 
 	def _resolve_method(self, symbol: IReflection) -> IReflection:

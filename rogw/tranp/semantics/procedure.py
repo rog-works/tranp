@@ -3,7 +3,7 @@ from typing import Generic, TypeVar, cast
 from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.errors import Error, FatalError, LogicError
 from rogw.tranp.lang.annotation import duck_typed
-from rogw.tranp.lang.error import raises
+from rogw.tranp.lang.error import Transaction
 from rogw.tranp.lang.eventemitter import Callback, EventEmitter
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.semantics.errors import ProcessingError
@@ -60,7 +60,6 @@ class Procedure(Generic[T_Ret]):
 		"""イベントハンドラーの登録を全て解除"""
 		self.__emitter.clear()
 
-	@raises(ProcessingError, LogicError)
 	def exec(self, root: Node) -> T_Ret:
 		"""指定のルート要素から逐次処理し、結果を出力
 
@@ -73,10 +72,11 @@ class Procedure(Generic[T_Ret]):
 		Note:
 			実行処理はスタックされるため、このメソッドを再帰的に実行した場合でも順次解決される
 		"""
-		self.__stacks.append([])
-		result = self.__exec_impl(root)
-		self.__stacks.pop()
-		return result
+		with Transaction(ProcessingError, LogicError):
+			self.__stacks.append([])
+			result = self.__exec_impl(root)
+			self.__stacks.pop()
+			return result
 
 	def __exec_impl(self, root: Node) -> T_Ret:
 		"""指定のルート要素から逐次処理し、結果を出力

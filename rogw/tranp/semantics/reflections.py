@@ -1,7 +1,7 @@
 import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.compatible.python.types import Standards
 from rogw.tranp.lang.annotation import injectable
-from rogw.tranp.lang.error import raises
+from rogw.tranp.lang.error import Transaction
 from rogw.tranp.semantics.errors import OperationNotAllowedError, SemanticsLogicError, UnresolvedSymbolError
 from rogw.tranp.semantics.finder import SymbolFinder
 from rogw.tranp.semantics.plugin import PluginProvider
@@ -42,7 +42,6 @@ class Reflections:
 
 		return self.__procedural
 
-	@raises(UnresolvedSymbolError, SemanticsLogicError)
 	def is_a(self, symbol: IReflection, standard_type: type[Standards] | None) -> bool:
 		"""シンボルの型を判定
 
@@ -54,9 +53,9 @@ class Reflections:
 		Raises:
 			UnresolvedSymbolError: 標準クラスが未実装
 		"""
-		return symbol.types == self.type_of_standard(standard_type).types
+		with Transaction(UnresolvedSymbolError, SemanticsLogicError):
+			return symbol.types == self.type_of_standard(standard_type).types
 
-	@raises(UnresolvedSymbolError, SemanticsLogicError)
 	def get_object(self) -> IReflection:
 		"""objectのシンボルを取得
 
@@ -65,9 +64,9 @@ class Reflections:
 		Raises:
 			UnresolvedSymbolError: objectが未実装
 		"""
-		return self.__finder.get_object(self.__db)
+		with Transaction(UnresolvedSymbolError, SemanticsLogicError):
+			return self.__finder.get_object(self.__db)
 
-	@raises(UnresolvedSymbolError, SemanticsLogicError)
 	def from_fullyname(self, fullyname: str) -> IReflection:
 		"""完全参照名からシンボルを解決
 
@@ -78,9 +77,9 @@ class Reflections:
 		Raises:
 			UnresolvedSymbolError: シンボルの解決に失敗
 		"""
-		return self.__finder.by(self.__db, fullyname)
+		with Transaction(UnresolvedSymbolError, SemanticsLogicError):
+			return self.__finder.by(self.__db, fullyname)
 
-	@raises(UnresolvedSymbolError, SemanticsLogicError)
 	def type_of_standard(self, standard_type: type[Standards] | None) -> IReflection:
 		"""標準クラスのシンボルを解決
 
@@ -91,9 +90,9 @@ class Reflections:
 		Raises:
 			UnresolvedSymbolError: 標準クラスが未実装
 		"""
-		return self.__finder.by_standard(self.__db, standard_type)
+		with Transaction(UnresolvedSymbolError, SemanticsLogicError):
+			return self.__finder.by_standard(self.__db, standard_type)
 
-	@raises(UnresolvedSymbolError, SemanticsLogicError)
 	def type_of_property(self, types: defs.ClassDef, prop: defs.Var) -> IReflection:
 		"""クラス定義ノードと変数参照ノードからプロパティーのシンボルを解決
 
@@ -105,9 +104,9 @@ class Reflections:
 		Raises:
 			UnresolvedSymbolError: シンボルの解決に失敗
 		"""
-		return self.resolve(types, prop.tokens)
+		with Transaction(UnresolvedSymbolError, SemanticsLogicError):
+			return self.resolve(types, prop.tokens)
 
-	@raises(UnresolvedSymbolError, SemanticsLogicError)
 	def type_of_constructor(self, types: defs.Class) -> IReflection:
 		"""クラス定義ノードからコンストラクターのシンボルを解決
 
@@ -118,9 +117,9 @@ class Reflections:
 		Raises:
 			UnresolvedSymbolError: コンストラクターの実装ミス
 		"""
-		return self.resolve(types, types.operations.constructor)
+		with Transaction(UnresolvedSymbolError, SemanticsLogicError):
+			return self.resolve(types, types.operations.constructor)
 
-	@raises(UnresolvedSymbolError, SemanticsLogicError)
 	def type_of(self, node: Node) -> IReflection:
 		"""シンボル系/式ノードからシンボルを解決 XXX 万能過ぎるので細分化を検討
 
@@ -131,22 +130,23 @@ class Reflections:
 		Raises:
 			UnresolvedSymbolError: シンボルの解決に失敗
 		"""
-		if isinstance(node, defs.Declable):
-			return self.__from_declable(node)
-		elif isinstance(node, defs.Reference):
-			return self.__resolve_procedural(node)
-		elif isinstance(node, defs.Type):
-			return self.__resolve_procedural(node)
-		elif isinstance(node, defs.ClassDef):
-			return self.__from_class_def(node)
-		elif isinstance(node, defs.Literal):
-			return self.__resolve_procedural(node)
-		elif isinstance(node, (defs.For, defs.Catch, defs.WithEntry)):
-			return self.__from_flow(node)
-		elif isinstance(node, (defs.Comprehension, defs.CompFor)):
-			return self.__from_comprehension(node)
-		else:
-			return self.__resolve_procedural(node)
+		with Transaction(UnresolvedSymbolError, SemanticsLogicError):
+			if isinstance(node, defs.Declable):
+				return self.__from_declable(node)
+			elif isinstance(node, defs.Reference):
+				return self.__resolve_procedural(node)
+			elif isinstance(node, defs.Type):
+				return self.__resolve_procedural(node)
+			elif isinstance(node, defs.ClassDef):
+				return self.__from_class_def(node)
+			elif isinstance(node, defs.Literal):
+				return self.__resolve_procedural(node)
+			elif isinstance(node, (defs.For, defs.Catch, defs.WithEntry)):
+				return self.__from_flow(node)
+			elif isinstance(node, (defs.Comprehension, defs.CompFor)):
+				return self.__from_comprehension(node)
+			else:
+				return self.__resolve_procedural(node)
 
 	def __from_declable(self, node: defs.Declable) -> IReflection:
 		"""シンボル宣言ノードからシンボルを解決
@@ -215,7 +215,6 @@ class Reflections:
 			# CompFor
 			return self.__resolve_procedural(node.for_in)
 
-	@raises(UnresolvedSymbolError, SemanticsLogicError)
 	def resolve(self, symbolic: defs.Symbolic, prop_name: str = '') -> IReflection:
 		"""シンボルテーブルからシンボルを解決
 
@@ -227,11 +226,12 @@ class Reflections:
 		Raises:
 			UnresolvedSymbolError: シンボルの解決に失敗
 		"""
-		found_raw = self.__resolve_raw(symbolic, prop_name)
-		if found_raw is not None:
-			return found_raw
+		with Transaction(UnresolvedSymbolError, SemanticsLogicError):
+			found_raw = self.__resolve_raw(symbolic, prop_name)
+			if found_raw is not None:
+				return found_raw
 
-		raise UnresolvedSymbolError(f'symbolic: {symbolic.fullyname}, prop_name: {prop_name}')
+			raise UnresolvedSymbolError(f'symbolic: {symbolic.fullyname}, prop_name: {prop_name}')
 
 	def __resolve_raw(self, symbolic: defs.Symbolic, prop_name: str) -> IReflection | None:
 		"""シンボル系ノードからシンボルを解決。未検出の場合はNoneを返却

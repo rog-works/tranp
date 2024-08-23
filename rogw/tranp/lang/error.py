@@ -1,4 +1,5 @@
 import traceback
+from types import TracebackType
 from typing import Callable, ParamSpec, TypeVar
 
 T_Ret = TypeVar('T_Ret')
@@ -21,7 +22,7 @@ def raises(raise_error: type[Exception], *handle_errors: type[Exception]) -> Cal
 
 	Args:
 		raise_error (type[Exception]): 出力例外
-		*handle_errors (type[Exception]): 出力例外
+		*handle_errors (type[Exception]): ハンドリング対象の例外
 	Returns:
 		Callable: デコレーター
 	Examples:
@@ -44,3 +45,32 @@ def raises(raise_error: type[Exception], *handle_errors: type[Exception]) -> Cal
 		return wrapper
 
 	return decorator
+
+
+class Transaction:
+	"""トランザクションエラーハンドラー"""
+
+	def __init__(self, raise_error: type[Exception], *handle_errors: type[Exception]) -> None:
+		"""インスタンスを生成
+
+		Args:
+			raise_error (type[Exception]): 出力例外
+			*handle_errors (type[Exception]): ハンドリング対象の例外
+		"""
+		self._raise_error = raise_error
+		self._handle_errors = handle_errors
+
+	def __enter__(self) -> 'Transaction':
+		"""ハンドラー(ブロック開始)"""
+		return self
+
+	def __exit__(self, exc_type: type[Exception], exc_value: BaseException | None, exc_traceback: TracebackType):
+		"""ハンドラー(ブロック終了)
+
+		Args:
+			exc_type (type[Exception]): 出力例外の型
+			exc_value (BaseException | None): 出力例外
+			exc_traceback (TracebackType): トレースバック
+		"""
+		if exc_value and issubclass(exc_type, self._handle_errors):
+			raise self._raise_error(exc_value) from exc_value

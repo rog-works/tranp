@@ -1,7 +1,7 @@
 from typing import NamedTuple, Self
 
 from rogw.tranp.dsn.module import ModuleDSN
-from rogw.tranp.semantics.reflection.interface import IReflection
+from rogw.tranp.semantics.reflection.base import IReflection
 
 
 class SymbolDB(dict[str, IReflection]):

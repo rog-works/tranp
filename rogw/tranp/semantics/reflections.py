@@ -1,14 +1,15 @@
-from rogw.tranp.semantics.reflection.db import SymbolDBProvider
-import rogw.tranp.semantics.reflection.helper.template as template
 import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.compatible.python.types import Standards
 from rogw.tranp.lang.annotation import injectable
-from rogw.tranp.lang.error import raises
+from rogw.tranp.lang.error import Transaction
 from rogw.tranp.semantics.errors import OperationNotAllowedError, SemanticsLogicError, UnresolvedSymbolError
 from rogw.tranp.semantics.finder import SymbolFinder
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.semantics.procedure import Procedure
-from rogw.tranp.semantics.reflection.interface import IReflection
+from rogw.tranp.semantics.reflection.base import IReflection
+from rogw.tranp.semantics.reflection.db import SymbolDBProvider
+import rogw.tranp.semantics.reflection.definitions as refs
+import rogw.tranp.semantics.reflection.helper.template as templates
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 
@@ -41,7 +42,6 @@ class Reflections:
 
 		return self.__procedural
 
-	@raises(UnresolvedSymbolError, SemanticsLogicError)
 	def is_a(self, symbol: IReflection, standard_type: type[Standards] | None) -> bool:
 		"""シンボルの型を判定
 
@@ -53,9 +53,9 @@ class Reflections:
 		Raises:
 			UnresolvedSymbolError: 標準クラスが未実装
 		"""
-		return symbol.types == self.type_of_standard(standard_type).types
+		with Transaction(UnresolvedSymbolError, SemanticsLogicError):
+			return symbol.types == self.type_of_standard(standard_type).types
 
-	@raises(UnresolvedSymbolError, SemanticsLogicError)
 	def get_object(self) -> IReflection:
 		"""objectのシンボルを取得
 
@@ -64,9 +64,9 @@ class Reflections:
 		Raises:
 			UnresolvedSymbolError: objectが未実装
 		"""
-		return self.__finder.get_object(self.__db)
+		with Transaction(UnresolvedSymbolError, SemanticsLogicError):
+			return self.__finder.get_object(self.__db)
 
-	@raises(UnresolvedSymbolError, SemanticsLogicError)
 	def from_fullyname(self, fullyname: str) -> IReflection:
 		"""完全参照名からシンボルを解決
 
@@ -77,9 +77,9 @@ class Reflections:
 		Raises:
 			UnresolvedSymbolError: シンボルの解決に失敗
 		"""
-		return self.__finder.by(self.__db, fullyname)
+		with Transaction(UnresolvedSymbolError, SemanticsLogicError):
+			return self.__finder.by(self.__db, fullyname)
 
-	@raises(UnresolvedSymbolError, SemanticsLogicError)
 	def type_of_standard(self, standard_type: type[Standards] | None) -> IReflection:
 		"""標準クラスのシンボルを解決
 
@@ -90,9 +90,9 @@ class Reflections:
 		Raises:
 			UnresolvedSymbolError: 標準クラスが未実装
 		"""
-		return self.__finder.by_standard(self.__db, standard_type)
+		with Transaction(UnresolvedSymbolError, SemanticsLogicError):
+			return self.__finder.by_standard(self.__db, standard_type)
 
-	@raises(UnresolvedSymbolError, SemanticsLogicError)
 	def type_of_property(self, types: defs.ClassDef, prop: defs.Var) -> IReflection:
 		"""クラス定義ノードと変数参照ノードからプロパティーのシンボルを解決
 
@@ -104,9 +104,9 @@ class Reflections:
 		Raises:
 			UnresolvedSymbolError: シンボルの解決に失敗
 		"""
-		return self.resolve(types, prop.tokens)
+		with Transaction(UnresolvedSymbolError, SemanticsLogicError):
+			return self.resolve(types, prop.tokens)
 
-	@raises(UnresolvedSymbolError, SemanticsLogicError)
 	def type_of_constructor(self, types: defs.Class) -> IReflection:
 		"""クラス定義ノードからコンストラクターのシンボルを解決
 
@@ -117,9 +117,9 @@ class Reflections:
 		Raises:
 			UnresolvedSymbolError: コンストラクターの実装ミス
 		"""
-		return self.resolve(types, types.operations.constructor)
+		with Transaction(UnresolvedSymbolError, SemanticsLogicError):
+			return self.resolve(types, types.operations.constructor)
 
-	@raises(UnresolvedSymbolError, SemanticsLogicError)
 	def type_of(self, node: Node) -> IReflection:
 		"""シンボル系/式ノードからシンボルを解決 XXX 万能過ぎるので細分化を検討
 
@@ -130,22 +130,23 @@ class Reflections:
 		Raises:
 			UnresolvedSymbolError: シンボルの解決に失敗
 		"""
-		if isinstance(node, defs.Declable):
-			return self.__from_declable(node)
-		elif isinstance(node, defs.Reference):
-			return self.__resolve_procedural(node)
-		elif isinstance(node, defs.Type):
-			return self.__resolve_procedural(node)
-		elif isinstance(node, defs.ClassDef):
-			return self.__from_class_def(node)
-		elif isinstance(node, defs.Literal):
-			return self.__resolve_procedural(node)
-		elif isinstance(node, (defs.For, defs.Catch, defs.WithEntry)):
-			return self.__from_flow(node)
-		elif isinstance(node, (defs.Comprehension, defs.CompFor)):
-			return self.__from_comprehension(node)
-		else:
-			return self.__resolve_procedural(node)
+		with Transaction(UnresolvedSymbolError, SemanticsLogicError):
+			if isinstance(node, defs.Declable):
+				return self.__from_declable(node)
+			elif isinstance(node, defs.Reference):
+				return self.__resolve_procedural(node)
+			elif isinstance(node, defs.Type):
+				return self.__resolve_procedural(node)
+			elif isinstance(node, defs.ClassDef):
+				return self.__from_class_def(node)
+			elif isinstance(node, defs.Literal):
+				return self.__resolve_procedural(node)
+			elif isinstance(node, (defs.For, defs.Catch, defs.WithEntry)):
+				return self.__from_flow(node)
+			elif isinstance(node, (defs.Comprehension, defs.CompFor)):
+				return self.__from_comprehension(node)
+			else:
+				return self.__resolve_procedural(node)
 
 	def __from_declable(self, node: defs.Declable) -> IReflection:
 		"""シンボル宣言ノードからシンボルを解決
@@ -214,7 +215,6 @@ class Reflections:
 			# CompFor
 			return self.__resolve_procedural(node.for_in)
 
-	@raises(UnresolvedSymbolError, SemanticsLogicError)
 	def resolve(self, symbolic: defs.Symbolic, prop_name: str = '') -> IReflection:
 		"""シンボルテーブルからシンボルを解決
 
@@ -226,11 +226,12 @@ class Reflections:
 		Raises:
 			UnresolvedSymbolError: シンボルの解決に失敗
 		"""
-		found_raw = self.__resolve_raw(symbolic, prop_name)
-		if found_raw is not None:
-			return found_raw
+		with Transaction(UnresolvedSymbolError, SemanticsLogicError):
+			found_raw = self.__resolve_raw(symbolic, prop_name)
+			if found_raw is not None:
+				return found_raw
 
-		raise UnresolvedSymbolError(f'symbolic: {symbolic.fullyname}, prop_name: {prop_name}')
+			raise UnresolvedSymbolError(f'symbolic: {symbolic.fullyname}, prop_name: {prop_name}')
 
 	def __resolve_raw(self, symbolic: defs.Symbolic, prop_name: str) -> IReflection | None:
 		"""シンボル系ノードからシンボルを解決。未検出の場合はNoneを返却
@@ -333,46 +334,6 @@ class ProceduralResolver:
 		"""
 		return self.procedure.exec(node)
 
-	def force_unpack_nullable(self, symbol: IReflection) -> IReflection:
-		"""Nullableのシンボルの変数の型をアンパック。Nullable以外の型はそのまま返却 (主にRelayで利用)
-
-		Args:
-			symbol (IReflection): シンボル
-		Returns:
-			IReflection: 変数の型
-		Note:
-			許容するNullableの書式 (例: 'Class | None')
-		"""
-		if self.reflections.is_a(symbol, classes.Union) and len(symbol.attrs) == 2:
-			is_0_null = self.reflections.is_a(symbol.attrs[0], None)
-			is_1_null = self.reflections.is_a(symbol.attrs[1], None)
-			if is_0_null != is_1_null:
-				return symbol.attrs[1 if is_0_null else 0]
-
-		return symbol
-
-	def unpack_alt_class(self, symbol: IReflection) -> IReflection:
-		"""AltClass型をアンパック
-
-		Args:
-			symbol (IReflection): シンボル
-		Returns:
-			IReflection: 変数の型
-		"""
-		return symbol.attrs[0] if isinstance(symbol.types, defs.AltClass) else symbol
-
-	def unpack_type_proxy(self, symbol: IReflection) -> IReflection:
-		"""typeのProxy型をアンパック
-
-		Args:
-			symbol (IReflection): シンボル
-		Returns:
-			IReflection: 変数の型
-		Note:
-			対象: type<T> -> T
-		"""
-		return symbol.attrs[0] if isinstance(symbol.decl, defs.Class) and self.reflections.is_a(symbol, type) else symbol
-
 	# Fallback
 
 	def on_fallback(self, node: Node) -> IReflection:
@@ -459,19 +420,13 @@ class ProceduralResolver:
 		# indexer.prop: a.b[0].c()
 		# indexer.func_call: a.b[1].c()
 
-		# AltClass/Nullableを解除
-		# XXX Nullable解除に関してはon_relayに到達した時点でnullが期待値であることはあり得ないと言う想定
-		unpacked_receiver = self.unpack_alt_class(receiver)
-		unpacked_receiver = self.force_unpack_nullable(unpacked_receiver)
-
-		if self.reflections.is_a(unpacked_receiver, type):
-			unpacked_receiver = self.unpack_type_proxy(receiver)
-			return unpacked_receiver.to(node, self.proc_relay_class(node, unpacked_receiver))
+		actual_receiver = receiver.impl(refs.Object).actualize()
+		if receiver.impl(refs.Object).is_a(type):
+			return actual_receiver.to(node, self.proc_relay_class(node, actual_receiver, actual_receiver.prop_of(node.prop)))
 		else:
-			return unpacked_receiver.to(node, self.proc_relay_object(node, unpacked_receiver))
+			return actual_receiver.to(node, self.proc_relay_object(node, actual_receiver, actual_receiver.prop_of(node.prop)))
 
-	def proc_relay_class(self, node: defs.Relay, receiver: IReflection) -> IReflection:
-		prop = self.reflections.type_of_property(receiver.types, node.prop)
+	def proc_relay_class(self, node: defs.Relay, receiver: IReflection, prop: IReflection) -> IReflection:
 		# XXX Enum直下のDeclLocalVarは定数値であり、型としてはEnumそのものであるためreceiverを返却。特殊化より一般化する方法を検討
 		if isinstance(receiver.types, defs.Enum) and prop.decl.is_a(defs.DeclLocalVar):
 			return receiver
@@ -479,20 +434,13 @@ class ProceduralResolver:
 			return self.reflections.type_of_standard(type).stack().extends(prop)
 		elif isinstance(prop.decl, defs.Method) and prop.decl.is_property:
 			# FIXME クラスのプロパティメソッドは通常存在しないため、修正を検討
-			function_helper = template.HelperBuilder(prop) \
-				.schema(lambda: {'klass': prop.attrs[0], 'parameters': prop.attrs[1:-1], 'returns': prop.attrs[-1]}) \
-				.build(template.Method)
-			return function_helper.returns(receiver)
+			return prop.impl(refs.Function).returns()
 		else:
 			return prop
 
-	def proc_relay_object(self, node: defs.Relay, receiver: IReflection) -> IReflection:
-		prop = self.reflections.type_of_property(receiver.types, node.prop)
+	def proc_relay_object(self, node: defs.Relay, receiver: IReflection, prop: IReflection) -> IReflection:
 		if isinstance(prop.decl, defs.Method) and prop.decl.is_property:
-			function_helper = template.HelperBuilder(prop) \
-				.schema(lambda: {'klass': prop.attrs[0], 'parameters': prop.attrs[1:-1], 'returns': prop.attrs[-1]}) \
-				.build(template.Method)
-			return function_helper.returns(receiver)
+			return prop.impl(refs.Function).returns()
 		elif isinstance(prop.decl, defs.Class):
 			return self.reflections.type_of_standard(type).stack().extends(prop)
 		else:
@@ -513,36 +461,33 @@ class ProceduralResolver:
 		return self.reflections.resolve(node).stack(node)
 
 	def on_indexer(self, node: defs.Indexer, receiver: IReflection, keys: list[IReflection]) -> IReflection:
-		unpacked_receiver = self.unpack_alt_class(receiver)
+		actual_receiver = receiver.impl(refs.Object).actualize()
 
 		if node.sliced:
-			return unpacked_receiver.stack(node)
-		elif self.reflections.is_a(unpacked_receiver, str):
-			return unpacked_receiver.stack(node)
-		elif self.reflections.is_a(unpacked_receiver, list):
-			return unpacked_receiver.to(node, unpacked_receiver.attrs[0])
-		elif self.reflections.is_a(unpacked_receiver, dict):
-			return unpacked_receiver.to(node, unpacked_receiver.attrs[1])
-		elif self.reflections.is_a(unpacked_receiver, tuple):
+			return actual_receiver.stack(node)
+		elif receiver.impl(refs.Object).is_a(type):
+			actual_keys = [key.impl(refs.Object).actualize() for key in keys]
+			actual_class = actual_receiver.stack().extends(*actual_keys)
+			return actual_receiver.to(node, self.reflections.type_of_standard(type)).extends(actual_class)
+		elif actual_receiver.is_a(str):
+			return actual_receiver.stack(node)
+		elif actual_receiver.is_a(list):
+			return actual_receiver.to(node, actual_receiver.attrs[0])
+		elif actual_receiver.is_a(dict):
+			return actual_receiver.to(node, actual_receiver.attrs[1])
+		elif actual_receiver.is_a(tuple):
 			if keys[0].node and keys[0].node.is_a(defs.Integer):
 				# インデックスが判明している場合はその位置の型を返却
 				index = int(keys[0].node.as_a(defs.Integer).tokens)
-				return unpacked_receiver.to(node, unpacked_receiver.attrs[index])
+				return actual_receiver.to(node, actual_receiver.attrs[index])
 			else:
 				# インデックスが不明の場合は共用型とする
-				return unpacked_receiver.to(node, self.reflections.type_of_standard(classes.Union)).extends(*unpacked_receiver.attrs)
-		elif self.reflections.is_a(unpacked_receiver, type):
-			# この処理は実質的にCustomTypeの展開と等価
-			# XXX 不可解なスタックの解除と追加が連続して意味不明なので修正を検討
-			unpacked_receiver = self.unpack_type_proxy(unpacked_receiver)
-			unpacked_keys = [self.unpack_type_proxy(key) for key in keys]
-			klass_symbol = unpacked_receiver.stack().extends(*unpacked_keys)
-			return unpacked_receiver.to(node, self.reflections.type_of_standard(type)).extends(klass_symbol)
+				return actual_receiver.to(node, self.reflections.type_of_standard(classes.Union)).extends(*actual_receiver.attrs)
 		else:
 			# XXX コレクション型以外は全て通常のクラスである想定
 			# XXX keyに何が入るべきか特定できないためreceiverをそのまま返却
 			# XXX この状況で何が取得されるべきかは利用側で判断することとする
-			return unpacked_receiver.stack(node)
+			return actual_receiver.stack(node)
 
 	def on_relay_of_type(self, node: defs.RelayOfType, receiver: IReflection) -> IReflection:
 		"""Note: XXX Pythonではtypeをアンパックする構文が存在しないためAltClassも同様に扱う"""
@@ -580,33 +525,11 @@ class ProceduralResolver:
 			# arguments
 			* expression
 		"""
-		actual_calls = self.unpack_alt_class(calls)
-		actual_calls = self.unpack_type_proxy(actual_calls)
-
+		actual_calls = calls.impl(refs.Object).actualize()
 		if isinstance(actual_calls.types, defs.Class):
-			# XXX クラス経由で暗黙的にコンストラクターを呼び出した場合
-			# XXX 戻り値の型をクラスのシンボルで補完
-			constroctur_calls = self.reflections.type_of_constructor(actual_calls.types)
-			function_helper = template.HelperBuilder(constroctur_calls) \
-				.schema(lambda: {'klass': constroctur_calls.attrs[0], 'parameters': constroctur_calls.attrs[1:-1], 'returns': actual_calls}) \
-				.build(template.Constructor)
-			return actual_calls.to(node, function_helper.returns(constroctur_calls.attrs[0], *arguments))
-		elif isinstance(actual_calls.types, defs.Constructor):
-			# XXX コンストラクターを明示的に呼び出した場合
-			# XXX 戻り値の型を第1引数(自己参照)で補完
-			function_helper = template.HelperBuilder(actual_calls) \
-				.schema(lambda: {'klass': actual_calls.attrs[0], 'parameters': actual_calls.attrs[1:-1], 'returns': actual_calls.attrs[0]}) \
-				.build(template.Constructor)
-			return actual_calls.to(node, function_helper.returns(actual_calls.attrs[0], *arguments))
-		else:
-			function_helper = template.HelperBuilder(actual_calls) \
-				.case(template.Method).schema(lambda: {'klass': actual_calls.attrs[0], 'parameters': actual_calls.attrs[1:-1], 'returns': actual_calls.attrs[-1]}) \
-				.other_case().schema(lambda: {'parameters': actual_calls.attrs[:-1], 'returns': actual_calls.attrs[-1]}) \
-				.build(template.Function)
-			if function_helper.is_a(template.Method):
-				return actual_calls.to(node, function_helper.returns(actual_calls.context, *arguments))
-			else:
-				return actual_calls.to(node, function_helper.returns(*arguments))
+			actual_calls = actual_calls.impl(refs.Object).constructor()
+
+		return actual_calls.to(node, actual_calls.impl(refs.Function).returns(*arguments))
 
 	def on_super(self, node: defs.Super, calls: IReflection, arguments: list[IReflection]) -> IReflection:
 		if node.can_resolve_super:
@@ -629,27 +552,8 @@ class ProceduralResolver:
 			* group: Any
 			* operator: Any
 		"""
-		iterates = self.unpack_alt_class(iterates)
-
-		def resolve_method() -> tuple[IReflection, str]:
-			try:
-				return self.reflections.resolve(iterates.types, iterates.types.operations.iterator), 'iterator'
-			except UnresolvedSymbolError:
-				return self.reflections.resolve(iterates.types, iterates.types.operations.iterable), 'iterable'
-
-		method, solution = resolve_method()
-		# XXX iteratorの場合は、戻り値の型をそのまま使用
-		# XXX iterableの場合は、戻り値の型が`Iterator<T>`と言う想定でアンパックする
-		# XXX # メソッドシグネチャーの期待値
-		# XXX `iterator(self) -> T`
-		# XXX `iterable(self) -> Iterator<T>`
-		schema = {
-			'klass': method.attrs[0],
-			'parameters': method.attrs[1:-1],
-			'returns': method.attrs[-1] if solution == 'iterator' else method.attrs[-1].attrs[0],
-		}
-		function_helper = template.HelperBuilder(method).schema(lambda: schema).build(template.Method)
-		return function_helper.returns(iterates).stack(node)
+		actual_iterates = iterates.impl(refs.Object).actualize()
+		return actual_iterates.to(node, actual_iterates.impl(refs.Iterator).iterates())
 
 	def on_comp_for(self, node: defs.CompFor, symbols: list[IReflection], for_in: IReflection) -> IReflection:
 		return for_in.stack(node)
@@ -727,9 +631,9 @@ class ProceduralResolver:
 				continue
 
 			method = candidate
-			function_helper = template.HelperBuilder(method) \
+			function_helper = templates.HelperBuilder(method) \
 				.schema(lambda: {'klass': method.attrs[0], 'parameters': method.attrs[1:-1], 'returns': method.attrs[-1]}) \
-				.build(template.Method)
+				.build(templates.Method)
 
 			receiver = left if key == 'left' else right
 			other = right if key == 'left' else left
@@ -739,7 +643,7 @@ class ProceduralResolver:
 			if not node.is_a(defs.Sum, defs.Term):
 				return function_helper.returns(receiver, actual_other)
 
-			var_types = actual_other.attrs if self.reflections.is_a(actual_other, classes.Union) else [actual_other]
+			var_types = actual_other.attrs if actual_other.impl(refs.Object).is_a(classes.Union) else [actual_other]
 			if other in var_types:
 				return function_helper.returns(receiver, actual_other)
 
@@ -750,8 +654,8 @@ class ProceduralResolver:
 		if primary == secondary:
 			return primary.stack(node)
 
-		primary_is_null = self.reflections.is_a(primary, None)
-		secondary_is_null = self.reflections.is_a(secondary, None)
+		primary_is_null = primary.impl(refs.Object).is_a(None)
+		secondary_is_null = secondary.impl(refs.Object).is_a(None)
 		if primary_is_null == secondary_is_null:
 			raise OperationNotAllowedError(f'Only Nullable. node: {node}, primary: {primary}, secondary: {secondary}')
 

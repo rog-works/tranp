@@ -3,7 +3,7 @@ from typing import Protocol
 
 from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.dsn.translation import alias_dsn
-from rogw.tranp.semantics.reflection.interface import IReflection
+from rogw.tranp.semantics.reflection.base import IReflection
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 

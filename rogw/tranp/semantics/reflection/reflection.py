@@ -1,10 +1,10 @@
-from typing import Iterator, Literal, Self
+from typing import Any, Callable, Iterator, Literal, Self, cast
 
 from rogw.tranp.lang.annotation import implements, override
 from rogw.tranp.lang.convertion import safe_cast
 from rogw.tranp.semantics.errors import SemanticsLogicError
 from rogw.tranp.semantics.reflection.helper.naming import ClassShorthandNaming
-from rogw.tranp.semantics.reflection.interface import Addons, IReflection, Addon, T_Ref
+from rogw.tranp.semantics.reflection.base import Addons, IReflection, Addon, T_Ref, Traits
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 
@@ -38,16 +38,14 @@ class Options:
 class ReflectionBase(IReflection):
 	"""リフレクション(基底)"""
 
-	def __init__(self, options: Options) -> None:
+	def __init__(self, traits: Traits, options: Options) -> None:
 		"""インスタンスを生成
 
 		Args:
+			traits (Traits): トレイトマネージャー
 			options (Options): 生成オプション
-		Note:
-			* インターフェイスの共通化のため定義
-			* 基底クラスでは特に何も行わない
 		"""
-		...
+		self.__traits = traits
 
 	# @property
 	# @abstractmethod
@@ -94,6 +92,12 @@ class ReflectionBase(IReflection):
 		"""list[IReflection]: 属性シンボルリスト"""
 		return []
 
+	@property
+	@implements
+	def _traits(self) -> Traits:
+		"""Traits: トレイトマネージャー"""
+		return self.__traits
+
 	@implements
 	def declare(self, decl: defs.DeclVars, origin: IReflection | None = None) -> IReflection:
 		"""定義ノードをスタックし、型のシンボルを移行。型のシンボル省略時はそのまま引き継ぐ
@@ -104,7 +108,7 @@ class ReflectionBase(IReflection):
 		Returns:
 			IReflection: リフレクション
 		"""
-		return Reflection(Options(decl=decl, node=decl, origin=origin if origin else self))
+		return Reflection(self.__traits, Options(decl=decl, node=decl, origin=origin if origin else self))
 
 	@implements
 	def stack(self, node: Node | None = None) -> IReflection:
@@ -115,7 +119,7 @@ class ReflectionBase(IReflection):
 		Returns:
 			IReflection: リフレクション
 		"""
-		return Reflection(Options(node=node if node else self.node, origin=self))
+		return Reflection(self.__traits, Options(node=node if node else self.node, origin=self))
 
 	@implements
 	def to(self, node: Node, origin: IReflection) -> IReflection:
@@ -127,7 +131,7 @@ class ReflectionBase(IReflection):
 		Returns:
 			IReflection: リフレクション
 		"""
-		return Reflection(Options(node=node, origin=origin, via=self))
+		return Reflection(self.__traits, Options(node=node, origin=origin, via=self))
 
 	@property
 	@implements
@@ -159,33 +163,7 @@ class ReflectionBase(IReflection):
 			SemanticsLogicError: 実体の無いインスタンスに実行 XXX 出力する例外は要件等
 			SemanticsLogicError: 拡張済みのインスタンスに再度実行 XXX 出力する例外は要件等
 		"""
-		raise SemanticsLogicError(f'Not allowed extends. symbol: {self.types.fullyname}')
-
-	@implements
-	def add_on(self, key: Literal['origin', 'attrs'], addon: Addon) -> None:
-		"""アドオンを有効化
-		
-		Args:
-			key (Literal['origin', 'attrs']): キー
-			addon (Addon): アドオン
-		"""
-		raise SemanticsLogicError(f'Not allowed on. symbol: {self.types.fullyname}')
-
-	@implements
-	def one_of(self, *expects: type[T_Ref]) -> T_Ref:
-		"""期待する型と同種ならキャスト
-
-		Args:
-			*expects (type[T_Ref]): 期待する型
-		Returns:
-			T_Ref: インスタンス
-		Raises:
-			SemanticsLogicError: 継承関係が無い型を指定 XXX 出力する例外は要件等
-		"""
-		if isinstance(self, expects):
-			return self
-
-		raise SemanticsLogicError(f'Not allowed conversion. self: {str(self)}, from: {self.__class__.__name__}, to: {expects}')
+		raise SemanticsLogicError(f'Operation not allowed. symbol: {self.types.fullyname}')
 
 	@implements
 	def to_temporary(self) -> IReflection:
@@ -197,6 +175,32 @@ class ReflectionBase(IReflection):
 		new = self.stack()
 		new.extends(*[attr.to_temporary() for attr in self.attrs])
 		return new
+
+	@implements
+	def add_on(self, key: Literal['origin', 'attrs'], addon: Addon) -> None:
+		"""アドオンを有効化
+		
+		Args:
+			key (Literal['origin', 'attrs']): キー
+			addon (Addon): アドオン
+		"""
+		raise SemanticsLogicError(f'Operation not allowed. symbol: {self.types.fullyname}')
+
+	@implements
+	def impl(self, expect: type[T_Ref]) -> T_Ref:
+		"""期待する型と同じインターフェイスを実装していればキャスト
+
+		Args:
+			expect (type[T_Ref]): 期待する型
+		Returns:
+			T_Ref: インスタンス
+		Raises:
+			SemanticsLogicError: インターフェイスが未実装 XXX 出力する例外は要件等
+		"""
+		if self._traits.implements(expect):
+			return cast(expect, self)
+
+		raise SemanticsLogicError(f'Not allowed conversion. symbol: {self.types.fullyname}, expect: {expect}')
 
 	@override
 	def __eq__(self, other: object) -> bool:
@@ -235,29 +239,44 @@ class ReflectionBase(IReflection):
 	def __hash__(self) -> int:
 		"""int: オブジェクトのハッシュ値"""
 		return hash(self.__repr__())
+	
+	def __getattr__(self, name: str) -> Callable[..., Any]:
+		"""トレイトからメソッドを取得
+
+		Args:
+			name (str): メソッド名
+		Returns:
+			Callable[..., Any]: メソッド
+		Note:
+			XXX このメソッドを実装すると、存在しないプロパティーを誤って参照した際に警告されないため、要検討
+		"""
+		return self._traits.get(name, self)
 
 
 class Symbol(ReflectionBase):
 	"""シンボル(クラス定義のオリジナル)"""
 
 	@classmethod
-	def from_types(cls, types: defs.ClassDef) -> 'Symbol':
+	def instantiate(cls, traits: Traits, types: defs.ClassDef) -> 'Symbol':
 		"""インスタンスを生成
 
 		Args:
+			traits (Traits): トレイトマネージャー
 			types (ClassDef): クラス定義ノード
 		Returns:
 			Symbol: インスタンス
 		"""
-		return cls(Options(types=types))
+		return cls(traits, Options(types=types))
 
-	def __init__(self, options: Options) -> None:
+	@override
+	def __init__(self, traits: Traits, options: Options) -> None:
 		"""インスタンスを生成
 
 		Args:
+			traits (Traits): トレイトマネージャー
 			options (Options): 生成オプション
 		"""
-		super().__init__(options)
+		super().__init__(traits, options)
 		self._types = safe_cast(options.types)
 
 	@property
@@ -282,13 +301,15 @@ class Symbol(ReflectionBase):
 class Reflection(ReflectionBase):
 	"""リフレクションの共通実装(基底)"""
 
-	def __init__(self, options: Options) -> None:
+	@override
+	def __init__(self, traits: Traits, options: Options) -> None:
 		"""インスタンスを生成
 
 		Args:
+			traits (Traits): トレイトマネージャー
 			options (Options): 生成オプション
 		"""
-		super().__init__(options)
+		super().__init__(traits, options)
 		self._node = safe_cast(options.node)
 		self._origin = safe_cast(options.origin)
 		self._decl = options.decl if options.decl else self._origin.decl

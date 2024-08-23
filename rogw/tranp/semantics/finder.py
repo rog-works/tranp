@@ -5,8 +5,8 @@ from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.module.types import LibraryPaths
 from rogw.tranp.semantics.errors import MustBeImplementedError, SymbolNotDefinedError
+from rogw.tranp.semantics.reflection.base import IReflection
 from rogw.tranp.semantics.reflection.db import SymbolDB
-from rogw.tranp.semantics.reflection.interface import IReflection
 import rogw.tranp.syntax.node.definition as defs
 
 
@@ -67,12 +67,7 @@ class SymbolFinder:
 		Raises:
 			MustBeImplementedError: 標準クラスが未実装
 		"""
-		domain_name = ''
-		if standard_type is None:
-			domain_name = 'None'
-		else:
-			domain_name = standard_type.__name__
-
+		domain_name = standard_type.__name__ if standard_type is not None else 'None'
 		raw = self.__find_raw(db, [ModuleDSN(module_path) for module_path in self.__library_paths], domain_name)
 		if raw is not None:
 			return raw

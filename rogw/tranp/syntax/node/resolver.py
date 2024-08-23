@@ -1,6 +1,6 @@
 from rogw.tranp.errors import LogicError
 from rogw.tranp.lang.annotation import injectable
-from rogw.tranp.lang.error import raises
+from rogw.tranp.lang.error import Transaction
 from rogw.tranp.lang.locator import Invoker
 from rogw.tranp.syntax.ast.resolver import Resolver, SymbolMapping
 from rogw.tranp.syntax.errors import UnresolvedNodeError
@@ -32,7 +32,6 @@ class NodeResolver:
 		"""
 		return self.__resolver.can_resolve(symbol)
 
-	@raises(UnresolvedNodeError, LogicError)
 	def resolve(self, symbol: str, full_path: str) -> Node:
 		"""ノードのインスタンスを解決
 
@@ -44,18 +43,19 @@ class NodeResolver:
 		Raises:
 			UnresolvedNodeError: ノードの解決に失敗
 		"""
-		if full_path in self.__insts:
-			return self.__insts[full_path]
-
-		ctors = self.__resolver.resolve(symbol)
-		# XXX match_feature用の仮ノードを生成
-		dummy = self.__invoker(Node, full_path)
-		for ctor in ctors:
-			if ctor.match_feature(dummy):
-				self.__insts[full_path] = self.__invoker(ctor, full_path)
+		with Transaction(UnresolvedNodeError, LogicError):
+			if full_path in self.__insts:
 				return self.__insts[full_path]
 
-		raise UnresolvedNodeError(symbol, full_path)
+			ctors = self.__resolver.resolve(symbol)
+			# XXX match_feature用の仮ノードを生成
+			dummy = self.__invoker(Node, full_path)
+			for ctor in ctors:
+				if ctor.match_feature(dummy):
+					self.__insts[full_path] = self.__invoker(ctor, full_path)
+					return self.__insts[full_path]
+
+			raise UnresolvedNodeError(symbol, full_path)
 
 	def clear(self) -> None:
 		"""インスタンスのマッピング情報を削除"""

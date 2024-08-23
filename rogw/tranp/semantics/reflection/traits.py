@@ -1,12 +1,13 @@
-from typing import Iterator, cast
+from typing import Iterator, Self, cast
 
 import rogw.tranp.compatible.libralies.classes as classes
+from rogw.tranp.compatible.python.types import Standards
 from rogw.tranp.lang.annotation import implements, override
 from rogw.tranp.semantics.errors import UnresolvedSymbolError
 from rogw.tranp.semantics.reflection.base import IReflection, Trait
 import rogw.tranp.semantics.reflection.definitions as refs
 import rogw.tranp.semantics.reflection.helper.template as templates
-from rogw.tranp.semantics.reflection.interfaces import IActualizer, IFunction, IIterator, IObject
+from rogw.tranp.semantics.reflection.interfaces import IConvertion, IFunction, IIterator, IObject
 from rogw.tranp.semantics.reflections import Reflections
 import rogw.tranp.syntax.node.definition as defs
 
@@ -18,7 +19,7 @@ def export_classes() -> list[type[Trait]]:
 		list[type[Trait]]: トレイトのクラスリスト
 	"""
 	return [
-		ActualizerTrait,
+		ConvertionTrait,
 		ObjectTrait,
 		IteratorTrait,
 		FunctionTrait,
@@ -38,16 +39,27 @@ class TraitImpl(Trait, IObject):
 		self.reflections = reflections
 
 
-class ActualizerTrait(TraitImpl, IActualizer):
-	"""トレイト実装(実体化)"""
+class ConvertionTrait(TraitImpl, IConvertion):
+	"""トレイト実装(変換)"""
 
-	def actualize(self, symbol: IReflection) -> IReflection:
+	def is_a(self, standard_type: type[Standards] | None, symbol: IReflection) -> bool:
+		"""シンボルの型を判定
+
+		Args:
+			standard_type (type[Standards] | None): 標準タイプ
+			symbol (IReflection): シンボル ※Traitsから暗黙的に入力される
+		Returns:
+			bool: True = 指定の型と一致
+		"""
+		return self.reflections.is_a(symbol, standard_type)
+
+	def actualize(self: Self, symbol: IReflection) -> Self:
 		"""プロクシー型(Union/TypeAlias/type)による階層化を解除し、実体型を取得。元々実体型である場合はそのまま返却
 
 		Args:
 			symbol (IReflection): シンボル ※Traitsから暗黙的に入力される
 		Returns:
-			IReflection: シンボル
+			Self: シンボル
 		Note:
 			### 変換対象
 			* Class | None
@@ -57,7 +69,7 @@ class ActualizerTrait(TraitImpl, IActualizer):
 		actual = self._unpack_nullable(symbol)
 		actual = self._unpack_alt_class(actual)
 		actual = self._unpack_type(actual)
-		return actual
+		return cast(Self, actual)
 
 	def _unpack_nullable(self, symbol: IReflection) -> IReflection:
 		"""Nullable型をアンパック

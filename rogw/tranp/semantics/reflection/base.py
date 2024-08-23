@@ -263,7 +263,7 @@ class Trait:
 		Returns:
 			list[str]: メソッド名リスト
 		"""
-		return [key for key, value in self.implements.__dict__.items() if isinstance(value, FunctionType)]
+		return [key for key, value in self.implements.__dict__.items() if not key.startswith('_') and isinstance(value, FunctionType)]
 
 
 class TraitProvider(Protocol):

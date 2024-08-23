@@ -276,8 +276,8 @@ class Py2Cpp(ITranspiler):
 		else:
 			for_in_symbol = self.reflections.type_of(node.for_in)
 			# FIXME is_const/is_addr_pの対応に一貫性が無い。包括的な対応を検討
-			is_const = CVars.is_const(CVars.key_from(self.reflections, for_in_symbol))
-			is_addr_p = CVars.is_addr_p(CVars.key_from(self.reflections, for_in_symbol))
+			is_const = CVars.is_const(CVars.key_from(for_in_symbol))
+			is_addr_p = CVars.is_addr_p(CVars.key_from(for_in_symbol))
 			return self.view.render(f'{node.classification}/default', vars={'symbols': symbols, 'iterates': for_in, 'statements': statements, 'is_const': is_const, 'is_addr_p': is_addr_p})
 
 	def proc_for_range(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
@@ -603,11 +603,11 @@ class Py2Cpp(ITranspiler):
 		elif is_this_relay():
 			return 'this', CVars.RelayOperators.Address.name
 		elif is_on_cvar_relay():
-			cvar_key = CVars.key_from(self.reflections, receiver_symbol.context)
+			cvar_key = CVars.key_from(receiver_symbol.context)
 			if not CVars.is_raw_raw(cvar_key):
 				return 'cvar_relay', CVars.to_operator(cvar_key).name
 		elif is_on_cvar_exchanger():
-			cvar_key = CVars.key_from(self.reflections, receiver_symbol)
+			cvar_key = CVars.key_from(receiver_symbol)
 			move = CVars.to_move(cvar_key, node.prop.domain_name)
 			return f'cvar_to_{move.name}', CVars.to_operator(cvar_key).name
 		elif is_class_relay():
@@ -666,7 +666,7 @@ class Py2Cpp(ITranspiler):
 			return spec, receiver_symbol
 		elif is_on_cvar_relay():
 			receiver_symbol = self.reflections.type_of(node.receiver).impl(refs.Class).actualize()
-			cvar_key = CVars.key_from(self.reflections, receiver_symbol.context)
+			cvar_key = CVars.key_from(receiver_symbol.context)
 			if not CVars.is_raw_raw(cvar_key):
 				return 'cvar_relay', None
 		elif is_cvar():
@@ -893,7 +893,7 @@ class Py2Cpp(ITranspiler):
 				return 'cvar_sp_empty', context
 			elif prop == CVars.allocator_key:
 				context = self.reflections.type_of(node.calls).context
-				cvar_key = CVars.key_from(self.reflections, context)
+				cvar_key = CVars.key_from(context)
 				if CVars.is_addr_p(cvar_key):
 					return f'new_cvar_p', None
 				elif CVars.is_addr_sp(cvar_key):
@@ -922,8 +922,8 @@ class Py2Cpp(ITranspiler):
 
 		for_in_symbol = self.reflections.type_of(node.for_in)
 		# FIXME is_const/is_addr_pの対応に一貫性が無い。包括的な対応を検討
-		is_const = CVars.is_const(CVars.key_from(self.reflections, for_in_symbol))
-		is_addr_p = CVars.is_addr(CVars.key_from(self.reflections, for_in_symbol))
+		is_const = CVars.is_const(CVars.key_from(for_in_symbol))
+		is_addr_p = CVars.is_addr(CVars.key_from(for_in_symbol))
 
 		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Relay) and node.iterates.calls.prop.tokens == dict.items.__name__:
 			# 期待値: 'iterates.items()'

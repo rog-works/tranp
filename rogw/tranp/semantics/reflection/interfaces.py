@@ -1,5 +1,6 @@
-from typing import Any, Protocol
+from typing import Any, Protocol, Self
 
+from rogw.tranp.compatible.python.types import Standards
 from rogw.tranp.semantics.reflection.base import IReflection
 import rogw.tranp.syntax.node.definition as defs
 
@@ -17,16 +18,27 @@ class IExample(Protocol):
 		...
 
 
-class IActualizer:
-	"""拡張インターフェイス(実体化)"""
+class IConvertion:
+	"""拡張インターフェイス(変換)"""
 
-	def actualize(self, **injected: IReflection) -> IReflection:
+	def is_a(self, standard_type: type[Standards] | None, **injected: IReflection) -> bool:
+		"""シンボルの型を判定
+
+		Args:
+			standard_type (type[Standards] | None): 標準タイプ
+			**injected (IReflection): シンボル入力用のキーワード引数 ※インターフェイス上は無視して問題ない
+		Returns:
+			bool: True = 指定の型と一致
+		"""
+		...
+
+	def actualize(self: Self, **injected: IReflection) -> Self:
 		"""プロクシー型(Union/TypeAlias/type)による階層化を解除し、実体型を取得。元々実体型である場合はそのまま返却
 
 		Args:
-			symbol (IReflection): シンボル ※Traitsから暗黙的に入力される
+			**injected (IReflection): シンボル入力用のキーワード引数 ※インターフェイス上は無視して問題ない
 		Returns:
-			IReflection: シンボル
+			Self: シンボル
 		Note:
 			### 変換対象
 			* Class | None

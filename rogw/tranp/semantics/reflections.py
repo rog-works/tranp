@@ -421,13 +421,12 @@ class ProceduralResolver:
 		# indexer.func_call: a.b[1].c()
 
 		actual_receiver = receiver.impl(refs.Class).actualize()
-		if self.reflections.is_a(receiver, type):
-			return actual_receiver.to(node, self.proc_relay_class(node, actual_receiver))
+		if receiver.impl(refs.Class).is_a(type):
+			return actual_receiver.to(node, self.proc_relay_class(node, actual_receiver, actual_receiver.prop_of(node.prop)))
 		else:
-			return actual_receiver.to(node, self.proc_relay_object(node, actual_receiver))
+			return actual_receiver.to(node, self.proc_relay_object(node, actual_receiver, actual_receiver.prop_of(node.prop)))
 
-	def proc_relay_class(self, node: defs.Relay, receiver: IReflection) -> IReflection:
-		prop = receiver.impl(refs.Class).prop_of(node.prop)
+	def proc_relay_class(self, node: defs.Relay, receiver: IReflection, prop: IReflection) -> IReflection:
 		# XXX Enum直下のDeclLocalVarは定数値であり、型としてはEnumそのものであるためreceiverを返却。特殊化より一般化する方法を検討
 		if isinstance(receiver.types, defs.Enum) and prop.decl.is_a(defs.DeclLocalVar):
 			return receiver
@@ -439,8 +438,7 @@ class ProceduralResolver:
 		else:
 			return prop
 
-	def proc_relay_object(self, node: defs.Relay, receiver: IReflection) -> IReflection:
-		prop = receiver.impl(refs.Class).prop_of(node.prop)
+	def proc_relay_object(self, node: defs.Relay, receiver: IReflection, prop: IReflection) -> IReflection:
 		if isinstance(prop.decl, defs.Method) and prop.decl.is_property:
 			return prop.impl(refs.Function).returns()
 		elif isinstance(prop.decl, defs.Class):
@@ -467,17 +465,17 @@ class ProceduralResolver:
 
 		if node.sliced:
 			return actual_receiver.stack(node)
-		elif self.reflections.is_a(receiver, type):
+		elif receiver.impl(refs.Class).is_a(type):
 			actual_keys = [key.impl(refs.Class).actualize() for key in keys]
 			actual_class = actual_receiver.stack().extends(*actual_keys)
 			return actual_receiver.to(node, self.reflections.type_of_standard(type)).extends(actual_class)
-		elif self.reflections.is_a(actual_receiver, str):
+		elif actual_receiver.is_a(str):
 			return actual_receiver.stack(node)
-		elif self.reflections.is_a(actual_receiver, list):
+		elif actual_receiver.is_a(list):
 			return actual_receiver.to(node, actual_receiver.attrs[0])
-		elif self.reflections.is_a(actual_receiver, dict):
+		elif actual_receiver.is_a(dict):
 			return actual_receiver.to(node, actual_receiver.attrs[1])
-		elif self.reflections.is_a(actual_receiver, tuple):
+		elif actual_receiver.is_a(tuple):
 			if keys[0].node and keys[0].node.is_a(defs.Integer):
 				# インデックスが判明している場合はその位置の型を返却
 				index = int(keys[0].node.as_a(defs.Integer).tokens)
@@ -645,7 +643,7 @@ class ProceduralResolver:
 			if not node.is_a(defs.Sum, defs.Term):
 				return function_helper.returns(receiver, actual_other)
 
-			var_types = actual_other.attrs if self.reflections.is_a(actual_other, classes.Union) else [actual_other]
+			var_types = actual_other.attrs if actual_other.impl(refs.Class).is_a(classes.Union) else [actual_other]
 			if other in var_types:
 				return function_helper.returns(receiver, actual_other)
 
@@ -656,8 +654,8 @@ class ProceduralResolver:
 		if primary == secondary:
 			return primary.stack(node)
 
-		primary_is_null = self.reflections.is_a(primary, None)
-		secondary_is_null = self.reflections.is_a(secondary, None)
+		primary_is_null = primary.impl(refs.Class).is_a(None)
+		secondary_is_null = secondary.impl(refs.Class).is_a(None)
 		if primary_is_null == secondary_is_null:
 			raise OperationNotAllowedError(f'Only Nullable. node: {node}, primary: {primary}, secondary: {secondary}')
 

@@ -67,12 +67,7 @@ class SymbolFinder:
 		Raises:
 			MustBeImplementedError: 標準クラスが未実装
 		"""
-		domain_name = ''
-		if standard_type is None:
-			domain_name = 'None'
-		else:
-			domain_name = standard_type.__name__
-
+		domain_name = standard_type.__name__ if standard_type is not None else 'None'
 		raw = self.__find_raw(db, [ModuleDSN(module_path) for module_path in self.__library_paths], domain_name)
 		if raw is not None:
 			return raw

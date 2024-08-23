@@ -561,11 +561,11 @@ class Py2Cpp(ITranspiler):
 
 	def on_relay(self, node: defs.Relay, receiver: str) -> str:
 		receiver_symbol = self.reflections.type_of(node.receiver)
-		receiver_symbol = self.unpack_nullable(receiver_symbol)
-		actual_receiver_symbol = self.unpack_type_proxy(receiver_symbol)
-		prop_symbol = self.reflections.type_of_property(actual_receiver_symbol.types, node.prop)
+		is_static = self.reflections.is_a(receiver_symbol, type)
+		receiver_symbol = self.unpack_nullable(receiver_symbol).impl(refs.Class).actualize()
+		prop_symbol = receiver_symbol.impl(refs.Class).prop_of(node.prop)
 
-		spec, operator = self.analyze_relay_spec(node, receiver_symbol)
+		spec, operator = self.analyze_relay_spec(node, receiver_symbol, is_static)
 		prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.ClassDef) else node.prop.domain_name
 		is_property = isinstance(prop_symbol.decl, defs.Method) and prop_symbol.decl.is_property
 		relay_vars = {'receiver': receiver, 'operator': operator, 'prop': prop, 'is_property': is_property}
@@ -579,13 +579,13 @@ class Py2Cpp(ITranspiler):
 			move = spec.split('cvar_to_')[1]
 			return self.view.render(f'{node.classification}/cvar_to', vars={**relay_vars, 'receiver': cvar_receiver, 'move': move})
 		elif spec.startswith('__module__'):
-			return self.view.render(f'{node.classification}/{spec}', vars={**relay_vars, 'module_path': actual_receiver_symbol.types.module_path})
+			return self.view.render(f'{node.classification}/{spec}', vars={**relay_vars, 'module_path': receiver_symbol.types.module_path})
 		elif spec.startswith('__name__'):
-			return self.view.render(f'{node.classification}/{spec}', vars={**relay_vars, 'symbol': self.to_domain_name_by_class(actual_receiver_symbol.types)})
+			return self.view.render(f'{node.classification}/{spec}', vars={**relay_vars, 'symbol': self.to_domain_name_by_class(receiver_symbol.types)})
 		else:
 			return self.view.render(f'{node.classification}/default', vars=relay_vars)
 
-	def analyze_relay_spec(self, node: defs.Relay, receiver_symbol: IReflection) -> tuple[str, str]:
+	def analyze_relay_spec(self, node: defs.Relay, receiver_symbol: IReflection, is_static: bool) -> tuple[str, str]:
 		def is_this_relay() -> bool:
 			return node.receiver.is_a(defs.ThisRef)
 
@@ -596,9 +596,7 @@ class Py2Cpp(ITranspiler):
 			return node.prop.domain_name in CVars.exchanger_keys
 
 		def is_class_relay() -> bool:
-			is_class_alias = isinstance(receiver_symbol.node, defs.Super)
-			is_class_receiver = self.reflections.is_a(receiver_symbol, type)
-			return is_class_alias or is_class_receiver
+			return isinstance(receiver_symbol.node, defs.Super) or is_static
 
 		if node.prop.tokens in ['__module__', '__name__']:
 			return node.prop.tokens, CVars.RelayOperators.Raw.name

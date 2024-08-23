@@ -21,6 +21,7 @@ from rogw.tranp.semantics.errors import NotSupportedError
 from rogw.tranp.semantics.procedure import Procedure
 import rogw.tranp.semantics.reflection.helper.template as templates
 from rogw.tranp.semantics.reflection.base import IReflection
+import rogw.tranp.semantics.reflection.definitions as refs
 from rogw.tranp.semantics.reflection.helper.naming import ClassDomainNaming, ClassShorthandNaming
 from rogw.tranp.semantics.reflections import Reflections
 import rogw.tranp.syntax.node.definition as defs
@@ -453,8 +454,7 @@ class Py2Cpp(ITranspiler):
 
 	def proc_move_assign_destruction(self, node: defs.MoveAssign, receivers: list[str], value: str) -> str:
 		"""Note: C++で分割代入できるのはtuple/pairのみ。Pythonではいずれもtupleのため、tuple以外は非対応"""
-		value_raw = self.reflections.type_of(node.value)
-		value_raw = self.unpack_alt_class(value_raw)
+		value_raw = self.reflections.type_of(node.value).impl(refs.Class).actualize()
 		if not self.reflections.is_a(value_raw, tuple):
 			raise LogicError(f'Not allowed destruction assign. value must be a tuple. node: {node}')
 
@@ -663,28 +663,25 @@ class Py2Cpp(ITranspiler):
 			return node.receiver.domain_name in CVars.keys()
 
 		if node.sliced:
-			receiver_symbol = self.reflections.type_of(node.receiver)
-			receiver_symbol = self.unpack_type_proxy(receiver_symbol)
+			receiver_symbol = self.reflections.type_of(node.receiver).impl(refs.Class).actualize()
 			spec = 'slice_string' if self.reflections.is_a(receiver_symbol, str) else 'slice_array'
 			return spec, receiver_symbol
 		elif is_on_cvar_relay():
-			receiver_symbol = self.reflections.type_of(node.receiver)
-			receiver_symbol = self.unpack_type_proxy(receiver_symbol)
+			receiver_symbol = self.reflections.type_of(node.receiver).impl(refs.Class).actualize()
 			cvar_key = CVars.key_from(self.reflections, receiver_symbol.context)
 			if not CVars.is_raw_raw(cvar_key):
 				return 'cvar_relay', None
 		elif is_cvar():
 			symbol = self.reflections.type_of(node)
-			return 'cvar', self.unpack_type_proxy(symbol)
+			return 'cvar', symbol.impl(refs.Class).actualize()
 		else:
-			receiver_symbol = self.reflections.type_of(node.receiver)
-			receiver_symbol = self.unpack_alt_class(receiver_symbol)
+			receiver_symbol = self.reflections.type_of(node.receiver).impl(refs.Class).actualize()
 			if self.reflections.is_a(receiver_symbol, tuple):
 				return 'tuple', None
 
 			symbol = self.reflections.type_of(node)
 			if self.reflections.is_a(symbol, type):
-				return 'class', self.unpack_type_proxy(symbol)
+				return 'class', symbol.impl(refs.Class).actualize()
 
 		return 'otherwise', None
 
@@ -860,8 +857,7 @@ class Py2Cpp(ITranspiler):
 			elif calls == print.__name__:
 				return 'print', None
 			elif calls == cast.__name__:
-				to_type = self.reflections.type_of(node.arguments[0])
-				return 'cast', self.unpack_type_proxy(to_type)
+				return 'cast', self.reflections.type_of(node.arguments[0]).impl(refs.Class).actualize()
 			elif calls == 'list':
 				return 'cast_list', None
 			elif calls in ['int', 'float', 'bool', 'str']:
@@ -908,8 +904,7 @@ class Py2Cpp(ITranspiler):
 					return spec, new_type_raw
 
 		if isinstance(node.calls, (defs.Relay, defs.Var)):
-			raw = self.reflections.type_of(node.calls)
-			raw = self.unpack_type_proxy(raw)
+			raw = self.reflections.type_of(node.calls).impl(refs.Class).actualize()
 			if raw.types.is_a(defs.Enum):
 				return 'cast_enum', raw
 

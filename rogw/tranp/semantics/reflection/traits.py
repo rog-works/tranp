@@ -1,7 +1,12 @@
+from typing import Iterator, cast
+
+import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.lang.annotation import implements, override
+from rogw.tranp.semantics.errors import UnresolvedSymbolError
 from rogw.tranp.semantics.reflection.base import IReflection, Trait
+import rogw.tranp.semantics.reflection.definitions as refs
 import rogw.tranp.semantics.reflection.helper.template as templates
-from rogw.tranp.semantics.reflection.interfaces import IFunction, IObject
+from rogw.tranp.semantics.reflection.interfaces import IActualizer, IFunction, IIterator, IObject
 from rogw.tranp.semantics.reflections import Reflections
 import rogw.tranp.syntax.node.definition as defs
 
@@ -13,7 +18,9 @@ def export_classes() -> list[type[Trait]]:
 		list[type[Trait]]: トレイトのクラスリスト
 	"""
 	return [
+		ActualizerTrait,
 		ObjectTrait,
+		IteratorTrait,
 		FunctionTrait,
 	]
 
@@ -29,6 +36,70 @@ class TraitImpl(Trait, IObject):
 			reflections (Reflections): シンボルリゾルバー @inject
 		"""
 		self.reflections = reflections
+
+
+class ActualizerTrait(TraitImpl, IActualizer):
+	"""トレイト実装(実体化)"""
+
+	def actualize(self, symbol: IReflection) -> IReflection:
+		"""プロクシー型(Union/TypeAlias/type)による階層化を解除し、実体型を取得。元々実体型である場合はそのまま返却
+
+		Args:
+			symbol (IReflection): シンボル ※Traitsから暗黙的に入力される
+		Returns:
+			IReflection: シンボル
+		Note:
+			### 変換対象
+			* Class | None
+			* T<Class>
+			* type<Class>
+		"""
+		actual = self._unpack_nullable(symbol)
+		actual = self._unpack_alt_class(actual)
+		actual = self._unpack_type(actual)
+		return actual
+
+	def _unpack_nullable(self, symbol: IReflection) -> IReflection:
+		"""Nullable型をアンパック
+
+		Args:
+			symbol (IReflection): シンボル
+		Returns:
+			IReflection: シンボル
+		Note:
+			対象: Class | None
+		"""
+		if self.reflections.is_a(symbol, classes.Union) and len(symbol.attrs) == 2:
+			is_0_null = self.reflections.is_a(symbol.attrs[0], None)
+			is_1_null = self.reflections.is_a(symbol.attrs[1], None)
+			if is_0_null != is_1_null:
+				return symbol.attrs[1 if is_0_null else 0]
+
+		return symbol
+
+	def _unpack_alt_class(self, symbol: IReflection) -> IReflection:
+		"""AltClass型をアンパック
+
+		Args:
+			symbol (IReflection): シンボル
+		Returns:
+			IReflection: シンボル
+		Note:
+			対象: T<Class>
+		"""
+		return symbol.attrs[0] if isinstance(symbol.types, defs.AltClass) else symbol
+
+	def _unpack_type(self, symbol: IReflection) -> IReflection:
+		"""type型をアンパック
+
+		Args:
+			symbol (IReflection): シンボル
+		Returns:
+			IReflection: シンボル
+		Note:
+			対象: type<T> -> T
+		"""
+		return symbol.attrs[0] if isinstance(symbol.decl, defs.Class) and self.reflections.is_a(symbol, type) else symbol
 
 
 class ObjectTrait(TraitImpl, IObject):
@@ -56,6 +127,38 @@ class ObjectTrait(TraitImpl, IObject):
 			IReflection: シンボル
 		"""
 		return symbol.to(symbol.types, self.reflections.type_of_constructor(symbol.types.as_a(defs.Class)))
+
+
+class IteratorTrait(TraitImpl, IIterator):
+	"""トレイト実装(イテレーター)"""
+
+	def iterates(self, symbol: IReflection) -> IReflection:
+		"""イテレーターの結果を解決
+
+		Args:
+			symbol (IReflection): シンボル ※Traitsから暗黙的に入力される
+		Returns:
+			IReflection: シンボル
+		"""
+		method = symbol.to(symbol.types, self._resolve_method(symbol))
+		iterates = method.impl(refs.Function).returns()
+		# メソッド毎の返却値の違いを吸収
+		# iterator: () -> T
+		# iterable: () -> Iterator<T>
+		return iterates.attrs[0] if self.reflections.is_a(iterates, cast(type, Iterator)) else iterates
+
+	def _resolve_method(self, symbol: IReflection) -> IReflection:
+		"""イテレーターのメソッドを解決
+
+		Args:
+			symbol (IReflection): シンボル
+		Returns:
+			IReflection: シンボル
+		"""
+		try:
+			return self.reflections.resolve(symbol.types, symbol.types.operations.iterator)
+		except UnresolvedSymbolError:
+			return self.reflections.resolve(symbol.types, symbol.types.operations.iterable)
 
 
 class FunctionTrait(TraitImpl, IFunction):

@@ -1,9 +1,13 @@
 from rogw.tranp.semantics.reflection.base import IReflection
-from rogw.tranp.semantics.reflection.interfaces import IFunction, IObject
+from rogw.tranp.semantics.reflection.interfaces import IActualizer, IFunction, IIterator, IObject
 
 
-class Class(IReflection, IObject):
+class Class(IReflection, IActualizer, IObject):
 	"""リフレクション拡張(クラス)"""
+
+
+class Iterator(IReflection, IIterator):
+	"""リフレクション拡張(イテレーター)"""
 
 
 class Function(IReflection, IFunction):

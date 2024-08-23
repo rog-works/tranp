@@ -17,6 +17,25 @@ class IExample(Protocol):
 		...
 
 
+class IActualizer:
+	"""拡張インターフェイス(実体化)"""
+
+	def actualize(self, **injected: IReflection) -> IReflection:
+		"""プロクシー型(Union/TypeAlias/type)による階層化を解除し、実体型を取得。元々実体型である場合はそのまま返却
+
+		Args:
+			symbol (IReflection): シンボル ※Traitsから暗黙的に入力される
+		Returns:
+			IReflection: シンボル
+		Note:
+			### 変換対象
+			* Class | None
+			* T<Class>
+			* type<Class>
+		"""
+		...
+
+
 class IObject:
 	"""拡張インターフェイス(オブジェクト)"""
 
@@ -33,6 +52,20 @@ class IObject:
 
 	def constructor(self, **injected: IReflection) -> IReflection:
 		"""コンストラクターを取得
+
+		Args:
+			**injected (IReflection): シンボル入力用のキーワード引数 ※インターフェイス上は無視して問題ない
+		Returns:
+			IReflection: シンボル
+		"""
+		...
+
+
+class IIterator:
+	"""拡張インターフェイス(イテレーター)"""
+
+	def iterates(self, **injected: IReflection) -> IReflection:
+		"""イテレーターの結果を解決
 
 		Args:
 			**injected (IReflection): シンボル入力用のキーワード引数 ※インターフェイス上は無視して問題ない

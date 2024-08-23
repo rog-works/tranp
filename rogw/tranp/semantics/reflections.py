@@ -334,46 +334,6 @@ class ProceduralResolver:
 		"""
 		return self.procedure.exec(node)
 
-	def force_unpack_nullable(self, symbol: IReflection) -> IReflection:
-		"""Nullableのシンボルの変数の型をアンパック。Nullable以外の型はそのまま返却 (主にRelayで利用)
-
-		Args:
-			symbol (IReflection): シンボル
-		Returns:
-			IReflection: 変数の型
-		Note:
-			許容するNullableの書式 (例: 'Class | None')
-		"""
-		if self.reflections.is_a(symbol, classes.Union) and len(symbol.attrs) == 2:
-			is_0_null = self.reflections.is_a(symbol.attrs[0], None)
-			is_1_null = self.reflections.is_a(symbol.attrs[1], None)
-			if is_0_null != is_1_null:
-				return symbol.attrs[1 if is_0_null else 0]
-
-		return symbol
-
-	def unpack_alt_class(self, symbol: IReflection) -> IReflection:
-		"""AltClass型をアンパック
-
-		Args:
-			symbol (IReflection): シンボル
-		Returns:
-			IReflection: 変数の型
-		"""
-		return symbol.attrs[0] if isinstance(symbol.types, defs.AltClass) else symbol
-
-	def unpack_type_proxy(self, symbol: IReflection) -> IReflection:
-		"""typeのProxy型をアンパック
-
-		Args:
-			symbol (IReflection): シンボル
-		Returns:
-			IReflection: 変数の型
-		Note:
-			対象: type<T> -> T
-		"""
-		return symbol.attrs[0] if isinstance(symbol.decl, defs.Class) and self.reflections.is_a(symbol, type) else symbol
-
 	# Fallback
 
 	def on_fallback(self, node: Node) -> IReflection:
@@ -460,16 +420,11 @@ class ProceduralResolver:
 		# indexer.prop: a.b[0].c()
 		# indexer.func_call: a.b[1].c()
 
-		# AltClass/Nullableを解除
-		# XXX Nullable解除に関してはon_relayに到達した時点でnullが期待値であることはあり得ないと言う想定
-		unpacked_receiver = self.unpack_alt_class(receiver)
-		unpacked_receiver = self.force_unpack_nullable(unpacked_receiver)
-
-		if self.reflections.is_a(unpacked_receiver, type):
-			unpacked_receiver = self.unpack_type_proxy(receiver)
-			return unpacked_receiver.to(node, self.proc_relay_class(node, unpacked_receiver))
+		actual_receiver = receiver.impl(refs.Class).actualize()
+		if self.reflections.is_a(receiver, type):
+			return actual_receiver.to(node, self.proc_relay_class(node, actual_receiver))
 		else:
-			return unpacked_receiver.to(node, self.proc_relay_object(node, unpacked_receiver))
+			return actual_receiver.to(node, self.proc_relay_object(node, actual_receiver))
 
 	def proc_relay_class(self, node: defs.Relay, receiver: IReflection) -> IReflection:
 		prop = receiver.impl(refs.Class).prop_of(node.prop)
@@ -508,36 +463,33 @@ class ProceduralResolver:
 		return self.reflections.resolve(node).stack(node)
 
 	def on_indexer(self, node: defs.Indexer, receiver: IReflection, keys: list[IReflection]) -> IReflection:
-		unpacked_receiver = self.unpack_alt_class(receiver)
+		actual_receiver = receiver.impl(refs.Class).actualize()
 
 		if node.sliced:
-			return unpacked_receiver.stack(node)
-		elif self.reflections.is_a(unpacked_receiver, str):
-			return unpacked_receiver.stack(node)
-		elif self.reflections.is_a(unpacked_receiver, list):
-			return unpacked_receiver.to(node, unpacked_receiver.attrs[0])
-		elif self.reflections.is_a(unpacked_receiver, dict):
-			return unpacked_receiver.to(node, unpacked_receiver.attrs[1])
-		elif self.reflections.is_a(unpacked_receiver, tuple):
+			return actual_receiver.stack(node)
+		elif self.reflections.is_a(receiver, type):
+			actual_keys = [key.impl(refs.Class).actualize() for key in keys]
+			actual_class = actual_receiver.stack().extends(*actual_keys)
+			return actual_receiver.to(node, self.reflections.type_of_standard(type)).extends(actual_class)
+		elif self.reflections.is_a(actual_receiver, str):
+			return actual_receiver.stack(node)
+		elif self.reflections.is_a(actual_receiver, list):
+			return actual_receiver.to(node, actual_receiver.attrs[0])
+		elif self.reflections.is_a(actual_receiver, dict):
+			return actual_receiver.to(node, actual_receiver.attrs[1])
+		elif self.reflections.is_a(actual_receiver, tuple):
 			if keys[0].node and keys[0].node.is_a(defs.Integer):
 				# インデックスが判明している場合はその位置の型を返却
 				index = int(keys[0].node.as_a(defs.Integer).tokens)
-				return unpacked_receiver.to(node, unpacked_receiver.attrs[index])
+				return actual_receiver.to(node, actual_receiver.attrs[index])
 			else:
 				# インデックスが不明の場合は共用型とする
-				return unpacked_receiver.to(node, self.reflections.type_of_standard(classes.Union)).extends(*unpacked_receiver.attrs)
-		elif self.reflections.is_a(unpacked_receiver, type):
-			# この処理は実質的にCustomTypeの展開と等価
-			# XXX 不可解なスタックの解除と追加が連続して意味不明なので修正を検討
-			unpacked_receiver = self.unpack_type_proxy(unpacked_receiver)
-			unpacked_keys = [self.unpack_type_proxy(key) for key in keys]
-			klass_symbol = unpacked_receiver.stack().extends(*unpacked_keys)
-			return unpacked_receiver.to(node, self.reflections.type_of_standard(type)).extends(klass_symbol)
+				return actual_receiver.to(node, self.reflections.type_of_standard(classes.Union)).extends(*actual_receiver.attrs)
 		else:
 			# XXX コレクション型以外は全て通常のクラスである想定
 			# XXX keyに何が入るべきか特定できないためreceiverをそのまま返却
 			# XXX この状況で何が取得されるべきかは利用側で判断することとする
-			return unpacked_receiver.stack(node)
+			return actual_receiver.stack(node)
 
 	def on_relay_of_type(self, node: defs.RelayOfType, receiver: IReflection) -> IReflection:
 		"""Note: XXX Pythonではtypeをアンパックする構文が存在しないためAltClassも同様に扱う"""
@@ -575,8 +527,7 @@ class ProceduralResolver:
 			# arguments
 			* expression
 		"""
-		actual_calls = self.unpack_alt_class(calls)
-		actual_calls = self.unpack_type_proxy(actual_calls)
+		actual_calls = calls.impl(refs.Class).actualize()
 		if isinstance(actual_calls.types, defs.Class):
 			actual_calls = actual_calls.impl(refs.Class).constructor()
 
@@ -603,27 +554,8 @@ class ProceduralResolver:
 			* group: Any
 			* operator: Any
 		"""
-		iterates = self.unpack_alt_class(iterates)
-
-		def resolve_method() -> tuple[IReflection, str]:
-			try:
-				return self.reflections.resolve(iterates.types, iterates.types.operations.iterator), 'iterator'
-			except UnresolvedSymbolError:
-				return self.reflections.resolve(iterates.types, iterates.types.operations.iterable), 'iterable'
-
-		method, solution = resolve_method()
-		# XXX iteratorの場合は、戻り値の型をそのまま使用
-		# XXX iterableの場合は、戻り値の型が`Iterator<T>`と言う想定でアンパックする
-		# XXX # メソッドシグネチャーの期待値
-		# XXX `iterator(self) -> T`
-		# XXX `iterable(self) -> Iterator<T>`
-		schema = {
-			'klass': method.attrs[0],
-			'parameters': method.attrs[1:-1],
-			'returns': method.attrs[-1] if solution == 'iterator' else method.attrs[-1].attrs[0],
-		}
-		function_helper = templates.HelperBuilder(method).schema(lambda: schema).build(templates.Method)
-		return function_helper.returns(iterates).stack(node)
+		actual_iterates = iterates.impl(refs.Class).actualize()
+		return actual_iterates.to(node, actual_iterates.impl(refs.Iterator).iterates())
 
 	def on_comp_for(self, node: defs.CompFor, symbols: list[IReflection], for_in: IReflection) -> IReflection:
 		return for_in.stack(node)

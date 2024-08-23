@@ -4,7 +4,14 @@ T = TypeVar('T')
 
 
 class Memo(Generic[T]):
+	"""キャッシュ"""
+
 	def __init__(self, factory: Callable[[], T]) -> None:
+		"""インスタンスを生成
+
+		Args:
+			factory (Callable[[], T]): ファクトリー関数
+		"""
 		self._factory = factory
 		self._result: T | None = None
 
@@ -16,10 +23,21 @@ class Memo(Generic[T]):
 
 
 class Memoize:
+	"""キャッシュマネージャー"""
+
 	def __init__(self) -> None:
+		"""インスタンスを生成"""
 		self._memos: dict[object, Memo] = {}
 
 	def get(self, key: object, factory: Callable[[], T]) -> T:
+		"""キャッシュからインタンスを取得
+
+		Args:
+			key (object): キャッシュキー
+			factory (Callable[[], T]): ファクトリー関数
+		Returns:
+			T: インスタンス
+		"""
 		if key not in self._memos:
 			self._memos[key] = Memo(factory)
 

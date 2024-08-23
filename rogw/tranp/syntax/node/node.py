@@ -3,7 +3,7 @@ from typing import Any, Iterator, Literal, TypeVar, cast
 
 from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.errors import LogicError
-from rogw.tranp.io.memo import Memo
+from rogw.tranp.io.memo2 import Memoize
 from rogw.tranp.lang.annotation import deprecated, injectable, override
 from rogw.tranp.lang.sequence import flatten
 from rogw.tranp.lang.string import snakelize
@@ -40,7 +40,7 @@ class Node:
 		self.__nodes = nodes
 		self.__module_path = module_path
 		self._full_path = EntryPath(full_path)
-		self._memo = Memo()
+		self._memo = Memoize()
 
 	@override
 	def __str__(self) -> str:
@@ -116,19 +116,17 @@ class Node:
 			* IDomainを実装(ClassDef/Declare/Reference/Type/FuncCall/Literal/Empty): scope.domain_name
 			* その他: scope.classification@id
 		"""
-		@self._memo('fullyname')
 		def factory() -> str:
 			if isinstance(self, IDomain):
 				return ModuleDSN.full_joined(self.scope, self.domain_name)
 			else:
 				return ModuleDSN.identify(ModuleDSN.full_joined(self.scope, self.classification), self.id)
 
-		return factory()
+		return self._memo.get('fullyname', factory)
 
 	@property
 	def scope(self) -> str:
 		"""str: 自身が所属するスコープ"""
-		@self._memo('scope')
 		def factory() -> str:
 			parent = self.parent
 			if isinstance(parent, IScope):
@@ -136,12 +134,11 @@ class Node:
 			else:
 				return parent.scope
 
-		return factory()
+		return self._memo.get('scope', factory)
 
 	@property
 	def namespace(self) -> str:
 		"""str: 自身が所属する名前空間"""
-		@self._memo('namespace')
 		def factory() -> str:
 			parent = self.parent
 			if isinstance(parent, INamespace):
@@ -149,7 +146,7 @@ class Node:
 			else:
 				return parent.namespace
 
-		return factory()
+		return self._memo.get('namespace', factory)
 
 	@property
 	def can_expand(self) -> bool:

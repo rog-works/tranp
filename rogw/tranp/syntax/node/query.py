@@ -1,6 +1,6 @@
 import re
 
-from rogw.tranp.io.memo import Memoize
+from rogw.tranp.io.memo2 import Memoize
 from rogw.tranp.lang.annotation import implements, injectable
 from rogw.tranp.syntax.ast.cache import EntryCache
 from rogw.tranp.syntax.ast.entry import Entry, SourceMap
@@ -76,8 +76,6 @@ class Nodes(Query[Node]):
 		Raises:
 			NodeNotFoundError: 親が存在しない
 		"""
-		memo = self.__memo.get(self.parent)
-		@memo(via)
 		def factory() -> Node:
 			forwards = EntryPath(via).shift(-1)
 			while(forwards.valid):
@@ -88,7 +86,7 @@ class Nodes(Query[Node]):
 
 			raise NodeNotFoundError(via)
 
-		return factory()
+		return self.__memo.get(f'parent.{via}', factory)
 
 	@implements
 	def ancestor(self, via: str, tag: str) -> Node:
@@ -102,8 +100,6 @@ class Nodes(Query[Node]):
 		Raises:
 			NodeNotFoundError: 指定のエントリータグを持つ親が存在しない
 		"""
-		memo = self.__memo.get(self.ancestor)
-		@memo(f'{via}#{tag}')
 		def factory() -> Node:
 			base = EntryPath(via)
 			elems = list(reversed(base.de_identify().elements))
@@ -115,7 +111,7 @@ class Nodes(Query[Node]):
 			found_path = EntryPath.join(*base.elements[:slices])
 			return self.by(found_path.origin)
 
-		return factory()
+		return self.__memo.get(f'ancestor.{via}#{tag}', factory)
 
 	@implements
 	def siblings(self, via: str) -> list[Node]:
@@ -148,15 +144,13 @@ class Nodes(Query[Node]):
 		Raises:
 			NodeNotFoundError: 基点のノードが存在しない
 		"""
-		memo = self.__memo.get(self.children)
-		@memo(via)
 		def factory() -> list[Node]:
 			regular = re.compile(rf'{EntryPath(via).escaped_origin}\.[^.]+')
 			tester = lambda _, path: regular.fullmatch(path) is not None
 			entries = {path: entry for path, entry in self.__entries.group_by(via, depth=1).items() if tester(entry, path)}
 			return [self.__resolve(entry, path) for path, entry in entries.items()]
 
-		return factory()
+		return self.__memo.get(f'children.{via}', factory)
 
 	@implements
 	def expand(self, via: str) -> list[Node]:
@@ -169,8 +163,6 @@ class Nodes(Query[Node]):
 		Raises:
 			NodeNotFoundError: 基点のノードが存在しない
 		"""
-		memo = self.__memo.get(self.expand)
-		@memo(via)
 		def factory() -> list[Node]:
 			record: list[str] = []
 			def tester(entry: Entry, path: str) -> bool:
@@ -201,7 +193,7 @@ class Nodes(Query[Node]):
 			entries = {path: entry for path, entry in under_entries if tester(entry, path)}
 			return [self.__resolve(entry, path) for path, entry in entries.items()]
 
-		return factory()
+		return self.__memo.get(f'expand.{via}', factory)
 
 	@implements
 	def values(self, via: str) -> list[str]:
@@ -212,12 +204,10 @@ class Nodes(Query[Node]):
 		Returns:
 			list[str]: 値リスト
 		"""
-		memo = self.__memo.get(self.values)
-		@memo(via)
 		def factory() -> list[str]:
 			return [entry.value for entry in self.__entries.group_by(via).values() if entry.value]
 
-		return factory()
+		return self.__memo.get(f'values.{via}', factory)
 
 	@implements
 	def id(self, full_path: str) -> int:

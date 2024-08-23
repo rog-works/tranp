@@ -65,6 +65,9 @@ class ConvertionTrait(TraitImpl, IConvertion):
 			* Class | None
 			* T<Class>
 			* type<Class>
+			### Selfの妥当性
+			* XXX 実質的に具象クラスはReflectionのみであり、アンパック後も型は変化しない
+			* XXX リフレクション拡張の型(=Self)として継続して利用できる方が効率が良い
 		"""
 		actual = self._unpack_nullable(symbol)
 		actual = self._unpack_alt_class(actual)

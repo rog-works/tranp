@@ -577,12 +577,10 @@ class ProceduralResolver:
 		"""
 		actual_calls = self.unpack_alt_class(calls)
 		actual_calls = self.unpack_type_proxy(actual_calls)
-
 		if isinstance(actual_calls.types, defs.Class):
-			constructor_calls = actual_calls.impl(refs.Class).constructor()
-			return actual_calls.to(node, constructor_calls.impl(refs.Function).returns(*arguments))
-		else:
-			return actual_calls.to(node, actual_calls.impl(refs.Function).returns(*arguments))
+			actual_calls = actual_calls.impl(refs.Class).constructor()
+
+		return actual_calls.to(node, actual_calls.impl(refs.Function).returns(*arguments))
 
 	def on_super(self, node: defs.Super, calls: IReflection, arguments: list[IReflection]) -> IReflection:
 		if node.can_resolve_super:

@@ -420,8 +420,8 @@ class ProceduralResolver:
 		# indexer.prop: a.b[0].c()
 		# indexer.func_call: a.b[1].c()
 
-		actual_receiver = receiver.impl(refs.Class).actualize()
-		if receiver.impl(refs.Class).is_a(type):
+		actual_receiver = receiver.impl(refs.Object).actualize()
+		if receiver.impl(refs.Object).is_a(type):
 			return actual_receiver.to(node, self.proc_relay_class(node, actual_receiver, actual_receiver.prop_of(node.prop)))
 		else:
 			return actual_receiver.to(node, self.proc_relay_object(node, actual_receiver, actual_receiver.prop_of(node.prop)))
@@ -461,12 +461,12 @@ class ProceduralResolver:
 		return self.reflections.resolve(node).stack(node)
 
 	def on_indexer(self, node: defs.Indexer, receiver: IReflection, keys: list[IReflection]) -> IReflection:
-		actual_receiver = receiver.impl(refs.Class).actualize()
+		actual_receiver = receiver.impl(refs.Object).actualize()
 
 		if node.sliced:
 			return actual_receiver.stack(node)
-		elif receiver.impl(refs.Class).is_a(type):
-			actual_keys = [key.impl(refs.Class).actualize() for key in keys]
+		elif receiver.impl(refs.Object).is_a(type):
+			actual_keys = [key.impl(refs.Object).actualize() for key in keys]
 			actual_class = actual_receiver.stack().extends(*actual_keys)
 			return actual_receiver.to(node, self.reflections.type_of_standard(type)).extends(actual_class)
 		elif actual_receiver.is_a(str):
@@ -525,9 +525,9 @@ class ProceduralResolver:
 			# arguments
 			* expression
 		"""
-		actual_calls = calls.impl(refs.Class).actualize()
+		actual_calls = calls.impl(refs.Object).actualize()
 		if isinstance(actual_calls.types, defs.Class):
-			actual_calls = actual_calls.impl(refs.Class).constructor()
+			actual_calls = actual_calls.impl(refs.Object).constructor()
 
 		return actual_calls.to(node, actual_calls.impl(refs.Function).returns(*arguments))
 
@@ -552,7 +552,7 @@ class ProceduralResolver:
 			* group: Any
 			* operator: Any
 		"""
-		actual_iterates = iterates.impl(refs.Class).actualize()
+		actual_iterates = iterates.impl(refs.Object).actualize()
 		return actual_iterates.to(node, actual_iterates.impl(refs.Iterator).iterates())
 
 	def on_comp_for(self, node: defs.CompFor, symbols: list[IReflection], for_in: IReflection) -> IReflection:
@@ -643,7 +643,7 @@ class ProceduralResolver:
 			if not node.is_a(defs.Sum, defs.Term):
 				return function_helper.returns(receiver, actual_other)
 
-			var_types = actual_other.attrs if actual_other.impl(refs.Class).is_a(classes.Union) else [actual_other]
+			var_types = actual_other.attrs if actual_other.impl(refs.Object).is_a(classes.Union) else [actual_other]
 			if other in var_types:
 				return function_helper.returns(receiver, actual_other)
 
@@ -654,8 +654,8 @@ class ProceduralResolver:
 		if primary == secondary:
 			return primary.stack(node)
 
-		primary_is_null = primary.impl(refs.Class).is_a(None)
-		secondary_is_null = secondary.impl(refs.Class).is_a(None)
+		primary_is_null = primary.impl(refs.Object).is_a(None)
+		secondary_is_null = secondary.impl(refs.Object).is_a(None)
 		if primary_is_null == secondary_is_null:
 			raise OperationNotAllowedError(f'Only Nullable. node: {node}, primary: {primary}, secondary: {secondary}')
 

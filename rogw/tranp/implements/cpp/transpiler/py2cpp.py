@@ -449,13 +449,13 @@ class Py2Cpp(ITranspiler):
 		value_raw = self.reflections.type_of(node.value)
 		declared = receiver_raw.decl.declare == node
 		var_type = self.to_accessible_name(value_raw)
-		receiver_is_dict = isinstance(node.receivers[0], defs.Indexer) and self.reflections.is_a(self.reflections.type_of(node.receivers[0].receiver), dict)
+		receiver_is_dict = isinstance(node.receivers[0], defs.Indexer) and self.reflections.type_of(node.receivers[0].receiver).impl(refs.Class).is_a(dict)
 		return self.view.render(f'assign/{node.classification}', vars={'receiver': receiver, 'var_type': var_type, 'value': value, 'declared': declared, 'receiver_is_dict': receiver_is_dict})
 
 	def proc_move_assign_destruction(self, node: defs.MoveAssign, receivers: list[str], value: str) -> str:
 		"""Note: C++で分割代入できるのはtuple/pairのみ。Pythonではいずれもtupleのため、tuple以外は非対応"""
 		value_raw = self.reflections.type_of(node.value).impl(refs.Class).actualize()
-		if not self.reflections.is_a(value_raw, tuple):
+		if not value_raw.is_a(tuple):
 			raise LogicError(f'Not allowed destruction assign. value must be a tuple. node: {node}')
 
 		return self.view.render(f'assign/{node.classification}_destruction', vars={'receivers': receivers, 'value': value})
@@ -473,7 +473,7 @@ class Py2Cpp(ITranspiler):
 				raise LogicError(f'Unexpected delete target. supported type is list or dict. target: {target_node}')
 
 			target_symbol = self.reflections.type_of(target_node.receiver)
-			target_types.append('list' if self.reflections.is_a(target_symbol, list) else 'dict')
+			target_types.append('list' if target_symbol.impl(refs.Class).is_a(list) else 'dict')
 
 		_targets: list[dict[str, str]] = []
 		for i in range(len(targets)):
@@ -560,12 +560,12 @@ class Py2Cpp(ITranspiler):
 		return node.tokens
 
 	def on_relay(self, node: defs.Relay, receiver: str) -> str:
-		receiver_symbol = self.reflections.type_of(node.receiver)
-		is_static = self.reflections.is_a(receiver_symbol, type)
-		receiver_symbol = receiver_symbol.impl(refs.Class).actualize()
-		prop_symbol = receiver_symbol.impl(refs.Class).prop_of(node.prop)
+		receiver_symbol = self.reflections.type_of(node.receiver).impl(refs.Class)
+		receiver_is_static = receiver_symbol.is_a(type)
+		receiver_symbol = receiver_symbol.actualize()
+		prop_symbol = receiver_symbol.prop_of(node.prop)
 
-		spec, operator = self.analyze_relay_spec(node, receiver_symbol, is_static)
+		spec, operator = self.analyze_relay_spec(node, receiver_symbol, receiver_is_static)
 		prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.ClassDef) else node.prop.domain_name
 		is_property = isinstance(prop_symbol.decl, defs.Method) and prop_symbol.decl.is_property
 		relay_vars = {'receiver': receiver, 'operator': operator, 'prop': prop, 'is_property': is_property}
@@ -585,7 +585,7 @@ class Py2Cpp(ITranspiler):
 		else:
 			return self.view.render(f'{node.classification}/default', vars=relay_vars)
 
-	def analyze_relay_spec(self, node: defs.Relay, receiver_symbol: IReflection, is_static: bool) -> tuple[str, str]:
+	def analyze_relay_spec(self, node: defs.Relay, receiver_symbol: IReflection, receiver_is_static: bool) -> tuple[str, str]:
 		def is_this_relay() -> bool:
 			return node.receiver.is_a(defs.ThisRef)
 
@@ -596,7 +596,7 @@ class Py2Cpp(ITranspiler):
 			return node.prop.domain_name in CVars.exchanger_keys
 
 		def is_class_relay() -> bool:
-			return is_static or isinstance(receiver_symbol.node, defs.Super)
+			return receiver_is_static or isinstance(receiver_symbol.node, defs.Super)
 
 		if node.prop.tokens in ['__module__', '__name__']:
 			return node.prop.tokens, CVars.RelayOperators.Raw.name
@@ -662,7 +662,7 @@ class Py2Cpp(ITranspiler):
 
 		if node.sliced:
 			receiver_symbol = self.reflections.type_of(node.receiver).impl(refs.Class).actualize()
-			spec = 'slice_string' if self.reflections.is_a(receiver_symbol, str) else 'slice_array'
+			spec = 'slice_string' if receiver_symbol.is_a(str) else 'slice_array'
 			return spec, receiver_symbol
 		elif is_on_cvar_relay():
 			receiver_symbol = self.reflections.type_of(node.receiver).impl(refs.Class).actualize()
@@ -674,12 +674,12 @@ class Py2Cpp(ITranspiler):
 			return 'cvar', symbol.impl(refs.Class).actualize()
 		else:
 			receiver_symbol = self.reflections.type_of(node.receiver).impl(refs.Class).actualize()
-			if self.reflections.is_a(receiver_symbol, tuple):
+			if receiver_symbol.is_a(tuple):
 				return 'tuple', None
 
-			symbol = self.reflections.type_of(node)
-			if self.reflections.is_a(symbol, type):
-				return 'class', symbol.impl(refs.Class).actualize()
+			symbol = self.reflections.type_of(node).impl(refs.Class)
+			if symbol.is_a(type):
+				return 'class', symbol.actualize()
 
 		return 'otherwise', None
 
@@ -860,14 +860,14 @@ class Py2Cpp(ITranspiler):
 				return 'cast_list', None
 			elif calls in ['int', 'float', 'bool', 'str']:
 				casted_types = {'int': int, 'float': float, 'bool': bool, 'str': str}
-				from_raw = self.reflections.type_of(node.arguments[0])
 				to_type = casted_types[calls]
-				to_raw = self.reflections.type_of_standard(to_type)
-				if self.reflections.is_a(from_raw, str) and self.reflections.is_a(to_raw, str):
+				from_raw = self.reflections.type_of(node.arguments[0]).impl(refs.Class)
+				to_raw = self.reflections.type_of_standard(to_type).impl(refs.Class)
+				if from_raw.is_a(str) and to_raw.is_a(str):
 					return 'cast_str_to_str', to_raw
-				elif self.reflections.is_a(from_raw, str):
+				elif from_raw.is_a(str):
 					return 'cast_str_to_bin', to_raw
-				elif to_type == str:
+				elif to_type is str:
 					return 'cast_bin_to_str', from_raw
 				else:
 					return 'cast_bin_to_bin', to_raw
@@ -876,17 +876,17 @@ class Py2Cpp(ITranspiler):
 		elif isinstance(node.calls, defs.Relay):
 			prop = node.calls.prop.tokens
 			if prop in ['pop', 'insert', 'extend', 'keys', 'values']:
-				context = self.reflections.type_of(node.calls).context
-				if self.reflections.is_a(context, list) and prop in ['pop', 'insert', 'extend']:
+				context = self.reflections.type_of(node.calls).context.impl(refs.Class)
+				if prop in ['pop', 'insert', 'extend'] and context.is_a(list):
 					return f'list_{prop}', context.attrs[0]
-				elif self.reflections.is_a(context, dict) and prop in ['pop', 'keys', 'values']:
+				elif prop in ['pop', 'keys', 'values'] and context.is_a(dict):
 					key_attr, value_attr = context.attrs
 					attr_indexs = {'pop': value_attr, 'keys': key_attr, 'values': value_attr}
 					return f'dict_{prop}', attr_indexs[prop]
 			elif prop == 'format':
 				if node.calls.receiver.is_a(defs.String):
 					return 'str_format', None
-				elif self.reflections.is_a(self.reflections.type_of(node.calls).context, str):
+				elif self.reflections.type_of(node.calls).context.impl(refs.Class).is_a(str):
 					return 'str_format', None
 			elif prop == CVars.empty_key:
 				context = self.reflections.type_of(node).attrs[0]
@@ -898,7 +898,7 @@ class Py2Cpp(ITranspiler):
 					return f'new_cvar_p', None
 				elif CVars.is_addr_sp(cvar_key):
 					new_type_raw = self.reflections.type_of(node.arguments[0])
-					spec = 'new_cvar_sp_list' if self.reflections.is_a(new_type_raw, list) else 'new_cvar_sp'
+					spec = 'new_cvar_sp_list' if new_type_raw.impl(refs.Class).is_a(list) else 'new_cvar_sp'
 					return spec, new_type_raw
 
 		if isinstance(node.calls, (defs.Relay, defs.Var)):
@@ -1002,8 +1002,8 @@ class Py2Cpp(ITranspiler):
 		operators = [elements[index] for index in operator_indexs]
 		secondaries = [elements[index] for index in right_indexs]
 
-		list_is_primary = self.reflections.is_a(primary_raw, list)
-		list_is_secondary = self.reflections.is_a(secondary_raws[0], list)
+		list_is_primary = primary_raw.impl(refs.Class).is_a(list)
+		list_is_secondary = secondary_raws[0].impl(refs.Class).is_a(list)
 		if list_is_primary != list_is_secondary and operators[0] == '*':
 			default_raw, default = (primary_raw, primary) if list_is_primary else (secondary_raws[0], secondaries[0])
 			size_raw, size = (secondary_raws[0], secondaries[0]) if list_is_primary else (primary_raw, primary)
@@ -1022,9 +1022,9 @@ class Py2Cpp(ITranspiler):
 			operator = operators[index]
 			secondary = rights[index]
 			if operator in ['in', 'not.in']:
-				primary = self.view.render('binary_operator/in', vars={'left': primary, 'operator': operator, 'right': secondary, 'right_is_dict': self.reflections.is_a(right_raw, dict)})
+				primary = self.view.render('binary_operator/in', vars={'left': primary, 'operator': operator, 'right': secondary, 'right_is_dict': right_raw.impl(refs.Class).is_a(dict)})
 			else:
-				primary = self.view.render('binary_operator/default', vars={'left': primary, 'operator': operator, 'right': secondary, 'right_is_dict': self.reflections.is_a(right_raw, dict)})
+				primary = self.view.render('binary_operator/default', vars={'left': primary, 'operator': operator, 'right': secondary, 'right_is_dict': right_raw.impl(refs.Class).is_a(dict)})
 
 		return primary
 

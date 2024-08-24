@@ -332,7 +332,7 @@ class ClassDef(Node, IDomain, IScope, INamespace, IDeclaration, ISymbol):
 	@property
 	def actual_symbol(self) -> str | None:
 		embedder = self._dig_embedder(__actual__.__name__)
-		return embedder.arguments[0].value.as_a(String).plain if embedder else None
+		return embedder.arguments[0].value.as_a(String).as_string if embedder else None
 
 	def _decl_vars_with(self, allow: type[T_Declable]) -> list[T_Declable]:
 		return VarsCollector.collect(self, allow)

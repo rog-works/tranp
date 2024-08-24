@@ -1,4 +1,3 @@
-import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.lang.annotation import implements, override
 from rogw.tranp.lang.comment import Comment as CommentData
@@ -36,6 +35,10 @@ class Integer(Number):
 	def literal_identifier(self) -> str:
 		return int.__name__
 
+	@property
+	def as_int(self) -> int:
+		return int(self.tokens)
+
 
 @Meta.embed(Node)
 class Float(Number):
@@ -48,6 +51,10 @@ class Float(Number):
 	def literal_identifier(self) -> str:
 		return float.__name__
 
+	@property
+	def as_float(self) -> float:
+		return float(self.tokens)
+
 
 @Meta.embed(Node, accept_tags('string'))
 class String(Literal, ITerminal):
@@ -57,7 +64,7 @@ class String(Literal, ITerminal):
 		return str.__name__
 
 	@property
-	def plain(self) -> str:
+	def as_string(self) -> str:
 		return self.tokens[1:-1]
 
 
@@ -70,12 +77,12 @@ class DocString(String):
 
 	@property
 	@override
-	def plain(self) -> str:
+	def as_string(self) -> str:
 		return self.tokens[3:-3]
 
 	@property
 	def data(self) -> CommentData:
-		return CommentData.parse(self.plain)
+		return CommentData.parse(self.as_string)
 
 
 class Boolean(Literal, ITerminal):

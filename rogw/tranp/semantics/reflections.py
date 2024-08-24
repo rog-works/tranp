@@ -478,7 +478,7 @@ class ProceduralResolver:
 		elif actual_receiver.is_a(tuple):
 			if keys[0].node and keys[0].node.is_a(defs.Integer):
 				# インデックスが判明している場合はその位置の型を返却
-				index = int(keys[0].node.as_a(defs.Integer).tokens)
+				index = keys[0].node.as_a(defs.Integer).as_int
 				return actual_receiver.to(node, actual_receiver.attrs[index])
 			else:
 				# インデックスが不明の場合は共用型とする

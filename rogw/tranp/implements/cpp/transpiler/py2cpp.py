@@ -13,7 +13,7 @@ from rogw.tranp.errors import LogicError
 from rogw.tranp.i18n.i18n import I18n
 from rogw.tranp.implements.cpp.semantics.cvars import CVars
 from rogw.tranp.lang.annotation import duck_typed, implements, injectable, override
-from rogw.tranp.lang.eventemitter import Callback
+from rogw.tranp.lang.eventemitter import Callback, IObservable
 from rogw.tranp.lang.module import fullyname
 from rogw.tranp.lang.parser import BlockParser
 from rogw.tranp.semantics.errors import NotSupportedError
@@ -64,27 +64,23 @@ class Py2Cpp(ITranspiler):
 
 		return procedure
 
-	@duck_typed
+	@duck_typed(IObservable)
 	def on(self, action: str, callback: Callback[str]) -> None:
 		"""イベントハンドラーを登録
 
 		Args:
 			action (str): アクション名
 			callback (Callback[str]): ハンドラー
-		Note:
-			@see lang.eventemitter.IObservable.on
 		"""
 		self.__procedure.on(action, callback)
 
-	@duck_typed
+	@duck_typed(IObservable)
 	def off(self, action: str, callback: Callback[str]) -> None:
 		"""イベントハンドラーを解除
 
 		Args:
 			action (str): アクション名
 			callback (Callback[str]): ハンドラー
-		Note:
-			@see lang.eventemitter.IObservable.off
 		"""
 		self.__procedure.off(action, callback)
 

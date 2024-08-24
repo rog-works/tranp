@@ -10,7 +10,7 @@ from rogw.tranp.io.loader import IFileLoader
 from rogw.tranp.lang.annotation import duck_typed, injectable
 from rogw.tranp.lang.module import module_path_to_filepath
 from rogw.tranp.syntax.ast.entry import Entry
-from rogw.tranp.syntax.ast.parser import ParserSetting
+from rogw.tranp.syntax.ast.parser import ParserSetting, SyntaxParser
 from rogw.tranp.syntax.errors import SyntaxError
 
 
@@ -30,7 +30,7 @@ class SyntaxParserOfLark:
 		self.__setting = setting
 		self.__caches = caches
 
-	@duck_typed
+	@duck_typed(SyntaxParser)
 	def __call__(self, module_path: str) -> Entry:
 		"""モジュールを解析してシンタックスツリーを生成
 
@@ -38,8 +38,6 @@ class SyntaxParserOfLark:
 			module_path (str): モジュールパス
 		Returns:
 			Entry: シンタックスツリーのルートエントリー
-		Note:
-			@see syntax.ast.parser.SyntaxParser
 		"""
 		parser = self.__load_parser()
 		return self.__load_entry(parser, module_path)

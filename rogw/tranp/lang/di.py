@@ -2,7 +2,7 @@ from types import FunctionType, MethodType
 from typing import Any, Callable, Self, TypeAlias, cast
 
 from rogw.tranp.lang.annotation import duck_typed, override
-from rogw.tranp.lang.locator import Injector, T_Inst
+from rogw.tranp.lang.locator import Injector, Locator, T_Inst
 from rogw.tranp.lang.module import fullyname, load_module_path
 
 ModuleDefinitions: TypeAlias = dict[str, str | Injector[Any]]
@@ -16,7 +16,7 @@ class DI:
 		self.__instances: dict[type, Any] = {}
 		self.__injectors: dict[type, Injector[Any]] = {}
 
-	@duck_typed
+	@duck_typed(Locator)
 	def can_resolve(self, symbol: type) -> bool:
 		"""シンボルが解決できるか判定
 
@@ -24,8 +24,6 @@ class DI:
 			symbol (type): シンボル
 		Returns:
 			bool: True = 解決できる
-		Note:
-			@see lang.locator.Locator.can_resolve
 		"""
 		return self.__inner_binded(symbol)
 
@@ -80,7 +78,7 @@ class DI:
 
 		self.bind(symbol, injector)
 
-	@duck_typed
+	@duck_typed(Locator)
 	def resolve(self, symbol: type[T_Inst]) -> T_Inst:
 		"""シンボルからインスタンスを解決
 
@@ -90,8 +88,6 @@ class DI:
 			T_Inst: インスタンス
 		Raises:
 			ValueError: 未登録のシンボルを指定
-		Note:
-			@see lang.locator.Locator.resolve
 		"""
 		found_symbol = self.__find_symbol(symbol)
 		if found_symbol is None:
@@ -141,7 +137,7 @@ class DI:
 		accept_symbol = self._acceptable_symbol(symbol)
 		return accept_symbol if accept_symbol in self.__injectors else None
 
-	@duck_typed
+	@duck_typed(Locator)
 	def invoke(self, factory: Injector[T_Inst], *remain_args: Any) -> T_Inst:
 		"""ファクトリーを代替実行し、インスタンスを生成
 
@@ -153,7 +149,6 @@ class DI:
 		Note:
 			* ロケーターが解決可能なシンボルをファクトリーの引数リストの前方から省略していき、解決不能な引数を残りの位置引数として受け取る
 			* このメソッドを通して生成したインスタンスはキャッシュされず、毎回生成される
-			@see lang.locator.Locator.invoke
 		"""
 		annotated = self.__to_annotated(factory)
 		annos = self.__pluck_annotations(annotated)

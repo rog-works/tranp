@@ -10,7 +10,7 @@ from rogw.tranp.lang.annotation import implements
 
 
 class Stored(Protocol):
-	"""ストアインターフェイス"""
+	"""ストアプロトコル"""
 
 	@classmethod
 	def load(cls, stream: IO) -> 'Stored':

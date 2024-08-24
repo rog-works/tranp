@@ -1,4 +1,4 @@
-from typing import TypeVar
+from typing import Any, Callable, TypeVar
 
 T = TypeVar('T')
 
@@ -25,15 +25,18 @@ def implements(wrapped: T) -> T:
 	return wrapped
 
 
-def duck_typed(wrapped: T) -> T:
+def duck_typed(protocol: Any) -> Callable[[T], T]:
 	"""プロトコルへの準拠を表すアノテーション。何も変更せずラップ対象を返す
 
 	Args:
-		wrapped (T): ラップ対象
+		protocol (Any): プロトコル
 	Returns:
-		T: ラップ対象
+		Callable: デコレーター
 	"""
-	return wrapped
+	def decorator(wrapped: T) -> T:
+		return wrapped
+
+	return decorator
 
 
 def deprecated(wrapped: T) -> T:

@@ -3,7 +3,7 @@ from typing import IO, NamedTuple
 
 import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.dsn.module import ModuleDSN
-from rogw.tranp.io.cache import CacheProvider
+from rogw.tranp.io.cache import CacheProvider, Stored
 from rogw.tranp.io.loader import IFileLoader
 from rogw.tranp.lang.annotation import duck_typed, injectable
 from rogw.tranp.module.modules import Module, Modules
@@ -30,7 +30,7 @@ class Expanded(NamedTuple):
 	import_paths: list[str] = []
 
 	@classmethod
-	@duck_typed
+	@duck_typed(Stored)
 	def load(cls, stream: IO) -> 'Expanded':
 		""""インスタンスを復元
 
@@ -42,7 +42,7 @@ class Expanded(NamedTuple):
 		values = json.load(stream)
 		return Expanded(values[0], values[1], values[2], values[3])
 
-	@duck_typed
+	@duck_typed(Stored)
 	def save(self, stream: IO) -> None:
 		""""インスタンスを保存
 

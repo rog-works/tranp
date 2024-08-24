@@ -1,4 +1,4 @@
-from rogw.tranp.lang.annotation import duck_typed
+from rogw.tranp.lang.annotation import implements
 from rogw.tranp.syntax.node.definition.primary import Argument, DeclParam, DecoratorPath, Type
 from rogw.tranp.syntax.node.definition.terminal import Empty
 from rogw.tranp.syntax.node.embed import Meta, accept_tags, expandable
@@ -15,7 +15,7 @@ class Parameter(Node, IDeclaration, ISymbol):
 	"""
 
 	@property
-	@duck_typed
+	@implements
 	@Meta.embed(Node, expandable)
 	def symbol(self) -> DeclParam:
 		return self._by('typedparam.name').as_a(DeclParam)
@@ -37,12 +37,12 @@ class Parameter(Node, IDeclaration, ISymbol):
 		return self.dirty_child(Empty, '__empty__', tokens='')
 
 	@property
-	@duck_typed
+	@implements
 	def symbols(self) -> list[DeclParam]:
 		return [self.symbol]
 
 	@property
-	@duck_typed
+	@implements
 	def declare(self) -> 'Parameter':
 		return self
 

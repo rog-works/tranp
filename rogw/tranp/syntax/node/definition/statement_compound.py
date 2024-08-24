@@ -22,7 +22,7 @@ T_Declable = TypeVar('T_Declable', bound=Declable)
 @Meta.embed(Node, accept_tags('block'))
 class Block(Node):
 	@property
-	@duck_typed
+	@duck_typed(StatementBlock)
 	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:
 		return self._children()
@@ -48,7 +48,7 @@ class IfClause(FlowPart):
 		return self._at(0)
 
 	@property
-	@duck_typed
+	@duck_typed(StatementBlock)
 	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:
 		return self.block.statements
@@ -65,7 +65,7 @@ class ElseIf(IfClause): pass
 @Meta.embed(Node, accept_tags('else_clause'))
 class Else(FlowPart):
 	@property
-	@duck_typed
+	@duck_typed(StatementBlock)
 	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:
 		return self.block.statements
@@ -83,7 +83,7 @@ class If(FlowEnter):
 		return self.if_clause.condition
 
 	@property
-	@duck_typed
+	@duck_typed(StatementBlock)
 	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:
 		return self.block.statements
@@ -126,7 +126,7 @@ class While(FlowEnter):
 		return self._at(0)
 
 	@property
-	@duck_typed
+	@duck_typed(StatementBlock)
 	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:
 		return self.block.statements
@@ -139,7 +139,7 @@ class While(FlowEnter):
 @Meta.embed(Node, accept_tags('for_stmt'))
 class For(FlowEnter, IDeclaration):
 	@property
-	@duck_typed
+	@implements
 	@Meta.embed(Node, expandable)
 	def symbols(self) -> list[Declable]:
 		return [node.as_a(Declable) for node in self._children('for_namelist')]
@@ -150,7 +150,7 @@ class For(FlowEnter, IDeclaration):
 		return self._by('for_in').as_a(ForIn)
 
 	@property
-	@duck_typed
+	@duck_typed(StatementBlock)
 	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:
 		return self.block.statements
@@ -179,13 +179,13 @@ class Catch(FlowPart, IDeclaration):
 		return self._by('name').as_a(DeclLocalVar)
 
 	@property
-	@duck_typed
+	@duck_typed(StatementBlock)
 	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:
 		return self.block.statements
 
 	@property
-	@duck_typed
+	@implements
 	def symbols(self) -> list[Declable]:
 		return [self.symbol]
 
@@ -197,7 +197,7 @@ class Catch(FlowPart, IDeclaration):
 @Meta.embed(Node, accept_tags('try_clause'))
 class TryClause(FlowPart):
 	@property
-	@duck_typed
+	@duck_typed(StatementBlock)
 	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:
 		return self.block.statements
@@ -210,7 +210,7 @@ class TryClause(FlowPart):
 @Meta.embed(Node, accept_tags('try_stmt'))
 class Try(FlowEnter):
 	@property
-	@duck_typed
+	@duck_typed(StatementBlock)
 	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:
 		return self.block.statements
@@ -247,7 +247,7 @@ class WithEntry(Node, IDeclaration):
 		return self._by('name').as_a(DeclLocalVar)
 
 	@property
-	@duck_typed
+	@implements
 	def symbols(self) -> list[Declable]:
 		return [self.symbol]
 
@@ -260,7 +260,7 @@ class With(FlowEnter):
 		return [node.as_a(WithEntry) for node in self._by('with_items')._children()]
 
 	@property
-	@duck_typed
+	@duck_typed(StatementBlock)
 	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:
 		return self.block.statements
@@ -277,17 +277,17 @@ class ClassDef(Node, IDomain, IScope, INamespace, IDeclaration, ISymbol):
 		return self.symbol.tokens
 
 	@property
-	@duck_typed
+	@implements
 	def symbols(self) -> list[Declable]:
 		return [self.symbol]
 
 	@property
-	@duck_typed
+	@implements
 	def symbol(self) -> TypesName:
 		raise NotImplementedError()
 
 	@property
-	@duck_typed
+	@implements
 	def declare(self) -> 'ClassDef':
 		return self
 
@@ -312,7 +312,7 @@ class ClassDef(Node, IDomain, IScope, INamespace, IDeclaration, ISymbol):
 		return self.dirty_child(Empty, '__empty__', tokens='')
 
 	@property
-	@duck_typed
+	@duck_typed(StatementBlock)
 	def statements(self) -> list[Node]:
 		return [statement for statement in self._org_statements if not statement.is_a(DocString)]
 
@@ -391,7 +391,7 @@ class Function(ClassDef):
 
 	@property
 	@override
-	@duck_typed
+	@duck_typed(StatementBlock)
 	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:
 		return super().statements
@@ -565,7 +565,7 @@ class Class(ClassDef):
 
 	@property
 	@override
-	@duck_typed
+	@duck_typed(StatementBlock)
 	@Meta.embed(Node, expandable)
 	def statements(self) -> list[Node]:
 		return super().statements

@@ -36,15 +36,13 @@ class EventEmitter(Generic[T_Ret]):
 		"""インスタンスを生成"""
 		self.__handlers: dict[str, list[Callback[T_Ret]]] = {}
 
-	@duck_typed
+	@duck_typed(IObservable)
 	def on(self, action: str, callback: Callback[T_Ret]) -> None:
 		"""イベントハンドラーを登録
 
 		Args:
 			action (str): イベントタグ
 			callback (Callback[T_Ret]): イベントハンドラー
-		Note:
-			@see IObservable.on
 		"""
 		if action not in self.__handlers:
 			self.__handlers[action] = []
@@ -52,15 +50,13 @@ class EventEmitter(Generic[T_Ret]):
 		if callback not in self.__handlers[action]:
 			self.__handlers[action].append(callback)
 
-	@duck_typed
+	@duck_typed(IObservable)
 	def off(self, action: str, callback: Callback[T_Ret]) -> None:
 		"""イベントハンドラーを解除
 
 		Args:
 			action (str): イベントタグ
 			callback (Callback[T_Ret]): イベントハンドラー
-		Note:
-			@see IObservable.off
 		"""
 		if action not in self.__handlers:
 			raise ValueError()

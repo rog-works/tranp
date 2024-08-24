@@ -3,7 +3,7 @@ from typing import Union
 
 from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.dsn.module import ModuleDSN
-from rogw.tranp.lang.annotation import duck_typed, override
+from rogw.tranp.lang.annotation import implements, override
 from rogw.tranp.lang.convertion import as_a
 from rogw.tranp.lang.sequence import flatten, last_index_of
 from rogw.tranp.syntax.ast.path import EntryPath
@@ -62,12 +62,12 @@ class Declable(Node, IDomain, ISymbol, ITerminal):
 		return self.tokens
 
 	@property
-	@duck_typed
+	@implements
 	def symbol(self) -> 'Declable':
 		return self
 
 	@property
-	@duck_typed
+	@implements
 	def declare(self) -> Node:
 		"""
 		Raises:
@@ -519,7 +519,7 @@ class ForIn(Node):
 @Meta.embed(Node, accept_tags('comp_for'))
 class CompFor(Node, IDeclaration):
 	@property
-	@duck_typed
+	@implements
 	@Meta.embed(Node, expandable)
 	def symbols(self) -> list[Declable]:
 		return [node.as_a(Declable) for node in self._children('for_namelist')]

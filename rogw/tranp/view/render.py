@@ -1,5 +1,5 @@
 import re
-from typing import Any, Protocol, Union, TypedDict
+from typing import Any, Protocol
 
 from jinja2 import Environment, FileSystemLoader
 
@@ -41,13 +41,13 @@ class Renderer:
 		self.__renderer.globals['reg_fullmatch'] = lambda pattern, string: re.fullmatch(pattern, string)
 		self.__renderer.globals['reg_replace'] = lambda pattern, replace, string: re.sub(pattern, replace, string)
 
-	def render(self, template: str, indent: int = 0, vars: Union[TypedDict, dict[str, Any]] = {}) -> str:
+	def render(self, template: str, indent: int = 0, vars: dict[str, Any] = {}) -> str:
 		"""テンプレートをレンダリング
 
 		Args:
 			template (str): テンプレートファイルの名前
 			indent (int): インデント(default = 0)
-			vars (Union[TypedDict, dict[str, Any]]) テンプレートへの入力変数(default = {})
+			vars (dict[str, Any]) テンプレートへの入力変数(default = {})
 		Returns:
 			str: レンダリング結果
 		"""

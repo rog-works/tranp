@@ -1,4 +1,4 @@
-from typing import Any, Protocol, Self
+from typing import Any, Literal, Protocol, Self
 
 from rogw.tranp.compatible.python.types import Standards
 from rogw.tranp.semantics.reflection.base import IReflection
@@ -32,11 +32,12 @@ class IConvertion:
 		"""
 		...
 
-	def actualize(self: Self, **injected: IReflection) -> Self:
+	def actualize(self: Self, *targets: Literal['nullable', 'alt_class', 'type'], **injected: IReflection) -> Self:
 		"""プロクシー型(Union/TypeAlias/type)による階層化を解除し、実体型を取得。元々実体型である場合はそのまま返却
 
 		Args:
-			symbol (IReflection): シンボル ※Traitsから暗黙的に入力される
+			*targets (Literal['nullable', 'alt_class', 'type']): 処理対象。省略時は全てが対象
+			**injected (IReflection): シンボル入力用のキーワード引数 ※インターフェイス上は無視して問題ない
 		Returns:
 			Self: シンボル
 		Note:
@@ -103,3 +104,15 @@ class IFunction:
 			IReflection: シンボル
 		"""
 		...
+
+
+class Object(IReflection, IConvertion, IObject):
+	"""リフレクション拡張(オブジェクト)"""
+
+
+class Iterator(IReflection, IIterator):
+	"""リフレクション拡張(イテレーター)"""
+
+
+class Function(IReflection, IFunction):
+	"""リフレクション拡張(ファンクション)"""

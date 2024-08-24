@@ -1,11 +1,11 @@
-from typing import Iterator, Self, cast
+from typing import Iterator, Literal, Self, cast
 
 import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.compatible.python.types import Standards
 from rogw.tranp.lang.annotation import implements, override
 from rogw.tranp.semantics.errors import UnresolvedSymbolError
 from rogw.tranp.semantics.reflection.base import IReflection, Trait
-import rogw.tranp.semantics.reflection.definitions as refs
+import rogw.tranp.semantics.reflection.definition as refs
 import rogw.tranp.semantics.reflection.helper.template as templates
 from rogw.tranp.semantics.reflection.interfaces import IConvertion, IFunction, IIterator, IObject
 from rogw.tranp.semantics.reflections import Reflections
@@ -53,10 +53,11 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		"""
 		return self.reflections.is_a(symbol, standard_type)
 
-	def actualize(self: Self, symbol: IReflection) -> Self:
+	def actualize(self: Self, *targets: Literal['nullable', 'alt_class', 'type'], symbol: IReflection) -> Self:
 		"""プロクシー型(Union/TypeAlias/type)による階層化を解除し、実体型を取得。元々実体型である場合はそのまま返却
 
 		Args:
+			*targets (Literal['nullable', 'alt_class', 'type']): 処理対象。省略時は全てが対象
 			symbol (IReflection): シンボル ※Traitsから暗黙的に入力される
 		Returns:
 			Self: シンボル
@@ -69,9 +70,10 @@ class ConvertionTrait(TraitImpl, IConvertion):
 			* XXX 実質的に具象クラスはReflectionのみであり、アンパック後も型は変化しない
 			* XXX リフレクション拡張の型(=Self)として継続して利用できる方が効率が良い
 		"""
-		actual = self._unpack_nullable(symbol)
-		actual = self._unpack_alt_class(actual)
-		actual = self._unpack_type(actual)
+		actual = symbol
+		actual = self._unpack_nullable(actual) if len(targets) == 0 or 'nullable' in targets else actual
+		actual = self._unpack_alt_class(actual) if len(targets) == 0 or 'alt_class' in targets else actual
+		actual = self._unpack_type(actual) if len(targets) == 0 or 'type' in targets else actual
 		return cast(Self, actual)
 
 	def _unpack_nullable(self, symbol: IReflection) -> IReflection:

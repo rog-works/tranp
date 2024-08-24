@@ -21,7 +21,7 @@ from rogw.tranp.semantics.errors import NotSupportedError
 from rogw.tranp.semantics.procedure import Procedure
 import rogw.tranp.semantics.reflection.helper.template as templates
 from rogw.tranp.semantics.reflection.base import IReflection
-import rogw.tranp.semantics.reflection.definitions as refs
+import rogw.tranp.semantics.reflection.definition as refs
 from rogw.tranp.semantics.reflection.helper.naming import ClassDomainNaming, ClassShorthandNaming
 from rogw.tranp.semantics.reflections import Reflections
 import rogw.tranp.syntax.node.definition as defs
@@ -119,8 +119,8 @@ class Py2Cpp(ITranspiler):
 			'dict<A, B>' -> 'dict<NS::A, NS::B>'
 			'CP<A>' -> 'NS::A*'
 		"""
-		unpacked_raw = self.unpack_nullable(raw)
-		shorthand = ClassShorthandNaming.accessible_name(unpacked_raw, alias_handler=self.i18n.t)
+		actual_raw = raw.impl(refs.Object).actualize('nullable')
+		shorthand = ClassShorthandNaming.accessible_name(actual_raw, alias_handler=self.i18n.t)
 
 		# C++型変数の表記変換
 		if len([True for key in CVars.keys() if key in shorthand]) > 0:
@@ -140,8 +140,8 @@ class Py2Cpp(ITranspiler):
 			# 生成例
 			'Union<CP<Class>, None>' -> 'Class<CP>'
 		"""
-		unpacked_raw = self.unpack_nullable(var_type_raw)
-		return ClassShorthandNaming.domain_name(unpacked_raw, alias_handler=self.i18n.t)
+		actual_type_raw = var_type_raw.impl(refs.Object).actualize('nullable')
+		return ClassShorthandNaming.domain_name(actual_type_raw, alias_handler=self.i18n.t)
 
 	def to_domain_name_by_class(self, types: defs.ClassDef) -> str:
 		"""明示された型からドメイン名を取得
@@ -152,49 +152,6 @@ class Py2Cpp(ITranspiler):
 			str: 型の参照名
 		"""
 		return ClassDomainNaming.domain_name(types, alias_handler=self.i18n.t)
-
-	def unpack_nullable(self, symbol: IReflection) -> IReflection:
-		"""Nullableのシンボルの変数の型をアンパック。Nullable以外の型はそのまま返却 (主にRelayで利用)
-
-		Args:
-			symbol (IReflection): シンボル
-		Returns:
-			IReflection: 変数の型
-		Note:
-			許容するNullableの書式 (例: 'Class | None')
-			@see ProcedureResolver.unpack_nullable
-		"""
-		if self.reflections.is_a(symbol, classes.Union) and len(symbol.attrs) == 2:
-			is_0_null = self.reflections.is_a(symbol.attrs[0], None)
-			is_1_null = self.reflections.is_a(symbol.attrs[1], None)
-			if is_0_null != is_1_null:
-				return symbol.attrs[1 if is_0_null else 0]
-
-		return symbol
-
-	def unpack_alt_class(self, symbol: IReflection) -> IReflection:
-		"""AltClass型をアンパック
-
-		Args:
-			symbol (IReflection): シンボル
-		Returns:
-			IReflection: 変数の型
-		Note:
-			@see ProcedureResolver.unpack_alt_class
-		"""
-		return symbol.attrs[0] if isinstance(symbol.types, defs.AltClass) else symbol
-
-	def unpack_type_proxy(self, symbol: IReflection) -> IReflection:
-		"""typeのProxy型をアンパック
-
-		Args:
-			symbol (IReflection): シンボル
-		Returns:
-			IReflection: 変数の型
-		Note:
-			@see ProcedureResolver.unpack_type_proxy
-		"""
-		return symbol.attrs[0] if isinstance(symbol.decl, defs.Class) and self.reflections.is_a(symbol, type) else symbol
 
 	def unpack_function_template_types(self, node: defs.Function) -> list[str]:
 		"""ファンクションのテンプレート型名をアンパック
@@ -616,17 +573,15 @@ class Py2Cpp(ITranspiler):
 		return 'raw', CVars.RelayOperators.Raw.name
 
 	def on_var(self, node: defs.Var) -> str:
-		symbol = self.reflections.type_of(node)
-		symbol = self.unpack_type_proxy(symbol)
-
+		symbol = self.reflections.type_of(node).impl(refs.Object).actualize('type')
 		if isinstance(symbol.decl, defs.ClassDef):
 			return self.to_domain_name_by_class(symbol.types)
 		else:
 			return node.tokens
 
 	def on_class_ref(self, node: defs.ClassRef) -> str:
-		symbol = self.reflections.resolve(node.class_symbol)
-		return self.to_domain_name(self.unpack_type_proxy(symbol))
+		symbol = self.reflections.resolve(node.class_symbol).impl(refs.Object).actualize('type')
+		return self.to_domain_name(symbol)
 
 	def on_this_ref(self, node: defs.ThisRef) -> str:
 		return 'this'

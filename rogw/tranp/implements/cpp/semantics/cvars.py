@@ -4,7 +4,7 @@ from typing import ClassVar
 import rogw.tranp.compatible.cpp.object as cpp
 from rogw.tranp.lang.annotation import deprecated
 from rogw.tranp.semantics.reflection.base import IReflection
-import rogw.tranp.semantics.reflection.definitions as refs
+import rogw.tranp.semantics.reflection.definition as refs
 
 
 class CVars:

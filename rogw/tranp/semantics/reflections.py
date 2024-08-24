@@ -421,28 +421,14 @@ class ProceduralResolver:
 		# indexer.func_call: a.b[1].c()
 
 		actual_receiver = receiver.impl(refs.Object).actualize()
-		if receiver.impl(refs.Object).is_a(type):
-			return actual_receiver.to(node, self.proc_relay_class(node, actual_receiver, actual_receiver.prop_of(node.prop)))
-		else:
-			return actual_receiver.to(node, self.proc_relay_object(node, actual_receiver, actual_receiver.prop_of(node.prop)))
-
-	def proc_relay_class(self, node: defs.Relay, receiver: IReflection, prop: IReflection) -> IReflection:
+		prop = actual_receiver.prop_of(node.prop)
 		# XXX Enum直下のDeclLocalVarは定数値であり、型としてはEnumそのものであるためreceiverを返却。特殊化より一般化する方法を検討
-		if isinstance(receiver.types, defs.Enum) and prop.decl.is_a(defs.DeclLocalVar):
-			return receiver
+		if receiver.impl(refs.Object).is_a(type) and isinstance(actual_receiver.types, defs.Enum) and prop.decl.is_a(defs.DeclLocalVar):
+			return actual_receiver.stack(node)
 		elif isinstance(prop.decl, defs.Class):
-			return self.reflections.from_standard(type).stack().extends(prop)
+			return actual_receiver.to(node, self.reflections.from_standard(type)).extends(prop)
 		elif isinstance(prop.decl, defs.Method) and prop.decl.is_property:
-			# FIXME クラスのプロパティメソッドは通常存在しないため、修正を検討
-			return prop.impl(refs.Function).returns()
-		else:
-			return prop
-
-	def proc_relay_object(self, node: defs.Relay, receiver: IReflection, prop: IReflection) -> IReflection:
-		if isinstance(prop.decl, defs.Method) and prop.decl.is_property:
-			return prop.impl(refs.Function).returns()
-		elif isinstance(prop.decl, defs.Class):
-			return self.reflections.from_standard(type).stack().extends(prop)
+			return actual_receiver.to(node, prop.impl(refs.Function).returns())
 		else:
 			return prop
 

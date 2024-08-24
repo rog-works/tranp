@@ -122,7 +122,7 @@ class Function(Helper):
 			list[TemplateClass]: テンプレート型リスト
 		"""
 		t_map_props = TemplateManipulator.unpack_templates(parameters=self.schemata.parameters, returns=self.schema.returns)
-		return list(t_map_props.values())
+		return list(set(t_map_props.values()))
 
 
 class Closure(Function):

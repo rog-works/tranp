@@ -191,15 +191,45 @@ class FunctionTrait(TraitImpl, IFunction):
 		Returns:
 			IReflection: シンボル
 		"""
-		if symbol.types.is_a(defs.Constructor):
-			schema = {'klass': symbol.attrs[0], 'parameters': symbol.attrs[1:-1], 'returns': symbol.context}
-			function_helper = templates.HelperBuilder(symbol).schema(lambda: schema).build(templates.Constructor)
-			return function_helper.returns(symbol.context, *arguments)
-		elif symbol.types.is_a(defs.Method, defs.ClassMethod):
-			schema = {'klass': symbol.attrs[0], 'parameters': symbol.attrs[1:-1], 'returns': symbol.attrs[-1]}
-			function_helper = templates.HelperBuilder(symbol).schema(lambda: schema).build(templates.Method)
+		function_helper = self._build_helper(symbol)
+		if function_helper.is_a(templates.Method):
 			return function_helper.returns(symbol.context, *arguments)
 		else:
-			schema = {'parameters': symbol.attrs[:-1], 'returns': symbol.attrs[-1]}
-			function_helper = templates.HelperBuilder(symbol).schema(lambda: schema).build(templates.Function)
 			return function_helper.returns(*arguments)
+
+	def function_templates(self, symbol: IReflection) -> list[defs.TemplateClass]:
+		"""保有するテンプレート型ノードを取得
+
+		Args:
+			symbol (IReflection): シンボル ※Traitsから暗黙的に入力される
+		Returns:
+			list[TemplateClass]: テンプレート型ノードのリスト
+		Note:
+			XXX クラスにも同様の属性があるため、IGenericなどに分離を検討
+		"""
+		return self._build_helper(symbol).templates()
+
+	def _build_helper(self, symbol: IReflection) -> templates.Function:
+		"""ヘルパー(ファンクション)を生成
+
+		Args:
+			symbol (IReflection): シンボル
+		Returns:
+			Function: ヘルパー(ファンクション)
+		"""
+		return templates.HelperBuilder(symbol).schema(lambda: self._build_schema(symbol)).build(templates.Function)
+
+	def _build_schema(self, symbol: IReflection) -> templates.InjectSchemata:
+		"""ヘルパー用スキーマを生成
+
+		Args:
+			symbol (IReflection): シンボル
+		Returns:
+			InjectSchema: ヘルパー用スキーマ
+		"""
+		if symbol.types.is_a(defs.Constructor):
+			return {'klass': symbol.attrs[0], 'parameters': symbol.attrs[1:-1], 'returns': symbol.context}
+		elif symbol.types.is_a(defs.Method, defs.ClassMethod):
+			return {'klass': symbol.attrs[0], 'parameters': symbol.attrs[1:-1], 'returns': symbol.attrs[-1]}
+		else:
+			return {'parameters': symbol.attrs[:-1], 'returns': symbol.attrs[-1]}

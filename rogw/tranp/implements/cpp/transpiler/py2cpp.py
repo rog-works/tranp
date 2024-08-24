@@ -152,20 +152,15 @@ class Py2Cpp(ITranspiler):
 		"""
 		return ClassDomainNaming.domain_name(types, alias_handler=self.i18n.t)
 
-	def unpack_function_template_types(self, node: defs.Function) -> list[str]:
-		"""ファンクションのテンプレート型名をアンパック
+	def fetch_function_template_names(self, node: defs.Function) -> list[str]:
+		"""ファンクションのテンプレート型名を取得
 
 		Args:
 			node (Function): ファンクションノード
 		Returns:
 			list[str]: テンプレート型名リスト
 		"""
-		function_raw = self.reflections.type_of(node)
-		function_helper = templates.HelperBuilder(function_raw) \
-			.case(templates.Method).schema(lambda: {'klass': function_raw.attrs[0], 'parameters': function_raw.attrs[1:-1], 'returns': function_raw.attrs[-1]}) \
-			.other_case().schema(lambda: {'parameters': function_raw.attrs[1:-1], 'returns': function_raw.attrs[-1]}) \
-			.build(templates.Function)
-		return [types.domain_name for types in function_helper.templates()]
+		return [types.domain_name for types in self.reflections.type_of(node).impl(refs.Function).function_templates()]
 
 	def allow_override_from_method(self, method: defs.ClassMethod | defs.Constructor | defs.Method) -> bool:
 		"""仮想関数の判定
@@ -268,13 +263,13 @@ class Py2Cpp(ITranspiler):
 
 	def on_function(self, node: defs.Function, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		decorators = self.allow_decorators(decorators)
-		template_types = self.unpack_function_template_types(node)
+		template_types = self.fetch_function_template_names(node)
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types}
 		return self.view.render(f'function/{node.classification}', vars=function_vars)
 
 	def on_class_method(self, node: defs.ClassMethod, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		decorators = self.allow_decorators(decorators)
-		template_types = self.unpack_function_template_types(node)
+		template_types = self.fetch_function_template_names(node)
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types}
 		method_vars = {'accessor': self.to_accessor(node.accessor), 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'class_symbol': node.class_types.symbol.tokens}
 		return self.view.render(f'function/{node.classification}', vars={**function_vars, **method_vars})
@@ -313,7 +308,7 @@ class Py2Cpp(ITranspiler):
 
 		decorators = self.allow_decorators(decorators)
 		class_name = self.to_domain_name_by_class(node.class_types)
-		template_types = self.unpack_function_template_types(node)
+		template_types = self.fetch_function_template_names(node)
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': normal_statements, 'template_types': template_types}
 		method_vars = {'accessor': self.to_accessor(node.accessor), 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'class_symbol': class_name, 'allow_override': self.allow_override_from_method(node)}
 		constructor_vars = {'initializers': initializers, 'super_initializer': super_initializer}
@@ -321,7 +316,7 @@ class Py2Cpp(ITranspiler):
 
 	def on_method(self, node: defs.Method, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		decorators = self.allow_decorators(decorators)
-		template_types = self.unpack_function_template_types(node)
+		template_types = self.fetch_function_template_names(node)
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types}
 		method_vars = {'accessor': self.to_accessor(node.accessor), 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'class_symbol': node.class_types.symbol.tokens, 'allow_override': self.allow_override_from_method(node)}
 		return self.view.render(f'function/{node.classification}', vars={**function_vars, **method_vars})

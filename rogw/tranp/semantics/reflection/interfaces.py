@@ -105,6 +105,18 @@ class IFunction:
 		"""
 		...
 
+	def function_templates(self, **reserved: IReflection) -> list[defs.TemplateClass]:
+		"""保有するテンプレート型ノードを取得
+
+		Args:
+			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
+		Returns:
+			list[TemplateClass]: テンプレート型ノードのリスト
+		Note:
+			XXX クラスにも同様の属性があるため、IGenericなどに分離を検討
+		"""
+		...
+
 
 class Object(IReflection, IConvertion, IProperties):
 	"""リフレクション拡張型(オブジェクト)"""

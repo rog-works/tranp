@@ -153,7 +153,7 @@ class SymbolFinder:
 			シンボル系ノードがタイプの場合はクラスかタイプのみを検索対象とする
 		"""
 		for raw in self.__each_find_raw(db, scopes, domain_name):
-			if raw.decl.is_a(defs.ClassOrType):
+			if raw.decl.is_a(*defs.ClassOrTypeTs):
 				return raw
 
 		return None

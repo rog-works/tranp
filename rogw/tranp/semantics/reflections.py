@@ -54,7 +54,7 @@ class Reflections:
 			UnresolvedSymbolError: 標準クラスが未実装
 		"""
 		with Transaction(UnresolvedSymbolError, SemanticsLogicError):
-			return symbol.types == self.type_of_standard(standard_type).types
+			return symbol.types == self.from_standard(standard_type).types
 
 	def get_object(self) -> IReflection:
 		"""objectのシンボルを取得
@@ -66,6 +66,19 @@ class Reflections:
 		"""
 		with Transaction(UnresolvedSymbolError, SemanticsLogicError):
 			return self.__finder.get_object(self.__db)
+
+	def from_standard(self, standard_type: type[Standards] | None) -> IReflection:
+		"""標準クラスのシンボルを解決
+
+		Args:
+			standard_type (type[Standard] | None): 標準クラス
+		Returns:
+			IReflection: シンボル
+		Raises:
+			UnresolvedSymbolError: 標準クラスが未実装
+		"""
+		with Transaction(UnresolvedSymbolError, SemanticsLogicError):
+			return self.__finder.by_standard(self.__db, standard_type)
 
 	def from_fullyname(self, fullyname: str) -> IReflection:
 		"""完全参照名からシンボルを解決
@@ -79,19 +92,6 @@ class Reflections:
 		"""
 		with Transaction(UnresolvedSymbolError, SemanticsLogicError):
 			return self.__finder.by(self.__db, fullyname)
-
-	def type_of_standard(self, standard_type: type[Standards] | None) -> IReflection:
-		"""標準クラスのシンボルを解決
-
-		Args:
-			standard_type (type[Standard] | None): 標準クラス
-		Returns:
-			IReflection: シンボル
-		Raises:
-			UnresolvedSymbolError: 標準クラスが未実装
-		"""
-		with Transaction(UnresolvedSymbolError, SemanticsLogicError):
-			return self.__finder.by_standard(self.__db, standard_type)
 
 	def type_of_property(self, types: defs.ClassDef, prop: defs.Var) -> IReflection:
 		"""クラス定義ノードと変数参照ノードからプロパティーのシンボルを解決
@@ -159,9 +159,9 @@ class Reflections:
 			SemanticsError: シンボルの解決に失敗
 		"""
 		if isinstance(node, defs.DeclClassParam) and isinstance(node.declare.as_a(defs.Parameter).var_type, defs.Empty):
-			return self.type_of_standard(type).stack(node).extends(self.resolve(node))
+			return self.from_standard(type).stack(node).extends(self.resolve(node))
 		elif isinstance(node, defs.TypesName) and isinstance(node.parent, defs.Class):
-			return self.type_of_standard(type).stack(node).extends(self.resolve(node))
+			return self.from_standard(type).stack(node).extends(self.resolve(node))
 		else:
 			return self.resolve(node).stack(node)
 
@@ -176,7 +176,7 @@ class Reflections:
 			SemanticsError: シンボルの解決に失敗
 		"""
 		if isinstance(node, defs.Class):
-			return self.type_of_standard(type).stack(node).extends(self.resolve(node))
+			return self.from_standard(type).stack(node).extends(self.resolve(node))
 		else:
 			# defs.Function
 			return self.resolve(node).stack(node)
@@ -343,7 +343,7 @@ class ProceduralResolver:
 			# 対象
 			* Terminal(Operator)
 		"""
-		return self.reflections.type_of_standard(classes.Unknown).stack(node)
+		return self.reflections.from_standard(classes.Unknown).stack(node)
 
 	# Function/Class Elements
 
@@ -378,14 +378,14 @@ class ProceduralResolver:
 
 	def on_argument_label(self, node: defs.ArgumentLabel) -> IReflection:
 		"""Note: labelに型はないのでUnknownを返却"""
-		return self.reflections.type_of_standard(classes.Unknown).stack(node)
+		return self.reflections.from_standard(classes.Unknown).stack(node)
 
 	def on_decl_class_var(self, node: defs.DeclClassVar) -> IReflection:
 		return self.reflections.resolve(node).stack(node)
 
 	def on_decl_this_var_forward(self, node: defs.DeclThisVarForward) -> IReflection:
 		"""Note: XXX 型を評価する必要がないのでUnknownを返却"""
-		return self.reflections.type_of_standard(classes.Unknown).stack(node)
+		return self.reflections.from_standard(classes.Unknown).stack(node)
 
 	def on_decl_this_var(self, node: defs.DeclThisVar) -> IReflection:
 		return self.reflections.resolve(node).stack(node)
@@ -431,7 +431,7 @@ class ProceduralResolver:
 		if isinstance(receiver.types, defs.Enum) and prop.decl.is_a(defs.DeclLocalVar):
 			return receiver
 		elif isinstance(prop.decl, defs.Class):
-			return self.reflections.type_of_standard(type).stack().extends(prop)
+			return self.reflections.from_standard(type).stack().extends(prop)
 		elif isinstance(prop.decl, defs.Method) and prop.decl.is_property:
 			# FIXME クラスのプロパティメソッドは通常存在しないため、修正を検討
 			return prop.impl(refs.Function).returns()
@@ -442,7 +442,7 @@ class ProceduralResolver:
 		if isinstance(prop.decl, defs.Method) and prop.decl.is_property:
 			return prop.impl(refs.Function).returns()
 		elif isinstance(prop.decl, defs.Class):
-			return self.reflections.type_of_standard(type).stack().extends(prop)
+			return self.reflections.from_standard(type).stack().extends(prop)
 		else:
 			return prop
 
@@ -451,11 +451,11 @@ class ProceduralResolver:
 		if not symbol.decl.is_a(defs.Class):
 			return symbol.stack(node)
 
-		return self.reflections.type_of_standard(type).stack(node).extends(symbol)
+		return self.reflections.from_standard(type).stack(node).extends(symbol)
 
 	def on_class_ref(self, node: defs.ClassRef) -> IReflection:
 		symbol = self.reflections.resolve(node)
-		return self.reflections.type_of_standard(type).stack(node).extends(symbol)
+		return self.reflections.from_standard(type).stack(node).extends(symbol)
 
 	def on_this_ref(self, node: defs.ThisRef) -> IReflection:
 		return self.reflections.resolve(node).stack(node)
@@ -468,7 +468,7 @@ class ProceduralResolver:
 		elif receiver.impl(refs.Object).is_a(type):
 			actual_keys = [key.impl(refs.Object).actualize() for key in keys]
 			actual_class = actual_receiver.stack().extends(*actual_keys)
-			return actual_receiver.to(node, self.reflections.type_of_standard(type)).extends(actual_class)
+			return actual_receiver.to(node, self.reflections.from_standard(type)).extends(actual_class)
 		elif actual_receiver.is_a(str):
 			return actual_receiver.stack(node)
 		elif actual_receiver.is_a(list):
@@ -482,7 +482,7 @@ class ProceduralResolver:
 				return actual_receiver.to(node, actual_receiver.attrs[index])
 			else:
 				# インデックスが不明の場合は共用型とする
-				return actual_receiver.to(node, self.reflections.type_of_standard(classes.Union)).extends(*actual_receiver.attrs)
+				return actual_receiver.to(node, self.reflections.from_standard(classes.Union)).extends(*actual_receiver.attrs)
 		else:
 			# XXX コレクション型以外は全て通常のクラスである想定
 			# XXX keyに何が入るべきか特定できないためreceiverをそのまま返却
@@ -509,10 +509,10 @@ class ProceduralResolver:
 		return type_name.stack(node).extends(*template_types)
 
 	def on_union_type(self, node: defs.UnionType, or_types: list[IReflection]) -> IReflection:
-		return self.reflections.type_of_standard(classes.Union).stack(node).extends(*or_types)
+		return self.reflections.from_standard(classes.Union).stack(node).extends(*or_types)
 
 	def on_null_type(self, node: defs.NullType) -> IReflection:
-		return self.reflections.type_of_standard(None).stack(node)
+		return self.reflections.from_standard(None).stack(node)
 
 	def on_func_call(self, node: defs.FuncCall, calls: IReflection, arguments: list[IReflection]) -> IReflection:
 		"""
@@ -559,10 +559,10 @@ class ProceduralResolver:
 		return for_in.stack(node)
 
 	def on_list_comp(self, node: defs.ListComp, projection: IReflection, fors: list[IReflection], condition: IReflection) -> IReflection:
-		return projection.to(node, self.reflections.type_of_standard(list)).extends(projection)
+		return projection.to(node, self.reflections.from_standard(list)).extends(projection)
 
 	def on_dict_comp(self, node: defs.ListComp, projection: IReflection, fors: list[IReflection], condition: IReflection) -> IReflection:
-		return projection.to(node, self.reflections.type_of_standard(dict)).extends(*projection.attrs)
+		return projection.to(node, self.reflections.from_standard(dict)).extends(*projection.attrs)
 
 	# Operator
 
@@ -570,7 +570,7 @@ class ProceduralResolver:
 		return value.stack(node)
 
 	def on_not_compare(self, node: defs.NotCompare, operator: IReflection, value: IReflection) -> IReflection:
-		return value.to(node, self.reflections.type_of_standard(bool))
+		return value.to(node, self.reflections.from_standard(bool))
 
 	def on_or_compare(self, node: defs.OrCompare, elements: list[IReflection]) -> IReflection:
 		return self.each_binary_operator(node, elements).stack(node)
@@ -661,33 +661,33 @@ class ProceduralResolver:
 
 		var_type = secondary if primary_is_null else primary
 		null_type = primary if primary_is_null else secondary
-		return primary.to(node, self.reflections.type_of_standard(classes.Union)).extends(var_type, null_type)
+		return primary.to(node, self.reflections.from_standard(classes.Union)).extends(var_type, null_type)
 
 	# Literal
 
 	def on_integer(self, node: defs.Integer) -> IReflection:
-		return self.reflections.type_of_standard(int).stack(node)
+		return self.reflections.from_standard(int).stack(node)
 
 	def on_float(self, node: defs.Float) -> IReflection:
-		return self.reflections.type_of_standard(float).stack(node)
+		return self.reflections.from_standard(float).stack(node)
 
 	def on_string(self, node: defs.String) -> IReflection:
-		return self.reflections.type_of_standard(str).stack(node)
+		return self.reflections.from_standard(str).stack(node)
 
 	def on_doc_string(self, node: defs.DocString) -> IReflection:
-		return self.reflections.type_of_standard(str).stack(node)
+		return self.reflections.from_standard(str).stack(node)
 
 	def on_truthy(self, node: defs.Truthy) -> IReflection:
-		return self.reflections.type_of_standard(bool).stack(node)
+		return self.reflections.from_standard(bool).stack(node)
 
 	def on_falsy(self, node: defs.Falsy) -> IReflection:
-		return self.reflections.type_of_standard(bool).stack(node)
+		return self.reflections.from_standard(bool).stack(node)
 
 	def on_pair(self, node: defs.Pair, first: IReflection, second: IReflection) -> IReflection:
-		return self.reflections.type_of_standard(tuple).stack(node).extends(first, second)
+		return self.reflections.from_standard(tuple).stack(node).extends(first, second)
 
 	def on_list(self, node: defs.List, values: list[IReflection]) -> IReflection:
-		unknown_type = self.reflections.type_of_standard(classes.Unknown)
+		unknown_type = self.reflections.from_standard(classes.Unknown)
 		known_types = []
 		for index, value in enumerate(values):
 			value_type = value if not node.values[index].is_a(defs.Expander) else value.attrs[0]
@@ -695,24 +695,24 @@ class ProceduralResolver:
 				known_types.append(value_type)
 
 		value_type = known_types[0] if len(known_types) > 0 else unknown_type
-		return self.reflections.type_of_standard(list).stack(node).extends(value_type)
+		return self.reflections.from_standard(list).stack(node).extends(value_type)
 
 	def on_dict(self, node: defs.Dict, items: list[IReflection]) -> IReflection:
 		if len(items) == 0:
-			unknown_type = self.reflections.type_of_standard(classes.Unknown)
-			return self.reflections.type_of_standard(dict).stack(node).extends(unknown_type, unknown_type)
+			unknown_type = self.reflections.from_standard(classes.Unknown)
+			return self.reflections.from_standard(dict).stack(node).extends(unknown_type, unknown_type)
 		else:
-			unknown_type = self.reflections.type_of_standard(classes.Unknown)
+			unknown_type = self.reflections.from_standard(classes.Unknown)
 			known_items = [item for item in items if item.attrs[1].types != unknown_type.types]
 			item = known_items[0] if len(known_items) > 0 else items[0]
 			key_type, value_type = item.attrs
-			return self.reflections.type_of_standard(dict).stack(node).extends(key_type, value_type)
+			return self.reflections.from_standard(dict).stack(node).extends(key_type, value_type)
 
 	def on_tuple(self, node: defs.Tuple, values: list[IReflection]) -> IReflection:
-		return self.reflections.type_of_standard(tuple).stack(node).extends(*values)
+		return self.reflections.from_standard(tuple).stack(node).extends(*values)
 
 	def on_null(self, node: defs.Null) -> IReflection:
-		return self.reflections.type_of_standard(None).stack(node)
+		return self.reflections.from_standard(None).stack(node)
 
 	# Expression
 
@@ -726,4 +726,4 @@ class ProceduralResolver:
 
 	def on_empty(self, node: defs.Empty) -> IReflection:
 		# XXX 厳密にいうとNullとEmptyは別だが、実用上はほぼ同じなので代用
-		return self.reflections.type_of_standard(None).stack(node)
+		return self.reflections.from_standard(None).stack(node)

@@ -817,7 +817,7 @@ class Py2Cpp(ITranspiler):
 				casted_types = {'int': int, 'float': float, 'bool': bool, 'str': str}
 				to_type = casted_types[calls]
 				from_raw = self.reflections.type_of(node.arguments[0]).impl(refs.Object)
-				to_raw = self.reflections.type_of_standard(to_type).impl(refs.Object)
+				to_raw = self.reflections.from_standard(to_type).impl(refs.Object)
 				if from_raw.is_a(str) and to_raw.is_a(str):
 					return 'cast_str_to_str', to_raw
 				elif from_raw.is_a(str):

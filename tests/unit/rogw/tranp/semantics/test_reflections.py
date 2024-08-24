@@ -329,7 +329,7 @@ class TestReflections(TestCase):
 	])
 	def test_type_of_standard(self, standard_type: type[Standards] | None, expected: str) -> None:
 		reflections = self.fixture.get(Reflections)
-		self.assertEqual(reflections.type_of_standard(standard_type).types.fullyname, expected)
+		self.assertEqual(reflections.from_standard(standard_type).types.fullyname, expected)
 
 	@data_provider([
 		(_ast(ModuleDSN.full_joined(fixture_module_path, 'import.xyz'), 'import_as_names.import_as_name[1]'), _mod('xyz', 'C'), 'C'),

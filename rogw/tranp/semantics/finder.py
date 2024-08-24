@@ -72,7 +72,7 @@ class SymbolFinder:
 		if raw is not None:
 			return raw
 
-		raise MustBeImplementedError(f'"{standard_type.__name__ if standard_type is not None else "None"}" class is required.')
+		raise MustBeImplementedError(f'"{domain_name}" class is required.')
 
 	def by_symbolic(self, db: SymbolDB, node: defs.Symbolic) -> IReflection:
 		"""シンボル系ノードからシンボルを取得

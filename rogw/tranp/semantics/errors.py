@@ -10,7 +10,7 @@ class UnresolvedSymbolError(SemanticsError):
 	"""シンボルの解決に失敗
 
 	Note:
-		# SymbolNotDefinedErrorとの相違点
+		### SymbolNotDefinedErrorとの相違点
 		* SymbolNotDefinedErrorは検索のみが対象
 		* UnresolvedSymbolErrrorはシンボル解決に関わるあらゆる事柄を内包
 	"""

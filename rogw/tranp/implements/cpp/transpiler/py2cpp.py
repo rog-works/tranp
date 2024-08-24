@@ -4,7 +4,6 @@ from typing import Any, cast
 from rogw.tranp.compatible.cpp.embed import __allow_override__, __embed__, __struct__
 from rogw.tranp.compatible.cpp.object import CP
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
-import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.data.meta.header import MetaHeader
 from rogw.tranp.data.meta.types import ModuleMetaFactory, TranspilerMeta
 from rogw.tranp.data.version import Versions
@@ -639,8 +638,7 @@ class Py2Cpp(ITranspiler):
 		return 'otherwise', None
 
 	def on_relay_of_type(self, node: defs.RelayOfType, receiver: str) -> str:
-		receiver_symbol = self.reflections.type_of(node.receiver)
-		prop_symbol = self.reflections.resolve_property(receiver_symbol.types, node.prop)
+		prop_symbol = self.reflections.type_of(node.receiver).impl(refs.Object).prop_of(node.prop)
 		type_name = self.to_domain_name_by_class(prop_symbol.types)
 		return self.view.render(node.classification, vars={'receiver': receiver, 'type_name': type_name})
 

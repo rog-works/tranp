@@ -7,7 +7,7 @@ from rogw.tranp.semantics.errors import UnresolvedSymbolError
 from rogw.tranp.semantics.reflection.base import IReflection, Trait
 import rogw.tranp.semantics.reflection.definition as refs
 import rogw.tranp.semantics.reflection.helper.template as templates
-from rogw.tranp.semantics.reflection.interfaces import IConvertion, IFunction, IIterator, IObject
+from rogw.tranp.semantics.reflection.interfaces import IConvertion, IFunction, IIterator, IProperties
 from rogw.tranp.semantics.reflections import Reflections
 import rogw.tranp.syntax.node.definition as defs
 
@@ -20,13 +20,13 @@ def export_classes() -> list[type[Trait]]:
 	"""
 	return [
 		ConvertionTrait,
-		ObjectTrait,
+		PropertiesTrait,
 		IteratorTrait,
 		FunctionTrait,
 	]
 
 
-class TraitImpl(Trait, IObject):
+class TraitImpl(Trait):
 	"""トレイト実装(基底)"""
 
 	@override
@@ -119,8 +119,8 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		return symbol.attrs[0] if isinstance(symbol.decl, defs.Class) and self.reflections.is_a(symbol, type) else symbol
 
 
-class ObjectTrait(TraitImpl, IObject):
-	"""トレイト実装(オブジェクト)"""
+class PropertiesTrait(TraitImpl, IProperties):
+	"""トレイト実装(プロパティー管理)"""
 
 	@implements
 	def prop_of(self, prop: defs.Var, symbol: IReflection) -> IReflection:
@@ -132,7 +132,7 @@ class ObjectTrait(TraitImpl, IObject):
 		Returns:
 			IReflection: シンボル
 		"""
-		return symbol.to(prop, self.reflections.type_of_property(symbol.types, prop))
+		return symbol.to(prop, self.reflections.resolve_property(symbol.types, prop))
 
 	@implements
 	def constructor(self, symbol: IReflection) -> IReflection:
@@ -143,7 +143,7 @@ class ObjectTrait(TraitImpl, IObject):
 		Returns:
 			IReflection: シンボル
 		"""
-		return symbol.to(symbol.types, self.reflections.type_of_constructor(symbol.types.as_a(defs.Class)))
+		return symbol.to(symbol.types, self.reflections.resolve_constructor(symbol.types.as_a(defs.Class)))
 
 
 class IteratorTrait(TraitImpl, IIterator):

@@ -41,11 +41,11 @@ class ResolveUnknown:
 				continue
 
 			if isinstance(raw.decl.declare, defs.MoveAssign):
-				raw.add_on('origin', self.make_addon(raw, raw.decl.declare.value))
+				raw.mod_on('origin', self.make_addon(raw, raw.decl.declare.value))
 			elif isinstance(raw.decl.declare, (defs.For, defs.CompFor)):
-				raw.add_on('origin', self.make_addon(raw, raw.decl.declare.for_in))
+				raw.mod_on('origin', self.make_addon(raw, raw.decl.declare.for_in))
 			elif isinstance(raw.decl.declare, defs.WithEntry):
-				raw.add_on('origin', self.make_addon(raw, raw.decl.declare.enter))
+				raw.mod_on('origin', self.make_addon(raw, raw.decl.declare.enter))
 
 		return db
 

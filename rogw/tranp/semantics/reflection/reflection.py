@@ -2,7 +2,7 @@ from typing import Any, Callable, Iterator, Literal, Self, cast
 
 from rogw.tranp.lang.annotation import implements, override
 from rogw.tranp.lang.convertion import safe_cast
-from rogw.tranp.semantics.errors import SemanticsLogicError
+from rogw.tranp.semantics.errors import MustBeImplementedError, SemanticsLogicError
 from rogw.tranp.semantics.reflection.helper.naming import ClassShorthandNaming
 from rogw.tranp.semantics.reflection.base import Addons, IReflection, Addon, T_Ref, Traits
 import rogw.tranp.syntax.node.definition as defs
@@ -177,7 +177,7 @@ class ReflectionBase(IReflection):
 		return new
 
 	@implements
-	def add_on(self, key: Literal['origin', 'attrs'], addon: Addon) -> None:
+	def mod_on(self, key: Literal['origin', 'attrs'], addon: Addon) -> None:
 		"""アドオンを有効化
 		
 		Args:
@@ -195,12 +195,12 @@ class ReflectionBase(IReflection):
 		Returns:
 			T_Ref: インスタンス
 		Raises:
-			SemanticsLogicError: インターフェイスが未実装 XXX 出力する例外は要件等
+			MustBeImplementedError: トレイトのメソッドが未実装
 		"""
 		if self._traits.implements(expect):
 			return cast(expect, self)
 
-		raise SemanticsLogicError(f'Not allowed conversion. symbol: {self.types.fullyname}, expect: {expect}')
+		raise MustBeImplementedError(f'Method not defined. symbol: {self.types.fullyname}, expect: {expect}')
 
 	@override
 	def __eq__(self, other: object) -> bool:
@@ -254,7 +254,7 @@ class ReflectionBase(IReflection):
 
 
 class Symbol(ReflectionBase):
-	"""シンボル(クラス定義のオリジナル)"""
+	"""シンボル"""
 
 	@classmethod
 	def instantiate(cls, traits: Traits, types: defs.ClassDef) -> 'Symbol':
@@ -299,7 +299,7 @@ class Symbol(ReflectionBase):
 
 
 class Reflection(ReflectionBase):
-	"""リフレクションの共通実装(基底)"""
+	"""リフレクション"""
 
 	@override
 	def __init__(self, traits: Traits, options: Options) -> None:
@@ -394,7 +394,7 @@ class Reflection(ReflectionBase):
 		return self
 
 	@override
-	def add_on(self, key: Literal['origin', 'attrs'], addon: Addon) -> None:
+	def mod_on(self, key: Literal['origin', 'attrs'], addon: Addon) -> None:
 		"""アドオンを有効化
 		
 		Args:

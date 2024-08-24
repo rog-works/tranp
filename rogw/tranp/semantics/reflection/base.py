@@ -3,7 +3,7 @@ from types import FunctionType
 from typing import Any, Callable, Iterator, Literal, Protocol, Self, TypeVar
 
 from rogw.tranp.lang.annotation import injectable
-from rogw.tranp.semantics.errors import SemanticsLogicError
+from rogw.tranp.semantics.errors import MustBeImplementedError, SemanticsLogicError
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 
@@ -11,7 +11,7 @@ T_Ref = TypeVar('T_Ref', bound='IReflection')
 
 
 class IReflection(metaclass=ABCMeta):
-	"""シンボル
+	"""リフレクション
 
 	Attributes:
 		types (ClassDef): 型を表すノード
@@ -19,11 +19,8 @@ class IReflection(metaclass=ABCMeta):
 		node (Node): ノード
 		origin (IReflection): 型のシンボル
 		via (IReflection): スタックシンボル
-		context (IReflection| None): コンテキストのシンボル
+		context (IReflection): コンテキストのシンボル
 		attrs (list[IReflection]): 属性シンボルリスト
-	Note:
-		# contextのユースケース
-		* Relay/Indexerのreceiverを設定。on_func_call等で実行時型の補完に使用
 	"""
 
 	@property
@@ -148,7 +145,7 @@ class IReflection(metaclass=ABCMeta):
 		...
 
 	@abstractmethod
-	def add_on(self, key: Literal['origin', 'attrs'], addon: 'Addon') -> None:
+	def mod_on(self, key: Literal['origin', 'attrs'], addon: 'Addon') -> None:
 		"""アドオンを有効化
 		
 		Args:
@@ -166,13 +163,13 @@ class IReflection(metaclass=ABCMeta):
 		Returns:
 			T_Ref: インスタンス
 		Note:
-			SemanticsLogicError: インターフェイスが未実装 XXX 出力する例外は要件等
+			MustBeImplementedError: トレイトのメソッドが未実装
 		"""
 		...
 
 
 class Addon(Protocol):
-	"""シンボル拡張アドオンプロトコル"""
+	"""シンボル改変アドオンプロトコル"""
 
 	def __call__(self) -> list[IReflection]:
 		"""list[IReflection]: シンボルリスト"""
@@ -332,10 +329,10 @@ class Traits:
 		Returns:
 			Callable[..., Any]: メソッドアダプター
 		Raises:
-			SemanticsLogicError: トレイトのメソッドが未実装
+			MustBeImplementedError: トレイトのメソッドが未実装
 		"""
 		if name not in self.__method_on_trait:
-			raise SemanticsLogicError(f'Method not defined. symbol: {symbol}, name: {name}')
+			raise MustBeImplementedError(f'Method not defined. symbol: {symbol}, name: {name}')
 
 		trait = self.__method_on_trait[name]
 		return lambda *args: getattr(trait, name)(*args, symbol=symbol)

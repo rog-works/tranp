@@ -640,7 +640,7 @@ class Py2Cpp(ITranspiler):
 
 	def on_relay_of_type(self, node: defs.RelayOfType, receiver: str) -> str:
 		receiver_symbol = self.reflections.type_of(node.receiver)
-		prop_symbol = self.reflections.type_of_property(receiver_symbol.types, node.prop)
+		prop_symbol = self.reflections.resolve_property(receiver_symbol.types, node.prop)
 		type_name = self.to_domain_name_by_class(prop_symbol.types)
 		return self.view.render(node.classification, vars={'receiver': receiver, 'type_name': type_name})
 

@@ -93,33 +93,6 @@ class Reflections:
 		with Transaction(UnresolvedSymbolError, SemanticsLogicError):
 			return self.__finder.by(self.__db, fullyname)
 
-	def type_of_property(self, types: defs.ClassDef, prop: defs.Var) -> IReflection:
-		"""クラス定義ノードと変数参照ノードからプロパティーのシンボルを解決
-
-		Args:
-			types (ClassDef): クラス定義ノード
-			prop (Var): 変数参照ノード
-		Returns:
-			IReflection: シンボル
-		Raises:
-			UnresolvedSymbolError: シンボルの解決に失敗
-		"""
-		with Transaction(UnresolvedSymbolError, SemanticsLogicError):
-			return self.resolve(types, prop.tokens)
-
-	def type_of_constructor(self, types: defs.Class) -> IReflection:
-		"""クラス定義ノードからコンストラクターのシンボルを解決
-
-		Args:
-			types (Class): クラス定義ノード
-		Returns:
-			IReflection: シンボル
-		Raises:
-			UnresolvedSymbolError: コンストラクターの実装ミス
-		"""
-		with Transaction(UnresolvedSymbolError, SemanticsLogicError):
-			return self.resolve(types, types.operations.constructor)
-
 	def type_of(self, node: Node) -> IReflection:
 		"""シンボル系/式ノードからシンボルを解決 XXX 万能過ぎるので細分化を検討
 
@@ -214,6 +187,33 @@ class Reflections:
 		else:
 			# CompFor
 			return self.__resolve_procedural(node.for_in)
+
+	def resolve_property(self, types: defs.ClassDef, prop: defs.Var) -> IReflection:
+		"""クラス定義ノードと変数参照ノードからプロパティーのシンボルを解決
+
+		Args:
+			types (ClassDef): クラス定義ノード
+			prop (Var): 変数参照ノード
+		Returns:
+			IReflection: シンボル
+		Raises:
+			UnresolvedSymbolError: シンボルの解決に失敗
+		"""
+		with Transaction(UnresolvedSymbolError, SemanticsLogicError):
+			return self.resolve(types, prop.tokens)
+
+	def resolve_constructor(self, types: defs.Class) -> IReflection:
+		"""クラス定義ノードからコンストラクターのシンボルを解決
+
+		Args:
+			types (Class): クラス定義ノード
+		Returns:
+			IReflection: シンボル
+		Raises:
+			UnresolvedSymbolError: コンストラクターの実装ミス
+		"""
+		with Transaction(UnresolvedSymbolError, SemanticsLogicError):
+			return self.resolve(types, types.operations.constructor)
 
 	def resolve(self, symbolic: defs.Symbolic, prop_name: str = '') -> IReflection:
 		"""シンボルテーブルからシンボルを解決
@@ -491,7 +491,7 @@ class ProceduralResolver:
 
 	def on_relay_of_type(self, node: defs.RelayOfType, receiver: IReflection) -> IReflection:
 		"""Note: XXX Pythonではtypeをアンパックする構文が存在しないためAltClassも同様に扱う"""
-		return receiver.to(node, self.reflections.type_of_property(receiver.types, node.prop))
+		return receiver.to(node, self.reflections.resolve_property(receiver.types, node.prop))
 
 	def on_var_of_type(self, node: defs.VarOfType) -> IReflection:
 		return self.reflections.resolve(node).stack(node)

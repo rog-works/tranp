@@ -8,12 +8,12 @@ import rogw.tranp.syntax.node.definition as defs
 class IExample(Protocol):
 	"""拡張インターフェイス(プロトコル)"""
 
-	def __call__(self, *args: Any, **injected: IReflection) -> Any:
+	def __call__(self, *args: Any, **reserved: IReflection) -> Any:
 		"""メソッドの共通シグネチャー
 
 		Args:
 			*args (Any): 実引数を受け取る位置引数。数も型も任意であり、省略も可
-			**injected (IReflection): 実引数は受け取らないキーワード引数。型はIReflection固定。Traitsからシンボルを入力するために必須 @see Traits.get
+			**reserved  (IReflection): 実引数は受け取らないキーワード引数。型はIReflection固定。Traitsからシンボルを入力するために定義上必須 @see Traits.get
 		"""
 		...
 
@@ -21,23 +21,23 @@ class IExample(Protocol):
 class IConvertion:
 	"""拡張インターフェイス(変換)"""
 
-	def is_a(self, standard_type: type[Standards] | None, **injected: IReflection) -> bool:
+	def is_a(self, standard_type: type[Standards] | None, **reserved: IReflection) -> bool:
 		"""シンボルの型を判定
 
 		Args:
 			standard_type (type[Standards] | None): 標準タイプ
-			**injected (IReflection): シンボル入力用のキーワード引数 ※インターフェイス上は無視して問題ない
+			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
 			bool: True = 指定の型と一致
 		"""
 		...
 
-	def actualize(self: Self, *targets: Literal['nullable', 'alt_class', 'type'], **injected: IReflection) -> Self:
+	def actualize(self: Self, *targets: Literal['nullable', 'alt_class', 'type'], **reserved: IReflection) -> Self:
 		"""プロクシー型(Union/TypeAlias/type)による階層化を解除し、実体型を取得。元々実体型である場合はそのまま返却
 
 		Args:
 			*targets (Literal['nullable', 'alt_class', 'type']): 処理対象。省略時は全てが対象
-			**injected (IReflection): シンボル入力用のキーワード引数 ※インターフェイス上は無視して問題ない
+			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
 			Self: シンボル
 		Note:
@@ -52,25 +52,25 @@ class IConvertion:
 		...
 
 
-class IObject:
-	"""拡張インターフェイス(オブジェクト)"""
+class IProperties:
+	"""拡張インターフェイス(プロパティー管理)"""
 
-	def prop_of(self, prop: defs.Var, **injected: IReflection) -> IReflection:
+	def prop_of(self, prop: defs.Var, **reserved: IReflection) -> IReflection:
 		"""配下のプロパティーを取得
 
 		Args:
 			prop (Var): 変数参照ノード
-			**injected (IReflection): シンボル入力用のキーワード引数 ※インターフェイス上は無視して問題ない
+			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
 			IReflection: シンボル
 		"""
 		...
 
-	def constructor(self, **injected: IReflection) -> IReflection:
+	def constructor(self, **reserved: IReflection) -> IReflection:
 		"""コンストラクターを取得
 
 		Args:
-			**injected (IReflection): シンボル入力用のキーワード引数 ※インターフェイス上は無視して問題ない
+			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
 			IReflection: シンボル
 		"""
@@ -80,11 +80,11 @@ class IObject:
 class IIterator:
 	"""拡張インターフェイス(イテレーター)"""
 
-	def iterates(self, **injected: IReflection) -> IReflection:
+	def iterates(self, **reserved: IReflection) -> IReflection:
 		"""イテレーターの結果を解決
 
 		Args:
-			**injected (IReflection): シンボル入力用のキーワード引数 ※インターフェイス上は無視して問題ない
+			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
 			IReflection: シンボル
 		"""
@@ -94,25 +94,25 @@ class IIterator:
 class IFunction:
 	"""拡張インターフェイス(ファンクション)"""
 
-	def returns(self, *arguments: IReflection, **injected: IReflection) -> IReflection:
+	def returns(self, *arguments: IReflection, **reserved: IReflection) -> IReflection:
 		"""戻り値の実体型を解決
 
 		Args:
 			*arguments (IReflection): 引数リスト
-			**injected (IReflection): シンボル入力用のキーワード引数 ※インターフェイス上は無視して問題ない
+			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
 			IReflection: シンボル
 		"""
 		...
 
 
-class Object(IReflection, IConvertion, IObject):
-	"""リフレクション拡張(オブジェクト)"""
+class Object(IReflection, IConvertion, IProperties):
+	"""リフレクション拡張型(オブジェクト)"""
 
 
 class Iterator(IReflection, IIterator):
-	"""リフレクション拡張(イテレーター)"""
+	"""リフレクション拡張型(イテレーター)"""
 
 
 class Function(IReflection, IFunction):
-	"""リフレクション拡張(ファンクション)"""
+	"""リフレクション拡張型(ファンクション)"""

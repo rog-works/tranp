@@ -7,7 +7,7 @@ from rogw.tranp.semantics.errors import UnresolvedSymbolError
 from rogw.tranp.semantics.reflection.base import IReflection, Trait
 import rogw.tranp.semantics.reflection.definition as refs
 import rogw.tranp.semantics.reflection.helper.template as templates
-from rogw.tranp.semantics.reflection.interfaces import IConvertion, IFunction, IIterator, IProperties
+from rogw.tranp.semantics.reflection.interfaces import IConvertion, IFunction, IIterator, IOperation, IProperties
 from rogw.tranp.semantics.reflections import Reflections
 import rogw.tranp.syntax.node.definition as defs
 
@@ -21,6 +21,7 @@ def export_classes() -> list[type[Trait]]:
 	return [
 		ConvertionTrait,
 		PropertiesTrait,
+		OperationTrait,
 		IteratorTrait,
 		FunctionTrait,
 	]
@@ -119,6 +120,49 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		return symbol.attrs[0] if isinstance(symbol.decl, defs.Class) and self.reflections.is_a(symbol, type) else symbol
 
 
+class OperationTrait(TraitImpl, IOperation):
+	"""トレイト実装(演算)"""
+
+	def try_operation(self, operator: defs.Terminal, value: IReflection, symbol: IReflection) -> IReflection | None:
+		"""演算を試行し、結果を返却。該当する演算メソッドが存在しない場合はNoneを返却
+
+		Args:
+			operator (Terminal): 演算子ノード
+			value (IReflection): 値のシンボル
+			symbol (IReflection): シンボル ※Traitsから暗黙的に入力される
+		Returns:
+			IReflection: シンボル
+		"""
+		method = self._find_method(symbol, symbol.types.operations.operation_by(operator.tokens))
+		if method is None:
+			return None
+
+		# XXX 算術演算以外(比較/ビット演算)は返却型が左右で必ず同じであり、戻り値の型の選別が不要であるため省略する
+		if not symbol.types.operations.arthmetical(operator.tokens):
+			return method.returns(value)
+
+		parameter = method.parameter_at(0, value)
+		parameter_types = parameter.attrs if parameter.impl(refs.Object).is_a(classes.Union) else [parameter]
+		if value not in parameter_types:
+			return None
+
+		return method.returns(value)
+
+	def _find_method(self, symbol: IReflection, method_name: str) -> refs.Function | None:
+		"""演算用のメソッドを検索。存在しない場合はNoneを返却
+
+		Args:
+			symbol (IReflection): シンボル
+			method_name (str): メソッド名
+		Returns:
+			Function | None: シンボル
+		"""
+		try:
+			return symbol.to(symbol.types, self.reflections.resolve(symbol.types, method_name)).impl(refs.Function)
+		except UnresolvedSymbolError:
+			return None
+
+
 class PropertiesTrait(TraitImpl, IProperties):
 	"""トレイト実装(プロパティー管理)"""
 
@@ -180,6 +224,23 @@ class IteratorTrait(TraitImpl, IIterator):
 
 class FunctionTrait(TraitImpl, IFunction):
 	"""トレイト実装(ファンクション)"""
+
+	@implements
+	def parameter_at(self, index: int, argument: IReflection, symbol: IReflection) -> IReflection:
+		"""引数の実体型を解決
+
+		Args:
+			index (int): 引数のインデックス
+			argument (IReflection): 引数の実体
+			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
+		Returns:
+			IReflection: シンボル
+		"""
+		function_helper = self._build_helper(symbol)
+		if function_helper.is_a(templates.Method):
+			return function_helper.parameter(index, symbol.context, argument)
+		else:
+			return function_helper.parameter(index, argument)
 
 	@implements
 	def returns(self, *arguments: IReflection, symbol: IReflection) -> IReflection:

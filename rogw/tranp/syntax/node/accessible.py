@@ -23,3 +23,13 @@ class ClassOperations(Protocol):
 			str: メソッド名
 		"""
 		...
+
+	def arthmetical(self, operator: str) -> bool:
+		"""算術演算用の演算子か判定
+
+		Args:
+			operator (str): 演算子
+		Returns:
+			bool: True = 算術演算
+		"""
+		...

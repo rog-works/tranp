@@ -52,6 +52,22 @@ class IConvertion:
 		...
 
 
+class IOperation:
+	"""拡張インターフェイス(演算)"""
+
+	def try_operation(self, operator: defs.Terminal, value: IReflection, **reserved: IReflection) -> IReflection | None:
+		"""演算を試行し、結果を返却。該当する演算メソッドが存在しない場合はNoneを返却
+
+		Args:
+			operator (Terminal): 演算子ノード
+			value (IReflection): 値のシンボル
+			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
+		Returns:
+			IReflection: シンボル
+		"""
+		...
+
+
 class IProperties:
 	"""拡張インターフェイス(プロパティー管理)"""
 
@@ -94,6 +110,18 @@ class IIterator:
 class IFunction:
 	"""拡張インターフェイス(ファンクション)"""
 
+	def parameter_at(self, index: int, argument: IReflection, **reserved: IReflection) -> IReflection:
+		"""引数の実体型を解決
+
+		Args:
+			index (int): 引数のインデックス
+			argument (IReflection): 引数の実体
+			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
+		Returns:
+			IReflection: シンボル
+		"""
+		...
+
 	def returns(self, *arguments: IReflection, **reserved: IReflection) -> IReflection:
 		"""戻り値の実体型を解決
 
@@ -118,7 +146,7 @@ class IFunction:
 		...
 
 
-class Object(IReflection, IConvertion, IProperties):
+class Object(IReflection, IConvertion, IOperation, IProperties):
 	"""リフレクション拡張型(オブジェクト)"""
 
 

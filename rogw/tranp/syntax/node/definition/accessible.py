@@ -1,6 +1,9 @@
 import re
 from typing import ClassVar
 
+from rogw.tranp.lang.annotation import duck_typed
+from rogw.tranp.syntax.node.accessible import ClassOperations
+
 
 def to_accessor(name: str) -> str:
 	"""名前からアクセス修飾子に変換
@@ -20,6 +23,7 @@ def to_accessor(name: str) -> str:
 		return 'public'
 
 
+@duck_typed(ClassOperations)
 class PythonClassOperations:
 	"""クラスオペレーション定義"""
 
@@ -36,6 +40,16 @@ class PythonClassOperations:
 			str: メソッド名
 		"""
 		return self.__operators[operator]
+
+	def arthmetical(self, operator: str) -> bool:
+		"""算術演算用の演算子か判定
+
+		Args:
+			operator (str): 演算子
+		Returns:
+			bool: True = 算術演算
+		"""
+		return operator in ['+', '-', '*', '/', '%']
 
 	__operators: ClassVar = {
 		'or': '__or__',  # FIXME &&に対応する特殊メソッドはない

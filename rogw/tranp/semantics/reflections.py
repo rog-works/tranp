@@ -595,45 +595,13 @@ class ProceduralResolver:
 		for index, right_index in enumerate(right_indexs):
 			operator = node_of_elements[operator_indexs[index]].as_a(defs.Terminal)
 			right = elements[right_index]
-			left = self.proc_binary_operator(node, left, operator, right)
+			result = left.impl(refs.Object).try_operation(operator, right) or right.impl(refs.Object).try_operation(operator, left)
+			if result is None:
+				raise OperationNotAllowedError(f'Operation not defined. {node}, {str(left)} {operator.tokens} {str(right)}')
+
+			left = result
 
 		return left
-
-	def proc_binary_operator(self, node: defs.BinaryOperator, left: IReflection, operator: defs.Terminal, right: IReflection) -> IReflection:
-		operator_name = operator.tokens
-		operands: dict[str, IReflection] = {'left': left, 'right': right}
-		methods: dict[str, IReflection] = {}
-		for key, operand in operands.items():
-			try:
-				methods[key] = self.reflections.resolve(operand.types, operand.types.operations.operation_by(operator_name))
-			except UnresolvedSymbolError:
-				pass
-
-		if 'left' not in methods and 'right' not in methods:
-			raise OperationNotAllowedError(f'"{operator_name}" not defined. {node}, {str(left)} {operator.tokens} {str(right)}')
-
-		for key, candidate in methods.items():
-			if candidate is None:
-				continue
-
-			method = candidate
-			function_helper = templates.HelperBuilder(method) \
-				.schema(lambda: {'klass': method.attrs[0], 'parameters': method.attrs[1:-1], 'returns': method.attrs[-1]}) \
-				.build(templates.Method)
-
-			receiver = left if key == 'left' else right
-			other = right if key == 'left' else left
-			actual_other = function_helper.parameter(0, receiver, other)
-
-			# XXX 算術演算以外(比較/ビット演算)は返却型が左右で必ず同じであり、戻り値の型の選別が不要であるため省略する
-			if not node.is_a(defs.Sum, defs.Term):
-				return function_helper.returns(receiver, actual_other)
-
-			var_types = actual_other.attrs if actual_other.impl(refs.Object).is_a(classes.Union) else [actual_other]
-			if other in var_types:
-				return function_helper.returns(receiver, actual_other)
-
-		raise OperationNotAllowedError(f'Signature not match. {node}, {str(left)} {operator.tokens} {str(right)}')
 
 	def on_tenary_operator(self, node: defs.TenaryOperator, primary: IReflection, condition: IReflection, secondary: IReflection) -> IReflection:
 		"""Note: 返却型が一致、またはNullableのみ許可"""

@@ -396,13 +396,13 @@ class Py2Cpp(ITranspiler):
 		value_raw = self.reflections.type_of(node.value)
 		declared = receiver_raw.decl.declare == node
 		var_type = self.to_accessible_name(value_raw)
-		receiver_is_dict = isinstance(node.receivers[0], defs.Indexer) and self.reflections.type_of(node.receivers[0].receiver).impl(refs.Object).is_a(dict)
+		receiver_is_dict = isinstance(node.receivers[0], defs.Indexer) and self.reflections.type_of(node.receivers[0].receiver).impl(refs.Object).type_is(dict)
 		return self.view.render(f'assign/{node.classification}', vars={'receiver': receiver, 'var_type': var_type, 'value': value, 'declared': declared, 'receiver_is_dict': receiver_is_dict})
 
 	def proc_move_assign_destruction(self, node: defs.MoveAssign, receivers: list[str], value: str) -> str:
 		"""Note: C++で分割代入できるのはtuple/pairのみ。Pythonではいずれもtupleのため、tuple以外は非対応"""
 		value_raw = self.reflections.type_of(node.value).impl(refs.Object).actualize()
-		if not value_raw.is_a(tuple):
+		if not value_raw.type_is(tuple):
 			raise LogicError(f'Not allowed destruction assign. value must be a tuple. node: {node}')
 
 		return self.view.render(f'assign/{node.classification}_destruction', vars={'receivers': receivers, 'value': value})
@@ -420,7 +420,7 @@ class Py2Cpp(ITranspiler):
 				raise LogicError(f'Unexpected delete target. supported type is list or dict. target: {target_node}')
 
 			target_symbol = self.reflections.type_of(target_node.receiver)
-			target_types.append('list' if target_symbol.impl(refs.Object).is_a(list) else 'dict')
+			target_types.append('list' if target_symbol.impl(refs.Object).type_is(list) else 'dict')
 
 		_targets: list[dict[str, str]] = []
 		for i in range(len(targets)):
@@ -508,7 +508,7 @@ class Py2Cpp(ITranspiler):
 
 	def on_relay(self, node: defs.Relay, receiver: str) -> str:
 		receiver_symbol = self.reflections.type_of(node.receiver).impl(refs.Object)
-		receiver_is_static = receiver_symbol.is_a(type)
+		receiver_is_static = receiver_symbol.type_is(type)
 		receiver_symbol = receiver_symbol.actualize()
 		prop_symbol = receiver_symbol.prop_of(node.prop)
 
@@ -607,7 +607,7 @@ class Py2Cpp(ITranspiler):
 
 		if node.sliced:
 			receiver_symbol = self.reflections.type_of(node.receiver).impl(refs.Object).actualize()
-			spec = 'slice_string' if receiver_symbol.is_a(str) else 'slice_array'
+			spec = 'slice_string' if receiver_symbol.type_is(str) else 'slice_array'
 			return spec, receiver_symbol
 		elif is_on_cvar_relay():
 			receiver_symbol = self.reflections.type_of(node.receiver).impl(refs.Object).actualize()
@@ -619,11 +619,11 @@ class Py2Cpp(ITranspiler):
 			return 'cvar', symbol.impl(refs.Object).actualize()
 		else:
 			receiver_symbol = self.reflections.type_of(node.receiver).impl(refs.Object).actualize()
-			if receiver_symbol.is_a(tuple):
+			if receiver_symbol.type_is(tuple):
 				return 'tuple', None
 
 			symbol = self.reflections.type_of(node).impl(refs.Object)
-			if symbol.is_a(type):
+			if symbol.type_is(type):
 				return 'class', symbol.actualize()
 
 		return 'otherwise', None
@@ -807,9 +807,9 @@ class Py2Cpp(ITranspiler):
 				to_type = casted_types[calls]
 				from_raw = self.reflections.type_of(node.arguments[0]).impl(refs.Object)
 				to_raw = self.reflections.from_standard(to_type).impl(refs.Object)
-				if from_raw.is_a(str) and to_raw.is_a(str):
+				if from_raw.type_is(str) and to_raw.type_is(str):
 					return 'cast_str_to_str', to_raw
-				elif from_raw.is_a(str):
+				elif from_raw.type_is(str):
 					return 'cast_str_to_bin', to_raw
 				elif to_type is str:
 					return 'cast_bin_to_str', from_raw
@@ -821,16 +821,16 @@ class Py2Cpp(ITranspiler):
 			prop = node.calls.prop.tokens
 			if prop in ['pop', 'insert', 'extend', 'keys', 'values']:
 				context = self.reflections.type_of(node.calls).context.impl(refs.Object)
-				if prop in ['pop', 'insert', 'extend'] and context.is_a(list):
+				if prop in ['pop', 'insert', 'extend'] and context.type_is(list):
 					return f'list_{prop}', context.attrs[0]
-				elif prop in ['pop', 'keys', 'values'] and context.is_a(dict):
+				elif prop in ['pop', 'keys', 'values'] and context.type_is(dict):
 					key_attr, value_attr = context.attrs
 					attr_indexs = {'pop': value_attr, 'keys': key_attr, 'values': value_attr}
 					return f'dict_{prop}', attr_indexs[prop]
 			elif prop == 'format':
 				if node.calls.receiver.is_a(defs.String):
 					return 'str_format', None
-				elif self.reflections.type_of(node.calls).context.impl(refs.Object).is_a(str):
+				elif self.reflections.type_of(node.calls).context.impl(refs.Object).type_is(str):
 					return 'str_format', None
 			elif prop == CVars.empty_key:
 				context = self.reflections.type_of(node).attrs[0]
@@ -842,7 +842,7 @@ class Py2Cpp(ITranspiler):
 					return f'new_cvar_p', None
 				elif CVars.is_addr_sp(cvar_key):
 					new_type_raw = self.reflections.type_of(node.arguments[0])
-					spec = 'new_cvar_sp_list' if new_type_raw.impl(refs.Object).is_a(list) else 'new_cvar_sp'
+					spec = 'new_cvar_sp_list' if new_type_raw.impl(refs.Object).type_is(list) else 'new_cvar_sp'
 					return spec, new_type_raw
 
 		if isinstance(node.calls, (defs.Relay, defs.Var)):
@@ -946,8 +946,8 @@ class Py2Cpp(ITranspiler):
 		operators = [elements[index] for index in operator_indexs]
 		secondaries = [elements[index] for index in right_indexs]
 
-		list_is_primary = primary_raw.impl(refs.Object).is_a(list)
-		list_is_secondary = secondary_raws[0].impl(refs.Object).is_a(list)
+		list_is_primary = primary_raw.impl(refs.Object).type_is(list)
+		list_is_secondary = secondary_raws[0].impl(refs.Object).type_is(list)
 		if list_is_primary != list_is_secondary and operators[0] == '*':
 			default_raw, default = (primary_raw, primary) if list_is_primary else (secondary_raws[0], secondaries[0])
 			size_raw, size = (secondary_raws[0], secondaries[0]) if list_is_primary else (primary_raw, primary)
@@ -966,9 +966,9 @@ class Py2Cpp(ITranspiler):
 			operator = operators[index]
 			secondary = rights[index]
 			if operator in ['in', 'not.in']:
-				primary = self.view.render('binary_operator/in', vars={'left': primary, 'operator': operator, 'right': secondary, 'right_is_dict': right_raw.impl(refs.Object).is_a(dict)})
+				primary = self.view.render('binary_operator/in', vars={'left': primary, 'operator': operator, 'right': secondary, 'right_is_dict': right_raw.impl(refs.Object).type_is(dict)})
 			else:
-				primary = self.view.render('binary_operator/default', vars={'left': primary, 'operator': operator, 'right': secondary, 'right_is_dict': right_raw.impl(refs.Object).is_a(dict)})
+				primary = self.view.render('binary_operator/default', vars={'left': primary, 'operator': operator, 'right': secondary, 'right_is_dict': right_raw.impl(refs.Object).type_is(dict)})
 
 		return primary
 

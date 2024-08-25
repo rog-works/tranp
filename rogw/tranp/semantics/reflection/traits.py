@@ -43,7 +43,7 @@ class TraitImpl(Trait):
 class ConvertionTrait(TraitImpl, IConvertion):
 	"""トレイト実装(変換)"""
 
-	def is_a(self, standard_type: type[Standards] | None, symbol: IReflection) -> bool:
+	def type_is(self, standard_type: type[Standards] | None, symbol: IReflection) -> bool:
 		"""シンボルの型を判定
 
 		Args:
@@ -52,7 +52,7 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		Returns:
 			bool: True = 指定の型と一致
 		"""
-		return self.reflections.is_a(symbol, standard_type)
+		return self.reflections.type_is(symbol, standard_type)
 
 	def actualize(self: Self, *targets: Literal['nullable', 'alt_class', 'type'], symbol: IReflection) -> Self:
 		"""プロクシー型(Union/TypeAlias/type)による階層化を解除し、実体型を取得。元々実体型である場合はそのまま返却
@@ -87,9 +87,9 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		Note:
 			対象: Class | None
 		"""
-		if self.reflections.is_a(symbol, classes.Union) and len(symbol.attrs) == 2:
-			is_0_null = self.reflections.is_a(symbol.attrs[0], None)
-			is_1_null = self.reflections.is_a(symbol.attrs[1], None)
+		if self.reflections.type_is(symbol, classes.Union) and len(symbol.attrs) == 2:
+			is_0_null = self.reflections.type_is(symbol.attrs[0], None)
+			is_1_null = self.reflections.type_is(symbol.attrs[1], None)
 			if is_0_null != is_1_null:
 				return symbol.attrs[1 if is_0_null else 0]
 
@@ -117,7 +117,7 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		Note:
 			対象: type<T> -> T
 		"""
-		return symbol.attrs[0] if isinstance(symbol.decl, defs.Class) and self.reflections.is_a(symbol, type) else symbol
+		return symbol.attrs[0] if isinstance(symbol.decl, defs.Class) and self.reflections.type_is(symbol, type) else symbol
 
 
 class OperationTrait(TraitImpl, IOperation):
@@ -142,7 +142,7 @@ class OperationTrait(TraitImpl, IOperation):
 			return method.returns(value)
 
 		parameter = method.parameter_at(0, value)
-		parameter_types = parameter.attrs if parameter.impl(refs.Object).is_a(classes.Union) else [parameter]
+		parameter_types = parameter.attrs if parameter.impl(refs.Object).type_is(classes.Union) else [parameter]
 		if value not in parameter_types:
 			return None
 
@@ -206,7 +206,7 @@ class IteratorTrait(TraitImpl, IIterator):
 		# メソッド毎の返却値の違いを吸収
 		# __iter__() -> T
 		# __next__() -> Iterator<T>
-		return iterates.attrs[0] if self.reflections.is_a(iterates, cast(type, Iterator)) else iterates
+		return iterates.attrs[0] if self.reflections.type_is(iterates, cast(type, Iterator)) else iterates
 
 	def _resolve_method(self, symbol: IReflection) -> IReflection:
 		"""イテレーターのメソッドを解決

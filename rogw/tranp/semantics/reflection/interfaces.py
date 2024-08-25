@@ -21,7 +21,7 @@ class IExample(Protocol):
 class IConvertion:
 	"""拡張インターフェイス(変換)"""
 
-	def is_a(self, standard_type: type[Standards] | None, **reserved: IReflection) -> bool:
+	def type_is(self, standard_type: type[Standards] | None, **reserved: IReflection) -> bool:
 		"""シンボルの型を判定
 
 		Args:

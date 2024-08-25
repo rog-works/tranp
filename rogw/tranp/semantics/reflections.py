@@ -42,7 +42,7 @@ class Reflections:
 
 		return self.__procedural
 
-	def is_a(self, symbol: IReflection, standard_type: type[Standards] | None) -> bool:
+	def type_is(self, symbol: IReflection, standard_type: type[Standards] | None) -> bool:
 		"""シンボルの型を判定
 
 		Args:
@@ -423,7 +423,7 @@ class ProceduralResolver:
 		actual_receiver = receiver.impl(refs.Object).actualize()
 		prop = actual_receiver.prop_of(node.prop)
 		# XXX Enum直下のDeclLocalVarは定数値であり、型としてはEnumそのものであるためreceiverを返却。特殊化より一般化する方法を検討
-		if receiver.impl(refs.Object).is_a(type) and isinstance(actual_receiver.types, defs.Enum) and prop.decl.is_a(defs.DeclLocalVar):
+		if receiver.impl(refs.Object).type_is(type) and isinstance(actual_receiver.types, defs.Enum) and prop.decl.is_a(defs.DeclLocalVar):
 			return actual_receiver.stack(node)
 		elif isinstance(prop.decl, defs.Class):
 			return actual_receiver.to(node, self.reflections.from_standard(type)).extends(prop)
@@ -451,17 +451,17 @@ class ProceduralResolver:
 
 		if node.sliced:
 			return actual_receiver.stack(node)
-		elif receiver.impl(refs.Object).is_a(type):
+		elif receiver.impl(refs.Object).type_is(type):
 			actual_keys = [key.impl(refs.Object).actualize() for key in keys]
 			actual_class = actual_receiver.stack().extends(*actual_keys)
 			return actual_receiver.to(node, self.reflections.from_standard(type)).extends(actual_class)
-		elif actual_receiver.is_a(str):
+		elif actual_receiver.type_is(str):
 			return actual_receiver.stack(node)
-		elif actual_receiver.is_a(list):
+		elif actual_receiver.type_is(list):
 			return actual_receiver.to(node, actual_receiver.attrs[0])
-		elif actual_receiver.is_a(dict):
+		elif actual_receiver.type_is(dict):
 			return actual_receiver.to(node, actual_receiver.attrs[1])
-		elif actual_receiver.is_a(tuple):
+		elif actual_receiver.type_is(tuple):
 			if keys[0].node and keys[0].node.is_a(defs.Integer):
 				# インデックスが判明している場合はその位置の型を返却
 				index = keys[0].node.as_a(defs.Integer).as_int
@@ -608,8 +608,8 @@ class ProceduralResolver:
 		if primary == secondary:
 			return primary.stack(node)
 
-		primary_is_null = primary.impl(refs.Object).is_a(None)
-		secondary_is_null = secondary.impl(refs.Object).is_a(None)
+		primary_is_null = primary.impl(refs.Object).type_is(None)
+		secondary_is_null = secondary.impl(refs.Object).type_is(None)
 		if primary_is_null == secondary_is_null:
 			raise OperationNotAllowedError(f'Only Nullable. node: {node}, primary: {primary}, secondary: {secondary}')
 

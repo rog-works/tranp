@@ -133,7 +133,7 @@ class TestReflections(TestCase):
 	def test_is_a(self, fullyname: str, standard_type: type[Standards], expected: bool) -> None:
 		reflections = self.fixture.get(Reflections)
 		symbol = reflections.from_fullyname(fullyname)
-		self.assertEqual(reflections.is_a(symbol, standard_type), expected)
+		self.assertEqual(reflections.type_is(symbol, standard_type), expected)
 
 	@data_provider([
 		(ModuleDSN.full_joined(fixture_module_path, 'TypeAlias'), 'TypeAlias'),

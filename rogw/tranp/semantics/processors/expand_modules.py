@@ -6,9 +6,10 @@ from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.io.cache import CacheProvider, Stored
 from rogw.tranp.io.loader import IFileLoader
 from rogw.tranp.lang.annotation import duck_typed, injectable
+from rogw.tranp.lang.trait import Traits
 from rogw.tranp.module.modules import Module, Modules
 from rogw.tranp.semantics.finder import SymbolFinder
-from rogw.tranp.semantics.reflection.base import IReflection, Traits
+from rogw.tranp.semantics.reflection.base import IReflection
 from rogw.tranp.semantics.reflection.db import SymbolDB
 from rogw.tranp.semantics.reflection.reflection import Symbol
 import rogw.tranp.syntax.node.definition as defs
@@ -60,7 +61,7 @@ class ExpandModules:
 	"""
 
 	@injectable
-	def __init__(self, modules: Modules, finder: SymbolFinder, caches: CacheProvider, loader: IFileLoader, traits: Traits) -> None:
+	def __init__(self, modules: Modules, finder: SymbolFinder, caches: CacheProvider, loader: IFileLoader, traits: Traits[IReflection]) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -68,7 +69,7 @@ class ExpandModules:
 			finder (SymbolFinder): シンボル検索 @inject
 			caches (CacheProvider): キャッシュプロバイダー @inject
 			loader (IFileLoader): ファイルローダー @inject
-			traits (Traits): トレイトマネージャー @inject
+			traits (Traits[IReflection]): トレイトマネージャー @inject
 		"""
 		self.modules = modules
 		self.finder = finder

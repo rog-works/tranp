@@ -1,9 +1,8 @@
 from abc import ABCMeta, abstractmethod
-from types import FunctionType
-from typing import Any, Callable, Iterator, Literal, Protocol, Self, TypeVar
+from typing import Iterator, Literal, Protocol, Self, TypeVar
 
-from rogw.tranp.lang.annotation import injectable
-from rogw.tranp.semantics.errors import MustBeImplementedError, SemanticsLogicError
+from rogw.tranp.lang.trait import Traits
+from rogw.tranp.semantics.errors import SemanticsLogicError
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 
@@ -67,8 +66,8 @@ class IReflection(metaclass=ABCMeta):
 
 	@property
 	@abstractmethod
-	def _traits(self) -> 'Traits':
-		"""Traits: トレイトマネージャー"""
+	def _traits(self) -> Traits['IReflection']:
+		"""Traits[IReflection]: トレイトマネージャー"""
 		...
 
 	@abstractmethod
@@ -227,112 +226,3 @@ class Mods:
 			del self._cache[key]
 
 		self._mods[key] = mod
-
-
-class Trait:
-	"""インターフェイス拡張トレイト(基底)"""
-
-	@injectable
-	def __init__(self, *injects: Any) -> None:
-		"""インスタンスを生成
-
-		Args:
-			*injects (Any): 任意の注入引数 @inject
-		"""
-		...
-
-	@property
-	def implements(self) -> type[Any]:
-		"""実装インターフェイスを取得
-
-		Returns:
-			type[Any]: クラス
-		Note:
-			* 以下の様に継承されていると見做し、MROの末尾(-2)から実装インターフェイスを取得する
-			* `class TraitImpl(Trait, IInterface): ...` -> (TraitImpl, Trait, IInterface, object)
-		"""
-		return self.__class__.mro()[-2]
-
-	@property
-	def impl_methods(self) -> list[str]:
-		"""実装メソッド名リスト
-
-		Returns:
-			list[str]: メソッド名リスト
-		"""
-		return [key for key, value in self.implements.__dict__.items() if not key.startswith('_') and isinstance(value, FunctionType)]
-
-
-class TraitProvider(Protocol):
-	"""トレイトプロバイダープロトコル"""
-
-	def __call__(self) -> list[Trait]:
-		"""トレイトリストを取得
-
-		Returns:
-			list[Trait]: トレイトリスト
-		"""
-		...
-
-
-class Traits:
-	"""トレイトマネージャー"""
-
-	def __init__(self, provider: TraitProvider) -> None:
-		"""インスタンスを生成
-
-		Args:
-			provider (TraitProvider): トレイトプロバイダー
-		"""
-		self.__provider = provider
-		self.__interfaces: list[type[Any]] = []
-		self.__method_on_trait: dict[str, Trait] = {}
-
-	def __ensure_traits(self) -> None:
-		"""トレイトをインスタンス化
-
-		Note:
-			インスタンス生成時にDIを利用するため、トレイト参照時まで生成を遅らせる
-		"""
-		traits = self.__provider()
-		method_on_trait: dict[str, Trait] = {}
-		for trait in traits:
-			method_on_trait = {**method_on_trait, **{name: trait for name in trait.impl_methods}}
-
-		self.__interfaces = [trait.implements for trait in traits]
-		self.__method_on_trait = method_on_trait
-
-	def implements(self, expect: type[T_Ref]) -> bool:
-		"""指定のクラスが所有するインターフェイスが実装されているか判定
-
-		Args:
-			expect (type[T_Ref]): 期待するインターフェイス
-		Returns:
-			bool: True = 実装
-		"""
-		if len(self.__interfaces) == 0:
-			self.__ensure_traits()
-
-		requirements: list[type[Any]] = [inherit for inherit in expect.mro() if not isinstance(inherit, (IReflection, object))]
-		for required in requirements:
-			if required not in self.__interfaces:
-				return False
-
-		return True
-
-	def get(self, name: str, symbol: IReflection) -> Callable[..., Any]:
-		"""トレイトのメソッドを取得
-
-		Args:
-			name (str): メソッド名
-			symbol (IReflection): 拡張対象のインスタンス
-		Returns:
-			Callable[..., Any]: メソッドアダプター
-		Raises:
-			MustBeImplementedError: トレイトのメソッドが未実装
-		"""
-		if name not in self.__method_on_trait:
-			raise MustBeImplementedError(f'Method not defined. symbol: {symbol}, name: {name}')
-
-		trait = self.__method_on_trait[name]
-		return lambda *args: getattr(trait, name)(*args, symbol=symbol)

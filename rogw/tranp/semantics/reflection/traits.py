@@ -3,8 +3,9 @@ from typing import Iterator, Literal, Self, cast
 import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.compatible.python.types import Standards
 from rogw.tranp.lang.annotation import implements, override
+from rogw.tranp.lang.trait import Trait
 from rogw.tranp.semantics.errors import UnresolvedSymbolError
-from rogw.tranp.semantics.reflection.base import IReflection, Trait
+from rogw.tranp.semantics.reflection.base import IReflection
 import rogw.tranp.semantics.reflection.definition as refs
 import rogw.tranp.semantics.reflection.helper.template as templates
 from rogw.tranp.semantics.reflection.interfaces import IConvertion, IFunction, IIterator, IOperation, IProperties
@@ -43,23 +44,25 @@ class TraitImpl(Trait):
 class ConvertionTrait(TraitImpl, IConvertion):
 	"""トレイト実装(変換)"""
 
-	def type_is(self, standard_type: type[Standards] | None, symbol: IReflection) -> bool:
+	@implements
+	def type_is(self, standard_type: type[Standards] | None, instance: IReflection) -> bool:
 		"""シンボルの型を判定
 
 		Args:
 			standard_type (type[Standards] | None): 標準タイプ
-			symbol (IReflection): シンボル ※Traitsから暗黙的に入力される
+			instance (IReflection): シンボル ※Traitsから暗黙的に入力される
 		Returns:
 			bool: True = 指定の型と一致
 		"""
-		return self.reflections.type_is(symbol, standard_type)
+		return self.reflections.type_is(instance, standard_type)
 
-	def actualize(self: Self, *targets: Literal['nullable', 'alt_class', 'type'], symbol: IReflection) -> Self:
+	@implements
+	def actualize(self: Self, *targets: Literal['nullable', 'alt_class', 'type'], instance: IReflection) -> Self:
 		"""プロクシー型(Union/TypeAlias/type)による階層化を解除し、実体型を取得。元々実体型である場合はそのまま返却
 
 		Args:
 			*targets (Literal['nullable', 'alt_class', 'type']): 処理対象。省略時は全てが対象
-			symbol (IReflection): シンボル ※Traitsから暗黙的に入力される
+			instance (IReflection): シンボル ※Traitsから暗黙的に入力される
 		Returns:
 			Self: シンボル
 		Note:
@@ -71,7 +74,7 @@ class ConvertionTrait(TraitImpl, IConvertion):
 			* XXX 実質的に具象クラスはReflectionのみであり、アンパック後も型は変化しない
 			* XXX リフレクション拡張の型(=Self)として継続して利用できる方が効率が良い
 		"""
-		actual = symbol
+		actual = instance
 		actual = self._unpack_nullable(actual) if len(targets) == 0 or 'nullable' in targets else actual
 		actual = self._unpack_alt_class(actual) if len(targets) == 0 or 'alt_class' in targets else actual
 		actual = self._unpack_type(actual) if len(targets) == 0 or 'type' in targets else actual
@@ -123,22 +126,23 @@ class ConvertionTrait(TraitImpl, IConvertion):
 class OperationTrait(TraitImpl, IOperation):
 	"""トレイト実装(演算)"""
 
-	def try_operation(self, operator: defs.Terminal, value: IReflection, symbol: IReflection) -> IReflection | None:
+	@implements
+	def try_operation(self, operator: defs.Terminal, value: IReflection, instance: IReflection) -> IReflection | None:
 		"""演算を試行し、結果を返却。該当する演算メソッドが存在しない場合はNoneを返却
 
 		Args:
 			operator (Terminal): 演算子ノード
 			value (IReflection): 値のシンボル
-			symbol (IReflection): シンボル ※Traitsから暗黙的に入力される
+			instance (IReflection): シンボル ※Traitsから暗黙的に入力される
 		Returns:
 			IReflection: シンボル
 		"""
-		method = self._find_method(symbol, symbol.types.operations.operation_by(operator.tokens))
+		method = self._find_method(instance, instance.types.operations.operation_by(operator.tokens))
 		if method is None:
 			return None
 
 		# XXX 算術演算以外(比較/ビット演算)は返却型が左右で必ず同じであり、戻り値の型の選別が不要であるため省略する
-		if not symbol.types.operations.arthmetical(operator.tokens):
+		if not instance.types.operations.arthmetical(operator.tokens):
 			return method.returns(value)
 
 		parameter = method.parameter_at(0, value)
@@ -167,41 +171,42 @@ class PropertiesTrait(TraitImpl, IProperties):
 	"""トレイト実装(プロパティー管理)"""
 
 	@implements
-	def prop_of(self, prop: defs.Var, symbol: IReflection) -> IReflection:
+	def prop_of(self, prop: defs.Var, instance: IReflection) -> IReflection:
 		"""配下のプロパティーを取得
 
 		Args:
 			prop (Var): 変数参照ノード
-			symbol (IReflection): シンボル ※Traitsから暗黙的に入力される
+			instance (IReflection): シンボル ※Traitsから暗黙的に入力される
 		Returns:
 			IReflection: シンボル
 		"""
-		return symbol.to(prop, self.reflections.resolve_property(symbol.types, prop))
+		return instance.to(prop, self.reflections.resolve_property(instance.types, prop))
 
 	@implements
-	def constructor(self, symbol: IReflection) -> IReflection:
+	def constructor(self, instance: IReflection) -> IReflection:
 		"""コンストラクターを取得
 
 		Args:
-			symbol (IReflection): シンボル ※Traitsから暗黙的に入力される
+			instance (IReflection): シンボル ※Traitsから暗黙的に入力される
 		Returns:
 			IReflection: シンボル
 		"""
-		return symbol.to(symbol.types, self.reflections.resolve_constructor(symbol.types.as_a(defs.Class)))
+		return instance.to(instance.types, self.reflections.resolve_constructor(instance.types.as_a(defs.Class)))
 
 
 class IteratorTrait(TraitImpl, IIterator):
 	"""トレイト実装(イテレーター)"""
 
-	def iterates(self, symbol: IReflection) -> IReflection:
+	@implements
+	def iterates(self, instance: IReflection) -> IReflection:
 		"""イテレーターの結果を解決
 
 		Args:
-			symbol (IReflection): シンボル ※Traitsから暗黙的に入力される
+			instance (IReflection): シンボル ※Traitsから暗黙的に入力される
 		Returns:
 			IReflection: シンボル
 		"""
-		method = symbol.to(symbol.types, self._resolve_method(symbol))
+		method = instance.to(instance.types, self._resolve_method(instance))
 		iterates = method.impl(refs.Function).returns()
 		# メソッド毎の返却値の違いを吸収
 		# __iter__() -> T
@@ -226,7 +231,7 @@ class FunctionTrait(TraitImpl, IFunction):
 	"""トレイト実装(ファンクション)"""
 
 	@implements
-	def parameter_at(self, index: int, argument: IReflection, symbol: IReflection) -> IReflection:
+	def parameter_at(self, index: int, argument: IReflection, instance: IReflection) -> IReflection:
 		"""引数の実体型を解決
 
 		Args:
@@ -236,39 +241,40 @@ class FunctionTrait(TraitImpl, IFunction):
 		Returns:
 			IReflection: シンボル
 		"""
-		function_helper = self._build_helper(symbol)
+		function_helper = self._build_helper(instance)
 		if function_helper.is_a(templates.Method):
-			return function_helper.parameter(index, symbol.context, argument)
+			return function_helper.parameter(index, instance.context, argument)
 		else:
 			return function_helper.parameter(index, argument)
 
 	@implements
-	def returns(self, *arguments: IReflection, symbol: IReflection) -> IReflection:
+	def returns(self, *arguments: IReflection, instance: IReflection) -> IReflection:
 		"""戻り値の実体型を解決
 
 		Args:
 			*arguments (IReflection): 引数リスト
-			symbol (IReflection): シンボル ※Traitsから暗黙的に入力される
+			instance (IReflection): シンボル ※Traitsから暗黙的に入力される
 		Returns:
 			IReflection: シンボル
 		"""
-		function_helper = self._build_helper(symbol)
+		function_helper = self._build_helper(instance)
 		if function_helper.is_a(templates.Method):
-			return function_helper.returns(symbol.context, *arguments)
+			return function_helper.returns(instance.context, *arguments)
 		else:
 			return function_helper.returns(*arguments)
 
-	def function_templates(self, symbol: IReflection) -> list[defs.TemplateClass]:
+	@implements
+	def function_templates(self, instance: IReflection) -> list[defs.TemplateClass]:
 		"""保有するテンプレート型ノードを取得
 
 		Args:
-			symbol (IReflection): シンボル ※Traitsから暗黙的に入力される
+			instance (IReflection): シンボル ※Traitsから暗黙的に入力される
 		Returns:
 			list[TemplateClass]: テンプレート型ノードのリスト
 		Note:
 			XXX クラスにも同様の属性があるため、IGenericなどに分離を検討
 		"""
-		return self._build_helper(symbol).templates()
+		return self._build_helper(instance).templates()
 
 	def _build_helper(self, symbol: IReflection) -> templates.Function:
 		"""ヘルパー(ファンクション)を生成

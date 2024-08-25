@@ -2,9 +2,10 @@ from typing import Any, Callable, Iterator, Literal, Self, cast
 
 from rogw.tranp.lang.annotation import implements, override
 from rogw.tranp.lang.convertion import safe_cast
+from rogw.tranp.lang.trait import Traits
 from rogw.tranp.semantics.errors import MustBeImplementedError, SemanticsLogicError
 from rogw.tranp.semantics.reflection.helper.naming import ClassShorthandNaming
-from rogw.tranp.semantics.reflection.base import Mods, IReflection, Mod, T_Ref, Traits
+from rogw.tranp.semantics.reflection.base import Mods, IReflection, Mod, T_Ref
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 
@@ -38,11 +39,11 @@ class Options:
 class ReflectionBase(IReflection):
 	"""リフレクション(基底)"""
 
-	def __init__(self, traits: Traits, options: Options) -> None:
+	def __init__(self, traits: Traits[IReflection], options: Options) -> None:
 		"""インスタンスを生成
 
 		Args:
-			traits (Traits): トレイトマネージャー
+			traits (Traits[IReflection]): トレイトマネージャー
 			options (Options): 生成オプション
 		"""
 		self.__traits = traits
@@ -94,8 +95,8 @@ class ReflectionBase(IReflection):
 
 	@property
 	@implements
-	def _traits(self) -> Traits:
-		"""Traits: トレイトマネージャー"""
+	def _traits(self) -> Traits[IReflection]:
+		"""Traits[IReflection]: トレイトマネージャー"""
 		return self.__traits
 
 	@implements
@@ -257,11 +258,11 @@ class Symbol(ReflectionBase):
 	"""シンボル"""
 
 	@classmethod
-	def instantiate(cls, traits: Traits, types: defs.ClassDef) -> 'Symbol':
+	def instantiate(cls, traits: Traits[IReflection], types: defs.ClassDef) -> 'Symbol':
 		"""インスタンスを生成
 
 		Args:
-			traits (Traits): トレイトマネージャー
+			traits (Traits[IReflection]): トレイトマネージャー
 			types (ClassDef): クラス定義ノード
 		Returns:
 			Symbol: インスタンス
@@ -269,11 +270,11 @@ class Symbol(ReflectionBase):
 		return cls(traits, Options(types=types))
 
 	@override
-	def __init__(self, traits: Traits, options: Options) -> None:
+	def __init__(self, traits: Traits[IReflection], options: Options) -> None:
 		"""インスタンスを生成
 
 		Args:
-			traits (Traits): トレイトマネージャー
+			traits (Traits[IReflection]): トレイトマネージャー
 			options (Options): 生成オプション
 		"""
 		super().__init__(traits, options)
@@ -302,11 +303,11 @@ class Reflection(ReflectionBase):
 	"""リフレクション"""
 
 	@override
-	def __init__(self, traits: Traits, options: Options) -> None:
+	def __init__(self, traits: Traits[IReflection], options: Options) -> None:
 		"""インスタンスを生成
 
 		Args:
-			traits (Traits): トレイトマネージャー
+			traits (Traits[IReflection]): トレイトマネージャー
 			options (Options): 生成オプション
 		"""
 		super().__init__(traits, options)

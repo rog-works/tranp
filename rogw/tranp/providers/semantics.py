@@ -1,8 +1,8 @@
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.lang.locator import Invoker
+from rogw.tranp.lang.trait import TraitProvider
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.semantics.processor import Preprocessors
-from rogw.tranp.semantics.reflection.base import TraitProvider
 from rogw.tranp.semantics.reflection.db import SymbolDB, SymbolDBProvider
 from rogw.tranp.semantics.reflection.traits import export_classes
 

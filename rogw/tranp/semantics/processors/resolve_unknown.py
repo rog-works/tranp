@@ -1,7 +1,7 @@
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.lang.convertion import as_a
 from rogw.tranp.lang.locator import Invoker
-from rogw.tranp.semantics.reflection.base import Addon, IReflection
+from rogw.tranp.semantics.reflection.base import Mod, IReflection
 from rogw.tranp.semantics.reflection.db import SymbolDB
 from rogw.tranp.semantics.reflections import Reflections
 import rogw.tranp.syntax.node.definition as defs
@@ -41,22 +41,22 @@ class ResolveUnknown:
 				continue
 
 			if isinstance(raw.decl.declare, defs.MoveAssign):
-				raw.mod_on('origin', self.make_addon(raw, raw.decl.declare.value))
+				raw.mod_on('origin', self.make_mod(raw, raw.decl.declare.value))
 			elif isinstance(raw.decl.declare, (defs.For, defs.CompFor)):
-				raw.mod_on('origin', self.make_addon(raw, raw.decl.declare.for_in))
+				raw.mod_on('origin', self.make_mod(raw, raw.decl.declare.for_in))
 			elif isinstance(raw.decl.declare, defs.WithEntry):
-				raw.mod_on('origin', self.make_addon(raw, raw.decl.declare.enter))
+				raw.mod_on('origin', self.make_mod(raw, raw.decl.declare.enter))
 
 		return db
 
-	def make_addon(self, raw: IReflection, value_node: Node) -> Addon:
-		"""アドオンを生成
+	def make_mod(self, raw: IReflection, value_node: Node) -> Mod:
+		"""モッドを生成
 
 		Args:
 			var_raw (IReflection): 変数宣言シンボル
 			value_node (Node): 右辺値ノード
 		Returns:
-			Addon: アドオン
+			Mod: モッド
 		"""
 		return lambda: [self.invoker(self.resolve_right_value, raw, value_node)]
 

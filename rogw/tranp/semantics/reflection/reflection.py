@@ -4,7 +4,7 @@ from rogw.tranp.lang.annotation import implements, override
 from rogw.tranp.lang.convertion import safe_cast
 from rogw.tranp.semantics.errors import MustBeImplementedError, SemanticsLogicError
 from rogw.tranp.semantics.reflection.helper.naming import ClassShorthandNaming
-from rogw.tranp.semantics.reflection.base import Addons, IReflection, Addon, T_Ref, Traits
+from rogw.tranp.semantics.reflection.base import Mods, IReflection, Mod, T_Ref, Traits
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 
@@ -177,12 +177,12 @@ class ReflectionBase(IReflection):
 		return new
 
 	@implements
-	def mod_on(self, key: Literal['origin', 'attrs'], addon: Addon) -> None:
-		"""アドオンを有効化
+	def mod_on(self, key: Literal['origin', 'attrs'], mod: Mod) -> None:
+		"""モッドを有効化
 		
 		Args:
 			key (Literal['origin', 'attrs']): キー
-			addon (Addon): アドオン
+			mod (Mod): モッド
 		"""
 		raise SemanticsLogicError(f'Operation not allowed. symbol: {self.types.fullyname}')
 
@@ -315,7 +315,7 @@ class Reflection(ReflectionBase):
 		self._decl = options.decl if options.decl else self._origin.decl
 		self._via = options.via if options.via else self._origin.via
 		self._attrs: list[IReflection] = []
-		self._addons = Addons()
+		self._mods = Mods()
 
 	@property
 	@implements
@@ -339,8 +339,8 @@ class Reflection(ReflectionBase):
 	@override
 	def origin(self) -> IReflection:
 		"""IReflection: 型のシンボル"""
-		if self._addons.active('origin'):
-			return self._addons.origin
+		if self._mods.active('origin'):
+			return self._mods.origin
 
 		return self._origin
 
@@ -359,12 +359,12 @@ class Reflection(ReflectionBase):
 			list[IReflection]: 属性シンボルリスト
 		Note:
 			### 属性の評価順序
-			1. アドオンから注入された属性
+			1. モッドから注入された属性
 			2. 自身に設定された属性
 			3. 型のシンボルに設定された属性
 		"""
-		if self._addons.active('attrs'):
-			return self._addons.attrs
+		if self._mods.active('attrs'):
+			return self._mods.attrs
 
 		if self._attrs:
 			return self._attrs
@@ -394,11 +394,11 @@ class Reflection(ReflectionBase):
 		return self
 
 	@override
-	def mod_on(self, key: Literal['origin', 'attrs'], addon: Addon) -> None:
-		"""アドオンを有効化
+	def mod_on(self, key: Literal['origin', 'attrs'], mod: Mod) -> None:
+		"""モッドを有効化
 		
 		Args:
 			key (Literal['origin', 'attrs']): キー
-			addon (Addon): アドオン
+			mod (Mod): モッド
 		"""
-		self._addons.activate(key, addon)
+		self._mods.activate(key, mod)

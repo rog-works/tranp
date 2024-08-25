@@ -145,12 +145,12 @@ class IReflection(metaclass=ABCMeta):
 		...
 
 	@abstractmethod
-	def mod_on(self, key: Literal['origin', 'attrs'], addon: 'Addon') -> None:
-		"""アドオンを有効化
+	def mod_on(self, key: Literal['origin', 'attrs'], mod: 'Mod') -> None:
+		"""モッドを有効化
 		
 		Args:
 			key (Literal['origin', 'attrs']): キー
-			addon (Addon): アドオン
+			mod (Mod): モッド
 		"""
 		...
 
@@ -168,20 +168,20 @@ class IReflection(metaclass=ABCMeta):
 		...
 
 
-class Addon(Protocol):
-	"""シンボル改変アドオンプロトコル"""
+class Mod(Protocol):
+	"""モッドプロトコル"""
 
 	def __call__(self) -> list[IReflection]:
 		"""list[IReflection]: シンボルリスト"""
 		...
 
 
-class Addons:
-	"""アドオンマネージャー"""
+class Mods:
+	"""モッドマネージャー"""
 
 	def __init__(self) -> None:
 		"""インスタンスを生成"""
-		self._addons: dict[str, Addon] = {}
+		self._mods: dict[str, Mod] = {}
 		self._cache: dict[str, list[IReflection]] = {}
 
 	@property
@@ -191,7 +191,7 @@ class Addons:
 			raise SemanticsLogicError('Has no origin')
 
 		if 'origin' not in self._cache:
-			self._cache['origin'] = self._addons['origin']()
+			self._cache['origin'] = self._mods['origin']()
 
 		return self._cache['origin'][0]
 
@@ -202,31 +202,31 @@ class Addons:
 			raise SemanticsLogicError('Has no attrs')
 
 		if 'attrs' not in self._cache:
-			self._cache['attrs'] = self._addons['attrs']()
+			self._cache['attrs'] = self._mods['attrs']()
 
 		return self._cache['attrs']
 
 	def active(self, key: Literal['origin', 'attrs']) -> bool:
-		"""アドオンが有効か判定
+		"""モッドが有効か判定
 
 		Args:
 			key (Literal['origin', 'attrs']): キー
 		Returns:
 			bool: True = 有効
 		"""
-		return key in self._addons
+		return key in self._mods
 
-	def activate(self, key: Literal['origin', 'attrs'], addon: Addon) -> None:
-		"""アドオンを有効化
+	def activate(self, key: Literal['origin', 'attrs'], mod: Mod) -> None:
+		"""モッドを有効化
 
 		Args:
 			key (Literal['origin', 'attrs']): キー
-			addon (Addon): アドオン
+			mod (Mod): モッド
 		"""
 		if key in self._cache:
 			del self._cache[key]
 
-		self._addons[key] = addon
+		self._mods[key] = mod
 
 
 class Trait:

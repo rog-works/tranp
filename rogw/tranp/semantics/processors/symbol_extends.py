@@ -1,6 +1,6 @@
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.lang.locator import Invoker
-from rogw.tranp.semantics.reflection.base import Addon, IReflection
+from rogw.tranp.semantics.reflection.base import Mod, IReflection
 from rogw.tranp.semantics.reflection.db import SymbolDB
 from rogw.tranp.semantics.reflections import Reflections
 import rogw.tranp.syntax.node.definition as defs
@@ -29,56 +29,56 @@ class SymbolExtends:
 		for raw in db.values():
 			if raw.node.is_a(defs.ClassDef):
 				if isinstance(raw.types, defs.AltClass):
-					raw.mod_on('attrs', self.make_addon_for_alt_class(raw))
+					raw.mod_on('attrs', self.make_mod_for_alt_class(raw))
 				elif isinstance(raw.types, defs.Class):
-					raw.mod_on('attrs', self.make_addon_for_class(raw))
+					raw.mod_on('attrs', self.make_mod_for_class(raw))
 				elif isinstance(raw.types, defs.Function):
-					raw.mod_on('attrs', self.make_addon_for_function(raw))
+					raw.mod_on('attrs', self.make_mod_for_function(raw))
 			elif raw.node.one_of(defs.Parameter, defs.Declable):
 				if isinstance(raw.decl.declare, defs.Parameter) and isinstance(raw.decl.declare.var_type, defs.Type):
-					raw.mod_on('attrs', self.make_addon_for_var(raw))
+					raw.mod_on('attrs', self.make_mod_for_var(raw))
 				elif isinstance(raw.decl.declare, (defs.AnnoAssign, defs.Catch)):
-					raw.mod_on('attrs', self.make_addon_for_var(raw))
+					raw.mod_on('attrs', self.make_mod_for_var(raw))
 
 		return db
 	
-	def make_addon_for_alt_class(self, raw: IReflection) -> Addon:
-		"""アドオンを生成(タイプ再定義用)
+	def make_mod_for_alt_class(self, raw: IReflection) -> Mod:
+		"""モッドを生成(タイプ再定義用)
 
 		Args:
 			raw (IReflection): シンボル
 		Returns:
-			Addon: アドオン
+			Mod: モッド
 		"""
 		return lambda: self.invoker(self.attrs_for_alt_class, raw)
 
-	def make_addon_for_class(self, raw: IReflection) -> Addon:
-		"""アドオンを生成(クラス定義用)
+	def make_mod_for_class(self, raw: IReflection) -> Mod:
+		"""モッドを生成(クラス定義用)
 
 		Args:
 			raw (IReflection): シンボル
 		Returns:
-			Addon: アドオン
+			Mod: モッド
 		"""
 		return lambda: self.invoker(self.attrs_for_class, raw)
 
-	def make_addon_for_function(self, raw: IReflection) -> Addon:
-		"""アドオンを生成(ファンクション定義用)
+	def make_mod_for_function(self, raw: IReflection) -> Mod:
+		"""モッドを生成(ファンクション定義用)
 
 		Args:
 			raw (IReflection): シンボル
 		Returns:
-			Addon: アドオン
+			Mod: モッド
 		"""
 		return lambda: self.invoker(self.attrs_for_function, raw)
 
-	def make_addon_for_var(self, raw: IReflection) -> Addon:
-		"""アドオンを生成(変数宣言用)
+	def make_mod_for_var(self, raw: IReflection) -> Mod:
+		"""モッドを生成(変数宣言用)
 
 		Args:
 			raw (IReflection): シンボル
 		Returns:
-			Addon: アドオン
+			Mod: モッド
 		"""
 		return lambda: self.invoker(self.attrs_for_var, raw)
 

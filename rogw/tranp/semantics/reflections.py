@@ -9,7 +9,6 @@ from rogw.tranp.semantics.procedure import Procedure
 from rogw.tranp.semantics.reflection.base import IReflection
 from rogw.tranp.semantics.reflection.db import SymbolDBProvider
 import rogw.tranp.semantics.reflection.definition as refs
-import rogw.tranp.semantics.reflection.helper.template as templates
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 

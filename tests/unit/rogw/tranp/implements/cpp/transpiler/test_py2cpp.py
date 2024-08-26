@@ -186,6 +186,7 @@ class TestPy2Cpp(TestCase):
 		fullyname(Renderer): make_renderer,
 	})
 
+	@profiler(on=False)
 	@data_provider([
 		(_ast('import.typing', ''), defs.Import, '// #include "typing.h"'),
 

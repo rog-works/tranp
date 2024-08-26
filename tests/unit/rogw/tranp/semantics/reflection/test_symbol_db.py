@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from rogw.tranp.semantics.reflection.db import SymbolDBProvider
+from rogw.tranp.semantics.reflection.db import SymbolDBFinalizer
 from tests.test.fixture import Fixture
 from tests.unit.rogw.tranp.semantics.reflection.fixtures.test_symbol_db_expect import expected_symbols
 
@@ -9,7 +9,7 @@ class TestSymbolDB(TestCase):
 	fixture = Fixture.make(__file__)
 
 	def test_make_db(self) -> None:
-		db = self.fixture.get(SymbolDBProvider).db
+		db = self.fixture.get(SymbolDBFinalizer)()
 
 		try:
 			expected = expected_symbols()

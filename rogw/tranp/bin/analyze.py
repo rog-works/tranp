@@ -18,7 +18,7 @@ from rogw.tranp.module.types import ModulePath, ModulePaths
 from rogw.tranp.providers.module import module_path_dummy
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.semantics.reflection.base import IReflection
-from rogw.tranp.semantics.reflection.db import SymbolDBProvider
+from rogw.tranp.semantics.reflection.db import SymbolDB
 from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.syntax.ast.entry import Entry
 from rogw.tranp.syntax.ast.parser import ParserSetting, SyntaxParser
@@ -123,19 +123,19 @@ def task_analyze(org_parser: SyntaxParser, cache: CacheProvider) -> None:
 
 
 @injectable
-def task_db(db_provider: SymbolDBProvider) -> None:
+def task_db(db: SymbolDB) -> None:
 	title = '\n'.join([
 		'==============',
 		'Symbol DB',
 		'--------------',
 	])
 	print(title)
-	print(json.dumps([f'{key}: {raw.types.fullyname}' for key, raw in db_provider.db.items()], indent=2))
+	print(json.dumps([f'{key}: {raw.types.fullyname}' for key, raw in db.items()], indent=2))
 
 
 @injectable
-def task_class(db_provider: SymbolDBProvider, reflections: Reflections) -> None:
-	names = {raw.decl.fullyname: True for raw in db_provider.db.values() if raw.decl.is_a(defs.Class)}
+def task_class(db: SymbolDB, reflections: Reflections) -> None:
+	names = {raw.decl.fullyname: True for raw in db.values() if raw.decl.is_a(defs.Class)}
 	prompt = '\n'.join([
 		'==============',
 		'Class List',

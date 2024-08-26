@@ -9,6 +9,7 @@ from rogw.tranp.lang.annotation import duck_typed, injectable
 from rogw.tranp.lang.trait import Traits
 from rogw.tranp.module.modules import Module, Modules
 from rogw.tranp.semantics.finder import SymbolFinder
+from rogw.tranp.semantics.processor import Preprocessor
 from rogw.tranp.semantics.reflection.base import IReflection
 from rogw.tranp.semantics.reflection.db import SymbolDB
 from rogw.tranp.semantics.reflection.reflection import Symbol
@@ -54,7 +55,7 @@ class Expanded(NamedTuple):
 
 
 class ExpandModules:
-	"""モジュールからシンボルテーブルの生成
+	"""モジュール内のシンボルをシンボルテーブルに展開
 	
 	Note:
 		プリプロセッサーの最初に実行することが前提
@@ -77,78 +78,83 @@ class ExpandModules:
 		self.loader = loader
 		self.traits = traits
 
-	@injectable
-	def __call__(self, db: SymbolDB) -> SymbolDB:
-		"""シンボルテーブルを生成
+	@duck_typed(Preprocessor)
+	def __call__(self, module: Module, db: SymbolDB) -> None:
+		"""シンボルテーブルを編集
 
 		Args:
+			module (Module): モジュール
 			db (SymbolDB): シンボルテーブル
-		Returns:
-			SymbolDB: シンボルテーブル
 		"""
-		expanded_modules = self.expand_modules()
-		expanded_db = self.expanded_to_db(expanded_modules)
-		return db.merge(expanded_db)
+		expanded_modules = self.expand_modules(module)
+		self.expanded_to_db(expanded_modules, db)
 
-	def expand_modules(self) -> dict[str, Expanded]:
-		"""全モジュールを展開
+	def expand_modules(self, main_module: Module) -> dict[Module, Expanded]:
+		"""指定のモジュールと共に依存モジュールを展開
 
+		Args:
+			main_module (Module): モジュール
 		Returns:
-			dict[str, Expanded]: 展開データ
+			dict[str, tuple[Module, Expanded]]: 展開データ
 		"""
 		load_index = 0
-		load_orders = [module.path for module in self.modules.dependencies()]
-		expanded_modules: dict[str, Expanded] = {}
+		load_orders = [main_module.path]
+		expanded_modules: dict[str, tuple[Module, Expanded]] = {}
 		while load_index < len(load_orders):
 			module_path = load_orders[load_index]
 			if module_path in expanded_modules:
 				load_index = load_index + 1
 				continue
 
-			module = self.modules.load(module_path)
+			module = self.modules.load(module_path) if main_module.path != module_path else main_module
 			expanded = self.expand_module(module)
 			import_paths = [import_path for import_path in expanded.import_paths if import_path not in expanded_modules.keys()]
-			expanded_modules[module_path] = expanded
+			expanded_modules[module_path] = module, expanded
 
 			if len(import_paths) > 0:
 				load_orders = [*load_orders[:load_index], *import_paths, *load_orders[load_index:]]
 			else:
 				load_index = load_index + 1
 
-		return {module_path: expanded_modules[module_path] for module_path in load_orders}
+		return dict([expanded_modules[module_path] for module_path in load_orders])
 
-	def expanded_to_db(self, expanded_modules: dict[str, Expanded]) -> SymbolDB:
+	def expanded_to_db(self, expanded_modules: dict[Module, Expanded], db: SymbolDB) -> None:
 		"""展開データからシンボルテーブルを生成
 
 		Args:
 			expanded_modules (dict[str, Expanded]): 展開データ
+			db (SymbolDB): シンボルテーブル
 		Returns:
 			SymbolDB: シンボルテーブル
 		"""
-		# クラス定義シンボルの展開
-		expanded_db = SymbolDB()
-		for module_path, expanded in expanded_modules.items():
-			entrypoint = self.modules.load(module_path).entrypoint.as_a(defs.Entrypoint)
+		for module, expanded in expanded_modules.items():
+			# 展開済みのモジュールはスキップ
+			if db.has_module(module.path):
+				continue
+
+			# クラス定義シンボルの展開
+			entrypoint = module.entrypoint.as_a(defs.Entrypoint)
 			for fullyname, full_path in expanded.classes.items():
 				types = entrypoint.whole_by(full_path).as_a(defs.ClassDef)
-				expanded_db[fullyname] = Symbol.instantiate(self.traits, types).stack()
+				if fullyname not in db:
+					db[fullyname] = Symbol.instantiate(self.traits, types).stack()
 
 			# インポートシンボルの展開
-			entrypoint = self.modules.load(module_path).entrypoint.as_a(defs.Entrypoint)
+			entrypoint = module.entrypoint.as_a(defs.Entrypoint)
 			for fullyname, full_path in expanded.imports.items():
 				import_name = entrypoint.whole_by(full_path).as_a(defs.ImportAsName)
 				import_node = import_name.declare.as_a(defs.Import)
-				raw = expanded_db[ModuleDSN.full_joined(import_node.import_path.tokens, import_name.entity_symbol.tokens)]
-				expanded_db[fullyname] = raw.stack(import_name)
+				raw = db[ModuleDSN.full_joined(import_node.import_path.tokens, import_name.entity_symbol.tokens)]
+				if fullyname not in db:
+					db[fullyname] = raw.stack(import_name)
 
 			# 変数宣言シンボルの展開
-			entrypoint = self.modules.load(module_path).entrypoint.as_a(defs.Entrypoint)
+			entrypoint = module.entrypoint.as_a(defs.Entrypoint)
 			for fullyname, full_path in expanded.decl_vars.items():
 				var = entrypoint.whole_by(full_path).one_of(*defs.DeclVarsTs)
-				raw = self.resolve_type_symbol(expanded_db, var)
-				expanded_db[var.symbol.fullyname] = raw.declare(var)
-
-		return expanded_db.sorted(list(expanded_modules.keys()))
+				raw = self.resolve_type_symbol(db, var)
+				if var.symbol.fullyname not in db:
+					db[var.symbol.fullyname] = raw.declare(var)
 
 	def expand_module(self, module: Module) -> Expanded:
 		"""モジュールのシンボル・インポートパスを展開

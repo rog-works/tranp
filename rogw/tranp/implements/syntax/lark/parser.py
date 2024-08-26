@@ -5,12 +5,12 @@ import lark
 from lark.indenter import PythonIndenter
 
 from rogw.tranp.implements.syntax.lark.entry import EntryOfLark, Serialization
-from rogw.tranp.io.cache import CacheProvider
+from rogw.tranp.io.cache import CacheProvider, Stored
 from rogw.tranp.io.loader import IFileLoader
 from rogw.tranp.lang.annotation import duck_typed, injectable
 from rogw.tranp.lang.module import module_path_to_filepath
 from rogw.tranp.syntax.ast.entry import Entry
-from rogw.tranp.syntax.ast.parser import ParserSetting, SyntaxParser
+from rogw.tranp.syntax.ast.parser import ParserSetting, SourceCodeProvider, SyntaxParser
 from rogw.tranp.syntax.errors import SyntaxError
 
 
@@ -18,15 +18,17 @@ class SyntaxParserOfLark:
 	"""シンタックスパーサー(Lark版)"""
 
 	@injectable
-	def __init__(self, loader: IFileLoader, setting: ParserSetting, caches: CacheProvider) -> None:
+	def __init__(self, loader: IFileLoader, codes: SourceCodeProvider, setting: ParserSetting, caches: CacheProvider) -> None:
 		"""インスタンスを生成
 
 		Args:
 			loader (IFileLoader): ファイルローダー @inject
+			codes (SourceCodeProvider): ソースコードプロバイダー @inject
 			setting (ParserSetting): パーサー設定データ @inject
 			caches (CacheProvider): キャッシュプロバイダー @inject
 		"""
 		self.__loader = loader
+		self.__codes = codes
 		self.__setting = setting
 		self.__caches = caches
 
@@ -48,15 +50,6 @@ class SyntaxParserOfLark:
 		Returns:
 			Lark: シンタックスパーサー
 		"""
-		def identity() -> dict[str, str]:
-			return {
-				'mtime': str(self.__loader.mtime(self.__setting.grammar)),
-				'grammar': self.__setting.grammar,
-				'start': self.__setting.start,
-				'algorithem': self.__setting.algorithem,
-			}
-
-		@self.__caches.get('parser.cache', identity=identity(), format='bin')
 		def instantiate() -> LarkStored:
 			return LarkStored(lark.Lark(
 				self.__loader.load(self.__setting.grammar),
@@ -66,7 +59,14 @@ class SyntaxParserOfLark:
 				propagate_positions=True
 			))
 
-		return instantiate().lark
+		identity = {
+			'mtime': str(self.__loader.mtime(self.__setting.grammar)),
+			'grammar': self.__setting.grammar,
+			'start': self.__setting.start,
+			'algorithem': self.__setting.algorithem,
+		}
+		decorator = self.__caches.get('parser.cache', identity=identity, format='bin')
+		return decorator(instantiate)().lark
 
 	def __load_entry(self, parser: lark.Lark, module_path: str) -> Entry:
 		"""シンタックスツリーをロード
@@ -80,27 +80,24 @@ class SyntaxParserOfLark:
 			SyntaxError: ソースの解析に失敗
 		"""
 		basepath = module_path_to_filepath(module_path)
+		source_path = f'{basepath}.py'
 
-		def source_path() -> str:
-			return f'{basepath}.py'
+		# ストレージに存在しないモジュールはメモリ上に存在すると見做して毎回パース
+		if not self.__loader.exists(source_path):
+			return EntryOfLark(parser.parse(self.__codes(module_path)))
 
-		def identity() -> dict[str, str]:
-			return {
-				'grammar_mtime': str(self.__loader.mtime(self.__setting.grammar)),
-				'mtime': str(self.__loader.mtime(source_path()))
-			}
-
-		def load_source() -> str:
-			return self.__loader.load(source_path())
-
-		@self.__caches.get(basepath, identity=identity(), format='json')
 		def instantiate() -> EntryStored:
 			try:
-				return EntryStored(EntryOfLark(parser.parse(load_source())))
+				return EntryStored(EntryOfLark(parser.parse(self.__codes(module_path))))
 			except Exception as e:
-				raise SyntaxError(f'file: {source_path()}') from e
+				raise SyntaxError(f'file: {source_path}') from e
 
-		return instantiate().entry
+		identity = {
+			'grammar_mtime': str(self.__loader.mtime(self.__setting.grammar)),
+			'mtime': str(self.__loader.mtime(source_path)),
+		}
+		decorator = self.__caches.get(basepath, identity=identity, format='json')
+		return decorator(instantiate)().entry
 
 	def dirty_get_origin(self) -> lark.Lark:
 		"""Larkインスタンスを取得(デバッグ用)
@@ -113,6 +110,7 @@ class SyntaxParserOfLark:
 		return self.__load_parser()
 
 
+duck_typed(Stored)
 class LarkStored:
 	"""ストア(Lark版)"""
 
@@ -144,6 +142,7 @@ class LarkStored:
 		self.lark.save(stream)
 
 
+duck_typed(Stored)
 class EntryStored:
 	"""ストア(シンタックスツリー版)"""
 

@@ -1,18 +1,18 @@
 from typing import Protocol
 
+from rogw.tranp.module.module import Module
 from rogw.tranp.semantics.reflection.db import SymbolDB
 
 
 class Preprocessor(Protocol):
 	"""プリプロセッサープロトコル"""
 
-	def __call__(self, db: SymbolDB) -> SymbolDB:
-		"""シンボルテーブルを生成
+	def __call__(self, module: Module, db: SymbolDB) -> None:
+		"""シンボルテーブルを編集
 
 		Args:
+			module (Module): モジュール
 			db (SymbolDB): シンボルテーブル
-		Returns:
-			SymbolDB: シンボルテーブル
 		"""
 		...
 

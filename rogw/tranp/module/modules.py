@@ -4,22 +4,25 @@ from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.module.module import Module
 from rogw.tranp.module.loader import ModuleLoader
 from rogw.tranp.module.types import LibraryPaths, ModulePath, ModulePaths
+from rogw.tranp.semantics.reflection.db import SymbolDB
 
 
 class Modules:
 	"""モジュールマネージャー。全ての依存モジュールを管理"""
 
 	@injectable
-	def __init__(self, library_paths: LibraryPaths, module_paths: ModulePaths, loader: ModuleLoader) -> None:
+	def __init__(self, library_paths: LibraryPaths, module_paths: ModulePaths, db: SymbolDB, loader: ModuleLoader) -> None:
 		"""インスタンスを生成
 
 		Args:
 			library_paths (LibraryPaths): 標準ライブラリーパスリスト @inject
 			module_paths (ModulePaths): 処理対象モジュールパスリスト @inject
+			db (SymbolDB): シンボルテーブル @inject
 			loader (ModuleLoader): モジュールローダー @inject
 		"""
 		self.__library_paths = library_paths
 		self.__module_paths = module_paths
+		self.__db = db
 		self.__loader = loader
 		self.__modules: dict[str, Module] = {}
 
@@ -69,3 +72,13 @@ class Modules:
 		"""
 		identities = ','.join([module.identity() for module in self.dependencies()])
 		return hashlib.md5(identities.encode('utf-8')).hexdigest()
+
+	def unload(self, module_path: str) -> None:
+		"""指定のモジュールをアンロード
+
+		Args:
+			module_path (str): モジュールパス
+		"""
+		if module_path in self.__modules:
+			del self.__modules[module_path]
+			self.__db.unload(module_path)

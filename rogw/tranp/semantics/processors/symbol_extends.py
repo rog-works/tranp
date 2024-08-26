@@ -1,5 +1,7 @@
-from rogw.tranp.lang.annotation import injectable
+from rogw.tranp.lang.annotation import duck_typed, injectable
 from rogw.tranp.lang.locator import Invoker
+from rogw.tranp.module.module import Module
+from rogw.tranp.semantics.processor import Preprocessor
 from rogw.tranp.semantics.reflection.base import Mod, IReflection
 from rogw.tranp.semantics.reflection.db import SymbolDB
 from rogw.tranp.semantics.reflections import Reflections
@@ -18,29 +20,32 @@ class SymbolExtends:
 		"""
 		self.invoker = invoker
 
-	def __call__(self, db: SymbolDB) -> SymbolDB:
-		"""シンボルテーブルを生成
+	@duck_typed(Preprocessor)
+	def __call__(self, module: Module, db: SymbolDB) -> None:
+		"""シンボルテーブルを編集
 
 		Args:
+			module (Module): モジュール
 			db (SymbolDB): シンボルテーブル
-		Returns:
-			SymbolDB: シンボルテーブル
 		"""
-		for raw in db.values():
+		for key, raw in db.in_preprocess_items():
 			if raw.node.is_a(defs.ClassDef):
 				if isinstance(raw.types, defs.AltClass):
 					raw.mod_on('attrs', self.make_mod_for_alt_class(raw))
+					db.on_preprocess_complete(key)
 				elif isinstance(raw.types, defs.Class):
 					raw.mod_on('attrs', self.make_mod_for_class(raw))
+					db.on_preprocess_complete(key)
 				elif isinstance(raw.types, defs.Function):
 					raw.mod_on('attrs', self.make_mod_for_function(raw))
+					db.on_preprocess_complete(key)
 			elif raw.node.one_of(defs.Parameter, defs.Declable):
 				if isinstance(raw.decl.declare, defs.Parameter) and isinstance(raw.decl.declare.var_type, defs.Type):
 					raw.mod_on('attrs', self.make_mod_for_var(raw))
+					db.on_preprocess_complete(key)
 				elif isinstance(raw.decl.declare, (defs.AnnoAssign, defs.Catch)):
 					raw.mod_on('attrs', self.make_mod_for_var(raw))
-
-		return db
+					db.on_preprocess_complete(key)
 	
 	def make_mod_for_alt_class(self, raw: IReflection) -> Mod:
 		"""モッドを生成(タイプ再定義用)

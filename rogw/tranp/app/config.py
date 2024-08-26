@@ -23,13 +23,15 @@ def default_definitions() -> ModuleDefinitions:
 		'rogw.tranp.module.modules.Modules': 'rogw.tranp.module.modules.Modules',
 		'rogw.tranp.module.types.LibraryPaths': 'rogw.tranp.providers.module.library_paths',
 		'rogw.tranp.module.types.ModulePaths': 'rogw.tranp.providers.module.module_paths',
+		'rogw.tranp.semantics.reflection.db.SymbolDB': 'rogw.tranp.semantics.reflection.db.SymbolDB',
+		'rogw.tranp.semantics.reflection.db.SymbolDBFinalizer': 'rogw.tranp.providers.semantics.symbol_db_finalizer',
 		'rogw.tranp.semantics.finder.SymbolFinder': 'rogw.tranp.semantics.finder.SymbolFinder',
 		'rogw.tranp.semantics.plugin.PluginProvider': 'rogw.tranp.providers.semantics.plugin_provider_empty',
-		'rogw.tranp.semantics.processor.Preprocessors': 'rogw.tranp.semantics.preprocessors.preprocessors',
-		'rogw.tranp.semantics.reflection.db.SymbolDBProvider': 'rogw.tranp.providers.semantics.make_db',
+		'rogw.tranp.semantics.processor.Preprocessors': 'rogw.tranp.providers.semantics.preprocessors',
 		'rogw.tranp.semantics.reflections.Reflections': 'rogw.tranp.semantics.reflections.Reflections',
 		'rogw.tranp.syntax.ast.resolver.SymbolMapping': 'rogw.tranp.providers.syntax.node.symbol_mapping',
 		'rogw.tranp.syntax.ast.parser.ParserSetting': 'rogw.tranp.providers.syntax.ast.parser_setting',
+		'rogw.tranp.syntax.ast.parser.SourceCodeProvider': 'rogw.tranp.providers.syntax.ast.source_code_provider',
 		'rogw.tranp.syntax.ast.parser.SyntaxParser': 'rogw.tranp.implements.syntax.lark.parser.SyntaxParserOfLark',
 	}
 

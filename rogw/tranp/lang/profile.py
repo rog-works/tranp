@@ -4,11 +4,12 @@ P = ParamSpec('P')
 T_Ret = TypeVar('T_Ret')
 
 
-def profiler(sort: str = 'tottime') -> Callable[[Callable[P, T_Ret]], Callable[P, T_Ret]]:
+def profiler(sort: str = 'tottime', on: bool = True) -> Callable[[Callable[P, T_Ret]], Callable[P, T_Ret]]:
 	"""プロファイルデコレーターを生成
 
 	Args:
 		sort (str): ソートカラム(tottime(消費時間)/cumtime(累積消費時間))
+		on (bool): True = 有効
 	Returns:
 		Callable: デコレーター
 	Note:
@@ -30,6 +31,6 @@ def profiler(sort: str = 'tottime') -> Callable[[Callable[P, T_Ret]], Callable[P
 			pr.print_stats(sort=sort)
 			return result
 
-		return wrapper
+		return wrapper if on else wrapper_func
 
 	return decorator

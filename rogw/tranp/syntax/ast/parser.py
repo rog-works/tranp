@@ -31,3 +31,17 @@ class SyntaxParser(Protocol):
 			Entry: シンタックスツリーのルートエントリー
 		"""
 		...
+
+
+class SourceCodeProvider(Protocol):
+	"""ソースコードプロバイダープロトコル"""
+
+	def __call__(self, module_path: str) -> str:
+		"""モジュールパスを基にソースコードを生成
+
+		Args:
+			module_path (str): モジュールパス
+		Returns:
+			str: ソースコード
+		"""
+		...

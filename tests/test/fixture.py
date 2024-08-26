@@ -1,18 +1,16 @@
-from typing import cast
-
 from rogw.tranp.app.app import App
 from rogw.tranp.app.dir import tranp_dir
-from rogw.tranp.implements.syntax.lark.entry import EntryOfLark
-from rogw.tranp.implements.syntax.lark.parser import SyntaxParserOfLark
-from rogw.tranp.io.cache import CacheProvider
+from rogw.tranp.lang.annotation import duck_typed
 from rogw.tranp.lang.di import ModuleDefinitions
-from rogw.tranp.lang.locator import T_Inst
+from rogw.tranp.lang.locator import Invoker, T_Inst
 from rogw.tranp.lang.module import filepath_to_module_path, fullyname
 from rogw.tranp.module.module import Module
 from rogw.tranp.module.modules import Modules
 from rogw.tranp.module.types import ModulePath, ModulePaths
-from rogw.tranp.syntax.ast.entry import Entry
-from rogw.tranp.syntax.ast.parser import SyntaxParser
+from rogw.tranp.providers.module import module_path_dummy
+from rogw.tranp.providers.syntax.ast import source_code_provider
+from rogw.tranp.semantics.processor import Preprocessors
+from rogw.tranp.syntax.ast.parser import SourceCodeProvider
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 
@@ -51,6 +49,22 @@ class Fixture:
 		"""
 		return cls(cls.fixture_module_path(filepath), definitions)
 
+	@classmethod
+	def make_for_syntax(cls, filepath: str, definitions: ModuleDefinitions = {}) -> 'Fixture':
+		"""インスタンスを生成
+
+		Args:
+			filepath (str): テストファイルのパス
+			definitions (ModuleDefinitions): モジュール定義 (default = {})
+		Returns:
+			Fixture: インスタンス
+		Examples:
+			@see Fixture.make
+		"""
+		preprocessors_empty: Preprocessors = lambda: []
+		_definitions = {fullyname(Preprocessors): lambda: preprocessors_empty}
+		return cls(cls.fixture_module_path(filepath), {**_definitions, **definitions})
+
 	def __init__(self, fixture_module_path: str, definitions: ModuleDefinitions) -> None:
 		"""インスタンスを生成
 
@@ -59,6 +73,7 @@ class Fixture:
 			definitions (ModuleDefinitions): モジュール定義
 		"""
 		self.__fixture_module_path = fixture_module_path
+		self.__custom_source_code = ''
 		self.__app = App({**self.__definitions(), **definitions})
 
 	def __definitions(self) -> ModuleDefinitions:
@@ -67,7 +82,10 @@ class Fixture:
 		Returns:
 			ModuleDefinitions: モジュール定義
 		"""
-		return {fullyname(ModulePaths): lambda: [ModulePath(self.__fixture_module_path, language='py')]}
+		return {
+			fullyname(ModulePaths): lambda: [ModulePath(self.__fixture_module_path, language='py')],
+			fullyname(SourceCodeProvider): lambda: self.__source_code_provider,
+		}
 
 	def get(self, symbol: type[T_Inst]) -> T_Inst:
 		"""テスト用アプリケーションからシンボルに対応したインスタンスを取得
@@ -82,7 +100,7 @@ class Fixture:
 	@property
 	def shared_module(self) -> Module:
 		"""Module: 共有フィクスチャーモジュール"""
-		return self.__app.resolve(Modules).load(self.__fixture_module_path)
+		return self.get(Modules).load(self.__fixture_module_path)
 
 	def shared_nodes_by(self, full_path: str) -> Node:
 		"""共有フィクスチャーのノードを取得
@@ -103,34 +121,22 @@ class Fixture:
 		Returns:
 			Node: ノード
 		"""
-		app = self.custom_app(source_code)
-		custom_module_path = app.resolve(ModulePaths)[0]
-		custom_module = app.resolve(Modules).load(custom_module_path.path)
-		return custom_module.entrypoint.as_a(defs.Entrypoint).whole_by(full_path)
+		module_path = module_path_dummy()
+		self.__custom_source_code = f'{source_code}\n'
+		modules = self.get(Modules)
+		modules.unload(module_path.path)
+		return modules.load(module_path.path).entrypoint.as_a(defs.Entrypoint).whole_by(full_path)
 
-	def custom_app(self, source_code: str) -> App:
-		"""ソースコードからカスタムアプリケーションを生成
+	@duck_typed(SourceCodeProvider)
+	def __source_code_provider(self, module_path: str) -> str:
+		"""モジュールパスを基にソースコードを生成
 
 		Args:
-			source_code (str): ソースコード
+			module_path (str): モジュールパス
 		Returns:
-			App: アプリケーション
+			str: ソースコード
 		"""
-		custom_module_path = ModulePath('__main__', language='py')
-
-		def syntax_parser() -> SyntaxParser:
-			org_parser = self.__app.resolve(SyntaxParser)
-			lark = cast(SyntaxParserOfLark, org_parser).dirty_get_origin()
-			root = EntryOfLark(lark.parse(f'{source_code}\n'))
-			def new_parser(module_path: str) -> Entry:
-				return root if module_path == custom_module_path.path else org_parser(module_path)
-
-			return new_parser
-
-		new_definitions = {
-			fullyname(ModulePaths): lambda: [custom_module_path],
-			fullyname(SyntaxParser): syntax_parser,
-			fullyname(CacheProvider): lambda: self.__app.resolve(CacheProvider),
-		}
-		definitions = {**self.__definitions(), **new_definitions}
-		return App(definitions)
+		if module_path == module_path_dummy().path:
+			return self.__custom_source_code
+		else:
+			return self.get(Invoker)(source_code_provider)(module_path)

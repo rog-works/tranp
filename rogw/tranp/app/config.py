@@ -31,6 +31,7 @@ def default_definitions() -> ModuleDefinitions:
 		'rogw.tranp.semantics.reflections.Reflections': 'rogw.tranp.semantics.reflections.Reflections',
 		'rogw.tranp.syntax.ast.resolver.SymbolMapping': 'rogw.tranp.providers.syntax.node.symbol_mapping',
 		'rogw.tranp.syntax.ast.parser.ParserSetting': 'rogw.tranp.providers.syntax.ast.parser_setting',
+		'rogw.tranp.syntax.ast.parser.SourceCodeProvider': 'rogw.tranp.providers.syntax.ast.source_code_provider',
 		'rogw.tranp.syntax.ast.parser.SyntaxParser': 'rogw.tranp.implements.syntax.lark.parser.SyntaxParserOfLark',
 	}
 

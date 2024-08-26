@@ -51,7 +51,7 @@ class Fixture:
 
 	@classmethod
 	def make_for_syntax(cls, filepath: str, definitions: ModuleDefinitions = {}) -> 'Fixture':
-		"""インスタンスを生成
+		"""インスタンスを生成(syntax配下のモジュール用)
 
 		Args:
 			filepath (str): テストファイルのパス
@@ -60,6 +60,8 @@ class Fixture:
 			Fixture: インスタンス
 		Examples:
 			@see Fixture.make
+		Note:
+			XXX プリプロセスは実行負荷が非常に高いため、syntax配下のモジュールのテストでは無効化
 		"""
 		preprocessors_empty: Preprocessors = lambda: []
 		_definitions = {fullyname(Preprocessors): lambda: preprocessors_empty}

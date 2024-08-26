@@ -50,7 +50,7 @@ class SyntaxParserOfLark:
 		Returns:
 			Lark: シンタックスパーサー
 		"""
-		def handler() -> LarkStored:
+		def instantiate() -> LarkStored:
 			return LarkStored(lark.Lark(
 				self.__loader.load(self.__setting.grammar),
 				start=self.__setting.start,
@@ -65,8 +65,8 @@ class SyntaxParserOfLark:
 			'start': self.__setting.start,
 			'algorithem': self.__setting.algorithem,
 		}
-		instantiate = self.__caches.get('parser.cache', identity=identity, format='bin')(handler)
-		return instantiate().lark
+		decorator = self.__caches.get('parser.cache', identity=identity, format='bin')
+		return decorator(instantiate)().lark
 
 	def __load_entry(self, parser: lark.Lark, module_path: str) -> Entry:
 		"""シンタックスツリーをロード
@@ -82,11 +82,11 @@ class SyntaxParserOfLark:
 		basepath = module_path_to_filepath(module_path)
 		source_path = f'{basepath}.py'
 
-		# ストレージに存在しないモジュールはメモリ上に存在すると見做してキャッシュは省略
+		# ストレージに存在しないモジュールはメモリ上に存在すると見做して毎回パース
 		if not self.__loader.exists(source_path):
 			return EntryOfLark(parser.parse(self.__codes(module_path)))
 
-		def handler() -> EntryStored:
+		def instantiate() -> EntryStored:
 			try:
 				return EntryStored(EntryOfLark(parser.parse(self.__codes(module_path))))
 			except Exception as e:
@@ -96,8 +96,8 @@ class SyntaxParserOfLark:
 			'grammar_mtime': str(self.__loader.mtime(self.__setting.grammar)),
 			'mtime': str(self.__loader.mtime(source_path)),
 		}
-		instantiate = self.__caches.get(basepath, identity=identity, format='json')(handler)
-		return instantiate().entry
+		decorator = self.__caches.get(basepath, identity=identity, format='json')
+		return decorator(instantiate)().entry
 
 	def dirty_get_origin(self) -> lark.Lark:
 		"""Larkインスタンスを取得(デバッグ用)

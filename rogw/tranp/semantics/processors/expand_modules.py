@@ -127,8 +127,12 @@ class ExpandModules:
 		Returns:
 			SymbolDB: シンボルテーブル
 		"""
-		# クラス定義シンボルの展開
 		for module, expanded in expanded_modules.items():
+			# 展開済みのモジュールはスキップ
+			if db.has_module(module.path):
+				continue
+
+			# クラス定義シンボルの展開
 			entrypoint = module.entrypoint.as_a(defs.Entrypoint)
 			for fullyname, full_path in expanded.classes.items():
 				types = entrypoint.whole_by(full_path).as_a(defs.ClassDef)

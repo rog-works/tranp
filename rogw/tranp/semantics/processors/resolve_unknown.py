@@ -43,13 +43,13 @@ class ResolveUnknown:
 
 			if isinstance(raw.decl.declare, defs.MoveAssign):
 				raw.mod_on('origin', self.make_mod(raw, raw.decl.declare.value))
-				db.preprocessed(key)
+				db.on_preprocess_complete(key)
 			elif isinstance(raw.decl.declare, (defs.For, defs.CompFor)):
 				raw.mod_on('origin', self.make_mod(raw, raw.decl.declare.for_in))
-				db.preprocessed(key)
+				db.on_preprocess_complete(key)
 			elif isinstance(raw.decl.declare, defs.WithEntry):
 				raw.mod_on('origin', self.make_mod(raw, raw.decl.declare.enter))
-				db.preprocessed(key)
+				db.on_preprocess_complete(key)
 
 
 	def make_mod(self, raw: IReflection, value_node: Node) -> Mod:

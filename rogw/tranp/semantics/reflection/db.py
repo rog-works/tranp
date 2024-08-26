@@ -74,6 +74,21 @@ class SymbolDB:
 			for local_path, value in in_module.items():
 				yield ModuleDSN.full_joined(module_path, local_path), value
 
+	def in_preprocess_items(self) -> Iterator[tuple[str, IReflection]]:
+		"""プリプロセス中のシンボルのイテレーターを取得
+
+		Returns:
+			Iterator[IReflection]: イテレーター
+		Note:
+			プリプロセッサー以外で使用するのは禁止
+		"""
+		for module_path, in_module in self.__items.items():
+			for local_path, value in in_module.items():
+				if module_path in self.__preprocessed and local_path in self.__preprocessed[module_path]:
+					continue
+
+				yield ModuleDSN.full_joined(module_path, local_path), value
+
 	def keys(self) -> Iterator[str]:
 		"""キーのイテレーターを取得
 
@@ -94,23 +109,22 @@ class SymbolDB:
 			for value in in_module.values():
 				yield value
 
-	def in_preprocess_items(self) -> Iterator[tuple[str, IReflection]]:
-		"""プリプロセス中のシンボルのイテレーターを取得
+	def has_module(self, module_path: str) -> bool:
+		"""モジュールが展開済みか判定
 
+		Args:
+			module_path (str): モジュールパス
 		Returns:
-			Iterator[IReflection]: イテレーター
-		Note:
-			プリプロセッサー以外で使用するのは禁止
+			bool: True = 展開済み
 		"""
-		for module_path, in_module in self.__items.items():
-			for local_path, value in in_module.items():
-				if module_path in self.__preprocessed and local_path in self.__preprocessed[module_path]:
-					continue
+		return module_path in self.__items
 
-				yield ModuleDSN.full_joined(module_path, local_path), value
+	def on_preprocess_complete(self, key: str) -> None:
+		"""プリプロセス完了を記録
 
-	def preprocessed(self, key: str) -> None:
-		"""プリプロセス完了を記録"""
+		Args:
+			key (str): キー
+		"""
 		module_path, local_path = ModuleDSN.parsed(key)
 		if module_path not in self.__preprocessed:
 			self.__preprocessed[module_path] = {}

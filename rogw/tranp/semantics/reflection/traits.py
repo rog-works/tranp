@@ -75,11 +75,12 @@ class ConvertionTrait(TraitImpl, IConvertion):
 			* XXX 実質的に具象クラスはReflectionのみであり、アンパック後も型は変化しない
 			* XXX リフレクション拡張の型(=Self)として継続して利用できる方が効率が良い
 		"""
+		all_on = len(targets) == 0
 		actual = instance
-		actual = self._actualize_nullable(actual) if len(targets) == 0 or 'nullable' in targets else actual
-		actual = self._actualize_alt_class(actual) if len(targets) == 0 or 'alt_class' in targets else actual
-		actual = self._actualize_type(actual) if len(targets) == 0 or 'type' in targets else actual
-		actual = self._actualize_self(actual) if len(targets) == 0 or 'self' in targets else actual
+		actual = self._actualize_nullable(actual) if all_on or 'nullable' in targets else actual
+		actual = self._actualize_alt_class(actual) if all_on or 'alt_class' in targets else actual
+		actual = self._actualize_type(actual) if all_on or 'type' in targets else actual
+		actual = self._actualize_self(actual) if all_on or 'self' in targets else actual
 		return cast(Self, actual)
 
 	def _actualize_nullable(self, symbol: IReflection) -> IReflection:

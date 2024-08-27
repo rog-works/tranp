@@ -373,10 +373,21 @@ class AnalyzeApp(App):
 			'Help',
 			'--------------',
 			'# Usage',
-			'$ bash bin/analyze.sh [-g ${path}] [-s ${path}]',
+			'$ bash bin/analyze.sh [-g ${filepath}] [-i ${filepath}] [-c [classes] [class -name ${name}] [db] [modules] [pretty -module ${module}] [symbol -name ${name}]]',
 			'# Options',
 			'* -g: Grammar file path. defalut = "data/grammar.lark"',
-			'* -i: Python source code input file path. default = "example/example.py"',
+			'* -i: Python source code input file path. default = ""',
+			'* -c: Execute command. classes | class | db | modules | pretty | symbol',
+			'# Command options',
+			'* -module: Module path',
+			'* -name: Node fullyname',
+			'# Commands',
+			'* classes: Show class list',
+			'* class: Show class description',
+			'* db: Show symbol list',
+			'* modules: Show module list',
+			'* pretty: Show node ast',
+			'* symbol: Show symbol description',
 		]
 		print('\n'.join(lines))
 
@@ -439,6 +450,10 @@ class AnalyzeApp(App):
 		"""表示(シンボルテーブル)"""
 		print('\n'.join(self.serialize_db()))
 
+	def show_modules(self) -> None:
+		"""表示(モジュール一覧)"""
+		print('\n'.join(self.serialize_modules()))
+
 	def show_pretty(self, module_path: str) -> None:
 		"""表示(ノード階層)
 
@@ -447,15 +462,14 @@ class AnalyzeApp(App):
 		"""
 		print(self.fetch_entrypoint(module_path).pretty())
 
-	def show_symbol(self, module_path: str, full_path: str) -> None:
+	def show_symbol(self, fullyname: str) -> None:
 		"""表示(シンボル詳細)
 
 		Args:
-			module_path (str): モジュールパス
-			full_path (str): フルパス
+			fullyname (str): 完全参照名
 		"""
-		node = self.fetch_entrypoint(module_path).whole_by(full_path)
-		print(json.dumps(self.serialize_node(node), indent=2))
+		symbol = self.resolve(Reflections).from_fullyname(fullyname)
+		print(json.dumps(self.serialize_node(symbol.types), indent=2))
 
 	@injectable
 	def main(self, args: Args, db_finalizer: SymbolDBFinalizer) -> None:
@@ -468,7 +482,7 @@ class AnalyzeApp(App):
 		# XXX シンボルテーブルを完成させるためコール
 		db_finalizer()
 
-		if 'command' not in args.options:
+		if 'c' not in args.options:
 			self.task_menu()
 			return
 
@@ -476,10 +490,11 @@ class AnalyzeApp(App):
 			'classes': lambda: self.show_classes(),
 			'class': lambda: self.show_class(args.options.get('name', '')),
 			'db': lambda: self.show_db(),
+			'modules': lambda: self.show_modules(),
 			'pretty': lambda: self.show_pretty(args.options.get('module', '')),
-			'symbol': lambda: self.show_symbol(args.options.get('module', ''), args.options.get('path', '')),
+			'symbol': lambda: self.show_symbol(args.options.get('name', '')),
 		}
-		action = actions.get(args.options['command'], self.task_help)
+		action = actions.get(args.options['c'], self.task_help)
 		action()
 
 

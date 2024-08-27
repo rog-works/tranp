@@ -191,7 +191,7 @@ class PropertiesTrait(TraitImpl, IProperties):
 		Returns:
 			IReflection: シンボル
 		"""
-		return instance.to(instance.types, self.reflections.resolve_constructor(instance.types.as_a(defs.Class)))
+		return self.reflections.resolve_constructor(instance.types.as_a(defs.Class))
 
 
 class IteratorTrait(TraitImpl, IIterator):

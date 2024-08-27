@@ -512,7 +512,7 @@ class ProceduralResolver:
 		"""
 		actual_calls = calls.impl(refs.Object).actualize()
 		if isinstance(actual_calls.types, defs.Class):
-			actual_calls = actual_calls.constructor()
+			actual_calls = actual_calls.to(actual_calls.types, actual_calls.constructor())
 
 		return actual_calls.to(node, actual_calls.impl(refs.Function).returns(*arguments))
 

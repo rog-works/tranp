@@ -5,23 +5,20 @@ from types import MethodType
 from typing import Any, Callable, TypedDict, cast
 
 from rogw.tranp.app.app import App
+from rogw.tranp.app.dir import tranp_dir
 from rogw.tranp.bin.io import readline
-from rogw.tranp.implements.cpp.providers.semantics import cpp_plugin_provider
-from rogw.tranp.implements.syntax.lark.entry import EntryOfLark
-from rogw.tranp.implements.syntax.lark.parser import SyntaxParserOfLark
-from rogw.tranp.io.cache import CacheProvider
-from rogw.tranp.lang.annotation import injectable
-from rogw.tranp.lang.locator import Locator
-from rogw.tranp.lang.module import fullyname
+from rogw.tranp.io.loader import IFileLoader
+from rogw.tranp.lang.annotation import duck_typed, injectable
+from rogw.tranp.lang.locator import Invoker, Locator
+from rogw.tranp.lang.module import filepath_to_module_path, fullyname
 from rogw.tranp.module.modules import Modules
 from rogw.tranp.module.types import ModulePath, ModulePaths
 from rogw.tranp.providers.module import module_path_dummy
-from rogw.tranp.semantics.plugin import PluginProvider
+from rogw.tranp.providers.syntax.ast import source_code_provider
 from rogw.tranp.semantics.reflection.base import IReflection
-from rogw.tranp.semantics.reflection.db import SymbolDB
+from rogw.tranp.semantics.reflection.db import SymbolDB, SymbolDBFinalizer
 from rogw.tranp.semantics.reflections import Reflections
-from rogw.tranp.syntax.ast.entry import Entry
-from rogw.tranp.syntax.ast.parser import ParserSetting, SyntaxParser
+from rogw.tranp.syntax.ast.parser import ParserSetting, SourceCodeProvider
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 
@@ -38,7 +35,7 @@ class Args:
 	def __parse_argv(self, argv: list[str]) -> ArgsDict:
 		args: ArgsDict = {
 			'grammar': 'data/grammar.lark',
-			'input': 'example/example.py',
+			'input': '',
 			'options': {},
 		}
 		while argv:
@@ -66,31 +63,42 @@ def make_parser_setting(args: Args) -> ParserSetting:
 
 
 @injectable
-def make_module_paths(args: Args) -> ModulePaths:
+def make_module_paths(args: Args, loader: IFileLoader) -> ModulePaths:
+	if not loader.exists(args.input):
+		return ModulePaths([])
+
 	basepath, extention = os.path.splitext(args.input)
 	# XXX このスクリプトではLinux形式で入力する想定のためos.path.sepは使用しない
 	return ModulePaths([ModulePath(basepath.replace('/', '.'), language=extention[1:])])
 
 
-def fetch_main_entrypoint(modules: Modules, module_paths: ModulePaths) -> defs.Entrypoint:
-	return modules.load(module_paths[0].path).entrypoint.as_a(defs.Entrypoint)
+class Codes:
+	@injectable
+	def __init__(self, invoker: Invoker) -> None:
+		self._org_codes = invoker(source_code_provider)
+		self.source_code: str = ''
+
+	@duck_typed(SourceCodeProvider)
+	def __call__(self, module_path: str) -> str:
+		if module_path == module_path_dummy().path:
+			return f'{self.source_code}\n'
+		else:
+			return self._org_codes(module_path)
+
+
+def fetch_main_entrypoint(modules: Modules, module_path: str) -> defs.Entrypoint:
+	return modules.load(module_path).entrypoint.as_a(defs.Entrypoint)
 
 
 @injectable
-def task_analyze(org_parser: SyntaxParser, cache: CacheProvider) -> None:
-	def make_result() -> str:
-		dummy_module_path = module_path_dummy()
-
-		def new_parser(module_path: str) -> Entry:
-			return root if module_path == dummy_module_path.path else org_parser(module_path)
-
-		lark = cast(SyntaxParserOfLark, org_parser).dirty_get_origin()
-		root = EntryOfLark(lark.parse(f'{"\n".join(lines)}\n'))
-		difinitions = {
-			fullyname(SyntaxParser): lambda: new_parser,
-			fullyname(CacheProvider): lambda: cache,
-		}
-		return App(difinitions).resolve(Modules).load(dummy_module_path.path).entrypoint.pretty()
+def task_analyze(locator: Locator) -> None:
+	def make_result(source_code: str) -> str:
+		module_path = module_path_dummy()
+		codes = cast(Codes, locator.resolve(SourceCodeProvider))
+		codes.source_code = source_code
+		modules = locator.resolve(Modules)
+		modules.unload(module_path.path)
+		return modules.load(module_path.path).entrypoint.pretty()
 
 	while True:
 		title = '\n'.join([
@@ -107,7 +115,7 @@ def task_analyze(org_parser: SyntaxParser, cache: CacheProvider) -> None:
 
 			lines.append(line)
 
-		ast = make_result()
+		ast = make_result('\n'.join(lines))
 
 		lines = [
 			'==============',
@@ -150,8 +158,29 @@ def task_class(db: SymbolDB, reflections: Reflections) -> None:
 
 
 @injectable
-def task_pretty(modules: Modules, module_paths: ModulePaths) -> None:
-	entrypoint = fetch_main_entrypoint(modules, module_paths)
+def task_load(modules: Modules) -> None:
+	filepath = readline('Module filepath here:')
+	if not os.path.isabs(filepath):
+		filepath = os.path.abspath(filepath)
+
+	module_path = filepath_to_module_path(filepath, tranp_dir())
+	modules.load(module_path)
+	print('--------------')
+	print('Module load completed!')
+
+
+@injectable
+def task_pretty(modules: Modules) -> None:
+	prompt = '\n'.join([
+		'==============',
+		'Module List',
+		'--------------',
+		*[module.path for module in modules.loaded()],
+		'--------------',
+		'Module path here:',
+	])
+	module_path = readline(prompt)
+	entrypoint = fetch_main_entrypoint(modules, module_path)
 	title = '\n'.join([
 		'==============',
 		'AST',
@@ -162,7 +191,17 @@ def task_pretty(modules: Modules, module_paths: ModulePaths) -> None:
 
 
 @injectable
-def task_symbol(modules: Modules, module_paths: ModulePaths, reflections: Reflections) -> None:
+def task_symbol(modules: Modules, reflections: Reflections) -> None:
+	prompt = '\n'.join([
+		'==============',
+		'Module List',
+		'--------------',
+		*[module.path for module in modules.loaded()],
+		'--------------',
+		'Module path here:',
+	])
+	module_path = readline(prompt)
+
 	while True:
 		prompt = '\n'.join([
 			'==============',
@@ -170,7 +209,7 @@ def task_symbol(modules: Modules, module_paths: ModulePaths, reflections: Reflec
 		])
 		name = readline(prompt)
 
-		entrypoint = fetch_main_entrypoint(modules, module_paths)
+		entrypoint = fetch_main_entrypoint(modules, module_path)
 		candidates = [node for node in entrypoint.procedural() if node.fullyname == name or node.full_path == name or str(node.id) == name]
 
 		if len(candidates):
@@ -248,7 +287,10 @@ def task_help() -> None:
 
 
 @injectable
-def task_menu(locator: Locator) -> None:
+def task_menu(invoker: Invoker, db_finalizer: SymbolDBFinalizer) -> None:
+	# XXX シンボルテーブルを完成させるためコール
+	db_finalizer()
+
 	prompt = '\n'.join([
 		'==============',
 		'Task Menu',
@@ -257,6 +299,7 @@ def task_menu(locator: Locator) -> None:
 		'* (a)nalyze : Interactive Syntax Analyzer',
 		'* (c)lass   : Show Class Information',
 		'* (d)b      : Show Symbol DB',
+		'* (l)oad    : Load Module',
 		'* (p)retty  : Show AST',
 		'* (s)ymbol  : Show Symbol Information',
 		'* (h)elp    : Show Usage',
@@ -270,6 +313,7 @@ def task_menu(locator: Locator) -> None:
 		'a': task_analyze,
 		'c': task_class,
 		'd': task_db,
+		'l': task_load,
 		'p': task_pretty,
 		's': task_symbol,
 		'h': task_help,
@@ -280,7 +324,7 @@ def task_menu(locator: Locator) -> None:
 			return
 
 		action = actions.get(input, task_help)
-		locator.invoke(action)
+		invoker(action)
 
 
 if __name__ == '__main__':
@@ -289,7 +333,7 @@ if __name__ == '__main__':
 			fullyname(Args): Args,
 			fullyname(ModulePaths): make_module_paths,
 			fullyname(ParserSetting): make_parser_setting,
-			fullyname(PluginProvider): cpp_plugin_provider,
+			fullyname(SourceCodeProvider): Codes,
 		}).run(task_menu)
 	except KeyboardInterrupt:
 		pass

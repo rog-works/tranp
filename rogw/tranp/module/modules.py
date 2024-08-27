@@ -43,12 +43,20 @@ class Modules:
 		return [self.load(module_path.path, module_path.language) for module_path in self.__module_paths]
 
 	def dependencies(self) -> list[Module]:
-		"""全てのモジュールリストを取得
+		"""標準ライブラリーと処理対象のモジュールリストを取得
 
 		Returns:
 			list[Module]: モジュールリスト
 		"""
 		return [*self.libralies(), *self.targets()]
+
+	def loaded(self) -> list[Module]:
+		"""読み込み済みの全てのモジュールリストを取得
+
+		Returns:
+			list[Module]: モジュールリスト
+		"""
+		return list(self.__modules.values())
 
 	def load(self, module_path: str, language: str = 'py') -> Module:
 		"""モジュールをロード。ロードしたモジュールはパスとマッピングしてキャッシュ

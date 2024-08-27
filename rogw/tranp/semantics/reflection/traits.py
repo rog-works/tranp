@@ -242,7 +242,10 @@ class FunctionTrait(TraitImpl, IFunction):
 			IReflection: シンボル
 		"""
 		function_helper = self._build_helper(instance)
-		if function_helper.is_a(templates.Method):
+		if function_helper.is_a(templates.ClassMethod):
+			# XXX コンテキストは常に実体型になるためtype<Class>の形式に変換
+			return function_helper.parameter(index, self.reflections.from_standard(type).stack().extends(instance.context), argument)
+		elif function_helper.is_a(templates.Method):
 			return function_helper.parameter(index, instance.context, argument)
 		else:
 			return function_helper.parameter(index, argument)
@@ -258,7 +261,10 @@ class FunctionTrait(TraitImpl, IFunction):
 			IReflection: シンボル
 		"""
 		function_helper = self._build_helper(instance)
-		if function_helper.is_a(templates.Method):
+		if function_helper.is_a(templates.ClassMethod):
+			# XXX コンテキストは常に実体型になるためtype<Class>の形式に変換
+			return function_helper.returns(self.reflections.from_standard(type).stack().extends(instance.context), *arguments)
+		elif function_helper.is_a(templates.Method):
 			return function_helper.returns(instance.context, *arguments)
 		else:
 			return function_helper.returns(*arguments)

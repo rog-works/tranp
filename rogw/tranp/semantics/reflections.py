@@ -420,16 +420,16 @@ class ProceduralResolver:
 		# indexer.func_call: a.b[1].c()
 
 		actual_receiver = receiver.impl(refs.Object).actualize()
-		prop = actual_receiver.to(node, actual_receiver.prop_of(node.prop))
+		prop = actual_receiver.prop_of(node.prop)
 		# XXX Enum直下のDeclLocalVarは定数値であり、型としてはEnumそのものであるためreceiverを返却。特殊化より一般化する方法を検討
 		if receiver.impl(refs.Object).type_is(type) and isinstance(actual_receiver.types, defs.Enum) and prop.decl.is_a(defs.DeclLocalVar):
 			return actual_receiver.stack(node)
 		elif isinstance(prop.decl, defs.Class):
 			return actual_receiver.to(node, self.reflections.from_standard(type)).extends(prop)
 		elif isinstance(prop.decl, defs.Method) and prop.decl.is_property:
-			return actual_receiver.to(node, prop.impl(refs.Function).returns())
+			return actual_receiver.to(node, actual_receiver.to(node.prop, prop).impl(refs.Function).returns())
 		else:
-			return prop
+			return actual_receiver.to(node, prop)
 
 	def on_var(self, node: defs.Var) -> IReflection:
 		symbol = self.reflections.resolve(node)

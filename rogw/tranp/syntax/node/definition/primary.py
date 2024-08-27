@@ -253,8 +253,8 @@ class ClassRef(Var):
 		return via.tokens == 'cls'
 
 	@property
-	def class_symbol(self) -> TypesName:
-		return as_a(ISymbol, self._ancestor('class_def')).symbol.as_a(TypesName)
+	def class_types(self) -> Node:
+		return self._ancestor('class_def')
 
 
 @Meta.embed(Node, accept_tags('var'))
@@ -262,6 +262,10 @@ class ThisRef(Var):
 	@classmethod
 	def match_feature(cls, via: Node) -> bool:
 		return via.tokens == 'self'
+
+	@property
+	def class_types(self) -> Node:
+		return self._ancestor('class_def')
 
 
 @Meta.embed(Node, accept_tags('getitem'))

@@ -569,7 +569,7 @@ class Py2Cpp(ITranspiler):
 			return node.tokens
 
 	def on_class_ref(self, node: defs.ClassRef) -> str:
-		symbol = self.reflections.resolve(node.class_symbol).impl(refs.Object).actualize('type')
+		symbol = self.reflections.type_of(node).impl(refs.Object).actualize('type')
 		return self.to_domain_name(symbol)
 
 	def on_this_ref(self, node: defs.ThisRef) -> str:

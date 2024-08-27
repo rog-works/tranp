@@ -57,8 +57,8 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		return self.reflections.type_is(instance.types, standard_type)
 
 	@implements
-	def actualize(self: Self, *targets: Literal['nullable', 'alt_class', 'type'], instance: IReflection) -> Self:
-		"""プロクシー型(Union/TypeAlias/type)による階層化を解除し、実体型を取得。元々実体型である場合はそのまま返却
+	def actualize(self: Self, *targets: Literal['nullable', 'alt_class', 'type', 'self'], instance: IReflection) -> Self:
+		"""プロクシー型から実体型を解決。元々実体型である場合はそのまま返却
 
 		Args:
 			*targets (Literal['nullable', 'alt_class', 'type']): 処理対象。省略時は全てが対象
@@ -67,28 +67,31 @@ class ConvertionTrait(TraitImpl, IConvertion):
 			Self: シンボル
 		Note:
 			### 変換対象
-			* Class | None
-			* T<Class>
-			* type<Class>
+			* Union型: Class | None
+			* TypeAlias型: T<Class>
+			* type型: type<Class>
+			* Self型: Self
 			### Selfの妥当性
 			* XXX 実質的に具象クラスはReflectionのみであり、アンパック後も型は変化しない
 			* XXX リフレクション拡張の型(=Self)として継続して利用できる方が効率が良い
 		"""
+		all_on = len(targets) == 0
 		actual = instance
-		actual = self._unpack_nullable(actual) if len(targets) == 0 or 'nullable' in targets else actual
-		actual = self._unpack_alt_class(actual) if len(targets) == 0 or 'alt_class' in targets else actual
-		actual = self._unpack_type(actual) if len(targets) == 0 or 'type' in targets else actual
+		actual = self._actualize_nullable(actual) if all_on or 'nullable' in targets else actual
+		actual = self._actualize_alt_class(actual) if all_on or 'alt_class' in targets else actual
+		actual = self._actualize_type(actual) if all_on or 'type' in targets else actual
+		actual = self._actualize_self(actual) if all_on or 'self' in targets else actual
 		return cast(Self, actual)
 
-	def _unpack_nullable(self, symbol: IReflection) -> IReflection:
-		"""Nullable型をアンパック
+	def _actualize_nullable(self, symbol: IReflection) -> IReflection:
+		"""Nullable型から実体型を解決
 
 		Args:
 			symbol (IReflection): シンボル
 		Returns:
 			IReflection: シンボル
 		Note:
-			対象: Class | None
+			Class | None -> Class
 		"""
 		if self.reflections.type_is(symbol.types, classes.Union) and len(symbol.attrs) == 2:
 			is_0_null = self.reflections.type_is(symbol.attrs[0].types, None)
@@ -98,29 +101,44 @@ class ConvertionTrait(TraitImpl, IConvertion):
 
 		return symbol
 
-	def _unpack_alt_class(self, symbol: IReflection) -> IReflection:
-		"""AltClass型をアンパック
+	def _actualize_alt_class(self, symbol: IReflection) -> IReflection:
+		"""AltClass型から実体型を解決
 
 		Args:
 			symbol (IReflection): シンボル
 		Returns:
 			IReflection: シンボル
 		Note:
-			対象: T<Class>
+			T<Class> -> Class
 		"""
 		return symbol.attrs[0] if isinstance(symbol.types, defs.AltClass) else symbol
 
-	def _unpack_type(self, symbol: IReflection) -> IReflection:
-		"""type型をアンパック
+	def _actualize_type(self, symbol: IReflection) -> IReflection:
+		"""type型から実体型を解決
 
 		Args:
 			symbol (IReflection): シンボル
 		Returns:
 			IReflection: シンボル
 		Note:
-			対象: type<T> -> T
+			type<Class> -> Class
 		"""
 		return symbol.attrs[0] if isinstance(symbol.decl, defs.Class) and self.reflections.type_is(symbol.types, type) else symbol
+
+	def _actualize_self(self, symbol: IReflection) -> IReflection:
+		"""Self型から実体型を解決
+
+		Args:
+			symbol (IReflection): シンボル
+		Returns:
+			IReflection: シンボル
+		Note:
+			Self -> Class
+		"""
+		if isinstance(symbol.node, (defs.ClassRef, defs.ThisRef)) and symbol.types.is_a(defs.TemplateClass) and symbol.types.domain_name == Self.__name__:
+			return self.reflections.type_of(symbol.node.class_types.as_a(defs.Class)).attrs[0].stack(symbol.node)
+
+		return symbol
 
 
 class OperationTrait(TraitImpl, IOperation):

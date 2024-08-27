@@ -12,6 +12,7 @@ class Union: ...
 
 # FIXME 警告は一旦無視(循環参照を解決できないため)
 T = TypeVar('T')
+Self = TypeVar('Self')
 
 
 # FIXME castの定義のため必要。classes側の定義は消さないこと

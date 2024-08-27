@@ -37,7 +37,7 @@ class IConvertion:
 
 		Args:
 			*targets (Literal['nullable', 'alt_class', 'type']): 処理対象。省略時は全てが対象
-			instance (IReflection): シンボル ※Traitsから暗黙的に入力される
+			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
 			Self: シンボル
 		Note:

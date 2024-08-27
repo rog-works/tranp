@@ -426,6 +426,9 @@ class ProceduralResolver:
 			return actual_receiver.stack(node)
 		elif isinstance(prop.decl, defs.Class):
 			return actual_receiver.to(node, self.reflections.from_standard(type)).extends(prop)
+		# XXX クラスメソッドの場合、コンテキストはtype<Class>である必要があるため、実体化前のシンボルをコンテキストに使用する
+		elif isinstance(prop.decl, defs.ClassMethod):
+			return receiver.to(node, prop)
 		elif isinstance(prop.decl, defs.Method) and prop.decl.is_property:
 			return actual_receiver.to(node, actual_receiver.to(node.prop, prop).impl(refs.Function).returns())
 		else:

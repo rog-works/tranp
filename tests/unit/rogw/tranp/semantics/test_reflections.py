@@ -149,7 +149,7 @@ class TestReflections(TestCase):
 
 		(ModuleDSN.full_joined(fixture_module_path, 'Sub.Inner'), 'Inner'),
 		(ModuleDSN.full_joined(fixture_module_path, 'Sub.Inner.value'), 'str'),
-		(ModuleDSN.full_joined(fixture_module_path, 'Sub.Inner.class_func'), 'class_func(Inner) -> dict<str, int>'),
+		(ModuleDSN.full_joined(fixture_module_path, 'Sub.Inner.class_func'), 'class_func(type<Inner>) -> dict<str, int>'),
 
 		(ModuleDSN.full_joined(fixture_module_path, 'Sub.numbers'), 'list<int>'),
 
@@ -356,7 +356,7 @@ class TestReflections(TestCase):
 		(_ast('Sub.Inner.block', 'class_var_assign.typed_var'), _mod('classes', 'str'), 'str'),
 		(_ast('Sub.Inner.block', 'class_var_assign.string'), _mod('classes', 'str'), 'str'),
 
-		(_ast('Sub.Inner.class_func', ''), ModuleDSN.full_joined(fixture_module_path, 'Sub.Inner.class_func'), 'class_func(Inner) -> dict<str, int>'),
+		(_ast('Sub.Inner.class_func', ''), ModuleDSN.full_joined(fixture_module_path, 'Sub.Inner.class_func'), 'class_func(type<Inner>) -> dict<str, int>'),
 		(_ast('Sub.Inner.class_func.params', 'paramvalue.typedparam.name'), _mod('classes', 'type'), 'type<Inner>'),
 		(_ast('Sub.Inner.class_func.return', ''), _mod('classes', 'dict'), 'dict<str, int>'),
 		(_ast('Sub.Inner.class_func.block', 'return_stmt.dict.key_value.getattr.var'), _mod('classes', 'type'), 'type<Inner>'),

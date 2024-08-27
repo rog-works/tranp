@@ -835,7 +835,7 @@ class Py2Cpp(ITranspiler):
 				context = self.reflections.type_of(node).attrs[0]
 				return 'cvar_sp_empty', context
 			elif prop == CVars.allocator_key:
-				context = self.reflections.type_of(node.calls).context
+				context = self.reflections.type_of(node.calls).context.impl(refs.Object).actualize()
 				cvar_key = CVars.key_from(context)
 				if CVars.is_addr_p(cvar_key):
 					return f'new_cvar_p', None

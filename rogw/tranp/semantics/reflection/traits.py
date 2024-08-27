@@ -54,7 +54,7 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		Returns:
 			bool: True = 指定の型と一致
 		"""
-		return self.reflections.type_is(instance, standard_type)
+		return self.reflections.type_is(instance.types, standard_type)
 
 	@implements
 	def actualize(self: Self, *targets: Literal['nullable', 'alt_class', 'type'], instance: IReflection) -> Self:
@@ -90,9 +90,9 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		Note:
 			対象: Class | None
 		"""
-		if self.reflections.type_is(symbol, classes.Union) and len(symbol.attrs) == 2:
-			is_0_null = self.reflections.type_is(symbol.attrs[0], None)
-			is_1_null = self.reflections.type_is(symbol.attrs[1], None)
+		if self.reflections.type_is(symbol.types, classes.Union) and len(symbol.attrs) == 2:
+			is_0_null = self.reflections.type_is(symbol.attrs[0].types, None)
+			is_1_null = self.reflections.type_is(symbol.attrs[1].types, None)
 			if is_0_null != is_1_null:
 				return symbol.attrs[1 if is_0_null else 0]
 
@@ -120,7 +120,7 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		Note:
 			対象: type<T> -> T
 		"""
-		return symbol.attrs[0] if isinstance(symbol.decl, defs.Class) and self.reflections.type_is(symbol, type) else symbol
+		return symbol.attrs[0] if isinstance(symbol.decl, defs.Class) and self.reflections.type_is(symbol.types, type) else symbol
 
 
 class OperationTrait(TraitImpl, IOperation):
@@ -211,7 +211,7 @@ class IteratorTrait(TraitImpl, IIterator):
 		# メソッド毎の返却値の違いを吸収
 		# __iter__() -> T
 		# __next__() -> Iterator<T>
-		return iterates.attrs[0] if self.reflections.type_is(iterates, cast(type, Iterator)) else iterates
+		return iterates.attrs[0] if self.reflections.type_is(iterates.types, cast(type, Iterator)) else iterates
 
 	def _resolve_method(self, symbol: IReflection) -> IReflection:
 		"""イテレーターのメソッドを解決

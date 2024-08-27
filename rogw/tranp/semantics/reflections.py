@@ -41,11 +41,11 @@ class Reflections:
 
 		return self.__procedural
 
-	def type_is(self, symbol: IReflection, standard_type: type[Standards] | None) -> bool:
-		"""シンボルの型を判定
+	def type_is(self, types: defs.ClassDef, standard_type: type[Standards] | None) -> bool:
+		"""シンボル定義ノードの型を判定
 
 		Args:
-			symbol (IReflection): シンボル
+			types (ClassDef): シンボル定義ノード
 			standard_type (type[Standards] | None): 標準クラス
 		Return:
 			bool: True = 指定の型と一致
@@ -53,7 +53,7 @@ class Reflections:
 			UnresolvedSymbolError: 標準クラスが未実装
 		"""
 		with Transaction(UnresolvedSymbolError, SemanticsLogicError):
-			return symbol.types == self.from_standard(standard_type).types
+			return types == self.from_standard(standard_type).types
 
 	def get_object(self) -> IReflection:
 		"""objectのシンボルを取得

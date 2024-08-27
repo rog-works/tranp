@@ -22,7 +22,7 @@ from rogw.tranp.syntax.ast.parser import ParserSetting, SourceCodeProvider
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 
-ArgsDict = TypedDict('ArgsDict', {'grammar': str, 'input': str, 'options': dict[str, str]})
+ArgsDict = TypedDict('ArgsDict', {'grammar': str, 'input': str, 'command': str, 'options': dict[str, str]})
 
 
 class Args:
@@ -33,6 +33,7 @@ class Args:
 		args = self.__parse_argv(sys.argv[1:])
 		self.grammar = args['grammar']
 		self.input = args['input']
+		self.command = args['command']
 		self.options = args['options']
 
 	def __parse_argv(self, argv: list[str]) -> ArgsDict:
@@ -46,6 +47,7 @@ class Args:
 		args: ArgsDict = {
 			'grammar': 'data/grammar.lark',
 			'input': '',
+			'command': '',
 			'options': {},
 		}
 		while argv:
@@ -54,8 +56,10 @@ class Args:
 				args['grammar'] = argv.pop(0)
 			elif arg == '-i':
 				args['input'] = argv.pop(0)
-			elif arg.startswith('-'):
-				args['options'][arg[1:]] = argv.pop(0)
+			elif arg == '-c':
+				args['command'] = argv.pop(0)
+			elif arg.startswith('--'):
+				args['options'][arg[2:]] = argv.pop(0)
 
 		return args
 
@@ -373,7 +377,7 @@ class AnalyzeApp(App):
 			'Help',
 			'--------------',
 			'# Usage',
-			'$ bash bin/analyze.sh [-g ${filepath}] [-i ${filepath}] [-c [classes] [class -name ${name}] [db] [modules] [pretty -module ${module}] [symbol -name ${name}]]',
+			'$ bash bin/analyze.sh [-g ${filepath}] [-i ${filepath}] [-c [classes] [class --name ${name}] [db] [modules] [pretty --module ${module}] [symbol --name ${name}]]',
 			'# Options',
 			'* -g: Grammar file path. defalut = "data/grammar.lark"',
 			'* -i: Python source code input file path. default = ""',
@@ -482,7 +486,7 @@ class AnalyzeApp(App):
 		# XXX シンボルテーブルを完成させるためコール
 		db_finalizer()
 
-		if 'c' not in args.options:
+		if len(args.command) == 0:
 			self.task_menu()
 			return
 
@@ -494,7 +498,7 @@ class AnalyzeApp(App):
 			'pretty': lambda: self.show_pretty(args.options.get('module', '')),
 			'symbol': lambda: self.show_symbol(args.options.get('name', '')),
 		}
-		action = actions.get(args.options['c'], self.task_help)
+		action = actions.get(args.command, self.task_help)
 		action()
 
 

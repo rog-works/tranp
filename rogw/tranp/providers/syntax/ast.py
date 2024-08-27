@@ -22,7 +22,7 @@ def source_code_provider(loader: IFileLoader) -> SourceCodeProvider:
 	Args:
 		loader (IFileLoader): ファイルローダー @inject
 	Returns:
-		str: ソースコード
+		SourceCodeProvider: ソースコードプロバイダー
 	"""
 	return lambda module_path: loader.load(module_path_to_filepath(module_path, '.py'))
 

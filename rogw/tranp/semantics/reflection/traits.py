@@ -180,7 +180,7 @@ class PropertiesTrait(TraitImpl, IProperties):
 		Returns:
 			IReflection: シンボル
 		"""
-		return instance.to(prop, self.reflections.resolve_property(instance.types, prop))
+		return self.reflections.resolve_property(instance.types, prop)
 
 	@implements
 	def constructor(self, instance: IReflection) -> IReflection:

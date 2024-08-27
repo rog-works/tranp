@@ -16,6 +16,8 @@ class ASTMapping:
 	_start = 8
 	_func = 'file_input.function_def'
 	_Base = f'file_input.class_def[{_start + 1}]'
+	_Base_init = f'{_Base}.class_def_raw.block.function_def[1]'
+	_Base_return_self = f'{_Base}.class_def_raw.block.function_def[2]'
 	_Sub = f'file_input.class_def[{_start + 2}]'
 	_Sub_init = f'{_Sub}.class_def_raw.block.function_def[2]'
 	_Sub_first_number = f'{_Sub}.class_def_raw.block.function_def[4]'
@@ -54,9 +56,9 @@ class ASTMapping:
 		ModuleDSN.full_joined(fixture_module_path, 'func.block'): f'{_func}.function_def_raw.block',
 
 		'Base': f'{_Base}',
-		'Base.__init__.params': f'{_Base}.class_def_raw.block.function_def.function_def_raw.parameters',
-		'Base.__init__.return': f'{_Base}.class_def_raw.block.function_def.function_def_raw.typed_none',
-		'Base.__init__.block': f'{_Base}.class_def_raw.block.function_def.function_def_raw.block',
+		'Base.__init__.params': f'{_Base_init}.function_def_raw.parameters',
+		'Base.__init__.return': f'{_Base_init}.function_def_raw.typed_none',
+		'Base.__init__.block': f'{_Base_init}.function_def_raw.block',
 
 		'Sub': f'{_Sub}',
 		'Sub.Inner': f'{_Sub}.class_def_raw.block.class_def',
@@ -145,6 +147,9 @@ class TestReflections(TestCase):
 		(ModuleDSN.full_joined(fixture_module_path, 'Base'), 'Base'),
 		(ModuleDSN.full_joined(fixture_module_path, 'Base.base_str'), 'str'),
 
+		(ModuleDSN.full_joined(fixture_module_path, 'Base.return_self'), 'return_self(Self) -> Self'),
+		(ModuleDSN.full_joined(fixture_module_path, 'Base.return_self.base'), 'Base'),
+
 		(ModuleDSN.full_joined(fixture_module_path, 'Sub'), 'Sub'),
 
 		(ModuleDSN.full_joined(fixture_module_path, 'Sub.Inner'), 'Inner'),
@@ -160,11 +165,12 @@ class TestReflections(TestCase):
 		(ModuleDSN.full_joined(fixture_module_path, 'Sub.local_ref.self'), 'Sub'),
 		(ModuleDSN.full_joined(fixture_module_path, 'Sub.local_ref.value'), 'bool'),
 
-		(ModuleDSN.full_joined(fixture_module_path, 'Sub.member_ref'), 'member_ref(Sub) -> None'),
-		(ModuleDSN.full_joined(fixture_module_path, 'Sub.member_ref.self'), 'Sub'),
+		(ModuleDSN.full_joined(fixture_module_path, 'Sub.member_ref'), 'member_ref(Self) -> None'),
+		(ModuleDSN.full_joined(fixture_module_path, 'Sub.member_ref.self'), 'Self'),
 		(ModuleDSN.full_joined(fixture_module_path, 'Sub.member_ref.a'), 'list<int>'),
 		(ModuleDSN.full_joined(fixture_module_path, 'Sub.member_ref.b'), 'int'),
 		(ModuleDSN.full_joined(fixture_module_path, 'Sub.member_ref.c'), 'C'),
+		(ModuleDSN.full_joined(fixture_module_path, 'Sub.member_ref.sub'), 'Sub'),
 
 		(ModuleDSN.full_joined(fixture_module_path, 'Sub.member_write'), 'member_write(Sub) -> None'),
 		(ModuleDSN.full_joined(fixture_module_path, 'Sub.member_write.self'), 'Sub'),

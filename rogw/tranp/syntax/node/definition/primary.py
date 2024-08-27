@@ -263,6 +263,10 @@ class ThisRef(Var):
 	def match_feature(cls, via: Node) -> bool:
 		return via.tokens == 'self'
 
+	@property
+	def class_types(self) -> Node:
+		return self._ancestor('class_def')
+
 
 @Meta.embed(Node, accept_tags('getitem'))
 class Indexer(Reference):

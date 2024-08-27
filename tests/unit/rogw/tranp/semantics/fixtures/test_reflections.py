@@ -1,5 +1,5 @@
 from os import path as os_path
-from typing import Any, ClassVar, Generic, Iterator, TypeAlias, TypeVar, cast
+from typing import Any, ClassVar, Generic, Iterator, Self, TypeAlias, TypeVar, cast
 from yaml import safe_load as yaml_safe_load
 
 from rogw.tranp.compatible.cpp.enum import CEnum as Enum
@@ -20,6 +20,10 @@ class Base(C):
 	def __init__(self) -> None:
 		self.base_str: str = S
 		# comment
+
+	def return_self(self: Self) -> Self:
+		base = self.return_self()
+		return self
 
 
 class Sub(Base):
@@ -46,10 +50,11 @@ class Sub(Base):
 		value = False
 		print(value)
 
-	def member_ref(self) -> None:
+	def member_ref(self: Self) -> None:
 		a = self.numbers
 		b = self.first_number
 		c = self.C
+		sub = self.return_self()
 
 	def member_write(self) -> None:
 		A.nx = 2

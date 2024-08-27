@@ -32,19 +32,20 @@ class IConvertion:
 		"""
 		...
 
-	def actualize(self: Self, *targets: Literal['nullable', 'alt_class', 'type'], **reserved: IReflection) -> Self:
-		"""プロクシー型(Union/TypeAlias/type)による階層化を解除し、実体型を取得。元々実体型である場合はそのまま返却
+	def actualize(self: Self, *targets: Literal['nullable', 'alt_class', 'type', 'self'], **reserved: IReflection) -> Self:
+		"""プロクシー型から実体型を解決。元々実体型である場合はそのまま返却
 
 		Args:
 			*targets (Literal['nullable', 'alt_class', 'type']): 処理対象。省略時は全てが対象
-			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
+			instance (IReflection): シンボル ※Traitsから暗黙的に入力される
 		Returns:
 			Self: シンボル
 		Note:
 			### 変換対象
-			* Class | None
-			* T<Class>
-			* type<Class>
+			* Union型: Class | None
+			* TypeAlias型: T<Class>
+			* type型: type<Class>
+			* Self型: Self
 			### Selfの妥当性
 			* XXX 実質的に具象クラスはReflectionのみであり、アンパック後も型は変化しない
 			* XXX リフレクション拡張の型(=Self)として継続して利用できる方が効率が良い

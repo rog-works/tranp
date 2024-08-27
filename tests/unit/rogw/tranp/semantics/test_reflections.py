@@ -448,3 +448,40 @@ class TestReflections(TestCase):
 		symbol = reflections.type_of(node)
 		self.assertEqual(symbol.types.fullyname, expected)
 		self.assertEqual(ClassShorthandNaming.domain_name_for_debug(symbol), attrs_expected)
+
+	# XXX 速度面で課題があるため一旦廃止
+	# @data_provider([
+	# 	# Import
+	# 	('from typing import TypeAlias', 'file_input.import_stmt.import_as_names.import_as_name.name', 'TypeAlias'),
+	# 	# Class
+	# 	('class A: ...', 'file_input.class_def', 'type<A>'),
+	# 	('class A: ...\nclass B(A): ...', 'file_input.class_def[1]', 'type<B>'),
+	# 	('class A:\n\tclass AA: ...', 'file_input.class_def.class_def_raw.block.class_def', 'type<AA>'),
+	# 	# Declable - LocalVar
+	# 	('a: int = 0', 'file_input.anno_assign', 'int'),
+	# 	# Declable - SelfVar
+	# 	('class A:\n\tself_s: str\n\tdef __init__(self) -> None:\n\t\tself.self_s: str = ""', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.anno_assign', 'str'),
+	# 	('class A:\n\tself_l: \'list[A]\'\n\tdef __init__(self) -> None:\n\t\tself.self_l: list[A] = []', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.anno_assign', 'list<A>'),
+	# 	# Declable - ClassVar
+	# 	('from typing import ClassVar\nclass A:\n\tcls_n: ClassVar[int] = 0\n\t@classmethod\n\tdef cls_method(cls) -> None:\n\t\tprint(cls.cls_n)', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.funccall.arguments.argvalue.getattr', 'int'),
+	# 	# Declable - Parameter
+	# 	('class A:\n\tdef __init__(self) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue.typedparam.name', 'A'),
+	# 	('class A:\n\t@classmethod\n\tdef cls_method(cls) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.parameters.paramvalue.typedparam.name', 'type<A>'),
+	# 	# Reference - Relay
+	# 	('class A:\n\tself_s: str\n\tdef __init__(self) -> None:\n\t\tself.self_s: str = ""\n\t\tprint(self.self_s)', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.funccall.arguments.argvalue.getattr', 'str'),
+	# 	('class A: ...\nclass B:\n\tself_a: A\n\tdef __init__(self) -> None:\n\t\tself.self_a: A = A()\n\t\tprint(self.self_a)', 'file_input.class_def[1].class_def_raw.block.function_def.function_def_raw.block.funccall.arguments.argvalue.getattr', 'A'),
+	# 	# Reference - Var
+	# 	('class A:\n\tdef __init__(self) -> None: print(self)', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.funccall.arguments.argvalue.var', 'A'),
+	# 	('def func(b: bool) -> None: print(b)', 'file_input.function_def.function_def_raw.block.funccall.arguments.argvalue.var', 'bool'),
+	# 	('def func() -> None:\n\tn = 0\n\tprint(n)', 'file_input.function_def.function_def_raw.block.funccall.arguments.argvalue.var', 'int'),
+	# 	# Function - Method
+	# 	('class A:\n\tdef __init__(self) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def', '__init__(A) -> None'),
+	# 	('class A:\n\tclass AA:\n\t\tdef __init__(self) -> None: ...', 'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.function_def', '__init__(AA) -> None'),
+	# 	('class A:\n\t@classmethod\n\tdef cls_method(cls) -> dict[str, int]: ...', 'file_input.class_def.class_def_raw.block.function_def', 'cls_method(A) -> dict<str, int>'),
+	# 	('class A:\n\tclass AA:\n\t\t@classmethod\n\t\tdef cls_method(self) -> list[int]: ...', 'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.function_def', 'cls_method(AA) -> list<int>'),
+	# ])
+	# def test_type_of2(self, source_code: str, full_path: str, expected: str) -> None:
+	# 	reflections = self.fixture.get(Reflections)
+	# 	node = self.fixture.custom_nodes_by(source_code, full_path)
+	# 	symbol = reflections.type_of(node)
+	# 	self.assertEqual(ClassShorthandNaming.domain_name_for_debug(symbol), expected)

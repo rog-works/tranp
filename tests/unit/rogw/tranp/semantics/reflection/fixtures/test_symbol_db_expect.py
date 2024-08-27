@@ -12,6 +12,7 @@ def expected_symbols() -> dict:
 		'typing#TypeVar': 'typing#TypeVar',
 		'typing#Union': 'typing#Union',
 		'typing#T': 'typing#T',
+		'typing#Self': 'typing#Self',
 		'typing#type': 'typing#type',
 		'typing#Iterator': 'typing#Iterator',
 		'typing#Iterator.__next__': 'typing#Iterator.__next__',

@@ -38,6 +38,7 @@ class SymbolDB:
 		module_path, local_path = ModuleDSN.parsed(key)
 		if module_path not in self.__items:
 			self.__items[module_path] = {}
+			self.__preprocessed[module_path] = {}
 
 		self.__items[module_path][local_path] = symbol
 
@@ -126,9 +127,6 @@ class SymbolDB:
 			key (str): キー
 		"""
 		module_path, local_path = ModuleDSN.parsed(key)
-		if module_path not in self.__preprocessed:
-			self.__preprocessed[module_path] = {}
-
 		self.__preprocessed[module_path][local_path] = True
 
 	def unload(self, module_path: str) -> None:

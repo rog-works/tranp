@@ -100,8 +100,10 @@ class SymbolExtends:
 		func = via.types.as_a(defs.Function)
 		attrs: list[IReflection] = []
 		for parameter in func.parameters:
-			# XXX cls/selfにタイプヒントが無い場合のみ補完
+			# cls/selfにタイプヒントが無い場合のみ補完
 			if isinstance(parameter.symbol, (defs.DeclClassParam, defs.DeclThisParam)) and parameter.var_type.is_a(defs.Empty):
+				# FIXME clsをtype<Class>と推論するために以下に修正。現状、成り立たなくなってしまうため対応は一旦保留
+				# FIXME attrs.append(reflections.type_of(parameter.symbol))
 				attrs.append(reflections.resolve(parameter.symbol))
 			else:
 				parameter_type = parameter.var_type.as_a(defs.Type)

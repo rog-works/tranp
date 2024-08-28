@@ -1,4 +1,4 @@
-from typing import Any, Iterator, MutableMapping, Protocol
+from typing import Iterator, MutableMapping, Protocol
 
 from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.semantics.reflection.base import IReflection

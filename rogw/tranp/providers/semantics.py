@@ -1,4 +1,4 @@
-from typing import Any, MutableMapping, cast
+from typing import MutableMapping
 
 from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.lang.annotation import implements, injectable

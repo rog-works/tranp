@@ -139,6 +139,45 @@ class SymbolDB:
 			del self.__items[module_path]
 			del self.__preprocessed[module_path]
 
+	def order_keys(self) -> list[str]:
+		"""参照順にキーの一覧を取得
+
+		Returns:
+			list[str]: キーリスト
+		"""
+		if len(self) == 0:
+			return []
+
+		orders: list[str] = []
+		for key, symbol in self.items():
+			depends = self._order_keys_from_symbol(symbol)
+			depends.append(key)
+			for in_key in depends:
+				if in_key not in orders:
+					orders.append(in_key)
+
+		return orders
+
+	def _order_keys_from_symbol(self, symbol: IReflection) -> list[str]:
+		"""参照順にキーの一覧を取得(シンボル)
+
+		Args:
+			symbol (IReflection): シンボル
+		Returns:
+			list[str]: キーリスト
+		"""
+		orders: list[str] = []
+		for attr in symbol.attrs:
+			depends = self._order_keys_from_symbol(attr)
+			depends.append(attr.types.fullyname)
+			for in_key in depends:
+				if in_key not in orders:
+					orders.append(attr.types.fullyname)
+
+		if symbol.types.fullyname not in orders:
+			orders.append(symbol.types.fullyname)
+
+		return orders
 
 class SymbolDBFinalizer(Protocol):
 	"""シンボルテーブル完成プロセスプロトコル"""

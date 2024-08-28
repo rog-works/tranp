@@ -6,10 +6,10 @@
 			"description": "Select test case",
 			"id": "testCases",
 			"options": [
-				"semantics.reflection.test_symbol_db.TestSymbolDB.test_make_db",
-				"semantics.reflection.test_symbol_db.TestSymbolDB.test_orders",
-				"semantics.reflection.test_symbol_db.TestSymbolDB.test_serialize",
-				"semantics.reflection.test_symbol_db.TestSymbolDB.test_deserialize",
+				"semantics.reflection.test_db.TestDB.test_make_db",
+				"semantics.reflection.test_db.TestDB.test_orders",
+				"semantics.reflection.test_db.TestDB.test_serialize",
+				"semantics.reflection.test_db.TestDB.test_deserialize",
 				"semantics.test_reflections.TestReflections.test_from_fullyname",
 				"semantics.test_reflections.TestReflections.test_type_of",
 				"semantics.test_reflections_error.TestReflectionsError.test_from_fullyname_error",
@@ -24,7 +24,7 @@
 				"lang.test_inspection.TestClassTypehint.test_schema",
 				"lang.test_parser.TestParser.test_parse_pair_block",
 			],
-			"default": "semantics.reflection.test_symbol_db.TestSymbolDB",
+			"default": "semantics.reflection.test_db.TestDB",
 		}
 	],
 	"configurations": [

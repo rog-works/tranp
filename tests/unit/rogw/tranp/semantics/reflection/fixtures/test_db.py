@@ -4,7 +4,7 @@ from yaml import safe_load as yaml_safe_load
 
 from rogw.tranp.compatible.cpp.enum import CEnum as Enum
 
-from tests.unit.rogw.tranp.semantics.reflection.fixtures.test_symbol_db_combine import S, C, A
+from tests.unit.rogw.tranp.semantics.reflection.fixtures.test_db_combine import S, C, A
 
 DSI: TypeAlias = dict[str, int]
 DSI2: TypeAlias = dict[str, DSI]

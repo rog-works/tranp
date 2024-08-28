@@ -4,10 +4,10 @@ from unittest import TestCase
 from rogw.tranp.semantics.reflection.db import SymbolDB, SymbolDBFinalizer
 from rogw.tranp.semantics.reflection.serialization import IReflectionSerializer
 from tests.test.fixture import Fixture
-from tests.unit.rogw.tranp.semantics.reflection.fixtures.test_symbol_db_expect import expected_symbols
+from tests.unit.rogw.tranp.semantics.reflection.fixtures.test_db_expect import expected_symbols
 
 
-class TestSymbolDB(TestCase):
+class TestDB(TestCase):
 	fixture = Fixture.make(__file__)
 
 	def test_make_db(self) -> None:

@@ -29,15 +29,27 @@ class TestDB(TestCase):
 
 	def test_order_keys(self) -> None:
 		db = self.fixture.get(SymbolDBFinalizer)()
-		print(json.dumps(db.order_keys(), indent=2))
+		keys = db.order_keys()
+		self.assertEqual(len(db), len(keys))
+		for key in db.keys():
+			self.assertEqual('ok' if key in keys else key, 'ok')
 
 	def test_serialize(self) -> None:
 		db = self.fixture.get(SymbolDBFinalizer)()
-		print(json.dumps(db.to_json(self.fixture.get(IReflectionSerializer)), indent=2))
+		data = db.to_json(self.fixture.get(IReflectionSerializer))
+
+		keys = data.keys()
+		self.assertEqual(len(db), len(keys))
+		for key in db.keys():
+			self.assertEqual('ok' if key in keys else key, 'ok')
 
 	def test_deserialize(self) -> None:
 		db = self.fixture.get(SymbolDBFinalizer)()
 		data = db.to_json(self.fixture.get(IReflectionSerializer))
 		new_db = SymbolDB()
 		new_db.load_json(data, self.fixture.get(IReflectionSerializer))
-		print(new_db.order_keys())
+
+		keys = list(new_db.keys())
+		self.assertEqual(len(db), len(keys))
+		for key in db.keys():
+			self.assertEqual('ok' if key in keys else key, 'ok')

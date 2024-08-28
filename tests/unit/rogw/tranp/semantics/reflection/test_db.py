@@ -1,4 +1,3 @@
-import json
 from unittest import TestCase
 
 from rogw.tranp.semantics.reflection.db import SymbolDB, SymbolDBFinalizer

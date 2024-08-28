@@ -5,6 +5,7 @@ from unittest import TestCase
 
 from rogw.tranp.lang.inspection import FuncClasses, Typehint, Inspector, ClassTypehint, FunctionTypehint, ScalarTypehint
 from rogw.tranp.test.helper import data_provider
+from rogw.tranp.test.validation import validation
 
 
 class Values(Enum):
@@ -238,4 +239,4 @@ class TestInspector(TestCase):
 		self.assertEqual(type(Inspector.resolve(origin)), expected)
 
 	def test_validation(self) -> None:
-		self.assertTrue(Inspector.validation(Sub))
+		self.assertTrue(validation(Sub))

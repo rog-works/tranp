@@ -41,13 +41,15 @@ class ScalarTypehint(Typehint):
 		* None/NoneType
 	"""
 
+	_type: type
+
 	def __init__(self, scalar_type: type) -> None:
 		"""インスタンスを生成
 
 		Args:
 			scalar_type (type): タイプ
 		"""
-		self._type = scalar_type
+		self._type: type = scalar_type
 
 	@property
 	@override
@@ -117,6 +119,8 @@ class FunctionTypehint(Typehint):
 		* ラムダ ※タイプヒントが付けられないため
 	"""
 
+	_func: FuncTypes | Callable
+
 	def __init__(self, func: FuncTypes | Callable) -> None:
 		"""インスタンスを生成
 
@@ -125,7 +129,7 @@ class FunctionTypehint(Typehint):
 		Note:
 			XXX コンストラクターはFuncTypeに当てはまらないため、Callableとして受け付ける
 		"""
-		self._func = func
+		self._func: FuncTypes | Callable = func
 
 	@property
 	@override
@@ -196,13 +200,15 @@ class ClassTypehint(Typehint):
 		* インスタンス変数: ClassVar以外
 	"""
 
+	_type: type
+
 	def __init__(self, class_type: type) -> None:
 		"""インスタンスを生成
 
 		Args:
 			class_type (type): クラス
 		"""
-		self._type = class_type
+		self._type: type = class_type
 
 	@property
 	@override
@@ -224,7 +230,7 @@ class ClassTypehint(Typehint):
 	@property
 	def sub_types(self) -> list[Typehint]:
 		"""list[Typehint]: ジェネリック型のサブタイプのリスト"""
-		sub_annos = getattr(self._type, '__args__', [])
+		sub_annos: list[type] = getattr(self._type, '__args__', [])
 		return [Inspector.resolve(sub_type, self._type.__module__) for sub_type in sub_annos]
 
 	@property
@@ -239,7 +245,7 @@ class ClassTypehint(Typehint):
 		Returns:
 			dict[str, Typehint]: クラス変数一覧
 		"""
-		annos = {key: anno for key, anno in self.__recursive_annos(self._type).items() if getattr(anno, '__origin__', anno) is ClassVar}
+		annos = {key: anno for key, anno in self.__recursive_annos(self._type).items() if self.__try_get_origin(anno) is ClassVar}
 		return {key: ClassTypehint(attr).sub_types[0] for key, attr in annos.items()}
 
 	@property
@@ -249,8 +255,18 @@ class ClassTypehint(Typehint):
 		Returns:
 			dict[str, Typehint]: インスタンス変数一覧
 		"""
-		annos = {key: anno for key, anno in self.__recursive_annos(self._type).items() if getattr(anno, '__origin__', anno) is not ClassVar}
+		annos = {key: anno for key, anno in self.__recursive_annos(self._type).items() if self.__try_get_origin(anno) is not ClassVar}
 		return {key: Inspector.resolve(attr, self._type.__module__) for key, attr in annos.items()}
+	
+	def __try_get_origin(self, anno: type) -> type:
+		"""アノテーションから元のタイプ取得を試行
+
+		Args:
+			anno (type): アノテーション
+		Returns:
+			type: 元のタイプ
+		"""
+		return getattr(anno, '__origin__', anno)
 
 	def __recursive_annos(self, _type: type) -> dict[str, type]:
 		"""クラス階層を辿ってタイプヒントを収集
@@ -262,7 +278,8 @@ class ClassTypehint(Typehint):
 		"""
 		annos: dict[str, type] = {}
 		for at_type in reversed(_type.mro()):
-			for key, anno in getattr(at_type, '__annotations__', {}).items():
+			_annos: dict[str, type] = getattr(at_type, '__annotations__', {})
+			for key, anno in _annos.items():
 				annos[key] = _resolve_type_from_str(anno, at_type.__module__) if isinstance(anno, str) else anno
 
 		return annos
@@ -369,26 +386,3 @@ class Inspector:
 			return True
 		else:
 			return False
-
-	@classmethod
-	def validation(cls, klass: type[T], factory: Callable[[], T] | None = None) -> bool:
-		"""クラスの実装スキーマバリデーション
-
-		Args:
-			klass (type[T]): 検証クラス
-			factory (Callable[[], T] | None): インスタンスファクトリー (default = None)
-		Returns:
-			bool: True = 成功
-		Raises:
-			TypeError: 設計と実体の不一致
-		"""
-		hint = ClassTypehint(klass)
-		instance = factory() if factory else klass()
-		hint_keys = hint.self_vars.keys()
-		inst_keys = instance.__dict__.keys()
-		exists_from_hint = [key for key in hint_keys if key in inst_keys]
-		exists_from_inst = [key for key in inst_keys if key in hint_keys]
-		if len(exists_from_hint) != len(exists_from_inst):
-			raise TypeError(f'Schema not match. class: {klass.__name__}, expected self attributes: ({",".join(hint_keys)})')
-
-		return True

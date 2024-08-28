@@ -201,23 +201,21 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		return orders
 
 	def to_json(self, serializer: IReflectionSerializer) -> dict[str, DictSerialized]:
-		"""シリアライズ
+		"""JSONデータとして内部データをシリアライズ
 
 		Args:
 			serializer (IReflectionSerializer): シンボルシリアライザー
 		Returns:
-			dict[str, DictSerialized]: データ
+			dict[str, DictSerialized]: JSONデータ
 		"""
 		return {key: serializer.serialize(self[key]) for key in self.order_keys()}
 
 	def load_json(self, serializer: IReflectionSerializer, data: dict[str, DictSerialized]) -> None:
-		"""デシリアライズ
+		"""JSONデータを基に内部データをデシリアライズ
 
 		Args:
 			serializer (IReflectionSerializer): シンボルシリアライザー
-			data (dict[str, DictSerialized]): データ
-		Returns:
-			SymbolDB: インスタンス
+			data (dict[str, DictSerialized]): JSONデータ
 		"""
 		self.clear()
 		for key, row in data.items():

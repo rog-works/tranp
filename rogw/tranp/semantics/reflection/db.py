@@ -160,15 +160,16 @@ class SymbolDB(MutableMapping[str, IReflection]):
 			del self.__items[module_path]
 			del self.__preprocessed[module_path]
 
-	def to_json(self, serializer: IReflectionSerializer) -> dict[str, DictSerialized]:
+	def to_json(self, serializer: IReflectionSerializer, module_path: str | None = None) -> dict[str, DictSerialized]:
 		"""JSONデータとして内部データをシリアライズ
 
 		Args:
 			serializer (IReflectionSerializer): シンボルシリアライザー
+			module_path (str | None): 出力モジュールパス (default = None)
 		Returns:
 			dict[str, DictSerialized]: JSONデータ
 		"""
-		return {key: serializer.serialize(self[key]) for key in self._order_keys()}
+		return {key: serializer.serialize(self[key]) for key in self._order_keys(module_path or '')}
 
 	def load_json(self, serializer: IReflectionSerializer, data: dict[str, DictSerialized]) -> None:
 		"""JSONデータを基に内部データをデシリアライズ
@@ -181,33 +182,41 @@ class SymbolDB(MutableMapping[str, IReflection]):
 			self[key] = serializer.deserialize(self, row)
 			self.on_preprocess_complete(key)
 
-	def _order_keys(self) -> list[str]:
+	def _order_keys(self, module_path: str) -> list[str]:
 		"""参照順にキーの一覧を取得
 
+		Args:
+			module_path (str): 出力モジュールパス
 		Returns:
 			list[str]: キーリスト
 		"""
 		orders: list[str] = []
-		for key, symbol in self.items():
-			self._order_keys_recursive(symbol, orders)
-			if key not in orders:
-				orders.append(key)
+		for at_module_path, in_modules in self.__items.items():
+			if module_path and module_path != at_module_path:
+				continue
+
+			for local_path, symbol in in_modules.items():
+				self._order_keys_recursive(module_path, symbol, orders)
+				key = ModuleDSN.full_joined(at_module_path, local_path)
+				if key not in orders:
+					orders.append(key)
 
 		return orders
 
-	def _order_keys_recursive(self, symbol: IReflection, orders: list[str]) -> None:
+	def _order_keys_recursive(self, module_path: str, symbol: IReflection, orders: list[str]) -> None:
 		"""参照順にキーの一覧を更新
 
 		Args:
+			module_path (str): 出力モジュールパス
 			symbol (IReflection): シンボル
 			orders (list[str]): キーリスト
 		Returns:
 			list[str]: キーリスト
 		"""
 		for attr in symbol.attrs:
-			self._order_keys_recursive(attr, orders)
+			self._order_keys_recursive(module_path, attr, orders)
 
-		if symbol.types.fullyname not in orders:
+		if not module_path or module_path == symbol.types.module_path and symbol.types.fullyname not in orders:
 			orders.append(symbol.types.fullyname)
 
 

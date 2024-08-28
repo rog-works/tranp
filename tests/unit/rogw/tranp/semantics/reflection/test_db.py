@@ -45,6 +45,9 @@ class TestDB(TestCase):
 		for key in db.keys():
 			try:
 				self.assertEqual('ok' if db[key] == new_db[key] else key, 'ok')
+				self.assertEqual(new_db[key].node, db[key].node)
+				self.assertEqual(new_db[key].decl, db[key].decl)
+				self.assertEqual(new_db[key].via, db[key].via)
 			except AssertionError:
 				print(f'org: {str(db[key])}, new: {str(new_db[key])}, data: {data[key]}')
 				raise

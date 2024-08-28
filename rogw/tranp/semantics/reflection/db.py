@@ -1,10 +1,10 @@
-from typing import Iterator, Protocol
+from typing import Any, Iterator, Protocol, Sequence
 
 from rogw.tranp.dsn.module import ModuleDSN
-from rogw.tranp.semantics.reflection.base import IReflection
+from rogw.tranp.semantics.reflection.base import IReflection, IReflectionSerializer
 
 
-class SymbolDB:
+class SymbolDB(Sequence[tuple[str, IReflection]]):
 	"""シンボルテーブル"""
 
 	def __init__(self) -> None:
@@ -178,6 +178,36 @@ class SymbolDB:
 			orders.append(symbol.types.fullyname)
 
 		return orders
+
+	def to_json(self, serializer: IReflectionSerializer) -> dict[str, dict[str, Any]]:
+		"""シリアライズ
+
+		Args:
+			serializer (IReflectionSerializer): シンボルシリアライザー
+		Returns:
+			dict[str, dict[str, Any]]: データ
+		"""
+		return {key: serializer.serialize(self[key]) for key in self.order_keys()}
+
+	def load_json(self, data: dict[str, dict[str, Any]], serializer: IReflectionSerializer) -> None:
+		"""デシリアライズ
+
+		Args:
+			data (dict[str, dict[str, Any]]): データ
+			serializer (IReflectionSerializer): シンボルシリアライザー
+		Returns:
+			SymbolDB: インスタンス
+		"""
+		self.clear()
+		for key, row in data.items():
+			self[key] = serializer.deserialize(self, row)
+			self.on_preprocess_complete(key)
+
+	def clear(self) -> None:
+		"""インスタンスを初期化"""
+		self.__items = {}
+		self.__preprocessed = {}
+
 
 class SymbolDBFinalizer(Protocol):
 	"""シンボルテーブル完成プロセスプロトコル"""

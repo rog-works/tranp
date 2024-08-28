@@ -1,3 +1,4 @@
+import json
 from unittest import TestCase
 
 from rogw.tranp.semantics.reflection.db import SymbolDBFinalizer
@@ -24,3 +25,8 @@ class TestSymbolDB(TestCase):
 		except AssertionError:
 			print('\n', '\n'.join([f"'{key}': '{raw.types.fullyname}'," for key, raw in db.items()]))
 			raise
+
+	def test_orders(self) -> None:
+		db = self.fixture.get(SymbolDBFinalizer)()
+		order_keys = db.order_keys()
+		print(len(db), len(order_keys))

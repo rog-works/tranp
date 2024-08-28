@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import Iterator, Literal, Protocol, Self, TypeVar
+from typing import Any, Iterator, Literal, Protocol, Self, Sequence, TypeVar
 
 from rogw.tranp.lang.trait import Traits
 from rogw.tranp.semantics.errors import SemanticsLogicError
@@ -226,3 +226,28 @@ class Mods:
 			del self._cache[key]
 
 		self._mods[key] = mod
+
+
+class IReflectionSerializer:
+	"""シンボルシリアライザー"""
+
+	def serialize(self, symbol: IReflection) -> dict[str, Any]:
+		"""シリアライズ
+
+		Args:
+			symbol (IReflection): シンボル
+		Returns:
+			dict[str, Any]: データ
+		"""
+		...
+
+	def deserialize(self, db: Sequence[tuple[str, IReflection]], data: dict[str, Any]) -> IReflection:
+		"""デシリアライズ
+
+		Args:
+			db (Sequence[tuple[str, IReflection]]): シンボルテーブル
+			data (dict[str, Any]): データ
+		Returns:
+			IReflection: シンボル
+		"""
+		...

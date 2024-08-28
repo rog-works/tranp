@@ -2,8 +2,8 @@ from typing import Literal, MutableMapping, TypedDict
 
 from rogw.tranp.semantics.reflection.base import IReflection
 
-DictSymbol = TypedDict('DictSymbol', {'class': Literal['Symbol'], 'types': str})
-DictReflection = TypedDict('DictReflection', {'class': Literal['Reflection'], 'node': str, 'decl': str, 'origin': str, 'via': str, 'attrs': list[str]})
+DictSymbol = TypedDict('DictSymbol', {'class': Literal['Symbol'], 'types': str, 'attrs': dict[str, str]})
+DictReflection = TypedDict('DictReflection', {'class': Literal['Reflection'], 'node': str, 'decl': str, 'origin': str, 'via': str, 'attrs': dict[str, str]})
 DictSerialized = DictSymbol | DictReflection
 
 

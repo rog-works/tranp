@@ -193,7 +193,7 @@ class SymbolDB(MutableMapping[str, IReflection]):
 			depends.append(attr.types.fullyname)
 			for in_key in depends:
 				if in_key not in orders:
-					orders.append(attr.types.fullyname)
+					orders.append(in_key)
 
 		if symbol.types.fullyname not in orders:
 			orders.append(symbol.types.fullyname)
@@ -210,12 +210,12 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		"""
 		return {key: serializer.serialize(self[key]) for key in self.order_keys()}
 
-	def load_json(self, data: dict[str, DictSerialized], serializer: IReflectionSerializer) -> None:
+	def load_json(self, serializer: IReflectionSerializer, data: dict[str, DictSerialized]) -> None:
 		"""デシリアライズ
 
 		Args:
-			data (dict[str, DictSerialized]): データ
 			serializer (IReflectionSerializer): シンボルシリアライザー
+			data (dict[str, DictSerialized]): データ
 		Returns:
 			SymbolDB: インスタンス
 		"""

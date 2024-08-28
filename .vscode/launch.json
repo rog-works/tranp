@@ -7,7 +7,6 @@
 			"id": "testCases",
 			"options": [
 				"semantics.reflection.test_db.TestDB.test_make_db",
-				"semantics.reflection.test_db.TestDB.test_orders",
 				"semantics.reflection.test_db.TestDB.test_serialize",
 				"semantics.reflection.test_db.TestDB.test_deserialize",
 				"semantics.test_reflections.TestReflections.test_from_fullyname",

@@ -46,9 +46,12 @@ class TestDB(TestCase):
 		db = self.fixture.get(SymbolDBFinalizer)()
 		data = db.to_json(self.fixture.get(IReflectionSerializer))
 		new_db = SymbolDB()
-		new_db.load_json(data, self.fixture.get(IReflectionSerializer))
+		new_db.load_json(self.fixture.get(IReflectionSerializer), data)
 
-		keys = list(new_db.keys())
-		self.assertEqual(len(db), len(keys))
+		self.assertEqual(len(db), len(new_db))
 		for key in db.keys():
-			self.assertEqual('ok' if key in keys else key, 'ok')
+			try:
+				self.assertEqual('ok' if db[key] == new_db[key] else key, 'ok')
+			except AssertionError:
+				print(f'org: {str(db[key])}, new: {str(new_db[key])}, data: {data[key]}')
+				raise

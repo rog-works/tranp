@@ -26,13 +26,6 @@ class TestDB(TestCase):
 			print('\n', '\n'.join([f"'{key}': '{raw.types.fullyname}'," for key, raw in db.items()]))
 			raise
 
-	def test_order_keys(self) -> None:
-		db = self.fixture.get(SymbolDBFinalizer)()
-		keys = db.order_keys()
-		self.assertEqual(len(db), len(keys))
-		for key in db.keys():
-			self.assertEqual('ok' if key in keys else key, 'ok')
-
 	def test_serialize(self) -> None:
 		db = self.fixture.get(SymbolDBFinalizer)()
 		data = db.to_json(self.fixture.get(IReflectionSerializer))

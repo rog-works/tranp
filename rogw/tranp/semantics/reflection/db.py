@@ -1,10 +1,11 @@
-from typing import Iterator, Protocol
+from typing import Iterator, MutableMapping, Protocol
 
 from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.semantics.reflection.base import IReflection
+from rogw.tranp.semantics.reflection.serialization import DictSerialized, IReflectionSerializer
 
 
-class SymbolDB:
+class SymbolDB(MutableMapping[str, IReflection]):
 	"""シンボルテーブル"""
 
 	def __init__(self) -> None:
@@ -41,6 +42,26 @@ class SymbolDB:
 			self.__preprocessed[module_path] = {}
 
 		self.__items[module_path][local_path] = symbol
+
+	def __delitem__(self, key: str) -> None:
+		"""指定のキーのシンボルを削除
+
+		Args:
+			key (str): キー
+		Raises:
+			NotImplementedError: 非対応
+		"""
+		raise NotImplementedError(f'Operation not allowed. key: {key}')
+	
+	def __iter__(self) -> Iterator[str]:
+		"""キーのイテレーターを取得
+
+		Returns:
+			Iterator[str]: イテレーター
+		"""
+		for module_path, in_modules in self.__items.items():
+			for local_path in in_modules.keys():
+				yield ModuleDSN.full_joined(module_path, local_path)
 
 	def __contains__(self, key: str) -> bool:
 		"""指定のキーが存在するか判定
@@ -138,6 +159,73 @@ class SymbolDB:
 		if module_path in self.__items:
 			del self.__items[module_path]
 			del self.__preprocessed[module_path]
+
+	def order_keys(self) -> list[str]:
+		"""参照順にキーの一覧を取得
+
+		Returns:
+			list[str]: キーリスト
+		"""
+		if len(self) == 0:
+			return []
+
+		orders: list[str] = []
+		for key, symbol in self.items():
+			depends = self._order_keys_from_symbol(symbol)
+			depends.append(key)
+			for in_key in depends:
+				if in_key not in orders:
+					orders.append(in_key)
+
+		return orders
+
+	def _order_keys_from_symbol(self, symbol: IReflection) -> list[str]:
+		"""参照順にキーの一覧を取得(シンボル)
+
+		Args:
+			symbol (IReflection): シンボル
+		Returns:
+			list[str]: キーリスト
+		"""
+		orders: list[str] = []
+		for attr in symbol.attrs:
+			depends = self._order_keys_from_symbol(attr)
+			depends.append(attr.types.fullyname)
+			for in_key in depends:
+				if in_key not in orders:
+					orders.append(in_key)
+
+		if symbol.types.fullyname not in orders:
+			orders.append(symbol.types.fullyname)
+
+		return orders
+
+	def to_json(self, serializer: IReflectionSerializer) -> dict[str, DictSerialized]:
+		"""JSONデータとして内部データをシリアライズ
+
+		Args:
+			serializer (IReflectionSerializer): シンボルシリアライザー
+		Returns:
+			dict[str, DictSerialized]: JSONデータ
+		"""
+		return {key: serializer.serialize(self[key]) for key in self.order_keys()}
+
+	def load_json(self, serializer: IReflectionSerializer, data: dict[str, DictSerialized]) -> None:
+		"""JSONデータを基に内部データをデシリアライズ
+
+		Args:
+			serializer (IReflectionSerializer): シンボルシリアライザー
+			data (dict[str, DictSerialized]): JSONデータ
+		"""
+		self.clear()
+		for key, row in data.items():
+			self[key] = serializer.deserialize(self, row)
+			self.on_preprocess_complete(key)
+
+	def clear(self) -> None:
+		"""インスタンスを初期化"""
+		self.__items = {}
+		self.__preprocessed = {}
 
 
 class SymbolDBFinalizer(Protocol):

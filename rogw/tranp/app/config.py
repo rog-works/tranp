@@ -25,6 +25,7 @@ def default_definitions() -> ModuleDefinitions:
 		'rogw.tranp.module.types.ModulePaths': 'rogw.tranp.providers.module.module_paths',
 		'rogw.tranp.semantics.reflection.db.SymbolDB': 'rogw.tranp.semantics.reflection.db.SymbolDB',
 		'rogw.tranp.semantics.reflection.db.SymbolDBFinalizer': 'rogw.tranp.providers.semantics.symbol_db_finalizer',
+		'rogw.tranp.semantics.reflection.serialization.IReflectionSerializer': 'rogw.tranp.providers.semantics.ReflectionSerializer',
 		'rogw.tranp.semantics.finder.SymbolFinder': 'rogw.tranp.semantics.finder.SymbolFinder',
 		'rogw.tranp.semantics.plugin.PluginProvider': 'rogw.tranp.providers.semantics.plugin_provider_empty',
 		'rogw.tranp.semantics.processor.Preprocessors': 'rogw.tranp.providers.semantics.preprocessors',

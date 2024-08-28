@@ -1,10 +1,11 @@
-from typing import Any, Iterator, Protocol, Sequence
+from typing import Any, Iterator, MutableMapping, Protocol
 
 from rogw.tranp.dsn.module import ModuleDSN
-from rogw.tranp.semantics.reflection.base import IReflection, IReflectionSerializer
+from rogw.tranp.semantics.reflection.base import IReflection
+from rogw.tranp.semantics.reflection.serialization import DictSerialized, IReflectionSerializer
 
 
-class SymbolDB(Sequence[tuple[str, IReflection]]):
+class SymbolDB(MutableMapping[str, IReflection]):
 	"""シンボルテーブル"""
 
 	def __init__(self) -> None:
@@ -41,6 +42,26 @@ class SymbolDB(Sequence[tuple[str, IReflection]]):
 			self.__preprocessed[module_path] = {}
 
 		self.__items[module_path][local_path] = symbol
+
+	def __delitem__(self, key: str) -> None:
+		"""指定のキーのシンボルを削除
+
+		Args:
+			key (str): キー
+		Raises:
+			NotImplementedError: 非対応
+		"""
+		raise NotImplementedError(f'Operation not allowed. key: {key}')
+	
+	def __iter__(self) -> Iterator[str]:
+		"""キーのイテレーターを取得
+
+		Returns:
+			Iterator[str]: イテレーター
+		"""
+		for module_path, in_modules in self.__items.items():
+			for local_path in in_modules.keys():
+				yield ModuleDSN.full_joined(module_path, local_path)
 
 	def __contains__(self, key: str) -> bool:
 		"""指定のキーが存在するか判定
@@ -179,21 +200,21 @@ class SymbolDB(Sequence[tuple[str, IReflection]]):
 
 		return orders
 
-	def to_json(self, serializer: IReflectionSerializer) -> dict[str, dict[str, Any]]:
+	def to_json(self, serializer: IReflectionSerializer) -> dict[str, DictSerialized]:
 		"""シリアライズ
 
 		Args:
 			serializer (IReflectionSerializer): シンボルシリアライザー
 		Returns:
-			dict[str, dict[str, Any]]: データ
+			dict[str, DictSerialized]: データ
 		"""
 		return {key: serializer.serialize(self[key]) for key in self.order_keys()}
 
-	def load_json(self, data: dict[str, dict[str, Any]], serializer: IReflectionSerializer) -> None:
+	def load_json(self, data: dict[str, DictSerialized], serializer: IReflectionSerializer) -> None:
 		"""デシリアライズ
 
 		Args:
-			data (dict[str, dict[str, Any]]): データ
+			data (dict[str, DictSerialized]): データ
 			serializer (IReflectionSerializer): シンボルシリアライザー
 		Returns:
 			SymbolDB: インスタンス

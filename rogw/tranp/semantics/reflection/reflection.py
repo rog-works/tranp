@@ -15,7 +15,7 @@ class Options:
 
 	def __init__(self,
 		types: defs.ClassDef | None = None,
-		decl: defs.DeclVars | None = None,
+		decl: defs.DeclAll | None = None,
 		node: Node | None = None,
 		origin: IReflection | None = None,
 		via: IReflection | None = None
@@ -24,7 +24,7 @@ class Options:
 
 		Args:
 			types (ClassDef | None): 型を表すノード (default = None)
-			decl (DeclVars | None): 定義元のノード (default = None)
+			decl (DeclAll | None): 定義元のノード (default = None)
 			node (Node | None): ノード (default = None)
 			origin (IReflection | None): 型のシンボル (default = None)
 			via (IReflection | None): スタックシンボル (default = None)

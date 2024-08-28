@@ -1,7 +1,8 @@
 import json
 from unittest import TestCase
 
-from rogw.tranp.semantics.reflection.db import SymbolDBFinalizer
+from rogw.tranp.semantics.reflection.db import SymbolDB, SymbolDBFinalizer
+from rogw.tranp.semantics.reflection.serialization import IReflectionSerializer
 from tests.test.fixture import Fixture
 from tests.unit.rogw.tranp.semantics.reflection.fixtures.test_symbol_db_expect import expected_symbols
 
@@ -26,7 +27,17 @@ class TestSymbolDB(TestCase):
 			print('\n', '\n'.join([f"'{key}': '{raw.types.fullyname}'," for key, raw in db.items()]))
 			raise
 
-	def test_orders(self) -> None:
+	def test_order_keys(self) -> None:
 		db = self.fixture.get(SymbolDBFinalizer)()
-		order_keys = db.order_keys()
-		print(len(db), len(order_keys))
+		print(json.dumps(db.order_keys(), indent=2))
+
+	def test_serialize(self) -> None:
+		db = self.fixture.get(SymbolDBFinalizer)()
+		print(json.dumps(db.to_json(self.fixture.get(IReflectionSerializer)), indent=2))
+
+	def test_deserialize(self) -> None:
+		db = self.fixture.get(SymbolDBFinalizer)()
+		data = db.to_json(self.fixture.get(IReflectionSerializer))
+		new_db = SymbolDB()
+		new_db.load_json(data, self.fixture.get(IReflectionSerializer))
+		print(new_db.order_keys())

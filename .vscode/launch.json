@@ -8,6 +8,8 @@
 			"options": [
 				"semantics.reflection.test_symbol_db.TestSymbolDB.test_make_db",
 				"semantics.reflection.test_symbol_db.TestSymbolDB.test_orders",
+				"semantics.reflection.test_symbol_db.TestSymbolDB.test_serialize",
+				"semantics.reflection.test_symbol_db.TestSymbolDB.test_deserialize",
 				"semantics.test_reflections.TestReflections.test_from_fullyname",
 				"semantics.test_reflections.TestReflections.test_type_of",
 				"semantics.test_reflections_error.TestReflectionsError.test_from_fullyname_error",

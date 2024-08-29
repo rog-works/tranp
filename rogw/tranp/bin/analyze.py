@@ -16,7 +16,7 @@ from rogw.tranp.module.types import ModulePath, ModulePaths
 from rogw.tranp.providers.module import module_path_dummy
 from rogw.tranp.providers.syntax.ast import source_code_provider
 from rogw.tranp.semantics.reflection.base import IReflection
-from rogw.tranp.semantics.reflection.db import SymbolDB, SymbolDBFinalizer
+from rogw.tranp.semantics.reflection.db import SymbolDB
 from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.syntax.ast.parser import ParserSetting, SourceCodeProvider
 import rogw.tranp.syntax.node.definition as defs
@@ -476,15 +476,15 @@ class AnalyzeApp(App):
 		print(json.dumps(self.serialize_node(symbol.types), indent=2))
 
 	@injectable
-	def main(self, args: Args, db_finalizer: SymbolDBFinalizer) -> None:
+	def main(self, args: Args, modules: Modules) -> None:
 		"""アプリケーションのエントリーポイント
 
 		Args:
-			args (Args): コマンドライン引数
-			db_finalizer (SymbolDBFinalizer): シンボルテーブル完成プロセス
+			args (Args): コマンドライン引数 @inject
+			modules (Modules): モジュールマネージャー @inject
 		"""
-		# XXX シンボルテーブルを完成させるためコール
-		db_finalizer()
+		# 既定のモジュールをロード
+		modules.dependencies()
 
 		if len(args.command) == 0:
 			self.task_menu()

@@ -125,7 +125,7 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 		Returns:
 			bool: True = 実施
 		"""
-		return module.in_storage() and self.files.exists(filepath)
+		return self.setting.enabled and module.in_storage() and self.files.exists(filepath)
 
 	def _store(self, module: Module, db: SymbolDB, filepath: str) -> None:
 		"""ストレージに保存
@@ -135,6 +135,7 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 			db (SymbolDB): シンボルテーブル
 			filepath (str): ファイルパス
 		"""
+		# FIXME FileLoaderの解決するパスと食い違いが生まれるため修正を検討
 		data = db.to_json(self.serializer, module_path=module.path)
 		with open(filepath, mode='wb') as f:
 			json_str = json.dumps(data, separators=(',', ':'))
@@ -147,7 +148,6 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 			db (SymbolDB): シンボルテーブル
 			filepath (str): ファイルパス
 		"""
-		with open(filepath, mode='rb') as f:
-			content = f.read()
-			data = json.loads(content)
-			db.load_json(self.serializer, data)
+		content = self.files.load(filepath)
+		data = json.loads(content)
+		db.load_json(self.serializer, data)

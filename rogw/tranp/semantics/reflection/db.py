@@ -218,11 +218,3 @@ class SymbolDB(MutableMapping[str, IReflection]):
 
 		if not module_path or module_path == symbol.types.module_path and symbol.types.fullyname not in orders:
 			orders.append(symbol.types.fullyname)
-
-
-class SymbolDBFinalizer(Protocol):
-	"""シンボルテーブル完成プロセスプロトコル"""
-
-	def __call__(self) -> SymbolDB:
-		"""シンボルテーブル完成プロセスを実行"""
-		...

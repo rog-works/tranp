@@ -24,7 +24,6 @@ def default_definitions() -> ModuleDefinitions:
 		'rogw.tranp.module.types.LibraryPaths': 'rogw.tranp.providers.module.library_paths',
 		'rogw.tranp.module.types.ModulePaths': 'rogw.tranp.providers.module.module_paths',
 		'rogw.tranp.semantics.reflection.db.SymbolDB': 'rogw.tranp.semantics.reflection.db.SymbolDB',
-		'rogw.tranp.semantics.reflection.db.SymbolDBFinalizer': 'rogw.tranp.providers.semantics.symbol_db_finalizer',
 		'rogw.tranp.semantics.reflection.persistent.ISymbolDBPersistor': 'rogw.tranp.semantics.reflection.persistent.SymbolDBPersistor',
 		'rogw.tranp.semantics.reflection.serialization.IReflectionSerializer': 'rogw.tranp.semantics.reflection.serializer.ReflectionSerializer',
 		'rogw.tranp.semantics.finder.SymbolFinder': 'rogw.tranp.semantics.finder.SymbolFinder',

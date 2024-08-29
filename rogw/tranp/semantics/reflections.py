@@ -7,7 +7,7 @@ from rogw.tranp.semantics.finder import SymbolFinder
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.semantics.procedure import Procedure
 from rogw.tranp.semantics.reflection.base import IReflection
-from rogw.tranp.semantics.reflection.db import SymbolDB, SymbolDBFinalizer
+from rogw.tranp.semantics.reflection.db import SymbolDB
 import rogw.tranp.semantics.reflection.definition as refs
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node

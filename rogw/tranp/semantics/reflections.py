@@ -7,7 +7,7 @@ from rogw.tranp.semantics.finder import SymbolFinder
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.semantics.procedure import Procedure
 from rogw.tranp.semantics.reflection.base import IReflection
-from rogw.tranp.semantics.reflection.db import SymbolDBFinalizer
+from rogw.tranp.semantics.reflection.db import SymbolDB, SymbolDBFinalizer
 import rogw.tranp.semantics.reflection.definition as refs
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
@@ -25,10 +25,19 @@ class Reflections:
 			finder (SymbolFinder): シンボル検索 @inject
 			plugins (PluginProvider): プラグインプロバイダー @inject
 		"""
-		self.__db = db_finalizer()
+		self.__db_finalizer = db_finalizer
 		self.__finder = finder
 		self.__plugins = plugins
+		self.__loaded_db: SymbolDB | None = None
 		self.__procedural: ProceduralResolver | None = None
+
+	@property
+	def __db(self) -> SymbolDB:
+		"""SymbolDB: シンボルテーブル"""
+		if self.__loaded_db is None:
+			self.__loaded_db = self.__db_finalizer()
+
+		return self.__loaded_db
 
 	@property
 	def __procedural_resolver(self) -> 'ProceduralResolver':

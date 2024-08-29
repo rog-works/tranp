@@ -42,6 +42,7 @@ class Entrypoint(Node):
 
 	@property
 	def imports(self) -> list[Import]:
+		"""Note: XXX インポートは第1階層のみ対象とする。現状は第1階層のみサポートしているため問題ないが検討の余地あり"""
 		return [statement for statement in self.statements if isinstance(statement, Import)]
 
 	def whole_by(self, full_path: str) -> Node:

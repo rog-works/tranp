@@ -141,7 +141,7 @@ class AnalyzeApp(App):
 		Returns:
 			Entrypoint: エントリーポイントノード
 		"""
-		return self.resolve(Modules).load(module_path).entrypoint.as_a(defs.Entrypoint)
+		return self.resolve(Modules).load(module_path).entrypoint
 
 	def serialize_db(self) -> dict[str, str]:
 		"""シンボルテーブルをシリアライズ

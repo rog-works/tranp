@@ -26,12 +26,14 @@ def default_definitions() -> ModuleDefinitions:
 		'rogw.tranp.semantics.reflection.db.SymbolDB': 'rogw.tranp.semantics.reflection.db.SymbolDB',
 		'rogw.tranp.semantics.reflection.db.SymbolDBFinalizer': 'rogw.tranp.providers.semantics.symbol_db_finalizer',
 		'rogw.tranp.semantics.reflection.persistent.ISymbolDBPersistor': 'rogw.tranp.semantics.reflection.persistent.SymbolDBPersistor',
-		'rogw.tranp.semantics.reflection.serialization.IReflectionSerializer': 'rogw.tranp.providers.semantics.ReflectionSerializer',
+		'rogw.tranp.semantics.reflection.serialization.IReflectionSerializer': 'rogw.tranp.semantics.reflection.serializer.ReflectionSerializer',
 		'rogw.tranp.semantics.finder.SymbolFinder': 'rogw.tranp.semantics.finder.SymbolFinder',
 		'rogw.tranp.semantics.plugin.PluginProvider': 'rogw.tranp.providers.semantics.plugin_provider_empty',
 		'rogw.tranp.semantics.processor.Preprocessors': 'rogw.tranp.providers.semantics.preprocessors',
 		'rogw.tranp.semantics.reflections.Reflections': 'rogw.tranp.semantics.reflections.Reflections',
-		'rogw.tranp.syntax.ast.resolver.SymbolMapping': 'rogw.tranp.providers.syntax.node.symbol_mapping',
+		'rogw.tranp.syntax.ast.entrypoints.EntrypointLoader': 'rogw.tranp.providers.syntax.entrypoints.entrypoint_loader',
+		'rogw.tranp.syntax.ast.entrypoints.Entrypoints': 'rogw.tranp.syntax.ast.entrypoints.Entrypoints',
+		'rogw.tranp.syntax.ast.resolver.SymbolMapping': 'rogw.tranp.providers.syntax.resolver.symbol_mapping',
 		'rogw.tranp.syntax.ast.parser.ParserSetting': 'rogw.tranp.providers.syntax.ast.parser_setting',
 		'rogw.tranp.syntax.ast.parser.SourceCodeProvider': 'rogw.tranp.providers.syntax.ast.source_code_provider',
 		'rogw.tranp.syntax.ast.parser.SyntaxParser': 'rogw.tranp.implements.syntax.lark.parser.SyntaxParserOfLark',
@@ -45,9 +47,8 @@ def module_dependency_provider() -> ModuleDependencyProvider:
 		ModuleDependencyProvider: モジュールの依存プロバイダー
 	"""
 	return lambda: {
-		'rogw.tranp.module.module.Module': 'rogw.tranp.module.module.Module',
 		'rogw.tranp.syntax.ast.entry.Entry': 'rogw.tranp.providers.syntax.ast.make_root_entry',
 		'rogw.tranp.syntax.ast.query.Query': 'rogw.tranp.syntax.node.query.Nodes',
-		'rogw.tranp.syntax.node.node.Node': 'rogw.tranp.providers.syntax.node.entrypoint',
+		'rogw.tranp.syntax.node.definition.general.Entrypoint': 'rogw.tranp.providers.syntax.entrypoints.entrypoint',
 		'rogw.tranp.syntax.node.resolver.NodeResolver': 'rogw.tranp.syntax.node.resolver.NodeResolver',
 	}

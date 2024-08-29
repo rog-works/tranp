@@ -11,7 +11,6 @@ from rogw.tranp.providers.module import module_path_dummy
 from rogw.tranp.providers.syntax.ast import source_code_provider
 from rogw.tranp.semantics.processor import Preprocessors
 from rogw.tranp.syntax.ast.parser import SourceCodeProvider
-import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 
 
@@ -112,7 +111,7 @@ class Fixture:
 		Returns:
 			Node: ノード
 		"""
-		return self.shared_module.entrypoint.as_a(defs.Entrypoint).whole_by(full_path)
+		return self.shared_module.entrypoint.whole_by(full_path)
 
 	def custom_nodes_by(self, source_code: str, full_path: str) -> Node:
 		"""共有フィクスチャーのノードを取得
@@ -127,7 +126,7 @@ class Fixture:
 		self.__custom_source_code = f'{source_code}\n'
 		modules = self.get(Modules)
 		modules.unload(module_path.path)
-		return modules.load(module_path.path).entrypoint.as_a(defs.Entrypoint).whole_by(full_path)
+		return modules.load(module_path.path).entrypoint.whole_by(full_path)
 
 	@duck_typed(SourceCodeProvider)
 	def __source_code_provider(self, module_path: str) -> str:

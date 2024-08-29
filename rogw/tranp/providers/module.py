@@ -1,18 +1,14 @@
-from typing import cast
-
 from rogw.tranp.data.meta.types import ModuleMeta, ModuleMetaFactory
-from rogw.tranp.io.cache import CacheProvider
 from rogw.tranp.io.loader import IFileLoader
 from rogw.tranp.lang.annotation import injectable
-from rogw.tranp.lang.di import LazyDI
-from rogw.tranp.lang.locator import Invoker, Locator
+from rogw.tranp.lang.locator import Invoker
 from rogw.tranp.lang.module import module_path_to_filepath
 from rogw.tranp.module.types import ModulePath, ModulePaths
 from rogw.tranp.module.module import Module
-from rogw.tranp.module.loader import ModuleDependencyProvider, ModuleLoader
+from rogw.tranp.module.loader import ModuleLoader
 from rogw.tranp.semantics.processor import Preprocessors
 from rogw.tranp.semantics.reflection.db import SymbolDB
-from rogw.tranp.syntax.ast.parser import SyntaxParser
+from rogw.tranp.syntax.ast.entrypoints import Entrypoints
 
 
 def module_path_dummy() -> ModulePath:
@@ -45,35 +41,23 @@ def module_paths() -> ModulePaths:
 
 
 @injectable
-def module_loader(locator: Locator, dependency_provider: ModuleDependencyProvider, db: SymbolDB, preprocessors: Preprocessors) -> ModuleLoader:
+def module_loader(invoker: Invoker, entrypoints: Entrypoints, db: SymbolDB, processors: Preprocessors) -> ModuleLoader:
 	"""モジュールローダーを生成
 
 	Args:
-		locator (Locator): ロケーター @inject
-		dependency_provider (ModuleDependencyProvider): @inject
+		invoker (Invoker): ファクトリー関数 @inject
+		entrypoints (Entrypoints): エントリーポイントマネージャー @inject
 		db (SymbolDB): シンボルテーブル @inject
-		preprocessors (Preprocessors): プリプロセッサープロバイダー @inject
+		processors (Preprocessors): プリプロセッサープロバイダー @inject
 	Returns:
 		ModuleLoader: モジュールローダー
 	"""
-	def preprocess(module: Module) -> Module:
-		procs = preprocessors()
-		for proc in procs:
+	def handler(module_path: ModulePath) -> Module:
+		module = invoker(Module, module_path, entrypoints.load(module_path.path, module_path.language))
+		for proc in processors():
 			proc(module, db)
 
 		return module
-
-	def handler(module_path: ModulePath) -> Module:
-		shared_di = cast(LazyDI, locator)
-		# XXX 共有が必須のモジュールを事前に解決
-		shared_di.resolve(SyntaxParser)
-		shared_di.resolve(CacheProvider)
-		dependency_di = LazyDI.instantiate(dependency_provider())
-		new_di = shared_di.combine(dependency_di)
-		new_di.rebind(Locator, lambda: new_di)
-		new_di.rebind(Invoker, lambda: new_di.invoke)
-		new_di.bind(ModulePath, lambda: module_path)
-		return new_di.invoke(preprocess)
 
 	return handler
 
@@ -83,8 +67,8 @@ def module_meta_factory(module_paths: ModulePaths, loader: IFileLoader) -> Modul
 	"""モジュールメタファクトリーを生成
 
 	Args:
-		module_paths (ModulePaths): モジュールパスリスト
-		loader (IFileLoader): ファイルローダー
+		module_paths (ModulePaths): モジュールパスリスト @inject
+		loader (IFileLoader): ファイルローダー @inject
 	Returns:
 		ModuleMetaFactory: モジュールメタファクトリー
 	"""

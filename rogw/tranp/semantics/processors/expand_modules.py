@@ -133,25 +133,22 @@ class ExpandModules:
 				continue
 
 			# クラス定義シンボルの展開
-			entrypoint = module.entrypoint.as_a(defs.Entrypoint)
 			for fullyname, full_path in expanded.classes.items():
 				if fullyname not in db:
-					types = entrypoint.whole_by(full_path).as_a(defs.ClassDef)
+					types = module.entrypoint.whole_by(full_path).as_a(defs.ClassDef)
 					db[fullyname] = Symbol.instantiate(self.traits, types).stack()
 
 			# インポートシンボルの展開
-			entrypoint = module.entrypoint.as_a(defs.Entrypoint)
 			for fullyname, full_path in expanded.imports.items():
 				if fullyname not in db:
-					import_name = entrypoint.whole_by(full_path).as_a(defs.ImportAsName)
+					import_name = module.entrypoint.whole_by(full_path).as_a(defs.ImportAsName)
 					import_node = import_name.declare.as_a(defs.Import)
 					raw = db[ModuleDSN.full_joined(import_node.import_path.tokens, import_name.entity_symbol.tokens)]
 					db[fullyname] = raw.stack(import_name)
 
 			# 変数宣言シンボルの展開
-			entrypoint = module.entrypoint.as_a(defs.Entrypoint)
 			for fullyname, full_path in expanded.decl_vars.items():
-				var = entrypoint.whole_by(full_path).one_of(*defs.DeclVarsTs)
+				var = module.entrypoint.whole_by(full_path).one_of(*defs.DeclVarsTs)
 				if var.symbol.fullyname not in db:
 					raw = self.resolve_type_symbol(db, var)
 					db[var.symbol.fullyname] = raw.declare(var)

@@ -2,20 +2,20 @@ from rogw.tranp.io.loader import IFileLoader
 from rogw.tranp.lang.annotation import injectable, override
 from rogw.tranp.lang.module import module_path_to_filepath
 from rogw.tranp.module.types import ModulePath
-from rogw.tranp.syntax.node.node import Node
+import rogw.tranp.syntax.node.definition as defs
 
 
 class Module:
 	"""モジュール。読み込んだモジュールのパスとエントリーポイントを管理"""
 
 	@injectable
-	def __init__(self, module_path: ModulePath, entrypoint: Node, loader: IFileLoader) -> None:
+	def __init__(self, loader: IFileLoader, module_path: ModulePath, entrypoint: defs.Entrypoint) -> None:
 		"""インスタンスを生成
 
 		Args:
-			module_path (ModulePath): モジュールパス @inject
-			entrypoint (Node): エントリーポイント @inject
 			loader (IFileLoader): ファイルローダー @inject
+			module_path (ModulePath): モジュールパス
+			entrypoint (Entrypoint): エントリーポイント
 		"""
 		self.__module_path = module_path
 		self.__entrypoint = entrypoint
@@ -37,8 +37,8 @@ class Module:
 		return self.__module_path.path
 
 	@property
-	def entrypoint(self) -> Node:
-		"""Node: エントリーポイント"""
+	def entrypoint(self) -> defs.Entrypoint:
+		"""Entrypoint: エントリーポイント"""
 		return self.__entrypoint
 
 	@property

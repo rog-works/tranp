@@ -2,27 +2,24 @@ import hashlib
 
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.module.module import Module
-from rogw.tranp.module.loader import ModuleLoader
+from rogw.tranp.module.loader import IModuleLoader
 from rogw.tranp.module.types import LibraryPaths, ModulePath, ModulePaths
-from rogw.tranp.semantics.reflection.db import SymbolDB
 
 
 class Modules:
 	"""モジュールマネージャー。全ての依存モジュールを管理"""
 
 	@injectable
-	def __init__(self, library_paths: LibraryPaths, module_paths: ModulePaths, db: SymbolDB, loader: ModuleLoader) -> None:
+	def __init__(self, library_paths: LibraryPaths, module_paths: ModulePaths, loader: IModuleLoader) -> None:
 		"""インスタンスを生成
 
 		Args:
 			library_paths (LibraryPaths): 標準ライブラリーパスリスト @inject
 			module_paths (ModulePaths): 処理対象モジュールパスリスト @inject
-			db (SymbolDB): シンボルテーブル @inject
-			loader (ModuleLoader): モジュールローダー @inject
+			loader (IModuleLoader): モジュールローダー @inject
 		"""
 		self.__library_paths = library_paths
 		self.__module_paths = module_paths
-		self.__db = db
 		self.__loader = loader
 		self.__modules: dict[str, Module] = {}
 
@@ -68,7 +65,7 @@ class Modules:
 			Module: モジュール
 		"""
 		if module_path not in self.__modules:
-			self.__modules[module_path] = self.__loader(ModulePath(module_path, language))
+			self.__modules[module_path] = self.__loader.load(ModulePath(module_path, language))
 
 		return self.__modules[module_path]
 
@@ -88,5 +85,6 @@ class Modules:
 			module_path (str): モジュールパス
 		"""
 		if module_path in self.__modules:
+			module = self.__modules[module_path]
+			self.__loader.unload(module.module_path)
 			del self.__modules[module_path]
-			self.__db.unload(module_path)

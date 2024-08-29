@@ -1,11 +1,11 @@
 from rogw.tranp.data.meta.types import ModuleMeta, ModuleMetaFactory
 from rogw.tranp.io.loader import IFileLoader
-from rogw.tranp.lang.annotation import injectable
+from rogw.tranp.lang.annotation import implements, injectable
 from rogw.tranp.lang.locator import Invoker
 from rogw.tranp.lang.module import module_path_to_filepath
 from rogw.tranp.module.types import ModulePath, ModulePaths
 from rogw.tranp.module.module import Module
-from rogw.tranp.module.loader import ModuleLoader
+from rogw.tranp.module.loader import IModuleLoader
 from rogw.tranp.semantics.processor import Preprocessors
 from rogw.tranp.semantics.reflection.db import SymbolDB
 from rogw.tranp.syntax.ast.entrypoints import Entrypoints
@@ -40,26 +40,48 @@ def module_paths() -> ModulePaths:
 	return ModulePaths([ModulePath('example.example', language='py')])
 
 
-@injectable
-def module_loader(invoker: Invoker, entrypoints: Entrypoints, db: SymbolDB, processors: Preprocessors) -> ModuleLoader:
-	"""モジュールローダーを生成
+class ModuleLoader(IModuleLoader):
+	"""モジュールローダー"""
 
-	Args:
-		invoker (Invoker): ファクトリー関数 @inject
-		entrypoints (Entrypoints): エントリーポイントマネージャー @inject
-		db (SymbolDB): シンボルテーブル @inject
-		processors (Preprocessors): プリプロセッサープロバイダー @inject
-	Returns:
-		ModuleLoader: モジュールローダー
-	"""
-	def handler(module_path: ModulePath) -> Module:
-		module = invoker(Module, module_path, entrypoints.load(module_path.path, module_path.language))
-		for proc in processors():
-			proc(module, db)
+	@injectable
+	def __init__(self, invoker: Invoker, entrypoints: Entrypoints, db: SymbolDB, processors: Preprocessors) -> None:
+		"""インスタンスを生成
+
+		Args:
+			invoker (Invoker): ファクトリー関数 @inject
+			entrypoints (Entrypoints): エントリーポイントマネージャー @inject
+			db (SymbolDB): シンボルテーブル @inject
+			processors (Preprocessors): プリプロセッサープロバイダー @inject
+		"""
+		self.invoker = invoker
+		self.entrypoints = entrypoints
+		self.db = db
+		self.processors = processors
+
+	@implements
+	def load(self, module_path: ModulePath) -> Module:
+		"""モジュールをロード
+
+		Args:
+			module_path (ModulePath): モジュールパス
+		Returns:
+			Module: モジュール
+		"""
+		module = self.invoker(Module, module_path, self.entrypoints.load(module_path.path, module_path.language))
+		for proc in self.processors():
+			proc(module, self.db)
 
 		return module
 
-	return handler
+	@implements
+	def unload(self, module_path: ModulePath) -> None:
+		"""モジュールをアンロード
+
+		Args:
+			module_path (ModulePath): モジュールパス
+		"""
+		self.entrypoints.unload(module_path.path)
+		self.db.unload(module_path.path)
 
 
 @injectable

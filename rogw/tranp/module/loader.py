@@ -5,16 +5,24 @@ from rogw.tranp.module.module import Module
 from rogw.tranp.module.types import ModulePath
 
 
-class ModuleLoader(Protocol):
-	"""モジュールローダープロトコル"""
+class IModuleLoader:
+	"""モジュールローダーインターフェイス"""
 
-	def __call__(self, module_path: ModulePath) -> Module:
+	def load(self, module_path: ModulePath) -> Module:
 		"""モジュールをロード
 
 		Args:
 			module_path (ModulePath): モジュールパス
 		Returns:
 			Module: モジュール
+		"""
+		...
+
+	def unload(self, module_path: ModulePath) -> None:
+		"""モジュールをアンロード
+
+		Args:
+			module_path (ModulePath): モジュールパス
 		"""
 		...
 
@@ -25,7 +33,7 @@ class ModuleDependencyProvider(Protocol):
 	Note:
 		* Moduleのインスタンス化に必要なモジュール定義を生成
 		* ModuleLoader内で生成するDIで利用
-		@see providers.module.module_dependency_provider
+		@see rogw.tranp.app.config.module_dependency_provider
 	"""
 
 	def __call__(self) -> ModuleDefinitions:

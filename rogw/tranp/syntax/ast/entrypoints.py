@@ -43,3 +43,12 @@ class Entrypoints:
 			self.__entrypoints[module_path] = self.__loader(ModulePath(module_path, language))
 
 		return self.__entrypoints[module_path]
+
+	def unload(self, module_path: str) -> None:
+		"""エントリーポイントをアンロード
+
+		Args:
+			module_path (str): モジュールパス
+		"""
+		if module_path in self.__entrypoints:
+			del self.__entrypoints[module_path]

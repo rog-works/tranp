@@ -19,5 +19,6 @@ class TestReflectionsError(TestCase):
 	])
 	def test_from_fullyname(self, fullyname: str, expected_error: type[Exception], expected: re.Pattern[str]) -> None:
 		with self.assertRaisesRegex(expected_error, expected):
+			self.fixture.shared_module
 			reflections = self.fixture.get(Reflections)
 			str(reflections.from_fullyname(fullyname))

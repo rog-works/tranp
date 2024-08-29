@@ -65,20 +65,20 @@ class Modules:
 			Module: モジュール
 		"""
 		if module_path not in self.__modules:
-			self.__load_required(module_path)
+			self.__load_libraries(module_path)
 			self.__modules[module_path] = self.__loader.load(ModulePath(module_path, language))
 			self.__load_dependencies(self.__modules[module_path])
 			self.__loader.preprocess(self.__modules[module_path])
 
 		return self.__modules[module_path]
 
-	def __load_required(self, via_module_path: str) -> None:
-		"""必須モジュールをロード
+	def __load_libraries(self, via_module_path: str) -> None:
+		"""標準ライブラリーをロード
 
 		Args:
 			via_module_path (str): 読み込み中のモジュールパス
 		Note:
-			読み込み中のモジュールが必須モジュール以外の場合のみロード
+			読み込み中のモジュールが標準ライブラリー以外の場合のみロード
 		"""
 		if via_module_path not in [path.path for path in self.__library_paths]:
 			self.libralies()

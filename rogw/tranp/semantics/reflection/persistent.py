@@ -79,7 +79,7 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 		"""
 		filepath = self._gen_filepath(module)
 		if self._can_store(module, filepath):
-			self._store(db, filepath)
+			self._store(module, db, filepath)
 
 	@implements
 	def restore(self, module: Module, db: SymbolDB) -> None:
@@ -127,16 +127,18 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 		"""
 		return module.in_storage() and self.loader.exists(filepath)
 
-	def _store(self, db: SymbolDB, filepath: str) -> None:
+	def _store(self, module: Module, db: SymbolDB, filepath: str) -> None:
 		"""ストレージに保存
 
 		Args:
+			module (Module): モジュール
 			db (SymbolDB): シンボルテーブル
 			filepath (str): ファイルパス
 		"""
 		with open(filepath, mode='wb') as f:
-			data = json.dumps(db.to_json(self.serializer), separators=(',', ':'))
-			f.write(data.encode('utf-8'))
+			data = db.to_json(self.serializer, module_path=module.path)
+			json_str = json.dumps(data, separators=(',', ':'))
+			f.write(json_str.encode('utf-8'))
 
 	def _restore(self, db: SymbolDB, filepath: str) -> None:
 		"""ストレージから復元

@@ -103,7 +103,7 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 		"""
 		basepath = module_path_to_filepath(module.path)
 		identity = module.identity()
-		return f'{os.path.join(self.setting.basedir, f'{basepath}-{identity}')}.json'
+		return f'{os.path.join(self.setting.basedir, f'{basepath}-symbols-{identity}')}.json'
 
 	def _can_store(self, module: Module, filepath: str) -> bool:
 		"""保存を実施するか判定
@@ -135,8 +135,8 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 			db (SymbolDB): シンボルテーブル
 			filepath (str): ファイルパス
 		"""
+		data = db.to_json(self.serializer, module_path=module.path)
 		with open(filepath, mode='wb') as f:
-			data = db.to_json(self.serializer, module_path=module.path)
 			json_str = json.dumps(data, separators=(',', ':'))
 			f.write(json_str.encode('utf-8'))
 

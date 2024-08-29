@@ -5,6 +5,7 @@ from rogw.tranp.module.modules import Modules
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.semantics.processor import PreprocessorProvider
 from rogw.tranp.semantics.processors.expand_modules import ExpandModules
+from rogw.tranp.semantics.processors.persist_symbols import PersistSymbols
 from rogw.tranp.semantics.processors.resolve_unknown import ResolveUnknown
 from rogw.tranp.semantics.processors.symbol_extends import SymbolExtends
 from rogw.tranp.semantics.reflection.db import SymbolDB, SymbolDBFinalizer
@@ -41,7 +42,7 @@ def preprocessor_provider(invoker: Invoker) -> PreprocessorProvider:
 		ExpandModules,
 		SymbolExtends,
 		ResolveUnknown,
-		# PersistSymbols,
+		PersistSymbols,
 	]
 	return lambda: [invoker(ctor) for ctor in ctors]
 

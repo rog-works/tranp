@@ -2,6 +2,7 @@ from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.lang.annotation import duck_typed, override
 from rogw.tranp.syntax.node.definition.primary import DeclLocalVar
 from rogw.tranp.syntax.node.definition.statement_compound import VarsCollector
+from rogw.tranp.syntax.node.definition.statement_simple import Import
 from rogw.tranp.syntax.node.embed import Meta, accept_tags, expandable
 from rogw.tranp.syntax.node.interface import StatementBlock
 from rogw.tranp.syntax.node.node import Node
@@ -38,6 +39,10 @@ class Entrypoint(Node):
 	@property
 	def decl_vars(self) -> list[DeclLocalVar]:
 		return VarsCollector.collect(self, DeclLocalVar)
+
+	@property
+	def imports(self) -> list[Import]:
+		return [statement for statement in self.statements if isinstance(statement, Import)]
 
 	def whole_by(self, full_path: str) -> Node:
 		return self._by(DSN.relativefy(full_path, self.full_path))

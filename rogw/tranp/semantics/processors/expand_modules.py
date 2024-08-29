@@ -92,8 +92,8 @@ class ExpandModules:
 		expanded_modules = self.expand_modules(module)
 		if self.persistor.stored(module):
 			self.persistor.restore(module, db)
-		else:
-			self.expanded_to_db(expanded_modules, db)
+
+		self.expanded_to_db(expanded_modules, db)
 
 	def expand_modules(self, main_module: Module) -> dict[Module, Expanded]:
 		"""指定のモジュールと共に依存モジュールを展開

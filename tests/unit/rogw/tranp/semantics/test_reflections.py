@@ -3,10 +3,8 @@ from unittest import TestCase
 import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.compatible.python.types import Standards
 from rogw.tranp.dsn.module import ModuleDSN
-from rogw.tranp.module.modules import Modules
-from rogw.tranp.semantics.reflection.db import SymbolDB
+from rogw.tranp.lang.annotation import override
 from rogw.tranp.semantics.reflection.helper.naming import ClassShorthandNaming
-from rogw.tranp.semantics.reflection.persistent import ISymbolDBPersistor
 from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.test.helper import data_provider
 from tests.test.fixture import Fixture
@@ -127,6 +125,12 @@ class TestReflections(TestCase):
 	fixture_module_path = Fixture.fixture_module_path(__file__)
 	fixture = Fixture.make(__file__)
 
+	@override
+	def setUp(self) -> None:
+		super().setUp()
+		# XXX モジュールをロードすることでDBが完成するため、必ず事前に実施
+		self.fixture.shared_module
+
 	@data_provider([
 		(ModuleDSN.full_joined(fixture_module_path, 'Sub.decl_locals.a'), list, False),
 		(ModuleDSN.full_joined(fixture_module_path, 'Sub.decl_locals.closure.b'), list, True),
@@ -135,7 +139,7 @@ class TestReflections(TestCase):
 		(ModuleDSN.full_joined(fixture_module_path, 'AliasOps.func.d'), list, False),
 		(ModuleDSN.full_joined(fixture_module_path, 'AliasOps.func.d'), dict, False),  # XXX エイリアスはdictそのものではないが要検討
 	])
-	def test_is_a(self, fullyname: str, standard_type: type[Standards], expected: bool) -> None:
+	def test_type_is(self, fullyname: str, standard_type: type[Standards], expected: bool) -> None:
 		reflections = self.fixture.get(Reflections)
 		symbol = reflections.from_fullyname(fullyname)
 		self.assertEqual(reflections.type_is(symbol.types, standard_type), expected)

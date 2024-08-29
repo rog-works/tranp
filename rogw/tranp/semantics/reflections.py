@@ -17,27 +17,18 @@ class Reflections:
 	"""ノードからシンボルの型を解決する機能を提供"""
 
 	@injectable
-	def __init__(self, db_finalizer: SymbolDBFinalizer, finder: SymbolFinder, plugins: PluginProvider) -> None:
+	def __init__(self, db: SymbolDB, finder: SymbolFinder, plugins: PluginProvider) -> None:
 		"""インスタンスを生成
 
 		Args:
-			db_finalizer (SymbolDBFinalizer): シンボルテーブル完成プロセス @inject
+			db (SymbolDB): シンボルテーブル @inject
 			finder (SymbolFinder): シンボル検索 @inject
 			plugins (PluginProvider): プラグインプロバイダー @inject
 		"""
-		self.__db_finalizer = db_finalizer
+		self.__db = db
 		self.__finder = finder
 		self.__plugins = plugins
-		self.__loaded_db: SymbolDB | None = None
 		self.__procedural: ProceduralResolver | None = None
-
-	@property
-	def __db(self) -> SymbolDB:
-		"""SymbolDB: シンボルテーブル"""
-		if self.__loaded_db is None:
-			self.__loaded_db = self.__db_finalizer()
-
-		return self.__loaded_db
 
 	@property
 	def __procedural_resolver(self) -> 'ProceduralResolver':

@@ -65,16 +65,42 @@ class Modules:
 			Module: モジュール
 		"""
 		if module_path not in self.__modules:
+			self.__load_required(module_path)
 			self.__modules[module_path] = self.__loader.load(ModulePath(module_path, language))
+			self.__load_dependencies(self.__modules[module_path])
 			self.__loader.preprocess(self.__modules[module_path])
 
 		return self.__modules[module_path]
+
+	def __load_required(self, via_module_path: str) -> None:
+		"""必須モジュールをロード
+
+		Args:
+			via_module_path (str): 読み込み中のモジュールパス
+		Note:
+			読み込み中のモジュールが必須モジュール以外の場合のみロード
+		"""
+		if via_module_path not in [path.path for path in self.__library_paths]:
+			self.libralies()
+
+	def __load_dependencies(self, via_module: Module) -> None:
+		"""依存モジュールをロード
+
+		Args:
+			via_module (Module): 読み込み中のモジュール
+		Note:
+			再帰的に処理される点に注意
+		"""
+		for import_node in via_module.entrypoint.imports:
+			self.load(import_node.import_path.tokens)
 
 	def identity(self) -> str:
 		"""依存モジュール全体から一意な識別子を生成
 
 		Args:
 			str: 一意な識別子
+		Note:
+			非常に高負荷になり得るため、扱いには十分注意すること
 		"""
 		identities = ','.join([module.identity() for module in self.dependencies()])
 		return hashlib.md5(identities.encode('utf-8')).hexdigest()

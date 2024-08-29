@@ -1,5 +1,6 @@
 from typing import Protocol
 
+from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.module.types import ModulePath
 import rogw.tranp.syntax.node.definition as defs
 
@@ -21,6 +22,7 @@ class EntrypointLoader(Protocol):
 class Entrypoints:
 	"""エントリーポイントマネージャー"""
 
+	@injectable
 	def __init__(self, loader: EntrypointLoader) -> None:
 		"""インスタンスを生成
 

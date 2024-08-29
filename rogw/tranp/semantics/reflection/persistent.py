@@ -136,7 +136,7 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 			filepath (str): ファイルパス
 		"""
 		# FIXME FileLoaderの解決するパスと食い違いが生まれるため修正を検討
-		data = db.to_json(self.serializer, module_path=module.path)
+		data = db.to_json(self.serializer, for_module_path=module.path)
 		with open(filepath, mode='wb') as f:
 			json_str = json.dumps(data, separators=(',', ':'))
 			f.write(json_str.encode('utf-8'))

@@ -13,12 +13,12 @@ from rogw.tranp.syntax.node.node import Node
 
 
 @injectable
-def entrypoint_loader(locator: Locator, dependency_provider: ModuleDependencyProvider) -> EntrypointLoader:
+def entrypoint_loader(locator: Locator, dependencies: ModuleDependencyProvider) -> EntrypointLoader:
 	"""エントリーポイントローダーを生成
 
 	Args:
 		locator (Locator): ロケーター @inject
-		dependency_provider (ModuleDependencyProvider): @inject
+		dependencies (ModuleDependencyProvider): @inject
 	Returns:
 		EntrypointLoader: エントリーポイント
 	"""
@@ -27,7 +27,7 @@ def entrypoint_loader(locator: Locator, dependency_provider: ModuleDependencyPro
 		# XXX 共有が必須のモジュールを事前に解決
 		shared_di.resolve(SyntaxParser)
 		shared_di.resolve(CacheProvider)
-		dependency_di = LazyDI.instantiate(dependency_provider())
+		dependency_di = LazyDI.instantiate(dependencies())
 		new_di = shared_di.combine(dependency_di)
 		new_di.rebind(Locator, lambda: new_di)
 		new_di.rebind(Invoker, lambda: new_di.invoke)

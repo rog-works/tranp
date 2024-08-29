@@ -26,6 +26,14 @@ class IModuleLoader:
 		"""
 		...
 
+	def preprocess(self, module: Module) -> None:
+		"""モジュールにプリプロセスを実施
+
+		Args:
+			module (Module): モジュール
+		"""
+		...
+
 
 class ModuleDependencyProvider(Protocol):
 	"""モジュールの依存プロバイダープロトコル

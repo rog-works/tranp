@@ -9,7 +9,7 @@ from rogw.tranp.module.modules import Modules
 from rogw.tranp.module.types import ModulePath, ModulePaths
 from rogw.tranp.providers.module import module_path_dummy
 from rogw.tranp.providers.syntax.ast import source_code_provider
-from rogw.tranp.semantics.processor import Preprocessors
+from rogw.tranp.syntax.ast.entrypoints import Entrypoints
 from rogw.tranp.syntax.ast.parser import SourceCodeProvider
 from rogw.tranp.syntax.node.node import Node
 
@@ -47,24 +47,6 @@ class Fixture:
 			```
 		"""
 		return cls(cls.fixture_module_path(filepath), definitions)
-
-	@classmethod
-	def make_for_syntax(cls, filepath: str, definitions: ModuleDefinitions = {}) -> 'Fixture':
-		"""インスタンスを生成(syntax配下のモジュール用)
-
-		Args:
-			filepath (str): テストファイルのパス
-			definitions (ModuleDefinitions): モジュール定義 (default = {})
-		Returns:
-			Fixture: インスタンス
-		Examples:
-			@see Fixture.make
-		Note:
-			XXX プリプロセスは実行負荷が非常に高いため、syntax配下のモジュールのテストでは無効化
-		"""
-		preprocessors_empty: Preprocessors = lambda: []
-		_definitions = {fullyname(Preprocessors): lambda: preprocessors_empty}
-		return cls(cls.fixture_module_path(filepath), {**_definitions, **definitions})
 
 	def __init__(self, fixture_module_path: str, definitions: ModuleDefinitions) -> None:
 		"""インスタンスを生成
@@ -111,7 +93,7 @@ class Fixture:
 		Returns:
 			Node: ノード
 		"""
-		return self.shared_module.entrypoint.whole_by(full_path)
+		return self.get(Entrypoints).load(self.__fixture_module_path).whole_by(full_path)
 
 	def custom_nodes_by(self, source_code: str, full_path: str) -> Node:
 		"""共有フィクスチャーのノードを取得
@@ -124,9 +106,9 @@ class Fixture:
 		"""
 		module_path = module_path_dummy()
 		self.__custom_source_code = f'{source_code}\n'
-		modules = self.get(Modules)
-		modules.unload(module_path.path)
-		return modules.load(module_path.path).entrypoint.whole_by(full_path)
+		entrypoints = self.get(Entrypoints)
+		entrypoints.unload(module_path.path)
+		return entrypoints.load(module_path.path).whole_by(full_path)
 
 	@duck_typed(SourceCodeProvider)
 	def __source_code_provider(self, module_path: str) -> str:

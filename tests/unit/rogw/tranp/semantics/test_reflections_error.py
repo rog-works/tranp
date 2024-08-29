@@ -17,7 +17,7 @@ class TestReflectionsError(TestCase):
 		(ModuleDSN.full_joined(fixture_module_path, 'InvalidOps.tenary_to_union_types.n_or_s'), UnresolvedSymbolError, r'Only Nullable.'),
 		(ModuleDSN.full_joined(fixture_module_path, 'InvalidOps.tuple_expand.a'), FatalError, r'Unhandled error.'),
 	])
-	def test_from_fullyname_error(self, fullyname: str, expected_error: type[Exception], expected: re.Pattern[str]) -> None:
-		reflections = self.fixture.get(Reflections)
+	def test_from_fullyname(self, fullyname: str, expected_error: type[Exception], expected: re.Pattern[str]) -> None:
 		with self.assertRaisesRegex(expected_error, expected):
+			reflections = self.fixture.get(Reflections)
 			str(reflections.from_fullyname(fullyname))

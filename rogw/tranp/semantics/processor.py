@@ -17,11 +17,11 @@ class Preprocessor(Protocol):
 		...
 
 
-class Preprocessors(Protocol):
+class PreprocessorProvider(Protocol):
 	"""プリプロセッサープロバイダープロトコル"""
 
 	def __call__(self) -> list[Preprocessor]:
-		"""プリプロセッサーリストを返却
+		"""プリプロセッサーリストを生成
 
 		Returns:
 			list[Preprocessor]: プリプロセッサーリスト

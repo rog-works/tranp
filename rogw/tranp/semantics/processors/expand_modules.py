@@ -12,6 +12,7 @@ from rogw.tranp.semantics.finder import SymbolFinder
 from rogw.tranp.semantics.processor import Preprocessor
 from rogw.tranp.semantics.reflection.base import IReflection
 from rogw.tranp.semantics.reflection.db import SymbolDB
+from rogw.tranp.semantics.reflection.persistent import ISymbolDBPersistor
 from rogw.tranp.semantics.reflection.reflection import Symbol
 import rogw.tranp.syntax.node.definition as defs
 
@@ -62,7 +63,7 @@ class ExpandModules:
 	"""
 
 	@injectable
-	def __init__(self, modules: Modules, finder: SymbolFinder, caches: CacheProvider, files: IFileLoader, traits: Traits[IReflection]) -> None:
+	def __init__(self, modules: Modules, finder: SymbolFinder, caches: CacheProvider, files: IFileLoader, traits: Traits[IReflection], persistor: ISymbolDBPersistor) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -71,12 +72,14 @@ class ExpandModules:
 			caches (CacheProvider): キャッシュプロバイダー @inject
 			files (IFileLoader): ファイルローダー @inject
 			traits (Traits[IReflection]): トレイトマネージャー @inject
+			persistor (ISymbolDBPersistor): シンボルテーブル永続化 @inject
 		"""
 		self.modules = modules
 		self.finder = finder
 		self.caches = caches
 		self.files = files
 		self.traits = traits
+		self.persistor = persistor
 
 	@duck_typed(Preprocessor)
 	def __call__(self, module: Module, db: SymbolDB) -> None:
@@ -87,7 +90,10 @@ class ExpandModules:
 			db (SymbolDB): シンボルテーブル
 		"""
 		expanded_modules = self.expand_modules(module)
-		self.expanded_to_db(expanded_modules, db)
+		if self.persistor.stored(module):
+			self.persistor.restore(module, db)
+		else:
+			self.expanded_to_db(expanded_modules, db)
 
 	def expand_modules(self, main_module: Module) -> dict[Module, Expanded]:
 		"""指定のモジュールと共に依存モジュールを展開

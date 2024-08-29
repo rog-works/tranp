@@ -6,7 +6,7 @@ from rogw.tranp.lang.module import module_path_to_filepath
 from rogw.tranp.module.types import ModulePath, ModulePaths
 from rogw.tranp.module.module import Module
 from rogw.tranp.module.loader import IModuleLoader
-from rogw.tranp.semantics.processor import Preprocessors
+from rogw.tranp.semantics.processor import PreprocessorProvider
 from rogw.tranp.semantics.reflection.db import SymbolDB
 from rogw.tranp.syntax.ast.entrypoints import Entrypoints
 
@@ -44,14 +44,14 @@ class ModuleLoader(IModuleLoader):
 	"""モジュールローダー"""
 
 	@injectable
-	def __init__(self, invoker: Invoker, entrypoints: Entrypoints, db: SymbolDB, processors: Preprocessors) -> None:
+	def __init__(self, invoker: Invoker, entrypoints: Entrypoints, db: SymbolDB, processors: PreprocessorProvider) -> None:
 		"""インスタンスを生成
 
 		Args:
 			invoker (Invoker): ファクトリー関数 @inject
 			entrypoints (Entrypoints): エントリーポイントマネージャー @inject
 			db (SymbolDB): シンボルテーブル @inject
-			processors (Preprocessors): プリプロセッサープロバイダー @inject
+			processors (PreprocessorProvider): プリプロセッサープロバイダー @inject
 		"""
 		self.invoker = invoker
 		self.entrypoints = entrypoints
@@ -67,11 +67,7 @@ class ModuleLoader(IModuleLoader):
 		Returns:
 			Module: モジュール
 		"""
-		module = self.invoker(Module, module_path, self.entrypoints.load(module_path.path, module_path.language))
-		for proc in self.processors():
-			proc(module, self.db)
-
-		return module
+		return self.invoker(Module, module_path, self.entrypoints.load(module_path.path, module_path.language))
 
 	@implements
 	def unload(self, module_path: ModulePath) -> None:
@@ -82,6 +78,16 @@ class ModuleLoader(IModuleLoader):
 		"""
 		self.entrypoints.unload(module_path.path)
 		self.db.unload(module_path.path)
+
+	@implements
+	def preprocess(self, module: Module) -> None:
+		"""モジュールにプリプロセスを実施
+
+		Args:
+			module (Module): モジュール
+		"""
+		for proc in self.processors():
+			proc(module, self.db)
 
 
 @injectable

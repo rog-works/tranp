@@ -3,7 +3,10 @@ from unittest import TestCase
 import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.compatible.python.types import Standards
 from rogw.tranp.dsn.module import ModuleDSN
+from rogw.tranp.module.modules import Modules
+from rogw.tranp.semantics.reflection.db import SymbolDB
 from rogw.tranp.semantics.reflection.helper.naming import ClassShorthandNaming
+from rogw.tranp.semantics.reflection.persistent import ISymbolDBPersistor
 from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.test.helper import data_provider
 from tests.test.fixture import Fixture
@@ -450,7 +453,7 @@ class TestReflections(TestCase):
 	])
 	def test_type_of(self, full_path: str, expected: str, attrs_expected: str) -> None:
 		reflections = self.fixture.get(Reflections)
-		node = self.fixture.shared_nodes_by(full_path)
+		node = self.fixture.shared_module.entrypoint.whole_by(full_path)
 		symbol = reflections.type_of(node)
 		self.assertEqual(symbol.types.fullyname, expected)
 		self.assertEqual(ClassShorthandNaming.domain_name_for_debug(symbol), attrs_expected)

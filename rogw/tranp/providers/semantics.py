@@ -3,29 +3,12 @@ from rogw.tranp.lang.locator import Invoker
 from rogw.tranp.lang.trait import TraitProvider
 from rogw.tranp.module.modules import Modules
 from rogw.tranp.semantics.plugin import PluginProvider
-from rogw.tranp.semantics.processor import Preprocessors
+from rogw.tranp.semantics.processor import PreprocessorProvider
 from rogw.tranp.semantics.processors.expand_modules import ExpandModules
 from rogw.tranp.semantics.processors.resolve_unknown import ResolveUnknown
 from rogw.tranp.semantics.processors.symbol_extends import SymbolExtends
 from rogw.tranp.semantics.reflection.db import SymbolDB, SymbolDBFinalizer
 from rogw.tranp.semantics.reflection.traits import export_classes
-
-
-@injectable
-def preprocessors(invoker: Invoker) -> Preprocessors:
-	"""プリプロセッサープロバイダーを生成
-
-	Args:
-		invoker (Invoker): ファクトリー関数 @inject
-	Returns:
-		Preprocessors: プリプロセッサープロバイダー
-	"""
-	ctors = [
-		ExpandModules,
-		SymbolExtends,
-		ResolveUnknown,
-	]
-	return lambda: [invoker(proc) for proc in ctors]
 
 
 @injectable
@@ -45,6 +28,22 @@ def plugin_provider_empty() -> PluginProvider:
 		PluginProvider: プラグインプロバイダー
 	"""
 	return lambda: []
+
+
+@injectable
+def preprocessor_provider(invoker: Invoker) -> PreprocessorProvider:
+	"""プリプロセッサープロバイダーを生成
+
+	Args:
+		invoker (Invoker): ファクトリー関数 @inject
+	"""
+	ctors = [
+		ExpandModules,
+		SymbolExtends,
+		ResolveUnknown,
+		# PersistSymbols,
+	]
+	return lambda: [invoker(ctor) for ctor in ctors]
 
 
 @injectable

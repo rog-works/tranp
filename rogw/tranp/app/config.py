@@ -29,7 +29,7 @@ def default_definitions() -> ModuleDefinitions:
 		'rogw.tranp.semantics.reflection.serialization.IReflectionSerializer': 'rogw.tranp.semantics.reflection.serializer.ReflectionSerializer',
 		'rogw.tranp.semantics.finder.SymbolFinder': 'rogw.tranp.semantics.finder.SymbolFinder',
 		'rogw.tranp.semantics.plugin.PluginProvider': 'rogw.tranp.providers.semantics.plugin_provider_empty',
-		'rogw.tranp.semantics.processor.Preprocessors': 'rogw.tranp.providers.semantics.preprocessors',
+		'rogw.tranp.semantics.processor.PreprocessorProvider': 'rogw.tranp.providers.semantics.preprocessor_provider',
 		'rogw.tranp.semantics.reflections.Reflections': 'rogw.tranp.semantics.reflections.Reflections',
 		'rogw.tranp.syntax.ast.entrypoints.EntrypointLoader': 'rogw.tranp.providers.syntax.entrypoints.entrypoint_loader',
 		'rogw.tranp.syntax.ast.entrypoints.Entrypoints': 'rogw.tranp.syntax.ast.entrypoints.Entrypoints',

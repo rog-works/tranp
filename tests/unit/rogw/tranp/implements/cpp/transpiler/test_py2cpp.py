@@ -447,6 +447,6 @@ class TestPy2Cpp(TestCase):
 	])
 	def test_exec(self, full_path: str, expected_type: type[Node], expected: str) -> None:
 		transpiler = self.fixture.get(Py2Cpp)
-		node = self.fixture.shared_nodes_by(full_path).as_a(expected_type)
+		node = self.fixture.shared_module.entrypoint.whole_by(full_path).as_a(expected_type)
 		actual = transpiler.transpile(node)
 		self.assertEqual(actual, expected)

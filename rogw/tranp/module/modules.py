@@ -66,6 +66,7 @@ class Modules:
 		"""
 		if module_path not in self.__modules:
 			self.__modules[module_path] = self.__loader.load(ModulePath(module_path, language))
+			self.__loader.preprocess(self.__modules[module_path])
 
 		return self.__modules[module_path]
 

@@ -109,16 +109,16 @@ class AnalyzeApp(App):
 
 	@classmethod
 	@injectable
-	def make_module_paths(cls, args: Args, loader: IFileLoader) -> ModulePaths:
+	def make_module_paths(cls, args: Args, files: IFileLoader) -> ModulePaths:
 		"""処理対象のモジュールパスリストを生成
 
 		Args:
 			args (Args): コマンドライン引数 @inject
-			loader (IFileLoader): ファイルローダー @inject
+			files (IFileLoader): ファイルローダー @inject
 		Returns:
 			ModulePaths: 処理対象のモジュールパスリスト
 		"""
-		if not loader.exists(args.input):
+		if not files.exists(args.input):
 			return ModulePaths([])
 
 		basepath, extention = os.path.splitext(args.input)

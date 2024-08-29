@@ -16,15 +16,15 @@ def parser_setting() -> ParserSetting:
 
 
 @injectable
-def source_code_provider(loader: IFileLoader) -> SourceCodeProvider:
+def source_code_provider(files: IFileLoader) -> SourceCodeProvider:
 	"""ソースコードプロバイダーを生成
 
 	Args:
-		loader (IFileLoader): ファイルローダー @inject
+		files (IFileLoader): ファイルローダー @inject
 	Returns:
 		SourceCodeProvider: ソースコードプロバイダー
 	"""
-	return lambda module_path: loader.load(module_path_to_filepath(module_path, '.py'))
+	return lambda module_path: files.load(module_path_to_filepath(module_path, '.py'))
 
 
 @injectable

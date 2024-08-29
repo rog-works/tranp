@@ -62,20 +62,20 @@ class ExpandModules:
 	"""
 
 	@injectable
-	def __init__(self, modules: Modules, finder: SymbolFinder, caches: CacheProvider, loader: IFileLoader, traits: Traits[IReflection]) -> None:
+	def __init__(self, modules: Modules, finder: SymbolFinder, caches: CacheProvider, files: IFileLoader, traits: Traits[IReflection]) -> None:
 		"""インスタンスを生成
 
 		Args:
 			modules (Modules): モジュールマネージャー @inject
 			finder (SymbolFinder): シンボル検索 @inject
 			caches (CacheProvider): キャッシュプロバイダー @inject
-			loader (IFileLoader): ファイルローダー @inject
+			files (IFileLoader): ファイルローダー @inject
 			traits (Traits[IReflection]): トレイトマネージャー @inject
 		"""
 		self.modules = modules
 		self.finder = finder
 		self.caches = caches
-		self.loader = loader
+		self.files = files
 		self.traits = traits
 
 	@duck_typed(Preprocessor)

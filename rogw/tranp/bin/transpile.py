@@ -147,16 +147,16 @@ class TranspileApp:
 
 	@classmethod
 	@injectable
-	def make_translation_mapping(cls, loader: IFileLoader, config: Config) -> TranslationMapping:
+	def make_translation_mapping(cls, files: IFileLoader, config: Config) -> TranslationMapping:
 		"""翻訳マッピングデータを生成
 
 		Args:
-			loader (IFileLoader): ファイルローダー @inject
+			files (IFileLoader): ファイルローダー @inject
 			config (Config): コンフィグ @inject
 		Returns:
 			TranslationMapping: 翻訳マッピングデータ
 		"""
-		mapping = cast(dict[str, str], yaml.safe_load(loader.load(config.trans_mapping)))
+		mapping = cast(dict[str, str], yaml.safe_load(files.load(config.trans_mapping)))
 		return TranslationMapping(to=mapping)
 
 	@classmethod
@@ -193,26 +193,26 @@ class TranspileApp:
 
 	@classmethod
 	@injectable
-	def run(cls, loader: IFileLoader, config: Config, module_paths: ModulePaths, modules: Modules, module_meta_factory: ModuleMetaFactory, transpiler: ITranspiler) -> None:
+	def run(cls, files: IFileLoader, config: Config, module_paths: ModulePaths, modules: Modules, module_meta_factory: ModuleMetaFactory, transpiler: ITranspiler) -> None:
 		"""アプリケーションを実行
 
 		Args:
-			loader (IFilerLoader): ファイルローダー @inject
+			files (IFileLoader): ファイルローダー @inject
 			config (Config): コンフィグ @inject
 			module_paths (ModulePaths): モジュールパスリスト @inject
 			modules (Modules): モジュールリスト @inject
 			module_meta_factory (ModuleMetaFactory): モジュールのメタ情報ファクトリー @inject
 			transpiler (ITranspiler): トランスパイラー @inject
 		"""
-		app = cls(loader, config, module_paths, modules, module_meta_factory, transpiler)
+		app = cls(files, config, module_paths, modules, module_meta_factory, transpiler)
 		if config.profile in ['tottime', 'cumtime']:
 			profiler(config.profile)(app.exec)()
 		else:
 			app.exec()
 
-	def __init__(self, loader: IFileLoader, config: Config, module_paths: ModulePaths, modules: Modules, module_meta_factory: ModuleMetaFactory, transpiler: ITranspiler) -> None:
+	def __init__(self, files: IFileLoader, config: Config, module_paths: ModulePaths, modules: Modules, module_meta_factory: ModuleMetaFactory, transpiler: ITranspiler) -> None:
 		"""インスタンスを生成 Args: @see run"""
-		self.loader = loader
+		self.files = files
 		self.module_paths = module_paths
 		self.modules = modules
 		self.config = config
@@ -228,10 +228,10 @@ class TranspileApp:
 			MetaHeader | None: メタヘッダー。ファイル・メタヘッダーが存在しない場合はNone
 		"""
 		filepath = self.output_filepath(module_path)
-		if not self.loader.exists(filepath):
+		if not self.files.exists(filepath):
 			return None
 
-		return MetaHeader.try_from_content(self.loader.load(filepath))
+		return MetaHeader.try_from_content(self.files.load(filepath))
 
 	def output_filepath(self, module_path: ModulePath) -> str:
 		"""トランスパイル後のファイルパスを生成

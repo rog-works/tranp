@@ -161,7 +161,7 @@ def _ast(before: str, after: str) -> str:
 	return ModuleDSN.local_joined(ASTMapping.aliases[before], after)
 
 
-def fixture_translation_mapping(loader: IFileLoader) -> TranslationMapping:
+def fixture_translation_mapping(files: IFileLoader) -> TranslationMapping:
 	fixture_module_path = Fixture.fixture_module_path(__file__)
 	fixture_translations = {
 		alias_dsn(ModuleDSN.full_joined(fixture_module_path, 'Alias')): 'Alias2',
@@ -169,7 +169,7 @@ def fixture_translation_mapping(loader: IFileLoader) -> TranslationMapping:
 		alias_dsn(ModuleDSN.full_joined(fixture_module_path, 'Alias.Inner')): 'Inner2',
 		alias_dsn(ModuleDSN.full_joined(fixture_module_path, 'Alias.Inner.V')): 'V2',
 	}
-	return example_translation_mapping_cpp(loader).merge(fixture_translations)
+	return example_translation_mapping_cpp(files).merge(fixture_translations)
 
 
 def make_renderer(i18n: I18n) -> Renderer:

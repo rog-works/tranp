@@ -85,12 +85,12 @@ class ModuleLoader(IModuleLoader):
 
 
 @injectable
-def module_meta_factory(module_paths: ModulePaths, loader: IFileLoader) -> ModuleMetaFactory:
+def module_meta_factory(module_paths: ModulePaths, files: IFileLoader) -> ModuleMetaFactory:
 	"""モジュールメタファクトリーを生成
 
 	Args:
 		module_paths (ModulePaths): モジュールパスリスト @inject
-		loader (IFileLoader): ファイルローダー @inject
+		files (IFileLoader): ファイルローダー @inject
 	Returns:
 		ModuleMetaFactory: モジュールメタファクトリー
 	"""
@@ -98,6 +98,6 @@ def module_meta_factory(module_paths: ModulePaths, loader: IFileLoader) -> Modul
 		index = [module_path.path for module_path in module_paths].index(module_path)
 		target_module_path = module_paths[index]
 		filepath = module_path_to_filepath(target_module_path.path, f'.{target_module_path.language}')
-		return {'hash': loader.hash(filepath), 'path': module_path}
+		return {'hash': files.hash(filepath), 'path': module_path}
 
 	return handler

@@ -46,17 +46,17 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 	"""シンボルテーブル永続化"""
 
 	@injectable
-	def __init__(self, setting: CacheSetting, serializer: IReflectionSerializer, loader: IFileLoader) -> None:
+	def __init__(self, setting: CacheSetting, serializer: IReflectionSerializer, files: IFileLoader) -> None:
 		"""インスタンスを生成
 
 		Args:
 			setting (CacheSetting): キャッシュ設定 @inject
 			serializer (IReflectionSerializer): シンボルシリアライザー @inject
-			loader (IFileLoader) ファイルローダー @inject
+			files (IFileLoader) ファイルローダー @inject
 		"""
 		self.setting = setting
 		self.serializer = serializer
-		self.loader = loader
+		self.files = files
 
 	@implements
 	def stored(self, module: Module) -> bool:
@@ -114,7 +114,7 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 		Returns:
 			bool: True = 実施
 		"""
-		return module.in_storage() and not self.loader.exists(filepath)
+		return module.in_storage() and not self.files.exists(filepath)
 
 	def _can_restore(self, module: Module, filepath: str) -> bool:
 		"""復元を実施するか判定
@@ -125,7 +125,7 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 		Returns:
 			bool: True = 実施
 		"""
-		return module.in_storage() and self.loader.exists(filepath)
+		return module.in_storage() and self.files.exists(filepath)
 
 	def _store(self, module: Module, db: SymbolDB, filepath: str) -> None:
 		"""ストレージに保存

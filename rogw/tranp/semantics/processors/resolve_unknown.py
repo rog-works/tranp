@@ -39,19 +39,16 @@ class ResolveUnknown:
 		Returns:
 			bool: True = 後続処理を実行
 		"""
-		for key, raw in db.in_preprocess_items():
+		for _, raw in db.items(module.path):
 			if not isinstance(raw.decl, defs.Declable):
 				continue
 
 			if isinstance(raw.decl.declare, defs.MoveAssign):
 				raw.mod_on('origin', self.make_mod(raw, raw.decl.declare.value))
-				db.on_preprocess_complete(key)
 			elif isinstance(raw.decl.declare, (defs.For, defs.CompFor)):
 				raw.mod_on('origin', self.make_mod(raw, raw.decl.declare.for_in))
-				db.on_preprocess_complete(key)
 			elif isinstance(raw.decl.declare, defs.WithEntry):
 				raw.mod_on('origin', self.make_mod(raw, raw.decl.declare.enter))
-				db.on_preprocess_complete(key)
 
 		return True
 

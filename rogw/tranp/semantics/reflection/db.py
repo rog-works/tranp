@@ -11,7 +11,7 @@ class SymbolDB(MutableMapping[str, IReflection]):
 	def __init__(self) -> None:
 		"""インスタンスを生成"""
 		self.__items: dict[str, dict[str, IReflection]] = {}
-		self.__preprocessed: dict[str, dict[str, bool]] = {}
+		self.__completed: list[str] = []
 
 	def __getitem__(self, key: str) -> IReflection:
 		"""指定のキーのシンボルを取得
@@ -39,7 +39,6 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		module_path, local_path = ModuleDSN.parsed(key)
 		if module_path not in self.__items:
 			self.__items[module_path] = {}
-			self.__preprocessed[module_path] = {}
 
 		self.__items[module_path][local_path] = symbol
 
@@ -86,29 +85,18 @@ class SymbolDB(MutableMapping[str, IReflection]):
 
 		return total
 
-	def items(self) -> Iterator[tuple[str, IReflection]]:
+	def items(self, for_module_path: str | None = None) -> Iterator[tuple[str, IReflection]]:
 		"""エントリーのイテレーターを取得
 
+		Args:
+			for_module_path (str | None): 取得対象のモジュールパス (default = None)
 		Returns:
 			Iterator[tuple[str, IReflection]]: イテレーター
 		"""
-		for module_path, in_module in self.__items.items():
+		module_paths = [for_module_path] if for_module_path else self.__items.keys()
+		for module_path in module_paths:
+			in_module = self.__items[module_path]
 			for local_path, value in in_module.items():
-				yield ModuleDSN.full_joined(module_path, local_path), value
-
-	def in_preprocess_items(self) -> Iterator[tuple[str, IReflection]]:
-		"""プリプロセス中のシンボルのイテレーターを取得
-
-		Returns:
-			Iterator[IReflection]: イテレーター
-		Note:
-			プリプロセッサー以外で使用するのは禁止
-		"""
-		for module_path, in_module in self.__items.items():
-			for local_path, value in in_module.items():
-				if module_path in self.__preprocessed and local_path in self.__preprocessed[module_path]:
-					continue
-
 				yield ModuleDSN.full_joined(module_path, local_path), value
 
 	def keys(self) -> Iterator[str]:
@@ -141,14 +129,24 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		"""
 		return module_path in self.__items
 
-	def on_preprocess_complete(self, key: str) -> None:
+	def completed(self, module_path: str) -> bool:
+		"""モジュールがプリプロセス完了済みか判定
+
+		Args:
+			module_path (str): モジュールパス
+		Returns:
+			bool: True = 完了済み
+		"""
+		return module_path in self.__completed
+
+	def on_complete(self, module_path: str) -> None:
 		"""プリプロセス完了を記録
 
 		Args:
-			key (str): キー
+			module_path (str): モジュールパス
 		"""
-		module_path, local_path = ModuleDSN.parsed(key)
-		self.__preprocessed[module_path][local_path] = True
+		if module_path not in self.__completed:
+			self.__completed.append(module_path)
 
 	def unload(self, module_path: str) -> None:
 		"""指定モジュール内のシンボルを削除
@@ -156,9 +154,11 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		Args:
 			module_path (str): モジュールパス
 		"""
+		if module_path in self.__completed:
+			self.__completed.remove(module_path)
+
 		if module_path in self.__items:
 			del self.__items[module_path]
-			del self.__preprocessed[module_path]
 
 	def to_json(self, serializer: IReflectionSerializer, for_module_path: str | None = None) -> dict[str, DictSerialized]:
 		"""JSONデータとして内部データをシリアライズ
@@ -169,7 +169,7 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		Returns:
 			dict[str, DictSerialized]: JSONデータ
 		"""
-		return {key: serializer.serialize(self[key]) for key in self._order_keys(for_module_path or '')}
+		return {key: serializer.serialize(self[key]) for key in self._order_keys(for_module_path)}
 
 	def load_json(self, serializer: IReflectionSerializer, data: dict[str, DictSerialized]) -> None:
 		"""JSONデータを基に内部データをデシリアライズ
@@ -179,22 +179,23 @@ class SymbolDB(MutableMapping[str, IReflection]):
 			data (dict[str, DictSerialized]): JSONデータ
 		"""
 		for key, row in data.items():
-			self[key] = serializer.deserialize(self, row)
-			self.on_preprocess_complete(key)
+			symbol = serializer.deserialize(self, row)
+			self[key] = symbol
+			if not self.completed(symbol.types.module_path):
+				self.on_complete(symbol.types.module_path)
 
-	def _order_keys(self, for_module_path: str) -> list[str]:
+	def _order_keys(self, for_module_path: str | None) -> list[str]:
 		"""参照順にキーの一覧を取得
 
 		Args:
-			for_module_path (str): 出力モジュールパス
+			for_module_path (str | None): 出力モジュールパス
 		Returns:
 			list[str]: キーリスト
 		"""
 		orders: list[str] = []
-		for module_path, in_modules in self.__items.items():
-			if for_module_path and for_module_path != module_path:
-				continue
-
+		module_paths = [for_module_path] if for_module_path else self.__items.keys()
+		for module_path in module_paths:
+			in_modules = self.__items[module_path]
 			for local_path, symbol in in_modules.items():
 				self._order_keys_recursive(for_module_path, symbol, orders)
 				key = ModuleDSN.full_joined(module_path, local_path)

@@ -27,5 +27,6 @@ class StoreSymbols:
 		Returns:
 			bool: True = 後続処理を実行
 		"""
+		db.on_complete(module.path)
 		self.persistor.store(module, db)
 		return True

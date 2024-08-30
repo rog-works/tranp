@@ -490,11 +490,11 @@ class TestReflections(TestCase):
 	# 	# Function - Method
 	# 	('class A:\n\tdef __init__(self) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def', '__init__(A) -> None'),
 	# 	('class A:\n\tclass AA:\n\t\tdef __init__(self) -> None: ...', 'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.function_def', '__init__(AA) -> None'),
-	# 	('class A:\n\t@classmethod\n\tdef cls_method(cls) -> dict[str, int]: ...', 'file_input.class_def.class_def_raw.block.function_def', 'cls_method(A) -> dict<str, int>'),
-	# 	('class A:\n\tclass AA:\n\t\t@classmethod\n\t\tdef cls_method(self) -> list[int]: ...', 'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.function_def', 'cls_method(AA) -> list<int>'),
+	# 	('class A:\n\t@classmethod\n\tdef cls_method(cls) -> dict[str, int]: ...', 'file_input.class_def.class_def_raw.block.function_def', 'cls_method(type<A>) -> dict<str, int>'),
+	# 	('class A:\n\tclass AA:\n\t\t@classmethod\n\t\tdef cls_method(cls) -> list[int]: ...', 'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.function_def', 'cls_method(type<AA>) -> list<int>'),
 	# ])
 	# def test_type_of2(self, source_code: str, full_path: str, expected: str) -> None:
 	# 	reflections = self.fixture.get(Reflections)
-	# 	node = self.fixture.custom_nodes_by(source_code, full_path)
+	# 	node = self.fixture.custom_module(source_code).entrypoint.whole_by(full_path)
 	# 	symbol = reflections.type_of(node)
 	# 	self.assertEqual(ClassShorthandNaming.domain_name_for_debug(symbol), expected)

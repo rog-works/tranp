@@ -96,7 +96,7 @@ class Fixture:
 		return self.get(Entrypoints).load(self.__fixture_module_path).whole_by(full_path)
 
 	def custom_nodes_by(self, source_code: str, full_path: str) -> Node:
-		"""共有フィクスチャーのノードを取得
+		"""カスタムフィクスチャーのノードを取得
 
 		Args:
 			source_code (str): ソースコード
@@ -109,6 +109,20 @@ class Fixture:
 		entrypoints = self.get(Entrypoints)
 		entrypoints.unload(module_path.path)
 		return entrypoints.load(module_path.path).whole_by(full_path)
+
+	def custom_module(self, source_code: str) -> Module:
+		"""カスタムフィクスチャーのモジュールを取得
+
+		Args:
+			source_code (str): ソースコード
+		Returns:
+			Module: モジュール
+		"""
+		module_path = module_path_dummy()
+		self.__custom_source_code = f'{source_code}\n'
+		modules = self.get(Modules)
+		modules.unload(module_path.path)
+		return modules.load(module_path.path)
 
 	@duck_typed(SourceCodeProvider)
 	def __source_code_provider(self, module_path: str) -> str:

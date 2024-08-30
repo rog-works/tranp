@@ -1,4 +1,4 @@
-from typing import Iterator, MutableMapping, Protocol
+from typing import Iterator, MutableMapping
 
 from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.semantics.reflection.base import IReflection
@@ -204,11 +204,11 @@ class SymbolDB(MutableMapping[str, IReflection]):
 
 		return orders
 
-	def _order_keys_recursive(self, for_module_path: str, symbol: IReflection, orders: list[str]) -> None:
+	def _order_keys_recursive(self, for_module_path: str | None, symbol: IReflection, orders: list[str]) -> None:
 		"""参照順にキーの一覧を更新
 
 		Args:
-			for_module_path (str): 出力モジュールパス
+			for_module_path (str | None): 出力モジュールパス
 			symbol (IReflection): シンボル
 			orders (list[str]): キーリスト
 		Returns:

@@ -1,3 +1,4 @@
+import glob
 import json
 import os
 
@@ -105,6 +106,17 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 		identity = module.identity()
 		return f'{os.path.join(self.setting.basedir, f'{basepath}-symbols-{identity}')}.json'
 
+	def _gen_glob_pattern(self, module: Module) -> str:
+		"""旧ファイル検索用のGlobパターンを生成
+
+		Args:
+			module (Module): モジュール
+		Returns:
+			str: Globパターン
+		"""
+		basepath = module_path_to_filepath(module.path)
+		return f'{os.path.join(self.setting.basedir, f'{basepath}-symbols-*')}.json'
+
 	def _can_store(self, module: Module, filepath: str) -> bool:
 		"""保存を実施するか判定
 
@@ -135,6 +147,9 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 			db (SymbolDB): シンボルテーブル
 			filepath (str): ファイルパス
 		"""
+		for oldest in self._find_oldest(module):
+			os.unlink(oldest)
+
 		# FIXME FileLoaderの解決するパスと食い違いが生まれるため修正を検討
 		data = db.to_json(self.serializer, for_module_path=module.path)
 		with open(filepath, mode='wb') as f:
@@ -151,3 +166,13 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 		content = self.files.load(filepath)
 		data = json.loads(content)
 		db.load_json(self.serializer, data)
+
+	def _find_oldest(self, module: Module) -> list[str]:
+		"""旧ファイルを検索
+
+		Args:
+			module (Module): モジュール
+		Returns:
+			list[str]: 旧ファイルのパスリスト
+		"""
+		return glob.glob(self._gen_glob_pattern(module))

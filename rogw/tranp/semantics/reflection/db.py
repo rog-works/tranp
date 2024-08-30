@@ -136,7 +136,7 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		return module_path in self.__completed
 
 	def on_complete(self, module_path: str) -> None:
-		"""プリプロセス完了を記録
+		"""モジュールのプリプロセス完了を記録
 
 		Args:
 			module_path (str): モジュールパス

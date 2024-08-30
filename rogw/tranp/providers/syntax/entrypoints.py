@@ -21,7 +21,7 @@ def entrypoint_loader(locator: Locator, dependencies: ModuleDependencyProvider) 
 		locator (Locator): ロケーター @inject
 		dependencies (ModuleDependencyProvider): @inject
 	Returns:
-		EntrypointLoader: エントリーポイント
+		EntrypointLoader: エントリーポイントローダー
 	"""
 	def handler(module_path: ModulePath) -> defs.Entrypoint:
 		shared_di = as_a(LazyDI, locator)

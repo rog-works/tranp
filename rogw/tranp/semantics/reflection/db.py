@@ -58,8 +58,8 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		Returns:
 			Iterator[str]: イテレーター
 		"""
-		for module_path, in_modules in self.__items.items():
-			for local_path in in_modules.keys():
+		for module_path, symbols in self.__items.items():
+			for local_path in symbols.keys():
 				yield ModuleDSN.full_joined(module_path, local_path)
 
 	def __contains__(self, key: str) -> bool:
@@ -79,11 +79,7 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		Returns:
 			int: エントリーの総数
 		"""
-		total = 0
-		for in_module in self.__items.values():
-			total += len(in_module)
-
-		return total
+		return sum([len(symbols) for symbols in self.__items.values()])
 
 	def items(self, for_module_path: str | None = None) -> Iterator[tuple[str, IReflection]]:
 		"""エントリーのイテレーターを取得
@@ -95,9 +91,9 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		"""
 		module_paths = [for_module_path] if for_module_path else self.__items.keys()
 		for module_path in module_paths:
-			in_module = self.__items[module_path]
-			for local_path, value in in_module.items():
-				yield ModuleDSN.full_joined(module_path, local_path), value
+			symbols = self.__items[module_path]
+			for local_path, symbol in symbols.items():
+				yield ModuleDSN.full_joined(module_path, local_path), symbol
 
 	def keys(self) -> Iterator[str]:
 		"""キーのイテレーターを取得
@@ -105,8 +101,8 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		Returns:
 			Iterator[str]: イテレーター
 		"""
-		for module_path, in_module in self.__items.items():
-			for local_path in in_module.keys():
+		for module_path, symbols in self.__items.items():
+			for local_path in symbols.keys():
 				yield ModuleDSN.full_joined(module_path, local_path)
 
 	def values(self) -> Iterator[IReflection]:
@@ -115,9 +111,9 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		Returns:
 			Iterator[IReflection]: イテレーター
 		"""
-		for in_module in self.__items.values():
-			for value in in_module.values():
-				yield value
+		for symbols in self.__items.values():
+			for symbol in symbols.values():
+				yield symbol
 
 	def has_module(self, module_path: str) -> bool:
 		"""モジュールが展開済みか判定
@@ -195,8 +191,8 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		orders: list[str] = []
 		module_paths = [for_module_path] if for_module_path else self.__items.keys()
 		for module_path in module_paths:
-			in_modules = self.__items[module_path]
-			for local_path, symbol in in_modules.items():
+			symbols = self.__items[module_path]
+			for local_path, symbol in symbols.items():
 				self._order_keys_recursive(for_module_path, symbol, orders)
 				key = ModuleDSN.full_joined(module_path, local_path)
 				if key not in orders:

@@ -56,13 +56,16 @@ class Modules:
 		return list(self.__modules.values())
 
 	def load(self, module_path: str, language: str = 'py') -> Module:
-		"""モジュールをロード。ロードしたモジュールはパスとマッピングしてキャッシュ
+		"""モジュールをロード
 
 		Args:
 			module_path (str): モジュールパス
 			language (str): 言語タグ (default = 'py')
 		Returns:
 			Module: モジュール
+		Note:
+			* ロードしたモジュールはパスとマッピングしてキャッシュ
+			* 依存モジュールを再帰的にロードする
 		"""
 		if module_path not in self.__modules:
 			self.__load_libraries(module_path)
@@ -88,8 +91,6 @@ class Modules:
 
 		Args:
 			via_module (Module): 読み込み中のモジュール
-		Note:
-			再帰的に処理される点に注意
 		"""
 		for import_node in via_module.entrypoint.imports:
 			self.load(import_node.import_path.tokens)

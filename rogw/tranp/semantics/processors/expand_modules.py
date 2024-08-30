@@ -89,75 +89,43 @@ class ExpandModules:
 			module (Module): モジュール
 			db (SymbolDB): シンボルテーブル
 		"""
-		expanded_modules = self.expand_modules(module)
+		if db.has_module(module.path):
+			return
+
 		if self.persistor.stored(module):
 			self.persistor.restore(module, db)
+			return
 
-		self.expanded_to_db(expanded_modules, db)
+		self.expanded_to_db(module, db, self.expand_module(module))
 
-	def expand_modules(self, main_module: Module) -> dict[Module, Expanded]:
-		"""指定のモジュールと共に依存モジュールを展開
-
-		Args:
-			main_module (Module): モジュール
-		Returns:
-			dict[str, tuple[Module, Expanded]]: 展開データ
-		"""
-		load_index = 0
-		load_orders = [main_module.path]
-		expanded_modules: dict[str, tuple[Module, Expanded]] = {}
-		while load_index < len(load_orders):
-			module_path = load_orders[load_index]
-			if module_path in expanded_modules:
-				load_index = load_index + 1
-				continue
-
-			module = self.modules.load(module_path) if main_module.path != module_path else main_module
-			expanded = self.expand_module(module)
-			import_paths = [import_path for import_path in expanded.import_paths if import_path not in expanded_modules.keys()]
-			expanded_modules[module_path] = module, expanded
-
-			if len(import_paths) > 0:
-				load_orders = [*load_orders[:load_index], *import_paths, *load_orders[load_index:]]
-			else:
-				load_index = load_index + 1
-
-		return dict([expanded_modules[module_path] for module_path in load_orders])
-
-	def expanded_to_db(self, expanded_modules: dict[Module, Expanded], db: SymbolDB) -> None:
-		"""展開データからシンボルテーブルを生成
+	def expanded_to_db(self, module: Module, db: SymbolDB, expanded: Expanded) -> None:
+		"""展開データを基にシンボルテーブルを更新
 
 		Args:
-			expanded_modules (dict[str, Expanded]): 展開データ
+			module (Module): モジュール
 			db (SymbolDB): シンボルテーブル
-		Returns:
-			SymbolDB: シンボルテーブル
+			expanded_modules (Expanded): 展開データ
 		"""
-		for module, expanded in expanded_modules.items():
-			# 展開済みのモジュールはスキップ
-			if db.has_module(module.path):
-				continue
+		# クラス定義シンボルの展開
+		for fullyname, full_path in expanded.classes.items():
+			if fullyname not in db:
+				types = module.entrypoint.whole_by(full_path).as_a(defs.ClassDef)
+				db[fullyname] = Symbol.instantiate(self.traits, types).stack()
 
-			# クラス定義シンボルの展開
-			for fullyname, full_path in expanded.classes.items():
-				if fullyname not in db:
-					types = module.entrypoint.whole_by(full_path).as_a(defs.ClassDef)
-					db[fullyname] = Symbol.instantiate(self.traits, types).stack()
+		# インポートシンボルの展開
+		for fullyname, full_path in expanded.imports.items():
+			if fullyname not in db:
+				import_name = module.entrypoint.whole_by(full_path).as_a(defs.ImportAsName)
+				import_node = import_name.declare.as_a(defs.Import)
+				raw = db[ModuleDSN.full_joined(import_node.import_path.tokens, import_name.entity_symbol.tokens)]
+				db[fullyname] = raw.stack(import_name)
 
-			# インポートシンボルの展開
-			for fullyname, full_path in expanded.imports.items():
-				if fullyname not in db:
-					import_name = module.entrypoint.whole_by(full_path).as_a(defs.ImportAsName)
-					import_node = import_name.declare.as_a(defs.Import)
-					raw = db[ModuleDSN.full_joined(import_node.import_path.tokens, import_name.entity_symbol.tokens)]
-					db[fullyname] = raw.stack(import_name)
-
-			# 変数宣言シンボルの展開
-			for fullyname, full_path in expanded.decl_vars.items():
-				var = module.entrypoint.whole_by(full_path).one_of(*defs.DeclVarsTs)
-				if var.symbol.fullyname not in db:
-					raw = self.resolve_type_symbol(db, var)
-					db[var.symbol.fullyname] = raw.declare(var)
+		# 変数宣言シンボルの展開
+		for fullyname, full_path in expanded.decl_vars.items():
+			var = module.entrypoint.whole_by(full_path).one_of(*defs.DeclVarsTs)
+			if var.symbol.fullyname not in db:
+				raw = self.resolve_type_symbol(db, var)
+				db[var.symbol.fullyname] = raw.declare(var)
 
 	def expand_module(self, module: Module) -> Expanded:
 		"""モジュールのシンボル・インポートパスを展開

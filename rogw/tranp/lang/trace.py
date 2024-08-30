@@ -4,7 +4,7 @@ import sys
 
 
 class Records:
-	"""スタックレコード"""
+	"""コールスタックを記録。デバッグ用"""
 
 	_instance: 'Records | None' = None
 
@@ -24,8 +24,18 @@ class Records:
 		"""インスタンスを生成"""
 		self._record: dict[str, int] = {}
 
+	def __str__(self) -> str:
+		"""str: 文字列表現"""
+		data = {**dict(sorted(self._record.items(), key=lambda entry: entry[0])), 'total': self.total}
+		return str(json.dumps(data, indent=2))
+
+	@property
+	def total(self) -> int:
+		"""int: 総コール数"""
+		return sum(self._record.values())
+
 	def put(self, back_at: int = 2) -> None:
-		"""スタックフレームを記録
+		"""コールスタックを記録
 
 		Args:
 			back_at (int): 遡るフレーム数 (default = 2)
@@ -40,8 +50,3 @@ class Records:
 			self._record[key] = 0
 
 		self._record[key] += 1
-
-
-	def __str__(self) -> str:
-		"""str: 文字列表現"""
-		return str(json.dumps(self._record, indent=2))

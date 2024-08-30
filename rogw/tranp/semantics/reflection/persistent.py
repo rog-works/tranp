@@ -95,16 +95,17 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 			self._restore(db, filepath)
 
 	def _gen_filepath(self, module: Module) -> str:
-		"""ファイルパスを生成
+		"""保存ファイルの絶対パスを生成
 
 		Args:
 			module (Module): モジュール
 		Returns:
-			str: ファイルパス
+			str: 絶対パス
 		"""
 		basepath = module_path_to_filepath(module.path)
 		identity = module.identity()
-		return f'{os.path.join(self.setting.basedir, f'{basepath}-symbols-{identity}')}.json'
+		filename = f'{basepath}-symbols-{identity}.json'
+		return os.path.abspath(os.path.join(os.getcwd(), self.setting.basedir, filename))
 
 	def _gen_glob_pattern(self, module: Module) -> str:
 		"""旧ファイル検索用のGlobパターンを生成
@@ -115,7 +116,8 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 			str: Globパターン
 		"""
 		basepath = module_path_to_filepath(module.path)
-		return f'{os.path.join(self.setting.basedir, f'{basepath}-symbols-*')}.json'
+		filename = f'{basepath}-symbols-*.json'
+		return os.path.abspath(os.path.join(os.getcwd(), self.setting.basedir, filename))
 
 	def _can_store(self, module: Module, filepath: str) -> bool:
 		"""保存を実施するか判定
@@ -150,7 +152,6 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 		for oldest in self._find_oldest(module):
 			os.unlink(oldest)
 
-		# FIXME FileLoaderの解決するパスと食い違いが生まれるため修正を検討
 		data = db.to_json(self.serializer, for_module_path=module.path)
 		with open(filepath, mode='wb') as f:
 			json_str = json.dumps(data, separators=(',', ':'))

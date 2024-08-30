@@ -8,6 +8,7 @@ from rogw.tranp.module.types import ModulePath
 from rogw.tranp.syntax.ast.entrypoints import EntrypointLoader
 from rogw.tranp.syntax.ast.parser import SyntaxParser
 from rogw.tranp.syntax.ast.query import Query
+from rogw.tranp.syntax.ast.resolver import SymbolMapping
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 
@@ -27,6 +28,7 @@ def entrypoint_loader(locator: Locator, dependencies: ModuleDependencyProvider) 
 		# XXX 共有が必須のモジュールを事前に解決
 		shared_di.resolve(SyntaxParser)
 		shared_di.resolve(CacheProvider)
+		shared_di.resolve(SymbolMapping)
 		dependency_di = LazyDI.instantiate(dependencies())
 		new_di = shared_di.combine(dependency_di)
 		new_di.rebind(Locator, lambda: new_di)

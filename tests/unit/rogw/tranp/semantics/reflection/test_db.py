@@ -31,7 +31,7 @@ class TestDB(TestCase):
 			print('\n', '\n'.join([f"'{key}': '{raw.types.fullyname}'," for key, raw in db.items()]))
 			raise
 
-	def test_serialize(self) -> None:
+	def test_to_json(self) -> None:
 		db = self.fixture.get(SymbolDB)
 		data = db.to_json(self.fixture.get(IReflectionSerializer))
 
@@ -40,11 +40,11 @@ class TestDB(TestCase):
 		for key in db.keys():
 			self.assertEqual('ok' if key in keys else key, 'ok')
 
-	def test_deserialize(self) -> None:
+	def test_import_json(self) -> None:
 		db = self.fixture.get(SymbolDB)
 		data = db.to_json(self.fixture.get(IReflectionSerializer))
 		new_db = SymbolDB()
-		new_db.load_json(self.fixture.get(IReflectionSerializer), data)
+		new_db.import_json(self.fixture.get(IReflectionSerializer), data)
 
 		self.assertEqual(len(db), len(new_db))
 		for key in db.keys():

@@ -171,8 +171,8 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		"""
 		return {key: serializer.serialize(self[key]) for key in self._order_keys(for_module_path)}
 
-	def load_json(self, serializer: IReflectionSerializer, data: dict[str, DictSerialized]) -> None:
-		"""JSONデータを基に内部データをデシリアライズ
+	def import_json(self, serializer: IReflectionSerializer, data: dict[str, DictSerialized]) -> None:
+		"""JSONデータを基に内部データをデシリアライズ。既存データを残したまま追加
 
 		Args:
 			serializer (IReflectionSerializer): シンボルシリアライザー

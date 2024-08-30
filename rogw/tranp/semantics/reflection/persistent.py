@@ -166,7 +166,7 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 		"""
 		content = self.files.load(filepath)
 		data = json.loads(content)
-		db.load_json(self.serializer, data)
+		db.import_json(self.serializer, data)
 
 	def _find_oldest(self, module: Module) -> list[str]:
 		"""旧ファイルを検索

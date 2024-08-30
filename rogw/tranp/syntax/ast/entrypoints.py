@@ -6,7 +6,12 @@ import rogw.tranp.syntax.node.definition as defs
 
 
 class EntrypointLoader(Protocol):
-	"""エントリーポイントローダープロトコル"""
+	"""エントリーポイントローダープロトコル
+
+	Note:
+		* このプロトコルの実装はエントリーポイントマネージャーから利用される想定
+		* エントリーポイントマネージャー以外から利用するのは非推奨
+	"""
 
 	def __call__(self, module_path: ModulePath) -> defs.Entrypoint:
 		"""エントリーポイントをロード
@@ -20,7 +25,13 @@ class EntrypointLoader(Protocol):
 
 
 class Entrypoints:
-	"""エントリーポイントマネージャー"""
+	"""エントリーポイントマネージャー
+
+	Note:
+		* このクラスはモジュールローダーからモジュール生成時に利用される想定
+		* そのほか、モジュールに依存せずエントリーポイントが欲しい場合に利用
+		@see rogw.tranp.module.loader.IModuleLoader
+	"""
 
 	@injectable
 	def __init__(self, loader: EntrypointLoader) -> None:

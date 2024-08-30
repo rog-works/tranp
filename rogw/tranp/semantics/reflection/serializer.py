@@ -12,7 +12,13 @@ import rogw.tranp.syntax.node.definition as defs
 
 
 class ReflectionSerializer(IReflectionSerializer):
-	"""シンボルシリアライザー"""
+	"""シンボルシリアライザー
+
+	Note:
+		* リフレクションの実装に強依存しているため、スキーマの変更に注意
+		@see rogw.tranp.semantics.reflection.reflection.Symbol
+		@see rogw.tranp.semantics.reflection.reflection.Reflection
+	"""
 
 	@injectable
 	def __init__(self, entrypoints: Entrypoints, traits: Traits) -> None:

@@ -128,7 +128,7 @@ class TestReflections(TestCase):
 	@override
 	def setUp(self) -> None:
 		super().setUp()
-		# XXX モジュールをロードすることでDBが完成するため、必ず事前に実施
+		# XXX モジュールをロードすることでシンボルテーブルが完成するため、必ず事前に実施
 		self.fixture.shared_module
 
 	@data_provider([

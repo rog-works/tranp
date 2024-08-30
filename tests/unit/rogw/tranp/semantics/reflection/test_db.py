@@ -11,7 +11,7 @@ class TestDB(TestCase):
 
 	def setUp(self) -> None:
 		super().setUp()
-		# XXX モジュールをロードすることでDBが完成するため、必ず事前に実施
+		# XXX モジュールをロードすることでシンボルテーブルが完成するため、必ず事前に実施
 		self.fixture.shared_module
 
 	def test_make_db(self) -> None:

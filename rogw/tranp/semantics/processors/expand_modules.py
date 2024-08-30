@@ -89,7 +89,7 @@ class ExpandModules:
 		Args:
 			module (Module): モジュール
 			db (SymbolDB): シンボルテーブル
-			expanded_modules (Expanded): 展開データ
+			expanded (Expanded): 展開データ
 		"""
 		# クラス定義シンボルの展開
 		for fullyname, full_path in expanded.classes.items():

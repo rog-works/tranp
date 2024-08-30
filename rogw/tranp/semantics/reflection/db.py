@@ -179,10 +179,10 @@ class SymbolDB(MutableMapping[str, IReflection]):
 			data (dict[str, DictSerialized]): JSONデータ
 		"""
 		for key, row in data.items():
-			symbol = serializer.deserialize(self, row)
-			self[key] = symbol
-			if not self.completed(symbol.types.module_path):
-				self.on_complete(symbol.types.module_path)
+			self[key] = serializer.deserialize(self, row)
+			module_path, _ = ModuleDSN.parsed(key)
+			if not self.completed(module_path):
+				self.on_complete(module_path)
 
 	def _order_keys(self, for_module_path: str | None) -> list[str]:
 		"""参照順にキーの一覧を取得

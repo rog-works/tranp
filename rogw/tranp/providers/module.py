@@ -87,7 +87,8 @@ class ModuleLoader(IModuleLoader):
 			module (Module): モジュール
 		"""
 		for proc in self.processors():
-			proc(module, self.db)
+			if not proc(module, self.db):
+				break
 
 
 @injectable

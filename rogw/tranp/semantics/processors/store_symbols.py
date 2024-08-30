@@ -5,8 +5,8 @@ from rogw.tranp.semantics.reflection.db import SymbolDB
 from rogw.tranp.semantics.reflection.persistent import ISymbolDBPersistor
 
 
-class PersistSymbols:
-	"""シンボルテーブルを永続化"""
+class StoreSymbols:
+	"""シンボルテーブルを永続化。プリプロセスの最後の実行"""
 
 	@injectable
 	def __init__(self, persistor: ISymbolDBPersistor) -> None:
@@ -18,11 +18,14 @@ class PersistSymbols:
 		self.persistor = persistor
 
 	@duck_typed(Preprocessor)
-	def __call__(self, module: Module, db: SymbolDB) -> None:
+	def __call__(self, module: Module, db: SymbolDB) -> bool:
 		"""シンボルテーブルを編集
 
 		Args:
 			module (Module): モジュール
 			db (SymbolDB): シンボルテーブル
+		Returns:
+			bool: True = 後続処理を実行
 		"""
 		self.persistor.store(module, db)
+		return True

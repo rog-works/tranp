@@ -12,7 +12,6 @@ from rogw.tranp.semantics.finder import SymbolFinder
 from rogw.tranp.semantics.processor import Preprocessor
 from rogw.tranp.semantics.reflection.base import IReflection
 from rogw.tranp.semantics.reflection.db import SymbolDB
-from rogw.tranp.semantics.reflection.persistent import ISymbolDBPersistor
 from rogw.tranp.semantics.reflection.reflection import Symbol
 import rogw.tranp.syntax.node.definition as defs
 
@@ -56,14 +55,10 @@ class Expanded(NamedTuple):
 
 
 class ExpandModules:
-	"""モジュール内のシンボルをシンボルテーブルに展開
-	
-	Note:
-		プリプロセッサーの最初に実行することが前提
-	"""
+	"""モジュール内のシンボルをシンボルテーブルに展開"""
 
 	@injectable
-	def __init__(self, modules: Modules, finder: SymbolFinder, caches: CacheProvider, files: IFileLoader, traits: Traits[IReflection], persistor: ISymbolDBPersistor) -> None:
+	def __init__(self, modules: Modules, finder: SymbolFinder, caches: CacheProvider, files: IFileLoader, traits: Traits[IReflection]) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -72,31 +67,23 @@ class ExpandModules:
 			caches (CacheProvider): キャッシュプロバイダー @inject
 			files (IFileLoader): ファイルローダー @inject
 			traits (Traits[IReflection]): トレイトマネージャー @inject
-			persistor (ISymbolDBPersistor): シンボルテーブル永続化 @inject
 		"""
 		self.modules = modules
 		self.finder = finder
 		self.caches = caches
 		self.files = files
 		self.traits = traits
-		self.persistor = persistor
 
 	@duck_typed(Preprocessor)
-	def __call__(self, module: Module, db: SymbolDB) -> None:
+	def __call__(self, module: Module, db: SymbolDB) -> bool:
 		"""シンボルテーブルを編集
 
 		Args:
 			module (Module): モジュール
 			db (SymbolDB): シンボルテーブル
 		"""
-		if db.has_module(module.path):
-			return
-
-		if self.persistor.stored(module):
-			self.persistor.restore(module, db)
-			return
-
 		self.expanded_to_db(module, db, self.expand_module(module))
+		return True
 
 	def expanded_to_db(self, module: Module, db: SymbolDB, expanded: Expanded) -> None:
 		"""展開データを基にシンボルテーブルを更新

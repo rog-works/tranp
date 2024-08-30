@@ -96,14 +96,15 @@ class Modules:
 			self.load(import_node.import_path.tokens)
 
 	def identity(self) -> str:
-		"""依存モジュール全体から一意な識別子を生成
+		"""モジュール全体から一意な識別子を生成
 
 		Args:
 			str: 一意な識別子
 		Note:
-			非常に高負荷になり得るため、扱いには十分注意すること
+			モジュールを全てロードするため、非常に高負荷になり得る。なるべく使用しないことを推奨
 		"""
-		identities = ','.join([module.identity() for module in self.dependencies()])
+		self.dependencies()
+		identities = ','.join([module.identity() for module in self.loaded()])
 		return hashlib.md5(identities.encode('utf-8')).hexdigest()
 
 	def unload(self, module_path: str) -> None:

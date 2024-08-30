@@ -31,7 +31,7 @@ class RestoreSymbols:
 			SemanticsLogicError: 実施済みのモジュールに対して再度実行
 		"""
 		if db.has_module(module.path):
-			raise SemanticsLogicError(f'Already module. module: {module.path}')
+			raise SemanticsLogicError(f'Already processing. module: {module.path}')
 
 		if self.persistor.stored(module):
 			self.persistor.restore(module, db)

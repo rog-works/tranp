@@ -6,7 +6,7 @@ import rogw.tranp.syntax.node.definition as defs
 
 
 class Module:
-	"""モジュール。読み込んだモジュールのパスとエントリーポイントを管理"""
+	"""モジュール。読み込んだモジュールのファイル情報とエントリーポイントを管理"""
 
 	@injectable
 	def __init__(self, files: IFileLoader, module_path: ModulePath, entrypoint: defs.Entrypoint) -> None:

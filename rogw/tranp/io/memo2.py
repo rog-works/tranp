@@ -16,6 +16,11 @@ class Memo(Generic[T]):
 		self._result: T | None = None
 
 	def get(self) -> T:
+		"""キャッシュからインタンスを取得
+
+		Returns:
+			T: インスタンス
+		"""
 		if self._result is None:
 			self._result = self._factory()
 

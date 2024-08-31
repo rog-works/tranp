@@ -643,8 +643,9 @@ class DeclableMatcher:
 			bool: True = 対象
 		"""
 		via_full_path = EntryPath(via.full_path)
+		tokens = via.tokens
 		in_decl_var = via_full_path.de_identify().shift(-1).origin.endswith('anno_assign.assign_namelist')
-		is_property = re.fullmatch(r'self.\w+', via.tokens) is not None
+		is_property = tokens.startswith('self') and len(tokens.split('.')) == 2
 		is_receiver = via_full_path.last[1] in [0, -1]  # 代入式の左辺が対象
 		return in_decl_var and is_property and is_receiver
 

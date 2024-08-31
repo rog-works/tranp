@@ -644,7 +644,7 @@ class DeclableMatcher:
 		via_full_path = EntryPath(via.full_path)
 		tokens = via.tokens
 		in_decl_var = via_full_path.de_identify().shift(-1).origin.endswith('anno_assign.assign_namelist')
-		is_property = tokens.startswith('self') and tokens.count('.') == 1
+		is_property = tokens.startswith('self') and DSN.elem_counts(tokens) == 2
 		is_receiver = via_full_path.last[1] in [0, -1]  # 代入式の左辺が対象
 		return in_decl_var and is_property and is_receiver
 
@@ -661,8 +661,7 @@ class DeclableMatcher:
 		tokens = via.tokens
 		in_decl_var = via_full_path.parent_tag == 'typedparam'
 		is_class = tokens == 'cls'
-		is_local = DSN.elem_counts(tokens) == 1
-		return in_decl_var and is_class and is_local
+		return in_decl_var and is_class
 
 	@classmethod
 	def is_param_this(cls, via: Node) -> bool:
@@ -677,8 +676,7 @@ class DeclableMatcher:
 		tokens = via.tokens
 		in_decl_var = via_full_path.parent_tag == 'typedparam'
 		is_this = tokens == 'self'
-		is_local = DSN.elem_counts(tokens) == 1
-		return in_decl_var and is_this and is_local
+		return in_decl_var and is_this
 
 	@classmethod
 	def is_param(cls, via: Node) -> bool:

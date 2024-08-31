@@ -95,7 +95,7 @@ class ReflectionSerializer(IReflectionSerializer):
 			list[IReflection]: 属性のシンボルリスト
 		"""
 		# 階層が浅い順にソート
-		paths = sorted(data_attrs.keys(), key=lambda key: len(key.split('.')))
+		paths = sorted(data_attrs.keys(), key=lambda key: key.count('.'))
 		attrs: list[IReflection] = []
 		index = 0
 		while index < len(paths):

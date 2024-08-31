@@ -2,27 +2,24 @@ import hashlib
 
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.module.module import Module
-from rogw.tranp.module.loader import ModuleLoader
+from rogw.tranp.module.loader import IModuleLoader
 from rogw.tranp.module.types import LibraryPaths, ModulePath, ModulePaths
-from rogw.tranp.semantics.reflection.db import SymbolDB
 
 
 class Modules:
 	"""モジュールマネージャー。全ての依存モジュールを管理"""
 
 	@injectable
-	def __init__(self, library_paths: LibraryPaths, module_paths: ModulePaths, db: SymbolDB, loader: ModuleLoader) -> None:
+	def __init__(self, library_paths: LibraryPaths, module_paths: ModulePaths, loader: IModuleLoader) -> None:
 		"""インスタンスを生成
 
 		Args:
 			library_paths (LibraryPaths): 標準ライブラリーパスリスト @inject
 			module_paths (ModulePaths): 処理対象モジュールパスリスト @inject
-			db (SymbolDB): シンボルテーブル @inject
-			loader (ModuleLoader): モジュールローダー @inject
+			loader (IModuleLoader): モジュールローダー @inject
 		"""
 		self.__library_paths = library_paths
 		self.__module_paths = module_paths
-		self.__db = db
 		self.__loader = loader
 		self.__modules: dict[str, Module] = {}
 
@@ -59,26 +56,55 @@ class Modules:
 		return list(self.__modules.values())
 
 	def load(self, module_path: str, language: str = 'py') -> Module:
-		"""モジュールをロード。ロードしたモジュールはパスとマッピングしてキャッシュ
+		"""モジュールをロード
 
 		Args:
 			module_path (str): モジュールパス
 			language (str): 言語タグ (default = 'py')
 		Returns:
 			Module: モジュール
+		Note:
+			* ロードしたモジュールはパスとマッピングしてキャッシュ
+			* 依存モジュールを再帰的にロードする
 		"""
 		if module_path not in self.__modules:
-			self.__modules[module_path] = self.__loader(ModulePath(module_path, language))
+			self.__load_libraries(module_path)
+			self.__modules[module_path] = self.__loader.load(ModulePath(module_path, language))
+			self.__load_dependencies(self.__modules[module_path])
+			self.__loader.preprocess(self.__modules[module_path])
 
 		return self.__modules[module_path]
 
+	def __load_libraries(self, via_module_path: str) -> None:
+		"""標準ライブラリーをロード
+
+		Args:
+			via_module_path (str): 読み込み中のモジュールパス
+		Note:
+			読み込み中のモジュールが標準ライブラリー以外の場合のみロード
+		"""
+		if via_module_path not in [path.path for path in self.__library_paths]:
+			self.libralies()
+
+	def __load_dependencies(self, via_module: Module) -> None:
+		"""依存モジュールをロード
+
+		Args:
+			via_module (Module): 読み込み中のモジュール
+		"""
+		for import_node in via_module.entrypoint.imports:
+			self.load(import_node.import_path.tokens)
+
 	def identity(self) -> str:
-		"""依存モジュール全体から一意な識別子を生成
+		"""モジュール全体から一意な識別子を生成
 
 		Args:
 			str: 一意な識別子
+		Note:
+			モジュールを全てロードするため、非常に高負荷になり得る。なるべく使用しないことを推奨
 		"""
-		identities = ','.join([module.identity() for module in self.dependencies()])
+		self.dependencies()
+		identities = ','.join([module.identity() for module in self.loaded()])
 		return hashlib.md5(identities.encode('utf-8')).hexdigest()
 
 	def unload(self, module_path: str) -> None:
@@ -88,5 +114,6 @@ class Modules:
 			module_path (str): モジュールパス
 		"""
 		if module_path in self.__modules:
+			module = self.__modules[module_path]
+			self.__loader.unload(module.module_path)
 			del self.__modules[module_path]
-			self.__db.unload(module_path)

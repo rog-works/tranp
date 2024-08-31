@@ -1,24 +1,24 @@
 from typing import Protocol
 
-from rogw.tranp.lang.eventemitter import IObservable
+from rogw.tranp.lang.eventemitter import Observable
 
 
 class IPlugin:
 	"""プラグインインターフェイス"""
 
-	def register(self, observer: IObservable) -> None:
+	def register(self, observer: Observable) -> None:
 		"""オブザーバーにプラグインを登録
 
 		Args:
-			observer (IObserver): オブザーバー
+			observer (Observer): オブザーバー
 		"""
 		...
 
-	def unregister(self, observer: IObservable) -> None:
+	def unregister(self, observer: Observable) -> None:
 		"""オブザーバーからプラグインを解除
 
 		Args:
-			observer (IObserver): オブザーバー
+			observer (Observer): オブザーバー
 		"""
 		...
 

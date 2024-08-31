@@ -1,4 +1,4 @@
-from typing import Iterator, MutableMapping, Protocol
+from typing import Iterator, MutableMapping
 
 from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.semantics.reflection.base import IReflection
@@ -11,7 +11,7 @@ class SymbolDB(MutableMapping[str, IReflection]):
 	def __init__(self) -> None:
 		"""インスタンスを生成"""
 		self.__items: dict[str, dict[str, IReflection]] = {}
-		self.__preprocessed: dict[str, dict[str, bool]] = {}
+		self.__completed: list[str] = []
 
 	def __getitem__(self, key: str) -> IReflection:
 		"""指定のキーのシンボルを取得
@@ -39,7 +39,6 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		module_path, local_path = ModuleDSN.parsed(key)
 		if module_path not in self.__items:
 			self.__items[module_path] = {}
-			self.__preprocessed[module_path] = {}
 
 		self.__items[module_path][local_path] = symbol
 
@@ -59,8 +58,8 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		Returns:
 			Iterator[str]: イテレーター
 		"""
-		for module_path, in_modules in self.__items.items():
-			for local_path in in_modules.keys():
+		for module_path, symbols in self.__items.items():
+			for local_path in symbols.keys():
 				yield ModuleDSN.full_joined(module_path, local_path)
 
 	def __contains__(self, key: str) -> bool:
@@ -80,36 +79,21 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		Returns:
 			int: エントリーの総数
 		"""
-		total = 0
-		for in_module in self.__items.values():
-			total += len(in_module)
+		return sum([len(symbols) for symbols in self.__items.values()])
 
-		return total
-
-	def items(self) -> Iterator[tuple[str, IReflection]]:
+	def items(self, for_module_path: str | None = None) -> Iterator[tuple[str, IReflection]]:
 		"""エントリーのイテレーターを取得
 
+		Args:
+			for_module_path (str | None): 取得対象のモジュールパス (default = None)
 		Returns:
 			Iterator[tuple[str, IReflection]]: イテレーター
 		"""
-		for module_path, in_module in self.__items.items():
-			for local_path, value in in_module.items():
-				yield ModuleDSN.full_joined(module_path, local_path), value
-
-	def in_preprocess_items(self) -> Iterator[tuple[str, IReflection]]:
-		"""プリプロセス中のシンボルのイテレーターを取得
-
-		Returns:
-			Iterator[IReflection]: イテレーター
-		Note:
-			プリプロセッサー以外で使用するのは禁止
-		"""
-		for module_path, in_module in self.__items.items():
-			for local_path, value in in_module.items():
-				if module_path in self.__preprocessed and local_path in self.__preprocessed[module_path]:
-					continue
-
-				yield ModuleDSN.full_joined(module_path, local_path), value
+		module_paths = [for_module_path] if for_module_path else self.__items.keys()
+		for module_path in module_paths:
+			symbols = self.__items[module_path]
+			for local_path, symbol in symbols.items():
+				yield ModuleDSN.full_joined(module_path, local_path), symbol
 
 	def keys(self) -> Iterator[str]:
 		"""キーのイテレーターを取得
@@ -117,8 +101,8 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		Returns:
 			Iterator[str]: イテレーター
 		"""
-		for module_path, in_module in self.__items.items():
-			for local_path in in_module.keys():
+		for module_path, symbols in self.__items.items():
+			for local_path in symbols.keys():
 				yield ModuleDSN.full_joined(module_path, local_path)
 
 	def values(self) -> Iterator[IReflection]:
@@ -127,9 +111,9 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		Returns:
 			Iterator[IReflection]: イテレーター
 		"""
-		for in_module in self.__items.values():
-			for value in in_module.values():
-				yield value
+		for symbols in self.__items.values():
+			for symbol in symbols.values():
+				yield symbol
 
 	def has_module(self, module_path: str) -> bool:
 		"""モジュールが展開済みか判定
@@ -141,14 +125,24 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		"""
 		return module_path in self.__items
 
-	def on_preprocess_complete(self, key: str) -> None:
-		"""プリプロセス完了を記録
+	def completed(self, module_path: str) -> bool:
+		"""モジュールがプリプロセス完了済みか判定
 
 		Args:
-			key (str): キー
+			module_path (str): モジュールパス
+		Returns:
+			bool: True = 完了済み
 		"""
-		module_path, local_path = ModuleDSN.parsed(key)
-		self.__preprocessed[module_path][local_path] = True
+		return module_path in self.__completed
+
+	def on_complete(self, module_path: str) -> None:
+		"""モジュールのプリプロセス完了を記録
+
+		Args:
+			module_path (str): モジュールパス
+		"""
+		if module_path not in self.__completed:
+			self.__completed.append(module_path)
 
 	def unload(self, module_path: str) -> None:
 		"""指定モジュール内のシンボルを削除
@@ -156,81 +150,68 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		Args:
 			module_path (str): モジュールパス
 		"""
+		if module_path in self.__completed:
+			self.__completed.remove(module_path)
+
 		if module_path in self.__items:
 			del self.__items[module_path]
-			del self.__preprocessed[module_path]
 
-	def order_keys(self) -> list[str]:
-		"""参照順にキーの一覧を取得
-
-		Returns:
-			list[str]: キーリスト
-		"""
-		if len(self) == 0:
-			return []
-
-		orders: list[str] = []
-		for key, symbol in self.items():
-			depends = self._order_keys_from_symbol(symbol)
-			depends.append(key)
-			for in_key in depends:
-				if in_key not in orders:
-					orders.append(in_key)
-
-		return orders
-
-	def _order_keys_from_symbol(self, symbol: IReflection) -> list[str]:
-		"""参照順にキーの一覧を取得(シンボル)
-
-		Args:
-			symbol (IReflection): シンボル
-		Returns:
-			list[str]: キーリスト
-		"""
-		orders: list[str] = []
-		for attr in symbol.attrs:
-			depends = self._order_keys_from_symbol(attr)
-			depends.append(attr.types.fullyname)
-			for in_key in depends:
-				if in_key not in orders:
-					orders.append(in_key)
-
-		if symbol.types.fullyname not in orders:
-			orders.append(symbol.types.fullyname)
-
-		return orders
-
-	def to_json(self, serializer: IReflectionSerializer) -> dict[str, DictSerialized]:
+	def to_json(self, serializer: IReflectionSerializer, for_module_path: str | None = None) -> dict[str, DictSerialized]:
 		"""JSONデータとして内部データをシリアライズ
 
 		Args:
 			serializer (IReflectionSerializer): シンボルシリアライザー
+			for_module_path (str | None): 出力モジュールパス (default = None)
 		Returns:
 			dict[str, DictSerialized]: JSONデータ
 		"""
-		return {key: serializer.serialize(self[key]) for key in self.order_keys()}
+		return {key: serializer.serialize(self[key]) for key in self._order_keys(for_module_path)}
 
-	def load_json(self, serializer: IReflectionSerializer, data: dict[str, DictSerialized]) -> None:
-		"""JSONデータを基に内部データをデシリアライズ
+	def import_json(self, serializer: IReflectionSerializer, data: dict[str, DictSerialized]) -> None:
+		"""JSONデータを基に内部データをデシリアライズ。既存データを残したまま追加
 
 		Args:
 			serializer (IReflectionSerializer): シンボルシリアライザー
 			data (dict[str, DictSerialized]): JSONデータ
 		"""
-		self.clear()
 		for key, row in data.items():
 			self[key] = serializer.deserialize(self, row)
-			self.on_preprocess_complete(key)
+			module_path, _ = ModuleDSN.parsed(key)
+			if not self.completed(module_path):
+				self.on_complete(module_path)
 
-	def clear(self) -> None:
-		"""インスタンスを初期化"""
-		self.__items = {}
-		self.__preprocessed = {}
+	def _order_keys(self, for_module_path: str | None) -> list[str]:
+		"""参照順にキーの一覧を取得
 
+		Args:
+			for_module_path (str | None): 出力モジュールパス
+		Returns:
+			list[str]: キーリスト
+		"""
+		orders: list[str] = []
+		module_paths = [for_module_path] if for_module_path else self.__items.keys()
+		for module_path in module_paths:
+			symbols = self.__items[module_path]
+			for local_path, symbol in symbols.items():
+				self._order_keys_recursive(for_module_path, symbol, orders)
+				key = ModuleDSN.full_joined(module_path, local_path)
+				if key not in orders:
+					orders.append(key)
 
-class SymbolDBFinalizer(Protocol):
-	"""シンボルテーブル完成プロセスプロトコル"""
+		return orders
 
-	def __call__(self) -> SymbolDB:
-		"""シンボルテーブル完成プロセスを実行"""
-		...
+	def _order_keys_recursive(self, for_module_path: str | None, symbol: IReflection, orders: list[str]) -> None:
+		"""参照順にキーの一覧を更新
+
+		Args:
+			for_module_path (str | None): 出力モジュールパス
+			symbol (IReflection): シンボル
+			orders (list[str]): キーリスト
+		Returns:
+			list[str]: キーリスト
+		"""
+		for attr in symbol.attrs:
+			self._order_keys_recursive(for_module_path, attr, orders)
+
+		if not for_module_path or for_module_path == symbol.types.module_path and symbol.types.fullyname not in orders:
+			orders.append(symbol.types.fullyname)

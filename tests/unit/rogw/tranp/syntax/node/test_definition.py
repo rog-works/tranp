@@ -43,7 +43,7 @@ def _ast(before: str) -> str:
 
 
 class TestDefinition(TestCase):
-	fixture = Fixture.make_for_syntax(__file__)
+	fixture = Fixture.make(__file__)
 
 	# General
 

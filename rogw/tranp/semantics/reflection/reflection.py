@@ -255,7 +255,12 @@ class ReflectionBase(IReflection):
 
 
 class Symbol(ReflectionBase):
-	"""シンボル"""
+	"""シンボル
+
+	Note:
+		* シリアライザーの実装に強依存しているため、スキーマの変更に注意
+		@see rogw.tranp.semantics.reflection.serializer.ReflectionSerializer
+	"""
 
 	@classmethod
 	def instantiate(cls, traits: Traits[IReflection], types: defs.ClassDef) -> 'Symbol':
@@ -300,7 +305,12 @@ class Symbol(ReflectionBase):
 
 
 class Reflection(ReflectionBase):
-	"""リフレクション"""
+	"""リフレクション
+
+	Note:
+		* シリアライザーの実装に強依存しているため、スキーマの変更に注意
+		@see rogw.tranp.semantics.reflection.serializer.ReflectionSerializer
+	"""
 
 	@override
 	def __init__(self, traits: Traits[IReflection], options: Options) -> None:

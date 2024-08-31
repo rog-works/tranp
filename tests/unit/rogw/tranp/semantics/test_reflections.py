@@ -3,6 +3,7 @@ from unittest import TestCase
 import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.compatible.python.types import Standards
 from rogw.tranp.dsn.module import ModuleDSN
+from rogw.tranp.lang.annotation import override
 from rogw.tranp.semantics.reflection.helper.naming import ClassShorthandNaming
 from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.test.helper import data_provider
@@ -124,6 +125,12 @@ class TestReflections(TestCase):
 	fixture_module_path = Fixture.fixture_module_path(__file__)
 	fixture = Fixture.make(__file__)
 
+	@override
+	def setUp(self) -> None:
+		super().setUp()
+		# XXX モジュールをロードすることでシンボルテーブルが完成するため、必ず事前に実施
+		self.fixture.shared_module
+
 	@data_provider([
 		(ModuleDSN.full_joined(fixture_module_path, 'Sub.decl_locals.a'), list, False),
 		(ModuleDSN.full_joined(fixture_module_path, 'Sub.decl_locals.closure.b'), list, True),
@@ -132,7 +139,7 @@ class TestReflections(TestCase):
 		(ModuleDSN.full_joined(fixture_module_path, 'AliasOps.func.d'), list, False),
 		(ModuleDSN.full_joined(fixture_module_path, 'AliasOps.func.d'), dict, False),  # XXX エイリアスはdictそのものではないが要検討
 	])
-	def test_is_a(self, fullyname: str, standard_type: type[Standards], expected: bool) -> None:
+	def test_type_is(self, fullyname: str, standard_type: type[Standards], expected: bool) -> None:
 		reflections = self.fixture.get(Reflections)
 		symbol = reflections.from_fullyname(fullyname)
 		self.assertEqual(reflections.type_is(symbol.types, standard_type), expected)
@@ -450,7 +457,7 @@ class TestReflections(TestCase):
 	])
 	def test_type_of(self, full_path: str, expected: str, attrs_expected: str) -> None:
 		reflections = self.fixture.get(Reflections)
-		node = self.fixture.shared_nodes_by(full_path)
+		node = self.fixture.shared_module.entrypoint.whole_by(full_path)
 		symbol = reflections.type_of(node)
 		self.assertEqual(symbol.types.fullyname, expected)
 		self.assertEqual(ClassShorthandNaming.domain_name_for_debug(symbol), attrs_expected)
@@ -483,11 +490,11 @@ class TestReflections(TestCase):
 	# 	# Function - Method
 	# 	('class A:\n\tdef __init__(self) -> None: ...', 'file_input.class_def.class_def_raw.block.function_def', '__init__(A) -> None'),
 	# 	('class A:\n\tclass AA:\n\t\tdef __init__(self) -> None: ...', 'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.function_def', '__init__(AA) -> None'),
-	# 	('class A:\n\t@classmethod\n\tdef cls_method(cls) -> dict[str, int]: ...', 'file_input.class_def.class_def_raw.block.function_def', 'cls_method(A) -> dict<str, int>'),
-	# 	('class A:\n\tclass AA:\n\t\t@classmethod\n\t\tdef cls_method(self) -> list[int]: ...', 'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.function_def', 'cls_method(AA) -> list<int>'),
+	# 	('class A:\n\t@classmethod\n\tdef cls_method(cls) -> dict[str, int]: ...', 'file_input.class_def.class_def_raw.block.function_def', 'cls_method(type<A>) -> dict<str, int>'),
+	# 	('class A:\n\tclass AA:\n\t\t@classmethod\n\t\tdef cls_method(cls) -> list[int]: ...', 'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.function_def', 'cls_method(type<AA>) -> list<int>'),
 	# ])
 	# def test_type_of2(self, source_code: str, full_path: str, expected: str) -> None:
 	# 	reflections = self.fixture.get(Reflections)
-	# 	node = self.fixture.custom_nodes_by(source_code, full_path)
+	# 	node = self.fixture.custom_module(source_code).entrypoint.whole_by(full_path)
 	# 	symbol = reflections.type_of(node)
 	# 	self.assertEqual(ClassShorthandNaming.domain_name_for_debug(symbol), expected)

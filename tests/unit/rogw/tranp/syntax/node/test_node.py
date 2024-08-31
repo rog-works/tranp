@@ -9,7 +9,7 @@ from tests.test.fixture import Fixture
 
 class TestNode(TestCase):
 	fixture_module_path = Fixture.fixture_module_path(__file__)
-	fixture = Fixture.make_for_syntax(__file__)
+	fixture = Fixture.make(__file__)
 
 	@data_provider([
 		('...', 'file_input', '<Entrypoint: @0 __main__ (1, 1)..(2, 1)>'),

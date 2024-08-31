@@ -1,3 +1,4 @@
+from abc import ABCMeta, abstractmethod
 from typing import Protocol
 
 from rogw.tranp.lang.di import ModuleDefinitions
@@ -5,10 +6,11 @@ from rogw.tranp.module.module import Module
 from rogw.tranp.module.types import ModulePath
 
 
-class ModuleLoader(Protocol):
-	"""モジュールローダープロトコル"""
+class IModuleLoader(metaclass=ABCMeta):
+	"""モジュールローダーインターフェイス。ロード・アンロード・プリプロセスの機能を提供"""
 
-	def __call__(self, module_path: ModulePath) -> Module:
+	@abstractmethod
+	def load(self, module_path: ModulePath) -> Module:
 		"""モジュールをロード
 
 		Args:
@@ -18,14 +20,32 @@ class ModuleLoader(Protocol):
 		"""
 		...
 
+	@abstractmethod
+	def unload(self, module_path: ModulePath) -> None:
+		"""モジュールをアンロード
+
+		Args:
+			module_path (ModulePath): モジュールパス
+		"""
+		...
+
+	@abstractmethod
+	def preprocess(self, module: Module) -> None:
+		"""モジュールにプリプロセスを実施
+
+		Args:
+			module (Module): モジュール
+		"""
+		...
+
 
 class ModuleDependencyProvider(Protocol):
 	"""モジュールの依存プロバイダープロトコル
 
 	Note:
-		* Moduleのインスタンス化に必要なモジュール定義を生成
-		* ModuleLoader内で生成するDIで利用
-		@see providers.module.module_dependency_provider
+		* Entrypointのインスタンス化に必要なモジュール定義を生成
+		* EntrypointLoader内で生成するDIで利用
+		@see rogw.tranp.app.config.module_dependency_provider
 	"""
 
 	def __call__(self) -> ModuleDefinitions:

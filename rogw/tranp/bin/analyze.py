@@ -16,7 +16,7 @@ from rogw.tranp.module.types import ModulePath, ModulePaths
 from rogw.tranp.providers.module import module_path_dummy
 from rogw.tranp.providers.syntax.ast import source_code_provider
 from rogw.tranp.semantics.reflection.base import IReflection
-from rogw.tranp.semantics.reflection.db import SymbolDB, SymbolDBFinalizer
+from rogw.tranp.semantics.reflection.db import SymbolDB
 from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.syntax.ast.parser import ParserSetting, SourceCodeProvider
 import rogw.tranp.syntax.node.definition as defs
@@ -109,16 +109,16 @@ class AnalyzeApp(App):
 
 	@classmethod
 	@injectable
-	def make_module_paths(cls, args: Args, loader: IFileLoader) -> ModulePaths:
+	def make_module_paths(cls, args: Args, files: IFileLoader) -> ModulePaths:
 		"""処理対象のモジュールパスリストを生成
 
 		Args:
 			args (Args): コマンドライン引数 @inject
-			loader (IFileLoader): ファイルローダー @inject
+			files (IFileLoader): ファイルローダー @inject
 		Returns:
 			ModulePaths: 処理対象のモジュールパスリスト
 		"""
-		if not loader.exists(args.input):
+		if not files.exists(args.input):
 			return ModulePaths([])
 
 		basepath, extention = os.path.splitext(args.input)
@@ -141,7 +141,7 @@ class AnalyzeApp(App):
 		Returns:
 			Entrypoint: エントリーポイントノード
 		"""
-		return self.resolve(Modules).load(module_path).entrypoint.as_a(defs.Entrypoint)
+		return self.resolve(Modules).load(module_path).entrypoint
 
 	def serialize_db(self) -> dict[str, str]:
 		"""シンボルテーブルをシリアライズ
@@ -476,15 +476,15 @@ class AnalyzeApp(App):
 		print(json.dumps(self.serialize_node(symbol.types), indent=2))
 
 	@injectable
-	def main(self, args: Args, db_finalizer: SymbolDBFinalizer) -> None:
+	def main(self, args: Args, modules: Modules) -> None:
 		"""アプリケーションのエントリーポイント
 
 		Args:
-			args (Args): コマンドライン引数
-			db_finalizer (SymbolDBFinalizer): シンボルテーブル完成プロセス
+			args (Args): コマンドライン引数 @inject
+			modules (Modules): モジュールマネージャー @inject
 		"""
-		# XXX シンボルテーブルを完成させるためコール
-		db_finalizer()
+		# 既定のモジュールをロード
+		modules.dependencies()
 
 		if len(args.command) == 0:
 			self.task_menu()

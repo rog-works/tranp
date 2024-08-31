@@ -7,25 +7,32 @@ from rogw.tranp.semantics.finder import SymbolFinder
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.semantics.procedure import Procedure
 from rogw.tranp.semantics.reflection.base import IReflection
-from rogw.tranp.semantics.reflection.db import SymbolDBFinalizer
+from rogw.tranp.semantics.reflection.db import SymbolDB
 import rogw.tranp.semantics.reflection.definition as refs
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 
 
 class Reflections:
-	"""ノードからシンボルの型を解決する機能を提供"""
+	"""ノードからシンボルの型を解決する機能を提供
+
+	Note:
+		### 留意点
+		* このクラスを適切に利用するためにはシンボルテーブルの完成が必須
+		* このクラスをDIから取得してもシンボルテーブルは完成しない
+		* シンボルテーブル完成させるため、このクラスを利用する前に必ずモジュールをロードすること
+	"""
 
 	@injectable
-	def __init__(self, db_finalizer: SymbolDBFinalizer, finder: SymbolFinder, plugins: PluginProvider) -> None:
+	def __init__(self, db: SymbolDB, finder: SymbolFinder, plugins: PluginProvider) -> None:
 		"""インスタンスを生成
 
 		Args:
-			db_finalizer (SymbolDBFinalizer): シンボルテーブル完成プロセス @inject
+			db (SymbolDB): シンボルテーブル @inject
 			finder (SymbolFinder): シンボル検索 @inject
 			plugins (PluginProvider): プラグインプロバイダー @inject
 		"""
-		self.__db = db_finalizer()
+		self.__db = db
 		self.__finder = finder
 		self.__plugins = plugins
 		self.__procedural: ProceduralResolver | None = None

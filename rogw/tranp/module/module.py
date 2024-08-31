@@ -2,24 +2,24 @@ from rogw.tranp.io.loader import IFileLoader
 from rogw.tranp.lang.annotation import injectable, override
 from rogw.tranp.lang.module import module_path_to_filepath
 from rogw.tranp.module.types import ModulePath
-from rogw.tranp.syntax.node.node import Node
+import rogw.tranp.syntax.node.definition as defs
 
 
 class Module:
-	"""モジュール。読み込んだモジュールのパスとエントリーポイントを管理"""
+	"""モジュール。読み込んだモジュールのファイル情報とエントリーポイントを管理"""
 
 	@injectable
-	def __init__(self, module_path: ModulePath, entrypoint: Node, loader: IFileLoader) -> None:
+	def __init__(self, files: IFileLoader, module_path: ModulePath, entrypoint: defs.Entrypoint) -> None:
 		"""インスタンスを生成
 
 		Args:
-			module_path (ModulePath): モジュールパス @inject
-			entrypoint (Node): エントリーポイント @inject
-			loader (IFileLoader): ファイルローダー @inject
+			files (IFileLoader): ファイルローダー @inject
+			module_path (ModulePath): モジュールパス
+			entrypoint (Entrypoint): エントリーポイント
 		"""
 		self.__module_path = module_path
 		self.__entrypoint = entrypoint
-		self.__loader = loader
+		self.__files = files
 
 	@override
 	def __repr__(self) -> str:
@@ -37,8 +37,8 @@ class Module:
 		return self.__module_path.path
 
 	@property
-	def entrypoint(self) -> Node:
-		"""Node: エントリーポイント"""
+	def entrypoint(self) -> defs.Entrypoint:
+		"""Entrypoint: エントリーポイント"""
 		return self.__entrypoint
 
 	@property
@@ -52,7 +52,7 @@ class Module:
 		Returns:
 			bool: True = 存在
 		"""
-		return self.__loader.exists(self.filepath)
+		return self.__files.exists(self.filepath)
 
 	def identity(self) -> str:
 		"""モジュールの一意な識別子を生成
@@ -64,4 +64,4 @@ class Module:
 			* このメソッドの一意性は、あくまでもファイルに対してのものである点に注意
 			* ファイルが存在しない場合、インスタンスのアドレス値を識別子とし、厳密な一意性は保証しない
 		"""
-		return self.__loader.hash(self.filepath) if self.__loader.exists(self.filepath) else str(id(self))
+		return self.__files.hash(self.filepath) if self.__files.exists(self.filepath) else str(id(self))

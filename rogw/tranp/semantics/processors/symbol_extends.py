@@ -21,31 +21,30 @@ class SymbolExtends:
 		self.invoker = invoker
 
 	@duck_typed(Preprocessor)
-	def __call__(self, module: Module, db: SymbolDB) -> None:
+	def __call__(self, module: Module, db: SymbolDB) -> bool:
 		"""シンボルテーブルを編集
 
 		Args:
 			module (Module): モジュール
 			db (SymbolDB): シンボルテーブル
+		Returns:
+			bool: True = 後続処理を実行
 		"""
-		for key, raw in db.in_preprocess_items():
+		for _, raw in db.items(module.path):
 			if raw.node.is_a(defs.ClassDef):
 				if isinstance(raw.types, defs.AltClass):
 					raw.mod_on('attrs', self.make_mod_for_alt_class(raw))
-					db.on_preprocess_complete(key)
 				elif isinstance(raw.types, defs.Class):
 					raw.mod_on('attrs', self.make_mod_for_class(raw))
-					db.on_preprocess_complete(key)
 				elif isinstance(raw.types, defs.Function):
 					raw.mod_on('attrs', self.make_mod_for_function(raw))
-					db.on_preprocess_complete(key)
 			elif raw.node.one_of(defs.Parameter, defs.Declable):
 				if isinstance(raw.decl.declare, defs.Parameter) and isinstance(raw.decl.declare.var_type, defs.Type):
 					raw.mod_on('attrs', self.make_mod_for_var(raw))
-					db.on_preprocess_complete(key)
 				elif isinstance(raw.decl.declare, (defs.AnnoAssign, defs.Catch)):
 					raw.mod_on('attrs', self.make_mod_for_var(raw))
-					db.on_preprocess_complete(key)
+
+		return True
 	
 	def make_mod_for_alt_class(self, raw: IReflection) -> Mod:
 		"""モッドを生成(タイプ再定義用)

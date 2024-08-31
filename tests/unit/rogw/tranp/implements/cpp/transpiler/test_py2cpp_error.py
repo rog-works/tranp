@@ -53,8 +53,8 @@ class TestPy2CppError(TestCase):
 		(_ast('InvalidOps.delete_relay.block', 'del_stmt'), ProcessingError, r'Unexpected delete target.'),
 		(_ast('InvalidOps.destruction_assign.block', 'assign'), ProcessingError, r'Not allowed destruction assign.'),
 	])
-	def test_exec_error(self, full_path: str, expected_error: type[Exception], expected: re.Pattern) -> None:
-		transpiler = self.fixture.get(Py2Cpp)
-		node = self.fixture.shared_nodes_by(full_path)
+	def test_exec(self, full_path: str, expected_error: type[Exception], expected: re.Pattern) -> None:
 		with self.assertRaisesRegex(expected_error, expected):
+			transpiler = self.fixture.get(Py2Cpp)
+			node = self.fixture.shared_module.entrypoint.whole_by(full_path)
 			transpiler.transpile(node)

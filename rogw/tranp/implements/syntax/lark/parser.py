@@ -18,16 +18,16 @@ class SyntaxParserOfLark:
 	"""シンタックスパーサー(Lark版)"""
 
 	@injectable
-	def __init__(self, loader: IFileLoader, codes: SourceCodeProvider, setting: ParserSetting, caches: CacheProvider) -> None:
+	def __init__(self, files: IFileLoader, codes: SourceCodeProvider, setting: ParserSetting, caches: CacheProvider) -> None:
 		"""インスタンスを生成
 
 		Args:
-			loader (IFileLoader): ファイルローダー @inject
+			files (IFileLoader): ファイルローダー @inject
 			codes (SourceCodeProvider): ソースコードプロバイダー @inject
 			setting (ParserSetting): パーサー設定データ @inject
 			caches (CacheProvider): キャッシュプロバイダー @inject
 		"""
-		self.__loader = loader
+		self.__files = files
 		self.__codes = codes
 		self.__setting = setting
 		self.__caches = caches
@@ -52,7 +52,7 @@ class SyntaxParserOfLark:
 		"""
 		def instantiate() -> LarkStored:
 			return LarkStored(lark.Lark(
-				self.__loader.load(self.__setting.grammar),
+				self.__files.load(self.__setting.grammar),
 				start=self.__setting.start,
 				parser=self.__setting.algorithem,
 				postlex=PythonIndenter(),
@@ -60,7 +60,7 @@ class SyntaxParserOfLark:
 			))
 
 		identity = {
-			'mtime': str(self.__loader.mtime(self.__setting.grammar)),
+			'mtime': str(self.__files.mtime(self.__setting.grammar)),
 			'grammar': self.__setting.grammar,
 			'start': self.__setting.start,
 			'algorithem': self.__setting.algorithem,
@@ -83,7 +83,7 @@ class SyntaxParserOfLark:
 		source_path = f'{basepath}.py'
 
 		# ストレージに存在しないモジュールはメモリ上に存在すると見做して毎回パース
-		if not self.__loader.exists(source_path):
+		if not self.__files.exists(source_path):
 			return EntryOfLark(parser.parse(self.__codes(module_path)))
 
 		def instantiate() -> EntryStored:
@@ -93,8 +93,8 @@ class SyntaxParserOfLark:
 				raise SyntaxError(f'file: {source_path}') from e
 
 		identity = {
-			'grammar_mtime': str(self.__loader.mtime(self.__setting.grammar)),
-			'mtime': str(self.__loader.mtime(source_path)),
+			'grammar_mtime': str(self.__files.mtime(self.__setting.grammar)),
+			'mtime': str(self.__files.mtime(source_path)),
 		}
 		decorator = self.__caches.get(basepath, identity=identity, format='json')
 		return decorator(instantiate)().entry

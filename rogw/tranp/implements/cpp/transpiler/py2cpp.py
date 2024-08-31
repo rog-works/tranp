@@ -228,18 +228,18 @@ class Py2Cpp(ITranspiler):
 
 	def proc_for_range(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		# 期待値: 'range(arguments...)'
-		last_index = cast(re.Match, re.fullmatch(r'\w+\((.+)\)', for_in))[1]
+		last_index = PatternParser.pluck_func_call_arguments(for_in)
 		return self.view.render(f'{node.classification}/range', vars={'symbol': symbols[0], 'last_index': last_index, 'statements': statements})
 
 	def proc_for_enumerate(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		# 期待値: 'enumerate(arguments...)'
-		iterates = cast(re.Match, re.fullmatch(r'\w+\((.+)\)', for_in))[1]
+		iterates = PatternParser.pluck_func_call_arguments(for_in)
 		var_type = self.to_accessible_name(self.reflections.type_of(node.for_in).attrs[1])
 		return self.view.render(f'{node.classification}/enumerate', vars={'symbols': symbols, 'iterates': iterates, 'statements': statements, 'var_type': var_type})
 
 	def proc_for_dict_items(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		# 期待値: 'iterates.items()'
-		iterates = cast(re.Match, re.fullmatch(r'(.+)(->|\.)\w+\(\)', for_in))[1]
+		iterates = PatternParser.pluck_dict_items_receiver(for_in)
 		# XXX 参照の変換方法が場当たり的で一貫性が無い。包括的な対応を検討
 		iterates = f'*({iterates})' if for_in.endswith('->items()') else iterates
 		return self.view.render(f'{node.classification}/dict_items', vars={'symbols': symbols, 'iterates': iterates, 'statements': statements})
@@ -289,16 +289,15 @@ class Py2Cpp(ITranspiler):
 		super_initializer = {}
 		if super_initializer_statement:
 			super_initializer['parent'] = super_initializer_statement.split('::')[0]
-			# XXX コンストラクターへの実引数を取得。必ず取得できるのでキャストして警告を抑制 (期待値: `Class::__init__(a, b, c);`)
-			super_initializer['arguments'] = cast(re.Match[str], re.search(r'\(([^)]*)\);$', super_initializer_statement))[1]
+			# 期待値: `Class::__init__(a, b, c);`
+			super_initializer['arguments'] = PatternParser.pluck_super_arguments(super_initializer_statement)
 
 		# メンバー変数の宣言用のデータを生成
 		initializers: list[dict[str, str]] = []
 		for index, this_var in enumerate(this_vars):
-			# XXX 代入式の右辺を取得 (期待値: `int this->a = 1234;`)
-			# XXX 右辺が存在しない場合は初期化はデフォルトコンストラクターに任せる形になる
-			matches = re.search(r'=\s*([^;]+);$', initializer_statements[index])
-			initializer = {'symbol': self.i18n.t(alias_dsn(this_var.fullyname), this_var.domain_name), 'value': matches[1] if matches else ''}
+			# 期待値: `int this->a = 1234;`
+			initial_value = PatternParser.pluck_assign_right(initializer_statements[index])
+			initializer = {'symbol': self.i18n.t(alias_dsn(this_var.fullyname), this_var.domain_name), 'value': initial_value}
 			initializers.append(initializer)
 
 		decorators = self.allow_decorators(decorators)
@@ -424,9 +423,8 @@ class Py2Cpp(ITranspiler):
 		_targets: list[dict[str, str]] = []
 		for i in range(len(targets)):
 			target = targets[i]
-			# XXX 複雑な式に耐えられないので、修正を検討
-			elems = cast(re.Match, re.fullmatch(r'(.+)\[(.+)\]', target)).group(1, 2)
-			_targets.append({'receiver': elems[0], 'key': elems[1], 'list_or_dict': target_types[i]})
+			receiver, key = PatternParser.break_indexer(target)
+			_targets.append({'receiver': receiver, 'key': key, 'list_or_dict': target_types[i]})
 
 		return self.view.render(f'{node.classification}/default', vars={'targets': _targets})
 
@@ -516,12 +514,12 @@ class Py2Cpp(ITranspiler):
 		is_property = isinstance(prop_symbol.decl, defs.Method) and prop_symbol.decl.is_property
 		relay_vars = {'receiver': receiver, 'operator': operator, 'prop': prop, 'is_property': is_property}
 		if spec == 'cvar_relay':
-			# 期待値: receiver.on()
-			cvar_receiver = re.sub(rf'(->|::|\.){CVars.relay_key}\(\)$', '', receiver)
+			# 期待値: receiver.on().prop
+			cvar_receiver = PatternParser.sub_cvar_relay(receiver)
 			return self.view.render(f'{node.classification}/default', vars={**relay_vars, 'receiver': cvar_receiver})
 		elif spec.startswith('cvar_to_'):
 			# 期待値: receiver.raw()
-			cvar_receiver = re.sub(rf'(->|::|\.)({"|".join(CVars.exchanger_keys)})\(\)$', '', receiver)
+			cvar_receiver = PatternParser.sub_cvar_to(receiver)
 			move = spec.split('cvar_to_')[1]
 			return self.view.render(f'{node.classification}/cvar_to', vars={**relay_vars, 'receiver': cvar_receiver, 'move': move})
 		elif spec.startswith('__module__'):
@@ -583,8 +581,8 @@ class Py2Cpp(ITranspiler):
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={'receiver': receiver, 'keys': keys, 'var_type': var_type})
 		elif spec == 'cvar_relay':
-			# 期待値: receiver.on()
-			cvar_receiver = re.sub(rf'(->|::|\.){CVars.relay_key}\(\)$', '', receiver)
+			# 期待値: receiver.on()[key]
+			cvar_receiver = PatternParser.sub_cvar_relay(receiver)
 			return self.view.render(f'{node.classification}/default', vars={'receiver': cvar_receiver, 'key': keys[0]})
 		elif spec == 'cvar':
 			var_type = self.to_accessible_name(cast(IReflection, context))
@@ -693,7 +691,7 @@ class Py2Cpp(ITranspiler):
 			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == 'str_format':
 			is_literal = node.calls.as_a(defs.Relay).receiver.is_a(defs.String)
-			receiver, operator = cast(re.Match, re.search(r'^(.+)(->|::|\.)\w+$', calls)).group(1, 2)
+			receiver, operator = PatternParser.break_relay(calls)
 			to_tags = {int.__name__: '%d', float.__name__: '%f', str.__name__: '%s', CP.__name__: '%p'}
 			formatters: list[dict[str, Any]] = []
 			for argument in node.arguments:
@@ -720,30 +718,30 @@ class Py2Cpp(ITranspiler):
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
 		elif spec == 'list_pop':
 			# 期待値: 'receiver.pop'
-			receiver, operator = cast(re.Match, re.search(r'^(.+)(->|::|\.)\w+$', calls)).group(1, 2)
+			receiver, operator = PatternParser.break_relay(calls)
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'var_type': var_type})
 		elif spec == 'list_insert':
 			# 期待値: 'receiver.insert'
-			receiver, operator = cast(re.Match, re.search(r'^(.+)(->|::|\.)\w+$', calls)).group(1, 2)
+			receiver, operator = PatternParser.break_relay(calls)
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator})
 		elif spec == 'list_extend':
 			# 期待値: 'receiver.extend'
-			receiver, operator = cast(re.Match, re.search(r'^(.+)(->|::|\.)\w+$', calls)).group(1, 2)
+			receiver, operator = PatternParser.break_relay(calls)
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator})
 		elif spec == 'dict_pop':
 			# 期待値: 'receiver.pop'
-			receiver, operator = cast(re.Match, re.search(r'^(.+)(->|::|\.)\w+$', calls)).group(1, 2)
+			receiver, operator = PatternParser.break_relay(calls)
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'var_type': var_type})
 		elif spec == 'dict_keys':
 			# 期待値: 'receiver.keys'
-			receiver, operator = cast(re.Match, re.search(r'^(.+)(->|::|\.)\w+$', calls)).group(1, 2)
+			receiver, operator = PatternParser.break_relay(calls)
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'var_type': var_type})
 		elif spec == 'dict_values':
 			# 期待値: 'receiver.values'
-			receiver, operator = cast(re.Match, re.search(r'^(.+)(->|::|\.)\w+$', calls)).group(1, 2)
+			receiver, operator = PatternParser.break_relay(calls)
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'var_type': var_type})
 		elif spec == 'cast_enum':
@@ -775,7 +773,7 @@ class Py2Cpp(ITranspiler):
 		elif spec == 'new_cvar_sp':
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			# 期待値: CSP.new(A(a, b, c))
-			initializer = cast(re.Match, re.fullmatch(r'^[^(]+\((.+)\)$', arguments[0]))[1]
+			initializer = PatternParser.pluck_cvar_new_argument(arguments[0])
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type, 'initializer': initializer})
 		else:
 			return self.view.render(f'{node.classification}/default', vars=func_call_vars)
@@ -870,7 +868,7 @@ class Py2Cpp(ITranspiler):
 
 		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Relay) and node.iterates.calls.prop.tokens == dict.items.__name__:
 			# 期待値: 'iterates.items()'
-			iterates = cast(re.Match, re.fullmatch(r'(.+)(->|\.)items\(\)', for_in))[1]
+			iterates = PatternParser.pluck_dict_items_receiver(for_in)
 			# XXX 参照の変換方法が場当たり的で一貫性が無い。包括的な対応を検討
 			iterates = f'*({iterates})' if for_in.endswith('->items()') else iterates
 			return self.view.render(f'comp/{node.classification}', vars={'symbols': symbols, 'iterates': iterates, 'is_const': is_const, 'is_addr_p': is_addr_p})
@@ -1020,3 +1018,130 @@ class Py2Cpp(ITranspiler):
 
 	def on_fallback(self, node: Node) -> str:
 		return node.tokens
+
+
+class PatternParser:
+	"""正規表現によるパターン解析ユーティリティー
+
+	Note:
+		これらは正規表現を用いないで済む方法へ修正を検討
+	"""
+
+	# 期待値: path.to->prop -> ('path.to', '->')
+	RelayPattern = re.compile(r'(.+)(->|::|\.)\w+')
+	# 期待値: path.to.calls(arguments...) -> 'arguments...'
+	FuncCallArgumentsPattern = re.compile(r'\w+\((.+)\)')
+	# 期待値: path.to.items() -> 'path.to'
+	DictItemsPattern = re.compile(r'(.+)(->|\.)\w+\(\)')
+	# 期待値: Class::__init__(arguments...); -> 'arguments...'
+	SuperArgumentsPattern = re.compile(r'\(([^)]*)\);$')
+	# 期待値: path.to = right; -> 'right'
+	AssignRightPattern = re.compile(r'=\s*([^;]+);$')
+	# 期待値: path.to[key] -> ('path.to', 'key') XXX 複雑な式に耐えられないため修正を検討
+	IndexerPattern = re.compile(r'(.+)\[(.+)\]')
+	# 期待値: Class(arguments...) -> 'arguments...'
+	CVarNewArgumentPattern = re.compile(r'^[^(]+\((.+)\)$')
+	# 期待値: path.on()->to -> 'path.to'
+	CVarRelaySubPattern = re.compile(rf'(->|::|\.){CVars.relay_key}\(\)$')
+	# 期待値: path.to.raw() -> 'path.to'
+	CVarToSubPattern = re.compile(rf'(->|::|\.)({"|".join(CVars.exchanger_keys)})\(\)$')
+
+	@classmethod
+	def break_relay(cls, relay: str) -> tuple[str, str]:
+		"""リレーからレシーバーとオペレーターに分解
+
+		Args:
+			relay (str): 文字列
+		Returns:
+			tuple[str, str]: (レシーバー, オペレーター)
+		"""
+		return cast(re.Match, cls.RelayPattern.fullmatch(relay)).group(1, 2)
+
+	@classmethod
+	def pluck_func_call_arguments(cls, func_call: str) -> str:
+		"""関数コールから引数リストの部分を抜き出す
+
+		Args:
+			func_call (str): 文字列
+		Returns:
+			str: 引数リスト
+		"""
+		return cast(re.Match, cls.FuncCallArgumentsPattern.fullmatch(func_call))[1]
+
+	@classmethod
+	def pluck_dict_items_receiver(cls, func_call: str) -> str:
+		"""関数コール(dict.items)からレシーバーの部分を抜き出す
+
+		Args:
+			func_call (str): 文字列
+		Returns:
+			str: レシーバー
+		"""
+		return cast(re.Match, cls.DictItemsPattern.fullmatch(func_call))[1]
+
+	@classmethod
+	def pluck_super_arguments(cls, func_call: str) -> str:
+		"""関数コール(super)から引数リストの部分を抜き出す
+
+		Args:
+			func_call (str): 文字列
+		Returns:
+			str: 引数リスト
+		"""
+		return cast(re.Match, cls.SuperArgumentsPattern.search(func_call))[1]
+
+	@classmethod
+	def pluck_assign_right(cls, assign: str) -> str:
+		"""代入式から右辺の部分を抜き出す
+
+		Args:
+			assign (str): 文字列
+		Returns:
+			str: 右辺
+		"""
+		matches = cls.AssignRightPattern.search(assign)
+		return matches[1] if matches else ''
+
+	@classmethod
+	def break_indexer(cls, indexer: str) -> tuple[str, str]:
+		"""インデクサーからレシーバーとキーに分解
+
+		Args:
+			assign (str): 文字列
+		Returns:
+			tuple[str, str]: (レシーバー, キー)
+		"""
+		return cast(re.Match, cls.IndexerPattern.fullmatch(indexer)).group(1, 2)
+
+	@classmethod
+	def pluck_cvar_new_argument(cls, argument: str) -> str:
+		"""C++型変数のメモリー生成関数コールから引数の部分を抜き出す
+
+		Args:
+			argument (str): 文字列
+		Returns:
+			str: 引数
+		"""
+		return cast(re.Match, cls.CVarNewArgumentPattern.fullmatch(argument))[1]
+
+	@classmethod
+	def sub_cvar_relay(cls, receiver: str) -> str:
+		"""C++型変数のリレープロクシーを削除する
+
+		Args:
+			receiver (str): 文字列
+		Returns:
+			str: 引数
+		"""
+		return cls.CVarRelaySubPattern.sub('', receiver)
+
+	@classmethod
+	def sub_cvar_to(cls, receiver: str) -> str:
+		"""C++型変数の型変換プロクシーを削除する
+
+		Args:
+			receiver (str): 文字列
+		Returns:
+			str: 引数
+		"""
+		return cls.CVarToSubPattern.sub('', receiver)

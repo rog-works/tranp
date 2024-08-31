@@ -1,3 +1,4 @@
+from abc import ABCMeta, abstractmethod
 import glob
 import json
 import os
@@ -11,9 +12,10 @@ from rogw.tranp.semantics.reflection.db import SymbolDB
 from rogw.tranp.semantics.reflection.serialization import IReflectionSerializer
 
 
-class ISymbolDBPersistor:
+class ISymbolDBPersistor(metaclass=ABCMeta):
 	"""シンボルテーブル永続化インターフェイス"""
 
+	@abstractmethod
 	def stored(self, module: Module) -> bool:
 		"""シンボルテーブルが永続化されているか判定
 
@@ -24,6 +26,7 @@ class ISymbolDBPersistor:
 		"""
 		...
 
+	@abstractmethod
 	def store(self, module: Module, db: SymbolDB) -> None:
 		"""シンボルテーブルを永続化
 
@@ -33,6 +36,7 @@ class ISymbolDBPersistor:
 		"""
 		...
 
+	@abstractmethod
 	def restore(self, module: Module, db: SymbolDB) -> None:
 		"""シンボルテーブルを復元
 

@@ -1,3 +1,4 @@
+from abc import ABCMeta, abstractmethod
 from typing import Literal, MutableMapping, TypedDict
 
 from rogw.tranp.semantics.reflection.base import IReflection
@@ -7,9 +8,10 @@ DictReflection = TypedDict('DictReflection', {'class': Literal['Reflection'], 'n
 DictSerialized = DictSymbol | DictReflection
 
 
-class IReflectionSerializer:
+class IReflectionSerializer(metaclass=ABCMeta):
 	"""シンボルシリアライザー"""
 
+	@abstractmethod
 	def serialize(self, symbol: IReflection) -> DictSerialized:
 		"""シリアライズ
 
@@ -20,6 +22,7 @@ class IReflectionSerializer:
 		"""
 		...
 
+	@abstractmethod
 	def deserialize(self, db: MutableMapping[str, IReflection], data: DictSerialized) -> IReflection:
 		"""デシリアライズ
 

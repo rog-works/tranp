@@ -4,7 +4,7 @@ from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.errors import Error, FatalError, LogicError
 from rogw.tranp.lang.annotation import duck_typed
 from rogw.tranp.lang.error import Transaction
-from rogw.tranp.lang.eventemitter import Callback, EventEmitter, IObservable
+from rogw.tranp.lang.eventemitter import Callback, EventEmitter, Observable
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.semantics.errors import ProcessingError
 
@@ -32,7 +32,7 @@ class Procedure(Generic[T_Ret]):
 		self.__verbose = verbose
 		self.__emitter = EventEmitter[T_Ret]()
 
-	@duck_typed(IObservable)
+	@duck_typed(Observable)
 	def on(self, action: str, callback: Callback[T_Ret]) -> None:
 		"""イベントハンドラーを登録
 
@@ -42,7 +42,7 @@ class Procedure(Generic[T_Ret]):
 		"""
 		self.__emitter.on(action, callback)
 
-	@duck_typed(IObservable)
+	@duck_typed(Observable)
 	def off(self, action: str, callback: Callback[T_Ret]) -> None:
 		"""イベントハンドラーを解除
 

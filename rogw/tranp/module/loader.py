@@ -1,4 +1,4 @@
-from abc import abstractmethod
+from abc import ABCMeta, abstractmethod
 from typing import Protocol
 
 from rogw.tranp.lang.di import ModuleDefinitions
@@ -6,7 +6,7 @@ from rogw.tranp.module.module import Module
 from rogw.tranp.module.types import ModulePath
 
 
-class IModuleLoader:
+class IModuleLoader(metaclass=ABCMeta):
 	"""モジュールローダーインターフェイス。ロード・アンロード・プリプロセスの機能を提供"""
 
 	@abstractmethod

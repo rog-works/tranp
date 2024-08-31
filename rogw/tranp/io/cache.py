@@ -97,7 +97,7 @@ class CachedProxy(Cached[T]):
 		Returns:
 			T: インスタンス
 		"""
-		cache_path = self.to_cache_path(cache_key)
+		cache_path = self.gen_cache_path(cache_key)
 		if self.cache_exists(cache_path):
 			return self.load_cache(cache_path)
 
@@ -105,26 +105,26 @@ class CachedProxy(Cached[T]):
 		self.save_cache(instance, cache_path)
 		return instance
 
-	def to_cache_path(self, cache_key: str) -> str:
-		"""キャッシュファイルパスに変換
+	def gen_cache_path(self, cache_key: str) -> str:
+		"""キャッシュファイルの絶対パスを生成
 
 		Args:
 			cache_key (str): キャッシュキー
 		Returns:
-			str: キャッシュファイルパス
+			str: キャッシュファイルの絶対パス
 		Note:
 			ファイルパスに一意性を担保する文字列を付与する
 		"""
-		basepath = os.path.join(self._basedir, cache_key)
 		file_format = self._options.get('format', '')
 		extention = f'.{file_format}' if file_format else ''
-		return f'{basepath}-{self.identifier(self._identity)}{extention}'
+		filename = f'{cache_key}-{self.identifier(self._identity)}{extention}'
+		return os.path.abspath(os.path.join(os.getcwd(), self._basedir, filename))
 
 	def cache_exists(self, cache_path: str) -> bool:
 		"""キャッシュファイルが存在するか判定
 
 		Args:
-			cache_path (str): キャッシュファイルパス(実行ディレクトリーからの相対パス)
+			cache_path (str): キャッシュファイルパス
 		Returns:
 			bool: True = 存在
 		"""
@@ -135,7 +135,7 @@ class CachedProxy(Cached[T]):
 
 		Args:
 			instance (T): インスタンス
-			cache_path (str): キャッシュファイルパス(実行ディレクトリーからの相対パス)
+			cache_path (str): キャッシュファイルパス
 		Note:
 			保存直前に古いキャッシュファイルを自動的に削除
 		"""
@@ -143,8 +143,8 @@ class CachedProxy(Cached[T]):
 		if not os.path.exists(dirpath):
 			os.makedirs(dirpath)
 
-		for oldedst in self.find_oldest(cache_path):
-			os.unlink(oldedst)
+		for oldest in self.find_oldest(cache_path):
+			os.unlink(oldest)
 
 		with open(cache_path, mode='wb') as f:
 			instance.save(f)
@@ -153,19 +153,22 @@ class CachedProxy(Cached[T]):
 		"""旧キャッシュファイルを検索
 
 		Args:
-			cache_path (str): キャッシュファイルパス(実行ディレクトリーからの相対パス)
+			cache_path (str): キャッシュファイルパス
 		Returns:
 			list[str]: 旧キャッシュファイルパスリスト
 		"""
-		# FIXME 拡張子が無いと検索できない
-		glob_pattern = re.sub(r'-(\w{32})(\.\w+$)', r'-*\2', cache_path)
+		elems = cache_path.split('-')[:-1]
+		basepath = '-'.join(elems)
+		file_format = self._options.get('format', '')
+		extention = f'.{file_format}' if file_format else ''
+		glob_pattern = f'{basepath}-*{extention}'
 		return glob.glob(glob_pattern)
 
 	def load_cache(self, cache_path: str) -> T:
 		"""インスタンスをファイルから読み込み
 
 		Args:
-			cache_path (str): キャッシュファイルパス(実行ディレクトリーからの相対パス)
+			cache_path (str): キャッシュファイルパス
 		Returns:
 			T: 読み込んだインスタンス
 		"""

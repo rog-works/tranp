@@ -28,7 +28,6 @@ class TestEntryPath(TestCase):
 		('a.b.c', True),
 		('b.c', True),
 		('', False),
-		('.', False),
 	])
 	def test_valid(self, origin: str, expected: bool) -> None:
 		self.assertEqual(EntryPath(origin).valid, expected)

@@ -11,7 +11,7 @@ class DSN:
 		Returns:
 			int: 要素数
 		"""
-		return len(cls.elements(origin, delimiter))
+		return 0 if origin == '' else origin.count(delimiter) + (0 if origin.startswith(delimiter) else 1)
 
 	@classmethod
 	def elements(cls, origin: str, delimiter: str = '.') -> list[str]:

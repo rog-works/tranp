@@ -1,5 +1,3 @@
-import re
-
 from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.errors import LogicError
 
@@ -52,7 +50,7 @@ class EntryPath:
 	@property
 	def escaped_origin(self) -> str:
 		"""str: 正規表現用にエスケープしたパスを返却"""
-		return re.sub(r'([.\[\]])', r'\\\1', self.origin)
+		return ''.join([f'\\{c}' if c in '.[]' else c for c in self.origin])
 
 	def joined(self, relative: str) -> str:
 		"""相対パスと連結したパスを返却
@@ -149,7 +147,8 @@ class EntryPath:
 		Returns:
 			EntryPath: インスタンス
 		"""
-		return EntryPath(re.sub(r'\[\d+\]', '', self.origin))
+		de_origin = '.'.join([e.split('[')[0] for e in self.origin.split('.')])
+		return EntryPath(de_origin)
 
 	def relativefy(self, starts: str) -> 'EntryPath':
 		"""指定のパスより先の相対パスでインスタンスを生成

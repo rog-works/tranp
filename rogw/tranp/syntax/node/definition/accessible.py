@@ -1,4 +1,3 @@
-import re
 from typing import ClassVar
 
 from rogw.tranp.lang.annotation import duck_typed
@@ -13,7 +12,7 @@ def to_accessor(name: str) -> str:
 	Returns:
 		str: アクセス修飾子
 	"""
-	if re.fullmatch(r'__.+__', name):
+	if name.startswith('__') and name.endswith('__'):
 		return 'public'
 	elif name.startswith('__'):
 		return 'private'

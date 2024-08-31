@@ -1,4 +1,3 @@
-import re
 from typing import Union
 
 from rogw.tranp.dsn.dsn import DSN

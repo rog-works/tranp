@@ -1,5 +1,3 @@
-import re
-
 from rogw.tranp.io.memo2 import Memoize
 from rogw.tranp.lang.annotation import implements, injectable
 from rogw.tranp.syntax.ast.cache import EntryCache
@@ -128,8 +126,8 @@ class Nodes(Query[Node]):
 		if not uplayer_path.valid:
 			raise NodeNotFoundError(via)
 
-		regular = re.compile(rf'{uplayer_path.escaped_origin}\.[^.]+')
-		tester = lambda _, path: regular.fullmatch(path) is not None
+		via_depth = via.count('.')
+		tester = lambda _, path: via_depth == path.count('.')
 		entries = {path: entry for path, entry in self.__entries.group_by(uplayer_path.origin, depth=1).items() if tester(entry, path)}
 		return [self.__resolve(entry, path) for path, entry in entries.items()]
 
@@ -145,8 +143,8 @@ class Nodes(Query[Node]):
 			NodeNotFoundError: 基点のノードが存在しない
 		"""
 		def factory() -> list[Node]:
-			regular = re.compile(rf'{EntryPath(via).escaped_origin}\.[^.]+')
-			tester = lambda _, path: regular.fullmatch(path) is not None
+			via_depth = via.count('.')
+			tester = lambda _, path: via_depth + 1 == path.count('.')
 			entries = {path: entry for path, entry in self.__entries.group_by(via, depth=1).items() if tester(entry, path)}
 			return [self.__resolve(entry, path) for path, entry in entries.items()]
 

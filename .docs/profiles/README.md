@@ -13,8 +13,13 @@
 
 # 計測 - 1.time
 
+## 概要
+
 * 古典的な方法
 * 副作用が無いため、最も信頼できる結果
+* 実行時間しか計測できない
+
+## 実行
 
 ```sh
 $ time bin/transpile.sh -f
@@ -23,17 +28,27 @@ $ time bin/test.sh
 
 # 計測 - 2.cProfiler
 
+## 概要
+
 * Python標準機能
 * 実行速度が倍程度に増える
 * 稀に計測されない実装パターンがあり、その影響で実行速度が大幅に変動(±)する場合がある
+* 関数毎に計測し、結果を一覧で表示
+* ソートはオプションによって切り替え
 
-## トランスパイル
+## ソート
+
+* ncalls: 関数のコール数
+* tottime: 対象の関数だけの消費時間
+* cumtime: 対象の関数からの呼び出し時間も含めた消費時間
+
+## 実行 - トランスパイル
 
 ```sh
 $ bin/transpile.sh -f -p tottime > profile_tottime.log
 ```
 
-## テスト
+## 実行 - テスト
 
 ### プロファイラーを有効化
 
@@ -54,18 +69,32 @@ $ bin/test.sh tests/unit/rogw/tranp/implements/cpp/transpiler/test_py2cpp.py Tes
 
 # 計測 - 3.pyinstruments
 
+## 概要
+
 * 外部パッケージ
 * スタックトレース単位で結果を表示
 * ボトルネックとなる個所が明白で分かりやすい
+* venvをアクティベートしないと使えない
 
-## venvアクティベート
+## 環境設定
 
 ```sh
+# 仮想環境作成
+$ python -m venv .venv
+
+# venvアクティベート
 $ .venv/bin/activate
+
+# インストール
+(.venv) $ pip install pyinstruments
 ```
 
 ## 実行
 
 ```sh
-$ bin/profile.sh rogw/tranp/bin/transpile.py -f
+# venvアクティベート
+$ .venv/bin/activate
+
+# 計測実行
+(.venv) $ bin/profile.sh --show-all rogw/tranp/bin/transpile.py -f
 ```

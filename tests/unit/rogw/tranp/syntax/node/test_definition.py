@@ -641,6 +641,7 @@ class TestDefinition(TestCase):
 		('a = {}', 'file_input.assign', {'receivers': ['a'], 'receiver_types': [defs.DeclLocalVar], 'value': defs.Dict}),
 		('a.b = 1', 'file_input.assign', {'receivers': ['a.b'], 'receiver_types': [defs.Relay], 'value': defs.Integer}),
 		('a[0] = []', 'file_input.assign', {'receivers': ['a.0'], 'receiver_types': [defs.Indexer], 'value': defs.List}),
+		('a, b = 1, 2', 'file_input.assign', {'receivers': ['a', 'b'], 'receiver_types': [defs.DeclLocalVar, defs.DeclLocalVar], 'value': defs.Tuple}),
 	])
 	def test_move_assign(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.MoveAssign)

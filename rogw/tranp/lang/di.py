@@ -3,7 +3,7 @@ from typing import Any, Callable, Self, TypeAlias, cast
 
 from rogw.tranp.lang.annotation import duck_typed, override
 from rogw.tranp.lang.locator import Injector, Locator, T_Inst
-from rogw.tranp.lang.module import fullyname, load_module_path
+from rogw.tranp.lang.module import to_fullyname, load_module_path
 
 ModuleDefinitions: TypeAlias = dict[str, str | Injector[Any]]
 
@@ -15,6 +15,7 @@ class DI:
 		"""インスタンスを生成"""
 		self.__instances: dict[type, Any] = {}
 		self.__injectors: dict[type, Injector[Any]] = {}
+		self.__invocations: dict[str, dict[str, type]] = {}
 
 	@duck_typed(Locator)
 	def can_resolve(self, symbol: type) -> bool:
@@ -150,8 +151,13 @@ class DI:
 			* ロケーターが解決可能なシンボルをファクトリーの引数リストの前方から省略していき、解決不能な引数を残りの位置引数として受け取る
 			* このメソッドを通して生成したインスタンスはキャッシュされず、毎回生成される
 		"""
-		annotated = self.__to_annotated(factory)
-		annos = self.__pluck_annotations(annotated)
+		fullyname = to_fullyname(factory)
+		found = fullyname in self.__invocations
+		if not found:
+			annotated = self.__to_annotated(factory)
+			self.__invocations[fullyname] = self.__pluck_annotations(annotated)
+
+		annos = self.__invocations[fullyname]
 		curried_args: list[type] = []
 		for anno in annos.values():
 			if not self.can_resolve(anno):
@@ -159,14 +165,8 @@ class DI:
 
 			curried_args.append(self.resolve(anno))
 
-		expect_types = [
-			# XXX ジェネリック型の場合isinstanceで比較できないため、オリジナルの型を期待値として抽出
-			expect if not hasattr(expect, '__origin__') else getattr(expect, '__origin__')
-			for expect in list(annos.values())[len(curried_args):]
-		]
-		allow_types = [type(arg) for index, arg in enumerate(remain_args) if isinstance(arg, expect_types[index])]
-		if len(expect_types) != len(allow_types):
-			raise ValueError(f'Mismatch invoke arguments. factory: {factory}, expect: {expect_types}, actual: {[type(arg) for arg in remain_args]}')
+		if not found:
+			self.__assert_invoke(factory, annos, curried_args, *remain_args)
 
 		return factory(*curried_args, *remain_args)
 
@@ -195,6 +195,23 @@ class DI:
 		"""
 		annos = getattr(annotated, '__annotations__', {})
 		return {key: anno for key, anno in annos.items() if key != 'return'}
+
+	def __assert_invoke(self, injector: Injector, annos: dict[str, type], curried_args: list[type], *remain_args: Any) -> None:
+		"""代替呼び出しのバリデーション
+
+		Args:
+			injector (Injector[T_Inst]): ファクトリー(関数/メソッド/クラス)
+			annos (dict[str, type]): 引数のアノテーションリスト
+			curried_args (list[type]): カリー化対象の位置引数
+			*remain_args (Any): 余りの位置引数
+		Raises:
+			ValueError: 呼び出しシグネチャーが不正
+		"""
+		# XXX ジェネリック型の場合isinstanceで比較できないため、オリジナルの型を期待値として抽出
+		expect_types = [getattr(expect, '__origin__', expect) for expect in list(annos.values())[len(curried_args):]]
+		allow_types = [type(arg) for index, arg in enumerate(remain_args) if isinstance(arg, expect_types[index])]
+		if len(expect_types) != len(allow_types):
+			raise ValueError(f'Mismatch invoke arguments. factory: {injector}, expect: {expect_types}, actual: {[type(arg) for arg in remain_args]}')
 
 	def _clone(self) -> Self:
 		"""インスタンスを複製
@@ -304,7 +321,7 @@ class LazyDI(DI):
 		Returns:
 			str: シンボルパス
 		"""
-		return fullyname(self._acceptable_symbol(symbol))
+		return to_fullyname(self._acceptable_symbol(symbol))
 
 	@override
 	def bind(self, symbol: type[T_Inst], injector: Injector[T_Inst]) -> None:

@@ -10,7 +10,7 @@ from rogw.tranp.bin.io import readline
 from rogw.tranp.io.loader import IFileLoader
 from rogw.tranp.lang.annotation import duck_typed, injectable
 from rogw.tranp.lang.locator import Invoker, Locator
-from rogw.tranp.lang.module import filepath_to_module_path, fullyname
+from rogw.tranp.lang.module import filepath_to_module_path, to_fullyname
 from rogw.tranp.module.modules import Modules
 from rogw.tranp.module.types import ModulePath, ModulePaths
 from rogw.tranp.providers.module import module_path_dummy
@@ -504,9 +504,9 @@ class AnalyzeApp(App):
 
 if __name__ == '__main__':
 	app = AnalyzeApp({
-		fullyname(Args): Args,
-		fullyname(ModulePaths): AnalyzeApp.make_module_paths,
-		fullyname(ParserSetting): AnalyzeApp.make_parser_setting,
-		fullyname(SourceCodeProvider): Codes,
+		to_fullyname(Args): Args,
+		to_fullyname(ModulePaths): AnalyzeApp.make_module_paths,
+		to_fullyname(ParserSetting): AnalyzeApp.make_parser_setting,
+		to_fullyname(SourceCodeProvider): Codes,
 	})
 	app.run(app.main)

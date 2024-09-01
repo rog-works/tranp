@@ -51,15 +51,15 @@ def resolve_own_class(method: Callable) -> type:
 	return modules[class_name]
 
 
-def fullyname(ctor: type) -> str:
-	"""クラスの完全参照名を取得
+def to_fullyname(symbol: type | Callable) -> str:
+	"""シンボルの完全参照名を取得
 
 	Args:
-		ctor (type): クラス
+		symbol (type | Callable): シンボル(クラス/ファンクション)
 	Returns:
 		str: 完全参照名
 	"""
-	return f'{ctor.__module__}.{ctor.__name__}'
+	return f'{symbol.__module__}.{symbol.__name__}'
 
 
 def filepath_to_module_path(filepath: str, basedir: str) -> str:

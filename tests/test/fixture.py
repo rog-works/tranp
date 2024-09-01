@@ -3,7 +3,7 @@ from rogw.tranp.app.dir import tranp_dir
 from rogw.tranp.lang.annotation import duck_typed
 from rogw.tranp.lang.di import ModuleDefinitions
 from rogw.tranp.lang.locator import Invoker, T_Inst
-from rogw.tranp.lang.module import filepath_to_module_path, fullyname
+from rogw.tranp.lang.module import filepath_to_module_path, to_fullyname
 from rogw.tranp.module.module import Module
 from rogw.tranp.module.modules import Modules
 from rogw.tranp.module.types import ModulePath, ModulePaths
@@ -66,8 +66,8 @@ class Fixture:
 			ModuleDefinitions: モジュール定義
 		"""
 		return {
-			fullyname(ModulePaths): lambda: [ModulePath(self.__fixture_module_path, language='py')],
-			fullyname(SourceCodeProvider): lambda: self.__source_code_provider,
+			to_fullyname(ModulePaths): lambda: [ModulePath(self.__fixture_module_path, language='py')],
+			to_fullyname(SourceCodeProvider): lambda: self.__source_code_provider,
 		}
 
 	def get(self, symbol: type[T_Inst]) -> T_Inst:

@@ -9,7 +9,7 @@ from rogw.tranp.implements.cpp.providers.i18n import example_translation_mapping
 from rogw.tranp.implements.cpp.providers.semantics import cpp_plugin_provider
 from rogw.tranp.implements.cpp.transpiler.py2cpp import Py2Cpp
 from rogw.tranp.io.loader import IFileLoader
-from rogw.tranp.lang.module import fullyname
+from rogw.tranp.lang.module import to_fullyname
 from rogw.tranp.lang.profile import profiler
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
@@ -179,11 +179,11 @@ def make_renderer(i18n: I18n) -> Renderer:
 class TestPy2Cpp(TestCase):
 	fixture_module_path = Fixture.fixture_module_path(__file__)
 	fixture = Fixture.make(__file__, {
-		fullyname(Py2Cpp): Py2Cpp,
-		fullyname(PluginProvider): cpp_plugin_provider,
-		fullyname(TranslationMapping): fixture_translation_mapping,
-		fullyname(TranspilerOptions): lambda: TranspilerOptions(verbose=False),
-		fullyname(Renderer): make_renderer,
+		to_fullyname(Py2Cpp): Py2Cpp,
+		to_fullyname(PluginProvider): cpp_plugin_provider,
+		to_fullyname(TranslationMapping): fixture_translation_mapping,
+		to_fullyname(TranspilerOptions): lambda: TranspilerOptions(verbose=False),
+		to_fullyname(Renderer): make_renderer,
 	})
 
 	@profiler(on=False)

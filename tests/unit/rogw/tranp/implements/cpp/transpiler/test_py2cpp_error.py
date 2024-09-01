@@ -7,7 +7,7 @@ from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.i18n.i18n import I18n
 from rogw.tranp.implements.cpp.providers.semantics import cpp_plugin_provider
 from rogw.tranp.implements.cpp.transpiler.py2cpp import Py2Cpp
-from rogw.tranp.lang.module import fullyname
+from rogw.tranp.lang.module import to_fullyname
 from rogw.tranp.semantics.errors import NotSupportedError, ProcessingError, UnresolvedSymbolError
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.test.helper import data_provider
@@ -39,10 +39,10 @@ def make_renderer(i18n: I18n) -> Renderer:
 
 class TestPy2CppError(TestCase):
 	fixture = Fixture.make(__file__, {
-		fullyname(Py2Cpp): Py2Cpp,
-		fullyname(PluginProvider): cpp_plugin_provider,
-		fullyname(TranspilerOptions): lambda: TranspilerOptions(verbose=False),
-		fullyname(Renderer): make_renderer,
+		to_fullyname(Py2Cpp): Py2Cpp,
+		to_fullyname(PluginProvider): cpp_plugin_provider,
+		to_fullyname(TranspilerOptions): lambda: TranspilerOptions(verbose=False),
+		to_fullyname(Renderer): make_renderer,
 	})
 
 	@data_provider([

@@ -15,7 +15,7 @@ from rogw.tranp.io.writer import Writer
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.lang.di import ModuleDefinitions
 from rogw.tranp.lang.error import stacktrace
-from rogw.tranp.lang.module import fullyname, module_path_to_filepath
+from rogw.tranp.lang.module import to_fullyname, module_path_to_filepath
 from rogw.tranp.lang.profile import profiler
 from rogw.tranp.module.includer import include_module_paths
 from rogw.tranp.module.modules import Modules
@@ -180,14 +180,14 @@ class TranspileApp:
 		"""
 		config = Config()
 		definitions = {
-			fullyname(Config): lambda: config,
-			fullyname(ITranspiler): Py2Cpp,
-			fullyname(ModulePaths): cls.make_module_paths,
-			fullyname(ParserSetting): cls.make_parser_setting,
-			fullyname(PluginProvider): cpp_plugin_provider,  # FIXME C++固定
-			fullyname(Renderer): cls.make_renderer,
-			fullyname(TranslationMapping): cls.make_translation_mapping,
-			fullyname(TranspilerOptions): cls.make_options,
+			to_fullyname(Config): lambda: config,
+			to_fullyname(ITranspiler): Py2Cpp,
+			to_fullyname(ModulePaths): cls.make_module_paths,
+			to_fullyname(ParserSetting): cls.make_parser_setting,
+			to_fullyname(PluginProvider): cpp_plugin_provider,  # FIXME C++固定
+			to_fullyname(Renderer): cls.make_renderer,
+			to_fullyname(TranslationMapping): cls.make_translation_mapping,
+			to_fullyname(TranspilerOptions): cls.make_options,
 		}
 		return {**definitions, **config.di}
 

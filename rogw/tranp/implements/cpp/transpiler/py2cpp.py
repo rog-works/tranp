@@ -14,7 +14,7 @@ from rogw.tranp.i18n.i18n import I18n
 from rogw.tranp.implements.cpp.semantics.cvars import CVars
 from rogw.tranp.lang.annotation import duck_typed, implements, injectable, override
 from rogw.tranp.lang.eventemitter import Callback, Observable
-from rogw.tranp.lang.module import fullyname
+from rogw.tranp.lang.module import to_fullyname
 from rogw.tranp.lang.parser import BlockParser
 from rogw.tranp.semantics.errors import NotSupportedError
 from rogw.tranp.semantics.procedure import Procedure
@@ -87,7 +87,7 @@ class Py2Cpp(ITranspiler):
 	@implements
 	def meta(self) -> TranspilerMeta:
 		"""TranspilerMeta: トランスパイラーのメタ情報"""
-		return {'version': Versions.py2cpp, 'module': fullyname(Py2Cpp)}
+		return {'version': Versions.py2cpp, 'module': to_fullyname(Py2Cpp)}
 
 	@implements
 	def transpile(self, root: Node) -> str:

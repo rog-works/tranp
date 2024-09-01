@@ -2,10 +2,12 @@ file_input: (_NEWLINE | statement)*
 
 // # General statements
 
-// @lark statement: compound_stmt | simple_stmt
+// @lark stmt: simple_stmt | compound_stmt
 ?statement: compound_stmt | simple_stmt
 
+// @lark ?simple_stmt: small_stmt (";" small_stmt)* [";"] _NEWLINE
 ?simple_stmt: small_stmt _NEWLINE
+// @lark ?small_stmt: (expr_stmt | assign_stmt | del_stmt | pass_stmt | flow_stmt | import_stmt | global_stmt | nonlocal_stmt | assert_stmt)
 ?small_stmt: expression
 	| assign_stmt
 	| return_stmt
@@ -18,6 +20,7 @@ file_input: (_NEWLINE | statement)*
 	| continue_stmt
 	| comment_stmt // @custom
 
+// @lark ?compound_stmt: if_stmt | while_stmt | for_stmt | try_stmt | match_stmt | with_stmt | funcdef | classdef | decorated | async_stmt
 ?compound_stmt: function_def
 	| if_stmt
 	| class_def
@@ -28,7 +31,8 @@ file_input: (_NEWLINE | statement)*
 
 // # Import statements
 
-// @decl `from module.path.to import symbol1, symbol2, ...`
+// @lark import_stmt: import_name | import_from
+// @lark import_name: "import" dotted_as_names
 // @lark import_from: "from" (dots? dotted_name | dots) "import" ("*" | "(" import_as_names ")" | import_as_names)
 import_stmt: "from" dotted_name "import" ("(" import_as_names ")" | import_as_names)
 dotted_name: name ("." name)*
@@ -37,18 +41,15 @@ import_as_names: import_as_name ("," import_as_name)* [","]
 
 // # Common elements
 
+// @lark suite: simple_stmt | _NEWLINE _INDENT stmt+ _DEDENT
 block: _NEWLINE _INDENT statement+ _DEDENT | simple_stmt
 
-// @decl `@decorator.path.to`
-// @decl `@decorator.path.to(symbol1, symbol2, ...)`
 // @lark decorated: decorators (classdef | funcdef | async_funcdef)
 decorators: decorator+
 decorator: "@" dotted_name ["(" [arguments] ")"] _NEWLINE
 
 // # Class definitions
 
-// @decl `class class_name:`
-// @decl `class class_name(parent1, parent2, ...):`
 // @lark classdef: "class" name ["(" [arguments] ")"] ":" block
 class_def: [decorators] class_def_raw
 class_def_raw: "class" name ["(" [inherit_arguments] ")"] ":" block
@@ -59,7 +60,6 @@ metaclass_argvalue: "metaclass" "=" typed_expression
 
 // # Function definitions
 
-// @decl `def func_name(param1: type1, param2: type2, ...) -> return_type:`
 // @lark funcdef: "def" name "(" [parameters] ")" ["->" test] ":" suite
 function_def: [decorators] function_def_raw
 function_def_raw: "def" name "(" [parameters] ")" "->" return_type ":" block
@@ -68,14 +68,10 @@ function_def_raw: "def" name "(" [parameters] ")" "->" return_type ":" block
 
 // ## Function parameters
 
-// @decl `(param1: type1, ...)`
-// @decl `(param1: type1 = def1, ...)`
-// @decl `(param1: type1.path.to, ...)`
-// @decl `(param1: type1[subtype1, subtype2, ...], ...)`
-// @decl `(param1: 'type1.path.to', ...)`
-// @lark parameters: ("," paramvalue)* ["," SLASH ("," paramvalue)*] ["," [starparams | kwparams]] | starparams | kwparams
+// @lark parameters: paramvalue ("," paramvalue)* ["," SLASH ("," paramvalue)*] ["," [starparams | kwparams]] | starparams | kwparams
 // @lark ?paramvalue: typedparam ("=" test)?
 // @lark ?typedparam: name (":" test)?
+// @lark kwparams: "**" typedparam ","?
 parameters: paramvalue ("," paramvalue)* ["," starparam] ["," kwparams]
 	| starparam ["," kwparams]
 	| kwparams
@@ -108,7 +104,6 @@ _typed_exprlist: typed_expression ("," typed_expression)* [","]
 
 // # Function call argumanets
 
-// @decl `(arg1, arg2, ...)`
 // @lark arguments: argvalue ("," argvalue)* ("," [ starargs | kwargs])? | starargs | kwargs | comprehension{test}
 // @lark argvalue: test ("=" test)?
 // @lark starargs: stararg ("," stararg)* ("," argvalue)* ["," kwargs]
@@ -121,6 +116,7 @@ kwargs: "**" expression
 
 // # If/While/For statement
 
+// @lark if_stmt: "if" test ":" suite elifs ["else" ":" suite]
 // @lark while_stmt: "while" test ":" suite ["else" block]
 // @lark for_stmt: "for" exprlist "in" testlist ":" suite ["else" block]
 if_stmt: if_clause elif_clauses [else_clause]
@@ -135,7 +131,7 @@ for_in: "in" expression
 
 // Try/Except statement
 
-// @lark try_stmt: "try" ":" suite except_clauses ["else" block] [finally] | "try" ":" suite finally
+// @lark try_stmt: "try" ":" suite except_clauses ["else" suite] [finally] | "try" ":" suite finally
 // @lark except_clause: "except" [test ["as" name]] ":" suite
 try_stmt: try_clause except_clauses
 try_clause: "try" ":" block
@@ -152,9 +148,9 @@ with_item: expression ["as" name]
 
 // # Simple Statements
 
-// @lark assign_stmt: assign | annassign | augassign
-// @lark assign: testlist_star_expr ("=" (yield_expr|testlist_star_expr))+
+// @lark assign_stmt: annassign | augassign | assign
 // @lark annassign: testlist_star_expr ":" test ["=" test]
+// @lark assign: testlist_star_expr ("=" (yield_expr|testlist_star_expr))+
 // @lark augassign: testlist_star_expr augassign_op (yield_expr|testlist)
 // @note XXX Pythonの仕様では本来assign以外は分割代入できない(=左辺にtupleを書けない)
 // @note XXX しかし、Larkの構文解析の仕様上、マッチ条件が短いほど優先度が高くなり

@@ -243,12 +243,19 @@ comment_stmt: COMMENT
 	| primary "[" slices "]" -> getitem
 	| atom
 
-// @lark slice: test
+// @note Lark: subscriptlist, Official: slices
+// @lark ?subscriptlist: subscript | subscript (("," subscript)+ [","] | ",") -> subscript_tuple
+// @lark ?subscript: test | ([test] ":" [test] [sliceop]) -> slice
 slices: slice
 	| slice (("," slice)+ [","] | ",")
 	| [slice] ":" [slice] [":" slice] -> slice
 ?slice: expression
 
+// @note XXX 相違点のみ抜粋
+// @lark "(" yield_expr ")"
+// @lark "(" comprehension{test_or_star_expr} ")" -> tuple_comprehension
+// @lark string_concat
+// @lark "(" test ")"
 ?atom: name -> var
 	| "True" -> const_true
 	| "False" -> const_false
@@ -266,7 +273,7 @@ slices: slice
 group_expr: "(" expression ")"
 
 // @lark ?testlist_star_expr: test_or_star_expr | test_or_star_expr ("," test_or_star_expr)+ ","?  -> tuple | test_or_star_expr ","  -> tuple
-// @note FIXME 本質的には"*"は末尾にだけ付与され得るので不正確。また、解析後に"*"が判定できなくなるため、型推論も正しくならない
+// @note FIXME "*"は末尾にだけ付与され得るので不正確
 assign_namelist: expression | expression (("," ["*"]? expression)+ [","] | ",")
 // @lark ?exprlist: (expr|star_expr) | (expr|star_expr) (("," (expr|star_expr))+ [","] | ",")
 for_namelist: name | name (("," name)+ [","] | ",")

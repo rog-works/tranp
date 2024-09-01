@@ -1132,6 +1132,10 @@ class TestDefinition(TestCase):
 		('a = ()', 'file_input.assign.tuple', []),
 		('a = (1,)', 'file_input.assign.tuple', [{'value': '1', 'value_type': defs.Integer}]),
 		('a = (1, "a", (True))', 'file_input.assign.tuple', [{'value': '1', 'value_type': defs.Integer}, {'value': '"a"', 'value_type': defs.String}, {'value': '', 'value_type': defs.Group}]),
+		('a = 1, 2', 'file_input.assign.tuple', [{'value': '1', 'value_type': defs.Integer}, {'value': '2', 'value_type': defs.Integer}]),
+		('for i in 1, "a": ...', 'file_input.for_stmt.for_in.tuple', [{'value': '1', 'value_type': defs.Integer}, {'value': '"a"', 'value_type': defs.String}]),
+		('return 1, True', 'file_input.return_stmt.tuple', [{'value': '1', 'value_type': defs.Integer}, {'value': '', 'value_type': defs.Truthy}]),
+		('yield 1,', 'file_input.yield_stmt.tuple', [{'value': '1', 'value_type': defs.Integer}]),
 	])
 	def test_tuple(self, source: str, full_path: str, expected: list[dict[str, Any]]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Tuple)

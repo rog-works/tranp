@@ -2,10 +2,12 @@ file_input: (_NEWLINE | statement)*
 
 // # General statements
 
-// @lark statement: compound_stmt | simple_stmt
+// @lark stmt: simple_stmt | compound_stmt
 ?statement: compound_stmt | simple_stmt
 
+// @lark ?simple_stmt: small_stmt (";" small_stmt)* [";"] _NEWLINE
 ?simple_stmt: small_stmt _NEWLINE
+// @lark ?small_stmt: (expr_stmt | assign_stmt | del_stmt | pass_stmt | flow_stmt | import_stmt | global_stmt | nonlocal_stmt | assert_stmt)
 ?small_stmt: expression
 	| assign_stmt
 	| return_stmt
@@ -18,6 +20,7 @@ file_input: (_NEWLINE | statement)*
 	| continue_stmt
 	| comment_stmt // @custom
 
+// @lark ?compound_stmt: if_stmt | while_stmt | for_stmt | try_stmt | match_stmt | with_stmt | funcdef | classdef | decorated | async_stmt
 ?compound_stmt: function_def
 	| if_stmt
 	| class_def
@@ -28,7 +31,8 @@ file_input: (_NEWLINE | statement)*
 
 // # Import statements
 
-// @decl `from module.path.to import symbol1, symbol2, ...`
+// @lark import_stmt: import_name | import_from
+// @lark import_name: "import" dotted_as_names
 // @lark import_from: "from" (dots? dotted_name | dots) "import" ("*" | "(" import_as_names ")" | import_as_names)
 import_stmt: "from" dotted_name "import" ("(" import_as_names ")" | import_as_names)
 dotted_name: name ("." name)*
@@ -37,18 +41,15 @@ import_as_names: import_as_name ("," import_as_name)* [","]
 
 // # Common elements
 
+// @lark suite: simple_stmt | _NEWLINE _INDENT stmt+ _DEDENT
 block: _NEWLINE _INDENT statement+ _DEDENT | simple_stmt
 
-// @decl `@decorator.path.to`
-// @decl `@decorator.path.to(symbol1, symbol2, ...)`
 // @lark decorated: decorators (classdef | funcdef | async_funcdef)
 decorators: decorator+
 decorator: "@" dotted_name ["(" [arguments] ")"] _NEWLINE
 
 // # Class definitions
 
-// @decl `class class_name:`
-// @decl `class class_name(parent1, parent2, ...):`
 // @lark classdef: "class" name ["(" [arguments] ")"] ":" block
 class_def: [decorators] class_def_raw
 class_def_raw: "class" name ["(" [inherit_arguments] ")"] ":" block
@@ -59,7 +60,6 @@ metaclass_argvalue: "metaclass" "=" typed_expression
 
 // # Function definitions
 
-// @decl `def func_name(param1: type1, param2: type2, ...) -> return_type:`
 // @lark funcdef: "def" name "(" [parameters] ")" ["->" test] ":" suite
 function_def: [decorators] function_def_raw
 function_def_raw: "def" name "(" [parameters] ")" "->" return_type ":" block
@@ -68,14 +68,10 @@ function_def_raw: "def" name "(" [parameters] ")" "->" return_type ":" block
 
 // ## Function parameters
 
-// @decl `(param1: type1, ...)`
-// @decl `(param1: type1 = def1, ...)`
-// @decl `(param1: type1.path.to, ...)`
-// @decl `(param1: type1[subtype1, subtype2, ...], ...)`
-// @decl `(param1: 'type1.path.to', ...)`
-// @lark parameters: ("," paramvalue)* ["," SLASH ("," paramvalue)*] ["," [starparams | kwparams]] | starparams | kwparams
+// @lark parameters: paramvalue ("," paramvalue)* ["," SLASH ("," paramvalue)*] ["," [starparams | kwparams]] | starparams | kwparams
 // @lark ?paramvalue: typedparam ("=" test)?
 // @lark ?typedparam: name (":" test)?
+// @lark kwparams: "**" typedparam ","?
 parameters: paramvalue ("," paramvalue)* ["," starparam] ["," kwparams]
 	| starparam ["," kwparams]
 	| kwparams
@@ -108,7 +104,6 @@ _typed_exprlist: typed_expression ("," typed_expression)* [","]
 
 // # Function call argumanets
 
-// @decl `(arg1, arg2, ...)`
 // @lark arguments: argvalue ("," argvalue)* ("," [ starargs | kwargs])? | starargs | kwargs | comprehension{test}
 // @lark argvalue: test ("=" test)?
 // @lark starargs: stararg ("," stararg)* ("," argvalue)* ["," kwargs]
@@ -121,6 +116,7 @@ kwargs: "**" expression
 
 // # If/While/For statement
 
+// @lark if_stmt: "if" test ":" suite elifs ["else" ":" suite]
 // @lark while_stmt: "while" test ":" suite ["else" block]
 // @lark for_stmt: "for" exprlist "in" testlist ":" suite ["else" block]
 if_stmt: if_clause elif_clauses [else_clause]
@@ -131,11 +127,11 @@ else_clause: "else" ":" block
 while_stmt: "while" expression ":" block
 for_stmt: "for" for_namelist for_in ":" block
 // @custom
-for_in: "in" expression
+for_in: "in" testlist
 
 // Try/Except statement
 
-// @lark try_stmt: "try" ":" suite except_clauses ["else" block] [finally] | "try" ":" suite finally
+// @lark try_stmt: "try" ":" suite except_clauses ["else" suite] [finally] | "try" ":" suite finally
 // @lark except_clause: "except" [test ["as" name]] ":" suite
 try_stmt: try_clause except_clauses
 try_clause: "try" ":" block
@@ -152,15 +148,15 @@ with_item: expression ["as" name]
 
 // # Simple Statements
 
-// @lark assign_stmt: assign | annassign | augassign
-// @lark assign: testlist_star_expr ("=" (yield_expr|testlist_star_expr))+
+// @lark assign_stmt: annassign | augassign | assign
 // @lark annassign: testlist_star_expr ":" test ["=" test]
+// @lark assign: testlist_star_expr ("=" (yield_expr|testlist_star_expr))+
 // @lark augassign: testlist_star_expr augassign_op (yield_expr|testlist)
 // @note XXX Pythonの仕様では本来assign以外は分割代入できない(=左辺にtupleを書けない)
 // @note XXX しかし、Larkの構文解析の仕様上、マッチ条件が短いほど優先度が高くなり
 // @note XXX assign_stmtのor条件が成り立たなくなるため、優先度を合わせるためにassign_namelistを共通で利用する
 ?assign_stmt: assign | anno_assign | aug_assign | class_var_assign | class_assign | template_assign
-assign: assign_namelist ("=" expression)+
+assign: assign_namelist ("=" testlist)+
 anno_assign: assign_namelist ":" (typed_expression | "'" typed_expression "'") ["=" expression]
 aug_assign: assign_namelist aug_assign_op expression
 // @custom
@@ -171,12 +167,11 @@ template_assign: assign_namelist "=" "TypeVar" "(" string ["," "bound" "=" (type
 !aug_assign_op: "+=" | "-=" | "*=" | "@=" | "/=" | "%=" | "&=" | "|=" | "^=" | "<<=" | ">>=" | "**=" | "//="
 
 // @lark del_stmt: "del" exprlist
-// @lark return_stmt: "return" [testlist]
 // @lark yield_stmt: "yield" [testlist] | "yield" "from" test -> yield_from
 // @lark raise_stmt: raise [test ["from" test]]
 del_stmt: "del" _exprlist
-return_stmt: "return" [expression]
-yield_stmt: "yield" expression
+return_stmt: "return" [testlist]
+yield_stmt: "yield" testlist
 raise_stmt: "raise" primary ["from" name]
 break_stmt: "break"
 pass_stmt: "pass"
@@ -248,12 +243,19 @@ comment_stmt: COMMENT
 	| primary "[" slices "]" -> getitem
 	| atom
 
-// @lark slice: test
+// @note Lark: subscriptlist, Official: slices
+// @lark ?subscriptlist: subscript | subscript (("," subscript)+ [","] | ",") -> subscript_tuple
+// @lark ?subscript: test | ([test] ":" [test] [sliceop]) -> slice
 slices: slice
 	| slice (("," slice)+ [","] | ",")
 	| [slice] ":" [slice] [":" slice] -> slice
 ?slice: expression
 
+// @note XXX 相違点のみ抜粋
+// @lark "(" yield_expr ")"
+// @lark "(" comprehension{test_or_star_expr} ")" -> tuple_comprehension
+// @lark string_concat
+// @lark "(" test ")"
 ?atom: name -> var
 	| "True" -> const_true
 	| "False" -> const_false
@@ -271,7 +273,7 @@ slices: slice
 group_expr: "(" expression ")"
 
 // @lark ?testlist_star_expr: test_or_star_expr | test_or_star_expr ("," test_or_star_expr)+ ","?  -> tuple | test_or_star_expr ","  -> tuple
-// @note FIXME 本質的には"*"は末尾にだけ付与され得るので不正確。また、解析後に"*"が判定できなくなるため、型推論も正しくならない
+// @note FIXME "*"は末尾にだけ付与され得るので不正確
 assign_namelist: expression | expression (("," ["*"]? expression)+ [","] | ",")
 // @lark ?exprlist: (expr|star_expr) | (expr|star_expr) (("," (expr|star_expr))+ [","] | ",")
 for_namelist: name | name (("," name)+ [","] | ",")
@@ -279,10 +281,16 @@ for_namelist: name | name (("," name)+ [","] | ",")
 // @lark _tuple_inner: test_or_star_expr (("," test_or_star_expr)+ [","] | ",")
 _tuple_inner: expression (("," expression)+ [","] | ",")
 
+// @lark ?testlist: test | testlist_tuple
+// @lark testlist_tuple: test (("," test)+ [","] | ",")
+// @note XXX 現状はtestlist_star_exprの簡易版
+?testlist: expression | expression (("," expression)+ [","] | ",") -> tuple
+
 // @lark _exprlist: test_or_star_expr (","  test_or_star_expr)* [","]
 _exprlist: (expression | star_expr) ("," (expression | star_expr))* [","]
 star_expr: "*" expression
 
+// @lark _dict_exprlist: (key_value | "**" expr) ("," (key_value | "**" expr))* [","]
 _dict_exprlist: (key_value | "**" expression) ("," (key_value | "**" expression))* [","]
 key_value: expression ":" expression
 

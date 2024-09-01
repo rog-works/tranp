@@ -8,7 +8,9 @@ Tranp (TRANspiler on Python)
 
 * Python 3.12
 * pip 22.2.1
-* Lark 1.1.8
+* Lark 1.2.2
+* Jinja2 3.1.4
+* PyYAML 6.0.2
 
 # Usage
 

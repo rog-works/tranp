@@ -27,7 +27,7 @@ $ bash bin/analyze.sh
 ## Transpile from Python to C++
 
 ```
-$ bash bin/transpile.sh -i 'path/to/**/*.py' -o path/to
+$ bash bin/transpile.sh -c example/config.yml
 ```
 
 ## Testing via tests/

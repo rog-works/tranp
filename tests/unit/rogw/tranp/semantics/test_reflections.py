@@ -43,6 +43,10 @@ class TestReflections(TestCase):
 		symbol = reflections.from_fullyname(ModuleDSN.full_joined(self.fixture_module_path, local_path))
 		self.assertEqual(reflections.type_is(symbol.types, standard_type), expected)
 
+	def test_get_object(self) -> None:
+		reflections = self.fixture.get(Reflections)
+		self.assertEqual(reflections.get_object().types.fullyname, _mod('classes', 'object'))
+
 	@data_provider([
 		(int, _mod('classes', int.__name__)),
 		(float, _mod('classes', float.__name__)),

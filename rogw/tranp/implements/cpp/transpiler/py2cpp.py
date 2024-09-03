@@ -522,9 +522,9 @@ class Py2Cpp(ITranspiler):
 			cvar_receiver = PatternParser.sub_cvar_to(receiver)
 			move = spec.split('cvar_to_')[1]
 			return self.view.render(f'{node.classification}/cvar_to', vars={**relay_vars, 'receiver': cvar_receiver, 'move': move})
-		elif spec.startswith('__module__'):
+		elif spec == '__module__':
 			return self.view.render(f'{node.classification}/{spec}', vars={**relay_vars, 'module_path': receiver_symbol.types.module_path})
-		elif spec.startswith('__name__'):
+		elif spec == '__name__':
 			return self.view.render(f'{node.classification}/{spec}', vars={**relay_vars, 'symbol': self.to_domain_name_by_class(receiver_symbol.types)})
 		else:
 			return self.view.render(f'{node.classification}/default', vars=relay_vars)

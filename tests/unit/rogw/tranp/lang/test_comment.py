@@ -9,26 +9,28 @@ class TestComment(TestCase):
 	@data_provider([
 		(
 			"""Description
-line2
 
-Args:
-	a (A): A desc
-	b (B): B desc
-Returns:
-	R: R desc
-Raises:
-	E1: E1 desc
-	E2: E2 desc
-Note:
-	Some note
-	line2
-Examples:
-	```python
-	Some example
-	```
-""",
+				* 1
+					* 1-1
+			Args:
+				a (A): A desc
+				b (B): B desc
+			Returns:
+				R: R desc
+			Raises:
+				E1: E1 desc
+				E2: E2 desc
+			Note:
+				Some note
+				line2
+			Examples:
+				```python
+				def example() -> None:
+					...
+				```
+			""",
 			{
-				'description': 'Description\nline2',
+				'description': 'Description\n\n* 1\n\t* 1-1',
 				'attributes': [],
 				'args': [
 					{'name': 'a', 'type': 'A', 'description': 'A desc'},
@@ -40,16 +42,16 @@ Examples:
 					{'type': 'E2', 'description': 'E2 desc'},
 				],
 				'note': 'Some note\nline2',
-				'examples': '```python\nSome example\n```',
+				'examples': '```python\ndef example() -> None:\n\t...\n```',
 			},
 		),
 		(
 			"""Description
 
-Attributes:
-	a (A): A desc
-	b (B): B desc
-""",
+			Attributes:
+				a (A): A desc
+				b (B): B desc
+			""",
 			{
 				'description': 'Description',
 				'attributes': [

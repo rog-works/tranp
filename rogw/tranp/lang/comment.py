@@ -74,7 +74,42 @@ class Comment(NamedTuple):
 		Returns:
 			str: 処理後のテキスト
 		"""
-		return '\n'.join([elem.strip() for elem in text.split('\n')])
+		lines = text.split('\n')
+		dedented = cls.__find_dedent(lines)
+		new_lines = [line[dedented[min(index, 1)]:].rstrip() for index, line in enumerate(lines)]
+		return '\n'.join(new_lines)
+
+	@classmethod
+	def __find_dedent(cls, lines: list[str]) -> tuple[int, int]:
+		"""行リストを基にディデント位置を検出
+
+		Args:
+			lines (list[str]): 行リスト
+		Returns:
+			tuple[int, int]: (1行目の位置, 2行目以降の位置)
+		"""
+		first = cls.__find_dedent_line(lines[0])
+		for line in lines[1:]:
+			index = cls.__find_dedent_line(line)
+			if index > 0:
+				return first, index
+			
+		return first, 0
+
+	@classmethod
+	def __find_dedent_line(cls, line: str) -> int:
+		"""行テキストを基にディデント位置を検出
+
+		Args:
+			line (str): 行テキスト
+		Returns:
+			int: ディデント位置
+		"""
+		for index, c in enumerate(line):
+			if c not in '\t ':
+				return index
+
+		return 0
 
 	@classmethod
 	def __each_trim(cls, elems: list[str]) -> list[str]:

@@ -44,6 +44,23 @@ class TestReflections(TestCase):
 		self.assertEqual(reflections.type_is(symbol.types, standard_type), expected)
 
 	@data_provider([
+		(int, _mod('classes', int.__name__)),
+		(float, _mod('classes', float.__name__)),
+		(str, _mod('classes', str.__name__)),
+		(bool, _mod('classes', bool.__name__)),
+		(tuple, _mod('classes', tuple.__name__)),
+		(list, _mod('classes', list.__name__)),
+		(dict, _mod('classes', dict.__name__)),
+		(type, _mod('classes', type.__name__)),
+		(classes.Unknown, _mod('classes', classes.Unknown.__name__)),
+		(classes.Union, _mod('classes', 'Union')),
+		(None, _mod('classes', 'None')),
+	])
+	def test_from_standard(self, standard_type: type[Standards] | None, expected: str) -> None:
+		reflections = self.fixture.get(Reflections)
+		self.assertEqual(reflections.from_standard(standard_type).types.fullyname, expected)
+
+	@data_provider([
 		('TypeAlias', 'TypeAlias'),
 
 		('C', 'C'),
@@ -226,22 +243,6 @@ class TestReflections(TestCase):
 		reflections = self.fixture.get(Reflections)
 		symbol = reflections.from_fullyname(ModuleDSN.full_joined(self.fixture_module_path, local_path))
 		self.assertEqual(ClassShorthandNaming.domain_name_for_debug(symbol), expected)
-
-	@data_provider([
-		(int, _mod('classes', int.__name__)),
-		(float, _mod('classes', float.__name__)),
-		(str, _mod('classes', str.__name__)),
-		(bool, _mod('classes', bool.__name__)),
-		(tuple, _mod('classes', tuple.__name__)),
-		(list, _mod('classes', list.__name__)),
-		(dict, _mod('classes', dict.__name__)),
-		(classes.Unknown, _mod('classes', classes.Unknown.__name__)),
-		(classes.Union, _mod('classes', 'Union')),
-		(None, _mod('classes', 'None')),
-	])
-	def test_type_of_standard(self, standard_type: type[Standards] | None, expected: str) -> None:
-		reflections = self.fixture.get(Reflections)
-		self.assertEqual(reflections.from_standard(standard_type).types.fullyname, expected)
 
 	@data_provider([
 		('C', '', _mod('xyz', 'C'), 'C'),

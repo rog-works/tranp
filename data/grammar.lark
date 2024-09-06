@@ -316,4 +316,5 @@ _NEWLINE: ( /\r?\n[\t ]*/ )+
 
 %ignore /[\t \f]+/ // White Spaces
 %ignore /\\[\t \f]*\r?\n/ // Empty Lines
+%ignore /#\s*type:\s*ignore[^\n]*/ // @custom Type ignore comment for IDE
 %declare _INDENT _DEDENT // @note Need for `parse(..., postlex=PythonIndender)`

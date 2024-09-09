@@ -3,6 +3,9 @@
 aliases.classes: aliases.rogw.tranp.compatible.libralies.classes
 aliases.cpp: aliases.rogw.tranp.compatible.cpp.classes
 aliases.lang: aliases.rogw.tranp.compatible.lang
+aliases.typing: aliases.typing
+# typing
+aliases.typing#Any: void
 # lang
 aliases.rogw.tranp.compatible.lang.accessor.public: public
 aliases.rogw.tranp.compatible.lang.accessor.protected: protected

@@ -1,4 +1,4 @@
-from typing import Generic, TypeVar, cast
+from typing import Generic, Self, TypeVar, cast
 
 from rogw.tranp.lang.annotation import override
 
@@ -27,6 +27,34 @@ class CVar(Generic[T_co]):
 	def raw(self) -> T_co:
 		"""実体を返却する実体参照代替メソッド。C++では実体型は削除、アドレス型は`*`に相当"""
 		return cast(T_co, self._origin)
+
+	def __eq__(self, other: Self) -> bool:
+		"""比較演算子(==)のオーバーロード
+
+		Args:
+			other (Self): 対象
+		Returns:
+			bool: True = 一致
+		"""
+		return self.raw == other.raw
+
+	def __ne__(self, other: Self) -> bool:
+		"""比較演算子(!=)のオーバーロード
+
+		Args:
+			other (Self): 対象
+		Returns:
+			bool: True = 不一致
+		"""
+		return self.raw != other.raw
+
+	def __hash__(self) -> int:
+		"""ハッシュ値を取得
+
+		Returns:
+			int: ハッシュ値
+		"""
+		return hash(self.raw)
 
 
 class CP(CVar[T_co]):

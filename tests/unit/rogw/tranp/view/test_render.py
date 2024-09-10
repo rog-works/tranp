@@ -323,6 +323,12 @@ class TestRenderer(TestCase):
 		self.assertRender('dict_type', 0, vars, expected)
 
 	@data_provider([
+		({'parameters': ['int', 'float'], 'return_type': 'bool'}, 'std::function<bool(int, float)>'),
+	])
+	def test_render_callable_type(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('callable_type', 0, vars, expected)
+
+	@data_provider([
 		({'items': ['{hoge, 1}','{fuga, 2}']}, '{\n\t{hoge, 1},\n\t{fuga, 2},\n}'),
 		({'items': []}, '{}'),
 	])
@@ -583,10 +589,43 @@ class TestRenderer(TestCase):
 		self.assertRender('func_call/cast', 0, vars, expected)
 
 	@data_provider([
+		({'arguments': ['A(0)'], 'is_statement': True}, 'new A(0);'),
+	])
+	def test_render_func_call_cvar_new_p(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cvar_new_p', 0, vars, expected)
+
+	@data_provider([
+		({'var_type': 'std::vector<A>', 'initializer': '{0}, {1}', 'is_statement': True}, 'std::shared_ptr<std::vector<A>>(new std::vector<A>({0}, {1}));'),
+	])
+	def test_render_func_call_cvar_new_sp_list(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cvar_new_sp_list', 0, vars, expected)
+
+	@data_provider([
+		({'var_type': 'A', 'initializer': '0', 'is_statement': True}, 'std::make_shared<A>(0);'),
+	])
+	def test_render_func_call_cvar_new_sp(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cvar_new_sp', 0, vars, expected)
+
+	@data_provider([
 		({'var_type': 'int', 'is_statement': True}, 'std::shared_ptr<int>();'),
 	])
 	def test_render_func_call_cvar_sp_empty(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('func_call/cvar_sp_empty', 0, vars, expected)
+
+	@data_provider([
+		({'cvar_type': 'CP', 'arguments': ['n'], 'is_statement': True}, '(&(n));'),
+		({'cvar_type': 'CPConst', 'arguments': ['n'], 'is_statement': True}, '(&(n));'),
+		({'cvar_type': 'CP', 'arguments': ['this'], 'is_statement': True}, 'this;'),
+		({'cvar_type': 'CPConst', 'arguments': ['this'], 'is_statement': True}, 'this;'),
+		({'cvar_type': 'CP', 'arguments': ['this->n'], 'is_statement': True}, '(&(this->n));'),
+		({'cvar_type': 'CPConst', 'arguments': ['this->n'], 'is_statement': True}, '(&(this->n));'),
+		({'cvar_type': 'CSP', 'arguments': ['n'], 'is_statement': True}, 'n;'),
+		({'cvar_type': 'CSPConst', 'arguments': ['n'], 'is_statement': True}, 'n;'),
+		({'cvar_type': 'CRef', 'arguments': ['n'], 'is_statement': True}, 'n;'),
+		({'cvar_type': 'CRefConst', 'arguments': ['n'], 'is_statement': True}, 'n;'),
+	])
+	def test_render_func_call_cvar_to(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cvar_to', 0, vars, expected)
 
 	@data_provider([
 		(
@@ -709,43 +748,10 @@ class TestRenderer(TestCase):
 		self.assertRender('func_call/list_pop', 0, vars, expected)
 
 	@data_provider([
-		({'arguments': ['A(0)'], 'is_statement': True}, 'new A(0);'),
-	])
-	def test_render_func_call_new_cvar_p(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/new_cvar_p', 0, vars, expected)
-
-	@data_provider([
-		({'var_type': 'std::vector<A>', 'initializer': '{0}, {1}', 'is_statement': True}, 'std::shared_ptr<std::vector<A>>(new std::vector<A>({0}, {1}));'),
-	])
-	def test_render_func_call_new_cvar_sp_list(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/new_cvar_sp_list', 0, vars, expected)
-
-	@data_provider([
-		({'var_type': 'A', 'initializer': '0', 'is_statement': True}, 'std::make_shared<A>(0);'),
-	])
-	def test_render_func_call_new_cvar_sp(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/new_cvar_sp', 0, vars, expected)
-
-	@data_provider([
 		({'arguments': ['"%d, %f"', '1', '1.0f'], 'is_statement': True}, 'printf("%d, %f", 1, 1.0f);'),
 	])
 	def test_render_func_call_print(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('func_call/print', 0, vars, expected)
-
-	@data_provider([
-		({'cvar_type': 'CP', 'arguments': ['n'], 'is_statement': True}, '(&(n));'),
-		({'cvar_type': 'CPConst', 'arguments': ['n'], 'is_statement': True}, '(&(n));'),
-		({'cvar_type': 'CP', 'arguments': ['this'], 'is_statement': True}, 'this;'),
-		({'cvar_type': 'CPConst', 'arguments': ['this'], 'is_statement': True}, 'this;'),
-		({'cvar_type': 'CP', 'arguments': ['this->n'], 'is_statement': True}, '(&(this->n));'),
-		({'cvar_type': 'CPConst', 'arguments': ['this->n'], 'is_statement': True}, '(&(this->n));'),
-		({'cvar_type': 'CSP', 'arguments': ['n'], 'is_statement': True}, 'n;'),
-		({'cvar_type': 'CSPConst', 'arguments': ['n'], 'is_statement': True}, 'n;'),
-		({'cvar_type': 'CRef', 'arguments': ['n'], 'is_statement': True}, 'n;'),
-		({'cvar_type': 'CRefConst', 'arguments': ['n'], 'is_statement': True}, 'n;'),
-	])
-	def test_render_func_call_to_cvar(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/to_cvar', 0, vars, expected)
 
 	@data_provider([
 		({'calls': 'A.func', 'arguments': ['1 + 2', 'A.value']}, 'A.func(1 + 2, A.value)'),

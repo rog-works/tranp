@@ -306,6 +306,8 @@ class TestPy2Cpp(TestCase):
 
 		('template_func', '', defs.Function, '/** template_func */\ntemplate<typename T>\nT template_func(T v) {\n\n}'),
 
+		('ForCallableType', '', defs.Class, '/** ForCallableType */\nclass ForCallableType {\n\tpublic: std::function<bool(int, std::string)> func;\n\tpublic:\n\t/** __init__ */\n\tForCallableType(std::function<bool(int, std::string)> func) : func(func) {\n\t}\n};'),
+
 		('ForFuncCall.Copy.__py_copy__', '', defs.Method, 'public:\n/** __py_copy__ */\nCopy(const ForFuncCall::Copy& origin) {\n\n}'),
 		('ForFuncCall.Copy.move', 'function_def_raw.block.funccall', defs.FuncCall, 'copied = (*this);'),
 	])

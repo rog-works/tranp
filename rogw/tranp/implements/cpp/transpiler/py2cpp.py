@@ -645,7 +645,7 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(node.classification, vars={'type_name': type_name, 'key_type': key_type, 'value_type': value_type})
 
 	def on_callable_type(self, node: defs.CallableType, type_name: str, parameters: list[str], return_type: str) -> str:
-		raise NotSupportedError(f'Denied Callable type. node: {node}')
+		return self.view.render(node.classification, vars={'parameters': parameters, 'return_type': return_type})
 
 	def on_custom_type(self, node: defs.CustomType, type_name: str, template_types: list[str]) -> str:
 		# XXX @see semantics.reflection.helper.naming.ClassShorthandNaming.domain_name
@@ -680,12 +680,32 @@ class Py2Cpp(ITranspiler):
 		is_statement = node.parent.is_a(defs.Block)
 		spec, context = self.analyze_func_call_spec(node)
 		func_call_vars = {'calls': calls, 'arguments': arguments, 'is_statement': is_statement}
-		if spec == 'c_pragma':
-			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
-		elif spec == 'c_include':
+		if spec == 'c_include':
 			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == 'c_macro':
 			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
+		elif spec == 'c_pragma':
+			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
+		elif spec == 'cast':
+			var_type = self.to_accessible_name(cast(IReflection, context))
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
+		elif spec == 'cast_enum':
+			var_type = self.to_accessible_name(cast(IReflection, context))
+			return self.view.render(f'{node.classification}/cast_bin_to_bin', vars={**func_call_vars, 'var_type': var_type})
+		elif spec == 'cast_list':
+			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
+		elif spec == 'cast_bin_to_bin':
+			var_type = self.to_accessible_name(cast(IReflection, context))
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
+		elif spec == 'cast_bin_to_str':
+			var_type = self.to_accessible_name(cast(IReflection, context))
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
+		elif spec == 'cast_str_to_bin':
+			var_type = self.to_accessible_name(cast(IReflection, context))
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
+		elif spec == 'cast_str_to_str':
+			var_type = self.to_accessible_name(cast(IReflection, context))
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
 		elif spec == 'len':
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
@@ -702,23 +722,6 @@ class Py2Cpp(ITranspiler):
 				formatters.append({'label': argument.label.tokens, 'tag': to_tags.get(arg_symbol.types.domain_name, '%s'), 'var_type': arg_symbol.types.domain_name, 'is_literal': argument.value.is_a(defs.Literal)})
 
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'is_literal': is_literal, 'formatters': formatters})
-		elif spec == 'cast':
-			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
-		elif spec == 'cast_list':
-			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
-		elif spec == 'cast_bin_to_bin':
-			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
-		elif spec == 'cast_str_to_bin':
-			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
-		elif spec == 'cast_str_to_str':
-			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
-		elif spec == 'cast_bin_to_str':
-			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
 		elif spec == PythonClassOperations.copy_constructor:
 			# 期待値: 'receiver.__py_copy__'
 			receiver, _ = PatternParser.break_relay(calls)
@@ -751,20 +754,10 @@ class Py2Cpp(ITranspiler):
 			receiver, operator = PatternParser.break_relay(calls)
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'var_type': var_type})
-		elif spec == 'cast_enum':
-			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/cast_bin_to_bin', vars={**func_call_vars, 'var_type': var_type})
-		elif spec.startswith('to_cvar_'):
-			cvar_type = spec.split('to_cvar_')[1]
-			return self.view.render(f'{node.classification}/to_cvar', vars={**func_call_vars, 'cvar_type': cvar_type})
-		elif spec == 'cvar_sp_empty':
-			# 期待値: CSP[A].empty()
-			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
-		elif spec == 'new_cvar_p':
+		elif spec == 'cvar_new_p':
 			# 期待値: CP.new(A(a, b, c))
 			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
-		elif spec == 'new_cvar_sp_list':
+		elif spec == 'cvar_new_sp_list':
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			# 期待値1: CSP.new([1, 2, 3])
 			initializer = arguments[0]
@@ -777,11 +770,18 @@ class Py2Cpp(ITranspiler):
 				initializer = BlockParser.parse_bracket(initializer)[0][1:-1]
 
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type, 'initializer': initializer})
-		elif spec == 'new_cvar_sp':
+		elif spec == 'cvar_new_sp':
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			# 期待値: CSP.new(A(a, b, c))
 			initializer = PatternParser.pluck_cvar_new_argument(arguments[0])
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type, 'initializer': initializer})
+		elif spec == 'cvar_sp_empty':
+			# 期待値: CSP[A].empty()
+			var_type = self.to_accessible_name(cast(IReflection, context))
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
+		elif spec.startswith('cvar_to_'):
+			cvar_type = spec.split('cvar_to_')[1]
+			return self.view.render(f'{node.classification}/cvar_to', vars={**func_call_vars, 'cvar_type': cvar_type})
 		else:
 			return self.view.render(f'{node.classification}/default', vars=func_call_vars)
 
@@ -820,7 +820,7 @@ class Py2Cpp(ITranspiler):
 				else:
 					return 'cast_bin_to_bin', to_raw
 			elif calls in CVars.keys():
-				return f'to_cvar_{calls}', None
+				return f'cvar_to_{calls}', None
 		elif isinstance(node.calls, defs.Relay):
 			prop = node.calls.prop.tokens
 			if prop in ['pop', 'insert', 'extend', 'keys', 'values']:
@@ -845,10 +845,10 @@ class Py2Cpp(ITranspiler):
 				context = self.reflections.type_of(node.calls).context.impl(refs.Object).actualize()
 				cvar_key = CVars.key_from(context)
 				if CVars.is_addr_p(cvar_key):
-					return f'new_cvar_p', None
+					return 'cvar_new_p', None
 				elif CVars.is_addr_sp(cvar_key):
 					new_type_raw = self.reflections.type_of(node.arguments[0])
-					spec = 'new_cvar_sp_list' if new_type_raw.impl(refs.Object).type_is(list) else 'new_cvar_sp'
+					spec = 'cvar_new_sp_list' if new_type_raw.impl(refs.Object).type_is(list) else 'cvar_new_sp'
 					return spec, new_type_raw
 
 		if isinstance(node.calls, (defs.Relay, defs.Var)):

@@ -6,6 +6,7 @@ aliases.lang: aliases.rogw.tranp.compatible.lang
 aliases.typing: aliases.typing
 # typing
 aliases.typing#Any: void
+aliases.typing#Callable: std::function
 # lang
 aliases.rogw.tranp.compatible.lang.accessor.public: public
 aliases.rogw.tranp.compatible.lang.accessor.protected: protected

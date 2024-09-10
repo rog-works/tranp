@@ -23,6 +23,7 @@ import rogw.tranp.semantics.reflection.definition as refs
 from rogw.tranp.semantics.reflection.helper.naming import ClassDomainNaming, ClassShorthandNaming
 from rogw.tranp.semantics.reflections import Reflections
 import rogw.tranp.syntax.node.definition as defs
+from rogw.tranp.syntax.node.definition.accessible import PythonClassOperations
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.transpiler.types import ITranspiler, TranspilerOptions
 from rogw.tranp.view.render import Renderer
@@ -313,7 +314,9 @@ class Py2Cpp(ITranspiler):
 		template_types = self.fetch_function_template_names(node)
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types}
 		method_vars = {'accessor': self.to_accessor(node.accessor), 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'class_symbol': node.class_types.symbol.tokens, 'allow_override': self.allow_override_from_method(node)}
-		return self.view.render(f'function/{node.classification}', vars={**function_vars, **method_vars})
+		special_specs = {PythonClassOperations.copy_constructor: 'copy_constructor', PythonClassOperations.destructor: 'destructor'}
+		spec = special_specs.get(symbol, node.classification)
+		return self.view.render(f'function/{spec}', vars={**function_vars, **method_vars})
 
 	def on_closure(self, node: defs.Closure, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		"""Note: closureでtemplate_typesは不要なので対応しない"""
@@ -716,6 +719,9 @@ class Py2Cpp(ITranspiler):
 		elif spec == 'cast_bin_to_str':
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
+		elif spec in [PythonClassOperations.copy_constructor, PythonClassOperations.destructor]:
+			receiver, operator = PatternParser.break_relay(calls)
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver})
 		elif spec == 'list_pop':
 			# 期待値: 'receiver.pop'
 			receiver, operator = PatternParser.break_relay(calls)
@@ -824,6 +830,8 @@ class Py2Cpp(ITranspiler):
 					key_attr, value_attr = context.attrs
 					attr_indexs = {'pop': value_attr, 'keys': key_attr, 'values': value_attr}
 					return f'dict_{prop}', attr_indexs[prop]
+			elif prop in [PythonClassOperations.copy_constructor, PythonClassOperations.destructor]:
+				return prop, None
 			elif prop == 'format':
 				if node.calls.receiver.is_a(defs.String):
 					return 'str_format', None

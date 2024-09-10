@@ -1,0 +1,11 @@
+{{ accessor }}:
+{% include('function/_comment.j2') %}
+{%- include('function/_template_types.j2') %}
+{%- include('function/_decorators.j2') %}
+{%- if is_abstract %}
+virtual {% include('function/_definition_constructor.j2') %} = 0;
+{%- elif allow_override %}
+virtual {% include('function/_definition_constructor.j2') %} {% include('function/_block.j2') %}
+{%- else %}
+{% include('function/_definition_constructor.j2') %} {% include('function/_block.j2') %}
+{%- endif %}

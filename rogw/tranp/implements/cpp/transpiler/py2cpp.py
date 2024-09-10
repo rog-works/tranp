@@ -686,6 +686,10 @@ class Py2Cpp(ITranspiler):
 			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == 'c_pragma':
 			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
+		elif spec == PythonClassOperations.copy_constructor:
+			# 期待値: 'receiver.__py_copy__'
+			receiver, _ = PatternParser.break_relay(calls)
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver})
 		elif spec == 'cast':
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
@@ -722,10 +726,6 @@ class Py2Cpp(ITranspiler):
 				formatters.append({'label': argument.label.tokens, 'tag': to_tags.get(arg_symbol.types.domain_name, '%s'), 'var_type': arg_symbol.types.domain_name, 'is_literal': argument.value.is_a(defs.Literal)})
 
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'is_literal': is_literal, 'formatters': formatters})
-		elif spec == PythonClassOperations.copy_constructor:
-			# 期待値: 'receiver.__py_copy__'
-			receiver, _ = PatternParser.break_relay(calls)
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver})
 		elif spec == 'list_pop':
 			# 期待値: 'receiver.pop'
 			receiver, operator = PatternParser.break_relay(calls)

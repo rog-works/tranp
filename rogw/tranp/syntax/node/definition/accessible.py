@@ -27,6 +27,8 @@ class PythonClassOperations:
 	"""クラスオペレーション定義"""
 
 	constructor: ClassVar = '__init__'
+	copy_constructor: ClassVar = '__py_copy__'  # XXX 独自仕様
+	destructor: ClassVar = '__py_destroy__'  # XXX 独自仕様
 	iterator: ClassVar = '__next__'
 	iterable: ClassVar = '__iter__'
 

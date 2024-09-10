@@ -6,11 +6,15 @@ class ClassOperations(Protocol):
 
 	Attributes:
 		constructor: コンストラクターメソッドの名称
+		copy_constructor: コピーコンストラクターメソッドの名称
+		destructor: デストラクターメソッドの名称
 		iterator: イテレーターメソッドの名称
 		iterable: イテレータブルメソッドの名称
 	"""
 
 	constructor: ClassVar[str]
+	copy_constructor: ClassVar[str]
+	destructor: ClassVar[str]
 	iterator: ClassVar[str]
 	iterable: ClassVar[str]
 

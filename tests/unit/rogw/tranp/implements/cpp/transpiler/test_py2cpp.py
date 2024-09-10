@@ -305,6 +305,9 @@ class TestPy2Cpp(TestCase):
 		('AssignOps.assign', 'function_def_raw.block.assign[5]', defs.MoveAssign, 'auto [ts, ti1, ti2] = tsii;'),
 
 		('template_func', '', defs.Function, '/** template_func */\ntemplate<typename T>\nT template_func(T v) {\n\n}'),
+
+		('ForFuncCall.Copy.__py_copy__', '', defs.Method, 'public:\n/** __py_copy__ */\nCopy(const ForFuncCall::Copy& origin) {\n\n}'),
+		('ForFuncCall.Copy.move', 'function_def_raw.block.funccall', defs.FuncCall, 'copied = (*this);'),
 	])
 	def test_exec(self, local_path: str, offset_path: str, expected_type: type[Node], expected: str) -> None:
 		# local_pathが空の場合はEntrypointを基点ノードとする

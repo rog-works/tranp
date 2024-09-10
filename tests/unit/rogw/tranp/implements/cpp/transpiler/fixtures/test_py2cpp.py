@@ -4,7 +4,7 @@ from typing import ClassVar, Generic, TypeAlias, TypeVar, cast
 from rogw.tranp.compatible.cpp.classes import void
 from rogw.tranp.compatible.cpp.embed import __allow_override__, __embed__, __struct__
 from rogw.tranp.compatible.cpp.enum import CEnum as Enum
-from rogw.tranp.compatible.cpp.object import CP, CRawConst, CRef, CSP
+from rogw.tranp.compatible.cpp.object import CP, CRawConst, CRef, CSP, CRefConst
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 
 c_pragma('once')
@@ -526,3 +526,14 @@ class AssignOps:
 
 
 def template_func(v: T) -> T: ...
+
+
+class ForFuncCall:
+	class Copy:
+		def __py_copy__(self, origin: 'CRefConst[ForFuncCall.Copy]') -> None:
+			...
+
+		def move(self) -> 'ForFuncCall.Copy':
+			copied = ForFuncCall.Copy()
+			copied.__py_copy__(CRefConst(self))
+			return copied

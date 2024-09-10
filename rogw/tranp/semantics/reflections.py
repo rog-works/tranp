@@ -458,7 +458,7 @@ class ProceduralResolver:
 		if node.sliced:
 			return actual_receiver.stack(node)
 		elif receiver.impl(refs.Object).type_is(type):
-			actual_keys = [key.impl(refs.Object).actualize() for key in keys]
+			actual_keys = [key.impl(refs.Object).actualize('type') for key in keys]
 			actual_class = actual_receiver.stack().extends(*actual_keys)
 			return actual_receiver.to(node, self.reflections.from_standard(type)).extends(actual_class)
 		elif actual_receiver.type_is(str):

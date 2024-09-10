@@ -323,6 +323,12 @@ class TestRenderer(TestCase):
 		self.assertRender('dict_type', 0, vars, expected)
 
 	@data_provider([
+		({'parameters': ['int', 'float'], 'return_type': 'bool'}, 'std::function<bool(int, float)>'),
+	])
+	def test_render_callable_type(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('callable_type', 0, vars, expected)
+
+	@data_provider([
 		({'items': ['{hoge, 1}','{fuga, 2}']}, '{\n\t{hoge, 1},\n\t{fuga, 2},\n}'),
 		({'items': []}, '{}'),
 	])

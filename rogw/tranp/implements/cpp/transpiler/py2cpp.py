@@ -645,7 +645,7 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(node.classification, vars={'type_name': type_name, 'key_type': key_type, 'value_type': value_type})
 
 	def on_callable_type(self, node: defs.CallableType, type_name: str, parameters: list[str], return_type: str) -> str:
-		raise NotSupportedError(f'Denied Callable type. node: {node}')
+		return self.view.render(node.classification, vars={'parameters': parameters, 'return_type': return_type})
 
 	def on_custom_type(self, node: defs.CustomType, type_name: str, template_types: list[str]) -> str:
 		# XXX @see semantics.reflection.helper.naming.ClassShorthandNaming.domain_name

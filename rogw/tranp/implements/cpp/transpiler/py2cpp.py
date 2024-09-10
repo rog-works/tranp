@@ -719,8 +719,9 @@ class Py2Cpp(ITranspiler):
 		elif spec == 'cast_bin_to_str':
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
-		elif spec in [PythonClassOperations.copy_constructor, PythonClassOperations.destructor]:
-			receiver, operator = PatternParser.break_relay(calls)
+		elif spec == PythonClassOperations.copy_constructor:
+			# 期待値: 'receiver.__py_copy__'
+			receiver, _ = PatternParser.break_relay(calls)
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver})
 		elif spec == 'list_pop':
 			# 期待値: 'receiver.pop'
@@ -830,7 +831,7 @@ class Py2Cpp(ITranspiler):
 					key_attr, value_attr = context.attrs
 					attr_indexs = {'pop': value_attr, 'keys': key_attr, 'values': value_attr}
 					return f'dict_{prop}', attr_indexs[prop]
-			elif prop in [PythonClassOperations.copy_constructor, PythonClassOperations.destructor]:
+			elif prop == PythonClassOperations.copy_constructor:
 				return prop, None
 			elif prop == 'format':
 				if node.calls.receiver.is_a(defs.String):

@@ -849,7 +849,7 @@ class Py2Cpp(ITranspiler):
 					return spec, new_type_raw
 
 		if isinstance(node.calls, (defs.Relay, defs.Var)):
-			if len(node.arguments) > 0:
+			if len(node.arguments) > 0 and node.arguments[0].value.is_a(defs.Reference):
 				primary_arg_raw = self.reflections.type_of(node.arguments[0])
 				if primary_arg_raw.impl(refs.Object).type_is(type):
 					return 'generic_call', None

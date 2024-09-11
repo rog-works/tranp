@@ -55,6 +55,9 @@ class TestPy2Cpp(TestCase):
 		('', 'funccall[8]', defs.FuncCall, '#include <memory>'),
 		('', 'funccall[9]', defs.FuncCall, 'MACRO()'),
 
+		('T', '', defs.TemplateClass, '// template<typename T>'),
+		('T2', '', defs.TemplateClass, '// template<typename T2>'),
+
 		('DSI', '', defs.AltClass, 'using DSI = std::map<std::string, int>;'),
 		('TSII', '', defs.AltClass, 'using TSII = std::tuple<std::string, int, int>;'),
 

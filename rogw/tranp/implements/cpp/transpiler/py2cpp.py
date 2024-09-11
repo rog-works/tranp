@@ -376,6 +376,9 @@ class Py2Cpp(ITranspiler):
 	def on_alt_class(self, node: defs.AltClass, symbol: str, actual_type: str) -> str:
 		return self.view.render(node.classification, vars={'symbol': symbol, 'actual_type': actual_type})
 
+	def on_template_class(self, node: defs.TemplateClass, symbol: str) -> str:
+		return f'// template<typename {symbol}>'
+
 	# Function/Class Elements
 
 	def on_parameter(self, node: defs.Parameter, symbol: str, var_type: str, default_value: str) -> str:

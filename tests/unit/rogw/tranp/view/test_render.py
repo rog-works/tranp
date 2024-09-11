@@ -583,10 +583,10 @@ class TestRenderer(TestCase):
 		self.assertRender('func_call/cast_str_to_str', 0, vars, expected)
 
 	@data_provider([
-		({'var_type': 'Class*', 'arguments': ['CP<Class>', 'p'], 'is_statement': True}, 'static_cast<Class*>(p);'),
+		({'calls': 'static_cast', 'arguments': ['Class*', 'p'], 'is_statement': True}, 'static_cast<Class*>(p);'),
 	])
-	def test_render_func_call_cast(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/cast', 0, vars, expected)
+	def test_render_func_call_generic_call(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/generic_call', 0, vars, expected)
 
 	@data_provider([
 		({'arguments': ['A(0)'], 'is_statement': True}, 'new A(0);'),

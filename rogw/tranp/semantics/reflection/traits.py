@@ -44,6 +44,19 @@ class TraitImpl(Trait):
 class ConvertionTrait(TraitImpl, IConvertion):
 	"""トレイト実装(変換)"""
 
+	def is_class(self, instance: IReflection) -> bool:
+		"""クラス参照か判定
+
+		Args:
+			instance (IReflection): シンボル ※Traitsから暗黙的に入力される
+		Returns:
+			bool: True = クラス参照
+		"""
+		if instance.node.is_a(defs.Type):
+			return True
+
+		return self.reflections.type_is(instance.types, type)
+
 	@implements
 	def type_is(self, standard_type: type[Standards] | None, instance: IReflection) -> bool:
 		"""シンボルの型を判定
@@ -57,19 +70,19 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		return self.reflections.type_is(instance.types, standard_type)
 
 	@implements
-	def actualize(self: Self, *targets: Literal['nullable', 'alt_class', 'type', 'self'], instance: IReflection) -> Self:
+	def actualize(self: Self, *targets: Literal['nullable', 'type', 'alt_class', 'self'], instance: IReflection) -> Self:
 		"""プロクシー型から実体型を解決。元々実体型である場合はそのまま返却
 
 		Args:
-			*targets (Literal['nullable', 'alt_class', 'type']): 処理対象。省略時は全てが対象
+			*targets (Literal['nullable', 'type', 'alt_class', 'self']): 処理対象。省略時は全てが対象
 			instance (IReflection): シンボル ※Traitsから暗黙的に入力される
 		Returns:
 			Self: シンボル
 		Note:
 			### 変換対象
 			* Union型: Class | None
-			* TypeAlias型: T<Class>
 			* type型: type<Class>
+			* TypeAlias型: T<Class>
 			* Self型: Self
 			### Selfの妥当性
 			* XXX 実質的に具象クラスはReflectionのみであり、アンパック後も型は変化しない
@@ -78,8 +91,8 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		all_on = len(targets) == 0
 		actual = instance
 		actual = self._actualize_nullable(actual) if all_on or 'nullable' in targets else actual
-		actual = self._actualize_alt_class(actual) if all_on or 'alt_class' in targets else actual
 		actual = self._actualize_type(actual) if all_on or 'type' in targets else actual
+		actual = self._actualize_alt_class(actual) if all_on or 'alt_class' in targets else actual
 		actual = self._actualize_self(actual) if all_on or 'self' in targets else actual
 		return cast(Self, actual)
 

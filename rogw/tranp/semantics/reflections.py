@@ -440,7 +440,7 @@ class ProceduralResolver:
 
 	def on_var(self, node: defs.Var) -> IReflection:
 		symbol = self.reflections.resolve(node)
-		if not symbol.decl.is_a(defs.Class):
+		if not symbol.decl.is_a(defs.Class, defs.AltClass, defs.TemplateClass):
 			return symbol.stack(node)
 
 		return self.reflections.from_standard(type).stack(node).extends(symbol)
@@ -518,7 +518,7 @@ class ProceduralResolver:
 			* expression
 		"""
 		actual_calls = calls.impl(refs.Object).actualize()
-		if isinstance(actual_calls.types, defs.Class):
+		if calls.impl(refs.Object).is_class():
 			actual_calls = actual_calls.to(actual_calls.types, actual_calls.constructor())
 
 		return actual_calls.to(node, actual_calls.impl(refs.Function).returns(*arguments))

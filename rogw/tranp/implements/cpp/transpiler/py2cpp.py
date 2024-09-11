@@ -690,9 +690,8 @@ class Py2Cpp(ITranspiler):
 			# 期待値: 'receiver.__py_copy__'
 			receiver, _ = PatternParser.break_relay(calls)
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver})
-		elif spec == 'cast':
-			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
+		elif spec == 'generic_call':
+			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == 'cast_enum':
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/cast_bin_to_bin', vars={**func_call_vars, 'var_type': var_type})
@@ -802,8 +801,6 @@ class Py2Cpp(ITranspiler):
 				return 'len', self.reflections.type_of(node.arguments[0])
 			elif calls == print.__name__:
 				return 'print', None
-			elif calls == cast.__name__:
-				return 'cast', self.reflections.type_of(node.arguments[0]).impl(refs.Object).actualize()
 			elif calls == 'list':
 				return 'cast_list', None
 			elif calls in ['int', 'float', 'bool', 'str']:
@@ -852,6 +849,11 @@ class Py2Cpp(ITranspiler):
 					return spec, new_type_raw
 
 		if isinstance(node.calls, (defs.Relay, defs.Var)):
+			if len(node.arguments) > 0 and node.arguments[0].value.is_a(defs.Reference):
+				primary_arg_raw = self.reflections.type_of(node.arguments[0])
+				if primary_arg_raw.impl(refs.Object).type_is(type):
+					return 'generic_call', None
+
 			raw = self.reflections.type_of(node.calls).impl(refs.Object).actualize()
 			if raw.types.is_a(defs.Enum):
 				return 'cast_enum', raw

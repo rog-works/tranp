@@ -154,7 +154,7 @@ class Reflections:
 		Raises:
 			SemanticsError: シンボルの解決に失敗
 		"""
-		if isinstance(node, defs.Class):
+		if isinstance(node, defs.Classes):
 			return self.from_standard(type).stack(node).extends(self.resolve(node))
 		else:
 			# defs.Function
@@ -429,9 +429,9 @@ class ProceduralResolver:
 		actual_receiver = receiver.impl(refs.Object).actualize()
 		prop = actual_receiver.prop_of(node.prop)
 		# XXX Enum直下のDeclLocalVarは定数値であり、型としてはEnumそのものであるためreceiverを返却。特殊化より一般化する方法を検討
-		if receiver.impl(refs.Object).type_is(type) and isinstance(actual_receiver.types, defs.Enum) and prop.decl.is_a(defs.DeclLocalVar):
+		if prop.decl.is_a(defs.DeclLocalVar) and isinstance(actual_receiver.types, defs.Enum) and receiver.impl(refs.Object).is_type_ref():
 			return actual_receiver.stack(node)
-		elif isinstance(prop.decl, defs.Class):
+		elif prop.impl(refs.Object).is_type_ref():
 			return actual_receiver.to(node, self.reflections.from_standard(type)).extends(prop)
 		elif isinstance(prop.decl, defs.Method) and prop.decl.is_property:
 			return actual_receiver.to(node, actual_receiver.to(node.prop, prop).impl(refs.Function).returns())
@@ -440,10 +440,11 @@ class ProceduralResolver:
 
 	def on_var(self, node: defs.Var) -> IReflection:
 		symbol = self.reflections.resolve(node)
-		if not symbol.decl.is_a(defs.Class, defs.AltClass, defs.TemplateClass):
-			return symbol.stack(node)
+		if symbol.impl(refs.Object).is_type_ref():
+			return self.reflections.from_standard(type).stack(node).extends(symbol)
 
-		return self.reflections.from_standard(type).stack(node).extends(symbol)
+		return symbol.stack(node)
+
 
 	def on_class_ref(self, node: defs.ClassRef) -> IReflection:
 		symbol = self.reflections.resolve(node)
@@ -518,7 +519,7 @@ class ProceduralResolver:
 			* expression
 		"""
 		actual_calls = calls.impl(refs.Object).actualize()
-		if calls.impl(refs.Object).is_class():
+		if calls.impl(refs.Object).is_type_ref():
 			actual_calls = actual_calls.to(actual_calls.types, actual_calls.constructor())
 
 		return actual_calls.to(node, actual_calls.impl(refs.Function).returns(*arguments))

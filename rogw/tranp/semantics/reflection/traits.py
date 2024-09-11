@@ -44,17 +44,21 @@ class TraitImpl(Trait):
 class ConvertionTrait(TraitImpl, IConvertion):
 	"""トレイト実装(変換)"""
 
-	def is_class(self, instance: IReflection) -> bool:
-		"""クラス参照か判定
+	def is_type_ref(self, instance: IReflection) -> bool:
+		"""型参照か判定
 
 		Args:
 			instance (IReflection): シンボル ※Traitsから暗黙的に入力される
 		Returns:
-			bool: True = クラス参照
+			bool: True = 型参照
 		"""
 		if instance.node.is_a(defs.Type):
 			return True
 
+		if instance.decl.is_a(*defs.ClassesTs):
+			return True
+
+		# XXX 未到達コード ※instance.types == typeを満たす時、instance.decl == defs.Classになる
 		return self.reflections.type_is(instance.types, type)
 
 	@implements
@@ -148,6 +152,8 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		Note:
 			Self -> Class
 		"""
+		# FIXME Selfに直接依存するのはNG
+		# XXX ClassRefの型は`type<Self>`であり、必ず一致しないのでは？
 		if isinstance(symbol.node, (defs.ClassRef, defs.ThisRef)) and symbol.types.is_a(defs.TemplateClass) and symbol.types.domain_name == Self.__name__:
 			return self.reflections.type_of(symbol.node.class_types.as_a(defs.Class)).attrs[0].stack(symbol.node)
 

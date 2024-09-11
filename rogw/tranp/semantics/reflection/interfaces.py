@@ -21,13 +21,13 @@ class IExample(Protocol):
 class IConvertion:
 	"""拡張インターフェイス(変換)"""
 
-	def is_class(self, **reserved: IReflection) -> bool:
-		"""クラス参照か判定
+	def is_type_ref(self, **reserved: IReflection) -> bool:
+		"""型参照か判定
 
 		Args:
 			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
-			bool: True = クラス参照
+			bool: True = 型参照
 		"""
 		...
 

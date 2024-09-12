@@ -75,21 +75,32 @@ class ConvertionTrait(TraitImpl, IConvertion):
 			* XXX 実質的に具象クラスはReflectionのみであり、アンパック後も型は変化しない
 			* XXX リフレクション拡張の型(=Self)として継続して利用できる方が効率が良い
 		"""
+		actualizers = {
+			'nullable': self._actualize_nullable,
+			'self': self._actualize_self,
+			'type': self._actualize_type,
+			'alt_class': self._actualize_alt_class,
+		}
 		all_on = len(targets) == 0
 		actual = instance
-		actual = self._actualize_nullable(actual) if all_on or 'nullable' in targets else actual
-		actual = self._actualize_self(actual) if all_on or 'self' in targets else actual
-		actual = self._actualize_type(actual) if all_on or 'type' in targets else actual
-		actual = self._actualize_alt_class(actual) if all_on or 'alt_class' in targets else actual
-		return cast(Self, actual)
+		changed = False
+		for key, actualizer in actualizers.items():
+			if all_on or key in targets:
+				in_changed, actual = actualizer(actual)
+				changed |= in_changed
 
-	def _actualize_nullable(self, symbol: IReflection) -> IReflection:
+		if changed:
+			return cast(Self, instance.to(instance.node, actual))
+		else:
+			return cast(Self, actual)
+
+	def _actualize_nullable(self, symbol: IReflection) -> tuple[bool, IReflection]:
 		"""Nullable型から実体型を解決
 
 		Args:
 			symbol (IReflection): シンボル
 		Returns:
-			IReflection: シンボル
+			tuple[bool, IReflection]: 解決可否, シンボル
 		Note:
 			Class | None -> Class
 		"""
@@ -97,52 +108,58 @@ class ConvertionTrait(TraitImpl, IConvertion):
 			is_0_null = self.reflections.type_is(symbol.attrs[0].types, None)
 			is_1_null = self.reflections.type_is(symbol.attrs[1].types, None)
 			if is_0_null != is_1_null:
-				return symbol.attrs[1 if is_0_null else 0]
+				return True, symbol.attrs[1 if is_0_null else 0]
 
-		return symbol
+		return False, symbol
 
-	def _actualize_self(self, symbol: IReflection) -> IReflection:
+	def _actualize_self(self, symbol: IReflection) -> tuple[bool, IReflection]:
 		"""Self型から実体型を解決
 
 		Args:
 			symbol (IReflection): シンボル
 		Returns:
-			IReflection: シンボル
+			tuple[bool, IReflection]: 解決可否, シンボル
 		Note:
 			type<Self> -> type<Class>
 			Self -> Class
 			FIXME Selfに直接依存するのはNG
 		"""
 		if isinstance(symbol.node, defs.ClassRef) and isinstance(symbol.attrs[0].types, defs.TemplateClass) and symbol.attrs[0].types.domain_name == Self.__name__:
-			return self.reflections.from_standard(type).stack(symbol.node).extends(self.reflections.resolve(symbol.node.class_types.as_a(defs.Class)))
+			return True, self.reflections.from_standard(type).stack().extends(self.reflections.resolve(symbol.node.class_types.as_a(defs.Class)))
 		elif isinstance(symbol.node, defs.ThisRef) and isinstance(symbol.types, defs.TemplateClass) and symbol.types.domain_name == Self.__name__:
-			return self.reflections.resolve(symbol.node.class_types.as_a(defs.Class)).stack(symbol.node)
+			return True, self.reflections.resolve(symbol.node.class_types.as_a(defs.Class))
 
-		return symbol
+		return False, symbol
 
-	def _actualize_type(self, symbol: IReflection) -> IReflection:
+	def _actualize_type(self, symbol: IReflection) -> tuple[bool, IReflection]:
 		"""type型から実体型を解決
 
 		Args:
 			symbol (IReflection): シンボル
 		Returns:
-			IReflection: シンボル
+			tuple[bool, IReflection]: 解決可否, シンボル
 		Note:
 			type<Class> -> Class
 		"""
-		return symbol.attrs[0] if isinstance(symbol.decl, (defs.DeclClasses, defs.DeclVars)) and self.reflections.type_is(symbol.types, type) else symbol
+		if isinstance(symbol.decl, (defs.DeclClasses, defs.DeclVars)) and self.reflections.type_is(symbol.types, type):
+			return True, symbol.attrs[0]
+		else:
+			return False, symbol
 
-	def _actualize_alt_class(self, symbol: IReflection) -> IReflection:
+	def _actualize_alt_class(self, symbol: IReflection) -> tuple[bool, IReflection]:
 		"""AltClass型から実体型を解決
 
 		Args:
 			symbol (IReflection): シンボル
 		Returns:
-			IReflection: シンボル
+			tuple[bool, IReflection]: 解決可否, シンボル
 		Note:
 			T<Class> -> Class
 		"""
-		return symbol.attrs[0] if isinstance(symbol.types, defs.AltClass) else symbol
+		if isinstance(symbol.types, defs.AltClass):
+			return True, symbol.attrs[0]
+		else:
+			return False, symbol
 
 
 class OperationTrait(TraitImpl, IOperation):

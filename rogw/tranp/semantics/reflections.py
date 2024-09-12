@@ -508,16 +508,6 @@ class ProceduralResolver:
 		return self.reflections.from_standard(None).stack(node)
 
 	def on_func_call(self, node: defs.FuncCall, calls: IReflection, arguments: list[IReflection]) -> IReflection:
-		"""
-		Note:
-			# calls
-			* relay: a.b()
-			* var: a()
-			* indexer: a[0]()
-			* func_call: a()()
-			# arguments
-			* expression
-		"""
 		actual_calls = calls.impl(refs.Object).actualize()
 		# 定義と型がクラス定義ノードである場合、クラスシンボルからコンストラクターに変換
 		if isinstance(calls.decl, defs.DeclClasses) and isinstance(calls.types, defs.DeclClasses):

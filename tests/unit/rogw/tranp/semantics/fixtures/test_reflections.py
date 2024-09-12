@@ -326,5 +326,26 @@ class WithOps:
 
 
 class ForFuncCall:
-	def callable_var(self, func: Callable[[int, str], T]) -> T:
+	@classmethod
+	def cls_call(cls) -> str:
+		return cls.cls_call()
+
+	def self_call(self) -> int:
+		return self.self_call()
+
+	def func_call(self) -> None:
+		def func() -> bool: ...
+		func()
+
+	def relay_call(self) -> 'ForFuncCall':
+		self.relay_call().relay_call()
+		return self
+
+	def call_to_call(self) -> None:
+		ForFuncCall().self_call()
+
+	def indexer_call(self, arr: 'list[ForFuncCall]') -> None:
+		arr[0].self_call()
+
+	def callable_call(self, func: Callable[[int, str], T]) -> T:
 		return func(1, 'a')

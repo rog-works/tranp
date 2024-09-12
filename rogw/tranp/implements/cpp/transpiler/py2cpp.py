@@ -1053,7 +1053,7 @@ class PatternParser:
 	# 期待値: path.to[key] -> ('path.to', 'key') XXX 複雑な式に耐えられないため修正を検討
 	IndexerPattern = re.compile(r'(.+)\[(.+)\]')
 	# 期待値: Class(arguments...) -> 'arguments...'
-	CVarNewArgumentPattern = re.compile(r'^[^(]+\((.+)\)$')
+	CVarNewArgumentPattern = re.compile(r'^[^(]+\((.*)\)$')
 	# 期待値: path.on()->to -> 'path.to'
 	CVarRelaySubPattern = re.compile(rf'(->|::|\.){CVars.relay_key}\(\)$')
 	# 期待値: path.to.raw() -> 'path.to'

@@ -1,5 +1,5 @@
 from os import path as os_path
-from typing import Any, ClassVar, Generic, Iterator, Self, TypeAlias, TypeVar, cast
+from typing import Any, Callable, ClassVar, Generic, Iterator, Self, TypeAlias, TypeVar, cast
 from yaml import safe_load as yaml_safe_load
 
 from rogw.tranp.compatible.cpp.enum import CEnum as Enum
@@ -323,3 +323,8 @@ class WithOps:
 		dir = os_path.dirname(__file__)
 		with open(os_path.join(dir, 'hoge.yml'), encoding='utf-8') as f:
 			content = cast(dict[str, Any], yaml_safe_load(f))
+
+
+class ForFuncCall:
+	def callable_var(self, func: Callable[[int, str], T]) -> T:
+		return func(1, 'a')

@@ -356,6 +356,8 @@ class TestReflections(TestCase):
 
 		('WithOps.file_load', 'function_def_raw.block.with_stmt.with_items.with_item', _mod('typing', 'IO'), 'IO'),
 		('WithOps.file_load', 'function_def_raw.block.with_stmt.block.assign', _mod('classes', 'dict'), 'dict<str, Any>'),
+
+		('ForFuncCall.callable_var', 'function_def_raw.block.return_stmt.funccall', _mod('__main__', 'T'), 'T'),
 	])
 	def test_type_of(self, local_path: str, offset_path: str, expected: str, attrs_expected: str) -> None:
 		reflections = self.fixture.get(Reflections)

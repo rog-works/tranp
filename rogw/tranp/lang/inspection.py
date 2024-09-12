@@ -1,7 +1,7 @@
 from enum import Enum, EnumType
 from importlib import import_module
 from types import FunctionType, MethodType, NoneType, UnionType
-from typing import Callable, ClassVar, TypeAlias, TypeVar, Union
+from typing import Any, Callable, ClassVar, TypeAlias, TypeVar, Union
 
 from rogw.tranp.lang.annotation import override
 
@@ -19,13 +19,13 @@ class Typehint:
 	"""タイプヒント(基底クラス)"""
 
 	@property
-	def origin(self) -> type:
-		"""type: メインタイプ"""
+	def origin(self) -> type[Any]:
+		"""type[Any]: メインタイプ"""
 		...
 
 	@property
-	def raw(self) -> type | FuncTypes | Callable:
-		"""type | FuncTypes | Callable: 元のタイプ"""
+	def raw(self) -> type[Any] | FuncTypes | Callable:
+		"""type[Any] | FuncTypes | Callable: 元のタイプ"""
 		...
 
 
@@ -41,20 +41,20 @@ class ScalarTypehint(Typehint):
 		* None/NoneType
 	"""
 
-	_type: type
+	_type: type[Any]
 
-	def __init__(self, scalar_type: type) -> None:
+	def __init__(self, scalar_type: type[Any]) -> None:
 		"""インスタンスを生成
 
 		Args:
-			scalar_type (type): タイプ
+			scalar_type (type[Any]): タイプ
 		"""
-		self._type: type = scalar_type
+		self._type: type[Any] = scalar_type
 
 	@property
 	@override
-	def origin(self) -> type:
-		"""type: メインタイプ"""
+	def origin(self) -> type[Any]:
+		"""type[Any]: メインタイプ"""
 		if self.is_union:
 			# XXX Union型の場合はUnionTypeを返却。UnionTypeはtypeと互換性が無いと判断されるため実装例に倣う @see types.py UnionType
 			return type(int | str)
@@ -63,8 +63,8 @@ class ScalarTypehint(Typehint):
 
 	@property
 	@override
-	def raw(self) -> type:
-		"""type: 元のタイプ"""
+	def raw(self) -> type[Any]:
+		"""type[Any]: 元のタイプ"""
 		return self._type
 
 	@property
@@ -98,8 +98,8 @@ class ScalarTypehint(Typehint):
 		return [Inspector.resolve(sub_type) for sub_type in self.__sub_annos]
 
 	@property
-	def __sub_annos(self) -> list[type]:
-		"""list[type]: ジェネリック/Union型のサブタイプのリスト"""
+	def __sub_annos(self) -> list[type[Any]]:
+		"""list[type[Any]]: ジェネリック/Union型のサブタイプのリスト"""
 		return getattr(self._type, '__args__', [])
 
 	@property
@@ -133,8 +133,8 @@ class FunctionTypehint(Typehint):
 
 	@property
 	@override
-	def origin(self) -> type:
-		"""type: メインタイプ"""
+	def origin(self) -> type[Any]:
+		"""type[Any]: メインタイプ"""
 		return type(self._func)
 
 	@property
@@ -179,8 +179,8 @@ class FunctionTypehint(Typehint):
 			return self._func.__module__
 
 	@property
-	def __annos(self) -> dict[str, type]:
-		"""dict[str, type]: タイプヒントのリスト"""
+	def __annos(self) -> dict[str, type[Any]]:
+		"""dict[str, type[Any]]: タイプヒントのリスト"""
 		if isinstance(self._func, property):
 			# propertyは`__annotations__`が無いため、元の関数オブジェクトを通して取得する
 			return getattr(self._func, 'fget').__annotations__
@@ -200,26 +200,26 @@ class ClassTypehint(Typehint):
 		* インスタンス変数: ClassVar以外
 	"""
 
-	_type: type
+	_type: type[Any]
 
-	def __init__(self, class_type: type) -> None:
+	def __init__(self, class_type: type[Any]) -> None:
 		"""インスタンスを生成
 
 		Args:
-			class_type (type): クラス
+			class_type (type[Any]): クラス
 		"""
-		self._type: type = class_type
+		self._type: type[Any] = class_type
 
 	@property
 	@override
-	def origin(self) -> type:
-		"""type: メインタイプ"""
+	def origin(self) -> type[Any]:
+		"""type[Any]: メインタイプ"""
 		return getattr(self._type, '__origin__', self._type)
 
 	@property
 	@override
-	def raw(self) -> type:
-		"""type: 元のタイプ"""
+	def raw(self) -> type[Any]:
+		"""type[Any]: 元のタイプ"""
 		return self._type
 
 	@property
@@ -230,7 +230,7 @@ class ClassTypehint(Typehint):
 	@property
 	def sub_types(self) -> list[Typehint]:
 		"""list[Typehint]: ジェネリック型のサブタイプのリスト"""
-		sub_annos: list[type] = getattr(self._type, '__args__', [])
+		sub_annos: list[type[Any]] = getattr(self._type, '__args__', [])
 		return [Inspector.resolve(sub_type, self._type.__module__) for sub_type in sub_annos]
 
 	@property
@@ -258,27 +258,27 @@ class ClassTypehint(Typehint):
 		annos = {key: anno for key, anno in self.__recursive_annos(self._type).items() if self.__try_get_origin(anno) is not ClassVar}
 		return {key: Inspector.resolve(attr, self._type.__module__) for key, attr in annos.items()}
 	
-	def __try_get_origin(self, anno: type) -> type:
+	def __try_get_origin(self, anno: type[Any]) -> type[Any]:
 		"""アノテーションから元のタイプ取得を試行
 
 		Args:
-			anno (type): アノテーション
+			anno (type[Any]): アノテーション
 		Returns:
-			type: 元のタイプ
+			type[Any]: 元のタイプ
 		"""
 		return getattr(anno, '__origin__', anno)
 
-	def __recursive_annos(self, _type: type) -> dict[str, type]:
+	def __recursive_annos(self, _type: type[Any]) -> dict[str, type[Any]]:
 		"""クラス階層を辿ってタイプヒントを収集
 
 		Args:
-			_type (type): タイプ
+			_type (type[Any]): タイプ
 		Returns:
-			dict[str, type]: タイプヒント一覧
+			dict[str, type[Any]]: タイプヒント一覧
 		"""
-		annos: dict[str, type] = {}
+		annos: dict[str, type[Any]] = {}
 		for at_type in reversed(_type.mro()):
-			_annos: dict[str, type] = getattr(at_type, '__annotations__', {})
+			_annos: dict[str, type[Any]] = getattr(at_type, '__annotations__', {})
 			for key, anno in _annos.items():
 				annos[key] = _resolve_type_from_str(anno, at_type.__module__) if isinstance(anno, str) else anno
 
@@ -289,11 +289,11 @@ class ClassTypehint(Typehint):
 		"""dict[str, FunctionTypehint]: メソッド一覧"""
 		return {key: FunctionTypehint(prop) for key, prop in self.__recursive_methods(self._type).items()}
 
-	def __recursive_methods(self, _type: type) -> dict[str, FuncTypes]:
+	def __recursive_methods(self, _type: type[Any]) -> dict[str, FuncTypes]:
 		"""クラス階層を辿ってメソッドを収集
 
 		Args:
-			_type (type): タイプ
+			_type (type[Any]): タイプ
 		Returns:
 			dict[str, FuncTypes]: メソッド一覧
 		"""
@@ -306,14 +306,14 @@ class ClassTypehint(Typehint):
 		return _methods
 
 
-def _resolve_type_from_str(type_str: str, via_module_path: str) -> type:
+def _resolve_type_from_str(type_str: str, via_module_path: str) -> type[Any]:
 	"""文字列のタイプヒントを解析してタイプを解決
 
 	Args:
 		type_str (str): タイプヒント
 		via_module_path (str): 由来のモジュールパス
 	Returns:
-		type: 解決したタイプ
+		type[Any]: 解決したタイプ
 	Note:
 		* `eval`を使用して文字列からタイプを強引に解決する
 		* ユーザー定義型は由来のモジュール内によって明示されているシンボルのみ解決が出来る
@@ -330,11 +330,11 @@ class Inspector:
 	"""タイプヒントリゾルバー"""
 
 	@classmethod
-	def resolve(cls, origin: str | type | FuncTypes, via_module_path: str = '') -> Typehint:
+	def resolve(cls, origin: str | type[Any] | FuncTypes, via_module_path: str = '') -> Typehint:
 		"""タイプヒントを解決
 
 		Args:
-			origin (str | type | FuncTypes): タイプ、関数オブジェクト、または文字列のタイプヒント
+			origin (str | type[Any] | FuncTypes): タイプ、関数オブジェクト、または文字列のタイプヒント
 			via_module_path (str): 由来のモジュールパス。文字列のタイプヒントの場合のみ必須 (default = '')
 		Returns:
 			Typehint: タイプヒント
@@ -348,14 +348,14 @@ class Inspector:
 			return ClassTypehint(actual_origin)
 
 	@classmethod
-	def __to_actual_origin(cls, origin: str | type | FuncTypes, via_module_path: str) -> type | FuncTypes:
+	def __to_actual_origin(cls, origin: str | type[Any] | FuncTypes, via_module_path: str) -> type[Any] | FuncTypes:
 		"""指定のオリジンから解決可能なオリジンに変換
 
 		Args:
-			origin (str | type | FuncTypes): タイプ、関数オブジェクト、または文字列のタイプヒント
+			origin (str | type[Any] | FuncTypes): タイプ、関数オブジェクト、または文字列のタイプヒント
 			via_module_path (str): 由来のモジュールパス。文字列のタイプヒントの場合のみ必須 (default = '')
 		Returns:
-			type | FuncTypes: オリジン
+			type[Any] | FuncTypes: オリジン
 		Raises:
 			ValueError: 由来が不明な場合に文字列のタイプヒントを使用
 		"""
@@ -368,11 +368,11 @@ class Inspector:
 		return _resolve_type_from_str(origin, via_module_path)
 
 	@classmethod
-	def __is_scalar(cls, origin: type) -> bool:
+	def __is_scalar(cls, origin: type[Any]) -> bool:
 		"""値型か判定
 
 		Args:
-			origin (type): タイプ
+			origin (type[Any]): タイプ
 		Returns:
 			bool: True = 値型
 		"""

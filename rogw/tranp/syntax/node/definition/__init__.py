@@ -164,13 +164,13 @@ from rogw.tranp.syntax.node.definition.terminal import Terminal, Empty
 
 DeclVars: TypeAlias = Parameter | Declable
 DeclAll: TypeAlias = Parameter | Declable | ClassDef
+DeclClasses: TypeAlias = Class | AltClass | TemplateClass
 Symbolic: TypeAlias = Declable | Relay | Var | Type | Literal | ClassDef
 ClassOrType: TypeAlias = Class | AltClass | TemplateClass | Type
-Classes: TypeAlias = Class | AltClass | TemplateClass
 
 # XXX 上記のTypeAliasは実引数に指定できないため、等価なtupleを定義
 DeclVarsTs = Parameter, Declable
 DeclAllTs = Parameter, Declable, ClassDef
+DeclClassesTs = Class, AltClass, TemplateClass
 SymbolicTs = Declable, Relay, Var, Type, Literal, ClassDef
 ClassOrTypeTs = Class, AltClass, TemplateClass, Type
-ClassesTs = Class, AltClass, TemplateClass

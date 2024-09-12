@@ -511,11 +511,11 @@ class Py2Cpp(ITranspiler):
 
 	def on_relay(self, node: defs.Relay, receiver: str) -> str:
 		receiver_symbol = self.reflections.type_of(node.receiver).impl(refs.Object)
-		receiver_is_static = receiver_symbol.type_is(type)
+		receiver_is_type_ref = receiver_symbol.type_is(type)
 		receiver_symbol = receiver_symbol.actualize()
 		prop_symbol = receiver_symbol.prop_of(node.prop)
 
-		spec, operator = self.analyze_relay_spec(node, receiver_symbol, receiver_is_static)
+		spec, operator = self.analyze_relay_spec(node, receiver_symbol, receiver_is_type_ref)
 		prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.ClassDef) else node.prop.domain_name
 		is_property = isinstance(prop_symbol.decl, defs.Method) and prop_symbol.decl.is_property
 		relay_vars = {'receiver': receiver, 'operator': operator, 'prop': prop, 'is_property': is_property}
@@ -535,7 +535,7 @@ class Py2Cpp(ITranspiler):
 		else:
 			return self.view.render(f'{node.classification}/default', vars=relay_vars)
 
-	def analyze_relay_spec(self, node: defs.Relay, receiver_symbol: IReflection, receiver_is_static: bool) -> tuple[str, str]:
+	def analyze_relay_spec(self, node: defs.Relay, receiver_symbol: IReflection, receiver_is_type_ref: bool) -> tuple[str, str]:
 		def is_this_relay() -> bool:
 			return node.receiver.is_a(defs.ThisRef)
 
@@ -545,8 +545,8 @@ class Py2Cpp(ITranspiler):
 		def is_on_cvar_exchanger() -> bool:
 			return node.prop.domain_name in CVars.exchanger_keys
 
-		def is_class_relay() -> bool:
-			return receiver_is_static or isinstance(receiver_symbol.node, defs.Super)
+		def is_type_relay() -> bool:
+			return receiver_is_type_ref or isinstance(receiver_symbol.node, defs.Super)
 
 		if node.prop.tokens in ['__module__', '__name__']:
 			return node.prop.tokens, CVars.RelayOperators.Raw.name
@@ -560,8 +560,8 @@ class Py2Cpp(ITranspiler):
 			cvar_key = CVars.key_from(receiver_symbol)
 			move = CVars.to_move(cvar_key, node.prop.domain_name)
 			return f'cvar_to_{move.name}', CVars.to_operator(cvar_key).name
-		elif is_class_relay():
-			return 'class', CVars.RelayOperators.Static.name
+		elif is_type_relay():
+			return 'type_relay', CVars.RelayOperators.Static.name
 
 		return 'raw', CVars.RelayOperators.Raw.name
 

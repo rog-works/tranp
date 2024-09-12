@@ -44,23 +44,6 @@ class TraitImpl(Trait):
 class ConvertionTrait(TraitImpl, IConvertion):
 	"""トレイト実装(変換)"""
 
-	def is_type_ref(self, instance: IReflection) -> bool:
-		"""型参照か判定
-
-		Args:
-			instance (IReflection): シンボル ※Traitsから暗黙的に入力される
-		Returns:
-			bool: True = 型参照
-		"""
-		if instance.node.is_a(defs.Type):
-			return True
-
-		if instance.decl.is_a(*defs.ClassesTs):
-			return True
-
-		# XXX 未到達コード ※instance.types == typeを満たす時、instance.decl == defs.Classになる
-		return self.reflections.type_is(instance.types, type)
-
 	@implements
 	def type_is(self, standard_type: type[Standards] | None, instance: IReflection) -> bool:
 		"""シンボルの型を判定

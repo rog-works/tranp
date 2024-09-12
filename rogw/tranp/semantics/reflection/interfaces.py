@@ -32,7 +32,7 @@ class IConvertion:
 		"""
 		...
 
-	def actualize(self: Self, *targets: Literal['nullable', 'type', 'alt_class', 'self'], **reserved: IReflection) -> Self:
+	def actualize(self: Self, *targets: Literal['nullable', 'self', 'type', 'alt_class'], **reserved: IReflection) -> Self:
 		"""プロクシー型から実体型を解決。元々実体型である場合はそのまま返却
 
 		Args:
@@ -43,9 +43,9 @@ class IConvertion:
 		Note:
 			### 変換対象
 			* Union型: Class | None
+			* Self型: type<Self>, Self
 			* type型: type<Class>
 			* TypeAlias型: T<Class>
-			* Self型: Self
 			### Selfの妥当性
 			* XXX 実質的に具象クラスはReflectionのみであり、アンパック後も型は変化しない
 			* XXX リフレクション拡張の型(=Self)として継続して利用できる方が効率が良い

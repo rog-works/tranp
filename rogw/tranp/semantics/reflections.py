@@ -448,7 +448,10 @@ class ProceduralResolver:
 
 	def on_class_ref(self, node: defs.ClassRef) -> IReflection:
 		symbol = self.reflections.resolve(node)
-		return self.reflections.from_standard(type).stack(node).extends(symbol)
+		if not symbol.impl(refs.Object).type_is(type):
+			return self.reflections.from_standard(type).stack(node).extends(symbol)
+
+		return symbol.stack(node)
 
 	def on_this_ref(self, node: defs.ThisRef) -> IReflection:
 		return self.reflections.resolve(node).stack(node)

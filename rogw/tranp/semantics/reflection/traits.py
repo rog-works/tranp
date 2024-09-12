@@ -57,20 +57,20 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		return self.reflections.type_is(instance.types, standard_type)
 
 	@implements
-	def actualize(self: Self, *targets: Literal['nullable', 'type', 'alt_class', 'self'], instance: IReflection) -> Self:
+	def actualize(self: Self, *targets: Literal['nullable', 'self', 'type', 'alt_class'], instance: IReflection) -> Self:
 		"""プロクシー型から実体型を解決。元々実体型である場合はそのまま返却
 
 		Args:
-			*targets (Literal['nullable', 'type', 'alt_class', 'self']): 処理対象。省略時は全てが対象
+			*targets (Literal['nullable', 'self', 'type', 'alt_class']): 処理対象。省略時は全てが対象
 			instance (IReflection): シンボル ※Traitsから暗黙的に入力される
 		Returns:
 			Self: シンボル
 		Note:
 			### 変換対象
 			* Union型: Class | None
+			* Self型: type<Self>, Self
 			* type型: type<Class>
 			* TypeAlias型: T<Class>
-			* Self型: Self
 			### Selfの妥当性
 			* XXX 実質的に具象クラスはReflectionのみであり、アンパック後も型は変化しない
 			* XXX リフレクション拡張の型(=Self)として継続して利用できる方が効率が良い
@@ -78,9 +78,9 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		all_on = len(targets) == 0
 		actual = instance
 		actual = self._actualize_nullable(actual) if all_on or 'nullable' in targets else actual
+		actual = self._actualize_self(actual) if all_on or 'self' in targets else actual
 		actual = self._actualize_type(actual) if all_on or 'type' in targets else actual
 		actual = self._actualize_alt_class(actual) if all_on or 'alt_class' in targets else actual
-		actual = self._actualize_self(actual) if all_on or 'self' in targets else actual
 		return cast(Self, actual)
 
 	def _actualize_nullable(self, symbol: IReflection) -> IReflection:
@@ -101,17 +101,24 @@ class ConvertionTrait(TraitImpl, IConvertion):
 
 		return symbol
 
-	def _actualize_alt_class(self, symbol: IReflection) -> IReflection:
-		"""AltClass型から実体型を解決
+	def _actualize_self(self, symbol: IReflection) -> IReflection:
+		"""Self型から実体型を解決
 
 		Args:
 			symbol (IReflection): シンボル
 		Returns:
 			IReflection: シンボル
 		Note:
-			T<Class> -> Class
+			type<Self> -> type<Class>
+			Self -> Class
+			FIXME Selfに直接依存するのはNG
 		"""
-		return symbol.attrs[0] if isinstance(symbol.types, defs.AltClass) else symbol
+		if isinstance(symbol.node, defs.ClassRef) and isinstance(symbol.attrs[0].types, defs.TemplateClass) and symbol.attrs[0].types.domain_name == Self.__name__:
+			return self.reflections.from_standard(type).stack(symbol.node).extends(self.reflections.resolve(symbol.node.class_types.as_a(defs.Class)))
+		elif isinstance(symbol.node, defs.ThisRef) and isinstance(symbol.types, defs.TemplateClass) and symbol.types.domain_name == Self.__name__:
+			return self.reflections.resolve(symbol.node.class_types.as_a(defs.Class)).stack(symbol.node)
+
+		return symbol
 
 	def _actualize_type(self, symbol: IReflection) -> IReflection:
 		"""type型から実体型を解決
@@ -123,24 +130,19 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		Note:
 			type<Class> -> Class
 		"""
-		return symbol.attrs[0] if isinstance(symbol.decl, defs.Class) and self.reflections.type_is(symbol.types, type) else symbol
+		return symbol.attrs[0] if isinstance(symbol.decl, (defs.DeclClasses, defs.DeclVars)) and self.reflections.type_is(symbol.types, type) else symbol
 
-	def _actualize_self(self, symbol: IReflection) -> IReflection:
-		"""Self型から実体型を解決
+	def _actualize_alt_class(self, symbol: IReflection) -> IReflection:
+		"""AltClass型から実体型を解決
 
 		Args:
 			symbol (IReflection): シンボル
 		Returns:
 			IReflection: シンボル
 		Note:
-			Self -> Class
+			T<Class> -> Class
 		"""
-		# FIXME Selfに直接依存するのはNG
-		# XXX ClassRefの型は`type<Self>`であり、必ず一致しないのでは？
-		if isinstance(symbol.node, (defs.ClassRef, defs.ThisRef)) and symbol.types.is_a(defs.TemplateClass) and symbol.types.domain_name == Self.__name__:
-			return self.reflections.type_of(symbol.node.class_types.as_a(defs.Class)).attrs[0].stack(symbol.node)
-
-		return symbol
+		return symbol.attrs[0] if isinstance(symbol.types, defs.AltClass) else symbol
 
 
 class OperationTrait(TraitImpl, IOperation):

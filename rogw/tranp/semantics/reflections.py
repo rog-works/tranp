@@ -519,7 +519,8 @@ class ProceduralResolver:
 			* expression
 		"""
 		actual_calls = calls.impl(refs.Object).actualize()
-		if isinstance(calls.types, defs.DeclClasses):
+		# 定義と型がクラス定義ノードである場合、クラスシンボルからコンストラクターに変換
+		if isinstance(calls.decl, defs.DeclClasses) and isinstance(calls.types, defs.DeclClasses):
 			actual_calls = actual_calls.to(actual_calls.types, actual_calls.constructor())
 
 		return actual_calls.to(node, actual_calls.impl(refs.Function).returns(*arguments))

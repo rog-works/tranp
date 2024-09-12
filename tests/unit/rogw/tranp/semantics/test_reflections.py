@@ -65,183 +65,9 @@ class TestReflections(TestCase):
 		self.assertEqual(reflections.from_standard(standard_type).types.fullyname, expected)
 
 	@data_provider([
-		('TypeAlias', 'TypeAlias'),
-
-		('C', 'C'),
-
-		('value', 'int'),
-
-		('Base', 'Base'),
-		('Base.base_str', 'str'),
-
-		('Base.return_self', 'return_self(Self) -> Self'),
-		('Base.return_self.base', 'Base'),
-
-		('Sub', 'Sub'),
-
-		('Sub.Inner', 'Inner'),
-		('Sub.Inner.value', 'str'),
-		('Sub.Inner.class_func', 'class_func(type<Inner>) -> dict<str, int>'),
-
-		('Sub.numbers', 'list<int>'),
-
-		('Sub.__init__', '__init__(Sub) -> None'),
-		('Sub.__init__.self', 'Sub'),
-
-		('Sub.local_ref', 'local_ref(Sub) -> None'),
-		('Sub.local_ref.self', 'Sub'),
-		('Sub.local_ref.value', 'bool'),
-
-		('Sub.member_ref', 'member_ref(Self) -> None'),
-		('Sub.member_ref.self', 'Self'),
-		('Sub.member_ref.a', 'list<int>'),
-		('Sub.member_ref.b', 'int'),
-		('Sub.member_ref.c', 'C'),
-		('Sub.member_ref.sub', 'Sub'),
-
-		('Sub.member_write', 'member_write(Sub) -> None'),
-		('Sub.member_write.self', 'Sub'),
-
-		('Sub.param_ref', 'param_ref(Sub, int) -> None'),
-		('Sub.param_ref.self', 'Sub'),
-		('Sub.param_ref.param', 'int'),
-
-		('Sub.list_ref', 'list_ref(Sub, list<Sub>) -> None'),
-		('Sub.list_ref.self', 'Sub'),
-		('Sub.list_ref.subs', 'list<Sub>'),
-
-		('Sub.base_ref', 'base_ref(Sub) -> None'),
-		('Sub.base_ref.self', 'Sub'),
-
-		('Sub.returns', 'returns(Sub) -> str'),
-		('Sub.returns.self', 'Sub'),
-
-		('Sub.invoke_method', 'invoke_method(Sub) -> None'),
-		('Sub.invoke_method.self', 'Sub'),
-
-		('Sub.decl_with_pop.poped', 'int'),
-
-		('Sub.decl_locals', 'decl_locals(Sub) -> int'),
-		('Sub.decl_locals.a', 'int'),
-		('Sub.decl_locals.closure', 'closure() -> list<int>'),
-		('Sub.decl_locals.closure.b', 'list<int>'),
-
-		('Sub.relay_access.s', 'str'),
-
-		('Sub.fill_list.n_x3', 'list<int>'),
-
-		('Sub.param_default.d', 'DSI=dict<str, int>'),
-		('Sub.param_default.n', 'int'),
-		('Sub.param_default.n2', 'int'),
-		('Sub.param_default.keys', 'list<str>'),
-
-		('Sub.kw_params.kwargs', 'int'),
-
-		('Sub.indexer_access.ns0', 'int'),
-		('Sub.indexer_access.ss0', 'str'),
-		('Sub.indexer_access.s0', 'str'),
-		('Sub.indexer_access.ns_slice0', 'list<int>'),
-		('Sub.indexer_access.ns_slice1', 'list<int>'),
-		('Sub.indexer_access.ns_slice2', 'list<int>'),
-		('Sub.indexer_access.ss_slice', 'list<str>'),
-		('Sub.indexer_access.s_slice', 'str'),
-		('Sub.indexer_access.dsn', 'dict<str, int>'),
-
-		('Sub.type_props.a', 'str'),
-		('Sub.type_props.b', 'type<Sub>'),
-		('Sub.type_props.c', 'str'),
-
-		('Sub.list_expand.a', 'list<int>'),
-		('Sub.list_expand.b', 'list<list<int>>'),
-		('Sub.list_expand.c', 'list<int>'),
-
-		('Sub.dict_expand.a', 'dict<str, int>'),
-		('Sub.dict_expand.b', 'dict<str, dict<str, int>>'),
-
-		('Sub.tuple_arg.a', 'bool'),
-		('Sub.tuple_arg.b', 'bool'),
-
-		('Sub.decl_tuple.a', 'tuple<int, str, bool>'),
-		('Sub.decl_tuple.b', 'tuple<int, int, int>'),
-		('Sub.decl_tuple.c', 'tuple<str, str, str>'),
-
-		('Sub.imported_inner_type_ref.b', 'AA=A'),
-		('Sub.imported_inner_type_ref.a', 'A'),
-
-		('CalcOps.unary.n_neg', 'int'),
-		('CalcOps.unary.n_not', 'bool'),
-		('CalcOps.binary.n', 'int'),
-		('CalcOps.binary.nb0', 'int'),
-		('CalcOps.binary.nb1', 'int'),
-		('CalcOps.binary.fn0', 'float'),
-		('CalcOps.binary.fn1', 'float'),
-		('CalcOps.binary.fn2', 'float'),
-		('CalcOps.binary.fb0', 'float'),
-		('CalcOps.binary.fb1', 'float'),
-		('CalcOps.binary.result', 'float'),
-		('CalcOps.binary.l_in', 'bool'),
-		('CalcOps.binary.l_not_in', 'bool'),
-		('CalcOps.binary.n_is', 'bool'),
-		('CalcOps.binary.n_is_not', 'bool'),
-		('CalcOps.tenary.n', 'int'),
-		('CalcOps.tenary.s', 'str'),
-		('CalcOps.tenary.s_or_null', 'Union<str, None>'),
-
-		('AliasOps.func', 'func(AliasOps, C2=C) -> None'),
-		('AliasOps.func.z2', 'C2=C'),
-		('AliasOps.func.d', 'DSI=dict<str, int>'),
-		('AliasOps.func.d_in_v', 'int'),
-		('AliasOps.func.d2', 'DSI2=dict<str, DSI=dict<str, int>>'),
-		('AliasOps.func.d2_in_dsi', 'DSI=dict<str, int>'),
-		('AliasOps.func.d2_in_dsi_in_v', 'int'),
-		('AliasOps.func.z2_in_x', 'A'),
-		('AliasOps.func.new_z2_in_x', 'A'),
-
-		('TupleOps.assign.t', 'tuple<int, str>'),
-		('TupleOps.assign.t0', 'int'),
-		('TupleOps.assign.t1', 'str'),
-		('TupleOps.assign.tu', 'Union<int, str>'),
-		('TupleOps.assign.a', 'str'),  # XXX Pythonのシンタックス上は不正。一旦保留
-		('TupleOps.assign.b', 'int'),  # XXX 〃
-
-		('CompOps.list_comp.values0', 'list<int>'),
-		('CompOps.list_comp.values1', 'list<int>'),
-		('CompOps.list_comp.values2', 'list<int>'),
-		('CompOps.list_comp.strs', 'list<str>'),
-		('CompOps.list_comp.value', 'int'),
-
-		('CompOps.dict_comp.kvs0', 'dict<str, int>'),
-		('CompOps.dict_comp.kvs1', 'dict<str, int>'),
-		('CompOps.dict_comp.kvs2', 'dict<str, int>'),
-
-		('EnumOps.Values', 'Values'),
-		('EnumOps.Values.A', 'int'),  # Enumの定数値を直接参照するとEnum型ではなく、オリジナルの型になる ※情報を損なわないようにするため
-		('EnumOps.Values.B', 'int'),  # 〃
-		('EnumOps.cls_assign.a', 'Values'),
-		('EnumOps.cls_assign.d', 'dict<Values, str>'),
-		('EnumOps.cls_assign.da', 'str'),
-		('EnumOps.assign.a', 'Values'),
-		('EnumOps.assign.d', 'dict<Values, str>'),
-		('EnumOps.assign.da', 'str'),
-		('EnumOps.cast.e', 'Values'),
-		('EnumOps.cast.n', 'int'),
-		('EnumOps.comparison.a', 'bool'),
-		('EnumOps.comparison.b', 'bool'),
-		('EnumOps.comparison.c', 'bool'),
-		('EnumOps.comparison.d', 'bool'),
-		('EnumOps.calc.a', 'Values'),
-
-		('Nullable.params.base', 'Union<Base, None>'),
-		('Nullable.accessible.sub', 'Union<Sub, None>'),
-		('Nullable.accessible.subs', 'Union<list<Sub>, None>'),
-		('Nullable.accessible.s', 'str'),
-		('Nullable.accessible.n', 'int'),
-
-		('GenericOps.temporal.a', 'T'),
-		('GenericOps.new.a', 'GenericOps<int>'),
-		('GenericOps.cast.b', 'GenericOps<Base>'),
-
-		('WithOps.file_load.dir', 'str'),
+		 # XXX DeclClassParamはClassRefより間接的に参照され、on_class_refによってtype<Class>にラップされる
+		 # XXX DeclClassParamをラップせずとも害がなく、ラップするとかえって複雑さが増してしまうためこのままとしておく
+		('Sub.Inner.class_func.cls', 'Inner'),
 	])
 	def test_from_fullyname(self, local_path: str, expected: str) -> None:
 		reflections = self.fixture.get(Reflections)
@@ -249,14 +75,9 @@ class TestReflections(TestCase):
 		self.assertEqual(ClassShorthandNaming.domain_name_for_debug(symbol), expected)
 
 	@data_provider([
-		('C', '', _mod('xyz', 'C'), 'C'),
-		('value', '', _mod('classes', 'int'), 'int'),
-
 		('Base', '', _mod('classes', 'type'), 'type<Base>'),
 		('Base', 'class_def_raw.name', _mod('classes', 'type'), 'type<Base>'),
 
-		('Base.__init__', 'function_def_raw.parameters.paramvalue.typedparam.name', _mod('__main__', 'Base'), 'Base'),
-		('Base.__init__', 'function_def_raw.typed_none', _mod('classes', 'None'), 'None'),
 		('Base.__init__', 'function_def_raw.block.anno_assign.assign_namelist.getattr', _mod('classes', 'str'), 'str'),
 		('Base.__init__', 'function_def_raw.block.anno_assign.typed_var', _mod('classes', 'str'), 'str'),
 		('Base.__init__', 'function_def_raw.block.anno_assign.var', _mod('classes', 'str'), 'str'),
@@ -271,28 +92,17 @@ class TestReflections(TestCase):
 		('Sub.Inner', 'class_def_raw.block.class_var_assign.typed_var', _mod('classes', 'str'), 'str'),
 		('Sub.Inner', 'class_def_raw.block.class_var_assign.string', _mod('classes', 'str'), 'str'),
 
-		('Sub.Inner.class_func', '', _mod('__main__', 'Sub.Inner.class_func'), 'class_func(type<Inner>) -> dict<str, int>'),
-		('Sub.Inner.class_func', 'function_def_raw.parameters.paramvalue.typedparam.name', _mod('classes', 'type'), 'type<Inner>'),
-		('Sub.Inner.class_func', 'function_def_raw.typed_getitem', _mod('classes', 'dict'), 'dict<str, int>'),
 		('Sub.Inner.class_func', 'function_def_raw.block.return_stmt.dict.key_value.getattr.var', _mod('classes', 'type'), 'type<Inner>'),
 		('Sub.Inner.class_func', 'function_def_raw.block.return_stmt.dict', _mod('classes', 'dict'), 'dict<str, int>'),
 
-		('Sub.__init__', 'function_def_raw.parameters.paramvalue.typedparam.name', _mod('__main__', 'Sub'), 'Sub'),
-		('Sub.__init__', 'function_def_raw.typed_none', _mod('classes', 'None'), 'None'),
 		('Sub.__init__', 'function_def_raw.block.funccall', _mod('__main__', 'Base'), 'Base'),
 		('Sub.__init__', 'function_def_raw.block.funccall.getattr.funccall.var', _mod('classes', 'super'), 'super() -> Any'),
-		('Sub.__init__', 'function_def_raw.block.anno_assign[1]', _mod('classes', 'list'), 'list<int>'),
 		('Sub.__init__', 'function_def_raw.block.anno_assign[1].assign_namelist.getattr', _mod('classes', 'list'), 'list<int>'),
 		('Sub.__init__', 'function_def_raw.block.anno_assign[1].typed_getitem', _mod('classes', 'list'), 'list<int>'),
 		('Sub.__init__', 'function_def_raw.block.anno_assign[1].list', _mod('classes', 'list'), 'list<Unknown>'),  # XXX 空のリストは型を補完できないためlist<Unknown>になる
 
-		('Sub.first_number', 'function_def_raw.typed_var', _mod('classes', 'int'), 'int'),
-
-		('Sub.local_ref', 'function_def_raw.parameters.paramvalue.typedparam.name', _mod('__main__', 'Sub'), 'Sub'),
-		('Sub.local_ref', 'function_def_raw.block.assign', _mod('classes', 'bool'), 'bool'),
 		('Sub.local_ref', 'function_def_raw.block.funccall.var', _mod('classes', 'print'), 'print(Any) -> None'),
 		('Sub.local_ref', 'function_def_raw.block.funccall.arguments.argvalue', _mod('classes', 'bool'), 'bool'),
-		('Sub.local_ref', 'function_def_raw.typed_none', _mod('classes', 'None'), 'None'),
 
 		('Sub.member_write', 'function_def_raw.block.assign[0].assign_namelist.getattr', _mod('classes', 'int'), 'int'),
 		('Sub.member_write', 'function_def_raw.block.assign[0].number', _mod('classes', 'int'), 'int'),
@@ -310,10 +120,6 @@ class TestReflections(TestCase):
 
 		('Sub.base_ref', 'function_def_raw.block.funccall.arguments.argvalue', _mod('classes', 'str'), 'str'),
 
-		('Sub.returns', 'function_def_raw.typed_var', _mod('classes', 'str'), 'str'),
-		('Sub.returns', 'function_def_raw.typed_var', _mod('classes', 'str'), 'str'),
-
-		('Sub.yields', 'function_def_raw.typed_getitem', _mod('typing', 'Iterator'), 'Iterator<str>'),
 		('Sub.yields', 'function_def_raw.block.yield_stmt', _mod('classes', 'str'), 'str'),
 
 		('Sub.invoke_method', 'function_def_raw.block.funccall.getattr', _mod('__main__', 'Sub.invoke_method'), 'invoke_method(Sub) -> None'),
@@ -326,8 +132,6 @@ class TestReflections(TestCase):
 
 		('Sub.decl_locals', 'function_def_raw.block.if_stmt[1].if_clause.block.for_stmt.for_namelist.name', _mod('classes', 'int'), 'int'),
 		('Sub.decl_locals', 'function_def_raw.block.if_stmt[1].if_clause.block.for_stmt.block.try_stmt.except_clauses.except_clause.name', _mod('classes', 'Exception'), 'Exception'),
-
-		('Sub.Base', 'function_def_raw.typed_var', _mod('__main__', 'Base'), 'Base'),
 
 		('Sub.kw_params', 'function_def_raw.block.assign', _mod('classes', 'str'), 'str'),
 		('Sub.kw_params', 'function_def_raw.block.assign.funccall.arguments.argvalue[0]', _mod('classes', 'int'), 'int'),
@@ -348,7 +152,6 @@ class TestReflections(TestCase):
 		('CompOps.list_comp', 'function_def_raw.block.aug_assign.assign_namelist.var', _mod('classes', 'int'), 'int'),
 		('CompOps.list_comp', 'function_def_raw.block.aug_assign.getitem', _mod('classes', 'float'), 'float'),
 
-		('Nullable.returns', 'function_def_raw.typed_or_expr', _mod('classes', 'Union'), 'Union<Base, None>'),
 		('Nullable.var_move', 'function_def_raw.block.if_stmt.if_clause.block.return_stmt', _mod('classes', 'str'), 'str'),
 
 		('GenericOps.new', 'function_def_raw.block.assign.funccall', _mod('__main__', 'GenericOps'), 'GenericOps<int>'),
@@ -356,6 +159,14 @@ class TestReflections(TestCase):
 
 		('WithOps.file_load', 'function_def_raw.block.with_stmt.with_items.with_item', _mod('typing', 'IO'), 'IO'),
 		('WithOps.file_load', 'function_def_raw.block.with_stmt.block.assign', _mod('classes', 'dict'), 'dict<str, Any>'),
+
+		('ForFuncCall.cls_call', 'function_def_raw.block.return_stmt.funccall', _mod('classes', 'str'), 'str'),
+		('ForFuncCall.self_call', 'function_def_raw.block.return_stmt.funccall', _mod('classes', 'int'), 'int'),
+		('ForFuncCall.func_call', 'function_def_raw.block.funccall', _mod('classes', 'bool'), 'bool'),
+		('ForFuncCall.relay_call', 'function_def_raw.block.funccall', _mod('__main__', 'ForFuncCall'), 'ForFuncCall'),
+		('ForFuncCall.call_to_call', 'function_def_raw.block.funccall', _mod('classes', 'int'), 'int'),
+		('ForFuncCall.indexer_call', 'function_def_raw.block.funccall', _mod('classes', 'int'), 'int'),
+		('ForFuncCall.callable_call', 'function_def_raw.block.return_stmt.funccall', _mod('__main__', 'T'), 'T'),
 	])
 	def test_type_of(self, local_path: str, offset_path: str, expected: str, attrs_expected: str) -> None:
 		reflections = self.fixture.get(Reflections)

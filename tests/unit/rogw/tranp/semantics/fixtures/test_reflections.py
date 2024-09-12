@@ -1,5 +1,5 @@
 from os import path as os_path
-from typing import Any, ClassVar, Generic, Iterator, Self, TypeAlias, TypeVar, cast
+from typing import Any, Callable, ClassVar, Generic, Iterator, Self, TypeAlias, TypeVar, cast
 from yaml import safe_load as yaml_safe_load
 
 from rogw.tranp.compatible.cpp.enum import CEnum as Enum
@@ -20,6 +20,11 @@ class Base(C):
 	def __init__(self) -> None:
 		self.base_str: str = S
 		# comment
+
+	@classmethod
+	def return_cls(cls: type[Self]) -> type[Self]:
+		base = cls.return_cls()
+		return cls
 
 	def return_self(self: Self) -> Self:
 		base = self.return_self()
@@ -55,6 +60,7 @@ class Sub(Base):
 		b = self.first_number
 		c = self.C
 		sub = self.return_self()
+		sub_t = Sub.return_cls()
 
 	def member_write(self) -> None:
 		A.nx = 2
@@ -323,3 +329,29 @@ class WithOps:
 		dir = os_path.dirname(__file__)
 		with open(os_path.join(dir, 'hoge.yml'), encoding='utf-8') as f:
 			content = cast(dict[str, Any], yaml_safe_load(f))
+
+
+class ForFuncCall:
+	@classmethod
+	def cls_call(cls) -> str:
+		return cls.cls_call()
+
+	def self_call(self) -> int:
+		return self.self_call()
+
+	def func_call(self) -> None:
+		def func() -> bool: ...
+		func()
+
+	def relay_call(self) -> 'ForFuncCall':
+		self.relay_call().relay_call()
+		return self
+
+	def call_to_call(self) -> None:
+		ForFuncCall().self_call()
+
+	def indexer_call(self, arr: 'list[ForFuncCall]') -> None:
+		arr[0].self_call()
+
+	def callable_call(self, func: Callable[[int, str], T]) -> T:
+		return func(1, 'a')

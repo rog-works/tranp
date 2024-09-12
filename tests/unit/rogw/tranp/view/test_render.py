@@ -905,8 +905,7 @@ class TestRenderer(TestCase):
 				'/** static_method */',
 				'template<typename T>',
 				'deco(A, B)',
-				'static void static_method() {',
-				'}',
+				'static void static_method() {}',
 			]),
 		),
 		(

@@ -1,7 +1,9 @@
-{
+{%- if statements | select('!=', '') | list | length == 0 %}{{ '{}' }}
+{%- else %}{
 {%- filter indent('\t') %}
 {%- for statement in statements %}
 {{ statement }}
 {%- endfor %}
 {%- endfilter %}
 }
+{%- endif %}

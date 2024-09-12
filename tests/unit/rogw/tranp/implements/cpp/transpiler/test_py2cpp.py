@@ -177,7 +177,7 @@ class TestPy2Cpp(TestCase):
 		('EnumOps.cast', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'EnumOps::Values e = static_cast<EnumOps::Values>(0);'),
 		('EnumOps.cast', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'int n = static_cast<int>(EnumOps::Values::A);'),
 
-		('AccessOps.__init__', '', defs.Constructor, 'public:\n/** __init__ */\nAccessOps() : Sub(0), sub_s("") {\n}'),
+		('AccessOps.__init__', '', defs.Constructor, 'public:\n/** __init__ */\nAccessOps() : Sub(0), sub_s("") {}'),
 
 		('AccessOps.dot', 'function_def_raw.block.funccall[0].arguments.argvalue', defs.Argument, 'a.base_n'),
 		('AccessOps.dot', 'function_def_raw.block.funccall[1].arguments.argvalue', defs.Argument, 'a.sub_s'),
@@ -207,10 +207,10 @@ class TestPy2Cpp(TestCase):
 		('AccessOps.indexer', 'function_def_raw.block.funccall[1].arguments.argvalue', defs.Argument, 'arr_sp[0]'),
 		('AccessOps.indexer', 'function_def_raw.block.funccall[2].arguments.argvalue', defs.Argument, 'arr_ar[0]'),
 
-		('Alias.Inner', '', defs.Class, '/** Inner2 */\nclass Inner2 {\n\tpublic: static int V2 = 0;\n\tpublic:\n\t/** func */\n\tvoid func() {\n\n\t}\n};'),
-		('Alias.__init__', '', defs.Constructor, 'public:\n/** __init__ */\nAlias2() : inner_b(Alias2::Inner2()) {\n}'),
-		('Alias.in_param_return', '', defs.Method, 'public:\n/** in_param_return */\nAlias2 in_param_return(Alias2 a) {\n\n}'),
-		('Alias.in_param_return2', '', defs.Method, 'public:\n/** in_param_return2 */\nAlias2::Inner2 in_param_return2(Alias2::Inner2 i) {\n\n}'),
+		('Alias.Inner', '', defs.Class, '/** Inner2 */\nclass Inner2 {\n\tpublic: static int V2 = 0;\n\tpublic:\n\t/** func */\n\tvoid func() {}\n};'),
+		('Alias.__init__', '', defs.Constructor, 'public:\n/** __init__ */\nAlias2() : inner_b(Alias2::Inner2()) {}'),
+		('Alias.in_param_return', '', defs.Method, 'public:\n/** in_param_return */\nAlias2 in_param_return(Alias2 a) {}'),
+		('Alias.in_param_return2', '', defs.Method, 'public:\n/** in_param_return2 */\nAlias2::Inner2 in_param_return2(Alias2::Inner2 i) {}'),
 		('Alias.in_local', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'Alias2 a = Alias2();'),
 		('Alias.in_local', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'Alias2::Inner2 i = Alias2::Inner2();'),
 		('Alias.in_class_method', 'function_def_raw.block.funccall', defs.FuncCall, 'Alias2::in_class_method();'),
@@ -272,8 +272,8 @@ class TestPy2Cpp(TestCase):
 		('CastOps.cast_class', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'Base* bp = static_cast<Base*>(sub_p);'),
 		('CastOps.cast_class', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'std::map<std::string, Base*> dsbp = static_cast<std::map<std::string, Base*>>(dssp);'),
 
-		('Nullable.params', '', defs.Method, 'public:\n/** params */\nvoid params(Sub* p) {\n\n}'),
-		('Nullable.returns', '', defs.Method, 'public:\n/** returns */\nSub* returns() {\n\n}'),
+		('Nullable.params', '', defs.Method, 'public:\n/** params */\nvoid params(Sub* p) {}'),
+		('Nullable.returns', '', defs.Method, 'public:\n/** returns */\nSub* returns() {}'),
 		('Nullable.var_move', 'function_def_raw.block.anno_assign', defs.AnnoAssign, 'Sub* p = nullptr;'),
 		('Nullable.var_move', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'p = (&(base));'),
 		('Nullable.var_move', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'p = nullptr;'),
@@ -281,16 +281,16 @@ class TestPy2Cpp(TestCase):
 		('Nullable.var_move', 'function_def_raw.block.if_stmt.if_clause.block.return_stmt', defs.Return, 'return (*(p));'),
 
 		('Template.T2Class', '', defs.Class, '/** T2Class */\ntemplate<typename T2>\nclass T2Class {\n\n};'),
-		('Template.__init__', '', defs.Constructor, 'public:\n/** __init__ */\nTemplate(T v) {\n\n}'),
-		('Template.class_method_t', '', defs.ClassMethod, 'public:\n/** class_method_t */\ntemplate<typename T2>\nstatic T2 class_method_t(T2 v2) {\n\n}'),
-		('Template.class_method_t_and_class_t', '', defs.ClassMethod, 'public:\n/** class_method_t_and_class_t */\ntemplate<typename T2>\nstatic T2 class_method_t_and_class_t(T v, T2 v2) {\n\n}'),
-		('Template.method_t', '', defs.Method, 'public:\n/** method_t */\ntemplate<typename T2>\nT2 method_t(T2 v2) {\n\n}'),
-		('Template.method_t_and_class_t', '', defs.Method, 'public:\n/** method_t_and_class_t */\ntemplate<typename T2>\nT2 method_t_and_class_t(T v, T2 v2) {\n\n}'),
+		('Template.__init__', '', defs.Constructor, 'public:\n/** __init__ */\nTemplate(T v) {}'),
+		('Template.class_method_t', '', defs.ClassMethod, 'public:\n/** class_method_t */\ntemplate<typename T2>\nstatic T2 class_method_t(T2 v2) {}'),
+		('Template.class_method_t_and_class_t', '', defs.ClassMethod, 'public:\n/** class_method_t_and_class_t */\ntemplate<typename T2>\nstatic T2 class_method_t_and_class_t(T v, T2 v2) {}'),
+		('Template.method_t', '', defs.Method, 'public:\n/** method_t */\ntemplate<typename T2>\nT2 method_t(T2 v2) {}'),
+		('Template.method_t_and_class_t', '', defs.Method, 'public:\n/** method_t_and_class_t */\ntemplate<typename T2>\nT2 method_t_and_class_t(T v, T2 v2) {}'),
 
 		('GenericOps.temporal', 'function_def_raw.block.assign', defs.MoveAssign, 'T a = value;'),
 		('GenericOps.new', 'function_def_raw.block.assign', defs.MoveAssign, 'GenericOps<int> a = GenericOps<int>();'),
 
-		('Struct', '', defs.Class, '/** Struct */\nstruct Struct {\n\tpublic: int a;\n\tpublic: std::string b;\n\tpublic:\n\t/** __init__ */\n\tStruct(int a, std::string b) : a(a), b(b) {\n\t}\n};'),
+		('Struct', '', defs.Class, '/** Struct */\nstruct Struct {\n\tpublic: int a;\n\tpublic: std::string b;\n\tpublic:\n\t/** __init__ */\n\tStruct(int a, std::string b) : a(a), b(b) {}\n};'),
 
 		('StringOps.methods', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'bool a = s.starts_with("");'),
 		('StringOps.methods', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'bool b = s.ends_with("");'),
@@ -307,11 +307,11 @@ class TestPy2Cpp(TestCase):
 		('AssignOps.assign', 'function_def_raw.block.assign[4]', defs.MoveAssign, 'TSII tsii = tsiis[0];'),
 		('AssignOps.assign', 'function_def_raw.block.assign[5]', defs.MoveAssign, 'auto [ts, ti1, ti2] = tsii;'),
 
-		('template_func', '', defs.Function, '/** template_func */\ntemplate<typename T>\nT template_func(T v) {\n\n}'),
+		('template_func', '', defs.Function, '/** template_func */\ntemplate<typename T>\nT template_func(T v) {}'),
 
-		('ForCallableType', '', defs.Class, '/** ForCallableType */\nclass ForCallableType {\n\tpublic: std::function<bool(int, std::string)> func;\n\tpublic:\n\t/** __init__ */\n\tForCallableType(std::function<bool(int, std::string)> func) : func(func) {\n\t}\n};'),
+		('ForCallableType', '', defs.Class, '/** ForCallableType */\nclass ForCallableType {\n\tpublic: std::function<bool(int, std::string)> func;\n\tpublic:\n\t/** __init__ */\n\tForCallableType(std::function<bool(int, std::string)> func) : func(func) {}\n};'),
 
-		('ForFuncCall.Copy.__py_copy__', '', defs.Method, 'public:\n/** __py_copy__ */\nCopy(const ForFuncCall::Copy& origin) {\n\n}'),
+		('ForFuncCall.Copy.__py_copy__', '', defs.Method, 'public:\n/** __py_copy__ */\nCopy(const ForFuncCall::Copy& origin) {}'),
 		('ForFuncCall.Copy.move', 'function_def_raw.block.funccall', defs.FuncCall, 'copied = (*this);'),
 	])
 	def test_exec(self, local_path: str, offset_path: str, expected_type: type[Node], expected: str) -> None:

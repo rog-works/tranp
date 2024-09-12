@@ -322,7 +322,7 @@ class Py2Cpp(ITranspiler):
 		"""Note: closureでtemplate_typesは不要なので対応しない"""
 		decorators = self.allow_decorators(decorators)
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'statements': statements}
-		return self.view.render(f'function/{node.classification}', vars={**function_vars, **closure_vars})
+		return self.view.render(f'function/{node.classification}', vars=function_vars)
 
 	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], template_types: list[str], comment: str, statements: list[str]) -> str:
 		# XXX メンバー変数の埋め込み情報を取得

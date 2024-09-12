@@ -279,7 +279,6 @@ class TestRenderer(TestCase):
 				'comp_for': 'auto& [key, value] : items',
 				'condition': '',
 				'projection_types': ['int', 'float'],
-				'binded_this': False,
 			},
 			'\n'.join([
 				'[&]() -> std::map<int, float> {',
@@ -298,10 +297,9 @@ class TestRenderer(TestCase):
 				'comp_for': 'auto& [key, value] : items',
 				'condition': 'key == 1',
 				'projection_types': ['int', 'float'],
-				'binded_this': True,
 			},
 			'\n'.join([
-				'[&, this]() -> std::map<int, float> {',
+				'[&]() -> std::map<int, float> {',
 				'	std::map<int, float> __ret;',
 				'	for (auto& [key, value] : items) {',
 				'		if (key == 1) {',
@@ -797,10 +795,9 @@ class TestRenderer(TestCase):
 				'statements': ['return value + 1;'],
 				# 'template_types': [],
 				# closure only
-				'binded_this': True,
 			},
 			'\n'.join([
-				'auto closure = [&, this](std::string text, int value = 1) -> int {',
+				'auto closure = [&](std::string text, int value = 1) -> int {',
 				'	return value + 1;',
 				'};',
 			]),

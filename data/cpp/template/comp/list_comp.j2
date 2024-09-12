@@ -1,4 +1,4 @@
-[&{% if binded_this %}, this{% endif %}]() -> {{ i18n('classes', 'list') }}<{{ projection_types[0] }}> {
+[&]() -> {{ i18n('classes', 'list') }}<{{ projection_types[0] }}> {
 	{{ i18n('classes', 'list') }}<{{ projection_types[0] }}> __ret;
 	for ({{ comp_for }}) {
 		{%- if condition %}

@@ -21,7 +21,7 @@ class DeclOps {
 };"""
 
 	CompOps_list_comp_assign_values1 = \
-"""std::vector<int> values1 = [&, this]() -> std::vector<int> {
+"""std::vector<int> values1 = [&]() -> std::vector<int> {
 	std::vector<int> __ret;
 	for (auto& value : values0) {
 		__ret.push_back(value);
@@ -30,7 +30,7 @@ class DeclOps {
 }();"""
 
 	CompOps_dict_comp_assign_kvs0_1 = \
-"""std::map<std::string, CompOps::C> kvs0_1 = [&, this]() -> std::map<std::string, CompOps::C> {
+"""std::map<std::string, CompOps::C> kvs0_1 = [&]() -> std::map<std::string, CompOps::C> {
 	std::map<std::string, CompOps::C> __ret;
 	for (auto& [key, value] : kvs0_0) {
 		__ret[key] = value;
@@ -39,7 +39,7 @@ class DeclOps {
 }();"""
 
 	CompOps_dict_comp_assign_kvsp_1 = \
-"""std::map<std::string, CompOps::C> kvsp_1 = [&, this]() -> std::map<std::string, CompOps::C> {
+"""std::map<std::string, CompOps::C> kvsp_1 = [&]() -> std::map<std::string, CompOps::C> {
 	std::map<std::string, CompOps::C> __ret;
 	for (auto& [key, value] : *(kvsp_0)) {
 		__ret[key] = value;
@@ -48,7 +48,7 @@ class DeclOps {
 }();"""
 
 	CompOps_dict_comp_assign_kvs2 = \
-"""std::map<int, int> kvs2 = [&, this]() -> std::map<int, int> {
+"""std::map<int, int> kvs2 = [&]() -> std::map<int, int> {
 	std::map<int, int> __ret;
 	for (auto& in_values : values) {
 		__ret[in_values[0]] = in_values[1];

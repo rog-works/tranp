@@ -307,8 +307,6 @@ class TestDefinition(TestCase):
 				{'symbol': 'i', 'decl_type': defs.DeclLocalVar},
 			],
 			'actual_symbol': None,
-			# Closure only
-			'binded_this': True,
 		}),
 		(_ast('Class.property_method'), {
 			'type': defs.Method,
@@ -400,8 +398,6 @@ class TestDefinition(TestCase):
 				{'symbol': 'n', 'decl_type': defs.Parameter},
 			],
 			'actual_symbol': None,
-			# Closure only
-			'binded_this': False,
 		}),
 		(_ast('ParamOps.star_params'), {
 			'type': defs.Method,
@@ -487,9 +483,6 @@ class TestDefinition(TestCase):
 
 		if isinstance(node, defs.Method):
 			self.assertEqual(node.is_property, expected['is_property'])
-
-		if isinstance(node, defs.Closure):
-			self.assertEqual(node.binded_this, expected['binded_this'])
 
 	@data_provider([
 		(_ast('Base'), {

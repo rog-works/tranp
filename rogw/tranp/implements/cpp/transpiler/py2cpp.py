@@ -322,7 +322,6 @@ class Py2Cpp(ITranspiler):
 		"""Note: closureでtemplate_typesは不要なので対応しない"""
 		decorators = self.allow_decorators(decorators)
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'statements': statements}
-		closure_vars = {'binded_this': node.binded_this}
 		return self.view.render(f'function/{node.classification}', vars={**function_vars, **closure_vars})
 
 	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], template_types: list[str], comment: str, statements: list[str]) -> str:
@@ -892,7 +891,7 @@ class Py2Cpp(ITranspiler):
 	def on_list_comp(self, node: defs.ListComp, projection: str, fors: list[str], condition: str) -> str:
 		projection_type_raw = self.reflections.type_of(node.projection)
 		projection_type = self.to_accessible_name(projection_type_raw)
-		comp_vars = {'projection': projection, 'comp_for': fors[0], 'condition': condition, 'projection_types': [projection_type], 'binded_this': node.binded_this}
+		comp_vars = {'projection': projection, 'comp_for': fors[0], 'condition': condition, 'projection_types': [projection_type]}
 		return self.view.render(f'comp/{node.classification}', vars=comp_vars)
 
 	def on_dict_comp(self, node: defs.DictComp, projection: str, fors: list[str], condition: str) -> str:
@@ -903,7 +902,7 @@ class Py2Cpp(ITranspiler):
 		# XXX 再帰的なトランスパイルでkey/valueを解決
 		projection_key = self.transpile(projection_pair_node.first)
 		projection_value = self.transpile(projection_pair_node.second)
-		comp_vars = {'projection_key': projection_key, 'projection_value': projection_value, 'comp_for': fors[0], 'condition': condition, 'projection_types': [projection_type_key, projection_type_value], 'binded_this': node.binded_this}
+		comp_vars = {'projection_key': projection_key, 'projection_value': projection_value, 'comp_for': fors[0], 'condition': condition, 'projection_types': [projection_type_key, projection_type_value]}
 		return self.view.render(f'comp/{node.classification}', vars=comp_vars)
 
 	# Operator

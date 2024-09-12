@@ -573,16 +573,6 @@ class Comprehension(Generator, IDomain, IScope, INamespace):
 	def decl_vars(self) -> list[Declable]:
 		return list(flatten([comp_for.symbols for comp_for in self.fors]))
 
-	@property
-	def binded_this(self) -> bool:
-		"""Note: メソッド内に存在する場合は、メソッドのスコープを静的に束縛しているものとして扱う"""
-		from rogw.tranp.syntax.node.definition.statement_compound import Constructor, Method  # FIXME 循環参照
-
-		elems = self.parent._full_path.de_identify().elements
-		has_own_classes = 'class_def' in elems and 'function_def' in elems
-		has_own_method = has_own_classes and elems.index('class_def') < elems.index('function_def')
-		return has_own_method and self.parent._ancestor('function_def').is_a(Constructor, Method)
-
 
 @Meta.embed(Node, accept_tags('list_comp'))
 class ListComp(Comprehension):

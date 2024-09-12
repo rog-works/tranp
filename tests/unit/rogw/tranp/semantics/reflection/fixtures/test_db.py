@@ -21,6 +21,11 @@ class Base(C):
 		self.base_str: str = S
 		# comment
 
+	@classmethod
+	def return_cls(cls: type[Self]) -> type[Self]:
+		base = cls.return_cls()
+		return cls
+
 	def return_self(self: Self) -> Self:
 		base = self.return_self()
 		return self
@@ -55,6 +60,7 @@ class Sub(Base):
 		b = self.first_number
 		c = self.C
 		sub = self.return_self()
+		sub_t = Sub.return_cls()
 
 	def member_write(self) -> None:
 		A.nx = 2

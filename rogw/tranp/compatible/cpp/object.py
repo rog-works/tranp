@@ -86,9 +86,6 @@ class CP(CVar[T_co]):
 		"""Constを返却する参照変換代替メソッド。C++では削除"""
 		return CPConst(self.raw)
 
-	def __py_copy__(self, other: 'CRef[T_co]') -> None:
-		setattr(self, 'raw', other.raw)
-
 	def __add__(self, offset: int) -> int:
 		"""アドレス演算(加算)
 

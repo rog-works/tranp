@@ -28,22 +28,6 @@ class CVar(Generic[T_co]):
 		"""実体を返却する実体参照代替メソッド。C++では実体型は削除、アドレス型は`*`に相当"""
 		return cast(T_co, self._origin)
 
-	def move(self, via: 'CRef[T_co]') -> None:
-		"""代入処理時の実体コピー模倣メソッド。C++では代入処理に置き換えられる
-
-		Args:
-			via (CRef[T_co]): コピー元
-		Note:
-			* 実体にコピーコンストラクターが実装されている場合はコピーコンストラクターを用いる
-			* 実体にコピーコンストラクターがない場合は単に実体の置き換えを行う
-			* PythonとC++ではコピーの性質が根本的に違い、完全な模倣はできないため、なるべくこの処理を用いないことを推奨
-		"""
-		if hasattr(self._origin, '__py_copy__'):
-			copy_origin: Callable[[CRef[T_co]], None] = getattr(self._origin, '__py_copy__')
-			copy_origin(via)
-		else:
-			self._origin = via._origin
-
 	def __eq__(self, other: Self) -> bool:
 		"""比較演算子(==)のオーバーロード
 
@@ -201,6 +185,22 @@ class CRef(CVar[T_co]):
 	def const(self) -> 'CRefConst[T_co]':
 		"""Constを返却する参照変換代替メソッド。C++では削除"""
 		return CRefConst(self.raw)
+
+	def copy(self, via: 'CRef[T_co]') -> None:
+		"""代入コピー代替メソッド。C++では代入処理に置き換えられる
+
+		Args:
+			via (CRef[T_co]): コピー元
+		Note:
+			* 実体にコピーコンストラクターが実装されている場合はコピーコンストラクターを用いる
+			* 実体にコピーコンストラクターがない場合は単に実体の置き換えを行う
+			* PythonとC++ではコピーの性質が根本的に違い、完全な模倣はできないため、なるべくこの処理を用いないことを推奨
+		"""
+		if hasattr(self._origin, '__py_copy__'):
+			copy_origin: Callable[[CRef[T_co]], None] = getattr(self._origin, '__py_copy__')
+			copy_origin(via)
+		else:
+			self._origin = via._origin
 
 
 class CPConst(CVar[T_co]):

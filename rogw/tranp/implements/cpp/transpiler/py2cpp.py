@@ -755,6 +755,10 @@ class Py2Cpp(ITranspiler):
 			receiver, operator = PatternParser.break_relay(calls)
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'var_type': var_type})
+		elif spec == 'cvar_copy':
+			# 期待値: cref_to.copy(cref_via)
+			receiver, _ = PatternParser.break_relay(calls)
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver})
 		elif spec == 'cvar_new_p':
 			# 期待値: CP.new(A(a, b, c))
 			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
@@ -837,15 +841,19 @@ class Py2Cpp(ITranspiler):
 					return 'str_format', None
 				elif self.reflections.type_of(node.calls).context.impl(refs.Object).type_is(str):
 					return 'str_format', None
+			elif prop == CVars.copy_key:
+				receiver_raw = self.reflections.type_of(node.calls.receiver)
+				cvar_key = CVars.key_from(receiver_raw)
+				if CVars.is_raw_ref(cvar_key):
+					return 'cvar_copy', None
 			elif prop == CVars.empty_key:
-				context = self.reflections.type_of(node).attrs[0]
-				return 'cvar_sp_empty', context
+				if isinstance(node.calls.receiver, defs.Indexer) and CVars.is_addr_sp(node.calls.receiver.receiver.domain_name):
+					context = self.reflections.type_of(node).attrs[0]
+					return 'cvar_sp_empty', context
 			elif prop == CVars.allocator_key:
-				context = self.reflections.type_of(node.calls).context.impl(refs.Object).actualize()
-				cvar_key = CVars.key_from(context)
-				if CVars.is_addr_p(cvar_key):
+				if isinstance(node.calls.receiver, defs.Var) and CVars.is_addr_p(node.calls.receiver.domain_name):
 					return 'cvar_new_p', None
-				elif CVars.is_addr_sp(cvar_key):
+				elif isinstance(node.calls.receiver, defs.Var) and CVars.is_addr_sp(node.calls.receiver.domain_name):
 					new_type_raw = self.reflections.type_of(node.arguments[0])
 					spec = 'cvar_new_sp_list' if new_type_raw.impl(refs.Object).type_is(list) else 'cvar_new_sp'
 					return spec, new_type_raw

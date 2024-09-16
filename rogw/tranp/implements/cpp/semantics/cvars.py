@@ -12,13 +12,16 @@ class CVars:
 
 	Attributes:
 		relay_key (str): リレー代替メソッドの名前
+		empty_key (str): リレー代替メソッドの名前
 		allocator_key (str): メモリ生成メソッドの名前
-		exchanger_key (str): 属性変換メソッドの名前
+		copy_key (str): 代入コピー代替メソッドの名前
+		exchanger_keys (list[str]): 属性変換メソッドの名前
 	"""
 
 	relay_key: ClassVar[str] = 'on'
 	empty_key: ClassVar[str] = 'empty'
 	allocator_key: ClassVar[str] = 'new'
+	copy_key: ClassVar[str] = 'copy'
 	exchanger_keys: ClassVar[list[str]] = ['raw', 'ref', 'addr', 'const']
 
 	class Moves(Enum):

@@ -1,4 +1,4 @@
-from typing import Generic, Self, TypeVar, cast
+from typing import Callable, Generic, Self, TypeVar, cast
 
 from rogw.tranp.lang.annotation import override
 
@@ -27,6 +27,22 @@ class CVar(Generic[T_co]):
 	def raw(self) -> T_co:
 		"""実体を返却する実体参照代替メソッド。C++では実体型は削除、アドレス型は`*`に相当"""
 		return cast(T_co, self._origin)
+
+	def move(self, via: 'CRef[T_co]') -> None:
+		"""代入処理時の実体コピー模倣メソッド。C++では代入処理に置き換えられる
+
+		Args:
+			via (CRef[T_co]): コピー元
+		Note:
+			* 実体にコピーコンストラクターが実装されている場合はコピーコンストラクターを用いる
+			* 実体にコピーコンストラクターがない場合は単に実体の置き換えを行う
+			* PythonとC++ではコピーの性質が根本的に違い、完全な模倣はできないため、なるべくこの処理を用いないことを推奨
+		"""
+		if hasattr(self._origin, '__py_copy__'):
+			copy_origin: Callable[[CRef[T_co]], None] = getattr(self._origin, '__py_copy__')
+			copy_origin(via)
+		else:
+			self._origin = via._origin
 
 	def __eq__(self, other: Self) -> bool:
 		"""比較演算子(==)のオーバーロード
@@ -85,6 +101,9 @@ class CP(CVar[T_co]):
 	def const(self) -> 'CPConst[T_co]':
 		"""Constを返却する参照変換代替メソッド。C++では削除"""
 		return CPConst(self.raw)
+
+	def __py_copy__(self, other: 'CRef[T_co]') -> None:
+		setattr(self, 'raw', other.raw)
 
 	def __add__(self, offset: int) -> int:
 		"""アドレス演算(加算)

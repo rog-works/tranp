@@ -137,7 +137,6 @@ class TestRenderer(TestCase):
 			},
 			'\n'.join([
 				'/** Hoge */',
-				'deco(A, A.B)',
 				'class Hoge : public Base, Interface {',
 				'	private: int __value;',
 				'	private: std::string __text;',
@@ -220,7 +219,6 @@ class TestRenderer(TestCase):
 				'/**',
 				' * Description',
 				' */',
-				'deco(A, A.B)',
 				'class Hoge {',
 				'	public: Hoge() {',
 				'	}',
@@ -454,7 +452,6 @@ class TestRenderer(TestCase):
 			},
 			'\n'.join([
 				'/** Values */',
-				'deco(A, B)',
 				'enum class Values {',
 				'	A = 0,',
 				'	B = 1,',
@@ -778,7 +775,6 @@ class TestRenderer(TestCase):
 			'\n'.join([
 				'/** func */',
 				'template<typename T>',
-				'deco(A, B)',
 				'int func(std::string text, int value = 1) {',
 				'	return value + 1;',
 				'}',
@@ -854,7 +850,6 @@ class TestRenderer(TestCase):
 				'public:',
 				'/** __init__ */',
 				'template<typename T>',
-				'deco(A, B)',
 				'virtual Hoge() = 0;',
 			]),
 		),
@@ -904,7 +899,6 @@ class TestRenderer(TestCase):
 				'public:',
 				'/** static_method */',
 				'template<typename T>',
-				'deco(A, B)',
 				'static void static_method() {}',
 			]),
 		),
@@ -1053,7 +1047,6 @@ class TestRenderer(TestCase):
 			'\n'.join([
 				'public:',
 				'/** decorated_method */',
-				'deco(A, B)',
 				'void decorated_method(int value = 1) {',
 				'	this->x = value;',
 				'}',

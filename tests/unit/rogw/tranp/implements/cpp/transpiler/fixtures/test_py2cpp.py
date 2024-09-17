@@ -537,10 +537,11 @@ class ForCallableType:
 
 class ForFuncCall:
 	class Copy:
-		def __py_copy__(self, origin: 'CRefConst[ForFuncCall.Copy]') -> None:
+		def __py_copy__(self, origin: 'CRef[ForFuncCall.Copy]') -> None:
 			...
 
-		def move(self) -> 'ForFuncCall.Copy':
-			copied = ForFuncCall.Copy()
-			copied.__py_copy__(CRefConst(self))
-			return copied
+		def move_obj(self, via: 'CRef[ForFuncCall.Copy]', to: 'CRef[ForFuncCall.Copy]') -> None:
+			to.copy(via)
+
+		def move_scalar(self, output: 'CRef[int]') -> None:
+			output.copy(CRef(1))

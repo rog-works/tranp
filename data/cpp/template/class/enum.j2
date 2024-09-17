@@ -1,5 +1,5 @@
 {%- include('class/_comment.j2') %}
-{%- include('class/_decorator.j2') %}
+{%- include('class/_decorators.j2') %}
 {% if accessor %}{{ accessor }}: {% endif %}enum class {{ symbol }} {
 {%- include('class/_statements_enum.j2') %}
 };

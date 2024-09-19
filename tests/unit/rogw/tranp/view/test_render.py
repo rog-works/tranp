@@ -104,13 +104,13 @@ class TestRenderer(TestCase):
 		self.assertRender('catch', 0, vars, expected)
 
 	@data_provider([
-		({'accessor': 'public', 'decl_class_var': 'float a'}, 'public: static float a'),
+		({'accessor': 'public', 'decl_class_var': 'float a', 'decorators': []}, 'public: static float a'),
 	])
 	def test_render_class_decl_class_var(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('class/_decl_class_var', 0, vars, expected)
 
 	@data_provider([
-		({'accessor': 'public', 'var_type': 'float', 'symbol': 'a'}, 'public: float a;'),
+		({'accessor': 'public', 'var_type': 'float', 'symbol': 'a', 'decorators': []}, 'public: float a;'),
 	])
 	def test_render_class_decl_this_var(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('class/_decl_this_var', 0, vars, expected)

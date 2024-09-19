@@ -1,7 +1,7 @@
 import re
 from typing import Any, cast
 
-from rogw.tranp.compatible.cpp.embed import __allow_override__, __embed__, __struct__
+from rogw.tranp.compatible.cpp.embed import __allow_override__, __struct__
 from rogw.tranp.compatible.cpp.object import CP
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 from rogw.tranp.data.meta.header import MetaHeader
@@ -12,7 +12,7 @@ from rogw.tranp.dsn.translation import alias_dsn, import_dsn
 from rogw.tranp.errors import LogicError
 from rogw.tranp.i18n.i18n import I18n
 from rogw.tranp.implements.cpp.semantics.cvars import CVars
-from rogw.tranp.lang.annotation import duck_typed, implements, injectable, override
+from rogw.tranp.lang.annotation import duck_typed, implements, injectable
 from rogw.tranp.lang.eventemitter import Callback, Observable
 from rogw.tranp.lang.module import to_fullyname
 from rogw.tranp.lang.parser import BlockParser
@@ -307,16 +307,6 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(f'function/{node.classification}', vars=function_vars)
 
 	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], template_types: list[str], comment: str, statements: list[str]) -> str:
-		# XXX メンバー変数の埋め込み情報を取得
-		embed_vars: dict[str, str] = {}
-		for decorator in decorators:
-				if not decorator.startswith(__embed__.__name__):
-						continue
-
-				# XXX __embed__のシグネチャーに依存するのは微妙なので再検討
-				key, meta = BlockParser.parse_pair(decorator, '()', ',')[0]
-				embed_vars[key[1:-1]] = meta
-
 		# XXX 構造体の判定
 		is_struct = len([decorator for decorator in decorators if decorator.startswith(__struct__.__name__)])
 
@@ -333,17 +323,17 @@ class Py2Cpp(ITranspiler):
 		vars: list[str] = []
 		for index, class_var in enumerate(node.class_vars):
 			class_var_name = class_var.tokens
-			class_var_vars = {'accessor': self.to_accessor(defs.to_accessor(class_var_name)), 'decl_class_var': decl_class_var_statements[index]}
+			class_var_vars = {'accessor': self.to_accessor(defs.to_accessor(class_var_name)), 'decl_class_var': decl_class_var_statements[index], 'decorators': decorators}
 			vars.append(self.view.render(f'{node.classification}/_decl_class_var', vars=class_var_vars))
 
 		for this_var in node.this_vars:
 			this_var_name = this_var.tokens_without_this
 			# XXX 再帰的なトランスパイルで型名を解決
 			var_type = self.transpile(this_var.declare.as_a(defs.AnnoAssign).var_type)
-			this_var_vars = {'accessor': self.to_accessor(defs.to_accessor(this_var_name)), 'symbol': this_var_name, 'var_type': var_type, 'embed_vars': embed_vars}
+			this_var_vars = {'accessor': self.to_accessor(defs.to_accessor(this_var_name)), 'symbol': this_var_name, 'var_type': var_type, 'decorators': decorators}
 			vars.append(self.view.render(f'{node.classification}/_decl_this_var', vars=this_var_vars))
 
-		class_vars = {'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'template_types': template_types, 'comment': comment, 'statements': other_statements, 'vars': vars, 'is_struct': is_struct, 'embed_vars': embed_vars}
+		class_vars = {'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'template_types': template_types, 'comment': comment, 'statements': other_statements, 'vars': vars, 'is_struct': is_struct}
 		return self.view.render(f'{node.classification}/class', vars=class_vars)
 
 	def on_enum(self, node: defs.Enum, symbol: str, decorators: list[str], inherits: list[str], template_types: list[str], comment: str, statements: list[str]) -> str:

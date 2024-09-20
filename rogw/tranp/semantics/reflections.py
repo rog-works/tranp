@@ -512,8 +512,10 @@ class ProceduralResolver:
 
 	def on_func_call(self, node: defs.FuncCall, calls: IReflection, arguments: list[IReflection]) -> IReflection:
 		actual_calls = calls.impl(refs.Object).actualize()
-		# 定義と型がクラス定義ノードである場合、クラスシンボルからコンストラクターに変換
-		if isinstance(actual_calls.decl, defs.DeclClasses) and isinstance(actual_calls.types, defs.DeclClasses):
+		# XXX パラメーターの型から呼び出し可能オブジェクトを判断。呼び出し可能オブジェクトの確実な判別方法を検討
+		is_callable_param = isinstance(actual_calls.decl, defs.Parameter) and isinstance(actual_calls.decl.var_type, defs.CallableType)
+		# クラス定義ノードである場合、クラスシンボルからコンストラクターに変換
+		if not (is_callable_param) and isinstance(actual_calls.types, defs.DeclClasses):
 			actual_calls = actual_calls.to(actual_calls.types, actual_calls.constructor())
 
 		return actual_calls.to(node, actual_calls.impl(refs.Function).returns(*arguments))

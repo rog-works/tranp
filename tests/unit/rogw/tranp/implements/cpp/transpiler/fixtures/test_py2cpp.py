@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import Callable, ClassVar, Generic, TypeAlias, TypeVar, cast
+from typing import Callable, ClassVar, Generic, Self, TypeAlias, TypeVar, cast
 
 from rogw.tranp.compatible.cpp.classes import void
 from rogw.tranp.compatible.cpp.embed import __allow_override__, __embed__, __struct__
@@ -526,6 +526,13 @@ class AssignOps:
 
 
 def template_func(v: T) -> T: ...
+
+
+class ForClassMethod:
+	@classmethod
+	def make(cls: type[Self]) -> Self:
+		inst = cls()
+		return inst
 
 
 class ForCallableType:

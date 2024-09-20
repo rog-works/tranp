@@ -1,5 +1,5 @@
 import re
-from typing import Any, cast
+from typing import Any, Self, cast
 
 from rogw.tranp.compatible.cpp.embed import __allow_override__, __struct__
 from rogw.tranp.compatible.cpp.object import CP
@@ -352,6 +352,10 @@ class Py2Cpp(ITranspiler):
 	# Function/Class Elements
 
 	def on_parameter(self, node: defs.Parameter, symbol: str, var_type: str, default_value: str) -> str:
+		# Selfの型注釈がかえって邪魔なため削除 FIXME 型の情報を消す必然性が見えない。修正を検討
+		if isinstance(node.declare.symbol, (defs.DeclClassParam, defs.DeclThisParam)):
+			var_type = ''
+
 		return self.view.render(node.classification, vars={'symbol': symbol, 'var_type': var_type, 'default_value': default_value})
 
 	def on_decorator(self, node: defs.Decorator, path: str, arguments: list[str]) -> str:
@@ -608,6 +612,10 @@ class Py2Cpp(ITranspiler):
 
 	def on_var_of_type(self, node: defs.VarOfType) -> str:
 		symbol = self.reflections.type_of(node)
+		# ノードが戻り値の型であり、且つSelfの場合、所属クラスのシンボルに変換 FIXME 場当たり的、且つ不完全なため修正を検討
+		if isinstance(node.parent, (defs.Method, defs.ClassMethod)) and isinstance(symbol.types, defs.TemplateClass) and symbol.types.domain_name == Self.__name__:
+			symbol = self.reflections.resolve(node.parent.class_types)
+
 		type_name = self.to_domain_name_by_class(symbol.types)
 		return self.view.render(node.classification, vars={'type_name': type_name})
 

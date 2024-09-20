@@ -24,6 +24,7 @@ class Base(C):
 	@classmethod
 	def return_cls(cls: type[Self]) -> type[Self]:
 		base = cls.return_cls()
+		inst = cls()
 		return cls
 
 	def return_self(self: Self) -> Self:

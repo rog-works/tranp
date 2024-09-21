@@ -280,6 +280,10 @@ class ClassTypehint(Typehint):
 		for at_type in reversed(_type.mro()):
 			_annos: dict[str, type[Any]] = getattr(at_type, '__annotations__', {})
 			for key, anno in _annos.items():
+				# プライベートのプロパティーを除外。XXX 後々プライベートを適格に除外するのが手間であり、且つ参照出来る方が良いとする理由が薄いため
+				if key.startswith(f'_{at_type.__name__}__'):
+					continue
+
 				annos[key] = _resolve_type_from_str(anno, at_type.__module__) if isinstance(anno, str) else anno
 
 		return annos

@@ -19,9 +19,11 @@ class Gen(Generic[T]): ...
 class Base:
 	n: ClassVar[int] = 0
 	d: dict[str, int]
+	__private: int
 
 	def __init__(self) -> None:
 		self.d: dict[str, int] = {}
+		self.__private: int = 0
 
 	@classmethod
 	def cls_method(cls, n: int) -> str: ...

@@ -238,24 +238,26 @@ class ClassTypehint(Typehint):
 		"""FunctionTypehint: コンストラクター"""
 		return FunctionTypehint(self._type.__init__)
 
-	@property
-	def class_vars(self) -> dict[str, Typehint]:
+	def class_vars(self, lookup_private: bool = True) -> dict[str, Typehint]:
 		"""クラス変数の一覧を取得
 
+		Args:
+			lookup_private (bool): プライベートプロパティー抽出フラグ (default = True)
 		Returns:
 			dict[str, Typehint]: クラス変数一覧
 		"""
-		annos = {key: anno for key, anno in self.__recursive_annos(self._type).items() if self.__try_get_origin(anno) is ClassVar}
+		annos = {key: anno for key, anno in self.__recursive_annos(self._type, lookup_private).items() if self.__try_get_origin(anno) is ClassVar}
 		return {key: ClassTypehint(attr).sub_types[0] for key, attr in annos.items()}
 
-	@property
-	def self_vars(self) -> dict[str, Typehint]:
+	def self_vars(self, lookup_private: bool = True) -> dict[str, Typehint]:
 		"""インスタンス変数の一覧を取得
 
+		Args:
+			lookup_private (bool): プライベートプロパティー抽出フラグ (default = True)
 		Returns:
 			dict[str, Typehint]: インスタンス変数一覧
 		"""
-		annos = {key: anno for key, anno in self.__recursive_annos(self._type).items() if self.__try_get_origin(anno) is not ClassVar}
+		annos = {key: anno for key, anno in self.__recursive_annos(self._type, lookup_private).items() if self.__try_get_origin(anno) is not ClassVar}
 		return {key: Inspector.resolve(attr, self._type.__module__) for key, attr in annos.items()}
 	
 	def __try_get_origin(self, anno: type[Any]) -> type[Any]:
@@ -268,11 +270,12 @@ class ClassTypehint(Typehint):
 		"""
 		return getattr(anno, '__origin__', anno)
 
-	def __recursive_annos(self, _type: type[Any]) -> dict[str, type[Any]]:
+	def __recursive_annos(self, _type: type[Any], lookup_private: bool) -> dict[str, type[Any]]:
 		"""クラス階層を辿ってタイプヒントを収集
 
 		Args:
 			_type (type[Any]): タイプ
+			lookup_private (bool): プライベート変数抽出フラグ (default = False)
 		Returns:
 			dict[str, type[Any]]: タイプヒント一覧
 		"""
@@ -280,8 +283,7 @@ class ClassTypehint(Typehint):
 		for at_type in reversed(_type.mro()):
 			_annos: dict[str, type[Any]] = getattr(at_type, '__annotations__', {})
 			for key, anno in _annos.items():
-				# プライベートのプロパティーを除外。XXX 後々プライベートを適格に除外するのが手間であり、且つ参照出来る方が良いとする理由が薄いため
-				if key.startswith(f'_{at_type.__name__}__'):
+				if not lookup_private and key.startswith(f'_{at_type.__name__}__'):
 					continue
 
 				annos[key] = _resolve_type_from_str(anno, at_type.__module__) if isinstance(anno, str) else anno

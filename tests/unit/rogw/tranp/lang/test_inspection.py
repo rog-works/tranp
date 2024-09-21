@@ -210,8 +210,8 @@ class TestClassTypehint(TestCase):
 	])
 	def test_schema(self, origin: type, expected: dict[str, Any]) -> None:
 		hint = ClassTypehint(origin)
-		self.assertEqual({key: var.origin for key, var in hint.class_vars.items()}, expected['class_vars'])
-		self.assertEqual({key: var.origin for key, var in hint.self_vars.items()}, expected['self_vars'])
+		self.assertEqual({key: var.origin for key, var in hint.class_vars().items()}, expected['class_vars'])
+		self.assertEqual({key: var.origin for key, var in hint.self_vars(lookup_private=False).items()}, expected['self_vars'])
 		self.assertEqual([key for key in hint.methods.keys()], expected['methods'])
 
 
@@ -241,4 +241,4 @@ class TestInspector(TestCase):
 		self.assertEqual(type(Inspector.resolve(origin)), expected)
 
 	def test_validation(self) -> None:
-		self.assertTrue(validation(Sub))
+		self.assertTrue(validation(Sub, lookup_private=False))

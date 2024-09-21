@@ -1,0 +1,3 @@
+class uuid4:
+	@property
+	def hex(self) -> str: ...

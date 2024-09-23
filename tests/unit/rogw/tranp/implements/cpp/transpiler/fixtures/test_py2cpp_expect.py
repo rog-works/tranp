@@ -89,7 +89,7 @@ class DeclOps {
 	std::vector<int> __ret;
 	int __index = 0;
 	int __start = 1;
-	int __end = ns.size() - __start;
+	int __end = ns.size();
 	int __step = 0;
 	for (auto& __value : ns) {
 		int __offset = __index >= __start ? __index - __start : 0;
@@ -106,7 +106,7 @@ class DeclOps {
 	std::vector<int> __ret;
 	int __index = 0;
 	int __start = 0;
-	int __end = 5 - __start;
+	int __end = 5;
 	int __step = 0;
 	for (auto& __value : ns) {
 		int __offset = __index >= __start ? __index - __start : 0;
@@ -123,7 +123,7 @@ class DeclOps {
 	std::vector<int> __ret;
 	int __index = 0;
 	int __start = 3;
-	int __end = 9 - __start;
+	int __end = 9;
 	int __step = 2;
 	for (auto& __value : ns) {
 		int __offset = __index >= __start ? __index - __start : 0;

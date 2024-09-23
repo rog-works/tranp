@@ -3,7 +3,7 @@
 	{{ var_type }} __ret;
 	int __index = 0;
 	int __start = {{ keys[0] if keys[0] else '0' }};
-	int __end = {% if keys[1] %}{{ keys[1] }}{% else %}{{ receiver }}.{{ i18n('cpp', 'container.size') }}(){% endif %} - __start;
+	int __end = {% if keys[1] %}{{ keys[1] }}{% else %}{{ receiver }}.{{ i18n('cpp', 'container.size') }}(){% endif %};
 	int __step = {{ keys[2] if keys[2] else '0' }};
 	for (auto& __value : {{ receiver }}) {
 		int __offset = __index >= __start ? __index - __start : 0;

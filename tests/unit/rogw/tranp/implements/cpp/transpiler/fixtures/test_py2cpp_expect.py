@@ -93,7 +93,7 @@ class DeclOps {
 	int __step = 0;
 	for (auto& __value : ns) {
 		int __offset = __index >= __start ? __index - __start : 0;
-		if (__index >= __start && __index < __end && (__step > 0 && __offset % __step == 0)) {
+		if (__index >= __start && __index < __end && (__step == 0 || __offset % __step == 0)) {
 			__ret.push_back(__value);
 		}
 		__index++;
@@ -110,7 +110,7 @@ class DeclOps {
 	int __step = 0;
 	for (auto& __value : ns) {
 		int __offset = __index >= __start ? __index - __start : 0;
-		if (__index >= __start && __index < __end && (__step > 0 && __offset % __step == 0)) {
+		if (__index >= __start && __index < __end && (__step == 0 || __offset % __step == 0)) {
 			__ret.push_back(__value);
 		}
 		__index++;
@@ -127,7 +127,7 @@ class DeclOps {
 	int __step = 2;
 	for (auto& __value : ns) {
 		int __offset = __index >= __start ? __index - __start : 0;
-		if (__index >= __start && __index < __end && (__step > 0 && __offset % __step == 0)) {
+		if (__index >= __start && __index < __end && (__step == 0 || __offset % __step == 0)) {
 			__ret.push_back(__value);
 		}
 		__index++;

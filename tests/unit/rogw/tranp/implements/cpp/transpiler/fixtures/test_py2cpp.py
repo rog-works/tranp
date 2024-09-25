@@ -166,6 +166,8 @@ class CVarOps:
 		arr_r = CRef(arr)
 		n_sp_empty = CSP[int].empty()
 		this_p = CP(self)
+		this_ps = [CP(self)]
+		this_ps_ref = CRef(this_ps)
 
 	def default_param(self, ap: CP[Sub] | None = None) -> int:
 		n = ap.on.base_n if ap else 0

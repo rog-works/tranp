@@ -130,6 +130,8 @@ class TestPy2Cpp(TestCase):
 		('CVarOps.declare', 'function_def_raw.block.assign[7]', defs.MoveAssign, 'std::vector<int>& arr_r = arr;'),
 		('CVarOps.declare', 'function_def_raw.block.assign[8]', defs.MoveAssign, 'std::shared_ptr<int> n_sp_empty = std::shared_ptr<int>();'),
 		('CVarOps.declare', 'function_def_raw.block.assign[9]', defs.MoveAssign, 'CVarOps* this_p = this;'),
+		('CVarOps.declare', 'function_def_raw.block.assign[10]', defs.MoveAssign, 'std::vector<CVarOps*> this_ps = {this};'),
+		('CVarOps.declare', 'function_def_raw.block.assign[11]', defs.MoveAssign, 'std::vector<CVarOps*>& this_ps_ref = this_ps;'),
 
 		('CVarOps.default_param', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'int n = ap ? ap->base_n : 0;'),
 		('CVarOps.default_param', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'int n2 = this->default_param();'),

@@ -104,7 +104,7 @@ class TestRenderer(TestCase):
 		self.assertRender('catch', 0, vars, expected)
 
 	@data_provider([
-		({'accessor': 'public', 'decl_class_var': 'float a', 'decorators': []}, 'public: static float a'),
+		({'accessor': 'public', 'decl_class_var': 'float a', 'decorators': []}, 'public: inline static float a'),
 	])
 	def test_render_class_decl_class_var(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('class/_decl_class_var', 0, vars, expected)

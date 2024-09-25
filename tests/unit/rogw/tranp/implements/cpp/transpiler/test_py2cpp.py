@@ -209,7 +209,7 @@ class TestPy2Cpp(TestCase):
 		('AccessOps.indexer', 'function_def_raw.block.funccall[1].arguments.argvalue', defs.Argument, 'arr_sp[0]'),
 		('AccessOps.indexer', 'function_def_raw.block.funccall[2].arguments.argvalue', defs.Argument, 'arr_ar[0]'),
 
-		('Alias.Inner', '', defs.Class, '/** Inner2 */\nclass Inner2 {\n\tpublic: static int V2 = 0;\n\tpublic:\n\t/** func */\n\tvoid func() {}\n};'),
+		('Alias.Inner', '', defs.Class, '/** Inner2 */\nclass Inner2 {\n\tpublic: inline static int V2 = 0;\n\tpublic:\n\t/** func */\n\tvoid func() {}\n};'),
 		('Alias.__init__', '', defs.Constructor, 'public:\n/** __init__ */\nAlias2() : inner_b(Alias2::Inner2()) {}'),
 		('Alias.in_param_return', '', defs.Method, 'public:\n/** in_param_return */\nAlias2 in_param_return(Alias2 a) {}'),
 		('Alias.in_param_return2', '', defs.Method, 'public:\n/** in_param_return2 */\nAlias2::Inner2 in_param_return2(Alias2::Inner2 i) {}'),

@@ -84,9 +84,22 @@ class BlockFormatter:
 			if alt_result:
 				return alt_result
 
+		return self.block(join_format, block_format, alt_formatter)
+
+	def block(self, join_format: str = '{delimiter} ', block_format: str = '{name}{open}{elems}{close}', alt_formatter: AltFormatter | None = None) -> str:
+		"""指定した書式でブロックを生成
+
+		Args:
+			join_format (str): 要素の結合書式
+			block_format (str): ブロックの書式
+			alt_formatter (AltFormatter): 出力変換関数。文字列を返す場合にformatの結果を変更 (default = None)
+		Returns:
+			str: 変換後の文字列
+		"""
+		elems = [elem.lstrip() if isinstance(elem, str) else elem.format(join_format, block_format, alt_formatter) for elem in self.elems]
 		join_spliter = join_format.format(delimiter=self.delimiter)
-		elems = join_spliter.join([elem.lstrip() if isinstance(elem, str) else elem.format(join_format, block_format, alt_formatter) for elem in self.elems])
-		return block_format.format(name=self.name, open=self.open, close=self.close, elems=elems)
+		join_elems = join_spliter.join(elems)
+		return block_format.format(name=self.name, open=self.open, close=self.close, elems=join_elems)
 
 
 class BlockParser:

@@ -15,7 +15,7 @@ from rogw.tranp.implements.cpp.semantics.cvars import CVars
 from rogw.tranp.lang.annotation import duck_typed, implements, injectable
 from rogw.tranp.lang.eventemitter import Callback, Observable
 from rogw.tranp.lang.module import to_fullyname
-from rogw.tranp.lang.parser import BlockParser
+from rogw.tranp.lang.parser import BlockFormatter, BlockParser
 from rogw.tranp.semantics.errors import NotSupportedError
 from rogw.tranp.semantics.procedure import Procedure
 from rogw.tranp.semantics.reflection.base import IReflection
@@ -119,7 +119,10 @@ class Py2Cpp(ITranspiler):
 
 		# C++型変数の表記変換
 		if len([True for key in CVars.keys() if key in shorthand]) > 0:
-			formatter = lambda entry: self.view.render('type_py2cpp', vars={'var_type': entry.format()}) if entry.name in CVars.keys() else None
+			def formatter(entry: BlockFormatter) -> str | None:
+				var_type = entry.block(alt_formatter=formatter)
+				return self.view.render('type_py2cpp', vars={'var_type': var_type})
+
 			shorthand = BlockParser.parse_to_formatter(shorthand, '<>', ',').format(alt_formatter=formatter)
 
 		return DSN.join(*DSN.elements(shorthand), delimiter='::')

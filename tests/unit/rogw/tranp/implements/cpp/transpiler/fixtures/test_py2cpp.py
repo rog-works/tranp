@@ -2,9 +2,9 @@ from abc import ABCMeta, abstractmethod
 from typing import Callable, ClassVar, Generic, Self, TypeAlias, TypeVar, cast
 
 from rogw.tranp.compatible.cpp.classes import void
-from rogw.tranp.compatible.cpp.embed import __allow_override__, __embed__, __struct__
+from rogw.tranp.compatible.cpp.embed import Embed
 from rogw.tranp.compatible.cpp.enum import CEnum as Enum
-from rogw.tranp.compatible.cpp.object import CP, CRawConst, CRef, CSP, CRefConst
+from rogw.tranp.compatible.cpp.object import CP, CRawConst, CRef, CSP
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 
 c_pragma('once')
@@ -22,7 +22,7 @@ class Base(metaclass=ABCMeta):
 	@abstractmethod
 	def sub_implements(self) -> None: ...
 
-	@__allow_override__
+	@Embed.allow_override
 	def allowed_overrides(self) -> int:
 		return 1
 
@@ -488,9 +488,9 @@ class GenericOps(Generic[T]):
 		a = GenericOps[int]()
 
 
-@__struct__
-@__embed__('prop.a', '/** @var A */')
-@__embed__('prop.b', '/** @var B */')
+@Embed.struct
+@Embed.meta('prop.a', '/** @var A */')
+@Embed.meta('prop.b', '/** @var B */')
 class Struct:
 	a: int
 	b: str

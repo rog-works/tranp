@@ -3,66 +3,70 @@ from typing import Any, Callable, TypeVar
 T = TypeVar('T')
 
 
-def __allow_override__(wrapped: T) -> T:
-	"""関数を仮想関数としてマークアップ
+class Embed:
+	"""埋め込みモジュール"""
 
-	Args:
-		wrapped (T): ラップ対象
-	Returns:
-		T: デコレート対象
-	Note:
-		* 純粋仮想関数は@abstractmethodを使う
-		* 純粋仮想関数を除いた「仮想関数」はC++固有の概念であり、全く別物と言う扱いなので注意
-	Examples:
-		```python
-		class A:
-			@__allow_override__
-			def allowe_override_method(self) -> None:
-				...
-		```
-	"""
-	return wrapped
+	@classmethod
+	def allow_override(cls, wrapped: T) -> T:
+		"""関数を仮想関数としてマークアップ
 
-
-def __struct__(wrapped: T) -> T:
-	"""クラスを構造体としてマークアップ。暗黙的に`__struct__`と言う属性を付与する
-
-	Args:
-		wrapped (T): ラップ対象
-	Returns:
-		T: デコレート対象
-	Examples:
-		```python
-		@__struct__
-		class Struct:
-			...
-		```
-	"""
-	if not hasattr(wrapped, '__struct__'):
-		setattr(wrapped, '__struct__', True)
-
-	return wrapped
-
-
-def __embed__(key: str, meta: Any) -> Callable:
-	"""メタ情報を埋め込む
-
-	Args:
-		key (str): キー
-		meta (Any): メタ情報
-	Returns:
-		Callable: デコレーター
-	Examples:
-		```python
-		@__embed__('prop.a', '/** @var A */')
-		@__embed__('prop.b', '/** @var B */')
-		class A:
-			def __init__(self, a: int, b: str) -> None:
-				self.a: int = a
-				self.b: str = b
-		```
-	"""
-	def decorator(wrapped: T) -> T:
+		Args:
+			wrapped (T): ラップ対象
+		Returns:
+			T: デコレート対象
+		Note:
+			* 純粋仮想関数は@abstractmethodを使う
+			* 純粋仮想関数を除いた「仮想関数」はC++固有の概念であり、全く別物と言う扱いなので注意
+		Examples:
+			```python
+			class A:
+				@Embed.allow_override
+				def allow_override_method(self) -> None:
+					...
+			```
+		"""
 		return wrapped
 
-	return decorator
+	@classmethod
+	def struct(cls, wrapped: T) -> T:
+		"""クラスを構造体としてマークアップ。暗黙的に`__struct__`と言う属性を付与する
+
+		Args:
+			wrapped (T): ラップ対象
+		Returns:
+			T: デコレート対象
+		Examples:
+			```python
+			@Embed.struct
+			class Struct:
+				...
+			```
+		"""
+		if not hasattr(wrapped, '__struct__'):
+			setattr(wrapped, '__struct__', True)
+
+		return wrapped
+
+	@classmethod
+	def meta(cls, key: str, meta: Any) -> Callable:
+		"""メタ情報を埋め込む
+
+		Args:
+			key (str): キー
+			meta (Any): メタ情報
+		Returns:
+			Callable: デコレーター
+		Examples:
+			```python
+			@Embed.meta('prop.a', '/** @var A */')
+			@Embed.meta('prop.b', '/** @var B */')
+			class A:
+				def __init__(self, a: int, b: str) -> None:
+					self.a: int = a
+					self.b: str = b
+			```
+		"""
+		def decorator(wrapped: T) -> T:
+			return wrapped
+
+		return decorator

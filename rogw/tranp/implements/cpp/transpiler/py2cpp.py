@@ -1,7 +1,7 @@
 import re
 from typing import Any, Self, cast
 
-from rogw.tranp.compatible.cpp.embed import __allow_override__, __struct__
+from rogw.tranp.compatible.cpp.embed import Embed
 from rogw.tranp.compatible.cpp.object import CP
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 from rogw.tranp.data.meta.header import MetaHeader
@@ -171,7 +171,7 @@ class Py2Cpp(ITranspiler):
 		Note:
 			C++ではClassMethodの仮想関数はないので非対応
 		"""
-		return len([decorator for decorator in method.decorators if decorator.path.tokens == __allow_override__.__name__]) > 0
+		return len([decorator for decorator in method.decorators if decorator.path.tokens == f'{Embed.__name__}.{Embed.allow_override.__name__}']) > 0
 
 	def to_accessor(self, accessor: str) -> str:
 		"""アクセス修飾子を翻訳
@@ -311,7 +311,7 @@ class Py2Cpp(ITranspiler):
 
 	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], template_types: list[str], comment: str, statements: list[str]) -> str:
 		# XXX 構造体の判定
-		is_struct = len([decorator for decorator in decorators if decorator.startswith(__struct__.__name__)])
+		is_struct = len([decorator for decorator in decorators if decorator.startswith(f'{Embed.__name__}.{Embed.struct.__name__}')])
 
 		# XXX クラス変数とそれ以外のステートメントを分離
 		decl_class_var_statements: list[str] = []

@@ -486,8 +486,16 @@ class ProceduralResolver:
 			return actual_receiver.stack(node)
 
 	def on_relay_of_type(self, node: defs.RelayOfType, receiver: IReflection) -> IReflection:
-		"""Note: XXX Pythonではtypeをアンパックする構文が存在しないためAltClassも同様に扱う"""
-		return receiver.to(node, self.reflections.resolve_property(receiver.types, node.prop))
+		"""
+		Note:
+			* XXX Pythonではtypeをアンパックする構文が存在しないためAltClassも同様に扱う
+			* XXX ParamSpecのargs/kwargsをアンパック
+		"""
+		actual_receiver = receiver
+		if isinstance(receiver.types, defs.TemplateClass):
+			actual_receiver = self.reflections.resolve(receiver.types.definition_type)
+
+		return receiver.to(node, self.reflections.resolve_property(actual_receiver.types, node.prop))
 
 	def on_var_of_type(self, node: defs.VarOfType) -> IReflection:
 		return self.reflections.resolve(node).stack(node)

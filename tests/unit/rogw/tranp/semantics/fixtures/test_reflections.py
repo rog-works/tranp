@@ -1,5 +1,5 @@
 from os import path as os_path
-from typing import Any, Callable, ClassVar, Generic, Iterator, Self, TypeAlias, TypeVar, cast
+from typing import Any, Callable, ClassVar, Generic, Iterator, ParamSpec, Self, TypeAlias, TypeVar, cast
 from yaml import safe_load as yaml_safe_load
 
 from rogw.tranp.compatible.cpp.enum import CEnum as Enum
@@ -361,3 +361,13 @@ class ForFuncCall:
 
 	def callable_call(self, func: Callable[[int, str], T]) -> T:
 		return func(1, 'a')
+
+
+P = ParamSpec('P')
+
+
+class Delegate(Generic[P]):
+	def invoke(self, *args: P.args, **kwargs: P.kwargs) -> None: ...
+	def invoke_call(self) -> None:
+		d = Delegate[bool]()
+		d.invoke(True)

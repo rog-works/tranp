@@ -162,7 +162,8 @@ aug_assign: assign_namelist aug_assign_op expression
 // @custom
 class_var_assign: assign_namelist ":" "ClassVar" "[" typed_expression "]" "=" expression
 class_assign: assign_namelist ":" "TypeAlias" "=" typed_expression
-template_assign: assign_namelist "=" "TypeVar" "(" string ["," "bound" "=" (typed_expression | "'" typed_expression "'")] ["," "covariant" "=" atom] ")"
+template_assign: assign_namelist "=" template_assign_class "(" string ["," "bound" "=" (typed_expression | "'" typed_expression "'")] ["," "covariant" "=" atom] ")"
+!template_assign_class: "TypeVar" -> typed_var | "ParamSpec" -> typed_var
 
 !aug_assign_op: "+=" | "-=" | "*=" | "@=" | "/=" | "%=" | "&=" | "|=" | "^=" | "<<=" | ">>=" | "**=" | "//="
 

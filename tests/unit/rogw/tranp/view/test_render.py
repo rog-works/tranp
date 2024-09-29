@@ -1082,3 +1082,13 @@ class TestRenderer(TestCase):
 	])
 	def test_render_argument(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('argument', 0, vars, expected)
+
+	@data_provider([
+		('default', {'type_name': 'int'}, 'int'),
+		('default', {'type_name': 'str'}, 'std::string'),
+		('template', {'type_name': 'T', 'definition_type': 'TypeVar'}, 'T'),
+		('template', {'type_name': 'TArgs', 'definition_type': 'TypeVarTuple'}, 'TArgs...'),
+		('template', {'type_name': 'P', 'definition_type': 'ParamSpec'}, 'P'),
+	])
+	def test_render_var_of_type(self, template: str, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender(f'var_of_type/{template}', 0, vars, expected)

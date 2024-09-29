@@ -620,7 +620,10 @@ class Py2Cpp(ITranspiler):
 			symbol = self.reflections.resolve(node.parent.class_types)
 
 		type_name = self.to_domain_name_by_class(symbol.types)
-		return self.view.render(node.classification, vars={'type_name': type_name})
+		if isinstance(symbol.types, defs.TemplateClass):
+			return self.view.render(f'{node.classification}/template', vars={'type_name': type_name, 'definition_type': symbol.types.definition_type.tokens})
+		else:
+			return self.view.render(f'{node.classification}/default', vars={'type_name': type_name})
 
 	def on_list_type(self, node: defs.ListType, type_name: str, value_type: str) -> str:
 		return self.view.render(node.classification, vars={'type_name': type_name, 'value_type': value_type})

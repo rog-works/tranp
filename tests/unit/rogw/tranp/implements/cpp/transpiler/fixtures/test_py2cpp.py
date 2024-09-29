@@ -1,10 +1,11 @@
 from abc import ABCMeta, abstractmethod
-from typing import Callable, ClassVar, Generic, Self, TypeAlias, TypeVar, cast
+from typing import Callable, ClassVar, Generic, Self, TypeAlias, TypeVar, TypeVarTuple, cast
 
 from rogw.tranp.compatible.cpp.classes import void
 from rogw.tranp.compatible.cpp.embed import Embed
 from rogw.tranp.compatible.cpp.enum import CEnum as Enum
-from rogw.tranp.compatible.cpp.object import CP, CRawConst, CRef, CSP
+from rogw.tranp.compatible.cpp.function import CPluckMethod
+from rogw.tranp.compatible.cpp.object import CP, CRawConst, CRef, CSP, CRefConst
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 
 c_pragma('once')
@@ -554,3 +555,22 @@ class ForFuncCall:
 
 		def move_scalar(self, output: 'CRef[int]') -> None:
 			output.copy(CRef(1))
+
+
+TArgs = TypeVarTuple('TArgs')
+
+
+class ForTemplateClass:
+	# XXX CPluckMethodで警告が表示されるが、CPluckMethodはCallableのTypeAliasに過ぎないため、これはPylance側の問題だと考えられる
+	# XXX TypeAliasでないとタイプヒントに使えないため一旦無視することにする
+	class Delegate(Generic[*TArgs]):
+		def bind(self, obj: CP[T], method: CRefConst[CPluckMethod[[T, *TArgs], None]]) -> None: ...
+		def invoke(self, *args: *TArgs) -> None: ...
+
+	class A:
+		def func(self, b: bool, c: int) -> None: ...
+
+	def bind_call(self, a: CP[A]) -> None:
+		d = ForTemplateClass.Delegate[bool, int]()
+		d.bind(a, CRefConst(ForTemplateClass.A.func))
+		d.invoke(True, 1)

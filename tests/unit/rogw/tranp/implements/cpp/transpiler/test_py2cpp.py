@@ -51,9 +51,9 @@ class TestPy2Cpp(TestCase):
 	@data_provider([
 		('', 'import_stmt[1]', defs.Import, '// #include "typing.h"'),
 
-		('', 'funccall[7]', defs.FuncCall, '#pragma once'),
-		('', 'funccall[8]', defs.FuncCall, '#include <memory>'),
-		('', 'funccall[9]', defs.FuncCall, 'MACRO()'),
+		('', 'funccall[8]', defs.FuncCall, '#pragma once'),
+		('', 'funccall[9]', defs.FuncCall, '#include <memory>'),
+		('', 'funccall[10]', defs.FuncCall, 'MACRO()'),
 
 		('T', '', defs.TemplateClass, '// template<typename T>'),
 		('T2', '', defs.TemplateClass, '// template<typename T2>'),
@@ -318,6 +318,8 @@ class TestPy2Cpp(TestCase):
 		('ForFuncCall.Copy.__py_copy__', '', defs.Method, 'public:\n/** __py_copy__ */\nCopy(ForFuncCall::Copy& origin) {}'),
 		('ForFuncCall.Copy.move_obj', 'function_def_raw.block.funccall', defs.FuncCall, 'to = via;'),
 		('ForFuncCall.Copy.move_scalar', 'function_def_raw.block.funccall', defs.FuncCall, 'output = 1;'),
+
+		('ForTemplateClass.Delegate', '', defs.Class, BlockExpects.ForTemplateClass_Delegate),
 	])
 	def test_exec(self, local_path: str, offset_path: str, expected_type: type[Node], expected: str) -> None:
 		# local_pathが空の場合はEntrypointを基点ノードとする

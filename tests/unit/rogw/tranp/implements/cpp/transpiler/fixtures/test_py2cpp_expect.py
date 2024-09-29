@@ -166,3 +166,16 @@ class DeclOps {
 	}
 	return __ret;
 }();"""
+
+	ForTemplateClass_Delegate = \
+"""/** Delegate */
+template<typename ...TArgs>
+class Delegate {
+	public:
+	/** bind */
+	template<typename T>
+	void bind(T* obj, const typename PluckMethod<T, void, TArgs...>::method& method) {}
+	public:
+	/** invoke */
+	void invoke(TArgs... args) {}
+};"""

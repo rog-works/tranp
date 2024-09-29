@@ -367,7 +367,12 @@ P = ParamSpec('P')
 
 
 class Delegate(Generic[P]):
+	class H:
+		def callback(self, b: bool) -> None: ...
+
 	def invoke(self, *args: P.args, **kwargs: P.kwargs) -> None: ...
-	def invoke_call(self) -> None:
+	def bind(self, obj: T, method: Callable[P, None]) -> T: ...
+	def bind_call(self, h: H) -> None:
 		d = Delegate[bool]()
+		d.bind(h, h.callback)
 		d.invoke(True)

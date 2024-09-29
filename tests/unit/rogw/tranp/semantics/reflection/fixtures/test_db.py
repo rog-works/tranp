@@ -1,5 +1,5 @@
 from os import path as os_path
-from typing import Any, Callable, ClassVar, Generic, Iterator, ParamSpec, Self, TypeAlias, TypeVar, cast
+from typing import Any, Callable, ClassVar, Generic, Iterator, Self, TypeAlias, TypeVar, TypeVarTuple, cast
 from yaml import safe_load as yaml_safe_load
 
 from rogw.tranp.compatible.cpp.enum import CEnum as Enum
@@ -363,16 +363,19 @@ class ForFuncCall:
 		return func(1, 'a')
 
 
-P = ParamSpec('P')
+TArgs = TypeVarTuple('TArgs')
 
 
-class Delegate(Generic[P]):
-	class H:
-		def callback(self, b: bool) -> None: ...
+class ForTemplateClass:
+	class Delegate(Generic[*TArgs]):
+		def bind(self, obj: T, method: Callable[[T, *TArgs], None]) -> None: ...
+		def invoke(self, *args: *TArgs) -> None: ...
 
-	def invoke(self, *args: P.args, **kwargs: P.kwargs) -> None: ...
-	def bind(self, obj: T, method: Callable[P, None]) -> T: ...
-	def bind_call(self, h: H) -> None:
-		d = Delegate[bool]()
-		d.bind(h, h.callback)
-		d.invoke(True)
+	class A:
+		def func(self, b: bool, c: int) -> None: ...
+
+	def bind_call(self) -> None:
+		a = ForTemplateClass.A()
+		d = ForTemplateClass.Delegate[bool, int]()
+		d.bind(a, ForTemplateClass.A.func)
+		d.invoke(True, 1)

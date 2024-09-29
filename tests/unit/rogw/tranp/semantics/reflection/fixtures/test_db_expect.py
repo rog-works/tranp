@@ -10,6 +10,7 @@ def expected_symbols() -> dict[str, tuple[str, str]]:
 		'typing#Sequence': ('typing#Sequence', 'Sequence'),
 		'typing#TypeAlias': ('typing#TypeAlias', 'TypeAlias'),
 		'typing#TypeVar': ('typing#TypeVar', 'TypeVar'),
+		'typing#TypeVarTuple': ('typing#TypeVarTuple', 'TypeVarTuple'),
 		'typing#Union': ('typing#Union', 'Union'),
 		'typing#T': ('typing#T', 'T'),
 		'typing#Self': ('typing#Self', 'Self'),

@@ -320,7 +320,7 @@ class TestRenderer(TestCase):
 
 	@data_provider([
 		({'type_name': 'Callable', 'parameters': ['int', 'float'], 'return_type': 'bool'}, 'std::function<bool(int, float)>'),
-		({'type_name': 'CPluckMethod', 'parameters': ['T', 'TArgs'], 'return_type': 'void'}, 'typename PluckMethod<T, void, TArgs...>::method'),
+		({'type_name': 'CPluckMethod', 'parameters': ['T', 'TArgs...'], 'return_type': 'void'}, 'typename PluckMethod<T, void, TArgs...>::method'),
 	])
 	def test_render_callable_type(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('callable_type', 0, vars, expected)
@@ -1010,7 +1010,7 @@ class TestRenderer(TestCase):
 				'return_type': 'void',
 				'comment': '',
 				'statements': ['this->x = value;'],
-				'template_types': ['T', 'T2'],
+				'template_types': ['T', 'T2', 'TArgs...'],
 				# belongs class only
 				'accessor': 'public',
 				'class_symbol': 'Hoge',
@@ -1021,8 +1021,7 @@ class TestRenderer(TestCase):
 			'\n'.join([
 				'public:',
 				'/** template_method */',
-				'template<typename T>',
-				'template<typename T2>',
+				'template<typename T, typename T2, typename ...TArgs>',
 				'void template_method(int value = 1) {',
 				'	this->x = value;',
 				'}',

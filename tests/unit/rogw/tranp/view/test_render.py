@@ -319,7 +319,8 @@ class TestRenderer(TestCase):
 		self.assertRender('dict_type', 0, vars, expected)
 
 	@data_provider([
-		({'parameters': ['int', 'float'], 'return_type': 'bool'}, 'std::function<bool(int, float)>'),
+		({'type_name': 'Callable', 'parameters': ['int', 'float'], 'return_type': 'bool'}, 'std::function<bool(int, float)>'),
+		({'type_name': 'CPluckMethod', 'parameters': ['T', 'TArgs'], 'return_type': 'void'}, 'typename PluckMethod<T, void, TArgs...>::method'),
 	])
 	def test_render_callable_type(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('callable_type', 0, vars, expected)

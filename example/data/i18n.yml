@@ -44,6 +44,7 @@ aliases.rogw.tranp.compatible.cpp.classes#string.size: size
 aliases.rogw.tranp.compatible.cpp.classes#string.slice: substr
 aliases.rogw.tranp.compatible.cpp.classes#vector.begin: begin
 aliases.rogw.tranp.compatible.cpp.classes#vector.end: end
+aliases.rogw.tranp.compatible.cpp.classes#PluckMethod: PluckMethod
 # example
 aliases.example.example#CellMesh: FL_CellMesh
 # @see dsn.translation.import_dsn

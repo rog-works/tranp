@@ -1,5 +1,5 @@
 import re
-from typing import Any, Self, cast
+from typing import Any, Self, TypeVarTuple, cast
 
 from rogw.tranp.compatible.cpp.embed import Embed
 from rogw.tranp.compatible.cpp.object import CP
@@ -632,7 +632,18 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(node.classification, vars={'type_name': type_name, 'key_type': key_type, 'value_type': value_type})
 
 	def on_callable_type(self, node: defs.CallableType, type_name: str, parameters: list[str], return_type: str) -> str:
-		return self.view.render(node.classification, vars={'type_name': type_name, 'parameters': parameters, 'return_type': return_type})
+		"""
+		Note:
+			### PluckMethodのシグネチャー
+			* `Callable[[T, *T_Args], None]`
+		"""
+		spec = 'default'
+		if len(parameters) >= 2:
+			second_type = self.reflections.type_of(node.parameters[1])
+			if isinstance(second_type.types, defs.TemplateClass) and second_type.types.definition_type.type_name.tokens == TypeVarTuple.__name__:
+				spec = 'pluck_method'
+
+		return self.view.render(f'{node.classification}/{spec}', vars={'type_name': type_name, 'parameters': parameters, 'return_type': return_type})
 
 	def on_custom_type(self, node: defs.CustomType, type_name: str, template_types: list[str]) -> str:
 		# XXX @see semantics.reflection.helper.naming.ClassShorthandNaming.domain_name

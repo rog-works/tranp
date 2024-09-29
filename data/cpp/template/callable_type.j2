@@ -1,5 +1,0 @@
-{%- if type_name == 'CPluckMethod' -%}
-typename {{ i18n('cpp', 'PluckMethod') }}<{{ parameters[0] }}, {{ return_type }}, {{ parameters[1] }}>::method
-{%- else -%}
-{{ i18n('typing', 'Callable') }}<{{ return_type }}({{ parameters | join(', ') }})>
-{%- endif -%}

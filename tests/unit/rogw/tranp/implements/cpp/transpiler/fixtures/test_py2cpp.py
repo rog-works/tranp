@@ -4,7 +4,6 @@ from typing import Callable, ClassVar, Generic, Self, TypeAlias, TypeVar, TypeVa
 from rogw.tranp.compatible.cpp.classes import void
 from rogw.tranp.compatible.cpp.embed import Embed
 from rogw.tranp.compatible.cpp.enum import CEnum as Enum
-from rogw.tranp.compatible.cpp.function import CPluckMethod
 from rogw.tranp.compatible.cpp.object import CP, CRawConst, CRef, CSP, CRefConst
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 
@@ -561,10 +560,8 @@ TArgs = TypeVarTuple('TArgs')
 
 
 class ForTemplateClass:
-	# XXX CPluckMethodで警告が表示されるが、CPluckMethodはCallableのTypeAliasに過ぎないため、これはPylance側の問題だと考えられる
-	# XXX TypeAliasでないとタイプヒントに使えないため一旦無視することにする
 	class Delegate(Generic[*TArgs]):
-		def bind(self, obj: CP[T], method: CRefConst[CPluckMethod[[T, *TArgs], None]]) -> None: ...
+		def bind(self, obj: CP[T], method: CRefConst[Callable[[T, *TArgs], None]]) -> None: ...
 		def invoke(self, *args: *TArgs) -> None: ...
 
 	class A:

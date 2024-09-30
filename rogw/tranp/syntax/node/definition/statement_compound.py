@@ -654,12 +654,16 @@ class TemplateClass(ClassDef):
 		return self.dirty_child(Block, 'block', statements=[])
 
 	@property
+	def definition_type(self) -> Type:
+		return self._at(1).as_a(Type)
+
+	@property
 	def boundary(self) -> Type | Empty:
-		return self._at(2).one_of(Type, Empty)
+		return self._at(3).one_of(Type, Empty)
 
 	@property
 	def covariant(self) -> Boolean | Empty:
-		return self._at(3).one_of(Boolean, Empty)
+		return self._at(4).one_of(Boolean, Empty)
 
 
 class VarsCollector:

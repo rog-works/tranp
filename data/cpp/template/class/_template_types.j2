@@ -1,3 +1,4 @@
-{%- for template_type in template_types %}
-template<typename {{ template_type }}>
-{%- endfor %}
+{%- if template_types %}
+{%- set join_types = template_types | filter_replace('([^.]+)([.]{3})?', '\\2\\1') | join(', ') %}
+template<typename {{ join_types }}>
+{%- endif %}

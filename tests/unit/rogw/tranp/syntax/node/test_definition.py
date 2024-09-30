@@ -603,15 +603,18 @@ class TestDefinition(TestCase):
 		self.assertEqual(type(node.actual_type), expected['actual_type'])
 
 	@data_provider([
-		('A = TypeVar("A")', 'file_input.template_assign', {'symbol': 'A', 'boundary': defs.Empty, 'covariant': defs.Empty}),
-		('A = TypeVar("A", bound=X)', 'file_input.template_assign', {'symbol': 'A', 'boundary': defs.VarOfType, 'covariant': defs.Empty}),
-		('A = TypeVar("A", bound=X.Y)', 'file_input.template_assign', {'symbol': 'A', 'boundary': defs.RelayOfType, 'covariant': defs.Empty}),
-		('A = TypeVar("A", covariant=True)', 'file_input.template_assign', {'symbol': 'A', 'boundary': defs.Empty, 'covariant': defs.Truthy}),
-		('A = TypeVar("A", bound=X, covariant=False)', 'file_input.template_assign', {'symbol': 'A', 'boundary': defs.VarOfType, 'covariant': defs.Falsy}),
+		('A = TypeVar("A")', 'file_input.template_assign', {'symbol': 'A', 'definition_type': 'TypeVar', 'boundary': defs.Empty, 'covariant': defs.Empty}),
+		('A = TypeVar("A", bound=X)', 'file_input.template_assign', {'symbol': 'A', 'definition_type': 'TypeVar', 'boundary': defs.VarOfType, 'covariant': defs.Empty}),
+		('A = TypeVar("A", bound=X.Y)', 'file_input.template_assign', {'symbol': 'A', 'definition_type': 'TypeVar', 'boundary': defs.RelayOfType, 'covariant': defs.Empty}),
+		('A = TypeVar("A", covariant=True)', 'file_input.template_assign', {'symbol': 'A', 'definition_type': 'TypeVar', 'boundary': defs.Empty, 'covariant': defs.Truthy}),
+		('A = TypeVar("A", bound=X, covariant=False)', 'file_input.template_assign', {'symbol': 'A', 'definition_type': 'TypeVar', 'boundary': defs.VarOfType, 'covariant': defs.Falsy}),
+		('A = TypeVarTuple("A")', 'file_input.template_assign', {'symbol': 'A', 'definition_type': 'TypeVarTuple', 'boundary': defs.Empty, 'covariant': defs.Empty}),
+		('A = ParamSpec("A")', 'file_input.template_assign', {'symbol': 'A', 'definition_type': 'ParamSpec', 'boundary': defs.Empty, 'covariant': defs.Empty}),
 	])
 	def test_template_class(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.TemplateClass)
 		self.assertEqual(node.symbol.tokens, expected['symbol'])
+		self.assertEqual(node.definition_type.type_name.tokens, expected['definition_type'])
 		self.assertEqual(type(node.boundary), expected['boundary'])
 		self.assertEqual(type(node.covariant), expected['covariant'])
 

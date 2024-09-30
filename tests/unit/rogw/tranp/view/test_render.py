@@ -319,10 +319,11 @@ class TestRenderer(TestCase):
 		self.assertRender('dict_type', 0, vars, expected)
 
 	@data_provider([
-		({'parameters': ['int', 'float'], 'return_type': 'bool'}, 'std::function<bool(int, float)>'),
+		('default', {'type_name': 'Callable', 'parameters': ['int', 'float'], 'return_type': 'bool'}, 'std::function<bool(int, float)>'),
+		('pluck_method', {'type_name': 'Callable', 'parameters': ['T', 'TArgs...'], 'return_type': 'void'}, 'typename PluckMethod<T, void, TArgs...>::method'),
 	])
-	def test_render_callable_type(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('callable_type', 0, vars, expected)
+	def test_render_callable_type(self, template: str, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender(f'callable_type/{template}', 0, vars, expected)
 
 	@data_provider([
 		({'items': ['{hoge, 1}','{fuga, 2}']}, '{\n\t{hoge, 1},\n\t{fuga, 2},\n}'),
@@ -1009,7 +1010,7 @@ class TestRenderer(TestCase):
 				'return_type': 'void',
 				'comment': '',
 				'statements': ['this->x = value;'],
-				'template_types': ['T', 'T2'],
+				'template_types': ['T', 'T2', 'TArgs...'],
 				# belongs class only
 				'accessor': 'public',
 				'class_symbol': 'Hoge',
@@ -1020,8 +1021,7 @@ class TestRenderer(TestCase):
 			'\n'.join([
 				'public:',
 				'/** template_method */',
-				'template<typename T>',
-				'template<typename T2>',
+				'template<typename T, typename T2, typename ...TArgs>',
 				'void template_method(int value = 1) {',
 				'	this->x = value;',
 				'}',
@@ -1082,3 +1082,13 @@ class TestRenderer(TestCase):
 	])
 	def test_render_argument(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('argument', 0, vars, expected)
+
+	@data_provider([
+		('default', {'type_name': 'int'}, 'int'),
+		('default', {'type_name': 'str'}, 'std::string'),
+		('template', {'type_name': 'T', 'definition_type': 'TypeVar'}, 'T'),
+		('template', {'type_name': 'TArgs', 'definition_type': 'TypeVarTuple'}, 'TArgs...'),
+		('template', {'type_name': 'P', 'definition_type': 'ParamSpec'}, 'P'),
+	])
+	def test_render_var_of_type(self, template: str, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender(f'var_of_type/{template}', 0, vars, expected)

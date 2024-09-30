@@ -76,7 +76,7 @@ parameters: paramvalue ("," paramvalue)* ["," starparam] ["," kwparams]
 	| starparam ["," kwparams]
 	| kwparams
 ?paramvalue: typedparam ["=" expression]
-?typedparam: name [":" (typed_expression | "'" typed_expression "'")]
+?typedparam: name [":" (starable_typed_expression | "'" starable_typed_expression "'")]
 starparam: "*" typedparam
 kwparams: "**" typedparam
 
@@ -91,8 +91,12 @@ typed_argvalue: typed_expression
 	| typed_atom
 
 // @custom
+// @note TypeVarTuple用のアンパック構文 XXX 現状は受け入れるのみで評価しない
+?starable_typed_expression: "*"? typed_expression
+
+// @custom
 typed_slices: typed_slice | typed_slice (("," typed_slice)+ [","] | ",")
-?typed_slice: typed_expression
+?typed_slice: starable_typed_expression
 
 // @custom
 ?typed_atom: name -> typed_var
@@ -100,7 +104,7 @@ typed_slices: typed_slice | typed_slice (("," typed_slice)+ [","] | ",")
 	| "[" _typed_exprlist? "]" -> typed_list
 
 // @custom
-_typed_exprlist: typed_expression ("," typed_expression)* [","]
+_typed_exprlist: starable_typed_expression ("," starable_typed_expression)* [","]
 
 // # Function call argumanets
 
@@ -162,7 +166,8 @@ aug_assign: assign_namelist aug_assign_op expression
 // @custom
 class_var_assign: assign_namelist ":" "ClassVar" "[" typed_expression "]" "=" expression
 class_assign: assign_namelist ":" "TypeAlias" "=" typed_expression
-template_assign: assign_namelist "=" "TypeVar" "(" string ["," "bound" "=" (typed_expression | "'" typed_expression "'")] ["," "covariant" "=" atom] ")"
+template_assign: assign_namelist "=" template_assign_class "(" string ["," "bound" "=" (typed_expression | "'" typed_expression "'")] ["," "covariant" "=" atom] ")"
+!template_assign_class: "TypeVar" -> typed_var | "TypeVarTuple" -> typed_var | "ParamSpec" -> typed_var
 
 !aug_assign_op: "+=" | "-=" | "*=" | "@=" | "/=" | "%=" | "&=" | "|=" | "^=" | "<<=" | ">>=" | "**=" | "//="
 

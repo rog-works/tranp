@@ -1,8 +1,8 @@
 import re
-from typing import Any, Self, cast
+from typing import Any, Self, TypeVarTuple, cast
 
 from rogw.tranp.compatible.cpp.embed import Embed
-from rogw.tranp.compatible.cpp.object import CP
+from rogw.tranp.compatible.cpp.object import CP, c_func_addr, c_func_ref
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 from rogw.tranp.data.meta.header import MetaHeader
 from rogw.tranp.data.meta.types import ModuleMetaFactory, TranspilerMeta
@@ -620,7 +620,10 @@ class Py2Cpp(ITranspiler):
 			symbol = self.reflections.resolve(node.parent.class_types)
 
 		type_name = self.to_domain_name_by_class(symbol.types)
-		return self.view.render(node.classification, vars={'type_name': type_name})
+		if isinstance(symbol.types, defs.TemplateClass):
+			return self.view.render(f'{node.classification}/template', vars={'type_name': type_name, 'definition_type': symbol.types.definition_type.tokens})
+		else:
+			return self.view.render(f'{node.classification}/default', vars={'type_name': type_name})
 
 	def on_list_type(self, node: defs.ListType, type_name: str, value_type: str) -> str:
 		return self.view.render(node.classification, vars={'type_name': type_name, 'value_type': value_type})
@@ -629,7 +632,18 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(node.classification, vars={'type_name': type_name, 'key_type': key_type, 'value_type': value_type})
 
 	def on_callable_type(self, node: defs.CallableType, type_name: str, parameters: list[str], return_type: str) -> str:
-		return self.view.render(node.classification, vars={'parameters': parameters, 'return_type': return_type})
+		"""
+		Note:
+			### PluckMethodのシグネチャー
+			* `Callable[[T, *T_Args], None]`
+		"""
+		spec = 'default'
+		if len(parameters) >= 2:
+			second_type = self.reflections.type_of(node.parameters[1])
+			if isinstance(second_type.types, defs.TemplateClass) and second_type.types.definition_type.type_name.tokens == TypeVarTuple.__name__:
+				spec = 'pluck_method'
+
+		return self.view.render(f'{node.classification}/{spec}', vars={'type_name': type_name, 'parameters': parameters, 'return_type': return_type})
 
 	def on_custom_type(self, node: defs.CustomType, type_name: str, template_types: list[str]) -> str:
 		# XXX @see semantics.reflection.helper.naming.ClassShorthandNaming.domain_name
@@ -669,6 +683,8 @@ class Py2Cpp(ITranspiler):
 		elif spec == 'c_macro':
 			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == 'c_pragma':
+			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
+		elif spec == 'c_func':
 			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == PythonClassOperations.copy_constructor:
 			# 期待値: 'receiver.__py_copy__'
@@ -785,6 +801,8 @@ class Py2Cpp(ITranspiler):
 				return 'c_include', None
 			elif calls == c_macro.__name__:
 				return 'c_macro', None
+			elif calls in [c_func_addr.__name__, c_func_ref.__name__]:
+				return 'c_func', None
 			elif calls == len.__name__:
 				return 'len', self.reflections.type_of(node.arguments[0])
 			elif calls == print.__name__:

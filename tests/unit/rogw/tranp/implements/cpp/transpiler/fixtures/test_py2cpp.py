@@ -1,10 +1,10 @@
 from abc import ABCMeta, abstractmethod
-from typing import Callable, ClassVar, Generic, Self, TypeAlias, TypeVar, cast
+from typing import Callable, ClassVar, Generic, Self, TypeAlias, TypeVar, TypeVarTuple, cast
 
 from rogw.tranp.compatible.cpp.classes import void
 from rogw.tranp.compatible.cpp.embed import Embed
 from rogw.tranp.compatible.cpp.enum import CEnum as Enum
-from rogw.tranp.compatible.cpp.object import CP, CRawConst, CRef, CSP
+from rogw.tranp.compatible.cpp.object import CP, CRawConst, CRef, CSP, CRefConst, c_func_ref
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 
 c_pragma('once')
@@ -554,3 +554,20 @@ class ForFuncCall:
 
 		def move_scalar(self, output: 'CRef[int]') -> None:
 			output.copy(CRef(1))
+
+
+TArgs = TypeVarTuple('TArgs')
+
+
+class ForTemplateClass:
+	class Delegate(Generic[*TArgs]):
+		def bind(self, obj: CP[T], method: CRefConst[Callable[[T, *TArgs], None]]) -> None: ...
+		def invoke(self, *args: *TArgs) -> None: ...
+
+	class A:
+		def func(self, b: bool, c: int) -> None: ...
+
+	def bind_call(self, a: CP[A]) -> None:
+		d = ForTemplateClass.Delegate[bool, int]()
+		d.bind(a, c_func_ref(ForTemplateClass.A.func).const)
+		d.invoke(True, 1)

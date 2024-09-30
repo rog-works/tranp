@@ -8,6 +8,7 @@ from rogw.tranp.io.loader import IFileLoader
 from rogw.tranp.lang.annotation import duck_typed, injectable
 from rogw.tranp.lang.trait import Traits
 from rogw.tranp.module.modules import Module
+from rogw.tranp.semantics.errors import SymbolNotDefinedError
 from rogw.tranp.semantics.finder import SymbolFinder
 from rogw.tranp.semantics.processor import Preprocessor
 from rogw.tranp.semantics.reflection.base import IReflection
@@ -157,10 +158,20 @@ class ExpandModules:
 			var (DeclVars): 変数宣言ノード
 		Returns:
 			IReflection: シンボル
+		Raises:
+			SymbolNotDefinedError: シンボルの解決に失敗
 		"""
 		decl_type = self.fetch_decl_type(var)
 		if decl_type is not None:
-			return self.finder.by_symbolic(db, decl_type)
+			symbol = self.finder.find_by_symbolic(db, decl_type)
+			if symbol:
+				return symbol
+
+			fallback = self._fallback_type_symbol(db, decl_type)
+			if fallback:
+				return fallback
+
+			raise SymbolNotDefinedError(f'fullyname: {var.fullyname}')
 		else:
 			return self.finder.by_standard(db, classes.Unknown)
 
@@ -186,3 +197,25 @@ class ExpandModules:
 			return None
 
 		return None
+
+	def _fallback_type_symbol(self, db: SymbolDB, decl_type: defs.Type | defs.ClassDef) -> IReflection | None:
+		"""変数の型からシンボルを解決(フォールバック)
+
+		Args:
+			db (SymbolDB): シンボルテーブル
+			decl_type (DeclVars): タイプ/クラス定義ノード
+		Returns:
+			IReflection | None: シンボル
+		Note:
+			### 解決対象
+			* ParamSpecのargs/kwargs
+		"""
+		if not isinstance(decl_type, defs.RelayOfType):
+			return None
+
+		receiver_type = self.finder.by_symbolic(db, decl_type.receiver)
+		if not isinstance(receiver_type.types, defs.TemplateClass):
+			return None
+
+		def_class = self.finder.by_symbolic(db, receiver_type.types.definition_type)
+		return self.finder.find_by_symbolic(db, def_class.types, decl_type.prop.tokens)

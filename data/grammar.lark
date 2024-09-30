@@ -96,7 +96,7 @@ typed_argvalue: typed_expression
 
 // @custom
 typed_slices: typed_slice | typed_slice (("," typed_slice)+ [","] | ",")
-?typed_slice: "*"? typed_expression
+?typed_slice: starable_typed_expression
 
 // @custom
 ?typed_atom: name -> typed_var

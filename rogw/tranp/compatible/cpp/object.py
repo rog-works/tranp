@@ -313,3 +313,35 @@ class CRaw(CVar[T_co]):
 	def addr(self) -> 'CP[T_co]':
 		"""ポインターを返却する参照変換代替メソッド。C++では`&`に相当"""
 		return CP(self.raw)
+
+
+T_Func = TypeVar('T_Func', bound=Callable)
+
+
+@classmethod
+def c_func_addr(func: T_Func) -> CP[T_Func]:
+	"""関数オブジェクトをC++用の関数ポインターとして解釈を変更
+
+	Args:
+		func (T_Func): 関数オブジェクト
+	Returns:
+		CP[T_Func]: 関数ポインター
+	Note:
+		XXX C++ではリレー上は関数は実体であり、値として参照する場合のみアドレス参照('&')を通して関数ポインターへ変換する
+		XXX 関数をPythonと同じようにシームレスに扱えないため、変換用の関数を通して解釈を変更する
+	"""
+	return CP(func)
+
+
+@classmethod
+def c_func_ref(func: T_Func) -> CRef[T_Func]:
+	"""関数オブジェクトをC++用の関数ポインター(参照)として解釈を変更
+
+	Args:
+		func (T_Func): 関数オブジェクト
+	Returns:
+		CRef[T_Func]: 関数ポインター(参照)
+	Note:
+		@see c_func_addr
+	"""
+	return CRef(func)

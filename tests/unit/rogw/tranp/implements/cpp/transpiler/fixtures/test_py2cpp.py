@@ -4,7 +4,7 @@ from typing import Callable, ClassVar, Generic, Self, TypeAlias, TypeVar, TypeVa
 from rogw.tranp.compatible.cpp.classes import void
 from rogw.tranp.compatible.cpp.embed import Embed
 from rogw.tranp.compatible.cpp.enum import CEnum as Enum
-from rogw.tranp.compatible.cpp.object import CP, CRawConst, CRef, CSP, CRefConst
+from rogw.tranp.compatible.cpp.object import CP, CRawConst, CRef, CSP, CRefConst, c_func_ref
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 
 c_pragma('once')
@@ -569,5 +569,5 @@ class ForTemplateClass:
 
 	def bind_call(self, a: CP[A]) -> None:
 		d = ForTemplateClass.Delegate[bool, int]()
-		d.bind(a, CRefConst(ForTemplateClass.A.func))
+		d.bind(a, c_func_ref(ForTemplateClass.A.func).const)
 		d.invoke(True, 1)

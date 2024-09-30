@@ -2,7 +2,7 @@ import re
 from typing import Any, Self, TypeVarTuple, cast
 
 from rogw.tranp.compatible.cpp.embed import Embed
-from rogw.tranp.compatible.cpp.object import CP
+from rogw.tranp.compatible.cpp.object import CP, c_func_addr, c_func_ref
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 from rogw.tranp.data.meta.header import MetaHeader
 from rogw.tranp.data.meta.types import ModuleMetaFactory, TranspilerMeta
@@ -684,6 +684,8 @@ class Py2Cpp(ITranspiler):
 			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == 'c_pragma':
 			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
+		elif spec == 'c_func':
+			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == PythonClassOperations.copy_constructor:
 			# 期待値: 'receiver.__py_copy__'
 			receiver, _ = PatternParser.break_relay(calls)
@@ -799,6 +801,8 @@ class Py2Cpp(ITranspiler):
 				return 'c_include', None
 			elif calls == c_macro.__name__:
 				return 'c_macro', None
+			elif calls in [c_func_addr.__name__, c_func_ref.__name__]:
+				return 'c_func', None
 			elif calls == len.__name__:
 				return 'len', self.reflections.type_of(node.arguments[0])
 			elif calls == print.__name__:

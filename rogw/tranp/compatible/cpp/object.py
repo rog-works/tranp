@@ -318,7 +318,6 @@ class CRaw(CVar[T_co]):
 T_Func = TypeVar('T_Func', bound=Callable)
 
 
-@classmethod
 def c_func_addr(func: T_Func) -> CP[T_Func]:
 	"""関数オブジェクトをC++用の関数ポインターとして解釈を変更
 
@@ -333,7 +332,6 @@ def c_func_addr(func: T_Func) -> CP[T_Func]:
 	return CP(func)
 
 
-@classmethod
 def c_func_ref(func: T_Func) -> CRef[T_Func]:
 	"""関数オブジェクトをC++用の関数ポインター(参照)として解釈を変更
 

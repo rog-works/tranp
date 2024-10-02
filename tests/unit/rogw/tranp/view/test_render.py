@@ -137,7 +137,7 @@ class TestRenderer(TestCase):
 			},
 			'\n'.join([
 				'/** Hoge */',
-				'class Hoge : public Base, Interface {',
+				'class Hoge : public Base, public Interface {',
 				'	private: int __value;',
 				'	private: std::string __text;',
 				'	public: Hoge() {',

@@ -34,7 +34,7 @@ class Base(metaclass=ABCMeta):
 
 
 class Sub(Base):
-	class_base_n: ClassVar[int] = 0
+	class_base_n: ClassVar['int'] = 0
 	base_n: int
 
 	def __init__(self, n: int) -> None:

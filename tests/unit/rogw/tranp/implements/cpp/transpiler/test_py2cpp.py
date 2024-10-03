@@ -301,7 +301,7 @@ class TestPy2Cpp(TestCase):
 		('StringOps.slice', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'std::string a = s.substr(1, s.size() - (1));'),
 		('StringOps.slice', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'std::string b = s.substr(0, 5);'),
 		('StringOps.len', 'function_def_raw.block.assign', defs.MoveAssign, 'int a = s.size();'),
-		('StringOps.format', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'std::string a = std::format("%d, %f, %s, %s, %p", 1, 2.0, "3", (s).c_str(), this);'),
+		('StringOps.format', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'std::string a = std::format("%d, %f, %d, %s, %s, %p", 1, 2.0, true, "3", (s).c_str(), this);'),
 		('StringOps.format', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'std::string b = std::format(s, 1, 2, 3);'),
 
 		('AssignOps.assign', 'function_def_raw.block.anno_assign', defs.AnnoAssign, 'int a = 1;'),

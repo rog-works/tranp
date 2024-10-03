@@ -720,7 +720,7 @@ class Py2Cpp(ITranspiler):
 		elif spec == 'str_format':
 			is_literal = node.calls.as_a(defs.Relay).receiver.is_a(defs.String)
 			receiver, operator = PatternParser.break_relay(calls)
-			to_tags = {int.__name__: '%d', float.__name__: '%f', str.__name__: '%s', CP.__name__: '%p'}
+			to_tags = {int.__name__: '%d', float.__name__: '%f', bool.__name__: '%d', str.__name__: '%s', CP.__name__: '%p'}
 			formatters: list[dict[str, Any]] = []
 			for argument in node.arguments:
 				arg_symbol = self.reflections.type_of(argument)

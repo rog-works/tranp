@@ -515,7 +515,7 @@ class StringOps:
 		a = len(s)
 
 	def format(self, s: str) -> None:
-		a = '{a}, {b}, {c}, {d}, {e}'.format(a=1, b=2.0, c='3', d=s, e=CP(self))
+		a = '{n}, {f}, {b}, {s}, {sp}, {p}'.format(n=1, f=2.0, b=True, s='3', sp=s, p=CP(self))
 		b = s.format(1, 2, 3)
 
 

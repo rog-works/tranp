@@ -334,6 +334,8 @@ class Alias:
 		print(Alias.__module__)
 		print(Alias.Inner.__name__)
 		print(Alias.in_local.__name__)
+		print(Alias.in_local.__qualname__)
+		print(Alias.Inner.func.__qualname__)
 
 
 class CompOps:

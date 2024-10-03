@@ -225,6 +225,8 @@ class TestPy2Cpp(TestCase):
 		('Alias.litelize', 'function_def_raw.block.funccall[2]', defs.FuncCall, f'printf("{fixture_module_path}");'),
 		('Alias.litelize', 'function_def_raw.block.funccall[3]', defs.FuncCall, 'printf("Inner2");'),
 		('Alias.litelize', 'function_def_raw.block.funccall[4]', defs.FuncCall, 'printf("in_local");'),
+		('Alias.litelize', 'function_def_raw.block.funccall[5]', defs.FuncCall, 'printf("Alias2::in_local");'),
+		('Alias.litelize', 'function_def_raw.block.funccall[6]', defs.FuncCall, 'printf("Alias2::Inner2::func");'),
 
 		('CompOps.list_comp', 'function_def_raw.block.assign[1]', defs.MoveAssign, BlockExpects.CompOps_list_comp_assign_values1),
 		('CompOps.dict_comp', 'function_def_raw.block.assign[1]', defs.MoveAssign, BlockExpects.CompOps_dict_comp_assign_kvs0_1),

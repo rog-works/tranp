@@ -509,6 +509,8 @@ class Py2Cpp(ITranspiler):
 			return self.view.render(f'{node.classification}/{spec}', vars={**relay_vars, 'module_path': receiver_symbol.types.module_path})
 		elif spec == '__name__':
 			return self.view.render(f'{node.classification}/{spec}', vars={**relay_vars, 'symbol': self.to_domain_name_by_class(receiver_symbol.types)})
+		elif spec == '__qualname__':
+			return self.view.render(f'{node.classification}/{spec}', vars=relay_vars)
 		else:
 			return self.view.render(f'{node.classification}/default', vars=relay_vars)
 
@@ -525,10 +527,10 @@ class Py2Cpp(ITranspiler):
 		def is_type_relay() -> bool:
 			return receiver_is_type_ref or isinstance(receiver_symbol.node, defs.Super)
 
-		if node.prop.tokens in ['__module__', '__name__']:
+		if node.prop.tokens in ['__module__', '__name__', '__qualname__']:
 			return node.prop.tokens, CVars.RelayOperators.Raw.name
 		elif is_this_relay():
-			return 'this', CVars.RelayOperators.Address.name
+			return 'default', CVars.RelayOperators.Address.name
 		elif is_on_cvar_relay():
 			cvar_key = CVars.key_from(receiver_symbol.context)
 			if not CVars.is_raw_raw(cvar_key):
@@ -538,9 +540,9 @@ class Py2Cpp(ITranspiler):
 			move = CVars.to_move(cvar_key, node.prop.domain_name)
 			return f'cvar_to_{move.name}', CVars.to_operator(cvar_key).name
 		elif is_type_relay():
-			return 'type_relay', CVars.RelayOperators.Static.name
+			return 'default', CVars.RelayOperators.Static.name
 
-		return 'raw', CVars.RelayOperators.Raw.name
+		return 'default', CVars.RelayOperators.Raw.name
 
 	def on_var(self, node: defs.Var) -> str:
 		symbol = self.reflections.type_of(node).impl(refs.Object).actualize('type')

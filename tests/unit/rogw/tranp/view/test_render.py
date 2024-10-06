@@ -560,6 +560,13 @@ class TestRenderer(TestCase):
 		self.assertRender('func_call/cast_bin_to_str', 0, vars, expected)
 
 	@data_provider([
+		({'arguments': ['"A"'], 'is_statement': True}, "'A';"),
+		({'arguments': ['string[0]'], 'is_statement': True}, "string[0];"),
+	])
+	def test_render_func_call_cast_char(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cast_char', 0, vars, expected)
+
+	@data_provider([
 		({'arguments': ['iterates'], 'is_statement': True}, 'iterates;'),
 	])
 	def test_render_func_call_cast_list(self, vars: dict[str, Any], expected: str) -> None:

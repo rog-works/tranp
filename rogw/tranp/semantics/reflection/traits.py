@@ -186,10 +186,18 @@ class OperationTrait(TraitImpl, IOperation):
 
 		parameter = method.parameter_at(0, value)
 		parameter_types = parameter.attrs if parameter.impl(refs.Object).type_is(classes.Union) else [parameter]
-		if value not in parameter_types:
+		if value in parameter_types:
+			return method.returns(value)
+
+		if not isinstance(value.types, defs.Class):
 			return None
 
-		return method.returns(value)
+		for inherit in value.types.inherits:
+			inherit_symbol = self.reflections.resolve(inherit)
+			if inherit_symbol in parameter_types:
+				return method.returns(inherit_symbol)
+
+		return None
 
 	def _find_method(self, symbol: IReflection, method_name: str) -> refs.Function | None:
 		"""演算用のメソッドを検索。存在しない場合はNoneを返却

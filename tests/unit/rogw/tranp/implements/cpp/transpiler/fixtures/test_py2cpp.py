@@ -562,6 +562,7 @@ class ForBinaryOperator:
 	def char_op_by_str(self, string: str) -> None:
 		a = string[0] >= char('A')
 		b = string[0] <= char('Z')
+		c = char(string[0])
 
 
 TArgs = TypeVarTuple('TArgs')

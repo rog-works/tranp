@@ -1,1 +1,5 @@
+{%- if arguments[0] | length == 3 and arguments[0].startswith('"') and arguments[0].endswith('"') -%}
 '{{ arguments[0][1] }}'{% if is_statement %};{% endif %}
+{%- else -%}
+{{ arguments[0] }}{% if is_statement %};{% endif %}
+{%- endif -%}

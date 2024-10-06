@@ -321,6 +321,9 @@ class TestPy2Cpp(TestCase):
 		('ForFuncCall.Copy.move_obj', 'function_def_raw.block.funccall', defs.FuncCall, 'to = via;'),
 		('ForFuncCall.Copy.move_scalar', 'function_def_raw.block.funccall', defs.FuncCall, 'output = 1;'),
 
+		('ForBinaryOperator.char_op_by_str', 'function_def_raw.block.assign[0]', defs.MoveAssign, "bool a = string[0] >= 'A';"),
+		('ForBinaryOperator.char_op_by_str', 'function_def_raw.block.assign[1]', defs.MoveAssign, "bool b = string[0] <= 'Z';"),
+
 		('ForTemplateClass.Delegate', '', defs.Class, BlockExpects.ForTemplateClass_Delegate),
 		('ForTemplateClass.bind_call', 'function_def_raw.block.assign', defs.MoveAssign, 'ForTemplateClass::Delegate<bool, int> d = ForTemplateClass::Delegate<bool, int>();'),
 		('ForTemplateClass.bind_call', 'function_def_raw.block.funccall[1]', defs.FuncCall, 'd.bind(a, &ForTemplateClass::A::func);'),

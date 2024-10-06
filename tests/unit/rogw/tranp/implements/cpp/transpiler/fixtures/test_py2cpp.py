@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from typing import Callable, ClassVar, Generic, Self, TypeAlias, TypeVar, TypeVarTuple, cast
 
-from rogw.tranp.compatible.cpp.classes import void
+from rogw.tranp.compatible.cpp.classes import char, void
 from rogw.tranp.compatible.cpp.embed import Embed
 from rogw.tranp.compatible.cpp.enum import CEnum as Enum
 from rogw.tranp.compatible.cpp.object import CP, CRawConst, CRef, CSP, CRefConst, c_func_ref
@@ -556,6 +556,12 @@ class ForFuncCall:
 
 		def move_scalar(self, output: 'CRef[int]') -> None:
 			output.copy(CRef(1))
+
+
+class ForBinaryOperator:
+	def char_op_by_str(self, string: str) -> None:
+		a = string[0] >= char('A')
+		b = string[0] <= char('Z')
 
 
 TArgs = TypeVarTuple('TArgs')

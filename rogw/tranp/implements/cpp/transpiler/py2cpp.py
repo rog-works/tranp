@@ -694,6 +694,8 @@ class Py2Cpp(ITranspiler):
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver})
 		elif spec == 'generic_call':
 			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
+		elif spec == 'cast_char':
+			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == 'cast_enum':
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/cast_bin_to_bin', vars={**func_call_vars, 'var_type': var_type})
@@ -809,6 +811,8 @@ class Py2Cpp(ITranspiler):
 				return 'len', self.reflections.type_of(node.arguments[0])
 			elif calls == print.__name__:
 				return 'print', None
+			elif calls == 'char':
+				return 'cast_char', None
 			elif calls == 'list':
 				return 'cast_list', None
 			elif calls in ['int', 'float', 'bool', 'str']:

@@ -142,6 +142,7 @@ class CVarOps:
 		sub = a - ap.raw - asp.raw - ar.raw
 		mul = a * ap.raw * asp.raw * ar.raw
 		div = a / ap.raw / asp.raw / ar.raw
+		mod = 1.0 % 1
 		calc = a + ap.raw * asp.raw - ar.raw / a
 		is_a = a is ap.raw is asp.raw is ar.raw
 		is_not_a = a is not ap.raw is not asp.raw is not ar.raw

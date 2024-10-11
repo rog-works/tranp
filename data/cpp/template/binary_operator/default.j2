@@ -6,6 +6,8 @@
 {{ left }} && {{ right }}
 {%- elif operator == 'or' -%}
 {{ left }} || {{ right }}
+{%- elif operator == '%' and left_var_type in ['float', 'double'] -%}
+{{ i18n('cpp', 'float.mod') }}({{ left }}, {{ right }})
 {%- else -%}
 {{ left }} {{ operator }} {{ right }}
 {%- endif -%}

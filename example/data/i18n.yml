@@ -29,6 +29,7 @@ aliases.rogw.tranp.compatible.libralies.classes#str.startswith: starts_with
 aliases.rogw.tranp.compatible.libralies.classes#tuple: std::tuple
 # cpp
 aliases.rogw.tranp.compatible.cpp.classes#container.size: size
+aliases.rogw.tranp.compatible.cpp.classes#float.mod: fmod
 aliases.rogw.tranp.compatible.cpp.classes#map.begin: begin
 aliases.rogw.tranp.compatible.cpp.classes#map.end: end
 aliases.rogw.tranp.compatible.cpp.classes#map.erase: erase

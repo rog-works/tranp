@@ -79,14 +79,17 @@ class TestRenderer(TestCase):
 		self.assertRender('binary_operator/in', 0, vars, expected)
 
 	@data_provider([
-		({'left': 'a', 'operator': 'is', 'right': 'b', 'right_is_dict': False}, 'a == b'),
-		({'left': 'a', 'operator': 'is.not', 'right': 'b', 'right_is_dict': False}, 'a != b'),
-		({'left': 'a', 'operator': 'and', 'right': 'b', 'right_is_dict': False}, 'a && b'),
-		({'left': 'a', 'operator': 'or', 'right': 'b', 'right_is_dict': False}, 'a || b'),
-		({'left': 'a', 'operator': '+', 'right': 'b', 'right_is_dict': False}, 'a + b'),
-		({'left': 'a', 'operator': '-', 'right': 'b', 'right_is_dict': False}, 'a - b'),
-		({'left': 'a', 'operator': '*', 'right': 'b', 'right_is_dict': False}, 'a * b'),
-		({'left': 'a', 'operator': '/', 'right': 'b', 'right_is_dict': False}, 'a / b'),
+		({'left': 'a', 'operator': 'is', 'right': 'b', 'left_var_type': 'int'}, 'a == b'),
+		({'left': 'a', 'operator': 'is.not', 'right': 'b', 'left_var_type': 'int'}, 'a != b'),
+		({'left': 'a', 'operator': 'and', 'right': 'b', 'left_var_type': 'int'}, 'a && b'),
+		({'left': 'a', 'operator': 'or', 'right': 'b', 'left_var_type': 'int'}, 'a || b'),
+		({'left': 'a', 'operator': '+', 'right': 'b', 'left_var_type': 'int'}, 'a + b'),
+		({'left': 'a', 'operator': '-', 'right': 'b', 'left_var_type': 'int'}, 'a - b'),
+		({'left': 'a', 'operator': '*', 'right': 'b', 'left_var_type': 'int'}, 'a * b'),
+		({'left': 'a', 'operator': '/', 'right': 'b', 'left_var_type': 'int'}, 'a / b'),
+		({'left': 'a', 'operator': '%', 'right': 'b', 'left_var_type': 'int'}, 'a % b'),
+		({'left': 'a', 'operator': '%', 'right': 'b', 'left_var_type': 'float'}, 'fmod(a, b)'),
+		({'left': 'a', 'operator': '%', 'right': 'b', 'left_var_type': 'double'}, 'fmod(a, b)'),
 	])
 	def test_render_binary_operator(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('binary_operator/default', 0, vars, expected)

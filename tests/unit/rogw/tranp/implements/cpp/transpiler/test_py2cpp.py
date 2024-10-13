@@ -67,7 +67,7 @@ class TestPy2Cpp(TestCase):
 		('Base.allowed_overrides', '', defs.Method, 'public:\n/** allowed_overrides */\nvirtual int allowed_overrides() {\n\treturn 1;\n}'),
 		('Base.base_class_func', '', defs.ClassMethod, 'public:\n/** base_class_func */\nstatic int base_class_func() {}'),
 		('Base.base_prop', '', defs.Method, 'public:\n/** base_prop */\nstd::string base_prop() {}'),
-		('Base.pure_protected_method', '', defs.Method, 'protected:\n/** pure_protected_method */\nstd::string pure_protected_method() const {}'),
+		('Base._pure_public_method', '', defs.Method, 'public:\n/** _pure_public_method */\nstd::string _pure_public_method() const {}'),
 
 		('Sub', 'class_def_raw.block.comment_stmt[5]', defs.Comment, '// FIXME other: Any'),
 

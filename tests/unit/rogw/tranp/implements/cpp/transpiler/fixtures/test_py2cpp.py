@@ -32,9 +32,9 @@ class Base(metaclass=ABCMeta):
 	@property
 	def base_prop(self) -> str: ...
 
-	@Embed.protected
+	@Embed.public
 	@Embed.pure
-	def pure_protected_method(self) -> str: ...
+	def _pure_public_method(self) -> str: ...
 
 
 class Sub(Base):

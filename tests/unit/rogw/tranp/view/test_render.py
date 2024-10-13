@@ -1041,7 +1041,7 @@ class TestRenderer(TestCase):
 			'method',
 			{
 				'symbol': 'decorated_method',
-				'decorators': ['deco(A, B)'],
+				'decorators': ['deco(A, B)', 'Embed::private', 'Embed::pure'],
 				'parameters': ['int value = 1'],
 				'return_type': 'void',
 				'comment': '',
@@ -1055,9 +1055,9 @@ class TestRenderer(TestCase):
 				'allow_override': False,
 			},
 			'\n'.join([
-				'public:',
+				'private:',
 				'/** decorated_method */',
-				'void decorated_method(int value = 1) {',
+				'void decorated_method(int value = 1) const {',
 				'	this->x = value;',
 				'}',
 			]),

@@ -1041,7 +1041,7 @@ class TestRenderer(TestCase):
 			'method',
 			{
 				'symbol': 'decorated_method',
-				'decorators': ['deco(A, B)', 'Embed::private', 'Embed::pure'],
+				'decorators': ['deco(A, B)', 'Embed.private()', 'Embed.pure()'],
 				'parameters': ['int value = 1'],
 				'return_type': 'void',
 				'comment': '',

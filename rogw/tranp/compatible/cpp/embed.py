@@ -17,13 +17,58 @@ class Embed:
 		Note:
 			* 純粋仮想関数は@abstractmethodを使う
 			* 純粋仮想関数を除いた「仮想関数」はC++固有の概念であり、全く別物と言う扱いなので注意
-		Examples:
-			```python
-			class A:
-				@Embed.allow_override
-				def allow_override_method(self) -> None:
-					...
-			```
+		"""
+		return wrapped
+
+	@classmethod
+	def pure(cls, wrapped: T) -> T:
+		"""関数を副作用のない関数としてマークアップ
+
+		Args:
+			wrapped (T): ラップ対象
+		Returns:
+			T: デコレート対象
+		Note:
+			言語間の制約の差を吸収する目的で使用
+		"""
+		return wrapped
+
+	@classmethod
+	def private(cls, wrapped: T) -> T:
+		"""関数をprivate関数としてマークアップ
+
+		Args:
+			wrapped (T): ラップ対象
+		Returns:
+			T: デコレート対象
+		Note:
+			言語間の制約の差を吸収する目的で使用
+		"""
+		return wrapped
+
+	@classmethod
+	def protected(cls, wrapped: T) -> T:
+		"""関数をprotected関数としてマークアップ
+
+		Args:
+			wrapped (T): ラップ対象
+		Returns:
+			T: デコレート対象
+		Note:
+			言語間の制約の差を吸収する目的で使用
+		"""
+		return wrapped
+
+	@classmethod
+	def public(cls, wrapped: T) -> T:
+		"""関数をpublic関数としてマークアップ
+
+		Args:
+			wrapped (T): ラップ対象
+		Returns:
+			T: デコレート対象
+		Note:
+			言語間の制約の差を吸収する目的で使用
 		"""
 		return wrapped
 
@@ -35,12 +80,6 @@ class Embed:
 			wrapped (T): ラップ対象
 		Returns:
 			T: デコレート対象
-		Examples:
-			```python
-			@Embed.struct
-			class Struct:
-				...
-			```
 		"""
 		if not hasattr(wrapped, '__struct__'):
 			setattr(wrapped, '__struct__', True)

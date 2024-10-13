@@ -32,6 +32,10 @@ class Base(metaclass=ABCMeta):
 	@property
 	def base_prop(self) -> str: ...
 
+	@Embed.public
+	@Embed.pure
+	def _pure_public_method(self) -> str: ...
+
 
 class Sub(Base):
 	class_base_n: ClassVar['int'] = 0

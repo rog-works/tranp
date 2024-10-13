@@ -63,8 +63,11 @@ class TestPy2Cpp(TestCase):
 
 		('DeclOps', '', defs.Class, BlockExpects.DeclOps),
 
-		('Base.sub_implements', '', defs.Function, 'public:\n/** sub_implements */\nvirtual void sub_implements() = 0;'),
-		('Base.allowed_overrides', '', defs.Function, 'public:\n/** allowed_overrides */\nvirtual int allowed_overrides() {\n\treturn 1;\n}'),
+		('Base.sub_implements', '', defs.Method, 'public:\n/** sub_implements */\nvirtual void sub_implements() = 0;'),
+		('Base.allowed_overrides', '', defs.Method, 'public:\n/** allowed_overrides */\nvirtual int allowed_overrides() {\n\treturn 1;\n}'),
+		('Base.base_class_func', '', defs.ClassMethod, 'public:\n/** base_class_func */\nstatic int base_class_func() {}'),
+		('Base.base_prop', '', defs.Method, 'public:\n/** base_prop */\nstd::string base_prop() {}'),
+		('Base._pure_public_method', '', defs.Method, 'public:\n/** _pure_public_method */\nstd::string _pure_public_method() const {}'),
 
 		('Sub', 'class_def_raw.block.comment_stmt[5]', defs.Comment, '// FIXME other: Any'),
 

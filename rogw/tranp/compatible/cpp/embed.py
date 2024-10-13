@@ -60,6 +60,19 @@ class Embed:
 		return wrapped
 
 	@classmethod
+	def public(cls, wrapped: T) -> T:
+		"""関数をpublic関数としてマークアップ
+
+		Args:
+			wrapped (T): ラップ対象
+		Returns:
+			T: デコレート対象
+		Note:
+			言語間の制約の差を吸収する目的で使用
+		"""
+		return wrapped
+
+	@classmethod
 	def struct(cls, wrapped: T) -> T:
 		"""クラスを構造体としてマークアップ。暗黙的に`__struct__`と言う属性を付与する
 

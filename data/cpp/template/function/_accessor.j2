@@ -2,6 +2,8 @@
 private
 {%- elif decorators | select('==', 'Embed::protected') | list -%}
 protected
+{%- elif decorators | select('==', 'Embed::public') | list -%}
+public
 {%- else -%}
 {{ accessor }}
 {%- endif -%}

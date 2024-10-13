@@ -1,0 +1,7 @@
+{%- if decorators | select('==', 'Embed::private') | list -%}
+private
+{%- elif decorators | select('==', 'Embed::protected') | list -%}
+protected
+{%- else -%}
+{{ accessor }}
+{%- endif -%}

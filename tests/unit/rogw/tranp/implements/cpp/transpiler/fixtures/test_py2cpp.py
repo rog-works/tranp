@@ -407,6 +407,9 @@ class ListOps:
 	def extend(self, ns0: list[int], ns1: list[int]) -> None:
 		ns0.extend(ns1)
 
+	def clear(self, arr: list[int]) -> None:
+		arr.clear()
+
 
 class DictOps:
 	def len(self) -> None:
@@ -436,6 +439,9 @@ class DictOps:
 
 	def delete(self, dsn: dict[str, int]) -> None:
 		del dsn['a'], dsn['b']
+
+	def clear(self, dsn: dict[str, int]) -> None:
+		dsn.clear()
 
 
 class CastOps:

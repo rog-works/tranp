@@ -254,6 +254,7 @@ class TestPy2Cpp(TestCase):
 		('ListOps.delete', 'function_def_raw.block.del_stmt', defs.Delete, 'ns.erase(ns.begin() + 1);\nns.erase(ns.begin() + 2);'),
 		('ListOps.insert', 'function_def_raw.block.funccall', defs.FuncCall, 'ns.insert(ns.begin() + 1, n);'),
 		('ListOps.extend', 'function_def_raw.block.funccall', defs.FuncCall, 'ns0.insert(ns0.end(), ns1);'),
+		('ListOps.clear', 'function_def_raw.block.funccall', defs.FuncCall, 'arr.clear();'),
 
 		('DictOps.len', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'int size_kvs = kvs.size();'),
 		('DictOps.pop', 'function_def_raw.block.assign[1]', defs.MoveAssign, BlockExpects.DictOps_pop_assign_value0),
@@ -264,6 +265,7 @@ class TestPy2Cpp(TestCase):
 		('DictOps.contains', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'bool b_in = d.contains("a");'),
 		('DictOps.contains', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'bool b_not_in = (!d.contains("a"));'),
 		('DictOps.delete', 'function_def_raw.block.del_stmt', defs.Delete, 'dsn.erase("a");\ndsn.erase("b");'),
+		('DictOps.clear', 'function_def_raw.block.funccall', defs.FuncCall, 'dsn.clear();'),
 
 		('CastOps.cast_binary', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'int f_to_n = static_cast<int>(1.0);'),
 		('CastOps.cast_binary', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'float n_to_f = static_cast<float>(1);'),

@@ -559,26 +559,28 @@ class Py2Cpp(ITranspiler):
 		return 'this'
 
 	def on_indexer(self, node: defs.Indexer, receiver: str, keys: list[str]) -> str:
+		is_statement = node.parent.is_a(defs.Block)
 		spec, context = self.analyze_indexer_spec(node)
+		vars = {'receiver': receiver, 'keys': keys, 'is_statement': is_statement}
 		if spec == 'slice_string':
-			return self.view.render(f'{node.classification}/{spec}', vars={'receiver': receiver, 'keys': keys})
+			return self.view.render(f'{node.classification}/{spec}', vars=vars)
 		elif spec == 'slice_array':
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={'receiver': receiver, 'keys': keys, 'var_type': var_type})
+			return self.view.render(f'{node.classification}/{spec}', vars={**vars, 'var_type': var_type})
 		elif spec == 'cvar_relay':
 			# 期待値: receiver.on()[key]
 			cvar_receiver = PatternParser.sub_cvar_relay(receiver)
-			return self.view.render(f'{node.classification}/default', vars={'receiver': cvar_receiver, 'key': keys[0]})
+			return self.view.render(f'{node.classification}/default', vars={**vars, 'receiver': cvar_receiver, 'key': keys[0]})
 		elif spec == 'cvar':
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={'var_type': var_type})
+			return self.view.render(f'{node.classification}/{spec}', vars={**vars, 'var_type': var_type})
 		elif spec == 'class':
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={'var_type': var_type})
+			return self.view.render(f'{node.classification}/{spec}', vars={**vars, 'var_type': var_type})
 		elif spec == 'tuple':
-			return self.view.render(f'{node.classification}/{spec}', vars={'receiver': receiver, 'key': keys[0]})
+			return self.view.render(f'{node.classification}/{spec}', vars={**vars, 'receiver': receiver, 'key': keys[0]})
 		else:
-			return self.view.render(f'{node.classification}/default', vars={'receiver': receiver, 'key': keys[0]})
+			return self.view.render(f'{node.classification}/default', vars={**vars, 'receiver': receiver, 'key': keys[0]})
 
 	def analyze_indexer_spec(self, node: defs.Indexer) -> tuple[str, IReflection | None]:
 		def is_on_cvar_relay() -> bool:

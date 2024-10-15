@@ -1073,6 +1073,19 @@ class TestRenderer(TestCase):
 		self.assertRender('import', 0, vars, expected)
 
 	@data_provider([
+		('cvar', {'var_type': 'int*'}, 'int*'),
+		('class', {'var_type': 'int'}, 'int'),
+		('default', {'receiver': 'n', 'key': '0'}, 'n[0]'),
+		('default', {'receiver': 'n', 'key': '0', 'is_statement': True}, 'n[0];'),
+		('slice_string', {'receiver': 's', 'keys': ['0', '1']}, 's.substr(0, 1)'),
+		('slice_string', {'receiver': 's', 'keys': ['1', '2']}, 's.substr(1, 2 - (1))'),
+		('slice_string', {'receiver': 's', 'keys': ['1']}, 's.substr(1, s.size() - (1))'),
+		('tuple', {'receiver': 't', 'key': '0'}, 'std::get<0>(t)'),
+	])
+	def test_render_indexer(self, spec: str, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender(f'indexer/{spec}', 0, vars, expected)
+
+	@data_provider([
 		({'values': ['1234', '2345']}, '{\n\t{1234},\n\t{2345},\n}'),
 		({'values': []}, '{}'),
 	])

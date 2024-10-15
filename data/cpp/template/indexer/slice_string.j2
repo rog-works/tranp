@@ -1,7 +1,7 @@
 {#- XXX 負の値の対応は、変数に代入された場合に対処できず、片手落ちとなるため非対応とする -#}
 {%- set start = keys[0] if keys[0] else '0' -%}
 {%- if keys[1] -%}
-{{ receiver }}.{{ i18n('cpp', 'string.slice') }}({{ start }}, {{ keys[1] }}{% if start != '0' %} - ({{ start }}){% endif %})
+{{ receiver }}.{{ i18n('cpp', 'string.slice') }}({{ start }}, {{ keys[1] }}{% if start != '0' %} - ({{ start }}){% endif %}){% if is_statement %};{% endif %}
 {%- else -%}
-{{ receiver }}.{{ i18n('cpp', 'string.slice') }}({{ start }}, {{ receiver }}.{{ i18n('cpp', 'string.size') }}(){% if start != '0' %} - ({{ start }}){% endif %})
+{{ receiver }}.{{ i18n('cpp', 'string.slice') }}({{ start }}, {{ receiver }}.{{ i18n('cpp', 'string.size') }}(){% if start != '0' %} - ({{ start }}){% endif %}){% if is_statement %};{% endif %}
 {%- endif -%}

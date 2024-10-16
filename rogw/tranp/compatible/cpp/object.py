@@ -20,12 +20,12 @@ class CVar(Generic[T_co]):
 
 	@property
 	def on(self) -> T_co:
-		"""実体を返却するリレー代替メソッド。C++では実体型は`.`、アドレス型は`->`に相当"""
+		"""Returns: T_co: 実体を返却するリレー代替メソッド。C++では実体型は`.`、アドレス型は`->`に相当"""
 		return cast(T_co, self._origin)
 
 	@property
 	def raw(self) -> T_co:
-		"""実体を返却する実体参照代替メソッド。C++では実体型は削除、アドレス型は`*`に相当"""
+		"""Returns: T_co: 実体を返却する実体参照代替メソッド。C++では実体型は削除、アドレス型は`*`に相当"""
 		return cast(T_co, self._origin)
 
 	def __eq__(self, other: Self) -> bool:
@@ -73,7 +73,13 @@ class CP(CVar[T_co]):
 
 	@classmethod
 	def new(cls, origin: T_New) -> 'CP[T_New]':
-		"""メモリを生成し、CPラップ型を返却するメモリ生成代替メソッド。C++では`new`に相当"""
+		"""メモリを生成し、CPラップ型を返却するメモリ生成代替メソッド。C++では`new`に相当
+
+		Args:
+			origin (T_New): 実体のインタンス
+		Returns:
+			CP[T_New]: インスタンス
+		"""
 		return CP(origin)
 
 	@property
@@ -135,27 +141,37 @@ class CSP(CVar[T_co]):
 
 	@classmethod
 	def empty(cls) -> 'CSP[T_co]':
-		"""空のスマートポインターの初期化を代替するメソッド。C++では`std::shared_ptr<T>()`に相当"""
+		"""空のスマートポインターの初期化を代替するメソッド。C++では`std::shared_ptr<T>()`に相当
+
+		Returns:
+			CP[T_New]: インスタンス
+		"""
 		return CSP[T_co]()
 
 	@classmethod
 	def new(cls, origin: T_New) -> 'CSP[T_New]':
-		"""メモリを生成し、CPラップ型を返却するメモリ生成代替メソッド。C++では`std::make_shared`に相当"""
+		"""メモリを生成し、CPラップ型を返却するメモリ生成代替メソッド。C++では`std::make_shared`に相当
+
+		Args:
+			origin (T_New): 実体のインタンス
+		Returns:
+			CP[T_New]: インスタンス
+		"""
 		return CSP(origin)
 
 	@property
 	def ref(self) -> 'CRef[T_co]':
-		"""参照を返却する参照変換代替メソッド。C++では`*`に相当"""
+		"""Returns: CRef[T_co]: 参照を返却する参照変換代替メソッド。C++では`*`に相当"""
 		return CRef(self.raw)
 
 	@property
 	def addr(self) -> 'CP[T_co]':
-		"""ポインターを返却する参照変換代替メソッド。C++では`get`に相当"""
+		"""Returns: CP[T_co]: ポインターを返却する参照変換代替メソッド。C++では`get`に相当"""
 		return CP(self.raw)
 
 	@property
 	def const(self) -> 'CSPConst[T_co]':
-		"""Constを返却する参照変換代替メソッド。C++では削除"""
+		"""Returns: CSPConst[T_co]: Constを返却する参照変換代替メソッド。C++では削除"""
 		return CSPConst(self.raw)
 
 
@@ -175,12 +191,12 @@ class CRef(CVar[T_co]):
 
 	@property
 	def addr(self) -> 'CP[T_co]':
-		"""ポインターを返却する参照変換代替メソッド。C++では`&`に相当"""
+		"""Returns: CP[T_co]: ポインターを返却する参照変換代替メソッド。C++では`&`に相当"""
 		return CP(self.raw)
 
 	@property
 	def const(self) -> 'CRefConst[T_co]':
-		"""Constを返却する参照変換代替メソッド。C++では削除"""
+		"""Returns: CRefConst[T_co]: Constを返却する参照変換代替メソッド。C++では削除"""
 		return CRefConst(self.raw)
 
 	def copy(self, via: 'CRef[T_co]') -> None:
@@ -216,7 +232,7 @@ class CPConst(CVar[T_co]):
 
 	@property
 	def ref(self) -> 'CRefConst[T_co]':
-		"""Const参照を返却する参照変換代替メソッド。C++では`*`に相当"""
+		"""Returns: CRefConst[T_co]: Const参照を返却する参照変換代替メソッド。C++では`*`に相当"""
 		return CRefConst(self.raw)
 
 
@@ -236,12 +252,12 @@ class CSPConst(CVar[T_co]):
 
 	@property
 	def ref(self) -> 'CRefConst[T_co]':
-		"""Const参照を返却する参照変換代替メソッド。C++では`*`に相当"""
+		"""Returns: CRefConst[T_co]: Const参照を返却する参照変換代替メソッド。C++では`*`に相当"""
 		return CRefConst(self.raw)
 
 	@property
 	def addr(self) -> 'CPConst[T_co]':
-		"""Constポインターを返却する参照変換代替メソッド。C++では`get`に相当"""
+		"""Returns: CPConst[T_co]: Constポインターを返却する参照変換代替メソッド。C++では`get`に相当"""
 		return CPConst(self.raw)
 
 
@@ -261,7 +277,7 @@ class CRefConst(CVar[T_co]):
 
 	@property
 	def addr(self) -> 'CPConst[T_co]':
-		"""Constポインターを返却する参照変換代替メソッド。C++では`get`に相当"""
+		"""Returns: CPConst[T_co]: Constポインターを返却する参照変換代替メソッド。C++では`get`に相当"""
 		return CPConst(self.raw)
 
 
@@ -281,12 +297,12 @@ class CRawConst(CVar[T_co]):
 
 	@property
 	def ref(self) -> 'CRefConst[T_co]':
-		"""Const参照を返却する参照変換代替メソッド。C++では`*`に相当"""
+		"""Returns: CRefConst[T_co]: Const参照を返却する参照変換代替メソッド。C++では`*`に相当"""
 		return CRefConst(self.raw)
 
 	@property
 	def addr(self) -> 'CPConst[T_co]':
-		"""Constポインターを返却する参照変換代替メソッド。C++では`&`に相当"""
+		"""Returns: CPConst[T_co]: Constポインターを返却する参照変換代替メソッド。C++では`&`に相当"""
 		return CPConst(self.raw)
 
 
@@ -306,12 +322,12 @@ class CRaw(CVar[T_co]):
 
 	@property
 	def ref(self) -> 'CRef[T_co]':
-		"""参照を返却する参照変換代替メソッド。C++では削除される"""
+		"""Returns: CRef[T_co]: 参照を返却する参照変換代替メソッド。C++では削除される"""
 		return CRef(self.raw)
 
 	@property
 	def addr(self) -> 'CP[T_co]':
-		"""ポインターを返却する参照変換代替メソッド。C++では`&`に相当"""
+		"""Returns: CP[T_co]: ポインターを返却する参照変換代替メソッド。C++では`&`に相当"""
 		return CP(self.raw)
 
 

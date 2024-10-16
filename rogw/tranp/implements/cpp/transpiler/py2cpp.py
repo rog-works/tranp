@@ -669,9 +669,9 @@ class Py2Cpp(ITranspiler):
 
 		var_type_index = 1 if is_0_null else 0
 		var_type_node = node.or_types[var_type_index]
-		is_addr_p = isinstance(var_type_node, defs.CustomType) and CVars.is_addr_p(var_type_node.domain_name)
-		if not is_addr_p:
-			raise LogicError(f'Unexpected UnionType. with not pointer. symbol: {node.fullyname}, var_type: {var_type_node}')
+		is_addr = isinstance(var_type_node, defs.CustomType) and CVars.is_addr(var_type_node.domain_name)
+		if not is_addr:
+			raise LogicError(f'Unexpected UnionType. with not address. symbol: {node.fullyname}, var_type: {var_type_node}')
 
 		return or_types[var_type_index]
 

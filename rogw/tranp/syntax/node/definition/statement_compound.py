@@ -659,11 +659,17 @@ class TemplateClass(ClassDef):
 
 	@property
 	def boundary(self) -> Type | Empty:
-		return self._at(3).one_of(Type, Empty)
+		if not self._exists('template_assign_boundary'):
+			return self.dirty_child(Empty, '__empty__', tokens='')
+
+		return self._by('template_assign_boundary')._at(0).as_a(Type)
 
 	@property
 	def covariant(self) -> Boolean | Empty:
-		return self._at(4).one_of(Boolean, Empty)
+		if not self._exists('template_assign_covariant'):
+			return self.dirty_child(Empty, '__empty__', tokens='')
+
+		return self._by('template_assign_covariant')._at(0).as_a(Boolean)
 
 
 class VarsCollector:

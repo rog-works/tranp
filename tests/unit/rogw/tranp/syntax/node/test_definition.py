@@ -615,8 +615,8 @@ class TestDefinition(TestCase):
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.TemplateClass)
 		self.assertEqual(node.symbol.tokens, expected['symbol'])
 		self.assertEqual(node.definition_type.type_name.tokens, expected['definition_type'])
-		self.assertEqual(type(node.boundary), expected['boundary'])
-		self.assertEqual(type(node.covariant), expected['covariant'])
+		self.assertTrue(node.boundary.is_a(expected['boundary']))
+		self.assertTrue(node.covariant.is_a(expected['covariant']))
 
 	# Statement simple
 

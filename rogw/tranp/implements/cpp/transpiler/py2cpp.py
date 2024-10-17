@@ -856,7 +856,8 @@ class Py2Cpp(ITranspiler):
 					return 'cvar_copy', None
 			elif prop == CVars.empty_key:
 				if isinstance(node.calls.receiver, defs.Indexer) and CVars.is_addr_sp(node.calls.receiver.receiver.domain_name):
-					context = self.reflections.type_of(node).attrs[0]
+					# 期待値: CSP[A] | None
+					context = self.reflections.type_of(node).attrs[0].attrs[0]
 					return 'cvar_sp_empty', context
 			elif prop == CVars.allocator_key:
 				if isinstance(node.calls.receiver, defs.Var) and CVars.is_addr_p(node.calls.receiver.domain_name):

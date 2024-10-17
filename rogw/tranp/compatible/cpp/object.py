@@ -140,11 +140,11 @@ class CSP(CVar[T_co]):
 		self._origin: T_co | None = origin
 
 	@classmethod
-	def empty(cls) -> 'CSP[T_co]':
+	def empty(cls) -> 'CSP[T_co] | None':
 		"""空のスマートポインターの初期化を代替するメソッド。C++では`std::shared_ptr<T>()`に相当
 
 		Returns:
-			CP[T_New]: インスタンス
+			CP[T_co] | None: インスタンス
 		"""
 		return CSP[T_co]()
 

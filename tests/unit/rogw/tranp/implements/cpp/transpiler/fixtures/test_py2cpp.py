@@ -550,14 +550,15 @@ class ForClassMethod:
 		return inst
 
 
-class ForCallableType:
-	func: Callable[[int, str], bool]
-
-	def __init__(self, func: Callable[[int, str], bool]) -> None:
-		self.func: Callable[[int, str], bool] = func
 
 
 class ForFuncCall:
+	class CallableType:
+		func: Callable[[int, str], bool]
+
+		def __init__(self, func: Callable[[int, str], bool]) -> None:
+			self.func: Callable[[int, str], bool] = func
+
 	class Copy:
 		def __py_copy__(self, origin: 'CRef[ForFuncCall.Copy]') -> None:
 			...
@@ -567,6 +568,11 @@ class ForFuncCall:
 
 		def move_scalar(self, output: 'CRef[int]') -> None:
 			output.copy(CRef(1))
+
+	def move_assign(self, caller: CallableType) -> None:
+		func = caller.func
+		b0 = caller.func(0, '')
+		b1 = func(0, '')
 
 
 class ForBinaryOperator:

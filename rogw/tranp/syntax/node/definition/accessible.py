@@ -60,8 +60,8 @@ class PythonClassOperations:
 		'>': '__gt__',
 		'<=': '__le__',
 		'>=': '__ge__',
-		'<>': '__not__',
-		'!=': '__not__',
+		'<>': '__ne__',
+		'!=': '__ne__',
 		'in': '__contains__',
 		'not.in': '__contains__',  # XXX 型推論的に同じなので代用
 		'is': '__eq__',  # XXX 型推論的に同じなので代用

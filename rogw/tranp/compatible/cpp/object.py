@@ -56,6 +56,14 @@ class CVar(Generic[T_co]):
 		"""
 		return hash(self.raw)
 
+	def __repr__(self) -> str:
+		"""シリアライズ表現を取得
+
+		Returns:
+			str: シリアライズ表現
+		"""
+		return f'<{self.__class__.__name__}[{self._origin.__class__.__name__}]: at {hex(id(self)).upper()} with {hex(id(self._origin)).upper()}>'
+
 
 class CP(CVar[T_co]):
 	"""C++型変数の互換クラス(ポインター)"""

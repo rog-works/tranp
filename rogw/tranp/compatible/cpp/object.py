@@ -54,7 +54,7 @@ class CVar(Generic[T_co]):
 		Returns:
 			int: ハッシュ値
 		"""
-		return hash(self.raw)
+		return id(self.raw)
 
 	def __repr__(self) -> str:
 		"""シリアライズ表現を取得

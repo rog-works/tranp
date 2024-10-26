@@ -62,7 +62,7 @@ class CVar(Generic[T_co]):
 		Returns:
 			str: シリアライズ表現
 		"""
-		return f'<{self.__class__.__name__}[{self._origin.__class__.__name__}]: at {hex(id(self)).upper()} with {hex(id(self._origin)).upper()}>'
+		return f'<{self.__class__.__name__}[{self._origin.__class__.__name__}]: at {hex(id(self)).upper()} with {self._origin}>'
 
 
 class CP(CVar[T_co]):

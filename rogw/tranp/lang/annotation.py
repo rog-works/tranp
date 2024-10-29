@@ -3,17 +3,6 @@ from typing import Any, Callable, TypeVar
 T = TypeVar('T')
 
 
-def override(wrapped: T) -> T:
-	"""オーバーライドを表すアノテーション。何も変更せずラップ対象を返す
-
-	Args:
-		wrapped (T): ラップ対象
-	Returns:
-		T: ラップ対象
-	"""
-	return wrapped
-
-
 def implements(wrapped: T) -> T:
 	"""インターフェイスの実装を表すアノテーション。何も変更せずラップ対象を返す
 

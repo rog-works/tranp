@@ -1,8 +1,8 @@
-from typing import Iterator, Literal, Self, cast
+from typing import Iterator, Literal, Self, cast, override
 
 import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.compatible.python.types import Standards
-from rogw.tranp.lang.annotation import implements, override
+from rogw.tranp.lang.annotation import implements
 from rogw.tranp.lang.trait import Trait
 from rogw.tranp.semantics.errors import UnresolvedSymbolError
 from rogw.tranp.semantics.reflection.base import IReflection

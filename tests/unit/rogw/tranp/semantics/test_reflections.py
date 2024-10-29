@@ -1,9 +1,9 @@
+from typing import override
 from unittest import TestCase
 
 import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.compatible.python.types import Standards
 from rogw.tranp.dsn.module import ModuleDSN
-from rogw.tranp.lang.annotation import override
 from rogw.tranp.semantics.reflection.helper.naming import ClassShorthandNaming
 from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.test.helper import data_provider

@@ -1,5 +1,7 @@
+from typing import override
+
 from rogw.tranp.io.loader import IFileLoader
-from rogw.tranp.lang.annotation import injectable, override
+from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.lang.module import module_path_to_filepath
 from rogw.tranp.module.types import ModulePath
 import rogw.tranp.syntax.node.definition as defs

@@ -1,6 +1,6 @@
-from typing import Any, Callable, Iterator, Literal, Self, cast
+from typing import Any, Callable, Iterator, Literal, Self, cast, override
 
-from rogw.tranp.lang.annotation import implements, override
+from rogw.tranp.lang.annotation import implements
 from rogw.tranp.lang.convertion import safe_cast
 from rogw.tranp.lang.trait import Traits
 from rogw.tranp.semantics.errors import MustBeImplementedError, SemanticsLogicError
@@ -199,7 +199,7 @@ class ReflectionBase(IReflection):
 			MustBeImplementedError: トレイトのメソッドが未実装
 		"""
 		if self._traits.implements(expect):
-			return cast(expect, self)
+			return cast(T_Ref, self)
 
 		raise MustBeImplementedError(f'Method not defined. symbol: {self.types.fullyname}, expect: {expect}')
 

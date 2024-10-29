@@ -1,7 +1,7 @@
 from types import FunctionType, MethodType
-from typing import Any, Callable, Self, TypeAlias, cast
+from typing import Any, Callable, Self, TypeAlias, cast, override
 
-from rogw.tranp.lang.annotation import duck_typed, override
+from rogw.tranp.lang.annotation import duck_typed
 from rogw.tranp.lang.locator import Injector, Locator, T_Inst
 from rogw.tranp.lang.module import to_fullyname, load_module_path
 

@@ -1,5 +1,7 @@
+from typing import override
+
 from rogw.tranp.dsn.module import ModuleDSN
-from rogw.tranp.lang.annotation import implements, override
+from rogw.tranp.lang.annotation import implements
 from rogw.tranp.lang.comment import Comment as CommentData
 from rogw.tranp.syntax.node.behavior import IDomain, ITerminal
 from rogw.tranp.syntax.node.definition.expression import Expander

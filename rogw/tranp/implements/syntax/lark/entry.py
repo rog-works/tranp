@@ -1,9 +1,9 @@
-from typing import TypeAlias, TypedDict, cast
+from typing import TypeAlias, TypedDict, cast, override
 
 import lark
 
 from rogw.tranp.syntax.ast.entry import Entry, SourceMap
-from rogw.tranp.lang.annotation import implements, override
+from rogw.tranp.lang.annotation import implements
 
 
 class EntryOfLark(Entry):

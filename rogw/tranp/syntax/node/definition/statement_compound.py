@@ -1,8 +1,8 @@
-from typing import Generic, TypeVar
+from typing import Generic, TypeVar, override
 
 from rogw.tranp.compatible.python.embed import __actual__
 from rogw.tranp.dsn.module import ModuleDSN
-from rogw.tranp.lang.annotation import duck_typed, implements, override
+from rogw.tranp.lang.annotation import duck_typed, implements
 from rogw.tranp.lang.sequence import flatten, last_index_of
 from rogw.tranp.syntax.node.accessible import ClassOperations
 from rogw.tranp.syntax.node.behavior import IDomain, INamespace, IScope

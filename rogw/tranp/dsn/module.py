@@ -1,5 +1,6 @@
+from typing import override
+
 from rogw.tranp.dsn.dsn import DSN
-from rogw.tranp.lang.annotation import override
 
 
 class ModuleDSN:

@@ -1,4 +1,5 @@
-from rogw.tranp.lang.annotation import override
+from typing import override
+
 from rogw.tranp.syntax.node.behavior import IDomain, ITerminal
 from rogw.tranp.syntax.node.embed import Meta, accept_tags
 from rogw.tranp.syntax.node.node import Node

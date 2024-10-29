@@ -1,4 +1,6 @@
-from rogw.tranp.lang.annotation import implements, override
+from typing import override
+
+from rogw.tranp.lang.annotation import implements
 from rogw.tranp.syntax.node.behavior import ITerminal
 from rogw.tranp.syntax.node.definition.primary import FuncCall, ImportAsName, ImportPath, Reference, Declable, Type, Var
 from rogw.tranp.syntax.node.definition.terminal import Empty, Terminal

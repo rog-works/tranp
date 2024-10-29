@@ -1,9 +1,8 @@
-from typing import Union
+from typing import Union, override
 
 from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.dsn.module import ModuleDSN
-from rogw.tranp.lang.annotation import implements, override
-from rogw.tranp.lang.convertion import as_a
+from rogw.tranp.lang.annotation import implements
 from rogw.tranp.lang.sequence import flatten, last_index_of
 from rogw.tranp.syntax.ast.path import EntryPath
 from rogw.tranp.syntax.errors import InvalidRelationError
@@ -359,7 +358,6 @@ class ListType(GenericType):
 		return via._at(0).tokens == 'list'
 
 	@property
-	@override
 	@Meta.embed(Node, expandable)
 	def value_type(self) -> Type:
 		return self.primary_type
@@ -378,7 +376,6 @@ class DictType(GenericType):
 		return self.template_types[0]
 
 	@property
-	@override
 	@Meta.embed(Node, expandable)
 	def value_type(self) -> Type:
 		return self.primary_type
@@ -557,7 +554,6 @@ class Comprehension(Generator, IDomain, IScope, INamespace):
 		return self._children('comprehension')[0]
 
 	@property
-	@override
 	@Meta.embed(Node, expandable)
 	def fors(self) -> list[CompFor]:
 		return [node.as_a(CompFor) for node in self._children('comprehension.comp_fors')]

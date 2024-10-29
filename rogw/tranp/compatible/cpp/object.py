@@ -1,6 +1,4 @@
-from typing import Callable, Generic, Self, TypeVar, cast
-
-from rogw.tranp.lang.annotation import override
+from typing import Callable, Generic, Self, TypeVar, cast, override
 
 T = TypeVar('T')
 T_co = TypeVar('T_co', covariant=True)

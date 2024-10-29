@@ -1,6 +1,6 @@
+from typing import override
 from unittest import TestCase
 
-from rogw.tranp.lang.annotation import override
 import rogw.tranp.syntax.node.definition as defs  # XXX テストを拡充するため実装クラスを使用
 from rogw.tranp.syntax.node.node import Node, T_Node
 from rogw.tranp.test.helper import data_provider

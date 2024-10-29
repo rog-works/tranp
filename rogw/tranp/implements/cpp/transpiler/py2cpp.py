@@ -731,6 +731,9 @@ class Py2Cpp(ITranspiler):
 				formatters.append({'label': argument.label.tokens, 'tag': to_tags.get(arg_symbol.types.domain_name, '%s'), 'var_type': arg_symbol.types.domain_name, 'is_literal': argument.value.is_a(defs.Literal)})
 
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'is_literal': is_literal, 'formatters': formatters})
+		elif spec.startswith('str_'):
+			receiver, operator = PatternParser.break_relay(calls)
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator})
 		elif spec == 'list_pop':
 			# 期待値: 'receiver.pop'
 			receiver, operator = PatternParser.break_relay(calls)
@@ -844,11 +847,11 @@ class Py2Cpp(ITranspiler):
 					return f'dict_{prop}', attr_indexs[prop]
 			elif prop == PythonClassOperations.copy_constructor:
 				return prop, None
-			elif prop == 'format':
+			elif prop in ['split', 'join', 'replace', 'find', 'rfind', 'count', 'startswith', 'endswith', 'format']:
 				if node.calls.receiver.is_a(defs.String):
-					return 'str_format', None
+					return f'str_{prop}', None
 				elif self.reflections.type_of(node.calls).context.impl(refs.Object).type_is(str):
-					return 'str_format', None
+					return f'str_{prop}', None
 			elif prop == CVars.copy_key:
 				receiver_raw = self.reflections.type_of(node.calls.receiver)
 				cvar_key = CVars.key_from(receiver_raw)

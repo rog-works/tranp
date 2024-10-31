@@ -104,8 +104,8 @@ class Modules:
 			モジュールを全てロードするため、非常に高負荷になり得る。なるべく使用しないことを推奨
 		"""
 		self.dependencies()
-		identities = ','.join([module.identity() for module in self.loaded()])
-		return hashlib.md5(identities.encode('utf-8')).hexdigest()
+		identities = [module.identity() for module in self.loaded()]
+		return hashlib.md5(str(identities).encode('utf-8')).hexdigest()
 
 	def unload(self, module_path: str) -> None:
 		"""指定のモジュールをアンロード

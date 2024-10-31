@@ -550,8 +550,6 @@ class ForClassMethod:
 		return inst
 
 
-
-
 class ForFuncCall:
 	class CallableType:
 		func: Callable[[int, str], bool]
@@ -580,6 +578,9 @@ class ForBinaryOperator:
 		a = string[0] >= char('A')
 		b = string[0] <= char('Z')
 		c = char(string[0])
+
+	def decimal_mod(self) -> None:
+		print((1.0 % 1) % (1 % 1.0))
 
 
 TArgs = TypeVarTuple('TArgs')

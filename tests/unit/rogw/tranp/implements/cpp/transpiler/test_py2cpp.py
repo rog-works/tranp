@@ -337,6 +337,7 @@ class TestPy2Cpp(TestCase):
 		('ForBinaryOperator.char_op_by_str', 'function_def_raw.block.assign[0]', defs.MoveAssign, "bool a = string[0] >= 'A';"),
 		('ForBinaryOperator.char_op_by_str', 'function_def_raw.block.assign[1]', defs.MoveAssign, "bool b = string[0] <= 'Z';"),
 		('ForBinaryOperator.char_op_by_str', 'function_def_raw.block.assign[2]', defs.MoveAssign, "char c = string[0];"),
+		('ForBinaryOperator.decimal_mod', 'function_def_raw.block.funccall', defs.FuncCall, "printf(fmod((fmod(1.0, 1)), (fmod(1, 1.0))));"),
 
 		('ForTemplateClass.Delegate', '', defs.Class, BlockExpects.ForTemplateClass_Delegate),
 		('ForTemplateClass.bind_call', 'function_def_raw.block.assign', defs.MoveAssign, 'ForTemplateClass::Delegate<bool, int> d = ForTemplateClass::Delegate<bool, int>();'),

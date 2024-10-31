@@ -1,9 +1,7 @@
 from dataclasses import dataclass
 import glob
-import json
 import hashlib
 import os
-import re
 from typing import Any, Callable, Generic, IO, Protocol, TypeVar
 
 from rogw.tranp.lang.annotation import implements
@@ -47,8 +45,7 @@ class Cached(Generic[T]):
 		Returns:
 			str: 一意な識別子
 		"""
-		data = json.dumps(identity, separators=(',', ':'))
-		return hashlib.md5(data.encode('utf-8')).hexdigest()
+		return hashlib.md5(str(identity).encode('utf-8')).hexdigest()
 
 	def __init__(self, stored: T, factory: Callable[[], T], identity: dict[str, str], basedir: str, **options: Any) -> None:
 		"""インスタンスを生成

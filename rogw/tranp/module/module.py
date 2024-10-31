@@ -1,3 +1,4 @@
+import hashlib
 from typing import override
 
 from rogw.tranp.io.loader import IFileLoader
@@ -22,6 +23,7 @@ class Module:
 		self.__module_path = module_path
 		self.__entrypoint = entrypoint
 		self.__files = files
+		self.__identity: str = ''
 
 	@override
 	def __repr__(self) -> str:
@@ -66,4 +68,14 @@ class Module:
 			* このメソッドの一意性は、あくまでもファイルに対してのものである点に注意
 			* ファイルが存在しない場合、インスタンスのアドレス値を識別子とし、厳密な一意性は保証しない
 		"""
-		return self.__files.hash(self.filepath) if self.__files.exists(self.filepath) else str(id(self))
+		if not self.__files.exists(self.filepath):
+			return str(id(self))
+
+		if self.__identity:
+			return self.__identity
+
+		depends_files = [module_path_to_filepath(import_node.import_path.tokens, f'.{self.module_path.language}') for import_node in self.entrypoint.imports]
+		depends_files.append(self.filepath)
+		identities = [self.__files.hash(filepath) for filepath in depends_files]
+		self.__identity = hashlib.md5(str(identities).encode('utf-8')).hexdigest()
+		return self.__identity

@@ -35,7 +35,7 @@ class DSN:
 		Returns:
 			str: ドメイン名
 		"""
-		return delimiter.join([*[part for part in parts if part]])
+		return delimiter.join([part for part in parts if part])
 
 	@classmethod
 	def left(cls, origin: str, counts: int, delimiter: str = '.') -> str:

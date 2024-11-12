@@ -87,6 +87,26 @@ class Embed:
 		return wrapped
 
 	@classmethod
+	def closure_bind(cls, *symbols: Any) -> Callable:
+		"""クロージャーに遅延束縛の情報を埋め込む
+
+		Args:
+			*symbols (Any): シンボルリスト
+		Returns:
+			Callable: デコレーター
+		Examples:
+			```python
+			@Embed.closure_bind(self, a, b)
+			def closure() -> int:
+				return self.n + a + b
+			```
+		"""
+		def decorator(wrapped: T) -> T:
+			return wrapped
+
+		return decorator
+
+	@classmethod
 	def meta(cls, key: str, meta: Any) -> Callable:
 		"""メタ情報を埋め込む
 

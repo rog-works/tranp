@@ -810,6 +810,24 @@ class TestRenderer(TestCase):
 			]),
 		),
 		(
+			'closure',
+			{
+				'symbol': 'closure_bind',
+				'decorators': ['Embed.closure_bind(this, a, b)'],
+				'parameters': ['std::string text', 'int value = 1'],
+				'return_type': 'int',
+				# 'comment': '',
+				'statements': ['return value + 1;'],
+				# 'template_types': [],
+				# closure only
+			},
+			'\n'.join([
+				'auto closure_bind = [this, a, b](std::string text, int value = 1) mutable -> int {',
+				'	return value + 1;',
+				'};',
+			]),
+		),
+		(
 			'constructor',
 			{
 				'symbol': '__init__',

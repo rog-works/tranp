@@ -1,1 +1,8 @@
+{%- set deco_name = 'Embed.closure_bind(' -%}
+{%- set deco_bind = decorators | filter_find(deco_name) | list -%}
+{%- if deco_bind -%}
+{%- set bind_symbols = seq_slice(deco_bind[0], deco_name | length, -1) -%}
+auto {{ symbol }} = [{{ bind_symbols }}]({{ parameters | join(', ') }}) mutable -> {{ return_type }} {% include('function/_block.j2') %};
+{%- else -%}
 auto {{ symbol }} = [&]({{ parameters | join(', ') }}) -> {{ return_type }} {% include('function/_block.j2') %};
+{%- endif -%}

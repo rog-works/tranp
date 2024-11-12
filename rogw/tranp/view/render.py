@@ -40,6 +40,8 @@ class Renderer:
 		self.__renderer.globals['reg_replace'] = lambda pattern, replace, string: re.sub(pattern, replace, string)
 		self.__renderer.globals['reg_match'] = lambda pattern, string: re.search(pattern, string)
 		self.__renderer.globals['reg_fullmatch'] = lambda pattern, string: re.fullmatch(pattern, string)
+		self.__renderer.globals['seq_slice'] = lambda seq, begin, end: seq[begin:end]
+		self.__renderer.filters['filter_find'] = lambda strings, subject: [string for string in strings if string.find(subject) != -1]
 		self.__renderer.filters['filter_replace'] = lambda strings, pattern, replace: [re.sub(pattern, replace, string) for string in strings]
 		self.__renderer.filters['filter_match'] = lambda strings, pattern: [string for string in strings if re.search(pattern, string)]
 		self.__renderer.filters['filter_fullmatch'] = lambda strings, pattern: [string for string in strings if re.fullmatch(pattern, string)]

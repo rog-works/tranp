@@ -1,7 +1,7 @@
-from typing import Any, Callable
+from typing import Any, Callable, cast
 from unittest import TestCase
 
-from rogw.tranp.lang.defer import Difer
+from rogw.tranp.lang.defer import Defer
 from rogw.tranp.test.helper import data_provider
 
 
@@ -10,7 +10,7 @@ class A:
 		return 1
 
 
-class TestDifer(TestCase):
+class TestDefer(TestCase):
 	@data_provider([
 		(lambda: A(), {
 			'class': A,
@@ -30,8 +30,9 @@ class TestDifer(TestCase):
 		}),
 	])
 	def test_usage(self, factory: Callable[[], Any], expected: dict[str, Any]) -> None:
-		instance = Difer.new(factory)
+		instance = Defer.new(factory)
 		invoker: Callable[[], Any] = getattr(instance, expected['invoke'][0])
+		self.assertEqual(cast(Defer, instance).deferred_resolve_entity.__class__, expected['class'])
 		self.assertEqual(instance.__class__, expected['class'])
 		self.assertEqual(invoker(), expected['invoke'][1])
 		self.assertEqual(instance == factory(), expected['eq'])

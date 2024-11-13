@@ -47,11 +47,35 @@
 			"justMyCode": true,
 		},
 		{
-			"name": "Python: unittest file",
+			"name": "Python: unittest select",
 			"type": "debugpy",
 			"request": "launch",
 			"module":"unittest",
 			"args": ["tests.unit.rogw.tranp.${input:testCases}"],
+			"cwd": "${workspaceFolder}",
+			"windows": {
+				"env": {
+					"PYTHONPATH": "${workspaceFolder};${workspaceFolder}/vendor",
+					"PYTHONDONTWRITEBYTECODE": "1",
+					// "PYDEVD_CONTAINER_RANDOM_ACCESS_MAX_ITEMS": "3000",
+				},
+			},
+			"linux": {
+				"env": {
+					"PYTHONPATH": "${workspaceFolder}:${workspaceFolder}/vendor",
+					"PYTHONDONTWRITEBYTECODE": "1",
+					// "PYDEVD_CONTAINER_RANDOM_ACCESS_MAX_ITEMS": "3000",
+				},
+			},
+			"console": "integratedTerminal",
+			"justMyCode": true,
+		},
+		{
+			"name": "Python: unittest current",
+			"type": "debugpy",
+			"request": "launch",
+			"module":"unittest",
+			"args": ["${file}"],
 			"cwd": "${workspaceFolder}",
 			"windows": {
 				"env": {

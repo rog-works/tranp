@@ -1,10 +1,18 @@
 from typing import Any, Callable, Generic, TypeVar, cast
 
+from rogw.tranp.lang.annotation import deprecated
+
 T = TypeVar('T')
 
 
+@deprecated
 class Defer(Generic[T]):
-	"""遅延評価プロクシー"""
+	"""遅延評価プロクシー
+
+	Note:
+		### 非推奨に関して
+		* XXX スカラー型の完全な置き換えが出来ない
+	"""
 
 	@classmethod
 	def new(cls, factory: Callable[[], T]) -> T:

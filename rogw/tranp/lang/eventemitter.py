@@ -1,4 +1,5 @@
-from typing import Any, Callable, Generic, Protocol, TypeAlias, TypeVar
+from collections.abc import Callable
+from typing import Any, Generic, Protocol, TypeAlias, TypeVar
 
 from rogw.tranp.lang.annotation import duck_typed
 

@@ -1,12 +1,14 @@
 # @see dsn.translation.alias_dsn
 # prefix
 aliases.classes: aliases.rogw.tranp.compatible.libralies.classes
+aliases.collections.abc: aliases.collections.abc
 aliases.cpp: aliases.rogw.tranp.compatible.cpp.classes
 aliases.lang: aliases.rogw.tranp.compatible.lang
 aliases.typing: aliases.typing
+# collections.abc
+aliases.collections.abc#Callable: std::function
 # typing
 aliases.typing#Any: void
-aliases.typing#Callable: std::function
 aliases.typing#cast: static_cast
 # lang
 aliases.rogw.tranp.compatible.lang.accessor.public: public

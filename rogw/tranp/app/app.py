@@ -1,4 +1,4 @@
-from typing import Callable
+from collections.abc import Callable
 
 from rogw.tranp.app.config import default_definitions
 from rogw.tranp.lang.di import ModuleDefinitions

@@ -1,4 +1,4 @@
-from typing import Iterator
+from collections.abc import Iterator
 
 from rogw.tranp.compatible.python.types import Standards
 from rogw.tranp.dsn.module import ModuleDSN

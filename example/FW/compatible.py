@@ -1,6 +1,7 @@
-from typing import Callable, Iterator
+from collections.abc import Callable, Iterator
 
 from rogw.tranp.compatible.cpp.object import CP, CRawConst, CRef, CRefConst
+
 
 class Vector:
 	def __init__(self, x: float = 0.0, y: float = 0.0, z: float = 0.0) -> None:
@@ -20,6 +21,7 @@ class Vector:
 	def __truediv__(self, other: 'Vector | float | int') -> 'Vector':
 		raise NotImplementedError()
 
+
 class Vector2:
 	def __init__(self, x: float = 0.0, y: float = 0.0) -> None:
 		self.x: float = x
@@ -37,6 +39,7 @@ class Vector2:
 	def __truediv__(self, other: 'Vector2 | float | int') -> 'Vector2':
 		raise NotImplementedError()
 
+
 class IntVector:
 	def __init__(self, x: int = 0, y: int = 0, z: int = 0) -> None:
 		self.x: int = x
@@ -49,6 +52,7 @@ class IntVector:
 	def __sub__(self, other: 'IntVector | float | int') -> 'IntVector':
 		raise NotImplementedError()
 
+
 class IntVector2:
 	def __init__(self, x: int = 0, y: int = 0) -> None:
 		self.x: int = x
@@ -59,6 +63,7 @@ class IntVector2:
 
 	def __sub__(self, other: 'IntVector2 | float | int') -> 'IntVector2':
 		raise NotImplementedError()
+
 
 class Box3d:
 	"""3Dレンジオブジェクト
@@ -81,12 +86,14 @@ class Box3d:
 	def contains(self, location: 'Vector | Box3d') -> bool:
 		raise Exception('Not implemented')
 
+
 class UV:
 	def append_element(self, uv: Vector2) -> int:
 		raise NotImplementedError()
 
 	def set_triangle(self, polygon_index: int, uv_ids: IntVector, enable: bool) -> None:
 		raise NotImplementedError()
+
 
 class Attributes:
 	def num_uv_layers(self) -> int:
@@ -97,6 +104,7 @@ class Attributes:
 
 	def set_num_uv_layers(self, num: int) -> None:
 		raise NotImplementedError()
+
 
 class MeshRaw:
 	# Vertex ----------
@@ -159,6 +167,7 @@ class MeshRaw:
 
 	def clear(self) -> None:
 		raise NotImplementedError()
+
 
 class Mesh:
 	def process_mesh(self, callback: Callable[[CRefConst[MeshRaw]], None]) -> None:

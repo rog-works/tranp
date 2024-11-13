@@ -1,4 +1,5 @@
-from typing import Iterator, Protocol
+from collections.abc import Iterator
+from typing import Protocol
 
 from rogw.tranp.module.module import Module
 from rogw.tranp.semantics.reflection.db import SymbolDB

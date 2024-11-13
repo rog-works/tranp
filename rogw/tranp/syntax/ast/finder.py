@@ -1,4 +1,4 @@
-from typing import Callable
+from collections.abc import Callable
 
 from rogw.tranp.errors import NotFoundError
 from rogw.tranp.syntax.ast.entry import Entry

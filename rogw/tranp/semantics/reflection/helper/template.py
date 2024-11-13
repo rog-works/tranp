@@ -1,4 +1,5 @@
-from typing import Callable, Generic, TypeAlias, TypeVar, override
+from collections.abc import Callable
+from typing import Generic, TypeAlias, TypeVar, override
 
 from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.errors import LogicError

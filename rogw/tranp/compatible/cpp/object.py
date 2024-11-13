@@ -1,4 +1,5 @@
-from typing import Callable, Generic, Self, TypeVar, cast, override
+from collections.abc import Callable
+from typing import Generic, Self, TypeVar, cast, override
 
 T = TypeVar('T')
 T_co = TypeVar('T_co', covariant=True)

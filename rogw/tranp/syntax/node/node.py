@@ -1,5 +1,6 @@
+from collections.abc import Iterator
 import functools
-from typing import Any, Iterator, Literal, TypeVar, cast, override
+from typing import Any, Literal, TypeVar, cast, override
 
 from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.errors import LogicError

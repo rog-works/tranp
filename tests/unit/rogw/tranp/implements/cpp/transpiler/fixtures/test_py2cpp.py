@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
-from typing import Callable, ClassVar, Generic, Self, TypeAlias, TypeVar, TypeVarTuple, cast
+from collections.abc import Callable
+from typing import ClassVar, Generic, Self, TypeAlias, TypeVar, TypeVarTuple, cast
 
 from rogw.tranp.compatible.cpp.classes import char, void
 from rogw.tranp.compatible.cpp.embed import Embed

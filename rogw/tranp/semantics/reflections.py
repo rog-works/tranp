@@ -1,4 +1,4 @@
-from typing import Callable
+from collections.abc import Callable
 
 import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.compatible.python.types import Standards

@@ -1,7 +1,8 @@
+from collections.abc import Callable
 from enum import Enum, EnumType
 from importlib import import_module
 from types import FunctionType, MethodType, NoneType, UnionType
-from typing import Any, Callable, ClassVar, TypeAlias, TypeVar, Union, override
+from typing import Any, ClassVar, TypeAlias, TypeVar, Union, override
 
 FuncTypes: TypeAlias = FunctionType | MethodType | property | classmethod
 

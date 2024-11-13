@@ -319,6 +319,18 @@ class TestPy2Cpp(TestCase):
 
 		('template_func', '', defs.Function, '/** template_func */\ntemplate<typename T>\nT template_func(T v) {}'),
 
+		('ForFlows.if_elif_else', 'function_def_raw.block.if_stmt', defs.If, 'if (1) {\n\n} else if (2) {\n\n} else {\n\n}'),
+		('ForFlows.while_only', 'function_def_raw.block.while_stmt', defs.While, 'while (true) {\n\n}'),
+		('ForFlows.fors', 'function_def_raw.block.for_stmt[0]', defs.For, 'for (auto i = 0; i < 2; i++) {\n\n}'),
+		('ForFlows.fors', 'function_def_raw.block.for_stmt[1]', defs.For, 'for (auto i = 0; i < strs.size(); i++) {\n\n}'),
+		('ForFlows.fors', 'function_def_raw.block.for_stmt[2]', defs.For, BlockExpects.for_enumerate(key='index', value='value', iterates='{1}', var_type='int', statements=[])),
+		('ForFlows.fors', 'function_def_raw.block.for_stmt[3]', defs.For, BlockExpects.for_enumerate(key='index', value='value', iterates='strs', var_type='std::string', statements=[])),
+		('ForFlows.fors', 'function_def_raw.block.for_stmt[4]', defs.For, 'for (auto& [key, value] : {{"a", 1}}) {\n\n}'),
+		('ForFlows.fors', 'function_def_raw.block.for_stmt[5]', defs.For, 'for (auto& [key, value] : dsn) {\n\n}'),
+		('ForFlows.fors', 'function_def_raw.block.for_stmt[6]', defs.For, 'for (auto& s : strs) {\n\n}'),
+		('ForFlows.fors', 'function_def_raw.block.for_stmt[7]', defs.For, BlockExpects.for_each(value='value', iterates='dsn', var_type='int', statements=[])),
+		('ForFlows.fors', 'function_def_raw.block.for_stmt[8]', defs.For, 'for (const auto cp : cps) {\n\n}'),
+
 		('ForClassMethod.make', '', defs.ClassMethod, 'public:\n/** make */\nstatic ForClassMethod make() {\n\tForClassMethod inst = ForClassMethod();\n\treturn inst;\n}'),
 
 		('ForFuncCall.CallableType', '', defs.Class, '/** CallableType */\nclass CallableType {\n\tpublic: std::function<bool(int, std::string)> func;\n\tpublic:\n\t/** __init__ */\n\tCallableType(std::function<bool(int, std::string)> func) : func(func) {}\n};'),

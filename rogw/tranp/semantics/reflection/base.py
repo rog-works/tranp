@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
-from typing import Iterator, Literal, Protocol, Self, TypeVar
+from collections.abc import Iterator
+from typing import Literal, Protocol, Self, TypeVar
 
 from rogw.tranp.lang.trait import Traits
 from rogw.tranp.semantics.errors import SemanticsLogicError

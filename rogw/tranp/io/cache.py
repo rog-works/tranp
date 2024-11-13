@@ -1,8 +1,9 @@
+from collections.abc import Callable
 from dataclasses import dataclass
 import glob
 import hashlib
 import os
-from typing import Any, Callable, Generic, IO, Protocol, TypeVar
+from typing import Any, Generic, IO, Protocol, TypeVar
 
 from rogw.tranp.lang.annotation import implements
 

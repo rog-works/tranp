@@ -1,5 +1,6 @@
+from collections.abc import Callable
 from types import FunctionType
-from typing import Any, Callable, NamedTuple, TypeVar, TypeAlias, cast
+from typing import Any, NamedTuple, TypeVar, TypeAlias, cast
 
 T_Data = TypeVar('T_Data')
 MetaFactory: TypeAlias = Callable[[], dict[str, Any]]

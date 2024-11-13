@@ -1,8 +1,9 @@
+from collections.abc import Callable
 import os
 import sys
 import json
 from types import MethodType
-from typing import Any, Callable, TypedDict, cast
+from typing import Any, TypedDict, cast
 
 from rogw.tranp.app.app import App
 from rogw.tranp.app.dir import tranp_dir

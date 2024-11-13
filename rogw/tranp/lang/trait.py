@@ -1,5 +1,6 @@
+from collections.abc import Callable
 from types import FunctionType
-from typing import Any, Callable, Generic, Protocol, TypeVar
+from typing import Any, Generic, Protocol, TypeVar
 
 from rogw.tranp.errors import LogicError
 from rogw.tranp.lang.annotation import injectable

@@ -1,4 +1,5 @@
-from typing import Iterator, Literal, Self, cast, override
+from collections.abc import Iterator
+from typing import Literal, Self, cast, override
 
 import rogw.tranp.compatible.libralies.classes as classes
 from rogw.tranp.compatible.python.types import Standards

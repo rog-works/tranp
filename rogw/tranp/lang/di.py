@@ -1,5 +1,6 @@
+from collections.abc import Callable
 from types import FunctionType, MethodType
-from typing import Any, Callable, Self, TypeAlias, cast, override
+from typing import Any, Self, TypeAlias, cast, override
 
 from rogw.tranp.lang.annotation import duck_typed
 from rogw.tranp.lang.locator import Injector, Locator, T_Inst

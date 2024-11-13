@@ -1,4 +1,5 @@
-from typing import Any, Callable, cast
+from collections.abc import Callable
+from typing import Any
 from unittest import TestCase
 
 from rogw.tranp.lang.defer import Defer

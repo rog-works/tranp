@@ -1,4 +1,5 @@
-from typing import IO, Any, Callable, Generic, Iterator, Sequence
+from collections.abc import Callable, Iterator, Sequence
+from typing import IO, Any, Generic
 
 from rogw.tranp.compatible.python.template import T, T_Key, T_Value
 

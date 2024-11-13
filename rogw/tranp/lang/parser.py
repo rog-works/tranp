@@ -1,5 +1,6 @@
+from collections.abc import Callable
 from enum import Enum
-from typing import Callable, Iterator, TypeAlias
+from typing import Iterator, TypeAlias
 
 
 class Kinds(Enum):

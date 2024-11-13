@@ -1,6 +1,7 @@
+from collections.abc import Callable
 import traceback
 from types import TracebackType
-from typing import Callable, ParamSpec, TypeVar
+from typing import ParamSpec, TypeVar
 
 T_Ret = TypeVar('T_Ret')
 P = ParamSpec('P')

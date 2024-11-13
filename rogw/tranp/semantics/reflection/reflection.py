@@ -1,4 +1,5 @@
-from typing import Any, Callable, Iterator, Literal, Self, cast, override
+from collections.abc import Callable, Iterator
+from typing import Any, Literal, Self, cast, override
 
 from rogw.tranp.lang.annotation import implements
 from rogw.tranp.lang.convertion import safe_cast

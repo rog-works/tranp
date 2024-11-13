@@ -1,7 +1,8 @@
+from collections.abc import Callable
 from importlib import import_module
 import os
 import sys
-from typing import Any, Callable
+from typing import Any
 
 
 def load_module(path: str, module: str) -> Any:

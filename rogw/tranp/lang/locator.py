@@ -1,4 +1,5 @@
-from typing import Any, Callable, Protocol, TypeAlias, TypeVar
+from collections.abc import Callable
+from typing import Any, Protocol, TypeAlias, TypeVar
 
 T_Inst = TypeVar('T_Inst')
 

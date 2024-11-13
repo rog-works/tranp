@@ -1,5 +1,6 @@
+from collections.abc import Sequence
 from itertools import chain
-from typing import Any, Sequence, TypeVar, cast
+from typing import Any, TypeVar, cast
 
 T_Seq = TypeVar('T_Seq')
 

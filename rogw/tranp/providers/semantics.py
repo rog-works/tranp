@@ -1,4 +1,4 @@
-from typing import Iterator
+from collections.abc import Iterator
 
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.lang.locator import Invoker

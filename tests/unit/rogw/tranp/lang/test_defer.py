@@ -32,7 +32,7 @@ class TestDefer(TestCase):
 	def test_usage(self, factory: Callable[[], Any], expected: dict[str, Any]) -> None:
 		instance = Defer.new(factory)
 		invoker: Callable[[], Any] = getattr(instance, expected['invoke'][0])
-		self.assertEqual(cast(Defer, instance).deferred_resolve_entity.__class__, expected['class'])
+		self.assertEqual(Defer.resolve(instance).__class__, expected['class'])
 		self.assertEqual(instance.__class__, expected['class'])
 		self.assertEqual(invoker(), expected['invoke'][1])
 		self.assertEqual(instance == factory(), expected['eq'])

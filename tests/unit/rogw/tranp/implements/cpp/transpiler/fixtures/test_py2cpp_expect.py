@@ -196,7 +196,7 @@ class Delegate {
 		])
 
 	@classmethod
-	def for_each(cls, value: str, iterates: str, var_type: str, statements: list[str]) -> str:
+	def for_values(cls, value: str, iterates: str, var_type: str, statements: list[str]) -> str:
 		return '\n'.join([
 			f'for (auto& {value} : [&]() -> std::vector<{var_type}> ' '{',
 			f'	std::vector<{var_type}> __ret;',

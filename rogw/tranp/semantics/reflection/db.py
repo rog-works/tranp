@@ -1,4 +1,4 @@
-from collections.abc import Iterator, MutableMapping, Sequence
+from collections.abc import Iterator, MutableMapping
 from typing import KeysView, ValuesView
 
 from rogw.tranp.dsn.module import ModuleDSN

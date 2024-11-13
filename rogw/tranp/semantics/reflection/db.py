@@ -95,18 +95,18 @@ class SymbolDB(MutableMapping[str, IReflection]):
 				yield key, self.__items[key]
 
 	def keys(self) -> KeysView[str]:
-		"""キーのイテレーターを取得
+		"""キーのジェネレーターを取得
 
 		Returns:
-			KeysView[str]: イテレーター
+			KeysView[str]: ジェネレーター
 		"""
 		return self.__items.keys()
 
 	def values(self) -> ValuesView[IReflection]:
-		"""シンボルのイテレーターを取得
+		"""シンボルのジェネレーターを取得
 
 		Returns:
-			ValuesView[IReflection]: イテレーター
+			ValuesView[IReflection]: ジェネレーター
 		"""
 		return self.__items.values()
 

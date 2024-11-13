@@ -1,4 +1,5 @@
-from collections.abc import Iterator, MutableMapping
+from collections.abc import Iterator, MutableMapping, Sequence
+from typing import KeysView, ValuesView
 
 from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.semantics.reflection.base import IReflection
@@ -10,7 +11,8 @@ class SymbolDB(MutableMapping[str, IReflection]):
 
 	def __init__(self) -> None:
 		"""インスタンスを生成"""
-		self.__items: dict[str, dict[str, IReflection]] = {}
+		self.__paths: dict[str, tuple[str, str]] = {}
+		self.__items: dict[str, IReflection] = {}
 		self.__completed: list[str] = []
 
 	def __getitem__(self, key: str) -> IReflection:
@@ -23,11 +25,10 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		Raises:
 			KeyError: 存在しないキーを指定
 		"""
-		module_path, local_path = ModuleDSN.parsed(key)
-		if module_path not in self.__items or local_path not in self.__items[module_path]:
-			raise KeyError(f'Key not exists. key: {key}')
+		if key in self.__items:
+			return self.__items[key]
 
-		return self.__items[module_path][local_path]
+		raise KeyError(f'Key not exists. key: {key}')
 
 	def __setitem__(self, key: str, symbol: IReflection) -> None:
 		"""指定のキーにシンボルを設定
@@ -36,11 +37,10 @@ class SymbolDB(MutableMapping[str, IReflection]):
 			key (str): キー
 			symbol (IReflection): シンボル
 		"""
-		module_path, local_path = ModuleDSN.parsed(key)
-		if module_path not in self.__items:
-			self.__items[module_path] = {}
+		if key not in self.__items:
+			self.__paths[key] = ModuleDSN.parsed(key)
 
-		self.__items[module_path][local_path] = symbol
+		self.__items[key] = symbol
 
 	def __delitem__(self, key: str) -> None:
 		"""指定のキーのシンボルを削除
@@ -58,9 +58,8 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		Returns:
 			Iterator[str]: イテレーター
 		"""
-		for module_path, symbols in self.__items.items():
-			for local_path in symbols.keys():
-				yield ModuleDSN.full_joined(module_path, local_path)
+		for key in self.keys():
+			yield key
 
 	def __contains__(self, key: str) -> bool:
 		"""指定のキーが存在するか判定
@@ -70,8 +69,7 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		Returns:
 			bool: True = 存在
 		"""
-		module_path, local_path = ModuleDSN.parsed(key)
-		return module_path in self.__items and local_path in self.__items[module_path]
+		return key in self.__items
 
 	def __len__(self) -> int:
 		"""エントリーの総数を取得
@@ -79,7 +77,7 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		Returns:
 			int: エントリーの総数
 		"""
-		return sum([len(symbols) for symbols in self.__items.values()])
+		return len(self.__items)
 
 	def items(self, for_module_path: str | None = None) -> Iterator[tuple[str, IReflection]]:
 		"""エントリーのイテレーターを取得
@@ -89,31 +87,28 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		Returns:
 			Iterator[tuple[str, IReflection]]: イテレーター
 		"""
-		module_paths = [for_module_path] if for_module_path else self.__items.keys()
-		for module_path in module_paths:
-			symbols = self.__items[module_path]
-			for local_path, symbol in symbols.items():
-				yield ModuleDSN.full_joined(module_path, local_path), symbol
+		if not for_module_path:
+			return self.__items.values()
 
-	def keys(self) -> Iterator[str]:
+		for key, paths in self.__paths.items():
+			if paths[0] == for_module_path:
+				yield key, self.__items[key]
+
+	def keys(self) -> KeysView[str]:
 		"""キーのイテレーターを取得
 
 		Returns:
-			Iterator[str]: イテレーター
+			KeysView[str]: イテレーター
 		"""
-		for module_path, symbols in self.__items.items():
-			for local_path in symbols.keys():
-				yield ModuleDSN.full_joined(module_path, local_path)
+		return self.__items.keys()
 
-	def values(self) -> Iterator[IReflection]:
+	def values(self) -> ValuesView[IReflection]:
 		"""シンボルのイテレーターを取得
 
 		Returns:
-			Iterator[IReflection]: イテレーター
+			ValuesView[IReflection]: イテレーター
 		"""
-		for symbols in self.__items.values():
-			for symbol in symbols.values():
-				yield symbol
+		return self.__items.values()
 
 	def has_module(self, module_path: str) -> bool:
 		"""モジュールが展開済みか判定
@@ -123,7 +118,8 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		Returns:
 			bool: True = 展開済み
 		"""
-		return module_path in self.__items
+		module_paths = [module_path for module_path, _ in self.__paths.values()]
+		return module_path in module_paths
 
 	def completed(self, module_path: str) -> bool:
 		"""モジュールがプリプロセス完了済みか判定
@@ -153,8 +149,9 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		if module_path in self.__completed:
 			self.__completed.remove(module_path)
 
-		if module_path in self.__items:
-			del self.__items[module_path]
+		for key in self.__items.keys():
+			if self.__paths[key][0] == module_path:
+				del self.__items[key]
 
 	def to_json(self, serializer: IReflectionSerializer, for_module_path: str | None = None) -> dict[str, DictSerialized]:
 		"""JSONデータとして内部データをシリアライズ
@@ -176,7 +173,7 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		"""
 		for key, row in data.items():
 			self[key] = serializer.deserialize(self, row)
-			module_path, _ = ModuleDSN.parsed(key)
+			module_path = ModuleDSN.parsed(key)[0]
 			if not self.completed(module_path):
 				self.on_complete(module_path)
 
@@ -189,12 +186,10 @@ class SymbolDB(MutableMapping[str, IReflection]):
 			list[str]: キーリスト
 		"""
 		orders: list[str] = []
-		module_paths = [for_module_path] if for_module_path else self.__items.keys()
-		for module_path in module_paths:
-			symbols = self.__items[module_path]
-			for local_path, symbol in symbols.items():
-				self._order_keys_recursive(for_module_path, symbol, orders)
-				key = ModuleDSN.full_joined(module_path, local_path)
+		for key, paths in self.__paths.items():
+			module_path = paths[0]
+			if for_module_path is None or module_path == for_module_path:
+				self._order_keys_recursive(module_path, self.__items[key], orders)
 				if key not in orders:
 					orders.append(key)
 

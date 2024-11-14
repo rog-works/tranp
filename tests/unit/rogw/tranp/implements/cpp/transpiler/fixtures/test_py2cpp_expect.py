@@ -179,3 +179,32 @@ class Delegate {
 	/** invoke */
 	void invoke(TArgs... args) {}
 };"""
+
+	@classmethod
+	def for_enumerate(cls, key: str, value: str, iterates: str, var_type: str, statements: list[str]) -> str:
+		return '\n'.join([
+			f'for (auto& [{key}, {value}] : [&]() -> std::map<int, {var_type}> ' '{',
+			f'	std::map<int, {var_type}> __ret;',
+			'	int __index = 0;',
+			f'	for (auto& __entry : {iterates}) ' '{',
+			'		__ret[__index++] = __entry;',
+			'	}',
+			'	return __ret;',
+			'}()) {',
+			'\n'.join(statements),
+			'}',
+		])
+
+	@classmethod
+	def for_each(cls, value: str, iterates: str, var_type: str, statements: list[str]) -> str:
+		return '\n'.join([
+			f'for (auto& {value} : [&]() -> std::vector<{var_type}> ' '{',
+			f'	std::vector<{var_type}> __ret;',
+			f'	for (auto& [_, __value] : {iterates}) ' '{',
+			'		__ret.push_back(__value);',
+			'	}',
+			'	return __ret;',
+			'}()) {',
+			'\n'.join(statements),
+			'}',
+		])

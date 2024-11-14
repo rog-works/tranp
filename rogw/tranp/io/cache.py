@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import glob
 import hashlib
 import os
-from typing import Any, Generic, IO, Protocol, TypeVar
+from typing import Any, Generic, IO, Protocol, Self, TypeVar
 
 from rogw.tranp.lang.annotation import implements
 
@@ -12,13 +12,13 @@ class Stored(Protocol):
 	"""ストアプロトコル"""
 
 	@classmethod
-	def load(cls, stream: IO) -> 'Stored':
+	def load(cls: type[Self], stream: IO) -> Self:
 		"""インスタンスを復元
 
 		Args:
 			stream (IO): IO
 		Returns:
-			Stored: 復元したインスタンス
+			Self: 復元したインスタンス
 		"""
 		...
 

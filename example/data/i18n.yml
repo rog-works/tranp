@@ -53,5 +53,3 @@ aliases.rogw.tranp.compatible.cpp.classes#PluckMethod: PluckMethod
 # example
 aliases.example.example#CellMesh: FL_CellMesh
 # @see dsn.translation.import_dsn
-imports.example.FW.compatible: '#include "FW/compatible.h"'
-imports.example.FW.core: '#include "FW/core.h"'

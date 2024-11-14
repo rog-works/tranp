@@ -1,6 +1,6 @@
 import os
 import sys
-from typing import TypedDict, cast
+from typing import Any, TypedDict, cast
 
 import yaml
 
@@ -41,6 +41,7 @@ ConfigDict = TypedDict('ConfigDict', {
 	'output_dir': str,
 	'output_language': str,
 	'di': dict[str, str],
+	'env': dict[str, Any],
 	'force': bool,
 	'verbose': bool,
 	'profile': str,
@@ -62,6 +63,7 @@ class Config:
 		self.output_dir = config['output_dir']
 		self.output_language = config['output_language']
 		self.di = config.get('di', {})
+		self.env = config.get('env', {})
 		self.force = config.get('force', args['force'])
 		self.verbose = config.get('verbose', args['verbose'])
 		self.profile = config.get('profile', args['profile'])
@@ -131,7 +133,7 @@ class TranspileApp:
 		Returns:
 			TranspilerOptions: トランスパイルオプション
 		"""
-		return TranspilerOptions(verbose=config.verbose)
+		return TranspilerOptions(verbose=config.verbose, env=config.env)
 
 	@classmethod
 	@injectable

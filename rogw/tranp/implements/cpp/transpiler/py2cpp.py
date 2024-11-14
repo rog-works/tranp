@@ -459,14 +459,14 @@ class Py2Cpp(ITranspiler):
 		if text:
 			return text
 
-		before_dir = ''
+		import_dir = ''
 		replace_dir = ''
-		for in_before, in_replace in self.import_dirs.items():
-			if len(before_dir) < len(in_before) and module_path.startswith(in_before.replace('/', '.')):
-				before_dir = in_before
+		for in_import, in_replace in self.import_dirs.items():
+			if len(import_dir) < len(in_import) and module_path.startswith(in_import.replace('/', '.')):
+				import_dir = in_import
 				replace_dir = in_replace
 
-		return self.view.render(node.classification, vars={'module_path': module_path, 'before_dir': before_dir, 'replace_dir': replace_dir})
+		return self.view.render(node.classification, vars={'module_path': module_path, 'import_dir': import_dir, 'replace_dir': replace_dir})
 
 	# Primary
 

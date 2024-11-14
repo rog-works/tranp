@@ -47,7 +47,21 @@ class Py2Cpp(ITranspiler):
 		self.view = render
 		self.i18n = i18n
 		self.module_meta_factory = module_meta_factory
+		self.import_dirs = self.__make_import_dirs(options)
 		self.__procedure = self.__make_procedure(options)
+
+	def __make_import_dirs(self, options: TranspilerOptions) -> dict[str, str]:
+		"""インポートディレクトリー一覧
+
+		Args:
+			dict[str, str]: インポートディレクトリー一覧
+		"""
+		import_dirs: dict[str, str] = {}
+		for import_dir in cast(list[str], options.env.get('import_dirs', [])):
+			elems = import_dir.split(':') if import_dir.count(':') == 1 else [import_dir]
+			import_dirs[elems[0]] = elems[1] if len(elems) == 2 else ''
+
+		return import_dirs
 
 	def __make_procedure(self, options: TranspilerOptions) -> Procedure[str]:
 		"""プロシージャーを生成
@@ -436,14 +450,23 @@ class Py2Cpp(ITranspiler):
 	def on_import(self, node: defs.Import, symbols: list[str]) -> str:
 		"""
 		Note:
-			* 通常、インポートは全てコメントアウトして出力
-			* 翻訳データにインポート置換用のDSNを登録することで、その行のみ有効な行として出力を変更
-			@see dsn.translation.import_dsn
-			@see i18n.I18n.t
+			### インクルードパスの生成方法に関して
+			1. 翻訳データにインポート置換用のDSNを登録 @see dsn.translation.import_dsn
+			2. 環境変数のインポートフォルダーを元に生成 @see example/config.yml
 		"""
 		module_path = node.import_path.tokens
-		text = self.view.render(node.classification, vars={'module_path': module_path})
-		return self.i18n.t(import_dsn(module_path), text)
+		text = self.i18n.t(import_dsn(module_path), '')
+		if text:
+			return text
+
+		import_dir = ''
+		replace_dir = ''
+		for in_import, in_replace in self.import_dirs.items():
+			if len(import_dir) < len(in_import) and module_path.startswith(in_import.replace('/', '.')):
+				import_dir = in_import
+				replace_dir = in_replace
+
+		return self.view.render(node.classification, vars={'module_path': module_path, 'import_dir': import_dir, 'replace_dir': replace_dir})
 
 	# Primary
 

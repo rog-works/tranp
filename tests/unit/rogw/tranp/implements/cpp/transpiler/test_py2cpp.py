@@ -43,7 +43,7 @@ class TestPy2Cpp(TestCase):
 		to_fullyname(Py2Cpp): Py2Cpp,
 		to_fullyname(PluginProvider): cpp_plugin_provider,
 		to_fullyname(TranslationMapping): fixture_translation_mapping,
-		to_fullyname(TranspilerOptions): lambda: TranspilerOptions(verbose=False),
+		to_fullyname(TranspilerOptions): lambda: TranspilerOptions(verbose=False, env={}),
 		to_fullyname(Renderer): make_renderer,
 	})
 

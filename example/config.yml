@@ -7,3 +7,6 @@ output_dir: ./
 output_language: h
 exclude_patterns:
   - example/FW/*
+env:
+  import_dirs:
+    - example/

@@ -1093,17 +1093,17 @@ class PatternParser:
 	"""
 
 	# 期待値: path.to->prop -> ('path.to', '->')
-	RelayPattern = re.compile(r'(.+)(->|::|\.)\w+')
+	RelayPattern = re.compile(r'(.+)(->|::|\.)\w+$')
 	# 期待値: path.to.calls(arguments...) -> 'arguments...'
-	FuncCallArgumentsPattern = re.compile(r'\w+\((.+)\)')
+	FuncCallArgumentsPattern = re.compile(r'\w+\((.+)\)$')
 	# 期待値: path.to->items() -> ('path.to', '->', 'items')
-	DictIteratorPattern = re.compile(r'(.+)(->|\.)(\w+)\(\)')
+	DictIteratorPattern = re.compile(r'(.+)(->|\.)(\w+)\(\)$')
 	# 期待値: Class::__init__(arguments...); -> 'arguments...'
 	SuperArgumentsPattern = re.compile(r'\(([^)]*)\);$')
 	# 期待値: path.to = right; -> 'right'
 	AssignRightPattern = re.compile(r'=\s*([^;]+);$')
 	# 期待値: path.to[key] -> ('path.to', 'key') XXX 複雑な式に耐えられないため修正を検討
-	IndexerPattern = re.compile(r'(.+)\[(.+)\]')
+	IndexerPattern = re.compile(r'(.+)\[(.+)\]$')
 	# 期待値: Class(arguments...) -> 'arguments...'
 	CVarNewArgumentPattern = re.compile(r'^[^(]+\((.*)\)$')
 	# 期待値: path.on()->to -> 'path.to'

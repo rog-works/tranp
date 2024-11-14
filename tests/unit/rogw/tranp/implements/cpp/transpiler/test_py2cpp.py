@@ -319,20 +319,28 @@ class TestPy2Cpp(TestCase):
 		('template_func', '', defs.Function, '/** template_func */\ntemplate<typename T>\nT template_func(T v) {}'),
 
 		('ForFlows.if_elif_else', 'function_def_raw.block.if_stmt', defs.If, 'if (1) {\n\n} else if (2) {\n\n} else {\n\n}'),
+
 		('ForFlows.while_only', 'function_def_raw.block.while_stmt', defs.While, 'while (true) {\n\n}'),
+
 		('ForFlows.for_range', 'function_def_raw.block.for_stmt[0]', defs.For, 'for (auto i = 0; i < 2; i++) {\n\n}'),
 		('ForFlows.for_range', 'function_def_raw.block.for_stmt[1]', defs.For, 'for (auto i = 0; i < strs.size(); i++) {\n\n}'),
+
 		('ForFlows.for_enumerate', 'function_def_raw.block.for_stmt[0]', defs.For, BlockExpects.for_enumerate(index='index', value='value', iterates='{1}', statements=[])),
 		('ForFlows.for_enumerate', 'function_def_raw.block.for_stmt[1]', defs.For, BlockExpects.for_enumerate(index='index', value='value', iterates='strs', statements=[])),
-		('ForFlows.for_dict', 'function_def_raw.block.for_stmt[0]', defs.For, 'for (auto& [key, value] : {{"a", 1}}) {\n\n}'),
-		('ForFlows.for_dict', 'function_def_raw.block.for_stmt[1]', defs.For, 'for (auto& [key, value] : dsn) {\n\n}'),
-		('ForFlows.for_dict', 'function_def_raw.block.for_stmt[2]', defs.For, 'for (auto& [key, value] : *(psn)) {\n\n}'),
-		('ForFlows.for_dict', 'function_def_raw.block.for_stmt[3]', defs.For, 'for (auto& [key, _] : {{"a", 1}}) {\n\n}'),
-		('ForFlows.for_dict', 'function_def_raw.block.for_stmt[4]', defs.For, 'for (auto& [key, _] : dsn) {\n\n}'),
-		('ForFlows.for_dict', 'function_def_raw.block.for_stmt[5]', defs.For, 'for (auto& [key, _] : *(psn)) {\n\n}'),
-		('ForFlows.for_dict', 'function_def_raw.block.for_stmt[6]', defs.For, 'for (auto& [_, value] : {{"a", 1}}) {\n\n}'),
-		('ForFlows.for_dict', 'function_def_raw.block.for_stmt[7]', defs.For, 'for (auto& [_, value] : dsn) {\n\n}'),
-		('ForFlows.for_dict', 'function_def_raw.block.for_stmt[8]', defs.For, 'for (auto& [_, value] : *(psn)) {\n\n}'),
+
+		('ForFlows.for_dict', 'function_def_raw.block.for_stmt[0]', defs.For, 'for (auto& [key, _] : {{"a", 1}}) {\n\n}'),
+		('ForFlows.for_dict', 'function_def_raw.block.for_stmt[1]', defs.For, 'for (auto& [_, value] : {{"a", 1}}) {\n\n}'),
+		('ForFlows.for_dict', 'function_def_raw.block.for_stmt[2]', defs.For, 'for (auto& [key, value] : {{"a", 1}}) {\n\n}'),
+		('ForFlows.for_dict', 'function_def_raw.block.for_stmt[3]', defs.For, 'for (auto& [key, _] : dsn) {\n\n}'),
+		('ForFlows.for_dict', 'function_def_raw.block.for_stmt[4]', defs.For, 'for (auto& [_, value] : dsn) {\n\n}'),
+		('ForFlows.for_dict', 'function_def_raw.block.for_stmt[5]', defs.For, 'for (auto& [key, value] : dsn) {\n\n}'),
+		('ForFlows.for_dict', 'function_def_raw.block.for_stmt[6]', defs.For, 'for (auto& [key, _] : *(psn)) {\n\n}'),
+		('ForFlows.for_dict', 'function_def_raw.block.for_stmt[7]', defs.For, 'for (auto& [_, value] : *(psn)) {\n\n}'),
+		('ForFlows.for_dict', 'function_def_raw.block.for_stmt[8]', defs.For, 'for (auto& [key, value] : *(psn)) {\n\n}'),
+		('ForFlows.for_dict', 'function_def_raw.block.for_stmt[9]', defs.For, 'for (auto [kp, _] : dpp) {\n\n}'),
+		('ForFlows.for_dict', 'function_def_raw.block.for_stmt[10]', defs.For, 'for (auto [_, vp] : dpp) {\n\n}'),
+		('ForFlows.for_dict', 'function_def_raw.block.for_stmt[11]', defs.For, 'for (auto& [kp, vp] : dpp) {\n\n}'),
+
 		('ForFlows.for_each', 'function_def_raw.block.for_stmt[0]', defs.For, 'for (auto& s : strs) {\n\n}'),
 		('ForFlows.for_each', 'function_def_raw.block.for_stmt[1]', defs.For, 'for (auto& [e1, e2, e3] : ts) {\n\n}'),
 		('ForFlows.for_each', 'function_def_raw.block.for_stmt[2]', defs.For, 'for (const auto cp : cps) {\n\n}'),
@@ -362,14 +370,20 @@ class TestPy2Cpp(TestCase):
 		('ForTemplateClass.bind_call', 'function_def_raw.block.funccall[1]', defs.FuncCall, 'd.bind(a, &ForTemplateClass::A::func);'),
 		('ForTemplateClass.bind_call', 'function_def_raw.block.funccall[2]', defs.FuncCall, 'd.invoke(true, 1);'),
 
-		('ForComp.list_comp', 'function_def_raw.block.list_comp[0]', defs.ListComp, BlockExpects.list_comp(proj_value='n', proj_type='int', iterates='{1}')),
-		('ForComp.list_comp', 'function_def_raw.block.list_comp[1]', defs.ListComp, BlockExpects.list_comp(proj_value='n', proj_type='int', iterates='ns')),
-		('ForComp.list_comp', 'function_def_raw.block.list_comp[2]', defs.ListComp, BlockExpects.list_comp(proj_value='s', proj_type='std::string', iterates='dsn', proj_symbols='[s, _]')),
-		('ForComp.list_comp', 'function_def_raw.block.list_comp[3]', defs.ListComp, BlockExpects.list_comp(proj_value='n', proj_type='int', iterates='dsn', proj_symbols='[_, n]')),
-		('ForComp.list_comp', 'function_def_raw.block.list_comp[4]', defs.ListComp, BlockExpects.list_comp(proj_value='s', proj_type='std::string', iterates='*(psn)', proj_symbols='[s, _]')),
-		('ForComp.list_comp', 'function_def_raw.block.list_comp[5]', defs.ListComp, BlockExpects.list_comp(proj_value='n', proj_type='int', iterates='*(psn)', proj_symbols='[_, n]')),
-		('ForComp.list_comp', 'function_def_raw.block.list_comp[6]', defs.ListComp, BlockExpects.list_comp(proj_value='{s, n}', proj_type='std::tuple<std::string, int>', iterates='*(psn)', proj_symbols='[s, n]')),
-		('ForComp.list_comp', 'function_def_raw.block.list_comp[7]', defs.ListComp, BlockExpects.list_comp(proj_value='e0 + e1 + e2', proj_type='int', iterates='ts', proj_symbols='[e0, e1, e2]')),
+		('ForComp.list_comp_from_list', 'function_def_raw.block.list_comp[0]', defs.ListComp, BlockExpects.list_comp(proj_value='n', proj_type='int', iterates='{1}')),
+		('ForComp.list_comp_from_list', 'function_def_raw.block.list_comp[1]', defs.ListComp, BlockExpects.list_comp(proj_value='n', proj_type='int', iterates='ns')),
+		('ForComp.list_comp_from_list', 'function_def_raw.block.list_comp[2]', defs.ListComp, BlockExpects.list_comp(proj_value='cp', proj_type='const int*', iterates='cps', proj_infer='const auto')),
+		('ForComp.list_comp_from_list', 'function_def_raw.block.list_comp[3]', defs.ListComp, BlockExpects.list_comp(proj_value='e0 + e1 + e2', proj_type='int', iterates='ts', proj_symbols='[e0, e1, e2]')),
+
+		('ForComp.list_comp_from_dict', 'function_def_raw.block.list_comp[0]', defs.ListComp, BlockExpects.list_comp(proj_value='s', proj_type='std::string', iterates='dsn', proj_symbols='[s, _]')),
+		('ForComp.list_comp_from_dict', 'function_def_raw.block.list_comp[1]', defs.ListComp, BlockExpects.list_comp(proj_value='n', proj_type='int', iterates='dsn', proj_symbols='[_, n]')),
+		('ForComp.list_comp_from_dict', 'function_def_raw.block.list_comp[2]', defs.ListComp, BlockExpects.list_comp(proj_value='{s, n}', proj_type='std::tuple<std::string, int>', iterates='dsn', proj_symbols='[s, n]')),
+		('ForComp.list_comp_from_dict', 'function_def_raw.block.list_comp[3]', defs.ListComp, BlockExpects.list_comp(proj_value='s', proj_type='std::string', iterates='*(psn)', proj_symbols='[s, _]')),
+		('ForComp.list_comp_from_dict', 'function_def_raw.block.list_comp[4]', defs.ListComp, BlockExpects.list_comp(proj_value='n', proj_type='int', iterates='*(psn)', proj_symbols='[_, n]')),
+		('ForComp.list_comp_from_dict', 'function_def_raw.block.list_comp[5]', defs.ListComp, BlockExpects.list_comp(proj_value='{s, n}', proj_type='std::tuple<std::string, int>', iterates='*(psn)', proj_symbols='[s, n]')),
+		('ForComp.list_comp_from_dict', 'function_def_raw.block.list_comp[6]', defs.ListComp, BlockExpects.list_comp(proj_value='kp', proj_type='int*', iterates='dpp', proj_symbols='[kp, _]', proj_infer='auto')),
+		('ForComp.list_comp_from_dict', 'function_def_raw.block.list_comp[7]', defs.ListComp, BlockExpects.list_comp(proj_value='vp', proj_type='int*', iterates='dpp', proj_symbols='[_, vp]', proj_infer='auto')),
+		('ForComp.list_comp_from_dict', 'function_def_raw.block.list_comp[8]', defs.ListComp, BlockExpects.list_comp(proj_value='{kp, vp}', proj_type='std::tuple<int*, int*>', iterates='dpp', proj_symbols='[kp, vp]')),
 	])
 	def test_exec(self, local_path: str, offset_path: str, expected_type: type[Node], expected: str) -> None:
 		# local_pathが空の場合はEntrypointを基点ノードとする

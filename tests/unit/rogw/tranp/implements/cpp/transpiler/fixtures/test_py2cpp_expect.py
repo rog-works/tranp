@@ -180,3 +180,15 @@ class Delegate {
 			'	return __ret;',
 			'}()',
 		])
+
+	@classmethod
+	def dict_comp(cls, proj_key: str, proj_value: str, proj_key_type: str, proj_value_type: str, iterates: str, proj_symbols: str, proj_infer: str = 'auto&') -> str:
+		return '\n'.join([
+			f'[&]() -> std::map<{proj_key_type}, {proj_value_type}> ' '{',
+			f'	std::map<{proj_key_type}, {proj_value_type}> __ret;',
+			f'	for ({proj_infer} {proj_symbols} : {iterates}) ' '{',
+			f'		__ret[{proj_key}] = {proj_value};',
+			'	}',
+			'	return __ret;',
+			'}()',
+		])

@@ -384,6 +384,11 @@ class TestPy2Cpp(TestCase):
 		('ForComp.list_comp_from_dict', 'function_def_raw.block.list_comp[6]', defs.ListComp, BlockExpects.list_comp(proj_value='kp', proj_type='int*', iterates='dpp', proj_symbols='[kp, _]', proj_infer='auto')),
 		('ForComp.list_comp_from_dict', 'function_def_raw.block.list_comp[7]', defs.ListComp, BlockExpects.list_comp(proj_value='vp', proj_type='int*', iterates='dpp', proj_symbols='[_, vp]', proj_infer='auto')),
 		('ForComp.list_comp_from_dict', 'function_def_raw.block.list_comp[8]', defs.ListComp, BlockExpects.list_comp(proj_value='{kp, vp}', proj_type='std::tuple<int*, int*>', iterates='dpp', proj_symbols='[kp, vp]')),
+
+		('ForComp.dict_comp_from_list', 'function_def_raw.block.dict_comp[0]', defs.DictComp, BlockExpects.dict_comp(proj_key='n', proj_value='n', proj_key_type='int', proj_value_type='int', iterates='{1}', proj_symbols='n')),
+		('ForComp.dict_comp_from_list', 'function_def_raw.block.dict_comp[1]', defs.DictComp, BlockExpects.dict_comp(proj_key='n', proj_value='n', proj_key_type='int', proj_value_type='int', iterates='ns', proj_symbols='n')),
+		('ForComp.dict_comp_from_list', 'function_def_raw.block.dict_comp[2]', defs.DictComp, BlockExpects.dict_comp(proj_key='cp', proj_value='cp', proj_key_type='const int*', proj_value_type='const int*', iterates='cps', proj_symbols='cp', proj_infer='const auto')),
+		('ForComp.dict_comp_from_list', 'function_def_raw.block.dict_comp[3]', defs.DictComp, BlockExpects.dict_comp(proj_key='e0', proj_value='{e1, e2}', proj_key_type='int', proj_value_type='std::tuple<int, int>', iterates='ts', proj_symbols='[e0, e1, e2]')),
 	])
 	def test_exec(self, local_path: str, offset_path: str, expected_type: type[Node], expected: str) -> None:
 		# local_pathが空の場合はEntrypointを基点ノードとする

@@ -656,3 +656,9 @@ class ForComp:
 		[kp for kp in dpp.keys()]
 		[vp for vp in dpp.values()]
 		[(kp, vp) for kp, vp in dpp.items()]
+
+	def dict_comp_from_list(self, ns: list[int], cps: list[CPConst[int]], ts: list[tuple[int, int, int]]) -> None:
+		{n: n for n in [1]}
+		{n: n for n in ns}
+		{cp: cp for cp in cps}
+		{e0: (e1, e2) for e0, e1, e2 in ts}

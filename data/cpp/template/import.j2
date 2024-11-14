@@ -1,5 +1,5 @@
-{%- if import_dir -%}
-#include "{{ module_path | replace('.', '/') | replace(import_dir, '') }}.h"
+{%- if before_dir -%}
+#include "{{ module_path | replace('.', '/') | replace(before_dir, replace_dir) }}.h"
 {%- else -%}
 // #include "{{ module_path | replace('.', '/') }}.h"
 {%- endif -%}

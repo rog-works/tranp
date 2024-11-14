@@ -1096,7 +1096,7 @@ class PatternParser:
 	RelayPattern = re.compile(r'(.+)(->|::|\.)\w+')
 	# 期待値: path.to.calls(arguments...) -> 'arguments...'
 	FuncCallArgumentsPattern = re.compile(r'\w+\((.+)\)')
-	# 期待値: path.to.items() -> ('path.to', '->', 'items')
+	# 期待値: path.to->items() -> ('path.to', '->', 'items')
 	DictIteratorPattern = re.compile(r'(.+)(->|\.)(\w+)\(\)')
 	# 期待値: Class::__init__(arguments...); -> 'arguments...'
 	SuperArgumentsPattern = re.compile(r'\(([^)]*)\);$')

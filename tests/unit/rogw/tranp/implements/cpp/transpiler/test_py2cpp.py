@@ -362,6 +362,15 @@ class TestPy2Cpp(TestCase):
 		('ForTemplateClass.bind_call', 'function_def_raw.block.assign', defs.MoveAssign, 'ForTemplateClass::Delegate<bool, int> d = ForTemplateClass::Delegate<bool, int>();'),
 		('ForTemplateClass.bind_call', 'function_def_raw.block.funccall[1]', defs.FuncCall, 'd.bind(a, &ForTemplateClass::A::func);'),
 		('ForTemplateClass.bind_call', 'function_def_raw.block.funccall[2]', defs.FuncCall, 'd.invoke(true, 1);'),
+
+		('ForComp.list_comp', 'function_def_raw.block.list_comp[0]', defs.ListComp, BlockExpects.list_comp(proj_value='n', proj_type='int', iterates='{1}')),
+		('ForComp.list_comp', 'function_def_raw.block.list_comp[1]', defs.ListComp, BlockExpects.list_comp(proj_value='n', proj_type='int', iterates='ns')),
+		('ForComp.list_comp', 'function_def_raw.block.list_comp[2]', defs.ListComp, BlockExpects.list_comp(proj_value='s', proj_type='std::string', iterates='dsn', proj_symbols='[s, _]')),
+		('ForComp.list_comp', 'function_def_raw.block.list_comp[3]', defs.ListComp, BlockExpects.list_comp(proj_value='n', proj_type='int', iterates='dsn', proj_symbols='[_, n]')),
+		('ForComp.list_comp', 'function_def_raw.block.list_comp[4]', defs.ListComp, BlockExpects.list_comp(proj_value='s', proj_type='std::string', iterates='*(psn)', proj_symbols='[s, _]')),
+		('ForComp.list_comp', 'function_def_raw.block.list_comp[5]', defs.ListComp, BlockExpects.list_comp(proj_value='n', proj_type='int', iterates='*(psn)', proj_symbols='[_, n]')),
+		('ForComp.list_comp', 'function_def_raw.block.list_comp[6]', defs.ListComp, BlockExpects.list_comp(proj_value='{s, n}', proj_type='std::tuple<std::string, int>', iterates='*(psn)', proj_symbols='[s, n]')),
+		('ForComp.list_comp', 'function_def_raw.block.list_comp[7]', defs.ListComp, BlockExpects.list_comp(proj_value='e0 + e1 + e2', proj_type='int', iterates='ts', proj_symbols='[e0, e1, e2]')),
 	])
 	def test_exec(self, local_path: str, offset_path: str, expected_type: type[Node], expected: str) -> None:
 		# local_pathが空の場合はEntrypointを基点ノードとする

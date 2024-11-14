@@ -633,3 +633,15 @@ class ForTemplateClass:
 		d = ForTemplateClass.Delegate[bool, int]()
 		d.bind(a, c_func_ref(ForTemplateClass.A.func).const)
 		d.invoke(True, 1)
+
+
+class ForComp:
+	def list_comp(self, ns: list[int], dsn: dict[str, int], psn: CP[dict[str, int]], ts: list[tuple[int, int, int]]) -> None:
+		[n for n in [1]]
+		[n for n in ns]
+		[s for s in dsn.keys()]
+		[n for n in dsn.values()]
+		[s for s in psn.on.keys()]
+		[n for n in psn.on.values()]
+		[(s, n) for s, n in psn.on.items()]
+		[e0 + e1 + e2 for e0, e1, e2 in ts]

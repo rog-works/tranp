@@ -177,3 +177,15 @@ class Delegate {
 			f'	{index}++;',
 			'}',
 		])
+
+	@classmethod
+	def list_comp(cls, proj_value: str, proj_type: str, iterates: str, proj_symbols: str = '') -> str:
+		return '\n'.join([
+			f'[&]() -> std::vector<{proj_type}> ' '{',
+			f'	std::vector<{proj_type}> __ret;',
+			f'	for (auto& {proj_symbols or proj_value} : {iterates}) ' '{',
+			f'		__ret.push_back({proj_value});',
+			'	}',
+			'	return __ret;',
+			'}()',
+		])

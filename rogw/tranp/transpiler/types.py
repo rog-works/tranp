@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import NamedTuple
+from typing import Any, NamedTuple
 
 from rogw.tranp.data.meta.types import TranspilerMeta
 from rogw.tranp.syntax.node.node import Node
@@ -10,9 +10,10 @@ class TranspilerOptions(NamedTuple):
 
 	Attributes:
 		verbose (bool): ログ出力フラグ
+		env (dict[str, Any]): 環境変数
 	"""
-
 	verbose: bool
+	env: dict[str, Any]
 
 
 class ITranspiler(metaclass=ABCMeta):

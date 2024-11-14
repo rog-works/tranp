@@ -47,6 +47,7 @@ class Py2Cpp(ITranspiler):
 		self.view = render
 		self.i18n = i18n
 		self.module_meta_factory = module_meta_factory
+		self.options = options
 		self.__procedure = self.__make_procedure(options)
 
 	def __make_procedure(self, options: TranspilerOptions) -> Procedure[str]:
@@ -436,13 +437,16 @@ class Py2Cpp(ITranspiler):
 	def on_import(self, node: defs.Import, symbols: list[str]) -> str:
 		"""
 		Note:
-			* 通常、インポートは全てコメントアウトして出力
-			* 翻訳データにインポート置換用のDSNを登録することで、その行のみ有効な行として出力を変更
+			### インクルードパスの生成方法に関して
+			1. トランスパイルオプションの環境変数からインポートフォルダーを取得
+			2. 翻訳データにインポート置換用のDSNを登録
 			@see dsn.translation.import_dsn
 			@see i18n.I18n.t
 		"""
 		module_path = node.import_path.tokens
-		text = self.view.render(node.classification, vars={'module_path': module_path})
+		import_dirs: list[str] = self.options.env.get('import_dirs', [])
+		before_dirs = [import_dir for import_dir in import_dirs if module_path.startswith(import_dir.replace('/', '.'))]
+		text = self.view.render(node.classification, vars={'module_path': module_path, 'import_dir': before_dirs[0] if before_dirs else ''})
 		return self.i18n.t(import_dsn(module_path), text)
 
 	# Primary

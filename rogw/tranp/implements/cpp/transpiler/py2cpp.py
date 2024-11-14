@@ -455,7 +455,7 @@ class Py2Cpp(ITranspiler):
 		Note:
 			### インクルードパスの生成方法に関して
 			1. 翻訳データにインポート置換用のDSNを登録 @see dsn.translation.import_dsn
-			2. 環境変数のインポートフォルダーを元に生成 @see example/config.yml
+			2. 環境変数のインポートディレクトリーを元に生成 @see example/config.yml
 		"""
 		module_path = node.import_path.tokens
 		text = self.i18n.t(import_dsn(module_path), '')
@@ -929,7 +929,7 @@ class Py2Cpp(ITranspiler):
 		is_addr_p = CVars.is_addr(CVars.key_from(for_in_symbol))
 
 		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Relay) \
-			and node.iterates.calls.prop.tokens == dict.items.__name__ \
+			and node.iterates.calls.prop.tokens in [dict.items.__name__, dict.keys.__name__, dict.values.__name__] \
 			and self.reflections.type_of(node.iterates.calls.receiver).impl(refs.Object).type_is(dict):
 			# 期待値: 'iterates.items()'
 			receiver, operator, method_name = PatternParser.break_dict_iterator(for_in)

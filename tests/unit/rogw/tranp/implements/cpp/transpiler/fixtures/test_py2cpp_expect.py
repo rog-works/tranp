@@ -20,15 +20,6 @@ class DeclOps {
 	}
 };"""
 
-	CompOps_list_comp_assign_values1 = \
-"""std::vector<int> values1 = [&]() -> std::vector<int> {
-	std::vector<int> __ret;
-	for (auto& value : values0) {
-		__ret.push_back(value);
-	}
-	return __ret;
-}();"""
-
 	CompOps_dict_comp_assign_kvs0_1 = \
 """std::map<std::string, CompOps::C> kvs0_1 = [&]() -> std::map<std::string, CompOps::C> {
 	std::map<std::string, CompOps::C> __ret;

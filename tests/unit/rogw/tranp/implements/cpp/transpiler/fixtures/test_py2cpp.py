@@ -348,10 +348,6 @@ class CompOps:
 	class C:
 		...
 
-	def list_comp(self) -> None:
-		values0 = [1, 2, 3]
-		values1 = [value for value in values0]
-
 	def dict_comp(self) -> None:
 		kvs0_0 = {'a': CompOps.C()}
 		kvs0_1 = {key: value for key, value in kvs0_0.items()}

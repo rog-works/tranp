@@ -177,11 +177,3 @@ class Delegate {
 			f'	{index}++;',
 			'}',
 		])
-
-	@classmethod
-	def for_values(cls, value: str, iterates: str, statements: list[str]) -> str:
-		return '\n'.join([
-			f'for (auto& [_, {value}] : {iterates}) ' '{',
-			f'	{"\n".join(statements)}' if len(statements) else '',
-			'}',
-		])

@@ -238,7 +238,7 @@ class TestPy2Cpp(TestCase):
 		('CompOps.dict_comp', 'function_def_raw.block.assign[5]', defs.MoveAssign, BlockExpects.CompOps_dict_comp_assign_kvs2),
 
 		('ForOps.range', 'function_def_raw.block.for_stmt', defs.For, 'for (auto i = 0; i < 10; i++) {\n\n}'),
-		('ForOps.enumerate', 'function_def_raw.block.for_stmt', defs.For, BlockExpects.ForOps_enumerate_for_index_key),
+		('ForOps.enumerate', 'function_def_raw.block.for_stmt', defs.For, BlockExpects.for_enumerate(index='index', value='key', iterates='keys', statements=[])),
 		('ForOps.dict_items', 'function_def_raw.block.for_stmt[1]', defs.For, 'for (auto& [key, value] : kvs) {\n\n}'),
 		('ForOps.dict_items', 'function_def_raw.block.for_stmt[3]', defs.For, 'for (auto& [key, value] : *(kvs_p)) {\n\n}'),
 
@@ -323,13 +323,13 @@ class TestPy2Cpp(TestCase):
 		('ForFlows.while_only', 'function_def_raw.block.while_stmt', defs.While, 'while (true) {\n\n}'),
 		('ForFlows.for_range', 'function_def_raw.block.for_stmt[0]', defs.For, 'for (auto i = 0; i < 2; i++) {\n\n}'),
 		('ForFlows.for_range', 'function_def_raw.block.for_stmt[1]', defs.For, 'for (auto i = 0; i < strs.size(); i++) {\n\n}'),
-		('ForFlows.for_enumerate', 'function_def_raw.block.for_stmt[0]', defs.For, BlockExpects.for_enumerate(key='index', value='value', iterates='{1}', var_type='int', statements=[])),
-		('ForFlows.for_enumerate', 'function_def_raw.block.for_stmt[1]', defs.For, BlockExpects.for_enumerate(key='index', value='value', iterates='strs', var_type='std::string', statements=[])),
+		('ForFlows.for_enumerate', 'function_def_raw.block.for_stmt[0]', defs.For, BlockExpects.for_enumerate(index='index', value='value', iterates='{1}', statements=[])),
+		('ForFlows.for_enumerate', 'function_def_raw.block.for_stmt[1]', defs.For, BlockExpects.for_enumerate(index='index', value='value', iterates='strs', statements=[])),
 		('ForFlows.for_items', 'function_def_raw.block.for_stmt[0]', defs.For, 'for (auto& [key, value] : {{"a", 1}}) {\n\n}'),
 		('ForFlows.for_items', 'function_def_raw.block.for_stmt[1]', defs.For, 'for (auto& [key, value] : dsn) {\n\n}'),
 		('ForFlows.for_items', 'function_def_raw.block.for_stmt[2]', defs.For, 'for (auto& [key, value] : *(psn)) {\n\n}'),
 		('ForFlows.for_each', 'function_def_raw.block.for_stmt[0]', defs.For, 'for (auto& s : strs) {\n\n}'),
-		('ForFlows.for_each', 'function_def_raw.block.for_stmt[1]', defs.For, BlockExpects.for_values(value='value', iterates='dsn', var_type='int', statements=[])),
+		('ForFlows.for_each', 'function_def_raw.block.for_stmt[1]', defs.For, BlockExpects.for_values(value='value', iterates='dsn', statements=[])),
 		('ForFlows.for_each', 'function_def_raw.block.for_stmt[2]', defs.For, 'for (const auto cp : cps) {\n\n}'),
 		('ForFlows.for_each', 'function_def_raw.block.for_stmt[3]', defs.For, 'for (auto& [e1, e2, e3] : ts) {\n\n}'),
 

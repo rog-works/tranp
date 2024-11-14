@@ -222,8 +222,10 @@ class Py2Cpp(ITranspiler):
 			return self.proc_for_range(node, symbols, for_in, statements)
 		elif isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Var) and node.iterates.calls.tokens == enumerate.__name__:
 			return self.proc_for_enumerate(node, symbols, for_in, statements)
-		elif isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Relay) and node.iterates.calls.prop.tokens == dict.items.__name__:
-			return self.proc_for_dict_items(node, symbols, for_in, statements)
+		elif isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Relay) \
+			and node.iterates.calls.prop.tokens in [dict.items.__name__, dict.keys.__name__, dict.values.__name__] \
+			and self.reflections.type_of(node.iterates.calls.receiver).impl(refs.Object).type_is(dict):
+			return self.proc_for_dict(node, symbols, for_in, statements)
 		else:
 			for_in_symbol = self.reflections.type_of(node.for_in)
 			# FIXME is_const/is_addr_pの対応に一貫性が無い。包括的な対応を検討
@@ -242,12 +244,13 @@ class Py2Cpp(ITranspiler):
 		var_type = self.to_accessible_name(self.reflections.type_of(node.for_in).attrs[1])
 		return self.view.render(f'{node.classification}/enumerate', vars={'symbols': symbols, 'iterates': iterates, 'statements': statements, 'var_type': var_type})
 
-	def proc_for_dict_items(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
+	def proc_for_dict(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		# 期待値: 'iterates.items()'
-		iterates = PatternParser.pluck_dict_items_receiver(for_in)
+		receiver, operator, method_name = PatternParser.break_dict_iterator(for_in)
 		# XXX 参照の変換方法が場当たり的で一貫性が無い。包括的な対応を検討
-		iterates = f'*({iterates})' if for_in.endswith('->items()') else iterates
-		return self.view.render(f'{node.classification}/dict_items', vars={'symbols': symbols, 'iterates': iterates, 'statements': statements})
+		iterates = f'*({receiver})' if operator == '->' else receiver
+		dict_symbols = {dict.items.__name__: symbols, dict.keys.__name__: [symbols[0], '_'], dict.values.__name__: ['_', symbols[0]]}
+		return self.view.render(f'{node.classification}/dict', vars={'symbols': dict_symbols[method_name], 'iterates': iterates, 'statements': statements})
 
 	def on_catch(self, node: defs.Catch, var_type: str, symbol: str, statements: list[str]) -> str:
 		return self.view.render(node.classification, vars={'var_type': var_type, 'symbol': symbol, 'statements': statements})
@@ -770,13 +773,13 @@ class Py2Cpp(ITranspiler):
 			# 期待値: 'receiver.extend'
 			receiver, operator = PatternParser.break_relay(calls)
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator})
-		elif spec == 'dict_pop':
-			# 期待値: 'receiver.pop'
+		elif spec == 'dict_keys':
+			# 期待値: 'receiver.keys'
 			receiver, operator = PatternParser.break_relay(calls)
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'var_type': var_type})
-		elif spec == 'dict_keys':
-			# 期待値: 'receiver.keys'
+		elif spec == 'dict_pop':
+			# 期待値: 'receiver.pop'
 			receiver, operator = PatternParser.break_relay(calls)
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'var_type': var_type})
@@ -860,12 +863,15 @@ class Py2Cpp(ITranspiler):
 				return f'cvar_to_{calls}', None
 		elif isinstance(node.calls, defs.Relay):
 			prop = node.calls.prop.tokens
-			if prop in ['pop', 'insert', 'extend', 'keys', 'values']:
-				context = self.reflections.type_of(node.calls).context.impl(refs.Object)
-				if prop in ['pop', 'insert', 'extend'] and context.type_is(list):
-					return f'list_{prop}', context.attrs[0]
-				elif prop in ['pop', 'keys', 'values'] and context.type_is(dict):
-					key_attr, value_attr = context.attrs
+			if prop in ['pop', 'insert', 'extend', 'items', 'keys', 'values']:
+				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object)
+				if prop in ['pop', 'insert', 'extend'] and receiver_raw.type_is(list):
+					return f'list_{prop}', receiver_raw.attrs[0]
+				elif receiver_raw.type_is(dict) and node.parent.is_a(defs.ForIn):
+					# XXX for/comprehensionにより、レシーバー自体がイテレーターとして評価されるため、通常の関数コールとして処理
+					return 'otherwise', None
+				elif receiver_raw.type_is(dict):
+					key_attr, value_attr = receiver_raw.attrs
 					attr_indexs = {'pop': value_attr, 'keys': key_attr, 'values': value_attr}
 					return f'dict_{prop}', attr_indexs[prop]
 			elif prop == PythonClassOperations.copy_constructor:
@@ -873,7 +879,7 @@ class Py2Cpp(ITranspiler):
 			elif prop in ['split', 'join', 'replace', 'find', 'rfind', 'count', 'startswith', 'endswith', 'format']:
 				if node.calls.receiver.is_a(defs.String):
 					return f'str_{prop}', None
-				elif self.reflections.type_of(node.calls).context.impl(refs.Object).type_is(str):
+				elif self.reflections.type_of(node.calls.receiver).impl(refs.Object).type_is(str):
 					return f'str_{prop}', None
 			elif prop == CVars.copy_key:
 				receiver_raw = self.reflections.type_of(node.calls.receiver)
@@ -883,8 +889,8 @@ class Py2Cpp(ITranspiler):
 			elif prop == CVars.empty_key:
 				if isinstance(node.calls.receiver, defs.Indexer) and CVars.is_addr_sp(node.calls.receiver.receiver.domain_name):
 					# 期待値: CSP[A] | None
-					context = self.reflections.type_of(node).attrs[0].attrs[0]
-					return 'cvar_sp_empty', context
+					entity_raw = self.reflections.type_of(node).attrs[0].attrs[0]
+					return 'cvar_sp_empty', entity_raw
 			elif prop == CVars.allocator_key:
 				if isinstance(node.calls.receiver, defs.Var) and CVars.is_addr_p(node.calls.receiver.domain_name):
 					return 'cvar_new_p', None
@@ -922,12 +928,15 @@ class Py2Cpp(ITranspiler):
 		is_const = CVars.is_const(CVars.key_from(for_in_symbol))
 		is_addr_p = CVars.is_addr(CVars.key_from(for_in_symbol))
 
-		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Relay) and node.iterates.calls.prop.tokens == dict.items.__name__:
+		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Relay) \
+			and node.iterates.calls.prop.tokens == dict.items.__name__ \
+			and self.reflections.type_of(node.iterates.calls.receiver).impl(refs.Object).type_is(dict):
 			# 期待値: 'iterates.items()'
-			iterates = PatternParser.pluck_dict_items_receiver(for_in)
+			receiver, operator, method_name = PatternParser.break_dict_iterator(for_in)
 			# XXX 参照の変換方法が場当たり的で一貫性が無い。包括的な対応を検討
-			iterates = f'*({iterates})' if for_in.endswith('->items()') else iterates
-			return self.view.render(f'comp/{node.classification}', vars={'symbols': symbols, 'iterates': iterates, 'is_const': is_const, 'is_addr_p': is_addr_p})
+			iterates = f'*({receiver})' if operator == '->' else receiver
+			dict_symbols = {dict.items.__name__: symbols, dict.keys.__name__: [symbols[0], '_'], dict.values.__name__: ['_', symbols[0]]}
+			return self.view.render(f'comp/{node.classification}', vars={'symbols': dict_symbols[method_name], 'iterates': iterates, 'is_const': is_const, 'is_addr_p': is_addr_p})
 		else:
 			return self.view.render(f'comp/{node.classification}', vars={'symbols': symbols, 'iterates': for_in, 'is_const': is_const, 'is_addr_p': is_addr_p})
 
@@ -1087,8 +1096,8 @@ class PatternParser:
 	RelayPattern = re.compile(r'(.+)(->|::|\.)\w+')
 	# 期待値: path.to.calls(arguments...) -> 'arguments...'
 	FuncCallArgumentsPattern = re.compile(r'\w+\((.+)\)')
-	# 期待値: path.to.items() -> 'path.to'
-	DictItemsPattern = re.compile(r'(.+)(->|\.)\w+\(\)')
+	# 期待値: path.to.items() -> ('path.to', '->', 'items')
+	DictIteratorPattern = re.compile(r'(.+)(->|\.)(\w+)\(\)')
 	# 期待値: Class::__init__(arguments...); -> 'arguments...'
 	SuperArgumentsPattern = re.compile(r'\(([^)]*)\);$')
 	# 期待値: path.to = right; -> 'right'
@@ -1125,15 +1134,15 @@ class PatternParser:
 		return cast(re.Match, cls.FuncCallArgumentsPattern.fullmatch(func_call))[1]
 
 	@classmethod
-	def pluck_dict_items_receiver(cls, func_call: str) -> str:
-		"""関数コール(dict.items)からレシーバーの部分を抜き出す
+	def break_dict_iterator(cls, func_call: str) -> tuple[str, str, str]:
+		"""連想配列のイテレーターコール(items|keys|values)から各要素に分解
 
 		Args:
 			func_call (str): 文字列
 		Returns:
-			str: レシーバー
+			tuple[str, str, str]: (レシーバー, オペレーター, メソッド)
 		"""
-		return cast(re.Match, cls.DictItemsPattern.fullmatch(func_call))[1]
+		return cast(re.Match, cls.DictIteratorPattern.fullmatch(func_call)).group(1, 2, 3)
 
 	@classmethod
 	def pluck_super_arguments(cls, func_call: str) -> str:

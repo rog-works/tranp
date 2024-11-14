@@ -56,18 +56,6 @@ class DeclOps {
 	return __ret;
 }();"""
 
-	ForOps_enumerate_for_index_key = \
-"""for (auto& [index, key] : [&]() -> std::map<int, std::string> {
-	std::map<int, std::string> __ret;
-	int __index = 0;
-	for (auto& __entry : keys) {
-		__ret[__index++] = __entry;
-	}
-	return __ret;
-}()) {
-
-}"""
-
 	ListOps_pop_assign_value0 = \
 """int value0 = [&]() -> int {
 	auto __iter = values.begin() + 1;
@@ -181,30 +169,19 @@ class Delegate {
 };"""
 
 	@classmethod
-	def for_enumerate(cls, key: str, value: str, iterates: str, var_type: str, statements: list[str]) -> str:
+	def for_enumerate(cls, index: str, value: str, iterates: str, statements: list[str]) -> str:
 		return '\n'.join([
-			f'for (auto& [{key}, {value}] : [&]() -> std::map<int, {var_type}> ' '{',
-			f'	std::map<int, {var_type}> __ret;',
-			'	int __index = 0;',
-			f'	for (auto& __entry : {iterates}) ' '{',
-			'		__ret[__index++] = __entry;',
-			'	}',
-			'	return __ret;',
-			'}()) {',
-			'\n'.join(statements),
+			f'int {index} = 0;',
+			f'for (auto& {value} : {iterates}) ' '{',
+			f'	{"\n".join(statements)}' if len(statements) else '',
+			f'	{index}++;',
 			'}',
 		])
 
 	@classmethod
-	def for_values(cls, value: str, iterates: str, var_type: str, statements: list[str]) -> str:
+	def for_values(cls, value: str, iterates: str, statements: list[str]) -> str:
 		return '\n'.join([
-			f'for (auto& {value} : [&]() -> std::vector<{var_type}> ' '{',
-			f'	std::vector<{var_type}> __ret;',
-			f'	for (auto& [_, __value] : {iterates}) ' '{',
-			'		__ret.push_back(__value);',
-			'	}',
-			'	return __ret;',
-			'}()) {',
-			'\n'.join(statements),
+			f'for (auto& [_, {value}] : {iterates}) ' '{',
+			f'	{"\n".join(statements)}' if len(statements) else '',
 			'}',
 		])

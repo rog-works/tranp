@@ -467,50 +467,22 @@ class TestRenderer(TestCase):
 		self.assertRender('class/enum', 0, vars, expected)
 
 	@data_provider([
-		({'symbols': ['key', 'value'], 'iterates': 'items', 'statements': ['pass;']}, 'for (auto& [key, value] : items) {\n\tpass;\n}'),
+		({'symbols': ['key', 'value'], 'iterates': 'items', 'statements': []}, 'for (auto& [key, value] : items) {\n}'),
 	])
-	def test_render_for_dict_items(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('for/dict_items', 0, vars, expected)
+	def test_render_for_dict(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('for/dict', 0, vars, expected)
 
 	@data_provider([
 		(
 			{
-				'var_type': 'float',
+				'symbols': ['index', 'value'],
 				'iterates': 'items',
+				'statements': [],
 			},
 			'\n'.join([
-				'[&]() -> std::map<int, float> {',
-				'	std::map<int, float> __ret;',
-				'	int __index = 0;',
-				'	for (auto& __entry : items) {',
-				'		__ret[__index++] = __entry;',
-				'	}',
-				'	return __ret;',
-				'}()',
-			]),
-		)
-	])
-	def test_render_for_enumerate_iterates(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('for/_enumerate_iterates', 0, vars, expected)
-
-	@data_provider([
-		(
-			{
-				'symbols': ['key', 'value'],
-				'var_type': 'float',
-				'iterates': 'items',
-				'statements': ['pass;'],
-			},
-			'\n'.join([
-				'for (auto& [key, value] : [&]() -> std::map<int, float> {',
-				'	std::map<int, float> __ret;',
-				'	int __index = 0;',
-				'	for (auto& __entry : items) {',
-				'		__ret[__index++] = __entry;',
-				'	}',
-				'	return __ret;',
-				'}()) {',
-				'	pass;',
+				'int index = 0;',
+				'for (auto& value : items) {',
+				'	index++;',
 				'}',
 			]),
 		)
@@ -633,6 +605,7 @@ class TestRenderer(TestCase):
 				'var_type': 'int',
 				'receiver': 'items',
 				'operator': '.',
+				'is_statement': True,
 			},
 			'\n'.join([
 				'[&]() -> std::vector<int> {',
@@ -641,7 +614,7 @@ class TestRenderer(TestCase):
 				'		__ret.push_back(__key);',
 				'	}',
 				'	return __ret;',
-				'}()',
+				'}();',
 			]),
 		),
 	])
@@ -675,6 +648,7 @@ class TestRenderer(TestCase):
 				'var_type': 'int',
 				'receiver': 'items',
 				'operator': '.',
+				'is_statement': True,
 			},
 			'\n'.join([
 				'[&]() -> std::vector<int> {',
@@ -683,7 +657,7 @@ class TestRenderer(TestCase):
 				'		__ret.push_back(__value);',
 				'	}',
 				'	return __ret;',
-				'}()',
+				'}();',
 			]),
 		),
 	])

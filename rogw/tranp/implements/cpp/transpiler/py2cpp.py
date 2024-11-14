@@ -13,6 +13,7 @@ from rogw.tranp.errors import LogicError
 from rogw.tranp.i18n.i18n import I18n
 from rogw.tranp.implements.cpp.semantics.cvars import CVars
 from rogw.tranp.lang.annotation import duck_typed, implements, injectable
+from rogw.tranp.lang.defer import Defer
 from rogw.tranp.lang.eventemitter import Callback, Observable
 from rogw.tranp.lang.module import to_fullyname
 from rogw.tranp.lang.parser import BlockFormatter, BlockParser
@@ -227,11 +228,7 @@ class Py2Cpp(ITranspiler):
 			and self.reflections.type_of(node.iterates.calls.receiver).impl(refs.Object).type_is(dict):
 			return self.proc_for_dict(node, symbols, for_in, statements)
 		else:
-			for_in_symbol = self.reflections.type_of(node.for_in)
-			# FIXME is_const/is_addr_pの対応に一貫性が無い。包括的な対応を検討
-			is_const = CVars.is_const(CVars.key_from(for_in_symbol))
-			is_addr_p = CVars.is_addr_p(CVars.key_from(for_in_symbol))
-			return self.view.render(f'{node.classification}/default', vars={'symbols': symbols, 'iterates': for_in, 'statements': statements, 'is_const': is_const, 'is_addr_p': is_addr_p})
+			return self.proc_for_each(node, symbols, for_in, statements)
 
 	def proc_for_range(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		# 期待値: 'range(arguments...)'
@@ -245,12 +242,23 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(f'{node.classification}/enumerate', vars={'symbols': symbols, 'iterates': iterates, 'statements': statements, 'var_type': var_type})
 
 	def proc_for_dict(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
+		# XXX is_const/is_addr_pの対応に一貫性が無い。包括的な対応を検討
+		for_in_symbol = Defer.new(lambda: self.reflections.type_of(node.for_in))
+		is_const = CVars.is_const(CVars.key_from(for_in_symbol)) if len(symbols) == 1 else False
+		is_addr_p = CVars.is_addr_p(CVars.key_from(for_in_symbol)) if len(symbols) == 1 else False
 		# 期待値: 'iterates.items()'
 		receiver, operator, method_name = PatternParser.break_dict_iterator(for_in)
 		# XXX 参照の変換方法が場当たり的で一貫性が無い。包括的な対応を検討
 		iterates = f'*({receiver})' if operator == '->' else receiver
 		dict_symbols = {dict.items.__name__: symbols, dict.keys.__name__: [symbols[0], '_'], dict.values.__name__: ['_', symbols[0]]}
-		return self.view.render(f'{node.classification}/dict', vars={'symbols': dict_symbols[method_name], 'iterates': iterates, 'statements': statements})
+		return self.view.render(f'{node.classification}/dict', vars={'symbols': dict_symbols[method_name], 'iterates': iterates, 'statements': statements, 'is_const': is_const, 'is_addr_p': is_addr_p})
+
+	def proc_for_each(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
+		# XXX is_const/is_addr_pの対応に一貫性が無い。包括的な対応を検討
+		for_in_symbol = Defer.new(lambda: self.reflections.type_of(node.for_in))
+		is_const = CVars.is_const(CVars.key_from(for_in_symbol)) if len(symbols) == 1 else False
+		is_addr_p = CVars.is_addr_p(CVars.key_from(for_in_symbol)) if len(symbols) == 1 else False
+		return self.view.render(f'{node.classification}/default', vars={'symbols': symbols, 'iterates': for_in, 'statements': statements, 'is_const': is_const, 'is_addr_p': is_addr_p})
 
 	def on_catch(self, node: defs.Catch, var_type: str, symbol: str, statements: list[str]) -> str:
 		return self.view.render(node.classification, vars={'var_type': var_type, 'symbol': symbol, 'statements': statements})
@@ -923,10 +931,10 @@ class Py2Cpp(ITranspiler):
 		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Var) and node.iterates.calls.tokens in [range.__name__, enumerate.__name__]:
 			raise LogicError(f'Operation not allowed. "{node.iterates.calls.tokens}" is not supported. node: {node}')
 
-		for_in_symbol = self.reflections.type_of(node.for_in)
-		# FIXME is_const/is_addr_pの対応に一貫性が無い。包括的な対応を検討
-		is_const = CVars.is_const(CVars.key_from(for_in_symbol))
-		is_addr_p = CVars.is_addr(CVars.key_from(for_in_symbol))
+		# XXX is_const/is_addr_pの対応に一貫性が無い。包括的な対応を検討
+		for_in_symbol = Defer.new(lambda: self.reflections.type_of(node.for_in))
+		is_const = CVars.is_const(CVars.key_from(for_in_symbol)) if len(symbols) == 1 else False
+		is_addr_p = CVars.is_addr(CVars.key_from(for_in_symbol)) if len(symbols) == 1 else False
 
 		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Relay) \
 			and node.iterates.calls.prop.tokens in [dict.items.__name__, dict.keys.__name__, dict.values.__name__] \

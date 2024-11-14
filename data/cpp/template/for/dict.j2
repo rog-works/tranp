@@ -1,4 +1,5 @@
-for (auto& [{{ symbols | join(', ') }}] : {{ iterates }}) {
+{%- set infer = ('const ' if is_const else '') + 'auto' + ('' if is_addr_p else '&') -%}
+for ({{ infer }} [{{ symbols | join(', ') }}] : {{ iterates }}) {
 {%- filter indent('\t') %}
 {%- for statement in statements %}
 {{ statement }}

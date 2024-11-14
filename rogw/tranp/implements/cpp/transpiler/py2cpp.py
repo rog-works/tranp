@@ -225,7 +225,7 @@ class Py2Cpp(ITranspiler):
 			return self.proc_for_enumerate(node, symbols, for_in, statements)
 		elif isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Relay) \
 			and node.iterates.calls.prop.tokens in [dict.items.__name__, dict.keys.__name__, dict.values.__name__] \
-			and self.reflections.type_of(node.iterates.calls.receiver).impl(refs.Object).type_is(dict):
+			and self.reflections.type_of(node.iterates.calls.receiver).impl(refs.Object).actualize().type_is(dict):
 			return self.proc_for_dict(node, symbols, for_in, statements)
 		else:
 			return self.proc_for_each(node, symbols, for_in, statements)
@@ -938,7 +938,7 @@ class Py2Cpp(ITranspiler):
 
 		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Relay) \
 			and node.iterates.calls.prop.tokens in [dict.items.__name__, dict.keys.__name__, dict.values.__name__] \
-			and self.reflections.type_of(node.iterates.calls.receiver).impl(refs.Object).type_is(dict):
+			and self.reflections.type_of(node.iterates.calls.receiver).impl(refs.Object).actualize().type_is(dict):
 			# 期待値: 'iterates.items()'
 			receiver, operator, method_name = PatternParser.break_dict_iterator(for_in)
 			# XXX 参照の変換方法が場当たり的で一貫性が無い。包括的な対応を検討

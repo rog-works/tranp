@@ -557,7 +557,7 @@ class ForFlows:
 		for index, value in enumerate([1]): ...
 		for index, value in enumerate(strs): ...
 
-	def for_dict(self, dsn: dict[str, int], psn: CP[dict[str, int]], dpp: dict[CP[int], CP[int]]) -> None:
+	def for_dict(self, dsn: DSI, psn: CP[dict[str, int]], dpp: dict[CP[int], CP[int]]) -> None:
 		for key in {'a': 1}.keys(): ...
 		for value in {'a': 1}.values(): ...
 		for key, value in {'a': 1}.items(): ...
@@ -644,7 +644,7 @@ class ForComp:
 		[cp for cp in cps]
 		[e0 + e1 + e2 for e0, e1, e2 in ts]
 
-	def list_comp_from_dict(self, dsn: dict[str, int], psn: CP[dict[str, int]], dpp: dict[CP[int], CP[int]]) -> None:
+	def list_comp_from_dict(self, dsn: DSI, psn: CP[dict[str, int]], dpp: dict[CP[int], CP[int]]) -> None:
 		[s for s in dsn.keys()]
 		[n for n in dsn.values()]
 		[(s, n) for s, n in dsn.items()]

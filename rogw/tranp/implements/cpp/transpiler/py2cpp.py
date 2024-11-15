@@ -1,9 +1,9 @@
 import re
 from typing import Any, Self, TypeVarTuple, cast
 
-from rogw.tranp.compatible.cpp.embed import Embed
 from rogw.tranp.compatible.cpp.object import CP, c_func_addr, c_func_ref
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
+from rogw.tranp.compatible.python.embed import Embed
 from rogw.tranp.data.meta.header import MetaHeader
 from rogw.tranp.data.meta.types import ModuleMetaFactory, TranspilerMeta
 from rogw.tranp.data.version import Versions

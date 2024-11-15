@@ -25,9 +25,7 @@ from tests.unit.rogw.tranp.implements.cpp.transpiler.fixtures.test_py2cpp_expect
 def fixture_translation_mapping(files: IFileLoader) -> TranslationMapping:
 	fixture_module_path = Fixture.fixture_module_path(__file__)
 	fixture_translations = {
-		alias_dsn(ModuleDSN.full_joined(fixture_module_path, 'Alias')): 'Alias2',
 		alias_dsn(ModuleDSN.full_joined(fixture_module_path, 'Alias.inner')): 'inner_b',
-		alias_dsn(ModuleDSN.full_joined(fixture_module_path, 'Alias.Inner')): 'Inner2',
 		alias_dsn(ModuleDSN.full_joined(fixture_module_path, 'Alias.Inner.V')): 'V2',
 	}
 	return example_translation_mapping_cpp(files).merge(fixture_translations)

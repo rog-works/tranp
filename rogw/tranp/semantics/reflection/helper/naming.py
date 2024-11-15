@@ -46,7 +46,7 @@ class ClassDomainNaming:
 		Returns:
 			str: ドメイン名
 		"""
-		return alias_handler(alias_dsn(types.fullyname), fallback=types.domain_name) if alias_handler else types.domain_name
+		return alias_handler(alias_dsn(types.fullyname), fallback=types.alias_or_domain_name) if alias_handler else types.alias_or_domain_name
 
 	@classmethod
 	def fullyname(cls, types: defs.ClassDef, alias_handler: AliasHandler | None = None) -> str:

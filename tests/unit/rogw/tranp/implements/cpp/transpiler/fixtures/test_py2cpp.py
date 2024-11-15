@@ -3,10 +3,10 @@ from collections.abc import Callable
 from typing import ClassVar, Generic, Self, TypeAlias, TypeVar, TypeVarTuple, cast
 
 from rogw.tranp.compatible.cpp.classes import char, void
-from rogw.tranp.compatible.cpp.embed import Embed
 from rogw.tranp.compatible.cpp.enum import CEnum as Enum
 from rogw.tranp.compatible.cpp.object import CP, CPConst, CRawConst, CRef, CSP, CRefConst, c_func_ref
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
+from rogw.tranp.compatible.python.embed import Embed
 
 c_pragma('once')
 c_include('<memory>')
@@ -295,6 +295,7 @@ class AccessOps(Sub):
 		print(arr_ar.on[0])
 
 
+@Embed.alias('Alias2')
 class Alias:
 	inner: 'Alias.Inner'
 
@@ -305,6 +306,7 @@ class Alias:
 		A = 1
 		B = 2
 
+	@Embed.alias('Inner2')
 	class Inner:
 		V: ClassVar[int] = 0
 

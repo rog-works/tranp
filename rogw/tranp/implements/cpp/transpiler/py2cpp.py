@@ -523,14 +523,14 @@ class Py2Cpp(ITranspiler):
 		org_receiver_symbol = Defer.new(lambda: self.reflections.type_of(node.receiver).impl(refs.Object))
 		receiver_symbol = Defer.new(lambda: org_receiver_symbol.actualize().impl(refs.Object))
 		prop_symbol = Defer.new(lambda: receiver_symbol.prop_of(node.prop))
-		if self.is_relay_literizer(node):
+		if self.is_relay_literalizer(node):
 			spec = node.prop.tokens
 			if spec == '__name__':
-				return self.view.render(f'{node.classification}/literaize', vars={'spec': spec, 'literal': self.to_domain_name_by_class(receiver_symbol.types)})
+				return self.view.render(f'{node.classification}/literalize', vars={'spec': spec, 'literal': self.to_domain_name_by_class(receiver_symbol.types)})
 			if spec == '__module__':
-				return self.view.render(f'{node.classification}/literaize', vars={'spec': spec, 'literal': receiver_symbol.types.module_path})
+				return self.view.render(f'{node.classification}/literalize', vars={'spec': spec, 'literal': receiver_symbol.types.module_path})
 			else:
-				return self.view.render(f'{node.classification}/literaize', vars={'spec': spec, 'literal': receiver})
+				return self.view.render(f'{node.classification}/literalize', vars={'spec': spec, 'literal': receiver})
 		elif self.is_relay_this(node):
 			prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.Method) else node.prop.domain_name
 			is_property = isinstance(prop_symbol.decl, defs.Method) and prop_symbol.decl.is_property
@@ -563,7 +563,7 @@ class Py2Cpp(ITranspiler):
 			is_property = isinstance(prop_symbol.decl, defs.Method) and prop_symbol.decl.is_property
 			return self.view.render(f'{node.classification}/default', vars={'receiver': receiver, 'operator': CVars.RelayOperators.Raw.name, 'prop': prop, 'is_property': is_property})
 
-	def is_relay_literizer(self, node: defs.Relay) -> bool:
+	def is_relay_literalizer(self, node: defs.Relay) -> bool:
 		return node.prop.tokens in ['__module__', '__name__', '__qualname__']
 
 	def is_relay_this(self, node: defs.Relay) -> bool:

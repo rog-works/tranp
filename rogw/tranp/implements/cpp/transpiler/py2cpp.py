@@ -186,7 +186,7 @@ class Py2Cpp(ITranspiler):
 		Note:
 			C++ではClassMethodの仮想関数はないので非対応
 		"""
-		return len([decorator for decorator in method.decorators if decorator.path.tokens == f'{Embed.__name__}.{Embed.allow_override.__name__}']) > 0
+		return len([decorator for decorator in method.decorators if decorator.path.tokens == Embed.allow_override.__qualname__]) > 0
 
 	def to_accessor(self, accessor: str) -> str:
 		"""アクセス修飾子を翻訳
@@ -335,7 +335,7 @@ class Py2Cpp(ITranspiler):
 
 	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], template_types: list[str], comment: str, statements: list[str]) -> str:
 		# XXX 構造体の判定
-		is_struct = len([decorator for decorator in decorators if decorator.startswith(f'{Embed.__name__}.{Embed.struct.__name__}')])
+		is_struct = len([decorator for decorator in decorators if decorator.startswith(Embed.struct.__qualname__)])
 
 		# XXX クラス変数とそれ以外のステートメントを分離
 		decl_class_var_statements: list[str] = []

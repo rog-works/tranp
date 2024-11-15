@@ -87,11 +87,12 @@ class SymbolDB(MutableMapping[str, IReflection]):
 			Iterator[tuple[str, IReflection]]: イテレーター
 		"""
 		if not for_module_path:
-			return self.__items.values()
-
-		for key, paths in self.__paths.items():
-			if paths[0] == for_module_path:
-				yield key, self.__items[key]
+			for key, value in self.__items.items():
+				yield key, value
+		else:
+			for key, paths in self.__paths.items():
+				if paths[0] == for_module_path:
+					yield key, self.__items[key]
 
 	def keys(self) -> KeysView[str]:
 		"""キーのジェネレーターを取得

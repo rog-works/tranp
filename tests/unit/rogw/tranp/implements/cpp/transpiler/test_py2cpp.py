@@ -229,6 +229,7 @@ class TestPy2Cpp(TestCase):
 		('Alias.litelize', 'function_def_raw.block.funccall[4]', defs.FuncCall, 'printf("in_local");'),
 		('Alias.litelize', 'function_def_raw.block.funccall[5]', defs.FuncCall, 'printf("Alias2::in_local");'),
 		('Alias.litelize', 'function_def_raw.block.funccall[6]', defs.FuncCall, 'printf("Alias2::Inner2::func");'),
+		('Alias.litelize', 'function_def_raw.block.funccall[7]', defs.FuncCall, 'printf("Alias2");'),
 
 		('ListOps.len', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'int size_values = values.size();'),
 		('ListOps.pop', 'function_def_raw.block.assign[1]', defs.MoveAssign, BlockExpects.ListOps_pop_assign_value0),
@@ -334,6 +335,8 @@ class TestPy2Cpp(TestCase):
 		('ForFlows.for_each', 'function_def_raw.block.for_stmt[1]', defs.For, 'for (auto& s : strs) {\n\n}'),
 		('ForFlows.for_each', 'function_def_raw.block.for_stmt[2]', defs.For, 'for (auto& [e1, e2, e3] : ts) {\n\n}'),
 		('ForFlows.for_each', 'function_def_raw.block.for_stmt[3]', defs.For, 'for (const auto cp : cps) {\n\n}'),
+
+		('ForFlows.try_catch', 'function_def_raw.block.try_stmt', defs.Try, 'try {\n\n} catch (std::runtime_error e) {\n\tthrow new std::exception();\n} catch (std::exception e) {\n\tthrow e;\n}'),
 
 		('ForClassMethod.make', '', defs.ClassMethod, 'public:\n/** make */\nstatic ForClassMethod make() {\n\tForClassMethod inst = ForClassMethod();\n\treturn inst;\n}'),
 

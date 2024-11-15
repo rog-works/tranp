@@ -219,6 +219,9 @@ class ClassMethod: ...
 class Exception:
 	def __init__(self, *args: Any) -> None: ...
 
+
+class RuntimeError(Exception): ...
+
 # Function
 
 @__actual__('super')

@@ -15,6 +15,8 @@ aliases.rogw.tranp.compatible.lang.accessor.public: public
 aliases.rogw.tranp.compatible.lang.accessor.protected: protected
 aliases.rogw.tranp.compatible.lang.accessor.private: private
 # classes
+aliases.rogw.tranp.compatible.libralies.classes#Exception: std::exception
+aliases.rogw.tranp.compatible.libralies.classes#RuntimeError: std::runtime_error
 aliases.rogw.tranp.compatible.libralies.classes#dict: std::map
 aliases.rogw.tranp.compatible.libralies.classes#dict.in: contains
 aliases.rogw.tranp.compatible.libralies.classes#dict.clear: clear
@@ -32,6 +34,7 @@ aliases.rogw.tranp.compatible.libralies.classes#str.rfind: find_last_of
 aliases.rogw.tranp.compatible.libralies.classes#str.startswith: starts_with
 aliases.rogw.tranp.compatible.libralies.classes#tuple: std::tuple
 # cpp
+aliases.rogw.tranp.compatible.cpp.classes#PluckMethod: PluckMethod
 aliases.rogw.tranp.compatible.cpp.classes#container.size: size
 aliases.rogw.tranp.compatible.cpp.classes#float.mod: fmod
 aliases.rogw.tranp.compatible.cpp.classes#map.begin: begin
@@ -49,6 +52,5 @@ aliases.rogw.tranp.compatible.cpp.classes#string.size: size
 aliases.rogw.tranp.compatible.cpp.classes#string.slice: substr
 aliases.rogw.tranp.compatible.cpp.classes#vector.begin: begin
 aliases.rogw.tranp.compatible.cpp.classes#vector.end: end
-aliases.rogw.tranp.compatible.cpp.classes#PluckMethod: PluckMethod
 # example
 # @see dsn.translation.import_dsn

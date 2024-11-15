@@ -186,7 +186,7 @@ class Py2Cpp(ITranspiler):
 		Note:
 			C++ではClassMethodの仮想関数はないので非対応
 		"""
-		return len([decorator for decorator in method.decorators if decorator.path.tokens == f'{Embed.__name__}.{Embed.allow_override.__name__}']) > 0
+		return len([decorator for decorator in method.decorators if decorator.path.tokens == Embed.allow_override.__qualname__]) > 0
 
 	def to_accessor(self, accessor: str) -> str:
 		"""アクセス修飾子を翻訳
@@ -335,7 +335,7 @@ class Py2Cpp(ITranspiler):
 
 	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], template_types: list[str], comment: str, statements: list[str]) -> str:
 		# XXX 構造体の判定
-		is_struct = len([decorator for decorator in decorators if decorator.startswith(f'{Embed.__name__}.{Embed.struct.__name__}')])
+		is_struct = len([decorator for decorator in decorators if decorator.startswith(Embed.struct.__qualname__)])
 
 		# XXX クラス変数とそれ以外のステートメントを分離
 		decl_class_var_statements: list[str] = []
@@ -442,7 +442,7 @@ class Py2Cpp(ITranspiler):
 		raise NotSupportedError(f'Denied yield return. node: {node}')
 
 	def on_throw(self, node: defs.Throw, throws: str, via: str) -> str:
-		return self.view.render(node.classification, vars={'throws': throws, 'via': via})
+		return self.view.render(node.classification, vars={'throws': throws, 'via': via, 'is_new': node.throws.is_a(defs.FuncCall)})
 
 	def on_pass(self, node: defs.Pass) -> str:
 		# XXX statementsのスタック数が合わなくなるため出力
@@ -520,62 +520,74 @@ class Py2Cpp(ITranspiler):
 		return node.tokens
 
 	def on_relay(self, node: defs.Relay, receiver: str) -> str:
-		receiver_symbol = self.reflections.type_of(node.receiver).impl(refs.Object)
-		receiver_is_type_ref = receiver_symbol.type_is(type)
-		receiver_symbol = receiver_symbol.actualize()
-		prop_symbol = receiver_symbol.prop_of(node.prop)
-
-		spec, operator = self.analyze_relay_spec(node, receiver_symbol, receiver_is_type_ref)
-		prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.ClassDef) else node.prop.domain_name
-		is_property = isinstance(prop_symbol.decl, defs.Method) and prop_symbol.decl.is_property
-		relay_vars = {'receiver': receiver, 'operator': operator, 'prop': prop, 'is_property': is_property}
-		if spec == 'cvar_relay':
+		org_receiver_symbol = Defer.new(lambda: self.reflections.type_of(node.receiver).impl(refs.Object))
+		receiver_symbol = Defer.new(lambda: org_receiver_symbol.actualize().impl(refs.Object))
+		prop_symbol = Defer.new(lambda: receiver_symbol.prop_of(node.prop))
+		if self.is_relay_literalizer(node):
+			spec = node.prop.tokens
+			if spec == '__name__':
+				return self.view.render(f'{node.classification}/literalize', vars={'spec': spec, 'literal': self.to_domain_name_by_class(receiver_symbol.types)})
+			if spec == '__module__':
+				return self.view.render(f'{node.classification}/literalize', vars={'spec': spec, 'literal': receiver_symbol.types.module_path})
+			else:
+				return self.view.render(f'{node.classification}/literalize', vars={'spec': spec, 'literal': receiver})
+		elif self.is_relay_this(node):
+			prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.Method) else node.prop.domain_name
+			is_property = isinstance(prop_symbol.decl, defs.Method) and prop_symbol.decl.is_property
+			return self.view.render(f'{node.classification}/default', vars={'receiver': receiver, 'operator': CVars.RelayOperators.Address.name, 'prop': prop, 'is_property': is_property})
+		elif self.is_relay_cvar(node, receiver_symbol):
+			# 期待値: receiver.on
+			cvar_key = CVars.key_from(receiver_symbol)
+			operator = CVars.to_operator(cvar_key).name
+			return self.view.render(f'{node.classification}/default', vars={'receiver': receiver, 'operator': operator, 'prop': node.prop.domain_name, 'is_property': True})
+		elif self.is_relay_cvar_link(node, receiver_symbol):
 			# 期待値: receiver.on().prop
 			cvar_receiver = PatternParser.sub_cvar_relay(receiver)
-			return self.view.render(f'{node.classification}/default', vars={**relay_vars, 'receiver': cvar_receiver})
-		elif spec.startswith('cvar_to_'):
+			cvar_key = CVars.key_from(receiver_symbol.context)
+			operator = CVars.to_operator(cvar_key).name
+			prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.Method) else node.prop.domain_name
+			is_property = isinstance(prop_symbol.decl, defs.Method) and prop_symbol.decl.is_property
+			return self.view.render(f'{node.classification}/default', vars={'receiver': cvar_receiver, 'operator': operator, 'prop': prop, 'is_property': is_property})
+		elif self.is_relay_cvar_exchanger(node):
 			# 期待値: receiver.raw()
 			cvar_receiver = PatternParser.sub_cvar_to(receiver)
-			move = spec.split('cvar_to_')[1]
-			return self.view.render(f'{node.classification}/cvar_to', vars={**relay_vars, 'receiver': cvar_receiver, 'move': move})
-		elif spec == '__module__':
-			return self.view.render(f'{node.classification}/{spec}', vars={**relay_vars, 'module_path': receiver_symbol.types.module_path})
-		elif spec == '__name__':
-			return self.view.render(f'{node.classification}/{spec}', vars={**relay_vars, 'symbol': self.to_domain_name_by_class(receiver_symbol.types)})
-		elif spec == '__qualname__':
-			return self.view.render(f'{node.classification}/{spec}', vars=relay_vars)
-		else:
-			return self.view.render(f'{node.classification}/default', vars=relay_vars)
-
-	def analyze_relay_spec(self, node: defs.Relay, receiver_symbol: IReflection, receiver_is_type_ref: bool) -> tuple[str, str]:
-		def is_this_relay() -> bool:
-			return node.receiver.is_a(defs.ThisRef)
-
-		def is_on_cvar_relay() -> bool:
-			return isinstance(node.receiver, defs.Relay) and node.receiver.prop.domain_name == CVars.relay_key
-
-		def is_on_cvar_exchanger() -> bool:
-			return node.prop.domain_name in CVars.exchanger_keys
-
-		def is_type_relay() -> bool:
-			return receiver_is_type_ref or isinstance(receiver_symbol.node, defs.Super)
-
-		if node.prop.tokens in ['__module__', '__name__', '__qualname__']:
-			return node.prop.tokens, CVars.RelayOperators.Raw.name
-		elif is_this_relay():
-			return 'default', CVars.RelayOperators.Address.name
-		elif is_on_cvar_relay():
-			cvar_key = CVars.key_from(receiver_symbol.context)
-			if not CVars.is_raw_raw(cvar_key):
-				return 'cvar_relay', CVars.to_operator(cvar_key).name
-		elif is_on_cvar_exchanger():
 			cvar_key = CVars.key_from(receiver_symbol)
+			operator = CVars.to_operator(cvar_key).name
 			move = CVars.to_move(cvar_key, node.prop.domain_name)
-			return f'cvar_to_{move.name}', CVars.to_operator(cvar_key).name
-		elif is_type_relay():
-			return 'default', CVars.RelayOperators.Static.name
+			return self.view.render(f'{node.classification}/cvar_to', vars={'receiver': cvar_receiver, 'move': move.name})
+		elif self.is_relay_type(node, org_receiver_symbol):
+			prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.ClassDef) else node.prop.domain_name
+			return self.view.render(f'{node.classification}/default', vars={'receiver': receiver, 'operator': CVars.RelayOperators.Static.name, 'prop': prop, 'is_property': False})
+		else:
+			prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.Method) else node.prop.domain_name
+			is_property = isinstance(prop_symbol.decl, defs.Method) and prop_symbol.decl.is_property
+			return self.view.render(f'{node.classification}/default', vars={'receiver': receiver, 'operator': CVars.RelayOperators.Raw.name, 'prop': prop, 'is_property': is_property})
 
-		return 'default', CVars.RelayOperators.Raw.name
+	def is_relay_literalizer(self, node: defs.Relay) -> bool:
+		return node.prop.tokens in ['__module__', '__name__', '__qualname__']
+
+	def is_relay_this(self, node: defs.Relay) -> bool:
+		return node.receiver.is_a(defs.ThisRef)
+
+	def is_relay_cvar(self, node: defs.Relay, receiver_symbol: IReflection) -> bool:
+		if node.prop.domain_name != CVars.relay_key:
+			return False
+
+		cvar_key = CVars.key_from(receiver_symbol)
+		return not CVars.is_raw_raw(cvar_key)
+
+	def is_relay_cvar_link(self, node: defs.Relay, receiver_symbol: IReflection) -> bool:
+		if not (isinstance(node.receiver, defs.Relay) and node.receiver.prop.domain_name == CVars.relay_key):
+			return False
+
+		cvar_key = CVars.key_from(receiver_symbol.context)
+		return not CVars.is_raw_raw(cvar_key)
+
+	def is_relay_cvar_exchanger(self, node: defs.Relay) -> bool:
+		return node.prop.domain_name in CVars.exchanger_keys
+
+	def is_relay_type(self, node: defs.Relay, org_receiver_symbol: IReflection) -> bool:
+		return org_receiver_symbol.impl(refs.Object).type_is(type) or isinstance(node.receiver, defs.Super)
 
 	def on_var(self, node: defs.Var) -> str:
 		symbol = self.reflections.type_of(node).impl(refs.Object).actualize('type')

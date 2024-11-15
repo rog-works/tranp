@@ -1143,6 +1143,33 @@ class TestRenderer(TestCase):
 		self.assertRender('list', 0, vars, expected)
 
 	@data_provider([
+		({'receiver': 'raw', 'move': 'ToAddress'}, '(&(raw))'),
+		({'receiver': 'addr', 'move': 'ToActual'}, '(*(addr))'),
+		({'receiver': 'sp', 'move': 'UnpackSp'}, '(sp).get()'),
+		({'receiver': 'raw', 'move': 'Copy'}, 'raw'),
+	])
+	def test_render_relay_cvar_to(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('relay/cvar_to', 0, vars, expected)
+
+	@data_provider([
+		({'receiver': 'a', 'operator': 'Raw', 'prop': 'b', 'is_property': False}, 'a.b'),
+		({'receiver': 'a', 'operator': 'Raw', 'prop': 'b', 'is_property': True}, 'a.b()'),
+		({'receiver': 'a', 'operator': 'Address', 'prop': 'b', 'is_property': False}, 'a->b'),
+		({'receiver': 'a', 'operator': 'Address', 'prop': 'b', 'is_property': True}, 'a->b()'),
+		({'receiver': 'A', 'operator': 'Static', 'prop': 'B', 'is_property': False}, 'A::B'),
+	])
+	def test_render_relay_default(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('relay/default', 0, vars, expected)
+
+	@data_provider([
+		({'spec': '__name__', 'literal': 'A'}, '"A"'),
+		({'spec': '__module_path__', 'literal': 'module.path.to.A'}, '"module.path.to.A"'),
+		({'spec': '__qualname__', 'literal': 'A.func'}, '"A.func"'),
+	])
+	def test_render_relay_literalize(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('relay/literalize', 0, vars, expected)
+
+	@data_provider([
 		({'return_value': '(1 + 2)'}, 'return (1 + 2);'),
 		({'return_value': ''}, 'return;'),
 	])

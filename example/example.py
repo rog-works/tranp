@@ -1,12 +1,15 @@
 from rogw.tranp.compatible.cpp.object import CP, CRef, CRefConst
 from rogw.tranp.compatible.cpp.preprocess import c_pragma
 from rogw.tranp.compatible.cpp.enum import CEnum as Enum
+from rogw.tranp.compatible.python.embed import Embed
 
 c_pragma('once')
 
 from example.FW.compatible import Box3d, IntVector, IntVector2, Mesh, MeshRaw, Vector, Vector2
 from example.FW.core import log_error, log_info, log_warning
 
+
+@Embed.alias('FL_CellMesh')
 class CellMesh:
 	"""セル(メッシュ)関連のライブラリー"""
 

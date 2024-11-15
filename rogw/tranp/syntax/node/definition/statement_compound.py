@@ -1,6 +1,6 @@
 from typing import Generic, TypeVar, override
 
-from rogw.tranp.compatible.python.embed import __actual__
+from rogw.tranp.compatible.python.embed import Embed, __actual__
 from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.lang.annotation import duck_typed, implements
 from rogw.tranp.lang.sequence import flatten, last_index_of
@@ -333,6 +333,12 @@ class ClassDef(Node, IDomain, IScope, INamespace, IDeclaration, ISymbol):
 	def actual_symbol(self) -> str | None:
 		embedder = self._dig_embedder(__actual__.__name__)
 		return embedder.arguments[0].value.as_a(String).as_string if embedder else None
+
+	@property
+	def alias_or_domain_name(self) -> str:
+		"""Note: トランスパイル時のみ使用すること。それ以外の使用はNG"""
+		embedder = self._dig_embedder(Embed.alias.__qualname__)
+		return embedder.arguments[0].value.as_a(String).as_string if embedder else self.domain_name
 
 	def _decl_vars_with(self, allow: type[T_Declable]) -> list[T_Declable]:
 		return VarsCollector.collect(self, allow)

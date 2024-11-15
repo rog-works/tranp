@@ -5,18 +5,16 @@ from rogw.tranp.compatible.python.template import T, T_Key, T_Value
 
 # Embed
 
-def __actual__(name: str) -> Callable[[T], T]:
-	"""コード上で実際に用いる名称を埋め込む
+def __actual__(name: str) -> Callable:
+	"""実際のシンボル名を埋め込む
 
 	Args:
 		name (str): 名前
 	Returns:
-		Callable[[T], T]: デコレート対象
-	Examples:
-		```python
-		@__actual__('type')
-		class Type: ...
-		```
+		Callable: デコレート対象
+	Note:
+		* 変更後の名称でシンボルテーブルに登録されるため、定義元の名前で参照することが出来なくなる点に注意
+		* トランスパイル後のシンボル名のみ変更する場合は、Embed.aliasを使用 @see rogw.tranp.compatible.python.embed.Embed.alias
 	"""
 	def decorator(wrapped: T) -> T:
 		return wrapped

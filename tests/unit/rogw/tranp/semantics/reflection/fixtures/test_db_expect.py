@@ -35,7 +35,7 @@ def expected_symbols() -> dict[str, tuple[str, str]]:
 		'rogw.tranp.compatible.python.template#T_Self': ('rogw.tranp.compatible.python.template#T_Self', 'T_Self'),
 		'rogw.tranp.compatible.python.template#TypeVar': ('typing#TypeVar', 'TypeVar'),
 		'rogw.tranp.compatible.libralies.classes#str': ('rogw.tranp.compatible.libralies.classes#str', 'str'),
-		'rogw.tranp.compatible.libralies.classes#__actual__': ('rogw.tranp.compatible.libralies.classes#__actual__', '__actual__(str) -> Callable<T, T>'),
+		'rogw.tranp.compatible.libralies.classes#__actual__': ('rogw.tranp.compatible.libralies.classes#__actual__', '__actual__(str) -> Callable'),
 		'rogw.tranp.compatible.libralies.classes#__actual__.decorator': ('rogw.tranp.compatible.libralies.classes#__actual__.decorator', 'decorator(T) -> T'),
 		'rogw.tranp.compatible.libralies.classes#Union': ('rogw.tranp.compatible.libralies.classes#Union', 'Union'),
 		'rogw.tranp.compatible.libralies.classes#Unknown': ('rogw.tranp.compatible.libralies.classes#Unknown', 'Unknown'),

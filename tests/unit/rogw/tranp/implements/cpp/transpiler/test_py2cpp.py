@@ -332,9 +332,10 @@ class TestPy2Cpp(TestCase):
 		('ForFlows.for_dict', 'function_def_raw.block.for_stmt[10]', defs.For, 'for (auto& [_, vp] : dpp) {\n\n}'),
 		('ForFlows.for_dict', 'function_def_raw.block.for_stmt[11]', defs.For, 'for (auto& [kp, vp] : dpp) {\n\n}'),
 
-		('ForFlows.for_each', 'function_def_raw.block.for_stmt[0]', defs.For, 'for (auto& s : strs) {\n\n}'),
-		('ForFlows.for_each', 'function_def_raw.block.for_stmt[1]', defs.For, 'for (auto& [e1, e2, e3] : ts) {\n\n}'),
-		('ForFlows.for_each', 'function_def_raw.block.for_stmt[2]', defs.For, 'for (const auto cp : cps) {\n\n}'),
+		('ForFlows.for_each', 'function_def_raw.block.for_stmt[0]', defs.For, 'for (auto& n : {1}) {\n\n}'),
+		('ForFlows.for_each', 'function_def_raw.block.for_stmt[1]', defs.For, 'for (auto& s : strs) {\n\n}'),
+		('ForFlows.for_each', 'function_def_raw.block.for_stmt[2]', defs.For, 'for (auto& [e1, e2, e3] : ts) {\n\n}'),
+		('ForFlows.for_each', 'function_def_raw.block.for_stmt[3]', defs.For, 'for (const auto cp : cps) {\n\n}'),
 
 		('ForClassMethod.make', '', defs.ClassMethod, 'public:\n/** make */\nstatic ForClassMethod make() {\n\tForClassMethod inst = ForClassMethod();\n\treturn inst;\n}'),
 
@@ -383,6 +384,19 @@ class TestPy2Cpp(TestCase):
 		('ForComp.dict_comp_from_list', 'function_def_raw.block.dict_comp[1]', defs.DictComp, BlockExpects.dict_comp(proj_key='n', proj_value='n', proj_key_type='int', proj_value_type='int', iterates='ns', proj_symbols='n')),
 		('ForComp.dict_comp_from_list', 'function_def_raw.block.dict_comp[2]', defs.DictComp, BlockExpects.dict_comp(proj_key='cp', proj_value='cp', proj_key_type='const int*', proj_value_type='const int*', iterates='cps', proj_symbols='cp', proj_infer='const auto')),
 		('ForComp.dict_comp_from_list', 'function_def_raw.block.dict_comp[3]', defs.DictComp, BlockExpects.dict_comp(proj_key='e0', proj_value='{e1, e2}', proj_key_type='int', proj_value_type='std::tuple<int, int>', iterates='ts', proj_symbols='[e0, e1, e2]')),
+
+		('ForComp.dict_comp_from_dict', 'function_def_raw.block.dict_comp[0]', defs.DictComp, BlockExpects.dict_comp(proj_key='s', proj_value='s', proj_key_type='std::string', proj_value_type='std::string', iterates='{{"a", 1}}', proj_symbols='[s, _]')),
+		('ForComp.dict_comp_from_dict', 'function_def_raw.block.dict_comp[1]', defs.DictComp, BlockExpects.dict_comp(proj_key='n', proj_value='n', proj_key_type='int', proj_value_type='int', iterates='{{"a", 1}}', proj_symbols='[_, n]')),
+		('ForComp.dict_comp_from_dict', 'function_def_raw.block.dict_comp[2]', defs.DictComp, BlockExpects.dict_comp(proj_key='s', proj_value='n', proj_key_type='std::string', proj_value_type='int', iterates='{{"a", 1}}', proj_symbols='[s, n]')),
+		('ForComp.dict_comp_from_dict', 'function_def_raw.block.dict_comp[3]', defs.DictComp, BlockExpects.dict_comp(proj_key='s', proj_value='s', proj_key_type='std::string', proj_value_type='std::string', iterates='dsn', proj_symbols='[s, _]')),
+		('ForComp.dict_comp_from_dict', 'function_def_raw.block.dict_comp[4]', defs.DictComp, BlockExpects.dict_comp(proj_key='n', proj_value='n', proj_key_type='int', proj_value_type='int', iterates='dsn', proj_symbols='[_, n]')),
+		('ForComp.dict_comp_from_dict', 'function_def_raw.block.dict_comp[5]', defs.DictComp, BlockExpects.dict_comp(proj_key='s', proj_value='n', proj_key_type='std::string', proj_value_type='int', iterates='dsn', proj_symbols='[s, n]')),
+		('ForComp.dict_comp_from_dict', 'function_def_raw.block.dict_comp[6]', defs.DictComp, BlockExpects.dict_comp(proj_key='s', proj_value='s', proj_key_type='std::string', proj_value_type='std::string', iterates='*(psn)', proj_symbols='[s, _]')),
+		('ForComp.dict_comp_from_dict', 'function_def_raw.block.dict_comp[7]', defs.DictComp, BlockExpects.dict_comp(proj_key='n', proj_value='n', proj_key_type='int', proj_value_type='int', iterates='*(psn)', proj_symbols='[_, n]')),
+		('ForComp.dict_comp_from_dict', 'function_def_raw.block.dict_comp[8]', defs.DictComp, BlockExpects.dict_comp(proj_key='s', proj_value='n', proj_key_type='std::string', proj_value_type='int', iterates='*(psn)', proj_symbols='[s, n]')),
+		('ForComp.dict_comp_from_dict', 'function_def_raw.block.dict_comp[9]', defs.DictComp, BlockExpects.dict_comp(proj_key='kp', proj_value='kp', proj_key_type='int*', proj_value_type='int*', iterates='dpp', proj_symbols='[kp, _]')),
+		('ForComp.dict_comp_from_dict', 'function_def_raw.block.dict_comp[10]', defs.DictComp, BlockExpects.dict_comp(proj_key='vp', proj_value='vp', proj_key_type='int*', proj_value_type='int*', iterates='dpp', proj_symbols='[_, vp]')),
+		('ForComp.dict_comp_from_dict', 'function_def_raw.block.dict_comp[11]', defs.DictComp, BlockExpects.dict_comp(proj_key='kp', proj_value='vp', proj_key_type='int*', proj_value_type='int*', iterates='dpp', proj_symbols='[kp, vp]')),
 	])
 	def test_exec(self, local_path: str, offset_path: str, expected_type: type[Node], expected: str) -> None:
 		# local_pathが空の場合はEntrypointを基点ノードとする

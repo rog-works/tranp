@@ -547,6 +547,7 @@ class ForFlows:
 		for kp, vp in dpp.items(): ...
 
 	def for_each(self, strs: list[str], ts: list[tuple[int, int, int]], cps: list[CPConst[int]]) -> None:
+		for n in [1]: ...
 		for s in strs: ...
 		for e1, e2, e3 in ts: ...
 		for cp in cps: ...
@@ -638,3 +639,20 @@ class ForComp:
 		{n: n for n in ns}
 		{cp: cp for cp in cps}
 		{e0: (e1, e2) for e0, e1, e2 in ts}
+
+	def dict_comp_from_dict(self, dsn: DSI, psn: CP[dict[str, int]], dpp: dict[CP[int], CP[int]]) -> None:
+		{s: s for s in {'a': 1}.keys()}
+		{n: n for n in {'a': 1}.values()}
+		{s: n for s, n in {'a': 1}.items()}
+
+		{s: s for s in dsn.keys()}
+		{n: n for n in dsn.values()}
+		{s: n for s, n in dsn.items()}
+
+		{s: s for s in psn.on.keys()}
+		{n: n for n in psn.on.values()}
+		{s: n for s, n in psn.on.items()}
+
+		{kp: kp for kp in dpp.keys()}
+		{vp: vp for vp in dpp.values()}
+		{kp: vp for kp, vp in dpp.items()}

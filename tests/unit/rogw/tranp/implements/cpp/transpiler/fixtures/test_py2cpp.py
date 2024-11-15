@@ -611,12 +611,16 @@ class ForTemplateClass:
 
 class ForComp:
 	def list_comp_from_list(self, ns: list[int], cps: list[CPConst[int]], ts: list[tuple[int, int, int]]) -> None:
-		[n for n in [1]]
+		[l[0] for l in [[1]]]
 		[n for n in ns]
 		[cp for cp in cps]
 		[e0 + e1 + e2 for e0, e1, e2 in ts]
 
 	def list_comp_from_dict(self, dsn: DSI, psn: CP[dict[str, int]], dpp: dict[CP[int], CP[int]]) -> None:
+		[s for s in {'a': 1}.keys()]
+		[n for n in {'a': 1}.values()]
+		[(s, n) for s, n in {'a': 1}.items()]
+
 		[s for s in dsn.keys()]
 		[n for n in dsn.values()]
 		[(s, n) for s, n in dsn.items()]
@@ -630,7 +634,7 @@ class ForComp:
 		[(kp, vp) for kp, vp in dpp.items()]
 
 	def dict_comp_from_list(self, ns: list[int], cps: list[CPConst[int]], ts: list[tuple[int, int, int]]) -> None:
-		{n: n for n in [1]}
+		{l[0]: l for l in [[1]]}
 		{n: n for n in ns}
 		{cp: cp for cp in cps}
 		{e0: (e1, e2) for e0, e1, e2 in ts}

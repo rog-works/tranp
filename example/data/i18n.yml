@@ -24,6 +24,8 @@ aliases.rogw.tranp.compatible.libralies.classes#list.insert: insert
 aliases.rogw.tranp.compatible.libralies.classes#list.extend: insert
 aliases.rogw.tranp.compatible.libralies.classes#list.remove: erase
 aliases.rogw.tranp.compatible.libralies.classes#list.clear: clear
+aliases.rogw.tranp.compatible.libralies.classes#min: std::min
+aliases.rogw.tranp.compatible.libralies.classes#max: std::max
 aliases.rogw.tranp.compatible.libralies.classes#print: printf
 aliases.rogw.tranp.compatible.libralies.classes#str: std::string
 aliases.rogw.tranp.compatible.libralies.classes#str.endswith: ends_with

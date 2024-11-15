@@ -1,5 +1,6 @@
+{%- set infer = ('const ' if is_const else '') + 'auto' + ('' if is_addr_p else '&') -%}
 {%- if symbols | length == 1 -%}
-{% if is_const %}const {% endif %}auto{% if not is_addr_p %}&{% endif %} {{ symbols[0] }} : {{ iterates }}
+{{ infer }} {{ symbols[0] }} : {{ iterates }}
 {%- else -%}
-{% if is_const %}const {% endif %}auto{% if not is_addr_p %}&{% endif %} [{{ symbols | join(', ') }}] : {{ iterates }}
+{{ infer }} [{{ symbols | join(', ') }}] : {{ iterates }}
 {%- endif -%}

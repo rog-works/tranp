@@ -555,6 +555,13 @@ class ForFlows:
 		for e1, e2, e3 in ts: ...
 		for cp in cps: ...
 
+	def try_catch(self) -> None:
+		try: ...
+		except RuntimeError as e:
+			raise Exception() from e
+		except Exception as e:
+			raise e
+
 
 class ForClassMethod:
 	@classmethod

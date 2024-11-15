@@ -4,9 +4,7 @@ try {
 {{ statement }}
 {%- endfor %}
 {%- endfilter %}
-}
 {%- for catch in catches %}
-{%- filter indent('\t') %}
 {{ catch }}
-{%- endfilter %}
 {%- endfor %}
+}

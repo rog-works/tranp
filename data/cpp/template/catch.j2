@@ -1,5 +1,6 @@
-catch ({{ var_type }}{% if symbol %} {{ symbol }}{% endif %}) {
+} catch ({{ var_type }}{% if symbol %} {{ symbol }}{% endif %}) {
 {%- filter indent('\t') %}
-{{ block }}
+{%- for statement in statements %}
+{{ statement }}
+{%- endfor %}
 {%- endfilter %}
-}

@@ -1,1 +1,5 @@
+{%- if is_new -%}
 throw new {{ throws }};
+{%- else -%}
+throw {{ throws }};
+{%- endif -%}

@@ -442,7 +442,7 @@ class Py2Cpp(ITranspiler):
 		raise NotSupportedError(f'Denied yield return. node: {node}')
 
 	def on_throw(self, node: defs.Throw, throws: str, via: str) -> str:
-		return self.view.render(node.classification, vars={'throws': throws, 'via': via})
+		return self.view.render(node.classification, vars={'throws': throws, 'via': via, 'is_new': node.throws.is_a(defs.FuncCall)})
 
 	def on_pass(self, node: defs.Pass) -> str:
 		# XXX statementsのスタック数が合わなくなるため出力

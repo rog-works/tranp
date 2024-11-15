@@ -18,6 +18,8 @@ aliases.rogw.tranp.compatible.lang.accessor.private: private
 aliases.rogw.tranp.compatible.libralies.classes#dict: std::map
 aliases.rogw.tranp.compatible.libralies.classes#dict.in: contains
 aliases.rogw.tranp.compatible.libralies.classes#dict.clear: clear
+aliases.rogw.tranp.compatible.libralies.classes#Exception: std::exception
+aliases.rogw.tranp.compatible.libralies.classes#RuntimeError: std::runtime_error
 aliases.rogw.tranp.compatible.libralies.classes#list: std::vector
 aliases.rogw.tranp.compatible.libralies.classes#list.append: push_back
 aliases.rogw.tranp.compatible.libralies.classes#list.insert: insert

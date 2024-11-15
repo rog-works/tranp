@@ -45,6 +45,13 @@ class TestRenderer(TestCase):
 		self.assertRender('alt_class', 0, vars, expected)
 
 	@data_provider([
+		({'label': '', 'value': 1}, '1'),
+		({'label': 'a', 'value': 1}, '1'),
+	])
+	def test_render_argument(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('argument', 0, vars, expected)
+
+	@data_provider([
 		('move_assign', {'receiver': 'hoge', 'value': '1234'}, 'hoge = 1234;'),
 		('move_assign', {'receiver': 'hoge'}, 'hoge;'),
 		('anno_assign', {'receiver': 'hoge', 'value': '1234', 'var_type': 'int'}, 'int hoge = 1234;'),
@@ -53,14 +60,6 @@ class TestRenderer(TestCase):
 	])
 	def test_render_assign(self, template: str, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender(f'assign/{template}', 0, vars, expected)
-
-	@data_provider([
-		({'targets': [{'receiver': 'l', 'key': '1', 'list_or_dict': 'list'}]}, 'l.erase(l.begin() + 1);'),
-		({'targets': [{'receiver': 'd', 'key': '"a"', 'list_or_dict': 'dict'}]}, 'd.erase("a");'),
-		({'targets': [{'receiver': 'l', 'key': '1', 'list_or_dict': 'list'}, {'receiver': 'd', 'key': '"a"', 'list_or_dict': 'dict'}]}, 'l.erase(l.begin() + 1);\nd.erase("a");'),
-	])
-	def test_render_delete(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender(f'delete/default', 0, vars, expected)
 
 	@data_provider([
 		({'value_type': 'float', 'size': '10', 'default': '{100.0}', 'default_is_list': True}, 'std::vector<float>(10, 100.0)'),
@@ -101,7 +100,14 @@ class TestRenderer(TestCase):
 		self.assertRender('block', 0, vars, expected)
 
 	@data_provider([
-		({'var_type': 'Exception', 'symbol': 'e', 'block': 'pass;'}, 'catch (Exception e) {\n\tpass;\n}'),
+		('default', {'type_name': 'Callable', 'parameters': ['int', 'float'], 'return_type': 'bool'}, 'std::function<bool(int, float)>'),
+		('pluck_method', {'type_name': 'Callable', 'parameters': ['T', 'TArgs...'], 'return_type': 'void'}, 'typename PluckMethod<T, void, TArgs...>::method'),
+	])
+	def test_render_callable_type(self, template: str, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender(f'callable_type/{template}', 0, vars, expected)
+
+	@data_provider([
+		({'var_type': 'Exception', 'symbol': 'e', 'statements': ['pass;']}, '} catch (Exception e) {\n\tpass;'),
 	])
 	def test_render_catch(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('catch', 0, vars, expected)
@@ -366,17 +372,18 @@ class TestRenderer(TestCase):
 		self.assertRender('decorator', 0, vars, expected)
 
 	@data_provider([
+		({'targets': [{'receiver': 'l', 'key': '1', 'list_or_dict': 'list'}]}, 'l.erase(l.begin() + 1);'),
+		({'targets': [{'receiver': 'd', 'key': '"a"', 'list_or_dict': 'dict'}]}, 'd.erase("a");'),
+		({'targets': [{'receiver': 'l', 'key': '1', 'list_or_dict': 'list'}, {'receiver': 'd', 'key': '"a"', 'list_or_dict': 'dict'}]}, 'l.erase(l.begin() + 1);\nd.erase("a");'),
+	])
+	def test_render_delete(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender(f'delete/default', 0, vars, expected)
+
+	@data_provider([
 		({'key_type': 'int', 'value_type': 'float'}, 'std::map<int, float>'),
 	])
 	def test_render_dict_type(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('dict_type', 0, vars, expected)
-
-	@data_provider([
-		('default', {'type_name': 'Callable', 'parameters': ['int', 'float'], 'return_type': 'bool'}, 'std::function<bool(int, float)>'),
-		('pluck_method', {'type_name': 'Callable', 'parameters': ['T', 'TArgs...'], 'return_type': 'void'}, 'typename PluckMethod<T, void, TArgs...>::method'),
-	])
-	def test_render_callable_type(self, template: str, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender(f'callable_type/{template}', 0, vars, expected)
 
 	@data_provider([
 		({'items': ['{hoge, 1}','{fuga, 2}']}, '{\n\t{hoge, 1},\n\t{fuga, 2},\n}'),
@@ -1143,11 +1150,18 @@ class TestRenderer(TestCase):
 		self.assertRender('return', 0, vars, expected)
 
 	@data_provider([
-		({'label': '', 'value': 1}, '1'),
-		({'label': 'a', 'value': 1}, '1'),
+		({'throws': 'e', 'via': '', 'is_new': False}, 'throw e;'),
+		({'throws': 'std::exception()', 'via': 'e', 'is_new': True}, 'throw new std::exception();'),
 	])
-	def test_render_argument(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('argument', 0, vars, expected)
+	def test_render_throw(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('throw', 0, vars, expected)
+
+	@data_provider([
+		({'statements': ['pass;'], 'catches': []}, 'try {\n\tpass;\n}'),
+		({'statements': ['pass;'], 'catches': ['} catch (std::exception e) {\n\tthrow e;']}, 'try {\n\tpass;\n} catch (std::exception e) {\n\tthrow e;\n}'),
+	])
+	def test_render_try(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('try', 0, vars, expected)
 
 	@data_provider([
 		('default', {'type_name': 'int'}, 'int'),

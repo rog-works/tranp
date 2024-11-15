@@ -158,6 +158,7 @@ def expected_symbols() -> dict[str, tuple[str, str]]:
 		'rogw.tranp.compatible.libralies.classes#classmethod': ('rogw.tranp.compatible.libralies.classes#classmethod', 'classmethod'),
 		'rogw.tranp.compatible.libralies.classes#Exception': ('rogw.tranp.compatible.libralies.classes#Exception', 'Exception'),
 		'rogw.tranp.compatible.libralies.classes#Exception.__init__': ('rogw.tranp.compatible.libralies.classes#Exception.__init__', '__init__(Exception, Any) -> None'),
+		'rogw.tranp.compatible.libralies.classes#RuntimeError': ('rogw.tranp.compatible.libralies.classes#RuntimeError', 'RuntimeError'),
 		'rogw.tranp.compatible.libralies.classes#super': ('rogw.tranp.compatible.libralies.classes#super', 'super() -> Any'),
 		'rogw.tranp.compatible.libralies.classes#id': ('rogw.tranp.compatible.libralies.classes#id', 'id(Any) -> int'),
 		'rogw.tranp.compatible.libralies.classes#hash': ('rogw.tranp.compatible.libralies.classes#hash', 'hash(Any) -> int'),

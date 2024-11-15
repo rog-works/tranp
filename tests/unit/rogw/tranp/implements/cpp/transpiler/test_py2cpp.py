@@ -336,6 +336,8 @@ class TestPy2Cpp(TestCase):
 		('ForFlows.for_each', 'function_def_raw.block.for_stmt[2]', defs.For, 'for (auto& [e1, e2, e3] : ts) {\n\n}'),
 		('ForFlows.for_each', 'function_def_raw.block.for_stmt[3]', defs.For, 'for (const auto cp : cps) {\n\n}'),
 
+		('ForFlows.try_catch', 'function_def_raw.block.try_stmt', defs.Try, 'try {\n\n} catch (std::runtime_error e) {\n\tthrow new std::exception();\n} catch (std::exception e) {\n\tthrow e;\n}'),
+
 		('ForClassMethod.make', '', defs.ClassMethod, 'public:\n/** make */\nstatic ForClassMethod make() {\n\tForClassMethod inst = ForClassMethod();\n\treturn inst;\n}'),
 
 		('ForFuncCall.CallableType', '', defs.Class, '/** CallableType */\nclass CallableType {\n\tpublic: std::function<bool(int, std::string)> func;\n\tpublic:\n\t/** __init__ */\n\tCallableType(std::function<bool(int, std::string)> func) : func(func) {}\n};'),

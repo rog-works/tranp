@@ -249,10 +249,103 @@ class TestRenderer(TestCase):
 		self.assertRender('class/class', 0, vars, expected)
 
 	@data_provider([
-		({'symbols': ['value'], 'iterates': 'values', 'is_const': False}, 'auto& value : values'),
-		({'symbols': ['value'], 'iterates': 'values', 'is_const': True}, 'const auto& value : values'),
-		({'symbols': ['key', 'value'], 'iterates': 'items', 'is_const': False}, 'auto& [key, value] : items'),
-		({'symbols': ['key', 'value'], 'iterates': 'items', 'is_const': True}, 'const auto& [key, value] : items'),
+		(
+			'list_comp',
+			{
+				'projection': 'value',
+				'comp_for': 'auto& value : values',
+				'condition': '',
+				'projection_types': ['int'],
+				'is_const': False,
+				'is_addr_p': False,
+			},
+			'\n'.join([
+				'[&]() -> std::vector<int> {',
+				'	std::vector<int> __ret;',
+				'	for (auto& value : values) {',
+				'		__ret.push_back(value);',
+				'	}',
+				'	return __ret;',
+				'}()',
+			]),
+		),
+		(
+			'list_comp',
+			{
+				'projection': 'value',
+				'comp_for': 'auto& value : values',
+				'condition': 'value == 1',
+				'projection_types': ['int'],
+				'is_const': False,
+				'is_addr_p': False,
+			},
+			'\n'.join([
+				'[&]() -> std::vector<int> {',
+				'	std::vector<int> __ret;',
+				'	for (auto& value : values) {',
+				'		if (value == 1) {',
+				'			__ret.push_back(value);',
+				'		}',
+				'	}',
+				'	return __ret;',
+				'}()',
+			]),
+		),
+		(
+			'dict_comp',
+			{
+				'projection_key': 'key',
+				'projection_value': 'value',
+				'comp_for': 'auto& [key, value] : items',
+				'condition': '',
+				'projection_types': ['int', 'float'],
+				'is_const': False,
+				'is_addr_p': False,
+			},
+			'\n'.join([
+				'[&]() -> std::map<int, float> {',
+				'	std::map<int, float> __ret;',
+				'	for (auto& [key, value] : items) {',
+				'		__ret[key] = value;',
+				'	}',
+				'	return __ret;',
+				'}()',
+			]),
+		),
+		(
+			'dict_comp',
+			{
+				'projection_key': 'key',
+				'projection_value': 'value',
+				'comp_for': 'auto& [key, value] : items',
+				'condition': 'key == 1',
+				'projection_types': ['int', 'float'],
+				'is_const': False,
+				'is_addr_p': False,
+			},
+			'\n'.join([
+				'[&]() -> std::map<int, float> {',
+				'	std::map<int, float> __ret;',
+				'	for (auto& [key, value] : items) {',
+				'		if (key == 1) {',
+				'			__ret[key] = value;',
+				'		}',
+				'	}',
+				'	return __ret;',
+				'}()',
+			]),
+		),
+	])
+	def test_render_comp(self, spec: str, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender(f'comp/{spec}', 0, vars, expected)
+
+	@data_provider([
+		({'symbols': ['value'], 'iterates': 'values', 'is_const': False, 'is_addr_p': False}, 'auto& value : values'),
+		({'symbols': ['value'], 'iterates': 'values', 'is_const': True, 'is_addr_p': False}, 'const auto& value : values'),
+		({'symbols': ['value'], 'iterates': 'values', 'is_const': False, 'is_addr_p': True}, 'auto value : values'),
+		({'symbols': ['value'], 'iterates': 'values', 'is_const': True, 'is_addr_p': True}, 'const auto value : values'),
+		({'symbols': ['key', 'value'], 'iterates': 'items', 'is_const': False, 'is_addr_p': False}, 'auto& [key, value] : items'),
+		({'symbols': ['key', 'value'], 'iterates': 'items', 'is_const': True, 'is_addr_p': False}, 'const auto& [key, value] : items'),
 	])
 	def test_render_comp_for(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('comp/comp_for', 0, vars, expected)
@@ -271,49 +364,6 @@ class TestRenderer(TestCase):
 	])
 	def test_render_decorator(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('decorator', 0, vars, expected)
-
-	@data_provider([
-		(
-			{
-				'projection_key': 'key',
-				'projection_value': 'value',
-				'comp_for': 'auto& [key, value] : items',
-				'condition': '',
-				'projection_types': ['int', 'float'],
-			},
-			'\n'.join([
-				'[&]() -> std::map<int, float> {',
-				'	std::map<int, float> __ret;',
-				'	for (auto& [key, value] : items) {',
-				'		__ret[key] = value;',
-				'	}',
-				'	return __ret;',
-				'}()',
-			]),
-		),
-		(
-			{
-				'projection_key': 'key',
-				'projection_value': 'value',
-				'comp_for': 'auto& [key, value] : items',
-				'condition': 'key == 1',
-				'projection_types': ['int', 'float'],
-			},
-			'\n'.join([
-				'[&]() -> std::map<int, float> {',
-				'	std::map<int, float> __ret;',
-				'	for (auto& [key, value] : items) {',
-				'		if (key == 1) {',
-				'			__ret[key] = value;',
-				'		}',
-				'	}',
-				'	return __ret;',
-				'}()',
-			]),
-		),
-	])
-	def test_render_dict_comp(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('comp/dict_comp', 0, vars, expected)
 
 	@data_provider([
 		({'key_type': 'int', 'value_type': 'float'}, 'std::map<int, float>'),
@@ -467,50 +517,22 @@ class TestRenderer(TestCase):
 		self.assertRender('class/enum', 0, vars, expected)
 
 	@data_provider([
-		({'symbols': ['key', 'value'], 'iterates': 'items', 'statements': ['pass;']}, 'for (auto& [key, value] : items) {\n\tpass;\n}'),
+		({'symbols': ['key', 'value'], 'iterates': 'items', 'statements': []}, 'for (auto& [key, value] : items) {\n}'),
 	])
-	def test_render_for_dict_items(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('for/dict_items', 0, vars, expected)
+	def test_render_for_dict(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('for/dict', 0, vars, expected)
 
 	@data_provider([
 		(
 			{
-				'var_type': 'float',
+				'symbols': ['index', 'value'],
 				'iterates': 'items',
+				'statements': [],
 			},
 			'\n'.join([
-				'[&]() -> std::map<int, float> {',
-				'	std::map<int, float> __ret;',
-				'	int __index = 0;',
-				'	for (auto& __entry : items) {',
-				'		__ret[__index++] = __entry;',
-				'	}',
-				'	return __ret;',
-				'}()',
-			]),
-		)
-	])
-	def test_render_for_enumerate_iterates(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('for/_enumerate_iterates', 0, vars, expected)
-
-	@data_provider([
-		(
-			{
-				'symbols': ['key', 'value'],
-				'var_type': 'float',
-				'iterates': 'items',
-				'statements': ['pass;'],
-			},
-			'\n'.join([
-				'for (auto& [key, value] : [&]() -> std::map<int, float> {',
-				'	std::map<int, float> __ret;',
-				'	int __index = 0;',
-				'	for (auto& __entry : items) {',
-				'		__ret[__index++] = __entry;',
-				'	}',
-				'	return __ret;',
-				'}()) {',
-				'	pass;',
+				'int index = 0;',
+				'for (auto& value : items) {',
+				'	index++;',
 				'}',
 			]),
 		)
@@ -633,6 +655,7 @@ class TestRenderer(TestCase):
 				'var_type': 'int',
 				'receiver': 'items',
 				'operator': '.',
+				'is_statement': True,
 			},
 			'\n'.join([
 				'[&]() -> std::vector<int> {',
@@ -641,7 +664,7 @@ class TestRenderer(TestCase):
 				'		__ret.push_back(__key);',
 				'	}',
 				'	return __ret;',
-				'}()',
+				'}();',
 			]),
 		),
 	])
@@ -675,6 +698,7 @@ class TestRenderer(TestCase):
 				'var_type': 'int',
 				'receiver': 'items',
 				'operator': '.',
+				'is_statement': True,
 			},
 			'\n'.join([
 				'[&]() -> std::vector<int> {',
@@ -683,7 +707,7 @@ class TestRenderer(TestCase):
 				'		__ret.push_back(__value);',
 				'	}',
 				'	return __ret;',
-				'}()',
+				'}();',
 			]),
 		),
 	])

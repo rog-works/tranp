@@ -1,5 +1,5 @@
 {%- set infer = ('const ' if is_const else '') + 'auto' + ('' if is_addr_p else '&') -%}
-for ({{ infer }} {% if symbols | length > 1 %}[{{ symbols | join(', ') }}]{% else %}{{ symbols[0] }}{% endif %} : {{ iterates }}) {
+for ({{ infer }} [{{ symbols | join(', ') }}] : {{ iterates }}) {
 {%- filter indent('\t') %}
 {%- for statement in statements %}
 {{ statement }}

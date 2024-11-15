@@ -344,38 +344,6 @@ class Alias:
 		print(Alias.Inner.func.__qualname__)
 
 
-class CompOps:
-	class C:
-		...
-
-	def list_comp(self) -> None:
-		values0 = [1, 2, 3]
-		values1 = [value for value in values0]
-
-	def dict_comp(self) -> None:
-		kvs0_0 = {'a': CompOps.C()}
-		kvs0_1 = {key: value for key, value in kvs0_0.items()}
-		kvsp_0 = CP(kvs0_0)
-		kvsp_1 = {key: value for key, value in kvsp_0.on.items()}
-		values = [[1, 2], [3, 4]]
-		kvs2 = {in_values[0]: in_values[1] for in_values in values}
-
-
-class ForOps:
-	def range(self) -> None:
-		for i in range(10): ...
-
-	def enumerate(self) -> None:
-		keys = ['a', 'b']
-		for index, key in enumerate(keys): ...
-
-	def dict_items(self) -> None:
-		kvs = {'a': 1}
-		for key, value in kvs.items(): ...
-		kvs_p = CP(kvs)
-		for key, value in kvs_p.on.items(): ...
-
-
 class ListOps:
 	def len(self) -> None:
 		values = [1, 2]
@@ -553,15 +521,35 @@ class ForFlows:
 	def while_only(self) -> None:
 		while True: ...
 
-	def fors(self, strs: list[str], dsn: dict[str, int], cps: list[CPConst[int]]) -> None:
+	def for_range(self, strs: list[str]) -> None:
 		for i in range(2): ...
 		for i in range(len(strs)): ...
+
+	def for_enumerate(self, strs: list[str]) -> None:
 		for index, value in enumerate([1]): ...
 		for index, value in enumerate(strs): ...
+
+	def for_dict(self, dsn: DSI, psn: CP[dict[str, int]], dpp: dict[CP[int], CP[int]]) -> None:
+		for key in {'a': 1}.keys(): ...
+		for value in {'a': 1}.values(): ...
 		for key, value in {'a': 1}.items(): ...
-		for key, value in dsn.items(): ...
-		for s in strs: ...
+
+		for key in dsn.keys(): ...
 		for value in dsn.values(): ...
+		for key, value in dsn.items(): ...
+
+		for key in psn.on.keys(): ...
+		for value in psn.on.values(): ...
+		for key, value in psn.on.items(): ...
+
+		for kp in dpp.keys(): ...
+		for vp in dpp.values(): ...
+		for kp, vp in dpp.items(): ...
+
+	def for_each(self, strs: list[str], ts: list[tuple[int, int, int]], cps: list[CPConst[int]]) -> None:
+		for n in [1]: ...
+		for s in strs: ...
+		for e1, e2, e3 in ts: ...
 		for cp in cps: ...
 
 
@@ -620,3 +608,51 @@ class ForTemplateClass:
 		d = ForTemplateClass.Delegate[bool, int]()
 		d.bind(a, c_func_ref(ForTemplateClass.A.func).const)
 		d.invoke(True, 1)
+
+
+class ForComp:
+	def list_comp_from_list(self, ns: list[int], cps: list[CPConst[int]], ts: list[tuple[int, int, int]]) -> None:
+		[l[0] for l in [[1]]]
+		[n for n in ns]
+		[cp for cp in cps]
+		[e0 + e1 + e2 for e0, e1, e2 in ts]
+
+	def list_comp_from_dict(self, dsn: DSI, psn: CP[dict[str, int]], dpp: dict[CP[int], CP[int]]) -> None:
+		[s for s in {'a': 1}.keys()]
+		[n for n in {'a': 1}.values()]
+		[(s, n) for s, n in {'a': 1}.items()]
+
+		[s for s in dsn.keys()]
+		[n for n in dsn.values()]
+		[(s, n) for s, n in dsn.items()]
+
+		[s for s in psn.on.keys()]
+		[n for n in psn.on.values()]
+		[(s, n) for s, n in psn.on.items()]
+
+		[kp for kp in dpp.keys()]
+		[vp for vp in dpp.values()]
+		[(kp, vp) for kp, vp in dpp.items()]
+
+	def dict_comp_from_list(self, ns: list[int], cps: list[CPConst[int]], ts: list[tuple[int, int, int]]) -> None:
+		{l[0]: l for l in [[1]]}
+		{n: n for n in ns}
+		{cp: cp for cp in cps}
+		{e0: (e1, e2) for e0, e1, e2 in ts}
+
+	def dict_comp_from_dict(self, dsn: DSI, psn: CP[dict[str, int]], dpp: dict[CP[int], CP[int]]) -> None:
+		{s: s for s in {'a': 1}.keys()}
+		{n: n for n in {'a': 1}.values()}
+		{s: n for s, n in {'a': 1}.items()}
+
+		{s: s for s in dsn.keys()}
+		{n: n for n in dsn.values()}
+		{s: n for s, n in dsn.items()}
+
+		{s: s for s in psn.on.keys()}
+		{n: n for n in psn.on.values()}
+		{s: n for s, n in psn.on.items()}
+
+		{kp: kp for kp in dpp.keys()}
+		{vp: vp for vp in dpp.values()}
+		{kp: vp for kp, vp in dpp.items()}

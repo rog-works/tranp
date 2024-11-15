@@ -20,54 +20,6 @@ class DeclOps {
 	}
 };"""
 
-	CompOps_list_comp_assign_values1 = \
-"""std::vector<int> values1 = [&]() -> std::vector<int> {
-	std::vector<int> __ret;
-	for (auto& value : values0) {
-		__ret.push_back(value);
-	}
-	return __ret;
-}();"""
-
-	CompOps_dict_comp_assign_kvs0_1 = \
-"""std::map<std::string, CompOps::C> kvs0_1 = [&]() -> std::map<std::string, CompOps::C> {
-	std::map<std::string, CompOps::C> __ret;
-	for (auto& [key, value] : kvs0_0) {
-		__ret[key] = value;
-	}
-	return __ret;
-}();"""
-
-	CompOps_dict_comp_assign_kvsp_1 = \
-"""std::map<std::string, CompOps::C> kvsp_1 = [&]() -> std::map<std::string, CompOps::C> {
-	std::map<std::string, CompOps::C> __ret;
-	for (auto& [key, value] : *(kvsp_0)) {
-		__ret[key] = value;
-	}
-	return __ret;
-}();"""
-
-	CompOps_dict_comp_assign_kvs2 = \
-"""std::map<int, int> kvs2 = [&]() -> std::map<int, int> {
-	std::map<int, int> __ret;
-	for (auto& in_values : values) {
-		__ret[in_values[0]] = in_values[1];
-	}
-	return __ret;
-}();"""
-
-	ForOps_enumerate_for_index_key = \
-"""for (auto& [index, key] : [&]() -> std::map<int, std::string> {
-	std::map<int, std::string> __ret;
-	int __index = 0;
-	for (auto& __entry : keys) {
-		__ret[__index++] = __entry;
-	}
-	return __ret;
-}()) {
-
-}"""
-
 	ListOps_pop_assign_value0 = \
 """int value0 = [&]() -> int {
 	auto __iter = values.begin() + 1;
@@ -181,30 +133,35 @@ class Delegate {
 };"""
 
 	@classmethod
-	def for_enumerate(cls, key: str, value: str, iterates: str, var_type: str, statements: list[str]) -> str:
+	def for_enumerate(cls, index: str, value: str, iterates: str, statements: list[str]) -> str:
 		return '\n'.join([
-			f'for (auto& [{key}, {value}] : [&]() -> std::map<int, {var_type}> ' '{',
-			f'	std::map<int, {var_type}> __ret;',
-			'	int __index = 0;',
-			f'	for (auto& __entry : {iterates}) ' '{',
-			'		__ret[__index++] = __entry;',
-			'	}',
-			'	return __ret;',
-			'}()) {',
-			'\n'.join(statements),
+			f'int {index} = 0;',
+			f'for (auto& {value} : {iterates}) ' '{',
+			f'	{"\n".join(statements)}' if len(statements) else '',
+			f'	{index}++;',
 			'}',
 		])
 
 	@classmethod
-	def for_each(cls, value: str, iterates: str, var_type: str, statements: list[str]) -> str:
+	def list_comp(cls, proj_value: str, proj_type: str, iterates: str, proj_symbols: str = '', proj_infer: str = 'auto&') -> str:
 		return '\n'.join([
-			f'for (auto& {value} : [&]() -> std::vector<{var_type}> ' '{',
-			f'	std::vector<{var_type}> __ret;',
-			f'	for (auto& [_, __value] : {iterates}) ' '{',
-			'		__ret.push_back(__value);',
+			f'[&]() -> std::vector<{proj_type}> ' '{',
+			f'	std::vector<{proj_type}> __ret;',
+			f'	for ({proj_infer} {proj_symbols or proj_value} : {iterates}) ' '{',
+			f'		__ret.push_back({proj_value});',
 			'	}',
 			'	return __ret;',
-			'}()) {',
-			'\n'.join(statements),
-			'}',
+			'}()',
+		])
+
+	@classmethod
+	def dict_comp(cls, proj_key: str, proj_value: str, proj_key_type: str, proj_value_type: str, iterates: str, proj_symbols: str, proj_infer: str = 'auto&') -> str:
+		return '\n'.join([
+			f'[&]() -> std::map<{proj_key_type}, {proj_value_type}> ' '{',
+			f'	std::map<{proj_key_type}, {proj_value_type}> __ret;',
+			f'	for ({proj_infer} {proj_symbols} : {iterates}) ' '{',
+			f'		__ret[{proj_key}] = {proj_value};',
+			'	}',
+			'	return __ret;',
+			'}()',
 		])

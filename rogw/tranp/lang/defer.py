@@ -1,18 +1,17 @@
 from collections.abc import Callable
-from typing import Any, Generic, TypeVar, cast
-
-from rogw.tranp.lang.annotation import deprecated
+from typing import Any, TypeVar, cast
 
 T = TypeVar('T')
 
 
-@deprecated
-class Defer(Generic[T]):
+class Defer:
 	"""遅延評価プロクシー
 
 	Note:
-		### 非推奨に関して
-		* XXX スカラー型の完全な置き換えが出来ない
+		### 留意事項
+		* 不変性を持つスカラー型(int/str等)の置き換えは言語の仕様上不可能なため非対応
+		* 特殊メソッドは最低限のメソッドのみ対応 ※必要以上に定義すると想定外の呼び出しが発生することがあるため
+		* 上記の制限から一般的なユーザー定義型に対して用いることを想定
 	"""
 
 	@classmethod
@@ -83,12 +82,6 @@ class Defer(Generic[T]):
 		"""Returns: int: ハッシュ値"""
 		return getattr(Defer.resolve(self), '__hash__')()
 
-	def __len__(self) -> int:
-		"""Returns: int: 長さ"""
-		return getattr(Defer.resolve(self), '__len__')()
-
-	# ----- 2項演算 -----
-
 	def __eq__(self, other: Any) -> bool:
 		"""Args: other (Any): 対象 Returns: bool: True = 一致"""
 		return getattr(Defer.resolve(self), '__eq__')(other)
@@ -96,35 +89,3 @@ class Defer(Generic[T]):
 	def __ne__(self, other: Any) -> bool:
 		"""Args: other (Any): 対象 Returns: bool: True = 不一致"""
 		return getattr(Defer.resolve(self), '__ne__')(other)
-
-	def __lt__(self, other: Any) -> bool:
-		"""Args: other (Any): 対象 Returns: bool: True = 未満"""
-		return getattr(Defer.resolve(self), '__lt__')(other)
-
-	def __gt__(self, other: Any) -> bool:
-		"""Args: other (Any): 対象 Returns: bool: True = 大きい"""
-		return getattr(Defer.resolve(self), '__gt__')(other)
-
-	def __le__(self, other: Any) -> bool:
-		"""Args: other (Any): 対象 Returns: bool: True = 以下"""
-		return getattr(Defer.resolve(self), '__le__')(other)
-
-	def __ge__(self, other: Any) -> bool:
-		"""Args: other (Any): 対象 Returns: bool: True = 以上"""
-		return getattr(Defer.resolve(self), '__ge__')(other)
-
-	# ----- 算術演算 -----
-
-	def __add__(self, value: Any) -> Any:
-		"""加算 Args: value (Any): 値 Returns: Any: 値"""
-		return getattr(Defer.resolve(self), '__add__')(value)
-
-	# ----- 配列 -----
-
-	def __getitem__(self, slices: Any) -> Any:
-		"""配列参照 Args: slices (Any): 添え字, Returns: Any: 値"""
-		return getattr(Defer.resolve(self), '__getitem__')(slices)
-
-	def __setitem__(self, key: Any, value: Any) -> None:
-		"""配列更新 Args: key (Any): キー, value (Any): 値"""
-		getattr(Defer.resolve(self), '__setitem__')(key, value)

@@ -334,7 +334,7 @@ class Alias:
 		def super_call(self) -> None:
 			super().func()
 
-	def litelize(self) -> None:
+	def litelize(self, t: 'type[Alias]') -> None:
 		print(self.__class__.__name__)
 		print(self.__module__)
 		print(Alias.__module__)
@@ -342,6 +342,7 @@ class Alias:
 		print(Alias.in_local.__name__)
 		print(Alias.in_local.__qualname__)
 		print(Alias.Inner.func.__qualname__)
+		print(t.__name__)
 
 
 class ListOps:

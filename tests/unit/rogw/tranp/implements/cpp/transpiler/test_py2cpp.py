@@ -231,6 +231,7 @@ class TestPy2Cpp(TestCase):
 		('Alias.litelize', 'function_def_raw.block.funccall[4]', defs.FuncCall, 'printf("in_local");'),
 		('Alias.litelize', 'function_def_raw.block.funccall[5]', defs.FuncCall, 'printf("Alias2::in_local");'),
 		('Alias.litelize', 'function_def_raw.block.funccall[6]', defs.FuncCall, 'printf("Alias2::Inner2::func");'),
+		('Alias.litelize', 'function_def_raw.block.funccall[7]', defs.FuncCall, 'printf("Alias2");'),
 
 		('ListOps.len', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'int size_values = values.size();'),
 		('ListOps.pop', 'function_def_raw.block.assign[1]', defs.MoveAssign, BlockExpects.ListOps_pop_assign_value0),

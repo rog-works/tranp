@@ -5,12 +5,10 @@ aliases.collections.abc: aliases.collections.abc
 aliases.cpp: aliases.rogw.tranp.compatible.cpp.classes
 aliases.lang: aliases.rogw.tranp.compatible.lang
 aliases.typing: aliases.typing
-# collections.abc
+# lang
 aliases.collections.abc#Callable: std::function
-# typing
 aliases.typing#Any: void
 aliases.typing#cast: static_cast
-# lang
 aliases.rogw.tranp.compatible.lang.accessor.public: public
 aliases.rogw.tranp.compatible.lang.accessor.protected: protected
 aliases.rogw.tranp.compatible.lang.accessor.private: private
@@ -54,3 +52,5 @@ aliases.rogw.tranp.compatible.cpp.classes#vector.begin: begin
 aliases.rogw.tranp.compatible.cpp.classes#vector.end: end
 # example
 # @see dsn.translation.import_dsn
+# lang
+imports.collections.abc: '#include <functional>'

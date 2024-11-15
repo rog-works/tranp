@@ -10,11 +10,12 @@ class Embed:
 	"""埋め込みモジュール"""
 
 	@classmethod
-	def alias(cls, name: str) -> Callable:
+	def alias(cls, name: str, prefix: bool = False) -> Callable:
 		"""トランスパイル後のシンボル名を埋め込む
 
 		Args:
-			name (str): 名前
+			name (str): 名前 (default = '')
+			prefix (bool): 接頭辞フラグ (default = False)
 		Returns:
 			Callable: デコレート対象
 		Note:

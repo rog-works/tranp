@@ -338,7 +338,11 @@ class ClassDef(Node, IDomain, IScope, INamespace, IDeclaration, ISymbol):
 	def alias_or_domain_name(self) -> str:
 		"""Note: トランスパイル時のみ使用すること。それ以外の使用はNG"""
 		embedder = self._dig_embedder(Embed.alias.__qualname__)
-		return embedder.arguments[0].value.as_a(String).as_string if embedder else self.domain_name
+		if not embedder:
+			return self.domain_name
+
+		alias = embedder.arguments[0].value.as_a(String).as_string
+		return f'{alias}{self.domain_name}' if len(embedder.arguments) == 2 else alias
 
 	def _decl_vars_with(self, allow: type[T_Declable]) -> list[T_Declable]:
 		return VarsCollector.collect(self, allow)

@@ -9,7 +9,7 @@ from example.FW.compatible import Box3d, IntVector, IntVector2, Mesh, MeshRaw, V
 from example.FW.core import log_error, log_info, log_warning
 
 
-@Embed.alias('FL_CellMesh')
+@Embed.alias('FL_', prefix=True)
 class CellMesh:
 	"""セル(メッシュ)関連のライブラリー"""
 

@@ -344,34 +344,6 @@ class Alias:
 		print(Alias.Inner.func.__qualname__)
 
 
-class CompOps:
-	class C:
-		...
-
-	def dict_comp(self) -> None:
-		kvs0_0 = {'a': CompOps.C()}
-		kvs0_1 = {key: value for key, value in kvs0_0.items()}
-		kvsp_0 = CP(kvs0_0)
-		kvsp_1 = {key: value for key, value in kvsp_0.on.items()}
-		values = [[1, 2], [3, 4]]
-		kvs2 = {in_values[0]: in_values[1] for in_values in values}
-
-
-class ForOps:
-	def range(self) -> None:
-		for i in range(10): ...
-
-	def enumerate(self) -> None:
-		keys = ['a', 'b']
-		for index, key in enumerate(keys): ...
-
-	def dict_items(self) -> None:
-		kvs = {'a': 1}
-		for key, value in kvs.items(): ...
-		kvs_p = CP(kvs)
-		for key, value in kvs_p.on.items(): ...
-
-
 class ListOps:
 	def len(self) -> None:
 		values = [1, 2]

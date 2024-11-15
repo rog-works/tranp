@@ -12,7 +12,7 @@ class CVars:
 
 	Attributes:
 		relay_key (str): リレー代替メソッドの名前
-		empty_key (str): リレー代替メソッドの名前
+		empty_key (str): 空のスマートポインター生成代替メソッドの名前
 		allocator_key (str): メモリ生成メソッドの名前
 		copy_key (str): 代入コピー代替メソッドの名前
 		exchanger_keys (list[str]): 属性変換メソッドの名前

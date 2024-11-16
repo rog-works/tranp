@@ -372,6 +372,20 @@ class Struct:
 def template_func(v: T) -> T: ...
 
 
+class ForCompound:
+	class ClassMethod:
+		@classmethod
+		def make(cls: type[Self]) -> Self:
+			inst = cls()
+			return inst
+
+	class SwapMethod:
+		@Embed.python
+		def exec(self) -> None: ...
+		@Embed.alias('exec')
+		def exec_cpp(self) -> None: ...
+
+
 class ForFlows:
 	def if_elif_else(self) -> None:
 		if 1: ...
@@ -420,13 +434,6 @@ class ForFlows:
 			raise e
 
 
-class ForClassMethod:
-	@classmethod
-	def make(cls: type[Self]) -> Self:
-		inst = cls()
-		return inst
-
-
 class ForAssign:
 	def anno(self) -> None:
 		n: int = 1
@@ -462,7 +469,7 @@ class ForAssign:
 		s = des[Values.A]
 
 
-class ForStatementSimple:
+class ForSimple:
 	def delete_list_dict(self, ns: list[int], dsn: dict[str, int]) -> None:
 		del ns[0]
 		del ns[1], ns[2]

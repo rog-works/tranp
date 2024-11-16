@@ -10,6 +10,16 @@ class BlockExpects:
 		])
 
 	@classmethod
+	def method(cls, access: str, klass: str, name: str, statements: list[str]) -> str:
+		return '\n'.join([
+			f'{access}:',
+			f'/** {name} */',
+			f'{klass} {name}() ' '{',
+			f'	{"\n\t".join(statements)}' if statements else '',
+			'}',
+		])
+
+	@classmethod
 	def list_slice(cls, symbol: str, begin: str, end: str, step: str, var_type: str) -> str:
 		return '\n'.join([
 			f'[&]() -> std::vector<{var_type}> ' '{',

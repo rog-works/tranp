@@ -239,6 +239,10 @@ class TestPy2Cpp(TestCase):
 
 		('template_func', '', defs.Function, '/** template_func */\ntemplate<typename T>\nT template_func(T v) {}'),
 
+		('ForCompound.ClassMethod.make', '', defs.ClassMethod, BlockExpects.class_method(access='public', klass='ClassMethod', name='make', statements=['ForCompound::ClassMethod inst = ClassMethod();', 'return inst;'])),
+		('ForCompound.SwapMethod.exec', '', defs.Method, '// method exec'),
+		('ForCompound.SwapMethod.exec_cpp', '', defs.Method, 'public:\n/** exec */\nvoid exec() {}'),
+
 		('ForFlows.if_elif_else', 'function_def_raw.block.if_stmt', defs.If, 'if (1) {\n\n} else if (2) {\n\n} else {\n\n}'),
 
 		('ForFlows.while_only', 'function_def_raw.block.while_stmt', defs.While, 'while (true) {\n\n}'),
@@ -269,8 +273,6 @@ class TestPy2Cpp(TestCase):
 
 		('ForFlows.try_catch_throw', 'function_def_raw.block.try_stmt', defs.Try, 'try {\n\n} catch (std::runtime_error e) {\n\tthrow new std::exception();\n} catch (std::exception e) {\n\tthrow e;\n}'),
 
-		('ForClassMethod.make', '', defs.ClassMethod, BlockExpects.class_method(access='public', klass='ForClassMethod', name='make', statements=['ForClassMethod inst = ForClassMethod();', 'return inst;'])),
-
 		('ForAssign.anno', 'function_def_raw.block.anno_assign[0]', defs.AnnoAssign, 'int n = 1;'),
 		('ForAssign.anno', 'function_def_raw.block.anno_assign[1]', defs.AnnoAssign, 'std::vector<int> ns = {};'),
 		('ForAssign.anno', 'function_def_raw.block.anno_assign[2]', defs.AnnoAssign, 'std::map<std::string, int> dsn = {};'),
@@ -296,22 +298,22 @@ class TestPy2Cpp(TestCase):
 		('ForAssign.for_enum', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'Values e = es[0];'),
 		('ForAssign.for_enum', 'function_def_raw.block.assign[4]', defs.MoveAssign, 'std::string s = des[Values::A];'),
 
-		('ForStatementSimple.delete_list_dict', 'function_def_raw.block.del_stmt[0]', defs.Delete, 'ns.erase(ns.begin() + 0);'),
-		('ForStatementSimple.delete_list_dict', 'function_def_raw.block.del_stmt[1]', defs.Delete, 'ns.erase(ns.begin() + 1);\nns.erase(ns.begin() + 2);'),
-		('ForStatementSimple.delete_list_dict', 'function_def_raw.block.del_stmt[2]', defs.Delete, 'dsn.erase("a");'),
-		('ForStatementSimple.delete_list_dict', 'function_def_raw.block.del_stmt[3]', defs.Delete, 'dsn.erase("b");\ndsn.erase("c");'),
+		('ForSimple.delete_list_dict', 'function_def_raw.block.del_stmt[0]', defs.Delete, 'ns.erase(ns.begin() + 0);'),
+		('ForSimple.delete_list_dict', 'function_def_raw.block.del_stmt[1]', defs.Delete, 'ns.erase(ns.begin() + 1);\nns.erase(ns.begin() + 2);'),
+		('ForSimple.delete_list_dict', 'function_def_raw.block.del_stmt[2]', defs.Delete, 'dsn.erase("a");'),
+		('ForSimple.delete_list_dict', 'function_def_raw.block.del_stmt[3]', defs.Delete, 'dsn.erase("b");\ndsn.erase("c");'),
 
-		('ForStatementSimple.return_none', 'function_def_raw.block.return_stmt', defs.Return, 'return;'),
-		('ForStatementSimple.return_value', 'function_def_raw.block.return_stmt', defs.Return, 'return 0;'),
+		('ForSimple.return_none', 'function_def_raw.block.return_stmt', defs.Return, 'return;'),
+		('ForSimple.return_value', 'function_def_raw.block.return_stmt', defs.Return, 'return 0;'),
 
-		('ForStatementSimple.pass_only', 'function_def_raw.block.pass_stmt', defs.Pass, ''),
+		('ForSimple.pass_only', 'function_def_raw.block.pass_stmt', defs.Pass, ''),
 
-		('ForStatementSimple.break_continue', 'function_def_raw.block.for_stmt.block.if_stmt[0]', defs.If, 'if (i == 0) {\n\tcontinue;\n}'),
-		('ForStatementSimple.break_continue', 'function_def_raw.block.for_stmt.block.if_stmt[1]', defs.If, 'if (i != 0) {\n\tbreak;\n}'),
-		('ForStatementSimple.break_continue', 'function_def_raw.block.while_stmt.block.if_stmt[0]', defs.If, 'if (1 == 0) {\n\tcontinue;\n}'),
-		('ForStatementSimple.break_continue', 'function_def_raw.block.while_stmt.block.if_stmt[1]', defs.If, 'if (1 != 0) {\n\tbreak;\n}'),
+		('ForSimple.break_continue', 'function_def_raw.block.for_stmt.block.if_stmt[0]', defs.If, 'if (i == 0) {\n\tcontinue;\n}'),
+		('ForSimple.break_continue', 'function_def_raw.block.for_stmt.block.if_stmt[1]', defs.If, 'if (i != 0) {\n\tbreak;\n}'),
+		('ForSimple.break_continue', 'function_def_raw.block.while_stmt.block.if_stmt[0]', defs.If, 'if (1 == 0) {\n\tcontinue;\n}'),
+		('ForSimple.break_continue', 'function_def_raw.block.while_stmt.block.if_stmt[1]', defs.If, 'if (1 != 0) {\n\tbreak;\n}'),
 
-		('ForStatementSimple.comment', 'function_def_raw.block.comment_stmt', defs.Comment, '// abc'),
+		('ForSimple.comment', 'function_def_raw.block.comment_stmt', defs.Comment, '// abc'),
 
 		('ForIndexer.list_slice', 'function_def_raw.block.getitem[0]', defs.Indexer, BlockExpects.list_slice(symbol='ns', begin='1', end='', step='', var_type='int')),
 		('ForIndexer.list_slice', 'function_def_raw.block.getitem[1]', defs.Indexer, BlockExpects.list_slice(symbol='ns', begin='', end='5', step='', var_type='int')),

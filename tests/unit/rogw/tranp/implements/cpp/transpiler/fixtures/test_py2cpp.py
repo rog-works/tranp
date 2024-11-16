@@ -238,18 +238,6 @@ class EnumOps:
 		A = 0
 		B = 1
 
-	def assign(self) -> None:
-		a = EnumOps.Values.A
-		d = {
-			EnumOps.Values.A: 'A',
-			EnumOps.Values.B: 'B',
-		}
-		da = d[EnumOps.Values.A]
-
-	def cast(self) -> None:
-		e = EnumOps.Values(0)
-		n = int(EnumOps.Values.A)
-
 
 class AccessOps(Sub):
 	sub_s: str
@@ -502,16 +490,6 @@ class StringOps:
 		b = s.format(1, 2, 3)
 
 
-class AssignOps:
-	def assign(self, tsiis: list[TSII]) -> None:
-		a: int = 1
-		b = 'b'
-		b += str(a)
-		tsiis2 = tsiis
-		tsii = tsiis[0]
-		ts, ti1, ti2 = tsii
-
-
 def template_func(v: T) -> T: ...
 
 
@@ -555,7 +533,7 @@ class ForFlows:
 		for e1, e2, e3 in ts: ...
 		for cp in cps: ...
 
-	def try_catch(self) -> None:
+	def try_catch_throw(self) -> None:
 		try: ...
 		except RuntimeError as e:
 			raise Exception() from e
@@ -568,6 +546,71 @@ class ForClassMethod:
 	def make(cls: type[Self]) -> Self:
 		inst = cls()
 		return inst
+
+
+class ForAssign:
+	def anno(self) -> None:
+		n: int = 1
+		ns: list[int] = []
+		dsn: dict[str, int] = {}
+		ts: tuple[bool, int, str] = (True, 1, 'a')
+
+	def move(self) -> None:
+		s = 'a'
+		ss = ['a']
+		dss = {'a': 'b'}
+		ts = True, 1, 'b'
+
+	def aug(self, n: int, s: str) -> None:
+		n += 1
+		s += str(n)
+
+	def move_unpack(self, bnf: tuple[bool, int, float], tsiis: list[TSII]) -> None:
+		tb, tn, tf = bnf
+		ts0, ti1, ti2 = tsiis[0]
+		s0 = tsiis[0][0]
+		i1 = tsiis[0][1]
+		i2 = tsiis[0][2]
+
+	def for_enum(self) -> None:
+		ea = EnumOps.Values.A
+		es = [EnumOps.Values.A]
+		des = {
+			EnumOps.Values.A: 'A',
+			EnumOps.Values.B: 'B',
+		}
+		e = es[0]
+		s = des[EnumOps.Values.A]
+
+
+class ForStatementSimple:
+	def delete_list_dict(self, ns: list[int], dsn: dict[str, int]) -> None:
+		del ns[0]
+		del ns[1], ns[2]
+		del dsn['a']
+		del dsn['b'], dsn['c']
+
+	def return_none(self) -> None:
+		return
+
+	def return_value(self) -> int:
+		return 0
+
+	def pass_only(self) -> None:
+		pass
+
+	def break_continue(self) -> None:
+		for i in range(1):
+			if i == 0: continue
+			if i != 0: break
+
+		while True:
+			if 1 == 0: continue
+			if 1 != 0: break
+
+	def comment(self) -> None:
+		# abc
+		...
 
 
 class ForFuncCall:
@@ -591,6 +634,10 @@ class ForFuncCall:
 		func = caller.func
 		b0 = caller.func(0, '')
 		b1 = func(0, '')
+
+	def enum_cast(self) -> None:
+		e = EnumOps.Values(0)
+		n = int(EnumOps.Values.A)
 
 
 class ForBinaryOperator:

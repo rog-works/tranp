@@ -47,7 +47,7 @@ class TestPy2Cpp(TestCase):
 
 	@profiler(on=False)
 	@data_provider([
-		('', 'import_stmt[1]', defs.Import, '// #include "collections/abc.h"'),
+		('', 'import_stmt[1]', defs.Import, '#include <functional>'),
 
 		('', 'funccall[8]', defs.FuncCall, '#pragma once'),
 		('', 'funccall[9]', defs.FuncCall, '#include <memory>'),
@@ -175,11 +175,6 @@ class TestPy2Cpp(TestCase):
 		('FuncOps.kw_params', 'function_def_raw.block.assign', defs.MoveAssign, 'std::string a = this->kw_params(1, 2);'),
 
 		('EnumOps.Values', '', defs.Enum, '/** Values */\npublic: enum class Values {\n\tA = 0,\n\tB = 1,\n};'),
-		('EnumOps.assign', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'EnumOps::Values a = EnumOps::Values::A;'),
-		('EnumOps.assign', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'std::map<EnumOps::Values, std::string> d = {\n\t{EnumOps::Values::A, "A"},\n\t{EnumOps::Values::B, "B"},\n};'),
-		('EnumOps.assign', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'std::string da = d[EnumOps::Values::A];'),
-		('EnumOps.cast', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'EnumOps::Values e = static_cast<EnumOps::Values>(0);'),
-		('EnumOps.cast', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'int n = static_cast<int>(EnumOps::Values::A);'),
 
 		('AccessOps.__init__', '', defs.Constructor, 'public:\n/** __init__ */\nAccessOps() : Sub(0), sub_s("") {}'),
 
@@ -299,13 +294,6 @@ class TestPy2Cpp(TestCase):
 		('StringOps.format', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'std::string a = std::format("%d, %f, %d, %s, %s, %p", 1, 2.0, true, "3", (s).c_str(), this);'),
 		('StringOps.format', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'std::string b = std::format(s, 1, 2, 3);'),
 
-		('AssignOps.assign', 'function_def_raw.block.anno_assign', defs.AnnoAssign, 'int a = 1;'),
-		('AssignOps.assign', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'std::string b = "b";'),
-		('AssignOps.assign', 'function_def_raw.block.aug_assign', defs.AugAssign, 'b += std::to_string(a);'),
-		('AssignOps.assign', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'std::vector<TSII> tsiis2 = tsiis;'),
-		('AssignOps.assign', 'function_def_raw.block.assign[4]', defs.MoveAssign, 'TSII tsii = tsiis[0];'),
-		('AssignOps.assign', 'function_def_raw.block.assign[5]', defs.MoveAssign, 'auto [ts, ti1, ti2] = tsii;'),
-
 		('template_func', '', defs.Function, '/** template_func */\ntemplate<typename T>\nT template_func(T v) {}'),
 
 		('ForFlows.if_elif_else', 'function_def_raw.block.if_stmt', defs.If, 'if (1) {\n\n} else if (2) {\n\n} else {\n\n}'),
@@ -336,9 +324,51 @@ class TestPy2Cpp(TestCase):
 		('ForFlows.for_each', 'function_def_raw.block.for_stmt[2]', defs.For, 'for (auto& [e1, e2, e3] : ts) {\n\n}'),
 		('ForFlows.for_each', 'function_def_raw.block.for_stmt[3]', defs.For, 'for (const auto cp : cps) {\n\n}'),
 
-		('ForFlows.try_catch', 'function_def_raw.block.try_stmt', defs.Try, 'try {\n\n} catch (std::runtime_error e) {\n\tthrow new std::exception();\n} catch (std::exception e) {\n\tthrow e;\n}'),
+		('ForFlows.try_catch_throw', 'function_def_raw.block.try_stmt', defs.Try, 'try {\n\n} catch (std::runtime_error e) {\n\tthrow new std::exception();\n} catch (std::exception e) {\n\tthrow e;\n}'),
 
 		('ForClassMethod.make', '', defs.ClassMethod, 'public:\n/** make */\nstatic ForClassMethod make() {\n\tForClassMethod inst = ForClassMethod();\n\treturn inst;\n}'),
+
+		('ForAssign.anno', 'function_def_raw.block.anno_assign[0]', defs.AnnoAssign, 'int n = 1;'),
+		('ForAssign.anno', 'function_def_raw.block.anno_assign[1]', defs.AnnoAssign, 'std::vector<int> ns = {};'),
+		('ForAssign.anno', 'function_def_raw.block.anno_assign[2]', defs.AnnoAssign, 'std::map<std::string, int> dsn = {};'),
+		('ForAssign.anno', 'function_def_raw.block.anno_assign[3]', defs.AnnoAssign, 'std::tuple<bool, int, std::string> ts = {true, 1, "a"};'),
+
+		('ForAssign.move', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'std::string s = "a";'),
+		('ForAssign.move', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'std::vector<std::string> ss = {"a"};'),
+		('ForAssign.move', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'std::map<std::string, std::string> dss = {{"a", "b"}};'),
+		('ForAssign.move', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'std::tuple<bool, int, std::string> ts = {true, 1, "b"};'),
+
+		('ForAssign.aug', 'function_def_raw.block.aug_assign[0]', defs.AugAssign, 'n += 1;'),
+		('ForAssign.aug', 'function_def_raw.block.aug_assign[1]', defs.AugAssign, 's += std::to_string(n);'),
+
+		('ForAssign.move_unpack', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'auto [tb, tn, tf] = bnf;'),
+		('ForAssign.move_unpack', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'auto [ts0, ti1, ti2] = tsiis[0];'),
+		('ForAssign.move_unpack', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'std::string s0 = std::get<0>(tsiis[0]);'),
+		('ForAssign.move_unpack', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'int i1 = std::get<1>(tsiis[0]);'),
+		('ForAssign.move_unpack', 'function_def_raw.block.assign[4]', defs.MoveAssign, 'int i2 = std::get<2>(tsiis[0]);'),
+
+		('ForAssign.for_enum', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'EnumOps::Values ea = EnumOps::Values::A;'),
+		('ForAssign.for_enum', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'std::vector<EnumOps::Values> es = {EnumOps::Values::A};'),
+		('ForAssign.for_enum', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'std::map<EnumOps::Values, std::string> des = {\n\t{EnumOps::Values::A, "A"},\n\t{EnumOps::Values::B, "B"},\n};'),
+		('ForAssign.for_enum', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'EnumOps::Values e = es[0];'),
+		('ForAssign.for_enum', 'function_def_raw.block.assign[4]', defs.MoveAssign, 'std::string s = des[EnumOps::Values::A];'),
+
+		('ForStatementSimple.delete_list_dict', 'function_def_raw.block.del_stmt[0]', defs.Delete, 'ns.erase(ns.begin() + 0);'),
+		('ForStatementSimple.delete_list_dict', 'function_def_raw.block.del_stmt[1]', defs.Delete, 'ns.erase(ns.begin() + 1);\nns.erase(ns.begin() + 2);'),
+		('ForStatementSimple.delete_list_dict', 'function_def_raw.block.del_stmt[2]', defs.Delete, 'dsn.erase("a");'),
+		('ForStatementSimple.delete_list_dict', 'function_def_raw.block.del_stmt[3]', defs.Delete, 'dsn.erase("b");\ndsn.erase("c");'),
+
+		('ForStatementSimple.return_none', 'function_def_raw.block.return_stmt', defs.Return, 'return;'),
+		('ForStatementSimple.return_value', 'function_def_raw.block.return_stmt', defs.Return, 'return 0;'),
+
+		('ForStatementSimple.pass_only', 'function_def_raw.block.pass_stmt', defs.Pass, ''),
+
+		('ForStatementSimple.break_continue', 'function_def_raw.block.for_stmt.block.if_stmt[0]', defs.If, 'if (i == 0) {\n\tcontinue;\n}'),
+		('ForStatementSimple.break_continue', 'function_def_raw.block.for_stmt.block.if_stmt[1]', defs.If, 'if (i != 0) {\n\tbreak;\n}'),
+		('ForStatementSimple.break_continue', 'function_def_raw.block.while_stmt.block.if_stmt[0]', defs.If, 'if (1 == 0) {\n\tcontinue;\n}'),
+		('ForStatementSimple.break_continue', 'function_def_raw.block.while_stmt.block.if_stmt[1]', defs.If, 'if (1 != 0) {\n\tbreak;\n}'),
+
+		('ForStatementSimple.comment', 'function_def_raw.block.comment_stmt', defs.Comment, '// abc'),
 
 		('ForFuncCall.CallableType', '', defs.Class, '/** CallableType */\nclass CallableType {\n\tpublic: std::function<bool(int, std::string)> func;\n\tpublic:\n\t/** __init__ */\n\tCallableType(std::function<bool(int, std::string)> func) : func(func) {}\n};'),
 
@@ -352,6 +382,9 @@ class TestPy2Cpp(TestCase):
 		('ForFuncCall.move_assign', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'std::function<int, std::string, bool> func = caller.func;'),
 		('ForFuncCall.move_assign', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'bool b0 = caller.func(0, "");'),
 		('ForFuncCall.move_assign', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'bool b1 = func(0, "");'),
+
+		('ForFuncCall.enum_cast', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'EnumOps::Values e = static_cast<EnumOps::Values>(0);'),
+		('ForFuncCall.enum_cast', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'int n = static_cast<int>(EnumOps::Values::A);'),
 
 		('ForBinaryOperator.char_op_by_str', 'function_def_raw.block.assign[0]', defs.MoveAssign, "bool a = string[0] >= 'A';"),
 		('ForBinaryOperator.char_op_by_str', 'function_def_raw.block.assign[1]', defs.MoveAssign, "bool b = string[0] <= 'Z';"),

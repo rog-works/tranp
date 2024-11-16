@@ -1,16 +1,10 @@
 {#- XXX 負の値の対応は、変数に代入された場合に対処できず、片手落ちとなるため非対応とする -#}
 [&]() -> {{ var_type }} {
 	{{ var_type }} __ret;
-	int __index = 0;
-	int __start = {{ keys[0] if keys[0] else '0' }};
-	int __end = {% if keys[1] %}{{ keys[1] }}{% else %}{{ receiver }}.{{ i18n('cpp', 'container.size') }}(){% endif %};
-	int __step = {{ keys[2] if keys[2] else '0' }};
-	for (auto& __value : {{ receiver }}) {
-		int __offset = __index >= __start ? __index - __start : 0;
-		if (__index >= __start && __index < __end && (__step == 0 || __offset % __step == 0)) {
-			__ret.{{ i18n('classes', 'list.append') }}(__value);
-		}
-		__index++;
+	auto __begin = {{ receiver }}.{{ i18n('cpp', 'vector.begin') }}() + {{ keys[0] if keys[0] else '0' }};
+	auto __end = __begin + {{ keys[1] if keys[1] else receiver + '.' + i18n('cpp', 'container.size') + '()' }};
+	for (auto __iter = __begin; __iter < __end; __iter += {{ keys[2] if keys[2] else '1' }}) {
+		__ret.{{ i18n('classes', 'list.append') }}(__value);
 	}
 	return __ret;
 }(){% if is_statement %};{% endif %}

@@ -59,6 +59,8 @@ class TestPy2Cpp(TestCase):
 		('DSI', '', defs.AltClass, 'using DSI = std::map<std::string, int>;'),
 		('TSII', '', defs.AltClass, 'using TSII = std::tuple<std::string, int, int>;'),
 
+		('Values', '', defs.Enum, '/** Values */\nenum class Values {\n\tA = 0,\n\tB = 1,\n};'),
+
 		('DeclOps', '', defs.Class, BlockExpects.DeclOps),
 
 		('Base.sub_implements', '', defs.Method, 'public:\n/** sub_implements */\nvirtual void sub_implements() = 0;'),
@@ -171,10 +173,7 @@ class TestPy2Cpp(TestCase):
 
 		('CVarOps.prop_relay', 'function_def_raw.block.assign', defs.MoveAssign, 'CVarOps a = this->prop_relay().prop_relay();'),
 
-		('FuncOps.print', 'function_def_raw.block.funccall', defs.FuncCall, 'printf("message. %d, %f, %s", 1, 1.0, "abc");'),
 		('FuncOps.kw_params', 'function_def_raw.block.assign', defs.MoveAssign, 'std::string a = this->kw_params(1, 2);'),
-
-		('EnumOps.Values', '', defs.Enum, '/** Values */\npublic: enum class Values {\n\tA = 0,\n\tB = 1,\n};'),
 
 		('AccessOps.__init__', '', defs.Constructor, 'public:\n/** __init__ */\nAccessOps() : Sub(0), sub_s("") {}'),
 
@@ -199,8 +198,8 @@ class TestPy2Cpp(TestCase):
 		('AccessOps.double_colon', 'function_def_raw.block.funccall[1].arguments.argvalue', defs.Argument, 'Sub::class_base_n'),
 		('AccessOps.double_colon', 'function_def_raw.block.funccall[2].arguments.argvalue', defs.Argument, 'Sub::base_class_func()'),
 		('AccessOps.double_colon', 'function_def_raw.block.funccall[3].arguments.argvalue', defs.Argument, 'AccessOps::class_base_n'),
-		('AccessOps.double_colon', 'function_def_raw.block.funccall[4].arguments.argvalue', defs.Argument, 'EnumOps::Values::A'),
-		('AccessOps.double_colon', 'function_def_raw.block.anno_assign', defs.AnnoAssign, 'std::map<EnumOps::Values, std::string> d = {\n\t{EnumOps::Values::A, "A"},\n\t{EnumOps::Values::B, "B"},\n};'),
+		('AccessOps.double_colon', 'function_def_raw.block.funccall[4].arguments.argvalue', defs.Argument, 'Values::A'),
+		('AccessOps.double_colon', 'function_def_raw.block.anno_assign', defs.AnnoAssign, 'std::map<Values, std::string> d = {\n\t{Values::A, "A"},\n\t{Values::B, "B"},\n};'),
 
 		('AccessOps.indexer', 'function_def_raw.block.funccall[0].arguments.argvalue', defs.Argument, 'arr_p[0]'),
 		('AccessOps.indexer', 'function_def_raw.block.funccall[1].arguments.argvalue', defs.Argument, 'arr_sp[0]'),
@@ -217,14 +216,6 @@ class TestPy2Cpp(TestCase):
 		('Alias.in_class_method', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'std::map<Alias2::Values, Alias2::Values> d = {\n\t{Alias2::Values::A, Alias2::Values::B},\n\t{Alias2::Values::B, Alias2::Values::A},\n};'),
 		('Alias.in_class_method', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'std::map<int, std::vector<int>> d2 = {\n\t{static_cast<int>(Alias2::Values::A), {static_cast<int>(Alias2::Values::B)}},\n\t{static_cast<int>(Alias2::Values::B), {static_cast<int>(Alias2::Values::A)}},\n};'),
 		('Alias.InnerB.super_call', 'function_def_raw.block.funccall', defs.FuncCall, 'Alias2::Inner2::func();'),
-		('Alias.litelize', 'function_def_raw.block.funccall[0]', defs.FuncCall, 'printf("Alias2");'),
-		('Alias.litelize', 'function_def_raw.block.funccall[1]', defs.FuncCall, f'printf("{fixture_module_path}");'),
-		('Alias.litelize', 'function_def_raw.block.funccall[2]', defs.FuncCall, f'printf("{fixture_module_path}");'),
-		('Alias.litelize', 'function_def_raw.block.funccall[3]', defs.FuncCall, 'printf("Inner2");'),
-		('Alias.litelize', 'function_def_raw.block.funccall[4]', defs.FuncCall, 'printf("in_local");'),
-		('Alias.litelize', 'function_def_raw.block.funccall[5]', defs.FuncCall, 'printf("Alias2::in_local");'),
-		('Alias.litelize', 'function_def_raw.block.funccall[6]', defs.FuncCall, 'printf("Alias2::Inner2::func");'),
-		('Alias.litelize', 'function_def_raw.block.funccall[7]', defs.FuncCall, 'printf("Alias2");'),
 
 		('Nullable.params', '', defs.Method, 'public:\n/** params */\nvoid params(Sub* p) {}'),
 		('Nullable.returns', '', defs.Method, 'public:\n/** returns */\nSub* returns() {}'),
@@ -299,11 +290,11 @@ class TestPy2Cpp(TestCase):
 		('ForAssign.move_unpack', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'int i1 = std::get<1>(tsiis[0]);'),
 		('ForAssign.move_unpack', 'function_def_raw.block.assign[4]', defs.MoveAssign, 'int i2 = std::get<2>(tsiis[0]);'),
 
-		('ForAssign.for_enum', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'EnumOps::Values ea = EnumOps::Values::A;'),
-		('ForAssign.for_enum', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'std::vector<EnumOps::Values> es = {EnumOps::Values::A};'),
-		('ForAssign.for_enum', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'std::map<EnumOps::Values, std::string> des = {\n\t{EnumOps::Values::A, "A"},\n\t{EnumOps::Values::B, "B"},\n};'),
-		('ForAssign.for_enum', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'EnumOps::Values e = es[0];'),
-		('ForAssign.for_enum', 'function_def_raw.block.assign[4]', defs.MoveAssign, 'std::string s = des[EnumOps::Values::A];'),
+		('ForAssign.for_enum', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'Values ea = Values::A;'),
+		('ForAssign.for_enum', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'std::vector<Values> es = {Values::A};'),
+		('ForAssign.for_enum', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'std::map<Values, std::string> des = {\n\t{Values::A, "A"},\n\t{Values::B, "B"},\n};'),
+		('ForAssign.for_enum', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'Values e = es[0];'),
+		('ForAssign.for_enum', 'function_def_raw.block.assign[4]', defs.MoveAssign, 'std::string s = des[Values::A];'),
 
 		('ForStatementSimple.delete_list_dict', 'function_def_raw.block.del_stmt[0]', defs.Delete, 'ns.erase(ns.begin() + 0);'),
 		('ForStatementSimple.delete_list_dict', 'function_def_raw.block.del_stmt[1]', defs.Delete, 'ns.erase(ns.begin() + 1);\nns.erase(ns.begin() + 2);'),
@@ -322,6 +313,13 @@ class TestPy2Cpp(TestCase):
 
 		('ForStatementSimple.comment', 'function_def_raw.block.comment_stmt', defs.Comment, '// abc'),
 
+		('ForIndexer.list_slice', 'function_def_raw.block.getitem[0]', defs.Indexer, BlockExpects.list_slice(symbol='ns', begin='1', end='', step='', var_type='int')),
+		('ForIndexer.list_slice', 'function_def_raw.block.getitem[1]', defs.Indexer, BlockExpects.list_slice(symbol='ns', begin='', end='5', step='', var_type='int')),
+		('ForIndexer.list_slice', 'function_def_raw.block.getitem[2]', defs.Indexer, BlockExpects.list_slice(symbol='ns', begin='3', end='9', step='2', var_type='int')),
+
+		('ForIndexer.string_slice', 'function_def_raw.block.getitem[0]', defs.Indexer, 's.substr(1, s.size() - (1));'),
+		('ForIndexer.string_slice', 'function_def_raw.block.getitem[1]', defs.Indexer, 's.substr(0, 5);'),
+
 		('ForFuncCall.CallableType', '', defs.Class, '/** CallableType */\nclass CallableType {\n\tpublic: std::function<bool(int, std::string)> func;\n\tpublic:\n\t/** __init__ */\n\tCallableType(std::function<bool(int, std::string)> func) : func(func) {}\n};'),
 		# FIXME 型推論自体に問題はなく、トランスパイルが期待通りではないと言うだけ
 		# FIXME 型を明示すれば回避できる上、C++で関数の代入はまずしない
@@ -330,10 +328,21 @@ class TestPy2Cpp(TestCase):
 		('ForFuncCall.move_assign', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'bool b0 = caller.func(0, "");'),
 		('ForFuncCall.move_assign', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'bool b1 = func(0, "");'),
 
+		('ForFuncCall.Func.print', 'function_def_raw.block.funccall', defs.FuncCall, 'printf("message. %d, %f, %s", 1, 1.0, "abc");'),
+
+		('ForFuncCall.Class.literalize', 'function_def_raw.block.funccall[0]', defs.FuncCall, 'printf("Class2");'),
+		('ForFuncCall.Class.literalize', 'function_def_raw.block.funccall[1]', defs.FuncCall, f'printf("{fixture_module_path}");'),
+		('ForFuncCall.Class.literalize', 'function_def_raw.block.funccall[2]', defs.FuncCall, f'printf("{fixture_module_path}");'),
+		('ForFuncCall.Class.literalize', 'function_def_raw.block.funccall[3]', defs.FuncCall, 'printf("Inner2");'),
+		('ForFuncCall.Class.literalize', 'function_def_raw.block.funccall[4]', defs.FuncCall, 'printf("in_local");'),
+		('ForFuncCall.Class.literalize', 'function_def_raw.block.funccall[5]', defs.FuncCall, 'printf("Alias2::in_local");'),
+		('ForFuncCall.Class.literalize', 'function_def_raw.block.funccall[6]', defs.FuncCall, 'printf("Alias2::Inner2::func");'),
+		('ForFuncCall.Class.literalize', 'function_def_raw.block.funccall[7]', defs.FuncCall, 'printf("Alias2");'),
+
 		('ForFuncCall.Cast.cast_binary', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'int f_to_n = static_cast<int>(1.0);'),
 		('ForFuncCall.Cast.cast_binary', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'float n_to_f = static_cast<float>(1);'),
 		('ForFuncCall.Cast.cast_binary', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'bool n_to_b = static_cast<bool>(1);'),
-		('ForFuncCall.Cast.cast_binary', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'int e_to_n = static_cast<int>(EnumOps::Values::A);'),
+		('ForFuncCall.Cast.cast_binary', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'int e_to_n = static_cast<int>(Values::A);'),
 
 		('ForFuncCall.Cast.cast_string', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'std::string n_to_s = std::to_string(1);'),
 		('ForFuncCall.Cast.cast_string', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'std::string f_to_s = std::to_string(1.0);'),
@@ -345,8 +354,8 @@ class TestPy2Cpp(TestCase):
 		('ForFuncCall.Cast.cast_class', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'Base* bp = static_cast<Base*>(sub_p);'),
 		('ForFuncCall.Cast.cast_class', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'std::map<std::string, Base*> dsbp = static_cast<std::map<std::string, Base*>>(dssp);'),
 
-		('ForFuncCall.Cast.cast_enum', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'EnumOps::Values e = static_cast<EnumOps::Values>(0);'),
-		('ForFuncCall.Cast.cast_enum', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'int n = static_cast<int>(EnumOps::Values::A);'),
+		('ForFuncCall.Cast.cast_enum', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'Values e = static_cast<Values>(0);'),
+		('ForFuncCall.Cast.cast_enum', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'int n = static_cast<int>(Values::A);'),
 
 		('ForFuncCall.Copy.__py_copy__', '', defs.Method, 'public:\n/** __py_copy__ */\nCopy(ForFuncCall::Copy& origin) {}'),
 		('ForFuncCall.Copy.move_obj', 'function_def_raw.block.funccall', defs.FuncCall, 'to = via;'),
@@ -367,17 +376,12 @@ class TestPy2Cpp(TestCase):
 		('ForFuncCall.List.contains', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'bool b_in = (std::find(ns.begin(), ns.end(), 1) != ns.end());'),
 		('ForFuncCall.List.contains', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'bool b_not_in = (std::find(ns.begin(), ns.end(), 1) == ns.end());'),
 		('ForFuncCall.List.fill', 'function_def_raw.block.assign', defs.MoveAssign, 'std::vector<int> n_x3 = std::vector<int>(3, n);'),
-		('ForFuncCall.List.slice', 'function_def_raw.block.getitem[0]', defs.Indexer, BlockExpects.list_slice(symbol='ns', begin='1', end='', step='', var_type='int')),
-		('ForFuncCall.List.slice', 'function_def_raw.block.getitem[1]', defs.Indexer, BlockExpects.list_slice(symbol='ns', begin='', end='5', step='', var_type='int')),
-		('ForFuncCall.List.slice', 'function_def_raw.block.getitem[2]', defs.Indexer, BlockExpects.list_slice(symbol='ns', begin='3', end='9', step='2', var_type='int')),
 		('ForFuncCall.List.insert', 'function_def_raw.block.funccall', defs.FuncCall, 'ns.insert(ns.begin() + 1, n);'),
 		('ForFuncCall.List.extend', 'function_def_raw.block.funccall', defs.FuncCall, 'ns0.insert(ns0.end(), ns1);'),
 		('ForFuncCall.List.clear', 'function_def_raw.block.funccall', defs.FuncCall, 'ns.clear();'),
 
 		('ForFuncCall.String.starts_ends', 'function_def_raw.block.funccall[0]', defs.FuncCall, 's.starts_with("");'),
 		('ForFuncCall.String.starts_ends', 'function_def_raw.block.funccall[1]', defs.FuncCall, 's.ends_with("");'),
-		('ForFuncCall.String.slice', 'function_def_raw.block.getitem[0]', defs.Indexer, 's.substr(1, s.size() - (1));'),
-		('ForFuncCall.String.slice', 'function_def_raw.block.getitem[1]', defs.Indexer, 's.substr(0, 5);'),
 		('ForFuncCall.String.len', 'function_def_raw.block.funccall', defs.FuncCall, 's.size();'),
 		('ForFuncCall.String.format', 'function_def_raw.block.funccall[0]', defs.FuncCall, 'std::format("%d, %f, %d, %s, %s, %p", 1, 2.0, true, "3", (s).c_str(), this);'),
 		('ForFuncCall.String.format', 'function_def_raw.block.funccall[1]', defs.FuncCall, 'std::format(s, 1, 2, 3);'),

@@ -335,96 +335,6 @@ class Alias:
 		print(t.__name__)
 
 
-class ListOps:
-	def len(self) -> None:
-		values = [1, 2]
-		size_values = len(values)
-
-	def pop(self) -> None:
-		values = [1, 2]
-		value0 = values.pop(1)
-		value1 = values.pop()
-
-	def contains(self) -> None:
-		values = [1]
-		b_in = 1 in values
-		b_not_in = 1 not in values
-
-	def fill(self, n: int) -> None:
-		n_x3 = [n] * 3
-
-	def slice(self, ns: list[int]) -> None:
-		ns0 = ns[1:]
-		ns1 = ns[:5]
-		ns2 = ns[3:9:2]
-
-	def delete(self, ns: list[int]) -> None:
-		del ns[1], ns[2]
-
-	def insert(self, ns: list[int], n: int) -> None:
-		ns.insert(1, n)
-
-	def extend(self, ns0: list[int], ns1: list[int]) -> None:
-		ns0.extend(ns1)
-
-	def clear(self, arr: list[int]) -> None:
-		arr.clear()
-
-
-class DictOps:
-	def len(self) -> None:
-		kvs = {'a': 1}
-		size_kvs = len(kvs)
-
-	def pop(self) -> None:
-		values = {'a': 1, 'b': 2}
-		value0 = values.pop('a')
-		value1 = values.pop('b')
-
-	def keys(self) -> None:
-		kvs = {'a': 1}
-		keys = list(kvs.keys())
-
-	def values(self) -> None:
-		kvs = {'a': 1}
-		values = list(kvs.values())
-
-	def decl(self) -> None:
-		d = {1: [1, 2, 3]}
-
-	def contains(self) -> None:
-		d = {'a': 1}
-		b_in = 'a' in d
-		b_not_in = 'a' not in d
-
-	def delete(self, dsn: dict[str, int]) -> None:
-		del dsn['a'], dsn['b']
-
-	def clear(self, dsn: dict[str, int]) -> None:
-		dsn.clear()
-
-
-class CastOps:
-	def cast_binary(self) -> None:
-		f_to_n = int(1.0)
-		n_to_f = float(1)
-		n_to_b = bool(1)
-		e_to_n = int(EnumOps.Values.A)
-
-	def cast_string(self) -> None:
-		n_to_s = str(1)
-		f_to_s = str(1.0)
-		s_to_n = int(n_to_s)
-		s_to_f = float(f_to_s)
-		s_to_s = str('')
-
-	def cast_class(self, sub: Sub, sub_p: CP[Sub]) -> None:
-		b = cast(Base, sub)
-		bp = cast(CP[Base], sub_p)
-		dssp = {'a': sub_p}
-		dsbp = cast(dict[str, CP[Base]], dssp)
-
-
 class Nullable:
 	def params(self, p: CP[Sub] | None) -> None: ...
 	def returns(self) -> CP[Sub] | None: ...
@@ -471,23 +381,6 @@ class Struct:
 	def __init__(self, a: int, b: str) -> None:
 		self.a: int = a
 		self.b: str = b
-
-
-class StringOps:
-	def methods(self, s: str) -> None:
-		a = s.startswith('')
-		b = s.endswith('')
-
-	def slice(self, s: str) -> None:
-		a = s[1:]
-		b = s[:5]
-
-	def len(self, s: str) -> None:
-		a = len(s)
-
-	def format(self, s: str) -> None:
-		a = '{n}, {f}, {b}, {s}, {sp}, {p}'.format(n=1, f=2.0, b=True, s='3', sp=s, p=CP(self))
-		b = s.format(1, 2, 3)
 
 
 def template_func(v: T) -> T: ...
@@ -558,7 +451,7 @@ class ForAssign:
 	def move(self) -> None:
 		s = 'a'
 		ss = ['a']
-		dss = {'a': 'b'}
+		dsns = {'a': [1]}
 		ts = True, 1, 'b'
 
 	def aug(self, n: int, s: str) -> None:
@@ -620,6 +513,35 @@ class ForFuncCall:
 		def __init__(self, func: Callable[[int, str], bool]) -> None:
 			self.func: Callable[[int, str], bool] = func
 
+	def move_assign(self, caller: CallableType) -> None:
+		func = caller.func
+		b0 = caller.func(0, '')
+		b1 = func(0, '')
+
+	class Cast:
+		def cast_binary(self) -> None:
+			f_to_n = int(1.0)
+			n_to_f = float(1)
+			n_to_b = bool(1)
+			e_to_n = int(EnumOps.Values.A)
+
+		def cast_string(self) -> None:
+			n_to_s = str(1)
+			f_to_s = str(1.0)
+			s_to_n = int(n_to_s)
+			s_to_f = float(f_to_s)
+			s_to_s = str('')
+
+		def cast_class(self, sub: Sub, sub_p: CP[Sub]) -> None:
+			b = cast(Base, sub)
+			bp = cast(CP[Base], sub_p)
+			dssp = {'a': sub_p}
+			dsbp = cast(dict[str, CP[Base]], dssp)
+
+		def cast_enum(self) -> None:
+			e = EnumOps.Values(0)
+			n = int(EnumOps.Values.A)
+
 	class Copy:
 		def __py_copy__(self, origin: 'CRef[ForFuncCall.Copy]') -> None:
 			...
@@ -630,14 +552,71 @@ class ForFuncCall:
 		def move_scalar(self, output: 'CRef[int]') -> None:
 			output.copy(CRef(1))
 
-	def move_assign(self, caller: CallableType) -> None:
-		func = caller.func
-		b0 = caller.func(0, '')
-		b1 = func(0, '')
+	class Dict:
+		def len(self, dsn: dict[str, int]) -> None:
+			len(dsn)
 
-	def enum_cast(self) -> None:
-		e = EnumOps.Values(0)
-		n = int(EnumOps.Values.A)
+		def pop(self, dsn: dict[str, int]) -> None:
+			dsn.pop('a')
+			dsn.pop('b')
+
+		def keys(self, dsn: dict[str, int]) -> None:
+			list(dsn.keys())
+
+		def values(self, dsn: dict[str, int]) -> None:
+			list(dsn.values())
+
+		def contains(self, dsn: dict[str, int]) -> None:
+			b_in = 'a' in dsn
+			b_not_in = 'a' not in dsn
+
+		def clear(self, dsn: dict[str, int]) -> None:
+			dsn.clear()
+
+	class List:
+		def len(self, ns: list[int]) -> None:
+			len(ns)
+
+		def pop(self, ns: list[int]) -> None:
+			ns.pop(1)
+			ns.pop()
+
+		def contains(self, ns: list[int]) -> None:
+			b_in = 1 in ns
+			b_not_in = 1 not in ns
+
+		def fill(self, n: int) -> None:
+			n_x3 = [n] * 3
+
+		def slice(self, ns: list[int]) -> None:
+			ns[1:]
+			ns[:5]
+			ns[3:9:2]
+
+		def insert(self, ns: list[int], n: int) -> None:
+			ns.insert(1, n)
+
+		def extend(self, ns0: list[int], ns1: list[int]) -> None:
+			ns0.extend(ns1)
+
+		def clear(self, ns: list[int]) -> None:
+			ns.clear()
+
+	class String:
+		def starts_ends(self, s: str) -> None:
+			s.startswith('')
+			s.endswith('')
+
+		def slice(self, s: str) -> None:
+			s[1:]
+			s[:5]
+
+		def len(self, s: str) -> None:
+			len(s)
+
+		def format(self, s: str) -> None:
+			'{n}, {f}, {b}, {s}, {sp}, {p}'.format(n=1, f=2.0, b=True, s='3', sp=s, p=CP(self))
+			s.format(1, 2, 3)
 
 
 class ForBinaryOperator:

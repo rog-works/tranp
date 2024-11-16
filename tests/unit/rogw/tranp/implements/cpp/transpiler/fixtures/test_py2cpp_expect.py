@@ -1,24 +1,13 @@
 class BlockExpects:
-	DeclOps = """/** DeclOps */
-class DeclOps {
-	public: inline static Sub* class_bp = nullptr;
-	public: inline static std::map<std::string, std::map<std::string, std::vector<int*>>> class_map = {{"a", {{"b", {}}}}};
-	public: Sub* inst_var0;
-	public: Sub inst_var1;
-	public: std::vector<int*> inst_arr;
-	public: std::map<std::string, int*> inst_map;
-	public: std::vector<TSII> inst_tsiis;
-	public:
-	/** __init__ */
-	DeclOps() : inst_var0(nullptr), inst_var1({}), inst_arr({}), inst_map({}), inst_tsiis({}) {
-		int n = this->prop();
-	}
-	public:
-	/** prop */
-	int prop() {
-		return 1;
-	}
-};"""
+	@classmethod
+	def class_method(cls, access: str, klass: str, name: str, statements: list[str]) -> str:
+		return '\n'.join([
+			f'{access}:',
+			f'/** {name} */',
+			f'static {klass} {name}() ' '{',
+			f'	{"\n\t".join(statements)}' if statements else '',
+			'}',
+		])
 
 	@classmethod
 	def list_slice(cls, symbol: str, begin: str, end: str, step: str, var_type: str) -> str:
@@ -91,19 +80,6 @@ class DeclOps {
 			'}();'
 		])
 
-	ForTemplateClass_Delegate = \
-"""/** Delegate */
-template<typename ...TArgs>
-class Delegate {
-	public:
-	/** bind */
-	template<typename T>
-	void bind(T* obj, const typename PluckMethod<T, void, TArgs...>::method& method) {}
-	public:
-	/** invoke */
-	void invoke(TArgs... args) {}
-};"""
-
 	@classmethod
 	def for_enumerate(cls, index: str, value: str, iterates: str, statements: list[str]) -> str:
 		return '\n'.join([
@@ -137,3 +113,37 @@ class Delegate {
 			'	return __ret;',
 			'}()',
 		])
+
+	DeclOps = """/** DeclOps */
+class DeclOps {
+	public: inline static Sub* class_bp = nullptr;
+	public: inline static std::map<std::string, std::map<std::string, std::vector<int*>>> class_map = {{"a", {{"b", {}}}}};
+	public: Sub* inst_var0;
+	public: Sub inst_var1;
+	public: std::vector<int*> inst_arr;
+	public: std::map<std::string, int*> inst_map;
+	public: std::vector<TSII> inst_tsiis;
+	public:
+	/** __init__ */
+	DeclOps() : inst_var0(nullptr), inst_var1({}), inst_arr({}), inst_map({}), inst_tsiis({}) {
+		int n = this->prop();
+	}
+	public:
+	/** prop */
+	int prop() {
+		return 1;
+	}
+};"""
+
+	ForTemplateClass_Delegate = \
+"""/** Delegate */
+template<typename ...TArgs>
+class Delegate {
+	public:
+	/** bind */
+	template<typename T>
+	void bind(T* obj, const typename PluckMethod<T, void, TArgs...>::method& method) {}
+	public:
+	/** invoke */
+	void invoke(TArgs... args) {}
+};"""

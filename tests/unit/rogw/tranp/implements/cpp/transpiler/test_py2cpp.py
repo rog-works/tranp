@@ -269,7 +269,7 @@ class TestPy2Cpp(TestCase):
 
 		('ForFlows.try_catch_throw', 'function_def_raw.block.try_stmt', defs.Try, 'try {\n\n} catch (std::runtime_error e) {\n\tthrow new std::exception();\n} catch (std::exception e) {\n\tthrow e;\n}'),
 
-		('ForClassMethod.make', '', defs.ClassMethod, 'public:\n/** make */\nstatic ForClassMethod make() {\n\tForClassMethod inst = ForClassMethod();\n\treturn inst;\n}'),
+		('ForClassMethod.make', '', defs.ClassMethod, BlockExpects.class_method(access='public', klass='ForClassMethod', name='make', statements=['ForClassMethod inst = ForClassMethod();', 'return inst;'])),
 
 		('ForAssign.anno', 'function_def_raw.block.anno_assign[0]', defs.AnnoAssign, 'int n = 1;'),
 		('ForAssign.anno', 'function_def_raw.block.anno_assign[1]', defs.AnnoAssign, 'std::vector<int> ns = {};'),

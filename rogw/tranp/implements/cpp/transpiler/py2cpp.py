@@ -524,13 +524,13 @@ class Py2Cpp(ITranspiler):
 		receiver_symbol = Defer.new(lambda: org_receiver_symbol.actualize().impl(refs.Object))
 		prop_symbol = Defer.new(lambda: receiver_symbol.prop_of(node.prop))
 		if self.is_relay_literalizer(node):
-			spec = node.prop.tokens
-			if spec == '__name__':
-				return self.view.render(f'{node.classification}/literalize', vars={'spec': spec, 'literal': self.to_domain_name_by_class(receiver_symbol.types)})
-			if spec == '__module__':
-				return self.view.render(f'{node.classification}/literalize', vars={'spec': spec, 'literal': receiver_symbol.types.module_path})
+			prop = node.prop.domain_name
+			if prop == '__name__':
+				return self.view.render(f'{node.classification}/literalize', vars={'prop': prop, 'literal': self.to_domain_name_by_class(receiver_symbol.types)})
+			if prop == '__module__':
+				return self.view.render(f'{node.classification}/literalize', vars={'prop': prop, 'literal': receiver_symbol.types.module_path})
 			else:
-				return self.view.render(f'{node.classification}/literalize', vars={'spec': spec, 'literal': receiver})
+				return self.view.render(f'{node.classification}/literalize', vars={'prop': prop, 'literal': receiver})
 		elif self.is_relay_this(node):
 			prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.Method) else node.prop.domain_name
 			is_property = isinstance(prop_symbol.decl, defs.Method) and prop_symbol.decl.is_property

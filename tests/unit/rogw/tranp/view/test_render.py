@@ -1162,9 +1162,9 @@ class TestRenderer(TestCase):
 		self.assertRender('relay/default', 0, vars, expected)
 
 	@data_provider([
-		({'spec': '__name__', 'literal': 'A'}, '"A"'),
-		({'spec': '__module_path__', 'literal': 'module.path.to.A'}, '"module.path.to.A"'),
-		({'spec': '__qualname__', 'literal': 'A.func'}, '"A.func"'),
+		({'prop': '__name__', 'literal': 'A'}, '"A"'),
+		({'prop': '__module_path__', 'literal': 'module.path.to.A'}, '"module.path.to.A"'),
+		({'prop': '__qualname__', 'literal': 'A.func'}, '"A.func"'),
 	])
 	def test_render_relay_literalize(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('relay/literalize', 0, vars, expected)

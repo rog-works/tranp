@@ -1,3 +1,4 @@
+{%- if 'Embed.python()' not in decorators -%}
 {% include('function/_accessor.j2') %}:
 {% include('function/_comment.j2') %}
 {%- include('function/_template_types.j2') %}
@@ -9,3 +10,6 @@ virtual {% include('function/_definition_constructor.j2') %}{% include('function
 {%- else %}
 {% include('function/_definition_constructor.j2') %}{% include('function/_initializer.j2') %} {% include('function/_block.j2') %}
 {%- endif %}
+{%- else -%}
+// {{ symbol }}
+{%- endif -%}

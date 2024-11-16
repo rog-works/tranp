@@ -10,6 +10,17 @@ class Embed:
 	"""埋め込みモジュール"""
 
 	@classmethod
+	def python(cls, wrapped: T) -> T:
+		"""Python専用としてマークアップ。Python以外の言語へのトランスパイルは対象外となる
+
+		Args:
+			wrapped (T): ラップ対象
+		Returns:
+			T: デコレート対象
+		"""
+		return wrapped
+
+	@classmethod
 	def alias(cls, name: str, prefix: bool = False) -> Callable:
 		"""トランスパイル後のシンボル名を埋め込む
 

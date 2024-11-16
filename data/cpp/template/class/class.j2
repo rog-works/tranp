@@ -1,3 +1,4 @@
+{%- if 'Embed.python()' not in decorators -%}
 {%- include('class/_comment.j2') %}
 {%- include('class/_prepare.j2') %}
 {%- include('class/_template_types.j2') %}
@@ -7,3 +8,6 @@
 {%- include('class/_statements.j2') %}
 {%- include('class/_after.j2') %}
 };
+{%- else -%}
+// {{ symbol }}
+{%- endif -%}

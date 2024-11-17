@@ -19,6 +19,11 @@ DSI: TypeAlias = dict[str, int]
 TSII: TypeAlias = tuple[str, int, int]
 
 
+class Values(Enum):
+	A = 0
+	B = 1
+
+
 class Base(metaclass=ABCMeta):
 	@abstractmethod
 	def sub_implements(self) -> None: ...
@@ -225,18 +230,9 @@ class CVarOps:
 
 
 class FuncOps:
-	def print(self) -> None:
-		print('message. %d, %f, %s', 1, 1.0, 'abc')
-
 	def kw_params(self, **kwargs: int) -> str:
 		a = self.kw_params(a=1, b=2)
 		return ''
-
-
-class EnumOps:
-	class Values(Enum):
-		A = 0
-		B = 1
 
 
 class AccessOps(Sub):
@@ -271,10 +267,10 @@ class AccessOps(Sub):
 		print(Sub.class_base_n)
 		print(Sub.base_class_func())
 		print(AccessOps.class_base_n)
-		print(EnumOps.Values.A)
-		d: dict[EnumOps.Values, str] = {
-			EnumOps.Values.A: 'A',
-			EnumOps.Values.B: 'B',
+		print(Values.A)
+		d: dict[Values, str] = {
+			Values.A: 'A',
+			Values.B: 'B',
 		}
 
 	def indexer(self, arr_p: CP[list[int]], arr_sp: CSP[list[int]], arr_ar: CRef[list[int]]) -> None:
@@ -324,16 +320,6 @@ class Alias:
 		def super_call(self) -> None:
 			super().func()
 
-	def litelize(self, t: 'type[Alias]') -> None:
-		print(self.__class__.__name__)
-		print(self.__module__)
-		print(Alias.__module__)
-		print(Alias.Inner.__name__)
-		print(Alias.in_local.__name__)
-		print(Alias.in_local.__qualname__)
-		print(Alias.Inner.func.__qualname__)
-		print(t.__name__)
-
 
 class Nullable:
 	def params(self, p: CP[Sub] | None) -> None: ...
@@ -347,18 +333,6 @@ class Nullable:
 			return p.raw
 
 		raise Exception()
-
-
-class Template(Generic[T]):
-	class T2Class(Generic[T2]): ...
-
-	def __init__(self, v: T) -> None: ...
-	@classmethod
-	def class_method_t(cls, v2: T2) -> T2: ...
-	@classmethod
-	def class_method_t_and_class_t(cls, v: T, v2: T2) -> T2: ...
-	def method_t(self, v2: T2) -> T2: ...
-	def method_t_and_class_t(self, v: T, v2: T2) -> T2: ...
 
 
 class GenericOps(Generic[T]):
@@ -381,6 +355,32 @@ class Struct:
 	def __init__(self, a: int, b: str) -> None:
 		self.a: int = a
 		self.b: str = b
+
+
+class ForCompound:
+	class ClassMethod:
+		@classmethod
+		def make(cls: type[Self]) -> Self:
+			inst = cls()
+			return inst
+
+	class SwapMethod:
+		@Embed.python
+		def exec(self) -> None: ...
+		@Embed.alias('exec')
+		def exec_cpp(self) -> None: ...
+
+
+class Template(Generic[T]):
+	class T2Class(Generic[T2]): ...
+
+	def __init__(self, v: T) -> None: ...
+	@classmethod
+	def class_method_t(cls, v2: T2) -> T2: ...
+	@classmethod
+	def class_method_t_and_class_t(cls, v: T, v2: T2) -> T2: ...
+	def method_t(self, v2: T2) -> T2: ...
+	def method_t_and_class_t(self, v: T, v2: T2) -> T2: ...
 
 
 def template_func(v: T) -> T: ...
@@ -434,13 +434,6 @@ class ForFlows:
 			raise e
 
 
-class ForClassMethod:
-	@classmethod
-	def make(cls: type[Self]) -> Self:
-		inst = cls()
-		return inst
-
-
 class ForAssign:
 	def anno(self) -> None:
 		n: int = 1
@@ -466,17 +459,17 @@ class ForAssign:
 		i2 = tsiis[0][2]
 
 	def for_enum(self) -> None:
-		ea = EnumOps.Values.A
-		es = [EnumOps.Values.A]
+		ea = Values.A
+		es = [Values.A]
 		des = {
-			EnumOps.Values.A: 'A',
-			EnumOps.Values.B: 'B',
+			Values.A: 'A',
+			Values.B: 'B',
 		}
 		e = es[0]
-		s = des[EnumOps.Values.A]
+		s = des[Values.A]
 
 
-class ForStatementSimple:
+class ForSimple:
 	def delete_list_dict(self, ns: list[int], dsn: dict[str, int]) -> None:
 		del ns[0]
 		del ns[1], ns[2]
@@ -506,6 +499,17 @@ class ForStatementSimple:
 		...
 
 
+class ForIndexer:
+	def list_slice(self, ns: list[int]) -> None:
+		ns[1:]
+		ns[:5]
+		ns[3:9:2]
+
+	def string_slice(self, s: str) -> None:
+		s[1:]
+		s[:5]
+
+
 class ForFuncCall:
 	class CallableType:
 		func: Callable[[int, str], bool]
@@ -518,12 +522,28 @@ class ForFuncCall:
 		b0 = caller.func(0, '')
 		b1 = func(0, '')
 
+	class Func:
+		def print(self) -> None:
+			print('message. %d, %f, %s', 1, 1.0, 'abc')
+
+	@Embed.alias('Class2')
+	class Class:
+		def literalize(self, t: type[Alias]) -> None:
+			print(self.__class__.__name__)
+			print(self.__module__)
+			print(Alias.__module__)
+			print(Alias.Inner.__name__)
+			print(Alias.in_local.__name__)
+			print(Alias.in_local.__qualname__)
+			print(Alias.Inner.func.__qualname__)
+			print(t.__name__)
+
 	class Cast:
 		def cast_binary(self) -> None:
 			f_to_n = int(1.0)
 			n_to_f = float(1)
 			n_to_b = bool(1)
-			e_to_n = int(EnumOps.Values.A)
+			e_to_n = int(Values.A)
 
 		def cast_string(self) -> None:
 			n_to_s = str(1)
@@ -539,8 +559,8 @@ class ForFuncCall:
 			dsbp = cast(dict[str, CP[Base]], dssp)
 
 		def cast_enum(self) -> None:
-			e = EnumOps.Values(0)
-			n = int(EnumOps.Values.A)
+			e = Values(0)
+			n = int(Values.A)
 
 	class Copy:
 		def __py_copy__(self, origin: 'CRef[ForFuncCall.Copy]') -> None:
@@ -588,11 +608,6 @@ class ForFuncCall:
 		def fill(self, n: int) -> None:
 			n_x3 = [n] * 3
 
-		def slice(self, ns: list[int]) -> None:
-			ns[1:]
-			ns[:5]
-			ns[3:9:2]
-
 		def insert(self, ns: list[int], n: int) -> None:
 			ns.insert(1, n)
 
@@ -606,10 +621,6 @@ class ForFuncCall:
 		def starts_ends(self, s: str) -> None:
 			s.startswith('')
 			s.endswith('')
-
-		def slice(self, s: str) -> None:
-			s[1:]
-			s[:5]
 
 		def len(self, s: str) -> None:
 			len(s)

@@ -1,40 +1,33 @@
 class BlockExpects:
-	DeclOps = """/** DeclOps */
-class DeclOps {
-	public: inline static Sub* class_bp = nullptr;
-	public: inline static std::map<std::string, std::map<std::string, std::vector<int*>>> class_map = {{"a", {{"b", {}}}}};
-	public: Sub* inst_var0;
-	public: Sub inst_var1;
-	public: std::vector<int*> inst_arr;
-	public: std::map<std::string, int*> inst_map;
-	public: std::vector<TSII> inst_tsiis;
-	public:
-	/** __init__ */
-	DeclOps() : inst_var0(nullptr), inst_var1({}), inst_arr({}), inst_map({}), inst_tsiis({}) {
-		int n = this->prop();
-	}
-	public:
-	/** prop */
-	int prop() {
-		return 1;
-	}
-};"""
+	@classmethod
+	def class_method(cls, access: str, klass: str, name: str, statements: list[str]) -> str:
+		return '\n'.join([
+			f'{access}:',
+			f'/** {name} */',
+			f'static {klass} {name}() ' '{',
+			f'	{"\n\t".join(statements)}' if statements else '',
+			'}',
+		])
+
+	@classmethod
+	def method(cls, access: str, klass: str, name: str, statements: list[str]) -> str:
+		return '\n'.join([
+			f'{access}:',
+			f'/** {name} */',
+			f'{klass} {name}() ' '{',
+			f'	{"\n\t".join(statements)}' if statements else '',
+			'}',
+		])
 
 	@classmethod
 	def list_slice(cls, symbol: str, begin: str, end: str, step: str, var_type: str) -> str:
 		return '\n'.join([
 			f'[&]() -> std::vector<{var_type}> ' '{',
 			f'	std::vector<{var_type}> __ret;',
-			'	int __index = 0;',
-			f'	int __start = {begin if begin else "0"};',
-			f'	int __end = {end if end else f"{symbol}.size()"};',
-			f'	int __step = {step if step else "0"};',
-			f'	for (auto& __value : {symbol}) ' '{',
-			'		int __offset = __index >= __start ? __index - __start : 0;',
-			'		if (__index >= __start && __index < __end && (__step == 0 || __offset % __step == 0)) {',
-			'			__ret.push_back(__value);',
-			'		}',
-			'		__index++;',
+			f'	auto __begin = {symbol}.begin();',
+			f'	auto __end = {end if end else f"{symbol}.size()"};',
+			f'	for (auto __index = {begin if begin else "0"}; __index < __end; __index += {step if step else "1"}) ' '{',
+			'		__ret.push_back(*(__begin + __index));',
 			'	}',
 			'	return __ret;',
 			'}();',
@@ -97,19 +90,6 @@ class DeclOps {
 			'}();'
 		])
 
-	ForTemplateClass_Delegate = \
-"""/** Delegate */
-template<typename ...TArgs>
-class Delegate {
-	public:
-	/** bind */
-	template<typename T>
-	void bind(T* obj, const typename PluckMethod<T, void, TArgs...>::method& method) {}
-	public:
-	/** invoke */
-	void invoke(TArgs... args) {}
-};"""
-
 	@classmethod
 	def for_enumerate(cls, index: str, value: str, iterates: str, statements: list[str]) -> str:
 		return '\n'.join([
@@ -143,3 +123,37 @@ class Delegate {
 			'	return __ret;',
 			'}()',
 		])
+
+	DeclOps = """/** DeclOps */
+class DeclOps {
+	public: inline static Sub* class_bp = nullptr;
+	public: inline static std::map<std::string, std::map<std::string, std::vector<int*>>> class_map = {{"a", {{"b", {}}}}};
+	public: Sub* inst_var0;
+	public: Sub inst_var1;
+	public: std::vector<int*> inst_arr;
+	public: std::map<std::string, int*> inst_map;
+	public: std::vector<TSII> inst_tsiis;
+	public:
+	/** __init__ */
+	DeclOps() : inst_var0(nullptr), inst_var1({}), inst_arr({}), inst_map({}), inst_tsiis({}) {
+		int n = this->prop();
+	}
+	public:
+	/** prop */
+	int prop() {
+		return 1;
+	}
+};"""
+
+	ForTemplateClass_Delegate = \
+"""/** Delegate */
+template<typename ...TArgs>
+class Delegate {
+	public:
+	/** bind */
+	template<typename T>
+	void bind(T* obj, const typename PluckMethod<T, void, TArgs...>::method& method) {}
+	public:
+	/** invoke */
+	void invoke(TArgs... args) {}
+};"""

@@ -1,5 +1,6 @@
 from collections.abc import Callable
 from enum import Enum
+import re
 from typing import Iterator, TypeAlias
 
 
@@ -305,3 +306,148 @@ class BlockParser:
 
 		root = cls.parse(text, brackets, delimiter)
 		return to_formatter(root)
+
+	@classmethod
+	def parse_primary(cls, text: str, brackets: str = '[]') -> list[str]:
+		"""文字列内の第1層のブロックを解析し、左から順に展開する
+
+		Args:
+			text (str): 対象の文字列
+			brackets (str): 括弧のペア (default: '{}')
+		Returns:
+			list[str]: ブロックリスト
+		"""
+		stack = 0
+		blocks: list[str] = []
+		index = 0
+		begin = 0
+		while index < len(text):
+			if text[index] == brackets[0] and stack == 0:
+				begin = index + 1
+				stack += 1
+			elif text[index] == brackets[0] and stack > 0:
+				stack += 1
+			elif text[index] == brackets[1] and stack == 1:
+				blocks.append(text[begin:index - 1])
+				stack -= 1
+			elif text[index] == brackets[1] and stack > 1:
+				stack -= 1
+
+			index += 1
+
+		return blocks
+
+	@classmethod	
+	def break_separator(cls, text: str, delimiter: str) -> list[str]:
+		"""文字列を区切り文字で分割
+
+		Args:
+			text (str): 対象の文字列
+			delimiter (str): 区切り文字
+		Returns:
+			list[str]: ブロックリスト
+		"""
+		other_tokens = ''.join(cls._all_pair)
+		blocks: list[str] = []
+		index = 0
+		begin = 0
+		while index < len(text):
+			if text[index] in other_tokens:
+				index = cls._skip_other_block(text, other_tokens, index)
+				continue
+
+			if text[index] == delimiter:
+				blocks.append(text[begin:index - 1].strip(' '))
+				begin = index + 1
+
+			index += 1
+
+		return blocks
+
+
+class DecoratorParser:
+	"""デコレーターパーサー"""
+
+	def __init__(self, decorator: str) -> None:
+		"""インスタンスを生成
+
+		Args:
+			decorator (str): デコレーター
+		"""
+		self.decorator: str = decorator
+		self._parsed: tuple[str, dict[str, str]] = ('', {})
+
+	def _parse(self, decorator: str) -> tuple[str, dict[str, str]]:
+		"""デコレーターを解析
+
+		Args:
+			decorator (str): デコレーター
+		Returns:
+			tuple[str, dict[str, str]]: (パス, 引数一覧)
+		"""
+		param_begin = decorator.find('(')
+		join_params = decorator[param_begin:len(decorator)]
+		params: dict[str, str] = {}
+		for index, param_block in enumerate(BlockParser.break_separator(join_params, ',')):
+			if param_block.count('=') > 0:
+				label, remain = param_block.split('=')
+				params[label] = '='.join(remain)
+			else:
+				params[str(index)] = param_block
+
+		param_begin = decorator.find('(')
+		path = decorator[:param_begin]
+		return path, params
+	
+	@property
+	def path(self) -> str:
+		"""str: デコレーターパス"""
+		if len(self._parsed[0]) == 0:
+			self._parsed = self._parse(self.decorator)
+
+		return self._parsed[0]
+
+	@property
+	def args(self) -> dict[str, str]:
+		"""dict[str, str]: 引数一覧"""
+		if len(self._parsed[0]) == 0:
+			self._parsed = self._parse(self.decorator)
+
+		return self._parsed[1]
+
+	@property
+	def arg(self) -> str:
+		keys = list(self.args.keys())
+		return self.args[keys[0]] if len(keys) > 0 else ''
+
+	def any(self, *paths: str, **args: str) -> bool:
+		"""指定のスキームと一致するか判定
+
+		Args:
+			*paths (str): 対象のデコレーターパスリスト
+			**args (str): 引数リストの条件一覧
+		Returns:
+			bool: True = 条件に合致
+		"""
+		if self.path not in paths:
+			return False
+
+		for label, subject in args.items():
+			if label in self.args:
+				if self.args[label] != subject:
+					return False
+			else:
+				if subject not in self.args.values():
+					return False
+
+		return True
+
+	def match(self, pattern: str) -> bool:
+		"""指定のスキームと一致するか判定(正規表現)
+
+		Args:
+			pattern (str): 正規表現
+		Returns:
+			bool: True = 条件に合致
+		"""
+		return re.search(pattern, self.decorator) != None

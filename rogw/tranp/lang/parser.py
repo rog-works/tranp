@@ -1,6 +1,5 @@
 from collections.abc import Callable
 from enum import Enum
-import re
 from typing import Iterator, TypeAlias
 
 
@@ -366,91 +365,3 @@ class BlockParser:
 			blocks.append(text[begin:index].strip(' '))
 
 		return blocks
-
-
-class DecoratorParser:
-	"""デコレーターパーサー"""
-
-	def __init__(self, decorator: str) -> None:
-		"""インスタンスを生成
-
-		Args:
-			decorator (str): デコレーター
-		"""
-		self.decorator: str = decorator
-		self._parsed: tuple[str, dict[str, str]] = ('', {})
-
-	def _parse(self, decorator: str) -> tuple[str, dict[str, str]]:
-		"""デコレーターを解析
-
-		Args:
-			decorator (str): デコレーター
-		Returns:
-			tuple[str, dict[str, str]]: (パス, 引数一覧)
-		"""
-		param_begin = decorator.find('(')
-		join_params = decorator[param_begin + 1:len(decorator) - 1]
-		params: dict[str, str] = {}
-		for index, param_block in enumerate(BlockParser.break_separator(join_params, ',')):
-			if param_block.count('=') > 0:
-				label, *remain = param_block.split('=')
-				params[label] = '='.join(remain)
-			else:
-				params[str(index)] = param_block
-
-		param_begin = decorator.find('(')
-		path = decorator[:param_begin]
-		return path, params
-	
-	@property
-	def path(self) -> str:
-		"""str: デコレーターパス"""
-		if len(self._parsed[0]) == 0:
-			self._parsed = self._parse(self.decorator)
-
-		return self._parsed[0]
-
-	@property
-	def args(self) -> dict[str, str]:
-		"""dict[str, str]: 引数一覧"""
-		if len(self._parsed[0]) == 0:
-			self._parsed = self._parse(self.decorator)
-
-		return self._parsed[1]
-
-	@property
-	def arg(self) -> str:
-		"""str: 第1引数の値"""
-		keys = list(self.args.keys())
-		return self.args[keys[0]] if len(keys) > 0 else ''
-
-	def any(self, *paths: str, **args: str) -> bool:
-		"""指定のスキームと一致するか判定
-
-		Args:
-			*paths (str): 対象のデコレーターパスリスト
-			**args (str): 引数リストの条件一覧
-		Returns:
-			bool: True = 条件に合致
-		"""
-		if self.path not in paths:
-			return False
-
-		for label, condition in args.items():
-			if label not in self.args:
-				return False
-
-			if self.args[label] != condition:
-				return False
-
-		return True
-
-	def match(self, pattern: str) -> bool:
-		"""指定のスキームと一致するか判定(正規表現)
-
-		Args:
-			pattern (str): 正規表現
-		Returns:
-			bool: True = 条件に合致
-		"""
-		return re.search(pattern, self.decorator) != None

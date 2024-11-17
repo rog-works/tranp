@@ -393,7 +393,7 @@ class DecoratorParser:
 		params: dict[str, str] = {}
 		for index, param_block in enumerate(BlockParser.break_separator(join_params, ',')):
 			if param_block.count('=') > 0:
-				label, remain = param_block.split('=')
+				label, *remain = param_block.split('=')
 				params[label] = '='.join(remain)
 			else:
 				params[str(index)] = param_block
@@ -420,6 +420,7 @@ class DecoratorParser:
 
 	@property
 	def arg(self) -> str:
+		"""str: 第1引数の値"""
 		keys = list(self.args.keys())
 		return self.args[keys[0]] if len(keys) > 0 else ''
 

@@ -225,6 +225,15 @@ class TestPy2Cpp(TestCase):
 		('Nullable.var_move', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'p = (sp).get();'),
 		('Nullable.var_move', 'function_def_raw.block.if_stmt.if_clause.block.return_stmt', defs.Return, 'return (*(p));'),
 
+		('GenericOps.temporal', 'function_def_raw.block.assign', defs.MoveAssign, 'T a = value;'),
+		('GenericOps.new', 'function_def_raw.block.assign', defs.MoveAssign, 'GenericOps<int> a = GenericOps<int>();'),
+
+		('Struct', '', defs.Class, '/** Struct */\nstruct Struct {\n\tpublic: int a;\n\tpublic: std::string b;\n\tpublic:\n\t/** __init__ */\n\tStruct(int a, std::string b) : a(a), b(b) {}\n};'),
+
+		('ForCompound.ClassMethod.make', '', defs.ClassMethod, BlockExpects.class_method(access='public', klass='ClassMethod', name='make', statements=['ForCompound::ClassMethod inst = ClassMethod();', 'return inst;'])),
+		('ForCompound.SwapMethod.exec', '', defs.Method, '// method exec'),
+		('ForCompound.SwapMethod.exec_cpp', '', defs.Method, 'public:\n/** exec */\nvoid exec() {}'),
+
 		('Template.T2Class', '', defs.Class, '/** T2Class */\ntemplate<typename T2>\nclass T2Class {\n\n};'),
 		('Template.__init__', '', defs.Constructor, 'public:\n/** __init__ */\nTemplate(T v) {}'),
 		('Template.class_method_t', '', defs.ClassMethod, 'public:\n/** class_method_t */\ntemplate<typename T2>\nstatic T2 class_method_t(T2 v2) {}'),
@@ -232,16 +241,7 @@ class TestPy2Cpp(TestCase):
 		('Template.method_t', '', defs.Method, 'public:\n/** method_t */\ntemplate<typename T2>\nT2 method_t(T2 v2) {}'),
 		('Template.method_t_and_class_t', '', defs.Method, 'public:\n/** method_t_and_class_t */\ntemplate<typename T2>\nT2 method_t_and_class_t(T v, T2 v2) {}'),
 
-		('GenericOps.temporal', 'function_def_raw.block.assign', defs.MoveAssign, 'T a = value;'),
-		('GenericOps.new', 'function_def_raw.block.assign', defs.MoveAssign, 'GenericOps<int> a = GenericOps<int>();'),
-
-		('Struct', '', defs.Class, '/** Struct */\nstruct Struct {\n\tpublic: int a;\n\tpublic: std::string b;\n\tpublic:\n\t/** __init__ */\n\tStruct(int a, std::string b) : a(a), b(b) {}\n};'),
-
 		('template_func', '', defs.Function, '/** template_func */\ntemplate<typename T>\nT template_func(T v) {}'),
-
-		('ForCompound.ClassMethod.make', '', defs.ClassMethod, BlockExpects.class_method(access='public', klass='ClassMethod', name='make', statements=['ForCompound::ClassMethod inst = ClassMethod();', 'return inst;'])),
-		('ForCompound.SwapMethod.exec', '', defs.Method, '// method exec'),
-		('ForCompound.SwapMethod.exec_cpp', '', defs.Method, 'public:\n/** exec */\nvoid exec() {}'),
 
 		('ForFlows.if_elif_else', 'function_def_raw.block.if_stmt', defs.If, 'if (1) {\n\n} else if (2) {\n\n} else {\n\n}'),
 

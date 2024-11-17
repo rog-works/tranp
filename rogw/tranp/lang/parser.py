@@ -328,7 +328,7 @@ class BlockParser:
 			elif text[index] == brackets[0] and stack > 0:
 				stack += 1
 			elif text[index] == brackets[1] and stack == 1:
-				blocks.append(text[begin:index - 1])
+				blocks.append(text[begin:index])
 				stack -= 1
 			elif text[index] == brackets[1] and stack > 1:
 				stack -= 1
@@ -357,10 +357,13 @@ class BlockParser:
 				continue
 
 			if text[index] == delimiter:
-				blocks.append(text[begin:index - 1].strip(' '))
+				blocks.append(text[begin:index].strip(' '))
 				begin = index + 1
 
 			index += 1
+
+		if begin < index:
+			blocks.append(text[begin:index].strip(' '))
 
 		return blocks
 
@@ -386,7 +389,7 @@ class DecoratorParser:
 			tuple[str, dict[str, str]]: (パス, 引数一覧)
 		"""
 		param_begin = decorator.find('(')
-		join_params = decorator[param_begin:len(decorator)]
+		join_params = decorator[param_begin + 1:len(decorator) - 1]
 		params: dict[str, str] = {}
 		for index, param_block in enumerate(BlockParser.break_separator(join_params, ',')):
 			if param_block.count('=') > 0:

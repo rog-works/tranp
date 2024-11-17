@@ -313,7 +313,7 @@ class BlockParser:
 
 		Args:
 			text (str): 対象の文字列
-			brackets (str): 括弧のペア (default: '{}')
+			brackets (str): 括弧のペア (default: '[]')
 		Returns:
 			list[str]: ブロックリスト
 		"""
@@ -436,13 +436,12 @@ class DecoratorParser:
 		if self.path not in paths:
 			return False
 
-		for label, subject in args.items():
-			if label in self.args:
-				if self.args[label] != subject:
-					return False
-			else:
-				if subject not in self.args.values():
-					return False
+		for label, condition in args.items():
+			if label not in self.args:
+				return False
+
+			if self.args[label] != condition:
+				return False
 
 		return True
 

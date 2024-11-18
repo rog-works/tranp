@@ -67,7 +67,6 @@ class TestPy2Cpp(TestCase):
 		('Base.allowed_overrides', '', defs.Method, 'public:\n/** allowed_overrides */\nvirtual int allowed_overrides() {\n\treturn 1;\n}'),
 		('Base.base_class_func', '', defs.ClassMethod, 'public:\n/** base_class_func */\nstatic int base_class_func() {}'),
 		('Base.base_prop', '', defs.Method, 'public:\n/** base_prop */\nstd::string base_prop() {}'),
-		('Base._pure_public_method', '', defs.Method, 'public:\n/** _pure_public_method */\nstd::string _pure_public_method() const {}'),
 
 		('Sub', 'class_def_raw.block.comment_stmt[5]', defs.Comment, '// FIXME other: Any'),
 
@@ -230,9 +229,18 @@ class TestPy2Cpp(TestCase):
 
 		('Struct', '', defs.Class, '/** Struct */\nstruct Struct {\n\tpublic: int a;\n\tpublic: std::string b;\n\tpublic:\n\t/** __init__ */\n\tStruct(int a, std::string b) : a(a), b(b) {}\n};'),
 
-		('ForCompound.ClassMethod.make', '', defs.ClassMethod, BlockExpects.class_method(access='public', klass='ClassMethod', name='make', statements=['ForCompound::ClassMethod inst = ClassMethod();', 'return inst;'])),
-		('ForCompound.SwapMethod.exec', '', defs.Method, '// method exec'),
-		('ForCompound.SwapMethod.exec_cpp', '', defs.Method, 'public:\n/** exec */\nvoid exec() {}'),
+		('ForCompound.ClassMethod.make', '', defs.ClassMethod, BlockExpects.class_method(access='public', name='make', return_type='ClassMethod', statements=['ForCompound::ClassMethod inst = ClassMethod();', 'return inst;'])),
+		('ForCompound.Modifier._to_public', '', defs.Method, BlockExpects.method(access='public', name='_to_public', return_type='void', statements=[])),
+		('ForCompound.Modifier.to_protected', '', defs.Method, BlockExpects.method(access='protected', name='to_protected', return_type='void', statements=[])),
+		('ForCompound.Modifier.to_private', '', defs.Method, BlockExpects.method(access='private', name='to_private', return_type='void', statements=[])),
+		('ForCompound.closure.bind_ref', '', defs.Closure, 'auto bind_ref = [&]() -> void {};'),
+		('ForCompound.closure.bind_copy', '', defs.Closure, 'auto bind_copy = [this]() mutable -> void {};'),
+
+		('ForClassExpose.Class', '', defs.Class, '// class Class'),
+		('ForClassExpose.Enums', '', defs.Enum, '// enum Enums'),
+		('ForClassExpose.method', '', defs.Method, '// method method'),
+		('ForClassExpose.method_cpp', '', defs.Method, 'public:\n/** method */\nvoid method() {}'),
+		('func_expose', '', defs.Function, '// function func_expose'),
 
 		('Template.T2Class', '', defs.Class, '/** T2Class */\ntemplate<typename T2>\nclass T2Class {\n\n};'),
 		('Template.__init__', '', defs.Constructor, 'public:\n/** __init__ */\nTemplate(T v) {}'),

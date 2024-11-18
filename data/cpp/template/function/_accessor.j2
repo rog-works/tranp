@@ -1,8 +1,9 @@
-{%- if decorators | select('==', 'Embed.private()') | list -%}
+{%- set decos = decorator_query(decorators) -%}
+{%- if decos.any('Embed.private') -%}
 private
-{%- elif decorators | select('==', 'Embed.protected()') | list -%}
+{%- elif decos.any('Embed.protected') -%}
 protected
-{%- elif decorators | select('==', 'Embed.public()') | list -%}
+{%- elif decos.any('Embed.public') -%}
 public
 {%- else -%}
 {{ accessor }}

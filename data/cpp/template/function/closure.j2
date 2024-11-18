@@ -1,8 +1,6 @@
-{%- set deco_name = 'Embed.closure_bind(' -%}
-{%- set deco_bind = decorators | filter_find(deco_name) | list -%}
+{%- set deco_bind = decorator_query(decorators).find('Embed.closure_bind') -%}
 {%- if deco_bind -%}
-{%- set bind_symbols = deco_bind[0][deco_name | length:-1] -%}
-auto {{ symbol }} = [{{ bind_symbols }}]({{ parameters | join(', ') }}) mutable -> {{ return_type }} {% include('function/_block.j2') %};
+auto {{ symbol }} = [{{ deco_bind.args.values() | join(', ') }}]({{ parameters | join(', ') }}) mutable -> {{ return_type }} {% include('function/_block.j2') %};
 {%- else -%}
 auto {{ symbol }} = [&]({{ parameters | join(', ') }}) -> {{ return_type }} {% include('function/_block.j2') %};
 {%- endif -%}

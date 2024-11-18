@@ -969,10 +969,7 @@ class Py2Cpp(ITranspiler):
 		projection_type_raw = self.reflections.type_of(node.projection)
 		projection_type_key = self.to_accessible_name(projection_type_raw.attrs[0])
 		projection_type_value = self.to_accessible_name(projection_type_raw.attrs[1])
-		projection_pair_node = node.projection.as_a(defs.Pair)
-		# XXX 再帰的なトランスパイルでkey/valueを解決
-		projection_key = self.transpile(projection_pair_node.first)
-		projection_value = self.transpile(projection_pair_node.second)
+		projection_key, projection_value = BlockParser.break_separator(projection[1:-1], ',')
 		comp_vars = {'projection_key': projection_key, 'projection_value': projection_value, 'comp_for': fors[0], 'condition': condition, 'projection_types': [projection_type_key, projection_type_value]}
 		return self.view.render(f'comp/{node.classification}', vars=comp_vars)
 
@@ -1111,23 +1108,10 @@ class PatternParser:
 		これらは正規表現を用いないで済む方法へ修正を検討
 	"""
 
-	# 期待値: path.to->prop -> ('path.to', '->')
 	RelayPattern = re.compile(r'(.+)(->|::|\.)\w+$')
-	# 期待値: path.to.calls(arguments...) -> 'arguments...'
-	FuncCallArgumentsPattern = re.compile(r'\w+\((.+)\)$')
-	# 期待値: path.to->items() -> ('path.to', '->', 'items')
 	DictIteratorPattern = re.compile(r'(.+)(->|\.)(\w+)\(\)$')
-	# 期待値: Class::__init__(arguments...); -> 'arguments...'
-	SuperArgumentsPattern = re.compile(r'\(([^)]*)\);$')
-	# 期待値: path.to = right; -> 'right'
 	AssignRightPattern = re.compile(r'=\s*([^;]+);$')
-	# 期待値: path.to[key] -> ('path.to', 'key') XXX 複雑な式に耐えられないため修正を検討
-	IndexerPattern = re.compile(r'(.+)\[(.+)\]$')
-	# 期待値: Class(arguments...) -> 'arguments...'
-	CVarNewArgumentPattern = re.compile(r'^[^(]+\((.*)\)$')
-	# 期待値: path.on()->to -> 'path.to'
 	CVarRelaySubPattern = re.compile(rf'(->|::|\.){CVars.relay_key}\(\)$')
-	# 期待値: path.to.raw() -> 'path.to'
 	CVarToSubPattern = re.compile(rf'(->|::|\.)({"|".join(CVars.exchanger_keys)})\(\)$')
 
 	@classmethod
@@ -1138,6 +1122,9 @@ class PatternParser:
 			relay (str): 文字列
 		Returns:
 			tuple[str, str]: (レシーバー, オペレーター)
+		Note:
+			### 期待値
+			`'path.to->prop' -> ('path.to', '->')`
 		"""
 		return cast(re.Match, cls.RelayPattern.fullmatch(relay)).group(1, 2)
 
@@ -1149,8 +1136,11 @@ class PatternParser:
 			func_call (str): 文字列
 		Returns:
 			str: 引数リスト
+		Note:
+			### 期待値
+			`'path.to.calls(arguments...)' -> 'arguments...'`
 		"""
-		return cast(re.Match, cls.FuncCallArgumentsPattern.fullmatch(func_call))[1]
+		return BlockParser.break_last_block(func_call, '()')[1]
 
 	@classmethod
 	def break_dict_iterator(cls, func_call: str) -> tuple[str, str, str]:
@@ -1160,6 +1150,9 @@ class PatternParser:
 			func_call (str): 文字列
 		Returns:
 			tuple[str, str, str]: (レシーバー, オペレーター, メソッド)
+		Note:
+			### 期待値
+			`'path.to->items()' -> ('path.to', '->', 'items')`
 		"""
 		return cast(re.Match, cls.DictIteratorPattern.fullmatch(func_call)).group(1, 2, 3)
 
@@ -1171,8 +1164,11 @@ class PatternParser:
 			func_call (str): 文字列
 		Returns:
 			str: 引数リスト
+		Note:
+			### 期待値
+			`'Class::__init__(arguments...);' -> 'arguments...'`
 		"""
-		return cast(re.Match, cls.SuperArgumentsPattern.search(func_call))[1]
+		return BlockParser.break_last_block(func_call, '()')[1]
 
 	@classmethod
 	def pluck_assign_right(cls, assign: str) -> str:
@@ -1182,6 +1178,9 @@ class PatternParser:
 			assign (str): 文字列
 		Returns:
 			str: 右辺
+		Note:
+			### 期待値
+			`'path.to = right;' -> 'right'`
 		"""
 		matches = cls.AssignRightPattern.search(assign)
 		return matches[1] if matches else ''
@@ -1194,8 +1193,11 @@ class PatternParser:
 			assign (str): 文字列
 		Returns:
 			tuple[str, str]: (レシーバー, キー)
+		Note:
+			### 期待値
+			`'path.to[key]' -> ('path.to', 'key')`
 		"""
-		return cast(re.Match, cls.IndexerPattern.fullmatch(indexer)).group(1, 2)
+		return BlockParser.break_last_block(indexer, '[]')
 
 	@classmethod
 	def pluck_cvar_new_argument(cls, argument: str) -> str:
@@ -1205,8 +1207,11 @@ class PatternParser:
 			argument (str): 文字列
 		Returns:
 			str: 引数
+		Note:
+			### 期待値
+			`'Class(arguments...)' -> 'arguments...'`
 		"""
-		return cast(re.Match, cls.CVarNewArgumentPattern.fullmatch(argument))[1]
+		return BlockParser.break_last_block(argument, '()')[1]
 
 	@classmethod
 	def sub_cvar_relay(cls, receiver: str) -> str:
@@ -1216,6 +1221,9 @@ class PatternParser:
 			receiver (str): 文字列
 		Returns:
 			str: 引数
+		Note:
+			### 期待値
+			`'path.on()->to' -> 'path.to'`
 		"""
 		return cls.CVarRelaySubPattern.sub('', receiver)
 
@@ -1227,5 +1235,8 @@ class PatternParser:
 			receiver (str): 文字列
 		Returns:
 			str: 引数
+		Note:
+			### 期待値
+			`'path.to.raw()' -> 'path.to'`
 		"""
 		return cls.CVarToSubPattern.sub('', receiver)

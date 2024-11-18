@@ -5,6 +5,7 @@ from jinja2 import Environment, FileSystemLoader
 
 from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.dsn.translation import alias_dsn
+from rogw.tranp.lang.parser import BlockParser
 from rogw.tranp.view.helper import DecoratorQuery
 
 
@@ -41,6 +42,7 @@ class Renderer:
 		self.__renderer.globals['reg_replace'] = lambda pattern, replace, string: re.sub(pattern, replace, string)
 		self.__renderer.globals['reg_match'] = lambda pattern, string: re.search(pattern, string)
 		self.__renderer.globals['reg_fullmatch'] = lambda pattern, string: re.fullmatch(pattern, string)
+		self.__renderer.globals['break_last_block'] = lambda string, brackets: BlockParser.break_last_block(string, brackets)
 		self.__renderer.globals['decorator_query'] = lambda decorators: DecoratorQuery.parse(decorators)
 		self.__renderer.filters['filter_find'] = lambda strings, subject: [string for string in strings if string.find(subject) != -1]
 		self.__renderer.filters['filter_replace'] = lambda strings, pattern, replace: [re.sub(pattern, replace, string) for string in strings]

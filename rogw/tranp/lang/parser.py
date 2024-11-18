@@ -307,19 +307,19 @@ class BlockParser:
 		return to_formatter(root)
 
 	@classmethod
-	def parse_primary(cls, text: str, brackets: str = '[]') -> list[str]:
-		"""文字列内の第1層のブロックを解析し、左から順に展開する
+	def break_last_block(cls, text: str, brackets: str) -> tuple[str, str]:
+		"""文字列内の終端ブロックを解析し、終端ブロックまでの接頭辞とブロックの内部要素に分解する
 
 		Args:
 			text (str): 対象の文字列
 			brackets (str): 括弧のペア (default: '[]')
 		Returns:
-			list[str]: ブロックリスト
+			tuple[str, str]: (接頭辞、ブロックの内部要素)
 		"""
-		stack = 0
-		blocks: list[str] = []
+		ranges: list[tuple[int, int]] = []
 		index = 0
 		begin = 0
+		stack = 0
 		while index < len(text):
 			if text[index] == brackets[0] and stack == 0:
 				begin = index + 1
@@ -327,14 +327,15 @@ class BlockParser:
 			elif text[index] == brackets[0] and stack > 0:
 				stack += 1
 			elif text[index] == brackets[1] and stack == 1:
-				blocks.append(text[begin:index])
+				ranges.append((begin, index))
 				stack -= 1
 			elif text[index] == brackets[1] and stack > 1:
 				stack -= 1
 
 			index += 1
 
-		return blocks
+		last_begin, last_end = ranges[-1]
+		return text[0:last_begin - 1], text[last_begin:last_end]
 
 	@classmethod	
 	def break_separator(cls, text: str, delimiter: str) -> list[str]:
@@ -346,18 +347,19 @@ class BlockParser:
 		Returns:
 			list[str]: ブロックリスト
 		"""
+		open_tokens = ''.join([pair[0] for pair in cls._all_pair])
 		other_tokens = ''.join(cls._all_pair)
 		blocks: list[str] = []
 		index = 0
 		begin = 0
 		while index < len(text):
-			if text[index] in other_tokens:
+			if text[index] in open_tokens:
 				index = cls._skip_other_block(text, other_tokens, index)
 				continue
 
-			if text[index] == delimiter:
+			if text[index] == delimiter[0] and index + len(delimiter) < len(text) and text.find(delimiter, index) == index:
 				blocks.append(text[begin:index].strip(' '))
-				begin = index + 1
+				begin = index + len(delimiter)
 
 			index += 1
 

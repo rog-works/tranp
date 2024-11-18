@@ -1,2 +1,1 @@
-{%- set _inherits = inherits | select('!=', 'CObject') | list -%}
-{%- if _inherits %} : public {{ _inherits | join(', public ') }}{% endif -%}
+{%- if inherits %} : public {{ inherits | join(', public ') }}{% endif -%}

@@ -803,6 +803,17 @@ class TestRenderer(TestCase):
 		self.assertRender('function/_block', 0, vars, expected)
 
 	@data_provider([
+		({'parameter': 'int n', 'decorators': []}, 'int n'),
+		({'parameter': 'int n', 'decorators': ['Embed.param("n", mutable=false)']}, 'const int& n'),
+		({'parameter': 'int n = 1', 'decorators': []}, 'int n = 1'),
+		({'parameter': 'int n = 1', 'decorators': ['Embed.param("n", mutable=false)']}, 'const int& n = 1'),
+		({'parameter': 'const int& n', 'decorators': []}, 'const int& n'),
+		({'parameter': 'const int& n', 'decorators': ['Embed.param("n", mutable=false)']}, 'const int& n'),
+	])
+	def test_render_function_definition_param(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('function/_definition_param', 0, vars, expected)
+
+	@data_provider([
 		(
 			'function',
 			{

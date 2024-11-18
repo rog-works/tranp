@@ -10,3 +10,7 @@ exclude_patterns:
 env:
   import_dirs:
     - example/
+  immutable_param_types:
+    - std::string
+    - std::vector
+    - std::map

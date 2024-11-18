@@ -1,4 +1,4 @@
-{%- if decorator_query(decorators).any('Embed.python') -%}
+{%- if decorator_query(decorators).contains('Embed.python') -%}
 // enum {{ symbol }}
 {%- else -%}
 {%- include('class/_comment.j2') %}

@@ -39,8 +39,8 @@ class TestDecoratorParser(TestCase):
 		('abc()', r'^abc', True),
 		('abc()', r'^abc\(\)$', True),
 	])
-	def test_match(self, decorator: str, pattern: str, expected: bool) -> None:
-		actual = DecoratorHelper(decorator).match(pattern)
+	def test_matched(self, decorator: str, pattern: str, expected: bool) -> None:
+		actual = DecoratorHelper(decorator).matched(pattern)
 		self.assertEqual(actual, expected)
 
 
@@ -48,27 +48,29 @@ class TestDecoratorQuery(TestCase):
 	@data_provider([
 		(['a()', 'ab()', 'abc()'], ['abc'], {}),
 	])
-	def test___iter__(self, decorators: list[str], paths: list[str], args: dict[str, str]) -> None:
-		actual = [helper.decorator for helper in DecoratorQuery(decorators)]
-		self.assertEqual(actual, decorators)
+	def test_schema(self, decorators: list[str], paths: list[str], args: dict[str, str]) -> None:
+		instance = DecoratorQuery.parse(decorators)
+		self.assertEqual([helper.decorator for helper in instance], decorators)
+		for i in range(len(decorators)):
+			self.assertEqual(instance[i].decorator, decorators[i])
 
 	@data_provider([
 		(['a()', 'ab()', 'abc()'], ['abc'], {}, ['abc()']),
 	])
 	def test_filter(self, decorators: list[str], paths: list[str], args: dict[str, str], expected: list[str]) -> None:
-		actual = [helper.decorator for helper in DecoratorQuery(decorators).filter(*paths, **args)]
+		actual = [helper.decorator for helper in DecoratorQuery.parse(decorators).filter(*paths, **args)]
+		self.assertEqual(actual, expected)
+
+	@data_provider([
+		(['a()', 'ab()', 'abc()'], 'abc', ['abc()']),
+	])
+	def test_match(self, decorators: list[str], pattern: str, expected: bool) -> None:
+		actual = [helper.decorator for helper in DecoratorQuery.parse(decorators).match(pattern)]
 		self.assertEqual(actual, expected)
 
 	@data_provider([
 		(['a()', 'ab()', 'abc()'], ['abc'], {}, True),
 	])
-	def test_any(self, decorators: list[str], paths: list[str], args: dict[str, str], expected: bool) -> None:
-		actual = DecoratorQuery(decorators).any(*paths, **args)
-		self.assertEqual(actual, expected)
-
-	@data_provider([
-		(['a()', 'ab()', 'abc()'], 'abc', True),
-	])
-	def test_match(self, decorators: list[str], pattern: str, expected: bool) -> None:
-		actual = DecoratorQuery(decorators).match(pattern)
+	def test_contains(self, decorators: list[str], paths: list[str], args: dict[str, str], expected: bool) -> None:
+		actual = DecoratorQuery.parse(decorators).contains(*paths, **args)
 		self.assertEqual(actual, expected)

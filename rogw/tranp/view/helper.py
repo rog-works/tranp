@@ -1,3 +1,4 @@
+from collections.abc import Iterator
 import re
 
 from rogw.tranp.lang.parser import BlockParser
@@ -56,8 +57,28 @@ class DecoratorHelper:
 	@property
 	def arg(self) -> str:
 		"""str: 第1引数の値"""
-		args = list(self.args.values())
-		return args[0] if len(args) > 0 else ''
+		return list(self.args.values())[0]
+
+	def arg_at(self, index: int) -> str:
+		"""指定のインデックスの引数の値を取得
+
+		Args:
+			index (int): インデックス
+		Returns:
+			str: 引数の値
+		"""
+		values = list(self.args.values())
+		return values[index]
+
+	def arg_by(self, key: str) -> str:
+		"""指定のキーの引数の値を取得
+
+		Args:
+			key (str): キー
+		Returns:
+			str: 引数の値
+		"""
+		return self.args[key]
 
 	def any(self, *paths: str, **args: str) -> bool:
 		"""指定のスキームと一致するか判定
@@ -102,20 +123,25 @@ class DecoratorQuery:
 		"""
 		self.helpers = [DecoratorHelper(decorator) for decorator in decorators]
 
-	def find(self, *path: str, **args: str) -> DecoratorHelper | None:
-		"""指定のスキームと一致する要素を検索し、最初の要素を返却
+	def __iter__(self) -> Iterator[DecoratorHelper]:
+		"""イテレーターを生成
+
+		Returns:
+			Iterator[DecoratorHelper]: イテレーター
+		"""
+		for helper in self.helpers:
+			yield helper
+
+	def filter(self, *path: str, **args: str) -> list[DecoratorHelper]:
+		"""指定のスキームと一致する要素を返却
 
 		Args:
 			*paths (str): 対象のデコレーターパスリスト
 			**args (str): 引数リストの条件一覧
 		Returns:
-			DecoratorHelper: デコレーターヘルパー
+			list[DecoratorHelper]: デコレーターヘルパーリスト
 		"""
-		for helper in self.helpers:
-			if helper.any(*path, **args):
-				return helper
-
-		return None
+		return [helper for helper in self.helpers if helper.any(*path, **args)]
 
 	def any(self, *path: str, **args: str) -> bool:
 		"""指定のスキームと一致するか判定

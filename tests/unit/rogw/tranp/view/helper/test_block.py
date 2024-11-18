@@ -1,10 +1,10 @@
 from unittest import TestCase
 
-from rogw.tranp.lang.parser import AltFormatter, BlockParser, Kinds
 from rogw.tranp.test.helper import data_provider
+from rogw.tranp.view.helper.block import AltFormatter, BlockParser, Kinds
 
 
-class TestParser(TestCase):
+class TestBlockParser(TestCase):
 	@data_provider([
 		('{a, {b, c}, e}', '{}', ',', [
 			(0, 14, 0, Kinds.Block),

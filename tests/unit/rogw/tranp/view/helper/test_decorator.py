@@ -2,7 +2,7 @@ from typing import Any
 from unittest import TestCase
 
 from rogw.tranp.test.helper import data_provider
-from rogw.tranp.view.helper import DecoratorHelper, DecoratorQuery
+from rogw.tranp.view.helper.decorator import DecoratorHelper, DecoratorQuery
 
 
 class TestDecoratorParser(TestCase):

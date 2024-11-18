@@ -5,8 +5,8 @@ from jinja2 import Environment, FileSystemLoader
 
 from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.dsn.translation import alias_dsn
-from rogw.tranp.lang.parser import BlockParser
-from rogw.tranp.view.helper import DecoratorQuery
+from rogw.tranp.view.helper.block import BlockParser
+from rogw.tranp.view.helper.decorator import DecoratorQuery
 
 
 class Translator(Protocol):

@@ -114,6 +114,30 @@ class BlockExpects:
 		])
 
 	@classmethod
+	def list_comp_range(cls, proj_value: str, proj_type: str, size: str, proj_symbol: str) -> str:
+		return '\n'.join([
+			f'[&]() -> std::vector<{proj_type}> ' '{',
+			f'	std::vector<{proj_type}> __ret;',
+			f'	for (auto {proj_symbol} = 0; {proj_symbol} < {size}; {proj_symbol}++) ' '{',
+			f'		__ret.push_back({proj_value});',
+			'	}',
+			'	return __ret;',
+			'}()',
+		])
+
+	@classmethod
+	def list_comp_enumerate(cls, proj_value: str, proj_type: str, iterates: str, proj_symbols: list[str], proj_infer: str = 'auto&') -> str:
+		return '\n'.join([
+			f'[&]() -> std::vector<{proj_type}> ' '{',
+			f'	std::vector<{proj_type}> __ret;',
+			f'	for (auto {proj_symbols[0]} = 0, auto __iter = {iterates}.begin(), auto __end = {iterates}.end(), {proj_infer} {proj_symbols[1]} = *__iter; __iter < __end; __iter++) ' '{',
+			f'		__ret.push_back({proj_value});',
+			'	}',
+			'	return __ret;',
+			'}()',
+		])
+
+	@classmethod
 	def dict_comp(cls, proj_key: str, proj_value: str, proj_key_type: str, proj_value_type: str, iterates: str, proj_symbols: str, proj_infer: str = 'auto&') -> str:
 		return '\n'.join([
 			f'[&]() -> std::map<{proj_key_type}, {proj_value_type}> ' '{',

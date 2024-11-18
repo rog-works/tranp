@@ -685,6 +685,8 @@ class ForComp:
 		[n for n in ns]
 		[cp for cp in cps]
 		[e0 + e1 + e2 for e0, e1, e2 in ts]
+		[i for i in range(len(ns))]
+		[(i, n) for i, n in enumerate(ns)]
 
 	def list_comp_from_dict(self, dsn: DSI, psn: CP[dict[str, int]], dpp: dict[CP[int], CP[int]]) -> None:
 		[s for s in {'a': 1}.keys()]

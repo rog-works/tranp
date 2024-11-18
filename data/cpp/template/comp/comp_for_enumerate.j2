@@ -1,0 +1,3 @@
+{%- set infer = ('const ' if is_const else '') + 'auto' + ('' if is_addr_p else '&') -%}
+{%- set values = break_last_block(iterates, '()')[1] -%}
+auto {{ symbols[0] }} = 0, auto __iter = {{ values }}.{{ i18n('cpp', 'vector.begin') }}(), auto __end = {{ values }}.{{ i18n('cpp', 'vector.end') }}(), {{ infer }} {{ symbols[1] }} = *__iter; __iter < __end; __iter++

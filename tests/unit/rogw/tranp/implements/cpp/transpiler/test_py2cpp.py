@@ -410,6 +410,8 @@ class TestPy2Cpp(TestCase):
 		('ForComp.list_comp_from_list', 'function_def_raw.block.list_comp[1]', defs.ListComp, BlockExpects.list_comp(proj_value='n', proj_type='int', iterates='ns')),
 		('ForComp.list_comp_from_list', 'function_def_raw.block.list_comp[2]', defs.ListComp, BlockExpects.list_comp(proj_value='cp', proj_type='const int*', iterates='cps', proj_infer='const auto')),
 		('ForComp.list_comp_from_list', 'function_def_raw.block.list_comp[3]', defs.ListComp, BlockExpects.list_comp(proj_value='e0 + e1 + e2', proj_type='int', iterates='ts', proj_symbols='[e0, e1, e2]')),
+		('ForComp.list_comp_from_list', 'function_def_raw.block.list_comp[4]', defs.ListComp, BlockExpects.list_comp_range(proj_value='i', proj_type='int', size='ns.size()', proj_symbol='i')),
+		('ForComp.list_comp_from_list', 'function_def_raw.block.list_comp[5]', defs.ListComp, BlockExpects.list_comp_enumerate(proj_value='{i, n}', proj_type='std::tuple<int, int>', iterates='ns', proj_symbols=['i', 'n'])),
 
 		('ForComp.list_comp_from_dict', 'function_def_raw.block.list_comp[0]', defs.ListComp, BlockExpects.list_comp(proj_value='s', proj_type='std::string', iterates='{{"a", 1}}', proj_symbols='[s, _]')),
 		('ForComp.list_comp_from_dict', 'function_def_raw.block.list_comp[1]', defs.ListComp, BlockExpects.list_comp(proj_value='n', proj_type='int', iterates='{{"a", 1}}', proj_symbols='[_, n]')),

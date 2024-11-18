@@ -126,11 +126,11 @@ class BlockExpects:
 		])
 
 	@classmethod
-	def list_comp_enumerate(cls, proj_value: str, proj_type: str, iterates: str, proj_symbols: list[str], proj_infer: str = 'auto&') -> str:
+	def list_comp_enumerate(cls, proj_value: str, proj_type: str, iterates: str, proj_symbols: list[str]) -> str:
 		return '\n'.join([
 			f'[&]() -> std::vector<{proj_type}> ' '{',
 			f'	std::vector<{proj_type}> __ret;',
-			f'	for (auto {proj_symbols[0]} = 0, auto __iter = {iterates}.begin(), auto __end = {iterates}.end(), {proj_infer} {proj_symbols[1]} = *__iter; __iter < __end; __iter++) ' '{',
+			f'	for (auto [{proj_symbols[0]}, __iter, __end, {proj_symbols[1]}] = std::tuple' '{' f'0, {iterates}.begin(), {iterates}.end(), *({iterates}.begin())' '}' f'; __iter < __end; __iter++, {proj_symbols[1]} = *__iter) ' '{',
 			f'		__ret.push_back({proj_value});',
 			'	}',
 			'	return __ret;',

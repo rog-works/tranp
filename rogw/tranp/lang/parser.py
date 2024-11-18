@@ -357,7 +357,7 @@ class BlockParser:
 				index = cls._skip_other_block(text, other_tokens, index)
 				continue
 
-			if text[index] == delimiter[0] and index + len(delimiter) < len(text):
+			if text[index] == delimiter[0] and index + len(delimiter) < len(text) and text.find(delimiter, index) == index:
 				blocks.append(text[begin:index].strip(' '))
 				begin = index + len(delimiter)
 

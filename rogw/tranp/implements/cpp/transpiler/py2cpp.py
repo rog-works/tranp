@@ -938,16 +938,15 @@ class Py2Cpp(ITranspiler):
 		return iterates
 
 	def on_comp_for(self, node: defs.CompFor, symbols: list[str], for_in: str) -> str:
-		"""Note: XXX range/enumerateは効率・可読性共に非常に悪いため非サポート"""
-		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Var) and node.iterates.calls.tokens in [range.__name__, enumerate.__name__]:
-			raise LogicError(f'Operation not allowed. "{node.iterates.calls.tokens}" is not supported. node: {node}')
-
 		# XXX is_const/is_addr_pの対応に一貫性が無い。包括的な対応を検討
 		for_in_symbol = Defer.new(lambda: self.reflections.type_of(node.for_in))
 		is_const = CVars.is_const(CVars.key_from(for_in_symbol)) if len(symbols) == 1 else False
 		is_addr_p = CVars.is_addr(CVars.key_from(for_in_symbol)) if len(symbols) == 1 else False
 
-		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Relay) \
+		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Var) and node.iterates.calls.tokens in [range.__name__, enumerate.__name__]:
+			spec = node.iterates.calls.tokens
+			return self.view.render(f'comp/{node.classification}_{spec}', vars={'symbols': symbols, 'iterates': for_in, 'is_const': is_const, 'is_addr_p': is_addr_p})
+		elif isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Relay) \
 			and node.iterates.calls.prop.tokens in [dict.items.__name__, dict.keys.__name__, dict.values.__name__] \
 			and self.reflections.type_of(node.iterates.calls.receiver).impl(refs.Object).actualize().type_is(dict):
 			# 期待値: 'iterates.items()'

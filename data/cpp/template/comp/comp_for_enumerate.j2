@@ -1,0 +1,2 @@
+{%- set values = break_last_block(iterates, '()')[1] -%}
+auto [{{ symbols[0] }}, __iter, __end, {{ symbols[1] }}] = {{ i18n('classes', 'tuple') }}{0, {{ values }}.{{ i18n('cpp', 'vector.begin') }}(), {{ values }}.{{ i18n('cpp', 'vector.end') }}(), *({{ values }}.{{ i18n('cpp', 'vector.begin') }}())}; __iter < __end; __iter++, {{ symbols[1] }} = *__iter

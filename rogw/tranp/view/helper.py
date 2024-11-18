@@ -15,29 +15,29 @@ class DecoratorHelper:
 			decorator (str): デコレーター
 		"""
 		self.decorator: str = decorator
-		self._props: tuple[str, dict[str, str]] = ('', {})
+		self._props: tuple[str, dict[str, str], str] = ('', {}, '')
 
-	def _parse(self, decorator: str) -> tuple[str, dict[str, str]]:
+	def _parse(self, decorator: str) -> tuple[str, dict[str, str], str]:
 		"""デコレーターを解析
 
 		Args:
 			decorator (str): デコレーター
 		Returns:
-			tuple[str, dict[str, str]]: (パス, 引数一覧)
+			tuple[str, dict[str, str], str]: (パス, 引数一覧, 分解前の引数一覧)
 		"""
-		param_begin = decorator.find('(')
-		join_params = decorator[param_begin + 1:len(decorator) - 1]
-		params: dict[str, str] = {}
-		for index, param_block in enumerate(BlockParser.break_separator(join_params, ',')):
-			if param_block.count('=') > 0:
-				label, *remain = param_block.split('=')
-				params[label] = '='.join(remain)
-			else:
-				params[str(index)] = param_block
+		args_begin = decorator.find('(')
+		path = decorator[:args_begin]
 
-		param_begin = decorator.find('(')
-		path = decorator[:param_begin]
-		return path, params
+		join_args = decorator[args_begin + 1:len(decorator) - 1]
+		args: dict[str, str] = {}
+		for index, arg in enumerate(BlockParser.break_separator(join_args, ',')):
+			if arg.count('=') > 0:
+				label, *remain = arg.split('=')
+				args[label] = '='.join(remain)
+			else:
+				args[str(index)] = arg
+
+		return path, args, join_args
 	
 	@property
 	def path(self) -> str:
@@ -54,6 +54,14 @@ class DecoratorHelper:
 			self._props = self._parse(self.decorator)
 
 		return self._props[1]
+
+	@property
+	def join_args(self) -> str:
+		"""str: 引数一覧"""
+		if len(self._props[0]) == 0:
+			self._props = self._parse(self.decorator)
+
+		return self._props[2]
 
 	@property
 	def arg(self) -> str:
@@ -81,29 +89,18 @@ class DecoratorHelper:
 		"""
 		return self.args[key]
 
-	def any(self, *paths: str, **args: str) -> bool:
-		"""指定のスキームと一致するか判定
+	def any(self, *paths: str) -> bool:
+		"""指定のパスと一致するか判定
 
 		Args:
 			*paths (str): 対象のデコレーターパスリスト
-			**args (str): 引数リストの条件一覧
 		Returns:
-			bool: True = 条件に合致
+			bool: True = 含む
 		"""
-		if self.path not in paths:
-			return False
+		return self.path in paths
 
-		for label, condition in args.items():
-			if label not in self.args:
-				return False
-
-			if self.args[label] != condition:
-				return False
-
-		return True
-
-	def matched(self, pattern: str) -> bool:
-		"""指定のスキームと一致するか判定(正規表現)
+	def match(self, pattern: str) -> bool:
+		"""指定のパターンと一致するか判定
 
 		Args:
 			pattern (str): 正規表現
@@ -111,6 +108,26 @@ class DecoratorHelper:
 			bool: True = 条件に合致
 		"""
 		return re.search(pattern, self.decorator) != None
+
+	def any_args(self, subject: str) -> bool:
+		"""引数が指定の条件と一致するか判定
+
+		Args:
+			subject (str): 検索条件
+		Returns:
+			bool: True = 含む
+		"""
+		return self.join_args.find(subject) != -1
+
+	def match_args(self, pattern: str) -> bool:
+		"""引数が指定のパターンと一致するか判定
+
+		Args:
+			pattern (str): 正規表現
+		Returns:
+			bool: True = 条件に合致
+		"""
+		return re.search(pattern, self.join_args) != None
 
 
 class DecoratorQuery(Sequence):
@@ -165,16 +182,15 @@ class DecoratorQuery(Sequence):
 		"""
 		return self._helpers[index]
 
-	def filter(self, *path: str, **args: str) -> 'DecoratorQuery':
-		"""指定のスキームと一致する要素を抽出し、新たにインスタンスを生成
+	def any(self, *path: str) -> 'DecoratorQuery':
+		"""指定のパスと一致する要素を抽出し、新たにインスタンスを生成
 
 		Args:
 			*paths (str): 対象のデコレーターパスリスト
-			**args (str): 引数リストの条件一覧
 		Returns:
 			DecoratorQuery: インスタンス
 		"""
-		return self.__class__([helper for helper in self._helpers if helper.any(*path, **args)])
+		return self.__class__([helper for helper in self._helpers if helper.any(*path)])
 
 	def match(self, pattern: str) -> 'DecoratorQuery':
 		"""指定のパターンと一致する要素を抽出し、新たにインスタンスを生成
@@ -184,19 +200,38 @@ class DecoratorQuery(Sequence):
 		Returns:
 			DecoratorQuery: インスタンス
 		"""
-		return self.__class__([helper for helper in self._helpers if helper.matched(pattern)])
+		return self.__class__([helper for helper in self._helpers if helper.match(pattern)])
 
-	def contains(self, *path: str, **args: str) -> bool:
-		"""指定のスキームを持つ要素を含むか判定
+	def any_args(self, subject: str) -> 'DecoratorQuery':
+		"""引数が指定の条件と一致する要素を抽出し、新たにインスタンスを生成
+
+		Args:
+			subject (str): 検索条件
+		Returns:
+			DecoratorQuery: インスタンス
+		"""
+		return self.__class__([helper for helper in self._helpers if helper.any_args(subject)])
+
+	def match_args(self, pattern: str) -> 'DecoratorQuery':
+		"""引数が指定のパターンと一致する要素を抽出し、新たにインスタンスを生成
+
+		Args:
+			pattern (str): 正規表現
+		Returns:
+			DecoratorQuery: インスタンス
+		"""
+		return self.__class__([helper for helper in self._helpers if helper.match_args(pattern)])
+
+	def contains(self, *path: str) -> bool:
+		"""指定のパスを持つ要素を含むか判定
 
 		Args:
 			*paths (str): 対象のデコレーターパスリスト
-			**args (str): 引数リストの条件一覧
 		Returns:
 			bool: True = 条件に合致
 		"""
 		for helper in self._helpers:
-			if helper.any(*path, **args):
+			if helper.any(*path):
 				return True
 
 		return False

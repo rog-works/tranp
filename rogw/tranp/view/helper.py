@@ -13,7 +13,7 @@ class DecoratorHelper:
 			decorator (str): デコレーター
 		"""
 		self.decorator: str = decorator
-		self._parsed: tuple[str, dict[str, str]] = ('', {})
+		self._props: tuple[str, dict[str, str]] = ('', {})
 
 	def _parse(self, decorator: str) -> tuple[str, dict[str, str]]:
 		"""デコレーターを解析
@@ -40,24 +40,24 @@ class DecoratorHelper:
 	@property
 	def path(self) -> str:
 		"""str: デコレーターパス"""
-		if len(self._parsed[0]) == 0:
-			self._parsed = self._parse(self.decorator)
+		if len(self._props[0]) == 0:
+			self._props = self._parse(self.decorator)
 
-		return self._parsed[0]
+		return self._props[0]
 
 	@property
 	def args(self) -> dict[str, str]:
 		"""dict[str, str]: 引数一覧"""
-		if len(self._parsed[0]) == 0:
-			self._parsed = self._parse(self.decorator)
+		if len(self._props[0]) == 0:
+			self._props = self._parse(self.decorator)
 
-		return self._parsed[1]
+		return self._props[1]
 
 	@property
 	def arg(self) -> str:
 		"""str: 第1引数の値"""
-		keys = list(self.args.keys())
-		return self.args[keys[0]] if len(keys) > 0 else ''
+		args = list(self.args.values())
+		return args[0] if len(args) > 0 else ''
 
 	def any(self, *paths: str, **args: str) -> bool:
 		"""指定のスキームと一致するか判定
@@ -102,6 +102,21 @@ class DecoratorQuery:
 		"""
 		self.helpers = [DecoratorHelper(decorator) for decorator in decorators]
 
+	def find(self, *path: str, **args: str) -> DecoratorHelper | None:
+		"""指定のスキームと一致する要素を検索し、最初の要素を返却
+
+		Args:
+			*paths (str): 対象のデコレーターパスリスト
+			**args (str): 引数リストの条件一覧
+		Returns:
+			DecoratorHelper: デコレーターヘルパー
+		"""
+		for helper in self.helpers:
+			if helper.any(*path, **args):
+				return helper
+
+		return None
+
 	def any(self, *path: str, **args: str) -> bool:
 		"""指定のスキームと一致するか判定
 
@@ -111,7 +126,11 @@ class DecoratorQuery:
 		Returns:
 			bool: True = 条件に合致
 		"""
-		return len([helper for helper in self.helpers if helper.any(*path, **args)]) > 0
+		for helper in self.helpers:
+			if helper.any(*path, **args):
+				return True
+
+		return False
 
 	def match(self, pattern: str) -> bool:
 		"""指定のスキームと一致するか判定(正規表現)
@@ -121,4 +140,8 @@ class DecoratorQuery:
 		Returns:
 			bool: True = 条件に合致
 		"""
-		return len([helper for helper in self.helpers if helper.match(pattern)]) > 0
+		for helper in self.helpers:
+			if helper.match(pattern):
+				return True
+
+		return False

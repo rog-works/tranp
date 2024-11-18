@@ -1,5 +1,5 @@
 {%- set param_decos = decorator_query(decorators).any('Embed.param') -%}
-{%- set matches = reg_match('^([^ ]+) ([^ ]+)(?: = (.+))?$', parameter) -%}
+{%- set matches = reg_match('^([^ ]+) ([^ ]+)(?: = (.+))?$', parameter) if param_decos else None -%}
 {%- if not param_decos or not matches -%}
 {{- parameter -}}
 {%- else -%}

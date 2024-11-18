@@ -347,12 +347,13 @@ class BlockParser:
 		Returns:
 			list[str]: ブロックリスト
 		"""
+		open_tokens = ''.join([pair[0] for pair in cls._all_pair])
 		other_tokens = ''.join(cls._all_pair)
 		blocks: list[str] = []
 		index = 0
 		begin = 0
 		while index < len(text):
-			if text[index] in other_tokens:
+			if text[index] in open_tokens:
 				index = cls._skip_other_block(text, other_tokens, index)
 				continue
 

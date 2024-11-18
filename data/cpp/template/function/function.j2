@@ -1,4 +1,4 @@
-{%- if 'Embed.python()' in decorators -%}
+{%- if decorator_query(decorators).contains('Embed.python') -%}
 // function {{ symbol }}
 {%- else -%}
 {% include('function/_comment.j2') %}

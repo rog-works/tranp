@@ -1,4 +1,4 @@
-{%- if 'Embed.python()' in decorators -%}
+{%- if decorator_query(decorators).contains('Embed.python') -%}
 // method {{ symbol }}
 {%- else -%}
 {% include('function/_accessor.j2') %}:

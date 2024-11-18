@@ -38,10 +38,6 @@ class Base(metaclass=ABCMeta):
 	@property
 	def base_prop(self) -> str: ...
 
-	@Embed.public
-	@Embed.pure
-	def _pure_public_method(self) -> str: ...
-
 
 class Sub(Base):
 	class_base_n: ClassVar['int'] = 0
@@ -364,11 +360,37 @@ class ForCompound:
 			inst = cls()
 			return inst
 
-	class SwapMethod:
-		@Embed.python
-		def exec(self) -> None: ...
-		@Embed.alias('exec')
-		def exec_cpp(self) -> None: ...
+	class Modifier:
+		@Embed.public
+		def _to_public(self) -> None: ...
+		@Embed.protected
+		def to_protected(self) -> None: ...
+		@Embed.private
+		def to_private(self) -> None: ...
+		@Embed.pure
+		def pure(self) -> None: ...
+
+	def closure(self) -> None:
+		def bind_ref() -> None: ...
+		@Embed.closure_bind(self)
+		def bind_copy() -> None: ...
+
+
+class ForClassExpose:
+	@Embed.python
+	class Class: ...
+	@Embed.python
+	class Enums(Enum): ...
+	@Embed.python
+	def class_method(self) -> None: ...
+	@Embed.python
+	def method(self) -> None: ...
+	@Embed.alias('method')
+	def method_cpp(self) -> None: ...
+
+
+@Embed.python
+def func_expose() -> None: ...
 
 
 class Template(Generic[T]):

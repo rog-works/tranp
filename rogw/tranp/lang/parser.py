@@ -305,3 +305,63 @@ class BlockParser:
 
 		root = cls.parse(text, brackets, delimiter)
 		return to_formatter(root)
+
+	@classmethod
+	def parse_primary(cls, text: str, brackets: str = '[]') -> list[str]:
+		"""文字列内の第1層のブロックを解析し、左から順に展開する
+
+		Args:
+			text (str): 対象の文字列
+			brackets (str): 括弧のペア (default: '[]')
+		Returns:
+			list[str]: ブロックリスト
+		"""
+		stack = 0
+		blocks: list[str] = []
+		index = 0
+		begin = 0
+		while index < len(text):
+			if text[index] == brackets[0] and stack == 0:
+				begin = index + 1
+				stack += 1
+			elif text[index] == brackets[0] and stack > 0:
+				stack += 1
+			elif text[index] == brackets[1] and stack == 1:
+				blocks.append(text[begin:index])
+				stack -= 1
+			elif text[index] == brackets[1] and stack > 1:
+				stack -= 1
+
+			index += 1
+
+		return blocks
+
+	@classmethod	
+	def break_separator(cls, text: str, delimiter: str) -> list[str]:
+		"""文字列を区切り文字で分割
+
+		Args:
+			text (str): 対象の文字列
+			delimiter (str): 区切り文字
+		Returns:
+			list[str]: ブロックリスト
+		"""
+		other_tokens = ''.join(cls._all_pair)
+		blocks: list[str] = []
+		index = 0
+		begin = 0
+		while index < len(text):
+			if text[index] in other_tokens:
+				index = cls._skip_other_block(text, other_tokens, index)
+				continue
+
+			if text[index] == delimiter:
+				blocks.append(text[begin:index].strip(' '))
+				begin = index + 1
+
+			index += 1
+
+		if begin < index:
+			blocks.append(text[begin:index].strip(' '))
+
+		return blocks

@@ -70,3 +70,22 @@ class TestParser(TestCase):
 	def test_parse_to_formatter(self, text: str, brackets: str, delimiter: str, join_format: str, block_format: str, alt_formatter: AltFormatter | None, expected: str) -> None:
 		formatter = BlockParser.parse_to_formatter(text, brackets, delimiter)
 		self.assertEqual(formatter.format(join_format, block_format, alt_formatter), expected)
+
+	@data_provider([
+		('', '[]', []),
+		('a[0].b[1][2]', '[]', ['0', '1', '2']),
+		('a[0].b[c[1]]', '[]', ['0', 'c[1]']),
+		('a[b(c, d)[0]].e[1, 2]', '[]', ['b(c, d)[0]', '1, 2']),
+	])
+	def test_parse_primary(self, text: str, delimiter: str, expected: list[str]) -> None:
+		actual = BlockParser.parse_primary(text, delimiter)
+		self.assertEqual(actual, expected)
+
+	@data_provider([
+		('', ',', []),
+		('1, 2', ',', ['1', '2']),
+		('1, f(2, b=3), l[0]', ',', ['1', 'f(2, b=3)', 'l[0]']),
+	])
+	def test_break_separator(self, text: str, delimiter: str, expected: list[str]) -> None:
+		actual = BlockParser.break_separator(text, delimiter)
+		self.assertEqual(actual, expected)

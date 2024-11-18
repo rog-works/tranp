@@ -1,23 +1,24 @@
 class BlockExpects:
 	@classmethod
-	def class_method(cls, access: str, klass: str, name: str, statements: list[str]) -> str:
-		return '\n'.join([
-			f'{access}:',
-			f'/** {name} */',
-			f'static {klass} {name}() ' '{',
-			f'	{"\n\t".join(statements)}' if statements else '',
-			'}',
-		])
+	def class_method(cls, access: str, name: str, return_type: str, statements: list[str], pure: bool = False) -> str:
+		return cls.method(access, name, return_type, statements, pure, static=True)
 
 	@classmethod
-	def method(cls, access: str, klass: str, name: str, statements: list[str]) -> str:
-		return '\n'.join([
-			f'{access}:',
-			f'/** {name} */',
-			f'{klass} {name}() ' '{',
-			f'	{"\n\t".join(statements)}' if statements else '',
-			'}',
-		])
+	def method(cls, access: str, name: str, return_type: str, statements: list[str], pure: bool = False, static: bool = False) -> str:
+		if statements:
+			return '\n'.join([
+				f'{access}:',
+				f'/** {name} */',
+				f'{"static " if static else ""}{return_type} {name}() {"const " if pure else ""}' '{',
+				f'	{"\n\t".join(statements)}',
+				'}',
+			])
+		else:
+			return '\n'.join([
+				f'{access}:',
+				f'/** {name} */',
+				f'{"static " if static else ""}{return_type} {name}() {"const " if pure else ""}' '{}',
+			])
 
 	@classmethod
 	def list_slice(cls, symbol: str, begin: str, end: str, step: str, var_type: str) -> str:

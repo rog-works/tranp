@@ -8,7 +8,7 @@ from rogw.tranp.lang.dict import dict_pluck
 from rogw.tranp.view.helper.block import BlockParser
 from rogw.tranp.view.helper.decorator import DecoratorQuery
 from rogw.tranp.view.helper.parameter import ParameterHelper
-from rogw.tranp.view.render import HelperFactory, RendererSetting
+from rogw.tranp.view.render import RendererHelperFactory, RendererSetting
 
 
 def break_last_block(setting: RendererSetting) -> Callable[[str, str], tuple[str, str]]:
@@ -29,11 +29,6 @@ def env_get(setting: RendererSetting) -> Callable[[str, Any], Any]:
 def i18n(setting: RendererSetting) -> Callable[[str, str], str]:
 	"""Note: @see rogw.tranp.lang.translator.Translator"""
 	return lambda module_path, local: setting.translator(ModuleDSN.full_joined(setting.translator(alias_dsn(module_path)), local))
-
-
-def parameter_parse(setting: RendererSetting) -> Callable[[str], ParameterHelper]:
-	"""Note: @see rogw.tranp.view.helper.parameter.ParameterHelper"""
-	return lambda parameter: ParameterHelper.parse(parameter)
 
 
 def reg_fullmatch(setting: RendererSetting) -> Callable[[str, str], re.Match | None]:
@@ -71,8 +66,8 @@ def filter_fullmatch(setting: RendererSetting) -> Callable[[list[str], str], lis
 	return lambda strings, pattern: [string for string in strings if re.fullmatch(pattern, string)]
 
 
-def factories() -> tuple[list[HelperFactory], list[HelperFactory]]:
-	"""Returns: tuple[str, list[HelperFactory]]: (ヘルパー一覧, フィルター一覧)"""
+def factories() -> tuple[list[RendererHelperFactory], list[RendererHelperFactory]]:
+	"""Returns: tuple[list[RendererHelperFactory], list[RendererHelperFactory]]: (ヘルパー一覧, フィルター一覧)"""
 	return (
 		 [
 			break_last_block,
@@ -92,6 +87,11 @@ def factories() -> tuple[list[HelperFactory], list[HelperFactory]]:
 	)
 
 
-def factories_for_cpp() -> tuple[list[HelperFactory], list[HelperFactory]]:
-	"""Returns: tuple[list[HelperFactory], list[HelperFactory]]: (ヘルパー一覧, フィルター一覧) ※C++用"""
+def parameter_parse(setting: RendererSetting) -> Callable[[str], ParameterHelper]:
+	"""Note: @see rogw.tranp.view.helper.parameter.ParameterHelper"""
+	return lambda parameter: ParameterHelper.parse(parameter)
+
+
+def factories_for_cpp() -> tuple[list[RendererHelperFactory], list[RendererHelperFactory]]:
+	"""Returns: tuple[list[RendererHelperFactory], list[RendererHelperFactory]]: (ヘルパー一覧, フィルター一覧) ※C++用"""
 	return ([parameter_parse], [])

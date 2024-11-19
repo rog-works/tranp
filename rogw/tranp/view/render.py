@@ -18,7 +18,7 @@ class RendererSetting(NamedTuple):
 	env: dict[str, Any]
 
 
-HelperFactory: TypeAlias = Callable[[RendererSetting], Callable[..., Any]]
+RendererHelperFactory: TypeAlias = Callable[[RendererSetting], Callable[..., Any]]
 
 
 class RendererHelperProvider(Protocol):
@@ -29,6 +29,7 @@ class RendererHelperProvider(Protocol):
 	"""
 
 	def __call__(self) -> dict[Literal['function', 'filter'], dict[str, Callable[..., Any]]]:
+		"""@see decl"""
 		...
 
 
@@ -50,30 +51,13 @@ class Renderer:
 				elif tag == 'filter':
 					self.__renderer.filters[name] = helper
 
-	def render(self, template: str, indent: int = 0, vars: dict[str, Any] = {}) -> str:
+	def render(self, template: str, vars: dict[str, Any] = {}) -> str:
 		"""テンプレートをレンダリング
 
 		Args:
 			template (str): テンプレートファイルの名前
-			indent (int): インデント(default = 0)
 			vars (dict[str, Any]) テンプレートへの入力変数(default = {})
 		Returns:
 			str: レンダリング結果
 		"""
-		text = self.__renderer.get_template(f'{template}.j2').render(vars)
-		return self.__indentation(text, indent)
-
-	def __indentation(self, text: str, indent: int) -> str:
-		"""レンダリング結果にインデントを加える
-
-		Args:
-			text (str): レンダリング結果
-			indent (int): インデント
-		Returns:
-			str: 変更結果
-		"""
-		if indent == 0:
-			return text
-
-		begin = '\t' * indent
-		return begin + f'\n{begin}'.join(text.split('\n'))
+		return self.__renderer.get_template(f'{template}.j2').render(vars)

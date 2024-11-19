@@ -2,6 +2,7 @@ import os
 from typing import Any, cast
 from unittest import TestCase
 
+from rogw.tranp.providers.view import make_helper_provider_cpp
 import yaml
 
 from rogw.tranp.app.dir import tranp_dir
@@ -22,7 +23,9 @@ class Fixture:
 
 		template_dirs = [os.path.join(tranp_dir(), 'data/cpp/template')]
 		env = {'immutable_param_types': ['std::string', 'std::vector', 'std::map']}
-		self.renderer = Renderer(RendererSetting(template_dirs, translator, env))
+		setting = RendererSetting(template_dirs, translator, env)
+		provider = make_helper_provider_cpp(setting)
+		self.renderer = Renderer(setting, provider)
 
 	def __load_trans_mapping(self, filepath: str) -> dict[str, str]:
 		with open(filepath) as f:

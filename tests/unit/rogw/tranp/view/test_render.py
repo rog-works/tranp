@@ -847,7 +847,7 @@ class TestRenderer(TestCase):
 			'\n'.join([
 				'/** func */',
 				'template<typename T>',
-				'int func(std::string text, int value = 1) {',
+				'int func(const std::string& text, int value = 1) {',
 				'	return value + 1;',
 				'}',
 			]),
@@ -865,7 +865,7 @@ class TestRenderer(TestCase):
 				# closure only
 			},
 			'\n'.join([
-				'auto closure = [&](std::string text, int value = 1) -> int {',
+				'auto closure = [&](const std::string& text, int value = 1) -> int {',
 				'	return value + 1;',
 				'};',
 			]),
@@ -883,7 +883,7 @@ class TestRenderer(TestCase):
 				# closure only
 			},
 			'\n'.join([
-				'auto closure_bind = [this, a, b](std::string text, int value = 1) mutable -> int {',
+				'auto closure_bind = [this, a, b](const std::string& text, int value = 1) mutable -> int {',
 				'	return value + 1;',
 				'};',
 			]),

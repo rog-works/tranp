@@ -1,3 +1,5 @@
+{%- for parameter in parameters -%}
+{%- if loop.index0 > 0 %}, {% endif -%}
 {%- set param = parameter_parse(parameter) -%}
 {%- if param.var_type.startswith('const') -%}
 {{- parameter -}}
@@ -14,3 +16,4 @@
 {{- parameter -}}
 {%- endif -%}
 {%- endif -%}
+{%- endfor -%}

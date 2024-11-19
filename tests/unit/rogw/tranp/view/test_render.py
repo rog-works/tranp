@@ -809,28 +809,28 @@ class TestRenderer(TestCase):
 		self.assertRender('function/_block', 0, vars, expected)
 
 	@data_provider([
-		({'parameter': 'int n', 'decorators': []}, 'int n'),
-		({'parameter': 'int n', 'decorators': ['Embed.param("n", mutable=true)']}, 'int n'),
-		({'parameter': 'int n', 'decorators': ['Embed.param("n", mutable=false)']}, 'const int& n'),
-		({'parameter': 'int n', 'decorators': ['Embed.param("p", mutable=false)']}, 'int n'),
-		({'parameter': 'int n = 1', 'decorators': []}, 'int n = 1'),
-		({'parameter': 'int n = 1', 'decorators': ['Embed.param("n", mutable=true)']}, 'int n = 1'),
-		({'parameter': 'int n = 1', 'decorators': ['Embed.param("n", mutable=false)']}, 'const int& n = 1'),
-		({'parameter': 'const std::string& s', 'decorators': []}, 'const std::string& s'),
-		({'parameter': 'const std::string& s', 'decorators': ['Embed.param("s", mutable=true)']}, 'const std::string& s'),
-		({'parameter': 'const std::string& s', 'decorators': ['Embed.param("s", mutable=false)']}, 'const std::string& s'),
-		({'parameter': 'std::string s', 'decorators': []}, 'const std::string& s'),
-		({'parameter': 'std::string s', 'decorators': ['Embed.param("s", mutable=true)']}, 'std::string s'),
-		({'parameter': 'std::string s', 'decorators': ['Embed.param("s", mutable=false)']}, 'const std::string& s'),
-		({'parameter': 'std::vector<int> ns', 'decorators': []}, 'const std::vector<int>& ns'),
-		({'parameter': 'std::vector<int> ns', 'decorators': ['Embed.param("ns", mutable=true)']}, 'std::vector<int> ns'),
-		({'parameter': 'std::vector<int> ns', 'decorators': ['Embed.param("ns", mutable=false)']}, 'const std::vector<int>& ns'),
-		({'parameter': 'std::map<std::string, int> dns', 'decorators': []}, 'const std::map<std::string, int>& dns'),
-		({'parameter': 'std::map<std::string, int> dns', 'decorators': ['Embed.param("dns", mutable=true)']}, 'std::map<std::string, int> dns'),
-		({'parameter': 'std::map<std::string, int> dns', 'decorators': ['Embed.param("dns", mutable=false)']}, 'const std::map<std::string, int>& dns'),
+		({'parameters': ['bool b, int n, float f'], 'decorators': ['Embed.param("p", mutable=false)']}, 'bool b, int n, float f'),
+		({'parameters': ['int n'], 'decorators': []}, 'int n'),
+		({'parameters': ['int n'], 'decorators': ['Embed.param("n", mutable=true)']}, 'int n'),
+		({'parameters': ['int n'], 'decorators': ['Embed.param("n", mutable=false)']}, 'const int& n'),
+		({'parameters': ['int n = 1'], 'decorators': []}, 'int n = 1'),
+		({'parameters': ['int n = 1'], 'decorators': ['Embed.param("n", mutable=true)']}, 'int n = 1'),
+		({'parameters': ['int n = 1'], 'decorators': ['Embed.param("n", mutable=false)']}, 'const int& n = 1'),
+		({'parameters': ['const std::string& s'], 'decorators': []}, 'const std::string& s'),
+		({'parameters': ['const std::string& s'], 'decorators': ['Embed.param("s", mutable=true)']}, 'const std::string& s'),
+		({'parameters': ['const std::string& s'], 'decorators': ['Embed.param("s", mutable=false)']}, 'const std::string& s'),
+		({'parameters': ['std::string s'], 'decorators': []}, 'const std::string& s'),
+		({'parameters': ['std::string s'], 'decorators': ['Embed.param("s", mutable=true)']}, 'std::string s'),
+		({'parameters': ['std::string s'], 'decorators': ['Embed.param("s", mutable=false)']}, 'const std::string& s'),
+		({'parameters': ['std::vector<int> ns'], 'decorators': []}, 'const std::vector<int>& ns'),
+		({'parameters': ['std::vector<int> ns'], 'decorators': ['Embed.param("ns", mutable=true)']}, 'std::vector<int> ns'),
+		({'parameters': ['std::vector<int> ns'], 'decorators': ['Embed.param("ns", mutable=false)']}, 'const std::vector<int>& ns'),
+		({'parameters': ['std::map<std::string, int> dns'], 'decorators': []}, 'const std::map<std::string, int>& dns'),
+		({'parameters': ['std::map<std::string, int> dns'], 'decorators': ['Embed.param("dns", mutable=true)']}, 'std::map<std::string, int> dns'),
+		({'parameters': ['std::map<std::string, int> dns'], 'decorators': ['Embed.param("dns", mutable=false)']}, 'const std::map<std::string, int>& dns'),
 	])
-	def test_render_function_definition_param(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('function/_definition_param', 0, vars, expected)
+	def test_render_function_definition_params(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('function/_definition_params', 0, vars, expected)
 
 	@data_provider([
 		(

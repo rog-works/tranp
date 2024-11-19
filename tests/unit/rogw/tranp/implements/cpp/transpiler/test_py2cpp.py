@@ -233,9 +233,12 @@ class TestPy2Cpp(TestCase):
 		('Struct', '', defs.Class, '/** Struct */\nstruct Struct {\n\tpublic: int a;\n\tpublic: std::string b;\n\tpublic:\n\t/** __init__ */\n\tStruct(int a, const std::string& b) : a(a), b(b) {}\n};'),
 
 		('ForCompound.ClassMethod.make', '', defs.ClassMethod, BlockExpects.class_method(access='public', name='make', return_type='ClassMethod', statements=['ForCompound::ClassMethod inst = ClassMethod();', 'return inst;'])),
-		('ForCompound.Modifier._to_public', '', defs.Method, BlockExpects.method(access='public', name='_to_public', return_type='void', statements=[])),
-		('ForCompound.Modifier.to_protected', '', defs.Method, BlockExpects.method(access='protected', name='to_protected', return_type='void', statements=[])),
-		('ForCompound.Modifier.to_private', '', defs.Method, BlockExpects.method(access='private', name='to_private', return_type='void', statements=[])),
+
+		('ForCompound.Modifier._to_public', '', defs.Method, BlockExpects.method(access='public', name='_to_public', return_type='void')),
+		('ForCompound.Modifier.to_protected', '', defs.Method, BlockExpects.method(access='protected', name='to_protected', return_type='void')),
+		('ForCompound.Modifier.to_private', '', defs.Method, BlockExpects.method(access='private', name='to_private', return_type='void')),
+		('ForCompound.Modifier.mod_mutable', '', defs.Method, BlockExpects.method(access='public', name='mod_mutable', return_type='void', params=['std::string s_m', 'const std::string& s_i', 'const std::vector<int>& ns_i', 'const std::map<std::string, int>& dsn_i'])),
+
 		('ForCompound.closure.bind_ref', '', defs.Closure, 'auto bind_ref = [&]() -> void {};'),
 		('ForCompound.closure.bind_copy', '', defs.Closure, 'auto bind_copy = [this]() mutable -> void {};'),
 

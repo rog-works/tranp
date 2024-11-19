@@ -1,15 +1,15 @@
 class BlockExpects:
 	@classmethod
-	def class_method(cls, access: str, name: str, return_type: str, statements: list[str], pure: bool = False) -> str:
-		return cls.method(access, name, return_type, statements, pure, static=True)
+	def class_method(cls, access: str, name: str, return_type: str, params: list[str] = [], statements: list[str] = [], pure: bool = False) -> str:
+		return cls.method(access, name, return_type, params, statements, pure, static=True)
 
 	@classmethod
-	def method(cls, access: str, name: str, return_type: str, statements: list[str], pure: bool = False, static: bool = False) -> str:
+	def method(cls, access: str, name: str, return_type: str, params: list[str] = [], statements: list[str] = [], pure: bool = False, static: bool = False) -> str:
 		if statements:
 			return '\n'.join([
 				f'{access}:',
 				f'/** {name} */',
-				f'{"static " if static else ""}{return_type} {name}() {"const " if pure else ""}' '{',
+				f'{"static " if static else ""}{return_type} {name}({", ".join(params)}) {"const " if pure else ""}' '{',
 				f'	{"\n\t".join(statements)}',
 				'}',
 			])
@@ -17,7 +17,7 @@ class BlockExpects:
 			return '\n'.join([
 				f'{access}:',
 				f'/** {name} */',
-				f'{"static " if static else ""}{return_type} {name}() {"const " if pure else ""}' '{}',
+				f'{"static " if static else ""}{return_type} {name}({", ".join(params)}) {"const " if pure else ""}' '{}',
 			])
 
 	@classmethod

@@ -1,4 +1,4 @@
-from typing import Any, Callable, NamedTuple, Protocol
+from typing import Any, Callable, Literal, NamedTuple, Protocol, TypeAlias
 
 from jinja2 import Environment, FileSystemLoader
 
@@ -18,14 +18,17 @@ class RendererSetting(NamedTuple):
 	env: dict[str, Any]
 
 
+HelperFactory: TypeAlias = Callable[[RendererSetting], Callable[..., Any]]
+
+
 class RendererHelperProvider(Protocol):
 	"""ヘルパープロバイダープロトコル
 
 	Returns:
-		dict[str, dict[str, Callable[..., Any]]]: ヘルパー一覧({登録タイプ: {関数名: ヘルパー関数}})
+		dict[Literal['function', 'filter'], dict[str, Callable[..., Any]]]: ヘルパー一覧({登録タイプ: {関数名: ヘルパー関数}})
 	"""
 
-	def __call__(self) -> dict[str, dict[str, Callable[..., Any]]]:
+	def __call__(self) -> dict[Literal['function', 'filter'], dict[str, Callable[..., Any]]]:
 		...
 
 
@@ -42,9 +45,9 @@ class Renderer:
 		self.__renderer = Environment(loader=FileSystemLoader(setting.template_dirs, encoding='utf-8'), auto_reload=False)
 		for tag, helpers in helper_provider().items():
 			for name, helper in helpers.items():
-				if tag == 'globals':
+				if tag == 'function':
 					self.__renderer.globals[name] = helper
-				elif tag == 'filters':
+				elif tag == 'filter':
 					self.__renderer.filters[name] = helper
 
 	def render(self, template: str, indent: int = 0, vars: dict[str, Any] = {}) -> str:

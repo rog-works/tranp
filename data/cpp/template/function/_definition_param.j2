@@ -1,19 +1,15 @@
-{%- set param_decos = decorator_query(decorators).any('Embed.param') -%}
-{%- set matches = reg_match('^([^ ]+) ([^ ]+)(?: = (.+))?$', parameter) if param_decos else None -%}
-{%- if not param_decos or not matches -%}
+{%- set param = parameter_parse(parameter) -%}
+{%- if param.var_type.startswith('const') -%}
 {{- parameter -}}
 {%- else -%}
-{%- set param_type, param_name = matches.group(1, 2) -%}
-{%- set default_value = matches[3] if matches.lastindex == 3 else '' -%}
-{%- set annotations = param_decos.any_args('"' + param_name + '"') -%}
+{%- set annotations = decorator_query(decorators).any('Embed.param').any_args('"' + param.symbol + '"') -%}
 {%- set annotated = annotations | length > 0 -%}
 {%- set mutable = (annotations.any_args('mutable=true') | length) > 0 -%}
-{%- set type_of_immutable = param_type in env_get('immutable_param_types', []) -%}
-{%- set parameter_immutable = 'const ' + param_type + '& ' + param_name + (' = ' + default_value if default_value else '') -%}
-{%- if annotated and not mutable -%}
-{{- parameter_immutable -}}
-{%- elif not annotated and type_of_immutable -%}
-{{- parameter_immutable -}}
+{%- set immutable_type = param.var_type_origin in env_get('immutable_param_types', []) -%}
+{%- set immutable = (annotated and not mutable) or (not annotated and immutable_type) -%}
+{%- if immutable -%}
+{%- set parameter_of_immutable = 'const ' + param.var_type + '& ' + param.symbol + (' = ' + param.default_value if param.default_value else '') -%}
+{{- parameter_of_immutable -}}
 {%- else -%}
 {{- parameter -}}
 {%- endif -%}

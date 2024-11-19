@@ -17,7 +17,7 @@ from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.test.helper import data_provider
 from rogw.tranp.transpiler.types import TranspilerOptions
-from rogw.tranp.view.render import Renderer
+from rogw.tranp.view.render import Renderer, RendererSetting
 from tests.test.fixture import Fixture
 from tests.unit.rogw.tranp.implements.cpp.transpiler.fixtures.test_py2cpp_expect import BlockExpects
 
@@ -31,8 +31,10 @@ def fixture_translation_mapping(files: IFileLoader) -> TranslationMapping:
 	return example_translation_mapping_cpp(files).merge(fixture_translations)
 
 
-def make_renderer(i18n: I18n) -> Renderer:
-	return Renderer([os.path.join(tranp_dir(), 'data/cpp/template')], i18n.t)
+def make_renderer_setting(i18n: I18n) -> RendererSetting:
+	template_dirs = [os.path.join(tranp_dir(), 'data/cpp/template')]
+	env = {'immutable_param_types': ['std::string', 'std::vector', 'std::map']}
+	return RendererSetting(template_dirs, i18n.t, env)
 
 
 class TestPy2Cpp(TestCase):
@@ -40,9 +42,10 @@ class TestPy2Cpp(TestCase):
 	fixture = Fixture.make(__file__, {
 		to_fullyname(Py2Cpp): Py2Cpp,
 		to_fullyname(PluginProvider): cpp_plugin_provider,
+		to_fullyname(Renderer): Renderer,
+		to_fullyname(RendererSetting): make_renderer_setting,
 		to_fullyname(TranslationMapping): fixture_translation_mapping,
 		to_fullyname(TranspilerOptions): lambda: TranspilerOptions(verbose=False, env={}),
-		to_fullyname(Renderer): make_renderer,
 	})
 
 	@profiler(on=False)

@@ -5,18 +5,24 @@ from unittest import TestCase
 import yaml
 
 from rogw.tranp.app.dir import tranp_dir
+from rogw.tranp.lang.annotation import duck_typed
+from rogw.tranp.lang.translator import Translator
 from rogw.tranp.test.helper import data_provider
-from rogw.tranp.view.render import Renderer
+from rogw.tranp.view.render import Renderer, RendererSetting
 
 
 class Fixture:
 	def __init__(self) -> None:
 		# 効率化のためexampleのマッピングデータを利用
 		trans_mapping = self.__load_trans_mapping(os.path.join(tranp_dir(), 'example/data/i18n.yml'))
-		def translator(key: str) -> str:
+
+		@duck_typed(Translator)
+		def translator(key: str, fallback: str = '') -> str:
 			return trans_mapping.get(key, key)
 
-		self.renderer = Renderer([os.path.join(tranp_dir(), 'data/cpp/template')], translator)
+		template_dirs = [os.path.join(tranp_dir(), 'data/cpp/template')]
+		env = {'immutable_param_types': ['std::string', 'std::vector', 'std::map']}
+		self.renderer = Renderer(RendererSetting(template_dirs, translator, env))
 
 	def __load_trans_mapping(self, filepath: str) -> dict[str, str]:
 		with open(filepath) as f:

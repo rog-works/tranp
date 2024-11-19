@@ -1,19 +1,24 @@
+{%- set index = namespace(at=0) -%}
 {%- for parameter in parameters -%}
-{%- if loop.index0 > 0 %}, {% endif -%}
-{%- set param = parameter_parse(parameter) -%}
-{%- if param.var_type.startswith('const') -%}
-{{- parameter -}}
-{%- else -%}
-{%- set annotations = decorator_query(decorators).any('Embed.param').any_args('"' + param.symbol + '"') -%}
-{%- set annotated = annotations | length > 0 -%}
-{%- set mutable = (annotations.any_args('mutable=true') | length) > 0 -%}
-{%- set immutable_type = param.var_type_origin in env_get('immutable_param_types', []) -%}
-{%- set immutable = (annotated and not mutable) or (not annotated and immutable_type) -%}
-{%- if immutable -%}
-{%- set parameter_of_immutable = 'const ' + param.var_type + '& ' + param.symbol + (' = ' + param.default_value if param.default_value else '') -%}
-{{- parameter_of_immutable -}}
-{%- else -%}
-{{- parameter -}}
-{%- endif -%}
-{%- endif -%}
+	{%- if parameter.endswith('self') or parameter.endswith('cls') -%}
+	{%- else -%}
+		{%- if index.at > 0 %}, {% endif -%}
+		{%- set param = parameter_parse(parameter) -%}
+		{%- if param.var_type.startswith('const') and param.var_type.endswith('&') -%}
+			{{- parameter -}}
+		{%- else -%}
+			{%- set annotations = decorator_query(decorators).any('Embed.param').any_args('"' + param.symbol + '"') -%}
+			{%- set annotated = annotations | length > 0 -%}
+			{%- set mutable = (annotations.any_args('mutable=true') | length) > 0 -%}
+			{%- set immutable_type = param.var_type_origin in env_get('immutable_param_types', []) -%}
+			{%- set immutable = (annotated and not mutable) or (not annotated and immutable_type) -%}
+			{%- if immutable -%}
+				{%- set parameter_of_immutable = 'const ' + param.var_type + '& ' + param.symbol + (' = ' + param.default_value if param.default_value else '') -%}
+				{{- parameter_of_immutable -}}
+			{%- else -%}
+				{{- parameter -}}
+			{%- endif -%}
+		{%- endif -%}
+		{%- set index.at = index.at + 1 -%}
+	{%- endif -%}
 {%- endfor -%}

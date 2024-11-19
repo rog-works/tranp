@@ -809,7 +809,9 @@ class TestRenderer(TestCase):
 		self.assertRender('function/_block', 0, vars, expected)
 
 	@data_provider([
-		({'parameters': ['bool b, int n, float f'], 'decorators': ['Embed.param("p", mutable=false)']}, 'bool b, int n, float f'),
+		({'parameters': ['A self', 'bool b'], 'decorators': []}, 'bool b'),
+		({'parameters': ['type<A> cls', 'bool b'], 'decorators': []}, 'bool b'),
+		({'parameters': ['A self', 'bool b', 'int n', 'float f'], 'decorators': ['Embed.param("p", mutable=false)']}, 'bool b, int n, float f'),
 		({'parameters': ['int n'], 'decorators': []}, 'int n'),
 		({'parameters': ['int n'], 'decorators': ['Embed.param("n", mutable=true)']}, 'int n'),
 		({'parameters': ['int n'], 'decorators': ['Embed.param("n", mutable=false)']}, 'const int& n'),

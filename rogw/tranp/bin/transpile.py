@@ -20,11 +20,12 @@ from rogw.tranp.lang.profile import profiler
 from rogw.tranp.module.includer import include_module_paths
 from rogw.tranp.module.modules import Modules
 from rogw.tranp.module.types import ModulePath, ModulePaths
+from rogw.tranp.providers.view import cpp_renderer_helper_provider
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.syntax.ast.parser import ParserSetting
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.transpiler.types import ITranspiler, TranspilerOptions
-from rogw.tranp.view.render import Renderer, RendererSetting
+from rogw.tranp.view.render import Renderer, RendererHelperProvider, RendererSetting
 
 ArgsDict = TypedDict('ArgsDict', {
 	'config': str,
@@ -189,6 +190,7 @@ class TranspileApp:
 			to_fullyname(PluginProvider): cpp_plugin_provider,  # FIXME C++固定
 			to_fullyname(Renderer): Renderer,
 			to_fullyname(RendererSetting): cls.make_renderer_setting,
+			to_fullyname(RendererHelperProvider): cpp_renderer_helper_provider,
 			to_fullyname(TranslationMapping): cls.make_translation_mapping,
 			to_fullyname(TranspilerOptions): cls.make_options,
 		}

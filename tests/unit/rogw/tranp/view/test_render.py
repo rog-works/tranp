@@ -7,6 +7,7 @@ import yaml
 from rogw.tranp.app.dir import tranp_dir
 from rogw.tranp.lang.annotation import duck_typed
 from rogw.tranp.lang.translator import Translator
+from rogw.tranp.providers.view import cpp_renderer_helper_provider
 from rogw.tranp.test.helper import data_provider
 from rogw.tranp.view.render import Renderer, RendererSetting
 
@@ -22,7 +23,9 @@ class Fixture:
 
 		template_dirs = [os.path.join(tranp_dir(), 'data/cpp/template')]
 		env = {'immutable_param_types': ['std::string', 'std::vector', 'std::map']}
-		self.renderer = Renderer(RendererSetting(template_dirs, translator, env))
+		setting = RendererSetting(template_dirs, translator, env)
+		provider = cpp_renderer_helper_provider(setting)
+		self.renderer = Renderer(setting, provider)
 
 	def __load_trans_mapping(self, filepath: str) -> dict[str, str]:
 		with open(filepath) as f:
@@ -32,30 +35,23 @@ class Fixture:
 class TestRenderer(TestCase):
 	__fixture = Fixture()
 
-	def assertRender(self, template: str, indent: int, vars: dict[str, Any], expected: str) -> None:
+	def assertRender(self, template: str, vars: dict[str, Any], expected: str) -> None:
 		"""Note: 文字列の比較は通例と逆配置にした方が見やすいため逆で利用"""
-		actual = self.__fixture.renderer.render(template, indent=indent, vars=vars)
+		actual = self.__fixture.renderer.render(template, vars=vars)
 		self.assertEqual(expected, actual)
-
-	@data_provider([
-		(1, {'receiver': 'hoge', 'value': '1234'}, '\thoge = 1234;'),
-		(2, {'receiver': 'hoge', 'value': '1234'}, '\t\thoge = 1234;'),
-	])
-	def test_render_indent(self, indent: int, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('assign/move_assign', indent, vars, expected)
 
 	@data_provider([
 		({'symbol': 'B', 'actual_type': 'A'}, 'using B = A;'),
 	])
 	def test_render_alt_class(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('alt_class', 0, vars, expected)
+		self.assertRender('alt_class', vars, expected)
 
 	@data_provider([
 		({'label': '', 'value': 1}, '1'),
 		({'label': 'a', 'value': 1}, '1'),
 	])
 	def test_render_argument(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('argument', 0, vars, expected)
+		self.assertRender('argument', vars, expected)
 
 	@data_provider([
 		('move_assign', {'receiver': 'hoge', 'value': '1234'}, 'hoge = 1234;'),
@@ -65,14 +61,14 @@ class TestRenderer(TestCase):
 		('aug_assign', {'receiver': 'hoge', 'value': '1234', 'operator': '+='}, 'hoge += 1234;'),
 	])
 	def test_render_assign(self, template: str, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender(f'assign/{template}', 0, vars, expected)
+		self.assertRender(f'assign/{template}', vars, expected)
 
 	@data_provider([
 		({'value_type': 'float', 'size': '10', 'default': '{100.0}', 'default_is_list': True}, 'std::vector<float>(10, 100.0)'),
 		({'value_type': 'float', 'size': '10', 'default': 'std::vector<float>()', 'default_is_list': False}, 'std::vector<float>(10)'),
 	])
 	def test_render_binary_operator_fill_list(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('binary_operator/fill_list', 0, vars, expected)
+		self.assertRender('binary_operator/fill_list', vars, expected)
 
 	@data_provider([
 		({'left': 'key', 'operator': 'in', 'right': 'items', 'right_is_dict': True}, 'items.contains(key)'),
@@ -81,7 +77,7 @@ class TestRenderer(TestCase):
 		({'left': 'value', 'operator': 'not.in', 'right': 'values', 'right_is_dict': False}, '(std::find(values.begin(), values.end(), value) == values.end())'),
 	])
 	def test_render_binary_operator_in(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('binary_operator/in', 0, vars, expected)
+		self.assertRender('binary_operator/in', vars, expected)
 
 	@data_provider([
 		({'left': 'a', 'operator': 'is', 'right': 'b', 'left_var_type': 'int'}, 'a == b'),
@@ -97,38 +93,38 @@ class TestRenderer(TestCase):
 		({'left': 'a', 'operator': '%', 'right': 'b', 'left_var_type': 'double'}, 'fmod(a, b)'),
 	])
 	def test_render_binary_operator(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('binary_operator/default', 0, vars, expected)
+		self.assertRender('binary_operator/default', vars, expected)
 
 	@data_provider([
 		({'statements': [ 'int x = 0;', 'int y = 0;', 'int z = 0;', ]}, 'int x = 0;\nint y = 0;\nint z = 0;'),
 	])
 	def test_render_block(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('block', 0, vars, expected)
+		self.assertRender('block', vars, expected)
 
 	@data_provider([
 		('default', {'type_name': 'Callable', 'parameters': ['int', 'float'], 'return_type': 'bool'}, 'std::function<bool(int, float)>'),
 		('pluck_method', {'type_name': 'Callable', 'parameters': ['T', 'TArgs...'], 'return_type': 'void'}, 'typename PluckMethod<T, void, TArgs...>::method'),
 	])
 	def test_render_callable_type(self, template: str, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender(f'callable_type/{template}', 0, vars, expected)
+		self.assertRender(f'callable_type/{template}', vars, expected)
 
 	@data_provider([
 		({'var_type': 'Exception', 'symbol': 'e', 'statements': ['pass;']}, '} catch (Exception e) {\n\tpass;'),
 	])
 	def test_render_catch(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('catch', 0, vars, expected)
+		self.assertRender('catch', vars, expected)
 
 	@data_provider([
 		({'accessor': 'public', 'decl_class_var': 'float a', 'decorators': []}, 'public: inline static float a'),
 	])
 	def test_render_class_decl_class_var(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('class/_decl_class_var', 0, vars, expected)
+		self.assertRender('class/_decl_class_var', vars, expected)
 
 	@data_provider([
 		({'accessor': 'public', 'var_type': 'float', 'symbol': 'a', 'decorators': []}, 'public: float a;'),
 	])
 	def test_render_class_decl_this_var(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('class/_decl_this_var', 0, vars, expected)
+		self.assertRender('class/_decl_this_var', vars, expected)
 
 	@data_provider([
 		(
@@ -258,7 +254,7 @@ class TestRenderer(TestCase):
 		),
 	])
 	def test_render_class(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('class/class', 0, vars, expected)
+		self.assertRender('class/class', vars, expected)
 
 	@data_provider([
 		(
@@ -349,7 +345,7 @@ class TestRenderer(TestCase):
 		),
 	])
 	def test_render_comp(self, spec: str, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender(f'comp/{spec}', 0, vars, expected)
+		self.assertRender(f'comp/{spec}', vars, expected)
 
 	@data_provider([
 		({'symbols': ['value'], 'iterates': 'values', 'is_const': False, 'is_addr_p': False}, 'auto& value : values'),
@@ -360,7 +356,7 @@ class TestRenderer(TestCase):
 		({'symbols': ['key', 'value'], 'iterates': 'items', 'is_const': True, 'is_addr_p': False}, 'const auto& [key, value] : items'),
 	])
 	def test_render_comp_for(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('comp/comp_for', 0, vars, expected)
+		self.assertRender('comp/comp_for', vars, expected)
 
 	@data_provider([
 		({'initializers': [], 'super_initializer': {}}, ''),
@@ -369,13 +365,13 @@ class TestRenderer(TestCase):
 		({'initializers': [{'symbol': 'a', 'value': '1'}], 'super_initializer': {'parent': 'A', 'arguments': 'a, b'}}, ' : A(a, b), a(1)'),
 	])
 	def test_render_constructor_initializer(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('function/_initializer', 0, vars, expected)
+		self.assertRender('function/_initializer', vars, expected)
 
 	@data_provider([
 		({'path': 'deco', 'arguments': ['a', 'b']}, 'deco(a, b)'),
 	])
 	def test_render_decorator(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('decorator', 0, vars, expected)
+		self.assertRender('decorator', vars, expected)
 
 	@data_provider([
 		({'targets': [{'receiver': 'l', 'key': '1', 'list_or_dict': 'list'}]}, 'l.erase(l.begin() + 1);'),
@@ -383,20 +379,20 @@ class TestRenderer(TestCase):
 		({'targets': [{'receiver': 'l', 'key': '1', 'list_or_dict': 'list'}, {'receiver': 'd', 'key': '"a"', 'list_or_dict': 'dict'}]}, 'l.erase(l.begin() + 1);\nd.erase("a");'),
 	])
 	def test_render_delete(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender(f'delete/default', 0, vars, expected)
+		self.assertRender(f'delete/default', vars, expected)
 
 	@data_provider([
 		({'key_type': 'int', 'value_type': 'float'}, 'std::map<int, float>'),
 	])
 	def test_render_dict_type(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('dict_type', 0, vars, expected)
+		self.assertRender('dict_type', vars, expected)
 
 	@data_provider([
 		({'items': ['{hoge, 1}','{fuga, 2}']}, '{\n\t{hoge, 1},\n\t{fuga, 2},\n}'),
 		({'items': []}, '{}'),
 	])
 	def test_render_dict(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('dict', 0, vars, expected)
+		self.assertRender('dict', vars, expected)
 
 	@data_provider([
 		(
@@ -486,25 +482,25 @@ class TestRenderer(TestCase):
 		),
 	])
 	def test_render_doc_string(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('doc_string', 0, vars, expected)
+		self.assertRender('doc_string', vars, expected)
 
 	@data_provider([
 		({'condition': 'value == 1', 'statements': ['pass;']}, '} else if (value == 1) {\n\tpass;'),
 	])
 	def test_render_else_if(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('else_if', 0, vars, expected)
+		self.assertRender('else_if', vars, expected)
 
 	@data_provider([
 		({'statements': ['pass;']}, '} else {\n\tpass;'),
 	])
 	def test_render_else(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('else', 0, vars, expected)
+		self.assertRender('else', vars, expected)
 
 	@data_provider([
 		({'statements': ['int x = 0;'], 'meta_header': '@tranp.meta: {"version":"1.0.0"}', 'module_path': 'path.to'}, '// @tranp.meta: {"version":"1.0.0"}\n#pragma once\nint x = 0;\n'),
 	])
 	def test_render_entrypoint(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('entrypoint', 0, vars, expected)
+		self.assertRender('entrypoint', vars, expected)
 
 	@data_provider([
 		(
@@ -527,13 +523,13 @@ class TestRenderer(TestCase):
 		),
 	])
 	def test_render_enum(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('class/enum', 0, vars, expected)
+		self.assertRender('class/enum', vars, expected)
 
 	@data_provider([
 		({'symbols': ['key', 'value'], 'iterates': 'items', 'statements': []}, 'for (auto& [key, value] : items) {\n}'),
 	])
 	def test_render_for_dict(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('for/dict', 0, vars, expected)
+		self.assertRender('for/dict', vars, expected)
 
 	@data_provider([
 		(
@@ -551,101 +547,101 @@ class TestRenderer(TestCase):
 		)
 	])
 	def test_render_for_enumerate(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('for/enumerate', 0, vars, expected)
+		self.assertRender('for/enumerate', vars, expected)
 
 	@data_provider([
 		({'symbol': 'index', 'last_index': 'limit', 'statements': ['pass;']}, 'for (auto index = 0; index < limit; index++) {\n\tpass;\n}'),
 	])
 	def test_render_for_range(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('for/range', 0, vars, expected)
+		self.assertRender('for/range', vars, expected)
 
 	@data_provider([
 		({'symbols': ['value'], 'iterates': 'values', 'statements': ['pass;'], 'is_const': False}, 'for (auto& value : values) {\n\tpass;\n}'),
 		({'symbols': ['value'], 'iterates': 'values', 'statements': ['pass;'], 'is_const': True}, 'for (const auto& value : values) {\n\tpass;\n}'),
 	])
 	def test_render_for(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('for/default', 0, vars, expected)
+		self.assertRender('for/default', vars, expected)
 
 	@data_provider([
 		({'arguments': ['"<string>"']}, '#include <string>'),
 		({'arguments': ['"' '"path/to/module.h"' '"']}, '#include "path/to/module.h"'),
 	])
 	def test_render_func_call_c_include(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/c_include', 0, vars, expected)
+		self.assertRender('func_call/c_include', vars, expected)
 
 	@data_provider([
 		({'arguments': ['"MACRO()"']}, 'MACRO()'),
 	])
 	def test_render_func_call_c_macro(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/c_macro', 0, vars, expected)
+		self.assertRender('func_call/c_macro', vars, expected)
 
 	@data_provider([
 		({'arguments': ['"once"']}, '#pragma once'),
 	])
 	def test_render_func_call_c_pragma(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/c_pragma', 0, vars, expected)
+		self.assertRender('func_call/c_pragma', vars, expected)
 
 	@data_provider([
 		({'var_type': 'int', 'arguments': ['1.0f'], 'is_statement': True}, 'static_cast<int>(1.0f);'),
 	])
 	def test_render_func_call_cast_bin_to_bin(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/cast_bin_to_bin', 0, vars, expected)
+		self.assertRender('func_call/cast_bin_to_bin', vars, expected)
 
 	@data_provider([
 		({'arguments': ['1.0f'], 'is_statement': True}, 'std::to_string(1.0f);'),
 	])
 	def test_render_func_call_cast_bin_to_str(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/cast_bin_to_str', 0, vars, expected)
+		self.assertRender('func_call/cast_bin_to_str', vars, expected)
 
 	@data_provider([
 		({'arguments': ['"A"'], 'is_statement': True}, "'A';"),
 		({'arguments': ['string[0]'], 'is_statement': True}, "string[0];"),
 	])
 	def test_render_func_call_cast_char(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/cast_char', 0, vars, expected)
+		self.assertRender('func_call/cast_char', vars, expected)
 
 	@data_provider([
 		({'arguments': ['iterates'], 'is_statement': True}, 'iterates;'),
 	])
 	def test_render_func_call_cast_list(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/cast_list', 0, vars, expected)
+		self.assertRender('func_call/cast_list', vars, expected)
 
 	@data_provider([
 		({'var_type': 'int', 'arguments': ['"1"'], 'is_statement': True}, 'atoi("1");'),
 		({'var_type': 'float', 'arguments': ['"1.0"'], 'is_statement': True}, 'atof("1.0");'),
 	])
 	def test_render_func_call_cast_str_to_bin(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/cast_str_to_bin', 0, vars, expected)
+		self.assertRender('func_call/cast_str_to_bin', vars, expected)
 
 	@data_provider([
 		({'var_type': 'std::string', 'arguments': ['"1"'], 'is_statement': True}, 'std::string("1");'),
 	])
 	def test_render_func_call_cast_str_to_str(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/cast_str_to_str', 0, vars, expected)
+		self.assertRender('func_call/cast_str_to_str', vars, expected)
 
 	@data_provider([
 		({'arguments': ['A(0)'], 'is_statement': True}, 'new A(0);'),
 	])
 	def test_render_func_call_cvar_new_p(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/cvar_new_p', 0, vars, expected)
+		self.assertRender('func_call/cvar_new_p', vars, expected)
 
 	@data_provider([
 		({'var_type': 'std::vector<A>', 'initializer': '{0}, {1}', 'is_statement': True}, 'std::shared_ptr<std::vector<A>>(new std::vector<A>({0}, {1}));'),
 	])
 	def test_render_func_call_cvar_new_sp_list(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/cvar_new_sp_list', 0, vars, expected)
+		self.assertRender('func_call/cvar_new_sp_list', vars, expected)
 
 	@data_provider([
 		({'var_type': 'A', 'initializer': '0', 'is_statement': True}, 'std::make_shared<A>(0);'),
 	])
 	def test_render_func_call_cvar_new_sp(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/cvar_new_sp', 0, vars, expected)
+		self.assertRender('func_call/cvar_new_sp', vars, expected)
 
 	@data_provider([
 		({'var_type': 'int', 'is_statement': True}, 'std::shared_ptr<int>();'),
 	])
 	def test_render_func_call_cvar_sp_empty(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/cvar_sp_empty', 0, vars, expected)
+		self.assertRender('func_call/cvar_sp_empty', vars, expected)
 
 	@data_provider([
 		({'cvar_type': 'CP', 'arguments': ['n'], 'is_statement': True}, '(&(n));'),
@@ -660,7 +656,7 @@ class TestRenderer(TestCase):
 		({'cvar_type': 'CRefConst', 'arguments': ['n'], 'is_statement': True}, 'n;'),
 	])
 	def test_render_func_call_cvar_to(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/cvar_to', 0, vars, expected)
+		self.assertRender('func_call/cvar_to', vars, expected)
 
 	@data_provider([
 		(
@@ -682,7 +678,7 @@ class TestRenderer(TestCase):
 		),
 	])
 	def test_render_func_call_dict_keys(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/dict_keys', 0, vars, expected)
+		self.assertRender('func_call/dict_keys', vars, expected)
 
 	@data_provider([
 		(
@@ -703,7 +699,7 @@ class TestRenderer(TestCase):
 		),
 	])
 	def test_render_func_call_dict_pop(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/dict_pop', 0, vars, expected)
+		self.assertRender('func_call/dict_pop', vars, expected)
 
 	@data_provider([
 		(
@@ -725,31 +721,31 @@ class TestRenderer(TestCase):
 		),
 	])
 	def test_render_func_call_dict_values(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/dict_values', 0, vars, expected)
+		self.assertRender('func_call/dict_values', vars, expected)
 
 	@data_provider([
 		({'calls': 'static_cast', 'arguments': ['Class*', 'p'], 'is_statement': True}, 'static_cast<Class*>(p);'),
 	])
 	def test_render_func_call_generic_call(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/generic_call', 0, vars, expected)
+		self.assertRender('func_call/generic_call', vars, expected)
 
 	@data_provider([
 		({'arguments': ['values'], 'is_statement': True}, 'values.size();'),
 	])
 	def test_render_func_call_len(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/len', 0, vars, expected)
+		self.assertRender('func_call/len', vars, expected)
 
 	@data_provider([
 		({'receiver': 'values', 'operator': '.', 'arguments': ['1', 'value']}, 'values.insert(values.begin() + 1, value)'),
 	])
 	def test_render_func_call_list_insert(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/list_insert', 0, vars, expected)
+		self.assertRender('func_call/list_insert', vars, expected)
 
 	@data_provider([
 		({'receiver': 'values', 'operator': '.', 'arguments': ['values2']}, 'values.insert(values.end(), values2)'),
 	])
 	def test_render_func_call_list_extend(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/list_extend', 0, vars, expected)
+		self.assertRender('func_call/list_extend', vars, expected)
 
 	@data_provider([
 		(
@@ -788,25 +784,25 @@ class TestRenderer(TestCase):
 		),
 	])
 	def test_render_func_call_list_pop(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/list_pop', 0, vars, expected)
+		self.assertRender('func_call/list_pop', vars, expected)
 
 	@data_provider([
 		({'arguments': ['"%d, %f"', '1', '1.0f'], 'is_statement': True}, 'printf("%d, %f", 1, 1.0f);'),
 	])
 	def test_render_func_call_print(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/print', 0, vars, expected)
+		self.assertRender('func_call/print', vars, expected)
 
 	@data_provider([
 		({'calls': 'A.func', 'arguments': ['1 + 2', 'A.value']}, 'A.func(1 + 2, A.value)'),
 	])
 	def test_render_func_call(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/default', 0, vars, expected)
+		self.assertRender('func_call/default', vars, expected)
 
 	@data_provider([
 		({'statements': ['pass;']}, '{\n\tpass;\n}'),
 	])
 	def test_render_function_block(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('function/_block', 0, vars, expected)
+		self.assertRender('function/_block', vars, expected)
 
 	@data_provider([
 		# 明示変換系
@@ -841,7 +837,7 @@ class TestRenderer(TestCase):
 		({'parameter': 'const std::string& p', 'decorators': ['Embed.param("p", false)']}, 'const std::string& p'),
 	])
 	def test_render_function_definition_param(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('function/_definition_param', 0, vars, expected)
+		self.assertRender('function/_definition_param', vars, expected)
 
 	@data_provider([
 		({'parameters': ['A self'], 'decorators': []}, ''),
@@ -851,7 +847,7 @@ class TestRenderer(TestCase):
 		({'parameters': ['bool b', 'int n'], 'decorators': []}, 'bool b, int n'),
 	])
 	def test_render_function_definition_params(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('function/_definition_params', 0, vars, expected)
+		self.assertRender('function/_definition_params', vars, expected)
 
 	@data_provider([
 		(
@@ -1164,14 +1160,14 @@ class TestRenderer(TestCase):
 		),
 	])
 	def test_render_function(self, template: str, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender(f'function/{template}', 0, vars, expected)
+		self.assertRender(f'function/{template}', vars, expected)
 
 	@data_provider([
 		({'module_path': 'module.path.to', 'import_dir': '', 'replace_dir': ''}, '// #include "module/path/to.h"'),
 		({'module_path': 'module.path.to', 'import_dir': 'module/path/', 'replace_dir': 'path/'}, '#include "path/to.h"'),
 	])
 	def test_render_import(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('import', 0, vars, expected)
+		self.assertRender('import', vars, expected)
 
 	@data_provider([
 		('cvar', {'var_type': 'int*'}, 'int*'),
@@ -1184,14 +1180,14 @@ class TestRenderer(TestCase):
 		('tuple', {'receiver': 't', 'key': '0'}, 'std::get<0>(t)'),
 	])
 	def test_render_indexer(self, spec: str, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender(f'indexer/{spec}', 0, vars, expected)
+		self.assertRender(f'indexer/{spec}', vars, expected)
 
 	@data_provider([
 		({'values': ['1234', '2345']}, '{\n\t{1234},\n\t{2345},\n}'),
 		({'values': []}, '{}'),
 	])
 	def test_render_list(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('list', 0, vars, expected)
+		self.assertRender('list', vars, expected)
 
 	@data_provider([
 		({'receiver': 'raw', 'move': 'ToAddress'}, '(&(raw))'),
@@ -1200,7 +1196,7 @@ class TestRenderer(TestCase):
 		({'receiver': 'raw', 'move': 'Copy'}, 'raw'),
 	])
 	def test_render_relay_cvar_to(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('relay/cvar_to', 0, vars, expected)
+		self.assertRender('relay/cvar_to', vars, expected)
 
 	@data_provider([
 		({'receiver': 'a', 'operator': 'Raw', 'prop': 'b', 'is_property': False}, 'a.b'),
@@ -1210,7 +1206,7 @@ class TestRenderer(TestCase):
 		({'receiver': 'A', 'operator': 'Static', 'prop': 'B', 'is_property': False}, 'A::B'),
 	])
 	def test_render_relay_default(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('relay/default', 0, vars, expected)
+		self.assertRender('relay/default', vars, expected)
 
 	@data_provider([
 		({'prop': '__name__', 'literal': 'A'}, '"A"'),
@@ -1218,28 +1214,28 @@ class TestRenderer(TestCase):
 		({'prop': '__qualname__', 'literal': 'A.func'}, '"A.func"'),
 	])
 	def test_render_relay_literalize(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('relay/literalize', 0, vars, expected)
+		self.assertRender('relay/literalize', vars, expected)
 
 	@data_provider([
 		({'return_value': '(1 + 2)'}, 'return (1 + 2);'),
 		({'return_value': ''}, 'return;'),
 	])
 	def test_render_return(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('return', 0, vars, expected)
+		self.assertRender('return', vars, expected)
 
 	@data_provider([
 		({'throws': 'e', 'via': '', 'is_new': False}, 'throw e;'),
 		({'throws': 'std::exception()', 'via': 'e', 'is_new': True}, 'throw new std::exception();'),
 	])
 	def test_render_throw(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('throw', 0, vars, expected)
+		self.assertRender('throw', vars, expected)
 
 	@data_provider([
 		({'statements': ['pass;'], 'catches': []}, 'try {\n\tpass;\n}'),
 		({'statements': ['pass;'], 'catches': ['} catch (std::exception e) {\n\tthrow e;']}, 'try {\n\tpass;\n} catch (std::exception e) {\n\tthrow e;\n}'),
 	])
 	def test_render_try(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('try', 0, vars, expected)
+		self.assertRender('try', vars, expected)
 
 	@data_provider([
 		('default', {'type_name': 'int'}, 'int'),
@@ -1249,4 +1245,4 @@ class TestRenderer(TestCase):
 		('template', {'type_name': 'P', 'definition_type': 'ParamSpec'}, 'P'),
 	])
 	def test_render_var_of_type(self, template: str, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender(f'var_of_type/{template}', 0, vars, expected)
+		self.assertRender(f'var_of_type/{template}', vars, expected)

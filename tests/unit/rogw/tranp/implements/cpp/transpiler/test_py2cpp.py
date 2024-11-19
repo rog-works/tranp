@@ -11,7 +11,7 @@ from rogw.tranp.implements.cpp.transpiler.py2cpp import Py2Cpp
 from rogw.tranp.io.loader import IFileLoader
 from rogw.tranp.lang.module import to_fullyname
 from rogw.tranp.lang.profile import profiler
-from rogw.tranp.providers.view import make_helper_provider_cpp
+from rogw.tranp.providers.view import cpp_renderer_helper_provider
 from rogw.tranp.semantics.reflections import Reflections
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
@@ -45,7 +45,7 @@ class TestPy2Cpp(TestCase):
 		to_fullyname(PluginProvider): cpp_plugin_provider,
 		to_fullyname(Renderer): Renderer,
 		to_fullyname(RendererSetting): make_renderer_setting,
-		to_fullyname(RendererHelperProvider): make_helper_provider_cpp,
+		to_fullyname(RendererHelperProvider): cpp_renderer_helper_provider,
 		to_fullyname(TranslationMapping): fixture_translation_mapping,
 		to_fullyname(TranspilerOptions): lambda: TranspilerOptions(verbose=False, env={}),
 	})

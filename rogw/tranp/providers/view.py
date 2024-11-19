@@ -2,7 +2,7 @@ from rogw.tranp.view.helper.helper import factories, factories_for_cpp
 from rogw.tranp.view.render import RendererHelperProvider, RendererSetting
 
 
-def make_helper_provider_cpp(setting: RendererSetting) -> RendererHelperProvider:
+def cpp_renderer_helper_provider(setting: RendererSetting) -> RendererHelperProvider:
 	"""ヘルパープロバイダー(C++用)
 
 	Args:

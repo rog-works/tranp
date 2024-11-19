@@ -8,7 +8,7 @@ from rogw.tranp.i18n.i18n import I18n
 from rogw.tranp.implements.cpp.providers.semantics import cpp_plugin_provider
 from rogw.tranp.implements.cpp.transpiler.py2cpp import Py2Cpp
 from rogw.tranp.lang.module import to_fullyname
-from rogw.tranp.providers.view import make_helper_provider_cpp
+from rogw.tranp.providers.view import cpp_renderer_helper_provider
 from rogw.tranp.semantics.errors import NotSupportedError, ProcessingError, UnresolvedSymbolError
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.test.helper import data_provider
@@ -46,7 +46,7 @@ class TestPy2CppError(TestCase):
 		to_fullyname(PluginProvider): cpp_plugin_provider,
 		to_fullyname(Renderer): Renderer,
 		to_fullyname(RendererSetting): make_renderer_setting,
-		to_fullyname(RendererHelperProvider): make_helper_provider_cpp,
+		to_fullyname(RendererHelperProvider): cpp_renderer_helper_provider,
 		to_fullyname(TranspilerOptions): lambda: TranspilerOptions(verbose=False, env={}),
 	})
 

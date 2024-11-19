@@ -2,7 +2,7 @@ import os
 from typing import TypedDict, cast
 
 from rogw.tranp.app.dir import tranp_dir
-from rogw.tranp.lang.dict import deep_merge
+from rogw.tranp.lang.dict import dict_merge
 
 EnvDict = TypedDict('EnvDict', {'PYTHONPATH': dict[str, str]})
 
@@ -20,7 +20,7 @@ class Env:
 		Args:
 			env (EnvDict): 環境変数データ
 		"""
-		self.__env = cast(EnvDict, deep_merge(cast(dict, self.__default_env()), cast(dict, env)))
+		self.__env = cast(EnvDict, dict_merge(cast(dict, self.__default_env()), cast(dict, env)))
 
 	def __default_env(self) -> EnvDict:
 		"""環境変数のデフォルトデータを生成

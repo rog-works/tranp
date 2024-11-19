@@ -24,7 +24,7 @@ from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.syntax.ast.parser import ParserSetting
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.transpiler.types import ITranspiler, TranspilerOptions
-from rogw.tranp.view.render import Renderer
+from rogw.tranp.view.render import Renderer, RendererSetting
 
 ArgsDict = TypedDict('ArgsDict', {
 	'config': str,
@@ -112,7 +112,7 @@ class TranspileApp:
 
 	@classmethod
 	@injectable
-	def make_renderer(cls, config: Config, i18n: I18n) -> Renderer:
+	def make_renderer_setting(cls, config: Config, i18n: I18n) -> RendererSetting:
 		"""テンプレートレンダーを生成
 
 		Args:
@@ -121,7 +121,7 @@ class TranspileApp:
 		Returns:
 			Renderer: テンプレートレンダー
 		"""
-		return Renderer(config.template_dirs, i18n.t)
+		return RendererSetting(config.template_dirs, i18n.t, config.env)
 
 	@classmethod
 	@injectable
@@ -187,7 +187,8 @@ class TranspileApp:
 			to_fullyname(ModulePaths): cls.make_module_paths,
 			to_fullyname(ParserSetting): cls.make_parser_setting,
 			to_fullyname(PluginProvider): cpp_plugin_provider,  # FIXME C++固定
-			to_fullyname(Renderer): cls.make_renderer,
+			to_fullyname(Renderer): Renderer,
+			to_fullyname(RendererSetting): cls.make_renderer_setting,
 			to_fullyname(TranslationMapping): cls.make_translation_mapping,
 			to_fullyname(TranspilerOptions): cls.make_options,
 		}

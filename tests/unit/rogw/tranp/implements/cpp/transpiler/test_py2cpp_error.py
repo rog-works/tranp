@@ -12,7 +12,7 @@ from rogw.tranp.semantics.errors import NotSupportedError, ProcessingError, Unre
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.test.helper import data_provider
 from rogw.tranp.transpiler.types import TranspilerOptions
-from rogw.tranp.view.render import Renderer
+from rogw.tranp.view.render import Renderer, RendererSetting
 from tests.test.fixture import Fixture
 
 
@@ -33,16 +33,19 @@ def _ast(before: str, after: str) -> str:
 	return ModuleDSN.local_joined(ASTMapping.aliases[before], after)
 
 
-def make_renderer(i18n: I18n) -> Renderer:
-	return Renderer([os.path.join(tranp_dir(), 'data/cpp/template')], i18n.t)
+def make_renderer_setting(i18n: I18n) -> RendererSetting:
+	template_dir = [os.path.join(tranp_dir(), 'data/cpp/template')]
+	env = {'immutable_param_types': ['std::string', 'std::vector', 'std::map']}
+	return RendererSetting(template_dir, i18n.t, env)
 
 
 class TestPy2CppError(TestCase):
 	fixture = Fixture.make(__file__, {
 		to_fullyname(Py2Cpp): Py2Cpp,
 		to_fullyname(PluginProvider): cpp_plugin_provider,
+		to_fullyname(Renderer): Renderer,
+		to_fullyname(RendererSetting): make_renderer_setting,
 		to_fullyname(TranspilerOptions): lambda: TranspilerOptions(verbose=False, env={}),
-		to_fullyname(Renderer): make_renderer,
 	})
 
 	@data_provider([

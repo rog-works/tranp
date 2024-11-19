@@ -1,0 +1,8 @@
+{%- set index = namespace(at=0) -%}
+{%- for parameter in parameters -%}
+	{%- if not parameter.endswith('self') and not parameter.endswith('cls') -%}
+		{%- if index.at > 0 %}, {% endif -%}
+		{%- include('function/_definition_param.j2') -%}
+		{%- set index.at = index.at + 1 -%}
+	{%- endif -%}
+{%- endfor -%}

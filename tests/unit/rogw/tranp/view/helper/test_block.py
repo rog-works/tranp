@@ -1,10 +1,10 @@
 from unittest import TestCase
 
-from rogw.tranp.lang.parser import AltFormatter, BlockParser, Kinds
 from rogw.tranp.test.helper import data_provider
+from rogw.tranp.view.helper.block import AltFormatter, BlockParser, Kinds
 
 
-class TestParser(TestCase):
+class TestBlockParser(TestCase):
 	@data_provider([
 		('{a, {b, c}, e}', '{}', ',', [
 			(0, 14, 0, Kinds.Block),
@@ -84,10 +84,13 @@ class TestParser(TestCase):
 
 	@data_provider([
 		('', ',', []),
+		('a', ',', ['a']),
 		('1, 2', ',', ['1', '2']),
 		('abc->def', '->', ['abc', 'def']),
 		('1, f(2, b=3), l[0]', ',', ['1', 'f(2, b=3)', 'l[0]']),
-		('a->b[c], d->e(f)', ',', ['a->b[c]', 'd->e(f)'])
+		('a->b[c], d->e(f)', ',', ['a->b[c]', 'd->e(f)']),
+		('std::map<std::string, int> dsn', ' ', ['std::map<std::string, int>', 'dsn']),
+		('std::map<std::string, int> dsn = {}', '=', ['std::map<std::string, int> dsn', '{}']),
 	])
 	def test_break_separator(self, text: str, delimiter: str, expected: list[str]) -> None:
 		actual = BlockParser.break_separator(text, delimiter)

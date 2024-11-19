@@ -5,18 +5,24 @@ from unittest import TestCase
 import yaml
 
 from rogw.tranp.app.dir import tranp_dir
+from rogw.tranp.lang.annotation import duck_typed
+from rogw.tranp.lang.translator import Translator
 from rogw.tranp.test.helper import data_provider
-from rogw.tranp.view.render import Renderer
+from rogw.tranp.view.render import Renderer, RendererSetting
 
 
 class Fixture:
 	def __init__(self) -> None:
 		# 効率化のためexampleのマッピングデータを利用
 		trans_mapping = self.__load_trans_mapping(os.path.join(tranp_dir(), 'example/data/i18n.yml'))
-		def translator(key: str) -> str:
+
+		@duck_typed(Translator)
+		def translator(key: str, fallback: str = '') -> str:
 			return trans_mapping.get(key, key)
 
-		self.renderer = Renderer([os.path.join(tranp_dir(), 'data/cpp/template')], translator)
+		template_dirs = [os.path.join(tranp_dir(), 'data/cpp/template')]
+		env = {'immutable_param_types': ['std::string', 'std::vector', 'std::map']}
+		self.renderer = Renderer(RendererSetting(template_dirs, translator, env))
 
 	def __load_trans_mapping(self, filepath: str) -> dict[str, str]:
 		with open(filepath) as f:
@@ -803,6 +809,51 @@ class TestRenderer(TestCase):
 		self.assertRender('function/_block', 0, vars, expected)
 
 	@data_provider([
+		# 明示変換系
+		({'parameter': 'int n', 'decorators': []}, 'int n'),
+		({'parameter': 'int n', 'decorators': ['Embed.param("n", true)']}, 'int n'),
+		({'parameter': 'int n', 'decorators': ['Embed.param("n", false)']}, 'const int& n'),
+		({'parameter': 'int n = 1', 'decorators': []}, 'int n = 1'),
+		({'parameter': 'int n = 1', 'decorators': ['Embed.param("n", true)']}, 'int n = 1'),
+		({'parameter': 'int n = 1', 'decorators': ['Embed.param("n", false)']}, 'const int& n = 1'),
+		# 暗黙変換系
+		({'parameter': 'std::string s', 'decorators': []}, 'const std::string& s'),
+		({'parameter': 'std::string s', 'decorators': ['Embed.param("s", true)']}, 'std::string s'),
+		({'parameter': 'std::string s', 'decorators': ['Embed.param("s", false)']}, 'const std::string& s'),
+		({'parameter': 'std::vector<int> ns', 'decorators': []}, 'const std::vector<int>& ns'),
+		({'parameter': 'std::vector<int> ns', 'decorators': ['Embed.param("ns", true)']}, 'std::vector<int> ns'),
+		({'parameter': 'std::vector<int> ns', 'decorators': ['Embed.param("ns", false)']}, 'const std::vector<int>& ns'),
+		({'parameter': 'std::map<std::string, int> dns', 'decorators': []}, 'const std::map<std::string, int>& dns'),
+		({'parameter': 'std::map<std::string, int> dns', 'decorators': ['Embed.param("dns", true)']}, 'std::map<std::string, int> dns'),
+		({'parameter': 'std::map<std::string, int> dns', 'decorators': ['Embed.param("dns", false)']}, 'const std::map<std::string, int>& dns'),
+		# 変換不可系
+		({'parameter': 'std::string* p', 'decorators': []}, 'std::string* p'),
+		({'parameter': 'std::string* p', 'decorators': ['Embed.param("p", true)']}, 'std::string* p'),
+		({'parameter': 'std::string* p', 'decorators': ['Embed.param("p", false)']}, 'std::string* p'),
+		({'parameter': 'std::string& p', 'decorators': []}, 'std::string& p'),
+		({'parameter': 'std::string& p', 'decorators': ['Embed.param("p", true)']}, 'std::string& p'),
+		({'parameter': 'std::string& p', 'decorators': ['Embed.param("p", false)']}, 'std::string& p'),
+		({'parameter': 'const std::string p', 'decorators': []}, 'const std::string p'),
+		({'parameter': 'const std::string p', 'decorators': ['Embed.param("p", true)']}, 'const std::string p'),
+		({'parameter': 'const std::string p', 'decorators': ['Embed.param("p", false)']}, 'const std::string p'),
+		({'parameter': 'const std::string& p', 'decorators': []}, 'const std::string& p'),
+		({'parameter': 'const std::string& p', 'decorators': ['Embed.param("p", true)']}, 'const std::string& p'),
+		({'parameter': 'const std::string& p', 'decorators': ['Embed.param("p", false)']}, 'const std::string& p'),
+	])
+	def test_render_function_definition_param(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('function/_definition_param', 0, vars, expected)
+
+	@data_provider([
+		({'parameters': ['A self'], 'decorators': []}, ''),
+		({'parameters': ['A self', 'bool b'], 'decorators': []}, 'bool b'),
+		({'parameters': ['type<A> cls'], 'decorators': []}, ''),
+		({'parameters': ['type<A> cls', 'bool b'], 'decorators': []}, 'bool b'),
+		({'parameters': ['bool b', 'int n'], 'decorators': []}, 'bool b, int n'),
+	])
+	def test_render_function_definition_params(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('function/_definition_params', 0, vars, expected)
+
+	@data_provider([
 		(
 			'function',
 			{
@@ -817,7 +868,7 @@ class TestRenderer(TestCase):
 			'\n'.join([
 				'/** func */',
 				'template<typename T>',
-				'int func(std::string text, int value = 1) {',
+				'int func(const std::string& text, int value = 1) {',
 				'	return value + 1;',
 				'}',
 			]),
@@ -835,7 +886,7 @@ class TestRenderer(TestCase):
 				# closure only
 			},
 			'\n'.join([
-				'auto closure = [&](std::string text, int value = 1) -> int {',
+				'auto closure = [&](const std::string& text, int value = 1) -> int {',
 				'	return value + 1;',
 				'};',
 			]),
@@ -853,7 +904,7 @@ class TestRenderer(TestCase):
 				# closure only
 			},
 			'\n'.join([
-				'auto closure_bind = [this, a, b](std::string text, int value = 1) mutable -> int {',
+				'auto closure_bind = [this, a, b](const std::string& text, int value = 1) mutable -> int {',
 				'	return value + 1;',
 				'};',
 			]),

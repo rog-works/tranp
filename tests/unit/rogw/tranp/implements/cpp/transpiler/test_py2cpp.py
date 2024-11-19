@@ -17,7 +17,7 @@ from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.test.helper import data_provider
 from rogw.tranp.transpiler.types import TranspilerOptions
-from rogw.tranp.view.render import Renderer
+from rogw.tranp.view.render import Renderer, RendererSetting
 from tests.test.fixture import Fixture
 from tests.unit.rogw.tranp.implements.cpp.transpiler.fixtures.test_py2cpp_expect import BlockExpects
 
@@ -31,8 +31,10 @@ def fixture_translation_mapping(files: IFileLoader) -> TranslationMapping:
 	return example_translation_mapping_cpp(files).merge(fixture_translations)
 
 
-def make_renderer(i18n: I18n) -> Renderer:
-	return Renderer([os.path.join(tranp_dir(), 'data/cpp/template')], i18n.t)
+def make_renderer_setting(i18n: I18n) -> RendererSetting:
+	template_dirs = [os.path.join(tranp_dir(), 'data/cpp/template')]
+	env = {'immutable_param_types': ['std::string', 'std::vector', 'std::map']}
+	return RendererSetting(template_dirs, i18n.t, env)
 
 
 class TestPy2Cpp(TestCase):
@@ -40,9 +42,10 @@ class TestPy2Cpp(TestCase):
 	fixture = Fixture.make(__file__, {
 		to_fullyname(Py2Cpp): Py2Cpp,
 		to_fullyname(PluginProvider): cpp_plugin_provider,
+		to_fullyname(Renderer): Renderer,
+		to_fullyname(RendererSetting): make_renderer_setting,
 		to_fullyname(TranslationMapping): fixture_translation_mapping,
 		to_fullyname(TranspilerOptions): lambda: TranspilerOptions(verbose=False, env={}),
-		to_fullyname(Renderer): make_renderer,
 	})
 
 	@profiler(on=False)
@@ -227,12 +230,15 @@ class TestPy2Cpp(TestCase):
 		('GenericOps.temporal', 'function_def_raw.block.assign', defs.MoveAssign, 'T a = value;'),
 		('GenericOps.new', 'function_def_raw.block.assign', defs.MoveAssign, 'GenericOps<int> a = GenericOps<int>();'),
 
-		('Struct', '', defs.Class, '/** Struct */\nstruct Struct {\n\tpublic: int a;\n\tpublic: std::string b;\n\tpublic:\n\t/** __init__ */\n\tStruct(int a, std::string b) : a(a), b(b) {}\n};'),
+		('Struct', '', defs.Class, '/** Struct */\nstruct Struct {\n\tpublic: int a;\n\tpublic: std::string b;\n\tpublic:\n\t/** __init__ */\n\tStruct(int a, const std::string& b) : a(a), b(b) {}\n};'),
 
 		('ForCompound.ClassMethod.make', '', defs.ClassMethod, BlockExpects.class_method(access='public', name='make', return_type='ClassMethod', statements=['ForCompound::ClassMethod inst = ClassMethod();', 'return inst;'])),
-		('ForCompound.Modifier._to_public', '', defs.Method, BlockExpects.method(access='public', name='_to_public', return_type='void', statements=[])),
-		('ForCompound.Modifier.to_protected', '', defs.Method, BlockExpects.method(access='protected', name='to_protected', return_type='void', statements=[])),
-		('ForCompound.Modifier.to_private', '', defs.Method, BlockExpects.method(access='private', name='to_private', return_type='void', statements=[])),
+
+		('ForCompound.Modifier._to_public', '', defs.Method, BlockExpects.method(access='public', name='_to_public', return_type='void')),
+		('ForCompound.Modifier.to_protected', '', defs.Method, BlockExpects.method(access='protected', name='to_protected', return_type='void')),
+		('ForCompound.Modifier.to_private', '', defs.Method, BlockExpects.method(access='private', name='to_private', return_type='void')),
+		('ForCompound.Modifier.mod_mutable', '', defs.Method, BlockExpects.method(access='public', name='mod_mutable', return_type='void', params=['std::string s_m', 'const std::string& s_i', 'const std::vector<int>& ns_i', 'const std::map<std::string, int>& dsn_i'])),
+
 		('ForCompound.closure.bind_ref', '', defs.Closure, 'auto bind_ref = [&]() -> void {};'),
 		('ForCompound.closure.bind_copy', '', defs.Closure, 'auto bind_copy = [this]() mutable -> void {};'),
 

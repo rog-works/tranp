@@ -1,5 +1,8 @@
 from typing import NamedTuple
 
+from rogw.tranp.lang.annotation import duck_typed
+from rogw.tranp.lang.translator import Translator
+
 
 class TranslationMapping(NamedTuple):
 	"""翻訳マッピングデータ
@@ -32,6 +35,7 @@ class I18n:
 		"""
 		self.__translation = translation
 
+	@duck_typed(Translator)
 	def t(self, key: str, fallback: str = '') -> str:
 		"""翻訳キーに対応する文字列に変換
 

@@ -16,7 +16,6 @@ from rogw.tranp.lang.annotation import duck_typed, implements, injectable
 from rogw.tranp.lang.defer import Defer
 from rogw.tranp.lang.eventemitter import Callback, Observable
 from rogw.tranp.lang.module import to_fullyname
-from rogw.tranp.lang.parser import BlockFormatter, BlockParser
 from rogw.tranp.semantics.errors import NotSupportedError
 from rogw.tranp.semantics.procedure import Procedure
 from rogw.tranp.semantics.reflection.base import IReflection
@@ -27,6 +26,7 @@ import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.definition.accessible import PythonClassOperations
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.transpiler.types import ITranspiler, TranspilerOptions
+from rogw.tranp.view.helper.block import BlockFormatter, BlockParser
 from rogw.tranp.view.render import Renderer
 
 
@@ -379,10 +379,6 @@ class Py2Cpp(ITranspiler):
 	# Function/Class Elements
 
 	def on_parameter(self, node: defs.Parameter, symbol: str, var_type: str, default_value: str) -> str:
-		# Selfの型注釈がかえって邪魔なため削除 FIXME 型の情報を消す必然性が見えない。修正を検討
-		if isinstance(node.declare.symbol, (defs.DeclClassParam, defs.DeclThisParam)):
-			var_type = ''
-
 		return self.view.render(node.classification, vars={'symbol': symbol, 'var_type': var_type, 'default_value': default_value})
 
 	def on_decorator(self, node: defs.Decorator, path: str, arguments: list[str]) -> str:

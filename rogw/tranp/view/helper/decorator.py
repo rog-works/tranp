@@ -2,7 +2,7 @@ from collections.abc import Iterator, Sequence
 import re
 
 from rogw.tranp.lang.annotation import implements
-from rogw.tranp.lang.parser import BlockParser
+from rogw.tranp.view.helper.block import BlockParser
 
 
 class DecoratorHelper:

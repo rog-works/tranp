@@ -139,6 +139,27 @@ class Embed:
 		return decorator
 
 	@classmethod
+	def param(cls, symbol: str, mutable: bool) -> Callable:
+		"""関数の引数にメタ情報を埋め込む
+
+		Args:
+			symbol (str): シンボル名
+			mutable (bool): True = Mutable
+		Returns:
+			Callable: デコレーター
+		Examples:
+			```python
+			@Embed.param('a', mutable=False)
+			class A:
+				def method(self, a: A) -> None: ...
+			```
+		"""
+		def decorator(wrapped: T) -> T:
+			return wrapped
+
+		return decorator
+
+	@classmethod
 	def meta(cls, key: str, meta: Any) -> Callable:
 		"""メタ情報を埋め込む
 

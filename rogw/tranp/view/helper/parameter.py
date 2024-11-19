@@ -1,3 +1,6 @@
+import re
+from typing import cast
+
 from rogw.tranp.view.helper.block import BlockParser
 
 
@@ -45,7 +48,7 @@ class ParameterHelper:
 	@property
 	def var_type_origin(self) -> str:
 		"""Returns: str: ベースの型"""
-		if self.var_type.startswith('const'):
-			return self.var_type.split(' ')[1].split('<')[0]
+		if self.var_type.startswith('const') or self.var_type[-1] in ['*', '&']:
+			return cast(re.Match, re.search(r'^(const\s+)?([\w\d\:]+)[^\*&]*[\*&]?', self.var_type))[2]
 		else:
 			return self.var_type.split('<')[0]

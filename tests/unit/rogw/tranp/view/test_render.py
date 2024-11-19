@@ -831,7 +831,7 @@ class TestRenderer(TestCase):
 		({'parameters': ['std::map<std::string, int> dns'], 'decorators': ['Embed.param("dns", true)']}, 'std::map<std::string, int> dns'),
 		({'parameters': ['std::map<std::string, int> dns'], 'decorators': ['Embed.param("dns", false)']}, 'const std::map<std::string, int>& dns'),
 		({'parameters': ['A* p', 'std::vector<int> ns'], 'decorators': ['Embed.param("ns", true)']}, 'A* p, std::vector<int> ns'),
-	], includes=[21])
+	])
 	def test_render_function_definition_params(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('function/_definition_params', 0, vars, expected)
 

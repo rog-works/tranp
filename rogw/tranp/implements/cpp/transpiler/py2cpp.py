@@ -16,7 +16,6 @@ from rogw.tranp.lang.annotation import duck_typed, implements, injectable
 from rogw.tranp.lang.defer import Defer
 from rogw.tranp.lang.eventemitter import Callback, Observable
 from rogw.tranp.lang.module import to_fullyname
-from rogw.tranp.view.helper.block import BlockFormatter, BlockParser
 from rogw.tranp.semantics.errors import NotSupportedError
 from rogw.tranp.semantics.procedure import Procedure
 from rogw.tranp.semantics.reflection.base import IReflection
@@ -27,6 +26,7 @@ import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.definition.accessible import PythonClassOperations
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.transpiler.types import ITranspiler, TranspilerOptions
+from rogw.tranp.view.helper.block import BlockFormatter, BlockParser
 from rogw.tranp.view.render import Renderer
 
 

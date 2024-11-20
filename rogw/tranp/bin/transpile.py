@@ -33,6 +33,10 @@ ArgsDict = TypedDict('ArgsDict', {
 	'verbose': bool,
 	'profile': str,
 })
+EnvDict = TypedDict('EnvDict', {
+	'transpiler': dict[str, Any],
+	'view': dict[str, Any],
+})
 ConfigDict = TypedDict('ConfigDict', {
 	'grammar': str,
 	'template_dirs': list[str],
@@ -42,7 +46,7 @@ ConfigDict = TypedDict('ConfigDict', {
 	'output_dir': str,
 	'output_language': str,
 	'di': dict[str, str],
-	'env': dict[str, Any],
+	'env': EnvDict,
 	'force': bool,
 	'verbose': bool,
 	'profile': str,
@@ -122,7 +126,7 @@ class TranspileApp:
 		Returns:
 			Renderer: テンプレートレンダー
 		"""
-		return RendererSetting(config.template_dirs, i18n.t, config.env)
+		return RendererSetting(config.template_dirs, i18n.t, config.env['view'])
 
 	@classmethod
 	@injectable
@@ -134,7 +138,7 @@ class TranspileApp:
 		Returns:
 			TranspilerOptions: トランスパイルオプション
 		"""
-		return TranspilerOptions(verbose=config.verbose, env=config.env)
+		return TranspilerOptions(verbose=config.verbose, env=config.env['transpiler'])
 
 	@classmethod
 	@injectable

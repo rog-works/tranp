@@ -1,7 +1,5 @@
 from enum import Enum
-from typing import Any, TypeVar
-
-T_Self = TypeVar('T_Self', bound='CEnum')
+from typing import Any, Self
 
 
 class CEnum(Enum):
@@ -28,30 +26,26 @@ class CEnum(Enum):
 
 		return super().__eq__(other)
 
-	def __or__(self, other: T_Self) -> T_Self:
+	def __or__(self, other: Self) -> Self:
 		"""ビット演算(OR)
 
 		Args:
-			other (T_Self): 対象
+			other (Self): 対象
 		Returns:
-			T_Self: 演算結果
-		Note:
-			FIXME 正しいシグネチャーは`__ror__(self, other: Self | int) -> int`
+			Self: 演算結果
 		"""
 		if isinstance(other, type(self)):
 			return self.value | other.value
 		else:
 			return self.value | other
 
-	def __ror__(self, other: T_Self) -> T_Self:
+	def __ror__(self, other: Self) -> Self:
 		"""ビット演算(OR/右)
 
 		Args:
-			other (T_Self): 対象
+			other (Self): 対象
 		Returns:
-			T_Self: 演算結果
-		Note:
-			FIXME 正しいシグネチャーは`__ror__(self, other: Self | int) -> int`
+			Self: 演算結果
 		"""
 		if isinstance(other, type(self)):
 			return self.value | other.value

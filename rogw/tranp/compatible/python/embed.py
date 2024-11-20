@@ -150,8 +150,28 @@ class Embed:
 		Examples:
 			```python
 			@Embed.param('a', mutable=False)
+			def to_immutable(a: A) -> None: ...
+			```
+		"""
+		def decorator(wrapped: T) -> T:
+			return wrapped
+
+		return decorator
+
+	@classmethod
+	def prop(cls, symbol: str, meta: Any) -> Callable:
+		"""プロパティーにメタ情報を埋め込む
+
+		Args:
+			symbol (str): シンボル名
+			meta (Any): メタ情報
+		Returns:
+			Callable: デコレーター
+		Examples:
+			```python
+			@Embed.prop('a', 'meta')
 			class A:
-				def method(self, a: A) -> None: ...
+				a: int
 			```
 		"""
 		def decorator(wrapped: T) -> T:
@@ -170,12 +190,8 @@ class Embed:
 			Callable: デコレーター
 		Examples:
 			```python
-			@Embed.meta('prop.a', '/** @var A */')
-			@Embed.meta('prop.b', '/** @var B */')
-			class A:
-				def __init__(self, a: int, b: str) -> None:
-					self.a: int = a
-					self.b: str = b
+			@Embed.meta('class', 'meta')
+			class A: ...
 			```
 		"""
 		def decorator(wrapped: T) -> T:

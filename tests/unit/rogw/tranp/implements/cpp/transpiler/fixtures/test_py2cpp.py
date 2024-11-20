@@ -342,8 +342,9 @@ class GenericOps(Generic[T]):
 
 
 @Embed.struct
-@Embed.meta('prop.a', '/** @var A */')
-@Embed.meta('prop.b', '/** @var B */')
+@Embed.prop('a', '/** @var A */')
+@Embed.prop('b', '/** @var B */')
+@Embed.meta('class', 'meta')
 class Struct:
 	a: int
 	b: str

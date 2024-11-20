@@ -68,17 +68,6 @@ class CP(CVar[T_co]):
 	"""C++型変数の互換クラス(ポインター)"""
 
 	@classmethod
-	def __class_getitem__(cls, var_type: type[T]) -> 'type[CP[T]]':
-		"""C++型変数でラップしたタイプを返却
-
-		Args:
-			var_type (type[T]): 実体の型
-		Returns:
-			type[CP[T]]: ラップした型
-		"""
-		return getattr(super(), '__class_getitem__')(var_type)
-
-	@classmethod
 	def new(cls, origin: T_New) -> 'CP[T_New]':
 		"""メモリを生成し、CPラップ型を返却するメモリ生成代替メソッド。C++では`new`に相当
 
@@ -122,17 +111,6 @@ class CP(CVar[T_co]):
 
 class CSP(CVar[T_co]):
 	"""C++型変数の互換クラス(スマートポインター)"""
-
-	@classmethod
-	def __class_getitem__(cls, var_type: type[T]) -> 'type[CSP[T]]':
-		"""C++型変数でラップしたタイプを返却
-
-		Args:
-			var_type (type[T]): 実体の型
-		Returns:
-			type[CSP[T]]: ラップした型
-		"""
-		return getattr(super(), '__class_getitem__')(var_type)
 
 	@override
 	def __init__(self, origin: T_co | None = None) -> None:
@@ -185,17 +163,6 @@ class CSP(CVar[T_co]):
 class CRef(CVar[T_co]):
 	"""C++型変数の互換クラス(参照)"""
 
-	@classmethod
-	def __class_getitem__(cls, var_type: type[T]) -> 'type[CRef[T]]':
-		"""C++型変数でラップしたタイプを返却
-
-		Args:
-			var_type (type[T]): 実体の型
-		Returns:
-			type[CRef[T]]: ラップした型
-		"""
-		return getattr(super(), '__class_getitem__')(var_type)
-
 	@property
 	def addr(self) -> 'CP[T_co]':
 		"""Returns: CP[T_co]: ポインターを返却する参照変換代替メソッド。C++では`&`に相当"""
@@ -226,17 +193,6 @@ class CRef(CVar[T_co]):
 class CPConst(CVar[T_co]):
 	"""C++型変数の互換クラス(Constポインター)"""
 
-	@classmethod
-	def __class_getitem__(cls, var_type: type[T]) -> 'type[CPConst[T]]':
-		"""C++型変数でラップしたタイプを返却
-
-		Args:
-			var_type (type[T]): 実体の型
-		Returns:
-			type[CPConst[T]]: ラップした型
-		"""
-		return getattr(super(), '__class_getitem__')(var_type)
-
 	@property
 	def ref(self) -> 'CRefConst[T_co]':
 		"""Returns: CRefConst[T_co]: Const参照を返却する参照変換代替メソッド。C++では`*`に相当"""
@@ -245,17 +201,6 @@ class CPConst(CVar[T_co]):
 
 class CSPConst(CVar[T_co]):
 	"""C++型変数の互換クラス(Constスマートポインター)"""
-
-	@classmethod
-	def __class_getitem__(cls, var_type: type[T]) -> 'type[CSPConst[T]]':
-		"""C++型変数でラップしたタイプを返却
-
-		Args:
-			var_type (type[T]): 実体の型
-		Returns:
-			type[CSPConst[T]]: ラップした型
-		"""
-		return getattr(super(), '__class_getitem__')(var_type)
 
 	@property
 	def ref(self) -> 'CRefConst[T_co]':
@@ -271,17 +216,6 @@ class CSPConst(CVar[T_co]):
 class CRefConst(CVar[T_co]):
 	"""C++型変数の互換クラス(Const参照)"""
 
-	@classmethod
-	def __class_getitem__(cls, var_type: type[T]) -> 'type[CRefConst[T]]':
-		"""C++型変数でラップしたタイプを返却
-
-		Args:
-			var_type (type[T]): 実体の型
-		Returns:
-			type[CRefConst[T]]: ラップした型
-		"""
-		return getattr(super(), '__class_getitem__')(var_type)
-
 	@property
 	def addr(self) -> 'CPConst[T_co]':
 		"""Returns: CPConst[T_co]: Constポインターを返却する参照変換代替メソッド。C++では`get`に相当"""
@@ -290,17 +224,6 @@ class CRefConst(CVar[T_co]):
 
 class CRawConst(CVar[T_co]):
 	"""C++型変数の互換クラス(Const)"""
-
-	@classmethod
-	def __class_getitem__(cls, var_type: type[T]) -> 'type[CRawConst[T]]':
-		"""C++型変数でラップしたタイプを返却
-
-		Args:
-			var_type (type[T]): 実体の型
-		Returns:
-			type[CRefConst[T]]: ラップした型
-		"""
-		return getattr(super(), '__class_getitem__')(var_type)
 
 	@property
 	def ref(self) -> 'CRefConst[T_co]':
@@ -315,17 +238,6 @@ class CRawConst(CVar[T_co]):
 
 class CRaw(CVar[T_co]):
 	"""C++型変数の互換クラス(実体)"""
-
-	@classmethod
-	def __class_getitem__(cls, var_type: type[T]) -> 'type[CRaw[T]]':
-		"""C++型変数でラップしたタイプを返却
-
-		Args:
-			var_type (type[T]): 実体の型
-		Returns:
-			type[CRaw[T]]: ラップした型
-		"""
-		return getattr(super(), '__class_getitem__')(var_type)
 
 	@property
 	def ref(self) -> 'CRef[T_co]':

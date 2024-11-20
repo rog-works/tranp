@@ -1,5 +1,5 @@
 import re
-from typing import Any, Self, TypeVarTuple, cast
+from typing import Any, ClassVar, Self, TypeVarTuple, cast
 
 from rogw.tranp.compatible.cpp.object import CP, c_func_addr, c_func_ref
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
@@ -861,9 +861,8 @@ class Py2Cpp(ITranspiler):
 				return 'cast_char', None
 			elif calls == 'list':
 				return 'cast_list', None
-			elif calls in ['int', 'float', 'bool', 'str']:
-				casted_types = {'int': int, 'float': float, 'bool': bool, 'str': str}
-				to_type = casted_types[calls]
+			elif calls in FuncCallMaps.convertion_scalars:
+				to_type = FuncCallMaps.convertion_scalars[calls]
 				from_raw = self.reflections.type_of(node.arguments[0]).impl(refs.Object)
 				to_raw = self.reflections.from_standard(to_type).impl(refs.Object)
 				if from_raw.type_is(str) and to_raw.type_is(str):
@@ -878,9 +877,9 @@ class Py2Cpp(ITranspiler):
 				return f'cvar_to_{calls}', None
 		elif isinstance(node.calls, defs.Relay):
 			prop = node.calls.prop.tokens
-			if prop in ['pop', 'insert', 'extend', 'items', 'keys', 'values']:
+			if prop in FuncCallMaps.list_dict_methods:
 				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object)
-				if prop in ['pop', 'insert', 'extend'] and receiver_raw.type_is(list):
+				if prop in FuncCallMaps.list_methods and receiver_raw.type_is(list):
 					return f'list_{prop}', receiver_raw.attrs[0]
 				elif receiver_raw.type_is(dict) and node.parent.is_a(defs.ForIn):
 					# XXX for/comprehensionにより、レシーバー自体がイテレーターとして評価されるため、通常の関数コールとして処理
@@ -891,7 +890,7 @@ class Py2Cpp(ITranspiler):
 					return f'dict_{prop}', attr_indexs[prop]
 			elif prop == PythonClassOperations.copy_constructor:
 				return prop, None
-			elif prop in ['split', 'join', 'replace', 'find', 'rfind', 'count', 'startswith', 'endswith', 'format']:
+			elif prop in FuncCallMaps.str_methods:
 				if node.calls.receiver.is_a(defs.String):
 					return f'str_{prop}', None
 				elif self.reflections.type_of(node.calls.receiver).impl(refs.Object).type_is(str):
@@ -1094,6 +1093,44 @@ class Py2Cpp(ITranspiler):
 
 	def on_fallback(self, node: Node) -> str:
 		return node.tokens
+
+
+class FuncCallMaps:
+	"""FuncCall用のマッピングデータ"""
+
+	convertion_scalars: ClassVar[dict[str, type[bool | int | float | str]]] = {
+		bool.__name__: bool,
+		int.__name__: int,
+		float.__name__: float,
+		str.__name__: str,
+	}
+	list_methods: ClassVar[list[str]] = [
+		list.pop.__name__,
+		list.insert.__name__,
+		list.extend.__name__,
+	]
+	list_dict_methods: ClassVar[list[str]] = [
+		list.pop.__name__,
+		list.insert.__name__,
+		list.extend.__name__,
+		dict.items.__name__,
+		dict.keys.__name__,
+		dict.values.__name__,
+	]
+	str_methods: ClassVar[list[str]] = [
+		str.split.__name__,
+		str.join.__name__,
+		str.replace.__name__,
+		str.lstrip.__name__,
+		str.rstrip.__name__,
+		str.strip.__name__,
+		str.find.__name__,
+		str.rfind.__name__,
+		str.count.__name__,
+		str.startswith.__name__,
+		str.endswith.__name__,
+		str.format.__name__,
+	]
 
 
 class PatternParser:

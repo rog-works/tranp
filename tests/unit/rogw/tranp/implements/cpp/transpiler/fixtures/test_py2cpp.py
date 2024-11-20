@@ -597,9 +597,31 @@ class ForFuncCall:
 		def move_scalar(self, output: 'CRef[int]') -> None:
 			output.copy(CRef(1))
 
+	class List:
+		def pop(self, ns: list[int]) -> None:
+			ns.pop(1)
+			ns.pop()
+
+		def insert(self, ns: list[int], n: int) -> None:
+			ns.insert(1, n)
+
+		def extend(self, ns0: list[int], ns1: list[int]) -> None:
+			ns0.extend(ns1)
+
+		def clear(self, ns: list[int]) -> None:
+			ns.clear()
+
+		def contains(self, ns: list[int]) -> None:
+			b_in = 1 in ns
+			b_not_in = 1 not in ns
+
+		def fill(self, n: int) -> None:
+			n_x3 = [n] * 3
+
+		def len(self, ns: list[int]) -> None:
+			len(ns)
+
 	class Dict:
-		def len(self, dsn: dict[str, int]) -> None:
-			len(dsn)
 
 		def pop(self, dsn: dict[str, int]) -> None:
 			dsn.pop('a')
@@ -611,48 +633,49 @@ class ForFuncCall:
 		def values(self, dsn: dict[str, int]) -> None:
 			list(dsn.values())
 
+		def clear(self, dsn: dict[str, int]) -> None:
+			dsn.clear()
+
 		def contains(self, dsn: dict[str, int]) -> None:
 			b_in = 'a' in dsn
 			b_not_in = 'a' not in dsn
 
-		def clear(self, dsn: dict[str, int]) -> None:
-			dsn.clear()
-
-	class List:
-		def len(self, ns: list[int]) -> None:
-			len(ns)
-
-		def pop(self, ns: list[int]) -> None:
-			ns.pop(1)
-			ns.pop()
-
-		def contains(self, ns: list[int]) -> None:
-			b_in = 1 in ns
-			b_not_in = 1 not in ns
-
-		def fill(self, n: int) -> None:
-			n_x3 = [n] * 3
-
-		def insert(self, ns: list[int], n: int) -> None:
-			ns.insert(1, n)
-
-		def extend(self, ns0: list[int], ns1: list[int]) -> None:
-			ns0.extend(ns1)
-
-		def clear(self, ns: list[int]) -> None:
-			ns.clear()
+		def len(self, dsn: dict[str, int]) -> None:
+			len(dsn)
 
 	class String:
-		def starts_ends(self, s: str) -> None:
+		def mod_methods(self, s: str) -> None:
+			str('').split(',')
+			str('').join(['a'])
+			str('').replace('from', 'to')
+			str('').lstrip(' ')
+			str('').rstrip(' ')
+			str('').strip(' ')
+			s.split(',')
+			s.join(['a'])
+			s.replace('from', 'to')
+			s.lstrip(' ')
+			s.rstrip(' ')
+			s.strip(' ')
+
+		def find_methods(self, s: str) -> None:
+			str('').find('a')
+			str('').rfind('a')
+			str('').count('.')
+			str('').startswith('')
+			str('').endswith('')
+			s.find('a')
+			s.rfind('a')
+			s.count('.')
 			s.startswith('')
 			s.endswith('')
-
-		def len(self, s: str) -> None:
-			len(s)
 
 		def format(self, s: str) -> None:
 			'{n}, {f}, {b}, {s}, {sp}, {p}'.format(n=1, f=2.0, b=True, s='3', sp=s, p=CP(self))
 			s.format(1, 2, 3)
+
+		def len(self, s: str) -> None:
+			len(s)
 
 
 class ForBinaryOperator:

@@ -860,6 +860,7 @@ class TestRenderer(TestCase):
 				'comment': '',
 				'statements': ['return value + 1;'],
 				'template_types': ['T'],
+				'is_pure': False,
 			},
 			'\n'.join([
 				'/** func */',
@@ -873,12 +874,13 @@ class TestRenderer(TestCase):
 			'closure',
 			{
 				'symbol': 'closure',
-				# 'decorators': [],
+				'decorators': [],
 				'parameters': ['std::string text', 'int value = 1'],
 				'return_type': 'int',
 				# 'comment': '',
 				'statements': ['return value + 1;'],
 				# 'template_types': [],
+				# 'is_pure': False,
 				# closure only
 			},
 			'\n'.join([
@@ -897,6 +899,7 @@ class TestRenderer(TestCase):
 				# 'comment': '',
 				'statements': ['return value + 1;'],
 				# 'template_types': [],
+				# 'is_pure': False,
 				# closure only
 			},
 			'\n'.join([
@@ -915,6 +918,7 @@ class TestRenderer(TestCase):
 				'comment': '',
 				'statements': ['this->x = value;'],
 				'template_types': [],
+				# 'is_pure': False,
 				# belongs class only
 				'accessor': 'public',
 				'class_symbol': 'Hoge',
@@ -943,6 +947,7 @@ class TestRenderer(TestCase):
 				'comment': '',
 				'statements': [],
 				'template_types': ['T'],
+				# 'is_pure': False,
 				# belongs class only
 				'accessor': 'public',
 				'class_symbol': 'Hoge',
@@ -970,6 +975,7 @@ class TestRenderer(TestCase):
 				'comment': '',
 				'statements': ['return 1;'],
 				'template_types': [],
+				'is_pure': False,
 				# belongs class only
 				'accessor': 'public',
 				'class_symbol': 'Hoge',
@@ -995,6 +1001,7 @@ class TestRenderer(TestCase):
 				'comment': '',
 				'statements': [],
 				'template_types': ['T'],
+				'is_pure': False,
 				# belongs class only
 				'accessor': 'public',
 				'class_symbol': 'Hoge',
@@ -1019,6 +1026,7 @@ class TestRenderer(TestCase):
 				'comment': '',
 				'statements': ['this->x = value;'],
 				'template_types': [],
+				'is_pure': False,
 				# belongs class only
 				'accessor': 'public',
 				'class_symbol': 'Hoge',
@@ -1044,6 +1052,7 @@ class TestRenderer(TestCase):
 				'comment': '',
 				'statements': [],
 				'template_types': [],
+				'is_pure': False,
 				# belongs class only
 				'accessor': 'public',
 				'class_symbol': 'Hoge',
@@ -1067,6 +1076,7 @@ class TestRenderer(TestCase):
 				'comment': '',
 				'statements': ['this->x = value;'],
 				'template_types': [],
+				'is_pure': False,
 				# belongs class only
 				'accessor': 'public',
 				'class_symbol': 'Hoge',
@@ -1092,6 +1102,7 @@ class TestRenderer(TestCase):
 				'comment': '',
 				'statements': ['this->x = value;'],
 				'template_types': [],
+				'is_pure': False,
 				# belongs class only
 				'accessor': 'public',
 				'class_symbol': 'Hoge',
@@ -1117,6 +1128,7 @@ class TestRenderer(TestCase):
 				'comment': '',
 				'statements': ['this->x = value;'],
 				'template_types': ['T', 'T2', 'TArgs...'],
+				'is_pure': False,
 				# belongs class only
 				'accessor': 'public',
 				'class_symbol': 'Hoge',
@@ -1143,6 +1155,7 @@ class TestRenderer(TestCase):
 				'comment': '',
 				'statements': ['this->x = value;'],
 				'template_types': [],
+				'is_pure': True,
 				# belongs class only
 				'accessor': 'public',
 				'class_symbol': 'Hoge',

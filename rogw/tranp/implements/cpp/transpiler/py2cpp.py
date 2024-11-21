@@ -1035,13 +1035,16 @@ class Py2Cpp(ITranspiler):
 
 	def proc_binary_operator_expression(self, node: defs.BinaryOperator, left_raw: IReflection, right_raws: list[IReflection], left: str, operators: list[str], rights: list[str]) -> str:
 		primary = left
+		primary_raw = left_raw
 		for index, right_raw in enumerate(right_raws):
 			operator = operators[index]
 			secondary = rights[index]
 			if operator in ['in', 'not.in']:
 				primary = self.view.render('binary_operator/in', vars={'left': primary, 'operator': operator, 'right': secondary, 'right_is_dict': right_raw.impl(refs.Object).type_is(dict)})
 			else:
-				primary = self.view.render('binary_operator/default', vars={'left': primary, 'operator': operator, 'right': secondary, 'left_var_type': self.to_domain_name(left_raw), 'right_var_type': self.to_domain_name(right_raw)})
+				primary = self.view.render('binary_operator/default', vars={'left': primary, 'operator': operator, 'right': secondary, 'left_var_type': self.to_domain_name(primary_raw), 'right_var_type': self.to_domain_name(right_raw)})
+
+			primary_raw = right_raw
 
 		return primary
 

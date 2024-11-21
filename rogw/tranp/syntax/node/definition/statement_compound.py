@@ -419,6 +419,10 @@ class Function(ClassDef):
 		local_vars = [var for var in self._decl_vars_with(DeclLocalVar) if var.symbol.domain_name not in parameter_names]
 		return [*parameters, *local_vars]
 
+	@property
+	def is_pure(self) -> bool:
+		return self._has_annotation(Embed.pure.__qualname__)
+
 	def _has_annotation(self, *names: str) -> bool:
 		return len([True for decorator in self.decorators if decorator.path.tokens in names]) > 0
 

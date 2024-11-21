@@ -273,13 +273,14 @@ class Py2Cpp(ITranspiler):
 
 	def on_function(self, node: defs.Function, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		template_types = self.fetch_function_template_names(node)
-		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types}
+		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types, 'is_pure': node.is_pure}
 		return self.view.render(f'function/{node.classification}', vars=function_vars)
 
 	def on_class_method(self, node: defs.ClassMethod, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
+		class_name = self.to_domain_name_by_class(node.class_types)
 		template_types = self.fetch_function_template_names(node)
-		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types}
-		method_vars = {'accessor': self.to_accessor(node.accessor), 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'class_symbol': node.class_types.symbol.tokens}
+		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types, 'is_pure': node.is_pure}
+		method_vars = {'accessor': self.to_accessor(node.accessor), 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'class_symbol': class_name}
 		return self.view.render(f'function/{node.classification}', vars={**function_vars, **method_vars})
 
 	def on_constructor(self, node: defs.Constructor, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
@@ -321,15 +322,15 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(f'function/{node.classification}', vars={**function_vars, **method_vars, **constructor_vars})
 
 	def on_method(self, node: defs.Method, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
+		class_name = self.to_domain_name_by_class(node.class_types)
 		template_types = self.fetch_function_template_names(node)
-		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types}
-		method_vars = {'accessor': self.to_accessor(node.accessor), 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'class_symbol': node.class_types.symbol.tokens, 'allow_override': self.allow_override_from_method(node)}
-		special_specs = {PythonClassOperations.copy_constructor: 'copy_constructor', PythonClassOperations.destructor: 'destructor'}
-		spec = special_specs.get(symbol, node.classification)
+		_symbol = ClassOperationMaps.operators.get(symbol, symbol)
+		function_vars = {'symbol': _symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types, 'is_pure': node.is_pure}
+		method_vars = {'accessor': self.to_accessor(node.accessor), 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'class_symbol': class_name, 'allow_override': self.allow_override_from_method(node)}
+		spec = ClassOperationMaps.ctors.get(symbol, node.classification)
 		return self.view.render(f'function/{spec}', vars={**function_vars, **method_vars})
 
 	def on_closure(self, node: defs.Closure, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
-		"""Note: closureでtemplate_typesは不要なので対応しない"""
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'statements': statements}
 		return self.view.render(f'function/{node.classification}', vars=function_vars)
 
@@ -1034,13 +1035,16 @@ class Py2Cpp(ITranspiler):
 
 	def proc_binary_operator_expression(self, node: defs.BinaryOperator, left_raw: IReflection, right_raws: list[IReflection], left: str, operators: list[str], rights: list[str]) -> str:
 		primary = left
+		primary_raw = left_raw
 		for index, right_raw in enumerate(right_raws):
 			operator = operators[index]
 			secondary = rights[index]
 			if operator in ['in', 'not.in']:
 				primary = self.view.render('binary_operator/in', vars={'left': primary, 'operator': operator, 'right': secondary, 'right_is_dict': right_raw.impl(refs.Object).type_is(dict)})
 			else:
-				primary = self.view.render('binary_operator/default', vars={'left': primary, 'operator': operator, 'right': secondary, 'left_var_type': self.to_domain_name(left_raw), 'right_var_type': self.to_domain_name(right_raw)})
+				primary = self.view.render('binary_operator/default', vars={'left': primary, 'operator': operator, 'right': secondary, 'left_var_type': self.to_domain_name(primary_raw), 'right_var_type': self.to_domain_name(right_raw)})
+
+			primary_raw = right_raw
 
 		return primary
 
@@ -1093,6 +1097,37 @@ class Py2Cpp(ITranspiler):
 
 	def on_fallback(self, node: Node) -> str:
 		return node.tokens
+
+
+class ClassOperationMaps:
+	"""特殊メソッドのマッピングデータ"""
+
+	operators: ClassVar[dict[str, str]] = {
+		# comparison
+		'__eq__': 'operator==',
+		'__ne__': 'operator!=',
+		'__lt__': 'operator<',
+		'__gt__': 'operator>',
+		'__le__': 'operator<=',
+		'__ge__': 'operator>=',
+		# arithmetic
+		'__add__': 'operator+',
+		'__sub__': 'operator-',
+		'__mul__': 'operator*',
+		'__mod__': 'operator%',
+		'__truediv__': 'operator/',
+		# bitwise
+		'__and__': 'operator&',
+		'__or__': 'operator|',
+		# indexer
+		'__getitem__': 'operator[]',
+		# '__setitem__': 'operator[]', XXX C++ではset用のオペレーターは存在せず、getから参照を返すことで実現する
+	}
+
+	ctors: ClassVar[dict[str, str]] = {
+		PythonClassOperations.copy_constructor: 'copy_constructor',
+		PythonClassOperations.destructor: 'destructor',
+	}
 
 
 class FuncCallMaps:

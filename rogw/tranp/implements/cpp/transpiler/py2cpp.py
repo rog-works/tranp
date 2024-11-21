@@ -554,7 +554,8 @@ class Py2Cpp(ITranspiler):
 			return self.view.render(f'{node.classification}/cvar_to', vars={'receiver': cvar_receiver, 'move': move.name})
 		elif self.is_relay_type(node, org_receiver_symbol):
 			prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.ClassDef) else node.prop.domain_name
-			return self.view.render(f'{node.classification}/default', vars={'receiver': receiver, 'operator': CVars.RelayOperators.Static.name, 'prop': prop, 'is_property': False})
+			is_property = isinstance(prop_symbol.decl, defs.Method) and prop_symbol.decl.is_property
+			return self.view.render(f'{node.classification}/default', vars={'receiver': receiver, 'operator': CVars.RelayOperators.Static.name, 'prop': prop, 'is_property': is_property})
 		else:
 			prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.Method) else node.prop.domain_name
 			is_property = isinstance(prop_symbol.decl, defs.Method) and prop_symbol.decl.is_property

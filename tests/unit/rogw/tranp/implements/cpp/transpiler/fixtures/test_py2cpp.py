@@ -393,9 +393,16 @@ class ForCompound:
 		def __or__(self, value: int) -> int: ...
 		# indexer
 		def __getitem__(self, key: str) -> CRef[Sub]: ...
-		# XXX C++ではset用のオペレーターは存在せず、getから参照を返すことで実現するため、出力対象から除外する
+		# XXX C++では不要なため、出力対象から除外する
 		@Embed.python
 		def __setitem__(self, key: str, value: CRef[Sub]) -> None: ...
+		def usage(self, other: 'ForCompound.Operators', sub: Sub) -> None:
+			if self is other and self is not other: ...
+			if self < other and self > other and self <= other and self >= other: ...
+			print(self + 1, self - 1, self * 1, self % 1, self / 1)
+			print(self & 1, self | 1)
+			if self['a'].raw is not sub:
+				self['a'] = CRef(sub)
 
 	class Modifier:
 		@Embed.public

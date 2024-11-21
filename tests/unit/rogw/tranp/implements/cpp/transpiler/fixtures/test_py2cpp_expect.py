@@ -4,7 +4,7 @@ class BlockExpects:
 		return cls.method(access, name, return_type, params, statements, pure, static=True)
 
 	@classmethod
-	def method(cls, access: str, name: str, return_type: str, params: list[str] = [], statements: list[str] = [], pure: bool = False, static: bool = False) -> str:
+	def method(cls, access: str, name: str, return_type: str = 'void', params: list[str] = [], statements: list[str] = [], pure: bool = False, static: bool = False) -> str:
 		if statements:
 			return '\n'.join([
 				f'{access}:',

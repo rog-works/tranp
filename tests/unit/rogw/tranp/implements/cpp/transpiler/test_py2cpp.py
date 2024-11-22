@@ -1,4 +1,5 @@
 import os
+import sys
 from unittest import TestCase
 
 from rogw.tranp.app.dir import tranp_dir
@@ -21,6 +22,9 @@ from rogw.tranp.transpiler.types import TranspilerOptions
 from rogw.tranp.view.render import Renderer, RendererHelperProvider, RendererSetting
 from tests.test.fixture import Fixture
 from tests.unit.rogw.tranp.implements.cpp.transpiler.fixtures.test_py2cpp_expect import BlockExpects
+
+
+profiler_on = '--' in sys.argv
 
 
 def fixture_translation_mapping(files: IFileLoader) -> TranslationMapping:
@@ -50,7 +54,7 @@ class TestPy2Cpp(TestCase):
 		to_fullyname(TranspilerOptions): lambda: TranspilerOptions(verbose=False, env={}),
 	})
 
-	@profiler(on=False)
+	@profiler(on=profiler_on)
 	@data_provider([
 		('', 'import_stmt[1]', defs.Import, '#include <functional>'),
 

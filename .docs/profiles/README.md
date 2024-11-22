@@ -45,7 +45,7 @@ $ time bin/test.sh
 ## 実行 - トランスパイル
 
 ```sh
-$ bin/transpile.sh -f -p tottime > profile_tottime.log
+$ bin/transpile.sh -f -p > profile_tottime.log
 ```
 
 ## 実行 - テスト
@@ -64,7 +64,7 @@ def test_exec(...) -> None:
 ### 実行
 
 ```sh
-$ bin/test.sh tests/unit/rogw/tranp/implements/cpp/transpiler/test_py2cpp.py TestPy2Cpp test_exec > profile_tottime.log
+$ bin/test.sh -l -p > profile_tottime.log
 ```
 
 # 計測 - 3.pyinstruments

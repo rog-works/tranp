@@ -31,7 +31,7 @@ ArgsDict = TypedDict('ArgsDict', {
 	'config': str,
 	'force': bool,
 	'verbose': bool,
-	'profile': str,
+	'profile': bool,
 })
 EnvDict = TypedDict('EnvDict', {
 	'transpiler': dict[str, Any],
@@ -49,7 +49,7 @@ ConfigDict = TypedDict('ConfigDict', {
 	'env': EnvDict,
 	'force': bool,
 	'verbose': bool,
-	'profile': str,
+	'profile': bool,
 })
 
 
@@ -96,7 +96,7 @@ class Config:
 			'config': 'example/config.yml',
 			'force': False,
 			'verbose': False,
-			'profile': '',
+			'profile': False,
 		}
 		while argv:
 			arg = argv.pop(0)
@@ -107,7 +107,7 @@ class Config:
 			elif arg == '-v':
 				args['verbose'] = True
 			elif arg == '-p':
-				args['profile'] = argv.pop(0)
+				args['profile'] = True
 
 		return args
 
@@ -214,8 +214,8 @@ class TranspileApp:
 			transpiler (ITranspiler): トランスパイラー @inject
 		"""
 		app = cls(files, config, module_paths, modules, module_meta_factory, transpiler)
-		if config.profile in ['tottime', 'cumtime']:
-			profiler(config.profile)(app.exec)()
+		if config.profile:
+			profiler('tottime')(app.exec)()
 		else:
 			app.exec()
 

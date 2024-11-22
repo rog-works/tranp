@@ -50,12 +50,13 @@ $ bin/transpile.sh -f -p > profile_tottime.log
 
 ## 実行 - テスト
 
-### プロファイラーを有効化
+### プロファイラーの設定例
 
 ```python
 # tests/unit/rogw/tranp/implements/cpp/transpiler/test_py2cpp.py
 
-@profiler(on=True)  # ← FalseからTrueに変更
+# フラグによって切り替え
+@profiler(on=profiler_on)
 @data_provider(...)
 def test_exec(...) -> None:
   ...

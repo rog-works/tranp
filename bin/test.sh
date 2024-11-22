@@ -4,17 +4,11 @@ cwd=$(cd $(dirname $0); pwd)
 appdir=${cwd}/..
 
 target=
-if [ "$1" != "" ]; then
-	target=$(echo "$1" | sed -e 's/\//\./g')
+if [[ "$1" == "-l" ]]; then
+	target=$(find ./ -name 'test_*.py' | grep -v 'vendor' | peco)
+	target=$(echo "$target" | sed -e 's/^.\///g')
+	target=$(echo "$target" | sed -e 's/\//\./g')
 	target=$(echo "$target" | sed -e 's/\.py$//g')
-fi
-
-if [ "$2" != "" ]; then
-	target=${target}.$2
-fi
-
-if [ "$3" != "" ]; then
-	target=${target}.$3
 fi
 
 source ${cwd}/.env.sh

@@ -9,6 +9,4 @@ fi
 
 if [ -z ${PYTHONPATH} ]; then
 	export PYTHONPATH=${appdir}:${appdir}/vendor
-else
-	export PYTHONPATH=${appdir}:${appdir}/vendor:${PYTHONPATH}
 fi

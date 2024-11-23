@@ -1,5 +1,5 @@
 from rogw.tranp.data.meta.types import ModuleMeta, ModuleMetaFactory
-from rogw.tranp.io.loader import IFileLoader
+from rogw.tranp.file.loader import ISourceLoader
 from rogw.tranp.lang.annotation import implements, injectable
 from rogw.tranp.lang.locator import Invoker
 from rogw.tranp.lang.module import module_path_to_filepath
@@ -92,12 +92,12 @@ class ModuleLoader(IModuleLoader):
 
 
 @injectable
-def module_meta_factory(module_paths: ModulePaths, files: IFileLoader) -> ModuleMetaFactory:
+def module_meta_factory(module_paths: ModulePaths, sources: ISourceLoader) -> ModuleMetaFactory:
 	"""モジュールメタファクトリーを生成
 
 	Args:
 		module_paths (ModulePaths): モジュールパスリスト @inject
-		files (IFileLoader): ファイルローダー @inject
+		sources (ISourceLoader): ソースコードローダー @inject
 	Returns:
 		ModuleMetaFactory: モジュールメタファクトリー
 	"""
@@ -105,6 +105,6 @@ def module_meta_factory(module_paths: ModulePaths, files: IFileLoader) -> Module
 		index = [module_path.path for module_path in module_paths].index(module_path)
 		target_module_path = module_paths[index]
 		filepath = module_path_to_filepath(target_module_path.path, f'.{target_module_path.language}')
-		return {'hash': files.hash(filepath), 'path': module_path}
+		return {'hash': sources.hash(filepath), 'path': module_path}
 
 	return handler

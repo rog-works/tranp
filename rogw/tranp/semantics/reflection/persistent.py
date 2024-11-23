@@ -3,8 +3,8 @@ import glob
 import json
 import os
 
-from rogw.tranp.io.cache import CacheSetting
-from rogw.tranp.io.loader import IFileLoader
+from rogw.tranp.cache.cache import CacheSetting
+from rogw.tranp.file.loader import ISourceLoader
 from rogw.tranp.lang.annotation import implements, injectable
 from rogw.tranp.lang.module import module_path_to_filepath
 from rogw.tranp.module.module import Module
@@ -51,17 +51,17 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 	"""シンボルテーブル永続化"""
 
 	@injectable
-	def __init__(self, setting: CacheSetting, serializer: IReflectionSerializer, files: IFileLoader) -> None:
+	def __init__(self, setting: CacheSetting, serializer: IReflectionSerializer, sources: ISourceLoader) -> None:
 		"""インスタンスを生成
 
 		Args:
 			setting (CacheSetting): キャッシュ設定 @inject
 			serializer (IReflectionSerializer): シンボルシリアライザー @inject
-			files (IFileLoader) ファイルローダー @inject
+			sources (ISourceLoader) ソースコードローダー @inject
 		"""
 		self.setting = setting
 		self.serializer = serializer
-		self.files = files
+		self.sources = sources
 
 	@implements
 	def stored(self, module: Module) -> bool:
@@ -132,7 +132,7 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 		Returns:
 			bool: True = 実施
 		"""
-		return module.in_storage() and not self.files.exists(filepath)
+		return module.in_storage() and not self.sources.exists(filepath)
 
 	def _can_restore(self, module: Module, filepath: str) -> bool:
 		"""復元を実施するか判定
@@ -143,7 +143,7 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 		Returns:
 			bool: True = 実施
 		"""
-		return self.setting.enabled and module.in_storage() and self.files.exists(filepath)
+		return self.setting.enabled and module.in_storage() and self.sources.exists(filepath)
 
 	def _store(self, module: Module, db: SymbolDB, filepath: str) -> None:
 		"""ストレージに保存
@@ -168,7 +168,7 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 			db (SymbolDB): シンボルテーブル
 			filepath (str): ファイルパス
 		"""
-		content = self.files.load(filepath)
+		content = self.sources.load(filepath)
 		data = json.loads(content)
 		db.import_json(self.serializer, data)
 

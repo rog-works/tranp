@@ -5,9 +5,9 @@ from unittest import TestCase
 import yaml
 
 from rogw.tranp.app.dir import tranp_dir
+from rogw.tranp.implements.cpp.providers.view import renderer_helper_provider_cpp
 from rogw.tranp.lang.annotation import duck_typed
 from rogw.tranp.lang.translator import Translator
-from rogw.tranp.providers.view import cpp_renderer_helper_provider
 from rogw.tranp.test.helper import data_provider
 from rogw.tranp.view.render import Renderer, RendererSetting
 
@@ -24,7 +24,7 @@ class Fixture:
 		template_dirs = [os.path.join(tranp_dir(), 'data/cpp/template')]
 		env = {'immutable_param_types': ['std::string', 'std::vector', 'std::map']}
 		setting = RendererSetting(template_dirs, translator, env)
-		provider = cpp_renderer_helper_provider(setting)
+		provider = renderer_helper_provider_cpp(setting)
 		self.renderer = Renderer(setting, provider)
 
 	def __load_trans_mapping(self, filepath: str) -> dict[str, str]:

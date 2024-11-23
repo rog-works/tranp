@@ -2,9 +2,8 @@ import json
 from typing import IO, NamedTuple
 
 import rogw.tranp.compatible.libralies.classes as classes
+from rogw.tranp.cache.cache import Stored
 from rogw.tranp.dsn.module import ModuleDSN
-from rogw.tranp.io.cache import CacheProvider, Stored
-from rogw.tranp.io.loader import IFileLoader
 from rogw.tranp.lang.annotation import duck_typed, injectable
 from rogw.tranp.lang.trait import Traits
 from rogw.tranp.module.modules import Module
@@ -59,18 +58,14 @@ class ExpandModules:
 	"""モジュール内のシンボルをシンボルテーブルに展開"""
 
 	@injectable
-	def __init__(self, finder: SymbolFinder, caches: CacheProvider, files: IFileLoader, traits: Traits[IReflection]) -> None:
+	def __init__(self, finder: SymbolFinder, traits: Traits[IReflection]) -> None:
 		"""インスタンスを生成
 
 		Args:
 			finder (SymbolFinder): シンボル検索 @inject
-			caches (CacheProvider): キャッシュプロバイダー @inject
-			files (IFileLoader): ファイルローダー @inject
 			traits (Traits[IReflection]): トレイトマネージャー @inject
 		"""
 		self.finder = finder
-		self.caches = caches
-		self.files = files
 		self.traits = traits
 
 	@duck_typed(Preprocessor)

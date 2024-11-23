@@ -4,7 +4,7 @@ from rogw.tranp.semantics.plugin import IPlugin, PluginProvider
 
 
 @injectable
-def cpp_plugin_provider(invoker: Invoker) -> PluginProvider:
+def plugin_provider_cpp(invoker: Invoker) -> PluginProvider:
 	"""プラグインプロバイダーを生成
 
 	Args:

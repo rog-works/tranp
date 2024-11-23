@@ -7,11 +7,12 @@ import yaml
 from rogw.tranp.app.app import App
 from rogw.tranp.data.meta.header import MetaHeader
 from rogw.tranp.data.meta.types import ModuleMetaFactory
+from rogw.tranp.file.loader import IDataLoader, ISourceLoader
+from rogw.tranp.file.writer import Writer
 from rogw.tranp.i18n.i18n import I18n, TranslationMapping
-from rogw.tranp.implements.cpp.providers.semantics import cpp_plugin_provider
+from rogw.tranp.implements.cpp.providers.semantics import plugin_provider_cpp
+from rogw.tranp.implements.cpp.providers.view import renderer_helper_provider_cpp
 from rogw.tranp.implements.cpp.transpiler.py2cpp import Py2Cpp
-from rogw.tranp.io.loader import IFileLoader
-from rogw.tranp.io.writer import Writer
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.lang.di import ModuleDefinitions
 from rogw.tranp.lang.error import stacktrace
@@ -20,7 +21,6 @@ from rogw.tranp.lang.profile import profiler
 from rogw.tranp.module.includer import include_module_paths
 from rogw.tranp.module.modules import Modules
 from rogw.tranp.module.types import ModulePath, ModulePaths
-from rogw.tranp.providers.view import cpp_renderer_helper_provider
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.syntax.ast.parser import ParserSetting
 from rogw.tranp.syntax.node.node import Node
@@ -41,7 +41,7 @@ ConfigDict = TypedDict('ConfigDict', {
 	'grammar': str,
 	'template_dirs': list[str],
 	'trans_mapping': str,
-	'input_glob': str,
+	'input_globs': list[str],
 	'exclude_patterns': list[str],
 	'output_dir': str,
 	'output_language': str,
@@ -63,7 +63,7 @@ class Config:
 		self.grammar = config['grammar']
 		self.template_dirs = config['template_dirs']
 		self.trans_mapping = config['trans_mapping']
-		self.input_glob = config['input_glob']
+		self.input_globs = config['input_globs']
 		self.exclude_patterns = config['exclude_patterns']
 		self.output_dir = config['output_dir']
 		self.output_language = config['output_language']
@@ -154,16 +154,16 @@ class TranspileApp:
 
 	@classmethod
 	@injectable
-	def make_translation_mapping(cls, files: IFileLoader, config: Config) -> TranslationMapping:
+	def make_translation_mapping(cls, datums: IDataLoader, config: Config) -> TranslationMapping:
 		"""翻訳マッピングデータを生成
 
 		Args:
-			files (IFileLoader): ファイルローダー @inject
+			datums (IDataLoader): データローダー @inject
 			config (Config): コンフィグ @inject
 		Returns:
 			TranslationMapping: 翻訳マッピングデータ
 		"""
-		mapping = cast(dict[str, str], yaml.safe_load(files.load(config.trans_mapping)))
+		mapping = cast(dict[str, str], yaml.safe_load(datums.load(config.trans_mapping)))
 		return TranslationMapping(to=mapping)
 
 	@classmethod
@@ -176,7 +176,11 @@ class TranspileApp:
 		Returns:
 			ModulePaths: モジュールパスリスト
 		"""
-		return include_module_paths(config.input_glob, config.exclude_patterns)
+		module_paths = ModulePaths()
+		for input_glob in config.input_globs:
+			module_paths.extend(include_module_paths(input_glob, config.exclude_patterns))
+
+		return module_paths
 
 	@classmethod
 	def definitions(cls) -> ModuleDefinitions:
@@ -191,10 +195,10 @@ class TranspileApp:
 			to_fullyname(ITranspiler): Py2Cpp,
 			to_fullyname(ModulePaths): cls.make_module_paths,
 			to_fullyname(ParserSetting): cls.make_parser_setting,
-			to_fullyname(PluginProvider): cpp_plugin_provider,  # FIXME C++固定
+			to_fullyname(PluginProvider): plugin_provider_cpp,  # FIXME C++固定
 			to_fullyname(Renderer): Renderer,
+			to_fullyname(RendererHelperProvider): renderer_helper_provider_cpp,
 			to_fullyname(RendererSetting): cls.make_renderer_setting,
-			to_fullyname(RendererHelperProvider): cpp_renderer_helper_provider,
 			to_fullyname(TranslationMapping): cls.make_translation_mapping,
 			to_fullyname(TranspilerOptions): cls.make_options,
 		}
@@ -202,26 +206,26 @@ class TranspileApp:
 
 	@classmethod
 	@injectable
-	def run(cls, files: IFileLoader, config: Config, module_paths: ModulePaths, modules: Modules, module_meta_factory: ModuleMetaFactory, transpiler: ITranspiler) -> None:
+	def run(cls, sources: ISourceLoader, config: Config, module_paths: ModulePaths, modules: Modules, module_meta_factory: ModuleMetaFactory, transpiler: ITranspiler) -> None:
 		"""アプリケーションを実行
 
 		Args:
-			files (IFileLoader): ファイルローダー @inject
+			sources (ISourceLoader): ソースコードローダー @inject
 			config (Config): コンフィグ @inject
 			module_paths (ModulePaths): モジュールパスリスト @inject
 			modules (Modules): モジュールリスト @inject
 			module_meta_factory (ModuleMetaFactory): モジュールのメタ情報ファクトリー @inject
 			transpiler (ITranspiler): トランスパイラー @inject
 		"""
-		app = cls(files, config, module_paths, modules, module_meta_factory, transpiler)
+		app = cls(sources, config, module_paths, modules, module_meta_factory, transpiler)
 		if config.profile:
 			profiler('tottime')(app.exec)()
 		else:
 			app.exec()
 
-	def __init__(self, files: IFileLoader, config: Config, module_paths: ModulePaths, modules: Modules, module_meta_factory: ModuleMetaFactory, transpiler: ITranspiler) -> None:
+	def __init__(self, sources: ISourceLoader, config: Config, module_paths: ModulePaths, modules: Modules, module_meta_factory: ModuleMetaFactory, transpiler: ITranspiler) -> None:
 		"""インスタンスを生成 Args: @see run"""
-		self.files = files
+		self.sources = sources
 		self.module_paths = module_paths
 		self.modules = modules
 		self.config = config
@@ -237,10 +241,10 @@ class TranspileApp:
 			MetaHeader | None: メタヘッダー。ファイル・メタヘッダーが存在しない場合はNone
 		"""
 		filepath = self.output_filepath(module_path)
-		if not self.files.exists(filepath):
+		if not self.sources.exists(filepath):
 			return None
 
-		return MetaHeader.try_from_content(self.files.load(filepath))
+		return MetaHeader.try_from_content(self.sources.load(filepath))
 
 	def output_filepath(self, module_path: ModulePath) -> str:
 		"""トランスパイル後のファイルパスを生成
@@ -250,7 +254,9 @@ class TranspileApp:
 		Returns:
 			str: ファイルパス
 		"""
-		filepath = module_path_to_filepath(module_path.path, f'.{self.config.output_language}')
+		extension_map = self.config.output_language.split(':')
+		extension = extension_map[1] if len(extension_map) == 2 else extension_map[0]
+		filepath = module_path_to_filepath(module_path.path, f'.{extension}')
 		return os.path.abspath(os.path.join(self.config.output_dir, filepath))
 
 	def can_transpile(self, module_path: ModulePath) -> bool:

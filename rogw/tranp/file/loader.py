@@ -53,3 +53,11 @@ class IFileLoader(metaclass=ABCMeta):
 			FileNotFoundError: 存在しないファイルを指定
 		"""
 		...
+
+
+class IDataLoader(IFileLoader):
+	"""ファイルローダー(データ用) ※シンボル用の定義"""
+
+
+class ISourceLoader(IFileLoader):
+	"""ファイルローダー(ソースコード用) ※シンボル用の定義"""

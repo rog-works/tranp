@@ -4,7 +4,7 @@ from typing import Any, Literal, TypeVar, cast, override
 
 from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.errors import LogicError
-from rogw.tranp.io.memo2 import Memoize
+from rogw.tranp.cache.memo2 import Memoize
 from rogw.tranp.lang.annotation import deprecated, injectable
 from rogw.tranp.lang.sequence import flatten
 from rogw.tranp.lang.string import snakelize

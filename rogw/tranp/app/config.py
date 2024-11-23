@@ -9,13 +9,15 @@ def default_definitions() -> ModuleDefinitions:
 		ModuleDefinition: モジュール定義
 	"""
 	return {
-		'rogw.tranp.app.env.Env': 'rogw.tranp.providers.app.make_example_env',
+		'rogw.tranp.app.env.DataEnvPath': 'rogw.tranp.providers.app.data_env_path',
+		'rogw.tranp.app.env.SourceEnvPath': 'rogw.tranp.providers.app.source_env_path',
+		'rogw.tranp.cache.cache.CacheProvider': 'rogw.tranp.cache.cache.CacheProvider',
+		'rogw.tranp.cache.cache.CacheSetting': 'rogw.tranp.providers.cache.cache_setting',
 		'rogw.tranp.data.meta.types.ModuleMetaFactory': 'rogw.tranp.providers.module.module_meta_factory',
+		'rogw.tranp.file.loader.IDataLoader': 'rogw.tranp.providers.app.data_loader',
+		'rogw.tranp.file.loader.ISourceLoader': 'rogw.tranp.providers.app.source_loader',
 		'rogw.tranp.i18n.i18n.I18n': 'rogw.tranp.i18n.i18n.I18n',
 		'rogw.tranp.i18n.i18n.TranslationMapping': 'rogw.tranp.i18n.i18n.translation_mapping_empty',
-		'rogw.tranp.io.cache.CacheProvider': 'rogw.tranp.io.cache.CacheProvider',
-		'rogw.tranp.io.cache.CacheSetting': 'rogw.tranp.providers.io.cache_setting',
-		'rogw.tranp.io.loader.IFileLoader': 'rogw.tranp.app.io.FileLoader',
 		'rogw.tranp.lang.trait.Traits': 'rogw.tranp.lang.trait.Traits',
 		'rogw.tranp.lang.trait.TraitProvider': 'rogw.tranp.providers.semantics.trait_provider',
 		'rogw.tranp.module.loader.IModuleLoader': 'rogw.tranp.providers.module.ModuleLoader',
@@ -34,7 +36,7 @@ def default_definitions() -> ModuleDefinitions:
 		'rogw.tranp.syntax.ast.entrypoints.Entrypoints': 'rogw.tranp.syntax.ast.entrypoints.Entrypoints',
 		'rogw.tranp.syntax.ast.resolver.SymbolMapping': 'rogw.tranp.providers.syntax.resolver.symbol_mapping',
 		'rogw.tranp.syntax.ast.parser.ParserSetting': 'rogw.tranp.providers.syntax.ast.parser_setting',
-		'rogw.tranp.syntax.ast.parser.SourceCodeProvider': 'rogw.tranp.providers.syntax.ast.source_code_provider',
+		'rogw.tranp.syntax.ast.parser.SourceProvider': 'rogw.tranp.providers.syntax.ast.source_provider',
 		'rogw.tranp.syntax.ast.parser.SyntaxParser': 'rogw.tranp.implements.syntax.lark.parser.SyntaxParserOfLark',
 	}
 

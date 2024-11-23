@@ -1,4 +1,4 @@
-from rogw.tranp.io.memo2 import Memoize
+from rogw.tranp.cache.memo2 import Memoize
 from rogw.tranp.lang.annotation import implements, injectable
 from rogw.tranp.syntax.ast.cache import EntryCache
 from rogw.tranp.syntax.ast.entry import Entry, SourceMap

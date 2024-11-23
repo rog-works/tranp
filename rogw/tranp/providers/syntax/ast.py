@@ -1,9 +1,9 @@
-from rogw.tranp.io.loader import IFileLoader
+from rogw.tranp.file.loader import ISourceLoader
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.lang.module import module_path_to_filepath
 from rogw.tranp.module.types import ModulePath
 from rogw.tranp.syntax.ast.entry import Entry
-from rogw.tranp.syntax.ast.parser import ParserSetting, SourceCodeProvider, SyntaxParser
+from rogw.tranp.syntax.ast.parser import ParserSetting, SourceProvider, SyntaxParser
 
 
 def parser_setting() -> ParserSetting:
@@ -16,15 +16,15 @@ def parser_setting() -> ParserSetting:
 
 
 @injectable
-def source_code_provider(files: IFileLoader) -> SourceCodeProvider:
+def source_provider(sources: ISourceLoader) -> SourceProvider:
 	"""ソースコードプロバイダーを生成
 
 	Args:
-		files (IFileLoader): ファイルローダー @inject
+		sources (ISourceLoader): ソースコードローダー @inject
 	Returns:
 		SourceCodeProvider: ソースコードプロバイダー
 	"""
-	return lambda module_path: files.load(module_path_to_filepath(module_path, '.py'))
+	return lambda module_path: sources.load(module_path_to_filepath(module_path, '.py'))
 
 
 @injectable

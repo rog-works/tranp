@@ -1,4 +1,4 @@
-from rogw.tranp.io.cache import CacheProvider
+from rogw.tranp.cache.cache import CacheProvider
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.lang.convertion import as_a
 from rogw.tranp.lang.di import LazyDI

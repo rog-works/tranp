@@ -9,7 +9,7 @@ from rogw.tranp.i18n.i18n import I18n, TranslationMapping
 from rogw.tranp.implements.cpp.providers.i18n import example_translation_mapping_cpp
 from rogw.tranp.implements.cpp.providers.semantics import cpp_plugin_provider
 from rogw.tranp.implements.cpp.transpiler.py2cpp import Py2Cpp
-from rogw.tranp.io.loader import IFileLoader
+from rogw.tranp.file.loader import IDataLoader
 from rogw.tranp.lang.module import to_fullyname
 from rogw.tranp.lang.profile import profiler
 from rogw.tranp.providers.view import cpp_renderer_helper_provider
@@ -27,13 +27,13 @@ from tests.unit.rogw.tranp.implements.cpp.transpiler.fixtures.test_py2cpp_expect
 profiler_on = '--' in sys.argv
 
 
-def fixture_translation_mapping(files: IFileLoader) -> TranslationMapping:
+def fixture_translation_mapping(datums: IDataLoader) -> TranslationMapping:
 	fixture_module_path = Fixture.fixture_module_path(__file__)
 	fixture_translations = {
 		alias_dsn(ModuleDSN.full_joined(fixture_module_path, 'Alias.inner')): 'inner_b',
 		alias_dsn(ModuleDSN.full_joined(fixture_module_path, 'Alias.Inner.V')): 'V2',
 	}
-	return example_translation_mapping_cpp(files).merge(fixture_translations)
+	return example_translation_mapping_cpp(datums).merge(fixture_translations)
 
 
 def make_renderer_setting(i18n: I18n) -> RendererSetting:

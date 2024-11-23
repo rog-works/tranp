@@ -1,22 +1,20 @@
 import hashlib
 import os
 
-from rogw.tranp.app.env import Env
-from rogw.tranp.io.loader import IFileLoader
-from rogw.tranp.lang.annotation import implements, injectable
+from rogw.tranp.file.loader import IFileLoader
+from rogw.tranp.lang.annotation import implements
 
 
 class FileLoader(IFileLoader):
 	"""ファイルローダー"""
 
-	@injectable
-	def __init__(self, env: Env) -> None:
+	def __init__(self, env_paths: list[str]) -> None:
 		"""インスタンスを生成
 
 		Args:
-			env (Env): 環境変数 @inject
+			env_paths (SourceEnvPath): 環境パスリスト @inject
 		"""
-		self.__env = env
+		self.__env_paths = env_paths
 		self.__hashs: dict[str, str] = {}
 		self.__mtimes: dict[str, float] = {}
 
@@ -105,7 +103,7 @@ class FileLoader(IFileLoader):
 		if os.path.isabs(filepath):
 			return filepath if os.path.isfile(filepath) else None
 
-		for path in self.__env.paths:
+		for path in self.__env_paths:
 			abs_filepath = os.path.abspath(os.path.join(path, filepath))
 			if os.path.isfile(abs_filepath):
 				return abs_filepath

@@ -1,5 +1,6 @@
 from rogw.tranp.app.app import App
 from rogw.tranp.app.dir import tranp_dir
+from rogw.tranp.app.env import SourceEnvPath
 from rogw.tranp.lang.annotation import duck_typed
 from rogw.tranp.lang.di import ModuleDefinitions
 from rogw.tranp.lang.locator import Invoker, T_Inst
@@ -8,9 +9,9 @@ from rogw.tranp.module.module import Module
 from rogw.tranp.module.modules import Modules
 from rogw.tranp.module.types import ModulePath, ModulePaths
 from rogw.tranp.providers.module import module_path_dummy
-from rogw.tranp.providers.syntax.ast import source_code_provider
+from rogw.tranp.providers.syntax.ast import source_provider
 from rogw.tranp.syntax.ast.entrypoints import Entrypoints
-from rogw.tranp.syntax.ast.parser import SourceCodeProvider
+from rogw.tranp.syntax.ast.parser import SourceProvider
 from rogw.tranp.syntax.node.node import Node
 
 
@@ -67,7 +68,8 @@ class Fixture:
 		"""
 		return {
 			to_fullyname(ModulePaths): lambda: [ModulePath(self.__fixture_module_path, language='py')],
-			to_fullyname(SourceCodeProvider): lambda: self.__source_code_provider,
+			to_fullyname(SourceEnvPath): self.__source_env_path,
+			to_fullyname(SourceProvider): lambda: self.__source_code_provider,
 		}
 
 	def get(self, symbol: type[T_Inst]) -> T_Inst:
@@ -124,7 +126,15 @@ class Fixture:
 		modules.unload(module_path.path)
 		return modules.load(module_path.path)
 
-	@duck_typed(SourceCodeProvider)
+	def __source_env_path(self) -> SourceEnvPath:
+		"""環境パスリスト(ソースコード用)を生成
+
+		Returns:
+			SourceEnvPath: 環境パスリスト(ソースコード用)
+		"""
+		return SourceEnvPath.instantiate([tranp_dir()])
+
+	@duck_typed(SourceProvider)
 	def __source_code_provider(self, module_path: str) -> str:
 		"""モジュールパスを基にソースコードを生成
 
@@ -136,4 +146,4 @@ class Fixture:
 		if module_path == module_path_dummy().path:
 			return self.__custom_source_code
 		else:
-			return self.get(Invoker)(source_code_provider)(module_path)
+			return self.get(Invoker)(source_provider)(module_path)

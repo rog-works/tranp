@@ -8,18 +8,18 @@ from typing import Any, TypedDict, cast
 from rogw.tranp.app.app import App
 from rogw.tranp.app.dir import tranp_dir
 from rogw.tranp.bin.io import readline
-from rogw.tranp.io.loader import IFileLoader
+from rogw.tranp.file.loader import ISourceLoader
 from rogw.tranp.lang.annotation import duck_typed, injectable
 from rogw.tranp.lang.locator import Invoker, Locator
 from rogw.tranp.lang.module import filepath_to_module_path, to_fullyname
 from rogw.tranp.module.modules import Modules
 from rogw.tranp.module.types import ModulePath, ModulePaths
 from rogw.tranp.providers.module import module_path_dummy
-from rogw.tranp.providers.syntax.ast import source_code_provider
+from rogw.tranp.providers.syntax.ast import source_provider
 from rogw.tranp.semantics.reflection.base import IReflection
 from rogw.tranp.semantics.reflection.db import SymbolDB
 from rogw.tranp.semantics.reflections import Reflections
-from rogw.tranp.syntax.ast.parser import ParserSetting, SourceCodeProvider
+from rogw.tranp.syntax.ast.parser import ParserSetting, SourceProvider
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 
@@ -65,7 +65,7 @@ class Args:
 		return args
 
 
-class Codes:
+class WrapSourceProvider:
 	"""偽装ソースコードプロバイダー"""
 
 	@injectable
@@ -75,10 +75,10 @@ class Codes:
 		Args:
 			invoker (Invoker): ファクトリー関数 @inject
 		"""
-		self._org_codes = invoker(source_code_provider)
+		self._org_source_provider = invoker(source_provider)
 		self.source_code: str = ''
 
-	@duck_typed(SourceCodeProvider)
+	@duck_typed(SourceProvider)
 	def __call__(self, module_path: str) -> str:
 		"""モジュールパスを基にソースコードを生成
 
@@ -90,7 +90,7 @@ class Codes:
 		if module_path == module_path_dummy().path:
 			return f'{self.source_code}\n'
 		else:
-			return self._org_codes(module_path)
+			return self._org_source_provider(module_path)
 
 
 class AnalyzeApp(App):
@@ -110,16 +110,16 @@ class AnalyzeApp(App):
 
 	@classmethod
 	@injectable
-	def make_module_paths(cls, args: Args, files: IFileLoader) -> ModulePaths:
+	def make_module_paths(cls, args: Args, sources: ISourceLoader) -> ModulePaths:
 		"""処理対象のモジュールパスリストを生成
 
 		Args:
 			args (Args): コマンドライン引数 @inject
-			files (IFileLoader): ファイルローダー @inject
+			sources (ISourceLoader): ソースコードローダー @inject
 		Returns:
 			ModulePaths: 処理対象のモジュールパスリスト
 		"""
-		if not files.exists(args.input):
+		if not sources.exists(args.input):
 			return ModulePaths([])
 
 		basepath, extention = os.path.splitext(args.input)
@@ -247,8 +247,8 @@ class AnalyzeApp(App):
 		def make_result(source_code: str) -> str:
 			locator = self.resolve(Locator)
 			module_path = module_path_dummy()
-			codes = cast(Codes, locator.resolve(SourceCodeProvider))
-			codes.source_code = source_code
+			provider = cast(WrapSourceProvider, locator.resolve(SourceProvider))
+			provider.source_code = source_code
 			modules = locator.resolve(Modules)
 			modules.unload(module_path.path)
 			return modules.load(module_path.path).entrypoint.pretty()
@@ -508,6 +508,6 @@ if __name__ == '__main__':
 		to_fullyname(Args): Args,
 		to_fullyname(ModulePaths): AnalyzeApp.make_module_paths,
 		to_fullyname(ParserSetting): AnalyzeApp.make_parser_setting,
-		to_fullyname(SourceCodeProvider): Codes,
+		to_fullyname(SourceProvider): WrapSourceProvider,
 	})
 	app.run(app.main)

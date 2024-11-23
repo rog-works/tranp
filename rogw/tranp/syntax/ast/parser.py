@@ -33,7 +33,7 @@ class SyntaxParser(Protocol):
 		...
 
 
-class SourceCodeProvider(Protocol):
+class SourceProvider(Protocol):
 	"""ソースコードプロバイダープロトコル"""
 
 	def __call__(self, module_path: str) -> str:

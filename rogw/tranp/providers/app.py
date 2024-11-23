@@ -1,7 +1,8 @@
-import os
-
-from rogw.tranp.app.dir import tranp_dir
-from rogw.tranp.app.env import Env
+from typing import cast
+from rogw.tranp.app.env import DataEnvPath, SourceEnvPath
+from rogw.tranp.app.loader import FileLoader
+from rogw.tranp.file.loader import IDataLoader, IFileLoader, ISourceLoader
+from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.lang.di import DI, LazyDI, ModuleDefinitions
 from rogw.tranp.lang.locator import Invoker, Locator
 
@@ -20,16 +21,43 @@ def di_container(definitions: ModuleDefinitions) -> DI:
 	return di
 
 
-def make_example_env() -> Env:
-	"""環境変数を生成(example用)
+def data_env_path() -> DataEnvPath:
+	"""環境パス(データ用)を生成
 
 	Returns:
-		Env: 環境変数
+		DataEnvPath: 環境パス(データ用)
 	"""
-	paths = [
-		tranp_dir(),
-		os.path.join(tranp_dir(), 'example')
-	]
-	return Env({
-		'PYTHONPATH': {path: path for path in paths},
-	})
+	return DataEnvPath.instantiate()
+
+
+def source_env_path() -> SourceEnvPath:
+	"""環境パス(ソースコード用)を生成
+
+	Returns:
+		SourceEnvPath: 環境パス(ソースコード用)
+	"""
+	return SourceEnvPath.instantiate([])
+
+
+@injectable
+def data_loader(env_paths: DataEnvPath) -> IFileLoader:
+	"""ファイルローダー(データ用)を生成
+
+	Args:
+		env_paths (DataEnvPath): 環境パスリスト @inject
+	Returns:
+		IFileLoader: ファイルローダー
+	"""
+	return FileLoader(env_paths)
+
+
+@injectable
+def source_loader(env_paths: SourceEnvPath) -> IFileLoader:
+	"""ファイルローダー(ソースコード用)を生成
+
+	Args:
+		env_paths (SourceEnvPath): 環境パスリスト @inject
+	Returns:
+		IFileLoader: ファイルローダー
+	"""
+	return FileLoader(env_paths)

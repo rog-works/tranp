@@ -1,4 +1,4 @@
-from rogw.tranp.io.cache import CacheSetting
+from rogw.tranp.cache.cache import CacheSetting
 
 
 def cache_setting() -> CacheSetting:

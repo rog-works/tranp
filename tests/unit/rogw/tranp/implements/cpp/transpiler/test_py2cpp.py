@@ -6,13 +6,13 @@ from rogw.tranp.app.dir import tranp_dir
 from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.dsn.translation import alias_dsn
 from rogw.tranp.i18n.i18n import I18n, TranslationMapping
-from rogw.tranp.implements.cpp.providers.i18n import example_translation_mapping_cpp
-from rogw.tranp.implements.cpp.providers.semantics import cpp_plugin_provider
+from rogw.tranp.implements.cpp.providers.i18n import translation_mapping_cpp_example
+from rogw.tranp.implements.cpp.providers.view import renderer_helper_provider_cpp
+from rogw.tranp.implements.cpp.providers.semantics import plugin_provider_cpp
 from rogw.tranp.implements.cpp.transpiler.py2cpp import Py2Cpp
 from rogw.tranp.file.loader import IDataLoader
 from rogw.tranp.lang.module import to_fullyname
 from rogw.tranp.lang.profile import profiler
-from rogw.tranp.providers.view import cpp_renderer_helper_provider
 from rogw.tranp.semantics.reflections import Reflections
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
@@ -33,7 +33,7 @@ def fixture_translation_mapping(datums: IDataLoader) -> TranslationMapping:
 		alias_dsn(ModuleDSN.full_joined(fixture_module_path, 'Alias.inner')): 'inner_b',
 		alias_dsn(ModuleDSN.full_joined(fixture_module_path, 'Alias.Inner.V')): 'V2',
 	}
-	return example_translation_mapping_cpp(datums).merge(fixture_translations)
+	return translation_mapping_cpp_example(datums).merge(fixture_translations)
 
 
 def make_renderer_setting(i18n: I18n) -> RendererSetting:
@@ -46,10 +46,10 @@ class TestPy2Cpp(TestCase):
 	fixture_module_path = Fixture.fixture_module_path(__file__)
 	fixture = Fixture.make(__file__, {
 		to_fullyname(Py2Cpp): Py2Cpp,
-		to_fullyname(PluginProvider): cpp_plugin_provider,
+		to_fullyname(PluginProvider): plugin_provider_cpp,
 		to_fullyname(Renderer): Renderer,
+		to_fullyname(RendererHelperProvider): renderer_helper_provider_cpp,
 		to_fullyname(RendererSetting): make_renderer_setting,
-		to_fullyname(RendererHelperProvider): cpp_renderer_helper_provider,
 		to_fullyname(TranslationMapping): fixture_translation_mapping,
 		to_fullyname(TranspilerOptions): lambda: TranspilerOptions(verbose=False, env={}),
 	})

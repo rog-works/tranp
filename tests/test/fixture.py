@@ -68,7 +68,6 @@ class Fixture:
 		"""
 		return {
 			to_fullyname(ModulePaths): lambda: [ModulePath(self.__fixture_module_path, language='py')],
-			to_fullyname(SourceEnvPath): self.__source_env_path,
 			to_fullyname(SourceProvider): lambda: self.__source_code_provider,
 		}
 
@@ -125,14 +124,6 @@ class Fixture:
 		modules = self.get(Modules)
 		modules.unload(module_path.path)
 		return modules.load(module_path.path)
-
-	def __source_env_path(self) -> SourceEnvPath:
-		"""環境パスリスト(ソースコード用)を生成
-
-		Returns:
-			SourceEnvPath: 環境パスリスト(ソースコード用)
-		"""
-		return SourceEnvPath.instantiate([tranp_dir()])
 
 	@duck_typed(SourceProvider)
 	def __source_code_provider(self, module_path: str) -> str:

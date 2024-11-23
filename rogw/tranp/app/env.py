@@ -28,5 +28,8 @@ class SourceEnvPath(list[str]):
 		Returns:
 			SourceEnvPath: インスタンス
 		"""
-		library_dirs = [os.path.join(tranp_dir(), 'rogw/tranp/compatible/libralies')]
-		return cls([*library_dirs, *input_dirs])
+		default_dirs = [
+			tranp_dir(),
+			os.path.join(tranp_dir(), 'rogw/tranp/compatible/libralies'),
+		]
+		return cls([*default_dirs, *input_dirs])

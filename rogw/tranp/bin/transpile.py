@@ -5,7 +5,6 @@ from typing import Any, TypedDict, cast
 import yaml
 
 from rogw.tranp.app.app import App
-from rogw.tranp.app.env import SourceEnvPath
 from rogw.tranp.data.meta.header import MetaHeader
 from rogw.tranp.data.meta.types import ModuleMetaFactory
 from rogw.tranp.file.loader import IDataLoader, ISourceLoader
@@ -42,8 +41,7 @@ ConfigDict = TypedDict('ConfigDict', {
 	'grammar': str,
 	'template_dirs': list[str],
 	'trans_mapping': str,
-	'input_dirs': list[str],
-	'input_glob': str,
+	'input_globs': list[str],
 	'exclude_patterns': list[str],
 	'output_dir': str,
 	'output_language': str,
@@ -65,8 +63,7 @@ class Config:
 		self.grammar = config['grammar']
 		self.template_dirs = config['template_dirs']
 		self.trans_mapping = config['trans_mapping']
-		self.input_dirs = config['input_dirs']
-		self.input_glob = config['input_glob']
+		self.input_globs = config['input_globs']
 		self.exclude_patterns = config['exclude_patterns']
 		self.output_dir = config['output_dir']
 		self.output_language = config['output_language']
@@ -117,18 +114,6 @@ class Config:
 
 class TranspileApp:
 	"""トランスパイルアプリケーション"""
-
-	@classmethod
-	@injectable
-	def make_source_env_path(cls, config: Config) -> SourceEnvPath:
-		"""環境パス(ソースコード用)を生成
-
-		Args:
-			config (Config): コンフィグ @inject
-		Returns:
-			SourceEnvPath: 環境パス(ソースコード用)
-		"""
-		return SourceEnvPath(config.input_dirs)
 
 	@classmethod
 	@injectable
@@ -192,8 +177,8 @@ class TranspileApp:
 			ModulePaths: モジュールパスリスト
 		"""
 		module_paths = ModulePaths()
-		for input_dir in config.input_dirs:
-			module_paths.extend(include_module_paths(os.path.join(input_dir, config.input_glob), config.exclude_patterns))
+		for input_glob in config.input_globs:
+			module_paths.extend(include_module_paths(input_glob, config.exclude_patterns))
 
 		return module_paths
 

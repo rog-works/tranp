@@ -95,7 +95,7 @@ class SyntaxParserOfLark:
 				raise SyntaxError(f'file: {source_path}') from e
 
 		identity = {
-			'grammar_mtime': str(self.__sources.mtime(self.__setting.grammar)),
+			'grammar_mtime': str(self.__datums.mtime(self.__setting.grammar)),
 			'mtime': str(self.__sources.mtime(source_path)),
 		}
 		decorator = self.__caches.get(basepath, identity=identity, format='json')

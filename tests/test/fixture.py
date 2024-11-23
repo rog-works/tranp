@@ -1,6 +1,5 @@
 from rogw.tranp.app.app import App
 from rogw.tranp.app.dir import tranp_dir
-from rogw.tranp.app.env import SourceEnvPath
 from rogw.tranp.lang.annotation import duck_typed
 from rogw.tranp.lang.di import ModuleDefinitions
 from rogw.tranp.lang.locator import Invoker, T_Inst

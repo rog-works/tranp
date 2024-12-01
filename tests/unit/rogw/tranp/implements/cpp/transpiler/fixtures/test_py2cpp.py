@@ -730,6 +730,11 @@ class ForBinaryOperator:
 	def decimal_mod(self) -> None:
 		print((1.0 % 1) % (1 % 1.0))
 
+	def comparison(self, v1: int, v2: str, c1: Base, c2: Sub, t1: type[int], t2: type[str]) -> None:
+		v_eq = (v1 is v2) and (v1 is not v2) and not v1
+		c_eq = (c1 is c2) and (c1 is not c2) and not c1
+		t_eq = (t1 is t2) and (t1 is not t2) and not t1
+
 
 TArgs = TypeVarTuple('TArgs')
 

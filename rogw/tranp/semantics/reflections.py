@@ -1,7 +1,6 @@
 from collections.abc import Callable
 
-import rogw.tranp.compatible.libralies.classes as classes
-from rogw.tranp.compatible.python.types import Standards
+from rogw.tranp.compatible.python.types import Standards, Union, Unknown
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.lang.error import Transaction
 from rogw.tranp.semantics.errors import OperationNotAllowedError, SemanticsLogicError, UnresolvedSymbolError
@@ -351,7 +350,7 @@ class ProceduralResolver:
 			# 対象
 			* Terminal(Operator)
 		"""
-		return self.reflections.from_standard(classes.Unknown).stack(node)
+		return self.reflections.from_standard(Unknown).stack(node)
 
 	# Function/Class Elements
 
@@ -386,14 +385,14 @@ class ProceduralResolver:
 
 	def on_argument_label(self, node: defs.ArgumentLabel) -> IReflection:
 		"""Note: labelに型はないのでUnknownを返却"""
-		return self.reflections.from_standard(classes.Unknown).stack(node)
+		return self.reflections.from_standard(Unknown).stack(node)
 
 	def on_decl_class_var(self, node: defs.DeclClassVar) -> IReflection:
 		return self.reflections.resolve(node).stack(node)
 
 	def on_decl_this_var_forward(self, node: defs.DeclThisVarForward) -> IReflection:
 		"""Note: XXX 型を評価する必要がないのでUnknownを返却"""
-		return self.reflections.from_standard(classes.Unknown).stack(node)
+		return self.reflections.from_standard(Unknown).stack(node)
 
 	def on_decl_this_var(self, node: defs.DeclThisVar) -> IReflection:
 		return self.reflections.resolve(node).stack(node)
@@ -480,7 +479,7 @@ class ProceduralResolver:
 				return actual_receiver.to(node, actual_receiver.attrs[index])
 			else:
 				# インデックスが不明の場合は共用型とする
-				return actual_receiver.to(node, self.reflections.from_standard(classes.Union)).extends(*actual_receiver.attrs)
+				return actual_receiver.to(node, self.reflections.from_standard(Union)).extends(*actual_receiver.attrs)
 		else:
 			# XXX コレクション型以外は全て通常のクラスである想定
 			# XXX keyに何が入るべきか特定できないためreceiverをそのまま返却
@@ -515,7 +514,7 @@ class ProceduralResolver:
 		return type_name.stack(node).extends(*template_types)
 
 	def on_union_type(self, node: defs.UnionType, or_types: list[IReflection]) -> IReflection:
-		return self.reflections.from_standard(classes.Union).stack(node).extends(*or_types)
+		return self.reflections.from_standard(Union).stack(node).extends(*or_types)
 
 	def on_null_type(self, node: defs.NullType) -> IReflection:
 		return self.reflections.from_standard(None).stack(node)
@@ -626,7 +625,7 @@ class ProceduralResolver:
 
 		var_type = secondary if primary_is_null else primary
 		null_type = primary if primary_is_null else secondary
-		return primary.to(node, self.reflections.from_standard(classes.Union)).extends(var_type, null_type)
+		return primary.to(node, self.reflections.from_standard(Union)).extends(var_type, null_type)
 
 	# Literal
 
@@ -652,7 +651,7 @@ class ProceduralResolver:
 		return self.reflections.from_standard(tuple).stack(node).extends(first, second)
 
 	def on_list(self, node: defs.List, values: list[IReflection]) -> IReflection:
-		unknown_type = self.reflections.from_standard(classes.Unknown)
+		unknown_type = self.reflections.from_standard(Unknown)
 		known_types = []
 		for index, value in enumerate(values):
 			value_type = value if not node.values[index].is_a(defs.Expander) else value.attrs[0]
@@ -664,10 +663,10 @@ class ProceduralResolver:
 
 	def on_dict(self, node: defs.Dict, items: list[IReflection]) -> IReflection:
 		if len(items) == 0:
-			unknown_type = self.reflections.from_standard(classes.Unknown)
+			unknown_type = self.reflections.from_standard(Unknown)
 			return self.reflections.from_standard(dict).stack(node).extends(unknown_type, unknown_type)
 		else:
-			unknown_type = self.reflections.from_standard(classes.Unknown)
+			unknown_type = self.reflections.from_standard(Unknown)
 			known_items = [item for item in items if item.attrs[1].types != unknown_type.types]
 			item = known_items[0] if len(known_items) > 0 else items[0]
 			key_type, value_type = item.attrs

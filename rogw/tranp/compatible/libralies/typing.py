@@ -15,12 +15,6 @@ T = TypeVar('T')
 Self = TypeVar('Self')
 
 
-# FIXME castの定義のため必要。classes側の定義は消さないこと
-# FIXME __actual__の未定義エラーは解決方法がないため一旦無視
-@__actual__('type')
-class Type(Generic[T]): ...
-
-
 class ParamSpec:
 	# XXX ParamSpecArgs/ParamSpecKwargsへの変更を検討
 	class args: ...

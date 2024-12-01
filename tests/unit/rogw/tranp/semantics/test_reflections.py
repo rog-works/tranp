@@ -1,8 +1,7 @@
 from typing import override
 from unittest import TestCase
 
-import rogw.tranp.compatible.libralies.classes as classes
-from rogw.tranp.compatible.python.types import Standards
+from rogw.tranp.compatible.python.types import Standards, Union, Unknown
 from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.semantics.reflection.helper.naming import ClassShorthandNaming
 from rogw.tranp.semantics.reflections import Reflections
@@ -13,6 +12,7 @@ from tests.test.fixture import Fixture
 def _mod(before: str, after: str) -> str:
 	aliases = {
 		'classes': 'rogw.tranp.compatible.libralies.classes',
+		'type': 'rogw.tranp.compatible.libralies.type',
 		'typing': 'typing',
 		'xyz': 'tests.unit.rogw.tranp.semantics.reflection.fixtures.test_db_xyz',
 		'__main__': 'tests.unit.rogw.tranp.semantics.fixtures.test_reflections',
@@ -55,9 +55,9 @@ class TestReflections(TestCase):
 		(tuple, _mod('classes', tuple.__name__)),
 		(list, _mod('classes', list.__name__)),
 		(dict, _mod('classes', dict.__name__)),
-		(type, _mod('classes', type.__name__)),
-		(classes.Unknown, _mod('classes', classes.Unknown.__name__)),
-		(classes.Union, _mod('classes', 'Union')),
+		(type, _mod('type', type.__name__)),
+		(Unknown, _mod('classes', Unknown.__name__)),
+		(Union, _mod('typing', Union.__name__)),
 		(None, _mod('classes', 'None')),
 	])
 	def test_from_standard(self, standard_type: type[Standards] | None, expected: str) -> None:
@@ -75,24 +75,24 @@ class TestReflections(TestCase):
 		self.assertEqual(ClassShorthandNaming.domain_name_for_debug(symbol), expected)
 
 	@data_provider([
-		('Base', '', _mod('classes', 'type'), 'type<Base>'),
-		('Base', 'class_def_raw.name', _mod('classes', 'type'), 'type<Base>'),
+		('Base', '', _mod('type', 'type'), 'type<Base>'),
+		('Base', 'class_def_raw.name', _mod('type', 'type'), 'type<Base>'),
 
 		('Base.__init__', 'function_def_raw.block.anno_assign.assign_namelist.getattr', _mod('classes', 'str'), 'str'),
 		('Base.__init__', 'function_def_raw.block.anno_assign.typed_var', _mod('classes', 'str'), 'str'),
 		('Base.__init__', 'function_def_raw.block.anno_assign.var', _mod('classes', 'str'), 'str'),
 		('Base.__init__', 'function_def_raw.block.comment_stmt', _mod('classes', 'Unknown'), 'Unknown'),
 
-		('Sub', '', _mod('classes', 'type'), 'type<Sub>'),
-		('Sub', 'class_def_raw.name', _mod('classes', 'type'), 'type<Sub>'),
+		('Sub', '', _mod('type', 'type'), 'type<Sub>'),
+		('Sub', 'class_def_raw.name', _mod('type', 'type'), 'type<Sub>'),
 		('Sub', 'class_def_raw.inherit_arguments.typed_argvalue.typed_var', _mod('__main__', 'Base'), 'Base'),
 
-		('Sub.Inner', '', _mod('classes', 'type'), 'type<Inner>'),
+		('Sub.Inner', '', _mod('type', 'type'), 'type<Inner>'),
 		('Sub.Inner', 'class_def_raw.block.class_var_assign.assign_namelist.var', _mod('classes', 'str'), 'str'),
 		('Sub.Inner', 'class_def_raw.block.class_var_assign.typed_var', _mod('classes', 'str'), 'str'),
 		('Sub.Inner', 'class_def_raw.block.class_var_assign.string', _mod('classes', 'str'), 'str'),
 
-		('Sub.Inner.class_func', 'function_def_raw.block.return_stmt.dict.key_value.getattr.var', _mod('classes', 'type'), 'type<Inner>'),
+		('Sub.Inner.class_func', 'function_def_raw.block.return_stmt.dict.key_value.getattr.var', _mod('type', 'type'), 'type<Inner>'),
 		('Sub.Inner.class_func', 'function_def_raw.block.return_stmt.dict', _mod('classes', 'dict'), 'dict<str, int>'),
 
 		('Sub.__init__', 'function_def_raw.block.funccall', _mod('__main__', 'Base'), 'Base'),
@@ -155,7 +155,7 @@ class TestReflections(TestCase):
 		('Nullable.var_move', 'function_def_raw.block.if_stmt.if_clause.block.return_stmt', _mod('classes', 'str'), 'str'),
 
 		('GenericOps.new', 'function_def_raw.block.assign.funccall', _mod('__main__', 'GenericOps'), 'GenericOps<int>'),
-		('GenericOps.cast', 'function_def_raw.block.assign.funccall.arguments.argvalue[0]', _mod('classes', 'type'), 'type<GenericOps<Base>>'),
+		('GenericOps.cast', 'function_def_raw.block.assign.funccall.arguments.argvalue[0]', _mod('type', 'type'), 'type<GenericOps<Base>>'),
 
 		('WithOps.file_load', 'function_def_raw.block.with_stmt.with_items.with_item', _mod('typing', 'IO'), 'IO'),
 		('WithOps.file_load', 'function_def_raw.block.with_stmt.block.assign', _mod('classes', 'dict'), 'dict<str, Any>'),

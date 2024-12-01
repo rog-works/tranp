@@ -28,7 +28,10 @@ def library_paths() -> ModulePaths:
 	Returns:
 		ModulePaths: モジュールパスリスト
 	"""
-	return ModulePaths([ModulePath('rogw.tranp.compatible.libralies.classes', language='py')])
+	return ModulePaths([
+		ModulePath('rogw.tranp.compatible.libralies.type', language='py'),
+		ModulePath('rogw.tranp.compatible.libralies.classes', language='py'),
+	])
 
 
 def module_paths() -> ModulePaths:

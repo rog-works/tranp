@@ -1,5 +1,6 @@
 from collections.abc import Callable, Iterator, Sequence
-from typing import IO, Any, Generic
+# XXX Unionは未使用だが、Standardsに含まれるためclasses内での名前解決が必須要件
+from typing import IO, Any, Union
 
 from rogw.tranp.compatible.python.template import T, T_Key, T_Value
 
@@ -23,7 +24,6 @@ def __actual__(name: str) -> Callable:
 
 # Type
 
-class Union: ...
 class Unknown: ...
 
 # Primitive
@@ -177,10 +177,7 @@ class Tuple:
 
 
 @__actual__('None')
-class Null:
-	# comparison
-	def __eq__(self, other: Any) -> bool: ...
-	def __not__(self, other: Any) -> bool: ...
+class Null: ...
 
 # Class
 
@@ -205,12 +202,11 @@ class Object:
 	def __getattribute__(self, name: str) -> Any: ...
 	def __setattr__(self, name: str, value: Any) -> None: ...
 
-
-@__actual__('type')
-class Type(Generic[T]):
 	# comparison
-	def __eq__(self, other: type[Any]) -> bool: ...
-	def __not__(self, other: type[Any]) -> bool: ...
+	# XXX Pythonでは比較できるが、その他の言語で同じように比較できるとは限らず、過剰実装の懸念在り。要検討
+	def __eq__(self, other: Any) -> bool: ...
+	def __ne__(self, other: Any) -> bool: ...
+	def __not__(self, other: Any) -> bool: ...
 
 
 @__actual__('property')

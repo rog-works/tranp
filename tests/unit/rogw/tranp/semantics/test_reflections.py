@@ -1,8 +1,7 @@
 from typing import override
 from unittest import TestCase
 
-from rogw.tranp.compatible.python.types import Union, Unknown
-from rogw.tranp.compatible.python.types import Standards
+from rogw.tranp.compatible.python.types import Standards, Union, Unknown
 from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.semantics.reflection.helper.naming import ClassShorthandNaming
 from rogw.tranp.semantics.reflections import Reflections
@@ -12,8 +11,8 @@ from tests.test.fixture import Fixture
 
 def _mod(before: str, after: str) -> str:
 	aliases = {
-		'type': 'rogw.tranp.compatible.libralies.type',
 		'classes': 'rogw.tranp.compatible.libralies.classes',
+		'type': 'rogw.tranp.compatible.libralies.type',
 		'typing': 'typing',
 		'xyz': 'tests.unit.rogw.tranp.semantics.reflection.fixtures.test_db_xyz',
 		'__main__': 'tests.unit.rogw.tranp.semantics.fixtures.test_reflections',

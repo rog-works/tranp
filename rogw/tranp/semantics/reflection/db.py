@@ -149,9 +149,10 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		if module_path in self.__completed:
 			self.__completed.remove(module_path)
 
-		for key in self.__items.keys():
-			if self.__paths[key][0] == module_path:
-				del self.__items[key]
+		in_module_keys = [key for key in self.__items.keys() if self.__paths[key][0] == module_path]
+		for key in in_module_keys:
+			del self.__paths[key]
+			del self.__items[key]
 
 	def to_json(self, serializer: IReflectionSerializer, for_module_path: str | None = None) -> dict[str, DictSerialized]:
 		"""JSONデータとして内部データをシリアライズ

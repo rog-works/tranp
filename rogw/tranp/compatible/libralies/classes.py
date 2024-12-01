@@ -1,4 +1,5 @@
 from collections.abc import Callable, Iterator, Sequence
+# XXX Unionは未使用だが、Standardsに含まれるためclasses内での名前解決が必須要件
 from typing import IO, Any, Union
 
 from rogw.tranp.compatible.python.template import T, T_Key, T_Value

@@ -1,5 +1,5 @@
 from collections.abc import Callable, Iterator, Sequence
-from typing import IO, Any, Generic
+from typing import IO, Any, Union
 
 from rogw.tranp.compatible.python.template import T, T_Key, T_Value
 
@@ -23,7 +23,6 @@ def __actual__(name: str) -> Callable:
 
 # Type
 
-class Union: ...
 class Unknown: ...
 
 # Primitive
@@ -204,13 +203,6 @@ class Object:
 	def mro(self) -> list[type[Any]]: ...
 	def __getattribute__(self, name: str) -> Any: ...
 	def __setattr__(self, name: str, value: Any) -> None: ...
-
-
-@__actual__('type')
-class Type(Generic[T]):
-	# comparison
-	def __eq__(self, other: type[Any]) -> bool: ...
-	def __not__(self, other: type[Any]) -> bool: ...
 
 
 @__actual__('property')

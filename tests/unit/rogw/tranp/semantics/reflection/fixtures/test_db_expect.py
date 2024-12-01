@@ -1,6 +1,5 @@
 def expected_symbols() -> dict[str, tuple[str, str]]:
 	return {
-		'rogw.tranp.compatible.libralies.type#Generic': ('rogw.tranp.compatible.libralies.type#Generic', 'Generic'),
 		'rogw.tranp.compatible.libralies.type#T': ('rogw.tranp.compatible.libralies.type#T', 'T'),
 		'rogw.tranp.compatible.libralies.type#type': ('rogw.tranp.compatible.libralies.type#type', 'type<T>'),
 		'typing#Any': ('typing#Any', 'Any'),

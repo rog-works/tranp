@@ -1,8 +1,7 @@
 from collections.abc import Iterator
 from typing import Literal, Self, cast, override
 
-import rogw.tranp.compatible.libralies.classes as classes
-from rogw.tranp.compatible.python.types import Standards
+from rogw.tranp.compatible.python.types import Standards, Union
 from rogw.tranp.lang.annotation import implements
 from rogw.tranp.lang.trait import Trait
 from rogw.tranp.semantics.errors import UnresolvedSymbolError
@@ -105,7 +104,7 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		Note:
 			Class | None -> Class
 		"""
-		if self.reflections.type_is(symbol.types, classes.Union) and len(symbol.attrs) == 2:
+		if self.reflections.type_is(symbol.types, Union) and len(symbol.attrs) == 2:
 			is_0_null = self.reflections.type_is(symbol.attrs[0].types, None)
 			is_1_null = self.reflections.type_is(symbol.attrs[1].types, None)
 			if is_0_null != is_1_null:
@@ -186,7 +185,7 @@ class OperationTrait(TraitImpl, IOperation):
 			return method.returns(value)
 
 		parameter = method.parameter_at(0, value)
-		parameter_types = parameter.attrs if parameter.impl(refs.Object).type_is(classes.Union) else [parameter]
+		parameter_types = parameter.attrs if parameter.impl(refs.Object).type_is(Union) else [parameter]
 		if value in parameter_types:
 			return method.returns(value)
 

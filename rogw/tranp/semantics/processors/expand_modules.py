@@ -1,7 +1,7 @@
 import json
 from typing import IO, NamedTuple
 
-import rogw.tranp.compatible.libralies.classes as classes
+from rogw.tranp.compatible.python.types import Unknown
 from rogw.tranp.cache.cache import Stored
 from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.lang.annotation import duck_typed, injectable
@@ -168,7 +168,7 @@ class ExpandModules:
 
 			raise SymbolNotDefinedError(f'fullyname: {var.fullyname}')
 		else:
-			return self.finder.by_standard(db, classes.Unknown)
+			return self.finder.by_standard(db, Unknown)
 
 	def fetch_decl_type(self, var: defs.DeclVars) -> defs.Type | defs.ClassDef | None:
 		"""変数の型(タイプ/クラス定義ノード)を取得。型が不明な場合はNoneを返却

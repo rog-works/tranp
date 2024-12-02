@@ -22,7 +22,7 @@ class Fixture:
 			return trans_mapping.get(key, key)
 
 		template_dirs = [os.path.join(tranp_dir(), 'data/cpp/template')]
-		env = {'immutable_param_types': ['std::string', 'std::vector', 'std::map']}
+		env = {'immutable_param_types': ['std::string', 'std::vector', 'std::map', 'std::function']}
 		setting = RendererSetting(template_dirs, translator, env)
 		provider = renderer_helper_provider_cpp(setting)
 		self.renderer = Renderer(setting, provider)

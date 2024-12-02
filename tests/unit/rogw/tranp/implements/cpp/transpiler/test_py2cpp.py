@@ -38,7 +38,7 @@ def fixture_translation_mapping(datums: IDataLoader) -> TranslationMapping:
 
 def make_renderer_setting(i18n: I18n) -> RendererSetting:
 	template_dirs = [os.path.join(tranp_dir(), 'data/cpp/template')]
-	env = {'immutable_param_types': ['std::string', 'std::vector', 'std::map']}
+	env = {'immutable_param_types': ['std::string', 'std::vector', 'std::map', 'std::function']}
 	return RendererSetting(template_dirs, i18n.t, env)
 
 
@@ -259,7 +259,7 @@ class TestPy2Cpp(TestCase):
 		('ForCompound.Modifier.to_protected', '', defs.Method, BlockExpects.method(access='protected', name='to_protected')),
 		('ForCompound.Modifier.to_private', '', defs.Method, BlockExpects.method(access='private', name='to_private')),
 		('ForCompound.Modifier.pure', '', defs.Method, BlockExpects.method(access='public', name='pure', pure=True)),
-		('ForCompound.Modifier.mod_mutable', '', defs.Method, BlockExpects.method(access='public', name='mod_mutable', params=['std::string s_m', 'const std::string& s_i', 'const std::vector<int>& ns_i', 'const std::map<std::string, int>& dsn_i'])),
+		('ForCompound.Modifier.mod_mutable', '', defs.Method, BlockExpects.method(access='public', name='mod_mutable', params=['std::string s_m', 'const std::string& s_i', 'const std::vector<int>& ns_i', 'const std::map<std::string, int>& dsn_i', 'const std::function<void()>& func_i'])),
 
 		('ForCompound.closure.bind_ref', '', defs.Closure, 'auto bind_ref = [&]() -> void {};'),
 		('ForCompound.closure.bind_copy', '', defs.Closure, 'auto bind_copy = [this]() mutable -> void {};'),
@@ -358,7 +358,7 @@ class TestPy2Cpp(TestCase):
 		('ForIndexer.string_slice', 'function_def_raw.block.getitem[0]', defs.Indexer, 's.substr(1, s.size() - (1));'),
 		('ForIndexer.string_slice', 'function_def_raw.block.getitem[1]', defs.Indexer, 's.substr(0, 5);'),
 
-		('ForFuncCall.CallableType', '', defs.Class, '/** CallableType */\nclass CallableType {\n\tpublic: std::function<bool(int, std::string)> func;\n\tpublic:\n\t/** __init__ */\n\tCallableType(std::function<bool(int, std::string)> func) : func(func) {}\n};'),
+		('ForFuncCall.CallableType', '', defs.Class, '/** CallableType */\nclass CallableType {\n\tpublic: std::function<bool(int, std::string)> func;\n\tpublic:\n\t/** __init__ */\n\tCallableType(const std::function<bool(int, std::string)>& func) : func(func) {}\n};'),
 		# FIXME 型推論自体に問題はなく、トランスパイルが期待通りではないと言うだけ
 		# FIXME 型を明示すれば回避できる上、C++で関数の代入はまずしない
 		# FIXME 本来の期待値 ('ForFuncCall.move_assign', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'std::function<bool(int, std::string))> func = caller.func;'),

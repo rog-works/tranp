@@ -17,3 +17,4 @@ env:
       - std::string
       - std::vector
       - std::map
+      - std::function

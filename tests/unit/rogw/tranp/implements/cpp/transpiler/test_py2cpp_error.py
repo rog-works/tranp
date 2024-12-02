@@ -36,7 +36,7 @@ def _ast(before: str, after: str) -> str:
 
 def make_renderer_setting(i18n: I18n) -> RendererSetting:
 	template_dir = [os.path.join(tranp_dir(), 'data/cpp/template')]
-	env = {'immutable_param_types': ['std::string', 'std::vector', 'std::map']}
+	env = {'immutable_param_types': ['std::string', 'std::vector', 'std::map', 'std::function']}
 	return RendererSetting(template_dir, i18n.t, env)
 
 

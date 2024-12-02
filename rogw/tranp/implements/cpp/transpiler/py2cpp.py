@@ -423,7 +423,7 @@ class Py2Cpp(ITranspiler):
 		value_raw = self.reflections.type_of(node.value)
 		declared = receiver_raw.decl.declare == node
 		if not self.allow_move_assign(value_raw, declared):
-			raise LogicError(f'Not allowed assign type. symbol: {value_raw}')
+			raise LogicError(f'Not allowed assign type. node: {node}, symbol: {value_raw}')
 
 		var_type = self.to_accessible_name(value_raw)
 		receiver_is_dict = isinstance(node.receivers[0], defs.Indexer) and self.reflections.type_of(node.receivers[0].receiver).impl(refs.Object).type_is(dict)

@@ -614,18 +614,10 @@ class ProceduralResolver:
 		return left
 
 	def on_tenary_operator(self, node: defs.TenaryOperator, primary: IReflection, condition: IReflection, secondary: IReflection) -> IReflection:
-		"""Note: 返却型が一致、またはNullableのみ許可"""
 		if primary == secondary:
 			return primary.stack(node)
 
-		primary_is_null = primary.impl(refs.Object).type_is(None)
-		secondary_is_null = secondary.impl(refs.Object).type_is(None)
-		if primary_is_null == secondary_is_null:
-			raise OperationNotAllowedError(f'Only Nullable. node: {node}, primary: {primary}, secondary: {secondary}')
-
-		var_type = secondary if primary_is_null else primary
-		null_type = primary if primary_is_null else secondary
-		return primary.to(node, self.reflections.from_standard(Union)).extends(var_type, null_type)
+		return primary.to(node, self.reflections.from_standard(Union)).extends(primary, secondary)
 
 	# Literal
 

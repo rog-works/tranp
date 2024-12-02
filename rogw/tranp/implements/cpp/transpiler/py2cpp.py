@@ -4,6 +4,7 @@ from typing import Any, ClassVar, Self, TypeVarTuple, cast
 from rogw.tranp.compatible.cpp.object import CP, c_func_addr, c_func_ref
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 from rogw.tranp.compatible.python.embed import Embed
+from rogw.tranp.compatible.python.types import Union
 from rogw.tranp.data.meta.header import MetaHeader
 from rogw.tranp.data.meta.types import ModuleMetaFactory, TranspilerMeta
 from rogw.tranp.data.version import Versions
@@ -187,6 +188,30 @@ class Py2Cpp(ITranspiler):
 			C++ではClassMethodの仮想関数はないので非対応
 		"""
 		return len([decorator for decorator in method.decorators if decorator.path.tokens == Embed.allow_override.__qualname__]) > 0
+
+	def allow_move_assign(self, value_raw: IReflection, declared: bool) -> bool:
+		"""代入時の型推論で許容される型か判定
+
+		Args:
+			value_raw (IReflection): 値のシンボル
+			declared (bool): True = 変数宣言
+		Returns:
+			bool: False = 不許可
+		Note:
+			実質的にNullable以外のUnion型のみ不許可
+		"""
+		if not declared:
+			return True
+
+		if not value_raw.impl(refs.Object).type_is(Union):
+			return True
+
+		if len(value_raw.attrs) != 2:
+			return False
+
+		var_type_raw, null_type_raw = value_raw.attrs
+		var_type_key = CVars.key_from(var_type_raw)
+		return CVars.is_addr(var_type_key) and null_type_raw.impl(refs.Object).type_is(None)
 
 	def to_accessor(self, accessor: str) -> str:
 		"""アクセス修飾子を翻訳
@@ -397,6 +422,9 @@ class Py2Cpp(ITranspiler):
 		receiver_raw = self.reflections.type_of(node.receivers[0])
 		value_raw = self.reflections.type_of(node.value)
 		declared = receiver_raw.decl.declare == node
+		if not self.allow_move_assign(value_raw, declared):
+			raise LogicError(f'Not allowed assign type. symbol: {value_raw}')
+
 		var_type = self.to_accessible_name(value_raw)
 		receiver_is_dict = isinstance(node.receivers[0], defs.Indexer) and self.reflections.type_of(node.receivers[0].receiver).impl(refs.Object).type_is(dict)
 		return self.view.render(f'assign/{node.classification}', vars={'receiver': receiver, 'var_type': var_type, 'value': value, 'declared': declared, 'receiver_is_dict': receiver_is_dict})
@@ -697,26 +725,8 @@ class Py2Cpp(ITranspiler):
 		return self.view.render('type_py2cpp', vars={'var_type': f'{type_name}<{", ".join(template_types)}>'})
 
 	def on_union_type(self, node: defs.UnionType, or_types: list[str]) -> str:
-		"""
-		Note:
-			Union型はNullableのみ許可 (変換例: 'CP[Class] | None' -> 'Class*'
-			@see CVars.__resolve_var_type
-		"""
-		if len(node.or_types) != 2:
-			raise LogicError(f'Unexpected UnionType. expected 2 types. symbol: {node.fullyname}, got: {len(node.or_types)}')
-
-		is_0_null = node.or_types[0].is_a(defs.NullType)
-		is_1_null = node.or_types[1].is_a(defs.NullType)
-		if is_0_null == is_1_null:
-			raise LogicError(f'Unexpected UnionType. with not nullable. symbol: {node.fullyname}, or_types: [{or_types[0]}, {or_types[1]}]')
-
-		var_type_index = 1 if is_0_null else 0
-		var_type_node = node.or_types[var_type_index]
-		is_addr = isinstance(var_type_node, defs.CustomType) and CVars.is_addr(var_type_node.domain_name)
-		if not is_addr:
-			raise LogicError(f'Unexpected UnionType. with not address. symbol: {node.fullyname}, var_type: {var_type_node}')
-
-		return or_types[var_type_index]
+		"""Note: XXX C++でUnion型の表現は不可能。期待値を仮定するのであればプライマリー型以外に無いので先頭要素のみ返却"""
+		return or_types[0]
 
 	def on_null_type(self, node: defs.NullType) -> str:
 		return 'void'

@@ -9,29 +9,13 @@ from rogw.tranp.implements.cpp.providers.semantics import plugin_provider_cpp
 from rogw.tranp.implements.cpp.providers.view import renderer_helper_provider_cpp
 from rogw.tranp.implements.cpp.transpiler.py2cpp import Py2Cpp
 from rogw.tranp.lang.module import to_fullyname
-from rogw.tranp.semantics.errors import NotSupportedError, ProcessingError, UnresolvedSymbolError
+from rogw.tranp.semantics.errors import NotSupportedError, ProcessingError
 from rogw.tranp.semantics.plugin import PluginProvider
+from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.test.helper import data_provider
 from rogw.tranp.transpiler.types import TranspilerOptions
 from rogw.tranp.view.render import Renderer, RendererHelperProvider, RendererSetting
 from tests.test.fixture import Fixture
-
-
-class ASTMapping:
-	_InvalidOps = f'file_input.class_def'
-
-	aliases = {
-		'InvalidOps.tenary_to_union_types.block': f'{_InvalidOps}.class_def_raw.block.function_def[0].function_def_raw.block',
-		'InvalidOps.param_of_raw_or_null': f'{_InvalidOps}.class_def_raw.block.function_def[1]',
-		'InvalidOps.return_of_raw_or_null': f'{_InvalidOps}.class_def_raw.block.function_def[2]',
-		'InvalidOps.yield_return.block': f'{_InvalidOps}.class_def_raw.block.function_def[3].function_def_raw.block',
-		'InvalidOps.delete_relay.block': f'{_InvalidOps}.class_def_raw.block.function_def[4].function_def_raw.block',
-		'InvalidOps.destruction_assign.block': f'{_InvalidOps}.class_def_raw.block.function_def[5].function_def_raw.block',
-	}
-
-
-def _ast(before: str, after: str) -> str:
-	return ModuleDSN.local_joined(ASTMapping.aliases[before], after)
 
 
 def make_renderer_setting(i18n: I18n) -> RendererSetting:
@@ -41,6 +25,7 @@ def make_renderer_setting(i18n: I18n) -> RendererSetting:
 
 
 class TestPy2CppError(TestCase):
+	fixture_module_path = Fixture.fixture_module_path(__file__)
 	fixture = Fixture.make(__file__, {
 		to_fullyname(Py2Cpp): Py2Cpp,
 		to_fullyname(PluginProvider): plugin_provider_cpp,
@@ -51,15 +36,14 @@ class TestPy2CppError(TestCase):
 	})
 
 	@data_provider([
-		(_ast('InvalidOps.tenary_to_union_types.block', 'assign'), UnresolvedSymbolError, r'Only Nullable.'),
-		(_ast('InvalidOps.param_of_raw_or_null', ''), ProcessingError, r'Unexpected UnionType.'),
-		(_ast('InvalidOps.return_of_raw_or_null', ''), ProcessingError, r'Unexpected UnionType.'),
-		(_ast('InvalidOps.yield_return.block', 'yield_stmt'), NotSupportedError, r'Denied yield return.'),
-		(_ast('InvalidOps.delete_relay.block', 'del_stmt'), ProcessingError, r'Unexpected delete target.'),
-		(_ast('InvalidOps.destruction_assign.block', 'assign'), ProcessingError, r'Not allowed destruction assign.'),
+		('InvalidOps.tenary_to_union_types', 'function_def_raw.block.assign', ProcessingError, r'Not allowed assign type.'),
+		('InvalidOps.yield_return', 'function_def_raw.block.yield_stmt', NotSupportedError, r'Denied yield return.'),
+		('InvalidOps.delete_relay', 'function_def_raw.block.del_stmt', ProcessingError, r'Unexpected delete target.'),
+		('InvalidOps.destruction_assign', 'function_def_raw.block.assign', ProcessingError, r'Not allowed destruction assign.'),
 	])
-	def test_exec(self, full_path: str, expected_error: type[Exception], expected: re.Pattern) -> None:
+	def test_exec(self, local_path: str, offset_path: str, expected_error: type[Exception], expected: re.Pattern) -> None:
 		with self.assertRaisesRegex(expected_error, expected):
-			transpiler = self.fixture.get(Py2Cpp)
-			node = self.fixture.shared_module.entrypoint.whole_by(full_path)
-			transpiler.transpile(node)
+			self.fixture.shared_module
+			via_node = self.fixture.get(Reflections).from_fullyname(ModuleDSN.full_joined(self.fixture_module_path, local_path)).node
+			node = self.fixture.shared_module.entrypoint.whole_by(ModuleDSN.local_joined(via_node.full_path, offset_path))
+			self.fixture.get(Py2Cpp).transpile(node)

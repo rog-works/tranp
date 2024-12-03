@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from collections.abc import Callable
-from typing import ClassVar, Generic, Self, TypeAlias, TypeVar, TypeVarTuple, cast
+from typing import ClassVar, Generic, Protocol, Self, TypeAlias, TypeVar, TypeVarTuple, cast
 
 from rogw.tranp.compatible.cpp.classes import char, void
 from rogw.tranp.compatible.cpp.enum import CEnum as Enum
@@ -355,6 +355,8 @@ class Struct:
 
 
 class ForCompound:
+	class Proto(Protocol): ...
+
 	class ClassMethod:
 		@classmethod
 		def make(cls: type[Self]) -> Self:

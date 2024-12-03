@@ -1,5 +1,5 @@
 import re
-from typing import Any, ClassVar, Self, TypeVarTuple, cast
+from typing import Any, ClassVar, Protocol, Self, TypeVarTuple, cast
 
 from rogw.tranp.compatible.cpp.object import CP, c_func_addr, c_func_ref
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
@@ -360,6 +360,16 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(f'function/{node.classification}', vars=function_vars)
 
 	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], template_types: list[str], comment: str, statements: list[str]) -> str:
+		if len(inherits) == 1 and inherits[0] == Protocol.__name__:
+			return self.proc_class_protocol(node, symbol, decorators, inherits, template_types, comment, statements)
+		else:
+			return self.proc_class(node, symbol, decorators, inherits, template_types, comment, statements)
+
+	def proc_class_protocol(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], template_types: list[str], comment: str, statements: list[str]) -> str:
+		class_vars = {'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'template_types': template_types, 'comment': comment, 'statements': statements}
+		return self.view.render(f'{node.classification}/protocol', vars=class_vars)
+
+	def proc_class(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], template_types: list[str], comment: str, statements: list[str]) -> str:
 		# XXX 構造体の判定
 		is_struct = len([decorator for decorator in decorators if decorator.startswith(Embed.struct.__qualname__)])
 

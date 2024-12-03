@@ -238,6 +238,7 @@ class TestPy2Cpp(TestCase):
 
 		('Struct', '', defs.Class, '/** Struct */\nstruct Struct {\n\tpublic: int a;\n\tpublic: std::string b;\n\tpublic:\n\t/** __init__ */\n\tStruct(int a, const std::string& b) : a(a), b(b) {}\n};'),
 
+		('ForCompound.Proto', '', defs.Class, '// class Proto'),
 		('ForCompound.ClassMethod.make', '', defs.ClassMethod, BlockExpects.class_method(access='public', name='make', return_type='ClassMethod', statements=['ForCompound::ClassMethod inst = ClassMethod();', 'return inst;'])),
 		('ForCompound.Operators.__eq__', '', defs.Method, BlockExpects.method(access='public', name='operator==', params=['const ForCompound::Operators& other'], return_type='bool')),
 		('ForCompound.Operators.__ne__', '', defs.Method, BlockExpects.method(access='public', name='operator!=', params=['const ForCompound::Operators& other'], return_type='bool')),

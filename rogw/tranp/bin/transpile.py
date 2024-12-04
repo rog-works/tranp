@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 from typing import Any, TypedDict, cast
 
@@ -43,7 +44,7 @@ ConfigDict = TypedDict('ConfigDict', {
 	'trans_mapping': str,
 	'input_globs': list[str],
 	'exclude_patterns': list[str],
-	'output_dir': str,
+	'output_dirs': list[str],
 	'output_language': str,
 	'di': dict[str, str],
 	'env': EnvDict,
@@ -65,7 +66,7 @@ class Config:
 		self.trans_mapping = config['trans_mapping']
 		self.input_globs = config['input_globs']
 		self.exclude_patterns = config['exclude_patterns']
-		self.output_dir = config['output_dir']
+		self.output_dirs = config['output_dirs']
 		self.output_language = config['output_language']
 		self.di = config.get('di', {})
 		self.env = config.get('env', {})
@@ -257,7 +258,26 @@ class TranspileApp:
 		extension_map = self.config.output_language.split(':')
 		extension = extension_map[1] if len(extension_map) == 2 else extension_map[0]
 		filepath = module_path_to_filepath(module_path.path, f'.{extension}')
-		return os.path.abspath(os.path.join(self.config.output_dir, filepath))
+		output_dir = self._fetch_output_dir(filepath)
+		return os.path.abspath(os.path.join(output_dir, filepath))
+
+	def _fetch_output_dir(self, filepath: str) -> str:
+		"""ファイルパスに応じた出力ディレクトリーを取得
+
+		Args:
+			filepath (str): ファイルパス
+		Returns:
+			str: 出力ディレクトリー
+		"""
+		_filepath = filepath.replace(os.sep, '/')
+		fallback = self.config.output_dirs[-1]
+		for dir_entry in self.config.output_dirs[:-1]:
+			condition, output_dir = dir_entry.split(':')
+			pattern = condition.replace('*', '.+')
+			if re.fullmatch(pattern, _filepath):
+				return output_dir
+
+		return fallback
 
 	def can_transpile(self, module_path: ModulePath) -> bool:
 		"""トランスパイルを実行するか判定

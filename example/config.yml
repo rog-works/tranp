@@ -4,7 +4,8 @@ template_dirs:
 trans_mapping: example/data/i18n.yml
 input_globs:
   - example/**/*.py
-output_dir: ./
+output_dirs:
+  - ./
 output_language: cpp:h
 exclude_patterns:
   - example/FW/*

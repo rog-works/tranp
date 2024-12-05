@@ -132,10 +132,7 @@ class TestRenderer(TestCase):
 				'symbol': 'Hoge',
 				'decorators': ['deco(A, A.B)'],
 				'inherits': ['Base', 'Interface'],
-				'vars': [
-					'private: int __value;',
-					'private: std::string __text;',
-				],
+				'template_types': [],
 				'comment': '',
 				'statements': [
 					'\n'.join([
@@ -144,6 +141,11 @@ class TestRenderer(TestCase):
 						'	int fuga = 2345;',
 						'}',
 					]),
+				],
+				'module_path': 'module.path.to',
+				'vars': [
+					'private: int __value;',
+					'private: std::string __text;',
 				],
 			},
 			'\n'.join([
@@ -163,7 +165,7 @@ class TestRenderer(TestCase):
 				'symbol': 'Hoge',
 				'decorators': [],
 				'inherits': [],
-				'vars': [],
+				'template_types': [],
 				'comment': '',
 				'statements': [
 					'\n'.join([
@@ -171,6 +173,8 @@ class TestRenderer(TestCase):
 						'}',
 					]),
 				],
+				'module_path': 'module.path.to',
+				'vars': [],
 			},
 			'\n'.join([
 				'/** Hoge */',
@@ -185,7 +189,7 @@ class TestRenderer(TestCase):
 				'symbol': 'Hoge',
 				'decorators': [],
 				'inherits': [],
-				'vars': [],
+				'template_types': [],
 				'comment': '\n'.join([
 					'/**',
 					' * Description',
@@ -197,6 +201,8 @@ class TestRenderer(TestCase):
 						'}',
 					]),
 				],
+				'module_path': 'module.path.to',
+				'vars': [],
 			},
 			'\n'.join([
 				'/**',
@@ -213,7 +219,7 @@ class TestRenderer(TestCase):
 				'symbol': 'Hoge',
 				'decorators': ['deco(A, A.B)'],
 				'inherits': [],
-				'vars': [],
+				'template_types': [],
 				'comment': '\n'.join([
 					'/**',
 					' * Description',
@@ -225,6 +231,8 @@ class TestRenderer(TestCase):
 						'}',
 					]),
 				],
+				'module_path': 'module.path.to',
+				'vars': [],
 			},
 			'\n'.join([
 				'/**',
@@ -241,9 +249,11 @@ class TestRenderer(TestCase):
 				'symbol': 'Struct',
 				'decorators': [],
 				'inherits': [],
-				'vars': [],
+				'template_types': [],
 				'comment': '',
 				'statements': [],
+				'module_path': 'module.path.to',
+				'vars': [],
 				'is_struct': True,
 			},
 			'\n'.join([

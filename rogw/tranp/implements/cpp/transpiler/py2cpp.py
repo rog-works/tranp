@@ -366,7 +366,7 @@ class Py2Cpp(ITranspiler):
 			return self.proc_class(node, symbol, decorators, inherits, template_types, comment, statements)
 
 	def proc_class_protocol(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], template_types: list[str], comment: str, statements: list[str]) -> str:
-		class_vars = {'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'template_types': template_types, 'comment': comment, 'statements': statements}
+		class_vars = {'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'template_types': template_types, 'comment': comment, 'statements': statements, 'module_path': node.module_path}
 		return self.view.render(f'{node.classification}/protocol', vars=class_vars)
 
 	def proc_class(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], template_types: list[str], comment: str, statements: list[str]) -> str:
@@ -396,7 +396,7 @@ class Py2Cpp(ITranspiler):
 			this_var_vars = {'accessor': self.to_accessor(defs.to_accessor(this_var_name)), 'symbol': this_var_name, 'var_type': var_type, 'decorators': decorators}
 			vars.append(self.view.render(f'{node.classification}/_decl_this_var', vars=this_var_vars))
 
-		class_vars = {'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'template_types': template_types, 'comment': comment, 'statements': other_statements, 'vars': vars, 'is_struct': is_struct}
+		class_vars = {'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'template_types': template_types, 'comment': comment, 'statements': other_statements, 'module_path': node.module_path, 'vars': vars, 'is_struct': is_struct}
 		return self.view.render(f'{node.classification}/class', vars=class_vars)
 
 	def on_enum(self, node: defs.Enum, symbol: str, decorators: list[str], inherits: list[str], template_types: list[str], comment: str, statements: list[str]) -> str:
@@ -404,7 +404,7 @@ class Py2Cpp(ITranspiler):
 		if not node.parent.is_a(defs.Entrypoint):
 			add_vars = {'accessor': self.to_accessor(node.accessor)}
 
-		return self.view.render(f'class/{node.classification}', vars={'symbol': symbol, 'decorators': decorators, 'comment': comment, 'statements': statements, **add_vars})
+		return self.view.render(f'class/{node.classification}', vars={'symbol': symbol, 'decorators': decorators, 'comment': comment, 'statements': statements, 'module_path': node.module_path, **add_vars})
 
 	def on_alt_class(self, node: defs.AltClass, symbol: str, actual_type: str) -> str:
 		return self.view.render(node.classification, vars={'symbol': symbol, 'actual_type': actual_type})

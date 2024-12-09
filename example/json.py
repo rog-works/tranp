@@ -212,11 +212,11 @@ class JsonParser:
 		Returns:
 			JsonEntryTypes: JSONエントリーの種別
 		Raises:
-			ValueError: 解析に失敗
+			RuntimeError: 解析に失敗
 		"""
 		entry_type = cls._analyze_type(json_str, begin)[0]
 		if entry_type == JsonEntryTypes.Unknown:
-			raise ValueError('Invalid JSON schema. json_str: {json}, begin: {begin}'.format(json=json_str, begin=begin))
+			raise RuntimeError('Invalid JSON schema. json_str: {json}, begin: {begin}'.format(json=json_str, begin=begin))
 
 		return entry_type
 
@@ -569,7 +569,7 @@ class Json:
 		Returns:
 			CP[Json]: インスタンス
 		Raises:
-			ValueError: 存在しないエントリーを指定
+			RuntimeError: 存在しないエントリーを指定
 		"""
 		return self.fetch(JsonParser.join_path(self.path, str(index)))
 
@@ -581,7 +581,7 @@ class Json:
 		Returns:
 			CP[Json]: インスタンス
 		Raises:
-			ValueError: 存在しないエントリーを指定
+			RuntimeError: 存在しないエントリーを指定
 		"""
 		return self.fetch(JsonParser.join_path(self.path, key))
 
@@ -593,14 +593,14 @@ class Json:
 		Returns:
 			CP[Json]: インスタンス
 		Raises:
-			ValueError: 存在しないエントリーを指定
+			RuntimeError: 存在しないエントリーを指定
 		"""
 		for entry_id in range(len(self.root.on._entries)):
 			entry_json = self._at_json(entry_id)
 			if jsonpath == entry_json.on.path:
 				return entry_json
 
-		raise ValueError('Entry not found. jsonpath: {path}'.format(path=jsonpath))
+		raise RuntimeError('Entry not found. jsonpath: {path}'.format(path=jsonpath))
 
 	def filter(self, query: 'Callable[[CP[Json]], bool]') -> 'list[CP[Json]]':
 		"""フィルター条件に一致する要素を取得
@@ -649,25 +649,25 @@ class Json:
 
 	@property
 	def as_bool(self) -> bool:
-		"""Returns: bool: 値 Raises: ValueError: Boolean以外で使用"""
+		"""Returns: bool: 値 Raises: RuntimeError: Boolean以外で使用"""
 		if not self.scalar_with(JsonEntryTypes.Boolean):
-			raise ValueError('Operation not allowed. type_name: {type}'.format(type=self.type_name))
+			raise RuntimeError('Operation not allowed. type_name: {type}'.format(type=self.type_name))
 
 		return self.root.on._entries[self._entry_id].entity.as_bool
 
 	@property
 	def as_number(self) -> float:
-		"""Returns: float: 値 Raises: ValueError: Number以外で使用"""
+		"""Returns: float: 値 Raises: RuntimeError: Number以外で使用"""
 		if not self.scalar_with(JsonEntryTypes.Number):
-			raise ValueError('Operation not allowed. type_name: {type}'.format(type=self.type_name))
+			raise RuntimeError('Operation not allowed. type_name: {type}'.format(type=self.type_name))
 
 		return self.root.on._entries[self._entry_id].entity.as_number
 
 	@property
 	def as_string(self) -> str:
-		"""Returns: str: 値 Raises: ValueError: String以外で使用"""
+		"""Returns: str: 値 Raises: RuntimeError: String以外で使用"""
 		if not self.scalar_with(JsonEntryTypes.String):
-			raise ValueError('Operation not allowed. type_name: {type}'.format(type=self.type_name))
+			raise RuntimeError('Operation not allowed. type_name: {type}'.format(type=self.type_name))
 
 		return self.root.on._entries[self._entry_id].entity.as_string
 
@@ -713,10 +713,10 @@ class Json:
 		Args:
 			value (CP[Json]): 値
 		Raises:
-			ValueError: Array以外を指定
+			RuntimeError: Array以外を指定
 		"""
 		if value.on.entry_type != JsonEntryTypes.Array:
-			raise ValueError('Type not match. type_name: {type}'.format(type=value.on.type_name))
+			raise RuntimeError('Type not match. type_name: {type}'.format(type=value.on.type_name))
 
 		self._swap_entry(value.on.isolate())
 
@@ -726,10 +726,10 @@ class Json:
 		Args:
 			value (CP[Json]): 値
 		Raises:
-			ValueError: Object以外を指定
+			RuntimeError: Object以外を指定
 		"""
 		if value.on.entry_type != JsonEntryTypes.Object:
-			raise ValueError('Type not match. type_name: {type}'.format(type=value.on.type_name))
+			raise RuntimeError('Type not match. type_name: {type}'.format(type=value.on.type_name))
 
 		self._swap_entry(value.on.isolate())
 
@@ -796,10 +796,10 @@ class Json:
 			key (str): キー
 			value (CP[Json]): 値
 		Raises:
-			ValueError: Array以外を指定
+			RuntimeError: Array以外を指定
 		"""
 		if value.on.entry_type != JsonEntryTypes.Array:
-			raise ValueError('Type not match. type_name: {type}'.format(type=value.on.type_name))
+			raise RuntimeError('Type not match. type_name: {type}'.format(type=value.on.type_name))
 
 		jsonpath = JsonParser.join_path(self.path, key)
 		if self.exists(jsonpath):
@@ -814,10 +814,10 @@ class Json:
 			key (str): キー
 			value (CP[Json]): 値
 		Raises:
-			ValueError: Object以外を指定
+			RuntimeError: Object以外を指定
 		"""
 		if value.on.entry_type != JsonEntryTypes.Object:
-			raise ValueError('Type not match. type_name: {type}'.format(type=value.on.type_name))
+			raise RuntimeError('Type not match. type_name: {type}'.format(type=value.on.type_name))
 
 		jsonpath = JsonParser.join_path(self.path, key)
 		if self.exists(jsonpath):
@@ -850,10 +850,10 @@ class Json:
 			index (int): インデックス
 			value (bool): 値
 		Raises:
-			ValueError: Array以外で使用
+			RuntimeError: Array以外で使用
 		"""
 		if self.entry_type != JsonEntryTypes.Array:
-			raise ValueError('Operation not allowed. type_name: {type}'.format(type=self.type_name))
+			raise RuntimeError('Operation not allowed. type_name: {type}'.format(type=self.type_name))
 
 		self.apply_bool_to(str(index), value)
 
@@ -864,10 +864,10 @@ class Json:
 			index (int): インデックス
 			value (float): 値
 		Raises:
-			ValueError: Array以外で使用
+			RuntimeError: Array以外で使用
 		"""
 		if self.entry_type != JsonEntryTypes.Array:
-			raise ValueError('Operation not allowed. type_name: {type}'.format(type=self.type_name))
+			raise RuntimeError('Operation not allowed. type_name: {type}'.format(type=self.type_name))
 
 		self.apply_number_to(str(index), value)
 
@@ -878,10 +878,10 @@ class Json:
 			index (int): インデックス
 			value (str): 値
 		Raises:
-			ValueError: Array以外で使用
+			RuntimeError: Array以外で使用
 		"""
 		if self.entry_type != JsonEntryTypes.Array:
-			raise ValueError('Operation not allowed. type_name: {type}'.format(type=self.type_name))
+			raise RuntimeError('Operation not allowed. type_name: {type}'.format(type=self.type_name))
 
 		self.apply_string_to(str(index), value)
 
@@ -892,10 +892,10 @@ class Json:
 			index (int): インデックス
 			value (CP[Json]): 値
 		Raises:
-			ValueError: Array以外で使用
+			RuntimeError: Array以外で使用
 		"""
 		if self.entry_type != JsonEntryTypes.Array:
-			raise ValueError('Operation not allowed. type_name: {type}'.format(type=self.type_name))
+			raise RuntimeError('Operation not allowed. type_name: {type}'.format(type=self.type_name))
 
 		self.apply_array_to(str(index), value)
 
@@ -906,10 +906,10 @@ class Json:
 			index (int): インデックス
 			value (CP[Json]): 値
 		Raises:
-			ValueError: Array以外で使用
+			RuntimeError: Array以外で使用
 		"""
 		if self.entry_type != JsonEntryTypes.Array:
-			raise ValueError('Operation not allowed. type_name: {type}'.format(type=self.type_name))
+			raise RuntimeError('Operation not allowed. type_name: {type}'.format(type=self.type_name))
 
 		self.apply_object_to(str(index), value)
 
@@ -928,11 +928,11 @@ class Json:
 		Args:
 			index (int): インデックス
 		Raises:
-			ValueError: Array以外で使用
-			ValueError: 存在しないエントリーを指定
+			RuntimeError: Array以外で使用
+			RuntimeError: 存在しないエントリーを指定
 		"""
 		if self.entry_type != JsonEntryTypes.Array:
-			raise ValueError('Operation not allowed. type_name: {type}'.format(type=self.type_name))
+			raise RuntimeError('Operation not allowed. type_name: {type}'.format(type=self.type_name))
 
 		self.remove_by(str(index))
 
@@ -942,15 +942,15 @@ class Json:
 		Args:
 			key (str): キー
 		Raises:
-			ValueError: Array/Object以外で使用
-			ValueError: 存在しないエントリーを指定
+			RuntimeError: Array/Object以外で使用
+			RuntimeError: 存在しないエントリーを指定
 		"""
 		if self.scalar_with():
-			raise ValueError('Operation not allowed. type_name: {type}'.format(type=self.type_name))
+			raise RuntimeError('Operation not allowed. type_name: {type}'.format(type=self.type_name))
 
 		jsonpath = JsonParser.join_path(self.path, key)
 		if not self.exists(jsonpath):
-			raise ValueError('Entry not found. jsonpath: {path}'.format(path=jsonpath))
+			raise RuntimeError('Entry not found. jsonpath: {path}'.format(path=jsonpath))
 
 		self._remove_entry(self.fetch(jsonpath).on._entry_id)
 
@@ -961,12 +961,12 @@ class Json:
 			key (str): キー
 			entry_json (CSP[Json]): JSON
 		Raises:
-			ValueError: Array/Object以外で使用
+			RuntimeError: Array/Object以外で使用
 		Note:
 			XXX このメソッドを実行する前に必ずexists/has_keyで重複がないことを確認すること
 		"""
 		if self.scalar_with():
-			raise ValueError('Operation not allowed. type_name: {type}'.format(type=self.type_name))
+			raise RuntimeError('Operation not allowed. type_name: {type}'.format(type=self.type_name))
 
 		self._insert_entry(len(self.root.on._entries), JsonParser.join_path(self.path, key), entry_json)
 

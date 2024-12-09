@@ -1,4 +1,4 @@
-// @tranp.meta: {"version":"1.0.0","module":{"hash":"3a7b430607f083787203198a51619ebd","path":"example.json"},"transpiler":{"version":"1.0.0","module":"rogw.tranp.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
+// @tranp.meta: {"version":"1.0.0","module":{"hash":"9fed469bfced1e530b23634943c5bafb","path":"example.json"},"transpiler":{"version":"1.0.0","module":"rogw.tranp.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
 #pragma once
 #include <functional>
 // #include "typing.h"
@@ -1084,7 +1084,7 @@ class Json {
 			return std::to_string(this->as_number());
 		} else if (this->scalar_with(JsonEntryTypes::String)) {
 			return std::format("\"%s\"", (String::escape(this->as_string(), '"')).c_str());
-		} else if (this->scalar_with(JsonEntryTypes::Array)) {
+		} else if (this->entry_type() == JsonEntryTypes::Array) {
 			std::vector<std::string> values = [&]() -> std::vector<std::string> {
 				std::vector<std::string> __ret;
 				for (auto under : this->unders()) {

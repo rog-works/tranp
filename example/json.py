@@ -1097,7 +1097,7 @@ class Json:
 			return str(self.as_number)
 		elif self.scalar_with(JsonEntryTypes.String):
 			return '\"{text}\"'.format(text=String.escape(self.as_string, char('"')))
-		elif self.scalar_with(JsonEntryTypes.Array):
+		elif self.entry_type == JsonEntryTypes.Array:
 			values = [under.on.to_string() for under in self.unders()]
 			join_values = ','.join(values)
 			return '[' + join_values + ']'

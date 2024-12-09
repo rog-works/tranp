@@ -7,7 +7,6 @@ from rogw.tranp.compatible.cpp.object import CP, CSP
 from rogw.tranp.compatible.python.embed import Embed
 
 from example.FW.string import String
-from rogw.tranp.lang.convertion import safe_cast
 
 
 class JsonEntryTypes(Enum):

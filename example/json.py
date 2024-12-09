@@ -363,7 +363,7 @@ class Json:
 		"""オブジェクト型の空のインスタンスを生成
 
 		Returns:
-			CP[Json]: インスタンス
+			CSP[Json]: インスタンス
 		"""
 		return cls.parse('{}')
 
@@ -374,7 +374,7 @@ class Json:
 		Args:
 			json_str (str): JSON文字列
 		Returns:
-			CP[Json]: インスタンス
+			CSP[Json]: インスタンス
 		"""
 		root = CSP.new(Json())
 		info_list = JsonParser.parse(json_str)
@@ -973,7 +973,7 @@ class Json:
 		"""自身のエントリーを基点に新たなJSONエントリーに置き換え
 
 		Args:
-			entry_json (CP[Json]): JSON
+			entry_json (CSP[Json]): JSON
 		"""
 		self_path = self.path
 		self._remove_entry(self._entry_id)
@@ -998,7 +998,7 @@ class Json:
 		Args:
 			begin_id (int): 挿入開始位置
 			begin_path (str): 基準のJSONパス
-			entry_json (CP[Json]): JSON
+			entry_json (CSP[Json]): JSON
 		"""
 		# ルートではない場合、ルートオブジェクトに変換
 		if not entry_json.on.is_root:

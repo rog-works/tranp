@@ -1,4 +1,4 @@
-// @tranp.meta: {"version":"1.0.0","module":{"hash":"ae32900858c16ef1e0607afcc4bc6617","path":"example.json"},"transpiler":{"version":"1.0.0","module":"rogw.tranp.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
+// @tranp.meta: {"version":"1.0.0","module":{"hash":"3a7b430607f083787203198a51619ebd","path":"example.json"},"transpiler":{"version":"1.0.0","module":"rogw.tranp.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
 #pragma once
 #include <functional>
 // #include "typing.h"
@@ -7,7 +7,6 @@
 // #include "rogw/tranp/compatible/cpp/object.h"
 // #include "rogw/tranp/compatible/python/embed.h"
 #include "FW/string.h"
-// #include "rogw/tranp/lang/convertion.h"
 /**
  * JSONエントリーの種別
  */

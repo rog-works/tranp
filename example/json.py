@@ -3,7 +3,7 @@ from typing import ClassVar, TypeAlias
 
 from rogw.tranp.compatible.cpp.classes import char, void
 from rogw.tranp.compatible.cpp.enum import CEnum as Enum
-from rogw.tranp.compatible.cpp.object import CP
+from rogw.tranp.compatible.cpp.object import CP, CSP
 from rogw.tranp.compatible.python.embed import Embed
 
 from example.FW.string import String
@@ -341,7 +341,7 @@ class Json:
 		JsonEntryTypes.Object: 'Json',
 	}
 
-	_jsons: 'list[CP[Json]]'
+	_jsons: 'list[CSP[Json]]'
 	_entries: list[JsonEntry]
 	_root: 'CP[Json]'
 	_entry_id: int
@@ -349,7 +349,7 @@ class Json:
 	def __init__(self) -> None:
 		"""インスタンスを生成"""
 		super().__init__()
-		self._jsons: list[CP[Json]] = []
+		self._jsons: list[CSP[Json]] = []
 		self._entries: list[JsonEntry] = []
 		self._root: CP[Json] = CP(self)
 		self._entry_id: int = 0
@@ -360,7 +360,7 @@ class Json:
 		return '<{cls}[{type}]: \"{path}\" at {addr}>'.format(cls=Json.__name__, type=self.entry_type.name, path=self.path, addr=hex(id(self)))
 
 	@classmethod
-	def instantiate(cls) -> 'CP[Json]':
+	def instantiate(cls) -> 'CSP[Json]':
 		"""オブジェクト型の空のインスタンスを生成
 
 		Returns:
@@ -369,7 +369,7 @@ class Json:
 		return cls.parse('{}')
 
 	@classmethod
-	def parse(cls, json_str: str) -> 'CP[Json]':
+	def parse(cls, json_str: str) -> 'CSP[Json]':
 		"""JSON文字列を基にインスタンスを生成
 
 		Args:
@@ -377,7 +377,7 @@ class Json:
 		Returns:
 			CP[Json]: インスタンス
 		"""
-		root = CP.new(Json())
+		root = CSP.new(Json())
 		info_list = JsonParser.parse(json_str)
 		for entry_id in range(len(info_list)):
 			path, begin, end = info_list[entry_id]
@@ -391,45 +391,45 @@ class Json:
 
 		return root
 
-	def _jsonify_of_bool(self, value: bool) -> 'CP[Json]':
+	def _jsonify_of_bool(self, value: bool) -> 'CSP[Json]':
 		"""スカラー値からJSONインスタンスに変換(Boolean)
 
 		Args:
 			value (bool): 値
 		Returns:
-			CP[Json]: インスタンス
+			CSP[Json]: インスタンス
 		"""
 		return Json.parse('true' if value else 'false')
 
-	def _jsonify_of_number(self, value: float) -> 'CP[Json]':
+	def _jsonify_of_number(self, value: float) -> 'CSP[Json]':
 		"""スカラー値からJSONインスタンスに変換(Number)
 
 		Args:
 			value (bool): 値
 		Returns:
-			CP[Json]: インスタンス
+			CSP[Json]: インスタンス
 		"""
 		return Json.parse(str(value))
 
-	def _jsonify_of_string(self, value: str) -> 'CP[Json]':
+	def _jsonify_of_string(self, value: str) -> 'CSP[Json]':
 		"""スカラー値からJSONインスタンスに変換(String)
 
 		Args:
 			value (bool): 値
 		Returns:
-			CP[Json]: インスタンス
+			CSP[Json]: インスタンス
 		"""
 		return Json.parse('\"' + String.escape(value, char('"')) + '\"')
 
-	def _make_for_entry(self, entry_id: int) -> 'CP[Json]':
+	def _make_for_entry(self, entry_id: int) -> 'CSP[Json]':
 		"""エントリー用にインスタンスを生成
 
 		Args:
 			entry_id (int): エントリーID
 		Returns:
-			CP[Json]: インスタンス
+			CSP[Json]: インスタンス
 		"""
-		under = CP.new(Json())
+		under = CSP.new(Json())
 		under.on._root = CP(self)
 		under.on._entry_id = entry_id
 		return under
@@ -476,7 +476,7 @@ class Json:
 		Returns:
 			CP[Json]: JSON
 		"""
-		return safe_cast(self.root.on._jsons[entry_id])
+		return self.root.on._jsons[entry_id].addr
 
 	@property
 	def is_root(self) -> bool:
@@ -610,7 +610,7 @@ class Json:
 		Returns:
 			list[CP[Json]]: 要素リスト
 		"""
-		return [in_json for in_json in self._jsons if query(in_json)]
+		return [in_json.addr for in_json in self._jsons if query(in_json.addr)]
 
 	def diff(self, other: 'CP[Json]') -> 'list[str]':
 		"""相違個所のパスを抽出
@@ -718,7 +718,7 @@ class Json:
 		if value.on.entry_type != JsonEntryTypes.Array:
 			raise ValueError('Type not match. type_name: {type}'.format(type=value.on.type_name))
 
-		self._swap_entry(value)
+		self._swap_entry(value.on.isolate())
 
 	def set_object(self, value: 'CP[Json]') -> None:
 		"""値を更新(Object)
@@ -731,7 +731,7 @@ class Json:
 		if value.on.entry_type != JsonEntryTypes.Object:
 			raise ValueError('Type not match. type_name: {type}'.format(type=value.on.type_name))
 
-		self._swap_entry(value)
+		self._swap_entry(value.on.isolate())
 
 	def set_json(self, value: 'CP[Json]') -> None:
 		"""値を更新(汎用)
@@ -805,7 +805,7 @@ class Json:
 		if self.exists(jsonpath):
 			self.fetch(jsonpath).on.set_array(value)
 		else:
-			self._add_entry(key, value)
+			self._add_entry(key, value.on.isolate())
 
 	def apply_object_to(self, key: str, value: 'CP[Json]') -> None:
 		"""指定のキーの要素に値を反映。存在しない場合は要素を追加(Object)
@@ -823,7 +823,7 @@ class Json:
 		if self.exists(jsonpath):
 			self.fetch(jsonpath).on.set_object(value)
 		else:
-			self._add_entry(key, value)
+			self._add_entry(key, value.on.isolate())
 
 	def apply_json_to(self, key: str, value: 'CP[Json]') -> None:
 		"""指定のキーの要素に値を反映。存在しない場合は要素を追加(汎用)
@@ -954,12 +954,12 @@ class Json:
 
 		self._remove_entry(self.fetch(jsonpath).on._entry_id)
 
-	def _add_entry(self, key: str, entry_json: 'CP[Json]') -> None:
+	def _add_entry(self, key: str, entry_json: 'CSP[Json]') -> None:
 		"""自身の配下にJSONエントリーを追加
 
 		Args:
 			key (str): キー
-			entry_json (CP[Json]): JSON
+			entry_json (CSP[Json]): JSON
 		Raises:
 			ValueError: Array/Object以外で使用
 		Note:
@@ -970,7 +970,7 @@ class Json:
 
 		self._insert_entry(len(self.root.on._entries), JsonParser.join_path(self.path, key), entry_json)
 
-	def _swap_entry(self, entry_json: 'CP[Json]') -> None:
+	def _swap_entry(self, entry_json: 'CSP[Json]') -> None:
 		"""自身のエントリーを基点に新たなJSONエントリーに置き換え
 
 		Args:
@@ -993,7 +993,7 @@ class Json:
 			del self.root.on._jsons[relayed_id]
 			del self.root.on._entries[relayed_id]
 
-	def _insert_entry(self, begin_id: int, begin_path: str, entry_json: 'CP[Json]') -> None:
+	def _insert_entry(self, begin_id: int, begin_path: str, entry_json: 'CSP[Json]') -> None:
 		"""指定位置にJSONエントリーを挿入
 
 		Args:
@@ -1001,7 +1001,7 @@ class Json:
 			begin_path (str): 基準のJSONパス
 			entry_json (CP[Json]): JSON
 		"""
-		# ルートではない場合、ルートオブジェクトに変換 XXX outerをGetTransientPackageに変更することを検討
+		# ルートではない場合、ルートオブジェクトに変換
 		if not entry_json.on.is_root:
 			entry_json = entry_json.on.isolate()
 
@@ -1018,33 +1018,33 @@ class Json:
 		remain = len(self.root.on._entries) - post_id
 		for i in range(remain):
 			new_entry_id = post_id + i
-			entry_json = self._at_json(new_entry_id)
-			entry_json.on._entry_id = new_entry_id
+			in_entry_json = self._at_json(new_entry_id)
+			in_entry_json.on._entry_id = new_entry_id
 
-	def isolate(self) -> 'CP[Json]':
+	def isolate(self) -> 'CSP[Json]':
 		"""自身を基点に新たなインスタンスを生成
 
 		Returns:
-			CP[Json]: インスタンス
+			CSP[Json]: インスタンス
 		Note:
 			* ルート要素との参照を切り離すことでメモリー安全な複製として利用可能する
 			* 引数として渡す際に有効である反面、実行速度とメモリー効率を犠牲にする
 		"""
-		instance = CP.new(Json())
+		instance = CSP.new(Json())
 		jsons, entries = self._isolate_entries(instance)
 		instance.on._jsons = jsons
 		instance.on._entries = entries
 		return instance
 
-	def _isolate_entries(self, new_root: 'CP[Json]') -> 'tuple[list[CP[Json]], list[JsonEntry]]':
+	def _isolate_entries(self, new_root: 'CSP[Json]') -> 'tuple[list[CSP[Json]], list[JsonEntry]]':
 		"""自身を含めた全ての下位要素を新たなエントリーとして生成
 
 		Args:
-			new_root (CP[Json]): ルートオブジェクト
+			new_root (CSP[Json]): ルートオブジェクト
 		Returns:
-			tuple[list[CP[Json]], list[JsonEntry]: JSON, JSONエントリーリスト
+			tuple[list[CSP[Json]], list[JsonEntry]: JSON, JSONエントリーリスト
 		"""
-		jsons: list[CP[Json]] = []
+		jsons: list[CSP[Json]] = []
 		entries: list[JsonEntry] = []
 		ids = self._relayed_entry_ids(self._entry_id)
 		for new_entry_id, entry_id in enumerate(ids):

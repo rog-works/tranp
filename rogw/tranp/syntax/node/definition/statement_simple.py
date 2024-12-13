@@ -43,9 +43,9 @@ class MoveAssign(Assign, IDeclaration):
 		"""Note: インスタンス変数宣言に限り型を直接補完できるため許容する"""
 		from rogw.tranp.syntax.node.definition.statement_compound import Class  # FIXME 循環参照
 
-		symbol, *remain = self.symbols
-		if len(remain) == 0 and isinstance(symbol, DeclThisVar):
-			return symbol.class_types.as_a(Class).this_var_types[symbol.domain_name]
+		symbols = self.receivers
+		if len(symbols) == 1 and isinstance(symbols[0], DeclThisVar):
+			return symbols[0].class_types.as_a(Class).this_var_types[symbols[0].domain_name]
 
 		return self.dirty_child(Empty, '__empty__', tokens='')
 

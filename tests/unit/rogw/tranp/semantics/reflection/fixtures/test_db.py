@@ -45,7 +45,6 @@ class Sub(Base):
 	def __init__(self) -> None:
 		super().__init__()
 		self.numbers: 'list[int]' = []
-		self.C: C = C()
 
 	class Inner:
 		value: ClassVar[str] = ''
@@ -53,6 +52,10 @@ class Sub(Base):
 		@classmethod
 		def class_func(cls) -> dict[str, int]:
 			return {cls.value: value}
+
+	@property
+	def C(self) -> C:
+		...
 
 	@property
 	def first_number(self) -> int:
@@ -181,7 +184,7 @@ class Sub(Base):
 		c = self.decl_tuple(p)
 		return ('', '', '')
 
-	def imported_inner_type_ref(self, b: C.AA) -> None:
+	def imported_inner_type_ref(self, b: 'C.AA') -> None:
 		a = C.AA()
 
 

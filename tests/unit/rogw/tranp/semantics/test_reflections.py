@@ -97,9 +97,9 @@ class TestReflections(TestCase):
 
 		('Sub.__init__', 'function_def_raw.block.funccall', _mod('__main__', 'Base'), 'Base'),
 		('Sub.__init__', 'function_def_raw.block.funccall.getattr.funccall.var', _mod('classes', 'super'), 'super() -> Any'),
-		('Sub.__init__', 'function_def_raw.block.anno_assign[1].assign_namelist.getattr', _mod('classes', 'list'), 'list<int>'),
-		('Sub.__init__', 'function_def_raw.block.anno_assign[1].typed_getitem', _mod('classes', 'list'), 'list<int>'),
-		('Sub.__init__', 'function_def_raw.block.anno_assign[1].list', _mod('classes', 'list'), 'list<Unknown>'),  # XXX 空のリストは型を補完できないためlist<Unknown>になる
+		('Sub.__init__', 'function_def_raw.block.anno_assign.assign_namelist.getattr', _mod('classes', 'list'), 'list<int>'),
+		('Sub.__init__', 'function_def_raw.block.anno_assign.typed_getitem', _mod('classes', 'list'), 'list<int>'),
+		('Sub.__init__', 'function_def_raw.block.anno_assign.list', _mod('classes', 'list'), 'list<Unknown>'),  # XXX 空のリストは型を補完できないためlist<Unknown>になる
 
 		('Sub.local_ref', 'function_def_raw.block.funccall.var', _mod('classes', 'print'), 'print(Any) -> None'),
 		('Sub.local_ref', 'function_def_raw.block.funccall.arguments.argvalue', _mod('classes', 'bool'), 'bool'),

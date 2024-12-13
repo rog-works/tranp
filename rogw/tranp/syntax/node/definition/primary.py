@@ -642,7 +642,7 @@ class DeclableMatcher:
 
 		tokens = via.tokens
 		in_constructor = cls.__dirty_fetch_method_name(via, -5) == '__init__'
-		in_decl_var = elems[-3] in ['anno_assign'] and elems[-2] == 'assign_namelist'
+		in_decl_var = elems[-3] in ['assign', 'anno_assign'] and elems[-2] == 'assign_namelist'
 		is_property = tokens.startswith('self') and DSN.elem_counts(tokens) == 2
 		is_receiver = via_full_path.last[1] in [0, -1]  # 代入式の左辺が対象
 		return in_constructor and in_decl_var and is_property and is_receiver

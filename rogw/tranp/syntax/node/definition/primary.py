@@ -614,14 +614,14 @@ class DeclableMatcher:
 			XXX 期待するパス: class_def_raw.block.anno_assign.assign_namelist.var
 		"""
 		via_full_path = EntryPath(via.full_path)
-		if len(via_full_path.elements) < 5 or not via_full_path.elements[-5].startswith('class_def_raw'):
+		elems = via_full_path.de_identify().elements
+		if len(elems) < 5 or not elems[-5].startswith('class_def_raw'):
 			return False
 
-		elems = via_full_path.de_identify().elements
 		actual_class_def_at = last_index_of(elems, 'class_def_raw')
 		expect_class_def_at = max(0, len(elems) - 5)
 		in_decl_class_var = actual_class_def_at == expect_class_def_at
-		in_decl_var = via_full_path.de_identify().shift(-1).origin.endswith('anno_assign.assign_namelist')
+		in_decl_var = elems[-3] == 'anno_assign' and elems[-2] == 'assign_namelist'
 		is_local = DSN.elem_counts(via.tokens) == 1
 		is_receiver = via_full_path.last[1] in [0, -1]  # 代入式の左辺が対象
 		return in_decl_var and in_decl_class_var and is_local and is_receiver
@@ -636,12 +636,13 @@ class DeclableMatcher:
 			bool: True = 対象
 		"""
 		via_full_path = EntryPath(via.full_path)
-		if len(via_full_path.elements) < 5 or not via_full_path.elements[-5].startswith('function_def_raw'):
+		elems = via_full_path.de_identify().elements
+		if len(elems) < 5 or not elems[-5].startswith('function_def_raw'):
 			return False
 
 		tokens = via.tokens
 		in_constructor = cls.__dirty_fetch_method_name(via, -5) == '__init__'
-		in_decl_var = via_full_path.de_identify().shift(-1).origin.endswith('anno_assign.assign_namelist')
+		in_decl_var = elems[-3] in ['anno_assign'] and elems[-2] == 'assign_namelist'
 		is_property = tokens.startswith('self') and DSN.elem_counts(tokens) == 2
 		is_receiver = via_full_path.last[1] in [0, -1]  # 代入式の左辺が対象
 		return in_constructor and in_decl_var and is_property and is_receiver

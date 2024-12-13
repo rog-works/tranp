@@ -634,16 +634,18 @@ class TestDefinition(TestCase):
 		self.assertEqual(type(node.value), expected['value'])
 
 	@data_provider([
-		('a = {}', 'file_input.assign', {'receivers': ['a'], 'receiver_types': [defs.DeclLocalVar], 'value': defs.Dict}),
-		('a.b = 1', 'file_input.assign', {'receivers': ['a.b'], 'receiver_types': [defs.Relay], 'value': defs.Integer}),
-		('a[0] = []', 'file_input.assign', {'receivers': ['a.0'], 'receiver_types': [defs.Indexer], 'value': defs.List}),
-		('a, b = 1, 2', 'file_input.assign', {'receivers': ['a', 'b'], 'receiver_types': [defs.DeclLocalVar, defs.DeclLocalVar], 'value': defs.Tuple}),
+		('a = {}', 'file_input.assign', {'receivers': ['a'], 'receiver_types': [defs.DeclLocalVar], 'value': defs.Dict, 'var_type': defs.Empty}),
+		('a.b = 1', 'file_input.assign', {'receivers': ['a.b'], 'receiver_types': [defs.Relay], 'value': defs.Integer, 'var_type': defs.Empty}),
+		('a[0] = []', 'file_input.assign', {'receivers': ['a.0'], 'receiver_types': [defs.Indexer], 'value': defs.List, 'var_type': defs.Empty}),
+		('a, b = 1, 2', 'file_input.assign', {'receivers': ['a', 'b'], 'receiver_types': [defs.DeclLocalVar, defs.DeclLocalVar], 'value': defs.Tuple, 'var_type': defs.Empty}),
+		('class A:\n\ta: int\n\tdef __init__(self) -> None: self.a = 1', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.assign', {'receivers': ['self.a'], 'receiver_types': [defs.DeclThisVar], 'value': defs.Integer, 'var_type': defs.VarOfType}),
 	])
 	def test_move_assign(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.MoveAssign)
 		self.assertEqual([receiver.tokens for receiver in node.receivers], expected['receivers'])
 		self.assertEqual([type(receiver) for receiver in node.receivers], expected['receiver_types'])
 		self.assertEqual(type(node.value), expected['value'])
+		self.assertTrue(node.var_type.is_a(expected['var_type']))
 
 	@data_provider([
 		('a += 1', 'file_input.aug_assign', {'receiver': 'a', 'receiver_type': defs.Var, 'operator': '+=', 'value': defs.Integer}),

@@ -1,4 +1,4 @@
-// @tranp.meta: {"version":"1.0.0","module":{"hash":"9fed469bfced1e530b23634943c5bafb","path":"example.json"},"transpiler":{"version":"1.0.0","module":"rogw.tranp.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
+// @tranp.meta: {"version":"1.0.0","module":{"hash":"39e323d16036d359c14220d80f2412b0","path":"example.json"},"transpiler":{"version":"1.0.0","module":"rogw.tranp.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
 #pragma once
 #include <functional>
 // #include "typing.h"
@@ -281,7 +281,7 @@ struct JsonEntry {
 	/**
 	 * インスタンスを生成
 	 */
-	JsonEntry() : path(""), entry_type(JsonEntryTypes::Unknown), entity({}) {}
+	JsonEntry() : path(""), entry_type(JsonEntryTypes::Unknown), entity(JsonEntity()) {}
 	public:
 	/**
 	 * インスタンスを生成

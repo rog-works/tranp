@@ -272,9 +272,9 @@ class JsonEntity:
 
 	def __init__(self) -> None:
 		"""インスタンスを生成"""
-		self.as_bool: bool = False
-		self.as_number: float = 0
-		self.as_string: str = ''
+		self.as_bool = False
+		self.as_number = 0
+		self.as_string = ''
 
 	@classmethod
 	def for_scalar(cls, value_str: str, entry_type: JsonEntryTypes) -> 'JsonEntity':
@@ -307,9 +307,9 @@ class JsonEntry:
 
 	def __init__(self) -> None:
 		"""インスタンスを生成"""
-		self.path: str = ''
-		self.entry_type: JsonEntryTypes = JsonEntryTypes.Unknown
-		self.entity: JsonEntity
+		self.path = ''
+		self.entry_type = JsonEntryTypes.Unknown
+		self.entity = JsonEntity()
 
 	@classmethod
 	def make(cls, path: str, entry_type: JsonEntryTypes, entity: JsonEntity) -> 'JsonEntry':
@@ -348,10 +348,10 @@ class Json:
 	def __init__(self) -> None:
 		"""インスタンスを生成"""
 		super().__init__()
-		self._jsons: list[CSP[Json]] = []
-		self._entries: list[JsonEntry] = []
-		self._root: CP[Json] = CP(self)
-		self._entry_id: int = 0
+		self._jsons = []
+		self._entries = []
+		self._root = CP(self)
+		self._entry_id = 0
 
 	@Embed.python
 	def __repr__(self) -> str:

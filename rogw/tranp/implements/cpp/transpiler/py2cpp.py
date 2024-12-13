@@ -312,7 +312,7 @@ class Py2Cpp(ITranspiler):
 		this_vars = node.this_vars
 
 		# クラスの初期化ステートメントとそれ以外を分離
-		this_var_declares = [this_var.declare.as_a(defs.AnnoAssign) for this_var in this_vars]
+		this_var_declares = [this_var.declare.one_of(*defs.DeclAssignTs) for this_var in this_vars]
 		normal_statements: list[str] = []
 		initializer_statements: list[str] = []
 		super_initializer_statement = ''
@@ -392,7 +392,7 @@ class Py2Cpp(ITranspiler):
 		for this_var in node.this_vars:
 			this_var_name = this_var.tokens_without_this
 			# XXX 再帰的なトランスパイルで型名を解決
-			var_type = self.transpile(this_var.declare.as_a(defs.AnnoAssign).var_type)
+			var_type = self.transpile(this_var.declare.one_of(*defs.DeclAssignTs).var_type)
 			this_var_vars = {'accessor': self.to_accessor(defs.to_accessor(this_var_name)), 'symbol': this_var_name, 'var_type': var_type, 'decorators': decorators}
 			vars.append(self.view.render(f'{node.classification}/_decl_this_var', vars=this_var_vars))
 

@@ -23,14 +23,15 @@ def _ast(before: str) -> str:
 	_map = {
 		'Values': f'{_Values}',
 		'Base': f'{_Base}',
-		'Base.public_method': f'{_Base}.class_def_raw.block.function_def',
+		'Base.__init__': f'{_Base}.class_def_raw.block.function_def[2]',
+		'Base.public_method': f'{_Base}.class_def_raw.block.function_def[3]',
 		'Class': f'{_Class}',
-		'Class.class_method': f'{_Class}.class_def_raw.block.function_def[1]',
-		'Class.__init__': f'{_Class}.class_def_raw.block.function_def[2]',
-		'Class.__init__.method_in_closure': f'{_Class}.class_def_raw.block.function_def[2].function_def_raw.block.function_def',
-		'Class.property_method': f'{_Class}.class_def_raw.block.function_def[3]',
-		'Class.public_method': f'{_Class}.class_def_raw.block.function_def[4]',
-		'Class._protected_method': f'{_Class}.class_def_raw.block.function_def[5]',
+		'Class.class_method': f'{_Class}.class_def_raw.block.function_def[2]',
+		'Class.__init__': f'{_Class}.class_def_raw.block.function_def[3]',
+		'Class.__init__.method_in_closure': f'{_Class}.class_def_raw.block.function_def[3].function_def_raw.block.function_def',
+		'Class.property_method': f'{_Class}.class_def_raw.block.function_def[4]',
+		'Class.public_method': f'{_Class}.class_def_raw.block.function_def[5]',
+		'Class._protected_method': f'{_Class}.class_def_raw.block.function_def[6]',
 		'func': f'{_func}',
 		'func.func_in_closure': f'{_func}.function_def_raw.block.function_def',
 		'Class2': f'{_Class2}',
@@ -234,6 +235,23 @@ class TestDefinition(TestCase):
 		self.assertEqual(type(node.condition), expected['condition'])
 
 	@data_provider([
+		(_ast('Base.__init__'), {
+			'type': defs.Constructor,
+			'symbol': '__init__',
+			'accessor': 'public',
+			'decorators': [],
+			'parameters': [
+				{'symbol': 'self', 'var_type': 'Empty', 'default_value': 'Empty'},
+			],
+			'return': defs.NullType,
+			'decl_vars': [
+				{'symbol': 'self', 'decl_type': defs.Parameter},
+			],
+			'actual_symbol': None,
+			# Belong class only
+			'is_abstract': False,
+			'class_symbol': 'Base',
+		}),
 		(_ast('Base.public_method'), {
 			'type': defs.Method,
 			'symbol': 'public_method',
@@ -293,8 +311,6 @@ class TestDefinition(TestCase):
 			# Belong class only
 			'is_abstract': False,
 			'class_symbol': 'Class',
-			# Constructor only
-			'this_vars': ['self.n', 'self.s'],
 		}),
 		(_ast('Class.__init__.method_in_closure'), {
 			'type': defs.Closure,
@@ -478,9 +494,6 @@ class TestDefinition(TestCase):
 			self.assertEqual(node.is_abstract, expected['is_abstract'])
 			self.assertEqual(node.class_types.symbol.tokens, expected['class_symbol'])
 
-		if isinstance(node, defs.Constructor):
-			self.assertEqual([this_var.tokens for this_var in node.this_vars], expected['this_vars'])
-
 		if isinstance(node, defs.Method):
 			self.assertEqual(node.is_property, expected['is_property'])
 
@@ -490,11 +503,11 @@ class TestDefinition(TestCase):
 			'decorators': [],
 			'inherits': [],
 			'template_types': [],
-			'constructor_exists': False,
+			'constructor_exists': True,
 			'class_methods': [],
 			'methods': ['public_method'],
 			'class_vars': [],
-			'this_vars': [],
+			'this_vars': ['self.anno_n', 'self.move_s'],
 			'actual_symbol': None,
 		}),
 		(_ast('Class'), {
@@ -506,7 +519,7 @@ class TestDefinition(TestCase):
 			'class_methods': ['class_method'],
 			'methods': ['property_method', 'public_method', '_protected_method'],
 			'class_vars': ['cn'],
-			'this_vars': ['self.n', 'self.s'],
+			'this_vars': ['self.move_ns'],
 			'actual_symbol': None,
 		}),
 		(_ast('Class2'), {

@@ -167,6 +167,13 @@ class TestReflections(TestCase):
 		('ForFuncCall.call_to_call', 'function_def_raw.block.funccall', _mod('classes', 'int'), 'int'),
 		('ForFuncCall.indexer_call', 'function_def_raw.block.funccall', _mod('classes', 'int'), 'int'),
 		('ForFuncCall.callable_call', 'function_def_raw.block.return_stmt.funccall', _mod('__main__', 'T'), 'T'),
+
+		('ForClass.MoveDeclThisVar', '', _mod('type', 'type'), 'type<MoveDeclThisVar>'),
+		('ForClass.MoveDeclThisVar.cls_n', '', _mod('classes', 'int'), 'int'),
+		('ForClass.MoveDeclThisVar.n', '', _mod('classes', 'int'), 'int'),
+		('ForClass.MoveDeclThisVar.ss', '', _mod('classes', 'list'), 'list<str>'),
+		('ForClass.MoveDeclThisVar.__init__', 'function_def_raw.block.assign[1]', _mod('classes', 'list'), 'list<str>'),
+		('ForClass.MoveDeclThisVar.__init__', 'function_def_raw.block.assign[2]', _mod('classes', 'int'), 'int'),
 	])
 	def test_type_of(self, local_path: str, offset_path: str, expected: str, attrs_expected: str) -> None:
 		reflections = self.fixture.get(Reflections)

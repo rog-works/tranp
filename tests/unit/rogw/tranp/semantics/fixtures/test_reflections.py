@@ -364,6 +364,18 @@ class ForFuncCall:
 		return func(1, 'a')
 
 
+class ForClass:
+	class MoveDeclThisVar:
+		cls_n: ClassVar[int] = 0
+		n: int
+		ss: list[str]
+
+		def __init__(self) -> None:
+			self.n = 0
+			self.ss = [str(self.n)]
+			self.n = int(self.ss[0])
+
+
 TArgs = TypeVarTuple('TArgs')
 
 

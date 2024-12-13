@@ -657,10 +657,10 @@ class DeclableMatcher:
 		Returns:
 			str: メソッド名
 		Note:
-			* match_feature内でノードの再帰的な生成を避けるため、非推奨な方法でノードクエリーを解決 FIXME 解決方法に関しては再検討
+			* match_feature内でノードの再帰的な生成を避けるため、ノードクエリー経由で名前を取得 FIXME ノードクエリーの取得方法に関しては再検討
 			* メソッド名は必ず取得出来る前提で使用すること
 		"""
-		nodes: Query = getattr(via, '_Node__nodes')
+		nodes: Query[Node] = getattr(via, '_Node__nodes')
 		method_symbol_path = EntryPath(via.full_path).shift(shift).joined('function_def_raw.name')
 		return nodes.values(method_symbol_path)[0]
 

@@ -614,7 +614,11 @@ class Class(ClassDef):
 		return self.constructor.this_vars if self.constructor_exists else []
 
 	def this_var_type(self, symbol: str) -> Type:
-		filtered = [node.var_type for node in self.statements if isinstance(node, AnnoAssign) and isinstance(node.receiver, DeclThisVarForward) and node.domain_name == symbol]
+		filtered: list[Type] = []
+		for node in self.statements:
+			if isinstance(node, AnnoAssign) and isinstance(node.receiver, DeclThisVarForward) and node.receiver.domain_name == symbol:
+				filtered.append(node.var_type)
+
 		return filtered[0]
 
 

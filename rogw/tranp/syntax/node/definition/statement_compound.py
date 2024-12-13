@@ -613,13 +613,9 @@ class Class(ClassDef):
 	def this_vars(self) -> list[DeclThisVar]:
 		return self.constructor.this_vars if self.constructor_exists else []
 
-	def this_var_type(self, symbol: str) -> Type:
-		filtered: list[Type] = []
-		for node in self.statements:
-			if isinstance(node, AnnoAssign) and isinstance(node.receiver, DeclThisVarForward) and node.receiver.domain_name == symbol:
-				filtered.append(node.var_type)
-
-		return filtered[0]
+	@property
+	def this_var_types(self) -> dict[str, Type]:
+		return {node.receiver.domain_name: node.var_type for node in self.statements if isinstance(node, AnnoAssign) and isinstance(node.receiver, DeclThisVarForward)}
 
 
 @Meta.embed(Node)

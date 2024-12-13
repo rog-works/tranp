@@ -640,29 +640,14 @@ class DeclableMatcher:
 		if len(elems) < 5 or not elems[-5].startswith('function_def_raw'):
 			return False
 
+		method_symbol_path = via_full_path.shift(-5).joined('function_def_raw.name')
+		method_name = via.query_raw(method_symbol_path)[0]
 		tokens = via.tokens
-		in_constructor = cls.__dirty_fetch_method_name(via, -5) == '__init__'
+		in_constructor = method_name == '__init__'
 		in_decl_var = elems[-3] in ['assign', 'anno_assign'] and elems[-2] == 'assign_namelist'
 		is_property = tokens.startswith('self') and DSN.elem_counts(tokens) == 2
 		is_receiver = via_full_path.last[1] in [0, -1]  # 代入式の左辺が対象
 		return in_constructor and in_decl_var and is_property and is_receiver
-
-	@classmethod
-	def __dirty_fetch_method_name(cls, via: Node, shift: int) -> str:
-		"""指定のノードを基点に親のメソッド名を取得
-
-		Args:
-			via (Node): ノード
-			shift (int): 相対位置 ※function_def_rawまで
-		Returns:
-			str: メソッド名
-		Note:
-			* match_feature内でノードの再帰的な生成を避けるため、ノードクエリー経由で名前を取得 FIXME ノードクエリーの取得方法に関しては再検討
-			* メソッド名は必ず取得出来る前提で使用すること
-		"""
-		nodes: Query[Node] = getattr(via, '_Node__nodes')
-		method_symbol_path = EntryPath(via.full_path).shift(shift).joined('function_def_raw.name')
-		return nodes.values(method_symbol_path)[0]
 
 	@classmethod
 	def is_param_class(cls, via: Node) -> bool:

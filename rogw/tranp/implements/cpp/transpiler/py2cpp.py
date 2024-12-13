@@ -309,7 +309,7 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(f'function/{node.classification}', vars={**function_vars, **method_vars})
 
 	def on_constructor(self, node: defs.Constructor, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
-		this_vars = node.this_vars
+		this_vars = node.class_types.as_a(defs.Class).this_vars
 
 		# クラスの初期化ステートメントとそれ以外を分離
 		this_var_declares = [this_var.declare.one_of(*defs.DeclAssignTs) for this_var in this_vars]

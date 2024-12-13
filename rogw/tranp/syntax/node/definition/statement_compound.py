@@ -469,10 +469,6 @@ class Constructor(Function):
 	def class_types(self) -> ClassDef:
 		return self.parent.as_a(Block).parent.as_a(ClassDef)
 
-	@property
-	def this_vars(self) -> list[DeclThisVar]:
-		return self._decl_vars_with(DeclThisVar)
-
 
 @Meta.embed(Node)
 class Method(Function):
@@ -618,7 +614,7 @@ class Class(ClassDef):
 		if len(this_var_names) == 0:
 			return []
 
-		return [this_var for this_var in self.constructor.this_vars if this_var.tokens_without_this in this_var_names]
+		return [this_var for this_var in self.constructor._decl_vars_with(DeclThisVar) if this_var.tokens_without_this in this_var_names]
 
 	@property
 	def this_var_types(self) -> dict[str, Type]:

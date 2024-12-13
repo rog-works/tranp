@@ -9,7 +9,7 @@ from rogw.tranp.syntax.node.behavior import IDomain, INamespace, IScope
 from rogw.tranp.syntax.node.definition.accessible import PythonClassOperations, to_accessor
 from rogw.tranp.syntax.node.definition.element import Decorator, Parameter
 from rogw.tranp.syntax.node.definition.literal import Boolean, DocString, String
-from rogw.tranp.syntax.node.definition.primary import DeclClassVar, DeclLocalVar, Declable, ForIn, GenericType, InheritArgument, DeclThisParam, DeclThisVar, Type, TypesName, VarOfType
+from rogw.tranp.syntax.node.definition.primary import DeclClassVar, DeclLocalVar, DeclThisVarForward, Declable, ForIn, GenericType, InheritArgument, DeclThisParam, DeclThisVar, Type, TypesName, VarOfType
 from rogw.tranp.syntax.node.definition.statement_simple import AnnoAssign, MoveAssign
 from rogw.tranp.syntax.node.definition.terminal import Empty
 from rogw.tranp.syntax.node.embed import Meta, accept_tags, expandable
@@ -612,6 +612,10 @@ class Class(ClassDef):
 	@property
 	def this_vars(self) -> list[DeclThisVar]:
 		return self.constructor.this_vars if self.constructor_exists else []
+
+	def this_var_type(self, symbol: str) -> Type:
+		filtered = [node.var_type for node in self.statements if isinstance(node, AnnoAssign) and isinstance(node.receiver, DeclThisVarForward) and node.domain_name == symbol]
+		return filtered[0]
 
 
 @Meta.embed(Node)

@@ -119,6 +119,10 @@ class DeclThisVar(DeclVar):
 	def tokens_without_this(self) -> str:
 		return DSN.shift(self.tokens, 1)
 
+	@property
+	def class_types(self) -> Node:
+		return self._ancestor('class_def')
+
 
 @Meta.embed(Node, accept_tags('var', 'name'))
 class DeclLocalVar(DeclVar):

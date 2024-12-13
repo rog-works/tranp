@@ -611,7 +611,14 @@ class Class(ClassDef):
 
 	@property
 	def this_vars(self) -> list[DeclThisVar]:
-		return self.constructor.this_vars if self.constructor_exists else []
+		if not self.constructor_exists:
+			return []
+
+		this_var_names = self.this_var_types.keys()
+		if len(this_var_names) == 0:
+			return []
+
+		return [this_var for this_var in self.constructor.this_vars if this_var.tokens_without_this in this_var_names]
 
 	@property
 	def this_var_types(self) -> dict[str, Type]:

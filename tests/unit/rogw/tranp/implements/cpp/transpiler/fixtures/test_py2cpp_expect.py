@@ -170,6 +170,17 @@ class DeclOps {
 	}
 };"""
 
+	DeclProps = """/** DeclProps */
+class DeclProps {
+	public: inline static bool cls_b = true;
+	public: int anno_n;
+	public: std::string move_s;
+	public: std::map<std::string, int> move_dsn;
+	public:
+	/** __init__ */
+	DeclProps(int n, const std::string& s) : anno_n(atoi(s)), move_s(std::to_string(n)), move_dsn({{s, n}}) {}
+};"""
+
 	ForTemplateClass_Delegate = \
 """/** Delegate */
 template<typename ...TArgs>

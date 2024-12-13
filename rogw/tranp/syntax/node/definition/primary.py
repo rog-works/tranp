@@ -5,6 +5,7 @@ from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.lang.annotation import implements
 from rogw.tranp.lang.sequence import flatten, last_index_of
 from rogw.tranp.syntax.ast.path import EntryPath
+from rogw.tranp.syntax.ast.query import Query
 from rogw.tranp.syntax.errors import InvalidRelationError
 from rogw.tranp.syntax.node.behavior import IDomain, INamespace, IScope, ITerminal
 from rogw.tranp.syntax.node.definition.literal import Literal
@@ -609,6 +610,9 @@ class DeclableMatcher:
 			XXX 期待するパス: class_def_raw.block.anno_assign.assign_namelist.var
 		"""
 		via_full_path = EntryPath(via.full_path)
+		if len(via_full_path.elements) < 5 or not via_full_path.elements[-5].startswith('class_def_raw'):
+			return False
+
 		elems = via_full_path.de_identify().elements
 		actual_class_def_at = last_index_of(elems, 'class_def_raw')
 		expect_class_def_at = max(0, len(elems) - 5)
@@ -628,11 +632,32 @@ class DeclableMatcher:
 			bool: True = 対象
 		"""
 		via_full_path = EntryPath(via.full_path)
+		if len(via_full_path.elements) < 5 or not via_full_path.elements[-5].startswith('function_def_raw'):
+			return False
+
 		tokens = via.tokens
+		in_constructor = cls.__dirty_fetch_method_name(via, -5) == '__init__'
 		in_decl_var = via_full_path.de_identify().shift(-1).origin.endswith('anno_assign.assign_namelist')
 		is_property = tokens.startswith('self') and DSN.elem_counts(tokens) == 2
 		is_receiver = via_full_path.last[1] in [0, -1]  # 代入式の左辺が対象
-		return in_decl_var and is_property and is_receiver
+		return in_constructor and in_decl_var and is_property and is_receiver
+
+	@classmethod
+	def __dirty_fetch_method_name(cls, via: Node, shift: int) -> str:
+		"""指定のノードを基点に親のメソッド名を取得
+
+		Args:
+			via (Node): ノード
+			shift (int): 相対位置 ※function_def_rawまで
+		Returns:
+			str: メソッド名
+		Note:
+			* match_feature内でノードの再帰的な生成を避けるため、非推奨な方法でノードクエリーを解決 FIXME 解決方法に関しては再検討
+			* メソッド名は必ず取得出来る前提で使用すること
+		"""
+		nodes: Query = getattr(via, '_Node__nodes')
+		method_symbol_path = EntryPath(via.full_path).shift(shift).joined('function_def_raw.name')
+		return nodes.values(method_symbol_path)[0]
 
 	@classmethod
 	def is_param_class(cls, via: Node) -> bool:

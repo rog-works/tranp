@@ -457,7 +457,7 @@ class Py2Cpp(ITranspiler):
 
 		return self.view.render(f'assign/{node.classification}_destruction', vars={'receivers': receivers, 'value': value})
 
-	def on_anno_assign(self, node: defs.AnnoAssign, receiver: str, var_type: str, value: str) -> str:
+	def on_anno_assign(self, node: defs.AnnoAssign, receiver: str, var_type: str, value: str, annotation: str) -> str:
 		return self.view.render(f'assign/{node.classification}', vars={'receiver': receiver, 'var_type': var_type, 'value': value})
 
 	def on_aug_assign(self, node: defs.AugAssign, receiver: str, value: str) -> str:

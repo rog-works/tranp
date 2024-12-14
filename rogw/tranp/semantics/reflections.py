@@ -364,7 +364,7 @@ class ProceduralResolver:
 	def on_move_assign(self, node: defs.MoveAssign, receivers: list[IReflection], value: IReflection) -> IReflection:
 		return value.stack(node)
 
-	def on_anno_assign(self, node: defs.AnnoAssign, receiver: IReflection, var_type: IReflection, value: IReflection) -> IReflection:
+	def on_anno_assign(self, node: defs.AnnoAssign, receiver: IReflection, var_type: IReflection, value: IReflection, annotation: IReflection) -> IReflection:
 		return receiver.stack(node)
 
 	def on_aug_assign(self, node: defs.AugAssign, receiver: IReflection, value: IReflection) -> IReflection:

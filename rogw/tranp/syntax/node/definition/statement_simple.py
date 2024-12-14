@@ -68,8 +68,17 @@ class AnnoAssign(Assign, IDeclaration):
 	@property
 	@Meta.embed(Node, expandable)
 	def value(self) -> Node | Empty:
-		node = self._elements[2]
+		node = self._elements[-1]
 		return node if isinstance(node, Empty) else node
+
+	@property
+	@Meta.embed(Node, expandable)
+	def annotation(self) -> Node | Empty:
+		if self._exists('anno_meta'):
+			return self._by('anno_meta')._at(0)
+
+		# XXX valueのEmptyとの重複回避
+		return self.dirty_child(Empty, '__empty2__', tokens='')
 
 	@property
 	@implements

@@ -634,10 +634,11 @@ class TestDefinition(TestCase):
 	# Statement simple
 
 	@data_provider([
-		('a: dict[str, int] = {}', 'file_input.anno_assign', {'receiver': 'a', 'receiver_type': defs.DeclLocalVar, 'var_type': defs.DictType, 'value': defs.Dict}),
-		('def __init__(self) -> None: self.a: list[str] = []', 'file_input.function_def.function_def_raw.block.anno_assign', {'receiver': 'self.a', 'receiver_type': defs.DeclThisVar, 'var_type': defs.ListType, 'value': defs.List}),
-		('class A: a: ClassVar[str] = ""', 'file_input.class_def.class_def_raw.block.class_var_assign', {'receiver': 'a', 'receiver_type': defs.DeclClassVar, 'var_type': defs.VarOfType, 'value': defs.String}),
-		('class A: a: str', 'file_input.class_def.class_def_raw.block.anno_assign', {'receiver': 'a', 'receiver_type': defs.DeclThisVarForward, 'var_type': defs.VarOfType, 'value': defs.Empty}),
+		('a: dict[str, int] = {}', 'file_input.anno_assign', {'receiver': 'a', 'receiver_type': defs.DeclLocalVar, 'var_type': defs.DictType, 'value': defs.Dict, 'annotation': defs.Empty}),
+		('def __init__(self) -> None: self.a: list[str] = []', 'file_input.function_def.function_def_raw.block.anno_assign', {'receiver': 'self.a', 'receiver_type': defs.DeclThisVar, 'var_type': defs.ListType, 'value': defs.List, 'annotation': defs.Empty}),
+		('class A: a: ClassVar[str] = ""', 'file_input.class_def.class_def_raw.block.class_var_assign', {'receiver': 'a', 'receiver_type': defs.DeclClassVar, 'var_type': defs.VarOfType, 'value': defs.String, 'annotation': defs.Empty}),
+		('class A: a: str', 'file_input.class_def.class_def_raw.block.anno_assign', {'receiver': 'a', 'receiver_type': defs.DeclThisVarForward, 'var_type': defs.VarOfType, 'value': defs.Empty, 'annotation': defs.Empty}),
+		('a: Annotated[dict[str, int], embed("metadata")] = {}', 'file_input.anno_assign', {'receiver': 'a', 'receiver_type': defs.DeclLocalVar, 'var_type': defs.DictType, 'value': defs.Dict, 'annotation': defs.FuncCall}),
 	])
 	def test_anno_assign(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.AnnoAssign)
@@ -645,6 +646,7 @@ class TestDefinition(TestCase):
 		self.assertEqual(type(node.receiver), expected['receiver_type'])
 		self.assertEqual(type(node.var_type), expected['var_type'])
 		self.assertEqual(type(node.value), expected['value'])
+		self.assertTrue(node.annotation.is_a(expected['annotation']))
 
 	@data_provider([
 		('a = {}', 'file_input.assign', {'receivers': ['a'], 'receiver_types': [defs.DeclLocalVar], 'value': defs.Dict, 'var_type': defs.Empty}),

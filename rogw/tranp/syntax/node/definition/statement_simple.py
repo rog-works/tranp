@@ -46,9 +46,9 @@ class MoveAssign(Assign, IDeclaration):
 		symbols = self.receivers
 		if len(symbols) == 1 and isinstance(symbols[0], DeclThisVar):
 			# XXX クラス自体のインスタンス変数のみ補完。基底クラスの変数参照にはEmptyを返す
-			var_types = symbols[0].class_types.as_a(Class).this_var_types
-			if symbols[0].domain_name in var_types:
-				return var_types[symbols[0].domain_name]
+			decl_vars = symbols[0].class_types.as_a(Class).decl_this_vars
+			if symbols[0].tokens_without_this in decl_vars:
+				return decl_vars[symbols[0].tokens_without_this].var_type
 
 		return self.dirty_child(Empty, '__empty__', tokens='')
 

@@ -610,15 +610,15 @@ class Class(ClassDef):
 		if not self.constructor_exists:
 			return []
 
-		this_var_names = self.this_var_types.keys()
+		this_var_names = self.decl_this_vars.keys()
 		if len(this_var_names) == 0:
 			return []
 
 		return [this_var for this_var in self.constructor._decl_vars_with(DeclThisVar) if this_var.tokens_without_this in this_var_names]
 
 	@property
-	def this_var_types(self) -> dict[str, Type]:
-		return {node.receiver.domain_name: node.var_type for node in self.statements if isinstance(node, AnnoAssign) and isinstance(node.receiver, DeclThisVarForward)}
+	def decl_this_vars(self) -> dict[str, AnnoAssign]:
+		return {node.receiver.domain_name: node for node in self.statements if isinstance(node, AnnoAssign) and isinstance(node.receiver, DeclThisVarForward)}
 
 
 @Meta.embed(Node)

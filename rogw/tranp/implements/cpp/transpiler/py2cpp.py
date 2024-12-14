@@ -409,11 +409,12 @@ class Py2Cpp(ITranspiler):
 			class_var_vars = {'accessor': self.to_accessor(defs.to_accessor(class_var_name)), 'decl_class_var': decl_var_statements[index], 'decorators': decorators}
 			vars.append(self.view.render(f'{node.classification}/_decl_class_var', vars=class_var_vars))
 
+		decl_this_vars = node.decl_this_vars
 		for this_var in node.this_vars:
 			this_var_name = self.to_prop_name_by_decl_var(this_var)
 			# XXX 再帰的なトランスパイルで型名を解決
 			var_type = self.transpile(this_var.declare.one_of(*defs.DeclAssignTs).var_type)
-			this_var_vars = {'accessor': self.to_accessor(defs.to_accessor(this_var_name)), 'symbol': this_var_name, 'var_type': var_type, 'decorators': decorators}
+			this_var_vars = {'accessor': self.to_accessor(defs.to_accessor(this_var_name)), 'symbol': this_var_name, 'var_type': var_type, 'annotation': decl_this_vars[this_var.tokens_without_this]}
 			vars.append(self.view.render(f'{node.classification}/_decl_this_var', vars=this_var_vars))
 
 		class_vars = {'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'template_types': template_types, 'comment': comment, 'statements': other_statements, 'module_path': node.module_path, 'vars': vars, 'is_struct': is_struct}

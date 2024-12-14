@@ -607,6 +607,7 @@ class Class(ClassDef):
 
 	@property
 	def this_vars(self) -> list[DeclThisVar]:
+		"""コンストラクター内の変数宣言を取得"""
 		if not self.constructor_exists:
 			return []
 
@@ -618,6 +619,7 @@ class Class(ClassDef):
 
 	@property
 	def decl_this_vars(self) -> dict[str, AnnoAssign]:
+		"""前方宣言内の型/アノテーションを取得"""
 		return {node.receiver.domain_name: node for node in self.statements if isinstance(node, AnnoAssign) and isinstance(node.receiver, DeclThisVarForward)}
 
 

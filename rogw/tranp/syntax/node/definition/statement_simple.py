@@ -72,18 +72,17 @@ class AnnoAssign(Assign, IDeclaration):
 		return node if isinstance(node, Empty) else node
 
 	@property
-	@Meta.embed(Node, expandable)
+	@implements
+	def symbols(self) -> list[Declable]:
+		return [self.receiver]
+
+	@property
 	def annotation(self) -> Node | Empty:
 		if self._exists('anno_meta'):
 			return self._by('anno_meta')._at(0)
 
 		# XXX valueのEmptyとの重複回避
 		return self.dirty_child(Empty, '__empty2__', tokens='')
-
-	@property
-	@implements
-	def symbols(self) -> list[Declable]:
-		return [self.receiver]
 
 
 @Meta.embed(Node, accept_tags('aug_assign'))

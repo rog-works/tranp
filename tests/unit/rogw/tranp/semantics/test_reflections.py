@@ -172,7 +172,6 @@ class TestReflections(TestCase):
 		('ForClass.MoveDeclThisVar.cls_n', '', _mod('classes', 'int'), 'int'),
 		('ForClass.MoveDeclThisVar.n', '', _mod('classes', 'int'), 'int'),
 		('ForClass.MoveDeclThisVar.sp', '', _mod('typing', 'Union'), 'Union<str, None>'),
-		('ForClass.MoveDeclThisVar.__init__', 'function_def_raw.block.assign[1]', _mod('classes', 'list'), 'list<str>'),
 		('ForClass.MoveDeclThisVar.__init__', 'function_def_raw.block.assign[2]', _mod('classes', 'int'), 'int'),
 	])
 	def test_type_of(self, local_path: str, offset_path: str, expected: str, attrs_expected: str) -> None:

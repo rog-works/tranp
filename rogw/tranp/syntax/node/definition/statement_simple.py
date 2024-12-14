@@ -81,7 +81,7 @@ class AnnoAssign(Assign, IDeclaration):
 		if self._exists('anno_meta'):
 			return self._by('anno_meta')._at(0)
 
-		# XXX valueのEmptyとの重複回避
+		# XXX valueのEmptyとのタグ名重複を回避するため、ユニークなタグ名を設定
 		return self.dirty_child(Empty, '__empty2__', tokens='')
 
 

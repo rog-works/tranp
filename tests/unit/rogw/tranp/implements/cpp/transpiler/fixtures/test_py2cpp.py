@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from collections.abc import Callable
-from typing import ClassVar, Generic, Protocol, Self, TypeAlias, TypeVar, TypeVarTuple, cast
+from typing import Annotated, ClassVar, Generic, Protocol, Self, TypeAlias, TypeVar, TypeVarTuple, cast
 
 from rogw.tranp.compatible.cpp.classes import char, void
 from rogw.tranp.compatible.cpp.enum import CEnum as Enum
@@ -342,12 +342,10 @@ class GenericOps(Generic[T]):
 
 
 @Embed.struct
-@Embed.prop('a', '/** @var A */')
-@Embed.prop('b', '/** @var B */')
 @Embed.meta('class', 'meta')
 class Struct:
-	a: int
-	b: str
+	a: Annotated[int, '@var int']
+	b: Annotated[str, '@var str']
 
 	def __init__(self, a: int, b: str) -> None:
 		self.a: int = a

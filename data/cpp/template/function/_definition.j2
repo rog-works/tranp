@@ -1,2 +1,1 @@
-{%- set _parameters = parameters | select('!=', 'cls') | select('!=', 'self') -%}
 {{- return_type }} {{ symbol }}({% include('function/_definition_params.j2') %}){% if is_pure %} const{% endif %}{% if is_override %} override{% endif %}

@@ -607,18 +607,20 @@ class Class(ClassDef):
 
 	@property
 	def this_vars(self) -> list[DeclThisVar]:
+		"""コンストラクター内の変数宣言を取得"""
 		if not self.constructor_exists:
 			return []
 
-		this_var_names = self.this_var_types.keys()
+		this_var_names = self.decl_this_vars.keys()
 		if len(this_var_names) == 0:
 			return []
 
 		return [this_var for this_var in self.constructor._decl_vars_with(DeclThisVar) if this_var.tokens_without_this in this_var_names]
 
 	@property
-	def this_var_types(self) -> dict[str, Type]:
-		return {node.receiver.domain_name: node.var_type for node in self.statements if isinstance(node, AnnoAssign) and isinstance(node.receiver, DeclThisVarForward)}
+	def decl_this_vars(self) -> dict[str, AnnoAssign]:
+		"""前方宣言内の型/アノテーションを取得"""
+		return {node.receiver.domain_name: node for node in self.statements if isinstance(node, AnnoAssign) and isinstance(node.receiver, DeclThisVarForward)}
 
 
 @Meta.embed(Node)

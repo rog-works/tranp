@@ -46,9 +46,9 @@ class MoveAssign(Assign, IDeclaration):
 		symbols = self.receivers
 		if len(symbols) == 1 and isinstance(symbols[0], DeclThisVar):
 			# XXX クラス自体のインスタンス変数のみ補完。基底クラスの変数参照にはEmptyを返す
-			var_types = symbols[0].class_types.as_a(Class).this_var_types
-			if symbols[0].domain_name in var_types:
-				return var_types[symbols[0].domain_name]
+			decl_vars = symbols[0].class_types.as_a(Class).decl_this_vars
+			if symbols[0].tokens_without_this in decl_vars:
+				return decl_vars[symbols[0].tokens_without_this].var_type
 
 		return self.dirty_child(Empty, '__empty__', tokens='')
 
@@ -68,13 +68,21 @@ class AnnoAssign(Assign, IDeclaration):
 	@property
 	@Meta.embed(Node, expandable)
 	def value(self) -> Node | Empty:
-		node = self._elements[2]
+		node = self._elements[-1]
 		return node if isinstance(node, Empty) else node
 
 	@property
 	@implements
 	def symbols(self) -> list[Declable]:
 		return [self.receiver]
+
+	@property
+	def annotation(self) -> Node | Empty:
+		if self._exists('anno_meta'):
+			return self._by('anno_meta')._at(0)
+
+		# XXX valueのEmptyとのタグ名重複を回避するため、ユニークなタグ名を設定
+		return self.dirty_child(Empty, '__empty2__', tokens='')
 
 
 @Meta.embed(Node, accept_tags('aug_assign'))

@@ -171,7 +171,7 @@ class TestReflections(TestCase):
 		('ForClass.MoveDeclThisVar', '', _mod('type', 'type'), 'type<MoveDeclThisVar>'),
 		('ForClass.MoveDeclThisVar.cls_n', '', _mod('classes', 'int'), 'int'),
 		('ForClass.MoveDeclThisVar.n', '', _mod('classes', 'int'), 'int'),
-		('ForClass.MoveDeclThisVar.ss', '', _mod('classes', 'list'), 'list<str>'),
+		('ForClass.MoveDeclThisVar.sp', '', _mod('typing', 'Union'), 'Union<str, None>'),
 		('ForClass.MoveDeclThisVar.__init__', 'function_def_raw.block.assign[1]', _mod('classes', 'list'), 'list<str>'),
 		('ForClass.MoveDeclThisVar.__init__', 'function_def_raw.block.assign[2]', _mod('classes', 'int'), 'int'),
 	])

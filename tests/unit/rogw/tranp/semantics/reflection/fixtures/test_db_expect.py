@@ -815,7 +815,7 @@ def expected_symbols() -> dict[str, tuple[str, str]]:
 		'tests.unit.rogw.tranp.semantics.reflection.fixtures.test_db#ForFuncCall.callable_call.func': ('collections.abc#Callable', 'Callable<int, str, T>'),
 		'tests.unit.rogw.tranp.semantics.reflection.fixtures.test_db#ForClass.MoveDeclThisVar.cls_n': ('rogw.tranp.compatible.libralies.classes#int', 'int'),
 		'tests.unit.rogw.tranp.semantics.reflection.fixtures.test_db#ForClass.MoveDeclThisVar.n': ('rogw.tranp.compatible.libralies.classes#int', 'int'),
-		'tests.unit.rogw.tranp.semantics.reflection.fixtures.test_db#ForClass.MoveDeclThisVar.ss': ('rogw.tranp.compatible.libralies.classes#list', 'list<str>'),
+		'tests.unit.rogw.tranp.semantics.reflection.fixtures.test_db#ForClass.MoveDeclThisVar.sp': ('typing#Union', 'Union<str, None>'),
 		'tests.unit.rogw.tranp.semantics.reflection.fixtures.test_db#ForClass.MoveDeclThisVar.__init__.self': ('tests.unit.rogw.tranp.semantics.reflection.fixtures.test_db#ForClass.MoveDeclThisVar', 'MoveDeclThisVar'),
 		'tests.unit.rogw.tranp.semantics.reflection.fixtures.test_db#ForTemplateClass.Delegate.bind.self': ('tests.unit.rogw.tranp.semantics.reflection.fixtures.test_db#ForTemplateClass.Delegate', 'Delegate<TArgs>'),
 		'tests.unit.rogw.tranp.semantics.reflection.fixtures.test_db#ForTemplateClass.Delegate.bind.obj': ('tests.unit.rogw.tranp.semantics.reflection.fixtures.test_db#T', 'T'),

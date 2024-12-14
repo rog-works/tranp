@@ -175,17 +175,17 @@ class Py2Cpp(ITranspiler):
 		Returns:
 			str: プロパティー名
 		"""
-		return self.to_prop_name_by_decl_var(prop_raw.node.one_of(defs.DeclClassVar, defs.DeclThisVar, defs.DeclLocalVar))
+		return self.to_prop_name_by_decl_var(prop_raw.node.one_of(*defs.DeclAllTs))
 
-	def to_prop_name_by_decl_var(self, decl_var: defs.DeclClassVar | defs.DeclThisVar | defs.DeclLocalVar) -> str:
+	def to_prop_name_by_decl_var(self, decl: defs.DeclAll) -> str:
 		"""プロパティーの名前を取得
 
 		Args:
-			decl_var (DeclClassVar | DeclThisVar | DeclLocalVar): 変数宣言ノード ※本質的にはClass/Thisのみで問題ない。LocalはEnum用
+			decl (DeclAll): メソッド・変数宣言ノード
 		Returns:
 			str: プロパティー名
 		"""
-		return self.i18n.t(alias_dsn(decl_var.fullyname), fallback=decl_var.domain_name)
+		return self.i18n.t(alias_dsn(decl.fullyname), fallback=decl.domain_name)
 
 	def fetch_function_template_names(self, node: defs.Function) -> list[str]:
 		"""ファンクションのテンプレート型名を取得

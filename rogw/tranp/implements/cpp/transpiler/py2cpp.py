@@ -337,7 +337,7 @@ class Py2Cpp(ITranspiler):
 		# 親クラスのコンストラクター呼び出しのデータを生成
 		super_initializer = {}
 		if super_initializer_statement:
-			super_initializer['parent'] = super_initializer_statement.split('::')[0]
+			super_initializer['parent'] = super_initializer_statement.split('::')[-2]
 			# 期待値: `Class::__init__(a, b, c);`
 			super_initializer['arguments'] = PatternParser.pluck_super_arguments(super_initializer_statement)
 

@@ -371,12 +371,12 @@ class ForClass:
 	class MoveDeclThisVar:
 		cls_n: ClassVar[int] = 0
 		n: int
-		ss: list[str]
+		sp: str | None
 
 		def __init__(self) -> None:
 			self.n = 0
-			self.ss = [str(self.n)]
-			self.n = int(self.ss[0])
+			self.sp = None
+			self.n = int(cast(str, self.sp))
 
 
 TArgs = TypeVarTuple('TArgs')

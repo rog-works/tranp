@@ -43,7 +43,7 @@ class ResolveUnknown:
 			if not isinstance(raw.decl, defs.Declable):
 				continue
 
-			if isinstance(raw.decl.declare, defs.MoveAssign):
+			if isinstance(raw.decl.declare, defs.MoveAssign) and isinstance(raw.decl.declare.var_type, defs.Empty):
 				raw.mod_on('origin', self.make_mod(raw, raw.decl.declare.value))
 			elif isinstance(raw.decl.declare, (defs.For, defs.CompFor)):
 				raw.mod_on('origin', self.make_mod(raw, raw.decl.declare.for_in))

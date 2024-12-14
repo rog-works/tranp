@@ -171,14 +171,15 @@ class DeclOps {
 };"""
 
 	DeclProps = """/** DeclProps */
-class DeclProps {
+class DeclProps : public DeclPropsBase {
 	public: inline static bool cls_b = true;
-	public: int anno_n;
-	public: std::string move_s;
 	public: std::map<std::string, int> move_dsn;
 	public:
 	/** __init__ */
-	DeclProps(int n, const std::string& s) : anno_n(atoi(s)), move_s(std::to_string(n)), move_dsn({{s, n}}) {}
+	DeclProps(int n, const std::string& s) : DeclPropsBase(), move_dsn({{s, n}}) {
+		this->anno_n = atoi(s);
+		this->move_s = std::to_string(n);
+	}
 };"""
 
 	ForTemplateClass_Delegate = \

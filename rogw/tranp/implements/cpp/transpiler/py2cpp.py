@@ -175,9 +175,9 @@ class Py2Cpp(ITranspiler):
 		Returns:
 			str: プロパティー名
 		"""
-		return self.to_prop_name_by_decl_var(prop_raw.node.one_of(*defs.DeclAllTs))
+		return self.to_prop_name_by_decl(prop_raw.node.one_of(*defs.DeclAllTs))
 
-	def to_prop_name_by_decl_var(self, decl: defs.DeclAll) -> str:
+	def to_prop_name_by_decl(self, decl: defs.DeclAll) -> str:
 		"""プロパティーの名前を取得
 
 		Args:
@@ -412,7 +412,7 @@ class Py2Cpp(ITranspiler):
 		decl_this_vars = node.decl_this_vars
 		for this_var in node.this_vars:
 			decl_this_var = decl_this_vars[this_var.tokens_without_this]
-			this_var_name = self.to_prop_name_by_decl_var(this_var)
+			this_var_name = self.to_prop_name_by_decl(this_var)
 			# XXX 再帰的なトランスパイルで型名/アノテーションを解決
 			this_var_type = self.transpile(this_var.declare.one_of(*defs.DeclAssignTs).var_type)
 			this_var_annotation = self.transpile(decl_this_var.annotation) if not decl_this_var.annotation.is_a(defs.Empty) else ''

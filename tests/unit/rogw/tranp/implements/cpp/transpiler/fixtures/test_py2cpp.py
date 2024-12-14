@@ -357,6 +357,24 @@ class Struct:
 class ForCompound:
 	class Proto(Protocol): ...
 
+	class DeclPropsBase:
+		anno_n: int
+		move_s: str
+
+		def __init__(self) -> None:
+			self.anno_n: int = 0
+			self.move_s = ''
+
+	class DeclProps(DeclPropsBase):
+		cls_b: ClassVar[bool] = True
+		move_dsn: dict[str, int]
+
+		def __init__(self, n: int, s: str) -> None:
+			super().__init__()
+			self.anno_n = int(s)
+			self.move_s = str(n)
+			self.move_dsn = {s: n}
+
 	class ClassMethod:
 		@classmethod
 		def make(cls: type[Self]) -> Self:

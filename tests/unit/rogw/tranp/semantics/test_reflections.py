@@ -97,9 +97,9 @@ class TestReflections(TestCase):
 
 		('Sub.__init__', 'function_def_raw.block.funccall', _mod('__main__', 'Base'), 'Base'),
 		('Sub.__init__', 'function_def_raw.block.funccall.getattr.funccall.var', _mod('classes', 'super'), 'super() -> Any'),
-		('Sub.__init__', 'function_def_raw.block.anno_assign[1].assign_namelist.getattr', _mod('classes', 'list'), 'list<int>'),
-		('Sub.__init__', 'function_def_raw.block.anno_assign[1].typed_getitem', _mod('classes', 'list'), 'list<int>'),
-		('Sub.__init__', 'function_def_raw.block.anno_assign[1].list', _mod('classes', 'list'), 'list<Unknown>'),  # XXX 空のリストは型を補完できないためlist<Unknown>になる
+		('Sub.__init__', 'function_def_raw.block.anno_assign.assign_namelist.getattr', _mod('classes', 'list'), 'list<int>'),
+		('Sub.__init__', 'function_def_raw.block.anno_assign.typed_getitem', _mod('classes', 'list'), 'list<int>'),
+		('Sub.__init__', 'function_def_raw.block.anno_assign.list', _mod('classes', 'list'), 'list<Unknown>'),  # XXX 空のリストは型を補完できないためlist<Unknown>になる
 
 		('Sub.local_ref', 'function_def_raw.block.funccall.var', _mod('classes', 'print'), 'print(Any) -> None'),
 		('Sub.local_ref', 'function_def_raw.block.funccall.arguments.argvalue', _mod('classes', 'bool'), 'bool'),
@@ -167,6 +167,13 @@ class TestReflections(TestCase):
 		('ForFuncCall.call_to_call', 'function_def_raw.block.funccall', _mod('classes', 'int'), 'int'),
 		('ForFuncCall.indexer_call', 'function_def_raw.block.funccall', _mod('classes', 'int'), 'int'),
 		('ForFuncCall.callable_call', 'function_def_raw.block.return_stmt.funccall', _mod('__main__', 'T'), 'T'),
+
+		('ForClass.MoveDeclThisVar', '', _mod('type', 'type'), 'type<MoveDeclThisVar>'),
+		('ForClass.MoveDeclThisVar.cls_n', '', _mod('classes', 'int'), 'int'),
+		('ForClass.MoveDeclThisVar.n', '', _mod('classes', 'int'), 'int'),
+		('ForClass.MoveDeclThisVar.ss', '', _mod('classes', 'list'), 'list<str>'),
+		('ForClass.MoveDeclThisVar.__init__', 'function_def_raw.block.assign[1]', _mod('classes', 'list'), 'list<str>'),
+		('ForClass.MoveDeclThisVar.__init__', 'function_def_raw.block.assign[2]', _mod('classes', 'int'), 'int'),
 	])
 	def test_type_of(self, local_path: str, offset_path: str, expected: str, attrs_expected: str) -> None:
 		reflections = self.fixture.get(Reflections)

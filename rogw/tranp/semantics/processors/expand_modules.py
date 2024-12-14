@@ -187,10 +187,11 @@ class ExpandModules:
 				return var.declare.var_type.as_a(defs.Type)
 		elif isinstance(var.declare, (defs.AnnoAssign, defs.Catch)):
 			return var.declare.var_type
-		elif isinstance(var.declare, (defs.MoveAssign, defs.For, defs.CompFor, defs.WithEntry)):
-			# 型指定が無いため全てUnknown
-			return None
+		elif isinstance(var.declare, defs.MoveAssign) and isinstance(var.declare.var_type, defs.Type):
+			return var.declare.var_type
 
+		# その他は型指定が無いため全てUnknown
+		# 対象: For, CompFor, WithEntry, MoveAssign(インスタンス変数宣言以外)
 		return None
 
 	def _fallback_type_symbol(self, db: SymbolDB, decl_type: defs.Type | defs.ClassDef) -> IReflection | None:

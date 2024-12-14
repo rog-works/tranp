@@ -142,6 +142,8 @@ class Reflections:
 			return self.from_standard(type).stack(node).extends(self.resolve(node))
 		elif isinstance(node, defs.TypesName) and isinstance(node.parent, defs.Class):
 			return self.from_standard(type).stack(node).extends(self.resolve(node))
+		elif isinstance(node, defs.DeclThisVar) and isinstance(node.declare, defs.MoveAssign) and isinstance(node.declare.var_type, defs.Empty):
+			return self.resolve(node.class_types.as_a(defs.Class), node.tokens_without_this).stack(node)
 		else:
 			return self.resolve(node).stack(node)
 

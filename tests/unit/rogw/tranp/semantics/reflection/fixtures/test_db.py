@@ -45,7 +45,6 @@ class Sub(Base):
 	def __init__(self) -> None:
 		super().__init__()
 		self.numbers: 'list[int]' = []
-		self.C: C = C()
 
 	class Inner:
 		value: ClassVar[str] = ''
@@ -53,6 +52,10 @@ class Sub(Base):
 		@classmethod
 		def class_func(cls) -> dict[str, int]:
 			return {cls.value: value}
+
+	@property
+	def C(self) -> C:
+		...
 
 	@property
 	def first_number(self) -> int:
@@ -181,7 +184,7 @@ class Sub(Base):
 		c = self.decl_tuple(p)
 		return ('', '', '')
 
-	def imported_inner_type_ref(self, b: C.AA) -> None:
+	def imported_inner_type_ref(self, b: 'C.AA') -> None:
 		a = C.AA()
 
 
@@ -362,6 +365,18 @@ class ForFuncCall:
 
 	def callable_call(self, func: Callable[[int, str], T]) -> T:
 		return func(1, 'a')
+
+
+class ForClass:
+	class MoveDeclThisVar:
+		cls_n: ClassVar[int] = 0
+		n: int
+		ss: list[str]
+
+		def __init__(self) -> None:
+			self.n = 0
+			self.ss = [str(self.n)]
+			self.n = int(self.ss[0])
 
 
 TArgs = TypeVarTuple('TArgs')

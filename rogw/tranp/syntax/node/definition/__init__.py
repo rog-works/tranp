@@ -172,5 +172,6 @@ ClassOrType: TypeAlias = Class | AltClass | TemplateClass | Type
 DeclVarsTs = Parameter, Declable
 DeclAllTs = Parameter, Declable, ClassDef
 DeclClassesTs = Class, AltClass, TemplateClass
+DeclAssignTs = MoveAssign, AnnoAssign
 SymbolicTs = Declable, Relay, Var, Type, Literal, ClassDef
 ClassOrTypeTs = Class, AltClass, TemplateClass, Type

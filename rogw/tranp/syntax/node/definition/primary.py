@@ -5,6 +5,7 @@ from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.lang.annotation import implements
 from rogw.tranp.lang.sequence import flatten, last_index_of
 from rogw.tranp.syntax.ast.path import EntryPath
+from rogw.tranp.syntax.ast.query import Query
 from rogw.tranp.syntax.errors import InvalidRelationError
 from rogw.tranp.syntax.node.behavior import IDomain, INamespace, IScope, ITerminal
 from rogw.tranp.syntax.node.definition.literal import Literal
@@ -117,6 +118,10 @@ class DeclThisVar(DeclVar):
 	@property
 	def tokens_without_this(self) -> str:
 		return DSN.shift(self.tokens, 1)
+
+	@property
+	def class_types(self) -> Node:
+		return self._ancestor('class_def')
 
 
 @Meta.embed(Node, accept_tags('var', 'name'))
@@ -610,10 +615,13 @@ class DeclableMatcher:
 		"""
 		via_full_path = EntryPath(via.full_path)
 		elems = via_full_path.de_identify().elements
+		if len(elems) < 5 or not elems[-5].startswith('class_def_raw'):
+			return False
+
 		actual_class_def_at = last_index_of(elems, 'class_def_raw')
 		expect_class_def_at = max(0, len(elems) - 5)
 		in_decl_class_var = actual_class_def_at == expect_class_def_at
-		in_decl_var = via_full_path.de_identify().shift(-1).origin.endswith('anno_assign.assign_namelist')
+		in_decl_var = elems[-3] == 'anno_assign' and elems[-2] == 'assign_namelist'
 		is_local = DSN.elem_counts(via.tokens) == 1
 		is_receiver = via_full_path.last[1] in [0, -1]  # 代入式の左辺が対象
 		return in_decl_var and in_decl_class_var and is_local and is_receiver
@@ -628,11 +636,18 @@ class DeclableMatcher:
 			bool: True = 対象
 		"""
 		via_full_path = EntryPath(via.full_path)
+		elems = via_full_path.de_identify().elements
+		if len(elems) < 5 or not elems[-5].startswith('function_def_raw'):
+			return False
+
+		method_symbol_path = via_full_path.shift(-5).joined('function_def_raw.name')
+		method_name = via.query_raw(method_symbol_path)[0]
 		tokens = via.tokens
-		in_decl_var = via_full_path.de_identify().shift(-1).origin.endswith('anno_assign.assign_namelist')
+		in_constructor = method_name == '__init__'
+		in_decl_var = elems[-3] in ['assign', 'anno_assign'] and elems[-2] == 'assign_namelist'
 		is_property = tokens.startswith('self') and DSN.elem_counts(tokens) == 2
 		is_receiver = via_full_path.last[1] in [0, -1]  # 代入式の左辺が対象
-		return in_decl_var and is_property and is_receiver
+		return in_constructor and in_decl_var and is_property and is_receiver
 
 	@classmethod
 	def is_param_class(cls, via: Node) -> bool:

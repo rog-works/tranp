@@ -415,6 +415,19 @@ class Node:
 		"""
 		return self.__nodes.values(self.full_path)
 
+	def query_raw(self, full_path: str) -> list[str]:
+		"""指定のパス配下のノードの非正規データを取得
+
+		Args:
+			full_path (str): フルパス
+		Returns:
+			list[str]: 非正規データ
+		Note:
+			* XXX このメソッドによって何が得られるべきかを考慮するのは利用側に委ねられる
+			* XXX このメソッドは通常利用するべきではない。現状はDeclableMatcherでのみ利用を想定
+		"""
+		return self.__nodes.values(full_path)
+
 	def is_a(self, *ctor: type[T_Node]) -> bool:
 		"""指定のクラスと同じか派生クラスか判定
 
@@ -580,6 +593,3 @@ class Node:
 				lines.extend(in_lines)
 
 			return '\n'.join(lines)
-
-	# XXX def is_statement(self) -> bool: pass
-	# XXX def serialize(self) -> dict: pass

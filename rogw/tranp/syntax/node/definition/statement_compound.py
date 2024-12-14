@@ -9,7 +9,7 @@ from rogw.tranp.syntax.node.behavior import IDomain, INamespace, IScope
 from rogw.tranp.syntax.node.definition.accessible import PythonClassOperations, to_accessor
 from rogw.tranp.syntax.node.definition.element import Decorator, Parameter
 from rogw.tranp.syntax.node.definition.literal import Boolean, DocString, String
-from rogw.tranp.syntax.node.definition.primary import DeclClassVar, DeclLocalVar, Declable, ForIn, GenericType, InheritArgument, DeclThisParam, DeclThisVar, Type, TypesName, VarOfType
+from rogw.tranp.syntax.node.definition.primary import DeclClassVar, DeclLocalVar, DeclThisVarForward, Declable, ForIn, GenericType, InheritArgument, DeclThisParam, DeclThisVar, Type, TypesName, VarOfType
 from rogw.tranp.syntax.node.definition.statement_simple import AnnoAssign, MoveAssign
 from rogw.tranp.syntax.node.definition.terminal import Empty
 from rogw.tranp.syntax.node.embed import Meta, accept_tags, expandable
@@ -469,10 +469,6 @@ class Constructor(Function):
 	def class_types(self) -> ClassDef:
 		return self.parent.as_a(Block).parent.as_a(ClassDef)
 
-	@property
-	def this_vars(self) -> list[DeclThisVar]:
-		return self._decl_vars_with(DeclThisVar)
-
 
 @Meta.embed(Node)
 class Method(Function):
@@ -611,7 +607,18 @@ class Class(ClassDef):
 
 	@property
 	def this_vars(self) -> list[DeclThisVar]:
-		return self.constructor.this_vars if self.constructor_exists else []
+		if not self.constructor_exists:
+			return []
+
+		this_var_names = self.this_var_types.keys()
+		if len(this_var_names) == 0:
+			return []
+
+		return [this_var for this_var in self.constructor._decl_vars_with(DeclThisVar) if this_var.tokens_without_this in this_var_names]
+
+	@property
+	def this_var_types(self) -> dict[str, Type]:
+		return {node.receiver.domain_name: node.var_type for node in self.statements if isinstance(node, AnnoAssign) and isinstance(node.receiver, DeclThisVarForward)}
 
 
 @Meta.embed(Node)

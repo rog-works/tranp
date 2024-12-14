@@ -23,14 +23,15 @@ def _ast(before: str) -> str:
 	_map = {
 		'Values': f'{_Values}',
 		'Base': f'{_Base}',
-		'Base.public_method': f'{_Base}.class_def_raw.block.function_def',
+		'Base.__init__': f'{_Base}.class_def_raw.block.function_def[2]',
+		'Base.public_method': f'{_Base}.class_def_raw.block.function_def[3]',
 		'Class': f'{_Class}',
-		'Class.class_method': f'{_Class}.class_def_raw.block.function_def[1]',
-		'Class.__init__': f'{_Class}.class_def_raw.block.function_def[2]',
-		'Class.__init__.method_in_closure': f'{_Class}.class_def_raw.block.function_def[2].function_def_raw.block.function_def',
-		'Class.property_method': f'{_Class}.class_def_raw.block.function_def[3]',
-		'Class.public_method': f'{_Class}.class_def_raw.block.function_def[4]',
-		'Class._protected_method': f'{_Class}.class_def_raw.block.function_def[5]',
+		'Class.class_method': f'{_Class}.class_def_raw.block.function_def[2]',
+		'Class.__init__': f'{_Class}.class_def_raw.block.function_def[3]',
+		'Class.__init__.method_in_closure': f'{_Class}.class_def_raw.block.function_def[3].function_def_raw.block.function_def',
+		'Class.property_method': f'{_Class}.class_def_raw.block.function_def[4]',
+		'Class.public_method': f'{_Class}.class_def_raw.block.function_def[5]',
+		'Class._protected_method': f'{_Class}.class_def_raw.block.function_def[6]',
 		'func': f'{_func}',
 		'func.func_in_closure': f'{_func}.function_def_raw.block.function_def',
 		'Class2': f'{_Class2}',
@@ -234,6 +235,23 @@ class TestDefinition(TestCase):
 		self.assertEqual(type(node.condition), expected['condition'])
 
 	@data_provider([
+		(_ast('Base.__init__'), {
+			'type': defs.Constructor,
+			'symbol': '__init__',
+			'accessor': 'public',
+			'decorators': [],
+			'parameters': [
+				{'symbol': 'self', 'var_type': 'Empty', 'default_value': 'Empty'},
+			],
+			'return': defs.NullType,
+			'decl_vars': [
+				{'symbol': 'self', 'decl_type': defs.Parameter},
+			],
+			'actual_symbol': None,
+			# Belong class only
+			'is_abstract': False,
+			'class_symbol': 'Base',
+		}),
 		(_ast('Base.public_method'), {
 			'type': defs.Method,
 			'symbol': 'public_method',
@@ -293,8 +311,6 @@ class TestDefinition(TestCase):
 			# Belong class only
 			'is_abstract': False,
 			'class_symbol': 'Class',
-			# Constructor only
-			'this_vars': ['self.n', 'self.s'],
 		}),
 		(_ast('Class.__init__.method_in_closure'), {
 			'type': defs.Closure,
@@ -478,9 +494,6 @@ class TestDefinition(TestCase):
 			self.assertEqual(node.is_abstract, expected['is_abstract'])
 			self.assertEqual(node.class_types.symbol.tokens, expected['class_symbol'])
 
-		if isinstance(node, defs.Constructor):
-			self.assertEqual([this_var.tokens for this_var in node.this_vars], expected['this_vars'])
-
 		if isinstance(node, defs.Method):
 			self.assertEqual(node.is_property, expected['is_property'])
 
@@ -490,11 +503,11 @@ class TestDefinition(TestCase):
 			'decorators': [],
 			'inherits': [],
 			'template_types': [],
-			'constructor_exists': False,
+			'constructor_exists': True,
 			'class_methods': [],
 			'methods': ['public_method'],
 			'class_vars': [],
-			'this_vars': [],
+			'this_vars': ['self.anno_n', 'self.move_s'],
 			'actual_symbol': None,
 		}),
 		(_ast('Class'), {
@@ -506,7 +519,7 @@ class TestDefinition(TestCase):
 			'class_methods': ['class_method'],
 			'methods': ['property_method', 'public_method', '_protected_method'],
 			'class_vars': ['cn'],
-			'this_vars': ['self.n', 'self.s'],
+			'this_vars': ['self.move_ns'],
 			'actual_symbol': None,
 		}),
 		(_ast('Class2'), {
@@ -622,7 +635,7 @@ class TestDefinition(TestCase):
 
 	@data_provider([
 		('a: dict[str, int] = {}', 'file_input.anno_assign', {'receiver': 'a', 'receiver_type': defs.DeclLocalVar, 'var_type': defs.DictType, 'value': defs.Dict}),
-		('self.a: list[str] = []', 'file_input.anno_assign', {'receiver': 'self.a', 'receiver_type': defs.DeclThisVar, 'var_type': defs.ListType, 'value': defs.List}),
+		('def __init__(self) -> None: self.a: list[str] = []', 'file_input.function_def.function_def_raw.block.anno_assign', {'receiver': 'self.a', 'receiver_type': defs.DeclThisVar, 'var_type': defs.ListType, 'value': defs.List}),
 		('class A: a: ClassVar[str] = ""', 'file_input.class_def.class_def_raw.block.class_var_assign', {'receiver': 'a', 'receiver_type': defs.DeclClassVar, 'var_type': defs.VarOfType, 'value': defs.String}),
 		('class A: a: str', 'file_input.class_def.class_def_raw.block.anno_assign', {'receiver': 'a', 'receiver_type': defs.DeclThisVarForward, 'var_type': defs.VarOfType, 'value': defs.Empty}),
 	])
@@ -634,16 +647,18 @@ class TestDefinition(TestCase):
 		self.assertEqual(type(node.value), expected['value'])
 
 	@data_provider([
-		('a = {}', 'file_input.assign', {'receivers': ['a'], 'receiver_types': [defs.DeclLocalVar], 'value': defs.Dict}),
-		('a.b = 1', 'file_input.assign', {'receivers': ['a.b'], 'receiver_types': [defs.Relay], 'value': defs.Integer}),
-		('a[0] = []', 'file_input.assign', {'receivers': ['a.0'], 'receiver_types': [defs.Indexer], 'value': defs.List}),
-		('a, b = 1, 2', 'file_input.assign', {'receivers': ['a', 'b'], 'receiver_types': [defs.DeclLocalVar, defs.DeclLocalVar], 'value': defs.Tuple}),
+		('a = {}', 'file_input.assign', {'receivers': ['a'], 'receiver_types': [defs.DeclLocalVar], 'value': defs.Dict, 'var_type': defs.Empty}),
+		('a.b = 1', 'file_input.assign', {'receivers': ['a.b'], 'receiver_types': [defs.Relay], 'value': defs.Integer, 'var_type': defs.Empty}),
+		('a[0] = []', 'file_input.assign', {'receivers': ['a.0'], 'receiver_types': [defs.Indexer], 'value': defs.List, 'var_type': defs.Empty}),
+		('a, b = 1, 2', 'file_input.assign', {'receivers': ['a', 'b'], 'receiver_types': [defs.DeclLocalVar, defs.DeclLocalVar], 'value': defs.Tuple, 'var_type': defs.Empty}),
+		('class A:\n\ta: int\n\tdef __init__(self) -> None: self.a = 1', 'file_input.class_def.class_def_raw.block.function_def.function_def_raw.block.assign', {'receivers': ['self.a'], 'receiver_types': [defs.DeclThisVar], 'value': defs.Integer, 'var_type': defs.VarOfType}),
 	])
 	def test_move_assign(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.MoveAssign)
 		self.assertEqual([receiver.tokens for receiver in node.receivers], expected['receivers'])
 		self.assertEqual([type(receiver) for receiver in node.receivers], expected['receiver_types'])
 		self.assertEqual(type(node.value), expected['value'])
+		self.assertTrue(node.var_type.is_a(expected['var_type']))
 
 	@data_provider([
 		('a += 1', 'file_input.aug_assign', {'receiver': 'a', 'receiver_type': defs.Var, 'operator': '+=', 'value': defs.Integer}),
@@ -754,7 +769,7 @@ class TestDefinition(TestCase):
 		# Class/This
 		('class B(A):\n\tb: ClassVar[int] = a', 'file_input.class_def.class_def_raw.block.class_var_assign.assign_namelist.var', defs.DeclClassVar),
 		('class B(A):\n\tb: int', 'file_input.class_def.class_def_raw.block.anno_assign.assign_namelist.var', defs.DeclThisVarForward),
-		('self.b: int = self.a', 'file_input.anno_assign.assign_namelist.getattr', defs.DeclThisVar),
+		('def __init__(self) -> None:\n\tself.b: int = self.a', 'file_input.function_def.function_def_raw.block.anno_assign.assign_namelist.getattr', defs.DeclThisVar),
 		# Param/Class/This
 		('def func(a: int) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.DeclParam),
 		('def func(cls) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.name', defs.DeclClassParam),

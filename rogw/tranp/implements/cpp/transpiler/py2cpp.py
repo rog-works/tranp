@@ -167,6 +167,16 @@ class Py2Cpp(ITranspiler):
 		"""
 		return ClassDomainNaming.domain_name(types, alias_handler=self.i18n.t)
 
+	def to_actual_property_name(self, prop_raw: IReflection) -> str:
+		"""プロパティーの名前を取得
+
+		Args:
+			prop_raw (IReflection): プロパティー
+		Returns:
+			str: プロパティー名
+		"""
+		return self.i18n.t(alias_dsn(prop_raw.node.fullyname), fallback=prop_raw.node.domain_name)
+
 	def fetch_function_template_names(self, node: defs.Function) -> list[str]:
 		"""ファンクションのテンプレート型名を取得
 
@@ -309,10 +319,10 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(f'function/{node.classification}', vars={**function_vars, **method_vars})
 
 	def on_constructor(self, node: defs.Constructor, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
-		this_vars = node.this_vars
+		this_vars = node.class_types.as_a(defs.Class).this_vars
 
 		# クラスの初期化ステートメントとそれ以外を分離
-		this_var_declares = [this_var.declare.as_a(defs.AnnoAssign) for this_var in this_vars]
+		this_var_declares = [this_var.declare.one_of(*defs.DeclAssignTs) for this_var in this_vars]
 		normal_statements: list[str] = []
 		initializer_statements: list[str] = []
 		super_initializer_statement = ''
@@ -327,7 +337,7 @@ class Py2Cpp(ITranspiler):
 		# 親クラスのコンストラクター呼び出しのデータを生成
 		super_initializer = {}
 		if super_initializer_statement:
-			super_initializer['parent'] = super_initializer_statement.split('::')[0]
+			super_initializer['parent'] = super_initializer_statement.split('::')[-2]
 			# 期待値: `Class::__init__(a, b, c);`
 			super_initializer['arguments'] = PatternParser.pluck_super_arguments(super_initializer_statement)
 
@@ -392,7 +402,7 @@ class Py2Cpp(ITranspiler):
 		for this_var in node.this_vars:
 			this_var_name = this_var.tokens_without_this
 			# XXX 再帰的なトランスパイルで型名を解決
-			var_type = self.transpile(this_var.declare.as_a(defs.AnnoAssign).var_type)
+			var_type = self.transpile(this_var.declare.one_of(*defs.DeclAssignTs).var_type)
 			this_var_vars = {'accessor': self.to_accessor(defs.to_accessor(this_var_name)), 'symbol': this_var_name, 'var_type': var_type, 'decorators': decorators}
 			vars.append(self.view.render(f'{node.classification}/_decl_this_var', vars=this_var_vars))
 
@@ -559,15 +569,15 @@ class Py2Cpp(ITranspiler):
 		receiver_symbol = Defer.new(lambda: org_receiver_symbol.actualize().impl(refs.Object))
 		prop_symbol = Defer.new(lambda: receiver_symbol.prop_of(node.prop))
 		if self.is_relay_literalizer(node):
-			prop = node.prop.domain_name
-			if prop == '__name__':
-				return self.view.render(f'{node.classification}/literalize', vars={'prop': prop, 'literal': self.to_domain_name_by_class(receiver_symbol.types)})
-			if prop == '__module__':
-				return self.view.render(f'{node.classification}/literalize', vars={'prop': prop, 'literal': receiver_symbol.types.module_path})
+			org_prop = node.prop.domain_name
+			if org_prop == '__name__':
+				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'literal': self.to_domain_name_by_class(receiver_symbol.types)})
+			elif org_prop == '__module__':
+				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'literal': receiver_symbol.types.module_path})
 			else:
-				return self.view.render(f'{node.classification}/literalize', vars={'prop': prop, 'literal': receiver})
+				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'literal': receiver})
 		elif self.is_relay_this(node):
-			prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.Method) else node.prop.domain_name
+			prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.Method) else self.to_actual_property_name(prop_symbol)
 			is_property = isinstance(prop_symbol.decl, defs.Method) and prop_symbol.decl.is_property
 			return self.view.render(f'{node.classification}/default', vars={'receiver': receiver, 'operator': CVars.RelayOperators.Address.name, 'prop': prop, 'is_property': is_property})
 		elif self.is_relay_cvar(node, receiver_symbol):
@@ -580,7 +590,7 @@ class Py2Cpp(ITranspiler):
 			cvar_receiver = PatternParser.sub_cvar_relay(receiver)
 			cvar_key = CVars.key_from(receiver_symbol.context)
 			operator = CVars.to_operator(cvar_key).name
-			prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.Method) else node.prop.domain_name
+			prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.Method) else self.to_actual_property_name(prop_symbol)
 			is_property = isinstance(prop_symbol.decl, defs.Method) and prop_symbol.decl.is_property
 			return self.view.render(f'{node.classification}/default', vars={'receiver': cvar_receiver, 'operator': operator, 'prop': prop, 'is_property': is_property})
 		elif self.is_relay_cvar_exchanger(node):
@@ -591,11 +601,11 @@ class Py2Cpp(ITranspiler):
 			move = CVars.to_move(cvar_key, node.prop.domain_name)
 			return self.view.render(f'{node.classification}/cvar_to', vars={'receiver': cvar_receiver, 'move': move.name})
 		elif self.is_relay_type(node, org_receiver_symbol):
-			prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.ClassDef) else node.prop.domain_name
+			prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.ClassDef) else self.to_actual_property_name(prop_symbol)
 			is_property = isinstance(prop_symbol.decl, defs.Method) and prop_symbol.decl.is_property
 			return self.view.render(f'{node.classification}/default', vars={'receiver': receiver, 'operator': CVars.RelayOperators.Static.name, 'prop': prop, 'is_property': is_property})
 		else:
-			prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.Method) else node.prop.domain_name
+			prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.Method) else self.to_actual_property_name(prop_symbol)
 			is_property = isinstance(prop_symbol.decl, defs.Method) and prop_symbol.decl.is_property
 			return self.view.render(f'{node.classification}/default', vars={'receiver': receiver, 'operator': CVars.RelayOperators.Raw.name, 'prop': prop, 'is_property': is_property})
 

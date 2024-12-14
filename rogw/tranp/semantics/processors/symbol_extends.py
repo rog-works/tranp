@@ -43,6 +43,8 @@ class SymbolExtends:
 					raw.mod_on('attrs', self.make_mod_for_var(raw))
 				elif isinstance(raw.decl.declare, (defs.AnnoAssign, defs.Catch)):
 					raw.mod_on('attrs', self.make_mod_for_var(raw))
+				elif isinstance(raw.decl.declare, defs.MoveAssign) and isinstance(raw.decl.declare.var_type, defs.Type):
+					raw.mod_on('attrs', self.make_mod_for_var(raw))
 
 		return True
 	
@@ -159,5 +161,5 @@ class SymbolExtends:
 		Returns:
 			list[IReflection]: シンボル属性
 		"""
-		decl_type = via.decl.declare.one_of(defs.Parameter, defs.AnnoAssign, defs.Catch).var_type
+		decl_type = via.decl.declare.one_of(defs.Parameter, defs.MoveAssign, defs.AnnoAssign, defs.Catch).var_type.as_a(defs.Type)
 		return reflections.type_of(decl_type).attrs

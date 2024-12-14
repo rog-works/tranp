@@ -17,12 +17,20 @@ class Values(Enum):
 
 
 class Base:
+	anno_n: int
+	move_s: str
+
+	def __init__(self) -> None:
+		self.anno_n: int = 0
+		self.move_s = ''
+
 	@abstractmethod
 	def public_method(self) -> Values: ...
 
 
 class Class(Base):
 	cn: ClassVar[int] = 0
+	move_ns: list[int]
 
 	@classmethod
 	def class_method(cls) -> bool:
@@ -33,8 +41,10 @@ class Class(Base):
 			return False
 
 	def __init__(self, n: int, s: str) -> None:
-		self.n: int = n
-		self.s: str = s
+		super().__init__()
+		self.anno_n = n
+		self.move_s = s
+		self.move_ns = [n]
 		ln = n
 		lb: bool = False
 

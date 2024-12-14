@@ -2,7 +2,7 @@ from typing import override
 
 from rogw.tranp.lang.annotation import implements
 from rogw.tranp.syntax.node.behavior import ITerminal
-from rogw.tranp.syntax.node.definition.primary import FuncCall, ImportAsName, ImportPath, Reference, Declable, Type, Var
+from rogw.tranp.syntax.node.definition.primary import DeclThisVar, FuncCall, ImportAsName, ImportPath, Reference, Declable, Type, Var
 from rogw.tranp.syntax.node.definition.terminal import Empty, Terminal
 from rogw.tranp.syntax.node.embed import Meta, accept_tags, expandable
 from rogw.tranp.syntax.node.interface import IDeclaration
@@ -37,6 +37,20 @@ class MoveAssign(Assign, IDeclaration):
 	@implements
 	def symbols(self) -> list[Declable]:
 		return [node for node in self.receivers if isinstance(node, Declable)]
+
+	@property
+	def var_type(self) -> Type | Empty:
+		"""Note: インスタンス変数宣言に限り型を直接補完できるため許容する"""
+		from rogw.tranp.syntax.node.definition.statement_compound import Class  # FIXME 循環参照
+
+		symbols = self.receivers
+		if len(symbols) == 1 and isinstance(symbols[0], DeclThisVar):
+			# XXX クラス自体のインスタンス変数のみ補完。基底クラスの変数参照にはEmptyを返す
+			var_types = symbols[0].class_types.as_a(Class).this_var_types
+			if symbols[0].domain_name in var_types:
+				return var_types[symbols[0].domain_name]
+
+		return self.dirty_child(Empty, '__empty__', tokens='')
 
 
 @Meta.embed(Node, accept_tags('anno_assign', 'class_var_assign'))

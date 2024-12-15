@@ -75,8 +75,8 @@ function_def_raw: "def" name "(" [parameters] ")" "->" return_type ":" block
 parameters: paramvalue ("," paramvalue)* ["," starparam] ["," kwparams]
 	| starparam ["," kwparams]
 	| kwparams
-?paramvalue: typedparam ["=" expression]
-?typedparam: name [":" (starable_typed_expression | "'" starable_typed_expression "'")]
+paramvalue: typedparam ["=" expression]
+typedparam: name [":" (starable_typed_expression | "'" starable_typed_expression "'")]
 starparam: "*" typedparam
 kwparams: "**" typedparam
 

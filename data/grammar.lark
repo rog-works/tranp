@@ -76,7 +76,7 @@ parameters: paramvalue ("," paramvalue)* ["," starparam] ["," kwparams]
 	| starparam ["," kwparams]
 	| kwparams
 paramvalue: typedparam ["=" expression]
-typedparam: name [":" _decl_starable_typed_expression]
+typedparam: name (":" _decl_starable_typed_expression)?
 starparam: "*" typedparam
 kwparams: "**" typedparam
 

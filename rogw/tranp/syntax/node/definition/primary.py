@@ -566,8 +566,7 @@ class Comprehension(Generator, IDomain, IScope, INamespace):
 	@property
 	@Meta.embed(Node, expandable)
 	def condition(self) -> Node | Empty:
-		node = self._children('comprehension')[2]
-		return node if isinstance(node, Empty) else node
+		return self._children('comprehension')[2]
 
 	@property
 	@override

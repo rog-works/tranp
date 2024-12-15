@@ -30,8 +30,7 @@ class MoveAssign(Assign, IDeclaration):
 	@property
 	@Meta.embed(Node, expandable)
 	def value(self) -> Node | Empty:
-		node = self._elements[1]
-		return node if isinstance(node, Empty) else node
+		return self._elements[1]
 
 	@property
 	@implements
@@ -68,8 +67,7 @@ class AnnoAssign(Assign, IDeclaration):
 	@property
 	@Meta.embed(Node, expandable)
 	def value(self) -> Node | Empty:
-		node = self._elements[-1]
-		return node if isinstance(node, Empty) else node
+		return self._elements[-1]
 
 	@property
 	@implements
@@ -115,8 +113,7 @@ class Return(Node):
 	@property
 	@Meta.embed(Node, expandable)
 	def return_value(self) -> Node | Empty:
-		node = self._at(0)
-		return node if isinstance(node, Empty) else node
+		return self._at(0)
 
 	@property
 	def function(self) -> Node:

@@ -438,7 +438,9 @@ class Py2Cpp(ITranspiler):
 	# Function/Class Elements
 
 	def on_parameter(self, node: defs.Parameter, symbol: str, var_type: str, default_value: str) -> str:
-		return self.view.render(node.classification, vars={'symbol': symbol, 'var_type': var_type, 'default_value': default_value})
+		# XXX 再帰的なトランスパイルでアノテーションを解決
+		annotation = self.transpile(node.annotation) if not node.annotation.is_a(defs.Empty) else ''
+		return self.view.render(node.classification, vars={'symbol': symbol, 'var_type': var_type, 'default_value': default_value, 'annotation': annotation})
 
 	def on_decorator(self, node: defs.Decorator, path: str, arguments: list[str]) -> str:
 		return self.view.render(node.classification, vars={'path': path, 'arguments': arguments})

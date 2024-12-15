@@ -815,41 +815,6 @@ class TestRenderer(TestCase):
 		self.assertRender('function/_block', vars, expected)
 
 	@data_provider([
-		# 明示変換系
-		({'parameter': 'int n', 'decorators': []}, 'int n'),
-		({'parameter': 'int n', 'decorators': ['Embed.param("n", true)']}, 'int n'),
-		({'parameter': 'int n', 'decorators': ['Embed.param("n", false)']}, 'const int& n'),
-		({'parameter': 'int n = 1', 'decorators': []}, 'int n = 1'),
-		({'parameter': 'int n = 1', 'decorators': ['Embed.param("n", true)']}, 'int n = 1'),
-		({'parameter': 'int n = 1', 'decorators': ['Embed.param("n", false)']}, 'const int& n = 1'),
-		# 暗黙変換系
-		({'parameter': 'std::string s', 'decorators': []}, 'const std::string& s'),
-		({'parameter': 'std::string s', 'decorators': ['Embed.param("s", true)']}, 'std::string s'),
-		({'parameter': 'std::string s', 'decorators': ['Embed.param("s", false)']}, 'const std::string& s'),
-		({'parameter': 'std::vector<int> ns', 'decorators': []}, 'const std::vector<int>& ns'),
-		({'parameter': 'std::vector<int> ns', 'decorators': ['Embed.param("ns", true)']}, 'std::vector<int> ns'),
-		({'parameter': 'std::vector<int> ns', 'decorators': ['Embed.param("ns", false)']}, 'const std::vector<int>& ns'),
-		({'parameter': 'std::map<std::string, int> dns', 'decorators': []}, 'const std::map<std::string, int>& dns'),
-		({'parameter': 'std::map<std::string, int> dns', 'decorators': ['Embed.param("dns", true)']}, 'std::map<std::string, int> dns'),
-		({'parameter': 'std::map<std::string, int> dns', 'decorators': ['Embed.param("dns", false)']}, 'const std::map<std::string, int>& dns'),
-		# 変換不可系
-		({'parameter': 'std::string* p', 'decorators': []}, 'std::string* p'),
-		({'parameter': 'std::string* p', 'decorators': ['Embed.param("p", true)']}, 'std::string* p'),
-		({'parameter': 'std::string* p', 'decorators': ['Embed.param("p", false)']}, 'std::string* p'),
-		({'parameter': 'std::string& p', 'decorators': []}, 'std::string& p'),
-		({'parameter': 'std::string& p', 'decorators': ['Embed.param("p", true)']}, 'std::string& p'),
-		({'parameter': 'std::string& p', 'decorators': ['Embed.param("p", false)']}, 'std::string& p'),
-		({'parameter': 'const std::string p', 'decorators': []}, 'const std::string p'),
-		({'parameter': 'const std::string p', 'decorators': ['Embed.param("p", true)']}, 'const std::string p'),
-		({'parameter': 'const std::string p', 'decorators': ['Embed.param("p", false)']}, 'const std::string p'),
-		({'parameter': 'const std::string& p', 'decorators': []}, 'const std::string& p'),
-		({'parameter': 'const std::string& p', 'decorators': ['Embed.param("p", true)']}, 'const std::string& p'),
-		({'parameter': 'const std::string& p', 'decorators': ['Embed.param("p", false)']}, 'const std::string& p'),
-	])
-	def test_render_function_definition_param(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('function/_definition_param', vars, expected)
-
-	@data_provider([
 		({'parameters': ['A self'], 'decorators': []}, ''),
 		({'parameters': ['A self', 'bool b'], 'decorators': []}, 'bool b'),
 		({'parameters': ['type<A> cls'], 'decorators': []}, ''),
@@ -865,7 +830,7 @@ class TestRenderer(TestCase):
 			{
 				'symbol': 'func',
 				'decorators': ['deco(A, B)'],
-				'parameters': ['std::string text', 'int value = 1'],
+				'parameters': ['const std::string& text', 'int value = 1'],
 				'return_type': 'int',
 				'comment': '',
 				'statements': ['return value + 1;'],
@@ -885,7 +850,7 @@ class TestRenderer(TestCase):
 			{
 				'symbol': 'closure',
 				'decorators': [],
-				'parameters': ['std::string text', 'int value = 1'],
+				'parameters': ['const std::string& text', 'int value = 1'],
 				'return_type': 'int',
 				# 'comment': '',
 				'statements': ['return value + 1;'],
@@ -904,7 +869,7 @@ class TestRenderer(TestCase):
 			{
 				'symbol': 'closure_bind',
 				'decorators': ['Embed.closure_bind(this, a, b)'],
-				'parameters': ['std::string text', 'int value = 1'],
+				'parameters': ['const std::string& text', 'int value = 1'],
 				'return_type': 'int',
 				# 'comment': '',
 				'statements': ['return value + 1;'],
@@ -1211,6 +1176,41 @@ class TestRenderer(TestCase):
 	])
 	def test_render_list(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('list', vars, expected)
+
+	@data_provider([
+		# 明示変換系
+		({'var_type': 'int', 'symbol': 'n', 'default_value': '', 'annotation': ''}, 'int n'),
+		({'var_type': 'int', 'symbol': 'n', 'default_value': '', 'annotation': 'Embed::mutable'}, 'int n'),
+		({'var_type': 'int', 'symbol': 'n', 'default_value': '', 'annotation': 'Embed::immutable'}, 'const int& n'),
+		({'var_type': 'int', 'symbol': 'n', 'default_value': '1', 'annotation': ''}, 'int n = 1'),
+		({'var_type': 'int', 'symbol': 'n', 'default_value': '1', 'annotation': 'Embed::mutable'}, 'int n = 1'),
+		({'var_type': 'int', 'symbol': 'n', 'default_value': '1', 'annotation': 'Embed::immutable'}, 'const int& n = 1'),
+		# 暗黙変換系
+		({'var_type': 'std::string', 'symbol': 's', 'annotation': ''}, 'const std::string& s'),
+		({'var_type': 'std::string', 'symbol': 's', 'annotation': 'Embed::mutable'}, 'std::string s'),
+		({'var_type': 'std::string', 'symbol': 's', 'annotation': 'Embed::immutable'}, 'const std::string& s'),
+		({'var_type': 'std::string*', 'symbol': 'p', 'annotation': ''}, 'const std::string* p'),
+		({'var_type': 'std::string*', 'symbol': 'p', 'annotation': 'Embed::mutable'}, 'std::string* p'),
+		({'var_type': 'std::string*', 'symbol': 'p', 'annotation': 'Embed::immutable'}, 'const std::string* p'),
+		({'var_type': 'std::string&', 'symbol': 'p', 'annotation': ''}, 'const std::string& p'),
+		({'var_type': 'std::string&', 'symbol': 'p', 'annotation': 'Embed::mutable'}, 'std::string& p'),
+		({'var_type': 'std::string&', 'symbol': 'p', 'annotation': 'Embed::immutable'}, 'const std::string& p'),
+		({'var_type': 'std::vector<int>', 'symbol': 'ns', 'annotation': ''}, 'const std::vector<int>& ns'),
+		({'var_type': 'std::vector<int>', 'symbol': 'ns', 'annotation': 'Embed::mutable'}, 'std::vector<int> ns'),
+		({'var_type': 'std::vector<int>', 'symbol': 'ns', 'annotation': 'Embed::immutable'}, 'const std::vector<int>& ns'),
+		({'var_type': 'std::map<std::string, int>', 'symbol': 'dns', 'annotation': ''}, 'const std::map<std::string, int>& dns'),
+		({'var_type': 'std::map<std::string, int>', 'symbol': 'dns', 'annotation': 'Embed::mutable'}, 'std::map<std::string, int> dns'),
+		({'var_type': 'std::map<std::string, int>', 'symbol': 'dns', 'annotation': 'Embed::immutable'}, 'const std::map<std::string, int>& dns'),
+		# 変換不可系
+		({'var_type': 'const std::string', 'symbol': 'p', 'annotation': ''}, 'const std::string p'),
+		({'var_type': 'const std::string', 'symbol': 'p', 'annotation': 'Embed::mutable'}, 'const std::string p'),
+		({'var_type': 'const std::string', 'symbol': 'p', 'annotation': 'Embed::immutable'}, 'const std::string p'),
+		({'var_type': 'const std::string&', 'symbol': 'p', 'annotation': ''}, 'const std::string& p'),
+		({'var_type': 'const std::string&', 'symbol': 'p', 'annotation': 'Embed::mutable'}, 'const std::string& p'),
+		({'var_type': 'const std::string&', 'symbol': 'p', 'annotation': 'Embed::immutable'}, 'const std::string& p'),
+	])
+	def test_render_parameter(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('parameter', vars, expected)
 
 	@data_provider([
 		({'receiver': 'raw', 'move': 'ToAddress'}, '(&(raw))'),

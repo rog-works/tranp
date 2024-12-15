@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from typing import Any, TypeVar
+from typing import Any, ClassVar, TypeVar
 
 from rogw.tranp.compatible.libralies.classes import __actual__
 
@@ -7,7 +7,15 @@ T = TypeVar('T')
 
 
 class Embed:
-	"""埋め込みモジュール"""
+	"""埋め込みモジュール
+
+	Attributes:
+		mutable: 変性フラグ (対象: 仮引数)
+		immutable: 不変性フラグ (対象: 仮引数)
+	"""
+
+	mutable: ClassVar[bool] = True
+	immutable: ClassVar[bool] = True
 
 	@classmethod
 	def python(cls, wrapped: T) -> T:
@@ -131,47 +139,6 @@ class Embed:
 			@Embed.closure_bind(self, a, b)
 			def closure() -> int:
 				return self.n + a + b
-			```
-		"""
-		def decorator(wrapped: T) -> T:
-			return wrapped
-
-		return decorator
-
-	@classmethod
-	def param(cls, symbol: str, mutable: bool) -> Callable:
-		"""関数の引数にメタ情報を埋め込む
-
-		Args:
-			symbol (str): シンボル名
-			mutable (bool): True = Mutable
-		Returns:
-			Callable: デコレーター
-		Examples:
-			```python
-			@Embed.param('a', mutable=False)
-			def to_immutable(a: A) -> None: ...
-			```
-		"""
-		def decorator(wrapped: T) -> T:
-			return wrapped
-
-		return decorator
-
-	@classmethod
-	def prop(cls, symbol: str, meta: Any) -> Callable:
-		"""プロパティーにメタ情報を埋め込む
-
-		Args:
-			symbol (str): シンボル名
-			meta (Any): メタ情報
-		Returns:
-			Callable: デコレーター
-		Examples:
-			```python
-			@Embed.prop('a', 'meta')
-			class A:
-				a: int
 			```
 		"""
 		def decorator(wrapped: T) -> T:

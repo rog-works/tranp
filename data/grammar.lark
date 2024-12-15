@@ -76,7 +76,7 @@ parameters: paramvalue ("," paramvalue)* ["," starparam] ["," kwparams]
 	| starparam ["," kwparams]
 	| kwparams
 paramvalue: typedparam ["=" expression]
-typedparam: name [":" (starable_typed_expression | "'" starable_typed_expression "'")]
+typedparam: name [":" _decl_starable_typed_expression]
 starparam: "*" typedparam
 kwparams: "**" typedparam
 
@@ -93,6 +93,8 @@ typed_argvalue: typed_expression
 // @custom
 _decl_typed_expression: (typed_expression | "'" typed_expression "'")
 	| "Annotated" "[" (typed_expression | "'" typed_expression "'") "," anno_meta "]"
+_decl_starable_typed_expression: (starable_typed_expression | "'" starable_typed_expression "'")
+	| "Annotated" "[" (starable_typed_expression | "'" starable_typed_expression "'") "," anno_meta "]"
 anno_meta: expression
 
 // @custom

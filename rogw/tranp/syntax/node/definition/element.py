@@ -23,17 +23,19 @@ class Parameter(Node, IDeclaration, ISymbol):
 	@property
 	@Meta.embed(Node, expandable)
 	def var_type(self) -> Type | Empty:
-		return self._children('typedparam')[1].one_of(Type, Empty)
+		children = self._children('typedparam')
+		if len(children) > 1:
+			return children[1].one_of(Type, Empty)
+
+		return self._by('typedparam').dirty_child(Empty, '__empty__', tokens='')
 
 	@property
 	@Meta.embed(Node, expandable)
 	def default_value(self) -> Node | Empty:
 		children = self._children()
 		if len(children) == 2:
-			node = self._at(1)
-			return node if isinstance(node, Empty) else node
+			return self._at(1)
 
-		# XXX デフォルト引数のダミーを生成
 		return self.dirty_child(Empty, '__empty__', tokens='')
 
 	@property
@@ -45,6 +47,14 @@ class Parameter(Node, IDeclaration, ISymbol):
 	@implements
 	def declare(self) -> 'Parameter':
 		return self
+
+	@property
+	def annotation(self) -> Node | Empty:
+		children = self._children('typedparam')
+		if len(children) == 3:
+			return children[2]
+
+		return self._by('typedparam').dirty_child(Empty, '__empty__', tokens='')
 
 
 @Meta.embed(Node, accept_tags('decorator'))

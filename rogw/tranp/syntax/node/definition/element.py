@@ -52,7 +52,7 @@ class Parameter(Node, IDeclaration, ISymbol):
 	def annotation(self) -> Node | Empty:
 		children = self._children('typedparam')
 		if len(children) == 3:
-			return children[2]
+			return children[2]._at(0)
 
 		return self._by('typedparam').dirty_child(Empty, '__empty__', tokens='')
 

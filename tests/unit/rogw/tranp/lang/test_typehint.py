@@ -48,7 +48,7 @@ class Sub(Base):
 	def prop(self) -> int: ...
 
 
-def func(n: int) -> str: ...
+def func(n: int, fn: 'int', an: Annotated[int, 'meta'], afn: Annotated['int', 'meta']) -> str: ...
 
 
 class TestScalarTypehint(TestCase):
@@ -162,7 +162,7 @@ class TestFunctionTypehint(TestCase):
 		(Sub.prop, {'args': {}, 'returns': int}),
 		(_sub.cls_method, {'args': {'n': int}, 'returns': str}),
 		(_sub.self_method, {'args': {'l': list, 'd': dict}, 'returns': tuple}),
-		(func, {'args': {'n': int}, 'returns': str}),
+		(func, {'args': {'n': int, 'fn': int, 'an': int, 'afn': int}, 'returns': str}),
 	])
 	def test_signature(self, origin: Callable, expected: dict[str, Any]) -> None:
 		hint = FunctionTypehint(origin)

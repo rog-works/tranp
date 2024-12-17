@@ -1,6 +1,6 @@
 from collections.abc import Callable, Iterator
 from os import path as os_path
-from typing import Any, ClassVar, Generic, Self, TypeAlias, TypeVar, TypeVarTuple, cast
+from typing import Annotated, Any, ClassVar, Generic, Self, TypeAlias, TypeVar, TypeVarTuple, cast
 from yaml import safe_load as yaml_safe_load
 
 from rogw.tranp.compatible.cpp.enum import CEnum as Enum
@@ -370,14 +370,18 @@ class ForFuncCall:
 class ForClass:
 	class DeclThisVar:
 		cls_n: ClassVar[int] = 0
+		anno_dsn: dict[str, int]
 		n: int
 		sp: str | None
-		anno_dsn: dict[str, int]
+		ab: Annotated[bool, 'meta']
+		ac: Annotated['ForClass.DeclThisVar | None', 'meta']
 
 		def __init__(self) -> None:
+			self.anno_dsn: dict[str, int] = {'a': self.n}
 			self.n = 0
 			self.sp = None
-			self.anno_dsn: dict[str, int] = {'a': self.n}
+			self.ab = False
+			self.ac = None
 			self.n = int(cast(str, self.sp))
 
 

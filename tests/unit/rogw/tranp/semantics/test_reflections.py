@@ -166,10 +166,12 @@ class TestReflections(TestCase):
 
 		('ForClass.DeclThisVar', '', _mod('type', 'type'), 'type<DeclThisVar>'),
 		('ForClass.DeclThisVar.cls_n', '', _mod('classes', 'int'), 'int'),
+		('ForClass.DeclThisVar.anno_dsn', '', _mod('classes', 'dict'), 'dict<str, int>'),
 		('ForClass.DeclThisVar.n', '', _mod('classes', 'int'), 'int'),
 		('ForClass.DeclThisVar.sp', '', _mod('typing', 'Union'), 'Union<str, None>'),
-		('ForClass.DeclThisVar.anno_dsn', '', _mod('classes', 'dict'), 'dict<str, int>'),
-		('ForClass.DeclThisVar.__init__', 'function_def_raw.block.assign[3]', _mod('classes', 'int'), 'int'),
+		('ForClass.DeclThisVar.ab', '', _mod('classes', 'bool'), 'bool'),
+		('ForClass.DeclThisVar.ac', '', _mod('typing', 'Union'), 'Union<DeclThisVar, None>'),
+		('ForClass.DeclThisVar.__init__', 'function_def_raw.block.assign[5]', _mod('classes', 'int'), 'int'),
 	])
 	def test_type_of(self, local_path: str, offset_path: str, expected: str, attrs_expected: str) -> None:
 		reflections = self.fixture.get(Reflections)

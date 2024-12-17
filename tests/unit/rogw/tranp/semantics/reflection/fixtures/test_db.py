@@ -19,7 +19,7 @@ class Base(C):
 	base_str: str
 
 	def __init__(self) -> None:
-		self.base_str: str = S
+		self.base_str = S
 		# comment
 
 	@classmethod
@@ -44,7 +44,7 @@ class Sub(Base):
 
 	def __init__(self) -> None:
 		super().__init__()
-		self.numbers: 'list[int]' = []
+		self.numbers = []
 
 	class Inner:
 		value: ClassVar[str] = ''

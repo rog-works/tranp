@@ -78,9 +78,7 @@ class TestReflections(TestCase):
 		('Base', '', _mod('type', 'type'), 'type<Base>'),
 		('Base', 'class_def_raw.name', _mod('type', 'type'), 'type<Base>'),
 
-		('Base.__init__', 'function_def_raw.block.anno_assign.assign_namelist.getattr', _mod('classes', 'str'), 'str'),
-		('Base.__init__', 'function_def_raw.block.anno_assign.typed_var', _mod('classes', 'str'), 'str'),
-		('Base.__init__', 'function_def_raw.block.anno_assign.var', _mod('classes', 'str'), 'str'),
+		('Base.__init__', 'function_def_raw.block.assign.var', _mod('classes', 'str'), 'str'),
 		('Base.__init__', 'function_def_raw.block.comment_stmt', _mod('classes', 'Unknown'), 'Unknown'),
 
 		('Sub', '', _mod('type', 'type'), 'type<Sub>'),
@@ -97,9 +95,7 @@ class TestReflections(TestCase):
 
 		('Sub.__init__', 'function_def_raw.block.funccall', _mod('__main__', 'Base'), 'Base'),
 		('Sub.__init__', 'function_def_raw.block.funccall.getattr.funccall.var', _mod('classes', 'super'), 'super() -> Any'),
-		('Sub.__init__', 'function_def_raw.block.anno_assign.assign_namelist.getattr', _mod('classes', 'list'), 'list<int>'),
-		('Sub.__init__', 'function_def_raw.block.anno_assign.typed_getitem', _mod('classes', 'list'), 'list<int>'),
-		('Sub.__init__', 'function_def_raw.block.anno_assign.list', _mod('classes', 'list'), 'list<Unknown>'),  # XXX 空のリストは型を補完できないためlist<Unknown>になる
+		('Sub.__init__', 'function_def_raw.block.assign.list', _mod('classes', 'list'), 'list<Unknown>'),  # XXX 空のリストは型を補完できないためlist<Unknown>になる
 
 		('Sub.local_ref', 'function_def_raw.block.funccall.var', _mod('classes', 'print'), 'print(Any) -> None'),
 		('Sub.local_ref', 'function_def_raw.block.funccall.arguments.argvalue', _mod('classes', 'bool'), 'bool'),

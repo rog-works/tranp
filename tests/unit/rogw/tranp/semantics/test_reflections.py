@@ -164,11 +164,12 @@ class TestReflections(TestCase):
 		('ForFuncCall.indexer_call', 'function_def_raw.block.funccall', _mod('classes', 'int'), 'int'),
 		('ForFuncCall.callable_call', 'function_def_raw.block.return_stmt.funccall', _mod('__main__', 'T'), 'T'),
 
-		('ForClass.MoveDeclThisVar', '', _mod('type', 'type'), 'type<MoveDeclThisVar>'),
-		('ForClass.MoveDeclThisVar.cls_n', '', _mod('classes', 'int'), 'int'),
-		('ForClass.MoveDeclThisVar.n', '', _mod('classes', 'int'), 'int'),
-		('ForClass.MoveDeclThisVar.sp', '', _mod('typing', 'Union'), 'Union<str, None>'),
-		('ForClass.MoveDeclThisVar.__init__', 'function_def_raw.block.assign[2]', _mod('classes', 'int'), 'int'),
+		('ForClass.DeclThisVar', '', _mod('type', 'type'), 'type<DeclThisVar>'),
+		('ForClass.DeclThisVar.cls_n', '', _mod('classes', 'int'), 'int'),
+		('ForClass.DeclThisVar.n', '', _mod('classes', 'int'), 'int'),
+		('ForClass.DeclThisVar.sp', '', _mod('typing', 'Union'), 'Union<str, None>'),
+		('ForClass.DeclThisVar.anno_dsn', '', _mod('classes', 'dict'), 'dict<str, int>'),
+		('ForClass.DeclThisVar.__init__', 'function_def_raw.block.assign[3]', _mod('classes', 'int'), 'int'),
 	])
 	def test_type_of(self, local_path: str, offset_path: str, expected: str, attrs_expected: str) -> None:
 		reflections = self.fixture.get(Reflections)

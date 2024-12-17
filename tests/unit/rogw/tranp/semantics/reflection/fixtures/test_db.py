@@ -368,14 +368,16 @@ class ForFuncCall:
 
 
 class ForClass:
-	class MoveDeclThisVar:
+	class DeclThisVar:
 		cls_n: ClassVar[int] = 0
 		n: int
 		sp: str | None
+		anno_dsn: dict[str, int]
 
 		def __init__(self) -> None:
 			self.n = 0
 			self.sp = None
+			self.anno_dsn: dict[str, int] = {'a': self.n}
 			self.n = int(cast(str, self.sp))
 
 

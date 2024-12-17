@@ -1,11 +1,13 @@
 from collections.abc import Callable
 from typing import TypeVar
 
+from rogw.tranp.lang.annotation import deprecated
 from rogw.tranp.lang.typehint import ClassTypehint
 
 T = TypeVar('T')
 
 
+@deprecated
 def validation(klass: type[T], lookup_private: bool = True, factory: Callable[[], T] | None = None) -> bool:
 	"""クラスの実装スキーマバリデーション
 
@@ -17,6 +19,8 @@ def validation(klass: type[T], lookup_private: bool = True, factory: Callable[[]
 		bool: True = 成功
 	Raises:
 		TypeError: 設計と実体の不一致
+	Note:
+		@deprecated 設計と実体に食い違いが出ない実装方法が取れるようになったため非推奨
 	"""
 	hint = ClassTypehint(klass)
 	instance = factory() if factory else klass()

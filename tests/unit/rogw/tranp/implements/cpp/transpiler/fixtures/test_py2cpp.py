@@ -44,7 +44,7 @@ class Sub(Base):
 	base_n: int
 
 	def __init__(self, n: int) -> None:
-		self.base_n: int = n
+		self.base_n = n
 
 	def sub_implements(self) -> None: ...
 	def call(self) -> None: ...
@@ -69,11 +69,11 @@ class DeclOps:
 	inst_tsiis: list[TSII]
 
 	def __init__(self) -> None:
-		self.inst_var0: CP[Sub] | None = None
+		self.inst_var0 = None
 		self.inst_var1: Sub
-		self.inst_arr: list[CP[int]] = []
-		self.inst_map: dict[str, CP[int]] = {}
-		self.inst_tsiis: list[TSII] = []
+		self.inst_arr = []
+		self.inst_map = {}
+		self.inst_tsiis = []
 		n = self.prop
 
 	@property
@@ -236,7 +236,7 @@ class AccessOps(Sub):
 
 	def __init__(self) -> None:
 		super().__init__(0)
-		self.sub_s: str = ''
+		self.sub_s = ''
 
 	def dot(self, a: 'AccessOps') -> None:
 		print(a.base_n)
@@ -280,7 +280,7 @@ class Alias:
 	inner: 'Alias.Inner'
 
 	def __init__(self) -> None:
-		self.inner: Alias.Inner = Alias.Inner()
+		self.inner = Alias.Inner()
 
 	class Values(Enum):
 		A = 1
@@ -348,8 +348,8 @@ class Struct:
 	b: Annotated[str, '@var str']
 
 	def __init__(self, a: int, b: str) -> None:
-		self.a: int = a
-		self.b: str = b
+		self.a = a
+		self.b = b
 
 
 class ForCompound:
@@ -587,7 +587,7 @@ class ForFuncCall:
 		func: Callable[[int, str], bool]
 
 		def __init__(self, func: Callable[[int, str], bool]) -> None:
-			self.func: Callable[[int, str], bool] = func
+			self.func = func
 
 	def move_assign(self, caller: CallableType) -> None:
 		func = caller.func

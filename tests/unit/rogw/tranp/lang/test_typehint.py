@@ -23,8 +23,8 @@ class Base:
 	__private: int
 
 	def __init__(self) -> None:
-		self.d: dict[str, int] = {}
-		self.__private: int = 0
+		self.d = {}
+		self.__private = 0
 
 	@classmethod
 	def cls_method(cls, n: int) -> str: ...
@@ -38,9 +38,9 @@ class Sub(Base):
 
 	def __init__(self) -> None:
 		super().__init__()
-		self.t: tuple[str, int, bool] = '', 0, False
-		self.obj: Base | None = None
-		self.p: Gen[Base] | None = None
+		self.t = '', 0, False
+		self.obj = None
+		self.p = None
 
 	def self_method(self, l: list[int], d: 'dict[str, int]') -> 'tuple[str, int, bool]': ...
 

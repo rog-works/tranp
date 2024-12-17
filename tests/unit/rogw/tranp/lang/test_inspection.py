@@ -4,7 +4,7 @@ from types import FunctionType, MethodType, NoneType, UnionType
 from typing import Annotated, Any, ClassVar, Generic, TypeVar, cast
 from unittest import TestCase
 
-from rogw.tranp.lang.inspection import FuncClasses, Typehint, Inspector, ClassTypehint, FunctionTypehint, ScalarTypehint
+from rogw.tranp.lang.typehint import FuncClasses, Typehint, Inspector, ClassTypehint, FunctionTypehint, ScalarTypehint
 from rogw.tranp.test.helper import data_provider
 from rogw.tranp.test.validation import validation
 

@@ -1,7 +1,7 @@
 from collections.abc import Callable
 from typing import TypeVar
 
-from rogw.tranp.lang.inspection import ClassTypehint
+from rogw.tranp.lang.typehint import ClassTypehint
 
 T = TypeVar('T')
 

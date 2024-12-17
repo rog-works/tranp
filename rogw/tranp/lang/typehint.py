@@ -94,7 +94,7 @@ class ScalarTypehint(Typehint):
 	@property
 	def sub_types(self) -> list[Typehint]:
 		"""list[Typehint]: ジェネリック/Union型のサブタイプのリスト"""
-		return [Inspector.resolve(sub_type) for sub_type in self.__sub_annos]
+		return [Typehints.resolve(sub_type) for sub_type in self.__sub_annos]
 
 	@property
 	def __sub_annos(self) -> list[type[Any]]:
@@ -161,12 +161,12 @@ class FunctionTypehint(Typehint):
 	@property
 	def args(self) -> dict[str, Typehint]:
 		"""dict[str, Typehint]: 引数リスト"""
-		return {key: Inspector.resolve(in_type, self.__via_module_path) for key, in_type in self.__annos.items() if key != 'return'}
+		return {key: Typehints.resolve(in_type, self.__via_module_path) for key, in_type in self.__annos.items() if key != 'return'}
 
 	@property
 	def returns(self) -> Typehint:
 		"""Typehint: 戻り値"""
-		return Inspector.resolve(self.__annos['return'], self.__via_module_path)
+		return Typehints.resolve(self.__annos['return'], self.__via_module_path)
 
 	@property
 	def __via_module_path(self) -> str:
@@ -230,7 +230,7 @@ class ClassTypehint(Typehint):
 	def sub_types(self) -> list[Typehint]:
 		"""list[Typehint]: ジェネリック型のサブタイプのリスト"""
 		sub_annos: list[type[Any]] = getattr(self._type, '__args__', [])
-		return [Inspector.resolve(sub_type, self._type.__module__) for sub_type in sub_annos]
+		return [Typehints.resolve(sub_type, self._type.__module__) for sub_type in sub_annos]
 
 	@property
 	def constructor(self) -> FunctionTypehint:
@@ -257,7 +257,7 @@ class ClassTypehint(Typehint):
 			dict[str, Typehint]: インスタンス変数一覧
 		"""
 		annos = {key: anno for key, anno in self.__recursive_annos(self._type, lookup_private).items() if self.__try_get_origin(anno) is not ClassVar}
-		return {key: Inspector.resolve(attr, self._type.__module__) for key, attr in annos.items()}
+		return {key: Typehints.resolve(attr, self._type.__module__) for key, attr in annos.items()}
 	
 	def __try_get_origin(self, anno: type[Any]) -> type[Any]:
 		"""アノテーションから元のタイプ取得を試行
@@ -331,7 +331,7 @@ def _resolve_type_from_str(type_str: str, via_module_path: str) -> type[Any]:
 T = TypeVar('T')
 
 
-class Inspector:
+class Typehints:
 	"""タイプヒントリゾルバー"""
 
 	@classmethod

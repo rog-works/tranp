@@ -4,7 +4,7 @@ from types import FunctionType, MethodType, NoneType, UnionType
 from typing import Annotated, Any, ClassVar, Generic, TypeVar, cast
 from unittest import TestCase
 
-from rogw.tranp.lang.typehint import FuncClasses, Typehint, Inspector, ClassTypehint, FunctionTypehint, ScalarTypehint
+from rogw.tranp.lang.typehint import FuncClasses, Typehint, Typehints, ClassTypehint, FunctionTypehint, ScalarTypehint
 from rogw.tranp.test.helper import data_provider
 from rogw.tranp.test.validation import validation
 
@@ -216,7 +216,7 @@ class TestClassTypehint(TestCase):
 		self.assertEqual([key for key in hint.methods.keys()], expected['methods'])
 
 
-class TestInspector(TestCase):
+class TestTypehints(TestCase):
 	@data_provider([
 		(int, ScalarTypehint),
 		(str, ScalarTypehint),
@@ -236,11 +236,11 @@ class TestInspector(TestCase):
 		(Gen[Base] | None, ScalarTypehint),
 		(Annotated[int, 'meta'], ScalarTypehint),
 		(func, FunctionTypehint),
-		(Inspector.resolve, FunctionTypehint),
-		(Inspector, ClassTypehint),
+		(Typehints.resolve, FunctionTypehint),
+		(Typehints, ClassTypehint),
 	])
 	def test_resolve(self, origin: type, expected: Typehint) -> None:
-		self.assertEqual(type(Inspector.resolve(origin)), expected)
+		self.assertEqual(type(Typehints.resolve(origin)), expected)
 
 	def test_validation(self) -> None:
 		self.assertTrue(validation(Sub, lookup_private=False))

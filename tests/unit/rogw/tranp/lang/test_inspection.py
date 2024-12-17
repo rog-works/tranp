@@ -1,7 +1,7 @@
 from collections.abc import Callable
 from enum import Enum, EnumType
 from types import FunctionType, MethodType, NoneType, UnionType
-from typing import Any, ClassVar, Generic, TypeVar, cast
+from typing import Annotated, Any, ClassVar, Generic, TypeVar, cast
 from unittest import TestCase
 
 from rogw.tranp.lang.inspection import FuncClasses, Typehint, Inspector, ClassTypehint, FunctionTypehint, ScalarTypehint
@@ -234,6 +234,7 @@ class TestInspector(TestCase):
 		(type(None), ScalarTypehint),
 		(Base | None, ScalarTypehint),
 		(Gen[Base] | None, ScalarTypehint),
+		(Annotated[int, 'meta'], ScalarTypehint),
 		(func, FunctionTypehint),
 		(Inspector.resolve, FunctionTypehint),
 		(Inspector, ClassTypehint),

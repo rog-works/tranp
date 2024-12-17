@@ -2,7 +2,7 @@ from collections.abc import Callable
 from enum import Enum, EnumType
 from importlib import import_module
 from types import FunctionType, MethodType, NoneType, UnionType
-from typing import Annotated, Any, ClassVar, TypeAlias, TypeVar, Union, get_origin, override
+from typing import Annotated, Any, ClassVar, ForwardRef, TypeAlias, TypeVar, Union, get_origin, override
 
 FuncTypes: TypeAlias = FunctionType | MethodType | property | classmethod
 
@@ -363,17 +363,18 @@ class Typehints:
 			type[Any] | FuncTypes: オリジン
 		Raises:
 			ValueError: 由来が不明な場合に文字列のタイプヒントを使用
+		Note:
+			Annotated/ForwardRefは型情報として意味を成さないので暗黙的にアンパック
 		"""
-		if get_origin(origin) is Annotated:
-			return getattr(origin, '__origin__')
-
-		if not isinstance(origin, str):
-			return origin
+		_origin = getattr(origin, '__origin__') if get_origin(origin) is Annotated else origin
+		_origin = _origin.__forward_arg__ if type(_origin) is ForwardRef else _origin
+		if not isinstance(_origin, str):
+			return _origin
 
 		if len(via_module_path) == 0:
 			raise ValueError(f'Unresolved origin type. via module is empty. origin: {origin}')
 
-		return _resolve_type_from_str(origin, via_module_path)
+		return _resolve_type_from_str(_origin, via_module_path)
 
 	@classmethod
 	def __is_scalar(cls, origin: type[Any]) -> bool:

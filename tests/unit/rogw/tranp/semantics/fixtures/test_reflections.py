@@ -367,6 +367,11 @@ class ForFuncCall:
 		return func(1, 'a')
 
 
+class ForFunction:
+	def anno_param(self, an: Annotated[int, 'meta'], ab: Annotated['bool', 'meta']) -> None:
+		...
+
+
 class ForClass:
 	class DeclThisVar:
 		cls_n: ClassVar[int] = 0

@@ -164,6 +164,9 @@ class TestReflections(TestCase):
 		('ForFuncCall.indexer_call', 'function_def_raw.block.funccall', _mod('classes', 'int'), 'int'),
 		('ForFuncCall.callable_call', 'function_def_raw.block.return_stmt.funccall', _mod('__main__', 'T'), 'T'),
 
+		('ForFunction.anno_param', 'function_def_raw.parameters.paramvalue[1].typedparam.name', _mod('classes', 'int'), 'int'),
+		('ForFunction.anno_param', 'function_def_raw.parameters.paramvalue[2].typedparam.name', _mod('classes', 'bool'), 'bool'),
+
 		('ForClass.DeclThisVar', '', _mod('type', 'type'), 'type<DeclThisVar>'),
 		('ForClass.DeclThisVar.cls_n', '', _mod('classes', 'int'), 'int'),
 		('ForClass.DeclThisVar.anno_dsn', '', _mod('classes', 'dict'), 'dict<str, int>'),

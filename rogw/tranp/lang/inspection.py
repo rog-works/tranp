@@ -2,7 +2,7 @@ from collections.abc import Callable
 from enum import Enum, EnumType
 from importlib import import_module
 from types import FunctionType, MethodType, NoneType, UnionType
-from typing import Any, ClassVar, TypeAlias, TypeVar, Union, override
+from typing import Annotated, Any, ClassVar, TypeAlias, TypeVar, Union, get_origin, override
 
 FuncTypes: TypeAlias = FunctionType | MethodType | property | classmethod
 
@@ -364,6 +364,9 @@ class Inspector:
 		Raises:
 			ValueError: 由来が不明な場合に文字列のタイプヒントを使用
 		"""
+		if get_origin(origin) is Annotated:
+			return getattr(origin, '__origin__')
+
 		if not isinstance(origin, str):
 			return origin
 

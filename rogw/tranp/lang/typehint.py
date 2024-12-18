@@ -319,10 +319,15 @@ def _resolve_type_from_str(type_str: str, via_module_path: str) -> type[Any]:
 		via_module_path (str): 由来のモジュールパス
 	Returns:
 		type[Any]: 解決したタイプ
+	Raises:
+		ValueError: 由来がモジュールパスが不正
 	Note:
 		* `eval`を使用して文字列からタイプを強引に解決する
 		* ユーザー定義型は由来のモジュール内によって明示されているシンボルのみ解決が出来る
 	"""
+	if len(via_module_path) == 0:
+		raise ValueError(f'Unresolved origin type. via module is empty. origin: {type_str}')
+
 	module = import_module(via_module_path)
 	depends = {key: symbol for key, symbol in module.__dict__.items() if not key.startswith('__')}
 	return eval(type_str, depends)
@@ -361,20 +366,19 @@ class Typehints:
 			via_module_path (str): 由来のモジュールパス。文字列のタイプヒントの場合のみ必須 (default = '')
 		Returns:
 			type[Any] | FuncTypes: オリジン
-		Raises:
-			ValueError: 由来が不明な場合に文字列のタイプヒントを使用
 		Note:
 			Annotated/ForwardRefは型情報として意味を成さないので暗黙的にアンパック
 		"""
-		_origin = getattr(origin, '__origin__') if get_origin(origin) is Annotated else origin
-		_origin = _origin.__forward_arg__ if type(_origin) is ForwardRef else _origin
-		if not isinstance(_origin, str):
-			return _origin
-
-		if len(via_module_path) == 0:
-			raise ValueError(f'Unresolved origin type. via module is empty. origin: {origin}')
-
-		return _resolve_type_from_str(_origin, via_module_path)
+		if isinstance(origin, str):
+			return _resolve_type_from_str(origin, via_module_path)
+		elif get_origin(origin) is Annotated:
+			_origin = getattr(origin, '__origin__')
+			if type(_origin) is ForwardRef:
+				return _resolve_type_from_str(_origin.__forward_arg__, via_module_path)
+			else:
+				return _origin
+		else:
+			return origin
 
 	@classmethod
 	def __is_scalar(cls, origin: type[Any]) -> bool:

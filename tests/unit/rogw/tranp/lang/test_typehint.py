@@ -31,7 +31,7 @@ class Base:
 
 
 class Sub(Base):
-	l: ClassVar[list[int]] = []
+	l: ClassVar['list[int]'] = []
 	t: tuple[str, int, bool]
 	obj: Base | None
 	p: 'Gen[Base] | None'

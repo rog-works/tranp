@@ -246,7 +246,7 @@ class ClassTypehint(Typehint):
 			dict[str, Typehint]: クラス変数一覧
 		"""
 		annos = {key: anno for key, anno in self.__recursive_annos(self._type, lookup_private).items() if self.__try_get_origin(anno) is ClassVar}
-		return {key: ClassTypehint(attr).sub_types[0] for key, attr in annos.items()}
+		return {key: Typehints.resolve(attr, self._type.__module__) for key, attr in annos.items()}
 
 	def self_vars(self, lookup_private: bool = True) -> dict[str, Typehint]:
 		"""インスタンス変数の一覧を取得
@@ -373,6 +373,12 @@ class Typehints:
 			return _resolve_type_from_str(origin, via_module_path)
 		elif get_origin(origin) is Annotated:
 			_origin = getattr(origin, '__origin__')
+			if type(_origin) is ForwardRef:
+				return _resolve_type_from_str(_origin.__forward_arg__, via_module_path)
+			else:
+				return _origin
+		elif get_origin(origin) is ClassVar:
+			_origin = getattr(origin, '__args__')[0]
 			if type(_origin) is ForwardRef:
 				return _resolve_type_from_str(_origin.__forward_arg__, via_module_path)
 			else:

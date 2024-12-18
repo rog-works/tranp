@@ -1,10 +1,10 @@
 from collections.abc import Callable
 from enum import Enum, EnumType
 from types import FunctionType, MethodType, NoneType, UnionType
-from typing import Any, ClassVar, Generic, TypeVar, cast
+from typing import Annotated, Any, ClassVar, Generic, TypeVar, cast
 from unittest import TestCase
 
-from rogw.tranp.lang.inspection import FuncClasses, Typehint, Inspector, ClassTypehint, FunctionTypehint, ScalarTypehint
+from rogw.tranp.lang.typehint import FuncClasses, Typehint, Typehints, ClassTypehint, FunctionTypehint, ScalarTypehint
 from rogw.tranp.test.helper import data_provider
 from rogw.tranp.test.validation import validation
 
@@ -23,8 +23,8 @@ class Base:
 	__private: int
 
 	def __init__(self) -> None:
-		self.d: dict[str, int] = {}
-		self.__private: int = 0
+		self.d = {}
+		self.__private = 0
 
 	@classmethod
 	def cls_method(cls, n: int) -> str: ...
@@ -38,9 +38,9 @@ class Sub(Base):
 
 	def __init__(self) -> None:
 		super().__init__()
-		self.t: tuple[str, int, bool] = '', 0, False
-		self.obj: Base | None = None
-		self.p: Gen[Base] | None = None
+		self.t = '', 0, False
+		self.obj = None
+		self.p = None
 
 	def self_method(self, l: list[int], d: 'dict[str, int]') -> 'tuple[str, int, bool]': ...
 
@@ -48,7 +48,7 @@ class Sub(Base):
 	def prop(self) -> int: ...
 
 
-def func(n: int) -> str: ...
+def func(n: int, fn: 'int', an: Annotated[int, 'meta'], afn: Annotated['int', 'meta']) -> str: ...
 
 
 class TestScalarTypehint(TestCase):
@@ -162,7 +162,7 @@ class TestFunctionTypehint(TestCase):
 		(Sub.prop, {'args': {}, 'returns': int}),
 		(_sub.cls_method, {'args': {'n': int}, 'returns': str}),
 		(_sub.self_method, {'args': {'l': list, 'd': dict}, 'returns': tuple}),
-		(func, {'args': {'n': int}, 'returns': str}),
+		(func, {'args': {'n': int, 'fn': int, 'an': int, 'afn': int}, 'returns': str}),
 	])
 	def test_signature(self, origin: Callable, expected: dict[str, Any]) -> None:
 		hint = FunctionTypehint(origin)
@@ -216,7 +216,7 @@ class TestClassTypehint(TestCase):
 		self.assertEqual([key for key in hint.methods.keys()], expected['methods'])
 
 
-class TestInspector(TestCase):
+class TestTypehints(TestCase):
 	@data_provider([
 		(int, ScalarTypehint),
 		(str, ScalarTypehint),
@@ -234,12 +234,13 @@ class TestInspector(TestCase):
 		(type(None), ScalarTypehint),
 		(Base | None, ScalarTypehint),
 		(Gen[Base] | None, ScalarTypehint),
+		(Annotated[int, 'meta'], ScalarTypehint),
 		(func, FunctionTypehint),
-		(Inspector.resolve, FunctionTypehint),
-		(Inspector, ClassTypehint),
+		(Typehints.resolve, FunctionTypehint),
+		(Typehints, ClassTypehint),
 	])
 	def test_resolve(self, origin: type, expected: Typehint) -> None:
-		self.assertEqual(type(Inspector.resolve(origin)), expected)
+		self.assertEqual(type(Typehints.resolve(origin)), expected)
 
 	def test_validation(self) -> None:
 		self.assertTrue(validation(Sub, lookup_private=False))

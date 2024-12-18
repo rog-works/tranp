@@ -78,9 +78,7 @@ class TestReflections(TestCase):
 		('Base', '', _mod('type', 'type'), 'type<Base>'),
 		('Base', 'class_def_raw.name', _mod('type', 'type'), 'type<Base>'),
 
-		('Base.__init__', 'function_def_raw.block.anno_assign.assign_namelist.getattr', _mod('classes', 'str'), 'str'),
-		('Base.__init__', 'function_def_raw.block.anno_assign.typed_var', _mod('classes', 'str'), 'str'),
-		('Base.__init__', 'function_def_raw.block.anno_assign.var', _mod('classes', 'str'), 'str'),
+		('Base.__init__', 'function_def_raw.block.assign.var', _mod('classes', 'str'), 'str'),
 		('Base.__init__', 'function_def_raw.block.comment_stmt', _mod('classes', 'Unknown'), 'Unknown'),
 
 		('Sub', '', _mod('type', 'type'), 'type<Sub>'),
@@ -97,9 +95,7 @@ class TestReflections(TestCase):
 
 		('Sub.__init__', 'function_def_raw.block.funccall', _mod('__main__', 'Base'), 'Base'),
 		('Sub.__init__', 'function_def_raw.block.funccall.getattr.funccall.var', _mod('classes', 'super'), 'super() -> Any'),
-		('Sub.__init__', 'function_def_raw.block.anno_assign.assign_namelist.getattr', _mod('classes', 'list'), 'list<int>'),
-		('Sub.__init__', 'function_def_raw.block.anno_assign.typed_getitem', _mod('classes', 'list'), 'list<int>'),
-		('Sub.__init__', 'function_def_raw.block.anno_assign.list', _mod('classes', 'list'), 'list<Unknown>'),  # XXX 空のリストは型を補完できないためlist<Unknown>になる
+		('Sub.__init__', 'function_def_raw.block.assign.list', _mod('classes', 'list'), 'list<Unknown>'),  # XXX 空のリストは型を補完できないためlist<Unknown>になる
 
 		('Sub.local_ref', 'function_def_raw.block.funccall.var', _mod('classes', 'print'), 'print(Any) -> None'),
 		('Sub.local_ref', 'function_def_raw.block.funccall.arguments.argvalue', _mod('classes', 'bool'), 'bool'),
@@ -168,11 +164,17 @@ class TestReflections(TestCase):
 		('ForFuncCall.indexer_call', 'function_def_raw.block.funccall', _mod('classes', 'int'), 'int'),
 		('ForFuncCall.callable_call', 'function_def_raw.block.return_stmt.funccall', _mod('__main__', 'T'), 'T'),
 
-		('ForClass.MoveDeclThisVar', '', _mod('type', 'type'), 'type<MoveDeclThisVar>'),
-		('ForClass.MoveDeclThisVar.cls_n', '', _mod('classes', 'int'), 'int'),
-		('ForClass.MoveDeclThisVar.n', '', _mod('classes', 'int'), 'int'),
-		('ForClass.MoveDeclThisVar.sp', '', _mod('typing', 'Union'), 'Union<str, None>'),
-		('ForClass.MoveDeclThisVar.__init__', 'function_def_raw.block.assign[2]', _mod('classes', 'int'), 'int'),
+		('ForFunction.anno_param', 'function_def_raw.parameters.paramvalue[1].typedparam.name', _mod('classes', 'int'), 'int'),
+		('ForFunction.anno_param', 'function_def_raw.parameters.paramvalue[2].typedparam.name', _mod('classes', 'bool'), 'bool'),
+
+		('ForClass.DeclThisVar', '', _mod('type', 'type'), 'type<DeclThisVar>'),
+		('ForClass.DeclThisVar.cls_n', '', _mod('classes', 'int'), 'int'),
+		('ForClass.DeclThisVar.anno_dsn', '', _mod('classes', 'dict'), 'dict<str, int>'),
+		('ForClass.DeclThisVar.n', '', _mod('classes', 'int'), 'int'),
+		('ForClass.DeclThisVar.sp', '', _mod('typing', 'Union'), 'Union<str, None>'),
+		('ForClass.DeclThisVar.ab', '', _mod('classes', 'bool'), 'bool'),
+		('ForClass.DeclThisVar.ac', '', _mod('typing', 'Union'), 'Union<DeclThisVar, None>'),
+		('ForClass.DeclThisVar.__init__', 'function_def_raw.block.assign[5]', _mod('classes', 'int'), 'int'),
 	])
 	def test_type_of(self, local_path: str, offset_path: str, expected: str, attrs_expected: str) -> None:
 		reflections = self.fixture.get(Reflections)

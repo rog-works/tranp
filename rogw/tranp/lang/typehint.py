@@ -3,7 +3,7 @@ from collections.abc import Callable
 from enum import Enum, EnumType
 from importlib import import_module
 from types import FunctionType, MethodType, NoneType, UnionType
-from typing import Annotated, Any, ClassVar, ForwardRef, TypeAlias, TypeVar, Union, cast, get_origin, override
+from typing import Annotated, Any, ClassVar, ForwardRef, TypeAlias, TypeVar, Union, cast, get_origin
 
 from rogw.tranp.lang.annotation import implements
 

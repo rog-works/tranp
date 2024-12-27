@@ -1,10 +1,14 @@
+from abc import ABCMeta, abstractmethod
 from collections.abc import Callable
 from enum import Enum, EnumType
 from importlib import import_module
 from types import FunctionType, MethodType, NoneType, UnionType
-from typing import Annotated, Any, ClassVar, ForwardRef, TypeAlias, Union, get_origin, override
+from typing import Annotated, Any, ClassVar, ForwardRef, TypeAlias, TypeVar, Union, cast, get_origin, override
+
+from rogw.tranp.lang.annotation import implements
 
 FuncTypes: TypeAlias = FunctionType | MethodType | property | classmethod
+T_Meta = TypeVar('T_Meta')
 
 
 class FuncClasses(Enum):
@@ -14,17 +18,32 @@ class FuncClasses(Enum):
 	Function = 'Function'
 
 
-class Typehint:
+class Typehint(metaclass=ABCMeta):
 	"""タイプヒント(基底クラス)"""
 
 	@property
+	@abstractmethod
 	def origin(self) -> type[Any]:
-		"""type[Any]: メインタイプ"""
+		"""Returns: type[Any]: メインタイプ"""
 		...
 
 	@property
+	@abstractmethod
 	def raw(self) -> type[Any] | FuncTypes | Callable:
-		"""type[Any] | FuncTypes | Callable: 元のタイプ"""
+		"""Returns: type[Any] | FuncTypes | Callable: 元のタイプ"""
+		...
+
+	@abstractmethod
+	def meta(self, meta_type: type[T_Meta]) -> T_Meta:
+		"""メタ情報を取得
+
+		Args:
+			meta_type (type[T_Meta]): メタ情報のタイプ
+		Returns:
+			T_Meta: メタ情報
+		Note:
+			XXX メタ情報が引数の型として本質的に正しいか否かは保証しない
+		"""
 		...
 
 
@@ -41,19 +60,22 @@ class ScalarTypehint(Typehint):
 	"""
 
 	_type: type[Any]
+	_meta: Any | None
 
-	def __init__(self, scalar_type: type[Any]) -> None:
+	def __init__(self, scalar_type: type[Any], meta: Any | None = None) -> None:
 		"""インスタンスを生成
 
 		Args:
 			scalar_type (type[Any]): タイプ
+			meta (Any | None): メタ情報 (default = None)
 		"""
 		self._type = scalar_type
+		self._meta = meta
 
 	@property
-	@override
+	@implements
 	def origin(self) -> type[Any]:
-		"""type[Any]: メインタイプ"""
+		"""Returns: type[Any]: メインタイプ"""
 		if self.is_union:
 			# XXX Union型の場合はUnionTypeを返却。UnionTypeはtypeと互換性が無いと判断されるため実装例に倣う @see types.py UnionType
 			return type(int | str)
@@ -61,10 +83,23 @@ class ScalarTypehint(Typehint):
 			return getattr(self._type, '__origin__', self._type)
 
 	@property
-	@override
+	@implements
 	def raw(self) -> type[Any]:
-		"""type[Any]: 元のタイプ"""
+		"""Returns: type[Any]: 元のタイプ"""
 		return self._type
+
+	@implements
+	def meta(self, meta_type: type[T_Meta]) -> T_Meta:
+		"""メタ情報を取得
+
+		Args:
+			meta_type (type[T_Meta]): メタ情報のタイプ
+		Returns:
+			T_Meta: メタ情報
+		Note:
+			XXX メタ情報が引数の型として本質的に正しいか否かは保証しない
+		"""
+		return cast(meta_type, self._meta)
 
 	@property
 	def is_null(self) -> bool:
@@ -119,8 +154,9 @@ class FunctionTypehint(Typehint):
 	"""
 
 	_func: FuncTypes | Callable
+	_meta: Any | None
 
-	def __init__(self, func: FuncTypes | Callable) -> None:
+	def __init__(self, func: FuncTypes | Callable, meta: Any | None = None) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -129,18 +165,32 @@ class FunctionTypehint(Typehint):
 			XXX コンストラクターはFuncTypeに当てはまらないため、Callableとして受け付ける
 		"""
 		self._func = func
+		self._meta = meta
 
 	@property
-	@override
+	@implements
 	def origin(self) -> type[Any]:
-		"""type[Any]: メインタイプ"""
+		"""Returns: type[Any]: メインタイプ"""
 		return type(self._func)
 
 	@property
-	@override
+	@implements
 	def raw(self) -> FuncTypes | Callable:
-		""" FuncTypes | Callable: 関数オブジェクト"""
+		"""Returns: FuncTypes | Callable: 関数オブジェクト"""
 		return self._func
+
+	@implements
+	def meta(self, meta_type: type[T_Meta]) -> T_Meta:
+		"""メタ情報を取得
+
+		Args:
+			meta_type (type[T_Meta]): メタ情報のタイプ
+		Returns:
+			T_Meta: メタ情報
+		Note:
+			XXX メタ情報が引数の型として本質的に正しいか否かは保証しない
+		"""
+		return cast(meta_type, self._meta)
 
 	@property
 	def func_class(self) -> FuncClasses:
@@ -200,26 +250,41 @@ class ClassTypehint(Typehint):
 	"""
 
 	_type: type[Any]
+	_meta: Any | None
 
-	def __init__(self, class_type: type[Any]) -> None:
+	def __init__(self, class_type: type[Any], meta: Any | None = None) -> None:
 		"""インスタンスを生成
 
 		Args:
 			class_type (type[Any]): クラス
 		"""
 		self._type = class_type
+		self._meta = meta
 
 	@property
-	@override
+	@implements
 	def origin(self) -> type[Any]:
-		"""type[Any]: メインタイプ"""
+		"""Returns: type[Any]: メインタイプ"""
 		return getattr(self._type, '__origin__', self._type)
 
 	@property
-	@override
+	@implements
 	def raw(self) -> type[Any]:
-		"""type[Any]: 元のタイプ"""
+		"""Returns: type[Any]: 元のタイプ"""
 		return self._type
+
+	@implements
+	def meta(self, meta_type: type[T_Meta]) -> T_Meta:
+		"""メタ情報を取得
+
+		Args:
+			meta_type (type[T_Meta]): メタ情報のタイプ
+		Returns:
+			T_Meta: メタ情報
+		Note:
+			XXX メタ情報が引数の型として本質的に正しいか否かは保証しない
+		"""
+		return cast(meta_type, self._meta)
 
 	@property
 	def is_generic(self) -> bool:
@@ -369,42 +434,44 @@ class Typehints:
 		Returns:
 			Typehint: タイプヒント
 		"""
-		actual_origin = cls.__to_actual_origin(origin, via_module_path)
+		actual_origin, meta = cls.__unpack_origin(origin, via_module_path)
 		if isinstance(actual_origin, FuncTypes):
-			return FunctionTypehint(actual_origin)
+			return FunctionTypehint(actual_origin, meta)
 		elif cls.__is_scalar(actual_origin):
-			return ScalarTypehint(actual_origin)
+			return ScalarTypehint(actual_origin, meta)
 		else:
-			return ClassTypehint(actual_origin)
+			return ClassTypehint(actual_origin, meta)
 
 	@classmethod
-	def __to_actual_origin(cls, origin: str | type[Any] | FuncTypes, via_module_path: str) -> type[Any] | FuncTypes:
-		"""指定のオリジンから解決可能なオリジンに変換
+	def __unpack_origin(cls, origin: str | type[Any] | FuncTypes, via_module_path: str) -> tuple[type[Any] | FuncTypes, Any | None]:
+		"""オリジンからタイプ・メタ情報をアンパック
 
 		Args:
 			origin (str | type[Any] | FuncTypes): タイプ、関数オブジェクト、または文字列のタイプヒント
 			via_module_path (str): 由来のモジュールパス。文字列のタイプヒントの解析に使用
 		Returns:
-			type[Any] | FuncTypes: オリジン
+			tuple[type[Any] | FuncTypes, Any | None]: (タイプ, メタ情報)
 		Note:
 			Annotated/ForwardRefは型情報として意味を成さないので暗黙的にアンパック
 		"""
 		if isinstance(origin, str):
-			return _resolve_type_from_str(origin, via_module_path)
+			return _resolve_type_from_str(origin, via_module_path), None
 		elif get_origin(origin) is Annotated:
 			_origin = getattr(origin, '__origin__')
+			# FIXME 可変長tupleは扱いにくいため、一旦先頭要素のみ使用
+			meta: Any = getattr(origin, '__metadata__')[0]
 			if type(_origin) is ForwardRef:
-				return _resolve_type_from_str(_origin.__forward_arg__, via_module_path)
+				return _resolve_type_from_str(_origin.__forward_arg__, via_module_path), meta
 			else:
-				return _origin
+				return _origin, meta
 		elif get_origin(origin) is ClassVar:
 			_origin = getattr(origin, '__args__')[0]
 			if type(_origin) is ForwardRef:
-				return _resolve_type_from_str(_origin.__forward_arg__, via_module_path)
+				return _resolve_type_from_str(_origin.__forward_arg__, via_module_path), None
 			else:
-				return _origin
+				return _origin, None
 		else:
-			return origin
+			return origin, None
 
 	@classmethod
 	def __is_scalar(cls, origin: type[Any]) -> bool:

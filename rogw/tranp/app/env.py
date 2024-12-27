@@ -45,9 +45,4 @@ class SourceEnvPath(list[str]):
 			SourceEnvPath: インスタンス
 		"""
 		default_dirs = [os.getcwd(), tranp_dir(), os.path.join(tranp_dir(), 'rogw/tranp/compatible/libralies')]
-		paths: list[str] = []
-		for path in [*default_dirs, *input_dirs]:
-			if path not in paths:
-				paths.append(path)
-
-		return cls(paths)
+		return cls([*default_dirs, *input_dirs])

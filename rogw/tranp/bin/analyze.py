@@ -131,7 +131,7 @@ class AnalyzeApp(App):
 		"""str: 現在時刻"""
 		from datetime import datetime, timedelta, timezone
 
-		zone = timezone(timedelta(hours=9), 'JST)')
+		zone = timezone(timedelta(hours=9), 'JST')
 		return datetime.now(zone).strftime('%Y-%m-%d %H:%M:%S')
 
 	def fetch_entrypoint(self, module_path: str) -> defs.Entrypoint:

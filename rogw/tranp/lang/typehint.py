@@ -2,7 +2,7 @@ from collections.abc import Callable
 from enum import Enum, EnumType
 from importlib import import_module
 from types import FunctionType, MethodType, NoneType, UnionType
-from typing import Annotated, Any, ClassVar, ForwardRef, TypeAlias, TypeVar, Union, get_origin, override
+from typing import Annotated, Any, ClassVar, ForwardRef, TypeAlias, Union, get_origin, override
 
 FuncTypes: TypeAlias = FunctionType | MethodType | property | classmethod
 
@@ -11,7 +11,7 @@ class FuncClasses(Enum):
 	"""関数の種別"""
 	ClassMethod = 'ClassMethod'
 	Method = 'Method'
-	Function = 'function'
+	Function = 'Function'
 
 
 class Typehint:
@@ -48,7 +48,7 @@ class ScalarTypehint(Typehint):
 		Args:
 			scalar_type (type[Any]): タイプ
 		"""
-		self._type: type[Any] = scalar_type
+		self._type = scalar_type
 
 	@property
 	@override
@@ -128,7 +128,7 @@ class FunctionTypehint(Typehint):
 		Note:
 			XXX コンストラクターはFuncTypeに当てはまらないため、Callableとして受け付ける
 		"""
-		self._func: FuncTypes | Callable = func
+		self._func = func
 
 	@property
 	@override
@@ -161,12 +161,12 @@ class FunctionTypehint(Typehint):
 	@property
 	def args(self) -> dict[str, Typehint]:
 		"""dict[str, Typehint]: 引数リスト"""
-		return {key: Typehints.resolve(in_type, self.__via_module_path) for key, in_type in self.__annos.items() if key != 'return'}
+		return {key: Typehints.resolve_internal(in_type, self.__via_module_path) for key, in_type in self.__annos.items() if key != 'return'}
 
 	@property
 	def returns(self) -> Typehint:
 		"""Typehint: 戻り値"""
-		return Typehints.resolve(self.__annos['return'], self.__via_module_path)
+		return Typehints.resolve_internal(self.__annos['return'], self.__via_module_path)
 
 	@property
 	def __via_module_path(self) -> str:
@@ -207,7 +207,7 @@ class ClassTypehint(Typehint):
 		Args:
 			class_type (type[Any]): クラス
 		"""
-		self._type: type[Any] = class_type
+		self._type = class_type
 
 	@property
 	@override
@@ -230,7 +230,7 @@ class ClassTypehint(Typehint):
 	def sub_types(self) -> list[Typehint]:
 		"""list[Typehint]: ジェネリック型のサブタイプのリスト"""
 		sub_annos: list[type[Any]] = getattr(self._type, '__args__', [])
-		return [Typehints.resolve(sub_type, self._type.__module__) for sub_type in sub_annos]
+		return [Typehints.resolve_internal(sub_type, self._type.__module__) for sub_type in sub_annos]
 
 	@property
 	def constructor(self) -> FunctionTypehint:
@@ -246,7 +246,7 @@ class ClassTypehint(Typehint):
 			dict[str, Typehint]: クラス変数一覧
 		"""
 		annos = {key: anno for key, anno in self.__recursive_annos(self._type, lookup_private).items() if self.__try_get_origin(anno) is ClassVar}
-		return {key: Typehints.resolve(attr, self._type.__module__) for key, attr in annos.items()}
+		return {key: Typehints.resolve_internal(attr, self._type.__module__) for key, attr in annos.items()}
 
 	def self_vars(self, lookup_private: bool = True) -> dict[str, Typehint]:
 		"""インスタンス変数の一覧を取得
@@ -257,7 +257,7 @@ class ClassTypehint(Typehint):
 			dict[str, Typehint]: インスタンス変数一覧
 		"""
 		annos = {key: anno for key, anno in self.__recursive_annos(self._type, lookup_private).items() if self.__try_get_origin(anno) is not ClassVar}
-		return {key: Typehints.resolve(attr, self._type.__module__) for key, attr in annos.items()}
+		return {key: Typehints.resolve_internal(attr, self._type.__module__) for key, attr in annos.items()}
 	
 	def __try_get_origin(self, anno: type[Any]) -> type[Any]:
 		"""アノテーションから元のタイプ取得を試行
@@ -333,19 +333,39 @@ def _resolve_type_from_str(type_str: str, via_module_path: str) -> type[Any]:
 	return eval(type_str, depends)
 
 
-T = TypeVar('T')
-
-
 class Typehints:
 	"""タイプヒントリゾルバー"""
 
 	@classmethod
-	def resolve(cls, origin: str | type[Any] | FuncTypes, via_module_path: str = '') -> Typehint:
+	def resolve(cls, origin: str | type[Any] | FuncTypes) -> Typehint:
 		"""タイプヒントを解決
 
 		Args:
 			origin (str | type[Any] | FuncTypes): タイプ、関数オブジェクト、または文字列のタイプヒント
-			via_module_path (str): 由来のモジュールパス。文字列のタイプヒントの場合のみ必須 (default = '')
+		Returns:
+			Typehint: タイプヒント
+		"""
+		return cls.__resolve_impl(origin, '')
+
+	@classmethod
+	def resolve_internal(cls, origin: str | type[Any] | FuncTypes, via_module_path: str) -> Typehint:
+		"""タイプヒントを解決(クラス/関数の内部オブジェクト用)
+
+		Args:
+			origin (str | type[Any] | FuncTypes): タイプ、関数オブジェクト、または文字列のタイプヒント
+			via_module_path (str): 由来のモジュールパス。文字列のタイプヒントの解析に使用
+		Returns:
+			Typehint: タイプヒント
+		"""
+		return cls.__resolve_impl(origin, via_module_path)
+
+	@classmethod
+	def __resolve_impl(cls, origin: str | type[Any] | FuncTypes, via_module_path: str) -> Typehint:
+		"""タイプヒントを解決
+
+		Args:
+			origin (str | type[Any] | FuncTypes): タイプ、関数オブジェクト、または文字列のタイプヒント
+			via_module_path (str): 由来のモジュールパス。文字列のタイプヒントの解析に使用
 		Returns:
 			Typehint: タイプヒント
 		"""
@@ -363,7 +383,7 @@ class Typehints:
 
 		Args:
 			origin (str | type[Any] | FuncTypes): タイプ、関数オブジェクト、または文字列のタイプヒント
-			via_module_path (str): 由来のモジュールパス。文字列のタイプヒントの場合のみ必須 (default = '')
+			via_module_path (str): 由来のモジュールパス。文字列のタイプヒントの解析に使用
 		Returns:
 			type[Any] | FuncTypes: オリジン
 		Note:

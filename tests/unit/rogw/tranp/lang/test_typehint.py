@@ -4,7 +4,7 @@ from types import FunctionType, MethodType, NoneType, UnionType
 from typing import Annotated, Any, ClassVar, Generic, TypeVar, cast
 from unittest import TestCase
 
-from rogw.tranp.lang.typehint import FuncClasses, Typehint, Typehints, ClassTypehint, FunctionTypehint, ScalarTypehint
+from rogw.tranp.lang.typehint import FuncClasses, Typehints, ClassTypehint, FunctionTypehint, ScalarTypehint
 from rogw.tranp.test.helper import data_provider
 from rogw.tranp.test.validation import validation
 
@@ -18,11 +18,13 @@ class Gen(Generic[T]): ...
 
 
 class Base:
-	n: ClassVar[int] = 0
+	cn: ClassVar[int] = 0
+	an: Annotated[int, 'meta']
 	d: dict[str, int]
 	__private: int
 
 	def __init__(self) -> None:
+		self.n = 0
 		self.d = {}
 		self.__private = 0
 
@@ -31,15 +33,15 @@ class Base:
 
 
 class Sub(Base):
-	l: ClassVar['list[int]'] = []
+	cl: ClassVar['list[int]'] = []
 	t: tuple[str, int, bool]
-	obj: Base | None
+	obj: Base
 	p: 'Gen[Base] | None'
 
 	def __init__(self) -> None:
 		super().__init__()
 		self.t = '', 0, False
-		self.obj = None
+		self.obj = Base()
 		self.p = None
 
 	def self_method(self, l: list[int], d: 'dict[str, int]') -> 'tuple[str, int, bool]': ...
@@ -199,9 +201,9 @@ class TestClassTypehint(TestCase):
 
 	@data_provider([
 		(Sub, {
-			'class_vars': {'n': int, 'l': list},
-			'self_vars': {'d': dict, 't': tuple, 'obj': UnionType, 'p': UnionType},
-			'methods': ['__init__', 'cls_method', 'self_method', 'prop'],
+			'class_vars': {'cn': int, 'cl': list},
+			'self_vars': {'an': int, 'd': dict, 't': tuple, 'obj': Base, 'p': UnionType},
+			'methods': [Sub.__init__.__name__, Sub.cls_method.__name__, Sub.self_method.__name__, 'prop'],
 		}),
 		(Gen[str], {
 			'class_vars': {},
@@ -218,29 +220,56 @@ class TestClassTypehint(TestCase):
 
 class TestTypehints(TestCase):
 	@data_provider([
-		(int, ScalarTypehint),
-		(str, ScalarTypehint),
-		(float, ScalarTypehint),
-		(bool, ScalarTypehint),
-		(list, ScalarTypehint),
-		(list[int], ScalarTypehint),
-		(dict, ScalarTypehint),
-		(dict[str, int], ScalarTypehint),
-		(tuple[str, int, bool], ScalarTypehint),
-		(int | str, ScalarTypehint),
-		(type, ScalarTypehint),
-		(type[str], ScalarTypehint),
-		(None, ScalarTypehint),
-		(type(None), ScalarTypehint),
-		(Base | None, ScalarTypehint),
-		(Gen[Base] | None, ScalarTypehint),
-		(Annotated[int, 'meta'], ScalarTypehint),
-		(func, FunctionTypehint),
-		(Typehints.resolve, FunctionTypehint),
-		(Typehints, ClassTypehint),
+		(int, {'type': ScalarTypehint, 'meta': None}),
+		(str, {'type': ScalarTypehint, 'meta': None}),
+		(float, {'type': ScalarTypehint, 'meta': None}),
+		(bool, {'type': ScalarTypehint, 'meta': None}),
+		(list, {'type': ScalarTypehint, 'meta': None}),
+		(list[int], {'type': ScalarTypehint, 'meta': None}),
+		(dict, {'type': ScalarTypehint, 'meta': None}),
+		(dict[str, int], {'type': ScalarTypehint, 'meta': None}),
+		(tuple[str, int, bool], {'type': ScalarTypehint, 'meta': None}),
+		(int | str, {'type': ScalarTypehint, 'meta': None}),
+		(type, {'type': ScalarTypehint, 'meta': None}),
+		(type[str], {'type': ScalarTypehint, 'meta': None}),
+		(None, {'type': ScalarTypehint, 'meta': None}),
+		(type(None), {'type': ScalarTypehint, 'meta': None}),
+		(Base | None, {'type': ScalarTypehint, 'meta': None}),
+		(Gen[Base] | None, {'type': ScalarTypehint, 'meta': None}),
+		(Annotated[int, 'metadata'], {'type': ScalarTypehint, 'meta': 'metadata'}),
+		(func, {'type': FunctionTypehint, 'meta': None}),
+		(Typehints.resolve, {'type': FunctionTypehint, 'meta': None}),
+		(Typehints, {'type': ClassTypehint, 'meta': None}),
 	])
-	def test_resolve(self, origin: type, expected: Typehint) -> None:
-		self.assertEqual(type(Typehints.resolve(origin)), expected)
+	def test_resolve(self, origin: type, expected: dict[str, Any]) -> None:
+		hint = Typehints.resolve(origin)
+		self.assertEqual(type(hint), expected['type'])
+		self.assertEqual(hint.meta(str), expected['meta'])
+
+	@data_provider([
+		(Sub, {
+			'type': {'class_vars': {'cn': ScalarTypehint, 'cl': ScalarTypehint}, 'self_vars': {'an': ScalarTypehint, 'd': ScalarTypehint, 't': ScalarTypehint, 'obj': ClassTypehint, 'p': ScalarTypehint}},
+			'meta': {'class_vars': {'cn': None, 'cl': None}, 'self_vars': {'an': 'meta', 'd': None, 't': None, 'obj': None, 'p': None}},
+		}),
+		(func, {
+			'type': {'args': {'n': ScalarTypehint, 'fn': ScalarTypehint, 'an': ScalarTypehint, 'afn': ScalarTypehint}, 'returns': ScalarTypehint},
+			'meta': {'args': {'n': None, 'fn': None, 'an': 'meta', 'afn': 'meta'}, 'returns': None},
+		}),
+	])
+	def test_resolve_internal(self, origin: type, expected: dict[str, Any]) -> None:
+		hint = Typehints.resolve(origin)
+		if isinstance(hint, FunctionTypehint):
+			self.assertEqual({key: type(arg) for key, arg in hint.args.items()}, expected['type']['args'])
+			self.assertEqual({key: arg.meta(str) for key, arg in hint.args.items()}, expected['meta']['args'])
+			self.assertEqual(type(hint.returns), expected['type']['returns'])
+			self.assertEqual(hint.returns.meta(str), expected['meta']['returns'])
+		elif isinstance(hint, ClassTypehint):
+			self.assertEqual({key: type(class_var) for key, class_var in hint.class_vars().items()}, expected['type']['class_vars'])
+			self.assertEqual({key: class_var.meta(str) for key, class_var in hint.class_vars().items()}, expected['meta']['class_vars'])
+			self.assertEqual({key: type(self_var) for key, self_var in hint.self_vars(lookup_private=False).items()}, expected['type']['self_vars'])
+			self.assertEqual({key: self_var.meta(str) for key, self_var in hint.self_vars(lookup_private=False).items()}, expected['meta']['self_vars'])
+		else:
+			self.fail()
 
 	def test_validation(self) -> None:
 		self.assertTrue(validation(Sub, lookup_private=False))

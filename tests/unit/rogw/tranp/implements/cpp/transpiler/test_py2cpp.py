@@ -415,6 +415,7 @@ class TestPy2Cpp(TestCase):
 		('ForFuncCall.Dict.pop', 'function_def_raw.block.funccall[1]', defs.FuncCall, BlockExpects.dict_pop(symbol='dsn', key='"b"', var_type='int')),
 		('ForFuncCall.Dict.keys', 'function_def_raw.block.funccall', defs.FuncCall, BlockExpects.dict_keys(symbol='dsn', var_type='std::string')),
 		('ForFuncCall.Dict.values', 'function_def_raw.block.funccall', defs.FuncCall, BlockExpects.dict_values(symbol='dsn', var_type='int')),
+		('ForFuncCall.Dict.get', 'function_def_raw.block.assign', defs.MoveAssign, 'int n = dsn.contains("a") ? dsn["a"] : 1;'),
 		('ForFuncCall.Dict.clear', 'function_def_raw.block.funccall', defs.FuncCall, 'dsn.clear();'),
 		('ForFuncCall.Dict.contains', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'bool b_in = dsn.contains("a");'),
 		('ForFuncCall.Dict.contains', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'bool b_not_in = (!dsn.contains("a"));'),

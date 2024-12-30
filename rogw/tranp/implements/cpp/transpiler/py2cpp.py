@@ -835,6 +835,10 @@ class Py2Cpp(ITranspiler):
 			# 期待値: 'receiver.extend'
 			receiver, operator = PatternParser.break_relay(calls)
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator})
+		elif spec == 'dict_get':
+			# 期待値: 'receiver.get'
+			receiver, operator = PatternParser.break_relay(calls)
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator})
 		elif spec == 'dict_keys':
 			# 期待値: 'receiver.keys'
 			receiver, operator = PatternParser.break_relay(calls)
@@ -933,7 +937,7 @@ class Py2Cpp(ITranspiler):
 					return 'otherwise', None
 				elif receiver_raw.type_is(dict):
 					key_attr, value_attr = receiver_raw.attrs
-					attr_indexs = {'pop': value_attr, 'keys': key_attr, 'values': value_attr}
+					attr_indexs = {'pop': value_attr, 'keys': key_attr, 'values': value_attr, 'get': value_attr}
 					return f'dict_{prop}', attr_indexs[prop]
 			elif prop == PythonClassOperations.copy_constructor:
 				return prop, None
@@ -1197,6 +1201,7 @@ class FuncCallMaps:
 		dict.items.__name__,
 		dict.keys.__name__,
 		dict.values.__name__,
+		dict.get.__name__,
 	]
 	str_methods: ClassVar[list[str]] = [
 		str.split.__name__,

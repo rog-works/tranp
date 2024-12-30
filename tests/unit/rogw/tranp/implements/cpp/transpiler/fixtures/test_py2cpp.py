@@ -669,7 +669,6 @@ class ForFuncCall:
 			len(ns)
 
 	class Dict:
-
 		def pop(self, dsn: dict[str, int]) -> None:
 			dsn.pop('a')
 			dsn.pop('b')
@@ -679,6 +678,9 @@ class ForFuncCall:
 
 		def values(self, dsn: dict[str, int]) -> None:
 			list(dsn.values())
+
+		def get(self, dsn: dict[str, int]) -> None:
+			n = dsn.get('a', 1)
 
 		def clear(self, dsn: dict[str, int]) -> None:
 			dsn.clear()

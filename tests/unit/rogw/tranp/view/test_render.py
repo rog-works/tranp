@@ -669,6 +669,12 @@ class TestRenderer(TestCase):
 		self.assertRender('func_call/cvar_to', vars, expected)
 
 	@data_provider([
+		({'arguments': ['"s"', '-1'], 'receiver': 'items', 'operator': '.', 'is_statement': True}, 'items.contains("s") ? items["s"] : -1;'),
+	])
+	def test_render_func_call_dict_get(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/dict_get', vars, expected)
+
+	@data_provider([
 		(
 			{
 				'var_type': 'int',

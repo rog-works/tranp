@@ -928,7 +928,7 @@ class Py2Cpp(ITranspiler):
 				return f'cvar_to_{calls}', None
 		elif isinstance(node.calls, defs.Relay):
 			prop = node.calls.prop.tokens
-			if prop in FuncCallMaps.list_dict_methods:
+			if prop in FuncCallMaps.list_and_dict_methods:
 				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object)
 				if prop in FuncCallMaps.list_methods and receiver_raw.type_is(list):
 					return f'list_{prop}', receiver_raw.attrs[0]
@@ -1194,7 +1194,7 @@ class FuncCallMaps:
 		list.insert.__name__,
 		list.extend.__name__,
 	]
-	list_dict_methods: ClassVar[list[str]] = [
+	list_and_dict_methods: ClassVar[list[str]] = [
 		list.pop.__name__,
 		list.insert.__name__,
 		list.extend.__name__,

@@ -702,7 +702,7 @@ class TestDefinition(TestCase):
 	@data_provider([
 		('assert True', 'file_input.assert_stmt', {'condition': defs.Truthy, 'assert_body': defs.Empty}),
 		('assert n == 1, "message"', 'file_input.assert_stmt', {'condition': defs.Comparison, 'assert_body': defs.String}),
-		('assert a.ok, ValueError', 'file_input.assert_stmt', {'condition': defs.Relay, 'assert_body': defs.Var}),
+		('assert a.ok, Exception', 'file_input.assert_stmt', {'condition': defs.Relay, 'assert_body': defs.Var}),
 	])
 	def test_assert(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Assert)

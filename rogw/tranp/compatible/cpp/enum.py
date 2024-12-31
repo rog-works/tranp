@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any, Self
+from typing import Self
 
 
 class CEnum(Enum):
@@ -13,18 +13,18 @@ class CEnum(Enum):
 		"""
 		return int(self.value)
 
-	def __eq__(self, other: Any) -> bool:
+	def __eq__(self, other: Self | int) -> bool:
 		"""比較演算
 
 		Args:
-			other (Any): 対象
+			other (Self | int): 対象
 		Returns:
 			bool: True = 同じ
 		"""
-		if type(other) is int:
+		if other.__class__ is int:
 			return self.value == other
-
-		return super().__eq__(other)
+		else:
+			return super().__eq__(other)
 
 	def __or__(self, other: Self) -> Self:
 		"""ビット演算(OR)
@@ -34,7 +34,7 @@ class CEnum(Enum):
 		Returns:
 			Self: 演算結果
 		"""
-		if isinstance(other, type(self)):
+		if isinstance(other, self.__class__):
 			return self.value | other.value
 		else:
 			return self.value | other
@@ -47,7 +47,7 @@ class CEnum(Enum):
 		Returns:
 			Self: 演算結果
 		"""
-		if isinstance(other, type(self)):
+		if isinstance(other, self.__class__):
 			return self.value | other.value
 		else:
 			return self.value | other

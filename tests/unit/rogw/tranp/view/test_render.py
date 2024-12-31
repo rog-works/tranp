@@ -1254,7 +1254,7 @@ class TestRenderer(TestCase):
 
 	@data_provider([
 		({'condition': 'n == 1', 'assert_body': ''}, 'assert(n == 1);'),
-		({'condition': 'a.ok', 'assert_body': 'Exception'}, 'assert(a.ok); // Exception'),
+		({'condition': 'a.ok', 'assert_body': 'std::exception'}, 'assert(a.ok); // std::exception'),
 	])
 	def test_render_assert(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('assert', vars, expected)

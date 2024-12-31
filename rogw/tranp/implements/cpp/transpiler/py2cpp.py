@@ -501,6 +501,9 @@ class Py2Cpp(ITranspiler):
 	def on_yield(self, node: defs.Yield, yield_value: str) -> str:
 		raise NotSupportedError(f'Denied yield return. node: {node}')
 
+	def on_assert(self, node: defs.Assert, condition: str, assert_body: str) -> str:
+		return self.view.render(node.classification, vars={'condition': condition, 'assert_body': assert_body})
+
 	def on_throw(self, node: defs.Throw, throws: str, via: str) -> str:
 		return self.view.render(node.classification, vars={'throws': throws, 'via': via, 'is_new': node.throws.is_a(defs.FuncCall)})
 

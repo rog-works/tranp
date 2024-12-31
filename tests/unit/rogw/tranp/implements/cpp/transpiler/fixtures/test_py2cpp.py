@@ -554,6 +554,10 @@ class ForSimple:
 	def return_value(self) -> int:
 		return 0
 
+	def asserts(self) -> None:
+		assert True
+		assert 1 == 0, Exception
+
 	def pass_only(self) -> None:
 		pass
 

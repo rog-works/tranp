@@ -344,6 +344,9 @@ class TestPy2Cpp(TestCase):
 		('ForSimple.return_none', 'function_def_raw.block.return_stmt', defs.Return, 'return;'),
 		('ForSimple.return_value', 'function_def_raw.block.return_stmt', defs.Return, 'return 0;'),
 
+		('ForSimple.asserts', 'function_def_raw.block.assert_stmt[0]', defs.Assert, 'assert(true);'),
+		('ForSimple.asserts', 'function_def_raw.block.assert_stmt[1]', defs.Assert, 'assert(1 == 0); // std::exception'),
+
 		('ForSimple.pass_only', 'function_def_raw.block.pass_stmt', defs.Pass, ''),
 
 		('ForSimple.break_continue', 'function_def_raw.block.for_stmt.block.if_stmt[0]', defs.If, 'if (i == 0) {\n\tcontinue;\n}'),

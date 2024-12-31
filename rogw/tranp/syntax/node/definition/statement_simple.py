@@ -142,6 +142,7 @@ class Assert(Node):
 		return self._at(0)
 
 	@property
+	@Meta.embed(Node, expandable)
 	def assert_body(self) -> Node | Empty:
 		return self._at(1)
 

@@ -151,6 +151,7 @@ from rogw.tranp.syntax.node.definition.statement_simple import (
 	# flow
 	Return,
 	Yield,
+	Assert,
 	Throw,
 	Pass,
 	Break,

@@ -700,6 +700,16 @@ class TestDefinition(TestCase):
 		self.assertEqual(type(node.yield_value), expected['yield_value'])
 
 	@data_provider([
+		('assert True', 'file_input.assert_stmt', {'condition': defs.Truthy, 'assert_body': defs.Empty}),
+		('assert n == 1, "message"', 'file_input.assert_stmt', {'condition': defs.Comparison, 'assert_body': defs.String}),
+		('assert a.ok, ValueError', 'file_input.assert_stmt', {'condition': defs.Relay, 'assert_body': defs.Var}),
+	])
+	def test_assert(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Assert)
+		self.assertEqual(type(node.condition), expected['condition'])
+		self.assertEqual(type(node.assert_body), expected['assert_body'])
+
+	@data_provider([
 		('raise Exception()', 'file_input.raise_stmt', {'throws': defs.FuncCall, 'via': defs.Empty}),
 		('raise Exception() from e', 'file_input.raise_stmt', {'throws': defs.FuncCall, 'via': defs.Var}),
 		('raise e', 'file_input.raise_stmt', {'throws': defs.Var, 'via': defs.Empty}),

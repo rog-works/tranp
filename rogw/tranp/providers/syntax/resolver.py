@@ -47,6 +47,7 @@ def symbol_mapping() -> SymbolMapping:
 			defs.Delete: ['del_stmt'],
 			defs.Return: ['return_stmt'],
 			defs.Yield: ['yield_stmt'],
+			defs.Assert: ['assert_stmt'],
 			defs.Throw: ['raise_stmt'],
 			defs.Pass: ['pass_stmt'],
 			defs.Break: ['break_stmt'],

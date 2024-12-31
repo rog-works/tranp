@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from typing import Generic, Self, TypeVar, cast, override
+from typing import Generic, Self, TypeVar, override
 
 T = TypeVar('T')
 T_co = TypeVar('T_co', covariant=True)
@@ -20,12 +20,14 @@ class CVar(Generic[T_co]):
 	@property
 	def on(self) -> T_co:
 		"""Returns: T_co: 実体を返却するリレー代替メソッド。C++では実体型は`.`、アドレス型は`->`に相当"""
-		return cast(T_co, self._origin)
+		assert self._origin is not None, 'Origin is null'
+		return self._origin
 
 	@property
 	def raw(self) -> T_co:
 		"""Returns: T_co: 実体を返却する実体参照代替メソッド。C++では実体型は削除、アドレス型は`*`に相当"""
-		return cast(T_co, self._origin)
+		assert self._origin is not None, 'Origin is null'
+		return self._origin
 
 	def __eq__(self, other: Self) -> bool:
 		"""比較演算子(==)のオーバーロード

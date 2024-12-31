@@ -1,3 +1,4 @@
+from abc import ABCMeta, abstractmethod
 from collections.abc import Callable
 from typing import Generic, Self, TypeVar, override
 
@@ -6,28 +7,26 @@ T_co = TypeVar('T_co', covariant=True)
 T_New = TypeVar('T_New')
 
 
-class CVar(Generic[T_co]):
-	"""C++型変数の互換クラス(基底)"""
-
-	def __init__(self, origin: T_co) -> None:
-		"""インスタンスを生成
-
-		Args:
-			origin (T_co): 実体のインスタンス
-		"""
-		self._origin: T_co | None = origin
+class CVar(Generic[T_co], metaclass=ABCMeta):
+	"""C++型変数の互換クラス(抽象基底)"""
 
 	@property
+	@abstractmethod
 	def on(self) -> T_co:
-		"""Returns: T_co: 実体を返却するリレー代替メソッド。C++では実体型は`.`、アドレス型は`->`に相当"""
-		assert self._origin is not None, 'Origin is null'
-		return self._origin
+		"""Returns: T_co: 実体を返却 Note: リレー代替メソッド。C++では実体型は`.`、アドレス型は`->`に相当"""
+		...
 
 	@property
+	@abstractmethod
 	def raw(self) -> T_co:
-		"""Returns: T_co: 実体を返却する実体参照代替メソッド。C++では実体型は削除、アドレス型は`*`に相当"""
-		assert self._origin is not None, 'Origin is null'
-		return self._origin
+		"""Returns: T_co: 実体を返却 Note: 実体参照代替メソッド。C++では実体型は削除、アドレス型は`*`に相当"""
+		...
+
+	@property
+	@abstractmethod
+	def _origin_raw(self) -> T_co | None:
+		"""Returns: T_co | None: 実体を返却 Note: 派生クラス用。C++としての役割は無い"""
+		...
 
 	def __eq__(self, other: Self) -> bool:
 		"""比較演算子(==)のオーバーロード
@@ -63,10 +62,85 @@ class CVar(Generic[T_co]):
 		Returns:
 			str: シリアライズ表現
 		"""
-		return f'<{self.__class__.__name__}[{self._origin.__class__.__name__}]: at {hex(id(self)).upper()} with {self._origin}>'
+		return f'<{self.__class__.__name__}[{self._origin_raw.__class__.__name__}]: at {hex(id(self)).upper()} with {self._origin_raw}>'
 
 
-class CP(CVar[T_co]):
+class CVarNotNull(CVar[T_co]):
+	"""C++型変数の互換クラス(Null安全型)
+
+	Note:
+		対象: CSP以外
+	"""
+
+	_origin: T_co
+
+	def __init__(self, origin: T_co) -> None:
+		"""インスタンスを生成
+
+		Args:
+			origin (T_co): 実体のインスタンス
+		"""
+		self._origin = origin
+
+	@property
+	@override
+	def on(self) -> T_co:
+		"""Returns: T_co: 実体を返却 Note: リレー代替メソッド。C++では実体型は`.`、アドレス型は`->`に相当"""
+		return self._origin
+
+	@property
+	@override
+	def raw(self) -> T_co:
+		"""Returns: T_co: 実体を返却 Note: 実体参照代替メソッド。C++では実体型は削除、アドレス型は`*`に相当"""
+		return self._origin
+
+	@property
+	@override
+	def _origin_raw(self) -> T_co:
+		"""Returns: T_co: 実体を返却 Note: 派生クラス用。C++としての役割は無い"""
+		return self._origin
+
+
+class CVarNullable(CVar[T_co]):
+	"""C++型変数の互換クラス(Null許容型)
+
+	Note:
+		対象: CSPのみ
+		XXX CSPのみ空の状態を表現するためNullを許容する
+	"""
+
+	_origin: T_co | None
+
+	def __init__(self, origin: T_co | None) -> None:
+		"""インスタンスを生成
+
+		Args:
+			origin (T_co | None): 実体のインスタンス
+		"""
+		self._origin = origin
+
+	@property
+	@override
+	def on(self) -> T_co:
+		"""Returns: T_co: 実体を返却 Note: リレー代替メソッド。C++では実体型は`.`、アドレス型は`->`に相当"""
+		assert self._origin is not None, 'Origin is Null'
+		return self._origin
+
+	@property
+	@override
+	def raw(self) -> T_co:
+		"""Returns: T_co: 実体を返却 Note: 実体参照代替メソッド。C++では実体型は削除、アドレス型は`*`に相当"""
+		assert self._origin is not None, 'Origin is Null'
+		return self._origin
+
+	@property
+	@override
+	def _origin_raw(self) -> T_co | None:
+		"""Returns: T_co | None: 実体を返却 Note: 派生クラス用。C++としての役割は無い"""
+		return self._origin
+
+
+class CP(CVarNotNull[T_co]):
 	"""C++型変数の互換クラス(ポインター)"""
 
 	@classmethod
@@ -111,29 +185,17 @@ class CP(CVar[T_co]):
 		return id(self) - id(other)
 
 
-class CSP(CVar[T_co]):
+class CSP(CVarNullable[T_co]):
 	"""C++型変数の互換クラス(スマートポインター)"""
-
-	@override
-	def __init__(self, origin: T_co | None = None) -> None:
-		"""インスタンスを生成
-
-		Args:
-			origin (T_co | None): 実体のインスタンス (default = None)
-		Note:
-			XXX 空の状態を実現するため、スマートポインターのみNull許容型とする
-			XXX 基底クラスのコンストラクターをシャドウイングしない方法を検討
-		"""
-		self._origin: T_co | None = origin
 
 	@classmethod
 	def empty(cls) -> 'CSP[T_co] | None':
 		"""空のスマートポインターの初期化を代替するメソッド。C++では`std::shared_ptr<T>()`に相当
 
 		Returns:
-			CP[T_co] | None: インスタンス
+			CSP[T_co] | None: インスタンス
 		"""
-		return CSP[T_co]()
+		return CSP(None)
 
 	@classmethod
 	def new(cls, origin: T_New) -> 'CSP[T_New]':
@@ -142,7 +204,7 @@ class CSP(CVar[T_co]):
 		Args:
 			origin (T_New): 実体のインタンス
 		Returns:
-			CP[T_New]: インスタンス
+			CSP[T_New]: インスタンス
 		"""
 		return CSP(origin)
 
@@ -162,7 +224,7 @@ class CSP(CVar[T_co]):
 		return CSPConst(self.raw)
 
 
-class CRef(CVar[T_co]):
+class CRef(CVarNotNull[T_co]):
 	"""C++型変数の互換クラス(参照)"""
 
 	@property
@@ -192,7 +254,7 @@ class CRef(CVar[T_co]):
 			self._origin = via._origin
 
 
-class CPConst(CVar[T_co]):
+class CPConst(CVarNotNull[T_co]):
 	"""C++型変数の互換クラス(Constポインター)"""
 
 	@property
@@ -201,7 +263,7 @@ class CPConst(CVar[T_co]):
 		return CRefConst(self.raw)
 
 
-class CSPConst(CVar[T_co]):
+class CSPConst(CVarNotNull[T_co]):
 	"""C++型変数の互換クラス(Constスマートポインター)"""
 
 	@property
@@ -215,7 +277,7 @@ class CSPConst(CVar[T_co]):
 		return CPConst(self.raw)
 
 
-class CRefConst(CVar[T_co]):
+class CRefConst(CVarNotNull[T_co]):
 	"""C++型変数の互換クラス(Const参照)"""
 
 	@property
@@ -224,7 +286,7 @@ class CRefConst(CVar[T_co]):
 		return CPConst(self.raw)
 
 
-class CRawConst(CVar[T_co]):
+class CRawConst(CVarNotNull[T_co]):
 	"""C++型変数の互換クラス(Const)"""
 
 	@property
@@ -238,7 +300,7 @@ class CRawConst(CVar[T_co]):
 		return CPConst(self.raw)
 
 
-class CRaw(CVar[T_co]):
+class CRaw(CVarNotNull[T_co]):
 	"""C++型変数の互換クラス(実体)"""
 
 	@property

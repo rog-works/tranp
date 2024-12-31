@@ -134,6 +134,19 @@ class Yield(Node):
 		return self._ancestor('function_def')
 
 
+@Meta.embed(Node, accept_tags('assert_stmt'))
+class Assert(Node):
+	@property
+	@Meta.embed(Node, expandable)
+	def condition(self) -> Node:
+		return self._at(0)
+
+	@property
+	@Meta.embed(Node, expandable)
+	def assert_body(self) -> Node | Empty:
+		return self._at(1)
+
+
 @Meta.embed(Node, accept_tags('raise_stmt'))
 class Throw(Node):
 	@property

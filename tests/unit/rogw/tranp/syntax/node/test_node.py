@@ -122,6 +122,7 @@ class TestNode(TestCase):
 		# Statement simple - Other
 		('def func() -> int:\n\treturn 0', 'file_input.function_def.function_def_raw.block.return_stmt', defs.Return, '', '__main__#func.return@11'),
 		('def func() -> Iterator[int]:\n\tyield 0', 'file_input.function_def.function_def_raw.block.yield_stmt', defs.Yield, '', '__main__#func.yield@16'),
+		('assert ok, Exception', 'file_input.assert_stmt', defs.Assert, '', '__main__#assert@1'),
 		('raise Exception()', 'file_input.raise_stmt', defs.Throw, '', '__main__#throw@1'),
 		('pass', 'file_input.pass_stmt', defs.Pass, '', '__main__#pass@1'),
 		('break', 'file_input.break_stmt', defs.Break, '', '__main__#break@1'),
@@ -235,6 +236,7 @@ class TestNode(TestCase):
 		('a += 0', 'file_input.aug_assign', defs.AugAssign, '__main__', '__main__'),
 		# Statement simple - Other
 		('def func() -> int:\n\treturn 0', 'file_input.function_def.function_def_raw.block.return_stmt', defs.Return, '__main__#func', '__main__#func'),
+		('assert ok, Exception', 'file_input.assert_stmt', defs.Assert, '__main__', '__main__'),
 		('raise Exception()', 'file_input.raise_stmt', defs.Throw, '__main__', '__main__'),
 		('pass', 'file_input.pass_stmt', defs.Pass, '__main__', '__main__'),
 		('break', 'file_input.break_stmt', defs.Break, '__main__', '__main__'),

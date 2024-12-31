@@ -1253,6 +1253,13 @@ class TestRenderer(TestCase):
 		self.assertRender('return', vars, expected)
 
 	@data_provider([
+		({'condition': 'n == 1', 'assert_body': ''}, 'assert(n == 1);'),
+		({'condition': 'a.ok', 'assert_body': 'std::exception'}, 'assert(a.ok); // std::exception'),
+	])
+	def test_render_assert(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('assert', vars, expected)
+
+	@data_provider([
 		({'throws': 'e', 'via': '', 'is_new': False}, 'throw e;'),
 		({'throws': 'std::exception()', 'via': 'e', 'is_new': True}, 'throw new std::exception();'),
 	])

@@ -16,6 +16,7 @@ file_input: (_NEWLINE | statement)*
 	| pass_stmt
 	| del_stmt
 	| yield_stmt
+	| assert_stmt
 	| break_stmt
 	| continue_stmt
 	| comment_stmt // @custom
@@ -187,6 +188,7 @@ template_assign: assign_namelist "=" template_assign_class "(" string ["," templ
 del_stmt: "del" _exprlist
 return_stmt: "return" [testlist]
 yield_stmt: "yield" testlist
+assert_stmt: "assert" expression ["," expression]
 raise_stmt: "raise" primary ["from" name]
 break_stmt: "break"
 pass_stmt: "pass"

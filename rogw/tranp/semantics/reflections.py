@@ -377,6 +377,9 @@ class ProceduralResolver:
 		"""Note: XXX Iteratorで囲うべきか検討。値としてだけみればこのままでも良い"""
 		return yield_value.stack(node)
 
+	def on_assert(self, node: defs.Assert, condition: IReflection, assert_body: IReflection) -> IReflection:
+		return self.reflections.from_standard(Unknown).stack(node)
+
 	# Primary
 
 	def on_argument(self, node: defs.Argument, label: IReflection, value: IReflection) -> IReflection:
@@ -447,7 +450,6 @@ class ProceduralResolver:
 			return self.reflections.from_standard(type).stack(node).extends(symbol)
 
 		return symbol.stack(node)
-
 
 	def on_class_ref(self, node: defs.ClassRef) -> IReflection:
 		symbol = self.reflections.resolve(node)

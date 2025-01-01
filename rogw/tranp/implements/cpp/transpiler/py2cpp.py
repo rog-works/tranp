@@ -1141,6 +1141,10 @@ class Py2Cpp(ITranspiler):
 	def on_expander(self, node: defs.Expander, expression: str) -> str:
 		raise NotSupportedError(f'Denied list expand expression. node: {node}')
 
+	def on_lambda(self, node: defs.Lambda, expression: str) -> str:
+		var_type = self.to_accessible_name(self.reflections.type_of(node.expression))
+		return self.view.render(node.classification, vars={'expression': expression, 'var_type': var_type})
+
 	# Terminal
 
 	def on_terminal(self, node: Node) -> str:

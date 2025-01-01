@@ -67,6 +67,11 @@ function_def_raw: "def" name "(" [parameters] ")" "->" return_type ":" block
 // @custom
 ?return_type: typed_expression | "'" typed_expression "'"
 
+// @lark lambdadef: "lambda" [lambdaparams] ":" test
+// @lark lambdadef_nocond: "lambda" [lambdaparams] ":" test_nocond
+// @note lambdadef_nocondはcomp_ifにのみ利用。Python公式にそのような定義はなく、必然性もあまり無いように感じるため非対応
+lambdadef: "lambda" ":" expression
+
 // ## Function parameters
 
 // @lark parameters: paramvalue ("," paramvalue)* ["," SLASH ("," paramvalue)*] ["," [starparams | kwparams]] | starparams | kwparams
@@ -200,7 +205,9 @@ comment_stmt: COMMENT
 
 // @note Lark: test, Offical: expression
 // @lark ?test: or_test ("if" or_test "else" test)? | lambdef | assign_expr
-?expression: or_test | or_test "if" or_test "else" expression -> tenary_test
+?expression: or_test
+	| or_test "if" or_test "else" expression -> tenary_test
+	| lambdadef
 
 // ## Comparison operators
 

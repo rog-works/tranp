@@ -1177,6 +1177,12 @@ class TestRenderer(TestCase):
 		self.assertRender(f'indexer/{spec}', vars, expected)
 
 	@data_provider([
+		({'expression': '1', 'var_type': 'int'}, '[&]() -> int { return 1; }'),
+	])
+	def test_render_lambda(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('lambda', vars, expected)
+
+	@data_provider([
 		({'values': ['1234', '2345']}, '{\n\t{1234},\n\t{2345},\n}'),
 		({'values': []}, '{}'),
 	])

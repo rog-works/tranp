@@ -406,3 +406,11 @@ class ForTemplateClass:
 		d = ForTemplateClass.Delegate[bool, int]()
 		d.bind(a, ForTemplateClass.A.func)
 		d.invoke(True, 1)
+
+
+class ForLambda:
+	def expression(self) -> None:
+		lambda: 'a'
+		f = lambda: False
+		b = f()
+		ns = (lambda: [1])()

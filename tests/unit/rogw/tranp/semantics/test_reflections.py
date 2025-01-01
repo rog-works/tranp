@@ -14,6 +14,7 @@ def _mod(before: str, after: str) -> str:
 		'classes': 'rogw.tranp.compatible.libralies.classes',
 		'type': 'rogw.tranp.compatible.libralies.type',
 		'typing': 'typing',
+		'collections': 'collections.abc',
 		'xyz': 'tests.unit.rogw.tranp.semantics.reflection.fixtures.test_db_xyz',
 		'__main__': 'tests.unit.rogw.tranp.semantics.fixtures.test_reflections',
 	}
@@ -175,6 +176,11 @@ class TestReflections(TestCase):
 		('ForClass.DeclThisVar.ab', '', _mod('classes', 'bool'), 'bool'),
 		('ForClass.DeclThisVar.ac', '', _mod('typing', 'Union'), 'Union<DeclThisVar, None>'),
 		('ForClass.DeclThisVar.__init__', 'function_def_raw.block.assign[5]', _mod('classes', 'int'), 'int'),
+
+		('ForLambda.expression', 'function_def_raw.block.lambdadef', _mod('collections', 'Callable'), 'Callable<str>'),
+		('ForLambda.expression', 'function_def_raw.block.assign[1]', _mod('collections', 'Callable'), 'Callable<bool>'),
+		('ForLambda.expression', 'function_def_raw.block.assign[2]', _mod('classes', 'bool'), 'bool'),
+		('ForLambda.expression', 'function_def_raw.block.assign[3]', _mod('classes', 'list'), 'list<int>'),
 	])
 	def test_type_of(self, local_path: str, offset_path: str, expected: str, attrs_expected: str) -> None:
 		reflections = self.fixture.get(Reflections)

@@ -682,6 +682,9 @@ class ProceduralResolver:
 	def on_expander(self, node: defs.Expander, expression: IReflection) -> IReflection:
 		return expression.stack(node)
 
+	def on_lambda(self, node: defs.Lambda, expression: IReflection) -> IReflection:
+		return self.reflections.from_standard(Callable).stack(node).extends(expression)
+
 	# Terminal
 
 	def on_empty(self, node: defs.Empty) -> IReflection:

@@ -811,3 +811,11 @@ class ForComp:
 		{kp: kp for kp in dpp.keys()}
 		{vp: vp for vp in dpp.values()}
 		{kp: vp for kp, vp in dpp.items()}
+
+
+class ForLambda:
+	def expression(self) -> None:
+		f = lambda: 1
+		n = f()
+		s = (lambda: 'a')()
+		if (lambda: True)(): ...

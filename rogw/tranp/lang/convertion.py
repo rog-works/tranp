@@ -1,7 +1,7 @@
 from typing import Any, TypeVar
 
-
 T = TypeVar('T')
+
 
 def safe_cast(value: T | None) -> T:
 	"""安全にNullable型から実体型にキャスト

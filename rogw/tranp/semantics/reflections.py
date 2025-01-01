@@ -648,14 +648,13 @@ class ProceduralResolver:
 
 	def on_list(self, node: defs.List, values: list[IReflection]) -> IReflection:
 		unknown_type = self.reflections.from_standard(Unknown)
-		known_types = []
-		for index, value in enumerate(values):
-			value_type = value if not node.values[index].is_a(defs.Expander) else value.attrs[0]
-			if value_type.types != unknown_type.types:
-				known_types.append(value_type)
-
-		value_type = known_types[0] if len(known_types) > 0 else unknown_type
-		return self.reflections.from_standard(list).stack(node).extends(value_type)
+		known_types = list({value.types: value for value in values if value.types != unknown_type.types}.values())
+		if len(known_types) == 0:
+			return self.reflections.from_standard(list).stack(node).extends(unknown_type)
+		elif len(known_types) == 1:
+			return self.reflections.from_standard(list).stack(node).extends(known_types[0])
+		else:
+			return self.reflections.from_standard(list).stack(node).extends(self.reflections.from_standard(Union).extends(*known_types))
 
 	def on_dict(self, node: defs.Dict, items: list[IReflection]) -> IReflection:
 		if len(items) == 0:
@@ -680,7 +679,7 @@ class ProceduralResolver:
 		return expression.stack(node)
 
 	def on_expander(self, node: defs.Expander, expression: IReflection) -> IReflection:
-		return expression.stack(node)
+		return expression.to(node, expression.attrs[0])
 
 	def on_lambda(self, node: defs.Lambda, expression: IReflection) -> IReflection:
 		return self.reflections.from_standard(Callable).stack(node).extends(expression)

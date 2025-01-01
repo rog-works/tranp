@@ -1173,3 +1173,12 @@ class TestDefinition(TestCase):
 	])
 	def test_null(self, source: str, full_path: str) -> None:
 		self.assertEqual(defs.Null, type(self.fixture.custom_nodes_by(source, full_path)))
+
+	# Expression
+
+	@data_provider([
+		('lambda: 1', 'file_input.lambdadef', {'expression': defs.Integer}),
+	])
+	def test_lambda(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Lambda)
+		self.assertEqual(type(node.expression), expected['expression'])

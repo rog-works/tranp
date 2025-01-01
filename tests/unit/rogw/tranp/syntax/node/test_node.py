@@ -196,6 +196,8 @@ class TestNode(TestCase):
 		('{1: 2}', 'file_input.dict', defs.Dict, 'dict@1', '__main__#dict@1'),
 		('(1,)', 'file_input.tuple', defs.Tuple, 'tuple@1', '__main__#tuple@1'),
 		('None', 'file_input.const_none', defs.Null, 'None', '__main__#None'),
+		# Expression
+		('lambda: 1', 'file_input.lambdadef', defs.Lambda, 'lambda@1', '__main__#lambda@1'),
 	])
 	def test_domain(self, source: str, full_path: str, types: type[T_Node], expected_name: bool, expected_fully: str) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path)
@@ -293,6 +295,8 @@ class TestNode(TestCase):
 		('{a: b for a, b in {}}', 'file_input.dict_comp.comprehension.comp_fors.comp_for.for_namelist.name[0]', defs.DeclLocalVar, '__main__#dict_comp@1', '__main__#dict_comp@1'),
 		# Literal
 		('1', 'file_input.number', defs.Integer, '__main__', '__main__'),
+		# Expression
+		('lambda: 1', 'file_input.lambdadef', defs.Lambda, '__main__', '__main__'),
 	])
 	def test_scope_and_namespace(self, source: str, full_path: str, types: type[Node], expected_scope: str, expected_namespace: str) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(types)

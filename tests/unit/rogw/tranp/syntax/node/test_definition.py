@@ -1131,7 +1131,7 @@ class TestDefinition(TestCase):
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.List)
 		self.assertEqual(len(expected), len(node.values))
 		for index, value in enumerate(node.values):
-			if not isinstance(value, defs.Expander):
+			if not isinstance(value, defs.Spread):
 				self.assertEqual(value.tokens, expected[index]['value'])
 				self.assertEqual(type(value), expected[index]['value_type'])
 			else:

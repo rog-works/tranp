@@ -1,0 +1,11 @@
+{# XXX 未使用 #}
+[&]() -> {{ i18n('classes', 'list') }}<{{ var_type }}> {
+	{{ i18n('classes', 'list') }}<{{ var_type }}> __ret;
+	{{ for list_literal in list_literals }}
+	{{ i18n('classes', 'list') }}<{{ var_type }}> __values{{ loop.index0 }} = {{ list_literal }};
+	for (auto& __value : __values{{ loop.index0 }}) {
+		__ret.{{ i18n('classes', 'list.append') }}(__value);
+	}
+	{{ endfor }}
+	return __ret;
+}

@@ -1122,7 +1122,25 @@ class Py2Cpp(ITranspiler):
 		return '{' f'{first}, {second}' '}'
 
 	def on_list(self, node: defs.List, values: list[str]) -> str:
-		return self.view.render(node.classification, vars={'values': values})
+		return self.view.render(f'{node.classification}/default', vars={'values': values})
+
+	# XXX あまりにも非効率なため非対応
+	# def proc_list_for_spread(self, node: defs.List, values: list[str], spread_indexs: list[int]) -> str:
+	# 	before = 0
+	# 	steps: list[tuple[int, int]] = []
+	# 	for count, index in enumerate(spread_indexs):
+	# 		if before < index:
+	# 			steps.append((before, index))
+
+	# 		steps.append((index, index + 1))
+
+	# 		if count == len(spread_indexs) - 1 and index < len(values) - 1:
+	# 			steps.append((index, len(values)))
+
+	# 		before = index + 1
+
+	# 	list_literals = [self.view.render(f'{node.classification}/default', vars={'values': values[begin:end]}) for begin, end in steps]
+	# 	return self.view.render(f'{node.classification}/spread', vars={'list_literals': list_literals})
 
 	def on_dict(self, node: defs.Dict, items: list[str]) -> str:
 		return self.view.render(node.classification, vars={'items': items})
@@ -1139,7 +1157,7 @@ class Py2Cpp(ITranspiler):
 		return f'({expression})'
 
 	def on_spread(self, node: defs.Spread, expression: str) -> str:
-		raise NotSupportedError(f'Denied list expand expression. node: {node}')
+		raise NotSupportedError(f'Denied spread expression. node: {node}')
 
 	def on_lambda(self, node: defs.Lambda, expression: str) -> str:
 		var_type = self.to_accessible_name(self.reflections.type_of(node.expression))

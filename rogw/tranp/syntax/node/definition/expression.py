@@ -15,7 +15,7 @@ class Group(Node):
 
 
 @Meta.embed(Node, accept_tags('star_expr'))
-class Expander(Node):
+class Spread(Node):
 	@property
 	@Meta.embed(Node, expandable)
 	def expression(self) -> Node:

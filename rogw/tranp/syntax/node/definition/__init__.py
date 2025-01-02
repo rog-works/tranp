@@ -2,7 +2,7 @@ from typing import TypeAlias
 
 from rogw.tranp.syntax.node.definition.accessible import to_accessor, PythonClassOperations
 from rogw.tranp.syntax.node.definition.element import Decorator, Parameter
-from rogw.tranp.syntax.node.definition.expression import Expander, Group, Lambda
+from rogw.tranp.syntax.node.definition.expression import Spread, Group, Lambda
 from rogw.tranp.syntax.node.definition.general import Entrypoint
 from rogw.tranp.syntax.node.definition.literal import (
 	Literal,

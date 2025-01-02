@@ -1187,7 +1187,7 @@ class TestRenderer(TestCase):
 		({'values': []}, '{}'),
 	])
 	def test_render_list(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('list', vars, expected)
+		self.assertRender('list/default', vars, expected)
 
 	@data_provider([
 		# 明示変換系

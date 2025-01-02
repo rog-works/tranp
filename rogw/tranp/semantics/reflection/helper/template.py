@@ -1,10 +1,12 @@
 from collections.abc import Callable
 from typing import Generic, TypeAlias, TypeVar, override
 
+from rogw.tranp.compatible.python.types import Union
 from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.errors import LogicError
 import rogw.tranp.lang.sequence as seqs
 from rogw.tranp.semantics.reflection.base import IReflection
+import rogw.tranp.semantics.reflection.definition as refs
 import rogw.tranp.syntax.node.definition as defs
 
 T_Helper = TypeVar('T_Helper', bound='Helper')
@@ -198,9 +200,25 @@ class TemplateManipulator:
 			**attrs (IReflection | list[IReflection]): シンボル/属性
 		Returns:
 			TemplateMap: パスとテンプレート型(タイプ再定義ノード)のマップ表
+		Note:
+			XXX Union型に内包されるテンプレート型は、実体型と階層を合わせるために親のUnion型の階層に変更する
 		"""
-		expand_attrs = seqs.expand(attrs, iter_key='attrs')
-		return {path: attr.types for path, attr in expand_attrs.items() if isinstance(attr.types, defs.TemplateClass)}
+		expand_attrs: dict[str, IReflection] = seqs.expand(attrs, iter_key='attrs')
+		candidates = {path: attr.types for path, attr in expand_attrs.items() if isinstance(attr.types, defs.TemplateClass)}
+		templates: TemplateMap = {}
+		for path, types in candidates.items():
+			if DSN.elem_counts(path) == 1:
+				templates[path] = types
+				continue
+
+			parent_path = DSN.shift(path, -1)
+			if not (parent_path in expand_attrs and expand_attrs[parent_path].impl(refs.Object).type_is(Union)):
+				templates[path] = types
+				continue
+
+			templates[parent_path] = types
+
+		return templates
 
 	@classmethod
 	def unpack_symbols(cls, **attrs: IReflection | list[IReflection]) -> SymbolMap:

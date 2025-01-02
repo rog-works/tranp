@@ -272,14 +272,17 @@ class TestPy2Cpp(TestCase):
 		('ForClassExpose.method_cpp', '', defs.Method, 'public:\n/** method */\nvoid method() {}'),
 		('func_expose', '', defs.Function, '// function func_expose'),
 
-		('Template.T2Class', '', defs.Class, '/** T2Class */\ntemplate<typename T2>\nclass T2Class {\n\n};'),
-		('Template.__init__', '', defs.Constructor, 'public:\n/** __init__ */\nTemplate(T v) {}'),
-		('Template.class_method_t', '', defs.ClassMethod, 'public:\n/** class_method_t */\ntemplate<typename T2>\nstatic T2 class_method_t(T2 v2) {}'),
-		('Template.class_method_t_and_class_t', '', defs.ClassMethod, 'public:\n/** class_method_t_and_class_t */\ntemplate<typename T2>\nstatic T2 class_method_t_and_class_t(T v, T2 v2) {}'),
-		('Template.method_t', '', defs.Method, 'public:\n/** method_t */\ntemplate<typename T2>\nT2 method_t(T2 v2) {}'),
-		('Template.method_t_and_class_t', '', defs.Method, 'public:\n/** method_t_and_class_t */\ntemplate<typename T2>\nT2 method_t_and_class_t(T v, T2 v2) {}'),
+		('ForTemplate.TClass.__init__', '', defs.Constructor, 'public:\n/** __init__ */\nTClass(T v) {}'),
+		('ForTemplate.TClass.class_method_t', '', defs.ClassMethod, 'public:\n/** class_method_t */\ntemplate<typename T2>\nstatic T2 class_method_t(T2 v2) {}'),
+		('ForTemplate.TClass.class_method_t_and_class_t', '', defs.ClassMethod, 'public:\n/** class_method_t_and_class_t */\ntemplate<typename T2>\nstatic T2 class_method_t_and_class_t(T v, T2 v2) {}'),
+		('ForTemplate.TClass.method_t', '', defs.Method, 'public:\n/** method_t */\ntemplate<typename T2>\nT2 method_t(T2 v2) {}'),
+		('ForTemplate.TClass.method_t_and_class_t', '', defs.Method, 'public:\n/** method_t_and_class_t */\ntemplate<typename T2>\nT2 method_t_and_class_t(T v, T2 v2) {}'),
+		('ForTemplate.T2Class', '', defs.Class, '/** T2Class */\ntemplate<typename T2>\nclass T2Class {\n\n};'),
 
-		('template_func', '', defs.Function, '/** template_func */\ntemplate<typename T>\nT template_func(T v) {}'),
+		('ForTemplate.unpack_call', 'function_def_raw.block.assign', defs.MoveAssign, 'ForTemplate a = this->unpack(ForTemplate());'),
+
+		('template_unpack', '', defs.Function, '/** template_unpack */\ntemplate<typename T>\nT template_unpack(T v) {}'),
+		('template_unpack_call', 'function_def_raw.block.assign', defs.MoveAssign, 'ForTemplate a = template_unpack(ForTemplate());'),
 
 		('ForFlows.if_elif_else', 'function_def_raw.block.if_stmt', defs.If, 'if (1) {\n\n} else if (2) {\n\n} else {\n\n}'),
 

@@ -586,12 +586,14 @@ class Py2Cpp(ITranspiler):
 		org_receiver_symbol = Defer.new(lambda: self.reflections.type_of(node.receiver).impl(refs.Object))
 		receiver_symbol = Defer.new(lambda: org_receiver_symbol.actualize().impl(refs.Object))
 		prop_symbol = Defer.new(lambda: receiver_symbol.prop_of(node.prop))
-		if self.is_relay_literalizer(node):
+		if self.is_relay_literalizer(node, receiver_symbol):
 			org_prop = node.prop.domain_name
 			if org_prop == '__name__':
 				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'literal': self.to_domain_name_by_class(receiver_symbol.types)})
 			elif org_prop == '__module__':
 				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'literal': receiver_symbol.types.module_path})
+			elif org_prop == 'name':
+				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'literal': node.receiver.as_a(defs.Relay).prop.tokens})
 			else:
 				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'literal': receiver})
 		elif self.is_relay_this(node):
@@ -627,8 +629,14 @@ class Py2Cpp(ITranspiler):
 			is_property = isinstance(prop_symbol.decl, defs.Method) and prop_symbol.decl.is_property
 			return self.view.render(f'{node.classification}/default', vars={'receiver': receiver, 'operator': CVars.RelayOperators.Raw.name, 'prop': prop, 'is_property': is_property})
 
-	def is_relay_literalizer(self, node: defs.Relay) -> bool:
-		return node.prop.tokens in ['__module__', '__name__', '__qualname__']
+	def is_relay_literalizer(self, node: defs.Relay, receiver_symbol: IReflection) -> bool:
+		prop = node.prop.tokens
+		if prop in ['__module__', '__name__', '__qualname__']:
+			return True
+		elif prop == 'name' and isinstance(receiver_symbol.types, defs.Enum):
+			return True
+		else:
+			return False
 
 	def is_relay_this(self, node: defs.Relay) -> bool:
 		return node.receiver.is_a(defs.ThisRef)

@@ -623,6 +623,7 @@ class ForFuncCall:
 			print(Alias.in_local.__qualname__)
 			print(Alias.Inner.func.__qualname__)
 			print(t.__name__)
+			print(Values.A.name)
 
 	class Cast:
 		def cast_binary(self) -> None:

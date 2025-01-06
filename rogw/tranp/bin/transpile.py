@@ -229,7 +229,7 @@ class TranspileApp:
 			'runner': Runner,
 			'interactive': Interactive,
 		}
-		invoker(modes[config.mode]).exec()
+		invoker(modes[config.mode]).run()
 
 
 class Runner:
@@ -253,14 +253,14 @@ class Runner:
 		self.module_meta_factory = module_meta_factory
 		self.transpiler = transpiler
 
-	def exec(self) -> None:
+	def run(self) -> None:
 		"""トランスパイルの実行"""
 		if self.config.profile:
-			profiler('tottime')(self._exec)()
+			profiler('tottime')(self._run_impl)()
 		else:
-			self._exec()
+			self._run_impl()
 
-	def _exec(self) -> None:
+	def _run_impl(self) -> None:
 		"""トランスパイルの実行"""
 		for module_path in self.module_paths:
 			if self.config.force or self.can_transpile(module_path):
@@ -268,52 +268,6 @@ class Runner:
 				writer = Writer(self.output_filepath(module_path))
 				writer.put(content)
 				writer.flush()
-
-	def try_load_meta_header(self, module_path: ModulePath) -> MetaHeader | None:
-		"""トランスパイル済みのファイルからメタヘッダーの読み込みを試行
-
-		Args:
-			module_path (ModulePath): モジュールパス
-		Returns:
-			MetaHeader | None: メタヘッダー。ファイル・メタヘッダーが存在しない場合はNone
-		"""
-		filepath = self.output_filepath(module_path)
-		if not self.sources.exists(filepath):
-			return None
-
-		return MetaHeader.try_from_content(self.sources.load(filepath))
-
-	def output_filepath(self, module_path: ModulePath) -> str:
-		"""トランスパイル後のファイルパスを生成
-
-		Args:
-			module_path (ModulePath): モジュールパス
-		Returns:
-			str: ファイルパス
-		"""
-		extension_map = self.config.output_language.split(':')
-		extension = extension_map[1] if len(extension_map) == 2 else extension_map[0]
-		filepath = module_path_to_filepath(module_path.path, f'.{extension}')
-		output_dir = self._fetch_output_dir(filepath)
-		return os.path.abspath(os.path.join(output_dir, filepath))
-
-	def _fetch_output_dir(self, filepath: str) -> str:
-		"""ファイルパスに応じた出力ディレクトリーを取得
-
-		Args:
-			filepath (str): ファイルパス
-		Returns:
-			str: 出力ディレクトリー
-		"""
-		_filepath = filepath.replace(os.sep, '/')
-		fallback = self.config.output_dirs[-1]
-		for dir_entry in self.config.output_dirs[:-1]:
-			condition, output_dir = dir_entry.split(':')
-			pattern = condition.replace('*', '.+')
-			if re.fullmatch(pattern, _filepath):
-				return output_dir
-
-		return fallback
 
 	def can_transpile(self, module_path: ModulePath) -> bool:
 		"""トランスパイルを実行するか判定
@@ -340,6 +294,52 @@ class Runner:
 		"""
 		return self.modules.load(module_path.path).entrypoint
 
+	def try_load_meta_header(self, module_path: ModulePath) -> MetaHeader | None:
+		"""トランスパイル済みのファイルからメタヘッダーの読み込みを試行
+
+		Args:
+			module_path (ModulePath): モジュールパス
+		Returns:
+			MetaHeader | None: メタヘッダー。ファイル・メタヘッダーが存在しない場合はNone
+		"""
+		filepath = self.output_filepath(module_path)
+		if not self.sources.exists(filepath):
+			return None
+
+		return MetaHeader.try_from_content(self.sources.load(filepath))
+
+	def output_filepath(self, module_path: ModulePath) -> str:
+		"""トランスパイル後のファイルパスを生成
+
+		Args:
+			module_path (ModulePath): モジュールパス
+		Returns:
+			str: ファイルパス
+		"""
+		extension_map = self.config.output_language.split(':')
+		extension = extension_map[1] if len(extension_map) == 2 else extension_map[0]
+		filepath = module_path_to_filepath(module_path.path, f'.{extension}')
+		output_dir = self.fetch_output_dir(filepath)
+		return os.path.abspath(os.path.join(output_dir, filepath))
+
+	def fetch_output_dir(self, filepath: str) -> str:
+		"""ファイルパスに応じた出力ディレクトリーを取得
+
+		Args:
+			filepath (str): ファイルパス
+		Returns:
+			str: 出力ディレクトリー
+		"""
+		_filepath = filepath.replace(os.sep, '/')
+		fallback = self.config.output_dirs[-1]
+		for dir_entry in self.config.output_dirs[:-1]:
+			condition, output_dir = dir_entry.split(':')
+			pattern = condition.replace('*', '.+')
+			if re.fullmatch(pattern, _filepath):
+				return output_dir
+
+		return fallback
+
 
 class Interactive:
 	"""ランナー(対話モード)"""
@@ -358,8 +358,8 @@ class Interactive:
 		self.modules = locator.resolve(Modules)
 		self.transpiler = locator.resolve(ITranspiler)
 
-	def exec(self) -> None:
-		"""対話モードの実行処理"""
+	def run(self) -> None:
+		"""対話モードの実行"""
 		try:
 			while True:
 				print('===============')
@@ -376,7 +376,7 @@ class Interactive:
 				if len(lines) == 1 and lines[0] == 'exit()':
 					break
 
-				main_module = self.remake_module('\n'.join(lines))
+				main_module = self.rebuild_module('\n'.join(lines))
 				result = self.transpiler.transpile(main_module.entrypoint)
 
 				print('===============')
@@ -388,13 +388,13 @@ class Interactive:
 		finally:
 			print('Quit')
 
-	def remake_module(self, source_code: str) -> Module:
-		"""モジュールを再生成
+	def rebuild_module(self, source_code: str) -> Module:
+		"""メインモジュールを再生成
 
 		Args:
 			source_code (str): ソースコード
 		Returns:
-			Note: エントリーポイント
+			Module: メインモジュール
 		"""
 		self.source_provider.source_code = source_code
 		self.modules.unload(self.source_provider.main_module_path)

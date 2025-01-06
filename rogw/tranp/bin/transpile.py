@@ -360,29 +360,33 @@ class Interactive:
 
 	def exec(self) -> None:
 		"""対話モードの実行処理"""
-		while True:
-			print('===============')
-			print('Python code here:')
-
-			lines: list[str] = []
+		try:
 			while True:
-				line = readline()
-				if not line:
+				print('===============')
+				print('Python code here:')
+
+				lines: list[str] = []
+				while True:
+					line = readline()
+					if not line:
+						break
+
+					lines.append(line)
+
+				if len(lines) == 1 and lines[0] == 'exit()':
 					break
 
-				lines.append(line)
+				main_module = self.remake_module('\n'.join(lines))
+				result = self.transpiler.transpile(main_module.entrypoint)
 
-			if len(lines) == 1 and lines[0] == 'exit()':
-				print('Quit')
-				break
-
-			main_module = self.remake_module('\n'.join(lines))
-			result = self.transpiler.transpile(main_module.entrypoint)
-
-			print('===============')
-			print('Result:')
-			print('---------------')
-			print(result)
+				print('===============')
+				print('Result:')
+				print('---------------')
+				print(result)
+		except KeyboardInterrupt:
+			pass
+		finally:
+			print('Quit')
 
 	def remake_module(self, source_code: str) -> Module:
 		"""モジュールを再生成

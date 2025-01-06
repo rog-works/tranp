@@ -3,19 +3,20 @@ import os
 import sys
 import json
 from types import MethodType
-from typing import Any, TypedDict, cast
+from typing import Any, TypedDict
 
 from rogw.tranp.app.app import App
+from rogw.tranp.app.dummy import WrapSourceProvider
 from rogw.tranp.app.dir import tranp_dir
 from rogw.tranp.bin.io import readline
 from rogw.tranp.file.loader import ISourceLoader
-from rogw.tranp.lang.annotation import duck_typed, injectable
-from rogw.tranp.lang.locator import Invoker, Locator
+from rogw.tranp.lang.annotation import injectable
+from rogw.tranp.lang.convertion import as_a
+from rogw.tranp.lang.locator import Locator
 from rogw.tranp.lang.module import filepath_to_module_path, to_fullyname
 from rogw.tranp.module.modules import Modules
 from rogw.tranp.module.types import ModulePath, ModulePaths
 from rogw.tranp.providers.module import module_path_dummy
-from rogw.tranp.providers.syntax.ast import source_provider
 from rogw.tranp.semantics.reflection.base import IReflection
 from rogw.tranp.semantics.reflection.db import SymbolDB
 from rogw.tranp.semantics.reflections import Reflections
@@ -63,34 +64,6 @@ class Args:
 				args['options'][arg[2:]] = argv.pop(0)
 
 		return args
-
-
-class WrapSourceProvider:
-	"""偽装ソースコードプロバイダー"""
-
-	@injectable
-	def __init__(self, invoker: Invoker) -> None:
-		"""インスタンスを生成
-
-		Args:
-			invoker (Invoker): ファクトリー関数 @inject
-		"""
-		self._org_source_provider = invoker(source_provider)
-		self.source_code: str = ''
-
-	@duck_typed(SourceProvider)
-	def __call__(self, module_path: str) -> str:
-		"""モジュールパスを基にソースコードを生成
-
-		Args:
-			module_path (str): モジュールパス
-		Returns:
-			str: ソースコード
-		"""
-		if module_path == module_path_dummy().path:
-			return f'{self.source_code}\n'
-		else:
-			return self._org_source_provider(module_path)
 
 
 class AnalyzeApp(App):
@@ -246,12 +219,11 @@ class AnalyzeApp(App):
 		"""タスク(インタラクティブ解析)"""
 		def make_result(source_code: str) -> str:
 			locator = self.resolve(Locator)
-			module_path = module_path_dummy()
-			provider = cast(WrapSourceProvider, locator.resolve(SourceProvider))
+			provider = as_a(WrapSourceProvider, locator.resolve(SourceProvider))
 			provider.source_code = source_code
 			modules = locator.resolve(Modules)
-			modules.unload(module_path.path)
-			return modules.load(module_path.path).entrypoint.pretty()
+			modules.unload(provider.main_module_path)
+			return modules.load(provider.main_module_path).entrypoint.pretty()
 
 		while True:
 			title = '\n'.join([

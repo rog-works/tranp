@@ -363,7 +363,7 @@ class Interactive:
 		try:
 			while True:
 				print('===============')
-				print('Python code here:')
+				print('Python code here. Type `exit()` to quit:')
 
 				lines: list[str] = []
 				while True:

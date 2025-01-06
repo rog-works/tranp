@@ -228,7 +228,7 @@ class AnalyzeApp(App):
 		while True:
 			title = '\n'.join([
 				'==============',
-				'Python code here:'
+				'Python code here. Type `exit()` to Menu:'
 			])
 			print(title)
 
@@ -240,6 +240,9 @@ class AnalyzeApp(App):
 
 				lines.append(line)
 
+			if len(lines) == 1 and lines[0] == 'exit()':
+				break
+
 			ast = make_result('\n'.join(lines))
 
 			lines = [
@@ -250,9 +253,6 @@ class AnalyzeApp(App):
 				'--------------',
 			]
 			print('\n'.join(lines))
-
-			if readline('(e)xit?:') == 'e':
-				break
 
 	def task_db(self) -> None:
 		"""タスク(シンボルテーブル表示)"""
@@ -326,9 +326,12 @@ class AnalyzeApp(App):
 		while True:
 			prompt = '\n'.join([
 				'==============',
-				'Node/Symbol fullyname or full_path or id here:',
+				'Node/Symbol fullyname or full_path or id here. Type `exit()` to Menu:',
 			])
 			name = readline(prompt)
+
+			if name == 'exit()':
+				break
 
 			entrypoint = self.fetch_entrypoint(module_path)
 			candidates = [node for node in entrypoint.procedural() if node.fullyname == name or node.full_path == name or str(node.id) == name]
@@ -339,9 +342,6 @@ class AnalyzeApp(App):
 				print('--------------')
 				print('Not found')
 				print('--------------')
-
-			if readline('(e)xit?:') == 'e':
-				break
 
 	def task_help(self) -> None:
 		"""タスク(ヘルプ表示)"""
@@ -383,11 +383,10 @@ class AnalyzeApp(App):
 			'* (p)retty  : Show AST',
 			'* (s)ymbol  : Show Symbol Information',
 			'* (h)elp    : Show Usage',
-			'* (q)uit    : Quit',
 			'--------------',
 			'@@now',
 			'--------------',
-			'Selection here:',
+			'Selection here. Type `exit()` to quit:',
 		])
 		actions: dict[str, Callable[..., None]] = {
 			'a': self.task_analyze,
@@ -401,7 +400,7 @@ class AnalyzeApp(App):
 		try:
 			while True:
 				input = readline(prompt.replace('@now', self.now))
-				if input == 'q':
+				if input == 'exit()':
 					return
 
 				action = actions.get(input, self.task_help)

@@ -101,16 +101,42 @@ class SymbolFinder:
 		Returns:
 			IReflection | None: シンボル
 		"""
-		def is_local_var_in_class_scope(scope: ModuleDSN) -> bool:
-			# XXX ローカル変数の参照は、クラス直下のスコープを参照できない
-			return node.is_a(defs.Var) and scope.dsn in db and db[scope.dsn].types.is_a(defs.Class)
-
 		domain_name = ModuleDSN.local_joined(node.domain_name, prop_name)
-		scopes = [scope for scope in self.__make_scopes(node.scope) if not is_local_var_in_class_scope(scope)]
+		scopes = [scope for scope in self.__make_scopes(node.scope) if not self.__is_local_var_with_class_scope(db, node, scope)]
 		if not isinstance(node, defs.Type):
 			return self.__find_raw(db, scopes, domain_name)
 		else:
 			return self.__find_raw_for_type(db, scopes, domain_name)
+
+	def __is_local_var_with_class_scope(self, db: SymbolDB, node: defs.Symbolic, scope: ModuleDSN) -> bool:
+		"""ローカル変数の参照、且つクラス直下のスコープ参照の組み合わせか判定
+
+		Args:
+			db (SymbolDB): シンボルテーブル
+			node (Symbolic): シンボル系ノード
+			scope (ModuleDSN): 探索スコープ
+		Returns:
+			bool: True = 真
+		Note:
+			* FIXME メソッド内はクラス直下のスコープを参照出来ない。これを除外する判定にのみ使用
+			* FIXME しかし、現状の判定は不完全であり、本質的にはノードのスコープ自体を是正しなければ期待通りに判定できない
+		Examples:
+			```python
+			class A:
+				class_var = 0
+				def method(self, n: int = class_var) -> None:  # OK メソッドの仮引数内はクラススコープを参照出来る
+					print(A.class_var)  # OK メソッド内はクラスと同じ参照スコープを持つ XXX が、それでは仮引数やメソッド内のローカル変数を参照できず片手落ち。この件により対応保留
+					print(class_var)  # NG 上記の仕様により参照できない
+					def closure(self, n: int = class_var) -> None: ...  # NG 同上
+			```
+		"""
+		if not node.is_a(defs.Var):
+			return False
+
+		if 'paramvalue' in node.full_path:
+			return False
+
+		return scope.dsn in db and db[scope.dsn].types.is_a(defs.Class)
 
 	def __make_scopes(self, scope: str) -> list[ModuleDSN]:
 		"""スコープを元に探索スコープのリストを生成

@@ -381,9 +381,9 @@ class ForClass:
 		ab: Annotated[bool, 'meta']
 		ac: Annotated['ForClass.DeclThisVar | None', 'meta']
 
-		def __init__(self) -> None:
-			self.anno_dsn: dict[str, int] = {'a': self.n}
-			self.n = 0
+		def __init__(self, n: int = cls_n) -> None:
+			self.anno_dsn: dict[str, int] = {'a': ForClass.DeclThisVar.cls_n}
+			self.n = n
 			self.sp = None
 			self.ab = False
 			self.ac = None
@@ -406,3 +406,11 @@ class ForTemplateClass:
 		d = ForTemplateClass.Delegate[bool, int]()
 		d.bind(a, ForTemplateClass.A.func)
 		d.invoke(True, 1)
+
+
+class ForLambda:
+	def expression(self) -> None:
+		lambda: 'a'
+		f = lambda: False
+		b = f()
+		ns = (lambda: [1])()

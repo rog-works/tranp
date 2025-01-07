@@ -101,7 +101,60 @@
 			"module":"rogw.tranp.bin.transpile",
 			"args": [
 				"-c", "example/config.yml",
+			],
+			"cwd": "${workspaceFolder}",
+			"windows": {
+				"env": {
+					"PYTHONPATH": "${workspaceFolder};${workspaceFolder}/vendor",
+					"PYTHONDONTWRITEBYTECODE": "1",
+					// "PYDEVD_CONTAINER_RANDOM_ACCESS_MAX_ITEMS": "3000",
+				},
+			},
+			"linux": {
+				"env": {
+					"PYTHONPATH": "${workspaceFolder}:${workspaceFolder}/vendor",
+					"PYTHONDONTWRITEBYTECODE": "1",
+					// "PYDEVD_CONTAINER_RANDOM_ACCESS_MAX_ITEMS": "3000",
+				},
+			},
+			"console": "integratedTerminal",
+			"justMyCode": true,
+		},
+		{
+			"name": "Python: transpile force",
+			"type": "debugpy",
+			"request": "launch",
+			"module":"rogw.tranp.bin.transpile",
+			"args": [
+				"-c", "example/config.yml",
 				"-f",
+			],
+			"cwd": "${workspaceFolder}",
+			"windows": {
+				"env": {
+					"PYTHONPATH": "${workspaceFolder};${workspaceFolder}/vendor",
+					"PYTHONDONTWRITEBYTECODE": "1",
+					// "PYDEVD_CONTAINER_RANDOM_ACCESS_MAX_ITEMS": "3000",
+				},
+			},
+			"linux": {
+				"env": {
+					"PYTHONPATH": "${workspaceFolder}:${workspaceFolder}/vendor",
+					"PYTHONDONTWRITEBYTECODE": "1",
+					// "PYDEVD_CONTAINER_RANDOM_ACCESS_MAX_ITEMS": "3000",
+				},
+			},
+			"console": "integratedTerminal",
+			"justMyCode": true,
+		},
+		{
+			"name": "Python: transpile interactive",
+			"type": "debugpy",
+			"request": "launch",
+			"module":"rogw.tranp.bin.transpile",
+			"args": [
+				"-c", "example/config.yml",
+				"-i",
 			],
 			"cwd": "${workspaceFolder}",
 			"windows": {

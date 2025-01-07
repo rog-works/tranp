@@ -381,9 +381,9 @@ class ForClass:
 		ab: Annotated[bool, 'meta']
 		ac: Annotated['ForClass.DeclThisVar | None', 'meta']
 
-		def __init__(self) -> None:
-			self.anno_dsn: dict[str, int] = {'a': self.n}
-			self.n = 0
+		def __init__(self, n: int = cls_n) -> None:
+			self.anno_dsn: dict[str, int] = {'a': ForClass.DeclThisVar.cls_n}
+			self.n = n
 			self.sp = None
 			self.ab = False
 			self.ac = None

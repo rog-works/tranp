@@ -1,6 +1,6 @@
 {%- set index = namespace(at=0) -%}
 {%- for parameter in parameters -%}
-	{%- if not parameter.endswith('self') and not parameter.endswith('cls') -%}
+	{%- if not (parameter.endswith('self') or parameter.endswith('cls') or parameter.startswith('type<')) -%}
 		{%- if index.at > 0 %}, {% endif -%}
 			{{ parameter -}}
 		{%- set index.at = index.at + 1 -%}

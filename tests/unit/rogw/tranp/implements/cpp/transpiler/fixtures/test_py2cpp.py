@@ -757,13 +757,14 @@ class ForBinaryOperator:
 		t_eq = (t1 is t2) and (t1 is not t2) and not t1
 
 
-TArgs = TypeVarTuple('TArgs')
+T_Args = TypeVarTuple('T_Args')
+T_Base = TypeVar('T_Base', bound=Base)
 
 
 class ForTemplateClass:
-	class Delegate(Generic[*TArgs]):
-		def bind(self, obj: CP[T], method: CRefConst[Callable[[T, *TArgs], None]]) -> None: ...
-		def invoke(self, *args: *TArgs) -> None: ...
+	class Delegate(Generic[*T_Args]):
+		def bind(self, obj: CP[T], method: CRefConst[Callable[[T, *T_Args], None]]) -> None: ...
+		def invoke(self, *args: *T_Args) -> None: ...
 
 	class A:
 		def func(self, b: bool, c: int) -> None: ...
@@ -772,6 +773,9 @@ class ForTemplateClass:
 		d = ForTemplateClass.Delegate[bool, int]()
 		d.bind(a, c_func_ref(ForTemplateClass.A.func).const)
 		d.invoke(True, 1)
+
+	def boundary_call(self, t: type[T_Base]) -> T_Base:
+		return t()
 
 
 class ForComp:

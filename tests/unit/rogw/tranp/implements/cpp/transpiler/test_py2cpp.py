@@ -465,6 +465,7 @@ class TestPy2Cpp(TestCase):
 		('ForTemplateClass.bind_call', 'function_def_raw.block.assign', defs.MoveAssign, 'ForTemplateClass::Delegate<bool, int> d = ForTemplateClass::Delegate<bool, int>();'),
 		('ForTemplateClass.bind_call', 'function_def_raw.block.funccall[1]', defs.FuncCall, 'd.bind(a, &ForTemplateClass::A::func);'),
 		('ForTemplateClass.bind_call', 'function_def_raw.block.funccall[2]', defs.FuncCall, 'd.invoke(true, 1);'),
+		('ForTemplateClass.boundary_call', '', defs.Method, BlockExpects.method(access='public', name='boundary_call', return_type='T_Base', statements=['return T_Base();'], template='T_Base')),
 
 		('ForComp.list_comp_from_list', 'function_def_raw.block.list_comp[0]', defs.ListComp, BlockExpects.list_comp(proj_value='l[0]', proj_type='int', iterates='{{1}}', proj_symbols='l')),
 		('ForComp.list_comp_from_list', 'function_def_raw.block.list_comp[1]', defs.ListComp, BlockExpects.list_comp(proj_value='n', proj_type='int', iterates='ns')),

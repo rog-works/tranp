@@ -1,24 +1,29 @@
 class BlockExpects:
 	@classmethod
-	def class_method(cls, access: str, name: str, return_type: str, params: list[str] = [], statements: list[str] = [], pure: bool = False) -> str:
-		return cls.method(access, name, return_type, params, statements, pure, static=True)
+	def class_method(cls, access: str, name: str, return_type: str, params: list[str] = [], statements: list[str] = [], pure: bool = False, template: str = '') -> str:
+		return cls.method(access, name, return_type, params, statements, pure, template, static=True)
 
 	@classmethod
-	def method(cls, access: str, name: str, return_type: str = 'void', params: list[str] = [], statements: list[str] = [], pure: bool = False, static: bool = False) -> str:
+	def method(cls, access: str, name: str, return_type: str = 'void', params: list[str] = [], statements: list[str] = [], pure: bool = False, template: str = '', static: bool = False) -> str:
+		lines: list[str] = []
 		if statements:
-			return '\n'.join([
+			lines = [
 				f'{access}:',
 				f'/** {name} */',
+				f'template<typename {template}>' if template else '',
 				f'{"static " if static else ""}{return_type} {name}({", ".join(params)}) {"const " if pure else ""}' '{',
 				f'	{"\n\t".join(statements)}',
 				'}',
-			])
+			]
 		else:
-			return '\n'.join([
+			lines = [
 				f'{access}:',
 				f'/** {name} */',
+				f'template<typename {template}>' if template else '',
 				f'{"static " if static else ""}{return_type} {name}({", ".join(params)}) {"const " if pure else ""}' '{}',
-			])
+			]
+
+		return '\n'.join([line for line in lines if line])
 
 	@classmethod
 	def list_slice(cls, symbol: str, begin: str, end: str, step: str, var_type: str) -> str:
@@ -184,13 +189,13 @@ class DeclProps : public DeclPropsBase {
 
 	ForTemplateClass_Delegate = \
 """/** Delegate */
-template<typename ...TArgs>
+template<typename ...T_Args>
 class Delegate {
 	public:
 	/** bind */
 	template<typename T>
-	void bind(T* obj, const typename PluckMethod<T, void, TArgs...>::method& method) {}
+	void bind(T* obj, const typename PluckMethod<T, void, T_Args...>::method& method) {}
 	public:
 	/** invoke */
-	void invoke(TArgs... args) {}
+	void invoke(T_Args... args) {}
 };"""

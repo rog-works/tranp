@@ -57,11 +57,11 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		return self.reflections.type_is(instance.types, standard_type)
 
 	@implements
-	def actualize(self: Self, *targets: Literal['nullable', 'self', 'type', 'alt_class'], instance: IReflection) -> Self:
+	def actualize(self: Self, *targets: Literal['nullable', 'self', 'type', 'template', 'alt'], instance: IReflection) -> Self:
 		"""プロクシー型から実体型を解決。元々実体型である場合はそのまま返却
 
 		Args:
-			*targets (Literal['nullable', 'self', 'type', 'alt_class']): 処理対象。省略時は全てが対象
+			*targets (Literal['nullable', 'self', 'type', 'template', 'alt']): 処理対象。省略時は全てが対象
 			instance (IReflection): シンボル ※Traitsから暗黙的に入力される
 		Returns:
 			Self: シンボル
@@ -70,7 +70,8 @@ class ConvertionTrait(TraitImpl, IConvertion):
 			* Union型: Class | None
 			* Self型: type<Self>, Self
 			* type型: type<Class>
-			* TypeAlias型: T<Class>
+			* TemplateClass型: T
+			* AltClass型: T<Class>
 			### Selfの妥当性
 			* XXX 実質的に具象クラスはReflectionのみであり、アンパック後も型は変化しない
 			* XXX リフレクション拡張の型(=Self)として継続して利用できる方が効率が良い
@@ -79,7 +80,8 @@ class ConvertionTrait(TraitImpl, IConvertion):
 			'nullable': self._actualize_nullable,
 			'self': self._actualize_self,
 			'type': self._actualize_type,
-			'alt_class': self._actualize_alt_class,
+			'template': self._actualize_template,
+			'alt': self._actualize_alt,
 		}
 		all_on = len(targets) == 0
 		actual = instance
@@ -146,7 +148,23 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		else:
 			return False, symbol
 
-	def _actualize_alt_class(self, symbol: IReflection) -> tuple[bool, IReflection]:
+	def _actualize_template(self, symbol: IReflection) -> tuple[bool, IReflection]:
+		"""TemplateClass型から実体型を解決
+
+		Args:
+			symbol (IReflection): シンボル
+		Returns:
+			tuple[bool, IReflection]: 解決可否, シンボル
+		Note:
+			T -> Boundary
+		"""
+		# XXX constraintsも対応が必要だが、constraintsは候補が複数あり、推論にコンテキストが必要になってコストが激増してしまうため、一旦boundaryのみ対応
+		if isinstance(symbol.types, defs.TemplateClass) and isinstance(symbol.types.boundary, defs.Type):
+			return True, symbol.to(symbol.types, self.reflections.type_of(symbol.types.boundary))
+		else:
+			return False, symbol
+
+	def _actualize_alt(self, symbol: IReflection) -> tuple[bool, IReflection]:
 		"""AltClass型から実体型を解決
 
 		Args:

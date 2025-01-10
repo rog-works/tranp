@@ -177,6 +177,8 @@ class TestReflections(TestCase):
 		('ForClass.DeclThisVar.ac', '', _mod('typing', 'Union'), 'Union<DeclThisVar, None>'),
 		('ForClass.DeclThisVar.__init__', 'function_def_raw.block.assign[5]', _mod('classes', 'int'), 'int'),
 
+		('ForTemplateClass.boundary_call', 'function_def_raw.block.return_stmt', _mod('__main__', 'Base'), 'Base'),
+
 		('ForLambda.expression', 'function_def_raw.block.lambdadef', _mod('collections', 'Callable'), 'Callable<str>'),
 		('ForLambda.expression', 'function_def_raw.block.assign[1]', _mod('collections', 'Callable'), 'Callable<bool>'),
 		('ForLambda.expression', 'function_def_raw.block.assign[2]', _mod('classes', 'bool'), 'bool'),

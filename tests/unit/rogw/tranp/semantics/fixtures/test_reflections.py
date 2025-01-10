@@ -390,13 +390,14 @@ class ForClass:
 			self.n = int(cast(str, self.sp))
 
 
-TArgs = TypeVarTuple('TArgs')
+T_Args = TypeVarTuple('T_Args')
+T_Base = TypeVar('T_Base', bound=Base)
 
 
 class ForTemplateClass:
-	class Delegate(Generic[*TArgs]):
-		def bind(self, obj: T, method: Callable[[T, *TArgs], None]) -> None: ...
-		def invoke(self, *args: *TArgs) -> None: ...
+	class Delegate(Generic[*T_Args]):
+		def bind(self, obj: T, method: Callable[[T, *T_Args], None]) -> None: ...
+		def invoke(self, *args: *T_Args) -> None: ...
 
 	class A:
 		def func(self, b: bool, c: int) -> None: ...
@@ -406,6 +407,9 @@ class ForTemplateClass:
 		d = ForTemplateClass.Delegate[bool, int]()
 		d.bind(a, ForTemplateClass.A.func)
 		d.invoke(True, 1)
+
+	def boundary_call(self, t: type[T_Base]) -> T_Base:
+		return t()
 
 
 class ForLambda:

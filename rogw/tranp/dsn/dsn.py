@@ -9,7 +9,7 @@ class DSN:
 			origin: ドメイン名
 			delimiter: デリミター(default = '.')
 		Returns:
-			int: 要素数
+			要素数
 		"""
 		return 0 if origin == '' else origin.count(delimiter) + (0 if origin.startswith(delimiter) else 1)
 
@@ -21,7 +21,7 @@ class DSN:
 			origin: ドメイン名
 			delimiter: デリミター(default = '.')
 		Returns:
-			list[str]: 要素リスト
+			要素リスト
 		"""
 		return [elem for elem in origin.split(delimiter) if elem]
 
@@ -33,7 +33,7 @@ class DSN:
 			*parts (str): 要素リスト
 			delimiter: デリミター(default = '.')
 		Returns:
-			str: ドメイン名
+			ドメイン名
 		"""
 		return delimiter.join([part for part in parts if part])
 
@@ -46,7 +46,7 @@ class DSN:
 			counts: 要素数
 			delimiter: デリミター(default = '.')
 		Returns:
-			str: ドメイン名
+			ドメイン名
 		"""
 		return cls.join(*(cls.elements(origin, delimiter)[0:counts]), delimiter=delimiter)
 
@@ -59,7 +59,7 @@ class DSN:
 			counts: 要素数
 			delimiter: デリミター(default = '.')
 		Returns:
-			str: ドメイン名
+			ドメイン名
 		"""
 		return cls.join(*(cls.elements(origin, delimiter)[-counts:]), delimiter=delimiter)
 
@@ -72,7 +72,7 @@ class DSN:
 			skip: 移動方向
 			delimiter: デリミター(default = '.')
 		Returns:
-			str: ドメイン名
+			ドメイン名
 		"""
 		elems = cls.elements(origin, delimiter)
 		if skip == 0:
@@ -92,7 +92,7 @@ class DSN:
 			origin: ドメイン名
 			delimiter: デリミター(default = '.')
 		Returns:
-			str: ルート要素
+			ルート要素
 		"""
 		return cls.elements(origin, delimiter)[0]
 
@@ -104,7 +104,7 @@ class DSN:
 			origin: ドメイン名
 			delimiter: デリミター(default = '.')
 		Returns:
-			str: 親の要素
+			親の要素
 		"""
 		return cls.elements(origin, delimiter)[-2]
 
@@ -115,7 +115,7 @@ class DSN:
 		Args:
 			starts: 先頭のパス
 		Returns:
-			str: 相対パス
+			相対パス
 		"""
 		if starts != origin and not origin.startswith(f'{starts}{delimiter}'):
 			return origin

@@ -54,7 +54,7 @@ class Module:
 		"""モジュールのファイルが存在するか判定
 
 		Returns:
-			bool: True = 存在
+			True = 存在
 		"""
 		return self.__sources.exists(self.filepath)
 

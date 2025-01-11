@@ -26,7 +26,7 @@ class RestoreSymbols:
 			module: モジュール
 			db: シンボルテーブル
 		Returns:
-			bool: True = 後続処理を実行
+			True = 後続処理を実行
 		Raises:
 			SemanticsLogicError: 実施済みのモジュールに対して再度実行
 		"""

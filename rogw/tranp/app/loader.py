@@ -25,7 +25,7 @@ class FileLoader(IFileLoader):
 		Args:
 			filepath: 実行ディレクトリーからの相対パス。または絶対パス
 		Returns:
-			bool: True = 存在する
+			True = 存在する
 		"""
 		return self.__resolve_filepath(filepath) is not None
 
@@ -36,7 +36,7 @@ class FileLoader(IFileLoader):
 		Args:
 			filepath: 実行ディレクトリーからの相対パス。または絶対パス
 		Returns:
-			str: コンテンツ
+			コンテンツ
 		Raises:
 			FileNotFoundError: 存在しないファイルを指定
 		"""
@@ -56,7 +56,7 @@ class FileLoader(IFileLoader):
 		Args:
 			filepath: 実行ディレクトリーからの相対パス。または絶対パス
 		Returns:
-			float: タイムスタンプ
+			タイムスタンプ
 		Raises:
 			FileNotFoundError: 存在しないファイルを指定
 		"""
@@ -76,7 +76,7 @@ class FileLoader(IFileLoader):
 		Args:
 			filepath: 実行ディレクトリーからの相対パス。または絶対パス
 		Returns:
-			str: ハッシュ値
+			ハッシュ値
 		Raises:
 			FileNotFoundError: 存在しないファイルを指定
 		"""
@@ -96,7 +96,7 @@ class FileLoader(IFileLoader):
 		Args:
 			filepath: 実行ディレクトリーからの相対パス。または絶対パス
 		Returns:
-			str | None: 解決したファイルパス
+			解決したファイルパス
 		Note:
 			環境変数のPYTHONPATHの登録順に探索
 		"""

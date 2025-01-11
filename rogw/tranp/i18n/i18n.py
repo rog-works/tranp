@@ -19,7 +19,7 @@ class TranslationMapping(NamedTuple):
 		Args:
 			to: {翻訳キー: 翻訳後}
 		Returns:
-			TranslationMapping: インスタンス
+			インスタンス
 		"""
 		return TranslationMapping(to={**self.to, **to})
 
@@ -43,7 +43,7 @@ class I18n:
 			key: 翻訳キー
 			fallback: 存在しない場合の代用値(default = '')
 		Returns:
-			str: 翻訳後の文字列
+			翻訳後の文字列
 		"""
 		return self.__translation.to.get(key, fallback)
 
@@ -52,6 +52,6 @@ def translation_mapping_empty() -> TranslationMapping:
 	"""翻訳マッピングデータを生成(空)
 
 	Returns:
-		TranslationMapping: 翻訳マッピングデータ
+		翻訳マッピングデータ
 	"""
 	return TranslationMapping(to={})

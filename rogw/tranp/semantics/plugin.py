@@ -30,6 +30,6 @@ class PluginProvider(Protocol):
 		"""プラグインリストを生成
 
 		Returns:
-			list[IPlugin]: プラグインリスト
+			プラグインリスト
 		"""
 		...

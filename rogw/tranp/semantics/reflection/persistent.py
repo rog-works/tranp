@@ -22,7 +22,7 @@ class ISymbolDBPersistor(metaclass=ABCMeta):
 		Args:
 			module: モジュール
 		Returns:
-			bool: True = 永続化
+			True = 永続化
 		"""
 		...
 
@@ -70,7 +70,7 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 		Args:
 			module: モジュール
 		Returns:
-			bool: True = 永続化
+			True = 永続化
 		"""
 		return self._can_restore(module, self._gen_filepath(module))
 
@@ -104,7 +104,7 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 		Args:
 			module: モジュール
 		Returns:
-			str: 絶対パス
+			絶対パス
 		"""
 		basepath = module_path_to_filepath(module.path)
 		identity = module.identity()
@@ -117,7 +117,7 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 		Args:
 			module: モジュール
 		Returns:
-			str: Globパターン
+			Globパターン
 		"""
 		basepath = module_path_to_filepath(module.path)
 		filename = f'{basepath}-symbols-*.json'
@@ -130,7 +130,7 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 			module: モジュール
 			filepath: ファイルパス
 		Returns:
-			bool: True = 実施
+			True = 実施
 		"""
 		return module.in_storage() and not self.sources.exists(filepath)
 
@@ -141,7 +141,7 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 			module: モジュール
 			filepath: ファイルパス
 		Returns:
-			bool: True = 実施
+			True = 実施
 		"""
 		return self.setting.enabled and module.in_storage() and self.sources.exists(filepath)
 
@@ -178,6 +178,6 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 		Args:
 			module: モジュール
 		Returns:
-			list[str]: 旧ファイルのパスリスト
+			旧ファイルのパスリスト
 		"""
 		return glob.glob(self._gen_glob_pattern(module))

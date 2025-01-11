@@ -39,7 +39,7 @@ class Expanded(NamedTuple):
 		Args:
 			stream: IO
 		Returns:
-			Store: インスタンス
+			インスタンス
 		"""
 		values = json.load(stream)
 		return Expanded(values[0], values[1], values[2], values[3])
@@ -114,7 +114,7 @@ class ExpandModules:
 		Args:
 			module: モジュール
 		Returns:
-			Expanded: 展開データ
+			展開データ
 		"""
 		nodes = module.entrypoint.procedural()
 		nodes.append(module.entrypoint)
@@ -152,7 +152,7 @@ class ExpandModules:
 			db: シンボルテーブル
 			var: 変数宣言ノード
 		Returns:
-			IReflection: シンボル
+			シンボル
 		Raises:
 			SymbolNotDefinedError: シンボルの解決に失敗
 		"""
@@ -176,7 +176,7 @@ class ExpandModules:
 		Args:
 			var: 変数宣言ノード
 		Returns:
-			Type | ClassDef | None: タイプ/クラス定義ノード。不明な場合はNone
+			タイプ/クラス定義ノード。不明な場合はNone
 		"""
 		if isinstance(var.declare, defs.Parameter):
 			if isinstance(var.declare.symbol, defs.DeclClassParam) and isinstance(var.declare.var_type, defs.Empty):
@@ -201,7 +201,7 @@ class ExpandModules:
 			db: シンボルテーブル
 			decl_type: タイプ/クラス定義ノード
 		Returns:
-			IReflection | None: シンボル
+			シンボル
 		Note:
 			### 解決対象
 			* ParamSpecのargs/kwargs

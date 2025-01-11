@@ -37,7 +37,7 @@ class ResolveUnknown:
 			module: モジュール
 			db: シンボルテーブル
 		Returns:
-			bool: True = 後続処理を実行
+			True = 後続処理を実行
 		"""
 		for _, raw in db.items(module.path):
 			if not isinstance(raw.decl, defs.Declable):
@@ -60,7 +60,7 @@ class ResolveUnknown:
 			var_raw: 変数宣言シンボル
 			value_node: 右辺値ノード
 		Returns:
-			Mod: モッド
+			モッド
 		"""
 		return lambda: [self.invoker(self.resolve_right_value, raw, value_node)]
 
@@ -73,7 +73,7 @@ class ResolveUnknown:
 			var_raw: 変数宣言シンボル
 			value_node: 右辺値ノード
 		Returns:
-			IReflection: シンボル
+			シンボル
 		"""
 		value_raw = reflections.type_of(value_node)
 		decl_vars = as_a(IDeclaration, var_raw.decl.declare).symbols

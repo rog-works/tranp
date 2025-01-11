@@ -9,7 +9,7 @@ def safe_cast(value: T | None) -> T:
 	Args:
 		value: 値
 	Returns:
-		T: 値
+		値
 	Raises:
 		ValueError: 値がnull
 	"""
@@ -25,7 +25,7 @@ def as_a(expect: type[T], value: Any) -> T:
 		expect: 期待の型
 		value: 値
 	Returns:
-		T: 値
+		値
 	Raises:
 		ValueError: 値の型と期待の型に関連が無い
 	"""

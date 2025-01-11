@@ -24,7 +24,7 @@ class Embed:
 		Args:
 			wrapped: ラップ対象
 		Returns:
-			T: デコレート対象
+			デコレート対象
 		"""
 		return wrapped
 
@@ -36,7 +36,7 @@ class Embed:
 			name: 名前 (default = '')
 			prefix: 接頭辞フラグ (default = False)
 		Returns:
-			Callable: デコレート対象
+			デコレート対象
 		Note:
 			* トランスパイル後のシンボル名のみ変更するため、シンボルテーブルには定義元の名称で登録される点に注意
 			* シンボルテーブルに登録する名称を変更する場合は__actual__を使用 @see rogw.tranp.compatible.libralies.classes.__actual__
@@ -53,7 +53,7 @@ class Embed:
 		Args:
 			wrapped: ラップ対象
 		Returns:
-			T: デコレート対象
+			デコレート対象
 		Note:
 			* 純粋仮想関数は@abstractmethodを使う
 			* 純粋仮想関数を除いた「仮想関数」はC++固有の概念であり、全く別物と言う扱いなので注意
@@ -67,7 +67,7 @@ class Embed:
 		Args:
 			wrapped: ラップ対象
 		Returns:
-			T: デコレート対象
+			デコレート対象
 		Note:
 			言語間の制約の差を吸収する目的で使用
 		"""
@@ -80,7 +80,7 @@ class Embed:
 		Args:
 			wrapped: ラップ対象
 		Returns:
-			T: デコレート対象
+			デコレート対象
 		Note:
 			言語間の制約の差を吸収する目的で使用
 		"""
@@ -93,7 +93,7 @@ class Embed:
 		Args:
 			wrapped: ラップ対象
 		Returns:
-			T: デコレート対象
+			デコレート対象
 		Note:
 			言語間の制約の差を吸収する目的で使用
 		"""
@@ -106,7 +106,7 @@ class Embed:
 		Args:
 			wrapped: ラップ対象
 		Returns:
-			T: デコレート対象
+			デコレート対象
 		Note:
 			言語間の制約の差を吸収する目的で使用
 		"""
@@ -119,7 +119,7 @@ class Embed:
 		Args:
 			wrapped: ラップ対象
 		Returns:
-			T: デコレート対象
+			デコレート対象
 		"""
 		if not hasattr(wrapped, '__struct__'):
 			setattr(wrapped, '__struct__', True)
@@ -133,7 +133,7 @@ class Embed:
 		Args:
 			*symbols (Any): シンボルリスト
 		Returns:
-			Callable: デコレーター
+			デコレーター
 		Examples:
 			```python
 			@Embed.closure_bind(self, a, b)
@@ -154,7 +154,7 @@ class Embed:
 			key: キー
 			meta: メタ情報
 		Returns:
-			Callable: デコレーター
+			デコレーター
 		Examples:
 			```python
 			@Embed.meta('class', 'meta')

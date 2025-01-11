@@ -79,7 +79,7 @@ class IReflection(metaclass=ABCMeta):
 			decl: 定義元のノード
 			origin: 型のシンボル (default = None)
 		Returns:
-			IReflection: リフレクション
+			リフレクション
 		"""
 		...
 
@@ -90,7 +90,7 @@ class IReflection(metaclass=ABCMeta):
 		Args:
 			node: ノード (default = None)
 		Returns:
-			IReflection: リフレクション
+			リフレクション
 		"""
 		...
 
@@ -102,7 +102,7 @@ class IReflection(metaclass=ABCMeta):
 			node: ノード
 			origin: 型のシンボル
 		Returns:
-			IReflection: リフレクション
+			リフレクション
 		"""
 		...
 
@@ -117,7 +117,7 @@ class IReflection(metaclass=ABCMeta):
 		"""スタックシンボルを辿るイテレーターを取得
 
 		Returns:
-			Iterator[IReflection]: イテレーター
+			イテレーター
 		"""
 		...
 
@@ -128,7 +128,7 @@ class IReflection(metaclass=ABCMeta):
 		Args:
 			*attrs (IReflection): 属性シンボルリスト
 		Returns:
-			Self: インスタンス
+			インスタンス
 		Raises:
 			SemanticsLogicError: 実体の無いインスタンスに実行 XXX 出力する例外は要件等
 			SemanticsLogicError: 拡張済みのインスタンスに再度実行 XXX 出力する例外は要件等
@@ -140,7 +140,7 @@ class IReflection(metaclass=ABCMeta):
 		"""インスタンスをテンプレート用に複製
 
 		Returns:
-			IReflection: 複製したインスタンス
+			複製したインスタンス
 		"""
 		...
 
@@ -161,7 +161,7 @@ class IReflection(metaclass=ABCMeta):
 		Args:
 			expect: 期待する型
 		Returns:
-			T_Ref: インスタンス
+			インスタンス
 		Note:
 			MustBeImplementedError: トレイトのメソッドが未実装
 		"""
@@ -212,7 +212,7 @@ class Mods:
 		Args:
 			key: キー
 		Returns:
-			bool: True = 有効
+			True = 有効
 		"""
 		return key in self._mods
 

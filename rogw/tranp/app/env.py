@@ -18,7 +18,7 @@ class DataEnvPath(list[str]):
 		"""インスタンスを生成
 
 		Returns:
-			DataEnvPath: インスタンス
+			インスタンス
 		"""
 		return cls([os.getcwd()])
 
@@ -42,7 +42,7 @@ class SourceEnvPath(list[str]):
 		Args:
 			input_dirs: 入力ディレクトリーリスト
 		Returns:
-			SourceEnvPath: インスタンス
+			インスタンス
 		"""
 		default_dirs = [os.getcwd(), tranp_dir(), os.path.join(tranp_dir(), 'rogw/tranp/compatible/libralies')]
 		return cls([*default_dirs, *input_dirs])

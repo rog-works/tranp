@@ -28,7 +28,7 @@ class SyntaxParser(Protocol):
 		Args:
 			module_path: モジュールパス
 		Returns:
-			Entry: シンタックスツリーのルートエントリー
+			シンタックスツリーのルートエントリー
 		"""
 		...
 
@@ -42,6 +42,6 @@ class SourceProvider(Protocol):
 		Args:
 			module_path: モジュールパス
 		Returns:
-			str: ソースコード
+			ソースコード
 		"""
 		...

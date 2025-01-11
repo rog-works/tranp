@@ -27,7 +27,7 @@ class WrapSourceProvider:
 		Args:
 			module_path: モジュールパス
 		Returns:
-			str: ソースコード
+			ソースコード
 		"""
 		if module_path == self.main_module_path:
 			return f'{self.source_code}\n'
@@ -39,6 +39,6 @@ def make_dummy_module_meta_factory() -> ModuleMetaFactory:
 	"""ダミーのメタファクトリーを生成
 
 	Returns:
-		ModuleMetaFactory: モジュールのメタファクトリー
+		モジュールのメタファクトリー
 	"""
 	return lambda module_path: {'hash': 'dummy', 'path': module_path}

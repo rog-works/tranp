@@ -41,7 +41,7 @@ class SyntaxParserOfLark:
 		Args:
 			module_path: モジュールパス
 		Returns:
-			Entry: シンタックスツリーのルートエントリー
+			シンタックスツリーのルートエントリー
 		"""
 		parser = self.__load_parser()
 		return self.__load_entry(parser, module_path)
@@ -50,7 +50,7 @@ class SyntaxParserOfLark:
 		"""シンタックスパーサーをロード
 
 		Returns:
-			Lark: シンタックスパーサー
+			シンタックスパーサー
 		"""
 		def instantiate() -> LarkStored:
 			return LarkStored(lark.Lark(
@@ -77,7 +77,7 @@ class SyntaxParserOfLark:
 			parser: シンタックスパーサー
 			module_path: モジュールパス
 		Returns:
-			Entry: シンタックスツリーのルートエントリー
+			シンタックスツリーのルートエントリー
 		Raises:
 			SyntaxError: ソースの解析に失敗
 		"""
@@ -105,7 +105,7 @@ class SyntaxParserOfLark:
 		"""Larkインスタンスを取得(デバッグ用)
 
 		Returns:
-			Lark: Larkインスタンス
+			Larkインスタンス
 		Note:
 			デバッグ用途のため、基本的に使用しないことを推奨
 		"""
@@ -131,7 +131,7 @@ class LarkStored:
 		Args:
 			stream: IO
 		Returns:
-			LarkStored: インスタンス
+			インスタンス
 		"""
 		return LarkStored(lark.Lark.load(stream))
 
@@ -163,7 +163,7 @@ class EntryStored:
 		Args:
 			stream: IO
 		Returns:
-			EntryStored: インスタンス
+			インスタンス
 		"""
 		data = json.load(stream)
 		tree = cast(lark.Tree, Serialization.loads(data))

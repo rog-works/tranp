@@ -34,7 +34,7 @@ class CVar(Generic[T_co], metaclass=ABCMeta):
 		Args:
 			other: 対象
 		Returns:
-			bool: True = 一致
+			True = 一致
 		"""
 		return self.raw == other.raw
 
@@ -44,7 +44,7 @@ class CVar(Generic[T_co], metaclass=ABCMeta):
 		Args:
 			other: 対象
 		Returns:
-			bool: True = 不一致
+			True = 不一致
 		"""
 		return self.raw != other.raw
 
@@ -52,7 +52,7 @@ class CVar(Generic[T_co], metaclass=ABCMeta):
 		"""ハッシュ値を取得
 
 		Returns:
-			int: ハッシュ値
+			ハッシュ値
 		"""
 		return id(self.raw)
 
@@ -60,7 +60,7 @@ class CVar(Generic[T_co], metaclass=ABCMeta):
 		"""シリアライズ表現を取得
 
 		Returns:
-			str: シリアライズ表現
+			シリアライズ表現
 		"""
 		return f'<{self.__class__.__name__}[{self._origin_raw.__class__.__name__}]: at {hex(id(self._origin_raw)).upper()} with {self._origin_raw}>'
 
@@ -150,7 +150,7 @@ class CP(CVarNotNull[T_co]):
 		Args:
 			origin: 実体のインタンス
 		Returns:
-			CP[T_New]: インスタンス
+			インスタンス
 		"""
 		return CP(origin)
 
@@ -170,7 +170,7 @@ class CP(CVarNotNull[T_co]):
 		Args:
 			offset: オフセット
 		Returns:
-			int: アドレス
+			アドレス
 		"""
 		return id(self) + offset
 
@@ -180,7 +180,7 @@ class CP(CVarNotNull[T_co]):
 		Args:
 			other: 対象
 		Returns:
-			int: アドレス
+			アドレス
 		"""
 		return id(self) - id(other)
 
@@ -193,7 +193,7 @@ class CSP(CVarNullable[T_co]):
 		"""空のスマートポインターの初期化を代替するメソッド。C++では`std::shared_ptr<T>()`に相当
 
 		Returns:
-			CSP[T_co] | None: インスタンス
+			インスタンス
 		"""
 		return CSP(None)
 
@@ -204,7 +204,7 @@ class CSP(CVarNullable[T_co]):
 		Args:
 			origin: 実体のインタンス
 		Returns:
-			CSP[T_New]: インスタンス
+			インスタンス
 		"""
 		return CSP(origin)
 
@@ -323,7 +323,7 @@ def c_func_addr(func: T_Func) -> CP[T_Func]:
 	Args:
 		func: 関数オブジェクト
 	Returns:
-		CP[T_Func]: 関数ポインター
+		関数ポインター
 	Note:
 		XXX C++ではリレー上は関数は実体であり、値として参照する場合のみアドレス参照('&')を通して関数ポインターへ変換する
 		XXX 関数をPythonと同じようにシームレスに扱えないため、変換用の関数を通して解釈を変更する
@@ -337,7 +337,7 @@ def c_func_ref(func: T_Func) -> CRef[T_Func]:
 	Args:
 		func: 関数オブジェクト
 	Returns:
-		CRef[T_Func]: 関数ポインター(参照)
+		関数ポインター(参照)
 	Note:
 		@see c_func_addr
 	"""

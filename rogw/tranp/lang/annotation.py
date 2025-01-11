@@ -10,7 +10,7 @@ def implements(wrapped: T) -> T:
 	Args:
 		wrapped: ラップ対象
 	Returns:
-		T: ラップ対象
+		ラップ対象
 	"""
 	return wrapped
 
@@ -21,7 +21,7 @@ def duck_typed(protocol: Any) -> Callable[[T], T]:
 	Args:
 		protocol: プロトコル
 	Returns:
-		Callable: デコレーター
+		デコレーター
 	"""
 	def decorator(wrapped: T) -> T:
 		return wrapped
@@ -35,7 +35,7 @@ def deprecated(wrapped: T) -> T:
 	Args:
 		wrapped: ラップ対象
 	Returns:
-		T: ラップ対象
+		ラップ対象
 	"""
 	return wrapped
 
@@ -46,6 +46,6 @@ def injectable(wrapped: T) -> T:
 	Args:
 		wrapped: ラップ対象
 	Returns:
-		T: ラップ対象
+		ラップ対象
 	"""
 	return wrapped

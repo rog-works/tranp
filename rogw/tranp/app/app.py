@@ -23,7 +23,7 @@ class App:
 		Args:
 			task: タスクランナー
 		Returns:
-			T_Inst: 実行結果
+			実行結果
 		"""
 		return self.__di.invoke(task)
 
@@ -33,7 +33,7 @@ class App:
 		Args:
 			symbol: シンボル
 		Returns:
-			T_Inst: インスタンス
+			インスタンス
 		Raises:
 			ValueError: 未登録のシンボルを指定
 		Note:

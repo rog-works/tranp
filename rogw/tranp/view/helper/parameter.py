@@ -24,7 +24,7 @@ class ParameterHelper:
 		Args:
 			parameter: パラメーター
 		Returns:
-			ParameterHelper: インスタンス
+			インスタンス
 		"""
 		param_default = BlockParser.break_separator(parameter, '=')
 		param, default_value = param_default if len(param_default) == 2 else (param_default[0], '')

@@ -10,7 +10,7 @@ def readline(prompt: str = '') -> str:
 	Args:
 		prompt: 確認メッセージ
 	Returns:
-		str: 入力値
+		入力値
 	Note:
 		Linux環境でカーソル移動を実現するため、サブプロセス経由でBashスクリプトを実行する
 	"""

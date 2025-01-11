@@ -27,7 +27,7 @@ class Modules:
 		"""標準ライブラリーのモジュールリストを取得
 
 		Returns:
-			list[Module]: モジュールリスト
+			モジュールリスト
 		"""
 		return [self.load(module_path.path, module_path.language) for module_path in self.__library_paths]
 
@@ -35,7 +35,7 @@ class Modules:
 		"""処理対象のモジュールリストを取得
 
 		Returns:
-			list[Module]: モジュールリスト
+			モジュールリスト
 		"""
 		return [self.load(module_path.path, module_path.language) for module_path in self.__module_paths]
 
@@ -43,7 +43,7 @@ class Modules:
 		"""標準ライブラリーと処理対象のモジュールリストを取得
 
 		Returns:
-			list[Module]: モジュールリスト
+			モジュールリスト
 		"""
 		return [*self.libralies(), *self.targets()]
 
@@ -51,7 +51,7 @@ class Modules:
 		"""読み込み済みの全てのモジュールリストを取得
 
 		Returns:
-			list[Module]: モジュールリスト
+			モジュールリスト
 		"""
 		return list(self.__modules.values())
 
@@ -62,7 +62,7 @@ class Modules:
 			module_path: モジュールパス
 			language: 言語タグ (default = 'py')
 		Returns:
-			Module: モジュール
+			モジュール
 		Note:
 			* ロードしたモジュールはパスとマッピングしてキャッシュ
 			* 依存モジュールを再帰的にロードする

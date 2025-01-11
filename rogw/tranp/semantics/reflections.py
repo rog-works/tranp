@@ -67,7 +67,7 @@ class Reflections:
 		"""objectのシンボルを取得
 
 		Returns:
-			IReflection: シンボル
+			シンボル
 		Raises:
 			UnresolvedSymbolError: objectが未実装
 		"""
@@ -80,7 +80,7 @@ class Reflections:
 		Args:
 			standard_type: 標準クラス
 		Returns:
-			IReflection: シンボル
+			シンボル
 		Raises:
 			UnresolvedSymbolError: 標準クラスが未実装
 		"""
@@ -93,7 +93,7 @@ class Reflections:
 		Args:
 			fullyname: 完全参照名
 		Returns:
-			IReflection: シンボル
+			シンボル
 		Raises:
 			UnresolvedSymbolError: シンボルの解決に失敗
 		"""
@@ -106,7 +106,7 @@ class Reflections:
 		Args:
 			node: シンボル系/式ノード
 		Returns:
-			IReflection: シンボル
+			シンボル
 		Raises:
 			UnresolvedSymbolError: シンボルの解決に失敗
 		"""
@@ -134,7 +134,7 @@ class Reflections:
 		Args:
 			node: シンボル宣言ノード
 		Returns:
-			IReflection: シンボル
+			シンボル
 		Raises:
 			SemanticsError: シンボルの解決に失敗
 		"""
@@ -153,7 +153,7 @@ class Reflections:
 		Args:
 			node: クラス定義ノード
 		Returns:
-			IReflection: シンボル
+			シンボル
 		Raises:
 			SemanticsError: シンボルの解決に失敗
 		"""
@@ -169,7 +169,7 @@ class Reflections:
 		Args:
 			node: 制御構文ノード
 		Returns:
-			IReflection: シンボル
+			シンボル
 		Raises:
 			SemanticsError: シンボルの解決に失敗
 		"""
@@ -187,7 +187,7 @@ class Reflections:
 		Args:
 			node: リスト内包表記関連ノード
 		Returns:
-			IReflection: シンボル
+			シンボル
 		Raises:
 			SemanticsError: シンボルの解決に失敗
 		"""
@@ -204,7 +204,7 @@ class Reflections:
 			types: クラス定義ノード
 			prop: 変数参照ノード
 		Returns:
-			IReflection: シンボル
+			シンボル
 		Raises:
 			UnresolvedSymbolError: シンボルの解決に失敗
 		"""
@@ -217,7 +217,7 @@ class Reflections:
 		Args:
 			types: クラス定義ノード
 		Returns:
-			IReflection: シンボル
+			シンボル
 		Raises:
 			UnresolvedSymbolError: コンストラクターの実装ミス
 		"""
@@ -231,7 +231,7 @@ class Reflections:
 			symbolic: シンボル系ノード
 			prop_name: プロパティー名(default = '')
 		Returns:
-			IReflection: シンボル
+			シンボル
 		Raises:
 			UnresolvedSymbolError: シンボルの解決に失敗
 		"""
@@ -249,7 +249,7 @@ class Reflections:
 			symbolic: シンボル系ノード
 			prop_name: プロパティー名(空文字の場合は無視される)
 		Returns:
-			IReflection | None: シンボルデータ
+			シンボルデータ
 		"""
 		symbol_raw = self.__finder.find_by_symbolic(self.__db, symbolic, prop_name)
 		if symbol_raw is None and isinstance(symbolic, defs.Class):
@@ -266,7 +266,7 @@ class Reflections:
 			types: クラス定義ノード
 			prop_name: プロパティー名(空文字の場合は無視される)
 		Returns:
-			IReflection | None: シンボルデータ
+			シンボルデータ
 		"""
 		for inherit_type in types.inherits:
 			inherit_type_raw = self.__finder.by_symbolic(self.__db, inherit_type)
@@ -283,7 +283,7 @@ class Reflections:
 			types: クラス・関数定義ノード
 			prop_name: プロパティー名(空文字の場合は無視される)
 		Returns:
-			IReflection | None: シンボルデータ
+			シンボルデータ
 		"""
 		super_type = self.get_object()
 		if super_type.types != types:
@@ -299,7 +299,7 @@ class Reflections:
 		Args:
 			node: ノード
 		Returns:
-			IReflection: シンボル
+			シンボル
 		Raises:
 			ProcessingError: シンボルの解決に失敗
 		"""
@@ -322,7 +322,7 @@ class ProceduralResolver:
 		"""プロシージャーを生成
 
 		Returns:
-			Procedure[IReflection]: プロシージャー
+			プロシージャー
 		"""
 		handlers = {key: getattr(self, key) for key in ProceduralResolver.__dict__.keys() if key.startswith('on_')}
 		procedure = Procedure[IReflection](verbose=False)
@@ -337,7 +337,7 @@ class ProceduralResolver:
 		Args:
 			node: ノード
 		Returns:
-			IReflection: シンボル
+			シンボル
 		Raises:
 			ProcessingError: 実行エラー
 		"""

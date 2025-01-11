@@ -10,7 +10,7 @@ def to_accessor(name: str) -> str:
 	Args:
 		name: 名前
 	Returns:
-		str: アクセス修飾子
+		アクセス修飾子
 	"""
 	if name.startswith('__') and name.endswith('__'):
 		return 'public'
@@ -38,7 +38,7 @@ class PythonClassOperations:
 		Args:
 			operator: 演算子
 		Returns:
-			str: メソッド名
+			メソッド名
 		"""
 		return self.__operators[operator]
 
@@ -48,7 +48,7 @@ class PythonClassOperations:
 		Args:
 			operator: 演算子
 		Returns:
-			bool: True = 算術演算
+			True = 算術演算
 		"""
 		return operator in ['+', '-', '*', '/', '%']
 

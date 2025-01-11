@@ -13,7 +13,7 @@ def stacktrace(error: Exception) -> list[str]:
 	Args:
 		error: 例外
 	Returns:
-		list[str]: スタックトレース
+		スタックトレース
 	"""
 	return traceback.format_exception(type(error), error, error.__traceback__)
 
@@ -25,7 +25,7 @@ def raises(raise_error: type[Exception], *handle_errors: type[Exception]) -> Cal
 		raise_error: 出力例外
 		*handle_errors (type[Exception]): ハンドリング対象の例外
 	Returns:
-		Callable: デコレーター
+		デコレーター
 	Examples:
 		```python
 		@raises(DomainError, ValueError, TypeError)

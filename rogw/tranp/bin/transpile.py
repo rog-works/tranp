@@ -88,7 +88,7 @@ class Config:
 		Args:
 			filepath: コンフィグファイルのパス
 		Returns:
-			ConfigDict: コンフィグデータ
+			コンフィグデータ
 		"""
 		with open(os.path.join(filepath)) as f:
 			return cast(ConfigDict, yaml.safe_load(f))
@@ -99,7 +99,7 @@ class Config:
 		Args:
 			argv: コマンド引数リスト
 		Returns:
-			ArgsDict: パースしたコマンド引数
+			パースしたコマンド引数
 		"""
 		args: ArgsDict = {
 			'config': 'example/config.yml',
@@ -136,7 +136,7 @@ class TranspileApp:
 			config: コンフィグ @inject
 			i18n: 国際化対応モジュール @inject
 		Returns:
-			Renderer: テンプレートレンダー
+			テンプレートレンダー
 		"""
 		return RendererSetting(config.template_dirs, i18n.t, config.env['view'])
 
@@ -148,7 +148,7 @@ class TranspileApp:
 		Args:
 			config: コンフィグ @inject
 		Returns:
-			TranspilerOptions: トランスパイルオプション
+			トランスパイルオプション
 		"""
 		return TranspilerOptions(verbose=config.verbose, env=config.env['transpiler'])
 
@@ -160,7 +160,7 @@ class TranspileApp:
 		Args:
 			config: コンフィグ @inject
 		Returns:
-			ParserSetting: シンタックスパーサー設定データ
+			シンタックスパーサー設定データ
 		"""
 		return ParserSetting(grammar=config.grammar)
 
@@ -173,7 +173,7 @@ class TranspileApp:
 			datums: データローダー @inject
 			config: コンフィグ @inject
 		Returns:
-			TranslationMapping: 翻訳マッピングデータ
+			翻訳マッピングデータ
 		"""
 		mapping = cast(dict[str, str], yaml.safe_load(datums.load(config.trans_mapping)))
 		return TranslationMapping(to=mapping)
@@ -186,7 +186,7 @@ class TranspileApp:
 		Args:
 			config: コンフィグ @inject
 		Returns:
-			ModulePaths: モジュールパスリスト
+			モジュールパスリスト
 		"""
 		module_paths = ModulePaths()
 		for input_glob in config.input_globs:
@@ -199,7 +199,7 @@ class TranspileApp:
 		"""モジュール定義を生成
 
 		Returns:
-			ModuleDefinitions: モジュール定義
+			モジュール定義
 		"""
 		config = Config()
 		definitions = {
@@ -275,7 +275,7 @@ class Runner:
 		Args:
 			module_path: モジュールパス
 		Returns:
-			bool: True = 実行
+			True = 実行
 		"""
 		old_meta = self.try_load_meta_header(module_path)
 		if not old_meta:
@@ -290,7 +290,7 @@ class Runner:
 		Args:
 			module_path: モジュールパス
 		Returns:
-			Node: ノード
+			ノード
 		"""
 		return self.modules.load(module_path.path).entrypoint
 
@@ -300,7 +300,7 @@ class Runner:
 		Args:
 			module_path: モジュールパス
 		Returns:
-			MetaHeader | None: メタヘッダー。ファイル・メタヘッダーが存在しない場合はNone
+			メタヘッダー。ファイル・メタヘッダーが存在しない場合はNone
 		"""
 		filepath = self.output_filepath(module_path)
 		if not self.sources.exists(filepath):
@@ -314,7 +314,7 @@ class Runner:
 		Args:
 			module_path: モジュールパス
 		Returns:
-			str: ファイルパス
+			ファイルパス
 		"""
 		extension_map = self.config.output_language.split(':')
 		extension = extension_map[1] if len(extension_map) == 2 else extension_map[0]
@@ -328,7 +328,7 @@ class Runner:
 		Args:
 			filepath: ファイルパス
 		Returns:
-			str: 出力ディレクトリー
+			出力ディレクトリー
 		"""
 		_filepath = filepath.replace(os.sep, '/')
 		fallback = self.config.output_dirs[-1]
@@ -394,7 +394,7 @@ class Interactive:
 		Args:
 			source_code: ソースコード
 		Returns:
-			Module: メインモジュール
+			メインモジュール
 		"""
 		self.source_provider.source_code = source_code
 		self.modules.unload(self.source_provider.main_module_path)

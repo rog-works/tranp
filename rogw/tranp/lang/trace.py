@@ -13,7 +13,7 @@ class Records:
 		"""シングルトンインスタンスを取得
 
 		Returns:
-			Records: インスタンス
+			インスタンス
 		"""
 		if not cls._instance:
 			cls._instance = cls()

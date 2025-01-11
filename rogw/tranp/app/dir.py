@@ -5,7 +5,7 @@ def tranp_dir() -> str:
 	"""Tranpのルートディレクトリーを取得
 
 	Returns:
-		str: Tranpのルートディレクトリーの絶対パス
+		Tranpのルートディレクトリーの絶対パス
 	Note:
 		このモジュールを起点にルートディレクトリーを算出
 	"""

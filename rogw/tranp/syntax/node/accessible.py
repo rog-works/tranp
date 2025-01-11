@@ -24,7 +24,7 @@ class ClassOperations(Protocol):
 		Args:
 			operator: 演算子
 		Returns:
-			str: メソッド名
+			メソッド名
 		"""
 		...
 
@@ -34,6 +34,6 @@ class ClassOperations(Protocol):
 		Args:
 			operator: 演算子
 		Returns:
-			bool: True = 算術演算
+			True = 算術演算
 		"""
 		...

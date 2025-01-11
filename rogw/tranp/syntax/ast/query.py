@@ -20,7 +20,7 @@ class Query(Generic[T], metaclass=ABCMeta):
 		Args:
 			full_path: フルパス
 		Returns:
-			bool: True = 存在
+			True = 存在
 		"""
 		raise NotImplementedError()
 
@@ -31,7 +31,7 @@ class Query(Generic[T], metaclass=ABCMeta):
 		Args:
 			full_path: フルパス
 		Returns:
-			T: エントリー
+			エントリー
 		Raises:
 			NotFoundError: エントリーが存在しない
 		"""
@@ -44,7 +44,7 @@ class Query(Generic[T], metaclass=ABCMeta):
 		Args:
 			via: 基点のパス(フルパス)
 		Returns:
-			T: データ
+			データ
 		Raises:
 			NotFoundError: 親が存在しない
 		"""
@@ -58,7 +58,7 @@ class Query(Generic[T], metaclass=ABCMeta):
 			via: 基点のパス
 			tag: エントリータグ
 		Returns:
-			Node: ノード
+			ノード
 		Raises:
 			NotFoundError: 指定のエントリータグを持つ親が存在しない
 		"""
@@ -71,7 +71,7 @@ class Query(Generic[T], metaclass=ABCMeta):
 		Args:
 			via: 基点のパス(フルパス)
 		Returns:
-			list[T]: エントリーリスト
+			エントリーリスト
 		Raises:
 			NotFoundError: 基点のエントリーが存在しない
 		"""
@@ -84,7 +84,7 @@ class Query(Generic[T], metaclass=ABCMeta):
 		Args:
 			via: 基点のパス(フルパス)
 		Returns:
-			list[T]: エントリーリスト
+			エントリーリスト
 		Raises:
 			NotFoundError: 基点のエントリーが存在しない
 		"""
@@ -97,7 +97,7 @@ class Query(Generic[T], metaclass=ABCMeta):
 		Args:
 			via: 基点のパス(フルパス)
 		Returns:
-			list[T]: エントリーリスト
+			エントリーリスト
 		Raises:
 			NotFoundError: 基点のエントリーが存在しない
 		"""
@@ -110,7 +110,7 @@ class Query(Generic[T], metaclass=ABCMeta):
 		Args:
 			via: 基点のパス(フルパス)
 		Returns:
-			list[str]: 値リスト
+			値リスト
 		"""
 		raise NotImplementedError()
 
@@ -121,7 +121,7 @@ class Query(Generic[T], metaclass=ABCMeta):
 		Args:
 			full_path: フルパス
 		Returns:
-			int: ID
+			ID
 		"""
 		raise NotImplementedError()
 
@@ -132,6 +132,6 @@ class Query(Generic[T], metaclass=ABCMeta):
 		Args:
 			full_path: フルパス
 		Returns:
-			SourceMap: ソースマップ
+			ソースマップ
 		"""
 		raise NotImplementedError()

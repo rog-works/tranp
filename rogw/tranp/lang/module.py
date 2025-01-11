@@ -12,7 +12,7 @@ def load_module(path: str, module: str) -> Any:
 		path: モジュールパス
 		module: モジュールパス
 	Returns:
-		Any: モジュール
+		モジュール
 	"""
 	return getattr(import_module(path), module)
 
@@ -23,7 +23,7 @@ def load_module_path(module_path: str) -> Any:
 	Args:
 		module_path: モジュールパス
 	Returns:
-		Any: モジュール
+		モジュール
 	"""
 	elems = module_path.split('.')
 	path = '.'.join(elems[:-1])
@@ -37,7 +37,7 @@ def resolve_own_class(method: Callable) -> type:
 	Args:
 		method: メソッド
 	Returns:
-		type: クラス
+		クラス
 	Raises:
 		ModuleNotFoundError: 解決に失敗
 	Note:
@@ -58,7 +58,7 @@ def to_fullyname(symbol: type | Callable) -> str:
 	Args:
 		symbol: シンボル(クラス/ファンクション)
 	Returns:
-		str: 完全参照名
+		完全参照名
 	"""
 	return f'{symbol.__module__}.{symbol.__name__}'
 
@@ -70,7 +70,7 @@ def filepath_to_module_path(filepath: str, basedir: str) -> str:
 		filepath: モジュールの絶対パス
 		basedir: 基準ディレクトリーのパス
 	Returns:
-		str: モジュールパス
+		モジュールパス
 	"""
 	rel_path = filepath.split(basedir)[1]
 	basepath, _ = os.path.splitext(rel_path)
@@ -85,6 +85,6 @@ def module_path_to_filepath(module_path: str, extension: str = '') -> str:
 		module_path: モジュールパス
 		extension: 拡張子 (default = '')
 	Returns:
-		str: ファイルパス
+		ファイルパス
 	"""
 	return f'{module_path.replace('.', os.path.sep)}{extension}'

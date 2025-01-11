@@ -25,7 +25,7 @@ class RendererHelperProvider(Protocol):
 	"""ヘルパープロバイダープロトコル
 
 	Returns:
-		dict[Literal['function', 'filter'], dict[str, Callable[..., Any]]]: ヘルパー一覧({登録タイプ: {関数名: ヘルパー関数}})
+		ヘルパー一覧({登録タイプ: {関数名: ヘルパー関数}})
 	"""
 
 	def __call__(self) -> dict[Literal['function', 'filter'], dict[str, Callable[..., Any]]]:
@@ -58,6 +58,6 @@ class Renderer:
 			template: テンプレートファイルの名前
 			vars (dict[str, Any]) テンプレートへの入力変数(default = {})
 		Returns:
-			str: レンダリング結果
+			レンダリング結果
 		"""
 		return self.__renderer.get_template(f'{template}.j2').render(vars)

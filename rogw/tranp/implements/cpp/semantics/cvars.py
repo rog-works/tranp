@@ -65,7 +65,7 @@ class CVars:
 		Args:
 			key: C++変数型の種別キー
 		Returns:
-			bool: True = 実体/参照
+			True = 実体/参照
 		"""
 		return key in [cpp.CRaw.__name__, cpp.CRef.__name__, cpp.CRawConst.__name__, cpp.CRefConst.__name__]
 
@@ -76,7 +76,7 @@ class CVars:
 		Args:
 			key: C++変数型の種別キー
 		Returns:
-			bool: True = ポインター/スマートポインター
+			True = ポインター/スマートポインター
 		"""
 		return key in [cpp.CP.__name__, cpp.CSP.__name__, cpp.CPConst.__name__, cpp.CSPConst.__name__]
 
@@ -87,7 +87,7 @@ class CVars:
 		Args:
 			key: C++変数型の種別キー
 		Returns:
-			bool: True = 実体
+			True = 実体
 		"""
 		return key in [cpp.CRaw.__name__, cpp.CRawConst.__name__]
 
@@ -98,7 +98,7 @@ class CVars:
 		Args:
 			key: C++変数型の種別キー
 		Returns:
-			bool: True = 参照
+			True = 参照
 		"""
 		return key in [cpp.CRef.__name__, cpp.CRefConst.__name__]
 
@@ -109,7 +109,7 @@ class CVars:
 		Args:
 			key: C++変数型の種別キー
 		Returns:
-			bool: True = ポインター
+			True = ポインター
 		"""
 		return key in [cpp.CP.__name__, cpp.CPConst.__name__]
 
@@ -120,7 +120,7 @@ class CVars:
 		Args:
 			key: C++変数型の種別キー
 		Returns:
-			bool: True = スマートポインター
+			True = スマートポインター
 		"""
 		return key in [cpp.CSP.__name__, cpp.CSPConst.__name__]
 
@@ -131,7 +131,7 @@ class CVars:
 		Args:
 			key: C++変数型の種別キー
 		Returns:
-			bool: True = Const
+			True = Const
 		"""
 		return key in [cpp.CPConst.__name__, cpp.CSPConst.__name__, cpp.CRefConst.__name__, cpp.CRawConst.__name__]
 
@@ -140,7 +140,7 @@ class CVars:
 		"""C++変数型の種別キー一覧を生成
 
 		Returns:
-			list[str]: 種別キー一覧
+			種別キー一覧
 		"""
 		return [cvar.__name__ for cvar in [cpp.CP, cpp.CSP, cpp.CRef, cpp.CPConst, cpp.CSPConst, cpp.CRefConst, cpp.CRawConst, cpp.CRaw]]
 
@@ -151,7 +151,7 @@ class CVars:
 		Args:
 			symbol: シンボル
 		Returns:
-			str: 種別キー
+			種別キー
 		Note:
 			nullはポインターとして扱う
 		"""
@@ -169,7 +169,7 @@ class CVars:
 		Args:
 			key: C++変数型の種別キー
 		Returns:
-			RelayOperators: リレー演算子
+			リレー演算子
 		"""
 		accessors = {
 			cpp.CP.__name__: cls.RelayOperators.Address,
@@ -191,7 +191,7 @@ class CVars:
 			key: C++変数型の種別キー
 			method: メソッド名
 		Returns:
-			Moves: 移動操作の種別
+			移動操作の種別
 		"""
 		moves = {
 			f'{cpp.CP.__name__}.raw': CVars.Moves.ToActual,
@@ -232,7 +232,7 @@ class CVars:
 			value_on_new: True = インスタンス生成
 			declared: True = 変数宣言時
 		Returns:
-			Moves: 移動操作の種別
+			移動操作の種別
 		Note:
 			@deprecated 未使用のため削除を検討
 		"""
@@ -251,7 +251,7 @@ class CVars:
 			value_on_new: True = インスタンス生成
 			declared: True = 変数宣言時
 		Returns:
-			Moves: 移動操作の種別
+			移動操作の種別
 		Note:
 			@deprecated 未使用のため削除を検討
 		"""

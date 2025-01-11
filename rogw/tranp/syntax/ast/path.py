@@ -12,7 +12,7 @@ class EntryPath:
 		Args:
 			*elems (str): 要素リスト
 		Returns:
-			EntryPath: インスタンス
+			インスタンス
 		"""
 		return cls(DSN.join(*elems))
 
@@ -25,7 +25,7 @@ class EntryPath:
 			entry_tag: エントリータグ
 			index: 要素インデックス
 		Returns:
-			EntryPath: インスタンス
+			インスタンス
 		"""
 		return cls(DSN.join(*[origin, f'{entry_tag}[{index}]']))
 
@@ -58,7 +58,7 @@ class EntryPath:
 		Args:
 			relative: 相対パス
 		Returns:
-			str: パス
+			パス
 		"""
 		return DSN.join(*[self.origin, relative])
 
@@ -67,7 +67,7 @@ class EntryPath:
 		"""先頭の要素を分解して取得
 
 		Returns:
-			tuple[str, int]: (エントリータグ, 要素インデックス)
+			(エントリータグ, 要素インデックス)
 		"""
 		return self.__break_tag(self.elements[0])
 
@@ -76,7 +76,7 @@ class EntryPath:
 		"""末尾の要素を分解して取得
 
 		Returns:
-			tuple[str, int]: (エントリータグ, 要素インデックス)
+			(エントリータグ, 要素インデックス)
 		"""
 		return self.__break_tag(self.elements[-1])
 
@@ -85,7 +85,7 @@ class EntryPath:
 		"""先頭のエントリータグを取得
 
 		Returns:
-			str: エントリータグ
+			エントリータグ
 		"""
 		return self.first[0]
 
@@ -94,7 +94,7 @@ class EntryPath:
 		"""末尾のエントリータグを取得
 
 		Returns:
-			str: エントリータグ
+			エントリータグ
 		"""
 		return self.last[0]
 
@@ -103,7 +103,7 @@ class EntryPath:
 		"""親のエントリータグを取得
 
 		Returns:
-			str: エントリータグ
+			エントリータグ
 		"""
 		return self.shift(-1).last[0]
 
@@ -113,7 +113,7 @@ class EntryPath:
 		Args:
 			elem: 要素
 		Returns:
-			tuple[str, int]: (エントリータグ, インデックス)
+			(エントリータグ, インデックス)
 		"""
 		if not elem.endswith(']'):
 			return (elem, -1)
@@ -127,7 +127,7 @@ class EntryPath:
 		Args:
 			entry_tag: エントリータグ
 		Returns:
-			bool: True = 含まれる
+			True = 含まれる
 		"""
 		return entry_tag in self.de_identify().elements
 
@@ -137,7 +137,7 @@ class EntryPath:
 		Args:
 			*entry_tags (str): エントリータグリスト
 		Returns:
-			bool: True = 構築されている
+			True = 構築されている
 		"""
 		return len([entry_tag for entry_tag in self.de_identify().elements if entry_tag not in entry_tags]) == 0
 
@@ -145,7 +145,7 @@ class EntryPath:
 		"""一意性を解除したパスでインスタンスを生成
 
 		Returns:
-			EntryPath: インスタンス
+			インスタンス
 		"""
 		de_origin = '.'.join([e.split('[')[0] for e in self.origin.split('.')])
 		return EntryPath(de_origin)
@@ -156,7 +156,7 @@ class EntryPath:
 		Args:
 			starts: 先頭のパス
 		Returns:
-			EntryPath: インスタンス
+			インスタンス
 		Raises:
 			LogicError: 一致しない先頭パスを指定
 		"""
@@ -171,7 +171,7 @@ class EntryPath:
 		Args:
 			skip: 移動方向
 		Returns:
-			EntryPath: インスタンス
+			インスタンス
 		"""
 		elems = self.elements
 		if skip == 0:

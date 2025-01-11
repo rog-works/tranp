@@ -16,7 +16,7 @@ class IModuleLoader(metaclass=ABCMeta):
 		Args:
 			module_path: モジュールパス
 		Returns:
-			Module: モジュール
+			モジュール
 		"""
 		...
 
@@ -52,6 +52,6 @@ class ModuleDependencyProvider(Protocol):
 		"""モジュール定義を生成
 
 		Returns:
-			ModuleDefinitions: モジュール定義
+			モジュール定義
 		"""
 		...

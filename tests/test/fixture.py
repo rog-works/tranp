@@ -24,7 +24,7 @@ class Fixture:
 		Args:
 			filepath: テストファイルのパス
 		Returns:
-			str: フィクスチャーのモジュールパス
+			フィクスチャーのモジュールパス
 		"""
 		module_path = filepath_to_module_path(filepath, tranp_dir())
 		elems = module_path.split('.')
@@ -39,7 +39,7 @@ class Fixture:
 			filepath: テストファイルのパス
 			definitions: モジュール定義 (default = {})
 		Returns:
-			Fixture: インスタンス
+			インスタンス
 		Examples:
 			```python
 			class TestClass:
@@ -63,7 +63,7 @@ class Fixture:
 		"""モジュール定義を生成
 
 		Returns:
-			ModuleDefinitions: モジュール定義
+			モジュール定義
 		"""
 		return {
 			to_fullyname(ModulePaths): lambda: [ModulePath(self.__fixture_module_path, language='py')],
@@ -76,7 +76,7 @@ class Fixture:
 		Args:
 			symbol: シンボル
 		Returns:
-			T_Inst: インスタンス
+			インスタンス
 		"""
 		return self.__app.resolve(symbol)
 
@@ -91,7 +91,7 @@ class Fixture:
 		Args:
 			full_path: フルパス
 		Returns:
-			Node: ノード
+			ノード
 		"""
 		return self.get(Entrypoints).load(self.__fixture_module_path).whole_by(full_path)
 
@@ -102,7 +102,7 @@ class Fixture:
 			source_code: ソースコード
 			full_path: フルパス
 		Returns:
-			Node: ノード
+			ノード
 		"""
 		module_path = module_path_dummy()
 		self.__custom_source_code = f'{source_code}\n'
@@ -116,7 +116,7 @@ class Fixture:
 		Args:
 			source_code: ソースコード
 		Returns:
-			Module: モジュール
+			モジュール
 		"""
 		module_path = module_path_dummy()
 		self.__custom_source_code = f'{source_code}\n'
@@ -131,7 +131,7 @@ class Fixture:
 		Args:
 			module_path: モジュールパス
 		Returns:
-			str: ソースコード
+			ソースコード
 		"""
 		if module_path == module_path_dummy().path:
 			return self.__custom_source_code

@@ -11,7 +11,7 @@ def dict_pluck(node: _Node, path: str, fallback: _Node = '') -> _Node:
 		path: パス
 		fallback: 存在しない場合の代用値 (default = '')
 	Returns:
-		_Node: エントリーの値
+		エントリーの値
 	"""
 	if type(node) is dict and path:
 		key, *remain = path.split('.')
@@ -37,7 +37,7 @@ def dict_merge(d1: dict[Any, Any], d2: dict[Any, Any]) -> dict[Any, Any]:
 		d1: 連想配列1
 		d2: 連想配列2
 	Returns:
-		dict[Any, Any]: 結合後の連想配列
+		結合後の連想配列
 	"""
 	merged = d1.copy()
 	for key, value in d2.items():

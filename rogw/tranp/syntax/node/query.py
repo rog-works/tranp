@@ -34,7 +34,7 @@ class Nodes(Query[Node]):
 			entry: エントリー
 			full_path: エントリーのフルパス
 		Returns:
-			Node: 解決したノード
+			解決したノード
 		"""
 		return self.__resolver.resolve(entry.name, full_path)
 
@@ -45,7 +45,7 @@ class Nodes(Query[Node]):
 		Args:
 			full_path: フルパス
 		Returns:
-			bool: True = 存在
+			True = 存在
 		"""
 		return self.__entries.exists(full_path)
 
@@ -56,7 +56,7 @@ class Nodes(Query[Node]):
 		Args:
 			full_path: フルパス
 		Returns:
-			Node: ノード
+			ノード
 		Raises:
 			NodeNotFoundError: ノードが存在しない
 		"""
@@ -70,7 +70,7 @@ class Nodes(Query[Node]):
 		Args:
 			via: 基点のパス
 		Returns:
-			Node: ノード
+			ノード
 		Raises:
 			NodeNotFoundError: 親が存在しない
 		"""
@@ -94,7 +94,7 @@ class Nodes(Query[Node]):
 			via: 基点のパス
 			tag: エントリータグ
 		Returns:
-			Node: ノード
+			ノード
 		Raises:
 			NodeNotFoundError: 指定のエントリータグを持つ親が存在しない
 		"""
@@ -118,7 +118,7 @@ class Nodes(Query[Node]):
 		Args:
 			via: 基点のパス(フルパス)
 		Returns:
-			list[Node]: ノードリスト
+			ノードリスト
 		Raises:
 			NodeNotFoundError: 基点のノードが存在しない
 		"""
@@ -138,7 +138,7 @@ class Nodes(Query[Node]):
 		Args:
 			via: 基点のパス(フルパス)
 		Returns:
-			list[Node]: ノードリスト
+			ノードリスト
 		Raises:
 			NodeNotFoundError: 基点のノードが存在しない
 		"""
@@ -157,7 +157,7 @@ class Nodes(Query[Node]):
 		Args:
 			via: 基点のパス(フルパス)
 		Returns:
-			list[Node]: ノードリスト
+			ノードリスト
 		Raises:
 			NodeNotFoundError: 基点のノードが存在しない
 		"""
@@ -200,7 +200,7 @@ class Nodes(Query[Node]):
 		Args:
 			via: 基点のパス(フルパス)
 		Returns:
-			list[str]: 値リスト
+			値リスト
 		"""
 		def factory() -> list[str]:
 			return [entry.value for entry in self.__entries.group_by(via).values() if entry.value]
@@ -214,7 +214,7 @@ class Nodes(Query[Node]):
 		Args:
 			full_path: フルパス
 		Returns:
-			int: ID
+			ID
 		"""
 		return self.__entries.index_of(full_path)
 
@@ -225,6 +225,6 @@ class Nodes(Query[Node]):
 		Args:
 			full_path: フルパス
 		Returns:
-			SourceMap: ソースマップ
+			ソースマップ
 		"""
 		return self.__entries.by(full_path).source_map

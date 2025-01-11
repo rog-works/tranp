@@ -38,7 +38,7 @@ class ReflectionSerializer(IReflectionSerializer):
 		Args:
 			symbol: シンボル
 		Returns:
-			DictSerialized: データ
+			データ
 		"""
 		flat_attrs: dict[str, IReflection] = seqs.expand(symbol.attrs, iter_key='attrs')
 		attrs = {path: attr.types.fullyname for path, attr in flat_attrs.items()}
@@ -66,7 +66,7 @@ class ReflectionSerializer(IReflectionSerializer):
 			db: シンボルテーブル
 			data: データ
 		Returns:
-			IReflection: シンボル
+			シンボル
 		"""
 		if data['class'] == 'Symbol':
 			types_paths = ModuleDSN.parsed(data['types'])
@@ -92,7 +92,7 @@ class ReflectionSerializer(IReflectionSerializer):
 			db: シンボルテーブル
 			data_attrs: データ(属性)
 		Returns:
-			list[IReflection]: 属性のシンボルリスト
+			属性のシンボルリスト
 		"""
 		# 階層が浅い順にソート
 		paths = sorted(data_attrs.keys(), key=lambda key: key.count('.'))

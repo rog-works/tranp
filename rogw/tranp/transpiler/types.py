@@ -32,6 +32,6 @@ class ITranspiler(metaclass=ABCMeta):
 		Args:
 			root: 起点のノード
 		Returns:
-			str: トランスパイル後のソースコード
+			トランスパイル後のソースコード
 		"""
 		...

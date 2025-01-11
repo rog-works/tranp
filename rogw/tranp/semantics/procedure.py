@@ -62,7 +62,7 @@ class Procedure(Generic[T_Ret]):
 		Args:
 			root: ルート要素
 		Returns:
-			T_Ret: 結果
+			結果
 		Raises:
 			ProcessingError: 実行エラー
 		Note:
@@ -80,7 +80,7 @@ class Procedure(Generic[T_Ret]):
 		Args:
 			root: ルート要素
 		Returns:
-			T_Ret: 結果
+			結果
 		Raises:
 			LogicError: 実行エラー
 		"""
@@ -101,7 +101,7 @@ class Procedure(Generic[T_Ret]):
 		"""結果を出力。結果は必ず1つでなければならない
 
 		Returns:
-			T_Ret: 結果
+			結果
 		Raises:
 			LogicError: 結果が1つ以外。実装ミスと見做される
 		"""
@@ -202,7 +202,7 @@ class Procedure(Generic[T_Ret]):
 			node: ノード
 			**event (T_Ret | list[T_Ret]): イベントデータ
 		Returns:
-			T_Ret | None: 結果
+			結果
 		Raises:
 			LogicError: イベントデータが不正
 			FatalError: 未ハンドリングの不特定のエラー
@@ -223,7 +223,7 @@ class Procedure(Generic[T_Ret]):
 		Args:
 			node: ノード
 		Returns:
-			dict[str, Node | T_Ret | list[T_Ret]]: イベントデータ
+			イベントデータ
 		Raises:
 			LogicError: スタックが不足
 		"""
@@ -248,7 +248,7 @@ class Procedure(Generic[T_Ret]):
 			node: ノード
 			prop_key: プロパティー名
 		Returns:
-			bool: True = リスト, False = 単体
+			True = リスト, False = 単体
 		"""
 		prop_anno = getattr(node.__class__, prop_key).fget.__annotations__['return']
 		return hasattr(prop_anno, '__origin__') and prop_anno.__origin__ is list
@@ -257,7 +257,7 @@ class Procedure(Generic[T_Ret]):
 		"""スタックから結果を取得
 
 		Returns:
-			T_Ret: 結果
+			結果
 		Raises:
 			LogicError: スタックが不足
 		"""
@@ -290,7 +290,7 @@ class Procedure(Generic[T_Ret]):
 			stacks: スタック数(実行前, 実行, 実行後)
 			result: 結果
 		Returns:
-			dict[str, str]: ログデータ
+			ログデータ
 		"""
 		result_str = str(result).replace('\n', '\\n')
 		return {

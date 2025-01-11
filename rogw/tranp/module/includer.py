@@ -13,7 +13,7 @@ def include_module_paths(input_glob: str, exclude_patterns: list[str]) -> Module
 		input_glob: 入力パターン(Glob)
 		exclude_patterns: 除外パターンリスト(正規表現)
 	Returns:
-		ModulePaths: モジュールパスリスト
+		モジュールパスリスト
 	Raises:
 		LogicError: 対象が存在しない
 	"""

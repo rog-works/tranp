@@ -19,7 +19,7 @@ class MetaHeader:
 		Args:
 			content: テキストデータ
 		Returns:
-			Self | None: 復元したインスタンス。またはNone
+			復元したインスタンス。またはNone
 		"""
 		header_begin = content.find(MetaHeader.Tag)
 		if header_begin == -1:
@@ -36,7 +36,7 @@ class MetaHeader:
 		Args:
 			json_str: JSON文字列
 		Returns:
-			Self: 復元したインスタンス
+			復元したインスタンス
 		"""
 		raw = json.loads(json_str)
 		return cls(raw['module'], raw['transpiler'], raw['version'])
@@ -64,7 +64,7 @@ class MetaHeader:
 		Args:
 			other: 比較対象
 		Returns:
-			bool: True = 一致
+			True = 一致
 		Raises:
 			LogicError: 同種以外のインスタンスを指定
 		"""
@@ -77,7 +77,7 @@ class MetaHeader:
 		"""JSONにシリアライズ
 
 		Returns:
-			str: JSON文字列
+			JSON文字列
 		"""
 		return json.dumps({'version': self.app_version, 'module': self.module_meta, 'transpiler': self.transpiler_meta}, separators=(',', ':'))
 
@@ -85,6 +85,6 @@ class MetaHeader:
 		"""メタヘッダー文字列に変換
 
 		Returns:
-			str: メタヘッダー文字列
+			メタヘッダー文字列
 		"""
 		return f'{self.Tag}: {self.to_json()}'

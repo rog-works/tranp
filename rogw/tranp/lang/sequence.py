@@ -15,7 +15,7 @@ def index_of(seq: Sequence[T_Seq], elem: T_Seq) -> int:
 		seq: リスト
 		elem: 検索対象の要素
 	Returns:
-		int: インデックス
+		インデックス
 	"""
 	return seq.index(elem) if elem in seq else -1
 
@@ -27,7 +27,7 @@ def last_index_of(seq: Sequence[T_Seq], elem: T_Seq) -> int:
 		seq: リスト
 		elem: 検索対象の要素
 	Returns:
-		int: インデックス
+		インデックス
 	"""
 	return (len(seq) - 1) - list(reversed(seq)).index(elem) if elem in seq else -1
 
@@ -40,7 +40,7 @@ def expand(entry: list | dict | Any, path: str = '', iter_key: str | None = None
 		path: 開始パス(default = '')
 		iter_key: イテレーター属性のキー(default = None)
 	Returns:
-		dict[str, Any]: 展開データ
+		展開データ
 	"""
 	entries: dict[str, Any] = {}
 	if type(entry) is list:
@@ -97,7 +97,7 @@ def deep_copy(entry: list | dict) -> list | dict:
 	Args:
 		entry: エントリー
 	Returns:
-		list | dict: 複製
+		複製
 	"""
 	if type(entry) is list:
 		new = []

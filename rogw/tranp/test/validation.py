@@ -16,7 +16,7 @@ def validation(klass: type[T], lookup_private: bool = True, factory: Callable[[]
 		lookup_private: プライベートプロパティー抽出フラグ (default = True)
 		factory: インスタンスファクトリー (default = None)
 	Returns:
-		bool: True = 成功
+		True = 成功
 	Raises:
 		TypeError: 設計と実体の不一致
 	Note:

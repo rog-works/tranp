@@ -115,7 +115,7 @@ class Serialization:
 		Args:
 			root: ツリー
 		Returns:
-			DumpTree: シリアライズツリー
+			シリアライズツリー
 		"""
 		return cast(DumpTree, cls.__dumps(root))
 
@@ -126,7 +126,7 @@ class Serialization:
 		Args:
 			entry: エントリー
 		Returns:
-			DumpTreeEntry: シリアライズエントリー
+			シリアライズエントリー
 		"""
 		proxy = EntryOfLark(entry)
 		source_map = (
@@ -153,7 +153,7 @@ class Serialization:
 		Args:
 			root: シリアライズツリー
 		Returns:
-			lark.Tree: ツリー
+			ツリー
 		"""
 		return cast(lark.Tree, cls.__loads(root))
 
@@ -164,7 +164,7 @@ class Serialization:
 		Args:
 			entry: シリアライズエントリー
 		Returns:
-			lark.Tree | lark.Token | None: エントリー
+			エントリー
 		"""
 		if type(entry) is dict and 'children' in entry:
 			entry_tree = cast(DumpTree, entry)

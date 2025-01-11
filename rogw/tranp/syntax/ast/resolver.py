@@ -34,7 +34,7 @@ class Resolver(Generic[T]):
 		Args:
 			mapping: シンボルマッピングデータ
 		Returns:
-			Resolver[T]: 生成したインスタンス
+			生成したインスタンス
 		"""
 		inst = cls()
 		for ctor, symbols in mapping.symbols.items():
@@ -60,7 +60,7 @@ class Resolver(Generic[T]):
 		Args:
 			symbol: シンボル名
 		Returns:
-			bool: True = 解決できる
+			True = 解決できる
 		"""
 		return symbol in self.__ctors
 
@@ -99,7 +99,7 @@ class Resolver(Generic[T]):
 		Args:
 			symbol: シンボル名
 		Returns:
-			list[type[T]]: 解決した型
+			解決した型
 		Raises:
 			LogicError: シンボルの解決に失敗
 		"""

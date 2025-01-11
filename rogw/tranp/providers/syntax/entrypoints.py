@@ -21,7 +21,7 @@ def entrypoint_loader(locator: Locator, dependencies: ModuleDependencyProvider) 
 		locator: ロケーター @inject
 		dependencies: @inject
 	Returns:
-		EntrypointLoader: エントリーポイントローダー
+		エントリーポイントローダー
 	"""
 	def handler(module_path: ModulePath) -> defs.Entrypoint:
 		shared_di = as_a(LazyDI, locator)
@@ -45,6 +45,6 @@ def entrypoint(query: Query[Node]) -> defs.Entrypoint:
 	Args:
 		query: ノードクエリー
 	Returns:
-		Node: エントリーポイント
+		エントリーポイント
 	"""
 	return query.by('file_input').as_a(defs.Entrypoint)

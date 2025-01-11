@@ -23,7 +23,7 @@ class DecoratorHelper:
 		Args:
 			decorator: デコレーター
 		Returns:
-			tuple[str, dict[str, str], str]: (パス, 引数一覧, 分解前の引数一覧)
+			(パス, 引数一覧, 分解前の引数一覧)
 		"""
 		args_begin = decorator.find('(')
 		path = decorator[:args_begin]
@@ -74,7 +74,7 @@ class DecoratorHelper:
 		Args:
 			index: インデックス
 		Returns:
-			str: 引数の値
+			引数の値
 		"""
 		values = list(self.args.values())
 		return values[index]
@@ -85,7 +85,7 @@ class DecoratorHelper:
 		Args:
 			key: キー
 		Returns:
-			str: 引数の値
+			引数の値
 		"""
 		return self.args[key]
 
@@ -95,7 +95,7 @@ class DecoratorHelper:
 		Args:
 			*paths (str): 対象のデコレーターパスリスト
 		Returns:
-			bool: True = 含む
+			True = 含む
 		"""
 		return self.path in paths
 
@@ -105,7 +105,7 @@ class DecoratorHelper:
 		Args:
 			pattern: 正規表現
 		Returns:
-			bool: True = 条件に合致
+			True = 条件に合致
 		"""
 		return re.search(pattern, self.decorator) != None
 
@@ -115,7 +115,7 @@ class DecoratorHelper:
 		Args:
 			subject: 検索条件
 		Returns:
-			bool: True = 含む
+			True = 含む
 		"""
 		return self.join_args.find(subject) != -1
 
@@ -125,7 +125,7 @@ class DecoratorHelper:
 		Args:
 			pattern: 正規表現
 		Returns:
-			bool: True = 条件に合致
+			True = 条件に合致
 		"""
 		return re.search(pattern, self.join_args) != None
 
@@ -140,7 +140,7 @@ class DecoratorQuery(Sequence):
 		Args:
 			decorators: デコレーターリスト
 		Returns:
-			DecoratorQuery: インスタンス
+			インスタンス
 		"""
 		return cls([DecoratorHelper(decorator) for decorator in decorators])
 
@@ -157,7 +157,7 @@ class DecoratorQuery(Sequence):
 		"""イテレーターを生成
 
 		Returns:
-			Iterator[DecoratorHelper]: イテレーター
+			イテレーター
 		"""
 		for helper in self._helpers:
 			yield helper
@@ -167,7 +167,7 @@ class DecoratorQuery(Sequence):
 		"""要素数を取得
 
 		Returns:
-			int: 要素数
+			要素数
 		"""
 		return len(self._helpers)
 
@@ -178,7 +178,7 @@ class DecoratorQuery(Sequence):
 		Args:
 			index: インデックス
 		Returns:
-			DecoratorHelper: デコレーターヘルパー
+			デコレーターヘルパー
 		"""
 		return self._helpers[index]
 
@@ -188,7 +188,7 @@ class DecoratorQuery(Sequence):
 		Args:
 			*paths (str): 対象のデコレーターパスリスト
 		Returns:
-			DecoratorQuery: インスタンス
+			インスタンス
 		"""
 		return self.__class__([helper for helper in self._helpers if helper.any(*path)])
 
@@ -198,7 +198,7 @@ class DecoratorQuery(Sequence):
 		Args:
 			pattern: 正規表現
 		Returns:
-			DecoratorQuery: インスタンス
+			インスタンス
 		"""
 		return self.__class__([helper for helper in self._helpers if helper.match(pattern)])
 
@@ -208,7 +208,7 @@ class DecoratorQuery(Sequence):
 		Args:
 			subject: 検索条件
 		Returns:
-			DecoratorQuery: インスタンス
+			インスタンス
 		"""
 		return self.__class__([helper for helper in self._helpers if helper.any_args(subject)])
 
@@ -218,7 +218,7 @@ class DecoratorQuery(Sequence):
 		Args:
 			pattern: 正規表現
 		Returns:
-			DecoratorQuery: インスタンス
+			インスタンス
 		"""
 		return self.__class__([helper for helper in self._helpers if helper.match_args(pattern)])
 
@@ -228,7 +228,7 @@ class DecoratorQuery(Sequence):
 		Args:
 			*paths (str): 対象のデコレーターパスリスト
 		Returns:
-			bool: True = 条件に合致
+			True = 条件に合致
 		"""
 		for helper in self._helpers:
 			if helper.any(*path):

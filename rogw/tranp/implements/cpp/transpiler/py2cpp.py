@@ -71,7 +71,7 @@ class Py2Cpp(ITranspiler):
 		Args:
 			options: 実行オプション
 		Returns:
-			Procedure[str]: プロシージャー
+			プロシージャー
 		"""
 		handlers = {key: getattr(self, key) for key in Py2Cpp.__dict__.keys() if key.startswith('on_')}
 		procedure = Procedure[str](verbose=options.verbose)
@@ -113,7 +113,7 @@ class Py2Cpp(ITranspiler):
 		Args:
 			root: 起点のノード
 		Returns:
-			str: トランスパイル後のソースコード
+			トランスパイル後のソースコード
 		"""
 		return self.__procedure.exec(root)
 
@@ -123,7 +123,7 @@ class Py2Cpp(ITranspiler):
 		Args:
 			raw: シンボル
 		Returns:
-			str: 名前空間上の参照名
+			名前空間上の参照名
 		Note:
 			# 生成例
 			'Class' -> 'NS::Class'
@@ -149,7 +149,7 @@ class Py2Cpp(ITranspiler):
 		Args:
 			var_type_raw: シンボル
 		Returns:
-			str: ドメイン名
+			ドメイン名
 		Note:
 			# 生成例
 			'Union<CP<Class>, None>' -> 'Class<CP>'
@@ -163,7 +163,7 @@ class Py2Cpp(ITranspiler):
 		Args:
 			types: クラス宣言ノード
 		Returns:
-			str: 型の参照名
+			型の参照名
 		"""
 		return ClassDomainNaming.domain_name(types, alias_handler=self.i18n.t)
 
@@ -173,7 +173,7 @@ class Py2Cpp(ITranspiler):
 		Args:
 			prop_raw: プロパティー
 		Returns:
-			str: プロパティー名
+			プロパティー名
 		"""
 		return self.to_prop_name_by_decl(prop_raw.node.one_of(*defs.DeclAllTs))
 
@@ -183,7 +183,7 @@ class Py2Cpp(ITranspiler):
 		Args:
 			decl: メソッド・変数宣言ノード
 		Returns:
-			str: プロパティー名
+			プロパティー名
 		"""
 		return self.i18n.t(alias_dsn(decl.fullyname), fallback=decl.domain_name)
 
@@ -193,7 +193,7 @@ class Py2Cpp(ITranspiler):
 		Args:
 			node: ファンクションノード
 		Returns:
-			list[str]: テンプレート型名リスト
+			テンプレート型名リスト
 		"""
 		return [types.domain_name for types in self.reflections.type_of(node).impl(refs.Function).function_templates()]
 
@@ -203,7 +203,7 @@ class Py2Cpp(ITranspiler):
 		Args:
 			method: メソッド系ノード
 		Returns:
-			bool: True = 仮想関数
+			True = 仮想関数
 		Note:
 			C++ではClassMethodの仮想関数はないので非対応
 		"""
@@ -216,7 +216,7 @@ class Py2Cpp(ITranspiler):
 			value_raw: 値のシンボル
 			declared: True = 変数宣言
 		Returns:
-			bool: False = 不許可
+			False = 不許可
 		Note:
 			実質的にNullable以外のUnion型のみ不許可
 		"""
@@ -239,7 +239,7 @@ class Py2Cpp(ITranspiler):
 		Args:
 			accessor: アクセス修飾子
 		Returns:
-			str: 翻訳後のアクセス修飾子
+			翻訳後のアクセス修飾子
 		"""
 		return self.i18n.t(DSN.join(self.i18n.t(alias_dsn('lang')), 'accessor', accessor))
 
@@ -1272,7 +1272,7 @@ class PatternParser:
 		Args:
 			relay: 文字列
 		Returns:
-			tuple[str, str]: (レシーバー, オペレーター)
+			(レシーバー, オペレーター)
 		Note:
 			### 期待値
 			`'path.to->prop' -> ('path.to', '->')`
@@ -1286,7 +1286,7 @@ class PatternParser:
 		Args:
 			func_call: 文字列
 		Returns:
-			str: 引数リスト
+			引数リスト
 		Note:
 			### 期待値
 			`'path.to.calls(arguments...)' -> 'arguments...'`
@@ -1300,7 +1300,7 @@ class PatternParser:
 		Args:
 			func_call: 文字列
 		Returns:
-			tuple[str, str, str]: (レシーバー, オペレーター, メソッド)
+			(レシーバー, オペレーター, メソッド)
 		Note:
 			### 期待値
 			`'path.to->items()' -> ('path.to', '->', 'items')`
@@ -1314,7 +1314,7 @@ class PatternParser:
 		Args:
 			func_call: 文字列
 		Returns:
-			str: 引数リスト
+			引数リスト
 		Note:
 			### 期待値
 			`'Class::__init__(arguments...);' -> 'arguments...'`
@@ -1328,7 +1328,7 @@ class PatternParser:
 		Args:
 			assign: 文字列
 		Returns:
-			str: 右辺
+			右辺
 		Note:
 			### 期待値
 			`'path.to = right;' -> 'right'`
@@ -1343,7 +1343,7 @@ class PatternParser:
 		Args:
 			assign: 文字列
 		Returns:
-			tuple[str, str]: (レシーバー, キー)
+			(レシーバー, キー)
 		Note:
 			### 期待値
 			`'path.to[key]' -> ('path.to', 'key')`
@@ -1357,7 +1357,7 @@ class PatternParser:
 		Args:
 			argument: 文字列
 		Returns:
-			str: 引数
+			引数
 		Note:
 			### 期待値
 			`'Class(arguments...)' -> 'arguments...'`
@@ -1371,7 +1371,7 @@ class PatternParser:
 		Args:
 			receiver: 文字列
 		Returns:
-			str: 引数
+			引数
 		Note:
 			### 期待値
 			`'path.on()->to' -> 'path.to'`
@@ -1385,7 +1385,7 @@ class PatternParser:
 		Args:
 			receiver: 文字列
 		Returns:
-			str: 引数
+			引数
 		Note:
 			### 期待値
 			`'path.to.raw()' -> 'path.to'`

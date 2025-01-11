@@ -21,7 +21,7 @@ class ModuleDSN:
 			dsn: DSN
 			*elems (str): ローカル要素リスト
 		Returns:
-			ModuleDSN: 生成したインスタンス
+			生成したインスタンス
 		Note:
 			@see full_joined
 		"""
@@ -35,7 +35,7 @@ class ModuleDSN:
 			dsn: DSN
 			*elems (str): ローカル要素リスト
 		Returns:
-			str: DSN
+			DSN
 		Note:
 			### 注意事項
 			* 先頭要素に必ずモジュールパスを含めること
@@ -53,7 +53,7 @@ class ModuleDSN:
 		Args:
 			*elems (str): ローカル要素リスト
 		Returns:
-			str: ローカルパス
+			ローカルパス
 		Note:
 			このメソッドの返却値はローカルパスであり、モジュールDSNではない点に注意
 		"""
@@ -66,7 +66,7 @@ class ModuleDSN:
 		Args:
 			dsn_or_local: DSNまたはローカルパス
 		Returns:
-			list[str]: ローカル要素リスト
+			ローカル要素リスト
 		"""
 		_, local = cls.parsed(dsn_or_local) if dsn_or_local.find('#') != -1 else ('', dsn_or_local)
 		return DSN.elements(local)
@@ -78,7 +78,7 @@ class ModuleDSN:
 		Args:
 			dsn_or_local: DSNまたはローカルパス
 		Returns:
-			int: ローカル要素の数
+			ローカル要素の数
 		"""
 		return len(cls.expand_elements(dsn_or_local))
 
@@ -89,7 +89,7 @@ class ModuleDSN:
 		Args:
 			dsn: DSN
 		Returns:
-			tuple[str, str]: (モジュールパス, ローカルパス)
+			(モジュールパス, ローカルパス)
 		"""
 		elems = dsn.split('#')
 		return (elems[0], elems[1]) if len(elems) > 1 else (elems[0], '')
@@ -101,7 +101,7 @@ class ModuleDSN:
 		Args:
 			dsn: DSN
 		Returns:
-			tuple[str, list[str]]: (モジュールパス, ローカル要素リスト)
+			(モジュールパス, ローカル要素リスト)
 		"""
 		module_path, local_path = cls.parsed(dsn)
 		return module_path, DSN.elements(local_path)
@@ -114,7 +114,7 @@ class ModuleDSN:
 			dsn: DSN
 			id: ID
 		Returns:
-			str: DSN
+			DSN
 		"""
 		return f'{dsn}@{id}'
 
@@ -145,7 +145,7 @@ class ModuleDSN:
 		Args:
 			*locals (str): 追加するローカル要素リスト
 		Returns:
-			ModuleDSN: 生成したインスタンス
+			生成したインスタンス
 		"""
 		return self.__class__(self.full_joined(self.dsn, *locals))
 

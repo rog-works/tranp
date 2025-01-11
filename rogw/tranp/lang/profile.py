@@ -12,7 +12,7 @@ def profiler(sort: str = 'tottime', on: bool = True) -> Callable[[Callable[P, T_
 		sort: ソートカラム(tottime(消費時間)/cumtime(累積消費時間))
 		on: True = 有効
 	Returns:
-		Callable: デコレーター
+		デコレーター
 	Note:
 		プロファイル結果は標準出力に出力
 	Example:

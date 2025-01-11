@@ -19,7 +19,7 @@ class EntrypointLoader(Protocol):
 		Args:
 			module_path: モジュールパス
 		Returns:
-			Entrypoint: エントリーポイント
+			エントリーポイント
 		"""
 		...
 
@@ -50,7 +50,7 @@ class Entrypoints:
 			module_path: モジュールパス
 			language: 言語タグ (default = 'py')
 		Returns:
-			Entrypoint: エントリーポイント
+			エントリーポイント
 		"""
 		if module_path not in self.__entrypoints:
 			self.__entrypoints[module_path] = self.__loader(ModulePath(module_path, language))

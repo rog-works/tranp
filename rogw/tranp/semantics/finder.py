@@ -28,7 +28,7 @@ class SymbolFinder:
 		Args:
 			db: シンボルテーブル
 		Returns:
-			IReflection: シンボル
+			シンボル
 		Raises:
 			MustBeImplementedError: objectが未実装
 		Note:
@@ -47,7 +47,7 @@ class SymbolFinder:
 			db: シンボルテーブル
 			fullyname: 完全参照名
 		Returns:
-			IReflection: シンボル
+			シンボル
 		Raises:
 			SymbolNotDefinedError: シンボルが見つからない
 		"""
@@ -63,7 +63,7 @@ class SymbolFinder:
 			db: シンボルテーブル
 			standard_type: 標準クラス
 		Returns:
-			IReflection: シンボル
+			シンボル
 		Raises:
 			MustBeImplementedError: 標準クラスが未実装
 		"""
@@ -81,7 +81,7 @@ class SymbolFinder:
 			db: シンボルテーブル
 			node: (Symbolic): シンボル系ノード
 		Returns:
-			IReflection: シンボル
+			シンボル
 		Raises:
 			SymbolNotDefinedError: シンボルが見つからない
 		"""
@@ -99,7 +99,7 @@ class SymbolFinder:
 			node: シンボル系ノード
 			prop_name: プロパティー名(default = '')
 		Returns:
-			IReflection | None: シンボル
+			シンボル
 		"""
 		domain_name = ModuleDSN.local_joined(node.domain_name, prop_name)
 		scopes = [scope for scope in self.__make_scopes(node.scope) if not self.__is_local_var_with_class_scope(db, node, scope)]
@@ -116,7 +116,7 @@ class SymbolFinder:
 			node: シンボル系ノード
 			scope: 探索スコープ
 		Returns:
-			bool: True = 真
+			True = 真
 		Note:
 			* FIXME メソッド内はクラス直下のスコープを参照出来ない。これを除外する判定にのみ使用
 			* FIXME しかし、現状の判定は不完全であり、本質的にはノードのスコープ自体を是正しなければ期待通りに判定できない
@@ -144,7 +144,7 @@ class SymbolFinder:
 		Args:
 			scope: スコープ
 		Returns:
-			list[ModuleDSN]: 探索スコープリスト
+			探索スコープリスト
 		"""
 		module_path, elems = ModuleDSN.expanded(scope)
 		module_dsn = ModuleDSN(module_path)
@@ -159,7 +159,7 @@ class SymbolFinder:
 			scopes: 探索スコープリスト
 			domain_name: ドメイン名
 		Returns:
-			IReflection | None: シンボル
+			シンボル
 		"""
 		for raw in self.__each_find_raw(db, scopes, domain_name):
 			return raw
@@ -174,7 +174,7 @@ class SymbolFinder:
 			scopes: 探索スコープリスト
 			domain_name: ドメイン名
 		Returns:
-			IReflection | None: シンボル
+			シンボル
 		Note:
 			シンボル系ノードがタイプの場合はクラスかタイプのみを検索対象とする
 		"""
@@ -192,7 +192,7 @@ class SymbolFinder:
 			scopes: 探索スコープリスト
 			domain_name: ドメイン名
 		Returns:
-			Iterator[IReflection]: イテレーター
+			イテレーター
 		"""
 		for scope in scopes:
 			fullyname = scope.join(domain_name).dsn
@@ -215,7 +215,7 @@ class SymbolFinder:
 			on_module_path: 所属モジュールのパス
 			domain_name: ドメイン名
 		Returns:
-			IReflection | None: シンボル。未定義の場合はNone
+			シンボル。未定義の場合はNone
 		"""
 		elems = ModuleDSN.expand_elements(domain_name)
 		import_fullyname = ModuleDSN.full_joined(on_module_path, elems[0])
@@ -236,7 +236,7 @@ class SymbolFinder:
 			db: シンボルテーブル
 			domain_name: ドメイン名
 		Returns:
-			IReflection | None: シンボル。未定義の場合はNone
+			シンボル。未定義の場合はNone
 		"""
 		elems = ModuleDSN.expand_elements(domain_name)
 		for module_path in self.__library_paths:
@@ -254,7 +254,7 @@ class SymbolFinder:
 			scope: スコープ
 			elems: ドメイン名の要素リスト
 		Returns:
-			IReflection | None: シンボル。未定義の場合はNone
+			シンボル。未定義の場合はNone
 		"""
 		if scope.dsn not in db:
 			return None

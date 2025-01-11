@@ -15,7 +15,7 @@ class Preprocessor(Protocol):
 			module: モジュール
 			db: シンボルテーブル
 		Returns:
-			bool: True = 後続処理を実行
+			True = 後続処理を実行
 		"""
 		...
 
@@ -27,6 +27,6 @@ class PreprocessorProvider(Protocol):
 		"""プリプロセッサーのイテレーターを返却
 
 		Returns:
-			Iterator[Preprocessor]: イテレーター
+			イテレーター
 		"""
 		...

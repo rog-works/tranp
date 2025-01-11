@@ -15,7 +15,7 @@ class ASTFinder:
 			root: ルートエントリー
 			full_path: フルパス
 		Returns:
-			bool: True = 存在
+			True = 存在
 		"""
 		try:
 			self.pluck(root, full_path)
@@ -30,7 +30,7 @@ class ASTFinder:
 			root: ルートエントリー
 			full_path: 抜き出すエントリーのフルパス
 		Returns:
-			Entry: エントリー
+			エントリー
 		Raise:
 			NotFoundError: エントリーが存在しない
 		"""
@@ -46,7 +46,7 @@ class ASTFinder:
 			entry: エントリー
 			path: 引数のエントリーからの相対パス
 		Returns:
-			Entry: エントリー
+			エントリー
 		Note:
 			@see pluck
 		Raise:
@@ -79,7 +79,7 @@ class ASTFinder:
 			tester: 検索条件
 			depth: 探索深度(-1: 無制限)
 		Returns:
-			dict[str, Entry]: フルパスとエントリーのマップ
+			フルパスとエントリーのマップ
 		Raises:
 			NotFoundError: 基点のエントリーが存在しない
 		"""
@@ -95,7 +95,7 @@ class ASTFinder:
 			path: 引数のエントリーのフルパス
 			depth: 探索深度(-1: 無制限)
 		Returns:
-			dict[str, Entry]: フルパスとエントリーのマップ
+			フルパスとエントリーのマップ
 		Note:
 			引数のpathには必ずルート要素からのフルパスを指定すること
 			相対パスを指定してこの関数を実行すると、本来のフルパスとの整合性が取れなくなる点に注意
@@ -131,7 +131,7 @@ class ASTFinder:
 		Args:
 			children: 子の要素リスト
 		Returns:
-			dict[str, list[int]]: エントリータグ毎のインデックスリスト
+			エントリータグ毎のインデックスリスト
 		"""
 		index_of_tags = {index: in_entry.name for index, in_entry in enumerate(children)}
 		tag_of_indexs: dict[str, list[int]]  = {tag: [] for tag in index_of_tags.values()}

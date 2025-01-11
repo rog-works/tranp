@@ -108,7 +108,7 @@ class ReflectionBase(IReflection):
 			decl: 定義元のノード
 			origin: 型のシンボル (default = None)
 		Returns:
-			IReflection: リフレクション
+			リフレクション
 		"""
 		return Reflection(self.__traits, Options(decl=decl, node=decl, origin=origin if origin else self))
 
@@ -119,7 +119,7 @@ class ReflectionBase(IReflection):
 		Args:
 			node: ノード (default = None)
 		Returns:
-			IReflection: リフレクション
+			リフレクション
 		"""
 		return Reflection(self.__traits, Options(node=node if node else self.node, origin=self))
 
@@ -131,7 +131,7 @@ class ReflectionBase(IReflection):
 			node: ノード
 			origin: 型のシンボル
 		Returns:
-			IReflection: リフレクション
+			リフレクション
 		"""
 		return Reflection(self.__traits, Options(node=node, origin=origin, via=self))
 
@@ -146,7 +146,7 @@ class ReflectionBase(IReflection):
 		"""スタックシンボルを辿るイテレーターを取得
 
 		Returns:
-			Iterator[IReflection]: イテレーター
+			イテレーター
 		"""
 		curr = self
 		while curr:
@@ -160,7 +160,7 @@ class ReflectionBase(IReflection):
 		Args:
 			*attrs (IReflection): 属性シンボルリスト
 		Returns:
-			Self: インスタンス
+			インスタンス
 		Raises:
 			SemanticsLogicError: 実体の無いインスタンスに実行 XXX 出力する例外は要件等
 			SemanticsLogicError: 拡張済みのインスタンスに再度実行 XXX 出力する例外は要件等
@@ -172,7 +172,7 @@ class ReflectionBase(IReflection):
 		"""インスタンスをテンプレート用に複製
 
 		Returns:
-			IReflection: 複製したインスタンス
+			複製したインスタンス
 		"""
 		new = self.stack()
 		new.extends(*[attr.to_temporary() for attr in self.attrs])
@@ -195,7 +195,7 @@ class ReflectionBase(IReflection):
 		Args:
 			expect: 期待する型
 		Returns:
-			T_Ref: インスタンス
+			インスタンス
 		Raises:
 			MustBeImplementedError: トレイトのメソッドが未実装
 		"""
@@ -211,7 +211,7 @@ class ReflectionBase(IReflection):
 		Args:
 			other: 比較対象
 		Returns:
-			bool: True = 同じ
+			True = 同じ
 		Raises:
 			SemanticsLogicError: 継承関係の無いオブジェクトを指定 XXX 出力する例外は要件等
 		"""
@@ -248,7 +248,7 @@ class ReflectionBase(IReflection):
 		Args:
 			name: メソッド名
 		Returns:
-			Callable[..., Any]: メソッド
+			メソッド
 		Note:
 			XXX このメソッドを実装すると、存在しないプロパティーを誤って参照した際に警告されないため、要検討
 		"""
@@ -271,7 +271,7 @@ class Symbol(ReflectionBase):
 			traits: トレイトマネージャー
 			types: クラス定義ノード
 		Returns:
-			Symbol: インスタンス
+			インスタンス
 		"""
 		return cls(traits, Options(types=types))
 
@@ -368,7 +368,7 @@ class Reflection(ReflectionBase):
 		"""属性シンボルリストを取得
 
 		Returns:
-			list[IReflection]: 属性シンボルリスト
+			属性シンボルリスト
 		Note:
 			### 属性の評価順序
 			1. モッドから注入された属性
@@ -394,7 +394,7 @@ class Reflection(ReflectionBase):
 		Args:
 			*attrs (IReflection): 属性シンボルリスト
 		Returns:
-			Self: インスタンス
+			インスタンス
 		Raises:
 			SemanticsLogicError: 実体の無いインスタンスに実行
 			SemanticsLogicError: 拡張済みのインスタンスに再度実行

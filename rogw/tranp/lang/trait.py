@@ -25,7 +25,7 @@ class Trait:
 		"""実装インターフェイスを取得
 
 		Returns:
-			type[Any]: クラス
+			クラス
 		Note:
 			* 以下の様にTraitの実装クラスが宣言されていると見做し、MROの末尾(-2)を実装インターフェイスとして取得する
 			* `class TraitImpl(Trait, ITrait): ...` -> MRO(TraitImpl, Trait, ITrait, object) -> ITrait
@@ -37,7 +37,7 @@ class Trait:
 		"""実装メソッド名リスト
 
 		Returns:
-			list[str]: メソッド名リスト
+			メソッド名リスト
 		"""
 		return [key for key, value in self.implements.__dict__.items() if not key.startswith('_') and isinstance(value, FunctionType)]
 
@@ -49,7 +49,7 @@ class TraitProvider(Protocol):
 		"""トレイトリストを取得
 
 		Returns:
-			list[Trait]: トレイトリスト
+			トレイトリスト
 		"""
 		...
 
@@ -87,7 +87,7 @@ class Traits(Generic[T]):
 		Args:
 			expect: 期待するインターフェイス
 		Returns:
-			bool: True = 実装
+			True = 実装
 		Note:
 			* 以下の様にインターフェイスが宣言されていると見做し、MROの中間層(2 ~ -1)を実装インターフェイスとして取得する
 			* `class IAggregation(IMain, ITrait1, ITrait2): ...` -> MRO(IAggregation, IMain, ITrait1, ITrait2, object) -> (ITrait1, ITrait2)
@@ -109,7 +109,7 @@ class Traits(Generic[T]):
 			name: メソッド名
 			instance: 拡張対象のインスタンス
 		Returns:
-			Callable[..., Any]: メソッドアダプター
+			メソッドアダプター
 		Raises:
 			LogicError: トレイトのメソッドが未実装
 		"""

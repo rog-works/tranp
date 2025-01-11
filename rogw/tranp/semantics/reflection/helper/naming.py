@@ -18,7 +18,7 @@ class AliasHandler(Protocol):
 			key: エイリアスキー
 			fallback: 存在しない場合の代用値 (default = '')
 		Returns:
-			str: エイリアス
+			エイリアス
 		Note:
 			@see dsn.translation.alias_dsn
 			@see i18n.I18n.t
@@ -44,7 +44,7 @@ class ClassDomainNaming:
 			types: クラス宣言ノード
 			alias_handler: エイリアス解決ハンドラー (default = None)
 		Returns:
-			str: ドメイン名
+			ドメイン名
 		"""
 		return alias_handler(alias_dsn(types.fullyname), fallback=types.alias_or_domain_name) if alias_handler else types.alias_or_domain_name
 
@@ -56,7 +56,7 @@ class ClassDomainNaming:
 			types: クラス宣言ノード
 			alias_handler: エイリアス解決ハンドラー (default = None)
 		Returns:
-			str: 完全参照名
+			完全参照名
 		"""
 		return DSN.join(types.module_path, cls.__namespace(types, alias_handler), cls.domain_name(types, alias_handler))
 
@@ -68,7 +68,7 @@ class ClassDomainNaming:
 			types: クラス宣言ノード
 			alias_handler: エイリアス解決ハンドラー (default = None)
 		Returns:
-			str: 名前空間上の参照名
+			名前空間上の参照名
 		"""
 		return DSN.join(cls.__namespace(types, alias_handler), cls.domain_name(types, alias_handler))
 
@@ -81,7 +81,7 @@ class ClassDomainNaming:
 			alias_handler: エイリアス解決ハンドラー (default = None)
 			path_method: パス生成方式 (default = Domain)
 		Returns:
-			str: ドメイン名
+			ドメイン名
 		"""
 		if path_method == PathMethods.Fully:
 			return cls.fullyname(types, alias_handler)
@@ -98,7 +98,7 @@ class ClassDomainNaming:
 			types: クラス宣言ノード
 			alias_handler: エイリアス解決ハンドラー (default = None)
 		Returns:
-			str: 名前空間
+			名前空間
 		"""
 		if not alias_handler:
 			return DSN.shift(DSN.relativefy(types.namespace, types.module_path), -1)
@@ -112,7 +112,7 @@ class ClassDomainNaming:
 		Args:
 			types: 起点のクラス宣言ノード
 		Returns:
-			list[ClassDef]: 親クラスのノードリスト
+			親クラスのノードリスト
 		Note:
 			FIXME 設計的にはIScopeを判断材料とするべき
 		"""
@@ -145,7 +145,7 @@ class ClassShorthandNaming:
 			raw: シンボル
 			alias_handler: エイリアス解決ハンドラー (default = None)
 		Returns:
-			str: 短縮表記
+			短縮表記
 		"""
 		return cls.__make_impl(raw, alias_handler, PathMethods.Domain)
 
@@ -157,7 +157,7 @@ class ClassShorthandNaming:
 			raw: シンボル
 			alias_handler: エイリアス解決ハンドラー (default = None)
 		Returns:
-			str: 短縮表記
+			短縮表記
 		"""
 		return cls.__make_impl(raw, alias_handler, PathMethods.Fully)
 
@@ -169,7 +169,7 @@ class ClassShorthandNaming:
 			raw: シンボル
 			alias_handler: エイリアス解決ハンドラー (default = None)
 		Returns:
-			str: 短縮表記
+			短縮表記
 		"""
 		return cls.__make_impl(raw, alias_handler, PathMethods.Accessible)
 
@@ -181,7 +181,7 @@ class ClassShorthandNaming:
 			raw: シンボル
 			alias_handler: エイリアス解決ハンドラー (default = None)
 		Returns:
-			str: 短縮表記
+			短縮表記
 		"""
 		return cls.__make_impl(raw, alias_handler, PathMethods.Domain, omit_attrs=[])
 
@@ -195,7 +195,7 @@ class ClassShorthandNaming:
 			path_method: パス生成方式
 			omit_attrs: 拡張情報の省略対象 (default = [AltClass])
 		Returns:
-			str: 短縮表記
+			短縮表記
 		"""
 		symbol_name = ClassDomainNaming.make_manualy(raw.types, alias_handler, path_method)
 		adding_attrs = len(omit_attrs) == 0 or not issubclass(type(raw.types), *omit_attrs)

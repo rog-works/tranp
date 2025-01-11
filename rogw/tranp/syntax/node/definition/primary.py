@@ -594,7 +594,7 @@ class DeclableMatcher:
 		Args:
 			via: ノード
 		Returns:
-			bool: True = 対象
+			True = 対象
 		"""
 		via_full_path = EntryPath(via.full_path)
 		is_decl_class_var = via_full_path.de_identify().shift(-1).origin.endswith('class_var_assign.assign_namelist')
@@ -607,7 +607,7 @@ class DeclableMatcher:
 		Args:
 			via: ノード
 		Returns:
-			bool: True = 対象
+			True = 対象
 		Note:
 			XXX ASTへの依存度が非常に高い判定なので注意
 			XXX 期待するパス: class_def_raw.block.anno_assign.assign_namelist.var
@@ -632,7 +632,7 @@ class DeclableMatcher:
 		Args:
 			via: ノード
 		Returns:
-			bool: True = 対象
+			True = 対象
 		"""
 		via_full_path = EntryPath(via.full_path)
 		elems = via_full_path.de_identify().elements
@@ -655,7 +655,7 @@ class DeclableMatcher:
 		Args:
 			via: ノード
 		Returns:
-			bool: True = 対象
+			True = 対象
 		"""
 		via_full_path = EntryPath(via.full_path)
 		tokens = via.tokens
@@ -670,7 +670,7 @@ class DeclableMatcher:
 		Args:
 			via: ノード
 		Returns:
-			bool: True = 対象
+			True = 対象
 		"""
 		via_full_path = EntryPath(via.full_path)
 		tokens = via.tokens
@@ -685,7 +685,7 @@ class DeclableMatcher:
 		Args:
 			via: ノード
 		Returns:
-			bool: True = 対象
+			True = 対象
 		"""
 		via_full_path = EntryPath(via.full_path)
 		tokens = via.tokens
@@ -700,7 +700,7 @@ class DeclableMatcher:
 		Args:
 			via: ノード
 		Returns:
-			bool: True = 対象
+			True = 対象
 		"""
 		# For/Catch/WithEntry/Comprehension
 		via_full_path = EntryPath(via.full_path)
@@ -724,7 +724,7 @@ class DeclableMatcher:
 		Args:
 			via: ノード
 		Returns:
-			bool: True = 対象
+			True = 対象
 		"""
 		via_full_path = EntryPath(via.full_path)
 		return via_full_path.parent_tag in ['class_def_raw', 'function_def_raw']
@@ -736,7 +736,7 @@ class DeclableMatcher:
 		Args:
 			via: ノード
 		Returns:
-			bool: True = 対象
+			True = 対象
 		"""
 		via_full_path = EntryPath(via.full_path)
 		if via_full_path.parent_tag != 'assign_namelist':
@@ -755,7 +755,7 @@ class DeclableMatcher:
 		Args:
 			via: ノード
 		Returns:
-			bool: True = 対象
+			True = 対象
 		"""
 		via_full_path = EntryPath(via.full_path)
 		return via_full_path.parent_tag == 'import_as_name'

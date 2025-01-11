@@ -25,7 +25,7 @@ class DI:
 		Args:
 			symbol: シンボル
 		Returns:
-			bool: True = 解決できる
+			True = 解決できる
 		"""
 		return self.__inner_binded(symbol)
 
@@ -35,7 +35,7 @@ class DI:
 		Args:
 			symbol: シンボル
 		Returns:
-			bool: True = 登録済み
+			True = 登録済み
 		"""
 		return self.__find_symbol(symbol) is not None
 
@@ -87,7 +87,7 @@ class DI:
 		Args:
 			symbol: シンボル
 		Returns:
-			T_Inst: インスタンス
+			インスタンス
 		Raises:
 			ValueError: 未登録のシンボルを指定
 		"""
@@ -107,7 +107,7 @@ class DI:
 		Args:
 			symbol: シンボル
 		Returns:
-			type[T_Inst]: シンボル
+			シンボル
 		Note:
 			XXX Generic型は型の解決結果が不明瞭で扱いにくいため、オリジナルの型のみ受け入れ
 			```python
@@ -134,7 +134,7 @@ class DI:
 		Args:
 			symbol: シンボル
 		Returns:
-			type[T_Inst] | None: シンボル
+			シンボル
 		"""
 		accept_symbol = self._acceptable_symbol(symbol)
 		return accept_symbol if accept_symbol in self.__injectors else None
@@ -147,7 +147,7 @@ class DI:
 			factory: ファクトリー(関数/メソッド/クラス)
 			*remain_args (Any): 残りの位置引数
 		Returns:
-			T_Inst: 生成したインスタンス
+			生成したインスタンス
 		Note:
 			* ロケーターが解決可能なシンボルをファクトリーの引数リストの前方から省略していき、解決不能な引数を残りの位置引数として受け取る
 			* このメソッドを通して生成したインスタンスはキャッシュされず、毎回生成される
@@ -177,7 +177,7 @@ class DI:
 		Args:
 			injector: ファクトリー(関数/メソッド/クラス)
 		Returns:
-			Callable[..., T_Inst]: 呼び出し対象の関数
+			呼び出し対象の関数
 		"""
 		if isinstance(injector, (FunctionType, MethodType)):
 			return injector
@@ -192,7 +192,7 @@ class DI:
 		Args:
 			annotated: 呼び出し対象の関数
 		Returns:
-			dict[str, type]: 引数のアノテーションリスト
+			引数のアノテーションリスト
 		"""
 		annos = getattr(annotated, '__annotations__', {})
 		return {key: anno for key, anno in annos.items() if key != 'return'}
@@ -218,7 +218,7 @@ class DI:
 		"""インスタンスを複製
 
 		Returns:
-			Self: 複製したインスタンス
+			複製したインスタンス
 		"""
 		di = self.__class__()
 		di.__instances = self.__instances.copy()
@@ -231,7 +231,7 @@ class DI:
 		Args:
 			other: マージ対象のインスタンス
 		Returns:
-			Self: 合成したインスタンス
+			合成したインスタンス
 		Note:
 			* 戻り値の型はレシーバーのインスタンスに倣う
 			* 同じシンボルはマージ対象のインスタンスで上書きされる
@@ -257,7 +257,7 @@ class LazyDI(DI):
 		Args:
 			definitions: モジュール定義
 		Returns:
-			Self: インスタンス
+			インスタンス
 		"""
 		di = cls()
 		for symbol_path, injector in definitions.items():
@@ -300,7 +300,7 @@ class LazyDI(DI):
 		Args:
 			symbol: シンボル
 		Returns:
-			bool: True = 解決できる
+			True = 解決できる
 		"""
 		return self.__can_resolve(self.__symbolize(symbol))
 
@@ -310,7 +310,7 @@ class LazyDI(DI):
 		Args:
 			symbol_path: シンボル型のパス
 		Returns:
-			bool: True = 解決できる
+			True = 解決できる
 		"""
 		return symbol_path in self.__definitions
 
@@ -320,7 +320,7 @@ class LazyDI(DI):
 		Args:
 			symbol: シンボル
 		Returns:
-			str: シンボルパス
+			シンボルパス
 		"""
 		return to_fullyname(self._acceptable_symbol(symbol))
 
@@ -359,7 +359,7 @@ class LazyDI(DI):
 		Args:
 			symbol: シンボル
 		Returns:
-			T_Inst: インスタンス
+			インスタンス
 		Raises:
 			ValueError: 未登録のシンボルを指定
 		"""
@@ -385,7 +385,7 @@ class LazyDI(DI):
 		"""インスタンスを複製
 
 		Returns:
-			Self: 複製したインスタンス
+			複製したインスタンス
 		"""
 		di = super()._clone()
 		di.__definitions = self.__definitions.copy()
@@ -398,7 +398,7 @@ class LazyDI(DI):
 		Args:
 			other: マージ対象のインスタンス
 		Returns:
-			Self: 合成したインスタンス
+			合成したインスタンス
 		Note:
 			* 戻り値の型はレシーバーのインスタンスに倣う
 			* 同じシンボルはマージ対象のインスタンスで上書きされる

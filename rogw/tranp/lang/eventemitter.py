@@ -70,7 +70,7 @@ class EventEmitter(Generic[T_Ret]):
 		Args:
 			action: イベントタグ
 		Returns:
-			bool: True = 登録済み
+			True = 登録済み
 		"""
 		return action in self.__handlers
 
@@ -81,7 +81,7 @@ class EventEmitter(Generic[T_Ret]):
 			action: イベントタグ
 			event: イベントデータ
 		Returns:
-			T_Ret | None: イベントの結果
+			イベントの結果
 		Note:
 			XXX null以外の結果が取得出来た場合は以降のハンドラーを省略する
 		"""

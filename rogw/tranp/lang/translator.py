@@ -11,6 +11,6 @@ class Translator(Protocol):
 			key: 翻訳キー
 			fallback: 存在しない場合の代用値(default = '')
 		Returns:
-			str: 翻訳後の文字列
+			翻訳後の文字列
 		"""
 		...

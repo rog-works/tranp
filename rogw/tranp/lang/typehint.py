@@ -40,7 +40,7 @@ class Typehint(metaclass=ABCMeta):
 		Args:
 			meta_type: メタ情報のタイプ
 		Returns:
-			T_Meta: メタ情報
+			メタ情報
 		Note:
 			XXX メタ情報が引数の型として本質的に正しいか否かは保証しない
 		"""
@@ -95,7 +95,7 @@ class ScalarTypehint(Typehint):
 		Args:
 			meta_type: メタ情報のタイプ
 		Returns:
-			T_Meta: メタ情報
+			メタ情報
 		Note:
 			XXX メタ情報が引数の型として本質的に正しいか否かは保証しない
 		"""
@@ -186,7 +186,7 @@ class FunctionTypehint(Typehint):
 		Args:
 			meta_type: メタ情報のタイプ
 		Returns:
-			T_Meta: メタ情報
+			メタ情報
 		Note:
 			XXX メタ情報が引数の型として本質的に正しいか否かは保証しない
 		"""
@@ -197,7 +197,7 @@ class FunctionTypehint(Typehint):
 		"""関数の種別を取得
 
 		Returns:
-			FuncClasses: 関数の種別
+			関数の種別
 		Note:
 			XXX Pythonではメソッドはオブジェクトに動的にバインドされるため、タイプから関数オブジェクトを取得した場合、メソッドとして判定する方法がない ※Pythonの仕様
 		"""
@@ -280,7 +280,7 @@ class ClassTypehint(Typehint):
 		Args:
 			meta_type: メタ情報のタイプ
 		Returns:
-			T_Meta: メタ情報
+			メタ情報
 		Note:
 			XXX メタ情報が引数の型として本質的に正しいか否かは保証しない
 		"""
@@ -308,7 +308,7 @@ class ClassTypehint(Typehint):
 		Args:
 			lookup_private: プライベートプロパティー抽出フラグ (default = True)
 		Returns:
-			dict[str, Typehint]: クラス変数一覧
+			クラス変数一覧
 		"""
 		annos = {key: anno for key, anno in self.__recursive_annos(self._type, lookup_private).items() if self.__try_get_origin(anno) is ClassVar}
 		return {key: Typehints.resolve_internal(attr, self._type.__module__) for key, attr in annos.items()}
@@ -319,7 +319,7 @@ class ClassTypehint(Typehint):
 		Args:
 			lookup_private: プライベートプロパティー抽出フラグ (default = True)
 		Returns:
-			dict[str, Typehint]: インスタンス変数一覧
+			インスタンス変数一覧
 		"""
 		annos = {key: anno for key, anno in self.__recursive_annos(self._type, lookup_private).items() if self.__try_get_origin(anno) is not ClassVar}
 		return {key: Typehints.resolve_internal(attr, self._type.__module__) for key, attr in annos.items()}
@@ -330,7 +330,7 @@ class ClassTypehint(Typehint):
 		Args:
 			anno: アノテーション
 		Returns:
-			type[Any]: 元のタイプ
+			元のタイプ
 		"""
 		return getattr(anno, '__origin__', anno)
 
@@ -341,7 +341,7 @@ class ClassTypehint(Typehint):
 			_type: タイプ
 			lookup_private: プライベート変数抽出フラグ (default = False)
 		Returns:
-			dict[str, type[Any]]: タイプヒント一覧
+			タイプヒント一覧
 		"""
 		annos: dict[str, type[Any]] = {}
 		for at_type in reversed(_type.mro()):
@@ -365,7 +365,7 @@ class ClassTypehint(Typehint):
 		Args:
 			_type: タイプ
 		Returns:
-			dict[str, FuncTypes]: メソッド一覧
+			メソッド一覧
 		"""
 		_methods: dict[str, FuncTypes] = {}
 		for at_type in reversed(_type.mro()):
@@ -383,7 +383,7 @@ def _resolve_type_from_str(type_str: str, via_module_path: str) -> type[Any]:
 		type_str: タイプヒント
 		via_module_path: 由来のモジュールパス
 	Returns:
-		type[Any]: 解決したタイプ
+		解決したタイプ
 	Raises:
 		ValueError: 由来がモジュールパスが不正
 	Note:
@@ -408,7 +408,7 @@ class Typehints:
 		Args:
 			origin: タイプ、関数オブジェクト、または文字列のタイプヒント
 		Returns:
-			Typehint: タイプヒント
+			タイプヒント
 		"""
 		return cls.__resolve_impl(origin, '')
 
@@ -420,7 +420,7 @@ class Typehints:
 			origin: タイプ、関数オブジェクト、または文字列のタイプヒント
 			via_module_path: 由来のモジュールパス。文字列のタイプヒントの解析に使用
 		Returns:
-			Typehint: タイプヒント
+			タイプヒント
 		"""
 		return cls.__resolve_impl(origin, via_module_path)
 
@@ -432,7 +432,7 @@ class Typehints:
 			origin: タイプ、関数オブジェクト、または文字列のタイプヒント
 			via_module_path: 由来のモジュールパス。文字列のタイプヒントの解析に使用
 		Returns:
-			Typehint: タイプヒント
+			タイプヒント
 		"""
 		actual_origin, meta = cls.__unpack_origin(origin, via_module_path)
 		if isinstance(actual_origin, FuncTypes):
@@ -450,7 +450,7 @@ class Typehints:
 			origin: タイプ、関数オブジェクト、または文字列のタイプヒント
 			via_module_path: 由来のモジュールパス。文字列のタイプヒントの解析に使用
 		Returns:
-			tuple[type[Any] | FuncTypes, Any | None]: (タイプ, メタ情報)
+			(タイプ, メタ情報)
 		Note:
 			Annotated/ForwardRefは型情報として意味を成さないので暗黙的にアンパック
 		"""
@@ -480,7 +480,7 @@ class Typehints:
 		Args:
 			origin: タイプ
 		Returns:
-			bool: True = 値型
+			True = 値型
 		"""
 		if isinstance(origin, type) and issubclass(origin, (int, str, float, bool)):
 			return True

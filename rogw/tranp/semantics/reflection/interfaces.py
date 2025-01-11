@@ -28,7 +28,7 @@ class IConvertion:
 			standard_type: 標準タイプ
 			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
-			bool: True = 指定の型と一致
+			True = 指定の型と一致
 		"""
 		...
 
@@ -39,7 +39,7 @@ class IConvertion:
 			*targets (Literal['nullable', 'self', 'type', 'template', 'alt']): 処理対象。省略時は全てが対象
 			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
-			Self: シンボル
+			シンボル
 		Note:
 			### 変換対象
 			* Union型: Class | None
@@ -65,7 +65,7 @@ class IOperation:
 			value: 値のシンボル
 			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
-			IReflection: シンボル
+			シンボル
 		"""
 		...
 
@@ -80,7 +80,7 @@ class IProperties:
 			prop: 変数参照ノード
 			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
-			IReflection: シンボル
+			シンボル
 		"""
 		...
 
@@ -90,7 +90,7 @@ class IProperties:
 		Args:
 			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
-			IReflection: シンボル
+			シンボル
 		"""
 		...
 
@@ -104,7 +104,7 @@ class IIterator:
 		Args:
 			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
-			IReflection: シンボル
+			シンボル
 		"""
 		...
 
@@ -120,7 +120,7 @@ class IFunction:
 			argument: 引数の実体
 			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
-			IReflection: シンボル
+			シンボル
 		"""
 		...
 
@@ -131,7 +131,7 @@ class IFunction:
 			*arguments (IReflection): 引数リスト
 			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
-			IReflection: シンボル
+			シンボル
 		"""
 		...
 
@@ -141,7 +141,7 @@ class IFunction:
 		Args:
 			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
-			list[TemplateClass]: テンプレート型ノードのリスト
+			テンプレート型ノードのリスト
 		Note:
 			XXX クラスにも同様の属性があるため、IGenericなどに分離を検討
 		"""

@@ -44,7 +44,7 @@ class Args:
 		Args:
 			argv: 引数リスト
 		Returns:
-			ArgsDict: コマンドライン引数のデータ
+			コマンドライン引数のデータ
 		"""
 		args: ArgsDict = {
 			'grammar': 'data/grammar.lark',
@@ -77,7 +77,7 @@ class AnalyzeApp(App):
 		Args:
 			args: コマンドライン引数 @inject
 		Returns:
-			ParserSetting: シンタックスパーサー設定
+			シンタックスパーサー設定
 		"""
 		return ParserSetting(grammar=args.grammar)
 
@@ -90,7 +90,7 @@ class AnalyzeApp(App):
 			args: コマンドライン引数 @inject
 			sources: ソースコードローダー @inject
 		Returns:
-			ModulePaths: 処理対象のモジュールパスリスト
+			処理対象のモジュールパスリスト
 		"""
 		if not sources.exists(args.input):
 			return ModulePaths([])
@@ -113,7 +113,7 @@ class AnalyzeApp(App):
 		Args:
 			module_path: モジュールパス
 		Returns:
-			Entrypoint: エントリーポイントノード
+			エントリーポイントノード
 		"""
 		return self.resolve(Modules).load(module_path).entrypoint
 
@@ -121,7 +121,7 @@ class AnalyzeApp(App):
 		"""シンボルテーブルをシリアライズ
 
 		Returns:
-			dict[str, str]: データ
+			データ
 		"""
 		return {key: raw.types.fullyname for key, raw in self.resolve(SymbolDB).items()}
 
@@ -129,7 +129,7 @@ class AnalyzeApp(App):
 		"""シンボルテーブル内の全てのクラスをシリアライズ
 
 		Returns:
-			list[str]: データ
+			データ
 		"""
 		return [raw.decl.fullyname for raw in self.resolve(SymbolDB).values() if raw.decl.is_a(defs.Class)]
 
@@ -139,7 +139,7 @@ class AnalyzeApp(App):
 		Args:
 			types: シンボル定義ノード
 		Returns:
-			str: データ
+			データ
 		"""
 		return types.pretty(1)
 
@@ -147,7 +147,7 @@ class AnalyzeApp(App):
 		"""全てのモジュールをシリアライズ
 
 		Returns:
-			list[str]: データ
+			データ
 		"""
 		return [module.path for module in self.resolve(Modules).loaded()]
 
@@ -157,7 +157,7 @@ class AnalyzeApp(App):
 		Args:
 			node: ノード
 		Returns:
-			dict[str, Any]: データ
+			データ
 		"""
 		symbol = self.resolve(Reflections).type_of(node)
 		return {
@@ -171,7 +171,7 @@ class AnalyzeApp(App):
 		Args:
 			node: ノード
 		Returns:
-			dict[str, Any]: データ
+			データ
 		"""
 		data: dict[str, Any] = {}
 		for key in dir(node):
@@ -197,7 +197,7 @@ class AnalyzeApp(App):
 		Args:
 			symbol: シンボル
 		Returns:
-			dict[str, Any]: データ
+			データ
 		"""
 		def attr_formatter(attr: IReflection) -> str:
 			return f'{attr.__class__.__name__}:{str(attr)} at {str(attr.node or attr.decl)}'

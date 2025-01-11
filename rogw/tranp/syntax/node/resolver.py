@@ -28,7 +28,7 @@ class NodeResolver:
 		Args:
 			symbol: シンボル名
 		Returns:
-			bool: True = 解決できる
+			True = 解決できる
 		"""
 		return self.__resolver.can_resolve(symbol)
 
@@ -39,7 +39,7 @@ class NodeResolver:
 			symbol: シンボル
 			full_path: エントリーのフルパス
 		Returns:
-			Node: 解決したノード
+			解決したノード
 		Raises:
 			UnresolvedNodeError: ノードの解決に失敗
 		"""

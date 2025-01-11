@@ -12,7 +12,7 @@ class String:
 			string: 文字列
 			subject: カウント対象の文字列
 		Returns:
-			int: 含まれる数
+			含まれる数
 		Note:
 			@see str.count
 		"""
@@ -36,7 +36,7 @@ class String:
 			string: 文字列
 			chara: 対象の文字
 		Returns:
-			str: トリム後の文字列
+			トリム後の文字列
 		"""
 		found = -1
 		for i in range(len(string)):
@@ -58,7 +58,7 @@ class String:
 			string: 文字列
 			chara: 対象の文字
 		Returns:
-			str: トリム後の文字列
+			トリム後の文字列
 		"""
 		found = -1
 		for i in range(len(string)):
@@ -81,7 +81,7 @@ class String:
 			string: 文字列
 			chara: 対象の文字
 		Returns:
-			str: トリム後の文字列
+			トリム後の文字列
 		"""
 		return cls.rtrim(cls.ltrim(string, chara), chara)
 
@@ -94,7 +94,7 @@ class String:
 			begin: 開始インデックス (default = -1)
 			end: 終了インデックス (default = -1)
 		Returns:
-			bool: True = 数字
+			True = 数字
 		"""
 		if (begin == -1 and end == -1) or (begin >= 0 and end > begin):
 			raise ValueError('Invalid arguments. begin: {begin}, end: {end}'.format(begin=begin, end=end))
@@ -124,7 +124,7 @@ class String:
 			values: 文字列リスト
 			delimiter: 区切り文字
 		Returns:
-			str: 結合後の文字列
+			結合後の文字列
 		Note:
 			@see str.join
 		"""
@@ -145,7 +145,7 @@ class String:
 			src: 対象
 			delimiter: 区切り文字
 		Returns:
-			list[str]: 分割した文字列
+			分割した文字列
 		Note:
 			@see str.split
 		"""
@@ -173,7 +173,7 @@ class String:
 			string: 対象
 			chara: エスケープ対象の文字
 		Returns:
-			str: エスケープ後の文字列
+			エスケープ後の文字列
 		"""
 		escaped = ''
 		for i in range(len(string)):
@@ -191,7 +191,7 @@ class String:
 		Args:
 			string: 対象
 		Returns:
-			str: エスケープ解除後の文字列
+			エスケープ解除後の文字列
 		"""
 		unescaped = ''
 		i = 0

@@ -18,7 +18,7 @@ class Stored(Protocol):
 		Args:
 			stream: IO
 		Returns:
-			Self: 復元したインスタンス
+			復元したインスタンス
 		"""
 		...
 
@@ -44,7 +44,7 @@ class Cached(Generic[T]):
 		Args:
 			identity: 一意性担保用のコンテキスト
 		Returns:
-			str: 一意な識別子
+			一意な識別子
 		"""
 		return hashlib.md5(str(identity).encode('utf-8')).hexdigest()
 
@@ -70,7 +70,7 @@ class Cached(Generic[T]):
 		Args:
 			cache_key: キャッシュキー
 		Returns:
-			T: インスタンス
+			インスタンス
 		"""
 		raise NotImplementedError()
 
@@ -93,7 +93,7 @@ class CachedProxy(Cached[T]):
 		Args:
 			cache_key: キャッシュキー
 		Returns:
-			T: インスタンス
+			インスタンス
 		"""
 		cache_path = self.gen_cache_path(cache_key)
 		if self.cache_exists(cache_path):
@@ -109,7 +109,7 @@ class CachedProxy(Cached[T]):
 		Args:
 			cache_key: キャッシュキー
 		Returns:
-			str: キャッシュファイルの絶対パス
+			キャッシュファイルの絶対パス
 		Note:
 			ファイルパスに一意性を担保する文字列を付与する
 		"""
@@ -124,7 +124,7 @@ class CachedProxy(Cached[T]):
 		Args:
 			cache_path: キャッシュファイルパス
 		Returns:
-			bool: True = 存在
+			True = 存在
 		"""
 		return os.path.exists(cache_path)
 
@@ -153,7 +153,7 @@ class CachedProxy(Cached[T]):
 		Args:
 			cache_path: キャッシュファイルパス
 		Returns:
-			list[str]: 旧キャッシュファイルパスリスト
+			旧キャッシュファイルパスリスト
 		"""
 		elems = cache_path.split('-')[:-1]
 		basepath = '-'.join(elems)
@@ -168,7 +168,7 @@ class CachedProxy(Cached[T]):
 		Args:
 			cache_path: キャッシュファイルパス
 		Returns:
-			T: 読み込んだインスタンス
+			読み込んだインスタンス
 		"""
 		with open(cache_path, mode='rb') as f:
 			return self._stored.load(f)
@@ -177,7 +177,7 @@ class CachedProxy(Cached[T]):
 		"""インスタンスを生成
 
 		Returns:
-			T: インスタンス
+			インスタンス
 		"""
 		return self._factory()
 
@@ -192,7 +192,7 @@ class CachedDummy(Cached[T]):
 		Args:
 			cache_key: キャッシュキー
 		Returns:
-			T: インスタンス
+			インスタンス
 		"""
 		return self._factory()
 
@@ -230,7 +230,7 @@ class CacheProvider:
 			identity: 一意性担保用のコンテキスト
 			**options (Any): オプション
 		Returns:
-			Callable: デコレーター
+			デコレーター
 		Examples:
 			```python
 			class Data:

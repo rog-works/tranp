@@ -15,7 +15,7 @@ class Locator(Protocol):
 		Args:
 			symbol: シンボル
 		Returns:
-			bool: True = 解決できる
+			True = 解決できる
 		"""
 		...
 
@@ -25,7 +25,7 @@ class Locator(Protocol):
 		Args:
 			symbol: シンボル
 		Returns:
-			T_Inst: インスタンス
+			インスタンス
 		Raises:
 			ValueError: 未登録のシンボルを指定
 		"""
@@ -38,7 +38,7 @@ class Locator(Protocol):
 			factory: ファクトリー(関数/メソッド/クラス)
 			*remain_args (Any): 残りの位置引数
 		Returns:
-			T_Inst: 生成したインスタンス
+			生成したインスタンス
 		Note:
 			* ロケーターが解決可能なシンボルをファクトリーの引数リストの前方から省略していき、解決不能な引数を残りの位置引数として受け取る
 			* このメソッドを通して生成したインスタンスはキャッシュされず、毎回生成される

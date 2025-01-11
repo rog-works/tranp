@@ -13,7 +13,7 @@ def cast_addr(to_origin: type[T], value_at: CP[Any]) -> CP[T]:
 		to_origin: 変換先の実体のクラス
 		value_at: 対象のアドレス変数
 	Returns:
-		CP[T]: 変換後のアドレス変数
+		変換後のアドレス変数
 	Raises:
 		ValueError: 不正な変換先を指定
 	Note:
@@ -37,7 +37,7 @@ def const_cast(entity_type: type[CP[T]], value_at: CPConst[T]) -> CP[T]:
 		entity_type: アドレス型
 		value_at: 対象のアドレス変数
 	Returns:
-		CP[T]: 変換後のアドレス変数
+		変換後のアドレス変数
 	Note:
 		XXX なるべく使用しないことを推奨
 	"""
@@ -51,7 +51,7 @@ def immutable_const_cast(value_type: type[T], value: T) -> T:
 		value_type: 値の型
 		value: 値 ※str/list/dict/lambdaを想定
 	Returns:
-		T: 値
+		値
 	Note:
 		XXX なるべく使用しないことを推奨
 		期待する型: `const std::string& s`
@@ -65,7 +65,7 @@ def sizeof(origin: type[Any]) -> int:
 	Args:
 		origin: クラス
 	Returns:
-		int: サイズ
+		サイズ
 	Note:
 		XXX Pythonでは再現が困難なため1を返す
 	"""

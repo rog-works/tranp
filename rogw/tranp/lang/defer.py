@@ -21,7 +21,7 @@ class Defer:
 		Args:
 			factory: 実体を生成するファクトリー
 		Returns:
-			T: 擬態インスタンス
+			擬態インスタンス
 		"""
 		return cast(T, cls(factory))
 
@@ -32,7 +32,7 @@ class Defer:
 		Args:
 			instance: Deferのインスタンス
 		Returns:
-			T: 実体のインスタンス
+			実体のインスタンス
 		Raise:
 			ValueError: Defer以外のインスタンスを指定
 		"""
@@ -56,7 +56,7 @@ class Defer:
 		Args:
 			name: 名前
 		Returns:
-			Any: 値
+			値
 		"""
 		entity = super().__getattribute__('_entity')
 		if not entity:

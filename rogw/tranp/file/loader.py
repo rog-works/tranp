@@ -11,7 +11,7 @@ class IFileLoader(metaclass=ABCMeta):
 		Args:
 			filepath: 実行ディレクトリーからの相対パス。または絶対パス
 		Returns:
-			bool: True = 存在する
+			True = 存在する
 		"""
 		...
 
@@ -22,7 +22,7 @@ class IFileLoader(metaclass=ABCMeta):
 		Args:
 			filepath: 実行ディレクトリーからの相対パス。または絶対パス
 		Returns:
-			str: コンテンツ
+			コンテンツ
 		Raises:
 			FileNotFoundError: 存在しないファイルを指定
 		"""
@@ -35,7 +35,7 @@ class IFileLoader(metaclass=ABCMeta):
 		Args:
 			filepath: 実行ディレクトリーからの相対パス。または絶対パス
 		Returns:
-			float: タイムスタンプ
+			タイムスタンプ
 		Raises:
 			FileNotFoundError: 存在しないファイルを指定
 		"""
@@ -48,7 +48,7 @@ class IFileLoader(metaclass=ABCMeta):
 		Args:
 			filepath: 実行ディレクトリーからの相対パス。または絶対パス
 		Returns:
-			str: ハッシュ値
+			ハッシュ値
 		Raises:
 			FileNotFoundError: 存在しないファイルを指定
 		"""

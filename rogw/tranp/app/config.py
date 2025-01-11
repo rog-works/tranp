@@ -6,7 +6,7 @@ def default_definitions() -> ModuleDefinitions:
 	"""デフォルトのモジュール定義を取得
 
 	Returns:
-		ModuleDefinition: モジュール定義
+		モジュール定義
 	"""
 	return {
 		'rogw.tranp.app.env.DataEnvPath': 'rogw.tranp.providers.app.data_env_path',
@@ -45,7 +45,7 @@ def module_dependency_provider() -> ModuleDependencyProvider:
 	"""モジュールの依存プロバイダーを生成
 
 	Returns:
-		ModuleDependencyProvider: モジュールの依存プロバイダー
+		モジュールの依存プロバイダー
 	"""
 	return lambda: {
 		'rogw.tranp.syntax.ast.entry.Entry': 'rogw.tranp.providers.syntax.ast.make_root_entry',

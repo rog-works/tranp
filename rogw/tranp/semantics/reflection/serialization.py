@@ -18,7 +18,7 @@ class IReflectionSerializer(metaclass=ABCMeta):
 		Args:
 			symbol: シンボル
 		Returns:
-			dict[str, Any]: データ
+			データ
 		"""
 		...
 
@@ -30,6 +30,6 @@ class IReflectionSerializer(metaclass=ABCMeta):
 			db: シンボルテーブル
 			data: データ
 		Returns:
-			IReflection: シンボル
+			シンボル
 		"""
 		...

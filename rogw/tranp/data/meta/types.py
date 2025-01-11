@@ -34,6 +34,6 @@ class ModuleMetaFactory(Protocol):
 		Args:
 			module_path: モジュールパス
 		Returns:
-			ModuleMeta: モジュールのメタ情報
+			モジュールのメタ情報
 		"""
 		...

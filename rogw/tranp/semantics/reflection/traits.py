@@ -17,7 +17,7 @@ def export_classes() -> list[type[Trait]]:
 	"""公開トレイトのクラスリストを取得
 
 	Returns:
-		list[type[Trait]]: トレイトのクラスリスト
+		トレイトのクラスリスト
 	"""
 	return [
 		ConvertionTrait,
@@ -52,7 +52,7 @@ class ConvertionTrait(TraitImpl, IConvertion):
 			standard_type: 標準タイプ
 			instance: シンボル ※Traitsから暗黙的に入力される
 		Returns:
-			bool: True = 指定の型と一致
+			True = 指定の型と一致
 		"""
 		return self.reflections.type_is(instance.types, standard_type)
 
@@ -64,7 +64,7 @@ class ConvertionTrait(TraitImpl, IConvertion):
 			*targets (Literal['nullable', 'self', 'type', 'template', 'alt']): 処理対象。省略時は全てが対象
 			instance: シンボル ※Traitsから暗黙的に入力される
 		Returns:
-			Self: シンボル
+			シンボル
 		Note:
 			### 変換対象
 			* Union型: Class | None
@@ -102,7 +102,7 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		Args:
 			symbol: シンボル
 		Returns:
-			tuple[bool, IReflection]: 解決可否, シンボル
+			解決可否, シンボル
 		Note:
 			Class | None -> Class
 		"""
@@ -120,7 +120,7 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		Args:
 			symbol: シンボル
 		Returns:
-			tuple[bool, IReflection]: 解決可否, シンボル
+			解決可否, シンボル
 		Note:
 			type<Self> -> type<Class>
 			Self -> Class
@@ -139,7 +139,7 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		Args:
 			symbol: シンボル
 		Returns:
-			tuple[bool, IReflection]: 解決可否, シンボル
+			解決可否, シンボル
 		Note:
 			type<Class> -> Class
 		"""
@@ -154,7 +154,7 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		Args:
 			symbol: シンボル
 		Returns:
-			tuple[bool, IReflection]: 解決可否, シンボル
+			解決可否, シンボル
 		Note:
 			T -> Boundary
 		"""
@@ -170,7 +170,7 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		Args:
 			symbol: シンボル
 		Returns:
-			tuple[bool, IReflection]: 解決可否, シンボル
+			解決可否, シンボル
 		Note:
 			T<Class> -> Class
 		"""
@@ -192,7 +192,7 @@ class OperationTrait(TraitImpl, IOperation):
 			value: 値のシンボル
 			instance: シンボル ※Traitsから暗黙的に入力される
 		Returns:
-			IReflection: シンボル
+			シンボル
 		"""
 		method = self._find_method(instance, instance.types.operations.operation_by(operator.tokens))
 		if method is None:
@@ -224,7 +224,7 @@ class OperationTrait(TraitImpl, IOperation):
 			symbol: シンボル
 			method_name: メソッド名
 		Returns:
-			Function | None: シンボル
+			シンボル
 		"""
 		try:
 			return symbol.to(symbol.types, self.reflections.resolve(symbol.types, method_name)).impl(refs.Function)
@@ -243,7 +243,7 @@ class PropertiesTrait(TraitImpl, IProperties):
 			prop: 変数参照ノード
 			instance: シンボル ※Traitsから暗黙的に入力される
 		Returns:
-			IReflection: シンボル
+			シンボル
 		"""
 		return self.reflections.resolve_property(instance.types, prop)
 
@@ -254,7 +254,7 @@ class PropertiesTrait(TraitImpl, IProperties):
 		Args:
 			instance: シンボル ※Traitsから暗黙的に入力される
 		Returns:
-			IReflection: シンボル
+			シンボル
 		"""
 		return self.reflections.resolve_constructor(instance.types.as_a(defs.Class))
 
@@ -269,7 +269,7 @@ class IteratorTrait(TraitImpl, IIterator):
 		Args:
 			instance: シンボル ※Traitsから暗黙的に入力される
 		Returns:
-			IReflection: シンボル
+			シンボル
 		"""
 		method = instance.to(instance.types, self._resolve_method(instance))
 		iterates = method.impl(refs.Function).returns()
@@ -284,7 +284,7 @@ class IteratorTrait(TraitImpl, IIterator):
 		Args:
 			symbol: シンボル
 		Returns:
-			IReflection: シンボル
+			シンボル
 		"""
 		try:
 			return self.reflections.resolve(symbol.types, symbol.types.operations.iterator)
@@ -304,7 +304,7 @@ class FunctionTrait(TraitImpl, IFunction):
 			argument: 引数の実体
 			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
-			IReflection: シンボル
+			シンボル
 		"""
 		function_helper = self._build_helper(instance)
 		if function_helper.is_a(templates.ClassMethod):
@@ -323,7 +323,7 @@ class FunctionTrait(TraitImpl, IFunction):
 			*arguments (IReflection): 引数リスト
 			instance: シンボル ※Traitsから暗黙的に入力される
 		Returns:
-			IReflection: シンボル
+			シンボル
 		"""
 		function_helper = self._build_helper(instance)
 		if function_helper.is_a(templates.ClassMethod):
@@ -341,7 +341,7 @@ class FunctionTrait(TraitImpl, IFunction):
 		Args:
 			instance: シンボル ※Traitsから暗黙的に入力される
 		Returns:
-			list[TemplateClass]: テンプレート型ノードのリスト
+			テンプレート型ノードのリスト
 		Note:
 			XXX クラスにも同様の属性があるため、IGenericなどに分離を検討
 		"""
@@ -353,7 +353,7 @@ class FunctionTrait(TraitImpl, IFunction):
 		Args:
 			symbol: シンボル
 		Returns:
-			Function: ヘルパー(ファンクション)
+			ヘルパー(ファンクション)
 		"""
 		return templates.HelperBuilder(symbol).schema(lambda: self._build_schema(symbol)).build(templates.Function)
 
@@ -363,7 +363,7 @@ class FunctionTrait(TraitImpl, IFunction):
 		Args:
 			symbol: シンボル
 		Returns:
-			InjectSchema: ヘルパー用スキーマ
+			ヘルパー用スキーマ
 		"""
 		if symbol.types.is_a(defs.Constructor):
 			return {'klass': symbol.attrs[0], 'parameters': symbol.attrs[1:-1], 'returns': symbol.context}

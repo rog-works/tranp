@@ -69,7 +69,7 @@ class Node:
 		Args:
 			other: 比較対象
 		Returns:
-			bool: True = 同じ
+			True = 同じ
 		Raises:
 			LogicError: Node以外のオブジェクトを指定 XXX 出力する例外は要件等
 		"""
@@ -111,7 +111,7 @@ class Node:
 		"""完全参照名を取得
 
 		Returns:
-			str: 完全参照名
+			完全参照名
 		Note:
 			# 命名規則
 			* IDomainを実装(ClassDef/Declare/Reference/Type/FuncCall/Literal/Empty): scope.domain_name
@@ -178,7 +178,7 @@ class Node:
 		"""展開プロパティーのメソッド名を取得
 
 		Returns:
-			list[str]: 展開プロパティーのメソッド名リスト
+			展開プロパティーのメソッド名リスト
 		Note:
 			@see embed.expandable
 		"""
@@ -193,7 +193,7 @@ class Node:
 		"""受け入れタグリストを取得
 
 		Returns:
-			list[str]: 受け入れタグリスト
+			受け入れタグリスト
 		Note:
 			派生クラスによって上書きする仕様
 			@see embed.accept_tags
@@ -212,7 +212,7 @@ class Node:
 		Args:
 			via: 対象のクラス
 		Returns:
-			list[type[Node]]: クラスリスト
+			クラスリスト
 		Note:
 			Node以下の基底クラスはメタデータと関わりがないため除外
 		"""
@@ -225,7 +225,7 @@ class Node:
 		Args:
 			order: 並び順 (default = 'flow')
 		Returns:
-			list[Node]: ノードリスト
+			ノードリスト
 		Note:
 			# orderの使い分け
 			* 'flow': ノードのプロパティーの定義順で出力する場合
@@ -237,7 +237,7 @@ class Node:
 		"""下位のノードを再帰的に展開し、1次元に平坦化して取得(プロパティー定義順)
 
 		Returns:
-			list[Node]: ノードリスト
+			ノードリスト
 		Note:
 			# 優先順位
 			1. 終端要素は空を返す
@@ -254,7 +254,7 @@ class Node:
 		"""下位のノードを再帰的に展開し、1次元に平坦化して取得(AST準拠)
 
 		Returns:
-			list[Node]: ノードリスト
+			ノードリスト
 		Note:
 			flattenとの相違点は並び順のみ
 		"""
@@ -268,7 +268,7 @@ class Node:
 		Args:
 			index_of_paths: (インデックス, フルパス)形式のイテレーター
 		Returns:
-			list[str]: 並び替え後のパスリスト
+			並び替え後のパスリスト
 		"""
 		def order(a: tuple[int, str], b: tuple[int, str]) -> int:
 			aindex, apath = a
@@ -284,7 +284,7 @@ class Node:
 		"""プロパティーを平坦化して展開
 
 		Returns:
-			list[Node]: プロパティーのノードリスト
+			プロパティーのノードリスト
 		"""
 		nodes: list[Node] = []
 		for node_or_list in self.__prop_of_nodes().values():
@@ -299,7 +299,7 @@ class Node:
 		"""プロパティーを展開
 
 		Returns:
-			dict[Node | list[Node]]: プロパティーのノードリスト
+			プロパティーのノードリスト
 		"""
 		return {key: getattr(self, key) for key in self.prop_keys()}
 
@@ -309,7 +309,7 @@ class Node:
 		Args:
 			relative_path: 自身のエントリーからの相対パス
 		Returns:
-			bool: True = 存在
+			True = 存在
 		"""
 		return self.__nodes.exists(self._full_path.joined(relative_path))
 
@@ -319,7 +319,7 @@ class Node:
 		Args:
 			relative_path: 自身のノードからの相対パス
 		Returns:
-			Node: ノード
+			ノード
 		Raises:
 			NodeNotFoundError: ノードが存在しない
 		"""
@@ -331,7 +331,7 @@ class Node:
 		Args:
 			index: 子のインデックス
 		Returns:
-			Node: ノード
+			ノード
 		Raises:
 			NodeNotFoundError: ノードが存在しない
 		"""
@@ -348,7 +348,7 @@ class Node:
 		Args:
 			index: 子のインデックス
 		Returns:
-			Node: ノード
+			ノード
 		Raises:
 			NodeNotFoundError: 子が存在しない
 		"""
@@ -366,7 +366,7 @@ class Node:
 		Args:
 			relative_path: 自身のノードからの相対パス(default = '')
 		Returns:
-			list[Node]: ノードリスト
+			ノードリスト
 		Raises:
 			NodeNotFoundError: 基点のノードが存在しない
 		"""
@@ -380,7 +380,7 @@ class Node:
 		Args:
 			relative_path: 自身のノードからの相対パス(default = '')
 		Returns:
-			list[Node]: ノードリスト
+			ノードリスト
 		Raises:
 			NodeNotFoundError: 基点のノードが存在しない
 		"""
@@ -393,7 +393,7 @@ class Node:
 		Args:
 			tag: エントリータグ
 		Returns:
-			Node: ノード
+			ノード
 		Raises:
 			NodeNotFoundError: ノードが存在しない
 		"""
@@ -403,7 +403,7 @@ class Node:
 		"""配下に存在する展開が可能なノードをフェッチ
 
 		Returns:
-			list[Node]: ノードリスト
+			ノードリスト
 		"""
 		return self.__nodes.expand(self.full_path)
 
@@ -411,7 +411,7 @@ class Node:
 		"""自身と配下のエントリーの値を取得
 
 		Returns:
-			list[str]: 値リスト
+			値リスト
 		"""
 		return self.__nodes.values(self.full_path)
 
@@ -421,7 +421,7 @@ class Node:
 		Args:
 			full_path: フルパス
 		Returns:
-			list[str]: 非正規データ
+			非正規データ
 		Note:
 			* XXX このメソッドによって何が得られるべきかを考慮するのは利用側に委ねられる
 			* XXX このメソッドは通常利用するべきではない。現状はDeclableMatcherでのみ利用を想定
@@ -434,7 +434,7 @@ class Node:
 		Args:
 			*ctor (type[T_Node]): 判定するクラス
 		Returns:
-			bool: True = 同種
+			True = 同種
 		"""
 		return isinstance(self, ctor)
 
@@ -444,7 +444,7 @@ class Node:
 		Args:
 			expect: 期待するクラス
 		Returns:
-			T_Node: インスタンス
+			インスタンス
 		Raises:
 			IllegalConvertionError: 許可されない変換先を指定
 		"""
@@ -459,7 +459,7 @@ class Node:
 		Args:
 			*expects (type[T_Node]): 期待するクラス(型/共用型)
 		Returns:
-			T_Node: インスタンス
+			インスタンス
 		Raises:
 			IllegalConvertionError: 合致するクラスが1件以外
 		Examples:
@@ -484,7 +484,7 @@ class Node:
 		Args:
 			via: 変換前のノード
 		Returns:
-			bool: True = 一致
+			True = 一致
 		Note:
 			## 注意点
 			このメソッド内で引数のviaを元に親ノードをインスタンス化すると無限ループするため、その様に実装してはならない
@@ -503,7 +503,7 @@ class Node:
 		Args:
 			**overrides (Any): 上書きするプロパティー
 		Returns:
-			T_Node: プロキシノード
+			プロキシノード
 		Note:
 			XXX ダーティーな実装のため濫用は厳禁
 			XXX classification/source_mapは固定で上書き
@@ -529,7 +529,7 @@ class Node:
 			entry_tag: エントリータグ (一意性は呼び出し側で考慮する)
 			**overrides (Any): 上書きするプロパティー
 		Returns:
-			T_Node: 生成した子ノード
+			生成した子ノード
 		Note:
 			XXX 主に空要素として使う想定。ダーティーな実装のため濫用は厳禁
 		Examples:
@@ -551,7 +551,7 @@ class Node:
 		Args:
 			depth: 探索深度。-1は無制限。(default = -1)
 		Returns:
-			str: 階層構造
+			階層構造
 		"""
 		def expand_lines(node: Node, begin: str, after: str) -> list[str]:
 			"""str: ノード内の要素を展開して行リストを返却"""

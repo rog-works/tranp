@@ -52,7 +52,7 @@ class Comment(NamedTuple):
 		Args:
 			text: コメントテキスト
 		Returns:
-			Comment: インスタンス
+			インスタンス
 		"""
 		description, blocks = cls.split_block(text)
 		return cls(
@@ -72,7 +72,7 @@ class Comment(NamedTuple):
 		Args:
 			text: 説明用テキスト
 		Returns:
-			str: 処理後のテキスト
+			処理後のテキスト
 		"""
 		lines = text.split('\n')
 		dedented = cls.__find_dedent(lines)
@@ -86,7 +86,7 @@ class Comment(NamedTuple):
 		Args:
 			lines: 行リスト
 		Returns:
-			tuple[int, int]: (1行目の位置, 2行目以降の位置)
+			(1行目の位置, 2行目以降の位置)
 		"""
 		first = cls.__find_dedent_line(lines[0])
 		for line in lines[1:]:
@@ -103,7 +103,7 @@ class Comment(NamedTuple):
 		Args:
 			line: 行テキスト
 		Returns:
-			int: ディデント位置
+			ディデント位置
 		"""
 		for index, c in enumerate(line):
 			if c not in '\t ':
@@ -118,7 +118,7 @@ class Comment(NamedTuple):
 		Args:
 			elems: 要素テキストリスト
 		Returns:
-			list[str]: 処理後のテキストリスト
+			処理後のテキストリスト
 		"""
 		return [elem.strip() for elem in elems]
 
@@ -129,7 +129,7 @@ class Comment(NamedTuple):
 		Args:
 			text: コメントテキスト
 		Returns:
-			tuple[str, dict[str, str]]: (メインの説明, ブロックリスト)
+			(メインの説明, ブロックリスト)
 		"""
 		tags = ['Attributes', 'Args', 'Returns', 'Raises', 'Note', 'Examples']
 		joined_tags = '|'.join(tags)
@@ -146,7 +146,7 @@ class Comment(NamedTuple):
 		Args:
 			block: ブロックのテキスト
 		Returns:
-			list[Comment.Attribute]: 属性コメントリスト
+			属性コメントリスト
 		"""
 		if len(block) == 0:
 			return []
@@ -169,7 +169,7 @@ class Comment(NamedTuple):
 		Args:
 			block: ブロックのテキスト
 		Returns:
-			Comment.Type: 型コメント
+			型コメント
 		"""
 		matches = re.fullmatch(r'((?P<type>[^:]+):)?\s*(?P<desc>.+)', block)
 		if not matches:
@@ -185,7 +185,7 @@ class Comment(NamedTuple):
 		Args:
 			block: ブロックのテキスト
 		Returns:
-			list[Comment.Type]: 型コメントリスト
+			型コメントリスト
 		"""
 		if len(block) == 0:
 			return []
@@ -208,7 +208,7 @@ class Comment(NamedTuple):
 		Args:
 			block: ブロックのテキスト
 		Returns:
-			str: テキスト
+			テキスト
 		"""
 		return cls.__trim_description(block)
 
@@ -219,6 +219,6 @@ class Comment(NamedTuple):
 		Args:
 			block: ブロックのテキスト
 		Returns:
-			str: テキスト
+			テキスト
 		"""
 		return cls.__trim_description(block)

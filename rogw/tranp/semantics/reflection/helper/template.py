@@ -33,7 +33,7 @@ class Schema(Generic[T_Schemata]):
 		Args:
 			key: プロパティー名
 		Returns:
-			T_Schemata: シンボル | シンボルリスト
+			シンボル | シンボルリスト
 		Raises:
 			LogicError: 存在しないキーを指定 XXX 出力する例外は要件等
 		"""
@@ -63,7 +63,7 @@ class Helper:
 		Args:
 			*ctors (type[Helper]): 比較対象
 		Returns:
-			bool: True = 同種
+			True = 同種
 		"""
 		return isinstance(self, ctors)
 
@@ -78,7 +78,7 @@ class Function(Helper):
 			index: 引数のインデックス
 			*context (IReflection): コンテキスト(0: 引数(実行時型))
 		Returns:
-			IReflection: 実行時型
+			実行時型
 		"""
 		argument, *_ = context
 		return argument
@@ -89,7 +89,7 @@ class Function(Helper):
 		Args:
 			*arguments (IReflection): 引数リスト(実行時型)
 		Returns:
-			IReflection: 実行時型
+			実行時型
 		"""
 		t_map_returns = TemplateManipulator.unpack_templates(returns=self.schema.returns)
 		if len(t_map_returns) == 0:
@@ -104,7 +104,7 @@ class Function(Helper):
 		"""テンプレート型(タイプ再定義ノード)を取得
 
 		Returns:
-			list[TemplateClass]: テンプレート型リスト
+			テンプレート型リスト
 		"""
 		t_map_props = TemplateManipulator.unpack_templates(parameters=self.schemata.parameters, returns=self.schema.returns)
 		return list(set(t_map_props.values()))
@@ -126,7 +126,7 @@ class Method(Function):
 			index: 引数のインデックス
 			*context (IReflection): コンテキスト(0: レシーバー(実行時型), 1: 引数(実行時型))
 		Returns:
-			IReflection: 実行時型
+			実行時型
 		Note:
 			FIXME Union型の引数にテンプレート型が含まれると解決に失敗する
 		"""
@@ -148,7 +148,7 @@ class Method(Function):
 		Args:
 			*arguments (IReflection): 引数リスト(実行時型)
 		Returns:
-			IReflection: 実行時型
+			実行時型
 		Note:
 			FIXME Union型の引数にテンプレート型が含まれると解決に失敗する
 		"""
@@ -167,7 +167,7 @@ class Method(Function):
 		"""テンプレート型(タイプ再定義ノード)を取得
 
 		Returns:
-			list[TemplateClass]: テンプレート型リスト
+			テンプレート型リスト
 		"""
 		t_map_props = TemplateManipulator.unpack_templates(klass=self.schema.klass, parameters=self.schemata.parameters, returns=self.schema.returns)
 		ignore_ts = [t for path, t in t_map_props.items() if path.startswith('klass')]
@@ -199,7 +199,7 @@ class TemplateManipulator:
 		Args:
 			**attrs (IReflection | list[IReflection]): シンボル/属性
 		Returns:
-			TemplateMap: パスとテンプレート型(タイプ再定義ノード)のマップ表
+			パスとテンプレート型(タイプ再定義ノード)のマップ表
 		Note:
 			XXX Union型に内包されるテンプレート型は、実体型と階層を合わせるために親のUnion型の階層に変更する
 		"""
@@ -227,7 +227,7 @@ class TemplateManipulator:
 		Args:
 			**attrs (IReflection | list[IReflection]): シンボル/属性
 		Returns:
-			SymbolMap: パスとシンボルのマップ表
+			パスとシンボルのマップ表
 		"""
 		return seqs.expand(attrs, iter_key='attrs')
 
@@ -240,7 +240,7 @@ class TemplateManipulator:
 			t_map_props: サブ
 			actual_props: シンボルのマップ表(実行時型)
 		Returns:
-			UpdateMap: 一致したパスのマップ表
+			一致したパスのマップ表
 		"""
 		updates: UpdateMap = {}
 		for primary_path, t_primary in t_map_primary.items():
@@ -262,7 +262,7 @@ class TemplateManipulator:
 			actual_props: シンボルのマップ表(実行時型)
 			updates: 更新表
 		Returns:
-			IReflection: 適用後のシンボル
+			適用後のシンボル
 		"""
 		primary_bodies = [prop_path for primary_path, prop_path in updates.items() if DSN.elem_counts(primary_path) == 1]
 		if primary_bodies:
@@ -299,7 +299,7 @@ class HelperBuilder:
 		Args:
 			expect: 対象のヘルパー型
 		Returns:
-			HelperBuilder: 自己参照
+			自己参照
 		"""
 		self.__case_of_injectors[expect.__name__] = lambda: {}
 		return self
@@ -308,7 +308,7 @@ class HelperBuilder:
 		"""その他のケースを挿入
 
 		Returns:
-			HelperBuilder: 自己参照
+			自己参照
 		"""
 		self.__case_of_injectors['__other__'] = lambda: {}
 		return self
@@ -319,7 +319,7 @@ class HelperBuilder:
 		Args:
 			injector: スキーマファクトリー
 		Returns:
-			HelperBuilder: 自己参照
+			自己参照
 		"""
 		self.__case_of_injectors[self.__current_key] = injector
 		return self
@@ -330,7 +330,7 @@ class HelperBuilder:
 		Args:
 			expect: 期待するヘルパーの型
 		Returns:
-			T_Helper: 生成したインスタンス
+			生成したインスタンス
 		Raises:
 			LogicError: ビルド対象が期待する型と不一致 XXX 出力する例外は要件等
 		"""
@@ -353,7 +353,7 @@ class HelperBuilder:
 		Args:
 			ctor: 生成する型
 		Returns:
-			Injector: スキーマファクトリー
+			スキーマファクトリー
 		"""
 		for ctor_ in ctor.__mro__:
 			if not issubclass(ctor_, Helper):

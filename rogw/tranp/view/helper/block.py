@@ -70,7 +70,7 @@ class BlockFormatter:
 			block_format: ブロックの書式
 			alt_formatter: 出力変換関数。文字列を返す場合にformatの結果を変更 (default = None)
 		Returns:
-			str: 変換後の文字列
+			変換後の文字列
 		Note:
 			### join_fomart
 				* delimiter: 区切り文字
@@ -95,7 +95,7 @@ class BlockFormatter:
 			block_format: ブロックの書式
 			alt_formatter: 出力変換関数。文字列を返す場合にformatの結果を変更 (default = None)
 		Returns:
-			str: 変換後の文字列
+			変換後の文字列
 		"""
 		elems = [elem.lstrip() if isinstance(elem, str) else elem.format(join_format, block_format, alt_formatter) for elem in self.elems]
 		join_spliter = join_format.format(delimiter=self.delimiter)
@@ -117,7 +117,7 @@ class BlockParser:
 			brackets: 括弧のペア (default = '()')
 			delimiter: 区切り文字 (default = ',')
 		Returns:
-			Entry: エントリー
+			エントリー
 		"""
 		return cls._parse(text, brackets, delimiter, 0, 0)[1][0]
 
@@ -132,7 +132,7 @@ class BlockParser:
 			begin: 開始位置
 			depth: 深度
 		Returns:
-			tuple[int, list[Entry]]: (読み取り終了位置, エントリーのリスト)
+			(読み取り終了位置, エントリーのリスト)
 		"""
 		index = begin
 		entries: list[Entry] = []
@@ -161,7 +161,7 @@ class BlockParser:
 			delimiter: 区切り文字
 			begin: 開始位置
 		Returns:
-			tuple[Kinds, int, int]: (エントリーの種別, エントリーの開始位置, ブロックの開始位置/要素の終了位置)
+			(エントリーの種別, エントリーの開始位置, ブロックの開始位置/要素の終了位置)
 		"""
 		index = begin
 		if text[index] == brackets[0]:
@@ -201,7 +201,7 @@ class BlockParser:
 			other_tokens: 対象外の括弧のペア
 			begin: 開始位置
 		Returns:
-			int: 読み取り終了位置
+			読み取り終了位置
 		"""
 		index = begin
 		other_closes: list[str] = []
@@ -231,7 +231,7 @@ class BlockParser:
 			begin: 開始位置
 			depth: 深度
 		Returns:
-			tuple[int, list[Entry]]: (読み取り終了位置, エントリーのリスト)
+			(読み取り終了位置, エントリーのリスト)
 		"""
 		index = begin
 		entries: list[Entry] = []
@@ -254,7 +254,7 @@ class BlockParser:
 			text: 対象の文字列
 			brackets: 括弧のペア (default: '()')
 		Returns:
-			list[str]: 展開したブロックのリスト
+			展開したブロックのリスト
 		"""
 		root = cls.parse(text, brackets, '')
 		blocks = []
@@ -274,7 +274,7 @@ class BlockParser:
 			brackets: 括弧のペア (default: '{}')
 			delimiter: 区切り文字 (default: ':')
 		Returns:
-			list[tuple[str, str]]: [(キー, 値), ...]
+			[(キー, 値), ...]
 		"""
 		root = cls.parse(text, brackets, delimiter)
 		unders = sorted(root.unders(), key=lambda entry: entry.depth)
@@ -290,7 +290,7 @@ class BlockParser:
 			brackets: 括弧のペア (default: '{}')
 			delimiter: 区切り文字 (default: ':')
 		Returns:
-			BlockFormatter: ブロックフォーマッター
+			ブロックフォーマッター
 		"""
 		def to_formatter(entry: Entry) -> BlockFormatter:
 			end = text.find(brackets[0], entry.begin)
@@ -314,7 +314,7 @@ class BlockParser:
 			text: 対象の文字列
 			brackets: 括弧のペア (default: '[]')
 		Returns:
-			tuple[str, str]: (接頭辞、ブロックの内部要素)
+			(接頭辞、ブロックの内部要素)
 		"""
 		ranges: list[tuple[int, int]] = []
 		index = 0
@@ -345,7 +345,7 @@ class BlockParser:
 			text: 対象の文字列
 			delimiter: 区切り文字
 		Returns:
-			list[str]: ブロックリスト
+			ブロックリスト
 		"""
 		open_tokens = ''.join([pair[0] for pair in cls._all_pair])
 		other_tokens = ''.join(cls._all_pair)

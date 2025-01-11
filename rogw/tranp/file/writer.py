@@ -8,7 +8,7 @@ class Writer:
 		"""インスタンスを生成
 
 		Args:
-			filepath (str): 出力ファイルのパス
+			filepath: 出力ファイルのパス
 		"""
 		self.__filepath = filepath
 		self.__content = ''
@@ -17,7 +17,7 @@ class Writer:
 		"""バッファにテキストを出力
 
 		Args:
-			text (str): テキスト
+			text: テキスト
 		"""
 		self.__content += text
 

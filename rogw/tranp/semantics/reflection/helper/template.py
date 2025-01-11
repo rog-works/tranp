@@ -23,7 +23,7 @@ class Schema(Generic[T_Schemata]):
 		"""インスタンスを生成
 
 		Args:
-			schemata (T_Schemata): プロパティー名とシンボルのマップ情報
+			schemata: プロパティー名とシンボルのマップ情報
 		"""
 		self.__schemata = schemata
 
@@ -31,7 +31,7 @@ class Schema(Generic[T_Schemata]):
 		"""プロパティー名に対応するシンボルを取得
 
 		Args:
-			key (str): プロパティー名
+			key: プロパティー名
 		Returns:
 			T_Schemata: シンボル | シンボルリスト
 		Raises:
@@ -50,8 +50,8 @@ class Helper:
 		"""インスタンスを生成
 
 		Args:
-			symbol (IReflection): シンボル
-			schemata (InjectSchemata): プロパティー名とシンボルのマップ情報
+			symbol: シンボル
+			schemata: プロパティー名とシンボルのマップ情報
 		"""
 		self.symbol = symbol
 		self.schema = Schema[IReflection]({key: schema for key, schema in schemata.items() if isinstance(schema, IReflection)})
@@ -75,7 +75,7 @@ class Function(Helper):
 		"""引数の実行時型を解決
 
 		Args:
-			index (int): 引数のインデックス
+			index: 引数のインデックス
 			*context (IReflection): コンテキスト(0: 引数(実行時型))
 		Returns:
 			IReflection: 実行時型
@@ -123,7 +123,7 @@ class Method(Function):
 		"""引数の実行時型を解決
 
 		Args:
-			index (int): 引数のインデックス
+			index: 引数のインデックス
 			*context (IReflection): コンテキスト(0: レシーバー(実行時型), 1: 引数(実行時型))
 		Returns:
 			IReflection: 実行時型
@@ -236,9 +236,9 @@ class TemplateManipulator:
 		"""主体とサブを比較し、一致するテンプレートのパスを抽出
 
 		Args:
-			t_map_primary (TemplateMap): 主体
-			t_map_props (TemplateMap): サブ
-			actual_props (SymbolMap): シンボルのマップ表(実行時型)
+			t_map_primary: 主体
+			t_map_props: サブ
+			actual_props: シンボルのマップ表(実行時型)
 		Returns:
 			UpdateMap: 一致したパスのマップ表
 		"""
@@ -258,9 +258,9 @@ class TemplateManipulator:
 		"""シンボルに実行時型を適用する
 
 		Args:
-			primary (IReflection): 適用するシンボル
-			actual_props (SymbolMap): シンボルのマップ表(実行時型)
-			updates (UpdateMap): 更新表
+			primary: 適用するシンボル
+			actual_props: シンボルのマップ表(実行時型)
+			updates: 更新表
 		Returns:
 			IReflection: 適用後のシンボル
 		"""
@@ -283,7 +283,7 @@ class HelperBuilder:
 		"""インスタンスを生成
 
 		Args:
-			symbol (IReflection): シンボル
+			symbol: シンボル
 		"""
 		self.__symbol = symbol
 		self.__case_of_injectors: dict[str, Injector] = {'__default__': lambda: {}}
@@ -297,7 +297,7 @@ class HelperBuilder:
 		"""ケースを挿入
 
 		Args:
-			expect (type[Helper]): 対象のヘルパー型
+			expect: 対象のヘルパー型
 		Returns:
 			HelperBuilder: 自己参照
 		"""
@@ -317,7 +317,7 @@ class HelperBuilder:
 		"""編集中のケースにスキーマを追加
 
 		Args:
-			injector (Injector): スキーマファクトリー
+			injector: スキーマファクトリー
 		Returns:
 			HelperBuilder: 自己参照
 		"""
@@ -328,7 +328,7 @@ class HelperBuilder:
 		"""ヘルパーを生成
 
 		Args:
-			expect (type[T_Helper]): 期待するヘルパーの型
+			expect: 期待するヘルパーの型
 		Returns:
 			T_Helper: 生成したインスタンス
 		Raises:
@@ -351,7 +351,7 @@ class HelperBuilder:
 		"""生成時に注入するスキーマを取得
 
 		Args:
-			ctor (type[Helper]): 生成する型
+			ctor: 生成する型
 		Returns:
 			Injector: スキーマファクトリー
 		"""

@@ -38,7 +38,7 @@ class Records:
 		"""コールスタックを記録
 
 		Args:
-			back_at (int): 遡るフレーム数 (default = 2)
+			back_at: 遡るフレーム数 (default = 2)
 		"""
 		frame = sys._getframe(back_at)  # type: ignore XXX 利用面に問題はないため警告を抑制
 		matches = re.search(r"file '.+\\(\w+\.py)', line (\d+)", str(frame))

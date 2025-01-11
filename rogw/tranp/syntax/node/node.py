@@ -34,9 +34,9 @@ class Node:
 		"""インスタンスを生成
 
 		Args:
-			nodes (Query[Node]): クエリーインターフェイス @inject
-			module_path (ModulePath): モジュールパス @inject
-			full_path (str): ルート要素からのフルパス
+			nodes: クエリーインターフェイス @inject
+			module_path: モジュールパス @inject
+			full_path: ルート要素からのフルパス
 		"""
 		self.__nodes = nodes
 		self.__module_path = module_path
@@ -67,7 +67,7 @@ class Node:
 		"""比較演算子のオーバーロード
 
 		Args:
-			other (Any): 比較対象
+			other: 比較対象
 		Returns:
 			bool: True = 同じ
 		Raises:
@@ -210,7 +210,7 @@ class Node:
 		"""対象のクラス自身を含む継承関係のあるクラスを基底クラス順に取得。取得されるクラスはメタデータと関連する派生クラスに限定
 
 		Args:
-			via (type[T_Node]): 対象のクラス
+			via: 対象のクラス
 		Returns:
 			list[type[Node]]: クラスリスト
 		Note:
@@ -223,7 +223,7 @@ class Node:
 		"""下位のノードを再帰的に展開し、1次元に平坦化して取得
 
 		Args:
-			order (Literal['flow' | 'ast']): 並び順 (default = 'flow')
+			order: 並び順 (default = 'flow')
 		Returns:
 			list[Node]: ノードリスト
 		Note:
@@ -266,7 +266,7 @@ class Node:
 		"""インデックスとフルパスを元にASTの評価順序にソート
 
 		Args:
-			index_of_paths (Iterator[tuple[int, str]]): (インデックス, フルパス)形式のイテレーター
+			index_of_paths: (インデックス, フルパス)形式のイテレーター
 		Returns:
 			list[str]: 並び替え後のパスリスト
 		"""
@@ -307,7 +307,7 @@ class Node:
 		"""指定のパスに紐づく一意なノードが存在するか判定
 
 		Args:
-			relative_path (str): 自身のエントリーからの相対パス
+			relative_path: 自身のエントリーからの相対パス
 		Returns:
 			bool: True = 存在
 		"""
@@ -317,7 +317,7 @@ class Node:
 		"""指定のパスに紐づく一意なノードをフェッチ
 
 		Args:
-			relative_path (str): 自身のノードからの相対パス
+			relative_path: 自身のノードからの相対パス
 		Returns:
 			Node: ノード
 		Raises:
@@ -329,7 +329,7 @@ class Node:
 		"""指定のインデックスの子ノードをフェッチ
 
 		Args:
-			index (int): 子のインデックス
+			index: 子のインデックス
 		Returns:
 			Node: ノード
 		Raises:
@@ -346,7 +346,7 @@ class Node:
 		"""展開できる子ノードをフェッチ
 
 		Args:
-			index (int): 子のインデックス
+			index: 子のインデックス
 		Returns:
 			Node: ノード
 		Raises:
@@ -364,7 +364,7 @@ class Node:
 		パスを省略した場合は自身と同階層を検索し、自身を除いたノードを返却
 
 		Args:
-			relative_path (str): 自身のノードからの相対パス(default = '')
+			relative_path: 自身のノードからの相対パス(default = '')
 		Returns:
 			list[Node]: ノードリスト
 		Raises:
@@ -378,7 +378,7 @@ class Node:
 		パスを省略した場合は自身と同階層より1階層下を検索
 
 		Args:
-			relative_path (str): 自身のノードからの相対パス(default = '')
+			relative_path: 自身のノードからの相対パス(default = '')
 		Returns:
 			list[Node]: ノードリスト
 		Raises:
@@ -391,7 +391,7 @@ class Node:
 		"""指定のエントリータグを持つ直近の親ノードをフェッチ
 
 		Args:
-			tag (str): エントリータグ
+			tag: エントリータグ
 		Returns:
 			Node: ノード
 		Raises:
@@ -419,7 +419,7 @@ class Node:
 		"""指定のパス配下のノードの非正規データを取得
 
 		Args:
-			full_path (str): フルパス
+			full_path: フルパス
 		Returns:
 			list[str]: 非正規データ
 		Note:
@@ -442,7 +442,7 @@ class Node:
 		"""指定のクラスと同じか派生クラスか判定し、合致すればそのままインスタンスを返す。継承関係の無いクラスを指定すると例外を出力
 
 		Args:
-			expect (type[T_Node]): 期待するクラス
+			expect: 期待するクラス
 		Returns:
 			T_Node: インスタンス
 		Raises:
@@ -482,7 +482,7 @@ class Node:
 		条件判定は派生クラス側で実装
 
 		Args:
-			via (Node): 変換前のノード
+			via: 変換前のノード
 		Returns:
 			bool: True = 一致
 		Note:
@@ -525,8 +525,8 @@ class Node:
 		"""仮想の子ノードを生成
 
 		Args:
-			ctor (type[T_Node]): 子ノードのクラス
-			entry_tag (str): エントリータグ (一意性は呼び出し側で考慮する)
+			ctor: 子ノードのクラス
+			entry_tag: エントリータグ (一意性は呼び出し側で考慮する)
 			**overrides (Any): 上書きするプロパティー
 		Returns:
 			T_Node: 生成した子ノード
@@ -549,7 +549,7 @@ class Node:
 		"""階層構造を出力
 
 		Args:
-			depth (int): 探索深度。-1は無制限。(default = -1)
+			depth: 探索深度。-1は無制限。(default = -1)
 		Returns:
 			str: 階層構造
 		"""

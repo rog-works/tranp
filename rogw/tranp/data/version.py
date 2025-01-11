@@ -5,8 +5,8 @@ class Versions:
 	"""バージョンを管理
 
 	Attributes:
-		app (str): アプリケーションのバージョン
-		py2cpp (str): Py2Cppのバージョン
+		app: アプリケーションのバージョン
+		py2cpp: Py2Cppのバージョン
 	"""
 
 	app: ClassVar = '1.0.0'

@@ -14,7 +14,7 @@ class WrapSourceProvider:
 		"""インスタンスを生成
 
 		Args:
-			sources (ISourceLoader): ソースローダー @inject
+			sources: ソースローダー @inject
 		"""
 		self._org_source_provider = invoker(source_provider)
 		self.main_module_path = module_path_dummy().path
@@ -25,7 +25,7 @@ class WrapSourceProvider:
 		"""モジュールパスを基にソースコードを生成
 
 		Args:
-			module_path (str): モジュールパス
+			module_path: モジュールパス
 		Returns:
 			str: ソースコード
 		"""

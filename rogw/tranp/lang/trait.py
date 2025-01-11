@@ -61,7 +61,7 @@ class Traits(Generic[T]):
 		"""インスタンスを生成
 
 		Args:
-			provider (TraitProvider): トレイトプロバイダー
+			provider: トレイトプロバイダー
 		"""
 		self.__provider = provider
 		self.__interfaces: list[type[Any]] = []
@@ -85,7 +85,7 @@ class Traits(Generic[T]):
 		"""指定のクラスが所有するインターフェイスが実装されているか判定
 
 		Args:
-			expect (type[T]): 期待するインターフェイス
+			expect: 期待するインターフェイス
 		Returns:
 			bool: True = 実装
 		Note:
@@ -106,8 +106,8 @@ class Traits(Generic[T]):
 		"""トレイトのメソッドを取得
 
 		Args:
-			name (str): メソッド名
-			instance (T): 拡張対象のインスタンス
+			name: メソッド名
+			instance: 拡張対象のインスタンス
 		Returns:
 			Callable[..., Any]: メソッドアダプター
 		Raises:

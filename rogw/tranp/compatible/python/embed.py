@@ -22,7 +22,7 @@ class Embed:
 		"""Python専用としてマークアップ。Python以外の言語へのトランスパイルは対象外となる
 
 		Args:
-			wrapped (T): ラップ対象
+			wrapped: ラップ対象
 		Returns:
 			T: デコレート対象
 		"""
@@ -33,8 +33,8 @@ class Embed:
 		"""トランスパイル後のシンボル名を埋め込む
 
 		Args:
-			name (str): 名前 (default = '')
-			prefix (bool): 接頭辞フラグ (default = False)
+			name: 名前 (default = '')
+			prefix: 接頭辞フラグ (default = False)
 		Returns:
 			Callable: デコレート対象
 		Note:
@@ -51,7 +51,7 @@ class Embed:
 		"""関数を仮想関数としてマークアップ
 
 		Args:
-			wrapped (T): ラップ対象
+			wrapped: ラップ対象
 		Returns:
 			T: デコレート対象
 		Note:
@@ -65,7 +65,7 @@ class Embed:
 		"""関数を副作用のない関数としてマークアップ
 
 		Args:
-			wrapped (T): ラップ対象
+			wrapped: ラップ対象
 		Returns:
 			T: デコレート対象
 		Note:
@@ -78,7 +78,7 @@ class Embed:
 		"""関数をprivate関数としてマークアップ
 
 		Args:
-			wrapped (T): ラップ対象
+			wrapped: ラップ対象
 		Returns:
 			T: デコレート対象
 		Note:
@@ -91,7 +91,7 @@ class Embed:
 		"""関数をprotected関数としてマークアップ
 
 		Args:
-			wrapped (T): ラップ対象
+			wrapped: ラップ対象
 		Returns:
 			T: デコレート対象
 		Note:
@@ -104,7 +104,7 @@ class Embed:
 		"""関数をpublic関数としてマークアップ
 
 		Args:
-			wrapped (T): ラップ対象
+			wrapped: ラップ対象
 		Returns:
 			T: デコレート対象
 		Note:
@@ -117,7 +117,7 @@ class Embed:
 		"""クラスを構造体としてマークアップ。暗黙的に`__struct__`と言う属性を付与する
 
 		Args:
-			wrapped (T): ラップ対象
+			wrapped: ラップ対象
 		Returns:
 			T: デコレート対象
 		"""
@@ -151,8 +151,8 @@ class Embed:
 		"""メタ情報を埋め込む
 
 		Args:
-			key (str): キー
-			meta (Any): メタ情報
+			key: キー
+			meta: メタ情報
 		Returns:
 			Callable: デコレーター
 		Examples:

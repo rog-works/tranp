@@ -51,10 +51,10 @@ class ModuleLoader(IModuleLoader):
 		"""インスタンスを生成
 
 		Args:
-			invoker (Invoker): ファクトリー関数 @inject
-			entrypoints (Entrypoints): エントリーポイントマネージャー @inject
-			db (SymbolDB): シンボルテーブル @inject
-			processors (PreprocessorProvider): プリプロセッサープロバイダー @inject
+			invoker: ファクトリー関数 @inject
+			entrypoints: エントリーポイントマネージャー @inject
+			db: シンボルテーブル @inject
+			processors: プリプロセッサープロバイダー @inject
 		"""
 		self.invoker = invoker
 		self.entrypoints = entrypoints
@@ -66,7 +66,7 @@ class ModuleLoader(IModuleLoader):
 		"""モジュールをロード
 
 		Args:
-			module_path (ModulePath): モジュールパス
+			module_path: モジュールパス
 		Returns:
 			Module: モジュール
 		"""
@@ -77,7 +77,7 @@ class ModuleLoader(IModuleLoader):
 		"""モジュールをアンロード
 
 		Args:
-			module_path (ModulePath): モジュールパス
+			module_path: モジュールパス
 		"""
 		self.entrypoints.unload(module_path.path)
 		self.db.unload(module_path.path)
@@ -87,7 +87,7 @@ class ModuleLoader(IModuleLoader):
 		"""モジュールにプリプロセスを実施
 
 		Args:
-			module (Module): モジュール
+			module: モジュール
 		"""
 		for proc in self.processors():
 			if not proc(module, self.db):
@@ -99,8 +99,8 @@ def module_meta_factory(module_paths: ModulePaths, sources: ISourceLoader) -> Mo
 	"""モジュールメタファクトリーを生成
 
 	Args:
-		module_paths (ModulePaths): モジュールパスリスト @inject
-		sources (ISourceLoader): ソースコードローダー @inject
+		module_paths: モジュールパスリスト @inject
+		sources: ソースコードローダー @inject
 	Returns:
 		ModuleMetaFactory: モジュールメタファクトリー
 	"""

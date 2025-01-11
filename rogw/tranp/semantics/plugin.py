@@ -10,7 +10,7 @@ class IPlugin:
 		"""オブザーバーにプラグインを登録
 
 		Args:
-			observer (Observer): オブザーバー
+			observer: オブザーバー
 		"""
 		...
 
@@ -18,7 +18,7 @@ class IPlugin:
 		"""オブザーバーからプラグインを解除
 
 		Args:
-			observer (Observer): オブザーバー
+			observer: オブザーバー
 		"""
 		...
 

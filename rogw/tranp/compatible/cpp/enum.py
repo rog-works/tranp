@@ -17,7 +17,7 @@ class CEnum(Enum):
 		"""比較演算
 
 		Args:
-			other (Self | int): 対象
+			other: 対象
 		Returns:
 			bool: True = 同じ
 		"""
@@ -30,7 +30,7 @@ class CEnum(Enum):
 		"""ビット演算(OR)
 
 		Args:
-			other (Self): 対象
+			other: 対象
 		Returns:
 			Self: 演算結果
 		"""
@@ -43,7 +43,7 @@ class CEnum(Enum):
 		"""ビット演算(OR/右)
 
 		Args:
-			other (Self): 対象
+			other: 対象
 		Returns:
 			Self: 演算結果
 		"""

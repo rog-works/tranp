@@ -13,7 +13,7 @@ class EntryOfLark(Entry):
 		"""インスタンスを生成
 
 		Args:
-			entry (Tree | Token | None): エントリー
+			entry: エントリー
 		"""
 		self.__entry = entry
 
@@ -76,8 +76,8 @@ class EntryOfLark(Entry):
 		"""SourceMap: ソースマップ
 
 		Note:
-			begin (tuple[int, int]): 開始位置(行/列)
-			end (tuple[int, int]): 終了位置(行/列)
+			begin: 開始位置(行/列)
+			end: 終了位置(行/列)
 		"""
 		if type(self.__entry) is lark.Tree and self.__entry.meta is not None and not self.__entry.meta.empty:
 			source_map = (
@@ -113,7 +113,7 @@ class Serialization:
 		"""連想配列にシリアライズ
 
 		Args:
-			root (lark.Tree): ツリー
+			root: ツリー
 		Returns:
 			DumpTree: シリアライズツリー
 		"""
@@ -124,7 +124,7 @@ class Serialization:
 		"""連想配列にシリアライズ
 
 		Args:
-			entry (lark.Tree | lark.Token | None): エントリー
+			entry: エントリー
 		Returns:
 			DumpTreeEntry: シリアライズエントリー
 		"""
@@ -151,7 +151,7 @@ class Serialization:
 		"""連想配列からデシリアライズ
 
 		Args:
-			root (DumpTree): シリアライズツリー
+			root: シリアライズツリー
 		Returns:
 			lark.Tree: ツリー
 		"""
@@ -162,7 +162,7 @@ class Serialization:
 		"""連想配列からデシリアライズ
 
 		Args:
-			entry (DumpTreeEntry): シリアライズエントリー
+			entry: シリアライズエントリー
 		Returns:
 			lark.Tree | lark.Token | None: エントリー
 		"""

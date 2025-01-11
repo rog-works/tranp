@@ -10,7 +10,7 @@ def di_container(definitions: ModuleDefinitions) -> DI:
 	"""DIコンテナーを生成
 
 	Args:
-		definitions (ModuleDefinitions): モジュール定義
+		definitions: モジュール定義
 	Returns:
 		DI: DIコンテナー
 	"""
@@ -43,7 +43,7 @@ def data_loader(env_paths: DataEnvPath) -> IFileLoader:
 	"""ファイルローダー(データ用)を生成
 
 	Args:
-		env_paths (DataEnvPath): 環境パスリスト @inject
+		env_paths: 環境パスリスト @inject
 	Returns:
 		IFileLoader: ファイルローダー
 	"""
@@ -55,7 +55,7 @@ def source_loader(env_paths: SourceEnvPath) -> IFileLoader:
 	"""ファイルローダー(ソースコード用)を生成
 
 	Args:
-		env_paths (SourceEnvPath): 環境パスリスト @inject
+		env_paths: 環境パスリスト @inject
 	Returns:
 		IFileLoader: ファイルローダー
 	"""

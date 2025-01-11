@@ -17,7 +17,7 @@ class MetaHeader:
 		"""テキストデータからインスタンスの復元を試行。メタヘッダーが存在しない場合はNoneを返却
 
 		Args:
-			content (str): テキストデータ
+			content: テキストデータ
 		Returns:
 			Self | None: 復元したインスタンス。またはNone
 		"""
@@ -34,7 +34,7 @@ class MetaHeader:
 		"""JSON文字列からインスタンスを復元
 
 		Args:
-			json_str (str): JSON文字列
+			json_str: JSON文字列
 		Returns:
 			Self: 復元したインスタンス
 		"""
@@ -45,9 +45,9 @@ class MetaHeader:
 		"""インスタンスを生成
 
 		Args:
-			module_meta (ModuleMeta): モジュールのメタ情報
-			transpiler_meta (TranspilerMeta): トランスパイラーのメタ情報
-			app_version (str | None): アプリケーションバージョン (default = None)
+			module_meta: モジュールのメタ情報
+			transpiler_meta: トランスパイラーのメタ情報
+			app_version: アプリケーションバージョン (default = None)
 		"""
 		self.app_version = app_version or Versions.app
 		self.module_meta = module_meta
@@ -62,7 +62,7 @@ class MetaHeader:
 		"""比較演算子のオーバーロード
 		
 		Args:
-			other (Any): 比較対象
+			other: 比較対象
 		Returns:
 			bool: True = 一致
 		Raises:

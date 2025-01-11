@@ -15,8 +15,8 @@ class NodeResolver:
 		"""インスタンスを生成
 
 		Args:
-			invoker (Invoker): ファクトリー関数 @inject
-			settings (Settings): マッピング設定データ @inject
+			invoker: ファクトリー関数 @inject
+			settings: マッピング設定データ @inject
 		"""
 		self.__invoker = invoker
 		self.__resolver = Resolver[Node].load(settings)
@@ -26,7 +26,7 @@ class NodeResolver:
 		"""解決出来るか確認
 
 		Args:
-			symbol (str): シンボル名
+			symbol: シンボル名
 		Returns:
 			bool: True = 解決できる
 		"""
@@ -36,8 +36,8 @@ class NodeResolver:
 		"""ノードのインスタンスを解決
 
 		Args:
-			symbol (str): シンボル
-			full_path (str): エントリーのフルパス
+			symbol: シンボル
+			full_path: エントリーのフルパス
 		Returns:
 			Node: 解決したノード
 		Raises:

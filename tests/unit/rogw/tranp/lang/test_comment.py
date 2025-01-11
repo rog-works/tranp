@@ -13,8 +13,8 @@ class TestComment(TestCase):
 				* 1
 					* 1-1
 			Args:
-				a (A): A desc
-				b (B): B desc
+				a: A desc
+				b: B desc
 			Returns:
 				R: R desc
 			Raises:
@@ -49,8 +49,8 @@ class TestComment(TestCase):
 			"""Description
 
 			Attributes:
-				a (A): A desc
-				b (B): B desc
+				a: A desc
+				b: B desc
 			""",
 			{
 				'description': 'Description',
@@ -69,7 +69,7 @@ class TestComment(TestCase):
 			"""Description
 
 			Args:
-				a (A): A desc
+				a: A desc
 				b: B desc
 			Returns:
 				desc

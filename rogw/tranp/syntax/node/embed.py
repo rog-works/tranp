@@ -27,7 +27,7 @@ class MetaData:
 		"""クラスのモジュールパスを取得
 
 		Args:
-			ctor (type): クラス
+			ctor: クラス
 		Returns:
 			str: モジュールパス
 		"""
@@ -37,7 +37,7 @@ class MetaData:
 		"""メソッドのモジュールパスを取得
 
 		Args:
-			method (FunctionType): メソッド
+			method: メソッド
 		Returns:
 			str: モジュールパス
 		"""
@@ -48,9 +48,9 @@ class MetaData:
 		"""メタデータを設定(クラス用)
 
 		Args:
-			ctor (type): 対象クラス
-			embed_key (str): メタデータのキー
-			value (Any): メタデータの値
+			ctor: 対象クラス
+			embed_key: メタデータのキー
+			value: メタデータの値
 		"""
 		if ctor not in self.__classes:
 			self.__classes[ctor] = {}
@@ -61,9 +61,9 @@ class MetaData:
 		"""メタデータを設定(メソッド用)
 
 		Args:
-			method (FunctionType): 対象メソッド
-			embed_key (str): メタデータのキー
-			value (Any): メタデータの値
+			method: 対象メソッド
+			embed_key: メタデータのキー
+			value: メタデータの値
 		"""
 		elems = self.method_path(method).split('.')
 		method_name = elems.pop()
@@ -80,8 +80,8 @@ class MetaData:
 		"""メタデータを取得(クラス用)
 
 		Args:
-			method (FunctionType): 対象メソッド
-			embed_key (str): メタデータのキー
+			method: 対象メソッド
+			embed_key: メタデータのキー
 		Returns:
 			dict[type, Any]: 対象クラスとメタデータのマップ
 		"""
@@ -91,8 +91,8 @@ class MetaData:
 		"""メタデータを取得(クラス用)
 
 		Args:
-			ctor (type): 対象クラス
-			embed_key (str): メタデータのキー
+			ctor: 対象クラス
+			embed_key: メタデータのキー
 		Returns:
 			Any: メタデータの値
 		Note:
@@ -110,8 +110,8 @@ class MetaData:
 		"""メタデータを取得(メソッド用)
 
 		Args:
-			ctor (type): 対象クラス
-			embed_key (str): メタデータのキー
+			ctor: 対象クラス
+			embed_key: メタデータのキー
 		Returns:
 			dict[str, Any]: 対象メソッドの名前とメタデータの値のマップ
 		"""
@@ -128,7 +128,7 @@ class Meta:
 		埋め込み関数はメタデータを連想配列として返却する関数であれば何でも良い
 
 		Args:
-			holder (type): メタデータを保持するクラス
+			holder: メタデータを保持するクラス
 			*factories (MetaFactory): 埋め込み関数のリスト
 		Returns:
 			Callable: デコレーター
@@ -165,9 +165,9 @@ class Meta:
 		"""クラスに埋め込まれたメタデータを抽出(クラス用)
 
 		Args:
-			holder (type): メタデータを保持するクラス
-			embed_key (str): 抽出対象の埋め込みキー
-			value_type (type[T_Data]): メタデータの型
+			holder: メタデータを保持するクラス
+			embed_key: 抽出対象の埋め込みキー
+			value_type: メタデータの型
 		Returns:
 			dict[type, T_Data]: 対象クラスとメタデータのマップ
 		"""
@@ -182,10 +182,10 @@ class Meta:
 		"""クラスに埋め込まれたメタデータを抽出(クラス用)
 
 		Args:
-			holder (type): メタデータを保持するクラス
-			ctor (type): 抽出対象のクラス
-			embed_key (str): 抽出対象の埋め込みキー
-			default (T_Data): メタデータが存在しない場合の返却値
+			holder: メタデータを保持するクラス
+			ctor: 抽出対象のクラス
+			embed_key: 抽出対象の埋め込みキー
+			default: メタデータが存在しない場合の返却値
 		Returns:
 			T_Data: メタデータ
 		"""
@@ -200,10 +200,10 @@ class Meta:
 		"""クラスに埋め込まれたメタデータを抽出(メソッド用)
 
 		Args:
-			holder (type): メタデータを保持するクラス
-			ctor (type): 抽出対象のクラス
-			embed_key (str): 抽出対象の埋め込みキー
-			value_type (type[T_Data]): メタデータの型
+			holder: メタデータを保持するクラス
+			ctor: 抽出対象のクラス
+			embed_key: 抽出対象の埋め込みキー
+			value_type: メタデータの型
 		Returns:
 			dict[str, T_Data]: メソッド毎のメタデータ
 		"""

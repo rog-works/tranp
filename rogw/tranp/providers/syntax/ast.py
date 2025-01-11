@@ -20,7 +20,7 @@ def source_provider(sources: ISourceLoader) -> SourceProvider:
 	"""ソースコードプロバイダーを生成
 
 	Args:
-		sources (ISourceLoader): ソースコードローダー @inject
+		sources: ソースコードローダー @inject
 	Returns:
 		SourceCodeProvider: ソースコードプロバイダー
 	"""
@@ -32,8 +32,8 @@ def make_root_entry(module_path: ModulePath, parser: SyntaxParser) -> Entry:
 	"""ASTのルート要素を生成
 
 	Args:
-		module_path (ModulePath): モジュールパス @inject
-		parser (SyntaxParser): シンタックスパーサー @inject
+		module_path: モジュールパス @inject
+		parser: シンタックスパーサー @inject
 	Returns:
 		Entry: ASTのルート要素
 	"""

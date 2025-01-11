@@ -592,7 +592,7 @@ class DeclableMatcher:
 		"""マッチング判定 (マッチング対象: クラス変数宣言)
 
 		Args:
-			via (Node): ノード
+			via: ノード
 		Returns:
 			bool: True = 対象
 		"""
@@ -605,7 +605,7 @@ class DeclableMatcher:
 		"""マッチング判定 (マッチング対象: インスタンス変数の前方宣言)
 
 		Args:
-			via (Node): ノード
+			via: ノード
 		Returns:
 			bool: True = 対象
 		Note:
@@ -630,7 +630,7 @@ class DeclableMatcher:
 		"""マッチング判定 (マッチング対象: インスタンス変数宣言)
 
 		Args:
-			via (Node): ノード
+			via: ノード
 		Returns:
 			bool: True = 対象
 		"""
@@ -653,7 +653,7 @@ class DeclableMatcher:
 		"""マッチング判定 (マッチング対象: 仮引数(clsのみ))
 
 		Args:
-			via (Node): ノード
+			via: ノード
 		Returns:
 			bool: True = 対象
 		"""
@@ -668,7 +668,7 @@ class DeclableMatcher:
 		"""マッチング判定 (マッチング対象: 仮引数(selfのみ))
 
 		Args:
-			via (Node): ノード
+			via: ノード
 		Returns:
 			bool: True = 対象
 		"""
@@ -683,7 +683,7 @@ class DeclableMatcher:
 		"""マッチング判定 (マッチング対象: 仮引数(cls/self以外))
 
 		Args:
-			via (Node): ノード
+			via: ノード
 		Returns:
 			bool: True = 対象
 		"""
@@ -698,7 +698,7 @@ class DeclableMatcher:
 		"""マッチング判定 (マッチング対象: ローカル変数宣言)
 
 		Args:
-			via (Node): ノード
+			via: ノード
 		Returns:
 			bool: True = 対象
 		"""
@@ -722,7 +722,7 @@ class DeclableMatcher:
 		"""マッチング判定 (マッチング対象: クラス宣言)
 
 		Args:
-			via (Node): ノード
+			via: ノード
 		Returns:
 			bool: True = 対象
 		"""
@@ -734,7 +734,7 @@ class DeclableMatcher:
 		"""マッチング判定 (マッチング対象: タイプ再定義/テンプレートタイプ宣言)
 
 		Args:
-			via (Node): ノード
+			via: ノード
 		Returns:
 			bool: True = 対象
 		"""
@@ -753,7 +753,7 @@ class DeclableMatcher:
 		"""マッチング判定 (マッチング対象: インポート)
 
 		Args:
-			via (Node): ノード
+			via: ノード
 		Returns:
 			bool: True = 対象
 		"""

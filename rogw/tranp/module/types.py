@@ -5,8 +5,8 @@ class ModulePath(NamedTuple):
 	"""モジュールパスを管理
 
 	Attributes:
-		path (str): モジュールパス (書式: 'path.to.module')
-		language (str): 言語タグ (例: 'py'=Python, 'js'=JavaScript, 'cpp'=C++)
+		path: モジュールパス (書式: 'path.to.module')
+		language: 言語タグ (例: 'py'=Python, 'js'=JavaScript, 'cpp'=C++)
 	"""
 	path: str
 	language: str

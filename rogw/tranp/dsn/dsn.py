@@ -6,8 +6,8 @@ class DSN:
 		"""ドメイン名内の要素数を取得
 
 		Args:
-			origin (str): ドメイン名
-			delimiter (str): デリミター(default = '.')
+			origin: ドメイン名
+			delimiter: デリミター(default = '.')
 		Returns:
 			int: 要素数
 		"""
@@ -18,8 +18,8 @@ class DSN:
 		"""ドメイン名を要素に分解
 
 		Args:
-			origin (str): ドメイン名
-			delimiter (str): デリミター(default = '.')
+			origin: ドメイン名
+			delimiter: デリミター(default = '.')
 		Returns:
 			list[str]: 要素リスト
 		"""
@@ -31,7 +31,7 @@ class DSN:
 
 		Args:
 			*parts (str): 要素リスト
-			delimiter (str): デリミター(default = '.')
+			delimiter: デリミター(default = '.')
 		Returns:
 			str: ドメイン名
 		"""
@@ -42,9 +42,9 @@ class DSN:
 		"""左から指定の数だけ要素を切り出してドメイン名を生成
 
 		Args:
-			origin (str): ドメイン名
-			counts (int): 要素数
-			delimiter (str): デリミター(default = '.')
+			origin: ドメイン名
+			counts: 要素数
+			delimiter: デリミター(default = '.')
 		Returns:
 			str: ドメイン名
 		"""
@@ -55,9 +55,9 @@ class DSN:
 		"""右から指定の数だけ要素を切り出してドメイン名を生成
 
 		Args:
-			origin (str): ドメイン名
-			counts (int): 要素数
-			delimiter (str): デリミター(default = '.')
+			origin: ドメイン名
+			counts: 要素数
+			delimiter: デリミター(default = '.')
 		Returns:
 			str: ドメイン名
 		"""
@@ -68,9 +68,9 @@ class DSN:
 		"""指定方向分要素を除外しドメイン名を生成
 
 		Args:
-			origin (str): ドメイン名
-			skip (int): 移動方向
-			delimiter (str): デリミター(default = '.')
+			origin: ドメイン名
+			skip: 移動方向
+			delimiter: デリミター(default = '.')
 		Returns:
 			str: ドメイン名
 		"""
@@ -89,8 +89,8 @@ class DSN:
 		"""ルート要素を取得
 
 		Args:
-			origin (str): ドメイン名
-			delimiter (str): デリミター(default = '.')
+			origin: ドメイン名
+			delimiter: デリミター(default = '.')
 		Returns:
 			str: ルート要素
 		"""
@@ -101,8 +101,8 @@ class DSN:
 		"""親の要素を取得
 
 		Args:
-			origin (str): ドメイン名
-			delimiter (str): デリミター(default = '.')
+			origin: ドメイン名
+			delimiter: デリミター(default = '.')
 		Returns:
 			str: 親の要素
 		"""
@@ -113,7 +113,7 @@ class DSN:
 		"""指定のパスより先の相対パスを生成
 
 		Args:
-			starts (str): 先頭のパス
+			starts: 先頭のパス
 		Returns:
 			str: 相対パス
 		"""

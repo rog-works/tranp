@@ -25,7 +25,7 @@ class IConvertion:
 		"""シンボルの型を判定
 
 		Args:
-			standard_type (type[Standards] | None): 標準タイプ
+			standard_type: 標準タイプ
 			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
 			bool: True = 指定の型と一致
@@ -61,8 +61,8 @@ class IOperation:
 		"""演算を試行し、結果を返却。該当する演算メソッドが存在しない場合はNoneを返却
 
 		Args:
-			operator (Terminal): 演算子ノード
-			value (IReflection): 値のシンボル
+			operator: 演算子ノード
+			value: 値のシンボル
 			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
 			IReflection: シンボル
@@ -77,7 +77,7 @@ class IProperties:
 		"""配下のプロパティーを取得
 
 		Args:
-			prop (Var): 変数参照ノード
+			prop: 変数参照ノード
 			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
 			IReflection: シンボル
@@ -116,8 +116,8 @@ class IFunction:
 		"""引数の実体型を解決
 
 		Args:
-			index (int): 引数のインデックス
-			argument (IReflection): 引数の実体
+			index: 引数のインデックス
+			argument: 引数の実体
 			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
 			IReflection: シンボル

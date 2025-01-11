@@ -38,7 +38,7 @@ class Typehint(metaclass=ABCMeta):
 		"""メタ情報を取得
 
 		Args:
-			meta_type (type[T_Meta]): メタ情報のタイプ
+			meta_type: メタ情報のタイプ
 		Returns:
 			T_Meta: メタ情報
 		Note:
@@ -66,8 +66,8 @@ class ScalarTypehint(Typehint):
 		"""インスタンスを生成
 
 		Args:
-			scalar_type (type[Any]): タイプ
-			meta (Any | None): メタ情報 (default = None)
+			scalar_type: タイプ
+			meta: メタ情報 (default = None)
 		"""
 		self._type = scalar_type
 		self._meta = meta
@@ -93,7 +93,7 @@ class ScalarTypehint(Typehint):
 		"""メタ情報を取得
 
 		Args:
-			meta_type (type[T_Meta]): メタ情報のタイプ
+			meta_type: メタ情報のタイプ
 		Returns:
 			T_Meta: メタ情報
 		Note:
@@ -160,7 +160,7 @@ class FunctionTypehint(Typehint):
 		"""インスタンスを生成
 
 		Args:
-			func (FuncTypes | Callable): 関数オブジェクト
+			func: 関数オブジェクト
 		Note:
 			XXX コンストラクターはFuncTypeに当てはまらないため、Callableとして受け付ける
 		"""
@@ -184,7 +184,7 @@ class FunctionTypehint(Typehint):
 		"""メタ情報を取得
 
 		Args:
-			meta_type (type[T_Meta]): メタ情報のタイプ
+			meta_type: メタ情報のタイプ
 		Returns:
 			T_Meta: メタ情報
 		Note:
@@ -256,7 +256,7 @@ class ClassTypehint(Typehint):
 		"""インスタンスを生成
 
 		Args:
-			class_type (type[Any]): クラス
+			class_type: クラス
 		"""
 		self._type = class_type
 		self._meta = meta
@@ -278,7 +278,7 @@ class ClassTypehint(Typehint):
 		"""メタ情報を取得
 
 		Args:
-			meta_type (type[T_Meta]): メタ情報のタイプ
+			meta_type: メタ情報のタイプ
 		Returns:
 			T_Meta: メタ情報
 		Note:
@@ -306,7 +306,7 @@ class ClassTypehint(Typehint):
 		"""クラス変数の一覧を取得
 
 		Args:
-			lookup_private (bool): プライベートプロパティー抽出フラグ (default = True)
+			lookup_private: プライベートプロパティー抽出フラグ (default = True)
 		Returns:
 			dict[str, Typehint]: クラス変数一覧
 		"""
@@ -317,7 +317,7 @@ class ClassTypehint(Typehint):
 		"""インスタンス変数の一覧を取得
 
 		Args:
-			lookup_private (bool): プライベートプロパティー抽出フラグ (default = True)
+			lookup_private: プライベートプロパティー抽出フラグ (default = True)
 		Returns:
 			dict[str, Typehint]: インスタンス変数一覧
 		"""
@@ -328,7 +328,7 @@ class ClassTypehint(Typehint):
 		"""アノテーションから元のタイプ取得を試行
 
 		Args:
-			anno (type[Any]): アノテーション
+			anno: アノテーション
 		Returns:
 			type[Any]: 元のタイプ
 		"""
@@ -338,8 +338,8 @@ class ClassTypehint(Typehint):
 		"""クラス階層を辿ってタイプヒントを収集
 
 		Args:
-			_type (type[Any]): タイプ
-			lookup_private (bool): プライベート変数抽出フラグ (default = False)
+			_type: タイプ
+			lookup_private: プライベート変数抽出フラグ (default = False)
 		Returns:
 			dict[str, type[Any]]: タイプヒント一覧
 		"""
@@ -363,7 +363,7 @@ class ClassTypehint(Typehint):
 		"""クラス階層を辿ってメソッドを収集
 
 		Args:
-			_type (type[Any]): タイプ
+			_type: タイプ
 		Returns:
 			dict[str, FuncTypes]: メソッド一覧
 		"""
@@ -380,8 +380,8 @@ def _resolve_type_from_str(type_str: str, via_module_path: str) -> type[Any]:
 	"""文字列のタイプヒントを解析してタイプを解決
 
 	Args:
-		type_str (str): タイプヒント
-		via_module_path (str): 由来のモジュールパス
+		type_str: タイプヒント
+		via_module_path: 由来のモジュールパス
 	Returns:
 		type[Any]: 解決したタイプ
 	Raises:
@@ -406,7 +406,7 @@ class Typehints:
 		"""タイプヒントを解決
 
 		Args:
-			origin (str | type[Any] | FuncTypes): タイプ、関数オブジェクト、または文字列のタイプヒント
+			origin: タイプ、関数オブジェクト、または文字列のタイプヒント
 		Returns:
 			Typehint: タイプヒント
 		"""
@@ -417,8 +417,8 @@ class Typehints:
 		"""タイプヒントを解決(クラス/関数の内部オブジェクト用)
 
 		Args:
-			origin (str | type[Any] | FuncTypes): タイプ、関数オブジェクト、または文字列のタイプヒント
-			via_module_path (str): 由来のモジュールパス。文字列のタイプヒントの解析に使用
+			origin: タイプ、関数オブジェクト、または文字列のタイプヒント
+			via_module_path: 由来のモジュールパス。文字列のタイプヒントの解析に使用
 		Returns:
 			Typehint: タイプヒント
 		"""
@@ -429,8 +429,8 @@ class Typehints:
 		"""タイプヒントを解決
 
 		Args:
-			origin (str | type[Any] | FuncTypes): タイプ、関数オブジェクト、または文字列のタイプヒント
-			via_module_path (str): 由来のモジュールパス。文字列のタイプヒントの解析に使用
+			origin: タイプ、関数オブジェクト、または文字列のタイプヒント
+			via_module_path: 由来のモジュールパス。文字列のタイプヒントの解析に使用
 		Returns:
 			Typehint: タイプヒント
 		"""
@@ -447,8 +447,8 @@ class Typehints:
 		"""オリジンからタイプ・メタ情報をアンパック
 
 		Args:
-			origin (str | type[Any] | FuncTypes): タイプ、関数オブジェクト、または文字列のタイプヒント
-			via_module_path (str): 由来のモジュールパス。文字列のタイプヒントの解析に使用
+			origin: タイプ、関数オブジェクト、または文字列のタイプヒント
+			via_module_path: 由来のモジュールパス。文字列のタイプヒントの解析に使用
 		Returns:
 			tuple[type[Any] | FuncTypes, Any | None]: (タイプ, メタ情報)
 		Note:
@@ -478,7 +478,7 @@ class Typehints:
 		"""値型か判定
 
 		Args:
-			origin (type[Any]): タイプ
+			origin: タイプ
 		Returns:
 			bool: True = 値型
 		"""

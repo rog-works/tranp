@@ -20,10 +20,10 @@ class Expanded(NamedTuple):
 	"""展開時のテンポラリーデータ
 
 	Attributes:
-		classes (dict[str, str]): クラス定義マップ
-		decl_vars (dict[str, str]): 変数宣言マップ
-		imports (dict[str, str]): インポートマップ
-		import_paths (list[str]): インポートパスリスト
+		classes: クラス定義マップ
+		decl_vars: 変数宣言マップ
+		imports: インポートマップ
+		import_paths: インポートパスリスト
 	"""
 
 	classes: dict[str, str] = {}
@@ -37,7 +37,7 @@ class Expanded(NamedTuple):
 		""""インスタンスを復元
 
 		Args:
-			stream (IO): IO
+			stream: IO
 		Returns:
 			Store: インスタンス
 		"""
@@ -49,7 +49,7 @@ class Expanded(NamedTuple):
 		""""インスタンスを保存
 
 		Args:
-			stream (IO): IO
+			stream: IO
 		"""
 		stream.write(json.dumps(self, separators=(',', ':')).encode('utf-8'))
 
@@ -62,8 +62,8 @@ class ExpandModules:
 		"""インスタンスを生成
 
 		Args:
-			finder (SymbolFinder): シンボル検索 @inject
-			traits (Traits[IReflection]): トレイトマネージャー @inject
+			finder: シンボル検索 @inject
+			traits: トレイトマネージャー @inject
 		"""
 		self.finder = finder
 		self.traits = traits
@@ -73,8 +73,8 @@ class ExpandModules:
 		"""シンボルテーブルを編集
 
 		Args:
-			module (Module): モジュール
-			db (SymbolDB): シンボルテーブル
+			module: モジュール
+			db: シンボルテーブル
 		"""
 		self.expanded_to_db(module, db, self.expand_module(module))
 		return True
@@ -83,9 +83,9 @@ class ExpandModules:
 		"""展開データを基にシンボルテーブルを更新
 
 		Args:
-			module (Module): モジュール
-			db (SymbolDB): シンボルテーブル
-			expanded (Expanded): 展開データ
+			module: モジュール
+			db: シンボルテーブル
+			expanded: 展開データ
 		"""
 		# クラス定義シンボルの展開
 		for fullyname, full_path in expanded.classes.items():
@@ -112,7 +112,7 @@ class ExpandModules:
 		"""モジュールのシンボル・インポートパスを展開
 
 		Args:
-			module (Module): モジュール
+			module: モジュール
 		Returns:
 			Expanded: 展開データ
 		"""
@@ -149,8 +149,8 @@ class ExpandModules:
 		"""シンボルテーブルから変数の型のシンボルを解決
 
 		Args:
-			db (SymbolDB): シンボルテーブル
-			var (DeclVars): 変数宣言ノード
+			db: シンボルテーブル
+			var: 変数宣言ノード
 		Returns:
 			IReflection: シンボル
 		Raises:
@@ -174,7 +174,7 @@ class ExpandModules:
 		"""変数の型(タイプ/クラス定義ノード)を取得。型が不明な場合はNoneを返却
 
 		Args:
-			var (DeclVars): 変数宣言ノード
+			var: 変数宣言ノード
 		Returns:
 			Type | ClassDef | None: タイプ/クラス定義ノード。不明な場合はNone
 		"""
@@ -198,8 +198,8 @@ class ExpandModules:
 		"""変数の型からシンボルを解決(フォールバック)
 
 		Args:
-			db (SymbolDB): シンボルテーブル
-			decl_type (DeclVars): タイプ/クラス定義ノード
+			db: シンボルテーブル
+			decl_type: タイプ/クラス定義ノード
 		Returns:
 			IReflection | None: シンボル
 		Note:

@@ -8,7 +8,7 @@ def to_accessor(name: str) -> str:
 	"""名前からアクセス修飾子に変換
 
 	Args:
-		name (str): 名前
+		name: 名前
 	Returns:
 		str: アクセス修飾子
 	"""
@@ -36,7 +36,7 @@ class PythonClassOperations:
 		"""各種演算に対応するメソッドの名称を取得
 
 		Args:
-			operator (str): 演算子
+			operator: 演算子
 		Returns:
 			str: メソッド名
 		"""
@@ -46,7 +46,7 @@ class PythonClassOperations:
 		"""算術演算用の演算子か判定
 
 		Args:
-			operator (str): 演算子
+			operator: 演算子
 		Returns:
 			bool: True = 算術演算
 		"""

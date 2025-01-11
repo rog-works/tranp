@@ -10,8 +10,8 @@ def include_module_paths(input_glob: str, exclude_patterns: list[str]) -> Module
 	"""指定のマッチングパターンに一致するモジュールのパスリストを抽出
 
 	Args:
-		input_glob (str): 入力パターン(Glob)
-		exclude_patterns (list[str]): 除外パターンリスト(正規表現)
+		input_glob: 入力パターン(Glob)
+		exclude_patterns: 除外パターンリスト(正規表現)
 	Returns:
 		ModulePaths: モジュールパスリスト
 	Raises:

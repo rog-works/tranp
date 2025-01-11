@@ -22,7 +22,7 @@ class ParameterHelper:
 		"""パラメーターを元にインスタンスを生成
 
 		Args:
-			parameter (str): パラメーター
+			parameter: パラメーター
 		Returns:
 			ParameterHelper: インスタンス
 		"""
@@ -37,9 +37,9 @@ class ParameterHelper:
 		"""インスタンスを生成
 
 		Args:
-			var_type (str): 型
-			symbol (str): シンボル名
-			default_value (str): デフォルト値
+			var_type: 型
+			symbol: シンボル名
+			default_value: デフォルト値
 		"""
 		self.var_type = var_type
 		self.symbol = symbol

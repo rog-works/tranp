@@ -23,7 +23,7 @@ class DI:
 		"""シンボルが解決できるか判定
 
 		Args:
-			symbol (type): シンボル
+			symbol: シンボル
 		Returns:
 			bool: True = 解決できる
 		"""
@@ -33,7 +33,7 @@ class DI:
 		"""シンボルが登録済みか判定。bindの中のみ直接使用
 
 		Args:
-			symbol (type): シンボル
+			symbol: シンボル
 		Returns:
 			bool: True = 登録済み
 		"""
@@ -43,8 +43,8 @@ class DI:
 		"""シンボルとファクトリーのマッピングを登録
 
 		Args:
-			symbol (type[T_Inst]): シンボル
-			injector (Injector[T_Inst]): ファクトリー(関数/メソッド/クラス)
+			symbol: シンボル
+			injector: ファクトリー(関数/メソッド/クラス)
 		Raises:
 			ValueError: 登録済みのシンボルを指定
 		"""
@@ -58,7 +58,7 @@ class DI:
 		"""シンボルとファクトリーのマッピングを解除
 
 		Args:
-			symbol (type[Any]): シンボル
+			symbol: シンボル
 		"""
 		found_symbol = self.__find_symbol(symbol)
 		if found_symbol is not None:
@@ -72,8 +72,8 @@ class DI:
 		"""シンボルとファクトリーのマッピングを再登録
 
 		Args:
-			symbol (type[T_Inst]): シンボル
-			injector (Injector[T_Inst]): ファクトリー(関数/メソッド/クラス)
+			symbol: シンボル
+			injector: ファクトリー(関数/メソッド/クラス)
 		"""
 		if self.__inner_binded(symbol):
 			self.unbind(symbol)
@@ -85,7 +85,7 @@ class DI:
 		"""シンボルからインスタンスを解決
 
 		Args:
-			symbol (type[T_Inst]): シンボル
+			symbol: シンボル
 		Returns:
 			T_Inst: インスタンス
 		Raises:
@@ -105,7 +105,7 @@ class DI:
 		"""受け入れ可能なシンボルに変換
 
 		Args:
-			symbol (type[T_Inst]): シンボル
+			symbol: シンボル
 		Returns:
 			type[T_Inst]: シンボル
 		Note:
@@ -132,7 +132,7 @@ class DI:
 		"""シンボルを検索
 
 		Args:
-			symbol (type[T_Inst]): シンボル
+			symbol: シンボル
 		Returns:
 			type[T_Inst] | None: シンボル
 		"""
@@ -144,7 +144,7 @@ class DI:
 		"""ファクトリーを代替実行し、インスタンスを生成
 
 		Args:
-			factory (Injector[T_Inst]): ファクトリー(関数/メソッド/クラス)
+			factory: ファクトリー(関数/メソッド/クラス)
 			*remain_args (Any): 残りの位置引数
 		Returns:
 			T_Inst: 生成したインスタンス
@@ -175,7 +175,7 @@ class DI:
 		"""アノテーション取得用の呼び出し対象の関数に変換
 
 		Args:
-			injector (Injector[T_Inst]): ファクトリー(関数/メソッド/クラス)
+			injector: ファクトリー(関数/メソッド/クラス)
 		Returns:
 			Callable[..., T_Inst]: 呼び出し対象の関数
 		"""
@@ -190,7 +190,7 @@ class DI:
 		"""引数のアノテーションを取得
 
 		Args:
-			annotated (Callable[..., Any]): 呼び出し対象の関数
+			annotated: 呼び出し対象の関数
 		Returns:
 			dict[str, type]: 引数のアノテーションリスト
 		"""
@@ -201,9 +201,9 @@ class DI:
 		"""代替呼び出しのバリデーション
 
 		Args:
-			injector (Injector[T_Inst]): ファクトリー(関数/メソッド/クラス)
-			annos (dict[str, type]): 引数のアノテーションリスト
-			curried_args (list[type]): カリー化対象の位置引数
+			injector: ファクトリー(関数/メソッド/クラス)
+			annos: 引数のアノテーションリスト
+			curried_args: カリー化対象の位置引数
 			*remain_args (Any): 余りの位置引数
 		Raises:
 			ValueError: 呼び出しシグネチャーが不正
@@ -229,7 +229,7 @@ class DI:
 		"""マージ対象と合成した新たなインスタンスを生成
 
 		Args:
-			other (Self): マージ対象のインスタンス
+			other: マージ対象のインスタンス
 		Returns:
 			Self: 合成したインスタンス
 		Note:
@@ -255,7 +255,7 @@ class LazyDI(DI):
 		"""インスタンスを生成
 
 		Args:
-			definitions (ModuleDefinitions): モジュール定義
+			definitions: モジュール定義
 		Returns:
 			Self: インスタンス
 		"""
@@ -274,8 +274,8 @@ class LazyDI(DI):
 		"""マッピングの登録を追加
 
 		Args:
-			symbol_path (str): シンボル型のパス
-			injector (str | Injector[Any]): ファクトリー、またはパス
+			symbol_path: シンボル型のパス
+			injector: ファクトリー、またはパス
 		Raises:
 			ValueError: 登録済みのシンボルを指定
 		"""
@@ -288,7 +288,7 @@ class LazyDI(DI):
 		"""マッピングの登録を解除
 
 		Args:
-			symbol_path (str): シンボル型のパス
+			symbol_path: シンボル型のパス
 		"""
 		if self.__can_resolve(symbol_path):
 			del self.__definitions[symbol_path]
@@ -298,7 +298,7 @@ class LazyDI(DI):
 		"""シンボルが解決できるか判定
 
 		Args:
-			symbol (type[Any]): シンボル
+			symbol: シンボル
 		Returns:
 			bool: True = 解決できる
 		"""
@@ -308,7 +308,7 @@ class LazyDI(DI):
 		"""シンボルが解決できるか判定
 
 		Args:
-			symbol_path (str): シンボル型のパス
+			symbol_path: シンボル型のパス
 		Returns:
 			bool: True = 解決できる
 		"""
@@ -318,7 +318,7 @@ class LazyDI(DI):
 		"""シンボルが解決できるか判定
 
 		Args:
-			symbol (type[Any]): シンボル
+			symbol: シンボル
 		Returns:
 			str: シンボルパス
 		"""
@@ -329,8 +329,8 @@ class LazyDI(DI):
 		"""シンボルとファクトリーのマッピングを登録
 
 		Args:
-			symbol (type[T_Inst]): シンボル
-			injector (Injector[T_Inst]): ファクトリー(関数/メソッド/クラス)
+			symbol: シンボル
+			injector: ファクトリー(関数/メソッド/クラス)
 		Raises:
 			ValueError: 登録済みのシンボルを指定
 		"""
@@ -345,7 +345,7 @@ class LazyDI(DI):
 		"""シンボルとファクトリーのマッピングを解除
 
 		Args:
-			symbol (type[Any]): シンボル
+			symbol: シンボル
 		"""
 		if self.can_resolve(symbol):
 			self.__unregister(self.__symbolize(symbol))
@@ -357,7 +357,7 @@ class LazyDI(DI):
 		"""シンボルからインスタンスを解決
 
 		Args:
-			symbol (type[T_Inst]): シンボル
+			symbol: シンボル
 		Returns:
 			T_Inst: インスタンス
 		Raises:
@@ -373,7 +373,7 @@ class LazyDI(DI):
 		"""シンボルとファクトリーのマッピングを代替登録
 
 		Args:
-			symbol_path (str): シンボル型のパス
+			symbol_path: シンボル型のパス
 		Raises:
 			ValueError: 登録済みのシンボルを指定
 		"""
@@ -396,7 +396,7 @@ class LazyDI(DI):
 		"""マージ対象と合成した新たなインスタンスを生成
 
 		Args:
-			other (Self): マージ対象のインスタンス
+			other: マージ対象のインスタンス
 		Returns:
 			Self: 合成したインスタンス
 		Note:

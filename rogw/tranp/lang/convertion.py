@@ -7,7 +7,7 @@ def safe_cast(value: T | None) -> T:
 	"""安全にNullable型から実体型にキャスト
 
 	Args:
-		value (T | None): 値
+		value: 値
 	Returns:
 		T: 値
 	Raises:
@@ -22,8 +22,8 @@ def as_a(expect: type[T], value: Any) -> T:
 	"""安全に期待の型へキャスト
 
 	Args:
-		expect (type[T]): 期待の型
-		value (Any): 値
+		expect: 期待の型
+		value: 値
 	Returns:
 		T: 値
 	Raises:

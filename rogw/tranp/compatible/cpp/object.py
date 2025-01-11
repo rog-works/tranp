@@ -32,7 +32,7 @@ class CVar(Generic[T_co], metaclass=ABCMeta):
 		"""比較演算子(==)のオーバーロード
 
 		Args:
-			other (Self): 対象
+			other: 対象
 		Returns:
 			bool: True = 一致
 		"""
@@ -42,7 +42,7 @@ class CVar(Generic[T_co], metaclass=ABCMeta):
 		"""比較演算子(!=)のオーバーロード
 
 		Args:
-			other (Self): 対象
+			other: 対象
 		Returns:
 			bool: True = 不一致
 		"""
@@ -78,7 +78,7 @@ class CVarNotNull(CVar[T_co]):
 		"""インスタンスを生成
 
 		Args:
-			origin (T_co): 実体のインスタンス
+			origin: 実体のインスタンス
 		"""
 		self._origin = origin
 
@@ -115,7 +115,7 @@ class CVarNullable(CVar[T_co]):
 		"""インスタンスを生成
 
 		Args:
-			origin (T_co | None): 実体のインスタンス
+			origin: 実体のインスタンス
 		"""
 		self._origin = origin
 
@@ -148,7 +148,7 @@ class CP(CVarNotNull[T_co]):
 		"""メモリを生成し、CPラップ型を返却するメモリ生成代替メソッド。C++では`new`に相当
 
 		Args:
-			origin (T_New): 実体のインタンス
+			origin: 実体のインタンス
 		Returns:
 			CP[T_New]: インスタンス
 		"""
@@ -168,7 +168,7 @@ class CP(CVarNotNull[T_co]):
 		"""アドレス演算(加算)
 
 		Args:
-			offset (int): オフセット
+			offset: オフセット
 		Returns:
 			int: アドレス
 		"""
@@ -178,7 +178,7 @@ class CP(CVarNotNull[T_co]):
 		"""アドレス演算(減算)
 
 		Args:
-			other (CP[T_co]): 対象
+			other: 対象
 		Returns:
 			int: アドレス
 		"""
@@ -202,7 +202,7 @@ class CSP(CVarNullable[T_co]):
 		"""メモリを生成し、CPラップ型を返却するメモリ生成代替メソッド。C++では`std::make_shared`に相当
 
 		Args:
-			origin (T_New): 実体のインタンス
+			origin: 実体のインタンス
 		Returns:
 			CSP[T_New]: インスタンス
 		"""
@@ -241,7 +241,7 @@ class CRef(CVarNotNull[T_co]):
 		"""代入コピー代替メソッド。C++では代入処理に置き換えられる
 
 		Args:
-			via (CRef[T_co]): コピー元
+			via: コピー元
 		Note:
 			* 実体にコピーコンストラクターが実装されている場合はコピーコンストラクターを用いる
 			* 実体にコピーコンストラクターがない場合は単に実体の置き換えを行う
@@ -321,7 +321,7 @@ def c_func_addr(func: T_Func) -> CP[T_Func]:
 	"""関数オブジェクトをC++用の関数ポインターとして解釈を変更
 
 	Args:
-		func (T_Func): 関数オブジェクト
+		func: 関数オブジェクト
 	Returns:
 		CP[T_Func]: 関数ポインター
 	Note:
@@ -335,7 +335,7 @@ def c_func_ref(func: T_Func) -> CRef[T_Func]:
 	"""関数オブジェクトをC++用の関数ポインター(参照)として解釈を変更
 
 	Args:
-		func (T_Func): 関数オブジェクト
+		func: 関数オブジェクト
 	Returns:
 		CRef[T_Func]: 関数ポインター(参照)
 	Note:

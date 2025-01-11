@@ -20,7 +20,7 @@ class ISymbolDBPersistor(metaclass=ABCMeta):
 		"""シンボルテーブルが永続化されているか判定
 
 		Args:
-			module (Module): モジュール
+			module: モジュール
 		Returns:
 			bool: True = 永続化
 		"""
@@ -31,8 +31,8 @@ class ISymbolDBPersistor(metaclass=ABCMeta):
 		"""シンボルテーブルを永続化
 
 		Args:
-			module (Module): モジュール
-			db (SymbolDB): シンボルテーブル
+			module: モジュール
+			db: シンボルテーブル
 		"""
 		...
 
@@ -41,8 +41,8 @@ class ISymbolDBPersistor(metaclass=ABCMeta):
 		"""シンボルテーブルを復元
 
 		Args:
-			module (Module): モジュール
-			db (SymbolDB): シンボルテーブル
+			module: モジュール
+			db: シンボルテーブル
 		"""
 		...
 
@@ -55,8 +55,8 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 		"""インスタンスを生成
 
 		Args:
-			setting (CacheSetting): キャッシュ設定 @inject
-			serializer (IReflectionSerializer): シンボルシリアライザー @inject
+			setting: キャッシュ設定 @inject
+			serializer: シンボルシリアライザー @inject
 			sources (ISourceLoader) ソースコードローダー @inject
 		"""
 		self.setting = setting
@@ -68,7 +68,7 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 		"""シンボルテーブルが永続化されているか判定
 
 		Args:
-			module (Module): モジュール
+			module: モジュール
 		Returns:
 			bool: True = 永続化
 		"""
@@ -79,8 +79,8 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 		"""シンボルテーブルを永続化
 
 		Args:
-			module (Module): モジュール
-			db (SymbolDB): シンボルテーブル
+			module: モジュール
+			db: シンボルテーブル
 		"""
 		filepath = self._gen_filepath(module)
 		if self._can_store(module, filepath):
@@ -91,8 +91,8 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 		"""シンボルテーブルを復元
 
 		Args:
-			module (Module): モジュール
-			db (SymbolDB): シンボルテーブル
+			module: モジュール
+			db: シンボルテーブル
 		"""
 		filepath = self._gen_filepath(module)
 		if self._can_restore(module, filepath):
@@ -102,7 +102,7 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 		"""保存ファイルの絶対パスを生成
 
 		Args:
-			module (Module): モジュール
+			module: モジュール
 		Returns:
 			str: 絶対パス
 		"""
@@ -115,7 +115,7 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 		"""旧ファイル検索用のGlobパターンを生成
 
 		Args:
-			module (Module): モジュール
+			module: モジュール
 		Returns:
 			str: Globパターン
 		"""
@@ -127,8 +127,8 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 		"""保存を実施するか判定
 
 		Args:
-			module (Module): モジュール
-			filepath (str): ファイルパス
+			module: モジュール
+			filepath: ファイルパス
 		Returns:
 			bool: True = 実施
 		"""
@@ -138,8 +138,8 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 		"""復元を実施するか判定
 
 		Args:
-			module (Module): モジュール
-			filepath (str): ファイルパス
+			module: モジュール
+			filepath: ファイルパス
 		Returns:
 			bool: True = 実施
 		"""
@@ -149,9 +149,9 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 		"""ストレージに保存
 
 		Args:
-			module (Module): モジュール
-			db (SymbolDB): シンボルテーブル
-			filepath (str): ファイルパス
+			module: モジュール
+			db: シンボルテーブル
+			filepath: ファイルパス
 		"""
 		for oldest in self._find_oldest(module):
 			os.unlink(oldest)
@@ -165,8 +165,8 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 		"""ストレージから復元
 
 		Args:
-			db (SymbolDB): シンボルテーブル
-			filepath (str): ファイルパス
+			db: シンボルテーブル
+			filepath: ファイルパス
 		"""
 		content = self.sources.load(filepath)
 		data = json.loads(content)
@@ -176,7 +176,7 @@ class SymbolDBPersistor(ISymbolDBPersistor):
 		"""旧ファイルを検索
 
 		Args:
-			module (Module): モジュール
+			module: モジュール
 		Returns:
 			list[str]: 旧ファイルのパスリスト
 		"""

@@ -14,9 +14,9 @@ class Modules:
 		"""インスタンスを生成
 
 		Args:
-			library_paths (LibraryPaths): 標準ライブラリーパスリスト @inject
-			module_paths (ModulePaths): 処理対象モジュールパスリスト @inject
-			loader (IModuleLoader): モジュールローダー @inject
+			library_paths: 標準ライブラリーパスリスト @inject
+			module_paths: 処理対象モジュールパスリスト @inject
+			loader: モジュールローダー @inject
 		"""
 		self.__library_paths = library_paths
 		self.__module_paths = module_paths
@@ -59,8 +59,8 @@ class Modules:
 		"""モジュールをロード
 
 		Args:
-			module_path (str): モジュールパス
-			language (str): 言語タグ (default = 'py')
+			module_path: モジュールパス
+			language: 言語タグ (default = 'py')
 		Returns:
 			Module: モジュール
 		Note:
@@ -79,7 +79,7 @@ class Modules:
 		"""標準ライブラリーをロード
 
 		Args:
-			via_module_path (str): 読み込み中のモジュールパス
+			via_module_path: 読み込み中のモジュールパス
 		Note:
 			読み込み中のモジュールが標準ライブラリー以外の場合のみロード
 		"""
@@ -90,7 +90,7 @@ class Modules:
 		"""依存モジュールをロード
 
 		Args:
-			via_module (Module): 読み込み中のモジュール
+			via_module: 読み込み中のモジュール
 		"""
 		for import_node in via_module.entrypoint.imports:
 			self.load(import_node.import_path.tokens)
@@ -111,7 +111,7 @@ class Modules:
 		"""指定のモジュールをアンロード
 
 		Args:
-			module_path (str): モジュールパス
+			module_path: モジュールパス
 		"""
 		if module_path in self.__modules:
 			module = self.__modules[module_path]

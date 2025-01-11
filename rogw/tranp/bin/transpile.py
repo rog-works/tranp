@@ -86,7 +86,7 @@ class Config:
 		"""コマンド引数をパース
 
 		Args:
-			filepath (str): コンフィグファイルのパス
+			filepath: コンフィグファイルのパス
 		Returns:
 			ConfigDict: コンフィグデータ
 		"""
@@ -97,7 +97,7 @@ class Config:
 		"""コマンド引数をパース
 
 		Args:
-			argv (list[str]): コマンド引数リスト
+			argv: コマンド引数リスト
 		Returns:
 			ArgsDict: パースしたコマンド引数
 		"""
@@ -133,8 +133,8 @@ class TranspileApp:
 		"""テンプレートレンダーを生成
 
 		Args:
-			config (Config): コンフィグ @inject
-			i18n (I18n): 国際化対応モジュール @inject
+			config: コンフィグ @inject
+			i18n: 国際化対応モジュール @inject
 		Returns:
 			Renderer: テンプレートレンダー
 		"""
@@ -146,7 +146,7 @@ class TranspileApp:
 		"""トランスパイルオプションを生成
 
 		Args:
-			config (Config): コンフィグ @inject
+			config: コンフィグ @inject
 		Returns:
 			TranspilerOptions: トランスパイルオプション
 		"""
@@ -158,7 +158,7 @@ class TranspileApp:
 		"""シンタックスパーサー設定データを生成
 
 		Args:
-			config (Config): コンフィグ @inject
+			config: コンフィグ @inject
 		Returns:
 			ParserSetting: シンタックスパーサー設定データ
 		"""
@@ -170,8 +170,8 @@ class TranspileApp:
 		"""翻訳マッピングデータを生成
 
 		Args:
-			datums (IDataLoader): データローダー @inject
-			config (Config): コンフィグ @inject
+			datums: データローダー @inject
+			config: コンフィグ @inject
 		Returns:
 			TranslationMapping: 翻訳マッピングデータ
 		"""
@@ -184,7 +184,7 @@ class TranspileApp:
 		"""モジュールパスリストを生成
 
 		Args:
-			config (Config): コンフィグ @inject
+			config: コンフィグ @inject
 		Returns:
 			ModulePaths: モジュールパスリスト
 		"""
@@ -222,8 +222,8 @@ class TranspileApp:
 		"""アプリケーションの実行処理
 
 		Args:
-			invoker (Invoker): ファクトリー関数
-			config (Config): コンフィグ
+			invoker: ファクトリー関数
+			config: コンフィグ
 		"""
 		modes = {
 			'runner': Runner,
@@ -239,12 +239,12 @@ class Runner:
 		"""インスタンスを生成
 
 		Args:
-			sources (ISourceLoader): ソースコードローダー @inject
-			config (Config): コンフィグ @inject
-			module_paths (ModulePaths): モジュールパスリスト @inject
-			modules (Modules): モジュールリスト @inject
-			module_meta_factory (ModuleMetaFactory): モジュールのメタ情報ファクトリー @inject
-			transpiler (ITranspiler): トランスパイラー @inject
+			sources: ソースコードローダー @inject
+			config: コンフィグ @inject
+			module_paths: モジュールパスリスト @inject
+			modules: モジュールリスト @inject
+			module_meta_factory: モジュールのメタ情報ファクトリー @inject
+			transpiler: トランスパイラー @inject
 		"""
 		self.sources = sources
 		self.module_paths = module_paths
@@ -273,7 +273,7 @@ class Runner:
 		"""トランスパイルを実行するか判定
 
 		Args:
-			module_path (ModulePath): モジュールパス
+			module_path: モジュールパス
 		Returns:
 			bool: True = 実行
 		"""
@@ -288,7 +288,7 @@ class Runner:
 		"""エントリーポイントのノードを取得
 
 		Args:
-			module_path (ModulePath): モジュールパス
+			module_path: モジュールパス
 		Returns:
 			Node: ノード
 		"""
@@ -298,7 +298,7 @@ class Runner:
 		"""トランスパイル済みのファイルからメタヘッダーの読み込みを試行
 
 		Args:
-			module_path (ModulePath): モジュールパス
+			module_path: モジュールパス
 		Returns:
 			MetaHeader | None: メタヘッダー。ファイル・メタヘッダーが存在しない場合はNone
 		"""
@@ -312,7 +312,7 @@ class Runner:
 		"""トランスパイル後のファイルパスを生成
 
 		Args:
-			module_path (ModulePath): モジュールパス
+			module_path: モジュールパス
 		Returns:
 			str: ファイルパス
 		"""
@@ -326,7 +326,7 @@ class Runner:
 		"""ファイルパスに応じた出力ディレクトリーを取得
 
 		Args:
-			filepath (str): ファイルパス
+			filepath: ファイルパス
 		Returns:
 			str: 出力ディレクトリー
 		"""
@@ -348,7 +348,7 @@ class Interactive:
 		"""インスタンスを生成
 
 		Args:
-			locator (Locator): ロケーター
+			locator: ロケーター
 		"""
 		# XXX リバインドより、定義側から変更する方法を検討
 		di = as_a(DI, locator)
@@ -392,7 +392,7 @@ class Interactive:
 		"""メインモジュールを再生成
 
 		Args:
-			source_code (str): ソースコード
+			source_code: ソースコード
 		Returns:
 			Module: メインモジュール
 		"""

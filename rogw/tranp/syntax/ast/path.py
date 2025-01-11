@@ -21,9 +21,9 @@ class EntryPath:
 		"""一意性を持つようにパスを構築し、インスタンスを生成
 
 		Args:
-			origin (str): パス
-			entry_tag (str): エントリータグ
-			index (int): 要素インデックス
+			origin: パス
+			entry_tag: エントリータグ
+			index: 要素インデックス
 		Returns:
 			EntryPath: インスタンス
 		"""
@@ -33,7 +33,7 @@ class EntryPath:
 		"""インスタンスを生成
 
 		Args:
-			origin (str): パス
+			origin: パス
 		"""
 		self.origin = origin
 
@@ -56,7 +56,7 @@ class EntryPath:
 		"""相対パスと連結したパスを返却
 
 		Args:
-			relative (str): 相対パス
+			relative: 相対パス
 		Returns:
 			str: パス
 		"""
@@ -111,7 +111,7 @@ class EntryPath:
 		"""要素から元のタグと付与されたインデックスに分解。インデックスがない場合は-1とする
 
 		Args:
-			elem (str): 要素
+			elem: 要素
 		Returns:
 			tuple[str, int]: (エントリータグ, インデックス)
 		"""
@@ -125,7 +125,7 @@ class EntryPath:
 		"""指定のエントリータグが含まれるか判定
 
 		Args:
-			entry_tag (str): エントリータグ
+			entry_tag: エントリータグ
 		Returns:
 			bool: True = 含まれる
 		"""
@@ -154,7 +154,7 @@ class EntryPath:
 		"""指定のパスより先の相対パスでインスタンスを生成
 
 		Args:
-			starts (str): 先頭のパス
+			starts: 先頭のパス
 		Returns:
 			EntryPath: インスタンス
 		Raises:
@@ -169,7 +169,7 @@ class EntryPath:
 		"""指定方向の要素を除外して再構築したパスでインスタンスを生成
 
 		Args:
-			skip (int): 移動方向
+			skip: 移動方向
 		Returns:
 			EntryPath: インスタンス
 		"""

@@ -14,13 +14,13 @@ class IReflection(metaclass=ABCMeta):
 	"""リフレクション
 
 	Attributes:
-		types (ClassDef): 型を表すノード
-		decl (DeclAll): 定義元のノード
-		node (Node): ノード
-		origin (IReflection): 型のシンボル
-		via (IReflection): スタックシンボル
-		context (IReflection): コンテキストのシンボル
-		attrs (list[IReflection]): 属性シンボルリスト
+		types: 型を表すノード
+		decl: 定義元のノード
+		node: ノード
+		origin: 型のシンボル
+		via: スタックシンボル
+		context: コンテキストのシンボル
+		attrs: 属性シンボルリスト
 	"""
 
 	@property
@@ -76,8 +76,8 @@ class IReflection(metaclass=ABCMeta):
 		"""定義ノードをスタックし、型のシンボルを移行。型のシンボル省略時はそのまま引き継ぐ
 
 		Args:
-			decl (DeclVars): 定義元のノード
-			origin (IReflection | None): 型のシンボル (default = None)
+			decl: 定義元のノード
+			origin: 型のシンボル (default = None)
 		Returns:
 			IReflection: リフレクション
 		"""
@@ -88,7 +88,7 @@ class IReflection(metaclass=ABCMeta):
 		"""ノードをスタック。ノード省略時は自分自身をスタック
 
 		Args:
-			node (Node | None): ノード (default = None)
+			node: ノード (default = None)
 		Returns:
 			IReflection: リフレクション
 		"""
@@ -99,8 +99,8 @@ class IReflection(metaclass=ABCMeta):
 		"""ノードをスタックし、型のシンボルを移行
 
 		Args:
-			node (Node): ノード
-			origin (IReflection): 型のシンボル
+			node: ノード
+			origin: 型のシンボル
 		Returns:
 			IReflection: リフレクション
 		"""
@@ -149,8 +149,8 @@ class IReflection(metaclass=ABCMeta):
 		"""モッドを有効化
 		
 		Args:
-			key (Literal['origin', 'attrs']): キー
-			mod (Mod): モッド
+			key: キー
+			mod: モッド
 		"""
 		...
 
@@ -159,7 +159,7 @@ class IReflection(metaclass=ABCMeta):
 		"""期待する型と同じインターフェイスを実装していればキャスト
 
 		Args:
-			expect (type[T_Ref]): 期待する型
+			expect: 期待する型
 		Returns:
 			T_Ref: インスタンス
 		Note:
@@ -210,7 +210,7 @@ class Mods:
 		"""モッドが有効か判定
 
 		Args:
-			key (Literal['origin', 'attrs']): キー
+			key: キー
 		Returns:
 			bool: True = 有効
 		"""
@@ -220,8 +220,8 @@ class Mods:
 		"""モッドを有効化
 
 		Args:
-			key (Literal['origin', 'attrs']): キー
-			mod (Mod): モッド
+			key: キー
+			mod: モッド
 		"""
 		if key in self._cache:
 			del self._cache[key]

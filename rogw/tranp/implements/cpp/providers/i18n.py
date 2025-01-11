@@ -10,7 +10,7 @@ def translation_mapping_cpp_example(datums: IDataLoader) -> TranslationMapping:
 	"""翻訳マッピングデータを生成(example用)
 
 	Args:
-		datums (IDataLoader): データローダー
+		datums: データローダー
 	Returns:
 		TranslationMapping: 翻訳マッピングデータ
 	"""

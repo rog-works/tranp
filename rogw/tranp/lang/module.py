@@ -9,8 +9,8 @@ def load_module(path: str, module: str) -> Any:
 	"""モジュールをロード
 
 	Args:
-		path (str): モジュールパス
-		module (str): モジュールパス
+		path: モジュールパス
+		module: モジュールパス
 	Returns:
 		Any: モジュール
 	"""
@@ -21,7 +21,7 @@ def load_module_path(module_path: str) -> Any:
 	"""モジュールパスからモジュールをロード
 
 	Args:
-		module_path (str): モジュールパス
+		module_path: モジュールパス
 	Returns:
 		Any: モジュール
 	"""
@@ -35,7 +35,7 @@ def resolve_own_class(method: Callable) -> type:
 	"""メソッドからクラスを解決
 
 	Args:
-		method (Callable): メソッド
+		method: メソッド
 	Returns:
 		type: クラス
 	Raises:
@@ -56,7 +56,7 @@ def to_fullyname(symbol: type | Callable) -> str:
 	"""シンボルの完全参照名を取得
 
 	Args:
-		symbol (type | Callable): シンボル(クラス/ファンクション)
+		symbol: シンボル(クラス/ファンクション)
 	Returns:
 		str: 完全参照名
 	"""
@@ -67,8 +67,8 @@ def filepath_to_module_path(filepath: str, basedir: str) -> str:
 	"""モジュールのファイルパスからモジュールパスに変換
 
 	Args:
-		filepath (str): モジュールの絶対パス
-		basedir (str): 基準ディレクトリーのパス
+		filepath: モジュールの絶対パス
+		basedir: 基準ディレクトリーのパス
 	Returns:
 		str: モジュールパス
 	"""
@@ -82,8 +82,8 @@ def module_path_to_filepath(module_path: str, extension: str = '') -> str:
 	"""モジュールパスからファイルパスに変換
 
 	Args:
-		module_path (str): モジュールパス
-		extension (str): 拡張子 (default = '')
+		module_path: モジュールパス
+		extension: 拡張子 (default = '')
 	Returns:
 		str: ファイルパス
 	"""

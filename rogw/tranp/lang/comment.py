@@ -6,22 +6,22 @@ class Comment(NamedTuple):
 	"""コメントデータ(クラス/関数共用)
 	
 	Attributes:
-		description (str): 説明
-		attributes (list[CommentAttribute]): メンバー変数リスト(クラス専用)
-		args (list[CommentAttribute]): 引数リスト
-		returns (list[CommentType]): 戻り値
-		raises (list[CommentType]): 出力例外リスト
-		note (str): 備考
-		examples (str): サンプル
+		description: 説明
+		attributes: メンバー変数リスト(クラス専用)
+		args: 引数リスト
+		returns: 戻り値
+		raises: 出力例外リスト
+		note: 備考
+		examples: サンプル
 	"""
 
 	class Attribute(NamedTuple):
 		"""属性コメント
 
 		Attributes:
-			name (str): 名前
-			type (str): 型
-			description (str): 説明
+			name: 名前
+			type: 型
+			description: 説明
 		"""
 		name: str
 		type: str
@@ -31,8 +31,8 @@ class Comment(NamedTuple):
 		"""型コメント
 
 		Attributes:
-			type (str): 型
-			description (str): 説明
+			type: 型
+			description: 説明
 		"""
 		type: str
 		description: str
@@ -50,7 +50,7 @@ class Comment(NamedTuple):
 		"""コメントを解析してインスタンスを生成
 
 		Args:
-			text (str): コメントテキスト
+			text: コメントテキスト
 		Returns:
 			Comment: インスタンス
 		"""
@@ -70,7 +70,7 @@ class Comment(NamedTuple):
 		"""説明用テキストの各行の前後の空白を除去
 
 		Args:
-			text (str): 説明用テキスト
+			text: 説明用テキスト
 		Returns:
 			str: 処理後のテキスト
 		"""
@@ -84,7 +84,7 @@ class Comment(NamedTuple):
 		"""行リストを基にディデント位置を検出
 
 		Args:
-			lines (list[str]): 行リスト
+			lines: 行リスト
 		Returns:
 			tuple[int, int]: (1行目の位置, 2行目以降の位置)
 		"""
@@ -101,7 +101,7 @@ class Comment(NamedTuple):
 		"""行テキストを基にディデント位置を検出
 
 		Args:
-			line (str): 行テキスト
+			line: 行テキスト
 		Returns:
 			int: ディデント位置
 		"""
@@ -116,7 +116,7 @@ class Comment(NamedTuple):
 		"""要素テキストの前後の空白を除去
 
 		Args:
-			elems (list[str]): 要素テキストリスト
+			elems: 要素テキストリスト
 		Returns:
 			list[str]: 処理後のテキストリスト
 		"""
@@ -127,7 +127,7 @@ class Comment(NamedTuple):
 		"""コメントを解析してメインの説明と各ブロックを分離
 
 		Args:
-			text (str): コメントテキスト
+			text: コメントテキスト
 		Returns:
 			tuple[str, dict[str, str]]: (メインの説明, ブロックリスト)
 		"""
@@ -144,7 +144,7 @@ class Comment(NamedTuple):
 		"""属性ブロックをパース
 
 		Args:
-			block (str): ブロックのテキスト
+			block: ブロックのテキスト
 		Returns:
 			list[Comment.Attribute]: 属性コメントリスト
 		"""
@@ -167,7 +167,7 @@ class Comment(NamedTuple):
 		"""戻り値ブロックをパース
 
 		Args:
-			block (str): ブロックのテキスト
+			block: ブロックのテキスト
 		Returns:
 			Comment.Type: 型コメント
 		"""
@@ -183,7 +183,7 @@ class Comment(NamedTuple):
 		"""出力例外ブロックをパース
 
 		Args:
-			block (str): ブロックのテキスト
+			block: ブロックのテキスト
 		Returns:
 			list[Comment.Type]: 型コメントリスト
 		"""
@@ -206,7 +206,7 @@ class Comment(NamedTuple):
 		"""備考ブロックをパース
 
 		Args:
-			block (str): ブロックのテキスト
+			block: ブロックのテキスト
 		Returns:
 			str: テキスト
 		"""
@@ -217,7 +217,7 @@ class Comment(NamedTuple):
 		"""サンプルブロックをパース
 
 		Args:
-			block (str): ブロックのテキスト
+			block: ブロックのテキスト
 		Returns:
 			str: テキスト
 		"""

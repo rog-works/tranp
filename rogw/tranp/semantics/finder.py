@@ -18,7 +18,7 @@ class SymbolFinder:
 		"""インスタンスを生成
 
 		Args:
-			library_paths (LibraryPaths): 標準ライブラリーパスリスト @inject
+			library_paths: 標準ライブラリーパスリスト @inject
 		"""
 		self.__library_paths = [module_path.path for module_path in library_paths]
 
@@ -26,7 +26,7 @@ class SymbolFinder:
 		"""objectのシンボルを取得
 
 		Args:
-			db (SymbolDB): シンボルテーブル
+			db: シンボルテーブル
 		Returns:
 			IReflection: シンボル
 		Raises:
@@ -44,8 +44,8 @@ class SymbolFinder:
 		"""完全参照名からシンボルを取得
 
 		Args:
-			db (SymbolDB): シンボルテーブル
-			fullyname (str): 完全参照名
+			db: シンボルテーブル
+			fullyname: 完全参照名
 		Returns:
 			IReflection: シンボル
 		Raises:
@@ -60,8 +60,8 @@ class SymbolFinder:
 		"""標準クラスのシンボルを取得
 
 		Args:
-			db (SymbolDB): シンボルテーブル
-			standard_type (type[Standards] | None): 標準クラス
+			db: シンボルテーブル
+			standard_type: 標準クラス
 		Returns:
 			IReflection: シンボル
 		Raises:
@@ -78,7 +78,7 @@ class SymbolFinder:
 		"""シンボル系ノードからシンボルを取得
 
 		Args:
-			db (SymbolDB): シンボルテーブル
+			db: シンボルテーブル
 			node: (Symbolic): シンボル系ノード
 		Returns:
 			IReflection: シンボル
@@ -95,9 +95,9 @@ class SymbolFinder:
 		"""シンボルを検索。未検出の場合はNoneを返却
 
 		Args:
-			db (SymbolDB): シンボルテーブル
-			node (Symbolic): シンボル系ノード
-			prop_name (str): プロパティー名(default = '')
+			db: シンボルテーブル
+			node: シンボル系ノード
+			prop_name: プロパティー名(default = '')
 		Returns:
 			IReflection | None: シンボル
 		"""
@@ -112,9 +112,9 @@ class SymbolFinder:
 		"""ローカル変数の参照、且つクラス直下のスコープ参照の組み合わせか判定
 
 		Args:
-			db (SymbolDB): シンボルテーブル
-			node (Symbolic): シンボル系ノード
-			scope (ModuleDSN): 探索スコープ
+			db: シンボルテーブル
+			node: シンボル系ノード
+			scope: 探索スコープ
 		Returns:
 			bool: True = 真
 		Note:
@@ -142,7 +142,7 @@ class SymbolFinder:
 		"""スコープを元に探索スコープのリストを生成
 
 		Args:
-			scope (str): スコープ
+			scope: スコープ
 		Returns:
 			list[ModuleDSN]: 探索スコープリスト
 		"""
@@ -155,9 +155,9 @@ class SymbolFinder:
 		"""シンボルを検索。未検出の場合はNoneを返却 (汎用)
 
 		Args:
-			db (SymbolDB): シンボルテーブル
-			scopes (list[ModuleDSN]): 探索スコープリスト
-			domain_name (str): ドメイン名
+			db: シンボルテーブル
+			scopes: 探索スコープリスト
+			domain_name: ドメイン名
 		Returns:
 			IReflection | None: シンボル
 		"""
@@ -170,9 +170,9 @@ class SymbolFinder:
 		"""シンボルを検索。未検出の場合はNoneを返却 (タイプノード専用)
 
 		Args:
-			db (SymbolDB): シンボルテーブル
-			scopes (list[ModuleDSN]): 探索スコープリスト
-			domain_name (str): ドメイン名
+			db: シンボルテーブル
+			scopes: 探索スコープリスト
+			domain_name: ドメイン名
 		Returns:
 			IReflection | None: シンボル
 		Note:
@@ -188,9 +188,9 @@ class SymbolFinder:
 		"""スコープを辿り、指定のドメイン名を持つシンボルを検索
 
 		Args:
-			db (SymbolDB): シンボルテーブル
-			scopes (list[ModuleDSN]): 探索スコープリスト
-			domain_name (str): ドメイン名
+			db: シンボルテーブル
+			scopes: 探索スコープリスト
+			domain_name: ドメイン名
 		Returns:
 			Iterator[IReflection]: イテレーター
 		"""
@@ -211,9 +211,9 @@ class SymbolFinder:
 		"""ドメインが所属するモジュールのインポートノードを経由してシンボルを探索
 
 		Args:
-			db (SymbolDB): シンボルテーブル
-			on_module_path (str): 所属モジュールのパス
-			domain_name (str): ドメイン名
+			db: シンボルテーブル
+			on_module_path: 所属モジュールのパス
+			domain_name: ドメイン名
 		Returns:
 			IReflection | None: シンボル。未定義の場合はNone
 		"""
@@ -233,8 +233,8 @@ class SymbolFinder:
 		"""標準ライブラリーのモジュールからシンボルを探索
 
 		Args:
-			db (SymbolDB): シンボルテーブル
-			domain_name (str): ドメイン名
+			db: シンボルテーブル
+			domain_name: ドメイン名
 		Returns:
 			IReflection | None: シンボル。未定義の場合はNone
 		"""
@@ -250,9 +250,9 @@ class SymbolFinder:
 		"""シンボルを再帰的に探索
 
 		Args:
-			db (SymbolDB): シンボルテーブル
-			scope (ModuleDSN): スコープ
-			elems (list[str]): ドメイン名の要素リスト
+			db: シンボルテーブル
+			scope: スコープ
+			elems: ドメイン名の要素リスト
 		Returns:
 			IReflection | None: シンボル。未定義の場合はNone
 		"""

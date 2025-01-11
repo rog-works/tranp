@@ -11,11 +11,11 @@ class CVars:
 	"""C++型変数の操作ユーティリティー
 
 	Attributes:
-		relay_key (str): リレー代替メソッドの名前
-		empty_key (str): 空のスマートポインター生成代替メソッドの名前
-		allocator_key (str): メモリ生成メソッドの名前
-		copy_key (str): 代入コピー代替メソッドの名前
-		exchanger_keys (list[str]): 属性変換メソッドの名前
+		relay_key: リレー代替メソッドの名前
+		empty_key: 空のスマートポインター生成代替メソッドの名前
+		allocator_key: メモリ生成メソッドの名前
+		copy_key: 代入コピー代替メソッドの名前
+		exchanger_keys: 属性変換メソッドの名前
 	"""
 
 	relay_key: ClassVar[str] = 'on'
@@ -63,7 +63,7 @@ class CVars:
 		"""実体か判定
 
 		Args:
-			key (str): C++変数型の種別キー
+			key: C++変数型の種別キー
 		Returns:
 			bool: True = 実体/参照
 		"""
@@ -74,7 +74,7 @@ class CVars:
 		"""アドレスか判定
 
 		Args:
-			key (str): C++変数型の種別キー
+			key: C++変数型の種別キー
 		Returns:
 			bool: True = ポインター/スマートポインター
 		"""
@@ -85,7 +85,7 @@ class CVars:
 		"""実体か判定
 
 		Args:
-			key (str): C++変数型の種別キー
+			key: C++変数型の種別キー
 		Returns:
 			bool: True = 実体
 		"""
@@ -96,7 +96,7 @@ class CVars:
 		"""参照か判定
 
 		Args:
-			key (str): C++変数型の種別キー
+			key: C++変数型の種別キー
 		Returns:
 			bool: True = 参照
 		"""
@@ -107,7 +107,7 @@ class CVars:
 		"""ポインターか判定
 
 		Args:
-			key (str): C++変数型の種別キー
+			key: C++変数型の種別キー
 		Returns:
 			bool: True = ポインター
 		"""
@@ -118,7 +118,7 @@ class CVars:
 		"""スマートポインターか判定
 
 		Args:
-			key (str): C++変数型の種別キー
+			key: C++変数型の種別キー
 		Returns:
 			bool: True = スマートポインター
 		"""
@@ -129,7 +129,7 @@ class CVars:
 		"""Constか判定
 
 		Args:
-			key (str): C++変数型の種別キー
+			key: C++変数型の種別キー
 		Returns:
 			bool: True = Const
 		"""
@@ -149,7 +149,7 @@ class CVars:
 		"""シンボルからC++変数型の種別キーを取得
 
 		Args:
-			symbol (IReflection): シンボル
+			symbol: シンボル
 		Returns:
 			str: 種別キー
 		Note:
@@ -167,7 +167,7 @@ class CVars:
 		"""C++変数型に応じたリレー演算子に変換
 
 		Args:
-			key (str): C++変数型の種別キー
+			key: C++変数型の種別キー
 		Returns:
 			RelayOperators: リレー演算子
 		"""
@@ -188,8 +188,8 @@ class CVars:
 		"""C++変数型の各メソッドに応じた移動操作の種別に変換
 
 		Args:
-			key (str): C++変数型の種別キー
-			method (str): メソッド名
+			key: C++変数型の種別キー
+			method: メソッド名
 		Returns:
 			Moves: 移動操作の種別
 		"""
@@ -227,10 +227,10 @@ class CVars:
 		"""移動操作を解析
 
 		Args:
-			accept (IReflection): 受け入れ側
-			value (IReflection): 入力側
-			value_on_new (bool): True = インスタンス生成
-			declared (bool): True = 変数宣言時
+			accept: 受け入れ側
+			value: 入力側
+			value_on_new: True = インスタンス生成
+			declared: True = 変数宣言時
 		Returns:
 			Moves: 移動操作の種別
 		Note:
@@ -246,10 +246,10 @@ class CVars:
 		"""移動操作を解析
 
 		Args:
-			accept_key (str): 受け入れ側
-			value_key (str): 入力側
-			value_on_new (bool): True = インスタンス生成
-			declared (bool): True = 変数宣言時
+			accept_key: 受け入れ側
+			value_key: 入力側
+			value_on_new: True = インスタンス生成
+			declared: True = 変数宣言時
 		Returns:
 			Moves: 移動操作の種別
 		Note:

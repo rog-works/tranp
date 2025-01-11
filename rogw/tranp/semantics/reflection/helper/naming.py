@@ -15,8 +15,8 @@ class AliasHandler(Protocol):
 		"""キーに対応する文字列に変換
 
 		Args:
-			key (str): エイリアスキー
-			fallback (str): 存在しない場合の代用値 (default = '')
+			key: エイリアスキー
+			fallback: 存在しない場合の代用値 (default = '')
 		Returns:
 			str: エイリアス
 		Note:
@@ -41,8 +41,8 @@ class ClassDomainNaming:
 		"""クラスのドメイン名を生成
 
 		Args:
-			types (ClassDef): クラス宣言ノード
-			alias_handler (AliasHandler | None): エイリアス解決ハンドラー (default = None)
+			types: クラス宣言ノード
+			alias_handler: エイリアス解決ハンドラー (default = None)
 		Returns:
 			str: ドメイン名
 		"""
@@ -53,8 +53,8 @@ class ClassDomainNaming:
 		"""クラスの完全参照名を生成
 
 		Args:
-			types (ClassDef): クラス宣言ノード
-			alias_handler (AliasHandler | None): エイリアス解決ハンドラー (default = None)
+			types: クラス宣言ノード
+			alias_handler: エイリアス解決ハンドラー (default = None)
 		Returns:
 			str: 完全参照名
 		"""
@@ -65,8 +65,8 @@ class ClassDomainNaming:
 		"""クラスの名前空間上の参照名を生成
 
 		Args:
-			types (ClassDef): クラス宣言ノード
-			alias_handler (AliasHandler | None): エイリアス解決ハンドラー (default = None)
+			types: クラス宣言ノード
+			alias_handler: エイリアス解決ハンドラー (default = None)
 		Returns:
 			str: 名前空間上の参照名
 		"""
@@ -77,9 +77,9 @@ class ClassDomainNaming:
 		"""クラスのドメイン名を生成
 
 		Args:
-			types (ClassDef): クラス宣言ノード
-			alias_handler (AliasHandler | None): エイリアス解決ハンドラー (default = None)
-			path_method (PathMethods): パス生成方式 (default = Domain)
+			types: クラス宣言ノード
+			alias_handler: エイリアス解決ハンドラー (default = None)
+			path_method: パス生成方式 (default = Domain)
 		Returns:
 			str: ドメイン名
 		"""
@@ -95,8 +95,8 @@ class ClassDomainNaming:
 		"""クラスの名前空間を生成
 
 		Args:
-			types (ClassDef): クラス宣言ノード
-			alias_handler (AliasHandler | None): エイリアス解決ハンドラー (default = None)
+			types: クラス宣言ノード
+			alias_handler: エイリアス解決ハンドラー (default = None)
 		Returns:
 			str: 名前空間
 		"""
@@ -110,7 +110,7 @@ class ClassDomainNaming:
 		"""名前空間を持つ親クラスを再帰的に抽出
 
 		Args:
-			types (ClassDef): 起点のクラス宣言ノード
+			types: 起点のクラス宣言ノード
 		Returns:
 			list[ClassDef]: 親クラスのノードリスト
 		Note:
@@ -142,8 +142,8 @@ class ClassShorthandNaming:
 		"""クラスの短縮表記を生成(ドメイン名)
 
 		Args:
-			raw (IReflection): シンボル
-			alias_handler (AliasHandler | None): エイリアス解決ハンドラー (default = None)
+			raw: シンボル
+			alias_handler: エイリアス解決ハンドラー (default = None)
 		Returns:
 			str: 短縮表記
 		"""
@@ -154,8 +154,8 @@ class ClassShorthandNaming:
 		"""クラスの短縮表記を生成(完全参照名)
 
 		Args:
-			raw (IReflection): シンボル
-			alias_handler (AliasHandler | None): エイリアス解決ハンドラー (default = None)
+			raw: シンボル
+			alias_handler: エイリアス解決ハンドラー (default = None)
 		Returns:
 			str: 短縮表記
 		"""
@@ -166,8 +166,8 @@ class ClassShorthandNaming:
 		"""クラスの短縮表記を生成(名前空間上の参照名)
 
 		Args:
-			raw (IReflection): シンボル
-			alias_handler (AliasHandler | None): エイリアス解決ハンドラー (default = None)
+			raw: シンボル
+			alias_handler: エイリアス解決ハンドラー (default = None)
 		Returns:
 			str: 短縮表記
 		"""
@@ -178,8 +178,8 @@ class ClassShorthandNaming:
 		"""クラスの短縮表記を生成(ドメイン名/デバッグ用)
 
 		Args:
-			raw (IReflection): シンボル
-			alias_handler (AliasHandler | None): エイリアス解決ハンドラー (default = None)
+			raw: シンボル
+			alias_handler: エイリアス解決ハンドラー (default = None)
 		Returns:
 			str: 短縮表記
 		"""
@@ -190,10 +190,10 @@ class ClassShorthandNaming:
 		"""クラスの短縮表記を生成
 
 		Args:
-			raw (IReflection): シンボル
-			alias_handler (AliasHandler | None): エイリアス解決ハンドラー
-			path_method (PathMethods): パス生成方式
-			omit_attrs (list[type[Node]]): 拡張情報の省略対象 (default = [AltClass])
+			raw: シンボル
+			alias_handler: エイリアス解決ハンドラー
+			path_method: パス生成方式
+			omit_attrs: 拡張情報の省略対象 (default = [AltClass])
 		Returns:
 			str: 短縮表記
 		"""

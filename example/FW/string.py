@@ -9,8 +9,8 @@ class String:
 		"""指定の文字列が含まれる数を計測
 
 		Args:
-			string (str): 文字列
-			subject (str): カウント対象の文字列
+			string: 文字列
+			subject: カウント対象の文字列
 		Returns:
 			int: 含まれる数
 		Note:
@@ -33,8 +33,8 @@ class String:
 		"""トリム(左)
 
 		Args:
-			string (str): 文字列
-			chara (char): 対象の文字
+			string: 文字列
+			chara: 対象の文字
 		Returns:
 			str: トリム後の文字列
 		"""
@@ -55,8 +55,8 @@ class String:
 		"""トリム(右)
 
 		Args:
-			string (str): 文字列
-			chara (char): 対象の文字
+			string: 文字列
+			chara: 対象の文字
 		Returns:
 			str: トリム後の文字列
 		"""
@@ -78,8 +78,8 @@ class String:
 		"""トリム
 
 		Args:
-			string (str): 文字列
-			chara (char): 対象の文字
+			string: 文字列
+			chara: 対象の文字
 		Returns:
 			str: トリム後の文字列
 		"""
@@ -90,9 +90,9 @@ class String:
 		"""文字列が数字か判定
 
 		Args:
-			string (str): 文字列
-			begin (int): 開始インデックス (default = -1)
-			end (int): 終了インデックス (default = -1)
+			string: 文字列
+			begin: 開始インデックス (default = -1)
+			end: 終了インデックス (default = -1)
 		Returns:
 			bool: True = 数字
 		"""
@@ -121,8 +121,8 @@ class String:
 		"""区切り文字で文字列のリストを結合
 
 		Args:
-			values (list[str]): 文字列リスト
-			delimiter (str): 区切り文字
+			values: 文字列リスト
+			delimiter: 区切り文字
 		Returns:
 			str: 結合後の文字列
 		Note:
@@ -142,8 +142,8 @@ class String:
 		"""区切り文字で文字列を分割する
 
 		Args:
-			src (str): 対象
-			delimiter (str): 区切り文字
+			src: 対象
+			delimiter: 区切り文字
 		Returns:
 			list[str]: 分割した文字列
 		Note:
@@ -170,8 +170,8 @@ class String:
 		"""文字列内の任意の文字に対してエスケープを施す
 
 		Args:
-			string (str): 対象
-			chara (char): エスケープ対象の文字
+			string: 対象
+			chara: エスケープ対象の文字
 		Returns:
 			str: エスケープ後の文字列
 		"""
@@ -189,7 +189,7 @@ class String:
 		"""文字列内のエスケープを解除する
 
 		Args:
-			string (str): 対象
+			string: 対象
 		Returns:
 			str: エスケープ解除後の文字列
 		"""

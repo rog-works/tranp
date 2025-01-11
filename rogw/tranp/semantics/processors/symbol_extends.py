@@ -16,7 +16,7 @@ class SymbolExtends:
 		"""インスタンスを生成
 
 		Args:
-			invoker (Invoker): ファクトリー関数 @inject
+			invoker: ファクトリー関数 @inject
 		"""
 		self.invoker = invoker
 
@@ -25,8 +25,8 @@ class SymbolExtends:
 		"""シンボルテーブルを編集
 
 		Args:
-			module (Module): モジュール
-			db (SymbolDB): シンボルテーブル
+			module: モジュール
+			db: シンボルテーブル
 		Returns:
 			bool: True = 後続処理を実行
 		"""
@@ -52,7 +52,7 @@ class SymbolExtends:
 		"""モッドを生成(タイプ再定義用)
 
 		Args:
-			raw (IReflection): シンボル
+			raw: シンボル
 		Returns:
 			Mod: モッド
 		"""
@@ -62,7 +62,7 @@ class SymbolExtends:
 		"""モッドを生成(クラス定義用)
 
 		Args:
-			raw (IReflection): シンボル
+			raw: シンボル
 		Returns:
 			Mod: モッド
 		"""
@@ -72,7 +72,7 @@ class SymbolExtends:
 		"""モッドを生成(ファンクション定義用)
 
 		Args:
-			raw (IReflection): シンボル
+			raw: シンボル
 		Returns:
 			Mod: モッド
 		"""
@@ -82,7 +82,7 @@ class SymbolExtends:
 		"""モッドを生成(変数宣言用)
 
 		Args:
-			raw (IReflection): シンボル
+			raw: シンボル
 		Returns:
 			Mod: モッド
 		"""
@@ -93,8 +93,8 @@ class SymbolExtends:
 		"""宣言ノードを解析し、シンボル属性を生成(ファンクション定義用)
 
 		Args:
-			reflections (Reflections): シンボルリゾルバー @inject
-			via (IReflection): シンボル
+			reflections: シンボルリゾルバー @inject
+			via: シンボル
 		Returns:
 			list[IReflection]: シンボル属性
 		"""
@@ -116,8 +116,8 @@ class SymbolExtends:
 		"""宣言ノードを解析し、シンボル属性を生成(タイプ再定義用)
 
 		Args:
-			reflections (Reflections): シンボルリゾルバー @inject
-			via (IReflection): シンボル
+			reflections: シンボルリゾルバー @inject
+			via: シンボル
 		Returns:
 			list[IReflection]: シンボル属性
 		"""
@@ -129,8 +129,8 @@ class SymbolExtends:
 		"""宣言ノードを解析し、シンボル属性を生成(クラス定義用)
 
 		Args:
-			reflections (Reflections): シンボルリゾルバー @inject
-			via (IReflection): シンボル
+			reflections: シンボルリゾルバー @inject
+			via: シンボル
 		Returns:
 			list[IReflection]: シンボル属性
 		"""
@@ -156,8 +156,8 @@ class SymbolExtends:
 		"""宣言ノードを解析し、シンボル属性を生成(変数宣言用)
 
 		Args:
-			reflections (Reflections): シンボルリゾルバー @inject
-			via (IReflection): シンボル
+			reflections: シンボルリゾルバー @inject
+			via: シンボル
 		Returns:
 			list[IReflection]: シンボル属性
 		"""

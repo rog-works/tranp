@@ -16,9 +16,9 @@ class Module:
 		"""インスタンスを生成
 
 		Args:
-			sources (ISourceLoader): ソースコードローダー @inject
-			module_path (ModulePath): モジュールパス
-			entrypoint (Entrypoint): エントリーポイント
+			sources: ソースコードローダー @inject
+			module_path: モジュールパス
+			entrypoint: エントリーポイント
 		"""
 		self.__module_path = module_path
 		self.__entrypoint = entrypoint

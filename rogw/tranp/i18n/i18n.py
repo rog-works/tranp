@@ -8,7 +8,7 @@ class TranslationMapping(NamedTuple):
 	"""翻訳マッピングデータ
 
 	Attributes:
-		to (dict[str, str]): {翻訳キー: 翻訳後}
+		to: {翻訳キー: 翻訳後}
 	"""
 
 	to: dict[str, str] = {}
@@ -17,7 +17,7 @@ class TranslationMapping(NamedTuple):
 		"""追加のマッピングデータとマージ
 
 		Args:
-			to (dict[str, str]): {翻訳キー: 翻訳後}
+			to: {翻訳キー: 翻訳後}
 		Returns:
 			TranslationMapping: インスタンス
 		"""
@@ -31,7 +31,7 @@ class I18n:
 		"""インスタンスを生成
 		
 		Args:
-			translation (TranslationMapping): 翻訳マッピングデータ
+			translation: 翻訳マッピングデータ
 		"""
 		self.__translation = translation
 
@@ -40,8 +40,8 @@ class I18n:
 		"""翻訳キーに対応する文字列に変換
 
 		Args:
-			key (str): 翻訳キー
-			fallback (str): 存在しない場合の代用値(default = '')
+			key: 翻訳キー
+			fallback: 存在しない場合の代用値(default = '')
 		Returns:
 			str: 翻訳後の文字列
 		"""

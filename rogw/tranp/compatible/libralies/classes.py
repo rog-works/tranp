@@ -10,7 +10,7 @@ def __actual__(name: str) -> Callable:
 	"""実際のシンボル名を埋め込む
 
 	Args:
-		name (str): 名前
+		name: 名前
 	Returns:
 		Callable: デコレート対象
 	Note:

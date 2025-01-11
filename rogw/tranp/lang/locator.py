@@ -13,7 +13,7 @@ class Locator(Protocol):
 		"""シンボルが解決できるか判定
 
 		Args:
-			symbol (type): シンボル
+			symbol: シンボル
 		Returns:
 			bool: True = 解決できる
 		"""
@@ -23,7 +23,7 @@ class Locator(Protocol):
 		"""シンボルからインスタンスを解決
 
 		Args:
-			symbol (type[T_Inst]): シンボル
+			symbol: シンボル
 		Returns:
 			T_Inst: インスタンス
 		Raises:
@@ -35,7 +35,7 @@ class Locator(Protocol):
 		"""ファクトリーを代替実行し、インスタンスを生成
 
 		Args:
-			factory (Injector[T_Inst]): ファクトリー(関数/メソッド/クラス)
+			factory: ファクトリー(関数/メソッド/クラス)
 			*remain_args (Any): 残りの位置引数
 		Returns:
 			T_Inst: 生成したインスタンス

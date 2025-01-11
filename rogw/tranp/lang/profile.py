@@ -9,8 +9,8 @@ def profiler(sort: str = 'tottime', on: bool = True) -> Callable[[Callable[P, T_
 	"""プロファイルデコレーターを生成
 
 	Args:
-		sort (str): ソートカラム(tottime(消費時間)/cumtime(累積消費時間))
-		on (bool): True = 有効
+		sort: ソートカラム(tottime(消費時間)/cumtime(累積消費時間))
+		on: True = 有効
 	Returns:
 		Callable: デコレーター
 	Note:

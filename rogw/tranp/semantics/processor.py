@@ -12,8 +12,8 @@ class Preprocessor(Protocol):
 		"""シンボルテーブルを編集
 
 		Args:
-			module (Module): モジュール
-			db (SymbolDB): シンボルテーブル
+			module: モジュール
+			db: シンボルテーブル
 		Returns:
 			bool: True = 後続処理を実行
 		"""

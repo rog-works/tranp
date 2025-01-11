@@ -12,7 +12,7 @@ class DecoratorHelper:
 		"""インスタンスを生成
 
 		Args:
-			decorator (str): デコレーター
+			decorator: デコレーター
 		"""
 		self.decorator: str = decorator
 		self._props: tuple[str, dict[str, str], str] = ('', {}, '')
@@ -21,7 +21,7 @@ class DecoratorHelper:
 		"""デコレーターを解析
 
 		Args:
-			decorator (str): デコレーター
+			decorator: デコレーター
 		Returns:
 			tuple[str, dict[str, str], str]: (パス, 引数一覧, 分解前の引数一覧)
 		"""
@@ -72,7 +72,7 @@ class DecoratorHelper:
 		"""指定のインデックスの引数の値を取得
 
 		Args:
-			index (int): インデックス
+			index: インデックス
 		Returns:
 			str: 引数の値
 		"""
@@ -83,7 +83,7 @@ class DecoratorHelper:
 		"""指定のキーの引数の値を取得
 
 		Args:
-			key (str): キー
+			key: キー
 		Returns:
 			str: 引数の値
 		"""
@@ -103,7 +103,7 @@ class DecoratorHelper:
 		"""指定のパターンと一致するか判定
 
 		Args:
-			pattern (str): 正規表現
+			pattern: 正規表現
 		Returns:
 			bool: True = 条件に合致
 		"""
@@ -113,7 +113,7 @@ class DecoratorHelper:
 		"""引数が指定の条件と一致するか判定
 
 		Args:
-			subject (str): 検索条件
+			subject: 検索条件
 		Returns:
 			bool: True = 含む
 		"""
@@ -123,7 +123,7 @@ class DecoratorHelper:
 		"""引数が指定のパターンと一致するか判定
 
 		Args:
-			pattern (str): 正規表現
+			pattern: 正規表現
 		Returns:
 			bool: True = 条件に合致
 		"""
@@ -138,7 +138,7 @@ class DecoratorQuery(Sequence):
 		"""インスタンスを生成
 
 		Args:
-			decorators (list[str]): デコレーターリスト
+			decorators: デコレーターリスト
 		Returns:
 			DecoratorQuery: インスタンス
 		"""
@@ -148,7 +148,7 @@ class DecoratorQuery(Sequence):
 		"""インスタンスを生成
 
 		Args:
-			helpers (list[DecoratorHelper]): デコレーターヘルパーリスト
+			helpers: デコレーターヘルパーリスト
 		"""
 		self._helpers = helpers
 
@@ -176,7 +176,7 @@ class DecoratorQuery(Sequence):
 		"""指定のインデックスの要素を取得
 
 		Args:
-			index (int): インデックス
+			index: インデックス
 		Returns:
 			DecoratorHelper: デコレーターヘルパー
 		"""
@@ -196,7 +196,7 @@ class DecoratorQuery(Sequence):
 		"""指定のパターンと一致する要素を抽出し、新たにインスタンスを生成
 
 		Args:
-			pattern (str): 正規表現
+			pattern: 正規表現
 		Returns:
 			DecoratorQuery: インスタンス
 		"""
@@ -206,7 +206,7 @@ class DecoratorQuery(Sequence):
 		"""引数が指定の条件と一致する要素を抽出し、新たにインスタンスを生成
 
 		Args:
-			subject (str): 検索条件
+			subject: 検索条件
 		Returns:
 			DecoratorQuery: インスタンス
 		"""
@@ -216,7 +216,7 @@ class DecoratorQuery(Sequence):
 		"""引数が指定のパターンと一致する要素を抽出し、新たにインスタンスを生成
 
 		Args:
-			pattern (str): 正規表現
+			pattern: 正規表現
 		Returns:
 			DecoratorQuery: インスタンス
 		"""

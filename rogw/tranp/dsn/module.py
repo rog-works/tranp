@@ -18,7 +18,7 @@ class ModuleDSN:
 		"""要素を結合し、DSNを生成
 
 		Args:
-			dsn (str): DSN
+			dsn: DSN
 			*elems (str): ローカル要素リスト
 		Returns:
 			ModuleDSN: 生成したインスタンス
@@ -32,7 +32,7 @@ class ModuleDSN:
 		"""要素を結合し、DSNを生成
 
 		Args:
-			dsn (str): DSN
+			dsn: DSN
 			*elems (str): ローカル要素リスト
 		Returns:
 			str: DSN
@@ -64,7 +64,7 @@ class ModuleDSN:
 		"""DSNまたはローカルパスからローカル要素を分解
 
 		Args:
-			dsn_or_local (str): DSNまたはローカルパス
+			dsn_or_local: DSNまたはローカルパス
 		Returns:
 			list[str]: ローカル要素リスト
 		"""
@@ -76,7 +76,7 @@ class ModuleDSN:
 		"""DSNまたはローカルパスに含まれるローカル要素の数を算出
 
 		Args:
-			dsn_or_local (str): DSNまたはローカルパス
+			dsn_or_local: DSNまたはローカルパス
 		Returns:
 			int: ローカル要素の数
 		"""
@@ -87,7 +87,7 @@ class ModuleDSN:
 		"""DSNを解析し、モジュールパスとローカルパスに分離
 
 		Args:
-			dsn (str): DSN
+			dsn: DSN
 		Returns:
 			tuple[str, str]: (モジュールパス, ローカルパス)
 		"""
@@ -99,7 +99,7 @@ class ModuleDSN:
 		"""DSNを解析し、モジュールパスとローカル要素に分離
 
 		Args:
-			dsn (str): DSN
+			dsn: DSN
 		Returns:
 			tuple[str, list[str]]: (モジュールパス, ローカル要素リスト)
 		"""
@@ -111,8 +111,8 @@ class ModuleDSN:
 		"""IDを付与し、一意性を持ったDSNを生成
 
 		Args:
-			dsn (str): DSN
-			id (int | str): ID
+			dsn: DSN
+			id: ID
 		Returns:
 			str: DSN
 		"""
@@ -122,7 +122,7 @@ class ModuleDSN:
 		"""インスタンスを生成
 
 		Args:
-			dsn (str): DSN
+			dsn: DSN
 		"""
 		module_path, local_path = self.parsed(dsn)
 		self.dsn = dsn

@@ -42,7 +42,7 @@ class Args:
 		"""コマンドライン引数を解析
 
 		Args:
-			argv (list[str]): 引数リスト
+			argv: 引数リスト
 		Returns:
 			ArgsDict: コマンドライン引数のデータ
 		"""
@@ -75,7 +75,7 @@ class AnalyzeApp(App):
 		"""シンタックスパーサー設定データを生成
 
 		Args:
-			args (Args): コマンドライン引数 @inject
+			args: コマンドライン引数 @inject
 		Returns:
 			ParserSetting: シンタックスパーサー設定
 		"""
@@ -87,8 +87,8 @@ class AnalyzeApp(App):
 		"""処理対象のモジュールパスリストを生成
 
 		Args:
-			args (Args): コマンドライン引数 @inject
-			sources (ISourceLoader): ソースコードローダー @inject
+			args: コマンドライン引数 @inject
+			sources: ソースコードローダー @inject
 		Returns:
 			ModulePaths: 処理対象のモジュールパスリスト
 		"""
@@ -111,7 +111,7 @@ class AnalyzeApp(App):
 		"""モジュールのエントリーポイントを取得
 
 		Args:
-			module_path (str): モジュールパス
+			module_path: モジュールパス
 		Returns:
 			Entrypoint: エントリーポイントノード
 		"""
@@ -137,7 +137,7 @@ class AnalyzeApp(App):
 		"""シンボル定義ノードをシリアライズ
 
 		Args:
-			types (ClassDef): シンボル定義ノード
+			types: シンボル定義ノード
 		Returns:
 			str: データ
 		"""
@@ -155,7 +155,7 @@ class AnalyzeApp(App):
 		"""ノードをシリアライズ
 
 		Args:
-			node (Node): ノード
+			node: ノード
 		Returns:
 			dict[str, Any]: データ
 		"""
@@ -169,7 +169,7 @@ class AnalyzeApp(App):
 		"""ノードをダンプ
 
 		Args:
-			node (Node): ノード
+			node: ノード
 		Returns:
 			dict[str, Any]: データ
 		"""
@@ -195,7 +195,7 @@ class AnalyzeApp(App):
 		"""シンボルをダンプ
 
 		Args:
-			symbol (IReflection): シンボル
+			symbol: シンボル
 		Returns:
 			dict[str, Any]: データ
 		"""
@@ -418,7 +418,7 @@ class AnalyzeApp(App):
 		"""表示(クラス詳細)
 
 		Args:
-			fullyname (str): 完全参照名
+			fullyname: 完全参照名
 		"""
 		print(self.serialize_class(self.resolve(Reflections).from_fullyname(fullyname).types))
 
@@ -434,7 +434,7 @@ class AnalyzeApp(App):
 		"""表示(ノード階層)
 
 		Args:
-			module_path (str): モジュールパス
+			module_path: モジュールパス
 		"""
 		print(self.fetch_entrypoint(module_path).pretty())
 
@@ -442,7 +442,7 @@ class AnalyzeApp(App):
 		"""表示(シンボル詳細)
 
 		Args:
-			fullyname (str): 完全参照名
+			fullyname: 完全参照名
 		"""
 		symbol = self.resolve(Reflections).from_fullyname(fullyname)
 		print(json.dumps(self.serialize_node(symbol.types), indent=2))
@@ -452,8 +452,8 @@ class AnalyzeApp(App):
 		"""アプリケーションのエントリーポイント
 
 		Args:
-			args (Args): コマンドライン引数 @inject
-			modules (Modules): モジュールマネージャー @inject
+			args: コマンドライン引数 @inject
+			modules: モジュールマネージャー @inject
 		"""
 		# 既定のモジュールをロード
 		modules.dependencies()

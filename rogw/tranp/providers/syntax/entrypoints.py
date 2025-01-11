@@ -18,8 +18,8 @@ def entrypoint_loader(locator: Locator, dependencies: ModuleDependencyProvider) 
 	"""エントリーポイントローダーを生成
 
 	Args:
-		locator (Locator): ロケーター @inject
-		dependencies (ModuleDependencyProvider): @inject
+		locator: ロケーター @inject
+		dependencies: @inject
 	Returns:
 		EntrypointLoader: エントリーポイントローダー
 	"""
@@ -43,7 +43,7 @@ def entrypoint(query: Query[Node]) -> defs.Entrypoint:
 	"""エントリーポイントを解決
 
 	Args:
-		query (Query[Node]): ノードクエリー
+		query: ノードクエリー
 	Returns:
 		Node: エントリーポイント
 	"""

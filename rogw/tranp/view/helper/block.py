@@ -17,11 +17,11 @@ class Entry:
 		"""インスタンスを生成
 
 		Args:
-			begin (int): 開始位置
-			end (int): 終了位置
-			depth (int): 深度
-			kind (Kinds): エントリーの種別
-			entries (Entry): 配下のエントリーリスト
+			begin: 開始位置
+			end: 終了位置
+			depth: 深度
+			kind: エントリーの種別
+			entries: 配下のエントリーリスト
 		"""
 		self.begin = begin
 		self.end = end
@@ -52,9 +52,9 @@ class BlockFormatter:
 		"""インスタンスを生成
 
 		Args:
-			name (str): ブロックの名前
-			brackets (str): 括弧のペア
-			delimiter (str): 区切り文字
+			name: ブロックの名前
+			brackets: 括弧のペア
+			delimiter: 区切り文字
 		"""
 		self.name = name
 		self.open = brackets[0]
@@ -66,9 +66,9 @@ class BlockFormatter:
 		"""指定した書式で文字列に変換
 
 		Args:
-			join_format (str): 要素の結合書式
-			block_format (str): ブロックの書式
-			alt_formatter (AltFormatter): 出力変換関数。文字列を返す場合にformatの結果を変更 (default = None)
+			join_format: 要素の結合書式
+			block_format: ブロックの書式
+			alt_formatter: 出力変換関数。文字列を返す場合にformatの結果を変更 (default = None)
 		Returns:
 			str: 変換後の文字列
 		Note:
@@ -91,9 +91,9 @@ class BlockFormatter:
 		"""指定した書式でブロックを生成
 
 		Args:
-			join_format (str): 要素の結合書式
-			block_format (str): ブロックの書式
-			alt_formatter (AltFormatter): 出力変換関数。文字列を返す場合にformatの結果を変更 (default = None)
+			join_format: 要素の結合書式
+			block_format: ブロックの書式
+			alt_formatter: 出力変換関数。文字列を返す場合にformatの結果を変更 (default = None)
 		Returns:
 			str: 変換後の文字列
 		"""
@@ -113,9 +113,9 @@ class BlockParser:
 		"""ブロックを表す文字列を解析。ブロックと要素をエントリーとして分解し、ルートのエントリーを返却
 
 		Args:
-			text (str): 解析対象の文字列
-			brackets (str): 括弧のペア (default = '()')
-			delimiter (str): 区切り文字 (default = ',')
+			text: 解析対象の文字列
+			brackets: 括弧のペア (default = '()')
+			delimiter: 区切り文字 (default = ',')
 		Returns:
 			Entry: エントリー
 		"""
@@ -126,11 +126,11 @@ class BlockParser:
 		"""ブロックを表す文字列を解析。ブロックと要素をエントリーとして分解し、エントリーリストを返却
 
 		Args:
-			text (str): 解析対象の文字列
-			brackets (str): 括弧のペア
-			delimiter (str): 区切り文字
-			begin (int): 開始位置
-			depth (int): 深度
+			text: 解析対象の文字列
+			brackets: 括弧のペア
+			delimiter: 区切り文字
+			begin: 開始位置
+			depth: 深度
 		Returns:
 			tuple[int, list[Entry]]: (読み取り終了位置, エントリーのリスト)
 		"""
@@ -156,10 +156,10 @@ class BlockParser:
 		"""エントリーの開始位置/種別を解析
 
 		Args:
-			text (str): 解析対象の文字列
-			brackets (str): 括弧のペア
-			delimiter (str): 区切り文字
-			begin (int): 開始位置
+			text: 解析対象の文字列
+			brackets: 括弧のペア
+			delimiter: 区切り文字
+			begin: 開始位置
 		Returns:
 			tuple[Kinds, int, int]: (エントリーの種別, エントリーの開始位置, ブロックの開始位置/要素の終了位置)
 		"""
@@ -197,9 +197,9 @@ class BlockParser:
 		"""対象外のブロックをスキップ
 
 		Args:
-			text (str): 解析対象の文字列
-			other_tokens (str): 対象外の括弧のペア
-			begin (int): 開始位置
+			text: 解析対象の文字列
+			other_tokens: 対象外の括弧のペア
+			begin: 開始位置
 		Returns:
 			int: 読み取り終了位置
 		"""
@@ -225,11 +225,11 @@ class BlockParser:
 		"""ブロックを解析
 
 		Args:
-			text (str): 解析対象の文字列
-			brackets (str): 括弧のペア
-			delimiter (str): 区切り文字
-			begin (int): 開始位置
-			depth (int): 深度
+			text: 解析対象の文字列
+			brackets: 括弧のペア
+			delimiter: 区切り文字
+			begin: 開始位置
+			depth: 深度
 		Returns:
 			tuple[int, list[Entry]]: (読み取り終了位置, エントリーのリスト)
 		"""
@@ -251,8 +251,8 @@ class BlockParser:
 		"""文字列内の括弧で囲われた入れ子構造のブロックを展開する
 
 		Args:
-			text (str): 対象の文字列
-			brackets (str): 括弧のペア (default: '()')
+			text: 対象の文字列
+			brackets: 括弧のペア (default: '()')
 		Returns:
 			list[str]: 展開したブロックのリスト
 		"""
@@ -270,9 +270,9 @@ class BlockParser:
 		"""文字列内の連想配列の入れ子構造のブロックを展開する
 
 		Args:
-			text (str): 対象の文字列
-			brackets (str): 括弧のペア (default: '{}')
-			delimiter (str): 区切り文字 (default: ':')
+			text: 対象の文字列
+			brackets: 括弧のペア (default: '{}')
+			delimiter: 区切り文字 (default: ':')
 		Returns:
 			list[tuple[str, str]]: [(キー, 値), ...]
 		"""
@@ -286,9 +286,9 @@ class BlockParser:
 		"""文字列内の連想配列/関数コールの入れ子構造のブロックを展開し、フォーマッターを返却
 
 		Args:
-			text (str): 対象の文字列
-			brackets (str): 括弧のペア (default: '{}')
-			delimiter (str): 区切り文字 (default: ':')
+			text: 対象の文字列
+			brackets: 括弧のペア (default: '{}')
+			delimiter: 区切り文字 (default: ':')
 		Returns:
 			BlockFormatter: ブロックフォーマッター
 		"""
@@ -311,8 +311,8 @@ class BlockParser:
 		"""文字列内の終端ブロックを解析し、終端ブロックまでの接頭辞とブロックの内部要素に分解する
 
 		Args:
-			text (str): 対象の文字列
-			brackets (str): 括弧のペア (default: '[]')
+			text: 対象の文字列
+			brackets: 括弧のペア (default: '[]')
 		Returns:
 			tuple[str, str]: (接頭辞、ブロックの内部要素)
 		"""
@@ -342,8 +342,8 @@ class BlockParser:
 		"""文字列を区切り文字で分割
 
 		Args:
-			text (str): 対象の文字列
-			delimiter (str): 区切り文字
+			text: 対象の文字列
+			delimiter: 区切り文字
 		Returns:
 			list[str]: ブロックリスト
 		"""

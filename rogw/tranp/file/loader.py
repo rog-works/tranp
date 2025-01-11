@@ -9,7 +9,7 @@ class IFileLoader(metaclass=ABCMeta):
 		"""ファイルが存在するか判定
 
 		Args:
-			filepath (str): 実行ディレクトリーからの相対パス。または絶対パス
+			filepath: 実行ディレクトリーからの相対パス。または絶対パス
 		Returns:
 			bool: True = 存在する
 		"""
@@ -20,7 +20,7 @@ class IFileLoader(metaclass=ABCMeta):
 		"""ファイルをロード
 
 		Args:
-			filepath (str): 実行ディレクトリーからの相対パス。または絶対パス
+			filepath: 実行ディレクトリーからの相対パス。または絶対パス
 		Returns:
 			str: コンテンツ
 		Raises:
@@ -33,7 +33,7 @@ class IFileLoader(metaclass=ABCMeta):
 		"""ファイルの最終更新日時を取得
 
 		Args:
-			filepath (str): 実行ディレクトリーからの相対パス。または絶対パス
+			filepath: 実行ディレクトリーからの相対パス。または絶対パス
 		Returns:
 			float: タイムスタンプ
 		Raises:
@@ -46,7 +46,7 @@ class IFileLoader(metaclass=ABCMeta):
 		"""ファイルのハッシュ値を取得
 
 		Args:
-			filepath (str): 実行ディレクトリーからの相対パス。または絶対パス
+			filepath: 実行ディレクトリーからの相対パス。または絶対パス
 		Returns:
 			str: ハッシュ値
 		Raises:

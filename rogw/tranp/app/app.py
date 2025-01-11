@@ -13,7 +13,7 @@ class App:
 		"""インスタンスを生成
 
 		Args:
-			definitions (ModuleDefinitions): モジュール定義
+			definitions: モジュール定義
 		"""
 		self.__di = di_container({**default_definitions(), **definitions})
 
@@ -21,7 +21,7 @@ class App:
 		"""アプリケーションを実行
 
 		Args:
-			task (Callable[..., T_Inst]): タスクランナー
+			task: タスクランナー
 		Returns:
 			T_Inst: 実行結果
 		"""
@@ -31,7 +31,7 @@ class App:
 		"""シンボルからインスタンスを解決
 
 		Args:
-			symbol (type[T_Inst]): シンボル
+			symbol: シンボル
 		Returns:
 			T_Inst: インスタンス
 		Raises:

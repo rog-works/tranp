@@ -66,8 +66,8 @@ class Entry(metaclass=ABCMeta):
 		"""SourceMap: ソースマップ
 
 		Note:
-			begin (tuple[int, int]): 開始位置(行/列)
-			end (tuple[int, int]): 終了位置(行/列)
+			begin: 開始位置(行/列)
+			end: 終了位置(行/列)
 		"""
 		return {'begin': (0, 0), 'end': (0, 0)}
 
@@ -85,7 +85,7 @@ class EntryOfDict(Entry):
 		"""インスタンスを生成
 
 		Args:
-			entry (DictTreeEntry): エントリー
+			entry: エントリー
 		"""
 		self.__entry = entry
 

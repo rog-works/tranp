@@ -14,7 +14,7 @@ class IModuleLoader(metaclass=ABCMeta):
 		"""モジュールをロード
 
 		Args:
-			module_path (ModulePath): モジュールパス
+			module_path: モジュールパス
 		Returns:
 			Module: モジュール
 		"""
@@ -25,7 +25,7 @@ class IModuleLoader(metaclass=ABCMeta):
 		"""モジュールをアンロード
 
 		Args:
-			module_path (ModulePath): モジュールパス
+			module_path: モジュールパス
 		"""
 		...
 
@@ -34,7 +34,7 @@ class IModuleLoader(metaclass=ABCMeta):
 		"""モジュールにプリプロセスを実施
 
 		Args:
-			module (Module): モジュール
+			module: モジュール
 		"""
 		...
 

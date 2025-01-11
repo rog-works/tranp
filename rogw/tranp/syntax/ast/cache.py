@@ -19,7 +19,7 @@ class EntryCache(Generic[T]):
 		"""指定のパスのエントリーが存在するか判定
 
 		Args:
-			full_path (str): フルパス
+			full_path: フルパス
 		Returns:
 			bool: True = 存在する
 		"""
@@ -29,7 +29,7 @@ class EntryCache(Generic[T]):
 		"""指定のパスのエントリーのインデックスを取得
 
 		Args:
-			full_path (str): フルパス
+			full_path: フルパス
 		Returns:
 			int: インデックス
 		"""
@@ -39,7 +39,7 @@ class EntryCache(Generic[T]):
 		"""指定のパスのエントリーをフェッチ
 
 		Args:
-			full_path (str): フルパス
+			full_path: フルパス
 		Returns:
 			T: エントリー
 		Raises:
@@ -54,8 +54,8 @@ class EntryCache(Generic[T]):
 		"""指定の基準パス以下のエントリーをフェッチ
 
 		Args:
-			via (str): 基準のパス(フルパス)
-			depth (int): 探索深度。-1は無制限(default = -1)
+			via: 基準のパス(フルパス)
+			depth: 探索深度。-1は無制限(default = -1)
 		Returns:
 			dict[str, T]: (フルパス, エントリー)
 		Raises:
@@ -80,8 +80,8 @@ class EntryCache(Generic[T]):
 		"""指定のパスとエントリーを紐付けてキャッシュに追加
 
 		Args:
-			full_path (str): フルパス
-			entry (T): エントリー
+			full_path: フルパス
+			entry: エントリー
 		"""
 		if self.exists(full_path):
 			return

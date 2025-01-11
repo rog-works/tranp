@@ -9,9 +9,9 @@ def data_provider(args_list: list[tuple], includes: list[int] = [], excludes: li
 	"""テストメソッドにデータを注入するデコレーター
 
 	Args:
-		args_list (list[tuple]): 注入する引数リスト
-		includes (list[int]): 注入するインデックス([]: 指定なし)
-		excludes (list[int]): 注入を除外するインデックス([]: 指定なし)
+		args_list: 注入する引数リスト
+		includes: 注入するインデックス([]: 指定なし)
+		excludes: 注入を除外するインデックス([]: 指定なし)
 	Returns:
 		Callable: デコレーター
 	"""

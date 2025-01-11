@@ -9,8 +9,8 @@ class RendererSetting(NamedTuple):
 	"""テンプレートレンダー設定データ
 
 	Attributes:
-		template_dirs (list[str]): テンプレートファイルのディレクトリーリスト
-		translator (Translator): 翻訳関数
+		template_dirs: テンプレートファイルのディレクトリーリスト
+		translator: 翻訳関数
 		env: dict[str, Any]: 環境変数
 	"""
 	template_dirs: list[str]
@@ -40,8 +40,8 @@ class Renderer:
 		"""インスタンスを生成
 
 		Args:
-			setting (RendererSetting): テンプレートレンダー設定データ
-			helper_privider (RendererHelperProvider): ヘルパープロバイダー
+			setting: テンプレートレンダー設定データ
+			helper_privider: ヘルパープロバイダー
 		"""
 		self.__renderer = Environment(loader=FileSystemLoader(setting.template_dirs, encoding='utf-8'), auto_reload=False)
 		for tag, helpers in helper_provider().items():
@@ -55,7 +55,7 @@ class Renderer:
 		"""テンプレートをレンダリング
 
 		Args:
-			template (str): テンプレートファイルの名前
+			template: テンプレートファイルの名前
 			vars (dict[str, Any]) テンプレートへの入力変数(default = {})
 		Returns:
 			str: レンダリング結果

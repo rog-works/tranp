@@ -16,7 +16,7 @@ class IReflectionSerializer(metaclass=ABCMeta):
 		"""シリアライズ
 
 		Args:
-			symbol (IReflection): シンボル
+			symbol: シンボル
 		Returns:
 			dict[str, Any]: データ
 		"""
@@ -27,8 +27,8 @@ class IReflectionSerializer(metaclass=ABCMeta):
 		"""デシリアライズ
 
 		Args:
-			db (MutableMapping[str, IReflection]): シンボルテーブル
-			data (dict[str, Any]): データ
+			db: シンボルテーブル
+			data: データ
 		Returns:
 			IReflection: シンボル
 		"""

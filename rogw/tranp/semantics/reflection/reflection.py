@@ -24,11 +24,11 @@ class Options:
 		"""インスタンスを生成
 
 		Args:
-			types (ClassDef | None): 型を表すノード (default = None)
-			decl (DeclAll | None): 定義元のノード (default = None)
-			node (Node | None): ノード (default = None)
-			origin (IReflection | None): 型のシンボル (default = None)
-			via (IReflection | None): スタックシンボル (default = None)
+			types: 型を表すノード (default = None)
+			decl: 定義元のノード (default = None)
+			node: ノード (default = None)
+			origin: 型のシンボル (default = None)
+			via: スタックシンボル (default = None)
 		"""
 		self.types = types
 		self.decl = decl
@@ -44,8 +44,8 @@ class ReflectionBase(IReflection):
 		"""インスタンスを生成
 
 		Args:
-			traits (Traits[IReflection]): トレイトマネージャー
-			options (Options): 生成オプション
+			traits: トレイトマネージャー
+			options: 生成オプション
 		"""
 		self.__traits = traits
 
@@ -105,8 +105,8 @@ class ReflectionBase(IReflection):
 		"""定義ノードをスタックし、型のシンボルを移行。型のシンボル省略時はそのまま引き継ぐ
 
 		Args:
-			decl (DeclVars): 定義元のノード
-			origin (IReflection | None): 型のシンボル (default = None)
+			decl: 定義元のノード
+			origin: 型のシンボル (default = None)
 		Returns:
 			IReflection: リフレクション
 		"""
@@ -117,7 +117,7 @@ class ReflectionBase(IReflection):
 		"""ノードをスタック。ノード省略時は自分自身をスタック
 
 		Args:
-			node (Node | None): ノード (default = None)
+			node: ノード (default = None)
 		Returns:
 			IReflection: リフレクション
 		"""
@@ -128,8 +128,8 @@ class ReflectionBase(IReflection):
 		"""ノードをスタックし、型のシンボルを移行
 
 		Args:
-			node (Node): ノード
-			origin (IReflection): 型のシンボル
+			node: ノード
+			origin: 型のシンボル
 		Returns:
 			IReflection: リフレクション
 		"""
@@ -183,8 +183,8 @@ class ReflectionBase(IReflection):
 		"""モッドを有効化
 		
 		Args:
-			key (Literal['origin', 'attrs']): キー
-			mod (Mod): モッド
+			key: キー
+			mod: モッド
 		"""
 		raise SemanticsLogicError(f'Operation not allowed. symbol: {self.types.fullyname}')
 
@@ -193,7 +193,7 @@ class ReflectionBase(IReflection):
 		"""期待する型と同じインターフェイスを実装していればキャスト
 
 		Args:
-			expect (type[T_Ref]): 期待する型
+			expect: 期待する型
 		Returns:
 			T_Ref: インスタンス
 		Raises:
@@ -209,7 +209,7 @@ class ReflectionBase(IReflection):
 		"""比較演算子のオーバーロード
 
 		Args:
-			other (object): 比較対象
+			other: 比較対象
 		Returns:
 			bool: True = 同じ
 		Raises:
@@ -246,7 +246,7 @@ class ReflectionBase(IReflection):
 		"""トレイトからメソッドを取得
 
 		Args:
-			name (str): メソッド名
+			name: メソッド名
 		Returns:
 			Callable[..., Any]: メソッド
 		Note:
@@ -268,8 +268,8 @@ class Symbol(ReflectionBase):
 		"""インスタンスを生成
 
 		Args:
-			traits (Traits[IReflection]): トレイトマネージャー
-			types (ClassDef): クラス定義ノード
+			traits: トレイトマネージャー
+			types: クラス定義ノード
 		Returns:
 			Symbol: インスタンス
 		"""
@@ -280,8 +280,8 @@ class Symbol(ReflectionBase):
 		"""インスタンスを生成
 
 		Args:
-			traits (Traits[IReflection]): トレイトマネージャー
-			options (Options): 生成オプション
+			traits: トレイトマネージャー
+			options: 生成オプション
 		"""
 		super().__init__(traits, options)
 		self._types = safe_cast(options.types)
@@ -318,8 +318,8 @@ class Reflection(ReflectionBase):
 		"""インスタンスを生成
 
 		Args:
-			traits (Traits[IReflection]): トレイトマネージャー
-			options (Options): 生成オプション
+			traits: トレイトマネージャー
+			options: 生成オプション
 		"""
 		super().__init__(traits, options)
 		self._node = safe_cast(options.node)
@@ -410,7 +410,7 @@ class Reflection(ReflectionBase):
 		"""モッドを有効化
 		
 		Args:
-			key (Literal['origin', 'attrs']): キー
-			mod (Mod): モッド
+			key: キー
+			mod: モッド
 		"""
 		self._mods.activate(key, mod)

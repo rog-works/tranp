@@ -39,11 +39,11 @@ class Py2Cpp(ITranspiler):
 		"""インスタンスを生成
 
 		Args:
-			reflections (Reflections): シンボルリゾルバー @inject
-			render (Renderer): ソースレンダー @inject
-			i18n (I18n): 国際化対応モジュール @inject
-			module_meta_factory (ModuleMetaFactory): モジュールのメタ情報ファクトリー @inject
-			options (TranslatorOptions): 実行オプション @inject
+			reflections: シンボルリゾルバー @inject
+			render: ソースレンダー @inject
+			i18n: 国際化対応モジュール @inject
+			module_meta_factory: モジュールのメタ情報ファクトリー @inject
+			options: 実行オプション @inject
 		"""
 		self.reflections = reflections
 		self.view = render
@@ -69,7 +69,7 @@ class Py2Cpp(ITranspiler):
 		"""プロシージャーを生成
 
 		Args:
-			options (TranslatorOptions): 実行オプション
+			options: 実行オプション
 		Returns:
 			Procedure[str]: プロシージャー
 		"""
@@ -85,8 +85,8 @@ class Py2Cpp(ITranspiler):
 		"""イベントハンドラーを登録
 
 		Args:
-			action (str): アクション名
-			callback (Callback[str]): ハンドラー
+			action: アクション名
+			callback: ハンドラー
 		"""
 		self.__procedure.on(action, callback)
 
@@ -95,8 +95,8 @@ class Py2Cpp(ITranspiler):
 		"""イベントハンドラーを解除
 
 		Args:
-			action (str): アクション名
-			callback (Callback[str]): ハンドラー
+			action: アクション名
+			callback: ハンドラー
 		"""
 		self.__procedure.off(action, callback)
 
@@ -111,7 +111,7 @@ class Py2Cpp(ITranspiler):
 		"""起点のノードから解析してトランスパイルしたソースコードを返却
 
 		Args:
-			root (Node): 起点のノード
+			root: 起点のノード
 		Returns:
 			str: トランスパイル後のソースコード
 		"""
@@ -121,7 +121,7 @@ class Py2Cpp(ITranspiler):
 		"""型推論によって補完する際の名前空間上の参照名を取得 (主にMoveAssignで利用)
 
 		Args:
-			raw (IReflection): シンボル
+			raw: シンボル
 		Returns:
 			str: 名前空間上の参照名
 		Note:
@@ -147,7 +147,7 @@ class Py2Cpp(ITranspiler):
 		"""明示された型からドメイン名を取得 (主にAnnoAssignで利用)
 
 		Args:
-			var_type_raw (IReflection): シンボル
+			var_type_raw: シンボル
 		Returns:
 			str: ドメイン名
 		Note:
@@ -161,7 +161,7 @@ class Py2Cpp(ITranspiler):
 		"""明示された型からドメイン名を取得
 
 		Args:
-			types (ClassDef): クラス宣言ノード
+			types: クラス宣言ノード
 		Returns:
 			str: 型の参照名
 		"""
@@ -171,7 +171,7 @@ class Py2Cpp(ITranspiler):
 		"""プロパティーの名前を取得
 
 		Args:
-			prop_raw (IReflection): プロパティー
+			prop_raw: プロパティー
 		Returns:
 			str: プロパティー名
 		"""
@@ -181,7 +181,7 @@ class Py2Cpp(ITranspiler):
 		"""プロパティーの名前を取得
 
 		Args:
-			decl (DeclAll): メソッド・変数宣言ノード
+			decl: メソッド・変数宣言ノード
 		Returns:
 			str: プロパティー名
 		"""
@@ -191,7 +191,7 @@ class Py2Cpp(ITranspiler):
 		"""ファンクションのテンプレート型名を取得
 
 		Args:
-			node (Function): ファンクションノード
+			node: ファンクションノード
 		Returns:
 			list[str]: テンプレート型名リスト
 		"""
@@ -201,7 +201,7 @@ class Py2Cpp(ITranspiler):
 		"""仮想関数の判定
 
 		Args:
-			method (Constructur | Method): メソッド系ノード
+			method: メソッド系ノード
 		Returns:
 			bool: True = 仮想関数
 		Note:
@@ -213,8 +213,8 @@ class Py2Cpp(ITranspiler):
 		"""代入時の型推論で許容される型か判定
 
 		Args:
-			value_raw (IReflection): 値のシンボル
-			declared (bool): True = 変数宣言
+			value_raw: 値のシンボル
+			declared: True = 変数宣言
 		Returns:
 			bool: False = 不許可
 		Note:
@@ -237,7 +237,7 @@ class Py2Cpp(ITranspiler):
 		"""アクセス修飾子を翻訳
 
 		Args:
-			accessor (str): アクセス修飾子
+			accessor: アクセス修飾子
 		Returns:
 			str: 翻訳後のアクセス修飾子
 		"""
@@ -1270,7 +1270,7 @@ class PatternParser:
 		"""リレーからレシーバーとオペレーターに分解
 
 		Args:
-			relay (str): 文字列
+			relay: 文字列
 		Returns:
 			tuple[str, str]: (レシーバー, オペレーター)
 		Note:
@@ -1284,7 +1284,7 @@ class PatternParser:
 		"""関数コールから引数リストの部分を抜き出す
 
 		Args:
-			func_call (str): 文字列
+			func_call: 文字列
 		Returns:
 			str: 引数リスト
 		Note:
@@ -1298,7 +1298,7 @@ class PatternParser:
 		"""連想配列のイテレーターコール(items|keys|values)から各要素に分解
 
 		Args:
-			func_call (str): 文字列
+			func_call: 文字列
 		Returns:
 			tuple[str, str, str]: (レシーバー, オペレーター, メソッド)
 		Note:
@@ -1312,7 +1312,7 @@ class PatternParser:
 		"""関数コール(super)から引数リストの部分を抜き出す
 
 		Args:
-			func_call (str): 文字列
+			func_call: 文字列
 		Returns:
 			str: 引数リスト
 		Note:
@@ -1326,7 +1326,7 @@ class PatternParser:
 		"""代入式から右辺の部分を抜き出す
 
 		Args:
-			assign (str): 文字列
+			assign: 文字列
 		Returns:
 			str: 右辺
 		Note:
@@ -1341,7 +1341,7 @@ class PatternParser:
 		"""インデクサーからレシーバーとキーに分解
 
 		Args:
-			assign (str): 文字列
+			assign: 文字列
 		Returns:
 			tuple[str, str]: (レシーバー, キー)
 		Note:
@@ -1355,7 +1355,7 @@ class PatternParser:
 		"""C++型変数のメモリー生成関数コールから引数の部分を抜き出す
 
 		Args:
-			argument (str): 文字列
+			argument: 文字列
 		Returns:
 			str: 引数
 		Note:
@@ -1369,7 +1369,7 @@ class PatternParser:
 		"""C++型変数のリレープロクシーを削除する
 
 		Args:
-			receiver (str): 文字列
+			receiver: 文字列
 		Returns:
 			str: 引数
 		Note:
@@ -1383,7 +1383,7 @@ class PatternParser:
 		"""C++型変数の型変換プロクシーを削除する
 
 		Args:
-			receiver (str): 文字列
+			receiver: 文字列
 		Returns:
 			str: 引数
 		Note:

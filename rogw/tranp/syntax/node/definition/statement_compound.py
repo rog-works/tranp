@@ -351,7 +351,7 @@ class ClassDef(Node, IDomain, IScope, INamespace, IDeclaration, ISymbol):
 		"""埋め込みデコレーターを取得
 
 		Args:
-			identifier (str): 識別名
+			identifier: 識別名
 		Returns:
 			Decorator | None: デコレーター
 		Examples:
@@ -703,8 +703,8 @@ class VarsCollector:
 		"""対象のブロック内で宣言した変数を収集する
 
 		Args:
-			block (StatementBlock): ブロック
-			allow (type[T_Declable]): 収集対象の変数宣言ノード
+			block: ブロック
+			allow: 収集対象の変数宣言ノード
 		Returns:
 			list[T_Declable]: 宣言ノードリスト
 		"""
@@ -715,8 +715,8 @@ class VarsCollector:
 		"""対象のブロック内で宣言した変数を収集する
 
 		Args:
-			block (StatementBlock): ブロック
-			allow (type[T_Declable]): 収集対象の変数宣言ノード
+			block: ブロック
+			allow: 収集対象の変数宣言ノード
 		Returns:
 			dict[str, T_Declable]: 完全参照名と変数宣言ノードのマップ表
 		"""
@@ -746,9 +746,9 @@ class VarsCollector:
 		"""シンボル宣言ノード内の変数を収集済みデータに合成する
 
 		Args:
-			decl_vars (dict[str, T_Declable]): 収集済みの変数宣言ノード
+			decl_vars: 収集済みの変数宣言ノード
 			add_declare (IDeclaration: 追加対象のシンボル宣言ノード
-			allow (type[T_Declable]): 収集対象の変数宣言ノード
+			allow: 収集対象の変数宣言ノード
 		Returns:
 			dict[str, T_Declable]: 完全参照名と変数宣言ノードのマップ表
 		"""
@@ -760,8 +760,8 @@ class VarsCollector:
 		"""追加対象の変数を収集済みデータに合成する
 
 		Args:
-			decl_vars (dict[str, T_Declable]): 収集済みの変数宣言ノード
-			add_vars (dict[str, T_Declable]): 追加の変数宣言ノード
+			decl_vars: 収集済みの変数宣言ノード
+			add_vars: 追加の変数宣言ノード
 		Returns:
 			dict[str, T_Declable]: 完全参照名と変数宣言ノードのマップ表
 		Note:

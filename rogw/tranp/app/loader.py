@@ -12,7 +12,7 @@ class FileLoader(IFileLoader):
 		"""インスタンスを生成
 
 		Args:
-			env_paths (SourceEnvPath): 環境パスリスト @inject
+			env_paths: 環境パスリスト @inject
 		"""
 		self.__env_paths = env_paths
 		self.__hashs: dict[str, str] = {}
@@ -23,7 +23,7 @@ class FileLoader(IFileLoader):
 		"""ファイルが存在するか判定
 
 		Args:
-			filepath (str): 実行ディレクトリーからの相対パス。または絶対パス
+			filepath: 実行ディレクトリーからの相対パス。または絶対パス
 		Returns:
 			bool: True = 存在する
 		"""
@@ -34,7 +34,7 @@ class FileLoader(IFileLoader):
 		"""ファイルをロード
 
 		Args:
-			filepath (str): 実行ディレクトリーからの相対パス。または絶対パス
+			filepath: 実行ディレクトリーからの相対パス。または絶対パス
 		Returns:
 			str: コンテンツ
 		Raises:
@@ -54,7 +54,7 @@ class FileLoader(IFileLoader):
 		"""ファイルの最終更新日時を取得
 
 		Args:
-			filepath (str): 実行ディレクトリーからの相対パス。または絶対パス
+			filepath: 実行ディレクトリーからの相対パス。または絶対パス
 		Returns:
 			float: タイムスタンプ
 		Raises:
@@ -74,7 +74,7 @@ class FileLoader(IFileLoader):
 		"""ファイルのハッシュ値を取得
 
 		Args:
-			filepath (str): 実行ディレクトリーからの相対パス。または絶対パス
+			filepath: 実行ディレクトリーからの相対パス。または絶対パス
 		Returns:
 			str: ハッシュ値
 		Raises:
@@ -94,7 +94,7 @@ class FileLoader(IFileLoader):
 		"""ファイルパスを解決。未検出の場合はNoneを返却
 
 		Args:
-			filepath (str): 実行ディレクトリーからの相対パス。または絶対パス
+			filepath: 実行ディレクトリーからの相対パス。または絶対パス
 		Returns:
 			str | None: 解決したファイルパス
 		Note:

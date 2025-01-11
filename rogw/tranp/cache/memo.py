@@ -13,7 +13,7 @@ class Memo:
 		"""キャッシュデコレーターを生成
 
 		Args:
-			key (str): キャッシュキー
+			key: キャッシュキー
 		Returns:
 			Callable: デコレーター
 		Note:
@@ -71,7 +71,7 @@ class Memoize:
 		"""オブジェクトに対応したキャッシュデコレーターファクトリーを取得
 
 		Args:
-			obj (object): オブジェクト
+			obj: オブジェクト
 		Returns:
 			Memo: キャッシュデコレーターファクトリー
 		"""

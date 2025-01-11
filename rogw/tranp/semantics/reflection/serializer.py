@@ -25,8 +25,8 @@ class ReflectionSerializer(IReflectionSerializer):
 		"""インスタンスを生成
 
 		Args:
-			entrypoints (Entrypoints): エントリーポイントマネージャー @inject
-			traits (Traits): トレイトマネージャー @inject
+			entrypoints: エントリーポイントマネージャー @inject
+			traits: トレイトマネージャー @inject
 		"""
 		self._entrypoints = entrypoints
 		self._traits = traits
@@ -36,7 +36,7 @@ class ReflectionSerializer(IReflectionSerializer):
 		"""シリアライズ
 
 		Args:
-			symbol (IReflection): シンボル
+			symbol: シンボル
 		Returns:
 			DictSerialized: データ
 		"""
@@ -63,8 +63,8 @@ class ReflectionSerializer(IReflectionSerializer):
 		"""デシリアライズ
 
 		Args:
-			db (MutableMapping[str, IReflection]): シンボルテーブル
-			data (DictSerialized): データ
+			db: シンボルテーブル
+			data: データ
 		Returns:
 			IReflection: シンボル
 		"""
@@ -89,8 +89,8 @@ class ReflectionSerializer(IReflectionSerializer):
 		"""デシリアライズ(属性)
 
 		Args:
-			db (MutableMapping[str, IReflection]): シンボルテーブル
-			data_attrs (dict[str, str]): データ(属性)
+			db: シンボルテーブル
+			data_attrs: データ(属性)
 		Returns:
 			list[IReflection]: 属性のシンボルリスト
 		"""

@@ -13,7 +13,7 @@ class StoreSymbols:
 		"""インスタンスを生成
 
 		Args:
-			persistor (ISymbolDBPersistor): シンボルテーブル永続化 @inject
+			persistor: シンボルテーブル永続化 @inject
 		"""
 		self.persistor = persistor
 
@@ -22,8 +22,8 @@ class StoreSymbols:
 		"""シンボルテーブルを編集
 
 		Args:
-			module (Module): モジュール
-			db (SymbolDB): シンボルテーブル
+			module: モジュール
+			db: シンボルテーブル
 		Returns:
 			bool: True = 後続処理を実行
 		"""

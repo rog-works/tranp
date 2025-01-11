@@ -5,7 +5,7 @@ def camelize(org: str) -> str:
 	"""アッパーキャメルケースに変換
 	
 	Args:
-		org (str): 元の文字列
+		org: 元の文字列
 	Returns:
 		str: 変換後の文字列
 	"""
@@ -16,7 +16,7 @@ def snakelize(org: str) -> str:
 	"""スネークケースに変換
 	
 	Args:
-		org (str): 元の文字列
+		org: 元の文字列
 	Returns:
 		str: 変換後の文字列
 	"""

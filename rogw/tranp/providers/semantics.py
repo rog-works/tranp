@@ -18,7 +18,7 @@ def trait_provider(invoker: Invoker) -> TraitProvider:
 	"""トレイトプロバイダーを生成
 
 	Args:
-		invoker (Invoker): ファクトリー関数 @inject
+		invoker: ファクトリー関数 @inject
 	Returns:
 		TraitProvider: トレイトプロバイダープロバイダー
 	"""
@@ -39,7 +39,7 @@ def preprocessor_provider(invoker: Invoker) -> PreprocessorProvider:
 	"""プリプロセッサープロバイダーを生成
 
 	Args:
-		invoker (Invoker): ファクトリー関数 @inject
+		invoker: ファクトリー関数 @inject
 	Returns:
 		PreprocessorProvider: プリプロセッサープロバイダー
 	"""

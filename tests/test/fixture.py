@@ -22,7 +22,7 @@ class Fixture:
 		"""フィクスチャーのモジュールパスを取得
 
 		Args:
-			filepath (str): テストファイルのパス
+			filepath: テストファイルのパス
 		Returns:
 			str: フィクスチャーのモジュールパス
 		"""
@@ -36,8 +36,8 @@ class Fixture:
 		"""インスタンスを生成
 
 		Args:
-			filepath (str): テストファイルのパス
-			definitions (ModuleDefinitions): モジュール定義 (default = {})
+			filepath: テストファイルのパス
+			definitions: モジュール定義 (default = {})
 		Returns:
 			Fixture: インスタンス
 		Examples:
@@ -52,8 +52,8 @@ class Fixture:
 		"""インスタンスを生成
 
 		Args:
-			fixture_module_path (str): フィクスチャーのモジュールパス
-			definitions (ModuleDefinitions): モジュール定義
+			fixture_module_path: フィクスチャーのモジュールパス
+			definitions: モジュール定義
 		"""
 		self.__fixture_module_path = fixture_module_path
 		self.__custom_source_code = ''
@@ -74,7 +74,7 @@ class Fixture:
 		"""テスト用アプリケーションからシンボルに対応したインスタンスを取得
 
 		Args:
-			symbol (type[T_Inst]): シンボル
+			symbol: シンボル
 		Returns:
 			T_Inst: インスタンス
 		"""
@@ -89,7 +89,7 @@ class Fixture:
 		"""共有フィクスチャーのノードを取得
 
 		Args:
-			full_path (str): フルパス
+			full_path: フルパス
 		Returns:
 			Node: ノード
 		"""
@@ -99,8 +99,8 @@ class Fixture:
 		"""カスタムフィクスチャーのノードを取得
 
 		Args:
-			source_code (str): ソースコード
-			full_path (str): フルパス
+			source_code: ソースコード
+			full_path: フルパス
 		Returns:
 			Node: ノード
 		"""
@@ -114,7 +114,7 @@ class Fixture:
 		"""カスタムフィクスチャーのモジュールを取得
 
 		Args:
-			source_code (str): ソースコード
+			source_code: ソースコード
 		Returns:
 			Module: モジュール
 		"""
@@ -129,7 +129,7 @@ class Fixture:
 		"""モジュールパスを基にソースコードを生成
 
 		Args:
-			module_path (str): モジュールパス
+			module_path: モジュールパス
 		Returns:
 			str: ソースコード
 		"""

@@ -26,7 +26,7 @@ class Procedure(Generic[T_Ret]):
 		"""インスタンスを生成
 
 		Args:
-			verbose (bool): True = ログ出力
+			verbose: True = ログ出力
 		"""
 		self.__stacks: list[list[T_Ret]] = []
 		self.__verbose = verbose
@@ -37,8 +37,8 @@ class Procedure(Generic[T_Ret]):
 		"""イベントハンドラーを登録
 
 		Args:
-			action (str): アクション名
-			callback (Callback[T_Ret]): ハンドラー
+			action: アクション名
+			callback: ハンドラー
 		"""
 		self.__emitter.on(action, callback)
 
@@ -47,8 +47,8 @@ class Procedure(Generic[T_Ret]):
 		"""イベントハンドラーを解除
 
 		Args:
-			action (str): アクション名
-			callback (Callback[T_Ret]): ハンドラー
+			action: アクション名
+			callback: ハンドラー
 		"""
 		self.__emitter.off(action, callback)
 
@@ -60,7 +60,7 @@ class Procedure(Generic[T_Ret]):
 		"""指定のルート要素から逐次処理し、結果を出力
 
 		Args:
-			root (Node): ルート要素
+			root: ルート要素
 		Returns:
 			T_Ret: 結果
 		Raises:
@@ -78,7 +78,7 @@ class Procedure(Generic[T_Ret]):
 		"""指定のルート要素から逐次処理し、結果を出力
 
 		Args:
-			root (Node): ルート要素
+			root: ルート要素
 		Returns:
 			T_Ret: 結果
 		Raises:
@@ -114,7 +114,7 @@ class Procedure(Generic[T_Ret]):
 		"""指定のノードのプロセス処理
 
 		Args:
-			node (Node): ノード
+			node: ノード
 		"""
 		self.__enter(node)
 		self.__action(node)
@@ -124,7 +124,7 @@ class Procedure(Generic[T_Ret]):
 		"""指定のノードのプロセス処理(本体)
 
 		Args:
-			node (Node): ノード
+			node: ノード
 		Raises:
 			LogicError: 対象ノードのハンドラーが未定義
 		Note:
@@ -142,7 +142,7 @@ class Procedure(Generic[T_Ret]):
 		"""指定のノードのプロセス処理(実行前)
 
 		Args:
-			node (Node): ノード
+			node: ノード
 		Raises:
 			LogicError: 入力と出力が不一致
 		"""
@@ -164,7 +164,7 @@ class Procedure(Generic[T_Ret]):
 		"""指定のノードのプロセス処理(実行後)
 
 		Args:
-			node (Node): ノード
+			node: ノード
 		Raises:
 			LogicError: 不正な結果(None)
 		"""
@@ -183,8 +183,8 @@ class Procedure(Generic[T_Ret]):
 		"""指定のノードのプロセス処理
 
 		Args:
-			node (Node): ノード
-			handler_name (str): ハンドラー名
+			node: ノード
+			handler_name: ハンドラー名
 		"""
 		before = len(self.__stack)
 		result = self.__emit_proxy(handler_name, node, **self.__make_event(node))
@@ -198,8 +198,8 @@ class Procedure(Generic[T_Ret]):
 		"""イベント発火プロクシー
 
 		Args:
-			action (str): イベント名
-			node (Node): ノード
+			action: イベント名
+			node: ノード
 			**event (T_Ret | list[T_Ret]): イベントデータ
 		Returns:
 			T_Ret | None: 結果
@@ -221,7 +221,7 @@ class Procedure(Generic[T_Ret]):
 		"""ノードの展開プロパティーを元にイベントデータを生成
 
 		Args:
-			node (Node): ノード
+			node: ノード
 		Returns:
 			dict[str, Node | T_Ret | list[T_Ret]]: イベントデータ
 		Raises:
@@ -245,8 +245,8 @@ class Procedure(Generic[T_Ret]):
 		"""展開プロパティーがリストか判定
 
 		Args:
-			node (Node): ノード
-			prop_key (str): プロパティー名
+			node: ノード
+			prop_key: プロパティー名
 		Returns:
 			bool: True = リスト, False = 単体
 		"""
@@ -270,10 +270,10 @@ class Procedure(Generic[T_Ret]):
 		"""プロセス処理のログを出力
 
 		Args:
-			node (Node): ノード
-			handler_name (str): ハンドラー名
-			stacks (tuple[int, int, int]): スタック数(実行前, 実行, 実行後)
-			result (T_Ret | None): 結果
+			node: ノード
+			handler_name: ハンドラー名
+			stacks: スタック数(実行前, 実行, 実行後)
+			result: 結果
 		"""
 		if self.__verbose:
 			data = self.__make_log_data(node, handler_name, stacks, result)
@@ -285,10 +285,10 @@ class Procedure(Generic[T_Ret]):
 		"""プロセス処理のログデータを生成
 
 		Args:
-			node (Node): ノード
-			handler_name (str): ハンドラー名
-			stacks (tuple[int, int, int]): スタック数(実行前, 実行, 実行後)
-			result (T_Ret | None): 結果
+			node: ノード
+			handler_name: ハンドラー名
+			stacks: スタック数(実行前, 実行, 実行後)
+			result: 結果
 		Returns:
 			dict[str, str]: ログデータ
 		"""

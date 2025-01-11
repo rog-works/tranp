@@ -19,7 +19,7 @@ class Defer:
 		"""インスタンスを生成
 
 		Args:
-			factory (Callable[[], T]): 実体を生成するファクトリー
+			factory: 実体を生成するファクトリー
 		Returns:
 			T: 擬態インスタンス
 		"""
@@ -30,7 +30,7 @@ class Defer:
 		"""インスタンスから実体を解決
 
 		Args:
-			instance (T): Deferのインスタンス
+			instance: Deferのインスタンス
 		Returns:
 			T: 実体のインスタンス
 		Raise:
@@ -45,7 +45,7 @@ class Defer:
 		"""インスタンスを生成
 
 		Args:
-			factory (Callable[[], Any]): 実体を生成するファクトリー
+			factory: 実体を生成するファクトリー
 		"""
 		super().__setattr__('_factory', factory)
 		super().__setattr__('_entity', None)
@@ -54,7 +54,7 @@ class Defer:
 		"""指定の名前の属性を取得
 
 		Args:
-			name (str): 名前
+			name: 名前
 		Returns:
 			Any: 値
 		"""

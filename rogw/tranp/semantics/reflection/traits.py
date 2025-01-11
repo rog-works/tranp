@@ -36,7 +36,7 @@ class TraitImpl(Trait):
 		"""インスタンスを生成
 
 		Args:
-			reflections (Reflections): シンボルリゾルバー @inject
+			reflections: シンボルリゾルバー @inject
 		"""
 		self.reflections = reflections
 
@@ -49,8 +49,8 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		"""シンボルの型を判定
 
 		Args:
-			standard_type (type[Standards] | None): 標準タイプ
-			instance (IReflection): シンボル ※Traitsから暗黙的に入力される
+			standard_type: 標準タイプ
+			instance: シンボル ※Traitsから暗黙的に入力される
 		Returns:
 			bool: True = 指定の型と一致
 		"""
@@ -62,7 +62,7 @@ class ConvertionTrait(TraitImpl, IConvertion):
 
 		Args:
 			*targets (Literal['nullable', 'self', 'type', 'template', 'alt']): 処理対象。省略時は全てが対象
-			instance (IReflection): シンボル ※Traitsから暗黙的に入力される
+			instance: シンボル ※Traitsから暗黙的に入力される
 		Returns:
 			Self: シンボル
 		Note:
@@ -100,7 +100,7 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		"""Nullable型から実体型を解決
 
 		Args:
-			symbol (IReflection): シンボル
+			symbol: シンボル
 		Returns:
 			tuple[bool, IReflection]: 解決可否, シンボル
 		Note:
@@ -118,7 +118,7 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		"""Self型から実体型を解決
 
 		Args:
-			symbol (IReflection): シンボル
+			symbol: シンボル
 		Returns:
 			tuple[bool, IReflection]: 解決可否, シンボル
 		Note:
@@ -137,7 +137,7 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		"""type型から実体型を解決
 
 		Args:
-			symbol (IReflection): シンボル
+			symbol: シンボル
 		Returns:
 			tuple[bool, IReflection]: 解決可否, シンボル
 		Note:
@@ -152,7 +152,7 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		"""TemplateClass型から実体型を解決
 
 		Args:
-			symbol (IReflection): シンボル
+			symbol: シンボル
 		Returns:
 			tuple[bool, IReflection]: 解決可否, シンボル
 		Note:
@@ -168,7 +168,7 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		"""AltClass型から実体型を解決
 
 		Args:
-			symbol (IReflection): シンボル
+			symbol: シンボル
 		Returns:
 			tuple[bool, IReflection]: 解決可否, シンボル
 		Note:
@@ -188,9 +188,9 @@ class OperationTrait(TraitImpl, IOperation):
 		"""演算を試行し、結果を返却。該当する演算メソッドが存在しない場合はNoneを返却
 
 		Args:
-			operator (Terminal): 演算子ノード
-			value (IReflection): 値のシンボル
-			instance (IReflection): シンボル ※Traitsから暗黙的に入力される
+			operator: 演算子ノード
+			value: 値のシンボル
+			instance: シンボル ※Traitsから暗黙的に入力される
 		Returns:
 			IReflection: シンボル
 		"""
@@ -221,8 +221,8 @@ class OperationTrait(TraitImpl, IOperation):
 		"""演算用のメソッドを検索。存在しない場合はNoneを返却
 
 		Args:
-			symbol (IReflection): シンボル
-			method_name (str): メソッド名
+			symbol: シンボル
+			method_name: メソッド名
 		Returns:
 			Function | None: シンボル
 		"""
@@ -240,8 +240,8 @@ class PropertiesTrait(TraitImpl, IProperties):
 		"""配下のプロパティーを取得
 
 		Args:
-			prop (Var): 変数参照ノード
-			instance (IReflection): シンボル ※Traitsから暗黙的に入力される
+			prop: 変数参照ノード
+			instance: シンボル ※Traitsから暗黙的に入力される
 		Returns:
 			IReflection: シンボル
 		"""
@@ -252,7 +252,7 @@ class PropertiesTrait(TraitImpl, IProperties):
 		"""コンストラクターを取得
 
 		Args:
-			instance (IReflection): シンボル ※Traitsから暗黙的に入力される
+			instance: シンボル ※Traitsから暗黙的に入力される
 		Returns:
 			IReflection: シンボル
 		"""
@@ -267,7 +267,7 @@ class IteratorTrait(TraitImpl, IIterator):
 		"""イテレーターの結果を解決
 
 		Args:
-			instance (IReflection): シンボル ※Traitsから暗黙的に入力される
+			instance: シンボル ※Traitsから暗黙的に入力される
 		Returns:
 			IReflection: シンボル
 		"""
@@ -282,7 +282,7 @@ class IteratorTrait(TraitImpl, IIterator):
 		"""イテレーターのメソッドを解決
 
 		Args:
-			symbol (IReflection): シンボル
+			symbol: シンボル
 		Returns:
 			IReflection: シンボル
 		"""
@@ -300,8 +300,8 @@ class FunctionTrait(TraitImpl, IFunction):
 		"""引数の実体型を解決
 
 		Args:
-			index (int): 引数のインデックス
-			argument (IReflection): 引数の実体
+			index: 引数のインデックス
+			argument: 引数の実体
 			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
 			IReflection: シンボル
@@ -321,7 +321,7 @@ class FunctionTrait(TraitImpl, IFunction):
 
 		Args:
 			*arguments (IReflection): 引数リスト
-			instance (IReflection): シンボル ※Traitsから暗黙的に入力される
+			instance: シンボル ※Traitsから暗黙的に入力される
 		Returns:
 			IReflection: シンボル
 		"""
@@ -339,7 +339,7 @@ class FunctionTrait(TraitImpl, IFunction):
 		"""保有するテンプレート型ノードを取得
 
 		Args:
-			instance (IReflection): シンボル ※Traitsから暗黙的に入力される
+			instance: シンボル ※Traitsから暗黙的に入力される
 		Returns:
 			list[TemplateClass]: テンプレート型ノードのリスト
 		Note:
@@ -351,7 +351,7 @@ class FunctionTrait(TraitImpl, IFunction):
 		"""ヘルパー(ファンクション)を生成
 
 		Args:
-			symbol (IReflection): シンボル
+			symbol: シンボル
 		Returns:
 			Function: ヘルパー(ファンクション)
 		"""
@@ -361,7 +361,7 @@ class FunctionTrait(TraitImpl, IFunction):
 		"""ヘルパー用スキーマを生成
 
 		Args:
-			symbol (IReflection): シンボル
+			symbol: シンボル
 		Returns:
 			InjectSchema: ヘルパー用スキーマ
 		"""

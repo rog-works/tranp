@@ -12,8 +12,8 @@ def index_of(seq: Sequence[T_Seq], elem: T_Seq) -> int:
 	"""指定の要素を検出した初めのインデックスを返却。未検出の場合は-1を返却
 
 	Args:
-		seq (Sequence[T_Seq]): リスト
-		elem (T_Seq): 検索対象の要素
+		seq: リスト
+		elem: 検索対象の要素
 	Returns:
 		int: インデックス
 	"""
@@ -24,8 +24,8 @@ def last_index_of(seq: Sequence[T_Seq], elem: T_Seq) -> int:
 	"""指定の要素を検出した最後のインデックスを返却。未検出の場合は-1を返却
 
 	Args:
-		seq (Sequence[T_Seq]): リスト
-		elem (T_Seq): 検索対象の要素
+		seq: リスト
+		elem: 検索対象の要素
 	Returns:
 		int: インデックス
 	"""
@@ -36,9 +36,9 @@ def expand(entry: list | dict | Any, path: str = '', iter_key: str | None = None
 	"""list/dictを直列に展開
 
 	Args:
-		entry (list | dict | Any): エントリー
-		path (str): 開始パス(default = '')
-		iter_key (str | None): イテレーター属性のキー(default = None)
+		entry: エントリー
+		path: 開始パス(default = '')
+		iter_key: イテレーター属性のキー(default = None)
 	Returns:
 		dict[str, Any]: 展開データ
 	"""
@@ -68,10 +68,10 @@ def update(entry: list | dict, path: str, value: Any, iter_key: str | None = Non
 	"""list/dictの指定パスの値を更新
 
 	Args:
-		entry (list | dict): エントリー
-		path (str): 更新対象のパス
-		value (Any): 更新値
-		iter_key (str | None): イテレーター属性のキー(default = None)
+		entry: エントリー
+		path: 更新対象のパス
+		value: 更新値
+		iter_key: イテレーター属性のキー(default = None)
 	"""
 	key, *remain = path.split('.')
 	if len(remain):
@@ -95,7 +95,7 @@ def deep_copy(entry: list | dict) -> list | dict:
 	"""list/dictを再帰的に複製
 
 	Args:
-		entry (list | dict): エントリー
+		entry: エントリー
 	Returns:
 		list | dict: 複製
 	"""

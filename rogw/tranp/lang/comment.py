@@ -153,11 +153,11 @@ class Comment(NamedTuple):
 
 		attrs: list[Comment.Attribute] = []
 		for line in block.split('\n'):
-			matches = re.fullmatch(r'([^(]+)\(([^)]+)\)\s*:\s*(.+)', line)
+			matches = re.fullmatch(r'(?P<name>[^:(]+)(\((?P<type>[^)]+)\))?\s*:\s*(?P<desc>.+)', line)
 			if not matches:
 				continue
 
-			name, t, description = cls.__each_trim([matches[1], matches[2], matches[3]])
+			name, t, description = cls.__each_trim([matches['name'], matches['type'] if matches['type'] else '', matches['desc']])
 			attrs.append(Comment.Attribute(name, t, cls.__trim_description(description)))
 
 		return attrs
@@ -171,11 +171,11 @@ class Comment(NamedTuple):
 		Returns:
 			Comment.Type: 型コメント
 		"""
-		matches = re.fullmatch(r'([^:]+):\s*(.+)', block)
+		matches = re.fullmatch(r'((?P<type>[^:]+):)?\s*(?P<desc>.+)', block)
 		if not matches:
 			return Comment.Type('', '')
 
-		t, description = cls.__each_trim([matches[1], matches[2]])
+		t, description = cls.__each_trim([matches['type'] if matches['type'] else '', matches['desc']])
 		return Comment.Type(t, cls.__trim_description(description))
 
 	@classmethod

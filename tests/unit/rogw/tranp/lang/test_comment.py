@@ -65,6 +65,28 @@ class TestComment(TestCase):
 				'examples': '',
 			},
 		),
+		(
+			"""Description
+
+			Args:
+				a (A): A desc
+				b: B desc
+			Returns:
+				desc
+			""",
+			{
+				'description': 'Description',
+				'attributes': [],
+				'args': [
+					{'name': 'a', 'type': 'A', 'description': 'A desc'},
+					{'name': 'b', 'type': '', 'description': 'B desc'},
+				],
+				'returns': {'type': '', 'description': 'desc'},
+				'raises': [],
+				'note': '',
+				'examples': '',
+			},
+		),
 	])
 	def test_parse(self, source: str, expected: dict[str, Any]) -> None:
 		comment = Comment.parse(source)

@@ -61,7 +61,7 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		"""プロクシー型から実体型を解決。元々実体型である場合はそのまま返却
 
 		Args:
-			*targets (Literal['nullable', 'self', 'type', 'template', 'alt']): 処理対象。省略時は全てが対象
+			*targets: 処理対象。省略時は全てが対象
 			instance: シンボル ※Traitsから暗黙的に入力される
 		Returns:
 			シンボル
@@ -302,7 +302,7 @@ class FunctionTrait(TraitImpl, IFunction):
 		Args:
 			index: 引数のインデックス
 			argument: 引数の実体
-			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
+			instance: シンボル ※Traitsから暗黙的に入力される
 		Returns:
 			シンボル
 		"""
@@ -320,7 +320,7 @@ class FunctionTrait(TraitImpl, IFunction):
 		"""戻り値の実体型を解決
 
 		Args:
-			*arguments (IReflection): 引数リスト
+			*arguments: 引数リスト
 			instance: シンボル ※Traitsから暗黙的に入力される
 		Returns:
 			シンボル

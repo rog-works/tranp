@@ -36,7 +36,7 @@ class Locator(Protocol):
 
 		Args:
 			factory: ファクトリー(関数/メソッド/クラス)
-			*remain_args (Any): 残りの位置引数
+			*remain_args: 残りの位置引数
 		Returns:
 			生成したインスタンス
 		Note:

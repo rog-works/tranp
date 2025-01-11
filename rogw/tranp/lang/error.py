@@ -23,7 +23,7 @@ def raises(raise_error: type[Exception], *handle_errors: type[Exception]) -> Cal
 
 	Args:
 		raise_error: 出力例外
-		*handle_errors (type[Exception]): ハンドリング対象の例外
+		*handle_errors: ハンドリング対象の例外
 	Returns:
 		デコレーター
 	Examples:
@@ -56,7 +56,7 @@ class Transaction:
 
 		Args:
 			raise_error: 出力例外
-			*handle_errors (type[Exception]): ハンドリング対象の例外
+			*handle_errors: ハンドリング対象の例外
 		"""
 		self._raise_error = raise_error
 		self._handle_errors = handle_errors

@@ -12,8 +12,8 @@ class IExample(Protocol):
 		"""メソッドの共通シグネチャー
 
 		Args:
-			*args (Any): 実引数を受け取る位置引数。数も型も任意であり、省略も可
-			**reserved  (IReflection): 実引数は受け取らないキーワード引数。型はIReflection固定。Traitsからシンボルを入力するために定義上必須 @see Traits.get
+			*args: 実引数を受け取る位置引数。数も型も任意であり、省略も可
+			**reserved: 実引数は受け取らないキーワード引数。型はIReflection固定。Traitsからシンボルを入力するために定義上必須 @see Traits.get
 		"""
 		...
 
@@ -26,7 +26,7 @@ class IConvertion:
 
 		Args:
 			standard_type: 標準タイプ
-			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
+			**reserved: シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
 			True = 指定の型と一致
 		"""
@@ -36,8 +36,8 @@ class IConvertion:
 		"""プロクシー型から実体型を解決。元々実体型である場合はそのまま返却
 
 		Args:
-			*targets (Literal['nullable', 'self', 'type', 'template', 'alt']): 処理対象。省略時は全てが対象
-			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
+			*targets: 処理対象。省略時は全てが対象
+			**reserved: シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
 			シンボル
 		Note:
@@ -63,7 +63,7 @@ class IOperation:
 		Args:
 			operator: 演算子ノード
 			value: 値のシンボル
-			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
+			**reserved: シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
 			シンボル
 		"""
@@ -78,7 +78,7 @@ class IProperties:
 
 		Args:
 			prop: 変数参照ノード
-			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
+			**reserved: シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
 			シンボル
 		"""
@@ -88,7 +88,7 @@ class IProperties:
 		"""コンストラクターを取得
 
 		Args:
-			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
+			**reserved: シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
 			シンボル
 		"""
@@ -102,7 +102,7 @@ class IIterator:
 		"""イテレーターの結果を解決
 
 		Args:
-			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
+			**reserved: シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
 			シンボル
 		"""
@@ -118,7 +118,7 @@ class IFunction:
 		Args:
 			index: 引数のインデックス
 			argument: 引数の実体
-			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
+			**reserved: シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
 			シンボル
 		"""
@@ -128,8 +128,8 @@ class IFunction:
 		"""戻り値の実体型を解決
 
 		Args:
-			*arguments (IReflection): 引数リスト
-			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
+			*arguments: 引数リスト
+			**reserved: シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
 			シンボル
 		"""
@@ -139,7 +139,7 @@ class IFunction:
 		"""保有するテンプレート型ノードを取得
 
 		Args:
-			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
+			**reserved: シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
 			テンプレート型ノードのリスト
 		Note:

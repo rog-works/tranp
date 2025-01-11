@@ -432,7 +432,7 @@ class Node:
 		"""指定のクラスと同じか派生クラスか判定
 
 		Args:
-			*ctor (type[T_Node]): 判定するクラス
+			*ctor: 判定するクラス
 		Returns:
 			True = 同種
 		"""
@@ -457,7 +457,7 @@ class Node:
 		"""指定のクラスと同じか派生クラスか判定し、合致すればそのままインスタンスを返す。合致するクラスが1件以外の場合は例外を出力
 
 		Args:
-			*expects (type[T_Node]): 期待するクラス(型/共用型)
+			*expects: 期待するクラス(型/共用型)
 		Returns:
 			インスタンス
 		Raises:
@@ -501,7 +501,7 @@ class Node:
 		"""プロキシノードを生成
 
 		Args:
-			**overrides (Any): 上書きするプロパティー
+			**overrides: 上書きするプロパティー
 		Returns:
 			プロキシノード
 		Note:
@@ -527,7 +527,7 @@ class Node:
 		Args:
 			ctor: 子ノードのクラス
 			entry_tag: エントリータグ (一意性は呼び出し側で考慮する)
-			**overrides (Any): 上書きするプロパティー
+			**overrides: 上書きするプロパティー
 		Returns:
 			生成した子ノード
 		Note:

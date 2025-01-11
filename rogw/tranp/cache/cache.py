@@ -56,7 +56,7 @@ class Cached(Generic[T]):
 			factory: ファクトリー
 			identity: 一意性担保用のコンテキスト
 			basedir: キャッシュの保存ディレクトリー(実行ディレクトリーからの相対パス)
-			**options (Any): オプション
+			**options: オプション
 		"""
 		self._stored = stored
 		self._factory = factory

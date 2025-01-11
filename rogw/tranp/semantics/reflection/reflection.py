@@ -52,37 +52,37 @@ class ReflectionBase(IReflection):
 	# @property
 	# @abstractmethod
 	# def types(self) -> defs.ClassDef:
-	# 	"""ClassDef: 型を表すノード"""
+	# 	"""Returns: 型を表すノード"""
 	# 	...
 
 	# @property
 	# @abstractmethod
 	# def decl(self) -> defs.DeclAll:
-	# 	"""DeclAll: 定義元のノード"""
+	# 	"""Returns: 定義元のノード"""
 	# 	...
 
 	# @property
 	# @abstractmethod
 	# def node(self) -> Node:
-	# 	"""Node: ノード"""
+	# 	"""Returns: ノード"""
 	# 	...
 
 	@property
 	@implements
 	def origin(self) -> IReflection:
-		"""IReflection: 型のシンボル"""
+		"""Returns: 型のシンボル"""
 		return self
 
 	@property
 	@implements
 	def via(self) -> IReflection:
-		"""IReflection: スタックシンボル"""
+		"""Returns: スタックシンボル"""
 		return self
 
 	@property
 	@implements
 	def context(self) -> IReflection:
-		"""IReflection: コンテキストを取得 Raises: SemanticsLogicError: コンテキストが無い状態で使用"""
+		"""Returns: コンテキストを取得 Raises: SemanticsLogicError: コンテキストが無い状態で使用"""
 		if self.via == self:
 			raise SemanticsLogicError(f'Context is null. symbol: {str(self)}')
 
@@ -91,13 +91,13 @@ class ReflectionBase(IReflection):
 	@property
 	@implements
 	def attrs(self) -> list[IReflection]:
-		"""list[IReflection]: 属性シンボルリスト"""
+		"""Returns: 属性シンボルリスト"""
 		return []
 
 	@property
 	@implements
 	def _traits(self) -> Traits[IReflection]:
-		"""Traits[IReflection]: トレイトマネージャー"""
+		"""Returns: トレイトマネージャー"""
 		return self.__traits
 
 	@implements
@@ -138,7 +138,7 @@ class ReflectionBase(IReflection):
 	@property
 	@implements
 	def shorthand(self) -> str:
-		"""str: オブジェクトの短縮表記"""
+		"""Returns: オブジェクトの短縮表記"""
 		return ClassShorthandNaming.domain_name(self)
 
 	@implements
@@ -158,7 +158,7 @@ class ReflectionBase(IReflection):
 		"""シンボルが保有する型を拡張情報として属性に取り込む
 
 		Args:
-			*attrs (IReflection): 属性シンボルリスト
+			*attrs: 属性シンボルリスト
 		Returns:
 			インスタンス
 		Raises:
@@ -225,7 +225,7 @@ class ReflectionBase(IReflection):
 
 	@override
 	def __repr__(self) -> str:
-		"""str: オブジェクトのシリアライズ表現"""
+		"""Returns: オブジェクトのシリアライズ表現"""
 		data = {
 			'types': self.types.fullyname,
 			'attrs': [attr.__repr__() for attr in self.attrs],
@@ -234,12 +234,12 @@ class ReflectionBase(IReflection):
 
 	@override
 	def __str__(self) -> str:
-		"""str: オブジェクトの文字列表現"""
+		"""Returns: オブジェクトの文字列表現"""
 		return self.shorthand
 
 	@override
 	def __hash__(self) -> int:
-		"""int: オブジェクトのハッシュ値"""
+		"""Returns: オブジェクトのハッシュ値"""
 		return hash(self.__repr__())
 	
 	def __getattr__(self, name: str) -> Callable[..., Any]:
@@ -289,19 +289,19 @@ class Symbol(ReflectionBase):
 	@property
 	@implements
 	def types(self) -> defs.ClassDef:
-		"""ClassDef: 型を表すノード"""
+		"""Returns: 型を表すノード"""
 		return self._types
 
 	@property
 	@implements
 	def decl(self) -> defs.DeclAll:
-		"""DeclAll: 定義元のノード"""
+		"""Returns: 定義元のノード"""
 		return self._types
 
 	@property
 	@implements
 	def node(self) -> Node:
-		"""Node: ノード"""
+		"""Returns: ノード"""
 		return self._types
 
 
@@ -332,25 +332,25 @@ class Reflection(ReflectionBase):
 	@property
 	@implements
 	def types(self) -> defs.ClassDef:
-		"""ClassDef: 型を表すノード"""
+		"""Returns: 型を表すノード"""
 		return self.origin.types
 
 	@property
 	@implements
 	def decl(self) -> defs.DeclAll:
-		"""DeclAll: 定義元のノード"""
+		"""Returns: 定義元のノード"""
 		return self._decl
 
 	@property
 	@implements
 	def node(self) -> Node:
-		"""Node: ノード"""
+		"""Returns: ノード"""
 		return self._node
 
 	@property
 	@override
 	def origin(self) -> IReflection:
-		"""IReflection: 型のシンボル"""
+		"""Returns: 型のシンボル"""
 		if self._mods.active('origin'):
 			return self._mods.origin
 
@@ -359,7 +359,7 @@ class Reflection(ReflectionBase):
 	@property
 	@override
 	def via(self) -> IReflection:
-		"""IReflection: スタックシンボル"""
+		"""Returns: スタックシンボル"""
 		return self._via
 
 	@property
@@ -392,7 +392,7 @@ class Reflection(ReflectionBase):
 		"""シンボルが保持する型を拡張情報として属性に取り込む
 
 		Args:
-			*attrs (IReflection): 属性シンボルリスト
+			*attrs: 属性シンボルリスト
 		Returns:
 			インスタンス
 		Raises:

@@ -131,7 +131,7 @@ class Embed:
 		"""クロージャーに遅延束縛の情報を埋め込む
 
 		Args:
-			*symbols (Any): シンボルリスト
+			*symbols: シンボルリスト
 		Returns:
 			デコレーター
 		Examples:

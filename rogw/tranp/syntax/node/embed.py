@@ -129,7 +129,7 @@ class Meta:
 
 		Args:
 			holder: メタデータを保持するクラス
-			*factories (MetaFactory): 埋め込み関数のリスト
+			*factories: 埋め込み関数のリスト
 		Returns:
 			デコレーター
 		Examples:
@@ -218,7 +218,7 @@ def accept_tags(*tags: str) -> MetaFactory:
 	"""ノードに受け入れ対象のタグを埋め込む(クラス用)
 
 	Args:
-		*tags (str): 受け入れ対象のタグリスト
+		*tags: 受け入れ対象のタグリスト
 	Returns:
 		埋め込み関数
 	Note:

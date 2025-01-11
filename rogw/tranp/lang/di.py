@@ -145,7 +145,7 @@ class DI:
 
 		Args:
 			factory: ファクトリー(関数/メソッド/クラス)
-			*remain_args (Any): 残りの位置引数
+			*remain_args: 残りの位置引数
 		Returns:
 			生成したインスタンス
 		Note:
@@ -204,7 +204,7 @@ class DI:
 			injector: ファクトリー(関数/メソッド/クラス)
 			annos: 引数のアノテーションリスト
 			curried_args: カリー化対象の位置引数
-			*remain_args (Any): 余りの位置引数
+			*remain_args: 余りの位置引数
 		Raises:
 			ValueError: 呼び出しシグネチャーが不正
 		"""

@@ -61,7 +61,7 @@ class Helper:
 		"""指定のクラスと同じか派生クラスか判定
 
 		Args:
-			*ctors (type[Helper]): 比較対象
+			*ctors: 比較対象
 		Returns:
 			True = 同種
 		"""
@@ -76,7 +76,7 @@ class Function(Helper):
 
 		Args:
 			index: 引数のインデックス
-			*context (IReflection): コンテキスト(0: 引数(実行時型))
+			*context: コンテキスト(0: 引数(実行時型))
 		Returns:
 			実行時型
 		"""
@@ -87,7 +87,7 @@ class Function(Helper):
 		"""戻り値の実行時型を解決
 
 		Args:
-			*arguments (IReflection): 引数リスト(実行時型)
+			*arguments: 引数リスト(実行時型)
 		Returns:
 			実行時型
 		"""
@@ -124,7 +124,7 @@ class Method(Function):
 
 		Args:
 			index: 引数のインデックス
-			*context (IReflection): コンテキスト(0: レシーバー(実行時型), 1: 引数(実行時型))
+			*context: コンテキスト(0: レシーバー(実行時型), 1: 引数(実行時型))
 		Returns:
 			実行時型
 		Note:
@@ -146,7 +146,7 @@ class Method(Function):
 		"""戻り値の実行時型を解決
 
 		Args:
-			*arguments (IReflection): 引数リスト(実行時型)
+			*arguments: 引数リスト(実行時型)
 		Returns:
 			実行時型
 		Note:
@@ -197,7 +197,7 @@ class TemplateManipulator:
 		"""シンボル/属性からテンプレート型(タイプ再定義ノード)を平坦化して抽出
 
 		Args:
-			**attrs (IReflection | list[IReflection]): シンボル/属性
+			**attrs: シンボル/属性
 		Returns:
 			パスとテンプレート型(タイプ再定義ノード)のマップ表
 		Note:
@@ -225,7 +225,7 @@ class TemplateManipulator:
 		"""シンボル/属性を平坦化して抽出
 
 		Args:
-			**attrs (IReflection | list[IReflection]): シンボル/属性
+			**attrs: シンボル/属性
 		Returns:
 			パスとシンボルのマップ表
 		"""

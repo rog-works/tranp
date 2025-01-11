@@ -22,9 +22,9 @@ class ParameterHelper:
 		"""パラメーターを元にインスタンスを生成
 
 		Args:
-			parameter (str): パラメーター
+			parameter: パラメーター
 		Returns:
-			ParameterHelper: インスタンス
+			インスタンス
 		"""
 		param_default = BlockParser.break_separator(parameter, '=')
 		param, default_value = param_default if len(param_default) == 2 else (param_default[0], '')
@@ -37,9 +37,9 @@ class ParameterHelper:
 		"""インスタンスを生成
 
 		Args:
-			var_type (str): 型
-			symbol (str): シンボル名
-			default_value (str): デフォルト値
+			var_type: 型
+			symbol: シンボル名
+			default_value: デフォルト値
 		"""
 		self.var_type = var_type
 		self.symbol = symbol
@@ -47,7 +47,7 @@ class ParameterHelper:
 
 	@property
 	def var_type_origin(self) -> str:
-		"""Returns: str: ベースの型"""
+		"""Returns: ベースの型"""
 		if self.var_type.startswith('const') or self.var_type[-1] in ['*', '&']:
 			return cast(re.Match, re.search(r'^(const\s+)?([\w\d\:]+)[^\*&]*[\*&]?', self.var_type))[2]
 		else:

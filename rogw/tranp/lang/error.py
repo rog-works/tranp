@@ -11,9 +11,9 @@ def stacktrace(error: Exception) -> list[str]:
 	"""例外からスタックトレースを生成
 
 	Args:
-		error (Exception): 例外
+		error: 例外
 	Returns:
-		list[str]: スタックトレース
+		スタックトレース
 	"""
 	return traceback.format_exception(type(error), error, error.__traceback__)
 
@@ -22,10 +22,10 @@ def raises(raise_error: type[Exception], *handle_errors: type[Exception]) -> Cal
 	"""内部で発生した例外をラップし、新たな例外で再出力するデコレーターを生成
 
 	Args:
-		raise_error (type[Exception]): 出力例外
-		*handle_errors (type[Exception]): ハンドリング対象の例外
+		raise_error: 出力例外
+		*handle_errors: ハンドリング対象の例外
 	Returns:
-		Callable: デコレーター
+		デコレーター
 	Examples:
 		```python
 		@raises(DomainError, ValueError, TypeError)
@@ -55,8 +55,8 @@ class Transaction:
 		"""インスタンスを生成
 
 		Args:
-			raise_error (type[Exception]): 出力例外
-			*handle_errors (type[Exception]): ハンドリング対象の例外
+			raise_error: 出力例外
+			*handle_errors: ハンドリング対象の例外
 		"""
 		self._raise_error = raise_error
 		self._handle_errors = handle_errors
@@ -69,9 +69,9 @@ class Transaction:
 		"""ハンドラー(ブロック終了)
 
 		Args:
-			exc_type (type[Exception]): 出力例外の型
-			exc_value (BaseException | None): 出力例外
-			exc_traceback (TracebackType): トレースバック
+			exc_type: 出力例外の型
+			exc_value: 出力例外
+			exc_traceback: トレースバック
 		"""
 		if exc_value and issubclass(exc_type, self._handle_errors):
 			raise self._raise_error(exc_value) from exc_value

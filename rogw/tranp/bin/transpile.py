@@ -86,9 +86,9 @@ class Config:
 		"""コマンド引数をパース
 
 		Args:
-			filepath (str): コンフィグファイルのパス
+			filepath: コンフィグファイルのパス
 		Returns:
-			ConfigDict: コンフィグデータ
+			コンフィグデータ
 		"""
 		with open(os.path.join(filepath)) as f:
 			return cast(ConfigDict, yaml.safe_load(f))
@@ -97,9 +97,9 @@ class Config:
 		"""コマンド引数をパース
 
 		Args:
-			argv (list[str]): コマンド引数リスト
+			argv: コマンド引数リスト
 		Returns:
-			ArgsDict: パースしたコマンド引数
+			パースしたコマンド引数
 		"""
 		args: ArgsDict = {
 			'config': 'example/config.yml',
@@ -133,10 +133,10 @@ class TranspileApp:
 		"""テンプレートレンダーを生成
 
 		Args:
-			config (Config): コンフィグ @inject
-			i18n (I18n): 国際化対応モジュール @inject
+			config: コンフィグ @inject
+			i18n: 国際化対応モジュール @inject
 		Returns:
-			Renderer: テンプレートレンダー
+			テンプレートレンダー
 		"""
 		return RendererSetting(config.template_dirs, i18n.t, config.env['view'])
 
@@ -146,9 +146,9 @@ class TranspileApp:
 		"""トランスパイルオプションを生成
 
 		Args:
-			config (Config): コンフィグ @inject
+			config: コンフィグ @inject
 		Returns:
-			TranspilerOptions: トランスパイルオプション
+			トランスパイルオプション
 		"""
 		return TranspilerOptions(verbose=config.verbose, env=config.env['transpiler'])
 
@@ -158,9 +158,9 @@ class TranspileApp:
 		"""シンタックスパーサー設定データを生成
 
 		Args:
-			config (Config): コンフィグ @inject
+			config: コンフィグ @inject
 		Returns:
-			ParserSetting: シンタックスパーサー設定データ
+			シンタックスパーサー設定データ
 		"""
 		return ParserSetting(grammar=config.grammar)
 
@@ -170,10 +170,10 @@ class TranspileApp:
 		"""翻訳マッピングデータを生成
 
 		Args:
-			datums (IDataLoader): データローダー @inject
-			config (Config): コンフィグ @inject
+			datums: データローダー @inject
+			config: コンフィグ @inject
 		Returns:
-			TranslationMapping: 翻訳マッピングデータ
+			翻訳マッピングデータ
 		"""
 		mapping = cast(dict[str, str], yaml.safe_load(datums.load(config.trans_mapping)))
 		return TranslationMapping(to=mapping)
@@ -184,9 +184,9 @@ class TranspileApp:
 		"""モジュールパスリストを生成
 
 		Args:
-			config (Config): コンフィグ @inject
+			config: コンフィグ @inject
 		Returns:
-			ModulePaths: モジュールパスリスト
+			モジュールパスリスト
 		"""
 		module_paths = ModulePaths()
 		for input_glob in config.input_globs:
@@ -199,7 +199,7 @@ class TranspileApp:
 		"""モジュール定義を生成
 
 		Returns:
-			ModuleDefinitions: モジュール定義
+			モジュール定義
 		"""
 		config = Config()
 		definitions = {
@@ -222,8 +222,8 @@ class TranspileApp:
 		"""アプリケーションの実行処理
 
 		Args:
-			invoker (Invoker): ファクトリー関数
-			config (Config): コンフィグ
+			invoker: ファクトリー関数
+			config: コンフィグ
 		"""
 		modes = {
 			'runner': Runner,
@@ -239,12 +239,12 @@ class Runner:
 		"""インスタンスを生成
 
 		Args:
-			sources (ISourceLoader): ソースコードローダー @inject
-			config (Config): コンフィグ @inject
-			module_paths (ModulePaths): モジュールパスリスト @inject
-			modules (Modules): モジュールリスト @inject
-			module_meta_factory (ModuleMetaFactory): モジュールのメタ情報ファクトリー @inject
-			transpiler (ITranspiler): トランスパイラー @inject
+			sources: ソースコードローダー @inject
+			config: コンフィグ @inject
+			module_paths: モジュールパスリスト @inject
+			modules: モジュールリスト @inject
+			module_meta_factory: モジュールのメタ情報ファクトリー @inject
+			transpiler: トランスパイラー @inject
 		"""
 		self.sources = sources
 		self.module_paths = module_paths
@@ -273,9 +273,9 @@ class Runner:
 		"""トランスパイルを実行するか判定
 
 		Args:
-			module_path (ModulePath): モジュールパス
+			module_path: モジュールパス
 		Returns:
-			bool: True = 実行
+			True = 実行
 		"""
 		old_meta = self.try_load_meta_header(module_path)
 		if not old_meta:
@@ -288,9 +288,9 @@ class Runner:
 		"""エントリーポイントのノードを取得
 
 		Args:
-			module_path (ModulePath): モジュールパス
+			module_path: モジュールパス
 		Returns:
-			Node: ノード
+			ノード
 		"""
 		return self.modules.load(module_path.path).entrypoint
 
@@ -298,9 +298,9 @@ class Runner:
 		"""トランスパイル済みのファイルからメタヘッダーの読み込みを試行
 
 		Args:
-			module_path (ModulePath): モジュールパス
+			module_path: モジュールパス
 		Returns:
-			MetaHeader | None: メタヘッダー。ファイル・メタヘッダーが存在しない場合はNone
+			メタヘッダー。ファイル・メタヘッダーが存在しない場合はNone
 		"""
 		filepath = self.output_filepath(module_path)
 		if not self.sources.exists(filepath):
@@ -312,9 +312,9 @@ class Runner:
 		"""トランスパイル後のファイルパスを生成
 
 		Args:
-			module_path (ModulePath): モジュールパス
+			module_path: モジュールパス
 		Returns:
-			str: ファイルパス
+			ファイルパス
 		"""
 		extension_map = self.config.output_language.split(':')
 		extension = extension_map[1] if len(extension_map) == 2 else extension_map[0]
@@ -326,9 +326,9 @@ class Runner:
 		"""ファイルパスに応じた出力ディレクトリーを取得
 
 		Args:
-			filepath (str): ファイルパス
+			filepath: ファイルパス
 		Returns:
-			str: 出力ディレクトリー
+			出力ディレクトリー
 		"""
 		_filepath = filepath.replace(os.sep, '/')
 		fallback = self.config.output_dirs[-1]
@@ -348,7 +348,7 @@ class Interactive:
 		"""インスタンスを生成
 
 		Args:
-			locator (Locator): ロケーター
+			locator: ロケーター
 		"""
 		# XXX リバインドより、定義側から変更する方法を検討
 		di = as_a(DI, locator)
@@ -392,9 +392,9 @@ class Interactive:
 		"""メインモジュールを再生成
 
 		Args:
-			source_code (str): ソースコード
+			source_code: ソースコード
 		Returns:
-			Module: メインモジュール
+			メインモジュール
 		"""
 		self.source_provider.source_code = source_code
 		self.modules.unload(self.source_provider.main_module_path)

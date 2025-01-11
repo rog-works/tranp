@@ -18,9 +18,9 @@ class Query(Generic[T], metaclass=ABCMeta):
 		"""指定のパスに紐づく一意なノードが存在するか判定
 
 		Args:
-			full_path (str): フルパス
+			full_path: フルパス
 		Returns:
-			bool: True = 存在
+			True = 存在
 		"""
 		raise NotImplementedError()
 
@@ -29,9 +29,9 @@ class Query(Generic[T], metaclass=ABCMeta):
 		"""指定のパスに紐づく一意なエントリーをフェッチ
 
 		Args:
-			full_path (str): フルパス
+			full_path: フルパス
 		Returns:
-			T: エントリー
+			エントリー
 		Raises:
 			NotFoundError: エントリーが存在しない
 		"""
@@ -42,9 +42,9 @@ class Query(Generic[T], metaclass=ABCMeta):
 		"""指定のパスを子として親のエントリーをフェッチ
 
 		Args:
-			via (str): 基点のパス(フルパス)
+			via: 基点のパス(フルパス)
 		Returns:
-			T: データ
+			データ
 		Raises:
 			NotFoundError: 親が存在しない
 		"""
@@ -55,10 +55,10 @@ class Query(Generic[T], metaclass=ABCMeta):
 		"""指定のエントリータグを持つ直近の親エントリーをフェッチ
 
 		Args:
-			via (str): 基点のパス
-			tag (str): エントリータグ
+			via: 基点のパス
+			tag: エントリータグ
 		Returns:
-			Node: ノード
+			ノード
 		Raises:
 			NotFoundError: 指定のエントリータグを持つ親が存在しない
 		"""
@@ -69,9 +69,9 @@ class Query(Generic[T], metaclass=ABCMeta):
 		"""指定のパスを基準に同階層のエントリーをフェッチ
 
 		Args:
-			via (str): 基点のパス(フルパス)
+			via: 基点のパス(フルパス)
 		Returns:
-			list[T]: エントリーリスト
+			エントリーリスト
 		Raises:
 			NotFoundError: 基点のエントリーが存在しない
 		"""
@@ -82,9 +82,9 @@ class Query(Generic[T], metaclass=ABCMeta):
 		"""指定のパスを基準に1階層下のエントリーをフェッチ
 
 		Args:
-			via (str): 基点のパス(フルパス)
+			via: 基点のパス(フルパス)
 		Returns:
-			list[T]: エントリーリスト
+			エントリーリスト
 		Raises:
 			NotFoundError: 基点のエントリーが存在しない
 		"""
@@ -95,9 +95,9 @@ class Query(Generic[T], metaclass=ABCMeta):
 		"""指定のパスから下に存在する展開が可能なエントリーをフェッチ
 
 		Args:
-			via (str): 基点のパス(フルパス)
+			via: 基点のパス(フルパス)
 		Returns:
-			list[T]: エントリーリスト
+			エントリーリスト
 		Raises:
 			NotFoundError: 基点のエントリーが存在しない
 		"""
@@ -108,9 +108,9 @@ class Query(Generic[T], metaclass=ABCMeta):
 		"""指定のパス以下(基点を含む)のエントリーの値を取得
 
 		Args:
-			via (str): 基点のパス(フルパス)
+			via: 基点のパス(フルパス)
 		Returns:
-			list[str]: 値リスト
+			値リスト
 		"""
 		raise NotImplementedError()
 
@@ -119,9 +119,9 @@ class Query(Generic[T], metaclass=ABCMeta):
 		"""指定のパスのエントリーのIDを取得
 
 		Args:
-			full_path (str): フルパス
+			full_path: フルパス
 		Returns:
-			int: ID
+			ID
 		"""
 		raise NotImplementedError()
 
@@ -130,8 +130,8 @@ class Query(Generic[T], metaclass=ABCMeta):
 		"""指定のパスのエントリーのソースマップを取得
 
 		Args:
-			full_path (str): フルパス
+			full_path: フルパス
 		Returns:
-			SourceMap: ソースマップ
+			ソースマップ
 		"""
 		raise NotImplementedError()

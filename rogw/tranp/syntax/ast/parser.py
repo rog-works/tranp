@@ -9,9 +9,9 @@ class ParserSetting:
 	"""シンタックスパーサー設定データ
 
 	Attributes:
-		grammer (str): Grammarファイルへのパス(実行ディレクトリーからの相対パス)
-		start (str): ルートエントリータグ(default = 'file_input')
-		algorithem (str): パーサーアルゴリズム(default = 'lalr')
+		grammer: Grammarファイルへのパス(実行ディレクトリーからの相対パス)
+		start: ルートエントリータグ(default = 'file_input')
+		algorithem: パーサーアルゴリズム(default = 'lalr')
 	"""
 
 	grammar: str
@@ -26,9 +26,9 @@ class SyntaxParser(Protocol):
 		"""モジュールを解析してシンタックスツリーを生成
 
 		Args:
-			module_path (str): モジュールパス
+			module_path: モジュールパス
 		Returns:
-			Entry: シンタックスツリーのルートエントリー
+			シンタックスツリーのルートエントリー
 		"""
 		...
 
@@ -40,8 +40,8 @@ class SourceProvider(Protocol):
 		"""モジュールパスを基にソースコードを生成
 
 		Args:
-			module_path (str): モジュールパス
+			module_path: モジュールパス
 		Returns:
-			str: ソースコード
+			ソースコード
 		"""
 		...

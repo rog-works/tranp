@@ -16,43 +16,43 @@ class Entry(metaclass=ABCMeta):
 	@property
 	@abstractmethod
 	def source(self) -> Any:
-		"""Any: オリジナルのエントリー"""
+		"""Returns: オリジナルのエントリー"""
 		raise NotImplementedError()
 
 	@property
 	@abstractmethod
 	def name(self) -> str:
-		"""str: エントリー名 @note: 空の場合を考慮"""
+		"""Returns: エントリー名 Note: 空の場合を考慮"""
 		raise NotImplementedError()
 
 	@property
 	@abstractmethod
 	def has_child(self) -> bool:
-		"""bool: True = 子を持つエントリー"""
+		"""Returns: True = 子を持つエントリー"""
 		raise NotImplementedError()
 
 	@property
 	@abstractmethod
 	def children(self) -> list['Entry']:
-		"""list[Entry]: 配下のエントリーリスト"""
+		"""Returns: 配下のエントリーリスト"""
 		raise NotImplementedError()
 
 	@property
 	@abstractmethod
 	def is_terminal(self) -> bool:
-		"""bool: True = 終端記号"""
+		"""Returns: True = 終端記号"""
 		raise NotImplementedError()
 
 	@property
 	@abstractmethod
 	def value(self) -> str:
-		"""str: 終端記号の値"""
+		"""Returns: 終端記号の値"""
 		raise NotImplementedError()
 
 	@property
 	@abstractmethod
 	def is_empty(self) -> bool:
-		"""bool: True = 空
+		"""Returns: True = 空
 
 		Note:
 			Grammarの定義上存在するが、構文解析の結果で空になったエントリー
@@ -63,17 +63,17 @@ class Entry(metaclass=ABCMeta):
 
 	@property
 	def source_map(self) -> SourceMap:
-		"""SourceMap: ソースマップ
+		"""Returns: ソースマップ
 
 		Note:
-			begin (tuple[int, int]): 開始位置(行/列)
-			end (tuple[int, int]): 終了位置(行/列)
+			begin: 開始位置(行/列)
+			end: 終了位置(行/列)
 		"""
 		return {'begin': (0, 0), 'end': (0, 0)}
 
 	@property
 	def empty_name(self) -> str:
-		"""str: 空のエントリー名"""
+		"""Returns: 空のエントリー名"""
 		# XXX 定数化を検討
 		return '__empty__'
 
@@ -85,32 +85,32 @@ class EntryOfDict(Entry):
 		"""インスタンスを生成
 
 		Args:
-			entry (DictTreeEntry): エントリー
+			entry: エントリー
 		"""
 		self.__entry = entry
 
 	@property
 	@implements
 	def source(self) -> DictTreeEntry:
-		"""DictTreeEntry: オリジナルのエントリー"""
+		"""Returns: オリジナルのエントリー"""
 		return self.__entry
 
 	@property
 	@implements
 	def name(self) -> str:
-		"""str: エントリー名 @note: 空の場合を考慮"""
+		"""Returns: エントリー名 Note: 空の場合を考慮"""
 		return self.__entry['name'] if self.__entry is not None else self.empty_name
 
 	@property
 	@implements
 	def has_child(self) -> bool:
-		"""bool: True = 子を持つエントリー"""
+		"""Returns: True = 子を持つエントリー"""
 		return type(self.__entry) is dict and 'children' in self.__entry
 
 	@property
 	@implements
 	def children(self) -> list['Entry']:
-		"""list[Entry]: 配下のエントリーリスト"""
+		"""Returns: 配下のエントリーリスト"""
 		if self.__entry is None or 'children' not in self.__entry:
 			return []
 
@@ -119,13 +119,13 @@ class EntryOfDict(Entry):
 	@property
 	@implements
 	def is_terminal(self) -> bool:
-		"""bool: True = 終端記号"""
+		"""Returns: True = 終端記号"""
 		return not self.has_child
 
 	@property
 	@implements
 	def value(self) -> str:
-		"""str: 終端記号の値"""
+		"""Returns: 終端記号の値"""
 		if self.__entry is None or 'value' not in self.__entry:
 			return ''
 
@@ -134,7 +134,7 @@ class EntryOfDict(Entry):
 	@property
 	@implements
 	def is_empty(self) -> bool:
-		"""bool: True = 空
+		"""Returns: True = 空
 
 		Note:
 			Grammarの定義上存在するが、構文解析の結果で空になったエントリー

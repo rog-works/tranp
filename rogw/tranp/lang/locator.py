@@ -13,9 +13,9 @@ class Locator(Protocol):
 		"""シンボルが解決できるか判定
 
 		Args:
-			symbol (type): シンボル
+			symbol: シンボル
 		Returns:
-			bool: True = 解決できる
+			True = 解決できる
 		"""
 		...
 
@@ -23,9 +23,9 @@ class Locator(Protocol):
 		"""シンボルからインスタンスを解決
 
 		Args:
-			symbol (type[T_Inst]): シンボル
+			symbol: シンボル
 		Returns:
-			T_Inst: インスタンス
+			インスタンス
 		Raises:
 			ValueError: 未登録のシンボルを指定
 		"""
@@ -35,10 +35,10 @@ class Locator(Protocol):
 		"""ファクトリーを代替実行し、インスタンスを生成
 
 		Args:
-			factory (Injector[T_Inst]): ファクトリー(関数/メソッド/クラス)
-			*remain_args (Any): 残りの位置引数
+			factory: ファクトリー(関数/メソッド/クラス)
+			*remain_args: 残りの位置引数
 		Returns:
-			T_Inst: 生成したインスタンス
+			生成したインスタンス
 		Note:
 			* ロケーターが解決可能なシンボルをファクトリーの引数リストの前方から省略していき、解決不能な引数を残りの位置引数として受け取る
 			* このメソッドを通して生成したインスタンスはキャッシュされず、毎回生成される

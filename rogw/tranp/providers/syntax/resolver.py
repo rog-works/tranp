@@ -7,7 +7,7 @@ def symbol_mapping() -> SymbolMapping:
 	"""ノードのシンボルマッピングデータを生成
 
 	Returns:
-		SymbolMapping: シンボルマッピングデータ
+		シンボルマッピングデータ
 	Note:
 		登録順にmatch_featureで評価されるため、整形目的で並び順を変更しないこと
 	"""

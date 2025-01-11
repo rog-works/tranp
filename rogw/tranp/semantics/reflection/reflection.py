@@ -24,11 +24,11 @@ class Options:
 		"""インスタンスを生成
 
 		Args:
-			types (ClassDef | None): 型を表すノード (default = None)
-			decl (DeclAll | None): 定義元のノード (default = None)
-			node (Node | None): ノード (default = None)
-			origin (IReflection | None): 型のシンボル (default = None)
-			via (IReflection | None): スタックシンボル (default = None)
+			types: 型を表すノード (default = None)
+			decl: 定義元のノード (default = None)
+			node: ノード (default = None)
+			origin: 型のシンボル (default = None)
+			via: スタックシンボル (default = None)
 		"""
 		self.types = types
 		self.decl = decl
@@ -44,45 +44,45 @@ class ReflectionBase(IReflection):
 		"""インスタンスを生成
 
 		Args:
-			traits (Traits[IReflection]): トレイトマネージャー
-			options (Options): 生成オプション
+			traits: トレイトマネージャー
+			options: 生成オプション
 		"""
 		self.__traits = traits
 
 	# @property
 	# @abstractmethod
 	# def types(self) -> defs.ClassDef:
-	# 	"""ClassDef: 型を表すノード"""
+	# 	"""Returns: 型を表すノード"""
 	# 	...
 
 	# @property
 	# @abstractmethod
 	# def decl(self) -> defs.DeclAll:
-	# 	"""DeclAll: 定義元のノード"""
+	# 	"""Returns: 定義元のノード"""
 	# 	...
 
 	# @property
 	# @abstractmethod
 	# def node(self) -> Node:
-	# 	"""Node: ノード"""
+	# 	"""Returns: ノード"""
 	# 	...
 
 	@property
 	@implements
 	def origin(self) -> IReflection:
-		"""IReflection: 型のシンボル"""
+		"""Returns: 型のシンボル"""
 		return self
 
 	@property
 	@implements
 	def via(self) -> IReflection:
-		"""IReflection: スタックシンボル"""
+		"""Returns: スタックシンボル"""
 		return self
 
 	@property
 	@implements
 	def context(self) -> IReflection:
-		"""IReflection: コンテキストを取得 Raises: SemanticsLogicError: コンテキストが無い状態で使用"""
+		"""Returns: コンテキストを取得 Raises: SemanticsLogicError: コンテキストが無い状態で使用"""
 		if self.via == self:
 			raise SemanticsLogicError(f'Context is null. symbol: {str(self)}')
 
@@ -91,13 +91,13 @@ class ReflectionBase(IReflection):
 	@property
 	@implements
 	def attrs(self) -> list[IReflection]:
-		"""list[IReflection]: 属性シンボルリスト"""
+		"""Returns: 属性シンボルリスト"""
 		return []
 
 	@property
 	@implements
 	def _traits(self) -> Traits[IReflection]:
-		"""Traits[IReflection]: トレイトマネージャー"""
+		"""Returns: トレイトマネージャー"""
 		return self.__traits
 
 	@implements
@@ -105,10 +105,10 @@ class ReflectionBase(IReflection):
 		"""定義ノードをスタックし、型のシンボルを移行。型のシンボル省略時はそのまま引き継ぐ
 
 		Args:
-			decl (DeclVars): 定義元のノード
-			origin (IReflection | None): 型のシンボル (default = None)
+			decl: 定義元のノード
+			origin: 型のシンボル (default = None)
 		Returns:
-			IReflection: リフレクション
+			リフレクション
 		"""
 		return Reflection(self.__traits, Options(decl=decl, node=decl, origin=origin if origin else self))
 
@@ -117,9 +117,9 @@ class ReflectionBase(IReflection):
 		"""ノードをスタック。ノード省略時は自分自身をスタック
 
 		Args:
-			node (Node | None): ノード (default = None)
+			node: ノード (default = None)
 		Returns:
-			IReflection: リフレクション
+			リフレクション
 		"""
 		return Reflection(self.__traits, Options(node=node if node else self.node, origin=self))
 
@@ -128,17 +128,17 @@ class ReflectionBase(IReflection):
 		"""ノードをスタックし、型のシンボルを移行
 
 		Args:
-			node (Node): ノード
-			origin (IReflection): 型のシンボル
+			node: ノード
+			origin: 型のシンボル
 		Returns:
-			IReflection: リフレクション
+			リフレクション
 		"""
 		return Reflection(self.__traits, Options(node=node, origin=origin, via=self))
 
 	@property
 	@implements
 	def shorthand(self) -> str:
-		"""str: オブジェクトの短縮表記"""
+		"""Returns: オブジェクトの短縮表記"""
 		return ClassShorthandNaming.domain_name(self)
 
 	@implements
@@ -146,7 +146,7 @@ class ReflectionBase(IReflection):
 		"""スタックシンボルを辿るイテレーターを取得
 
 		Returns:
-			Iterator[IReflection]: イテレーター
+			イテレーター
 		"""
 		curr = self
 		while curr:
@@ -158,9 +158,9 @@ class ReflectionBase(IReflection):
 		"""シンボルが保有する型を拡張情報として属性に取り込む
 
 		Args:
-			*attrs (IReflection): 属性シンボルリスト
+			*attrs: 属性シンボルリスト
 		Returns:
-			Self: インスタンス
+			インスタンス
 		Raises:
 			SemanticsLogicError: 実体の無いインスタンスに実行 XXX 出力する例外は要件等
 			SemanticsLogicError: 拡張済みのインスタンスに再度実行 XXX 出力する例外は要件等
@@ -172,7 +172,7 @@ class ReflectionBase(IReflection):
 		"""インスタンスをテンプレート用に複製
 
 		Returns:
-			IReflection: 複製したインスタンス
+			複製したインスタンス
 		"""
 		new = self.stack()
 		new.extends(*[attr.to_temporary() for attr in self.attrs])
@@ -183,8 +183,8 @@ class ReflectionBase(IReflection):
 		"""モッドを有効化
 		
 		Args:
-			key (Literal['origin', 'attrs']): キー
-			mod (Mod): モッド
+			key: キー
+			mod: モッド
 		"""
 		raise SemanticsLogicError(f'Operation not allowed. symbol: {self.types.fullyname}')
 
@@ -193,9 +193,9 @@ class ReflectionBase(IReflection):
 		"""期待する型と同じインターフェイスを実装していればキャスト
 
 		Args:
-			expect (type[T_Ref]): 期待する型
+			expect: 期待する型
 		Returns:
-			T_Ref: インスタンス
+			インスタンス
 		Raises:
 			MustBeImplementedError: トレイトのメソッドが未実装
 		"""
@@ -209,9 +209,9 @@ class ReflectionBase(IReflection):
 		"""比較演算子のオーバーロード
 
 		Args:
-			other (object): 比較対象
+			other: 比較対象
 		Returns:
-			bool: True = 同じ
+			True = 同じ
 		Raises:
 			SemanticsLogicError: 継承関係の無いオブジェクトを指定 XXX 出力する例外は要件等
 		"""
@@ -225,7 +225,7 @@ class ReflectionBase(IReflection):
 
 	@override
 	def __repr__(self) -> str:
-		"""str: オブジェクトのシリアライズ表現"""
+		"""Returns: オブジェクトのシリアライズ表現"""
 		data = {
 			'types': self.types.fullyname,
 			'attrs': [attr.__repr__() for attr in self.attrs],
@@ -234,21 +234,21 @@ class ReflectionBase(IReflection):
 
 	@override
 	def __str__(self) -> str:
-		"""str: オブジェクトの文字列表現"""
+		"""Returns: オブジェクトの文字列表現"""
 		return self.shorthand
 
 	@override
 	def __hash__(self) -> int:
-		"""int: オブジェクトのハッシュ値"""
+		"""Returns: オブジェクトのハッシュ値"""
 		return hash(self.__repr__())
 	
 	def __getattr__(self, name: str) -> Callable[..., Any]:
 		"""トレイトからメソッドを取得
 
 		Args:
-			name (str): メソッド名
+			name: メソッド名
 		Returns:
-			Callable[..., Any]: メソッド
+			メソッド
 		Note:
 			XXX このメソッドを実装すると、存在しないプロパティーを誤って参照した際に警告されないため、要検討
 		"""
@@ -268,10 +268,10 @@ class Symbol(ReflectionBase):
 		"""インスタンスを生成
 
 		Args:
-			traits (Traits[IReflection]): トレイトマネージャー
-			types (ClassDef): クラス定義ノード
+			traits: トレイトマネージャー
+			types: クラス定義ノード
 		Returns:
-			Symbol: インスタンス
+			インスタンス
 		"""
 		return cls(traits, Options(types=types))
 
@@ -280,8 +280,8 @@ class Symbol(ReflectionBase):
 		"""インスタンスを生成
 
 		Args:
-			traits (Traits[IReflection]): トレイトマネージャー
-			options (Options): 生成オプション
+			traits: トレイトマネージャー
+			options: 生成オプション
 		"""
 		super().__init__(traits, options)
 		self._types = safe_cast(options.types)
@@ -289,19 +289,19 @@ class Symbol(ReflectionBase):
 	@property
 	@implements
 	def types(self) -> defs.ClassDef:
-		"""ClassDef: 型を表すノード"""
+		"""Returns: 型を表すノード"""
 		return self._types
 
 	@property
 	@implements
 	def decl(self) -> defs.DeclAll:
-		"""DeclAll: 定義元のノード"""
+		"""Returns: 定義元のノード"""
 		return self._types
 
 	@property
 	@implements
 	def node(self) -> Node:
-		"""Node: ノード"""
+		"""Returns: ノード"""
 		return self._types
 
 
@@ -318,8 +318,8 @@ class Reflection(ReflectionBase):
 		"""インスタンスを生成
 
 		Args:
-			traits (Traits[IReflection]): トレイトマネージャー
-			options (Options): 生成オプション
+			traits: トレイトマネージャー
+			options: 生成オプション
 		"""
 		super().__init__(traits, options)
 		self._node = safe_cast(options.node)
@@ -332,25 +332,25 @@ class Reflection(ReflectionBase):
 	@property
 	@implements
 	def types(self) -> defs.ClassDef:
-		"""ClassDef: 型を表すノード"""
+		"""Returns: 型を表すノード"""
 		return self.origin.types
 
 	@property
 	@implements
 	def decl(self) -> defs.DeclAll:
-		"""DeclAll: 定義元のノード"""
+		"""Returns: 定義元のノード"""
 		return self._decl
 
 	@property
 	@implements
 	def node(self) -> Node:
-		"""Node: ノード"""
+		"""Returns: ノード"""
 		return self._node
 
 	@property
 	@override
 	def origin(self) -> IReflection:
-		"""IReflection: 型のシンボル"""
+		"""Returns: 型のシンボル"""
 		if self._mods.active('origin'):
 			return self._mods.origin
 
@@ -359,7 +359,7 @@ class Reflection(ReflectionBase):
 	@property
 	@override
 	def via(self) -> IReflection:
-		"""IReflection: スタックシンボル"""
+		"""Returns: スタックシンボル"""
 		return self._via
 
 	@property
@@ -368,7 +368,7 @@ class Reflection(ReflectionBase):
 		"""属性シンボルリストを取得
 
 		Returns:
-			list[IReflection]: 属性シンボルリスト
+			属性シンボルリスト
 		Note:
 			### 属性の評価順序
 			1. モッドから注入された属性
@@ -392,9 +392,9 @@ class Reflection(ReflectionBase):
 		"""シンボルが保持する型を拡張情報として属性に取り込む
 
 		Args:
-			*attrs (IReflection): 属性シンボルリスト
+			*attrs: 属性シンボルリスト
 		Returns:
-			Self: インスタンス
+			インスタンス
 		Raises:
 			SemanticsLogicError: 実体の無いインスタンスに実行
 			SemanticsLogicError: 拡張済みのインスタンスに再度実行
@@ -410,7 +410,7 @@ class Reflection(ReflectionBase):
 		"""モッドを有効化
 		
 		Args:
-			key (Literal['origin', 'attrs']): キー
-			mod (Mod): モッド
+			key: キー
+			mod: モッド
 		"""
 		self._mods.activate(key, mod)

@@ -10,7 +10,7 @@ def parser_setting() -> ParserSetting:
 	"""シンタックスパーサー設定データを生成
 
 	Returns:
-		ParserSettind: シンタックスパーサー設定データ
+		シンタックスパーサー設定データ
 	"""
 	return ParserSetting(grammar='data/grammar.lark')
 
@@ -20,9 +20,9 @@ def source_provider(sources: ISourceLoader) -> SourceProvider:
 	"""ソースコードプロバイダーを生成
 
 	Args:
-		sources (ISourceLoader): ソースコードローダー @inject
+		sources: ソースコードローダー @inject
 	Returns:
-		SourceCodeProvider: ソースコードプロバイダー
+		ソースコードプロバイダー
 	"""
 	return lambda module_path: sources.load(module_path_to_filepath(module_path, '.py'))
 
@@ -32,9 +32,9 @@ def make_root_entry(module_path: ModulePath, parser: SyntaxParser) -> Entry:
 	"""ASTのルート要素を生成
 
 	Args:
-		module_path (ModulePath): モジュールパス @inject
-		parser (SyntaxParser): シンタックスパーサー @inject
+		module_path: モジュールパス @inject
+		parser: シンタックスパーサー @inject
 	Returns:
-		Entry: ASTのルート要素
+		ASTのルート要素
 	"""
 	return parser(module_path.path)

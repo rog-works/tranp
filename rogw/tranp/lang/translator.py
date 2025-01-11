@@ -8,9 +8,9 @@ class Translator(Protocol):
 		"""翻訳キーに対応する文字列に変換
 
 		Args:
-			key (str): 翻訳キー
-			fallback (str): 存在しない場合の代用値(default = '')
+			key: 翻訳キー
+			fallback: 存在しない場合の代用値(default = '')
 		Returns:
-			str: 翻訳後の文字列
+			翻訳後の文字列
 		"""
 		...

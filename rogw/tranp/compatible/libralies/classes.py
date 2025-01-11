@@ -10,9 +10,9 @@ def __actual__(name: str) -> Callable:
 	"""実際のシンボル名を埋め込む
 
 	Args:
-		name (str): 名前
+		name: 名前
 	Returns:
-		Callable: デコレート対象
+		デコレート対象
 	Note:
 		* 変更後の名称でシンボルテーブルに登録されるため、定義元の名前で参照することが出来なくなる点に注意
 		* トランスパイル後のシンボル名のみ変更する場合は、Embed.aliasを使用 @see rogw.tranp.compatible.python.embed.Embed.alias

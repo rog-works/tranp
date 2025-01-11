@@ -18,10 +18,10 @@ def entrypoint_loader(locator: Locator, dependencies: ModuleDependencyProvider) 
 	"""エントリーポイントローダーを生成
 
 	Args:
-		locator (Locator): ロケーター @inject
-		dependencies (ModuleDependencyProvider): @inject
+		locator: ロケーター @inject
+		dependencies: @inject
 	Returns:
-		EntrypointLoader: エントリーポイントローダー
+		エントリーポイントローダー
 	"""
 	def handler(module_path: ModulePath) -> defs.Entrypoint:
 		shared_di = as_a(LazyDI, locator)
@@ -43,8 +43,8 @@ def entrypoint(query: Query[Node]) -> defs.Entrypoint:
 	"""エントリーポイントを解決
 
 	Args:
-		query (Query[Node]): ノードクエリー
+		query: ノードクエリー
 	Returns:
-		Node: エントリーポイント
+		エントリーポイント
 	"""
 	return query.by('file_input').as_a(defs.Entrypoint)

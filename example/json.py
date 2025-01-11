@@ -355,7 +355,7 @@ class Json:
 
 	@Embed.python
 	def __repr__(self) -> str:
-		"""Returns: str: シリアライズ表現"""
+		"""Returns: シリアライズ表現"""
 		return '<{cls}[{type}]: \"{path}\" at {addr}>'.format(cls=Json.__name__, type=self.entry_type.name, path=self.path, addr=hex(id(self)))
 
 	@classmethod
@@ -479,38 +479,38 @@ class Json:
 
 	@property
 	def is_root(self) -> bool:
-		"""Returns: bool: True = ルートオブジェクト"""
+		"""Returns: True = ルートオブジェクト"""
 		return self._root is None
 
 	@property
 	def root(self) -> 'CP[Json]':
-		"""Returns: CP[Json]: ルートオブジェクト"""
+		"""Returns: ルートオブジェクト"""
 		return self._root if self._root else CP(self)
 
 	@property
 	def path(self) -> str:
-		"""Returns: str: JSONパス"""
+		"""Returns: JSONパス"""
 		return self.root.on._entries[self._entry_id].path
 
 	@property
 	def symbol(self) -> str:
-		"""Returns: str: シンボル名"""
+		"""Returns: シンボル名"""
 		index = self.path.rfind('.')
 		return self.path[index + 1:] if index != -1 else self.path
 
 	@property
 	def entry_type(self) -> JsonEntryTypes:
-		"""Returns: JsonEntryTypes: JSONエントリーの種別"""
+		"""Returns: JSONエントリーの種別"""
 		return self.root.on._entries[self._entry_id].entry_type
 
 	@property
 	def type_name(self) -> str:
-		"""Returns: str: 型の名前"""
+		"""Returns: 型の名前"""
 		return Json._to_type_names[self.entry_type]
 
 	@property
 	def entity_at(self) -> CP[void]:
-		"""Returns: CP[void]: 実体のアドレス"""
+		"""Returns: 実体のアドレス"""
 		if self.scalar_with(JsonEntryTypes.Boolean):
 			return CP(self.root.on._entries[self._entry_id].entity.as_bool)
 		elif self.scalar_with(JsonEntryTypes.Number):
@@ -648,7 +648,7 @@ class Json:
 
 	@property
 	def as_bool(self) -> bool:
-		"""Returns: bool: 値 Raises: RuntimeError: Boolean以外で使用"""
+		"""Returns: 値 Raises: RuntimeError: Boolean以外で使用"""
 		if not self.scalar_with(JsonEntryTypes.Boolean):
 			raise RuntimeError('Operation not allowed. type_name: {type}'.format(type=self.type_name))
 
@@ -656,7 +656,7 @@ class Json:
 
 	@property
 	def as_number(self) -> float:
-		"""Returns: float: 値 Raises: RuntimeError: Number以外で使用"""
+		"""Returns: 値 Raises: RuntimeError: Number以外で使用"""
 		if not self.scalar_with(JsonEntryTypes.Number):
 			raise RuntimeError('Operation not allowed. type_name: {type}'.format(type=self.type_name))
 
@@ -664,7 +664,7 @@ class Json:
 
 	@property
 	def as_string(self) -> str:
-		"""Returns: str: 値 Raises: RuntimeError: String以外で使用"""
+		"""Returns: 値 Raises: RuntimeError: String以外で使用"""
 		if not self.scalar_with(JsonEntryTypes.String):
 			raise RuntimeError('Operation not allowed. type_name: {type}'.format(type=self.type_name))
 

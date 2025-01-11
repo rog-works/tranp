@@ -25,7 +25,7 @@ class ResolveUnknown:
 		"""インスタンスを生成
 
 		Args:
-			invoker (Invoker): ファクトリー関数 @inject
+			invoker: ファクトリー関数 @inject
 		"""
 		self.invoker = invoker
 
@@ -34,10 +34,10 @@ class ResolveUnknown:
 		"""シンボルテーブルを編集
 
 		Args:
-			module (Module): モジュール
-			db (SymbolDB): シンボルテーブル
+			module: モジュール
+			db: シンボルテーブル
 		Returns:
-			bool: True = 後続処理を実行
+			True = 後続処理を実行
 		"""
 		for _, raw in db.items(module.path):
 			if not isinstance(raw.decl, defs.Declable):
@@ -57,10 +57,10 @@ class ResolveUnknown:
 		"""モッドを生成
 
 		Args:
-			var_raw (IReflection): 変数宣言シンボル
-			value_node (Node): 右辺値ノード
+			var_raw: 変数宣言シンボル
+			value_node: 右辺値ノード
 		Returns:
-			Mod: モッド
+			モッド
 		"""
 		return lambda: [self.invoker(self.resolve_right_value, raw, value_node)]
 
@@ -69,11 +69,11 @@ class ResolveUnknown:
 		"""右辺値の型を解決し、変数宣言シンボルを生成
 
 		Args:
-			reflections (Reflections): シンボルリゾルバー @inject
-			var_raw (IReflection): 変数宣言シンボル
-			value_node (Node): 右辺値ノード
+			reflections: シンボルリゾルバー @inject
+			var_raw: 変数宣言シンボル
+			value_node: 右辺値ノード
 		Returns:
-			IReflection: シンボル
+			シンボル
 		"""
 		value_raw = reflections.type_of(value_node)
 		decl_vars = as_a(IDeclaration, var_raw.decl.declare).symbols

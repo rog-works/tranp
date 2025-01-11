@@ -12,8 +12,8 @@ class IExample(Protocol):
 		"""メソッドの共通シグネチャー
 
 		Args:
-			*args (Any): 実引数を受け取る位置引数。数も型も任意であり、省略も可
-			**reserved  (IReflection): 実引数は受け取らないキーワード引数。型はIReflection固定。Traitsからシンボルを入力するために定義上必須 @see Traits.get
+			*args: 実引数を受け取る位置引数。数も型も任意であり、省略も可
+			**reserved: 実引数は受け取らないキーワード引数。型はIReflection固定。Traitsからシンボルを入力するために定義上必須 @see Traits.get
 		"""
 		...
 
@@ -25,10 +25,10 @@ class IConvertion:
 		"""シンボルの型を判定
 
 		Args:
-			standard_type (type[Standards] | None): 標準タイプ
-			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
+			standard_type: 標準タイプ
+			**reserved: シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
-			bool: True = 指定の型と一致
+			True = 指定の型と一致
 		"""
 		...
 
@@ -36,10 +36,10 @@ class IConvertion:
 		"""プロクシー型から実体型を解決。元々実体型である場合はそのまま返却
 
 		Args:
-			*targets (Literal['nullable', 'self', 'type', 'template', 'alt']): 処理対象。省略時は全てが対象
-			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
+			*targets: 処理対象。省略時は全てが対象
+			**reserved: シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
-			Self: シンボル
+			シンボル
 		Note:
 			### 変換対象
 			* Union型: Class | None
@@ -61,11 +61,11 @@ class IOperation:
 		"""演算を試行し、結果を返却。該当する演算メソッドが存在しない場合はNoneを返却
 
 		Args:
-			operator (Terminal): 演算子ノード
-			value (IReflection): 値のシンボル
-			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
+			operator: 演算子ノード
+			value: 値のシンボル
+			**reserved: シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
-			IReflection: シンボル
+			シンボル
 		"""
 		...
 
@@ -77,10 +77,10 @@ class IProperties:
 		"""配下のプロパティーを取得
 
 		Args:
-			prop (Var): 変数参照ノード
-			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
+			prop: 変数参照ノード
+			**reserved: シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
-			IReflection: シンボル
+			シンボル
 		"""
 		...
 
@@ -88,9 +88,9 @@ class IProperties:
 		"""コンストラクターを取得
 
 		Args:
-			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
+			**reserved: シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
-			IReflection: シンボル
+			シンボル
 		"""
 		...
 
@@ -102,9 +102,9 @@ class IIterator:
 		"""イテレーターの結果を解決
 
 		Args:
-			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
+			**reserved: シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
-			IReflection: シンボル
+			シンボル
 		"""
 		...
 
@@ -116,11 +116,11 @@ class IFunction:
 		"""引数の実体型を解決
 
 		Args:
-			index (int): 引数のインデックス
-			argument (IReflection): 引数の実体
-			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
+			index: 引数のインデックス
+			argument: 引数の実体
+			**reserved: シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
-			IReflection: シンボル
+			シンボル
 		"""
 		...
 
@@ -128,10 +128,10 @@ class IFunction:
 		"""戻り値の実体型を解決
 
 		Args:
-			*arguments (IReflection): 引数リスト
-			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
+			*arguments: 引数リスト
+			**reserved: シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
-			IReflection: シンボル
+			シンボル
 		"""
 		...
 
@@ -139,9 +139,9 @@ class IFunction:
 		"""保有するテンプレート型ノードを取得
 
 		Args:
-			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
+			**reserved: シンボル入力用の予約枠 ※実引数は指定しない
 		Returns:
-			list[TemplateClass]: テンプレート型ノードのリスト
+			テンプレート型ノードのリスト
 		Note:
 			XXX クラスにも同様の属性があるため、IGenericなどに分離を検討
 		"""

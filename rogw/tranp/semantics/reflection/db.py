@@ -18,9 +18,9 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		"""指定のキーのシンボルを取得
 
 		Args:
-			key (str): キー
+			key: キー
 		Returns:
-			IReflection: シンボル
+			シンボル
 		Raises:
 			KeyError: 存在しないキーを指定
 		"""
@@ -33,8 +33,8 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		"""指定のキーにシンボルを設定
 
 		Args:
-			key (str): キー
-			symbol (IReflection): シンボル
+			key: キー
+			symbol: シンボル
 		"""
 		if key not in self.__items:
 			self.__paths[key] = ModuleDSN.parsed(key)
@@ -45,7 +45,7 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		"""指定のキーのシンボルを削除
 
 		Args:
-			key (str): キー
+			key: キー
 		Raises:
 			NotImplementedError: 非対応
 		"""
@@ -55,7 +55,7 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		"""キーのイテレーターを取得
 
 		Returns:
-			Iterator[str]: イテレーター
+			イテレーター
 		"""
 		for key in self.keys():
 			yield key
@@ -64,9 +64,9 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		"""指定のキーが存在するか判定
 
 		Args:
-			key (str): キー
+			key: キー
 		Returns:
-			bool: True = 存在
+			True = 存在
 		"""
 		return key in self.__items
 
@@ -74,7 +74,7 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		"""エントリーの総数を取得
 
 		Returns:
-			int: エントリーの総数
+			エントリーの総数
 		"""
 		return len(self.__items)
 
@@ -82,9 +82,9 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		"""エントリーのイテレーターを取得
 
 		Args:
-			for_module_path (str | None): 取得対象のモジュールパス (default = None)
+			for_module_path: 取得対象のモジュールパス (default = None)
 		Returns:
-			Iterator[tuple[str, IReflection]]: イテレーター
+			イテレーター
 		"""
 		if not for_module_path:
 			for key, value in self.__items.items():
@@ -98,7 +98,7 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		"""キーのジェネレーターを取得
 
 		Returns:
-			KeysView[str]: ジェネレーター
+			ジェネレーター
 		"""
 		return self.__items.keys()
 
@@ -106,7 +106,7 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		"""シンボルのジェネレーターを取得
 
 		Returns:
-			ValuesView[IReflection]: ジェネレーター
+			ジェネレーター
 		"""
 		return self.__items.values()
 
@@ -114,9 +114,9 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		"""モジュールが展開済みか判定
 
 		Args:
-			module_path (str): モジュールパス
+			module_path: モジュールパス
 		Returns:
-			bool: True = 展開済み
+			True = 展開済み
 		"""
 		module_paths = [module_path for module_path, _ in self.__paths.values()]
 		return module_path in module_paths
@@ -125,9 +125,9 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		"""モジュールがプリプロセス完了済みか判定
 
 		Args:
-			module_path (str): モジュールパス
+			module_path: モジュールパス
 		Returns:
-			bool: True = 完了済み
+			True = 完了済み
 		"""
 		return module_path in self.__completed
 
@@ -135,7 +135,7 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		"""モジュールのプリプロセス完了を記録
 
 		Args:
-			module_path (str): モジュールパス
+			module_path: モジュールパス
 		"""
 		if module_path not in self.__completed:
 			self.__completed.append(module_path)
@@ -144,7 +144,7 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		"""指定モジュール内のシンボルを削除
 
 		Args:
-			module_path (str): モジュールパス
+			module_path: モジュールパス
 		"""
 		if module_path in self.__completed:
 			self.__completed.remove(module_path)
@@ -158,10 +158,10 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		"""JSONデータとして内部データをシリアライズ
 
 		Args:
-			serializer (IReflectionSerializer): シンボルシリアライザー
-			for_module_path (str | None): 出力モジュールパス (default = None)
+			serializer: シンボルシリアライザー
+			for_module_path: 出力モジュールパス (default = None)
 		Returns:
-			dict[str, DictSerialized]: JSONデータ
+			JSONデータ
 		"""
 		return {key: serializer.serialize(self[key]) for key in self._order_keys(for_module_path)}
 
@@ -169,8 +169,8 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		"""JSONデータを基に内部データをデシリアライズ。既存データを残したまま追加
 
 		Args:
-			serializer (IReflectionSerializer): シンボルシリアライザー
-			data (dict[str, DictSerialized]): JSONデータ
+			serializer: シンボルシリアライザー
+			data: JSONデータ
 		"""
 		for key, row in data.items():
 			self[key] = serializer.deserialize(self, row)
@@ -182,9 +182,9 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		"""参照順にキーの一覧を取得
 
 		Args:
-			for_module_path (str | None): 出力モジュールパス
+			for_module_path: 出力モジュールパス
 		Returns:
-			list[str]: キーリスト
+			キーリスト
 		"""
 		orders: list[str] = []
 		for key, paths in self.__paths.items():
@@ -200,11 +200,11 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		"""参照順にキーの一覧を更新
 
 		Args:
-			for_module_path (str | None): 出力モジュールパス
-			symbol (IReflection): シンボル
-			orders (list[str]): キーリスト
+			for_module_path: 出力モジュールパス
+			symbol: シンボル
+			orders: キーリスト
 		Returns:
-			list[str]: キーリスト
+			キーリスト
 		"""
 		for attr in symbol.attrs:
 			self._order_keys_recursive(for_module_path, attr, orders)

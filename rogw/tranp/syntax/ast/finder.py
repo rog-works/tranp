@@ -12,10 +12,10 @@ class ASTFinder:
 		"""指定のパスに一致するエントリーが存在するか判定
 
 		Args:
-			root (Entry): ルートエントリー
-			full_path (str): フルパス
+			root: ルートエントリー
+			full_path: フルパス
 		Returns:
-			bool: True = 存在
+			True = 存在
 		"""
 		try:
 			self.pluck(root, full_path)
@@ -27,10 +27,10 @@ class ASTFinder:
 		"""指定のパスに一致するエントリーを抜き出す
 
 		Args:
-			root (Entry): ルートエントリー
-			full_path (str): 抜き出すエントリーのフルパス
+			root: ルートエントリー
+			full_path: 抜き出すエントリーのフルパス
 		Returns:
-			Entry: エントリー
+			エントリー
 		Raise:
 			NotFoundError: エントリーが存在しない
 		"""
@@ -43,10 +43,10 @@ class ASTFinder:
 		"""配下のエントリーから指定のパスに一致するエントリーを抜き出す
 
 		Args:
-			entry (Entry): エントリー
-			path (EntryPath): 引数のエントリーからの相対パス
+			entry: エントリー
+			path: 引数のエントリーからの相対パス
 		Returns:
-			Entry: エントリー
+			エントリー
 		Note:
 			@see pluck
 		Raise:
@@ -74,12 +74,12 @@ class ASTFinder:
 		"""基点のパス以下のエントリーを検索
 
 		Args:
-			root (Entry): ルートエントリー
-			via (str): 探索基点のフルパス
-			tester (Callable[[T, str], bool]): 検索条件
-			depth (int): 探索深度(-1: 無制限)
+			root: ルートエントリー
+			via: 探索基点のフルパス
+			tester: 検索条件
+			depth: 探索深度(-1: 無制限)
 		Returns:
-			dict[str, Entry]: フルパスとエントリーのマップ
+			フルパスとエントリーのマップ
 		Raises:
 			NotFoundError: 基点のエントリーが存在しない
 		"""
@@ -91,11 +91,11 @@ class ASTFinder:
 		"""指定のエントリー以下のフルパスとマッピングを生成
 
 		Args:
-			entry (entry): エントリー
-			path (str): 引数のエントリーのフルパス
-			depth (int): 探索深度(-1: 無制限)
+			entry: エントリー
+			path: 引数のエントリーのフルパス
+			depth: 探索深度(-1: 無制限)
 		Returns:
-			dict[str, Entry]: フルパスとエントリーのマップ
+			フルパスとエントリーのマップ
 		Note:
 			引数のpathには必ずルート要素からのフルパスを指定すること
 			相対パスを指定してこの関数を実行すると、本来のフルパスとの整合性が取れなくなる点に注意
@@ -129,9 +129,9 @@ class ASTFinder:
 		"""子の要素を元にエントリータグ毎のインデックスリストに整理する
 
 		Args:
-			children (list[Entry]): 子の要素リスト
+			children: 子の要素リスト
 		Returns:
-			dict[str, list[int]]: エントリータグ毎のインデックスリスト
+			エントリータグ毎のインデックスリスト
 		"""
 		index_of_tags = {index: in_entry.name for index, in_entry in enumerate(children)}
 		tag_of_indexs: dict[str, list[int]]  = {tag: [] for tag in index_of_tags.values()}

@@ -27,9 +27,9 @@ class MetaData:
 		"""クラスのモジュールパスを取得
 
 		Args:
-			ctor (type): クラス
+			ctor: クラス
 		Returns:
-			str: モジュールパス
+			モジュールパス
 		"""
 		return f'{ctor.__module__}.{ctor.__name__}'
 
@@ -37,9 +37,9 @@ class MetaData:
 		"""メソッドのモジュールパスを取得
 
 		Args:
-			method (FunctionType): メソッド
+			method: メソッド
 		Returns:
-			str: モジュールパス
+			モジュールパス
 		"""
 		class_name = method.__qualname__.split('.')[-2]
 		return f'{method.__module__}.{class_name}.{method.__name__}'
@@ -48,9 +48,9 @@ class MetaData:
 		"""メタデータを設定(クラス用)
 
 		Args:
-			ctor (type): 対象クラス
-			embed_key (str): メタデータのキー
-			value (Any): メタデータの値
+			ctor: 対象クラス
+			embed_key: メタデータのキー
+			value: メタデータの値
 		"""
 		if ctor not in self.__classes:
 			self.__classes[ctor] = {}
@@ -61,9 +61,9 @@ class MetaData:
 		"""メタデータを設定(メソッド用)
 
 		Args:
-			method (FunctionType): 対象メソッド
-			embed_key (str): メタデータのキー
-			value (Any): メタデータの値
+			method: 対象メソッド
+			embed_key: メタデータのキー
+			value: メタデータの値
 		"""
 		elems = self.method_path(method).split('.')
 		method_name = elems.pop()
@@ -80,10 +80,10 @@ class MetaData:
 		"""メタデータを取得(クラス用)
 
 		Args:
-			method (FunctionType): 対象メソッド
-			embed_key (str): メタデータのキー
+			method: 対象メソッド
+			embed_key: メタデータのキー
 		Returns:
-			dict[type, Any]: 対象クラスとメタデータのマップ
+			対象クラスとメタデータのマップ
 		"""
 		return {ctor: meta[embed_key] for ctor, meta in self.__classes.items() if embed_key in meta}
 
@@ -91,10 +91,10 @@ class MetaData:
 		"""メタデータを取得(クラス用)
 
 		Args:
-			ctor (type): 対象クラス
-			embed_key (str): メタデータのキー
+			ctor: 対象クラス
+			embed_key: メタデータのキー
 		Returns:
-			Any: メタデータの値
+			メタデータの値
 		Note:
 			メタデータが存在しない場合はNoneを返却
 		"""
@@ -110,10 +110,10 @@ class MetaData:
 		"""メタデータを取得(メソッド用)
 
 		Args:
-			ctor (type): 対象クラス
-			embed_key (str): メタデータのキー
+			ctor: 対象クラス
+			embed_key: メタデータのキー
 		Returns:
-			dict[str, Any]: 対象メソッドの名前とメタデータの値のマップ
+			対象メソッドの名前とメタデータの値のマップ
 		"""
 		class_path = self.class_path(ctor)
 		class_in_meta = self.__methods.get(class_path, {})
@@ -128,10 +128,10 @@ class Meta:
 		埋め込み関数はメタデータを連想配列として返却する関数であれば何でも良い
 
 		Args:
-			holder (type): メタデータを保持するクラス
-			*factories (MetaFactory): 埋め込み関数のリスト
+			holder: メタデータを保持するクラス
+			*factories: 埋め込み関数のリスト
 		Returns:
-			Callable: デコレーター
+			デコレーター
 		Examples:
 			```python
 			@Meta.embed(MetaHolder, lambda: {'__embed_class_key__': 1})
@@ -165,11 +165,11 @@ class Meta:
 		"""クラスに埋め込まれたメタデータを抽出(クラス用)
 
 		Args:
-			holder (type): メタデータを保持するクラス
-			embed_key (str): 抽出対象の埋め込みキー
-			value_type (type[T_Data]): メタデータの型
+			holder: メタデータを保持するクラス
+			embed_key: 抽出対象の埋め込みキー
+			value_type: メタデータの型
 		Returns:
-			dict[type, T_Data]: 対象クラスとメタデータのマップ
+			対象クラスとメタデータのマップ
 		"""
 		if not hasattr(holder, MetaData.key):
 			return {}
@@ -182,12 +182,12 @@ class Meta:
 		"""クラスに埋め込まれたメタデータを抽出(クラス用)
 
 		Args:
-			holder (type): メタデータを保持するクラス
-			ctor (type): 抽出対象のクラス
-			embed_key (str): 抽出対象の埋め込みキー
-			default (T_Data): メタデータが存在しない場合の返却値
+			holder: メタデータを保持するクラス
+			ctor: 抽出対象のクラス
+			embed_key: 抽出対象の埋め込みキー
+			default: メタデータが存在しない場合の返却値
 		Returns:
-			T_Data: メタデータ
+			メタデータ
 		"""
 		if not hasattr(holder, MetaData.key):
 			return default
@@ -200,12 +200,12 @@ class Meta:
 		"""クラスに埋め込まれたメタデータを抽出(メソッド用)
 
 		Args:
-			holder (type): メタデータを保持するクラス
-			ctor (type): 抽出対象のクラス
-			embed_key (str): 抽出対象の埋め込みキー
-			value_type (type[T_Data]): メタデータの型
+			holder: メタデータを保持するクラス
+			ctor: 抽出対象のクラス
+			embed_key: 抽出対象の埋め込みキー
+			value_type: メタデータの型
 		Returns:
-			dict[str, T_Data]: メソッド毎のメタデータ
+			メソッド毎のメタデータ
 		"""
 		if not hasattr(holder, MetaData.key):
 			return {}
@@ -218,9 +218,9 @@ def accept_tags(*tags: str) -> MetaFactory:
 	"""ノードに受け入れ対象のタグを埋め込む(クラス用)
 
 	Args:
-		*tags (str): 受け入れ対象のタグリスト
+		*tags: 受け入れ対象のタグリスト
 	Returns:
-		MetaFactory: 埋め込み関数
+		埋め込み関数
 	Note:
 		派生クラスの定義は基底クラスの定義を上書きする
 	Examples:
@@ -237,7 +237,7 @@ def expandable() -> dict[str, Any]:
 	"""ノードのプロパティーを展開対象として情報を埋め込む(メソッド用)
 
 	Returns:
-		dict[str, Any]: メタデータ
+		メタデータ
 	Note:
 		展開される順序はメソッドの定義順に倣う
 	Examples:

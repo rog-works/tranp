@@ -12,11 +12,11 @@ def validation(klass: type[T], lookup_private: bool = True, factory: Callable[[]
 	"""クラスの実装スキーマバリデーション
 
 	Args:
-		klass (type[T]): 検証クラス
-		lookup_private (bool): プライベートプロパティー抽出フラグ (default = True)
-		factory (Callable[[], T] | None): インスタンスファクトリー (default = None)
+		klass: 検証クラス
+		lookup_private: プライベートプロパティー抽出フラグ (default = True)
+		factory: インスタンスファクトリー (default = None)
 	Returns:
-		bool: True = 成功
+		True = 成功
 	Raises:
 		TypeError: 設計と実体の不一致
 	Note:

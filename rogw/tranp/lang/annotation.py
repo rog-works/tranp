@@ -8,9 +8,9 @@ def implements(wrapped: T) -> T:
 	"""インターフェイスの実装を表すアノテーション。何も変更せずラップ対象を返す
 
 	Args:
-		wrapped (T): ラップ対象
+		wrapped: ラップ対象
 	Returns:
-		T: ラップ対象
+		ラップ対象
 	"""
 	return wrapped
 
@@ -19,9 +19,9 @@ def duck_typed(protocol: Any) -> Callable[[T], T]:
 	"""プロトコルへの準拠を表すアノテーション。何も変更せずラップ対象を返す
 
 	Args:
-		protocol (Any): プロトコル
+		protocol: プロトコル
 	Returns:
-		Callable: デコレーター
+		デコレーター
 	"""
 	def decorator(wrapped: T) -> T:
 		return wrapped
@@ -33,9 +33,9 @@ def deprecated(wrapped: T) -> T:
 	"""非推奨のアノテーション。何も変更せずラップ対象を返す
 
 	Args:
-		wrapped (T): ラップ対象
+		wrapped: ラップ対象
 	Returns:
-		T: ラップ対象
+		ラップ対象
 	"""
 	return wrapped
 
@@ -44,8 +44,8 @@ def injectable(wrapped: T) -> T:
 	"""DIよりインジェクションが可能であることを表すアノテーション。何も変更せずラップ対象を返す
 
 	Args:
-		wrapped (T): ラップ対象
+		wrapped: ラップ対象
 	Returns:
-		T: ラップ対象
+		ラップ対象
 	"""
 	return wrapped

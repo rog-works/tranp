@@ -16,9 +16,9 @@ class Stored(Protocol):
 		"""インスタンスを復元
 
 		Args:
-			stream (IO): IO
+			stream: IO
 		Returns:
-			Self: 復元したインスタンス
+			復元したインスタンス
 		"""
 		...
 
@@ -26,7 +26,7 @@ class Stored(Protocol):
 		"""インスタンスを保存
 
 		Args:
-			stream (IO): IO
+			stream: IO
 		"""
 		...
 
@@ -42,9 +42,9 @@ class Cached(Generic[T]):
 		"""一意性担保用のコンテキストから一意な識別子を生成
 
 		Args:
-			identity (dict[str, str]): 一意性担保用のコンテキスト
+			identity: 一意性担保用のコンテキスト
 		Returns:
-			str: 一意な識別子
+			一意な識別子
 		"""
 		return hashlib.md5(str(identity).encode('utf-8')).hexdigest()
 
@@ -52,11 +52,11 @@ class Cached(Generic[T]):
 		"""インスタンスを生成
 
 		Args:
-			stored (T): ストアインターフェイス
-			factory (Callable[[], T]): ファクトリー
-			identity (dict[str, str]): 一意性担保用のコンテキスト
-			basedir (str): キャッシュの保存ディレクトリー(実行ディレクトリーからの相対パス)
-			**options (Any): オプション
+			stored: ストアインターフェイス
+			factory: ファクトリー
+			identity: 一意性担保用のコンテキスト
+			basedir: キャッシュの保存ディレクトリー(実行ディレクトリーからの相対パス)
+			**options: オプション
 		"""
 		self._stored = stored
 		self._factory = factory
@@ -68,9 +68,9 @@ class Cached(Generic[T]):
 		"""インスタンスの取得プロクシー
 
 		Args:
-			cache_key (str): キャッシュキー
+			cache_key: キャッシュキー
 		Returns:
-			T: インスタンス
+			インスタンス
 		"""
 		raise NotImplementedError()
 
@@ -91,9 +91,9 @@ class CachedProxy(Cached[T]):
 		"""インスタンスの取得プロクシー
 
 		Args:
-			cache_key (str): キャッシュキー
+			cache_key: キャッシュキー
 		Returns:
-			T: インスタンス
+			インスタンス
 		"""
 		cache_path = self.gen_cache_path(cache_key)
 		if self.cache_exists(cache_path):
@@ -107,9 +107,9 @@ class CachedProxy(Cached[T]):
 		"""キャッシュファイルの絶対パスを生成
 
 		Args:
-			cache_key (str): キャッシュキー
+			cache_key: キャッシュキー
 		Returns:
-			str: キャッシュファイルの絶対パス
+			キャッシュファイルの絶対パス
 		Note:
 			ファイルパスに一意性を担保する文字列を付与する
 		"""
@@ -122,9 +122,9 @@ class CachedProxy(Cached[T]):
 		"""キャッシュファイルが存在するか判定
 
 		Args:
-			cache_path (str): キャッシュファイルパス
+			cache_path: キャッシュファイルパス
 		Returns:
-			bool: True = 存在
+			True = 存在
 		"""
 		return os.path.exists(cache_path)
 
@@ -132,8 +132,8 @@ class CachedProxy(Cached[T]):
 		"""インスタンスをファイルに保存
 
 		Args:
-			instance (T): インスタンス
-			cache_path (str): キャッシュファイルパス
+			instance: インスタンス
+			cache_path: キャッシュファイルパス
 		Note:
 			保存直前に古いキャッシュファイルを自動的に削除
 		"""
@@ -151,9 +151,9 @@ class CachedProxy(Cached[T]):
 		"""旧キャッシュファイルを検索
 
 		Args:
-			cache_path (str): キャッシュファイルパス
+			cache_path: キャッシュファイルパス
 		Returns:
-			list[str]: 旧キャッシュファイルパスリスト
+			旧キャッシュファイルパスリスト
 		"""
 		elems = cache_path.split('-')[:-1]
 		basepath = '-'.join(elems)
@@ -166,9 +166,9 @@ class CachedProxy(Cached[T]):
 		"""インスタンスをファイルから読み込み
 
 		Args:
-			cache_path (str): キャッシュファイルパス
+			cache_path: キャッシュファイルパス
 		Returns:
-			T: 読み込んだインスタンス
+			読み込んだインスタンス
 		"""
 		with open(cache_path, mode='rb') as f:
 			return self._stored.load(f)
@@ -177,7 +177,7 @@ class CachedProxy(Cached[T]):
 		"""インスタンスを生成
 
 		Returns:
-			T: インスタンス
+			インスタンス
 		"""
 		return self._factory()
 
@@ -190,9 +190,9 @@ class CachedDummy(Cached[T]):
 		"""インスタンスの取得プロクシー
 
 		Args:
-			cache_key (str): キャッシュキー
+			cache_key: キャッシュキー
 		Returns:
-			T: インスタンス
+			インスタンス
 		"""
 		return self._factory()
 
@@ -202,8 +202,8 @@ class CacheSetting:
 	"""キャッシュ設定データ
 
 	Attributes:
-		basedir (str): キャッシュの保存ディレクトリー(実行ディレクトリーからの相対パス)
-		enabled (bool): True = 有効(default = True)
+		basedir: キャッシュの保存ディレクトリー(実行ディレクトリーからの相対パス)
+		enabled: True = 有効(default = True)
 	"""
 
 	basedir: str
@@ -217,7 +217,7 @@ class CacheProvider:
 		"""インスタンスを生成
 
 		Args:
-			setting (CacheSetting): キャッシュ設定データ
+			setting: キャッシュ設定データ
 		"""
 		self.__setting = setting
 		self.__instances: dict[str, Any] = {}
@@ -226,11 +226,11 @@ class CacheProvider:
 		"""キャッシュデコレーター。ファクトリー関数をラップしてキャッシュ機能を付与
 
 		Args:
-			cache_key (str): キャッシュキー
-			identity (dict[str, str]): 一意性担保用のコンテキスト
-			**options (Any): オプション
+			cache_key: キャッシュキー
+			identity: 一意性担保用のコンテキスト
+			**options: オプション
 		Returns:
-			Callable: デコレーター
+			デコレーター
 		Examples:
 			```python
 			class Data:

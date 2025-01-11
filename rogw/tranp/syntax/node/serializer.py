@@ -10,10 +10,10 @@ def serialize(node: Node, schema: type[T]) -> T:
 	"""指定のスキーマを元にノードをdictにシリアライズ
 
 	Args:
-		node (Node): ノード
-		schema (type[T]): シリアライズスキーマ
+		node: ノード
+		schema: シリアライズスキーマ
 	Returns:
-		T: シリアライズしたdict
+		シリアライズしたdict
 	Raises:
 		LogicError: 未対応の型が存在
 	"""
@@ -28,10 +28,10 @@ def __serialize_value(value: list[Node] | Node, schema: type) -> Any:
 	"""指定のスキーマを元にノードをdictにシリアライズ
 
 	Args:
-		value (list[Node] | Node): ノード
-		schema (type[T]): シリアライズスキーマ
+		value: ノード
+		schema: シリアライズスキーマ
 	Returns:
-		Any: シリアライズした値
+		シリアライズした値
 	Raises:
 		LogicError: 未対応の型が存在
 	"""

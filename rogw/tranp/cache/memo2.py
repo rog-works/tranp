@@ -11,7 +11,7 @@ class Memo(Generic[T]):
 		"""インスタンスを生成
 
 		Args:
-			factory (Callable[[], T]): ファクトリー関数
+			factory: ファクトリー関数
 		"""
 		self._factory = factory
 		self._result: T | None = None
@@ -20,7 +20,7 @@ class Memo(Generic[T]):
 		"""キャッシュからインタンスを取得
 
 		Returns:
-			T: インスタンス
+			インスタンス
 		"""
 		if self._result is None:
 			self._result = self._factory()
@@ -39,10 +39,10 @@ class Memoize:
 		"""キャッシュからインタンスを取得
 
 		Args:
-			key (object): キャッシュキー
-			factory (Callable[[], T]): ファクトリー関数
+			key: キャッシュキー
+			factory: ファクトリー関数
 		Returns:
-			T: インスタンス
+			インスタンス
 		"""
 		if key not in self._memos:
 			self._memos[key] = Memo(factory)

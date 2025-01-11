@@ -13,20 +13,20 @@ class EntryOfLark(Entry):
 		"""インスタンスを生成
 
 		Args:
-			entry (Tree | Token | None): エントリー
+			entry: エントリー
 		"""
 		self.__entry = entry
 
 	@property
 	@implements
 	def source(self) -> lark.Tree | lark.Token | None:
-		"""Tree | Token | None: オリジナルのエントリー"""
+		"""Returns: オリジナルのエントリー"""
 		return self.__entry
 
 	@property
 	@implements
 	def name(self) -> str:
-		"""str: エントリー名 @note: 空の場合を考慮"""
+		"""Returns: エントリー名 Note: 空の場合を考慮"""
 		if type(self.__entry) is lark.Tree:
 			return self.__entry.data
 		elif type(self.__entry) is lark.Token:
@@ -37,31 +37,31 @@ class EntryOfLark(Entry):
 	@property
 	@implements
 	def has_child(self) -> bool:
-		"""bool: True = 子を持つエントリー"""
+		"""Returns: True = 子を持つエントリー"""
 		return type(self.__entry) is lark.Tree
 
 	@property
 	@implements
 	def children(self) -> list[Entry]:
-		"""list[Entry]: 配下のエントリーリスト"""
+		"""Returns: 配下のエントリーリスト"""
 		return [EntryOfLark(in_entry) for in_entry in self.__entry.children] if type(self.__entry) is lark.Tree else []
 
 	@property
 	@implements
 	def is_terminal(self) -> bool:
-		"""bool: True = 終端記号"""
+		"""Returns: True = 終端記号"""
 		return type(self.__entry) is lark.Token
 
 	@property
 	@implements
 	def value(self) -> str:
-		"""str: 終端記号の値"""
+		"""Returns: 終端記号の値"""
 		return self.__entry.value if type(self.__entry) is lark.Token else ''
 
 	@property
 	@implements
 	def is_empty(self) -> bool:
-		"""bool: True = 空
+		"""Returns: True = 空
 
 		Note:
 			Grammarの定義上存在するが、構文解析の結果で空になったエントリー
@@ -73,11 +73,11 @@ class EntryOfLark(Entry):
 	@property
 	@override
 	def source_map(self) -> SourceMap:
-		"""SourceMap: ソースマップ
+		"""Returns: ソースマップ
 
 		Note:
-			begin (tuple[int, int]): 開始位置(行/列)
-			end (tuple[int, int]): 終了位置(行/列)
+			begin: 開始位置(行/列)
+			end: 終了位置(行/列)
 		"""
 		if type(self.__entry) is lark.Tree and self.__entry.meta is not None and not self.__entry.meta.empty:
 			source_map = (
@@ -113,9 +113,9 @@ class Serialization:
 		"""連想配列にシリアライズ
 
 		Args:
-			root (lark.Tree): ツリー
+			root: ツリー
 		Returns:
-			DumpTree: シリアライズツリー
+			シリアライズツリー
 		"""
 		return cast(DumpTree, cls.__dumps(root))
 
@@ -124,9 +124,9 @@ class Serialization:
 		"""連想配列にシリアライズ
 
 		Args:
-			entry (lark.Tree | lark.Token | None): エントリー
+			entry: エントリー
 		Returns:
-			DumpTreeEntry: シリアライズエントリー
+			シリアライズエントリー
 		"""
 		proxy = EntryOfLark(entry)
 		source_map = (
@@ -151,9 +151,9 @@ class Serialization:
 		"""連想配列からデシリアライズ
 
 		Args:
-			root (DumpTree): シリアライズツリー
+			root: シリアライズツリー
 		Returns:
-			lark.Tree: ツリー
+			ツリー
 		"""
 		return cast(lark.Tree, cls.__loads(root))
 
@@ -162,9 +162,9 @@ class Serialization:
 		"""連想配列からデシリアライズ
 
 		Args:
-			entry (DumpTreeEntry): シリアライズエントリー
+			entry: シリアライズエントリー
 		Returns:
-			lark.Tree | lark.Token | None: エントリー
+			エントリー
 		"""
 		if type(entry) is dict and 'children' in entry:
 			entry_tree = cast(DumpTree, entry)

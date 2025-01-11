@@ -5,8 +5,8 @@ class ModuleMeta(TypedDict):
 	"""モジュールのメタ情報
 
 	Attributes:
-		hash (str): ファイルのハッシュ値
-		path (str): モジュールパス
+		hash: ファイルのハッシュ値
+		path: モジュールパス
 	"""
 
 	hash: str
@@ -17,8 +17,8 @@ class TranspilerMeta(TypedDict):
 	"""トランスパイラーのメタ情報
 
 	Attributes:
-		version (str): バージョン
-		module (str): トランスパイラー実装クラスのモジュールパス
+		version: バージョン
+		module: トランスパイラー実装クラスのモジュールパス
 	"""
 
 	version: str
@@ -32,8 +32,8 @@ class ModuleMetaFactory(Protocol):
 		"""モジュールのメタ情報を生成
 
 		Args:
-			module_path (str): モジュールパス
+			module_path: モジュールパス
 		Returns:
-			ModuleMeta: モジュールのメタ情報
+			モジュールのメタ情報
 		"""
 		...

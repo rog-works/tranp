@@ -14,9 +14,9 @@ class IModuleLoader(metaclass=ABCMeta):
 		"""モジュールをロード
 
 		Args:
-			module_path (ModulePath): モジュールパス
+			module_path: モジュールパス
 		Returns:
-			Module: モジュール
+			モジュール
 		"""
 		...
 
@@ -25,7 +25,7 @@ class IModuleLoader(metaclass=ABCMeta):
 		"""モジュールをアンロード
 
 		Args:
-			module_path (ModulePath): モジュールパス
+			module_path: モジュールパス
 		"""
 		...
 
@@ -34,7 +34,7 @@ class IModuleLoader(metaclass=ABCMeta):
 		"""モジュールにプリプロセスを実施
 
 		Args:
-			module (Module): モジュール
+			module: モジュール
 		"""
 		...
 
@@ -52,6 +52,6 @@ class ModuleDependencyProvider(Protocol):
 		"""モジュール定義を生成
 
 		Returns:
-			ModuleDefinitions: モジュール定義
+			モジュール定義
 		"""
 		...

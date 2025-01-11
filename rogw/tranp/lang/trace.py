@@ -13,7 +13,7 @@ class Records:
 		"""シングルトンインスタンスを取得
 
 		Returns:
-			Records: インスタンス
+			インスタンス
 		"""
 		if not cls._instance:
 			cls._instance = cls()
@@ -25,20 +25,20 @@ class Records:
 		self._record: dict[str, int] = {}
 
 	def __str__(self) -> str:
-		"""str: 文字列表現"""
+		"""Returns: 文字列表現"""
 		data = {**dict(sorted(self._record.items(), key=lambda entry: entry[0])), 'total': self.total}
 		return str(json.dumps(data, indent=2))
 
 	@property
 	def total(self) -> int:
-		"""int: 総コール数"""
+		"""Returns: 総コール数"""
 		return sum(self._record.values())
 
 	def put(self, back_at: int = 2) -> None:
 		"""コールスタックを記録
 
 		Args:
-			back_at (int): 遡るフレーム数 (default = 2)
+			back_at: 遡るフレーム数 (default = 2)
 		"""
 		frame = sys._getframe(back_at)  # type: ignore XXX 利用面に問題はないため警告を抑制
 		matches = re.search(r"file '.+\\(\w+\.py)', line (\d+)", str(frame))

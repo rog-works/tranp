@@ -2,7 +2,7 @@ def c_pragma(command: str) -> None:
 	"""pragmaを埋め込む
 
 	Args:
-		command (str): コマンド
+		command: コマンド
 	Examples:
 		```python
 		# python
@@ -21,7 +21,7 @@ def c_include(command: str) -> None:
 	"""includeを埋め込む
 
 	Args:
-		command (str): コマンド
+		command: コマンド
 	Examples:
 		```python
 		include('<stdio>')
@@ -38,7 +38,7 @@ def c_macro(command: str) -> None:
 	"""マクロ呼び出しを埋め込む
 
 	Args:
-		command (str): コマンド
+		command: コマンド
 	Examples:
 		```python
 		# python

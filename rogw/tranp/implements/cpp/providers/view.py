@@ -6,9 +6,9 @@ def renderer_helper_provider_cpp(setting: RendererSetting) -> RendererHelperProv
 	"""ヘルパープロバイダー(C++用)
 
 	Args:
-		setting (RendererSetting): テンプレートレンダー設定データ
+		setting: テンプレートレンダー設定データ
 	Returns:
-		RendererHelperProvider: ヘルパープロバイダー
+		ヘルパープロバイダー
 	"""
 	funcs, filters = factories()
 	funcs_cpp, filters_cpp = factories_for_cpp()

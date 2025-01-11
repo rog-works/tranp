@@ -13,9 +13,9 @@ class Memo:
 		"""キャッシュデコレーターを生成
 
 		Args:
-			key (str): キャッシュキー
+			key: キャッシュキー
 		Returns:
-			Callable: デコレーター
+			デコレーター
 		Note:
 			何万回と実行されるメソッドに対してこのキャッシュデコレーターを適用すると、
 			タイプヒントによるオーバーヘッドが無視できないレベルに達する
@@ -71,9 +71,9 @@ class Memoize:
 		"""オブジェクトに対応したキャッシュデコレーターファクトリーを取得
 
 		Args:
-			obj (object): オブジェクト
+			obj: オブジェクト
 		Returns:
-			Memo: キャッシュデコレーターファクトリー
+			キャッシュデコレーターファクトリー
 		"""
 		if obj in self.__memos:
 			return self.__memos[obj]

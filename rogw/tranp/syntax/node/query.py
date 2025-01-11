@@ -18,8 +18,8 @@ class Nodes(Query[Node]):
 		"""インスタンスを生成
 
 		Args:
-			resolver (NodeResolver): ノードリゾルバー @inject
-			root (Entry): ASTのルート要素 @inject
+			resolver: ノードリゾルバー @inject
+			root: ASTのルート要素 @inject
 		"""
 		self.__memo = Memoize()
 		self.__resolver = resolver
@@ -31,10 +31,10 @@ class Nodes(Query[Node]):
 		"""エントリーからノードを解決し、パスとマッピングしてキャッシュ
 
 		Args:
-			entry (Entry): エントリー
-			full_path (str): エントリーのフルパス
+			entry: エントリー
+			full_path: エントリーのフルパス
 		Returns:
-			Node: 解決したノード
+			解決したノード
 		"""
 		return self.__resolver.resolve(entry.name, full_path)
 
@@ -43,9 +43,9 @@ class Nodes(Query[Node]):
 		"""指定のパスに紐づく一意なノードが存在するか判定
 
 		Args:
-			full_path (str): フルパス
+			full_path: フルパス
 		Returns:
-			bool: True = 存在
+			True = 存在
 		"""
 		return self.__entries.exists(full_path)
 
@@ -54,9 +54,9 @@ class Nodes(Query[Node]):
 		"""指定のパスに紐づく一意なノードをフェッチ
 
 		Args:
-			full_path (str): フルパス
+			full_path: フルパス
 		Returns:
-			Node: ノード
+			ノード
 		Raises:
 			NodeNotFoundError: ノードが存在しない
 		"""
@@ -68,9 +68,9 @@ class Nodes(Query[Node]):
 		"""指定のパスを子として親のノードをフェッチ
 
 		Args:
-			via (str): 基点のパス
+			via: 基点のパス
 		Returns:
-			Node: ノード
+			ノード
 		Raises:
 			NodeNotFoundError: 親が存在しない
 		"""
@@ -91,10 +91,10 @@ class Nodes(Query[Node]):
 		"""指定のエントリータグを持つ直近の親ノードをフェッチ
 
 		Args:
-			via (str): 基点のパス
-			tag (str): エントリータグ
+			via: 基点のパス
+			tag: エントリータグ
 		Returns:
-			Node: ノード
+			ノード
 		Raises:
 			NodeNotFoundError: 指定のエントリータグを持つ親が存在しない
 		"""
@@ -116,9 +116,9 @@ class Nodes(Query[Node]):
 		"""指定のパスを基準に同階層のノードをフェッチ
 
 		Args:
-			via (str): 基点のパス(フルパス)
+			via: 基点のパス(フルパス)
 		Returns:
-			list[Node]: ノードリスト
+			ノードリスト
 		Raises:
 			NodeNotFoundError: 基点のノードが存在しない
 		"""
@@ -136,9 +136,9 @@ class Nodes(Query[Node]):
 		"""指定のパスを基準に1階層下のノードをフェッチ
 
 		Args:
-			via (str): 基点のパス(フルパス)
+			via: 基点のパス(フルパス)
 		Returns:
-			list[Node]: ノードリスト
+			ノードリスト
 		Raises:
 			NodeNotFoundError: 基点のノードが存在しない
 		"""
@@ -155,9 +155,9 @@ class Nodes(Query[Node]):
 		"""指定のパスから下に存在する展開が可能なノードをフェッチ
 
 		Args:
-			via (str): 基点のパス(フルパス)
+			via: 基点のパス(フルパス)
 		Returns:
-			list[Node]: ノードリスト
+			ノードリスト
 		Raises:
 			NodeNotFoundError: 基点のノードが存在しない
 		"""
@@ -198,9 +198,9 @@ class Nodes(Query[Node]):
 		"""指定のパス以下(基点を含む)のエントリーの値を取得
 
 		Args:
-			via (str): 基点のパス(フルパス)
+			via: 基点のパス(フルパス)
 		Returns:
-			list[str]: 値リスト
+			値リスト
 		"""
 		def factory() -> list[str]:
 			return [entry.value for entry in self.__entries.group_by(via).values() if entry.value]
@@ -212,9 +212,9 @@ class Nodes(Query[Node]):
 		"""指定のパスのエントリーのIDを取得
 
 		Args:
-			full_path (str): フルパス
+			full_path: フルパス
 		Returns:
-			int: ID
+			ID
 		"""
 		return self.__entries.index_of(full_path)
 
@@ -223,8 +223,8 @@ class Nodes(Query[Node]):
 		"""指定のパスのエントリーのソースマップを取得
 
 		Args:
-			full_path (str): フルパス
+			full_path: フルパス
 		Returns:
-			SourceMap: ソースマップ
+			ソースマップ
 		"""
 		return self.__entries.by(full_path).source_map

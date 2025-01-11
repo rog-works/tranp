@@ -22,9 +22,9 @@ class Embed:
 		"""Python専用としてマークアップ。Python以外の言語へのトランスパイルは対象外となる
 
 		Args:
-			wrapped (T): ラップ対象
+			wrapped: ラップ対象
 		Returns:
-			T: デコレート対象
+			デコレート対象
 		"""
 		return wrapped
 
@@ -33,10 +33,10 @@ class Embed:
 		"""トランスパイル後のシンボル名を埋め込む
 
 		Args:
-			name (str): 名前 (default = '')
-			prefix (bool): 接頭辞フラグ (default = False)
+			name: 名前 (default = '')
+			prefix: 接頭辞フラグ (default = False)
 		Returns:
-			Callable: デコレート対象
+			デコレート対象
 		Note:
 			* トランスパイル後のシンボル名のみ変更するため、シンボルテーブルには定義元の名称で登録される点に注意
 			* シンボルテーブルに登録する名称を変更する場合は__actual__を使用 @see rogw.tranp.compatible.libralies.classes.__actual__
@@ -51,9 +51,9 @@ class Embed:
 		"""関数を仮想関数としてマークアップ
 
 		Args:
-			wrapped (T): ラップ対象
+			wrapped: ラップ対象
 		Returns:
-			T: デコレート対象
+			デコレート対象
 		Note:
 			* 純粋仮想関数は@abstractmethodを使う
 			* 純粋仮想関数を除いた「仮想関数」はC++固有の概念であり、全く別物と言う扱いなので注意
@@ -65,9 +65,9 @@ class Embed:
 		"""関数を副作用のない関数としてマークアップ
 
 		Args:
-			wrapped (T): ラップ対象
+			wrapped: ラップ対象
 		Returns:
-			T: デコレート対象
+			デコレート対象
 		Note:
 			言語間の制約の差を吸収する目的で使用
 		"""
@@ -78,9 +78,9 @@ class Embed:
 		"""関数をprivate関数としてマークアップ
 
 		Args:
-			wrapped (T): ラップ対象
+			wrapped: ラップ対象
 		Returns:
-			T: デコレート対象
+			デコレート対象
 		Note:
 			言語間の制約の差を吸収する目的で使用
 		"""
@@ -91,9 +91,9 @@ class Embed:
 		"""関数をprotected関数としてマークアップ
 
 		Args:
-			wrapped (T): ラップ対象
+			wrapped: ラップ対象
 		Returns:
-			T: デコレート対象
+			デコレート対象
 		Note:
 			言語間の制約の差を吸収する目的で使用
 		"""
@@ -104,9 +104,9 @@ class Embed:
 		"""関数をpublic関数としてマークアップ
 
 		Args:
-			wrapped (T): ラップ対象
+			wrapped: ラップ対象
 		Returns:
-			T: デコレート対象
+			デコレート対象
 		Note:
 			言語間の制約の差を吸収する目的で使用
 		"""
@@ -117,9 +117,9 @@ class Embed:
 		"""クラスを構造体としてマークアップ。暗黙的に`__struct__`と言う属性を付与する
 
 		Args:
-			wrapped (T): ラップ対象
+			wrapped: ラップ対象
 		Returns:
-			T: デコレート対象
+			デコレート対象
 		"""
 		if not hasattr(wrapped, '__struct__'):
 			setattr(wrapped, '__struct__', True)
@@ -131,9 +131,9 @@ class Embed:
 		"""クロージャーに遅延束縛の情報を埋め込む
 
 		Args:
-			*symbols (Any): シンボルリスト
+			*symbols: シンボルリスト
 		Returns:
-			Callable: デコレーター
+			デコレーター
 		Examples:
 			```python
 			@Embed.closure_bind(self, a, b)
@@ -151,10 +151,10 @@ class Embed:
 		"""メタ情報を埋め込む
 
 		Args:
-			key (str): キー
-			meta (Any): メタ情報
+			key: キー
+			meta: メタ情報
 		Returns:
-			Callable: デコレーター
+			デコレーター
 		Examples:
 			```python
 			@Embed.meta('class', 'meta')

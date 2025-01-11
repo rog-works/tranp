@@ -42,9 +42,9 @@ class Args:
 		"""コマンドライン引数を解析
 
 		Args:
-			argv (list[str]): 引数リスト
+			argv: 引数リスト
 		Returns:
-			ArgsDict: コマンドライン引数のデータ
+			コマンドライン引数のデータ
 		"""
 		args: ArgsDict = {
 			'grammar': 'data/grammar.lark',
@@ -75,9 +75,9 @@ class AnalyzeApp(App):
 		"""シンタックスパーサー設定データを生成
 
 		Args:
-			args (Args): コマンドライン引数 @inject
+			args: コマンドライン引数 @inject
 		Returns:
-			ParserSetting: シンタックスパーサー設定
+			シンタックスパーサー設定
 		"""
 		return ParserSetting(grammar=args.grammar)
 
@@ -87,10 +87,10 @@ class AnalyzeApp(App):
 		"""処理対象のモジュールパスリストを生成
 
 		Args:
-			args (Args): コマンドライン引数 @inject
-			sources (ISourceLoader): ソースコードローダー @inject
+			args: コマンドライン引数 @inject
+			sources: ソースコードローダー @inject
 		Returns:
-			ModulePaths: 処理対象のモジュールパスリスト
+			処理対象のモジュールパスリスト
 		"""
 		if not sources.exists(args.input):
 			return ModulePaths([])
@@ -101,7 +101,7 @@ class AnalyzeApp(App):
 
 	@property
 	def now(self) -> str:
-		"""str: 現在時刻"""
+		"""Returns: 現在時刻"""
 		from datetime import datetime, timedelta, timezone
 
 		zone = timezone(timedelta(hours=9), 'JST')
@@ -111,9 +111,9 @@ class AnalyzeApp(App):
 		"""モジュールのエントリーポイントを取得
 
 		Args:
-			module_path (str): モジュールパス
+			module_path: モジュールパス
 		Returns:
-			Entrypoint: エントリーポイントノード
+			エントリーポイントノード
 		"""
 		return self.resolve(Modules).load(module_path).entrypoint
 
@@ -121,7 +121,7 @@ class AnalyzeApp(App):
 		"""シンボルテーブルをシリアライズ
 
 		Returns:
-			dict[str, str]: データ
+			データ
 		"""
 		return {key: raw.types.fullyname for key, raw in self.resolve(SymbolDB).items()}
 
@@ -129,7 +129,7 @@ class AnalyzeApp(App):
 		"""シンボルテーブル内の全てのクラスをシリアライズ
 
 		Returns:
-			list[str]: データ
+			データ
 		"""
 		return [raw.decl.fullyname for raw in self.resolve(SymbolDB).values() if raw.decl.is_a(defs.Class)]
 
@@ -137,9 +137,9 @@ class AnalyzeApp(App):
 		"""シンボル定義ノードをシリアライズ
 
 		Args:
-			types (ClassDef): シンボル定義ノード
+			types: シンボル定義ノード
 		Returns:
-			str: データ
+			データ
 		"""
 		return types.pretty(1)
 
@@ -147,7 +147,7 @@ class AnalyzeApp(App):
 		"""全てのモジュールをシリアライズ
 
 		Returns:
-			list[str]: データ
+			データ
 		"""
 		return [module.path for module in self.resolve(Modules).loaded()]
 
@@ -155,9 +155,9 @@ class AnalyzeApp(App):
 		"""ノードをシリアライズ
 
 		Args:
-			node (Node): ノード
+			node: ノード
 		Returns:
-			dict[str, Any]: データ
+			データ
 		"""
 		symbol = self.resolve(Reflections).type_of(node)
 		return {
@@ -169,9 +169,9 @@ class AnalyzeApp(App):
 		"""ノードをダンプ
 
 		Args:
-			node (Node): ノード
+			node: ノード
 		Returns:
-			dict[str, Any]: データ
+			データ
 		"""
 		data: dict[str, Any] = {}
 		for key in dir(node):
@@ -195,9 +195,9 @@ class AnalyzeApp(App):
 		"""シンボルをダンプ
 
 		Args:
-			symbol (IReflection): シンボル
+			symbol: シンボル
 		Returns:
-			dict[str, Any]: データ
+			データ
 		"""
 		def attr_formatter(attr: IReflection) -> str:
 			return f'{attr.__class__.__name__}:{str(attr)} at {str(attr.node or attr.decl)}'
@@ -418,7 +418,7 @@ class AnalyzeApp(App):
 		"""表示(クラス詳細)
 
 		Args:
-			fullyname (str): 完全参照名
+			fullyname: 完全参照名
 		"""
 		print(self.serialize_class(self.resolve(Reflections).from_fullyname(fullyname).types))
 
@@ -434,7 +434,7 @@ class AnalyzeApp(App):
 		"""表示(ノード階層)
 
 		Args:
-			module_path (str): モジュールパス
+			module_path: モジュールパス
 		"""
 		print(self.fetch_entrypoint(module_path).pretty())
 
@@ -442,7 +442,7 @@ class AnalyzeApp(App):
 		"""表示(シンボル詳細)
 
 		Args:
-			fullyname (str): 完全参照名
+			fullyname: 完全参照名
 		"""
 		symbol = self.resolve(Reflections).from_fullyname(fullyname)
 		print(json.dumps(self.serialize_node(symbol.types), indent=2))
@@ -452,8 +452,8 @@ class AnalyzeApp(App):
 		"""アプリケーションのエントリーポイント
 
 		Args:
-			args (Args): コマンドライン引数 @inject
-			modules (Modules): モジュールマネージャー @inject
+			args: コマンドライン引数 @inject
+			modules: モジュールマネージャー @inject
 		"""
 		# 既定のモジュールをロード
 		modules.dependencies()

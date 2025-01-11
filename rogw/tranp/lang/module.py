@@ -9,10 +9,10 @@ def load_module(path: str, module: str) -> Any:
 	"""モジュールをロード
 
 	Args:
-		path (str): モジュールパス
-		module (str): モジュールパス
+		path: モジュールパス
+		module: モジュールパス
 	Returns:
-		Any: モジュール
+		モジュール
 	"""
 	return getattr(import_module(path), module)
 
@@ -21,9 +21,9 @@ def load_module_path(module_path: str) -> Any:
 	"""モジュールパスからモジュールをロード
 
 	Args:
-		module_path (str): モジュールパス
+		module_path: モジュールパス
 	Returns:
-		Any: モジュール
+		モジュール
 	"""
 	elems = module_path.split('.')
 	path = '.'.join(elems[:-1])
@@ -35,9 +35,9 @@ def resolve_own_class(method: Callable) -> type:
 	"""メソッドからクラスを解決
 
 	Args:
-		method (Callable): メソッド
+		method: メソッド
 	Returns:
-		type: クラス
+		クラス
 	Raises:
 		ModuleNotFoundError: 解決に失敗
 	Note:
@@ -56,9 +56,9 @@ def to_fullyname(symbol: type | Callable) -> str:
 	"""シンボルの完全参照名を取得
 
 	Args:
-		symbol (type | Callable): シンボル(クラス/ファンクション)
+		symbol: シンボル(クラス/ファンクション)
 	Returns:
-		str: 完全参照名
+		完全参照名
 	"""
 	return f'{symbol.__module__}.{symbol.__name__}'
 
@@ -67,10 +67,10 @@ def filepath_to_module_path(filepath: str, basedir: str) -> str:
 	"""モジュールのファイルパスからモジュールパスに変換
 
 	Args:
-		filepath (str): モジュールの絶対パス
-		basedir (str): 基準ディレクトリーのパス
+		filepath: モジュールの絶対パス
+		basedir: 基準ディレクトリーのパス
 	Returns:
-		str: モジュールパス
+		モジュールパス
 	"""
 	rel_path = filepath.split(basedir)[1]
 	basepath, _ = os.path.splitext(rel_path)
@@ -82,9 +82,9 @@ def module_path_to_filepath(module_path: str, extension: str = '') -> str:
 	"""モジュールパスからファイルパスに変換
 
 	Args:
-		module_path (str): モジュールパス
-		extension (str): 拡張子 (default = '')
+		module_path: モジュールパス
+		extension: 拡張子 (default = '')
 	Returns:
-		str: ファイルパス
+		ファイルパス
 	"""
 	return f'{module_path.replace('.', os.path.sep)}{extension}'

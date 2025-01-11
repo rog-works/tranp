@@ -22,9 +22,9 @@ class Fixture:
 		"""フィクスチャーのモジュールパスを取得
 
 		Args:
-			filepath (str): テストファイルのパス
+			filepath: テストファイルのパス
 		Returns:
-			str: フィクスチャーのモジュールパス
+			フィクスチャーのモジュールパス
 		"""
 		module_path = filepath_to_module_path(filepath, tranp_dir())
 		elems = module_path.split('.')
@@ -36,10 +36,10 @@ class Fixture:
 		"""インスタンスを生成
 
 		Args:
-			filepath (str): テストファイルのパス
-			definitions (ModuleDefinitions): モジュール定義 (default = {})
+			filepath: テストファイルのパス
+			definitions: モジュール定義 (default = {})
 		Returns:
-			Fixture: インスタンス
+			インスタンス
 		Examples:
 			```python
 			class TestClass:
@@ -52,8 +52,8 @@ class Fixture:
 		"""インスタンスを生成
 
 		Args:
-			fixture_module_path (str): フィクスチャーのモジュールパス
-			definitions (ModuleDefinitions): モジュール定義
+			fixture_module_path: フィクスチャーのモジュールパス
+			definitions: モジュール定義
 		"""
 		self.__fixture_module_path = fixture_module_path
 		self.__custom_source_code = ''
@@ -63,7 +63,7 @@ class Fixture:
 		"""モジュール定義を生成
 
 		Returns:
-			ModuleDefinitions: モジュール定義
+			モジュール定義
 		"""
 		return {
 			to_fullyname(ModulePaths): lambda: [ModulePath(self.__fixture_module_path, language='py')],
@@ -74,24 +74,24 @@ class Fixture:
 		"""テスト用アプリケーションからシンボルに対応したインスタンスを取得
 
 		Args:
-			symbol (type[T_Inst]): シンボル
+			symbol: シンボル
 		Returns:
-			T_Inst: インスタンス
+			インスタンス
 		"""
 		return self.__app.resolve(symbol)
 
 	@property
 	def shared_module(self) -> Module:
-		"""Module: 共有フィクスチャーモジュール"""
+		"""Returns: 共有フィクスチャーモジュール"""
 		return self.get(Modules).load(self.__fixture_module_path)
 
 	def shared_nodes_by(self, full_path: str) -> Node:
 		"""共有フィクスチャーのノードを取得
 
 		Args:
-			full_path (str): フルパス
+			full_path: フルパス
 		Returns:
-			Node: ノード
+			ノード
 		"""
 		return self.get(Entrypoints).load(self.__fixture_module_path).whole_by(full_path)
 
@@ -99,10 +99,10 @@ class Fixture:
 		"""カスタムフィクスチャーのノードを取得
 
 		Args:
-			source_code (str): ソースコード
-			full_path (str): フルパス
+			source_code: ソースコード
+			full_path: フルパス
 		Returns:
-			Node: ノード
+			ノード
 		"""
 		module_path = module_path_dummy()
 		self.__custom_source_code = f'{source_code}\n'
@@ -114,9 +114,9 @@ class Fixture:
 		"""カスタムフィクスチャーのモジュールを取得
 
 		Args:
-			source_code (str): ソースコード
+			source_code: ソースコード
 		Returns:
-			Module: モジュール
+			モジュール
 		"""
 		module_path = module_path_dummy()
 		self.__custom_source_code = f'{source_code}\n'
@@ -129,9 +129,9 @@ class Fixture:
 		"""モジュールパスを基にソースコードを生成
 
 		Args:
-			module_path (str): モジュールパス
+			module_path: モジュールパス
 		Returns:
-			str: ソースコード
+			ソースコード
 		"""
 		if module_path == module_path_dummy().path:
 			return self.__custom_source_code

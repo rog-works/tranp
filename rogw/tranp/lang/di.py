@@ -23,9 +23,9 @@ class DI:
 		"""シンボルが解決できるか判定
 
 		Args:
-			symbol (type): シンボル
+			symbol: シンボル
 		Returns:
-			bool: True = 解決できる
+			True = 解決できる
 		"""
 		return self.__inner_binded(symbol)
 
@@ -33,9 +33,9 @@ class DI:
 		"""シンボルが登録済みか判定。bindの中のみ直接使用
 
 		Args:
-			symbol (type): シンボル
+			symbol: シンボル
 		Returns:
-			bool: True = 登録済み
+			True = 登録済み
 		"""
 		return self.__find_symbol(symbol) is not None
 
@@ -43,8 +43,8 @@ class DI:
 		"""シンボルとファクトリーのマッピングを登録
 
 		Args:
-			symbol (type[T_Inst]): シンボル
-			injector (Injector[T_Inst]): ファクトリー(関数/メソッド/クラス)
+			symbol: シンボル
+			injector: ファクトリー(関数/メソッド/クラス)
 		Raises:
 			ValueError: 登録済みのシンボルを指定
 		"""
@@ -58,7 +58,7 @@ class DI:
 		"""シンボルとファクトリーのマッピングを解除
 
 		Args:
-			symbol (type[Any]): シンボル
+			symbol: シンボル
 		"""
 		found_symbol = self.__find_symbol(symbol)
 		if found_symbol is not None:
@@ -72,8 +72,8 @@ class DI:
 		"""シンボルとファクトリーのマッピングを再登録
 
 		Args:
-			symbol (type[T_Inst]): シンボル
-			injector (Injector[T_Inst]): ファクトリー(関数/メソッド/クラス)
+			symbol: シンボル
+			injector: ファクトリー(関数/メソッド/クラス)
 		"""
 		if self.__inner_binded(symbol):
 			self.unbind(symbol)
@@ -85,9 +85,9 @@ class DI:
 		"""シンボルからインスタンスを解決
 
 		Args:
-			symbol (type[T_Inst]): シンボル
+			symbol: シンボル
 		Returns:
-			T_Inst: インスタンス
+			インスタンス
 		Raises:
 			ValueError: 未登録のシンボルを指定
 		"""
@@ -105,9 +105,9 @@ class DI:
 		"""受け入れ可能なシンボルに変換
 
 		Args:
-			symbol (type[T_Inst]): シンボル
+			symbol: シンボル
 		Returns:
-			type[T_Inst]: シンボル
+			シンボル
 		Note:
 			XXX Generic型は型の解決結果が不明瞭で扱いにくいため、オリジナルの型のみ受け入れ
 			```python
@@ -132,9 +132,9 @@ class DI:
 		"""シンボルを検索
 
 		Args:
-			symbol (type[T_Inst]): シンボル
+			symbol: シンボル
 		Returns:
-			type[T_Inst] | None: シンボル
+			シンボル
 		"""
 		accept_symbol = self._acceptable_symbol(symbol)
 		return accept_symbol if accept_symbol in self.__injectors else None
@@ -144,10 +144,10 @@ class DI:
 		"""ファクトリーを代替実行し、インスタンスを生成
 
 		Args:
-			factory (Injector[T_Inst]): ファクトリー(関数/メソッド/クラス)
-			*remain_args (Any): 残りの位置引数
+			factory: ファクトリー(関数/メソッド/クラス)
+			*remain_args: 残りの位置引数
 		Returns:
-			T_Inst: 生成したインスタンス
+			生成したインスタンス
 		Note:
 			* ロケーターが解決可能なシンボルをファクトリーの引数リストの前方から省略していき、解決不能な引数を残りの位置引数として受け取る
 			* このメソッドを通して生成したインスタンスはキャッシュされず、毎回生成される
@@ -175,9 +175,9 @@ class DI:
 		"""アノテーション取得用の呼び出し対象の関数に変換
 
 		Args:
-			injector (Injector[T_Inst]): ファクトリー(関数/メソッド/クラス)
+			injector: ファクトリー(関数/メソッド/クラス)
 		Returns:
-			Callable[..., T_Inst]: 呼び出し対象の関数
+			呼び出し対象の関数
 		"""
 		if isinstance(injector, (FunctionType, MethodType)):
 			return injector
@@ -190,9 +190,9 @@ class DI:
 		"""引数のアノテーションを取得
 
 		Args:
-			annotated (Callable[..., Any]): 呼び出し対象の関数
+			annotated: 呼び出し対象の関数
 		Returns:
-			dict[str, type]: 引数のアノテーションリスト
+			引数のアノテーションリスト
 		"""
 		annos = getattr(annotated, '__annotations__', {})
 		return {key: anno for key, anno in annos.items() if key != 'return'}
@@ -201,10 +201,10 @@ class DI:
 		"""代替呼び出しのバリデーション
 
 		Args:
-			injector (Injector[T_Inst]): ファクトリー(関数/メソッド/クラス)
-			annos (dict[str, type]): 引数のアノテーションリスト
-			curried_args (list[type]): カリー化対象の位置引数
-			*remain_args (Any): 余りの位置引数
+			injector: ファクトリー(関数/メソッド/クラス)
+			annos: 引数のアノテーションリスト
+			curried_args: カリー化対象の位置引数
+			*remain_args: 余りの位置引数
 		Raises:
 			ValueError: 呼び出しシグネチャーが不正
 		"""
@@ -218,7 +218,7 @@ class DI:
 		"""インスタンスを複製
 
 		Returns:
-			Self: 複製したインスタンス
+			複製したインスタンス
 		"""
 		di = self.__class__()
 		di.__instances = self.__instances.copy()
@@ -229,9 +229,9 @@ class DI:
 		"""マージ対象と合成した新たなインスタンスを生成
 
 		Args:
-			other (Self): マージ対象のインスタンス
+			other: マージ対象のインスタンス
 		Returns:
-			Self: 合成したインスタンス
+			合成したインスタンス
 		Note:
 			* 戻り値の型はレシーバーのインスタンスに倣う
 			* 同じシンボルはマージ対象のインスタンスで上書きされる
@@ -255,9 +255,9 @@ class LazyDI(DI):
 		"""インスタンスを生成
 
 		Args:
-			definitions (ModuleDefinitions): モジュール定義
+			definitions: モジュール定義
 		Returns:
-			Self: インスタンス
+			インスタンス
 		"""
 		di = cls()
 		for symbol_path, injector in definitions.items():
@@ -274,8 +274,8 @@ class LazyDI(DI):
 		"""マッピングの登録を追加
 
 		Args:
-			symbol_path (str): シンボル型のパス
-			injector (str | Injector[Any]): ファクトリー、またはパス
+			symbol_path: シンボル型のパス
+			injector: ファクトリー、またはパス
 		Raises:
 			ValueError: 登録済みのシンボルを指定
 		"""
@@ -288,7 +288,7 @@ class LazyDI(DI):
 		"""マッピングの登録を解除
 
 		Args:
-			symbol_path (str): シンボル型のパス
+			symbol_path: シンボル型のパス
 		"""
 		if self.__can_resolve(symbol_path):
 			del self.__definitions[symbol_path]
@@ -298,9 +298,9 @@ class LazyDI(DI):
 		"""シンボルが解決できるか判定
 
 		Args:
-			symbol (type[Any]): シンボル
+			symbol: シンボル
 		Returns:
-			bool: True = 解決できる
+			True = 解決できる
 		"""
 		return self.__can_resolve(self.__symbolize(symbol))
 
@@ -308,9 +308,9 @@ class LazyDI(DI):
 		"""シンボルが解決できるか判定
 
 		Args:
-			symbol_path (str): シンボル型のパス
+			symbol_path: シンボル型のパス
 		Returns:
-			bool: True = 解決できる
+			True = 解決できる
 		"""
 		return symbol_path in self.__definitions
 
@@ -318,9 +318,9 @@ class LazyDI(DI):
 		"""シンボルが解決できるか判定
 
 		Args:
-			symbol (type[Any]): シンボル
+			symbol: シンボル
 		Returns:
-			str: シンボルパス
+			シンボルパス
 		"""
 		return to_fullyname(self._acceptable_symbol(symbol))
 
@@ -329,8 +329,8 @@ class LazyDI(DI):
 		"""シンボルとファクトリーのマッピングを登録
 
 		Args:
-			symbol (type[T_Inst]): シンボル
-			injector (Injector[T_Inst]): ファクトリー(関数/メソッド/クラス)
+			symbol: シンボル
+			injector: ファクトリー(関数/メソッド/クラス)
 		Raises:
 			ValueError: 登録済みのシンボルを指定
 		"""
@@ -345,7 +345,7 @@ class LazyDI(DI):
 		"""シンボルとファクトリーのマッピングを解除
 
 		Args:
-			symbol (type[Any]): シンボル
+			symbol: シンボル
 		"""
 		if self.can_resolve(symbol):
 			self.__unregister(self.__symbolize(symbol))
@@ -357,9 +357,9 @@ class LazyDI(DI):
 		"""シンボルからインスタンスを解決
 
 		Args:
-			symbol (type[T_Inst]): シンボル
+			symbol: シンボル
 		Returns:
-			T_Inst: インスタンス
+			インスタンス
 		Raises:
 			ValueError: 未登録のシンボルを指定
 		"""
@@ -373,7 +373,7 @@ class LazyDI(DI):
 		"""シンボルとファクトリーのマッピングを代替登録
 
 		Args:
-			symbol_path (str): シンボル型のパス
+			symbol_path: シンボル型のパス
 		Raises:
 			ValueError: 登録済みのシンボルを指定
 		"""
@@ -385,7 +385,7 @@ class LazyDI(DI):
 		"""インスタンスを複製
 
 		Returns:
-			Self: 複製したインスタンス
+			複製したインスタンス
 		"""
 		di = super()._clone()
 		di.__definitions = self.__definitions.copy()
@@ -396,9 +396,9 @@ class LazyDI(DI):
 		"""マージ対象と合成した新たなインスタンスを生成
 
 		Args:
-			other (Self): マージ対象のインスタンス
+			other: マージ対象のインスタンス
 		Returns:
-			Self: 合成したインスタンス
+			合成したインスタンス
 		Note:
 			* 戻り値の型はレシーバーのインスタンスに倣う
 			* 同じシンボルはマージ対象のインスタンスで上書きされる

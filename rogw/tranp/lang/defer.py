@@ -19,9 +19,9 @@ class Defer:
 		"""インスタンスを生成
 
 		Args:
-			factory (Callable[[], T]): 実体を生成するファクトリー
+			factory: 実体を生成するファクトリー
 		Returns:
-			T: 擬態インスタンス
+			擬態インスタンス
 		"""
 		return cast(T, cls(factory))
 
@@ -30,9 +30,9 @@ class Defer:
 		"""インスタンスから実体を解決
 
 		Args:
-			instance (T): Deferのインスタンス
+			instance: Deferのインスタンス
 		Returns:
-			T: 実体のインスタンス
+			実体のインスタンス
 		Raise:
 			ValueError: Defer以外のインスタンスを指定
 		"""
@@ -45,7 +45,7 @@ class Defer:
 		"""インスタンスを生成
 
 		Args:
-			factory (Callable[[], Any]): 実体を生成するファクトリー
+			factory: 実体を生成するファクトリー
 		"""
 		super().__setattr__('_factory', factory)
 		super().__setattr__('_entity', None)
@@ -54,9 +54,9 @@ class Defer:
 		"""指定の名前の属性を取得
 
 		Args:
-			name (str): 名前
+			name: 名前
 		Returns:
-			Any: 値
+			値
 		"""
 		entity = super().__getattribute__('_entity')
 		if not entity:
@@ -70,22 +70,22 @@ class Defer:
 		return getattr(entity, name)
 
 	def __repr__(self) -> str:
-		"""Returns: str: シリアライズ表現"""
+		"""Returns: シリアライズ表現"""
 		entity = Defer.resolve(self)
 		return f'<{Defer.__name__}[{entity.__class__.__name__}]: at {hex(id(self)).upper()} with {entity}>'
 
 	def __str__(self) -> str:
-		"""Returns: str: 文字列表現"""
+		"""Returns: 文字列表現"""
 		return getattr(Defer.resolve(self), '__str__')()
 
 	def __hash__(self) -> int:
-		"""Returns: int: ハッシュ値"""
+		"""Returns: ハッシュ値"""
 		return getattr(Defer.resolve(self), '__hash__')()
 
 	def __eq__(self, other: Any) -> bool:
-		"""Args: other (Any): 対象 Returns: bool: True = 一致"""
+		"""Args: other: 対象 Returns: True = 一致"""
 		return getattr(Defer.resolve(self), '__eq__')(other)
 
 	def __ne__(self, other: Any) -> bool:
-		"""Args: other (Any): 対象 Returns: bool: True = 不一致"""
+		"""Args: other: 対象 Returns: True = 不一致"""
 		return getattr(Defer.resolve(self), '__ne__')(other)

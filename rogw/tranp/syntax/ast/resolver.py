@@ -12,8 +12,8 @@ class SymbolMapping(Generic[T]):
 
 	Attributes:
 		T: マッピング対象の基底クラス
-		symbols (dict[str, type[T]]): 文字列とシンボル型のマッピング
-		fallback (type[T] | None): 未定義のシンボルを指定した際のフォールバック型
+		symbols: 文字列とシンボル型のマッピング
+		fallback: 未定義のシンボルを指定した際のフォールバック型
 	"""
 
 	symbols: dict[type[T], list[str]] = field(default_factory=dict)
@@ -32,9 +32,9 @@ class Resolver(Generic[T]):
 		"""設定データを元にインスタンスを生成
 
 		Args:
-			mapping (SymbolMapping[T]): シンボルマッピングデータ
+			mapping: シンボルマッピングデータ
 		Returns:
-			Resolver[T]: 生成したインスタンス
+			生成したインスタンス
 		"""
 		inst = cls()
 		for ctor, symbols in mapping.symbols.items():
@@ -51,16 +51,16 @@ class Resolver(Generic[T]):
 
 	@property
 	def accepts(self) -> list[str]:
-		"""list[str]: 受け入れ対象のシンボル名リスト"""
+		"""Returns: 受け入れ対象のシンボル名リスト"""
 		return list(self.__ctors.keys())
 
 	def can_resolve(self, symbol: str) -> bool:
 		"""解決出来るか確認
 
 		Args:
-			symbol (str): シンボル名
+			symbol: シンボル名
 		Returns:
-			bool: True = 解決できる
+			True = 解決できる
 		"""
 		return symbol in self.__ctors
 
@@ -68,8 +68,8 @@ class Resolver(Generic[T]):
 		"""シンボルと型のマッピングを登録
 
 		Args:
-			symbol (str): シンボル名
-			ctor (type[T]): 紐づける型
+			symbol: シンボル名
+			ctor: 紐づける型
 		"""
 		if symbol not in self.__ctors:
 			self.__ctors[symbol] = []
@@ -80,7 +80,7 @@ class Resolver(Generic[T]):
 		"""シンボルと型のマッピングを解除
 
 		Args:
-			symbol (str): シンボル名
+			symbol: シンボル名
 		"""
 		if symbol in self.__ctors:
 			del self.__ctors[symbol]
@@ -89,7 +89,7 @@ class Resolver(Generic[T]):
 		"""シンボルが解決出来ない場合にフォールバックする型
 
 		Args:
-			ctor (type[T] | None): フォールバック時の型
+			ctor: フォールバック時の型
 		"""
 		self.__fallback = ctor
 
@@ -97,9 +97,9 @@ class Resolver(Generic[T]):
 		"""シンボルに紐づく型を解決
 
 		Args:
-			symbol (str): シンボル名
+			symbol: シンボル名
 		Returns:
-			list[type[T]]: 解決した型
+			解決した型
 		Raises:
 			LogicError: シンボルの解決に失敗
 		"""

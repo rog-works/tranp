@@ -17,9 +17,9 @@ class MetaHeader:
 		"""テキストデータからインスタンスの復元を試行。メタヘッダーが存在しない場合はNoneを返却
 
 		Args:
-			content (str): テキストデータ
+			content: テキストデータ
 		Returns:
-			Self | None: 復元したインスタンス。またはNone
+			復元したインスタンス。またはNone
 		"""
 		header_begin = content.find(MetaHeader.Tag)
 		if header_begin == -1:
@@ -34,9 +34,9 @@ class MetaHeader:
 		"""JSON文字列からインスタンスを復元
 
 		Args:
-			json_str (str): JSON文字列
+			json_str: JSON文字列
 		Returns:
-			Self: 復元したインスタンス
+			復元したインスタンス
 		"""
 		raw = json.loads(json_str)
 		return cls(raw['module'], raw['transpiler'], raw['version'])
@@ -45,9 +45,9 @@ class MetaHeader:
 		"""インスタンスを生成
 
 		Args:
-			module_meta (ModuleMeta): モジュールのメタ情報
-			transpiler_meta (TranspilerMeta): トランスパイラーのメタ情報
-			app_version (str | None): アプリケーションバージョン (default = None)
+			module_meta: モジュールのメタ情報
+			transpiler_meta: トランスパイラーのメタ情報
+			app_version: アプリケーションバージョン (default = None)
 		"""
 		self.app_version = app_version or Versions.app
 		self.module_meta = module_meta
@@ -55,16 +55,16 @@ class MetaHeader:
 
 	@property
 	def identity(self) -> str:
-		"""str: 一意な識別子"""
+		"""Returns: 一意な識別子"""
 		return hashlib.md5(self.to_json().encode('utf-8')).hexdigest()
 
 	def __eq__(self, other: Any) -> bool:
 		"""比較演算子のオーバーロード
 		
 		Args:
-			other (Any): 比較対象
+			other: 比較対象
 		Returns:
-			bool: True = 一致
+			True = 一致
 		Raises:
 			LogicError: 同種以外のインスタンスを指定
 		"""
@@ -77,7 +77,7 @@ class MetaHeader:
 		"""JSONにシリアライズ
 
 		Returns:
-			str: JSON文字列
+			JSON文字列
 		"""
 		return json.dumps({'version': self.app_version, 'module': self.module_meta, 'transpiler': self.transpiler_meta}, separators=(',', ':'))
 
@@ -85,6 +85,6 @@ class MetaHeader:
 		"""メタヘッダー文字列に変換
 
 		Returns:
-			str: メタヘッダー文字列
+			メタヘッダー文字列
 		"""
 		return f'{self.Tag}: {self.to_json()}'

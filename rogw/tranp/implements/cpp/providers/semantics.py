@@ -10,7 +10,7 @@ def plugin_provider_cpp(invoker: Invoker) -> PluginProvider:
 	Args:
 		invoker: ファクトリー関数 @inject
 	Returns:
-		PluginProvider: プラグインプロバイダー
+		プラグインプロバイダー
 	"""
 	classes: list[type[IPlugin]] = []
 	return lambda: [invoker(ctor) for ctor in classes]

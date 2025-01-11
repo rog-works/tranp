@@ -19,9 +19,9 @@ class EntryCache(Generic[T]):
 		"""指定のパスのエントリーが存在するか判定
 
 		Args:
-			full_path (str): フルパス
+			full_path: フルパス
 		Returns:
-			bool: True = 存在する
+			True = 存在する
 		"""
 		return full_path in self.__entries
 
@@ -29,9 +29,9 @@ class EntryCache(Generic[T]):
 		"""指定のパスのエントリーのインデックスを取得
 
 		Args:
-			full_path (str): フルパス
+			full_path: フルパス
 		Returns:
-			int: インデックス
+			インデックス
 		"""
 		return self.__indexs[full_path] if self.exists(full_path) else -1
 
@@ -39,9 +39,9 @@ class EntryCache(Generic[T]):
 		"""指定のパスのエントリーをフェッチ
 
 		Args:
-			full_path (str): フルパス
+			full_path: フルパス
 		Returns:
-			T: エントリー
+			エントリー
 		Raises:
 			NotFoundError: 存在しないパスを指定
 		"""
@@ -54,10 +54,10 @@ class EntryCache(Generic[T]):
 		"""指定の基準パス以下のエントリーをフェッチ
 
 		Args:
-			via (str): 基準のパス(フルパス)
-			depth (int): 探索深度。-1は無制限(default = -1)
+			via: 基準のパス(フルパス)
+			depth: 探索深度。-1は無制限(default = -1)
 		Returns:
-			dict[str, T]: (フルパス, エントリー)
+			(フルパス, エントリー)
 		Raises:
 			NotFoundError: 存在しないパスを指定
 		"""
@@ -80,8 +80,8 @@ class EntryCache(Generic[T]):
 		"""指定のパスとエントリーを紐付けてキャッシュに追加
 
 		Args:
-			full_path (str): フルパス
-			entry (T): エントリー
+			full_path: フルパス
+			entry: エントリー
 		"""
 		if self.exists(full_path):
 			return

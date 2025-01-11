@@ -5,9 +5,9 @@ def alias_dsn(fullyname: str) -> str:
 	"""エイリアス用のDSNに変換
 
 	Args:
-		fullyname (str): 完全参照名
+		fullyname: 完全参照名
 	Returns:
-		str: DSN
+		DSN
 	Note:
 		# エイリアス用DSNの書式
 		例: 'aliases.module.path.to.symbol'
@@ -19,9 +19,9 @@ def import_dsn(module_path: str) -> str:
 	"""インポート用のDSNに変換
 
 	Args:
-		module_path (str): モジュールパス
+		module_path: モジュールパス
 	Returns:
-		str: DSN
+		DSN
 	Note:
 		# インポート用DSNの書式
 		例: 'imports.module.path'

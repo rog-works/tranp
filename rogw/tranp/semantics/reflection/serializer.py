@@ -25,8 +25,8 @@ class ReflectionSerializer(IReflectionSerializer):
 		"""インスタンスを生成
 
 		Args:
-			entrypoints (Entrypoints): エントリーポイントマネージャー @inject
-			traits (Traits): トレイトマネージャー @inject
+			entrypoints: エントリーポイントマネージャー @inject
+			traits: トレイトマネージャー @inject
 		"""
 		self._entrypoints = entrypoints
 		self._traits = traits
@@ -36,9 +36,9 @@ class ReflectionSerializer(IReflectionSerializer):
 		"""シリアライズ
 
 		Args:
-			symbol (IReflection): シンボル
+			symbol: シンボル
 		Returns:
-			DictSerialized: データ
+			データ
 		"""
 		flat_attrs: dict[str, IReflection] = seqs.expand(symbol.attrs, iter_key='attrs')
 		attrs = {path: attr.types.fullyname for path, attr in flat_attrs.items()}
@@ -63,10 +63,10 @@ class ReflectionSerializer(IReflectionSerializer):
 		"""デシリアライズ
 
 		Args:
-			db (MutableMapping[str, IReflection]): シンボルテーブル
-			data (DictSerialized): データ
+			db: シンボルテーブル
+			data: データ
 		Returns:
-			IReflection: シンボル
+			シンボル
 		"""
 		if data['class'] == 'Symbol':
 			types_paths = ModuleDSN.parsed(data['types'])
@@ -89,10 +89,10 @@ class ReflectionSerializer(IReflectionSerializer):
 		"""デシリアライズ(属性)
 
 		Args:
-			db (MutableMapping[str, IReflection]): シンボルテーブル
-			data_attrs (dict[str, str]): データ(属性)
+			db: シンボルテーブル
+			data_attrs: データ(属性)
 		Returns:
-			list[IReflection]: 属性のシンボルリスト
+			属性のシンボルリスト
 		"""
 		# 階層が浅い順にソート
 		paths = sorted(data_attrs.keys(), key=lambda key: key.count('.'))

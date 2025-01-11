@@ -24,13 +24,13 @@ class Typehint(metaclass=ABCMeta):
 	@property
 	@abstractmethod
 	def origin(self) -> type[Any]:
-		"""Returns: type[Any]: メインタイプ"""
+		"""Returns: メインタイプ"""
 		...
 
 	@property
 	@abstractmethod
 	def raw(self) -> type[Any] | FuncTypes | Callable:
-		"""Returns: type[Any] | FuncTypes | Callable: 元のタイプ"""
+		"""Returns: 元のタイプ"""
 		...
 
 	@abstractmethod
@@ -38,9 +38,9 @@ class Typehint(metaclass=ABCMeta):
 		"""メタ情報を取得
 
 		Args:
-			meta_type (type[T_Meta]): メタ情報のタイプ
+			meta_type: メタ情報のタイプ
 		Returns:
-			T_Meta: メタ情報
+			メタ情報
 		Note:
 			XXX メタ情報が引数の型として本質的に正しいか否かは保証しない
 		"""
@@ -66,8 +66,8 @@ class ScalarTypehint(Typehint):
 		"""インスタンスを生成
 
 		Args:
-			scalar_type (type[Any]): タイプ
-			meta (Any | None): メタ情報 (default = None)
+			scalar_type: タイプ
+			meta: メタ情報 (default = None)
 		"""
 		self._type = scalar_type
 		self._meta = meta
@@ -75,7 +75,7 @@ class ScalarTypehint(Typehint):
 	@property
 	@implements
 	def origin(self) -> type[Any]:
-		"""Returns: type[Any]: メインタイプ"""
+		"""Returns: メインタイプ"""
 		if self.is_union:
 			# XXX Union型の場合はUnionTypeを返却。UnionTypeはtypeと互換性が無いと判断されるため実装例に倣う @see types.py UnionType
 			return type(int | str)
@@ -85,7 +85,7 @@ class ScalarTypehint(Typehint):
 	@property
 	@implements
 	def raw(self) -> type[Any]:
-		"""Returns: type[Any]: 元のタイプ"""
+		"""Returns: 元のタイプ"""
 		return self._type
 
 	@implements
@@ -93,9 +93,9 @@ class ScalarTypehint(Typehint):
 		"""メタ情報を取得
 
 		Args:
-			meta_type (type[T_Meta]): メタ情報のタイプ
+			meta_type: メタ情報のタイプ
 		Returns:
-			T_Meta: メタ情報
+			メタ情報
 		Note:
 			XXX メタ情報が引数の型として本質的に正しいか否かは保証しない
 		"""
@@ -103,42 +103,42 @@ class ScalarTypehint(Typehint):
 
 	@property
 	def is_null(self) -> bool:
-		"""bool: True = None"""
+		"""Returns: True = None"""
 		return self._type is None or self._type is NoneType
 
 	@property
 	def is_generic(self) -> bool:
-		"""bool: True = ジェネリック型"""
+		"""Returns: True = ジェネリック型"""
 		return getattr(self._type, '__origin__', self._type) in [list, dict, tuple, type]
 
 	@property
 	def is_union(self) -> bool:
-		"""bool: True = Union型"""
+		"""Returns: True = Union型"""
 		return type(self._type) is UnionType or getattr(self._type, '__origin__', self._type) is Union
 
 	@property
 	def is_nullable(self) -> bool:
-		"""bool: True = Nullable型"""
+		"""Returns: True = Nullable型"""
 		return self.is_union and type(None) in self.__sub_annos
 
 	@property
 	def is_enum(self) -> bool:
-		"""bool: True = Enum型"""
+		"""Returns: True = Enum型"""
 		return type(self._type) is EnumType
 
 	@property
 	def sub_types(self) -> list[Typehint]:
-		"""list[Typehint]: ジェネリック/Union型のサブタイプのリスト"""
+		"""Returns: ジェネリック/Union型のサブタイプのリスト"""
 		return [Typehints.resolve(sub_type) for sub_type in self.__sub_annos]
 
 	@property
 	def __sub_annos(self) -> list[type[Any]]:
-		"""list[type[Any]]: ジェネリック/Union型のサブタイプのリスト"""
+		"""Returns: ジェネリック/Union型のサブタイプのリスト"""
 		return getattr(self._type, '__args__', [])
 
 	@property
 	def enum_members(self) -> list[Enum]:
-		"""dict[str, Enum]: Enumのメンバー一覧"""
+		"""Returns: Enumのメンバー一覧"""
 		return list(getattr(self.origin, '__members__').values())
 
 
@@ -160,7 +160,7 @@ class FunctionTypehint(Typehint):
 		"""インスタンスを生成
 
 		Args:
-			func (FuncTypes | Callable): 関数オブジェクト
+			func: 関数オブジェクト
 		Note:
 			XXX コンストラクターはFuncTypeに当てはまらないため、Callableとして受け付ける
 		"""
@@ -170,13 +170,13 @@ class FunctionTypehint(Typehint):
 	@property
 	@implements
 	def origin(self) -> type[Any]:
-		"""Returns: type[Any]: メインタイプ"""
+		"""Returns: メインタイプ"""
 		return type(self._func)
 
 	@property
 	@implements
 	def raw(self) -> FuncTypes | Callable:
-		"""Returns: FuncTypes | Callable: 関数オブジェクト"""
+		"""Returns: 関数オブジェクト"""
 		return self._func
 
 	@implements
@@ -184,9 +184,9 @@ class FunctionTypehint(Typehint):
 		"""メタ情報を取得
 
 		Args:
-			meta_type (type[T_Meta]): メタ情報のタイプ
+			meta_type: メタ情報のタイプ
 		Returns:
-			T_Meta: メタ情報
+			メタ情報
 		Note:
 			XXX メタ情報が引数の型として本質的に正しいか否かは保証しない
 		"""
@@ -197,7 +197,7 @@ class FunctionTypehint(Typehint):
 		"""関数の種別を取得
 
 		Returns:
-			FuncClasses: 関数の種別
+			関数の種別
 		Note:
 			XXX Pythonではメソッドはオブジェクトに動的にバインドされるため、タイプから関数オブジェクトを取得した場合、メソッドとして判定する方法がない ※Pythonの仕様
 		"""
@@ -210,17 +210,17 @@ class FunctionTypehint(Typehint):
 
 	@property
 	def args(self) -> dict[str, Typehint]:
-		"""dict[str, Typehint]: 引数リスト"""
+		"""Returns: 引数リスト"""
 		return {key: Typehints.resolve_internal(in_type, self.__via_module_path) for key, in_type in self.__annos.items() if key != 'return'}
 
 	@property
 	def returns(self) -> Typehint:
-		"""Typehint: 戻り値"""
+		"""Returns: 戻り値"""
 		return Typehints.resolve_internal(self.__annos['return'], self.__via_module_path)
 
 	@property
 	def __via_module_path(self) -> str:
-		"""str: 関数由来のモジュールパス"""
+		"""Returns: 関数由来のモジュールパス"""
 		if isinstance(self._func, property):
 			# propertyは`__module__`が無いため、元の関数オブジェクトを通して取得する
 			return getattr(self._func, 'fget').__module__
@@ -229,7 +229,7 @@ class FunctionTypehint(Typehint):
 
 	@property
 	def __annos(self) -> dict[str, type[Any]]:
-		"""dict[str, type[Any]]: タイプヒントのリスト"""
+		"""Returns: タイプヒントのリスト"""
 		if isinstance(self._func, property):
 			# propertyは`__annotations__`が無いため、元の関数オブジェクトを通して取得する
 			return getattr(self._func, 'fget').__annotations__
@@ -256,7 +256,7 @@ class ClassTypehint(Typehint):
 		"""インスタンスを生成
 
 		Args:
-			class_type (type[Any]): クラス
+			class_type: クラス
 		"""
 		self._type = class_type
 		self._meta = meta
@@ -264,13 +264,13 @@ class ClassTypehint(Typehint):
 	@property
 	@implements
 	def origin(self) -> type[Any]:
-		"""Returns: type[Any]: メインタイプ"""
+		"""Returns: メインタイプ"""
 		return getattr(self._type, '__origin__', self._type)
 
 	@property
 	@implements
 	def raw(self) -> type[Any]:
-		"""Returns: type[Any]: 元のタイプ"""
+		"""Returns: 元のタイプ"""
 		return self._type
 
 	@implements
@@ -278,9 +278,9 @@ class ClassTypehint(Typehint):
 		"""メタ情報を取得
 
 		Args:
-			meta_type (type[T_Meta]): メタ情報のタイプ
+			meta_type: メタ情報のタイプ
 		Returns:
-			T_Meta: メタ情報
+			メタ情報
 		Note:
 			XXX メタ情報が引数の型として本質的に正しいか否かは保証しない
 		"""
@@ -288,27 +288,27 @@ class ClassTypehint(Typehint):
 
 	@property
 	def is_generic(self) -> bool:
-		"""bool: True = ジェネリック型"""
+		"""Returns: True = ジェネリック型"""
 		return hasattr(self._type, '__origin__')
 
 	@property
 	def sub_types(self) -> list[Typehint]:
-		"""list[Typehint]: ジェネリック型のサブタイプのリスト"""
+		"""Returns: ジェネリック型のサブタイプのリスト"""
 		sub_annos: list[type[Any]] = getattr(self._type, '__args__', [])
 		return [Typehints.resolve_internal(sub_type, self._type.__module__) for sub_type in sub_annos]
 
 	@property
 	def constructor(self) -> FunctionTypehint:
-		"""FunctionTypehint: コンストラクター"""
+		"""Returns: コンストラクター"""
 		return FunctionTypehint(self._type.__init__)
 
 	def class_vars(self, lookup_private: bool = True) -> dict[str, Typehint]:
 		"""クラス変数の一覧を取得
 
 		Args:
-			lookup_private (bool): プライベートプロパティー抽出フラグ (default = True)
+			lookup_private: プライベートプロパティー抽出フラグ (default = True)
 		Returns:
-			dict[str, Typehint]: クラス変数一覧
+			クラス変数一覧
 		"""
 		annos = {key: anno for key, anno in self.__recursive_annos(self._type, lookup_private).items() if self.__try_get_origin(anno) is ClassVar}
 		return {key: Typehints.resolve_internal(attr, self._type.__module__) for key, attr in annos.items()}
@@ -317,9 +317,9 @@ class ClassTypehint(Typehint):
 		"""インスタンス変数の一覧を取得
 
 		Args:
-			lookup_private (bool): プライベートプロパティー抽出フラグ (default = True)
+			lookup_private: プライベートプロパティー抽出フラグ (default = True)
 		Returns:
-			dict[str, Typehint]: インスタンス変数一覧
+			インスタンス変数一覧
 		"""
 		annos = {key: anno for key, anno in self.__recursive_annos(self._type, lookup_private).items() if self.__try_get_origin(anno) is not ClassVar}
 		return {key: Typehints.resolve_internal(attr, self._type.__module__) for key, attr in annos.items()}
@@ -328,9 +328,9 @@ class ClassTypehint(Typehint):
 		"""アノテーションから元のタイプ取得を試行
 
 		Args:
-			anno (type[Any]): アノテーション
+			anno: アノテーション
 		Returns:
-			type[Any]: 元のタイプ
+			元のタイプ
 		"""
 		return getattr(anno, '__origin__', anno)
 
@@ -338,10 +338,10 @@ class ClassTypehint(Typehint):
 		"""クラス階層を辿ってタイプヒントを収集
 
 		Args:
-			_type (type[Any]): タイプ
-			lookup_private (bool): プライベート変数抽出フラグ (default = False)
+			_type: タイプ
+			lookup_private: プライベート変数抽出フラグ (default = False)
 		Returns:
-			dict[str, type[Any]]: タイプヒント一覧
+			タイプヒント一覧
 		"""
 		annos: dict[str, type[Any]] = {}
 		for at_type in reversed(_type.mro()):
@@ -356,16 +356,16 @@ class ClassTypehint(Typehint):
 
 	@property
 	def methods(self) -> dict[str, FunctionTypehint]:
-		"""dict[str, FunctionTypehint]: メソッド一覧"""
+		"""Returns: メソッド一覧"""
 		return {key: FunctionTypehint(prop) for key, prop in self.__recursive_methods(self._type).items()}
 
 	def __recursive_methods(self, _type: type[Any]) -> dict[str, FuncTypes]:
 		"""クラス階層を辿ってメソッドを収集
 
 		Args:
-			_type (type[Any]): タイプ
+			_type: タイプ
 		Returns:
-			dict[str, FuncTypes]: メソッド一覧
+			メソッド一覧
 		"""
 		_methods: dict[str, FuncTypes] = {}
 		for at_type in reversed(_type.mro()):
@@ -380,10 +380,10 @@ def _resolve_type_from_str(type_str: str, via_module_path: str) -> type[Any]:
 	"""文字列のタイプヒントを解析してタイプを解決
 
 	Args:
-		type_str (str): タイプヒント
-		via_module_path (str): 由来のモジュールパス
+		type_str: タイプヒント
+		via_module_path: 由来のモジュールパス
 	Returns:
-		type[Any]: 解決したタイプ
+		解決したタイプ
 	Raises:
 		ValueError: 由来がモジュールパスが不正
 	Note:
@@ -406,9 +406,9 @@ class Typehints:
 		"""タイプヒントを解決
 
 		Args:
-			origin (str | type[Any] | FuncTypes): タイプ、関数オブジェクト、または文字列のタイプヒント
+			origin: タイプ、関数オブジェクト、または文字列のタイプヒント
 		Returns:
-			Typehint: タイプヒント
+			タイプヒント
 		"""
 		return cls.__resolve_impl(origin, '')
 
@@ -417,10 +417,10 @@ class Typehints:
 		"""タイプヒントを解決(クラス/関数の内部オブジェクト用)
 
 		Args:
-			origin (str | type[Any] | FuncTypes): タイプ、関数オブジェクト、または文字列のタイプヒント
-			via_module_path (str): 由来のモジュールパス。文字列のタイプヒントの解析に使用
+			origin: タイプ、関数オブジェクト、または文字列のタイプヒント
+			via_module_path: 由来のモジュールパス。文字列のタイプヒントの解析に使用
 		Returns:
-			Typehint: タイプヒント
+			タイプヒント
 		"""
 		return cls.__resolve_impl(origin, via_module_path)
 
@@ -429,10 +429,10 @@ class Typehints:
 		"""タイプヒントを解決
 
 		Args:
-			origin (str | type[Any] | FuncTypes): タイプ、関数オブジェクト、または文字列のタイプヒント
-			via_module_path (str): 由来のモジュールパス。文字列のタイプヒントの解析に使用
+			origin: タイプ、関数オブジェクト、または文字列のタイプヒント
+			via_module_path: 由来のモジュールパス。文字列のタイプヒントの解析に使用
 		Returns:
-			Typehint: タイプヒント
+			タイプヒント
 		"""
 		actual_origin, meta = cls.__unpack_origin(origin, via_module_path)
 		if isinstance(actual_origin, FuncTypes):
@@ -447,10 +447,10 @@ class Typehints:
 		"""オリジンからタイプ・メタ情報をアンパック
 
 		Args:
-			origin (str | type[Any] | FuncTypes): タイプ、関数オブジェクト、または文字列のタイプヒント
-			via_module_path (str): 由来のモジュールパス。文字列のタイプヒントの解析に使用
+			origin: タイプ、関数オブジェクト、または文字列のタイプヒント
+			via_module_path: 由来のモジュールパス。文字列のタイプヒントの解析に使用
 		Returns:
-			tuple[type[Any] | FuncTypes, Any | None]: (タイプ, メタ情報)
+			(タイプ, メタ情報)
 		Note:
 			Annotated/ForwardRefは型情報として意味を成さないので暗黙的にアンパック
 		"""
@@ -478,9 +478,9 @@ class Typehints:
 		"""値型か判定
 
 		Args:
-			origin (type[Any]): タイプ
+			origin: タイプ
 		Returns:
-			bool: True = 値型
+			True = 値型
 		"""
 		if isinstance(origin, type) and issubclass(origin, (int, str, float, bool)):
 			return True

@@ -15,8 +15,8 @@ class Observable(Protocol):
 		"""イベントハンドラーを登録
 
 		Args:
-			action (str): イベントタグ
-			callback (Callback): イベントハンドラー
+			action: イベントタグ
+			callback: イベントハンドラー
 		"""
 		...
 
@@ -24,8 +24,8 @@ class Observable(Protocol):
 		"""イベントハンドラーを解除
 
 		Args:
-			action (str): イベントタグ
-			callback (Callback): イベントハンドラー
+			action: イベントタグ
+			callback: イベントハンドラー
 		"""
 		...
 
@@ -42,8 +42,8 @@ class EventEmitter(Generic[T_Ret]):
 		"""イベントハンドラーを登録
 
 		Args:
-			action (str): イベントタグ
-			callback (Callback[T_Ret]): イベントハンドラー
+			action: イベントタグ
+			callback: イベントハンドラー
 		"""
 		if action not in self.__handlers:
 			self.__handlers[action] = []
@@ -56,8 +56,8 @@ class EventEmitter(Generic[T_Ret]):
 		"""イベントハンドラーを解除
 
 		Args:
-			action (str): イベントタグ
-			callback (Callback[T_Ret]): イベントハンドラー
+			action: イベントタグ
+			callback: イベントハンドラー
 		"""
 		if action not in self.__handlers:
 			raise ValueError()
@@ -68,9 +68,9 @@ class EventEmitter(Generic[T_Ret]):
 		"""指定のイベントにハンドラーが登録済みか判定
 
 		Args:
-			action (str): イベントタグ
+			action: イベントタグ
 		Returns:
-			bool: True = 登録済み
+			True = 登録済み
 		"""
 		return action in self.__handlers
 
@@ -78,10 +78,10 @@ class EventEmitter(Generic[T_Ret]):
 		"""イベントを発火
 
 		Args:
-			action (str): イベントタグ
-			event (Any): イベントデータ
+			action: イベントタグ
+			event: イベントデータ
 		Returns:
-			T_Ret | None: イベントの結果
+			イベントの結果
 		Note:
 			XXX null以外の結果が取得出来た場合は以降のハンドラーを省略する
 		"""

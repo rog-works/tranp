@@ -592,9 +592,9 @@ class DeclableMatcher:
 		"""マッチング判定 (マッチング対象: クラス変数宣言)
 
 		Args:
-			via (Node): ノード
+			via: ノード
 		Returns:
-			bool: True = 対象
+			True = 対象
 		"""
 		via_full_path = EntryPath(via.full_path)
 		is_decl_class_var = via_full_path.de_identify().shift(-1).origin.endswith('class_var_assign.assign_namelist')
@@ -605,9 +605,9 @@ class DeclableMatcher:
 		"""マッチング判定 (マッチング対象: インスタンス変数の前方宣言)
 
 		Args:
-			via (Node): ノード
+			via: ノード
 		Returns:
-			bool: True = 対象
+			True = 対象
 		Note:
 			XXX ASTへの依存度が非常に高い判定なので注意
 			XXX 期待するパス: class_def_raw.block.anno_assign.assign_namelist.var
@@ -630,9 +630,9 @@ class DeclableMatcher:
 		"""マッチング判定 (マッチング対象: インスタンス変数宣言)
 
 		Args:
-			via (Node): ノード
+			via: ノード
 		Returns:
-			bool: True = 対象
+			True = 対象
 		"""
 		via_full_path = EntryPath(via.full_path)
 		elems = via_full_path.de_identify().elements
@@ -653,9 +653,9 @@ class DeclableMatcher:
 		"""マッチング判定 (マッチング対象: 仮引数(clsのみ))
 
 		Args:
-			via (Node): ノード
+			via: ノード
 		Returns:
-			bool: True = 対象
+			True = 対象
 		"""
 		via_full_path = EntryPath(via.full_path)
 		tokens = via.tokens
@@ -668,9 +668,9 @@ class DeclableMatcher:
 		"""マッチング判定 (マッチング対象: 仮引数(selfのみ))
 
 		Args:
-			via (Node): ノード
+			via: ノード
 		Returns:
-			bool: True = 対象
+			True = 対象
 		"""
 		via_full_path = EntryPath(via.full_path)
 		tokens = via.tokens
@@ -683,9 +683,9 @@ class DeclableMatcher:
 		"""マッチング判定 (マッチング対象: 仮引数(cls/self以外))
 
 		Args:
-			via (Node): ノード
+			via: ノード
 		Returns:
-			bool: True = 対象
+			True = 対象
 		"""
 		via_full_path = EntryPath(via.full_path)
 		tokens = via.tokens
@@ -698,9 +698,9 @@ class DeclableMatcher:
 		"""マッチング判定 (マッチング対象: ローカル変数宣言)
 
 		Args:
-			via (Node): ノード
+			via: ノード
 		Returns:
-			bool: True = 対象
+			True = 対象
 		"""
 		# For/Catch/WithEntry/Comprehension
 		via_full_path = EntryPath(via.full_path)
@@ -722,9 +722,9 @@ class DeclableMatcher:
 		"""マッチング判定 (マッチング対象: クラス宣言)
 
 		Args:
-			via (Node): ノード
+			via: ノード
 		Returns:
-			bool: True = 対象
+			True = 対象
 		"""
 		via_full_path = EntryPath(via.full_path)
 		return via_full_path.parent_tag in ['class_def_raw', 'function_def_raw']
@@ -734,9 +734,9 @@ class DeclableMatcher:
 		"""マッチング判定 (マッチング対象: タイプ再定義/テンプレートタイプ宣言)
 
 		Args:
-			via (Node): ノード
+			via: ノード
 		Returns:
-			bool: True = 対象
+			True = 対象
 		"""
 		via_full_path = EntryPath(via.full_path)
 		if via_full_path.parent_tag != 'assign_namelist':
@@ -753,9 +753,9 @@ class DeclableMatcher:
 		"""マッチング判定 (マッチング対象: インポート)
 
 		Args:
-			via (Node): ノード
+			via: ノード
 		Returns:
-			bool: True = 対象
+			True = 対象
 		"""
 		via_full_path = EntryPath(via.full_path)
 		return via_full_path.parent_tag == 'import_as_name'

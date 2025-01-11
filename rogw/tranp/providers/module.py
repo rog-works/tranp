@@ -15,7 +15,7 @@ def module_path_dummy() -> ModulePath:
 	"""ダミーのモジュールパスを生成
 
 	Returns:
-		ModulePath: モジュールパス
+		モジュールパス
 	Note:
 		モジュール経由で読み込みが不要な一部のテストでのみ利用
 	"""
@@ -26,7 +26,7 @@ def library_paths() -> ModulePaths:
 	"""標準ライブラリーモジュールのパスリストを生成
 
 	Returns:
-		ModulePaths: モジュールパスリスト
+		モジュールパスリスト
 	"""
 	return ModulePaths([
 		ModulePath('rogw.tranp.compatible.libralies.type', language='py'),
@@ -38,7 +38,7 @@ def module_paths() -> ModulePaths:
 	"""処理対象モジュールのパスリストを生成
 
 	Returns:
-		ModulePath: モジュールパスリスト
+		モジュールパスリスト
 	"""
 	return ModulePaths([ModulePath('example.example', language='py')])
 
@@ -51,10 +51,10 @@ class ModuleLoader(IModuleLoader):
 		"""インスタンスを生成
 
 		Args:
-			invoker (Invoker): ファクトリー関数 @inject
-			entrypoints (Entrypoints): エントリーポイントマネージャー @inject
-			db (SymbolDB): シンボルテーブル @inject
-			processors (PreprocessorProvider): プリプロセッサープロバイダー @inject
+			invoker: ファクトリー関数 @inject
+			entrypoints: エントリーポイントマネージャー @inject
+			db: シンボルテーブル @inject
+			processors: プリプロセッサープロバイダー @inject
 		"""
 		self.invoker = invoker
 		self.entrypoints = entrypoints
@@ -66,9 +66,9 @@ class ModuleLoader(IModuleLoader):
 		"""モジュールをロード
 
 		Args:
-			module_path (ModulePath): モジュールパス
+			module_path: モジュールパス
 		Returns:
-			Module: モジュール
+			モジュール
 		"""
 		return self.invoker(Module, module_path, self.entrypoints.load(module_path.path, module_path.language))
 
@@ -77,7 +77,7 @@ class ModuleLoader(IModuleLoader):
 		"""モジュールをアンロード
 
 		Args:
-			module_path (ModulePath): モジュールパス
+			module_path: モジュールパス
 		"""
 		self.entrypoints.unload(module_path.path)
 		self.db.unload(module_path.path)
@@ -87,7 +87,7 @@ class ModuleLoader(IModuleLoader):
 		"""モジュールにプリプロセスを実施
 
 		Args:
-			module (Module): モジュール
+			module: モジュール
 		"""
 		for proc in self.processors():
 			if not proc(module, self.db):
@@ -99,10 +99,10 @@ def module_meta_factory(module_paths: ModulePaths, sources: ISourceLoader) -> Mo
 	"""モジュールメタファクトリーを生成
 
 	Args:
-		module_paths (ModulePaths): モジュールパスリスト @inject
-		sources (ISourceLoader): ソースコードローダー @inject
+		module_paths: モジュールパスリスト @inject
+		sources: ソースコードローダー @inject
 	Returns:
-		ModuleMetaFactory: モジュールメタファクトリー
+		モジュールメタファクトリー
 	"""
 	def handler(module_path: str) -> ModuleMeta:
 		index = [module_path.path for module_path in module_paths].index(module_path)

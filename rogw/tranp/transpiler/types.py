@@ -9,8 +9,8 @@ class TranspilerOptions(NamedTuple):
 	"""トランスパイルオプション
 
 	Attributes:
-		verbose (bool): ログ出力フラグ
-		env (dict[str, Any]): 環境変数
+		verbose: ログ出力フラグ
+		env: 環境変数
 	"""
 	verbose: bool
 	env: dict[str, Any]
@@ -22,7 +22,7 @@ class ITranspiler(metaclass=ABCMeta):
 	@property
 	@abstractmethod
 	def meta(self) -> TranspilerMeta:
-		"""TranspilerMeta: トランスパイラーのメタ情報"""
+		"""Returns: トランスパイラーのメタ情報"""
 		...
 
 	@abstractmethod
@@ -30,8 +30,8 @@ class ITranspiler(metaclass=ABCMeta):
 		"""起点のノードから解析してトランスパイルしたソースコードを返却
 
 		Args:
-			root (Node): 起点のノード
+			root: 起点のノード
 		Returns:
-			str: トランスパイル後のソースコード
+			トランスパイル後のソースコード
 		"""
 		...

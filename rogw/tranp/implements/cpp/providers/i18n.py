@@ -10,9 +10,9 @@ def translation_mapping_cpp_example(datums: IDataLoader) -> TranslationMapping:
 	"""翻訳マッピングデータを生成(example用)
 
 	Args:
-		datums (IDataLoader): データローダー
+		datums: データローダー
 	Returns:
-		TranslationMapping: 翻訳マッピングデータ
+		翻訳マッピングデータ
 	"""
 	mapping = cast(dict[str, str], yaml.safe_load(datums.load('example/data/i18n.yml')))
 	return TranslationMapping(to=mapping)

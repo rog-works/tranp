@@ -18,7 +18,7 @@ class SymbolFinder:
 		"""インスタンスを生成
 
 		Args:
-			library_paths (LibraryPaths): 標準ライブラリーパスリスト @inject
+			library_paths: 標準ライブラリーパスリスト @inject
 		"""
 		self.__library_paths = [module_path.path for module_path in library_paths]
 
@@ -26,9 +26,9 @@ class SymbolFinder:
 		"""objectのシンボルを取得
 
 		Args:
-			db (SymbolDB): シンボルテーブル
+			db: シンボルテーブル
 		Returns:
-			IReflection: シンボル
+			シンボル
 		Raises:
 			MustBeImplementedError: objectが未実装
 		Note:
@@ -44,10 +44,10 @@ class SymbolFinder:
 		"""完全参照名からシンボルを取得
 
 		Args:
-			db (SymbolDB): シンボルテーブル
-			fullyname (str): 完全参照名
+			db: シンボルテーブル
+			fullyname: 完全参照名
 		Returns:
-			IReflection: シンボル
+			シンボル
 		Raises:
 			SymbolNotDefinedError: シンボルが見つからない
 		"""
@@ -60,10 +60,10 @@ class SymbolFinder:
 		"""標準クラスのシンボルを取得
 
 		Args:
-			db (SymbolDB): シンボルテーブル
-			standard_type (type[Standards] | None): 標準クラス
+			db: シンボルテーブル
+			standard_type: 標準クラス
 		Returns:
-			IReflection: シンボル
+			シンボル
 		Raises:
 			MustBeImplementedError: 標準クラスが未実装
 		"""
@@ -78,10 +78,10 @@ class SymbolFinder:
 		"""シンボル系ノードからシンボルを取得
 
 		Args:
-			db (SymbolDB): シンボルテーブル
+			db: シンボルテーブル
 			node: (Symbolic): シンボル系ノード
 		Returns:
-			IReflection: シンボル
+			シンボル
 		Raises:
 			SymbolNotDefinedError: シンボルが見つからない
 		"""
@@ -95,11 +95,11 @@ class SymbolFinder:
 		"""シンボルを検索。未検出の場合はNoneを返却
 
 		Args:
-			db (SymbolDB): シンボルテーブル
-			node (Symbolic): シンボル系ノード
-			prop_name (str): プロパティー名(default = '')
+			db: シンボルテーブル
+			node: シンボル系ノード
+			prop_name: プロパティー名(default = '')
 		Returns:
-			IReflection | None: シンボル
+			シンボル
 		"""
 		domain_name = ModuleDSN.local_joined(node.domain_name, prop_name)
 		scopes = [scope for scope in self.__make_scopes(node.scope) if not self.__is_local_var_with_class_scope(db, node, scope)]
@@ -112,11 +112,11 @@ class SymbolFinder:
 		"""ローカル変数の参照、且つクラス直下のスコープ参照の組み合わせか判定
 
 		Args:
-			db (SymbolDB): シンボルテーブル
-			node (Symbolic): シンボル系ノード
-			scope (ModuleDSN): 探索スコープ
+			db: シンボルテーブル
+			node: シンボル系ノード
+			scope: 探索スコープ
 		Returns:
-			bool: True = 真
+			True = 真
 		Note:
 			* FIXME メソッド内はクラス直下のスコープを参照出来ない。これを除外する判定にのみ使用
 			* FIXME しかし、現状の判定は不完全であり、本質的にはノードのスコープ自体を是正しなければ期待通りに判定できない
@@ -142,9 +142,9 @@ class SymbolFinder:
 		"""スコープを元に探索スコープのリストを生成
 
 		Args:
-			scope (str): スコープ
+			scope: スコープ
 		Returns:
-			list[ModuleDSN]: 探索スコープリスト
+			探索スコープリスト
 		"""
 		module_path, elems = ModuleDSN.expanded(scope)
 		module_dsn = ModuleDSN(module_path)
@@ -155,11 +155,11 @@ class SymbolFinder:
 		"""シンボルを検索。未検出の場合はNoneを返却 (汎用)
 
 		Args:
-			db (SymbolDB): シンボルテーブル
-			scopes (list[ModuleDSN]): 探索スコープリスト
-			domain_name (str): ドメイン名
+			db: シンボルテーブル
+			scopes: 探索スコープリスト
+			domain_name: ドメイン名
 		Returns:
-			IReflection | None: シンボル
+			シンボル
 		"""
 		for raw in self.__each_find_raw(db, scopes, domain_name):
 			return raw
@@ -170,11 +170,11 @@ class SymbolFinder:
 		"""シンボルを検索。未検出の場合はNoneを返却 (タイプノード専用)
 
 		Args:
-			db (SymbolDB): シンボルテーブル
-			scopes (list[ModuleDSN]): 探索スコープリスト
-			domain_name (str): ドメイン名
+			db: シンボルテーブル
+			scopes: 探索スコープリスト
+			domain_name: ドメイン名
 		Returns:
-			IReflection | None: シンボル
+			シンボル
 		Note:
 			シンボル系ノードがタイプの場合はクラスかタイプのみを検索対象とする
 		"""
@@ -188,11 +188,11 @@ class SymbolFinder:
 		"""スコープを辿り、指定のドメイン名を持つシンボルを検索
 
 		Args:
-			db (SymbolDB): シンボルテーブル
-			scopes (list[ModuleDSN]): 探索スコープリスト
-			domain_name (str): ドメイン名
+			db: シンボルテーブル
+			scopes: 探索スコープリスト
+			domain_name: ドメイン名
 		Returns:
-			Iterator[IReflection]: イテレーター
+			イテレーター
 		"""
 		for scope in scopes:
 			fullyname = scope.join(domain_name).dsn
@@ -211,11 +211,11 @@ class SymbolFinder:
 		"""ドメインが所属するモジュールのインポートノードを経由してシンボルを探索
 
 		Args:
-			db (SymbolDB): シンボルテーブル
-			on_module_path (str): 所属モジュールのパス
-			domain_name (str): ドメイン名
+			db: シンボルテーブル
+			on_module_path: 所属モジュールのパス
+			domain_name: ドメイン名
 		Returns:
-			IReflection | None: シンボル。未定義の場合はNone
+			シンボル。未定義の場合はNone
 		"""
 		elems = ModuleDSN.expand_elements(domain_name)
 		import_fullyname = ModuleDSN.full_joined(on_module_path, elems[0])
@@ -233,10 +233,10 @@ class SymbolFinder:
 		"""標準ライブラリーのモジュールからシンボルを探索
 
 		Args:
-			db (SymbolDB): シンボルテーブル
-			domain_name (str): ドメイン名
+			db: シンボルテーブル
+			domain_name: ドメイン名
 		Returns:
-			IReflection | None: シンボル。未定義の場合はNone
+			シンボル。未定義の場合はNone
 		"""
 		elems = ModuleDSN.expand_elements(domain_name)
 		for module_path in self.__library_paths:
@@ -250,11 +250,11 @@ class SymbolFinder:
 		"""シンボルを再帰的に探索
 
 		Args:
-			db (SymbolDB): シンボルテーブル
-			scope (ModuleDSN): スコープ
-			elems (list[str]): ドメイン名の要素リスト
+			db: シンボルテーブル
+			scope: スコープ
+			elems: ドメイン名の要素リスト
 		Returns:
-			IReflection | None: シンボル。未定義の場合はNone
+			シンボル。未定義の場合はNone
 		"""
 		if scope.dsn not in db:
 			return None

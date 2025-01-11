@@ -23,7 +23,7 @@ class Schema(Generic[T_Schemata]):
 		"""インスタンスを生成
 
 		Args:
-			schemata (T_Schemata): プロパティー名とシンボルのマップ情報
+			schemata: プロパティー名とシンボルのマップ情報
 		"""
 		self.__schemata = schemata
 
@@ -31,9 +31,9 @@ class Schema(Generic[T_Schemata]):
 		"""プロパティー名に対応するシンボルを取得
 
 		Args:
-			key (str): プロパティー名
+			key: プロパティー名
 		Returns:
-			T_Schemata: シンボル | シンボルリスト
+			シンボル | シンボルリスト
 		Raises:
 			LogicError: 存在しないキーを指定 XXX 出力する例外は要件等
 		"""
@@ -50,8 +50,8 @@ class Helper:
 		"""インスタンスを生成
 
 		Args:
-			symbol (IReflection): シンボル
-			schemata (InjectSchemata): プロパティー名とシンボルのマップ情報
+			symbol: シンボル
+			schemata: プロパティー名とシンボルのマップ情報
 		"""
 		self.symbol = symbol
 		self.schema = Schema[IReflection]({key: schema for key, schema in schemata.items() if isinstance(schema, IReflection)})
@@ -61,9 +61,9 @@ class Helper:
 		"""指定のクラスと同じか派生クラスか判定
 
 		Args:
-			*ctors (type[Helper]): 比較対象
+			*ctors: 比較対象
 		Returns:
-			bool: True = 同種
+			True = 同種
 		"""
 		return isinstance(self, ctors)
 
@@ -75,10 +75,10 @@ class Function(Helper):
 		"""引数の実行時型を解決
 
 		Args:
-			index (int): 引数のインデックス
-			*context (IReflection): コンテキスト(0: 引数(実行時型))
+			index: 引数のインデックス
+			*context: コンテキスト(0: 引数(実行時型))
 		Returns:
-			IReflection: 実行時型
+			実行時型
 		"""
 		argument, *_ = context
 		return argument
@@ -87,9 +87,9 @@ class Function(Helper):
 		"""戻り値の実行時型を解決
 
 		Args:
-			*arguments (IReflection): 引数リスト(実行時型)
+			*arguments: 引数リスト(実行時型)
 		Returns:
-			IReflection: 実行時型
+			実行時型
 		"""
 		t_map_returns = TemplateManipulator.unpack_templates(returns=self.schema.returns)
 		if len(t_map_returns) == 0:
@@ -104,7 +104,7 @@ class Function(Helper):
 		"""テンプレート型(タイプ再定義ノード)を取得
 
 		Returns:
-			list[TemplateClass]: テンプレート型リスト
+			テンプレート型リスト
 		"""
 		t_map_props = TemplateManipulator.unpack_templates(parameters=self.schemata.parameters, returns=self.schema.returns)
 		return list(set(t_map_props.values()))
@@ -123,10 +123,10 @@ class Method(Function):
 		"""引数の実行時型を解決
 
 		Args:
-			index (int): 引数のインデックス
-			*context (IReflection): コンテキスト(0: レシーバー(実行時型), 1: 引数(実行時型))
+			index: 引数のインデックス
+			*context: コンテキスト(0: レシーバー(実行時型), 1: 引数(実行時型))
 		Returns:
-			IReflection: 実行時型
+			実行時型
 		Note:
 			FIXME Union型の引数にテンプレート型が含まれると解決に失敗する
 		"""
@@ -146,9 +146,9 @@ class Method(Function):
 		"""戻り値の実行時型を解決
 
 		Args:
-			*arguments (IReflection): 引数リスト(実行時型)
+			*arguments: 引数リスト(実行時型)
 		Returns:
-			IReflection: 実行時型
+			実行時型
 		Note:
 			FIXME Union型の引数にテンプレート型が含まれると解決に失敗する
 		"""
@@ -167,7 +167,7 @@ class Method(Function):
 		"""テンプレート型(タイプ再定義ノード)を取得
 
 		Returns:
-			list[TemplateClass]: テンプレート型リスト
+			テンプレート型リスト
 		"""
 		t_map_props = TemplateManipulator.unpack_templates(klass=self.schema.klass, parameters=self.schemata.parameters, returns=self.schema.returns)
 		ignore_ts = [t for path, t in t_map_props.items() if path.startswith('klass')]
@@ -197,9 +197,9 @@ class TemplateManipulator:
 		"""シンボル/属性からテンプレート型(タイプ再定義ノード)を平坦化して抽出
 
 		Args:
-			**attrs (IReflection | list[IReflection]): シンボル/属性
+			**attrs: シンボル/属性
 		Returns:
-			TemplateMap: パスとテンプレート型(タイプ再定義ノード)のマップ表
+			パスとテンプレート型(タイプ再定義ノード)のマップ表
 		Note:
 			XXX Union型に内包されるテンプレート型は、実体型と階層を合わせるために親のUnion型の階層に変更する
 		"""
@@ -225,9 +225,9 @@ class TemplateManipulator:
 		"""シンボル/属性を平坦化して抽出
 
 		Args:
-			**attrs (IReflection | list[IReflection]): シンボル/属性
+			**attrs: シンボル/属性
 		Returns:
-			SymbolMap: パスとシンボルのマップ表
+			パスとシンボルのマップ表
 		"""
 		return seqs.expand(attrs, iter_key='attrs')
 
@@ -236,11 +236,11 @@ class TemplateManipulator:
 		"""主体とサブを比較し、一致するテンプレートのパスを抽出
 
 		Args:
-			t_map_primary (TemplateMap): 主体
-			t_map_props (TemplateMap): サブ
-			actual_props (SymbolMap): シンボルのマップ表(実行時型)
+			t_map_primary: 主体
+			t_map_props: サブ
+			actual_props: シンボルのマップ表(実行時型)
 		Returns:
-			UpdateMap: 一致したパスのマップ表
+			一致したパスのマップ表
 		"""
 		updates: UpdateMap = {}
 		for primary_path, t_primary in t_map_primary.items():
@@ -258,11 +258,11 @@ class TemplateManipulator:
 		"""シンボルに実行時型を適用する
 
 		Args:
-			primary (IReflection): 適用するシンボル
-			actual_props (SymbolMap): シンボルのマップ表(実行時型)
-			updates (UpdateMap): 更新表
+			primary: 適用するシンボル
+			actual_props: シンボルのマップ表(実行時型)
+			updates: 更新表
 		Returns:
-			IReflection: 適用後のシンボル
+			適用後のシンボル
 		"""
 		primary_bodies = [prop_path for primary_path, prop_path in updates.items() if DSN.elem_counts(primary_path) == 1]
 		if primary_bodies:
@@ -283,23 +283,23 @@ class HelperBuilder:
 		"""インスタンスを生成
 
 		Args:
-			symbol (IReflection): シンボル
+			symbol: シンボル
 		"""
 		self.__symbol = symbol
 		self.__case_of_injectors: dict[str, Injector] = {'__default__': lambda: {}}
 
 	@property
 	def __current_key(self) -> str:
-		"""str: 編集中のキー"""
+		"""Returns: 編集中のキー"""
 		return list(self.__case_of_injectors.keys())[-1]
 
 	def case(self, expect: type[Helper]) -> 'HelperBuilder':
 		"""ケースを挿入
 
 		Args:
-			expect (type[Helper]): 対象のヘルパー型
+			expect: 対象のヘルパー型
 		Returns:
-			HelperBuilder: 自己参照
+			自己参照
 		"""
 		self.__case_of_injectors[expect.__name__] = lambda: {}
 		return self
@@ -308,7 +308,7 @@ class HelperBuilder:
 		"""その他のケースを挿入
 
 		Returns:
-			HelperBuilder: 自己参照
+			自己参照
 		"""
 		self.__case_of_injectors['__other__'] = lambda: {}
 		return self
@@ -317,9 +317,9 @@ class HelperBuilder:
 		"""編集中のケースにスキーマを追加
 
 		Args:
-			injector (Injector): スキーマファクトリー
+			injector: スキーマファクトリー
 		Returns:
-			HelperBuilder: 自己参照
+			自己参照
 		"""
 		self.__case_of_injectors[self.__current_key] = injector
 		return self
@@ -328,9 +328,9 @@ class HelperBuilder:
 		"""ヘルパーを生成
 
 		Args:
-			expect (type[T_Helper]): 期待するヘルパーの型
+			expect: 期待するヘルパーの型
 		Returns:
-			T_Helper: 生成したインスタンス
+			生成したインスタンス
 		Raises:
 			LogicError: ビルド対象が期待する型と不一致 XXX 出力する例外は要件等
 		"""
@@ -351,9 +351,9 @@ class HelperBuilder:
 		"""生成時に注入するスキーマを取得
 
 		Args:
-			ctor (type[Helper]): 生成する型
+			ctor: 生成する型
 		Returns:
-			Injector: スキーマファクトリー
+			スキーマファクトリー
 		"""
 		for ctor_ in ctor.__mro__:
 			if not issubclass(ctor_, Helper):

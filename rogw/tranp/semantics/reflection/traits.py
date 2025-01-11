@@ -17,7 +17,7 @@ def export_classes() -> list[type[Trait]]:
 	"""公開トレイトのクラスリストを取得
 
 	Returns:
-		list[type[Trait]]: トレイトのクラスリスト
+		トレイトのクラスリスト
 	"""
 	return [
 		ConvertionTrait,
@@ -36,7 +36,7 @@ class TraitImpl(Trait):
 		"""インスタンスを生成
 
 		Args:
-			reflections (Reflections): シンボルリゾルバー @inject
+			reflections: シンボルリゾルバー @inject
 		"""
 		self.reflections = reflections
 
@@ -49,10 +49,10 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		"""シンボルの型を判定
 
 		Args:
-			standard_type (type[Standards] | None): 標準タイプ
-			instance (IReflection): シンボル ※Traitsから暗黙的に入力される
+			standard_type: 標準タイプ
+			instance: シンボル ※Traitsから暗黙的に入力される
 		Returns:
-			bool: True = 指定の型と一致
+			True = 指定の型と一致
 		"""
 		return self.reflections.type_is(instance.types, standard_type)
 
@@ -61,10 +61,10 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		"""プロクシー型から実体型を解決。元々実体型である場合はそのまま返却
 
 		Args:
-			*targets (Literal['nullable', 'self', 'type', 'template', 'alt']): 処理対象。省略時は全てが対象
-			instance (IReflection): シンボル ※Traitsから暗黙的に入力される
+			*targets: 処理対象。省略時は全てが対象
+			instance: シンボル ※Traitsから暗黙的に入力される
 		Returns:
-			Self: シンボル
+			シンボル
 		Note:
 			### 変換対象
 			* Union型: Class | None
@@ -100,9 +100,9 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		"""Nullable型から実体型を解決
 
 		Args:
-			symbol (IReflection): シンボル
+			symbol: シンボル
 		Returns:
-			tuple[bool, IReflection]: 解決可否, シンボル
+			解決可否, シンボル
 		Note:
 			Class | None -> Class
 		"""
@@ -118,9 +118,9 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		"""Self型から実体型を解決
 
 		Args:
-			symbol (IReflection): シンボル
+			symbol: シンボル
 		Returns:
-			tuple[bool, IReflection]: 解決可否, シンボル
+			解決可否, シンボル
 		Note:
 			type<Self> -> type<Class>
 			Self -> Class
@@ -137,9 +137,9 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		"""type型から実体型を解決
 
 		Args:
-			symbol (IReflection): シンボル
+			symbol: シンボル
 		Returns:
-			tuple[bool, IReflection]: 解決可否, シンボル
+			解決可否, シンボル
 		Note:
 			type<Class> -> Class
 		"""
@@ -152,9 +152,9 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		"""TemplateClass型から実体型を解決
 
 		Args:
-			symbol (IReflection): シンボル
+			symbol: シンボル
 		Returns:
-			tuple[bool, IReflection]: 解決可否, シンボル
+			解決可否, シンボル
 		Note:
 			T -> Boundary
 		"""
@@ -168,9 +168,9 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		"""AltClass型から実体型を解決
 
 		Args:
-			symbol (IReflection): シンボル
+			symbol: シンボル
 		Returns:
-			tuple[bool, IReflection]: 解決可否, シンボル
+			解決可否, シンボル
 		Note:
 			T<Class> -> Class
 		"""
@@ -188,11 +188,11 @@ class OperationTrait(TraitImpl, IOperation):
 		"""演算を試行し、結果を返却。該当する演算メソッドが存在しない場合はNoneを返却
 
 		Args:
-			operator (Terminal): 演算子ノード
-			value (IReflection): 値のシンボル
-			instance (IReflection): シンボル ※Traitsから暗黙的に入力される
+			operator: 演算子ノード
+			value: 値のシンボル
+			instance: シンボル ※Traitsから暗黙的に入力される
 		Returns:
-			IReflection: シンボル
+			シンボル
 		"""
 		method = self._find_method(instance, instance.types.operations.operation_by(operator.tokens))
 		if method is None:
@@ -221,10 +221,10 @@ class OperationTrait(TraitImpl, IOperation):
 		"""演算用のメソッドを検索。存在しない場合はNoneを返却
 
 		Args:
-			symbol (IReflection): シンボル
-			method_name (str): メソッド名
+			symbol: シンボル
+			method_name: メソッド名
 		Returns:
-			Function | None: シンボル
+			シンボル
 		"""
 		try:
 			return symbol.to(symbol.types, self.reflections.resolve(symbol.types, method_name)).impl(refs.Function)
@@ -240,10 +240,10 @@ class PropertiesTrait(TraitImpl, IProperties):
 		"""配下のプロパティーを取得
 
 		Args:
-			prop (Var): 変数参照ノード
-			instance (IReflection): シンボル ※Traitsから暗黙的に入力される
+			prop: 変数参照ノード
+			instance: シンボル ※Traitsから暗黙的に入力される
 		Returns:
-			IReflection: シンボル
+			シンボル
 		"""
 		return self.reflections.resolve_property(instance.types, prop)
 
@@ -252,9 +252,9 @@ class PropertiesTrait(TraitImpl, IProperties):
 		"""コンストラクターを取得
 
 		Args:
-			instance (IReflection): シンボル ※Traitsから暗黙的に入力される
+			instance: シンボル ※Traitsから暗黙的に入力される
 		Returns:
-			IReflection: シンボル
+			シンボル
 		"""
 		return self.reflections.resolve_constructor(instance.types.as_a(defs.Class))
 
@@ -267,9 +267,9 @@ class IteratorTrait(TraitImpl, IIterator):
 		"""イテレーターの結果を解決
 
 		Args:
-			instance (IReflection): シンボル ※Traitsから暗黙的に入力される
+			instance: シンボル ※Traitsから暗黙的に入力される
 		Returns:
-			IReflection: シンボル
+			シンボル
 		"""
 		method = instance.to(instance.types, self._resolve_method(instance))
 		iterates = method.impl(refs.Function).returns()
@@ -282,9 +282,9 @@ class IteratorTrait(TraitImpl, IIterator):
 		"""イテレーターのメソッドを解決
 
 		Args:
-			symbol (IReflection): シンボル
+			symbol: シンボル
 		Returns:
-			IReflection: シンボル
+			シンボル
 		"""
 		try:
 			return self.reflections.resolve(symbol.types, symbol.types.operations.iterator)
@@ -300,11 +300,11 @@ class FunctionTrait(TraitImpl, IFunction):
 		"""引数の実体型を解決
 
 		Args:
-			index (int): 引数のインデックス
-			argument (IReflection): 引数の実体
-			**reserved (IReflection): シンボル入力用の予約枠 ※実引数は指定しない
+			index: 引数のインデックス
+			argument: 引数の実体
+			instance: シンボル ※Traitsから暗黙的に入力される
 		Returns:
-			IReflection: シンボル
+			シンボル
 		"""
 		function_helper = self._build_helper(instance)
 		if function_helper.is_a(templates.ClassMethod):
@@ -320,10 +320,10 @@ class FunctionTrait(TraitImpl, IFunction):
 		"""戻り値の実体型を解決
 
 		Args:
-			*arguments (IReflection): 引数リスト
-			instance (IReflection): シンボル ※Traitsから暗黙的に入力される
+			*arguments: 引数リスト
+			instance: シンボル ※Traitsから暗黙的に入力される
 		Returns:
-			IReflection: シンボル
+			シンボル
 		"""
 		function_helper = self._build_helper(instance)
 		if function_helper.is_a(templates.ClassMethod):
@@ -339,9 +339,9 @@ class FunctionTrait(TraitImpl, IFunction):
 		"""保有するテンプレート型ノードを取得
 
 		Args:
-			instance (IReflection): シンボル ※Traitsから暗黙的に入力される
+			instance: シンボル ※Traitsから暗黙的に入力される
 		Returns:
-			list[TemplateClass]: テンプレート型ノードのリスト
+			テンプレート型ノードのリスト
 		Note:
 			XXX クラスにも同様の属性があるため、IGenericなどに分離を検討
 		"""
@@ -351,9 +351,9 @@ class FunctionTrait(TraitImpl, IFunction):
 		"""ヘルパー(ファンクション)を生成
 
 		Args:
-			symbol (IReflection): シンボル
+			symbol: シンボル
 		Returns:
-			Function: ヘルパー(ファンクション)
+			ヘルパー(ファンクション)
 		"""
 		return templates.HelperBuilder(symbol).schema(lambda: self._build_schema(symbol)).build(templates.Function)
 
@@ -361,9 +361,9 @@ class FunctionTrait(TraitImpl, IFunction):
 		"""ヘルパー用スキーマを生成
 
 		Args:
-			symbol (IReflection): シンボル
+			symbol: シンボル
 		Returns:
-			InjectSchema: ヘルパー用スキーマ
+			ヘルパー用スキーマ
 		"""
 		if symbol.types.is_a(defs.Constructor):
 			return {'klass': symbol.attrs[0], 'parameters': symbol.attrs[1:-1], 'returns': symbol.context}

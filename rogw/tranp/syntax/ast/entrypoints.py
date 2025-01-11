@@ -17,9 +17,9 @@ class EntrypointLoader(Protocol):
 		"""エントリーポイントをロード
 
 		Args:
-			module_path (ModulePath): モジュールパス
+			module_path: モジュールパス
 		Returns:
-			Entrypoint: エントリーポイント
+			エントリーポイント
 		"""
 		...
 
@@ -38,7 +38,7 @@ class Entrypoints:
 		"""インスタンスを生成
 
 		Args:
-			loader (EntrypointLoader): エントリーポイントローダー @inject
+			loader: エントリーポイントローダー @inject
 		"""
 		self.__loader = loader
 		self.__entrypoints: dict[str, defs.Entrypoint] = {}
@@ -47,10 +47,10 @@ class Entrypoints:
 		"""エントリーポイントをロード
 
 		Args:
-			module_path (str): モジュールパス
-			language (str): 言語タグ (default = 'py')
+			module_path: モジュールパス
+			language: 言語タグ (default = 'py')
 		Returns:
-			Entrypoint: エントリーポイント
+			エントリーポイント
 		"""
 		if module_path not in self.__entrypoints:
 			self.__entrypoints[module_path] = self.__loader(ModulePath(module_path, language))
@@ -61,7 +61,7 @@ class Entrypoints:
 		"""エントリーポイントをアンロード
 
 		Args:
-			module_path (str): モジュールパス
+			module_path: モジュールパス
 		"""
 		if module_path in self.__entrypoints:
 			del self.__entrypoints[module_path]

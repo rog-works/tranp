@@ -9,7 +9,7 @@ class CEnum(Enum):
 		"""int型へキャスト
 
 		Returns:
-			int: 数値
+			数値
 		"""
 		return int(self.value)
 
@@ -17,9 +17,9 @@ class CEnum(Enum):
 		"""比較演算
 
 		Args:
-			other (Self | int): 対象
+			other: 対象
 		Returns:
-			bool: True = 同じ
+			True = 同じ
 		"""
 		if other.__class__ is int:
 			return self.value == other
@@ -30,9 +30,9 @@ class CEnum(Enum):
 		"""ビット演算(OR)
 
 		Args:
-			other (Self): 対象
+			other: 対象
 		Returns:
-			Self: 演算結果
+			演算結果
 		"""
 		if isinstance(other, self.__class__):
 			return self.value | other.value
@@ -43,9 +43,9 @@ class CEnum(Enum):
 		"""ビット演算(OR/右)
 
 		Args:
-			other (Self): 対象
+			other: 対象
 		Returns:
-			Self: 演算結果
+			演算結果
 		"""
 		if isinstance(other, self.__class__):
 			return self.value | other.value
@@ -56,7 +56,7 @@ class CEnum(Enum):
 		"""インスタンスのハッシュ値を返す
 
 		Returns:
-			int: ID
+			ID
 		Note:
 			dictのキーとして使えるようになる
 		"""

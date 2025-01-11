@@ -18,9 +18,9 @@ def trait_provider(invoker: Invoker) -> TraitProvider:
 	"""トレイトプロバイダーを生成
 
 	Args:
-		invoker (Invoker): ファクトリー関数 @inject
+		invoker: ファクトリー関数 @inject
 	Returns:
-		TraitProvider: トレイトプロバイダープロバイダー
+		トレイトプロバイダープロバイダー
 	"""
 	return lambda: [invoker(klass) for klass in export_classes()]
 
@@ -29,7 +29,7 @@ def plugin_provider_empty() -> PluginProvider:
 	"""プラグインプロバイダーを生成(空)
 
 	Returns:
-		PluginProvider: プラグインプロバイダー
+		プラグインプロバイダー
 	"""
 	return lambda: []
 
@@ -39,9 +39,9 @@ def preprocessor_provider(invoker: Invoker) -> PreprocessorProvider:
 	"""プリプロセッサープロバイダーを生成
 
 	Args:
-		invoker (Invoker): ファクトリー関数 @inject
+		invoker: ファクトリー関数 @inject
 	Returns:
-		PreprocessorProvider: プリプロセッサープロバイダー
+		プリプロセッサープロバイダー
 	"""
 	ctors = [
 		RestoreSymbols,

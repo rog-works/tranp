@@ -22,11 +22,11 @@ class SyntaxParserOfLark:
 		"""インスタンスを生成
 
 		Args:
-			datums (IDataLoader): データローダー @inject
-			sources (ISourceLoader): ソースコードローダー @inject
-			source_provider (SourceCodeProvider): ソースコードプロバイダー @inject
-			setting (ParserSetting): パーサー設定データ @inject
-			caches (CacheProvider): キャッシュプロバイダー @inject
+			datums: データローダー @inject
+			sources: ソースコードローダー @inject
+			source_provider: ソースコードプロバイダー @inject
+			setting: パーサー設定データ @inject
+			caches: キャッシュプロバイダー @inject
 		"""
 		self.__datums = datums
 		self.__sources = sources
@@ -39,9 +39,9 @@ class SyntaxParserOfLark:
 		"""モジュールを解析してシンタックスツリーを生成
 
 		Args:
-			module_path (str): モジュールパス
+			module_path: モジュールパス
 		Returns:
-			Entry: シンタックスツリーのルートエントリー
+			シンタックスツリーのルートエントリー
 		"""
 		parser = self.__load_parser()
 		return self.__load_entry(parser, module_path)
@@ -50,7 +50,7 @@ class SyntaxParserOfLark:
 		"""シンタックスパーサーをロード
 
 		Returns:
-			Lark: シンタックスパーサー
+			シンタックスパーサー
 		"""
 		def instantiate() -> LarkStored:
 			return LarkStored(lark.Lark(
@@ -74,10 +74,10 @@ class SyntaxParserOfLark:
 		"""シンタックスツリーをロード
 
 		Args:
-			parser (Lark): シンタックスパーサー
-			module_path (str): モジュールパス
+			parser: シンタックスパーサー
+			module_path: モジュールパス
 		Returns:
-			Entry: シンタックスツリーのルートエントリー
+			シンタックスツリーのルートエントリー
 		Raises:
 			SyntaxError: ソースの解析に失敗
 		"""
@@ -105,7 +105,7 @@ class SyntaxParserOfLark:
 		"""Larkインスタンスを取得(デバッグ用)
 
 		Returns:
-			Lark: Larkインスタンス
+			Larkインスタンス
 		Note:
 			デバッグ用途のため、基本的に使用しないことを推奨
 		"""
@@ -120,7 +120,7 @@ class LarkStored:
 		""""インスタンスを生成
 
 		Args:
-			lark (Lark): Larkインスタンス
+			lark: Larkインスタンス
 		"""
 		self.lark = lark
 
@@ -129,9 +129,9 @@ class LarkStored:
 		""""インスタンスを復元
 
 		Args:
-			stream (IO): IO
+			stream: IO
 		Returns:
-			LarkStored: インスタンス
+			インスタンス
 		"""
 		return LarkStored(lark.Lark.load(stream))
 
@@ -139,7 +139,7 @@ class LarkStored:
 		""""インスタンスを保存
 
 		Args:
-			stream (IO): IO
+			stream: IO
 		"""
 		self.lark.save(stream)
 
@@ -152,7 +152,7 @@ class EntryStored:
 		""""インスタンスを生成
 
 		Args:
-			lark (Lark): Larkインスタンス
+			lark: Larkインスタンス
 		"""
 		self.entry = entry
 
@@ -161,9 +161,9 @@ class EntryStored:
 		""""インスタンスを復元
 
 		Args:
-			stream (IO): IO
+			stream: IO
 		Returns:
-			EntryStored: インスタンス
+			インスタンス
 		"""
 		data = json.load(stream)
 		tree = cast(lark.Tree, Serialization.loads(data))
@@ -173,7 +173,7 @@ class EntryStored:
 		""""インスタンスを保存
 
 		Args:
-			stream (IO): IO
+			stream: IO
 		"""
 		data = Serialization.dumps(cast(lark.Tree, self.entry.source))
 		stream.write(json.dumps(data, separators=(',', ':')).encode('utf-8'))

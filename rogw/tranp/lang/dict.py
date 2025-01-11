@@ -7,11 +7,11 @@ def dict_pluck(node: _Node, path: str, fallback: _Node = '') -> _Node:
 	"""指定のパスのエントリーの値を抜き出す
 
 	Args:
-		node (_Node): エントリー
-		path (str): パス
-		fallback (_Node): 存在しない場合の代用値 (default = '')
+		node: エントリー
+		path: パス
+		fallback: 存在しない場合の代用値 (default = '')
 	Returns:
-		_Node: エントリーの値
+		エントリーの値
 	"""
 	if type(node) is dict and path:
 		key, *remain = path.split('.')
@@ -34,10 +34,10 @@ def dict_merge(d1: dict[Any, Any], d2: dict[Any, Any]) -> dict[Any, Any]:
 	"""連想配列同士をディープマージ
 
 	Args:
-		d1 (dict[Any, Any]): 連想配列1
-		d2 (dict[Any, Any]): 連想配列2
+		d1: 連想配列1
+		d2: 連想配列2
 	Returns:
-		dict[Any, Any]: 結合後の連想配列
+		結合後の連想配列
 	"""
 	merged = d1.copy()
 	for key, value in d2.items():

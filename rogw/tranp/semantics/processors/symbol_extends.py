@@ -16,7 +16,7 @@ class SymbolExtends:
 		"""インスタンスを生成
 
 		Args:
-			invoker (Invoker): ファクトリー関数 @inject
+			invoker: ファクトリー関数 @inject
 		"""
 		self.invoker = invoker
 
@@ -25,10 +25,10 @@ class SymbolExtends:
 		"""シンボルテーブルを編集
 
 		Args:
-			module (Module): モジュール
-			db (SymbolDB): シンボルテーブル
+			module: モジュール
+			db: シンボルテーブル
 		Returns:
-			bool: True = 後続処理を実行
+			True = 後続処理を実行
 		"""
 		for _, raw in db.items(module.path):
 			if raw.node.is_a(defs.ClassDef):
@@ -52,9 +52,9 @@ class SymbolExtends:
 		"""モッドを生成(タイプ再定義用)
 
 		Args:
-			raw (IReflection): シンボル
+			raw: シンボル
 		Returns:
-			Mod: モッド
+			モッド
 		"""
 		return lambda: self.invoker(self.attrs_for_alt_class, raw)
 
@@ -62,9 +62,9 @@ class SymbolExtends:
 		"""モッドを生成(クラス定義用)
 
 		Args:
-			raw (IReflection): シンボル
+			raw: シンボル
 		Returns:
-			Mod: モッド
+			モッド
 		"""
 		return lambda: self.invoker(self.attrs_for_class, raw)
 
@@ -72,9 +72,9 @@ class SymbolExtends:
 		"""モッドを生成(ファンクション定義用)
 
 		Args:
-			raw (IReflection): シンボル
+			raw: シンボル
 		Returns:
-			Mod: モッド
+			モッド
 		"""
 		return lambda: self.invoker(self.attrs_for_function, raw)
 
@@ -82,9 +82,9 @@ class SymbolExtends:
 		"""モッドを生成(変数宣言用)
 
 		Args:
-			raw (IReflection): シンボル
+			raw: シンボル
 		Returns:
-			Mod: モッド
+			モッド
 		"""
 		return lambda: self.invoker(self.attrs_for_var, raw)
 
@@ -93,10 +93,10 @@ class SymbolExtends:
 		"""宣言ノードを解析し、シンボル属性を生成(ファンクション定義用)
 
 		Args:
-			reflections (Reflections): シンボルリゾルバー @inject
-			via (IReflection): シンボル
+			reflections: シンボルリゾルバー @inject
+			via: シンボル
 		Returns:
-			list[IReflection]: シンボル属性
+			シンボル属性
 		"""
 		func = via.types.as_a(defs.Function)
 		attrs: list[IReflection] = []
@@ -116,10 +116,10 @@ class SymbolExtends:
 		"""宣言ノードを解析し、シンボル属性を生成(タイプ再定義用)
 
 		Args:
-			reflections (Reflections): シンボルリゾルバー @inject
-			via (IReflection): シンボル
+			reflections: シンボルリゾルバー @inject
+			via: シンボル
 		Returns:
-			list[IReflection]: シンボル属性
+			シンボル属性
 		"""
 		alt_types = via.types.as_a(defs.AltClass)
 		return [reflections.type_of(alt_types.actual_type)]
@@ -129,10 +129,10 @@ class SymbolExtends:
 		"""宣言ノードを解析し、シンボル属性を生成(クラス定義用)
 
 		Args:
-			reflections (Reflections): シンボルリゾルバー @inject
-			via (IReflection): シンボル
+			reflections: シンボルリゾルバー @inject
+			via: シンボル
 		Returns:
-			list[IReflection]: シンボル属性
+			シンボル属性
 		"""
 		def fetch_template_attrs(for_types: defs.Class) -> dict[defs.TemplateClass, IReflection]:
 			attrs: dict[defs.TemplateClass, IReflection] = {}
@@ -156,10 +156,10 @@ class SymbolExtends:
 		"""宣言ノードを解析し、シンボル属性を生成(変数宣言用)
 
 		Args:
-			reflections (Reflections): シンボルリゾルバー @inject
-			via (IReflection): シンボル
+			reflections: シンボルリゾルバー @inject
+			via: シンボル
 		Returns:
-			list[IReflection]: シンボル属性
+			シンボル属性
 		"""
 		decl_type = via.decl.declare.one_of(defs.Parameter, defs.MoveAssign, defs.AnnoAssign, defs.Catch).var_type.as_a(defs.Type)
 		return reflections.type_of(decl_type).attrs

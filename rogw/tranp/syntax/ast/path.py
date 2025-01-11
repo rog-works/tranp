@@ -10,9 +10,9 @@ class EntryPath:
 		"""要素を結合してインスタンスを生成
 
 		Args:
-			*elems (str): 要素リスト
+			*elems: 要素リスト
 		Returns:
-			EntryPath: インスタンス
+			インスタンス
 		"""
 		return cls(DSN.join(*elems))
 
@@ -21,11 +21,11 @@ class EntryPath:
 		"""一意性を持つようにパスを構築し、インスタンスを生成
 
 		Args:
-			origin (str): パス
-			entry_tag (str): エントリータグ
-			index (int): 要素インデックス
+			origin: パス
+			entry_tag: エントリータグ
+			index: 要素インデックス
 		Returns:
-			EntryPath: インスタンス
+			インスタンス
 		"""
 		return cls(DSN.join(*[origin, f'{entry_tag}[{index}]']))
 
@@ -33,32 +33,32 @@ class EntryPath:
 		"""インスタンスを生成
 
 		Args:
-			origin (str): パス
+			origin: パス
 		"""
 		self.origin = origin
 
 	@property
 	def valid(self) -> bool:
-		"""bool: True = パスが有効"""
+		"""Returns: True = パスが有効"""
 		return DSN.elem_counts(self.origin) > 0
 
 	@property
 	def elements(self) -> list[str]:
-		"""list[str]: 区切り文字で分解した要素を返却"""
+		"""Returns: 区切り文字で分解した要素を返却"""
 		return DSN.elements(self.origin)
 
 	@property
 	def escaped_origin(self) -> str:
-		"""str: 正規表現用にエスケープしたパスを返却"""
+		"""Returns: 正規表現用にエスケープしたパスを返却"""
 		return ''.join([f'\\{c}' if c in '.[]' else c for c in self.origin])
 
 	def joined(self, relative: str) -> str:
 		"""相対パスと連結したパスを返却
 
 		Args:
-			relative (str): 相対パス
+			relative: 相対パス
 		Returns:
-			str: パス
+			パス
 		"""
 		return DSN.join(*[self.origin, relative])
 
@@ -67,7 +67,7 @@ class EntryPath:
 		"""先頭の要素を分解して取得
 
 		Returns:
-			tuple[str, int]: (エントリータグ, 要素インデックス)
+			(エントリータグ, 要素インデックス)
 		"""
 		return self.__break_tag(self.elements[0])
 
@@ -76,7 +76,7 @@ class EntryPath:
 		"""末尾の要素を分解して取得
 
 		Returns:
-			tuple[str, int]: (エントリータグ, 要素インデックス)
+			(エントリータグ, 要素インデックス)
 		"""
 		return self.__break_tag(self.elements[-1])
 
@@ -85,7 +85,7 @@ class EntryPath:
 		"""先頭のエントリータグを取得
 
 		Returns:
-			str: エントリータグ
+			エントリータグ
 		"""
 		return self.first[0]
 
@@ -94,7 +94,7 @@ class EntryPath:
 		"""末尾のエントリータグを取得
 
 		Returns:
-			str: エントリータグ
+			エントリータグ
 		"""
 		return self.last[0]
 
@@ -103,7 +103,7 @@ class EntryPath:
 		"""親のエントリータグを取得
 
 		Returns:
-			str: エントリータグ
+			エントリータグ
 		"""
 		return self.shift(-1).last[0]
 
@@ -111,9 +111,9 @@ class EntryPath:
 		"""要素から元のタグと付与されたインデックスに分解。インデックスがない場合は-1とする
 
 		Args:
-			elem (str): 要素
+			elem: 要素
 		Returns:
-			tuple[str, int]: (エントリータグ, インデックス)
+			(エントリータグ, インデックス)
 		"""
 		if not elem.endswith(']'):
 			return (elem, -1)
@@ -125,9 +125,9 @@ class EntryPath:
 		"""指定のエントリータグが含まれるか判定
 
 		Args:
-			entry_tag (str): エントリータグ
+			entry_tag: エントリータグ
 		Returns:
-			bool: True = 含まれる
+			True = 含まれる
 		"""
 		return entry_tag in self.de_identify().elements
 
@@ -135,9 +135,9 @@ class EntryPath:
 		"""指定のエントリータグのみでパスが構築されているか判定
 
 		Args:
-			*entry_tags (str): エントリータグリスト
+			*entry_tags: エントリータグリスト
 		Returns:
-			bool: True = 構築されている
+			True = 構築されている
 		"""
 		return len([entry_tag for entry_tag in self.de_identify().elements if entry_tag not in entry_tags]) == 0
 
@@ -145,7 +145,7 @@ class EntryPath:
 		"""一意性を解除したパスでインスタンスを生成
 
 		Returns:
-			EntryPath: インスタンス
+			インスタンス
 		"""
 		de_origin = '.'.join([e.split('[')[0] for e in self.origin.split('.')])
 		return EntryPath(de_origin)
@@ -154,9 +154,9 @@ class EntryPath:
 		"""指定のパスより先の相対パスでインスタンスを生成
 
 		Args:
-			starts (str): 先頭のパス
+			starts: 先頭のパス
 		Returns:
-			EntryPath: インスタンス
+			インスタンス
 		Raises:
 			LogicError: 一致しない先頭パスを指定
 		"""
@@ -169,9 +169,9 @@ class EntryPath:
 		"""指定方向の要素を除外して再構築したパスでインスタンスを生成
 
 		Args:
-			skip (int): 移動方向
+			skip: 移動方向
 		Returns:
-			EntryPath: インスタンス
+			インスタンス
 		"""
 		elems = self.elements
 		if skip == 0:

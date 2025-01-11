@@ -24,13 +24,13 @@ class Typehint(metaclass=ABCMeta):
 	@property
 	@abstractmethod
 	def origin(self) -> type[Any]:
-		"""Returns: type[Any]: メインタイプ"""
+		"""Returns: メインタイプ"""
 		...
 
 	@property
 	@abstractmethod
 	def raw(self) -> type[Any] | FuncTypes | Callable:
-		"""Returns: type[Any] | FuncTypes | Callable: 元のタイプ"""
+		"""Returns: 元のタイプ"""
 		...
 
 	@abstractmethod
@@ -75,7 +75,7 @@ class ScalarTypehint(Typehint):
 	@property
 	@implements
 	def origin(self) -> type[Any]:
-		"""Returns: type[Any]: メインタイプ"""
+		"""Returns: メインタイプ"""
 		if self.is_union:
 			# XXX Union型の場合はUnionTypeを返却。UnionTypeはtypeと互換性が無いと判断されるため実装例に倣う @see types.py UnionType
 			return type(int | str)
@@ -85,7 +85,7 @@ class ScalarTypehint(Typehint):
 	@property
 	@implements
 	def raw(self) -> type[Any]:
-		"""Returns: type[Any]: 元のタイプ"""
+		"""Returns: 元のタイプ"""
 		return self._type
 
 	@implements
@@ -170,13 +170,13 @@ class FunctionTypehint(Typehint):
 	@property
 	@implements
 	def origin(self) -> type[Any]:
-		"""Returns: type[Any]: メインタイプ"""
+		"""Returns: メインタイプ"""
 		return type(self._func)
 
 	@property
 	@implements
 	def raw(self) -> FuncTypes | Callable:
-		"""Returns: FuncTypes | Callable: 関数オブジェクト"""
+		"""Returns: 関数オブジェクト"""
 		return self._func
 
 	@implements
@@ -264,13 +264,13 @@ class ClassTypehint(Typehint):
 	@property
 	@implements
 	def origin(self) -> type[Any]:
-		"""Returns: type[Any]: メインタイプ"""
+		"""Returns: メインタイプ"""
 		return getattr(self._type, '__origin__', self._type)
 
 	@property
 	@implements
 	def raw(self) -> type[Any]:
-		"""Returns: type[Any]: 元のタイプ"""
+		"""Returns: 元のタイプ"""
 		return self._type
 
 	@implements

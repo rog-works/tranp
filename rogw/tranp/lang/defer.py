@@ -70,22 +70,22 @@ class Defer:
 		return getattr(entity, name)
 
 	def __repr__(self) -> str:
-		"""Returns: str: シリアライズ表現"""
+		"""Returns: シリアライズ表現"""
 		entity = Defer.resolve(self)
 		return f'<{Defer.__name__}[{entity.__class__.__name__}]: at {hex(id(self)).upper()} with {entity}>'
 
 	def __str__(self) -> str:
-		"""Returns: str: 文字列表現"""
+		"""Returns: 文字列表現"""
 		return getattr(Defer.resolve(self), '__str__')()
 
 	def __hash__(self) -> int:
-		"""Returns: int: ハッシュ値"""
+		"""Returns: ハッシュ値"""
 		return getattr(Defer.resolve(self), '__hash__')()
 
 	def __eq__(self, other: Any) -> bool:
-		"""Args: other (Any): 対象 Returns: bool: True = 一致"""
+		"""Args: other: 対象 Returns: True = 一致"""
 		return getattr(Defer.resolve(self), '__eq__')(other)
 
 	def __ne__(self, other: Any) -> bool:
-		"""Args: other (Any): 対象 Returns: bool: True = 不一致"""
+		"""Args: other: 対象 Returns: True = 不一致"""
 		return getattr(Defer.resolve(self), '__ne__')(other)

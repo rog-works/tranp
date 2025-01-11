@@ -13,19 +13,19 @@ class CVar(Generic[T_co], metaclass=ABCMeta):
 	@property
 	@abstractmethod
 	def on(self) -> T_co:
-		"""Returns: T_co: 実体を返却 Note: リレー代替メソッド。C++では実体型は`.`、アドレス型は`->`に相当"""
+		"""Returns: 実体を返却 Note: リレー代替メソッド。C++では実体型は`.`、アドレス型は`->`に相当"""
 		...
 
 	@property
 	@abstractmethod
 	def raw(self) -> T_co:
-		"""Returns: T_co: 実体を返却 Note: 実体参照代替メソッド。C++では実体型は削除、アドレス型は`*`に相当"""
+		"""Returns: 実体を返却 Note: 実体参照代替メソッド。C++では実体型は削除、アドレス型は`*`に相当"""
 		...
 
 	@property
 	@abstractmethod
 	def _origin_raw(self) -> T_co | None:
-		"""Returns: T_co | None: 実体を返却 Note: 派生クラス用。C++としての役割は無い"""
+		"""Returns: 実体を返却 Note: 派生クラス用。C++としての役割は無い"""
 		...
 
 	def __eq__(self, other: Self) -> bool:
@@ -85,19 +85,19 @@ class CVarNotNull(CVar[T_co]):
 	@property
 	@override
 	def on(self) -> T_co:
-		"""Returns: T_co: 実体を返却 Note: リレー代替メソッド。C++では実体型は`.`、アドレス型は`->`に相当"""
+		"""Returns: 実体を返却 Note: リレー代替メソッド。C++では実体型は`.`、アドレス型は`->`に相当"""
 		return self._origin
 
 	@property
 	@override
 	def raw(self) -> T_co:
-		"""Returns: T_co: 実体を返却 Note: 実体参照代替メソッド。C++では実体型は削除、アドレス型は`*`に相当"""
+		"""Returns: 実体を返却 Note: 実体参照代替メソッド。C++では実体型は削除、アドレス型は`*`に相当"""
 		return self._origin
 
 	@property
 	@override
 	def _origin_raw(self) -> T_co:
-		"""Returns: T_co: 実体を返却 Note: 派生クラス用。C++としての役割は無い"""
+		"""Returns: 実体を返却 Note: 派生クラス用。C++としての役割は無い"""
 		return self._origin
 
 
@@ -122,21 +122,21 @@ class CVarNullable(CVar[T_co]):
 	@property
 	@override
 	def on(self) -> T_co:
-		"""Returns: T_co: 実体を返却 Note: リレー代替メソッド。C++では実体型は`.`、アドレス型は`->`に相当"""
+		"""Returns: 実体を返却 Note: リレー代替メソッド。C++では実体型は`.`、アドレス型は`->`に相当"""
 		assert self._origin is not None, 'Origin is Null'
 		return self._origin
 
 	@property
 	@override
 	def raw(self) -> T_co:
-		"""Returns: T_co: 実体を返却 Note: 実体参照代替メソッド。C++では実体型は削除、アドレス型は`*`に相当"""
+		"""Returns: 実体を返却 Note: 実体参照代替メソッド。C++では実体型は削除、アドレス型は`*`に相当"""
 		assert self._origin is not None, 'Origin is Null'
 		return self._origin
 
 	@property
 	@override
 	def _origin_raw(self) -> T_co | None:
-		"""Returns: T_co | None: 実体を返却 Note: 派生クラス用。C++としての役割は無い"""
+		"""Returns: 実体を返却 Note: 派生クラス用。C++としての役割は無い"""
 		return self._origin
 
 
@@ -210,17 +210,17 @@ class CSP(CVarNullable[T_co]):
 
 	@property
 	def ref(self) -> 'CRef[T_co]':
-		"""Returns: CRef[T_co]: 参照を返却する参照変換代替メソッド。C++では`*`に相当"""
+		"""Returns: 参照を返却する参照変換代替メソッド。C++では`*`に相当"""
 		return CRef(self.raw)
 
 	@property
 	def addr(self) -> 'CP[T_co]':
-		"""Returns: CP[T_co]: ポインターを返却する参照変換代替メソッド。C++では`get`に相当"""
+		"""Returns: ポインターを返却する参照変換代替メソッド。C++では`get`に相当"""
 		return CP(self.raw)
 
 	@property
 	def const(self) -> 'CSPConst[T_co]':
-		"""Returns: CSPConst[T_co]: Constを返却する参照変換代替メソッド。C++では削除"""
+		"""Returns: Constを返却する参照変換代替メソッド。C++では削除"""
 		return CSPConst(self.raw)
 
 
@@ -229,12 +229,12 @@ class CRef(CVarNotNull[T_co]):
 
 	@property
 	def addr(self) -> 'CP[T_co]':
-		"""Returns: CP[T_co]: ポインターを返却する参照変換代替メソッド。C++では`&`に相当"""
+		"""Returns: ポインターを返却する参照変換代替メソッド。C++では`&`に相当"""
 		return CP(self.raw)
 
 	@property
 	def const(self) -> 'CRefConst[T_co]':
-		"""Returns: CRefConst[T_co]: Constを返却する参照変換代替メソッド。C++では削除"""
+		"""Returns: Constを返却する参照変換代替メソッド。C++では削除"""
 		return CRefConst(self.raw)
 
 	def copy(self, via: 'CRef[T_co]') -> None:
@@ -259,7 +259,7 @@ class CPConst(CVarNotNull[T_co]):
 
 	@property
 	def ref(self) -> 'CRefConst[T_co]':
-		"""Returns: CRefConst[T_co]: Const参照を返却する参照変換代替メソッド。C++では`*`に相当"""
+		"""Returns: Const参照を返却する参照変換代替メソッド。C++では`*`に相当"""
 		return CRefConst(self.raw)
 
 
@@ -268,12 +268,12 @@ class CSPConst(CVarNotNull[T_co]):
 
 	@property
 	def ref(self) -> 'CRefConst[T_co]':
-		"""Returns: CRefConst[T_co]: Const参照を返却する参照変換代替メソッド。C++では`*`に相当"""
+		"""Returns: Const参照を返却する参照変換代替メソッド。C++では`*`に相当"""
 		return CRefConst(self.raw)
 
 	@property
 	def addr(self) -> 'CPConst[T_co]':
-		"""Returns: CPConst[T_co]: Constポインターを返却する参照変換代替メソッド。C++では`get`に相当"""
+		"""Returns: Constポインターを返却する参照変換代替メソッド。C++では`get`に相当"""
 		return CPConst(self.raw)
 
 
@@ -282,7 +282,7 @@ class CRefConst(CVarNotNull[T_co]):
 
 	@property
 	def addr(self) -> 'CPConst[T_co]':
-		"""Returns: CPConst[T_co]: Constポインターを返却する参照変換代替メソッド。C++では`get`に相当"""
+		"""Returns: Constポインターを返却する参照変換代替メソッド。C++では`get`に相当"""
 		return CPConst(self.raw)
 
 
@@ -291,12 +291,12 @@ class CRawConst(CVarNotNull[T_co]):
 
 	@property
 	def ref(self) -> 'CRefConst[T_co]':
-		"""Returns: CRefConst[T_co]: Const参照を返却する参照変換代替メソッド。C++では`*`に相当"""
+		"""Returns: Const参照を返却する参照変換代替メソッド。C++では`*`に相当"""
 		return CRefConst(self.raw)
 
 	@property
 	def addr(self) -> 'CPConst[T_co]':
-		"""Returns: CPConst[T_co]: Constポインターを返却する参照変換代替メソッド。C++では`&`に相当"""
+		"""Returns: Constポインターを返却する参照変換代替メソッド。C++では`&`に相当"""
 		return CPConst(self.raw)
 
 
@@ -305,12 +305,12 @@ class CRaw(CVarNotNull[T_co]):
 
 	@property
 	def ref(self) -> 'CRef[T_co]':
-		"""Returns: CRef[T_co]: 参照を返却する参照変換代替メソッド。C++では削除される"""
+		"""Returns: 参照を返却する参照変換代替メソッド。C++では削除される"""
 		return CRef(self.raw)
 
 	@property
 	def addr(self) -> 'CP[T_co]':
-		"""Returns: CP[T_co]: ポインターを返却する参照変換代替メソッド。C++では`&`に相当"""
+		"""Returns: ポインターを返却する参照変換代替メソッド。C++では`&`に相当"""
 		return CP(self.raw)
 
 

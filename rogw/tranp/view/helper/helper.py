@@ -67,7 +67,7 @@ def filter_fullmatch(setting: RendererSetting) -> Callable[[list[str], str], lis
 
 
 def factories() -> tuple[list[RendererHelperFactory], list[RendererHelperFactory]]:
-	"""Returns: tuple[list[RendererHelperFactory], list[RendererHelperFactory]]: (ヘルパー一覧, フィルター一覧)"""
+	"""Returns: (ヘルパー一覧, フィルター一覧)"""
 	return (
 		 [
 			break_last_block,
@@ -93,5 +93,5 @@ def parameter_parse(setting: RendererSetting) -> Callable[[str], ParameterHelper
 
 
 def factories_for_cpp() -> tuple[list[RendererHelperFactory], list[RendererHelperFactory]]:
-	"""Returns: tuple[list[RendererHelperFactory], list[RendererHelperFactory]]: (ヘルパー一覧, フィルター一覧) ※C++用"""
+	"""Returns: (ヘルパー一覧, フィルター一覧) ※C++用"""
 	return ([parameter_parse], [])

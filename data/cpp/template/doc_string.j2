@@ -5,7 +5,7 @@
 {%- for arg in data.args %}
  * @param {{ arg.name }} {{ arg.description }}
 {%- endfor %}
-{%- if data.returns.type %}
+{%- if data.returns.description %}
  * @return {{ data.returns.description }}
 {%- endif %}
 {%- for r in data.raises %}

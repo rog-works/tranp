@@ -30,9 +30,9 @@ class JsonParser:
 		"""JSON文字列を解析
 
 		Args:
-			json_str (str): JSON文字列
+			json_str: JSON文字列
 		Returns:
-			list[JsonEntryInfo]: JSONエントリー情報リスト
+			JSONエントリー情報リスト
 		"""
 		return cls._parse_entry(json_str, 0, '')[0]
 
@@ -41,11 +41,11 @@ class JsonParser:
 		"""JSON文字列を解析(エントリー)
 
 		Args:
-			json_str (str): JSON文字列
-			begin (int): 読み取り開始位置
-			path (str): エントリーパス
+			json_str: JSON文字列
+			begin: 読み取り開始位置
+			path: エントリーパス
 		Returns:
-			tuple[list[JsonEntryInfo], int]: JSONエントリー情報リスト, 読み取り終了位置
+			JSONエントリー情報リスト, 読み取り終了位置
 		"""
 		end = begin
 		info_list: list[JsonEntryInfo] = []
@@ -78,10 +78,10 @@ class JsonParser:
 		"""JSON文字列を解析(エントリー/Boolean)
 
 		Args:
-			json_str (str): JSON文字列
-			begin (int): 読み取り開始位置
+			json_str: JSON文字列
+			begin: 読み取り開始位置
 		Returns:
-			int: 読み取り終了位置
+			読み取り終了位置
 		"""
 		end = begin
 		string = ''
@@ -99,10 +99,10 @@ class JsonParser:
 		"""JSON文字列を解析(エントリー/Number)
 
 		Args:
-			json_str (str): JSON文字列
-			begin (int): 読み取り開始位置
+			json_str: JSON文字列
+			begin: 読み取り開始位置
 		Returns:
-			int: 読み取り終了位置
+			読み取り終了位置
 		"""
 		end = begin
 		while end < len(json_str):
@@ -117,10 +117,10 @@ class JsonParser:
 		"""JSON文字列を解析(エントリー/String)
 
 		Args:
-			json_str (str): JSON文字列
-			begin (int): 読み取り開始位置
+			json_str: JSON文字列
+			begin: 読み取り開始位置
 		Returns:
-			int: 読み取り終了位置
+			読み取り終了位置
 		"""
 		end = json_str.find('\"', begin)
 		while end < len(json_str):
@@ -138,11 +138,11 @@ class JsonParser:
 		"""JSON文字列を解析(エントリー/Array)
 
 		Args:
-			json_str (str): JSON文字列
-			begin (int): 読み取り開始位置
-			path (str): エントリーパス
+			json_str: JSON文字列
+			begin: 読み取り開始位置
+			path: エントリーパス
 		Returns:
-			tuple[list[JsonEntryInfo], int]: JSONエントリー情報リスト, 読み取り終了位置
+			JSONエントリー情報リスト, 読み取り終了位置
 		"""
 		end = json_str.find('[', begin)
 		info_list: list[JsonEntryInfo] = []
@@ -165,11 +165,11 @@ class JsonParser:
 		"""JSON文字列を解析(エントリー/Object)
 
 		Args:
-			json_str (str): JSON文字列
-			begin (int): 読み取り開始位置
-			path (str): エントリーパス
+			json_str: JSON文字列
+			begin: 読み取り開始位置
+			path: エントリーパス
 		Returns:
-			tuple[list[JsonEntryInfo], int]: JSONエントリー情報リスト, 読み取り終了位置
+			JSONエントリー情報リスト, 読み取り終了位置
 		"""
 		end = json_str.find('{', begin)
 		info_list: list[JsonEntryInfo] = []
@@ -191,10 +191,10 @@ class JsonParser:
 		"""JSON文字列を解析(キー)
 
 		Args:
-			json_str (str): JSON文字列
-			begin (int): 読み取り開始位置
+			json_str: JSON文字列
+			begin: 読み取り開始位置
 		Returns:
-			tuple[str, int]: キー, 読み取り終了位置
+			キー, 読み取り終了位置
 		"""
 		key_begin = json_str.find('\"', begin)
 		end = json_str.find('\"', key_begin + 1)
@@ -206,10 +206,10 @@ class JsonParser:
 		"""JSONエントリーの種別を解析
 
 		Args:
-			json_str (str): JSON文字列
-			begin (int): 読み取り開始位置
+			json_str: JSON文字列
+			begin: 読み取り開始位置
 		Returns:
-			JsonEntryTypes: JSONエントリーの種別
+			JSONエントリーの種別
 		Raises:
 			RuntimeError: 解析に失敗
 		"""
@@ -224,11 +224,11 @@ class JsonParser:
 		"""JSONエントリーの種別を解析
 
 		Args:
-			json_str (str): JSON文字列
-			begin (int): 読み取り開始位置
-			end_token (str): 終端記号 (default = '')
+			json_str: JSON文字列
+			begin: 読み取り開始位置
+			end_token: 終端記号 (default = '')
 		Returns:
-			tuple[JsonEntryTypes, int]: JSONエントリーの種別, 読み取り終了位置
+			JSONエントリーの種別, 読み取り終了位置
 		"""
 		end = begin
 		while end < len(json_str):
@@ -254,10 +254,10 @@ class JsonParser:
 		"""パスを連結
 
 		Args:
-			path1 (str): パス0
-			path2 (str): パス1
+			path1: パス0
+			path2: パス1
 		Returns:
-			str: 連結したパス
+			連結したパス
 		"""
 		return path0 + '.' + path1 if len(path0) > 0 else path1
 
@@ -281,10 +281,10 @@ class JsonEntity:
 		"""スカラー型用にインスタンスを生成
 
 		Args:
-			value_str (str): 文字列
-			entry_type (JsonEntryTypes): JSONエントリーの種別
+			value_str: 文字列
+			entry_type: JSONエントリーの種別
 		Returns:
-			JsonEntity: インスタンス
+			インスタンス
 		"""
 		instance = cls()
 		if entry_type == JsonEntryTypes.Boolean:
@@ -316,11 +316,11 @@ class JsonEntry:
 		"""インスタンスを生成
 
 		Args:
-			path (str): JSONパス
-			entry_type (JsonEntryTypes): JSONエントリーの種別
-			entity (JsonEntity): JSONエンティティー
+			path: JSONパス
+			entry_type: JSONエントリーの種別
+			entity: JSONエンティティー
 		Returns:
-			JsonEntry: インスタンス
+			インスタンス
 		"""
 		instance = cls()
 		instance.path = path
@@ -363,7 +363,7 @@ class Json:
 		"""オブジェクト型の空のインスタンスを生成
 
 		Returns:
-			CSP[Json]: インスタンス
+			インスタンス
 		"""
 		return cls.parse('{}')
 
@@ -372,9 +372,9 @@ class Json:
 		"""JSON文字列を基にインスタンスを生成
 
 		Args:
-			json_str (str): JSON文字列
+			json_str: JSON文字列
 		Returns:
-			CSP[Json]: インスタンス
+			インスタンス
 		"""
 		root = CSP.new(Json())
 		info_list = JsonParser.parse(json_str)
@@ -394,9 +394,9 @@ class Json:
 		"""スカラー値からJSONインスタンスに変換(Boolean)
 
 		Args:
-			value (bool): 値
+			value: 値
 		Returns:
-			CSP[Json]: インスタンス
+			インスタンス
 		"""
 		return Json.parse('true' if value else 'false')
 
@@ -404,9 +404,9 @@ class Json:
 		"""スカラー値からJSONインスタンスに変換(Number)
 
 		Args:
-			value (bool): 値
+			value: 値
 		Returns:
-			CSP[Json]: インスタンス
+			インスタンス
 		"""
 		return Json.parse(str(value))
 
@@ -414,9 +414,9 @@ class Json:
 		"""スカラー値からJSONインスタンスに変換(String)
 
 		Args:
-			value (bool): 値
+			value: 値
 		Returns:
-			CSP[Json]: インスタンス
+			インスタンス
 		"""
 		return Json.parse('\"' + String.escape(value, char('"')) + '\"')
 
@@ -424,9 +424,9 @@ class Json:
 		"""エントリー用にインスタンスを生成
 
 		Args:
-			entry_id (int): エントリーID
+			entry_id: エントリーID
 		Returns:
-			CSP[Json]: インスタンス
+			インスタンス
 		"""
 		under = CSP.new(Json())
 		under.on._root = CP(self)
@@ -437,9 +437,9 @@ class Json:
 		"""自身の配下要素のパスか判定
 
 		Args:
-			path (str): パス
+			path: パス
 		Returns:
-			bool: True = 配下要素
+			True = 配下要素
 		"""
 		if not (len(self.path) < len(path)):
 			return False
@@ -458,9 +458,9 @@ class Json:
 		"""指定のスカラー型か判定。引数を省略した場合は、スカラー型か否かを判定
 
 		Args:
-			expected_type (JsonEntryTypes): 判定するJSONエントリーの種別 (default = NotFound)
+			expected_type: 判定するJSONエントリーの種別 (default = NotFound)
 		Returns:
-			bool: True = スカラー型, False = Array/Object
+			True = スカラー型, False = Array/Object
 		"""
 		if expected_type == JsonEntryTypes.Unknown:
 			return self.entry_type == JsonEntryTypes.Boolean or self.entry_type == JsonEntryTypes.Number or self.entry_type == JsonEntryTypes.String
@@ -471,9 +471,9 @@ class Json:
 		"""指定エントリーのJSONを取得
 
 		Args:
-			entry_id (int): エントリーID
+			entry_id: エントリーID
 		Returns:
-			CP[Json]: JSON
+			JSON
 		"""
 		return self.root.on._jsons[entry_id].addr
 
@@ -524,9 +524,9 @@ class Json:
 		"""指定のJSONパスを持つ要素が存在するか判定
 
 		Args:
-			jsonpath (str): JSONパス
+			jsonpath: JSONパス
 		Returns:
-			bool: True = 存在
+			True = 存在
 		"""
 		for entry in self.root.on._entries:
 			if jsonpath == entry.path:
@@ -538,9 +538,9 @@ class Json:
 		"""指定のキーを持つ配下要素が存在するか判定
 
 		Args:
-			key (str): キー
+			key: キー
 		Returns:
-			bool: True = 存在
+			True = 存在
 		"""
 		return self.exists(JsonParser.join_path(self.path, key))
 
@@ -548,7 +548,7 @@ class Json:
 		"""配下要素を取得
 
 		Returns:
-			list[CP[Json]]: 配下要素のリスト
+			配下要素のリスト
 		"""
 		under_values: list[CP[Json]] = []
 		remain = len(self.root.on._entries) - self._entry_id
@@ -564,9 +564,9 @@ class Json:
 		"""配下要素を取得
 
 		Args:
-			index (int): インデックス
+			index: インデックス
 		Returns:
-			CP[Json]: インスタンス
+			インスタンス
 		Raises:
 			RuntimeError: 存在しないエントリーを指定
 		"""
@@ -576,9 +576,9 @@ class Json:
 		"""配下要素を取得
 
 		Args:
-			key (str): シンボル名
+			key: シンボル名
 		Returns:
-			CP[Json]: インスタンス
+			インスタンス
 		Raises:
 			RuntimeError: 存在しないエントリーを指定
 		"""
@@ -588,9 +588,9 @@ class Json:
 		"""JSONパスと一致するエントリーを取得
 
 		Args:
-			jsonpath (str): JSONパス
+			jsonpath: JSONパス
 		Returns:
-			CP[Json]: インスタンス
+			インスタンス
 		Raises:
 			RuntimeError: 存在しないエントリーを指定
 		"""
@@ -605,9 +605,9 @@ class Json:
 		"""フィルター条件に一致する要素を取得
 
 		Args:
-			query (Callable[[CP[Json]], bool]): フィルター関数
+			query: フィルター関数
 		Returns:
-			list[CP[Json]]: 要素リスト
+			要素リスト
 		"""
 		return [in_json.addr for in_json in self._jsons if query(in_json.addr)]
 
@@ -615,9 +615,9 @@ class Json:
 		"""相違個所のパスを抽出
 
 		Args:
-			other (CP[Json]): 比較対象
+			other: 比較対象
 		Returns:
-			list[str]: パスリスト
+			パスリスト
 		Note:
 			パスには自身と比較対象、双方のパスが混在する点に注意
 		"""
@@ -674,7 +674,7 @@ class Json:
 		"""値を更新(Boolean)
 
 		Args:
-			value (str): 値
+			value: 値
 		"""
 		if self.scalar_with():
 			self.root.on._entries[self._entry_id].entity.as_bool = value
@@ -686,7 +686,7 @@ class Json:
 		"""値を更新(Number)
 
 		Args:
-			value (str): 値
+			value: 値
 		"""
 		if self.scalar_with():
 			self.root.on._entries[self._entry_id].entity.as_number = value
@@ -698,7 +698,7 @@ class Json:
 		"""値を更新(String)
 
 		Args:
-			value (str): 値
+			value: 値
 		"""
 		if self.scalar_with():
 			self.root.on._entries[self._entry_id].entity.as_string = value
@@ -710,7 +710,7 @@ class Json:
 		"""値を更新(Array)
 
 		Args:
-			value (CP[Json]): 値
+			value: 値
 		Raises:
 			RuntimeError: Array以外を指定
 		"""
@@ -723,7 +723,7 @@ class Json:
 		"""値を更新(Object)
 
 		Args:
-			value (CP[Json]): 値
+			value: 値
 		Raises:
 			RuntimeError: Object以外を指定
 		"""
@@ -736,7 +736,7 @@ class Json:
 		"""値を更新(汎用)
 
 		Args:
-			value (CP[Json]): 値
+			value: 値
 		"""
 		if value.on.scalar_with(JsonEntryTypes.Boolean):
 			self.set_bool(value.on.as_bool)
@@ -753,8 +753,8 @@ class Json:
 		"""指定のキーの要素に値を反映。存在しない場合は要素を追加(Boolean)
 
 		Args:
-			key (str): キー
-			value (bool): 値
+			key: キー
+			value: 値
 		"""
 		jsonpath = JsonParser.join_path(self.path, key)
 		if self.exists(jsonpath):
@@ -766,8 +766,8 @@ class Json:
 		"""指定のキーの要素に値を反映。存在しない場合は要素を追加(Number)
 
 		Args:
-			key (str): キー
-			value (float): 値
+			key: キー
+			value: 値
 		"""
 		jsonpath = JsonParser.join_path(self.path, key)
 		if self.exists(jsonpath):
@@ -779,8 +779,8 @@ class Json:
 		"""指定のキーの要素に値を反映。存在しない場合は要素を追加(String)
 
 		Args:
-			key (str): キー
-			value (str): 値
+			key: キー
+			value: 値
 		"""
 		jsonpath = JsonParser.join_path(self.path, key)
 		if self.exists(jsonpath):
@@ -792,8 +792,8 @@ class Json:
 		"""指定のキーの要素に値を反映。存在しない場合は要素を追加(Array)
 
 		Args:
-			key (str): キー
-			value (CP[Json]): 値
+			key: キー
+			value: 値
 		Raises:
 			RuntimeError: Array以外を指定
 		"""
@@ -810,8 +810,8 @@ class Json:
 		"""指定のキーの要素に値を反映。存在しない場合は要素を追加(Object)
 
 		Args:
-			key (str): キー
-			value (CP[Json]): 値
+			key: キー
+			value: 値
 		Raises:
 			RuntimeError: Object以外を指定
 		"""
@@ -828,8 +828,8 @@ class Json:
 		"""指定のキーの要素に値を反映。存在しない場合は要素を追加(汎用)
 
 		Args:
-			key (str): キー
-			value (CP[Json]): 値
+			key: キー
+			value: 値
 		"""
 		if value.on.scalar_with(JsonEntryTypes.Boolean):
 			self.apply_bool_to(key, value.on.as_bool)
@@ -846,8 +846,8 @@ class Json:
 		"""指定のインデックスの要素に値を反映。存在しない場合は要素を追加(Boolean)
 
 		Args:
-			index (int): インデックス
-			value (bool): 値
+			index: インデックス
+			value: 値
 		Raises:
 			RuntimeError: Array以外で使用
 		"""
@@ -860,8 +860,8 @@ class Json:
 		"""指定のインデックスの要素に値を反映。存在しない場合は要素を追加(Number)
 
 		Args:
-			index (int): インデックス
-			value (float): 値
+			index: インデックス
+			value: 値
 		Raises:
 			RuntimeError: Array以外で使用
 		"""
@@ -874,8 +874,8 @@ class Json:
 		"""指定のインデックスの要素に値を反映。存在しない場合は要素を追加(String)
 
 		Args:
-			index (int): インデックス
-			value (str): 値
+			index: インデックス
+			value: 値
 		Raises:
 			RuntimeError: Array以外で使用
 		"""
@@ -888,8 +888,8 @@ class Json:
 		"""指定のインデックスの要素に値を反映。存在しない場合は要素を追加(Array)
 
 		Args:
-			index (int): インデックス
-			value (CP[Json]): 値
+			index: インデックス
+			value: 値
 		Raises:
 			RuntimeError: Array以外で使用
 		"""
@@ -902,8 +902,8 @@ class Json:
 		"""指定のインデックスの要素に値を反映。存在しない場合は要素を追加(Object)
 
 		Args:
-			index (int): インデックス
-			value (CP[Json]): 値
+			index: インデックス
+			value: 値
 		Raises:
 			RuntimeError: Array以外で使用
 		"""
@@ -916,8 +916,8 @@ class Json:
 		"""指定のインデックスの要素に値を反映。存在しない場合は要素を追加(汎用)
 
 		Args:
-			index (int): インデックス
-			value (CP[Json]): 値
+			index: インデックス
+			value: 値
 		"""
 		self.apply_json_to(str(index), value)
 
@@ -925,7 +925,7 @@ class Json:
 		"""指定のインデックスの要素を削除
 
 		Args:
-			index (int): インデックス
+			index: インデックス
 		Raises:
 			RuntimeError: Array以外で使用
 			RuntimeError: 存在しないエントリーを指定
@@ -939,7 +939,7 @@ class Json:
 		"""指定のキーの要素を削除
 
 		Args:
-			key (str): キー
+			key: キー
 		Raises:
 			RuntimeError: Array/Object以外で使用
 			RuntimeError: 存在しないエントリーを指定
@@ -957,8 +957,8 @@ class Json:
 		"""自身の配下にJSONエントリーを追加
 
 		Args:
-			key (str): キー
-			entry_json (CSP[Json]): JSON
+			key: キー
+			entry_json: JSON
 		Raises:
 			RuntimeError: Array/Object以外で使用
 		Note:
@@ -973,7 +973,7 @@ class Json:
 		"""自身のエントリーを基点に新たなJSONエントリーに置き換え
 
 		Args:
-			entry_json (CSP[Json]): JSON
+			entry_json: JSON
 		"""
 		self_path = self.path
 		self._remove_entry(self._entry_id)
@@ -983,7 +983,7 @@ class Json:
 		"""指定位置のJSONエントリーとその下位要素を削除
 
 		Args:
-			entry_id (int): エントリーID
+			entry_id: エントリーID
 		"""
 		relayed_ids = self._relayed_entry_ids(entry_id)
 		for i in range(len(relayed_ids)):
@@ -996,9 +996,9 @@ class Json:
 		"""指定位置にJSONエントリーを挿入
 
 		Args:
-			begin_id (int): 挿入開始位置
-			begin_path (str): 基準のJSONパス
-			entry_json (CSP[Json]): JSON
+			begin_id: 挿入開始位置
+			begin_path: 基準のJSONパス
+			entry_json: JSON
 		"""
 		# ルートではない場合、ルートオブジェクトに変換
 		if not entry_json.on.is_root:
@@ -1024,7 +1024,7 @@ class Json:
 		"""自身を基点に新たなインスタンスを生成
 
 		Returns:
-			CSP[Json]: インスタンス
+			インスタンス
 		Note:
 			* ルート要素との参照を切り離すことでメモリー安全な複製として利用可能する
 			* 引数として渡す際に有効である反面、実行速度とメモリー効率を犠牲にする
@@ -1039,9 +1039,9 @@ class Json:
 		"""自身を含めた全ての下位要素を新たなエントリーとして生成
 
 		Args:
-			new_root (CSP[Json]): ルートオブジェクト
+			new_root: ルートオブジェクト
 		Returns:
-			tuple[list[CSP[Json]], list[JsonEntry]: JSON, JSONエントリーリスト
+			JSON, JSONエントリーリスト
 		"""
 		jsons: list[CSP[Json]] = []
 		entries: list[JsonEntry] = []
@@ -1058,9 +1058,9 @@ class Json:
 		"""指定位置のJSONエントリーを含めた全ての下位要素のエントリーIDを抽出
 
 		Args:
-			entry_id (int): エントリーID
+			entry_id: エントリーID
 		Returns:
-			list[int]: エントリーIDリスト
+			エントリーIDリスト
 		"""
 		ids: list[int] = []
 		remain = len(self.root.on._entries) - entry_id
@@ -1076,10 +1076,10 @@ class Json:
 		"""文字列が接頭辞から始まるか判定
 
 		Args:
-			string (str): 文字列
-			prefix (str): 接頭辞
+			string: 文字列
+			prefix: 接頭辞
 		Returns:
-			bool: True = 適合
+			True = 適合
 		Note:
 			XXX C++だと空文字を全く検証せず、ルート要素との比較をスキップしてしまうため、互換用に用意
 		"""
@@ -1089,7 +1089,7 @@ class Json:
 		"""文字列表現を取得
 
 		Returns:
-			str: 文字列表現
+			文字列表現
 		"""
 		if self.scalar_with(JsonEntryTypes.Boolean):
 			return 'true' if self.as_bool else 'false'

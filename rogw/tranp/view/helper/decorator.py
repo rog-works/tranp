@@ -41,7 +41,7 @@ class DecoratorHelper:
 	
 	@property
 	def path(self) -> str:
-		"""str: デコレーターパス"""
+		"""Returns: デコレーターパス"""
 		if len(self._props[0]) == 0:
 			self._props = self._parse(self.decorator)
 
@@ -49,7 +49,7 @@ class DecoratorHelper:
 
 	@property
 	def args(self) -> dict[str, str]:
-		"""dict[str, str]: 引数一覧"""
+		"""Returns: 引数一覧"""
 		if len(self._props[0]) == 0:
 			self._props = self._parse(self.decorator)
 
@@ -57,7 +57,7 @@ class DecoratorHelper:
 
 	@property
 	def join_args(self) -> str:
-		"""str: 引数一覧"""
+		"""Returns: 引数一覧"""
 		if len(self._props[0]) == 0:
 			self._props = self._parse(self.decorator)
 
@@ -65,7 +65,7 @@ class DecoratorHelper:
 
 	@property
 	def arg(self) -> str:
-		"""str: 第1引数の値"""
+		"""Returns: 第1引数の値"""
 		return list(self.args.values())[0]
 
 	def arg_at(self, index: int) -> str:
@@ -93,7 +93,7 @@ class DecoratorHelper:
 		"""指定のパスと一致するか判定
 
 		Args:
-			*paths (str): 対象のデコレーターパスリスト
+			*paths: 対象のデコレーターパスリスト
 		Returns:
 			True = 含む
 		"""
@@ -186,7 +186,7 @@ class DecoratorQuery(Sequence):
 		"""指定のパスと一致する要素を抽出し、新たにインスタンスを生成
 
 		Args:
-			*paths (str): 対象のデコレーターパスリスト
+			*paths: 対象のデコレーターパスリスト
 		Returns:
 			インスタンス
 		"""
@@ -226,7 +226,7 @@ class DecoratorQuery(Sequence):
 		"""指定のパスを持つ要素を含むか判定
 
 		Args:
-			*paths (str): 対象のデコレーターパスリスト
+			*paths: 対象のデコレーターパスリスト
 		Returns:
 			True = 条件に合致
 		"""

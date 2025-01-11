@@ -25,13 +25,13 @@ class Records:
 		self._record: dict[str, int] = {}
 
 	def __str__(self) -> str:
-		"""str: 文字列表現"""
+		"""Returns: 文字列表現"""
 		data = {**dict(sorted(self._record.items(), key=lambda entry: entry[0])), 'total': self.total}
 		return str(json.dumps(data, indent=2))
 
 	@property
 	def total(self) -> int:
-		"""int: 総コール数"""
+		"""Returns: 総コール数"""
 		return sum(self._record.values())
 
 	def put(self, back_at: int = 2) -> None:

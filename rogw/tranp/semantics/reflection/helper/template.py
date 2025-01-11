@@ -290,7 +290,7 @@ class HelperBuilder:
 
 	@property
 	def __current_key(self) -> str:
-		"""str: 編集中のキー"""
+		"""Returns: 編集中のキー"""
 		return list(self.__case_of_injectors.keys())[-1]
 
 	def case(self, expect: type[Helper]) -> 'HelperBuilder':

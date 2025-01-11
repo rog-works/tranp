@@ -103,42 +103,42 @@ class ScalarTypehint(Typehint):
 
 	@property
 	def is_null(self) -> bool:
-		"""bool: True = None"""
+		"""Returns: True = None"""
 		return self._type is None or self._type is NoneType
 
 	@property
 	def is_generic(self) -> bool:
-		"""bool: True = ジェネリック型"""
+		"""Returns: True = ジェネリック型"""
 		return getattr(self._type, '__origin__', self._type) in [list, dict, tuple, type]
 
 	@property
 	def is_union(self) -> bool:
-		"""bool: True = Union型"""
+		"""Returns: True = Union型"""
 		return type(self._type) is UnionType or getattr(self._type, '__origin__', self._type) is Union
 
 	@property
 	def is_nullable(self) -> bool:
-		"""bool: True = Nullable型"""
+		"""Returns: True = Nullable型"""
 		return self.is_union and type(None) in self.__sub_annos
 
 	@property
 	def is_enum(self) -> bool:
-		"""bool: True = Enum型"""
+		"""Returns: True = Enum型"""
 		return type(self._type) is EnumType
 
 	@property
 	def sub_types(self) -> list[Typehint]:
-		"""list[Typehint]: ジェネリック/Union型のサブタイプのリスト"""
+		"""Returns: ジェネリック/Union型のサブタイプのリスト"""
 		return [Typehints.resolve(sub_type) for sub_type in self.__sub_annos]
 
 	@property
 	def __sub_annos(self) -> list[type[Any]]:
-		"""list[type[Any]]: ジェネリック/Union型のサブタイプのリスト"""
+		"""Returns: ジェネリック/Union型のサブタイプのリスト"""
 		return getattr(self._type, '__args__', [])
 
 	@property
 	def enum_members(self) -> list[Enum]:
-		"""dict[str, Enum]: Enumのメンバー一覧"""
+		"""Returns: Enumのメンバー一覧"""
 		return list(getattr(self.origin, '__members__').values())
 
 
@@ -210,17 +210,17 @@ class FunctionTypehint(Typehint):
 
 	@property
 	def args(self) -> dict[str, Typehint]:
-		"""dict[str, Typehint]: 引数リスト"""
+		"""Returns: 引数リスト"""
 		return {key: Typehints.resolve_internal(in_type, self.__via_module_path) for key, in_type in self.__annos.items() if key != 'return'}
 
 	@property
 	def returns(self) -> Typehint:
-		"""Typehint: 戻り値"""
+		"""Returns: 戻り値"""
 		return Typehints.resolve_internal(self.__annos['return'], self.__via_module_path)
 
 	@property
 	def __via_module_path(self) -> str:
-		"""str: 関数由来のモジュールパス"""
+		"""Returns: 関数由来のモジュールパス"""
 		if isinstance(self._func, property):
 			# propertyは`__module__`が無いため、元の関数オブジェクトを通して取得する
 			return getattr(self._func, 'fget').__module__
@@ -229,7 +229,7 @@ class FunctionTypehint(Typehint):
 
 	@property
 	def __annos(self) -> dict[str, type[Any]]:
-		"""dict[str, type[Any]]: タイプヒントのリスト"""
+		"""Returns: タイプヒントのリスト"""
 		if isinstance(self._func, property):
 			# propertyは`__annotations__`が無いため、元の関数オブジェクトを通して取得する
 			return getattr(self._func, 'fget').__annotations__
@@ -288,18 +288,18 @@ class ClassTypehint(Typehint):
 
 	@property
 	def is_generic(self) -> bool:
-		"""bool: True = ジェネリック型"""
+		"""Returns: True = ジェネリック型"""
 		return hasattr(self._type, '__origin__')
 
 	@property
 	def sub_types(self) -> list[Typehint]:
-		"""list[Typehint]: ジェネリック型のサブタイプのリスト"""
+		"""Returns: ジェネリック型のサブタイプのリスト"""
 		sub_annos: list[type[Any]] = getattr(self._type, '__args__', [])
 		return [Typehints.resolve_internal(sub_type, self._type.__module__) for sub_type in sub_annos]
 
 	@property
 	def constructor(self) -> FunctionTypehint:
-		"""FunctionTypehint: コンストラクター"""
+		"""Returns: コンストラクター"""
 		return FunctionTypehint(self._type.__init__)
 
 	def class_vars(self, lookup_private: bool = True) -> dict[str, Typehint]:
@@ -356,7 +356,7 @@ class ClassTypehint(Typehint):
 
 	@property
 	def methods(self) -> dict[str, FunctionTypehint]:
-		"""dict[str, FunctionTypehint]: メソッド一覧"""
+		"""Returns: メソッド一覧"""
 		return {key: FunctionTypehint(prop) for key, prop in self.__recursive_methods(self._type).items()}
 
 	def __recursive_methods(self, _type: type[Any]) -> dict[str, FuncTypes]:

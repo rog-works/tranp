@@ -45,7 +45,7 @@ class Node:
 
 	@override
 	def __str__(self) -> str:
-		"""str: オブジェクトの文字列表現"""
+		"""Returns: オブジェクトの文字列表現"""
 		source_map = self.source_map
 		source_map_begin = ', '.join(map(str, source_map['begin']))
 		source_map_end = ', '.join(map(str, source_map['end']))
@@ -54,12 +54,12 @@ class Node:
 
 	@override
 	def __repr__(self) -> str:
-		"""str: オブジェクトのシリアライズ表現"""
+		"""Returns: オブジェクトのシリアライズ表現"""
 		return f'<{self.__class__.__name__}: {self.module_path} {self.full_path}>'
 
 	@override
 	def __hash__(self) -> int:
-		"""int: オブジェクトのハッシュ値"""
+		"""Returns: オブジェクトのハッシュ値"""
 		return hash(self.__repr__())
 
 	@override
@@ -83,27 +83,27 @@ class Node:
 
 	@property
 	def module_path(self) -> str:
-		"""str: モジュールパス"""
+		"""Returns: モジュールパス"""
 		return self.__module_path.path
 
 	@property
 	def full_path(self) -> str:
-		"""str: ルート要素からのフルパス"""
+		"""Returns: ルート要素からのフルパス"""
 		return self._full_path.origin
 
 	@property
 	def tag(self) -> str:
-		"""str: エントリータグ。Grammar上のルール名 Note: あくまでもマッチパターンに対するタグであり、必ずしも共通の構造を表さない点に注意"""
+		"""Returns: エントリータグ。Grammar上のルール名 Note: あくまでもマッチパターンに対するタグであり、必ずしも共通の構造を表さない点に注意"""
 		return self._full_path.last_tag
 
 	@property
 	def classification(self) -> str:
-		"""str: 構造を分類する識別子。実質的に派生クラスに対する識別子"""
+		"""Returns: 構造を分類する識別子。実質的に派生クラスに対する識別子"""
 		return snakelize(self.__class__.__name__)
 
 	@property
 	def domain_name(self) -> str:
-		"""str: ドメイン名 Note: スコープを除いた自身を表す一意な名称。絶対参照(完全参照名によるアクセス)が不要なノードは無名とする"""
+		"""Returns: ドメイン名 Note: スコープを除いた自身を表す一意な名称。絶対参照(完全参照名によるアクセス)が不要なノードは無名とする"""
 		return ''
 
 	@property
@@ -127,7 +127,7 @@ class Node:
 
 	@property
 	def scope(self) -> str:
-		"""str: 自身が所属するスコープ"""
+		"""Returns: 自身が所属するスコープ"""
 		def factory() -> str:
 			parent = self.parent
 			if isinstance(parent, IScope):
@@ -139,7 +139,7 @@ class Node:
 
 	@property
 	def namespace(self) -> str:
-		"""str: 自身が所属する名前空間"""
+		"""Returns: 自身が所属する名前空間"""
 		def factory() -> str:
 			parent = self.parent
 			if isinstance(parent, INamespace):
@@ -151,27 +151,27 @@ class Node:
 
 	@property
 	def can_expand(self) -> bool:
-		"""bool: True = 配下の要素を展開"""
+		"""Returns: True = 配下の要素を展開"""
 		return not isinstance(self, ITerminal)
 
 	@property
 	def id(self) -> int:
-		"""int: AST上のID"""
+		"""Returns: AST上のID"""
 		return self.__nodes.id(self.full_path)
 
 	@property
 	def source_map(self) -> SourceMap:
-		"""SourceMap: ソースマップ"""
+		"""Returns: ソースマップ"""
 		return self.__nodes.source_map(self.full_path)
 
 	@property
 	def tokens(self) -> str:
-		"""str: 自身のトークン表現"""
+		"""Returns: 自身のトークン表現"""
 		return '.'.join(self._values())
 
 	@property
 	def parent(self) -> 'Node':
-		"""Node: 親のノード Note: あくまでもノード上の親であり、AST上の親と必ずしも一致しない点に注意"""
+		"""Returns: 親のノード Note: あくまでもノード上の親であり、AST上の親と必ずしも一致しない点に注意"""
 		return self.__nodes.parent(self.full_path)
 
 	def prop_keys(self) -> list[str]:
@@ -554,7 +554,7 @@ class Node:
 			階層構造
 		"""
 		def expand_lines(node: Node, begin: str, after: str) -> list[str]:
-			"""str: ノード内の要素を展開して行リストを返却"""
+			"""Returns: ノード内の要素を展開して行リストを返却"""
 			lines: list[str] = []
 			for j, in_line in enumerate(node.pretty(depth - 1).split('\n')):
 				prefix = begin if j == 0 else after

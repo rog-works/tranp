@@ -19,7 +19,7 @@ class ModuleDSN:
 
 		Args:
 			dsn: DSN
-			*elems (str): ローカル要素リスト
+			*elems: ローカル要素リスト
 		Returns:
 			生成したインスタンス
 		Note:
@@ -33,7 +33,7 @@ class ModuleDSN:
 
 		Args:
 			dsn: DSN
-			*elems (str): ローカル要素リスト
+			*elems: ローカル要素リスト
 		Returns:
 			DSN
 		Note:
@@ -51,7 +51,7 @@ class ModuleDSN:
 		"""モジュール内のローカル要素を結合し、ローカルパスを生成
 
 		Args:
-			*elems (str): ローカル要素リスト
+			*elems: ローカル要素リスト
 		Returns:
 			ローカルパス
 		Note:
@@ -131,19 +131,19 @@ class ModuleDSN:
 
 	@property
 	def elements(self) -> list[str]:
-		"""list[str]: ローカル要素リスト"""
+		"""Returns: ローカル要素リスト"""
 		return self.expand_elements(self.local_path)
 
 	@property
 	def elem_counts(self) -> int:
-		"""int: ローカル要素の数"""
+		"""Returns: ローカル要素の数"""
 		return self.local_elem_counts(self.local_path)
 
 	def join(self, *locals: str) -> 'ModuleDSN':
 		"""DSNの末尾にローカル要素を追加し、新たにDSNを生成
 
 		Args:
-			*locals (str): 追加するローカル要素リスト
+			*locals: 追加するローカル要素リスト
 		Returns:
 			生成したインスタンス
 		"""
@@ -151,10 +151,10 @@ class ModuleDSN:
 
 	@override
 	def __repr__(self) -> str:
-		"""str: オブジェクトのシリアライズ表現"""
+		"""Returns: オブジェクトのシリアライズ表現"""
 		return f'<{self.__class__.__name__}: {self.dsn}>'
 
 	@override
 	def __hash__(self) -> int:
-		"""int: オブジェクトのハッシュ値"""
+		"""Returns: オブジェクトのハッシュ値"""
 		return hash(self.__repr__())

@@ -51,7 +51,7 @@ class Resolver(Generic[T]):
 
 	@property
 	def accepts(self) -> list[str]:
-		"""list[str]: 受け入れ対象のシンボル名リスト"""
+		"""Returns: 受け入れ対象のシンボル名リスト"""
 		return list(self.__ctors.keys())
 
 	def can_resolve(self, symbol: str) -> bool:

@@ -82,7 +82,7 @@ class Fixture:
 
 	@property
 	def shared_module(self) -> Module:
-		"""Module: 共有フィクスチャーモジュール"""
+		"""Returns: 共有フィクスチャーモジュール"""
 		return self.get(Modules).load(self.__fixture_module_path)
 
 	def shared_nodes_by(self, full_path: str) -> Node:

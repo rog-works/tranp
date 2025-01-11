@@ -10,7 +10,7 @@ class EntryPath:
 		"""要素を結合してインスタンスを生成
 
 		Args:
-			*elems (str): 要素リスト
+			*elems: 要素リスト
 		Returns:
 			インスタンス
 		"""
@@ -39,17 +39,17 @@ class EntryPath:
 
 	@property
 	def valid(self) -> bool:
-		"""bool: True = パスが有効"""
+		"""Returns: True = パスが有効"""
 		return DSN.elem_counts(self.origin) > 0
 
 	@property
 	def elements(self) -> list[str]:
-		"""list[str]: 区切り文字で分解した要素を返却"""
+		"""Returns: 区切り文字で分解した要素を返却"""
 		return DSN.elements(self.origin)
 
 	@property
 	def escaped_origin(self) -> str:
-		"""str: 正規表現用にエスケープしたパスを返却"""
+		"""Returns: 正規表現用にエスケープしたパスを返却"""
 		return ''.join([f'\\{c}' if c in '.[]' else c for c in self.origin])
 
 	def joined(self, relative: str) -> str:
@@ -135,7 +135,7 @@ class EntryPath:
 		"""指定のエントリータグのみでパスが構築されているか判定
 
 		Args:
-			*entry_tags (str): エントリータグリスト
+			*entry_tags: エントリータグリスト
 		Returns:
 			True = 構築されている
 		"""

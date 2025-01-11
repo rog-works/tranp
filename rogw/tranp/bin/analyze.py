@@ -101,7 +101,7 @@ class AnalyzeApp(App):
 
 	@property
 	def now(self) -> str:
-		"""str: 現在時刻"""
+		"""Returns: 現在時刻"""
 		from datetime import datetime, timedelta, timezone
 
 		zone = timezone(timedelta(hours=9), 'JST')

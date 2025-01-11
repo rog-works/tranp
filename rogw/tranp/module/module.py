@@ -27,27 +27,27 @@ class Module:
 
 	@override
 	def __repr__(self) -> str:
-		"""str: オブジェクトのシリアライズ表現"""
+		"""Returns: オブジェクトのシリアライズ表現"""
 		return f'<{self.__class__.__name__}: {self.path}>'
 
 	@property
 	def module_path(self) -> ModulePath:
-		"""ModulePath: モジュールパス"""
+		"""Returns: モジュールパス"""
 		return self.__module_path
 
 	@property
 	def path(self) -> str:
-		"""str: モジュールパス"""
+		"""Returns: モジュールパス"""
 		return self.__module_path.path
 
 	@property
 	def entrypoint(self) -> defs.Entrypoint:
-		"""Entrypoint: エントリーポイント"""
+		"""Returns: エントリーポイント"""
 		return self.__entrypoint
 
 	@property
 	def filepath(self) -> str:
-		"""str: ファイルパス"""
+		"""Returns: ファイルパス"""
 		return module_path_to_filepath(self.path, f'.{self.module_path.language}')
 
 	def in_storage(self) -> bool:

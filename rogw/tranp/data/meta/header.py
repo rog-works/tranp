@@ -55,7 +55,7 @@ class MetaHeader:
 
 	@property
 	def identity(self) -> str:
-		"""str: 一意な識別子"""
+		"""Returns: 一意な識別子"""
 		return hashlib.md5(self.to_json().encode('utf-8')).hexdigest()
 
 	def __eq__(self, other: Any) -> bool:

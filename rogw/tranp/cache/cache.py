@@ -228,7 +228,7 @@ class CacheProvider:
 		Args:
 			cache_key: キャッシュキー
 			identity: 一意性担保用のコンテキスト
-			**options (Any): オプション
+			**options: オプション
 		Returns:
 			デコレーター
 		Examples:

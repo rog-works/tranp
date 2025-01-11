@@ -103,7 +103,7 @@ class Py2Cpp(ITranspiler):
 	@property
 	@implements
 	def meta(self) -> TranspilerMeta:
-		"""TranspilerMeta: トランスパイラーのメタ情報"""
+		"""Returns: トランスパイラーのメタ情報"""
 		return {'version': Versions.py2cpp, 'module': to_fullyname(Py2Cpp)}
 
 	@implements

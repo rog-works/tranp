@@ -16,7 +16,7 @@ class Trait:
 		"""インスタンスを生成
 
 		Args:
-			*injects (Any): 任意の注入引数 @inject
+			*injects: 任意の注入引数 @inject
 		"""
 		...
 

@@ -30,7 +30,7 @@ class DSN:
 		"""ドメイン名の要素を結合。空の要素は除外される
 
 		Args:
-			*parts (str): 要素リスト
+			*parts: 要素リスト
 			delimiter: デリミター(default = '.')
 		Returns:
 			ドメイン名

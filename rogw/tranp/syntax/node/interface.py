@@ -21,7 +21,7 @@ class IDeclaration:
 
 	@property
 	def symbols(self) -> list[Node]:
-		"""list[Node]: シンボルとなるDeclableノードのリスト"""
+		"""Returns: シンボルとなるDeclableノードのリスト"""
 		raise NotImplementedError()
 
 
@@ -37,12 +37,12 @@ class ISymbol:
 
 	@property
 	def symbol(self) -> Node:
-		"""Node: 自身、または配下のシンボルノード"""
+		"""Note: 自身、または配下のシンボルノード"""
 		raise NotImplementedError()
 
 	@property
 	def declare(self) -> Node:
-		"""Node: 自身、または親であるシンボル宣言ノード"""
+		"""Note: 自身、または親であるシンボル宣言ノード"""
 		raise NotImplementedError()
 
 
@@ -62,5 +62,5 @@ class StatementBlock(Protocol):
 
 	@property
 	def statements(self) -> list[Node]:
-		"""list[Node]: ステートメントノードリスト"""
+		"""Returns: ステートメントノードリスト"""
 		...

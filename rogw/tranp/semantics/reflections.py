@@ -40,7 +40,7 @@ class Reflections:
 
 	@property
 	def __procedural_resolver(self) -> 'ProceduralResolver':
-		"""ProceduralResolver: プロシージャルリゾルバー"""
+		"""Returns: プロシージャルリゾルバー"""
 		if self.__procedural is None:
 			self.__procedural = ProceduralResolver(self)
 

@@ -26,49 +26,49 @@ class IReflection(metaclass=ABCMeta):
 	@property
 	@abstractmethod
 	def types(self) -> defs.ClassDef:
-		"""ClassDef: 型を表すノード"""
+		"""Returns: 型を表すノード"""
 		...
 
 	@property
 	@abstractmethod
 	def decl(self) -> defs.DeclAll:
-		"""DeclAll: 定義元のノード"""
+		"""Returns: 定義元のノード"""
 		...
 
 	@property
 	@abstractmethod
 	def node(self) -> Node:
-		"""Node: ノード"""
+		"""Returns: ノード"""
 		...
 
 	@property
 	@abstractmethod
 	def origin(self) -> 'IReflection':
-		"""IReflection: 型のシンボル"""
+		"""Returns: 型のシンボル"""
 		...
 
 	@property
 	@abstractmethod
 	def via(self) -> 'IReflection':
-		"""IReflection: スタックシンボル"""
+		"""Returns: スタックシンボル"""
 		...
 
 	@property
 	@abstractmethod
 	def context(self) -> 'IReflection':
-		"""IReflection: コンテキストを取得 Raises: SemanticsLogicError: コンテキストが無い状態で使用"""
+		"""Returns: コンテキストを取得 Raises: SemanticsLogicError: コンテキストが無い状態で使用"""
 		...
 
 	@property
 	@abstractmethod
 	def attrs(self) -> list['IReflection']:
-		"""list[IReflection]: 属性シンボルリスト"""
+		"""Returns: 属性シンボルリスト"""
 		...
 
 	@property
 	@abstractmethod
 	def _traits(self) -> Traits['IReflection']:
-		"""Traits[IReflection]: トレイトマネージャー"""
+		"""Returns: トレイトマネージャー"""
 		...
 
 	@abstractmethod
@@ -109,7 +109,7 @@ class IReflection(metaclass=ABCMeta):
 	@property
 	@abstractmethod
 	def shorthand(self) -> str:
-		"""str: オブジェクトの短縮表記"""
+		"""Returns: オブジェクトの短縮表記"""
 		...
 
 	@abstractmethod
@@ -126,7 +126,7 @@ class IReflection(metaclass=ABCMeta):
 		"""シンボルが保有する型を拡張情報として属性に取り込む
 
 		Args:
-			*attrs (IReflection): 属性シンボルリスト
+			*attrs: 属性シンボルリスト
 		Returns:
 			インスタンス
 		Raises:
@@ -172,7 +172,7 @@ class Mod(Protocol):
 	"""モッドプロトコル"""
 
 	def __call__(self) -> list[IReflection]:
-		"""list[IReflection]: シンボルリスト"""
+		"""Returns: シンボルリスト"""
 		...
 
 
@@ -186,7 +186,7 @@ class Mods:
 
 	@property
 	def origin(self) -> IReflection:
-		"""IReflection: 型のシンボル"""
+		"""Returns: 型のシンボル"""
 		if not self.active('origin'):
 			raise SemanticsLogicError('Has no origin')
 
@@ -197,7 +197,7 @@ class Mods:
 
 	@property
 	def attrs(self) -> list[IReflection]:
-		"""list[IReflection]: 属性シンボルリスト"""
+		"""Returns: 属性シンボルリスト"""
 		if not self.active('attrs'):
 			raise SemanticsLogicError('Has no attrs')
 

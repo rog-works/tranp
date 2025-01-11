@@ -22,7 +22,7 @@ class ITranspiler(metaclass=ABCMeta):
 	@property
 	@abstractmethod
 	def meta(self) -> TranspilerMeta:
-		"""TranspilerMeta: トランスパイラーのメタ情報"""
+		"""Returns: トランスパイラーのメタ情報"""
 		...
 
 	@abstractmethod

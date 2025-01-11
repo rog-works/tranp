@@ -94,7 +94,7 @@ class Procedure(Generic[T_Ret]):
 
 	@property
 	def __stack(self) -> list[T_Ret]:
-		"""str: 実行中のスタック"""
+		"""Returns: 実行中のスタック"""
 		return self.__stacks[-1]
 
 	def __result(self) -> T_Ret:
@@ -200,7 +200,7 @@ class Procedure(Generic[T_Ret]):
 		Args:
 			action: イベント名
 			node: ノード
-			**event (T_Ret | list[T_Ret]): イベントデータ
+			**event: イベントデータ
 		Returns:
 			結果
 		Raises:
@@ -303,7 +303,7 @@ class Procedure(Generic[T_Ret]):
 		"""ログ出力
 
 		Args:
-			*strs (str): 出力メッセージ
+			*strs: 出力メッセージ
 		"""
 		if self.__verbose:
 			print(*strs)  # FIXME impl Logger

@@ -17,9 +17,11 @@ def cast_addr(to_origin: type[T], value_at: CP[Any]) -> CP[T]:
 	Raises:
 		ValueError: 不正な変換先を指定
 	Note:
+		```
 		### 変換条件
 		* 変換先がvoid
 		* 変換先と関連のある型(基底/派生)
+		```
 	"""
 	if to_origin == void:
 		return value_at
@@ -49,12 +51,14 @@ def immutable_const_cast(value_type: type[T], value: T) -> T:
 
 	Args:
 		value_type: 値の型
-		value: 値 ※str/list/dict/lambdaを想定
+		value: 値 (str/list/dict/lambdaを想定)
 	Returns:
 		値
 	Note:
+		```
 		XXX なるべく使用しないことを推奨
 		期待する型: `const std::string& s`
+		```
 	"""
 	return value
 

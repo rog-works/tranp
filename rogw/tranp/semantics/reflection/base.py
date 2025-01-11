@@ -162,7 +162,7 @@ class IReflection(metaclass=ABCMeta):
 			expect: 期待する型
 		Returns:
 			インスタンス
-		Note:
+		Raises:
 			MustBeImplementedError: トレイトのメソッドが未実装
 		"""
 		...

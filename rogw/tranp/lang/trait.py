@@ -27,8 +27,10 @@ class Trait:
 		Returns:
 			クラス
 		Note:
+			```
 			* 以下の様にTraitの実装クラスが宣言されていると見做し、MROの末尾(-2)を実装インターフェイスとして取得する
 			* `class TraitImpl(Trait, ITrait): ...` -> MRO(TraitImpl, Trait, ITrait, object) -> ITrait
+			```
 		"""
 		return self.__class__.mro()[-2]
 
@@ -89,8 +91,10 @@ class Traits(Generic[T]):
 		Returns:
 			True = 実装
 		Note:
+			```
 			* 以下の様にインターフェイスが宣言されていると見做し、MROの中間層(2 ~ -1)を実装インターフェイスとして取得する
 			* `class IAggregation(IMain, ITrait1, ITrait2): ...` -> MRO(IAggregation, IMain, ITrait1, ITrait2, object) -> (ITrait1, ITrait2)
+			```
 		"""
 		if len(self.__interfaces) == 0:
 			self.__ensure_traits()

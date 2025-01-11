@@ -79,11 +79,13 @@ class CachedProxy(Cached[T]):
 	"""キャッシュ実装。キャッシュを優先してインスタンスを取得するプロクシー
 
 	Note:
+		```
 		キャッシュの保存先はcache_keyとidentityによって一意性を担保したパスに変換する
 		### 例
 		cache_key: 'path/to/cache'
 		identity: {'mtime': str(os.path.getmtime('path/to/actual'))}
 		'${cache_key}-${md5(json.dumps(identity))}' -> 'path/to/cache-12345678901234567890123456789012'
+		```
 	"""
 
 	@implements

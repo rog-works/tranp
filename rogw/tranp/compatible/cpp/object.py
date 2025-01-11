@@ -105,8 +105,10 @@ class CVarNullable(CVar[T_co]):
 	"""C++型変数の互換クラス(Null許容型)
 
 	Note:
+		```
 		対象: CSPのみ
 		XXX CSPのみ空の状態を表現するためNullを許容する
+		```
 	"""
 
 	_origin: T_co | None
@@ -243,9 +245,11 @@ class CRef(CVarNotNull[T_co]):
 		Args:
 			via: コピー元
 		Note:
+			```
 			* 実体にコピーコンストラクターが実装されている場合はコピーコンストラクターを用いる
 			* 実体にコピーコンストラクターがない場合は単に実体の置き換えを行う
 			* PythonとC++ではコピーの性質が根本的に違い、完全な模倣はできないため、なるべくこの処理を用いないことを推奨
+			```
 		"""
 		if hasattr(self._origin, '__py_copy__'):
 			copy_origin: Callable[[CRef[T_co]], None] = getattr(self._origin, '__py_copy__')
@@ -325,8 +329,10 @@ def c_func_addr(func: T_Func) -> CP[T_Func]:
 	Returns:
 		関数ポインター
 	Note:
+		```
 		XXX C++ではリレー上は関数は実体であり、値として参照する場合のみアドレス参照('&')を通して関数ポインターへ変換する
 		XXX 関数をPythonと同じようにシームレスに扱えないため、変換用の関数を通して解釈を変更する
+		```
 	"""
 	return CP(func)
 

@@ -17,9 +17,11 @@ class Memo:
 		Returns:
 			デコレーター
 		Note:
+			```
 			何万回と実行されるメソッドに対してこのキャッシュデコレーターを適用すると、
 			タイプヒントによるオーバーヘッドが無視できないレベルに達する
 			Callableのタイプヒントが無かったとしても実害がほぼ無いため省略することとする
+			```
 		"""
 		def decorator(wrapper_func: Callable) -> Callable:
 			def wrapper(*args, **kwargs) -> Any:

@@ -41,6 +41,7 @@ class IConvertion:
 		Returns:
 			シンボル
 		Note:
+			```
 			### 変換対象
 			* Union型: Class | None
 			* Self型: type<Self>, Self
@@ -50,6 +51,7 @@ class IConvertion:
 			### Selfの妥当性
 			* XXX 実質的に具象クラスはReflectionのみであり、アンパック後も型は変化しない
 			* XXX リフレクション拡張の型(=Self)として継続して利用できる方が効率が良い
+			```
 		"""
 		...
 

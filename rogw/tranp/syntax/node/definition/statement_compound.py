@@ -765,9 +765,11 @@ class VarsCollector:
 		Returns:
 			完全参照名と変数宣言ノードのマップ表
 		Note:
-			# 追加条件
+			```
+			### 追加条件
 			1. 新規の完全参照名
 			2. 追加対象のスコープと既存データのスコープに相関性が無い
+			```
 		"""
 		merged = decl_vars
 		for add_fullyname, add_var in add_vers.items():

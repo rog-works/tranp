@@ -20,8 +20,10 @@ class AliasHandler(Protocol):
 		Returns:
 			エイリアス
 		Note:
+			```
 			@see dsn.translation.alias_dsn
 			@see i18n.I18n.t
+			```
 		"""
 		...
 
@@ -131,10 +133,12 @@ class ClassShorthandNaming:
 	"""クラスの短縮表記生成モジュール
 
 	Note:
-		# 書式
-		* types=AltClass: ${alias}=${actual}
-		* types=Function: ${domain_name}(...${arguments}) -> ${return}
-		* その他: ${domain_name}<...${attributes}>
+		```
+		### 書式
+		* types=AltClass: '${alias}=${actual}'
+		* types=Function: '${domain_name}(...${arguments}) -> ${return}'
+		* その他: '${domain_name}<...${attributes}>'
+		```
 	"""
 
 	@classmethod

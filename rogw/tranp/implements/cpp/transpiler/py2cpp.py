@@ -125,10 +125,12 @@ class Py2Cpp(ITranspiler):
 		Returns:
 			名前空間上の参照名
 		Note:
-			# 生成例
+			```
+			### 生成例
 			'Class' -> 'NS::Class'
 			'dict<A, B>' -> 'dict<NS::A, NS::B>'
 			'CP<A>' -> 'NS::A*'
+			```
 		"""
 		actual_raw = raw.impl(refs.Object).actualize('nullable')
 		shorthand = ClassShorthandNaming.accessible_name(actual_raw, alias_handler=self.i18n.t)
@@ -151,8 +153,10 @@ class Py2Cpp(ITranspiler):
 		Returns:
 			ドメイン名
 		Note:
-			# 生成例
+			```
+			### 生成例
 			'Union<CP<Class>, None>' -> 'Class<CP>'
+			```
 		"""
 		actual_type_raw = var_type_raw.impl(refs.Object).actualize('nullable')
 		return ClassShorthandNaming.domain_name(actual_type_raw, alias_handler=self.i18n.t)
@@ -523,9 +527,11 @@ class Py2Cpp(ITranspiler):
 	def on_import(self, node: defs.Import, symbols: list[str]) -> str:
 		"""
 		Note:
+			```
 			### インクルードパスの生成方法に関して
-			1. 翻訳データにインポート置換用のDSNを登録 @see dsn.translation.import_dsn
+			1. 翻訳データにインポート置換用のDSNを登録 @see rogw.tranp.dsn.translation.import_dsn
 			2. 環境変数のインポートディレクトリーを元に生成 @see example/config.yml
+			```
 		"""
 		module_path = node.import_path.tokens
 		text = self.i18n.t(import_dsn(module_path), '')
@@ -755,8 +761,10 @@ class Py2Cpp(ITranspiler):
 	def on_callable_type(self, node: defs.CallableType, type_name: str, parameters: list[str], return_type: str) -> str:
 		"""
 		Note:
+			```
 			### PluckMethodのシグネチャー
 			* `Callable[[T, *T_Args], None]`
+			```
 		"""
 		spec = 'default'
 		if len(parameters) >= 2:
@@ -901,10 +909,7 @@ class Py2Cpp(ITranspiler):
 			return self.view.render(f'{node.classification}/default', vars=func_call_vars)
 
 	def analyze_func_call_spec(self, node: defs.FuncCall) -> tuple[str, IReflection | None]:
-		"""
-		Note:
-			XXX callsは別名になる可能性があるため、ノードから取得したcallsを使用する
-		"""
+		"""Note: XXX callsは別名になる可能性があるため、ノードから取得したcallsを使用する"""
 		if isinstance(node.calls, defs.Var):
 			calls = node.calls.tokens
 			if calls == c_pragma.__name__:
@@ -1274,8 +1279,10 @@ class PatternParser:
 		Returns:
 			(レシーバー, オペレーター)
 		Note:
+			```
 			### 期待値
-			`'path.to->prop' -> ('path.to', '->')`
+			'path.to->prop' -> ('path.to', '->')
+			```
 		"""
 		return cast(re.Match, cls.RelayPattern.fullmatch(relay)).group(1, 2)
 
@@ -1288,8 +1295,10 @@ class PatternParser:
 		Returns:
 			引数リスト
 		Note:
+			```
 			### 期待値
-			`'path.to.calls(arguments...)' -> 'arguments...'`
+			'path.to.calls(arguments...)' -> 'arguments...'
+			```
 		"""
 		return BlockParser.break_last_block(func_call, '()')[1]
 
@@ -1302,8 +1311,10 @@ class PatternParser:
 		Returns:
 			(レシーバー, オペレーター, メソッド)
 		Note:
+			```
 			### 期待値
-			`'path.to->items()' -> ('path.to', '->', 'items')`
+			'path.to->items()' -> ('path.to', '->', 'items')
+			```
 		"""
 		return cast(re.Match, cls.DictIteratorPattern.fullmatch(func_call)).group(1, 2, 3)
 
@@ -1316,8 +1327,10 @@ class PatternParser:
 		Returns:
 			引数リスト
 		Note:
+			```
 			### 期待値
-			`'Class::__init__(arguments...);' -> 'arguments...'`
+			'Class::__init__(arguments...);' -> 'arguments...'
+			```
 		"""
 		return BlockParser.break_last_block(func_call, '()')[1]
 
@@ -1330,8 +1343,10 @@ class PatternParser:
 		Returns:
 			右辺
 		Note:
+			```
 			### 期待値
-			`'path.to = right;' -> 'right'`
+			'path.to = right;' -> 'right'
+			```
 		"""
 		matches = cls.AssignRightPattern.search(assign)
 		return matches[1] if matches else ''
@@ -1345,8 +1360,10 @@ class PatternParser:
 		Returns:
 			(レシーバー, キー)
 		Note:
+			```
 			### 期待値
-			`'path.to[key]' -> ('path.to', 'key')`
+			'path.to[key]' -> ('path.to', 'key')
+			```
 		"""
 		return BlockParser.break_last_block(indexer, '[]')
 
@@ -1359,8 +1376,10 @@ class PatternParser:
 		Returns:
 			引数
 		Note:
+			```
 			### 期待値
-			`'Class(arguments...)' -> 'arguments...'`
+			'Class(arguments...)' -> 'arguments...'
+			```
 		"""
 		return BlockParser.break_last_block(argument, '()')[1]
 
@@ -1373,8 +1392,10 @@ class PatternParser:
 		Returns:
 			引数
 		Note:
+			```
 			### 期待値
-			`'path.on()->to' -> 'path.to'`
+			'path.on()->to' -> 'path.to'
+			```
 		"""
 		return cls.CVarRelaySubPattern.sub('', receiver)
 
@@ -1387,7 +1408,9 @@ class PatternParser:
 		Returns:
 			引数
 		Note:
+			```
 			### 期待値
-			`'path.to.raw()' -> 'path.to'`
+			'path.to.raw()' -> 'path.to'
+			```
 		"""
 		return cls.CVarToSubPattern.sub('', receiver)

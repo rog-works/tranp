@@ -15,10 +15,12 @@ class ResolveUnknown:
 	"""Unknownのシンボルを解決
 
 	Note:
+		```
 		### Unknownになる条件
 		* MoveAssignの代入変数
 		* For/CompForの展開変数
 		* WithEntryの展開変数
+		```
 	"""
 	@injectable
 	def __init__(self, invoker: Invoker) -> None:

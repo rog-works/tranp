@@ -7,10 +7,12 @@ class ModuleDSN:
 	"""モジュールパスDSN
 
 	Note:
+		```
 		* モジュールパスとローカルパスを結合した文字列
-		* モジュールパスとローカルパスの区切り文字は`#`
-		* それ以外の区切り文字は`.`
-		例: `module.path.to#local.symbol`
+		* モジュールパスとローカルパスの区切り文字は'#'
+		* それ以外の区切り文字は'.'
+		例: 'module.path.to#local.symbol'
+		```
 	"""
 
 	@classmethod
@@ -37,9 +39,11 @@ class ModuleDSN:
 		Returns:
 			DSN
 		Note:
+			```
 			### 注意事項
 			* 先頭要素に必ずモジュールパスを含めること
 			* 先頭要素にモジュールパスの区切り文字が存在する場合は後続要素を結合するのみ
+			```
 		"""
 		if dsn.find('#') != -1:
 			return DSN.join(dsn, *elems)

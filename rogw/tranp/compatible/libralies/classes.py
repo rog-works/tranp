@@ -14,8 +14,10 @@ def __actual__(name: str) -> Callable:
 	Returns:
 		デコレート対象
 	Note:
+		```
 		* 変更後の名称でシンボルテーブルに登録されるため、定義元の名前で参照することが出来なくなる点に注意
 		* トランスパイル後のシンボル名のみ変更する場合は、Embed.aliasを使用 @see rogw.tranp.compatible.python.embed.Embed.alias
+		```
 	"""
 	def decorator(wrapped: T) -> T:
 		return wrapped
@@ -173,8 +175,10 @@ class Dict(Sequence[tuple[T_Key, T_Value]]):
 class Tuple:
 	"""
 	Note:
+		```
 		XXX 本来の定義: `class Tuple(Sequence(tuple[*T_tuple])):`
 		XXX 実装にはTypeVarTupleとUnpackが必要だが、無くても問題ないため一旦対応は保留
+		```
 	"""
 
 

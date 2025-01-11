@@ -1026,8 +1026,10 @@ class Json:
 		Returns:
 			インスタンス
 		Note:
+			```
 			* ルート要素との参照を切り離すことでメモリー安全な複製として利用可能する
 			* 引数として渡す際に有効である反面、実行速度とメモリー効率を犠牲にする
+			```
 		"""
 		instance = CSP.new(Json())
 		jsons, entries = self._isolate_entries(instance)

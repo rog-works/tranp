@@ -259,8 +259,10 @@ class Symbol(ReflectionBase):
 	"""シンボル
 
 	Note:
+		```
 		* シリアライザーの実装に強依存しているため、スキーマの変更に注意
 		@see rogw.tranp.semantics.reflection.serializer.ReflectionSerializer
+		```
 	"""
 
 	@classmethod
@@ -309,8 +311,10 @@ class Reflection(ReflectionBase):
 	"""リフレクション
 
 	Note:
+		```
 		* シリアライザーの実装に強依存しているため、スキーマの変更に注意
 		@see rogw.tranp.semantics.reflection.serializer.ReflectionSerializer
+		```
 	"""
 
 	@override
@@ -370,10 +374,12 @@ class Reflection(ReflectionBase):
 		Returns:
 			属性シンボルリスト
 		Note:
+			```
 			### 属性の評価順序
 			1. モッドから注入された属性
 			2. 自身に設定された属性
 			3. 型のシンボルに設定された属性
+			```
 		"""
 		if self._mods.active('attrs'):
 			return self._mods.attrs

@@ -16,10 +16,12 @@ class Procedure(Generic[T_Ret]):
 	各処理はエントリーのNodeのclassificationに沿った名称でイベントハンドラーとして呼び出される
 
 	Note:
-		# イベントハンドラーの命名規則
+		```
+		### イベントハンドラーの命名規則
 		* enter: on_enter_${node.classification} ※未実装
 		* action: on_${node.classification}
 		* exit: on_exit_${node.classification}
+		```
 	"""
 
 	def __init__(self, verbose: bool = False) -> None:

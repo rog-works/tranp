@@ -7,7 +7,8 @@ class IDeclaration:
 	"""シンボルを宣言するノードの共通インターフェイス
 
 	Note:
-		# 対象 | 1 on 1/n
+		```
+		### 対象 | 1 on 1/n
 		* ClassDef | 1 on 1
 		* AnnoAssign | 1 on 1
 		* MoveAssign | 1 on n
@@ -17,6 +18,7 @@ class IDeclaration:
 		* Catch | 1 on 1
 		* WithEntry | 1 on 1
 		* Comprehension | 1 on n
+		```
 	"""
 
 	@property
@@ -29,10 +31,12 @@ class ISymbol:
 	"""シンボルとなるノードの共通インターフェイス
 
 	Note:
-		# 対象 | 宣言 | シンボル
+		```
+		### 対象 | 宣言 | シンボル
 		* ClassDef | o | o
 		* Declable | x | o
 		* Parameter | o | o
+		```
 	"""
 
 	@property
@@ -50,7 +54,8 @@ class StatementBlock(Protocol):
 	"""ステートメントを所持するノードの共通インターフェイス
 
 	Note:
-		# 対象
+		```
+		### 対象
 		* Entrypoint
 		* Block
 		* ClassDef
@@ -58,6 +63,7 @@ class StatementBlock(Protocol):
 		* For/While
 		* Try/Catch
 		* With
+		```
 	"""
 
 	@property

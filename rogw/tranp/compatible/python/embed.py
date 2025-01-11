@@ -38,8 +38,10 @@ class Embed:
 		Returns:
 			デコレート対象
 		Note:
+			```
 			* トランスパイル後のシンボル名のみ変更するため、シンボルテーブルには定義元の名称で登録される点に注意
 			* シンボルテーブルに登録する名称を変更する場合は__actual__を使用 @see rogw.tranp.compatible.libralies.classes.__actual__
+			```
 		"""
 		def decorator(wrapped: T) -> T:
 			return wrapped
@@ -55,8 +57,10 @@ class Embed:
 		Returns:
 			デコレート対象
 		Note:
+			```
 			* 純粋仮想関数は@abstractmethodを使う
 			* 純粋仮想関数を除いた「仮想関数」はC++固有の概念であり、全く別物と言う扱いなので注意
+			```
 		"""
 		return wrapped
 

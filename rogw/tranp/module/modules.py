@@ -64,8 +64,10 @@ class Modules:
 		Returns:
 			モジュール
 		Note:
+			```
 			* ロードしたモジュールはパスとマッピングしてキャッシュ
 			* 依存モジュールを再帰的にロードする
+			```
 		"""
 		if module_path not in self.__modules:
 			self.__load_libraries(module_path)

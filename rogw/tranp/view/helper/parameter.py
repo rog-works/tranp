@@ -8,6 +8,7 @@ class ParameterHelper:
 	"""パラメーターヘルパー
 
 	Note:
+		```
 		### 期待値
 		1. `int n`
 		2. `int n = 0`
@@ -15,6 +16,7 @@ class ParameterHelper:
 		4. `int* p = nullptr`
 		5. `const int& n`
 		XXX C++のシグネシャーを前提とする点に注意
+		```
 	"""
 
 	@classmethod

@@ -10,8 +10,10 @@ from rogw.tranp.syntax.node.node import Node
 class Parameter(Node, IDeclaration, ISymbol):
 	"""
 	Note:
+		```
 		* FIXME starparam/kwparamsを受け入れるが、現状は通常の引数と同様に扱う。一部の関数で必要になるため対処が必要
 		* XXX ParameterにIDomainは実装しない(=domain_nameの実装) ※symbolと完全参照名が同じになってしまうため
+		```
 	"""
 
 	@property

@@ -41,8 +41,10 @@ def resolve_own_class(method: Callable) -> type:
 	Raises:
 		ModuleNotFoundError: 解決に失敗
 	Note:
-		メソッドデコレーター内ではクラスが定義中のため、クラスがモジュール内に存在しておらず解決は不可能
-		メソッドデコレーター内でこの関数は使用しないこと
+		```
+		* メソッドデコレーター内ではクラスが定義中のため、クラスがモジュール内に存在しておらず解決は不可能
+		* メソッドデコレーター内でこの関数は使用しないこと
+		```
 	"""
 	modules = vars(sys.modules[method.__module__])
 	class_name = method.__qualname__.split('.')[0]

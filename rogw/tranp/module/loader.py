@@ -40,18 +40,17 @@ class IModuleLoader(metaclass=ABCMeta):
 
 
 class ModuleDependencyProvider(Protocol):
-	"""モジュールの依存プロバイダープロトコル
+	"""モジュール定義を生成
 
+	Returns:
+		モジュール定義
 	Note:
+		```
 		* Entrypointのインスタンス化に必要なモジュール定義を生成
 		* EntrypointLoader内で生成するDIで利用
 		@see rogw.tranp.app.config.module_dependency_provider
+		```
 	"""
 
 	def __call__(self) -> ModuleDefinitions:
-		"""モジュール定義を生成
-
-		Returns:
-			モジュール定義
-		"""
 		...

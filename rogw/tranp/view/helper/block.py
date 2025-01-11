@@ -72,13 +72,15 @@ class BlockFormatter:
 		Returns:
 			変換後の文字列
 		Note:
+			```
 			### join_fomart
-				* delimiter: 区切り文字
+			* 'delimiter': 区切り文字
 			### block_fomart
-				* name: ブロックの名前
-				* open: 括弧(開)
-				* close: 括弧(閉)
-				* elems: 結合済みの要素
+			* 'name': ブロックの名前
+			* 'open': 括弧(開)
+			* 'close': 括弧(閉)
+			* 'elems': 結合済みの要素
+			```
 		"""
 		if alt_formatter:
 			alt_result = alt_formatter(self)

@@ -203,8 +203,10 @@ class ExpandModules:
 		Returns:
 			シンボル
 		Note:
+			```
 			### 解決対象
 			* ParamSpecのargs/kwargs
+			```
 		"""
 		if not isinstance(decl_type, defs.RelayOfType):
 			return None

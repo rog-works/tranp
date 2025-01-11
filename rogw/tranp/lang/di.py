@@ -149,8 +149,10 @@ class DI:
 		Returns:
 			生成したインスタンス
 		Note:
+			```
 			* ロケーターが解決可能なシンボルをファクトリーの引数リストの前方から省略していき、解決不能な引数を残りの位置引数として受け取る
 			* このメソッドを通して生成したインスタンスはキャッシュされず、毎回生成される
+			```
 		"""
 		fullyname = to_fullyname(factory)
 		found = fullyname in self.__invocations
@@ -232,11 +234,13 @@ class DI:
 			other: マージ対象のインスタンス
 		Returns:
 			合成したインスタンス
-		Note:
-			* 戻り値の型はレシーバーのインスタンスに倣う
-			* 同じシンボルはマージ対象のインスタンスで上書きされる
 		Raises:
 			TypeError: マージ対象が自身と相違した派生クラス
+		Note:
+			```
+			* 戻り値の型はレシーバーのインスタンスに倣う
+			* 同じシンボルはマージ対象のインスタンスで上書きされる
+			```
 		"""
 		if not isinstance(self, other.__class__):
 			raise TypeError(f'Merging not allowed. not related. self: {self.__class__}, other: {other.__class__}')
@@ -399,11 +403,13 @@ class LazyDI(DI):
 			other: マージ対象のインスタンス
 		Returns:
 			合成したインスタンス
-		Note:
-			* 戻り値の型はレシーバーのインスタンスに倣う
-			* 同じシンボルはマージ対象のインスタンスで上書きされる
 		Raises:
 			TypeError: マージ対象が自身と相違した派生クラス
+		Note:
+			```
+			* 戻り値の型はレシーバーのインスタンスに倣う
+			* 同じシンボルはマージ対象のインスタンスで上書きされる
+			```
 		"""
 		di = super().combine(other)
 		di.__definitions = {**self.__definitions, **other.__definitions}

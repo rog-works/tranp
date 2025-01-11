@@ -66,6 +66,7 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		Returns:
 			シンボル
 		Note:
+			```
 			### 変換対象
 			* Union型: Class | None
 			* Self型: type<Self>, Self
@@ -75,6 +76,7 @@ class ConvertionTrait(TraitImpl, IConvertion):
 			### Selfの妥当性
 			* XXX 実質的に具象クラスはReflectionのみであり、アンパック後も型は変化しない
 			* XXX リフレクション拡張の型(=Self)として継続して利用できる方が効率が良い
+			```
 		"""
 		actualizers = {
 			'nullable': self._actualize_nullable,
@@ -122,9 +124,11 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		Returns:
 			解決可否, シンボル
 		Note:
-			type<Self> -> type<Class>
-			Self -> Class
+			```
+			* type<Self> -> type<Class>
+			* Self -> Class
 			FIXME Selfに直接依存するのはNG
+			```
 		"""
 		if isinstance(symbol.node, defs.ClassRef) and isinstance(symbol.attrs[0].types, defs.TemplateClass) and symbol.attrs[0].types.domain_name == Self.__name__:
 			return True, self.reflections.from_standard(type).stack().extends(self.reflections.resolve(symbol.node.class_types.as_a(defs.Class)))

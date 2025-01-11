@@ -9,8 +9,10 @@ class EntrypointLoader(Protocol):
 	"""エントリーポイントローダープロトコル
 
 	Note:
+		```
 		* このプロトコルの実装はエントリーポイントマネージャーから利用される想定
 		* エントリーポイントマネージャー以外から利用するのは非推奨
+		```
 	"""
 
 	def __call__(self, module_path: ModulePath) -> defs.Entrypoint:
@@ -28,9 +30,11 @@ class Entrypoints:
 	"""エントリーポイントマネージャー
 
 	Note:
+		```
 		* このクラスはモジュールローダーからモジュール生成時に利用される想定
 		* そのほか、モジュールに依存せずエントリーポイントが欲しい場合に利用
 		@see rogw.tranp.module.loader.IModuleLoader
+		```
 	"""
 
 	@injectable

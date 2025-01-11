@@ -25,8 +25,10 @@ class Node:
 	派生クラスではノードの役割をプロパティーとして定義する
 
 	Note:
+		```
 		ASTを役割に適した形に単純化するため、AST上の余分な階層構造は排除する
 		そのため、必ずしもAST上のエントリーとノードのアライメントは一致しない点に注意
+		```
 	"""
 
 	@injectable
@@ -113,9 +115,11 @@ class Node:
 		Returns:
 			完全参照名
 		Note:
-			# 命名規則
+			```
+			### 命名規則
 			* IDomainを実装(ClassDef/Declare/Reference/Type/FuncCall/Literal/Empty): scope.domain_name
 			* その他: scope.classification@id
+			```
 		"""
 		def factory() -> str:
 			if isinstance(self, IDomain):
@@ -195,8 +199,10 @@ class Node:
 		Returns:
 			受け入れタグリスト
 		Note:
+			```
 			派生クラスによって上書きする仕様
 			@see embed.accept_tags
+			```
 		"""
 		accept_tags: list[str] = []
 		for ctor in self.__embed_classes(self.__class__):
@@ -227,9 +233,11 @@ class Node:
 		Returns:
 			ノードリスト
 		Note:
-			# orderの使い分け
+			```
+			### orderの使い分け
 			* 'flow': ノードのプロパティーの定義順で出力する場合
 			* 'ast': ASTの評価順序で出力する場合
+			```
 		"""
 		return self.__procedural_flow() if order == 'flow' else self.__procedural_ast()
 
@@ -239,10 +247,12 @@ class Node:
 		Returns:
 			ノードリスト
 		Note:
-			# 優先順位
+			```
+			### 優先順位
 			1. 終端要素は空を返す
 			2. 展開プロパティーのノードを使う
 			3. 下位ノードを使う
+			```
 		"""
 		if not self.can_expand:
 			return []
@@ -423,8 +433,10 @@ class Node:
 		Returns:
 			非正規データ
 		Note:
+			```
 			* XXX このメソッドによって何が得られるべきかを考慮するのは利用側に委ねられる
 			* XXX このメソッドは通常利用するべきではない。現状はDeclableMatcherでのみ利用を想定
+			```
 		"""
 		return self.__nodes.values(full_path)
 
@@ -486,8 +498,11 @@ class Node:
 		Returns:
 			True = 一致
 		Note:
-			## 注意点
+			```
+			### 注意点
 			このメソッド内で引数のviaを元に親ノードをインスタンス化すると無限ループするため、その様に実装してはならない
+			```
+		Examples:
 			```python
 			# OK
 			return via._full_path.shift(-1).last_tag == 'xxx'
@@ -505,8 +520,10 @@ class Node:
 		Returns:
 			プロキシノード
 		Note:
+			```
 			XXX ダーティーな実装のため濫用は厳禁
 			XXX classification/source_mapは固定で上書き
+			```
 		"""
 		source_map: SourceMap = {'begin': (0, 0), 'end': (0, 0)}
 		overrides = {**overrides, 'classification': snakelize(self.__class__.__name__), 'source_map': source_map}

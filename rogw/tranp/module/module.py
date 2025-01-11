@@ -64,9 +64,11 @@ class Module:
 		Args:
 			str: 一意な識別子
 		Note:
+			```
 			### 注意事項
 			* このメソッドの一意性は、あくまでもファイルに対してのものである点に注意
 			* ファイルが存在しない場合、インスタンスのアドレス値を識別子とし、厳密な一意性は保証しない
+			```
 		"""
 		if not self.__sources.exists(self.filepath):
 			return str(id(self))

@@ -18,10 +18,12 @@ class Reflections:
 	"""ノードからシンボルの型を解決する機能を提供
 
 	Note:
+		```
 		### 留意点
 		* このクラスを適切に利用するためにはシンボルテーブルの完成が必須
 		* このクラスをDIから取得してもシンボルテーブルは完成しない
 		* シンボルテーブル完成させるため、このクラスを利用する前に必ずモジュールをロードすること
+		```
 	"""
 
 	@injectable
@@ -348,9 +350,11 @@ class ProceduralResolver:
 	def on_fallback(self, node: Node) -> IReflection:
 		"""
 		Note:
+			```
 			シンボルとして解釈出来ないノードが対象。一律Unknownとして返却
-			# 対象
+			### 対象
 			* Terminal(Operator)
+			```
 		"""
 		return self.reflections.from_standard(Unknown).stack(node)
 
@@ -493,8 +497,10 @@ class ProceduralResolver:
 	def on_relay_of_type(self, node: defs.RelayOfType, receiver: IReflection) -> IReflection:
 		"""
 		Note:
+			```
 			* XXX Pythonではtypeをアンパックする構文が存在しないためAltClassも同様に扱う
 			* XXX ParamSpecのargs/kwargsをアンパック
+			```
 		"""
 		actual_receiver = receiver
 		if isinstance(receiver.types, defs.TemplateClass):
@@ -540,17 +546,19 @@ class ProceduralResolver:
 	def on_for_in(self, node: defs.ForIn, iterates: IReflection) -> IReflection:
 		"""
 		Note:
-			# iterates
-			## 無視できない
+			```
+			### iterates
+			#### 無視できない
 			* list: list<int>
 			* dict: dict<str, int>
 			* func_call: func<..., T> -> T = list<int> | dict<str, int>
 			* var: list<int> | dict<str, int>
 			* relay: list<int> | dict<str, int>
 			* indexer: list<int> | dict<str, int>
-			## 無視してよい
+			#### 無視してよい
 			* group: Any
 			* operator: Any
+			```
 		"""
 		actual_iterates = iterates.impl(refs.Object).actualize()
 		return actual_iterates.to(node, actual_iterates.impl(refs.Iterator).iterates())

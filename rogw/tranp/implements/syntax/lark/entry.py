@@ -64,9 +64,11 @@ class EntryOfLark(Entry):
 		"""Returns: True = 空
 
 		Note:
-			Grammarの定義上存在するが、構文解析の結果で空になったエントリー
-			例えば以下の様な関数の定義の場合[parameters]が対象となり、引数がない関数の場合、エントリーとしては存在するが内容は空になる
-			例) function_def: "def" name "(" [parameters] ")" "->" ":" block
+			```
+			* Grammarの定義上存在するが、構文解析の結果で空になったエントリー
+			* 例えば以下の様な関数の定義の場合[parameters]が対象となり、引数がない関数の場合、エントリーとしては存在するが内容は空になる
+			例: function_def: "def" name "(" [parameters] ")" "->" ":" block
+			```
 		"""
 		return self.__entry is None
 
@@ -76,8 +78,10 @@ class EntryOfLark(Entry):
 		"""Returns: ソースマップ
 
 		Note:
+			```
 			begin: 開始位置(行/列)
 			end: 終了位置(行/列)
+			```
 		"""
 		if type(self.__entry) is lark.Tree and self.__entry.meta is not None and not self.__entry.meta.empty:
 			source_map = (

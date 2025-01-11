@@ -17,7 +17,7 @@ from rogw.tranp.syntax.node.node import Node
 
 @Meta.embed(Node, accept_tags('argvalue'))
 class Argument(Node):
-	""" Note: * FIXME starargs/kwargsを受け入れるが、現状は通常の引数と同様に扱う"""
+	"""Note: FIXME starargs/kwargsを受け入れるが、現状は通常の引数と同様に扱う"""
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -609,8 +609,10 @@ class DeclableMatcher:
 		Returns:
 			True = 対象
 		Note:
+			```
 			XXX ASTへの依存度が非常に高い判定なので注意
-			XXX 期待するパス: class_def_raw.block.anno_assign.assign_namelist.var
+			XXX 期待するパス: 'class_def_raw.block.anno_assign.assign_namelist.var'
+			```
 		"""
 		via_full_path = EntryPath(via.full_path)
 		elems = via_full_path.de_identify().elements

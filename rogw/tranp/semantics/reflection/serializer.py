@@ -15,9 +15,11 @@ class ReflectionSerializer(IReflectionSerializer):
 	"""シンボルシリアライザー
 
 	Note:
+		```
 		* リフレクションの実装に強依存しているため、スキーマの変更に注意
 		@see rogw.tranp.semantics.reflection.reflection.Symbol
 		@see rogw.tranp.semantics.reflection.reflection.Reflection
+		```
 	"""
 
 	@injectable

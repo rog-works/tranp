@@ -51,12 +51,14 @@ class ScalarTypehint(Typehint):
 	"""タイプヒント(値)
 
 	Note:
+		```
 		### 対象のクラス
 		* int/str/float/bool
 		* list/dict/tuple/type
 		* Union/UnionType
 		* EnumType
 		* None/NoneType
+		```
 	"""
 
 	_type: type[Any]
@@ -146,11 +148,13 @@ class FunctionTypehint(Typehint):
 	"""タイプヒント(関数)
 
 	Note:
+		```
 		### 対象のクラス
 		* 関数
 		* メソッド(クラス/インスタンス)
 		### 非対応
 		* ラムダ ※タイプヒントが付けられないため
+		```
 	"""
 
 	_func: FuncTypes | Callable
@@ -241,12 +245,14 @@ class ClassTypehint(Typehint):
 	"""タイプヒント(クラス)
 
 	Note:
+		```
 		### 対象のクラス
 		* クラス全般
 		### 留意事項
 		* クラス・インスタンス変数どちらもクラスの`__annotations__`から抽出
 		* クラス変数: ClassVarで明示
 		* インスタンス変数: ClassVar以外
+		```
 	"""
 
 	_type: type[Any]
@@ -385,10 +391,12 @@ def _resolve_type_from_str(type_str: str, via_module_path: str) -> type[Any]:
 	Returns:
 		解決したタイプ
 	Raises:
-		ValueError: 由来がモジュールパスが不正
+		ValueError: 由来のモジュールパスが不正
 	Note:
+		```
 		* `eval`を使用して文字列からタイプを強引に解決する
 		* ユーザー定義型は由来のモジュール内によって明示されているシンボルのみ解決が出来る
+		```
 	"""
 	if len(via_module_path) == 0:
 		raise ValueError(f'Unresolved origin type. via module is empty. origin: {type_str}')

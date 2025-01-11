@@ -118,8 +118,10 @@ class SymbolFinder:
 		Returns:
 			True = 真
 		Note:
+			```
 			* FIXME メソッド内はクラス直下のスコープを参照出来ない。これを除外する判定にのみ使用
 			* FIXME しかし、現状の判定は不完全であり、本質的にはノードのスコープ自体を是正しなければ期待通りに判定できない
+			```
 		Examples:
 			```python
 			class A:

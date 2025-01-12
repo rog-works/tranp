@@ -74,8 +74,8 @@ class TestPy2Cpp(TestCase):
 
 		('Base.sub_implements', '', defs.Method, 'public:\n/** sub_implements */\nvirtual void sub_implements() = 0;'),
 		('Base.allowed_overrides', '', defs.Method, 'public:\n/** allowed_overrides */\nvirtual int allowed_overrides() {\n\treturn 1;\n}'),
-		('Base.base_class_func', '', defs.ClassMethod, 'public:\n/** base_class_func */\nstatic int base_class_func() {}'),
-		('Base.base_prop', '', defs.Method, 'public:\n/** base_prop */\nstd::string base_prop() {}'),
+		('Base.base_class_func', '', defs.ClassMethod, BlockExpects.class_method(access='public', name='base_class_func', return_type='int')),
+		('Base.base_prop', '', defs.Method, BlockExpects.method(access='public', name='base_prop', return_type='std::string', prop=True)),
 
 		('Sub', 'class_def_raw.block.comment_stmt[5]', defs.Comment, '// FIXME other: Any'),
 
@@ -215,8 +215,8 @@ class TestPy2Cpp(TestCase):
 
 		('Alias.Inner', '', defs.Class, '/** Inner2 */\nclass Inner2 {\n\tpublic: inline static int V2 = 0;\n\tpublic:\n\t/** func */\n\tvoid func() {}\n};'),
 		('Alias.__init__', '', defs.Constructor, 'public:\n/** __init__ */\nAlias2() : inner_b(Alias2::Inner2()) {}'),
-		('Alias.in_param_return', '', defs.Method, 'public:\n/** in_param_return */\nAlias2 in_param_return(Alias2 a) {}'),
-		('Alias.in_param_return2', '', defs.Method, 'public:\n/** in_param_return2 */\nAlias2::Inner2 in_param_return2(Alias2::Inner2 i) {}'),
+		('Alias.in_param_return', '', defs.Method, BlockExpects.method(access='public', name='in_param_return', return_type='Alias2', params=['Alias2 a'])),
+		('Alias.in_param_return2', '', defs.Method, BlockExpects.method(access='public', name='in_param_return2', return_type='Alias2::Inner2', params=['Alias2::Inner2 i'])),
 		('Alias.in_local', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'Alias2 a = Alias2();'),
 		('Alias.in_local', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'Alias2::Inner2 i = Alias2::Inner2();'),
 		('Alias.in_class_method', 'function_def_raw.block.funccall', defs.FuncCall, 'Alias2::in_class_method();'),
@@ -225,8 +225,8 @@ class TestPy2Cpp(TestCase):
 		('Alias.in_class_method', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'std::map<int, std::vector<int>> d2 = {\n\t{static_cast<int>(Alias2::Values::A), {static_cast<int>(Alias2::Values::B)}},\n\t{static_cast<int>(Alias2::Values::B), {static_cast<int>(Alias2::Values::A)}},\n};'),
 		('Alias.InnerB.super_call', 'function_def_raw.block.funccall', defs.FuncCall, 'Alias2::Inner2::func();'),
 
-		('Nullable.params', '', defs.Method, 'public:\n/** params */\nvoid params(Sub* p) {}'),
-		('Nullable.returns', '', defs.Method, 'public:\n/** returns */\nSub* returns() {}'),
+		('Nullable.params', '', defs.Method, BlockExpects.method(access='public', name='params', params=['Sub* p'])),
+		('Nullable.returns', '', defs.Method, BlockExpects.method(access='public', name='returns', return_type='Sub*')),
 		('Nullable.var_move', 'function_def_raw.block.anno_assign', defs.AnnoAssign, 'Sub* p = nullptr;'),
 		('Nullable.var_move', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'p = (&(base));'),
 		('Nullable.var_move', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'p = nullptr;'),
@@ -269,14 +269,14 @@ class TestPy2Cpp(TestCase):
 		('ForClassExpose.Class', '', defs.Class, '// class Class'),
 		('ForClassExpose.Enums', '', defs.Enum, '// enum Enums'),
 		('ForClassExpose.method', '', defs.Method, '// method method'),
-		('ForClassExpose.method_cpp', '', defs.Method, 'public:\n/** method */\nvoid method() {}'),
+		('ForClassExpose.method_cpp', '', defs.Method, BlockExpects.method(access='public', name='method')),
 		('func_expose', '', defs.Function, '// function func_expose'),
 
 		('ForTemplate.TClass.__init__', '', defs.Constructor, 'public:\n/** __init__ */\nTClass(T v) {}'),
-		('ForTemplate.TClass.class_method_t', '', defs.ClassMethod, 'public:\n/** class_method_t */\ntemplate<typename T2>\nstatic T2 class_method_t(T2 v2) {}'),
-		('ForTemplate.TClass.class_method_t_and_class_t', '', defs.ClassMethod, 'public:\n/** class_method_t_and_class_t */\ntemplate<typename T2>\nstatic T2 class_method_t_and_class_t(T v, T2 v2) {}'),
-		('ForTemplate.TClass.method_t', '', defs.Method, 'public:\n/** method_t */\ntemplate<typename T2>\nT2 method_t(T2 v2) {}'),
-		('ForTemplate.TClass.method_t_and_class_t', '', defs.Method, 'public:\n/** method_t_and_class_t */\ntemplate<typename T2>\nT2 method_t_and_class_t(T v, T2 v2) {}'),
+		('ForTemplate.TClass.class_method_t', '', defs.ClassMethod, BlockExpects.class_method(access='public', name='class_method_t', return_type='T2', params=['T2 v2'], template='T2')),
+		('ForTemplate.TClass.class_method_t_and_class_t', '', defs.ClassMethod, BlockExpects.class_method(access='public', name='class_method_t_and_class_t', return_type='T2', params=['T v', 'T2 v2'], template='T2')),
+		('ForTemplate.TClass.method_t', '', defs.Method, BlockExpects.method(access='public', name='method_t', return_type='T2', params=['T2 v2'], template='T2')),
+		('ForTemplate.TClass.method_t_and_class_t', '', defs.Method, BlockExpects.method(access='public', name='method_t_and_class_t', return_type='T2', params=['T v', 'T2 v2'], template='T2')),
 		('ForTemplate.T2Class', '', defs.Class, '/** T2Class */\ntemplate<typename T2>\nclass T2Class {\n\n};'),
 
 		('ForTemplate.unpack_call', 'function_def_raw.block.assign', defs.MoveAssign, 'ForTemplate a = this->unpack(ForTemplate());'),

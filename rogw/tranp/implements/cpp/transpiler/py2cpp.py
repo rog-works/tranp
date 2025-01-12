@@ -9,6 +9,7 @@ from rogw.tranp.data.meta.header import MetaHeader
 from rogw.tranp.data.meta.types import ModuleMetaFactory, TranspilerMeta
 from rogw.tranp.data.version import Versions
 from rogw.tranp.dsn.dsn import DSN
+from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.dsn.translation import alias_dsn, import_dsn
 from rogw.tranp.errors import LogicError
 from rogw.tranp.i18n.i18n import I18n
@@ -245,7 +246,7 @@ class Py2Cpp(ITranspiler):
 		Returns:
 			翻訳後のアクセス修飾子
 		"""
-		return self.i18n.t(DSN.join(self.i18n.t(alias_dsn('lang')), 'accessor', accessor))
+		return self.i18n.t(ModuleDSN.full_joined(self.i18n.t(alias_dsn('lang')), 'accessor', accessor))
 
 	# General
 
@@ -329,7 +330,7 @@ class Py2Cpp(ITranspiler):
 		class_name = self.to_domain_name_by_class(node.class_types)
 		template_types = self.fetch_function_template_names(node)
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types, 'is_pure': node.is_pure}
-		method_vars = {'accessor': self.to_accessor(node.accessor), 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'class_symbol': class_name}
+		method_vars = {'accessor': self.to_accessor(node.accessor), 'class_symbol': class_name, 'is_abstract': node.is_abstract, 'is_override': node.is_override}
 		return self.view.render(f'function/{node.classification}', vars={**function_vars, **method_vars})
 
 	def on_constructor(self, node: defs.Constructor, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
@@ -366,7 +367,7 @@ class Py2Cpp(ITranspiler):
 		class_name = self.to_domain_name_by_class(node.class_types)
 		template_types = self.fetch_function_template_names(node)
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': normal_statements, 'template_types': template_types}
-		method_vars = {'accessor': self.to_accessor(node.accessor), 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'class_symbol': class_name, 'allow_override': self.allow_override_from_method(node)}
+		method_vars = {'accessor': self.to_accessor(node.accessor), 'class_symbol': class_name, 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'allow_override': self.allow_override_from_method(node)}
 		constructor_vars = {'initializers': initializers, 'super_initializer': super_initializer}
 		return self.view.render(f'function/{node.classification}', vars={**function_vars, **method_vars, **constructor_vars})
 
@@ -375,7 +376,7 @@ class Py2Cpp(ITranspiler):
 		template_types = self.fetch_function_template_names(node)
 		_symbol = ClassOperationMaps.operators.get(symbol, symbol)
 		function_vars = {'symbol': _symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types, 'is_pure': node.is_pure}
-		method_vars = {'accessor': self.to_accessor(node.accessor), 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'class_symbol': class_name, 'allow_override': self.allow_override_from_method(node)}
+		method_vars = {'accessor': self.to_accessor(node.accessor), 'class_symbol': class_name, 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'is_property': node.is_property, 'allow_override': self.allow_override_from_method(node)}
 		spec = ClassOperationMaps.ctors.get(symbol, node.classification)
 		return self.view.render(f'function/{spec}', vars={**function_vars, **method_vars})
 

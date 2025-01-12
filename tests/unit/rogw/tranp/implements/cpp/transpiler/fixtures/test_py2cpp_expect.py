@@ -1,17 +1,17 @@
 class BlockExpects:
 	@classmethod
 	def class_method(cls, access: str, name: str, return_type: str, params: list[str] = [], statements: list[str] = [], pure: bool = False, template: str = '') -> str:
-		return cls.method(access, name, return_type, params, statements, pure, template, static=True)
+		return cls.method(access, name, return_type, params, statements, pure, template, prop=False, static=True)
 
 	@classmethod
-	def method(cls, access: str, name: str, return_type: str = 'void', params: list[str] = [], statements: list[str] = [], pure: bool = False, template: str = '', static: bool = False) -> str:
+	def method(cls, access: str, name: str, return_type: str = 'void', params: list[str] = [], statements: list[str] = [], pure: bool = False, template: str = '', prop: bool = False, static: bool = False) -> str:
 		lines: list[str] = []
 		if statements:
 			lines = [
 				f'{access}:',
 				f'/** {name} */',
 				f'template<typename {template}>' if template else '',
-				f'{"static " if static else ""}{return_type} {name}({", ".join(params)}) {"const " if pure else ""}' '{',
+				f'{"static " if static else ""}{"inline " if prop else ""}{return_type} {name}({", ".join(params)}) {"const " if pure else ""}' '{',
 				f'	{"\n\t".join(statements)}',
 				'}',
 			]
@@ -20,7 +20,7 @@ class BlockExpects:
 				f'{access}:',
 				f'/** {name} */',
 				f'template<typename {template}>' if template else '',
-				f'{"static " if static else ""}{return_type} {name}({", ".join(params)}) {"const " if pure else ""}' '{}',
+				f'{"static " if static else ""}{"inline " if prop else ""}{return_type} {name}({", ".join(params)}) {"const " if pure else ""}' '{}',
 			]
 
 		return '\n'.join([line for line in lines if line])
@@ -170,7 +170,7 @@ class DeclOps {
 	}
 	public:
 	/** prop */
-	int prop() {
+	inline int prop() {
 		return 1;
 	}
 };"""

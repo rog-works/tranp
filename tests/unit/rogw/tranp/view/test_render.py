@@ -1014,11 +1014,13 @@ class TestRenderer(TestCase):
 				'is_abstract': False,
 				'is_override': False,
 				'allow_override': False,
+				# method only
+				'is_property': True,
 			},
 			'\n'.join([
 				'public:',
 				'/** method */',
-				'void method(int value = 1) {',
+				'inline void method(int value = 1) {',
 				'	this->x = value;',
 				'}',
 			]),
@@ -1040,6 +1042,8 @@ class TestRenderer(TestCase):
 				'is_abstract': True,
 				'is_override': False,
 				'allow_override': False,
+				# method only
+				'is_property': False,
 			},
 			'\n'.join([
 				'public:',
@@ -1064,6 +1068,8 @@ class TestRenderer(TestCase):
 				'is_abstract': False,
 				'is_override': False,
 				'allow_override': True,
+				# method only
+				'is_property': False,
 			},
 			'\n'.join([
 				'public:',
@@ -1090,6 +1096,8 @@ class TestRenderer(TestCase):
 				'is_abstract': False,
 				'is_override': True,
 				'allow_override': False,
+				# method only
+				'is_property': False,
 			},
 			'\n'.join([
 				'public:',
@@ -1116,6 +1124,8 @@ class TestRenderer(TestCase):
 				'is_abstract': False,
 				'is_override': False,
 				'allow_override': False,
+				# method only
+				'is_property': False,
 			},
 			'\n'.join([
 				'public:',
@@ -1143,6 +1153,8 @@ class TestRenderer(TestCase):
 				'is_abstract': False,
 				'is_override': False,
 				'allow_override': False,
+				# method only
+				'is_property': False,
 			},
 			'\n'.join([
 				'private:',

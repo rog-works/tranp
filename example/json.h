@@ -1,4 +1,4 @@
-// @tranp.meta: {"version":"1.0.0","module":{"hash":"7c4ecbfc0efc495fc85be3053a1e76ec","path":"example.json"},"transpiler":{"version":"1.0.0","module":"rogw.tranp.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
+// @tranp.meta: {"version":"1.0.0","module":{"hash":"fac0e3caa345193f2471f9fed0297522","path":"example.json"},"transpiler":{"version":"1.0.0","module":"rogw.tranp.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
 #pragma once
 #include <functional>
 // #include "typing.h"
@@ -434,7 +434,7 @@ class Json {
 	 *
 	 * @return True = ルートオブジェクト
 	 */
-	bool is_root() {
+	inline bool is_root() {
 		return this->_root == nullptr;
 	}
 	public:
@@ -442,7 +442,7 @@ class Json {
 	 *
 	 * @return ルートオブジェクト
 	 */
-	Json* root() {
+	inline Json* root() {
 		return this->_root ? this->_root : this;
 	}
 	public:
@@ -450,7 +450,7 @@ class Json {
 	 *
 	 * @return JSONパス
 	 */
-	std::string path() {
+	inline std::string path() {
 		return this->root()->_entries[this->_entry_id].path;
 	}
 	public:
@@ -458,7 +458,7 @@ class Json {
 	 *
 	 * @return シンボル名
 	 */
-	std::string symbol() {
+	inline std::string symbol() {
 		int index = this->path().find_last_of(".");
 		return index != -1 ? this->path().substr(index + 1, this->path().size() - (index + 1)) : this->path();
 	}
@@ -467,7 +467,7 @@ class Json {
 	 *
 	 * @return JSONエントリーの種別
 	 */
-	JsonEntryTypes entry_type() {
+	inline JsonEntryTypes entry_type() {
 		return this->root()->_entries[this->_entry_id].entry_type;
 	}
 	public:
@@ -475,7 +475,7 @@ class Json {
 	 *
 	 * @return 型の名前
 	 */
-	std::string type_name() {
+	inline std::string type_name() {
 		return Json::_to_type_names[this->entry_type()];
 	}
 	public:
@@ -483,7 +483,7 @@ class Json {
 	 *
 	 * @return 実体のアドレス
 	 */
-	void* entity_at() {
+	inline void* entity_at() {
 		if (this->scalar_with(JsonEntryTypes::Boolean)) {
 			return (&(this->root()->_entries[this->_entry_id].entity.as_bool));
 		} else if (this->scalar_with(JsonEntryTypes::Number)) {
@@ -629,7 +629,7 @@ class Json {
 	 * @return 値
 	 * @throw RuntimeError Boolean以外で使用
 	 */
-	bool as_bool() {
+	inline bool as_bool() {
 		if (!this->scalar_with(JsonEntryTypes::Boolean)) {
 			throw new std::runtime_error(std::format("Operation not allowed. type_name: %s", (this->type_name()).c_str()));
 		}
@@ -641,7 +641,7 @@ class Json {
 	 * @return 値
 	 * @throw RuntimeError Number以外で使用
 	 */
-	float as_number() {
+	inline float as_number() {
 		if (!this->scalar_with(JsonEntryTypes::Number)) {
 			throw new std::runtime_error(std::format("Operation not allowed. type_name: %s", (this->type_name()).c_str()));
 		}
@@ -653,7 +653,7 @@ class Json {
 	 * @return 値
 	 * @throw RuntimeError String以外で使用
 	 */
-	std::string as_string() {
+	inline std::string as_string() {
 		if (!this->scalar_with(JsonEntryTypes::String)) {
 			throw new std::runtime_error(std::format("Operation not allowed. type_name: %s", (this->type_name()).c_str()));
 		}
@@ -1013,8 +1013,10 @@ class Json {
 	 * 自身を基点に新たなインスタンスを生成
 	 * @return インスタンス
 	 * @note
+	 * ```
 	 * * ルート要素との参照を切り離すことでメモリー安全な複製として利用可能する
 	 * * 引数として渡す際に有効である反面、実行速度とメモリー効率を犠牲にする
+	 * ```
 	 */
 	std::shared_ptr<Json> isolate() {
 		std::shared_ptr<Json> instance = std::make_shared<Json>();

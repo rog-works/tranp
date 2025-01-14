@@ -6,10 +6,10 @@
 		{%- set value = projection_value %}
 		{%- if condition %}
 		if ({{ condition }}) {
-			{% include('assign/_assign_dict.j2') %};
+			{% include('comp/_assign_dict.j2') %};
 		}
 		{%- else %}
-		{% include('assign/_assign_dict.j2') %};
+		{% include('comp/_assign_dict.j2') %};
 		{%- endif %}
 	}
 	return __ret;

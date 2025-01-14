@@ -459,6 +459,10 @@ class Py2Cpp(ITranspiler):
 			return self.proc_move_assign_destruction(node, receivers, value)
 
 	def proc_move_assign_single(self, node: defs.MoveAssign, receiver: str, value: str) -> str:
+		receiver_is_dict = isinstance(node.receivers[0], defs.Indexer) and self.reflections.type_of(node.receivers[0].receiver).impl(refs.Object).type_is(dict)
+		if receiver_is_dict:
+			return self.view.render(f'assign/{node.classification}_dict', vars={'receiver': receiver, 'value': value})
+
 		receiver_raw = self.reflections.type_of(node.receivers[0])
 		value_raw = self.reflections.type_of(node.value)
 		declared = receiver_raw.decl.declare == node
@@ -466,8 +470,10 @@ class Py2Cpp(ITranspiler):
 			raise LogicError(f'Not allowed assign type. node: {node}, symbol: {value_raw}')
 
 		var_type = self.to_accessible_name(value_raw)
-		receiver_is_dict = isinstance(node.receivers[0], defs.Indexer) and self.reflections.type_of(node.receivers[0].receiver).impl(refs.Object).type_is(dict)
-		return self.view.render(f'assign/{node.classification}', vars={'receiver': receiver, 'var_type': var_type, 'value': value, 'declared': declared, 'receiver_is_dict': receiver_is_dict})
+		if declared:
+			return self.view.render(f'assign/{node.classification}_declare', vars={'receiver': receiver, 'var_type': var_type, 'value': value})
+		else:
+			return self.view.render(f'assign/{node.classification}', vars={'receiver': receiver, 'var_type': var_type, 'value': value})
 
 	def proc_move_assign_destruction(self, node: defs.MoveAssign, receivers: list[str], value: str) -> str:
 		"""Note: C++で分割代入できるのはtuple/pairのみ。Pythonではいずれもtupleのため、tuple以外は非対応"""

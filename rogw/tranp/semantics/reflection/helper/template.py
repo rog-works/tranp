@@ -91,14 +91,14 @@ class Function(Helper):
 		Returns:
 			実行時型
 		"""
-		t_map_returns, _ = TemplateManipulator.unpack_templates(returns=self.schema.returns)
-		if len(t_map_returns) == 0:
+		return_templates, _ = TemplateManipulator.unpack_templates(returns=self.schema.returns)
+		if len(return_templates) == 0:
 			return self.schema.returns
 
-		map_props = TemplateManipulator.unpack_symbols(parameters=list(arguments))
-		t_map_props, template_map = TemplateManipulator.unpack_templates(parameters=self.schemata.parameters)
-		updates = TemplateManipulator.make_updates(t_map_returns, t_map_props, map_props, template_map)
-		return TemplateManipulator.apply(self.schema.returns.to_temporary(), map_props, updates)
+		actual_props = TemplateManipulator.unpack_symbols(parameters=list(arguments))
+		param_templates, schema_props = TemplateManipulator.unpack_templates(parameters=self.schemata.parameters)
+		updates = TemplateManipulator.make_updates(return_templates, param_templates, actual_props, schema_props)
+		return TemplateManipulator.apply(self.schema.returns.to_temporary(), actual_props, updates)
 
 	def templates(self) -> list[defs.TemplateClass]:
 		"""テンプレート型(タイプ再定義ノード)を取得
@@ -106,8 +106,8 @@ class Function(Helper):
 		Returns:
 			テンプレート型リスト
 		"""
-		t_map_props, _ = TemplateManipulator.unpack_templates(parameters=self.schemata.parameters, returns=self.schema.returns)
-		return list(set(t_map_props.values()))
+		schema_templates, _ = TemplateManipulator.unpack_templates(parameters=self.schemata.parameters, returns=self.schema.returns)
+		return list(set(schema_templates.values()))
 
 
 class Closure(Function):
@@ -131,15 +131,15 @@ class Method(Function):
 			FIXME Union型の引数にテンプレート型が含まれると解決に失敗する
 		"""
 		parameter = self.schemata.parameters[index]
-		t_map_parameter, _ = TemplateManipulator.unpack_templates(parameter=parameter)
-		if len(t_map_parameter) == 0:
+		param_templates, _ = TemplateManipulator.unpack_templates(parameter=parameter)
+		if len(param_templates) == 0:
 			return parameter
 
 		actual_klass, actual_parameter = context
-		map_props = TemplateManipulator.unpack_symbols(klass=actual_klass, parameter=actual_parameter)
-		t_map_props, template_map = TemplateManipulator.unpack_templates(klass=self.schema.klass, parameter=parameter)
-		updates = TemplateManipulator.make_updates(t_map_parameter, t_map_props, map_props, template_map)
-		return TemplateManipulator.apply(parameter.to_temporary(), map_props, updates)
+		actual_props = TemplateManipulator.unpack_symbols(klass=actual_klass, parameter=actual_parameter)
+		schema_templates, schema_props = TemplateManipulator.unpack_templates(klass=self.schema.klass, parameter=parameter)
+		updates = TemplateManipulator.make_updates(param_templates, schema_templates, actual_props, schema_props)
+		return TemplateManipulator.apply(parameter.to_temporary(), actual_props, updates)
 
 	@override
 	def returns(self, *arguments: IReflection) -> IReflection:
@@ -152,15 +152,15 @@ class Method(Function):
 		Note:
 			FIXME Union型の引数にテンプレート型が含まれると解決に失敗する
 		"""
-		t_map_returns, _ = TemplateManipulator.unpack_templates(returns=self.schema.returns)
-		if len(t_map_returns) == 0:
+		return_templates, _ = TemplateManipulator.unpack_templates(returns=self.schema.returns)
+		if len(return_templates) == 0:
 			return self.schema.returns
 
 		actual_klass, *actual_arguments = arguments
-		map_props = TemplateManipulator.unpack_symbols(klass=actual_klass, parameters=actual_arguments)
-		t_map_props, template_map = TemplateManipulator.unpack_templates(klass=self.schema.klass, parameters=self.schemata.parameters)
-		updates = TemplateManipulator.make_updates(t_map_returns, t_map_props, map_props, template_map)
-		return TemplateManipulator.apply(self.schema.returns.to_temporary(), map_props, updates)
+		actual_props = TemplateManipulator.unpack_symbols(klass=actual_klass, parameters=actual_arguments)
+		schema_templates, schema_props = TemplateManipulator.unpack_templates(klass=self.schema.klass, parameters=self.schemata.parameters)
+		updates = TemplateManipulator.make_updates(return_templates, schema_templates, actual_props, schema_props)
+		return TemplateManipulator.apply(self.schema.returns.to_temporary(), actual_props, updates)
 
 	@override
 	def templates(self) -> list[defs.TemplateClass]:
@@ -169,9 +169,9 @@ class Method(Function):
 		Returns:
 			テンプレート型リスト
 		"""
-		t_map_props, _ = TemplateManipulator.unpack_templates(klass=self.schema.klass, parameters=self.schemata.parameters, returns=self.schema.returns)
-		ignore_ts = [t for path, t in t_map_props.items() if path.startswith('klass')]
-		return list(set([t for t in t_map_props.values() if t not in ignore_ts]))
+		schema_templates, _ = TemplateManipulator.unpack_templates(klass=self.schema.klass, parameters=self.schemata.parameters, returns=self.schema.returns)
+		ignore_templates = [symbol for path, symbol in schema_templates.items() if path.startswith('klass')]
+		return list(set([symbol for symbol in schema_templates.values() if symbol not in ignore_templates]))
 
 
 class ClassMethod(Method):
@@ -217,33 +217,34 @@ class TemplateManipulator:
 		return seqs.expand(attrs, iter_key='attrs')
 
 	@classmethod
-	def make_updates(cls, t_map_primary: TemplateMap, t_map_props: TemplateMap, actual_props: SymbolMap, template_map: SymbolMap) -> UpdateMap:
+	def make_updates(cls, target_templates: TemplateMap, schema_templates: TemplateMap, actual_props: SymbolMap, schema_props: SymbolMap) -> UpdateMap:
 		"""主体とサブを比較し、一致するテンプレートのパスを抽出
 
 		Args:
-			t_map_primary: 主体
-			t_map_props: サブ
+			target_templates: テンプレートのマップ表(解決対象)
+			schema_templates: テンプレートのマップ表(スキーマ)
 			actual_props: シンボルのマップ表(実行時型)
+			schema_props: シンボルのマップ表(スキーマ)
 		Returns:
 			一致したパスのマップ表
 		"""
 		updates: UpdateMap = {}
-		for primary_path, t_primary in t_map_primary.items():
-			founds = [prop_path for prop_path, t_prop in t_map_props.items() if t_prop == t_primary]
+		for target_path, target_template in target_templates.items():
+			found_paths = [schema_path for schema_path, schema_template in schema_templates.items() if schema_template == target_template]
 
-			for found in founds:
-				if primary_path in updates:
+			for found_path in found_paths:
+				if target_path in updates:
 					break
 
-				elems = DSN.elements(found)
+				elems = DSN.elements(found_path)
 				actual_path = ''
-				template_path = ''
+				schema_path = ''
 				for elem in elems:
-					if primary_path in updates:
+					if target_path in updates:
 						break
 
 					actual_path = DSN.join(actual_path, elem)
-					template_path = DSN.join(template_path, elem)
+					schema_path = DSN.join(schema_path, elem)
 					if actual_path not in actual_props:
 						continue
 
@@ -251,17 +252,17 @@ class TemplateManipulator:
 					if actual_props[actual_path].types.is_a(defs.TemplateClass):
 						break
 					# 検出成功
-					elif template_map[template_path].types.is_a(defs.TemplateClass):
-						updates[primary_path] = template_path
+					elif schema_props[schema_path].types.is_a(defs.TemplateClass):
+						updates[target_path] = schema_path
 						break
 					# 検証(Unionのサブクラスに実体型が含まれるか)
-					elif template_map[template_path].impl(refs.Object).type_is(Union):
-						for attr in template_map[template_path].attrs:
+					elif schema_props[schema_path].impl(refs.Object).type_is(Union):
+						for attr in schema_props[schema_path].attrs:
 							if attr.types.is_a(defs.TemplateClass):
-								updates[primary_path] = template_path
+								updates[target_path] = schema_path
 								break
 					# 検証(実体とスキーマが同一)
-					elif actual_props[actual_path].types == template_map[template_path].types:
+					elif actual_props[actual_path].types == schema_props[schema_path].types:
 						...
 					# スキップ(実体とスキーマが継承関係 ※である想定)
 					else:

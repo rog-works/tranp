@@ -97,7 +97,7 @@ class Function(Helper):
 
 		actual_props = TemplateManipulator.unpack_symbols(parameters=list(arguments))
 		param_templates, schema_props = TemplateManipulator.unpack_templates(parameters=self.schemata.parameters)
-		updates = TemplateManipulator.make_updates(return_templates, param_templates, actual_props, schema_props)
+		updates = TemplateManipulator.make_updates(return_templates, param_templates, schema_props, actual_props)
 		return TemplateManipulator.apply(self.schema.returns.to_temporary(), actual_props, updates)
 
 	def templates(self) -> list[defs.TemplateClass]:
@@ -138,7 +138,7 @@ class Method(Function):
 		actual_klass, actual_parameter = context
 		actual_props = TemplateManipulator.unpack_symbols(klass=actual_klass, parameter=actual_parameter)
 		schema_templates, schema_props = TemplateManipulator.unpack_templates(klass=self.schema.klass, parameter=parameter)
-		updates = TemplateManipulator.make_updates(param_templates, schema_templates, actual_props, schema_props)
+		updates = TemplateManipulator.make_updates(param_templates, schema_templates, schema_props, actual_props)
 		return TemplateManipulator.apply(parameter.to_temporary(), actual_props, updates)
 
 	@override
@@ -159,7 +159,7 @@ class Method(Function):
 		actual_klass, *actual_arguments = arguments
 		actual_props = TemplateManipulator.unpack_symbols(klass=actual_klass, parameters=actual_arguments)
 		schema_templates, schema_props = TemplateManipulator.unpack_templates(klass=self.schema.klass, parameters=self.schemata.parameters)
-		updates = TemplateManipulator.make_updates(return_templates, schema_templates, actual_props, schema_props)
+		updates = TemplateManipulator.make_updates(return_templates, schema_templates, schema_props, actual_props)
 		return TemplateManipulator.apply(self.schema.returns.to_temporary(), actual_props, updates)
 
 	@override
@@ -201,9 +201,9 @@ class TemplateManipulator:
 		Returns:
 			パスとテンプレート型(タイプ再定義ノード)のマップ表
 		"""
-		expand_attrs = seqs.expand(attrs, iter_key='attrs')
-		templates = {path: attr.types for path, attr in expand_attrs.items() if isinstance(attr.types, defs.TemplateClass)}
-		return templates, expand_attrs
+		symbols = cls.unpack_symbols(**attrs)
+		templates = {path: attr.types for path, attr in symbols.items() if isinstance(attr.types, defs.TemplateClass)}
+		return templates, symbols
 
 	@classmethod
 	def unpack_symbols(cls, **attrs: IReflection | list[IReflection]) -> SymbolMap:
@@ -217,58 +217,73 @@ class TemplateManipulator:
 		return seqs.expand(attrs, iter_key='attrs')
 
 	@classmethod
-	def make_updates(cls, target_templates: TemplateMap, schema_templates: TemplateMap, actual_props: SymbolMap, schema_props: SymbolMap) -> UpdateMap:
-		"""主体とサブを比較し、一致するテンプレートのパスを抽出
+	def make_updates(cls, target_templates: TemplateMap, schema_templates: TemplateMap, schema_props: SymbolMap, actual_props: SymbolMap) -> UpdateMap:
+		"""スキーマと実行時型を突き合わせて解決対象のテンプレートのパスを抽出
 
 		Args:
 			target_templates: テンプレートのマップ表(解決対象)
 			schema_templates: テンプレートのマップ表(スキーマ)
-			actual_props: シンボルのマップ表(実行時型)
 			schema_props: シンボルのマップ表(スキーマ)
+			actual_props: シンボルのマップ表(実行時型)
 		Returns:
 			一致したパスのマップ表
 		"""
 		updates: UpdateMap = {}
 		for target_path, target_template in target_templates.items():
-			found_paths = [schema_path for schema_path, schema_template in schema_templates.items() if schema_template == target_template]
+			for schema_path, schema_template in schema_templates.items():
+				if target_template != schema_template:
+					continue
 
-			for found_path in found_paths:
-				if target_path in updates:
-					break
-
-				elems = DSN.elements(found_path)
-				actual_path = ''
-				schema_path = ''
-				for elem in elems:
-					if target_path in updates:
-						break
-
-					actual_path = DSN.join(actual_path, elem)
-					schema_path = DSN.join(schema_path, elem)
-					if actual_path not in actual_props:
-						continue
-
-					# 検出失敗(実体がテンプレート)
-					if actual_props[actual_path].types.is_a(defs.TemplateClass):
-						break
-					# 検出成功
-					elif schema_props[schema_path].types.is_a(defs.TemplateClass):
-						updates[target_path] = schema_path
-						break
-					# 検証(Unionのサブクラスに実体型が含まれるか)
-					elif schema_props[schema_path].impl(refs.Object).type_is(Union):
-						for attr in schema_props[schema_path].attrs:
-							if attr.types.is_a(defs.TemplateClass):
-								updates[target_path] = schema_path
-								break
-					# 検証(実体とスキーマが同一)
-					elif actual_props[actual_path].types == schema_props[schema_path].types:
-						...
-					# スキップ(実体とスキーマが継承関係 ※である想定)
-					else:
-						...
+				found_path = cls._find_update_path(schema_path, schema_props, actual_props)
+				if len(found_path) > 0:
+					updates[target_path] = found_path
 
 		return updates
+
+	@classmethod
+	def _find_update_path(cls, schema_path: str, schema_props: SymbolMap, actual_props: SymbolMap) -> str:
+		"""スキーマと実行時型を突き合わせて解決対象のテンプレートのパスを抽出
+
+		Args:
+			schema_path: スキーマのパス
+			schema_props: シンボルのマップ表(スキーマ)
+			actual_props: シンボルのマップ表(実行時型)
+		Returns:
+			一致したパス
+		"""
+		schema_elems = DSN.elements(schema_path)
+		actual_path = ''
+		schema_path = ''
+		actual_index = 0
+		schema_index = 0
+		while actual_index < len(schema_elems):
+			actual_path = DSN.join(actual_path, schema_elems[actual_index])
+			schema_path = DSN.join(schema_path, schema_elems[schema_index])
+			actual_index += 1
+			schema_index += 1
+			# スキップ(データなし)
+			if actual_path not in actual_props:
+				...
+			# 検出なし(実体のテンプレート型が未解決)
+			elif actual_props[actual_path].types.is_a(defs.TemplateClass):
+				break
+			# 検出成功
+			elif schema_props[schema_path].types.is_a(defs.TemplateClass):
+				return schema_path
+			# 検証(Unionのサブクラスにテンプレート型が含まれるか)
+			elif schema_props[schema_path].impl(refs.Object).type_is(Union):
+				for attr in schema_props[schema_path].attrs:
+					if attr.types.is_a(defs.TemplateClass):
+						return schema_path
+
+				# 実行時型がUnion以外の場合は階層を1つスキップ
+				if not actual_props[actual_path].impl(refs.Object).type_is(Union):
+					actual_index += 1
+			# スキップ(実体とスキーマが同一、または継承関係)
+			else:
+				...
+
+		return ''
 
 	@classmethod
 	def apply(cls, primary: IReflection, actual_props: SymbolMap, updates: UpdateMap) -> IReflection:

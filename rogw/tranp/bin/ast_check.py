@@ -1,6 +1,5 @@
 import os
 import sys
-import subprocess
 import traceback
 from typing import TypedDict
 
@@ -20,50 +19,36 @@ def load_file(filename: str) -> str:
 		return ''.join(f.readlines())
 
 
-def proc(parser: Lark) -> None:
-	print('python code here.')
-	print('==========')
-
-	lines: list[str] = []
-	while True:
-		line = readline()
-		if not line:
-			break
-
-		lines.append(line)
-
-	text = '\n'.join(lines)
-
-	try:
-		tree = parser.parse(f'{text}\n')
-		print('==========')
-		print('Dump')
-		print('----------')
-		print(str(tree))
-		print('==========')
-		print('AST')
-		print('----------')
-		print(tree.pretty())
-	except Exception:
-		print(traceback.format_exc())
-
-
-def readline(prompt: str = '') -> str:
-	if prompt:
-		print(prompt)
-
-	input_filepath = os.path.join(tranp_dir(), 'bin/_input.sh')
-	res = subprocess.run(['bash', input_filepath], stdout=subprocess.PIPE)
-	return res.stdout.decode('utf-8').rstrip()
-
-
 def run_interactive(parser: Lark) -> None:
 	while True:
-		proc(parser)
+		print('==========')
+		print('Python code here. Type `exit()` to quit:')
 
-		ok = readline('(e)xit?:')
-		if ok == 'e':
+		lines: list[str] = []
+		while True:
+			line = readline()
+			if not line:
+				break
+
+			lines.append(line)
+
+		if len(lines) == 1 and lines[0] == 'exit()':
 			break
+
+		try:
+			text = '\n'.join(lines)
+			tree = parser.parse(f'{text}\n')
+			print('==========')
+			print('Dump')
+			print('----------')
+			print(str(tree))
+			print('==========')
+			print('AST')
+			print('----------')
+			print(tree.pretty())
+		except Exception:
+			print(traceback.format_exc())
+			raise
 
 
 def run_parse(parser: Lark, source: str) -> None:

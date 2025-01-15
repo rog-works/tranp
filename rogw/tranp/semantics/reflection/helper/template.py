@@ -256,7 +256,7 @@ class TemplateManipulator:
 		schema_path = ''
 		actual_index = 0
 		schema_index = 0
-		while actual_index < len(schema_elems):
+		while schema_index < len(schema_elems):
 			actual_path = DSN.join(actual_path, schema_elems[actual_index])
 			schema_path = DSN.join(schema_path, schema_elems[schema_index])
 			actual_index += 1
@@ -271,6 +271,7 @@ class TemplateManipulator:
 			elif schema_props[schema_path].types.is_a(defs.TemplateClass):
 				return schema_path
 			# 検証(Unionのサブクラスにテンプレート型が含まれるか)
+			# XXX Unionを1階層解除すると実行時型と同じ階層を参照すると言う前提。しかし、多重でUnionが重なると誤判定になるのでは？
 			elif schema_props[schema_path].impl(refs.Object).type_is(Union):
 				for attr in schema_props[schema_path].attrs:
 					if attr.types.is_a(defs.TemplateClass):
@@ -278,7 +279,7 @@ class TemplateManipulator:
 
 				# 実行時型がUnion以外の場合は階層を1つスキップ
 				if not actual_props[actual_path].impl(refs.Object).type_is(Union):
-					actual_index += 1
+					schema_index += 1
 			# スキップ(実体とスキーマが同一、または継承関係)
 			else:
 				...

@@ -1,5 +1,0 @@
-{%- if receiver and key -%}
-{{- receiver }}[{{ key }}]{% if value %} = {{ value }}{% endif -%}
-{%- else -%}
-{{- receiver }}{% if value %} = {{ value }}{% endif -%}
-{%- endif -%}

@@ -101,7 +101,7 @@ class Function(Helper):
 		return TemplateManipulator.apply(self.schema.returns.to_temporary(), actual_props, updates)
 
 	def templates(self) -> list[defs.TemplateClass]:
-		"""テンプレート型(タイプ再定義ノード)を取得
+		"""テンプレート型を取得
 
 		Returns:
 			テンプレート型リスト
@@ -164,7 +164,7 @@ class Method(Function):
 
 	@override
 	def templates(self) -> list[defs.TemplateClass]:
-		"""テンプレート型(タイプ再定義ノード)を取得
+		"""テンプレート型を取得
 
 		Returns:
 			テンプレート型リスト
@@ -194,12 +194,12 @@ class TemplateManipulator:
 
 	@classmethod
 	def unpack_templates(cls, **attrs: IReflection | list[IReflection]) -> tuple[TemplateMap, SymbolMap]:
-		"""シンボル/属性からテンプレート型(タイプ再定義ノード)を平坦化して抽出
+		"""シンボル/属性からテンプレート型を平坦化して抽出
 
 		Args:
 			**attrs: シンボル/属性
 		Returns:
-			パスとテンプレート型(タイプ再定義ノード)のマップ表
+			(パスとテンプレート型のマップ表, パスとシンボルのマップ表)
 		"""
 		symbols = cls.unpack_symbols(**attrs)
 		templates = {path: attr.types for path, attr in symbols.items() if isinstance(attr.types, defs.TemplateClass)}

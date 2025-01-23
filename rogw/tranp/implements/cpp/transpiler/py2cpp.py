@@ -607,6 +607,11 @@ class Py2Cpp(ITranspiler):
 				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'literal': receiver_symbol.types.module_path})
 			elif org_prop == 'name':
 				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'literal': node.receiver.as_a(defs.Relay).prop.tokens})
+			elif org_prop == 'value':
+				var_name = node.receiver.as_a(defs.Relay).prop.tokens
+				enum_var = [var for var in receiver_symbol.types.as_a(defs.Enum).vars if var.symbol.domain_name == var_name][0]
+				literal = enum_var.declare.as_a(defs.MoveAssign).value.as_a(defs.String).as_string
+				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'literal': literal})
 			else:
 				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'literal': receiver})
 		elif self.is_relay_this(node):
@@ -648,6 +653,8 @@ class Py2Cpp(ITranspiler):
 			return True
 		elif prop == 'name' and isinstance(receiver_symbol.types, defs.Enum):
 			return True
+		elif prop == 'value' and isinstance(receiver_symbol.types, defs.Enum):
+			return isinstance(receiver_symbol.types.vars[0].declare, defs.MoveAssign) and isinstance(receiver_symbol.types.vars[0].declare.value, defs.String)
 		else:
 			return False
 

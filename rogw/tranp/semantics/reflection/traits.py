@@ -249,7 +249,17 @@ class PropertiesTrait(TraitImpl, IProperties):
 		Returns:
 			シンボル
 		"""
-		return self.reflections.resolve_property(instance.types, prop)
+		symbol = self.reflections.resolve_property(instance.types, prop)
+		if not isinstance(symbol.types, defs.TemplateClass):
+			return symbol
+
+		t_name = symbol.types.domain_name
+		for index, t_type in enumerate(instance.types.template_types):
+			if t_type.domain_name == t_name:
+				return symbol.to(prop, instance.attrs[index])
+
+		# XXX 未到達コードである想定
+		raise UnresolvedSymbolError(f'Unresolved template name. prop: {prop}, name: {t_name}')
 
 	@implements
 	def constructor(self, instance: IReflection) -> IReflection:

@@ -266,6 +266,9 @@ class TestPy2Cpp(TestCase):
 		('ForCompound.closure.bind_ref', '', defs.Closure, 'auto bind_ref = [&]() -> void {};'),
 		('ForCompound.closure.bind_copy', '', defs.Closure, 'auto bind_copy = [this]() mutable -> void {};'),
 
+		('ForCompound.enum_var_value', 'function_def_raw.block.funccall[0]', defs.FuncCall, 'printf("a");'),
+		('ForCompound.enum_var_value', 'function_def_raw.block.funccall[1]', defs.FuncCall, 'printf("b");'),
+
 		('ForClassExpose.Class', '', defs.Class, '// class Class'),
 		('ForClassExpose.Enums', '', defs.Enum, '// enum Enums'),
 		('ForClassExpose.method', '', defs.Method, '// method method'),

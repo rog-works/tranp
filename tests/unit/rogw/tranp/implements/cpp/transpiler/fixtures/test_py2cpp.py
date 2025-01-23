@@ -425,6 +425,14 @@ class ForCompound:
 		@Embed.closure_bind(self)
 		def bind_copy() -> None: ...
 
+	class EnumStrs(Enum):
+		A = 'a'
+		B = 'b'
+
+	def enum_var_value(self) -> None:
+		print(ForCompound.EnumStrs.A.value)
+		print(ForCompound.EnumStrs.B.value)
+
 
 class ForClassExpose:
 	@Embed.python

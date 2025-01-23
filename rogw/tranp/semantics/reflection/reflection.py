@@ -133,7 +133,7 @@ class ReflectionBase(IReflection):
 		Returns:
 			リフレクション
 		"""
-		return Reflection(self.__traits, Options(node=node, origin=origin, via=self))
+		return Reflection(self.__traits, Options(decl=self.decl, node=node, origin=origin, via=self))
 
 	@property
 	@implements

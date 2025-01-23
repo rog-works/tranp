@@ -675,9 +675,14 @@ class Py2Cpp(ITranspiler):
 		return org_receiver_symbol.impl(refs.Object).type_is(type) or isinstance(node.receiver, defs.Super)
 
 	def on_var(self, node: defs.Var) -> str:
-		symbol = self.reflections.type_of(node).impl(refs.Object).actualize('type')
-		if isinstance(symbol.decl, defs.ClassDef):
-			return self.to_domain_name_by_class(symbol.types)
+		org_symbol = self.reflections.type_of(node).impl(refs.Object)
+		actual_symbol = Defer.new(lambda: org_symbol.actualize('type'))
+		# クラスの直参照、または引数やローカル変数がクラス参照の場合
+		if org_symbol.type_is(type):
+			return self.to_domain_name_by_class(actual_symbol.types)
+		# 上記以外のクラス系参照の場合
+		elif isinstance(actual_symbol.decl, defs.ClassDef):
+			return self.to_domain_name_by_class(actual_symbol.types)
 		else:
 			return node.tokens
 

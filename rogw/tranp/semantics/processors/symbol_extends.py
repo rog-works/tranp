@@ -145,10 +145,6 @@ class SymbolExtends:
 
 		types = via.types.as_a(defs.Class)
 		attrs = fetch_template_attrs(types)
-		for inherit in types.inherits:
-			inherit_attrs = fetch_template_attrs(reflections.type_of(inherit).types.as_a(defs.Class))
-			attrs = {**attrs, **{decl: attr for decl, attr in inherit_attrs.items() if decl not in attrs}}
-
 		return list(attrs.values())
 
 	@injectable

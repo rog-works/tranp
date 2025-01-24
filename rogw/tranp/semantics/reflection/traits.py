@@ -4,7 +4,7 @@ from typing import Literal, Self, cast, override
 from rogw.tranp.compatible.python.types import Standards, Union
 from rogw.tranp.lang.annotation import implements
 from rogw.tranp.lang.trait import Trait
-from rogw.tranp.semantics.errors import UnresolvedSymbolError
+from rogw.tranp.semantics.errors import SemanticsLogicError, UnresolvedSymbolError
 from rogw.tranp.semantics.reflection.base import IReflection
 import rogw.tranp.semantics.reflection.definition as refs
 import rogw.tranp.semantics.reflection.helper.template as templates
@@ -260,21 +260,21 @@ class PropertiesTrait(TraitImpl, IProperties):
 				return symbol.to(prop, declare_class.attrs[index])
 
 		# XXX 未到達コードである想定
-		raise UnresolvedSymbolError(f'Template unresolved. prop: {prop}, template: {symbol}')
+		raise SemanticsLogicError(f'Template unresolved. prop: {prop}, instance: {symbol}')
 
-	def _declare_class(self, prop: defs.Var, symbol: IReflection) -> IReflection:
+	def _declare_class(self, prop: defs.Var, instance: IReflection) -> IReflection:
 		"""プロパティーの定義元のクラスシンボルを解決
 
 		Args:
 			prop: 変数参照ノード
-			symbol: 参照元のクラスシンボル
+			instance: 参照元のクラスシンボル
 		Returns:
 			定義元のクラスシンボル
 		"""
-		begin_types = symbol.types.as_a(defs.Class)
+		begin_types = instance.types.as_a(defs.Class)
 		prop_name = prop.domain_name
 		if prop_name in begin_types.decl_this_vars:
-			return symbol
+			return instance
 
 		inherits = begin_types.inherits
 		while len(inherits) > 0:
@@ -286,7 +286,7 @@ class PropertiesTrait(TraitImpl, IProperties):
 			inherits.extend(inherit_types.inherits)
 
 		# XXX 未到達コードである想定
-		raise UnresolvedSymbolError(f'Unresolved prop. prop: {prop}')
+		raise SemanticsLogicError(f'Unresolved prop. prop: {prop}, instance: {instance}')
 
 	@implements
 	def constructor(self, instance: IReflection) -> IReflection:

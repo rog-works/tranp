@@ -607,6 +607,11 @@ class Py2Cpp(ITranspiler):
 				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'literal': receiver_symbol.types.module_path})
 			elif org_prop == 'name':
 				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'literal': node.receiver.as_a(defs.Relay).prop.tokens})
+			elif org_prop == 'value':
+				# XXX C言語上はEnum.valueを扱う必然性が無いため、文字列として扱う
+				var_name = DSN.right(node.receiver.domain_name, 1)
+				value_str = receiver_symbol.types.as_a(defs.Enum).var_value_of(var_name).as_a(defs.String).as_string
+				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'literal': value_str})
 			else:
 				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'literal': receiver})
 		elif self.is_relay_this(node):
@@ -646,7 +651,7 @@ class Py2Cpp(ITranspiler):
 		prop = node.prop.tokens
 		if prop in ['__module__', '__name__', '__qualname__']:
 			return True
-		elif prop == 'name' and isinstance(receiver_symbol.types, defs.Enum):
+		elif prop in ['name', 'value'] and isinstance(receiver_symbol.types, defs.Enum):
 			return True
 		else:
 			return False

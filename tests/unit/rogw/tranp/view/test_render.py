@@ -533,6 +533,24 @@ class TestRenderer(TestCase):
 				'};',
 			]),
 		),
+		(
+			{
+				'symbol': 'Values',
+				'decorators': [],
+				'comment': '',
+				'statements': [
+					'int A = "a";',
+					'int B = "b";',
+				],
+			},
+			'\n'.join([
+				'/** Values */',
+				'enum class Values {',
+				'	A,',
+				'	B,',
+				'};',
+			]),
+		),
 	])
 	def test_render_enum(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('class/enum', vars, expected)

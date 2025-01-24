@@ -1,5 +1,10 @@
+{%- set is_number = '"' not in statements[0] -%}
 {%- filter indent('\t') %}
 {%- for statement in statements %}
+{%- if is_number %}
 {{ statement.split(' ')[1:] | join(' ') | replace(';', ',') }}
+{%- else %}
+{{ statement.split(' ')[1] }},
+{%- endif %}
 {%- endfor %}
 {%- endfilter %}

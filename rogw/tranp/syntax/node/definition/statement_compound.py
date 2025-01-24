@@ -8,7 +8,7 @@ from rogw.tranp.syntax.node.accessible import ClassOperations
 from rogw.tranp.syntax.node.behavior import IDomain, INamespace, IScope
 from rogw.tranp.syntax.node.definition.accessible import PythonClassOperations, to_accessor
 from rogw.tranp.syntax.node.definition.element import Decorator, Parameter
-from rogw.tranp.syntax.node.definition.literal import Boolean, DocString, String
+from rogw.tranp.syntax.node.definition.literal import Boolean, DocString, Literal, String
 from rogw.tranp.syntax.node.definition.primary import DeclClassVar, DeclLocalVar, DeclThisVarForward, Declable, ForIn, GenericType, InheritArgument, DeclThisParam, DeclThisVar, Type, TypesName, VarOfType
 from rogw.tranp.syntax.node.definition.statement_simple import AnnoAssign, MoveAssign
 from rogw.tranp.syntax.node.definition.terminal import Empty
@@ -642,6 +642,11 @@ class Enum(Class):
 		# XXX collect_decl_varsだと不要な変数宣言まで拾う可能性があるため、ステートメントから直接収集
 		vars = flatten([node.symbols for node in self.statements if isinstance(node, MoveAssign)])
 		return [var.as_a(DeclLocalVar) for var in vars]
+
+	@property
+	def type_literal(self) -> Literal:
+		"""XXX タイプではなくリテラルである点に注意"""
+		return self.vars[0].declare.as_a(MoveAssign).value.as_a(Literal)
 
 
 @Meta.embed(Node, accept_tags('class_assign'))

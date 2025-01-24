@@ -390,6 +390,22 @@ class ForClass:
 			self.n = int(cast(str, self.sp))
 
 
+class ForEnum:
+	class ES(Enum):
+		A = 'a'
+		B = 'b'
+
+	class EN(Enum):
+		A = 0
+		B = 1
+
+	def ref_props(self) -> None:
+		es_a_name = ForEnum.ES.A.name
+		es_a_value = ForEnum.ES.A.value
+		en_b_name = ForEnum.EN.B.name
+		en_b_value = ForEnum.EN.B.value
+
+
 T_Args = TypeVarTuple('T_Args')
 T_Base = TypeVar('T_Base', bound=Base)
 

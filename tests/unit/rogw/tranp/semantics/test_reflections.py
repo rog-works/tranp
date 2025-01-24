@@ -177,6 +177,11 @@ class TestReflections(TestCase):
 		('ForClass.DeclThisVar.ac', '', _mod('typing', 'Union'), 'Union<DeclThisVar, None>'),
 		('ForClass.DeclThisVar.__init__', 'function_def_raw.block.assign[5]', _mod('classes', 'int'), 'int'),
 
+		('ForEnum.ref_props.es_a_name', '', _mod('classes', 'str'), 'str'),
+		('ForEnum.ref_props.es_a_value', '', _mod('classes', 'str'), 'str'),
+		('ForEnum.ref_props.en_b_name', '', _mod('classes', 'str'), 'str'),
+		('ForEnum.ref_props.en_b_value', '', _mod('classes', 'int'), 'int'),
+
 		('ForTemplateClass.boundary_call', 'function_def_raw.block.return_stmt', _mod('__main__', 'Base'), 'Base'),
 		('ForTemplateClass.G2.v_ref.gn', '', _mod('__main__', 'ForTemplateClass.G1'), 'G1<int>'),
 		('ForTemplateClass.G2.v_ref.gn_v', '', _mod('classes', 'int'), 'int'),

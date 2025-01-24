@@ -379,6 +379,23 @@ class ForCompound:
 			inst = cls()
 			return inst
 
+	class DeclEnum:
+		class ES(Enum):
+			AS = 'a'
+			BS = 'b'
+
+		class EN(Enum):
+			AN = 0
+			BN = 1
+
+		def literalize(self) -> None:
+			print(ForCompound.DeclEnum.ES.AS.name)
+			print(ForCompound.DeclEnum.ES.BS.name)
+			print(ForCompound.DeclEnum.ES.AS.value)
+			print(ForCompound.DeclEnum.ES.BS.value)
+			print(ForCompound.DeclEnum.EN.AN.name)
+			print(ForCompound.DeclEnum.EN.BN.name)
+
 	class Operators:
 		# comparison
 		def __eq__(self, other: Annotated['ForCompound.Operators', Embed.immutable]) -> bool: ...

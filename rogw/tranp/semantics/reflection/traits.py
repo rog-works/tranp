@@ -253,13 +253,40 @@ class PropertiesTrait(TraitImpl, IProperties):
 		if not isinstance(symbol.types, defs.TemplateClass):
 			return symbol
 
-		t_name = symbol.types.domain_name
-		for index, t_type in enumerate(instance.types.template_types):
-			if t_type.domain_name == t_name:
-				return symbol.to(prop, instance.attrs[index])
+		declare_class = self._declare_class(prop, instance)
+		for index, template_type in enumerate(declare_class.types.as_a(defs.Class).template_types):
+			candidate = self.reflections.type_of(template_type)
+			if candidate == symbol:
+				return symbol.to(prop, declare_class.attrs[index])
 
 		# XXX 未到達コードである想定
-		raise UnresolvedSymbolError(f'Unresolved template name. prop: {prop}, name: {t_name}')
+		raise UnresolvedSymbolError(f'Template unresolved. prop: {prop}, template: {symbol}')
+
+	def _declare_class(self, prop: defs.Var, symbol: IReflection) -> IReflection:
+		"""プロパティーの定義元のクラスシンボルを解決
+
+		Args:
+			prop: 変数参照ノード
+			symbol: 参照元のクラスシンボル
+		Returns:
+			定義元のクラスシンボル
+		"""
+		begin_types = symbol.types.as_a(defs.Class)
+		prop_name = prop.domain_name
+		if prop_name in begin_types.decl_this_vars:
+			return symbol
+
+		inherits = begin_types.inherits
+		while len(inherits) > 0:
+			inherit = self.reflections.type_of(inherits.pop(0))
+			inherit_types = inherit.types.as_a(defs.Class)
+			if prop_name in inherit_types.decl_this_vars:
+				return inherit
+
+			inherits.extend(inherit_types.inherits)
+
+		# XXX 未到達コードである想定
+		raise UnresolvedSymbolError(f'Unresolved prop. prop: {prop}')
 
 	@implements
 	def constructor(self, instance: IReflection) -> IReflection:

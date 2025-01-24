@@ -648,6 +648,10 @@ class Enum(Class):
 		"""XXX タイプではなくリテラルである点に注意"""
 		return self.vars[0].declare.as_a(MoveAssign).value.as_a(Literal)
 
+	def var_value_of(self, var_name: str) -> Literal:
+		var = [var for var in self.vars if var.symbol.domain_name == var_name][0]
+		return var.declare.as_a(MoveAssign).value.as_a(Literal)
+
 
 @Meta.embed(Node, accept_tags('class_assign'))
 class AltClass(ClassDef):

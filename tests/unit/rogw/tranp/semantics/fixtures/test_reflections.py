@@ -405,7 +405,7 @@ class ForTemplateClass:
 		def v_ref(self) -> None:
 			gn = ForTemplateClass.G1(0)
 			gn_v = gn.v
-			# super_v = self.v
+			super_v = self.v
 
 	class Delegate(Generic[*T_Args]):
 		def bind(self, obj: T, method: Callable[[T, *T_Args], None]) -> None: ...

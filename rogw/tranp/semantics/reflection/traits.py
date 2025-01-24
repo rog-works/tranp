@@ -4,7 +4,7 @@ from typing import Literal, Self, cast, override
 from rogw.tranp.compatible.python.types import Standards, Union
 from rogw.tranp.lang.annotation import implements
 from rogw.tranp.lang.trait import Trait
-from rogw.tranp.semantics.errors import UnresolvedSymbolError
+from rogw.tranp.semantics.errors import SemanticsLogicError, UnresolvedSymbolError
 from rogw.tranp.semantics.reflection.base import IReflection
 import rogw.tranp.semantics.reflection.definition as refs
 import rogw.tranp.semantics.reflection.helper.template as templates
@@ -249,7 +249,44 @@ class PropertiesTrait(TraitImpl, IProperties):
 		Returns:
 			シンボル
 		"""
-		return self.reflections.resolve_property(instance.types, prop)
+		symbol = self.reflections.resolve_property(instance.types, prop)
+		if not isinstance(symbol.types, defs.TemplateClass):
+			return symbol
+
+		declare_class = self._declare_class(prop, instance)
+		for index, template_type in enumerate(declare_class.types.as_a(defs.Class).template_types):
+			candidate = self.reflections.type_of(template_type)
+			if candidate == symbol:
+				return symbol.to(prop, declare_class.attrs[index])
+
+		# XXX 未到達コードである想定
+		raise SemanticsLogicError(f'Template unresolved. prop: {prop}, instance: {symbol}')
+
+	def _declare_class(self, prop: defs.Var, instance: IReflection) -> IReflection:
+		"""プロパティーの定義元のクラスシンボルを解決
+
+		Args:
+			prop: 変数参照ノード
+			instance: 参照元のクラスシンボル
+		Returns:
+			定義元のクラスシンボル
+		"""
+		begin_types = instance.types.as_a(defs.Class)
+		prop_name = prop.domain_name
+		if prop_name in begin_types.decl_this_vars:
+			return instance
+
+		inherits = begin_types.inherits
+		while len(inherits) > 0:
+			inherit = self.reflections.type_of(inherits.pop(0))
+			inherit_types = inherit.types.as_a(defs.Class)
+			if prop_name in inherit_types.decl_this_vars:
+				return inherit
+
+			inherits.extend(inherit_types.inherits)
+
+		# XXX 未到達コードである想定
+		raise SemanticsLogicError(f'Unresolved prop. prop: {prop}, instance: {instance}')
 
 	@implements
 	def constructor(self, instance: IReflection) -> IReflection:

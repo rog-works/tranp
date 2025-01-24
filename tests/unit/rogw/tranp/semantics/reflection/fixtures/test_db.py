@@ -395,6 +395,18 @@ T_Base = TypeVar('T_Base', bound=Base)
 
 
 class ForTemplateClass:
+	class G1(Generic[T]):
+		v: T
+
+		def __init__(self, v: T) -> None:
+			self.v = v
+
+	class G2(G1[int]):
+		def v_ref(self) -> None:
+			gn = ForTemplateClass.G1(0)
+			gn_v = gn.v
+			super_v = self.v
+
 	class Delegate(Generic[*T_Args]):
 		def bind(self, obj: T, method: Callable[[T, *T_Args], None]) -> None: ...
 		def invoke(self, *args: *T_Args) -> None: ...

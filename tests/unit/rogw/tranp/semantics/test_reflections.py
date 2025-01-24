@@ -178,6 +178,9 @@ class TestReflections(TestCase):
 		('ForClass.DeclThisVar.__init__', 'function_def_raw.block.assign[5]', _mod('classes', 'int'), 'int'),
 
 		('ForTemplateClass.boundary_call', 'function_def_raw.block.return_stmt', _mod('__main__', 'Base'), 'Base'),
+		('ForTemplateClass.G2.v_ref.gn', '', _mod('__main__', 'ForTemplateClass.G1'), 'G1<int>'),
+		('ForTemplateClass.G2.v_ref.gn_v', '', _mod('classes', 'int'), 'int'),
+		('ForTemplateClass.G2.v_ref.super_v', '', _mod('classes', 'int'), 'int'),
 
 		('ForLambda.expression', 'function_def_raw.block.lambdadef', _mod('collections', 'Callable'), 'Callable<str>'),
 		('ForLambda.expression', 'function_def_raw.block.assign[1]', _mod('collections', 'Callable'), 'Callable<bool>'),

@@ -167,7 +167,7 @@ class Parser:
 			children.extend(in_children)
 			step += in_step
 
-		return step, children
+		return step, list(reversed(children))
 
 	def match_non_terminal(self, tokens: list[str], end: int, rule_name: str) -> tuple[int, Entry]:
 		pattern = as_a(Pattern, self.patterns[rule_name])

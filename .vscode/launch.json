@@ -44,7 +44,7 @@
 					"PYTHONDONTWRITEBYTECODE": "1",
 				},
 			},
-			"console": "integratedTerminal",
+			"console": "internalConsole",
 			"justMyCode": true,
 		},
 		{
@@ -68,7 +68,7 @@
 					// "PYDEVD_CONTAINER_RANDOM_ACCESS_MAX_ITEMS": "3000",
 				},
 			},
-			"console": "integratedTerminal",
+			"console": "internalConsole",
 			"justMyCode": true,
 		},
 		{
@@ -92,7 +92,7 @@
 					// "PYDEVD_CONTAINER_RANDOM_ACCESS_MAX_ITEMS": "3000",
 				},
 			},
-			"console": "integratedTerminal",
+			"console": "internalConsole",
 			"justMyCode": true,
 		},
 		{
@@ -118,7 +118,7 @@
 					// "PYDEVD_CONTAINER_RANDOM_ACCESS_MAX_ITEMS": "3000",
 				},
 			},
-			"console": "integratedTerminal",
+			"console": "internalConsole",
 			"justMyCode": true,
 		},
 		{
@@ -145,7 +145,7 @@
 					// "PYDEVD_CONTAINER_RANDOM_ACCESS_MAX_ITEMS": "3000",
 				},
 			},
-			"console": "integratedTerminal",
+			"console": "internalConsole",
 			"justMyCode": true,
 		},
 		{
@@ -172,7 +172,7 @@
 					// "PYDEVD_CONTAINER_RANDOM_ACCESS_MAX_ITEMS": "3000",
 				},
 			},
-			"console": "integratedTerminal",
+			"console": "internalConsole",
 			"justMyCode": true,
 		},
 		{
@@ -197,7 +197,7 @@
 					"PYTHONDONTWRITEBYTECODE": "1",
 				},
 			},
-			"console": "integratedTerminal",
+			"console": "internalConsole",
 			"justMyCode": true,
 		},
 		{
@@ -217,7 +217,7 @@
 					"PYTHONDONTWRITEBYTECODE": "1",
 				},
 			},
-			"console": "integratedTerminal",
+			"console": "internalConsole",
 			"justMyCode": true
 		},
 	]

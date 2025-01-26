@@ -79,7 +79,7 @@ class Parser:
 		self.patterns = patterns
 
 	def parse(self, tokens: list[str], entry: str) -> Entry:
-		return self.match(tokens, len(tokens), entry)[1]
+		return self.match(tokens, len(tokens) - 1, entry)[1]
 
 	def match(self, tokens: list[str], end: int, rule_name: str) -> tuple[int, Entry]:
 		pattern = self.patterns[rule_name]

@@ -1,13 +1,33 @@
+from enum import Enum
 import re
-from typing import Iterator, Literal, TypeAlias
+from typing import Iterator, TypeAlias
 
 from rogw.tranp.lang.convertion import as_a
 
 PatternEntry: TypeAlias = 'Pattern | Patterns'
-Operator: TypeAlias = Literal['and', 'or']
-Repeator: TypeAlias = Literal['1', '*', '+', '?']
-Roles: TypeAlias = Literal['symbol', 'terminal']
-Comps: TypeAlias = Literal['reg', 'str', 'none']
+
+
+class Operators(Enum):
+	And = 'and'
+	Or = 'or'
+
+
+class Repeators(Enum):
+	Once = '1'
+	Over0 = '*'
+	Over1 = '+'
+	Bit = '?'
+
+
+class Roles(Enum):
+	Symbol = 'symbol'
+	Terminal = 'terminal'
+
+
+class Comps(Enum):
+	Regexp = 'regexp'
+	Equals = 'equals'
+	NoComp = 'no_comp'
 
 
 class Pattern:
@@ -18,16 +38,16 @@ class Pattern:
 
 	@classmethod
 	def S(cls, pattern: str) -> 'Pattern':
-		return cls(pattern, 'symbol', 'none')
+		return cls(pattern, Roles.Symbol, Comps.NoComp)
 
 	@classmethod
 	def T(cls, pattern: str) -> 'Pattern':
-		comp = 'reg' if pattern[0] == '/' else 'str'
-		return cls(pattern, 'terminal', comp)
+		comp = Comps.Regexp if pattern[0] == '/' else Comps.Equals
+		return cls(pattern, Roles.Terminal, comp)
 
 
 class Patterns:
-	def __init__(self, children: list[PatternEntry], op: Operator = 'and', rep: Repeator = '1') -> None:
+	def __init__(self, children: list[PatternEntry], op: Operators = Operators.And, rep: Repeators = Repeators.Once) -> None:
 		self.children = children
 		self.op = op
 		self.rep = rep
@@ -58,13 +78,13 @@ def rules() -> dict[str, PatternEntry]:
 		'var': Pattern.S('name'),
 		'exp': Pattern.S('primary'),
 		# primary
-		'primary': Patterns([Pattern.S('relay'), Pattern.S('invoke'), Pattern.S('indexer'), Pattern.S('atom')], op='or'),
+		'primary': Patterns([Pattern.S('relay'), Pattern.S('invoke'), Pattern.S('indexer'), Pattern.S('atom')], op=Operators.Or),
 		'relay': Patterns([Pattern.S('primary'), Pattern.T('"."'), Pattern.S('name')]),
-		'invoke': Patterns([Pattern.S('primary'), Pattern.T('"("'), Patterns([Pattern.S('args')], rep='?'), Pattern.T('")"')]),
+		'invoke': Patterns([Pattern.S('primary'), Pattern.T('"("'), Patterns([Pattern.S('args')], rep=Repeators.Bit), Pattern.T('")"')]),
 		'indexer': Patterns([Pattern.S('primary'), Pattern.T('"["'), Pattern.S('exp'), Pattern.T('"]"')]),
-		'atom': Patterns([Pattern.S('var'), Pattern.S('bool'), Pattern.S('none'), Pattern.S('str'), Pattern.S('int'), Pattern.S('float')], op='or'),
+		'atom': Patterns([Pattern.S('var'), Pattern.S('bool'), Pattern.S('none'), Pattern.S('str'), Pattern.S('int'), Pattern.S('float')], op=Operators.Or),
 		# element
-		'args': Patterns([Pattern.S('exp'), Patterns([Pattern.T('","'), Pattern.S('exp')], rep='*')]),
+		'args': Patterns([Pattern.S('exp'), Patterns([Pattern.T('","'), Pattern.S('exp')], rep=Repeators.Over0)]),
 	}
 
 
@@ -85,14 +105,14 @@ class Parser:
 		pattern = self.patterns[rule_name]
 		if isinstance(pattern, Patterns):
 			return self.match_patterns(tokens, end, rule_name)
-		elif pattern.role == 'terminal':
+		elif pattern.role == Roles.Terminal:
 			return self.match_non_terminal(tokens, end, rule_name)
 		else:
 			return self.match(tokens, end, pattern.pattern)
 
 	def match_patterns(self, tokens: list[str], end: int, rule_name: str) -> tuple[int, Entry]:
 		patterns = as_a(Patterns, self.patterns[rule_name])
-		if patterns.op == 'or':
+		if patterns.op == Operators.Or:
 			step, children = self._match_patterns_or(tokens, end, patterns)
 			return step, (rule_name, children)
 		else:
@@ -104,7 +124,7 @@ class Parser:
 		step = 0
 		children: list[Entry] = []
 		while True:
-			if patterns.op == 'or':
+			if patterns.op == Operators.Or:
 				in_step, in_children = self._match_patterns_or(tokens, end - step, patterns)
 			else:
 				in_step, in_children = self._match_patterns_and(tokens, end - step, patterns)
@@ -114,13 +134,13 @@ class Parser:
 
 			if in_step == 0:
 				break
-			elif patterns.rep in ['1', '?']:
+			elif patterns.rep in [Repeators.Once, Repeators.Bit]:
 				break
 
 			found += 1
 
 		if found == 0:
-			if patterns.rep in ['*', '?']:
+			if patterns.rep in [Repeators.Over0, Repeators.Bit]:
 				return 0, []
 			else:
 				# FIXME 許可して良い場合を区別できない
@@ -134,7 +154,7 @@ class Parser:
 			if isinstance(pattern, Patterns):
 				in_step, in_entry = self._match_repeat(tokens, end, pattern)
 				in_children.extend(in_entry)
-			elif pattern.role == 'terminal':
+			elif pattern.role == Roles.Terminal:
 				in_step, _ = self._match_terminal(tokens, end, pattern)
 			else:
 				in_step, in_entry = self.match(tokens, end, pattern.pattern)
@@ -153,7 +173,7 @@ class Parser:
 			if isinstance(pattern, Patterns):
 				in_step, in_entry = self._match_repeat(tokens, end - step, pattern)
 				in_children.extend(in_entry)
-			elif pattern.role == 'terminal':
+			elif pattern.role == Roles.Terminal:
 				in_step, _ = self._match_terminal(tokens, end - step, pattern)
 			else:
 				in_step, in_entry = self.match(tokens, end - step, pattern.pattern)
@@ -181,7 +201,7 @@ class Parser:
 		return 0, Empty
 
 	def _a_terminal(self, tokens: list[str], end: int, pattern: Pattern) -> bool:
-		if pattern.comp == 'reg':
+		if pattern.comp == Comps.Regexp:
 			return re.fullmatch(pattern.pattern[1:-1], tokens[end]) is not None
 		else:
 			return pattern.pattern[1:-1] == tokens[end]

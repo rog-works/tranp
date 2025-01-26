@@ -135,8 +135,7 @@ class Parser:
 				in_step, in_entry = self._match_repeat(tokens, end, pattern)
 				in_children.extend(in_entry)
 			elif pattern.role == 'terminal':
-				in_step, in_entry = self._match_terminal(tokens, end, pattern)
-				in_children.append(in_entry)
+				in_step, _ = self._match_terminal(tokens, end, pattern)
 			else:
 				in_step, in_entry = self.match(tokens, end, pattern.pattern)
 				in_children.append(in_entry)
@@ -155,8 +154,7 @@ class Parser:
 				in_step, in_entry = self._match_repeat(tokens, end - step, pattern)
 				in_children.extend(in_entry)
 			elif pattern.role == 'terminal':
-				in_step, in_entry = self._match_terminal(tokens, end - step, pattern)
-				in_children.append(in_entry)
+				in_step, _ = self._match_terminal(tokens, end - step, pattern)
 			else:
 				in_step, in_entry = self.match(tokens, end - step, pattern.pattern)
 				in_children.append(in_entry)

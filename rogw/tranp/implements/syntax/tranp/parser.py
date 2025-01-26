@@ -3,14 +3,15 @@ from typing import Iterator, Literal, TypeAlias
 
 from rogw.tranp.lang.convertion import as_a
 
-
 PatternEntry: TypeAlias = 'Pattern | Patterns'
 Operator: TypeAlias = Literal['and', 'or']
 Repeator: TypeAlias = Literal['1', '*', '+', '?']
+Roles: TypeAlias = Literal['symbol', 'terminal']
+Comps: TypeAlias = Literal['reg', 'str', 'none']
 
 
 class Pattern:
-	def __init__(self, pattern: str, role: Literal['symbol', 'terminal'], comp: Literal['reg', 'str', 'none']) -> None:
+	def __init__(self, pattern: str, role: Roles, comp: Comps) -> None:
 		self.pattern = pattern
 		self.role = role
 		self.comp = comp
@@ -74,7 +75,11 @@ Empty = ('__empty__', '')
 
 
 class Parser:
-	patterns: dict[str, PatternEntry]
+	def __init__(self, patterns: dict[str, PatternEntry]) -> None:
+		self.patterns = patterns
+
+	def parse(self, tokens: list[str], entry: str) -> Entry:
+		return self.match(tokens, len(tokens), entry)[1]
 
 	def match(self, tokens: list[str], end: int, rule_name: str) -> tuple[int, Entry]:
 		pattern = self.patterns[rule_name]

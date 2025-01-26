@@ -4,8 +4,6 @@ from typing import Iterator, TypeAlias
 
 from rogw.tranp.lang.convertion import as_a
 
-PatternEntry: TypeAlias = 'Pattern | Patterns'
-
 
 class Operators(Enum):
 	And = 'and'
@@ -28,6 +26,9 @@ class Comps(Enum):
 	Regexp = 'regexp'
 	Equals = 'equals'
 	NoComp = 'no_comp'
+
+
+PatternEntry: TypeAlias = 'Pattern | Patterns'
 
 
 class Pattern:
@@ -88,20 +89,20 @@ def rules() -> dict[str, PatternEntry]:
 	}
 
 
-Entry: TypeAlias = 'Token | Tree'
-Token: TypeAlias = tuple[str, str]
-Tree: TypeAlias = tuple[str, list[Entry]]
-Empty = ('__empty__', '')
+ASTEntry: TypeAlias = 'ASTToken | ASTTree'
+ASTToken: TypeAlias = tuple[str, str]
+ASTTree: TypeAlias = tuple[str, list[ASTEntry]]
+EmptyToken = ('__empty__', '')
 
 
-class Parser:
+class Lexer:
 	def __init__(self, patterns: dict[str, PatternEntry]) -> None:
 		self.patterns = patterns
 
-	def parse(self, tokens: list[str], entry: str) -> Entry:
+	def parse(self, tokens: list[str], entry: str) -> ASTEntry:
 		return self.match(tokens, len(tokens) - 1, entry)[1]
 
-	def match(self, tokens: list[str], end: int, rule_name: str) -> tuple[int, Entry]:
+	def match(self, tokens: list[str], end: int, rule_name: str) -> tuple[int, ASTEntry]:
 		pattern = self.patterns[rule_name]
 		if isinstance(pattern, Patterns):
 			return self.match_patterns(tokens, end, rule_name)
@@ -110,7 +111,7 @@ class Parser:
 		else:
 			return self.match(tokens, end, pattern.pattern)
 
-	def match_patterns(self, tokens: list[str], end: int, rule_name: str) -> tuple[int, Entry]:
+	def match_patterns(self, tokens: list[str], end: int, rule_name: str) -> tuple[int, ASTEntry]:
 		patterns = as_a(Patterns, self.patterns[rule_name])
 		if patterns.op == Operators.Or:
 			step, children = self._match_patterns_or(tokens, end, patterns)
@@ -119,10 +120,10 @@ class Parser:
 			step, children = self._match_patterns_and(tokens, end, patterns)
 			return step, (rule_name, children)
 
-	def _match_repeat(self, tokens: list[str], end: int, patterns: Patterns) -> tuple[int, list[Entry]]:
+	def _match_repeat(self, tokens: list[str], end: int, patterns: Patterns) -> tuple[int, list[ASTEntry]]:
 		found = 0
 		step = 0
-		children: list[Entry] = []
+		children: list[ASTEntry] = []
 		while True:
 			if patterns.op == Operators.Or:
 				in_step, in_children = self._match_patterns_or(tokens, end - step, patterns)
@@ -148,9 +149,9 @@ class Parser:
 
 		return step, children
 
-	def _match_patterns_or(self, tokens: list[str], end: int, patterns: Patterns) -> tuple[int, list[Entry]]:
+	def _match_patterns_or(self, tokens: list[str], end: int, patterns: Patterns) -> tuple[int, list[ASTEntry]]:
 		for pattern in patterns:
-			in_children: list[Entry] = []
+			in_children: list[ASTEntry] = []
 			if isinstance(pattern, Patterns):
 				in_step, in_entry = self._match_repeat(tokens, end, pattern)
 				in_children.extend(in_entry)
@@ -165,11 +166,11 @@ class Parser:
 
 		return 0, []
 
-	def _match_patterns_and(self, tokens: list[str], end: int, patterns: Patterns) -> tuple[int, list[Entry]]:
+	def _match_patterns_and(self, tokens: list[str], end: int, patterns: Patterns) -> tuple[int, list[ASTEntry]]:
 		step = 0
-		children: list[Entry] = []
+		children: list[ASTEntry] = []
 		for pattern in reversed(patterns):
-			in_children: list[Entry] = []
+			in_children: list[ASTEntry] = []
 			if isinstance(pattern, Patterns):
 				in_step, in_entry = self._match_repeat(tokens, end - step, pattern)
 				in_children.extend(in_entry)
@@ -187,18 +188,18 @@ class Parser:
 
 		return step, list(reversed(children))
 
-	def match_non_terminal(self, tokens: list[str], end: int, rule_name: str) -> tuple[int, Entry]:
+	def match_non_terminal(self, tokens: list[str], end: int, rule_name: str) -> tuple[int, ASTEntry]:
 		pattern = as_a(Pattern, self.patterns[rule_name])
 		if self._a_terminal(tokens, end, pattern):
 			return 1, (rule_name, tokens[end])
 
-		return 0, Empty
+		return 0, EmptyToken
 	
-	def _match_terminal(self, tokens: list[str], end: int, pattern: Pattern) -> tuple[int, Entry]:
+	def _match_terminal(self, tokens: list[str], end: int, pattern: Pattern) -> tuple[int, ASTEntry]:
 		if self._a_terminal(tokens, end, pattern):
 			return 1, (pattern.pattern, tokens[end])
 
-		return 0, Empty
+		return 0, EmptyToken
 
 	def _a_terminal(self, tokens: list[str], end: int, pattern: Pattern) -> bool:
 		if pattern.comp == Comps.Regexp:

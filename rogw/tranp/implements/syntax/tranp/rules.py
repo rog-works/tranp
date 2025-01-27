@@ -54,17 +54,17 @@ def grammar_rules() -> dict[str, PatternEntry]:
 	"""
 	return {
 		'entry': Patterns([Pattern.S('rule')], rep=Repeators.Over1),
-		'rule': Patterns([Pattern.S('symbol'), Pattern.T('":="'), Pattern.S('expr'), Pattern.T('"\n"')]),
-		'expr': Patterns([
-			Pattern.S('list'),
-			Patterns([Pattern.S('expr'), Pattern.T('"|"'), Pattern.S('list')]),
-			Patterns([Pattern.T('"("'), Pattern.S('expr'), Pattern.T('")"'), Patterns([Pattern.T('/[*+?]/')])]),
+		'rule': Patterns([Pattern.S('symbol'), Pattern.T('":="'), Pattern.S('?expr'), Pattern.T('"\n"')]),
+		'?expr': Patterns([
+			Pattern.S('?list'),
+			Patterns([Pattern.S('?expr'), Pattern.T('"|"'), Pattern.S('?list')]),
+			Patterns([Pattern.T('"("'), Pattern.S('?expr'), Pattern.T('")"'), Patterns([Pattern.T('/[*+?]/')])]),
 		], op=Operators.Or),
-		'list': Patterns([
-			Pattern.S('term'),
-			Patterns([Pattern.S('list'), Pattern.S('term')]),
+		'?list': Patterns([
+			Pattern.S('?term'),
+			Patterns([Pattern.S('?list'), Pattern.S('?term')]),
 		], op=Operators.Or),
-		'term': Patterns([Pattern.S('literal'), Pattern.S('symbol')], op=Operators.Or),
+		'?term': Patterns([Pattern.S('literal'), Pattern.S('symbol')], op=Operators.Or),
 		'symbol': Pattern.T('/[a-zA-Z_][0-9a-zA-Z_]*/'),
 		'literal': Pattern.T('/"[^"]+"/'),
 	}

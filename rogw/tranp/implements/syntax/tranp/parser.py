@@ -239,12 +239,13 @@ class SyntaxParser:
 	def match(self, tokens: list[TokenInfo], end: int, symbol: str) -> tuple[Step, ASTEntry]:
 		pattern = self.rules[symbol]
 		if isinstance(pattern, Patterns):
-			return self.match_patterns(tokens, end, symbol)
-		elif pattern.role == Roles.Terminal:
-			return self.match_non_terminal(tokens, end, symbol)
-		else:
+			step, children = self._match_patterns(tokens, end, pattern)
+			return step, self._expand_entry(symbol, children)
+		elif pattern.role == Roles.Symbol:
 			step, entry = self.match(tokens, end, pattern.expression)
 			return step, self._expand_entry(symbol, [entry])
+		else:
+			return self.match_non_terminal(tokens, end, symbol)
 
 	def _expand_entry(self, symbol: str, children: list[ASTEntry]) -> ASTEntry:
 		if symbol[0] == ExpandRules.OneTime.value and len(children) == 1:
@@ -252,35 +253,11 @@ class SyntaxParser:
 
 		return symbol, children
 
-	def match_non_terminal(self, tokens: list[TokenInfo], end: int, symbol: str) -> tuple[Step, ASTEntry]:
-		pattern = as_a(Pattern, self.rules[symbol])
-		if self._match_token(tokens[end], pattern):
-			return Step.ok(1), (symbol, tokens[end].string)
-
-		return Step.ng(), EmptyToken
-	
-	def _match_terminal(self, tokens: list[TokenInfo], end: int, pattern: Pattern) -> tuple[Step, ASTEntry]:
-		if self._match_token(tokens[end], pattern):
-			return Step.ok(1), EmptyToken
-
-		return Step.ng(), EmptyToken
-
-	def _match_token(self, token: TokenInfo, pattern: Pattern) -> bool:
-		if pattern.comp == Comps.Regexp:
-			return re.fullmatch(pattern.expression[1:-1], token.string) is not None
-		else:
-			return pattern.expression[1:-1] == token.string
-
-	def match_patterns(self, tokens: list[TokenInfo], end: int, symbol: str) -> tuple[Step, ASTEntry]:
-		patterns = as_a(Patterns, self.rules[symbol])
+	def _match_patterns(self, tokens: list[TokenInfo], end: int, patterns: Patterns) -> tuple[Step, list[ASTEntry]]:
 		if patterns.op == Operators.Or:
-			# XXX Step.ok(0)でも問題ないか？
-			step, children = self._match_patterns_or(tokens, end, patterns)
-			return step, self._expand_entry(symbol, children)
+			return self._match_patterns_or(tokens, end, patterns)
 		else:
-			# XXX Step.ok(0)でも問題ないか？
-			step, children = self._match_patterns_and(tokens, end, patterns)
-			return step, self._expand_entry(symbol, children)
+			return self._match_patterns_and(tokens, end, patterns)
 
 	def _match_patterns_or(self, tokens: list[TokenInfo], end: int, patterns: Patterns) -> tuple[Step, list[ASTEntry]]:
 		for pattern in patterns:
@@ -305,28 +282,22 @@ class SyntaxParser:
 
 	def _match_pattern_entry(self, tokens: list[TokenInfo], end: int, pattern: PatternEntry) -> tuple[Step, list[ASTEntry]]:
 		if isinstance(pattern, Patterns) and pattern.rep == Repeators.NoRepeat:
-			return self._match_patterns_once(tokens, end, pattern)
+			return self._match_patterns(tokens, end, pattern)
 		elif isinstance(pattern, Patterns):
 			return self._match_patterns_repeat(tokens, end, pattern)
-		elif pattern.role == Roles.Terminal:
-			step, _ = self._match_terminal(tokens, end, pattern)
-			return step, []
-		else:
+		elif pattern.role == Roles.Symbol:
 			step, entry = self.match(tokens, end, pattern.expression)
 			return step, [entry]
-
-	def _match_patterns_once(self, tokens: list[TokenInfo], end: int, patterns: Patterns) -> tuple[Step, list[ASTEntry]]:
-		if patterns.op == Operators.Or:
-			return self._match_patterns_or(tokens, end, patterns)
 		else:
-			return self._match_patterns_and(tokens, end, patterns)
+			step, _ = self._match_terminal(tokens, end, pattern)
+			return step, []
 
 	def _match_patterns_repeat(self, tokens: list[TokenInfo], end: int, patterns: Patterns) -> tuple[Step, list[ASTEntry]]:
 		found = 0
 		steps = 0
 		children: list[ASTEntry] = []
 		while True:
-			in_step, in_children = self._match_patterns_once(tokens, end - steps, patterns)
+			in_step, in_children = self._match_patterns(tokens, end - steps, patterns)
 			if not in_step.steping:
 				break
 
@@ -344,6 +315,25 @@ class SyntaxParser:
 				return Step.ng(), []
 
 		return Step.ok(steps), children
+
+	def match_non_terminal(self, tokens: list[TokenInfo], end: int, symbol: str) -> tuple[Step, ASTEntry]:
+		pattern = as_a(Pattern, self.rules[symbol])
+		if self._match_token(tokens[end], pattern):
+			return Step.ok(1), (symbol, tokens[end].string)
+
+		return Step.ng(), EmptyToken
+	
+	def _match_terminal(self, tokens: list[TokenInfo], end: int, pattern: Pattern) -> tuple[Step, ASTEntry]:
+		if self._match_token(tokens[end], pattern):
+			return Step.ok(1), EmptyToken
+
+		return Step.ng(), EmptyToken
+
+	def _match_token(self, token: TokenInfo, pattern: Pattern) -> bool:
+		if pattern.comp == Comps.Regexp:
+			return re.fullmatch(pattern.expression[1:-1], token.string) is not None
+		else:
+			return pattern.expression[1:-1] == token.string
 
 
 def python_rules() -> dict[str, PatternEntry]:

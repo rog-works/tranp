@@ -238,8 +238,11 @@ class SyntaxParser:
 
 	def match(self, tokens: list[TokenInfo], end: int, symbol: str) -> tuple[Step, ASTEntry]:
 		pattern = self.rules[symbol]
-		if isinstance(pattern, Patterns):
+		if isinstance(pattern, Patterns) and pattern.rep == Repeators.NoRepeat:
 			step, children = self._match_patterns(tokens, end, pattern)
+			return step, self._expand_entry(symbol, children)
+		elif isinstance(pattern, Patterns):
+			step, children = self._match_patterns_repeat(tokens, end, pattern)
 			return step, self._expand_entry(symbol, children)
 		elif pattern.role == Roles.Symbol:
 			step, entry = self.match(tokens, end, pattern.expression)
@@ -296,7 +299,7 @@ class SyntaxParser:
 		found = 0
 		steps = 0
 		children: list[ASTEntry] = []
-		while True:
+		while 0 <= end - steps:
 			in_step, in_children = self._match_patterns(tokens, end - steps, patterns)
 			if not in_step.steping:
 				break
@@ -314,7 +317,7 @@ class SyntaxParser:
 			else:
 				return Step.ng(), []
 
-		return Step.ok(steps), children
+		return Step.ok(steps), list(reversed(children))
 
 	def match_non_terminal(self, tokens: list[TokenInfo], end: int, symbol: str) -> tuple[Step, ASTEntry]:
 		pattern = as_a(Pattern, self.rules[symbol])

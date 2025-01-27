@@ -123,7 +123,7 @@ class TokenParser:
 		return tokens
 
 
-class Lexer:
+class SyntaxParser:
 	def __init__(self, rules: dict[str, PatternEntry]) -> None:
 		self.rules = rules
 

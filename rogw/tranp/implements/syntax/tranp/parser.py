@@ -3,7 +3,7 @@ from io import BytesIO
 import re
 import token as TokenTypes
 from tokenize import TokenInfo, tokenize
-from typing import Iterator, TypeAlias
+from typing import Iterator, NamedTuple, TypeAlias
 
 from rogw.tranp.lang.convertion import as_a
 
@@ -14,10 +14,10 @@ class Operators(Enum):
 
 
 class Repeators(Enum):
-	Once = '1'
 	Over0 = '*'
 	Over1 = '+'
 	Bit = '?'
+	NoRepeat = 'off'
 
 
 class Roles(Enum):
@@ -28,7 +28,7 @@ class Roles(Enum):
 class Comps(Enum):
 	Regexp = 'regexp'
 	Equals = 'equals'
-	NoComp = 'no_comp'
+	NoComp = 'off'
 
 
 PatternEntry: TypeAlias = 'Pattern | Patterns'
@@ -51,7 +51,7 @@ class Pattern:
 
 
 class Patterns:
-	def __init__(self, children: list[PatternEntry], op: Operators = Operators.And, rep: Repeators = Repeators.Once) -> None:
+	def __init__(self, children: list[PatternEntry], op: Operators = Operators.And, rep: Repeators = Repeators.NoRepeat) -> None:
 		self.children = children
 		self.op = op
 		self.rep = rep
@@ -73,7 +73,157 @@ class ExpandRules(Enum):
 	# Always = '_' XXX 仕組み的に対応が困難なため一旦非対応
 
 
-def rules() -> dict[str, PatternEntry]:
+ASTEntry: TypeAlias = 'ASTToken | ASTTree'
+ASTToken: TypeAlias = tuple[str, str]
+ASTTree: TypeAlias = tuple[str, list['ASTToken | ASTTree']]
+EmptyToken = ('__empty__', '')
+
+
+class Step(NamedTuple):
+	steping: bool
+	steps: int
+
+	@classmethod
+	def ok(cls, steps: int) -> 'Step':
+		return cls(True, steps)
+
+	@classmethod
+	def ng(cls) -> 'Step':
+		return cls(False, 0)
+
+
+class TokenParser:
+	@classmethod
+	def parse(cls, source: str) -> list[TokenInfo]:
+		# 先頭のENCODING、末尾のENDMARKERを除外
+		exclude_types = [TokenTypes.ENCODING, TokenTypes.ENDMARKER]
+		tokens = [token for token in tokenize(BytesIO(source.encode('utf-8')).readline) if token.type not in exclude_types]
+		# 存在しない末尾の空行を削除 ※実際に改行が存在する場合は'\n'になる
+		if tokens[-1].type == TokenTypes.NEWLINE and len(tokens[-1].string) == 0:
+			tokens.pop()
+
+		return tokens
+
+
+class SyntaxParser:
+	def __init__(self, rules: dict[str, PatternEntry]) -> None:
+		self.rules = rules
+
+	def parse(self, source: str, entry: str) -> ASTEntry:
+		tokens = TokenParser.parse(source)
+		return self.match(tokens, len(tokens) - 1, entry)[1]
+
+	def match(self, tokens: list[TokenInfo], end: int, symbol: str) -> tuple[Step, ASTEntry]:
+		pattern = self.rules[symbol]
+		if isinstance(pattern, Patterns):
+			return self.match_patterns(tokens, end, symbol)
+		elif pattern.role == Roles.Terminal:
+			return self.match_non_terminal(tokens, end, symbol)
+		else:
+			step, entry = self.match(tokens, end, pattern.expression)
+			return step, self._expand_entry(symbol, [entry])
+
+	def _expand_entry(self, symbol: str, children: list[ASTEntry]) -> ASTEntry:
+		if symbol[0] == ExpandRules.OneTime.value and len(children) == 1:
+			return children[0]
+
+		return symbol, children
+
+	def match_non_terminal(self, tokens: list[TokenInfo], end: int, symbol: str) -> tuple[Step, ASTEntry]:
+		pattern = as_a(Pattern, self.rules[symbol])
+		if self._match_token(tokens[end], pattern):
+			return Step.ok(1), (symbol, tokens[end].string)
+
+		return Step.ng(), EmptyToken
+	
+	def _match_terminal(self, tokens: list[TokenInfo], end: int, pattern: Pattern) -> tuple[Step, ASTEntry]:
+		if self._match_token(tokens[end], pattern):
+			return Step.ok(1), EmptyToken
+
+		return Step.ng(), EmptyToken
+
+	def _match_token(self, token: TokenInfo, pattern: Pattern) -> bool:
+		if pattern.comp == Comps.Regexp:
+			return re.fullmatch(pattern.expression[1:-1], token.string) is not None
+		else:
+			return pattern.expression[1:-1] == token.string
+
+	def match_patterns(self, tokens: list[TokenInfo], end: int, symbol: str) -> tuple[Step, ASTEntry]:
+		patterns = as_a(Patterns, self.rules[symbol])
+		if patterns.op == Operators.Or:
+			# XXX Step.ok(0)でも問題ないか？
+			step, children = self._match_patterns_or(tokens, end, patterns)
+			return step, self._expand_entry(symbol, children)
+		else:
+			# XXX Step.ok(0)でも問題ないか？
+			step, children = self._match_patterns_and(tokens, end, patterns)
+			return step, self._expand_entry(symbol, children)
+
+	def _match_patterns_or(self, tokens: list[TokenInfo], end: int, patterns: Patterns) -> tuple[Step, list[ASTEntry]]:
+		for pattern in patterns:
+			in_step, in_children = self._match_pattern_entry(tokens, end, pattern)
+			if in_step.steping:
+				return in_step, in_children
+
+		return Step.ng(), []
+
+	def _match_patterns_and(self, tokens: list[TokenInfo], end: int, patterns: Patterns) -> tuple[Step, list[ASTEntry]]:
+		steps = 0
+		children: list[ASTEntry] = []
+		for pattern in reversed(patterns):
+			in_step, in_children = self._match_pattern_entry(tokens, end - steps, pattern)
+			if not in_step.steping:
+				return Step.ng(), []
+
+			children.extend(in_children)
+			steps += in_step.steps
+
+		return Step.ok(steps), list(reversed(children))
+
+	def _match_pattern_entry(self, tokens: list[TokenInfo], end: int, pattern: PatternEntry) -> tuple[Step, list[ASTEntry]]:
+		if isinstance(pattern, Patterns) and pattern.rep == Repeators.NoRepeat:
+			return self._match_patterns_once(tokens, end, pattern)
+		elif isinstance(pattern, Patterns):
+			return self._match_patterns_repeat(tokens, end, pattern)
+		elif pattern.role == Roles.Terminal:
+			step, _ = self._match_terminal(tokens, end, pattern)
+			return step, []
+		else:
+			step, entry = self.match(tokens, end, pattern.expression)
+			return step, [entry]
+
+	def _match_patterns_once(self, tokens: list[TokenInfo], end: int, patterns: Patterns) -> tuple[Step, list[ASTEntry]]:
+		if patterns.op == Operators.Or:
+			return self._match_patterns_or(tokens, end, patterns)
+		else:
+			return self._match_patterns_and(tokens, end, patterns)
+
+	def _match_patterns_repeat(self, tokens: list[TokenInfo], end: int, patterns: Patterns) -> tuple[Step, list[ASTEntry]]:
+		found = 0
+		steps = 0
+		children: list[ASTEntry] = []
+		while True:
+			in_step, in_children = self._match_patterns_once(tokens, end - steps, patterns)
+			if not in_step.steping:
+				break
+
+			found += 1
+			steps += in_step[1]
+			children.extend(in_children)
+
+			if patterns.rep == Repeators.Bit:
+				break
+
+		if found == 0:
+			if patterns.rep in [Repeators.Over0, Repeators.Bit]:
+				return Step.ok(0), []
+			else:
+				return Step.ng(), []
+
+		return Step.ok(steps), children
+
+
+def python_rules() -> dict[str, PatternEntry]:
 	"""Note:
 		### 名前の定義
 		* symbol: 左辺の名前
@@ -104,139 +254,33 @@ def rules() -> dict[str, PatternEntry]:
 	}
 
 
-ASTEntry: TypeAlias = 'ASTToken | ASTTree'
-ASTToken: TypeAlias = tuple[str, str]
-ASTTree: TypeAlias = tuple[str, list['ASTToken | ASTTree']]
-EmptyToken = ('__empty__', '')
-
-
-class TokenParser:
-	@classmethod
-	def parse(cls, source: str) -> list[TokenInfo]:
-		# 先頭のENCODING、末尾のENDMARKERを除外
-		exclude_types = [TokenTypes.ENCODING, TokenTypes.ENDMARKER]
-		tokens = [token for token in tokenize(BytesIO(source.encode('utf-8')).readline) if token.type not in exclude_types]
-		# 存在しない末尾の空行を削除 ※実際に改行が存在する場合は'\n'になる
-		if tokens[-1].type == TokenTypes.NEWLINE and len(tokens[-1].string) == 0:
-			tokens.pop()
-
-		return tokens
-
-
-class SyntaxParser:
-	def __init__(self, rules: dict[str, PatternEntry]) -> None:
-		self.rules = rules
-
-	def parse(self, source: str, entry: str) -> ASTEntry:
-		tokens = TokenParser.parse(source)
-		return self.match(tokens, len(tokens) - 1, entry)[1]
-
-	def match(self, tokens: list[TokenInfo], end: int, symbol: str) -> tuple[int, ASTEntry]:
-		pattern = self.rules[symbol]
-		if isinstance(pattern, Patterns):
-			return self.match_patterns(tokens, end, symbol)
-		elif pattern.role == Roles.Terminal:
-			return self.match_non_terminal(tokens, end, symbol)
-		else:
-			step, entry = self.match(tokens, end, pattern.expression)
-			return step, self._expand_entry(symbol, [entry])
-
-	def _expand_entry(self, symbol: str, children: list[ASTEntry]) -> ASTEntry:
-		if symbol[0] == ExpandRules.OneTime.value and len(children) == 1:
-			return children[0]
-
-		return symbol, children
-
-	def match_non_terminal(self, tokens: list[TokenInfo], end: int, symbol: str) -> tuple[int, ASTEntry]:
-		pattern = as_a(Pattern, self.rules[symbol])
-		if self._match_token(tokens[end], pattern):
-			return 1, (symbol, tokens[end].string)
-
-		return 0, EmptyToken
-	
-	def _match_terminal(self, tokens: list[TokenInfo], end: int, pattern: Pattern) -> tuple[int, ASTEntry]:
-		if self._match_token(tokens[end], pattern):
-			return 1, EmptyToken
-
-		return 0, EmptyToken
-
-	def _match_token(self, token: TokenInfo, pattern: Pattern) -> bool:
-		if pattern.comp == Comps.Regexp:
-			return re.fullmatch(pattern.expression[1:-1], token.string) is not None
-		else:
-			return pattern.expression[1:-1] == token.string
-
-	def match_patterns(self, tokens: list[TokenInfo], end: int, symbol: str) -> tuple[int, ASTEntry]:
-		patterns = as_a(Patterns, self.rules[symbol])
-		if patterns.op == Operators.Or:
-			step, children = self._match_patterns_or(tokens, end, patterns)
-			return step, self._expand_entry(symbol, children)
-		else:
-			step, children = self._match_patterns_and(tokens, end, patterns)
-			return step, self._expand_entry(symbol, children)
-
-	def _match_patterns_or(self, tokens: list[TokenInfo], end: int, patterns: Patterns) -> tuple[int, list[ASTEntry]]:
-		for pattern in patterns:
-			in_step, in_children = self._match_patterns_for_entry(tokens, end, pattern)
-			if in_step > 0:
-				return in_step, in_children
-
-		return 0, []
-
-	def _match_patterns_and(self, tokens: list[TokenInfo], end: int, patterns: Patterns) -> tuple[int, list[ASTEntry]]:
-		step = 0
-		children: list[ASTEntry] = []
-		for pattern in reversed(patterns):
-			in_step, in_children = self._match_patterns_for_entry(tokens, end - step, pattern)
-			if in_step == 0:
-				return 0, []
-
-			children.extend(in_children)
-			step += in_step
-
-		return step, list(reversed(children))
-
-	def _match_patterns_for_entry(self, tokens: list[TokenInfo], end: int, pattern: PatternEntry) -> tuple[int, list[ASTEntry]]:
-		if isinstance(pattern, Patterns):
-			return self._match_repeat(tokens, end, pattern)
-		elif pattern.role == Roles.Terminal:
-			step, _ = self._match_terminal(tokens, end, pattern)[0], []
-			return step, []
-		else:
-			step, entry = self.match(tokens, end, pattern.expression)
-			return step, [entry]
-
-	def _match_repeat(self, tokens: list[TokenInfo], end: int, patterns: Patterns) -> tuple[int, list[ASTEntry]]:
-		found = 0
-		step = 0
-		children: list[ASTEntry] = []
-		while True:
-			in_step, in_children = self._match_repeat_operation(tokens, end - step, patterns)
-			step += in_step
-			children.extend(in_children)
-
-			if in_step == 0:
-				break
-			elif patterns.rep in [Repeators.Once, Repeators.Bit]:
-				break
-
-			found += 1
-
-		if found == 0:
-			if patterns.rep in [Repeators.Over0, Repeators.Bit]:
-				return 0, []
-			else:
-				# FIXME 許可して良い場合を区別できない
-				return -1, []
-
-		return step, children
-
-	def _match_repeat_operation(self, tokens: list[TokenInfo], end: int, patterns: Patterns) -> tuple[int, list[ASTEntry]]:
-		if patterns.op == Operators.Or:
-			return self._match_patterns_or(tokens, end, patterns)
-		else:
-			return self._match_patterns_and(tokens, end, patterns)
-
+def grammar_rules() -> dict[str, PatternEntry]:
+	"""
+	```
+	entry := (rule)+
+	rule := symbol ":=" expr "\n"
+	expr := list "|" expr | "(" expr ")" (/[*+?]/)? | list
+	list := term list | term
+	term := literal | symbol
+	symbol:= /[a-zA-Z_][0-9a-zA-Z_]*/
+	literal := /"[^"]+"/
+	```
+	"""
+	return {
+		'entry': Patterns([Pattern.S('rule')], rep=Repeators.Over1),
+		'rule': Patterns([Pattern.S('symbol'), Pattern.T('":="'), Pattern.S('expr'), Pattern.T('"\n"')]),
+		'expr': Patterns([
+			Pattern.S('list'),
+			Patterns([Pattern.S('list'), Pattern.T('"|"'), Pattern.S('expr')]),
+			Patterns([Pattern.T('"("'), Pattern.S('expr'), Pattern.T('")"'), Patterns([Pattern.T('/[*+?]/')])]),
+		], op=Operators.Or),
+		'list': Patterns([
+			Pattern.S('term'),
+			Patterns([Pattern.S('term'), Pattern.S('list')]),
+		], op=Operators.Or),
+		'symbol': Pattern.S('/[a-zA-Z_][0-9a-zA-Z_]*/'),
+		'literal': Pattern.S('/"[^"]+"/'),
+	}
 
 """
 Note:
@@ -298,9 +342,7 @@ Note:
 			('name', 'b'),
 		]),
 		('args', [
-			('?exp', [
-				('str', 'c'),
-			]),
+			('str', 'c'),
 		]),
 	]),
 	('name', 'd'),

@@ -261,7 +261,7 @@ class SyntaxParser:
 
 	def _match_patterns_or(self, tokens: list[TokenInfo], end: int, patterns: Patterns) -> tuple[Step, list[ASTEntry]]:
 		for pattern in patterns:
-			in_step, in_children = self._match_pattern_entry(tokens, end, pattern)
+			in_step, in_children = self._match_pattern_internal(tokens, end, pattern)
 			if in_step.steping:
 				return in_step, in_children
 
@@ -271,7 +271,7 @@ class SyntaxParser:
 		steps = 0
 		children: list[ASTEntry] = []
 		for pattern in reversed(patterns):
-			in_step, in_children = self._match_pattern_entry(tokens, end - steps, pattern)
+			in_step, in_children = self._match_pattern_internal(tokens, end - steps, pattern)
 			if not in_step.steping:
 				return Step.ng(), []
 
@@ -280,7 +280,7 @@ class SyntaxParser:
 
 		return Step.ok(steps), list(reversed(children))
 
-	def _match_pattern_entry(self, tokens: list[TokenInfo], end: int, pattern: PatternEntry) -> tuple[Step, list[ASTEntry]]:
+	def _match_pattern_internal(self, tokens: list[TokenInfo], end: int, pattern: PatternEntry) -> tuple[Step, list[ASTEntry]]:
 		if isinstance(pattern, Patterns) and pattern.rep == Repeators.NoRepeat:
 			return self._match_patterns(tokens, end, pattern)
 		elif isinstance(pattern, Patterns):

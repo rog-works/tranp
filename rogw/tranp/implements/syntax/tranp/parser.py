@@ -3,7 +3,7 @@ from io import BytesIO
 import re
 import token as TokenTypes
 from tokenize import TokenInfo, tokenize
-from typing import Iterator, Literal, TypeAlias
+from typing import Iterator, TypeAlias
 
 from rogw.tranp.lang.convertion import as_a
 
@@ -69,8 +69,8 @@ class Patterns:
 
 class ExpandRules(Enum):
 	Off = 'off'
-	Always = '_'
 	OneTime = '?'
+	# Always = '_' XXX 仕組み的に対応が困難なため一旦非対応
 
 
 def rules() -> dict[str, PatternEntry]:
@@ -82,7 +82,7 @@ def rules() -> dict[str, PatternEntry]:
 	"""
 	return {
 		# entrypoint
-		'entry': Pattern.S('exp'),
+		'entry': Pattern.S('?exp'),
 		# non terminal
 		'bool': Pattern.T('/false|true/'),
 		'int': Pattern.T('/[1-9][0-9]*/'),
@@ -92,21 +92,21 @@ def rules() -> dict[str, PatternEntry]:
 		'name': Pattern.T('/[a-zA-Z_][0-9a-zA-Z_]*/'),
 		# expression
 		'var': Pattern.S('name'),
-		'exp': Pattern.S('primary'),
+		'?exp': Pattern.S('?primary'),
 		# primary
-		'primary': Patterns([Pattern.S('relay'), Pattern.S('invoke'), Pattern.S('indexer'), Pattern.S('atom')], op=Operators.Or),
-		'relay': Patterns([Pattern.S('primary'), Pattern.T('"."'), Pattern.S('name')]),
-		'invoke': Patterns([Pattern.S('primary'), Pattern.T('"("'), Patterns([Pattern.S('args')], rep=Repeators.Bit), Pattern.T('")"')]),
-		'indexer': Patterns([Pattern.S('primary'), Pattern.T('"["'), Pattern.S('exp'), Pattern.T('"]"')]),
-		'atom': Patterns([Pattern.S('var'), Pattern.S('bool'), Pattern.S('none'), Pattern.S('str'), Pattern.S('int'), Pattern.S('float')], op=Operators.Or),
+		'?primary': Patterns([Pattern.S('relay'), Pattern.S('invoke'), Pattern.S('indexer'), Pattern.S('?atom')], op=Operators.Or),
+		'relay': Patterns([Pattern.S('?primary'), Pattern.T('"."'), Pattern.S('name')]),
+		'invoke': Patterns([Pattern.S('?primary'), Pattern.T('"("'), Patterns([Pattern.S('args')], rep=Repeators.Bit), Pattern.T('")"')]),
+		'indexer': Patterns([Pattern.S('?primary'), Pattern.T('"["'), Pattern.S('?exp'), Pattern.T('"]"')]),
+		'?atom': Patterns([Pattern.S('var'), Pattern.S('bool'), Pattern.S('none'), Pattern.S('str'), Pattern.S('int'), Pattern.S('float')], op=Operators.Or),
 		# element
-		'args': Patterns([Pattern.S('exp'), Patterns([Pattern.T('","'), Pattern.S('exp')], rep=Repeators.Over0)]),
+		'args': Patterns([Pattern.S('?exp'), Patterns([Pattern.T('","'), Pattern.S('?exp')], rep=Repeators.Over0)]),
 	}
 
 
 ASTEntry: TypeAlias = 'ASTToken | ASTTree'
 ASTToken: TypeAlias = tuple[str, str]
-ASTTree: TypeAlias = tuple[str, list[ASTEntry]]
+ASTTree: TypeAlias = tuple[str, list['ASTToken | ASTTree']]
 EmptyToken = ('__empty__', '')
 
 
@@ -138,7 +138,14 @@ class Lexer:
 		elif pattern.role == Roles.Terminal:
 			return self.match_non_terminal(tokens, end, symbol)
 		else:
-			return self.match(tokens, end, pattern.expression)
+			step, entry = self.match(tokens, end, pattern.expression)
+			return step, self._expand_entry(symbol, [entry])
+
+	def _expand_entry(self, symbol: str, children: list[ASTEntry]) -> ASTEntry:
+		if symbol[0] == ExpandRules.OneTime.value and len(children) == 1:
+			return children[0]
+
+		return symbol, children
 
 	def match_non_terminal(self, tokens: list[TokenInfo], end: int, symbol: str) -> tuple[int, ASTEntry]:
 		pattern = as_a(Pattern, self.rules[symbol])
@@ -149,7 +156,7 @@ class Lexer:
 	
 	def _match_terminal(self, tokens: list[TokenInfo], end: int, pattern: Pattern) -> tuple[int, ASTEntry]:
 		if self._match_token(tokens[end], pattern):
-			return 1, (pattern.expression, tokens[end].string)
+			return 1, EmptyToken
 
 		return 0, EmptyToken
 
@@ -163,10 +170,10 @@ class Lexer:
 		patterns = as_a(Patterns, self.rules[symbol])
 		if patterns.op == Operators.Or:
 			step, children = self._match_patterns_or(tokens, end, patterns)
-			return step, (symbol, children)
+			return step, self._expand_entry(symbol, children)
 		else:
 			step, children = self._match_patterns_and(tokens, end, patterns)
-			return step, (symbol, children)
+			return step, self._expand_entry(symbol, children)
 
 	def _match_patterns_or(self, tokens: list[TokenInfo], end: int, patterns: Patterns) -> tuple[int, list[ASTEntry]]:
 		for pattern in patterns:
@@ -291,7 +298,7 @@ Note:
 			('name', 'b'),
 		]),
 		('args', [
-			('exp', [
+			('?exp', [
 				('str', 'c'),
 			]),
 		]),

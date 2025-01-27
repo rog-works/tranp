@@ -55,13 +55,14 @@ class TestSyntaxParser(TestCase):
 			]),
 		),
 		(
-			'a := b\n',
+			''.join([
+				'a := b\n',
+				'b := c\n',
+			]),
 			'grammar',
 			('entry', [
-				('rule', [
-					('symbol', 'a'),
-					('symbol', 'b'),
-				])
+				('rule', [('symbol', 'a'), ('symbol', 'b')]),
+				('rule', [('symbol', 'b'), ('symbol', 'c')]),
 			]),
 		),
 	])

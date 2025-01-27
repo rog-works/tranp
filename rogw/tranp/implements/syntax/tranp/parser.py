@@ -3,7 +3,7 @@ from io import BytesIO
 import re
 import token as TokenTypes
 from tokenize import TokenInfo, tokenize
-from typing import Iterator, TypeAlias
+from typing import Iterator, Literal, TypeAlias
 
 from rogw.tranp.lang.convertion import as_a
 
@@ -35,8 +35,8 @@ PatternEntry: TypeAlias = 'Pattern | Patterns'
 
 
 class Pattern:
-	def __init__(self, pattern: str, role: Roles, comp: Comps) -> None:
-		self.pattern = pattern
+	def __init__(self, expression: str, role: Roles, comp: Comps) -> None:
+		self.expression = expression
 		self.role = role
 		self.comp = comp
 
@@ -65,6 +65,12 @@ class Patterns:
 	def __iter__(self) -> Iterator[PatternEntry]:
 		for child in self.children:
 			yield child
+
+
+class ExpandRules(Enum):
+	Off = 'off'
+	Always = '_'
+	OneTime = '?'
 
 
 def rules() -> dict[str, PatternEntry]:
@@ -107,7 +113,7 @@ EmptyToken = ('__empty__', '')
 class TokenParser:
 	@classmethod
 	def parse(cls, source: str) -> list[TokenInfo]:
-		# 先頭のENCODE、末尾のENDMARKERを除外
+		# 先頭のENCODING、末尾のENDMARKERを除外
 		exclude_types = [TokenTypes.ENCODING, TokenTypes.ENDMARKER]
 		tokens = [token for token in tokenize(BytesIO(source.encode('utf-8')).readline) if token.type not in exclude_types]
 		# 存在しない末尾の空行を削除 ※実際に改行が存在する場合は'\n'になる
@@ -132,7 +138,26 @@ class Lexer:
 		elif pattern.role == Roles.Terminal:
 			return self.match_non_terminal(tokens, end, symbol)
 		else:
-			return self.match(tokens, end, pattern.pattern)
+			return self.match(tokens, end, pattern.expression)
+
+	def match_non_terminal(self, tokens: list[TokenInfo], end: int, symbol: str) -> tuple[int, ASTEntry]:
+		pattern = as_a(Pattern, self.rules[symbol])
+		if self._match_token(tokens[end], pattern):
+			return 1, (symbol, tokens[end].string)
+
+		return 0, EmptyToken
+	
+	def _match_terminal(self, tokens: list[TokenInfo], end: int, pattern: Pattern) -> tuple[int, ASTEntry]:
+		if self._match_token(tokens[end], pattern):
+			return 1, (pattern.expression, tokens[end].string)
+
+		return 0, EmptyToken
+
+	def _match_token(self, token: TokenInfo, pattern: Pattern) -> bool:
+		if pattern.comp == Comps.Regexp:
+			return re.fullmatch(pattern.expression[1:-1], token.string) is not None
+		else:
+			return pattern.expression[1:-1] == token.string
 
 	def match_patterns(self, tokens: list[TokenInfo], end: int, symbol: str) -> tuple[int, ASTEntry]:
 		patterns = as_a(Patterns, self.rules[symbol])
@@ -171,7 +196,7 @@ class Lexer:
 			step, _ = self._match_terminal(tokens, end, pattern)[0], []
 			return step, []
 		else:
-			step, entry = self.match(tokens, end, pattern.pattern)
+			step, entry = self.match(tokens, end, pattern.expression)
 			return step, [entry]
 
 	def _match_repeat(self, tokens: list[TokenInfo], end: int, patterns: Patterns) -> tuple[int, list[ASTEntry]]:
@@ -204,25 +229,6 @@ class Lexer:
 			return self._match_patterns_or(tokens, end, patterns)
 		else:
 			return self._match_patterns_and(tokens, end, patterns)
-
-	def match_non_terminal(self, tokens: list[TokenInfo], end: int, symbol: str) -> tuple[int, ASTEntry]:
-		pattern = as_a(Pattern, self.rules[symbol])
-		if self._a_terminal(tokens, end, pattern):
-			return 1, (symbol, tokens[end].string)
-
-		return 0, EmptyToken
-	
-	def _match_terminal(self, tokens: list[TokenInfo], end: int, pattern: Pattern) -> tuple[int, ASTEntry]:
-		if self._a_terminal(tokens, end, pattern):
-			return 1, (pattern.pattern, tokens[end].string)
-
-		return 0, EmptyToken
-
-	def _a_terminal(self, tokens: list[TokenInfo], end: int, pattern: Pattern) -> bool:
-		if pattern.comp == Comps.Regexp:
-			return re.fullmatch(pattern.pattern[1:-1], tokens[end].string) is not None
-		else:
-			return pattern.pattern[1:-1] == tokens[end].string
 
 
 """

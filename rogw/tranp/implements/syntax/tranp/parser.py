@@ -111,25 +111,25 @@ class Pattern:
 class Patterns:
 	"""マッチングパターングループ"""
 
-	def __init__(self, children: list[PatternEntry], op: Operators = Operators.And, rep: Repeators = Repeators.NoRepeat) -> None:
+	def __init__(self, entries: list[PatternEntry], op: Operators = Operators.And, rep: Repeators = Repeators.NoRepeat) -> None:
 		"""インスタンスを生成
 
 		Args:
-			children: 配下要素
+			entries: 配下要素
 			op: 比較演算子
 			rep: リピート種別
 		"""
-		self.children = children
+		self.entries = entries
 		self.op = op
 		self.rep = rep
 
 	def __len__(self) -> int:
 		"""Returns: 要素数"""
-		return len(self.children)
+		return len(self.entries)
 
 	def __iter__(self) -> Iterator[PatternEntry]:
 		"""Returns: イテレーター"""
-		for child in self.children:
+		for child in self.entries:
 			yield child
 
 	def __getitem__(self, index: int) -> PatternEntry:
@@ -140,7 +140,7 @@ class Patterns:
 		Returns:
 			配下要素
 		"""
-		return self.children[index]
+		return self.entries[index]
 
 
 class ExpandRules(Enum):
@@ -165,7 +165,7 @@ EmptyToken = ('__empty__', '')
 
 
 class Step(NamedTuple):
-	"""マッチング時の進行ステップを管理"""
+	"""マッチングの進行ステップを管理"""
 
 	steping: bool
 	steps: int
@@ -302,7 +302,7 @@ class SyntaxParser:
 				break
 
 			found += 1
-			steps += in_step[1]
+			steps += in_step.steps
 			children.extend(in_children)
 
 			if patterns.rep == Repeators.Bit:

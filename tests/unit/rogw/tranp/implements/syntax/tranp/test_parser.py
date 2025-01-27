@@ -55,7 +55,7 @@ class TestSyntaxParser(TestCase):
 			]),
 		),
 		(
-			'a := d\n',
+			'a := b\n',
 			'grammar',
 			('entry', [
 				('rule', [

@@ -47,9 +47,10 @@ def grammar_rules() -> dict[str, PatternEntry]:
 		rule := symbol ":=" expr "\n"
 		expr := list | expr "|" list | "(" expr ")" (/[*+?]/)?
 		list := term | list term
-		term := literal | symbol
-		symbol:= /[a-zA-Z_][0-9a-zA-Z_]*/
-		literal := /"[^"]+"/
+		term := symbol | string | regexp
+		symbol := /[a-zA-Z_][0-9a-zA-Z_]*/
+		string := /"[^"]+"/
+		regexp := /\\/[^\\/]+\\//
 		```
 	"""
 	return {
@@ -64,9 +65,10 @@ def grammar_rules() -> dict[str, PatternEntry]:
 			Pattern.S('?term'),
 			Patterns([Pattern.S('?list'), Pattern.S('?term')]),
 		], op=Operators.Or),
-		'?term': Patterns([Pattern.S('literal'), Pattern.S('symbol')], op=Operators.Or),
+		'?term': Patterns([Pattern.S('symbol'), Pattern.S('string'), Pattern.S('regexp')], op=Operators.Or),
 		'symbol': Pattern.T('/[a-zA-Z_][0-9a-zA-Z_]*/'),
-		'literal': Pattern.T('/"[^"]+"/'),
+		'string': Pattern.T('/"[^"]+"/'),
+		'regexp': Pattern.T('/\\/[^\\/]+\\//'),
 	}
 
 """
@@ -75,7 +77,7 @@ Note:
 ### EBNF
 [
 	'entry ::= exp',
-	'bool ::= /false|true/',
+	'bool ::= /False|True/',
 	'int ::= /[1-9][0-9]*/',
 	'float ::= /(0|[1-9][0-9]*)[.][0-9]+/',
 	'str ::= /\'[^\']*\'|"[^"]*"/',

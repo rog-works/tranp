@@ -1,7 +1,6 @@
-from typing import Any
 from unittest import TestCase
 
-from rogw.tranp.implements.syntax.tranp.parser import SyntaxParser, TokenParser, rules
+from rogw.tranp.implements.syntax.tranp.parser import ASTTree, Operators, Pattern, PatternEntry, Patterns, Repeators, SyntaxParser, TokenParser, python_rules
 from rogw.tranp.test.helper import data_provider
 
 
@@ -9,6 +8,8 @@ class TestTokenParser(TestCase):
 	@data_provider([
 		('a.b.c', ['a', '.', 'b', '.', 'c']),
 		('?a _b', ['?', 'a', '_b']),
+		('a := b', ['a', ':=', 'b']),
+		("r'[a-zA-Z_][0-9a-zA-Z_]*'", ["r'[a-zA-Z_][0-9a-zA-Z_]*'"]),
 	])
 	def test_parse(self, source: str, expected: list[str]) -> None:
 		actual = TokenParser.parse(source)
@@ -17,8 +18,10 @@ class TestTokenParser(TestCase):
 
 class TestSyntaxParser(TestCase):
 	@data_provider([
-		('a.b.c', {
-			'ast': ('entry', [
+		(
+			'a.b.c',
+			'python',
+			('entry', [
 				('relay', [
 					('relay', [
 						('var', [
@@ -29,14 +32,37 @@ class TestSyntaxParser(TestCase):
 					('name', 'c'),
 				]),
 			]),
-		}),
+		),
+		(
+			'a.b("c").d',
+			'python',
+			('entry', [
+				('relay', [
+					('invoke', [
+						('relay', [
+							('var', [
+								('name', 'a'),
+							]),
+							('name', 'b'),
+						]),
+						('args', [
+							('str', '"c"'),
+						]),
+					]),
+					('name', 'd'),
+				])
+			]),
+		),
 	])
-	def test_parse(self, source: str, expected: dict[str, Any]) -> None:
-		rules_ = rules()
-		actual = SyntaxParser(rules_).parse(source, 'entry')
+	def test_parse(self, source: str, lang: str, expected: ASTTree) -> None:
+		rule_provider = {
+			'python': python_rules,
+		}
+		rules = rule_provider[lang]()
+		actual = SyntaxParser(rules).parse(source, 'entry')
 
 		try:
-			self.assertEqual(expected['ast'], actual)
+			self.assertEqual(expected, actual)
 		except AssertionError:
-			print('AST unmatch. actual: {actual}')
+			print(f'AST unmatch. actual: {actual}')
 			raise

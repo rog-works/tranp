@@ -8,66 +8,151 @@ from typing import Iterator, NamedTuple, TypeAlias
 from rogw.tranp.lang.convertion import as_a
 
 
+class Roles(Enum):
+	"""パターンの役割
+
+	Note:
+		```
+		Symbol: シンボル
+		Terminal: 終端要素
+		```
+	"""
+	Symbol = 'symbol'
+	Terminal = 'terminal'
+
+
+class Comps(Enum):
+	"""文字列の比較メソッド
+
+	Note:
+		```
+		Regexp: 正規表現(完全一致)
+		Equals: 通常比較
+		NoComp: 使わない
+		```
+	"""
+	Regexp = 'regexp'
+	Equals = 'equals'
+	NoComp = 'off'
+
+
 class Operators(Enum):
+	"""比較演算子(マッチンググループ用)
+
+	Note:
+		```
+		And: 論理積
+		Or: 論理和
+		```
+	"""
 	And = 'and'
 	Or = 'or'
 
 
 class Repeators(Enum):
+	"""リピート種別(マッチンググループ用)
+
+	Note:
+		```
+		Over0: 0回以上
+		Over1: 1回以上
+		Bit: 0/1
+		NoRepeat: リピートなし(=通常比較)
+		```
+	"""
 	Over0 = '*'
 	Over1 = '+'
 	Bit = '?'
 	NoRepeat = 'off'
 
 
-class Roles(Enum):
-	Symbol = 'symbol'
-	Terminal = 'terminal'
-
-
-class Comps(Enum):
-	Regexp = 'regexp'
-	Equals = 'equals'
-	NoComp = 'off'
-
-
 PatternEntry: TypeAlias = 'Pattern | Patterns'
 
 
 class Pattern:
+	"""マッチングパターン"""
+
 	def __init__(self, expression: str, role: Roles, comp: Comps) -> None:
+		"""インスタンスを生成
+
+		Args:
+			expression: マッチング式
+			role: パターンの役割
+			comp: 文字列の比較メソッド
+		"""
 		self.expression = expression
 		self.role = role
 		self.comp = comp
 
 	@classmethod
-	def S(cls, pattern: str) -> 'Pattern':
-		return cls(pattern, Roles.Symbol, Comps.NoComp)
+	def S(cls, expression: str) -> 'Pattern':
+		"""インスタンスを生成(シンボル用)
+
+		Args:
+			expression: マッチング式
+		Returns:
+			インスタンス
+		"""
+		return cls(expression, Roles.Symbol, Comps.NoComp)
 
 	@classmethod
-	def T(cls, pattern: str) -> 'Pattern':
-		comp = Comps.Regexp if pattern[0] == '/' else Comps.Equals
-		return cls(pattern, Roles.Terminal, comp)
+	def T(cls, expression: str) -> 'Pattern':
+		"""インスタンスを生成(終端要素用)
+
+		Args:
+			expression: マッチング式
+		Returns:
+			インスタンス
+		"""
+		comp = Comps.Regexp if expression[0] == '/' else Comps.Equals
+		return cls(expression, Roles.Terminal, comp)
 
 
 class Patterns:
+	"""マッチングパターングループ"""
+
 	def __init__(self, children: list[PatternEntry], op: Operators = Operators.And, rep: Repeators = Repeators.NoRepeat) -> None:
+		"""インスタンスを生成
+
+		Args:
+			children: 配下要素
+			op: 比較演算子
+			rep: リピート種別
+		"""
 		self.children = children
 		self.op = op
 		self.rep = rep
 
 	def __len__(self) -> int:
+		"""Returns: 要素数"""
 		return len(self.children)
 
-	def __getitem__(self, index: int) -> PatternEntry:
-		return self.children[index]
-
 	def __iter__(self) -> Iterator[PatternEntry]:
+		"""Returns: イテレーター"""
 		for child in self.children:
 			yield child
 
+	def __getitem__(self, index: int) -> PatternEntry:
+		"""配下要素を取得
+
+		Args:
+			index: インデックス
+		Returns:
+			配下要素
+		"""
+		return self.children[index]
+
 
 class ExpandRules(Enum):
+	"""ツリーの展開規則
+
+	Note:
+		* 「展開」とは、自身のツリーを削除して上位ツリーに子を展開することを指す
+		```
+		Off: 展開なし(通常通り)
+		OneTime: 子が1つの時に展開
+		```
+	"""
 	Off = 'off'
 	OneTime = '?'
 	# Always = '_' XXX 仕組み的に対応が困難なため一旦非対応
@@ -80,21 +165,44 @@ EmptyToken = ('__empty__', '')
 
 
 class Step(NamedTuple):
+	"""マッチング時の進行ステップを管理"""
+
 	steping: bool
 	steps: int
 
 	@classmethod
 	def ok(cls, steps: int) -> 'Step':
+		"""マッチング成功
+
+		Args:
+			steps: 進行ステップ数
+		Returns:
+			インスタンス
+		"""
 		return cls(True, steps)
 
 	@classmethod
 	def ng(cls) -> 'Step':
+		"""マッチング失敗
+
+		Returns:
+			インスタンス
+		"""
 		return cls(False, 0)
 
 
 class TokenParser:
+	"""トークンパーサー"""
+
 	@classmethod
 	def parse(cls, source: str) -> list[TokenInfo]:
+		"""ソースコードを解析し、トークンに分解
+
+		Args:
+			source: ソースコード
+		Returns:
+			トークンリスト
+		"""
 		# 先頭のENCODING、末尾のENDMARKERを除外
 		exclude_types = [TokenTypes.ENCODING, TokenTypes.ENDMARKER]
 		tokens = [token for token in tokenize(BytesIO(source.encode('utf-8')).readline) if token.type not in exclude_types]
@@ -106,10 +214,25 @@ class TokenParser:
 
 
 class SyntaxParser:
+	"""シンタックスパーサー"""
+
 	def __init__(self, rules: dict[str, PatternEntry]) -> None:
+		"""インスタンスを生成
+
+		Args:
+			rules: ルールリスト
+		"""
 		self.rules = rules
 
 	def parse(self, source: str, entry: str) -> ASTEntry:
+		"""ソースコードを解析し、ASTを生成
+
+		Args:
+			source: ソースコード
+			entry: エントリーポイントのシンボル
+		Returns:
+			AST
+		"""
 		tokens = TokenParser.parse(source)
 		return self.match(tokens, len(tokens) - 1, entry)[1]
 
@@ -224,7 +347,11 @@ class SyntaxParser:
 
 
 def python_rules() -> dict[str, PatternEntry]:
-	"""Note:
+	"""ルールを生成(Python用)
+
+	Returns:
+		ルール一覧
+	Note:
 		### 名前の定義
 		* symbol: 左辺の名前
 		* pattern: 右辺の条件式
@@ -255,16 +382,20 @@ def python_rules() -> dict[str, PatternEntry]:
 
 
 def grammar_rules() -> dict[str, PatternEntry]:
-	"""
-	```
-	entry := (rule)+
-	rule := symbol ":=" expr "\n"
-	expr := list "|" expr | "(" expr ")" (/[*+?]/)? | list
-	list := term list | term
-	term := literal | symbol
-	symbol:= /[a-zA-Z_][0-9a-zA-Z_]*/
-	literal := /"[^"]+"/
-	```
+	"""ルールを生成(Grammar用)
+
+	Returns:
+		ルール一覧
+	Note:
+		```
+		entry := (rule)+
+		rule := symbol ":=" expr "\n"
+		expr := list "|" expr | "(" expr ")" (/[*+?]/)? | list
+		list := term list | term
+		term := literal | symbol
+		symbol:= /[a-zA-Z_][0-9a-zA-Z_]*/
+		literal := /"[^"]+"/
+		```
 	"""
 	return {
 		'entry': Patterns([Pattern.S('rule')], rep=Repeators.Over1),
@@ -322,30 +453,4 @@ Note:
 	# 'dict_exps ::= dict_pair ("," dict_pair)*',
 	# 'dict_pair ::= exp ":" exp',
 ]
-### AST('a.b.c')
-('relay', [
-	('relay', [
-		('var', [
-			('name', 'a'),
-		]),
-		('name', 'b'),
-	]),
-	('name', 'c'),
-])
-### AST('a.b('c').d')
-('relay', [
-	('invoke', [
-		('relay', [
-			('var', [
-				('name', 'a'),
-			]),
-			('name', 'b'),
-		]),
-		('args', [
-			('str', 'c'),
-		]),
-	]),
-	('name', 'd'),
-])
-```
 """

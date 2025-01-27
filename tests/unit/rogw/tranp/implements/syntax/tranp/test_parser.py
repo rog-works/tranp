@@ -1,4 +1,3 @@
-import json
 from typing import Any
 from unittest import TestCase
 
@@ -9,19 +8,25 @@ from rogw.tranp.test.helper import data_provider
 class TestParser(TestCase):
 	@data_provider([
 		('a.b.c', {
-			'ast': ('relay', [
+			'ast': ('entry', [
 				('relay', [
-					('var', [
-						('name', 'a'),
+					('relay', [
+						('var', [
+							('name', 'a'),
+						]),
+						('name', 'b'),
 					]),
-					('name', 'b'),
+					('name', 'c'),
 				]),
-				('name', 'c'),
 			]),
 		}),
 	])
 	def test_parse(self, source: str, expected: dict[str, Any]) -> None:
 		rules_ = rules()
 		actual = Lexer(rules_).parse(source, 'entry')
-		print(json.dumps(actual))
-		self.assertEqual(expected['ast'], actual)
+
+		try:
+			self.assertEqual(expected['ast'], actual)
+		except AssertionError:
+			print('AST unmatch. actual: {actual}')
+			raise

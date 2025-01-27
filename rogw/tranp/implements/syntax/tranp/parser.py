@@ -68,6 +68,12 @@ class Patterns:
 
 
 def rules() -> dict[str, PatternEntry]:
+	"""Note:
+		### 名前の定義
+		* symbol: 左辺の名前
+		* pattern: 右辺の条件式
+		* rule: symbolとpatternのペア
+	"""
 	return {
 		# entrypoint
 		'entry': Pattern.S('exp'),
@@ -112,30 +118,30 @@ class TokenParser:
 
 
 class Lexer:
-	def __init__(self, patterns: dict[str, PatternEntry]) -> None:
-		self.patterns = patterns
+	def __init__(self, rules: dict[str, PatternEntry]) -> None:
+		self.rules = rules
 
 	def parse(self, source: str, entry: str) -> ASTEntry:
 		tokens = TokenParser.parse(source)
 		return self.match(tokens, len(tokens) - 1, entry)[1]
 
-	def match(self, tokens: list[TokenInfo], end: int, rule_name: str) -> tuple[int, ASTEntry]:
-		pattern = self.patterns[rule_name]
+	def match(self, tokens: list[TokenInfo], end: int, symbol: str) -> tuple[int, ASTEntry]:
+		pattern = self.rules[symbol]
 		if isinstance(pattern, Patterns):
-			return self.match_patterns(tokens, end, rule_name)
+			return self.match_patterns(tokens, end, symbol)
 		elif pattern.role == Roles.Terminal:
-			return self.match_non_terminal(tokens, end, rule_name)
+			return self.match_non_terminal(tokens, end, symbol)
 		else:
 			return self.match(tokens, end, pattern.pattern)
 
-	def match_patterns(self, tokens: list[TokenInfo], end: int, rule_name: str) -> tuple[int, ASTEntry]:
-		patterns = as_a(Patterns, self.patterns[rule_name])
+	def match_patterns(self, tokens: list[TokenInfo], end: int, symbol: str) -> tuple[int, ASTEntry]:
+		patterns = as_a(Patterns, self.rules[symbol])
 		if patterns.op == Operators.Or:
 			step, children = self._match_patterns_or(tokens, end, patterns)
-			return step, (rule_name, children)
+			return step, (symbol, children)
 		else:
 			step, children = self._match_patterns_and(tokens, end, patterns)
-			return step, (rule_name, children)
+			return step, (symbol, children)
 
 	def _match_patterns_or(self, tokens: list[TokenInfo], end: int, patterns: Patterns) -> tuple[int, list[ASTEntry]]:
 		for pattern in patterns:
@@ -199,10 +205,10 @@ class Lexer:
 		else:
 			return self._match_patterns_and(tokens, end, patterns)
 
-	def match_non_terminal(self, tokens: list[TokenInfo], end: int, rule_name: str) -> tuple[int, ASTEntry]:
-		pattern = as_a(Pattern, self.patterns[rule_name])
+	def match_non_terminal(self, tokens: list[TokenInfo], end: int, symbol: str) -> tuple[int, ASTEntry]:
+		pattern = as_a(Pattern, self.rules[symbol])
 		if self._a_terminal(tokens, end, pattern):
-			return 1, (rule_name, tokens[end].string)
+			return 1, (symbol, tokens[end].string)
 
 		return 0, EmptyToken
 	

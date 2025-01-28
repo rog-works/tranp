@@ -9,6 +9,7 @@
 				"app.test_config.TestConfig",
 				"implements.cpp.transpiler.test_py2cpp.TestPy2Cpp.test_exec",
 				"implements.cpp.transpiler.test_py2cpp_error.TestPy2CppError.test_exec",
+				"implements.syntax.tranp.test_parser.TestSyntaxParser",
 				"lang.test_inspection.TestClassTypehint.test_schema",
 				"lang.test_parser.TestParser.test_parse_pair_block",
 				"semantics.reflection.test_db.TestDB.test_import_json",
@@ -43,7 +44,7 @@
 					"PYTHONDONTWRITEBYTECODE": "1",
 				},
 			},
-			"console": "integratedTerminal",
+			"console": "internalConsole",
 			"justMyCode": true,
 		},
 		{
@@ -67,7 +68,7 @@
 					// "PYDEVD_CONTAINER_RANDOM_ACCESS_MAX_ITEMS": "3000",
 				},
 			},
-			"console": "integratedTerminal",
+			"console": "internalConsole",
 			"justMyCode": true,
 		},
 		{
@@ -91,7 +92,7 @@
 					// "PYDEVD_CONTAINER_RANDOM_ACCESS_MAX_ITEMS": "3000",
 				},
 			},
-			"console": "integratedTerminal",
+			"console": "internalConsole",
 			"justMyCode": true,
 		},
 		{
@@ -117,7 +118,7 @@
 					// "PYDEVD_CONTAINER_RANDOM_ACCESS_MAX_ITEMS": "3000",
 				},
 			},
-			"console": "integratedTerminal",
+			"console": "internalConsole",
 			"justMyCode": true,
 		},
 		{
@@ -144,7 +145,7 @@
 					// "PYDEVD_CONTAINER_RANDOM_ACCESS_MAX_ITEMS": "3000",
 				},
 			},
-			"console": "integratedTerminal",
+			"console": "internalConsole",
 			"justMyCode": true,
 		},
 		{
@@ -171,7 +172,7 @@
 					// "PYDEVD_CONTAINER_RANDOM_ACCESS_MAX_ITEMS": "3000",
 				},
 			},
-			"console": "integratedTerminal",
+			"console": "internalConsole",
 			"justMyCode": true,
 		},
 		{
@@ -196,7 +197,7 @@
 					"PYTHONDONTWRITEBYTECODE": "1",
 				},
 			},
-			"console": "integratedTerminal",
+			"console": "internalConsole",
 			"justMyCode": true,
 		},
 		{
@@ -216,7 +217,7 @@
 					"PYTHONDONTWRITEBYTECODE": "1",
 				},
 			},
-			"console": "integratedTerminal",
+			"console": "internalConsole",
 			"justMyCode": true
 		},
 	]

@@ -6,6 +6,16 @@ from rogw.tranp.test.helper import data_provider
 
 class TestTokenParser2(TestCase):
 	@data_provider([
+		('abc', ['abc']),
+		('a.b.c', ['a', '.', 'b', '.', 'c']),
+		('a.b("c").d', ['a', '.', 'b', '(', '"c"', ')', '.', 'd']),
+	])
+	def test_parse(self, source: str, expected: list[str]) -> None:
+		parser = TokenParser2()
+		actual = parser.parse(source)
+		self.assertEqual(expected, actual)
+
+	@data_provider([
 		(' abc', 0, TokenClasses.WhiteSpace),
 		('a\tbc', 1, TokenClasses.WhiteSpace),
 		('a\tb\n', 3, TokenClasses.WhiteSpace),

@@ -1,10 +1,8 @@
 from enum import Enum
-from io import BytesIO
 import re
-import token as TokenTypes
-from tokenize import TokenInfo, tokenize
 from typing import Iterator, NamedTuple, TypeAlias
 
+from rogw.tranp.implements.syntax.tranp.tokenizer import ITokenizer, TokenParser
 from rogw.tranp.lang.convertion import as_a
 
 
@@ -191,38 +189,17 @@ class Step(NamedTuple):
 		return cls(False, 0)
 
 
-class TokenParser:
-	"""トークンパーサー"""
-
-	@classmethod
-	def parse(cls, source: str) -> list[TokenInfo]:
-		"""ソースコードを解析し、トークンに分解
-
-		Args:
-			source: ソースコード
-		Returns:
-			トークンリスト
-		"""
-		# 先頭のENCODING、末尾のENDMARKERを除外
-		exclude_types = [TokenTypes.ENCODING, TokenTypes.ENDMARKER]
-		tokens = [token for token in tokenize(BytesIO(source.encode('utf-8')).readline) if token.type not in exclude_types]
-		# 存在しない末尾の空行を削除 ※実際に改行が存在する場合は'\n'になる
-		if tokens[-1].type == TokenTypes.NEWLINE and len(tokens[-1].string) == 0:
-			tokens.pop()
-
-		return tokens
-
-
 class SyntaxParser:
 	"""シンタックスパーサー"""
 
-	def __init__(self, rules: dict[str, PatternEntry]) -> None:
+	def __init__(self, rules: dict[str, PatternEntry], tokenizer: ITokenizer | None = None) -> None:
 		"""インスタンスを生成
 
 		Args:
 			rules: ルールリスト
 		"""
 		self.rules = rules
+		self.tokenizer = tokenizer if tokenizer else TokenParser()
 
 	def parse(self, source: str, entry: str) -> ASTEntry:
 		"""ソースコードを解析し、ASTを生成
@@ -233,10 +210,10 @@ class SyntaxParser:
 		Returns:
 			AST
 		"""
-		tokens = TokenParser.parse(source)
+		tokens = self.tokenizer.parse(source)
 		return self.match(tokens, len(tokens) - 1, entry)[1]
 
-	def match(self, tokens: list[TokenInfo], end: int, symbol: str) -> tuple[Step, ASTEntry]:
+	def match(self, tokens: list[str], end: int, symbol: str) -> tuple[Step, ASTEntry]:
 		pattern = self.rules[symbol]
 		if isinstance(pattern, Patterns) and pattern.rep == Repeators.NoRepeat:
 			step, children = self._match_patterns(tokens, end, pattern)
@@ -256,13 +233,13 @@ class SyntaxParser:
 
 		return symbol, children
 
-	def _match_patterns(self, tokens: list[TokenInfo], end: int, patterns: Patterns) -> tuple[Step, list[ASTEntry]]:
+	def _match_patterns(self, tokens: list[str], end: int, patterns: Patterns) -> tuple[Step, list[ASTEntry]]:
 		if patterns.op == Operators.Or:
 			return self._match_patterns_or(tokens, end, patterns)
 		else:
 			return self._match_patterns_and(tokens, end, patterns)
 
-	def _match_patterns_or(self, tokens: list[TokenInfo], end: int, patterns: Patterns) -> tuple[Step, list[ASTEntry]]:
+	def _match_patterns_or(self, tokens: list[str], end: int, patterns: Patterns) -> tuple[Step, list[ASTEntry]]:
 		for pattern in patterns:
 			in_step, in_children = self._match_pattern_internal(tokens, end, pattern)
 			if in_step.steping:
@@ -270,7 +247,7 @@ class SyntaxParser:
 
 		return Step.ng(), []
 
-	def _match_patterns_and(self, tokens: list[TokenInfo], end: int, patterns: Patterns) -> tuple[Step, list[ASTEntry]]:
+	def _match_patterns_and(self, tokens: list[str], end: int, patterns: Patterns) -> tuple[Step, list[ASTEntry]]:
 		steps = 0
 		children: list[ASTEntry] = []
 		for pattern in reversed(patterns):
@@ -283,7 +260,7 @@ class SyntaxParser:
 
 		return Step.ok(steps), list(reversed(children))
 
-	def _match_pattern_internal(self, tokens: list[TokenInfo], end: int, pattern: PatternEntry) -> tuple[Step, list[ASTEntry]]:
+	def _match_pattern_internal(self, tokens: list[str], end: int, pattern: PatternEntry) -> tuple[Step, list[ASTEntry]]:
 		if isinstance(pattern, Patterns) and pattern.rep == Repeators.NoRepeat:
 			return self._match_patterns(tokens, end, pattern)
 		elif isinstance(pattern, Patterns):
@@ -295,7 +272,7 @@ class SyntaxParser:
 			step, _ = self._match_terminal(tokens, end, pattern)
 			return step, []
 
-	def _match_patterns_repeat(self, tokens: list[TokenInfo], end: int, patterns: Patterns) -> tuple[Step, list[ASTEntry]]:
+	def _match_patterns_repeat(self, tokens: list[str], end: int, patterns: Patterns) -> tuple[Step, list[ASTEntry]]:
 		found = 0
 		steps = 0
 		children: list[ASTEntry] = []
@@ -319,21 +296,21 @@ class SyntaxParser:
 
 		return Step.ok(steps), list(reversed(children))
 
-	def match_non_terminal(self, tokens: list[TokenInfo], end: int, symbol: str) -> tuple[Step, ASTEntry]:
+	def match_non_terminal(self, tokens: list[str], end: int, symbol: str) -> tuple[Step, ASTEntry]:
 		pattern = as_a(Pattern, self.rules[symbol])
 		if self._match_token(tokens[end], pattern):
-			return Step.ok(1), (symbol, tokens[end].string)
+			return Step.ok(1), (symbol, tokens[end])
 
 		return Step.ng(), EmptyToken
 	
-	def _match_terminal(self, tokens: list[TokenInfo], end: int, pattern: Pattern) -> tuple[Step, ASTEntry]:
+	def _match_terminal(self, tokens: list[str], end: int, pattern: Pattern) -> tuple[Step, ASTEntry]:
 		if self._match_token(tokens[end], pattern):
 			return Step.ok(1), EmptyToken
 
 		return Step.ng(), EmptyToken
 
-	def _match_token(self, token: TokenInfo, pattern: Pattern) -> bool:
+	def _match_token(self, token: str, pattern: Pattern) -> bool:
 		if pattern.comp == Comps.Regexp:
-			return re.fullmatch(pattern.expression[1:-1], token.string) is not None
+			return re.fullmatch(pattern.expression[1:-1], token) is not None
 		else:
-			return pattern.expression[1:-1] == token.string
+			return pattern.expression[1:-1] == token

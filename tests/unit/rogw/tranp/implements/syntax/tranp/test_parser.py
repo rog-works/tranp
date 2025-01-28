@@ -1,20 +1,8 @@
 from unittest import TestCase
 
-from rogw.tranp.implements.syntax.tranp.parser import ASTTree, SyntaxParser, TokenParser
+from rogw.tranp.implements.syntax.tranp.parser import ASTTree, SyntaxParser
 from rogw.tranp.implements.syntax.tranp.rules import grammar_rules, python_rules
 from rogw.tranp.test.helper import data_provider
-
-
-class TestTokenParser(TestCase):
-	@data_provider([
-		('a.b.c', ['a', '.', 'b', '.', 'c']),
-		('?a _b', ['?', 'a', '_b']),
-		('a := b', ['a', ':=', 'b']),
-		("r'[a-zA-Z_][0-9a-zA-Z_]*'", ["r'[a-zA-Z_][0-9a-zA-Z_]*'"]),
-	])
-	def test_parse(self, source: str, expected: list[str]) -> None:
-		actual = TokenParser.parse(source)
-		self.assertEqual(expected, [token.string for token in actual])
 
 
 class TestSyntaxParser(TestCase):

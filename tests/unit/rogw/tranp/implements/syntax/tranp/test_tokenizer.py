@@ -29,8 +29,10 @@ class TestTokenizer(TestCase):
 		('0.0', 0, TokenClasses.Number),
 		('"abc"', 0, TokenClasses.Quote),
 		("'abc'", 0, TokenClasses.Quote),
+		('"""abc"""', 0, TokenClasses.Quote),
 		("r'abc'", 0, TokenClasses.Quote),
 		('f"abc"', 0, TokenClasses.Quote),
+		('f"""abc"""', 0, TokenClasses.Quote),
 		('_a.b', 0, TokenClasses.Identifier),
 		('a.b0', 2, TokenClasses.Identifier),
 		('a + 0', 2, TokenClasses.Symbol),
@@ -75,6 +77,11 @@ class TestTokenizer(TestCase):
 	@data_provider([
 		('"abc"', 0, (5, '"abc"')),
 		("'abc'", 0, (5, "'abc'")),
+		('"""abc"""', 0, (9, '"""abc"""')),
+		("f'abc'", 0, (6, "f'abc'")),
+		('r"abc"', 0, (6, 'r"abc"')),
+		('r"""abc"""', 0, (10, 'r"""abc"""')),
+		('"a\nbc"', 0, (6, '"a\nbc"')),  # FIXME 文法的にNG
 	])
 	def test_parse_quote(self, source: str, begin: int, expected: tuple[int, str]) -> None:
 		parser = Tokenizer()

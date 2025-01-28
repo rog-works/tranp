@@ -31,7 +31,7 @@ class TokenDefinition:
 		self.white_space = ' \t\n\r'
 		self.comment = [{'open': '#', 'close': '\n'}]
 		self.number = '0123456789.'
-		self.quote = [{'open': f'{prefix}{quote}', 'close': quote} for prefix in ['', 'r', 'f'] for quote in ["'", '"']]
+		self.quote = [{'open': f'{prefix}{quote}', 'close': quote} for prefix in ['', 'r', 'f'] for quote in ['"""', "'", '"']]
 		self.identifier = '_0123456789abcdefghijklmnopqrstuABCDEFGHIJKLMNOPQRSTU'
 		self.symbol = {
 			'single': ''.join(symbol for symbol in symbols.values()),

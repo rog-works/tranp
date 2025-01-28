@@ -1,10 +1,28 @@
 from unittest import TestCase
 
-from rogw.tranp.implements.syntax.tranp.tokenizer import TokenParser, TokenParser2
+from rogw.tranp.implements.syntax.tranp.tokenizer import TokenClasses, TokenParser, TokenParser2
 from rogw.tranp.test.helper import data_provider
 
 
 class TestTokenParser2(TestCase):
+	@data_provider([
+		(' abc', 0, TokenClasses.WhiteSpace),
+		('a\tbc', 1, TokenClasses.WhiteSpace),
+		('a\tb\n', 3, TokenClasses.WhiteSpace),
+		('a # bc', 2, TokenClasses.Comment),
+		('0.0', 0, TokenClasses.Number),
+		('"abc"', 0, TokenClasses.Quote),
+		("'abc'", 0, TokenClasses.Quote),
+		('_a.b', 0, TokenClasses.Identifier),
+		('a.b0', 2, TokenClasses.Identifier),
+		('a + 0', 2, TokenClasses.Symbol),
+		('a / 1', 2, TokenClasses.Symbol),
+	])
+	def test_analyze_class(self, source: str, begin: int, expected: TokenClasses) -> None:
+		parser = TokenParser2()
+		actual = parser.analyze_class(source, begin)
+		self.assertEqual(expected, actual)
+
 	@data_provider([
 		(' abc', 0, (1, ' ')),
 		('abc ', 3, (4, ' ')),
@@ -19,8 +37,6 @@ class TestTokenParser2(TestCase):
 	@data_provider([
 		('a # bc', 2, (6, '# bc')),
 		('a # bc\n', 2, (7, '# bc\n')),
-		('a """bc""" d', 2, (10, '"""bc"""')),
-		('a """b\nc""" d', 2, (11, '"""b\nc"""')),
 	])
 	def test_parse_comment(self, source: str, begin: int, expected: tuple[int, str]) -> None:
 		parser = TokenParser2()
@@ -41,7 +57,6 @@ class TestTokenParser2(TestCase):
 	@data_provider([
 		('"abc"', 0, (5, '"abc"')),
 		("'abc'", 0, (5, "'abc'")),
-		('(a./abc/)', 3, (8, '/abc/')),
 	])
 	def test_parse_quote(self, source: str, begin: int, expected: tuple[int, str]) -> None:
 		parser = TokenParser2()

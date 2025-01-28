@@ -7,6 +7,7 @@ from typing import override
 
 
 class TokenClasses(Enum):
+	"""トークン種別"""
 	WhiteSpace = 'white_space'
 	Comment = 'comment'
 	Number = 'number'
@@ -16,41 +17,54 @@ class TokenClasses(Enum):
 
 
 class TokenDefinition:
+	"""トークン定義"""
+
 	def __init__(self) -> None:
-		self.white_space = ' \t\n\r'
-		self.comment = {
-			'line': {'open': '#', 'close': '\n'},
-			'block': {'open': '"""', 'close': '"""'},
+		"""インスタンスを生成"""
+		symbols = {
+			'other': '@#$',  # '_' は識別子なので除外
+			'delimiter': '.:;',
+			'operator': '=-+*/%&|^~!?',
+			'bracket': '(){}<>[]',
+			'quate': '`\\',  # ["'", '"'] は文字列の引用符なので除外
 		}
+		self.white_space = ' \t\n\r'
+		self.comment = [{'open': '#', 'close': '\n'}]
 		self.number = '0123456789.'
-		self.quote = '\'"/'
+		self.quote = '\'"'
 		self.identifier = '_0123456789abcdefghijklmnopqrstuABCDEFGHIJKLMNOPQRSTU'
 		self.symbol = {
-			'categolized': {
-				'other': ['@', '#', '$'],  # '_' は識別子なので除外
-				'delimiter': ['.', ':', ';'],
-				'operator': ['=', '-', '+', '*', '/', '%', '&', '|', '^', '~', '!', '?'],
-				'bracket': ['(', ')', '{', '}', '<', '>', '[', ']'],
-				'quate': ['`', '\\'],  # ["'", '"'] は文字列の引用符なので除外
-				'pair': ['-=', '+=', '*=', '/=', '&=', '|=', '==', '**'],
-			},
-			'single': '@#$.:;=-+*/%&|^~!?(){}<>[]`\\',
-			'pair': ['-=', '+=', '*=', '/=', '&=', '|=', '==', '**', ':='],
+			'single': ''.join(symbol for symbol in symbols.values()),
+			'pair': ['-=', '+=', '*=', '/=', '%=', '&=', '|=', '^=', '==', '**', ':='],
 		}
 
 
 class ITokenizer(metaclass=ABCMeta):
+	"""トークンパーサー(インターフェイス)"""
+
 	@abstractmethod
 	def parse(self, source: str) -> list[str]:
+		"""ソースコードを解析し、トークンに分割
+
+		Args:
+			source: ソースコード
+		Returns:
+			トークンリスト
+		"""
 		...
 
 
 class TokenParser2(ITokenizer):
 	"""トークンパーサー"""
 
-	def __init__(self) -> None:
-		self.definition = TokenDefinition()
-		self.invokers = {
+	def __init__(self, definition: TokenDefinition | None = None) -> None:
+		"""インスタンスを生成
+
+		Args:
+			definition: トークン定義 (defaul = None)
+		"""
+		self.definition = definition if definition else TokenDefinition()
+		self.parsers = {
 			TokenClasses.WhiteSpace: self.parse_white_spece,
 			TokenClasses.Comment: self.parse_comment,
 			TokenClasses.Number: self.parse_number,
@@ -61,21 +75,38 @@ class TokenParser2(ITokenizer):
 
 	@override
 	def parse(self, source: str) -> list[str]:
+		"""ソースコードを解析し、トークンに分割
+
+		Args:
+			source: ソースコード
+		Returns:
+			トークンリスト
+		"""
 		index = 0
 		tokens: list[str] = []
 		while index < len(source):
-			invoker = self.invokers[self.analyze(source, index)]
-			end, token = invoker(source, index)
+			parser = self.parsers[self.analyze_class(source, index)]
+			end, token = parser(source, index)
 			index = end
 			tokens.append(token)
 
 		return tokens
 
-	def analyze(self, source: str, begin: int) -> TokenClasses:
+	def analyze_class(self, source: str, begin: int) -> TokenClasses:
+		"""トークン種別を解析
+
+		Args:
+			source: ソースコード
+			begin: 読み取り開始位置
+		Returns:
+			トークン種別
+		Note:
+			XXX 先頭1文字で解決できると言う前提で処理
+		"""
 		c = source[begin]
 		if c in self.definition.white_space:
 			return TokenClasses.WhiteSpace
-		elif c == self.definition.comment['line']['open'][0] or c == self.definition.comment['block']['open'][0]:
+		elif len([True for comment_pair in self.definition.comment if c == comment_pair['open'][0]]) > 0:
 			return TokenClasses.Comment
 		elif c in self.definition.number:
 			return TokenClasses.Number
@@ -99,7 +130,7 @@ class TokenParser2(ITokenizer):
 		return end, source[begin:end]
 
 	def parse_comment(self, source: str, begin: int) -> tuple[int, str]:
-		found_pair = [comment_pair for comment_pair in self.definition.comment.values() if source[begin] == comment_pair['open'][0]]
+		found_pair = [comment_pair for comment_pair in self.definition.comment if source[begin] == comment_pair['open'][0]]
 		comment_pair = found_pair[0]
 		end = source.find(comment_pair['close'], begin + len(comment_pair))
 		if begin < end:
@@ -150,11 +181,11 @@ class TokenParser2(ITokenizer):
 
 
 class TokenParser(ITokenizer):
-	"""トークンパーサー"""
+	"""トークンパーサー(Python専用)"""
 
 	@override
 	def parse(self, source: str) -> list[str]:
-		"""ソースコードを解析し、トークンに分解
+		"""ソースコードを解析し、トークンに分割
 
 		Args:
 			source: ソースコード

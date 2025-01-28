@@ -156,10 +156,25 @@ class ExpandRules(Enum):
 	# Always = '_' XXX 仕組み的に対応が困難なため一旦非対応
 
 
+class ASTToken(NamedTuple):
+	"""AST(トークン)"""
+
+	name: str
+	value: str
+
+	@classmethod
+	def empty(cls) -> 'ASTToken':
+		return cls('__empty__', '')
+
+
+class ASTTree(NamedTuple):
+	"""AST(ツリー)"""
+
+	name: str
+	children: list['ASTToken | ASTTree']
+
+
 ASTEntry: TypeAlias = 'ASTToken | ASTTree'
-ASTToken: TypeAlias = tuple[str, str]
-ASTTree: TypeAlias = tuple[str, list['ASTToken | ASTTree']]
-EmptyToken = ('__empty__', '')
 
 
 class Step(NamedTuple):
@@ -231,7 +246,7 @@ class SyntaxParser:
 		if symbol[0] == ExpandRules.OneTime.value and len(children) == 1:
 			return children[0]
 
-		return symbol, children
+		return ASTTree(symbol, children)
 
 	def _match_patterns(self, tokens: list[str], end: int, patterns: Patterns) -> tuple[Step, list[ASTEntry]]:
 		if patterns.op == Operators.Or:
@@ -299,15 +314,15 @@ class SyntaxParser:
 	def match_non_terminal(self, tokens: list[str], end: int, symbol: str) -> tuple[Step, ASTEntry]:
 		pattern = as_a(Pattern, self.rules[symbol])
 		if self._match_token(tokens[end], pattern):
-			return Step.ok(1), (symbol, tokens[end])
+			return Step.ok(1), ASTToken(symbol, tokens[end])
 
-		return Step.ng(), EmptyToken
+		return Step.ng(), ASTToken.empty()
 	
 	def _match_terminal(self, tokens: list[str], end: int, pattern: Pattern) -> tuple[Step, ASTEntry]:
 		if self._match_token(tokens[end], pattern):
-			return Step.ok(1), EmptyToken
+			return Step.ok(1), ASTToken.empty()
 
-		return Step.ng(), EmptyToken
+		return Step.ng(), ASTToken.empty()
 
 	def _match_token(self, token: str, pattern: Pattern) -> bool:
 		if pattern.comp == Comps.Regexp:

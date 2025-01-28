@@ -9,7 +9,6 @@ from typing import override
 class TokenClasses(Enum):
 	WhiteSpace = 'white_space'
 	Comment = 'comment'
-	Boolean = 'boolean'
 	Number = 'number'
 	Quote = 'quote'
 	Identifier = 'identifier'
@@ -19,20 +18,23 @@ class TokenClasses(Enum):
 class TokenDefinition:
 	def __init__(self) -> None:
 		self.white_space = ' \t\n\r'
-		self.comment = [{'open': '#', 'close': '\n'}, {'open': '"""', 'close': '"""'}]
+		self.comment = {
+			'line': {'open': '#', 'close': '\n'},
+			'block': {'open': '"""', 'close': '"""'},
+		}
 		self.number = '0123456789.'
 		self.quote = '\'"/'
 		self.identifier = '_0123456789abcdefghijklmnopqrstuABCDEFGHIJKLMNOPQRSTU'
 		self.symbol = {
 			'categolized': {
-				'other': ['@', '#', '$', '_'],
+				'other': ['@', '#', '$'],  # '_' は識別子なので除外
 				'delimiter': ['.', ':', ';'],
 				'operator': ['=', '-', '+', '*', '/', '%', '&', '|', '^', '~', '!', '?'],
 				'bracket': ['(', ')', '{', '}', '<', '>', '[', ']'],
-				'quate': ['`' '"', "'", '\\'],
+				'quate': ['`', '\\'],  # ["'", '"'] は文字列の引用符なので除外
 				'pair': ['-=', '+=', '*=', '/=', '&=', '|=', '==', '**'],
 			},
-			'single': '@#$_.:;=-+*/%&|^~!?(){}<>[]`"' + "'" + '\\',
+			'single': '@#$.:;=-+*/%&|^~!?(){}<>[]`\\',
 			'pair': ['-=', '+=', '*=', '/=', '&=', '|=', '==', '**', ':='],
 		}
 
@@ -73,7 +75,7 @@ class TokenParser2(ITokenizer):
 		c = source[begin]
 		if c in self.definition.white_space:
 			return TokenClasses.WhiteSpace
-		elif len([True for comment_pair in self.definition.comment if c == comment_pair['open'][0]]) > 0:
+		elif c == self.definition.comment['line']['open'][0] or c == self.definition.comment['block']['open'][0]:
 			return TokenClasses.Comment
 		elif c in self.definition.number:
 			return TokenClasses.Number
@@ -97,9 +99,9 @@ class TokenParser2(ITokenizer):
 		return end, source[begin:end]
 
 	def parse_comment(self, source: str, begin: int) -> tuple[int, str]:
-		found_pair = [comment_pair for comment_pair in self.definition.comment if source.startswith(comment_pair['open'])]
+		found_pair = [comment_pair for comment_pair in self.definition.comment.values() if source[begin] == comment_pair['open'][0]]
 		comment_pair = found_pair[0]
-		end = begin + len(comment_pair)
+		end = source.find(comment_pair['close'], begin + len(comment_pair))
 		if begin < end:
 			end += len(comment_pair['close'])
 			return end, source[begin:end]
@@ -141,8 +143,8 @@ class TokenParser2(ITokenizer):
 		return end, source[begin:end]
 
 	def parse_symbol(self, source: str, begin: int) -> tuple[int, str]:
-		if begin + 1 < len(source) and source[begin:begin + 1] in self.definition.symbol['pair']:
-			return begin + 2, source[begin:begin + 1]
+		if begin + 2 < len(source) and source[begin:begin + 2] in self.definition.symbol['pair']:
+			return begin + 2, source[begin:begin + 2]
 		else:
 			return begin + 1, source[begin]
 

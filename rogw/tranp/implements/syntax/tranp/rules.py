@@ -16,7 +16,7 @@ def python_rules() -> dict[str, PatternEntry]:
 		# entrypoint
 		'entry': Pattern.S('?exp'),
 		# non terminal
-		'bool': Pattern.T('/false|true/'),
+		'bool': Pattern.T('/False|True/'),
 		'int': Pattern.T('/[1-9][0-9]*/'),
 		'float': Pattern.T('/(0|[1-9][0-9]*)[.][0-9]+/'),
 		'str': Pattern.T('/\'[^\']*\'|"[^"]*"/'),

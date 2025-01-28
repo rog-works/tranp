@@ -1,4 +1,5 @@
 from rogw.tranp.implements.syntax.tranp.parser import Operators, Pattern, Patterns, PatternEntry, Repeators
+from rogw.tranp.implements.syntax.tranp.tokenizer import TokenDefinition, Tokenizer
 
 
 def python_rules() -> dict[str, PatternEntry]:
@@ -70,6 +71,18 @@ def grammar_rules() -> dict[str, PatternEntry]:
 		'string': Pattern.T('/"[^"]+"/'),
 		'regexp': Pattern.T('/\\/[^\\/]+\\//'),
 	}
+
+
+def grammar_tokenizer() -> Tokenizer:
+	"""トークンパーサーを生成(Grammar用)
+
+	Returns:
+		トークンパーサー
+	"""
+	definition = TokenDefinition()
+	definition.quote = [TokenDefinition.build_quote_pair(c, c) for c in ['/', '"']]
+	return Tokenizer(definition)
+
 
 """
 Note:

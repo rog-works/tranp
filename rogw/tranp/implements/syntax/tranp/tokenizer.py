@@ -88,7 +88,8 @@ class Tokenizer(ITokenizer):
 			parser = self.parsers[self.analyze_class(source, index)]
 			end, token = parser(source, index)
 			index = end
-			tokens.append(token)
+			if token:
+				tokens.append(token)
 
 		return tokens
 
@@ -135,7 +136,7 @@ class Tokenizer(ITokenizer):
 
 			end += 1
 
-		return end, source[begin:end]
+		return end, ''
 
 	def parse_comment(self, source: str, begin: int) -> tuple[int, str]:
 		"""トークンを解析(コメント)

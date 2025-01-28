@@ -9,6 +9,7 @@ class TestTokenizer(TestCase):
 		('abc', ['abc']),
 		('a.b.c', ['a', '.', 'b', '.', 'c']),
 		('a.b("c").d', ['a', '.', 'b', '(', '"c"', ')', '.', 'd']),
+		('a * 0 - True', ['a', '*', '0', '-', 'True']),
 	])
 	def test_parse(self, source: str, expected: list[str]) -> None:
 		parser = Tokenizer()
@@ -34,10 +35,10 @@ class TestTokenizer(TestCase):
 		self.assertEqual(expected, actual)
 
 	@data_provider([
-		(' abc', 0, (1, ' ')),
-		('abc ', 3, (4, ' ')),
-		('ab c', 2, (3, ' ')),
-		('a \t\nb\nc', 1, (4, ' \t\n')),
+		(' abc', 0, (1, '')),
+		('abc ', 3, (4, '')),
+		('ab c', 2, (3, '')),
+		('a \t\nb\nc', 1, (4, '')),
 	])
 	def test_parse_white_space(self, source: str, begin: int, expected: tuple[int, str]) -> None:
 		parser = Tokenizer()

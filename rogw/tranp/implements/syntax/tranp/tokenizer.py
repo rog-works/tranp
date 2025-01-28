@@ -120,6 +120,14 @@ class TokenParser2(ITokenizer):
 		assert False, f'Never. Unexpected begining character. c: {c}'
 
 	def parse_white_spece(self, source: str, begin: int) -> tuple[int, str]:
+		"""トークンを解析(空白)
+
+		Args:
+			source: ソースコード
+			begin: 読み取り開始位置
+		Returns:
+			(次の読み取り位置, トークン)
+		"""
 		end = begin
 		while end < len(source):
 			if source[end] not in self.definition.white_space:
@@ -130,6 +138,14 @@ class TokenParser2(ITokenizer):
 		return end, source[begin:end]
 
 	def parse_comment(self, source: str, begin: int) -> tuple[int, str]:
+		"""トークンを解析(コメント)
+
+		Args:
+			source: ソースコード
+			begin: 読み取り開始位置
+		Returns:
+			(次の読み取り位置, トークン)
+		"""
 		found_pair = [comment_pair for comment_pair in self.definition.comment if source[begin] == comment_pair['open'][0]]
 		comment_pair = found_pair[0]
 		end = source.find(comment_pair['close'], begin + len(comment_pair))
@@ -140,6 +156,14 @@ class TokenParser2(ITokenizer):
 			return len(source), source[begin:]
 
 	def parse_number(self, source: str, begin: int) -> tuple[int, str]:
+		"""トークンを解析(数字)
+
+		Args:
+			source: ソースコード
+			begin: 読み取り開始位置
+		Returns:
+			(次の読み取り位置, トークン)
+		"""
 		end = begin
 		while end < len(source):
 			if source[end] not in self.definition.number:
@@ -150,6 +174,14 @@ class TokenParser2(ITokenizer):
 		return end, source[begin:end]
 
 	def parse_quote(self, source: str, begin: int) -> tuple[int, str]:
+		"""トークンを解析(引用符)
+
+		Args:
+			source: ソースコード
+			begin: 読み取り開始位置
+		Returns:
+			(次の読み取り位置, トークン)
+		"""
 		quote = source[begin]
 		end = begin + 1
 		while end < len(source):
@@ -164,6 +196,14 @@ class TokenParser2(ITokenizer):
 		return end, source[begin:end]
 
 	def parse_identifier(self, source: str, begin: int) -> tuple[int, str]:
+		"""トークンを解析(識別子)
+
+		Args:
+			source: ソースコード
+			begin: 読み取り開始位置
+		Returns:
+			(次の読み取り位置, トークン)
+		"""
 		end = begin
 		while end < len(source):
 			if source[end] not in self.definition.identifier:
@@ -174,6 +214,14 @@ class TokenParser2(ITokenizer):
 		return end, source[begin:end]
 
 	def parse_symbol(self, source: str, begin: int) -> tuple[int, str]:
+		"""トークンを解析(記号)
+
+		Args:
+			source: ソースコード
+			begin: 読み取り開始位置
+		Returns:
+			(次の読み取り位置, トークン)
+		"""
 		if begin + 2 < len(source) and source[begin:begin + 2] in self.definition.symbol['pair']:
 			return begin + 2, source[begin:begin + 2]
 		else:

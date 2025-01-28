@@ -7,9 +7,14 @@ from rogw.tranp.test.helper import data_provider
 class TestTokenizer(TestCase):
 	@data_provider([
 		('abc', ['abc']),
-		('a.b.c', ['a', '.', 'b', '.', 'c']),
 		('a.b("c").d', ['a', '.', 'b', '(', '"c"', ')', '.', 'd']),
 		('a * 0 - True', ['a', '*', '0', '-', 'True']),
+		('?a _b', ['?', 'a', '_b']),
+		('a := b', ['a', ':=', 'b']),
+		('a += b', ['a', '+=', 'b']),
+		('**a', ['**', 'a']),
+		('***a', ['**', '*', 'a']),
+		# ("r'abc'", ["r'abc'"]), FIXME impl
 	])
 	def test_parse(self, source: str, expected: list[str]) -> None:
 		parser = Tokenizer()
@@ -108,13 +113,15 @@ class TestTokenizer(TestCase):
 
 class TestPyTokenizer(TestCase):
 	@data_provider([
-		('a.b.c', ['a', '.', 'b', '.', 'c']),
+		('abc', ['abc']),
+		('a.b("c").d', ['a', '.', 'b', '(', '"c"', ')', '.', 'd']),
+		('a * 0 - True', ['a', '*', '0', '-', 'True']),
 		('?a _b', ['?', 'a', '_b']),
 		('a := b', ['a', ':=', 'b']),
 		('a += b', ['a', '+=', 'b']),
 		('**a', ['**', 'a']),
 		('***a', ['**', '*', 'a']),
-		("r'[a-zA-Z_][0-9a-zA-Z_]*'", ["r'[a-zA-Z_][0-9a-zA-Z_]*'"]),
+		("r'abc'", ["r'abc'"]),
 	])
 	def test_parse(self, source: str, expected: list[str]) -> None:
 		actual = PyTokenizer().parse(source)

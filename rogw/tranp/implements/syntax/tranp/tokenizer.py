@@ -54,7 +54,7 @@ class ITokenizer(metaclass=ABCMeta):
 		...
 
 
-class TokenParser2(ITokenizer):
+class Tokenizer(ITokenizer):
 	"""トークンパーサー"""
 
 	def __init__(self, definition: TokenDefinition | None = None) -> None:
@@ -228,7 +228,7 @@ class TokenParser2(ITokenizer):
 			return begin + 1, source[begin]
 
 
-class TokenParser(ITokenizer):
+class PyTokenizer(ITokenizer):
 	"""トークンパーサー(Python専用)"""
 
 	@override

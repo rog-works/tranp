@@ -1,17 +1,17 @@
 from unittest import TestCase
 
-from rogw.tranp.implements.syntax.tranp.tokenizer import TokenClasses, TokenParser, TokenParser2
+from rogw.tranp.implements.syntax.tranp.tokenizer import TokenClasses, PyTokenizer, Tokenizer
 from rogw.tranp.test.helper import data_provider
 
 
-class TestTokenParser2(TestCase):
+class TestTokenizer(TestCase):
 	@data_provider([
 		('abc', ['abc']),
 		('a.b.c', ['a', '.', 'b', '.', 'c']),
 		('a.b("c").d', ['a', '.', 'b', '(', '"c"', ')', '.', 'd']),
 	])
 	def test_parse(self, source: str, expected: list[str]) -> None:
-		parser = TokenParser2()
+		parser = Tokenizer()
 		actual = parser.parse(source)
 		self.assertEqual(expected, actual)
 
@@ -29,7 +29,7 @@ class TestTokenParser2(TestCase):
 		('a / 1', 2, TokenClasses.Symbol),
 	])
 	def test_analyze_class(self, source: str, begin: int, expected: TokenClasses) -> None:
-		parser = TokenParser2()
+		parser = Tokenizer()
 		actual = parser.analyze_class(source, begin)
 		self.assertEqual(expected, actual)
 
@@ -40,7 +40,7 @@ class TestTokenParser2(TestCase):
 		('a \t\nb\nc', 1, (4, ' \t\n')),
 	])
 	def test_parse_white_space(self, source: str, begin: int, expected: tuple[int, str]) -> None:
-		parser = TokenParser2()
+		parser = Tokenizer()
 		actual = parser.parse_white_spece(source, begin)
 		self.assertEqual(expected, actual)
 
@@ -49,7 +49,7 @@ class TestTokenParser2(TestCase):
 		('a # bc\n', 2, (7, '# bc\n')),
 	])
 	def test_parse_comment(self, source: str, begin: int, expected: tuple[int, str]) -> None:
-		parser = TokenParser2()
+		parser = Tokenizer()
 		actual = parser.parse_comment(source, begin)
 		self.assertEqual(expected, actual)
 
@@ -60,7 +60,7 @@ class TestTokenParser2(TestCase):
 		('1 + 23 + 4', 4, (6, '23')),
 	])
 	def test_parse_number(self, source: str, begin: int, expected: tuple[int, str]) -> None:
-		parser = TokenParser2()
+		parser = Tokenizer()
 		actual = parser.parse_number(source, begin)
 		self.assertEqual(expected, actual)
 
@@ -69,7 +69,7 @@ class TestTokenParser2(TestCase):
 		("'abc'", 0, (5, "'abc'")),
 	])
 	def test_parse_quote(self, source: str, begin: int, expected: tuple[int, str]) -> None:
-		parser = TokenParser2()
+		parser = Tokenizer()
 		actual = parser.parse_quote(source, begin)
 		self.assertEqual(expected, actual)
 
@@ -82,7 +82,7 @@ class TestTokenParser2(TestCase):
 		('0 + a.b()', 6, (7, 'b')),
 	])
 	def test_parse_identifier(self, source: str, begin: int, expected: tuple[int, str]) -> None:
-		parser = TokenParser2()
+		parser = Tokenizer()
 		actual = parser.parse_identifier(source, begin)
 		self.assertEqual(expected, actual)
 
@@ -100,12 +100,12 @@ class TestTokenParser2(TestCase):
 		('[:b]', 1, (2, ':')),
 	])
 	def test_parse_symbol(self, source: str, begin: int, expected: tuple[int, str]) -> None:
-		parser = TokenParser2()
+		parser = Tokenizer()
 		actual = parser.parse_symbol(source, begin)
 		self.assertEqual(expected, actual)
 
 
-class TestTokenParser(TestCase):
+class TestPyTokenizer(TestCase):
 	@data_provider([
 		('a.b.c', ['a', '.', 'b', '.', 'c']),
 		('?a _b', ['?', 'a', '_b']),
@@ -116,5 +116,5 @@ class TestTokenParser(TestCase):
 		("r'[a-zA-Z_][0-9a-zA-Z_]*'", ["r'[a-zA-Z_][0-9a-zA-Z_]*'"]),
 	])
 	def test_parse(self, source: str, expected: list[str]) -> None:
-		actual = TokenParser().parse(source)
+		actual = PyTokenizer().parse(source)
 		self.assertEqual(expected, [token for token in actual])

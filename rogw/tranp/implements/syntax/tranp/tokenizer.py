@@ -3,7 +3,7 @@ from enum import Enum
 from io import BytesIO
 import token as TokenTypes
 from tokenize import tokenize
-from typing import override
+from typing import TypedDict, override
 
 
 class TokenClasses(Enum):
@@ -14,6 +14,9 @@ class TokenClasses(Enum):
 	Quote = 'quote'
 	Identifier = 'identifier'
 	Symbol = 'symbol'
+
+
+QuotePair = TypedDict('QuotePair', {'open': str, 'close': str})
 
 
 class TokenDefinition:
@@ -29,14 +32,26 @@ class TokenDefinition:
 			'quate': '`\\',  # ["'", '"'] は文字列の引用符なので除外
 		}
 		self.white_space = ' \t\n\r'
-		self.comment = [{'open': '#', 'close': '\n'}]
+		self.comment = [self.build_quote_pair('#', '\n')]
 		self.number = '0123456789.'
-		self.quote = [{'open': f'{prefix}{quote}', 'close': quote} for prefix in ['', 'r', 'f'] for quote in ['"""', "'", '"']]
+		self.quote = [self.build_quote_pair(f'{prefix}{quote}', quote) for prefix in ['', 'r', 'f'] for quote in ['"""', "'", '"']]
 		self.identifier = '_0123456789abcdefghijklmnopqrstuABCDEFGHIJKLMNOPQRSTU'
 		self.symbol = {
 			'single': ''.join(symbol for symbol in symbols.values()),
 			'pair': ['-=', '+=', '*=', '/=', '%=', '&=', '|=', '^=', '==', '**', ':='],
 		}
+
+	@classmethod
+	def build_quote_pair(cls, open: str, close: str) -> QuotePair:
+		"""開始と終了のペアを生成
+
+		Args:
+			open: 開始の文字列
+			close: 終了の文字列
+		Returns:
+			開始と終了のペア
+		"""
+		return {'open': open, 'close': close}
 
 
 class ITokenizer(metaclass=ABCMeta):
@@ -149,7 +164,7 @@ class Tokenizer(ITokenizer):
 		Returns:
 			True = 一致
 		"""
-		return source[begin] in self.definition.number
+		return source[begin] in self._definition.number
 
 	def analyze_quote(self, source: str, begin: int) -> bool:
 		"""トークン種別を解析(引用符)

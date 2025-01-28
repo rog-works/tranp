@@ -131,7 +131,25 @@ class TestPyTokenizer(TestCase):
 		('**a', ['**', 'a']),
 		('***a', ['**', '*', 'a']),
 		("r + r'abc'", ['r', '+', "r'abc'"]),
+		(
+			'\n'.join([
+				'a = b',
+				'	b = c',
+				'',
+				'	c = d',
+				'd in e',
+			]),
+			[
+				'a', '=', 'b', '\n',
+				'\t',  # INDENT
+					'b', '=', 'c', '\n',
+					'\n',  # NL?
+					'c', '=', 'd', '\n',
+				'',  # DEDENT
+				'd', 'in', 'e',
+			]
+		),
 	])
 	def test_parse(self, source: str, expected: list[str]) -> None:
 		actual = PyTokenizer().parse(source)
-		self.assertEqual(expected, [token for token in actual])
+		self.assertEqual(expected, actual)

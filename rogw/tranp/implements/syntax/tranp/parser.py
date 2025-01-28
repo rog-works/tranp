@@ -164,6 +164,7 @@ class ASTToken(NamedTuple):
 
 	@classmethod
 	def empty(cls) -> 'ASTToken':
+		"""Returns: 空を表すインスタンス"""
 		return cls('__empty__', '')
 
 
@@ -212,6 +213,7 @@ class SyntaxParser:
 
 		Args:
 			rules: ルールリスト
+			tokenizer: トークンパーサー (default = None)
 		"""
 		self.rules = rules
 		self.tokenizer = tokenizer if tokenizer else PyTokenizer()
@@ -223,12 +225,21 @@ class SyntaxParser:
 			source: ソースコード
 			entry: エントリーポイントのシンボル
 		Returns:
-			AST
+			ASTエントリー XXX 要件的にほぼツリーであることが確定
 		"""
 		tokens = self.tokenizer.parse(source)
 		return self.match(tokens, len(tokens) - 1, entry)[1]
 
 	def match(self, tokens: list[str], end: int, symbol: str) -> tuple[Step, ASTEntry]:
+		"""パターン(シンボル参照)を検証し、ASTエントリーを生成
+
+		Args:
+			tokens: トークンリスト
+			end: 検索位置
+			symbol: シンボル
+		Returns:
+			(ステップ, ASTエントリー)
+		"""
 		pattern = self.rules[symbol]
 		if isinstance(pattern, Patterns) and pattern.rep == Repeators.NoRepeat:
 			step, children = self._match_patterns(tokens, end, pattern)
@@ -243,18 +254,48 @@ class SyntaxParser:
 			return self.match_non_terminal(tokens, end, symbol)
 
 	def _expand_entry(self, symbol: str, children: list[ASTEntry]) -> ASTEntry:
+		"""自身の子として生成されたASTエントリーを上位のASTツリーに展開
+
+		Args:
+			symbol: シンボル
+			children: 配下要素
+		Returns:
+			子のASTエントリー
+		Note:
+			XXX 自身と子を単純に入れ替えると言う実装のため、複数の子を上位のツリーに展開できない
+		"""
 		if symbol[0] == ExpandRules.OneTime.value and len(children) == 1:
 			return children[0]
 
 		return ASTTree(symbol, children)
 
 	def _match_patterns(self, tokens: list[str], end: int, patterns: Patterns) -> tuple[Step, list[ASTEntry]]:
+		"""パターングループを検証し、子のASTエントリーを生成
+
+		Args:
+			tokens: トークンリスト
+			end: 検索位置
+			patterns: マッチングパターングループ
+		Returns:
+			(ステップ, ASTエントリーリスト)
+		Note:
+			このメソッドではパターングループがリピートか否かは考慮せず、比較演算の振り分けのみ行う
+		"""
 		if patterns.op == Operators.Or:
 			return self._match_patterns_or(tokens, end, patterns)
 		else:
 			return self._match_patterns_and(tokens, end, patterns)
 
 	def _match_patterns_or(self, tokens: list[str], end: int, patterns: Patterns) -> tuple[Step, list[ASTEntry]]:
+		"""パターングループ(OR)を検証し、子のASTエントリーを生成
+
+		Args:
+			tokens: トークンリスト
+			end: 検索位置
+			patterns: マッチングパターングループ
+		Returns:
+			(ステップ, ASTエントリーリスト)
+		"""
 		for pattern in patterns:
 			in_step, in_children = self._match_pattern_internal(tokens, end, pattern)
 			if in_step.steping:
@@ -263,6 +304,15 @@ class SyntaxParser:
 		return Step.ng(), []
 
 	def _match_patterns_and(self, tokens: list[str], end: int, patterns: Patterns) -> tuple[Step, list[ASTEntry]]:
+		"""パターングループ(AND)を検証し、子のASTエントリーを生成
+
+		Args:
+			tokens: トークンリスト
+			end: 検索位置
+			patterns: マッチングパターングループ
+		Returns:
+			(ステップ, ASTエントリーリスト)
+		"""
 		steps = 0
 		children: list[ASTEntry] = []
 		for pattern in reversed(patterns):
@@ -276,6 +326,17 @@ class SyntaxParser:
 		return Step.ok(steps), list(reversed(children))
 
 	def _match_pattern_internal(self, tokens: list[str], end: int, pattern: PatternEntry) -> tuple[Step, list[ASTEntry]]:
+		"""パターン(イテレーション)を検証し、子のASTエントリーを生成
+
+		Args:
+			tokens: トークンリスト
+			end: 検索位置
+			patterns: マッチングパターングループ
+		Returns:
+			(ステップ, ASTエントリーリスト)
+		Note:
+			このメソッドはパターングループ内のイテレーションにのみ利用
+		"""
 		if isinstance(pattern, Patterns) and pattern.rep == Repeators.NoRepeat:
 			return self._match_patterns(tokens, end, pattern)
 		elif isinstance(pattern, Patterns):
@@ -288,6 +349,17 @@ class SyntaxParser:
 			return step, []
 
 	def _match_patterns_repeat(self, tokens: list[str], end: int, patterns: Patterns) -> tuple[Step, list[ASTEntry]]:
+		"""パターングループ(リピート)を検証し、子のASTエントリーを生成
+
+		Args:
+			tokens: トークンリスト
+			end: 検索位置
+			patterns: マッチングパターングループ
+		Returns:
+			(ステップ, ASTエントリーリスト)
+		Note:
+			このメソッドで扱うパターングループは、必ずリピートが有効でなければならない FIXME 検証を追加
+		"""
 		found = 0
 		steps = 0
 		children: list[ASTEntry] = []
@@ -311,20 +383,46 @@ class SyntaxParser:
 
 		return Step.ok(steps), list(reversed(children))
 
-	def match_non_terminal(self, tokens: list[str], end: int, symbol: str) -> tuple[Step, ASTEntry]:
+	def match_non_terminal(self, tokens: list[str], end: int, symbol: str) -> tuple[Step, ASTToken]:
+		"""非終端要素を検証し、ASTトークンを生成
+
+		Args:
+			tokens: トークンリスト
+			end: 検索位置
+			pattern: マッチングパターン
+		Returns:
+			(ステップ, ASTトークン)
+		"""
 		pattern = as_a(Pattern, self.rules[symbol])
 		if self._match_token(tokens[end], pattern):
 			return Step.ok(1), ASTToken(symbol, tokens[end])
 
 		return Step.ng(), ASTToken.empty()
 	
-	def _match_terminal(self, tokens: list[str], end: int, pattern: Pattern) -> tuple[Step, ASTEntry]:
+	def _match_terminal(self, tokens: list[str], end: int, pattern: Pattern) -> tuple[Step, ASTToken]:
+		"""終端要素を検証し、ASTトークンを生成
+
+		Args:
+			tokens: トークンリスト
+			end: 検索位置
+			pattern: マッチングパターン
+		Returns:
+			(ステップ, ASTトークン)
+		"""
 		if self._match_token(tokens[end], pattern):
 			return Step.ok(1), ASTToken.empty()
 
 		return Step.ng(), ASTToken.empty()
 
 	def _match_token(self, token: str, pattern: Pattern) -> bool:
+		"""トークンの検証
+
+		Args:
+			token: トークン
+			pattern: マッチングパターン
+		Returns:
+			True = 一致
+		"""
 		if pattern.comp == Comps.Regexp:
 			return re.fullmatch(pattern.expression[1:-1], token) is not None
 		else:

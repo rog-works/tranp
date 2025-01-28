@@ -14,7 +14,7 @@ class TestTokenizer(TestCase):
 		('a += b', ['a', '+=', 'b']),
 		('**a', ['**', 'a']),
 		('***a', ['**', '*', 'a']),
-		# ("r'abc'", ["r'abc'"]), FIXME impl
+		("r + r'abc'", ['r', '+', "r'abc'"]),
 	])
 	def test_parse(self, source: str, expected: list[str]) -> None:
 		parser = Tokenizer()
@@ -29,6 +29,8 @@ class TestTokenizer(TestCase):
 		('0.0', 0, TokenClasses.Number),
 		('"abc"', 0, TokenClasses.Quote),
 		("'abc'", 0, TokenClasses.Quote),
+		("r'abc'", 0, TokenClasses.Quote),
+		('f"abc"', 0, TokenClasses.Quote),
 		('_a.b', 0, TokenClasses.Identifier),
 		('a.b0', 2, TokenClasses.Identifier),
 		('a + 0', 2, TokenClasses.Symbol),
@@ -121,7 +123,7 @@ class TestPyTokenizer(TestCase):
 		('a += b', ['a', '+=', 'b']),
 		('**a', ['**', 'a']),
 		('***a', ['**', '*', 'a']),
-		("r'abc'", ["r'abc'"]),
+		("r + r'abc'", ['r', '+', "r'abc'"]),
 	])
 	def test_parse(self, source: str, expected: list[str]) -> None:
 		actual = PyTokenizer().parse(source)

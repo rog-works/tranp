@@ -31,7 +31,7 @@ class TokenDefinition:
 		self.white_space = ' \t\n\r'
 		self.comment = [{'open': '#', 'close': '\n'}]
 		self.number = '0123456789.'
-		self.quote = '\'"'
+		self.quote = [{'open': f'{prefix}{quote}', 'close': quote} for prefix in ['', 'r', 'f'] for quote in ["'", '"']]
 		self.identifier = '_0123456789abcdefghijklmnopqrstuABCDEFGHIJKLMNOPQRSTU'
 		self.symbol = {
 			'single': ''.join(symbol for symbol in symbols.values()),
@@ -72,6 +72,14 @@ class Tokenizer(ITokenizer):
 			TokenClasses.Identifier: self.parse_identifier,
 			TokenClasses.Symbol: self.parse_symbol,
 		}
+		self.analyzers = {
+			TokenClasses.WhiteSpace: self.analyze_white_spece,
+			TokenClasses.Comment: self.analyze_comment,
+			TokenClasses.Number: self.analyze_number,
+			TokenClasses.Quote: self.analyze_quote,
+			TokenClasses.Identifier: self.analyze_identifier,
+			TokenClasses.Symbol: self.analyze_symbol,
+		}
 
 	@override
 	def parse(self, source: str) -> list[str]:
@@ -104,21 +112,77 @@ class Tokenizer(ITokenizer):
 		Note:
 			XXX 先頭1文字で解決できると言う前提で処理
 		"""
-		c = source[begin]
-		if c in self.definition.white_space:
-			return TokenClasses.WhiteSpace
-		elif len([True for comment_pair in self.definition.comment if c == comment_pair['open'][0]]) > 0:
-			return TokenClasses.Comment
-		elif c in self.definition.number:
-			return TokenClasses.Number
-		elif c in self.definition.quote:
-			return TokenClasses.Quote
-		elif c in self.definition.identifier:
-			return TokenClasses.Identifier
-		elif c in self.definition.symbol['single']:
-			return TokenClasses.Symbol
+		for token_class, analyzer in self.analyzers.items():
+			if analyzer(source, begin):
+				return token_class
 
-		assert False, f'Never. Unexpected begining character. c: {c}'
+		assert False, f'Never. Unresolved token class. with character: {source[begin]}'
+
+	def analyze_white_spece(self, source: str, begin: int) -> bool:
+		"""トークン種別を解析(空白)
+
+		Args:
+			source: ソースコード
+			begin: 読み取り開始位置
+		Returns:
+			True = 一致
+		"""
+		return source[begin] in self.definition.white_space
+
+	def analyze_comment(self, source: str, begin: int) -> bool:
+		"""トークン種別を解析(コメント)
+
+		Args:
+			source: ソースコード
+			begin: 読み取り開始位置
+		Returns:
+			True = 一致
+		"""
+		return len([True for pair in self.definition.comment if source.startswith(pair['open'], begin)]) > 0
+
+	def analyze_number(self, source: str, begin: int) -> bool:
+		"""トークン種別を解析(数字)
+
+		Args:
+			source: ソースコード
+			begin: 読み取り開始位置
+		Returns:
+			True = 一致
+		"""
+		return source[begin] in self.definition.number
+
+	def analyze_quote(self, source: str, begin: int) -> bool:
+		"""トークン種別を解析(引用符)
+
+		Args:
+			source: ソースコード
+			begin: 読み取り開始位置
+		Returns:
+			True = 一致
+		"""
+		return len([True for pair in self.definition.quote if source.startswith(pair['open'], begin)]) > 0
+
+	def analyze_identifier(self, source: str, begin: int) -> bool:
+		"""トークン種別を解析(識別子)
+
+		Args:
+			source: ソースコード
+			begin: 読み取り開始位置
+		Returns:
+			True = 一致
+		"""
+		return source[begin] in self.definition.identifier
+
+	def analyze_symbol(self, source: str, begin: int) -> bool:
+		"""トークン種別を解析(記号)
+
+		Args:
+			source: ソースコード
+			begin: 読み取り開始位置
+		Returns:
+			True = 一致
+		"""
+		return source[begin] in self.definition.symbol['single']
 
 	def parse_white_spece(self, source: str, begin: int) -> tuple[int, str]:
 		"""トークンを解析(空白)
@@ -147,11 +211,11 @@ class Tokenizer(ITokenizer):
 		Returns:
 			(次の読み取り位置, トークン)
 		"""
-		found_pair = [comment_pair for comment_pair in self.definition.comment if source[begin] == comment_pair['open'][0]]
-		comment_pair = found_pair[0]
-		end = source.find(comment_pair['close'], begin + len(comment_pair))
+		found_pair = [pair for pair in self.definition.comment if source.startswith(pair['open'], begin)]
+		pair = found_pair[0]
+		end = source.find(pair['close'], begin + len(pair['open']))
 		if begin < end:
-			end += len(comment_pair['close'])
+			end += len(pair['close'])
 			return end, source[begin:end]
 		else:
 			return len(source), source[begin:]
@@ -183,14 +247,15 @@ class Tokenizer(ITokenizer):
 		Returns:
 			(次の読み取り位置, トークン)
 		"""
-		quote = source[begin]
-		end = begin + 1
+		found_pair = [pair for pair in self.definition.quote if source.startswith(pair['open'], begin)]
+		pair = found_pair[0]
+		end = begin + len(pair['open'])
 		while end < len(source):
-			index = source.find(quote, end)
+			index = source.find(pair['close'], end)
 			if index == -1:
 				break
 
-			end = index + 1
+			end = index + len(pair['close'])
 			if not (end < len(source) and source[end] == '\\'):
 				break
 

@@ -78,8 +78,8 @@ class Tokenizer(ITokenizer):
 		Args:
 			definition: トークン定義 (defaul = None)
 		"""
-		self.definition = definition if definition else TokenDefinition()
-		self.parsers = {
+		self._definition = definition if definition else TokenDefinition()
+		self._parsers = {
 			TokenClasses.WhiteSpace: self.parse_white_spece,
 			TokenClasses.Comment: self.parse_comment,
 			TokenClasses.Number: self.parse_number,
@@ -87,7 +87,7 @@ class Tokenizer(ITokenizer):
 			TokenClasses.Identifier: self.parse_identifier,
 			TokenClasses.Symbol: self.parse_symbol,
 		}
-		self.analyzers = {
+		self._analyzers = {
 			TokenClasses.WhiteSpace: self.analyze_white_spece,
 			TokenClasses.Comment: self.analyze_comment,
 			TokenClasses.Number: self.analyze_number,
@@ -108,7 +108,7 @@ class Tokenizer(ITokenizer):
 		index = 0
 		tokens: list[str] = []
 		while index < len(source):
-			parser = self.parsers[self.analyze_class(source, index)]
+			parser = self._parsers[self.analyze_class(source, index)]
 			end, token = parser(source, index)
 			index = end
 			if token:
@@ -127,7 +127,7 @@ class Tokenizer(ITokenizer):
 		Note:
 			XXX 先頭1文字で解決できると言う前提で処理
 		"""
-		for token_class, analyzer in self.analyzers.items():
+		for token_class, analyzer in self._analyzers.items():
 			if analyzer(source, begin):
 				return token_class
 
@@ -142,7 +142,7 @@ class Tokenizer(ITokenizer):
 		Returns:
 			True = 一致
 		"""
-		return source[begin] in self.definition.white_space
+		return source[begin] in self._definition.white_space
 
 	def analyze_comment(self, source: str, begin: int) -> bool:
 		"""トークン種別を解析(コメント)
@@ -153,7 +153,7 @@ class Tokenizer(ITokenizer):
 		Returns:
 			True = 一致
 		"""
-		return len([True for pair in self.definition.comment if source.startswith(pair['open'], begin)]) > 0
+		return len([True for pair in self._definition.comment if source.startswith(pair['open'], begin)]) > 0
 
 	def analyze_number(self, source: str, begin: int) -> bool:
 		"""トークン種別を解析(数字)
@@ -175,7 +175,7 @@ class Tokenizer(ITokenizer):
 		Returns:
 			True = 一致
 		"""
-		return len([True for pair in self.definition.quote if source.startswith(pair['open'], begin)]) > 0
+		return len([True for pair in self._definition.quote if source.startswith(pair['open'], begin)]) > 0
 
 	def analyze_identifier(self, source: str, begin: int) -> bool:
 		"""トークン種別を解析(識別子)
@@ -186,7 +186,7 @@ class Tokenizer(ITokenizer):
 		Returns:
 			True = 一致
 		"""
-		return source[begin] in self.definition.identifier
+		return source[begin] in self._definition.identifier
 
 	def analyze_symbol(self, source: str, begin: int) -> bool:
 		"""トークン種別を解析(記号)
@@ -197,7 +197,7 @@ class Tokenizer(ITokenizer):
 		Returns:
 			True = 一致
 		"""
-		return source[begin] in self.definition.symbol['single']
+		return source[begin] in self._definition.symbol['single']
 
 	def parse_white_spece(self, source: str, begin: int) -> tuple[int, str]:
 		"""トークンを解析(空白)
@@ -210,7 +210,7 @@ class Tokenizer(ITokenizer):
 		"""
 		end = begin
 		while end < len(source):
-			if source[end] not in self.definition.white_space:
+			if source[end] not in self._definition.white_space:
 				break
 
 			end += 1
@@ -226,7 +226,7 @@ class Tokenizer(ITokenizer):
 		Returns:
 			(次の読み取り位置, トークン)
 		"""
-		found_pair = [pair for pair in self.definition.comment if source.startswith(pair['open'], begin)]
+		found_pair = [pair for pair in self._definition.comment if source.startswith(pair['open'], begin)]
 		pair = found_pair[0]
 		end = source.find(pair['close'], begin + len(pair['open']))
 		if begin < end:
@@ -246,7 +246,7 @@ class Tokenizer(ITokenizer):
 		"""
 		end = begin
 		while end < len(source):
-			if source[end] not in self.definition.number:
+			if source[end] not in self._definition.number:
 				break
 
 			end += 1
@@ -262,7 +262,7 @@ class Tokenizer(ITokenizer):
 		Returns:
 			(次の読み取り位置, トークン)
 		"""
-		found_pair = [pair for pair in self.definition.quote if source.startswith(pair['open'], begin)]
+		found_pair = [pair for pair in self._definition.quote if source.startswith(pair['open'], begin)]
 		pair = found_pair[0]
 		end = begin + len(pair['open'])
 		while end < len(source):
@@ -287,7 +287,7 @@ class Tokenizer(ITokenizer):
 		"""
 		end = begin
 		while end < len(source):
-			if source[end] not in self.definition.identifier:
+			if source[end] not in self._definition.identifier:
 				break
 
 			end += 1
@@ -303,7 +303,7 @@ class Tokenizer(ITokenizer):
 		Returns:
 			(次の読み取り位置, トークン)
 		"""
-		if begin + 2 < len(source) and source[begin:begin + 2] in self.definition.symbol['pair']:
+		if begin + 2 < len(source) and source[begin:begin + 2] in self._definition.symbol['pair']:
 			return begin + 2, source[begin:begin + 2]
 		else:
 			return begin + 1, source[begin]

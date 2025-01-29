@@ -81,7 +81,7 @@ def grammar_tokenizer() -> Tokenizer:
 	"""
 	definition = TokenDefinition()
 	definition.quote = [TokenDefinition.build_quote_pair(c, c) for c in ['/', '"']]
-	return Tokenizer(definition)
+	return Tokenizer(definition=definition)
 
 
 """

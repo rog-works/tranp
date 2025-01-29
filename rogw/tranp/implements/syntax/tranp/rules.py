@@ -1,5 +1,5 @@
 from rogw.tranp.implements.syntax.tranp.parser import Operators, Pattern, Patterns, PatternEntry, Repeators
-from rogw.tranp.implements.syntax.tranp.tokenizer import TokenDefinition, Lexer
+from rogw.tranp.implements.syntax.tranp.tokenizer import TokenDefinition, Tokenizer
 
 
 def python_rules() -> dict[str, PatternEntry]:
@@ -73,7 +73,7 @@ def grammar_rules() -> dict[str, PatternEntry]:
 	}
 
 
-def grammar_tokenizer() -> Lexer:
+def grammar_tokenizer() -> Tokenizer:
 	"""トークンパーサーを生成(Grammar用)
 
 	Returns:
@@ -81,7 +81,7 @@ def grammar_tokenizer() -> Lexer:
 	"""
 	definition = TokenDefinition()
 	definition.quote = [TokenDefinition.build_quote_pair(c, c) for c in ['/', '"']]
-	return Lexer(definition)
+	return Tokenizer(definition=definition)
 
 
 """

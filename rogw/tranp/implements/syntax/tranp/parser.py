@@ -2,7 +2,7 @@ from enum import Enum
 import re
 from typing import Iterator, NamedTuple, TypeAlias
 
-from rogw.tranp.implements.syntax.tranp.tokenizer import ITokenizer, PyTokenizer, Token
+from rogw.tranp.implements.syntax.tranp.tokenizer import ITokenizer, Token, Tokenizer
 from rogw.tranp.lang.convertion import as_a
 
 
@@ -216,7 +216,7 @@ class SyntaxParser:
 			tokenizer: トークンパーサー (default = None)
 		"""
 		self.rules = rules
-		self.tokenizer = tokenizer if tokenizer else PyTokenizer()
+		self.tokenizer = tokenizer if tokenizer else Tokenizer()
 
 	def parse(self, source: str, entry: str) -> ASTEntry:
 		"""ソースコードを解析し、ASTを生成

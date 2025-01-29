@@ -390,7 +390,13 @@ class Lexer(ITokenizer):
 class Tokenizer(ITokenizer):
 	"""トークンパーサー"""
 
-	def __init__(self, lexer: ITokenizer | None = None, definition: TokenDefinition | None = None) -> None:
+	def __init__(self, definition: TokenDefinition | None = None, lexer: ITokenizer | None = None) -> None:
+		"""インスタンスを生成
+
+		Args:
+			definition: トークン定義 (default = None)
+			lexer: Lexicalパーサー (default = None)
+		"""
 		self._definition = definition if definition else TokenDefinition()
 		self._lexer = lexer if lexer else Lexer(self._definition)
 		self._handlers = {

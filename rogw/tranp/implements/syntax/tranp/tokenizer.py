@@ -453,21 +453,47 @@ class Tokenizer(ITokenizer):
 		return new_tokens
 
 	def handle_white_space(self, context: Context, tokens: list[Token], begin: int) -> tuple[int, list[Token]]:
+		"""トークンリストを整形(空白)
+
+		Args:
+			context: コンテキスト
+			tokens: トークンリスト
+			begin: 読み取り開始位置
+		Returns:
+			(次の読み取り開始位置, トークンリスト)
+		Note:
+			```
+			以下の規則に則り、改行/インデント/ディデントを判断する @see Lexer.parse_white_space
+			* LineBreak以外は削除 (文法的に無視して良い)
+			* LineBreakは先頭が必ず改行で、残りの文字は全てインデント
+			```
+		"""
 		token = tokens[begin]
 		if context.enclosure > 0:
 			return begin + 1, []
-		elif token.string.count('\n') == 0:
+		elif token.type != TokenTypes.LineBreak:
 			return begin + 1, []
-		elif context.nest < token.string.count('\t'):
-			context.nest = token.string.count('\t')
+		elif context.nest < len(token.string) - 1:
+			context.nest = len(token.string) - 1
 			return begin + 1, [Token(TokenTypes.NewLine, token.string[0]), Token(TokenTypes.Indent, token.string[1:])]
-		elif context.nest > token.string.count('\t'):
-			context.nest = token.string.count('\t')
+		elif context.nest > len(token.string) - 1:
+			context.nest = len(token.string) - 1
 			return begin + 1, [Token(TokenTypes.NewLine, token.string[0]), Token(TokenTypes.Dedent, token.string[1:])]
 		else:
 			return begin + 1, [Token(TokenTypes.NewLine, token.string)]
 
 	def handle_symbol(self, context: Context, tokens: list[Token], begin: int) -> tuple[int, list[Token]]:
+		"""トークンリストを整形(シンボル)
+
+		Args:
+			context: コンテキスト
+			tokens: トークンリスト
+			begin: 読み取り開始位置
+		Returns:
+			(次の読み取り開始位置, トークンリスト)
+		Note:
+			このメソッドはトークンは何も変えず、コンテキストに影響を与えるのみ
+		"""
 		token = tokens[begin]
 		if token.type in [TokenTypes.ParenL, TokenTypes.BraceL, TokenTypes.BracketL]:
 			context.enclosure += 1
@@ -477,6 +503,17 @@ class Tokenizer(ITokenizer):
 		return begin + 1, [token]
 
 	def handle_operator(self, context: Context, tokens: list[Token], begin: int) -> tuple[int, list[Token]]:
+		"""トークンリストを整形(演算子)
+
+		Args:
+			context: コンテキスト
+			tokens: トークンリスト
+			begin: 読み取り開始位置
+		Returns:
+			(次の読み取り開始位置, トークンリスト)
+		Note:
+			複数の記号より成り立つ演算子(=トークン)の合成を行う
+		"""
 		for index, compound in enumerate(self._definition.operator_compound):
 			if len(tokens) <= begin + len(compound):
 				continue

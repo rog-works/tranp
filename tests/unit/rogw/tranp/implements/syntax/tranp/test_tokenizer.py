@@ -6,18 +6,65 @@ from rogw.tranp.test.helper import data_provider
 
 class TestTokenizer(TestCase):
 	@data_provider([
-		('a + 1', Tokenizer.Context(), 1, (2, [])),
-		('a\nb', Tokenizer.Context(), 1, (2, [Token(TokenTypes.NewLine, '\n')])),
-		('a\t+ 1', Tokenizer.Context(), 1, (2, [])),
-		('\ta\nb', Tokenizer.Context(nest=1), 2, (3, [Token(TokenTypes.NewLine, '\n'), Token(TokenTypes.Dedent, '')])),
-		('a[\nb]', Tokenizer.Context(enclosure=1), 2, (3, [])),
-		('\ta(\nb)', Tokenizer.Context(nest=1, enclosure=1), 3, (4, [])),
+		('a + 1', ['a', '+', '1']),
+		('a += b', ['a', '+=', 'b']),
+		('a == b', ['a', '==', 'b']),
+		('a := b', ['a', ':=', 'b']),
+		('a(**b)', ['a', '(', '**', 'b', ')']),
+		('**a', ['**', 'a']),
+		('***a', ['**', '*', 'a']),
+		('def f() -> None: ...', ['def', 'f', '(', ')', '->', 'None', ':', '...']),
 	])
-	def test_handle_white_space(self, source: str, context: Tokenizer.Context, begin: int, expected: tuple[str, list[Token]]) -> None:
+	def test_parse(self, source: str, expected: list[str]) -> None:
+		parser = Tokenizer()
+		tokens = parser.parse(source)
+		self.assertEqual(expected, [token.string for token in tokens])
+
+	@data_provider([
+		('a + 1', Tokenizer.Context(), 1, (2, []), {'nest': 0, 'enclosure': 0}),
+		('a\nb', Tokenizer.Context(), 1, (2, [Token(TokenTypes.NewLine, '\n')]), {'nest': 0, 'enclosure': 0}),
+		('a\t+ 1', Tokenizer.Context(), 1, (2, []), {'nest': 0, 'enclosure': 0}),
+		('a\n\tb', Tokenizer.Context(), 1, (2, [Token(TokenTypes.NewLine, '\n'), Token(TokenTypes.Indent, '\t')]), {'nest': 1, 'enclosure': 0}),
+		('\ta\n\n\tb', Tokenizer.Context(nest=1), 2, (3, [Token(TokenTypes.NewLine, '\n\t')]), {'nest': 1, 'enclosure': 0}),
+		('\ta\nb', Tokenizer.Context(nest=1), 2, (3, [Token(TokenTypes.NewLine, '\n'), Token(TokenTypes.Dedent, '')]), {'nest': 0, 'enclosure': 0}),
+		('a[\nb]', Tokenizer.Context(enclosure=1), 2, (3, []), {'nest': 0, 'enclosure': 1}),
+		('\ta(\nb)', Tokenizer.Context(nest=1, enclosure=1), 3, (4, []), {'nest': 1, 'enclosure': 1}),
+	])
+	def test_handle_white_space(self, source: str, context: Tokenizer.Context, begin: int, expected: tuple[str, list[Token]], expected_context: dict[str, int]) -> None:
 		parser = Tokenizer()
 		tokens = parser.lex_parse(source)
 		actual = parser.handle_white_space(context, tokens, begin)
 		self.assertEqual(expected, actual)
+		self.assertEqual(expected_context['nest'], context.nest)
+		self.assertEqual(expected_context['enclosure'], context.enclosure)
+
+	@data_provider([
+		('a.b', Tokenizer.Context(), 1, (2, [Token(TokenTypes.Dot, '.')]), {'nest': 0, 'enclosure': 0}),
+		('(a)', Tokenizer.Context(), 0, (1, [Token(TokenTypes.ParenL, '(')]), {'nest': 0, 'enclosure': 1}),
+		('(a.b)', Tokenizer.Context(enclosure=1), 2, (3, [Token(TokenTypes.Dot, '.')]), {'nest': 0, 'enclosure': 1}),
+		('{"a": 1}', Tokenizer.Context(enclosure=1), 5, (6, [Token(TokenTypes.BraceR, '}')]), {'nest': 0, 'enclosure': 0}),
+		('...', Tokenizer.Context(), 0, (3, [Token(TokenTypes.Ellipsis, '...')]), {'nest': 0, 'enclosure': 0}),
+	])
+	def test_handle_symbol(self, source: str, context: Tokenizer.Context, begin: int, expected: tuple[str, list[Token]], expected_context: dict[str, int]) -> None:
+		parser = Tokenizer()
+		tokens = parser.lex_parse(source)
+		actual = parser.handle_symbol(context, tokens, begin)
+		self.assertEqual(expected, actual)
+		self.assertEqual(expected_context['nest'], context.nest)
+		self.assertEqual(expected_context['enclosure'], context.enclosure)
+
+	@data_provider([
+		('a + 1', Tokenizer.Context(), 2, (3, [Token(TokenTypes.Plus, '+')]), {'nest': 0, 'enclosure': 0}),
+		('a +-1', Tokenizer.Context(), 2, (3, [Token(TokenTypes.Plus, '+')]), {'nest': 0, 'enclosure': 0}),
+		('a += 1', Tokenizer.Context(), 2, (4, [Token(TokenTypes.PlusEqual, '+=')]), {'nest': 0, 'enclosure': 0}),
+	])
+	def test_handle_operator(self, source: str, context: Tokenizer.Context, begin: int, expected: tuple[str, list[Token]], expected_context: dict[str, int]) -> None:
+		parser = Tokenizer()
+		tokens = parser.lex_parse(source)
+		actual = parser.handle_operator(context, tokens, begin)
+		self.assertEqual(expected, actual)
+		self.assertEqual(expected_context['nest'], context.nest)
+		self.assertEqual(expected_context['enclosure'], context.enclosure)
 
 
 class TestLexer(TestCase):
@@ -26,10 +73,6 @@ class TestLexer(TestCase):
 		('a.b("c").d', ['a', '.', 'b', '(', '"c"', ')', '.', 'd']),
 		('a * 0 - True', ['a', ' ', '*', ' ', '0', ' ', '-', ' ', 'True']),
 		('?a _b', ['?', 'a', ' ', '_b']),
-		# ('a := b', ['a', ' ', ':=', ' ', 'b']), XXX 一旦保留
-		# ('a += b', ['a', ' ', '+=', ' ', 'b']),
-		# ('**a', ['**', 'a']),
-		# ('***a', ['**', '*', 'a']),
 		("r + r'abc'", ['r', ' ', '+', ' ', "r'abc'"]),
 	])
 	def test_parse(self, source: str, expected: list[str]) -> None:
@@ -146,10 +189,6 @@ class TestLexer(TestCase):
 		('1 - 2', 2, (3, Token(TokenTypes.Minus, '-'))),
 		('1 +-2', 2, (3, Token(TokenTypes.Plus, '+'))),
 		('!a', 0, (1, Token(TokenTypes.Exclamation, '!'))),
-		# ('a += 1', 2, (4, Token(TokenTypes.PlusEqual, '+='))),
-		# ('a == b', 2, (4, Token(TokenTypes.DoubleEqual, '=='))),
-		# ('a(**b)', 2, (4, Token(TokenTypes.DoubleAster, '**'))),
-		# ('def f() -> None: ...', 8, (10, Token(TokenTypes.Arrow, '->'))),
 	])
 	def test_parse_operator(self, source: str, begin: int, expected: tuple[int, str]) -> None:
 		parser = Lexer(TokenDefinition())

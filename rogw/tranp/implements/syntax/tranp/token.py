@@ -85,7 +85,7 @@ class TokenTypes(Enum):
 	Arrow = 0x7F
 	DoubleAster = 0x80
 	WalrusEqual = 0x81
-	Ellipsis = 0x82
+	Ellipsis = 0x82  # FIXME シンボルでは？
 	# 未分類
 	Empty = 0xFE
 	Unknown = 0xFF

@@ -492,7 +492,10 @@ class Tokenizer(ITokenizer):
 		Returns:
 			(次の読み取り開始位置, トークンリスト)
 		Note:
-			このメソッドはトークンは何も変えず、コンテキストに影響を与えるのみ
+			```
+			* 括弧のネストをコンテキストに記録
+			* トークンの整形処理は演算子と共有
+			```
 		"""
 		token = tokens[begin]
 		if token.type in [TokenTypes.ParenL, TokenTypes.BraceL, TokenTypes.BracketL]:
@@ -515,7 +518,7 @@ class Tokenizer(ITokenizer):
 			複数の記号より成り立つ演算子(=トークン)の合成を行う
 		"""
 		for index, compound in enumerate(self._definition.operator_compound):
-			if len(tokens) <= begin + len(compound):
+			if len(tokens) <= begin + len(compound) - 1:
 				continue
 
 			combine = ''.join([tokens[begin + i].string[0] for i in range(len(compound))])

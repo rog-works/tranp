@@ -1,8 +1,9 @@
 from unittest import TestCase
 
 from rogw.tranp.implements.syntax.tranp.parser import ASTTree, SyntaxParser
-from rogw.tranp.implements.syntax.tranp.rules import grammar_rules, python_rules
+from rogw.tranp.implements.syntax.tranp.rules import grammar_rules, grammar_tokenizer, python_rules
 from rogw.tranp.implements.syntax.tranp.token import TokenTypes
+from rogw.tranp.implements.syntax.tranp.tokenizer import Tokenizer
 from rogw.tranp.test.helper import data_provider
 
 
@@ -45,13 +46,13 @@ class TestSyntaxParser(TestCase):
 		),
 		(
 			''.join([
-				'a := b\n',
-				'b := c\n',
+				'entry := symbol\n',
+				'symbol := /[a-zA-Z_]\\w*/\n',
 			]),
 			'grammar',
 			('entry', [
-				('rule', [('symbol', (TokenTypes.Name, 'a')), ('symbol', (TokenTypes.Name, 'b'))]),
-				('rule', [('symbol', (TokenTypes.Name, 'b')), ('symbol', (TokenTypes.Name, 'c'))]),
+				('rule', [('symbol', (TokenTypes.Name, 'entry')), ('symbol', (TokenTypes.Name, 'symbol'))]),
+				('rule', [('symbol', (TokenTypes.Name, 'symbol')), ('regexp', (TokenTypes.Regexp, '/[a-zA-Z_]\\w*/'))]),
 			]),
 		),
 	])
@@ -60,8 +61,13 @@ class TestSyntaxParser(TestCase):
 			'python': python_rules,
 			'grammar': grammar_rules,
 		}
+		tokenizer_provider = {
+			'python': Tokenizer,
+			'grammar': grammar_tokenizer,
+		}
 		rules = rule_provider[lang]()
-		actual = SyntaxParser(rules).parse(source, 'entry')
+		tokenizer = tokenizer_provider[lang]()
+		actual = SyntaxParser(rules, tokenizer).parse(source, 'entry')
 
 		try:
 			self.assertEqual(expected, actual)

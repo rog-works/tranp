@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from rogw.tranp.implements.syntax.tranp.tokenizer import TokenClasses, PyTokenizer, Tokenizer
+from rogw.tranp.implements.syntax.tranp.tokenizer import TokenDomains, PyTokenizer, Tokenizer
 from rogw.tranp.test.helper import data_provider
 
 
@@ -22,25 +22,32 @@ class TestTokenizer(TestCase):
 		self.assertEqual(expected, actual)
 
 	@data_provider([
-		(' abc', 0, TokenClasses.WhiteSpace),
-		('a\tbc', 1, TokenClasses.WhiteSpace),
-		('a\tb\n', 3, TokenClasses.WhiteSpace),
-		('a # bc', 2, TokenClasses.Comment),
-		('0.0', 0, TokenClasses.Number),
-		('"abc"', 0, TokenClasses.Quote),
-		("'abc'", 0, TokenClasses.Quote),
-		('"""abc"""', 0, TokenClasses.Quote),
-		("r'abc'", 0, TokenClasses.Quote),
-		('f"abc"', 0, TokenClasses.Quote),
-		('f"""abc"""', 0, TokenClasses.Quote),
-		('_a.b', 0, TokenClasses.Identifier),
-		('a.b0', 2, TokenClasses.Identifier),
-		('a + 0', 2, TokenClasses.Symbol),
-		('a / 1', 2, TokenClasses.Symbol),
+		(' abc', 0, TokenDomains.WhiteSpace),
+		('a\tbc', 1, TokenDomains.WhiteSpace),
+		('a\tb\n', 3, TokenDomains.WhiteSpace),
+		('a # bc', 2, TokenDomains.Comment),
+		('0.0', 0, TokenDomains.Number),
+		('"abc"', 0, TokenDomains.Quote),
+		("'abc'", 0, TokenDomains.Quote),
+		('"""abc"""', 0, TokenDomains.Quote),
+		("r'abc'", 0, TokenDomains.Quote),
+		('f"abc"', 0, TokenDomains.Quote),
+		('f"""abc"""', 0, TokenDomains.Quote),
+		('_a.b', 0, TokenDomains.Identifier),
+		('a.b0', 2, TokenDomains.Identifier),
+		('a + 0', 2, TokenDomains.Operator),
+		('a / 1', 2, TokenDomains.Operator),
+		('a += 1', 2, TokenDomains.Operator),
+		('a.b', 1, TokenDomains.Symbol),
+		('a[0]', 1, TokenDomains.Symbol),
+		('[:-1]', 1, TokenDomains.Symbol),
+		('a()', 1, TokenDomains.Symbol),
+		('{"a": 1}', 0, TokenDomains.Symbol),
+		('@a', 0, TokenDomains.Symbol),
 	])
-	def test_analyze_class(self, source: str, begin: int, expected: TokenClasses) -> None:
+	def test_analyze_domain(self, source: str, begin: int, expected: TokenDomains) -> None:
 		parser = Tokenizer()
-		actual = parser.analyze_class(source, begin)
+		actual = parser.analyze_domain(source, begin)
 		self.assertEqual(expected, actual)
 
 	@data_provider([
@@ -109,6 +116,13 @@ class TestTokenizer(TestCase):
 		('a(**b)', 1, (2, '(')),
 		('a(**b)', 2, (4, '**')),
 		('a == b', 2, (4, '==')),
+	])
+	def test_parse_operator(self, source: str, begin: int, expected: tuple[int, str]) -> None:
+		parser = Tokenizer()
+		actual = parser.parse_operator(source, begin)
+		self.assertEqual(expected, actual)
+
+	@data_provider([
 		('@a', 0, (1, '@')),
 		('!a', 0, (1, '!')),
 		('a;', 1, (2, ';')),

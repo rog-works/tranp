@@ -2,7 +2,7 @@ from enum import Enum
 import re
 from typing import Iterator, NamedTuple, TypeAlias
 
-from rogw.tranp.implements.syntax.tranp.tokenizer import ITokenizer, PyTokenizer
+from rogw.tranp.implements.syntax.tranp.tokenizer import ITokenizer, PyTokenizer, Token
 from rogw.tranp.lang.convertion import as_a
 
 
@@ -160,12 +160,12 @@ class ASTToken(NamedTuple):
 	"""AST(トークン)"""
 
 	name: str
-	value: str
+	value: Token
 
 	@classmethod
 	def empty(cls) -> 'ASTToken':
 		"""Returns: 空を表すインスタンス"""
-		return cls('__empty__', '')
+		return cls('__empty__', Token.empty())
 
 
 class ASTTree(NamedTuple):
@@ -230,7 +230,7 @@ class SyntaxParser:
 		tokens = self.tokenizer.parse(source)
 		return self.match(tokens, len(tokens) - 1, entry)[1]
 
-	def match(self, tokens: list[str], end: int, symbol: str) -> tuple[Step, ASTEntry]:
+	def match(self, tokens: list[Token], end: int, symbol: str) -> tuple[Step, ASTEntry]:
 		"""パターン(シンボル参照)を検証し、ASTエントリーを生成
 
 		Args:
@@ -269,7 +269,7 @@ class SyntaxParser:
 
 		return ASTTree(symbol, children)
 
-	def _match_patterns(self, tokens: list[str], end: int, patterns: Patterns) -> tuple[Step, list[ASTEntry]]:
+	def _match_patterns(self, tokens: list[Token], end: int, patterns: Patterns) -> tuple[Step, list[ASTEntry]]:
 		"""パターングループを検証し、子のASTエントリーを生成
 
 		Args:
@@ -286,7 +286,7 @@ class SyntaxParser:
 		else:
 			return self._match_patterns_and(tokens, end, patterns)
 
-	def _match_patterns_or(self, tokens: list[str], end: int, patterns: Patterns) -> tuple[Step, list[ASTEntry]]:
+	def _match_patterns_or(self, tokens: list[Token], end: int, patterns: Patterns) -> tuple[Step, list[ASTEntry]]:
 		"""パターングループ(OR)を検証し、子のASTエントリーを生成
 
 		Args:
@@ -303,7 +303,7 @@ class SyntaxParser:
 
 		return Step.ng(), []
 
-	def _match_patterns_and(self, tokens: list[str], end: int, patterns: Patterns) -> tuple[Step, list[ASTEntry]]:
+	def _match_patterns_and(self, tokens: list[Token], end: int, patterns: Patterns) -> tuple[Step, list[ASTEntry]]:
 		"""パターングループ(AND)を検証し、子のASTエントリーを生成
 
 		Args:
@@ -325,7 +325,7 @@ class SyntaxParser:
 
 		return Step.ok(steps), list(reversed(children))
 
-	def _match_pattern_internal(self, tokens: list[str], end: int, pattern: PatternEntry) -> tuple[Step, list[ASTEntry]]:
+	def _match_pattern_internal(self, tokens: list[Token], end: int, pattern: PatternEntry) -> tuple[Step, list[ASTEntry]]:
 		"""パターン(イテレーション)を検証し、子のASTエントリーを生成
 
 		Args:
@@ -348,7 +348,7 @@ class SyntaxParser:
 			step, _ = self._match_terminal(tokens, end, pattern)
 			return step, []
 
-	def _match_patterns_repeat(self, tokens: list[str], end: int, patterns: Patterns) -> tuple[Step, list[ASTEntry]]:
+	def _match_patterns_repeat(self, tokens: list[Token], end: int, patterns: Patterns) -> tuple[Step, list[ASTEntry]]:
 		"""パターングループ(リピート)を検証し、子のASTエントリーを生成
 
 		Args:
@@ -383,7 +383,7 @@ class SyntaxParser:
 
 		return Step.ok(steps), list(reversed(children))
 
-	def match_non_terminal(self, tokens: list[str], end: int, symbol: str) -> tuple[Step, ASTToken]:
+	def match_non_terminal(self, tokens: list[Token], end: int, symbol: str) -> tuple[Step, ASTToken]:
 		"""非終端要素を検証し、ASTトークンを生成
 
 		Args:
@@ -399,7 +399,7 @@ class SyntaxParser:
 
 		return Step.ng(), ASTToken.empty()
 	
-	def _match_terminal(self, tokens: list[str], end: int, pattern: Pattern) -> tuple[Step, ASTToken]:
+	def _match_terminal(self, tokens: list[Token], end: int, pattern: Pattern) -> tuple[Step, ASTToken]:
 		"""終端要素を検証し、ASTトークンを生成
 
 		Args:
@@ -414,7 +414,7 @@ class SyntaxParser:
 
 		return Step.ng(), ASTToken.empty()
 
-	def _match_token(self, token: str, pattern: Pattern) -> bool:
+	def _match_token(self, token: Token, pattern: Pattern) -> bool:
 		"""トークンの検証
 
 		Args:
@@ -424,6 +424,6 @@ class SyntaxParser:
 			True = 一致
 		"""
 		if pattern.comp == Comps.Regexp:
-			return re.fullmatch(pattern.expression[1:-1], token) is not None
+			return re.fullmatch(pattern.expression[1:-1], token.string) is not None
 		else:
-			return pattern.expression[1:-1] == token
+			return pattern.expression[1:-1] == token.string

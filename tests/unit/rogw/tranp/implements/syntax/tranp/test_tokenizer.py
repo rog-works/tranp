@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from rogw.tranp.implements.syntax.tranp.tokenizer import TokenDomains, PyTokenizer, Tokenizer
+from rogw.tranp.implements.syntax.tranp.tokenizer import Token, TokenDomains, PyTokenizer, TokenTypes, Tokenizer
 from rogw.tranp.test.helper import data_provider
 
 

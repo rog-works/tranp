@@ -91,15 +91,6 @@ class Tokenizer(ITokenizer):
 			definition: トークン定義 (defaul = None)
 		"""
 		self._definition = definition if definition else TokenDefinition()
-		self._parsers = {
-			TokenDomains.WhiteSpace: self.parse_white_spece,
-			TokenDomains.Comment: self.parse_comment,
-			TokenDomains.Symbol: self.parse_symbol,
-			TokenDomains.Quote: self.parse_quote,
-			TokenDomains.Number: self.parse_number,
-			TokenDomains.Identifier: self.parse_identifier,
-			TokenDomains.Operator: self.parse_operator,
-		}
 		self._analyzers = {
 			TokenDomains.WhiteSpace: self.analyze_white_spece,
 			TokenDomains.Comment: self.analyze_comment,
@@ -108,6 +99,15 @@ class Tokenizer(ITokenizer):
 			TokenDomains.Number: self.analyze_number,
 			TokenDomains.Identifier: self.analyze_identifier,
 			TokenDomains.Operator: self.analyze_operator,
+		}
+		self._parsers = {
+			TokenDomains.WhiteSpace: self.parse_white_spece,
+			TokenDomains.Comment: self.parse_comment,
+			TokenDomains.Symbol: self.parse_symbol,
+			TokenDomains.Quote: self.parse_quote,
+			TokenDomains.Number: self.parse_number,
+			TokenDomains.Identifier: self.parse_identifier,
+			TokenDomains.Operator: self.parse_operator,
 		}
 
 	@override
@@ -254,10 +254,11 @@ class Tokenizer(ITokenizer):
 		found_pair = [pair for pair in self._definition.comment if source.startswith(pair['open'], begin)]
 		pair = found_pair[0]
 		end = source.find(pair['close'], begin + len(pair['open']))
-		if begin != -1:
+		if end != -1:
 			end += len(pair['close'])
-
-		return end, Token(TokenTypes.Comment, source[begin:end])
+			return end, Token(TokenTypes.Comment, source[begin:end])
+		else:
+			return len(source), Token(TokenTypes.Comment, source[begin:])
 
 	def parse_symbol(self, source: str, begin: int) -> tuple[int, Token]:
 		"""トークンを解析(記号)
@@ -296,7 +297,7 @@ class Tokenizer(ITokenizer):
 				break
 
 		value = source[begin:end]
-		token_type = TokenTypes.String if value.count('/') > 0 else TokenTypes.Regexp
+		token_type = TokenTypes.Regexp if value.count('/') > 0 else TokenTypes.String
 		return end, Token(token_type, value)
 
 	def parse_number(self, source: str, begin: int) -> tuple[int, Token]:

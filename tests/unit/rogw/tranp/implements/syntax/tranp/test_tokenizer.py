@@ -1,7 +1,23 @@
 from unittest import TestCase
 
-from rogw.tranp.implements.syntax.tranp.tokenizer import Token, TokenDefinition, TokenDomains, PyTokenizer, TokenTypes, Lexer
+from rogw.tranp.implements.syntax.tranp.tokenizer import Token, TokenDefinition, TokenDomains, PyTokenizer, TokenTypes, Lexer, Tokenizer
 from rogw.tranp.test.helper import data_provider
+
+
+class TestTokenizer(TestCase):
+	@data_provider([
+		('a + 1', Tokenizer.Context(), 1, (2, [])),
+		('a\nb', Tokenizer.Context(), 1, (2, [Token(TokenTypes.NewLine, '\n')])),
+		('a\t+ 1', Tokenizer.Context(), 1, (2, [])),
+		('\ta\nb', Tokenizer.Context(nest=1), 2, (3, [Token(TokenTypes.NewLine, '\n'), Token(TokenTypes.Dedent, '')])),
+		('a[\nb]', Tokenizer.Context(enclosure=1), 2, (3, [])),
+		('\ta(\nb)', Tokenizer.Context(nest=1, enclosure=1), 3, (4, [])),
+	])
+	def test_handle_white_space(self, source: str, context: Tokenizer.Context, begin: int, expected: tuple[str, list[Token]]) -> None:
+		parser = Tokenizer()
+		tokens = parser.lex_parse(source)
+		actual = parser.handle_white_space(context, tokens, begin)
+		self.assertEqual(expected, actual)
 
 
 class TestLexer(TestCase):

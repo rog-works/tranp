@@ -10,6 +10,7 @@
 				"implements.cpp.transpiler.test_py2cpp.TestPy2Cpp.test_exec",
 				"implements.cpp.transpiler.test_py2cpp_error.TestPy2CppError.test_exec",
 				"implements.syntax.tranp.test_parser.TestSyntaxParser",
+				"implements.syntax.tranp.test_tokenizer",
 				"lang.test_inspection.TestClassTypehint.test_schema",
 				"lang.test_parser.TestParser.test_parse_pair_block",
 				"semantics.reflection.test_db.TestDB.test_import_json",

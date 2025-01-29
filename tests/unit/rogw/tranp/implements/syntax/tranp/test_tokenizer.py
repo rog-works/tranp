@@ -1,10 +1,10 @@
 from unittest import TestCase
 
-from rogw.tranp.implements.syntax.tranp.tokenizer import Token, TokenDomains, PyTokenizer, TokenTypes, Tokenizer
+from rogw.tranp.implements.syntax.tranp.tokenizer import Token, TokenDefinition, TokenDomains, PyTokenizer, TokenTypes, Lexer
 from rogw.tranp.test.helper import data_provider
 
 
-class TestTokenizer(TestCase):
+class TestLexer(TestCase):
 	@data_provider([
 		('abc', ['abc']),
 		('a.b("c").d', ['a', '.', 'b', '(', '"c"', ')', '.', 'd']),
@@ -17,7 +17,7 @@ class TestTokenizer(TestCase):
 		("r + r'abc'", ['r', ' ', '+', ' ', "r'abc'"]),
 	])
 	def test_parse(self, source: str, expected: list[str]) -> None:
-		parser = Tokenizer()
+		parser = Lexer(TokenDefinition())
 		actual = parser.parse(source)
 		self.assertEqual(expected, [token.string for token in actual])
 
@@ -46,7 +46,7 @@ class TestTokenizer(TestCase):
 		('@a', 0, TokenDomains.Symbol),
 	])
 	def test_analyze_domain(self, source: str, begin: int, expected: TokenDomains) -> None:
-		parser = Tokenizer()
+		parser = Lexer(TokenDefinition())
 		actual = parser.analyze_domain(source, begin)
 		self.assertEqual(expected, actual)
 
@@ -57,7 +57,7 @@ class TestTokenizer(TestCase):
 		('a \t\nb\nc', 1, (4, Token(TokenTypes.WhiteSpace, ' \t\n'))),
 	])
 	def test_parse_white_space(self, source: str, begin: int, expected: tuple[int, str]) -> None:
-		parser = Tokenizer()
+		parser = Lexer(TokenDefinition())
 		actual = parser.parse_white_spece(source, begin)
 		self.assertEqual(expected, actual)
 
@@ -66,7 +66,7 @@ class TestTokenizer(TestCase):
 		('a # bc\n', 2, (7, Token(TokenTypes.Comment, '# bc\n'))),
 	])
 	def test_parse_comment(self, source: str, begin: int, expected: tuple[int, str]) -> None:
-		parser = Tokenizer()
+		parser = Lexer(TokenDefinition())
 		actual = parser.parse_comment(source, begin)
 		self.assertEqual(expected, actual)
 
@@ -77,7 +77,7 @@ class TestTokenizer(TestCase):
 		('a(b)', 1, (2, Token(TokenTypes.ParenL, '('))),
 	])
 	def test_parse_symbol(self, source: str, begin: int, expected: tuple[int, str]) -> None:
-		parser = Tokenizer()
+		parser = Lexer(TokenDefinition())
 		actual = parser.parse_symbol(source, begin)
 		self.assertEqual(expected, actual)
 
@@ -92,7 +92,7 @@ class TestTokenizer(TestCase):
 		('"a\nbc"', 0, (6, Token(TokenTypes.String, '"a\nbc"'))),  # FIXME 文法的にNG
 	])
 	def test_parse_quote(self, source: str, begin: int, expected: tuple[int, str]) -> None:
-		parser = Tokenizer()
+		parser = Lexer(TokenDefinition())
 		actual = parser.parse_quote(source, begin)
 		self.assertEqual(expected, actual)
 
@@ -103,7 +103,7 @@ class TestTokenizer(TestCase):
 		('1 + 23 + 4', 4, (6, Token(TokenTypes.Digit, '23'))),
 	])
 	def test_parse_number(self, source: str, begin: int, expected: tuple[int, str]) -> None:
-		parser = Tokenizer()
+		parser = Lexer(TokenDefinition())
 		actual = parser.parse_number(source, begin)
 		self.assertEqual(expected, actual)
 
@@ -116,7 +116,7 @@ class TestTokenizer(TestCase):
 		('0 + a.b()', 6, (7, Token(TokenTypes.Name, 'b'))),
 	])
 	def test_parse_identifier(self, source: str, begin: int, expected: tuple[int, str]) -> None:
-		parser = Tokenizer()
+		parser = Lexer(TokenDefinition())
 		actual = parser.parse_identifier(source, begin)
 		self.assertEqual(expected, actual)
 
@@ -131,7 +131,7 @@ class TestTokenizer(TestCase):
 		# ('def f() -> None: ...', 8, (10, Token(TokenTypes.Arrow, '->'))),
 	])
 	def test_parse_operator(self, source: str, begin: int, expected: tuple[int, str]) -> None:
-		parser = Tokenizer()
+		parser = Lexer(TokenDefinition())
 		actual = parser.parse_operator(source, begin)
 		self.assertEqual(expected, actual)
 

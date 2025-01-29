@@ -57,97 +57,38 @@ class ITokenizer(metaclass=ABCMeta):
 		...
 
 
-class TokenParser:
-	"""トークンパーサー"""
+class PyTokenizer(ITokenizer):
+	"""トークンパーサー(Python専用)"""
 
-	class Context:
-		"""コンテキスト"""
-		nest: int
-		enclosure: int
-
-	def __init__(self, definition: TokenDefinition) -> None:
-		self._definition = definition
-		self._handlers = {
-			TokenDomains.WhiteSpace: self.handle_white_space,
-			TokenDomains.Symbol: self.handle_symbol,
-			TokenDomains.Operator: self.handle_operator,
-		}
-
-	def tokenize(self, tokens: list[Token]) -> list[Token]:
-		"""トークンを解析してプログラムで解釈しやすい形式に整形
+	@override
+	def parse(self, source: str) -> list[Token]:
+		"""ソースコードを解析し、トークンに分割
 
 		Args:
-			tokens: トークンリスト
+			source: ソースコード
 		Returns:
 			トークンリスト
 		"""
-		context = self.Context()
-		index = 0
-		new_tokens: list[Token] = []
-		while index < len(tokens):
-			token = tokens[index]
-			if token.domain not in self._handlers:
-				index += 1
-				new_tokens.append(token)
-				continue
+		# 先頭のENCODING、末尾のENDMARKERを除外
+		exclude_types = [PyTokenTypes.ENCODING, PyTokenTypes.ENDMARKER]
+		tokens = [token for token in tokenize(BytesIO(source.encode('utf-8')).readline) if token.type not in exclude_types]
+		# 存在しない末尾の空行を削除 ※実際に改行が存在する場合は'\n'になる
+		if tokens[-1].type == PyTokenTypes.NEWLINE and len(tokens[-1].string) == 0:
+			tokens.pop()
 
-			handler = self._handlers[token.domain]
-			end, new_token, add_tokens = handler(context, tokens, index)
-			index = end
-			new_tokens.append(new_token)
-			new_tokens.extend(add_tokens)
-
-		return new_tokens
-
-	def handle_white_space(self, context: Context, tokens: list[Token], begin: int) -> tuple[int, Token, list[Token]]:
-		token = tokens[begin]
-		if context.enclosure > 0:
-			return begin + 1, token, []
-		elif context.nest < token.string.count('\t'):
-			context.nest = token.string.count('\t')
-			return begin + 1, Token(TokenTypes.NewLine, token.string[0]), [Token(TokenTypes.Indent, token.string[1:])]
-		elif context.nest > token.string.count('\t'):
-			context.nest = token.string.count('\t')
-			return begin + 1, Token(TokenTypes.NewLine, token.string[0]), [Token(TokenTypes.Dedent, token.string[1:])]
-		else:
-			return begin + 1, Token(TokenTypes.NewLine, token.string), []
-
-	def handle_symbol(self, context: Context, tokens: list[Token], begin: int) -> tuple[int, Token, list[Token]]:
-		token = tokens[begin]
-		if token.type in [TokenTypes.ParenL, TokenTypes.BraceL, TokenTypes.BracketL]:
-			context.enclosure += 1
-		elif token.type in [TokenTypes.ParenR, TokenTypes.BraceR, TokenTypes.BracketR]:
-			context.enclosure -= 1
-
-		return begin + 1, token, []
-
-	def handle_operator(self, context: Context, tokens: list[Token], begin: int) -> tuple[int, Token, list[Token]]:
-		for index, compound in enumerate(self._definition.operator_compound):
-			if len(tokens) <= begin + len(compound):
-				continue
-
-			combine = ''.join([tokens[begin + i].string[0] for i in range(len(compound))])
-			if combine != compound:
-				continue
-
-			base = TokenDomains.Operator.value << 4
-			offset = len(self._definition.operator)
-			token_type = TokenTypes(base + offset + index)
-			return begin + len(compound), Token(token_type, combine), []
-
-		return begin + 1, tokens[begin], []
+		return [Token(TokenTypes.Unknown, token.string) for token in tokens]
 
 
-class Tokenizer(ITokenizer):
-	"""トークンパーサー"""
+class Lexer(ITokenizer):
+	"""Lexicalパーサー"""
 
-	def __init__(self, definition: TokenDefinition | None = None) -> None:
+	def __init__(self, definition: TokenDefinition) -> None:
 		"""インスタンスを生成
 
 		Args:
-			definition: トークン定義 (defaul = None)
+			definition: トークン定義
 		"""
-		self._definition = definition if definition else TokenDefinition()
+		self._definition = definition
 		self._analyzers = {
 			TokenDomains.WhiteSpace: self.analyze_white_spece,
 			TokenDomains.Comment: self.analyze_comment,
@@ -408,8 +349,22 @@ class Tokenizer(ITokenizer):
 		return begin + 1, Token(token_type, value)
 
 
-class PyTokenizer(ITokenizer):
-	"""トークンパーサー(Python専用)"""
+class Tokenizer(ITokenizer):
+	"""トークンパーサー"""
+
+	class _Context:
+		"""コンテキスト"""
+		nest: int
+		enclosure: int
+
+	def __init__(self, lexer: ITokenizer | None = None, definition: TokenDefinition | None = None) -> None:
+		self._definition = definition if definition else TokenDefinition()
+		self._lexer = lexer if lexer else Lexer(self._definition)
+		self._handlers = {
+			TokenDomains.WhiteSpace: self.handle_white_space,
+			TokenDomains.Symbol: self.handle_symbol,
+			TokenDomains.Operator: self.handle_operator,
+		}
 
 	@override
 	def parse(self, source: str) -> list[Token]:
@@ -420,11 +375,70 @@ class PyTokenizer(ITokenizer):
 		Returns:
 			トークンリスト
 		"""
-		# 先頭のENCODING、末尾のENDMARKERを除外
-		exclude_types = [PyTokenTypes.ENCODING, PyTokenTypes.ENDMARKER]
-		tokens = [token for token in tokenize(BytesIO(source.encode('utf-8')).readline) if token.type not in exclude_types]
-		# 存在しない末尾の空行を削除 ※実際に改行が存在する場合は'\n'になる
-		if tokens[-1].type == PyTokenTypes.NEWLINE and len(tokens[-1].string) == 0:
-			tokens.pop()
+		tokens = self._lexer.parse(source)
+		return self._rebuild(tokens)
 
-		return [Token(TokenTypes.Unknown, token.string) for token in tokens]
+	def _rebuild(self, tokens: list[Token]) -> list[Token]:
+		"""トークンを解析してプログラムで解釈しやすい形式に整形
+
+		Args:
+			tokens: トークンリスト
+		Returns:
+			トークンリスト
+		"""
+		context = self._Context()
+		index = 0
+		new_tokens: list[Token] = []
+		while index < len(tokens):
+			token = tokens[index]
+			if token.domain not in self._handlers:
+				index += 1
+				new_tokens.append(token)
+				continue
+
+			handler = self._handlers[token.domain]
+			end, new_token, add_tokens = handler(context, tokens, index)
+			index = end
+			new_tokens.append(new_token)
+			new_tokens.extend(add_tokens)
+
+		return new_tokens
+
+	def handle_white_space(self, context: _Context, tokens: list[Token], begin: int) -> tuple[int, Token, list[Token]]:
+		token = tokens[begin]
+		if context.enclosure > 0:
+			return begin + 1, token, []
+		elif context.nest < token.string.count('\t'):
+			context.nest = token.string.count('\t')
+			return begin + 1, Token(TokenTypes.NewLine, token.string[0]), [Token(TokenTypes.Indent, token.string[1:])]
+		elif context.nest > token.string.count('\t'):
+			context.nest = token.string.count('\t')
+			return begin + 1, Token(TokenTypes.NewLine, token.string[0]), [Token(TokenTypes.Dedent, token.string[1:])]
+		else:
+			return begin + 1, Token(TokenTypes.NewLine, token.string), []
+
+	def handle_symbol(self, context: _Context, tokens: list[Token], begin: int) -> tuple[int, Token, list[Token]]:
+		token = tokens[begin]
+		if token.type in [TokenTypes.ParenL, TokenTypes.BraceL, TokenTypes.BracketL]:
+			context.enclosure += 1
+		elif token.type in [TokenTypes.ParenR, TokenTypes.BraceR, TokenTypes.BracketR]:
+			context.enclosure -= 1
+
+		return begin + 1, token, []
+
+	def handle_operator(self, context: _Context, tokens: list[Token], begin: int) -> tuple[int, Token, list[Token]]:
+		for index, compound in enumerate(self._definition.operator_compound):
+			if len(tokens) <= begin + len(compound):
+				continue
+
+			combine = ''.join([tokens[begin + i].string[0] for i in range(len(compound))])
+			if combine != compound:
+				continue
+
+			base = TokenDomains.Operator.value << 4
+			offset = len(self._definition.operator)
+			token_type = TokenTypes(base + offset + index)
+			return begin + len(compound), Token(token_type, combine), []
+
+		return begin + 1, tokens[begin], []
+

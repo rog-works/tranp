@@ -2,6 +2,7 @@ from unittest import TestCase
 
 from rogw.tranp.implements.syntax.tranp.parser import ASTTree, SyntaxParser
 from rogw.tranp.implements.syntax.tranp.rules import grammar_rules, python_rules
+from rogw.tranp.implements.syntax.tranp.token import TokenTypes
 from rogw.tranp.test.helper import data_provider
 
 
@@ -14,11 +15,11 @@ class TestSyntaxParser(TestCase):
 				('relay', [
 					('relay', [
 						('var', [
-							('name', 'a'),
+							('name', (TokenTypes.Name, 'a')),
 						]),
-						('name', 'b'),
+						('name', (TokenTypes.Name, 'b')),
 					]),
-					('name', 'c'),
+					('name', (TokenTypes.Name, 'c')),
 				]),
 			]),
 		),
@@ -30,15 +31,15 @@ class TestSyntaxParser(TestCase):
 					('invoke', [
 						('relay', [
 							('var', [
-								('name', 'a'),
+								('name', (TokenTypes.Name, 'a')),
 							]),
-							('name', 'b'),
+							('name', (TokenTypes.Name, 'b')),
 						]),
 						('args', [
-							('str', '"c"'),
+							('str', (TokenTypes.String, '"c"')),
 						]),
 					]),
-					('name', 'd'),
+					('name', (TokenTypes.Name, 'd')),
 				])
 			]),
 		),
@@ -49,8 +50,8 @@ class TestSyntaxParser(TestCase):
 			]),
 			'grammar',
 			('entry', [
-				('rule', [('symbol', 'a'), ('symbol', 'b')]),
-				('rule', [('symbol', 'b'), ('symbol', 'c')]),
+				('rule', [('symbol', (TokenTypes.Name, 'a')), ('symbol', (TokenTypes.Name, 'b'))]),
+				('rule', [('symbol', (TokenTypes.Name, 'b')), ('symbol', (TokenTypes.Name, 'c'))]),
 			]),
 		),
 	])

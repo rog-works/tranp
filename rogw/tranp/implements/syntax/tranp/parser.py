@@ -264,7 +264,7 @@ class SyntaxParser:
 		Returns:
 			子のASTエントリー
 		Note:
-			XXX 自身と子を単純に入れ替えると言う実装のため、複数の子を上位のツリーに展開できない
+			XXX 自身と子を入れ替えると言う単純な実装のため、複数の子を上位のツリーに展開できない
 		"""
 		if symbol[0] == ExpandRules.OneTime.value and len(children) == 1:
 			return children[0]
@@ -359,9 +359,11 @@ class SyntaxParser:
 			patterns: マッチングパターングループ
 		Returns:
 			(ステップ, ASTエントリーリスト)
-		Note:
-			このメソッドで扱うパターングループは、必ずリピートが有効でなければならない FIXME 検証を追加
+		Raises:
+			AssertionError: リピートなしのグループを指定
 		"""
+		assert patterns.rep != Repeators.NoRepeat, 'Must be repeated patterns'
+
 		found = 0
 		steps = 0
 		children: list[ASTEntry] = []

@@ -50,7 +50,6 @@ class TokenTypes(Enum):
 	Decimal = 0x41
 	# 識別子
 	Name = 0x50
-	Keyword = 0x51
 	# 演算子
 	Equal = 0x60
 	Minus = 0x61

@@ -1,4 +1,5 @@
 from abc import ABCMeta, abstractmethod
+from dataclasses import dataclass
 from io import BytesIO
 import token as PyTokenTypes
 from tokenize import tokenize
@@ -352,11 +353,6 @@ class Lexer(ITokenizer):
 class Tokenizer(ITokenizer):
 	"""トークンパーサー"""
 
-	class _Context:
-		"""コンテキスト"""
-		nest: int
-		enclosure: int
-
 	def __init__(self, lexer: ITokenizer | None = None, definition: TokenDefinition | None = None) -> None:
 		self._definition = definition if definition else TokenDefinition()
 		self._lexer = lexer if lexer else Lexer(self._definition)
@@ -375,8 +371,24 @@ class Tokenizer(ITokenizer):
 		Returns:
 			トークンリスト
 		"""
-		tokens = self._lexer.parse(source)
+		tokens = self.lex_parse(source)
 		return self._rebuild(tokens)
+
+	def lex_parse(self, source: str) -> list[Token]:
+		"""ソースコードを解析し、トークンに分割(字句解析のみ)
+
+		Args:
+			source: ソースコード
+		Returns:
+			トークンリスト
+		"""
+		return self._lexer.parse(source)
+
+	@dataclass
+	class Context:
+		"""コンテキスト"""
+		nest: int = 0
+		enclosure: int = 0
 
 	def _rebuild(self, tokens: list[Token]) -> list[Token]:
 		"""トークンを解析してプログラムで解釈しやすい形式に整形
@@ -386,7 +398,7 @@ class Tokenizer(ITokenizer):
 		Returns:
 			トークンリスト
 		"""
-		context = self._Context()
+		context = self.Context()
 		index = 0
 		new_tokens: list[Token] = []
 		while index < len(tokens):
@@ -397,36 +409,37 @@ class Tokenizer(ITokenizer):
 				continue
 
 			handler = self._handlers[token.domain]
-			end, new_token, add_tokens = handler(context, tokens, index)
+			end, new_tokens = handler(context, tokens, index)
 			index = end
-			new_tokens.append(new_token)
-			new_tokens.extend(add_tokens)
+			new_tokens.extend(new_tokens)
 
 		return new_tokens
 
-	def handle_white_space(self, context: _Context, tokens: list[Token], begin: int) -> tuple[int, Token, list[Token]]:
+	def handle_white_space(self, context: Context, tokens: list[Token], begin: int) -> tuple[int, list[Token]]:
 		token = tokens[begin]
 		if context.enclosure > 0:
-			return begin + 1, token, []
+			return begin + 1, []
+		elif token.string.count('\n') == 0:
+			return begin + 1, []
 		elif context.nest < token.string.count('\t'):
 			context.nest = token.string.count('\t')
-			return begin + 1, Token(TokenTypes.NewLine, token.string[0]), [Token(TokenTypes.Indent, token.string[1:])]
+			return begin + 1, [Token(TokenTypes.NewLine, token.string[0]), Token(TokenTypes.Indent, token.string[1:])]
 		elif context.nest > token.string.count('\t'):
 			context.nest = token.string.count('\t')
-			return begin + 1, Token(TokenTypes.NewLine, token.string[0]), [Token(TokenTypes.Dedent, token.string[1:])]
+			return begin + 1, [Token(TokenTypes.NewLine, token.string[0]), Token(TokenTypes.Dedent, token.string[1:])]
 		else:
-			return begin + 1, Token(TokenTypes.NewLine, token.string), []
+			return begin + 1, [Token(TokenTypes.NewLine, token.string)]
 
-	def handle_symbol(self, context: _Context, tokens: list[Token], begin: int) -> tuple[int, Token, list[Token]]:
+	def handle_symbol(self, context: Context, tokens: list[Token], begin: int) -> tuple[int, list[Token]]:
 		token = tokens[begin]
 		if token.type in [TokenTypes.ParenL, TokenTypes.BraceL, TokenTypes.BracketL]:
 			context.enclosure += 1
 		elif token.type in [TokenTypes.ParenR, TokenTypes.BraceR, TokenTypes.BracketR]:
 			context.enclosure -= 1
 
-		return begin + 1, token, []
+		return begin + 1, [token]
 
-	def handle_operator(self, context: _Context, tokens: list[Token], begin: int) -> tuple[int, Token, list[Token]]:
+	def handle_operator(self, context: Context, tokens: list[Token], begin: int) -> tuple[int, list[Token]]:
 		for index, compound in enumerate(self._definition.operator_compound):
 			if len(tokens) <= begin + len(compound):
 				continue
@@ -438,7 +451,7 @@ class Tokenizer(ITokenizer):
 			base = TokenDomains.Operator.value << 4
 			offset = len(self._definition.operator)
 			token_type = TokenTypes(base + offset + index)
-			return begin + len(compound), Token(token_type, combine), []
+			return begin + len(compound), [Token(token_type, combine)]
 
-		return begin + 1, tokens[begin], []
+		return begin + 1, [tokens[begin]]
 

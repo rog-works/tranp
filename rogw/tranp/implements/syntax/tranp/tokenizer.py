@@ -61,7 +61,17 @@ class TokenParser:
 	"""トークンパーサー"""
 
 	class Context:
+		"""コンテキスト"""
 		nest: int
+		enclosure: int
+
+	def __init__(self, definition: TokenDefinition) -> None:
+		self._definition = definition
+		self._parsers = {
+			TokenDomains.WhiteSpace: self.parse_white_space,
+			TokenDomains.Symbol: self.parse_symbol,
+			TokenDomains.Operator: self.parse_operator,
+		}
 
 	def tokenize(self, tokens: list[Token]) -> list[Token]:
 		"""トークンを解析してプログラムで解釈しやすい形式に整形
@@ -73,16 +83,59 @@ class TokenParser:
 		"""
 		context = self.Context()
 		index = 0
-		new_tokens = []
+		new_tokens: list[Token] = []
 		while index < len(tokens):
-			end, in_tokens = self.parse_(context, tokens, index)
+			token = tokens[index]
+			if token.domain not in self._parsers:
+				index += 1
+				new_tokens.append(token)
+				continue
+
+			parser = self._parsers[token.domain]
+			end, new_token, add_tokens = parser(context, tokens, index)
 			index = end
-			new_tokens.extend(in_tokens)
+			new_tokens.append(new_token)
+			new_tokens.extend(add_tokens)
 
 		return new_tokens
 
-	def parse_(self, context: Context, tokens: list[Token], begin: int) -> tuple[int, list[Token]]:
-		...
+	def parse_white_space(self, context: Context, tokens: list[Token], begin: int) -> tuple[int, Token, list[Token]]:
+		token = tokens[begin]
+		if context.enclosure > 0:
+			return begin + 1, token, []
+		elif context.nest < token.string.count('\t'):
+			context.nest = token.string.count('\t')
+			return begin + 1, Token(TokenTypes.NewLine, token.string[0]), [Token(TokenTypes.Indent, token.string[1:])]
+		elif context.nest > token.string.count('\t'):
+			context.nest = token.string.count('\t')
+			return begin + 1, Token(TokenTypes.NewLine, token.string[0]), [Token(TokenTypes.Dedent, token.string[1:])]
+		else:
+			return begin + 1, Token(TokenTypes.NewLine, token.string), []
+
+	def parse_symbol(self, context: Context, tokens: list[Token], begin: int) -> tuple[int, Token, list[Token]]:
+		token = tokens[begin]
+		if token.type in [TokenTypes.ParenL, TokenTypes.BraceL, TokenTypes.BracketL]:
+			context.enclosure += 1
+		elif token.type in [TokenTypes.ParenR, TokenTypes.BraceR, TokenTypes.BracketR]:
+			context.enclosure -= 1
+
+		return begin + 1, token, []
+
+	def parse_operator(self, context: Context, tokens: list[Token], begin: int) -> tuple[int, Token, list[Token]]:
+		for index, compound in enumerate(self._definition.operator_compound):
+			if len(tokens) <= begin + len(compound):
+				continue
+
+			combine = ''.join([tokens[begin + i].string[0] for i in range(len(compound))])
+			if combine != compound:
+				continue
+
+			base = TokenDomains.Operator.value << 4
+			offset = len(self._definition.operator)
+			token_type = TokenTypes(base + offset + index)
+			return begin + len(compound), Token(token_type, combine), []
+
+		return begin + 1, tokens[begin], []
 
 
 class Tokenizer(ITokenizer):

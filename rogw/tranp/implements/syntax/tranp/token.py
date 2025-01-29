@@ -37,7 +37,6 @@ class TokenTypes(Enum):
 	BracketR = 0x2B
 	BackQuote = 0x2C
 	BackSlash = 0x2D
-	Ellipsis = 0x2E
 	# 引用符
 	String = 0x30
 	Regexp = 0x31
@@ -47,7 +46,7 @@ class TokenTypes(Enum):
 	# 識別子
 	Name = 0x50
 	Keyword = 0x51
-	# 演算子(単)
+	# 演算子
 	Equal = 0x60
 	Minus = 0x61
 	Plus = 0x62
@@ -60,9 +59,9 @@ class TokenTypes(Enum):
 	Tilde = 0x69
 	Exclamation = 0x6A
 	Question = 0x6B
-	Smaller = 0x6C
+	Less = 0x6C
 	Greater = 0x6D
-	# 演算子(6)
+	# 演算子(組)
 	MinusEqual = 0x6E
 	PlusEqual = 0x6F
 	AsterEqual = 0x70
@@ -71,16 +70,20 @@ class TokenTypes(Enum):
 	AndEqual = 0x73
 	OrEqual = 0x74
 	HatEqual = 0x75
-	DoubleEqual = 0x76
-	NotEqual = 0x77
-	DoubleAnd = 0x78
-	DoubleOr = 0x79
-	ShiftL = 0x7A
-	ShiftR = 0x7B
-	Arrow = 0x7C
-	DoubleAster = 0x7D
-	WalrusEqual = 0x7E
-	# 未定義
+	TildeEqual = 0x76
+	DoubleEqual = 0x77
+	NotEqual = 0x78
+	LessEqual = 0x79
+	GreaterEqual = 0x7A
+	DoubleAnd = 0x7B
+	DoubleOr = 0x7C
+	ShiftL = 0x7D
+	ShiftR = 0x7E
+	Arrow = 0x7F
+	DoubleAster = 0x80
+	WalrusEqual = 0x81
+	Ellipsis = 0x82
+	# 未分類
 	Empty = 0xFE
 	Unknown = 0xFF
 

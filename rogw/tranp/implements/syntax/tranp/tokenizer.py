@@ -16,14 +16,18 @@ class TokenDefinition:
 		"""インスタンスを生成"""
 		self.white_space = ' \t\n\r'
 		self.comment = [self.build_quote_pair('#', '\n')]
-		self.symbol = '@#$.:;(){}[]`\\'  # ['_', "'", '"'] は別ドメインなので除外
+		self.symbol = '@#$.:;(){}[]`\\'
 		self.quote = [self.build_quote_pair(f'{prefix}{quote}', quote) for prefix in ['', 'r', 'f'] for quote in ['"""', "'", '"']]
 		self.number = '0123456789.'
 		self.identifier = '_0123456789abcdefghijklmnopqrstuABCDEFGHIJKLMNOPQRSTU'
-		self.operator = {
-			'single': '=-+*/%&|^~!?<>',
-			'compound': ['-=', '+=', '*=', '/=', '%=', '&=', '|=', '^=', '==', '!=', '&&', '||', '<<', '>>', '->', '**', ':=', '...'],
-		}
+		self.operator = '=-+*/%&|^~!?<>'
+		self.operator_compound = [
+			'-=', '+=', '*=', '/=', '%=',
+			'&=', '|=', '^=', '~=',
+			'==', '!=', '<=', '>=', '&&', '||',
+			'<<', '>>',
+			'->', '**', ':=', '...',
+		]
 
 	@classmethod
 	def build_quote_pair(cls, open: str, close: str) -> QuotePair:
@@ -219,10 +223,7 @@ class Tokenizer(ITokenizer):
 		Returns:
 			True = 一致
 		"""
-		if source[begin] in self._definition.operator['single']:
-			return True
-
-		return len([True for operator in self._definition.operator['compound'] if source.startswith(operator, begin)]) > 0
+		return source[begin] in self._definition.operator
 
 	def parse_white_spece(self, source: str, begin: int) -> tuple[int, Token]:
 		"""トークンを解析(空白)
@@ -297,7 +298,7 @@ class Tokenizer(ITokenizer):
 				break
 
 		value = source[begin:end]
-		token_type = TokenTypes.Regexp if value.count('/') > 0 else TokenTypes.String
+		token_type = TokenTypes.Regexp if value[0] == '/' else TokenTypes.String
 		return end, Token(token_type, value)
 
 	def parse_number(self, source: str, begin: int) -> tuple[int, Token]:
@@ -347,19 +348,11 @@ class Tokenizer(ITokenizer):
 		Returns:
 			(次の読み取り位置, トークン)
 		"""
-		if begin + 2 < len(source) and source[begin:begin + 2] in self._definition.operator['compound']:
-			value = source[begin:begin + 2]
-			base = TokenDomains.Operator.value << 4
-			offset0 = len(self._definition.operator['single'])
-			offset1  = self._definition.operator['compound'].index(value)
-			token_type = TokenTypes(base + offset0 + offset1)
-			return begin + 2, Token(token_type, value)
-		else:
-			value = source[begin]
-			base = TokenDomains.Operator.value << 4
-			offset = self._definition.operator['single'].index(value)
-			token_type = TokenTypes(base + offset)
-			return begin + 1, Token(token_type, value)
+		value = source[begin]
+		base = TokenDomains.Operator.value << 4
+		offset = self._definition.operator.index(value)
+		token_type = TokenTypes(base + offset)
+		return begin + 1, Token(token_type, value)
 
 
 class PyTokenizer(ITokenizer):

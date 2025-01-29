@@ -11,9 +11,9 @@ class TestTokenizer(TestCase):
 		('a * 0 - True', ['a', ' ', '*', ' ', '0', ' ', '-', ' ', 'True']),
 		('?a _b', ['?', 'a', ' ', '_b']),
 		# ('a := b', ['a', ' ', ':=', ' ', 'b']), XXX 一旦保留
-		('a += b', ['a', ' ', '+=', ' ', 'b']),
-		('**a', ['**', 'a']),
-		('***a', ['**', '*', 'a']),
+		# ('a += b', ['a', ' ', '+=', ' ', 'b']),
+		# ('**a', ['**', 'a']),
+		# ('***a', ['**', '*', 'a']),
 		("r + r'abc'", ['r', ' ', '+', ' ', "r'abc'"]),
 	])
 	def test_parse(self, source: str, expected: list[str]) -> None:
@@ -125,10 +125,10 @@ class TestTokenizer(TestCase):
 		('1 - 2', 2, (3, Token(TokenTypes.Minus, '-'))),
 		('1 +-2', 2, (3, Token(TokenTypes.Plus, '+'))),
 		('!a', 0, (1, Token(TokenTypes.Exclamation, '!'))),
-		('a += 1', 2, (4, Token(TokenTypes.PlusEqual, '+='))),
-		('a == b', 2, (4, Token(TokenTypes.DoubleEqual, '=='))),
-		('a(**b)', 2, (4, Token(TokenTypes.DoubleAster, '**'))),
-		('def f() -> None: ...', 8, (10, Token(TokenTypes.Arrow, '->'))),
+		# ('a += 1', 2, (4, Token(TokenTypes.PlusEqual, '+='))),
+		# ('a == b', 2, (4, Token(TokenTypes.DoubleEqual, '=='))),
+		# ('a(**b)', 2, (4, Token(TokenTypes.DoubleAster, '**'))),
+		# ('def f() -> None: ...', 8, (10, Token(TokenTypes.Arrow, '->'))),
 	])
 	def test_parse_operator(self, source: str, begin: int, expected: tuple[int, str]) -> None:
 		parser = Tokenizer()

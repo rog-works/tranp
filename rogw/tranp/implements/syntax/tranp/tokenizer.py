@@ -446,9 +446,9 @@ class Tokenizer(ITokenizer):
 				continue
 
 			handler = self._handlers[token.domain]
-			end, new_tokens = handler(context, tokens, index)
+			end, alt_tokens = handler(context, tokens, index)
 			index = end
-			new_tokens.extend(new_tokens)
+			new_tokens.extend(alt_tokens)
 
 		return new_tokens
 

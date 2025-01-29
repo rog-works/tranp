@@ -20,7 +20,7 @@ class TokenDefinition:
 		self.symbol = '@#$.,:;(){}[]`'
 		self.quote = [self.build_quote_pair(f'{prefix}{quote}', quote) for prefix in ['', 'r', 'f'] for quote in ['"""', "'", '"']]
 		self.number = '0123456789.'
-		self.identifier = '_0123456789abcdefghijklmnopqrstuABCDEFGHIJKLMNOPQRSTU'
+		self.identifier = '_0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 		self.operator = '=-+*/%&|^~!?<>'
 		self.combined_symbols = [
 			'-=', '+=', '*=', '/=', '%=',

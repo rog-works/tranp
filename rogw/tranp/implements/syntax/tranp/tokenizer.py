@@ -500,7 +500,7 @@ class Tokenizer(ITokenizer):
 		elif token.type in [TokenTypes.ParenR, TokenTypes.BraceR, TokenTypes.BracketR]:
 			context.enclosure -= 1
 
-		return begin + 1, [token]
+		return self.handle_operator(context, tokens, begin)
 
 	def handle_operator(self, context: Context, tokens: list[Token], begin: int) -> tuple[int, list[Token]]:
 		"""トークンリストを整形(演算子)

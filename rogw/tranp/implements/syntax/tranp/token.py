@@ -11,6 +11,9 @@ class TokenDomains(Enum):
 	Number = 4
 	Identifier = 5
 	Operator = 6
+	# 未分類
+	Max = 6
+	Unknown = 99
 
 
 class TokenTypes(Enum):
@@ -98,3 +101,12 @@ class Token(NamedTuple):
 	def empty(cls) -> 'Token':
 		"""Returns: 空を表すインスタンス"""
 		return cls(TokenTypes.Empty, '')
+
+	@property
+	def domain(self) -> TokenDomains:
+		"""Returns: トークンドメイン"""
+		d = self.type.value >> 4 & 0xf
+		if d == 0xf:
+			return TokenDomains.Unknown
+		else:
+			return TokenDomains(min(d, TokenDomains.Max.value))

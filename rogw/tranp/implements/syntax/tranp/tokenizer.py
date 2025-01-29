@@ -15,9 +15,9 @@ class TokenDefinition:
 
 	def __init__(self) -> None:
 		"""インスタンスを生成"""
-		self.white_space = ' \t\n\r'
+		self.white_space = ' \t\n\r\\'
 		self.comment = [self.build_quote_pair('#', '\n')]
-		self.symbol = '@#$.,:;(){}[]`\\'
+		self.symbol = '@#$.,:;(){}[]`'
 		self.quote = [self.build_quote_pair(f'{prefix}{quote}', quote) for prefix in ['', 'r', 'f'] for quote in ['"""', "'", '"']]
 		self.number = '0123456789.'
 		self.identifier = '_0123456789abcdefghijklmnopqrstuABCDEFGHIJKLMNOPQRSTU'
@@ -228,6 +228,11 @@ class Lexer(ITokenizer):
 			begin: 読み取り開始位置
 		Returns:
 			(次の読み取り位置, トークン)
+		Note:
+			```
+			* WhiteSpace: 改行を含まない空白。単なる区切り文字であり、無視して良い
+			* LineBreak: 改行を含む空白。ステートメント、またはブロックの終了を表す
+			```
 		"""
 		end = begin
 		while end < len(source):
@@ -240,10 +245,14 @@ class Lexer(ITokenizer):
 		if string.count('\n') == 0:
 			return end, Token(TokenTypes.WhiteSpace, string)
 
-		line_break = self._pretty_line_break(string)
+		unespaced = ''.join(string.split('\\\n')) if string.count('\\\n') else string
+		if unespaced.count('\n') == 0:
+			return end, Token(TokenTypes.WhiteSpace, unespaced)
+
+		line_break = self._format_line_break(unespaced)
 		return end, Token(TokenTypes.LineBreak, line_break)
 
-	def _pretty_line_break(self, string: str) -> str:
+	def _format_line_break(self, string: str) -> str:
 		"""改行を含む文字列から不要な要素を除去し、改行とインデント成分のみを残す
 
 		Args:
@@ -252,9 +261,14 @@ class Lexer(ITokenizer):
 			整形後の文字列
 		Note:
 			```
-			* 前方の空白を除去: ' \t\n\t' -> '\n\t'
-			* 中間の空行を除去: '\n\n\t' -> '\n\t'
-			* 末尾の空白を除去: '\n\t ' -> '\n\t'
+			先頭は改行。それ以降は同種のインデント
+			出力例1: '\\n'
+			出力例2: '\\n\\t\\t\\t'
+			出力例3: '\\n   '
+			### 整形ルール
+			* 前方の空白を除去: ' \\t\\n\\t' -> '\\n\\t'
+			* 中間の空行を除去: '\\n\\n\\t' -> '\\n\\t'
+			* 末尾の空白を除去: '\\n\\t ' -> '\\n\\t'
 			```
 		"""
 		_, *lines = string.split('\n')

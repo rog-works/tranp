@@ -29,11 +29,11 @@ def python_rules() -> dict[str, PatternEntry]:
 		# primary
 		'?primary': Patterns([Pattern.S('relay'), Pattern.S('invoke'), Pattern.S('indexer'), Pattern.S('?atom')], op=Operators.Or),
 		'relay': Patterns([Pattern.S('?primary'), Pattern.T('"."'), Pattern.S('name')]),
-		'invoke': Patterns([Pattern.S('?primary'), Pattern.T('"("'), Patterns([Pattern.S('args')], rep=Repeators.Bit), Pattern.T('")"')]),
+		'invoke': Patterns([Pattern.S('?primary'), Pattern.T('"("'), Patterns([Pattern.S('args')], rep=Repeators.OneOrEmpty), Pattern.T('")"')]),
 		'indexer': Patterns([Pattern.S('?primary'), Pattern.T('"["'), Pattern.S('?exp'), Pattern.T('"]"')]),
 		'?atom': Patterns([Pattern.S('var'), Pattern.S('bool'), Pattern.S('none'), Pattern.S('str'), Pattern.S('int'), Pattern.S('float')], op=Operators.Or),
 		# element
-		'args': Patterns([Pattern.S('?exp'), Patterns([Pattern.T('","'), Pattern.S('?exp')], rep=Repeators.Over0)]),
+		'args': Patterns([Pattern.S('?exp'), Patterns([Pattern.T('","'), Pattern.S('?exp')], rep=Repeators.OverZero)]),
 	}
 
 
@@ -55,7 +55,7 @@ def grammar_rules() -> dict[str, PatternEntry]:
 		```
 	"""
 	return {
-		'entry': Patterns([Pattern.S('rule')], rep=Repeators.Over1),
+		'entry': Patterns([Pattern.S('rule')], rep=Repeators.OverOne),
 		'rule': Patterns([Pattern.S('symbol'), Pattern.T('":="'), Pattern.S('?expr'), Pattern.T('"\n"')]),
 		'?expr': Patterns([
 			Pattern.S('?list'),
@@ -112,7 +112,7 @@ Note:
 	# 'unary_op ::= "+" | "-"',
 	'primary ::= relay | invoke | indexer | atom',
 	'relay ::= primary "." var',
-	'invoke ::= primary "(" (args)? ")"',
+	'invoke ::= primary "(" [args] ")"',
 	'indexer ::= primary "[" exp "]"',
 	'args ::= exp ("," exp)*',
 	'atom ::= var | bool | none | str | int | float',

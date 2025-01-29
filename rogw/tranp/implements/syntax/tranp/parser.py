@@ -52,15 +52,17 @@ class Repeators(Enum):
 
 	Note:
 		```
-		Over0: 0回以上
-		Over1: 1回以上
-		Bit: 0/1
+		OverZero: 0回以上
+		OverOne: 1回以上
+		OneOrZero: 1/0
+		OneOrEmpty: 1/Empty
 		NoRepeat: リピートなし(=通常比較)
 		```
 	"""
-	Over0 = '*'
-	Over1 = '+'
-	Bit = '?'
+	OverZero = '*'
+	OverOne = '+'
+	OneOrZero = '?'
+	OneOrEmpty = '[]'
 	NoRepeat = 'off'
 
 
@@ -372,12 +374,14 @@ class SyntaxParser:
 			steps += in_step.steps
 			children.extend(in_children)
 
-			if patterns.rep == Repeators.Bit:
+			if patterns.rep in [Repeators.OneOrZero, Repeators.OneOrEmpty]:
 				break
 
 		if found == 0:
-			if patterns.rep in [Repeators.Over0, Repeators.Bit]:
+			if patterns.rep in [Repeators.OverZero, Repeators.OneOrZero]:
 				return Step.ok(0), []
+			elif patterns.rep == Repeators.OneOrEmpty:
+				return Step.ok(0), [ASTToken.empty()]
 			else:
 				return Step.ng(), []
 

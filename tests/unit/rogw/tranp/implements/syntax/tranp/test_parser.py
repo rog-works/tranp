@@ -25,23 +25,27 @@ class TestSyntaxParser(TestCase):
 			]),
 		),
 		(
-			'a.b("c").d',
+			'a.b().c(1, "2")',
 			'python',
 			('entry', [
-				('relay', [
-					('invoke', [
-						('relay', [
-							('var', [
-								('name', (TokenTypes.Name, 'a')),
+				('invoke', [
+					('relay', [
+						('invoke', [
+							('relay', [
+								('var', [
+									('name', (TokenTypes.Name, 'a')),
+								]),
+								('name', (TokenTypes.Name, 'b')),
 							]),
-							('name', (TokenTypes.Name, 'b')),
+							('__empty__', (TokenTypes.Empty, '')),
 						]),
-						('args', [
-							('str', (TokenTypes.String, '"c"')),
-						]),
+						('name', (TokenTypes.Name, 'c')),
 					]),
-					('name', (TokenTypes.Name, 'd')),
-				])
+					('args', [
+						('int', (TokenTypes.Digit, '1')),
+						('str', (TokenTypes.String, '"2"')),
+					]),
+				]),
 			]),
 		),
 		(

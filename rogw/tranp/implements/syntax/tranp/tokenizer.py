@@ -67,10 +67,10 @@ class TokenParser:
 
 	def __init__(self, definition: TokenDefinition) -> None:
 		self._definition = definition
-		self._parsers = {
-			TokenDomains.WhiteSpace: self.parse_white_space,
-			TokenDomains.Symbol: self.parse_symbol,
-			TokenDomains.Operator: self.parse_operator,
+		self._handlers = {
+			TokenDomains.WhiteSpace: self.handle_white_space,
+			TokenDomains.Symbol: self.handle_symbol,
+			TokenDomains.Operator: self.handle_operator,
 		}
 
 	def tokenize(self, tokens: list[Token]) -> list[Token]:
@@ -86,20 +86,20 @@ class TokenParser:
 		new_tokens: list[Token] = []
 		while index < len(tokens):
 			token = tokens[index]
-			if token.domain not in self._parsers:
+			if token.domain not in self._handlers:
 				index += 1
 				new_tokens.append(token)
 				continue
 
-			parser = self._parsers[token.domain]
-			end, new_token, add_tokens = parser(context, tokens, index)
+			handler = self._handlers[token.domain]
+			end, new_token, add_tokens = handler(context, tokens, index)
 			index = end
 			new_tokens.append(new_token)
 			new_tokens.extend(add_tokens)
 
 		return new_tokens
 
-	def parse_white_space(self, context: Context, tokens: list[Token], begin: int) -> tuple[int, Token, list[Token]]:
+	def handle_white_space(self, context: Context, tokens: list[Token], begin: int) -> tuple[int, Token, list[Token]]:
 		token = tokens[begin]
 		if context.enclosure > 0:
 			return begin + 1, token, []
@@ -112,7 +112,7 @@ class TokenParser:
 		else:
 			return begin + 1, Token(TokenTypes.NewLine, token.string), []
 
-	def parse_symbol(self, context: Context, tokens: list[Token], begin: int) -> tuple[int, Token, list[Token]]:
+	def handle_symbol(self, context: Context, tokens: list[Token], begin: int) -> tuple[int, Token, list[Token]]:
 		token = tokens[begin]
 		if token.type in [TokenTypes.ParenL, TokenTypes.BraceL, TokenTypes.BracketL]:
 			context.enclosure += 1
@@ -121,7 +121,7 @@ class TokenParser:
 
 		return begin + 1, token, []
 
-	def parse_operator(self, context: Context, tokens: list[Token], begin: int) -> tuple[int, Token, list[Token]]:
+	def handle_operator(self, context: Context, tokens: list[Token], begin: int) -> tuple[int, Token, list[Token]]:
 		for index, compound in enumerate(self._definition.operator_compound):
 			if len(tokens) <= begin + len(compound):
 				continue

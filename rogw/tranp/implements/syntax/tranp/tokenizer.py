@@ -261,8 +261,8 @@ class Tokenizer(ITokenizer):
 		"""
 		return len([True for pair in self._definition.comment if source.startswith(pair['open'], begin)]) > 0
 
-	def analyze_number(self, source: str, begin: int) -> bool:
-		"""トークンドメインを解析(数字)
+	def analyze_symbol(self, source: str, begin: int) -> bool:
+		"""トークンドメインを解析(記号)
 
 		Args:
 			source: ソースコード
@@ -270,7 +270,7 @@ class Tokenizer(ITokenizer):
 		Returns:
 			True = 一致
 		"""
-		return source[begin] in self._definition.number
+		return source[begin] in self._definition.symbol
 
 	def analyze_quote(self, source: str, begin: int) -> bool:
 		"""トークンドメインを解析(引用符)
@@ -282,6 +282,17 @@ class Tokenizer(ITokenizer):
 			True = 一致
 		"""
 		return len([True for pair in self._definition.quote if source.startswith(pair['open'], begin)]) > 0
+
+	def analyze_number(self, source: str, begin: int) -> bool:
+		"""トークンドメインを解析(数字)
+
+		Args:
+			source: ソースコード
+			begin: 読み取り開始位置
+		Returns:
+			True = 一致
+		"""
+		return source[begin] in self._definition.number
 
 	def analyze_identifier(self, source: str, begin: int) -> bool:
 		"""トークンドメインを解析(識別子)
@@ -307,17 +318,6 @@ class Tokenizer(ITokenizer):
 			return True
 
 		return len([True for operator in self._definition.operator['compound'] if source.startswith(operator, begin)]) > 0
-
-	def analyze_symbol(self, source: str, begin: int) -> bool:
-		"""トークンドメインを解析(記号)
-
-		Args:
-			source: ソースコード
-			begin: 読み取り開始位置
-		Returns:
-			True = 一致
-		"""
-		return source[begin] in self._definition.symbol
 
 	def parse_white_spece(self, source: str, begin: int) -> tuple[int, Token]:
 		"""トークンを解析(空白)
@@ -354,8 +354,8 @@ class Tokenizer(ITokenizer):
 
 		return end, Token(TokenTypes.Comment, source[begin:end])
 
-	def parse_number(self, source: str, begin: int) -> tuple[int, Token]:
-		"""トークンを解析(数字)
+	def parse_symbol(self, source: str, begin: int) -> tuple[int, Token]:
+		"""トークンを解析(記号)
 
 		Args:
 			source: ソースコード
@@ -363,16 +363,11 @@ class Tokenizer(ITokenizer):
 		Returns:
 			(次の読み取り位置, トークン)
 		"""
-		end = begin
-		while end < len(source):
-			if source[end] not in self._definition.number:
-				break
-
-			end += 1
-
-		value = source[begin:end]
-		token_type = TokenTypes.Decimal if value.count('.') > 0 else TokenTypes.Digit
-		return end, Token(token_type, value)
+		value = source[begin]
+		base = TokenDomains.Symbol.value << 4
+		offset = self._definition.symbol.index(value)
+		token_type = TokenTypes(base + offset)
+		return begin + 1, Token(token_type, value)
 
 	def parse_quote(self, source: str, begin: int) -> tuple[int, Token]:
 		"""トークンを解析(引用符)
@@ -397,6 +392,26 @@ class Tokenizer(ITokenizer):
 
 		value = source[begin:end]
 		token_type = TokenTypes.String if value.count('/') > 0 else TokenTypes.Regexp
+		return end, Token(token_type, value)
+
+	def parse_number(self, source: str, begin: int) -> tuple[int, Token]:
+		"""トークンを解析(数字)
+
+		Args:
+			source: ソースコード
+			begin: 読み取り開始位置
+		Returns:
+			(次の読み取り位置, トークン)
+		"""
+		end = begin
+		while end < len(source):
+			if source[end] not in self._definition.number:
+				break
+
+			end += 1
+
+		value = source[begin:end]
+		token_type = TokenTypes.Decimal if value.count('.') > 0 else TokenTypes.Digit
 		return end, Token(token_type, value)
 
 	def parse_identifier(self, source: str, begin: int) -> tuple[int, Token]:
@@ -439,21 +454,6 @@ class Tokenizer(ITokenizer):
 			offset = self._definition.operator['single'].index(value)
 			token_type = TokenTypes(base + offset)
 			return begin + 1, Token(token_type, value)
-
-	def parse_symbol(self, source: str, begin: int) -> tuple[int, Token]:
-		"""トークンを解析(記号)
-
-		Args:
-			source: ソースコード
-			begin: 読み取り開始位置
-		Returns:
-			(次の読み取り位置, トークン)
-		"""
-		value = source[begin]
-		base = TokenDomains.Symbol.value << 4
-		offset = self._definition.symbol.index(value)
-		token_type = TokenTypes(base + offset)
-		return begin + 1, Token(token_type, value)
 
 
 class PyTokenizer(ITokenizer):

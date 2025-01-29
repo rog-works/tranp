@@ -70,7 +70,12 @@ class TestLexer(TestCase):
 		(' abc', 0, (1, Token(TokenTypes.WhiteSpace, ' '))),
 		('abc ', 3, (4, Token(TokenTypes.WhiteSpace, ' '))),
 		('ab c', 2, (3, Token(TokenTypes.WhiteSpace, ' '))),
-		('a \t\nb\nc', 1, (4, Token(TokenTypes.WhiteSpace, ' \t\n'))),
+		('a \t\nb\nc', 1, (4, Token(TokenTypes.LineBreak, '\n'))),
+		('\ta\n\tbc', 2, (4, Token(TokenTypes.LineBreak, '\n\t'))),
+		(' \t\n\t', 0, (4, Token(TokenTypes.LineBreak, '\n\t'))),
+		('\n\n\t\n', 0, (4, Token(TokenTypes.LineBreak, '\n'))),
+		('\n\n\t ', 0, (4, Token(TokenTypes.LineBreak, '\n\t'))),
+		('\n\n \t', 0, (4, Token(TokenTypes.LineBreak, '\n '))),
 	])
 	def test_parse_white_space(self, source: str, begin: int, expected: tuple[int, str]) -> None:
 		parser = Lexer(TokenDefinition())

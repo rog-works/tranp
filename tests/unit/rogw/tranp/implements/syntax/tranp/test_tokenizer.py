@@ -14,6 +14,23 @@ class TestTokenizer(TestCase):
 		('**a', ['**', 'a']),
 		('***a', ['**', '*', 'a']),
 		('def f() -> None: ...', ['def', 'f', '(', ')', '->', 'None', ':', '...']),
+		(
+			'\n'.join([
+				'def a(arr: list[int]) -> dict[str, int]:',
+				'	return {',
+				'		"b": arr[0],',
+				'	}',
+				'	',
+				'print(a([0]))',
+			]),
+			[
+				'def', 'a', '(', 'arr', ':', 'list', '[', 'int', ']', ')', '->', 'dict', '[', 'str', ',', 'int', ']', ':', '\n',
+					'\t', 'return', '{',
+						'"b"', ':', 'arr', '[', '0', ']', ',',
+					'}', '\n', '',
+				'print', '(', 'a', '(', '[', '0', ']', ')', ')',
+			],
+		),
 	])
 	def test_parse(self, source: str, expected: list[str]) -> None:
 		parser = Tokenizer()

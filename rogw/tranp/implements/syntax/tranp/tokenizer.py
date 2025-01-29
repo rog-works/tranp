@@ -236,7 +236,44 @@ class Lexer(ITokenizer):
 
 			end += 1
 
-		return end, Token(TokenTypes.WhiteSpace, source[begin:end])
+		string = source[begin:end]
+		if string.count('\n') == 0:
+			return end, Token(TokenTypes.WhiteSpace, string)
+
+		line_break = self._pretty_line_break(string)
+		return end, Token(TokenTypes.LineBreak, line_break)
+
+	def _pretty_line_break(self, string: str) -> str:
+		"""改行を含む文字列から不要な要素を除去し、改行とインデント成分のみを残す
+
+		Args:
+			string: 元の文字列
+		Returns:
+			整形後の文字列
+		Note:
+			```
+			* 前方の空白を除去: ' \t\n\t' -> '\n\t'
+			* 中間の空行を除去: '\n\n\t' -> '\n\t'
+			* 末尾の空白を除去: '\n\t ' -> '\n\t'
+			```
+		"""
+		_, *lines = string.split('\n')
+		if len(lines) == 0:
+			return '\n'
+
+		last_line = lines[-1]
+		if len(last_line) == 0:
+			return '\n'
+
+		tab = last_line[0]
+		indent = ''
+		for i in range(len(last_line)):
+			if last_line[i] != tab:
+				break
+
+			indent += tab
+
+		return f'\n{indent}'
 
 	def parse_comment(self, source: str, begin: int) -> tuple[int, Token]:
 		"""トークンを解析(コメント)

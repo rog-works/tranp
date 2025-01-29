@@ -20,9 +20,10 @@ class TokenTypes(Enum):
 	"""トークン種別"""
 	# 空白
 	WhiteSpace = 0x00
-	NewLine = 0x01
-	Indent = 0x02
-	Dedent = 0x03
+	LineBreak = 0x01
+	NewLine = 0x02
+	Indent = 0x03
+	Dedent = 0x04
 	# コメント
 	Comment = 0x10
 	# 記号

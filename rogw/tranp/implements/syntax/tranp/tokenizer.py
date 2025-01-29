@@ -136,12 +136,14 @@ class Lexer(ITokenizer):
 			begin: 読み取り開始位置
 		Returns:
 			トークンドメイン
+		Raises:
+			ValueError: 未分類の文字種を処理
 		"""
 		for token_class, analyzer in self._analyzers.items():
 			if analyzer(source, begin):
 				return token_class
 
-		assert False, f'Never. Undetermine token domain. with character: {source[begin]}'
+		raise ValueError(f'Never. Undetermine token domain. with character: {source[begin]}')
 
 	def analyze_white_spece(self, source: str, begin: int) -> bool:
 		"""トークンドメインを解析(空白)
@@ -485,7 +487,7 @@ class Tokenizer(ITokenizer):
 			```
 			以下の規則に則り、改行/インデント/ディデントを判断する @see Lexer.parse_white_space
 			* LineBreak以外は削除 (文法的に無視して良い)
-			* LineBreakは先頭が必ず改行で、残りの文字は全てインデント
+			* LineBreakは先頭が必ず改行。それ以降は全てインデント
 			```
 		"""
 		token = tokens[begin]

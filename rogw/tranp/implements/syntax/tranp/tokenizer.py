@@ -17,7 +17,7 @@ class TokenDefinition:
 		"""インスタンスを生成"""
 		self.white_space = ' \t\n\r'
 		self.comment = [self.build_quote_pair('#', '\n')]
-		self.symbol = '@#$.:;(){}[]`\\'
+		self.symbol = '@#$.,:;(){}[]`\\'
 		self.quote = [self.build_quote_pair(f'{prefix}{quote}', quote) for prefix in ['', 'r', 'f'] for quote in ['"""', "'", '"']]
 		self.number = '0123456789.'
 		self.identifier = '_0123456789abcdefghijklmnopqrstuABCDEFGHIJKLMNOPQRSTU'

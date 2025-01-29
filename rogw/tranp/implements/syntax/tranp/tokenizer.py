@@ -22,7 +22,7 @@ class TokenDefinition:
 		self.number = '0123456789.'
 		self.identifier = '_0123456789abcdefghijklmnopqrstuABCDEFGHIJKLMNOPQRSTU'
 		self.operator = '=-+*/%&|^~!?<>'
-		self.operator_compound = [
+		self.combined_symbols = [
 			'-=', '+=', '*=', '/=', '%=',
 			'&=', '|=', '^=', '~=',
 			'==', '!=', '<=', '>=', '&&', '||',
@@ -509,7 +509,7 @@ class Tokenizer(ITokenizer):
 		elif token.type in [TokenTypes.ParenR, TokenTypes.BraceR, TokenTypes.BracketR]:
 			context.enclosure -= 1
 
-		return self.handle_operator(context, tokens, begin)
+		return self._combine_symbol(tokens, begin)
 
 	def handle_operator(self, context: Context, tokens: list[Token], begin: int) -> tuple[int, list[Token]]:
 		"""トークンリストを整形(演算子)
@@ -521,20 +521,31 @@ class Tokenizer(ITokenizer):
 		Returns:
 			(次の読み取り開始位置, トークンリスト)
 		Note:
-			複数の記号より成り立つ演算子(=トークン)の合成を行う
+			トークンの整形処理は記号と共有
 		"""
-		for index, compound in enumerate(self._definition.operator_compound):
-			if len(tokens) <= begin + len(compound) - 1:
+		return self._combine_symbol(tokens, begin)
+
+	def _combine_symbol(self, tokens: list[Token], begin: int) -> tuple[int, list[Token]]:
+		"""複数の文字より成り立つ記号(=トークン)の合成を行う
+
+		Args:
+			tokens: トークンリスト
+			begin: 読み取り開始位置
+		Returns:
+			(次の読み取り開始位置, トークンリスト)
+		"""
+		for index, expected in enumerate(self._definition.combined_symbols):
+			if len(tokens) <= begin + len(expected) - 1:
 				continue
 
-			combine = ''.join([tokens[begin + i].string[0] for i in range(len(compound))])
-			if combine != compound:
+			combine = ''.join([tokens[begin + i].string[0] for i in range(len(expected))])
+			if combine != expected:
 				continue
 
 			base = TokenDomains.Operator.value << 4
 			offset = len(self._definition.operator)
 			token_type = TokenTypes(base + offset + index)
-			return begin + len(compound), [Token(token_type, combine)]
+			return begin + len(expected), [Token(token_type, combine)]
 
 		return begin + 1, [tokens[begin]]
 

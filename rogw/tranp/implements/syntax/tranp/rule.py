@@ -170,6 +170,17 @@ class Rules(Mapping):
 		```
 	"""
 
+	@classmethod
+	def from_ast(cls, tree: ASTTree) -> 'Rules':
+		"""ASTツリーからインスタンスを復元
+
+		Args:
+			tree: ASTツリー
+		Returns:
+			インスタンス
+		"""
+		return ASTSerializer.restore(tree)
+
 	def __init__(self, rules: dict[str, PatternEntry]) -> None:
 		"""インスタンスを生成
 
@@ -215,6 +226,11 @@ class Rules(Mapping):
 			key_ = key[1:] if key[0] == Expandors.OneTime.value else key
 			yield key_, rule
 
+	def org_symbols(self) -> Iterator[str]:
+		"""Returns: イテレーター(オリジナルのシンボル名)"""
+		for key in self._rules.keys():
+			yield key
+
 	def expand_by(self, symbol: str) -> Expandors:
 		"""指定のシンボルの展開ルールを取得
 
@@ -228,12 +244,61 @@ class Rules(Mapping):
 		else:
 			return Expandors.OneTime
 
+	def pretty(self) -> str:
+		"""Returns: フォーマット文字列"""
+		return Prettier.pretty(self)
+
+
+class Prettier:
 	@classmethod
-	def from_ast(cls, tree: ASTTree) -> 'Rules':
-		return SerializeAST.restore(tree)
+	def pretty(cls, rules: Rules) -> str:
+		return '\n'.join([cls._pretty_rule(org_symbol, rules[org_symbol]) for org_symbol in rules.org_symbols()])
+
+	@classmethod
+	def _pretty_rule(cls, org_symbol: str, pattern: PatternEntry) -> str:
+		return f'{org_symbol} := {cls._pretty_pattern_entry(pattern)}'
+
+	@classmethod
+	def _pretty_pattern_entry(cls, pattern: PatternEntry) -> str:
+		if isinstance(pattern, Pattern):
+			return cls._pretty_pattern(pattern)
+		elif isinstance(pattern, Patterns):
+			return cls._pretty_patterns(pattern)
+
+	@classmethod
+	def _pretty_pattern(cls, pattern: Pattern) -> str:
+		return f'{pattern.expression}'
+
+	@classmethod
+	def _pretty_patterns(cls, patterns: Patterns) -> str:
+		if patterns.op == Operators.And:
+			return cls._pretty_patterns_and(patterns)
+		else:
+			return cls._pretty_patterns_or(patterns)
+
+	@classmethod
+	def _pretty_patterns_and(cls, patterns: Patterns) -> str:
+		pretty_patterns = ' '.join([cls._pretty_pattern_entry(pattern) for pattern in patterns.entries])
+		return cls._deco_repeat(pretty_patterns, patterns.rep)
+
+	@classmethod
+	def _pretty_patterns_or(cls, patterns: Patterns) -> str:
+		pretty_patterns = ' | '.join([cls._pretty_pattern_entry(pattern) for pattern in patterns.entries])
+		return cls._deco_repeat(pretty_patterns, patterns.rep)
+
+	@classmethod
+	def _deco_repeat(cls, pretty_patterns: str, rep: Repeators) -> str:
+		if rep == Repeators.NoRepeat:
+			return pretty_patterns
+		elif rep == Repeators.OneOrEmpty:
+			return f'[{pretty_patterns}]'
+		else:
+			return f'{pretty_patterns}{rep.value}'
 
 
-class SerializeAST:
+class ASTSerializer:
+	"""シリアライザー(AST)"""
+
 	@classmethod
 	def restore(cls, tree: ASTTree) -> 'Rules':
 		assert tree.name == 'entry', f'Must be name is "entry" from "{tree.name}"'
@@ -245,10 +310,10 @@ class SerializeAST:
 	def _for_rule(cls, tree: ASTTree) -> tuple[str, PatternEntry]:
 		assert tree.name == 'rule', f'Must be name is "rule" from "{tree.name}"'
 
-		expand = cls._fetch_token(tree, 0, 'expand')
+		expand = cls._fetch_token(tree, 0, 'expand', allow_empty=True)
 		symbol = cls._fetch_token(tree, 1, 'symbol')
 		expr = cls._for_expr(tree.children[2])
-		return f'{expand.value.string}{symbol.name}', expr
+		return f'{expand.value.string}{symbol.value.string}', expr
 
 	@classmethod
 	def _for_expr(cls, entry: ASTEntry) -> PatternEntry:
@@ -299,7 +364,7 @@ class SerializeAST:
 		return Patterns([cls._for_expr(tree.children[i]) for i in range(expr_num)], rep=rep)
 
 	@classmethod
-	def _fetch_token(cls, tree: ASTTree, index: int, expected: str) -> ASTToken:
+	def _fetch_token(cls, tree: ASTTree, index: int, expected: str, allow_empty: bool = False) -> ASTToken:
 		token = as_a(ASTToken, tree.children[index])
-		assert token.name == expected, f'Must be token name is "{token.name}" from {token.name}'
+		assert token.name == expected or allow_empty, f'Must be token name is "{expected}" from {token.name}'
 		return token

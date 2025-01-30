@@ -2,6 +2,10 @@ from typing import NamedTuple, TypeAlias
 
 from rogw.tranp.implements.syntax.tranp.token import Token
 
+TupleToken: TypeAlias = tuple[str, str]
+TupleTree: TypeAlias = tuple[str, list['TupleToken | TupleTree']]
+TupleEntry: TypeAlias = TupleToken | TupleTree
+
 
 class ASTToken(NamedTuple):
 	"""AST(トークン)"""
@@ -14,8 +18,8 @@ class ASTToken(NamedTuple):
 		"""Returns: 空を表すインスタンス"""
 		return cls('__empty__', Token.empty())
 
-	def simplify(self) -> tuple[str, str | list[tuple]]:
-		"""Returns: 簡易書式(tuple/str)"""
+	def simplify(self) -> TupleEntry:
+		"""Returns: tuple形式"""
 		return self.name, self.value.string
 
 	def pretty(self, indent: str = '  ') -> str:
@@ -29,8 +33,8 @@ class ASTTree(NamedTuple):
 	name: str
 	children: list['ASTToken | ASTTree']
 
-	def simplify(self) -> tuple[str, str | list[tuple]]:
-		"""Returns: 簡易書式(tuple/str)"""
+	def simplify(self) -> TupleEntry:
+		"""Returns: tuple形式"""
 		return self.name, [child.simplify() for child in self.children]
 
 	def pretty(self, indent: str = '  ') -> str:

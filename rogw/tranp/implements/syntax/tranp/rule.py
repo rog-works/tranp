@@ -349,11 +349,11 @@ class Prettier:
 			付与後の文字列
 		"""
 		if rep == Repeators.NoRepeat:
-			return pretty_patterns
+			return f'{pretty_patterns}'
 		elif rep == Repeators.OneOrEmpty:
 			return f'[{pretty_patterns}]'
 		else:
-			return f'{pretty_patterns}{rep.value}'
+			return f'({pretty_patterns}){rep.value}'
 
 
 class ASTSerializer:

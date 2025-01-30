@@ -349,7 +349,8 @@ class Prettier:
 			付与後の文字列
 		"""
 		if rep == Repeators.NoRepeat:
-			return f'{pretty_patterns}'
+			# XXX ルール直下以外は括弧で囲った方が良い
+			return pretty_patterns
 		elif rep == Repeators.OneOrEmpty:
 			return f'[{pretty_patterns}]'
 		else:

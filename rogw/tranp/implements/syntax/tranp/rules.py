@@ -46,7 +46,8 @@ def grammar_rules() -> dict[str, PatternEntry]:
 		```
 		entry := (rule)+
 		rule := symbol ":=" expr "\n"
-		expr := (terms "|")* terms
+		expr := terms_or
+		terns_or := (terms "|")* terms
 		terms := (term)* term
 		term := symbol | string | regexp | /[(\\[]/ expr /[)\\]]/ (/[*+?]/)?
 		symbol := /[a-zA-Z_][0-9a-zA-Z_]*/
@@ -57,7 +58,8 @@ def grammar_rules() -> dict[str, PatternEntry]:
 	return {
 		'entry': Patterns([Pattern.S('rule')], rep=Repeators.OverOne),
 		'rule': Patterns([Pattern.S('symbol'), Pattern.T('":="'), Pattern.S('?expr'), Pattern.T('"\n"')]),
-		'?expr': Patterns([
+		'?expr': Pattern.S('?terms_or'),
+		'?terms_or': Patterns([
 			Patterns([Pattern.S('?terms'), Pattern.T('"|"')], rep=Repeators.OverZero),
 			Pattern.S('?terms'),
 		]),

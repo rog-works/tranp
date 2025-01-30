@@ -60,7 +60,7 @@ class TestSyntaxParser(TestCase):
 				('rule', [('symbol', 'exp'), ('symbol', 'primary')]),
 				('rule', [
 					('symbol', 'primary'),
-					('?expr', [
+					('?terms_or', [
 						('symbol', 'relay'),
 						('symbol', 'invoke'),
 						('symbol', 'indexer'),

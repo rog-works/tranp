@@ -169,12 +169,32 @@ class ASTToken(NamedTuple):
 		"""Returns: 空を表すインスタンス"""
 		return cls('__empty__', Token.empty())
 
+	def simplify(self) -> tuple[str, str | list[tuple]]:
+		"""Returns: 簡易書式(tuple/str)"""
+		return self.name, self.value.string
+
+	@property
+	def pretty(self) -> str:
+		"""Returns: フォーマット書式"""
+		return f"('{self.name}': '{self.value.string}')"
+
 
 class ASTTree(NamedTuple):
 	"""AST(ツリー)"""
 
 	name: str
 	children: list['ASTToken | ASTTree']
+
+	def simplify(self) -> tuple[str, str | list[tuple]]:
+		"""Returns: 簡易書式(tuple/str)"""
+		return self.name, [child.simplify() for child in self.children]
+
+	@property
+	def pretty(self) -> str:
+		"""Returns: フォーマット書式"""
+		indent = '  '
+		children_str = f',\n{indent}'.join([f'\n{indent}'.join(child.pretty.split('\n')) for child in self.children])
+		return f"('{self.name}': [\n{indent}{children_str}\n])"
 
 
 ASTEntry: TypeAlias = 'ASTToken | ASTTree'

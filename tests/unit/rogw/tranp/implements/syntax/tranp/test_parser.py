@@ -1,57 +1,105 @@
 from unittest import TestCase
 
 from rogw.tranp.implements.syntax.tranp.parser import ASTTree, SyntaxParser
-from rogw.tranp.implements.syntax.tranp.rules import grammar_rules, python_rules
-from rogw.tranp.implements.syntax.tranp.token import TokenTypes
+from rogw.tranp.implements.syntax.tranp.rules import grammar_rules, grammar_tokenizer, python_rules
+from rogw.tranp.implements.syntax.tranp.tokenizer import Tokenizer
 from rogw.tranp.test.helper import data_provider
 
 
 class TestSyntaxParser(TestCase):
 	@data_provider([
 		(
-			'a.b.c',
+			'a\nb\n',
 			'python',
 			('entry', [
-				('relay', [
-					('relay', [
-						('var', [
-							('name', (TokenTypes.Name, 'a')),
-						]),
-						('name', (TokenTypes.Name, 'b')),
-					]),
-					('name', (TokenTypes.Name, 'c')),
+				('var', [
+					('name', 'a'),
+				]),
+				('var', [
+					('name', 'b'),
 				]),
 			]),
 		),
 		(
-			'a.b("c").d',
+			'a.b().c(1, "2")\n',
 			'python',
 			('entry', [
-				('relay', [
-					('invoke', [
-						('relay', [
-							('var', [
-								('name', (TokenTypes.Name, 'a')),
+				('invoke', [
+					('relay', [
+						('invoke', [
+							('relay', [
+								('var', [
+									('name', 'a'),
+								]),
+								('name', 'b'),
 							]),
-							('name', (TokenTypes.Name, 'b')),
+							('__empty__', ''),
 						]),
-						('args', [
-							('str', (TokenTypes.String, '"c"')),
-						]),
+						('name', 'c'),
 					]),
-					('name', (TokenTypes.Name, 'd')),
-				])
+					('args', [
+						('int', '1'),
+						('str', '"2"'),
+					]),
+				]),
 			]),
 		),
 		(
-			''.join([
-				'a := b\n',
-				'b := c\n',
-			]),
+			'{}\n'.format('\n'.join([
+				'entry := exp',
+				'exp := primary',
+				'primary := relay | invoke | indexer | atom',
+				'relay := primary "." name',
+				'invoke := primary "(" [args] ")"',
+				'indexer := primary "[" expr "]"',
+				'args := expr (expr)*',
+			])),
 			'grammar',
 			('entry', [
-				('rule', [('symbol', (TokenTypes.Name, 'a')), ('symbol', (TokenTypes.Name, 'b'))]),
-				('rule', [('symbol', (TokenTypes.Name, 'b')), ('symbol', (TokenTypes.Name, 'c'))]),
+				('rule', [('symbol', 'entry'), ('symbol', 'exp')]),
+				('rule', [('symbol', 'exp'), ('symbol', 'primary')]),
+				('rule', [
+					('symbol', 'primary'),
+					('?expr', [
+						('symbol', 'relay'),
+						('symbol', 'invoke'),
+						('symbol', 'indexer'),
+						('symbol', 'atom'),
+					]),
+				]),
+				('rule', [
+					('symbol', 'relay'),
+					('?terms', [
+						('symbol', 'primary'),
+						('string', '"."'),
+						('symbol', 'name'),
+					]),
+				]),
+				('rule', [
+					('symbol', 'invoke'),
+					('?terms', [
+						('symbol', 'primary'),
+						('string', '"("'),
+						('symbol', 'args'),
+						('string', '")"'),
+					]),
+				]),
+				('rule', [
+					('symbol', 'indexer'),
+					('?terms', [
+						('symbol', 'primary'),
+						('string', '"["'),
+						('symbol', 'expr'),
+						('string', '"]"'),
+					]),
+				]),
+				('rule', [
+					('symbol', 'args'),
+					('?terms', [
+						('symbol', 'expr'),
+						('symbol', 'expr'),
+					]),
+				]),
 			]),
 		),
 	])
@@ -60,11 +108,16 @@ class TestSyntaxParser(TestCase):
 			'python': python_rules,
 			'grammar': grammar_rules,
 		}
+		tokenizer_provider = {
+			'python': Tokenizer,
+			'grammar': grammar_tokenizer,
+		}
 		rules = rule_provider[lang]()
-		actual = SyntaxParser(rules).parse(source, 'entry')
+		tokenizer = tokenizer_provider[lang]()
+		actual = SyntaxParser(rules, tokenizer).parse(source, 'entry')
 
 		try:
-			self.assertEqual(expected, actual)
+			self.assertEqual(expected, actual.simplify())
 		except AssertionError:
-			print(f'AST unmatch. actual: {actual}')
+			print(f'AST unmatch. actual: {actual.pretty}')
 			raise

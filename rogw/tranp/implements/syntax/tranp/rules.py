@@ -15,7 +15,7 @@ def python_rules() -> dict[str, PatternEntry]:
 	"""
 	return {
 		# entrypoint
-		'entry': Pattern.S('?exp'),
+		'entry': Patterns([Pattern.S('?exp'), Pattern.T('"\n"')], rep=Repeators.OverOne),
 		# non terminal
 		'bool': Pattern.T('/False|True/'),
 		'int': Pattern.T('/[1-9][0-9]*/'),
@@ -29,11 +29,11 @@ def python_rules() -> dict[str, PatternEntry]:
 		# primary
 		'?primary': Patterns([Pattern.S('relay'), Pattern.S('invoke'), Pattern.S('indexer'), Pattern.S('?atom')], op=Operators.Or),
 		'relay': Patterns([Pattern.S('?primary'), Pattern.T('"."'), Pattern.S('name')]),
-		'invoke': Patterns([Pattern.S('?primary'), Pattern.T('"("'), Patterns([Pattern.S('args')], rep=Repeators.Bit), Pattern.T('")"')]),
+		'invoke': Patterns([Pattern.S('?primary'), Pattern.T('"("'), Patterns([Pattern.S('args')], rep=Repeators.OneOrEmpty), Pattern.T('")"')]),
 		'indexer': Patterns([Pattern.S('?primary'), Pattern.T('"["'), Pattern.S('?exp'), Pattern.T('"]"')]),
 		'?atom': Patterns([Pattern.S('var'), Pattern.S('bool'), Pattern.S('none'), Pattern.S('str'), Pattern.S('int'), Pattern.S('float')], op=Operators.Or),
 		# element
-		'args': Patterns([Pattern.S('?exp'), Patterns([Pattern.T('","'), Pattern.S('?exp')], rep=Repeators.Over0)]),
+		'args': Patterns([Pattern.S('?exp'), Patterns([Pattern.T('","'), Pattern.S('?exp')], rep=Repeators.OverZero)]),
 	}
 
 
@@ -46,27 +46,34 @@ def grammar_rules() -> dict[str, PatternEntry]:
 		```
 		entry := (rule)+
 		rule := symbol ":=" expr "\n"
-		expr := list | expr "|" list | "(" expr ")" (/[*+?]/)?
-		list := term | list term
-		term := symbol | string | regexp
+		expr := (terms "|")* terms
+		terms := (term)* term
+		term := symbol | string | regexp | /[(\\[]/ expr /[)\\]]/ (/[*+?]/)?
 		symbol := /[a-zA-Z_][0-9a-zA-Z_]*/
 		string := /"[^"]+"/
 		regexp := /\\/[^\\/]+\\//
 		```
 	"""
 	return {
-		'entry': Patterns([Pattern.S('rule')], rep=Repeators.Over1),
+		'entry': Patterns([Pattern.S('rule')], rep=Repeators.OverOne),
 		'rule': Patterns([Pattern.S('symbol'), Pattern.T('":="'), Pattern.S('?expr'), Pattern.T('"\n"')]),
 		'?expr': Patterns([
-			Pattern.S('?list'),
-			Patterns([Pattern.S('?expr'), Pattern.T('"|"'), Pattern.S('?list')]),
-			Patterns([Pattern.T('"("'), Pattern.S('?expr'), Pattern.T('")"'), Patterns([Pattern.T('/[*+?]/')])]),
-		], op=Operators.Or),
-		'?list': Patterns([
+			Patterns([Pattern.S('?terms'), Pattern.T('"|"')], rep=Repeators.OverZero),
+			Pattern.S('?terms'),
+		]),
+		'?terms': Patterns([
+			Patterns([Pattern.S('?term')], rep=Repeators.OverZero),
 			Pattern.S('?term'),
-			Patterns([Pattern.S('?list'), Pattern.S('?term')]),
+		]),
+		'?term': Patterns([
+			Pattern.S('symbol'),
+			Pattern.S('string'),
+			Pattern.S('regexp'),
+			Patterns([
+				Pattern.T('/[(\\[]/'), Pattern.S('?expr'), Pattern.T('/[)\\]]/'),
+				Patterns([Pattern.T('/[*+?]/')], rep=Repeators.OneOrZero),
+			]),
 		], op=Operators.Or),
-		'?term': Patterns([Pattern.S('symbol'), Pattern.S('string'), Pattern.S('regexp')], op=Operators.Or),
 		'symbol': Pattern.T('/[a-zA-Z_][0-9a-zA-Z_]*/'),
 		'string': Pattern.T('/"[^"]+"/'),
 		'regexp': Pattern.T('/\\/[^\\/]+\\//'),
@@ -112,7 +119,7 @@ Note:
 	# 'unary_op ::= "+" | "-"',
 	'primary ::= relay | invoke | indexer | atom',
 	'relay ::= primary "." var',
-	'invoke ::= primary "(" (args)? ")"',
+	'invoke ::= primary "(" [args] ")"',
 	'indexer ::= primary "[" exp "]"',
 	'args ::= exp ("," exp)*',
 	'atom ::= var | bool | none | str | int | float',

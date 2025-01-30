@@ -52,15 +52,17 @@ class Repeators(Enum):
 
 	Note:
 		```
-		Over0: 0回以上
-		Over1: 1回以上
-		Bit: 0/1
+		OverZero: 0回以上
+		OverOne: 1回以上
+		OneOrZero: 1/0
+		OneOrEmpty: 1/Empty
 		NoRepeat: リピートなし(=通常比較)
 		```
 	"""
-	Over0 = '*'
-	Over1 = '+'
-	Bit = '?'
+	OverZero = '*'
+	OverOne = '+'
+	OneOrZero = '?'
+	OneOrEmpty = '[]'
 	NoRepeat = 'off'
 
 
@@ -167,12 +169,32 @@ class ASTToken(NamedTuple):
 		"""Returns: 空を表すインスタンス"""
 		return cls('__empty__', Token.empty())
 
+	def simplify(self) -> tuple[str, str | list[tuple]]:
+		"""Returns: 簡易書式(tuple/str)"""
+		return self.name, self.value.string
+
+	@property
+	def pretty(self) -> str:
+		"""Returns: フォーマット書式"""
+		return f"('{self.name}', '{self.value.string}')"
+
 
 class ASTTree(NamedTuple):
 	"""AST(ツリー)"""
 
 	name: str
 	children: list['ASTToken | ASTTree']
+
+	def simplify(self) -> tuple[str, str | list[tuple]]:
+		"""Returns: 簡易書式(tuple/str)"""
+		return self.name, [child.simplify() for child in self.children]
+
+	@property
+	def pretty(self) -> str:
+		"""Returns: フォーマット書式"""
+		indent = '  '
+		children_str = f',\n{indent}'.join([f'\n{indent}'.join(child.pretty.split('\n')) for child in self.children])
+		return f"('{self.name}', [\n{indent}{children_str}\n])"
 
 
 ASTEntry: TypeAlias = 'ASTToken | ASTTree'
@@ -262,7 +284,7 @@ class SyntaxParser:
 		Returns:
 			子のASTエントリー
 		Note:
-			XXX 自身と子を単純に入れ替えると言う実装のため、複数の子を上位のツリーに展開できない
+			XXX 自身と子を入れ替えると言う単純な実装のため、複数の子を上位のツリーに展開できない
 		"""
 		if symbol[0] == ExpandRules.OneTime.value and len(children) == 1:
 			return children[0]
@@ -320,7 +342,7 @@ class SyntaxParser:
 			if not in_step.steping:
 				return Step.ng(), []
 
-			children.extend(in_children)
+			children.extend(reversed(in_children))
 			steps += in_step.steps
 
 		return Step.ok(steps), list(reversed(children))
@@ -357,9 +379,11 @@ class SyntaxParser:
 			patterns: マッチングパターングループ
 		Returns:
 			(ステップ, ASTエントリーリスト)
-		Note:
-			このメソッドで扱うパターングループは、必ずリピートが有効でなければならない FIXME 検証を追加
+		Raises:
+			AssertionError: リピートなしのグループを指定
 		"""
+		assert patterns.rep != Repeators.NoRepeat, 'Must be repeated patterns'
+
 		found = 0
 		steps = 0
 		children: list[ASTEntry] = []
@@ -370,14 +394,16 @@ class SyntaxParser:
 
 			found += 1
 			steps += in_step.steps
-			children.extend(in_children)
+			children.extend(reversed(in_children))
 
-			if patterns.rep == Repeators.Bit:
+			if patterns.rep in [Repeators.OneOrZero, Repeators.OneOrEmpty]:
 				break
 
 		if found == 0:
-			if patterns.rep in [Repeators.Over0, Repeators.Bit]:
+			if patterns.rep in [Repeators.OverZero, Repeators.OneOrZero]:
 				return Step.ok(0), []
+			elif patterns.rep == Repeators.OneOrEmpty:
+				return Step.ok(0), [ASTToken.empty()]
 			else:
 				return Step.ng(), []
 

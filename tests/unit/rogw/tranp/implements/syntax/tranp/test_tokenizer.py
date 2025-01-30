@@ -62,24 +62,14 @@ class TestTokenizer(TestCase):
 		('(a.b)', Tokenizer.Context(enclosure=1), 2, (3, [(TokenTypes.Dot, '.')]), {'nest': 0, 'enclosure': 1}),
 		('{"a": 1}', Tokenizer.Context(enclosure=1), 5, (6, [(TokenTypes.BraceR, '}')]), {'nest': 0, 'enclosure': 0}),
 		('...', Tokenizer.Context(), 0, (3, [(TokenTypes.Ellipsis, '...')]), {'nest': 0, 'enclosure': 0}),
+		('a + 1', Tokenizer.Context(), 2, (3, [(TokenTypes.Plus, '+')]), {'nest': 0, 'enclosure': 0}),
+		('a +-1', Tokenizer.Context(), 2, (3, [(TokenTypes.Plus, '+')]), {'nest': 0, 'enclosure': 0}),
+		('a += 1', Tokenizer.Context(), 2, (4, [(TokenTypes.PlusEqual, '+=')]), {'nest': 0, 'enclosure': 0}),
 	])
 	def test_handle_symbol(self, source: str, context: Tokenizer.Context, begin: int, expected: tuple[str, list[Token]], expected_context: dict[str, int]) -> None:
 		parser = Tokenizer()
 		tokens = parser.lex_parse(source)
 		actual = parser.handle_symbol(context, tokens, begin)
-		self.assertEqual(expected, actual)
-		self.assertEqual(expected_context['nest'], context.nest)
-		self.assertEqual(expected_context['enclosure'], context.enclosure)
-
-	@data_provider([
-		('a + 1', Tokenizer.Context(), 2, (3, [(TokenTypes.Plus, '+')]), {'nest': 0, 'enclosure': 0}),
-		('a +-1', Tokenizer.Context(), 2, (3, [(TokenTypes.Plus, '+')]), {'nest': 0, 'enclosure': 0}),
-		('a += 1', Tokenizer.Context(), 2, (4, [(TokenTypes.PlusEqual, '+=')]), {'nest': 0, 'enclosure': 0}),
-	])
-	def test_handle_operator(self, source: str, context: Tokenizer.Context, begin: int, expected: tuple[str, list[Token]], expected_context: dict[str, int]) -> None:
-		parser = Tokenizer()
-		tokens = parser.lex_parse(source)
-		actual = parser.handle_operator(context, tokens, begin)
 		self.assertEqual(expected, actual)
 		self.assertEqual(expected_context['nest'], context.nest)
 		self.assertEqual(expected_context['enclosure'], context.enclosure)
@@ -103,12 +93,6 @@ class TestLexer(TestCase):
 		('a\tbc', 1, TokenDomains.WhiteSpace),
 		('a\tb\n', 3, TokenDomains.WhiteSpace),
 		('a # bc', 2, TokenDomains.Comment),
-		('a.b', 1, TokenDomains.Symbol),
-		('a[0]', 1, TokenDomains.Symbol),
-		('[:-1]', 1, TokenDomains.Symbol),
-		('a()', 1, TokenDomains.Symbol),
-		('{"a": 1}', 0, TokenDomains.Symbol),
-		('@a', 0, TokenDomains.Symbol),
 		('"abc"', 0, TokenDomains.Quote),
 		("'abc'", 0, TokenDomains.Quote),
 		('"""abc"""', 0, TokenDomains.Quote),
@@ -118,9 +102,15 @@ class TestLexer(TestCase):
 		('0.0', 0, TokenDomains.Number),
 		('_a.b', 0, TokenDomains.Identifier),
 		('a.b0', 2, TokenDomains.Identifier),
-		('a + 0', 2, TokenDomains.Operator),
-		('a / 1', 2, TokenDomains.Operator),
-		('a += 1', 2, TokenDomains.Operator),
+		('a.b', 1, TokenDomains.Symbol),
+		('a[0]', 1, TokenDomains.Symbol),
+		('[:-1]', 1, TokenDomains.Symbol),
+		('a()', 1, TokenDomains.Symbol),
+		('{"a": 1}', 0, TokenDomains.Symbol),
+		('@a', 0, TokenDomains.Symbol),
+		('a + 0', 2, TokenDomains.Symbol),
+		('a / 1', 2, TokenDomains.Symbol),
+		('a += 1', 2, TokenDomains.Symbol),
 	])
 	def test_analyze_domain(self, source: str, begin: int, expected: TokenDomains) -> None:
 		parser = Lexer(TokenDefinition())
@@ -150,17 +140,6 @@ class TestLexer(TestCase):
 	def test_parse_comment(self, source: str, begin: int, expected: tuple[int, str]) -> None:
 		parser = Lexer(TokenDefinition())
 		actual = parser.parse_comment(source, begin)
-		self.assertEqual(expected, actual)
-
-	@data_provider([
-		('@a', 0, (1, (TokenTypes.At, '@'))),
-		('a;', 1, (2, (TokenTypes.SemiColon, ';'))),
-		('[:b]', 1, (2, (TokenTypes.Colon, ':'))),
-		('a(b)', 1, (2, (TokenTypes.ParenL, '('))),
-	])
-	def test_parse_symbol(self, source: str, begin: int, expected: tuple[int, str]) -> None:
-		parser = Lexer(TokenDefinition())
-		actual = parser.parse_symbol(source, begin)
 		self.assertEqual(expected, actual)
 
 	@data_provider([
@@ -203,14 +182,18 @@ class TestLexer(TestCase):
 		self.assertEqual(expected, actual)
 
 	@data_provider([
+		('@a', 0, (1, (TokenTypes.At, '@'))),
+		('a;', 1, (2, (TokenTypes.SemiColon, ';'))),
+		('[:b]', 1, (2, (TokenTypes.Colon, ':'))),
+		('a(b)', 1, (2, (TokenTypes.ParenL, '('))),
 		('a = 1', 2, (3, (TokenTypes.Equal, '='))),
 		('1 - 2', 2, (3, (TokenTypes.Minus, '-'))),
 		('1 +-2', 2, (3, (TokenTypes.Plus, '+'))),
 		('!a', 0, (1, (TokenTypes.Exclamation, '!'))),
 	])
-	def test_parse_operator(self, source: str, begin: int, expected: tuple[int, str]) -> None:
+	def test_parse_symbol(self, source: str, begin: int, expected: tuple[int, str]) -> None:
 		parser = Lexer(TokenDefinition())
-		actual = parser.parse_operator(source, begin)
+		actual = parser.parse_symbol(source, begin)
 		self.assertEqual(expected, actual)
 
 

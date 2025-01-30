@@ -8,12 +8,12 @@ class TestToken(TestCase):
 	@data_provider([
 		(Token(TokenTypes.WhiteSpace, ''), TokenDomains.WhiteSpace),
 		(Token(TokenTypes.Comment, ''), TokenDomains.Comment),
-		(Token(TokenTypes.Dot, ''), TokenDomains.Symbol),
 		(Token(TokenTypes.String, ''), TokenDomains.Quote),
 		(Token(TokenTypes.Digit, ''), TokenDomains.Number),
 		(Token(TokenTypes.Name, ''), TokenDomains.Identifier),
-		(Token(TokenTypes.Less, ''), TokenDomains.Operator),
-		(Token(TokenTypes.DoubleAnd, ''), TokenDomains.Operator),
+		(Token(TokenTypes.Dot, ''), TokenDomains.Symbol),
+		(Token(TokenTypes.Less, ''), TokenDomains.Symbol),
+		(Token(TokenTypes.DoubleAnd, ''), TokenDomains.Symbol),
 		(Token.empty(), TokenDomains.Unknown),
 	])
 	def test_domain(self, token: Token, expected: TokenDomains) -> None:

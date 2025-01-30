@@ -15,7 +15,7 @@ def python_rules() -> dict[str, PatternEntry]:
 	"""
 	return {
 		# entrypoint
-		'entry': Pattern.S('?exp'),
+		'entry': Patterns([Pattern.S('?exp'), Pattern.T('"\n"')], rep=Repeators.OverOne),
 		# non terminal
 		'bool': Pattern.T('/False|True/'),
 		'int': Pattern.T('/[1-9][0-9]*/'),
@@ -46,9 +46,9 @@ def grammar_rules() -> dict[str, PatternEntry]:
 		```
 		entry := (rule)+
 		rule := symbol ":=" expr "\n"
-		expr := list | expr "|" list | "(" expr ")" (/[*+?]/)?
-		list := term | list term
-		term := symbol | string | regexp
+		expr := (terms "|")* terms
+		terms := (term)* term
+		term := symbol | string | regexp | /[(\\[]/ expr /[)\\]]/ (/[*+?]/)?
 		symbol := /[a-zA-Z_][0-9a-zA-Z_]*/
 		string := /"[^"]+"/
 		regexp := /\\/[^\\/]+\\//
@@ -58,15 +58,22 @@ def grammar_rules() -> dict[str, PatternEntry]:
 		'entry': Patterns([Pattern.S('rule')], rep=Repeators.OverOne),
 		'rule': Patterns([Pattern.S('symbol'), Pattern.T('":="'), Pattern.S('?expr'), Pattern.T('"\n"')]),
 		'?expr': Patterns([
-			Pattern.S('?list'),
-			Patterns([Pattern.S('?expr'), Pattern.T('"|"'), Pattern.S('?list')]),
-			Patterns([Pattern.T('"("'), Pattern.S('?expr'), Pattern.T('")"'), Patterns([Pattern.T('/[*+?]/')])]),
-		], op=Operators.Or),
-		'?list': Patterns([
+			Patterns([Pattern.S('?terms'), Pattern.T('"|"')], rep=Repeators.OverZero),
+			Pattern.S('?terms'),
+		]),
+		'?terms': Patterns([
+			Patterns([Pattern.S('?term')], rep=Repeators.OverZero),
 			Pattern.S('?term'),
-			Patterns([Pattern.S('?list'), Pattern.S('?term')]),
+		]),
+		'?term': Patterns([
+			Pattern.S('symbol'),
+			Pattern.S('string'),
+			Pattern.S('regexp'),
+			Patterns([
+				Pattern.T('/[(\\[]/'), Pattern.S('?expr'), Pattern.T('/[)\\]]/'),
+				Patterns([Pattern.T('/[*+?]/')], rep=Repeators.OneOrZero),
+			]),
 		], op=Operators.Or),
-		'?term': Patterns([Pattern.S('symbol'), Pattern.S('string'), Pattern.S('regexp')], op=Operators.Or),
 		'symbol': Pattern.T('/[a-zA-Z_][0-9a-zA-Z_]*/'),
 		'string': Pattern.T('/"[^"]+"/'),
 		'regexp': Pattern.T('/\\/[^\\/]+\\//'),

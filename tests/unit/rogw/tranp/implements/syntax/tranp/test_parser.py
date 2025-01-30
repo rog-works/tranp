@@ -47,8 +47,8 @@ class TestSyntaxParser(TestCase):
 		(
 			'{}\n'.format('\n'.join([
 				'entry := exp',
-				'exp := primary',
-				'primary := relay | invoke | indexer | atom',
+				'?exp := primary',
+				'?primary := relay | invoke | indexer | atom',
 				'relay := primary "." name',
 				'invoke := primary "(" [args] ")"',
 				'indexer := primary "[" exp "]"',
@@ -56,9 +56,17 @@ class TestSyntaxParser(TestCase):
 			])),
 			'grammar',
 			('entry', [
-				('rule', [('symbol', 'entry'), ('symbol', 'exp')]),
-				('rule', [('symbol', 'exp'), ('symbol', 'primary')]),
 				('rule', [
+					('symbol', 'entry'),
+					('symbol', 'exp'),
+				]),
+				('rule', [
+					('expand', '?'),
+					('symbol', 'exp'),
+					('symbol', 'primary'),
+				]),
+				('rule', [
+					('expand', '?'),
 					('symbol', 'primary'),
 					('terms_or', [
 						('symbol', 'relay'),

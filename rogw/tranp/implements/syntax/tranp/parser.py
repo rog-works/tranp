@@ -1,7 +1,7 @@
 from collections.abc import Mapping
 from enum import Enum
 import re
-from typing import ItemsView, Iterator, KeysView, NamedTuple, TypeAlias, ValuesView
+from typing import Iterator, NamedTuple, TypeAlias, ValuesView
 
 from rogw.tranp.implements.syntax.tranp.tokenizer import ITokenizer, Token, Tokenizer
 from rogw.tranp.lang.convertion import as_a

@@ -484,7 +484,7 @@ class Tokenizer(ITokenizer):
 			return begin + 1, [Token(TokenTypes.NewLine, token.string)]
 
 	def handle_symbol(self, context: Context, tokens: list[Token], begin: int) -> tuple[int, list[Token]]:
-		"""トークンリストを整形(シンボル)
+		"""トークンリストを整形(記号)
 
 		Args:
 			context: コンテキスト

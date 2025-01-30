@@ -120,7 +120,7 @@ class SyntaxParser:
 
 		Args:
 			tokens: トークンリスト
-			end: 検索位置
+			end: 評価開始位置
 			symbol: シンボル
 		Returns:
 			(ステップ, ASTエントリー)
@@ -159,7 +159,7 @@ class SyntaxParser:
 
 		Args:
 			tokens: トークンリスト
-			end: 検索位置
+			end: 評価開始位置
 			patterns: マッチングパターングループ
 		Returns:
 			(ステップ, ASTエントリーリスト)
@@ -176,7 +176,7 @@ class SyntaxParser:
 
 		Args:
 			tokens: トークンリスト
-			end: 検索位置
+			end: 評価開始位置
 			patterns: マッチングパターングループ
 		Returns:
 			(ステップ, ASTエントリーリスト)
@@ -193,7 +193,7 @@ class SyntaxParser:
 
 		Args:
 			tokens: トークンリスト
-			end: 検索位置
+			end: 評価開始位置
 			patterns: マッチングパターングループ
 		Returns:
 			(ステップ, ASTエントリーリスト)
@@ -215,7 +215,7 @@ class SyntaxParser:
 
 		Args:
 			tokens: トークンリスト
-			end: 検索位置
+			end: 評価開始位置
 			patterns: マッチングパターングループ
 		Returns:
 			(ステップ, ASTエントリーリスト)
@@ -238,7 +238,7 @@ class SyntaxParser:
 
 		Args:
 			tokens: トークンリスト
-			end: 検索位置
+			end: 評価開始位置
 			patterns: マッチングパターングループ
 		Returns:
 			(ステップ, ASTエントリーリスト)
@@ -277,7 +277,7 @@ class SyntaxParser:
 
 		Args:
 			tokens: トークンリスト
-			end: 検索位置
+			end: 評価開始位置
 			pattern: マッチングパターン
 		Returns:
 			(ステップ, ASTトークン)
@@ -293,7 +293,7 @@ class SyntaxParser:
 
 		Args:
 			tokens: トークンリスト
-			end: 検索位置
+			end: 評価開始位置
 			pattern: マッチングパターン
 		Returns:
 			(ステップ, ASTトークン)

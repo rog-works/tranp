@@ -1,6 +1,7 @@
+from collections.abc import Mapping
 from enum import Enum
 import re
-from typing import Iterator, NamedTuple, TypeAlias
+from typing import ItemsView, Iterator, KeysView, NamedTuple, TypeAlias, ValuesView
 
 from rogw.tranp.implements.syntax.tranp.tokenizer import ITokenizer, Token, Tokenizer
 from rogw.tranp.lang.convertion import as_a
@@ -158,6 +159,68 @@ class ExpandRules(Enum):
 	# Always = '_' XXX 仕組み的に対応が困難なため一旦非対応
 
 
+class Rules(Mapping):
+	"""ルール管理"""
+
+	def __init__(self, rules: dict[str, PatternEntry]) -> None:
+		"""インスタンスを生成
+
+		Args:
+			rules: ルール一覧
+		"""
+		super().__init__()
+		self._rules = rules
+
+	def __len__(self) -> int:
+		"""Returns: 要素数"""
+		return len(self._rules)
+
+	def __iter__(self) -> Iterator[str]:
+		"""Returns: イテレーター(シンボル名)"""
+		return self.keys()
+
+	def __getitem__(self, symbol: str) -> PatternEntry:
+		"""パターンを取得
+
+		Args:
+			symbol: シンボル名
+		Returns:
+			パターン
+		"""
+		if symbol in self._rules:
+			return self._rules[symbol]
+		else:
+			return self._rules[f'{ExpandRules.OneTime.value}{symbol}']
+
+	def keys(self) -> Iterator[str]:
+		"""Returns: イテレーター(シンボル名)"""
+		for key in self._rules.keys():
+			yield key[1:] if key[0] == ExpandRules.OneTime.value else key
+
+	def values(self) -> ValuesView[PatternEntry]:
+		"""Returns: イテレーター(パターン)"""
+		return self._rules.values()
+
+	def items(self) -> Iterator[tuple[str, PatternEntry]]:
+		"""Returns: イテレーター(シンボル名, パターン)"""
+		for key, rule in self._rules.items():
+			key_ = key[1:] if key[0] == ExpandRules.OneTime.value else key
+			yield key_, rule
+
+	def expand_by(self, symbol: str) -> ExpandRules:
+		"""指定のシンボルの展開ルールを取得
+
+		Args:
+			symbol: シンボル名
+		Returns:
+			展開ルール
+		"""
+		if symbol in self._rules:
+			return ExpandRules.Off
+		else:
+			return ExpandRules.OneTime
+
+
 class ASTToken(NamedTuple):
 	"""AST(トークン)"""
 
@@ -227,7 +290,7 @@ class Step(NamedTuple):
 class SyntaxParser:
 	"""シンタックスパーサー"""
 
-	def __init__(self, rules: dict[str, PatternEntry], tokenizer: ITokenizer | None = None) -> None:
+	def __init__(self, rules: Rules, tokenizer: ITokenizer | None = None) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -290,7 +353,7 @@ class SyntaxParser:
 		Note:
 			XXX 自身と子を入れ替えると言う単純な実装のため、複数の子を上位のツリーに展開できない
 		"""
-		if symbol[0] == ExpandRules.OneTime.value and len(children) == 1:
+		if self.rules.expand_by(symbol) == ExpandRules.OneTime and len(children) == 1:
 			return children[0]
 
 		return ASTTree(symbol, children)

@@ -176,7 +176,7 @@ class ASTToken(NamedTuple):
 	@property
 	def pretty(self) -> str:
 		"""Returns: フォーマット書式"""
-		return f"('{self.name}': '{self.value.string}')"
+		return f"('{self.name}', '{self.value.string}')"
 
 
 class ASTTree(NamedTuple):
@@ -194,7 +194,7 @@ class ASTTree(NamedTuple):
 		"""Returns: フォーマット書式"""
 		indent = '  '
 		children_str = f',\n{indent}'.join([f'\n{indent}'.join(child.pretty.split('\n')) for child in self.children])
-		return f"('{self.name}': [\n{indent}{children_str}\n])"
+		return f"('{self.name}', [\n{indent}{children_str}\n])"
 
 
 ASTEntry: TypeAlias = 'ASTToken | ASTTree'

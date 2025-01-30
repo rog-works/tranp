@@ -73,7 +73,18 @@ class Step(NamedTuple):
 
 
 class SyntaxParser:
-	"""シンタックスパーサー"""
+	"""シンタックスパーサー
+
+	Note:
+		```
+		### 特記事項
+		* ソースの末尾から先頭に向かって解析する
+		* Grammar上のAND条件は右から順に評価する
+		* Grammar上のOR条件は左から順に評価する
+		* 左再帰による無限ループは抑制されない
+		* 左再帰する場合は必ず先に別の条件を評価しなければならない
+		```
+	"""
 
 	def __init__(self, rules: Rules, tokenizer: ITokenizer | None = None) -> None:
 		"""インスタンスを生成
@@ -94,13 +105,13 @@ class SyntaxParser:
 		Returns:
 			ASTエントリー XXX 要件的にほぼツリーであることが確定
 		Raises:
-			ValueError: パースに失敗(最後のトークンに未到達)
+			ValueError: パースに失敗(最初のトークンに未到達)
 		"""
 		tokens = self.tokenizer.parse(source)
 		length = len(tokens)
 		step, entry = self.match(tokens, length - 1, entrypoint)
 		if step.steps != length:
-			raise ValueError(f'Syntax parse error. Last token not reached. {step.steps}/{length}')
+			raise ValueError(f'Syntax parse error. First token not reached. {step.steps}/{length}')
 
 		return entry
 

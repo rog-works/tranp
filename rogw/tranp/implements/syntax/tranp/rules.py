@@ -7,11 +7,6 @@ def python_rules() -> Rules:
 
 	Returns:
 		ルール一覧
-	Note:
-		### 名前の定義
-		* symbol: 左辺の名前
-		* pattern: 右辺の条件式
-		* rule: symbolとpatternのペア
 	"""
 	return Rules({
 		# entrypoint

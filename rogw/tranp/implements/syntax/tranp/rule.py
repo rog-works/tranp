@@ -67,7 +67,7 @@ class Expandors(Enum):
 	"""ツリーの展開種別
 
 	Note:
-		* 「展開」とは、自身のツリーを削除して上位ツリーに子を展開することを指す
+		「展開」とは、自身のツリーを削除して上位ツリーに子を展開することを指す
 		```
 		Off: 展開なし(通常通り)
 		OneTime: 子が1つの時に展開
@@ -156,7 +156,16 @@ class Patterns:
 
 
 class Rules(Mapping):
-	"""ルール管理"""
+	"""ルール管理
+
+	Note:
+		```
+		### 名前の定義
+		* symbol: 左辺の名前
+		* pattern: 右辺の条件式
+		* rule: symbolとpatternのペア
+		```
+	"""
 
 	def __init__(self, rules: dict[str, PatternEntry]) -> None:
 		"""インスタンスを生成

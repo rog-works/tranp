@@ -124,5 +124,5 @@ class TestSyntaxParser(TestCase):
 		try:
 			self.assertEqual(expected, actual.simplify())
 		except AssertionError:
-			print(f'AST unmatch. actual: {actual.pretty}')
+			print(f'AST unmatch. actual: {actual.pretty()}')
 			raise

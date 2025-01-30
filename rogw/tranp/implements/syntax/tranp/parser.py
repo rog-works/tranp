@@ -173,8 +173,7 @@ class ASTToken(NamedTuple):
 		"""Returns: 簡易書式(tuple/str)"""
 		return self.name, self.value.string
 
-	@property
-	def pretty(self) -> str:
+	def pretty(self, indent: str = '  ') -> str:
 		"""Returns: フォーマット書式"""
 		return f"('{self.name}', '{self.value.string}')"
 
@@ -189,11 +188,9 @@ class ASTTree(NamedTuple):
 		"""Returns: 簡易書式(tuple/str)"""
 		return self.name, [child.simplify() for child in self.children]
 
-	@property
-	def pretty(self) -> str:
-		"""Returns: フォーマット書式"""
-		indent = '  '
-		children_str = f',\n{indent}'.join([f'\n{indent}'.join(child.pretty.split('\n')) for child in self.children])
+	def pretty(self, indent: str = '  ') -> str:
+		"""Args: indent: インデント Returns: フォーマット書式"""
+		children_str = f',\n{indent}'.join([f'\n{indent}'.join(child.pretty(indent).split('\n')) for child in self.children])
 		return f"('{self.name}', [\n{indent}{children_str}\n])"
 
 
@@ -240,17 +237,24 @@ class SyntaxParser:
 		self.rules = rules
 		self.tokenizer = tokenizer if tokenizer else Tokenizer()
 
-	def parse(self, source: str, entry: str) -> ASTEntry:
+	def parse(self, source: str, entrypoint: str) -> ASTEntry:
 		"""ソースコードを解析し、ASTを生成
 
 		Args:
 			source: ソースコード
-			entry: エントリーポイントのシンボル
+			entrypoint: エントリーポイントのシンボル
 		Returns:
 			ASTエントリー XXX 要件的にほぼツリーであることが確定
+		Raises:
+			ValueError: パースに失敗(最後のトークンに未到達)
 		"""
 		tokens = self.tokenizer.parse(source)
-		return self.match(tokens, len(tokens) - 1, entry)[1]
+		length = len(tokens)
+		step, entry = self.match(tokens, length - 1, entrypoint)
+		if step.steps != length:
+			raise ValueError(f'Syntax parse error. Last token not reached. {step.steps}/{length}')
+
+		return entry
 
 	def match(self, tokens: list[Token], end: int, symbol: str) -> tuple[Step, ASTEntry]:
 		"""パターン(シンボル参照)を検証し、ASTエントリーを生成

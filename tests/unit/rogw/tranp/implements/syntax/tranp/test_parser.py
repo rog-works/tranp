@@ -60,7 +60,7 @@ class TestSyntaxParser(TestCase):
 				('rule', [('symbol', 'exp'), ('symbol', 'primary')]),
 				('rule', [
 					('symbol', 'primary'),
-					('?terms_or', [
+					('terms_or', [
 						('symbol', 'relay'),
 						('symbol', 'invoke'),
 						('symbol', 'indexer'),
@@ -69,7 +69,7 @@ class TestSyntaxParser(TestCase):
 				]),
 				('rule', [
 					('symbol', 'relay'),
-					('?terms', [
+					('terms', [
 						('symbol', 'primary'),
 						('string', '"."'),
 						('symbol', 'name'),
@@ -77,7 +77,7 @@ class TestSyntaxParser(TestCase):
 				]),
 				('rule', [
 					('symbol', 'invoke'),
-					('?terms', [
+					('terms', [
 						('symbol', 'primary'),
 						('string', '"("'),
 						('expr_opt', [
@@ -88,7 +88,7 @@ class TestSyntaxParser(TestCase):
 				]),
 				('rule', [
 					('symbol', 'indexer'),
-					('?terms', [
+					('terms', [
 						('symbol', 'primary'),
 						('string', '"["'),
 						('symbol', 'exp'),
@@ -97,7 +97,7 @@ class TestSyntaxParser(TestCase):
 				]),
 				('rule', [
 					('symbol', 'args'),
-					('?terms', [
+					('terms', [
 						('symbol', 'exp'),
 						('expr_rep', [
 							('symbol', 'exp'),

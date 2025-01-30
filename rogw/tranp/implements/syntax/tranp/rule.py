@@ -2,6 +2,9 @@ from collections.abc import Mapping
 from enum import Enum
 from typing import Iterator, TypeAlias, ValuesView
 
+from rogw.tranp.implements.syntax.tranp.ast import ASTEntry, ASTToken, ASTTree
+from rogw.tranp.lang.convertion import as_a
+
 
 class Roles(Enum):
 	"""パターンの役割
@@ -224,3 +227,79 @@ class Rules(Mapping):
 			return Expandors.Off
 		else:
 			return Expandors.OneTime
+
+	@classmethod
+	def from_ast(cls, tree: ASTTree) -> 'Rules':
+		return SerializeAST.restore(tree)
+
+
+class SerializeAST:
+	@classmethod
+	def restore(cls, tree: ASTTree) -> 'Rules':
+		assert tree.name == 'entry', f'Must be name is "entry" from "{tree.name}"'
+
+		rules = dict([cls._for_rule(as_a(ASTTree, child)) for child in tree.children])
+		return Rules(rules)
+
+	@classmethod
+	def _for_rule(cls, tree: ASTTree) -> tuple[str, PatternEntry]:
+		assert tree.name == 'rule', f'Must be name is "rule" from "{tree.name}"'
+
+		expand = cls._fetch_token(tree, 0, 'expand')
+		symbol = cls._fetch_token(tree, 1, 'symbol')
+		expr = cls._for_expr(tree.children[2])
+		return f'{expand.value.string}{symbol.name}', expr
+
+	@classmethod
+	def _for_expr(cls, entry: ASTEntry) -> PatternEntry:
+		if isinstance(entry, ASTToken):
+			if entry.name == 'symbol':
+				return cls._for_expr_symbol(entry)
+			elif entry.name in ['string', 'regexp']:
+				return cls._for_expr_terminal(entry)
+		else:
+			if entry.name == 'terms':
+				return cls._for_expr_terms(entry)
+			elif entry.name == 'terms_or':
+				return cls._for_expr_terms_or(entry)
+			elif entry.name == 'expr_opt':
+				return cls._for_expr_opt(entry)
+			elif entry.name == 'expr_rep':
+				return cls._for_expr_rep(entry)
+
+		assert False, f'Never. Undetermine expr entry. from "{entry.name}"'
+
+	@classmethod
+	def _for_expr_symbol(cls, token: ASTToken) -> Pattern:
+		return Pattern.S(token.value.string)
+
+	@classmethod
+	def _for_expr_terminal(cls, token: ASTToken) -> Pattern:
+		return Pattern.T(token.value.string)
+
+	@classmethod
+	def _for_expr_terms(cls, tree: ASTTree) -> Patterns:
+		return Patterns([cls._for_expr(child) for child in tree.children])
+
+	@classmethod
+	def _for_expr_terms_or(cls, tree: ASTTree) -> Patterns:
+		return Patterns([cls._for_expr(child) for child in tree.children], op=Operators.Or)
+
+	@classmethod
+	def _for_expr_opt(cls, tree: ASTTree) -> Patterns:
+		return Patterns([cls._for_expr(child) for child in tree.children], rep=Repeators.OneOrEmpty)
+
+	@classmethod
+	def _for_expr_rep(cls, tree: ASTTree) -> Patterns:
+		repeat = cls._fetch_token(tree, -1, 'repeat')
+		assert repeat.value.string in '*+?', f'Invalid repeat value. expected for ("*", "+", "?") from "{repeat.value.string}"'
+
+		rep = Repeators(repeat.value.string)
+		expr_num = len(tree.children) - 1
+		return Patterns([cls._for_expr(tree.children[i]) for i in range(expr_num)], rep=rep)
+
+	@classmethod
+	def _fetch_token(cls, tree: ASTTree, index: int, expected: str) -> ASTToken:
+		token = as_a(ASTToken, tree.children[index])
+		assert token.name == expected, f'Must be token name is "{token.name}" from {token.name}'
+		return token

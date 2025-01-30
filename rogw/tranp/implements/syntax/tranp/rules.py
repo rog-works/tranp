@@ -1,4 +1,4 @@
-from rogw.tranp.implements.syntax.tranp.parser import Operators, Pattern, Patterns, Repeators, Rules
+from rogw.tranp.implements.syntax.tranp.rule import Operators, Pattern, Patterns, Repeators, Rules
 from rogw.tranp.implements.syntax.tranp.tokenizer import TokenDefinition, Tokenizer
 
 
@@ -40,7 +40,7 @@ def grammar_rules() -> Rules:
 	Note:
 		```
 		entry := (rule)+
-		rule := (expand)? symbol ":=" expr "\n"
+		rule := [expand] symbol ":=" expr "\n"
 		?expr := terms_or
 		?terns_or := (terms "|")* terms
 		?terms := (term)* term
@@ -56,7 +56,7 @@ def grammar_rules() -> Rules:
 	"""
 	return Rules({
 		'entry': Patterns([Pattern.S('rule')], rep=Repeators.OverOne),
-		'rule': Patterns([Patterns([Pattern.S('expand')], rep=Repeators.OneOrZero), Pattern.S('symbol'), Pattern.T('":="'), Pattern.S('expr'), Pattern.T('"\n"')]),
+		'rule': Patterns([Patterns([Pattern.S('expand')], rep=Repeators.OneOrEmpty), Pattern.S('symbol'), Pattern.T('":="'), Pattern.S('expr'), Pattern.T('"\n"')]),
 		'?expr': Pattern.S('terms_or'),
 		'?terms_or': Patterns([
 			Patterns([Pattern.S('terms'), Pattern.T('"|"')], rep=Repeators.OverZero),

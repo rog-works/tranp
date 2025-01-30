@@ -342,7 +342,7 @@ class SyntaxParser:
 			if not in_step.steping:
 				return Step.ng(), []
 
-			children.extend(in_children)
+			children.extend(reversed(in_children))
 			steps += in_step.steps
 
 		return Step.ok(steps), list(reversed(children))
@@ -394,7 +394,7 @@ class SyntaxParser:
 
 			found += 1
 			steps += in_step.steps
-			children.extend(in_children)
+			children.extend(reversed(in_children))
 
 			if patterns.rep in [Repeators.OneOrZero, Repeators.OneOrEmpty]:
 				break

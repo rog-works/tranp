@@ -49,10 +49,13 @@ def grammar_rules() -> dict[str, PatternEntry]:
 		expr := terms_or
 		terns_or := (terms "|")* terms
 		terms := (term)* term
-		term := symbol | string | regexp | /[(\\[]/ expr /[)\\]]/ (/[*+?]/)?
+		term := symbol | string | regexp | expr_opt | expr_rep
+		expr_opt := "[" expr "]"
+		expr_rep := "(" expr ")" [repeat]
 		symbol := /[a-zA-Z_][0-9a-zA-Z_]*/
 		string := /"[^"]+"/
 		regexp := /\\/[^\\/]+\\//
+		repeat := /[*+?]/
 		```
 	"""
 	return {
@@ -71,14 +74,20 @@ def grammar_rules() -> dict[str, PatternEntry]:
 			Pattern.S('symbol'),
 			Pattern.S('string'),
 			Pattern.S('regexp'),
-			Patterns([
-				Pattern.T('/[(\\[]/'), Pattern.S('?expr'), Pattern.T('/[)\\]]/'),
-				Patterns([Pattern.T('/[*+?]/')], rep=Repeators.OneOrZero),
-			]),
+			Pattern.S('expr_opt'),
+			Pattern.S('expr_rep'),
 		], op=Operators.Or),
+		'expr_opt': Patterns([
+			Pattern.T('"["'), Pattern.S('?expr'), Pattern.T('"]"'),
+		]),
+		'expr_rep': Patterns([
+			Pattern.T('"("'), Pattern.S('?expr'), Pattern.T('")"'),
+			Patterns([Pattern.S('repeat')], rep=Repeators.OneOrEmpty),
+		]),
 		'symbol': Pattern.T('/[a-zA-Z_][0-9a-zA-Z_]*/'),
 		'string': Pattern.T('/"[^"]+"/'),
 		'regexp': Pattern.T('/\\/[^\\/]+\\//'),
+		'repeat': Pattern.T('/[*+?]/'),
 	}
 
 

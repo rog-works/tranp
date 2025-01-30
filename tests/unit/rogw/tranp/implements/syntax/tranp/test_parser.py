@@ -51,8 +51,8 @@ class TestSyntaxParser(TestCase):
 				'primary := relay | invoke | indexer | atom',
 				'relay := primary "." name',
 				'invoke := primary "(" [args] ")"',
-				'indexer := primary "[" expr "]"',
-				'args := expr (expr)*',
+				'indexer := primary "[" exp "]"',
+				'args := exp (exp)*',
 			])),
 			'grammar',
 			('entry', [
@@ -80,7 +80,9 @@ class TestSyntaxParser(TestCase):
 					('?terms', [
 						('symbol', 'primary'),
 						('string', '"("'),
-						('symbol', 'args'),
+						('expr_opt', [
+							('symbol', 'args'),
+						]),
 						('string', '")"'),
 					]),
 				]),
@@ -89,15 +91,18 @@ class TestSyntaxParser(TestCase):
 					('?terms', [
 						('symbol', 'primary'),
 						('string', '"["'),
-						('symbol', 'expr'),
+						('symbol', 'exp'),
 						('string', '"]"'),
 					]),
 				]),
 				('rule', [
 					('symbol', 'args'),
 					('?terms', [
-						('symbol', 'expr'),
-						('symbol', 'expr'),
+						('symbol', 'exp'),
+						('expr_rep', [
+							('symbol', 'exp'),
+							('repeat', '*'),
+						]),
 					]),
 				]),
 			]),

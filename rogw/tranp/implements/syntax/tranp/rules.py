@@ -1,8 +1,8 @@
-from rogw.tranp.implements.syntax.tranp.parser import Operators, Pattern, Patterns, PatternEntry, Repeators
+from rogw.tranp.implements.syntax.tranp.parser import Operators, Pattern, Patterns, Repeators, Rules
 from rogw.tranp.implements.syntax.tranp.tokenizer import TokenDefinition, Tokenizer
 
 
-def python_rules() -> dict[str, PatternEntry]:
+def python_rules() -> Rules:
 	"""ルールを生成(Python用)
 
 	Returns:
@@ -13,9 +13,9 @@ def python_rules() -> dict[str, PatternEntry]:
 		* pattern: 右辺の条件式
 		* rule: symbolとpatternのペア
 	"""
-	return {
+	return Rules({
 		# entrypoint
-		'entry': Patterns([Pattern.S('?exp'), Pattern.T('"\n"')], rep=Repeators.OverOne),
+		'entry': Patterns([Pattern.S('exp'), Pattern.T('"\n"')], rep=Repeators.OverOne),
 		# non terminal
 		'bool': Pattern.T('/False|True/'),
 		'int': Pattern.T('/[1-9][0-9]*/'),
@@ -25,19 +25,19 @@ def python_rules() -> dict[str, PatternEntry]:
 		'name': Pattern.T('/[a-zA-Z_][0-9a-zA-Z_]*/'),
 		# expression
 		'var': Pattern.S('name'),
-		'?exp': Pattern.S('?primary'),
+		'?exp': Pattern.S('primary'),
 		# primary
-		'?primary': Patterns([Pattern.S('relay'), Pattern.S('invoke'), Pattern.S('indexer'), Pattern.S('?atom')], op=Operators.Or),
-		'relay': Patterns([Pattern.S('?primary'), Pattern.T('"."'), Pattern.S('name')]),
-		'invoke': Patterns([Pattern.S('?primary'), Pattern.T('"("'), Patterns([Pattern.S('args')], rep=Repeators.OneOrEmpty), Pattern.T('")"')]),
-		'indexer': Patterns([Pattern.S('?primary'), Pattern.T('"["'), Pattern.S('?exp'), Pattern.T('"]"')]),
+		'?primary': Patterns([Pattern.S('relay'), Pattern.S('invoke'), Pattern.S('indexer'), Pattern.S('atom')], op=Operators.Or),
+		'relay': Patterns([Pattern.S('primary'), Pattern.T('"."'), Pattern.S('name')]),
+		'invoke': Patterns([Pattern.S('primary'), Pattern.T('"("'), Patterns([Pattern.S('args')], rep=Repeators.OneOrEmpty), Pattern.T('")"')]),
+		'indexer': Patterns([Pattern.S('primary'), Pattern.T('"["'), Pattern.S('exp'), Pattern.T('"]"')]),
 		'?atom': Patterns([Pattern.S('var'), Pattern.S('bool'), Pattern.S('none'), Pattern.S('str'), Pattern.S('int'), Pattern.S('float')], op=Operators.Or),
 		# element
-		'args': Patterns([Pattern.S('?exp'), Patterns([Pattern.T('","'), Pattern.S('?exp')], rep=Repeators.OverZero)]),
-	}
+		'args': Patterns([Pattern.S('exp'), Patterns([Pattern.T('","'), Pattern.S('exp')], rep=Repeators.OverZero)]),
+	})
 
 
-def grammar_rules() -> dict[str, PatternEntry]:
+def grammar_rules() -> Rules:
 	"""ルールを生成(Grammar用)
 
 	Returns:
@@ -45,39 +45,52 @@ def grammar_rules() -> dict[str, PatternEntry]:
 	Note:
 		```
 		entry := (rule)+
-		rule := symbol ":=" expr "\n"
-		expr := (terms "|")* terms
-		terms := (term)* term
-		term := symbol | string | regexp | /[(\\[]/ expr /[)\\]]/ (/[*+?]/)?
+		rule := (expand)? symbol ":=" expr "\n"
+		?expr := terms_or
+		?terns_or := (terms "|")* terms
+		?terms := (term)* term
+		?term := symbol | string | regexp | expr_opt | expr_rep
+		expr_opt := "[" expr "]"
+		expr_rep := "(" expr ")" [repeat]
 		symbol := /[a-zA-Z_][0-9a-zA-Z_]*/
 		string := /"[^"]+"/
 		regexp := /\\/[^\\/]+\\//
+		repeat := /[*+?]/
+		expand := "?"
 		```
 	"""
-	return {
+	return Rules({
 		'entry': Patterns([Pattern.S('rule')], rep=Repeators.OverOne),
-		'rule': Patterns([Pattern.S('symbol'), Pattern.T('":="'), Pattern.S('?expr'), Pattern.T('"\n"')]),
-		'?expr': Patterns([
-			Patterns([Pattern.S('?terms'), Pattern.T('"|"')], rep=Repeators.OverZero),
-			Pattern.S('?terms'),
+		'rule': Patterns([Patterns([Pattern.S('expand')], rep=Repeators.OneOrZero), Pattern.S('symbol'), Pattern.T('":="'), Pattern.S('expr'), Pattern.T('"\n"')]),
+		'?expr': Pattern.S('terms_or'),
+		'?terms_or': Patterns([
+			Patterns([Pattern.S('terms'), Pattern.T('"|"')], rep=Repeators.OverZero),
+			Pattern.S('terms'),
 		]),
 		'?terms': Patterns([
-			Patterns([Pattern.S('?term')], rep=Repeators.OverZero),
-			Pattern.S('?term'),
+			Patterns([Pattern.S('term')], rep=Repeators.OverZero),
+			Pattern.S('term'),
 		]),
 		'?term': Patterns([
 			Pattern.S('symbol'),
 			Pattern.S('string'),
 			Pattern.S('regexp'),
-			Patterns([
-				Pattern.T('/[(\\[]/'), Pattern.S('?expr'), Pattern.T('/[)\\]]/'),
-				Patterns([Pattern.T('/[*+?]/')], rep=Repeators.OneOrZero),
-			]),
+			Pattern.S('expr_opt'),
+			Pattern.S('expr_rep'),
 		], op=Operators.Or),
+		'expr_opt': Patterns([
+			Pattern.T('"["'), Pattern.S('expr'), Pattern.T('"]"'),
+		]),
+		'expr_rep': Patterns([
+			Pattern.T('"("'), Pattern.S('expr'), Pattern.T('")"'),
+			Patterns([Pattern.S('repeat')], rep=Repeators.OneOrEmpty),
+		]),
 		'symbol': Pattern.T('/[a-zA-Z_][0-9a-zA-Z_]*/'),
 		'string': Pattern.T('/"[^"]+"/'),
 		'regexp': Pattern.T('/\\/[^\\/]+\\//'),
-	}
+		'repeat': Pattern.T('/[*+?]/'),
+		'expand': Pattern.T('"?"'),
+	})
 
 
 def grammar_tokenizer() -> Tokenizer:

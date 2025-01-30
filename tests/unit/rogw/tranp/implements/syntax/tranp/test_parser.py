@@ -47,20 +47,28 @@ class TestSyntaxParser(TestCase):
 		(
 			'{}\n'.format('\n'.join([
 				'entry := exp',
-				'exp := primary',
-				'primary := relay | invoke | indexer | atom',
+				'?exp := primary',
+				'?primary := relay | invoke | indexer | atom',
 				'relay := primary "." name',
 				'invoke := primary "(" [args] ")"',
-				'indexer := primary "[" expr "]"',
-				'args := expr (expr)*',
+				'indexer := primary "[" exp "]"',
+				'args := exp (exp)*',
 			])),
 			'grammar',
 			('entry', [
-				('rule', [('symbol', 'entry'), ('symbol', 'exp')]),
-				('rule', [('symbol', 'exp'), ('symbol', 'primary')]),
 				('rule', [
+					('symbol', 'entry'),
+					('symbol', 'exp'),
+				]),
+				('rule', [
+					('expand', '?'),
+					('symbol', 'exp'),
 					('symbol', 'primary'),
-					('?expr', [
+				]),
+				('rule', [
+					('expand', '?'),
+					('symbol', 'primary'),
+					('terms_or', [
 						('symbol', 'relay'),
 						('symbol', 'invoke'),
 						('symbol', 'indexer'),
@@ -69,7 +77,7 @@ class TestSyntaxParser(TestCase):
 				]),
 				('rule', [
 					('symbol', 'relay'),
-					('?terms', [
+					('terms', [
 						('symbol', 'primary'),
 						('string', '"."'),
 						('symbol', 'name'),
@@ -77,27 +85,32 @@ class TestSyntaxParser(TestCase):
 				]),
 				('rule', [
 					('symbol', 'invoke'),
-					('?terms', [
+					('terms', [
 						('symbol', 'primary'),
 						('string', '"("'),
-						('symbol', 'args'),
+						('expr_opt', [
+							('symbol', 'args'),
+						]),
 						('string', '")"'),
 					]),
 				]),
 				('rule', [
 					('symbol', 'indexer'),
-					('?terms', [
+					('terms', [
 						('symbol', 'primary'),
 						('string', '"["'),
-						('symbol', 'expr'),
+						('symbol', 'exp'),
 						('string', '"]"'),
 					]),
 				]),
 				('rule', [
 					('symbol', 'args'),
-					('?terms', [
-						('symbol', 'expr'),
-						('symbol', 'expr'),
+					('terms', [
+						('symbol', 'exp'),
+						('expr_rep', [
+							('symbol', 'exp'),
+							('repeat', '*'),
+						]),
 					]),
 				]),
 			]),
@@ -119,5 +132,5 @@ class TestSyntaxParser(TestCase):
 		try:
 			self.assertEqual(expected, actual.simplify())
 		except AssertionError:
-			print(f'AST unmatch. actual: {actual.pretty}')
+			print(f'AST unmatch. actual: {actual.pretty()}')
 			raise

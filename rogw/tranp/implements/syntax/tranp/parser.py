@@ -1,161 +1,9 @@
-from enum import Enum
 import re
-from typing import Iterator, NamedTuple, TypeAlias
+from typing import NamedTuple, TypeAlias
 
+from rogw.tranp.implements.syntax.tranp.rule import Comps, Expandors, Operators, Pattern, PatternEntry, Patterns, Repeators, Roles, Rules
 from rogw.tranp.implements.syntax.tranp.tokenizer import ITokenizer, Token, Tokenizer
 from rogw.tranp.lang.convertion import as_a
-
-
-class Roles(Enum):
-	"""パターンの役割
-
-	Note:
-		```
-		Symbol: シンボル
-		Terminal: 終端要素
-		```
-	"""
-	Symbol = 'symbol'
-	Terminal = 'terminal'
-
-
-class Comps(Enum):
-	"""文字列の比較メソッド
-
-	Note:
-		```
-		Regexp: 正規表現(完全一致)
-		Equals: 通常比較
-		NoComp: 使わない
-		```
-	"""
-	Regexp = 'regexp'
-	Equals = 'equals'
-	NoComp = 'off'
-
-
-class Operators(Enum):
-	"""比較演算子(マッチンググループ用)
-
-	Note:
-		```
-		And: 論理積
-		Or: 論理和
-		```
-	"""
-	And = 'and'
-	Or = 'or'
-
-
-class Repeators(Enum):
-	"""リピート種別(マッチンググループ用)
-
-	Note:
-		```
-		OverZero: 0回以上
-		OverOne: 1回以上
-		OneOrZero: 1/0
-		OneOrEmpty: 1/Empty
-		NoRepeat: リピートなし(=通常比較)
-		```
-	"""
-	OverZero = '*'
-	OverOne = '+'
-	OneOrZero = '?'
-	OneOrEmpty = '[]'
-	NoRepeat = 'off'
-
-
-PatternEntry: TypeAlias = 'Pattern | Patterns'
-
-
-class Pattern:
-	"""マッチングパターン"""
-
-	def __init__(self, expression: str, role: Roles, comp: Comps) -> None:
-		"""インスタンスを生成
-
-		Args:
-			expression: マッチング式
-			role: パターンの役割
-			comp: 文字列の比較メソッド
-		"""
-		self.expression = expression
-		self.role = role
-		self.comp = comp
-
-	@classmethod
-	def S(cls, expression: str) -> 'Pattern':
-		"""インスタンスを生成(シンボル用)
-
-		Args:
-			expression: マッチング式
-		Returns:
-			インスタンス
-		"""
-		return cls(expression, Roles.Symbol, Comps.NoComp)
-
-	@classmethod
-	def T(cls, expression: str) -> 'Pattern':
-		"""インスタンスを生成(終端要素用)
-
-		Args:
-			expression: マッチング式
-		Returns:
-			インスタンス
-		"""
-		comp = Comps.Regexp if expression[0] == '/' else Comps.Equals
-		return cls(expression, Roles.Terminal, comp)
-
-
-class Patterns:
-	"""マッチングパターングループ"""
-
-	def __init__(self, entries: list[PatternEntry], op: Operators = Operators.And, rep: Repeators = Repeators.NoRepeat) -> None:
-		"""インスタンスを生成
-
-		Args:
-			entries: 配下要素
-			op: 比較演算子
-			rep: リピート種別
-		"""
-		self.entries = entries
-		self.op = op
-		self.rep = rep
-
-	def __len__(self) -> int:
-		"""Returns: 要素数"""
-		return len(self.entries)
-
-	def __iter__(self) -> Iterator[PatternEntry]:
-		"""Returns: イテレーター"""
-		for child in self.entries:
-			yield child
-
-	def __getitem__(self, index: int) -> PatternEntry:
-		"""配下要素を取得
-
-		Args:
-			index: インデックス
-		Returns:
-			配下要素
-		"""
-		return self.entries[index]
-
-
-class ExpandRules(Enum):
-	"""ツリーの展開規則
-
-	Note:
-		* 「展開」とは、自身のツリーを削除して上位ツリーに子を展開することを指す
-		```
-		Off: 展開なし(通常通り)
-		OneTime: 子が1つの時に展開
-		```
-	"""
-	Off = 'off'
-	OneTime = '?'
-	# Always = '_' XXX 仕組み的に対応が困難なため一旦非対応
 
 
 class ASTToken(NamedTuple):
@@ -173,8 +21,7 @@ class ASTToken(NamedTuple):
 		"""Returns: 簡易書式(tuple/str)"""
 		return self.name, self.value.string
 
-	@property
-	def pretty(self) -> str:
+	def pretty(self, indent: str = '  ') -> str:
 		"""Returns: フォーマット書式"""
 		return f"('{self.name}', '{self.value.string}')"
 
@@ -189,11 +36,9 @@ class ASTTree(NamedTuple):
 		"""Returns: 簡易書式(tuple/str)"""
 		return self.name, [child.simplify() for child in self.children]
 
-	@property
-	def pretty(self) -> str:
-		"""Returns: フォーマット書式"""
-		indent = '  '
-		children_str = f',\n{indent}'.join([f'\n{indent}'.join(child.pretty.split('\n')) for child in self.children])
+	def pretty(self, indent: str = '  ') -> str:
+		"""Args: indent: インデント Returns: フォーマット書式"""
+		children_str = f',\n{indent}'.join([f'\n{indent}'.join(child.pretty(indent).split('\n')) for child in self.children])
 		return f"('{self.name}', [\n{indent}{children_str}\n])"
 
 
@@ -230,7 +75,7 @@ class Step(NamedTuple):
 class SyntaxParser:
 	"""シンタックスパーサー"""
 
-	def __init__(self, rules: dict[str, PatternEntry], tokenizer: ITokenizer | None = None) -> None:
+	def __init__(self, rules: Rules, tokenizer: ITokenizer | None = None) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -240,17 +85,24 @@ class SyntaxParser:
 		self.rules = rules
 		self.tokenizer = tokenizer if tokenizer else Tokenizer()
 
-	def parse(self, source: str, entry: str) -> ASTEntry:
+	def parse(self, source: str, entrypoint: str) -> ASTEntry:
 		"""ソースコードを解析し、ASTを生成
 
 		Args:
 			source: ソースコード
-			entry: エントリーポイントのシンボル
+			entrypoint: エントリーポイントのシンボル
 		Returns:
 			ASTエントリー XXX 要件的にほぼツリーであることが確定
+		Raises:
+			ValueError: パースに失敗(最後のトークンに未到達)
 		"""
 		tokens = self.tokenizer.parse(source)
-		return self.match(tokens, len(tokens) - 1, entry)[1]
+		length = len(tokens)
+		step, entry = self.match(tokens, length - 1, entrypoint)
+		if step.steps != length:
+			raise ValueError(f'Syntax parse error. Last token not reached. {step.steps}/{length}')
+
+		return entry
 
 	def match(self, tokens: list[Token], end: int, symbol: str) -> tuple[Step, ASTEntry]:
 		"""パターン(シンボル参照)を検証し、ASTエントリーを生成
@@ -286,7 +138,7 @@ class SyntaxParser:
 		Note:
 			XXX 自身と子を入れ替えると言う単純な実装のため、複数の子を上位のツリーに展開できない
 		"""
-		if symbol[0] == ExpandRules.OneTime.value and len(children) == 1:
+		if self.rules.expand_by(symbol) == Expandors.OneTime and len(children) == 1:
 			return children[0]
 
 		return ASTTree(symbol, children)

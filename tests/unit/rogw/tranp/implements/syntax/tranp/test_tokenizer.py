@@ -13,16 +13,23 @@ class TestTokenizer(TestCase):
 		('a(**b)', ['a', '(', '**', 'b', ')']),
 		('**a', ['**', 'a']),
 		('***a', ['**', '*', 'a']),
+		('a # bc', ['a']),
 		('if a\\\n\tand b: ...', ['if', 'a', 'and', 'b', ':', '...']),
 		('def f() -> None: ...', ['def', 'f', '(', ')', '->', 'None', ':', '...']),
 		(
 			'\n'.join([
+				'# c',
 				'def a(arr: list[int]) -> dict[str, int]:',
+				'	# c',
 				'	return {',
+				'		# c',
 				'		"b": arr[0],',
+				'		# c',
 				'	}',
+				'	# c',
 				'	',
 				'print(a([0]))',
+				'# c',
 			]),
 			[
 				'def', 'a', '(', 'arr', ':', 'list', '[', 'int', ']', ')', '->', 'dict', '[', 'str', ',', 'int', ']', ':', '\n',
@@ -87,6 +94,16 @@ class TestLexer(TestCase):
 		parser = Lexer(TokenDefinition())
 		actual = parser.parse(source)
 		self.assertEqual(expected, [token.string for token in actual])
+
+	@data_provider([
+		('\n\n\n', ''),
+		('a # b\nc # d', 'a\nc'),
+		(' \n\t\n\ta\nb\t', '\ta\nb'),
+	])
+	def test_pre_filter(self, source: str, expected: str) -> None:
+		parser = Lexer(TokenDefinition())
+		actual = parser.pre_filter(source)
+		self.assertEqual(expected, actual)
 
 	@data_provider([
 		(' abc', 0, TokenDomains.WhiteSpace),

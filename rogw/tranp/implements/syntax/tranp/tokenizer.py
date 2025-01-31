@@ -1,6 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 from io import BytesIO
+import re
 import token as PyTokenTypes
 from tokenize import tokenize
 from typing import TypedDict, override
@@ -23,7 +24,7 @@ class TokenDefinition:
 			TokenDomains.Number,
 			TokenDomains.Identifier,
 		]
-		self.white_space = ' \t\n\r\\'
+		self.white_space = '\\ \t\f\n\r'
 		self.comment = [self.build_quote_pair('#', '\n')]
 		self.quote = [self.build_quote_pair(f'{prefix}{quote}', quote) for prefix in ['', 'r', 'f'] for quote in ['"""', "'", '"']]
 		self.number = '0123456789.'
@@ -35,6 +36,12 @@ class TokenDefinition:
 			'==', '!=', '<=', '>=', '&&', '||',
 			'<<', '>>',
 			'->', '**', ':=', '...',
+		]
+		self.pre_filters = [
+			# コメント前の空白とコメント以降
+			r'[ \t\f]*#.*$',
+			# 行末の空白
+			r'[ \t\f\r]+$',
 		]
 
 	@classmethod
@@ -116,6 +123,53 @@ class Lexer(ITokenizer):
 
 	@override
 	def parse(self, source: str) -> list[Token]:
+		"""ソースコードを解析し、トークンに分割
+
+		Args:
+			source: ソースコード
+		Returns:
+			トークンリスト
+		"""
+		return self._parse(self.pre_filter(source))
+
+	def pre_filter(self, source: str) -> str:
+		"""ソースコードに事前フィルターを適用
+
+		Args:
+			source: ソースコード
+		Returns:
+			ソースコード
+		Note:
+			```
+			### 特記事項
+			* 暗黙的に空行を削除 (文法的に不要)
+			* 行単位で正規表現のフィルターを適用
+			* フィルター後に空行になった場合は行ごと削除
+			```
+		"""
+		pre_filters = [re.compile(regexp) for regexp in self._definition.pre_filters]
+		if len(pre_filters) == 0:
+			return source
+
+		new_lines: list[str] = []
+		for line in source.split('\n'):
+			before = len(line)
+			if before == 0:
+				continue
+
+			new_line = line
+			for regexp in pre_filters:
+				new_line = re.sub(regexp, '', new_line)
+
+			after = len(new_line)
+			if before == after:
+				new_lines.append(line)
+			elif len(new_line) > 0:
+				new_lines.append(new_line)
+
+		return '\n'.join(new_lines)
+
+	def _parse(self, source: str) -> list[Token]:
 		"""ソースコードを解析し、トークンに分割
 
 		Args:

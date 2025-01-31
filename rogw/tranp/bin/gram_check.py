@@ -101,9 +101,9 @@ class App:
 		Args:
 			args: 引数
 		"""
-		filepath_ = os.path.join(tranp_dir(), filepath)
-		with open(filepath_) as f:
-			return ''.join(f.readlines())
+		fullpath = os.path.abspath(os.path.join(os.getcwd(), filepath))
+		with open(fullpath) as f:
+			return f.read()
 
 
 if __name__ == '__main__':

@@ -1,0 +1,19 @@
+entry := (exp)+ "\n"
+
+bool := /False|True/
+int := /[1-9]\d*/
+float := /(0|[1-9]\d*)[.]\d+/
+str := /'[^']*'|"[^"]*"/
+none := "None"
+name := /[a-zA-Z_]\w*/
+
+var := name
+?exp := primary
+
+?primary := relay | invoke | indexer | atom
+relay := primary "." name
+invoke := primary "(" [args] ")"
+indexer := primary "[" exp "]"
+?atom := var | bool | none | str | int | float
+
+args := exp ("," exp)*

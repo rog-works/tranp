@@ -8,28 +8,128 @@ def python_rules() -> Rules:
 	Returns:
 		ルール一覧
 	"""
-	return Rules({
-		# entrypoint
-		'entry': Patterns([Pattern.S('exp'), Pattern.T('"\n"')], rep=Repeators.OverOne),
-		# non terminal
-		'bool': Pattern.T('/False|True/'),
-		'int': Pattern.T('/[1-9][0-9]*/'),
-		'float': Pattern.T('/(0|[1-9][0-9]*)[.][0-9]+/'),
-		'str': Pattern.T('/\'[^\']*\'|"[^"]*"/'),
-		'none': Pattern.T('"None"'),
-		'name': Pattern.T('/[a-zA-Z_][0-9a-zA-Z_]*/'),
-		# expression
-		'var': Pattern.S('name'),
-		'?exp': Pattern.S('primary'),
-		# primary
-		'?primary': Patterns([Pattern.S('relay'), Pattern.S('invoke'), Pattern.S('indexer'), Pattern.S('atom')], op=Operators.Or),
-		'relay': Patterns([Pattern.S('primary'), Pattern.T('"."'), Pattern.S('name')]),
-		'invoke': Patterns([Pattern.S('primary'), Pattern.T('"("'), Patterns([Pattern.S('args')], rep=Repeators.OneOrEmpty), Pattern.T('")"')]),
-		'indexer': Patterns([Pattern.S('primary'), Pattern.T('"["'), Pattern.S('exp'), Pattern.T('"]"')]),
-		'?atom': Patterns([Pattern.S('var'), Pattern.S('bool'), Pattern.S('none'), Pattern.S('str'), Pattern.S('int'), Pattern.S('float')], op=Operators.Or),
-		# element
-		'args': Patterns([Pattern.S('exp'), Patterns([Pattern.T('","'), Pattern.S('exp')], rep=Repeators.OverZero)]),
-	})
+	return Rules.from_ast(
+		('entry', [
+			('rule', [
+				('__empty__', ''),
+				('symbol', 'entry'),
+				('expr_rep', [
+					('terms', [
+						('symbol', 'exp'),
+						('string', '"\n"')
+					]),
+					('repeat', '+')
+				])
+			]),
+			('rule', [
+				('__empty__', ''),
+				('symbol', 'bool'),
+				('regexp', '/False|True/')
+			]),
+			('rule', [
+				('__empty__', ''),
+				('symbol', 'int'),
+				('regexp', '/[1-9]\\d*/')
+			]),
+			('rule', [
+				('__empty__', ''),
+				('symbol', 'float'),
+				('regexp', '/(0|[1-9]\\d*)[.]\\d+/')
+			]),
+			('rule', [
+				('__empty__', ''),
+				('symbol', 'str'),
+				('regexp', '/\'[^\']*\'|"[^"]*"/')
+			]),
+			('rule', [
+				('__empty__', ''),
+				('symbol', 'none'),
+				('string', '"None"')
+			]),
+			('rule', [
+				('__empty__', ''),
+				('symbol', 'name'),
+				('regexp', '/[a-zA-Z_]\\w*/')
+			]),
+			('rule', [
+				('__empty__', ''),
+				('symbol', 'var'),
+				('symbol', 'name')
+			]),
+			('rule', [
+				('expand', '?'),
+				('symbol', 'exp'),
+				('symbol', 'primary')
+			]),
+			('rule', [
+				('expand', '?'),
+				('symbol', 'primary'),
+				('terms_or', [
+					('symbol', 'relay'),
+					('symbol', 'invoke'),
+					('symbol', 'indexer'),
+					('symbol', 'atom')
+				])
+			]),
+			('rule', [
+				('__empty__', ''),
+				('symbol', 'relay'),
+				('terms', [
+					('symbol', 'primary'),
+					('string', '"."'),
+					('symbol', 'name')
+				])
+			]),
+			('rule', [
+				('__empty__', ''),
+				('symbol', 'invoke'),
+				('terms', [
+					('symbol', 'primary'),
+					('string', '"("'),
+					('expr_opt', [
+						('symbol', 'args')
+					]),
+					('string', '")"')
+				])
+			]),
+			('rule', [
+				('__empty__', ''),
+				('symbol', 'indexer'),
+				('terms', [
+					('symbol', 'primary'),
+					('string', '"["'),
+					('symbol', 'exp'),
+					('string', '"]"')
+				])
+			]),
+			('rule', [
+				('expand', '?'),
+				('symbol', 'atom'),
+				('terms_or', [
+					('symbol', 'var'),
+					('symbol', 'bool'),
+					('symbol', 'none'),
+					('symbol', 'str'),
+					('symbol', 'int'),
+					('symbol', 'float')
+				])
+			]),
+			('rule', [
+				('__empty__', ''),
+				('symbol', 'args'),
+				('terms', [
+					('symbol', 'exp'),
+					('expr_rep', [
+						('terms', [
+							('string', '","'),
+							('symbol', 'exp')
+						]),
+						('repeat', '*')
+					])
+				])
+			])
+		])
+	)
 
 
 def grammar_rules() -> Rules:

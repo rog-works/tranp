@@ -1,5 +1,5 @@
 // entry
-entry := (exp)+ "\n"
+entry := (exp "\n")+
 
 // terminal
 bool := /False|True/

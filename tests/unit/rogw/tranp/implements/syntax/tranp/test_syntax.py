@@ -53,6 +53,7 @@ class TestSyntaxParser(TestCase):
 				'invoke := primary "(" [args] ")"',
 				'indexer := primary "[" exp "]"',
 				'args := exp (exp)*',
+				'bool := /False|True/'
 			])),
 			'grammar',
 			('entry', [
@@ -117,6 +118,11 @@ class TestSyntaxParser(TestCase):
 							('repeat', '*'),
 						]),
 					]),
+				]),
+				('rule', [
+					('__empty__', ''),
+					('symbol', 'bool'),
+					('regexp', '/False|True/'),
 				]),
 			]),
 		),

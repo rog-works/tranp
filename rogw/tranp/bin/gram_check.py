@@ -91,7 +91,7 @@ class App:
 		"""実行処理(既存ファイルを解析)"""
 		source = self.load_source(self.args.filepath)
 		tree = self.parser.parse(source, 'entry')
-		print(tree.pretty())
+		print(tree.pretty('\t'))
 
 	def load_source(self, filepath: str) -> str:
 		"""ソースコードを読み込み

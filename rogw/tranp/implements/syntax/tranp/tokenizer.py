@@ -37,12 +37,10 @@ class TokenDefinition:
 			'<<', '>>',
 			'->', '**', ':=', '...',
 		]
-		self.pre_filters = [
-			# コメント前の空白とコメント以降
-			r'[ \t\f]*#.*$',
-			# 行末の空白
-			r'[ \t\f\r]+$',
-		]
+		self.pre_filters = {
+			'comment_spaces': r'[ \t\f]*#.*$',
+			'line_end_spaces': r'[ \t\f\r]+$',
+		}
 
 	@classmethod
 	def build_quote_pair(cls, open: str, close: str) -> QuotePair:
@@ -142,19 +140,20 @@ class Lexer(ITokenizer):
 		Note:
 			```
 			### 特記事項
-			* 暗黙的に空行を削除 (文法的に不要)
-			* 行単位で正規表現のフィルターを適用
-			* フィルター後に空行になった場合は行ごと削除
+			* 空行を暗黙的に削除 (ファイルの最終行以外 XXX 必然性が不明)
+			* 行単位で正規表現のフィルターを実施
+			* フィルターによって短縮された場合のみ行を更新
 			```
 		"""
-		pre_filters = [re.compile(regexp) for regexp in self._definition.pre_filters]
+		pre_filters = [re.compile(regexp) for regexp in self._definition.pre_filters.values()]
 		if len(pre_filters) == 0:
 			return source
 
 		new_lines: list[str] = []
-		for line in source.split('\n'):
+		last = source.count('\n') - 1
+		for index, line in enumerate(source.split('\n')):
 			before = len(line)
-			if before == 0:
+			if before == 0 and index < last:
 				continue
 
 			new_line = line

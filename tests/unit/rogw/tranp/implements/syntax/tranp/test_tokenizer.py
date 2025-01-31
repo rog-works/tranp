@@ -6,16 +6,16 @@ from rogw.tranp.test.helper import data_provider
 
 class TestTokenizer(TestCase):
 	@data_provider([
-		('a + 1', ['a', '+', '1']),
-		('a += b', ['a', '+=', 'b']),
-		('a == b', ['a', '==', 'b']),
-		('a := b', ['a', ':=', 'b']),
-		('a(**b)', ['a', '(', '**', 'b', ')']),
-		('**a', ['**', 'a']),
-		('***a', ['**', '*', 'a']),
-		('a # bc', ['a']),
-		('if a\\\n\tand b: ...', ['if', 'a', 'and', 'b', ':', '...']),
-		('def f() -> None: ...', ['def', 'f', '(', ')', '->', 'None', ':', '...']),
+		('a + 1', ['a', '+', '1', 'EOF']),
+		('a += b', ['a', '+=', 'b', 'EOF']),
+		('a == b', ['a', '==', 'b', 'EOF']),
+		('a := b', ['a', ':=', 'b', 'EOF']),
+		('a(**b)', ['a', '(', '**', 'b', ')', 'EOF']),
+		('**a', ['**', 'a', 'EOF']),
+		('***a', ['**', '*', 'a', 'EOF']),
+		('a # bc', ['a', 'EOF']),
+		('if a\\\n\tand b: ...', ['if', 'a', 'and', 'b', ':', '...', 'EOF']),
+		('def f() -> None: ...', ['def', 'f', '(', ')', '->', 'None', ':', '...', 'EOF']),
 		(
 			'\n'.join([
 				'# c',
@@ -37,6 +37,7 @@ class TestTokenizer(TestCase):
 						'"b"', ':', 'arr', '[', '0', ']', ',',
 					'}', '\n', '',
 				'print', '(', 'a', '(', '[', '0', ']', ')', ')',
+				'EOF'
 			],
 		),
 	])
@@ -84,11 +85,11 @@ class TestTokenizer(TestCase):
 
 class TestLexer(TestCase):
 	@data_provider([
-		('abc', ['abc']),
-		('a.b("c").d', ['a', '.', 'b', '(', '"c"', ')', '.', 'd']),
-		('a * 0 - True', ['a', ' ', '*', ' ', '0', ' ', '-', ' ', 'True']),
-		('?a _b', ['?', 'a', ' ', '_b']),
-		("r + r'abc'", ['r', ' ', '+', ' ', "r'abc'"]),
+		('abc', ['abc', 'EOF']),
+		('a.b("c").d', ['a', '.', 'b', '(', '"c"', ')', '.', 'd', 'EOF']),
+		('a * 0 - True', ['a', ' ', '*', ' ', '0', ' ', '-', ' ', 'True', 'EOF']),
+		('?a _b', ['?', 'a', ' ', '_b', 'EOF']),
+		("r + r'abc'", ['r', ' ', '+', ' ', "r'abc'", 'EOF']),
 	])
 	def test_parse(self, source: str, expected: list[str]) -> None:
 		parser = Lexer(TokenDefinition())
@@ -96,9 +97,9 @@ class TestLexer(TestCase):
 		self.assertEqual(expected, [token.string for token in actual])
 
 	@data_provider([
-		('\n\n\n', '\n'),
+		('\n\n\n', ''),
 		('a # b\nc # d', 'a\nc'),
-		(' \n\t\n\ta\nb\t\n', '\ta\nb\n'),
+		(' \n\t\n\ta\nb\t\n', '\ta\nb'),
 	])
 	def test_pre_filter(self, source: str, expected: str) -> None:
 		parser = Lexer(TokenDefinition())

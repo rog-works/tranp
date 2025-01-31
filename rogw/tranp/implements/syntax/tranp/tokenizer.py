@@ -140,7 +140,7 @@ class Lexer(ITokenizer):
 		Note:
 			```
 			### 特記事項
-			* 空行を暗黙的に削除 (ファイルの最終行以外 XXX 必然性が不明)
+			* 空行を暗黙的に削除
 			* 行単位で正規表現のフィルターを実施
 			* フィルターによって短縮された場合のみ行を更新
 			```
@@ -150,10 +150,9 @@ class Lexer(ITokenizer):
 			return source
 
 		new_lines: list[str] = []
-		last = source.count('\n') - 1
-		for index, line in enumerate(source.split('\n')):
+		for line in source.split('\n'):
 			before = len(line)
-			if before == 0 and index < last:
+			if before == 0:
 				continue
 
 			new_line = line
@@ -184,6 +183,7 @@ class Lexer(ITokenizer):
 			index = end
 			tokens.append(token)
 
+		tokens.append(Token.EOF())
 		return tokens
 
 	def analyze_domain(self, source: str, begin: int) -> TokenDomains:
@@ -525,8 +525,14 @@ class Tokenizer(ITokenizer):
 		token = tokens[begin]
 		if context.enclosure > 0:
 			return begin + 1, []
-		elif token.type != TokenTypes.LineBreak:
+		elif token.type == TokenTypes.WhiteSpace:
 			return begin + 1, []
+		elif token.type == TokenTypes.EOF:
+			if context.nest > 0:
+				context.nest = 0
+				return begin + 3, [Token(TokenTypes.NewLine, token.string), Token(TokenTypes.Dedent, '')]
+			else:
+				return begin + 3, [Token(TokenTypes.NewLine, token.string)]
 		elif context.nest < len(token.string) - 1:
 			context.nest = len(token.string) - 1
 			return begin + 1, [Token(TokenTypes.NewLine, token.string[0]), Token(TokenTypes.Indent, token.string[1:])]

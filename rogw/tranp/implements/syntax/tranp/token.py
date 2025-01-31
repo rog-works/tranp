@@ -23,6 +23,7 @@ class TokenTypes(Enum):
 	NewLine = 0x02
 	Indent = 0x03
 	Dedent = 0x04
+	EOF = 0x05
 	# コメント
 	Comment = 0x10
 	# 引用符
@@ -97,6 +98,11 @@ class Token(NamedTuple):
 
 	type: TokenTypes
 	string: str
+
+	@classmethod
+	def EOF(cls) -> 'Token':
+		"""Returns: ファイルの終端を表すインスタンス"""
+		return cls(TokenTypes.EOF, 'EOF')
 
 	@classmethod
 	def empty(cls) -> 'Token':

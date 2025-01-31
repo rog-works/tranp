@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from rogw.tranp.implements.syntax.tranp.parser import ASTTree, SyntaxParser
+from rogw.tranp.implements.syntax.tranp.syntax import SyntaxParser
 from rogw.tranp.implements.syntax.tranp.rules import grammar_rules, grammar_tokenizer, python_rules
 from rogw.tranp.implements.syntax.tranp.tokenizer import Tokenizer
 from rogw.tranp.test.helper import data_provider
@@ -53,10 +53,12 @@ class TestSyntaxParser(TestCase):
 				'invoke := primary "(" [args] ")"',
 				'indexer := primary "[" exp "]"',
 				'args := exp (exp)*',
+				'bool := /False|True/'
 			])),
 			'grammar',
 			('entry', [
 				('rule', [
+					('__empty__', ''),
 					('symbol', 'entry'),
 					('symbol', 'exp'),
 				]),
@@ -76,6 +78,7 @@ class TestSyntaxParser(TestCase):
 					]),
 				]),
 				('rule', [
+					('__empty__', ''),
 					('symbol', 'relay'),
 					('terms', [
 						('symbol', 'primary'),
@@ -84,6 +87,7 @@ class TestSyntaxParser(TestCase):
 					]),
 				]),
 				('rule', [
+					('__empty__', ''),
 					('symbol', 'invoke'),
 					('terms', [
 						('symbol', 'primary'),
@@ -95,6 +99,7 @@ class TestSyntaxParser(TestCase):
 					]),
 				]),
 				('rule', [
+					('__empty__', ''),
 					('symbol', 'indexer'),
 					('terms', [
 						('symbol', 'primary'),
@@ -104,6 +109,7 @@ class TestSyntaxParser(TestCase):
 					]),
 				]),
 				('rule', [
+					('__empty__', ''),
 					('symbol', 'args'),
 					('terms', [
 						('symbol', 'exp'),
@@ -113,10 +119,15 @@ class TestSyntaxParser(TestCase):
 						]),
 					]),
 				]),
+				('rule', [
+					('__empty__', ''),
+					('symbol', 'bool'),
+					('regexp', '/False|True/'),
+				]),
 			]),
 		),
 	])
-	def test_parse(self, source: str, lang: str, expected: ASTTree) -> None:
+	def test_parse(self, source: str, lang: str, expected: tuple) -> None:
 		rule_provider = {
 			'python': python_rules,
 			'grammar': grammar_rules,

@@ -3,9 +3,8 @@ import sys
 import traceback
 from typing import TypedDict
 
-from rogw.tranp.app.dir import tranp_dir
 from rogw.tranp.bin.io import readline
-from rogw.tranp.implements.syntax.tranp.rules import grammar_rules
+from rogw.tranp.implements.syntax.tranp.rules import grammar_rules, grammar_tokenizer
 from rogw.tranp.implements.syntax.tranp.syntax import SyntaxParser
 
 DictArgs = TypedDict('DictArgs', {'filepath': str})
@@ -50,7 +49,7 @@ class App:
 			args: 引数
 		"""
 		self.args = args
-		self.parser = SyntaxParser(grammar_rules())
+		self.parser = SyntaxParser(grammar_rules(), grammar_tokenizer())
 
 	def run(self) -> None:
 		"""実行処理"""

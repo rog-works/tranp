@@ -51,6 +51,11 @@ class App:
 		self.args = args
 		self.parser = SyntaxParser(grammar_rules(), grammar_tokenizer())
 
+	@property
+	def quiet(self) -> bool:
+		"""Returns: True = 実行ログなし"""
+		return len(self.args.filepath) > 0
+
 	def run(self) -> None:
 		"""実行処理"""
 		if len(self.args.filepath) == 0:
@@ -86,13 +91,6 @@ class App:
 		"""実行処理(既存ファイルを解析)"""
 		source = self.load_source(self.args.filepath)
 		tree = self.parser.parse(source, 'entry')
-		print('==========')
-		print(f'Grammar: {self.args.filepath}')
-		print('----------')
-		print(source)
-		print('==========')
-		print('AST')
-		print('----------')
 		print(tree.pretty())
 
 	def load_source(self, filepath: str) -> str:
@@ -107,12 +105,13 @@ class App:
 
 
 if __name__ == '__main__':
+	app = App(Args(sys.argv[1:]))
 	try:
-		args = Args(sys.argv[1:])
-		App(args).run()
+		app.run()
 	except KeyboardInterrupt:
 		pass
 	except Exception:
 		print(traceback.format_exc())
 	finally:
-		print('Quit')
+		if not app.quiet:
+			print('Quit')

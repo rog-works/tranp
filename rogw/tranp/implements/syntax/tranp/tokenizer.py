@@ -4,55 +4,9 @@ from io import BytesIO
 import re
 import token as PyTokenTypes
 from tokenize import tokenize
-from typing import TypedDict, override
+from typing import override
 
-from rogw.tranp.implements.syntax.tranp.token import Token, TokenDomains, TokenTypes
-
-QuotePair = TypedDict('QuotePair', {'open': str, 'close': str})
-
-
-class TokenDefinition:
-	"""トークン定義"""
-
-	def __init__(self) -> None:
-		"""インスタンスを生成"""
-		self.analyze_order = [
-			TokenDomains.WhiteSpace,
-			TokenDomains.Comment,
-			TokenDomains.Symbol,
-			TokenDomains.Quote,
-			TokenDomains.Number,
-			TokenDomains.Identifier,
-		]
-		self.white_space = '\\ \t\f\n\r'
-		self.comment = [self.build_quote_pair('#', '\n')]
-		self.quote = [self.build_quote_pair(f'{prefix}{quote}', quote) for prefix in ['', 'r', 'f'] for quote in ['"""', "'", '"']]
-		self.number = '0123456789.'
-		self.identifier = '_0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-		self.symbol = '@#$.,:;(){}[]`=-+*/%&|^~!?<>'
-		self.combined_symbols = [
-			'-=', '+=', '*=', '/=', '%=',
-			'&=', '|=', '^=', '~=',
-			'==', '!=', '<=', '>=', '&&', '||',
-			'<<', '>>',
-			'->', '**', ':=', '...',
-		]
-		self.pre_filters = {
-			'comment_spaces': r'[ \t\f]*#.*$',
-			'line_end_spaces': r'[ \t\f\r]+$',
-		}
-
-	@classmethod
-	def build_quote_pair(cls, open: str, close: str) -> QuotePair:
-		"""開始と終了のペアを生成
-
-		Args:
-			open: 開始の文字列
-			close: 終了の文字列
-		Returns:
-			開始と終了のペア
-		"""
-		return {'open': open, 'close': close}
+from rogw.tranp.implements.syntax.tranp.token import Token, TokenDefinition, TokenDomains, TokenTypes
 
 
 class ITokenizer(metaclass=ABCMeta):
@@ -128,46 +82,12 @@ class Lexer(ITokenizer):
 		Returns:
 			トークンリスト
 		"""
-		return self._parse(self.pre_filter(source))
+		tokens = self.parse_impl(source)
+		tokens = self.post_filter(tokens)
+		tokens.append(Token.EOF())
+		return tokens
 
-	def pre_filter(self, source: str) -> str:
-		"""ソースコードに事前フィルターを適用
-
-		Args:
-			source: ソースコード
-		Returns:
-			ソースコード
-		Note:
-			```
-			### 特記事項
-			* 空行を暗黙的に削除
-			* 行単位で正規表現のフィルターを実施
-			* フィルターによって短縮された場合のみ行を更新
-			```
-		"""
-		pre_filters = [re.compile(regexp) for regexp in self._definition.pre_filters.values()]
-		if len(pre_filters) == 0:
-			return source
-
-		new_lines: list[str] = []
-		for line in source.split('\n'):
-			before = len(line)
-			if before == 0:
-				continue
-
-			new_line = line
-			for regexp in pre_filters:
-				new_line = re.sub(regexp, '', new_line)
-
-			after = len(new_line)
-			if before == after:
-				new_lines.append(line)
-			elif len(new_line) > 0:
-				new_lines.append(new_line)
-
-		return '\n'.join(new_lines)
-
-	def _parse(self, source: str) -> list[Token]:
+	def parse_impl(self, source: str) -> list[Token]:
 		"""ソースコードを解析し、トークンに分割
 
 		Args:
@@ -183,8 +103,61 @@ class Lexer(ITokenizer):
 			index = end
 			tokens.append(token)
 
-		tokens.append(Token.EOF())
 		return tokens
+
+	def post_filter(self, tokens: list[Token]) -> list[Token]:
+		"""トークンリストに事後フィルターを適用
+
+		Args:
+			tokens: トークンリスト
+		Returns:
+			トークンリスト
+		Note:
+			```
+			### 除外ルール
+			* フィルター適用後に空になるトークンを除外する
+			* 除外したトークンの前後が改行要素の場合は、前後の改行要素を合成
+			* 先頭要素を除外する際、次の要素が改行要素の場合は削除
+			* 末尾要素を除外する際、前の要素が改行要素の場合は削除
+			```
+		"""
+		def to_empty(post_filter: str, token: Token, index: int, num: int) -> bool:
+			"""Returns: True = フィルター後に空になる"""
+			if post_filter == '*':
+				return True
+			elif post_filter == TokenDefinition.MatchBeginOrEnd:
+				return index == 0 or index == num - 1
+
+			new_string = ''.join(re.split(post_filter, token.string))
+			return len(new_string) == 0
+
+		def line_break_at(tokens: list[Token], index: int) -> bool:
+			"""Returns: True = 対象が存在し、且つ改行要素"""
+			return index >= 0 and index < len(tokens) and tokens[index].type == TokenTypes.LineBreak
+
+		new_tokens = tokens.copy()
+		for token_type, post_filter in self._definition.post_filters:
+			index = 0
+			while index < len(new_tokens):
+				token = new_tokens[index]
+				if token.type != token_type or not to_empty(post_filter, token, index, len(new_tokens)):
+					index += 1
+					continue
+
+				if index == 0 and line_break_at(new_tokens, index + 1):
+					del new_tokens[index + 1]
+					del new_tokens[index]
+				elif index == len(new_tokens) - 1 and line_break_at(new_tokens, index - 1):
+					del new_tokens[index]
+					del new_tokens[index - 1]
+				elif line_break_at(new_tokens, index - 1) and line_break_at(new_tokens, index + 1):
+					new_tokens[index - 1] = new_tokens[index - 1].joined(new_tokens[index + 1])
+					del new_tokens[index + 1]
+					del new_tokens[index]
+				else:
+					del new_tokens[index]
+
+		return new_tokens
 
 	def analyze_domain(self, source: str, begin: int) -> TokenDomains:
 		"""トークンドメインを解析
@@ -316,7 +289,7 @@ class Lexer(ITokenizer):
 		pair = found_pair[0]
 		end = source.find(pair['close'], begin + len(pair['open']))
 		if end != -1:
-			end += len(pair['close'])
+			end += 0 if pair['close'] == '\n' else len(pair['close'])
 			return end, Token(TokenTypes.Comment, source[begin:end])
 		else:
 			return len(source), Token(TokenTypes.Comment, source[begin:])
@@ -486,10 +459,10 @@ class Tokenizer(ITokenizer):
 			* WhiteSpace: 削除
 			* EOF: 改行, ネスト x ディデント
 			* LineBreak:
+				* 最終行の文字数をインデントとしてカウント
 				* ネストが増加: 改行, インデント
 				* ネストが減少: 改行, 減少ネスト x ディデント
 				* ネストが同じ: 改行
-				※期待する文字列の書式: '^\n[ \t]*$'
 			```
 		"""
 		token = tokens[begin]
@@ -501,11 +474,15 @@ class Tokenizer(ITokenizer):
 			dedents = [Token.dedent()] * context.nest
 			context.nest = 0
 			return begin + len(token.string), [Token.new_line(), *dedents]
-		elif context.nest < len(token.string) - 1:
-			context.nest = len(token.string) - 1
+
+		assert token.type == TokenTypes.LineBreak, f'Never. token type: {token.type}'
+
+		indent = len(token.string.split('\n')[-1])
+		if context.nest < indent:
+			context.nest = indent
 			return begin + 1, [Token.new_line(), Token.indent()]
-		elif context.nest > len(token.string) - 1:
-			next_nest = len(token.string) - 1
+		elif context.nest > indent:
+			next_nest = indent
 			dedents = [Token.dedent()] * (context.nest - next_nest)
 			context.nest = next_nest
 			return begin + 1, [Token.new_line(), *dedents]

@@ -1,6 +1,20 @@
 // entry
 entry := (exp "\n")+
 
+// expression
+?exp := primary
+
+// atom
+?primary := relay | invoke | indexer | atom
+relay := primary "." name
+invoke := primary "(" [args] ")"
+indexer := primary "[" exp "]"
+?atom := var | bool | none | str | int | float
+var := name
+
+// element
+args := exp ("," exp)*
+
 // terminal
 bool := /False|True/
 int := /[1-9]\d*/
@@ -8,20 +22,6 @@ float := /(0|[1-9]\d*)[.]\d+/
 str := /'[^']*'|"[^"]*"/
 none := "None"
 name := /[a-zA-Z_]\w*/
-
-// expression
-var := name
-?exp := primary
-
-// primary
-?primary := relay | invoke | indexer | atom
-relay := primary "." name
-invoke := primary "(" [args] ")"
-indexer := primary "[" exp "]"
-?atom := var | bool | none | str | int | float
-
-// element
-args := exp ("," exp)*
 
 // FIXME 演算は一旦非対応
 // exp := or_test

@@ -22,41 +22,6 @@ def python_rules() -> Rules:
 				])
 			]),
 			('rule', [
-				('__empty__', ''),
-				('symbol', 'bool'),
-				('regexp', '/False|True/')
-			]),
-			('rule', [
-				('__empty__', ''),
-				('symbol', 'int'),
-				('regexp', '/[1-9]\\d*/')
-			]),
-			('rule', [
-				('__empty__', ''),
-				('symbol', 'float'),
-				('regexp', '/(0|[1-9]\\d*)[.]\\d+/')
-			]),
-			('rule', [
-				('__empty__', ''),
-				('symbol', 'str'),
-				('regexp', '/\'[^\']*\'|"[^"]*"/')
-			]),
-			('rule', [
-				('__empty__', ''),
-				('symbol', 'none'),
-				('string', '"None"')
-			]),
-			('rule', [
-				('__empty__', ''),
-				('symbol', 'name'),
-				('regexp', '/[a-zA-Z_]\\w*/')
-			]),
-			('rule', [
-				('__empty__', ''),
-				('symbol', 'var'),
-				('symbol', 'name')
-			]),
-			('rule', [
 				('expand', '?'),
 				('symbol', 'exp'),
 				('symbol', 'primary')
@@ -116,6 +81,11 @@ def python_rules() -> Rules:
 			]),
 			('rule', [
 				('__empty__', ''),
+				('symbol', 'var'),
+				('symbol', 'name')
+			]),
+			('rule', [
+				('__empty__', ''),
 				('symbol', 'args'),
 				('terms', [
 					('symbol', 'exp'),
@@ -127,6 +97,36 @@ def python_rules() -> Rules:
 						('repeat', '*')
 					])
 				])
+			]),
+			('rule', [
+				('__empty__', ''),
+				('symbol', 'bool'),
+				('regexp', '/False|True/')
+			]),
+			('rule', [
+				('__empty__', ''),
+				('symbol', 'int'),
+				('regexp', '/[1-9]\\d*/')
+			]),
+			('rule', [
+				('__empty__', ''),
+				('symbol', 'float'),
+				('regexp', '/(0|[1-9]\\d*)[.]\\d+/')
+			]),
+			('rule', [
+				('__empty__', ''),
+				('symbol', 'str'),
+				('regexp', '/\'[^\']*\'|"[^"]*"/')
+			]),
+			('rule', [
+				('__empty__', ''),
+				('symbol', 'none'),
+				('string', '"None"')
+			]),
+			('rule', [
+				('__empty__', ''),
+				('symbol', 'name'),
+				('regexp', '/[a-zA-Z_]\\w*/')
 			])
 		])
 	)
@@ -262,5 +262,4 @@ def grammar_tokenizer() -> Tokenizer:
 	definition.comment = [TokenDefinition.build_quote_pair('//', '\n')]
 	definition.quote = [TokenDefinition.build_quote_pair(c, c) for c in ['/', '"']]
 	definition.symbol = ''.join(definition.symbol.split('/'))
-	definition.pre_filters['comment_spaces'] = r'[ \t\f]*//.*$'
 	return Tokenizer(definition=definition)

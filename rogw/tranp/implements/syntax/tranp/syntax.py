@@ -73,7 +73,7 @@ class SyntaxParser:
 		length = len(tokens)
 		step, entry = self.match(tokens, length - 1, entrypoint)
 		if step.steps != length:
-			raise ValueError(f'Syntax parse error. First token not reached. {step.steps}/{length}')
+			raise ValueError(f'Syntax parse error. First token not reached. step: {step.steps}/{length}. token: {tokens[max(0, length - step.steps - 1)]}')
 
 		return entry
 

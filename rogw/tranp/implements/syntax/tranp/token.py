@@ -94,11 +94,76 @@ class TokenTypes(Enum):
 	Unknown = 0xFF
 
 
-class Token(NamedTuple):
+class Token:
 	"""トークン"""
 
-	type: TokenTypes
-	string: str
+	def __init__(self, type: TokenTypes, string: str) -> None:
+		"""インスタンスを生成
+
+		Args:
+			type: トークン種別
+			string: 文字列
+		"""
+		self._type = type
+		self._string = string
+
+	@property
+	def type(self) -> TokenTypes:
+		"""Returns: トークン種別"""
+		return self._type
+
+	@property
+	def string(self) -> str:
+		"""Returns: 文字列"""
+		return self._string
+
+	@property
+	def domain(self) -> TokenDomains:
+		"""Returns: トークンドメイン"""
+		d = self.type.value >> 4 & 0xf
+		if d == 0xf:
+			return TokenDomains.Unknown
+		else:
+			return TokenDomains(min(d, TokenDomains.Max.value))
+
+	def __repr__(self) -> str:
+		"""Returns: シリアライズ表現"""
+		return f'<Token[{self.type.name}]: "{self.string}">'
+
+	def __str__(self) -> str:
+		"""Returns: 文字列表現"""
+		return f'("{self.type.name}", "{self.string}")'
+
+	def __hash__(self) -> int:
+		"""Returns: ハッシュ値"""
+		return hash(self.__repr__())
+
+	def __eq__(self, other: 'Token | tuple[TokenTypes, str]') -> bool:
+		"""Args: other: 比較対象 Returns: True = 一致"""
+		if isinstance(other, Token):
+			return self.type == other.type and self.string == other.string
+		else:
+			return self.type == other[0] and self.string == other[1]
+
+	def __ne__(self, other: 'Token | tuple[TokenTypes, str]') -> bool:
+		"""Args: other: 比較対象 Returns: True = 一致"""
+		return not self.__eq__(other)
+
+	def simplify(self) -> tuple[TokenTypes, str]:
+		"""Returns: 簡易書式"""
+		return (self.type, self.string)
+
+	def joined(self, *others: 'Token') -> 'Token':
+		"""自身をベースに指定のトークンと合成し、新たにインスタンスを生成
+
+		Args:
+			*others: 合成するトークンリスト
+		Returns:
+			合成後のトークン
+		Note:
+			自身の種別を引き継ぎ、文字列のみ合成
+		"""
+		return Token(self.type, ''.join([self.string, *[token.string for token in others]]))
 
 	@classmethod
 	def new_line(cls) -> 'Token':
@@ -175,27 +240,6 @@ class Token(NamedTuple):
 			```
 		"""
 		return cls(TokenTypes.Empty, '')
-
-	@property
-	def domain(self) -> TokenDomains:
-		"""Returns: トークンドメイン"""
-		d = self.type.value >> 4 & 0xf
-		if d == 0xf:
-			return TokenDomains.Unknown
-		else:
-			return TokenDomains(min(d, TokenDomains.Max.value))
-
-	def joined(self, *others: 'Token') -> 'Token':
-		"""自身をベースに指定のトークンと合成し、新たにインスタンスを生成
-
-		Args:
-			*others: 合成するトークンリスト
-		Returns:
-			合成後のトークン
-		Note:
-			自身の種別を引き継ぎ、文字列のみ合成
-		"""
-		return Token(self.type, ''.join([self.string, *[token.string for token in others]]))
 
 
 QuotePair = TypedDict('QuotePair', {'open': str, 'close': str})

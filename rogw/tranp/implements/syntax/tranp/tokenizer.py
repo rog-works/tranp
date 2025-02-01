@@ -82,7 +82,8 @@ class Lexer(ITokenizer):
 		Returns:
 			トークンリスト
 		"""
-		tokens = self.parse2(self.pre_filter(source))
+		tokens = self.parse_impl(source)
+		tokens = self.post_filter(tokens)
 		tokens.append(Token.EOF())
 		return tokens
 
@@ -169,7 +170,7 @@ class Lexer(ITokenizer):
 
 		return '\n'.join(new_lines)
 
-	def parse2(self, source: str) -> list[Token]:
+	def parse_impl(self, source: str) -> list[Token]:
 		"""ソースコードを解析し、トークンに分割
 
 		Args:
@@ -487,10 +488,10 @@ class Tokenizer(ITokenizer):
 			* WhiteSpace: 削除
 			* EOF: 改行, ネスト x ディデント
 			* LineBreak:
+				* 最終行の文字数をインデントとしてカウント
 				* ネストが増加: 改行, インデント
 				* ネストが減少: 改行, 減少ネスト x ディデント
 				* ネストが同じ: 改行
-				※期待する文字列の書式: '^\n[ \t]*$'
 			```
 		"""
 		token = tokens[begin]
@@ -502,11 +503,15 @@ class Tokenizer(ITokenizer):
 			dedents = [Token.dedent()] * context.nest
 			context.nest = 0
 			return begin + len(token.string), [Token.new_line(), *dedents]
-		elif context.nest < len(token.string) - 1:
-			context.nest = len(token.string) - 1
+
+		assert token.type == TokenTypes.LineBreak, f'Never. token type: {token.type}'
+
+		indent = len(token.string.split('\n')[-1])
+		if context.nest < indent:
+			context.nest = indent
 			return begin + 1, [Token.new_line(), Token.indent()]
-		elif context.nest > len(token.string) - 1:
-			next_nest = len(token.string) - 1
+		elif context.nest > indent:
+			next_nest = indent
 			dedents = [Token.dedent()] * (context.nest - next_nest)
 			context.nest = next_nest
 			return begin + 1, [Token.new_line(), *dedents]

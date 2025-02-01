@@ -22,3 +22,24 @@ indexer := primary "[" exp "]"
 
 // element
 args := exp ("," exp)*
+
+// FIXME 演算は一旦非対応
+// exp := or_test
+// or_test := and_test ("or" and_test)*
+// and_test := not_test ("and" not_test_)*
+// not_test := "not" not_test | comparison
+// comparison := sum (comp_op sum)*
+// sum := term (add_op term)*
+// term := factor (mul_op factor)*
+// factor := unary_op factor | primary
+// comp_op := "<" | ">" | "==" | "<=" | ">=" | "!=" | "in" | "not" "in" | "is" | "is" "not"
+// add_op := "+" | "-"
+// mul_op := "*" | "/" | "%"
+// unary_op := "+" | "-"
+// FIXME list | dict | group_exp は一旦非対応
+// list := "[" [list_exps] "]"
+// dict := "{" [dict_exps] "}"
+// group_exp := "(" exp ")"
+// list_exps := exp ("," exp)*
+// dict_exps := dict_pair ("," dict_pair)*
+// dict_pair := exp ":" exp

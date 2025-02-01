@@ -1,11 +1,18 @@
+// entrypoint
 entry := (rule)+
+
+// rule
 rule := [expand] symbol ":=" expr "\n"
+
+// expression
 ?expr := terms_or
-?terns_or := (terms "|")* terms
+?terms_or := (terms "|")* terms
 ?terms := (term)* term
 ?term := symbol | string | regexp | expr_opt | expr_rep
 expr_opt := "[" expr "]"
 expr_rep := "(" expr ")" [repeat]
+
+// terminal
 symbol := /[a-zA-Z_][0-9a-zA-Z_]*/
 string := /"[^"]+"/
 regexp := /[\/].+[\/]/

@@ -9,7 +9,7 @@ from rogw.tranp.test.helper import data_provider
 class TestSyntaxParser(TestCase):
 	@data_provider([
 		(
-			'a\nb\n',
+			'a\nb',
 			'python',
 			('entry', [
 				('var', [
@@ -21,7 +21,7 @@ class TestSyntaxParser(TestCase):
 			]),
 		),
 		(
-			'a.b().c(1, "2")\n',
+			'a.b().c(1, "2")',
 			'python',
 			('entry', [
 				('invoke', [
@@ -45,7 +45,7 @@ class TestSyntaxParser(TestCase):
 			]),
 		),
 		(
-			'{}\n'.format('\n'.join([
+			'\n'.join([
 				'entry := exp',
 				'?exp := primary',
 				'?primary := relay | invoke | indexer | atom',
@@ -54,7 +54,7 @@ class TestSyntaxParser(TestCase):
 				'indexer := primary "[" exp "]"',
 				'args := exp (exp)*',
 				'bool := /False|True/'
-			])),
+			]),
 			'grammar',
 			('entry', [
 				('rule', [

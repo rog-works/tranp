@@ -20,9 +20,11 @@ class TokenTypes(Enum):
 	# 空白
 	WhiteSpace = 0x00
 	LineBreak = 0x01
+	# 空白(特殊)
 	NewLine = 0x02
 	Indent = 0x03
 	Dedent = 0x04
+	EOF = 0x05
 	# コメント
 	Comment = 0x10
 	# 引用符
@@ -99,8 +101,77 @@ class Token(NamedTuple):
 	string: str
 
 	@classmethod
+	def new_line(cls) -> 'Token':
+		"""インスタンスを生成
+
+		Returns:
+			インスタンス(改行)
+		Note:
+			```
+			* 「改行(=ステートメントの終了)」を表す
+			* 最終的に「改行」を表すトークンはこれ1種となる
+			### 置き換え・削除
+			* 削除: 文法上不要な改行
+			* 置換: 環境依存の改行('\\r\\n')
+			* 置換: 言語依存のステートメント終了(';')
+			```
+		"""
+		return cls(TokenTypes.NewLine, '\n')
+
+	@classmethod
+	def indent(cls) -> 'Token':
+		"""インスタンスを生成
+
+		Returns:
+			インスタンス(ブロック開始)
+		Note:
+			```
+			* 言語の仕様により実際に対応する文字種が変化する
+			* 論理ブロックの言語ではスペース(' ')、またはタブ('\t')
+			* 物理ブロックの言語では主に中括弧('{')
+			* このトークンは言語の仕様に依存せず、いずれの場合でも「ブロック開始」を表す
+			```
+		"""
+		return cls(TokenTypes.Indent, '\\INDENT')
+
+	@classmethod
+	def dedent(cls) -> 'Token':
+		"""インスタンスを生成
+
+		Returns:
+			インスタンス(ブロック終了)
+		Note:
+			```
+			* 「ブロック開始」と同仕様 @see indent#Note
+			* 「ブロック終了」を表す
+			```
+		"""
+		return cls(TokenTypes.Dedent, '\\DEDENT')
+
+	@classmethod
+	def EOF(cls) -> 'Token':
+		"""インスタンスを生成
+
+		Returns:
+			インスタンス(ファイル終了)
+		Note:
+			```
+			* 字句解析中にのみ存在
+			* 最終的に改行のトークンに置き換えられる
+			```
+		"""
+		return cls(TokenTypes.EOF, '\\EOF')
+
+	@classmethod
 	def empty(cls) -> 'Token':
-		"""Returns: 空を表すインスタンス"""
+		"""インスタンスを生成
+
+		Returns:
+			インスタンス(空)
+		Note:
+			* 空を表すトークン
+			* 主にマッチングの結果が0件の際のエントリーとして用いる
+		"""
 		return cls(TokenTypes.Empty, '')
 
 	@property

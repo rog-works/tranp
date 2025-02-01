@@ -50,40 +50,40 @@ class TestTokenizer(TestCase):
 		self.assertEqual(expected, [token.string for token in tokens])
 
 	@data_provider([
-		('a + 1', Tokenizer.Context(), 1, (2, []), {'nest': 0, 'enclosure': 0}),
-		('a\nb', Tokenizer.Context(), 1, (2, [(TokenTypes.NewLine, '\n')]), {'nest': 0, 'enclosure': 0}),
-		('a\t+ 1', Tokenizer.Context(), 1, (2, []), {'nest': 0, 'enclosure': 0}),
-		('a\n\tb', Tokenizer.Context(), 1, (2, [(TokenTypes.NewLine, '\n'), (TokenTypes.Indent, '\\INDENT')]), {'nest': 1, 'enclosure': 0}),
-		('\ta\n\n\tb', Tokenizer.Context(nest=1), 2, (3, [(TokenTypes.NewLine, '\n')]), {'nest': 1, 'enclosure': 0}),
-		('\ta\nb', Tokenizer.Context(nest=1), 2, (3, [(TokenTypes.NewLine, '\n'), (TokenTypes.Dedent, '\\DEDENT')]), {'nest': 0, 'enclosure': 0}),
-		('a[\nb]', Tokenizer.Context(enclosure=1), 2, (3, []), {'nest': 0, 'enclosure': 1}),
-		('\ta(\nb)', Tokenizer.Context(nest=1, enclosure=1), 3, (4, []), {'nest': 1, 'enclosure': 1}),
+		('a + 1', 1, {'nest': 0, 'enclosure': 0}, {'nest': 0, 'enclosure': 0}, (2, [])),
+		('a\nb', 1, {'nest': 0, 'enclosure': 0}, {'nest': 0, 'enclosure': 0}, (2, [(TokenTypes.NewLine, '\n')])),
+		('a\t+ 1', 1, {'nest': 0, 'enclosure': 0}, {'nest': 0, 'enclosure': 0}, (2, [])),
+		('a\n\tb', 1, {'nest': 0, 'enclosure': 0}, {'nest': 1, 'enclosure': 0}, (2, [(TokenTypes.NewLine, '\n'), (TokenTypes.Indent, '\\INDENT')])),
+		('\ta\n\n\tb', 2, {'nest': 1, 'enclosure': 0}, {'nest': 1, 'enclosure': 0}, (3, [(TokenTypes.NewLine, '\n')])),
+		('\ta\nb', 2, {'nest': 1, 'enclosure': 0}, {'nest': 0, 'enclosure': 0}, (3, [(TokenTypes.NewLine, '\n'), (TokenTypes.Dedent, '\\DEDENT')])),
+		('a[\nb]', 2, {'nest': 0, 'enclosure': 1}, {'nest': 0, 'enclosure': 1}, (3, [])),
+		('\ta(\nb)', 3, {'nest': 1, 'enclosure': 1}, {'nest': 1, 'enclosure': 1}, (4, [])),
 	])
-	def test_handle_white_space(self, source: str, context: Tokenizer.Context, begin: int, expected: tuple[str, list[Token]], expected_context: dict[str, int]) -> None:
+	def test_handle_white_space(self, source: str, begin: int, before_context: dict[str, int], expected_context: dict[str, int], expected: tuple[str, list[Token]]) -> None:
+		context = Tokenizer.Context(**before_context)
 		parser = Tokenizer()
 		tokens = parser.lex_parse(source)
 		actual = parser.handle_white_space(context, tokens, begin)
 		self.assertEqual(expected, actual)
-		self.assertEqual(expected_context['nest'], context.nest)
-		self.assertEqual(expected_context['enclosure'], context.enclosure)
+		self.assertEqual(expected_context, {'nest': context.nest, 'enclosure': context.enclosure})
 
 	@data_provider([
-		('a.b', Tokenizer.Context(), 1, (2, [(TokenTypes.Dot, '.')]), {'nest': 0, 'enclosure': 0}),
-		('(a)', Tokenizer.Context(), 0, (1, [(TokenTypes.ParenL, '(')]), {'nest': 0, 'enclosure': 1}),
-		('(a.b)', Tokenizer.Context(enclosure=1), 2, (3, [(TokenTypes.Dot, '.')]), {'nest': 0, 'enclosure': 1}),
-		('{"a": 1}', Tokenizer.Context(enclosure=1), 5, (6, [(TokenTypes.BraceR, '}')]), {'nest': 0, 'enclosure': 0}),
-		('...', Tokenizer.Context(), 0, (3, [(TokenTypes.Ellipsis, '...')]), {'nest': 0, 'enclosure': 0}),
-		('a + 1', Tokenizer.Context(), 2, (3, [(TokenTypes.Plus, '+')]), {'nest': 0, 'enclosure': 0}),
-		('a +-1', Tokenizer.Context(), 2, (3, [(TokenTypes.Plus, '+')]), {'nest': 0, 'enclosure': 0}),
-		('a += 1', Tokenizer.Context(), 2, (4, [(TokenTypes.PlusEqual, '+=')]), {'nest': 0, 'enclosure': 0}),
+		('a.b', 1, {'nest': 0, 'enclosure': 0}, {'nest': 0, 'enclosure': 0}, (2, [(TokenTypes.Dot, '.')])),
+		('(a)', 0, {'nest': 0, 'enclosure': 0}, {'nest': 0, 'enclosure': 1}, (1, [(TokenTypes.ParenL, '(')])),
+		('(a.b)', 2, {'nest': 0, 'enclosure': 1}, {'nest': 0, 'enclosure': 1}, (3, [(TokenTypes.Dot, '.')])),
+		('{"a": 1}', 5, {'nest': 0, 'enclosure': 1}, {'nest': 0, 'enclosure': 0}, (6, [(TokenTypes.BraceR, '}')])),
+		('...', 0, {'nest': 0, 'enclosure': 0}, {'nest': 0, 'enclosure': 0}, (3, [(TokenTypes.Ellipsis, '...')])),
+		('a + 1', 2, {'nest': 0, 'enclosure': 0}, {'nest': 0, 'enclosure': 0}, (3, [(TokenTypes.Plus, '+')])),
+		('a +-1', 2, {'nest': 0, 'enclosure': 0}, {'nest': 0, 'enclosure': 0}, (3, [(TokenTypes.Plus, '+')])),
+		('a += 1', 2, {'nest': 0, 'enclosure': 0}, {'nest': 0, 'enclosure': 0}, (4, [(TokenTypes.PlusEqual, '+=')])),
 	])
-	def test_handle_symbol(self, source: str, context: Tokenizer.Context, begin: int, expected: tuple[str, list[Token]], expected_context: dict[str, int]) -> None:
+	def test_handle_symbol(self, source: str, begin: int, before_context: dict[str, int], expected_context: dict[str, int], expected: tuple[str, list[Token]]) -> None:
+		context = Tokenizer.Context(**before_context)
 		parser = Tokenizer()
 		tokens = parser.lex_parse(source)
 		actual = parser.handle_symbol(context, tokens, begin)
 		self.assertEqual(expected, actual)
-		self.assertEqual(expected_context['nest'], context.nest)
-		self.assertEqual(expected_context['enclosure'], context.enclosure)
+		self.assertEqual(expected_context, {'nest': context.nest, 'enclosure': context.enclosure})
 
 
 class TestLexer(TestCase):

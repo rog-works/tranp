@@ -169,8 +169,10 @@ class Token(NamedTuple):
 		Returns:
 			インスタンス(空)
 		Note:
+			```
 			* 空を表すトークン
 			* 主にマッチングの結果が0件の際のエントリーとして用いる
+			```
 		"""
 		return cls(TokenTypes.Empty, '')
 

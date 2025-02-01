@@ -6,38 +6,41 @@ from rogw.tranp.test.helper import data_provider
 
 class TestTokenizer(TestCase):
 	@data_provider([
-		('a + 1', ['a', '+', '1', 'EOF']),
-		('a += b', ['a', '+=', 'b', 'EOF']),
-		('a == b', ['a', '==', 'b', 'EOF']),
-		('a := b', ['a', ':=', 'b', 'EOF']),
-		('a(**b)', ['a', '(', '**', 'b', ')', 'EOF']),
-		('**a', ['**', 'a', 'EOF']),
-		('***a', ['**', '*', 'a', 'EOF']),
-		('a # bc', ['a', 'EOF']),
-		('if a\\\n\tand b: ...', ['if', 'a', 'and', 'b', ':', '...', 'EOF']),
-		('def f() -> None: ...', ['def', 'f', '(', ')', '->', 'None', ':', '...', 'EOF']),
+		('a + 1', ['a', '+', '1', '\n']),
+		('a += b', ['a', '+=', 'b', '\n']),
+		('a == b', ['a', '==', 'b', '\n']),
+		('a := b', ['a', ':=', 'b', '\n']),
+		('a(**b)', ['a', '(', '**', 'b', ')', '\n']),
+		('**a', ['**', 'a', '\n']),
+		('***a', ['**', '*', 'a', '\n']),
+		('a # bc', ['a', '\n']),
+		('if a\\\n\tand b: ...', ['if', 'a', 'and', 'b', ':', '...', '\n']),
+		('def f() -> None: ...', ['def', 'f', '(', ')', '->', 'None', ':', '...', '\n']),
 		(
 			'\n'.join([
 				'# c',
 				'def a(arr: list[int]) -> dict[str, int]:',
 				'	# c',
-				'	return {',
+				'	if arr:',
+				'		return {',
+				'			# c',
+				'			"b": arr[0],',
+				'			# c',
+				'		}',
 				'		# c',
-				'		"b": arr[0],',
-				'		# c',
-				'	}',
-				'	# c',
-				'	',
-				'print(a([0]))',
+				'	else:',
+				'		return {}',
 				'# c',
 			]),
 			[
 				'def', 'a', '(', 'arr', ':', 'list', '[', 'int', ']', ')', '->', 'dict', '[', 'str', ',', 'int', ']', ':', '\n',
-					'\t', 'return', '{',
-						'"b"', ':', 'arr', '[', '0', ']', ',',
-					'}', '\n', '',
-				'print', '(', 'a', '(', '[', '0', ']', ')', ')',
-				'EOF'
+					'\\INDENT', 'if', 'arr', ':', '\n',
+						'\\INDENT', 'return', '{',
+							'"b"', ':', 'arr', '[', '0', ']', ',',
+						'}', '\n',
+					'\\DEDENT', 'else', ':', '\n',
+						'\\INDENT', 'return', '{', '}', '\n',
+				'\\DEDENT', '\\DEDENT',
 			],
 		),
 	])
@@ -50,9 +53,9 @@ class TestTokenizer(TestCase):
 		('a + 1', Tokenizer.Context(), 1, (2, []), {'nest': 0, 'enclosure': 0}),
 		('a\nb', Tokenizer.Context(), 1, (2, [(TokenTypes.NewLine, '\n')]), {'nest': 0, 'enclosure': 0}),
 		('a\t+ 1', Tokenizer.Context(), 1, (2, []), {'nest': 0, 'enclosure': 0}),
-		('a\n\tb', Tokenizer.Context(), 1, (2, [(TokenTypes.NewLine, '\n'), (TokenTypes.Indent, '\t')]), {'nest': 1, 'enclosure': 0}),
-		('\ta\n\n\tb', Tokenizer.Context(nest=1), 2, (3, [(TokenTypes.NewLine, '\n\t')]), {'nest': 1, 'enclosure': 0}),
-		('\ta\nb', Tokenizer.Context(nest=1), 2, (3, [(TokenTypes.NewLine, '\n'), (TokenTypes.Dedent, '')]), {'nest': 0, 'enclosure': 0}),
+		('a\n\tb', Tokenizer.Context(), 1, (2, [(TokenTypes.NewLine, '\n'), (TokenTypes.Indent, '\\INDENT')]), {'nest': 1, 'enclosure': 0}),
+		('\ta\n\n\tb', Tokenizer.Context(nest=1), 2, (3, [(TokenTypes.NewLine, '\n')]), {'nest': 1, 'enclosure': 0}),
+		('\ta\nb', Tokenizer.Context(nest=1), 2, (3, [(TokenTypes.NewLine, '\n'), (TokenTypes.Dedent, '\\DEDENT')]), {'nest': 0, 'enclosure': 0}),
 		('a[\nb]', Tokenizer.Context(enclosure=1), 2, (3, []), {'nest': 0, 'enclosure': 1}),
 		('\ta(\nb)', Tokenizer.Context(nest=1, enclosure=1), 3, (4, []), {'nest': 1, 'enclosure': 1}),
 	])
@@ -85,11 +88,11 @@ class TestTokenizer(TestCase):
 
 class TestLexer(TestCase):
 	@data_provider([
-		('abc', ['abc', 'EOF']),
-		('a.b("c").d', ['a', '.', 'b', '(', '"c"', ')', '.', 'd', 'EOF']),
-		('a * 0 - True', ['a', ' ', '*', ' ', '0', ' ', '-', ' ', 'True', 'EOF']),
-		('?a _b', ['?', 'a', ' ', '_b', 'EOF']),
-		("r + r'abc'", ['r', ' ', '+', ' ', "r'abc'", 'EOF']),
+		('abc', ['abc', '\\EOF']),
+		('a.b("c").d', ['a', '.', 'b', '(', '"c"', ')', '.', 'd', '\\EOF']),
+		('a * 0 - True', ['a', ' ', '*', ' ', '0', ' ', '-', ' ', 'True', '\\EOF']),
+		('?a _b', ['?', 'a', ' ', '_b', '\\EOF']),
+		("r + r'abc'", ['r', ' ', '+', ' ', "r'abc'", '\\EOF']),
 	])
 	def test_parse(self, source: str, expected: list[str]) -> None:
 		parser = Lexer(TokenDefinition())

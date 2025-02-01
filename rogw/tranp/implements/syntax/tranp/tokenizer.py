@@ -117,7 +117,7 @@ class Lexer(ITokenizer):
 			"""Returns: True = フィルター後に空になる"""
 			if post_filter == '*':
 				return True
-			elif post_filter == 'BEGIN|END':
+			elif post_filter == TokenDefinition.MatchBeginOrEnd:
 				return index == 0 or index == total - 1
 
 			new_string = ''.join(re.split(post_filter, token.string))

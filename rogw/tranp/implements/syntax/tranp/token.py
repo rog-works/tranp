@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import NamedTuple, TypedDict
+from typing import ClassVar, NamedTuple, TypedDict
 
 
 class TokenDomains(Enum):
@@ -200,7 +200,13 @@ QuotePair = TypedDict('QuotePair', {'open': str, 'close': str})
 
 
 class TokenDefinition:
-	"""トークン定義"""
+	"""トークン定義
+
+	Note:
+		MatchBeginOrEnd: 最初と最後のトークンにマッチ
+	"""
+
+	MatchBeginOrEnd: ClassVar = 'BEGIN|END'
 
 	def __init__(self) -> None:
 		"""インスタンスを生成"""
@@ -229,7 +235,7 @@ class TokenDefinition:
 			(TokenTypes.Comment, '*'),
 			(TokenTypes.WhiteSpace, '*'),
 			(TokenTypes.LineBreak, '[ \t\f]*\\[ \t\f]*\r?\n'),
-			(TokenTypes.LineBreak, 'BEGIN|END'),
+			(TokenTypes.LineBreak, self.MatchBeginOrEnd),
 		]
 
 	@classmethod

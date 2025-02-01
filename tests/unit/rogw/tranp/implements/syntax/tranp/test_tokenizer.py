@@ -168,7 +168,7 @@ class TestLexer(TestCase):
 
 	@data_provider([
 		('a # bc', 2, (6, (TokenTypes.Comment, '# bc'))),
-		('a # bc\n', 2, (7, (TokenTypes.Comment, '# bc\n'))),
+		('a # bc\n', 2, (6, (TokenTypes.Comment, '# bc'))),
 	])
 	def test_parse_comment(self, source: str, begin: int, expected: tuple[int, str]) -> None:
 		parser = Lexer(TokenDefinition())

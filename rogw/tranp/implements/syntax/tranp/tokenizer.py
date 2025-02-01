@@ -169,7 +169,7 @@ class Lexer(ITokenizer):
 
 		return '\n'.join(new_lines)
 
-	def _parse(self, source: str) -> list[Token]:
+	def parse2(self, source: str) -> list[Token]:
 		"""ソースコードを解析し、トークンに分割
 
 		Args:
@@ -317,7 +317,7 @@ class Lexer(ITokenizer):
 		pair = found_pair[0]
 		end = source.find(pair['close'], begin + len(pair['open']))
 		if end != -1:
-			end += len(pair['close'])
+			end += 0 if pair['close'] == '\n' else len(pair['close'])
 			return end, Token(TokenTypes.Comment, source[begin:end])
 		else:
 			return len(source), Token(TokenTypes.Comment, source[begin:])

@@ -200,11 +200,7 @@ QuotePair = TypedDict('QuotePair', {'open': str, 'close': str})
 
 
 class TokenDefinition:
-	"""トークン定義
-
-	Note:
-		MatchBeginOrEnd: 最初と最後のトークンにマッチ
-	"""
+	"""トークン定義"""
 
 	MatchBeginOrEnd: ClassVar = 'BEGIN|END'
 
@@ -235,6 +231,7 @@ class TokenDefinition:
 			(TokenTypes.Comment, '*'),
 			(TokenTypes.WhiteSpace, '*'),
 			(TokenTypes.LineBreak, '[ \t\f]*\\[ \t\f]*\r?\n'),
+			# XXX 1行目と最終行の空行は固有のマッチパターンで削除
 			(TokenTypes.LineBreak, self.MatchBeginOrEnd),
 		]
 

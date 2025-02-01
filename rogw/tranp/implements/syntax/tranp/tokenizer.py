@@ -112,6 +112,14 @@ class Lexer(ITokenizer):
 			tokens: トークンリスト
 		Returns:
 			トークンリスト
+		Note:
+			```
+			### 除外ルール
+			* フィルター適用後に空になるトークンを除外する
+			* 除外したトークンの前後が改行要素の場合は、前後の改行要素を合成
+			* 先頭要素を除外する際、次の要素が改行要素の場合は削除
+			* 末尾要素を除外する際、前の要素が改行要素の場合は削除
+			```
 		"""
 		def to_empty(post_filter: str, token: Token, index: int, total: int) -> bool:
 			"""Returns: True = フィルター後に空になる"""

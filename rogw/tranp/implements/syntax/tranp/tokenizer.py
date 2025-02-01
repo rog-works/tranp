@@ -280,6 +280,9 @@ class Lexer(ITokenizer):
 			(次の読み取り位置, トークン)
 		Note:
 			```
+			### 前提
+			* 事前フィルターによって余分な空白や空行は削除されていると見做して処理
+			### 出力のまとめ
 			* WhiteSpace: 改行を含まない空白。単なる区切り文字であり、無視して良い
 			* LineBreak: 改行を含む空白。ステートメント、またはブロックの終了を表す
 			```
@@ -292,52 +295,13 @@ class Lexer(ITokenizer):
 			end += 1
 
 		string = source[begin:end]
+		if string.count('\\\n'):
+			string = ''.join(string.split('\\\n'))
+
 		if string.count('\n') == 0:
 			return end, Token(TokenTypes.WhiteSpace, string)
-
-		unespaced = ''.join(string.split('\\\n')) if string.count('\\\n') else string
-		if unespaced.count('\n') == 0:
-			return end, Token(TokenTypes.WhiteSpace, unespaced)
-
-		line_break = self._format_line_break(unespaced)
-		return end, Token(TokenTypes.LineBreak, line_break)
-
-	def _format_line_break(self, string: str) -> str:
-		"""改行を含む文字列から不要な要素を除去し、改行とインデント成分のみを残す
-
-		Args:
-			string: 元の文字列
-		Returns:
-			整形後の文字列
-		Note:
-			```
-			先頭は改行。それ以降は同種のインデント
-			出力例1: '\\n'
-			出力例2: '\\n\\t\\t\\t'
-			出力例3: '\\n   '
-			### 整形ルール
-			* 前方の空白を除去: ' \\t\\n\\t' -> '\\n\\t'
-			* 中間の空行を除去: '\\n\\n\\t' -> '\\n\\t'
-			* 末尾の空白を除去: '\\n\\t ' -> '\\n\\t'
-			```
-		"""
-		_, *lines = string.split('\n')
-		if len(lines) == 0:
-			return '\n'
-
-		last_line = lines[-1]
-		if len(last_line) == 0:
-			return '\n'
-
-		tab = last_line[0]
-		indent = ''
-		for i in range(len(last_line)):
-			if last_line[i] != tab:
-				break
-
-			indent += tab
-
-		return f'\n{indent}'
+		else:
+			return end, Token(TokenTypes.LineBreak, string)
 
 	def parse_comment(self, source: str, begin: int) -> tuple[int, Token]:
 		"""トークンを解析(コメント)
@@ -517,8 +481,9 @@ class Tokenizer(ITokenizer):
 			(次の読み取り開始位置, トークンリスト)
 		Note:
 			```
-			以下の規則に則り、改行/インデント/ディデントを判断する @see Lexer.parse_white_space
-			* LineBreak以外は削除 (文法的に無視して良い)
+			以下の規則に則り、改行/ブロック(開始/終了)を判断する
+			* WhiteSpaceは削除 (文法的に無視して良い)
+			* EOFは改行に置き換え
 			* LineBreakは先頭が必ず改行。それ以降は全てインデント
 			```
 		"""

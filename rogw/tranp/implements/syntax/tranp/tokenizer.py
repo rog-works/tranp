@@ -87,6 +87,24 @@ class Lexer(ITokenizer):
 		tokens.append(Token.EOF())
 		return tokens
 
+	def parse_impl(self, source: str) -> list[Token]:
+		"""ソースコードを解析し、トークンに分割
+
+		Args:
+			source: ソースコード
+		Returns:
+			トークンリスト
+		"""
+		index = 0
+		tokens: list[Token] = []
+		while index < len(source):
+			parser = self._parsers[self.analyze_domain(source, index)]
+			end, token = parser(source, index)
+			index = end
+			tokens.append(token)
+
+		return tokens
+
 	def post_filter(self, tokens: list[Token]) -> list[Token]:
 		"""トークンリストに事後フィルターを適用
 
@@ -132,61 +150,6 @@ class Lexer(ITokenizer):
 					del new_tokens[index]
 
 		return new_tokens
-
-	def pre_filter(self, source: str) -> str:
-		"""ソースコードに事前フィルターを適用
-
-		Args:
-			source: ソースコード
-		Returns:
-			ソースコード
-		Note:
-			```
-			### 特記事項
-			* 空行を暗黙的に削除
-			* 行単位で正規表現のフィルターを実施
-			* フィルターによって短縮された場合のみ行を更新
-			```
-		"""
-		pre_filters = [re.compile(regexp) for regexp in self._definition.pre_filters.values()]
-		if len(pre_filters) == 0:
-			return source
-
-		new_lines: list[str] = []
-		for line in source.split('\n'):
-			before = len(line)
-			if before == 0:
-				continue
-
-			new_line = line
-			for regexp in pre_filters:
-				new_line = re.sub(regexp, '', new_line)
-
-			after = len(new_line)
-			if before == after:
-				new_lines.append(line)
-			elif len(new_line) > 0:
-				new_lines.append(new_line)
-
-		return '\n'.join(new_lines)
-
-	def parse_impl(self, source: str) -> list[Token]:
-		"""ソースコードを解析し、トークンに分割
-
-		Args:
-			source: ソースコード
-		Returns:
-			トークンリスト
-		"""
-		index = 0
-		tokens: list[Token] = []
-		while index < len(source):
-			parser = self._parsers[self.analyze_domain(source, index)]
-			end, token = parser(source, index)
-			index = end
-			tokens.append(token)
-
-		return tokens
 
 	def analyze_domain(self, source: str, begin: int) -> TokenDomains:
 		"""トークンドメインを解析

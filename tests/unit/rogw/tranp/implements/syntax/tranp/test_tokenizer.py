@@ -98,16 +98,6 @@ class TestLexer(TestCase):
 		self.assertEqual(expected, [token.string for token in actual])
 
 	@data_provider([
-		('\n\n\n', ''),
-		('a # b\nc # d', 'a\nc'),
-		(' \n\t\n\ta\nb\t\n', '\ta\nb'),
-	])
-	def test_pre_filter(self, source: str, expected: str) -> None:
-		parser = Lexer(TokenDefinition())
-		actual = parser.pre_filter(source)
-		self.assertEqual(expected, actual)
-
-	@data_provider([
 		('a# c\nb# c', [(TokenTypes.Name, 'a'), (TokenTypes.LineBreak, '\n'), (TokenTypes.Name, 'b')]),
 		('# c\na\n# c\nb\n# c', [(TokenTypes.Name, 'a'), (TokenTypes.LineBreak, '\n\n'), (TokenTypes.Name, 'b')]),
 		('a + b', [(TokenTypes.Name, 'a'), (TokenTypes.Plus, '+'), (TokenTypes.Name, 'b')]),

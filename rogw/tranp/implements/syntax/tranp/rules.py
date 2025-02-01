@@ -262,5 +262,4 @@ def grammar_tokenizer() -> Tokenizer:
 	definition.comment = [TokenDefinition.build_quote_pair('//', '\n')]
 	definition.quote = [TokenDefinition.build_quote_pair(c, c) for c in ['/', '"']]
 	definition.symbol = ''.join(definition.symbol.split('/'))
-	definition.pre_filters['comment_spaces'] = r'[ \t\f]*//.*$'
 	return Tokenizer(definition=definition)

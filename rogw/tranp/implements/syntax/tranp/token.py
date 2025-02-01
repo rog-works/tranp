@@ -225,10 +225,6 @@ class TokenDefinition:
 			'<<', '>>',
 			'->', '**', ':=', '...',
 		]
-		self.pre_filters = {
-			'comment_spaces': r'[ \t\f]*#.*$',
-			'line_end_spaces': r'[ \t\f\r]+$',
-		}
 		self.post_filters = [
 			(TokenTypes.Comment, '*'),
 			(TokenTypes.WhiteSpace, '*'),

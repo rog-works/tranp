@@ -144,7 +144,7 @@ class Token:
 
 	def __repr__(self) -> str:
 		"""Returns: シリアライズ表現"""
-		return f'<Token[{self.type.name}]: "{self.string}">'
+		return f'<{self.__class__.__name__}[{self.type.name}]: "{self.string}">'
 
 	def __str__(self) -> str:
 		"""Returns: 文字列表現"""

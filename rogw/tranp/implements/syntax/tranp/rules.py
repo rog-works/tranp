@@ -16,15 +16,10 @@ def python_rules() -> Rules:
 				('expr_rep', [
 					('terms', [
 						('symbol', 'exp'),
-						('string', 'LN')
+						('string', '"\n"')
 					]),
 					('repeat', '+')
 				])
-			]),
-			('rule', [
-				('__empty__', ''),
-				('symbol', 'LN'),
-				('regexp', '/\n|EOF/')
 			]),
 			('rule', [
 				('__empty__', ''),
@@ -145,7 +140,7 @@ def grammar_rules() -> Rules:
 	Note:
 		```
 		entry := (rule)+
-		rule := [expand] symbol ":=" expr LN
+		rule := [expand] symbol ":=" expr "\n"
 		?expr := terms_or
 		?terns_or := (terms "|")* terms
 		?terms := (term)* term
@@ -157,12 +152,11 @@ def grammar_rules() -> Rules:
 		regexp := /\\/[^\\/]+\\//
 		repeat := /[*+?]/
 		expand := "?"
-		LN := /\n|EOF/
 		```
 	"""
 	return Rules({
 		'entry': Patterns([Pattern.S('rule')], rep=Repeators.OverOne),
-		'rule': Patterns([Patterns([Pattern.S('expand')], rep=Repeators.OneOrEmpty), Pattern.S('symbol'), Pattern.T('":="'), Pattern.S('expr'), Pattern.S('LN')]),
+		'rule': Patterns([Patterns([Pattern.S('expand')], rep=Repeators.OneOrEmpty), Pattern.S('symbol'), Pattern.T('":="'), Pattern.S('expr'), Pattern.T('"\n"')]),
 		'?expr': Pattern.S('terms_or'),
 		'?terms_or': Patterns([
 			Patterns([Pattern.S('terms'), Pattern.T('"|"')], rep=Repeators.OverZero),
@@ -191,7 +185,6 @@ def grammar_rules() -> Rules:
 		'regexp': Pattern.T('/\\/[^\\/]+\\//'),
 		'repeat': Pattern.T('/[*+?]/'),
 		'expand': Pattern.T('"?"'),
-		'LN': Pattern.T('/\n|EOF/'),
 	})
 
 

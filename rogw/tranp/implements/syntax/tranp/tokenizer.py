@@ -528,19 +528,19 @@ class Tokenizer(ITokenizer):
 		elif token.type == TokenTypes.WhiteSpace:
 			return begin + 1, []
 		elif token.type == TokenTypes.EOF:
-			if context.nest > 0:
-				context.nest = 0
-				return begin + 3, [Token(TokenTypes.NewLine, token.string), Token(TokenTypes.Dedent, '')]
-			else:
-				return begin + 3, [Token(TokenTypes.NewLine, token.string)]
+			dedents = [Token.dedent()] * context.nest
+			context.nest = 0
+			return begin + len(token.string), [Token.new_line(), *dedents]
 		elif context.nest < len(token.string) - 1:
 			context.nest = len(token.string) - 1
-			return begin + 1, [Token(TokenTypes.NewLine, token.string[0]), Token(TokenTypes.Indent, token.string[1:])]
+			return begin + 1, [Token.new_line(), Token.indent()]
 		elif context.nest > len(token.string) - 1:
-			context.nest = len(token.string) - 1
-			return begin + 1, [Token(TokenTypes.NewLine, token.string[0]), Token(TokenTypes.Dedent, token.string[1:])]
+			next_nest = len(token.string) - 1
+			dedents = [Token.dedent()] * (context.nest - next_nest)
+			context.nest = next_nest
+			return begin + 1, [Token.new_line(), *dedents]
 		else:
-			return begin + 1, [Token(TokenTypes.NewLine, token.string)]
+			return begin + 1, [Token.new_line()]
 
 	def handle_symbol(self, context: Context, tokens: list[Token], begin: int) -> tuple[int, list[Token]]:
 		"""トークンリストを整形(記号)

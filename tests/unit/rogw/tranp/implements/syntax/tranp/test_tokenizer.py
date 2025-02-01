@@ -142,6 +142,7 @@ class TestLexer(TestCase):
 		(' abc', 0, (1, (TokenTypes.WhiteSpace, ' '))),
 		('abc ', 3, (4, (TokenTypes.WhiteSpace, ' '))),
 		('ab c', 2, (3, (TokenTypes.WhiteSpace, ' '))),
+		('ab\\\nc', 2, (4, (TokenTypes.WhiteSpace, ''))),
 		('a \t\nb\nc', 1, (4, (TokenTypes.LineBreak, '\n'))),
 		('\ta\n\tbc', 2, (4, (TokenTypes.LineBreak, '\n\t'))),
 		(' \t\n\t', 0, (4, (TokenTypes.LineBreak, '\n\t'))),

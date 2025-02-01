@@ -182,7 +182,7 @@ def grammar_rules() -> Rules:
 		]),
 		'symbol': Pattern.T('/[a-zA-Z_][0-9a-zA-Z_]*/'),
 		'string': Pattern.T('/"[^"]+"/'),
-		'regexp': Pattern.T('/\\/[^\\/]+\\//'),
+		'regexp': Pattern.T('/[\\/].+[\\/]/'),
 		'repeat': Pattern.T('/[*+?]/'),
 		'expand': Pattern.T('"?"'),
 	})

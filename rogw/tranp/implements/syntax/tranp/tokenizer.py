@@ -338,8 +338,9 @@ class Lexer(ITokenizer):
 			if index == -1:
 				break
 
+			prev = max(end, index - 1)
 			end = index + len(pair['close'])
-			if not (end < len(source) and source[end] == '\\'):
+			if not (source[prev] == '\\'):
 				break
 
 		value = source[begin:end]

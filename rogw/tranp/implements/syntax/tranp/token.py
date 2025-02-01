@@ -126,6 +126,22 @@ class Token:
 		else:
 			return TokenDomains(min(d, TokenDomains.Max.value))
 
+	def simplify(self) -> tuple[TokenTypes, str]:
+		"""Returns: 簡易書式"""
+		return (self.type, self.string)
+
+	def joined(self, *others: 'Token') -> 'Token':
+		"""自身をベースに指定のトークンと合成し、新たにインスタンスを生成
+
+		Args:
+			*others: 合成するトークンリスト
+		Returns:
+			合成後のトークン
+		Note:
+			自身の種別を引き継ぎ、文字列のみ合成
+		"""
+		return Token(self.type, ''.join([self.string, *[token.string for token in others]]))
+
 	def __repr__(self) -> str:
 		"""Returns: シリアライズ表現"""
 		return f'<Token[{self.type.name}]: "{self.string}">'
@@ -148,22 +164,6 @@ class Token:
 	def __ne__(self, other: 'Token | tuple[TokenTypes, str]') -> bool:
 		"""Args: other: 比較対象 Returns: True = 一致"""
 		return not self.__eq__(other)
-
-	def simplify(self) -> tuple[TokenTypes, str]:
-		"""Returns: 簡易書式"""
-		return (self.type, self.string)
-
-	def joined(self, *others: 'Token') -> 'Token':
-		"""自身をベースに指定のトークンと合成し、新たにインスタンスを生成
-
-		Args:
-			*others: 合成するトークンリスト
-		Returns:
-			合成後のトークン
-		Note:
-			自身の種別を引き継ぎ、文字列のみ合成
-		"""
-		return Token(self.type, ''.join([self.string, *[token.string for token in others]]))
 
 	@classmethod
 	def new_line(cls) -> 'Token':

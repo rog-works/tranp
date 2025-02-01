@@ -121,19 +121,19 @@ class Lexer(ITokenizer):
 			* 末尾要素を除外する際、前の要素が改行要素の場合は削除
 			```
 		"""
-		def to_empty(post_filter: str, token: Token, index: int, total: int) -> bool:
+		def to_empty(post_filter: str, token: Token, index: int, num: int) -> bool:
 			"""Returns: True = フィルター後に空になる"""
 			if post_filter == '*':
 				return True
 			elif post_filter == TokenDefinition.MatchBeginOrEnd:
-				return index == 0 or index == total - 1
+				return index == 0 or index == num - 1
 
 			new_string = ''.join(re.split(post_filter, token.string))
 			return len(new_string) == 0
 
-		def line_break_at(tokens: list[Token], offset: int) -> bool:
+		def line_break_at(tokens: list[Token], index: int) -> bool:
 			"""Returns: True = 対象が存在し、且つ改行要素"""
-			return offset >= 0 and offset < len(tokens) and tokens[offset].type == TokenTypes.LineBreak
+			return index >= 0 and index < len(tokens) and tokens[index].type == TokenTypes.LineBreak
 
 		new_tokens = tokens.copy()
 		for token_type, post_filter in self._definition.post_filters:

@@ -203,6 +203,32 @@
 			"justMyCode": true,
 		},
 		{
+			"name": "Python: gram",
+			"type": "debugpy",
+			"request": "launch",
+			"module":"rogw.tranp.bin.gram_check",
+			"args": [
+				"-i", "data/syntax/gram_lark.lark",
+			],
+			"cwd": "${workspaceFolder}",
+			"windows": {
+				"env": {
+					"PYTHONPATH": "${workspaceFolder};${workspaceFolder}/vendor",
+					"PYTHONDONTWRITEBYTECODE": "1",
+					// "PYDEVD_CONTAINER_RANDOM_ACCESS_MAX_ITEMS": "3000",
+				},
+			},
+			"linux": {
+				"env": {
+					"PYTHONPATH": "${workspaceFolder}:${workspaceFolder}/vendor",
+					"PYTHONDONTWRITEBYTECODE": "1",
+					// "PYDEVD_CONTAINER_RANDOM_ACCESS_MAX_ITEMS": "3000",
+				},
+			},
+			"console": "internalConsole",
+			"justMyCode": true,
+		},
+		{
 			"name": "Python: 現在のファイル",
 			"type": "debugpy",
 			"request": "launch",

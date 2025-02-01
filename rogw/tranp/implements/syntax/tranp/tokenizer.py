@@ -4,55 +4,9 @@ from io import BytesIO
 import re
 import token as PyTokenTypes
 from tokenize import tokenize
-from typing import TypedDict, override
+from typing import override
 
-from rogw.tranp.implements.syntax.tranp.token import Token, TokenDomains, TokenTypes
-
-QuotePair = TypedDict('QuotePair', {'open': str, 'close': str})
-
-
-class TokenDefinition:
-	"""トークン定義"""
-
-	def __init__(self) -> None:
-		"""インスタンスを生成"""
-		self.analyze_order = [
-			TokenDomains.WhiteSpace,
-			TokenDomains.Comment,
-			TokenDomains.Symbol,
-			TokenDomains.Quote,
-			TokenDomains.Number,
-			TokenDomains.Identifier,
-		]
-		self.white_space = '\\ \t\f\n\r'
-		self.comment = [self.build_quote_pair('#', '\n')]
-		self.quote = [self.build_quote_pair(f'{prefix}{quote}', quote) for prefix in ['', 'r', 'f'] for quote in ['"""', "'", '"']]
-		self.number = '0123456789.'
-		self.identifier = '_0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-		self.symbol = '@#$.,:;(){}[]`=-+*/%&|^~!?<>'
-		self.combined_symbols = [
-			'-=', '+=', '*=', '/=', '%=',
-			'&=', '|=', '^=', '~=',
-			'==', '!=', '<=', '>=', '&&', '||',
-			'<<', '>>',
-			'->', '**', ':=', '...',
-		]
-		self.pre_filters = {
-			'comment_spaces': r'[ \t\f]*#.*$',
-			'line_end_spaces': r'[ \t\f\r]+$',
-		}
-
-	@classmethod
-	def build_quote_pair(cls, open: str, close: str) -> QuotePair:
-		"""開始と終了のペアを生成
-
-		Args:
-			open: 開始の文字列
-			close: 終了の文字列
-		Returns:
-			開始と終了のペア
-		"""
-		return {'open': open, 'close': close}
+from rogw.tranp.implements.syntax.tranp.token import Token, TokenDefinition, TokenDomains, TokenTypes
 
 
 class ITokenizer(metaclass=ABCMeta):

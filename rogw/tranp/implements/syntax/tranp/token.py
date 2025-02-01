@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import NamedTuple
+from typing import NamedTuple, TypedDict
 
 
 class TokenDomains(Enum):
@@ -182,3 +182,68 @@ class Token(NamedTuple):
 			return TokenDomains.Unknown
 		else:
 			return TokenDomains(min(d, TokenDomains.Max.value))
+
+	def joined(self, *others: 'Token') -> 'Token':
+		"""自身をベースに指定のトークンと合成し、新たにインスタンスを生成
+
+		Args:
+			*others: 合成するトークンリスト
+		Returns:
+			合成後のトークン
+		Note:
+			自身の種別を引き継ぎ、文字列のみ合成
+		"""
+		return Token(self.type, ''.join([self.string, *[token.string for token in others]]))
+
+
+QuotePair = TypedDict('QuotePair', {'open': str, 'close': str})
+
+
+class TokenDefinition:
+	"""トークン定義"""
+
+	def __init__(self) -> None:
+		"""インスタンスを生成"""
+		self.analyze_order = [
+			TokenDomains.WhiteSpace,
+			TokenDomains.Comment,
+			TokenDomains.Symbol,
+			TokenDomains.Quote,
+			TokenDomains.Number,
+			TokenDomains.Identifier,
+		]
+		self.white_space = '\\ \t\f\n\r'
+		self.comment = [self.build_quote_pair('#', '\n')]
+		self.quote = [self.build_quote_pair(f'{prefix}{quote}', quote) for prefix in ['', 'r', 'f'] for quote in ['"""', "'", '"']]
+		self.number = '0123456789.'
+		self.identifier = '_0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+		self.symbol = '@#$.,:;(){}[]`=-+*/%&|^~!?<>'
+		self.combined_symbols = [
+			'-=', '+=', '*=', '/=', '%=',
+			'&=', '|=', '^=', '~=',
+			'==', '!=', '<=', '>=', '&&', '||',
+			'<<', '>>',
+			'->', '**', ':=', '...',
+		]
+		self.pre_filters = {
+			'comment_spaces': r'[ \t\f]*#.*$',
+			'line_end_spaces': r'[ \t\f\r]+$',
+		}
+		self.post_filters = [
+			(TokenTypes.Comment, '*'),
+			(TokenTypes.WhiteSpace, '*'),
+			(TokenTypes.LineBreak, '[ \t\f]*\\[ \t\f]*\r?\n'),
+			(TokenTypes.LineBreak, 'BEGIN|END'),
+		]
+
+	@classmethod
+	def build_quote_pair(cls, open: str, close: str) -> QuotePair:
+		"""開始と終了のペアを生成
+
+		Args:
+			open: 開始の文字列
+			close: 終了の文字列
+		Returns:
+			開始と終了のペア
+		"""
+		return {'open': open, 'close': close}

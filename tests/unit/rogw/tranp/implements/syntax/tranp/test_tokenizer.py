@@ -110,6 +110,19 @@ class TestLexer(TestCase):
 		self.assertEqual(expected, actual)
 
 	@data_provider([
+		('a# c\nb# c', [(TokenTypes.Name, 'a'), (TokenTypes.LineBreak, '\n'), (TokenTypes.Name, 'b')]),
+		('# c\na\n# c\nb\n# c', [(TokenTypes.Name, 'a'), (TokenTypes.LineBreak, '\n\n'), (TokenTypes.Name, 'b')]),
+		('a + b', [(TokenTypes.Name, 'a'), (TokenTypes.Plus, '+'), (TokenTypes.Name, 'b')]),
+		('a \\\nand b', [(TokenTypes.Name, 'a'), (TokenTypes.Name, 'and'), (TokenTypes.Name, 'b')]),
+		(' \na\nb\n', [(TokenTypes.Name, 'a'), (TokenTypes.LineBreak, '\n'), (TokenTypes.Name, 'b')]),
+	])
+	def test_post_filter(self, source: str, expected: list[Token]) -> None:
+		parser = Lexer(TokenDefinition())
+		tokens = parser.parse2(source)
+		actual = parser.post_filter(tokens)
+		self.assertEqual(expected, actual)
+
+	@data_provider([
 		(' abc', 0, TokenDomains.WhiteSpace),
 		('a\tbc', 1, TokenDomains.WhiteSpace),
 		('a\tb\n', 3, TokenDomains.WhiteSpace),

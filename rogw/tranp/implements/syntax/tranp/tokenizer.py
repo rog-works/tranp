@@ -128,7 +128,55 @@ class Lexer(ITokenizer):
 		Returns:
 			トークンリスト
 		"""
-		return self._parse(self.pre_filter(source))
+		tokens = self.parse2(self.pre_filter(source))
+		tokens.append(Token.EOF())
+		return tokens
+
+	def post_filter(self, tokens: list[Token]) -> list[Token]:
+		"""トークンリストに事後フィルターを適用
+
+		Args:
+			tokens: トークンリスト
+		Returns:
+			トークンリスト
+		"""
+		def to_empty(post_filter: str, token: Token, index: int, total: int) -> bool:
+			"""Returns: True = フィルター後に空になる"""
+			if post_filter == '*':
+				return True
+			elif post_filter == 'BEGIN|END':
+				return index == 0 or index == total - 1
+
+			new_string = ''.join(re.split(post_filter, token.string))
+			return len(new_string) == 0
+
+		def line_break_at(tokens: list[Token], offset: int) -> bool:
+			"""Returns: True = 対象が存在し、且つ改行要素"""
+			return offset >= 0 and offset < len(tokens) and tokens[offset].type == TokenTypes.LineBreak
+
+		new_tokens = tokens.copy()
+		for token_type, post_filter in self._definition.post_filters:
+			index = 0
+			while index < len(new_tokens):
+				token = new_tokens[index]
+				if token.type != token_type or not to_empty(post_filter, token, index, len(new_tokens)):
+					index += 1
+					continue
+
+				if index == 0 and line_break_at(new_tokens, index + 1):
+					del new_tokens[index + 1]
+					del new_tokens[index]
+				elif index == len(new_tokens) - 1 and line_break_at(new_tokens, index - 1):
+					del new_tokens[index]
+					del new_tokens[index - 1]
+				elif line_break_at(new_tokens, index - 1) and line_break_at(new_tokens, index + 1):
+					new_tokens[index - 1] = new_tokens[index - 1].joined(new_tokens[index + 1])
+					del new_tokens[index + 1]
+					del new_tokens[index]
+				else:
+					del new_tokens[index]
+
+		return new_tokens
 
 	def pre_filter(self, source: str) -> str:
 		"""ソースコードに事前フィルターを適用
@@ -183,7 +231,6 @@ class Lexer(ITokenizer):
 			index = end
 			tokens.append(token)
 
-		tokens.append(Token.EOF())
 		return tokens
 
 	def analyze_domain(self, source: str, begin: int) -> TokenDomains:

@@ -231,13 +231,15 @@ class Rules(Mapping):
 		"""
 		if symbol in self._rules:
 			return self._rules[symbol]
-		else:
+		elif f'{Unwraps.OneTime.value}{symbol}' in self._rules:
 			return self._rules[f'{Unwraps.OneTime.value}{symbol}']
+		else:
+			return self._rules[f'{Unwraps.Always.value}{symbol}']
 
 	def keys(self) -> Iterator[str]:
 		"""Returns: イテレーター(シンボル名)"""
 		for key in self._rules.keys():
-			yield key[1:] if key[0] == Unwraps.OneTime.value else key
+			yield key[1:] if key[0] in [Unwraps.OneTime.value, Unwraps.Always.value] else key
 
 	def values(self) -> ValuesView[PatternEntry]:
 		"""Returns: イテレーター(パターン)"""
@@ -246,7 +248,7 @@ class Rules(Mapping):
 	def items(self) -> Iterator[tuple[str, PatternEntry]]:
 		"""Returns: イテレーター(シンボル名, パターン)"""
 		for key, rule in self._rules.items():
-			key_ = key[1:] if key[0] == Unwraps.OneTime.value else key
+			key_ = key[1:] if key[0] in [Unwraps.OneTime.value, Unwraps.Always.value] else key
 			yield key_, rule
 
 	def org_symbols(self) -> Iterator[str]:
@@ -264,8 +266,10 @@ class Rules(Mapping):
 		"""
 		if symbol in self._rules:
 			return Unwraps.Off
-		else:
+		elif f'{Unwraps.OneTime.value}{symbol}' in self._rules:
 			return Unwraps.OneTime
+		else:
+			return Unwraps.Always
 
 	def pretty(self) -> str:
 		"""Returns: フォーマット文字列"""

@@ -40,8 +40,8 @@ class ASTToken:
 		return self.name, self.value.string
 
 	def pretty(self, indent: str = '  ') -> str:
-		"""Returns: フォーマット書式"""
-		return f"('{self.name}', {repr(self.value.string)})"
+		"""Returns: フォーマット書式 XXX reprによるエスケープはNG"""
+		return f"('{self.name}', '{self.value.string}')"
 
 	def __repr__(self) -> str:
 		"""Returns: シリアライズ表現"""

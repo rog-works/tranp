@@ -1,5 +1,6 @@
 from collections.abc import Mapping, Sequence
 from enum import Enum
+import re
 from typing import Iterator, TypeAlias, ValuesView, cast
 
 from rogw.tranp.implements.syntax.tranp.ast import TupleEntry, TupleToken, TupleTree
@@ -96,6 +97,8 @@ class Pattern:
 		Returns:
 			インスタンス
 		"""
+		assert (expression[0], expression[-1]) in [('"', '"'), ('/', '/')] or re.fullmatch(r'\w[\w\d]*', expression), f'Unexpected expression. from: {expression}'
+
 		role = Roles.Terminal if expression[0] in '/"' else Roles.Symbol
 		comp = Comps.Regexp if expression[0] == '/' else Comps.Equals
 		return cls(expression, role, comp if role == Roles.Terminal else Comps.NoComp)

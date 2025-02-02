@@ -519,7 +519,7 @@ class Tokenizer(ITokenizer):
 			return begin + len(combined.string), [combined]
 
 	def _try_combine_symbol(self, tokens: list[Token], begin: int) -> Token:
-		"""複数の文字より成り立つ記号(=トークン)の合成を試行する
+		"""複数文字の記号(=トークン)への合成を試行する
 
 		Args:
 			tokens: トークンリスト

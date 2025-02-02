@@ -185,6 +185,7 @@ class Token:
 			* 置換: 言語依存のステートメント終了(';')
 			```
 		"""
+		assert self.domain == TokenDomains.WhiteSpace, f'Must be WhiteSpace domain. from: {self.type}'
 		return Token(TokenTypes.NewLine, '\n', self.source_map)
 
 	def to_indent(self) -> 'Token':
@@ -200,6 +201,7 @@ class Token:
 			* このトークンは言語の仕様に依存せず、いずれの場合でも「ブロック開始」を表す
 			```
 		"""
+		assert self.domain == TokenDomains.WhiteSpace, f'Must be WhiteSpace domain. from: {self.type}'
 		return Token(TokenTypes.Indent, '\\INDENT', self.source_map)
 
 	def to_dedent(self) -> 'Token':
@@ -213,6 +215,7 @@ class Token:
 			* 「ブロック終了」を表す
 			```
 		"""
+		assert self.domain == TokenDomains.WhiteSpace, f'Must be WhiteSpace domain. from: {self.type}'
 		return Token(TokenTypes.Dedent, '\\DEDENT', self.source_map)
 
 	@classmethod

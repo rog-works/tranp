@@ -109,12 +109,9 @@ class SyntaxParser:
 		"""
 		pattern = self.rules[symbol]
 		if isinstance(pattern, Pattern) and pattern.role == Roles.Terminal:
-			# 非終端要素
-			ok = self._compare_terminal(tokens[end], pattern)
-			if ok:
-				return Step.ok(1), ASTToken(symbol, tokens[end])
-			else:
-				return Step.ng(), ASTToken.empty()
+			step = self._match_terminal(tokens, end, pattern)
+			entry = ASTToken(symbol, tokens[end]) if step.steping else ASTToken.empty()
+			return step, entry
 		else:
 			step, children = self._match_entry(tokens, end, pattern)
 			return step, self._unwrap_entry(symbol, children)
@@ -161,9 +158,8 @@ class SyntaxParser:
 				return self._match_or(tokens, end, pattern)
 		else:
 			if pattern.role == Roles.Terminal:
-				# 終端要素
-				ok = self._compare_terminal(tokens[end], pattern)
-				return Step.ok(1) if ok else Step.ng(), []
+				step = self._match_terminal(tokens, end, pattern)
+				return step, []
 			else:
 				step, entry = self._match_symbol(tokens, end, pattern.expression)
 				return step, [entry]
@@ -195,9 +191,6 @@ class SyntaxParser:
 		Returns:
 			(ステップ, ASTエントリーリスト)
 		"""
-		if end - (len(patterns) - 1) < 0:
-			return Step.ng(), []
-
 		steps = 0
 		children: list[ASTEntry] = []
 		for pattern in reversed(patterns):
@@ -248,9 +241,25 @@ class SyntaxParser:
 				return Step.ng(), []
 
 		return Step.ok(steps), list(reversed(children))
+
+	def _match_terminal(self, tokens: list[Token], end: int, pattern: Pattern) -> Step:
+		"""パターン(終端/非終端要素)を検証
+
+		Args:
+			tokens: トークンリスト
+			end: 評価開始位置
+			pattern: マッチングパターン
+		Returns:
+			ステップ
+		"""
+		if end < 0:
+			return Step.ng()
+
+		ok = self._compare_token(tokens[end], pattern)
+		return Step.ok(1) if ok else Step.ng()
 	
-	def _compare_terminal(self, token: Token, pattern: Pattern) -> bool:
-		"""終端/非終端要素の検証
+	def _compare_token(self, token: Token, pattern: Pattern) -> bool:
+		"""終端/非終端要素のトークンが一致するか判定
 
 		Args:
 			token: トークン

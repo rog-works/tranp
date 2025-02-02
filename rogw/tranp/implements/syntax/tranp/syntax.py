@@ -114,16 +114,16 @@ class SyntaxParser:
 			return step, entry
 		else:
 			step, children = self._match_entry(tokens, end, pattern)
-			return step, self._unwrap_entry(symbol, children)
+			return step, self._unwrap_children(symbol, children)
 
-	def _unwrap_entry(self, symbol: str, children: list[ASTEntry]) -> ASTEntry:
-		"""自身の子として生成されたASTエントリーを上位のASTツリーに展開
+	def _unwrap_children(self, symbol: str, children: list[ASTEntry]) -> ASTEntry:
+		"""子のASTエントリーを展開し、ASTエントリーを生成
 
 		Args:
 			symbol: シンボル
 			children: 配下要素
 		Returns:
-			子のASTエントリー
+			ASTエントリー
 		"""
 		unwraped: list[ASTEntry] = []
 		for child in children:

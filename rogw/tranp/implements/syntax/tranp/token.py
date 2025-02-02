@@ -17,14 +17,14 @@ class TokenDomains(Enum):
 
 class TokenTypes(Enum):
 	"""トークン種別"""
-	# 空白
+	# 空白(一般文書)
 	WhiteSpace = 0x00
 	LineBreak = 0x01
-	# 空白(特殊)
-	NewLine = 0x02
-	Indent = 0x03
-	Dedent = 0x04
-	EOF = 0x05
+	EOF = 0x02
+	# 空白(言語構造)
+	NewLine = 0x03
+	Indent = 0x04
+	Dedent = 0x05
 	# コメント
 	Comment = 0x10
 	# 引用符
@@ -94,15 +94,84 @@ class TokenTypes(Enum):
 	Unknown = 0xFF
 
 
-class Token(NamedTuple):
+class Token:
 	"""トークン"""
 
-	type: TokenTypes
-	string: str
-
-	@classmethod
-	def new_line(cls) -> 'Token':
+	def __init__(self, type: TokenTypes, string: str, source_map: 'SourceMap | None' = None) -> None:
 		"""インスタンスを生成
+
+		Args:
+			type: トークン種別
+			string: 文字列
+			source_map: ソースマップ (default = None)
+		"""
+		self._type = type
+		self._string = string
+		self.source_map = source_map if source_map else self.SourceMap.empty()
+
+	@property
+	def type(self) -> TokenTypes:
+		"""Returns: トークン種別"""
+		return self._type
+
+	@property
+	def string(self) -> str:
+		"""Returns: 文字列"""
+		return self._string
+
+	@property
+	def domain(self) -> TokenDomains:
+		"""Returns: トークンドメイン"""
+		d = self.type.value >> 4 & 0xf
+		if d == 0xf:
+			return TokenDomains.Unknown
+		else:
+			return TokenDomains(min(d, TokenDomains.Max.value))
+
+	def simplify(self) -> tuple[TokenTypes, str]:
+		"""Returns: 簡易書式"""
+		return (self.type, self.string)
+
+	def joined(self, *others: 'Token') -> 'Token':
+		"""自身をベースに指定のトークンと合成し、新たにインスタンスを生成
+
+		Args:
+			*others: 合成するトークンリスト
+		Returns:
+			合成後のトークン
+		"""
+		new_string = ''.join([self.string, *[token.string for token in others]])
+		new_map = self.SourceMap(
+			min([token.source_map.begin_line for token in others]),
+			min([token.source_map.begin_column for token in others]),
+			max([token.source_map.end_line for token in others]),
+			max([token.source_map.end_column for token in others]),
+		)
+		return Token(self.type, new_string, new_map)
+
+	def __repr__(self) -> str:
+		"""Returns: シリアライズ表現"""
+		begin = f'({self.source_map.begin_line}, {self.source_map.begin_column})'
+		end = f'({self.source_map.end_line}, {self.source_map.end_column})'
+		return f'<{self.__class__.__name__}[{self.type.name}]: {repr(self.string)} {begin}..{end}>'
+
+	def __hash__(self) -> int:
+		"""Returns: ハッシュ値"""
+		return hash(self.__repr__())
+
+	def __eq__(self, other: 'Token | tuple[TokenTypes, str]') -> bool:
+		"""Args: other: 比較対象 Returns: True = 一致"""
+		if isinstance(other, Token):
+			return self.type == other.type and self.string == other.string
+		else:
+			return self.type == other[0] and self.string == other[1]
+
+	def __ne__(self, other: 'Token | tuple[TokenTypes, str]') -> bool:
+		"""Args: other: 比較対象 Returns: True = 不一致"""
+		return not self.__eq__(other)
+
+	def to_new_line(self) -> 'Token':
+		"""インスタンスを変換
 
 		Returns:
 			インスタンス(改行)
@@ -116,11 +185,11 @@ class Token(NamedTuple):
 			* 置換: 言語依存のステートメント終了(';')
 			```
 		"""
-		return cls(TokenTypes.NewLine, '\n')
+		assert self.domain == TokenDomains.WhiteSpace, f'Must be WhiteSpace domain. from: {self.type}'
+		return Token(TokenTypes.NewLine, '\n', self.source_map)
 
-	@classmethod
-	def indent(cls) -> 'Token':
-		"""インスタンスを生成
+	def to_indent(self) -> 'Token':
+		"""インスタンスを変換
 
 		Returns:
 			インスタンス(ブロック開始)
@@ -132,11 +201,11 @@ class Token(NamedTuple):
 			* このトークンは言語の仕様に依存せず、いずれの場合でも「ブロック開始」を表す
 			```
 		"""
-		return cls(TokenTypes.Indent, '\\INDENT')
+		assert self.domain == TokenDomains.WhiteSpace, f'Must be WhiteSpace domain. from: {self.type}'
+		return Token(TokenTypes.Indent, '\\INDENT', self.source_map)
 
-	@classmethod
-	def dedent(cls) -> 'Token':
-		"""インスタンスを生成
+	def to_dedent(self) -> 'Token':
+		"""インスタンスを変換
 
 		Returns:
 			インスタンス(ブロック終了)
@@ -146,7 +215,8 @@ class Token(NamedTuple):
 			* 「ブロック終了」を表す
 			```
 		"""
-		return cls(TokenTypes.Dedent, '\\DEDENT')
+		assert self.domain == TokenDomains.WhiteSpace, f'Must be WhiteSpace domain. from: {self.type}'
+		return Token(TokenTypes.Dedent, '\\DEDENT', self.source_map)
 
 	@classmethod
 	def EOF(cls) -> 'Token':
@@ -160,7 +230,7 @@ class Token(NamedTuple):
 			* 最終的に改行のトークンに置き換えられる
 			```
 		"""
-		return cls(TokenTypes.EOF, '\\EOF')
+		return cls(TokenTypes.EOF, '\\EOF', cls.SourceMap.EOF())
 
 	@classmethod
 	def empty(cls) -> 'Token':
@@ -176,26 +246,45 @@ class Token(NamedTuple):
 		"""
 		return cls(TokenTypes.Empty, '')
 
-	@property
-	def domain(self) -> TokenDomains:
-		"""Returns: トークンドメイン"""
-		d = self.type.value >> 4 & 0xf
-		if d == 0xf:
-			return TokenDomains.Unknown
-		else:
-			return TokenDomains(min(d, TokenDomains.Max.value))
+	class SourceMap(NamedTuple):
+		"""ソースマップ"""
 
-	def joined(self, *others: 'Token') -> 'Token':
-		"""自身をベースに指定のトークンと合成し、新たにインスタンスを生成
+		begin_line: int
+		begin_column: int
+		end_line: int
+		end_column: int
 
-		Args:
-			*others: 合成するトークンリスト
-		Returns:
-			合成後のトークン
-		Note:
-			自身の種別を引き継ぎ、文字列のみ合成
-		"""
-		return Token(self.type, ''.join([self.string, *[token.string for token in others]]))
+		@classmethod
+		def make(cls, source: str, begin: int, end: int) -> 'Token.SourceMap':
+			"""インスタンスを生成
+
+			Args:
+				source: ソースコード
+				begin: 開始位置
+				end: 終了位置
+			Returns:
+				ソースマップ
+			"""
+			begin_line = source.count('\n', 0, begin)
+			begin_ln_index = source.rfind('\n', 0, begin)
+			begin_line_start = begin_ln_index + 1 if begin_ln_index != -1 else 0
+			begin_column = begin - begin_line_start
+			between_line_num = source.count('\n', begin, end)
+			end_line = begin_line + between_line_num
+			end_ln_index = source.rfind('\n', begin_line_start, end)
+			end_line_start = end_ln_index + 1 if end_ln_index != -1 else begin_line_start
+			end_column = end - end_line_start
+			return cls(begin_line, begin_column, end_line, end_column)
+
+		@classmethod
+		def EOF(cls) -> 'Token.SourceMap':
+			"""Returns: インスタンス(EOF) Note: XXX 実在がない、且つ特別なコードと言う意味で-1を設定"""
+			return cls(-1, -1, -1, -1)
+
+		@classmethod
+		def empty(cls) -> 'Token.SourceMap':
+			"""Returns: インスタンス(空)"""
+			return cls(0, 0, 0, 0)
 
 
 QuotePair = TypedDict('QuotePair', {'open': str, 'close': str})

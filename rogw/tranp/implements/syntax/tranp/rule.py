@@ -1,5 +1,6 @@
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from enum import Enum
+import re
 from typing import Iterator, TypeAlias, ValuesView, cast
 
 from rogw.tranp.implements.syntax.tranp.ast import TupleEntry, TupleToken, TupleTree
@@ -15,8 +16,8 @@ class Roles(Enum):
 		Terminal: 終端要素
 		```
 	"""
-	Symbol = 'symbol'
-	Terminal = 'terminal'
+	Symbol = 0
+	Terminal = 1
 
 
 class Comps(Enum):
@@ -29,9 +30,9 @@ class Comps(Enum):
 		NoComp: 使わない
 		```
 	"""
-	Regexp = 'regexp'
-	Equals = 'equals'
-	NoComp = 'off'
+	NoComp = 0
+	Regexp = 1
+	Equals = 2
 
 
 class Operators(Enum):
@@ -43,8 +44,8 @@ class Operators(Enum):
 		Or: 論理和
 		```
 	"""
-	And = 'and'
-	Or = 'or'
+	And = '&&'
+	Or = '||'
 
 
 class Repeators(Enum):
@@ -87,43 +88,53 @@ PatternEntry: TypeAlias = 'Pattern | Patterns'
 class Pattern:
 	"""マッチングパターン"""
 
+	@classmethod
+	def make(cls, expression: str) -> 'Pattern':
+		"""インスタンスを生成
+
+		Args:
+			expression: マッチング式
+		Returns:
+			インスタンス
+		"""
+		assert (expression[0], expression[-1]) in [('"', '"'), ('/', '/')] or re.fullmatch(r'\w[\w\d]*', expression), f'Unexpected expression. from: {expression}'
+
+		role = Roles.Terminal if expression[0] in '/"' else Roles.Symbol
+		comp = Comps.Regexp if expression[0] == '/' else Comps.Equals
+		return cls(expression, role, comp if role == Roles.Terminal else Comps.NoComp)
+
 	def __init__(self, expression: str, role: Roles, comp: Comps) -> None:
 		"""インスタンスを生成
 
 		Args:
 			expression: マッチング式
 			role: パターンの役割
-			comp: 文字列の比較メソッド
 		"""
-		self.expression = expression
-		self.role = role
-		self.comp = comp
+		self._expression = expression
+		self._role = role
+		self._comp = comp
 
-	@classmethod
-	def S(cls, expression: str) -> 'Pattern':
-		"""インスタンスを生成(シンボル用)
+	@property
+	def expression(self) -> str:
+		"""Returns: マッチング式"""
+		return self._expression
 
-		Args:
-			expression: マッチング式
-		Returns:
-			インスタンス
-		"""
-		return cls(expression, Roles.Symbol, Comps.NoComp)
+	@property
+	def role(self) -> Roles:
+		"""Returns: パターンの役割"""
+		return self._role
 
-	@classmethod
-	def T(cls, expression: str) -> 'Pattern':
-		"""インスタンスを生成(終端要素用)
+	@property
+	def comp(self) -> Comps:
+		"""Returns: 文字列の比較メソッド"""
+		return self._comp
 
-		Args:
-			expression: マッチング式
-		Returns:
-			インスタンス
-		"""
-		comp = Comps.Regexp if expression[0] == '/' else Comps.Equals
-		return cls(expression, Roles.Terminal, comp)
+	def __repr__(self) -> str:
+		"""Returns: シリアライズ表現"""
+		return f'<{self.__class__.__name__}: {repr(self.expression)}>'
 
 
-class Patterns:
+class Patterns(Sequence):
 	"""マッチングパターングループ"""
 
 	def __init__(self, entries: list[PatternEntry], op: Operators = Operators.And, rep: Repeators = Repeators.NoRepeat) -> None:
@@ -144,8 +155,8 @@ class Patterns:
 
 	def __iter__(self) -> Iterator[PatternEntry]:
 		"""Returns: イテレーター"""
-		for child in self.entries:
-			yield child
+		for entry in self.entries:
+			yield entry
 
 	def __getitem__(self, index: int) -> PatternEntry:
 		"""配下要素を取得
@@ -157,6 +168,18 @@ class Patterns:
 		"""
 		return self.entries[index]
 
+	def __repr__(self) -> str:
+		"""Returns: シリアライズ表現"""
+		entries = ''
+		if self.rep == Repeators.NoRepeat:
+			entries = f'({self.op.value} x{len(self.entries)})'
+		elif self.rep == Repeators.OneOrEmpty:
+			entries = f'[{self.op.value} x{len(self.entries)}]'
+		else:
+			entries = f'({self.op.value} x{len(self.entries)}){self.rep.value}'
+
+		return f'<{self.__class__.__name__}: {entries} at {hex(id(self)).upper()}]>'
+
 
 class Rules(Mapping):
 	"""ルールリスト管理
@@ -164,9 +187,9 @@ class Rules(Mapping):
 	Note:
 		```
 		### 呼称の定義
-		* symbol: 左辺の名前
-		* pattern: 右辺の条件式
-		* rule: symbolとpatternのペア
+		* シンボル: 左辺の名前
+		* パターン: 右辺の条件式
+		* ルール: シンボルとパターンのペア
 		```
 	"""
 
@@ -428,7 +451,7 @@ class ASTSerializer:
 		Returns:
 			マッチングパターン
 		"""
-		return Pattern.S(cls._value(token))
+		return Pattern.make(cls._value(token))
 
 	@classmethod
 	def _for_expr_terminal(cls, token: TupleToken) -> Pattern:
@@ -439,7 +462,7 @@ class ASTSerializer:
 		Returns:
 			マッチングパターン
 		"""
-		return Pattern.T(cls._value(token))
+		return Pattern.make(cls._value(token))
 
 	@classmethod
 	def _for_expr_terms(cls, tree: TupleTree) -> Patterns:
@@ -483,13 +506,15 @@ class ASTSerializer:
 		Returns:
 			マッチングパターングループ
 		"""
-		repeat = cls._fetch_token(tree, -1, 'repeat')
-		rep_value = cls._value(repeat)
-		assert rep_value in '*+?', f'Invalid repeat value. expected for ("*", "+", "?") from "{rep_value}"'
+		repeat = cls._fetch_token(tree, -1, 'repeat', allow_empty=True)
+		repeated = cls._name(repeat) == 'repeat'
+		rep_value = cls._value(repeat) if repeated else Repeators.NoRepeat.value
+		assert repeated and rep_value in '*+?', f'Invalid repeat value. expected for ("*", "+", "?") from "{rep_value}"'
 
 		rep = Repeators(rep_value)
-		expr_num = len(cls._children(tree)) - 1
-		return Patterns([cls._for_expr(cls._children(tree)[i]) for i in range(expr_num)], rep=rep)
+		children = cls._children(tree)
+		expr_num = len(children) - (1 if repeated else 0)
+		return Patterns([cls._for_expr(children[i]) for i in range(expr_num)], rep=rep)
 
 	@classmethod
 	def _fetch_token(cls, tree: TupleTree, index: int, expected: str, allow_empty: bool = False) -> TupleToken:

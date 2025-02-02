@@ -109,8 +109,8 @@ class SyntaxParser:
 		"""
 		pattern = self.rules[symbol]
 		if isinstance(pattern, Pattern) and pattern.role == Roles.Terminal:
-			step = self._match_terminal(tokens, end, pattern)
-			entry = ASTToken(symbol, tokens[end]) if step.steping else ASTToken.empty()
+			step, token = self._match_terminal(tokens, end, pattern)
+			entry = ASTToken(symbol, token) if step.steping else ASTToken.empty()
 			return step, entry
 		else:
 			step, children = self._match_entry(tokens, end, pattern)
@@ -158,7 +158,7 @@ class SyntaxParser:
 				return self._match_or(tokens, end, pattern)
 		else:
 			if pattern.role == Roles.Terminal:
-				step = self._match_terminal(tokens, end, pattern)
+				step, _ = self._match_terminal(tokens, end, pattern)
 				return step, []
 			else:
 				step, entry = self._match_symbol(tokens, end, pattern.expression)
@@ -242,21 +242,26 @@ class SyntaxParser:
 
 		return Step.ok(steps), list(reversed(children))
 
-	def _match_terminal(self, tokens: list[Token], end: int, pattern: Pattern) -> Step:
-		"""パターン(終端/非終端要素)を検証
+	def _match_terminal(self, tokens: list[Token], end: int, pattern: Pattern) -> tuple[Step, Token]:
+		"""パターン(終端/非終端要素)を検証し、マッチしたトークンを返す
 
 		Args:
 			tokens: トークンリスト
 			end: 評価開始位置
 			pattern: マッチングパターン
 		Returns:
-			ステップ
+			(ステップ, トークン)
+		Note:
+			```
+			XXX トークン参照時の境界チェックはこのメソッド内でのみ行う
+			XXX この制約に伴い、トークン参照、及び境界チェックはこのメソッド以外では基本的に実施しないものとする
+			```
 		"""
 		if end < 0:
-			return Step.ng()
+			return Step.ng(), Token.empty()
 
 		ok = self._compare_token(tokens[end], pattern)
-		return Step.ok(1) if ok else Step.ng()
+		return (Step.ok(1), tokens[end]) if ok else (Step.ng(), Token.empty())
 	
 	def _compare_token(self, token: Token, pattern: Pattern) -> bool:
 		"""終端/非終端要素のトークンが一致するか判定

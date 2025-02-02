@@ -92,7 +92,7 @@ class SyntaxParser:
 		length = len(tokens)
 		step, entry = self._match_symbol(tokens, length - 1, entrypoint)
 		if step.steps != length:
-			message = ErrorCollector(source, tokens, step).summary()
+			message = ErrorCollector(source, tokens, step.steps).summary()
 			raise ValueError(f'Syntax parse error. First token not reached. {message}')
 
 		return entry
@@ -271,65 +271,72 @@ class ErrorCollector:
 		```
 	"""
 
-	def __init__(self, source: str, tokens: list[Token], step: Step) -> None:
+	def __init__(self, source: str, tokens: list[Token], steps: int) -> None:
 		"""インスタンスを生成
 
 		Args:
 			source: ソースコード
 			tokens: トークンリスト
-			step: 進行ステップ
+			steps: 進行ステップ数
 		"""
 		self.source = source
 		self.tokens = tokens
-		self.step = step
+		self.steps = steps
 
 	def summary(self) -> str:
 		"""Returns: エラー概要"""
 		progress = self._progress()
-		token = self._cause_token()
-		line = self._cause_line(token)
-		explain = self._explain_line(token, line)
-		lines = self._deco_explain(token, line, explain)
+		lines = self._quotation_lines()
 		return '\n'.join([progress, *lines])
 
 	def _progress(self) -> str:
 		"""Returns: 進捗"""
 		total = len(self.tokens)
-		remain = total - self.step.steps
-		return f'cause index: {remain - 1}, pass: {self.step.steps}/{total}'
+		remain = total - self.steps
+		return f'cause index: {remain - 1}, pass: {self.steps}/{total}, token: {repr(self._cause_token.string)}'
 
+	def _quotation_lines(self) -> list[str]:
+		"""Returns: 該当行の引用"""
+		line_no = self._cause_source_map.begin_line + 1
+		line_ns = ' ' * len(str(line_no))
+		return [
+			f'({line_no}) >>> {self._cause_line}',
+			f' {line_ns}      {self._cause_line_mark}',
+		]
+
+	@property
 	def _cause_token(self) -> Token:
 		"""Returns: 該当トークン"""
 		last = len(self.tokens) - 1
-		return self.tokens[last - self.step.steps]
+		return self.tokens[last - self.steps]
 
-	def _cause_line(self, token: Token) -> str:
-		"""Returns: 該当行"""
-		lines = self.source.split('\n')
-		return lines[token.source_map.begin_line]
+	@property
+	def _cause_source_map(self) -> Token.SourceMap:
+		"""Returns: 該当トークンのソースマップ"""
+		return self._cause_token.source_map
 
-	def _cause_token_range(self, token: Token, cause_line: str) -> tuple[int, int]:
+	@property
+	def _cause_token_range(self) -> tuple[int, int]:
 		"""Returns: 該当トークンの範囲"""
-		source_map = token.source_map
+		source_map = self._cause_source_map
 		diff = source_map.end_column - source_map.begin_column
 		return (
 			source_map.begin_column,
-			source_map.begin_column + diff if source_map.begin_line == source_map.end_line else len(cause_line)
+			source_map.begin_column + diff if source_map.begin_line == source_map.end_line else len(self._cause_line)
 		)
 
-	def _explain_line(self, token: Token, cause_line: str) -> str:
-		"""Returns: トークンの範囲の説明"""
-		begin, end = self._cause_token_range(token, cause_line)
+	@property
+	def _cause_line(self) -> str:
+		"""Returns: 該当行"""
+		lines = self.source.split('\n')
+		# XXX EOFはbegin_lineが-1のため、結果的に最終行が対象となる
+		return lines[self._cause_source_map.begin_line]
+
+	@property
+	def _cause_line_mark(self) -> str:
+		"""Returns: 該当行のマーク"""
+		begin, end = self._cause_token_range
 		indent = ' ' * begin
 		# XXX 改行が対象の場合、差分が0になるため最小値を設ける
 		explain = '^' * max(1, end - begin)
 		return f'{indent}{explain}'
-
-	def _deco_explain(self, token: Token, line: str, explain: str) -> list[str]:
-		"""Returns: 装飾した説明用の文字列"""
-		line_no = token.source_map.begin_line + 1
-		line_ns = ' ' * len(str(line_no))
-		return [
-			f'({line_no}) >>> {line}',
-			f' {line_ns}      {explain}',
-		]

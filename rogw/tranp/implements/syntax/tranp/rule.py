@@ -67,7 +67,7 @@ class Repeators(Enum):
 	NoRepeat = 'off'
 
 
-class Expandors(Enum):
+class Unwraps(Enum):
 	"""ツリーの展開種別
 
 	Note:
@@ -79,7 +79,7 @@ class Expandors(Enum):
 	"""
 	Off = 'off'
 	OneTime = '?'
-	# Always = '_' XXX 仕組み的に対応が困難なため一旦非対応
+	Always = '_'
 
 
 PatternEntry: TypeAlias = 'Pattern | Patterns'
@@ -232,12 +232,12 @@ class Rules(Mapping):
 		if symbol in self._rules:
 			return self._rules[symbol]
 		else:
-			return self._rules[f'{Expandors.OneTime.value}{symbol}']
+			return self._rules[f'{Unwraps.OneTime.value}{symbol}']
 
 	def keys(self) -> Iterator[str]:
 		"""Returns: イテレーター(シンボル名)"""
 		for key in self._rules.keys():
-			yield key[1:] if key[0] == Expandors.OneTime.value else key
+			yield key[1:] if key[0] == Unwraps.OneTime.value else key
 
 	def values(self) -> ValuesView[PatternEntry]:
 		"""Returns: イテレーター(パターン)"""
@@ -246,7 +246,7 @@ class Rules(Mapping):
 	def items(self) -> Iterator[tuple[str, PatternEntry]]:
 		"""Returns: イテレーター(シンボル名, パターン)"""
 		for key, rule in self._rules.items():
-			key_ = key[1:] if key[0] == Expandors.OneTime.value else key
+			key_ = key[1:] if key[0] == Unwraps.OneTime.value else key
 			yield key_, rule
 
 	def org_symbols(self) -> Iterator[str]:
@@ -254,7 +254,7 @@ class Rules(Mapping):
 		for key in self._rules.keys():
 			yield key
 
-	def expand_by(self, symbol: str) -> Expandors:
+	def unwrap_by(self, symbol: str) -> Unwraps:
 		"""指定のシンボルの展開ルールを取得
 
 		Args:
@@ -263,9 +263,9 @@ class Rules(Mapping):
 			展開ルール
 		"""
 		if symbol in self._rules:
-			return Expandors.Off
+			return Unwraps.Off
 		else:
-			return Expandors.OneTime
+			return Unwraps.OneTime
 
 	def pretty(self) -> str:
 		"""Returns: フォーマット文字列"""
@@ -408,10 +408,10 @@ class ASTSerializer:
 		"""
 		assert cls._name(tree) == 'rule', f'Must be name is "rule" from "{cls._name(tree)}"'
 
-		expand = cls._fetch_token(tree, 0, 'expand', allow_empty=True)
+		unwrap = cls._fetch_token(tree, 0, 'unwrap', allow_empty=True)
 		symbol = cls._fetch_token(tree, 1, 'symbol')
 		expr = cls._for_expr(cls._children(tree)[2])
-		return f'{cls._value(expand)}{cls._value(symbol)}', expr
+		return f'{cls._value(unwrap)}{cls._value(symbol)}', expr
 
 	@classmethod
 	def _for_expr(cls, entry: TupleEntry) -> PatternEntry:

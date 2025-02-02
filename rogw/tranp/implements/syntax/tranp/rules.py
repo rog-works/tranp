@@ -22,12 +22,12 @@ def python_rules() -> Rules:
 				])
 			]),
 			('rule', [
-				('expand', '?'),
+				('unwrap', '?'),
 				('symbol', 'exp'),
 				('symbol', 'primary')
 			]),
 			('rule', [
-				('expand', '?'),
+				('unwrap', '?'),
 				('symbol', 'primary'),
 				('terms_or', [
 					('symbol', 'relay'),
@@ -68,7 +68,7 @@ def python_rules() -> Rules:
 				])
 			]),
 			('rule', [
-				('expand', '?'),
+				('unwrap', '?'),
 				('symbol', 'atom'),
 				('terms_or', [
 					('symbol', 'var'),
@@ -153,7 +153,7 @@ def grammar_rules() -> Rules:
 				('symbol', 'rule'),
 				('terms', [
 					('expr_opt', [
-						('symbol', 'expand')
+						('symbol', 'unwrap')
 					]),
 					('symbol', 'symbol'),
 					('string', '":="'),
@@ -162,12 +162,12 @@ def grammar_rules() -> Rules:
 				])
 			]),
 			('rule', [
-				('expand', '?'),
+				('unwrap', '?'),
 				('symbol', 'expr'),
 				('symbol', 'terms_or')
 			]),
 			('rule', [
-				('expand', '?'),
+				('unwrap', '?'),
 				('symbol', 'terms_or'),
 				('terms', [
 					('expr_rep', [
@@ -181,7 +181,7 @@ def grammar_rules() -> Rules:
 				])
 			]),
 			('rule', [
-				('expand', '?'),
+				('unwrap', '?'),
 				('symbol', 'terms'),
 				('terms', [
 					('expr_rep', [
@@ -192,7 +192,7 @@ def grammar_rules() -> Rules:
 				])
 			]),
 			('rule', [
-				('expand', '?'),
+				('unwrap', '?'),
 				('symbol', 'term'),
 				('terms_or', [
 					('symbol', 'symbol'),
@@ -245,8 +245,8 @@ def grammar_rules() -> Rules:
 			]),
 			('rule', [
 				('__empty__', ''),
-				('symbol', 'expand'),
-				('string', '"?"')
+				('symbol', 'unwrap'),
+				('regexp', '/[_?]/')
 			])
 		])
 	)

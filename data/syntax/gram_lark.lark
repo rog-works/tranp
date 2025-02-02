@@ -2,7 +2,7 @@
 entry := (rule)+
 
 // rule
-rule := [expand] symbol ":=" expr "\n"
+rule := [unwrap] symbol ":=" expr "\n"
 
 // expression
 ?expr := terms_or
@@ -17,4 +17,4 @@ symbol := /[a-zA-Z_][0-9a-zA-Z_]*/
 string := /"[^"]+"/
 regexp := /[\/].+[\/]/
 repeat := /[*+?]/
-expand := "?"
+unwrap := /[_?]/

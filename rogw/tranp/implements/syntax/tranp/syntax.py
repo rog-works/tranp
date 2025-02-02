@@ -1,7 +1,7 @@
 import re
 
 from rogw.tranp.implements.syntax.tranp.ast import ASTEntry, ASTToken, ASTTree
-from rogw.tranp.implements.syntax.tranp.rule import Comps, Expandors, Operators, Pattern, PatternEntry, Patterns, Repeators, Roles, Rules
+from rogw.tranp.implements.syntax.tranp.rule import Comps, Unwraps, Operators, Pattern, PatternEntry, Patterns, Repeators, Roles, Rules
 from rogw.tranp.implements.syntax.tranp.tokenizer import ITokenizer, Token, Tokenizer
 
 
@@ -117,9 +117,9 @@ class SyntaxParser:
 				return Step.ng(), ASTToken.empty()
 		else:
 			step, children = self._match_entry(tokens, end, pattern)
-			return step, self._expand_entry(symbol, children)
+			return step, self._unwrap_entry(symbol, children)
 
-	def _expand_entry(self, symbol: str, children: list[ASTEntry]) -> ASTEntry:
+	def _unwrap_entry(self, symbol: str, children: list[ASTEntry]) -> ASTEntry:
 		"""自身の子として生成されたASTエントリーを上位のASTツリーに展開
 
 		Args:
@@ -127,13 +127,19 @@ class SyntaxParser:
 			children: 配下要素
 		Returns:
 			子のASTエントリー
-		Note:
-			XXX 自身と子を入れ替えると言う単純な実装のため、複数の子を上位のツリーに展開できない
 		"""
-		if self.rules.expand_by(symbol) == Expandors.OneTime and len(children) == 1:
-			return children[0]
+		unwraped: list[ASTEntry] = []
+		for child in children:
+			if isinstance(child, ASTToken):
+				unwraped.append(child)
+			elif self.rules.unwrap_by(child.name) == Unwraps.OneTime and len(child.children) == 1:
+				unwraped.append(child.children[0])
+			elif self.rules.unwrap_by(child.name) == Unwraps.Always:
+				unwraped.extend(child.children)
+			else:
+				unwraped.append(child)
 
-		return ASTTree(symbol, children)
+		return ASTTree(symbol, unwraped)
 
 	def _match_entry(self, tokens: list[Token], end: int, pattern: PatternEntry, allow_repeat: bool = True) -> tuple[Step, list[ASTEntry]]:
 		"""パターンエントリーを検証し、ASTエントリーを生成

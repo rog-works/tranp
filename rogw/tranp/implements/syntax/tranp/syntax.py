@@ -256,7 +256,14 @@ class SyntaxParser:
 
 
 class ErrorCollector:
-	"""エラー出力ユーティリティー"""
+	"""エラー出力ユーティリティー
+
+	Note:
+		```
+		XXX 現状のSyntaxParserの解析手法を考慮すると、エラーの発生個所(=進捗停止位置)はほぼ改行であると予想されるため、エラーメッセージが意味を成さない懸念がある
+		XXX SyntaxParserに最も進行したステップを記録するように修正し、それを基にエラー発生個所を見出す方法を検討
+		```
+	"""
 
 	def __init__(self, source: str, tokens: list[Token], step: Step) -> None:
 		"""インスタンスを生成

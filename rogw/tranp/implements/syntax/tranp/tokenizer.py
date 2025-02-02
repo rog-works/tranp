@@ -510,27 +510,33 @@ class Tokenizer(ITokenizer):
 		elif token.type in [TokenTypes.ParenR, TokenTypes.BraceR, TokenTypes.BracketR]:
 			context.enclosure -= 1
 
-		return self._combine_symbol(tokens, begin)
+		combined = self._try_combine_symbol(tokens, begin)
+		if combined.type == TokenTypes.Empty:
+			return begin + 1, [tokens[begin]]
+		else:
+			return begin + len(combined.string), [combined]
 
-	def _combine_symbol(self, tokens: list[Token], begin: int) -> tuple[int, list[Token]]:
-		"""複数の文字より成り立つ記号(=トークン)の合成を行う
+	def _try_combine_symbol(self, tokens: list[Token], begin: int) -> Token:
+		"""複数の文字より成り立つ記号(=トークン)の合成を試行する
 
 		Args:
 			tokens: トークンリスト
 			begin: 読み取り開始位置
 		Returns:
-			(次の読み取り開始位置, トークンリスト)
+			トークン
 		"""
-		for offset, expected in enumerate(self._definition.combined_symbols):
-			if len(tokens) <= begin + len(expected) - 1:
-				continue
+		end = begin + 1
+		while end < len(tokens) and tokens[end].domain == TokenDomains.Symbol:
+			end += 1
 
-			combine = ''.join([tokens[begin + i].string[0] for i in range(len(expected))])
-			if combine != expected:
-				continue
+		if end - begin == 1:
+			return Token.empty()
 
-			token_type = TokenTypes(TokenTypes.BeginCombine.value + offset)
-			return begin + len(expected), [Token(token_type, combine)]
+		candidate = ''.join([token.string for token in tokens[begin:end]])
+		founds = [index for index, expected in enumerate(self._definition.combined_symbols) if candidate.startswith(expected)]
+		if len(founds) == 0:
+			return Token.empty()
 
-		return begin + 1, [tokens[begin]]
-
+		offset = founds[0]
+		token_type = TokenTypes(TokenTypes.BeginCombine.value + offset)
+		return Token(token_type, self._definition.combined_symbols[offset])

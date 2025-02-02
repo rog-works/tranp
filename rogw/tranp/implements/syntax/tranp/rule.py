@@ -15,8 +15,8 @@ class Roles(Enum):
 		Terminal: 終端要素
 		```
 	"""
-	Symbol = 'symbol'
-	Terminal = 'terminal'
+	Symbol = 0
+	Terminal = 1
 
 
 class Comps(Enum):
@@ -29,9 +29,9 @@ class Comps(Enum):
 		NoComp: 使わない
 		```
 	"""
-	Regexp = 'regexp'
-	Equals = 'equals'
-	NoComp = 'off'
+	NoComp = 0
+	Regexp = 1
+	Equals = 2
 
 
 class Operators(Enum):
@@ -88,26 +88,17 @@ class Pattern:
 	"""マッチングパターン"""
 
 	@classmethod
-	def S(cls, expression: str) -> 'Pattern':
-		"""インスタンスを生成(シンボル用)
+	def make(cls, expression: str) -> 'Pattern':
+		"""インスタンスを生成
 
 		Args:
 			expression: マッチング式
 		Returns:
 			インスタンス
 		"""
-		return cls(expression, Roles.Symbol, Comps.NoComp)
-
-	@classmethod
-	def T(cls, expression: str) -> 'Pattern':
-		"""インスタンスを生成(終端要素用)
-
-		Args:
-			expression: マッチング式
-		Returns:
-			インスタンス
-		"""
-		return cls(expression, Roles.Terminal, Comps.Regexp if expression[0] == '/' else Comps.Equals)
+		role = Roles.Terminal if expression[0] in '/"' else Roles.Symbol
+		comp = Comps.Regexp if expression[0] == '/' else Comps.Equals
+		return cls(expression, role, comp if role == Roles.Terminal else Comps.NoComp)
 
 	def __init__(self, expression: str, role: Roles, comp: Comps) -> None:
 		"""インスタンスを生成
@@ -193,9 +184,9 @@ class Rules(Mapping):
 	Note:
 		```
 		### 呼称の定義
-		* symbol: 左辺の名前
-		* pattern: 右辺の条件式
-		* rule: symbolとpatternのペア
+		* シンボル: 左辺の名前
+		* パターン: 右辺の条件式
+		* ルール: シンボルとパターンのペア
 		```
 	"""
 
@@ -457,7 +448,7 @@ class ASTSerializer:
 		Returns:
 			マッチングパターン
 		"""
-		return Pattern.S(cls._value(token))
+		return Pattern.make(cls._value(token))
 
 	@classmethod
 	def _for_expr_terminal(cls, token: TupleToken) -> Pattern:
@@ -468,7 +459,7 @@ class ASTSerializer:
 		Returns:
 			マッチングパターン
 		"""
-		return Pattern.T(cls._value(token))
+		return Pattern.make(cls._value(token))
 
 	@classmethod
 	def _for_expr_terms(cls, tree: TupleTree) -> Patterns:

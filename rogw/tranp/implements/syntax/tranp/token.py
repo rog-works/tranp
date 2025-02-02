@@ -17,14 +17,14 @@ class TokenDomains(Enum):
 
 class TokenTypes(Enum):
 	"""トークン種別"""
-	# 空白
+	# 空白(一般文書)
 	WhiteSpace = 0x00
 	LineBreak = 0x01
-	# 空白(特殊)
-	NewLine = 0x02
-	Indent = 0x03
-	Dedent = 0x04
-	EOF = 0x05
+	EOF = 0x02
+	# 空白(言語構造)
+	NewLine = 0x03
+	Indent = 0x04
+	Dedent = 0x05
 	# コメント
 	Comment = 0x10
 	# 引用符

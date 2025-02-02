@@ -5,11 +5,17 @@ appdir=${cwd}/..
 
 target=
 if [ "$1" == "-l" ]; then
-	target=$(find ./ -name 'test_*.py' | egrep -v 'fixtures|vendor' | peco)
+	shift
+	peco_opt=
+	if [ "${1:0:1}" != "-" ]; then
+		peco_opt="--query ${1}"
+		shift
+	fi
+
+	target=$(find ./ -name 'test_*.py' | egrep -v 'fixtures|vendor' | peco ${peco_opt})
 	target=$(echo "$target" | sed -e 's/^.\///g')
 	target=$(echo "$target" | sed -e 's/\//\./g')
 	target=$(echo "$target" | sed -e 's/\.py$//g')
-	shift
 fi
 
 profiler=

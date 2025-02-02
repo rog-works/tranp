@@ -195,6 +195,9 @@ class SyntaxParser:
 		Returns:
 			(ステップ, ASTエントリーリスト)
 		"""
+		if end - (len(patterns) - 1) < 0:
+			return Step.ng(), []
+
 		steps = 0
 		children: list[ASTEntry] = []
 		for pattern in reversed(patterns):

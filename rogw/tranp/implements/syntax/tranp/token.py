@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import ClassVar, TypedDict
+from typing import ClassVar, NamedTuple, TypedDict
 
 
 class TokenDomains(Enum):
@@ -97,15 +97,17 @@ class TokenTypes(Enum):
 class Token:
 	"""トークン"""
 
-	def __init__(self, type: TokenTypes, string: str) -> None:
+	def __init__(self, type: TokenTypes, string: str, source_map: 'SourceMap | None' = None) -> None:
 		"""インスタンスを生成
 
 		Args:
 			type: トークン種別
 			string: 文字列
+			source_map: ソースマップ (default = None)
 		"""
 		self._type = type
 		self._string = string
+		self.source_map = source_map if source_map else self.SourceMap.empty()
 
 	@property
 	def type(self) -> TokenTypes:
@@ -138,11 +140,20 @@ class Token:
 		Returns:
 			合成後のトークン
 		"""
-		return Token(self.type, ''.join([self.string, *[token.string for token in others]]))
+		new_string = ''.join([self.string, *[token.string for token in others]])
+		new_map = self.SourceMap(
+			min([token.source_map.begin_line for token in others]),
+			min([token.source_map.begin_column for token in others]),
+			max([token.source_map.end_line for token in others]),
+			max([token.source_map.end_column for token in others]),
+		)
+		return Token(self.type, new_string, new_map)
 
 	def __repr__(self) -> str:
 		"""Returns: シリアライズ表現"""
-		return f'<{self.__class__.__name__}[{self.type.name}]: {repr(self.string)}>'
+		begin = f'({self.source_map.begin_line}, {self.source_map.begin_column})'
+		end = f'({self.source_map.end_line}, {self.source_map.end_column})'
+		return f'<{self.__class__.__name__}[{self.type.name}]: {repr(self.string)} {begin}..{end}>'
 
 	def __hash__(self) -> int:
 		"""Returns: ハッシュ値"""
@@ -159,9 +170,8 @@ class Token:
 		"""Args: other: 比較対象 Returns: True = 不一致"""
 		return not self.__eq__(other)
 
-	@classmethod
-	def new_line(cls) -> 'Token':
-		"""インスタンスを生成
+	def to_new_line(self) -> 'Token':
+		"""インスタンスを変換
 
 		Returns:
 			インスタンス(改行)
@@ -175,11 +185,10 @@ class Token:
 			* 置換: 言語依存のステートメント終了(';')
 			```
 		"""
-		return cls(TokenTypes.NewLine, '\n')
+		return Token(TokenTypes.NewLine, '\n', self.source_map)
 
-	@classmethod
-	def indent(cls) -> 'Token':
-		"""インスタンスを生成
+	def to_indent(self) -> 'Token':
+		"""インスタンスを変換
 
 		Returns:
 			インスタンス(ブロック開始)
@@ -191,11 +200,10 @@ class Token:
 			* このトークンは言語の仕様に依存せず、いずれの場合でも「ブロック開始」を表す
 			```
 		"""
-		return cls(TokenTypes.Indent, '\\INDENT')
+		return Token(TokenTypes.Indent, '\\INDENT', self.source_map)
 
-	@classmethod
-	def dedent(cls) -> 'Token':
-		"""インスタンスを生成
+	def to_dedent(self) -> 'Token':
+		"""インスタンスを変換
 
 		Returns:
 			インスタンス(ブロック終了)
@@ -205,7 +213,7 @@ class Token:
 			* 「ブロック終了」を表す
 			```
 		"""
-		return cls(TokenTypes.Dedent, '\\DEDENT')
+		return Token(TokenTypes.Dedent, '\\DEDENT', self.source_map)
 
 	@classmethod
 	def EOF(cls) -> 'Token':
@@ -219,7 +227,7 @@ class Token:
 			* 最終的に改行のトークンに置き換えられる
 			```
 		"""
-		return cls(TokenTypes.EOF, '\\EOF')
+		return cls(TokenTypes.EOF, '\\EOF', cls.SourceMap.EOF())
 
 	@classmethod
 	def empty(cls) -> 'Token':
@@ -234,6 +242,46 @@ class Token:
 			```
 		"""
 		return cls(TokenTypes.Empty, '')
+
+	class SourceMap(NamedTuple):
+		"""ソースマップ"""
+
+		begin_line: int
+		begin_column: int
+		end_line: int
+		end_column: int
+
+		@classmethod
+		def make(cls, source: str, begin: int, end: int) -> 'Token.SourceMap':
+			"""インスタンスを生成
+
+			Args:
+				source: ソースコード
+				begin: 開始位置
+				end: 終了位置
+			Returns:
+				ソースマップ
+			"""
+			begin_line = source.count('\n', 0, begin)
+			begin_ln_index = source.rfind('\n', 0, begin)
+			begin_line_start = begin_ln_index + 1 if begin_ln_index != -1 else 0
+			begin_column = begin - begin_line_start
+			between_line_num = source.count('\n', begin, end)
+			end_line = begin_line + between_line_num
+			end_ln_index = source.rfind('\n', begin_line_start, end)
+			end_line_start = end_ln_index + 1 if end_ln_index != -1 else begin_line_start
+			end_column = end - end_line_start
+			return cls(begin_line, begin_column, end_line, end_column)
+
+		@classmethod
+		def EOF(cls) -> 'Token.SourceMap':
+			"""Returns: インスタンス(EOF) Note: XXX 実在がない、且つ特別なコードと言う意味で-1を設定"""
+			return cls(-1, -1, -1, -1)
+
+		@classmethod
+		def empty(cls) -> 'Token.SourceMap':
+			"""Returns: インスタンス(空)"""
+			return cls(0, 0, 0, 0)
 
 
 QuotePair = TypedDict('QuotePair', {'open': str, 'close': str})

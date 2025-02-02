@@ -272,9 +272,9 @@ class Lexer(ITokenizer):
 			string = ''.join(string.split('\\\n'))
 
 		if string.count('\n') == 0:
-			return end, Token(TokenTypes.WhiteSpace, string)
+			return end, Token(TokenTypes.WhiteSpace, string, Token.SourceMap.make(source, begin, end))
 		else:
-			return end, Token(TokenTypes.LineBreak, string)
+			return end, Token(TokenTypes.LineBreak, string, Token.SourceMap.make(source, begin, end))
 
 	def parse_comment(self, source: str, begin: int) -> tuple[int, Token]:
 		"""トークンを解析(コメント)
@@ -290,9 +290,10 @@ class Lexer(ITokenizer):
 		end = source.find(pair['close'], begin + len(pair['open']))
 		if end != -1:
 			end += 0 if pair['close'] == '\n' else len(pair['close'])
-			return end, Token(TokenTypes.Comment, source[begin:end])
+			return end, Token(TokenTypes.Comment, source[begin:end], Token.SourceMap.make(source, begin, end))
 		else:
-			return len(source), Token(TokenTypes.Comment, source[begin:])
+			end = len(source)
+			return end, Token(TokenTypes.Comment, source[begin:end], Token.SourceMap.make(source, begin, end))
 
 	def parse_quote(self, source: str, begin: int) -> tuple[int, Token]:
 		"""トークンを解析(引用符)
@@ -318,7 +319,7 @@ class Lexer(ITokenizer):
 
 		value = source[begin:end]
 		token_type = TokenTypes.Regexp if value[0] == '/' else TokenTypes.String
-		return end, Token(token_type, value)
+		return end, Token(token_type, value, Token.SourceMap.make(source, begin, end))
 
 	def parse_number(self, source: str, begin: int) -> tuple[int, Token]:
 		"""トークンを解析(数字)
@@ -338,7 +339,7 @@ class Lexer(ITokenizer):
 
 		value = source[begin:end]
 		token_type = TokenTypes.Decimal if value.count('.') > 0 else TokenTypes.Digit
-		return end, Token(token_type, value)
+		return end, Token(token_type, value, Token.SourceMap.make(source, begin, end))
 
 	def parse_identifier(self, source: str, begin: int) -> tuple[int, Token]:
 		"""トークンを解析(識別子)
@@ -356,7 +357,7 @@ class Lexer(ITokenizer):
 
 			end += 1
 
-		return end, Token(TokenTypes.Name, source[begin:end])
+		return end, Token(TokenTypes.Name, source[begin:end], Token.SourceMap.make(source, begin, end))
 
 	def parse_symbol(self, source: str, begin: int) -> tuple[int, Token]:
 		"""トークンを解析(記号)
@@ -371,7 +372,8 @@ class Lexer(ITokenizer):
 		base = TokenDomains.Symbol.value << 4
 		offset = self._definition.symbol.index(value)
 		token_type = TokenTypes(base + offset)
-		return begin + 1, Token(token_type, value)
+		end = begin + 1
+		return end, Token(token_type, value, Token.SourceMap.make(source, begin, end))
 
 
 class Tokenizer(ITokenizer):
@@ -471,23 +473,23 @@ class Tokenizer(ITokenizer):
 		elif token.type == TokenTypes.WhiteSpace:
 			return begin + 1, []
 		elif token.type == TokenTypes.EOF:
-			dedents = [Token.dedent()] * context.nest
+			dedents = [token.to_dedent()] * context.nest
 			context.nest = 0
-			return begin + len(token.string), [Token.new_line(), *dedents]
+			return begin + len(token.string), [token.to_new_line(), *dedents]
 
 		assert token.type == TokenTypes.LineBreak, f'Never. token type: {token.type}'
 
 		indent = len(token.string.split('\n')[-1])
 		if context.nest < indent:
 			context.nest = indent
-			return begin + 1, [Token.new_line(), Token.indent()]
+			return begin + 1, [token.to_new_line(), token.to_indent()]
 		elif context.nest > indent:
 			next_nest = indent
-			dedents = [Token.dedent()] * (context.nest - next_nest)
+			dedents = [token.to_dedent()] * (context.nest - next_nest)
 			context.nest = next_nest
-			return begin + 1, [Token.new_line(), *dedents]
+			return begin + 1, [token.to_new_line(), *dedents]
 		else:
-			return begin + 1, [Token.new_line()]
+			return begin + 1, [token.to_new_line()]
 
 	def handle_symbol(self, context: Context, tokens: list[Token], begin: int) -> tuple[int, list[Token]]:
 		"""トークンリストを整形(記号)
@@ -539,4 +541,7 @@ class Tokenizer(ITokenizer):
 
 		offset = founds[0]
 		token_type = TokenTypes(TokenTypes.BeginCombine.value + offset)
-		return Token(token_type, self._definition.combined_symbols[offset])
+		combine = self._definition.combined_symbols[offset]
+		base = tokens[begin]
+		combine_map = Token.SourceMap(base.source_map.begin_line, base.source_map.begin_column, base.source_map.end_line, base.source_map.end_column + len(combine))
+		return Token(token_type, combine, combine_map)

@@ -509,8 +509,9 @@ class ASTSerializer:
 		assert repeated and rep_value in '*+?', f'Invalid repeat value. expected for ("*", "+", "?") from "{rep_value}"'
 
 		rep = Repeators(rep_value)
-		expr_num = len(cls._children(tree)) - (1 if repeated else 0)
-		return Patterns([cls._for_expr(cls._children(tree)[i]) for i in range(expr_num)], rep=rep)
+		children = cls._children(tree)
+		expr_num = len(children) - (1 if repeated else 0)
+		return Patterns([cls._for_expr(children[i]) for i in range(expr_num)], rep=rep)
 
 	@classmethod
 	def _fetch_token(cls, tree: TupleTree, index: int, expected: str, allow_empty: bool = False) -> TupleToken:

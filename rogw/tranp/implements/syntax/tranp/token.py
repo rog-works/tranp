@@ -130,16 +130,15 @@ class Token:
 		"""Returns: 簡易書式"""
 		return (self.type, self.string)
 
-	def joined(self, *others: 'Token', new_type: TokenTypes | None = None) -> 'Token':
+	def joined(self, *others: 'Token') -> 'Token':
 		"""自身をベースに指定のトークンと合成し、新たにインスタンスを生成
 
 		Args:
 			*others: 合成するトークンリスト
-			new_type: 変更するトークン種別 (default = None)
 		Returns:
 			合成後のトークン
 		"""
-		return Token(new_type if new_type else self.type, ''.join([self.string, *[token.string for token in others]]))
+		return Token(self.type, ''.join([self.string, *[token.string for token in others]]))
 
 	def __repr__(self) -> str:
 		"""Returns: シリアライズ表現"""

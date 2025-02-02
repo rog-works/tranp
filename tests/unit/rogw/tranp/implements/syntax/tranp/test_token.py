@@ -29,11 +29,10 @@ class TestToken(TestCase):
 		self.assertEqual(expected, actual)
 
 	@data_provider([
-		(Token(TokenTypes.LineBreak, '\n'), [Token(TokenTypes.LineBreak, '\n\t')], None, (TokenTypes.LineBreak, '\n\n\t')),
-		(Token(TokenTypes.Plus, '+'), [Token(TokenTypes.Equal, '=')], TokenTypes.PlusEqual, (TokenTypes.PlusEqual, '+=')),
+		(Token(TokenTypes.LineBreak, '\n'), [Token(TokenTypes.LineBreak, '\n\t')], (TokenTypes.LineBreak, '\n\n\t')),
 	])
-	def test_joined(self, token: Token, other: list[Token], new_type: TokenTypes | None, expected: tuple[str, str]) -> None:
-		actual = token.joined(*other, new_type=new_type)
+	def test_joined(self, token: Token, other: list[Token], expected: tuple[str, str]) -> None:
+		actual = token.joined(*other)
 		self.assertEqual(expected, actual)
 
 	@data_provider([

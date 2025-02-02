@@ -25,9 +25,9 @@ class Comps(Enum):
 
 	Note:
 		```
+		NoComp: 使わない
 		Regexp: 正規表現(完全一致)
 		Equals: 通常比較
-		NoComp: 使わない
 		```
 	"""
 	NoComp = 0
@@ -75,6 +75,7 @@ class Unwraps(Enum):
 		```
 		Off: 展開なし(通常通り)
 		OneTime: 子が1つの時に展開
+		Always: 常に展開
 		```
 	"""
 	Off = 'off'

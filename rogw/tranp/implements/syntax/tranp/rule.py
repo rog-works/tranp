@@ -509,11 +509,11 @@ class ASTSerializer:
 		repeat = cls._fetch_token(tree, -1, 'repeat', allow_empty=True)
 		repeated = cls._name(repeat) == 'repeat'
 		rep_value = cls._value(repeat) if repeated else Repeators.NoRepeat.value
-		assert repeated and rep_value in '*+?', f'Invalid repeat value. expected for ("*", "+", "?") from "{rep_value}"'
+		assert not repeated or rep_value in '*+?', f'Invalid repeat value. expected for ("*", "+", "?") from "{rep_value}"'
 
 		rep = Repeators(rep_value)
 		children = cls._children(tree)
-		expr_num = len(children) - (1 if repeated else 0)
+		expr_num = len(children) - 1
 		return Patterns([cls._for_expr(children[i]) for i in range(expr_num)], rep=rep)
 
 	@classmethod

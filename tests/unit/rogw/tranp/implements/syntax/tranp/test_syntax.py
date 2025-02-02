@@ -63,12 +63,12 @@ class TestSyntaxParser(TestCase):
 					('symbol', 'exp'),
 				]),
 				('rule', [
-					('expand', '?'),
+					('unwrap', '?'),
 					('symbol', 'exp'),
 					('symbol', 'primary'),
 				]),
 				('rule', [
-					('expand', '?'),
+					('unwrap', '?'),
 					('symbol', 'primary'),
 					('terms_or', [
 						('symbol', 'relay'),

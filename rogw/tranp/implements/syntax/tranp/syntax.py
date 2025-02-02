@@ -51,7 +51,7 @@ class Step:
 
 	def __repr__(self) -> str:
 		"""Returns: シリアライズ表現"""
-		return f'<{self.__class__.__name__}[{"OK" if self.steping else "NG"}]: {self.steps}>'
+		return f'<{self.__class__.__name__}["{'OK' if self.steping else 'NG'}"]: {self.steps}>'
 
 
 class SyntaxParser:

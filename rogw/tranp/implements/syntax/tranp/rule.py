@@ -169,11 +169,11 @@ class Patterns(Sequence):
 		"""Returns: シリアライズ表現"""
 		entries = ''
 		if self.rep == Repeators.NoRepeat:
-			entries = '{' f'{len(self.entries)} {self.op.value} ...' '}'
+			entries = f'({self.op.value} x{len(self.entries)})'
 		elif self.rep == Repeators.OneOrEmpty:
-			entries = f'[{len(self.entries)} {self.op.value} ...]'
+			entries = f'[{self.op.value} x{len(self.entries)}]'
 		else:
-			entries = f'({len(self.entries)} {self.op.value} ...){self.rep.value}'
+			entries = f'({self.op.value} x{len(self.entries)}){self.rep.value}'
 
 		return f'<{self.__class__.__name__}: {entries} at {hex(id(self)).upper()}]>'
 

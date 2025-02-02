@@ -41,11 +41,11 @@ class ASTToken:
 
 	def pretty(self, indent: str = '  ') -> str:
 		"""Returns: フォーマット書式"""
-		return f"('{self.name}', '{self.value.string}')"
+		return f"('{self.name}', {repr(self.value.string)})"
 
 	def __repr__(self) -> str:
 		"""Returns: シリアライズ表現"""
-		return f'<{self.__class__.__name__}[{self.name}]: {repr(self.value.string)}>'
+		return f'<{self.__class__.__name__}["{self.name}"]: {repr(self.value.string)}>'
 
 	def __hash__(self) -> int:
 		"""Returns: ハッシュ値"""
@@ -99,7 +99,7 @@ class ASTTree:
 
 	def __repr__(self) -> str:
 		"""Returns: シリアライズ表現"""
-		return f'<{self.__class__.__name__}[{self.name}]: [{', '.join([f'"{child.name}"' for child in self.children])}]>'
+		return f'<{self.__class__.__name__}["{self.name}"]: [{', '.join([f'"{child.name}"' for child in self.children])}]>'
 
 	def __hash__(self) -> int:
 		"""Returns: ハッシュ値"""

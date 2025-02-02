@@ -190,6 +190,11 @@ class SyntaxParser:
 			patterns: マッチングパターングループ
 		Returns:
 			(ステップ, ASTエントリーリスト)
+		Note:
+			```
+			XXX ステップの進行によって参照インデックスが負の値になるが、このメソッドでは許容する @see _match_terminal
+			XXX これは、0個以上にマッチする条件(OverZero/OneOrZero/OneOrEmpty)が存在する仕様に起因する
+			```
 		"""
 		steps = 0
 		children: list[ASTEntry] = []

@@ -45,11 +45,7 @@ class ASTToken:
 
 	def __repr__(self) -> str:
 		"""Returns: シリアライズ表現"""
-		return f'<{self.__class__.__name__}[{self.name}]: "{self.value.string}">'
-
-	def __str__(self) -> str:
-		"""Returns: 文字列表現"""
-		return f'("{self.name}", "{self.value.string}")'
+		return f'<{self.__class__.__name__}[{self.name}]: {repr(self.value.string)}>'
 
 	def __hash__(self) -> int:
 		"""Returns: ハッシュ値"""
@@ -65,14 +61,14 @@ class ASTToken:
 			return False
 
 	def __ne__(self, other: 'ASTEntry | tuple[str, str]') -> bool:
-		"""Args: other: 比較対象 Returns: True = 一致"""
+		"""Args: other: 比較対象 Returns: True = 不一致"""
 		return not self.__eq__(other)
 
 
 class ASTTree:
 	"""AST(ツリー)"""
 
-	def __init__(self, name: str, children: list['ASTToken | ASTTree']) -> None:
+	def __init__(self, name: str, children: list['ASTEntry']) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -88,7 +84,7 @@ class ASTTree:
 		return self._name
 
 	@property
-	def children(self) -> list['ASTToken | ASTTree']:
+	def children(self) -> list['ASTEntry']:
 		"""Returns: 配下要素"""
 		return self._children
 
@@ -105,10 +101,6 @@ class ASTTree:
 		"""Returns: シリアライズ表現"""
 		return f'<{self.__class__.__name__}[{self.name}]: [{', '.join([f'"{child.name}"' for child in self.children])}]>'
 
-	def __str__(self) -> str:
-		"""Returns: 文字列表現"""
-		return f'("{self.name}", [{', '.join([f'"{child.name}"' for child in self.children])}])'
-
 	def __hash__(self) -> int:
 		"""Returns: ハッシュ値"""
 		return hash(self.simplify())
@@ -123,7 +115,7 @@ class ASTTree:
 			return False
 
 	def __ne__(self, other: 'ASTEntry | TupleEntry') -> bool:
-		"""Args: other: 比較対象 Returns: True = 一致"""
+		"""Args: other: 比較対象 Returns: True = 不一致"""
 		return not self.__eq__(other)
 
 

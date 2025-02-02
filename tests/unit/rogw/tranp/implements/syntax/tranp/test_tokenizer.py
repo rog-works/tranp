@@ -62,7 +62,7 @@ class TestTokenizer(TestCase):
 		parser = Tokenizer()
 		tokens = parser.lex_parse(source)
 		actual = parser.handle_white_space(context, tokens, begin)
-		self.assertEqual(expected, (actual[0], [token.simplify() for token in actual[1]]))
+		self.assertEqual(expected, actual)
 		self.assertEqual(expected_context, {'nest': context.nest, 'enclosure': context.enclosure})
 
 	@data_provider([
@@ -80,7 +80,7 @@ class TestTokenizer(TestCase):
 		parser = Tokenizer()
 		tokens = parser.lex_parse(source)
 		actual = parser.handle_symbol(context, tokens, begin)
-		self.assertEqual(expected, (actual[0], [token.simplify() for token in actual[1]]))
+		self.assertEqual(expected, actual)
 		self.assertEqual(expected_context, {'nest': context.nest, 'enclosure': context.enclosure})
 
 
@@ -108,7 +108,7 @@ class TestLexer(TestCase):
 		parser = Lexer(TokenDefinition())
 		tokens = parser.parse_impl(source)
 		actual = parser.post_filter(tokens)
-		self.assertEqual(expected, [token.simplify() for token in actual])
+		self.assertEqual(expected, actual)
 
 	@data_provider([
 		(' abc', 0, TokenDomains.WhiteSpace),
@@ -152,7 +152,7 @@ class TestLexer(TestCase):
 	def test_parse_white_space(self, source: str, begin: int, expected: tuple[int, str]) -> None:
 		parser = Lexer(TokenDefinition())
 		actual = parser.parse_white_spece(source, begin)
-		self.assertEqual(expected, (actual[0], actual[1].simplify()))
+		self.assertEqual(expected, actual)
 
 	@data_provider([
 		('a # bc', 2, (6, (TokenTypes.Comment, '# bc'))),
@@ -161,7 +161,7 @@ class TestLexer(TestCase):
 	def test_parse_comment(self, source: str, begin: int, expected: tuple[int, str]) -> None:
 		parser = Lexer(TokenDefinition())
 		actual = parser.parse_comment(source, begin)
-		self.assertEqual(expected, (actual[0], actual[1].simplify()))
+		self.assertEqual(expected, actual)
 
 	@data_provider([
 		('"abc"', 0, (5, (TokenTypes.String, '"abc"'))),
@@ -176,7 +176,7 @@ class TestLexer(TestCase):
 	def test_parse_quote(self, source: str, begin: int, expected: tuple[int, str]) -> None:
 		parser = Lexer(TokenDefinition())
 		actual = parser.parse_quote(source, begin)
-		self.assertEqual(expected, (actual[0], actual[1].simplify()))
+		self.assertEqual(expected, actual)
 
 	@data_provider([
 		('1234', 0, (4, (TokenTypes.Digit, '1234'))),
@@ -187,7 +187,7 @@ class TestLexer(TestCase):
 	def test_parse_number(self, source: str, begin: int, expected: tuple[int, str]) -> None:
 		parser = Lexer(TokenDefinition())
 		actual = parser.parse_number(source, begin)
-		self.assertEqual(expected, (actual[0], actual[1].simplify()))
+		self.assertEqual(expected, actual)
 
 	@data_provider([
 		('abc', 0, (3, (TokenTypes.Name, 'abc'))),
@@ -200,7 +200,7 @@ class TestLexer(TestCase):
 	def test_parse_identifier(self, source: str, begin: int, expected: tuple[int, str]) -> None:
 		parser = Lexer(TokenDefinition())
 		actual = parser.parse_identifier(source, begin)
-		self.assertEqual(expected, (actual[0], actual[1].simplify()))
+		self.assertEqual(expected, actual)
 
 	@data_provider([
 		('@a', 0, (1, (TokenTypes.At, '@'))),
@@ -215,7 +215,7 @@ class TestLexer(TestCase):
 	def test_parse_symbol(self, source: str, begin: int, expected: tuple[int, str]) -> None:
 		parser = Lexer(TokenDefinition())
 		actual = parser.parse_symbol(source, begin)
-		self.assertEqual(expected, (actual[0], actual[1].simplify()))
+		self.assertEqual(expected, actual)
 
 
 class TestPyTokenizer(TestCase):

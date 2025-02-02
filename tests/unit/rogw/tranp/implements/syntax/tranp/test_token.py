@@ -1,3 +1,5 @@
+from collections.abc import Callable
+from typing import cast
 from unittest import TestCase
 
 from rogw.tranp.implements.syntax.tranp.token import Token, TokenDomains, TokenTypes
@@ -18,3 +20,36 @@ class TestToken(TestCase):
 	])
 	def test_domain(self, token: Token, expected: TokenDomains) -> None:
 		self.assertEqual(expected, token.domain)
+
+	@data_provider([
+		(Token(TokenTypes.LineBreak, '\n'), (TokenTypes.LineBreak, '\n')),
+	])
+	def test_simplify(self, token: Token, expected: tuple[str, str]) -> None:
+		actual = token.simplify()
+		self.assertEqual(expected, actual)
+
+	@data_provider([
+		(Token(TokenTypes.LineBreak, '\n'), [Token(TokenTypes.LineBreak, '\n\t')], None, (TokenTypes.LineBreak, '\n\n\t')),
+		(Token(TokenTypes.Plus, '+'), [Token(TokenTypes.Equal, '=')], TokenTypes.PlusEqual, (TokenTypes.PlusEqual, '+=')),
+	])
+	def test_joined(self, token: Token, other: list[Token], new_type: TokenTypes | None, expected: tuple[str, str]) -> None:
+		actual = token.joined(*other, new_type=new_type)
+		self.assertEqual(expected, actual)
+
+	@data_provider([
+		(Token(TokenTypes.LineBreak, '"\n"'), '<Token[LineBreak]: \'"\\n"\'>'),
+	])
+	def test_repr(self, token: Token, expected: str) -> None:
+		actual = token.__repr__()
+		self.assertEqual(expected, actual)
+
+	@data_provider([
+		(Token.new_line.__name__, (TokenTypes.NewLine, '\n')),
+		(Token.indent.__name__, (TokenTypes.Indent, '\\INDENT')),
+		(Token.dedent.__name__, (TokenTypes.Dedent, '\\DEDENT')),
+		(Token.EOF.__name__, (TokenTypes.EOF, '\\EOF')),
+		(Token.empty.__name__, (TokenTypes.Empty, '')),
+	])
+	def test_factory(self, name: str, expected: tuple[str, str]) -> None:
+		actual = cast(Callable[[], Token], getattr(Token, name))()
+		self.assertEqual(expected, actual)

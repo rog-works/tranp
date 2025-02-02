@@ -1,4 +1,4 @@
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from enum import Enum
 from typing import Iterator, TypeAlias, ValuesView, cast
 
@@ -43,8 +43,8 @@ class Operators(Enum):
 		Or: 論理和
 		```
 	"""
-	And = 'and'
-	Or = 'or'
+	And = '&&'
+	Or = '||'
 
 
 class Repeators(Enum):
@@ -87,18 +87,6 @@ PatternEntry: TypeAlias = 'Pattern | Patterns'
 class Pattern:
 	"""マッチングパターン"""
 
-	def __init__(self, expression: str, role: Roles, comp: Comps) -> None:
-		"""インスタンスを生成
-
-		Args:
-			expression: マッチング式
-			role: パターンの役割
-			comp: 文字列の比較メソッド
-		"""
-		self.expression = expression
-		self.role = role
-		self.comp = comp
-
 	@classmethod
 	def S(cls, expression: str) -> 'Pattern':
 		"""インスタンスを生成(シンボル用)
@@ -119,11 +107,40 @@ class Pattern:
 		Returns:
 			インスタンス
 		"""
-		comp = Comps.Regexp if expression[0] == '/' else Comps.Equals
-		return cls(expression, Roles.Terminal, comp)
+		return cls(expression, Roles.Terminal, Comps.Regexp if expression[0] == '/' else Comps.Equals)
+
+	def __init__(self, expression: str, role: Roles, comp: Comps) -> None:
+		"""インスタンスを生成
+
+		Args:
+			expression: マッチング式
+			role: パターンの役割
+		"""
+		self._expression = expression
+		self._role = role
+		self._comp = comp
+
+	@property
+	def expression(self) -> str:
+		"""Returns: マッチング式"""
+		return self._expression
+
+	@property
+	def role(self) -> Roles:
+		"""Returns: パターンの役割"""
+		return self._role
+
+	@property
+	def comp(self) -> Comps:
+		"""Returns: 文字列の比較メソッド"""
+		return self._comp
+
+	def __repr__(self) -> str:
+		"""Returns: シリアライズ表現"""
+		return f'<{self.__class__.__name__}: {repr(self.expression)}>'
 
 
-class Patterns:
+class Patterns(Sequence):
 	"""マッチングパターングループ"""
 
 	def __init__(self, entries: list[PatternEntry], op: Operators = Operators.And, rep: Repeators = Repeators.NoRepeat) -> None:
@@ -144,8 +161,8 @@ class Patterns:
 
 	def __iter__(self) -> Iterator[PatternEntry]:
 		"""Returns: イテレーター"""
-		for child in self.entries:
-			yield child
+		for entry in self.entries:
+			yield entry
 
 	def __getitem__(self, index: int) -> PatternEntry:
 		"""配下要素を取得
@@ -156,6 +173,18 @@ class Patterns:
 			配下要素
 		"""
 		return self.entries[index]
+
+	def __repr__(self) -> str:
+		"""Returns: シリアライズ表現"""
+		entries = ''
+		if self.rep == Repeators.NoRepeat:
+			entries = '{' f'{len(self.entries)} {self.op.value} ...' '}'
+		elif self.rep == Repeators.OneOrEmpty:
+			entries = f'[{len(self.entries)} {self.op.value} ...]'
+		else:
+			entries = f'({len(self.entries)} {self.op.value} ...){self.rep.value}'
+
+		return f'<{self.__class__.__name__}: {entries} at {hex(id(self)).upper()}]>'
 
 
 class Rules(Mapping):

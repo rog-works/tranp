@@ -1,5 +1,4 @@
 import re
-from typing import NamedTuple
 
 from rogw.tranp.implements.syntax.tranp.ast import ASTEntry, ASTToken, ASTTree
 from rogw.tranp.implements.syntax.tranp.rule import Comps, Expandors, Operators, Pattern, PatternEntry, Patterns, Repeators, Roles, Rules
@@ -7,11 +6,8 @@ from rogw.tranp.implements.syntax.tranp.tokenizer import ITokenizer, Token, Toke
 from rogw.tranp.lang.convertion import as_a
 
 
-class Step(NamedTuple):
+class Step:
 	"""マッチングの進行ステップを管理"""
-
-	steping: bool
-	steps: int
 
 	@classmethod
 	def ok(cls, steps: int) -> 'Step':
@@ -32,6 +28,30 @@ class Step(NamedTuple):
 			インスタンス
 		"""
 		return cls(False, 0)
+
+	def __init__(self, steping: bool, steps: int) -> None:
+		"""インスタンスを生成
+
+		Args:
+			steping: True = マッチング成功
+			steps: 進行ステップ数
+		"""
+		self._steping = steping
+		self._steps = steps
+
+	@property
+	def steping(self) -> bool:
+		"""Returns: True = マッチング成功"""
+		return self._steping
+
+	@property
+	def steps(self) -> int:
+		"""Returns: 進行ステップ数"""
+		return self._steps
+
+	def __repr__(self) -> str:
+		"""Returns: シリアライズ表現"""
+		return f'<{self.__class__.__name__}[{"OK" if self.steping else "NG"}]: {self.steps}>'
 
 
 class SyntaxParser:

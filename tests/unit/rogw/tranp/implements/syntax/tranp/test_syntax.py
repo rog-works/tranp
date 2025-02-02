@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from rogw.tranp.implements.syntax.tranp.syntax import SyntaxParser
+from rogw.tranp.implements.syntax.tranp.syntax import ErrorCollector, SyntaxParser
 from rogw.tranp.implements.syntax.tranp.rules import grammar_rules, grammar_tokenizer, python_rules
 from rogw.tranp.implements.syntax.tranp.tokenizer import Tokenizer
 from rogw.tranp.test.helper import data_provider
@@ -145,3 +145,37 @@ class TestSyntaxParser(TestCase):
 		except AssertionError:
 			print(f'AST unmatch. actual: {actual.pretty()}')
 			raise
+
+
+class TestErrorCollector(TestCase):
+	@data_provider([
+		# XXX 末尾に空行があり、0ステップ(=EOF)でエラーになると表示が不自然になる
+		(
+			'\n'.join([
+				'a.b.c',
+				'',
+			]),
+			0,
+			'\n'.join([
+				"cause index: 5, pass: 0/6, token: '\\n'",
+				'(0) >>> ',
+				'        ^',
+			]),
+		),
+		(
+			'\n'.join([
+				'a.b.c',
+				'',
+			]),
+			1,
+			'\n'.join([
+				"cause index: 4, pass: 1/6, token: 'c'",
+				'(1) >>> a.b.c',
+				'            ^',
+			]),
+		),
+	])
+	def test_summary(self, source: str, steps: int, expected: str) -> None:
+		tokens = Tokenizer().parse(source)
+		actual = ErrorCollector(source, tokens, steps).summary()
+		self.assertEqual(expected, actual)

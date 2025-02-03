@@ -25,19 +25,26 @@ int := /0|[1-9]\d*/
 float := /(0|[1-9]\d*)[.]\d+/
 
 // FIXME 演算は一旦非対応
-// exp := or_test
-// or_test := and_test ("or" and_test)*
-// and_test := not_test ("and" not_test_)*
-// not_test := "not" not_test | comparison
-// comparison := sum (comp_op sum)*
-// sum := term (add_op term)*
-// term := factor (mul_op factor)*
-// factor := unary_op factor | primary
-// comp_op := "<" | ">" | "==" | "<=" | ">=" | "!=" | "in" | "not" "in" | "is" | "is" "not"
-// add_op := "+" | "-"
-// mul_op := "*" | "/" | "%"
-// unary_op := "+" | "-"
-// FIXME list | dict | group_exp は一旦非対応
+// exp[1] := or_test
+// or_test[1] := and_test (comp_or and_test)*
+// and_test[1] := not_test (comp_and not_test)*
+// not_test[1] := (comp_op_not_)* comparison
+// comparison[1] := sum (comp_op sum)*
+// sum[1] := term (add_op term)*
+// term[1] := factor (mul_op factor)*
+// factor[1] := (unary_op)* primary
+// comp_or := "or"
+// comp_and := "and"
+// comp_op := comp_op_ | ((comp_op_not_)* comp_op_in_) | (comp_op_is_ (comp_op_not_)*)
+// comp_op_ := /<|>|==|<=|>=|!=/
+// comp_op_in_ := "in"
+// comp_op_is_ := "is"
+// comp_op_not_ := "not"
+// add_op := /[+-]/
+// mul_op := /[*/%]"
+// unary_op := /[+-]/
+// FIXME 以下のatom関連は一旦非対応
+// atom[1] := ... | list | dict | group_exp
 // list := "[" [list_exps] "]"
 // dict := "{" [dict_exps] "}"
 // group_exp := "(" exp ")"

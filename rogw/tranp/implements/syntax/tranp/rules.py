@@ -244,7 +244,7 @@ def grammar_rules() -> Rules:
 			('rule', [
 				('symbol', 'symbol'),
 				('__empty__', ''),
-				('regexp', '/[a-zA-Z_][0-9a-zA-Z_]*/')
+				('regexp', r'/[a-zA-Z_]\w*/')
 			]),
 			('rule', [
 				('symbol', 'string'),

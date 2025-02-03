@@ -79,8 +79,8 @@ class Unwraps(Enum):
 		```
 	"""
 	Off = 'off'
-	OneTime = '?'
-	Always = '_'
+	OneTime = '1'
+	Always = '*'
 
 
 PatternEntry: TypeAlias = 'Pattern | Patterns'
@@ -230,17 +230,18 @@ class Rules(Mapping):
 		Returns:
 			パターン
 		"""
-		if symbol in self._rules:
+		unwrap = self.unwrap_by(symbol)
+		if unwrap == Unwraps.Off:
 			return self._rules[symbol]
-		elif f'{Unwraps.OneTime.value}{symbol}' in self._rules:
-			return self._rules[f'{Unwraps.OneTime.value}{symbol}']
+		elif unwrap == Unwraps.OneTime:
+			return self._rules[f'{symbol}[{Unwraps.OneTime.value}]']
 		else:
-			return self._rules[f'{Unwraps.Always.value}{symbol}']
+			return self._rules[f'{symbol}[{Unwraps.Always.value}]']
 
 	def keys(self) -> Iterator[str]:
 		"""Returns: イテレーター(シンボル名)"""
 		for key in self._rules.keys():
-			yield key[1:] if key[0] in [Unwraps.OneTime.value, Unwraps.Always.value] else key
+			yield key[:key.index('[')] if key.count('[') != 0 else key
 
 	def values(self) -> ValuesView[PatternEntry]:
 		"""Returns: イテレーター(パターン)"""
@@ -249,7 +250,7 @@ class Rules(Mapping):
 	def items(self) -> Iterator[tuple[str, PatternEntry]]:
 		"""Returns: イテレーター(シンボル名, パターン)"""
 		for key, rule in self._rules.items():
-			key_ = key[1:] if key[0] in [Unwraps.OneTime.value, Unwraps.Always.value] else key
+			key_ = key[:key.index('[')] if key.count('[') != 0 else key
 			yield key_, rule
 
 	def org_symbols(self) -> Iterator[str]:
@@ -267,7 +268,7 @@ class Rules(Mapping):
 		"""
 		if symbol in self._rules:
 			return Unwraps.Off
-		elif f'{Unwraps.OneTime.value}{symbol}' in self._rules:
+		elif f'{symbol}[{Unwraps.OneTime.value}]' in self._rules:
 			return Unwraps.OneTime
 		else:
 			return Unwraps.Always
@@ -409,14 +410,29 @@ class ASTSerializer:
 		Args:
 			tree: ASTツリー
 		Returns:
-			(シンボル名, マッチングパターンエントリー)
+			(ルール名, マッチングパターンエントリー)
 		"""
 		assert cls._name(tree) == 'rule', f'Must be name is "rule" from "{cls._name(tree)}"'
 
-		unwrap = cls._fetch_token(tree, 0, 'unwrap', allow_empty=True)
-		symbol = cls._fetch_token(tree, 1, 'symbol')
+		name = cls._for_rule_name(tree)
 		expr = cls._for_expr(cls._children(tree)[2])
-		return f'{cls._value(unwrap)}{cls._value(symbol)}', expr
+		return name, expr
+
+	@classmethod
+	def _for_rule_name(cls, tree: TupleTree) -> str:
+		"""ASTツリーからルール名を復元
+
+		Args:
+			tree: ASTツリー
+		Returns:
+			ルール名
+		"""
+		symbol = cls._fetch_token(tree, 0, 'symbol')
+		unwrap = cls._fetch_token(tree, 1, 'unwrap', allow_empty=True)
+		if cls._name(unwrap) == 'unwrap':
+			return f'{cls._value(symbol)}[{cls._value(unwrap)}]'
+		else:
+			return cls._value(symbol)
 
 	@classmethod
 	def _for_expr(cls, entry: TupleEntry) -> PatternEntry:

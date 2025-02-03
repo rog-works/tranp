@@ -9,14 +9,15 @@ from rogw.tranp.test.helper import data_provider
 class TestSyntaxParser(TestCase):
 	@data_provider([
 		(
-			'a\nb',
+			'a[0:1]',
 			'python',
 			('entry', [
-				('var', [
-					('name', 'a'),
-				]),
-				('var', [
-					('name', 'b'),
+				('indexer', [
+					('var', [
+						('name', 'a'),
+					]),
+					('int', '0'),
+					('int', '1'),
 				]),
 			]),
 		),

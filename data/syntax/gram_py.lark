@@ -8,20 +8,21 @@ exp[1] := primary
 primary[1] := relay | invoke | indexer | atom
 relay := primary "." name
 invoke := primary "(" [args] ")"
-indexer := primary "[" exp "]"
+indexer := primary "[" slice "]"
 atom[1] := var | bool | none | str | int | float
 var := name
 
 // element
-args := exp ("," exp)*
+args := (exp ",")* exp
+slice[*] := (exp ":")* exp
 
 // terminal
-bool := /False|True/
-int := /[1-9]\d*/
-float := /(0|[1-9]\d*)[.]\d+/
-str := /'[^']*'|"[^"]*"/
-none := "None"
 name := /[a-zA-Z_]\w*/
+bool := /False|True/
+none := "None"
+str := /'[^']*'|"[^"]*"/
+int := /0|[1-9]\d*/
+float := /(0|[1-9]\d*)[.]\d+/
 
 // FIXME 演算は一旦非対応
 // exp := or_test

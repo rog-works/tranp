@@ -63,7 +63,7 @@ def python_rules() -> Rules:
 				('terms', [
 					('symbol', 'primary'),
 					('string', '"["'),
-					('symbol', 'exp'),
+					('symbol', 'slice'),
 					('string', '"]"')
 				])
 			]),
@@ -88,15 +88,34 @@ def python_rules() -> Rules:
 				('symbol', 'args'),
 				('__empty__', ''),
 				('terms', [
-					('symbol', 'exp'),
 					('expr_rep', [
 						('terms', [
-							('string', '","'),
-							('symbol', 'exp')
+							('symbol', 'exp'),
+							('string', '","')
 						]),
 						('repeat', '*')
-					])
+					]),
+					('symbol', 'exp')
 				])
+			]),
+			('rule', [
+				('symbol', 'slice'),
+				('unwrap', '*'),
+				('terms', [
+					('expr_rep', [
+						('terms', [
+							('symbol', 'exp'),
+							('string', '":"')
+						]),
+						('repeat', '*')
+					]),
+					('symbol', 'exp')
+				])
+			]),
+			('rule', [
+				('symbol', 'name'),
+				('__empty__', ''),
+				('regexp', r'/[a-zA-Z_]\w*/')
 			]),
 			('rule', [
 				('symbol', 'bool'),
@@ -104,29 +123,24 @@ def python_rules() -> Rules:
 				('regexp', '/False|True/')
 			]),
 			('rule', [
-				('symbol', 'int'),
-				('__empty__', ''),
-				('regexp', '/[1-9]\\d*/')
-			]),
-			('rule', [
-				('symbol', 'float'),
-				('__empty__', ''),
-				('regexp', '/(0|[1-9]\\d*)[.]\\d+/')
-			]),
-			('rule', [
-				('symbol', 'str'),
-				('__empty__', ''),
-				('regexp', '/\'[^\']*\'|"[^"]*"/')
-			]),
-			('rule', [
 				('symbol', 'none'),
 				('__empty__', ''),
 				('string', '"None"')
 			]),
 			('rule', [
-				('symbol', 'name'),
+				('symbol', 'str'),
 				('__empty__', ''),
-				('regexp', '/[a-zA-Z_]\\w*/')
+				('regexp', r'/\'[^\']*\'|"[^"]*"/')
+			]),
+			('rule', [
+				('symbol', 'int'),
+				('__empty__', ''),
+				('regexp', r'/0|[1-9]\d*/')
+			]),
+			('rule', [
+				('symbol', 'float'),
+				('__empty__', ''),
+				('regexp', r'/(0|[1-9]\d*)[.]\d+/')
 			])
 		])
 	)

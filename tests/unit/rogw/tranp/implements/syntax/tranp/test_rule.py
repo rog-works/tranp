@@ -21,18 +21,18 @@ class TestRules(TestCase):
 		(
 			('entry', [
 				('rule', [
-					('__empty__', ''),
 					('symbol', 'entry'),
+					('__empty__', ''),
 					('symbol', 'exp'),
 				]),
 				('rule', [
-					('expand', '?'),
 					('symbol', 'exp'),
+					('unwrap', '1'),
 					('symbol', 'primary'),
 				]),
 				('rule', [
-					('expand', '?'),
 					('symbol', 'primary'),
+					('unwrap', '1'),
 					('terms_or', [
 						('symbol', 'relay'),
 						('symbol', 'invoke'),
@@ -41,8 +41,8 @@ class TestRules(TestCase):
 					]),
 				]),
 				('rule', [
-					('__empty__', ''),
 					('symbol', 'relay'),
+					('__empty__', ''),
 					('terms', [
 						('symbol', 'primary'),
 						('string', '"."'),
@@ -50,8 +50,8 @@ class TestRules(TestCase):
 					]),
 				]),
 				('rule', [
-					('__empty__', ''),
 					('symbol', 'invoke'),
+					('__empty__', ''),
 					('terms', [
 						('symbol', 'primary'),
 						('string', '"("'),
@@ -62,8 +62,8 @@ class TestRules(TestCase):
 					]),
 				]),
 				('rule', [
-					('__empty__', ''),
 					('symbol', 'indexer'),
+					('__empty__', ''),
 					('terms', [
 						('symbol', 'primary'),
 						('string', '"["'),
@@ -72,8 +72,8 @@ class TestRules(TestCase):
 					]),
 				]),
 				('rule', [
-					('__empty__', ''),
 					('symbol', 'args'),
+					('__empty__', ''),
 					('terms', [
 						('symbol', 'exp'),
 						('expr_rep', [
@@ -85,8 +85,8 @@ class TestRules(TestCase):
 			]),
 			'\n'.join([
 				'entry := exp',
-				'?exp := primary',
-				'?primary := relay | invoke | indexer | atom',
+				'exp[1] := primary',
+				'primary[1] := relay | invoke | indexer | atom',
 				'relay := primary "." name',
 				'invoke := primary "(" [args] ")"',
 				'indexer := primary "[" exp "]"',

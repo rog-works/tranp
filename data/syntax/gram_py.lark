@@ -2,14 +2,14 @@
 entry := (exp "\n")+
 
 // expression
-?exp := primary
+exp[1] := primary
 
 // atom
-?primary := relay | invoke | indexer | atom
+primary[1] := relay | invoke | indexer | atom
 relay := primary "." name
 invoke := primary "(" [args] ")"
 indexer := primary "[" exp "]"
-?atom := var | bool | none | str | int | float
+atom[1] := var | bool | none | str | int | float
 var := name
 
 // element

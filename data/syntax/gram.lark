@@ -2,13 +2,13 @@
 entry := (rule)+
 
 // rule
-rule := [unwrap] symbol ":=" expr "\n"
+rule := symbol ["[" unwrap "]"] ":=" expr "\n"
 
 // expression
-?expr := terms_or
-?terms_or := (terms "|")* terms
-?terms := (term)* term
-?term := symbol | string | regexp | expr_opt | expr_rep
+expr[1] := terms_or
+terms_or[1] := (terms "|")* terms
+terms[1] := (term)* term
+term[1] := symbol | string | regexp | expr_opt | expr_rep
 expr_opt := "[" expr "]"
 expr_rep := "(" expr ")" [repeat]
 

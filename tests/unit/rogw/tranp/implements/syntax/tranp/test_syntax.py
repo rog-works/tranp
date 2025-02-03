@@ -47,29 +47,29 @@ class TestSyntaxParser(TestCase):
 		(
 			'\n'.join([
 				'entry := exp',
-				'?exp := primary',
-				'?primary := relay | invoke | indexer | atom',
-				'relay := primary "." name',
-				'invoke := primary "(" [args] ")"',
-				'indexer := primary "[" exp "]"',
+				'exp[1] := atom',
+				'atom[1] := relay | invoke | indexer | atom',
+				'relay := atom "." name',
+				'invoke := atom "(" [args] ")"',
+				'indexer := atom "[" exp "]"',
 				'args := exp (exp)*',
 				'bool := /False|True/'
 			]),
 			'grammar',
 			('entry', [
 				('rule', [
-					('__empty__', ''),
 					('symbol', 'entry'),
+					('__empty__', ''),
 					('symbol', 'exp'),
 				]),
 				('rule', [
-					('unwrap', '?'),
 					('symbol', 'exp'),
-					('symbol', 'primary'),
+					('unwrap', '1'),
+					('symbol', 'atom'),
 				]),
 				('rule', [
-					('unwrap', '?'),
-					('symbol', 'primary'),
+					('symbol', 'atom'),
+					('unwrap', '1'),
 					('terms_or', [
 						('symbol', 'relay'),
 						('symbol', 'invoke'),
@@ -78,19 +78,19 @@ class TestSyntaxParser(TestCase):
 					]),
 				]),
 				('rule', [
-					('__empty__', ''),
 					('symbol', 'relay'),
+					('__empty__', ''),
 					('terms', [
-						('symbol', 'primary'),
+						('symbol', 'atom'),
 						('string', '"."'),
 						('symbol', 'name'),
 					]),
 				]),
 				('rule', [
-					('__empty__', ''),
 					('symbol', 'invoke'),
+					('__empty__', ''),
 					('terms', [
-						('symbol', 'primary'),
+						('symbol', 'atom'),
 						('string', '"("'),
 						('expr_opt', [
 							('symbol', 'args'),
@@ -99,18 +99,18 @@ class TestSyntaxParser(TestCase):
 					]),
 				]),
 				('rule', [
-					('__empty__', ''),
 					('symbol', 'indexer'),
+					('__empty__', ''),
 					('terms', [
-						('symbol', 'primary'),
+						('symbol', 'atom'),
 						('string', '"["'),
 						('symbol', 'exp'),
 						('string', '"]"'),
 					]),
 				]),
 				('rule', [
-					('__empty__', ''),
 					('symbol', 'args'),
+					('__empty__', ''),
 					('terms', [
 						('symbol', 'exp'),
 						('expr_rep', [
@@ -120,8 +120,8 @@ class TestSyntaxParser(TestCase):
 					]),
 				]),
 				('rule', [
-					('__empty__', ''),
 					('symbol', 'bool'),
+					('__empty__', ''),
 					('regexp', '/False|True/'),
 				]),
 			]),

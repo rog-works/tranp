@@ -11,8 +11,8 @@ def python_rules() -> Rules:
 	return Rules.from_ast(
 		('entry', [
 			('rule', [
-				('__empty__', ''),
 				('symbol', 'entry'),
+				('__empty__', ''),
 				('expr_rep', [
 					('terms', [
 						('symbol', 'exp'),
@@ -22,13 +22,13 @@ def python_rules() -> Rules:
 				])
 			]),
 			('rule', [
-				('unwrap', '?'),
 				('symbol', 'exp'),
+				('unwrap', '1'),
 				('symbol', 'primary')
 			]),
 			('rule', [
-				('unwrap', '?'),
 				('symbol', 'primary'),
+				('unwrap', '1'),
 				('terms_or', [
 					('symbol', 'relay'),
 					('symbol', 'invoke'),
@@ -37,8 +37,8 @@ def python_rules() -> Rules:
 				])
 			]),
 			('rule', [
-				('__empty__', ''),
 				('symbol', 'relay'),
+				('__empty__', ''),
 				('terms', [
 					('symbol', 'primary'),
 					('string', '"."'),
@@ -46,8 +46,8 @@ def python_rules() -> Rules:
 				])
 			]),
 			('rule', [
-				('__empty__', ''),
 				('symbol', 'invoke'),
+				('__empty__', ''),
 				('terms', [
 					('symbol', 'primary'),
 					('string', '"("'),
@@ -58,8 +58,8 @@ def python_rules() -> Rules:
 				])
 			]),
 			('rule', [
-				('__empty__', ''),
 				('symbol', 'indexer'),
+				('__empty__', ''),
 				('terms', [
 					('symbol', 'primary'),
 					('string', '"["'),
@@ -68,8 +68,8 @@ def python_rules() -> Rules:
 				])
 			]),
 			('rule', [
-				('unwrap', '?'),
 				('symbol', 'atom'),
+				('unwrap', '1'),
 				('terms_or', [
 					('symbol', 'var'),
 					('symbol', 'bool'),
@@ -80,13 +80,13 @@ def python_rules() -> Rules:
 				])
 			]),
 			('rule', [
-				('__empty__', ''),
 				('symbol', 'var'),
+				('__empty__', ''),
 				('symbol', 'name')
 			]),
 			('rule', [
-				('__empty__', ''),
 				('symbol', 'args'),
+				('__empty__', ''),
 				('terms', [
 					('symbol', 'exp'),
 					('expr_rep', [
@@ -99,33 +99,33 @@ def python_rules() -> Rules:
 				])
 			]),
 			('rule', [
-				('__empty__', ''),
 				('symbol', 'bool'),
+				('__empty__', ''),
 				('regexp', '/False|True/')
 			]),
 			('rule', [
-				('__empty__', ''),
 				('symbol', 'int'),
+				('__empty__', ''),
 				('regexp', '/[1-9]\\d*/')
 			]),
 			('rule', [
-				('__empty__', ''),
 				('symbol', 'float'),
+				('__empty__', ''),
 				('regexp', '/(0|[1-9]\\d*)[.]\\d+/')
 			]),
 			('rule', [
-				('__empty__', ''),
 				('symbol', 'str'),
+				('__empty__', ''),
 				('regexp', '/\'[^\']*\'|"[^"]*"/')
 			]),
 			('rule', [
-				('__empty__', ''),
 				('symbol', 'none'),
+				('__empty__', ''),
 				('string', '"None"')
 			]),
 			('rule', [
-				('__empty__', ''),
 				('symbol', 'name'),
+				('__empty__', ''),
 				('regexp', '/[a-zA-Z_]\\w*/')
 			])
 		])
@@ -141,34 +141,38 @@ def grammar_rules() -> Rules:
 	return Rules.from_ast(
 		('entry', [
 			('rule', [
-				('__empty__', ''),
 				('symbol', 'entry'),
+				('__empty__', ''),
 				('expr_rep', [
 					('symbol', 'rule'),
 					('repeat', '+')
 				])
 			]),
 			('rule', [
-				('__empty__', ''),
 				('symbol', 'rule'),
+				('__empty__', ''),
 				('terms', [
-					('expr_opt', [
-						('symbol', 'unwrap')
-					]),
 					('symbol', 'symbol'),
+					('expr_opt', [
+						('terms', [
+							('string', '"["'),
+							('symbol', 'unwrap'),
+							('string', '"]"')
+						]),
+					]),
 					('string', '":="'),
 					('symbol', 'expr'),
 					('string', '"\n"')
 				])
 			]),
 			('rule', [
-				('unwrap', '?'),
 				('symbol', 'expr'),
+				('unwrap', '1'),
 				('symbol', 'terms_or')
 			]),
 			('rule', [
-				('unwrap', '?'),
 				('symbol', 'terms_or'),
+				('unwrap', '1'),
 				('terms', [
 					('expr_rep', [
 						('terms', [
@@ -181,8 +185,8 @@ def grammar_rules() -> Rules:
 				])
 			]),
 			('rule', [
-				('unwrap', '?'),
 				('symbol', 'terms'),
+				('unwrap', '1'),
 				('terms', [
 					('expr_rep', [
 						('symbol', 'term'),
@@ -192,8 +196,8 @@ def grammar_rules() -> Rules:
 				])
 			]),
 			('rule', [
-				('unwrap', '?'),
 				('symbol', 'term'),
+				('unwrap', '1'),
 				('terms_or', [
 					('symbol', 'symbol'),
 					('symbol', 'string'),
@@ -203,8 +207,8 @@ def grammar_rules() -> Rules:
 				])
 			]),
 			('rule', [
-				('__empty__', ''),
 				('symbol', 'expr_opt'),
+				('__empty__', ''),
 				('terms', [
 					('string', '"["'),
 					('symbol', 'expr'),
@@ -212,8 +216,8 @@ def grammar_rules() -> Rules:
 				])
 			]),
 			('rule', [
-				('__empty__', ''),
 				('symbol', 'expr_rep'),
+				('__empty__', ''),
 				('terms', [
 					('string', '"("'),
 					('symbol', 'expr'),
@@ -224,29 +228,29 @@ def grammar_rules() -> Rules:
 				])
 			]),
 			('rule', [
-				('__empty__', ''),
 				('symbol', 'symbol'),
+				('__empty__', ''),
 				('regexp', '/[a-zA-Z_][0-9a-zA-Z_]*/')
 			]),
 			('rule', [
-				('__empty__', ''),
 				('symbol', 'string'),
+				('__empty__', ''),
 				('regexp', '/"[^"]+"/')
 			]),
 			('rule', [
-				('__empty__', ''),
 				('symbol', 'regexp'),
+				('__empty__', ''),
 				('regexp', '/[\\/].+[\\/]/')
 			]),
 			('rule', [
-				('__empty__', ''),
 				('symbol', 'repeat'),
+				('__empty__', ''),
 				('regexp', '/[*+?]/')
 			]),
 			('rule', [
-				('__empty__', ''),
 				('symbol', 'unwrap'),
-				('regexp', '/[_?]/')
+				('__empty__', ''),
+				('regexp', '/[1*]/')
 			])
 		])
 	)

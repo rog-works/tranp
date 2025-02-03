@@ -11,8 +11,8 @@ def python_rules() -> Rules:
 	return Rules.from_ast(
 		('entry', [
 			('rule', [
-				('__empty__', ''),
 				('symbol', 'entry'),
+				('__empty__', ''),
 				('expr_rep', [
 					('terms', [
 						('symbol', 'exp'),
@@ -22,13 +22,13 @@ def python_rules() -> Rules:
 				])
 			]),
 			('rule', [
-				('unwrap', '1'),
 				('symbol', 'exp'),
+				('unwrap', '1'),
 				('symbol', 'primary')
 			]),
 			('rule', [
-				('unwrap', '1'),
 				('symbol', 'primary'),
+				('unwrap', '1'),
 				('terms_or', [
 					('symbol', 'relay'),
 					('symbol', 'invoke'),
@@ -37,8 +37,8 @@ def python_rules() -> Rules:
 				])
 			]),
 			('rule', [
-				('__empty__', ''),
 				('symbol', 'relay'),
+				('__empty__', ''),
 				('terms', [
 					('symbol', 'primary'),
 					('string', '"."'),
@@ -46,8 +46,8 @@ def python_rules() -> Rules:
 				])
 			]),
 			('rule', [
-				('__empty__', ''),
 				('symbol', 'invoke'),
+				('__empty__', ''),
 				('terms', [
 					('symbol', 'primary'),
 					('string', '"("'),
@@ -58,8 +58,8 @@ def python_rules() -> Rules:
 				])
 			]),
 			('rule', [
-				('__empty__', ''),
 				('symbol', 'indexer'),
+				('__empty__', ''),
 				('terms', [
 					('symbol', 'primary'),
 					('string', '"["'),
@@ -68,8 +68,8 @@ def python_rules() -> Rules:
 				])
 			]),
 			('rule', [
-				('unwrap', '1'),
 				('symbol', 'atom'),
+				('unwrap', '1'),
 				('terms_or', [
 					('symbol', 'var'),
 					('symbol', 'bool'),
@@ -80,13 +80,13 @@ def python_rules() -> Rules:
 				])
 			]),
 			('rule', [
-				('__empty__', ''),
 				('symbol', 'var'),
+				('__empty__', ''),
 				('symbol', 'name')
 			]),
 			('rule', [
-				('__empty__', ''),
 				('symbol', 'args'),
+				('__empty__', ''),
 				('terms', [
 					('symbol', 'exp'),
 					('expr_rep', [
@@ -99,33 +99,33 @@ def python_rules() -> Rules:
 				])
 			]),
 			('rule', [
-				('__empty__', ''),
 				('symbol', 'bool'),
+				('__empty__', ''),
 				('regexp', '/False|True/')
 			]),
 			('rule', [
-				('__empty__', ''),
 				('symbol', 'int'),
+				('__empty__', ''),
 				('regexp', '/[1-9]\\d*/')
 			]),
 			('rule', [
-				('__empty__', ''),
 				('symbol', 'float'),
+				('__empty__', ''),
 				('regexp', '/(0|[1-9]\\d*)[.]\\d+/')
 			]),
 			('rule', [
-				('__empty__', ''),
 				('symbol', 'str'),
+				('__empty__', ''),
 				('regexp', '/\'[^\']*\'|"[^"]*"/')
 			]),
 			('rule', [
-				('__empty__', ''),
 				('symbol', 'none'),
+				('__empty__', ''),
 				('string', '"None"')
 			]),
 			('rule', [
-				('__empty__', ''),
 				('symbol', 'name'),
+				('__empty__', ''),
 				('regexp', '/[a-zA-Z_]\\w*/')
 			])
 		])

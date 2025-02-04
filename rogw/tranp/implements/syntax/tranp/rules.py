@@ -15,16 +15,174 @@ def python_rules() -> Rules:
 				('__empty__', ''),
 				('expr_rep', [
 					('terms', [
-						('symbol', 'exp'),
+						('symbol', 'expr'),
 						('string', '"\n"')
 					]),
 					('repeat', '+')
 				])
 			]),
 			('rule', [
-				('symbol', 'exp'),
+				('symbol', 'expr'),
 				('unwrap', '1'),
-				('symbol', 'primary')
+				('symbol', 'comp_or')
+			]),
+			('rule', [
+				('symbol', 'comp_or'),
+				('unwrap', '1'),
+				('terms', [
+					('expr_rep', [
+						('terms', [
+							('symbol', 'comp_and'),
+							('symbol', 'op_or')
+						]),
+						('repeat', '*')
+					]),
+					('symbol', 'comp_and')
+				])
+			]),
+			('rule', [
+				('symbol', 'comp_and'),
+				('unwrap', '1'),
+				('terms', [
+					('expr_rep', [
+						('terms', [
+							('symbol', 'comp_not'),
+							('symbol', 'op_and')
+						]),
+						('repeat', '*')
+					]),
+					('symbol', 'comp_not')
+				])
+			]),
+			('rule', [
+				('symbol', 'comp_not'),
+				('unwrap', '1'),
+				('terms', [
+					('expr_rep', [
+						('symbol', 'op_not'),
+						('repeat', '?')
+					]),
+					('symbol', 'comparison')
+				])
+			]),
+			('rule', [
+				('symbol', 'comparison'),
+				('unwrap', '1'),
+				('terms', [
+					('expr_rep', [
+						('terms', [
+							('symbol', 'calc_sum'),
+							('symbol', 'op_comp')
+						]),
+						('repeat', '*')
+					]),
+					('symbol', 'calc_sum')
+				])
+			]),
+			('rule', [
+				('symbol', 'calc_sum'),
+				('unwrap', '1'),
+				('terms', [
+					('expr_rep', [
+						('terms', [
+							('symbol', 'calc_mul'),
+							('symbol', 'op_add')
+						]),
+						('repeat', '*')
+					]),
+					('symbol', 'calc_mul')
+				])
+			]),
+			('rule', [
+				('symbol', 'calc_mul'),
+				('unwrap', '1'),
+				('terms', [
+					('expr_rep', [
+						('terms', [
+							('symbol', 'calc_unary'),
+							('symbol', 'op_mul')
+						]),
+						('repeat', '*')
+					]),
+					('symbol', 'calc_unary')
+				])
+			]),
+			('rule', [
+				('symbol', 'calc_unary'),
+				('unwrap', '1'),
+				('terms', [
+					('expr_rep', [
+						('symbol', 'op_unary'),
+						('repeat', '?')
+					]),
+					('symbol', 'primary')
+				])
+			]),
+			('rule', [
+				('symbol', 'op_or'),
+				('__empty__', ''),
+				('string', '"or"')
+			]),
+			('rule', [
+				('symbol', 'op_and'),
+				('__empty__', ''),
+				('string', '"and"')
+			]),
+			('rule', [
+				('symbol', 'op_in'),
+				('__empty__', ''),
+				('string', '"in"')
+			]),
+			('rule', [
+				('symbol', 'op_is'),
+				('__empty__', ''),
+				('string', '"is"')
+			]),
+			('rule', [
+				('symbol', 'op_not'),
+				('__empty__', ''),
+				('string', '"not"')
+			]),
+			('rule', [
+				('symbol', 'op_comp'),
+				('__empty__', ''),
+				('terms_or', [
+					('symbol', 'op_comp_s'),
+					('terms', [
+						('expr_rep', [
+							('symbol', 'op_not'),
+							('repeat', '?')
+						]),
+						('symbol', 'op_in')
+					]),
+					('terms', [
+						('symbol', 'op_is'),
+						('expr_rep', [
+							('symbol', 'op_not'),
+							('repeat', '?')
+						])
+					])
+				])
+			]),
+			('rule', [
+				('symbol', 'op_comp_s'),
+				('__empty__', ''),
+				('regexp', r'/==|!=|<=|>=|<|>/')
+			]),
+			('rule', [
+				('symbol', 'op_add'),
+				('__empty__', ''),
+				('regexp', r'/[+-]/')
+			]),
+			('rule', [
+				('symbol', 'op_mul'),
+				('__empty__', ''),
+				('regexp', r'/[*\/%]/')
+			]),
+			('rule', [
+				('symbol', 'op_unary'),
+				('__empty__', ''),
+				('regexp', r'/[+-]/')
 			]),
 			('rule', [
 				('symbol', 'primary'),
@@ -71,12 +229,13 @@ def python_rules() -> Rules:
 				('symbol', 'atom'),
 				('unwrap', '1'),
 				('terms_or', [
-					('symbol', 'var'),
 					('symbol', 'bool'),
 					('symbol', 'none'),
+					('symbol', 'var'),
 					('symbol', 'str'),
 					('symbol', 'int'),
-					('symbol', 'float')
+					('symbol', 'float'),
+					('symbol', 'group_expr')
 				])
 			]),
 			('rule', [
@@ -85,17 +244,26 @@ def python_rules() -> Rules:
 				('symbol', 'name')
 			]),
 			('rule', [
+				('symbol', 'group_expr'),
+				('__empty__', ''),
+				('terms', [
+					('string', '"("'),
+					('symbol', 'expr'),
+					('string', '")"')
+				])
+			]),
+			('rule', [
 				('symbol', 'args'),
 				('__empty__', ''),
 				('terms', [
 					('expr_rep', [
 						('terms', [
-							('symbol', 'exp'),
+							('symbol', 'expr'),
 							('string', '","')
 						]),
 						('repeat', '*')
 					]),
-					('symbol', 'exp')
+					('symbol', 'expr')
 				])
 			]),
 			('rule', [
@@ -104,28 +272,28 @@ def python_rules() -> Rules:
 				('terms', [
 					('expr_rep', [
 						('terms', [
-							('symbol', 'exp'),
+							('symbol', 'expr'),
 							('string', '":"')
 						]),
 						('repeat', '*')
 					]),
-					('symbol', 'exp')
+					('symbol', 'expr')
 				])
-			]),
-			('rule', [
-				('symbol', 'name'),
-				('__empty__', ''),
-				('regexp', r'/[a-zA-Z_]\w*/')
 			]),
 			('rule', [
 				('symbol', 'bool'),
 				('__empty__', ''),
-				('regexp', '/False|True/')
+				('regexp', r'/False|True/')
 			]),
 			('rule', [
 				('symbol', 'none'),
 				('__empty__', ''),
 				('string', '"None"')
+			]),
+			('rule', [
+				('symbol', 'name'),
+				('__empty__', ''),
+				('regexp', r'/[a-zA-Z_]\w*/')
 			]),
 			('rule', [
 				('symbol', 'str'),

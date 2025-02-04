@@ -1,31 +1,55 @@
 // entry
-entry := (exp "\n")+
+entry := (expr "\n")+
 
 // expression
-exp[1] := primary
+expr[1] := comp_or
+
+// operation - comparison
+comp_or[1] := (comp_and op_or)* comp_and
+comp_and[1] := (comp_not op_and)* comp_not
+comp_not[1] := (op_not)? comparison
+comparison[1] := (calc_sum op_comp)* calc_sum
+
+// operation - arithmetic
+calc_sum[1] := (calc_mul op_add)* calc_mul
+calc_mul[1] := (calc_unary op_mul)* calc_unary
+calc_unary[1] := (op_unary)? primary
+
+// operation - operator
+op_or := "or"
+op_and := "and"
+op_in := "in"
+op_is := "is"
+op_not := "not"
+op_comp := op_comp_s | (op_not)? op_in | op_is (op_not)?
+op_comp_s := /==|!=|<=|>=|<|>/
+op_add := /[+-]/
+op_mul := /[*\/%]/
+op_unary := /[+-]/
 
 // atom
 primary[1] := relay | invoke | indexer | atom
 relay := primary "." name
 invoke := primary "(" [args] ")"
 indexer := primary "[" slice "]"
-atom[1] := var | bool | none | str | int | float
+atom[1] := bool | none | var | str | int | float | group_expr
 var := name
+group_expr := "(" expr ")"
 
 // element
-args := (exp ",")* exp
-slice[*] := (exp ":")* exp
+args := (expr ",")* expr
+slice[*] := (expr ":")* expr
 
 // terminal
-name := /[a-zA-Z_]\w*/
 bool := /False|True/
 none := "None"
+name := /[a-zA-Z_]\w*/
 str := /'[^']*'|"[^"]*"/
 int := /0|[1-9]\d*/
 float := /(0|[1-9]\d*)[.]\d+/
 
 // FIXME 演算は一旦非対応
-// exp[1] := or_test
+// expr[1] := or_test
 // or_test[1] := and_test (comp_or and_test)*
 // and_test[1] := not_test (comp_and not_test)*
 // not_test[1] := (comp_op_not_)* comparison
@@ -47,7 +71,7 @@ float := /(0|[1-9]\d*)[.]\d+/
 // atom[1] := ... | list | dict | group_exp
 // list := "[" [list_exps] "]"
 // dict := "{" [dict_exps] "}"
-// group_exp := "(" exp ")"
-// list_exps := exp ("," exp)*
+// group_exp := "(" expr ")"
+// list_exps := expr ("," expr)*
 // dict_exps := dict_pair ("," dict_pair)*
-// dict_pair := exp ":" exp
+// dict_pair := expr ":" expr

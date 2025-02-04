@@ -110,12 +110,16 @@ class SyntaxParser:
 		Returns:
 			(ステップ, ASTエントリー)
 		"""
+		# 参照ステートがブロック中か判定
 		symbol = DSN.right(path, 1)
-		state = begin, symbol
-		if state in self._states:
+		on_state = begin, symbol
+		if on_state in self._states:
 			return Step.ng(), ASTToken.empty()
 
-		self._states[state] = True
+		# 左再帰を開始したステートをブロックリストに登録
+		if path.count(symbol) > 1:
+			block_state = begin, DSN.elements(path)[-2]
+			self._states[block_state] = True
 
 		pattern = self.rules[symbol]
 		if isinstance(pattern, Pattern) and pattern.role == Roles.Terminal:
@@ -206,6 +210,9 @@ class SyntaxParser:
 			XXX これは、0個以上にマッチする条件(OverZero/OneOrZero/OneOrEmpty)が存在する仕様に起因する
 			```
 		"""
+		# AND条件の先頭の左再帰は同じ条件の繰り返しによって本来は無限ループするが、ブロックリストによって1回以上評価されない
+		# これにより並列条件が順に進み、最終的に非終端要素によってこのAND条件の先頭要素が解決される
+		# これを基点に後続要素のマッチングを反復することで、期待するASTの構築が完了する
 		first = patterns[0]
 		if isinstance(first, Pattern) and first.role == Roles.Symbol and path.find(first.expression) != -1:
 			first_step, first_children = self._match_entry(tokens, begin, patterns[0], path)
@@ -217,31 +224,36 @@ class SyntaxParser:
 			steps = first_step.steps
 			children_list: list[list[ASTEntry]] = []
 			while not finish:
-				count = 1
+				# 先頭要素の後続のみ反復し、一致しなくなるまで繰り返す
+				ok_count = 1
+				in_steps = 0
 				children: list[ASTEntry] = []
 				for index in range(len(patterns)):
 					if index == 0:
 						continue
 
-					in_step, in_children = self._match_entry(tokens, begin + steps, patterns[index], path)
+					in_step, in_children = self._match_entry(tokens, begin + steps + in_steps, patterns[index], path)
 					if not in_step.steping:
 						finish = True
 						break
 
 					children.extend(in_children)
-					steps += in_step.steps
-					count += 1
+					in_steps += in_step.steps
+					ok_count += 1
 
-				if count == len(patterns):
+				if ok_count == len(patterns):
 					ok = True
 					children_list.append(children)
+					steps += in_steps
 
 			if not ok:
 				return Step.ng(), []
 
-			begin_entry = as_a(ASTTree, first_children).children[0]
+			# 先にマッチしたエントリーを内側にラップしてASTを構築
+			symbol = DSN.right(path, 1)
+			begin_entry = first_children[0]
 			for in_children in children_list:
-				begin_entry = ASTTree(first.expression, [begin_entry, *in_children])
+				begin_entry = self._unwrap_children(symbol, [begin_entry, *in_children])
 
 			return Step.ok(steps), [begin_entry]
 		else:
@@ -281,7 +293,7 @@ class SyntaxParser:
 
 			found += 1
 			steps += in_step.steps
-			children.extend(reversed(in_children))
+			children.extend(in_children)
 
 			if patterns.rep in [Repeators.OneOrZero, Repeators.OneOrEmpty]:
 				break
@@ -294,7 +306,7 @@ class SyntaxParser:
 			else:
 				return Step.ng(), []
 
-		return Step.ok(steps), list(reversed(children))
+		return Step.ok(steps), children
 
 	def _match_terminal(self, tokens: list[Token], begin: int, pattern: Pattern, path: str) -> tuple[Step, Token]:
 		"""パターン(終端/非終端要素)を検証し、マッチしたトークンを返す

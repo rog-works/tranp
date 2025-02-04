@@ -96,7 +96,7 @@ class SyntaxParser:
 		step, entry = self._match_symbol(tokens, 0, entrypoint)
 		if step.steps != length:
 			message = ErrorCollector(source, tokens, step.steps).summary()
-			raise ValueError(f'Syntax parse error. First token not reached. {message}')
+			raise ValueError(f'Syntax parse error. Last token not reached. {message}')
 
 		return entry
 
@@ -345,14 +345,7 @@ class SyntaxParser:
 
 
 class ErrorCollector:
-	"""エラー出力ユーティリティー
-
-	Note:
-		```
-		XXX 現状のSyntaxParserの解析手法を考慮すると、エラーの発生個所(=進捗停止位置)はほぼ改行であると予想されるため、エラーメッセージが意味を成さない懸念がある
-		XXX SyntaxParserに最も進行したステップを記録するように修正し、それを基にエラー発生個所を見出す方法を検討
-		```
-	"""
+	"""エラー出力ユーティリティー"""
 
 	def __init__(self, source: str, tokens: list[Token], steps: int) -> None:
 		"""インスタンスを生成
@@ -375,8 +368,7 @@ class ErrorCollector:
 	def _progress(self) -> str:
 		"""Returns: 進捗"""
 		total = len(self.tokens)
-		remain = total - self.steps
-		return f'cause index: {remain - 1}, pass: {self.steps}/{total}, token: {repr(self._cause_token.string)}'
+		return f'pass: {self.steps}/{total}, token: {repr(self._cause_token.string)}'
 
 	def _quotation_lines(self) -> list[str]:
 		"""Returns: 該当行の引用"""
@@ -390,8 +382,7 @@ class ErrorCollector:
 	@property
 	def _cause_token(self) -> Token:
 		"""Returns: 該当トークン"""
-		last = len(self.tokens) - 1
-		return self.tokens[last - self.steps]
+		return self.tokens[self.steps]
 
 	@property
 	def _cause_source_map(self) -> Token.SourceMap:

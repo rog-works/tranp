@@ -158,9 +158,9 @@ class TestErrorCollector(TestCase):
 				'a.b.c',
 				'',
 			]),
-			0,
+			5,
 			'\n'.join([
-				"cause index: 5, pass: 0/6, token: '\\n'",
+				"pass: 5/6, token: '\\n'",
 				'(0) >>> ',
 				'        ^',
 			]),
@@ -172,9 +172,9 @@ class TestErrorCollector(TestCase):
 			]),
 			1,
 			'\n'.join([
-				"cause index: 4, pass: 1/6, token: 'c'",
+				"pass: 1/6, token: '.'",
 				'(1) >>> a.b.c',
-				'            ^',
+				'         ^',
 			]),
 		),
 	])

@@ -130,14 +130,14 @@ class SyntaxParser:
 			step, children = self._match_entry(tokens, begin, pattern, path)
 			return step, self._unwrap_children(symbol, children)
 
-	def _unwrap_children(self, symbol: str, children: list[ASTEntry]) -> ASTEntry:
-		"""子のASTエントリーを展開し、ASTエントリーを生成
+	def _unwrap_children(self, symbol: str, children: list[ASTEntry]) -> ASTTree:
+		"""子のASTエントリーを展開し、ASTツリーを生成
 
 		Args:
 			symbol: シンボル
 			children: 配下要素
 		Returns:
-			ASTエントリー
+			ASTツリー
 		"""
 		unwraped: list[ASTEntry] = []
 		for child in children:
@@ -251,11 +251,11 @@ class SyntaxParser:
 
 			# 先にマッチしたエントリーを内側にラップしてASTを構築
 			symbol = DSN.right(path, 1)
-			begin_entry = first_children[0]
+			wrap_tree = as_a(ASTTree, first_children[0])
 			for in_children in children_list:
-				begin_entry = self._unwrap_children(symbol, [begin_entry, *in_children])
+				wrap_tree = self._unwrap_children(symbol, [wrap_tree, *in_children])
 
-			return Step.ok(steps), [begin_entry]
+			return Step.ok(steps), wrap_tree.children
 		else:
 			steps = 0
 			children: list[ASTEntry] = []

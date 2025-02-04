@@ -135,7 +135,7 @@ class Pattern:
 		return f'<{self.__class__.__name__}: {repr(self.expression)}>'
 
 
-class Patterns(Sequence):
+class Patterns(Sequence[PatternEntry]):
 	"""マッチングパターングループ"""
 
 	def __init__(self, entries: list[PatternEntry], op: Operators = Operators.And, rep: Repeators = Repeators.NoRepeat) -> None:

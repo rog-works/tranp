@@ -276,11 +276,11 @@ class SyntaxParser:
 		if not extend_step.steping:
 			return Step.ng(), []
 
-		step, children = self._match_and_recursive_remain(tokens, context.step(extend_step.steps), patterns, route, extend_children)
-		if not step.steping:
+		symbol = DSN.right(route, 1)
+		if extend_children[0].name != symbol:
 			return Step.ng(), []
 
-		return Step.ok(extend_step.steps + step.steps + 1), children
+		return Step.ok(extend_step.steps + 1), as_a(ASTTree, extend_children[0]).children
 
 	def _match_and_recursive_first(self, tokens: list[Token], context: Context, patterns: Patterns, route: str) -> tuple[Step, list[ASTEntry]]:
 		"""パターングループ(AND/左再帰/先頭要素)を検証し、子のASTエントリーを生成
@@ -329,34 +329,6 @@ class SyntaxParser:
 
 		if len(children) == 0:
 			return Step.ng(), []
-
-		return Step.ok(steps), children
-
-	def _match_and_recursive_remain(self, tokens: list[Token], context: Context, patterns: Patterns, route: str, step_children: list[ASTEntry]) -> tuple[Step, list[ASTEntry]]:
-		"""パターングループ(AND/左再帰/後続要素)を検証し、子のASTエントリーを生成
-
-		Args:
-			tokens: トークンリスト
-			context: コンテキスト
-			patterns: マッチングパターングループ
-			route: 探索ルート
-			step_children: 解析済みのASTエントリーリスト
-		Returns:
-			(ステップ, ASTエントリーリスト)
-		"""
-		steps = 0
-		children = step_children.copy()
-		for index, in_pattern in enumerate(patterns):
-			if index < 1:
-				continue
-
-			in_context = Context(context.pos + steps, 1, -1)
-			in_step, in_children = self._match_entry(tokens, in_context, in_pattern, route)
-			if not in_step.steping:
-				return Step.ng(), []
-
-			children.extend(in_children)
-			steps += in_step.steps
 
 		return Step.ok(steps), children
 

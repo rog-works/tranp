@@ -3,6 +3,7 @@ from enum import Enum
 import re
 from typing import Iterator, TypeAlias, ValuesView, cast
 
+from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.implements.syntax.tranp.ast import TupleEntry, TupleToken, TupleTree
 from rogw.tranp.lang.convertion import as_a
 
@@ -276,6 +277,42 @@ class Rules(Mapping):
 	def pretty(self) -> str:
 		"""Returns: フォーマット文字列"""
 		return Prettier.pretty(self)
+
+	def step_by(self, pattern: PatternEntry) -> int:
+		symbol = list(self._rules.keys())[0]
+		path, step = self.__step_by(pattern, self._rules[symbol], symbol, symbol, 0)
+		assert path != '', f'Never. pattern: {pattern.__repr__()}'
+		return step
+
+	def __step_by(self, target: PatternEntry, pattern: PatternEntry, start_symbol: str, path: str, step: int) -> tuple[str, int]:
+		if isinstance(pattern, Pattern):
+			return (path, step) if target == pattern else ('', 0)
+
+		for index in range(len(pattern)):
+			in_pattern = pattern[index]
+			in_offset = 0 if pattern.op == Operators.Or else index
+			if isinstance(in_pattern, Pattern) and in_pattern.role == Roles.Symbol:
+				new_step = 0 if start_symbol == in_pattern.expression else step
+				in_symbol, in_step = self.__step_by(target, self._rules[in_pattern.expression], start_symbol, DSN.join(path, in_pattern.expression), new_step + in_offset)
+			else:
+				in_symbol, in_step = self.__step_by(target, in_pattern, start_symbol, path, step + in_offset)
+
+			if in_symbol != '':
+				return in_symbol, in_step + in_offset
+
+		return '', 0
+
+	def recursive_by(self, pattern: PatternEntry) -> bool:
+		if isinstance(pattern, Patterns):
+			return False
+		elif pattern.role == Roles.Terminal:
+			return False
+
+		symbol = list(self._rules.keys())[0]
+		path, step = self.__step_by(pattern, self._rules[symbol], pattern.expression, symbol, 0)
+		assert path != '', f'Never. pattern: {pattern.__repr__()}'
+
+		return step == 0 and path.find(pattern.expression) > 1
 
 
 class Prettier:

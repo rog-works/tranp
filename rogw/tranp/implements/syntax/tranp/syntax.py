@@ -269,8 +269,8 @@ class SyntaxParser:
 			(ステップ, ASTエントリーリスト)
 		"""
 		first_step, first_children = self._match_and_recursive_first(tokens, context, patterns, route)
-		if not first_step.steping or first_step.steps != 1:
-			raise ValueError(f'Unexpected result. step: {first_step.__repr__()}, context: {context}, route: {route}')
+		if not first_step.steping:
+			return Step.ng(), []
 
 		extend_step, extend_children = self._match_and_recursive_extend(tokens, context, patterns, route, first_children)
 		if not extend_step.steping:
@@ -296,6 +296,9 @@ class SyntaxParser:
 		first_pattern = as_a(Pattern, patterns[0])
 		first_context = Context(context.pos, -1, 1)
 		step, children = self._match_entry(tokens, first_context, first_pattern, route)
+		if not step.steping:
+			return Step.ng(), []
+
 		return step, self._unwarp_recursive_children(first_pattern, route, children)
 	
 	def _match_and_recursive_extend(self, tokens: list[Token], context: Context, patterns: Patterns, route: str, step_children: list[ASTEntry]) -> tuple[Step, list[ASTEntry]]:

@@ -129,7 +129,7 @@ class TestSyntaxParser(TestCase):
 				]),
 			]),
 		),
-	])
+	], includes=[1])
 	def test_parse(self, source: str, lang: str, expected: tuple) -> None:
 		rule_provider = {
 			'python': python_rules,

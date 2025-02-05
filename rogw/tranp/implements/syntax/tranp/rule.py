@@ -132,6 +132,9 @@ class Pattern:
 		"""Returns: シリアライズ表現"""
 		return f'<{self.__class__.__name__}: {repr(self.expression)}>'
 
+	def size(self) -> int:
+		return 1
+
 
 class Patterns(Sequence['Pattern | Patterns']):
 	"""マッチングパターングループ"""
@@ -178,6 +181,19 @@ class Patterns(Sequence['Pattern | Patterns']):
 			entries = f'({self.op.value} x{len(self.entries)}){self.rep.value}'
 
 		return f'<{self.__class__.__name__}: {entries} at {hex(id(self)).upper()}]>'
+
+	def size(self) -> int:
+		if self.rep in [Repeators.OverZero, Repeators.OneOrZero, Repeators.OneOrEmpty]:
+			return 0
+		elif self.rep != Repeators.NoRepeat or self.op == Operators.Or:
+			return 1
+		else:
+			size = 0
+			for entry in self.entries:
+				if not (isinstance(entry, Patterns) and entry.rep in [Repeators.OverZero, Repeators.OneOrZero, Repeators.OneOrEmpty]):
+					size += 1
+
+			return size
 
 
 PatternEntry: TypeAlias = 'Pattern | Patterns'

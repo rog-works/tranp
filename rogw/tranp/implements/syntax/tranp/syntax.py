@@ -299,7 +299,7 @@ class SyntaxParser:
 		if not step.steping:
 			return Step.ng(), []
 
-		return step, self._unwrap_recursive_children(first_pattern, route, children)[1]
+		return step, [self._unwrap_recursive_children(first_pattern, route, children)]
 	
 	def _match_and_recursive_extend(self, tokens: list[Token], context: Context, patterns: Patterns, route: str, step_children: list[ASTEntry]) -> tuple[Step, list[ASTEntry]]:
 		"""パターングループ(AND/左再帰/先頭要素の拡張)を検証し、子のASTエントリーを生成
@@ -322,8 +322,9 @@ class SyntaxParser:
 			if not in_step.steping:
 				break
 
-			symbol, unwrapped = self._unwrap_recursive_children(first_pattern, route, in_children)
-			children: list[ASTEntry] = [ASTTree(symbol, [*children, *unwrapped])]
+			unwrap_tree = as_a(ASTTree, self._unwrap_recursive_children(first_pattern, route, in_children))
+			expect_tree = ASTTree(unwrap_tree.name, [*children, *unwrap_tree.children])
+			children: list[ASTEntry] = [expect_tree]
 			steps += in_step.steps
 
 		if len(children) == 0:
@@ -331,7 +332,7 @@ class SyntaxParser:
 
 		return Step.ok(steps), children
 
-	def _unwrap_recursive_children(self, first_pattern: Pattern, route: str, children: list[ASTEntry]) -> tuple[str, list[ASTEntry]]:
+	def _unwrap_recursive_children(self, first_pattern: Pattern, route: str, children: list[ASTEntry]) -> ASTEntry:
 		"""再帰処理によって取得したASTエントリーから不要な階層を展開
 
 		Args:
@@ -339,21 +340,19 @@ class SyntaxParser:
 			route: 探索ルート
 			children: 再帰処理中のASTエントリーリスト
 		Returns:
-			(最後のシンボル名, ASTエントリーリスト)
+			ASTツリー
 		"""
-		begin = route.find(first_pattern.expression)
+		begin = route.rfind(first_pattern.expression)
 		count = DSN.elem_counts(route[begin:])
-		unwrapped = children
+		entry = children[0]
 		candidates: list[str] = []
-		last_symbol = ''
-		for index in range(count):
-			if index == 0 or unwrapped[0].name in candidates:
-				assert len(unwrapped) == 1, f'Unexpected children. count: {len(unwrapped)}'
-				last_symbol = unwrapped[0].name
-				candidates = as_a(Patterns, self.rules[unwrapped[0].name]).symbols
-				unwrapped = as_a(ASTTree, unwrapped[0]).children
+		for index in range(count - 1):
+			if index == 0 or entry.name in candidates:
+				assert isinstance(entry, ASTTree) and len(entry.children) == 1
+				candidates = as_a(Patterns, self.rules[entry.name]).symbols
+				entry = entry.children[0]
 
-		return last_symbol, unwrapped
+		return entry
 
 	def _match_repeat(self, tokens: list[Token], context: Context, patterns: Patterns, route: str) -> tuple[Step, list[ASTEntry]]:
 		"""パターングループ(リピート)を検証し、子のASTエントリーを生成

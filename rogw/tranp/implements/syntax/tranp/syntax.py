@@ -238,7 +238,7 @@ class SyntaxParser:
 			(ステップ, ASTエントリーリスト)
 		"""
 		passed = context.max == -1 or patterns.size <= context.max
-		inside = context.pos + patterns.size < len(tokens)
+		inside = context.pos + patterns.size <= len(tokens)
 		if not (passed and inside):
 			return Step.ng(), []
 

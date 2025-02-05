@@ -64,12 +64,12 @@ class Context(NamedTuple):
 	max: int
 
 	@classmethod
-	def new(cls) -> 'Context':
-		"""Returns: インスタンス"""
+	def start(cls) -> 'Context':
+		"""Returns: 開始時のインスタンス"""
 		return cls(0, -1, -1)
 
 	@property
-	def begin(self) -> int:
+	def cursor(self) -> int:
 		"""Returns: 参照位置"""
 		return self.pos + max(0, self.min)
 
@@ -86,7 +86,10 @@ class Context(NamedTuple):
 		Returns:
 			インスタンス
 		"""
-		return Context(self.pos + step, self.min, self.max)
+		if step == 0:
+			return Context(self.pos + step, self.min, self.max)
+		else:
+			return Context(self.pos + step + max(0, self.min), -1, -1)
 
 
 class SyntaxParser:
@@ -126,7 +129,7 @@ class SyntaxParser:
 		"""
 		tokens = self.tokenizer.parse(source)
 		length = len(tokens)
-		step, entry = self._match_symbol(tokens, Context.new(), entrypoint)
+		step, entry = self._match_symbol(tokens, Context.start(), entrypoint)
 		if step.steps != length:
 			message = ErrorCollector(source, tokens, step.steps).summary()
 			raise ValueError(f'Syntax parse error. Last token not reached. {message}')
@@ -235,7 +238,7 @@ class SyntaxParser:
 			(ステップ, ASTエントリーリスト)
 		"""
 		passed = context.max == -1 or patterns.size <= context.max
-		inside = context.begin + patterns.size < len(tokens)
+		inside = context.cursor + patterns.size < len(tokens)
 		if not (passed and inside):
 			return Step.ng(), []
 
@@ -311,7 +314,7 @@ class SyntaxParser:
 		steps = 0
 		children = step_children.copy()
 		symbol = DSN.right(route, 1)
-		while context.begin + steps < len(tokens):
+		while context.cursor + steps < len(tokens):
 			in_context = Context(context.pos + steps, 1, -1)
 			in_step, in_children = self._match_entry(tokens, in_context, first_pattern, route)
 			if not in_step.steping:
@@ -396,7 +399,7 @@ class SyntaxParser:
 		found = 0
 		steps = 0
 		children: list[ASTEntry] = []
-		while context.begin + steps < len(tokens):
+		while context.cursor + steps < len(tokens):
 			in_step, in_children = self._match_entry(tokens, context.step(steps), patterns, route, allow_repeat=False)
 			if not in_step.steping:
 				break
@@ -434,11 +437,12 @@ class SyntaxParser:
 			XXX この制約に伴い、トークン参照、及び境界チェックはこのメソッド以外では基本的に実施しないものとする
 			```
 		"""
-		if len(tokens) <= context.begin:
+		if len(tokens) <= context.cursor:
 			return Step.ng(), Token.empty()
 
-		ok = self._compare_token(tokens[context.begin], pattern)
-		return (Step.ok(1), tokens[context.begin]) if ok else (Step.ng(), Token.empty())
+		token = tokens[context.cursor]
+		ok = self._compare_token(token, pattern)
+		return (Step.ok(1), token) if ok else (Step.ng(), Token.empty())
 	
 	def _compare_token(self, token: Token, pattern: Pattern) -> bool:
 		"""終端/非終端要素のトークンが一致するか判定

@@ -199,6 +199,11 @@ class Patterns(Sequence['Pattern | Patterns']):
 
 			return size
 
+	@property
+	def symbols(self) -> list[str]:
+		"""Returns: 参照シンボルリスト"""
+		return [entry.expression for entry in self.entries if isinstance(entry, Pattern) and entry.role == Roles.Symbol]
+
 
 PatternEntry: TypeAlias = 'Pattern | Patterns'
 

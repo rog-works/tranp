@@ -84,9 +84,6 @@ class Unwraps(Enum):
 	Always = '*'
 
 
-PatternEntry: TypeAlias = 'Pattern | Patterns'
-
-
 class Pattern:
 	"""マッチングパターン"""
 
@@ -136,10 +133,10 @@ class Pattern:
 		return f'<{self.__class__.__name__}: {repr(self.expression)}>'
 
 
-class Patterns(Sequence[PatternEntry]):
+class Patterns(Sequence['Pattern | Patterns']):
 	"""マッチングパターングループ"""
 
-	def __init__(self, entries: list[PatternEntry], op: Operators = Operators.And, rep: Repeators = Repeators.NoRepeat) -> None:
+	def __init__(self, entries: list['Pattern | Patterns'], op: Operators = Operators.And, rep: Repeators = Repeators.NoRepeat) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -155,12 +152,12 @@ class Patterns(Sequence[PatternEntry]):
 		"""Returns: 要素数"""
 		return len(self.entries)
 
-	def __iter__(self) -> Iterator[PatternEntry]:
+	def __iter__(self) -> Iterator['Pattern | Patterns']:
 		"""Returns: イテレーター"""
 		for entry in self.entries:
 			yield entry
 
-	def __getitem__(self, index: int) -> PatternEntry:
+	def __getitem__(self, index: int) -> 'Pattern | Patterns':
 		"""配下要素を取得
 
 		Args:
@@ -181,6 +178,9 @@ class Patterns(Sequence[PatternEntry]):
 			entries = f'({self.op.value} x{len(self.entries)}){self.rep.value}'
 
 		return f'<{self.__class__.__name__}: {entries} at {hex(id(self)).upper()}]>'
+
+
+PatternEntry: TypeAlias = 'Pattern | Patterns'
 
 
 class Rules(Mapping):
@@ -278,30 +278,6 @@ class Rules(Mapping):
 		"""Returns: フォーマット文字列"""
 		return Prettier.pretty(self)
 
-	def step_by(self, pattern: PatternEntry) -> int:
-		symbol = list(self._rules.keys())[0]
-		path, step = self.__step_by(pattern, self._rules[symbol], symbol, symbol, 0)
-		assert path != '', f'Never. pattern: {pattern.__repr__()}'
-		return step
-
-	def __step_by(self, target: PatternEntry, pattern: PatternEntry, start_symbol: str, path: str, step: int) -> tuple[str, int]:
-		if isinstance(pattern, Pattern):
-			return (path, step) if target == pattern else ('', 0)
-
-		for index in range(len(pattern)):
-			in_pattern = pattern[index]
-			in_offset = 0 if pattern.op == Operators.Or else index
-			if isinstance(in_pattern, Pattern) and in_pattern.role == Roles.Symbol:
-				new_step = 0 if start_symbol == in_pattern.expression else step
-				in_symbol, in_step = self.__step_by(target, self._rules[in_pattern.expression], start_symbol, DSN.join(path, in_pattern.expression), new_step + in_offset)
-			else:
-				in_symbol, in_step = self.__step_by(target, in_pattern, start_symbol, path, step + in_offset)
-
-			if in_symbol != '':
-				return in_symbol, in_step + in_offset
-
-		return '', 0
-
 	def recursive_by(self, pattern: PatternEntry) -> bool:
 		if isinstance(pattern, Patterns):
 			return False
@@ -309,10 +285,29 @@ class Rules(Mapping):
 			return False
 
 		symbol = list(self._rules.keys())[0]
-		path, step = self.__step_by(pattern, self._rules[symbol], pattern.expression, symbol, 0)
+		path, step = self._step_by(pattern, self[symbol], pattern.expression, symbol, 0)
 		assert path != '', f'Never. pattern: {pattern.__repr__()}'
 
-		return step == 0 and path.find(pattern.expression) > 1
+		return step == 0 and path.find(pattern.expression) > 0
+
+	def _step_by(self, target: Pattern, entry: PatternEntry, start_symbol: str, path: str, step: int) -> tuple[str, int]:
+		if isinstance(entry, Pattern):
+			if target == entry:
+				return path, step
+			elif entry.role == Roles.Symbol and path.find(entry.expression) == -1:
+				to_entry = self[entry.expression]
+				to_step = 0 if start_symbol == entry.expression else step
+				return self._step_by(target, to_entry, start_symbol, DSN.join(path, entry.expression), to_step)
+			else:
+				return '', 0
+
+		for index, in_entry in enumerate(entry):
+			offset = 0 if entry.op == Operators.Or else index
+			in_symbol, in_step = self._step_by(target, in_entry, start_symbol, path, step + offset)
+			if in_symbol != '':
+				return in_symbol, in_step + offset
+
+		return '', 0
 
 
 class Prettier:

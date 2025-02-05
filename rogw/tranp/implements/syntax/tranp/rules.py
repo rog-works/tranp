@@ -88,28 +88,28 @@ def python_rules() -> Rules:
 				('symbol', 'args'),
 				('__empty__', ''),
 				('terms', [
+					('symbol', 'expr'),
 					('expr_rep', [
 						('terms', [
-							('symbol', 'expr'),
-							('string', '","')
+							('string', '","'),
+							('symbol', 'expr')
 						]),
 						('repeat', '*')
-					]),
-					('symbol', 'expr')
+					])
 				])
 			]),
 			('rule', [
 				('symbol', 'slice'),
 				('unwrap', '*'),
 				('terms', [
+					('symbol', 'expr'),
 					('expr_rep', [
 						('terms', [
-							('symbol', 'expr'),
-							('string', '":"')
+							('string', '":"'),
+							('symbol', 'expr')
 						]),
 						('repeat', '*')
-					]),
-					('symbol', 'expr')
+					])
 				])
 			]),
 			('rule', [
@@ -188,25 +188,25 @@ def grammar_rules() -> Rules:
 				('symbol', 'terms_or'),
 				('unwrap', '1'),
 				('terms', [
+					('symbol', 'terms'),
 					('expr_rep', [
 						('terms', [
-							('symbol', 'terms'),
-							('string', '"|"')
+							('string', '"|"'),
+							('symbol', 'terms')
 						]),
 						('repeat', '*')
-					]),
-					('symbol', 'terms')
+					])
 				])
 			]),
 			('rule', [
 				('symbol', 'terms'),
 				('unwrap', '1'),
 				('terms', [
+					('symbol', 'term'),
 					('expr_rep', [
 						('symbol', 'term'),
 						('repeat', '*')
-					]),
-					('symbol', 'term')
+					])
 				])
 			]),
 			('rule', [

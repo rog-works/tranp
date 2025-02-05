@@ -337,7 +337,7 @@ class Rules(Mapping):
 		if isinstance(entry, Pattern):
 			if target == entry:
 				return route, step
-			elif entry.role == Roles.Symbol and route.find(entry.expression) == -1:
+			elif entry.role == Roles.Symbol and entry.expression not in DSN.elements(route):
 				to_entry = self[entry.expression]
 				to_step = 0 if start_symbol == entry.expression else step
 				return self._step_by(target, to_entry, start_symbol, DSN.join(route, entry.expression), to_step)

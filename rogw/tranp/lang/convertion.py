@@ -11,11 +11,9 @@ def safe_cast(value: T | None) -> T:
 	Returns:
 		値
 	Raises:
-		ValueError: 値がnull
+		AssertionError: 値がnull
 	"""
-	if value is None:
-		raise ValueError('Not allowed convertion. value is null')
-
+	assert value is not None, 'Not allowed convertion. value is null'
 	return value
 
 def as_a(expect: type[T], value: Any) -> T:
@@ -27,9 +25,7 @@ def as_a(expect: type[T], value: Any) -> T:
 	Returns:
 		値
 	Raises:
-		ValueError: 値の型と期待の型に関連が無い
+		AssertionError: 値の型と期待の型に関連が無い
 	"""
-	if not isinstance(value, expect):
-		raise ValueError(f'Not allowed convertion. value: {type(value)}, expect: {expect}')
-
+	assert isinstance(value, expect), f'Not allowed convertion. value: {type(value)}, expect: {expect}'
 	return value

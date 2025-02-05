@@ -13,8 +13,8 @@ atom[1] := bool | none | var | str | int | float
 var := name
 
 // element
-args := (expr ",")* expr
-slice[*] := (expr ":")* expr
+args := expr ("," expr)*
+slice[*] := expr (":" expr)*
 
 // terminal
 bool := /False|True/

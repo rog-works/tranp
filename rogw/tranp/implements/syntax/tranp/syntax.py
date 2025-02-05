@@ -56,6 +56,39 @@ class Step:
 		return f'<{self.__class__.__name__}["{'OK' if self.steping else 'NG'}"]: {self.steps}>'
 
 
+class Context(NamedTuple):
+	"""解析コンテキスト"""
+
+	pos: int
+	min: int
+	max: int
+
+	@classmethod
+	def new(cls) -> 'Context':
+		"""Returns: インスタンス"""
+		return cls(0, -1, -1)
+
+	@property
+	def begin(self) -> int:
+		"""Returns: 参照位置"""
+		return self.pos + max(0, self.min)
+
+	@property
+	def accepted_recursive(self) -> bool:
+		"""Returns: True = 左再帰を受け入れ"""
+		return self.min == -1 and self.max == -1
+
+	def step(self, step: int) -> 'Context':
+		"""ステップ数を加えて新規作成
+
+		Args:
+			step: 追加の進行ステップ数
+		Returns:
+			インスタンス
+		"""
+		return Context(self.pos + step, self.min, self.max)
+
+
 class SyntaxParser:
 	"""シンタックスパーサー
 
@@ -69,26 +102,6 @@ class SyntaxParser:
 		* 左再帰する場合は必ず先に別の条件を評価しなければならない
 		```
 	"""
-
-	class Context(NamedTuple):
-		pos: int
-		min: int
-		max: int
-
-		@classmethod
-		def new(cls) -> 'SyntaxParser.Context':
-			return cls(0, -1, -1)
-
-		@property
-		def begin(self) -> int:
-			return self.pos + max(0, self.min)
-
-		@property
-		def can_recursive(self) -> bool:
-			return self.min == -1 and self.max == -1
-
-		def step(self, step: int) -> 'SyntaxParser.Context':
-			return SyntaxParser.Context(self.pos + step, self.min, self.max)
 
 	def __init__(self, rules: Rules, tokenizer: ITokenizer | None = None) -> None:
 		"""インスタンスを生成
@@ -113,31 +126,32 @@ class SyntaxParser:
 		"""
 		tokens = self.tokenizer.parse(source)
 		length = len(tokens)
-		step, entry = self._match_symbol(tokens, self.Context.new(), entrypoint)
+		step, entry = self._match_symbol(tokens, Context.new(), entrypoint)
 		if step.steps != length:
 			message = ErrorCollector(source, tokens, step.steps).summary()
 			raise ValueError(f'Syntax parse error. Last token not reached. {message}')
 
 		return entry
 
-	def _match_symbol(self, tokens: list[Token], context: Context, path: str) -> tuple[Step, ASTEntry]:
+	def _match_symbol(self, tokens: list[Token], context: Context, route: str) -> tuple[Step, ASTEntry]:
 		"""パターン(シンボル参照)を検証し、ASTエントリーを生成
 
 		Args:
 			tokens: トークンリスト
-			end: 評価開始位置
+			context: コンテキスト
 			symbol: シンボル
+			route: 探索ルート
 		Returns:
 			(ステップ, ASTエントリー)
 		"""
-		symbol = DSN.right(path, 1)
+		symbol = DSN.right(route, 1)
 		pattern = self.rules[symbol]
 		if isinstance(pattern, Pattern) and pattern.role == Roles.Terminal:
-			step, token = self._match_terminal(tokens, context, pattern, path)
+			step, token = self._match_terminal(tokens, context, pattern, route)
 			entry = ASTToken(symbol, token) if step.steping else ASTToken.empty()
 			return step, entry
 		else:
-			step, children = self._match_entry(tokens, context, pattern, path)
+			step, children = self._match_entry(tokens, context, pattern, route)
 			return step, self._unwrap_children(symbol, children)
 
 	def _unwrap_children(self, symbol: str, children: list[ASTEntry]) -> ASTTree:
@@ -162,105 +176,66 @@ class SyntaxParser:
 
 		return ASTTree(symbol, unwraped)
 
-	def _match_entry(self, tokens: list[Token], context: Context, pattern: PatternEntry, path: str, allow_repeat: bool = True) -> tuple[Step, list[ASTEntry]]:
+	def _match_entry(self, tokens: list[Token], context: Context, pattern: PatternEntry, route: str, allow_repeat: bool = True) -> tuple[Step, list[ASTEntry]]:
 		"""パターンエントリーを検証し、ASTエントリーを生成
 
 		Args:
 			tokens: トークンリスト
-			end: 評価開始位置
+			context: コンテキスト
 			pattern: パターンエントリー
+			route: 探索ルート
 			allow_repeat: True = リピートへ遷移 (default = True)
 		Returns:
 			(ステップ, ASTエントリーリスト)
 		"""
 		if isinstance(pattern, Patterns):
 			if pattern.rep != Repeators.NoRepeat and allow_repeat:
-				return self._match_repeat(tokens, context, pattern, path)
+				return self._match_repeat(tokens, context, pattern, route)
 			elif pattern.op == Operators.Or:
-				return self._match_or(tokens, context, pattern, path)
-			elif pattern.op == Operators.And and context.can_recursive and self.rules.recursive_by(pattern[0]):
-				return self._match_and_recursive(tokens, context, pattern, path)
+				return self._match_or(tokens, context, pattern, route)
+			elif pattern.op == Operators.And and context.accepted_recursive and self.rules.recursive_by(pattern[0]):
+				return self._match_and_recursive(tokens, context, pattern, route)
 			else:
-				return self._match_and(tokens, context, pattern, path)
+				return self._match_and(tokens, context, pattern, route)
 		else:
 			if pattern.role == Roles.Terminal:
-				step, _ = self._match_terminal(tokens, context, pattern, path)
+				step, _ = self._match_terminal(tokens, context, pattern, route)
 				return step, []
 			else:
-				step, entry = self._match_symbol(tokens, context, DSN.join(path, pattern.expression))
+				step, entry = self._match_symbol(tokens, context, DSN.join(route, pattern.expression))
 				return step, [entry]
 
-	def _match_or(self, tokens: list[Token], context: Context, patterns: Patterns, path: str) -> tuple[Step, list[ASTEntry]]:
+	def _match_or(self, tokens: list[Token], context: Context, patterns: Patterns, route: str) -> tuple[Step, list[ASTEntry]]:
 		"""パターングループ(OR)を検証し、子のASTエントリーを生成
 
 		Args:
 			tokens: トークンリスト
-			end: 評価開始位置
+			context: コンテキスト
 			patterns: マッチングパターングループ
+			route: 探索ルート
 		Returns:
 			(ステップ, ASTエントリーリスト)
 		"""
 		for pattern in patterns:
-			in_step, in_children = self._match_entry(tokens, context, pattern, path)
+			in_step, in_children = self._match_entry(tokens, context, pattern, route)
 			if in_step.steping:
 				return in_step, in_children
 
 		return Step.ng(), []
-	
-	def _match_and_recursive(self, tokens: list[Token], context: Context, patterns: Patterns, path: str) -> tuple[Step, list[ASTEntry]]:
-		finish = False
-		steps = 0
-		wrap_children: list[list[ASTEntry]] = []
-		while not finish and context.begin + steps + 1 < len(tokens):
-			in_steps = 0
-			in_children: list[ASTEntry] = []
-			for index, pattern in enumerate(patterns):
-				if index < 1:
-					continue
 
-				after_context = self.Context(context.pos + steps + in_steps, 1, -1)
-				after_step, after_children = self._match_entry(tokens, after_context, pattern, path)
-				if not after_step.steping:
-					finish = True
-					break
-
-				in_children.extend(after_children)
-				in_steps += after_step.steps
-
-			if finish:
-				break
-
-			if len(wrap_children) == 0:
-				first_context = self.Context(context.pos, -1, 1)
-				first_step, first_children = self._match_entry(tokens, first_context, patterns[0], path)
-				assert first_step.steping and first_step.steps == 1, f'Unexpected result. step: {first_step.__repr__()}, context: {context}, path: {path}'
-				in_children = [first_children[0], *in_children]
-
-			wrap_children.append(in_children)
-			steps += in_steps
-
-		if len(wrap_children) == 0:
-			return Step.ng(), []
-
-		symbol = DSN.right(path, 1)
-		wrap_tree = self._unwrap_children(symbol, wrap_children.pop(0))
-		for in_children in wrap_children:
-			wrap_tree = self._unwrap_children(symbol, [wrap_tree, *in_children])
-
-		return Step.ok(steps + 1), wrap_tree.children
-
-	def _match_and(self, tokens: list[Token], context: Context, patterns: Patterns, path: str) -> tuple[Step, list[ASTEntry]]:
+	def _match_and(self, tokens: list[Token], context: Context, patterns: Patterns, route: str) -> tuple[Step, list[ASTEntry]]:
 		"""パターングループ(AND)を検証し、子のASTエントリーを生成
 
 		Args:
 			tokens: トークンリスト
-			end: 評価開始位置
+			context: コンテキスト
 			patterns: マッチングパターングループ
+			route: 探索ルート
 		Returns:
 			(ステップ, ASTエントリーリスト)
 		"""
-		passed = context.max == -1 or patterns.size() <= context.max
-		inside = context.begin + patterns.size() < len(tokens)
+		passed = context.max == -1 or patterns.size <= context.max
+		inside = context.begin + patterns.size < len(tokens)
 		if not (passed and inside):
 			return Step.ng(), []
 
@@ -270,7 +245,7 @@ class SyntaxParser:
 			if index < context.min:
 				continue
 
-			in_step, in_children = self._match_entry(tokens, context.step(steps), pattern, path)
+			in_step, in_children = self._match_entry(tokens, context.step(steps), pattern, route)
 			if not in_step.steping:
 				return Step.ng(), []
 
@@ -279,13 +254,138 @@ class SyntaxParser:
 
 		return Step.ok(steps), children
 
-	def _match_repeat(self, tokens: list[Token], context: Context, patterns: Patterns, path: str) -> tuple[Step, list[ASTEntry]]:
+	def _match_and_recursive(self, tokens: list[Token], context: Context, patterns: Patterns, route: str) -> tuple[Step, list[ASTEntry]]:
+		"""パターングループ(AND/左再帰)を検証し、子のASTエントリーを生成
+
+		Args:
+			tokens: トークンリスト
+			context: コンテキスト
+			patterns: マッチングパターングループ
+			route: 探索ルート
+		Returns:
+			(ステップ, ASTエントリーリスト)
+		"""
+		first_step, first_children = self._match_and_recursive_first(tokens, context, patterns, route)
+		if not first_step.steping or first_step.steps != 1:
+			raise ValueError(f'Unexpected result. step: {first_step.__repr__()}, context: {context}, route: {route}')
+
+		extend_step, extend_children = self._match_and_recursive_extend(tokens, context, patterns, route, first_children)
+		if not extend_step.steping:
+			return Step.ng(), []
+
+		step, children = self._match_and_recursive_remain(tokens, context.step(extend_step.steps), patterns, route, extend_children)
+		if not step.steping:
+			return Step.ng(), []
+
+		return Step.ok(extend_step.steps + step.steps + 1), children
+
+	def _match_and_recursive_first(self, tokens: list[Token], context: Context, patterns: Patterns, route: str) -> tuple[Step, list[ASTEntry]]:
+		"""パターングループ(AND/左再帰/先頭要素)を検証し、子のASTエントリーを生成
+
+		Args:
+			tokens: トークンリスト
+			context: コンテキスト
+			patterns: マッチングパターングループ
+			route: 探索ルート
+		Returns:
+			(ステップ, ASTエントリーリスト)
+		"""
+		first_pattern = as_a(Pattern, patterns[0])
+		first_context = Context(context.pos, -1, 1)
+		step, children = self._match_entry(tokens, first_context, first_pattern, route)
+		return step, self._unwarp_recursive_children(first_pattern, route, children)
+	
+	def _match_and_recursive_extend(self, tokens: list[Token], context: Context, patterns: Patterns, route: str, step_children: list[ASTEntry]) -> tuple[Step, list[ASTEntry]]:
+		"""パターングループ(AND/左再帰/先頭要素の拡張)を検証し、子のASTエントリーを生成
+
+		Args:
+			tokens: トークンリスト
+			context: コンテキスト
+			patterns: マッチングパターングループ
+			route: 探索ルート
+			step_children: 解析済みのASTエントリーリスト
+		Returns:
+			(ステップ, ASTエントリーリスト)
+		"""
+		first_pattern = as_a(Pattern, patterns[0])
+		steps = 0
+		children = step_children.copy()
+		symbol = DSN.right(route, 1)
+		while context.begin + steps < len(tokens):
+			in_context = Context(context.pos + steps, 1, -1)
+			in_step, in_children = self._match_entry(tokens, in_context, first_pattern, route)
+			if not in_step.steping:
+				break
+
+			unwrapped = self._unwarp_recursive_children(first_pattern, route, in_children)
+			children: list[ASTEntry] = [ASTTree(symbol, [*children, *unwrapped])]
+			steps += in_step.steps
+
+		if len(children) == 0:
+			return Step.ng(), []
+
+		return Step.ok(steps), children
+
+	def _match_and_recursive_remain(self, tokens: list[Token], context: Context, patterns: Patterns, route: str, step_children: list[ASTEntry]) -> tuple[Step, list[ASTEntry]]:
+		"""パターングループ(AND/左再帰/後続要素)を検証し、子のASTエントリーを生成
+
+		Args:
+			tokens: トークンリスト
+			context: コンテキスト
+			patterns: マッチングパターングループ
+			route: 探索ルート
+			step_children: 解析済みのASTエントリーリスト
+		Returns:
+			(ステップ, ASTエントリーリスト)
+		"""
+		steps = 0
+		children = step_children.copy()
+		for index, in_pattern in enumerate(patterns):
+			if index < 1:
+				continue
+
+			in_context = Context(context.pos + steps, 1, -1)
+			in_step, in_children = self._match_entry(tokens, in_context, in_pattern, route)
+			if not in_step.steping:
+				return Step.ng(), []
+
+			children.extend(in_children)
+			steps += in_step.steps
+
+		return Step.ok(steps), children
+
+	def _unwarp_recursive_children(self, first_pattern: Pattern, route: str, children: list[ASTEntry]) -> list[ASTEntry]:
+		"""再帰処理によって取得したASTエントリーから不要な階層を展開
+
+		Args:
+			first_pattern: マッチングパターン(先頭要素)
+			route: 探索ルート
+			children: 再帰処理中のASTエントリーリスト
+		Returns:
+			(ステップ, ASTエントリーリスト)
+		"""
+		symbol = DSN.right(route, 1)
+		index = route.find(first_pattern.expression)
+		routes = DSN.elements(route[index:])
+		unwrapped = children
+		for index, elem in enumerate(routes):
+			if unwrapped[0].name != elem:
+				continue
+
+			if symbol == elem or self.rules.unwrap_by(elem) != Unwraps.Off:
+				assert unwrapped[0].name == elem and isinstance(unwrapped[0], ASTTree)
+				unwrapped = unwrapped[0].children
+
+		return unwrapped
+
+	def _match_repeat(self, tokens: list[Token], context: Context, patterns: Patterns, route: str) -> tuple[Step, list[ASTEntry]]:
 		"""パターングループ(リピート)を検証し、子のASTエントリーを生成
 
 		Args:
 			tokens: トークンリスト
-			end: 評価開始位置
+			context: コンテキスト
 			patterns: マッチングパターングループ
+			route: 探索ルート
 		Returns:
 			(ステップ, ASTエントリーリスト)
 		Raises:
@@ -297,7 +397,7 @@ class SyntaxParser:
 		steps = 0
 		children: list[ASTEntry] = []
 		while context.begin + steps < len(tokens):
-			in_step, in_children = self._match_entry(tokens, context.step(steps), patterns, path, allow_repeat=False)
+			in_step, in_children = self._match_entry(tokens, context.step(steps), patterns, route, allow_repeat=False)
 			if not in_step.steping:
 				break
 
@@ -318,13 +418,14 @@ class SyntaxParser:
 
 		return Step.ok(steps), children
 
-	def _match_terminal(self, tokens: list[Token], context: Context, pattern: Pattern, path: str) -> tuple[Step, Token]:
+	def _match_terminal(self, tokens: list[Token], context: Context, pattern: Pattern, route: str) -> tuple[Step, Token]:
 		"""パターン(終端/非終端要素)を検証し、マッチしたトークンを返す
 
 		Args:
 			tokens: トークンリスト
-			end: 評価開始位置
+			context: コンテキスト
 			pattern: マッチングパターン
+			route: 探索ルート
 		Returns:
 			(ステップ, トークン)
 		Note:

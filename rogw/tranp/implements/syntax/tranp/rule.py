@@ -128,12 +128,14 @@ class Pattern:
 		"""Returns: 文字列の比較メソッド"""
 		return self._comp
 
+	@property
+	def size(self) -> int:
+		"""Returns: 最小ステップ数"""
+		return 1
+
 	def __repr__(self) -> str:
 		"""Returns: シリアライズ表現"""
 		return f'<{self.__class__.__name__}: {repr(self.expression)}>'
-
-	def size(self) -> int:
-		return 1
 
 
 class Patterns(Sequence['Pattern | Patterns']):
@@ -182,7 +184,9 @@ class Patterns(Sequence['Pattern | Patterns']):
 
 		return f'<{self.__class__.__name__}: {entries} at {hex(id(self)).upper()}]>'
 
+	@property
 	def size(self) -> int:
+		"""Returns: 最小ステップ数"""
 		if self.rep in [Repeators.OverZero, Repeators.OneOrZero, Repeators.OneOrEmpty]:
 			return 0
 		elif self.rep != Repeators.NoRepeat or self.op == Operators.Or:
@@ -295,31 +299,49 @@ class Rules(Mapping):
 		return Prettier.pretty(self)
 
 	def recursive_by(self, pattern: PatternEntry) -> bool:
+		"""左再帰のマッチングパターンか判定
+
+		Args:
+			pattern: マッチングパターンエントリー
+		Returns:
+			True = 左再帰
+		"""
 		if isinstance(pattern, Patterns):
 			return False
 		elif pattern.role == Roles.Terminal:
 			return False
 
 		symbol = list(self._rules.keys())[0]
-		path, step = self._step_by(pattern, self[symbol], pattern.expression, symbol, 0)
-		assert path != '', f'Never. pattern: {pattern.__repr__()}'
+		route, step = self._step_by(pattern, self[symbol], pattern.expression, symbol, 0)
+		assert route != '', f'Never. pattern: {pattern.__repr__()}'
 
-		return step == 0 and path.find(pattern.expression) > 0
+		return step == 0 and route.find(pattern.expression) > 0
 
-	def _step_by(self, target: Pattern, entry: PatternEntry, start_symbol: str, path: str, step: int) -> tuple[str, int]:
+	def _step_by(self, target: Pattern, entry: PatternEntry, start_symbol: str, route: str, step: int) -> tuple[str, int]:
+		"""検索対象のマッチングパターンを解決するのに消費するステップ数を計測
+
+		Args:
+			target: 検索対象
+			entry: 探索中のエントリー
+			start_symbol: 計測基点のシンボル名
+			route: 探索ルート
+			step: ステップ数
+		Returns:
+			(探索ルート, ステップ数)
+		"""
 		if isinstance(entry, Pattern):
 			if target == entry:
-				return path, step
-			elif entry.role == Roles.Symbol and path.find(entry.expression) == -1:
+				return route, step
+			elif entry.role == Roles.Symbol and route.find(entry.expression) == -1:
 				to_entry = self[entry.expression]
 				to_step = 0 if start_symbol == entry.expression else step
-				return self._step_by(target, to_entry, start_symbol, DSN.join(path, entry.expression), to_step)
+				return self._step_by(target, to_entry, start_symbol, DSN.join(route, entry.expression), to_step)
 			else:
 				return '', 0
 
 		for index, in_entry in enumerate(entry):
 			offset = 0 if entry.op == Operators.Or else index
-			in_symbol, in_step = self._step_by(target, in_entry, start_symbol, path, step + offset)
+			in_symbol, in_step = self._step_by(target, in_entry, start_symbol, route, step + offset)
 			if in_symbol != '':
 				return in_symbol, in_step + offset
 

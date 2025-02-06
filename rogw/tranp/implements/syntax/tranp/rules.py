@@ -76,7 +76,7 @@ def python_rules() -> Rules:
 					('symbol', 'var'),
 					('symbol', 'str'),
 					('symbol', 'int'),
-					('symbol', 'float'),
+					('symbol', 'float')
 				])
 			]),
 			('rule', [
@@ -172,7 +172,7 @@ def grammar_rules() -> Rules:
 							('string', '"["'),
 							('symbol', 'unwrap'),
 							('string', '"]"')
-						]),
+						])
 					]),
 					('string', '":="'),
 					('symbol', 'expr'),
@@ -249,22 +249,22 @@ def grammar_rules() -> Rules:
 			('rule', [
 				('symbol', 'string'),
 				('__empty__', ''),
-				('regexp', '/"[^"]+"/')
+				('regexp', r'/"[^"]+"/')
 			]),
 			('rule', [
 				('symbol', 'regexp'),
 				('__empty__', ''),
-				('regexp', '/[\\/].+[\\/]/')
+				('regexp', r'/[\/].+[\/]/')
 			]),
 			('rule', [
 				('symbol', 'repeat'),
 				('__empty__', ''),
-				('regexp', '/[*+?]/')
+				('regexp', r'/[*+?]/')
 			]),
 			('rule', [
 				('symbol', 'unwrap'),
 				('__empty__', ''),
-				('regexp', '/[1*]/')
+				('regexp', r'/[1*]/')
 			])
 		])
 	)

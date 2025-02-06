@@ -59,9 +59,9 @@ class Step:
 class Context(NamedTuple):
 	"""解析コンテキスト"""
 
-	pos: int
-	min: int
-	max: int
+	posision: int
+	minimum: int
+	maximum: int
 
 	@classmethod
 	def start(cls) -> 'Context':
@@ -71,25 +71,42 @@ class Context(NamedTuple):
 	@property
 	def cursor(self) -> int:
 		"""Returns: 参照位置"""
-		return self.pos + max(0, self.min)
+		return self.posision + max(0, self.minimum)
 
 	@property
 	def accepted_recursive(self) -> bool:
 		"""Returns: True = 左再帰を受け入れ"""
-		return self.min == -1 and self.max == -1
+		return self.minimum == -1 and self.maximum == -1
 
-	def step(self, step: int) -> 'Context':
-		"""ステップ数を加えて新規作成
+	def step(self, steps: int) -> 'Context':
+		"""ステップ数を加えて新規作成。ステップ数が1以上の時は暗黙的に読み取り位置の制限を解除
 
 		Args:
-			step: 追加の進行ステップ数
+			steps: 追加の進行ステップ数
+		Returns:
+			インスタンス
+		Note:
+			### ステップ進行時の制限解除の必然性
+			* 読み取り位置の制限は実質的に無限再帰の抑制ために存在
+			* 無限再帰が起きる条件は「同条件の繰り返し」であり、逆に言えば条件が変われば無限再帰にはならない
+			* ステップの進行=条件の変化であり、制限の解除によって通常の解析条件に戻るだけで悪影響はない
+		"""
+		if steps == 0:
+			return Context(self.posision + steps, self.minimum, self.maximum)
+		else:
+			return Context(self.posision + steps + max(0, self.minimum), -1, -1)
+
+	def block_step(self, steps: int = 0, minimum: int = -1, maximum: int = -1) -> 'Context':
+		"""ステップ数を加えて新規作成。新たなコンテキスト上では再帰処理がブロックされる
+
+		Args:
+			steps: 追加の進行ステップ数 (default = 0)
+			minimum: 読み取り位置の下限 (default = -1)
+			maximum: 読み取り位置の上限 (default = -1)
 		Returns:
 			インスタンス
 		"""
-		if step == 0:
-			return Context(self.pos + step, self.min, self.max)
-		else:
-			return Context(self.pos + step + max(0, self.min), -1, -1)
+		return Context(self.posision + steps, minimum, maximum)
 
 
 class SyntaxParser:
@@ -141,7 +158,7 @@ class SyntaxParser:
 
 		Args:
 			tokens: トークンリスト
-			context: コンテキスト
+			context: 解析コンテキスト
 			symbol: シンボル
 			route: 探索ルート
 		Returns:
@@ -184,7 +201,7 @@ class SyntaxParser:
 
 		Args:
 			tokens: トークンリスト
-			context: コンテキスト
+			context: 解析コンテキスト
 			pattern: パターンエントリー
 			route: 探索ルート
 			allow_repeat: True = リピートへ遷移 (default = True)
@@ -213,7 +230,7 @@ class SyntaxParser:
 
 		Args:
 			tokens: トークンリスト
-			context: コンテキスト
+			context: 解析コンテキスト
 			patterns: マッチングパターングループ
 			route: 探索ルート
 		Returns:
@@ -231,21 +248,21 @@ class SyntaxParser:
 
 		Args:
 			tokens: トークンリスト
-			context: コンテキスト
+			context: 解析コンテキスト
 			patterns: マッチングパターングループ
 			route: 探索ルート
 		Returns:
 			(ステップ, ASTエントリーリスト)
 		"""
-		passed = context.max == -1 or patterns.size <= context.max
-		inside = context.pos + patterns.size <= len(tokens)
-		if not (passed and inside):
+		ok_limit = context.maximum == -1 or patterns.size <= context.maximum
+		ok_range = context.posision + patterns.size <= len(tokens)
+		if not (ok_limit and ok_range):
 			return Step.ng(), []
 
 		steps = 0
 		children: list[ASTEntry] = []
 		for index, pattern in enumerate(patterns):
-			if index < context.min:
+			if index < context.minimum:
 				continue
 
 			in_step, in_children = self._match_entry(tokens, context.step(steps), pattern, route)
@@ -262,7 +279,7 @@ class SyntaxParser:
 
 		Args:
 			tokens: トークンリスト
-			context: コンテキスト
+			context: 解析コンテキスト
 			patterns: マッチングパターングループ
 			route: 探索ルート
 		Returns:
@@ -287,14 +304,14 @@ class SyntaxParser:
 
 		Args:
 			tokens: トークンリスト
-			context: コンテキスト
+			context: 解析コンテキスト
 			patterns: マッチングパターングループ
 			route: 探索ルート
 		Returns:
 			(ステップ, ASTエントリーリスト)
 		"""
 		first_pattern = as_a(Pattern, patterns[0])
-		first_context = Context(context.pos, -1, 1)
+		first_context = context.block_step(maximum=1)
 		step, children = self._match_entry(tokens, first_context, first_pattern, route)
 		if not step.steping:
 			return Step.ng(), []
@@ -306,7 +323,7 @@ class SyntaxParser:
 
 		Args:
 			tokens: トークンリスト
-			context: コンテキスト
+			context: 解析コンテキスト
 			patterns: マッチングパターングループ
 			route: 探索ルート
 			step_children: 前段で解析済みのASTエントリーリスト
@@ -317,7 +334,7 @@ class SyntaxParser:
 		steps = 0
 		children = step_children.copy()
 		while context.cursor + steps < len(tokens):
-			in_context = Context(context.pos + steps, 1, -1)
+			in_context = context.block_step(steps=steps, minimum=1)
 			in_step, in_children = self._match_entry(tokens, in_context, first_pattern, route)
 			if not in_step.steping:
 				break
@@ -359,7 +376,7 @@ class SyntaxParser:
 
 		Args:
 			tokens: トークンリスト
-			context: コンテキスト
+			context: 解析コンテキスト
 			patterns: マッチングパターングループ
 			route: 探索ルート
 		Returns:
@@ -399,7 +416,7 @@ class SyntaxParser:
 
 		Args:
 			tokens: トークンリスト
-			context: コンテキスト
+			context: 解析コンテキスト
 			pattern: マッチングパターン
 			route: 探索ルート
 		Returns:

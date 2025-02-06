@@ -9,17 +9,24 @@ from rogw.tranp.test.helper import data_provider
 class TestSyntaxParser(TestCase):
 	@data_provider([
 		(
-			'a.b.c',
+			'a.b.c + -1',
 			'python',
 			('entry', [
-				('relay', [
+				('calc_sum', [
 					('relay', [
-						('var', [
-							('name', 'a'),
+						('relay', [
+							('var', [
+								('name', 'a'),
+							]),
+							('name', 'b'),
 						]),
-						('name', 'b'),
+						('name', 'c'),
 					]),
-					('name', 'c'),
+					('op_add', '+'),
+					('calc_unary', [
+						('op_unary', '-'),
+						('int', '1'),
+					]),
 				]),
 			]),
 		),

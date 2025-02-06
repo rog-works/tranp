@@ -24,7 +24,61 @@ def python_rules() -> Rules:
 			('rule', [
 				('symbol', 'expr'),
 				('unwrap', '1'),
-				('symbol', 'primary')
+				('symbol', 'calc_sum')
+			]),
+			('rule', [
+				('symbol', 'calc_sum'),
+				('unwrap', '1'),
+				('terms', [
+					('symbol', 'calc_mul'),
+					('expr_rep', [
+						('terms', [
+							('symbol', 'op_add'),
+							('symbol', 'calc_mul')
+						]),
+						('repeat', '*')
+					])
+				])
+			]),
+			('rule', [
+				('symbol', 'calc_mul'),
+				('unwrap', '1'),
+				('terms', [
+					('symbol', 'calc_unary'),
+					('expr_rep', [
+						('terms', [
+							('symbol', 'op_mul'),
+							('symbol', 'calc_unary')
+						]),
+						('repeat', '*')
+					])
+				])
+			]),
+			('rule', [
+				('symbol', 'calc_unary'),
+				('unwrap', '1'),
+				('terms', [
+					('expr_rep', [
+						('symbol', 'op_unary'),
+						('repeat', '?')
+					]),
+					('symbol', 'primary')
+				])
+			]),
+			('rule', [
+				('symbol', 'op_add'),
+				('__empty__', ''),
+				('regexp', r'/[-+]/')
+			]),
+			('rule', [
+				('symbol', 'op_mul'),
+				('__empty__', ''),
+				('regexp', r'/[*\/%]/')
+			]),
+			('rule', [
+				('symbol', 'op_unary'),
+				('__empty__', ''),
+				('regexp', r'/[-+]/')
 			]),
 			('rule', [
 				('symbol', 'primary'),

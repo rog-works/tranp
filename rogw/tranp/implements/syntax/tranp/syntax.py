@@ -110,18 +110,7 @@ class Context(NamedTuple):
 
 
 class SyntaxParser:
-	"""シンタックスパーサー
-
-	Note:
-		```
-		### 特記事項
-		* ソースの末尾から先頭に向かって解析する
-		* Grammar上のAND条件は右から順に評価する
-		* Grammar上のOR条件は左から順に評価する
-		* 左再帰による無限ループは抑制されない
-		* 左再帰する場合は必ず先に別の条件を評価しなければならない
-		```
-	"""
+	"""シンタックスパーサー"""
 
 	def __init__(self, rules: Rules, tokenizer: ITokenizer | None = None) -> None:
 		"""インスタンスを生成

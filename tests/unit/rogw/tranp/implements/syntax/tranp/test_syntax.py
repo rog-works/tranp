@@ -9,47 +9,43 @@ from rogw.tranp.test.helper import data_provider
 class TestSyntaxParser(TestCase):
 	@data_provider([
 		(
-			'a.b.c + -1',
+			'a.b().c + -1 == d().e[0]',
 			'python',
 			('entry', [
-				('calc_sum', [
-					('relay', [
+				('comp', [
+					('calc_sum', [
 						('relay', [
-							('var', [
-								('name', 'a'),
-							]),
-							('name', 'b'),
-						]),
-						('name', 'c'),
-					]),
-					('op_add', '+'),
-					('calc_unary', [
-						('op_unary', '-'),
-						('int', '1'),
-					]),
-				]),
-			]),
-		),
-		(
-			'a.b().c(1, "2")',
-			'python',
-			('entry', [
-				('invoke', [
-					('relay', [
-						('invoke', [
-							('relay', [
-								('var', [
-									('name', 'a'),
+							('invoke', [
+								('relay', [
+									('var', [
+										('name', 'a'),
+									]),
+									('name', 'b'),
 								]),
-								('name', 'b'),
+								('__empty__', ''),
 							]),
-							('__empty__', ''),
+							('name', 'c'),
 						]),
-						('name', 'c'),
+						('op_add', '+'),
+						('calc_unary', [
+							('op_unary', '-'),
+							('int', '1'),
+						]),
 					]),
-					('args', [
-						('int', '1'),
-						('str', '"2"'),
+					('op_comp', [
+						('op_comp_s', '=='),
+					]),
+					('indexer', [
+						('relay', [
+							('invoke', [
+								('var', [
+									('name', 'd'),
+								]),
+								('__empty__', ''),
+							]),
+							('name', 'e'),
+						]),
+						('int', '0'),
 					]),
 				]),
 			]),

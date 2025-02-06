@@ -280,15 +280,16 @@ class SyntaxParser:
 			### 左再帰の成立条件
 			* AND条件のルールの先頭要素が左再帰の場合が対象
 			### 左再帰の否定条件
-			* 先頭要素以外の再帰 (同条件の繰り返しにならず無限ループに陥らないため、対処が不要)
+			* 先頭要素以外の再帰 (同条件の繰り返しにならず無限ループに陥らないため対処が不要)
 			* 1要素しか存在しない場合の再帰 (構文的に意味が無い)
-			* OR条件に単独で存在する再帰 (グループ化してAND条件にすることで対処が可能なため、非対応)
+			* OR条件に単独で存在する再帰 (グループ化してAND条件にすることで対処が可能なため非対応)
 			```
 		Examples:
 			```
 			recursive := rule
 			// OKパターン
 			rule := recursive "." name
+			rule := (recursive) | other | ...
 			// NGパターン
 			rule := "@" recursive ...
 			rule := recursive
@@ -319,6 +320,11 @@ class SyntaxParser:
 			route: 探索ルート
 		Returns:
 			(ステップ, ASTエントリーリスト)
+		Note:
+			```
+			* 最小単位である1トークンでマッチングし、それを基点とする
+			* 2トークン以上が最小単位だった場合は必ず失敗する XXX 要検討
+			```
 		"""
 		first_pattern = as_a(Pattern, patterns[0])
 		first_context = context.block_step(maximum=1)
@@ -339,6 +345,12 @@ class SyntaxParser:
 			step_children: 前段で解析済みのASTエントリーリスト
 		Returns:
 			(ステップ, ASTエントリーリスト)
+		Note:
+			```
+			* マッチングの基点である先頭要素をスキップし、後続の要素とのマッチングを繰り返す
+			* 本来のASTの構造から先頭要素が欠けた状態でマッチングするため、ASTを再構築
+			* 繰り返す度に直前のレスポンスを内側にスタック
+			```
 		"""
 		first_pattern = as_a(Pattern, patterns[0])
 		steps = 0
@@ -391,8 +403,6 @@ class SyntaxParser:
 			route: 探索ルート
 		Returns:
 			(ステップ, ASTエントリーリスト)
-		Raises:
-			AssertionError: リピートなしのグループを指定
 		"""
 		assert patterns.rep != Repeators.NoRepeat, 'Must be repeated patterns'
 
@@ -431,11 +441,6 @@ class SyntaxParser:
 			route: 探索ルート
 		Returns:
 			(ステップ, トークン)
-		Note:
-			```
-			XXX トークン参照時の境界チェックはこのメソッド内でのみ行う
-			XXX この制約に伴い、トークン参照、及び境界チェックはこのメソッド以外では基本的に実施しないものとする
-			```
 		"""
 		if len(tokens) <= context.cursor:
 			return Step.ng(), Token.empty()

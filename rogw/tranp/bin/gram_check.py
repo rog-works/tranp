@@ -98,10 +98,12 @@ class App:
 
 		Args:
 			args: 引数
+		Returns:
+			テキスト
 		"""
 		fullpath = os.path.abspath(os.path.join(os.getcwd(), filepath))
-		with open(fullpath) as f:
-			return f.read()
+		with open(fullpath, mode='rb') as f:
+			return f.read().decode('utf-8')
 
 
 if __name__ == '__main__':

@@ -348,7 +348,7 @@ class Rules(Mapping):
 			offset = 0 if entry.op == Operators.Or else index
 			in_symbol, in_step = self._step_by(target, in_entry, start_symbol, route, step + offset)
 			if in_symbol != '':
-				return in_symbol, in_step + offset
+				return in_symbol, in_step
 
 		return '', 0
 

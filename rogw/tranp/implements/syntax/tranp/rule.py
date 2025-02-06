@@ -284,6 +284,10 @@ class Rules(Mapping):
 		for key in self._rules.keys():
 			yield key
 
+	def pretty(self) -> str:
+		"""Returns: フォーマット文字列"""
+		return Prettier.pretty(self)
+
 	def unwrap_by(self, symbol: str) -> Unwraps:
 		"""指定のシンボルの展開ルールを取得
 
@@ -298,10 +302,6 @@ class Rules(Mapping):
 			return Unwraps.OneTime
 		else:
 			return Unwraps.Always
-
-	def pretty(self) -> str:
-		"""Returns: フォーマット文字列"""
-		return Prettier.pretty(self)
 
 	def recursive_by(self, pattern: PatternEntry) -> bool:
 		"""左再帰のマッチングパターンか判定
@@ -351,114 +351,6 @@ class Rules(Mapping):
 				return in_symbol, in_step + offset
 
 		return '', 0
-
-
-class Prettier:
-	"""フォーマットユーティリティー"""
-
-	@classmethod
-	def pretty(cls, rules: Rules) -> str:
-		"""ルールリストをフォーマット
-
-		Args:
-			rules: ルールリスト
-		Returns:
-			フォーマット文字列
-		"""
-		return '\n'.join([cls._pretty_rule(org_symbol, rules[org_symbol]) for org_symbol in rules.org_symbols()])
-
-	@classmethod
-	def _pretty_rule(cls, org_symbol: str, pattern: PatternEntry) -> str:
-		"""ルールをフォーマット
-
-		Args:
-			org_symbol: オリジナルのシンボル名
-			pattern: マッチングパターンエントリー
-		Returns:
-			フォーマット文字列
-		"""
-		return f'{org_symbol} := {cls._pretty_pattern_entry(pattern)}'
-
-	@classmethod
-	def _pretty_pattern_entry(cls, pattern: PatternEntry) -> str:
-		"""パターンエントリーをフォーマット
-
-		Args:
-			pattern: マッチングパターンエントリー
-		Returns:
-			フォーマット文字列
-		"""
-		if isinstance(pattern, Pattern):
-			return cls._pretty_pattern(pattern)
-		elif isinstance(pattern, Patterns):
-			return cls._pretty_patterns(pattern)
-
-	@classmethod
-	def _pretty_pattern(cls, pattern: Pattern) -> str:
-		"""パターンをフォーマット
-
-		Args:
-			pattern: マッチングパターン
-		Returns:
-			フォーマット文字列
-		"""
-		return f'{pattern.expression}'
-
-	@classmethod
-	def _pretty_patterns(cls, patterns: Patterns) -> str:
-		"""パターングループをフォーマット
-
-		Args:
-			pattern: マッチングパターングループ
-		Returns:
-			フォーマット文字列
-		"""
-		if patterns.op == Operators.And:
-			return cls._pretty_patterns_and(patterns)
-		else:
-			return cls._pretty_patterns_or(patterns)
-
-	@classmethod
-	def _pretty_patterns_and(cls, patterns: Patterns) -> str:
-		"""パターングループをフォーマット(AND)
-
-		Args:
-			pattern: マッチングパターングループ
-		Returns:
-			フォーマット文字列
-		"""
-		pretty_patterns = ' '.join([cls._pretty_pattern_entry(pattern) for pattern in patterns.entries])
-		return cls._deco_repeat(pretty_patterns, patterns.rep)
-
-	@classmethod
-	def _pretty_patterns_or(cls, patterns: Patterns) -> str:
-		"""パターングループをフォーマット(OR)
-
-		Args:
-			pattern: マッチングパターングループ
-		Returns:
-			フォーマット文字列
-		"""
-		pretty_patterns = ' | '.join([cls._pretty_pattern_entry(pattern) for pattern in patterns.entries])
-		return cls._deco_repeat(pretty_patterns, patterns.rep)
-
-	@classmethod
-	def _deco_repeat(cls, pretty_patterns: str, rep: Repeators) -> str:
-		"""パターングループのフォーマットにリピートを付与
-
-		Args:
-			pretty_patterns: フォーマット文字列
-			rep: リピート種別
-		Returns:
-			付与後の文字列
-		"""
-		if rep == Repeators.NoRepeat:
-			# XXX ルール直下以外は括弧で囲った方が良い
-			return pretty_patterns
-		elif rep == Repeators.OneOrEmpty:
-			return f'[{pretty_patterns}]'
-		else:
-			return f'({pretty_patterns}){rep.value}'
 
 
 class ASTSerializer:
@@ -684,3 +576,111 @@ class ASTSerializer:
 		"""
 		assert isinstance(entry[1], list), f'Must be tree. name: {cls._name(entry)}'
 		return cast(TupleTree, entry)
+
+
+class Prettier:
+	"""フォーマットユーティリティー"""
+
+	@classmethod
+	def pretty(cls, rules: Rules) -> str:
+		"""ルールリストをフォーマット
+
+		Args:
+			rules: ルールリスト
+		Returns:
+			フォーマット文字列
+		"""
+		return '\n'.join([cls._pretty_rule(org_symbol, rules[org_symbol]) for org_symbol in rules.org_symbols()])
+
+	@classmethod
+	def _pretty_rule(cls, org_symbol: str, pattern: PatternEntry) -> str:
+		"""ルールをフォーマット
+
+		Args:
+			org_symbol: オリジナルのシンボル名
+			pattern: マッチングパターンエントリー
+		Returns:
+			フォーマット文字列
+		"""
+		return f'{org_symbol} := {cls._pretty_pattern_entry(pattern)}'
+
+	@classmethod
+	def _pretty_pattern_entry(cls, pattern: PatternEntry) -> str:
+		"""パターンエントリーをフォーマット
+
+		Args:
+			pattern: マッチングパターンエントリー
+		Returns:
+			フォーマット文字列
+		"""
+		if isinstance(pattern, Pattern):
+			return cls._pretty_pattern(pattern)
+		elif isinstance(pattern, Patterns):
+			return cls._pretty_patterns(pattern)
+
+	@classmethod
+	def _pretty_pattern(cls, pattern: Pattern) -> str:
+		"""パターンをフォーマット
+
+		Args:
+			pattern: マッチングパターン
+		Returns:
+			フォーマット文字列
+		"""
+		return pattern.expression
+
+	@classmethod
+	def _pretty_patterns(cls, patterns: Patterns) -> str:
+		"""パターングループをフォーマット
+
+		Args:
+			pattern: マッチングパターングループ
+		Returns:
+			フォーマット文字列
+		"""
+		if patterns.op == Operators.And:
+			return cls._pretty_patterns_and(patterns)
+		else:
+			return cls._pretty_patterns_or(patterns)
+
+	@classmethod
+	def _pretty_patterns_and(cls, patterns: Patterns) -> str:
+		"""パターングループをフォーマット(AND)
+
+		Args:
+			pattern: マッチングパターングループ
+		Returns:
+			フォーマット文字列
+		"""
+		pretty_patterns = ' '.join([cls._pretty_pattern_entry(pattern) for pattern in patterns.entries])
+		return cls._deco_repeat(pretty_patterns, patterns.rep)
+
+	@classmethod
+	def _pretty_patterns_or(cls, patterns: Patterns) -> str:
+		"""パターングループをフォーマット(OR)
+
+		Args:
+			pattern: マッチングパターングループ
+		Returns:
+			フォーマット文字列
+		"""
+		pretty_patterns = ' | '.join([cls._pretty_pattern_entry(pattern) for pattern in patterns.entries])
+		return cls._deco_repeat(pretty_patterns, patterns.rep)
+
+	@classmethod
+	def _deco_repeat(cls, pretty_patterns: str, rep: Repeators) -> str:
+		"""パターングループのフォーマットにリピートを付与
+
+		Args:
+			pretty_patterns: フォーマット文字列
+			rep: リピート種別
+		Returns:
+			付与後の文字列
+		"""
+		if rep == Repeators.NoRepeat:
+			# XXX ルール直下以外は括弧で囲った方が良い
+			return pretty_patterns
+		elif rep == Repeators.OneOrEmpty:
+			return f'[{pretty_patterns}]'
+		else:
+			return f'({pretty_patterns}){rep.value}'

@@ -15,16 +15,174 @@ def python_rules() -> Rules:
 				('__empty__', ''),
 				('expr_rep', [
 					('terms', [
-						('symbol', 'exp'),
+						('symbol', 'expr'),
 						('string', '"\n"')
 					]),
 					('repeat', '+')
 				])
 			]),
 			('rule', [
-				('symbol', 'exp'),
+				('symbol', 'expr'),
 				('unwrap', '1'),
-				('symbol', 'primary')
+				('symbol', 'comp_or')
+			]),
+			('rule', [
+				('symbol', 'comp_or'),
+				('unwrap', '1'),
+				('terms', [
+					('symbol', 'comp_and'),
+					('expr_rep', [
+						('terms', [
+							('symbol', 'op_or'),
+							('symbol', 'comp_and')
+						]),
+						('repeat', '*')
+					])
+				])
+			]),
+			('rule', [
+				('symbol', 'comp_and'),
+				('unwrap', '1'),
+				('terms', [
+					('symbol', 'comp_not'),
+					('expr_rep', [
+						('terms', [
+							('symbol', 'op_and'),
+							('symbol', 'comp_not')
+						]),
+						('repeat', '*')
+					])
+				])
+			]),
+			('rule', [
+				('symbol', 'comp_not'),
+				('unwrap', '1'),
+				('terms', [
+					('expr_rep', [
+						('symbol', 'op_not'),
+						('repeat', '?')
+					]),
+					('symbol', 'comp')
+				])
+			]),
+			('rule', [
+				('symbol', 'comp'),
+				('unwrap', '1'),
+				('terms', [
+					('symbol', 'calc_sum'),
+					('expr_rep', [
+						('terms', [
+							('symbol', 'op_comp'),
+							('symbol', 'calc_sum')
+						]),
+						('repeat', '*')
+					])
+				])
+			]),
+			('rule', [
+				('symbol', 'calc_sum'),
+				('unwrap', '1'),
+				('terms', [
+					('symbol', 'calc_mul'),
+					('expr_rep', [
+						('terms', [
+							('symbol', 'op_add'),
+							('symbol', 'calc_mul')
+						]),
+						('repeat', '*')
+					])
+				])
+			]),
+			('rule', [
+				('symbol', 'calc_mul'),
+				('unwrap', '1'),
+				('terms', [
+					('symbol', 'calc_unary'),
+					('expr_rep', [
+						('terms', [
+							('symbol', 'op_mul'),
+							('symbol', 'calc_unary')
+						]),
+						('repeat', '*')
+					])
+				])
+			]),
+			('rule', [
+				('symbol', 'calc_unary'),
+				('unwrap', '1'),
+				('terms', [
+					('expr_rep', [
+						('symbol', 'op_unary'),
+						('repeat', '?')
+					]),
+					('symbol', 'primary')
+				])
+			]),
+			('rule', [
+				('symbol', 'op_or'),
+				('__empty__', ''),
+				('string', '"or"')
+			]),
+			('rule', [
+				('symbol', 'op_and'),
+				('__empty__', ''),
+				('string', '"and"')
+			]),
+			('rule', [
+				('symbol', 'op_comp'),
+				('__empty__', ''),
+				('terms_or', [
+					('symbol', 'op_comp_s'),
+					('terms', [
+						('expr_rep', [
+							('symbol', 'op_not'),
+							('repeat', '?')
+						]),
+						('symbol', 'op_in')
+					]),
+					('terms', [
+						('symbol', 'op_is'),
+						('expr_rep', [
+							('symbol', 'op_not'),
+							('repeat', '?')
+						])
+					])
+				])
+			]),
+			('rule', [
+				('symbol', 'op_comp_s'),
+				('__empty__', ''),
+				('regexp', r'/<|>|==|<=|>=|!=/')
+			]),
+			('rule', [
+				('symbol', 'op_in'),
+				('__empty__', ''),
+				('string', '"in"')
+			]),
+			('rule', [
+				('symbol', 'op_is'),
+				('__empty__', ''),
+				('string', '"is"')
+			]),
+			('rule', [
+				('symbol', 'op_not'),
+				('__empty__', ''),
+				('string', '"not"')
+			]),
+			('rule', [
+				('symbol', 'op_add'),
+				('__empty__', ''),
+				('regexp', r'/[-+]/')
+			]),
+			('rule', [
+				('symbol', 'op_mul'),
+				('__empty__', ''),
+				('regexp', r'/[*\/%]/')
+			]),
+			('rule', [
+				('symbol', 'op_unary'),
+				('__empty__', ''),
+				('regexp', r'/[-+]/')
 			]),
 			('rule', [
 				('symbol', 'primary'),
@@ -71,9 +229,9 @@ def python_rules() -> Rules:
 				('symbol', 'atom'),
 				('unwrap', '1'),
 				('terms_or', [
-					('symbol', 'var'),
 					('symbol', 'bool'),
 					('symbol', 'none'),
+					('symbol', 'var'),
 					('symbol', 'str'),
 					('symbol', 'int'),
 					('symbol', 'float')
@@ -88,44 +246,44 @@ def python_rules() -> Rules:
 				('symbol', 'args'),
 				('__empty__', ''),
 				('terms', [
+					('symbol', 'expr'),
 					('expr_rep', [
 						('terms', [
-							('symbol', 'exp'),
-							('string', '","')
+							('string', '","'),
+							('symbol', 'expr')
 						]),
 						('repeat', '*')
-					]),
-					('symbol', 'exp')
+					])
 				])
 			]),
 			('rule', [
 				('symbol', 'slice'),
 				('unwrap', '*'),
 				('terms', [
+					('symbol', 'expr'),
 					('expr_rep', [
 						('terms', [
-							('symbol', 'exp'),
-							('string', '":"')
+							('string', '":"'),
+							('symbol', 'expr')
 						]),
 						('repeat', '*')
-					]),
-					('symbol', 'exp')
+					])
 				])
-			]),
-			('rule', [
-				('symbol', 'name'),
-				('__empty__', ''),
-				('regexp', r'/[a-zA-Z_]\w*/')
 			]),
 			('rule', [
 				('symbol', 'bool'),
 				('__empty__', ''),
-				('regexp', '/False|True/')
+				('regexp', r'/False|True/')
 			]),
 			('rule', [
 				('symbol', 'none'),
 				('__empty__', ''),
 				('string', '"None"')
+			]),
+			('rule', [
+				('symbol', 'name'),
+				('__empty__', ''),
+				('regexp', r'/[a-zA-Z_]\w*/')
 			]),
 			('rule', [
 				('symbol', 'str'),
@@ -172,7 +330,7 @@ def grammar_rules() -> Rules:
 							('string', '"["'),
 							('symbol', 'unwrap'),
 							('string', '"]"')
-						]),
+						])
 					]),
 					('string', '":="'),
 					('symbol', 'expr'),
@@ -188,25 +346,25 @@ def grammar_rules() -> Rules:
 				('symbol', 'terms_or'),
 				('unwrap', '1'),
 				('terms', [
+					('symbol', 'terms'),
 					('expr_rep', [
 						('terms', [
-							('symbol', 'terms'),
-							('string', '"|"')
+							('string', '"|"'),
+							('symbol', 'terms')
 						]),
 						('repeat', '*')
-					]),
-					('symbol', 'terms')
+					])
 				])
 			]),
 			('rule', [
 				('symbol', 'terms'),
 				('unwrap', '1'),
 				('terms', [
+					('symbol', 'term'),
 					('expr_rep', [
 						('symbol', 'term'),
 						('repeat', '*')
-					]),
-					('symbol', 'term')
+					])
 				])
 			]),
 			('rule', [
@@ -249,22 +407,22 @@ def grammar_rules() -> Rules:
 			('rule', [
 				('symbol', 'string'),
 				('__empty__', ''),
-				('regexp', '/"[^"]+"/')
+				('regexp', r'/"[^"]+"/')
 			]),
 			('rule', [
 				('symbol', 'regexp'),
 				('__empty__', ''),
-				('regexp', '/[\\/].+[\\/]/')
+				('regexp', r'/[\/].+[\/]/')
 			]),
 			('rule', [
 				('symbol', 'repeat'),
 				('__empty__', ''),
-				('regexp', '/[*+?]/')
+				('regexp', r'/[*+?]/')
 			]),
 			('rule', [
 				('symbol', 'unwrap'),
 				('__empty__', ''),
-				('regexp', '/[1*]/')
+				('regexp', r'/[1*]/')
 			])
 		])
 	)

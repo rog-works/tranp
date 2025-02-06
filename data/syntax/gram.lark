@@ -6,8 +6,8 @@ rule := symbol ["[" unwrap "]"] ":=" expr "\n"
 
 // expression
 expr[1] := terms_or
-terms_or[1] := (terms "|")* terms
-terms[1] := (term)* term
+terms_or[1] := terms ("|" terms)*
+terms[1] := term (term)*
 term[1] := symbol | string | regexp | expr_opt | expr_rep
 expr_opt := "[" expr "]"
 expr_rep := "(" expr ")" [repeat]
@@ -17,4 +17,4 @@ symbol := /[a-zA-Z_]\w*/
 string := /"[^"]+"/
 regexp := /[\/].+[\/]/
 repeat := /[*+?]/
-unwrap := /[_?]/
+unwrap := /[1*]/

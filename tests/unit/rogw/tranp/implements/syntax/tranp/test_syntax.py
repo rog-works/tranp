@@ -9,38 +9,53 @@ from rogw.tranp.test.helper import data_provider
 class TestSyntaxParser(TestCase):
 	@data_provider([
 		(
-			'a[0:1]',
+			'a.b().c + -1 == d("a" in b).e[0]',
 			'python',
 			('entry', [
-				('indexer', [
-					('var', [
-						('name', 'a'),
-					]),
-					('int', '0'),
-					('int', '1'),
-				]),
-			]),
-		),
-		(
-			'a.b().c(1, "2")',
-			'python',
-			('entry', [
-				('invoke', [
-					('relay', [
-						('invoke', [
-							('relay', [
-								('var', [
-									('name', 'a'),
+				('comp', [
+					('calc_sum', [
+						('relay', [
+							('invoke', [
+								('relay', [
+									('var', [
+										('name', 'a'),
+									]),
+									('name', 'b'),
 								]),
-								('name', 'b'),
+								('__empty__', ''),
 							]),
-							('__empty__', ''),
+							('name', 'c'),
 						]),
-						('name', 'c'),
+						('op_add', '+'),
+						('calc_unary', [
+							('op_unary', '-'),
+							('int', '1'),
+						]),
 					]),
-					('args', [
-						('int', '1'),
-						('str', '"2"'),
+					('op_comp', [
+						('op_comp_s', '=='),
+					]),
+					('indexer', [
+						('relay', [
+							('invoke', [
+								('var', [
+									('name', 'd'),
+								]),
+								('args', [
+									('comp', [
+										('str', '"a"'),
+										('op_comp', [
+											('op_in', 'in'),
+										]),
+										('var', [
+											('name', 'b'),
+										]),
+									]),
+								]),
+							]),
+							('name', 'e'),
+						]),
+						('int', '0'),
 					]),
 				]),
 			]),
@@ -156,9 +171,9 @@ class TestErrorCollector(TestCase):
 				'a.b.c',
 				'',
 			]),
-			0,
+			5,
 			'\n'.join([
-				"cause index: 5, pass: 0/6, token: '\\n'",
+				"pass: 5/6, token: '\\n'",
 				'(0) >>> ',
 				'        ^',
 			]),
@@ -170,9 +185,9 @@ class TestErrorCollector(TestCase):
 			]),
 			1,
 			'\n'.join([
-				"cause index: 4, pass: 1/6, token: 'c'",
+				"pass: 1/6, token: '.'",
 				'(1) >>> a.b.c',
-				'            ^',
+				'         ^',
 			]),
 		),
 	])

@@ -347,11 +347,17 @@ class SyntaxParser:
 			(ステップ, ASTエントリーリスト)
 		Note:
 			```
+			### 処理内容
 			* マッチングの基点である先頭要素をスキップし、後続の要素とのマッチングを繰り返す
 			* 本来のASTの構造から先頭要素が欠けた状態でマッチングするため、ASTを再構築
 			* 繰り返す度に直前のレスポンスを内側にスタック
+			### 拡張の条件
+			* マッチングパターンは必ずグループである前提 (左再帰の成立条件) @see _match_and_recursive
+			* 結果が期待通りの場合、必ずASTTreeが得られる
+			* これに該当しない結果は除外しなければならない (構文上の曖昧性があり、これは避けられない)
 			```
 		"""
+		recursive_symbol = DSN.elements(route)[-2]
 		first_pattern = as_a(Pattern, patterns[0])
 		steps = 0
 		children = step_children.copy()
@@ -361,7 +367,14 @@ class SyntaxParser:
 			if not in_step.steping:
 				break
 
-			unwrap_tree = as_a(ASTTree, self._unwrap_recursive_children(first_pattern, route, in_children))
+			# 解決したエントリーが再帰呼び出しを伴うルールから取得したものか確認 XXX 展開の仕様を考慮するとこの判定の確実性は怪しいため、検討の余地あり
+			unwrap_entry = self._unwrap_recursive_children(first_pattern, route, in_children)
+			entry_rule = self.rules[unwrap_entry.name]
+			if not isinstance(entry_rule, Patterns) or recursive_symbol not in entry_rule.symbols:
+				children.clear()
+				break
+
+			unwrap_tree = as_a(ASTTree, unwrap_entry)
 			expect_tree = ASTTree(unwrap_tree.name, [*children, *unwrap_tree.children])
 			children: list[ASTEntry] = [expect_tree]
 			steps += in_step.steps

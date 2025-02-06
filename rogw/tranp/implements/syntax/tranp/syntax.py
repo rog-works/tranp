@@ -367,7 +367,7 @@ class SyntaxParser:
 			if not in_step.steping:
 				break
 
-			# 解決したエントリーが再帰呼び出しを伴うルールから取得したものか確認 XXX 展開の仕様を考慮するとこの判定の確実性は怪しいため、検討の余地あり
+			# 解決したエントリーが再帰呼び出しを伴うルールから取得したものか確認 XXX 展開の仕様を考慮するとこの判定の確実性は怪しい。要検討
 			unwrap_entry = self._unwrap_recursive_children(first_pattern, route, in_children)
 			entry_rule = self.rules[unwrap_entry.name]
 			if not isinstance(entry_rule, Patterns) or recursive_symbol not in entry_rule.symbols:
@@ -445,7 +445,7 @@ class SyntaxParser:
 		return Step.ok(steps), children
 
 	def _match_terminal(self, tokens: list[Token], context: Context, pattern: Pattern, route: str) -> tuple[Step, Token]:
-		"""パターン(終端/非終端要素)を検証し、マッチしたトークンを返す
+		"""パターン(終端/非終端記号)を検証し、マッチしたトークンを返す
 
 		Args:
 			tokens: トークンリスト
@@ -463,7 +463,7 @@ class SyntaxParser:
 		return (Step.ok(1), token) if ok else (Step.ng(), Token.empty())
 	
 	def _compare_token(self, token: Token, pattern: Pattern) -> bool:
-		"""終端/非終端要素のトークンが一致するか判定
+		"""終端/非終端記号のトークンが一致するか判定
 
 		Args:
 			token: トークン

@@ -20,6 +20,18 @@ Tranp (TRANspiler on Python)
 $ pip install -r requirements.txt -t vendor/
 ```
 
+## Grammar Analyzer Tool
+
+```
+$ bash bin/gram.sh
+```
+
+## AST Analyzer Tool
+
+```
+$ bash bin/ast.sh
+```
+
 ## Symbol Analyzer Tool
 
 ```
@@ -29,7 +41,7 @@ $ bash bin/analyze.sh
 ## Transpile from Python to C++
 
 ```
-$ bash bin/transpile.sh -c example/config.yml
+$ bash bin/transpile.sh
 ```
 
 ## Testing via tests/

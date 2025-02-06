@@ -97,7 +97,7 @@ class Context(NamedTuple):
 			return Context(self.posision + steps + max(0, self.minimum), -1, -1)
 
 	def block_step(self, steps: int = 0, minimum: int = -1, maximum: int = -1) -> 'Context':
-		"""ステップ数を加えて新規作成。新たなコンテキスト上では再帰処理がブロックされる
+		"""ステップ数を加えて新規作成。作成したコンテキスト上では左再帰がブロックされる
 
 		Args:
 			steps: 追加の進行ステップ数 (default = 0)
@@ -202,7 +202,7 @@ class SyntaxParser:
 				return self._match_repeat(tokens, context, pattern, route)
 			elif pattern.op == Operators.Or:
 				return self._match_or(tokens, context, pattern, route)
-			elif pattern.op == Operators.And and context.accepted_recursive and self.rules.recursive_by(pattern[0]):
+			elif pattern.op == Operators.And and context.accepted_recursive and self.rules.recursive_of(pattern[0]):
 				return self._match_and_recursive(tokens, context, pattern, route)
 			else:
 				return self._match_and(tokens, context, pattern, route)
@@ -243,14 +243,16 @@ class SyntaxParser:
 		Returns:
 			(ステップ, ASTエントリーリスト)
 		"""
-		ok_limit = context.maximum == -1 or patterns.size <= context.maximum
-		ok_range = context.posision + patterns.size <= len(tokens)
+		# XXX 読み取り位置の上限を考慮(左再帰時) @see _match_and_recursive_first
+		ok_limit = context.maximum == -1 or patterns.min_size <= context.maximum
+		ok_range = context.posision + patterns.min_size <= len(tokens)
 		if not (ok_limit and ok_range):
 			return Step.ng(), []
 
 		steps = 0
 		children: list[ASTEntry] = []
 		for index, pattern in enumerate(patterns):
+			# XXX 読み取り位置の下限を考慮(左再帰時) @see _match_and_recursive_extend
 			if index < context.minimum:
 				continue
 
@@ -273,6 +275,25 @@ class SyntaxParser:
 			route: 探索ルート
 		Returns:
 			(ステップ, ASTエントリーリスト)
+		Note:
+			```
+			### 左再帰の成立条件
+			* AND条件のルールの先頭要素が左再帰の場合が対象
+			### 左再帰の否定条件
+			* 先頭要素以外の再帰 (同条件の繰り返しにならず無限ループに陥らないため、対処が不要)
+			* 1要素しか存在しない場合の再帰 (構文的に意味が無い)
+			* OR条件に単独で存在する再帰 (グループ化してAND条件にすることで対処が可能なため、非対応)
+			```
+		Examples:
+			```
+			recursive := rule
+			// OKパターン
+			rule := recursive "." name
+			// NGパターン
+			rule := "@" recursive ...
+			rule := recursive
+			rule := recursive | other | ...
+			```
 		"""
 		first_step, first_children = self._match_and_recursive_first(tokens, context, patterns, route)
 		if not first_step.steping:

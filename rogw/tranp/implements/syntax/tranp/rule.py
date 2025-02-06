@@ -130,7 +130,7 @@ class Pattern:
 		return self._comp
 
 	@property
-	def size(self) -> int:
+	def min_size(self) -> int:
 		"""Returns: 最小ステップ数"""
 		return 1
 
@@ -186,7 +186,7 @@ class Patterns(Sequence['Pattern | Patterns']):
 		return f'<{self.__class__.__name__}: {entries} at {hex(id(self)).upper()}]>'
 
 	@property
-	def size(self) -> int:
+	def min_size(self) -> int:
 		"""Returns: 最小ステップ数"""
 		if self.rep in [Repeators.OverZero, Repeators.OneOrZero, Repeators.OneOrEmpty]:
 			return 0
@@ -305,7 +305,7 @@ class Rules(Mapping):
 		else:
 			return Unwraps.Always
 
-	def recursive_by(self, pattern: PatternEntry) -> bool:
+	def recursive_of(self, pattern: PatternEntry) -> bool:
 		"""左再帰のマッチングパターンか判定
 
 		Args:
@@ -320,13 +320,13 @@ class Rules(Mapping):
 
 		def factory() -> tuple[str, int]:
 			symbol = list(self._rules.keys())[0]
-			return self._step_by(pattern, self[symbol], pattern.expression, symbol, 0)
+			return self._step_of(pattern, self[symbol], pattern.expression, symbol, 0)
 
-		route, step = self._memo.get(f'{self.recursive_by.__name__}#{id(pattern)}', factory)
+		route, step = self._memo.get(f'{self.recursive_of.__name__}#{id(pattern)}', factory)
 		assert route != '', f'Never. pattern: {pattern.__repr__()}'
 		return step == 0 and route.find(pattern.expression) > 0
 
-	def _step_by(self, target: Pattern, entry: PatternEntry, start_symbol: str, route: str, step: int) -> tuple[str, int]:
+	def _step_of(self, target: Pattern, entry: PatternEntry, start_symbol: str, route: str, step: int) -> tuple[str, int]:
 		"""検索対象のマッチングパターンを解決するのに消費するステップ数を計測
 
 		Args:
@@ -344,13 +344,13 @@ class Rules(Mapping):
 			elif entry.role == Roles.Symbol and entry.expression not in DSN.elements(route):
 				to_entry = self[entry.expression]
 				to_step = 0 if start_symbol == entry.expression else step
-				return self._step_by(target, to_entry, start_symbol, DSN.join(route, entry.expression), to_step)
+				return self._step_of(target, to_entry, start_symbol, DSN.join(route, entry.expression), to_step)
 			else:
 				return '', 0
 
 		for index, in_entry in enumerate(entry):
 			offset = 0 if entry.op == Operators.Or else index
-			in_symbol, in_step = self._step_by(target, in_entry, start_symbol, route, step + offset)
+			in_symbol, in_step = self._step_of(target, in_entry, start_symbol, route, step + offset)
 			if in_symbol != '':
 				return in_symbol, in_step
 

@@ -14,6 +14,7 @@ from rogw.tranp.implements.syntax.tranp.syntax import SyntaxParser
 DictArgs = TypedDict('DictArgs', {'filepath': str, 'parser': str, 'grammar': str})
 Parser: TypeAlias = Callable[[str], str]
 
+
 class Args:
 	"""アプリケーション引数"""
 

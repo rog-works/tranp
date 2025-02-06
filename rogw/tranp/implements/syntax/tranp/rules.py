@@ -24,7 +24,60 @@ def python_rules() -> Rules:
 			('rule', [
 				('symbol', 'expr'),
 				('unwrap', '1'),
-				('symbol', 'calc_sum')
+				('symbol', 'comp_or')
+			]),
+			('rule', [
+				('symbol', 'comp_or'),
+				('unwrap', '1'),
+				('terms', [
+					('symbol', 'comp_and'),
+					('expr_rep', [
+						('terms', [
+							('symbol', 'op_or'),
+							('symbol', 'comp_and')
+						]),
+						('repeat', '*')
+					])
+				])
+			]),
+			('rule', [
+				('symbol', 'comp_and'),
+				('unwrap', '1'),
+				('terms', [
+					('symbol', 'comp_not'),
+					('expr_rep', [
+						('terms', [
+							('symbol', 'op_and'),
+							('symbol', 'comp_not')
+						]),
+						('repeat', '*')
+					])
+				])
+			]),
+			('rule', [
+				('symbol', 'comp_not'),
+				('unwrap', '1'),
+				('terms', [
+					('expr_rep', [
+						('symbol', 'op_not'),
+						('repeat', '?')
+					]),
+					('symbol', 'comp')
+				])
+			]),
+			('rule', [
+				('symbol', 'comp'),
+				('unwrap', '1'),
+				('terms', [
+					('symbol', 'calc_sum'),
+					('expr_rep', [
+						('terms', [
+							('symbol', 'op_comp'),
+							('symbol', 'calc_sum')
+						]),
+						('repeat', '*')
+					])
+				])
 			]),
 			('rule', [
 				('symbol', 'calc_sum'),
@@ -64,6 +117,57 @@ def python_rules() -> Rules:
 					]),
 					('symbol', 'primary')
 				])
+			]),
+			('rule', [
+				('symbol', 'op_or'),
+				('__empty__', ''),
+				('string', '"or"')
+			]),
+			('rule', [
+				('symbol', 'op_and'),
+				('__empty__', ''),
+				('string', '"and"')
+			]),
+			('rule', [
+				('symbol', 'op_comp'),
+				('__empty__', ''),
+				('terms_or', [
+					('symbol', 'op_comp_s'),
+					('terms', [
+						('expr_rep', [
+							('symbol', 'op_not'),
+							('repeat', '?')
+						]),
+						('symbol', 'op_in')
+					]),
+					('terms', [
+						('symbol', 'op_is'),
+						('expr_rep', [
+							('symbol', 'op_not'),
+							('repeat', '?')
+						])
+					])
+				])
+			]),
+			('rule', [
+				('symbol', 'op_comp_s'),
+				('__empty__', ''),
+				('regexp', r'/<|>|==|<=|>=|!=/')
+			]),
+			('rule', [
+				('symbol', 'op_in'),
+				('__empty__', ''),
+				('string', '"in"')
+			]),
+			('rule', [
+				('symbol', 'op_is'),
+				('__empty__', ''),
+				('string', '"is"')
+			]),
+			('rule', [
+				('symbol', 'op_not'),
+				('__empty__', ''),
+				('string', '"not"')
 			]),
 			('rule', [
 				('symbol', 'op_add'),

@@ -2,7 +2,13 @@
 entry := (expr "\n")+
 
 // expression
-expr[1] := calc_sum
+expr[1] := comp_or
+
+// operation - comparison
+comp_or[1] := comp_and (op_or comp_and)*
+comp_and[1] := comp_not (op_and comp_not)*
+comp_not[1] := (op_not)? comp
+comp[1] := calc_sum (op_comp calc_sum)*
 
 // operation - arithmetical
 calc_sum[1] := calc_mul (op_add calc_mul)*
@@ -10,6 +16,13 @@ calc_mul[1] := calc_unary (op_mul calc_unary)*
 calc_unary[1] := (op_unary)? primary
 
 // operation - operator
+op_or := "or"
+op_and := "and"
+op_comp := op_comp_s | (op_not)? op_in | op_is (op_not)?
+op_comp_s := /<|>|==|<=|>=|!=/
+op_in := "in"
+op_is := "is"
+op_not := "not"
 op_add := /[-+]/
 op_mul := /[*\/%]/
 op_unary := /[-+]/

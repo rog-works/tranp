@@ -3,6 +3,7 @@ from enum import Enum
 import re
 from typing import Iterator, TypeAlias, ValuesView, cast
 
+from rogw.tranp.cache.memo2 import Memoize
 from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.implements.syntax.tranp.ast import TupleEntry, TupleToken, TupleTree
 from rogw.tranp.lang.convertion import as_a
@@ -239,6 +240,7 @@ class Rules(Mapping):
 		"""
 		super().__init__()
 		self._rules = rules
+		self._memo = Memoize()
 
 	def __len__(self) -> int:
 		"""Returns: 要素数"""
@@ -316,10 +318,12 @@ class Rules(Mapping):
 		elif pattern.role == Roles.Terminal:
 			return False
 
-		symbol = list(self._rules.keys())[0]
-		route, step = self._step_by(pattern, self[symbol], pattern.expression, symbol, 0)
-		assert route != '', f'Never. pattern: {pattern.__repr__()}'
+		def factory() -> tuple[str, int]:
+			symbol = list(self._rules.keys())[0]
+			return self._step_by(pattern, self[symbol], pattern.expression, symbol, 0)
 
+		route, step = self._memo.get(f'{self.recursive_by.__name__}#{id(pattern)}', factory)
+		assert route != '', f'Never. pattern: {pattern.__repr__()}'
 		return step == 0 and route.find(pattern.expression) > 0
 
 	def _step_by(self, target: Pattern, entry: PatternEntry, start_symbol: str, route: str, step: int) -> tuple[str, int]:

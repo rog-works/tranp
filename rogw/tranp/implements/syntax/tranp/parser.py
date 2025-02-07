@@ -177,6 +177,7 @@ class ExpressionsOr(Expressions):
 
 		return Triggers.Aboat
 
+
 class ExpressionsAnd(Expressions):
 	@override
 	def watches(self, context: Context) -> list[str]:
@@ -189,7 +190,7 @@ class ExpressionsAnd(Expressions):
 	@override
 	def step(self, context: Context, token: Token) -> Triggers:
 		for index, expression in enumerate(self._expressions):
-			trigger = expression.step(self._new_context(context, index), token)
+			trigger = self._handle_result(index, expression.step(self._new_context(context, index), token))
 			if trigger != Triggers.Hold:
 				return trigger
 
@@ -198,7 +199,7 @@ class ExpressionsAnd(Expressions):
 	@override
 	def accept(self, context: Context, state_of: StateOf) -> Triggers:
 		for index, expression in enumerate(self._expressions):
-			trigger = expression.accept(self._new_context(context, index), state_of)
+			trigger = self._handle_result(index, expression.accept(self._new_context(context, index), state_of))
 			if trigger != Triggers.Hold:
 				return trigger
 
@@ -206,6 +207,14 @@ class ExpressionsAnd(Expressions):
 
 	def _new_context(self, context: Context, offset: int) -> Context:
 		return Context(context.cursor - offset)
+
+	def _handle_result(self, index: int, trigger: Triggers) -> Triggers:
+		if trigger == Triggers.Done:
+			return Triggers.Done if index == len(self._expressions) - 1 else Triggers.Step
+		elif trigger == Triggers.Aboat:
+			return Triggers.Aboat
+		else:
+			return Triggers.Hold
 
 
 class ExpressionsRepeat(Expressions):

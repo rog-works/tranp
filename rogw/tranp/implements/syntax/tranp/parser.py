@@ -11,8 +11,8 @@ from rogw.tranp.lang.convertion import as_a
 
 
 class Triggers(Enum):
-	Lookup = 0
-	Hold = 1
+	Empty = 0
+	Lookup = 1
 	Step = 2
 	Done = 3
 	Aboat = 4
@@ -111,23 +111,20 @@ class ExpressionTerminal(Expression):
 	@override
 	def step(self, context: Context, token: Token) -> Triggers:
 		if context.cursor != 0:
-			return Triggers.Hold
+			return Triggers.Empty
 
 		pattern = self._as_pattern
+		ok = False
 		if pattern.comp == Comps.Regexp:
-			if re.fullmatch(pattern.expression[1:-1], token.string) is not None:
-				return Triggers.Done
-			else:
-				return Triggers.Aboat
+			ok = re.fullmatch(pattern.expression[1:-1], token.string) is not None
 		else:
-			if pattern.expression[1:-1] == token.string:
-				return Triggers.Done
-			else:
-				return Triggers.Aboat
+			ok = pattern.expression[1:-1] == token.string
+
+		return Triggers.Done if ok else Triggers.Aboat
 
 	@override
 	def accept(self, context: Context, state_of: StateOf) -> Triggers:
-		return Triggers.Hold
+		return Triggers.Empty
 
 
 class ExpressionSymbol(Expression):
@@ -141,18 +138,18 @@ class ExpressionSymbol(Expression):
 
 	@override
 	def step(self, context: Context, token: Token) -> Triggers:
-		return Triggers.Hold
+		return Triggers.Empty
 
 	@override
 	def accept(self, context: Context, state_of: StateOf) -> Triggers:
 		if context.cursor != 0:
-			return Triggers.Hold
-		elif state_of(self._as_pattern.expression, States.Idle):
-			return Triggers.Hold
+			return Triggers.Empty
 		elif state_of(self._as_pattern.expression, States.Finish):
 			return Triggers.Done
-		else:
+		elif state_of(self._as_pattern.expression, States.Fail):
 			return Triggers.Aboat
+		else:
+			return Triggers.Empty
 
 
 class ExpressionsOr(Expressions):
@@ -173,7 +170,7 @@ class ExpressionsOr(Expressions):
 		return self._select_trigger([expression.accept(context, state_of) for expression in self._expressions])
 
 	def _select_trigger(self, triggers: list[Triggers]) -> Triggers:
-		priorities = [Triggers.Done, Triggers.Step, Triggers.Hold]
+		priorities = [Triggers.Done, Triggers.Step, Triggers.Empty]
 		for expect in priorities:
 			if expect in triggers:
 				return expect
@@ -194,19 +191,19 @@ class ExpressionsAnd(Expressions):
 	def step(self, context: Context, token: Token) -> Triggers:
 		for index, expression in enumerate(self._expressions):
 			trigger = self._handle_result(index, expression.step(self._new_context(context, index), token))
-			if trigger != Triggers.Hold:
+			if trigger != Triggers.Empty:
 				return trigger
 
-		return Triggers.Hold
+		return Triggers.Empty
 
 	@override
 	def accept(self, context: Context, state_of: StateOf) -> Triggers:
 		for index, expression in enumerate(self._expressions):
 			trigger = self._handle_result(index, expression.accept(self._new_context(context, index), state_of))
-			if trigger != Triggers.Hold:
+			if trigger != Triggers.Empty:
 				return trigger
 
-		return Triggers.Hold
+		return Triggers.Empty
 
 	def _new_context(self, context: Context, offset: int) -> Context:
 		return Context(context.cursor - offset)
@@ -217,7 +214,7 @@ class ExpressionsAnd(Expressions):
 		elif trigger == Triggers.Aboat:
 			return Triggers.Aboat
 		else:
-			return Triggers.Hold
+			return Triggers.Empty
 
 
 class ExpressionsRepeat(Expressions):

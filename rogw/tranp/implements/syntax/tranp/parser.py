@@ -6,6 +6,7 @@ from typing import NamedTuple, override
 from rogw.tranp.implements.syntax.tranp.rule import Comps, Operators, Pattern, PatternEntry, Patterns, Repeators, Roles, Rules
 from rogw.tranp.implements.syntax.tranp.token import Token
 from rogw.tranp.implements.syntax.tranp.ast import ASTEntry, ASTToken, ASTTree
+from rogw.tranp.implements.syntax.tranp.tokenizer import ITokenizer, Tokenizer
 from rogw.tranp.lang.convertion import as_a
 
 
@@ -285,10 +286,12 @@ class Task:
 
 
 class SyntaxParser:
-	def __init__(self, rules: Rules) -> None:
+	def __init__(self, rules: Rules, tokenizer: ITokenizer | None = None) -> None:
 		self.rules = rules
+		self.tokenizer = tokenizer if tokenizer else Tokenizer()
 
-	def parse(self, tokens: list[Token], entrypoint: str) -> Iterator[ASTEntry]:
+	def parse(self, source: str, entrypoint: str) -> Iterator[ASTEntry]:
+		tokens = self.tokenizer.parse(source)
 		return self._parse(self.new_tasks(), tokens, entrypoint)
 
 	def new_tasks(self) -> dict[str, Task]:

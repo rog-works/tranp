@@ -338,19 +338,19 @@ class SyntaxParser:
 			yield ast
 
 	def lookup(self, tasks: dict[str, Task], entrypoint: str) -> list[str]:
-		task = tasks[entrypoint]
-		lookup_names = task.watches()
-		stack_names = lookup_names.copy()
+		lookup_names = {entrypoint: True}
+		stack_names = list(lookup_names.keys())
 		while len(stack_names) > 0:
 			name = stack_names.pop(0)
-			add_names = tasks[name].watches()
-			lookup_names.extend(add_names)
-			stack_names.extend(add_names)
+			candidate_names = tasks[name].watches()
+			add_names = {name: True for name in candidate_names if name not in lookup_names}
+			lookup_names.update(add_names)
+			stack_names.extend(add_names.keys())
 
 		for name, task in tasks.items():
 			task.lookup(name in lookup_names)
 
-		return [name for name in lookup_names if tasks[name].state_of(States.Idle)]
+		return [name for name in lookup_names.keys() if tasks[name].state_of(States.Idle)]
 
 	def step(self, tasks: dict[str, Task], token: Token, names: list[str]) -> list[str]:
 		for name in names:

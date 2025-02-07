@@ -87,7 +87,7 @@ class Expressions(Expression):
 
 class ExpressionTerminal(Expression):
 	@property
-	def _pattern(self) -> Pattern:
+	def _as_pattern(self) -> Pattern:
 		return as_a(Pattern, self._pattern)
 
 	@override
@@ -99,7 +99,7 @@ class ExpressionTerminal(Expression):
 		if context.cursor != 0:
 			return Triggers.Hold
 
-		pattern = self._pattern
+		pattern = self._as_pattern
 		if pattern.comp == Comps.Regexp:
 			if re.fullmatch(pattern.expression[1:-1], token.string) is not None:
 				return Triggers.Done
@@ -118,12 +118,12 @@ class ExpressionTerminal(Expression):
 
 class ExpressionSymbol(Expression):
 	@property
-	def _pattern(self) -> Pattern:
+	def _as_pattern(self) -> Pattern:
 		return as_a(Pattern, self._pattern)
 
 	@override
 	def watches(self, context: Context) -> list[str]:
-		return [self._pattern.expression] if context.cursor == 0 else []
+		return [self._as_pattern.expression] if context.cursor == 0 else []
 
 	@override
 	def step(self, context: Context, token: Token) -> Triggers:
@@ -133,7 +133,7 @@ class ExpressionSymbol(Expression):
 	def accept(self, context: Context, names: list[str]) -> Triggers:
 		if context.cursor != 0:
 			return Triggers.Hold
-		elif self._pattern.expression in names:
+		elif self._as_pattern.expression in names:
 			return Triggers.Done
 		else:
 			return Triggers.Aboat
@@ -202,7 +202,7 @@ class ExpressionsRepeat(Expressions):
 		self._repeats = 0
 
 	@property
-	def _patterns(self) -> Patterns:
+	def _as_patterns(self) -> Patterns:
 		return as_a(Patterns, self._pattern)
 
 	@override
@@ -218,7 +218,7 @@ class ExpressionsRepeat(Expressions):
 		return self._handle_result(self._expressions[0].accept(context, names))
 
 	def _handle_result(self, trigger: Triggers) -> Triggers:
-		patterns = self._patterns
+		patterns = self._as_patterns
 		if trigger == Triggers.Aboat:
 			if patterns.rep != Repeators.OverOne:
 				self._repeats = 0
@@ -292,7 +292,8 @@ class SyntaxParser:
 
 	def parse(self, source: str, entrypoint: str) -> Iterator[ASTEntry]:
 		tokens = self.tokenizer.parse(source)
-		return self._parse(self.new_tasks(), tokens, entrypoint)
+		tasks = self.new_tasks()
+		return self._parse(tasks, tokens, entrypoint)
 
 	def new_tasks(self) -> dict[str, Task]:
 		return {name: Task(name, pattern) for name, pattern in self.rules.items()}

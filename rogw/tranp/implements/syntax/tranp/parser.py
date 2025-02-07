@@ -16,7 +16,7 @@ class Triggers(Enum):
 	Lookup = 1
 	Step = 2
 	Done = 3
-	Aboat = 4
+	Abort = 4
 
 
 class States(Enum):
@@ -198,7 +198,7 @@ class ExpressionTerminal(Expression):
 		else:
 			ok = pattern.expression[1:-1] == token.string
 
-		return Triggers.Done if ok else Triggers.Aboat
+		return Triggers.Done if ok else Triggers.Abort
 
 	@override
 	def accept(self, context: Context, state_of: StateOf) -> Triggers:
@@ -227,7 +227,7 @@ class ExpressionSymbol(Expression):
 		elif state_of(self._as_pattern.expression, States.Finish):
 			return Triggers.Done
 		elif state_of(self._as_pattern.expression, States.Fail):
-			return Triggers.Aboat
+			return Triggers.Abort
 		else:
 			return Triggers.Empty
 
@@ -257,7 +257,7 @@ class ExpressionsOr(Expressions):
 			if expect in triggers:
 				return expect
 
-		return Triggers.Aboat
+		return Triggers.Abort
 
 
 class ExpressionsAnd(Expressions):
@@ -295,8 +295,8 @@ class ExpressionsAnd(Expressions):
 	def _handle_result(self, index: int, trigger: Triggers) -> Triggers:
 		if trigger == Triggers.Done:
 			return Triggers.Done if index == len(self._expressions) - 1 else Triggers.Step
-		elif trigger == Triggers.Aboat:
-			return Triggers.Aboat
+		elif trigger == Triggers.Abort:
+			return Triggers.Abort
 		else:
 			return Triggers.Empty
 
@@ -327,7 +327,7 @@ class ExpressionsRepeat(Expressions):
 
 	def _handle_result(self, trigger: Triggers) -> Triggers:
 		patterns = self._as_patterns
-		if trigger == Triggers.Aboat:
+		if trigger == Triggers.Abort:
 			if patterns.rep != Repeators.OverOne:
 				self._repeats = 0
 				return Triggers.Done
@@ -361,7 +361,7 @@ class Task:
 		self._states = StateMachine(States.Ready, {
 			(Triggers.Lookup, States.Ready): States.Idle,
 			(Triggers.Done, States.Idle): States.Finish,
-			(Triggers.Aboat, States.Idle): States.Fail,
+			(Triggers.Abort, States.Idle): States.Fail,
 			(Triggers.Lookup, States.Finish): States.Idle,
 			(Triggers.Done, States.Finish): States.Ready,
 			(Triggers.Lookup, States.Fail): States.Idle,
@@ -369,7 +369,7 @@ class Task:
 		})
 		self._states.on(Triggers.Step, States.Idle, lambda: self._cursor_step())
 		self._states.on(Triggers.Done, States.Idle, lambda: self._cursor_reset())
-		self._states.on(Triggers.Aboat, States.Idle, lambda: self._cursor_reset())
+		self._states.on(Triggers.Abort, States.Idle, lambda: self._cursor_reset())
 
 	@property
 	def name(self) -> str:

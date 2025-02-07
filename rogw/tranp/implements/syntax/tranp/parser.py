@@ -1,4 +1,4 @@
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from enum import Enum
 import re
 from typing import NamedTuple, override
@@ -27,6 +27,7 @@ class StateMachine:
 	def __init__(self, initial: States, transisions: dict[tuple[Triggers, States], States]) -> None:
 		self.state = initial
 		self.transisions = transisions
+		self.handlers: dict[tuple[Triggers, States], Callable[[], None]] = {}
 
 	def done(self) -> None:
 		self.notify(Triggers.Done)
@@ -39,6 +40,13 @@ class StateMachine:
 		if key in self.transisions:
 			self.state = self.transisions[key]
 
+		if key in self.handlers:
+			self.handlers[key]()
+
+	def on(self, trigger: Triggers, state: States, callback: Callable[[], None]) -> None:
+		key = (trigger, state)
+		self.handlers[key] = callback
+
 
 class Context(NamedTuple):
 	steps: int
@@ -46,18 +54,6 @@ class Context(NamedTuple):
 
 
 class Expression:
-	def __init__(self, pattern: PatternEntry) -> None:
-		self._pattern = pattern
-
-	def watches(self, context: Context) -> list[str]:
-		assert False, 'Not implemented'
-
-	def step(self, context: Context, token: Token) -> Triggers:
-		assert False, 'Not implemented'
-
-	def accept(self, context: Context, names: list[str]) -> Triggers:
-		assert False, 'Not implemented'
-
 	@classmethod
 	def factory(cls, pattern: PatternEntry) -> 'Expression':
 		if isinstance(pattern, Pattern):
@@ -72,11 +68,23 @@ class Expression:
 		else:
 			return ExpressionsAnd(pattern)
 
+	def __init__(self, pattern: PatternEntry) -> None:
+		self._pattern = pattern
+
+	def watches(self, context: Context) -> list[str]:
+		assert False, 'Not implemented'
+
+	def step(self, context: Context, token: Token) -> Triggers:
+		assert False, 'Not implemented'
+
+	def accept(self, context: Context, names: list[str]) -> Triggers:
+		assert False, 'Not implemented'
+
 
 class Expressions(Expression):
-	def __init__(self, patterns: Patterns) -> None:
-		super().__init__(patterns)
-		self._exprs = [Expression.factory(pattern) for pattern in patterns]
+	def __init__(self, pattern: PatternEntry) -> None:
+		super().__init__(pattern)
+		self._expressions = [Expression.factory(pattern) for pattern in as_a(Patterns, pattern)]
 
 
 class ExpressionTerminal(Expression):
@@ -137,18 +145,18 @@ class ExpressionsOr(Expressions):
 	@override
 	def watches(self, context: Context) -> list[str]:
 		symbols: list[str] = []
-		for expr in self._exprs:
-			symbols.extend(expr.watches(context))
+		for expression in self._expressions:
+			symbols.extend(expression.watches(context))
 
 		return symbols
 
 	@override
 	def step(self, context: Context, token: Token) -> Triggers:
-		return self._select_trigger([expr.step(context, token) for expr in self._exprs])
+		return self._select_trigger([expression.step(context, token) for expression in self._expressions])
 
 	@override
 	def accept(self, context: Context, names: list[str]) -> Triggers:
-		return self._select_trigger([expr.accept(context, names) for expr in self._exprs])
+		return self._select_trigger([expression.accept(context, names) for expression in self._expressions])
 
 	def _select_trigger(self, triggers: list[Triggers]) -> Triggers:
 		priorities = [Triggers.Done, Triggers.Step, Triggers.Hold]
@@ -162,15 +170,15 @@ class ExpressionsAnd(Expressions):
 	@override
 	def watches(self, context: Context) -> list[str]:
 		symbols: list[str] = []
-		for index, expr in enumerate(self._exprs):
-			symbols.extend(expr.watches(self._new_context(context, index)))
+		for index, expression in enumerate(self._expressions):
+			symbols.extend(expression.watches(self._new_context(context, index)))
 
 		return symbols
 
 	@override
 	def step(self, context: Context, token: Token) -> Triggers:
-		for index, expr in enumerate(self._exprs):
-			trigger = expr.step(self._new_context(context, index), token)
+		for index, expression in enumerate(self._expressions):
+			trigger = expression.step(self._new_context(context, index), token)
 			if trigger != Triggers.Hold:
 				return trigger
 
@@ -178,8 +186,8 @@ class ExpressionsAnd(Expressions):
 
 	@override
 	def accept(self, context: Context, names: list[str]) -> Triggers:
-		for index, expr in enumerate(self._exprs):
-			trigger = expr.accept(self._new_context(context, index), names)
+		for index, expression in enumerate(self._expressions):
+			trigger = expression.accept(self._new_context(context, index), names)
 			if trigger != Triggers.Hold:
 				return trigger
 
@@ -190,21 +198,45 @@ class ExpressionsAnd(Expressions):
 
 
 class ExpressionsRepeat(Expressions):
-	def __init__(self, patterns: Patterns) -> None:
-		super().__init__(patterns)
-		assert len(self._exprs) == 1
+	def __init__(self, pattern: PatternEntry) -> None:
+		assert len(as_a(Patterns, pattern).entries) == 1
+		super().__init__(pattern)
+		self._repeats = 0
+
+	@property
+	def _patterns(self) -> Patterns:
+		return as_a(Patterns, self._pattern)
 
 	@override
 	def watches(self, context: Context) -> list[str]:
-		return self._exprs[0].watches(context)
+		return self._expressions[0].watches(context)
 
 	@override
 	def step(self, context: Context, token: Token) -> Triggers:
-		return self._exprs[0].step(context, token)
+		return self._handle_result(self._expressions[0].step(context, token))
 
 	@override
 	def accept(self, context: Context, names: list[str]) -> Triggers:
-		return self._exprs[0].accept(context, names)
+		return self._handle_result(self._expressions[0].accept(context, names))
+
+	def _handle_result(self, trigger: Triggers) -> Triggers:
+		patterns = self._patterns
+		if trigger == Triggers.Aboat:
+			if patterns.rep != Repeators.OverOne:
+				self._repeats = 0
+				return Triggers.Done
+			elif self._repeats >= 1:
+				self._repeats = 0
+				return Triggers.Done
+		elif trigger == Triggers.Done:
+			if patterns.rep in [Repeators.OneOrZero, Repeators.OneOrEmpty]:
+				self._repeats = 0
+				return Triggers.Done
+			else:
+				self._repeats += 1
+				return Triggers.Step
+
+		return trigger
 
 
 class Task:
@@ -217,7 +249,7 @@ class Task:
 
 	def __init__(self, name: str) -> None:
 		self._name = name
-		self._steps = 0
+		self._cursor = 0
 		self._states = StateMachine(States.Ready, {
 			(Triggers.Lookup, States.Ready): States.Idle,
 			(Triggers.Done, States.Idle): States.Finish,
@@ -225,25 +257,27 @@ class Task:
 			(Triggers.Lookup, States.Finish): States.Idle,
 			(Triggers.Done, States.Finish): States.Ready,
 		})
+		self._states.on(Triggers.Lookup, States.Ready, lambda: self._cursor_to(at=0))
+		self._states.on(Triggers.Lookup, States.Finish, lambda: self._cursor_to(at=0))
+		self._states.on(Triggers.Step, States.Idle, lambda: self._cursor_to(add=1))
 
 	@property
 	def name(self) -> str:
 		return self._name
 
-	def stat_in(self, *expects: States) -> bool:
+	def state_in(self, *expects: States) -> bool:
 		return self._states.state in expects
 
 	def notify(self, trigger: Triggers) -> None:
-		if trigger == Triggers.Lookup:
-			self._steps = 0
-		elif trigger == Triggers.Step:
-			self._steps += 1
-		elif trigger == Triggers.Done:
-			self._steps = 0
-		elif trigger == Triggers.Aboat:
-			self._steps = 0
-
 		self._states.notify(trigger)
+
+	def _cursor_to(self, add: int = -1, at: int = -1) -> None:
+		assert add != -1 or at != -1, 'Must be positive.'
+
+		if add != -1:
+			self._cursor += add
+		else:
+			self._cursor = at
 
 	def lookup(self, on: bool) -> None:
 		self.notify(Triggers.Lookup if on else Triggers.Done)
@@ -261,41 +295,41 @@ class Task:
 class TaskSymbol(Task):
 	def __init__(self, name: str, pattern: PatternEntry) -> None:
 		super().__init__(name)
-		self._expr = Expression.factory(pattern)
+		self._expression = Expression.factory(pattern)
 		self._context = Context(0, Repeators.NoRepeat)
 
 	@override
 	def watches(self) -> list[str]:
-		return self._expr.watches(self._context)
+		return self._expression.watches(self._context)
 
 	@override
 	def step(self, token: Token) -> None:
-		self.notify(self._expr.step(self._context, token))
+		self.notify(self._expression.step(self._context, token))
 
 	@override
 	def accept(self, names: list[str]) -> None:
-		self.notify(self._expr.accept(self._context, names))
+		self.notify(self._expression.accept(self._context, names))
 
 
 class TaskExpression(Task):
 	def __init__(self, name: str, pattern: PatternEntry) -> None:
 		super().__init__(name)
-		self._exprs = Expression.factory(pattern)
-
-	def _new_context(self) -> Context:
-		return Context(self._steps, Repeators.NoRepeat)
+		self._expressions = Expression.factory(pattern)
 
 	@override
 	def watches(self) -> list[str]:
-		return self._exprs.watches(self._new_context())
+		return self._expressions.watches(self._new_context())
 
 	@override
 	def step(self, token: Token) -> None:
-		self.notify(self._exprs.step(self._new_context(), token))
+		self.notify(self._expressions.step(self._new_context(), token))
 
 	@override
 	def accept(self, names: list[str]) -> None:
-		self.notify(self._exprs.accept(self._new_context(), names))
+		self.notify(self._expressions.accept(self._new_context(), names))
+
+	def _new_context(self) -> Context:
+		return Context(self._cursor, Repeators.NoRepeat)
 
 
 class SyntaxParser:
@@ -335,23 +369,23 @@ class SyntaxParser:
 		for name, task in tasks.items():
 			task.lookup(name in lookup_names)
 
-		return [name for name in lookup_names if tasks[name].stat_in(States.Idle)]
+		return [name for name in lookup_names if tasks[name].state_in(States.Idle)]
 
 	def step(self, tasks: dict[str, Task], token: Token, names: list[str]) -> list[str]:
 		for name in names:
 			tasks[name].step(token)
 
-		return [name for name in names if tasks[name].stat_in(States.Finish)]
+		return [name for name in names if tasks[name].state_in(States.Finish)]
 
 	def accept(self, tasks: dict[str, Task], names: list[str], finish_names: list[str]) -> list[str]:
 		new_finish_names = finish_names.copy()
 		on_finish_names = new_finish_names
 		while len(on_finish_names) > 0:
-			accept_names = [name for name in names if tasks[name].stat_in(States.Idle)]
+			accept_names = [name for name in names if tasks[name].state_in(States.Idle)]
 			for name in accept_names:
 				tasks[name].accept(on_finish_names)
 
-			on_finish_names = [name for name in accept_names if tasks[name].stat_in(States.Finish)]
+			on_finish_names = [name for name in accept_names if tasks[name].state_in(States.Finish)]
 			new_finish_names.extend(on_finish_names)
 
 		return new_finish_names

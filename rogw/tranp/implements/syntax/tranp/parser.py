@@ -61,7 +61,7 @@ class Expression:
 		else:
 			if pattern.rep != Repeators.NoRepeat:
 				return ExpressionsRepeat(pattern)
-			elif pattern.op != Operators.Or:
+			elif pattern.op == Operators.Or:
 				return ExpressionsOr(pattern)
 			else:
 				return ExpressionsAnd(pattern)

@@ -29,9 +29,6 @@ class StateMachine:
 		self.transisions = transisions
 		self.handlers: dict[tuple[Triggers, States], Callable[[], None]] = {}
 
-	def done(self) -> None:
-		self.notify(Triggers.Done)
-
 	def notify(self, trigger: Triggers) -> None:
 		self._process(trigger)
 
@@ -49,8 +46,7 @@ class StateMachine:
 
 
 class Context(NamedTuple):
-	steps: int
-	rep: Repeators
+	cursor: int
 
 
 class Expression:
@@ -61,12 +57,13 @@ class Expression:
 				return ExpressionTerminal(pattern)
 			else:
 				return ExpressionSymbol(pattern)
-		if pattern.rep != Repeators.NoRepeat:
-			return ExpressionsRepeat(pattern)
-		elif pattern.op != Operators.Or:
-			return ExpressionsOr(pattern)
 		else:
-			return ExpressionsAnd(pattern)
+			if pattern.rep != Repeators.NoRepeat:
+				return ExpressionsRepeat(pattern)
+			elif pattern.op != Operators.Or:
+				return ExpressionsOr(pattern)
+			else:
+				return ExpressionsAnd(pattern)
 
 	def __init__(self, pattern: PatternEntry) -> None:
 		self._pattern = pattern
@@ -98,7 +95,7 @@ class ExpressionTerminal(Expression):
 
 	@override
 	def step(self, context: Context, token: Token) -> Triggers:
-		if context.steps != 0:
+		if context.cursor != 0:
 			return Triggers.Hold
 
 		pattern = self._pattern
@@ -125,7 +122,7 @@ class ExpressionSymbol(Expression):
 
 	@override
 	def watches(self, context: Context) -> list[str]:
-		return [self._pattern.expression] if context.steps == 0 else []
+		return [self._pattern.expression] if context.cursor == 0 else []
 
 	@override
 	def step(self, context: Context, token: Token) -> Triggers:
@@ -133,7 +130,7 @@ class ExpressionSymbol(Expression):
 
 	@override
 	def accept(self, context: Context, names: list[str]) -> Triggers:
-		if context.steps != 0:
+		if context.cursor != 0:
 			return Triggers.Hold
 		elif self._pattern.expression in names:
 			return Triggers.Done
@@ -194,7 +191,7 @@ class ExpressionsAnd(Expressions):
 		return Triggers.Hold
 
 	def _new_context(self, context: Context, offset: int) -> Context:
-		return Context(context.steps - offset, context.rep)
+		return Context(context.cursor - offset)
 
 
 class ExpressionsRepeat(Expressions):
@@ -240,15 +237,9 @@ class ExpressionsRepeat(Expressions):
 
 
 class Task:
-	@classmethod
-	def factory(cls, name: str, pattern: PatternEntry) -> 'Task':
-		if isinstance(pattern, Pattern):
-			return TaskSymbol(name, pattern)
-		else:
-			return TaskExpression(name, pattern)
-
-	def __init__(self, name: str) -> None:
+	def __init__(self, name: str, pattern: PatternEntry) -> None:
 		self._name = name
+		self._expression = Expression.factory(pattern)
 		self._cursor = 0
 		self._states = StateMachine(States.Ready, {
 			(Triggers.Lookup, States.Ready): States.Idle,
@@ -257,9 +248,9 @@ class Task:
 			(Triggers.Lookup, States.Finish): States.Idle,
 			(Triggers.Done, States.Finish): States.Ready,
 		})
-		self._states.on(Triggers.Lookup, States.Ready, lambda: self._cursor_to(at=0))
-		self._states.on(Triggers.Lookup, States.Finish, lambda: self._cursor_to(at=0))
-		self._states.on(Triggers.Step, States.Idle, lambda: self._cursor_to(add=1))
+		self._states.on(Triggers.Lookup, States.Ready, lambda: self._cursor_to(0))
+		self._states.on(Triggers.Lookup, States.Finish, lambda: self._cursor_to(0))
+		self._states.on(Triggers.Step, States.Idle, lambda: self._cursor_add(1))
 
 	@property
 	def name(self) -> str:
@@ -271,65 +262,26 @@ class Task:
 	def notify(self, trigger: Triggers) -> None:
 		self._states.notify(trigger)
 
-	def _cursor_to(self, add: int = -1, at: int = -1) -> None:
-		assert add != -1 or at != -1, 'Must be positive.'
-
-		if add != -1:
-			self._cursor += add
-		else:
-			self._cursor = at
-
 	def lookup(self, on: bool) -> None:
 		self.notify(Triggers.Lookup if on else Triggers.Done)
 
 	def watches(self) -> list[str]:
-		assert False, 'Not implemented'
+		return self._expression.watches(self._new_context())
 
 	def step(self, token: Token) -> None:
-		assert False, 'Not implemented'
+		self.notify(self._expression.step(self._new_context(), token))
 
 	def accept(self, names: list[str]) -> None:
-		assert False, 'Not implemented'
+		self.notify(self._expression.accept(self._new_context(), names))
 
+	def _cursor_add(self, add: int) -> None:
+		self._cursor += add
 
-class TaskSymbol(Task):
-	def __init__(self, name: str, pattern: PatternEntry) -> None:
-		super().__init__(name)
-		self._expression = Expression.factory(pattern)
-		self._context = Context(0, Repeators.NoRepeat)
-
-	@override
-	def watches(self) -> list[str]:
-		return self._expression.watches(self._context)
-
-	@override
-	def step(self, token: Token) -> None:
-		self.notify(self._expression.step(self._context, token))
-
-	@override
-	def accept(self, names: list[str]) -> None:
-		self.notify(self._expression.accept(self._context, names))
-
-
-class TaskExpression(Task):
-	def __init__(self, name: str, pattern: PatternEntry) -> None:
-		super().__init__(name)
-		self._expressions = Expression.factory(pattern)
-
-	@override
-	def watches(self) -> list[str]:
-		return self._expressions.watches(self._new_context())
-
-	@override
-	def step(self, token: Token) -> None:
-		self.notify(self._expressions.step(self._new_context(), token))
-
-	@override
-	def accept(self, names: list[str]) -> None:
-		self.notify(self._expressions.accept(self._new_context(), names))
+	def _cursor_to(self, at: int) -> None:
+		self._cursor = at
 
 	def _new_context(self) -> Context:
-		return Context(self._cursor, Repeators.NoRepeat)
+		return Context(self._cursor)
 
 
 class SyntaxParser:
@@ -340,7 +292,7 @@ class SyntaxParser:
 		return self._parse(self.new_tasks(), tokens, entrypoint)
 
 	def new_tasks(self) -> dict[str, Task]:
-		return {name: Task.factory(name, pattern) for name, pattern in self.rules.items()}
+		return {name: Task(name, pattern) for name, pattern in self.rules.items()}
 
 	def _parse(self, tasks: dict[str, Task], tokens: list[Token], entrypoint: str) -> Iterator[ASTEntry]:
 		index = 0

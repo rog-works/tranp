@@ -18,5 +18,5 @@ class TestSyntaxParser(TestCase):
 	])
 	def test_parse(self, source: str, expected: tuple) -> None:
 		rules = python_rules()
-		actual = SyntaxParser(rules).parse(source, 'entry')
+		actual = [entry for entry in SyntaxParser(rules).parse(source, 'entry')].pop()
 		self.assertEqual(expected, actual)

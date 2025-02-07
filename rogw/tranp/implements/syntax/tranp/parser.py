@@ -382,7 +382,7 @@ class SyntaxParser:
 				continue
 
 			pattern = self.rules[name]
-			if isinstance(pattern, Pattern):
+			if isinstance(pattern, Pattern) and pattern.role == Roles.Terminal:
 				ast = ASTToken(name, token)
 				entries.append(ast)
 			else:

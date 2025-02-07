@@ -183,7 +183,7 @@ class Patterns(Sequence['Pattern | Patterns']):
 		else:
 			entries = f'({self.op.value} x{len(self.entries)}){self.rep.value}'
 
-		return f'<{self.__class__.__name__}: {entries} at {hex(id(self)).upper()}]>'
+		return f'<{self.__class__.__name__}: {entries} at {hex(id(self)).upper()}>'
 
 	@property
 	def min_size(self) -> int:

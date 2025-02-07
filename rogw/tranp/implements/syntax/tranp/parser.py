@@ -1,7 +1,7 @@
 from collections.abc import Callable, Iterator
 from enum import Enum
 import re
-from typing import override
+from typing import TypeAlias, override
 
 from rogw.tranp.implements.syntax.tranp.rule import Comps, Operators, Pattern, PatternEntry, Patterns, Repeators, Roles, Rules
 from rogw.tranp.implements.syntax.tranp.token import Token
@@ -49,6 +49,9 @@ class StateMachine:
 		return f'<{self.__class__.__name__}: {self.state.name} at {hex(id(self)).upper()}>'
 
 
+StateOf: TypeAlias = Callable[[str, States], bool]
+
+
 class Context:
 	def __init__(self, cursor: int) -> None:
 		self.cursor = cursor
@@ -82,7 +85,7 @@ class Expression:
 	def step(self, context: Context, token: Token) -> Triggers:
 		assert False, 'Not implemented'
 
-	def accept(self, context: Context, names: list[str]) -> Triggers:
+	def accept(self, context: Context, state_of: StateOf) -> Triggers:
 		assert False, 'Not implemented'
 
 	def __repr__(self) -> str:
@@ -122,7 +125,7 @@ class ExpressionTerminal(Expression):
 				return Triggers.Aboat
 
 	@override
-	def accept(self, context: Context, names: list[str]) -> Triggers:
+	def accept(self, context: Context, state_of: StateOf) -> Triggers:
 		return Triggers.Hold
 
 
@@ -140,10 +143,10 @@ class ExpressionSymbol(Expression):
 		return Triggers.Hold
 
 	@override
-	def accept(self, context: Context, names: list[str]) -> Triggers:
+	def accept(self, context: Context, state_of: StateOf) -> Triggers:
 		if context.cursor != 0:
 			return Triggers.Hold
-		elif self._as_pattern.expression in names:
+		elif state_of(self._as_pattern.expression, States.Finish):
 			return Triggers.Done
 		else:
 			return Triggers.Aboat
@@ -163,8 +166,8 @@ class ExpressionsOr(Expressions):
 		return self._select_trigger([expression.step(context, token) for expression in self._expressions])
 
 	@override
-	def accept(self, context: Context, names: list[str]) -> Triggers:
-		return self._select_trigger([expression.accept(context, names) for expression in self._expressions])
+	def accept(self, context: Context, state_of: StateOf) -> Triggers:
+		return self._select_trigger([expression.accept(context, state_of) for expression in self._expressions])
 
 	def _select_trigger(self, triggers: list[Triggers]) -> Triggers:
 		priorities = [Triggers.Done, Triggers.Step, Triggers.Hold]
@@ -193,9 +196,9 @@ class ExpressionsAnd(Expressions):
 		return Triggers.Hold
 
 	@override
-	def accept(self, context: Context, names: list[str]) -> Triggers:
+	def accept(self, context: Context, state_of: StateOf) -> Triggers:
 		for index, expression in enumerate(self._expressions):
-			trigger = expression.accept(self._new_context(context, index), names)
+			trigger = expression.accept(self._new_context(context, index), state_of)
 			if trigger != Triggers.Hold:
 				return trigger
 
@@ -224,8 +227,8 @@ class ExpressionsRepeat(Expressions):
 		return self._handle_result(self._expressions[0].step(context, token))
 
 	@override
-	def accept(self, context: Context, names: list[str]) -> Triggers:
-		return self._handle_result(self._expressions[0].accept(context, names))
+	def accept(self, context: Context, state_of: StateOf) -> Triggers:
+		return self._handle_result(self._expressions[0].accept(context, state_of))
 
 	def _handle_result(self, trigger: Triggers) -> Triggers:
 		patterns = self._as_patterns
@@ -267,8 +270,8 @@ class Task:
 	def name(self) -> str:
 		return self._name
 
-	def state_in(self, *expects: States) -> bool:
-		return self._states.state in expects
+	def state_of(self, expect: States) -> bool:
+		return self._states.state == expect
 
 	def notify(self, trigger: Triggers) -> None:
 		self._states.notify(trigger)
@@ -282,8 +285,8 @@ class Task:
 	def step(self, token: Token) -> None:
 		self.notify(self._expression.step(self._new_context(), token))
 
-	def accept(self, names: list[str]) -> None:
-		self.notify(self._expression.accept(self._new_context(), names))
+	def accept(self, state_of: StateOf) -> None:
+		self.notify(self._expression.accept(self._new_context(), state_of))
 
 	def _cursor_add(self, add: int) -> None:
 		self._cursor += add
@@ -338,24 +341,26 @@ class SyntaxParser:
 		for name, task in tasks.items():
 			task.lookup(name in lookup_names)
 
-		return [name for name in lookup_names if tasks[name].state_in(States.Idle)]
+		return [name for name in lookup_names if tasks[name].state_of(States.Idle)]
 
 	def step(self, tasks: dict[str, Task], token: Token, names: list[str]) -> list[str]:
 		for name in names:
 			tasks[name].step(token)
 
-		return [name for name in names if tasks[name].state_in(States.Finish)]
+		return [name for name in names if tasks[name].state_of(States.Finish)]
 
 	def accept(self, tasks: dict[str, Task], names: list[str], finish_names: list[str]) -> list[str]:
 		new_finish_names = finish_names.copy()
-		on_finish_names = new_finish_names
-		while len(on_finish_names) > 0:
-			accept_names = [name for name in names if tasks[name].state_in(States.Idle)]
+		while True:
+			accept_names = [name for name in names if tasks[name].state_of(States.Idle)]
 			for name in accept_names:
-				tasks[name].accept(on_finish_names)
+				tasks[name].accept(lambda name, state: tasks[name].state_of(state))
 
-			on_finish_names = [name for name in accept_names if tasks[name].state_in(States.Finish)]
-			new_finish_names.extend(on_finish_names)
+			add_finish_names = [name for name in accept_names if tasks[name].state_of(States.Finish)]
+			if len(add_finish_names) == 0:
+				break
+
+			new_finish_names.extend(add_finish_names)
 
 		return new_finish_names
 

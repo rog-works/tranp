@@ -489,13 +489,27 @@ class SyntaxParser:
 			names = self.lookup(tasks, entrypoint)
 			finish_names = self.step(tasks, tokens[index], names)
 			finish_names = self.accept(tasks, names, finish_names)
-			# FIXME トークンを1文字以上読んだ事が正しい進行条件
-			if len(finish_names) == 0:
+			if not self._steped(finish_names):
 				continue
 
 			ast, entries = self.stack(tokens[index], entries.copy(), finish_names)
 			yield ast
 			index += 1
+
+	def _steped(self, finish_names: list[str]) -> bool:
+		"""トークンの読み出しが完了したか判定
+
+		Args:
+			finish_names: シンボルリスト(処理完了)
+		Returns:
+			True = 完了
+		"""
+		for name in finish_names:
+			pattern = self.rules[name]
+			if isinstance(pattern, Pattern) and pattern.role == Roles.Terminal:
+				return True
+
+		return False
 
 	def lookup(self, tasks: dict[str, Task], entrypoint: str) -> list[str]:
 		"""基点のシンボルから処理対象のシンボルを再帰的にルックアップ

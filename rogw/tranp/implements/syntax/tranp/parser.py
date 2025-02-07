@@ -1,7 +1,7 @@
 from collections.abc import Callable, Iterator
 from enum import Enum
 import re
-from typing import NamedTuple, override
+from typing import override
 
 from rogw.tranp.implements.syntax.tranp.rule import Comps, Operators, Pattern, PatternEntry, Patterns, Repeators, Roles, Rules
 from rogw.tranp.implements.syntax.tranp.token import Token
@@ -45,9 +45,16 @@ class StateMachine:
 		key = (trigger, state)
 		self.handlers[key] = callback
 
+	def __repr__(self) -> str:
+		return f'<{self.__class__.__name__}: {self.state.name} at {hex(id(self)).upper()}>'
 
-class Context(NamedTuple):
-	cursor: int
+
+class Context:
+	def __init__(self, cursor: int) -> None:
+		self.cursor = cursor
+
+	def __repr__(self) -> str:
+		return f'<{self.__class__.__name__}: #{self.cursor} at {hex(id(self)).upper()}>'
 
 
 class Expression:
@@ -77,6 +84,9 @@ class Expression:
 
 	def accept(self, context: Context, names: list[str]) -> Triggers:
 		assert False, 'Not implemented'
+
+	def __repr__(self) -> str:
+		return f'<{self.__class__.__name__}: with {self._pattern.__repr__()}>'
 
 
 class Expressions(Expression):
@@ -283,6 +293,9 @@ class Task:
 
 	def _new_context(self) -> Context:
 		return Context(self._cursor)
+
+	def __repr__(self) -> str:
+		return f'<{self.__class__.__name__}["{self.name}"]: {self._states.state.name} #{self._cursor}>'
 
 
 class SyntaxParser:

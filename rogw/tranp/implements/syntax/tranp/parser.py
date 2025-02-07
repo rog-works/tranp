@@ -30,7 +30,7 @@ class States(Enum):
 class StateMachine:
 	"""ステートマシン"""
 
-	def __init__(self, initial: States, transisions: dict[tuple[Triggers, States], States]) -> None:
+	def __init__(self, initial: States, transitions: dict[tuple[Triggers, States], States]) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -38,7 +38,7 @@ class StateMachine:
 			transitions: 遷移テーブル
 		"""
 		self.state = initial
-		self.transisions = transisions
+		self.transitions = transitions
 		self.handlers: dict[tuple[Triggers, States], Callable[[], None]] = {}
 
 	def notify(self, trigger: Triggers) -> None:
@@ -56,8 +56,8 @@ class StateMachine:
 			trigger: トリガー
 		"""
 		key = (trigger, self.state)
-		if key in self.transisions:
-			self.state = self.transisions[key]
+		if key in self.transitions:
+			self.state = self.transitions[key]
 
 		if key in self.handlers:
 			self.handlers[key]()

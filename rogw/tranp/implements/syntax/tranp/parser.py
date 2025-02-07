@@ -22,6 +22,7 @@ class States(Enum):
 	Ready = 0
 	Idle = 1
 	Finish = 2
+	Fail = 3
 
 
 class StateMachine:
@@ -146,6 +147,8 @@ class ExpressionSymbol(Expression):
 	def accept(self, context: Context, state_of: StateOf) -> Triggers:
 		if context.cursor != 0:
 			return Triggers.Hold
+		elif state_of(self._as_pattern.expression, States.Idle):
+			return Triggers.Hold
 		elif state_of(self._as_pattern.expression, States.Finish):
 			return Triggers.Done
 		else:
@@ -267,13 +270,15 @@ class Task:
 		self._states = StateMachine(States.Ready, {
 			(Triggers.Lookup, States.Ready): States.Idle,
 			(Triggers.Done, States.Idle): States.Finish,
-			(Triggers.Aboat, States.Idle): States.Ready,
+			(Triggers.Aboat, States.Idle): States.Fail,
 			(Triggers.Lookup, States.Finish): States.Idle,
 			(Triggers.Done, States.Finish): States.Ready,
+			(Triggers.Lookup, States.Fail): States.Idle,
+			(Triggers.Done, States.Fail): States.Ready,
 		})
-		self._states.on(Triggers.Lookup, States.Ready, lambda: self._cursor_to(0))
-		self._states.on(Triggers.Lookup, States.Finish, lambda: self._cursor_to(0))
 		self._states.on(Triggers.Step, States.Idle, lambda: self._cursor_add(1))
+		self._states.on(Triggers.Done, States.Idle, lambda: self._cursor_to(0))
+		self._states.on(Triggers.Aboat, States.Idle, lambda: self._cursor_to(0))
 
 	@property
 	def name(self) -> str:
@@ -333,9 +338,9 @@ class SyntaxParser:
 			if len(finish_names) == 0:
 				continue
 
-			index += 1
 			ast, entries = self.stack(tokens[index], entries.copy(), finish_names)
 			yield ast
+			index += 1
 
 	def lookup(self, tasks: dict[str, Task], entrypoint: str) -> list[str]:
 		lookup_names = {entrypoint: True}

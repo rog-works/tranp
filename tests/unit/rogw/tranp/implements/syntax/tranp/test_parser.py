@@ -19,4 +19,9 @@ class TestSyntaxParser(TestCase):
 	def test_parse(self, source: str, expected: tuple) -> None:
 		rules = python_rules()
 		actual = [entry for entry in SyntaxParser(rules).parse(source, 'entry')].pop()
-		self.assertEqual(expected, actual)
+
+		try:
+			self.assertEqual(expected, actual)
+		except AssertionError:
+			print(f'AST unmatch. actual: {actual.pretty()}')
+			raise

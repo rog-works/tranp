@@ -138,6 +138,9 @@ class Pattern:
 		"""Returns: シリアライズ表現"""
 		return f'<{self.__class__.__name__}: {repr(self.expression)}>'
 
+	def terminals(self) -> list['Pattern']:
+		return [self] if self.role == Roles.Terminal else []
+
 
 class Patterns(Sequence['Pattern | Patterns']):
 	"""マッチングパターングループ"""
@@ -204,6 +207,19 @@ class Patterns(Sequence['Pattern | Patterns']):
 	def symbols(self) -> list[str]:
 		"""Returns: 参照シンボルリスト"""
 		return [entry.expression for entry in self.entries if isinstance(entry, Pattern) and entry.role == Roles.Symbol]
+
+	def terminals(self) -> list[Pattern]:
+		return self._terminals(self)
+
+	def _terminals(self, entries: 'Patterns') -> list[Pattern]:
+		terminals: list[Pattern] = []
+		for entry in entries:
+			if isinstance(entry, Patterns):
+				terminals.extend(self._terminals(entry))
+			elif entry.role == Roles.Terminal:
+				terminals.append(entry)
+
+		return terminals
 
 
 PatternEntry: TypeAlias = 'Pattern | Patterns'

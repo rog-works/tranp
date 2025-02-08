@@ -8,6 +8,7 @@ from rogw.tranp.implements.syntax.tranp.token import Token
 from rogw.tranp.implements.syntax.tranp.ast import ASTEntry, ASTToken, ASTTree
 from rogw.tranp.implements.syntax.tranp.tokenizer import ITokenizer, Tokenizer
 from rogw.tranp.lang.convertion import as_a
+from rogw.tranp.lang.sequence import flatten
 
 
 class Triggers(Enum):
@@ -112,10 +113,7 @@ class Expression:
 			インスタンス
 		"""
 		if isinstance(pattern, Pattern):
-			if pattern.role == Roles.Terminal:
-				return ExpressionTerminal(pattern)
-			else:
-				return ExpressionSymbol(pattern)
+			return ExpressionSymbol(pattern)
 		else:
 			if pattern.rep != Repeators.NoRepeat:
 				return ExpressionsRepeat(pattern)
@@ -370,7 +368,7 @@ class ExpressionsRepeat(Expressions):
 class Task:
 	"""タスク"""
 
-	def __init__(self, name: str, pattern: PatternEntry) -> None:
+	def __init__(self, name: str, expression: Expression) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -378,7 +376,7 @@ class Task:
 			pattern: マッチパターンエントリー
 		"""
 		self._name = name
-		self._expression = Expression.factory(pattern)
+		self._expression = expression
 		self._cursor = 0
 		self._states = StateMachine(States.Ready, {
 			(Triggers.Wakeup, States.Ready): States.Idle,
@@ -458,7 +456,7 @@ class Task:
 
 	def __repr__(self) -> str:
 		"""Returns: シリアライズ表現"""
-		return f'<{self.__class__.__name__}["{self.name}"]: {self._states.state.name} #{self._cursor}>'
+		return f'<{self.__class__.__name__}[{repr(self.name)}]: {self._states.state.name} #{self._cursor}>'
 
 
 class SyntaxParser:
@@ -492,7 +490,10 @@ class SyntaxParser:
 		Args:
 			タスク一覧
 		"""
-		return {name: Task(name, pattern) for name, pattern in self.rules.items()}
+		tasks = {name: Task(name, Expression.factory(pattern)) for name, pattern in self.rules.items()}
+		terminals = {terminal.expression: terminal for terminal in flatten([pattern.terminals() for pattern in self.rules.values()])}
+		terminal_tasks = {name: Task(name, ExpressionTerminal(terminal)) for name, terminal in terminals.items()}
+		return {**tasks, **terminal_tasks}
 
 	def _parse(self, tasks: dict[str, Task], tokens: list[Token], entrypoint: str) -> Iterator[ASTEntry]:
 		"""ソースコードを解析してASTを生成

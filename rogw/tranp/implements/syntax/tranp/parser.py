@@ -12,11 +12,12 @@ from rogw.tranp.lang.convertion import as_a
 
 class Triggers(Enum):
 	"""トリガー"""
-	Empty = 0
-	Lookup = 1
-	Step = 2
-	Done = 3
-	Abort = 4
+	Lookup = 0
+	Sleep = 1
+	Step = 10
+	Done = 11
+	Abort = 12
+	Empty = 13
 
 
 class States(Enum):
@@ -360,13 +361,15 @@ class Task:
 		self._cursor = 0
 		self._states = StateMachine(States.Ready, {
 			(Triggers.Lookup, States.Ready): States.Idle,
+			(Triggers.Sleep, States.Idle): States.Ready,
 			(Triggers.Done, States.Idle): States.Finish,
 			(Triggers.Abort, States.Idle): States.Fail,
+			(Triggers.Sleep, States.Finish): States.Ready,
 			(Triggers.Lookup, States.Finish): States.Idle,
-			(Triggers.Done, States.Finish): States.Ready,
+			(Triggers.Sleep, States.Fail): States.Ready,
 			(Triggers.Lookup, States.Fail): States.Idle,
-			(Triggers.Done, States.Fail): States.Ready,
 		})
+		self._states.on(Triggers.Sleep, States.Idle, lambda: self._cursor_reset())
 		self._states.on(Triggers.Step, States.Idle, lambda: self._cursor_step())
 		self._states.on(Triggers.Done, States.Idle, lambda: self._cursor_reset())
 		self._states.on(Triggers.Abort, States.Idle, lambda: self._cursor_reset())
@@ -400,7 +403,7 @@ class Task:
 		Args:
 			on: True = ルックアップ
 		"""
-		self.notify(Triggers.Lookup if on else Triggers.Done)
+		self.notify(Triggers.Lookup if on else Triggers.Sleep)
 
 	def watches(self) -> list[str]:
 		"""Returns: 参照シンボルリスト"""

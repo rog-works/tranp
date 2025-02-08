@@ -1,7 +1,7 @@
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Iterator, Mapping, ValuesView
 from enum import Enum
 import re
-from typing import TypeAlias, override
+from typing import ItemsView, KeysView, TypeAlias, override
 
 from rogw.tranp.implements.syntax.tranp.rule import Comps, Operators, Pattern, PatternEntry, Patterns, Repeators, Roles, Rules
 from rogw.tranp.implements.syntax.tranp.token import Token
@@ -393,6 +393,10 @@ class Task:
 		self._states.on(Triggers.Done, States.Idle, lambda: self._on_reset())
 		self._states.on(Triggers.Abort, States.Idle, lambda: self._on_reset())
 
+	def __repr__(self) -> str:
+		"""Returns: シリアライズ表現"""
+		return f'<{self.__class__.__name__}[{repr(self.name)}]: {self._states.state.name} #{self._cursor}>'
+
 	@property
 	def name(self) -> str:
 		"""Returns: シンボル名"""
@@ -416,47 +420,207 @@ class Task:
 		"""
 		self._states.notify(trigger)
 
-	def wakeup(self, on: bool) -> None:
-		"""タスク起動
+	def wakeup(self, on: bool) -> bool:
+		"""起動イベントを発火。待機状態か否かを返却
 
 		Args:
 			on: True = 起動, False = 休眠
+		Returns:
+			True = 待機
 		"""
 		self.notify(Triggers.Wakeup if on else Triggers.Sleep)
+		return self.state_of(States.Idle)
 
 	def watches(self) -> list[str]:
-		"""Returns: 参照シンボルリスト"""
+		"""現在の参照位置を基に参照中のシンボルリストを返却
+
+		Returns:
+			シンボルリスト
+		"""
 		return self._expression.watches(Context(self._cursor))
 
-	def step(self, token: Token) -> None:
-		"""トークンの読み出し
+	def step(self, token: Token) -> bool:
+		"""トークンの読み出しイベントを発火。状態変化を返却
 
 		Args:
 			token: トークン
+		Returns:
+			True = 状態が変化
 		"""
+		before = self._states.state
 		self.notify(self._expression.step(Context(self._cursor), token))
+		return before != self._states.state
 
-	def accept(self, state_of: StateOf) -> None:
-		"""参照シンボルの状態を受け入れ
+	def accept(self, state_of: StateOf) -> bool:
+		"""シンボル更新イベントを発火。状態変化を返却
 
 		Args:
-			context: 解析コンテキスト
 			state_of: 状態確認ハンドラー
+		Returns:
+			True = 状態が変化
 		"""
+		before = self._states.state
 		self.notify(self._expression.accept(Context(self._cursor), state_of))
+		return before != self._states.state
 
 	def _on_step(self) -> None:
-		"""進行イベント"""
+		"""進行イベントハンドラー"""
 		self._cursor += 1
 
 	def _on_reset(self) -> None:
-		"""リセットイベント"""
+		"""リセットイベントハンドラー"""
 		self._cursor = 0
 		self._expression.reset()
 
-	def __repr__(self) -> str:
-		"""Returns: シリアライズ表現"""
-		return f'<{self.__class__.__name__}[{repr(self.name)}]: {self._states.state.name} #{self._cursor}>'
+
+class Tasks(Mapping[str, Task]):
+	"""タスク一覧"""
+
+	def __init__(self, rules: Rules) -> None:
+		"""インスタンスを生成
+
+		Args:
+			rules: ルール一覧
+		"""
+		super().__init__()
+		self._tasks = self._make_tasks(rules)
+		self._depends = self._make_depends(rules)
+
+	def _make_tasks(self, rules: Rules) -> dict[str, Task]:
+		"""ルールを基にタスクを生成
+
+		Args:
+			rules: ルール一覧
+		Returns:
+			タスク一覧
+		"""
+		tasks = {name: Task(name, Expression.factory(pattern)) for name, pattern in rules.items()}
+		terminals = {terminal.expression: terminal for terminal in flatten([pattern.terminals() for pattern in rules.values()])}
+		terminal_tasks = {name: Task(name, ExpressionTerminal(terminal)) for name, terminal in terminals.items()}
+		return {**tasks, **terminal_tasks}
+
+	def _make_depends(self, rules: Rules) -> dict[str, list[str]]:
+		"""ルールを基に依存マップを生成
+
+		Args:
+			rules: ルール一覧
+		Returns:
+			依存マップ
+		"""
+		return {name: self._make_depends_of(pattern) for name, pattern in rules.items()}
+
+	def _make_depends_of(self, pattern: PatternEntry) -> list[str]:
+		"""マッチングパターンを基に依存リストを生成
+
+		Args:
+			pattern: マッチングパターンエントリー
+		Returns:
+			依存リスト
+		"""
+		if isinstance(pattern, Pattern):
+			return [pattern.expression]
+		else:
+			return list(flatten([self._make_depends_of(in_pattern) for in_pattern in pattern]))
+
+	@override
+	def __len__(self) -> int:
+		"""Returns: 要素数"""
+		return len(self._tasks)
+
+	@override
+	def __iter__(self) -> KeysView[str]:
+		"""Returns: イテレーター(シンボル)"""
+		return self._tasks.keys()
+
+	@override
+	def keys(self) -> KeysView[str]:
+		"""Returns: イテレーター(シンボル)"""
+		return self._tasks.keys()
+
+	@override
+	def values(self) -> ValuesView[Task]:
+		"""Returns: イテレーター(タスク)"""
+		return self._tasks.values()
+
+	@override
+	def items(self) -> ItemsView[str, Task]:
+		"""Returns: イテレーター(シンボル, タスク)"""
+		return super().items()
+
+	def lookup(self, base: str) -> list[str]:
+		"""基点のシンボルから起動対象のシンボルを再帰的に抽出
+
+		Args:
+			base: 基点のシンボル名
+		Returns:
+			シンボルリスト(起動対象)
+		"""
+		lookup_names = {base: True}
+		target_names = list(lookup_names.keys())
+		while len(target_names) > 0:
+			name = target_names.pop(0)
+			candidate_names = self[name].watches()
+			add_names = {name: True for name in candidate_names if name not in lookup_names}
+			lookup_names.update(add_names)
+			target_names.extend(add_names.keys())
+
+		return list(lookup_names.keys())
+
+	def wakeup(self, names: list[str]) -> list[str]:
+		"""指定のタスクに起動イベントを発火。待機状態のシンボルを返却。指定外のタスクは休眠状態へ移行
+
+		Args:
+			names: シンボルリスト(起動対象)
+		Returns:
+			シンボルリスト(待機状態)
+		"""
+		return [name for name, task in self.items() if task.wakeup(name in names)]
+
+	def step(self, token: Token, by_state: States) -> list[str]:
+		"""トークンの読み出しイベントを発火。状態変化したシンボルを返却
+
+		Args:
+			token: トークン
+			by_state: 処理対象の状態
+		Returns:
+			シンボルリスト(状態変化)
+		"""
+		names = self.state_of(by_state)
+		return [name for name in names if self[name].step(token)]
+
+	def accept(self, by_state: States) -> list[str]:
+		"""シンボル更新イベントを発火。状態変化したシンボルを返却
+
+		Args:
+			by_state: 処理対象の状態
+		Returns:
+			シンボルリスト(状態変化)
+		"""
+		state_of_a = lambda name, state: self[name].state_of(state)
+		names = self.state_of(by_state)
+		return [name for name in names if self[name].accept(state_of_a)]
+
+	def state_of(self, expect: States, by_names: list[str] = []) -> list[str]:
+		"""指定の状態のシンボルを返却
+
+		Args:
+			expect: 対象の状態
+			by_names: シンボルリスト(処理対象) (default = [])
+		Returns:
+			シンボルリスト(対象)
+		"""
+		names = by_names or self.keys()
+		return [name for name in names if self[name].state_of(expect)]
+
+	def depends(self, names: list[str]) -> list[str]:
+		"""指定のシンボルに依存しているタスクのシンボルを返却
+
+		Args:
+			names: シンボルリスト(処理対象)
+		Returns:
+			シンボルリスト(依存)
+		"""
+		return list(flatten([self._depends[name] for name in names]))
 
 
 class SyntaxParser:
@@ -482,20 +646,9 @@ class SyntaxParser:
 			ASTエントリー
 		"""
 		tokens = self.tokenizer.parse(source)
-		return self._parse(self.new_tasks(), tokens, entrypoint)
+		return self._parse(Tasks(self.rules), tokens, entrypoint)
 
-	def new_tasks(self) -> dict[str, Task]:
-		"""タスク一覧を生成
-
-		Args:
-			タスク一覧
-		"""
-		tasks = {name: Task(name, Expression.factory(pattern)) for name, pattern in self.rules.items()}
-		terminals = {terminal.expression: terminal for terminal in flatten([pattern.terminals() for pattern in self.rules.values()])}
-		terminal_tasks = {name: Task(name, ExpressionTerminal(terminal)) for name, terminal in terminals.items()}
-		return {**tasks, **terminal_tasks}
-
-	def _parse(self, tasks: dict[str, Task], tokens: list[Token], entrypoint: str) -> Iterator[ASTEntry]:
+	def _parse(self, tasks: Tasks, tokens: list[Token], entrypoint: str) -> Iterator[ASTEntry]:
 		"""ソースコードを解析してASTを生成
 
 		Args:
@@ -508,17 +661,19 @@ class SyntaxParser:
 		index = 0
 		entries: list[ASTEntry] = []
 		while index < len(tokens):
-			names = self.wakeup(tasks, entrypoint)
-			finish_names = self.step(tasks, tokens[index], names)
-			finish_names = self.accept(tasks, names, finish_names)
-			if not self._steped(finish_names):
+			token = tokens[index]
+			tasks.wakeup(tasks.lookup(entrypoint))
+			tasks.step(token, States.Idle)
+			finish_names = tasks.state_of(States.Finish)
+			finish_names.extend(self.accept(tasks))
+			if not self.steped(finish_names):
 				continue
 
-			ast, entries = self.stack(tokens[index], entries.copy(), finish_names)
+			ast, entries = self.stack(token, entries.copy(), finish_names)
 			yield ast
 			index += 1
 
-	def _steped(self, finish_names: list[str]) -> bool:
+	def steped(self, finish_names: list[str]) -> bool:
 		"""トークンの読み出しが完了したか判定
 
 		Args:
@@ -533,67 +688,24 @@ class SyntaxParser:
 
 		return False
 
-	def wakeup(self, tasks: dict[str, Task], entrypoint: str) -> list[str]:
-		"""基点のシンボルから処理対象のシンボルを再帰的に抽出。起動対象以外は休眠状態へ移行
-
-		Args:
-			tasks: タスク一覧
-			entrypoint: 基点のシンボル名
-		Returns:
-			シンボルリスト(処理対象)
-		"""
-		wakeup_names = {entrypoint: True}
-		stack_names = list(wakeup_names.keys())
-		while len(stack_names) > 0:
-			name = stack_names.pop(0)
-			candidate_names = tasks[name].watches()
-			add_names = {name: True for name in candidate_names if name not in wakeup_names}
-			wakeup_names.update(add_names)
-			stack_names.extend(add_names.keys())
-
-		for name, task in tasks.items():
-			task.wakeup(name in wakeup_names)
-
-		return [name for name in wakeup_names.keys() if tasks[name].state_of(States.Idle)]
-
-	def step(self, tasks: dict[str, Task], token: Token, names: list[str]) -> list[str]:
-		"""トークンを読み出し、完了したシンボルを抽出
-
-		Args:
-			tasks: タスク一覧
-			token: トークン
-			names: シンボルリスト(処理対象)
-		Returns:
-			シンボルリスト(処理完了)
-		"""
-		for name in names:
-			tasks[name].step(token)
-
-		return [name for name in names if tasks[name].state_of(States.Finish)]
-
-	def accept(self, tasks: dict[str, Task], names: list[str], finish_names: list[str]) -> list[str]:
+	def accept(self, tasks: Tasks) -> list[str]:
 		"""参照シンボルの状態を受け入れ、完了したシンボルを抽出
 
 		Args:
 			tasks: タスク一覧
 			names: シンボルリスト(処理対象)
-			finish_names: シンボルリスト(処理完了)
 		Returns:
 			シンボルリスト(処理完了)
 		"""
-		new_finish_names = finish_names.copy()
-		while True:
-			accept_names = [name for name in names if tasks[name].state_of(States.Idle)]
-			for name in accept_names:
-				tasks[name].accept(lambda name, state: tasks[name].state_of(state))
+		finish_names = []
+		accepted = True
+		while accepted:
+			update_names = tasks.accept(States.Idle)
+			finish_names.extend(tasks.state_of(States.Finish, update_names))
+			accepted = len(update_names) > 0
+			tasks.wakeup(tasks.depends(update_names))
 
-			add_finish_names = [name for name in accept_names if tasks[name].state_of(States.Finish)]
-			if len(add_finish_names) == 0:
-				break
-
-			new_finish_names.extend(add_finish_names)
-
-		return new_finish_names
+		return finish_names
 
 	def stack(self, token: Token, entries: list[ASTEntry], finish_names: list[str]) -> tuple[ASTEntry, list[ASTEntry]]:
 		"""今回解析した結果からASTを生成し、以前のASTを内部にスタック

@@ -12,7 +12,7 @@ from rogw.tranp.lang.convertion import as_a
 
 class Triggers(Enum):
 	"""トリガー"""
-	Lookup = 0
+	Wakeup = 0
 	Sleep = 1
 	Step = 10
 	Done = 11
@@ -381,14 +381,14 @@ class Task:
 		self._expression = Expression.factory(pattern)
 		self._cursor = 0
 		self._states = StateMachine(States.Ready, {
-			(Triggers.Lookup, States.Ready): States.Idle,
+			(Triggers.Wakeup, States.Ready): States.Idle,
 			(Triggers.Sleep, States.Idle): States.Ready,
 			(Triggers.Done, States.Idle): States.Finish,
 			(Triggers.Abort, States.Idle): States.Fail,
 			(Triggers.Sleep, States.Finish): States.Ready,
-			(Triggers.Lookup, States.Finish): States.Idle,
+			(Triggers.Wakeup, States.Finish): States.Idle,
 			(Triggers.Sleep, States.Fail): States.Ready,
-			(Triggers.Lookup, States.Fail): States.Idle,
+			(Triggers.Wakeup, States.Fail): States.Idle,
 		})
 		self._states.on(Triggers.Sleep, States.Idle, lambda: self._on_reset())
 		self._states.on(Triggers.Step, States.Idle, lambda: self._on_step())
@@ -418,13 +418,13 @@ class Task:
 		"""
 		self._states.notify(trigger)
 
-	def lookup(self, on: bool) -> None:
-		"""ルックアップ
+	def wakeup(self, on: bool) -> None:
+		"""タスク起動
 
 		Args:
-			on: True = ルックアップ
+			on: True = 起動, False = 休眠
 		"""
-		self.notify(Triggers.Lookup if on else Triggers.Sleep)
+		self.notify(Triggers.Wakeup if on else Triggers.Sleep)
 
 	def watches(self) -> list[str]:
 		"""Returns: 参照シンボルリスト"""
@@ -507,7 +507,7 @@ class SyntaxParser:
 		index = 0
 		entries: list[ASTEntry] = []
 		while index < len(tokens):
-			names = self.lookup(tasks, entrypoint)
+			names = self.wakeup(tasks, entrypoint)
 			finish_names = self.step(tasks, tokens[index], names)
 			finish_names = self.accept(tasks, names, finish_names)
 			if not self._steped(finish_names):
@@ -532,8 +532,8 @@ class SyntaxParser:
 
 		return False
 
-	def lookup(self, tasks: dict[str, Task], entrypoint: str) -> list[str]:
-		"""基点のシンボルから処理対象のシンボルを再帰的にルックアップ
+	def wakeup(self, tasks: dict[str, Task], entrypoint: str) -> list[str]:
+		"""基点のシンボルから処理対象のシンボルを再帰的に抽出。起動対象以外は休眠状態へ移行
 
 		Args:
 			tasks: タスク一覧
@@ -541,19 +541,19 @@ class SyntaxParser:
 		Returns:
 			シンボルリスト(処理対象)
 		"""
-		lookup_names = {entrypoint: True}
-		stack_names = list(lookup_names.keys())
+		wakeup_names = {entrypoint: True}
+		stack_names = list(wakeup_names.keys())
 		while len(stack_names) > 0:
 			name = stack_names.pop(0)
 			candidate_names = tasks[name].watches()
-			add_names = {name: True for name in candidate_names if name not in lookup_names}
-			lookup_names.update(add_names)
+			add_names = {name: True for name in candidate_names if name not in wakeup_names}
+			wakeup_names.update(add_names)
 			stack_names.extend(add_names.keys())
 
 		for name, task in tasks.items():
-			task.lookup(name in lookup_names)
+			task.wakeup(name in wakeup_names)
 
-		return [name for name in lookup_names.keys() if tasks[name].state_of(States.Idle)]
+		return [name for name in wakeup_names.keys() if tasks[name].state_of(States.Idle)]
 
 	def step(self, tasks: dict[str, Task], token: Token, names: list[str]) -> list[str]:
 		"""トークンを読み出し、完了したシンボルを抽出

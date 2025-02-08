@@ -85,13 +85,14 @@ StateOf: TypeAlias = Callable[[str, States], bool]
 class Context:
 	"""解析コンテキスト"""
 
-	def __init__(self, cursor: int) -> None:
+	def __init__(self, cursor: int, repeat: bool = False) -> None:
 		"""インスタンスを生成
 
 		Args:
 			cursor: 参照位置
 		"""
 		self.cursor = cursor
+		self.repeat = repeat
 
 	def __repr__(self) -> str:
 		"""Returns: シリアライズ表現"""
@@ -167,6 +168,9 @@ class Expression:
 		"""Returns: シリアライズ表現"""
 		return f'<{self.__class__.__name__}: with {self._pattern.__repr__()}>'
 
+	def reset(self) -> None:
+		...
+
 
 class Expressions(Expression):
 	"""式(グループ/基底)"""
@@ -174,6 +178,11 @@ class Expressions(Expression):
 	def __init__(self, pattern: PatternEntry) -> None:
 		super().__init__(pattern)
 		self._expressions = [Expression.factory(pattern) for pattern in as_a(Patterns, pattern)]
+
+	@override
+	def reset(self) -> None:
+		for expression in self._expressions:
+			expression.reset()
 
 
 class ExpressionTerminal(Expression):
@@ -291,7 +300,11 @@ class ExpressionsAnd(Expressions):
 		return Triggers.Empty
 
 	def _new_context(self, context: Context, offset: int) -> Context:
-		return Context(context.cursor - offset)
+		cursor = context.cursor - offset
+		if context.repeat and cursor >= 0:
+			return Context(cursor % len(self._expressions))
+		else:
+			return Context(cursor)
 
 	def _handle_result(self, index: int, trigger: Triggers) -> Triggers:
 		if trigger == Triggers.Done:
@@ -320,11 +333,19 @@ class ExpressionsRepeat(Expressions):
 
 	@override
 	def step(self, context: Context, token: Token) -> Triggers:
-		return self._handle_result(self._expressions[0].step(context, token))
+		return self._handle_result(self._expressions[0].step(self._new_context(context), token))
 
 	@override
 	def accept(self, context: Context, state_of: StateOf) -> Triggers:
-		return self._handle_result(self._expressions[0].accept(context, state_of))
+		return self._handle_result(self._expressions[0].accept(self._new_context(context), state_of))
+
+	@override
+	def reset(self) -> None:
+		super().reset()
+		self._repeats = 0
+
+	def _new_context(self, context: Context) -> Context:
+		return Context(context.cursor, self._as_patterns.rep != Repeators.NoRepeat)
 
 	def _handle_result(self, trigger: Triggers) -> Triggers:
 		patterns = self._as_patterns
@@ -369,10 +390,10 @@ class Task:
 			(Triggers.Sleep, States.Fail): States.Ready,
 			(Triggers.Lookup, States.Fail): States.Idle,
 		})
-		self._states.on(Triggers.Sleep, States.Idle, lambda: self._cursor_reset())
-		self._states.on(Triggers.Step, States.Idle, lambda: self._cursor_step())
-		self._states.on(Triggers.Done, States.Idle, lambda: self._cursor_reset())
-		self._states.on(Triggers.Abort, States.Idle, lambda: self._cursor_reset())
+		self._states.on(Triggers.Sleep, States.Idle, lambda: self._on_reset())
+		self._states.on(Triggers.Step, States.Idle, lambda: self._on_step())
+		self._states.on(Triggers.Done, States.Idle, lambda: self._on_reset())
+		self._states.on(Triggers.Abort, States.Idle, lambda: self._on_reset())
 
 	@property
 	def name(self) -> str:
@@ -407,7 +428,7 @@ class Task:
 
 	def watches(self) -> list[str]:
 		"""Returns: 参照シンボルリスト"""
-		return self._expression.watches(self._new_context())
+		return self._expression.watches(Context(self._cursor))
 
 	def step(self, token: Token) -> None:
 		"""トークンの読み出し
@@ -415,7 +436,7 @@ class Task:
 		Args:
 			token: トークン
 		"""
-		self.notify(self._expression.step(self._new_context(), token))
+		self.notify(self._expression.step(Context(self._cursor), token))
 
 	def accept(self, state_of: StateOf) -> None:
 		"""参照シンボルの状態を受け入れ
@@ -424,19 +445,16 @@ class Task:
 			context: 解析コンテキスト
 			state_of: 状態確認ハンドラー
 		"""
-		self.notify(self._expression.accept(self._new_context(), state_of))
+		self.notify(self._expression.accept(Context(self._cursor), state_of))
 
-	def _cursor_step(self) -> None:
-		"""カーソルを1つ進行"""
+	def _on_step(self) -> None:
+		"""進行イベント"""
 		self._cursor += 1
 
-	def _cursor_reset(self) -> None:
-		"""カーソルを初期化"""
+	def _on_reset(self) -> None:
+		"""リセットイベント"""
 		self._cursor = 0
-
-	def _new_context(self) -> Context:
-		"""Returns: 解析コンテキスト"""
-		return Context(self._cursor)
+		self._expression.reset()
 
 	def __repr__(self) -> str:
 		"""Returns: シリアライズ表現"""

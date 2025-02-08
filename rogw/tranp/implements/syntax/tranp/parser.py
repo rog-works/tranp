@@ -507,13 +507,12 @@ class SyntaxParser:
 		Returns:
 			True = 完了
 		"""
-		return len(finish_names) > 0
-		# for name in finish_names:
-		# 	pattern = self.rules[name]
-		# 	if isinstance(pattern, Pattern) and pattern.role == Roles.Terminal:
-		# 		return True
+		for name in finish_names:
+			pattern = self.rules[name]
+			if isinstance(pattern, Pattern) and pattern.role == Roles.Terminal:
+				return True
 
-		# return False
+		return False
 
 	def lookup(self, tasks: dict[str, Task], entrypoint: str) -> list[str]:
 		"""基点のシンボルから処理対象のシンボルを再帰的にルックアップ

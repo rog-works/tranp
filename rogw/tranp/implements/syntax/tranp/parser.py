@@ -543,12 +543,18 @@ class Tasks(Mapping[str, Task]):
 		return self._tasks.values()
 
 	@override
-	def items(self) -> ItemsView[str, Task]:
+	def items(self) -> Iterator[tuple[str, Task]]:
 		"""Returns: イテレーター(シンボル, タスク)"""
-		return super().items()
+		for name, task in self._tasks.items():
+			yield (name, task)
+
+	@override
+	def __getitem__(self, name: str) -> Task:
+		"""Args: name: シンボル Returns: タスク"""
+		return self._tasks[name]
 
 	def lookup(self, base: str) -> list[str]:
-		"""基点のシンボルから起動対象のシンボルを再帰的に抽出
+		"""基点のシンボルから起動対象のシンボルをルックアップ
 
 		Args:
 			base: 基点のシンボル名

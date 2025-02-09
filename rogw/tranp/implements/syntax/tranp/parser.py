@@ -91,6 +91,7 @@ class Context:
 
 		Args:
 			cursor: 参照位置
+			repeat: True = 繰り返し
 		"""
 		self.cursor = cursor
 		self.repeat = repeat
@@ -130,29 +131,33 @@ class Expression:
 		"""
 		self._pattern = pattern
 
+	def __repr__(self) -> str:
+		"""Returns: シリアライズ表現"""
+		return f'<{self.__class__.__name__}: with {self._pattern.__repr__()}>'
+
 	def watches(self, context: Context) -> list[str]:
-		"""参照シンボルを取得
+		"""現在の参照位置を基に参照中のシンボルリストを返却
 
 		Args:
 			context: 解析コンテキスト
 		Returns:
-			参照シンボルリスト
+			シンボルリスト
 		"""
 		assert False, 'Not implemented'
 
 	def step(self, context: Context, token: Token) -> Triggers:
-		"""トークンの読み出し
+		"""トークンの読み出しイベント。進行に応じたトリガーを返却
 
 		Args:
 			context: 解析コンテキスト
-			token: Token
+			token: トークン
 		Returns:
 			トリガー
 		"""
 		assert False, 'Not implemented'
 
 	def accept(self, context: Context, state_of: StateOf) -> Triggers:
-		"""参照シンボルの状態を受け入れ
+		"""シンボル更新イベント。進行に応じたトリガーを返却
 
 		Args:
 			context: 解析コンテキスト
@@ -162,11 +167,8 @@ class Expression:
 		"""
 		assert False, 'Not implemented'
 
-	def __repr__(self) -> str:
-		"""Returns: シリアライズ表現"""
-		return f'<{self.__class__.__name__}: with {self._pattern.__repr__()}>'
-
 	def reset(self) -> None:
+		"""状態リセットイベント"""
 		...
 
 
@@ -373,12 +375,16 @@ class Task:
 
 		Args:
 			name: シンボル名
-			pattern: マッチパターンエントリー
+			expression: 式
 		"""
 		self._name = name
 		self._expression = expression
 		self._cursor = 0
-		self._states = StateMachine(States.Ready, {
+		self._states = self._build_states()
+
+	def _build_states(self) -> StateMachine:
+		"""Returns: 生成したステートマシン"""
+		states = StateMachine(States.Ready, {
 			(Triggers.Wakeup, States.Ready): States.Idle,
 			(Triggers.Sleep, States.Idle): States.Ready,
 			(Triggers.Done, States.Idle): States.Finish,
@@ -388,10 +394,11 @@ class Task:
 			(Triggers.Sleep, States.Fail): States.Ready,
 			(Triggers.Wakeup, States.Fail): States.Idle,
 		})
-		self._states.on(Triggers.Sleep, States.Idle, lambda: self._on_reset())
-		self._states.on(Triggers.Step, States.Idle, lambda: self._on_step())
-		self._states.on(Triggers.Done, States.Idle, lambda: self._on_reset())
-		self._states.on(Triggers.Abort, States.Idle, lambda: self._on_reset())
+		states.on(Triggers.Sleep, States.Idle, lambda: self._on_reset())
+		states.on(Triggers.Step, States.Idle, lambda: self._on_step())
+		states.on(Triggers.Done, States.Idle, lambda: self._on_reset())
+		states.on(Triggers.Abort, States.Idle, lambda: self._on_reset())
+		return states
 
 	def __repr__(self) -> str:
 		"""Returns: シリアライズ表現"""
@@ -468,7 +475,7 @@ class Task:
 		self._cursor += 1
 
 	def _on_reset(self) -> None:
-		"""リセットイベントハンドラー"""
+		"""状態リセットイベントハンドラー"""
 		self._cursor = 0
 		self._expression.reset()
 
@@ -483,10 +490,9 @@ class Tasks(Mapping[str, Task]):
 			rules: ルール一覧
 		"""
 		super().__init__()
-		self._tasks = self._make_tasks(rules)
-		self._depends = self._make_depends(rules)
+		self._tasks = self._build_tasks(rules)
 
-	def _make_tasks(self, rules: Rules) -> dict[str, Task]:
+	def _build_tasks(self, rules: Rules) -> dict[str, Task]:
 		"""ルールを基にタスクを生成
 
 		Args:
@@ -498,29 +504,6 @@ class Tasks(Mapping[str, Task]):
 		terminals = {terminal.expression: terminal for terminal in flatten([pattern.terminals() for pattern in rules.values()])}
 		terminal_tasks = {name: Task(name, ExpressionTerminal(terminal)) for name, terminal in terminals.items()}
 		return {**tasks, **terminal_tasks}
-
-	def _make_depends(self, rules: Rules) -> dict[str, list[str]]:
-		"""ルールを基に依存マップを生成
-
-		Args:
-			rules: ルール一覧
-		Returns:
-			依存マップ
-		"""
-		return {name: self._make_depends_of(pattern) for name, pattern in rules.items()}
-
-	def _make_depends_of(self, pattern: PatternEntry) -> list[str]:
-		"""マッチングパターンを基に依存リストを生成
-
-		Args:
-			pattern: マッチングパターンエントリー
-		Returns:
-			依存リスト
-		"""
-		if isinstance(pattern, Pattern):
-			return [pattern.expression]
-		else:
-			return list(flatten([self._make_depends_of(in_pattern) for in_pattern in pattern]))
 
 	@override
 	def __len__(self) -> int:
@@ -625,7 +608,7 @@ class Tasks(Mapping[str, Task]):
 			return [name for name in self.keys() if self[name].state_of(expect)]
 
 	def lookup_advance(self, names: list[str], allow_names: list[str]) -> list[str]:
-		"""状態が変化したシンボルから新たに起動するシンボルをルックアップ
+		"""状態が変化したシンボルから新たに起動するシンボルをルックアップ。抽出対象は休眠状態のタスクに限定される
 
 		Args:
 			names: シンボルリスト(状態変化)

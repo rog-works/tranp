@@ -677,7 +677,7 @@ class SyntaxParser:
 			tokens: トークンリスト
 			entrypoint: 基点のシンボル名
 		Returns:
-			ASTエントリーのイテレーター
+			イテレーター(ASTエントリー)
 		"""
 		index = 0
 		entries: list[ASTEntry] = []
@@ -705,8 +705,7 @@ class SyntaxParser:
 			True = 完了
 		"""
 		for name in finish_names:
-			pattern = self.rules[name]
-			if isinstance(pattern, Pattern) and pattern.role == Roles.Terminal:
+			if name not in self.rules:
 				return True
 
 		return False

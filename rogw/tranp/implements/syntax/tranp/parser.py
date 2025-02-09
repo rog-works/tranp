@@ -736,23 +736,25 @@ class SyntaxParser:
 		Args:
 			token: トークン
 			entries: ASTエントリーリスト(以前)
-			names: シンボルリスト(処理完了)
+			finish_names: シンボルリスト(処理完了)
 		Returns:
 			(ASTエントリー, ASTエントリーリスト(新))
 		"""
-		ast: ASTEntry = ASTToken.empty()
+		ast = entries[0] if len(entries) > 0 else ASTToken.empty()
+		terminal_name = ''
 		for name in finish_names:
 			if name not in self.rules:
-				ast = ASTToken(token.type.name, token)
-				entries.append(ast)
+				terminal_name = name
 				continue
 
 			pattern = self.rules[name]
 			if isinstance(pattern, Pattern) and pattern.role == Roles.Terminal:
+				assert pattern.expression == terminal_name and pattern.expression in finish_names
 				ast = ASTToken(name, token)
 				entries.append(ast)
 			else:
 				ast = ASTTree(name, entries)
 				entries = [ast]
 
+		assert isinstance(ast, ASTTree) and len(entries) == 1
 		return ast, entries

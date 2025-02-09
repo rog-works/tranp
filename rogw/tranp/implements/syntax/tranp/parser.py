@@ -720,13 +720,14 @@ class SyntaxParser:
 			シンボルリスト(処理完了)
 		"""
 		finish_names = []
-		update_names = tasks.accept(States.Idle)
-		while len(update_names) > 0:
-			new_finish_names = tasks.state_of(States.Finish, by_names=update_names)
-			finish_names.extend(new_finish_names)
+		while True:
+			update_names = tasks.accept(States.Idle)
+			if len(update_names) == 0:
+				break
+
+			finish_names.extend(tasks.state_of(States.Finish, by_names=update_names))
 			lookup_names = tasks.lookup_advance(update_names)
 			tasks.wakeup(lookup_names, keep_other=True)
-			update_names = tasks.accept(States.Idle)
 
 		return finish_names
 

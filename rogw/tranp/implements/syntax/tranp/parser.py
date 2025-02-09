@@ -1,7 +1,7 @@
 from collections.abc import Callable, Iterator, Mapping, ValuesView
 from enum import Enum
 import re
-from typing import ItemsView, KeysView, TypeAlias, override
+from typing import KeysView, TypeAlias, override
 
 from rogw.tranp.implements.syntax.tranp.rule import Comps, Operators, Pattern, PatternEntry, Patterns, Repeators, Roles, Rules
 from rogw.tranp.implements.syntax.tranp.token import Token
@@ -447,9 +447,9 @@ class Task:
 		Returns:
 			True = 状態が変化
 		"""
-		before = self._states.state
-		self.notify(self._expression.step(Context(self._cursor), token))
-		return before != self._states.state
+		trigger = self._expression.step(Context(self._cursor), token)
+		self.notify(trigger)
+		return trigger != Triggers.Empty
 
 	def accept(self, state_of: StateOf) -> bool:
 		"""シンボル更新イベントを発火。状態変化を返却
@@ -459,9 +459,9 @@ class Task:
 		Returns:
 			True = 状態が変化
 		"""
-		before = self._states.state
-		self.notify(self._expression.accept(Context(self._cursor), state_of))
-		return before != self._states.state
+		trigger = self._expression.accept(Context(self._cursor), state_of)
+		self.notify(trigger)
+		return trigger != Triggers.Empty
 
 	def _on_step(self) -> None:
 		"""進行イベントハンドラー"""
@@ -666,12 +666,14 @@ class SyntaxParser:
 			tasks.step(token, States.Idle)
 			finish_names = tasks.state_of(States.Finish)
 			finish_names.extend(self.accept(tasks))
-			if not self.steped(finish_names):
+			if len(finish_names) == 0:
 				continue
 
 			ast, entries = self.stack(token, entries.copy(), finish_names)
 			yield ast
-			index += 1
+
+			if self.steped(finish_names):
+				index += 1
 
 	def steped(self, finish_names: list[str]) -> bool:
 		"""トークンの読み出しが完了したか判定

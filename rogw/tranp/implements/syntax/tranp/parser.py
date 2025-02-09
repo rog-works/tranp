@@ -610,27 +610,38 @@ class Tasks(Mapping[str, Task]):
 		names = self.state_of(by_state)
 		return [name for name in names if self[name].accept(state_of_a)]
 
-	def state_of(self, expect: States, by_names: list[str] = []) -> list[str]:
+	def state_of(self, expect: States, by_names: list[str] | None = None) -> list[str]:
 		"""指定の状態のシンボルを返却
 
 		Args:
 			expect: 対象の状態
-			by_names: シンボルリスト(処理対象) (default = [])
+			by_names: シンボルリスト(処理対象) (default = None)
 		Returns:
 			シンボルリスト(対象)
 		"""
-		names = by_names or self.keys()
-		return [name for name in names if self[name].state_of(expect)]
+		if isinstance(by_names, list):
+			return [name for name in by_names if self[name].state_of(expect)]
+		else:
+			return [name for name in self.keys() if self[name].state_of(expect)]
 
-	def depends(self, names: list[str]) -> list[str]:
-		"""指定のシンボルに依存しているタスクのシンボルを返却
+	def lookup_advance(self, update_names: list[str]) -> list[str]:
+		"""状態が変化したシンボルから新たに起動するシンボルをルックアップ
 
 		Args:
-			names: シンボルリスト(処理対象)
+			update_names: シンボルリスト(状態変化)
 		Returns:
 			シンボルリスト(依存)
 		"""
-		return list(flatten([self._depends[name] for name in names]))
+		ignore_names = {name: True for name in update_names}
+		lookup_names: list[str] = []
+		for name in update_names:
+			if name not in lookup_names:
+				candidate_names = self.lookup(name)
+				new_names = [new_name for new_name in candidate_names if new_name not in ignore_names]
+				lookup_names.extend(new_names)
+				ignore_names.update({new_name: True for new_name in new_names})
+
+		return self.state_of(States.Ready, by_names=lookup_names)
 
 
 class SyntaxParser:

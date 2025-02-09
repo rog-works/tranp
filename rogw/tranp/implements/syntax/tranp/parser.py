@@ -673,11 +673,15 @@ class SyntaxParser:
 			if len(finish_names) == 0:
 				continue
 
-			ast, entries = self.stack(token, entries, finish_names)
-			yield ast
-
 			if self.steped(finish_names):
 				index += 1
+
+			# エントリーポイントは終了条件が無いため明示的に終了 XXX 自然に終わる方法を検討
+			if index == len(tokens) and entrypoint not in finish_names:
+				finish_names.append(entrypoint)
+
+			ast, entries = self.stack(token, entries, finish_names)
+			yield ast
 
 	def accept(self, tasks: Tasks, entrypoint: str) -> list[str]:
 		"""シンボル更新イベントを発火。完了したシンボルを返却

@@ -624,24 +624,24 @@ class Tasks(Mapping[str, Task]):
 		else:
 			return [name for name in self.keys() if self[name].state_of(expect)]
 
-	def lookup_advance(self, update_names: list[str]) -> list[str]:
+	def lookup_advance(self, names: list[str], allow_names: list[str]) -> list[str]:
 		"""状態が変化したシンボルから新たに起動するシンボルをルックアップ
 
 		Args:
-			update_names: シンボルリスト(状態変化)
+			names: シンボルリスト(状態変化)
+			allow_names: シンボルリスト(許可対象)
 		Returns:
-			シンボルリスト(依存)
+			シンボルリスト(起動対象)
 		"""
-		ignore_names = {name: True for name in update_names}
-		lookup_names: list[str] = []
-		for name in update_names:
+		lookup_names = {name: True for name in names}
+		for name in names:
 			if name not in lookup_names:
 				candidate_names = self.lookup(name)
-				new_names = [new_name for new_name in candidate_names if new_name not in ignore_names]
-				lookup_names.extend(new_names)
-				ignore_names.update({new_name: True for new_name in new_names})
+				add_names = [add_name for add_name in candidate_names if add_name not in lookup_names]
+				lookup_names.update({add_name: True for add_name in add_names})
 
-		return self.state_of(States.Ready, by_names=lookup_names)
+		advance_names = [name for name in lookup_names if name in allow_names]
+		return self.state_of(States.Ready, by_names=advance_names)
 
 
 class SyntaxParser:
@@ -686,15 +686,37 @@ class SyntaxParser:
 			tasks.wakeup(tasks.lookup(entrypoint))
 			tasks.step(token, States.Idle)
 			finish_names = tasks.state_of(States.Finish)
-			finish_names.extend(self.accept(tasks))
+			finish_names.extend(self.accept(tasks, entrypoint))
 			if len(finish_names) == 0:
 				continue
 
-			ast, entries = self.stack(token, entries.copy(), finish_names)
+			ast, entries = self.stack(token, entries, finish_names)
 			yield ast
 
 			if self.steped(finish_names):
 				index += 1
+
+	def accept(self, tasks: Tasks, entrypoint: str) -> list[str]:
+		"""シンボル更新イベントを発火。完了したシンボルを返却
+
+		Args:
+			tasks: タスク一覧
+			entrypoint: 基点のシンボル名
+		Returns:
+			シンボルリスト(処理完了)
+		"""
+		finish_names = []
+		while True:
+			update_names = tasks.accept(States.Idle)
+			if len(update_names) == 0:
+				break
+
+			finish_names.extend(tasks.state_of(States.Finish, by_names=update_names))
+			allow_names = tasks.lookup(entrypoint)
+			lookup_names = tasks.lookup_advance(update_names, allow_names)
+			tasks.wakeup(lookup_names, keep_other=True)
+
+		return finish_names
 
 	def steped(self, finish_names: list[str]) -> bool:
 		"""トークンの読み出しが完了したか判定
@@ -710,37 +732,17 @@ class SyntaxParser:
 
 		return False
 
-	def accept(self, tasks: Tasks) -> list[str]:
-		"""参照シンボルの状態を受け入れ、完了したシンボルを抽出
-
-		Args:
-			tasks: タスク一覧
-			names: シンボルリスト(処理対象)
-		Returns:
-			シンボルリスト(処理完了)
-		"""
-		finish_names = []
-		while True:
-			update_names = tasks.accept(States.Idle)
-			if len(update_names) == 0:
-				break
-
-			finish_names.extend(tasks.state_of(States.Finish, by_names=update_names))
-			lookup_names = tasks.lookup_advance(update_names)
-			tasks.wakeup(lookup_names, keep_other=True)
-
-		return finish_names
-
-	def stack(self, token: Token, entries: list[ASTEntry], finish_names: list[str]) -> tuple[ASTEntry, list[ASTEntry]]:
+	def stack(self, token: Token, prev_entries: list[ASTEntry], finish_names: list[str]) -> tuple[ASTEntry, list[ASTEntry]]:
 		"""今回解析した結果からASTを生成し、以前のASTを内部にスタック
 
 		Args:
 			token: トークン
-			entries: ASTエントリーリスト(以前)
+			prev_entries: ASTエントリーリスト(以前)
 			finish_names: シンボルリスト(処理完了)
 		Returns:
 			(ASTエントリー, ASTエントリーリスト(新))
 		"""
+		entries: list[ASTEntry] = prev_entries.copy()
 		ast = entries[0] if len(entries) > 0 else ASTToken.empty()
 		terminal_name = ''
 		for name in finish_names:

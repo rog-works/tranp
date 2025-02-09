@@ -73,10 +73,6 @@ class Expression:
 		"""
 		assert False, 'Not implemented'
 
-	def reset(self) -> None:
-		"""状態リセットイベント"""
-		...
-
 
 class Expressions(Expression):
 	"""式(グループ/基底)"""
@@ -84,11 +80,6 @@ class Expressions(Expression):
 	def __init__(self, pattern: PatternEntry) -> None:
 		super().__init__(pattern)
 		self._expressions = [Expression.factory(pattern) for pattern in as_a(Patterns, pattern)]
-
-	@override
-	def reset(self) -> None:
-		for expression in self._expressions:
-			expression.reset()
 
 
 class ExpressionTerminal(Expression):
@@ -208,9 +199,9 @@ class ExpressionsAnd(Expressions):
 	def _new_context(self, context: Context, offset: int) -> Context:
 		cursor = context.cursor - offset
 		if context.repeat and cursor >= 0:
-			return Context(cursor % len(self._expressions))
+			return context.to_and(cursor % len(self._expressions))
 		else:
-			return Context(cursor)
+			return context.to_and(cursor)
 
 	def _handle_result(self, index: int, trigger: Triggers) -> Triggers:
 		if trigger == Triggers.Done:
@@ -224,50 +215,41 @@ class ExpressionsAnd(Expressions):
 class ExpressionsRepeat(Expressions):
 	"""式(グループ/繰り返し)"""
 
-	def __init__(self, pattern: PatternEntry) -> None:
-		assert len(as_a(Patterns, pattern).entries) == 1
-		super().__init__(pattern)
-		self._repeats = 0
-
 	@property
 	def _as_patterns(self) -> Patterns:
 		return as_a(Patterns, self._pattern)
 
+	@property
+	def _repeated(self) -> bool:
+		return self._as_patterns.rep != Repeators.NoRepeat
+
 	@override
 	def watches(self, context: Context) -> list[str]:
-		return self._expressions[0].watches(context)
+		return self._expressions[0].watches(context.to_repeat(self._repeated))
 
 	@override
 	def step(self, context: Context, token: Token) -> Triggers:
-		return self._handle_result(self._expressions[0].step(self._new_context(context), token))
+		return self._handle_result(context, self._expressions[0].step(context.to_repeat(self._repeated), token))
 
 	@override
 	def accept(self, context: Context, state_of: StateOf) -> Triggers:
-		return self._handle_result(self._expressions[0].accept(self._new_context(context), state_of))
+		return self._handle_result(context, self._expressions[0].accept(context.to_repeat(self._repeated), state_of))
 
-	@override
-	def reset(self) -> None:
-		super().reset()
-		self._repeats = 0
-
-	def _new_context(self, context: Context) -> Context:
-		return Context(context.cursor, self._as_patterns.rep != Repeators.NoRepeat)
-
-	def _handle_result(self, trigger: Triggers) -> Triggers:
+	def _handle_result(self, context: Context, trigger: Triggers) -> Triggers:
 		patterns = self._as_patterns
 		if trigger == Triggers.Abort:
 			if patterns.rep != Repeators.OverOne:
-				self._repeats = 0
+				context.datum(self).repeats = 0
 				return Triggers.Done
-			elif self._repeats >= 1:
-				self._repeats = 0
+			elif context.datum(self).repeats >= 1:
+				context.datum(self).repeats = 0
 				return Triggers.Done
 		elif trigger == Triggers.Done:
 			if patterns.rep in [Repeators.OneOrZero, Repeators.OneOrEmpty]:
-				self._repeats = 0
+				context.datum(self).repeats = 0
 				return Triggers.Done
 			else:
-				self._repeats += 1
+				context.datum(self).repeats += 1
 				return Triggers.Step
 
 		return trigger

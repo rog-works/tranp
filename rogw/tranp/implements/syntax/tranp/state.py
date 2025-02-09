@@ -1,6 +1,6 @@
 from collections.abc import Callable
 from enum import Enum
-from typing import TypeAlias
+from typing import NamedTuple, TypeAlias
 
 
 class Triggers(Enum):
@@ -78,7 +78,19 @@ class StateMachine:
 class Context:
 	"""解析コンテキスト"""
 
-	def __init__(self, cursor: int, repeat: bool = False) -> None:
+	class Datum:
+		def __init__(self) -> None:
+			self.repeats = 0
+
+	@classmethod
+	def new_data(cls) -> dict[object, Datum]:
+		return {}
+
+	@classmethod
+	def new(cls, cursor: int, data: dict[object, Datum]) -> 'Context':
+		return cls(cursor, False, data)
+
+	def __init__(self, cursor: int, repeat: bool, data: dict[object, Datum]) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -87,7 +99,24 @@ class Context:
 		"""
 		self.cursor = cursor
 		self.repeat = repeat
+		self._data = data
+
+	def to_and(self, cursor: int) -> 'Context':
+		instance = Context(cursor, self.repeat, self._data)
+		instance._data = self._data
+		return instance
+
+	def to_repeat(self, repeat: bool) -> 'Context':
+		instance = Context(self.cursor, repeat, self._data)
+		instance._data = self._data
+		return instance
 
 	def __repr__(self) -> str:
 		"""Returns: シリアライズ表現"""
 		return f'<{self.__class__.__name__}: #{self.cursor} at {hex(id(self)).upper()}>'
+
+	def datum(self, obj: object) -> Datum:
+		if obj not in self._data:
+			self._data[obj] = self.Datum()
+
+		return self._data[obj]

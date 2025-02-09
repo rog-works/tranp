@@ -20,6 +20,7 @@ class Task:
 		"""
 		self._name = name
 		self._expression = expression
+		self._expression_data = Context.new_data()
 		self._cursor = 0
 		self._states = self._build_states()
 
@@ -85,7 +86,7 @@ class Task:
 		Returns:
 			シンボルリスト
 		"""
-		return self._expression.watches(Context(self._cursor))
+		return self._expression.watches(Context.new(self._cursor, self._expression_data))
 
 	def step(self, token: Token) -> bool:
 		"""トークンの読み出しイベントを発火。状態変化を返却
@@ -95,7 +96,7 @@ class Task:
 		Returns:
 			True = 状態が変化
 		"""
-		trigger = self._expression.step(Context(self._cursor), token)
+		trigger = self._expression.step(Context.new(self._cursor, self._expression_data), token)
 		self.notify(trigger)
 		return trigger != Triggers.Empty
 
@@ -107,7 +108,7 @@ class Task:
 		Returns:
 			True = 状態が変化
 		"""
-		trigger = self._expression.accept(Context(self._cursor), state_of)
+		trigger = self._expression.accept(Context.new(self._cursor, self._expression_data), state_of)
 		self.notify(trigger)
 		return trigger != Triggers.Empty
 
@@ -118,7 +119,7 @@ class Task:
 	def _on_reset(self) -> None:
 		"""状態リセットイベントハンドラー"""
 		self._cursor = 0
-		self._expression.reset()
+		self._expression_data = Context.new_data()
 
 
 class Tasks(Mapping[str, Task]):

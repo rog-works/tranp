@@ -572,15 +572,19 @@ class Tasks(Mapping[str, Task]):
 
 		return list(lookup_names.keys())
 
-	def wakeup(self, names: list[str]) -> list[str]:
-		"""指定のタスクに起動イベントを発火。待機状態のシンボルを返却。指定外のタスクは休眠状態へ移行
+	def wakeup(self, names: list[str], keep_other: bool = False) -> list[str]:
+		"""指定のタスクに起動イベントを発火。待機状態のシンボルを返却
 
 		Args:
 			names: シンボルリスト(起動対象)
+			keep_other: True = 指定外のタスクは状態を維持, False = 指定外のタスクを休眠 (default = False)
 		Returns:
 			シンボルリスト(待機状態)
 		"""
-		return [name for name, task in self.items() if task.wakeup(name in names)]
+		if keep_other:
+			return [name for name in names if self[name].wakeup(True)]
+		else:
+			return [name for name in self.keys() if self[name].wakeup(name in names)]
 
 	def step(self, token: Token, by_state: States) -> list[str]:
 		"""トークンの読み出しイベントを発火。状態変化したシンボルを返却

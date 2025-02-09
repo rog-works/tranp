@@ -3,7 +3,7 @@ from enum import Enum
 import re
 from typing import KeysView, TypeAlias, override
 
-from rogw.tranp.implements.syntax.tranp.rule import Comps, Operators, Pattern, PatternEntry, Patterns, Repeators, Roles, Rules
+from rogw.tranp.implements.syntax.tranp.rule import Comps, Operators, Pattern, PatternEntry, Patterns, Repeators, Roles, Rules, Unwraps
 from rogw.tranp.implements.syntax.tranp.token import Token
 from rogw.tranp.implements.syntax.tranp.ast import ASTEntry, ASTToken, ASTTree
 from rogw.tranp.implements.syntax.tranp.tokenizer import ITokenizer, Tokenizer
@@ -756,8 +756,29 @@ class SyntaxParser:
 				ast = ASTToken(name, token)
 				entries.append(ast)
 			else:
-				ast = ASTTree(name, entries)
+				ast = ASTTree(name, self._unwrap(entries))
 				entries = [ast]
 
 		assert isinstance(ast, ASTTree) and len(entries) == 1
 		return ast, entries
+
+	def _unwrap(self, children: list[ASTEntry]) -> list[ASTEntry]:
+		"""子のASTエントリーを展開
+
+		Args:
+			children: 配下要素
+		Returns:
+			展開後のASTエントリーリスト
+		"""
+		unwraped: list[ASTEntry] = []
+		for child in children:
+			if isinstance(child, ASTToken):
+				unwraped.append(child)
+			elif self.rules.unwrap_by(child.name) == Unwraps.OneTime and len(child.children) == 1:
+				unwraped.append(child.children[0])
+			elif self.rules.unwrap_by(child.name) == Unwraps.Always:
+				unwraped.extend(child.children)
+			else:
+				unwraped.append(child)
+
+		return unwraped

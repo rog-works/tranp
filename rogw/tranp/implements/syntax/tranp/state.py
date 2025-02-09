@@ -1,6 +1,6 @@
 from collections.abc import Callable
 from enum import Enum
-from typing import NamedTuple, TypeAlias
+from typing import TypeAlias
 
 
 class Triggers(Enum):

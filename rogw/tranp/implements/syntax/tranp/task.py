@@ -2,7 +2,7 @@ from collections.abc import Iterator, Mapping, ValuesView
 from typing import KeysView, override
 
 from rogw.tranp.implements.syntax.tranp.expression import Expression, ExpressionTerminal
-from rogw.tranp.implements.syntax.tranp.rule import Rules
+from rogw.tranp.implements.syntax.tranp.rule import Pattern, PatternEntry, Rules
 from rogw.tranp.implements.syntax.tranp.state import Context, StateMachine, StateOf, States, Triggers
 from rogw.tranp.implements.syntax.tranp.token import Token
 from rogw.tranp.lang.sequence import flatten
@@ -122,6 +122,33 @@ class Task:
 		self._expression_data = Context.new_data()
 
 
+class DependsMap:
+	def __init__(self, rules: Rules) -> None:
+		rule_in_symbols, rule_of_effects = self._build_map(rules)
+		self.rule_in_symbols = rule_in_symbols
+		self.rule_of_effects = rule_of_effects
+
+	def _build_map(self, rules: Rules) -> tuple[dict[str, list[str]], dict[str, list[str]]]:
+		rule_in_symbols = {name: self._fetch_in_symbols(pattern) for name, pattern in rules.items()}
+		rule_of_effects: dict[str, list[str]] = {}
+		for name in rule_in_symbols.keys():
+			rule_of_effects[name] = [in_name for in_name, in_symbols in rule_in_symbols.items() if name in in_symbols]
+
+		return rule_in_symbols, rule_of_effects
+
+	def _fetch_in_symbols(self, pattern: PatternEntry) -> list[str]:
+		if isinstance(pattern, Pattern):
+			return [pattern.expression]
+
+		return list(flatten([self._fetch_in_symbols(in_pattern) for in_pattern in pattern]))
+
+	def symbols(self, name: str) -> list[str]:
+		return self.rule_in_symbols[name]
+
+	def effects(self, name: str) -> list[str]:
+		return self.rule_of_effects[name]
+
+
 class Tasks(Mapping[str, Task]):
 	"""タスク一覧"""
 
@@ -133,6 +160,7 @@ class Tasks(Mapping[str, Task]):
 		"""
 		super().__init__()
 		self._tasks = self._build_tasks(rules)
+		self._depends = DependsMap(rules)
 
 	def _build_tasks(self, rules: Rules) -> dict[str, Task]:
 		"""ルールを基にタスクを生成

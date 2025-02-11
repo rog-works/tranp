@@ -117,17 +117,13 @@ class Task:
 
 class DependsMap:
 	def __init__(self, rules: Rules) -> None:
-		rule_in_symbols, rule_of_effects = self._build_map(rules)
-		self.rule_in_symbols = rule_in_symbols
-		self.rule_of_effects = rule_of_effects
+		self.rule_in_symbols = self._build_symbols(rules)
+		self.rule_of_effects = self._build_effects()
+		self.rule_of_lookup = self._build_lookup()
+		self.rule_of_recursive = self._build_recursive()
 
-	def _build_map(self, rules: Rules) -> tuple[dict[str, list[str]], dict[str, list[str]]]:
-		rule_in_symbols = {name: self._fetch_in_symbols(pattern) for name, pattern in rules.items()}
-		rule_of_effects: dict[str, list[str]] = {}
-		for name in rule_in_symbols.keys():
-			rule_of_effects[name] = [in_name for in_name, in_symbols in rule_in_symbols.items() if name in in_symbols]
-
-		return rule_in_symbols, rule_of_effects
+	def _build_symbols(self, rules: Rules) -> dict[str, list[str]]:
+		return {name: self._fetch_in_symbols(pattern) for name, pattern in rules.items()}
 
 	def _fetch_in_symbols(self, pattern: PatternEntry) -> list[str]:
 		if isinstance(pattern, Pattern):
@@ -135,11 +131,49 @@ class DependsMap:
 
 		return list(flatten([self._fetch_in_symbols(in_pattern) for in_pattern in pattern]))
 
+	def _build_effects(self) -> dict[str, list[str]]:
+		rule_of_effects: dict[str, list[str]] = {}
+		for name in self.rule_in_symbols.keys():
+			rule_of_effects[name] = [in_name for in_name, in_symbols in self.rule_in_symbols.items() if name in in_symbols]
+
+		return rule_of_effects
+
+	def _build_lookup(self) -> dict[str, list[str]]:
+		return {name: self._lookup(name) for name in self.names()}
+
+	def _lookup(self, start: str) -> list[str]:
+		lookup_names = {start: True}
+		target_names = list(lookup_names.keys())
+		while len(target_names) > 0:
+			name = target_names.pop(0)
+			candidate_names = self.symbols(name)
+			add_names = {name: True for name in candidate_names if name not in lookup_names}
+			lookup_names.update(add_names)
+			target_names.extend(add_names.keys())
+
+		return list(lookup_names.keys())
+
+	def _build_recursive(self) -> dict[str, list[str]]:
+		rule_of_recursive: dict[str, list[str]] = {}
+		for name in self.names():
+			rule_of_recursive[name] = [symbol for symbol in self.symbols(name) if name in self.lookup(symbol)]
+
+		return rule_of_recursive
+
+	def names(self) -> list[str]:
+		return list(self.rule_in_symbols.keys())
+
 	def symbols(self, name: str) -> list[str]:
 		return self.rule_in_symbols[name]
 
 	def effects(self, name: str) -> list[str]:
 		return self.rule_of_effects[name]
+
+	def lookup(self, name: str) -> list[str]:
+		return self.rule_of_lookup[name]
+
+	def recursive(self, name: str) -> list[str]:
+		return self.rule_of_recursive[name]
 
 
 class Tasks(Mapping[str, Task]):

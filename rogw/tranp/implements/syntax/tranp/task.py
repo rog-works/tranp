@@ -51,7 +51,7 @@ class Task:
 		"""Returns: シンボル名"""
 		return self._name
 
-	def state_of(self, *expects: State) -> bool:
+	def state_of(self, expect: State) -> bool:
 		"""状態を確認
 
 		Args:
@@ -59,7 +59,7 @@ class Task:
 		Returns:
 			True = 含まれる
 		"""
-		return self._states.state in expects
+		return self._states.state == expect
 
 	def notify(self, trigger: Trigger) -> None:
 		"""イベント通知
@@ -175,8 +175,8 @@ class DependsMap:
 	def lookup(self, name: str) -> list[str]:
 		return self.rule_of_lookup[name]
 
-	def recursive(self, name: str) -> list[str]:
-		return self.rule_of_recursive[name]
+	def recursive(self, name: str) -> bool:
+		return len(self.rule_of_recursive[name]) > 0
 
 
 class Tasks(Mapping[str, Task]):
@@ -244,24 +244,18 @@ class Tasks(Mapping[str, Task]):
 		"""Args: name: シンボル Returns: タスク"""
 		return self._tasks[name]
 
-	def lookup(self, base: str) -> list[str]:
+	def lookup(self, name: str) -> list[str]:
 		"""基点のシンボルから起動対象のシンボルをルックアップ
 
 		Args:
-			base: 基点のシンボル名
+			name: 基点のシンボル名
 		Returns:
 			シンボルリスト(起動対象)
 		"""
-		lookup_names = {base: True}
-		target_names = list(lookup_names.keys())
-		while len(target_names) > 0:
-			name = target_names.pop(0)
-			candidate_names = self[name].watches()
-			add_names = {name: True for name in candidate_names if name not in lookup_names}
-			lookup_names.update(add_names)
-			target_names.extend(add_names.keys())
+		return self.depends.lookup(name)
 
-		return list(lookup_names.keys())
+	def recursive_from(self, name: str) -> list[str]:
+		return [effect for effect in self.depends.effects(name) if self.depends.recursive(effect)]
 
 	def ready(self, names: list[str]) -> None:
 		"""指定のタスクに起動イベントを発火
@@ -272,19 +266,18 @@ class Tasks(Mapping[str, Task]):
 		for name in names:
 			self[name].lookup()
 
-	def step(self, token_no: int, token: Token, state: State) -> list[str]:
+	def step(self, token_no: int, token: Token) -> list[str]:
 		"""トークンの読み出しイベントを発火。状態変化したシンボルを返却
 
 		Args:
 			token: トークン
-			by_state: 処理対象の状態
 		Returns:
 			シンボルリスト(状態変化)
 		"""
-		names = self.state_of(state)
+		names = self.state_of(States.Idle)
 		return [name for name in names if self[name].step(token_no, token)]
 
-	def accept(self, token_no: int, state: State) -> list[str]:
+	def accept(self, token_no: int) -> list[str]:
 		"""シンボル更新イベントを発火。状態変化したシンボルを返却
 
 		Args:
@@ -293,22 +286,22 @@ class Tasks(Mapping[str, Task]):
 			シンボルリスト(状態変化)
 		"""
 		state_of_a = lambda name, state: self[name].state_of(state)
-		names = self.state_of(state)
+		names = self.state_of(States.Idle)
 		return [name for name in names if self[name].accept(token_no, state_of_a)]
 
-	def state_of(self, *expects: State, names: list[str] | None = None) -> list[str]:
+	def state_of(self, expect: State, names: list[str] | None = None) -> list[str]:
 		"""指定の状態のシンボルを返却
 
 		Args:
-			*expects: 判定する状態
-			by_names: シンボルリスト(処理対象) (default = None)
+			expect: 判定する状態
+			names: シンボルリスト(処理対象) (default = None)
 		Returns:
 			シンボルリスト(対象)
 		"""
 		if isinstance(names, list):
-			return [name for name in names if self[name].state_of(*expects)]
+			return [name for name in names if self[name].state_of(expect)]
 		else:
-			return [name for name in self.keys() if self[name].state_of(*expects)]
+			return [name for name in self.keys() if self[name].state_of(expect)]
 
 	def lookup_advance(self, names: list[str], allow_names: list[str]) -> list[str]:
 		"""状態が変化したシンボルから新たに起動するシンボルをルックアップ。抽出対象は休眠状態のタスクに限定される

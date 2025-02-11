@@ -36,14 +36,13 @@ class SyntaxParser:
 		index = 0
 		entries: list[ASTEntry] = []
 		while index < len(tokens) and len(stack) > 0:
-			parser = stack[-1]
-			finish_names = parser.parse(tokens, index)
-			if parser.entrypoint in finish_names:
+			finish_names = stack[-1].parse(tokens, index)
+			if len(finish_names) == 0:
 				stack.pop()
+				continue
 
-			token = tokens[index]
 			for name in finish_names:
-				ast, entries = self.wrap_ast(token, entries, name)
+				ast, entries = self.wrap_ast(tokens[index], entries, name)
 				yield ast
 
 			if self.steped(finish_names):
@@ -59,14 +58,17 @@ class SyntaxParser:
 		Returns:
 			True = 完了
 		"""
-		return len([True for name in finish_names if name not in self.rules]) > 0
+		for name in finish_names:
+			if name not in self.rules:
+				return True
+
+		return False
 
 	def new_stack(self, tasks: Tasks, finish_names: list[str]) -> list['StackParser']:
 		stack: list[StackParser] = []
 		for name in finish_names:
-			for effect in tasks.depends.effects(name):
-				if len(tasks.depends.recursive(effect)) > 0:
-					stack.append(StackParser(tasks.clone(), effect))
+			for effect in tasks.recursive_from(name):
+				stack.append(StackParser(tasks.clone(), effect))
 
 		return stack
 
@@ -75,8 +77,8 @@ class SyntaxParser:
 
 		Args:
 			token: トークン
-			prev_entries: ASTエントリーリスト(以前)
-			finish_names: シンボルリスト(処理完了)
+			entries: ASTエントリーリスト(以前)
+			name: シンボル(処理完了)
 		Returns:
 			(ASTエントリー, ASTエントリーリスト(新))
 		"""
@@ -91,7 +93,7 @@ class SyntaxParser:
 		"""子のASTエントリーを展開
 
 		Args:
-			entries: 配下要素
+			entries: ASTエントリーリスト
 		Returns:
 			展開後のASTエントリーリスト
 		"""
@@ -114,32 +116,27 @@ class StackParser:
 		self.tasks = tasks
 		self.entrypoint = entrypoint
 
-	def parse(self, tokens: list[Token], index: int) -> list[str]:
-		token = tokens[index]
-		self.tasks.ready(names=self.tasks.lookup(self.entrypoint))
-		self.tasks.step(index, token, state=States.Idle)
+	def parse(self, tokens: list[Token], token_no: int) -> list[str]:
+		token = tokens[token_no]
+		self.tasks.ready(self.tasks.lookup(self.entrypoint))
+		self.tasks.step(token_no, token)
 		finish_names = self.tasks.state_of(States.Done)
-		finish_names.extend(self.accept(index))
+		finish_names.extend(self.accept(token_no))
 		return finish_names
 
-	def accept(self, index: int) -> list[str]:
+	def accept(self, token_no: int) -> list[str]:
 		"""シンボル更新イベントを発火。完了したシンボルを返却
 
 		Args:
-			tasks: タスク一覧
-			entrypoint: 基点のシンボル名
+			token_no: トークンNo
 		Returns:
 			シンボルリスト(処理完了)
 		"""
 		finish_names = []
-		while True:
-			update_names = self.tasks.accept(index, States.Idle)
-			if len(update_names) == 0:
-				break
-
-			finish_names.extend(self.tasks.state_of(States.Done, names=update_names))
-			allow_names = self.tasks.lookup(self.entrypoint)
-			lookup_names = self.tasks.lookup_advance(update_names, allow_names)
-			self.tasks.ready(names=lookup_names)
+		accepted = True
+		while accepted:
+			update_names = self.tasks.accept(token_no)
+			finish_names.extend(self.tasks.state_of(States.Done, update_names))
+			accepted = len(update_names) > 0
 
 		return finish_names

@@ -47,9 +47,9 @@ class SyntaxParser:
 		entries: list[ASTEntry] = []
 		while index < len(tokens):
 			token = tokens[index]
-			tasks.wakeup(tasks.lookup(entrypoint))
-			tasks.step(token, States.Idle)
-			finish_names = tasks.state_of(States.Finish)
+			tasks.ready(names=tasks.lookup(entrypoint))
+			tasks.step(token, state=States.Idle)
+			finish_names = tasks.state_of(States.Done)
 			finish_names.extend(self.accept(tasks, entrypoint))
 			if len(finish_names) == 0:
 				continue
@@ -79,10 +79,10 @@ class SyntaxParser:
 			if len(update_names) == 0:
 				break
 
-			finish_names.extend(tasks.state_of(States.Finish, by_names=update_names))
+			finish_names.extend(tasks.state_of(States.Done, names=update_names))
 			allow_names = tasks.lookup(entrypoint)
 			lookup_names = tasks.lookup_advance(update_names, allow_names)
-			tasks.wakeup(lookup_names, keep_other=True)
+			tasks.ready(names=lookup_names)
 
 		return finish_names
 

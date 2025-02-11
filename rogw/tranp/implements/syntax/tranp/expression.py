@@ -2,7 +2,7 @@ import re
 from typing import override
 
 from rogw.tranp.implements.syntax.tranp.rule import Comps, Operators, Pattern, PatternEntry, Patterns, Repeators
-from rogw.tranp.implements.syntax.tranp.state import Context, StateOf, States, Triggers
+from rogw.tranp.implements.syntax.tranp.state import Context, StateOf, States, Trigger, Triggers
 from rogw.tranp.implements.syntax.tranp.token import Token
 from rogw.tranp.lang.convertion import as_a
 
@@ -51,7 +51,7 @@ class Expression:
 		"""
 		assert False, 'Not implemented'
 
-	def step(self, context: Context, token: Token) -> Triggers:
+	def step(self, context: Context, token: Token) -> Trigger:
 		"""トークンの読み出しイベント。進行に応じたトリガーを返却
 
 		Args:
@@ -62,7 +62,7 @@ class Expression:
 		"""
 		assert False, 'Not implemented'
 
-	def accept(self, context: Context, state_of: StateOf) -> Triggers:
+	def accept(self, context: Context, state_of: StateOf) -> Trigger:
 		"""シンボル更新イベント。進行に応じたトリガーを返却
 
 		Args:
@@ -94,7 +94,7 @@ class ExpressionTerminal(Expression):
 		return []
 
 	@override
-	def step(self, context: Context, token: Token) -> Triggers:
+	def step(self, context: Context, token: Token) -> Trigger:
 		if context.cursor != 0:
 			return Triggers.Empty
 
@@ -108,7 +108,7 @@ class ExpressionTerminal(Expression):
 		return Triggers.Done if ok else Triggers.Abort
 
 	@override
-	def accept(self, context: Context, state_of: StateOf) -> Triggers:
+	def accept(self, context: Context, state_of: StateOf) -> Trigger:
 		return Triggers.Empty
 
 
@@ -124,15 +124,25 @@ class ExpressionSymbol(Expression):
 		return [self._as_pattern.expression] if context.cursor == 0 else []
 
 	@override
-	def step(self, context: Context, token: Token) -> Triggers:
+	def step(self, context: Context, token: Token) -> Trigger:
 		return Triggers.Empty
 
 	@override
-	def accept(self, context: Context, state_of: StateOf) -> Triggers:
+	def accept(self, context: Context, state_of: StateOf) -> Trigger:
 		if context.cursor != 0:
 			return Triggers.Empty
-		elif state_of(self._as_pattern.expression, States.Finish):
-			return Triggers.Done
+		# 終了
+		elif state_of(self._as_pattern.expression, States.Done):
+			to_trigger = {
+				States.ProgressStep: Triggers.ProgressStep,
+				States.FinishStep: Triggers.FinishStep,
+				States.FinishSkip: Triggers.FinishSkip,
+				States.UnfinishStep: Triggers.UnfinishStep,
+				States.UnfinishSkip: Triggers.UnfinishSkip,
+			}
+			fire = [fire for state, fire in to_trigger.items() if state_of(self._as_pattern.expression, state)].pop()
+			return fire
+		# 失敗
 		elif state_of(self._as_pattern.expression, States.Fail):
 			return Triggers.Abort
 		else:
@@ -151,15 +161,15 @@ class ExpressionsOr(Expressions):
 		return symbols
 
 	@override
-	def step(self, context: Context, token: Token) -> Triggers:
+	def step(self, context: Context, token: Token) -> Trigger:
 		return self._select_trigger([expression.step(context, token) for expression in self._expressions])
 
 	@override
-	def accept(self, context: Context, state_of: StateOf) -> Triggers:
+	def accept(self, context: Context, state_of: StateOf) -> Trigger:
 		return self._select_trigger([expression.accept(context, state_of) for expression in self._expressions])
 
-	def _select_trigger(self, triggers: list[Triggers]) -> Triggers:
-		priorities = [Triggers.Done, Triggers.Step, Triggers.Empty]
+	def _select_trigger(self, triggers: list[Trigger]) -> Trigger:
+		priorities = [Triggers.Done, Triggers.Progress, Triggers.Empty]
 		for expect in priorities:
 			if expect in triggers:
 				return expect
@@ -179,7 +189,7 @@ class ExpressionsAnd(Expressions):
 		return symbols
 
 	@override
-	def step(self, context: Context, token: Token) -> Triggers:
+	def step(self, context: Context, token: Token) -> Trigger:
 		for index, expression in enumerate(self._expressions):
 			trigger = self._handle_result(index, expression.step(self._new_context(context, index), token))
 			if trigger != Triggers.Empty:
@@ -188,7 +198,7 @@ class ExpressionsAnd(Expressions):
 		return Triggers.Empty
 
 	@override
-	def accept(self, context: Context, state_of: StateOf) -> Triggers:
+	def accept(self, context: Context, state_of: StateOf) -> Trigger:
 		for index, expression in enumerate(self._expressions):
 			trigger = self._handle_result(index, expression.accept(self._new_context(context, index), state_of))
 			if trigger != Triggers.Empty:
@@ -203,9 +213,9 @@ class ExpressionsAnd(Expressions):
 		else:
 			return context.to_and(cursor)
 
-	def _handle_result(self, index: int, trigger: Triggers) -> Triggers:
+	def _handle_result(self, index: int, trigger: Trigger) -> Trigger:
 		if trigger == Triggers.Done:
-			return Triggers.Done if index == len(self._expressions) - 1 else Triggers.Step
+			return Triggers.Done if index == len(self._expressions) - 1 else Triggers.Progress
 		elif trigger == Triggers.Abort:
 			return Triggers.Abort
 		else:
@@ -228,14 +238,14 @@ class ExpressionsRepeat(Expressions):
 		return self._expressions[0].watches(context.to_repeat(self._repeated))
 
 	@override
-	def step(self, context: Context, token: Token) -> Triggers:
+	def step(self, context: Context, token: Token) -> Trigger:
 		return self._handle_result(context, self._expressions[0].step(context.to_repeat(self._repeated), token))
 
 	@override
-	def accept(self, context: Context, state_of: StateOf) -> Triggers:
+	def accept(self, context: Context, state_of: StateOf) -> Trigger:
 		return self._handle_result(context, self._expressions[0].accept(context.to_repeat(self._repeated), state_of))
 
-	def _handle_result(self, context: Context, trigger: Triggers) -> Triggers:
+	def _handle_result(self, context: Context, trigger: Trigger) -> Trigger:
 		patterns = self._as_patterns
 		if trigger == Triggers.Abort:
 			if patterns.rep != Repeators.OverOne:
@@ -250,6 +260,6 @@ class ExpressionsRepeat(Expressions):
 				return Triggers.Done
 			else:
 				context.datum(self).repeats += 1
-				return Triggers.Step
+				return Triggers.Progress
 
 		return trigger

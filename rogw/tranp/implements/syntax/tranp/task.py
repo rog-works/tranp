@@ -3,7 +3,7 @@ from typing import KeysView, override
 
 from rogw.tranp.implements.syntax.tranp.expression import Expression, ExpressionTerminal
 from rogw.tranp.implements.syntax.tranp.rule import Pattern, PatternEntry, Rules
-from rogw.tranp.implements.syntax.tranp.state import Context, StateMachine, StateOf, States, Triggers
+from rogw.tranp.implements.syntax.tranp.state import Context, StateMachine, StateOf, State, States, Trigger, Triggers
 from rogw.tranp.implements.syntax.tranp.token import Token
 from rogw.tranp.lang.sequence import flatten
 
@@ -26,18 +26,13 @@ class Task:
 
 	def _build_states(self) -> StateMachine:
 		"""Returns: 生成したステートマシン"""
-		states = StateMachine(States.Ready, {
-			(Triggers.Wakeup, States.Ready): States.Idle,
-			(Triggers.Sleep, States.Idle): States.Ready,
-			(Triggers.Done, States.Idle): States.Finish,
-			(Triggers.Abort, States.Idle): States.Fail,
-			(Triggers.Sleep, States.Finish): States.Ready,
-			(Triggers.Wakeup, States.Finish): States.Idle,
-			(Triggers.Sleep, States.Fail): States.Ready,
-			(Triggers.Wakeup, States.Fail): States.Idle,
+		states = StateMachine(States.Sleep, {
+			(Triggers.Lookup, States.Sleep): States.Idle,
+			(Triggers.Done, States.Idle): States.Done,
+			(Triggers.Abort, States.Idle): States.Done,
+			(Triggers.Ready, States.Done): States.Idle,
 		})
-		states.on(Triggers.Sleep, States.Idle, lambda: self._on_reset())
-		states.on(Triggers.Step, States.Idle, lambda: self._on_step())
+		states.on(Triggers.Progress, States.Idle, lambda: self._on_step())
 		states.on(Triggers.Done, States.Idle, lambda: self._on_reset())
 		states.on(Triggers.Abort, States.Idle, lambda: self._on_reset())
 		return states
@@ -51,34 +46,30 @@ class Task:
 		"""Returns: シンボル名"""
 		return self._name
 
-	def state_of(self, expect: States) -> bool:
+	def state_of(self, *expects: State) -> bool:
 		"""状態を確認
 
 		Args:
-			expect: 判定する状態
+			expects: 判定する状態
 		Returns:
-			True = 一致
+			True = 含まれる
 		"""
-		return self._states.state == expect
+		return self._states.state in expects
 
-	def notify(self, trigger: Triggers) -> None:
+	def notify(self, trigger: Trigger) -> None:
 		"""イベント通知
 
 		Args:
 			trigger: トリガー
 		"""
-		self._states.notify(trigger)
+		self._states.notify(trigger, self._build_event(trigger))
 
-	def wakeup(self, on: bool) -> bool:
-		"""起動イベントを発火。待機状態か否かを返却
+	def _build_event(self, trigger: Trigger) -> dict[State, State]:
+		assert False, 'Not implemented'
 
-		Args:
-			on: True = 起動, False = 休眠
-		Returns:
-			True = 待機
-		"""
-		self.notify(Triggers.Wakeup if on else Triggers.Sleep)
-		return self.state_of(States.Idle)
+	def lookup(self) -> None:
+		"""起動イベントを発火"""
+		self.notify(Triggers.Lookup)
 
 	def watches(self) -> list[str]:
 		"""現在の参照位置を基に参照中のシンボルリストを返却
@@ -225,21 +216,16 @@ class Tasks(Mapping[str, Task]):
 
 		return list(lookup_names.keys())
 
-	def wakeup(self, names: list[str], keep_other: bool = False) -> list[str]:
-		"""指定のタスクに起動イベントを発火。待機状態のシンボルを返却
+	def ready(self, names: list[str]) -> None:
+		"""指定のタスクに起動イベントを発火
 
 		Args:
 			names: シンボルリスト(起動対象)
-			keep_other: True = 指定外のタスクは状態を維持, False = 指定外のタスクを休眠 (default = False)
-		Returns:
-			シンボルリスト(待機状態)
 		"""
-		if keep_other:
-			return [name for name in names if self[name].wakeup(True)]
-		else:
-			return [name for name in self.keys() if self[name].wakeup(name in names)]
+		for name in names:
+			self[name].lookup()
 
-	def step(self, token: Token, by_state: States) -> list[str]:
+	def step(self, token: Token, state: State) -> list[str]:
 		"""トークンの読み出しイベントを発火。状態変化したシンボルを返却
 
 		Args:
@@ -248,10 +234,10 @@ class Tasks(Mapping[str, Task]):
 		Returns:
 			シンボルリスト(状態変化)
 		"""
-		names = self.state_of(by_state)
+		names = self.state_of(state)
 		return [name for name in names if self[name].step(token)]
 
-	def accept(self, by_state: States) -> list[str]:
+	def accept(self, state: State) -> list[str]:
 		"""シンボル更新イベントを発火。状態変化したシンボルを返却
 
 		Args:
@@ -260,22 +246,22 @@ class Tasks(Mapping[str, Task]):
 			シンボルリスト(状態変化)
 		"""
 		state_of_a = lambda name, state: self[name].state_of(state)
-		names = self.state_of(by_state)
+		names = self.state_of(state)
 		return [name for name in names if self[name].accept(state_of_a)]
 
-	def state_of(self, expect: States, by_names: list[str] | None = None) -> list[str]:
+	def state_of(self, *expects: State, names: list[str] | None = None) -> list[str]:
 		"""指定の状態のシンボルを返却
 
 		Args:
-			expect: 対象の状態
+			*expects: 判定する状態
 			by_names: シンボルリスト(処理対象) (default = None)
 		Returns:
 			シンボルリスト(対象)
 		"""
-		if isinstance(by_names, list):
-			return [name for name in by_names if self[name].state_of(expect)]
+		if isinstance(names, list):
+			return [name for name in names if self[name].state_of(*expects)]
 		else:
-			return [name for name in self.keys() if self[name].state_of(expect)]
+			return [name for name in self.keys() if self[name].state_of(*expects)]
 
 	def lookup_advance(self, names: list[str], allow_names: list[str]) -> list[str]:
 		"""状態が変化したシンボルから新たに起動するシンボルをルックアップ。抽出対象は休眠状態のタスクに限定される
@@ -294,4 +280,4 @@ class Tasks(Mapping[str, Task]):
 				lookup_names.update({add_name: True for add_name in add_names})
 
 		advance_names = [name for name in lookup_names if name in allow_names]
-		return self.state_of(States.Ready, by_names=advance_names)
+		return self.state_of(States.Sleep, names=advance_names)

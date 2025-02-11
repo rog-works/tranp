@@ -48,9 +48,9 @@ class SyntaxParser:
 		while index < len(tokens):
 			token = tokens[index]
 			tasks.ready(names=tasks.lookup(entrypoint))
-			tasks.step(token, state=States.Idle)
+			tasks.step(index, token, state=States.Idle)
 			finish_names = tasks.state_of(States.Done)
-			finish_names.extend(self.accept(tasks, entrypoint))
+			finish_names.extend(self.accept(tasks, entrypoint, index))
 			if len(finish_names) == 0:
 				continue
 
@@ -64,7 +64,7 @@ class SyntaxParser:
 			ast, entries = self.stack(token, entries, finish_names)
 			yield ast
 
-	def accept(self, tasks: Tasks, entrypoint: str) -> list[str]:
+	def accept(self, tasks: Tasks, entrypoint: str, token_no: int) -> list[str]:
 		"""シンボル更新イベントを発火。完了したシンボルを返却
 
 		Args:
@@ -75,7 +75,7 @@ class SyntaxParser:
 		"""
 		finish_names = []
 		while True:
-			update_names = tasks.accept(States.Idle)
+			update_names = tasks.accept(token_no, States.Idle)
 			if len(update_names) == 0:
 				break
 

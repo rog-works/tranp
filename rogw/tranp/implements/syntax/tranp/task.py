@@ -81,7 +81,7 @@ class Task:
 		"""
 		return self._expression.watches(Context.new(self._cursor, self._expression_data))
 
-	def step(self, token: Token) -> bool:
+	def step(self, token_no: int, token: Token) -> bool:
 		"""トークンの読み出しイベントを発火。状態変化を返却
 
 		Args:
@@ -89,11 +89,11 @@ class Task:
 		Returns:
 			True = 状態が変化
 		"""
-		trigger = self._expression.step(Context.new(self._cursor, self._expression_data), token)
+		trigger = self._expression.step(Context.new(self._cursor, self._expression_data), token_no, token)
 		self.notify(trigger)
 		return trigger != Triggers.Empty
 
-	def accept(self, state_of: StateOf) -> bool:
+	def accept(self, token_no: int, state_of: StateOf) -> bool:
 		"""シンボル更新イベントを発火。状態変化を返却
 
 		Args:
@@ -101,7 +101,7 @@ class Task:
 		Returns:
 			True = 状態が変化
 		"""
-		trigger = self._expression.accept(Context.new(self._cursor, self._expression_data), state_of)
+		trigger = self._expression.accept(Context.new(self._cursor, self._expression_data), token_no, state_of)
 		self.notify(trigger)
 		return trigger != Triggers.Empty
 
@@ -227,7 +227,7 @@ class Tasks(Mapping[str, Task]):
 		for name in names:
 			self[name].lookup()
 
-	def step(self, token: Token, state: State) -> list[str]:
+	def step(self, token_no: int, token: Token, state: State) -> list[str]:
 		"""トークンの読み出しイベントを発火。状態変化したシンボルを返却
 
 		Args:
@@ -237,9 +237,9 @@ class Tasks(Mapping[str, Task]):
 			シンボルリスト(状態変化)
 		"""
 		names = self.state_of(state)
-		return [name for name in names if self[name].step(token)]
+		return [name for name in names if self[name].step(token_no, token)]
 
-	def accept(self, state: State) -> list[str]:
+	def accept(self, token_no: int, state: State) -> list[str]:
 		"""シンボル更新イベントを発火。状態変化したシンボルを返却
 
 		Args:
@@ -249,7 +249,7 @@ class Tasks(Mapping[str, Task]):
 		"""
 		state_of_a = lambda name, state: self[name].state_of(state)
 		names = self.state_of(state)
-		return [name for name in names if self[name].accept(state_of_a)]
+		return [name for name in names if self[name].accept(token_no, state_of_a)]
 
 	def state_of(self, *expects: State, names: list[str] | None = None) -> list[str]:
 		"""指定の状態のシンボルを返却

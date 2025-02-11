@@ -187,7 +187,7 @@ class StateMachine:
 		return f'<{self.__class__.__name__}: {self.state} at {hex(id(self)).upper()}>'
 
 
-class ExpressionContext:
+class ExpressionStore:
 	def __init__(self, state: State | None = None) -> None:
 		self.state = state if state else States.Idle
 		self.order = -1
@@ -199,7 +199,7 @@ class Context:
 
 	class Datum:
 		def __init__(self) -> None:
-			self.expr_contexts: list[ExpressionContext] = []
+			self.expr_stores: list[ExpressionStore] = []
 
 	@classmethod
 	def new_data(cls) -> dict[object, Datum]:

@@ -39,6 +39,9 @@ class Task:
 		states.on(Triggers.Abort, States.Idle, lambda: self._on_reset())
 		return states
 
+	def clone(self) -> 'Task':
+		return Task(self.name, self._expression)
+
 	def __repr__(self) -> str:
 		"""Returns: シリアライズ表現"""
 		return f'<{self.__class__.__name__}[{repr(self.name)}]: {self._states.state.name} #{self._cursor}>'
@@ -179,17 +182,12 @@ class DependsMap:
 class Tasks(Mapping[str, Task]):
 	"""タスク一覧"""
 
-	def __init__(self, rules: Rules) -> None:
-		"""インスタンスを生成
+	@classmethod
+	def from_rules(cls, rules: Rules) -> 'Tasks':
+		return cls(cls._build_tasks(rules), DependsMap(rules))
 
-		Args:
-			rules: ルール一覧
-		"""
-		super().__init__()
-		self._tasks = self._build_tasks(rules)
-		self.depends = DependsMap(rules)
-
-	def _build_tasks(self, rules: Rules) -> dict[str, Task]:
+	@classmethod
+	def _build_tasks(cls, rules: Rules) -> dict[str, Task]:
 		"""ルールを基にタスクを生成
 
 		Args:
@@ -201,6 +199,19 @@ class Tasks(Mapping[str, Task]):
 		terminals = {terminal.expression: terminal for terminal in flatten([pattern.terminals() for pattern in rules.values()])}
 		terminal_tasks = {name: Task(name, ExpressionTerminal(terminal)) for name, terminal in terminals.items()}
 		return {**tasks, **terminal_tasks}
+
+	def __init__(self, tasks: dict[str, Task], depends: DependsMap) -> None:
+		"""インスタンスを生成
+
+		Args:
+			rules: ルール一覧
+		"""
+		super().__init__()
+		self._tasks = tasks
+		self.depends = depends
+
+	def clone(self) -> 'Tasks':
+		return Tasks({name: task.clone() for name, task in self._tasks.items()}, self.depends)
 
 	@override
 	def __len__(self) -> int:

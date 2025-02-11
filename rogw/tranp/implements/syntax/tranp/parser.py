@@ -31,18 +31,7 @@ class SyntaxParser:
 			ASTエントリー
 		"""
 		tokens = self.tokenizer.parse(source)
-		return self._parse(Tasks(self.rules), tokens, entrypoint)
-
-	def _parse(self, tasks: Tasks, tokens: list[Token], entrypoint: str) -> Iterator[ASTEntry]:
-		"""ソースコードを解析してASTを生成
-
-		Args:
-			tasks: タスク一覧
-			tokens: トークンリスト
-			entrypoint: 基点のシンボル名
-		Returns:
-			イテレーター(ASTエントリー)
-		"""
+		tasks = Tasks.from_rules(self.rules)
 		stack: list[StackParser] = [StackParser(tasks, entrypoint)]
 		index = 0
 		entries: list[ASTEntry] = []
@@ -53,8 +42,8 @@ class SyntaxParser:
 				stack.pop()
 
 			token = tokens[index]
-			for finish_name in finish_names:
-				ast, entries = self.wrap_ast(token, entries, finish_name)
+			for name in finish_names:
+				ast, entries = self.wrap_ast(token, entries, name)
 				yield ast
 
 			if self.steped(finish_names):
@@ -76,12 +65,12 @@ class SyntaxParser:
 		stack: list[StackParser] = []
 		for name in finish_names:
 			for effect in tasks.depends.effects(name):
-				if tasks.depends.recursive(effect):
-					stack.append(StackParser(tasks, effect))
+				if len(tasks.depends.recursive(effect)) > 0:
+					stack.append(StackParser(tasks.clone(), effect))
 
 		return stack
 
-	def wrap_ast(self, token: Token, entries: list[ASTEntry], finish_name: str) -> tuple[ASTEntry, list[ASTEntry]]:
+	def wrap_ast(self, token: Token, entries: list[ASTEntry], name: str) -> tuple[ASTEntry, list[ASTEntry]]:
 		"""今回解析した結果からASTを生成し、以前のASTを内部にスタック
 
 		Args:
@@ -91,31 +80,31 @@ class SyntaxParser:
 		Returns:
 			(ASTエントリー, ASTエントリーリスト(新))
 		"""
-		if finish_name not in self.rules:
+		if name not in self.rules:
 			ast = ASTToken(token.type.name, token)
 			return ast, [*entries, ast]
 		else:
-			ast = ASTTree(finish_name, self._unwrap(entries))
+			ast = ASTTree(name, self._unwrap(entries))
 			return ast, [ast]
 
-	def _unwrap(self, children: list[ASTEntry]) -> list[ASTEntry]:
+	def _unwrap(self, entries: list[ASTEntry]) -> list[ASTEntry]:
 		"""子のASTエントリーを展開
 
 		Args:
-			children: 配下要素
+			entries: 配下要素
 		Returns:
 			展開後のASTエントリーリスト
 		"""
 		unwraped: list[ASTEntry] = []
-		for child in children:
-			if isinstance(child, ASTToken):
-				unwraped.append(child)
-			elif self.rules.unwrap_by(child.name) == Unwraps.OneTime and len(child.children) == 1:
-				unwraped.append(child.children[0])
-			elif self.rules.unwrap_by(child.name) == Unwraps.Always:
-				unwraped.extend(child.children)
+		for entry in entries:
+			if isinstance(entry, ASTToken):
+				unwraped.append(entry)
+			elif self.rules.unwrap_by(entry.name) == Unwraps.OneTime and len(entry.children) == 1:
+				unwraped.append(entry.children[0])
+			elif self.rules.unwrap_by(entry.name) == Unwraps.Always:
+				unwraped.extend(entry.children)
 			else:
-				unwraped.append(child)
+				unwraped.append(entry)
 
 		return unwraped
 

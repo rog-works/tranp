@@ -28,11 +28,13 @@ class Task:
 		"""Returns: 生成したステートマシン"""
 		states = StateMachine(States.Sleep, {
 			(Triggers.Lookup, States.Sleep): States.Idle,
+			(Triggers.Step, States.Idle): States.Step,
 			(Triggers.Done, States.Idle): States.Done,
 			(Triggers.Abort, States.Idle): States.Done,
+			(Triggers.Ready, States.Step): States.Idle,
 			(Triggers.Ready, States.Done): States.Idle,
 		})
-		states.on(Triggers.Progress, States.Idle, lambda: self._on_step())
+		states.on(Triggers.Step, States.Idle, lambda: self._on_step())
 		states.on(Triggers.Done, States.Idle, lambda: self._on_reset())
 		states.on(Triggers.Abort, States.Idle, lambda: self._on_reset())
 		return states

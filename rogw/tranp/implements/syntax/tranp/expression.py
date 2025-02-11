@@ -2,7 +2,7 @@ import re
 from typing import override
 
 from rogw.tranp.implements.syntax.tranp.rule import Comps, Operators, Pattern, PatternEntry, Patterns, Repeators
-from rogw.tranp.implements.syntax.tranp.state import Context, StateOf, States, Trigger, Triggers
+from rogw.tranp.implements.syntax.tranp.state import Context, DoneReasons, State, StateOf, States, Trigger, Triggers
 from rogw.tranp.implements.syntax.tranp.token import Token
 from rogw.tranp.lang.convertion import as_a
 
@@ -21,13 +21,12 @@ class Expression:
 		"""
 		if isinstance(pattern, Pattern):
 			return ExpressionSymbol(pattern)
+		elif pattern.rep != Repeators.NoRepeat:
+			return ExpressionsRepeat(pattern)
+		elif pattern.op == Operators.Or:
+			return ExpressionsOr(pattern)
 		else:
-			if pattern.rep != Repeators.NoRepeat:
-				return ExpressionsRepeat(pattern)
-			elif pattern.op == Operators.Or:
-				return ExpressionsOr(pattern)
-			else:
-				return ExpressionsAnd(pattern)
+			return ExpressionsAnd(pattern)
 
 	def __init__(self, pattern: PatternEntry) -> None:
 		"""インスタンスを生成
@@ -74,14 +73,6 @@ class Expression:
 		assert False, 'Not implemented'
 
 
-class Expressions(Expression):
-	"""式(グループ/基底)"""
-
-	def __init__(self, pattern: PatternEntry) -> None:
-		super().__init__(pattern)
-		self._expressions = [Expression.factory(pattern) for pattern in as_a(Patterns, pattern)]
-
-
 class ExpressionTerminal(Expression):
 	"""式(終端記号)"""
 
@@ -105,7 +96,7 @@ class ExpressionTerminal(Expression):
 		else:
 			ok = pattern.expression[1:-1] == token.string
 
-		return Triggers.Done if ok else Triggers.Abort
+		return Triggers.FinishStep if ok else Triggers.Abort
 
 	@override
 	def accept(self, context: Context, state_of: StateOf) -> Trigger:
@@ -131,22 +122,35 @@ class ExpressionSymbol(Expression):
 	def accept(self, context: Context, state_of: StateOf) -> Trigger:
 		if context.cursor != 0:
 			return Triggers.Empty
-		# 終了
-		elif state_of(self._as_pattern.expression, States.Done):
-			to_trigger = {
-				States.ProgressStep: Triggers.ProgressStep,
-				States.FinishStep: Triggers.FinishStep,
-				States.FinishSkip: Triggers.FinishSkip,
-				States.UnfinishStep: Triggers.UnfinishStep,
-				States.UnfinishSkip: Triggers.UnfinishSkip,
-			}
-			fire = [fire for state, fire in to_trigger.items() if state_of(self._as_pattern.expression, state)].pop()
-			return fire
-		# 失敗
-		elif state_of(self._as_pattern.expression, States.Fail):
-			return Triggers.Abort
-		else:
+
+		if not state_of(self._as_pattern.expression, States.Done):
 			return Triggers.Empty
+
+		to_trigger = {
+			States.FinishStep: Triggers.FinishStep,
+			States.FinishSkip: Triggers.FinishSkip,
+			States.UnfinishStep: Triggers.UnfinishStep,
+			States.UnfinishSkip: Triggers.UnfinishSkip,
+			States.Abort: Triggers.Abort,
+		}
+		trigger = [trigger for state, trigger in to_trigger.items() if state_of(self._as_pattern.expression, state)].pop()
+		return trigger
+
+
+class Expressions(Expression):
+	"""式(グループ/基底)"""
+
+	def __init__(self, pattern: PatternEntry) -> None:
+		super().__init__(pattern)
+		self._expressions = [Expression.factory(pattern) for pattern in as_a(Patterns, pattern)]
+
+	def _group_states(self, context: Context) -> tuple[list[State], list[int]]:
+		datum = context.datum(self)
+		if len(datum.group_states) == 0:
+			for _ in range(len(self._expressions)):
+				datum.group_states.append(States.Idle)
+
+		return datum.group_states, datum.resolve_orders
 
 
 class ExpressionsOr(Expressions):
@@ -162,19 +166,42 @@ class ExpressionsOr(Expressions):
 
 	@override
 	def step(self, context: Context, token: Token) -> Trigger:
-		return self._select_trigger([expression.step(context, token) for expression in self._expressions])
+		group_states, resolve_orders = self._group_states(context)
+		for index, expression in enumerate(self._expressions):
+			if group_states[index] == States.Done:
+				continue
+
+			group_states[index] = State.from_trigger(expression.step(context, token))
+			if group_states[index] == States.Done:
+				resolve_orders.append(index)
+
+		return self._to_trigger(group_states, resolve_orders)
 
 	@override
 	def accept(self, context: Context, state_of: StateOf) -> Trigger:
-		return self._select_trigger([expression.accept(context, state_of) for expression in self._expressions])
+		group_states, resolve_orders = self._group_states(context)
+		for index, expression in enumerate(self._expressions):
+			if group_states[index] == States.Done:
+				continue
 
-	def _select_trigger(self, triggers: list[Trigger]) -> Trigger:
-		priorities = [Triggers.Done, Triggers.Progress, Triggers.Empty]
-		for expect in priorities:
-			if expect in triggers:
-				return expect
+			group_states[index] = State.from_trigger(expression.accept(context, state_of))
+			if group_states[index] == States.Done:
+				resolve_orders.append(index)
 
-		return Triggers.Abort
+		return self._to_trigger(group_states, resolve_orders)
+
+	def _to_trigger(self, group_states: list[State], resolve_orders: list[int]) -> Trigger:
+		if len([True for state in group_states if state != States.Done]) > 0:
+			return Triggers.Empty
+
+		assert len(group_states) == len(resolve_orders), 'Never'
+
+		last = group_states[resolve_orders[-1]]
+		unfinish = len([True for state in group_states if state.reason.unfinish]) > 0
+		if unfinish:
+			return Triggers.UnfinishStep if last.reason.physically else Triggers.UnfinishSkip
+		else:
+			return Triggers.FinishStep if last.reason.physically else Triggers.FinishSkip
 
 
 class ExpressionsAnd(Expressions):
@@ -184,27 +211,32 @@ class ExpressionsAnd(Expressions):
 	def watches(self, context: Context) -> list[str]:
 		symbols: list[str] = []
 		for index, expression in enumerate(self._expressions):
-			symbols.extend(expression.watches(self._new_context(context, index)))
+			in_context = self._new_context(context, index)
+			symbols.extend(expression.watches(in_context))
 
 		return symbols
 
 	@override
 	def step(self, context: Context, token: Token) -> Trigger:
+		group_states, _ = self._group_states(context)
 		for index, expression in enumerate(self._expressions):
-			trigger = self._handle_result(index, expression.step(self._new_context(context, index), token))
-			if trigger != Triggers.Empty:
-				return trigger
+			in_context = self._new_context(context, index)
+			if group_states[index] != States.Done and in_context.cursor == 0:
+				group_states[index] = State.from_trigger(expression.step(in_context, token))
 
-		return Triggers.Empty
+		begin_context = self._new_context(context, 0)
+		return self._to_trigger(group_states, begin_context.cursor)
 
 	@override
 	def accept(self, context: Context, state_of: StateOf) -> Trigger:
+		group_states, _ = self._group_states(context)
 		for index, expression in enumerate(self._expressions):
-			trigger = self._handle_result(index, expression.accept(self._new_context(context, index), state_of))
-			if trigger != Triggers.Empty:
-				return trigger
+			in_context = self._new_context(context, index)
+			if group_states[index] != States.Done and in_context.cursor == 0:
+				group_states[index] = State.from_trigger(expression.accept(in_context, state_of))
 
-		return Triggers.Empty
+		begin_context = self._new_context(context, 0)
+		return self._to_trigger(group_states, begin_context.cursor)
 
 	def _new_context(self, context: Context, offset: int) -> Context:
 		cursor = context.cursor - offset
@@ -213,13 +245,22 @@ class ExpressionsAnd(Expressions):
 		else:
 			return context.to_and(cursor)
 
-	def _handle_result(self, index: int, trigger: Trigger) -> Trigger:
-		if trigger == Triggers.Done:
-			return Triggers.Done if index == len(self._expressions) - 1 else Triggers.Progress
-		elif trigger == Triggers.Abort:
-			return Triggers.Abort
-		else:
+	def _to_trigger(self, group_states: list[State], cursor: int) -> Trigger:
+		if cursor < 0 or cursor >= len(self._expressions):
 			return Triggers.Empty
+
+		peek = group_states[cursor]
+		if peek != States.Done:
+			return Triggers.Empty
+
+		if cursor < len(self._expressions) - 1:
+			return Triggers.Step if peek.reason.physically else Triggers.Skip
+
+		unfinish = len([True for in_state in group_states if in_state.reason.unfinish]) > 0
+		if unfinish:
+			return Triggers.UnfinishStep if peek.reason.physically else Triggers.UnfinishSkip
+		else:
+			return Triggers.FinishStep if peek.reason.physically else Triggers.FinishSkip
 
 
 class ExpressionsRepeat(Expressions):
@@ -239,27 +280,34 @@ class ExpressionsRepeat(Expressions):
 
 	@override
 	def step(self, context: Context, token: Token) -> Trigger:
-		return self._handle_result(context, self._expressions[0].step(context.to_repeat(self._repeated), token))
+		trigger = self._expressions[0].step(context.to_repeat(self._repeated), token)
+		return self._handle_result(context, trigger)
 
 	@override
 	def accept(self, context: Context, state_of: StateOf) -> Trigger:
-		return self._handle_result(context, self._expressions[0].accept(context.to_repeat(self._repeated), state_of))
+		trigger = self._expressions[0].accept(context.to_repeat(self._repeated), state_of)
+		return self._handle_result(context, trigger)
 
 	def _handle_result(self, context: Context, trigger: Trigger) -> Trigger:
-		patterns = self._as_patterns
-		if trigger == Triggers.Abort:
-			if patterns.rep != Repeators.OverOne:
-				context.datum(self).repeats = 0
-				return Triggers.Done
-			elif context.datum(self).repeats >= 1:
-				context.datum(self).repeats = 0
-				return Triggers.Done
-		elif trigger == Triggers.Done:
-			if patterns.rep in [Repeators.OneOrZero, Repeators.OneOrEmpty]:
-				context.datum(self).repeats = 0
-				return Triggers.Done
-			else:
-				context.datum(self).repeats += 1
-				return Triggers.Progress
+		peek = State.from_trigger(trigger)
+		if peek != States.Done:
+			return Triggers.Empty
 
-		return trigger
+		assert not peek.reason.unfinish, 'Must be Finish or Abort'
+
+		group_states = context.datum(self).group_states
+		group_states.append(peek)
+
+		patterns = self._as_patterns
+		if peek.reason == DoneReasons.Abort:
+			if len(group_states) == 0:
+				return Triggers.Abort if patterns.rep == Repeators.OverOne else Triggers.FinishSkip
+			else:
+				# FIXME 文字数カウントを考慮するべきなのか不明
+				last = group_states[-1]
+				return Triggers.FinishStep if last.reason.physically else Triggers.FinishSkip
+		else:
+			if len(group_states) == 1 and patterns.rep in [Repeators.OneOrZero, Repeators.OneOrEmpty]:
+				return Triggers.FinishStep if peek.reason.physically else Triggers.FinishSkip
+			else:
+				return Triggers.Step if peek.reason.physically else Triggers.Skip

@@ -5,13 +5,25 @@ from typing import Protocol
 
 class DoneReasons(Enum):
 	Empty = 0x00
-	Step = 0x10
-	Skip = 0x11
-	FinishStep = 0x20
-	FinishSkip = 0x21
-	UnfinishStep = 0x30
-	UnfinishSkip = 0x31
-	Fail = 0x40
+	Skip = 0x10
+	Step = 0x11
+	FinishSkip = 0x20
+	FinishStep = 0x21
+	UnfinishSkip = 0x30
+	UnfinishStep = 0x31
+	Abort = 0x40
+
+	@property
+	def physically(self) -> bool:
+		return (self.value & 0x0f) == 0x01
+
+	@property
+	def finish(self) -> bool:
+		return (self.value & 0xf0) == DoneReasons.FinishSkip
+
+	@property
+	def unfinish(self) -> bool:
+		return (self.value & 0xf0) == DoneReasons.UnfinishSkip
 
 
 class Trigger:
@@ -21,9 +33,10 @@ class Trigger:
 		Empty = 0x00
 		Lookup = 0x10
 		Ready = 0x11
-		Progress = 0x20
-		Done = 0x21
-		Abort = 0x22
+		Skip = 0x20
+		Step = 0x21
+		Done = 0x30
+		Abort = 0x31
 
 	def __init__(self, trigger: Triggers, reason: DoneReasons = DoneReasons.Empty) -> None:
 		self.name = trigger.name
@@ -50,17 +63,15 @@ class Triggers:
 	Empty = Trigger(Trigger.Triggers.Empty)
 	Lookup = Trigger(Trigger.Triggers.Lookup)
 	Ready = Trigger(Trigger.Triggers.Ready)
-	Progress = Trigger(Trigger.Triggers.Progress)
+	Skip = Trigger(Trigger.Triggers.Skip, DoneReasons.Skip)
+	Step = Trigger(Trigger.Triggers.Step, DoneReasons.Step)
 	Done = Trigger(Trigger.Triggers.Done)
-	Abort = Trigger(Trigger.Triggers.Abort, DoneReasons.Fail)
+	Abort = Trigger(Trigger.Triggers.Abort, DoneReasons.Abort)
 
-	#
-	ProgressStep = Trigger(Trigger.Triggers.Progress, DoneReasons.Step)
-	ProgressSkip = Trigger(Trigger.Triggers.Progress, DoneReasons.Skip)
-	FinishStep = Trigger(Trigger.Triggers.Done, DoneReasons.FinishStep)
 	FinishSkip = Trigger(Trigger.Triggers.Done, DoneReasons.FinishSkip)
-	UnfinishStep = Trigger(Trigger.Triggers.Done, DoneReasons.UnfinishStep)
+	FinishStep = Trigger(Trigger.Triggers.Done, DoneReasons.FinishStep)
 	UnfinishSkip = Trigger(Trigger.Triggers.Done, DoneReasons.UnfinishSkip)
+	UnfinishStep = Trigger(Trigger.Triggers.Done, DoneReasons.UnfinishStep)
 
 
 class State:
@@ -69,7 +80,22 @@ class State:
 	class States(Enum):
 		Sleep = 0
 		Idle = 1
-		Done = 2
+		Step = 2
+		Done = 3
+
+	@classmethod
+	def from_trigger(cls, trigger: Trigger) -> 'State':
+		# XXX このテーブルは実質的に遷移条件と同等であるため、ステートマシンを分離している価値が無くなる
+		to_state = {
+			Trigger.Triggers.Empty: cls.States.Idle,
+			Trigger.Triggers.Lookup: cls.States.Idle,
+			Trigger.Triggers.Ready: cls.States.Idle,
+			Trigger.Triggers.Skip: cls.States.Idle,
+			Trigger.Triggers.Step: cls.States.Step,
+			Trigger.Triggers.Done: cls.States.Done,
+			Trigger.Triggers.Abort: cls.States.Done,
+		}
+		return cls(to_state[trigger.trigger], trigger.reason)
 
 	def __init__(self, state: States, reason: DoneReasons = DoneReasons.Empty) -> None:
 		self.name = state.name
@@ -95,19 +121,14 @@ class State:
 class States:
 	Sleep = State(State.States.Sleep)
 	Idle = State(State.States.Idle)
+	Step = State(State.States.Step, DoneReasons.Step)
 	Done = State(State.States.Done)
 
-	# 進行
-	ProgressStep = State(State.States.Done, reason=DoneReasons.Step)
-	ProgressSkip = State(State.States.Done, reason=DoneReasons.Skip)
-	# 完了
-	FinishStep = State(State.States.Done, reason=DoneReasons.FinishStep)
-	FinishSkip = State(State.States.Done, reason=DoneReasons.FinishSkip)
-	# 部分適合
-	UnfinishStep = State(State.States.Done, reason=DoneReasons.UnfinishStep)
-	UnfinishSkip = State(State.States.Done, reason=DoneReasons.UnfinishSkip)
-	# 失敗
-	Fail = State(State.States.Done, reason=DoneReasons.Fail)
+	FinishSkip = State(State.States.Done, DoneReasons.FinishSkip)
+	FinishStep = State(State.States.Done, DoneReasons.FinishStep)
+	UnfinishSkip = State(State.States.Done, DoneReasons.UnfinishSkip)
+	UnfinishStep = State(State.States.Done, DoneReasons.UnfinishStep)
+	Abort = State(State.States.Done, DoneReasons.Abort)
 
 
 class StateOf(Protocol):
@@ -171,7 +192,8 @@ class Context:
 
 	class Datum:
 		def __init__(self) -> None:
-			self.repeats = 0
+			self.group_states: list[State] = []
+			self.resolve_orders: list[int] = []
 
 	@classmethod
 	def new_data(cls) -> dict[object, Datum]:

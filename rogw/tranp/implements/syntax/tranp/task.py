@@ -187,7 +187,7 @@ class Tasks(Mapping[str, Task]):
 		"""
 		super().__init__()
 		self._tasks = self._build_tasks(rules)
-		self._depends = DependsMap(rules)
+		self.depends = DependsMap(rules)
 
 	def _build_tasks(self, rules: Rules) -> dict[str, Task]:
 		"""ルールを基にタスクを生成

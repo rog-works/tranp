@@ -3,7 +3,7 @@ from typing import KeysView, override
 
 from rogw.tranp.implements.syntax.tranp.expression import Expression, ExpressionTerminal
 from rogw.tranp.implements.syntax.tranp.rule import RuleMap, Rules
-from rogw.tranp.implements.syntax.tranp.state import Context, DoneReasons, StateMachine, StateOf, State, States, Trigger, Triggers
+from rogw.tranp.implements.syntax.tranp.state import Context, StateMachine, StateOf, State, States, Trigger, Triggers
 from rogw.tranp.implements.syntax.tranp.token import Token
 from rogw.tranp.lang.sequence import flatten
 
@@ -55,7 +55,7 @@ class Task:
 
 	@property
 	def finished(self) -> bool:
-		return self._states.state == States.Done and self._states.state.reason != DoneReasons.Abort
+		return self._states.state == States.Done and self._states.state != States.Abort
 
 	def state_of(self, expect: State) -> bool:
 		"""状態を確認

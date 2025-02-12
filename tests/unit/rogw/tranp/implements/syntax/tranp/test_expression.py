@@ -134,15 +134,25 @@ class TestExpressionsAnd(TestCase):
 
 class TestExpressionsRepeat(TestCase):
 	@data_provider([
-		(['a', 'b'], [], 0, 0, {'a': States.Idle}, Triggers.Empty),
+		(['a'], Repeators.OneOrEmpty, [], 0, 0, {'a': States.Idle}, Triggers.Empty),
+		(['a'], Repeators.OneOrEmpty, [], 0, 0, {'a': States.Step}, Triggers.Empty),
+		(['a'], Repeators.OneOrEmpty, [], 0, 0, {'a': States.Abort}, Triggers.FinishSkip),
+		(['a'], Repeators.OverZero, [], 0, 0, {'a': States.FinishStep}, Triggers.Step),
+		(['a'], Repeators.OverZero, [], 0, 0, {'a': States.Abort}, Triggers.FinishSkip),
+		(['a'], Repeators.OverOne, [], 0, 0, {'a': States.FinishStep}, Triggers.Step),
+		(['a'], Repeators.OverOne, [], 0, 0, {'a': States.Abort}, Triggers.Abort),
+		(['a'], Repeators.OneOrZero, [], 0, 0, {'a': States.FinishStep}, Triggers.FinishStep),
+		(['a'], Repeators.OneOrZero, [], 0, 0, {'a': States.Abort}, Triggers.FinishSkip),
+		(['a'], Repeators.OneOrEmpty, [], 0, 0, {'a': States.FinishStep}, Triggers.FinishStep),
+		(['a'], Repeators.OneOrEmpty, [], 0, 0, {'a': States.Abort}, Triggers.FinishSkip),
 	])
-	def test_accept(self, expressions: list[str], expr_stores: list[ExpressionStore], cursor: int, token_no: int, on_states: dict[str, State], expected: Trigger) -> None:
+	def test_accept(self, expressions: list[str], rep: Repeators, expr_stores: list[ExpressionStore], cursor: int, token_no: int, on_states: dict[str, State], expected: Trigger) -> None:
 		def state_of(name: str, state: State) -> bool:
 			return name in on_states and state == on_states[name]
 
 		datum = Context.Datum()
 		datum.expr_stores = expr_stores
-		instance = Expression.factory(Patterns([Patterns([Pattern.make(expression) for expression in expressions])], rep=Repeators.OneOrEmpty))
+		instance = Expression.factory(Patterns([Patterns([Pattern.make(expression) for expression in expressions])], rep=rep))
 		actual = instance.accept(Context.make(cursor, {instance: datum}), token_no, state_of)
 		self.assertEqual(type(instance), ExpressionsRepeat)
 		self.assertEqual(expected, actual)

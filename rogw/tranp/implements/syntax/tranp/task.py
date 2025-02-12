@@ -27,7 +27,7 @@ class Task:
 
 	def _build_states(self) -> StateMachine:
 		"""Returns: 生成したステートマシン"""
-		states = StateMachine(States.Sleep, {
+		return StateMachine(States.Sleep, {
 			(Triggers.Ready, States.Sleep): States.Idle,
 			(Triggers.Step, States.Idle): States.Step,
 			(Triggers.Done, States.Idle): States.Done,
@@ -35,7 +35,6 @@ class Task:
 			(Triggers.Ready, States.Step): States.Idle,
 			(Triggers.Ready, States.Done): States.Idle,
 		})
-		return states
 
 	def _bind_states(self, states: StateMachine) -> None:
 		states.on(Triggers.Step, States.Idle, lambda: self._on_step())
@@ -80,10 +79,6 @@ class Task:
 		event_state = State.from_trigger(trigger)
 		return {event_state: event_state}
 
-	def ready(self) -> None:
-		"""起動イベントを発火"""
-		self.notify(Triggers.Ready)
-
 	def watches(self) -> list[str]:
 		"""現在の参照位置を基に参照中のシンボルリストを返却
 
@@ -92,10 +87,15 @@ class Task:
 		"""
 		return self._expression.watches(Context.new(self._cursor, self._expression_data))
 
+	def ready(self) -> None:
+		"""起動イベントを発火"""
+		self.notify(Triggers.Ready)
+
 	def step(self, token_no: int, token: Token) -> bool:
 		"""トークンの読み出しイベントを発火。状態変化イベントの有無を返却
 
 		Args:
+			token_no: トークンNo
 			token: トークン
 		Returns:
 			True = 状態変化イベントが発生
@@ -108,6 +108,7 @@ class Task:
 		"""シンボル更新イベントを発火。状態変化イベントの有無を返却
 
 		Args:
+			token_no: トークンNo
 			state_of: 状態確認ハンドラー
 		Returns:
 			True = 状態変化イベントが発生
@@ -252,6 +253,22 @@ class Tasks(Mapping[str, Task]):
 		"""Args: name: シンボル Returns: タスク"""
 		return self._tasks[name]
 
+	def state_of(self, expect: State, names: list[str] | None = None) -> list[str]:
+		"""指定の状態のシンボルを返却
+
+		Args:
+			expect: 判定する状態
+			names: シンボルリスト(処理対象) (default = None)
+		Returns:
+			シンボルリスト(対象)
+		"""
+		by_names = names if isinstance(names, list) else list(self.keys())
+		return [name for name in by_names if self[name].state_of(expect)]
+
+	def finished(self, names: list[str] | None = None) -> list[str]:
+		by_names = names if isinstance(names, list) else list(self.keys())
+		return [name for name in by_names if self[name].finished]
+
 	def lookup(self, name: str) -> list[str]:
 		"""基点のシンボルから起動対象のシンボルをルックアップ
 
@@ -275,9 +292,10 @@ class Tasks(Mapping[str, Task]):
 			self[name].ready()
 
 	def step(self, token_no: int, token: Token) -> list[str]:
-		"""トークンの読み出しイベントを発火。状態変化したシンボルを返却
+		"""トークンの読み出しイベントを発火。状態変化イベントが発生したシンボルを返却
 
 		Args:
+			token_no: トークンNo
 			token: トークン
 		Returns:
 			シンボルリスト(状態変化)
@@ -286,29 +304,13 @@ class Tasks(Mapping[str, Task]):
 		return [name for name in names if self[name].step(token_no, token)]
 
 	def accept(self, token_no: int) -> list[str]:
-		"""シンボル更新イベントを発火。状態変化したシンボルを返却
+		"""シンボル更新イベントを発火。状態変化イベントが発生したシンボルを返却
 
 		Args:
-			by_state: 処理対象の状態
+			token_no: トークンNo
 		Returns:
 			シンボルリスト(状態変化)
 		"""
 		state_of_a = lambda name, state: self[name].state_of(state)
 		names = self.state_of(States.Idle)
 		return [name for name in names if self[name].accept(token_no, state_of_a)]
-
-	def state_of(self, expect: State, names: list[str] | None = None) -> list[str]:
-		"""指定の状態のシンボルを返却
-
-		Args:
-			expect: 判定する状態
-			names: シンボルリスト(処理対象) (default = None)
-		Returns:
-			シンボルリスト(対象)
-		"""
-		by_names = names if isinstance(names, list) else list(self.keys())
-		return [name for name in by_names if self[name].state_of(expect)]
-
-	def finished(self, names: list[str] | None = None) -> list[str]:
-		by_names = names if isinstance(names, list) else list(self.keys())
-		return [name for name in by_names if self[name].finished]

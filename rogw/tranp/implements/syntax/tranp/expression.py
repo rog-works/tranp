@@ -55,6 +55,7 @@ class Expression:
 
 		Args:
 			context: 解析コンテキスト
+			token_no: トークンNo
 			token: トークン
 		Returns:
 			トリガー
@@ -66,6 +67,7 @@ class Expression:
 
 		Args:
 			context: 解析コンテキスト
+			token_no: トークンNo
 			state_of: 状態確認ハンドラー
 		Returns:
 			トリガー

@@ -1,7 +1,6 @@
 from collections.abc import Iterator
 
 from rogw.tranp.implements.syntax.tranp.rule import Rules, Unwraps
-from rogw.tranp.implements.syntax.tranp.state import States
 from rogw.tranp.implements.syntax.tranp.task import Tasks
 from rogw.tranp.implements.syntax.tranp.token import Token
 from rogw.tranp.implements.syntax.tranp.ast import ASTEntry, ASTToken, ASTTree

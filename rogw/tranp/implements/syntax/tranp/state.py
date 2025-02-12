@@ -182,7 +182,7 @@ class StateMachine:
 			state: ステート
 			callback: ハンドラー
 		"""
-		key = (trigger, self.state)
+		key = (trigger, state)
 		self.handlers[key] = callback
 
 	def __repr__(self) -> str:

@@ -1,7 +1,7 @@
 from unittest import TestCase
 
-from rogw.tranp.implements.syntax.tranp.expression import Expression, ExpressionSymbol, ExpressionTerminal, ExpressionsAnd, ExpressionsOr
-from rogw.tranp.implements.syntax.tranp.rule import Operators, Pattern, Patterns
+from rogw.tranp.implements.syntax.tranp.expression import Expression, ExpressionSymbol, ExpressionTerminal, ExpressionsAnd, ExpressionsOr, ExpressionsRepeat
+from rogw.tranp.implements.syntax.tranp.rule import Operators, Pattern, Patterns, Repeators
 from rogw.tranp.implements.syntax.tranp.state import Context, ExpressionStore, State, States, Trigger, Triggers
 from rogw.tranp.implements.syntax.tranp.token import Token, TokenTypes
 from rogw.tranp.test.helper import data_provider
@@ -129,4 +129,20 @@ class TestExpressionsAnd(TestCase):
 		instance = Expression.factory(Patterns([Pattern.make(expression) for expression in expressions]))
 		actual = instance.accept(Context.make(cursor, {instance: datum}), token_no, state_of)
 		self.assertEqual(type(instance), ExpressionsAnd)
+		self.assertEqual(expected, actual)
+
+
+class TestExpressionsRepeat(TestCase):
+	@data_provider([
+		(['a', 'b'], [], 0, 0, {'a': States.Idle}, Triggers.Empty),
+	])
+	def test_accept(self, expressions: list[str], expr_stores: list[ExpressionStore], cursor: int, token_no: int, on_states: dict[str, State], expected: Trigger) -> None:
+		def state_of(name: str, state: State) -> bool:
+			return name in on_states and state == on_states[name]
+
+		datum = Context.Datum()
+		datum.expr_stores = expr_stores
+		instance = Expression.factory(Patterns([Patterns([Pattern.make(expression) for expression in expressions])], rep=Repeators.OneOrEmpty))
+		actual = instance.accept(Context.make(cursor, {instance: datum}), token_no, state_of)
+		self.assertEqual(type(instance), ExpressionsRepeat)
 		self.assertEqual(expected, actual)

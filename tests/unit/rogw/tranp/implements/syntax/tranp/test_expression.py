@@ -60,9 +60,16 @@ def build_expr_stores(*states: State) -> list[ExpressionStore]:
 class TestExpressionsOr(TestCase):
 	@data_provider([
 		(['a', 'b'], build_expr_stores(States.Idle, States.Idle), 0, {}, Triggers.Empty),
+		(['a', 'b'], build_expr_stores(States.Idle, States.Idle), 0, {'a': States.FinishStep}, Triggers.UnfinishStep),
+		(['a', 'b'], build_expr_stores(States.Idle, States.Idle), 0, {'a': States.Abort}, Triggers.Empty),
+		# XXX 同じ文字数で片側だけ先に確定する状況は本来あり得ないが、正しい状況を再現するのが手間なことと、実質的にはほぼ同等であるため一旦これで良しとする
+		(['a', 'b'], build_expr_stores(States.FinishStep, States.Idle), 0, {'b': States.Idle}, Triggers.UnfinishStep),
 		(['a', 'b'], build_expr_stores(States.FinishStep, States.Idle), 0, {'b': States.FinishStep}, Triggers.FinishStep),
 		(['a', 'b'], build_expr_stores(States.FinishStep, States.Idle), 0, {'b': States.UnfinishStep}, Triggers.UnfinishStep),
 		(['a', 'b'], build_expr_stores(States.UnfinishStep, States.Idle), 0, {'b': States.FinishStep}, Triggers.FinishStep),
+		(['a', 'b'], build_expr_stores(States.UnfinishStep, States.Idle), 0, {'b': States.UnfinishStep}, Triggers.UnfinishStep),
+		(['a', 'b'], build_expr_stores(States.FinishStep, States.Idle), 0, {'b': States.Abort}, Triggers.FinishStep),
+		(['a', 'b'], build_expr_stores(States.UnfinishStep, States.Idle), 0, {'b': States.Abort}, Triggers.UnfinishStep),
 	])
 	def test_accept(self, expressions: list[str], expr_stores: list[ExpressionStore], cursor: int, on_states: dict[str, State], expected: Trigger) -> None:
 		def state_of(name: str, state: State) -> bool:

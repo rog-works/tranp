@@ -189,10 +189,10 @@ class StateMachine:
 
 
 class ExpressionStore:
-	def __init__(self, state: State | None = None) -> None:
+	def __init__(self, state: State | None = None, order: int = -1, token_no: int = -1) -> None:
 		self.state = state if state else States.Idle
-		self.order = -1
-		self.token_no = -1
+		self.order = order
+		self.token_no = token_no
 
 
 class Context:

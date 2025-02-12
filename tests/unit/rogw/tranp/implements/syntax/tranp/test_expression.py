@@ -46,7 +46,19 @@ class TestExpressionSymbol(TestCase):
 class TestExpressionAnd(TestCase):
 	@data_provider([
 		(['a', '"."', 'b'], 0, States.Idle, Triggers.Empty),
+		(['a', '"."', 'b'], 0, States.Step, Triggers.Empty),
+		(['a', '"."', 'b'], 0, States.FinishSkip, Triggers.Skip),
 		(['a', '"."', 'b'], 0, States.FinishStep, Triggers.Step),
+		(['a', '"."', 'b'], 0, States.UnfinishSkip, Triggers.Skip),
+		(['a', '"."', 'b'], 0, States.UnfinishStep, Triggers.Step),
+		(['a', '"."', 'b'], 0, States.Abort, Triggers.Abort),
+		(['a', '"."', 'b'], 2, States.Idle, Triggers.Empty),
+		(['a', '"."', 'b'], 2, States.Step, Triggers.Empty),
+		(['a', '"."', 'b'], 2, States.FinishSkip, Triggers.FinishSkip),
+		(['a', '"."', 'b'], 2, States.FinishStep, Triggers.FinishStep),
+		(['a', '"."', 'b'], 2, States.UnfinishSkip, Triggers.UnfinishSkip),
+		(['a', '"."', 'b'], 2, States.UnfinishStep, Triggers.UnfinishStep),
+		(['a', '"."', 'b'], 2, States.Abort, Triggers.Abort),
 	])
 	def test_accept(self, expressions: list[str], cursor: int, on_state: State, expected: Trigger) -> None:
 		instance = Expression.factory(Patterns([Pattern.make(expression) for expression in expressions]))

@@ -194,7 +194,7 @@ class ExpressionsOr(Expressions):
 		if len([True for expr_store in expr_stores if expr_store.state != States.Done]) > 0:
 			return Triggers.Empty
 
-		succeeded = {expr_store.order: expr_store for expr_store in expr_stores if expr_store.state.reason != DoneReasons.Abort}
+		succeeded = {expr_store.order: expr_store for expr_store in expr_stores if expr_store.state != States.Abort}
 		if len(succeeded) == 0:
 			return Triggers.Abort
 
@@ -224,7 +224,7 @@ class ExpressionsAnd(Expressions):
 		for index, expression in enumerate(self._expressions):
 			in_context = self._new_context(context, index)
 			expr_store = expr_stores[index]
-			if expr_store != States.Done and in_context.cursor == 0:
+			if expr_store.state != States.Done and in_context.cursor == 0:
 				expr_store.state = States.from_trigger(expression.step(in_context, token_no, token))
 				expr_store.order = index
 				expr_store.token_no = token_no
@@ -238,7 +238,7 @@ class ExpressionsAnd(Expressions):
 		for index, expression in enumerate(self._expressions):
 			in_context = self._new_context(context, index)
 			expr_store = expr_stores[index]
-			if expr_store != States.Done and in_context.cursor == 0:
+			if expr_store.state != States.Done and in_context.cursor == 0:
 				expr_store.state = States.from_trigger(expression.accept(in_context, token_no, state_of))
 				expr_store.order = index
 				expr_store.token_no = token_no
@@ -309,13 +309,13 @@ class ExpressionsRepeat(Expressions):
 
 		assert not state.reason.unfinish, 'Must be Finish or Abort'
 
-		if state.reason != DoneReasons.Abort:
+		if state != States.Abort:
 			expr_store = ExpressionStore(state)
 			expr_store.token_no = token_no
 			expr_stores.append(expr_store)
 
 		patterns = self._as_patterns
-		if state.reason == DoneReasons.Abort:
+		if state == States.Abort:
 			if len(expr_stores) == 0:
 				return Triggers.Abort if patterns.rep == Repeators.OverOne else Triggers.FinishSkip
 			else:

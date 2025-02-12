@@ -1,7 +1,7 @@
 from unittest import TestCase
 
-from rogw.tranp.implements.syntax.tranp.expression import ExpressionSymbol, ExpressionTerminal
-from rogw.tranp.implements.syntax.tranp.rule import Pattern
+from rogw.tranp.implements.syntax.tranp.expression import Expression, ExpressionSymbol, ExpressionTerminal, ExpressionsAnd
+from rogw.tranp.implements.syntax.tranp.rule import Pattern, Patterns
 from rogw.tranp.implements.syntax.tranp.state import Context, State, States, Trigger, Triggers
 from rogw.tranp.implements.syntax.tranp.token import Token, TokenTypes
 from rogw.tranp.test.helper import data_provider
@@ -37,6 +37,19 @@ class TestExpressionSymbol(TestCase):
 		('hoge', 1, States.Abort, Triggers.Empty),
 	])
 	def test_accept(self, symbol: str, cursor: int, on_state: State, expected: Trigger) -> None:
-		instance = ExpressionSymbol(Pattern.make(symbol))
+		instance = Expression.factory(Pattern.make(symbol))
 		actual = instance.accept(Context.new(cursor, {}), 0, lambda name, state: name == symbol and state == on_state)
+		self.assertEqual(type(instance), ExpressionSymbol)
+		self.assertEqual(expected, actual)
+
+
+class TestExpressionAnd(TestCase):
+	@data_provider([
+		(['a', '"."', 'b'], 0, States.Idle, Triggers.Empty),
+		(['a', '"."', 'b'], 0, States.FinishStep, Triggers.Step),
+	])
+	def test_accept(self, expressions: list[str], cursor: int, on_state: State, expected: Trigger) -> None:
+		instance = Expression.factory(Patterns([Pattern.make(expression) for expression in expressions]))
+		actual = instance.accept(Context.new(cursor, {}), 0, lambda name, state: name == expressions[cursor] and state == on_state)
+		self.assertEqual(type(instance), ExpressionsAnd)
 		self.assertEqual(expected, actual)

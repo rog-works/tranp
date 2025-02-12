@@ -2,7 +2,7 @@ import re
 from typing import override
 
 from rogw.tranp.implements.syntax.tranp.rule import Comps, Operators, Pattern, PatternEntry, Patterns, Repeators
-from rogw.tranp.implements.syntax.tranp.state import Context, DoneReasons, ExpressionStore, State, StateOf, States, Trigger, Triggers
+from rogw.tranp.implements.syntax.tranp.state import Context, DoneReasons, StateStore, State, StateOf, States, Trigger, Triggers
 from rogw.tranp.implements.syntax.tranp.token import Token
 from rogw.tranp.lang.convertion import as_a
 
@@ -146,13 +146,13 @@ class Expressions(Expression):
 		super().__init__(pattern)
 		self._expressions = [Expression.factory(pattern) for pattern in as_a(Patterns, pattern)]
 
-	def _expr_stores(self, context: Context) -> list[ExpressionStore]:
-		datum = context.datum(self)
-		if len(datum.expr_stores) == 0:
+	def _state_stores(self, context: Context) -> list[StateStore]:
+		store = context.store_by(self)
+		if len(store.state_stores) == 0:
 			for _ in range(len(self._expressions)):
-				datum.expr_stores.append(ExpressionStore())
+				store.state_stores.append(StateStore())
 
-		return datum.expr_stores
+		return store.state_stores
 
 
 class ExpressionsOr(Expressions):
@@ -168,49 +168,49 @@ class ExpressionsOr(Expressions):
 
 	@override
 	def step(self, context: Context, token_no: int, token: Token) -> Trigger:
-		expr_stores = self._expr_stores(context)
+		state_stores = self._state_stores(context)
 		for index, expression in enumerate(self._expressions):
-			expr_store = expr_stores[index]
-			if expr_store.state != States.Done:
-				expr_store.state = States.from_trigger(expression.step(context, token_no, token))
-				expr_store.order = len([True for expr_store in expr_stores if expr_store.state == States.Done]) - 1
-				expr_store.token_no = token_no
+			state_store = state_stores[index]
+			if state_store.state != States.Done:
+				state_store.state = States.from_trigger(expression.step(context, token_no, token))
+				state_store.order = len([True for state_store in state_stores if state_store.state == States.Done]) - 1
+				state_store.token_no = token_no
 
-		return self._to_trigger(token_no, expr_stores)
+		return self._to_trigger(token_no, state_stores)
 
 	@override
 	def accept(self, context: Context, token_no: int, state_of: StateOf) -> Trigger:
-		expr_stores = self._expr_stores(context)
+		state_stores = self._state_stores(context)
 		for index, expression in enumerate(self._expressions):
-			expr_store = expr_stores[index]
-			if expr_store.state != States.Done:
-				expr_store.state = States.from_trigger(expression.accept(context, token_no, state_of))
-				expr_store.order = len([True for expr_store in expr_stores if expr_store.state == States.Done]) - 1
-				expr_store.token_no = token_no
+			state_store = state_stores[index]
+			if state_store.state != States.Done:
+				state_store.state = States.from_trigger(expression.accept(context, token_no, state_of))
+				state_store.order = len([True for state_store in state_stores if state_store.state == States.Done]) - 1
+				state_store.token_no = token_no
 
-		return self._to_trigger(token_no, expr_stores)
+		return self._to_trigger(token_no, state_stores)
 
-	def _to_trigger(self, token_no: int, expr_stores: list[ExpressionStore]) -> Trigger:
+	def _to_trigger(self, token_no: int, state_stores: list[StateStore]) -> Trigger:
 		# 終了無し
-		done_num = len([True for expr_store in expr_stores if expr_store.state == States.Done])
+		done_num = len([True for state_store in state_stores if state_store.state == States.Done])
 		if done_num == 0:
 			return Triggers.Empty
 
 		# 全て失敗
-		abort_num = len([True for expr_store in expr_stores if expr_store.state == States.Abort])
+		abort_num = len([True for state_store in state_stores if state_store.state == States.Abort])
 		if abort_num == len(self._expressions):
 			return Triggers.Abort
 
 		# 成功無し
-		succeeded = {expr_store.order: expr_store for expr_store in expr_stores if expr_store.state == States.Done and expr_store.state != States.Abort}
+		succeeded = {state_store.order: state_store for state_store in state_stores if state_store.state == States.Done and state_store.state != States.Abort}
 		if len(succeeded) == 0:
 			return Triggers.Empty
 
 		# 未決定の条件が存在、または最新の結果が部分適合の場合は部分適合
 		stay_num = len(self._expressions) - done_num
-		_, last = sorted(succeeded.items(), key=lambda entry: entry[0]).pop()
-		physically = last.token_no == token_no and last.state.reason.physically
-		if stay_num > 0 or last.state.reason.unfinish:
+		_, last_store = sorted(succeeded.items(), key=lambda entry: entry[0]).pop()
+		physically = last_store.token_no == token_no and last_store.state.reason.physically
+		if stay_num > 0 or last_store.state.reason.unfinish:
 			return Triggers.UnfinishStep if physically else Triggers.UnfinishSkip
 
 		# 最新の結果が完了
@@ -231,31 +231,31 @@ class ExpressionsAnd(Expressions):
 
 	@override
 	def step(self, context: Context, token_no: int, token: Token) -> Trigger:
-		expr_stores = self._expr_stores(context)
+		state_stores = self._state_stores(context)
 		for index, expression in enumerate(self._expressions):
 			in_context = self._new_context(context, index)
-			expr_store = expr_stores[index]
-			if expr_store.state != States.Done and in_context.cursor == 0:
-				expr_store.state = States.from_trigger(expression.step(in_context, token_no, token))
-				expr_store.order = index
-				expr_store.token_no = token_no
+			state_store = state_stores[index]
+			if state_store.state != States.Done and in_context.cursor == 0:
+				state_store.state = States.from_trigger(expression.step(in_context, token_no, token))
+				state_store.order = index
+				state_store.token_no = token_no
 
 		begin_context = self._new_context(context, 0)
-		return self._to_trigger(token_no, expr_stores, begin_context.cursor)
+		return self._to_trigger(token_no, state_stores, begin_context.cursor)
 
 	@override
 	def accept(self, context: Context, token_no: int, state_of: StateOf) -> Trigger:
-		expr_stores = self._expr_stores(context)
+		state_stores = self._state_stores(context)
 		for index, expression in enumerate(self._expressions):
 			in_context = self._new_context(context, index)
-			expr_store = expr_stores[index]
-			if expr_store.state != States.Done and in_context.cursor == 0:
-				expr_store.state = States.from_trigger(expression.accept(in_context, token_no, state_of))
-				expr_store.order = index
-				expr_store.token_no = token_no
+			state_store = state_stores[index]
+			if state_store.state != States.Done and in_context.cursor == 0:
+				state_store.state = States.from_trigger(expression.accept(in_context, token_no, state_of))
+				state_store.order = index
+				state_store.token_no = token_no
 
 		begin_context = self._new_context(context, 0)
-		return self._to_trigger(token_no, expr_stores, begin_context.cursor)
+		return self._to_trigger(token_no, state_stores, begin_context.cursor)
 
 	def _new_context(self, context: Context, offset: int) -> Context:
 		cursor = context.cursor - offset
@@ -264,22 +264,22 @@ class ExpressionsAnd(Expressions):
 		else:
 			return context.to_and(cursor)
 
-	def _to_trigger(self, token_no: int, expr_stores: list[ExpressionStore], offset: int) -> Trigger:
+	def _to_trigger(self, token_no: int, state_stores: list[StateStore], offset: int) -> Trigger:
 		if offset < 0 or offset >= len(self._expressions):
 			return Triggers.Empty
 
-		peek = [expr_store for expr_store in expr_stores if expr_store.order != -1].pop()
-		if peek.state == States.Abort:
+		peek_store = [state_store for state_store in state_stores if state_store.order != -1].pop()
+		if peek_store.state == States.Abort:
 			return Triggers.Abort
-		elif peek.state != States.Done:
+		elif peek_store.state != States.Done:
 			return Triggers.Empty
 
 		if offset < len(self._expressions) - 1:
-			return Triggers.Step if peek.state.reason.physically else Triggers.Skip
+			return Triggers.Step if peek_store.state.reason.physically else Triggers.Skip
 
-		last = peek
-		unfinish = len([True for expr_store in expr_stores if expr_store.state.reason.unfinish]) > 0
-		physically = last.token_no == token_no and last.state.reason.physically
+		last_store = peek_store
+		unfinish = len([True for state_store in state_stores if state_store.state.reason.unfinish]) > 0
+		physically = last_store.token_no == token_no and last_store.state.reason.physically
 		if unfinish:
 			return Triggers.UnfinishStep if physically else Triggers.UnfinishSkip
 		else:
@@ -305,15 +305,15 @@ class ExpressionsRepeat(Expressions):
 	def step(self, context: Context, token_no: int, token: Token) -> Trigger:
 		in_context = context.to_repeat(self._repeated)
 		trigger = self._expressions[0].step(in_context, token_no, token)
-		return self._to_trigger(token_no, context.datum(self).expr_stores, trigger)
+		return self._to_trigger(token_no, context.store_by(self).state_stores, trigger)
 
 	@override
 	def accept(self, context: Context, token_no: int, state_of: StateOf) -> Trigger:
 		in_context = context.to_repeat(self._repeated)
 		trigger = self._expressions[0].accept(in_context, token_no, state_of)
-		return self._to_trigger(token_no, context.datum(self).expr_stores, trigger)
+		return self._to_trigger(token_no, context.store_by(self).state_stores, trigger)
 
-	def _to_trigger(self, token_no: int, expr_stores: list[ExpressionStore], trigger: Trigger) -> Trigger:
+	def _to_trigger(self, token_no: int, state_stores: list[StateStore], trigger: Trigger) -> Trigger:
 		state = States.from_trigger(trigger)
 		if state != States.Done:
 			return Triggers.Empty
@@ -321,22 +321,22 @@ class ExpressionsRepeat(Expressions):
 		assert not state.reason.unfinish, f'Must be Finish or Abort, state: {state}'
 
 		if state != States.Abort:
-			expr_store = ExpressionStore(state)
-			expr_store.token_no = token_no
-			expr_stores.append(expr_store)
+			state_store = StateStore(state)
+			state_store.token_no = token_no
+			state_stores.append(state_store)
 
 		patterns = self._as_patterns
 		if state == States.Abort:
-			if len(expr_stores) == 0:
+			if len(state_stores) == 0:
 				return Triggers.Abort if patterns.rep == Repeators.OverOne else Triggers.FinishSkip
 			else:
-				last = expr_stores[-1]
-				physically = last.token_no == token_no and last.state.reason.physically
+				last_store = state_stores[-1]
+				physically = last_store.token_no == token_no and last_store.state.reason.physically
 				return Triggers.FinishStep if physically else Triggers.FinishSkip
 		else:
-			last = expr_stores[-1]
-			physically = last.token_no == token_no and last.state.reason.physically
-			if len(expr_stores) == 1 and patterns.rep in [Repeators.OneOrZero, Repeators.OneOrEmpty]:
+			last_store = state_stores[-1]
+			physically = last_store.token_no == token_no and last_store.state.reason.physically
+			if len(state_stores) == 1 and patterns.rep in [Repeators.OneOrZero, Repeators.OneOrEmpty]:
 				return Triggers.FinishStep if physically else Triggers.FinishSkip
 			else:
 				return Triggers.Step if physically else Triggers.Skip

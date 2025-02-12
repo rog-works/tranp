@@ -188,7 +188,7 @@ class StateMachine:
 		return f'<{self.__class__.__name__}: {self.state} at {hex(id(self)).upper()}>'
 
 
-class ExpressionStore:
+class StateStore:
 	def __init__(self, state: State | None = None, order: int = -1, token_no: int = -1) -> None:
 		self.state = state if state else States.Idle
 		self.order = order
@@ -198,19 +198,19 @@ class ExpressionStore:
 class Context:
 	"""解析コンテキスト"""
 
-	class Datum:
+	class StoreEntry:
 		def __init__(self) -> None:
-			self.expr_stores: list[ExpressionStore] = []
+			self.state_stores: list[StateStore] = []
 
 	@classmethod
-	def new_data(cls) -> dict[object, Datum]:
+	def new_store(cls) -> dict[object, StoreEntry]:
 		return {}
 
 	@classmethod
-	def make(cls, cursor: int, data: dict[object, Datum]) -> 'Context':
-		return cls(cursor, False, data)
+	def make(cls, cursor: int, store: dict[object, StoreEntry]) -> 'Context':
+		return cls(cursor, False, store)
 
-	def __init__(self, cursor: int, repeat: bool, data: dict[object, Datum]) -> None:
+	def __init__(self, cursor: int, repeat: bool, store: dict[object, StoreEntry]) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -219,24 +219,24 @@ class Context:
 		"""
 		self.cursor = cursor
 		self.repeat = repeat
-		self._data = data
+		self._store = store
 
 	def to_and(self, cursor: int) -> 'Context':
-		instance = Context(cursor, self.repeat, self._data)
-		instance._data = self._data
+		instance = Context(cursor, self.repeat, self._store)
+		instance._store = self._store
 		return instance
 
 	def to_repeat(self, repeat: bool) -> 'Context':
-		instance = Context(self.cursor, repeat, self._data)
-		instance._data = self._data
+		instance = Context(self.cursor, repeat, self._store)
+		instance._store = self._store
 		return instance
 
 	def __repr__(self) -> str:
 		"""Returns: シリアライズ表現"""
 		return f'<{self.__class__.__name__}: #{self.cursor} at {hex(id(self)).upper()}>'
 
-	def datum(self, owner: object) -> Datum:
-		if owner not in self._data:
-			self._data[owner] = self.Datum()
+	def store_by(self, owner: object) -> StoreEntry:
+		if owner not in self._store:
+			self._store[owner] = self.StoreEntry()
 
-		return self._data[owner]
+		return self._store[owner]

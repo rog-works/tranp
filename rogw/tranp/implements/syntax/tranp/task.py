@@ -20,7 +20,7 @@ class Task:
 		"""
 		self._name = name
 		self._expression = expression
-		self._expression_data = Context.new_data()
+		self._expression_store = Context.new_store()
 		self._cursor = 0
 		self._states = states if states else self._build_states()
 		self._bind_states(self._states)
@@ -82,7 +82,7 @@ class Task:
 		Returns:
 			シンボルリスト
 		"""
-		return self._expression.watches(Context.make(self._cursor, self._expression_data))
+		return self._expression.watches(Context.make(self._cursor, self._expression_store))
 
 	def ready(self) -> None:
 		"""起動イベントを発火"""
@@ -97,7 +97,7 @@ class Task:
 		Returns:
 			True = 状態変化イベントが発生
 		"""
-		trigger = self._expression.step(Context.make(self._cursor, self._expression_data), token_no, token)
+		trigger = self._expression.step(Context.make(self._cursor, self._expression_store), token_no, token)
 		self.notify(trigger)
 		return trigger != Triggers.Empty
 
@@ -110,7 +110,7 @@ class Task:
 		Returns:
 			True = 状態変化イベントが発生
 		"""
-		trigger = self._expression.accept(Context.make(self._cursor, self._expression_data), token_no, state_of)
+		trigger = self._expression.accept(Context.make(self._cursor, self._expression_store), token_no, state_of)
 		self.notify(trigger)
 		return trigger != Triggers.Empty
 
@@ -121,7 +121,7 @@ class Task:
 	def _on_reset(self) -> None:
 		"""状態リセットイベントハンドラー"""
 		self._cursor = 0
-		self._expression_data = Context.new_data()
+		self._expression_store = Context.new_store()
 
 
 class Tasks(Mapping[str, Task]):

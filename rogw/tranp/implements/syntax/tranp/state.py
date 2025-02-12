@@ -207,7 +207,7 @@ class Context:
 		return {}
 
 	@classmethod
-	def new(cls, cursor: int, data: dict[object, Datum]) -> 'Context':
+	def make(cls, cursor: int, data: dict[object, Datum]) -> 'Context':
 		return cls(cursor, False, data)
 
 	def __init__(self, cursor: int, repeat: bool, data: dict[object, Datum]) -> None:
@@ -235,8 +235,8 @@ class Context:
 		"""Returns: シリアライズ表現"""
 		return f'<{self.__class__.__name__}: #{self.cursor} at {hex(id(self)).upper()}>'
 
-	def datum(self, obj: object) -> Datum:
-		if obj not in self._data:
-			self._data[obj] = self.Datum()
+	def datum(self, owner: object) -> Datum:
+		if owner not in self._data:
+			self._data[owner] = self.Datum()
 
-		return self._data[obj]
+		return self._data[owner]

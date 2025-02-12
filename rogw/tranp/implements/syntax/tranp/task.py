@@ -82,7 +82,7 @@ class Task:
 		Returns:
 			シンボルリスト
 		"""
-		return self._expression.watches(Context.new(self._cursor, self._expression_data))
+		return self._expression.watches(Context.make(self._cursor, self._expression_data))
 
 	def ready(self) -> None:
 		"""起動イベントを発火"""
@@ -97,7 +97,7 @@ class Task:
 		Returns:
 			True = 状態変化イベントが発生
 		"""
-		trigger = self._expression.step(Context.new(self._cursor, self._expression_data), token_no, token)
+		trigger = self._expression.step(Context.make(self._cursor, self._expression_data), token_no, token)
 		self.notify(trigger)
 		return trigger != Triggers.Empty
 
@@ -110,7 +110,7 @@ class Task:
 		Returns:
 			True = 状態変化イベントが発生
 		"""
-		trigger = self._expression.accept(Context.new(self._cursor, self._expression_data), token_no, state_of)
+		trigger = self._expression.accept(Context.make(self._cursor, self._expression_data), token_no, state_of)
 		self.notify(trigger)
 		return trigger != Triggers.Empty
 

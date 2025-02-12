@@ -11,7 +11,7 @@ from rogw.tranp.lang.sequence import flatten
 class Task:
 	"""タスク"""
 
-	def __init__(self, name: str, expression: Expression) -> None:
+	def __init__(self, name: str, expression: Expression, states: StateMachine | None = None) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -22,7 +22,8 @@ class Task:
 		self._expression = expression
 		self._expression_data = Context.new_data()
 		self._cursor = 0
-		self._states = self._build_states()
+		self._states = states if states else self._build_states()
+		self._bind_states(self._states)
 
 	def _build_states(self) -> StateMachine:
 		"""Returns: 生成したステートマシン"""
@@ -34,13 +35,15 @@ class Task:
 			(Triggers.Ready, States.Step): States.Idle,
 			(Triggers.Ready, States.Done): States.Idle,
 		})
+		return states
+
+	def _bind_states(self, states: StateMachine) -> None:
 		states.on(Triggers.Step, States.Idle, lambda: self._on_step())
 		states.on(Triggers.Done, States.Idle, lambda: self._on_reset())
 		states.on(Triggers.Abort, States.Idle, lambda: self._on_reset())
-		return states
 
 	def clone(self) -> 'Task':
-		return Task(self.name, self._expression)
+		return Task(self.name, self._expression, self._states.clone())
 
 	def __repr__(self) -> str:
 		"""Returns: シリアライズ表現"""
@@ -89,24 +92,24 @@ class Task:
 		return self._expression.watches(Context.new(self._cursor, self._expression_data))
 
 	def step(self, token_no: int, token: Token) -> bool:
-		"""トークンの読み出しイベントを発火。状態変化を返却
+		"""トークンの読み出しイベントを発火。状態変化イベントの有無を返却
 
 		Args:
 			token: トークン
 		Returns:
-			True = 状態が変化
+			True = 状態変化イベントが発生
 		"""
 		trigger = self._expression.step(Context.new(self._cursor, self._expression_data), token_no, token)
 		self.notify(trigger)
 		return trigger != Triggers.Empty
 
 	def accept(self, token_no: int, state_of: StateOf) -> bool:
-		"""シンボル更新イベントを発火。状態変化を返却
+		"""シンボル更新イベントを発火。状態変化イベントの有無を返却
 
 		Args:
 			state_of: 状態確認ハンドラー
 		Returns:
-			True = 状態が変化
+			True = 状態変化イベントが発生
 		"""
 		trigger = self._expression.accept(Context.new(self._cursor, self._expression_data), token_no, state_of)
 		self.notify(trigger)

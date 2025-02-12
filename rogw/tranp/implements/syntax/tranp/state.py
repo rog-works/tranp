@@ -145,9 +145,13 @@ class StateMachine:
 			initial: 初期ステート
 			transitions: 遷移テーブル
 		"""
+		self.initial = initial
 		self.state = initial
 		self.transitions = transitions
 		self.handlers: dict[tuple[Trigger, State], Callable[[], None]] = {}
+
+	def clone(self) -> 'StateMachine':
+		return StateMachine(self.initial, self.transitions)
 
 	def notify(self, trigger: Trigger, e: dict[State, State]) -> None:
 		"""イベント通知

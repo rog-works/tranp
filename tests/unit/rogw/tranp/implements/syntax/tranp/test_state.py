@@ -1,7 +1,7 @@
 from typing import Any
 from unittest import TestCase
 
-from rogw.tranp.implements.syntax.tranp.state import DoneReasons, State, States, Trigger, Triggers
+from rogw.tranp.implements.syntax.tranp.state import DoneReasons, State, StateMachine, States, Trigger, Triggers
 from rogw.tranp.test.helper import data_provider
 
 
@@ -67,4 +67,34 @@ class TestState(TestCase):
 		(Triggers.Abort, States.Done),
 	])
 	def test_from_trigger(self, trigger: Trigger, expected: State) -> None:
-		self.assertEqual(State.from_trigger(trigger), expected)
+		self.assertEqual(States.from_trigger(trigger), expected)
+
+
+class TestStateMachine(TestCase):
+	def build_states(self, initial: State) -> StateMachine:
+		return StateMachine(initial, {
+			(Triggers.Ready, States.Sleep): States.Idle,
+			(Triggers.Step, States.Idle): States.Step,
+			(Triggers.Done, States.Idle): States.Done,
+			(Triggers.Abort, States.Idle): States.Done,
+			(Triggers.Ready, States.Step): States.Idle,
+			(Triggers.Ready, States.Done): States.Idle,
+		})
+
+	@data_provider([
+		(Triggers.Ready, States.Sleep, States.Idle),
+		(Triggers.Skip, States.Idle, States.Idle),
+		(Triggers.Step, States.Idle, States.Step),
+		(Triggers.FinishSkip, States.Idle, States.Done),
+		(Triggers.FinishStep, States.Idle, States.Done),
+		(Triggers.UnfinishSkip, States.Idle, States.Done),
+		(Triggers.UnfinishStep, States.Idle, States.Done),
+		(Triggers.Abort, States.Idle, States.Done),
+		(Triggers.Ready, States.Step, States.Idle),
+		(Triggers.Ready, States.Done, States.Idle),
+	])
+	def notify(self, trigger: Trigger, initial: State, expected: State) -> None:
+		instance = self.build_states(initial)
+		state = States.from_trigger(trigger)
+		instance.notify(trigger, {state: state})
+		self.assertEqual(instance.state, expected)

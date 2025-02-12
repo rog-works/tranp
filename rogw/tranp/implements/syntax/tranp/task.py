@@ -3,7 +3,7 @@ from typing import KeysView, override
 
 from rogw.tranp.implements.syntax.tranp.expression import Expression, ExpressionTerminal
 from rogw.tranp.implements.syntax.tranp.rule import Pattern, PatternEntry, Rules
-from rogw.tranp.implements.syntax.tranp.state import Context, StateMachine, StateOf, State, States, Trigger, Triggers
+from rogw.tranp.implements.syntax.tranp.state import Context, DoneReasons, StateMachine, StateOf, State, States, Trigger, Triggers
 from rogw.tranp.implements.syntax.tranp.token import Token
 from rogw.tranp.lang.sequence import flatten
 
@@ -50,6 +50,10 @@ class Task:
 	def name(self) -> str:
 		"""Returns: シンボル名"""
 		return self._name
+
+	@property
+	def finished(self) -> bool:
+		return self._states.state == States.Done and self._states.state.reason != DoneReasons.Abort
 
 	def state_of(self, expect: State) -> bool:
 		"""状態を確認
@@ -298,10 +302,12 @@ class Tasks(Mapping[str, Task]):
 		Returns:
 			シンボルリスト(対象)
 		"""
-		if isinstance(names, list):
-			return [name for name in names if self[name].state_of(expect)]
-		else:
-			return [name for name in self.keys() if self[name].state_of(expect)]
+		by_names = names if isinstance(names, list) else list(self.keys())
+		return [name for name in by_names if self[name].state_of(expect)]
+
+	def finished(self, names: list[str] | None = None) -> list[str]:
+		by_names = names if isinstance(names, list) else list(self.keys())
+		return [name for name in by_names if self[name].finished]
 
 	def lookup_advance(self, names: list[str], allow_names: list[str]) -> list[str]:
 		"""状態が変化したシンボルから新たに起動するシンボルをルックアップ。抽出対象は休眠状態のタスクに限定される

@@ -120,7 +120,7 @@ class StackParser:
 		token = tokens[token_no]
 		self.tasks.ready(self.tasks.lookup(self.entrypoint))
 		self.tasks.step(token_no, token)
-		finish_names = self.tasks.state_of(States.Done)
+		finish_names = self.tasks.finished()
 		finish_names.extend(self.accept(token_no))
 		return finish_names
 
@@ -136,7 +136,7 @@ class StackParser:
 		accepted = True
 		while accepted:
 			update_names = self.tasks.accept(token_no)
-			finish_names.extend(self.tasks.state_of(States.Done, update_names))
+			finish_names.extend(self.tasks.finished(update_names))
 			accepted = len(update_names) > 0
 
 		return finish_names

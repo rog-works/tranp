@@ -46,7 +46,7 @@ class Task:
 
 	def __repr__(self) -> str:
 		"""Returns: シリアライズ表現"""
-		return f'<{self.__class__.__name__}[{repr(self.name)}]: {self._states.state.name} #{self._cursor}>'
+		return f'<{self.__class__.__name__}[{repr(self.name)}]: {self._states.state} #{self._cursor}>'
 
 	@property
 	def name(self) -> str:

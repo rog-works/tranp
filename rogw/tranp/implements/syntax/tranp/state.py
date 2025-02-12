@@ -52,7 +52,7 @@ class Trigger:
 		return not self.__eq__(other)
 
 	def __hash__(self) -> int:
-		return id(f'<{self.__class__.__name__}: {self.trigger}>')
+		return hash(f'<{self.__class__.__name__}: {self.trigger}>')
 
 	def __repr__(self) -> str:
 		return f'<{self.__class__.__name__}[{self.name}]: reason: {self.reason.name}>'
@@ -96,7 +96,7 @@ class State:
 		return not self.__eq__(other)
 
 	def __hash__(self) -> int:
-		return id(f'<{self.__class__.__name__}: {self.state}>')
+		return hash(f'<{self.__class__.__name__}: {self.state}>')
 
 	def __repr__(self) -> str:
 		return f'<{self.__class__.__name__}[{self.name}]: reason: {self.reason.name}>'

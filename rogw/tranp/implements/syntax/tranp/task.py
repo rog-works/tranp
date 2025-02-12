@@ -77,7 +77,8 @@ class Task:
 		self._states.notify(trigger, self._build_event(trigger))
 
 	def _build_event(self, trigger: Trigger) -> dict[State, State]:
-		assert False, 'Not implemented'
+		event_state = State.from_trigger(trigger)
+		return {event_state: event_state}
 
 	def ready(self) -> None:
 		"""起動イベントを発火"""

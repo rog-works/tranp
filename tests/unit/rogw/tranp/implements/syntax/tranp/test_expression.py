@@ -24,17 +24,17 @@ class TestExpressionTerminal(TestCase):
 
 class TestExpressionSymbol(TestCase):
 	@data_provider([
-		('hoge', 0, 0, {'hoge': States.Idle}, Triggers.Empty),
-		('hoge', 0, 0, {'hoge': States.Step}, Triggers.Empty),
-		('hoge', 0, 0, {'hoge': States.FinishSkip}, Triggers.FinishSkip),
-		('hoge', 0, 0, {'hoge': States.FinishStep}, Triggers.FinishStep),
-		('hoge', 0, 0, {'hoge': States.UnfinishSkip}, Triggers.UnfinishSkip),
-		('hoge', 0, 0, {'hoge': States.UnfinishStep}, Triggers.UnfinishStep),
-		('hoge', 0, 0, {'hoge': States.Abort}, Triggers.Abort),
-		('hoge', 1, 0, {'hoge': States.Idle}, Triggers.Empty),
-		('hoge', 1, 0, {'hoge': States.Step}, Triggers.Empty),
-		('hoge', 1, 0, {'hoge': States.FinishStep}, Triggers.Empty),
-		('hoge', 1, 0, {'hoge': States.Abort}, Triggers.Empty),
+		('a', 0, 0, {'a': States.Idle}, Triggers.Empty),
+		('a', 0, 0, {'a': States.Step}, Triggers.Empty),
+		('a', 0, 0, {'a': States.FinishSkip}, Triggers.FinishSkip),
+		('a', 0, 0, {'a': States.FinishStep}, Triggers.FinishStep),
+		('a', 0, 0, {'a': States.UnfinishSkip}, Triggers.UnfinishSkip),
+		('a', 0, 0, {'a': States.UnfinishStep}, Triggers.UnfinishStep),
+		('a', 0, 0, {'a': States.Abort}, Triggers.Abort),
+		('a', 1, 0, {'a': States.Idle}, Triggers.Empty),
+		('a', 1, 0, {'a': States.Step}, Triggers.Empty),
+		('a', 1, 0, {'a': States.FinishStep}, Triggers.Empty),
+		('a', 1, 0, {'a': States.Abort}, Triggers.Empty),
 	])
 	def test_accept(self, symbol: str, cursor: int, token_no: int, on_states: dict[str, State], expected: Trigger) -> None:
 		def state_of(name: str, state: State) -> bool:
@@ -60,14 +60,27 @@ def build_expr_stores(*states: State) -> list[ExpressionStore]:
 class TestExpressionsOr(TestCase):
 	@data_provider([
 		(['a', 'b'], build_expr_stores(States.Idle, States.Idle), 0, 0, {'a': States.Idle}, Triggers.Empty),
+		(['a', 'b'], build_expr_stores(States.Idle, States.Idle), 0, 0, {'a': States.Step}, Triggers.Empty),
+		(['a', 'b'], build_expr_stores(States.Idle, States.Idle), 0, 0, {'a': States.FinishSkip}, Triggers.UnfinishSkip),
 		(['a', 'b'], build_expr_stores(States.Idle, States.Idle), 0, 0, {'a': States.FinishStep}, Triggers.UnfinishStep),
+		(['a', 'b'], build_expr_stores(States.Idle, States.Idle), 0, 0, {'a': States.UnfinishSkip}, Triggers.UnfinishSkip),
+		(['a', 'b'], build_expr_stores(States.Idle, States.Idle), 0, 0, {'a': States.UnfinishStep}, Triggers.UnfinishStep),
 		(['a', 'b'], build_expr_stores(States.Idle, States.Idle), 0, 0, {'a': States.Abort}, Triggers.Empty),
 		(['a', 'b'], build_expr_stores(States.FinishStep, States.Idle), 0, 1, {'b': States.Idle}, Triggers.UnfinishSkip),
+		(['a', 'b'], build_expr_stores(States.FinishStep, States.Idle), 0, 1, {'b': States.Step}, Triggers.UnfinishSkip),
+		(['a', 'b'], build_expr_stores(States.FinishStep, States.Idle), 0, 1, {'b': States.FinishSkip}, Triggers.FinishSkip),
 		(['a', 'b'], build_expr_stores(States.FinishStep, States.Idle), 0, 1, {'b': States.FinishStep}, Triggers.FinishStep),
+		(['a', 'b'], build_expr_stores(States.FinishStep, States.Idle), 0, 1, {'b': States.UnfinishSkip}, Triggers.UnfinishSkip),
 		(['a', 'b'], build_expr_stores(States.FinishStep, States.Idle), 0, 1, {'b': States.UnfinishStep}, Triggers.UnfinishStep),
-		(['a', 'b'], build_expr_stores(States.UnfinishStep, States.Idle), 0, 1, {'b': States.FinishStep}, Triggers.FinishStep),
-		(['a', 'b'], build_expr_stores(States.UnfinishStep, States.Idle), 0, 1, {'b': States.UnfinishStep}, Triggers.UnfinishStep),
+		(['a', 'b'], build_expr_stores(States.FinishSkip, States.Idle), 0, 1, {'b': States.Abort}, Triggers.FinishSkip),
 		(['a', 'b'], build_expr_stores(States.FinishStep, States.Idle), 0, 1, {'b': States.Abort}, Triggers.FinishSkip),
+		(['a', 'b'], build_expr_stores(States.UnfinishStep, States.Idle), 0, 1, {'b': States.Idle}, Triggers.UnfinishSkip),
+		(['a', 'b'], build_expr_stores(States.UnfinishStep, States.Idle), 0, 1, {'b': States.Step}, Triggers.UnfinishSkip),
+		(['a', 'b'], build_expr_stores(States.UnfinishStep, States.Idle), 0, 1, {'b': States.FinishSkip}, Triggers.FinishSkip),
+		(['a', 'b'], build_expr_stores(States.UnfinishStep, States.Idle), 0, 1, {'b': States.FinishStep}, Triggers.FinishStep),
+		(['a', 'b'], build_expr_stores(States.UnfinishStep, States.Idle), 0, 1, {'b': States.UnfinishSkip}, Triggers.UnfinishSkip),
+		(['a', 'b'], build_expr_stores(States.UnfinishStep, States.Idle), 0, 1, {'b': States.UnfinishStep}, Triggers.UnfinishStep),
+		(['a', 'b'], build_expr_stores(States.UnfinishSkip, States.Idle), 0, 1, {'b': States.Abort}, Triggers.UnfinishSkip),
 		(['a', 'b'], build_expr_stores(States.UnfinishStep, States.Idle), 0, 1, {'b': States.Abort}, Triggers.UnfinishSkip),
 		# XXX 同じ文字数で片側だけ先に確定する状況は本来あり得ないが、正しい状況を再現するのが手間なことと、検証したい状況と実質的にほぼ同等であるため一旦これで良しとする
 	])
@@ -99,6 +112,13 @@ class TestExpressionsAnd(TestCase):
 		(['a', 'b'], build_expr_stores(States.FinishStep, States.Idle), 1, 1, {'b': States.UnfinishSkip}, Triggers.UnfinishSkip),
 		(['a', 'b'], build_expr_stores(States.FinishStep, States.Idle), 1, 1, {'b': States.UnfinishStep}, Triggers.UnfinishStep),
 		(['a', 'b'], build_expr_stores(States.FinishStep, States.Idle), 1, 1, {'b': States.Abort}, Triggers.Abort),
+		(['a', 'b'], build_expr_stores(States.UnfinishStep, States.Idle), 1, 1, {'b': States.Idle}, Triggers.Empty),
+		(['a', 'b'], build_expr_stores(States.UnfinishStep, States.Idle), 1, 1, {'b': States.Step}, Triggers.Empty),
+		(['a', 'b'], build_expr_stores(States.UnfinishStep, States.Idle), 1, 1, {'b': States.FinishSkip}, Triggers.UnfinishSkip),
+		(['a', 'b'], build_expr_stores(States.UnfinishStep, States.Idle), 1, 1, {'b': States.FinishStep}, Triggers.UnfinishStep),
+		(['a', 'b'], build_expr_stores(States.UnfinishStep, States.Idle), 1, 1, {'b': States.UnfinishSkip}, Triggers.UnfinishSkip),
+		(['a', 'b'], build_expr_stores(States.UnfinishStep, States.Idle), 1, 1, {'b': States.UnfinishStep}, Triggers.UnfinishStep),
+		(['a', 'b'], build_expr_stores(States.UnfinishStep, States.Idle), 1, 1, {'b': States.Abort}, Triggers.Abort),
 	])
 	def test_accept(self, expressions: list[str], expr_stores: list[ExpressionStore], cursor: int, token_no: int, on_states: dict[str, State], expected: Trigger) -> None:
 		def state_of(name: str, state: State) -> bool:

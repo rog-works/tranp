@@ -62,13 +62,13 @@ class TestExpressionsOr(TestCase):
 		(['a', 'b'], build_expr_stores(States.Idle, States.Idle), 0, 0, {'a': States.Idle}, Triggers.Empty),
 		(['a', 'b'], build_expr_stores(States.Idle, States.Idle), 0, 0, {'a': States.FinishStep}, Triggers.UnfinishStep),
 		(['a', 'b'], build_expr_stores(States.Idle, States.Idle), 0, 0, {'a': States.Abort}, Triggers.Empty),
-		(['a', 'b'], build_expr_stores(States.FinishStep, States.Idle), 0, 0, {'b': States.Idle}, Triggers.UnfinishStep),
-		(['a', 'b'], build_expr_stores(States.FinishStep, States.Idle), 0, 0, {'b': States.FinishStep}, Triggers.FinishStep),
-		(['a', 'b'], build_expr_stores(States.FinishStep, States.Idle), 0, 0, {'b': States.UnfinishStep}, Triggers.UnfinishStep),
-		(['a', 'b'], build_expr_stores(States.UnfinishStep, States.Idle), 0, 0, {'b': States.FinishStep}, Triggers.FinishStep),
-		(['a', 'b'], build_expr_stores(States.UnfinishStep, States.Idle), 0, 0, {'b': States.UnfinishStep}, Triggers.UnfinishStep),
-		(['a', 'b'], build_expr_stores(States.FinishStep, States.Idle), 0, 0, {'b': States.Abort}, Triggers.FinishStep),
-		(['a', 'b'], build_expr_stores(States.UnfinishStep, States.Idle), 0, 0, {'b': States.Abort}, Triggers.UnfinishStep),
+		(['a', 'b'], build_expr_stores(States.FinishStep, States.Idle), 0, 1, {'b': States.Idle}, Triggers.UnfinishSkip),
+		(['a', 'b'], build_expr_stores(States.FinishStep, States.Idle), 0, 1, {'b': States.FinishStep}, Triggers.FinishStep),
+		(['a', 'b'], build_expr_stores(States.FinishStep, States.Idle), 0, 1, {'b': States.UnfinishStep}, Triggers.UnfinishStep),
+		(['a', 'b'], build_expr_stores(States.UnfinishStep, States.Idle), 0, 1, {'b': States.FinishStep}, Triggers.FinishStep),
+		(['a', 'b'], build_expr_stores(States.UnfinishStep, States.Idle), 0, 1, {'b': States.UnfinishStep}, Triggers.UnfinishStep),
+		(['a', 'b'], build_expr_stores(States.FinishStep, States.Idle), 0, 1, {'b': States.Abort}, Triggers.FinishSkip),
+		(['a', 'b'], build_expr_stores(States.UnfinishStep, States.Idle), 0, 1, {'b': States.Abort}, Triggers.UnfinishSkip),
 		# XXX 同じ文字数で片側だけ先に確定する状況は本来あり得ないが、正しい状況を再現するのが手間なことと、検証したい状況と実質的にほぼ同等であるため一旦これで良しとする
 	])
 	def test_accept(self, expressions: list[str], expr_stores: list[ExpressionStore], cursor: int, token_no: int, on_states: dict[str, State], expected: Trigger) -> None:
@@ -85,26 +85,28 @@ class TestExpressionsOr(TestCase):
 
 class TestExpressionsAnd(TestCase):
 	@data_provider([
-		(['a', '"."', 'b'], 0, 0, {'a': States.Idle}, Triggers.Empty),
-		(['a', '"."', 'b'], 0, 0, {'a': States.Step}, Triggers.Empty),
-		(['a', '"."', 'b'], 0, 0, {'a': States.FinishSkip}, Triggers.Skip),
-		(['a', '"."', 'b'], 0, 0, {'a': States.FinishStep}, Triggers.Step),
-		(['a', '"."', 'b'], 0, 0, {'a': States.UnfinishSkip}, Triggers.Skip),
-		(['a', '"."', 'b'], 0, 0, {'a': States.UnfinishStep}, Triggers.Step),
-		(['a', '"."', 'b'], 0, 0, {'a': States.Abort}, Triggers.Abort),
-		(['a', '"."', 'b'], 2, 0, {'b': States.Idle}, Triggers.Empty),
-		(['a', '"."', 'b'], 2, 0, {'b': States.Step}, Triggers.Empty),
-		(['a', '"."', 'b'], 2, 0, {'b': States.FinishSkip}, Triggers.FinishSkip),
-		(['a', '"."', 'b'], 2, 0, {'b': States.FinishStep}, Triggers.FinishStep),
-		(['a', '"."', 'b'], 2, 0, {'b': States.UnfinishSkip}, Triggers.UnfinishSkip),
-		(['a', '"."', 'b'], 2, 0, {'b': States.UnfinishStep}, Triggers.UnfinishStep),
-		(['a', '"."', 'b'], 2, 0, {'b': States.Abort}, Triggers.Abort),
+		(['a', 'b'], build_expr_stores(States.Idle, States.Idle), 0, 0, {'a': States.Idle}, Triggers.Empty),
+		(['a', 'b'], build_expr_stores(States.Idle, States.Idle), 0, 0, {'a': States.Step}, Triggers.Empty),
+		(['a', 'b'], build_expr_stores(States.Idle, States.Idle), 0, 0, {'a': States.FinishSkip}, Triggers.Skip),
+		(['a', 'b'], build_expr_stores(States.Idle, States.Idle), 0, 0, {'a': States.FinishStep}, Triggers.Step),
+		(['a', 'b'], build_expr_stores(States.Idle, States.Idle), 0, 0, {'a': States.UnfinishSkip}, Triggers.Skip),
+		(['a', 'b'], build_expr_stores(States.Idle, States.Idle), 0, 0, {'a': States.UnfinishStep}, Triggers.Step),
+		(['a', 'b'], build_expr_stores(States.Idle, States.Idle), 0, 0, {'a': States.Abort}, Triggers.Abort),
+		(['a', 'b'], build_expr_stores(States.FinishStep, States.Idle), 1, 1, {'b': States.Idle}, Triggers.Empty),
+		(['a', 'b'], build_expr_stores(States.FinishStep, States.Idle), 1, 1, {'b': States.Step}, Triggers.Empty),
+		(['a', 'b'], build_expr_stores(States.FinishStep, States.Idle), 1, 1, {'b': States.FinishSkip}, Triggers.FinishSkip),
+		(['a', 'b'], build_expr_stores(States.FinishStep, States.Idle), 1, 1, {'b': States.FinishStep}, Triggers.FinishStep),
+		(['a', 'b'], build_expr_stores(States.FinishStep, States.Idle), 1, 1, {'b': States.UnfinishSkip}, Triggers.UnfinishSkip),
+		(['a', 'b'], build_expr_stores(States.FinishStep, States.Idle), 1, 1, {'b': States.UnfinishStep}, Triggers.UnfinishStep),
+		(['a', 'b'], build_expr_stores(States.FinishStep, States.Idle), 1, 1, {'b': States.Abort}, Triggers.Abort),
 	])
-	def test_accept(self, expressions: list[str], cursor: int, token_no: int, on_states: dict[str, State], expected: Trigger) -> None:
+	def test_accept(self, expressions: list[str], expr_stores: list[ExpressionStore], cursor: int, token_no: int, on_states: dict[str, State], expected: Trigger) -> None:
 		def state_of(name: str, state: State) -> bool:
 			return name in on_states and state == on_states[name]
 
+		datum = Context.Datum()
+		datum.expr_stores = expr_stores
 		instance = Expression.factory(Patterns([Pattern.make(expression) for expression in expressions]))
-		actual = instance.accept(Context.make(cursor, {}), token_no, state_of)
+		actual = instance.accept(Context.make(cursor, {instance: datum}), token_no, state_of)
 		self.assertEqual(type(instance), ExpressionsAnd)
 		self.assertEqual(expected, actual)

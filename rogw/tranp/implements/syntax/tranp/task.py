@@ -205,18 +205,31 @@ class Tasks(Mapping[str, Task]):
 		by_names = names if isinstance(names, list) else list(self.keys())
 		return [name for name in by_names if self[name].finished]
 
-	def lookup(self, name: str) -> list[str]:
+	def lookup(self, base: str) -> list[str]:
 		"""基点のシンボルから起動対象のシンボルをルックアップ
 
 		Args:
-			name: 基点のシンボル名
+			base: 基点のシンボル名
 		Returns:
 			シンボルリスト(起動対象)
 		"""
-		return self._rule_map.lookup(name)
+		return self._rule_map.lookup(base)
 
-	def recursive_from(self, name: str) -> list[str]:
-		return [effect for effect in self._rule_map.effects(name) if len(self._rule_map.recursive(effect)) > 0]
+	def recursive_from(self, base: str, names: list[str]) -> list[tuple[str, str]]:
+		priorities = self.lookup(base)
+		pair_names: list[tuple[str, str]] = []
+		for via_name in names:
+			for name in self._rule_map.effects(via_name):
+				recursive = self._rule_map.recursive(name)
+				if len(recursive) == 0:
+					continue
+
+				if priorities.index(name) < priorities.index(via_name):
+					continue
+
+				pair_names.append((via_name, name))
+
+		return pair_names
 
 	def ready(self, names: list[str]) -> None:
 		"""指定のタスクに起動イベントを発火

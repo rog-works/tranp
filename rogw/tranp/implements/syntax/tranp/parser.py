@@ -1,6 +1,7 @@
 from collections.abc import Iterator
 
 from rogw.tranp.implements.syntax.tranp.rule import Rules, Unwraps
+from rogw.tranp.implements.syntax.tranp.state import Triggers
 from rogw.tranp.implements.syntax.tranp.task import Tasks
 from rogw.tranp.implements.syntax.tranp.token import Token
 from rogw.tranp.implements.syntax.tranp.ast import ASTEntry, ASTToken, ASTTree
@@ -47,7 +48,7 @@ class SyntaxParser:
 			if self.steped(finish_names):
 				index += 1
 
-			stack.extend(self.new_stack(tasks, finish_names))
+			stack.extend(self.new_stack(tasks, tasks.recursive_from(entrypoint, finish_names)))
 
 	def steped(self, finish_names: list[str]) -> bool:
 		"""トークンの読み出しが完了したか判定
@@ -63,11 +64,12 @@ class SyntaxParser:
 
 		return False
 
-	def new_stack(self, tasks: Tasks, finish_names: list[str]) -> list['Processor']:
+	def new_stack(self, tasks: Tasks, pair_names: list[tuple[str, str]]) -> list['Processor']:
 		stack: list[Processor] = []
-		for name in finish_names:
-			for effect in tasks.recursive_from(name):
-				stack.append(Processor(tasks.clone(), effect))
+		for via_name, name in pair_names:
+			processor = Processor(tasks.clone(), name)
+			processor.prepare(via_name)
+			stack.append(processor)
 
 		return stack
 
@@ -114,6 +116,10 @@ class Processor:
 	def __init__(self, tasks: Tasks, entrypoint: str) -> None:
 		self.tasks = tasks
 		self.entrypoint = entrypoint
+
+	def prepare(self, via_name: str) -> None:
+		self.tasks[via_name].ready()
+		self.tasks[via_name].notify(Triggers.FinishSkip)
 
 	def run(self, tokens: list[Token], token_no: int) -> list[str]:
 		token = tokens[token_no]

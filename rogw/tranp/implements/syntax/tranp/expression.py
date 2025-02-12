@@ -191,19 +191,30 @@ class ExpressionsOr(Expressions):
 		return self._to_trigger(token_no, expr_stores)
 
 	def _to_trigger(self, token_no: int, expr_stores: list[ExpressionStore]) -> Trigger:
-		if len([True for expr_store in expr_stores if expr_store.state != States.Done]) > 0:
+		# 終了無し
+		done_num = len([True for expr_store in expr_stores if expr_store.state == States.Done])
+		if done_num == 0:
 			return Triggers.Empty
 
-		succeeded = {expr_store.order: expr_store for expr_store in expr_stores if expr_store.state != States.Abort}
-		if len(succeeded) == 0:
+		# 全て失敗
+		abort_num = len([True for expr_store in expr_stores if expr_store.state == States.Abort])
+		if abort_num == len(self._expressions):
 			return Triggers.Abort
 
+		# 成功無し
+		succeeded = {expr_store.order: expr_store for expr_store in expr_stores if expr_store.state == States.Done and expr_store.state != States.Abort}
+		if len(succeeded) == 0:
+			return Triggers.Empty
+
+		# 未決定の条件が存在、または最新の結果が部分適合の場合は部分適合
+		stay_num = len(self._expressions) - done_num
 		_, last = sorted(succeeded.items(), key=lambda entry: entry[0]).pop()
 		physically = last.token_no == token_no and last.state.reason.physically
-		if last.state.reason.unfinish:
+		if stay_num > 0 or last.state.reason.unfinish:
 			return Triggers.UnfinishStep if physically else Triggers.UnfinishSkip
-		else:
-			return Triggers.FinishStep if physically else Triggers.FinishSkip
+
+		# 最新の結果が完了
+		return Triggers.FinishStep if physically else Triggers.FinishSkip
 
 
 class ExpressionsAnd(Expressions):

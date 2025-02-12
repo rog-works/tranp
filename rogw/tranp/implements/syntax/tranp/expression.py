@@ -265,18 +265,22 @@ class ExpressionsAnd(Expressions):
 			return context.to_and(cursor)
 
 	def _to_trigger(self, token_no: int, state_stores: list[StateStore], offset: int) -> Trigger:
+		# 範囲外
 		if offset < 0 or offset >= len(self._expressions):
 			return Triggers.Empty
 
+		# 最新の結果。失敗は即座に失敗。終了していない場合は無し
 		peek_store = [state_store for state_store in state_stores if state_store.order != -1].pop()
 		if peek_store.state == States.Abort:
 			return Triggers.Abort
 		elif peek_store.state != States.Done:
 			return Triggers.Empty
 
+		# 途中の条件。結果に拘わらず進行のみ
 		if offset < len(self._expressions) - 1:
 			return Triggers.Step if peek_store.state.reason.physically else Triggers.Skip
 
+		# 最後の条件。部分適合を含む場合は部分適合。それ以外は完了
 		last_store = peek_store
 		unfinish = len([True for state_store in state_stores if state_store.state.reason.unfinish]) > 0
 		physically = last_store.token_no == token_no and last_store.state.reason.physically

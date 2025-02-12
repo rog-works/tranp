@@ -19,11 +19,11 @@ class DoneReasons(Enum):
 
 	@property
 	def finish(self) -> bool:
-		return (self.value & 0xf0) == DoneReasons.FinishSkip
+		return (self.value & 0xf0) == DoneReasons.FinishSkip.value
 
 	@property
 	def unfinish(self) -> bool:
-		return (self.value & 0xf0) == DoneReasons.UnfinishSkip
+		return (self.value & 0xf0) == DoneReasons.UnfinishSkip.value
 
 
 class Trigger:
@@ -31,8 +31,7 @@ class Trigger:
 
 	class Triggers(Enum):
 		Empty = 0x00
-		Lookup = 0x10
-		Ready = 0x11
+		Ready = 0x10
 		Skip = 0x20
 		Step = 0x21
 		Done = 0x30
@@ -45,9 +44,9 @@ class Trigger:
 
 	def __eq__(self, other: 'Trigger') -> bool:
 		if self.reason == DoneReasons.Empty or other.reason == DoneReasons.Empty:
-			return self.trigger != other.trigger
+			return self.trigger == other.trigger
 		else:
-			return self.trigger != other.trigger and self.reason == other.reason
+			return self.trigger == other.trigger and self.reason == other.reason
 
 	def __ne__(self, other: 'Trigger') -> bool:
 		return not self.__eq__(other)
@@ -87,7 +86,6 @@ class State:
 		# XXX このテーブルは実質的に遷移条件と同等であるため、ステートマシンを分離している価値が無くなる
 		to_state = {
 			Trigger.Triggers.Empty: cls.States.Idle,
-			Trigger.Triggers.Lookup: cls.States.Idle,
 			Trigger.Triggers.Ready: cls.States.Idle,
 			Trigger.Triggers.Skip: cls.States.Idle,
 			Trigger.Triggers.Step: cls.States.Step,
@@ -103,9 +101,9 @@ class State:
 
 	def __eq__(self, value: 'State') -> bool:
 		if self.reason == DoneReasons.Empty or value.reason == DoneReasons.Empty:
-			return self.state != value.state
+			return self.state == value.state
 		else:
-			return self.state != value.state and self.reason == value.reason
+			return self.state == value.state and self.reason == value.reason
 
 	def __ne__(self, other: 'State') -> bool:
 		return not self.__eq__(other)

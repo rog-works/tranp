@@ -715,13 +715,15 @@ class RuleMap:
 		self.rule_of_recursive = self._build_recursive()
 
 	def _build_symbols(self, rules: Rules) -> dict[str, list[str]]:
-		return {name: self._fetch_in_symbols(pattern) for name, pattern in rules.items()}
+		symbols = {name: self._fetch_in_symbols(pattern) for name, pattern in rules.items()}
+		terminals = {terminal.expression: [] for terminal in flatten([pattern.terminals() for pattern in rules.values()])}
+		return {**symbols, **terminals}
 
 	def _fetch_in_symbols(self, pattern: PatternEntry) -> list[str]:
 		if isinstance(pattern, Pattern):
 			return [pattern.expression]
 
-		return list(flatten([self._fetch_in_symbols(in_pattern) for in_pattern in pattern]))
+		return list({name: name for name in flatten([self._fetch_in_symbols(in_pattern) for in_pattern in pattern])}.keys())
 
 	def _build_effects(self) -> dict[str, list[str]]:
 		rule_of_effects: dict[str, list[str]] = {}
@@ -764,5 +766,5 @@ class RuleMap:
 	def lookup(self, name: str) -> list[str]:
 		return self.rule_of_lookup[name]
 
-	def recursive(self, name: str) -> bool:
-		return len(self.rule_of_recursive[name]) > 0
+	def recursive(self, name: str) -> list[str]:
+		return self.rule_of_recursive[name]

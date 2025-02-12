@@ -219,7 +219,7 @@ class Tasks(Mapping[str, Task]):
 		return self._rule_map.lookup(name)
 
 	def recursive_from(self, name: str) -> list[str]:
-		return [effect for effect in self._rule_map.effects(name) if self._rule_map.recursive(effect)]
+		return [effect for effect in self._rule_map.effects(name) if len(self._rule_map.recursive(effect)) > 0]
 
 	def ready(self, names: list[str]) -> None:
 		"""指定のタスクに起動イベントを発火

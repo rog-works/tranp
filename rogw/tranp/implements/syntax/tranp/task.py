@@ -2,7 +2,7 @@ from collections.abc import Iterator, Mapping, ValuesView
 from typing import KeysView, override
 
 from rogw.tranp.implements.syntax.tranp.expression import Expression, ExpressionTerminal
-from rogw.tranp.implements.syntax.tranp.rule import Pattern, PatternEntry, Rules
+from rogw.tranp.implements.syntax.tranp.rule import RuleMap, Rules
 from rogw.tranp.implements.syntax.tranp.state import Context, DoneReasons, StateMachine, StateOf, State, States, Trigger, Triggers
 from rogw.tranp.implements.syntax.tranp.token import Token
 from rogw.tranp.lang.sequence import flatten
@@ -127,73 +127,12 @@ class Task:
 		self._expression_data = Context.new_data()
 
 
-class DependsMap:
-	def __init__(self, rules: Rules) -> None:
-		self.rule_in_symbols = self._build_symbols(rules)
-		self.rule_of_effects = self._build_effects()
-		self.rule_of_lookup = self._build_lookup()
-		self.rule_of_recursive = self._build_recursive()
-
-	def _build_symbols(self, rules: Rules) -> dict[str, list[str]]:
-		return {name: self._fetch_in_symbols(pattern) for name, pattern in rules.items()}
-
-	def _fetch_in_symbols(self, pattern: PatternEntry) -> list[str]:
-		if isinstance(pattern, Pattern):
-			return [pattern.expression]
-
-		return list(flatten([self._fetch_in_symbols(in_pattern) for in_pattern in pattern]))
-
-	def _build_effects(self) -> dict[str, list[str]]:
-		rule_of_effects: dict[str, list[str]] = {}
-		for name in self.rule_in_symbols.keys():
-			rule_of_effects[name] = [in_name for in_name, in_symbols in self.rule_in_symbols.items() if name in in_symbols]
-
-		return rule_of_effects
-
-	def _build_lookup(self) -> dict[str, list[str]]:
-		return {name: self._lookup(name) for name in self.names()}
-
-	def _lookup(self, start: str) -> list[str]:
-		lookup_names = {start: True}
-		target_names = list(lookup_names.keys())
-		while len(target_names) > 0:
-			name = target_names.pop(0)
-			candidate_names = self.symbols(name)
-			add_names = {name: True for name in candidate_names if name not in lookup_names}
-			lookup_names.update(add_names)
-			target_names.extend(add_names.keys())
-
-		return list(lookup_names.keys())
-
-	def _build_recursive(self) -> dict[str, list[str]]:
-		rule_of_recursive: dict[str, list[str]] = {}
-		for name in self.names():
-			rule_of_recursive[name] = [symbol for symbol in self.symbols(name) if name in self.lookup(symbol)]
-
-		return rule_of_recursive
-
-	def names(self) -> list[str]:
-		return list(self.rule_in_symbols.keys())
-
-	def symbols(self, name: str) -> list[str]:
-		return self.rule_in_symbols[name]
-
-	def effects(self, name: str) -> list[str]:
-		return self.rule_of_effects[name]
-
-	def lookup(self, name: str) -> list[str]:
-		return self.rule_of_lookup[name]
-
-	def recursive(self, name: str) -> bool:
-		return len(self.rule_of_recursive[name]) > 0
-
-
 class Tasks(Mapping[str, Task]):
 	"""タスク一覧"""
 
 	@classmethod
 	def from_rules(cls, rules: Rules) -> 'Tasks':
-		return cls(cls._build_tasks(rules), DependsMap(rules))
+		return cls(cls._build_tasks(rules), RuleMap(rules))
 
 	@classmethod
 	def _build_tasks(cls, rules: Rules) -> dict[str, Task]:
@@ -209,7 +148,7 @@ class Tasks(Mapping[str, Task]):
 		terminal_tasks = {name: Task(name, ExpressionTerminal(terminal)) for name, terminal in terminals.items()}
 		return {**tasks, **terminal_tasks}
 
-	def __init__(self, tasks: dict[str, Task], depends: DependsMap) -> None:
+	def __init__(self, tasks: dict[str, Task], _rule_map: RuleMap) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -217,10 +156,10 @@ class Tasks(Mapping[str, Task]):
 		"""
 		super().__init__()
 		self._tasks = tasks
-		self.depends = depends
+		self._rule_map = _rule_map
 
 	def clone(self) -> 'Tasks':
-		return Tasks({name: task.clone() for name, task in self._tasks.items()}, self.depends)
+		return Tasks({name: task.clone() for name, task in self._tasks.items()}, self._rule_map)
 
 	@override
 	def __len__(self) -> int:
@@ -277,10 +216,10 @@ class Tasks(Mapping[str, Task]):
 		Returns:
 			シンボルリスト(起動対象)
 		"""
-		return self.depends.lookup(name)
+		return self._rule_map.lookup(name)
 
 	def recursive_from(self, name: str) -> list[str]:
-		return [effect for effect in self.depends.effects(name) if self.depends.recursive(effect)]
+		return [effect for effect in self._rule_map.effects(name) if self._rule_map.recursive(effect)]
 
 	def ready(self, names: list[str]) -> None:
 		"""指定のタスクに起動イベントを発火

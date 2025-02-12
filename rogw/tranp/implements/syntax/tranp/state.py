@@ -192,7 +192,7 @@ class ExpressionStore:
 	def __init__(self, state: State | None = None) -> None:
 		self.state = state if state else States.Idle
 		self.order = -1
-		self.token_no = 0
+		self.token_no = -1
 
 
 class Context:

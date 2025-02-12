@@ -257,12 +257,11 @@ class ExpressionsAnd(Expressions):
 		if offset < 0 or offset >= len(self._expressions):
 			return Triggers.Empty
 
-		peek = expr_stores[-1]
-		if peek.state != States.Done:
-			return Triggers.Empty
-
-		if peek.state.reason == DoneReasons.Abort:
+		peek = [expr_store for expr_store in expr_stores if expr_store.order != -1].pop()
+		if peek.state == States.Abort:
 			return Triggers.Abort
+		elif peek.state != States.Done:
+			return Triggers.Empty
 
 		if offset < len(self._expressions) - 1:
 			return Triggers.Step if peek.state.reason.physically else Triggers.Skip

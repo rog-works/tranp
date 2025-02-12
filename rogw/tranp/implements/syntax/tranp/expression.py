@@ -172,7 +172,7 @@ class ExpressionsOr(Expressions):
 		for index, expression in enumerate(self._expressions):
 			expr_store = expr_stores[index]
 			if expr_store.state != States.Done:
-				expr_store.state = State.from_trigger(expression.step(context, token_no, token))
+				expr_store.state = States.from_trigger(expression.step(context, token_no, token))
 				expr_store.order = len([True for expr_store in expr_stores if expr_store.state == States.Done]) - 1
 				expr_store.token_no = token_no
 
@@ -184,7 +184,7 @@ class ExpressionsOr(Expressions):
 		for index, expression in enumerate(self._expressions):
 			expr_store = expr_stores[index]
 			if expr_store.state != States.Done:
-				expr_store.state = State.from_trigger(expression.accept(context, token_no, state_of))
+				expr_store.state = States.from_trigger(expression.accept(context, token_no, state_of))
 				expr_store.order = len([True for expr_store in expr_stores if expr_store.state == States.Done]) - 1
 				expr_store.token_no = token_no
 
@@ -225,7 +225,7 @@ class ExpressionsAnd(Expressions):
 			in_context = self._new_context(context, index)
 			expr_store = expr_stores[index]
 			if expr_store != States.Done and in_context.cursor == 0:
-				expr_store.state = State.from_trigger(expression.step(in_context, token_no, token))
+				expr_store.state = States.from_trigger(expression.step(in_context, token_no, token))
 				expr_store.order = index
 				expr_store.token_no = token_no
 
@@ -239,7 +239,7 @@ class ExpressionsAnd(Expressions):
 			in_context = self._new_context(context, index)
 			expr_store = expr_stores[index]
 			if expr_store != States.Done and in_context.cursor == 0:
-				expr_store.state = State.from_trigger(expression.accept(in_context, token_no, state_of))
+				expr_store.state = States.from_trigger(expression.accept(in_context, token_no, state_of))
 				expr_store.order = index
 				expr_store.token_no = token_no
 
@@ -304,7 +304,7 @@ class ExpressionsRepeat(Expressions):
 		return self._to_trigger(token_no, context.datum(self).expr_stores, trigger)
 
 	def _to_trigger(self, token_no: int, expr_stores: list[ExpressionStore], trigger: Trigger) -> Trigger:
-		state = State.from_trigger(trigger)
+		state = States.from_trigger(trigger)
 		if state != States.Done:
 			return Triggers.Empty
 

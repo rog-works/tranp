@@ -73,11 +73,8 @@ class Task:
 		Args:
 			trigger: トリガー
 		"""
-		self._states.notify(trigger, self._build_event(trigger))
-
-	def _build_event(self, trigger: Trigger) -> dict[State, State]:
-		event_state = State.from_trigger(trigger)
-		return {event_state: event_state}
+		state = States.from_trigger(trigger)
+		self._states.notify(trigger, {state: state})
 
 	def watches(self) -> list[str]:
 		"""現在の参照位置を基に参照中のシンボルリストを返却

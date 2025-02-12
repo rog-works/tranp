@@ -81,19 +81,6 @@ class State:
 		Step = 2
 		Done = 3
 
-	@classmethod
-	def from_trigger(cls, trigger: Trigger) -> 'State':
-		# XXX このテーブルは実質的に遷移条件と同等であるため、ステートマシンを分離している価値が無くなる
-		to_state = {
-			Trigger.Triggers.Empty: cls.States.Idle,
-			Trigger.Triggers.Ready: cls.States.Idle,
-			Trigger.Triggers.Skip: cls.States.Idle,
-			Trigger.Triggers.Step: cls.States.Step,
-			Trigger.Triggers.Done: cls.States.Done,
-			Trigger.Triggers.Abort: cls.States.Done,
-		}
-		return cls(to_state[trigger.trigger], trigger.reason)
-
 	def __init__(self, state: States, reason: DoneReasons = DoneReasons.Empty) -> None:
 		self.name = state.name
 		self.state = state
@@ -126,6 +113,19 @@ class States:
 	UnfinishSkip = State(State.States.Done, DoneReasons.UnfinishSkip)
 	UnfinishStep = State(State.States.Done, DoneReasons.UnfinishStep)
 	Abort = State(State.States.Done, DoneReasons.Abort)
+
+	@classmethod
+	def from_trigger(cls, trigger: Trigger) -> 'State':
+		# XXX このテーブルは実質的に遷移条件と同等であるため、ステートマシンを分離している価値が無くなる
+		to_state = {
+			Trigger.Triggers.Empty: State.States.Idle,
+			Trigger.Triggers.Ready: State.States.Idle,
+			Trigger.Triggers.Skip: State.States.Idle,
+			Trigger.Triggers.Step: State.States.Step,
+			Trigger.Triggers.Done: State.States.Done,
+			Trigger.Triggers.Abort: State.States.Done,
+		}
+		return State(to_state[trigger.trigger], trigger.reason)
 
 
 class StateOf(Protocol):

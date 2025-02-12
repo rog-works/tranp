@@ -27,7 +27,7 @@ class Task:
 	def _build_states(self) -> StateMachine:
 		"""Returns: 生成したステートマシン"""
 		states = StateMachine(States.Sleep, {
-			(Triggers.Lookup, States.Sleep): States.Idle,
+			(Triggers.Ready, States.Sleep): States.Idle,
 			(Triggers.Step, States.Idle): States.Step,
 			(Triggers.Done, States.Idle): States.Done,
 			(Triggers.Abort, States.Idle): States.Done,
@@ -76,9 +76,9 @@ class Task:
 	def _build_event(self, trigger: Trigger) -> dict[State, State]:
 		assert False, 'Not implemented'
 
-	def lookup(self) -> None:
+	def ready(self) -> None:
 		"""起動イベントを発火"""
-		self.notify(Triggers.Lookup)
+		self.notify(Triggers.Ready)
 
 	def watches(self) -> list[str]:
 		"""現在の参照位置を基に参照中のシンボルリストを返却
@@ -268,7 +268,7 @@ class Tasks(Mapping[str, Task]):
 			names: シンボルリスト(起動対象)
 		"""
 		for name in names:
-			self[name].lookup()
+			self[name].ready()
 
 	def step(self, token_no: int, token: Token) -> list[str]:
 		"""トークンの読み出しイベントを発火。状態変化したシンボルを返却
@@ -308,22 +308,3 @@ class Tasks(Mapping[str, Task]):
 	def finished(self, names: list[str] | None = None) -> list[str]:
 		by_names = names if isinstance(names, list) else list(self.keys())
 		return [name for name in by_names if self[name].finished]
-
-	def lookup_advance(self, names: list[str], allow_names: list[str]) -> list[str]:
-		"""状態が変化したシンボルから新たに起動するシンボルをルックアップ。抽出対象は休眠状態のタスクに限定される
-
-		Args:
-			names: シンボルリスト(状態変化)
-			allow_names: シンボルリスト(許可対象)
-		Returns:
-			シンボルリスト(起動対象)
-		"""
-		lookup_names = {name: True for name in names}
-		for name in names:
-			if name not in lookup_names:
-				candidate_names = self.lookup(name)
-				add_names = [add_name for add_name in candidate_names if add_name not in lookup_names]
-				lookup_names.update({add_name: True for add_name in add_names})
-
-		advance_names = [name for name in lookup_names if name in allow_names]
-		return self.state_of(States.Sleep, names=advance_names)

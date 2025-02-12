@@ -61,7 +61,6 @@ class Trigger:
 
 class Triggers:
 	Empty = Trigger(Trigger.Triggers.Empty)
-	Lookup = Trigger(Trigger.Triggers.Lookup)
 	Ready = Trigger(Trigger.Triggers.Ready)
 	Skip = Trigger(Trigger.Triggers.Skip, DoneReasons.Skip)
 	Step = Trigger(Trigger.Triggers.Step, DoneReasons.Step)

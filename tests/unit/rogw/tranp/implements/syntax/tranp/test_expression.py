@@ -88,10 +88,10 @@ class TestExpressionsOr(TestCase):
 		def state_of(name: str, state: State) -> bool:
 			return name in on_states and state == on_states[name]
 
-		datum = Context.StoreEntry()
-		datum.state_stores = state_stores
+		store = Context.StoreEntry()
+		store.state_stores = state_stores
 		instance = Expression.factory(Patterns([Pattern.make(expression) for expression in expressions], op=Operators.Or))
-		actual = instance.accept(Context.make(cursor, {instance: datum}), token_no, state_of)
+		actual = instance.accept(Context.make(cursor, {instance: store}), token_no, state_of)
 		self.assertEqual(type(instance), ExpressionsOr)
 		self.assertEqual(expected, actual)
 
@@ -124,10 +124,10 @@ class TestExpressionsAnd(TestCase):
 		def state_of(name: str, state: State) -> bool:
 			return name in on_states and state == on_states[name]
 
-		datum = Context.StoreEntry()
-		datum.state_stores = state_stores
+		store = Context.StoreEntry()
+		store.state_stores = state_stores
 		instance = Expression.factory(Patterns([Pattern.make(expression) for expression in expressions]))
-		actual = instance.accept(Context.make(cursor, {instance: datum}), token_no, state_of)
+		actual = instance.accept(Context.make(cursor, {instance: store}), token_no, state_of)
 		self.assertEqual(type(instance), ExpressionsAnd)
 		self.assertEqual(expected, actual)
 
@@ -138,35 +138,45 @@ class TestExpressionsRepeat(TestCase):
 		(['a'], Repeators.OverZero, [], 0, 0, {'a': States.Step}, Triggers.Empty),
 		(['a'], Repeators.OverZero, [], 0, 0, {'a': States.FinishSkip}, Triggers.Skip),
 		(['a'], Repeators.OverZero, [], 0, 0, {'a': States.FinishStep}, Triggers.Step),
+		(['a'], Repeators.OverZero, [], 0, 0, {'a': States.UnfinishSkip}, Triggers.Skip),
+		(['a'], Repeators.OverZero, [], 0, 0, {'a': States.UnfinishStep}, Triggers.Step),
 		(['a'], Repeators.OverZero, [], 0, 0, {'a': States.Abort}, Triggers.FinishSkip),
 		(['a'], Repeators.OverOne, [], 0, 0, {'a': States.Idle}, Triggers.Empty),
 		(['a'], Repeators.OverOne, [], 0, 0, {'a': States.Step}, Triggers.Empty),
 		(['a'], Repeators.OverOne, [], 0, 0, {'a': States.FinishSkip}, Triggers.Skip),
 		(['a'], Repeators.OverOne, [], 0, 0, {'a': States.FinishStep}, Triggers.Step),
+		(['a'], Repeators.OverOne, [], 0, 0, {'a': States.UnfinishSkip}, Triggers.Skip),
+		(['a'], Repeators.OverOne, [], 0, 0, {'a': States.UnfinishStep}, Triggers.Step),
 		(['a'], Repeators.OverOne, [], 0, 0, {'a': States.Abort}, Triggers.Abort),
-		(['a'], Repeators.OverZero, [], 0, 0, {'a': States.Idle}, Triggers.Empty),
-		(['a'], Repeators.OverZero, [], 0, 0, {'a': States.Step}, Triggers.Empty),
+		(['a'], Repeators.OneOrZero, [], 0, 0, {'a': States.Idle}, Triggers.Empty),
+		(['a'], Repeators.OneOrZero, [], 0, 0, {'a': States.Step}, Triggers.Empty),
 		(['a'], Repeators.OneOrZero, [], 0, 0, {'a': States.FinishSkip}, Triggers.FinishSkip),
 		(['a'], Repeators.OneOrZero, [], 0, 0, {'a': States.FinishStep}, Triggers.FinishStep),
+		(['a'], Repeators.OneOrZero, [], 0, 0, {'a': States.UnfinishSkip}, Triggers.Skip),
+		(['a'], Repeators.OneOrZero, [], 0, 0, {'a': States.UnfinishStep}, Triggers.Step),
 		(['a'], Repeators.OneOrZero, [], 0, 0, {'a': States.Abort}, Triggers.FinishSkip),
 		(['a'], Repeators.OneOrEmpty, [], 0, 0, {'a': States.Idle}, Triggers.Empty),
 		(['a'], Repeators.OneOrEmpty, [], 0, 0, {'a': States.Step}, Triggers.Empty),
 		(['a'], Repeators.OneOrEmpty, [], 0, 0, {'a': States.FinishSkip}, Triggers.FinishSkip),
 		(['a'], Repeators.OneOrEmpty, [], 0, 0, {'a': States.FinishStep}, Triggers.FinishStep),
+		(['a'], Repeators.OneOrEmpty, [], 0, 0, {'a': States.UnfinishSkip}, Triggers.Skip),
+		(['a'], Repeators.OneOrEmpty, [], 0, 0, {'a': States.UnfinishStep}, Triggers.Step),
 		(['a'], Repeators.OneOrEmpty, [], 0, 0, {'a': States.Abort}, Triggers.FinishSkip),
 		(['a'], Repeators.OverOne, build_state_stores(States.FinishStep), 0, 1, {'a': States.Idle}, Triggers.Empty),
 		(['a'], Repeators.OverOne, build_state_stores(States.FinishStep), 0, 1, {'a': States.Step}, Triggers.Empty),
 		(['a'], Repeators.OverOne, build_state_stores(States.FinishStep), 0, 1, {'a': States.FinishSkip}, Triggers.Skip),
 		(['a'], Repeators.OverOne, build_state_stores(States.FinishStep), 0, 1, {'a': States.FinishStep}, Triggers.Step),
+		(['a'], Repeators.OverOne, build_state_stores(States.FinishStep), 0, 1, {'a': States.UnfinishSkip}, Triggers.Skip),
+		(['a'], Repeators.OverOne, build_state_stores(States.FinishStep), 0, 1, {'a': States.UnfinishStep}, Triggers.Step),
 		(['a'], Repeators.OverOne, build_state_stores(States.FinishStep), 0, 1, {'a': States.Abort}, Triggers.FinishSkip),
 	])
 	def test_accept(self, expressions: list[str], rep: Repeators, state_stores: list[StateStore], cursor: int, token_no: int, on_states: dict[str, State], expected: Trigger) -> None:
 		def state_of(name: str, state: State) -> bool:
 			return name in on_states and state == on_states[name]
 
-		datum = Context.StoreEntry()
-		datum.state_stores = state_stores
+		store = Context.StoreEntry()
+		store.state_stores = state_stores
 		instance = Expression.factory(Patterns([Patterns([Pattern.make(expression) for expression in expressions])], rep=rep))
-		actual = instance.accept(Context.make(cursor, {instance: datum}), token_no, state_of)
+		actual = instance.accept(Context.make(cursor, {instance: store}), token_no, state_of)
 		self.assertEqual(type(instance), ExpressionsRepeat)
 		self.assertEqual(expected, actual)

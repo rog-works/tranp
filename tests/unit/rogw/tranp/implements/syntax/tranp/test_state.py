@@ -36,7 +36,7 @@ class TestTrigger(TestCase):
 		(Triggers.UnfinishStep, {'trigger': Trigger.Triggers.Done, 'reason': DoneReasons.UnfinishStep, 'equal': Triggers.Done}),
 	])
 	def test_schema(self, trigger: Trigger, expected: dict[str, Any]) -> None:
-		self.assertEqual(expected['trigger'], trigger.trigger)
+		self.assertEqual(expected['trigger'], trigger.value)
 		self.assertEqual(expected['reason'], trigger.reason)
 		self.assertEqual(expected['equal'], trigger)
 
@@ -54,7 +54,7 @@ class TestState(TestCase):
 		(States.Abort, {'state': State.States.Done, 'reason': DoneReasons.Abort, 'equal': States.Done}),
 	])
 	def test_schema(self, state: State, expected: dict[str, Any]) -> None:
-		self.assertEqual(expected['state'], state.state)
+		self.assertEqual(expected['state'], state.value)
 		self.assertEqual(expected['reason'], state.reason)
 		self.assertEqual(expected['equal'], state)
 

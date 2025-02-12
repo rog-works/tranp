@@ -37,22 +37,22 @@ class Trigger:
 		Done = 0x30
 		Abort = 0x31
 
-	def __init__(self, trigger: Triggers, reason: DoneReasons = DoneReasons.Empty) -> None:
-		self.name = trigger.name
-		self.trigger = trigger
+	def __init__(self, value: Triggers, reason: DoneReasons = DoneReasons.Empty) -> None:
+		self.name = value.name
+		self.value = value
 		self.reason = reason
 
 	def __eq__(self, other: 'Trigger') -> bool:
 		if self.reason == DoneReasons.Empty or other.reason == DoneReasons.Empty:
-			return self.trigger == other.trigger
+			return self.value == other.value
 		else:
-			return self.trigger == other.trigger and self.reason == other.reason
+			return self.value == other.value and self.reason == other.reason
 
 	def __ne__(self, other: 'Trigger') -> bool:
 		return not self.__eq__(other)
 
 	def __hash__(self) -> int:
-		return hash(f'<{self.__class__.__name__}: {self.trigger}>')
+		return hash(f'<{self.__class__.__name__}: {self.value}>')
 
 	def __repr__(self) -> str:
 		return f'<{self.__class__.__name__}[{self.name}]: reason: {self.reason.name}>'
@@ -81,22 +81,22 @@ class State:
 		Step = 2
 		Done = 3
 
-	def __init__(self, state: States, reason: DoneReasons = DoneReasons.Empty) -> None:
-		self.name = state.name
-		self.state = state
+	def __init__(self, value: States, reason: DoneReasons = DoneReasons.Empty) -> None:
+		self.name = value.name
+		self.value = value
 		self.reason = reason
 
-	def __eq__(self, value: 'State') -> bool:
-		if self.reason == DoneReasons.Empty or value.reason == DoneReasons.Empty:
-			return self.state == value.state
+	def __eq__(self, other: 'State') -> bool:
+		if self.reason == DoneReasons.Empty or other.reason == DoneReasons.Empty:
+			return self.value == other.value
 		else:
-			return self.state == value.state and self.reason == value.reason
+			return self.value == other.value and self.reason == other.reason
 
 	def __ne__(self, other: 'State') -> bool:
 		return not self.__eq__(other)
 
 	def __hash__(self) -> int:
-		return hash(f'<{self.__class__.__name__}: {self.state}>')
+		return hash(f'<{self.__class__.__name__}: {self.value}>')
 
 	def __repr__(self) -> str:
 		return f'<{self.__class__.__name__}[{self.name}]: reason: {self.reason.name}>'
@@ -125,7 +125,7 @@ class States:
 			Trigger.Triggers.Done: State.States.Done,
 			Trigger.Triggers.Abort: State.States.Done,
 		}
-		return State(to_state[trigger.trigger], trigger.reason)
+		return State(to_state[trigger.value], trigger.reason)
 
 
 class StateOf(Protocol):

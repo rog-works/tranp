@@ -318,7 +318,7 @@ class ExpressionsRepeat(Expressions):
 		if state != States.Done:
 			return Triggers.Empty
 
-		assert not state.reason.unfinish, 'Must be Finish or Abort'
+		assert not state.reason.unfinish, f'Must be Finish or Abort, state: {state}'
 
 		if state != States.Abort:
 			expr_store = ExpressionStore(state)

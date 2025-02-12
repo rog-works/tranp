@@ -322,7 +322,8 @@ class ExpressionsRepeat(Expressions):
 		if state != States.Done:
 			return Triggers.Empty
 
-		assert not state.reason.unfinish, f'Must be Finish or Abort, state: {state}'
+		if state.reason.unfinish:
+			return Triggers.Step if state.reason.physically else Triggers.Skip
 
 		if state != States.Abort:
 			state_store = StateStore(state)

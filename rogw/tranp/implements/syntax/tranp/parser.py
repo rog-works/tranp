@@ -31,11 +31,11 @@ class SyntaxParser:
 		"""
 		tokens = self.tokenizer.parse(source)
 		tasks = Tasks.from_rules(self.rules)
-		stack: list[StackParser] = [StackParser(tasks, entrypoint)]
+		stack: list[Processor] = [Processor(tasks, entrypoint)]
 		index = 0
 		entries: list[ASTEntry] = []
 		while index < len(tokens) and len(stack) > 0:
-			finish_names = stack[-1].parse(tokens, index)
+			finish_names = stack[-1].run(tokens, index)
 			if len(finish_names) == 0:
 				stack.pop()
 				continue
@@ -63,11 +63,11 @@ class SyntaxParser:
 
 		return False
 
-	def new_stack(self, tasks: Tasks, finish_names: list[str]) -> list['StackParser']:
-		stack: list[StackParser] = []
+	def new_stack(self, tasks: Tasks, finish_names: list[str]) -> list['Processor']:
+		stack: list[Processor] = []
 		for name in finish_names:
 			for effect in tasks.recursive_from(name):
-				stack.append(StackParser(tasks.clone(), effect))
+				stack.append(Processor(tasks.clone(), effect))
 
 		return stack
 
@@ -110,12 +110,12 @@ class SyntaxParser:
 		return unwraped
 
 
-class StackParser:
+class Processor:
 	def __init__(self, tasks: Tasks, entrypoint: str) -> None:
 		self.tasks = tasks
 		self.entrypoint = entrypoint
 
-	def parse(self, tokens: list[Token], token_no: int) -> list[str]:
+	def run(self, tokens: list[Token], token_no: int) -> list[str]:
 		token = tokens[token_no]
 		self.tasks.ready(self.tasks.lookup(self.entrypoint))
 		self.tasks.step(token_no, token)

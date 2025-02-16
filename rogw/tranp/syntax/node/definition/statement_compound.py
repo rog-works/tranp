@@ -391,7 +391,17 @@ class Function(ClassDef):
 	@property
 	@Meta.embed(Node, expandable)
 	def return_type(self) -> Type:
+		if self._exists('function_def_raw.return_type'):
+			return self._by('function_def_raw.return_type')._at(0).as_a(Type)
+
 		return self._children('function_def_raw')[2].as_a(Type)
+
+	@property
+	def return_type_annotation(self) -> Node | Empty:
+		if self._exists('function_def_raw.return_type'):
+			return self._by('function_def_raw.return_type.anno_meta')._at(0)
+
+		return self.dirty_child(Empty, '__empty__', tokens='')
 
 	@property
 	@override

@@ -379,6 +379,14 @@ class ForCompound:
 			inst = cls()
 			return inst
 
+		@classmethod
+		def immutable_returns(cls) -> Annotated[str, Embed.immutable]:
+			...
+
+	class Method:
+		def immutable_returns(self) -> Annotated[CP[str], Embed.immutable]:
+			...
+
 	class DeclEnum:
 		class ES(Enum):
 			AS = 'a'

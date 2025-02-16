@@ -1,0 +1,6 @@
+{%- if return_type_annotation == 'Embed::immutable' -%}
+{%- set add_ref = '&' if return_type[-1] not in ['*', '&'] else '' -%}
+const {{ return_type }}{{ add_ref }}
+{%- else -%}
+{{ return_type }}
+{%- endif -%}

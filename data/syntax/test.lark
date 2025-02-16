@@ -1,0 +1,4 @@
+file_input: expr+
+expr: atom "\n"
+atom: (ab ".") | ("a" ".")
+ab: "a" ","

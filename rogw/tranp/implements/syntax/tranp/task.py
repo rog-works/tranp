@@ -3,7 +3,7 @@ from typing import KeysView, override
 
 from rogw.tranp.implements.syntax.tranp.expression import Expression, ExpressionTerminal
 from rogw.tranp.implements.syntax.tranp.rule import RuleMap, Rules
-from rogw.tranp.implements.syntax.tranp.state import Context, StateMachine, StateOf, State, States, Trigger, Triggers
+from rogw.tranp.implements.syntax.tranp.state import Context, DoneReasons, StateMachine, StateOf, States, Triggers
 from rogw.tranp.implements.syntax.tranp.token import Token
 from rogw.tranp.lang.sequence import flatten
 
@@ -23,6 +23,7 @@ class Task:
 		self._expression_store = Context.new_store()
 		self._cursor = 0
 		self._states = states if states else self._build_states()
+		self._reason = DoneReasons.Empty
 		self._bind_states(self._states)
 
 	def _build_states(self) -> StateMachine:
@@ -31,12 +32,14 @@ class Task:
 			(Triggers.Ready, States.Sleep): States.Idle,
 			(Triggers.Step, States.Idle): States.Step,
 			(Triggers.Done, States.Idle): States.Done,
-			(Triggers.Abort, States.Idle): States.Done,
+			(Triggers.Abort, States.Idle): States.Abort,
 			(Triggers.Ready, States.Step): States.Idle,
 			(Triggers.Ready, States.Done): States.Idle,
+			(Triggers.Ready, States.Abort): States.Idle,
 		})
 
 	def _bind_states(self, states: StateMachine) -> None:
+		states.on(Triggers.Skip, States.Idle, lambda: self._on_step())
 		states.on(Triggers.Step, States.Idle, lambda: self._on_step())
 		states.on(Triggers.Done, States.Idle, lambda: self._on_reset())
 		states.on(Triggers.Abort, States.Idle, lambda: self._on_reset())
@@ -53,11 +56,7 @@ class Task:
 		"""Returns: シンボル名"""
 		return self._name
 
-	@property
-	def finished(self) -> bool:
-		return self._states.state == States.Done and self._states.state != States.Abort
-
-	def state_of(self, expect: State) -> bool:
+	def state_of(self, expect: States, reason: DoneReasons) -> bool:
 		"""状態を確認
 
 		Args:
@@ -65,16 +64,21 @@ class Task:
 		Returns:
 			True = 含まれる
 		"""
-		return self._states.state == expect
+		if reason == DoneReasons.Empty:
+			return self._states.state == expect
+		else:
+			return self._states.state == expect and (self._reason.value & reason.value) == reason.value
 
-	def notify(self, trigger: Trigger) -> None:
+	def notify(self, trigger: Triggers, reason: DoneReasons) -> None:
 		"""イベント通知
 
 		Args:
 			trigger: トリガー
 		"""
-		state = States.from_trigger(trigger)
-		self._states.notify(trigger, {state: state})
+		before = self._states.state
+		self._states.notify(trigger)
+		if before != self._states:
+			self._reason = reason
 
 	def watches(self) -> list[str]:
 		"""現在の参照位置を基に参照中のシンボルリストを返却
@@ -86,7 +90,7 @@ class Task:
 
 	def ready(self) -> None:
 		"""起動イベントを発火"""
-		self.notify(Triggers.Ready)
+		self.notify(Triggers.Ready, DoneReasons.Empty)
 
 	def step(self, token_no: int, token: Token) -> bool:
 		"""トークンの読み出しイベントを発火。状態変化イベントの有無を返却
@@ -97,8 +101,8 @@ class Task:
 		Returns:
 			True = 状態変化イベントが発生
 		"""
-		trigger = self._expression.step(Context.make(self._cursor, self._expression_store), token_no, token)
-		self.notify(trigger)
+		trigger, reason = self._expression.step(Context.make(self._cursor, self._expression_store), token_no, token)
+		self.notify(trigger, reason)
 		return trigger != Triggers.Empty
 
 	def accept(self, token_no: int, state_of: StateOf) -> bool:
@@ -110,8 +114,8 @@ class Task:
 		Returns:
 			True = 状態変化イベントが発生
 		"""
-		trigger = self._expression.accept(Context.make(self._cursor, self._expression_store), token_no, state_of)
-		self.notify(trigger)
+		trigger, reason = self._expression.accept(Context.make(self._cursor, self._expression_store), token_no, state_of)
+		self.notify(trigger, reason)
 		return trigger != Triggers.Empty
 
 	def _on_step(self) -> None:
@@ -189,7 +193,7 @@ class Tasks(Mapping[str, Task]):
 		"""Args: name: シンボル Returns: タスク"""
 		return self._tasks[name]
 
-	def state_of(self, expect: State, names: list[str] | None = None) -> list[str]:
+	def state_of(self, expect: States, names: list[str] | None = None) -> list[str]:
 		"""指定の状態のシンボルを返却
 
 		Args:
@@ -199,11 +203,7 @@ class Tasks(Mapping[str, Task]):
 			シンボルリスト(対象)
 		"""
 		by_names = names if isinstance(names, list) else list(self.keys())
-		return [name for name in by_names if self[name].state_of(expect)]
-
-	def finished(self, names: list[str] | None = None) -> list[str]:
-		by_names = names if isinstance(names, list) else list(self.keys())
-		return [name for name in by_names if self[name].finished]
+		return [name for name in by_names if self[name].state_of(expect, DoneReasons.Empty)]
 
 	def lookup(self, base: str) -> list[str]:
 		"""基点のシンボルから起動対象のシンボルをルックアップ
@@ -260,6 +260,6 @@ class Tasks(Mapping[str, Task]):
 		Returns:
 			シンボルリスト(状態変化)
 		"""
-		state_of_a = lambda name, state: self[name].state_of(state)
+		state_of_a = lambda name, state, reason: self[name].state_of(state, reason)
 		names = self.state_of(States.Idle)
 		return [name for name in names if self[name].accept(token_no, state_of_a)]

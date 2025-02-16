@@ -1,7 +1,7 @@
 from collections.abc import Iterator
 
 from rogw.tranp.implements.syntax.tranp.rule import Rules, Unwraps
-from rogw.tranp.implements.syntax.tranp.state import Triggers
+from rogw.tranp.implements.syntax.tranp.state import DoneReasons, States, Triggers
 from rogw.tranp.implements.syntax.tranp.task import Tasks
 from rogw.tranp.implements.syntax.tranp.token import Token
 from rogw.tranp.implements.syntax.tranp.ast import ASTEntry, ASTToken, ASTTree
@@ -119,13 +119,13 @@ class Processor:
 
 	def prepare(self, via_name: str) -> None:
 		self.tasks[via_name].ready()
-		self.tasks[via_name].notify(Triggers.FinishSkip)
+		self.tasks[via_name].notify(Triggers.Done, DoneReasons.FinishSkip)
 
 	def run(self, tokens: list[Token], token_no: int) -> list[str]:
 		token = tokens[token_no]
 		self.tasks.ready(self.tasks.lookup(self.entrypoint))
 		self.tasks.step(token_no, token)
-		finish_names = self.tasks.finished()
+		finish_names = self.tasks.state_of(States.Done)
 		finish_names.extend(self.accept(token_no))
 		return finish_names
 
@@ -141,7 +141,7 @@ class Processor:
 		accepted = True
 		while accepted:
 			update_names = self.tasks.accept(token_no)
-			finish_names.extend(self.tasks.finished(update_names))
+			finish_names.extend(self.tasks.state_of(States.Done, update_names))
 			accepted = len(update_names) > 0
 
 		return finish_names

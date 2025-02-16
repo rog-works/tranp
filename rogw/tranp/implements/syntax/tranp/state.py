@@ -5,138 +5,59 @@ from typing import Protocol
 
 class DoneReasons(Enum):
 	Empty = 0x00
-	Skip = 0x10
-	Step = 0x11
-	FinishSkip = 0x20
-	FinishStep = 0x21
-	UnfinishSkip = 0x30
-	UnfinishStep = 0x31
-	Abort = 0x40
+	Skip = 0x01
+	Step = 0x02
+	Match = 0x04
+	Finish = 0x08
+
+	MatchSkip = 0x04 | 0x01
+	MatchStep = 0x04 | 0x02
+	FinishSkip = 0x08 | 0x04 | 0x01
+	FinishStep = 0x08 | 0x04 | 0x02
 
 	@property
 	def physically(self) -> bool:
-		return (self.value & 0x0f) == 0x01
+		return (self.value & DoneReasons.Step.value) != 0
+
+	@property
+	def match(self) -> bool:
+		return (self.value & DoneReasons.Match.value) != 0
 
 	@property
 	def finish(self) -> bool:
-		return (self.value & 0xf0) == DoneReasons.FinishSkip.value
+		return (self.value & DoneReasons.Finish.value) != 0
 
 	@property
 	def unfinish(self) -> bool:
-		return (self.value & 0xf0) == DoneReasons.UnfinishSkip.value
+		return self.match and not self.finish
 
 
-class Trigger:
-	"""トリガー"""
-
-	class Triggers(Enum):
-		Empty = 0x00
-		Ready = 0x10
-		Skip = 0x20
-		Step = 0x21
-		Done = 0x30
-		Abort = 0x31
-
-	def __init__(self, value: Triggers, reason: DoneReasons = DoneReasons.Empty) -> None:
-		self.name = value.name
-		self.value = value
-		self.reason = reason
-
-	def __eq__(self, other: 'Trigger') -> bool:
-		if self.reason == DoneReasons.Empty or other.reason == DoneReasons.Empty:
-			return self.value == other.value
-		else:
-			return self.value == other.value and self.reason == other.reason
-
-	def __ne__(self, other: 'Trigger') -> bool:
-		return not self.__eq__(other)
-
-	def __hash__(self) -> int:
-		return hash(f'<{self.__class__.__name__}: {self.value}>')
-
-	def __repr__(self) -> str:
-		return f'<{self.__class__.__name__}[{self.name}]: reason: {self.reason.name}>'
+class Triggers(Enum):
+	Empty = 0
+	Ready = 1
+	Skip = 2
+	Step = 3
+	Done = 4
+	Abort = 5
 
 
-class Triggers:
-	Empty = Trigger(Trigger.Triggers.Empty)
-	Ready = Trigger(Trigger.Triggers.Ready)
-	Skip = Trigger(Trigger.Triggers.Skip, DoneReasons.Skip)
-	Step = Trigger(Trigger.Triggers.Step, DoneReasons.Step)
-	Done = Trigger(Trigger.Triggers.Done)
-	Abort = Trigger(Trigger.Triggers.Abort, DoneReasons.Abort)
-
-	FinishSkip = Trigger(Trigger.Triggers.Done, DoneReasons.FinishSkip)
-	FinishStep = Trigger(Trigger.Triggers.Done, DoneReasons.FinishStep)
-	UnfinishSkip = Trigger(Trigger.Triggers.Done, DoneReasons.UnfinishSkip)
-	UnfinishStep = Trigger(Trigger.Triggers.Done, DoneReasons.UnfinishStep)
-
-
-class State:
-	"""ステート"""
-
-	class States(Enum):
-		Sleep = 0
-		Idle = 1
-		Step = 2
-		Done = 3
-
-	def __init__(self, value: States, reason: DoneReasons = DoneReasons.Empty) -> None:
-		self.name = value.name
-		self.value = value
-		self.reason = reason
-
-	def __eq__(self, other: 'State') -> bool:
-		if self.reason == DoneReasons.Empty or other.reason == DoneReasons.Empty:
-			return self.value == other.value
-		else:
-			return self.value == other.value and self.reason == other.reason
-
-	def __ne__(self, other: 'State') -> bool:
-		return not self.__eq__(other)
-
-	def __hash__(self) -> int:
-		return hash(f'<{self.__class__.__name__}: {self.value}>')
-
-	def __repr__(self) -> str:
-		return f'<{self.__class__.__name__}[{self.name}]: reason: {self.reason.name}>'
-
-
-class States:
-	Sleep = State(State.States.Sleep)
-	Idle = State(State.States.Idle)
-	Step = State(State.States.Step, DoneReasons.Step)
-	Done = State(State.States.Done)
-
-	FinishSkip = State(State.States.Done, DoneReasons.FinishSkip)
-	FinishStep = State(State.States.Done, DoneReasons.FinishStep)
-	UnfinishSkip = State(State.States.Done, DoneReasons.UnfinishSkip)
-	UnfinishStep = State(State.States.Done, DoneReasons.UnfinishStep)
-	Abort = State(State.States.Done, DoneReasons.Abort)
-
-	@classmethod
-	def from_trigger(cls, trigger: Trigger) -> 'State':
-		# XXX このテーブルは実質的に遷移条件と同等であるため、ステートマシンを分離している価値が無くなる
-		to_state = {
-			Trigger.Triggers.Empty: State.States.Idle,
-			Trigger.Triggers.Ready: State.States.Idle,
-			Trigger.Triggers.Skip: State.States.Idle,
-			Trigger.Triggers.Step: State.States.Step,
-			Trigger.Triggers.Done: State.States.Done,
-			Trigger.Triggers.Abort: State.States.Done,
-		}
-		return State(to_state[trigger.value], trigger.reason)
+class States(Enum):
+	Sleep = 0
+	Idle = 1
+	Step = 2
+	Done = 3
+	Abort = 4
 
 
 class StateOf(Protocol):
-	def __call__(self, name: str, state: State) -> bool:
+	def __call__(self, name: str, state: States, reason: DoneReasons) -> bool:
 		...
 
 
 class StateMachine:
 	"""ステートマシン"""
 
-	def __init__(self, initial: State, transitions: dict[tuple[Trigger, State], State]) -> None:
+	def __init__(self, initial: States, transitions: dict[tuple[Triggers, States], States]) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -146,20 +67,20 @@ class StateMachine:
 		self.initial = initial
 		self.state = initial
 		self.transitions = transitions
-		self.handlers: dict[tuple[Trigger, State], Callable[[], None]] = {}
+		self.handlers: dict[tuple[Triggers, States], Callable[[], None]] = {}
 
 	def clone(self) -> 'StateMachine':
 		return StateMachine(self.initial, self.transitions)
 
-	def notify(self, trigger: Trigger, e: dict[State, State]) -> None:
+	def notify(self, trigger: Triggers) -> None:
 		"""イベント通知
 
 		Args:
 			trigger: トリガー
 		"""
-		self._process(trigger, e)
+		self._process(trigger)
 
-	def _process(self, trigger: Trigger, e: dict[State, State]) -> None:
+	def _process(self, trigger: Triggers) -> None:
 		"""イベント処理
 
 		Args:
@@ -167,12 +88,12 @@ class StateMachine:
 		"""
 		key = (trigger, self.state)
 		if key in self.transitions:
-			self.state = e[self.transitions[key]]
+			self.state = self.transitions[key]
 
 		if key in self.handlers:
 			self.handlers[key]()
 
-	def on(self, trigger: Trigger, state: State, callback: Callable[[], None]) -> None:
+	def on(self, trigger: Triggers, state: States, callback: Callable[[], None]) -> None:
 		"""イベントハンドラーの登録
 
 		Args:
@@ -189,8 +110,9 @@ class StateMachine:
 
 
 class StateStore:
-	def __init__(self, state: State | None = None, order: int = -1, token_no: int = -1) -> None:
-		self.state = state if state else States.Idle
+	def __init__(self, trigger: Triggers = Triggers.Empty, reason: DoneReasons = DoneReasons.Empty, order: int = -1, token_no: int = -1) -> None:
+		self.trigger = trigger
+		self.reason = reason
 		self.order = order
 		self.token_no = token_no
 

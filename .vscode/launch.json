@@ -9,6 +9,7 @@
 				"app.test_config.TestConfig",
 				"implements.cpp.transpiler.test_py2cpp.TestPy2Cpp.test_exec",
 				"implements.cpp.transpiler.test_py2cpp_error.TestPy2CppError.test_exec",
+				"implements.syntax.tranp.test_parser",
 				"implements.syntax.tranp.test_rule",
 				"implements.syntax.tranp.test_syntax",
 				"implements.syntax.tranp.test_tokenizer",

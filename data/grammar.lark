@@ -65,7 +65,8 @@ metaclass_argvalue: "metaclass" "=" typed_expression
 function_def: [decorators] function_def_raw
 function_def_raw: "def" name "(" [parameters] ")" "->" return_type ":" block
 // @custom
-?return_type: typed_expression | "'" typed_expression "'"
+?return_type: (typed_expression | "'" typed_expression "'")
+	| "Annotated" "[" (typed_expression | "'" typed_expression "'") "," anno_meta "]"
 
 // @lark lambdadef: "lambda" [lambdaparams] ":" test
 // @lark lambdadef_nocond: "lambda" [lambdaparams] ":" test_nocond

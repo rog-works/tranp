@@ -1184,6 +1184,35 @@ class TestRenderer(TestCase):
 				'}',
 			]),
 		),
+		(
+			'method',
+			{
+				'symbol': 'method_anno_returns',
+				'decorators': [],
+				'parameters': [],
+				'return_type': 'std::string',
+				'comment': '',
+				'statements': ['return this->s;'],
+				'template_types': [],
+				'is_pure': False,
+				# belongs class only
+				'accessor': 'public',
+				'class_symbol': 'Hoge',
+				'is_abstract': False,
+				'is_override': False,
+				'allow_override': False,
+				# method only
+				'is_property': False,
+				'return_type_annotation': 'Embed::immutable',
+			},
+			'\n'.join([
+				'public:',
+				'/** method_anno_returns */',
+				'const std::string& method_anno_returns() {',
+				'	return this->s;',
+				'}',
+			]),
+		),
 	])
 	def test_render_function(self, template: str, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender(f'function/{template}', vars, expected)

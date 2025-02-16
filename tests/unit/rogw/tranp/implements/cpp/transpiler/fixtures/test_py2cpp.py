@@ -384,7 +384,7 @@ class ForCompound:
 			...
 
 	class Method:
-		def immutable_returns(self) -> Annotated[str, Embed.immutable]:
+		def immutable_returns(self) -> Annotated[CP[str], Embed.immutable]:
 			...
 
 	class DeclEnum:

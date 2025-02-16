@@ -242,7 +242,7 @@ class TestPy2Cpp(TestCase):
 		('ForCompound.DeclProps', '', defs.Class, BlockExpects.DeclProps),
 		('ForCompound.ClassMethod.make', '', defs.ClassMethod, BlockExpects.class_method(access='public', name='make', return_type='ClassMethod', statements=['ForCompound::ClassMethod inst = ClassMethod();', 'return inst;'])),
 		('ForCompound.ClassMethod.immutable_returns', '', defs.ClassMethod, BlockExpects.class_method(access='public', name='immutable_returns', return_type='const std::string&')),
-		('ForCompound.Method.immutable_returns', '', defs.Method, BlockExpects.method(access='public', name='immutable_returns', return_type='const std::string&')),
+		('ForCompound.Method.immutable_returns', '', defs.Method, BlockExpects.method(access='public', name='immutable_returns', return_type='const std::string*')),
 		('ForCompound.DeclEnum.literalize', 'function_def_raw.block.funccall[0]', defs.FuncCall, 'printf("AS");'),
 		('ForCompound.DeclEnum.literalize', 'function_def_raw.block.funccall[1]', defs.FuncCall, 'printf("BS");'),
 		('ForCompound.DeclEnum.literalize', 'function_def_raw.block.funccall[2]', defs.FuncCall, 'printf("a");'),

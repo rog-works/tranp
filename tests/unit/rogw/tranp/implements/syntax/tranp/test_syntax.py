@@ -22,7 +22,9 @@ class TestSyntaxParser(TestCase):
 									]),
 									('name', 'b'),
 								]),
-								('__empty__', ''),
+								('args', [
+									('__empty__', '')
+								]),
 							]),
 							('name', 'c'),
 						]),

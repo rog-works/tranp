@@ -118,5 +118,28 @@ class ASTTree:
 		"""Args: other: 比較対象 Returns: True = 不一致"""
 		return not self.__eq__(other)
 
+	def normalize(self) -> list['ASTNormal']:
+		"""Returns: 正規化形式"""
+		return self._normalize(self, 0)[1]
+
+	def _normalize(self, entry: 'ASTEntry', seq: int = 0) -> tuple[int, list['ASTNormal']]:
+		"""Args: entry: ASTエントリー, seq: 採番インデックス Returns: 正規化形式"""
+		if isinstance(entry, ASTToken):
+			return seq, [(seq, entry.name, entry.value.string, [])]
+
+		entries: list[ASTNormal] = []
+		child_ids: list[int] = []
+		offset = 0
+		for child in entry.children:
+			child_id, nomalized = self._normalize(child, seq + offset)
+			child_ids.append(child_id)
+			entries.extend(nomalized)
+			offset += len(nomalized)
+
+		tree_id = seq + offset
+		entries.append((tree_id, entry.name, '', child_ids))
+		return tree_id, entries
+
 
 ASTEntry: TypeAlias = 'ASTToken | ASTTree'
+ASTNormal: TypeAlias = tuple[int, str, str, list[int]]

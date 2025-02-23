@@ -122,14 +122,14 @@ class SyntaxParser:
 		self.rules = rules
 		self.tokenizer = tokenizer if tokenizer else Tokenizer()
 
-	def parse(self, source: str, entrypoint: str) -> ASTEntry:
+	def parse(self, source: str, entrypoint: str) -> ASTTree:
 		"""ソースコードを解析し、ASTを生成
 
 		Args:
 			source: ソースコード
 			entrypoint: エントリーポイントのシンボル
 		Returns:
-			ASTエントリー XXX 要件的にほぼツリーであることが確定
+			ASTツリー
 		Raises:
 			ValueError: パースに失敗(最初のトークンに未到達)
 		"""
@@ -140,7 +140,7 @@ class SyntaxParser:
 			message = ErrorCollector(source, tokens, step.steps).summary()
 			raise ValueError(f'Syntax parse error. Last token not reached. {message}')
 
-		return entry
+		return as_a(ASTTree, entry)
 
 	def _match_symbol(self, tokens: list[Token], context: Context, route: str) -> tuple[Step, ASTEntry]:
 		"""パターン(シンボル参照)を検証し、ASTエントリーを生成

@@ -209,9 +209,7 @@ def python_rules() -> Rules:
 				('terms', [
 					('symbol', 'primary'),
 					('string', '"("'),
-					('expr_opt', [
-						('symbol', 'args')
-					]),
+					('symbol', 'args'),
 					('string', '")"')
 				])
 			]),
@@ -245,14 +243,16 @@ def python_rules() -> Rules:
 			('rule', [
 				('symbol', 'args'),
 				('__empty__', ''),
-				('terms', [
-					('symbol', 'expr'),
-					('expr_rep', [
-						('terms', [
-							('string', '","'),
-							('symbol', 'expr')
-						]),
-						('repeat', '*')
+				('expr_opt', [
+					('terms', [
+						('symbol', 'expr'),
+						('expr_rep', [
+							('terms', [
+								('string', '","'),
+								('symbol', 'expr')
+							]),
+							('repeat', '*')
+						])
 					])
 				])
 			]),

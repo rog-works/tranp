@@ -30,13 +30,13 @@ op_unary := /[-+]/
 // atom
 primary[1] := relay | invoke | indexer | atom
 relay := primary "." name
-invoke := primary "(" [args] ")"
+invoke := primary "(" args ")"
 indexer := primary "[" slice "]"
 atom[1] := bool | none | var | str | int | float
 var := name
 
 // element
-args := expr ("," expr)*
+args := [expr ("," expr)*]
 slice[*] := expr (":" expr)*
 
 // terminal

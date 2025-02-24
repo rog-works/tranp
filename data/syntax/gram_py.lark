@@ -30,22 +30,22 @@ op_unary := /[-+]/
 // atom
 primary[1] := relay | invoke | indexer | atom
 relay := primary "." name
-invoke := primary "(" args ")"
+invoke := primary "(" [args] ")"
 indexer := primary "[" slice "]"
-atom[1] := bool | none | var | str | int | float
+atom[1] := boolean | none | var | string | digit | decimal
 var := name
 
 // element
-args := [expr ("," expr)*]
+args := expr ("," expr)*
 slice[*] := expr (":" expr)*
 
 // terminal
-bool := /False|True/
+boolean := /False|True/
 none := "None"
 name := /[a-zA-Z_]\w*/
-str := /'[^']*'|"[^"]*"/
-int := /0|[1-9]\d*/
-float := /(0|[1-9]\d*)[.]\d+/
+string := /'[^']*'|"[^"]*"/
+digit := /0|[1-9]\d*/
+decimal := /(0|[1-9]\d*)[.]\d+/
 
 // FIXME 以下のatom関連は一旦非対応
 // atom[1] := ... | list | dict | group_exp

@@ -209,7 +209,9 @@ def python_rules() -> Rules:
 				('terms', [
 					('symbol', 'primary'),
 					('string', '"("'),
-					('symbol', 'args'),
+					('expr_opt', [
+						('symbol', 'args')
+					]),
 					('string', '")"')
 				])
 			]),
@@ -227,12 +229,12 @@ def python_rules() -> Rules:
 				('symbol', 'atom'),
 				('unwrap', '1'),
 				('terms_or', [
-					('symbol', 'bool'),
+					('symbol', 'boolean'),
 					('symbol', 'none'),
 					('symbol', 'var'),
-					('symbol', 'str'),
-					('symbol', 'int'),
-					('symbol', 'float')
+					('symbol', 'string'),
+					('symbol', 'digit'),
+					('symbol', 'decimal')
 				])
 			]),
 			('rule', [
@@ -243,16 +245,14 @@ def python_rules() -> Rules:
 			('rule', [
 				('symbol', 'args'),
 				('__empty__', ''),
-				('expr_opt', [
-					('terms', [
-						('symbol', 'expr'),
-						('expr_rep', [
-							('terms', [
-								('string', '","'),
-								('symbol', 'expr')
-							]),
-							('repeat', '*')
-						])
+				('terms', [
+					('symbol', 'expr'),
+					('expr_rep', [
+						('terms', [
+							('string', '","'),
+							('symbol', 'expr')
+						]),
+						('repeat', '*')
 					])
 				])
 			]),
@@ -271,7 +271,7 @@ def python_rules() -> Rules:
 				])
 			]),
 			('rule', [
-				('symbol', 'bool'),
+				('symbol', 'boolean'),
 				('__empty__', ''),
 				('regexp', r'/False|True/')
 			]),
@@ -286,17 +286,17 @@ def python_rules() -> Rules:
 				('regexp', r'/[a-zA-Z_]\w*/')
 			]),
 			('rule', [
-				('symbol', 'str'),
+				('symbol', 'string'),
 				('__empty__', ''),
 				('regexp', r'/\'[^\']*\'|"[^"]*"/')
 			]),
 			('rule', [
-				('symbol', 'int'),
+				('symbol', 'digit'),
 				('__empty__', ''),
 				('regexp', r'/0|[1-9]\d*/')
 			]),
 			('rule', [
-				('symbol', 'float'),
+				('symbol', 'decimal'),
 				('__empty__', ''),
 				('regexp', r'/(0|[1-9]\d*)[.]\d+/')
 			])

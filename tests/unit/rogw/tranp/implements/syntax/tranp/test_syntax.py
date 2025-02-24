@@ -22,16 +22,14 @@ class TestSyntaxParser(TestCase):
 									]),
 									('name', 'b'),
 								]),
-								('args', [
-									('__empty__', '')
-								]),
+								('__empty__', '')
 							]),
 							('name', 'c'),
 						]),
 						('op_add', '+'),
 						('calc_unary', [
 							('op_unary', '-'),
-							('int', '1'),
+							('digit', '1'),
 						]),
 					]),
 					('op_comp', [
@@ -45,7 +43,7 @@ class TestSyntaxParser(TestCase):
 								]),
 								('args', [
 									('comp', [
-										('str', '"a"'),
+										('string', '"a"'),
 										('op_comp', [
 											('op_in', 'in'),
 										]),
@@ -57,7 +55,7 @@ class TestSyntaxParser(TestCase):
 							]),
 							('name', 'e'),
 						]),
-						('int', '0'),
+						('digit', '0'),
 					]),
 				]),
 			]),

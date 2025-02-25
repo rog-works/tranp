@@ -460,6 +460,9 @@ class TestPy2Cpp(TestCase):
 		('ForFuncCall.String.find_methods', 'function_def_raw.block.funccall[9]', defs.FuncCall, 's.ends_with("");'),
 		('ForFuncCall.String.format', 'function_def_raw.block.funccall[0]', defs.FuncCall, 'std::format("%d, %f, %d, %s, %s, %p", 1, 2.0, true, "3", (s).c_str(), this);'),
 		('ForFuncCall.String.format', 'function_def_raw.block.funccall[1]', defs.FuncCall, 'std::format(s, 1, 2, 3);'),
+		('ForFuncCall.String.encode', 'function_def_raw.block.funccall[0]', defs.FuncCall, '(s).c_str();'),
+		('ForFuncCall.String.encode', 'function_def_raw.block.funccall[1]', defs.FuncCall, '("");'),
+		('ForFuncCall.String.decode', 'function_def_raw.block.funccall', defs.FuncCall, 'b.decode();'),  # FIXME 現状は一旦decodeのまま出力
 		('ForFuncCall.String.len', 'function_def_raw.block.funccall', defs.FuncCall, 's.size();'),
 
 		('ForBinaryOperator.char_op_by_str', 'function_def_raw.block.assign[0]', defs.MoveAssign, "bool a = string[0] >= 'A';"),

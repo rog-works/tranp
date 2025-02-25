@@ -1277,6 +1277,7 @@ class FuncCallMaps:
 		str.startswith.__name__,
 		str.endswith.__name__,
 		str.format.__name__,
+		str.encode.__name__,
 	]
 
 

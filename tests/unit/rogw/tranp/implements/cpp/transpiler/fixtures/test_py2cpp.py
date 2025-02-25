@@ -763,6 +763,13 @@ class ForFuncCall:
 			'{n}, {f}, {b}, {s}, {sp}, {p}'.format(n=1, f=2.0, b=True, s='3', sp=s, p=CP(self))
 			s.format(1, 2, 3)
 
+		def encode(self, s: str, b: bytes) -> None:
+			s.encode()
+			''.encode()
+
+		def decode(self, b: bytes) -> None:
+			b.decode()
+
 		def len(self, s: str) -> None:
 			len(s)
 

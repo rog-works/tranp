@@ -72,6 +72,7 @@ $ bin/test.sh -l -p > profile_tottime.log
 
 ## 概要
 
+* GitHub: https://github.com/joerick/pyinstrument
 * 外部パッケージ
 * スタックトレース単位で結果を表示
 * ボトルネックとなる個所が明白で分かりやすい
@@ -98,5 +99,8 @@ $ . .venv/bin/activate
 $ .venv/bin/activate
 
 # 計測実行
-(.venv) $ bin/profile.sh --show-all rogw/tranp/bin/transpile.py -f
+(.venv) $ bin/profile.sh rogw/tranp/bin/transpile.py -f
+
+# 計測実行(フィルター)
+(.venv) $ bin/profile.sh --hide '*/rogw/*' rogw/tranp/bin/transpile.py -f
 ```

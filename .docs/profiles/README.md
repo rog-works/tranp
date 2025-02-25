@@ -68,7 +68,7 @@ def test_exec(...) -> None:
 $ bin/test.sh -l -p > profile_tottime.log
 ```
 
-# 計測 - 3.pyinstruments
+# 計測 - 3.pyinstrument
 
 ## 概要
 
@@ -76,6 +76,7 @@ $ bin/test.sh -l -p > profile_tottime.log
 * スタックトレース単位で結果を表示
 * ボトルネックとなる個所が明白で分かりやすい
 * venvをアクティベートしないと使えない
+* pyinstrumentsと言う非常によく似た名前のパッケージがあるがこちらは誤りなので注意
 
 ## 環境設定
 
@@ -84,10 +85,10 @@ $ bin/test.sh -l -p > profile_tottime.log
 $ python -m venv .venv
 
 # venvアクティベート
-$ .venv/bin/activate
+$ . .venv/bin/activate
 
 # インストール
-(.venv) $ pip install pyinstruments
+(.venv) $ pip install pyinstrument
 ```
 
 ## 実行

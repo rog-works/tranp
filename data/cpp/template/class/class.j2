@@ -1,6 +1,7 @@
 {%- if decorator_query(decorators).contains('Embed.python') -%}
 // class {{ symbol }}
 {%- else -%}
+{%- include('class/_accessor.j2') %}
 {%- include('class/_comment.j2') %}
 {%- include('class/_prepare.j2') %}
 {%- include('class/_template_types.j2') %}

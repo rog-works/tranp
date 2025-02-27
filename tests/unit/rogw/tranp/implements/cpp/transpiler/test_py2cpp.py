@@ -213,7 +213,7 @@ class TestPy2Cpp(TestCase):
 		('AccessOps.indexer', 'function_def_raw.block.funccall[1].arguments.argvalue', defs.Argument, 'arr_sp[0]'),
 		('AccessOps.indexer', 'function_def_raw.block.funccall[2].arguments.argvalue', defs.Argument, 'arr_ar[0]'),
 
-		('Alias.Inner', '', defs.Class, '/** Inner2 */\nclass Inner2 {\n\tpublic: inline static int V2 = 0;\n\tpublic:\n\t/** func */\n\tvoid func() {}\n};'),
+		('Alias.Inner', '', defs.Class, 'public:\n/** Inner2 */\nclass Inner2 {\n\tpublic: inline static int V2 = 0;\n\tpublic:\n\t/** func */\n\tvoid func() {}\n};'),
 		('Alias.__init__', '', defs.Constructor, 'public:\n/** __init__ */\nAlias2() : inner_b(Alias2::Inner2()) {}'),
 		('Alias.in_param_return', '', defs.Method, BlockExpects.method(access='public', name='in_param_return', return_type='Alias2', params=['Alias2 a'])),
 		('Alias.in_param_return2', '', defs.Method, BlockExpects.method(access='public', name='in_param_return2', return_type='Alias2::Inner2', params=['Alias2::Inner2 i'])),
@@ -285,7 +285,7 @@ class TestPy2Cpp(TestCase):
 		('ForTemplate.TClass.class_method_t_and_class_t', '', defs.ClassMethod, BlockExpects.class_method(access='public', name='class_method_t_and_class_t', return_type='T2', params=['T v', 'T2 v2'], template='T2')),
 		('ForTemplate.TClass.method_t', '', defs.Method, BlockExpects.method(access='public', name='method_t', return_type='T2', params=['T2 v2'], template='T2')),
 		('ForTemplate.TClass.method_t_and_class_t', '', defs.Method, BlockExpects.method(access='public', name='method_t_and_class_t', return_type='T2', params=['T v', 'T2 v2'], template='T2')),
-		('ForTemplate.T2Class', '', defs.Class, '/** T2Class */\ntemplate<typename T2>\nclass T2Class {\n\n};'),
+		('ForTemplate.T2Class', '', defs.Class, 'public:\n/** T2Class */\ntemplate<typename T2>\nclass T2Class {\n\n};'),
 
 		('ForTemplate.unpack_call', 'function_def_raw.block.assign', defs.MoveAssign, 'ForTemplate a = this->unpack(ForTemplate());'),
 
@@ -374,7 +374,7 @@ class TestPy2Cpp(TestCase):
 		('ForIndexer.string_slice', 'function_def_raw.block.getitem[0]', defs.Indexer, 's.substr(1, s.size() - (1));'),
 		('ForIndexer.string_slice', 'function_def_raw.block.getitem[1]', defs.Indexer, 's.substr(0, 5);'),
 
-		('ForFuncCall.CallableType', '', defs.Class, '/** CallableType */\nclass CallableType {\n\tpublic: std::function<bool(int, std::string)> func;\n\tpublic:\n\t/** __init__ */\n\tCallableType(const std::function<bool(int, std::string)>& func) : func(func) {}\n};'),
+		('ForFuncCall.CallableType', '', defs.Class, 'public:\n/** CallableType */\nclass CallableType {\n\tpublic: std::function<bool(int, std::string)> func;\n\tpublic:\n\t/** __init__ */\n\tCallableType(const std::function<bool(int, std::string)>& func) : func(func) {}\n};'),
 		# FIXME 型推論自体に問題はなく、トランスパイルが期待通りではないと言うだけ
 		# FIXME 型を明示すれば回避できる上、C++で関数の代入はまずしない
 		# FIXME 本来の期待値 ('ForFuncCall.move_assign', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'std::function<bool(int, std::string))> func = caller.func;'),

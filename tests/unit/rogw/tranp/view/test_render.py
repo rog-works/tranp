@@ -132,6 +132,7 @@ class TestRenderer(TestCase):
 		(
 			{
 				'symbol': 'Hoge',
+				'accessor': '',
 				'decorators': ['deco(A, A.B)'],
 				'inherits': ['Base', 'Interface'],
 				'template_types': [],
@@ -165,6 +166,7 @@ class TestRenderer(TestCase):
 		(
 			{
 				'symbol': 'Hoge',
+				'accessor': '',
 				'decorators': [],
 				'inherits': [],
 				'template_types': [],
@@ -189,6 +191,7 @@ class TestRenderer(TestCase):
 		(
 			{
 				'symbol': 'Hoge',
+				'accessor': '',
 				'decorators': [],
 				'inherits': [],
 				'template_types': [],
@@ -219,6 +222,7 @@ class TestRenderer(TestCase):
 		(
 			{
 				'symbol': 'Hoge',
+				'accessor': '',
 				'decorators': ['deco(A, A.B)'],
 				'inherits': [],
 				'template_types': [],
@@ -249,6 +253,7 @@ class TestRenderer(TestCase):
 		(
 			{
 				'symbol': 'Struct',
+				'accessor': '',
 				'decorators': [],
 				'inherits': [],
 				'template_types': [],

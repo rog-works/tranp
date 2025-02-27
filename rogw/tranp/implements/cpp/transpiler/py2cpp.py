@@ -428,7 +428,12 @@ class Py2Cpp(ITranspiler):
 			this_var_vars = {'accessor': self.to_accessor(defs.to_accessor(this_var_name)), 'symbol': this_var_name, 'var_type': this_var_type, 'annotation': this_var_annotation}
 			vars.append(self.view.render(f'{node.classification}/_decl_this_var', vars=this_var_vars))
 
-		class_vars = {'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'template_types': template_types, 'comment': comment, 'statements': other_statements, 'module_path': node.module_path, 'vars': vars, 'is_struct': is_struct}
+		# XXX 階層化されたクラスにはアクセス修飾子を付与
+		accessor = ''
+		if node.full_path.count('class_def') > 1:
+			accessor = self.to_accessor(node.accessor)
+
+		class_vars = {'accessor': accessor, 'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'template_types': template_types, 'comment': comment, 'statements': other_statements, 'module_path': node.module_path, 'vars': vars, 'is_struct': is_struct}
 		return self.view.render(f'{node.classification}/class', vars=class_vars)
 
 	def on_enum(self, node: defs.Enum, symbol: str, decorators: list[str], inherits: list[str], template_types: list[str], comment: str, statements: list[str]) -> str:

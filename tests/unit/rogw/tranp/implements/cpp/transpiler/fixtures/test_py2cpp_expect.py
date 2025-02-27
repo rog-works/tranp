@@ -175,7 +175,8 @@ class DeclOps {
 	}
 };"""
 
-	DeclProps = """/** DeclProps */
+	DeclProps = """public:
+/** DeclProps */
 class DeclProps : public DeclPropsBase {
 	public: inline static bool cls_b = true;
 	public: std::map<std::string, int> move_dsn;
@@ -187,8 +188,8 @@ class DeclProps : public DeclPropsBase {
 	}
 };"""
 
-	ForTemplateClass_Delegate = \
-"""/** Delegate */
+	ForTemplateClass_Delegate = """public:
+/** Delegate */
 template<typename ...T_Args>
 class Delegate {
 	public:

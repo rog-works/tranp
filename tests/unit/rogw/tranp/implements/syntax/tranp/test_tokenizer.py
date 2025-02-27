@@ -58,7 +58,7 @@ class TestTokenizer(TestCase):
 		('\ta(\nb)', 2, {'nest': 1, 'enclosure': 1}, {'nest': 1, 'enclosure': 1}, (3, [])),
 	])
 	def test_handle_white_space(self, source: str, begin: int, before_context: dict[str, int], expected_context: dict[str, int], expected: tuple[str, list[Token]]) -> None:
-		context = Tokenizer.Context(**before_context)
+		context = Tokenizer.Context.make(**before_context)
 		parser = Tokenizer()
 		tokens = parser.lex_parse(source)
 		actual = parser.handle_white_space(context, tokens, begin)
@@ -76,7 +76,7 @@ class TestTokenizer(TestCase):
 		('a += 1', 1, {'nest': 0, 'enclosure': 0}, {'nest': 0, 'enclosure': 0}, (3, [(TokenTypes.PlusEqual, '+=')])),
 	])
 	def test_handle_symbol(self, source: str, begin: int, before_context: dict[str, int], expected_context: dict[str, int], expected: tuple[str, list[Token]]) -> None:
-		context = Tokenizer.Context(**before_context)
+		context = Tokenizer.Context.make(**before_context)
 		parser = Tokenizer()
 		tokens = parser.lex_parse(source)
 		actual = parser.handle_symbol(context, tokens, begin)

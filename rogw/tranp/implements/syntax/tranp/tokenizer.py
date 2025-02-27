@@ -415,11 +415,45 @@ class Tokenizer(ITokenizer):
 		"""
 		return self._lexer.parse(source)
 
-	@dataclass
 	class Context:
 		"""コンテキスト"""
-		nest: int = 0
-		enclosure: int = 0
+
+		@classmethod
+		def make(cls, nest: int, enclosure: int, indent_spaces: int = 1) -> 'Tokenizer.Context':
+			"""インスタンスを生成
+
+			Args:
+				nest: ネスト数
+				enclosure: ブロックラップ数
+				indent_spaces: インデントの基数
+			"""
+			instance = cls()
+			instance.nest = nest
+			instance.enclosure = enclosure
+			instance._indent_spaces = indent_spaces
+			return instance
+
+		def __init__(self) -> None:
+			"""インスタンスを生成"""
+			self.nest = 0
+			self.enclosure = 0
+			self._indent_spaces = -1
+
+		def to_nest(self, spaces: int) -> int:
+			"""基数を基にスペース数からネスト数を算出
+
+			Args:
+				spaces: スペース数
+			Returns:
+				ネスト数
+			"""
+			if spaces == 0:
+				return 0
+
+			if self._indent_spaces == -1:
+				self._indent_spaces = spaces
+
+			return int(spaces / self._indent_spaces)
 
 	def _rebuild(self, tokens: list[Token]) -> list[Token]:
 		"""トークンを解析してプログラムで解釈しやすい形式に整形
@@ -480,11 +514,11 @@ class Tokenizer(ITokenizer):
 		assert token.type == TokenTypes.LineBreak, f'Never. token type: {token.type}'
 
 		indent = len(token.string.split('\n')[-1])
-		if context.nest < indent:
-			context.nest = indent
+		next_nest = context.to_nest(indent)
+		if context.nest < next_nest:
+			context.nest = next_nest
 			return begin + 1, [token.to_new_line(), token.to_indent()]
-		elif context.nest > indent:
-			next_nest = indent
+		elif context.nest > next_nest:
 			dedents = [token.to_dedent()] * (context.nest - next_nest)
 			context.nest = next_nest
 			return begin + 1, [token.to_new_line(), *dedents]

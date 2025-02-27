@@ -428,10 +428,7 @@ class Py2Cpp(ITranspiler):
 			this_var_vars = {'accessor': self.to_accessor(defs.to_accessor(this_var_name)), 'symbol': this_var_name, 'var_type': this_var_type, 'annotation': this_var_annotation}
 			vars.append(self.view.render(f'{node.classification}/_decl_this_var', vars=this_var_vars))
 
-		# XXX 階層化されたクラスにはアクセス修飾子を付与
-		accessor = ''
-		if node.full_path.count('class_def') > 1:
-			accessor = self.to_accessor(node.accessor)
+		accessor = self.to_accessor(node.accessor) if node.is_internal else ''
 
 		class_vars = {'accessor': accessor, 'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'template_types': template_types, 'comment': comment, 'statements': other_statements, 'module_path': node.module_path, 'vars': vars, 'is_struct': is_struct}
 		return self.view.render(f'{node.classification}/class', vars=class_vars)
@@ -441,7 +438,9 @@ class Py2Cpp(ITranspiler):
 		if not node.parent.is_a(defs.Entrypoint):
 			add_vars = {'accessor': self.to_accessor(node.accessor)}
 
-		return self.view.render(f'class/{node.classification}', vars={'symbol': symbol, 'decorators': decorators, 'comment': comment, 'statements': statements, 'module_path': node.module_path, **add_vars})
+		accessor = self.to_accessor(node.accessor) if node.is_internal else ''
+
+		return self.view.render(f'class/{node.classification}', vars={'accessor': accessor, 'symbol': symbol, 'decorators': decorators, 'comment': comment, 'statements': statements, 'module_path': node.module_path, **add_vars})
 
 	def on_alt_class(self, node: defs.AltClass, symbol: str, actual_type: str) -> str:
 		return self.view.render(node.classification, vars={'symbol': symbol, 'actual_type': actual_type})

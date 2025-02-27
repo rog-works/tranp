@@ -523,6 +523,7 @@ class TestRenderer(TestCase):
 		(
 			{
 				'symbol': 'Values',
+				'accessor': '',
 				'decorators': ['deco(A, B)'],
 				'comment': '',
 				'statements': [
@@ -541,6 +542,7 @@ class TestRenderer(TestCase):
 		(
 			{
 				'symbol': 'Values',
+				'accessor': 'public',
 				'decorators': [],
 				'comment': '',
 				'statements': [
@@ -550,7 +552,7 @@ class TestRenderer(TestCase):
 			},
 			'\n'.join([
 				'/** Values */',
-				'enum class Values {',
+				'public: enum class Values {',
 				'	A,',
 				'	B,',
 				'};',

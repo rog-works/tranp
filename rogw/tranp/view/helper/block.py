@@ -212,7 +212,7 @@ class BlockParser:
 				other_index = other_tokens.find(text[index])
 				if len(other_closes) > 0 and other_closes[-1] == other_tokens[other_index]:
 					other_closes.pop()
-				else:
+				elif other_index % 2 == 0:
 					other_closes.append(other_tokens[other_index + 1])
 
 			index += 1

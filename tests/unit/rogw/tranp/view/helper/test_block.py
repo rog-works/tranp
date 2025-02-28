@@ -91,6 +91,7 @@ class TestBlockParser(TestCase):
 		('a->b[c], d->e(f)', ',', ['a->b[c]', 'd->e(f)']),
 		('std::map<std::string, int> dsn', ' ', ['std::map<std::string, int>', 'dsn']),
 		('std::map<std::string, int> dsn = {}', '=', ['std::map<std::string, int> dsn', '{}']),
+		('f(a->b().c()), d', ',', ['f(a->b().c())', 'd']),
 	])
 	def test_break_separator(self, text: str, delimiter: str, expected: list[str]) -> None:
 		actual = BlockParser.break_separator(text, delimiter)

@@ -28,7 +28,7 @@
 	],
 	"configurations": [
 		{
-			"name": "Python: unittest discover",
+			"name": "Python: unittest - discover",
 			"type": "debugpy",
 			"request": "launch",
 			"module":"unittest",
@@ -50,7 +50,7 @@
 			"justMyCode": true,
 		},
 		{
-			"name": "Python: unittest select",
+			"name": "Python: unittest - select",
 			"type": "debugpy",
 			"request": "launch",
 			"module":"unittest",
@@ -74,7 +74,7 @@
 			"justMyCode": true,
 		},
 		{
-			"name": "Python: unittest current",
+			"name": "Python: unittest - current",
 			"type": "debugpy",
 			"request": "launch",
 			"module":"unittest",
@@ -98,7 +98,7 @@
 			"justMyCode": true,
 		},
 		{
-			"name": "Python: transpile",
+			"name": "Python: bin/transpile",
 			"type": "debugpy",
 			"request": "launch",
 			"module":"rogw.tranp.bin.transpile",
@@ -124,7 +124,7 @@
 			"justMyCode": true,
 		},
 		{
-			"name": "Python: transpile force",
+			"name": "Python: bin/transpile - force",
 			"type": "debugpy",
 			"request": "launch",
 			"module":"rogw.tranp.bin.transpile",
@@ -151,7 +151,7 @@
 			"justMyCode": true,
 		},
 		{
-			"name": "Python: transpile interactive",
+			"name": "Python: bin/transpile - interactive",
 			"type": "debugpy",
 			"request": "launch",
 			"module":"rogw.tranp.bin.transpile",
@@ -174,11 +174,11 @@
 					// "PYDEVD_CONTAINER_RANDOM_ACCESS_MAX_ITEMS": "3000",
 				},
 			},
-			"console": "internalConsole",
+			"console": "integratedTerminal",
 			"justMyCode": true,
 		},
 		{
-			"name": "Python: analyze",
+			"name": "Python: bin/analyze",
 			"type": "debugpy",
 			"request": "launch",
 			"module":"rogw.tranp.bin.analyze",
@@ -199,11 +199,38 @@
 					"PYTHONDONTWRITEBYTECODE": "1",
 				},
 			},
-			"console": "internalConsole",
+			"console": "integratedTerminal",
 			"justMyCode": true,
 		},
 		{
-			"name": "Python: gram",
+			"name": "Python: bin/ast",
+			"type": "debugpy",
+			"request": "launch",
+			"module":"rogw.tranp.bin.ast_check",
+			"args": [
+				"-g", "data/syntax/gram_py.lark",
+				"-p", "hoge"
+			],
+			"cwd": "${workspaceFolder}",
+			"windows": {
+				"env": {
+					"PYTHONPATH": "${workspaceFolder};${workspaceFolder}/vendor",
+					"PYTHONDONTWRITEBYTECODE": "1",
+					// "PYDEVD_CONTAINER_RANDOM_ACCESS_MAX_ITEMS": "3000",
+				},
+			},
+			"linux": {
+				"env": {
+					"PYTHONPATH": "${workspaceFolder}:${workspaceFolder}/vendor",
+					"PYTHONDONTWRITEBYTECODE": "1",
+					// "PYDEVD_CONTAINER_RANDOM_ACCESS_MAX_ITEMS": "3000",
+				},
+			},
+			"console": "integratedTerminal",
+			"justMyCode": true,
+		},
+		{
+			"name": "Python: bin/gram",
 			"type": "debugpy",
 			"request": "launch",
 			"module":"rogw.tranp.bin.gram_check",
@@ -225,7 +252,7 @@
 					// "PYDEVD_CONTAINER_RANDOM_ACCESS_MAX_ITEMS": "3000",
 				},
 			},
-			"console": "internalConsole",
+			"console": "integratedTerminal",
 			"justMyCode": true,
 		},
 		{
@@ -245,7 +272,7 @@
 					"PYTHONDONTWRITEBYTECODE": "1",
 				},
 			},
-			"console": "internalConsole",
+			"console": "integratedTerminal",
 			"justMyCode": true
 		},
 	]

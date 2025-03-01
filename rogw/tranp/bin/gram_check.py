@@ -30,13 +30,15 @@ class Args:
 		Returns:
 			引数一覧
 		"""
-		filepath = ''
+		args: DictArgs = {
+			'filepath': '',
+		}
 		while(len(argv)):
 			value = argv.pop(0)
 			if value == '-i':
-				filepath = argv.pop(0)
+				args['filepath'] = argv.pop(0)
 
-		return {'filepath': filepath}
+		return args
 
 
 class App:

@@ -7,8 +7,10 @@ from typing import TypeAlias, TypedDict
 from lark import Lark
 from lark.indenter import PythonIndenter
 
+from rogw.tranp.app.dir import tranp_dir
 from rogw.tranp.bin.io import readline
-from rogw.tranp.implements.syntax.tranp.rules import python_rules
+from rogw.tranp.implements.syntax.tranp.rule import Rules
+from rogw.tranp.implements.syntax.tranp.rules import grammar_rules, grammar_tokenizer
 from rogw.tranp.implements.syntax.tranp.syntax import SyntaxParser
 
 DictArgs = TypedDict('DictArgs', {'filepath': str, 'parser': str, 'grammar': str})
@@ -37,23 +39,21 @@ class Args:
 		Returns:
 			引数一覧
 		"""
-		filepath = ''
-		parser = 'lark'
-		grammar = 'data/grammar.lark'
+		args: DictArgs = {
+			'filepath': '',
+			'parser': 'lark',
+			'grammar': os.path.join(tranp_dir(), 'data/grammar.lark'),
+		}
 		while len(argv) != 0:
 			arg = argv.pop(0)
 			if arg == '-i':
-				filepath = argv.pop(0)
+				args['filepath'] = argv.pop(0)
 			elif arg == '-p':
-				parser = argv.pop(0)
+				args['parser'] = argv.pop(0)
 			elif arg == '-g':
-				grammar = argv.pop(0)
+				args['grammar'] = argv.pop(0)
 
-		return {
-			'filepath': filepath,
-			'parser': parser,
-			'grammar': grammar,
-		}
+		return args
 
 
 class App:
@@ -88,7 +88,7 @@ class App:
 		"""
 		while True:
 			print('==========')
-			print('Python code here. Type `exit()` to quit:')
+			print('Code here. Type `exit()` to quit:')
 
 			lines: list[str] = []
 			while True:
@@ -137,12 +137,15 @@ class App:
 		Returns:
 			パーサー
 		"""
+		grammar = self.load_file(self.args.grammar)
 		if name == 'lark':
-			grammar = self.load_file(self.args.grammar)
 			parser = Lark(grammar, start='file_input', postlex=PythonIndenter(), parser='lalr')
 			return lambda source: parser.parse(source).pretty()
 		else:
-			parser = SyntaxParser(python_rules())
+			gram_parser = SyntaxParser(grammar_rules(), grammar_tokenizer())
+			gram_ast = gram_parser.parse(grammar, 'entry')
+			rules = Rules.from_ast(gram_ast.simplify())
+			parser = SyntaxParser(rules)
 			return lambda source: parser.parse(source, 'entry').pretty()
 
 

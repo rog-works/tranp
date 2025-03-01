@@ -16,7 +16,6 @@ from rogw.tranp.lang.locator import Locator
 from rogw.tranp.lang.module import filepath_to_module_path, to_fullyname
 from rogw.tranp.module.modules import Modules
 from rogw.tranp.module.types import ModulePath, ModulePaths
-from rogw.tranp.providers.module import module_path_dummy
 from rogw.tranp.semantics.reflection.base import IReflection
 from rogw.tranp.semantics.reflection.db import SymbolDB
 from rogw.tranp.semantics.reflections import Reflections
@@ -47,7 +46,7 @@ class Args:
 			コマンドライン引数のデータ
 		"""
 		args: ArgsDict = {
-			'grammar': 'data/grammar.lark',
+			'grammar': os.path.join(tranp_dir(), 'data/grammar.lark'),
 			'input': '',
 			'command': '',
 			'options': {},

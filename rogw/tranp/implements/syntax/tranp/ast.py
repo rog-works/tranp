@@ -35,7 +35,7 @@ class ASTToken:
 		"""Returns: トークン"""
 		return self._value
 
-	def simplify(self) -> TupleEntry:
+	def simplify(self) -> TupleToken:
 		"""Returns: tuple形式"""
 		return self.name, self.value.string
 
@@ -88,7 +88,7 @@ class ASTTree:
 		"""Returns: 配下要素"""
 		return self._children
 
-	def simplify(self) -> TupleEntry:
+	def simplify(self) -> TupleTree:
 		"""Returns: tuple形式"""
 		return self.name, [child.simplify() for child in self.children]
 

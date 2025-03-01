@@ -318,6 +318,10 @@ class Lexer(ITokenizer):
 				break
 
 		value = source[begin:end]
+		# エスケープされた文字列から元の制御文字に変換
+		if value.count('\\') > 0:
+			value = value.encode().decode('unicode_escape')
+
 		token_type = TokenTypes.Regexp if value[0] == '/' else TokenTypes.String
 		return end, Token(token_type, value, Token.SourceMap.make(source, begin, end))
 

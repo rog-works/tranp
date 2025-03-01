@@ -888,6 +888,11 @@ class Py2Cpp(ITranspiler):
 			receiver, operator = PatternParser.break_relay(calls)
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'var_type': var_type})
+		elif spec == 'dict_items':
+			# 期待値: 'receiver.items'
+			receiver, operator = PatternParser.break_relay(calls)
+			var_type = self.to_accessible_name(cast(IReflection, context))
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'var_type': var_type})
 		elif spec == 'dict_pop':
 			# 期待値: 'receiver.pop'
 			receiver, operator = PatternParser.break_relay(calls)
@@ -978,7 +983,7 @@ class Py2Cpp(ITranspiler):
 					return 'otherwise', None
 				elif receiver_raw.type_is(dict):
 					key_attr, value_attr = receiver_raw.attrs
-					attr_indexs = {'pop': value_attr, 'keys': key_attr, 'values': value_attr, 'get': value_attr}
+					attr_indexs = {'pop': value_attr, 'keys': key_attr, 'values': value_attr, 'items': receiver_raw, 'get': value_attr}
 					return f'dict_{prop}', attr_indexs[prop]
 			elif prop == PythonClassOperations.copy_constructor:
 				return prop, None

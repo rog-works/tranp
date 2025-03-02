@@ -20,6 +20,7 @@ aliases.rogw.tranp.compatible.libralies.classes#dict: std::map
 aliases.rogw.tranp.compatible.libralies.classes#dict.in: contains
 aliases.rogw.tranp.compatible.libralies.classes#dict.clear: clear
 aliases.rogw.tranp.compatible.libralies.classes#list: std::vector
+aliases.rogw.tranp.compatible.libralies.classes#list.index: find # FIXME 暫定対処
 aliases.rogw.tranp.compatible.libralies.classes#list.append: push_back
 aliases.rogw.tranp.compatible.libralies.classes#list.insert: insert
 aliases.rogw.tranp.compatible.libralies.classes#list.extend: insert

@@ -89,11 +89,13 @@ typed_argvalue: typed_expression
 
 // @custom
 ?typed_expression: typed_or_expr
-?typed_or_expr: typed_primary ("|" typed_primary)*
+?typed_or_expr: typed_primary
+	| typed_primary ("|" typed_primary)+
+	| "Annotated" "[" "'"? (typed_primary ("|" typed_primary)+) "'"? "," anno_meta "]"
 ?typed_primary: typed_primary "." name -> typed_getattr
 	| typed_primary "[" typed_slices "]" -> typed_getitem
-	| "Annotated" "[" "'"? typed_primary "." name "'"? "," anno_meta "]" -> typed_getattr
-	| "Annotated" "[" "'"? typed_primary "[" typed_slices "]" "'"? "," anno_meta "]" -> typed_getitem
+	| "Annotated" "[" "'"? (typed_primary "." name) "'"? "," anno_meta "]" -> typed_getattr
+	| "Annotated" "[" "'"? (typed_primary "[" typed_slices "]") "'"? "," anno_meta "]" -> typed_getitem
 	| typed_atom
 
 // @custom

@@ -27,7 +27,7 @@ def data_provider(args_list: list[tuple], includes: list[int] = [], excludes: li
 				try:
 					test_func(self, *provide_args)
 				except Exception as e:
-					print(f'\n{test_func.__module__}.{test_func.__name__}: Provided No.{index}. with: {provide_args}, on error: {e.__class__.__name__}')
+					print(f'\n{test_func.__module__}.{self.__class__.__name__}.{test_func.__name__}: Provided No.{index}. with: {provide_args}, on error: {e.__class__.__name__}')
 					raise
 
 		return wrapper

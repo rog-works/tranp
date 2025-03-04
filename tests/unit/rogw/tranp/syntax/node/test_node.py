@@ -114,6 +114,7 @@ class TestNode(TestCase):
 		# Elements
 		('def func(n: int) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue', defs.Parameter, '', '__main__#func.parameter@7'),
 		('@deco\ndef func(n: int) -> None: ...', 'file_input.function_def.decorators.decorator', defs.Decorator, '', '__main__#func.decorator@3'),
+		('def func(n: Annotated[int, 0]) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue', defs.Parameter, '', '__main__#func.parameter@7'),
 		# Statement simple - Assign
 		('a = 0', 'file_input.assign', defs.MoveAssign, '', '__main__#move_assign@1'),
 		('a: int = 0', 'file_input.anno_assign', defs.AnnoAssign, '', '__main__#anno_assign@1'),
@@ -167,14 +168,21 @@ class TestNode(TestCase):
 		('from a.b.c import A', 'file_input.import_stmt.dotted_name', defs.ImportPath, '', '__main__#import_path@2'),
 		('@deco\ndef func() -> None: ...', 'file_input.function_def.decorators.decorator.dotted_name', defs.DecoratorPath, '', '__main__#func.decorator_path@4'),
 		# Primary - Type
-		('a: A.B = 0', 'file_input.anno_assign.typed_getattr', defs.RelayOfType, 'A.B', '__main__#A.B'),
+		('a: A.B = ...', 'file_input.anno_assign.typed_getattr', defs.RelayOfType, 'A.B', '__main__#A.B'),
 		('a: int = 0', 'file_input.anno_assign.typed_var', defs.VarOfType, 'int', '__main__#int'),
 		('if True:\n\ta: int = 0', 'file_input.if_stmt.if_clause.block.anno_assign.typed_var', defs.VarOfType, 'int', '__main__#if@1.if_clause@2.int'),
 		('a: list[int] = []', 'file_input.anno_assign.typed_getitem', defs.ListType, 'list', '__main__#list'),
 		('a: dict[str, int] = {}', 'file_input.anno_assign.typed_getitem', defs.DictType, 'dict', '__main__#dict'),
-		('a: Callable[[int], None] = {}', 'file_input.anno_assign.typed_getitem', defs.CallableType, 'Callable', '__main__#Callable'),
+		('a: Callable[[int], None] = ...', 'file_input.anno_assign.typed_getitem', defs.CallableType, 'Callable', '__main__#Callable'),
 		('a: int | str = 0', 'file_input.anno_assign.typed_or_expr', defs.UnionType, 'Union', '__main__#Union'),
 		('def func() -> None: ...', 'file_input.function_def.function_def_raw.typed_none', defs.NullType, 'None', '__main__#func.None'),
+		('a: Annotated[A.B, 0] = ...', 'file_input.anno_assign.typed_getattr', defs.RelayOfType, 'A.B', '__main__#A.B'),
+		('a: Annotated[int, 0] = 0', 'file_input.anno_assign.typed_var', defs.VarOfType, 'int', '__main__#int'),
+		('a: Annotated[list[str], 0] = []', 'file_input.anno_assign.typed_getitem', defs.ListType, 'list', '__main__#list'),
+		('a: Annotated[dict[str, int], 0] = {}', 'file_input.anno_assign.typed_getitem', defs.DictType, 'dict', '__main__#dict'),
+		('a: Annotated[Callable[[], None], 0] = ...', 'file_input.anno_assign.typed_getitem', defs.CallableType, 'Callable', '__main__#Callable'),
+		('a: Annotated[int | str, 0] = 0', 'file_input.anno_assign.typed_or_expr', defs.UnionType, 'Union', '__main__#Union'),
+		('def func(n: int) -> Annotated[int, 0]: ...', 'file_input.function_def.function_def_raw.typed_var', defs.VarOfType, 'int', '__main__#func.int'),
 		# Primary - FuncCall
 		('a(0)', 'file_input.funccall', defs.FuncCall, 'func_call@1', '__main__#func_call@1'),
 		('a(0)\nfor i in b(): ...', 'file_input.funccall', defs.FuncCall, 'func_call@1', '__main__#func_call@1'),

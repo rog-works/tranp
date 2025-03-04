@@ -646,7 +646,7 @@ class TestDefinition(TestCase):
 		self.assertEqual(type(node.receiver), expected['receiver_type'])
 		self.assertEqual(type(node.var_type), expected['var_type'])
 		self.assertEqual(type(node.value), expected['value'])
-		self.assertTrue(node.annotation.is_a(expected['annotation']))
+		self.assertTrue(node.var_type.annotation.is_a(expected['annotation']))
 
 	@data_provider([
 		('a = {}', 'file_input.assign', {'receivers': ['a'], 'receiver_types': [defs.DeclLocalVar], 'value': defs.Dict, 'var_type': defs.Empty}),
@@ -899,33 +899,61 @@ class TestDefinition(TestCase):
 
 	@data_provider([
 		# General
-		('a: int = 0', 'file_input.anno_assign.typed_var', defs.VarOfType),
-		('a: list[int] = []', 'file_input.anno_assign.typed_getitem.typed_var', defs.VarOfType),
-		('a: dict[str, int] = {}', 'file_input.anno_assign.typed_getitem.typed_slices.typed_var[0]', defs.VarOfType),
-		('a: dict[str, int] = {}', 'file_input.anno_assign.typed_getitem.typed_slices.typed_var[1]', defs.VarOfType),
-		('a: str | None = None', 'file_input.anno_assign.typed_or_expr.typed_var', defs.VarOfType),
-		('self.a: int = 0', 'file_input.anno_assign.typed_var', defs.VarOfType),
-		('try: ...\nexcept A.E as e: ...', 'file_input.try_stmt.except_clauses.except_clause.typed_getattr', defs.RelayOfType),
-		('class B(A): ...', 'file_input.class_def.class_def_raw.inherit_arguments.typed_argvalue.typed_var', defs.VarOfType),
-		('def func(a: int) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.typed_var', defs.VarOfType),
-		('a: A.B[A.B[A.B], A.B] = {}', 'file_input.anno_assign.typed_getitem.typed_slices.typed_getattr', defs.RelayOfType),
+		('a: int = 0', 'file_input.anno_assign.typed_var', {'type': defs.VarOfType, 'annotation': defs.Empty}),
+		('a: \'int\' = 0', 'file_input.anno_assign.typed_var', {'type': defs.VarOfType, 'annotation': defs.Empty}),
+		('a: list[int] = []', 'file_input.anno_assign.typed_getitem.typed_var', {'type': defs.VarOfType, 'annotation': defs.Empty}),
+		('a: dict[str, int] = {}', 'file_input.anno_assign.typed_getitem.typed_slices.typed_var[0]', {'type': defs.VarOfType, 'annotation': defs.Empty}),
+		('a: dict[str, int] = {}', 'file_input.anno_assign.typed_getitem.typed_slices.typed_var[1]', {'type': defs.VarOfType, 'annotation': defs.Empty}),
+		('a: str | None = None', 'file_input.anno_assign.typed_or_expr.typed_var', {'type': defs.VarOfType, 'annotation': defs.Empty}),
+		('self.a: int = 0', 'file_input.anno_assign.typed_var', {'type': defs.VarOfType, 'annotation': defs.Empty}),
+		('a: A.B = ...', 'file_input.anno_assign.typed_getattr', {'type': defs.RelayOfType, 'annotation': defs.Empty}),
+		('a: \'A.B\' = ...', 'file_input.anno_assign.typed_getattr', {'type': defs.RelayOfType, 'annotation': defs.Empty}),
+		('try: ...\nexcept A.E as e: ...', 'file_input.try_stmt.except_clauses.except_clause.typed_getattr', {'type': defs.RelayOfType, 'annotation': defs.Empty}),
+		('class B(A): ...', 'file_input.class_def.class_def_raw.inherit_arguments.typed_argvalue.typed_var', {'type': defs.VarOfType, 'annotation': defs.Empty}),
+		('def func(a: int) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.typed_var', {'type': defs.VarOfType, 'annotation': defs.Empty}),
+		('a: A.B[A.B[A.B], A.B] = {}', 'file_input.anno_assign.typed_getitem.typed_slices.typed_getattr', {'type': defs.RelayOfType, 'annotation': defs.Empty}),
+		('a: Annotated[int, 0] = 0', 'file_input.anno_assign.typed_var', {'type': defs.VarOfType, 'annotation': defs.Integer}),
+		('a: Annotated[\'int\', 0] = 0', 'file_input.anno_assign.typed_var', {'type': defs.VarOfType, 'annotation': defs.Integer}),
+		('a: Annotated[A.B, 0] = 0', 'file_input.anno_assign.typed_getattr', {'type': defs.RelayOfType, 'annotation': defs.Integer}),
+		('a: Annotated[\'A.B\', 0] = 0', 'file_input.anno_assign.typed_getattr', {'type': defs.RelayOfType, 'annotation': defs.Integer}),
 		# Generic - List/Dict/Callable/Custom
-		('a: list[int] = []', 'file_input.anno_assign.typed_getitem', defs.ListType),
-		('a: dict[str, int] = {}', 'file_input.anno_assign.typed_getitem', defs.DictType),
-		('a: tuple[str, int, bool] = ()', 'file_input.anno_assign.typed_getitem', defs.CustomType),
-		('def func() -> Callable[[], None]: ...', 'file_input.function_def.function_def_raw.typed_getitem', defs.CallableType),
-		('class B(A[T]): ...', 'file_input.class_def.class_def_raw.inherit_arguments.typed_argvalue.typed_getitem', defs.CustomType),
-		('a: A.B[A.B[A.B], A.B] = {}', 'file_input.anno_assign.typed_getitem', defs.CustomType),
-		('a: A.B[A.B[A.B], A.B] = {}', 'file_input.anno_assign.typed_getitem.typed_slices.typed_getitem', defs.CustomType),
+		('a: list[int] = []', 'file_input.anno_assign.typed_getitem', {'type': defs.ListType, 'annotation': defs.Empty}),
+		('a: \'list[int]\' = []', 'file_input.anno_assign.typed_getitem', {'type': defs.ListType, 'annotation': defs.Empty}),
+		('a: dict[str, int] = {}', 'file_input.anno_assign.typed_getitem', {'type': defs.DictType, 'annotation': defs.Empty}),
+		('a: \'dict[str, int]\' = {}', 'file_input.anno_assign.typed_getitem', {'type': defs.DictType, 'annotation': defs.Empty}),
+		('a: tuple[str, int, bool] = ()', 'file_input.anno_assign.typed_getitem', {'type': defs.CustomType, 'annotation': defs.Empty}),
+		('a: \'tuple[str, int, bool]\' = ()', 'file_input.anno_assign.typed_getitem', {'type': defs.CustomType, 'annotation': defs.Empty}),
+		('a: Callable[[], None] = ...', 'file_input.anno_assign.typed_getitem', {'type': defs.CallableType, 'annotation': defs.Empty}),
+		('a: \'Callable[[], None]\' = ...', 'file_input.anno_assign.typed_getitem', {'type': defs.CallableType, 'annotation': defs.Empty}),
+		('def func() -> Callable[[], None]: ...', 'file_input.function_def.function_def_raw.typed_getitem', {'type': defs.CallableType, 'annotation': defs.Empty}),
+		('class B(A[T]): ...', 'file_input.class_def.class_def_raw.inherit_arguments.typed_argvalue.typed_getitem', {'type': defs.CustomType, 'annotation': defs.Empty}),
+		('a: A.B[A.B[A.B], A.B] = {}', 'file_input.anno_assign.typed_getitem', {'type': defs.CustomType, 'annotation': defs.Empty}),
+		('a: A.B[A.B[A.B], A.B] = {}', 'file_input.anno_assign.typed_getitem.typed_slices.typed_getitem', {'type': defs.CustomType, 'annotation': defs.Empty}),
+		('a: Annotated[list[int], "a"] = []', 'file_input.anno_assign.typed_getitem', {'type': defs.ListType, 'annotation': defs.String}),
+		('a: Annotated[\'list[int]\', "a"] = []', 'file_input.anno_assign.typed_getitem', {'type': defs.ListType, 'annotation': defs.String}),
+		('a: Annotated[dict[str, int], True] = {}', 'file_input.anno_assign.typed_getitem', {'type': defs.DictType, 'annotation': defs.Boolean}),
+		('a: Annotated[\'dict[str, int]\', True] = {}', 'file_input.anno_assign.typed_getitem', {'type': defs.DictType, 'annotation': defs.Boolean}),
 		# Union
-		('a: str | None = None', 'file_input.anno_assign.typed_or_expr', defs.UnionType),
+		('a: str | None = None', 'file_input.anno_assign.typed_or_expr', {'type': defs.UnionType, 'annotation': defs.Empty}),
+		('a: A.B | None = None', 'file_input.anno_assign.typed_or_expr', {'type': defs.UnionType, 'annotation': defs.Empty}),
+		('a: dict[str, int] | None = None', 'file_input.anno_assign.typed_or_expr', {'type': defs.UnionType, 'annotation': defs.Empty}),
+		('a: \'str | None\' = None', 'file_input.anno_assign.typed_or_expr', {'type': defs.UnionType, 'annotation': defs.Empty}),
+		('a: \'A.B | None\' = None', 'file_input.anno_assign.typed_or_expr', {'type': defs.UnionType, 'annotation': defs.Empty}),
+		('a: \'dict[str, int] | None\' = None', 'file_input.anno_assign.typed_or_expr', {'type': defs.UnionType, 'annotation': defs.Empty}),
+		('a: Annotated[str | None, (0, 1)] = None', 'file_input.anno_assign.typed_or_expr', {'type': defs.UnionType, 'annotation': defs.Tuple}),
+		('a: Annotated[\'str | None\', (0, 1)] = None', 'file_input.anno_assign.typed_or_expr', {'type': defs.UnionType, 'annotation': defs.Tuple}),
+		('a: Annotated[A.B | None, []] = None', 'file_input.anno_assign.typed_or_expr', {'type': defs.UnionType, 'annotation': defs.List}),
+		('a: Annotated[\'A.B | None\', []] = None', 'file_input.anno_assign.typed_or_expr', {'type': defs.UnionType, 'annotation': defs.List}),
+		('a: Annotated[dict[str, int] | None, {}] = None', 'file_input.anno_assign.typed_or_expr', {'type': defs.UnionType, 'annotation': defs.Dict}),
+		('a: Annotated[\'dict[str, int] | None\', {}] = None', 'file_input.anno_assign.typed_or_expr', {'type': defs.UnionType, 'annotation': defs.Dict}),
 		# Null
-		('a: str | None = None', 'file_input.anno_assign.typed_or_expr.typed_none', defs.NullType),
-		('def func(a: int) -> None: ...', 'file_input.function_def.function_def_raw.typed_none', defs.NullType),
+		('a: str | None = None', 'file_input.anno_assign.typed_or_expr.typed_none', {'type': defs.NullType, 'annotation': defs.Empty}),
+		('def func(a: int) -> None: ...', 'file_input.function_def.function_def_raw.typed_none', {'type': defs.NullType, 'annotation': defs.Empty}),
 	])
-	def test_type(self, source: str, full_path: str, expected: type[defs.Type]) -> None:
+	def test_type(self, source: str, full_path: str, expected: dict[str, type[defs.Type]]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Type)
-		self.assertEqual(type(node), expected)
+		self.assertEqual(type(node), expected['type'])
+		self.assertTrue(node.annotation.is_a(expected['annotation']))
 
 	@data_provider([
 		('a: list[int] = []', 'file_input.anno_assign.typed_getitem', {'type_name': 'list', 'value_type': defs.VarOfType}),

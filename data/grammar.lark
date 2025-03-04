@@ -63,10 +63,7 @@ metaclass_argvalue: "metaclass" "=" typed_expression
 
 // @lark funcdef: "def" name "(" [parameters] ")" ["->" test] ":" suite
 function_def: [decorators] function_def_raw
-function_def_raw: "def" name "(" [parameters] ")" "->" return_type ":" block
-// @custom
-?return_type: (typed_expression | "'" typed_expression "'")
-	| "Annotated" "[" (typed_expression | "'" typed_expression "'") "," anno_meta "]"
+function_def_raw: "def" name "(" [parameters] ")" "->" typed_expression ":" block
 
 // @lark lambdadef: "lambda" [lambdaparams] ":" test
 // @lark lambdadef_nocond: "lambda" [lambdaparams] ":" test_nocond
@@ -83,7 +80,7 @@ parameters: paramvalue ("," paramvalue)* ["," starparam] ["," kwparams]
 	| starparam ["," kwparams]
 	| kwparams
 paramvalue: typedparam ["=" expression]
-typedparam: name (":" _decl_starable_typed_expression)?
+typedparam: name (":" starable_typed_expression)?
 starparam: "*" typedparam
 kwparams: "**" typedparam
 
@@ -92,17 +89,14 @@ typed_argvalue: typed_expression
 
 // @custom
 ?typed_expression: typed_or_expr
-?typed_or_expr: typed_primary ("|" typed_primary)*
+?typed_or_expr: typed_primary
+	| typed_primary ("|" typed_primary)+
+	| "Annotated" "[" "'"? (typed_primary ("|" typed_primary)+) "'"? "," anno_meta "]"
 ?typed_primary: typed_primary "." name -> typed_getattr
 	| typed_primary "[" typed_slices "]" -> typed_getitem
+	| "Annotated" "[" "'"? (typed_primary "." name) "'"? "," anno_meta "]" -> typed_getattr
+	| "Annotated" "[" "'"? (typed_primary "[" typed_slices "]") "'"? "," anno_meta "]" -> typed_getitem
 	| typed_atom
-
-// @custom
-_decl_typed_expression: (typed_expression | "'" typed_expression "'")
-	| "Annotated" "[" (typed_expression | "'" typed_expression "'") "," anno_meta "]"
-_decl_starable_typed_expression: (starable_typed_expression | "'" starable_typed_expression "'")
-	| "Annotated" "[" (starable_typed_expression | "'" starable_typed_expression "'") "," anno_meta "]"
-anno_meta: expression
 
 // @custom
 // @note TypeVarTuple用のアンパック構文 XXX 現状は受け入れるのみで評価しない
@@ -114,8 +108,13 @@ typed_slices: typed_slice | typed_slice (("," typed_slice)+ [","] | ",")
 
 // @custom
 ?typed_atom: name -> typed_var
+	| "Annotated" "[" "'"? name "'"? "," anno_meta "]" -> typed_var
 	| "None" -> typed_none
 	| "[" _typed_exprlist? "]" -> typed_list
+	| "'" typed_expression "'"
+
+// @custom
+anno_meta: expression
 
 // @custom
 _typed_exprlist: starable_typed_expression ("," starable_typed_expression)* [","]
@@ -175,14 +174,14 @@ with_item: expression ["as" name]
 // @note XXX assign_stmtのor条件が成り立たなくなるため、優先度を合わせるためにassign_namelistを共通で利用する
 ?assign_stmt: assign | anno_assign | aug_assign | class_var_assign | class_assign | template_assign
 assign: assign_namelist ("=" testlist)+
-anno_assign: assign_namelist ":" _decl_typed_expression ["=" expression]
+anno_assign: assign_namelist ":" typed_expression ["=" expression]
 aug_assign: assign_namelist aug_assign_op expression
 // @custom
-class_var_assign: assign_namelist ":" "ClassVar" "[" _decl_typed_expression "]" "=" expression
+class_var_assign: assign_namelist ":" "ClassVar" "[" typed_expression "]" "=" expression
 class_assign: assign_namelist ":" "TypeAlias" "=" typed_expression
 template_assign: assign_namelist "=" template_assign_class "(" string ["," template_assign_argvalue ("," template_assign_argvalue)*] ")"
-?template_assign_argvalue: (typed_expression | "'" typed_expression "'") -> template_assign_constraint
-	| ("bound" "=" (typed_expression | "'" typed_expression "'")) -> template_assign_boundary
+?template_assign_argvalue: typed_expression -> template_assign_constraint
+	| ("bound" "=" typed_expression) -> template_assign_boundary
 	| ("covariant" "=" atom) -> template_assign_covariant
 !template_assign_class: "TypeVar" -> typed_var | "TypeVarTuple" -> typed_var | "ParamSpec" -> typed_var
 

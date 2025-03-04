@@ -547,6 +547,7 @@ class ForAssign:
 		ns: list[int] = []
 		dsn: dict[str, int] = {}
 		ts: tuple[bool, int, str] = (True, 1, 'a')
+		static_dsn: Annotated[dict[str, int], Embed.static] = {'a': 1}
 
 	def move(self) -> None:
 		s = 'a'

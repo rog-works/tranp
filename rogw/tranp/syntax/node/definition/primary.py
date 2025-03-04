@@ -5,7 +5,6 @@ from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.lang.annotation import implements
 from rogw.tranp.lang.sequence import flatten, last_index_of
 from rogw.tranp.syntax.ast.path import EntryPath
-from rogw.tranp.syntax.ast.query import Query
 from rogw.tranp.syntax.errors import InvalidRelationError
 from rogw.tranp.syntax.node.behavior import IDomain, INamespace, IScope, ITerminal
 from rogw.tranp.syntax.node.definition.literal import Literal
@@ -312,11 +311,18 @@ class Type(Node, IDomain):
 	@property
 	@override
 	def domain_name(self) -> str:
-		return self.type_name.tokens
+		return DSN.join(*[node.tokens for node in self.type_name._children() if node.tag != 'anno_meta'])
 
 	@property
 	def type_name(self) -> 'Type':
 		return self
+
+	@property
+	def annotation(self) -> 'Node | Empty':
+		if not self._exists('anno_meta'):
+			return self.dirty_child(Empty, '__empty__', tokens='')
+
+		return self._by('anno_meta')._at(0)
 
 
 class GeneralType(Type): pass
@@ -437,7 +443,7 @@ class UnionType(Type):
 	@property
 	@Meta.embed(Node, expandable)
 	def or_types(self) -> list[Type]:
-		return [node.as_a(Type) for node in self._children()]
+		return [node.as_a(Type) for node in self._children() if node.is_a(Type)]
 
 	@property
 	@override

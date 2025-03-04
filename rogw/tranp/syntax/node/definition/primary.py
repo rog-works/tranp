@@ -443,7 +443,7 @@ class UnionType(Type):
 	@property
 	@Meta.embed(Node, expandable)
 	def or_types(self) -> list[Type]:
-		return [node.as_a(Type) for node in self._children()]
+		return [node.as_a(Type) for node in self._children() if node.tag != 'anno_meta']
 
 	@property
 	@override

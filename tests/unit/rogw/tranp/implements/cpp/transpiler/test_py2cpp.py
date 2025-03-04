@@ -326,6 +326,7 @@ class TestPy2Cpp(TestCase):
 		('ForAssign.anno', 'function_def_raw.block.anno_assign[1]', defs.AnnoAssign, 'std::vector<int> ns = {};'),
 		('ForAssign.anno', 'function_def_raw.block.anno_assign[2]', defs.AnnoAssign, 'std::map<std::string, int> dsn = {};'),
 		('ForAssign.anno', 'function_def_raw.block.anno_assign[3]', defs.AnnoAssign, 'std::tuple<bool, int, std::string> ts = {true, 1, "a"};'),
+		('ForAssign.anno', 'function_def_raw.block.anno_assign[4]', defs.AnnoAssign, 'static std::map<std::string, int> static_dsn = {{"a", 1}};'),
 
 		('ForAssign.move', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'std::string s = "a";'),
 		('ForAssign.move', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'std::vector<std::string> ss = {"a"};'),

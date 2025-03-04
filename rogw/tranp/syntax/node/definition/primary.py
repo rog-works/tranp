@@ -5,7 +5,6 @@ from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.lang.annotation import implements
 from rogw.tranp.lang.sequence import flatten, last_index_of
 from rogw.tranp.syntax.ast.path import EntryPath
-from rogw.tranp.syntax.ast.query import Query
 from rogw.tranp.syntax.errors import InvalidRelationError
 from rogw.tranp.syntax.node.behavior import IDomain, INamespace, IScope, ITerminal
 from rogw.tranp.syntax.node.definition.literal import Literal
@@ -317,6 +316,13 @@ class Type(Node, IDomain):
 	@property
 	def type_name(self) -> 'Type':
 		return self
+
+	@property
+	def annotation(self) -> 'Node | Empty':
+		if not self._exists('anno_meta'):
+			return self.dirty_child(Empty, '__empty__', tokens='')
+
+		return self._by('anno_meta')._at(0)
 
 
 class GeneralType(Type): pass

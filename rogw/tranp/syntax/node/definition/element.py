@@ -50,14 +50,6 @@ class Parameter(Node, IDeclaration, ISymbol):
 	def declare(self) -> 'Parameter':
 		return self
 
-	@property
-	def annotation(self) -> Node | Empty:
-		children = self._children('typedparam')
-		if len(children) == 3:
-			return children[2]._at(0)
-
-		return self._by('typedparam').dirty_child(Empty, '__empty__', tokens='')
-
 
 @Meta.embed(Node, accept_tags('decorator'))
 class Decorator(Node):

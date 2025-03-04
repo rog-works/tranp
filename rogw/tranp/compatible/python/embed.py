@@ -12,10 +12,12 @@ class Embed:
 	Attributes:
 		mutable: 変性フラグ (対象: 仮引数)
 		immutable: 不変性フラグ (対象: 仮引数)
+		static: 静的フラグ (対象: 関数ローカル変数)
 	"""
 
 	mutable: ClassVar[bool] = True
 	immutable: ClassVar[bool] = True
+	static: ClassVar[bool] = True
 
 	@classmethod
 	def python(cls, wrapped: T) -> T:

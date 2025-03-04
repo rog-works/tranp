@@ -330,7 +330,7 @@ class Py2Cpp(ITranspiler):
 		class_name = self.to_domain_name_by_class(node.class_types)
 		template_types = self.fetch_function_template_names(node)
 		# XXX 再帰的なトランスパイルでアノテーションを解決
-		return_type_annotation = self.transpile(node.return_type_annotation) if not node.return_type_annotation.is_a(defs.Empty) else ''
+		return_type_annotation = self.transpile(node.return_type.annotation) if isinstance(node.return_type.annotation, defs.Empty) else ''
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types, 'is_pure': node.is_pure}
 		method_vars = {'accessor': self.to_accessor(node.accessor), 'class_symbol': class_name, 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'return_type_annotation': return_type_annotation}
 		return self.view.render(f'function/{node.classification}', vars={**function_vars, **method_vars})
@@ -377,7 +377,7 @@ class Py2Cpp(ITranspiler):
 		class_name = self.to_domain_name_by_class(node.class_types)
 		template_types = self.fetch_function_template_names(node)
 		# XXX 再帰的なトランスパイルでアノテーションを解決
-		return_type_annotation = self.transpile(node.return_type_annotation) if not node.return_type_annotation.is_a(defs.Empty) else ''
+		return_type_annotation = self.transpile(node.return_type.annotation) if not node.return_type.annotation.is_a(defs.Empty) else ''
 		_symbol = ClassOperationMaps.operators.get(symbol, symbol)
 		function_vars = {'symbol': _symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types, 'is_pure': node.is_pure}
 		method_vars = {'accessor': self.to_accessor(node.accessor), 'class_symbol': class_name, 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'is_property': node.is_property, 'allow_override': self.allow_override_from_method(node), 'return_type_annotation': return_type_annotation}
@@ -424,7 +424,7 @@ class Py2Cpp(ITranspiler):
 			this_var_name = self.to_prop_name_by_decl(this_var)
 			# XXX 再帰的なトランスパイルで型名/アノテーションを解決
 			this_var_type = self.transpile(this_var.declare.one_of(*defs.DeclAssignTs).var_type)
-			this_var_annotation = self.transpile(decl_this_var.annotation) if not decl_this_var.annotation.is_a(defs.Empty) else ''
+			this_var_annotation = self.transpile(decl_this_var.var_type.annotation) if isinstance(decl_this_var.var_type.annotation, defs.Empty) else ''
 			this_var_vars = {'accessor': self.to_accessor(defs.to_accessor(this_var_name)), 'symbol': this_var_name, 'var_type': this_var_type, 'annotation': this_var_annotation}
 			vars.append(self.view.render(f'{node.classification}/_decl_this_var', vars=this_var_vars))
 
@@ -452,7 +452,7 @@ class Py2Cpp(ITranspiler):
 
 	def on_parameter(self, node: defs.Parameter, symbol: str, var_type: str, default_value: str) -> str:
 		# XXX 再帰的なトランスパイルでアノテーションを解決
-		annotation = self.transpile(node.annotation) if not node.annotation.is_a(defs.Empty) else ''
+		annotation = self.transpile(node.var_type.annotation) if not isinstance(node.var_type, defs.Empty) and isinstance(node.var_type.annotation, defs.Empty) else ''
 		return self.view.render(node.classification, vars={'symbol': symbol, 'var_type': var_type, 'default_value': default_value, 'annotation': annotation})
 
 	def on_decorator(self, node: defs.Decorator, path: str, arguments: list[str]) -> str:

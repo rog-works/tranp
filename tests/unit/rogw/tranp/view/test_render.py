@@ -1212,7 +1212,7 @@ class TestRenderer(TestCase):
 				'allow_override': False,
 				# method only
 				'is_property': False,
-				'return_type_annotation': 'Embed::immutable'
+				'return_type_annotation': 'Embed::immutable',
 			},
 			'\n'.join([
 				'public:',

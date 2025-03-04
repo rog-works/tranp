@@ -329,7 +329,7 @@ class Py2Cpp(ITranspiler):
 	def on_class_method(self, node: defs.ClassMethod, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		class_name = self.to_domain_name_by_class(node.class_types)
 		template_types = self.fetch_function_template_names(node)
-		return_type_annotation = node.return_type.annotation.tokens
+		return_type_annotation = self.transpile(node.return_type.annotation) if not isinstance(node.return_type.annotation, defs.Empty) else ''
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types, 'is_pure': node.is_pure}
 		method_vars = {'accessor': self.to_accessor(node.accessor), 'class_symbol': class_name, 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'return_type_annotation': return_type_annotation}
 		return self.view.render(f'function/{node.classification}', vars={**function_vars, **method_vars})
@@ -375,7 +375,7 @@ class Py2Cpp(ITranspiler):
 	def on_method(self, node: defs.Method, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		class_name = self.to_domain_name_by_class(node.class_types)
 		template_types = self.fetch_function_template_names(node)
-		return_type_annotation = node.return_type.annotation.tokens
+		return_type_annotation = self.transpile(node.return_type.annotation) if not isinstance(node.return_type.annotation, defs.Empty) else ''
 		_symbol = ClassOperationMaps.operators.get(symbol, symbol)
 		function_vars = {'symbol': _symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types, 'is_pure': node.is_pure}
 		method_vars = {'accessor': self.to_accessor(node.accessor), 'class_symbol': class_name, 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'is_property': node.is_property, 'allow_override': self.allow_override_from_method(node), 'return_type_annotation': return_type_annotation}
@@ -421,7 +421,7 @@ class Py2Cpp(ITranspiler):
 			decl_this_var = decl_this_vars[this_var.tokens_without_this]
 			this_var_name = self.to_prop_name_by_decl(this_var)
 			this_var_type = self.transpile(this_var.declare.one_of(*defs.DeclAssignTs).var_type)
-			this_var_annotation = decl_this_var.var_type.annotation.tokens
+			this_var_annotation = self.transpile(decl_this_var.var_type.annotation) if not isinstance(decl_this_var.var_type.annotation, defs.Empty) else ''
 			this_var_vars = {'accessor': self.to_accessor(defs.to_accessor(this_var_name)), 'symbol': this_var_name, 'var_type': this_var_type, 'annotation': this_var_annotation}
 			vars.append(self.view.render(f'{node.classification}/_decl_this_var', vars=this_var_vars))
 
@@ -448,7 +448,7 @@ class Py2Cpp(ITranspiler):
 	# Function/Class Elements
 
 	def on_parameter(self, node: defs.Parameter, symbol: str, var_type: str, default_value: str) -> str:
-		annotation = node.var_type.annotation.tokens if isinstance(node.var_type, defs.Type) else ''
+		annotation = self.transpile(node.var_type.annotation) if isinstance(node.var_type, defs.Type) and not isinstance(node.var_type.annotation, defs.Empty) else ''
 		return self.view.render(node.classification, vars={'symbol': symbol, 'var_type': var_type, 'default_value': default_value, 'annotation': annotation})
 
 	def on_decorator(self, node: defs.Decorator, path: str, arguments: list[str]) -> str:
@@ -488,7 +488,8 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(f'assign/{node.classification}_destruction', vars={'receivers': receivers, 'value': value})
 
 	def on_anno_assign(self, node: defs.AnnoAssign, receiver: str, var_type: str, value: str) -> str:
-		return self.view.render(f'assign/{node.classification}', vars={'receiver': receiver, 'var_type': var_type, 'value': value, 'annotation': node.var_type.annotation.tokens})
+		annotation = self.transpile(node.var_type.annotation) if not isinstance(node.var_type.annotation, defs.Empty) else ''
+		return self.view.render(f'assign/{node.classification}', vars={'receiver': receiver, 'var_type': var_type, 'value': value, 'annotation': annotation})
 
 	def on_aug_assign(self, node: defs.AugAssign, receiver: str, value: str) -> str:
 		return self.view.render(f'assign/{node.classification}', vars={'receiver': receiver, 'operator': node.operator.tokens, 'value': value})

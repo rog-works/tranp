@@ -311,7 +311,7 @@ class Type(Node, IDomain):
 	@property
 	@override
 	def domain_name(self) -> str:
-		return self.type_name.tokens
+		return DSN.join(*[node.tokens for node in self.type_name._children() if node.tag != 'anno_meta'])
 
 	@property
 	def type_name(self) -> 'Type':

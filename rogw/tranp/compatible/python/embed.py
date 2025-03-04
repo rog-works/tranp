@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from typing import Any, ClassVar, TypeVar
+from typing import Any, TypeVar
 
 from rogw.tranp.compatible.libralies.classes import __actual__
 
@@ -7,17 +7,22 @@ T = TypeVar('T')
 
 
 class Embed:
-	"""埋め込みモジュール
+	"""埋め込みモジュール"""
 
-	Attributes:
-		mutable: 変性フラグ (対象: 仮引数)
-		immutable: 不変性フラグ (対象: 仮引数)
-		static: 静的フラグ (対象: 関数ローカル変数)
-	"""
+	@classmethod
+	def mutable(cls) -> None:
+		"""変性フラグを埋め込み (対象: 仮引数)"""
+		...
 
-	mutable: ClassVar[bool] = True
-	immutable: ClassVar[bool] = True
-	static: ClassVar[bool] = True
+	@classmethod
+	def immutable(cls) -> None:
+		"""不変性フラグを埋め込み (対象: 仮引数)"""
+		...
+
+	@classmethod
+	def static(cls) -> None:
+		"""静的フラグを埋め込み (対象: 関数のローカル変数)"""
+		...
 
 	@classmethod
 	def python(cls, wrapped: T) -> T:

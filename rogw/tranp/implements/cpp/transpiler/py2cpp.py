@@ -137,9 +137,11 @@ class Py2Cpp(ITranspiler):
 		var_type = ClassDomainNaming.accessible_name(actual_raw.types, alias_handler=self.i18n.t)
 		attr_types = [self.to_accessible_name(attr) for attr in actual_raw.attrs]
 		if actual_raw.types.is_a(defs.Method):
-			var_type = f'{attr_types[-1]}({var_type}::*)({", ".join(attr_types)})'
+			var_type = f'{attr_types[-1]}({DSN.join(*DSN.elements(var_type)[:-1])}::*)({", ".join(attr_types[1:-1])})'
+		elif actual_raw.types.is_a(defs.ClassMethod):
+			var_type = f'{attr_types[-1]}({", ".join(attr_types[1:-1])})'
 		elif actual_raw.types.is_a(defs.Function):
-			var_type = f'{attr_types[-1]}({", ".join(attr_types)})'
+			var_type = f'{attr_types[-1]}({", ".join(attr_types[:-1])})'
 		elif not actual_raw.types.is_a(defs.AltClass) and len(attr_types) > 0:
 			var_type = f'{var_type}<{", ".join(attr_types)}>'
 
@@ -1201,8 +1203,7 @@ class Py2Cpp(ITranspiler):
 
 	def on_lambda(self, node: defs.Lambda, expression: str) -> str:
 		expression_raw = self.reflections.type_of(node.expression)
-		# XXX 推論結果がNoneの場合は明示的にvoidに変換 @see on_null_type
-		var_type = 'void' if expression_raw.impl(refs.Object).type_is(None) else self.to_accessible_name(expression_raw)
+		var_type = self.to_accessible_name(expression_raw)
 		return self.view.render(node.classification, vars={'expression': expression, 'var_type': var_type})
 
 	# Terminal

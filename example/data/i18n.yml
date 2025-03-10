@@ -15,6 +15,7 @@ aliases.rogw.tranp.compatible.lang#accessor.protected: protected
 aliases.rogw.tranp.compatible.lang#accessor.private: private
 # classes
 aliases.rogw.tranp.compatible.libralies.classes#Exception: std::exception
+aliases.rogw.tranp.compatible.libralies.classes#None: void
 aliases.rogw.tranp.compatible.libralies.classes#RuntimeError: std::runtime_error
 aliases.rogw.tranp.compatible.libralies.classes#dict: std::map
 aliases.rogw.tranp.compatible.libralies.classes#dict.in: contains

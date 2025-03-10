@@ -135,8 +135,12 @@ class Py2Cpp(ITranspiler):
 		"""
 		actual_raw = raw.impl(refs.Object).actualize('nullable')
 		var_type = ClassDomainNaming.accessible_name(actual_raw.types, alias_handler=self.i18n.t)
-		if len(actual_raw.attrs) > 0 and not actual_raw.types.is_a(defs.AltClass):
-			attr_types = [self.to_accessible_name(attr) for attr in actual_raw.attrs]
+		attr_types = [self.to_accessible_name(attr) for attr in actual_raw.attrs]
+		if actual_raw.types.is_a(defs.Method):
+			var_type = f'{attr_types[-1]}({var_type}::*)({", ".join(attr_types)})'
+		elif actual_raw.types.is_a(defs.Function):
+			var_type = f'{attr_types[-1]}({", ".join(attr_types)})'
+		elif not actual_raw.types.is_a(defs.AltClass) and len(attr_types) > 0:
 			var_type = f'{var_type}<{", ".join(attr_types)}>'
 
 		var_type = self.view.render('type_py2cpp', vars={'var_type': var_type})

@@ -134,17 +134,13 @@ class Py2Cpp(ITranspiler):
 			```
 		"""
 		actual_raw = raw.impl(refs.Object).actualize('nullable')
-		shorthand = ClassShorthandNaming.accessible_name(actual_raw, alias_handler=self.i18n.t)
+		var_type = ClassDomainNaming.accessible_name(actual_raw.types, alias_handler=self.i18n.t)
+		if len(actual_raw.attrs) > 0 and not actual_raw.types.is_a(defs.AltClass):
+			attr_types = [self.to_accessible_name(attr) for attr in actual_raw.attrs]
+			var_type = f'{var_type}<{", ".join(attr_types)}>'
 
-		# C++型変数の表記変換
-		if len([True for key in CVars.keys() if key in shorthand]) > 0:
-			def formatter(entry: BlockFormatter) -> str | None:
-				var_type = entry.block(alt_formatter=formatter)
-				return self.view.render('type_py2cpp', vars={'var_type': var_type})
-
-			shorthand = BlockParser.parse_to_formatter(shorthand, '<>', ',').format(alt_formatter=formatter)
-
-		return DSN.join(*DSN.elements(shorthand), delimiter='::')
+		var_type = self.view.render('type_py2cpp', vars={'var_type': var_type})
+		return DSN.join(*DSN.elements(var_type), delimiter='::')
 
 	def to_domain_name(self, var_type_raw: IReflection) -> str:
 		"""明示された型からドメイン名を取得 (主にAnnoAssignで利用)

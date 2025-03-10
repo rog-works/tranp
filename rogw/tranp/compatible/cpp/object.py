@@ -321,30 +321,30 @@ class CRaw(CVarNotNull[T_co]):
 T_Func = TypeVar('T_Func', bound=Callable)
 
 
-def c_func_addr(func: T_Func) -> CP[T_Func]:
+def c_func_addr(func: T_Func) -> T_Func:
 	"""関数オブジェクトをC++用の関数ポインターとして解釈を変更
 
 	Args:
 		func: 関数オブジェクト
 	Returns:
-		関数ポインター
+		関数オブジェクト (C++ではアドレス)
 	Note:
 		```
 		XXX C++ではリレー上は関数は実体であり、値として参照する場合のみアドレス参照('&')を通して関数ポインターへ変換する
 		XXX 関数をPythonと同じようにシームレスに扱えないため、変換用の関数を通して解釈を変更する
 		```
 	"""
-	return CP(func)
+	return func
 
 
-def c_func_ref(func: T_Func) -> CRef[T_Func]:
+def c_func_ref(func: T_Func) -> T_Func:
 	"""関数オブジェクトをC++用の関数ポインター(参照)として解釈を変更
 
 	Args:
 		func: 関数オブジェクト
 	Returns:
-		関数ポインター(参照)
+		関数オブジェクト (C++では参照)
 	Note:
 		@see c_func_addr
 	"""
-	return CRef(func)
+	return func

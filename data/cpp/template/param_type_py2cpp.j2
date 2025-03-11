@@ -1,0 +1,9 @@
+{%- set origin = reg_replace('^([\\w\\d:_]+).*$', '\\1', var_type) -%}
+{%- set add_ref = '&' if var_type[-1] not in ['*', '&'] else '' -%}
+{%- set mod_mutable = annotation == 'Embed::mutable' -%}
+{%- set mod_immutable = annotation == 'Embed::immutable' or origin in env_get('immutable_param_types', []) -%}
+{%- if not mod_mutable and mod_immutable -%}
+	const {{ var_type }}{{ add_ref }}
+{%- else -%}
+	{{ var_type }}
+{%- endif -%}

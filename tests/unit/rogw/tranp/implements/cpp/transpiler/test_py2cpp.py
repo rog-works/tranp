@@ -376,17 +376,14 @@ class TestPy2Cpp(TestCase):
 		('ForIndexer.string_slice', 'function_def_raw.block.getitem[1]', defs.Indexer, 's.substr(0, 5);'),
 
 		('ForFuncCall.CallableType', '', defs.Class, 'public:\n/** CallableType */\nclass CallableType {\n\tpublic: std::function<bool(int, std::string)> func;\n\tpublic:\n\t/** __init__ */\n\tCallableType(const std::function<bool(int, std::string)>& func) : func(func) {}\n};'),
-		# FIXME 型推論自体に問題はなく、トランスパイルが期待通りではないと言うだけ
-		# FIXME 型を明示すれば回避できる上、C++で関数の代入はまずしない
-		# FIXME 本来の期待値 ('ForFuncCall.move_assign', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'std::function<bool(int, std::string))> func = caller.func;'),
-		('ForFuncCall.move_assign', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'std::function<int, std::string, bool> func = caller.func;'),
+		('ForFuncCall.move_assign', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'std::function<bool(int, const std::string&)> func = caller.func;'),
 		('ForFuncCall.move_assign', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'bool b0 = caller.func(0, "");'),
 		('ForFuncCall.move_assign', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'bool b1 = func(0, "");'),
 
 		('ForFuncCall.Func.print', 'function_def_raw.block.funccall', defs.FuncCall, 'printf("message. %d, %f, %s", 1, 1.0, "abc");'),
 
-		('ForFuncCall.Func.c_func', 'function_def_raw.block.assign', defs.MoveAssign, 'std::map<std::string, int(ForFuncCall::Func::*)()> dsf = {{"f", &ForFuncCall::Func::c_func}};'),
-		('ForFuncCall.Func.c_func', 'function_def_raw.block.return_stmt', defs.Return, 'return (this->*(dsf["f"]))();'),
+		('ForFuncCall.Func.c_func', 'function_def_raw.block.assign', defs.MoveAssign, 'std::map<std::string, int(ForFuncCall::Func::*)(const std::string&)> dsf = {{"f", &ForFuncCall::Func::c_func}};'),
+		('ForFuncCall.Func.c_func', 'function_def_raw.block.return_stmt', defs.Return, 'return (this->*(dsf["f"]))("a");'),
 
 		('ForFuncCall.Class.literalize', 'function_def_raw.block.funccall[0]', defs.FuncCall, 'printf("Class2");'),
 		('ForFuncCall.Class.literalize', 'function_def_raw.block.funccall[1]', defs.FuncCall, f'printf("{fixture_module_path}");'),
@@ -520,7 +517,7 @@ class TestPy2Cpp(TestCase):
 		('ForComp.dict_comp_from_dict', 'function_def_raw.block.dict_comp[10]', defs.DictComp, BlockExpects.dict_comp(proj_key='vp', proj_value='vp', proj_key_type='int*', proj_value_type='int*', iterates='dpp', proj_symbols='[_, vp]')),
 		('ForComp.dict_comp_from_dict', 'function_def_raw.block.dict_comp[11]', defs.DictComp, BlockExpects.dict_comp(proj_key='kp', proj_value='vp', proj_key_type='int*', proj_value_type='int*', iterates='dpp', proj_symbols='[kp, vp]')),
 
-		('ForLambda.expression', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'std::function<int> f = [&]() -> int { return 1; };'),
+		('ForLambda.expression', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'std::function<int()> f = [&]() -> int { return 1; };'),
 		('ForLambda.expression', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'int n = f();'),
 		('ForLambda.expression', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'std::string s = ([&]() -> std::string { return "a"; })();'),
 		('ForLambda.expression', 'function_def_raw.block.if_stmt', defs.If, 'if (([&]() -> bool { return true; })()) {\n\n}'),

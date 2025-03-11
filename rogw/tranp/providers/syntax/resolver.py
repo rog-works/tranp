@@ -84,7 +84,7 @@ def symbol_mapping() -> SymbolMapping:
 			defs.CustomType: ['typed_getitem'],
 			defs.UnionType: ['typed_or_expr'],
 			defs.NullType: ['typed_none'],
-			defs.TypeParameters: ['typed_list'],
+			defs.TypeParameters: ['typed_list', 'typed_elipsis'],
 			defs.Super: ['funccall'],
 			defs.FuncCall: ['funccall'],
 			defs.Elipsis: ['elipsis'],

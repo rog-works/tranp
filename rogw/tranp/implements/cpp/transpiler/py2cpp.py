@@ -1,7 +1,7 @@
 import re
 from typing import Any, ClassVar, Protocol, Self, TypeVarTuple, cast
 
-from rogw.tranp.compatible.cpp.object import CP, c_func_addr, c_func_ref
+from rogw.tranp.compatible.cpp.object import CP, c_func_invoke, c_func_ref
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 from rogw.tranp.compatible.python.embed import Embed
 from rogw.tranp.compatible.python.types import Union
@@ -28,7 +28,7 @@ import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.definition.accessible import PythonClassOperations
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.transpiler.types import ITranspiler, TranspilerOptions
-from rogw.tranp.view.helper.block import BlockFormatter, BlockParser
+from rogw.tranp.view.helper.block import BlockParser
 from rogw.tranp.view.render import Renderer
 
 
@@ -819,7 +819,11 @@ class Py2Cpp(ITranspiler):
 			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == 'c_pragma':
 			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
-		elif spec == 'c_func':
+		elif spec == 'c_func_invoke':
+			receiver_raw = Defer.new(lambda: self.reflections.type_of(node.arguments[0]))
+			operator = '->' if node.arguments[0].value.is_a(defs.ThisRef) or CVars.is_addr(CVars.key_from(receiver_raw)) else '.'
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'operator': operator})
+		elif spec == 'c_func_ref':
 			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == PythonClassOperations.copy_constructor:
 			# 期待値: 'receiver.__py_copy__'
@@ -947,8 +951,10 @@ class Py2Cpp(ITranspiler):
 				return 'c_include', None
 			elif calls == c_macro.__name__:
 				return 'c_macro', None
-			elif calls in [c_func_addr.__name__, c_func_ref.__name__]:
-				return 'c_func', None
+			elif calls == c_func_invoke.__name__:
+				return 'c_func_invoke', None
+			elif calls == c_func_ref.__name__:
+				return 'c_func_ref', None
 			elif calls == len.__name__:
 				return 'len', self.reflections.type_of(node.arguments[0])
 			elif calls == print.__name__:

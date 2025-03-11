@@ -122,7 +122,7 @@ class ClassDomainNaming:
 		ancestors: list[defs.ClassDef] = []
 		while not isinstance(curr, defs.Entrypoint):
 			if isinstance(curr, defs.ClassDef):
-				ancestors.append(curr)
+				ancestors.insert(0, curr)
 
 			curr = curr.parent
 

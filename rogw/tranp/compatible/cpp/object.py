@@ -359,7 +359,7 @@ def c_func_invoke(receiver: T, func: Callable[[T, *T_Args], T_Ret], *args: *T_Ar
 		```
 		* XXX C++の関数ポインターは変数単体とコレクション型で変数宣言のシグネチャーが異なる
 		* XXX 実装の煩雑さを回避するため、コレクション型のみ利用すると言う前提で扱い、変数単体は非対応とする
-		* XXX また、TypedVarTupleのテンプレート展開が不完全であるため、c_func_invokeの戻り値の型はMoveAssignで推論できない点に注意
+		* XXX また、TypeVarTupleのテンプレート展開が不完全であるため、c_func_invokeの戻り値の型はMoveAssignで推論できない点に注意
 		```
 	Examples:
 		```python

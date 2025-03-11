@@ -122,7 +122,7 @@ class ClassDomainNaming:
 		ancestors: list[defs.ClassDef] = []
 		while not isinstance(curr, defs.Entrypoint):
 			if isinstance(curr, defs.ClassDef):
-				ancestors.append(curr)
+				ancestors.insert(0, curr)
 
 			curr = curr.parent
 
@@ -151,7 +151,7 @@ class ClassShorthandNaming:
 		Returns:
 			短縮表記
 		"""
-		return cls.__make_impl(raw, alias_handler, PathMethods.Domain)
+		return cls.__make_general(raw, alias_handler, PathMethods.Domain)
 
 	@classmethod
 	def fullyname(cls, raw: IReflection, alias_handler: AliasHandler | None = None) -> str:
@@ -163,7 +163,7 @@ class ClassShorthandNaming:
 		Returns:
 			短縮表記
 		"""
-		return cls.__make_impl(raw, alias_handler, PathMethods.Fully)
+		return cls.__make_general(raw, alias_handler, PathMethods.Fully)
 
 	@classmethod
 	def accessible_name(cls, raw: IReflection, alias_handler: AliasHandler | None = None) -> str:
@@ -175,7 +175,7 @@ class ClassShorthandNaming:
 		Returns:
 			短縮表記
 		"""
-		return cls.__make_impl(raw, alias_handler, PathMethods.Accessible)
+		return cls.__make_general(raw, alias_handler, PathMethods.Accessible)
 
 	@classmethod
 	def domain_name_for_debug(cls, raw: IReflection, alias_handler: AliasHandler | None = None) -> str:
@@ -187,31 +187,47 @@ class ClassShorthandNaming:
 		Returns:
 			短縮表記
 		"""
-		return cls.__make_impl(raw, alias_handler, PathMethods.Domain, omit_attrs=[])
+		return cls.__make_decorate(raw, alias_handler, PathMethods.Domain)
 
 	@classmethod
-	def __make_impl(cls, raw: IReflection, alias_handler: AliasHandler | None, path_method: PathMethods, omit_attrs: list[type[Node]] = [defs.AltClass]) -> str:
-		"""クラスの短縮表記を生成
+	def __make_general(cls, raw: IReflection, alias_handler: AliasHandler | None, path_method: PathMethods) -> str:
+		"""クラスの短縮表記を生成(一般型)
 
 		Args:
 			raw: シンボル
 			alias_handler: エイリアス解決ハンドラー
 			path_method: パス生成方式
-			omit_attrs: 拡張情報の省略対象 (default = [AltClass])
 		Returns:
 			短縮表記
 		"""
 		symbol_name = ClassDomainNaming.make_manualy(raw.types, alias_handler, path_method)
-		adding_attrs = len(omit_attrs) == 0 or not issubclass(type(raw.types), *omit_attrs)
-		if adding_attrs and len(raw.attrs) > 0:
-			if raw.types.is_a(defs.AltClass):
-				attrs = [cls.__make_impl(attr, alias_handler, path_method, omit_attrs) for attr in raw.attrs]
-				return f'{symbol_name}={attrs[0]}'
-			elif raw.types.is_a(defs.Function):
-				attrs = [cls.__make_impl(attr, alias_handler, path_method, omit_attrs) for attr in raw.attrs]
-				return f'{symbol_name}({", ".join(attrs[:-1])}) -> {attrs[-1]}'
-			else:
-				attrs = [cls.__make_impl(attr, alias_handler, path_method, omit_attrs) for attr in raw.attrs]
-				return f'{symbol_name}<{", ".join(attrs)}>'
+		if len(raw.attrs) == 0 or raw.types.is_a(defs.AltClass):
+			return symbol_name
 
-		return symbol_name
+		attrs = [cls.__make_general(attr, alias_handler, path_method) for attr in raw.attrs]
+		return f'{symbol_name}<{", ".join(attrs)}>'
+
+	@classmethod
+	def __make_decorate(cls, raw: IReflection, alias_handler: AliasHandler | None, path_method: PathMethods) -> str:
+		"""クラスの短縮表記を生成(装飾型)
+
+		Args:
+			raw: シンボル
+			alias_handler: エイリアス解決ハンドラー
+			path_method: パス生成方式
+		Returns:
+			短縮表記
+		"""
+		symbol_name = ClassDomainNaming.make_manualy(raw.types, alias_handler, path_method)
+		if len(raw.attrs) == 0:
+			return symbol_name
+
+		if raw.types.is_a(defs.AltClass):
+			attrs = [cls.__make_decorate(attr, alias_handler, path_method) for attr in raw.attrs]
+			return f'{symbol_name}={attrs[0]}'
+		elif raw.types.is_a(defs.Function):
+			attrs = [cls.__make_decorate(attr, alias_handler, path_method) for attr in raw.attrs]
+			return f'{symbol_name}({", ".join(attrs[:-1])}) -> {attrs[-1]}'
+		else:
+			attrs = [cls.__make_decorate(attr, alias_handler, path_method) for attr in raw.attrs]
+			return f'{symbol_name}<{", ".join(attrs)}>'

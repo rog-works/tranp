@@ -138,8 +138,8 @@ class ReflectionBase(IReflection):
 	@property
 	@implements
 	def shorthand(self) -> str:
-		"""Returns: オブジェクトの短縮表記"""
-		return ClassShorthandNaming.domain_name(self)
+		"""Returns: オブジェクトの短縮表記(装飾) Note: デバッグ用途のため判定に用いるのはNG"""
+		return ClassShorthandNaming.domain_name_for_debug(self)
 
 	@implements
 	def stacktrace(self) -> Iterator[IReflection]:

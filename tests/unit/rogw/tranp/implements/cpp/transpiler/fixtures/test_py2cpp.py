@@ -4,7 +4,7 @@ from typing import Annotated, ClassVar, Generic, Protocol, Self, TypeAlias, Type
 
 from rogw.tranp.compatible.cpp.classes import char, void
 from rogw.tranp.compatible.cpp.enum import CEnum as Enum
-from rogw.tranp.compatible.cpp.object import CP, CPConst, CRawConst, CRef, CSP, CRefConst, c_func_ref
+from rogw.tranp.compatible.cpp.object import CP, CPConst, CRawConst, CRef, CSP, CRefConst, c_func_invoke, c_func_ref
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 from rogw.tranp.compatible.python.embed import Embed
 
@@ -638,6 +638,10 @@ class ForFuncCall:
 		def print(self) -> None:
 			print('message. %d, %f, %s', 1, 1.0, 'abc')
 
+		def c_func(self, s: str) -> int:
+			dsf = {'f': c_func_ref(ForFuncCall.Func.c_func)}
+			return c_func_invoke(self, dsf['f'], 'a')
+
 	@Embed.alias('Class2')
 	class Class:
 		def literalize(self, t: type[Alias]) -> None:
@@ -796,7 +800,7 @@ T_Base = TypeVar('T_Base', bound=Base)
 
 class ForTemplateClass:
 	class Delegate(Generic[*T_Args]):
-		def bind(self, obj: CP[T], method: CRefConst[Callable[[T, *T_Args], None]]) -> None: ...
+		def bind(self, obj: CP[T], method: Annotated[Callable[[T, *T_Args], None], Embed.immutable]) -> None: ...
 		def invoke(self, *args: *T_Args) -> None: ...
 
 	class A:
@@ -804,7 +808,7 @@ class ForTemplateClass:
 
 	def bind_call(self, a: CP[A]) -> None:
 		d = ForTemplateClass.Delegate[bool, int]()
-		d.bind(a, c_func_ref(ForTemplateClass.A.func).const)
+		d.bind(a, c_func_ref(ForTemplateClass.A.func))
 		d.invoke(True, 1)
 
 	def boundary_call(self, t: type[T_Base]) -> T_Base:

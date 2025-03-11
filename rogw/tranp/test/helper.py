@@ -5,13 +5,12 @@ P = ParamSpec('P')
 T_Ret = TypeVar('T_Ret')
 
 
-def data_provider(args_list: list[tuple], includes: list[int] = [], excludes: list[int] = []) -> Callable:
+def data_provider(args_list: list[tuple], *includes: int) -> Callable:
 	"""テストメソッドにデータを注入するデコレーター
 
 	Args:
 		args_list: 注入する引数リスト
-		includes: 注入するインデックス([]: 指定なし)
-		excludes: 注入を除外するインデックス([]: 指定なし)
+		*includes: 実行インデックス
 	Returns:
 		デコレーター
 	"""
@@ -19,9 +18,6 @@ def data_provider(args_list: list[tuple], includes: list[int] = [], excludes: li
 		def wrapper(self, *_):
 			for index, provide_args in enumerate(args_list):
 				if len(includes) and index not in includes:
-					continue
-
-				if len(excludes) and index in excludes:
 					continue
 
 				try:

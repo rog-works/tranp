@@ -1,7 +1,8 @@
+from collections.abc import Callable
 import re
 from typing import Any, ClassVar, Protocol, Self, TypeVarTuple, cast
 
-from rogw.tranp.compatible.cpp.object import CP, c_func_addr, c_func_ref
+from rogw.tranp.compatible.cpp.object import CP, c_func_invoke, c_func_ref
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 from rogw.tranp.compatible.python.embed import Embed
 from rogw.tranp.compatible.python.types import Union
@@ -28,7 +29,7 @@ import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.definition.accessible import PythonClassOperations
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.transpiler.types import ITranspiler, TranspilerOptions
-from rogw.tranp.view.helper.block import BlockFormatter, BlockParser
+from rogw.tranp.view.helper.block import BlockParser
 from rogw.tranp.view.render import Renderer
 
 
@@ -134,17 +135,26 @@ class Py2Cpp(ITranspiler):
 			```
 		"""
 		actual_raw = raw.impl(refs.Object).actualize('nullable')
-		shorthand = ClassShorthandNaming.accessible_name(actual_raw, alias_handler=self.i18n.t)
+		var_type = ClassDomainNaming.accessible_name(actual_raw.types, alias_handler=self.i18n.t)
+		attr_types: list[str] = [self.to_accessible_name(attr) for attr in actual_raw.attrs]
+		if actual_raw.types.is_a(defs.Method):
+			# FIXME アノテーションを考慮しておらず場当たり的な対応
+			param_types = [self.view.render('param_type_py2cpp', vars={'var_type': attr_type}) for attr_type in attr_types[1:-1]]
+			var_type = f'{attr_types[-1]}({DSN.join(*DSN.elements(var_type)[:-1])}::*)({", ".join(param_types)})'
+		elif actual_raw.types.is_a(defs.ClassMethod):
+			param_types = [self.view.render('param_type_py2cpp', vars={'var_type': attr_type}) for attr_type in attr_types[1:-1]]
+			var_type = f'{attr_types[-1]}({", ".join(param_types)})'
+		elif actual_raw.types.is_a(defs.Function):
+			param_types = [self.view.render('param_type_py2cpp', vars={'var_type': attr_type}) for attr_type in attr_types[:-1]]
+			var_type = f'{attr_types[-1]}({", ".join(param_types)})'
+		elif actual_raw.type_is(Callable):
+			param_types = [self.view.render('param_type_py2cpp', vars={'var_type': attr_type}) for attr_type in attr_types[:-1]]
+			var_type = f'{var_type}<{attr_types[-1]}({", ".join(param_types)})>'
+		elif not actual_raw.types.is_a(defs.AltClass) and len(attr_types) > 0:
+			var_type = f'{var_type}<{", ".join(attr_types)}>'
 
-		# C++型変数の表記変換
-		if len([True for key in CVars.keys() if key in shorthand]) > 0:
-			def formatter(entry: BlockFormatter) -> str | None:
-				var_type = entry.block(alt_formatter=formatter)
-				return self.view.render('type_py2cpp', vars={'var_type': var_type})
-
-			shorthand = BlockParser.parse_to_formatter(shorthand, '<>', ',').format(alt_formatter=formatter)
-
-		return DSN.join(*DSN.elements(shorthand), delimiter='::')
+		var_type = self.view.render('type_py2cpp', vars={'var_type': var_type})
+		return DSN.join(*DSN.elements(var_type), delimiter='::')
 
 	def to_domain_name(self, var_type_raw: IReflection) -> str:
 		"""明示された型からドメイン名を取得 (主にAnnoAssignで利用)
@@ -817,7 +827,11 @@ class Py2Cpp(ITranspiler):
 			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == 'c_pragma':
 			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
-		elif spec == 'c_func':
+		elif spec == 'c_func_invoke':
+			receiver_raw = Defer.new(lambda: self.reflections.type_of(node.arguments[0]))
+			operator = '->' if node.arguments[0].value.is_a(defs.ThisRef) or CVars.is_addr(CVars.key_from(receiver_raw)) else '.'
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'operator': operator})
+		elif spec == 'c_func_ref':
 			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == PythonClassOperations.copy_constructor:
 			# 期待値: 'receiver.__py_copy__'
@@ -945,8 +959,10 @@ class Py2Cpp(ITranspiler):
 				return 'c_include', None
 			elif calls == c_macro.__name__:
 				return 'c_macro', None
-			elif calls in [c_func_addr.__name__, c_func_ref.__name__]:
-				return 'c_func', None
+			elif calls == c_func_invoke.__name__:
+				return 'c_func_invoke', None
+			elif calls == c_func_ref.__name__:
+				return 'c_func_ref', None
 			elif calls == len.__name__:
 				return 'len', self.reflections.type_of(node.arguments[0])
 			elif calls == print.__name__:
@@ -1201,8 +1217,7 @@ class Py2Cpp(ITranspiler):
 
 	def on_lambda(self, node: defs.Lambda, expression: str) -> str:
 		expression_raw = self.reflections.type_of(node.expression)
-		# XXX 推論結果がNoneの場合は明示的にvoidに変換 @see on_null_type
-		var_type = 'void' if expression_raw.impl(refs.Object).type_is(None) else self.to_accessible_name(expression_raw)
+		var_type = self.to_accessible_name(expression_raw)
 		return self.view.render(node.classification, vars={'expression': expression, 'var_type': var_type})
 
 	# Terminal

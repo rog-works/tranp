@@ -460,7 +460,7 @@ class NullType(Type, ITerminal):
 		return 'None'
 
 
-@Meta.embed(Node, accept_tags('typed_list'))
+@Meta.embed(Node, accept_tags('typed_list', 'typed_elipsis'))
 class TypeParameters(Node):
 	@property
 	@Meta.embed(Node, expandable)

@@ -4,7 +4,7 @@ from typing import Annotated, ClassVar, Generic, Protocol, Self, TypeAlias, Type
 
 from rogw.tranp.compatible.cpp.classes import char, void
 from rogw.tranp.compatible.cpp.enum import CEnum as Enum
-from rogw.tranp.compatible.cpp.object import CP, CPConst, CRawConst, CRef, CSP, CRefConst, c_func_ref
+from rogw.tranp.compatible.cpp.object import CP, CPConst, CRawConst, CRef, CSP, CRefConst, c_func_invoke, c_func_ref
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 from rogw.tranp.compatible.python.embed import Embed
 
@@ -637,6 +637,10 @@ class ForFuncCall:
 	class Func:
 		def print(self) -> None:
 			print('message. %d, %f, %s', 1, 1.0, 'abc')
+
+		def c_func(self) -> int:
+			dsf = {'f': c_func_ref(ForFuncCall.Func.c_func)}
+			return c_func_invoke(self, dsf['f'])
 
 	@Embed.alias('Class2')
 	class Class:

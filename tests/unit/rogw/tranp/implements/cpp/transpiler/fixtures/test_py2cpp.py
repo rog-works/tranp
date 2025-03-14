@@ -638,9 +638,16 @@ class ForFuncCall:
 		def print(self) -> None:
 			print('message. %d, %f, %s', 1, 1.0, 'abc')
 
-		def c_func(self, s: str) -> int:
-			dsf = {'f': c_func_ref(ForFuncCall.Func.c_func)}
-			return c_func_invoke(self, dsf['f'], 'a')
+		def func_self(self, s: str) -> int: ...
+		@classmethod
+		def func_cls(cls, n: int) -> str: ...
+
+		def c_func(self) -> None:
+			ds = {'f': c_func_ref(ForFuncCall.Func.func_self)}
+			n: int = c_func_invoke(self, ds['f'], 'a')
+
+			dc = {'f': c_func_ref(ForFuncCall.Func.func_cls)}
+			s: str = dc['f'](1)
 
 	@Embed.alias('Class2')
 	class Class:

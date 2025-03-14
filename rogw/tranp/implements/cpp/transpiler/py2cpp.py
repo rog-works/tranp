@@ -143,10 +143,10 @@ class Py2Cpp(ITranspiler):
 			var_type = f'{attr_types[-1]}({DSN.join(*DSN.elements(var_type)[:-1])}::*)({", ".join(param_types)})'
 		elif actual_raw.types.is_a(defs.ClassMethod):
 			param_types = [self.view.render('param_type_py2cpp', vars={'var_type': attr_type}) for attr_type in attr_types[1:-1]]
-			var_type = f'{attr_types[-1]}({", ".join(param_types)})'
+			var_type = f'{attr_types[-1]}(*)({", ".join(param_types)})'
 		elif actual_raw.types.is_a(defs.Function):
 			param_types = [self.view.render('param_type_py2cpp', vars={'var_type': attr_type}) for attr_type in attr_types[:-1]]
-			var_type = f'{attr_types[-1]}({", ".join(param_types)})'
+			var_type = f'{attr_types[-1]}(*)({", ".join(param_types)})'
 		elif actual_raw.type_is(Callable):
 			param_types = [self.view.render('param_type_py2cpp', vars={'var_type': attr_type}) for attr_type in attr_types[:-1]]
 			var_type = f'{var_type}<{attr_types[-1]}({", ".join(param_types)})>'

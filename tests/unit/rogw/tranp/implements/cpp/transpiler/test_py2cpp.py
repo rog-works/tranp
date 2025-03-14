@@ -382,8 +382,10 @@ class TestPy2Cpp(TestCase):
 
 		('ForFuncCall.Func.print', 'function_def_raw.block.funccall', defs.FuncCall, 'printf("message. %d, %f, %s", 1, 1.0, "abc");'),
 
-		('ForFuncCall.Func.c_func', 'function_def_raw.block.assign', defs.MoveAssign, 'std::map<std::string, int(ForFuncCall::Func::*)(const std::string&)> dsf = {{"f", &ForFuncCall::Func::c_func}};'),
-		('ForFuncCall.Func.c_func', 'function_def_raw.block.return_stmt', defs.Return, 'return (this->*(dsf["f"]))("a");'),
+		('ForFuncCall.Func.c_func', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'std::map<std::string, int(ForFuncCall::Func::*)(const std::string&)> ds = {{"f", &ForFuncCall::Func::func_self}};'),
+		('ForFuncCall.Func.c_func', 'function_def_raw.block.anno_assign[1]', defs.AnnoAssign, 'int n = (this->*(ds["f"]))("a");'),
+		('ForFuncCall.Func.c_func', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'std::map<std::string, std::string(*)(int)> dc = {{"f", &ForFuncCall::Func::func_cls}};'),
+		('ForFuncCall.Func.c_func', 'function_def_raw.block.anno_assign[3]', defs.AnnoAssign, 'std::string s = dc["f"](1);'),
 
 		('ForFuncCall.Class.literalize', 'function_def_raw.block.funccall[0]', defs.FuncCall, 'printf("Class2");'),
 		('ForFuncCall.Class.literalize', 'function_def_raw.block.funccall[1]', defs.FuncCall, f'printf("{fixture_module_path}");'),

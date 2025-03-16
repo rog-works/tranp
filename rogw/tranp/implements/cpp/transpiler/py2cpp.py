@@ -485,7 +485,8 @@ class Py2Cpp(ITranspiler):
 
 		var_type = self.to_accessible_name(value_raw)
 		if declared:
-			return self.view.render(f'assign/{node.classification}_declare', vars={'receiver': receiver, 'var_type': var_type, 'value': value})
+			is_static = isinstance(node.value, defs.FuncCall) and node.value.calls.tokens == Embed.static.__qualname__
+			return self.view.render(f'assign/{node.classification}_declare', vars={'receiver': receiver, 'var_type': var_type, 'value': value, 'is_static': is_static})
 		else:
 			return self.view.render(f'assign/{node.classification}', vars={'receiver': receiver, 'var_type': var_type, 'value': value})
 
@@ -946,6 +947,9 @@ class Py2Cpp(ITranspiler):
 		elif spec.startswith('cvar_to_'):
 			cvar_type = spec.split('cvar_to_')[1]
 			return self.view.render(f'{node.classification}/cvar_to', vars={**func_call_vars, 'cvar_type': cvar_type})
+		elif spec == 'decl_static':
+			# 期待値: Embed::static({'f': func})
+			return arguments[0]
 		else:
 			return self.view.render(f'{node.classification}/default', vars=func_call_vars)
 
@@ -1022,6 +1026,8 @@ class Py2Cpp(ITranspiler):
 					new_type_raw = self.reflections.type_of(node.arguments[0])
 					spec = 'cvar_new_sp_list' if new_type_raw.impl(refs.Object).type_is(list) else 'cvar_new_sp'
 					return spec, new_type_raw
+			elif prop == Embed.static.__name__ and node.calls.tokens == Embed.static.__qualname__:
+				return 'decl_static', None
 
 		if isinstance(node.calls, (defs.Relay, defs.Var)):
 			if len(node.arguments) > 0 and node.arguments[0].value.is_a(defs.Reference):

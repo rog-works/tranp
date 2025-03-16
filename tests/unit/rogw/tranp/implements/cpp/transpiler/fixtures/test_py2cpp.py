@@ -643,10 +643,10 @@ class ForFuncCall:
 		def func_cls(cls, n: int) -> str: ...
 
 		def c_func(self) -> None:
-			ds = {'f': c_func_ref(ForFuncCall.Func.func_self)}
+			ds = Embed.static({'f': c_func_ref(ForFuncCall.Func.func_self)})
 			n: int = c_func_invoke(self, ds['f'], 'a')
 
-			dc = {'f': c_func_ref(ForFuncCall.Func.func_cls)}
+			dc = Embed.static({'f': c_func_ref(ForFuncCall.Func.func_cls)})
 			s: str = dc['f'](1)
 
 	@Embed.alias('Class2')

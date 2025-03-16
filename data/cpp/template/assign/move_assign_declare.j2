@@ -1,1 +1,1 @@
-{{ var_type }} {{ receiver }} = {{ value }};
+{% if is_static %}static {% endif %}{{ var_type }} {{ receiver }} = {{ value }};

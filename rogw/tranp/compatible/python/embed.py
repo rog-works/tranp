@@ -20,9 +20,20 @@ class Embed:
 		...
 
 	@classmethod
-	def static(cls) -> None:
-		"""静的フラグを埋め込み (対象: 関数のローカル変数)"""
-		...
+	def static(cls, var: T) -> T:
+		"""静的フラグを埋め込み (対象: 関数のローカル変数)
+
+		Args:
+			var: 変数
+		Returns:
+			変数
+		Examples:
+			```python
+			# MoveAssign経由でスタティック変数化
+			static_var = Embed.static({'a': func_a, 'b': func_b})
+			```
+		"""
+		return var
 
 	@classmethod
 	def python(cls, wrapped: T) -> T:

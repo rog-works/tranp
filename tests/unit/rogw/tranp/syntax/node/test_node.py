@@ -353,97 +353,46 @@ class TestNode(TestCase):
 		('file_input.class_def', [
 			'file_input.class_def.class_def_raw.name',
 			'file_input.class_def.__empty__',
-			'file_input.class_def.class_def_raw.block.class_def',
 			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.name',
 			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.inherit_arguments.typed_argvalue.typed_var',
 			'file_input.class_def.class_def_raw.block.class_def.__empty__',
-			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[0]',
 			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[0].assign_namelist.var',
 			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[0].number',
-			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[1]',
+			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[0]',
 			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[1].assign_namelist.var',
 			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[1].number',
-			'file_input.class_def.class_def_raw.block.function_def[1]',
+			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[1]',
+			'file_input.class_def.class_def_raw.block.class_def',
 			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.name',
-			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.parameters.paramvalue',
 			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.parameters.paramvalue.typedparam.name',
 			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.parameters.paramvalue.typedparam.__empty__',
 			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.parameters.paramvalue.__empty__',
+			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.parameters.paramvalue',
 			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.typed_none',
 			'file_input.class_def.class_def_raw.block.function_def[1].__empty__',
-			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.block.if_stmt[0]',
 			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.block.if_stmt[0].if_clause.const_true',
 			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.block.if_stmt[0].if_clause.block.elipsis',
 			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.block.if_stmt[0].__empty__',
-			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.block.if_stmt[1]',
+			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.block.if_stmt[0]',
 			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.block.if_stmt[1].if_clause.const_false',
 			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.block.if_stmt[1].if_clause.block.elipsis',
 			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.block.if_stmt[1].__empty__',
-			'file_input.class_def.class_def_raw.block.function_def[2]',
+			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.block.if_stmt[1]',
+			'file_input.class_def.class_def_raw.block.function_def[1]',
 			'file_input.class_def.class_def_raw.block.function_def[2].function_def_raw.name',
-			'file_input.class_def.class_def_raw.block.function_def[2].function_def_raw.parameters.paramvalue',
 			'file_input.class_def.class_def_raw.block.function_def[2].function_def_raw.parameters.paramvalue.typedparam.name',
 			'file_input.class_def.class_def_raw.block.function_def[2].function_def_raw.parameters.paramvalue.typedparam.__empty__',
 			'file_input.class_def.class_def_raw.block.function_def[2].function_def_raw.parameters.paramvalue.__empty__',
+			'file_input.class_def.class_def_raw.block.function_def[2].function_def_raw.parameters.paramvalue',
 			'file_input.class_def.class_def_raw.block.function_def[2].function_def_raw.typed_none',
 			'file_input.class_def.class_def_raw.block.function_def[2].__empty__',
 			'file_input.class_def.class_def_raw.block.function_def[2].function_def_raw.block.elipsis',
+			'file_input.class_def.class_def_raw.block.function_def[2]',
 		]),
 	])
-	def test_procedural_flow(self, full_path: str, expected: list[str]) -> None:
+	def test_procedural(self, full_path: str, expected: list[str]) -> None:
 		node = self.fixture.shared_nodes_by(full_path)
 		all = [in_node.full_path for in_node in node.procedural()]
-		try:
-			self.assertEqual(all, expected)
-		except AssertionError:
-			import json
-			print(json.dumps(all, indent=2))
-			raise
-
-	@data_provider([
-		('file_input.class_def', [
-			'file_input.class_def.class_def_raw.name',
-			'file_input.class_def.__empty__',
-			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.name',
-			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.inherit_arguments.typed_argvalue.typed_var',
-			'file_input.class_def.class_def_raw.block.class_def.__empty__',
-			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[0].assign_namelist.var',
-			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[0].number',
-			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[0]',
-			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[1].assign_namelist.var',
-			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[1].number',
-			'file_input.class_def.class_def_raw.block.class_def.class_def_raw.block.assign[1]',
-			'file_input.class_def.class_def_raw.block.class_def',
-			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.name',
-			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.parameters.paramvalue.typedparam.name',
-			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.parameters.paramvalue.typedparam.__empty__',
-			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.parameters.paramvalue.__empty__',
-			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.parameters.paramvalue',
-			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.typed_none',
-			'file_input.class_def.class_def_raw.block.function_def[1].__empty__',
-			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.block.if_stmt[0].if_clause.const_true',
-			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.block.if_stmt[0].if_clause.block.elipsis',
-			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.block.if_stmt[0].__empty__',
-			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.block.if_stmt[0]',
-			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.block.if_stmt[1].if_clause.const_false',
-			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.block.if_stmt[1].if_clause.block.elipsis',
-			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.block.if_stmt[1].__empty__',
-			'file_input.class_def.class_def_raw.block.function_def[1].function_def_raw.block.if_stmt[1]',
-			'file_input.class_def.class_def_raw.block.function_def[1]',
-			'file_input.class_def.class_def_raw.block.function_def[2].function_def_raw.name',
-			'file_input.class_def.class_def_raw.block.function_def[2].function_def_raw.parameters.paramvalue.typedparam.name',
-			'file_input.class_def.class_def_raw.block.function_def[2].function_def_raw.parameters.paramvalue.typedparam.__empty__',
-			'file_input.class_def.class_def_raw.block.function_def[2].function_def_raw.parameters.paramvalue.__empty__',
-			'file_input.class_def.class_def_raw.block.function_def[2].function_def_raw.parameters.paramvalue',
-			'file_input.class_def.class_def_raw.block.function_def[2].function_def_raw.typed_none',
-			'file_input.class_def.class_def_raw.block.function_def[2].__empty__',
-			'file_input.class_def.class_def_raw.block.function_def[2].function_def_raw.block.elipsis',
-			'file_input.class_def.class_def_raw.block.function_def[2]',
-		]),
-	])
-	def test_procedural_ast(self, full_path: str, expected: list[str]) -> None:
-		node = self.fixture.shared_nodes_by(full_path)
-		all = [in_node.full_path for in_node in node.procedural(order='ast')]
 		try:
 			self.assertEqual(all, expected)
 		except AssertionError:

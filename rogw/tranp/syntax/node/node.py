@@ -225,27 +225,11 @@ class Node:
 		Note:
 			Node以下の基底クラスはメタデータと関わりがないため除外
 		"""
-		classes = [ctor for ctor in via.__mro__ if issubclass(ctor, Node) and ctor is not Node]
+		classes = [ctor for ctor in cls.__mro__ if issubclass(ctor, Node) and ctor is not Node]
 		return list(reversed(classes))
 
-	def procedural(self, order: Literal['flow', 'ast'] = 'flow') -> list['Node']:
+	def procedural(self) -> list['Node']:
 		"""下位のノードを再帰的に展開し、1次元に平坦化して取得
-
-		Args:
-			order: 並び順 (default = 'flow')
-		Returns:
-			ノードリスト
-		Note:
-			```
-			### orderの使い分け
-			* 'flow': ノードのプロパティーの定義順で出力する場合
-			* 'ast': ASTの評価順序で出力する場合
-			```
-		"""
-		return self.__procedural_flow() if order == 'flow' else self.__procedural_ast()
-
-	def __procedural_flow(self) -> list['Node']:
-		"""下位のノードを再帰的に展開し、1次元に平坦化して取得(プロパティー定義順)
 
 		Returns:
 			ノードリスト
@@ -261,37 +245,7 @@ class Node:
 			return []
 
 		under = self.__prop_expand() or self._under_expand()
-		return list(flatten([[node, *node.procedural()] for node in under]))
-
-	def __procedural_ast(self) -> list['Node']:
-		"""下位のノードを再帰的に展開し、1次元に平坦化して取得(AST準拠)
-
-		Returns:
-			ノードリスト
-		Note:
-			flattenとの相違点は並び順のみ
-		"""
-		path_of_nodes = {node.full_path: node for node in self.__procedural_flow()}
-		sorted_paths = self.__ast_order(enumerate(path_of_nodes.keys()))
-		return [path_of_nodes[full_path] for full_path in sorted_paths]
-
-	def __ast_order(self, index_of_paths: Iterator[tuple[int, str]]) -> list[str]:
-		"""インデックスとフルパスを元にASTの評価順序にソート
-
-		Args:
-			index_of_paths: (インデックス, フルパス)形式のイテレーター
-		Returns:
-			並び替え後のパスリスト
-		"""
-		def order(a: tuple[int, str], b: tuple[int, str]) -> int:
-			aindex, apath = a
-			bindex, bpath = b
-			if apath.startswith(bpath):
-				return -1
-			else:
-				return -1 if aindex < bindex else 1
-
-		return [path for _, path in sorted(index_of_paths, key=functools.cmp_to_key(order))]
+		return list(flatten([[*node.procedural(), node] for node in under]))
 
 	def __prop_expand(self) -> list['Node']:
 		"""プロパティーを平坦化して展開

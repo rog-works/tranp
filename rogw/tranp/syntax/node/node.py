@@ -187,13 +187,20 @@ class Node:
 		Note:
 			@see embed.expandable
 		"""
+		# XXX 効率的ではあるもののダーティーな実装なので要検討
+		key = f'__{cls.__name__}_{cls.prop_keys.__name__}__'
+		if hasattr(cls, key):
+			return getattr(cls, key)
+
 		prop_keys: list[str] = []
 		for ctor in cls.__embed_classes():
 			meta = Meta.dig_for_method(Node, ctor, EmbedKeys.Expandable, value_type=bool)
 			prop_keys = [*prop_keys, *[name for name, _ in meta.items()]]
 
+		setattr(cls, key, prop_keys)
 		return prop_keys
 
+	@deprecated
 	@classmethod
 	def accept_tags(cls) -> list[str]:
 		"""受け入れタグリストを取得
@@ -204,6 +211,7 @@ class Node:
 			```
 			派生クラスによって上書きする仕様
 			@see embed.accept_tags
+			@deprecated 未使用
 			```
 		"""
 		accept_tags: list[str] = []

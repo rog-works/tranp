@@ -76,17 +76,6 @@ class MetaData:
 
 		self.__methods[class_path][method_name][embed_key] = value
 
-	def get_by_key_from_class(self, embed_key: str) -> dict[type, Any]:
-		"""メタデータを取得(クラス用)
-
-		Args:
-			method: 対象メソッド
-			embed_key: メタデータのキー
-		Returns:
-			対象クラスとメタデータのマップ
-		"""
-		return {ctor: meta[embed_key] for ctor, meta in self.__classes.items() if embed_key in meta}
-
 	def get_from_class(self, ctor: type, embed_key: str) -> Any:
 		"""メタデータを取得(クラス用)
 
@@ -159,23 +148,6 @@ class Meta:
 			return wrapped
 
 		return decorator
-
-	@classmethod
-	def dig_by_key_for_class(cls, holder, embed_key: str, value_type: type[T_Data]) -> dict[type, T_Data]:
-		"""クラスに埋め込まれたメタデータを抽出(クラス用)
-
-		Args:
-			holder: メタデータを保持するクラス
-			embed_key: 抽出対象の埋め込みキー
-			value_type: メタデータの型
-		Returns:
-			対象クラスとメタデータのマップ
-		"""
-		if not hasattr(holder, MetaData.key):
-			return {}
-
-		meta_data = cast(MetaData, getattr(holder, MetaData.key))
-		return meta_data.get_by_key_from_class(embed_key)
 
 	@classmethod
 	def dig_for_class(cls, holder: type, ctor: type, embed_key: str, default: T_Data) -> T_Data:

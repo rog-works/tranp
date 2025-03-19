@@ -178,7 +178,8 @@ class Node:
 		"""Returns: 親のノード Note: あくまでもノード上の親であり、AST上の親と必ずしも一致しない点に注意"""
 		return self.__nodes.parent(self.full_path)
 
-	def prop_keys(self) -> list[str]:
+	@classmethod
+	def prop_keys(cls) -> list[str]:
 		"""展開プロパティーのメソッド名を取得
 
 		Returns:
@@ -187,13 +188,14 @@ class Node:
 			@see embed.expandable
 		"""
 		prop_keys: list[str] = []
-		for ctor in self.__embed_classes(self.__class__):
+		for ctor in cls.__embed_classes():
 			meta = Meta.dig_for_method(Node, ctor, EmbedKeys.Expandable, value_type=bool)
 			prop_keys = [*prop_keys, *[name for name, _ in meta.items()]]
 
 		return prop_keys
 
-	def accept_tags(self) -> list[str]:
+	@classmethod
+	def accept_tags(cls) -> list[str]:
 		"""受け入れタグリストを取得
 
 		Returns:
@@ -205,14 +207,15 @@ class Node:
 			```
 		"""
 		accept_tags: list[str] = []
-		for ctor in self.__embed_classes(self.__class__):
+		for ctor in cls.__embed_classes():
 			in_accept_tags = Meta.dig_for_class(Node, ctor, EmbedKeys.AcceptTags, default=[])
 			if len(in_accept_tags) > 0:
 				accept_tags = in_accept_tags
 
 		return accept_tags
 
-	def __embed_classes(self, via: type[T_Node]) -> list[type['Node']]:
+	@classmethod
+	def __embed_classes(cls) -> list[type['Node']]:
 		"""対象のクラス自身を含む継承関係のあるクラスを基底クラス順に取得。取得されるクラスはメタデータと関連する派生クラスに限定
 
 		Args:

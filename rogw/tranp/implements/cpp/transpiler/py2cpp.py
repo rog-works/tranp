@@ -715,7 +715,7 @@ class Py2Cpp(ITranspiler):
 		return 'this'
 
 	def on_indexer(self, node: defs.Indexer, receiver: str, keys: list[str]) -> str:
-		is_statement = node.parent.is_a(defs.Block)
+		is_statement = node.parent.is_a(defs.Block, defs.Entrypoint)
 		spec, context = self.analyze_indexer_spec(node)
 		vars = {'receiver': receiver, 'keys': keys, 'is_statement': is_statement}
 		if spec == 'slice_string':
@@ -819,7 +819,7 @@ class Py2Cpp(ITranspiler):
 		return 'void'
 
 	def on_func_call(self, node: defs.FuncCall, calls: str, arguments: list[str]) -> str:
-		is_statement = node.parent.is_a(defs.Block)
+		is_statement = node.parent.is_a(defs.Block, defs.Entrypoint)
 		spec, context = self.analyze_func_call_spec(node)
 		func_call_vars = {'calls': calls, 'arguments': arguments, 'is_statement': is_statement}
 		if spec == 'c_include':

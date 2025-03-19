@@ -423,7 +423,7 @@ class Py2Cpp(ITranspiler):
 		vars: list[str] = []
 		for index, class_var in enumerate(node.class_vars):
 			class_var_name = class_var.tokens
-			class_var_vars = {'accessor': self.to_accessor(defs.to_accessor(class_var_name)), 'decl_class_var': decl_var_statements[index], 'decorators': decorators}
+			class_var_vars = {'accessor': self.to_accessor(defs.to_accessor(class_var_name)), 'decl_class_var': decl_var_statements[index]}
 			vars.append(self.view.render(f'{node.classification}/_decl_class_var', vars=class_var_vars))
 
 		decl_this_vars = node.decl_this_vars

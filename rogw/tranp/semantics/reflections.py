@@ -400,8 +400,7 @@ class ProceduralResolver:
 		return self.reflections.resolve(node).stack(node)
 
 	def on_decl_this_var_forward(self, node: defs.DeclThisVarForward) -> IReflection:
-		"""Note: XXX 型を評価する必要がないのでUnknownを返却"""
-		return self.reflections.from_standard(Unknown).stack(node)
+		return self.reflections.resolve(node).stack(node)
 
 	def on_decl_this_var(self, node: defs.DeclThisVar) -> IReflection:
 		return self.reflections.resolve(node).stack(node)

@@ -12,7 +12,7 @@ class EntryCache(Generic[T]):
 	def __init__(self) -> None:
 		"""インスタンスを生成"""
 		self.__entries: dict[str, T] = {}
-		self.__children: dict[str, dict[str, str]] = {}
+		self.__children: dict[str, dict[str, bool]] = {}
 		self.__indexs: dict[str, int] = {}
 
 	def exists(self, full_path: str) -> bool:
@@ -67,12 +67,11 @@ class EntryCache(Generic[T]):
 		if depth == 0:
 			return {}
 
-		entries: dict[str, T] = {via: self.by(via)}
+		entries = {via: self.by(via)}
 		for key in self.__children[via]:
 			path = DSN.join(via, key)
 			entries[path] = self.by(path)
-			under = self.group_by(path, depth - 1)
-			entries = {**entries, **under}
+			entries.update(self.group_by(path, depth - 1))
 
 		return entries
 
@@ -95,5 +94,8 @@ class EntryCache(Generic[T]):
 		last = elems[-1]
 		while len(remain):
 			in_path = '.'.join(remain)
-			self.__children[in_path] = {**(self.__children[in_path] if in_path in self.__children else {}), last: ''}
+			if in_path not in self.__children:
+				self.__children[in_path] = {}
+
+			self.__children[in_path][last] = True
 			last = remain.pop()

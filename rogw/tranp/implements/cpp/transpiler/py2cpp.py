@@ -415,10 +415,11 @@ class Py2Cpp(ITranspiler):
 		class_var_statements: list[tuple[int, str]] = []
 		this_var_statements: list[tuple[int, str]] = []
 		for index, statement in enumerate(node.statements):
-			if isinstance(statement, defs.AnnoAssign) and isinstance(statement.receiver, defs.DeclClassVar):
-				class_var_statements.append((index, statements[index]))
-			elif isinstance(statement, defs.AnnoAssign) and isinstance(statement.receiver, defs.DeclThisVarForward):
-				this_var_statements.append((index, statements[index]))
+			if isinstance(statement, defs.AnnoAssign):
+				if isinstance(statement.receiver, defs.DeclClassVar):
+					class_var_statements.append((index, statements[index]))
+				elif isinstance(statement, defs.AnnoAssign) and isinstance(statement.receiver, defs.DeclThisVarForward):
+					this_var_statements.append((index, statements[index]))
 
 		# XXX メンバー変数の展開方法を検討
 		for index, class_var_statement in class_var_statements:

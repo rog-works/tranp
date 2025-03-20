@@ -418,7 +418,7 @@ class Py2Cpp(ITranspiler):
 			if isinstance(statement, defs.AnnoAssign):
 				if isinstance(statement.receiver, defs.DeclClassVar):
 					class_var_statements.append((index, statements[index]))
-				elif isinstance(statement, defs.AnnoAssign) and isinstance(statement.receiver, defs.DeclThisVarForward):
+				elif isinstance(statement.receiver, defs.DeclThisVarForward):
 					this_var_statements.append((index, statements[index]))
 
 		# XXX メンバー変数の展開方法を検討

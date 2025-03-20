@@ -1315,7 +1315,7 @@ class PatternParser:
 
 	RelayPattern = re.compile(r'(.+)(->|::|\.)\w+$')
 	DictIteratorPattern = re.compile(r'(.+)(->|\.)(\w+)\(\)$')
-	DeclClassVarNamePattern = re.compile(r'\s+([\w\d_]+)\s+=.+;$')
+	DeclClassVarNamePattern = re.compile(r'\s+([\w\d_]+)\s+=')
 	AssignRightPattern = re.compile(r'=\s*([^;]+);$')
 	CVarRelaySubPattern = re.compile(rf'(->|::|\.){CVars.relay_key}\(\)$')
 	CVarToSubPattern = re.compile(rf'(->|::|\.)({"|".join(CVars.exchanger_keys)})\(\)$')

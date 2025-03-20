@@ -411,28 +411,29 @@ class Py2Cpp(ITranspiler):
 		is_struct = len([decorator for decorator in decorators if decorator.startswith(Embed.struct.__qualname__)])
 
 		# XXX クラス配下の変数宣言とそれ以外のステートメントを分離
-		decl_var_statements: list[str] = []
+		class_var_statements: list[str] = []
+		this_var_statements: list[str] = []
 		other_statements: list[str] = []
 		for index, statement in enumerate(node.statements):
-			if isinstance(statement, defs.AnnoAssign):
-				decl_var_statements.append(statements[index])
+			if isinstance(statement, defs.AnnoAssign) and isinstance(statement.receiver, defs.DeclClassVar):
+				class_var_statements.append(statements[index])
+			elif isinstance(statement, defs.AnnoAssign) and isinstance(statement.receiver, defs.DeclThisVarForward):
+				this_var_statements.append(statements[index])
 			else:
 				other_statements.append(statements[index])
 
 		# XXX メンバー変数の展開方法を検討
 		vars: list[str] = []
-		for index, class_var in enumerate(node.class_vars):
-			class_var_name = class_var.tokens
-			class_var_vars = {'accessor': self.to_accessor(defs.to_accessor(class_var_name)), 'decl_class_var': decl_var_statements[index]}
+		for class_var_statement in class_var_statements:
+			class_var_name = PatternParser.pluck_class_var_name(class_var_statement)
+			class_var_vars = {'accessor': self.to_accessor(defs.to_accessor(class_var_name)), 'decl_class_var': class_var_statement}
 			vars.append(self.view.render(f'{node.classification}/_decl_class_var', vars=class_var_vars))
 
-		decl_this_vars = node.decl_this_vars
-		for this_var in node.this_vars:
-			decl_this_var = decl_this_vars[this_var.tokens_without_this]
-			this_var_name = self.to_prop_name_by_decl(this_var)
-			this_var_type = self.transpile(this_var.declare.one_of(*defs.DeclAssignTs).var_type)
+		for index, decl_this_var_item in enumerate(node.decl_this_vars.items()):
+			this_var_statement = this_var_statements[index]
+			this_var_name, decl_this_var = decl_this_var_item
 			this_var_annotation = self.transpile(decl_this_var.var_type.annotation) if not isinstance(decl_this_var.var_type.annotation, defs.Empty) else ''
-			this_var_vars = {'accessor': self.to_accessor(defs.to_accessor(this_var_name)), 'symbol': this_var_name, 'var_type': this_var_type, 'annotation': this_var_annotation}
+			this_var_vars = {'accessor': self.to_accessor(defs.to_accessor(this_var_name)), 'decl_this_var': this_var_statement, 'annotation': this_var_annotation}
 			vars.append(self.view.render(f'{node.classification}/_decl_this_var', vars=this_var_vars))
 
 		accessor = self.to_accessor(node.accessor) if node.is_internal else ''
@@ -1317,6 +1318,7 @@ class PatternParser:
 
 	RelayPattern = re.compile(r'(.+)(->|::|\.)\w+$')
 	DictIteratorPattern = re.compile(r'(.+)(->|\.)(\w+)\(\)$')
+	DeclClassVarNamePattern = re.compile(r'\s+([\w\d_]+)\s+=.+;$')
 	AssignRightPattern = re.compile(r'=\s*([^;]+);$')
 	CVarRelaySubPattern = re.compile(rf'(->|::|\.){CVars.relay_key}\(\)$')
 	CVarToSubPattern = re.compile(rf'(->|::|\.)({"|".join(CVars.exchanger_keys)})\(\)$')
@@ -1384,6 +1386,23 @@ class PatternParser:
 			```
 		"""
 		return BlockParser.break_last_block(func_call, '()')[1]
+
+	@classmethod
+	def pluck_class_var_name(cls, decl_class_var: str) -> str:
+		"""代入式から右辺の部分を抜き出す
+
+		Args:
+			assign: 文字列
+		Returns:
+			右辺
+		Note:
+			```
+			### 期待値
+			'A var_name = right;' -> 'var_name'
+			```
+		"""
+		matches = cls.DeclClassVarNamePattern.search(decl_class_var)
+		return matches[1] if matches else ''
 
 	@classmethod
 	def pluck_assign_right(cls, assign: str) -> str:

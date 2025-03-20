@@ -411,34 +411,31 @@ class Py2Cpp(ITranspiler):
 		is_struct = len([decorator for decorator in decorators if decorator.startswith(Embed.struct.__qualname__)])
 
 		# XXX クラス配下の変数宣言とそれ以外のステートメントを分離
-		class_var_statements: list[str] = []
-		this_var_statements: list[str] = []
-		other_statements: list[str] = []
+		a_statements = statements.copy()
+		class_var_statements: list[tuple[int, str]] = []
+		this_var_statements: list[tuple[int, str]] = []
 		for index, statement in enumerate(node.statements):
 			if isinstance(statement, defs.AnnoAssign) and isinstance(statement.receiver, defs.DeclClassVar):
-				class_var_statements.append(statements[index])
+				class_var_statements.append((index, statements[index]))
 			elif isinstance(statement, defs.AnnoAssign) and isinstance(statement.receiver, defs.DeclThisVarForward):
-				this_var_statements.append(statements[index])
-			else:
-				other_statements.append(statements[index])
+				this_var_statements.append((index, statements[index]))
 
 		# XXX メンバー変数の展開方法を検討
-		vars: list[str] = []
-		for class_var_statement in class_var_statements:
+		for index, class_var_statement in class_var_statements:
 			class_var_name = PatternParser.pluck_class_var_name(class_var_statement)
 			class_var_vars = {'accessor': self.to_accessor(defs.to_accessor(class_var_name)), 'decl_class_var': class_var_statement}
-			vars.append(self.view.render(f'{node.classification}/_decl_class_var', vars=class_var_vars))
+			a_statements[index] = self.view.render(f'{node.classification}/_decl_class_var', vars=class_var_vars)
 
-		for index, decl_this_var_item in enumerate(node.decl_this_vars.items()):
-			this_var_statement = this_var_statements[index]
+		for var_index, decl_this_var_item in enumerate(node.decl_this_vars.items()):
+			index, this_var_statement = this_var_statements[var_index]
 			this_var_name, decl_this_var = decl_this_var_item
 			this_var_annotation = self.transpile(decl_this_var.var_type.annotation) if not isinstance(decl_this_var.var_type.annotation, defs.Empty) else ''
 			this_var_vars = {'accessor': self.to_accessor(defs.to_accessor(this_var_name)), 'decl_this_var': this_var_statement, 'annotation': this_var_annotation}
-			vars.append(self.view.render(f'{node.classification}/_decl_this_var', vars=this_var_vars))
+			a_statements[index] = self.view.render(f'{node.classification}/_decl_this_var', vars=this_var_vars)
 
 		accessor = self.to_accessor(node.accessor) if node.is_internal else ''
 
-		class_vars = {'accessor': accessor, 'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'template_types': template_types, 'comment': comment, 'statements': other_statements, 'module_path': node.module_path, 'vars': vars, 'is_struct': is_struct}
+		class_vars = {'accessor': accessor, 'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'template_types': template_types, 'comment': comment, 'statements': a_statements, 'module_path': node.module_path, 'is_struct': is_struct}
 		return self.view.render(f'{node.classification}/class', vars=class_vars)
 
 	def on_enum(self, node: defs.Enum, symbol: str, decorators: list[str], inherits: list[str], template_types: list[str], comment: str, statements: list[str]) -> str:

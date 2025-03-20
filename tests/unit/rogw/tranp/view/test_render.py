@@ -142,6 +142,8 @@ class TestRenderer(TestCase):
 				'comment': '',
 				'statements': [
 					'\n'.join([
+						'private: int __value;',
+						'private: std::string __text;',
 						'public: Hoge() {',
 						'	int hoge = 1234;',
 						'	int fuga = 2345;',
@@ -149,10 +151,6 @@ class TestRenderer(TestCase):
 					]),
 				],
 				'module_path': 'module.path.to',
-				'vars': [
-					'private: int __value;',
-					'private: std::string __text;',
-				],
 			},
 			'\n'.join([
 				'/** Hoge */',
@@ -181,7 +179,6 @@ class TestRenderer(TestCase):
 					]),
 				],
 				'module_path': 'module.path.to',
-				'vars': [],
 			},
 			'\n'.join([
 				'/** Hoge */',
@@ -210,7 +207,6 @@ class TestRenderer(TestCase):
 					]),
 				],
 				'module_path': 'module.path.to',
-				'vars': [],
 			},
 			'\n'.join([
 				'/**',
@@ -241,7 +237,6 @@ class TestRenderer(TestCase):
 					]),
 				],
 				'module_path': 'module.path.to',
-				'vars': [],
 			},
 			'\n'.join([
 				'/**',
@@ -263,7 +258,6 @@ class TestRenderer(TestCase):
 				'comment': '',
 				'statements': [],
 				'module_path': 'module.path.to',
-				'vars': [],
 				'is_struct': True,
 			},
 			'\n'.join([

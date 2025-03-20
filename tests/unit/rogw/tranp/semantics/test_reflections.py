@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from typing import override
 from unittest import TestCase
 
@@ -49,16 +50,17 @@ class TestReflections(TestCase):
 		self.assertEqual(reflections.get_object().types.fullyname, _mod('classes', 'object'))
 
 	@data_provider([
+		(bool, _mod('classes', bool.__name__)),
 		(int, _mod('classes', int.__name__)),
 		(float, _mod('classes', float.__name__)),
 		(str, _mod('classes', str.__name__)),
-		(bool, _mod('classes', bool.__name__)),
-		(tuple, _mod('classes', tuple.__name__)),
 		(list, _mod('classes', list.__name__)),
 		(dict, _mod('classes', dict.__name__)),
+		(tuple, _mod('classes', tuple.__name__)),
 		(type, _mod('type', type.__name__)),
-		(Unknown, _mod('classes', Unknown.__name__)),
+		(Callable, _mod('collections', Callable.__name__)),
 		(Union, _mod('typing', Union.__name__)),
+		(Unknown, _mod('classes', Unknown.__name__)),
 		(None, _mod('classes', 'None')),
 	])
 	def test_from_standard(self, standard_type: type[Standards] | None, expected: str) -> None:
@@ -73,7 +75,7 @@ class TestReflections(TestCase):
 	def test_from_fullyname(self, local_path: str, expected: str) -> None:
 		reflections = self.fixture.get(Reflections)
 		symbol = reflections.from_fullyname(ModuleDSN.full_joined(self.fixture_module_path, local_path))
-		self.assertEqual(ClassShorthandNaming.domain_name_for_debug(symbol), expected)
+		self.assertEqual(symbol.pretty(), expected)
 
 	@data_provider([
 		('Base', '', _mod('type', 'type'), 'type<Base>'),
@@ -199,7 +201,7 @@ class TestReflections(TestCase):
 		node = self.fixture.shared_module.entrypoint.whole_by(full_path)
 		symbol = reflections.type_of(node)
 		self.assertEqual(symbol.types.fullyname, expected)
-		self.assertEqual(ClassShorthandNaming.domain_name_for_debug(symbol), attrs_expected)
+		self.assertEqual(symbol.pretty(), attrs_expected)
 
 	# XXX 速度面で課題があるため一旦廃止
 	# @data_provider([

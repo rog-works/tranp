@@ -106,9 +106,8 @@ class IReflection(metaclass=ABCMeta):
 		"""
 		...
 
-	@property
 	@abstractmethod
-	def shorthand(self) -> str:
+	def pretty(self) -> str:
 		"""Returns: オブジェクトの短縮表記(装飾) Note: デバッグ用途のため判定に用いるのはNG"""
 		...
 

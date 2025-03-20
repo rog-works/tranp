@@ -135,9 +135,8 @@ class ReflectionBase(IReflection):
 		"""
 		return Reflection(self.__traits, Options(decl=self.decl, node=node, origin=origin, via=self))
 
-	@property
 	@implements
-	def shorthand(self) -> str:
+	def pretty(self) -> str:
 		"""Returns: オブジェクトの短縮表記(装飾) Note: デバッグ用途のため判定に用いるのはNG"""
 		return ClassShorthandNaming.domain_name_for_debug(self)
 
@@ -235,7 +234,7 @@ class ReflectionBase(IReflection):
 	@override
 	def __str__(self) -> str:
 		"""Returns: オブジェクトの文字列表現"""
-		return self.shorthand
+		return self.pretty()
 
 	@override
 	def __hash__(self) -> int:

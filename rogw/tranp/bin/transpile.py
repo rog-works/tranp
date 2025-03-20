@@ -262,12 +262,12 @@ class Runner:
 
 	def _run_impl(self) -> None:
 		"""トランスパイルの実行"""
-		for module_path in self.module_paths:
-			if self.config.force or self.can_transpile(module_path):
-				content = self.transpiler.transpile(self.by_entrypoint(module_path))
-				writer = Writer(self.output_filepath(module_path))
-				writer.put(content)
-				writer.flush()
+		target_paths = self.module_paths if self.config.force else [module_path for module_path in self.module_paths if self.can_transpile(module_path)]
+		for module_path in target_paths:
+			content = self.transpiler.transpile(self.by_entrypoint(module_path))
+			writer = Writer(self.output_filepath(module_path))
+			writer.put(content)
+			writer.flush()
 
 	def can_transpile(self, module_path: ModulePath) -> bool:
 		"""トランスパイルを実行するか判定

@@ -1,4 +1,5 @@
 import os
+import time
 
 
 class Writer:
@@ -28,5 +29,18 @@ class Writer:
 		if not os.path.exists(dirpath):
 			os.makedirs(dirpath)
 
-		with open(abs_filepath, mode='wb') as f:
+		try:
+			self._flush(abs_filepath)
+		except PermissionError:
+			# XXX 連続して出力すると稀にエラーが発生するため、若干間隔を空けて再出力を試行
+			time.sleep(0.1)
+			self._flush(abs_filepath)
+
+	def _flush(self, filepath: str) -> None:
+		"""出力バッファをファイルに反映
+
+		Args:
+			filepath: 出力パス
+		"""
+		with open(filepath, mode='wb') as f:
 			f.write(self.__content.encode('utf-8'))

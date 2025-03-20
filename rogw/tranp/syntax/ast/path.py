@@ -1,3 +1,5 @@
+import re
+
 from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.errors import LogicError
 
@@ -147,7 +149,7 @@ class EntryPath:
 		Returns:
 			インスタンス
 		"""
-		de_origin = '.'.join([e.split('[')[0] for e in self.origin.split('.')])
+		de_origin = re.sub(r'\[\d+\]', '', self.origin)
 		return EntryPath(de_origin)
 
 	def relativefy(self, starts: str) -> 'EntryPath':

@@ -75,7 +75,7 @@ class TestReflections(TestCase):
 	def test_from_fullyname(self, local_path: str, expected: str) -> None:
 		reflections = self.fixture.get(Reflections)
 		symbol = reflections.from_fullyname(ModuleDSN.full_joined(self.fixture_module_path, local_path))
-		self.assertEqual(symbol.pretty(), expected)
+		self.assertEqual(symbol.pretty, expected)
 
 	@data_provider([
 		('Base', '', _mod('type', 'type'), 'type<Base>'),
@@ -201,7 +201,7 @@ class TestReflections(TestCase):
 		node = self.fixture.shared_module.entrypoint.whole_by(full_path)
 		symbol = reflections.type_of(node)
 		self.assertEqual(symbol.types.fullyname, expected)
-		self.assertEqual(symbol.pretty(), attrs_expected)
+		self.assertEqual(symbol.pretty, attrs_expected)
 
 	# XXX 速度面で課題があるため一旦廃止
 	# @data_provider([

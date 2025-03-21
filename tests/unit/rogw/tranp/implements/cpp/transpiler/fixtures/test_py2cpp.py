@@ -224,6 +224,10 @@ class CVarOps:
 		a = self.prop_relay.prop_relay
 		return self
 
+	def hex(self, n: int, p: CP[str]) -> None:
+		p.hex()
+		CP(n).hex()
+
 
 class FuncOps:
 	def kw_params(self, **kwargs: int) -> str:

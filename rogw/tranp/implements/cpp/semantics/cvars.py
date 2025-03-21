@@ -18,6 +18,7 @@ class CVars:
 		exchanger_keys: 属性変換メソッドの名前
 	"""
 
+	hex_key: ClassVar[str] = 'hex'
 	relay_key: ClassVar[str] = 'on'
 	empty_key: ClassVar[str] = 'empty'
 	allocator_key: ClassVar[str] = 'new'

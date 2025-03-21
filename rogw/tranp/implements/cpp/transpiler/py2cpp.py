@@ -942,6 +942,11 @@ class Py2Cpp(ITranspiler):
 			# 期待値: CSP[A].empty()
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
+		elif spec == 'cvar_hex':
+			# 期待値: receiver.hex()
+			receiver, _ = PatternParser.break_relay(calls)
+			cvar_key = CVars.key_from(cast(IReflection, context))
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'is_addr': CVars.is_addr(cvar_key)})
 		elif spec.startswith('cvar_to_'):
 			cvar_type = spec.split('cvar_to_')[1]
 			return self.view.render(f'{node.classification}/cvar_to', vars={**func_call_vars, 'cvar_type': cvar_type})
@@ -1024,6 +1029,11 @@ class Py2Cpp(ITranspiler):
 					new_type_raw = self.reflections.type_of(node.arguments[0])
 					spec = 'cvar_new_sp_list' if new_type_raw.impl(refs.Object).type_is(list) else 'cvar_new_sp'
 					return spec, new_type_raw
+			elif prop == CVars.hex_key:
+				receiver_raw = self.reflections.type_of(node.calls.receiver)
+				cvar_key = CVars.key_from(receiver_raw)
+				if not CVars.is_raw_raw(cvar_key):
+					return 'cvar_hex', receiver_raw
 			elif prop == Embed.static.__name__ and node.calls.tokens == Embed.static.__qualname__:
 				return 'decl_static', None
 

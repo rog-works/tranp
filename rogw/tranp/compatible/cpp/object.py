@@ -28,6 +28,14 @@ class CVar(Generic[T_co], metaclass=ABCMeta):
 		"""Returns: 実体を返却 Note: 派生クラス用。C++としての役割は無い"""
 		...
 
+	def hex(self) -> str:
+		"""アドレス値(16進数)を取得
+
+		Returns:
+			アドレス値(16進数)
+		"""
+		return hex(id(self))
+
 	def __eq__(self, other: Self) -> bool:
 		"""比較演算子(==)のオーバーロード
 

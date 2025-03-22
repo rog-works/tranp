@@ -29,12 +29,12 @@ class CVar(Generic[T_co], metaclass=ABCMeta):
 		...
 
 	def hex(self) -> str:
-		"""アドレス値(16進数)を取得
+		"""アドレス値を取得
 
 		Returns:
-			アドレス値(16進数)
+			アドレス値(16進数 ※先頭の'0x'は除外)
 		"""
-		return hex(id(self))
+		return hex(id(self))[2:]
 
 	def __eq__(self, other: Self) -> bool:
 		"""比較演算子(==)のオーバーロード

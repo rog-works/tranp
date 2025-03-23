@@ -356,7 +356,14 @@ class ClassTypehint(Typehint):
 				if not lookup_private and key.startswith(f'_{at_type.__name__}__'):
 					continue
 
-				annos[key] = _resolve_type_from_str(anno, at_type.__module__) if isinstance(anno, str) else anno
+				origin = getattr(anno, '__origin__') if get_origin(anno) is Annotated else anno
+				if isinstance(origin, str):
+					annos[key] = _resolve_type_from_str(origin, at_type.__module__)
+					continue
+				elif type(origin) is ForwardRef:
+					annos[key] = _resolve_type_from_str(origin.__forward_arg__, at_type.__module__)
+				else:
+					annos[key] = anno
 
 		return annos
 

@@ -83,7 +83,7 @@ class TestPy2Cpp(TestCase):
 		('CVarOps.ret_cp', 'function_def_raw.block.return_stmt', defs.Return, 'return new Sub(0);'),
 		('CVarOps.ret_csp', 'function_def_raw.block.return_stmt', defs.Return, 'return std::make_shared<Sub>(0);'),
 
-		('CVarOps.local_move', 'function_def_raw.block.anno_assign[0]', defs.AnnoAssign, 'Sub a = Sub(0);'),
+		('CVarOps.local_move', 'function_def_raw.block.anno_assign[0]', defs.AnnoAssign, 'Sub a{0};'),
 		('CVarOps.local_move', 'function_def_raw.block.anno_assign[1]', defs.AnnoAssign, 'Sub* ap = (&(a));'),
 		('CVarOps.local_move', 'function_def_raw.block.anno_assign[2]', defs.AnnoAssign, 'std::shared_ptr<Sub> asp = std::make_shared<Sub>(0);'),
 		('CVarOps.local_move', 'function_def_raw.block.anno_assign[3]', defs.AnnoAssign, 'Sub& ar = a;'),

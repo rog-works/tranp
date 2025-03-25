@@ -212,8 +212,8 @@ class TestPy2Cpp(TestCase):
 		('AccessOps.double_colon', 'function_def_raw.block.funccall[4].arguments.argvalue', defs.Argument, 'Values::A'),
 		('AccessOps.double_colon', 'function_def_raw.block.anno_assign', defs.AnnoAssign, 'std::map<Values, std::string> d = {\n\t{Values::A, "A"},\n\t{Values::B, "B"},\n};'),
 
-		('AccessOps.indexer', 'function_def_raw.block.funccall[0].arguments.argvalue', defs.Argument, 'arr_p[0]'),
-		('AccessOps.indexer', 'function_def_raw.block.funccall[1].arguments.argvalue', defs.Argument, 'arr_sp[0]'),
+		('AccessOps.indexer', 'function_def_raw.block.funccall[0].arguments.argvalue', defs.Argument, '(*(arr_p))[0]'),
+		('AccessOps.indexer', 'function_def_raw.block.funccall[1].arguments.argvalue', defs.Argument, '(*(arr_sp))[0]'),
 		('AccessOps.indexer', 'function_def_raw.block.funccall[2].arguments.argvalue', defs.Argument, 'arr_ar[0]'),
 
 		('Alias.Inner', '', defs.Class, 'public:\n/** Inner2 */\nclass Inner2 {\n\tpublic: inline static int V2 = 0;\n\tpublic:\n\t/** func */\n\tvoid func() {}\n};'),

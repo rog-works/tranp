@@ -274,9 +274,9 @@ class AccessOps(Sub):
 		}
 
 	def indexer(self, arr_p: CP[list[int]], arr_sp: CSP[list[int]], arr_ar: CRef[list[int]]) -> None:
-		print(arr_p.on[0])
-		print(arr_sp.on[0])
-		print(arr_ar.on[0])
+		print(arr_p.raw[0])
+		print(arr_sp.raw[0])
+		print(arr_ar.raw[0])
 
 
 @Embed.alias('Alias2')

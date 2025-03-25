@@ -484,11 +484,15 @@ class Py2Cpp(ITranspiler):
 			raise LogicError(f'Not allowed assign type. node: {node}, symbol: {value_raw}')
 
 		var_type = self.to_accessible_name(value_raw)
-		if declared:
-			is_static = isinstance(node.value, defs.FuncCall) and node.value.calls.tokens == Embed.static.__qualname__
-			return self.view.render(f'assign/{node.classification}_declare', vars={'receiver': receiver, 'var_type': var_type, 'value': value, 'is_static': is_static})
+		assign_vars = {'receiver': receiver, 'var_type': var_type, 'value': value}
+		if not declared:
+			return self.view.render(f'assign/{node.classification}', vars=assign_vars)
+		elif isinstance(node.value, defs.FuncCall) and node.value.calls.tokens == Embed.static.__qualname__:
+			return self.view.render(f'assign/{node.classification}_declare', vars={**assign_vars, 'is_static': True})
+		elif isinstance(node.value, defs.FuncCall) and value.startswith(f'{var_type}('):
+			return self.view.render(f'assign/{node.classification}_declare', vars={**assign_vars, 'is_initializer': True})
 		else:
-			return self.view.render(f'assign/{node.classification}', vars={'receiver': receiver, 'var_type': var_type, 'value': value})
+			return self.view.render(f'assign/{node.classification}_declare', vars=assign_vars)
 
 	def proc_move_assign_destruction(self, node: defs.MoveAssign, receivers: list[str], value: str) -> str:
 		"""Note: C++で分割代入できるのはtuple/pairのみ。Pythonではいずれもtupleのため、tuple以外は非対応"""
@@ -500,7 +504,11 @@ class Py2Cpp(ITranspiler):
 
 	def on_anno_assign(self, node: defs.AnnoAssign, receiver: str, var_type: str, value: str) -> str:
 		annotation = self.transpile(node.var_type.annotation) if not isinstance(node.var_type.annotation, defs.Empty) else ''
-		return self.view.render(f'assign/{node.classification}', vars={'receiver': receiver, 'var_type': var_type, 'value': value, 'annotation': annotation})
+		assign_vars = {'receiver': receiver, 'var_type': var_type, 'value': value, 'annotation': annotation}
+		if isinstance(node.value, defs.FuncCall) and value.startswith(f'{var_type}('):
+			return self.view.render(f'assign/{node.classification}', vars={**assign_vars, 'is_initializer': True})
+		else:
+			return self.view.render(f'assign/{node.classification}', vars=assign_vars)
 
 	def on_aug_assign(self, node: defs.AugAssign, receiver: str, value: str) -> str:
 		return self.view.render(f'assign/{node.classification}', vars={'receiver': receiver, 'operator': node.operator.tokens, 'value': value})

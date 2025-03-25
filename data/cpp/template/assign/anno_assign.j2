@@ -1,4 +1,4 @@
-{%- if value.startswith(var_type + '(') -%}
+{%- if is_initializer -%}
 {% if annotation == 'Embed::static' %}static {% endif %}{{ var_type }} {{ receiver }}{% if value %}{{ '{' + value[(var_type | length) + 1:-1] + '}' }}{% endif %};
 {%- else -%}
 {% if annotation == 'Embed::static' %}static {% endif %}{{ var_type }} {{ receiver }}{% if value %} = {{ value }}{% endif %};

@@ -1,5 +1,7 @@
-{%- if value.startswith(var_type + '(') -%}
-{% if is_static %}static {% endif %}{{ var_type }} {{ receiver }}{{ '{' + value[(var_type | length) + 1:-1] + '}' }};
+{%- if is_initializer -%}
+{{ var_type }} {{ receiver }}{{ '{' + value[(var_type | length) + 1:-1] + '}' }};
+{%- elif is_static -%}
+static {{ var_type }} {{ receiver }} = {{ value }};
 {%- else -%}
-{% if is_static %}static {% endif %}{{ var_type }} {{ receiver }} = {{ value }};
+{{ var_type }} {{ receiver }} = {{ value }};
 {%- endif -%}

@@ -725,10 +725,6 @@ class Py2Cpp(ITranspiler):
 		elif spec == 'slice_array':
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={**vars, 'var_type': var_type})
-		elif spec == 'cvar_relay':
-			# 期待値: receiver.on()[key]
-			cvar_receiver = PatternParser.sub_cvar_relay(receiver)
-			return self.view.render(f'{node.classification}/default', vars={**vars, 'receiver': cvar_receiver, 'key': keys[0]})
 		elif spec == 'cvar':
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={**vars, 'var_type': var_type})
@@ -741,23 +737,19 @@ class Py2Cpp(ITranspiler):
 			return self.view.render(f'{node.classification}/default', vars={**vars, 'receiver': receiver, 'key': keys[0]})
 
 	def analyze_indexer_spec(self, node: defs.Indexer) -> tuple[str, IReflection | None]:
-		def is_cvar(receiver_symbol: IReflection) -> bool:
-			cvar_key = CVars.key_from(receiver_symbol)
-			return not CVars.is_entity(cvar_key)
-
 		receiver_symbol = Defer.new(lambda: self.reflections.type_of(node.receiver).impl(refs.Object).actualize())
 		symbol = Defer.new(lambda: self.reflections.type_of(node).impl(refs.Object))
 		if node.sliced:
 			spec = 'slice_string' if receiver_symbol.type_is(str) else 'slice_array'
 			return spec, receiver_symbol
-		elif is_cvar(receiver_symbol):
+		elif not CVars.is_entity(CVars.key_from(receiver_symbol)):
 			return 'cvar', symbol.actualize()
 		elif receiver_symbol.type_is(tuple):
 			return 'tuple', None
 		elif symbol.type_is(type):
 			return 'class', symbol.actualize()
-
-		return 'otherwise', None
+		else:
+			return 'otherwise', None
 
 	def on_relay_of_type(self, node: defs.RelayOfType, receiver: str) -> str:
 		prop_symbol = self.reflections.type_of(node.receiver).impl(refs.Object).prop_of(node.prop)

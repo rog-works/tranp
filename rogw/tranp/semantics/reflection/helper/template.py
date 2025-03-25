@@ -68,6 +68,27 @@ class Helper:
 		return isinstance(self, ctors)
 
 
+class Class(Helper):
+	"""クラス"""
+
+	def prop(self, actual_klass: IReflection) -> IReflection:
+		"""戻り値の実行時型を解決
+
+		Args:
+			actual_klass: クラス(実行時型)
+		Returns:
+			実行時型
+		"""
+		prop_templates, _ = TemplateManipulator.unpack_templates(prop=self.schema.prop)
+		if len(prop_templates) == 0:
+			return self.schema.prop
+
+		actual_props = TemplateManipulator.unpack_symbols(klass=actual_klass)
+		schema_templates, schema_props = TemplateManipulator.unpack_templates(klass=self.schema.klass)
+		updates = TemplateManipulator.make_updates(prop_templates, schema_templates, schema_props, actual_props)
+		return TemplateManipulator.apply(self.schema.prop.to_temporary(), actual_props, updates)
+
+
 class Function(Helper):
 	"""全ファンクションの基底クラス。メソッド/クロージャー以外のファンクションが対象"""
 

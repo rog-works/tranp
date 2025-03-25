@@ -253,14 +253,10 @@ class PropertiesTrait(TraitImpl, IProperties):
 		if not isinstance(symbol.types, defs.TemplateClass):
 			return symbol
 
-		declare_class = self._declare_class(prop, instance)
-		for index, template_type in enumerate(declare_class.types.as_a(defs.Class).template_types):
-			candidate = self.reflections.type_of(template_type)
-			if candidate == symbol:
-				return symbol.to(prop, declare_class.attrs[index])
-
-		# XXX 未到達コードである想定
-		raise SemanticsLogicError(f'Template unresolved. prop: {prop}, instance: {symbol}')
+		decl_actual = self._declare_class(prop, instance)
+		decl_schema = self.reflections.type_of(decl_actual.types).impl(refs.Object).actualize('type')
+		actual_prop = templates.Class(symbol, {'klass': decl_schema, 'prop': symbol}).prop(decl_actual)
+		return symbol.to(prop, actual_prop)
 
 	def _declare_class(self, prop: defs.Var, instance: IReflection) -> IReflection:
 		"""プロパティーの定義元のクラスシンボルを解決
@@ -286,7 +282,7 @@ class PropertiesTrait(TraitImpl, IProperties):
 			inherits.extend(inherit_types.inherits)
 
 		# XXX 未到達コードである想定
-		raise SemanticsLogicError(f'Unresolved prop. prop: {prop}, instance: {instance}')
+		raise SemanticsLogicError(f'Unresolved prop. instance: {instance}, prop: {prop}')
 
 	@implements
 	def constructor(self, instance: IReflection) -> IReflection:

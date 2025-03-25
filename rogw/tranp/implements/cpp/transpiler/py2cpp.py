@@ -371,8 +371,8 @@ class Py2Cpp(ITranspiler):
 		# メンバー変数の宣言用のデータを生成
 		initializers: list[dict[str, str]] = []
 		for index, this_var in enumerate(this_vars):
-			# 期待値: `int this->a = 1234;`
-			initial_value = PatternParser.pluck_assign_right(initializer_statements[index])
+			# 期待値: `this->a = 1234;`
+			initial_value = PatternParser.pluck_decl_right(initializer_statements[index])
 			initializer = {'symbol': self.i18n.t(alias_dsn(this_var.fullyname), this_var.domain_name), 'value': initial_value}
 			initializers.append(initializer)
 
@@ -484,11 +484,15 @@ class Py2Cpp(ITranspiler):
 			raise LogicError(f'Not allowed assign type. node: {node}, symbol: {value_raw}')
 
 		var_type = self.to_accessible_name(value_raw)
-		if declared:
-			is_static = isinstance(node.value, defs.FuncCall) and node.value.calls.tokens == Embed.static.__qualname__
-			return self.view.render(f'assign/{node.classification}_declare', vars={'receiver': receiver, 'var_type': var_type, 'value': value, 'is_static': is_static})
+		assign_vars = {'receiver': receiver, 'var_type': var_type, 'value': value}
+		if not declared:
+			return self.view.render(f'assign/{node.classification}', vars=assign_vars)
+		elif isinstance(node.value, defs.FuncCall) and node.value.calls.tokens == Embed.static.__qualname__:
+			return self.view.render(f'assign/{node.classification}_declare', vars={**assign_vars, 'is_static': True})
+		elif isinstance(node.value, defs.FuncCall) and value.startswith(f'{var_type}('):
+			return self.view.render(f'assign/{node.classification}_declare', vars={**assign_vars, 'is_initializer': True})
 		else:
-			return self.view.render(f'assign/{node.classification}', vars={'receiver': receiver, 'var_type': var_type, 'value': value})
+			return self.view.render(f'assign/{node.classification}_declare', vars=assign_vars)
 
 	def proc_move_assign_destruction(self, node: defs.MoveAssign, receivers: list[str], value: str) -> str:
 		"""Note: C++で分割代入できるのはtuple/pairのみ。Pythonではいずれもtupleのため、tuple以外は非対応"""
@@ -500,7 +504,11 @@ class Py2Cpp(ITranspiler):
 
 	def on_anno_assign(self, node: defs.AnnoAssign, receiver: str, var_type: str, value: str) -> str:
 		annotation = self.transpile(node.var_type.annotation) if not isinstance(node.var_type.annotation, defs.Empty) else ''
-		return self.view.render(f'assign/{node.classification}', vars={'receiver': receiver, 'var_type': var_type, 'value': value, 'annotation': annotation})
+		assign_vars = {'receiver': receiver, 'var_type': var_type, 'value': value, 'annotation': annotation}
+		if isinstance(node.value, defs.FuncCall) and value.startswith(f'{var_type}('):
+			return self.view.render(f'assign/{node.classification}', vars={**assign_vars, 'is_initializer': True})
+		else:
+			return self.view.render(f'assign/{node.classification}', vars=assign_vars)
 
 	def on_aug_assign(self, node: defs.AugAssign, receiver: str, value: str) -> str:
 		return self.view.render(f'assign/{node.classification}', vars={'receiver': receiver, 'operator': node.operator.tokens, 'value': value})
@@ -1312,7 +1320,8 @@ class PatternParser:
 	RelayPattern = re.compile(r'(.+)(->|::|\.)\w+$')
 	DictIteratorPattern = re.compile(r'(.+)(->|\.)(\w+)\(\)$')
 	DeclClassVarNamePattern = re.compile(r'\s+([\w\d_]+)\s+=')
-	AssignRightPattern = re.compile(r'=\s*([^;]+);$')
+	MoveDeclRightPattern = re.compile(r'=\s*([^;]+);$')
+	InitDeclRightPattern = re.compile(r'({[^;]*});$')
 	CVarRelaySubPattern = re.compile(rf'(->|::|\.){CVars.relay_key}\(\)$')
 	CVarToSubPattern = re.compile(rf'(->|::|\.)({"|".join(CVars.exchanger_keys)})\(\)$')
 
@@ -1398,8 +1407,8 @@ class PatternParser:
 		return matches[1] if matches else ''
 
 	@classmethod
-	def pluck_assign_right(cls, assign: str) -> str:
-		"""代入式から右辺の部分を抜き出す
+	def pluck_decl_right(cls, assign: str) -> str:
+		"""変数宣言時の代入式から右辺の部分を抜き出す
 
 		Args:
 			assign: 文字列
@@ -1409,9 +1418,14 @@ class PatternParser:
 			```
 			### 期待値
 			'path.to = right;' -> 'right'
+			'path.to{right};' -> '{right}'
 			```
 		"""
-		matches = cls.AssignRightPattern.search(assign)
+		matches = cls.MoveDeclRightPattern.search(assign)
+		if matches:
+			return matches[1]
+
+		matches = cls.InitDeclRightPattern.search(assign)
 		return matches[1] if matches else ''
 
 	@classmethod

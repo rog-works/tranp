@@ -1,1 +1,7 @@
-{% if is_static %}static {% endif %}{{ var_type }} {{ receiver }} = {{ value }};
+{%- if is_initializer -%}
+{{ var_type }} {{ receiver }}{{ '{' + value[(var_type | length) + 1:-1] + '}' }};
+{%- elif is_static -%}
+static {{ var_type }} {{ receiver }} = {{ value }};
+{%- else -%}
+{{ var_type }} {{ receiver }} = {{ value }};
+{%- endif -%}

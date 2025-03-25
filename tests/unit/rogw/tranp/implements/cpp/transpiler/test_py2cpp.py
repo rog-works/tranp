@@ -83,7 +83,7 @@ class TestPy2Cpp(TestCase):
 		('CVarOps.ret_cp', 'function_def_raw.block.return_stmt', defs.Return, 'return new Sub(0);'),
 		('CVarOps.ret_csp', 'function_def_raw.block.return_stmt', defs.Return, 'return std::make_shared<Sub>(0);'),
 
-		('CVarOps.local_move', 'function_def_raw.block.anno_assign[0]', defs.AnnoAssign, 'Sub a = Sub(0);'),
+		('CVarOps.local_move', 'function_def_raw.block.anno_assign[0]', defs.AnnoAssign, 'Sub a{0};'),
 		('CVarOps.local_move', 'function_def_raw.block.anno_assign[1]', defs.AnnoAssign, 'Sub* ap = (&(a));'),
 		('CVarOps.local_move', 'function_def_raw.block.anno_assign[2]', defs.AnnoAssign, 'std::shared_ptr<Sub> asp = std::make_shared<Sub>(0);'),
 		('CVarOps.local_move', 'function_def_raw.block.anno_assign[3]', defs.AnnoAssign, 'Sub& ar = a;'),
@@ -135,12 +135,12 @@ class TestPy2Cpp(TestCase):
 
 		('CVarOps.declare', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'std::vector<int>* arr_p = (&(arr));'),
 		('CVarOps.declare', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'std::vector<int>* arr_p2 = new std::vector<int>();'),
-		('CVarOps.declare', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'std::shared_ptr<std::vector<int>> arr_sp = std::shared_ptr<std::vector<int>>(new std::vector<int>({1}));'),
-		('CVarOps.declare', 'function_def_raw.block.assign[4]', defs.MoveAssign, 'std::shared_ptr<std::vector<int>> arr_sp2 = std::shared_ptr<std::vector<int>>(new std::vector<int>());'),
-		('CVarOps.declare', 'function_def_raw.block.assign[5]', defs.MoveAssign, 'std::shared_ptr<std::vector<int>> arr_sp3 = std::shared_ptr<std::vector<int>>(new std::vector<int>(2));'),
-		('CVarOps.declare', 'function_def_raw.block.assign[6]', defs.MoveAssign, 'std::shared_ptr<std::vector<int>> arr_sp4 = std::shared_ptr<std::vector<int>>(new std::vector<int>(2, 0));'),
+		('CVarOps.declare', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'std::shared_ptr<std::vector<int>> arr_sp{new std::vector<int>({1})};'),
+		('CVarOps.declare', 'function_def_raw.block.assign[4]', defs.MoveAssign, 'std::shared_ptr<std::vector<int>> arr_sp2{new std::vector<int>()};'),
+		('CVarOps.declare', 'function_def_raw.block.assign[5]', defs.MoveAssign, 'std::shared_ptr<std::vector<int>> arr_sp3{new std::vector<int>(2)};'),
+		('CVarOps.declare', 'function_def_raw.block.assign[6]', defs.MoveAssign, 'std::shared_ptr<std::vector<int>> arr_sp4{new std::vector<int>(2, 0)};'),
 		('CVarOps.declare', 'function_def_raw.block.assign[7]', defs.MoveAssign, 'std::vector<int>& arr_r = arr;'),
-		('CVarOps.declare', 'function_def_raw.block.assign[8]', defs.MoveAssign, 'std::shared_ptr<int> n_sp_empty = std::shared_ptr<int>();'),
+		('CVarOps.declare', 'function_def_raw.block.assign[8]', defs.MoveAssign, 'std::shared_ptr<int> n_sp_empty{};'),
 		('CVarOps.declare', 'function_def_raw.block.assign[9]', defs.MoveAssign, 'CVarOps* this_p = this;'),
 		('CVarOps.declare', 'function_def_raw.block.assign[10]', defs.MoveAssign, 'std::vector<CVarOps*> this_ps = {this};'),
 		('CVarOps.declare', 'function_def_raw.block.assign[11]', defs.MoveAssign, 'std::vector<CVarOps*>& this_ps_ref = this_ps;'),
@@ -217,11 +217,11 @@ class TestPy2Cpp(TestCase):
 		('AccessOps.indexer', 'function_def_raw.block.funccall[2].arguments.argvalue', defs.Argument, 'arr_ar[0]'),
 
 		('Alias.Inner', '', defs.Class, 'public:\n/** Inner2 */\nclass Inner2 {\n\tpublic: inline static int V2 = 0;\n\tpublic:\n\t/** func */\n\tvoid func() {}\n};'),
-		('Alias.__init__', '', defs.Constructor, 'public:\n/** __init__ */\nAlias2() : inner_b(Alias2::Inner2()) {}'),
+		('Alias.__init__', '', defs.Constructor, 'public:\n/** __init__ */\nAlias2() : inner_b({}) {}'),
 		('Alias.in_param_return', '', defs.Method, BlockExpects.method(access='public', name='in_param_return', return_type='Alias2', params=['Alias2 a'])),
 		('Alias.in_param_return2', '', defs.Method, BlockExpects.method(access='public', name='in_param_return2', return_type='Alias2::Inner2', params=['Alias2::Inner2 i'])),
-		('Alias.in_local', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'Alias2 a = Alias2();'),
-		('Alias.in_local', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'Alias2::Inner2 i = Alias2::Inner2();'),
+		('Alias.in_local', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'Alias2 a{};'),
+		('Alias.in_local', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'Alias2::Inner2 i{};'),
 		('Alias.in_class_method', 'function_def_raw.block.funccall', defs.FuncCall, 'Alias2::in_class_method();'),
 		('Alias.in_class_method', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'Alias2::Values a = Alias2::Values::A;'),
 		('Alias.in_class_method', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'std::map<Alias2::Values, Alias2::Values> d = {\n\t{Alias2::Values::A, Alias2::Values::B},\n\t{Alias2::Values::B, Alias2::Values::A},\n};'),
@@ -237,7 +237,7 @@ class TestPy2Cpp(TestCase):
 		('Nullable.var_move', 'function_def_raw.block.if_stmt.if_clause.block.return_stmt', defs.Return, 'return (*(p));'),
 
 		('GenericOps.temporal', 'function_def_raw.block.assign', defs.MoveAssign, 'T a = value;'),
-		('GenericOps.new', 'function_def_raw.block.assign', defs.MoveAssign, 'GenericOps<int> a = GenericOps<int>();'),
+		('GenericOps.new', 'function_def_raw.block.assign', defs.MoveAssign, 'GenericOps<int> a{};'),
 
 		('Struct', '', defs.Class, '/** Struct */\nstruct Struct {\n\tpublic: int a;\n\tpublic: std::string b;\n\tpublic:\n\t/** __init__ */\n\tStruct(int a, const std::string& b) : a(a), b(b) {}\n};'),
 
@@ -409,7 +409,7 @@ class TestPy2Cpp(TestCase):
 		('ForFuncCall.Cast.cast_string', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'std::string f_to_s = std::to_string(1.0);'),
 		('ForFuncCall.Cast.cast_string', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'int s_to_n = atoi(n_to_s);'),
 		('ForFuncCall.Cast.cast_string', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'float s_to_f = atof(f_to_s);'),
-		('ForFuncCall.Cast.cast_string', 'function_def_raw.block.assign[4]', defs.MoveAssign, 'std::string s_to_s = std::string("");'),
+		('ForFuncCall.Cast.cast_string', 'function_def_raw.block.assign[4]', defs.MoveAssign, 'std::string s_to_s{""};'),
 
 		('ForFuncCall.Cast.cast_class', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'Base b = static_cast<Base>(sub);'),
 		('ForFuncCall.Cast.cast_class', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'Base* bp = static_cast<Base*>(sub_p);'),
@@ -479,7 +479,7 @@ class TestPy2Cpp(TestCase):
 		('ForBinaryOperator.comparison', 'function_def_raw.block.assign[1]', defs.MoveAssign, "bool c_eq = (c1 == c2) && (c1 != c2) && !c1;"),
 
 		('ForTemplateClass.Delegate', '', defs.Class, BlockExpects.ForTemplateClass_Delegate),
-		('ForTemplateClass.bind_call', 'function_def_raw.block.assign', defs.MoveAssign, 'ForTemplateClass::Delegate<bool, int> d = ForTemplateClass::Delegate<bool, int>();'),
+		('ForTemplateClass.bind_call', 'function_def_raw.block.assign', defs.MoveAssign, 'ForTemplateClass::Delegate<bool, int> d{};'),
 		('ForTemplateClass.bind_call', 'function_def_raw.block.funccall[1]', defs.FuncCall, 'd.bind(a, &ForTemplateClass::A::func);'),
 		('ForTemplateClass.bind_call', 'function_def_raw.block.funccall[2]', defs.FuncCall, 'd.invoke(true, 1);'),
 		('ForTemplateClass.boundary_call', '', defs.Method, BlockExpects.method(access='public', name='boundary_call', return_type='T_Base', statements=['return T_Base();'], template='T_Base')),

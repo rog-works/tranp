@@ -57,11 +57,13 @@ class TestRenderer(TestCase):
 	@data_provider([
 		('move_assign', {'receiver': 'hoge', 'value': '1234'}, 'hoge = 1234;'),
 		('move_assign_dict', {'receiver': 'hoge[0]', 'value': '1234'}, 'hoge[0] = 1234;'),
-		('move_assign_declare', {'receiver': 'hoge', 'value': '1234', 'var_type': 'int', 'is_static': False}, 'int hoge = 1234;'),
+		('move_assign_declare', {'receiver': 'hoge', 'value': '1234', 'var_type': 'int'}, 'int hoge = 1234;'),
 		('move_assign_declare', {'receiver': 'hoge', 'value': '1234', 'var_type': 'int', 'is_static': True}, 'static int hoge = 1234;'),
+		('move_assign_declare', {'receiver': 'hoge', 'value': 'A(1)', 'var_type': 'A', 'is_initializer': True}, 'A hoge{1};'),
 		('move_assign_destruction', {'receivers': ['hoge', 'fuga'], 'value': '{1234, 2345}'}, 'auto [hoge, fuga] = {1234, 2345};'),
 		('anno_assign', {'receiver': 'hoge', 'value': '1234', 'var_type': 'int', 'annotation': ''}, 'int hoge = 1234;'),
-		('anno_assign', {'receiver': 'hoge', 'var_type': 'int', 'annotation': ''}, 'int hoge;'),
+		('anno_assign', {'receiver': 'hoge', 'var_type': 'int', 'value': '', 'annotation': ''}, 'int hoge;'),
+		('anno_assign', {'receiver': 'hoge', 'value': 'A(1)', 'var_type': 'A', 'annotation': '', 'is_initializer': True}, 'A hoge{1};'),
 		('anno_assign', {'receiver': 'm', 'var_type': 'std::map<int, int>', 'value': '{{0, 0}, {1, 10}}', 'annotation': 'Embed::static'}, 'static std::map<int, int> m = {{0, 0}, {1, 10}};'),
 		('aug_assign', {'receiver': 'hoge', 'value': '1234', 'operator': '+='}, 'hoge += 1234;'),
 	])

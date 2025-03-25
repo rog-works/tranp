@@ -371,8 +371,8 @@ class Py2Cpp(ITranspiler):
 		# メンバー変数の宣言用のデータを生成
 		initializers: list[dict[str, str]] = []
 		for index, this_var in enumerate(this_vars):
-			# 期待値: `int this->a = 1234;`
-			initial_value = PatternParser.pluck_assign_right(initializer_statements[index])
+			# 期待値: `this->a = 1234;`
+			initial_value = PatternParser.pluck_decl_right(initializer_statements[index])
 			initializer = {'symbol': self.i18n.t(alias_dsn(this_var.fullyname), this_var.domain_name), 'value': initial_value}
 			initializers.append(initializer)
 
@@ -1312,7 +1312,8 @@ class PatternParser:
 	RelayPattern = re.compile(r'(.+)(->|::|\.)\w+$')
 	DictIteratorPattern = re.compile(r'(.+)(->|\.)(\w+)\(\)$')
 	DeclClassVarNamePattern = re.compile(r'\s+([\w\d_]+)\s+=')
-	AssignRightPattern = re.compile(r'=\s*([^;]+);$')
+	MoveDeclRightPattern = re.compile(r'=\s*([^;]+);$')
+	InitDeclRightPattern = re.compile(r'({[^;]*});$')
 	CVarRelaySubPattern = re.compile(rf'(->|::|\.){CVars.relay_key}\(\)$')
 	CVarToSubPattern = re.compile(rf'(->|::|\.)({"|".join(CVars.exchanger_keys)})\(\)$')
 
@@ -1398,8 +1399,8 @@ class PatternParser:
 		return matches[1] if matches else ''
 
 	@classmethod
-	def pluck_assign_right(cls, assign: str) -> str:
-		"""代入式から右辺の部分を抜き出す
+	def pluck_decl_right(cls, assign: str) -> str:
+		"""変数宣言時の代入式から右辺の部分を抜き出す
 
 		Args:
 			assign: 文字列
@@ -1409,9 +1410,14 @@ class PatternParser:
 			```
 			### 期待値
 			'path.to = right;' -> 'right'
+			'path.to{right};' -> '{right}'
 			```
 		"""
-		matches = cls.AssignRightPattern.search(assign)
+		matches = cls.MoveDeclRightPattern.search(assign)
+		if matches:
+			return matches[1]
+
+		matches = cls.InitDeclRightPattern.search(assign)
 		return matches[1] if matches else ''
 
 	@classmethod

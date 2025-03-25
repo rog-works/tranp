@@ -741,32 +741,30 @@ class Py2Cpp(ITranspiler):
 			return self.view.render(f'{node.classification}/default', vars={**vars, 'receiver': receiver, 'key': keys[0]})
 
 	def analyze_indexer_spec(self, node: defs.Indexer) -> tuple[str, IReflection | None]:
-		def is_on_cvar_relay() -> bool:
-			return isinstance(node.receiver, defs.Relay) and node.receiver.prop.domain_name == CVars.relay_key
+		def is_cvar_relay(receiver_symbol: IReflection) -> bool:
+			if not (isinstance(node.receiver, defs.Relay) and node.receiver.prop.domain_name == CVars.relay_key):
+				return False
 
-		def is_cvar() -> bool:
-			return node.receiver.domain_name in CVars.keys()
+			cvar_key = CVars.key_from(receiver_symbol.context)
+			return not CVars.is_entity(cvar_key)
 
+		def is_cvar(receiver_symbol: IReflection) -> bool:
+			cvar_key = CVars.key_from(receiver_symbol)
+			return not CVars.is_entity(cvar_key)
+
+		receiver_symbol = Defer.new(lambda: self.reflections.type_of(node.receiver).impl(refs.Object).actualize())
+		symbol = Defer.new(lambda: self.reflections.type_of(node).impl(refs.Object))
 		if node.sliced:
-			receiver_symbol = self.reflections.type_of(node.receiver).impl(refs.Object).actualize()
 			spec = 'slice_string' if receiver_symbol.type_is(str) else 'slice_array'
 			return spec, receiver_symbol
-		elif is_on_cvar_relay():
-			receiver_symbol = self.reflections.type_of(node.receiver).impl(refs.Object).actualize()
-			cvar_key = CVars.key_from(receiver_symbol.context)
-			if not CVars.is_entity(cvar_key):
+		elif is_cvar_relay(receiver_symbol):
 				return 'cvar_relay', None
-		elif is_cvar():
-			symbol = self.reflections.type_of(node)
-			return 'cvar', symbol.impl(refs.Object).actualize()
-		else:
-			receiver_symbol = self.reflections.type_of(node.receiver).impl(refs.Object).actualize()
-			if receiver_symbol.type_is(tuple):
-				return 'tuple', None
-
-			symbol = self.reflections.type_of(node).impl(refs.Object)
-			if symbol.type_is(type):
-				return 'class', symbol.actualize()
+		elif is_cvar(receiver_symbol):
+			return 'cvar', symbol.actualize()
+		elif receiver_symbol.type_is(tuple):
+			return 'tuple', None
+		elif symbol.type_is(type):
+			return 'class', symbol.actualize()
 
 		return 'otherwise', None
 

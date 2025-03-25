@@ -2,7 +2,8 @@ from collections.abc import Callable
 import re
 from typing import Any, ClassVar, Protocol, Self, TypeVarTuple, cast
 
-from rogw.tranp.compatible.cpp.object import CP, c_func_invoke, c_func_ref
+from rogw.tranp.compatible.cpp.function import c_func_invoke, c_func_ref
+from rogw.tranp.compatible.cpp.object import CP
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 from rogw.tranp.compatible.python.embed import Embed
 from rogw.tranp.compatible.python.types import Union
@@ -245,7 +246,7 @@ class Py2Cpp(ITranspiler):
 			return False
 
 		var_type_raw, null_type_raw = value_raw.attrs
-		var_type_key = CVars.key_from(var_type_raw)
+		var_type_key = CVars.key_from(var_type_raw.impl(refs.Object).actualize())
 		return CVars.is_addr(var_type_key) and null_type_raw.impl(refs.Object).type_is(None)
 
 	def to_accessor(self, accessor: str) -> str:
@@ -303,7 +304,7 @@ class Py2Cpp(ITranspiler):
 
 	def proc_for_dict(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		# XXX is_const/is_addr_pの対応に一貫性が無い。包括的な対応を検討
-		for_in_symbol = Defer.new(lambda: self.reflections.type_of(node.for_in))
+		for_in_symbol = Defer.new(lambda: self.reflections.type_of(node.for_in).impl(refs.Object).actualize())
 		is_const = CVars.is_const(CVars.key_from(for_in_symbol)) if len(symbols) == 1 else False
 		# 期待値: 'iterates.items()'
 		receiver, operator, method_name = PatternParser.break_dict_iterator(for_in)
@@ -314,7 +315,7 @@ class Py2Cpp(ITranspiler):
 
 	def proc_for_each(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		# XXX is_const/is_addr_pの対応に一貫性が無い。包括的な対応を検討
-		for_in_symbol = Defer.new(lambda: self.reflections.type_of(node.for_in))
+		for_in_symbol = Defer.new(lambda: self.reflections.type_of(node.for_in).impl(refs.Object).actualize())
 		is_const = CVars.is_const(CVars.key_from(for_in_symbol)) if len(symbols) == 1 else False
 		is_addr_p = CVars.is_addr_p(CVars.key_from(for_in_symbol)) if len(symbols) == 1 else False
 		return self.view.render(f'{node.classification}/default', vars={'symbols': symbols, 'iterates': for_in, 'statements': statements, 'is_const': is_const, 'is_addr_p': is_addr_p})
@@ -645,7 +646,7 @@ class Py2Cpp(ITranspiler):
 			prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.Method) else self.to_prop_name(prop_symbol)
 			is_property = isinstance(prop_symbol.decl, defs.Method) and prop_symbol.decl.is_property
 			return self.view.render(f'{node.classification}/default', vars={'receiver': cvar_receiver, 'operator': operator, 'prop': prop, 'is_property': is_property})
-		elif self.is_relay_cvar_exchanger(node):
+		elif self.is_relay_cvar_exchanger(node, receiver_symbol):
 			# 期待値: receiver.raw()
 			cvar_receiver = PatternParser.sub_cvar_to(receiver)
 			cvar_key = CVars.key_from(receiver_symbol)
@@ -678,17 +679,21 @@ class Py2Cpp(ITranspiler):
 			return False
 
 		cvar_key = CVars.key_from(receiver_symbol)
-		return not CVars.is_raw_raw(cvar_key)
+		return not CVars.is_entity(cvar_key)
 
 	def is_relay_cvar_link(self, node: defs.Relay, receiver_symbol: IReflection) -> bool:
 		if not (isinstance(node.receiver, defs.Relay) and node.receiver.prop.domain_name == CVars.relay_key):
 			return False
 
 		cvar_key = CVars.key_from(receiver_symbol.context)
-		return not CVars.is_raw_raw(cvar_key)
+		return not CVars.is_entity(cvar_key)
 
-	def is_relay_cvar_exchanger(self, node: defs.Relay) -> bool:
-		return node.prop.domain_name in CVars.exchanger_keys
+	def is_relay_cvar_exchanger(self, node: defs.Relay, receiver_symbol: IReflection) -> bool:
+		if node.prop.domain_name not in CVars.exchanger_keys:
+			return False
+
+		cvar_key = CVars.key_from(receiver_symbol)
+		return not CVars.is_entity(cvar_key)
 
 	def is_relay_type(self, node: defs.Relay, org_receiver_symbol: IReflection) -> bool:
 		return org_receiver_symbol.impl(refs.Object).type_is(type) or isinstance(node.receiver, defs.Super)
@@ -721,10 +726,6 @@ class Py2Cpp(ITranspiler):
 		elif spec == 'slice_array':
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={**vars, 'var_type': var_type})
-		elif spec == 'cvar_relay':
-			# 期待値: receiver.on()[key]
-			cvar_receiver = PatternParser.sub_cvar_relay(receiver)
-			return self.view.render(f'{node.classification}/default', vars={**vars, 'receiver': cvar_receiver, 'key': keys[0]})
 		elif spec == 'cvar':
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={**vars, 'var_type': var_type})
@@ -737,34 +738,19 @@ class Py2Cpp(ITranspiler):
 			return self.view.render(f'{node.classification}/default', vars={**vars, 'receiver': receiver, 'key': keys[0]})
 
 	def analyze_indexer_spec(self, node: defs.Indexer) -> tuple[str, IReflection | None]:
-		def is_on_cvar_relay() -> bool:
-			return isinstance(node.receiver, defs.Relay) and node.receiver.prop.domain_name == CVars.relay_key
-
-		def is_cvar() -> bool:
-			return node.receiver.domain_name in CVars.keys()
-
+		receiver_symbol = Defer.new(lambda: self.reflections.type_of(node.receiver).impl(refs.Object).actualize())
+		symbol = Defer.new(lambda: self.reflections.type_of(node).impl(refs.Object))
 		if node.sliced:
-			receiver_symbol = self.reflections.type_of(node.receiver).impl(refs.Object).actualize()
 			spec = 'slice_string' if receiver_symbol.type_is(str) else 'slice_array'
 			return spec, receiver_symbol
-		elif is_on_cvar_relay():
-			receiver_symbol = self.reflections.type_of(node.receiver).impl(refs.Object).actualize()
-			cvar_key = CVars.key_from(receiver_symbol.context)
-			if not CVars.is_raw_raw(cvar_key):
-				return 'cvar_relay', None
-		elif is_cvar():
-			symbol = self.reflections.type_of(node)
-			return 'cvar', symbol.impl(refs.Object).actualize()
+		elif not CVars.is_entity(CVars.key_from(receiver_symbol)):
+			return 'cvar', symbol.actualize()
+		elif receiver_symbol.type_is(tuple):
+			return 'tuple', None
+		elif symbol.type_is(type):
+			return 'class', symbol.actualize()
 		else:
-			receiver_symbol = self.reflections.type_of(node.receiver).impl(refs.Object).actualize()
-			if receiver_symbol.type_is(tuple):
-				return 'tuple', None
-
-			symbol = self.reflections.type_of(node).impl(refs.Object)
-			if symbol.type_is(type):
-				return 'class', symbol.actualize()
-
-		return 'otherwise', None
+			return 'otherwise', None
 
 	def on_relay_of_type(self, node: defs.RelayOfType, receiver: str) -> str:
 		prop_symbol = self.reflections.type_of(node.receiver).impl(refs.Object).prop_of(node.prop)
@@ -827,7 +813,7 @@ class Py2Cpp(ITranspiler):
 		elif spec == 'c_pragma':
 			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == 'c_func_invoke':
-			receiver_raw = Defer.new(lambda: self.reflections.type_of(node.arguments[0]))
+			receiver_raw = Defer.new(lambda: self.reflections.type_of(node.arguments[0]).impl(refs.Object).actualize())
 			operator = '->' if node.arguments[0].value.is_a(defs.ThisRef) or CVars.is_addr(CVars.key_from(receiver_raw)) else '.'
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'operator': operator})
 		elif spec == 'c_func_ref':
@@ -1013,7 +999,7 @@ class Py2Cpp(ITranspiler):
 				elif self.reflections.type_of(node.calls.receiver).impl(refs.Object).type_is(str):
 					return f'str_{prop}', None
 			elif prop == CVars.copy_key:
-				receiver_raw = self.reflections.type_of(node.calls.receiver)
+				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object).actualize()
 				cvar_key = CVars.key_from(receiver_raw)
 				if CVars.is_raw_ref(cvar_key):
 					return 'cvar_copy', None
@@ -1030,9 +1016,9 @@ class Py2Cpp(ITranspiler):
 					spec = 'cvar_new_sp_list' if new_type_raw.impl(refs.Object).type_is(list) else 'cvar_new_sp'
 					return spec, new_type_raw
 			elif prop == CVars.hex_key:
-				receiver_raw = self.reflections.type_of(node.calls.receiver)
+				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object).actualize()
 				cvar_key = CVars.key_from(receiver_raw)
-				if not CVars.is_raw_raw(cvar_key):
+				if not CVars.is_entity(cvar_key):
 					return 'cvar_hex', receiver_raw
 			elif prop == Embed.static.__name__ and node.calls.tokens == Embed.static.__qualname__:
 				return 'decl_static', None
@@ -1058,7 +1044,7 @@ class Py2Cpp(ITranspiler):
 
 	def on_comp_for(self, node: defs.CompFor, symbols: list[str], for_in: str) -> str:
 		# XXX is_const/is_addr_pの対応に一貫性が無い。包括的な対応を検討
-		for_in_symbol = Defer.new(lambda: self.reflections.type_of(node.for_in))
+		for_in_symbol = Defer.new(lambda: self.reflections.type_of(node.for_in).impl(refs.Object).actualize())
 		is_const = CVars.is_const(CVars.key_from(for_in_symbol)) if len(symbols) == 1 else False
 		is_addr_p = CVars.is_addr(CVars.key_from(for_in_symbol)) if len(symbols) == 1 else False
 

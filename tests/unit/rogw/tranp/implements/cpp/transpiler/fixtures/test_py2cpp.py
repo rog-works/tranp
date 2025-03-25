@@ -4,7 +4,8 @@ from typing import Annotated, ClassVar, Generic, Protocol, Self, TypeAlias, Type
 
 from rogw.tranp.compatible.cpp.classes import char, void
 from rogw.tranp.compatible.cpp.enum import CEnum as Enum
-from rogw.tranp.compatible.cpp.object import CP, CPConst, CRawConst, CRef, CSP, CRefConst, c_func_invoke, c_func_ref
+from rogw.tranp.compatible.cpp.function import c_func_invoke, c_func_ref
+from rogw.tranp.compatible.cpp.object import CP, CPConst, CRawConst, CRef, CSP
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 from rogw.tranp.compatible.python.embed import Embed
 
@@ -274,9 +275,9 @@ class AccessOps(Sub):
 		}
 
 	def indexer(self, arr_p: CP[list[int]], arr_sp: CSP[list[int]], arr_ar: CRef[list[int]]) -> None:
-		print(arr_p.on[0])
-		print(arr_sp.on[0])
-		print(arr_ar.on[0])
+		print(arr_p.raw[0])
+		print(arr_sp.raw[0])
+		print(arr_ar.raw[0])
 
 
 @Embed.alias('Alias2')

@@ -58,9 +58,9 @@ class TestPy2Cpp(TestCase):
 	@data_provider([
 		('', 'import_stmt[1]', defs.Import, '#include <functional>'),
 
-		('', 'funccall[8]', defs.FuncCall, '#pragma once'),
-		('', 'funccall[9]', defs.FuncCall, '#include <memory>'),
-		('', 'funccall[10]', defs.FuncCall, 'MACRO()'),
+		('', 'funccall[9]', defs.FuncCall, '#pragma once'),
+		('', 'funccall[10]', defs.FuncCall, '#include <memory>'),
+		('', 'funccall[11]', defs.FuncCall, 'MACRO()'),
 
 		('T', '', defs.TemplateClass, '// template<typename T>'),
 		('T2', '', defs.TemplateClass, '// template<typename T2>'),
@@ -181,8 +181,8 @@ class TestPy2Cpp(TestCase):
 
 		('CVarOps.prop_relay', 'function_def_raw.block.assign', defs.MoveAssign, 'CVarOps a = this->prop_relay().prop_relay();'),
 
-		('CVarOps.hex', 'function_def_raw.block.funccall[0]', defs.FuncCall, 'std::format("%x", (p));'),
-		('CVarOps.hex', 'function_def_raw.block.funccall[1]', defs.FuncCall, 'std::format("%x", ((&(n))));'),
+		('CVarOps.hex', 'function_def_raw.block.funccall[0]', defs.FuncCall, 'std::format("%p", (p));'),
+		('CVarOps.hex', 'function_def_raw.block.funccall[1]', defs.FuncCall, 'std::format("%p", ((&(n))));'),
 
 		('FuncOps.kw_params', 'function_def_raw.block.assign', defs.MoveAssign, 'std::string a = this->kw_params(1, 2);'),
 
@@ -212,8 +212,8 @@ class TestPy2Cpp(TestCase):
 		('AccessOps.double_colon', 'function_def_raw.block.funccall[4].arguments.argvalue', defs.Argument, 'Values::A'),
 		('AccessOps.double_colon', 'function_def_raw.block.anno_assign', defs.AnnoAssign, 'std::map<Values, std::string> d = {\n\t{Values::A, "A"},\n\t{Values::B, "B"},\n};'),
 
-		('AccessOps.indexer', 'function_def_raw.block.funccall[0].arguments.argvalue', defs.Argument, 'arr_p[0]'),
-		('AccessOps.indexer', 'function_def_raw.block.funccall[1].arguments.argvalue', defs.Argument, 'arr_sp[0]'),
+		('AccessOps.indexer', 'function_def_raw.block.funccall[0].arguments.argvalue', defs.Argument, '(*(arr_p))[0]'),
+		('AccessOps.indexer', 'function_def_raw.block.funccall[1].arguments.argvalue', defs.Argument, '(*(arr_sp))[0]'),
 		('AccessOps.indexer', 'function_def_raw.block.funccall[2].arguments.argvalue', defs.Argument, 'arr_ar[0]'),
 
 		('Alias.Inner', '', defs.Class, 'public:\n/** Inner2 */\nclass Inner2 {\n\tpublic: inline static int V2 = 0;\n\tpublic:\n\t/** func */\n\tvoid func() {}\n};'),

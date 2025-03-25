@@ -1,1 +1,1 @@
-{{ i18n('cpp', 'string.format') }}("%x", {% if not is_addr %}&{% endif %}({{ receiver }})){% if is_statement %};{% endif %}
+{{ i18n('cpp', 'string.format') }}("%p", {% if not is_addr %}&{% endif %}({{ receiver }})){% if is_statement %};{% endif %}

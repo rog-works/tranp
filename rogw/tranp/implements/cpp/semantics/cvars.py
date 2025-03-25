@@ -60,8 +60,19 @@ class CVars:
 		Static = 2
 
 	@classmethod
+	def is_entity(cls, key: str) -> bool:
+		"""実体か判定(Constは除外)
+
+		Args:
+			key: C++変数型の種別キー
+		Returns:
+			True = 実体
+		"""
+		return key == cpp.CRaw.__name__
+
+	@classmethod
 	def is_raw(cls, key: str) -> bool:
-		"""実体か判定
+		"""実体か判定(Constを含む)
 
 		Args:
 			key: C++変数型の種別キー
@@ -72,7 +83,7 @@ class CVars:
 
 	@classmethod
 	def is_addr(cls, key: str) -> bool:
-		"""アドレスか判定
+		"""アドレスか判定(Constを含む)
 
 		Args:
 			key: C++変数型の種別キー
@@ -83,7 +94,7 @@ class CVars:
 
 	@classmethod
 	def is_raw_raw(cls, key: str) -> bool:
-		"""実体か判定
+		"""実体か判定(Constを含む)
 
 		Args:
 			key: C++変数型の種別キー
@@ -94,7 +105,7 @@ class CVars:
 
 	@classmethod
 	def is_raw_ref(cls, key: str) -> bool:
-		"""参照か判定
+		"""参照か判定(Constを含む)
 
 		Args:
 			key: C++変数型の種別キー
@@ -105,7 +116,7 @@ class CVars:
 
 	@classmethod
 	def is_addr_p(cls, key: str) -> bool:
-		"""ポインターか判定
+		"""ポインターか判定(Constを含む)
 
 		Args:
 			key: C++変数型の種別キー
@@ -116,7 +127,7 @@ class CVars:
 
 	@classmethod
 	def is_addr_sp(cls, key: str) -> bool:
-		"""スマートポインターか判定
+		"""スマートポインターか判定(Constを含む)
 
 		Args:
 			key: C++変数型の種別キー

@@ -137,6 +137,16 @@ class ReflectionBase(IReflection):
 
 	@property
 	@implements
+	def _dump(self) -> str:
+		"""Returns: 比較用の文字列"""
+		data = {
+			'types': self.types.fullyname,
+			'attrs': [attr._dump for attr in self.attrs],
+		}
+		return str(data)
+
+	@property
+	@implements
 	def pretty(self) -> str:
 		"""Returns: オブジェクトの短縮表記(装飾) Note: デバッグ用途のため判定に用いるのはNG"""
 		return ClassShorthandNaming.domain_name_for_debug(self)
@@ -221,16 +231,11 @@ class ReflectionBase(IReflection):
 		if not isinstance(other, IReflection):
 			raise SemanticsLogicError(f'Not allowed comparison. other: {type(other)}')
 
-		return other.__repr__() == self.__repr__()
+		return other._dump == self._dump
 
-	@override
 	def __repr__(self) -> str:
 		"""Returns: オブジェクトのシリアライズ表現"""
-		data = {
-			'types': self.types.fullyname,
-			'attrs': [attr.__repr__() for attr in self.attrs],
-		}
-		return str(data)
+		return f'<{self.__class__.__name__}[{self.pretty}]: @{self.node.id} {self.node.fullyname}>'
 
 	@override
 	def __str__(self) -> str:
@@ -240,7 +245,7 @@ class ReflectionBase(IReflection):
 	@override
 	def __hash__(self) -> int:
 		"""Returns: オブジェクトのハッシュ値"""
-		return hash(self.__repr__())
+		return hash(self._dump)
 	
 	def __getattr__(self, name: str) -> Callable[..., Any]:
 		"""トレイトからメソッドを取得
@@ -250,9 +255,15 @@ class ReflectionBase(IReflection):
 		Returns:
 			メソッド
 		Note:
-			XXX このメソッドを実装すると、存在しないプロパティーを誤って参照した際に警告されないため、要検討
+			```
+			* XXX 特殊メソッド(__repr__等)の取得に暗黙的に利用されるため、実際はトレイト専用ではない
+			* XXX このメソッドを実装すると、存在しないプロパティーを誤って参照した際に警告されないため、要検討
+			```
 		"""
-		return self._traits.get(name, self)
+		if self._traits.has_method(name):
+			return self._traits.get(name, self)
+
+		return super().__getattribute__(name)
 
 
 class Symbol(ReflectionBase):

@@ -108,6 +108,12 @@ class IReflection(metaclass=ABCMeta):
 
 	@property
 	@abstractmethod
+	def _dump(self) -> str:
+		"""Returns: 比較用の文字列"""
+		...
+
+	@property
+	@abstractmethod
 	def pretty(self) -> str:
 		"""Returns: オブジェクトの短縮表記(装飾) Note: デバッグ用途のため判定に用いるのはNG"""
 		...

@@ -259,7 +259,7 @@ struct JsonEntity {
 	 * @return インスタンス
 	 */
 	static JsonEntity for_scalar(const std::string& value_str, JsonEntryTypes entry_type) {
-		JsonEntity instance = JsonEntity();
+		JsonEntity instance{};
 		if (entry_type == JsonEntryTypes::Boolean) {
 			instance.as_bool = value_str == "true";
 		} else if (entry_type == JsonEntryTypes::Number) {
@@ -281,7 +281,7 @@ struct JsonEntry {
 	/**
 	 * インスタンスを生成
 	 */
-	JsonEntry() : path(""), entry_type(JsonEntryTypes::Unknown), entity(JsonEntity()) {}
+	JsonEntry() : path(""), entry_type(JsonEntryTypes::Unknown), entity({}) {}
 	public:
 	/**
 	 * インスタンスを生成
@@ -291,7 +291,7 @@ struct JsonEntry {
 	 * @return インスタンス
 	 */
 	static JsonEntry make(const std::string& path, JsonEntryTypes entry_type, JsonEntity entity) {
-		JsonEntry instance = JsonEntry();
+		JsonEntry instance{};
 		instance.path = path;
 		instance.entry_type = entry_type;
 		instance.entity = entity;

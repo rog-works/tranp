@@ -645,7 +645,7 @@ class Py2Cpp(ITranspiler):
 			prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.Method) else self.to_prop_name(prop_symbol)
 			is_property = isinstance(prop_symbol.decl, defs.Method) and prop_symbol.decl.is_property
 			return self.view.render(f'{node.classification}/default', vars={'receiver': cvar_receiver, 'operator': operator, 'prop': prop, 'is_property': is_property})
-		elif self.is_relay_cvar_exchanger(node):
+		elif self.is_relay_cvar_exchanger(node, receiver_symbol):
 			# 期待値: receiver.raw()
 			cvar_receiver = PatternParser.sub_cvar_to(receiver)
 			cvar_key = CVars.key_from(receiver_symbol)
@@ -678,17 +678,21 @@ class Py2Cpp(ITranspiler):
 			return False
 
 		cvar_key = CVars.key_from(receiver_symbol)
-		return not CVars.is_raw_raw(cvar_key)
+		return not CVars.is_entity(cvar_key)
 
 	def is_relay_cvar_link(self, node: defs.Relay, receiver_symbol: IReflection) -> bool:
 		if not (isinstance(node.receiver, defs.Relay) and node.receiver.prop.domain_name == CVars.relay_key):
 			return False
 
 		cvar_key = CVars.key_from(receiver_symbol.context)
-		return not CVars.is_raw_raw(cvar_key)
+		return not CVars.is_entity(cvar_key)
 
-	def is_relay_cvar_exchanger(self, node: defs.Relay) -> bool:
-		return node.prop.domain_name in CVars.exchanger_keys
+	def is_relay_cvar_exchanger(self, node: defs.Relay, receiver_symbol: IReflection) -> bool:
+		if node.prop.domain_name not in CVars.exchanger_keys:
+			return False
+
+		cvar_key = CVars.key_from(receiver_symbol)
+		return not CVars.is_entity(cvar_key)
 
 	def is_relay_type(self, node: defs.Relay, org_receiver_symbol: IReflection) -> bool:
 		return org_receiver_symbol.impl(refs.Object).type_is(type) or isinstance(node.receiver, defs.Super)
@@ -750,7 +754,7 @@ class Py2Cpp(ITranspiler):
 		elif is_on_cvar_relay():
 			receiver_symbol = self.reflections.type_of(node.receiver).impl(refs.Object).actualize()
 			cvar_key = CVars.key_from(receiver_symbol.context)
-			if not CVars.is_raw_raw(cvar_key):
+			if not CVars.is_entity(cvar_key):
 				return 'cvar_relay', None
 		elif is_cvar():
 			symbol = self.reflections.type_of(node)
@@ -1032,7 +1036,7 @@ class Py2Cpp(ITranspiler):
 			elif prop == CVars.hex_key:
 				receiver_raw = self.reflections.type_of(node.calls.receiver)
 				cvar_key = CVars.key_from(receiver_raw)
-				if not CVars.is_raw_raw(cvar_key):
+				if not CVars.is_entity(cvar_key):
 					return 'cvar_hex', receiver_raw
 			elif prop == Embed.static.__name__ and node.calls.tokens == Embed.static.__qualname__:
 				return 'decl_static', None

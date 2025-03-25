@@ -181,8 +181,8 @@ class TestPy2Cpp(TestCase):
 
 		('CVarOps.prop_relay', 'function_def_raw.block.assign', defs.MoveAssign, 'CVarOps a = this->prop_relay().prop_relay();'),
 
-		('CVarOps.hex', 'function_def_raw.block.funccall[0]', defs.FuncCall, 'std::format("%x", (p));'),
-		('CVarOps.hex', 'function_def_raw.block.funccall[1]', defs.FuncCall, 'std::format("%x", ((&(n))));'),
+		('CVarOps.hex', 'function_def_raw.block.funccall[0]', defs.FuncCall, 'std::format("%p", (p));'),
+		('CVarOps.hex', 'function_def_raw.block.funccall[1]', defs.FuncCall, 'std::format("%p", ((&(n))));'),
 
 		('FuncOps.kw_params', 'function_def_raw.block.assign', defs.MoveAssign, 'std::string a = this->kw_params(1, 2);'),
 

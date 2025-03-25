@@ -245,7 +245,7 @@ class Py2Cpp(ITranspiler):
 			return False
 
 		var_type_raw, null_type_raw = value_raw.attrs
-		var_type_key = CVars.key_from(var_type_raw)
+		var_type_key = CVars.key_from(var_type_raw.impl(refs.Object).actualize())
 		return CVars.is_addr(var_type_key) and null_type_raw.impl(refs.Object).type_is(None)
 
 	def to_accessor(self, accessor: str) -> str:
@@ -303,7 +303,7 @@ class Py2Cpp(ITranspiler):
 
 	def proc_for_dict(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		# XXX is_const/is_addr_pの対応に一貫性が無い。包括的な対応を検討
-		for_in_symbol = Defer.new(lambda: self.reflections.type_of(node.for_in))
+		for_in_symbol = Defer.new(lambda: self.reflections.type_of(node.for_in).impl(refs.Object).actualize())
 		is_const = CVars.is_const(CVars.key_from(for_in_symbol)) if len(symbols) == 1 else False
 		# 期待値: 'iterates.items()'
 		receiver, operator, method_name = PatternParser.break_dict_iterator(for_in)
@@ -314,7 +314,7 @@ class Py2Cpp(ITranspiler):
 
 	def proc_for_each(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		# XXX is_const/is_addr_pの対応に一貫性が無い。包括的な対応を検討
-		for_in_symbol = Defer.new(lambda: self.reflections.type_of(node.for_in))
+		for_in_symbol = Defer.new(lambda: self.reflections.type_of(node.for_in).impl(refs.Object).actualize())
 		is_const = CVars.is_const(CVars.key_from(for_in_symbol)) if len(symbols) == 1 else False
 		is_addr_p = CVars.is_addr_p(CVars.key_from(for_in_symbol)) if len(symbols) == 1 else False
 		return self.view.render(f'{node.classification}/default', vars={'symbols': symbols, 'iterates': for_in, 'statements': statements, 'is_const': is_const, 'is_addr_p': is_addr_p})
@@ -831,7 +831,7 @@ class Py2Cpp(ITranspiler):
 		elif spec == 'c_pragma':
 			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == 'c_func_invoke':
-			receiver_raw = Defer.new(lambda: self.reflections.type_of(node.arguments[0]))
+			receiver_raw = Defer.new(lambda: self.reflections.type_of(node.arguments[0]).impl(refs.Object).actualize())
 			operator = '->' if node.arguments[0].value.is_a(defs.ThisRef) or CVars.is_addr(CVars.key_from(receiver_raw)) else '.'
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'operator': operator})
 		elif spec == 'c_func_ref':
@@ -1017,7 +1017,7 @@ class Py2Cpp(ITranspiler):
 				elif self.reflections.type_of(node.calls.receiver).impl(refs.Object).type_is(str):
 					return f'str_{prop}', None
 			elif prop == CVars.copy_key:
-				receiver_raw = self.reflections.type_of(node.calls.receiver)
+				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object).actualize()
 				cvar_key = CVars.key_from(receiver_raw)
 				if CVars.is_raw_ref(cvar_key):
 					return 'cvar_copy', None
@@ -1034,7 +1034,7 @@ class Py2Cpp(ITranspiler):
 					spec = 'cvar_new_sp_list' if new_type_raw.impl(refs.Object).type_is(list) else 'cvar_new_sp'
 					return spec, new_type_raw
 			elif prop == CVars.hex_key:
-				receiver_raw = self.reflections.type_of(node.calls.receiver)
+				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object).actualize()
 				cvar_key = CVars.key_from(receiver_raw)
 				if not CVars.is_entity(cvar_key):
 					return 'cvar_hex', receiver_raw
@@ -1062,7 +1062,7 @@ class Py2Cpp(ITranspiler):
 
 	def on_comp_for(self, node: defs.CompFor, symbols: list[str], for_in: str) -> str:
 		# XXX is_const/is_addr_pの対応に一貫性が無い。包括的な対応を検討
-		for_in_symbol = Defer.new(lambda: self.reflections.type_of(node.for_in))
+		for_in_symbol = Defer.new(lambda: self.reflections.type_of(node.for_in).impl(refs.Object).actualize())
 		is_const = CVars.is_const(CVars.key_from(for_in_symbol)) if len(symbols) == 1 else False
 		is_addr_p = CVars.is_addr(CVars.key_from(for_in_symbol)) if len(symbols) == 1 else False
 

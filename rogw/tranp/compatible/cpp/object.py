@@ -233,10 +233,6 @@ class CSP(CVarNullable[T_co]):
 		"""Returns: Constを返却する参照変換代替メソッド。C++では削除"""
 		return CSPConst(self.raw)
 
-	def reset(self) -> None:
-		"""実体への参照を削除。C++ではshared_ptr::resetに相当"""
-		self._origin = None
-
 
 class CRef(CVarNotNull[T_co]):
 	"""C++型変数の互換クラス(参照)"""

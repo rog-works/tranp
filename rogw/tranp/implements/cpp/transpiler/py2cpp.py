@@ -2,7 +2,8 @@ from collections.abc import Callable
 import re
 from typing import Any, ClassVar, Protocol, Self, TypeVarTuple, cast
 
-from rogw.tranp.compatible.cpp.object import CP, c_func_invoke, c_func_ref
+from rogw.tranp.compatible.cpp.function import c_func_invoke, c_func_ref
+from rogw.tranp.compatible.cpp.object import CP
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 from rogw.tranp.compatible.python.embed import Embed
 from rogw.tranp.compatible.python.types import Union

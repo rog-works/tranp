@@ -58,9 +58,9 @@ class TestPy2Cpp(TestCase):
 	@data_provider([
 		('', 'import_stmt[1]', defs.Import, '#include <functional>'),
 
-		('', 'funccall[8]', defs.FuncCall, '#pragma once'),
-		('', 'funccall[9]', defs.FuncCall, '#include <memory>'),
-		('', 'funccall[10]', defs.FuncCall, 'MACRO()'),
+		('', 'funccall[9]', defs.FuncCall, '#pragma once'),
+		('', 'funccall[10]', defs.FuncCall, '#include <memory>'),
+		('', 'funccall[11]', defs.FuncCall, 'MACRO()'),
 
 		('T', '', defs.TemplateClass, '// template<typename T>'),
 		('T2', '', defs.TemplateClass, '// template<typename T2>'),

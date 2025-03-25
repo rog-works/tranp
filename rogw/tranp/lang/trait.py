@@ -106,6 +106,16 @@ class Traits(Generic[T]):
 
 		return True
 
+	def has_method(self, name: str) -> bool:
+		"""メソッドが存在するか判定
+
+		Args:
+			name: メソッド名
+		Returns:
+			True = 存在
+		"""
+		return name in self.__method_on_trait
+
 	def get(self, name: str, instance: T) -> Callable[..., Any]:
 		"""トレイトのメソッドを取得
 

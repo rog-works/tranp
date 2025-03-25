@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from collections.abc import Callable
-from typing import Any, Generic, Self, TypeVar, override
+from typing import Generic, Self, TypeVar, override
 
 T = TypeVar('T')
 T_co = TypeVar('T_co', covariant=True)

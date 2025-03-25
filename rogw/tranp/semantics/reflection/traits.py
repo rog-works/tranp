@@ -250,7 +250,16 @@ class PropertiesTrait(TraitImpl, IProperties):
 			シンボル
 		"""
 		symbol = self.reflections.resolve_property(instance.types, prop)
-		if not isinstance(symbol.types, defs.TemplateClass):
+		# メソッドを除外
+		if isinstance(symbol.types, defs.Function):
+			return symbol
+
+		# テンプレートが無い場合を除外
+		if not templates.TemplateManipulator.has_templates(symbol):
+			return symbol
+
+		# クラス参照を除外。prop_ofは基本的にactualizeによってtypeのアンパックがされる想定 XXX 必然性が不明
+		if instance.via.impl(refs.Object).type_is(type):
 			return symbol
 
 		decl_actual = self._declare_class(prop, instance)

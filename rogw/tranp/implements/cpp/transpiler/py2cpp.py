@@ -612,7 +612,7 @@ class Py2Cpp(ITranspiler):
 
 	def on_relay(self, node: defs.Relay, receiver: str) -> str:
 		org_receiver_symbol = Defer.new(lambda: self.reflections.type_of(node.receiver).impl(refs.Object))
-		receiver_symbol = Defer.new(lambda: org_receiver_symbol.actualize().impl(refs.Object))
+		receiver_symbol = Defer.new(lambda: org_receiver_symbol.actualize())
 		prop_symbol = Defer.new(lambda: receiver_symbol.prop_of(node.prop))
 		if self.is_relay_literalizer(node, receiver_symbol):
 			org_prop = node.prop.domain_name

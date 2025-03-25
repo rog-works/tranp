@@ -214,6 +214,17 @@ class TemplateManipulator:
 	"""テンプレート操作"""
 
 	@classmethod
+	def has_templates(cls, symbol: IReflection) -> bool:
+		"""シンボル内にテンプレート型が存在するか判定
+
+		Args:
+			symbol: シンボル
+		Returns:
+			True = 存在
+		"""
+		return len(cls.unpack_templates(temp=symbol)[0]) > 0
+
+	@classmethod
 	def unpack_templates(cls, **attrs: IReflection | list[IReflection]) -> tuple[TemplateMap, SymbolMap]:
 		"""シンボル/属性からテンプレート型を平坦化して抽出
 

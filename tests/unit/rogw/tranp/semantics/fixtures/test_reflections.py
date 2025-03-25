@@ -417,11 +417,19 @@ class ForTemplateClass:
 		def __init__(self, v: T) -> None:
 			self.v = v
 
-	class G2(G1[int]):
+	class G2(Generic[T]):
+		v: 'ForTemplateClass.G1[T]'
+
+		def __init__(self, v: 'ForTemplateClass.G1[T]') -> None:
+			self.v = v
+
+	class G3(G1[int]):
 		def v_ref(self) -> None:
-			gn = ForTemplateClass.G1(0)
-			gn_v = gn.v
-			super_v = self.v
+			g1 = ForTemplateClass.G1(0)
+			g1_v = g1.v
+			g2 = ForTemplateClass.G2(g1)
+			g2_v = g2.v
+			g3_v = self.v
 
 	class Delegate(Generic[*T_Args]):
 		def bind(self, obj: T, method: Callable[[T, *T_Args], None]) -> None: ...

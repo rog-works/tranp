@@ -185,9 +185,11 @@ class TestReflections(TestCase):
 		('ForEnum.ref_props.en_b_value', '', _mod('classes', 'int'), 'int'),
 
 		('ForTemplateClass.boundary_call', 'function_def_raw.block.return_stmt', _mod('__main__', 'Base'), 'Base'),
-		('ForTemplateClass.G2.v_ref.gn', '', _mod('__main__', 'ForTemplateClass.G1'), 'G1<int>'),
-		('ForTemplateClass.G2.v_ref.gn_v', '', _mod('classes', 'int'), 'int'),
-		('ForTemplateClass.G2.v_ref.super_v', '', _mod('classes', 'int'), 'int'),
+		('ForTemplateClass.G3.v_ref.g1', '', _mod('__main__', 'ForTemplateClass.G1'), 'G1<int>'),
+		('ForTemplateClass.G3.v_ref.g1_v', '', _mod('classes', 'int'), 'int'),
+		('ForTemplateClass.G3.v_ref.g2', '', _mod('__main__', 'ForTemplateClass.G2'), 'G2<int>'),
+		('ForTemplateClass.G3.v_ref.g2_v', '', _mod('__main__', 'ForTemplateClass.G1'), 'G1<int>'),
+		('ForTemplateClass.G3.v_ref.g3_v', '', _mod('classes', 'int'), 'int'),
 
 		('ForLambda.expression', 'function_def_raw.block.lambdadef', _mod('collections', 'Callable'), 'Callable<str>'),
 		('ForLambda.expression', 'function_def_raw.block.assign[1]', _mod('collections', 'Callable'), 'Callable<bool>'),

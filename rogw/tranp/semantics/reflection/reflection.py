@@ -83,7 +83,7 @@ class ReflectionBase(IReflection):
 	@implements
 	def context(self) -> IReflection:
 		"""Returns: コンテキストを取得 Raises: SemanticsLogicError: コンテキストが無い状態で使用"""
-		if self.via == self:
+		if self.node == self.via.node and self == self.via:
 			raise SemanticsLogicError(f'Context is null. symbol: {str(self)}')
 
 		return self.via

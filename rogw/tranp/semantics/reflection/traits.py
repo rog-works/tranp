@@ -250,8 +250,8 @@ class PropertiesTrait(TraitImpl, IProperties):
 			シンボル
 		"""
 		symbol = self.reflections.resolve_property(instance.types, prop)
-		# メソッドを除外
-		if isinstance(symbol.types, defs.Function):
+		# クラス定義を除外
+		if isinstance(symbol.types, defs.ClassDef):
 			return symbol
 
 		# テンプレートが無い場合を除外

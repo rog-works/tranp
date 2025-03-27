@@ -267,7 +267,7 @@ class PropertiesTrait(TraitImpl, IProperties):
 		decl_actual = self._declare_class(prop, instance)
 		decl_schema = self.reflections.type_of(decl_actual.types).impl(refs.Object).actualize('type')
 		actual_prop = templates.Class(symbol, {'klass': decl_schema, 'prop': symbol}).prop(decl_actual)
-		return symbol.to(prop, actual_prop)
+		return symbol.to(symbol.node, actual_prop)
 
 	def _declare_class(self, prop: defs.Var, instance: IReflection) -> IReflection:
 		"""プロパティーの定義元のクラスシンボルを解決

@@ -248,18 +248,20 @@ class PropertiesTrait(TraitImpl, IProperties):
 			instance: シンボル ※Traitsから暗黙的に入力される
 		Returns:
 			シンボル
+		Note:
+			### テンプレート解決の条件について
+			1. メソッドを除外: メソッドは別途テンプレート解決しているため不要
+			2. ローカル参照以外を除外: 実行時型参照のみ解決が必要。逆に言えば宣言領域のテンプレート解決は不要
+			3. テンプレートなしを除外: テンプレートの解決が不要なら後続処理は不要
 		"""
 		symbol = self.reflections.resolve_property(instance.types, prop)
-		# クラス定義を除外
-		if isinstance(symbol.types, defs.ClassDef):
+		if symbol.types.is_a(defs.Function):
 			return symbol
 
-		# テンプレートが無い場合を除外
+		if not instance.decl.is_a(*defs.DeclVarsTs):
+			return symbol
+
 		if not templates.TemplateManipulator.has_templates(symbol):
-			return symbol
-
-		# クラス参照を除外。prop_ofは基本的にactualizeによってtypeのアンパックがされる想定 XXX 必然性が不明
-		if instance.via.impl(refs.Object).type_is(type):
 			return symbol
 
 		decl_actual = self._declare_class(prop, instance)

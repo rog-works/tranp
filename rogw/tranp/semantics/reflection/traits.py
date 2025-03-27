@@ -265,7 +265,7 @@ class PropertiesTrait(TraitImpl, IProperties):
 			return symbol
 
 		decl_actual = self._declare_class(prop, instance)
-		decl_schema = self.reflections.type_of(decl_actual.types).impl(refs.Object).actualize('type')
+		decl_schema = self.reflections.resolve(decl_actual.types)
 		actual_prop = templates.Class(symbol, {'klass': decl_schema, 'prop': symbol}).prop(decl_actual)
 		return symbol.to(symbol.node, actual_prop)
 

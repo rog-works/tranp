@@ -5,7 +5,7 @@ from typing import Annotated, ClassVar, Generic, Protocol, Self, TypeAlias, Type
 from rogw.tranp.compatible.cpp.classes import char, void
 from rogw.tranp.compatible.cpp.enum import CEnum as Enum
 from rogw.tranp.compatible.cpp.function import c_func_invoke, c_func_ref
-from rogw.tranp.compatible.cpp.object import CP, CPConst, CRawConst, CRef, CSP
+from rogw.tranp.compatible.cpp.object import CP, CPConst, CRawConst, CRef, CSP, T_co
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 from rogw.tranp.compatible.python.embed import Embed
 
@@ -18,6 +18,7 @@ T2 = TypeVar('T2')
 
 DSI: TypeAlias = dict[str, int]
 TSII: TypeAlias = tuple[str, int, int]
+CSP2: TypeAlias = CSP[T_co]
 
 
 class Values(Enum):
@@ -377,6 +378,10 @@ class ForCompound:
 			self.anno_n = int(s)
 			self.move_s = str(n)
 			self.move_dsn = {s: n}
+
+	class AltClass:
+		def assign(self) -> None:
+			sp: CSP2[Sub] = CSP2.new(Sub(0))
 
 	class ClassMethod:
 		@classmethod

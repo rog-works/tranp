@@ -153,6 +153,9 @@ class Py2Cpp(ITranspiler):
 			var_type = f'{var_type}<{attr_types[-1]}({", ".join(param_types)})>'
 		elif not actual_raw.types.is_a(defs.AltClass) and len(attr_types) > 0:
 			var_type = f'{var_type}<{", ".join(attr_types)}>'
+		elif actual_raw.types.is_a(defs.AltClass) and not CVars.is_entity(CVars.key_from(actual_raw.attrs[0])):
+			# XXX C++型変数のAltClassの特殊化であり、一般解に程遠いため修正を検討
+			var_type = f'{var_type}<{", ".join([self.to_accessible_name(attr) for attr in actual_raw.attrs[0].attrs])}>'
 
 		var_type = self.view.render('type_py2cpp', vars={'var_type': var_type})
 		return DSN.join(*DSN.elements(var_type), delimiter='::')
@@ -941,9 +944,10 @@ class Py2Cpp(ITranspiler):
 			receiver, _ = PatternParser.break_relay(calls)
 			cvar_key = CVars.key_from(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'is_addr': CVars.is_addr(cvar_key)})
-		elif spec.startswith('cvar_to_'):
-			cvar_type = spec.split('cvar_to_')[1]
-			return self.view.render(f'{node.classification}/cvar_to', vars={**func_call_vars, 'cvar_type': cvar_type})
+		elif spec == 'cvar_to':
+			# 期待値: CP(a)
+			cvar_key = CVars.key_from(cast(IReflection, context))
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'cvar_type': cvar_key})
 		elif spec == 'decl_static':
 			# 期待値: Embed::static({'f': func})
 			return arguments[0]
@@ -952,6 +956,7 @@ class Py2Cpp(ITranspiler):
 
 	def analyze_func_call_spec(self, node: defs.FuncCall) -> tuple[str, IReflection | None]:
 		"""Note: XXX callsは別名になる可能性があるため、ノードから取得したcallsを使用する"""
+		calls_raw = Defer.new(lambda: self.reflections.type_of(node.calls).impl(refs.Object).actualize())
 		if isinstance(node.calls, defs.Var):
 			calls = node.calls.tokens
 			if calls == c_pragma.__name__:
@@ -984,8 +989,9 @@ class Py2Cpp(ITranspiler):
 					return 'cast_bin_to_str', from_raw
 				else:
 					return 'cast_bin_to_bin', to_raw
-			elif calls in CVars.keys():
-				return f'cvar_to_{calls}', None
+			elif not CVars.is_entity(CVars.key_from(calls_raw)):
+				# XXX AltClassを考慮するとRelay側も対応が必要で片手落ち
+				return f'cvar_to', calls_raw
 		elif isinstance(node.calls, defs.Relay):
 			prop = node.calls.prop.tokens
 			if prop in FuncCallMaps.list_and_dict_methods:
@@ -1011,15 +1017,19 @@ class Py2Cpp(ITranspiler):
 				cvar_key = CVars.key_from(receiver_raw)
 				if CVars.is_raw_ref(cvar_key):
 					return 'cvar_copy', None
-			elif prop == CVars.empty_key:
-				if isinstance(node.calls.receiver, defs.Indexer) and CVars.is_addr_sp(node.calls.receiver.receiver.domain_name):
+			elif prop == CVars.empty_key and isinstance(node.calls.receiver, defs.Indexer):
+				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object).actualize()
+				cvar_key = CVars.key_from(receiver_raw)
+				if CVars.is_addr_sp(cvar_key):
 					# 期待値: CSP[A] | None
 					entity_raw = self.reflections.type_of(node).attrs[0].attrs[0]
 					return 'cvar_sp_empty', entity_raw
-			elif prop == CVars.allocator_key:
-				if isinstance(node.calls.receiver, defs.Var) and CVars.is_addr_p(node.calls.receiver.domain_name):
+			elif prop == CVars.allocator_key and isinstance(node.calls.receiver, defs.Var):
+				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object).actualize()
+				cvar_key = CVars.key_from(receiver_raw)
+				if CVars.is_addr_p(cvar_key):
 					return 'cvar_new_p', None
-				elif isinstance(node.calls.receiver, defs.Var) and CVars.is_addr_sp(node.calls.receiver.domain_name):
+				elif CVars.is_addr_sp(cvar_key):
 					new_type_raw = self.reflections.type_of(node.arguments[0])
 					spec = 'cvar_new_sp_list' if new_type_raw.impl(refs.Object).type_is(list) else 'cvar_new_sp'
 					return spec, new_type_raw
@@ -1037,9 +1047,8 @@ class Py2Cpp(ITranspiler):
 				if primary_arg_raw.impl(refs.Object).type_is(type):
 					return 'generic_call', None
 
-			raw = self.reflections.type_of(node.calls).impl(refs.Object).actualize()
-			if raw.types.is_a(defs.Enum):
-				return 'cast_enum', raw
+			if calls_raw.types.is_a(defs.Enum):
+				return 'cast_enum', calls_raw
 
 		return 'otherwise', None
 

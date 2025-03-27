@@ -153,6 +153,9 @@ class Py2Cpp(ITranspiler):
 			var_type = f'{var_type}<{attr_types[-1]}({", ".join(param_types)})>'
 		elif not actual_raw.types.is_a(defs.AltClass) and len(attr_types) > 0:
 			var_type = f'{var_type}<{", ".join(attr_types)}>'
+		elif actual_raw.types.is_a(defs.AltClass) and not CVars.is_entity(CVars.key_from(actual_raw.attrs[0])):
+			# XXX C++型変数のAltClassの特殊化であり、一般解に程遠いため修正を検討
+			var_type = f'{var_type}<{", ".join([self.to_accessible_name(attr) for attr in actual_raw.attrs[0].attrs])}>'
 
 		var_type = self.view.render('type_py2cpp', vars={'var_type': var_type})
 		return DSN.join(*DSN.elements(var_type), delimiter='::')
@@ -1014,15 +1017,19 @@ class Py2Cpp(ITranspiler):
 				cvar_key = CVars.key_from(receiver_raw)
 				if CVars.is_raw_ref(cvar_key):
 					return 'cvar_copy', None
-			elif prop == CVars.empty_key:
-				if isinstance(node.calls.receiver, defs.Indexer) and CVars.is_addr_sp(node.calls.receiver.receiver.domain_name):
+			elif prop == CVars.empty_key and isinstance(node.calls.receiver, defs.Indexer):
+				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object).actualize()
+				cvar_key = CVars.key_from(receiver_raw)
+				if CVars.is_addr_sp(cvar_key):
 					# 期待値: CSP[A] | None
 					entity_raw = self.reflections.type_of(node).attrs[0].attrs[0]
 					return 'cvar_sp_empty', entity_raw
-			elif prop == CVars.allocator_key:
-				if isinstance(node.calls.receiver, defs.Var) and CVars.is_addr_p(node.calls.receiver.domain_name):
+			elif prop == CVars.allocator_key and isinstance(node.calls.receiver, defs.Var):
+				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object).actualize()
+				cvar_key = CVars.key_from(receiver_raw)
+				if CVars.is_addr_p(cvar_key):
 					return 'cvar_new_p', None
-				elif isinstance(node.calls.receiver, defs.Var) and CVars.is_addr_sp(node.calls.receiver.domain_name):
+				elif CVars.is_addr_sp(cvar_key):
 					new_type_raw = self.reflections.type_of(node.arguments[0])
 					spec = 'cvar_new_sp_list' if new_type_raw.impl(refs.Object).type_is(list) else 'cvar_new_sp'
 					return spec, new_type_raw

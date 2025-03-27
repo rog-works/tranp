@@ -243,7 +243,7 @@ class TestPy2Cpp(TestCase):
 
 		('ForCompound.Proto', '', defs.Class, '// class Proto'),
 		('ForCompound.DeclProps', '', defs.Class, BlockExpects.DeclProps),
-		('ForCompound.AltClass.assign', 'function_def_raw.block.assign', defs.MoveAssign, 'CP2 p = (&(1));'),
+		('ForCompound.AltClass.assign', 'function_def_raw.block.anno_assign', defs.AnnoAssign, 'CSP2<Sub> sp = std::make_shared<Sub>(0);'),
 		('ForCompound.ClassMethod.make', '', defs.ClassMethod, BlockExpects.class_method(access='public', name='make', return_type='ClassMethod', statements=['ForCompound::ClassMethod inst = ClassMethod();', 'return inst;'])),
 		('ForCompound.ClassMethod.immutable_returns', '', defs.ClassMethod, BlockExpects.class_method(access='public', name='immutable_returns', return_type='const std::string&')),
 		('ForCompound.Method.immutable_returns', '', defs.Method, BlockExpects.method(access='public', name='immutable_returns', return_type='const std::string*')),

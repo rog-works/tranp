@@ -167,10 +167,10 @@ class CVars:
 		Note:
 			nullはポインターとして扱う
 		"""
-		if symbol.impl(refs.Object).type_is(None):
-			return cpp.CP.__name__
-		elif symbol.types.domain_name in cls.keys():
+		if symbol.types.domain_name in cls.keys():
 			return symbol.types.domain_name
+		elif symbol.impl(refs.Object).type_is(None):
+			return cpp.CP.__name__
 		else:
 			return cpp.CRaw.__name__
 

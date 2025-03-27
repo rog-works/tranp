@@ -18,6 +18,7 @@ T2 = TypeVar('T2')
 
 DSI: TypeAlias = dict[str, int]
 TSII: TypeAlias = tuple[str, int, int]
+CP2: TypeAlias = CP
 
 
 class Values(Enum):
@@ -377,6 +378,10 @@ class ForCompound:
 			self.anno_n = int(s)
 			self.move_s = str(n)
 			self.move_dsn = {s: n}
+
+	class AltClass:
+		def assign(self) -> None:
+			p = CP2(1)
 
 	class ClassMethod:
 		@classmethod

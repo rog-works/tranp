@@ -243,15 +243,18 @@ class TestPy2Cpp(TestCase):
 
 		('ForCompound.Proto', '', defs.Class, '// class Proto'),
 		('ForCompound.DeclProps', '', defs.Class, BlockExpects.DeclProps),
+		('ForCompound.AltClass.assign', 'function_def_raw.block.assign', defs.MoveAssign, 'CP2 p = (&(1));'),
 		('ForCompound.ClassMethod.make', '', defs.ClassMethod, BlockExpects.class_method(access='public', name='make', return_type='ClassMethod', statements=['ForCompound::ClassMethod inst = ClassMethod();', 'return inst;'])),
 		('ForCompound.ClassMethod.immutable_returns', '', defs.ClassMethod, BlockExpects.class_method(access='public', name='immutable_returns', return_type='const std::string&')),
 		('ForCompound.Method.immutable_returns', '', defs.Method, BlockExpects.method(access='public', name='immutable_returns', return_type='const std::string*')),
+
 		('ForCompound.DeclEnum.literalize', 'function_def_raw.block.funccall[0]', defs.FuncCall, 'printf("AS");'),
 		('ForCompound.DeclEnum.literalize', 'function_def_raw.block.funccall[1]', defs.FuncCall, 'printf("BS");'),
 		('ForCompound.DeclEnum.literalize', 'function_def_raw.block.funccall[2]', defs.FuncCall, 'printf("a");'),
 		('ForCompound.DeclEnum.literalize', 'function_def_raw.block.funccall[3]', defs.FuncCall, 'printf("b");'),
 		('ForCompound.DeclEnum.literalize', 'function_def_raw.block.funccall[4]', defs.FuncCall, 'printf("AN");'),
 		('ForCompound.DeclEnum.literalize', 'function_def_raw.block.funccall[5]', defs.FuncCall, 'printf("BN");'),
+
 		('ForCompound.Operators.__eq__', '', defs.Method, BlockExpects.method(access='public', name='operator==', params=['const ForCompound::Operators& other'], return_type='bool')),
 		('ForCompound.Operators.__ne__', '', defs.Method, BlockExpects.method(access='public', name='operator!=', params=['const ForCompound::Operators& other'], return_type='bool')),
 		('ForCompound.Operators.__lt__', '', defs.Method, BlockExpects.method(access='public', name='operator<', params=['const ForCompound::Operators& other'], return_type='bool')),

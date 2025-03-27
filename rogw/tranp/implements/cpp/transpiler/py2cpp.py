@@ -941,9 +941,10 @@ class Py2Cpp(ITranspiler):
 			receiver, _ = PatternParser.break_relay(calls)
 			cvar_key = CVars.key_from(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'is_addr': CVars.is_addr(cvar_key)})
-		elif spec.startswith('cvar_to_'):
-			cvar_type = spec.split('cvar_to_')[1]
-			return self.view.render(f'{node.classification}/cvar_to', vars={**func_call_vars, 'cvar_type': cvar_type})
+		elif spec == 'cvar_to':
+			# 期待値: CP(a)
+			cvar_key = CVars.key_from(cast(IReflection, context))
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'cvar_type': cvar_key})
 		elif spec == 'decl_static':
 			# 期待値: Embed::static({'f': func})
 			return arguments[0]
@@ -952,6 +953,7 @@ class Py2Cpp(ITranspiler):
 
 	def analyze_func_call_spec(self, node: defs.FuncCall) -> tuple[str, IReflection | None]:
 		"""Note: XXX callsは別名になる可能性があるため、ノードから取得したcallsを使用する"""
+		calls_raw = Defer.new(lambda: self.reflections.type_of(node.calls).impl(refs.Object).actualize())
 		if isinstance(node.calls, defs.Var):
 			calls = node.calls.tokens
 			if calls == c_pragma.__name__:
@@ -984,8 +986,9 @@ class Py2Cpp(ITranspiler):
 					return 'cast_bin_to_str', from_raw
 				else:
 					return 'cast_bin_to_bin', to_raw
-			elif calls in CVars.keys():
-				return f'cvar_to_{calls}', None
+			elif not CVars.is_entity(CVars.key_from(calls_raw)):
+				# XXX AltClassを考慮するとRelay側も対応が必要で片手落ち
+				return f'cvar_to', calls_raw
 		elif isinstance(node.calls, defs.Relay):
 			prop = node.calls.prop.tokens
 			if prop in FuncCallMaps.list_and_dict_methods:
@@ -1037,9 +1040,8 @@ class Py2Cpp(ITranspiler):
 				if primary_arg_raw.impl(refs.Object).type_is(type):
 					return 'generic_call', None
 
-			raw = self.reflections.type_of(node.calls).impl(refs.Object).actualize()
-			if raw.types.is_a(defs.Enum):
-				return 'cast_enum', raw
+			if calls_raw.types.is_a(defs.Enum):
+				return 'cast_enum', calls_raw
 
 		return 'otherwise', None
 

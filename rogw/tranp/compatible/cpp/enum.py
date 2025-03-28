@@ -20,10 +20,6 @@ class CEnum(Enum):
 		else:
 			return super().__eq__(other)
 
-	def __ne__(self, other: Self | int) -> bool:
-		"""Args: other: 対象 Returns: True = 相違"""
-		return not self.__eq__(self)
-
 	def __or__(self, other: Self) -> Self:
 		"""Args: other: 対象 Returns: 演算結果(OR)"""
 		if isinstance(other, self.__class__):

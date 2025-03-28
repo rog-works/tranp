@@ -36,6 +36,7 @@ def cast_addr(to_origin: type[T], value_at: CP[Any]) -> CP[T]:
 		### 変換条件
 		* 変換先がvoid
 		* 変換先と関連のある型(基底/派生)
+		* 変換元がint/float/str、変換先がC++用の数値型派生クラス XXX Pythonでは実質的に同じであるため例外的に許容
 		```
 	"""
 	if to_origin == void:
@@ -43,8 +44,9 @@ def cast_addr(to_origin: type[T], value_at: CP[Any]) -> CP[T]:
 
 	if isinstance(value_at.raw, to_origin):
 		return value_at
-
-	if hasattr(value_at.raw, '__cast_addr__'):
+	elif isinstance(value_at.raw, (int, float, str)) and issubclass(to_origin, type(value_at.raw)):
+		return value_at
+	elif hasattr(value_at.raw, '__cast_addr__'):
 		return cast(CastAddrProtocol, value_at.raw).__cast_addr__(to_origin)
 
 	raise ValueError(f'Not allowed convertion. from: {type(value_at.raw)}, to: {to_origin}')

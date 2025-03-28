@@ -1,9 +1,24 @@
-from typing import Any, TypeVar
+from typing import Any, Protocol, TypeVar, cast
 
 from rogw.tranp.compatible.cpp.classes import void
 from rogw.tranp.compatible.cpp.object import CP, CPConst
 
 T = TypeVar('T')
+
+
+class CastAddrProtocol(Protocol):
+	"""アドレス型を安全に変換。変換先が不正な場合は例外を出力
+
+	Args:
+		to_origin: 変換先の実体のクラス
+	Returns:
+		変換後のアドレス変数
+	Raises:
+		ValueError: 不正な変換先を指定
+	"""
+
+	def __cast_addr__(self, to_origin: type[T]) -> CP[T]:
+		...
 
 
 def cast_addr(to_origin: type[T], value_at: CP[Any]) -> CP[T]:
@@ -26,8 +41,11 @@ def cast_addr(to_origin: type[T], value_at: CP[Any]) -> CP[T]:
 	if to_origin == void:
 		return value_at
 
-	if isinstance(value_at.raw, to_origin) or issubclass(to_origin, type(value_at.raw)):
+	if isinstance(value_at.raw, to_origin):
 		return value_at
+
+	if hasattr(value_at.raw, '__cast_addr__'):
+		return cast(CastAddrProtocol, value_at.raw).__cast_addr__(to_origin)
 
 	raise ValueError(f'Not allowed convertion. from: {type(value_at.raw)}, to: {to_origin}')
 

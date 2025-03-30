@@ -76,31 +76,15 @@ $ bin/test.sh -l -p > profile_tottime.log
 * 外部パッケージ
 * スタックトレース単位で結果を表示
 * ボトルネックとなる個所が明白で分かりやすい
-* venvをアクティベートしないと使えない
+* ワンバイナリで配布されているためWindows/Linuxどちらでも使用しやすい
 * pyinstrumentsと言う非常によく似た名前のパッケージがあるがこちらは誤りなので注意
 
-## 環境設定
+## 実行方法
 
 ```sh
-# 仮想環境作成
-$ python -m venv .venv
-
-# venvアクティベート
-$ . .venv/bin/activate
-
 # インストール
-(.venv) $ pip install pyinstrument
-```
+$ pip install pyinstrument -t ./vendor
 
-## 実行
-
-```sh
-# venvアクティベート
-$ .venv/bin/activate
-
-# 計測実行
-(.venv) $ bin/profile.sh rogw/tranp/bin/transpile.py -f
-
-# 計測実行(フィルター)
-(.venv) $ bin/profile.sh --hide '*/rogw/*' rogw/tranp/bin/transpile.py -f
+# 実行
+$ bin/profile.sh
 ```

@@ -7,7 +7,7 @@ target=
 if [ "$1" == "-l" ]; then
 	shift
 	peco_opt=
-	if [ "${1:0:1}" != "-" ]; then
+	if [ "${1}" != "" -a "${1:0:1}" != "-" ]; then
 		peco_opt="--query ${1}"
 		shift
 	fi

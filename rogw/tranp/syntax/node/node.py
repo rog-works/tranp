@@ -425,8 +425,8 @@ class Node:
 		Raises:
 			IllegalConvertionError: 許可されない変換先を指定
 		"""
-		if self.is_a(expect):
-			return cast(T_Node, self)
+		if isinstance(self, expect):
+			return self
 
 		raise IllegalConvertionError(str(self), expect)
 
@@ -447,8 +447,8 @@ class Node:
 			```
 		"""
 		inherits = [candidate for candidate in expects if isinstance(self, candidate)]
-		if len(inherits) == 1:
-			return cast(T_Node, self)
+		if len(inherits) == 1 and isinstance(self, inherits[0]):
+			return self
 
 		raise IllegalConvertionError(str(self), expects)
 

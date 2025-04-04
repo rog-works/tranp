@@ -1,4 +1,5 @@
-from typing import Any
+from collections.abc import Iterator
+from typing import Any, Self
 
 
 class EnumType: ...
@@ -12,6 +13,9 @@ class Enum:
 		self.name = ''
 		# FIXME 全く正しくないが実用上は問題ないため一旦これで良しとする
 		self.value = value
+
+	@classmethod
+	def __iter__(cls: type[Self]) -> Iterator[Self]: ...
 
 	# comparison
 	def __eq__(self, other: Any) -> bool: ...

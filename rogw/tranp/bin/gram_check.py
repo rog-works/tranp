@@ -7,7 +7,7 @@ from rogw.tranp.bin.io import readline
 from rogw.tranp.implements.syntax.tranp.rules import grammar_rules, grammar_tokenizer
 from rogw.tranp.implements.syntax.tranp.syntax import SyntaxParser
 
-DictArgs = TypedDict('DictArgs', {'filepath': str})
+DictArgs = TypedDict('DictArgs', {'input': str})
 
 
 class Args:
@@ -20,7 +20,7 @@ class Args:
 			argv: コマンドライン引数
 		"""
 		args = self.parse(argv)
-		self.filepath = args['filepath']
+		self.input = args['input']
 
 	def parse(self, argv: list[str]) -> DictArgs:
 		"""コマンドライン引数を解析
@@ -31,12 +31,12 @@ class Args:
 			引数一覧
 		"""
 		args: DictArgs = {
-			'filepath': '',
+			'input': '',
 		}
 		while(len(argv)):
 			value = argv.pop(0)
 			if value == '-i':
-				args['filepath'] = argv.pop(0)
+				args['input'] = argv.pop(0)
 
 		return args
 
@@ -56,14 +56,20 @@ class App:
 	@property
 	def quiet(self) -> bool:
 		"""Returns: True = 実行ログなし"""
-		return len(self.args.filepath) > 0
+		return len(self.args.input) > 0
 
 	def run(self) -> None:
 		"""実行処理"""
-		if len(self.args.filepath) == 0:
-			self.run_interactive()
-		else:
+		if self.args.input:
 			self.run_parse()
+		else:
+			self.run_interactive()
+
+	def run_parse(self) -> None:
+		"""実行処理(既存ファイルを解析)"""
+		source = self.load_source(self.args.input)
+		tree = self.parser.parse(source, 'entry')
+		print(tree.pretty('\t'))
 
 	def run_interactive(self) -> None:
 		"""実行処理(インタラクティブモード)"""
@@ -88,12 +94,6 @@ class App:
 			print('AST')
 			print('----------')
 			print(tree.pretty())
-
-	def run_parse(self) -> None:
-		"""実行処理(既存ファイルを解析)"""
-		source = self.load_source(self.args.filepath)
-		tree = self.parser.parse(source, 'entry')
-		print(tree.pretty('\t'))
 
 	def load_source(self, filepath: str) -> str:
 		"""ソースコードを読み込み

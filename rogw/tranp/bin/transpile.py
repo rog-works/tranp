@@ -35,9 +35,10 @@ from rogw.tranp.view.render import Renderer, RendererHelperProvider, RendererSet
 
 ArgsDict = TypedDict('ArgsDict', {
 	'config': str,
+	'input_globs': list[str],
 	'force': bool,
-	'verbose': bool,
 	'profile': bool,
+	'verbose': bool,
 	'interactive': bool,
 })
 EnvDict = TypedDict('EnvDict', {
@@ -71,7 +72,7 @@ class Config:
 		self.grammar = config['grammar']
 		self.template_dirs = config['template_dirs']
 		self.trans_mapping = config['trans_mapping']
-		self.input_globs = config['input_globs']
+		self.input_globs = args['input_globs'] if args['input_globs'] else config['input_globs']
 		self.exclude_patterns = config['exclude_patterns']
 		self.output_dirs = config['output_dirs']
 		self.output_language = config['output_language']
@@ -103,23 +104,26 @@ class Config:
 		"""
 		args: ArgsDict = {
 			'config': 'example/config.yml',
+			'input_globs': [],
 			'force': False,
-			'verbose': False,
 			'profile': False,
+			'verbose': False,
 			'interactive': False,
 		}
 		while argv:
 			arg = argv.pop(0)
 			if arg == '-c':
 				args['config'] = argv.pop(0)
+			elif arg == '-i':
+				args['input_globs'].append(argv.pop(0))
 			elif arg == '-f':
 				args['force'] = True
-			elif arg == '-v':
-				args['verbose'] = True
 			elif arg == '-p':
 				args['profile'] = True
-			elif arg == '-i':
+			elif arg == '-t':
 				args['interactive'] = True
+			elif arg == '-v':
+				args['verbose'] = True
 
 		return args
 

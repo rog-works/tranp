@@ -649,10 +649,11 @@ class Py2Cpp(ITranspiler):
 			cvar_key = CVars.key_from(receiver_symbol)
 			operator = CVars.to_operator(cvar_key).name
 			return self.view.render(f'{node.classification}/default', vars={'receiver': receiver, 'operator': operator, 'prop': node.prop.domain_name, 'is_property': True})
-		elif self.is_relay_cvar_link(node, receiver_symbol):
+		elif self.is_relay_cvar_link(node, org_receiver_symbol, receiver_symbol):
 			# 期待値: receiver.on().prop
 			cvar_receiver = PatternParser.sub_cvar_relay(receiver)
-			cvar_key = CVars.key_from(receiver_symbol.context)
+			# XXX contextはactualize前のインスタンスを使う
+			cvar_key = CVars.key_from(org_receiver_symbol.context)
 			operator = CVars.to_operator(cvar_key).name
 			prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.Method) else self.to_prop_name(prop_symbol)
 			is_property = isinstance(prop_symbol.decl, defs.Method) and prop_symbol.decl.is_property
@@ -692,11 +693,12 @@ class Py2Cpp(ITranspiler):
 		cvar_key = CVars.key_from(receiver_symbol)
 		return not CVars.is_entity(cvar_key)
 
-	def is_relay_cvar_link(self, node: defs.Relay, receiver_symbol: IReflection) -> bool:
+	def is_relay_cvar_link(self, node: defs.Relay, org_receiver_symbol: IReflection, receiver_symbol: IReflection) -> bool:
 		if not (isinstance(node.receiver, defs.Relay) and node.receiver.prop.domain_name == CVars.relay_key):
 			return False
 
-		cvar_key = CVars.key_from(receiver_symbol.context)
+		# XXX contextはactualize前のインスタンスを使う
+		cvar_key = CVars.key_from(org_receiver_symbol.context)
 		return not CVars.is_entity(cvar_key)
 
 	def is_relay_cvar_exchanger(self, node: defs.Relay, receiver_symbol: IReflection) -> bool:

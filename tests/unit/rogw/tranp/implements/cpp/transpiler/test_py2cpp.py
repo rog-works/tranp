@@ -184,6 +184,10 @@ class TestPy2Cpp(TestCase):
 		('CVarOps.hex', 'function_def_raw.block.funccall[0]', defs.FuncCall, 'std::format("%p", (p));'),
 		('CVarOps.hex', 'function_def_raw.block.funccall[1]', defs.FuncCall, 'std::format("%p", ((&(n))));'),
 
+		('CVarOps.alias_call', 'function_def_raw.block.funccall[0]', defs.FuncCall, 'ap->call();'),
+		('CVarOps.alias_call', 'function_def_raw.block.funccall[1]', defs.FuncCall, 'asp->call();'),
+		('CVarOps.alias_call', 'function_def_raw.block.funccall[2]', defs.FuncCall, 'aref.call();'),
+
 		('FuncOps.kw_params', 'function_def_raw.block.assign', defs.MoveAssign, 'std::string a = this->kw_params(1, 2);'),
 
 		('AccessOps.__init__', '', defs.Constructor, 'public:\n/** __init__ */\nAccessOps() : Sub(0), sub_s("") {}'),

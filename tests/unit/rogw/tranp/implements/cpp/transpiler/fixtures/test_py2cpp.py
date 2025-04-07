@@ -230,6 +230,13 @@ class CVarOps:
 		p.hex()
 		CP(n).hex()
 
+	Sub2: TypeAlias = Sub
+
+	def alias_call(self, ap: CP[Sub2], asp: CSP[Sub2], aref: CRef[Sub2]) -> None:
+		ap.on.call()
+		asp.on.call()
+		aref.on.call()
+
 
 class FuncOps:
 	def kw_params(self, **kwargs: int) -> str:

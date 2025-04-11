@@ -414,8 +414,8 @@ class TestPy2Cpp(TestCase):
 
 		('ForFuncCall.Cast.cast_string', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'std::string n_to_s = std::to_string(1);'),
 		('ForFuncCall.Cast.cast_string', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'std::string f_to_s = std::to_string(1.0);'),
-		('ForFuncCall.Cast.cast_string', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'int s_to_n = atoi(n_to_s);'),
-		('ForFuncCall.Cast.cast_string', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'float s_to_f = atof(f_to_s);'),
+		('ForFuncCall.Cast.cast_string', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'int s_to_n = std::stoi(n_to_s);'),
+		('ForFuncCall.Cast.cast_string', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'float s_to_f = std::stod(f_to_s);'),
 		('ForFuncCall.Cast.cast_string', 'function_def_raw.block.assign[4]', defs.MoveAssign, 'std::string s_to_s{""};'),
 
 		('ForFuncCall.Cast.cast_class', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'Base b = static_cast<Base>(sub);'),

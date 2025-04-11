@@ -1,5 +1,7 @@
 {%- if var_type == 'float' -%}
-{{ i18n('cpp', 'string.atof') }}({{ arguments[0] }}){% if is_statement %};{% endif %}
+{{ i18n('cpp', 'string.stod') }}({{ arguments[0] }}){% if is_statement %};{% endif %}
+{%- elif arguments | length == 1 -%}
+{{ i18n('cpp', 'string.stoi') }}({{ arguments[0] }}){% if is_statement %};{% endif %}
 {%- else -%}
-{{ i18n('cpp', 'string.atoi') }}({{ arguments[0] }}){% if is_statement %};{% endif %}
+{{ i18n('cpp', 'string.stoi') }}({{ arguments[0] }}, 0, {{ arguments[1] }}){% if is_statement %};{% endif %}
 {%- endif -%}

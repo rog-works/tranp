@@ -643,8 +643,9 @@ class TestRenderer(TestCase):
 		self.assertRender('func_call/cast_list', vars, expected)
 
 	@data_provider([
-		({'var_type': 'int', 'arguments': ['"1"'], 'is_statement': True}, 'atoi("1");'),
-		({'var_type': 'float', 'arguments': ['"1.0"'], 'is_statement': True}, 'atof("1.0");'),
+		({'var_type': 'int', 'arguments': ['"1"'], 'is_statement': True}, 'std::stoi("1");'),
+		({'var_type': 'int', 'arguments': ['"ff"', '16'], 'is_statement': True}, 'std::stoi("ff", 0, 16);'),
+		({'var_type': 'float', 'arguments': ['"1.0"'], 'is_statement': True}, 'std::stod("1.0");'),
 	])
 	def test_render_func_call_cast_str_to_bin(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('func_call/cast_str_to_bin', vars, expected)

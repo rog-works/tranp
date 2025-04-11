@@ -183,7 +183,7 @@ class DeclProps : public DeclPropsBase {
 	public:
 	/** __init__ */
 	DeclProps(int n, const std::string& s) : DeclPropsBase(), move_dsn({{s, n}}) {
-		this->anno_n = atoi(s);
+		this->anno_n = std::stoi(s);
 		this->move_s = std::to_string(n);
 	}
 };"""

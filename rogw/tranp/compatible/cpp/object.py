@@ -247,7 +247,7 @@ class CRef(CVarNotNull[T_co]):
 		"""Returns: Constを返却する参照変換代替メソッド。C++では削除"""
 		return CRefConst(self.raw)
 
-	def copy(self, via: 'CRef[T_co]') -> None:
+	def copy_proxy(self, via: 'CRef[T_co]') -> None:
 		"""代入コピー代替メソッド。C++では代入処理に置き換えられる
 
 		Args:

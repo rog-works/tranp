@@ -22,7 +22,7 @@ class CVars:
 	relay_key: ClassVar[str] = 'on'
 	empty_key: ClassVar[str] = 'empty'
 	allocator_key: ClassVar[str] = 'new'
-	copy_key: ClassVar[str] = 'copy'
+	copy_key: ClassVar[str] = 'copy_proxy'
 	exchanger_keys: ClassVar[list[str]] = ['raw', 'ref', 'addr', 'const']
 
 	class Moves(Enum):

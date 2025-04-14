@@ -1303,6 +1303,7 @@ class FuncCallMaps:
 		dict.keys.__name__,
 		dict.values.__name__,
 		dict.get.__name__,
+		dict.copy.__name__,
 	]
 	str_methods: ClassVar[list[str]] = [
 		str.split.__name__,

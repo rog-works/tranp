@@ -708,10 +708,10 @@ class ForFuncCall:
 			...
 
 		def move_obj(self, via: 'CRef[ForFuncCall.Copy]', to: 'CRef[ForFuncCall.Copy]') -> None:
-			to.copy(via)
+			to.copy_proxy(via)
 
 		def move_scalar(self, output: 'CRef[int]') -> None:
-			output.copy(CRef(1))
+			output.copy_proxy(CRef(1))
 
 	class List:
 		def pop(self, ns: list[int]) -> None:

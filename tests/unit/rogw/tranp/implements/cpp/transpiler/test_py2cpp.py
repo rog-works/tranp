@@ -438,6 +438,7 @@ class TestPy2Cpp(TestCase):
 		('ForFuncCall.List.contains', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'bool b_not_in = (std::find(ns.begin(), ns.end(), 1) == ns.end());'),
 		('ForFuncCall.List.fill', 'function_def_raw.block.assign', defs.MoveAssign, 'std::vector<int> n_x3 = std::vector<int>(3, n);'),
 		('ForFuncCall.List.len', 'function_def_raw.block.funccall', defs.FuncCall, 'ns.size();'),
+		('ForFuncCall.List.copy', 'function_def_raw.block.assign', defs.MoveAssign, 'std::vector<int> new_ns = ns;'),
 
 		('ForFuncCall.Dict.pop', 'function_def_raw.block.funccall[0]', defs.FuncCall, BlockExpects.dict_pop(symbol='dsn', key='"a"', var_type='int')),
 		('ForFuncCall.Dict.pop', 'function_def_raw.block.funccall[1]', defs.FuncCall, BlockExpects.dict_pop(symbol='dsn', key='"b"', var_type='int')),
@@ -448,6 +449,7 @@ class TestPy2Cpp(TestCase):
 		('ForFuncCall.Dict.contains', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'bool b_in = dsn.contains("a");'),
 		('ForFuncCall.Dict.contains', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'bool b_not_in = (!dsn.contains("a"));'),
 		('ForFuncCall.Dict.len', 'function_def_raw.block.funccall', defs.FuncCall, 'dsn.size();'),
+		('ForFuncCall.Dict.copy', 'function_def_raw.block.assign', defs.MoveAssign, 'std::map<std::string, int> new_dsn = dsn;'),
 
 		('ForFuncCall.String.mod_methods', 'function_def_raw.block.funccall[0]', defs.FuncCall, 'std::string("").split(",");'),
 		('ForFuncCall.String.mod_methods', 'function_def_raw.block.funccall[1]', defs.FuncCall, 'std::string("").join({"a"});'),

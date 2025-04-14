@@ -737,6 +737,9 @@ class ForFuncCall:
 		def len(self, ns: list[int]) -> None:
 			len(ns)
 
+		def copy(self, ns: list[int]) -> None:
+			new_ns = ns.copy()
+
 	class Dict:
 		def pop(self, dsn: dict[str, int]) -> None:
 			dsn.pop('a')
@@ -760,6 +763,9 @@ class ForFuncCall:
 
 		def len(self, dsn: dict[str, int]) -> None:
 			len(dsn)
+
+		def copy(self, dsn: dict[str, int]) -> None:
+			new_dsn = dsn.copy()
 
 	class String:
 		def mod_methods(self, s: str) -> None:

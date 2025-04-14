@@ -875,6 +875,10 @@ class Py2Cpp(ITranspiler):
 		elif spec.startswith('str_'):
 			receiver, operator = PatternParser.break_relay(calls)
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator})
+		elif spec == 'list_copy':
+			# 期待値: 'receiver.copy'
+			receiver, operator = PatternParser.break_relay(calls)
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver})
 		elif spec == 'list_pop':
 			# 期待値: 'receiver.pop'
 			receiver, operator = PatternParser.break_relay(calls)
@@ -888,6 +892,10 @@ class Py2Cpp(ITranspiler):
 			# 期待値: 'receiver.extend'
 			receiver, operator = PatternParser.break_relay(calls)
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator})
+		elif spec == 'dict_copy':
+			# 期待値: 'receiver.copy'
+			receiver, operator = PatternParser.break_relay(calls)
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver})
 		elif spec == 'dict_get':
 			# 期待値: 'receiver.get'
 			receiver, operator = PatternParser.break_relay(calls)
@@ -1005,8 +1013,8 @@ class Py2Cpp(ITranspiler):
 					return 'otherwise', None
 				elif receiver_raw.type_is(dict):
 					key_attr, value_attr = receiver_raw.attrs
-					attr_indexs = {'pop': value_attr, 'keys': key_attr, 'values': value_attr, 'items': receiver_raw, 'get': value_attr}
-					return f'dict_{prop}', attr_indexs[prop]
+					prop_to_context = {'pop': value_attr, 'keys': key_attr, 'values': value_attr, 'items': receiver_raw, 'get': value_attr, 'copy': receiver_raw}
+					return f'dict_{prop}', prop_to_context[prop]
 			elif prop == PythonClassOperations.copy_constructor:
 				return prop, None
 			elif prop in FuncCallMaps.str_methods:
@@ -1294,6 +1302,7 @@ class FuncCallMaps:
 		list.pop.__name__,
 		list.insert.__name__,
 		list.extend.__name__,
+		list.copy.__name__,
 	]
 	list_and_dict_methods: ClassVar[list[str]] = [
 		list.pop.__name__,

@@ -1,9 +1,9 @@
-// @tranp.meta: {"version":"1.0.0","module":{"hash":"fac0e3caa345193f2471f9fed0297522","path":"example.json"},"transpiler":{"version":"1.0.0","module":"rogw.tranp.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
+// @tranp.meta: {"version":"1.0.0","module":{"hash":"82ee91dbd29c33a464b9b286b531c294","path":"example.json"},"transpiler":{"version":"1.0.0","module":"rogw.tranp.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
 #pragma once
 #include <functional>
+// #include "enum.h"
 // #include "typing.h"
 // #include "rogw/tranp/compatible/cpp/classes.h"
-// #include "rogw/tranp/compatible/cpp/enum.h"
 // #include "rogw/tranp/compatible/cpp/object.h"
 // #include "rogw/tranp/compatible/python/embed.h"
 #include "FW/string.h"
@@ -263,7 +263,7 @@ struct JsonEntity {
 		if (entry_type == JsonEntryTypes::Boolean) {
 			instance.as_bool = value_str == "true";
 		} else if (entry_type == JsonEntryTypes::Number) {
-			instance.as_number = atof(value_str);
+			instance.as_number = std::stod(value_str);
 		} else if (entry_type == JsonEntryTypes::String) {
 			instance.as_string = String::unescape(value_str.substr(1, value_str.size() - 1 - (1)));
 		}

@@ -1,9 +1,8 @@
 from collections.abc import Callable, Iterator
+from enum import Enum
 from os import path as os_path
 from typing import Annotated, Any, ClassVar, Generic, Self, TypeAlias, TypeVar, TypeVarTuple, cast
 from yaml import safe_load as yaml_safe_load
-
-from rogw.tranp.compatible.cpp.enum import CEnum as Enum
 
 from tests.unit.rogw.tranp.semantics.reflection.fixtures.test_db_combine import S, C, A
 
@@ -289,16 +288,12 @@ class EnumOps:
 
 	def cast(self) -> None:
 		e = EnumOps.Values(0)
-		n = int(EnumOps.Values.A)
 
 	def comparison(self) -> None:
 		a = EnumOps.Values.A == EnumOps.Values.B
 		b = EnumOps.Values.A != EnumOps.Values.B
 		c = EnumOps.Values.A is EnumOps.Values.B
 		d = EnumOps.Values.A is not EnumOps.Values.B
-
-	def calc(self) -> None:
-		a = EnumOps.Values.A | EnumOps.Values.B
 
 
 class Nullable:

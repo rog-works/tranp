@@ -1,7 +1,7 @@
 from abc import abstractmethod
+from enum import Enum
 from typing import ClassVar, Generic, TypeVar
 
-from rogw.tranp.compatible.cpp.enum import CEnum as Enum
 from rogw.tranp.compatible.python.embed import __actual__
 
 T = TypeVar('T')

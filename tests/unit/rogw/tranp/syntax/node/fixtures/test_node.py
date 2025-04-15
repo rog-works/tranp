@@ -1,4 +1,5 @@
-from rogw.tranp.compatible.cpp.enum import CEnum as Enum
+from enum import Enum
+
 
 class A:
 	class E(Enum):

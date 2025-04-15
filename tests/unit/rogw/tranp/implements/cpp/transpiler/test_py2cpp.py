@@ -229,7 +229,6 @@ class TestPy2Cpp(TestCase):
 		('Alias.in_class_method', 'function_def_raw.block.funccall', defs.FuncCall, 'Alias2::in_class_method();'),
 		('Alias.in_class_method', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'Alias2::Values a = Alias2::Values::A;'),
 		('Alias.in_class_method', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'std::map<Alias2::Values, Alias2::Values> d = {\n\t{Alias2::Values::A, Alias2::Values::B},\n\t{Alias2::Values::B, Alias2::Values::A},\n};'),
-		('Alias.in_class_method', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'std::map<int, std::vector<int>> d2 = {\n\t{static_cast<int>(Alias2::Values::A), {static_cast<int>(Alias2::Values::B)}},\n\t{static_cast<int>(Alias2::Values::B), {static_cast<int>(Alias2::Values::A)}},\n};'),
 		('Alias.InnerB.super_call', 'function_def_raw.block.funccall', defs.FuncCall, 'Alias2::Inner2::func();'),
 
 		('Nullable.params', '', defs.Method, BlockExpects.method(access='public', name='params', params=['Sub* p'])),
@@ -410,7 +409,6 @@ class TestPy2Cpp(TestCase):
 		('ForFuncCall.Cast.cast_binary', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'int f_to_n = static_cast<int>(1.0);'),
 		('ForFuncCall.Cast.cast_binary', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'float n_to_f = static_cast<float>(1);'),
 		('ForFuncCall.Cast.cast_binary', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'bool n_to_b = static_cast<bool>(1);'),
-		('ForFuncCall.Cast.cast_binary', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'int e_to_n = static_cast<int>(Values::A);'),
 
 		('ForFuncCall.Cast.cast_string', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'std::string n_to_s = std::to_string(1);'),
 		('ForFuncCall.Cast.cast_string', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'std::string f_to_s = std::to_string(1.0);'),
@@ -422,8 +420,7 @@ class TestPy2Cpp(TestCase):
 		('ForFuncCall.Cast.cast_class', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'Base* bp = static_cast<Base*>(sub_p);'),
 		('ForFuncCall.Cast.cast_class', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'std::map<std::string, Base*> dsbp = static_cast<std::map<std::string, Base*>>(dssp);'),
 
-		('ForFuncCall.Cast.cast_enum', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'Values e = static_cast<Values>(0);'),
-		('ForFuncCall.Cast.cast_enum', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'int n = static_cast<int>(Values::A);'),
+		('ForFuncCall.Cast.cast_enum', 'function_def_raw.block.assign', defs.MoveAssign, 'Values e = static_cast<Values>(0);'),
 
 		('ForFuncCall.Copy.__py_copy__', '', defs.Method, 'public:\n/** __py_copy__ */\nCopy(ForFuncCall::Copy& origin) {}'),
 		('ForFuncCall.Copy.move_obj', 'function_def_raw.block.funccall', defs.FuncCall, 'to = via;'),

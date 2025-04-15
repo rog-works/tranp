@@ -1,9 +1,9 @@
 from abc import ABCMeta, abstractmethod
 from collections.abc import Callable
+from enum import Enum
 from typing import Annotated, ClassVar, Generic, Protocol, Self, TypeAlias, TypeVar, TypeVarTuple, cast
 
 from rogw.tranp.compatible.cpp.classes import char, void
-from rogw.tranp.compatible.cpp.enum import CEnum as Enum
 from rogw.tranp.compatible.cpp.function import c_func_invoke, c_func_ref
 from rogw.tranp.compatible.cpp.object import CP, CPConst, CRawConst, CRef, CSP, T_co
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
@@ -319,10 +319,6 @@ class Alias:
 		d = {
 			cls.Values.A: cls.Values.B,
 			cls.Values.B: cls.Values.A,
-		}
-		d2 = {
-			int(cls.Values.A): [int(cls.Values.B)],
-			int(cls.Values.B): [int(cls.Values.A)],
 		}
 
 	class InnerB(Inner):
@@ -684,7 +680,6 @@ class ForFuncCall:
 			f_to_n = int(1.0)
 			n_to_f = float(1)
 			n_to_b = bool(1)
-			e_to_n = int(Values.A)
 
 		def cast_string(self) -> None:
 			n_to_s = str(1)
@@ -701,7 +696,6 @@ class ForFuncCall:
 
 		def cast_enum(self) -> None:
 			e = Values(0)
-			n = int(Values.A)
 
 	class Copy:
 		def __py_copy__(self, origin: 'CRef[ForFuncCall.Copy]') -> None:

@@ -678,7 +678,7 @@ class Py2Cpp(ITranspiler):
 		prop = node.prop.tokens
 		if prop in ['__module__', '__name__', '__qualname__']:
 			return True
-		elif prop in ['name', 'value'] and isinstance(receiver_symbol.types, defs.Enum):
+		elif not node.receiver.is_a(defs.ThisRef) and prop in ['name', 'value'] and isinstance(receiver_symbol.types, defs.Enum):
 			return True
 		else:
 			return False

@@ -59,7 +59,7 @@ class Step:
 class Context(NamedTuple):
 	"""解析コンテキスト"""
 
-	posision: int
+	position: int
 	minimum: int
 	maximum: int
 
@@ -71,7 +71,7 @@ class Context(NamedTuple):
 	@property
 	def cursor(self) -> int:
 		"""Returns: 参照位置"""
-		return self.posision + max(0, self.minimum)
+		return self.position + max(0, self.minimum)
 
 	@property
 	def accepted_recursive(self) -> bool:
@@ -92,9 +92,9 @@ class Context(NamedTuple):
 			* ステップの進行=条件の変化であり、制限の解除によって通常の解析条件に戻るだけで悪影響はない
 		"""
 		if steps == 0:
-			return Context(self.posision + steps, self.minimum, self.maximum)
+			return Context(self.position + steps, self.minimum, self.maximum)
 		else:
-			return Context(self.posision + steps + max(0, self.minimum), -1, -1)
+			return Context(self.position + steps + max(0, self.minimum), -1, -1)
 
 	def block_step(self, steps: int = 0, minimum: int = -1, maximum: int = -1) -> 'Context':
 		"""ステップ数を加えて新規作成。作成したコンテキスト上では左再帰がブロックされる
@@ -106,7 +106,7 @@ class Context(NamedTuple):
 		Returns:
 			インスタンス
 		"""
-		return Context(self.posision + steps, minimum, maximum)
+		return Context(self.position + steps, minimum, maximum)
 
 
 class SyntaxParser:
@@ -245,7 +245,7 @@ class SyntaxParser:
 		"""
 		# XXX 読み取り位置の上限を考慮(左再帰時) @see _match_and_recursive_first
 		ok_limit = context.maximum == -1 or patterns.min_size <= context.maximum
-		ok_range = context.posision + patterns.min_size <= len(tokens)
+		ok_range = context.position + patterns.min_size <= len(tokens)
 		if not (ok_limit and ok_range):
 			return Step.ng(), []
 

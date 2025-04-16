@@ -62,7 +62,7 @@ class Context(NamedTuple):
 	position: int
 	minimum: int
 	maximum: int
-	skip_symbol: str
+	recursive_symbol: str
 
 	@classmethod
 	def start(cls) -> 'Context':
@@ -77,7 +77,7 @@ class Context(NamedTuple):
 	@property
 	def accepted_recursive(self) -> bool:
 		"""Returns: True = 左再帰を受け入れ"""
-		return self.minimum == -1 and self.maximum == -1
+		return self.minimum == -1 and self.maximum == -1 and len(self.recursive_symbol) == 0
 
 	def step(self, steps: int) -> 'Context':
 		"""ステップ数を加えて新規作成。ステップ数が1以上の時は暗黙的に読み取り位置の制限を解除
@@ -93,22 +93,22 @@ class Context(NamedTuple):
 			* ステップの進行=条件の変化であり、制限の解除によって通常の解析条件に戻るだけで悪影響はない
 		"""
 		if steps == 0:
-			return Context(self.position + steps, self.minimum, self.maximum, self.skip_symbol)
+			return Context(self.position + steps, self.minimum, self.maximum, self.recursive_symbol)
 		else:
 			return Context(self.position + steps + max(0, self.minimum), -1, -1, '')
 
-	def block_step(self, steps: int = 0, minimum: int = -1, maximum: int = -1, skip_symbol: str = '') -> 'Context':
+	def block_step(self, steps: int = 0, minimum: int = -1, maximum: int = -1, recursive_symbol: str = '') -> 'Context':
 		"""ステップ数を加えて新規作成。作成したコンテキスト上では左再帰がブロックされる
 
 		Args:
 			steps: 追加の進行ステップ数 (default = 0)
 			minimum: 読み取り位置の下限 (default = -1)
 			maximum: 読み取り位置の上限 (default = -1)
-			skip_symbol: 読み取りをスキップするルール名 (default = '')
+			recursive_symbol: 再帰を開始したルール名(=読み取り下限の条件) (default = -1)
 		Returns:
 			インスタンス
 		"""
-		return Context(self.position + steps, minimum, maximum, skip_symbol)
+		return Context(self.position + steps, minimum, maximum, recursive_symbol)
 
 
 class SyntaxParser:
@@ -255,7 +255,7 @@ class SyntaxParser:
 		children: list[ASTEntry] = []
 		for index, pattern in enumerate(patterns):
 			# XXX 読み取り位置の下限を考慮(左再帰時) @see _match_and_recursive_extend
-			if index < context.minimum and isinstance(pattern, Pattern) and pattern.expression == context.skip_symbol:
+			if index < context.minimum and isinstance(pattern, Pattern) and pattern.expression == context.recursive_symbol:
 				continue
 
 			in_step, in_children = self._match_entry(tokens, context.step(steps), pattern, route)
@@ -364,7 +364,7 @@ class SyntaxParser:
 		steps = 0
 		children = step_children.copy()
 		while context.cursor + steps < len(tokens):
-			in_context = context.block_step(steps=steps, minimum=1, skip_symbol=recursive_symbol)
+			in_context = context.block_step(steps=steps, minimum=1, recursive_symbol=recursive_symbol)
 			in_step, in_children = self._match_entry(tokens, in_context, first_pattern, route)
 			if not in_step.steping:
 				break

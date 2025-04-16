@@ -13,7 +13,7 @@ from rogw.tranp.implements.syntax.tranp.rule import Rules
 from rogw.tranp.implements.syntax.tranp.rules import grammar_rules, grammar_tokenizer
 from rogw.tranp.implements.syntax.tranp.syntax import SyntaxParser
 
-DictArgs = TypedDict('DictArgs', {'input': str, 'parser': str, 'grammar': str})
+DictArgs = TypedDict('DictArgs', {'input': str, 'parser': str, 'grammar': str, 'help': bool})
 Parser: TypeAlias = Callable[[str], str]
 
 
@@ -30,6 +30,7 @@ class Args:
 		self.input = args['input']
 		self.parser = args['parser']
 		self.grammar = args['grammar']
+		self.help = args['help']
 
 	def parse(self, argv: list[str]) -> DictArgs:
 		"""コマンドライン引数を解析
@@ -43,6 +44,7 @@ class Args:
 			'input': '',
 			'parser': 'lark',
 			'grammar': os.path.join(tranp_dir(), 'data/grammar.lark'),
+			'help': False,
 		}
 		while len(argv) != 0:
 			arg = argv.pop(0)
@@ -52,6 +54,8 @@ class Args:
 				args['parser'] = argv.pop(0)
 			elif arg == '-g':
 				args['grammar'] = argv.pop(0)
+			elif arg == '-h':
+				args['help'] = True
 
 		return args
 
@@ -75,10 +79,32 @@ class App:
 	def run(self) -> None:
 		"""実行処理"""
 		parser = self.make_parser(self.args.parser)
-		if self.args.input:
+		if self.args.help:
+			self.run_help()
+		elif self.args.input:
 			self.run_parse(parser)
 		else:
 			self.run_interactive(parser)
+
+	def run_help(self) -> None:
+		"""実行処理(ヘルプ)"""
+		print("""# Usage
+$ bin/ast.sh [-i source_path] [-g grammar_path] [-p parser_name] [-h]
+# Options
+-i: Input source file
+-g: Input grammar file
+-p: Usage parser name (default="lark")
+-h: Show help
+# Examples
+## Interactive mode
+$ bin/ast.sh
+$ bin/ast.sh -g path/to/grammar.lark
+$ bin/ast.sh -g path/to/grammar.lark -p other
+## Command line mode
+$ bin/ast.sh -i path/to/source.py
+$ bin/ast.sh -i path/to/source.py -g path/to/grammar.lark
+$ bin/ast.sh -i path/to/source.py -g path/to/grammar.lark -p other
+""")
 
 	def run_parse(self, parser: Parser) -> None:
 		"""実行処理(既存ファイルを解析)

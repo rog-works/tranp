@@ -371,7 +371,9 @@ class SyntaxParser:
 			unwrap_entry = self._unwrap_recursive_children(first_pattern, route, in_children)
 			entry_rule = self.rules[unwrap_entry.name]
 			if not isinstance(entry_rule, Patterns) or recursive_symbol not in entry_rule.symbols:
-				children.clear()
+				# XXX relayを前提に考えた場合、除外したいエントリーはatomのみ
+				# XXX それ以外の条件で1件以上マッチしていたならばそこまでは正なのでchildrenは削除しない。が正しいはず
+				# children.clear()
 				break
 
 			unwrap_tree = as_a(ASTTree, unwrap_entry)

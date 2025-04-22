@@ -128,7 +128,7 @@ class Function(Helper):
 			テンプレート型リスト
 		"""
 		schema_templates, _ = TemplateManipulator.unpack_templates(parameters=self.schemata.parameters, returns=self.schema.returns)
-		return list(set(schema_templates.values()))
+		return list({template: True for template in schema_templates.values()}.keys())
 
 
 class Closure(Function):
@@ -192,7 +192,7 @@ class Method(Function):
 		"""
 		schema_templates, _ = TemplateManipulator.unpack_templates(klass=self.schema.klass, parameters=self.schemata.parameters, returns=self.schema.returns)
 		ignore_templates = [symbol for path, symbol in schema_templates.items() if path.startswith('klass')]
-		return list(set([symbol for symbol in schema_templates.values() if symbol not in ignore_templates]))
+		return list({symbol: True for symbol in schema_templates.values() if symbol not in ignore_templates}.keys())
 
 
 class ClassMethod(Method):

@@ -128,7 +128,7 @@ class Function(Helper):
 			テンプレート型リスト
 		"""
 		schema_templates, _ = TemplateManipulator.unpack_templates(parameters=self.schemata.parameters, returns=self.schema.returns)
-		return list({template: True for template in schema_templates.values()}.keys())
+		return list({symbol: True for symbol in schema_templates.values()}.keys())
 
 
 class Closure(Function):

@@ -440,7 +440,8 @@ class ForTemplateClass:
 		d.invoke(True, 1)
 
 	def boundary_call(self, t: type[T_Base]) -> T_Base:
-		return t()
+		v = t()
+		return v
 
 
 class ForLambda:

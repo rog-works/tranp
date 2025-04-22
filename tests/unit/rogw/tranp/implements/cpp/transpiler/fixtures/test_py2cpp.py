@@ -838,6 +838,13 @@ class ForTemplateClass:
 	def boundary_call(self, t: type[T_Base]) -> T_Base:
 		return t()
 
+	def new_var(self, t: type[T_Base]) -> CP[T_Base]: ...
+
+	def boundary_cvar(self, t: type[T_Base]) -> CP[T_Base]:
+		v = self.new_var(t)
+		s = v.on.base_prop
+		return v
+
 
 class ForComp:
 	def list_comp_from_list(self, ns: list[int], cps: list[CPConst[int]], ts: list[tuple[int, int, int]]) -> None:

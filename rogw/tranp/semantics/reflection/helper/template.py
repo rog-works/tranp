@@ -296,9 +296,9 @@ class TemplateManipulator:
 			# スキップ(データなし)
 			if actual_path not in actual_props:
 				...
-			# 検出なし(実体のテンプレート型が未解決)
+			# 検出成功(スキーマより実体のテンプレート型を優先)
 			elif actual_props[actual_path].types.is_a(defs.TemplateClass):
-				break
+				return actual_path
 			# 検出成功
 			elif schema_props[schema_path].types.is_a(defs.TemplateClass):
 				return schema_path

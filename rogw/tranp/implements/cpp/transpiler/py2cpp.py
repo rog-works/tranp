@@ -834,6 +834,9 @@ class Py2Cpp(ITranspiler):
 			# 期待値: 'receiver.__py_copy__'
 			receiver, _ = PatternParser.break_relay(calls)
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver})
+		elif spec == 'c_type_expr':
+			var_type = self.to_accessible_name(cast(IReflection, context))
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
 		elif spec == 'generic_call':
 			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == 'cast_char':
@@ -978,6 +981,8 @@ class Py2Cpp(ITranspiler):
 				return 'c_func_invoke', None
 			elif calls == c_func_ref.__name__:
 				return 'c_func_ref', None
+			if calls == isinstance.__name__:
+				return 'c_type_expr', self.reflections.type_of(node.arguments[0])
 			elif calls == len.__name__:
 				return 'len', self.reflections.type_of(node.arguments[0])
 			elif calls == print.__name__:

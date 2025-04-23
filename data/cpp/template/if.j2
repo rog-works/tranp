@@ -1,4 +1,5 @@
-if ({{ condition }}) {
+{%- set is_type_expr = condition.startswith('std::is_same_v') -%}
+if {% if is_type_expr %}constexpr {% endif %}({{ condition }}) {
 {%- filter indent('\t') %}
 {%- for statement in statements %}
 {{ statement }}
@@ -7,7 +8,7 @@ if ({{ condition }}) {
 {%- for else_if in else_ifs %}
 {{ else_if }}
 {%- endfor %}
-{%- if else_clause %}
+{%- if else_clause and not is_type_expr %}
 {{ else_clause }}
 {%- endif %}
 }

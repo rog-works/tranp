@@ -553,6 +553,15 @@ class ForFlows:
 		except Exception as e:
 			raise e
 
+	def if_type_expr(self, v: T) -> T:
+		if isinstance(v, int):
+			return v
+		elif isinstance(v, str):
+			return v
+		else:
+			assert False
+			return 0
+
 
 class ForAssign:
 	def anno(self) -> None:

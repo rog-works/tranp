@@ -734,17 +734,16 @@ class Py2Cpp(ITranspiler):
 		is_statement = node.parent.is_a(defs.Block, defs.Entrypoint)
 		spec, context = self.analyze_indexer_spec(node)
 		vars = {'receiver': receiver, 'keys': keys, 'is_statement': is_statement}
-		if spec == 'slice_string':
+		if spec == 'class':
+			var_type = self.to_accessible_name(cast(IReflection, context))
+			return self.view.render(f'{node.classification}/{spec}', vars={**vars, 'var_type': var_type})
+		elif spec == 'cvar':
 			return self.view.render(f'{node.classification}/{spec}', vars=vars)
 		elif spec == 'slice_array':
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={**vars, 'var_type': var_type})
-		elif spec == 'cvar':
-			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={**vars, 'var_type': var_type})
-		elif spec == 'class':
-			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={**vars, 'var_type': var_type})
+		elif spec == 'slice_string':
+			return self.view.render(f'{node.classification}/{spec}', vars=vars)
 		elif spec == 'tuple':
 			return self.view.render(f'{node.classification}/{spec}', vars={**vars, 'receiver': receiver, 'key': keys[0]})
 		else:
@@ -756,12 +755,12 @@ class Py2Cpp(ITranspiler):
 		if node.sliced:
 			spec = 'slice_string' if receiver_symbol.type_is(str) else 'slice_array'
 			return spec, receiver_symbol
-		elif not CVars.is_entity(CVars.key_from(receiver_symbol)):
-			return 'cvar', symbol.actualize()
-		elif receiver_symbol.type_is(tuple):
-			return 'tuple', None
 		elif symbol.type_is(type):
 			return 'class', symbol.actualize()
+		elif receiver_symbol.type_is(tuple):
+			return 'tuple', None
+		elif not CVars.is_entity(CVars.key_from(receiver_symbol)):
+			return 'cvar', None
 		else:
 			return 'otherwise', None
 
@@ -835,6 +834,9 @@ class Py2Cpp(ITranspiler):
 			# 期待値: 'receiver.__py_copy__'
 			receiver, _ = PatternParser.break_relay(calls)
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver})
+		elif spec == 'c_type_expr':
+			var_type = self.to_accessible_name(cast(IReflection, context))
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
 		elif spec == 'generic_call':
 			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == 'cast_char':
@@ -979,6 +981,8 @@ class Py2Cpp(ITranspiler):
 				return 'c_func_invoke', None
 			elif calls == c_func_ref.__name__:
 				return 'c_func_ref', None
+			if calls == isinstance.__name__:
+				return 'c_type_expr', self.reflections.type_of(node.arguments[0])
 			elif calls == len.__name__:
 				return 'len', self.reflections.type_of(node.arguments[0])
 			elif calls == print.__name__:

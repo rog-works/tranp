@@ -194,6 +194,21 @@ class CP(CVarNotNull[T_co]):
 		"""
 		return id(self) - id(other)
 
+	def __getitem__(self, key: str | int) -> 'CP[T_co]':
+		"""配下要素の取得
+
+		Args:
+			key: キー
+		Returns:
+			配下要素
+		Note:
+			```
+			* 自己再帰的な構造を持つコレクション用のインデクサー
+			* XXX このメソッドは利便性のみを着眼点とし、C++の標準仕様と全く関係ない点に注意
+			```
+		"""
+		return getattr(self.raw, '__getitem__')(key)
+
 
 class CSP(CVarNullable[T_co]):
 	"""C++型変数の互換クラス(スマートポインター)"""

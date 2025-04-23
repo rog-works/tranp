@@ -501,18 +501,6 @@ class TestRenderer(TestCase):
 		self.assertRender('doc_string', vars, expected)
 
 	@data_provider([
-		({'condition': 'value == 1', 'statements': ['pass;']}, '} else if (value == 1) {\n\tpass;'),
-	])
-	def test_render_else_if(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('else_if', vars, expected)
-
-	@data_provider([
-		({'statements': ['pass;']}, '} else {\n\tpass;'),
-	])
-	def test_render_else(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('else', vars, expected)
-
-	@data_provider([
 		({'statements': ['int x = 0;'], 'meta_header': '@tranp.meta: {"version":"1.0.0"}', 'module_path': 'path.to'}, '// @tranp.meta: {"version":"1.0.0"}\n#pragma once\nint x = 0;\n'),
 	])
 	def test_render_entrypoint(self, vars: dict[str, Any], expected: str) -> None:
@@ -1225,6 +1213,17 @@ class TestRenderer(TestCase):
 		self.assertRender(f'function/{template}', vars, expected)
 
 	@data_provider([
+		('if', {'condition': 'value == 1', 'statements': ['pass;'], 'else_ifs': [], 'else_clause': ''}, 'if (value == 1) {\n\tpass;\n}'),
+		('if', {'condition': 'value == 1', 'statements': ['pass;'], 'else_ifs': ['} else if (value == 2) {\n\tpass;'], 'else_clause': ''}, 'if (value == 1) {\n\tpass;\n} else if (value == 2) {\n\tpass;\n}'),
+		('if', {'condition': 'value == 1', 'statements': ['pass;'], 'else_ifs': [], 'else_clause': '} else {\n\tpass;'}, 'if (value == 1) {\n\tpass;\n} else {\n\tpass;\n}'),
+		('else_if', {'condition': 'value == 1', 'statements': ['pass;']}, '} else if (value == 1) {\n\tpass;'),
+		('else_if', {'condition': 'std::is_same_v<T, int>', 'statements': ['pass;']}, '} else if constexpr (std::is_same_v<T, int>) {\n\tpass;'),
+		('else', {'statements': ['pass;']}, '} else {\n\tpass;'),
+	])
+	def test_render_if_elif_else(self, spec: str, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender(spec, vars, expected)
+
+	@data_provider([
 		({'module_path': 'module.path.to', 'import_dir': '', 'replace_dir': ''}, '// #include "module/path/to.h"'),
 		({'module_path': 'module.path.to', 'import_dir': 'module/path/', 'replace_dir': 'path/'}, '#include "path/to.h"'),
 	])
@@ -1232,8 +1231,9 @@ class TestRenderer(TestCase):
 		self.assertRender('import', vars, expected)
 
 	@data_provider([
-		('cvar', {'var_type': 'int*'}, 'int*'),
+		('class', {'var_type': 'int*'}, 'int*'),
 		('class', {'var_type': 'int'}, 'int'),
+		('cvar', {'receiver': 'p_arr', 'keys': ['0']}, '(*(p_arr))[0]'),
 		('default', {'receiver': 'n', 'key': '0'}, 'n[0]'),
 		('default', {'receiver': 'n', 'key': '0', 'is_statement': True}, 'n[0];'),
 		('slice_string', {'receiver': 's', 'keys': ['0', '1']}, 's.substr(0, 1)'),

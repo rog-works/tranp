@@ -20,7 +20,7 @@ if [ "${1}" != "" -a "${1:0:1}" != "-" ]; then
 	shift
 fi
 
-target=$(find ./ -name 'test_*.py' | grep -v 'vendor' | peco ${peco_opt})
+target=$(find ./ -name 'test_*.py' | | egrep -v 'fixtures|vendor' | peco ${peco_opt})
 target=$(echo "$target" | sed -e 's/^.\///g')
 target=$(echo "$target" | sed -e 's/\//\./g')
 target=$(echo "$target" | sed -e 's/\.py$//g')

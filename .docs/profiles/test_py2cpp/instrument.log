@@ -1,324 +1,255 @@
 python -m unittest tests.unit.rogw.tranp.implements.cpp.transpiler.test_py2cpp
 
-  _     ._   __/__   _ _  _  _ _/_   Recorded: 11:20:43  Samples:  1787
- /_//_/// /_\ / //_// / //_'/ //     Duration: 1.866     CPU time: 1.844
+  _     ._   __/__   _ _  _  _ _/_   Recorded: 19:03:48  Samples:  1743
+ /_//_/// /_\ / //_// / //_'/ //     Duration: 1.944     CPU time: 1.906
 /   _/                      v5.0.1
 
 Program: unittest tests.unit.rogw.tranp.implements.cpp.transpiler.test_py2cpp
 
-1.865 <module>  unittest\__main__.py:1
-└─ 1.865 TestProgram.__init__  unittest\main.py:67
+1.917 <module>  unittest\__main__.py:1
+└─ 1.917 TestProgram.__init__  unittest\main.py:66
       [13 frames hidden]  unittest
-         1.721 TestPy2Cpp._callTestMethod  unittest\case.py:588
-         └─ 1.721 TestPy2Cpp.wrapper  rogw\tranp\test\helper.py:18
-            └─ 1.720 TestPy2Cpp.test_exec  tests\unit\rogw\tranp\implements\cpp\transpiler\test_py2cpp.py:57
-               ├─ 1.159 Py2Cpp.transpile  rogw\tranp\implements\cpp\transpiler\py2cpp.py:112
-               │  └─ 1.159 Procedure.exec  rogw\tranp\semantics\procedure.py:61
-               │     └─ 1.157 Procedure.__exec_impl  rogw\tranp\semantics\procedure.py:79
-               │        ├─ 0.934 Procedure.__process  rogw\tranp\semantics\procedure.py:115
-               │        │  └─ 0.905 Procedure.__action  rogw\tranp\semantics\procedure.py:125
-               │        │     └─ 0.894 Procedure.__run_action  rogw\tranp\semantics\procedure.py:184
-               │        │        └─ 0.874 Procedure.__emit_proxy  rogw\tranp\semantics\procedure.py:199
-               │        │           └─ 0.873 EventEmitter.emit  rogw\tranp\lang\eventemitter.py:77
-               │        │              ├─ 0.156 Py2Cpp.on_move_assign  rogw\tranp\implements\cpp\transpiler\py2cpp.py:472
-               │        │              │  └─ 0.156 Py2Cpp.proc_move_assign_single  rogw\tranp\implements\cpp\transpiler\py2cpp.py:478
-               │        │              │     ├─ 0.097 Reflections.type_of  rogw\tranp\semantics\reflections.py:105
-               │        │              │     │  └─ 0.088 Reflections.__resolve_procedural  rogw\tranp\semantics\reflections.py:298
-               │        │              │     │     └─ 0.088 ProceduralResolver.resolve  rogw\tranp\semantics\reflections.py:336
-               │        │              │     │        └─ 0.088 Procedure.exec  rogw\tranp\semantics\procedure.py:61
-               │        │              │     │           └─ 0.088 Procedure.__exec_impl  rogw\tranp\semantics\procedure.py:79
-               │        │              │     │              └─ 0.083 Procedure.__process  rogw\tranp\semantics\procedure.py:115
-               │        │              │     │                 └─ 0.076 Procedure.__action  rogw\tranp\semantics\procedure.py:125
-               │        │              │     │                    └─ 0.075 Procedure.__run_action  rogw\tranp\semantics\procedure.py:184
-               │        │              │     │                       └─ 0.072 Procedure.__emit_proxy  rogw\tranp\semantics\procedure.py:199
-               │        │              │     │                          └─ 0.072 EventEmitter.emit  rogw\tranp\lang\eventemitter.py:77
-               │        │              │     │                             ├─ 0.024 ProceduralResolver.on_func_call  rogw\tranp\semantics\reflections.py:534
-               │        │              │     │                             │  └─ 0.020 <lambda>  rogw\tranp\lang\trait.py:134
-               │        │              │     │                             └─ 0.019 ProceduralResolver.on_relay  rogw\tranp\semantics\reflections.py:427
-               │        │              │     └─ 0.046 Py2Cpp.to_accessible_name  rogw\tranp\implements\cpp\transpiler\py2cpp.py:123
-               │        │              │        └─ 0.021 Py2Cpp.to_accessible_name  rogw\tranp\implements\cpp\transpiler\py2cpp.py:123
-               │        │              ├─ 0.136 Py2Cpp.on_func_call  rogw\tranp\implements\cpp\transpiler\py2cpp.py:816
-               │        │              │  ├─ 0.063 Py2Cpp.analyze_func_call_spec  rogw\tranp\implements\cpp\transpiler\py2cpp.py:957
-               │        │              │  │  └─ 0.035 Reflections.type_of  rogw\tranp\semantics\reflections.py:105
-               │        │              │  │     └─ 0.034 Reflections.__resolve_procedural  rogw\tranp\semantics\reflections.py:298
-               │        │              │  │        └─ 0.034 ProceduralResolver.resolve  rogw\tranp\semantics\reflections.py:336
-               │        │              │  │           └─ 0.034 Procedure.exec  rogw\tranp\semantics\procedure.py:61
-               │        │              │  │              └─ 0.034 Procedure.__exec_impl  rogw\tranp\semantics\procedure.py:79
-               │        │              │  │                 └─ 0.031 Procedure.__process  rogw\tranp\semantics\procedure.py:115
-               │        │              │  │                    └─ 0.025 Procedure.__action  rogw\tranp\semantics\procedure.py:125
-               │        │              │  │                       └─ 0.024 Procedure.__run_action  rogw\tranp\semantics\procedure.py:184
-               │        │              │  │                          └─ 0.022 Procedure.__emit_proxy  rogw\tranp\semantics\procedure.py:199
-               │        │              │  │                             └─ 0.022 EventEmitter.emit  rogw\tranp\lang\eventemitter.py:77
-               │        │              │  └─ 0.061 Renderer.render  rogw\tranp\view\render.py:54
-               │        │              │     └─ 0.058 Environment.get_template  jinja2\environment.py:978
-               │        │              │        └─ 0.058 Environment._load_template  jinja2\environment.py:953
-               │        │              │           └─ 0.058 FileSystemLoader.load  jinja2\loaders.py:107
-               │        │              │              └─ 0.050 Environment.compile  jinja2\environment.py:728
-               │        │              │                 └─ 0.028 Environment._generate  jinja2\environment.py:679
-               │        │              │                    └─ 0.028 generate  jinja2\compiler.py:101
-               │        │              │                       └─ 0.028 CodeGenerator.visit  jinja2\visitor.py:35
-               │        │              │                          └─ 0.027 CodeGenerator.visit_Template  jinja2\compiler.py:829
-               │        │              ├─ 0.102 Py2Cpp.on_relay  rogw\tranp\implements\cpp\transpiler\py2cpp.py:624
-               │        │              │  └─ 0.026 Py2Cpp.is_relay_type  rogw\tranp\implements\cpp\transpiler\py2cpp.py:709
-               │        │              │     └─ 0.021 Defer.__getattribute__  rogw\tranp\lang\defer.py:55
-               │        │              │        └─ 0.020 <lambda>  rogw\tranp\implements\cpp\transpiler\py2cpp.py:625
-               │        │              │           └─ 0.019 Reflections.type_of  rogw\tranp\semantics\reflections.py:105
-               │        │              │              └─ 0.019 Reflections.__resolve_procedural  rogw\tranp\semantics\reflections.py:298
-               │        │              │                 └─ 0.019 ProceduralResolver.resolve  rogw\tranp\semantics\reflections.py:336
-               │        │              │                    └─ 0.019 Procedure.exec  rogw\tranp\semantics\procedure.py:61
-               │        │              │                       └─ 0.019 Procedure.__exec_impl  rogw\tranp\semantics\procedure.py:79
-               │        │              │                          └─ 0.019 Procedure.__process  rogw\tranp\semantics\procedure.py:115
-               │        │              ├─ 0.087 Py2Cpp.on_var  rogw\tranp\implements\cpp\transpiler\py2cpp.py:712
-               │        │              │  └─ 0.051 Reflections.type_of  rogw\tranp\semantics\reflections.py:105
-               │        │              │     └─ 0.050 Reflections.__resolve_procedural  rogw\tranp\semantics\reflections.py:298
-               │        │              │        └─ 0.050 ProceduralResolver.resolve  rogw\tranp\semantics\reflections.py:336
-               │        │              │           └─ 0.050 Procedure.exec  rogw\tranp\semantics\procedure.py:61
-               │        │              │              └─ 0.049 Procedure.__exec_impl  rogw\tranp\semantics\procedure.py:79
-               │        │              │                 └─ 0.049 Procedure.__process  rogw\tranp\semantics\procedure.py:115
-               │        │              │                    └─ 0.045 Procedure.__action  rogw\tranp\semantics\procedure.py:125
-               │        │              │                       └─ 0.044 Procedure.__run_action  rogw\tranp\semantics\procedure.py:184
-               │        │              │                          └─ 0.039 Procedure.__emit_proxy  rogw\tranp\semantics\procedure.py:199
-               │        │              │                             └─ 0.039 EventEmitter.emit  rogw\tranp\lang\eventemitter.py:77
-               │        │              │                                └─ 0.037 ProceduralResolver.on_var  rogw\tranp\semantics\reflections.py:453
-               │        │              │                                   └─ 0.033 Reflections.resolve  rogw\tranp\semantics\reflections.py:229
-               │        │              │                                      └─ 0.033 Reflections.__resolve_raw  rogw\tranp\semantics\reflections.py:247
-               │        │              │                                         └─ 0.032 SymbolFinder.find_by_symbolic  rogw\tranp\semantics\finder.py:94
-               │        │              │                                            └─ 0.019 Var.scope  rogw\tranp\syntax\node\node.py:132
-               │        │              │                                               └─ 0.019 Memoize.get  rogw\tranp\cache\memo2.py:38
-               │        │              │                                                  └─ 0.019 Memo.get  rogw\tranp\cache\memo2.py:19
-               │        │              ├─ 0.055 Py2Cpp.on_var_of_type  rogw\tranp\implements\cpp\transpiler\py2cpp.py:771
-               │        │              │  └─ 0.034 Reflections.type_of  rogw\tranp\semantics\reflections.py:105
-               │        │              │     └─ 0.032 Reflections.__resolve_procedural  rogw\tranp\semantics\reflections.py:298
-               │        │              │        └─ 0.032 ProceduralResolver.resolve  rogw\tranp\semantics\reflections.py:336
-               │        │              │           └─ 0.032 Procedure.exec  rogw\tranp\semantics\procedure.py:61
-               │        │              │              └─ 0.032 Procedure.__exec_impl  rogw\tranp\semantics\procedure.py:79
-               │        │              │                 └─ 0.032 Procedure.__process  rogw\tranp\semantics\procedure.py:115
-               │        │              │                    └─ 0.032 Procedure.__action  rogw\tranp\semantics\procedure.py:125
-               │        │              │                       └─ 0.032 Procedure.__run_action  rogw\tranp\semantics\procedure.py:184
-               │        │              │                          └─ 0.032 Procedure.__emit_proxy  rogw\tranp\semantics\procedure.py:199
-               │        │              │                             └─ 0.032 EventEmitter.emit  rogw\tranp\lang\eventemitter.py:77
-               │        │              │                                └─ 0.032 ProceduralResolver.on_var_of_type  rogw\tranp\semantics\reflections.py:513
-               │        │              │                                   └─ 0.032 Reflections.resolve  rogw\tranp\semantics\reflections.py:229
-               │        │              │                                      └─ 0.032 Reflections.__resolve_raw  rogw\tranp\semantics\reflections.py:247
-               │        │              │                                         └─ 0.032 SymbolFinder.find_by_symbolic  rogw\tranp\semantics\finder.py:94
-               │        │              ├─ 0.043 Py2Cpp.on_indexer  rogw\tranp\implements\cpp\transpiler\py2cpp.py:731
-               │        │              │  └─ 0.026 Py2Cpp.analyze_indexer_spec  rogw\tranp\implements\cpp\transpiler\py2cpp.py:751
-               │        │              ├─ 0.038 Py2Cpp.on_comp_for  rogw\tranp\implements\cpp\transpiler\py2cpp.py:1062
-               │        │              │  └─ 0.024 CVars.key_from  rogw\tranp\implements\cpp\semantics\cvars.py:159
-               │        │              │     └─ 0.022 Defer.__getattribute__  rogw\tranp\lang\defer.py:55
-               │        │              │        └─ 0.022 <lambda>  rogw\tranp\implements\cpp\transpiler\py2cpp.py:1064
-               │        │              │           └─ 0.022 Reflections.type_of  rogw\tranp\semantics\reflections.py:105
-               │        │              │              └─ 0.022 Reflections.__resolve_procedural  rogw\tranp\semantics\reflections.py:298
-               │        │              │                 └─ 0.022 ProceduralResolver.resolve  rogw\tranp\semantics\reflections.py:336
-               │        │              │                    └─ 0.022 Procedure.exec  rogw\tranp\semantics\procedure.py:61
-               │        │              │                       └─ 0.022 Procedure.__exec_impl  rogw\tranp\semantics\procedure.py:79
-               │        │              │                          └─ 0.021 Procedure.__process  rogw\tranp\semantics\procedure.py:115
-               │        │              │                             └─ 0.021 Procedure.__action  rogw\tranp\semantics\procedure.py:125
-               │        │              │                                └─ 0.020 Procedure.__run_action  rogw\tranp\semantics\procedure.py:184
-               │        │              │                                   └─ 0.019 Procedure.__emit_proxy  rogw\tranp\semantics\procedure.py:199
-               │        │              │                                      └─ 0.019 EventEmitter.emit  rogw\tranp\lang\eventemitter.py:77
-               │        │              ├─ 0.025 Py2Cpp.on_parameter  rogw\tranp\implements\cpp\transpiler\py2cpp.py:463
-               │        │              ├─ 0.024 Py2Cpp.on_for  rogw\tranp\implements\cpp\transpiler\py2cpp.py:285
-               │        │              ├─ 0.022 Py2Cpp.on_closure  rogw\tranp\implements\cpp\transpiler\py2cpp.py:399
-               │        │              │  └─ 0.022 Renderer.render  rogw\tranp\view\render.py:54
-               │        │              │     └─ 0.022 Environment.get_template  jinja2\environment.py:978
-               │        │              │        └─ 0.022 Environment._load_template  jinja2\environment.py:953
-               │        │              │           └─ 0.022 FileSystemLoader.load  jinja2\loaders.py:107
-               │        │              │              └─ 0.022 Environment.compile  jinja2\environment.py:728
-               │        │              │                 └─ 0.019 Environment._parse  jinja2\environment.py:615
-               │        │              │                    └─ 0.019 Parser.parse  jinja2\parser.py:1037
-               │        │              │                       └─ 0.019 Parser.subparse  jinja2\parser.py:988
-               │        │              │                          └─ 0.019 Parser.parse_statement  jinja2\parser.py:167
-               │        │              │                             └─ 0.019 Parser.parse_if  jinja2\parser.py:255
-               │        │              │                                └─ 0.019 Parser.parse_statements  jinja2\parser.py:196
-               │        │              │                                   └─ 0.019 Parser.subparse  jinja2\parser.py:988
-               │        │              │                                      └─ 0.019 Parser.parse_tuple  jinja2\parser.py:680
-               │        │              │                                         └─ 0.019 Parser.parse_expression  jinja2\parser.py:515
-               │        │              │                                            └─ 0.019 Parser.parse_condexpr  jinja2\parser.py:524
-               │        │              │                                               └─ 0.019 Parser.parse_or  jinja2\parser.py:539
-               │        │              │                                                  └─ 0.019 Parser.parse_and  jinja2\parser.py:548
-               │        │              │                                                     └─ 0.019 Parser.parse_not  jinja2\parser.py:557
-               │        │              │                                                        └─ 0.019 Parser.parse_compare  jinja2\parser.py:563
-               │        │              │                                                           └─ 0.019 Parser.parse_math1  jinja2\parser.py:586
-               │        │              │                                                              └─ 0.019 Parser.parse_concat  jinja2\parser.py:597
-               │        │              │                                                                 └─ 0.019 Parser.parse_math2  jinja2\parser.py:607
-               │        │              │                                                                    └─ 0.019 Parser.parse_pow  jinja2\parser.py:618
-               │        │              │                                                                       └─ 0.019 Parser.parse_unary  jinja2\parser.py:628
-               │        │              │                                                                          └─ 0.019 Parser.parse_postfix  jinja2\parser.py:773
-               │        │              │                                                                             └─ 0.019 Parser.parse_subscript  jinja2\parser.py:801
-               │        │              │                                                                                └─ 0.019 Parser.parse_subscribed  jinja2\parser.py:832
-               │        │              │                                                                                   └─ 0.019 Parser.parse_expression  jinja2\parser.py:515
-               │        │              │                                                                                      └─ 0.019 Parser.parse_condexpr  jinja2\parser.py:524
-               │        │              │                                                                                         └─ 0.019 Parser.parse_or  jinja2\parser.py:539
-               │        │              │                                                                                            └─ 0.019 Parser.parse_and  jinja2\parser.py:548
-               │        │              │                                                                                               └─ 0.019 Parser.parse_not  jinja2\parser.py:557
-               │        │              │                                                                                                  └─ 0.019 Parser.parse_compare  jinja2\parser.py:563
-               │        │              │                                                                                                     └─ 0.019 Parser.parse_math1  jinja2\parser.py:586
-               │        │              │                                                                                                        └─ 0.019 Parser.parse_concat  jinja2\parser.py:597
-               │        │              │                                                                                                           └─ 0.019 Parser.parse_math2  jinja2\parser.py:607
-               │        │              │                                                                                                              └─ 0.019 Parser.parse_pow  jinja2\parser.py:618
-               │        │              │                                                                                                                 └─ 0.019 Parser.parse_unary  jinja2\parser.py:628
-               │        │              │                                                                                                                    └─ 0.019 Parser.parse_primary  jinja2\parser.py:646
-               │        │              │                                                                                                                       └─ 0.019 TokenStream.__next__  jinja2\lexer.py:380
-               │        │              ├─ 0.020 Py2Cpp.on_constructor  rogw\tranp\implements\cpp\transpiler\py2cpp.py:351
-               │        │              └─ 0.019 Py2Cpp.on_method  rogw\tranp\implements\cpp\transpiler\py2cpp.py:389
-               │        └─ 0.219 MoveAssign.procedural  rogw\tranp\syntax\node\node.py:239
-               │           ├─ 0.150 FuncCall.procedural  rogw\tranp\syntax\node\node.py:239
-               │           │  ├─ 0.076 Relay.procedural  rogw\tranp\syntax\node\node.py:239
-               │           │  │  ├─ 0.040 Relay.procedural  rogw\tranp\syntax\node\node.py:239
-               │           │  │  │  └─ 0.026 Relay.__prop_expand  rogw\tranp\syntax\node\node.py:258
-               │           │  │  │     └─ 0.025 Relay.__prop_of_nodes  rogw\tranp\syntax\node\node.py:273
-               │           │  │  └─ 0.030 Relay.__prop_expand  rogw\tranp\syntax\node\node.py:258
-               │           │  │     └─ 0.030 Relay.__prop_of_nodes  rogw\tranp\syntax\node\node.py:273
-               │           │  └─ 0.073 Relay.__prop_expand  rogw\tranp\syntax\node\node.py:258
-               │           │     └─ 0.073 Relay.__prop_of_nodes  rogw\tranp\syntax\node\node.py:273
-               │           │        └─ 0.020 Relay.receiver  rogw\tranp\syntax\node\definition\primary.py:231
-               │           │           └─ 0.020 Relay._at  rogw\tranp\syntax\node\node.py:303
-               │           │              └─ 0.020 Relay._children  rogw\tranp\syntax\node\node.py:351
-               │           │                 └─ 0.020 Nodes.children  rogw\tranp\syntax\node\query.py:134
-               │           │                    └─ 0.020 Memoize.get  rogw\tranp\cache\memo2.py:38
-               │           │                       └─ 0.020 Memo.get  rogw\tranp\cache\memo2.py:19
-               │           │                          └─ 0.020 factory  rogw\tranp\syntax\node\query.py:145
-               │           │                             └─ 0.019 Nodes.__resolve  rogw\tranp\syntax\node\query.py:30
-               │           │                                └─ 0.019 NodeResolver.resolve  rogw\tranp\syntax\node\resolver.py:35
-               │           └─ 0.066 MoveAssign.__prop_expand  rogw\tranp\syntax\node\node.py:258
-               │              └─ 0.065 MoveAssign.__prop_of_nodes  rogw\tranp\syntax\node\node.py:273
-               └─ 0.531 Fixture.shared_module  tests\test\fixture.py:83
-                  └─ 0.514 Modules.load  rogw\tranp\module\modules.py:58
-                     ├─ 0.165 Modules.__load_libraries  rogw\tranp\module\modules.py:80
-                     │  └─ 0.165 Modules.libralies  rogw\tranp\module\modules.py:26
-                     │     └─ 0.165 Modules.load  rogw\tranp\module\modules.py:58
-                     │        ├─ 0.109 ModuleLoader.load  rogw\tranp\providers\module.py:64
-                     │        │  └─ 0.109 Entrypoints.load  rogw\tranp\syntax\ast\entrypoints.py:50
-                     │        │     └─ 0.109 handler  rogw\tranp\providers\syntax\entrypoints.py:26
-                     │        │        └─ 0.109 LazyDI.resolve  rogw\tranp\lang\di.py:359
-                     │        │           ├─ 0.085 LazyDI.resolve  rogw\tranp\lang\di.py:83
-                     │        │           │  └─ 0.085 LazyDI.invoke  rogw\tranp\lang\di.py:142
-                     │        │           │     └─ 0.085 LazyDI.resolve  rogw\tranp\lang\di.py:359
-                     │        │           │        └─ 0.081 LazyDI.resolve  rogw\tranp\lang\di.py:83
-                     │        │           │           └─ 0.081 LazyDI.invoke  rogw\tranp\lang\di.py:142
-                     │        │           │              ├─ 0.042 Nodes.__init__  rogw\tranp\syntax\node\query.py:16
-                     │        │           │              │  └─ 0.024 EntryCache.add  rogw\tranp\syntax\ast\cache.py:78
-                     │        │           │              └─ 0.040 LazyDI.resolve  rogw\tranp\lang\di.py:359
-                     │        │           │                 └─ 0.040 LazyDI.resolve  rogw\tranp\lang\di.py:83
-                     │        │           │                    └─ 0.040 LazyDI.invoke  rogw\tranp\lang\di.py:142
-                     │        │           │                       └─ 0.040 make_root_entry  rogw\tranp\providers\syntax\ast.py:30
-                     │        │           │                          └─ 0.040 SyntaxParserOfLark.__call__  rogw\tranp\implements\syntax\lark\parser.py:37
-                     │        │           │                             └─ 0.031 SyntaxParserOfLark.__load_parser  rogw\tranp\implements\syntax\lark\parser.py:49
-                     │        │           │                                └─ 0.031 wrapper  rogw\tranp\cache\cache.py:257
-                     │        │           │                                   └─ 0.031 CachedProxy.get  rogw\tranp\cache\cache.py:91
-                     │        │           │                                      └─ 0.031 CachedProxy.load_cache  rogw\tranp\cache\cache.py:167
-                     │        │           │                                         └─ 0.031 LarkStored.load  rogw\tranp\implements\syntax\lark\parser.py:127
-                     │        │           │                                            └─ 0.031 Lark.load  lark\lark.py:505
-                     │        │           │                                               └─ 0.029 Lark._load  lark\lark.py:524
-                     │        │           └─ 0.024 LazyDI.__bind_proxy  rogw\tranp\lang\di.py:376
-                     │        │              └─ 0.024 load_module_path  rogw\tranp\lang\module.py:20
-                     │        │                 └─ 0.024 load_module  rogw\tranp\lang\module.py:8
-                     │        │                    └─ 0.024 import_module  importlib\__init__.py:73
-                     │        │                       └─ 0.021 <module>  rogw\tranp\implements\syntax\lark\parser.py:1
+         1.707 TestPy2Cpp._callTestMethod  unittest\case.py:605
+         └─ 1.707 TestPy2Cpp.wrapper  rogw\tranp\test\helper.py:18
+            └─ 1.707 TestPy2Cpp.test_exec  tests\unit\rogw\tranp\implements\cpp\transpiler\test_py2cpp.py:57
+               ├─ 1.125 Py2Cpp.transpile  rogw\tranp\implements\cpp\transpiler\py2cpp.py:112
+               │  └─ 1.125 Procedure.exec  rogw\tranp\semantics\procedure.py:61
+               │     └─ 1.124 Procedure.__exec_impl  rogw\tranp\semantics\procedure.py:79
+               │        ├─ 0.924 Procedure.__process  rogw\tranp\semantics\procedure.py:115
+               │        │  └─ 0.901 Procedure.__action  rogw\tranp\semantics\procedure.py:125
+               │        │     └─ 0.893 Procedure.__run_action  rogw\tranp\semantics\procedure.py:184
+               │        │        ├─ 0.851 Procedure.__emit_proxy  rogw\tranp\semantics\procedure.py:199
+               │        │        │  └─ 0.846 EventEmitter.emit  rogw\tranp\lang\eventemitter.py:77
+               │        │        │     ├─ 0.140 Py2Cpp.on_move_assign  rogw\tranp\implements\cpp\transpiler\py2cpp.py:472
+               │        │        │     │  └─ 0.138 Py2Cpp.proc_move_assign_single  rogw\tranp\implements\cpp\transpiler\py2cpp.py:478
+               │        │        │     │     ├─ 0.089 Reflections.type_of  rogw\tranp\semantics\reflections.py:105
+               │        │        │     │     │  └─ 0.075 Reflections.__resolve_procedural  rogw\tranp\semantics\reflections.py:298
+               │        │        │     │     │     └─ 0.075 ProceduralResolver.resolve  rogw\tranp\semantics\reflections.py:336
+               │        │        │     │     │        └─ 0.075 Procedure.exec  rogw\tranp\semantics\procedure.py:61
+               │        │        │     │     │           └─ 0.075 Procedure.__exec_impl  rogw\tranp\semantics\procedure.py:79
+               │        │        │     │     │              └─ 0.071 Procedure.__process  rogw\tranp\semantics\procedure.py:115
+               │        │        │     │     │                 └─ 0.068 Procedure.__action  rogw\tranp\semantics\procedure.py:125
+               │        │        │     │     │                    └─ 0.066 Procedure.__run_action  rogw\tranp\semantics\procedure.py:184
+               │        │        │     │     │                       └─ 0.063 Procedure.__emit_proxy  rogw\tranp\semantics\procedure.py:199
+               │        │        │     │     │                          └─ 0.062 EventEmitter.emit  rogw\tranp\lang\eventemitter.py:77
+               │        │        │     │     │                             └─ 0.024 ProceduralResolver.on_relay  rogw\tranp\semantics\reflections.py:427
+               │        │        │     │     └─ 0.032 Py2Cpp.to_accessible_name  rogw\tranp\implements\cpp\transpiler\py2cpp.py:123
+               │        │        │     ├─ 0.136 Py2Cpp.on_func_call  rogw\tranp\implements\cpp\transpiler\py2cpp.py:817
+               │        │        │     │  ├─ 0.064 Renderer.render  rogw\tranp\view\render.py:54
+               │        │        │     │  │  └─ 0.057 Environment.get_template  jinja2\environment.py:978
+               │        │        │     │  │     └─ 0.057 Environment._load_template  jinja2\environment.py:953
+               │        │        │     │  │        └─ 0.057 FileSystemLoader.load  jinja2\loaders.py:107
+               │        │        │     │  │           └─ 0.050 Environment.compile  jinja2\environment.py:728
+               │        │        │     │  │              └─ 0.022 Environment._generate  jinja2\environment.py:679
+               │        │        │     │  │                 └─ 0.022 generate  jinja2\compiler.py:101
+               │        │        │     │  │                    └─ 0.021 CodeGenerator.visit  jinja2\visitor.py:35
+               │        │        │     │  │                       └─ 0.021 CodeGenerator.visit_Template  jinja2\compiler.py:829
+               │        │        │     │  └─ 0.058 Py2Cpp.analyze_func_call_spec  rogw\tranp\implements\cpp\transpiler\py2cpp.py:969
+               │        │        │     │     └─ 0.036 Reflections.type_of  rogw\tranp\semantics\reflections.py:105
+               │        │        │     │        └─ 0.036 Reflections.__resolve_procedural  rogw\tranp\semantics\reflections.py:298
+               │        │        │     │           └─ 0.036 ProceduralResolver.resolve  rogw\tranp\semantics\reflections.py:336
+               │        │        │     │              └─ 0.036 Procedure.exec  rogw\tranp\semantics\procedure.py:61
+               │        │        │     │                 └─ 0.036 Procedure.__exec_impl  rogw\tranp\semantics\procedure.py:79
+               │        │        │     │                    └─ 0.031 Procedure.__process  rogw\tranp\semantics\procedure.py:115
+               │        │        │     │                       └─ 0.027 Procedure.__action  rogw\tranp\semantics\procedure.py:125
+               │        │        │     │                          └─ 0.025 Procedure.__run_action  rogw\tranp\semantics\procedure.py:184
+               │        │        │     │                             └─ 0.023 Procedure.__emit_proxy  rogw\tranp\semantics\procedure.py:199
+               │        │        │     │                                └─ 0.023 EventEmitter.emit  rogw\tranp\lang\eventemitter.py:77
+               │        │        │     ├─ 0.098 Py2Cpp.on_relay  rogw\tranp\implements\cpp\transpiler\py2cpp.py:624
+               │        │        │     │  ├─ 0.023 Defer.__getattribute__  rogw\tranp\lang\defer.py:55
+               │        │        │     │  │  └─ 0.020 <lambda>  rogw\tranp\implements\cpp\transpiler\py2cpp.py:627
+               │        │        │     │  └─ 0.022 Py2Cpp.is_relay_type  rogw\tranp\implements\cpp\transpiler\py2cpp.py:711
+               │        │        │     ├─ 0.090 Py2Cpp.on_var  rogw\tranp\implements\cpp\transpiler\py2cpp.py:714
+               │        │        │     │  └─ 0.065 Reflections.type_of  rogw\tranp\semantics\reflections.py:105
+               │        │        │     │     └─ 0.064 Reflections.__resolve_procedural  rogw\tranp\semantics\reflections.py:298
+               │        │        │     │        └─ 0.064 ProceduralResolver.resolve  rogw\tranp\semantics\reflections.py:336
+               │        │        │     │           └─ 0.064 Procedure.exec  rogw\tranp\semantics\procedure.py:61
+               │        │        │     │              └─ 0.064 Procedure.__exec_impl  rogw\tranp\semantics\procedure.py:79
+               │        │        │     │                 └─ 0.064 Procedure.__process  rogw\tranp\semantics\procedure.py:115
+               │        │        │     │                    └─ 0.060 Procedure.__action  rogw\tranp\semantics\procedure.py:125
+               │        │        │     │                       └─ 0.059 Procedure.__run_action  rogw\tranp\semantics\procedure.py:184
+               │        │        │     │                          └─ 0.055 Procedure.__emit_proxy  rogw\tranp\semantics\procedure.py:199
+               │        │        │     │                             └─ 0.055 EventEmitter.emit  rogw\tranp\lang\eventemitter.py:77
+               │        │        │     │                                └─ 0.055 ProceduralResolver.on_var  rogw\tranp\semantics\reflections.py:453
+               │        │        │     │                                   └─ 0.052 Reflections.resolve  rogw\tranp\semantics\reflections.py:229
+               │        │        │     │                                      └─ 0.051 Reflections.__resolve_raw  rogw\tranp\semantics\reflections.py:247
+               │        │        │     │                                         └─ 0.051 SymbolFinder.find_by_symbolic  rogw\tranp\semantics\finder.py:94
+               │        │        │     │                                            └─ 0.030 Var.scope  rogw\tranp\syntax\node\node.py:132
+               │        │        │     │                                               └─ 0.030 Memoize.get  rogw\tranp\cache\memo2.py:38
+               │        │        │     │                                                  └─ 0.029 Memo.get  rogw\tranp\cache\memo2.py:19
+               │        │        │     │                                                     └─ 0.028 factory  rogw\tranp\syntax\node\node.py:135
+               │        │        │     │                                                        └─ 0.023 FuncCall.scope  rogw\tranp\syntax\node\node.py:132
+               │        │        │     │                                                           └─ 0.023 Memoize.get  rogw\tranp\cache\memo2.py:38
+               │        │        │     │                                                              └─ 0.023 Memo.get  rogw\tranp\cache\memo2.py:19
+               │        │        │     │                                                                 └─ 0.023 factory  rogw\tranp\syntax\node\node.py:135
+               │        │        │     │                                                                    └─ 0.021 MoveAssign.scope  rogw\tranp\syntax\node\node.py:132
+               │        │        │     │                                                                       └─ 0.021 Memoize.get  rogw\tranp\cache\memo2.py:38
+               │        │        │     │                                                                          └─ 0.021 Memo.get  rogw\tranp\cache\memo2.py:19
+               │        │        │     │                                                                             └─ 0.021 factory  rogw\tranp\syntax\node\node.py:135
+               │        │        │     ├─ 0.071 Py2Cpp.on_var_of_type  rogw\tranp\implements\cpp\transpiler\py2cpp.py:772
+               │        │        │     │  └─ 0.050 Reflections.type_of  rogw\tranp\semantics\reflections.py:105
+               │        │        │     │     └─ 0.050 Reflections.__resolve_procedural  rogw\tranp\semantics\reflections.py:298
+               │        │        │     │        └─ 0.050 ProceduralResolver.resolve  rogw\tranp\semantics\reflections.py:336
+               │        │        │     │           └─ 0.050 Procedure.exec  rogw\tranp\semantics\procedure.py:61
+               │        │        │     │              └─ 0.050 Procedure.__exec_impl  rogw\tranp\semantics\procedure.py:79
+               │        │        │     │                 └─ 0.050 Procedure.__process  rogw\tranp\semantics\procedure.py:115
+               │        │        │     │                    └─ 0.050 Procedure.__action  rogw\tranp\semantics\procedure.py:125
+               │        │        │     │                       └─ 0.050 Procedure.__run_action  rogw\tranp\semantics\procedure.py:184
+               │        │        │     │                          └─ 0.049 Procedure.__emit_proxy  rogw\tranp\semantics\procedure.py:199
+               │        │        │     │                             └─ 0.049 EventEmitter.emit  rogw\tranp\lang\eventemitter.py:77
+               │        │        │     │                                └─ 0.048 ProceduralResolver.on_var_of_type  rogw\tranp\semantics\reflections.py:513
+               │        │        │     │                                   └─ 0.048 Reflections.resolve  rogw\tranp\semantics\reflections.py:229
+               │        │        │     │                                      └─ 0.048 Reflections.__resolve_raw  rogw\tranp\semantics\reflections.py:247
+               │        │        │     │                                         └─ 0.048 SymbolFinder.find_by_symbolic  rogw\tranp\semantics\finder.py:94
+               │        │        │     │                                            └─ 0.039 VarOfType.domain_name  rogw\tranp\syntax\node\definition\primary.py:309
+               │        │        │     │                                               └─ 0.038 VarOfType._children  rogw\tranp\syntax\node\node.py:351
+               │        │        │     │                                                  └─ 0.038 Nodes.children  rogw\tranp\syntax\node\query.py:134
+               │        │        │     ├─ 0.039 Py2Cpp.on_comp_for  rogw\tranp\implements\cpp\transpiler\py2cpp.py:1076
+               │        │        │     ├─ 0.034 Py2Cpp.on_indexer  rogw\tranp\implements\cpp\transpiler\py2cpp.py:733
+               │        │        │     ├─ 0.025 Py2Cpp.on_for  rogw\tranp\implements\cpp\transpiler\py2cpp.py:285
+               │        │        │     └─ 0.023 Py2Cpp.on_method  rogw\tranp\implements\cpp\transpiler\py2cpp.py:389
+               │        │        └─ 0.028 Procedure.__make_event  rogw\tranp\semantics\procedure.py:222
+               │        └─ 0.198 MoveAssign.procedural  rogw\tranp\syntax\node\node.py:239
+               │           ├─ 0.143 FuncCall.procedural  rogw\tranp\syntax\node\node.py:239
+               │           │  ├─ 0.075 Relay.procedural  rogw\tranp\syntax\node\node.py:239
+               │           │  │  ├─ 0.039 Relay.__prop_expand  rogw\tranp\syntax\node\node.py:258
+               │           │  │  │  └─ 0.039 Relay.__prop_of_nodes  rogw\tranp\syntax\node\node.py:273
+               │           │  │  └─ 0.034 Relay.procedural  rogw\tranp\syntax\node\node.py:239
+               │           │  └─ 0.068 Argument.__prop_expand  rogw\tranp\syntax\node\node.py:258
+               │           │     └─ 0.066 Argument.__prop_of_nodes  rogw\tranp\syntax\node\node.py:273
+               │           └─ 0.055 MoveAssign.__prop_expand  rogw\tranp\syntax\node\node.py:258
+               │              └─ 0.054 MoveAssign.__prop_of_nodes  rogw\tranp\syntax\node\node.py:273
+               └─ 0.550 Fixture.shared_module  tests\test\fixture.py:83
+                  └─ 0.531 Modules.load  rogw\tranp\module\modules.py:58
+                     ├─ 0.189 Modules.__load_libraries  rogw\tranp\module\modules.py:80
+                     │  └─ 0.189 Modules.libralies  rogw\tranp\module\modules.py:26
+                     │     └─ 0.189 Modules.load  rogw\tranp\module\modules.py:58
+                     │        ├─ 0.135 ModuleLoader.load  rogw\tranp\providers\module.py:64
+                     │        │  └─ 0.135 Entrypoints.load  rogw\tranp\syntax\ast\entrypoints.py:50
+                     │        │     └─ 0.135 handler  rogw\tranp\providers\syntax\entrypoints.py:26
+                     │        │        └─ 0.135 LazyDI.resolve  rogw\tranp\lang\di.py:359
+                     │        │           ├─ 0.080 LazyDI.resolve  rogw\tranp\lang\di.py:83
+                     │        │           │  └─ 0.080 LazyDI.invoke  rogw\tranp\lang\di.py:142
+                     │        │           │     └─ 0.080 LazyDI.resolve  rogw\tranp\lang\di.py:359
+                     │        │           │        └─ 0.077 LazyDI.resolve  rogw\tranp\lang\di.py:83
+                     │        │           │           └─ 0.077 LazyDI.invoke  rogw\tranp\lang\di.py:142
+                     │        │           │              ├─ 0.040 Nodes.__init__  rogw\tranp\syntax\node\query.py:16
+                     │        │           │              │  └─ 0.020 EntryCache.add  rogw\tranp\syntax\ast\cache.py:78
+                     │        │           │              └─ 0.038 LazyDI.resolve  rogw\tranp\lang\di.py:359
+                     │        │           │                 └─ 0.038 LazyDI.resolve  rogw\tranp\lang\di.py:83
+                     │        │           │                    └─ 0.038 LazyDI.invoke  rogw\tranp\lang\di.py:142
+                     │        │           │                       └─ 0.038 make_root_entry  rogw\tranp\providers\syntax\ast.py:30
+                     │        │           │                          └─ 0.038 SyntaxParserOfLark.__call__  rogw\tranp\implements\syntax\lark\parser.py:37
+                     │        │           │                             └─ 0.030 SyntaxParserOfLark.__load_parser  rogw\tranp\implements\syntax\lark\parser.py:49
+                     │        │           │                                └─ 0.030 wrapper  rogw\tranp\cache\cache.py:257
+                     │        │           │                                   └─ 0.030 CachedProxy.get  rogw\tranp\cache\cache.py:91
+                     │        │           │                                      └─ 0.030 CachedProxy.load_cache  rogw\tranp\cache\cache.py:167
+                     │        │           │                                         └─ 0.030 LarkStored.load  rogw\tranp\implements\syntax\lark\parser.py:127
+                     │        │           │                                            └─ 0.030 Lark.load  lark\lark.py:505
+                     │        │           │                                               └─ 0.030 Lark._load  lark\lark.py:524
+                     │        │           └─ 0.055 LazyDI.__bind_proxy  rogw\tranp\lang\di.py:376
+                     │        │              └─ 0.055 load_module_path  rogw\tranp\lang\module.py:20
+                     │        │                 └─ 0.055 load_module  rogw\tranp\lang\module.py:8
+                     │        │                    └─ 0.055 import_module  importlib\__init__.py:71
+                     │        │                       └─ 0.053 <module>  rogw\tranp\implements\syntax\lark\parser.py:1
+                     │        │                          └─ 0.050 <module>  lark\__init__.py:1
+                     │        │                             └─ 0.040 <module>  lark\lark.py:1
+                     │        │                                └─ 0.031 <module>  lark\load_grammar.py:1
                      │        └─ 0.040 ModuleLoader.preprocess  rogw\tranp\providers\module.py:85
-                     │           └─ 0.039 RestoreSymbols.__call__  rogw\tranp\semantics\processors\restore_symbols.py:21
-                     │              └─ 0.039 SymbolDBPersistor.restore  rogw\tranp\semantics\reflection\persistent.py:89
-                     │                 └─ 0.039 SymbolDBPersistor._restore  rogw\tranp\semantics\reflection\persistent.py:164
-                     │                    └─ 0.038 SymbolDB.import_json  rogw\tranp\semantics\reflection\db.py:168
-                     │                       └─ 0.037 ReflectionSerializer.deserialize  rogw\tranp\semantics\reflection\serializer.py:63
-                     │                          └─ 0.032 Entrypoint.whole_by  rogw\tranp\syntax\node\definition\general.py:50
-                     │                             └─ 0.030 Entrypoint._by  rogw\tranp\syntax\node\node.py:291
-                     │                                └─ 0.030 Nodes.by  rogw\tranp\syntax\node\query.py:52
-                     │                                   └─ 0.029 Nodes.__resolve  rogw\tranp\syntax\node\query.py:30
-                     │                                      └─ 0.029 NodeResolver.resolve  rogw\tranp\syntax\node\resolver.py:35
-                     │                                         └─ 0.019 Method.match_feature  rogw\tranp\syntax\node\definition\statement_compound.py:479
-                     ├─ 0.164 ModuleLoader.load  rogw\tranp\providers\module.py:64
-                     │  └─ 0.164 Entrypoints.load  rogw\tranp\syntax\ast\entrypoints.py:50
-                     │     └─ 0.164 handler  rogw\tranp\providers\syntax\entrypoints.py:26
-                     │        └─ 0.164 LazyDI.resolve  rogw\tranp\lang\di.py:359
-                     │           └─ 0.164 LazyDI.resolve  rogw\tranp\lang\di.py:83
-                     │              └─ 0.164 LazyDI.invoke  rogw\tranp\lang\di.py:142
-                     │                 └─ 0.164 LazyDI.resolve  rogw\tranp\lang\di.py:359
-                     │                    └─ 0.164 LazyDI.resolve  rogw\tranp\lang\di.py:83
-                     │                       └─ 0.164 LazyDI.invoke  rogw\tranp\lang\di.py:142
-                     │                          ├─ 0.135 Nodes.__init__  rogw\tranp\syntax\node\query.py:16
-                     │                          │  ├─ 0.083 EntryCache.add  rogw\tranp\syntax\ast\cache.py:78
+                     │           └─ 0.038 RestoreSymbols.__call__  rogw\tranp\semantics\processors\restore_symbols.py:21
+                     │              └─ 0.038 SymbolDBPersistor.restore  rogw\tranp\semantics\reflection\persistent.py:89
+                     │                 └─ 0.038 SymbolDBPersistor._restore  rogw\tranp\semantics\reflection\persistent.py:164
+                     │                    └─ 0.037 SymbolDB.import_json  rogw\tranp\semantics\reflection\db.py:168
+                     │                       └─ 0.036 ReflectionSerializer.deserialize  rogw\tranp\semantics\reflection\serializer.py:63
+                     │                          └─ 0.034 Entrypoint.whole_by  rogw\tranp\syntax\node\definition\general.py:50
+                     │                             └─ 0.033 Entrypoint._by  rogw\tranp\syntax\node\node.py:291
+                     │                                └─ 0.033 Nodes.by  rogw\tranp\syntax\node\query.py:52
+                     │                                   └─ 0.031 Nodes.__resolve  rogw\tranp\syntax\node\query.py:30
+                     │                                      └─ 0.030 NodeResolver.resolve  rogw\tranp\syntax\node\resolver.py:35
+                     ├─ 0.172 ModuleLoader.load  rogw\tranp\providers\module.py:64
+                     │  └─ 0.172 Entrypoints.load  rogw\tranp\syntax\ast\entrypoints.py:50
+                     │     └─ 0.172 handler  rogw\tranp\providers\syntax\entrypoints.py:26
+                     │        └─ 0.172 LazyDI.resolve  rogw\tranp\lang\di.py:359
+                     │           └─ 0.172 LazyDI.resolve  rogw\tranp\lang\di.py:83
+                     │              └─ 0.172 LazyDI.invoke  rogw\tranp\lang\di.py:142
+                     │                 └─ 0.172 LazyDI.resolve  rogw\tranp\lang\di.py:359
+                     │                    └─ 0.172 LazyDI.resolve  rogw\tranp\lang\di.py:83
+                     │                       └─ 0.172 LazyDI.invoke  rogw\tranp\lang\di.py:142
+                     │                          ├─ 0.136 Nodes.__init__  rogw\tranp\syntax\node\query.py:16
+                     │                          │  ├─ 0.081 EntryCache.add  rogw\tranp\syntax\ast\cache.py:78
                      │                          │  └─ 0.051 ASTFinder.full_pathfy  rogw\tranp\syntax\ast\finder.py:90
-                     │                          │     └─ 0.049 ASTFinder.full_pathfy  rogw\tranp\syntax\ast\finder.py:90
-                     │                          │        └─ 0.049 ASTFinder.full_pathfy  rogw\tranp\syntax\ast\finder.py:90
-                     │                          │           └─ 0.049 ASTFinder.full_pathfy  rogw\tranp\syntax\ast\finder.py:90
-                     │                          │              └─ 0.049 ASTFinder.full_pathfy  rogw\tranp\syntax\ast\finder.py:90
-                     │                          │                 └─ 0.048 ASTFinder.full_pathfy  rogw\tranp\syntax\ast\finder.py:90
-                     │                          │                    └─ 0.044 ASTFinder.full_pathfy  rogw\tranp\syntax\ast\finder.py:90
-                     │                          │                       └─ 0.041 ASTFinder.full_pathfy  rogw\tranp\syntax\ast\finder.py:90
-                     │                          │                          └─ 0.041 ASTFinder.full_pathfy  rogw\tranp\syntax\ast\finder.py:90
-                     │                          │                             └─ 0.034 ASTFinder.full_pathfy  rogw\tranp\syntax\ast\finder.py:90
+                     │                          │     └─ 0.051 ASTFinder.full_pathfy  rogw\tranp\syntax\ast\finder.py:90
+                     │                          │        └─ 0.050 ASTFinder.full_pathfy  rogw\tranp\syntax\ast\finder.py:90
+                     │                          │           └─ 0.050 ASTFinder.full_pathfy  rogw\tranp\syntax\ast\finder.py:90
+                     │                          │              └─ 0.048 ASTFinder.full_pathfy  rogw\tranp\syntax\ast\finder.py:90
+                     │                          │                 └─ 0.046 ASTFinder.full_pathfy  rogw\tranp\syntax\ast\finder.py:90
+                     │                          │                    └─ 0.042 ASTFinder.full_pathfy  rogw\tranp\syntax\ast\finder.py:90
+                     │                          │                       └─ 0.040 ASTFinder.full_pathfy  rogw\tranp\syntax\ast\finder.py:90
+                     │                          │                          └─ 0.036 ASTFinder.full_pathfy  rogw\tranp\syntax\ast\finder.py:90
+                     │                          │                             └─ 0.032 ASTFinder.full_pathfy  rogw\tranp\syntax\ast\finder.py:90
                      │                          │                                └─ 0.022 ASTFinder.full_pathfy  rogw\tranp\syntax\ast\finder.py:90
-                     │                          └─ 0.028 LazyDI.resolve  rogw\tranp\lang\di.py:359
-                     │                             └─ 0.028 LazyDI.resolve  rogw\tranp\lang\di.py:83
-                     │                                └─ 0.028 LazyDI.invoke  rogw\tranp\lang\di.py:142
-                     │                                   └─ 0.028 make_root_entry  rogw\tranp\providers\syntax\ast.py:30
-                     │                                      └─ 0.028 SyntaxParserOfLark.__call__  rogw\tranp\implements\syntax\lark\parser.py:37
-                     │                                         └─ 0.028 SyntaxParserOfLark.__load_entry  rogw\tranp\implements\syntax\lark\parser.py:73
-                     │                                            └─ 0.028 wrapper  rogw\tranp\cache\cache.py:257
-                     │                                               └─ 0.028 CachedProxy.get  rogw\tranp\cache\cache.py:91
-                     │                                                  └─ 0.028 CachedProxy.load_cache  rogw\tranp\cache\cache.py:167
-                     │                                                     └─ 0.027 EntryStored.load  rogw\tranp\implements\syntax\lark\parser.py:159
-                     │                                                        └─ 0.020 Serialization.loads  rogw\tranp\implements\syntax\lark\entry.py:153
-                     │                                                           └─ 0.020 Serialization.__loads  rogw\tranp\implements\syntax\lark\entry.py:164
-                     │                                                              └─ 0.020 Serialization.__loads  rogw\tranp\implements\syntax\lark\entry.py:164
-                     │                                                                 └─ 0.020 Serialization.__loads  rogw\tranp\implements\syntax\lark\entry.py:164
-                     │                                                                    └─ 0.020 Serialization.__loads  rogw\tranp\implements\syntax\lark\entry.py:164
-                     │                                                                       └─ 0.020 Serialization.__loads  rogw\tranp\implements\syntax\lark\entry.py:164
-                     │                                                                          └─ 0.019 Serialization.__loads  rogw\tranp\implements\syntax\lark\entry.py:164
-                     │                                                                             └─ 0.019 Serialization.__loads  rogw\tranp\implements\syntax\lark\entry.py:164
-                     │                                                                                └─ 0.019 Serialization.__loads  rogw\tranp\implements\syntax\lark\entry.py:164
-                     ├─ 0.106 Modules.__load_dependencies  rogw\tranp\module\modules.py:91
-                     │  └─ 0.103 Modules.load  rogw\tranp\module\modules.py:58
-                     │     ├─ 0.073 Modules.__load_dependencies  rogw\tranp\module\modules.py:91
-                     │     │  └─ 0.069 Modules.load  rogw\tranp\module\modules.py:58
-                     │     │     └─ 0.042 Modules.__load_dependencies  rogw\tranp\module\modules.py:91
-                     │     │        └─ 0.039 Modules.load  rogw\tranp\module\modules.py:58
-                     │     │           └─ 0.023 ModuleLoader.load  rogw\tranp\providers\module.py:64
-                     │     │              └─ 0.023 Entrypoints.load  rogw\tranp\syntax\ast\entrypoints.py:50
-                     │     │                 └─ 0.023 handler  rogw\tranp\providers\syntax\entrypoints.py:26
-                     │     │                    └─ 0.023 LazyDI.resolve  rogw\tranp\lang\di.py:359
-                     │     │                       └─ 0.023 LazyDI.resolve  rogw\tranp\lang\di.py:83
-                     │     │                          └─ 0.023 LazyDI.invoke  rogw\tranp\lang\di.py:142
-                     │     │                             └─ 0.023 LazyDI.resolve  rogw\tranp\lang\di.py:359
-                     │     │                                └─ 0.023 LazyDI.resolve  rogw\tranp\lang\di.py:83
-                     │     │                                   └─ 0.023 LazyDI.invoke  rogw\tranp\lang\di.py:142
-                     │     │                                      └─ 0.019 Nodes.__init__  rogw\tranp\syntax\node\query.py:16
-                     │     └─ 0.020 ModuleLoader.load  rogw\tranp\providers\module.py:64
-                     │        └─ 0.020 Entrypoints.load  rogw\tranp\syntax\ast\entrypoints.py:50
-                     │           └─ 0.020 handler  rogw\tranp\providers\syntax\entrypoints.py:26
-                     │              └─ 0.020 LazyDI.resolve  rogw\tranp\lang\di.py:359
-                     │                 └─ 0.020 LazyDI.resolve  rogw\tranp\lang\di.py:83
-                     │                    └─ 0.020 LazyDI.invoke  rogw\tranp\lang\di.py:142
-                     │                       └─ 0.019 LazyDI.resolve  rogw\tranp\lang\di.py:359
-                     │                          └─ 0.019 LazyDI.resolve  rogw\tranp\lang\di.py:83
-                     │                             └─ 0.019 LazyDI.invoke  rogw\tranp\lang\di.py:142
-                     └─ 0.079 ModuleLoader.preprocess  rogw\tranp\providers\module.py:85
-                        └─ 0.079 RestoreSymbols.__call__  rogw\tranp\semantics\processors\restore_symbols.py:21
-                           └─ 0.078 SymbolDBPersistor.restore  rogw\tranp\semantics\reflection\persistent.py:89
-                              └─ 0.078 SymbolDBPersistor._restore  rogw\tranp\semantics\reflection\persistent.py:164
-                                 └─ 0.076 SymbolDB.import_json  rogw\tranp\semantics\reflection\db.py:168
-                                    └─ 0.076 ReflectionSerializer.deserialize  rogw\tranp\semantics\reflection\serializer.py:63
-                                       └─ 0.065 Entrypoint.whole_by  rogw\tranp\syntax\node\definition\general.py:50
-                                          └─ 0.060 Entrypoint._by  rogw\tranp\syntax\node\node.py:291
-                                             └─ 0.059 Nodes.by  rogw\tranp\syntax\node\query.py:52
-                                                └─ 0.057 Nodes.__resolve  rogw\tranp\syntax\node\query.py:30
-                                                   └─ 0.056 NodeResolver.resolve  rogw\tranp\syntax\node\resolver.py:35
-                                                      └─ 0.026 Method.match_feature  rogw\tranp\syntax\node\definition\statement_compound.py:479
-         0.142 TestLoader.loadTestsFromName  unittest\loader.py:121
-         └─ 0.136 <module>  tests\unit\rogw\tranp\implements\cpp\transpiler\test_py2cpp.py:1
-            ├─ 0.052 <module>  rogw\tranp\implements\cpp\transpiler\py2cpp.py:1
-            │  └─ 0.030 <module>  rogw\tranp\implements\cpp\semantics\cvars.py:1
+                     │                          └─ 0.036 LazyDI.resolve  rogw\tranp\lang\di.py:359
+                     │                             └─ 0.036 LazyDI.resolve  rogw\tranp\lang\di.py:83
+                     │                                └─ 0.036 LazyDI.invoke  rogw\tranp\lang\di.py:142
+                     │                                   └─ 0.036 make_root_entry  rogw\tranp\providers\syntax\ast.py:30
+                     │                                      └─ 0.036 SyntaxParserOfLark.__call__  rogw\tranp\implements\syntax\lark\parser.py:37
+                     │                                         └─ 0.035 SyntaxParserOfLark.__load_entry  rogw\tranp\implements\syntax\lark\parser.py:73
+                     │                                            └─ 0.035 wrapper  rogw\tranp\cache\cache.py:257
+                     │                                               └─ 0.035 CachedProxy.get  rogw\tranp\cache\cache.py:91
+                     │                                                  └─ 0.035 CachedProxy.load_cache  rogw\tranp\cache\cache.py:167
+                     │                                                     └─ 0.028 EntryStored.load  rogw\tranp\implements\syntax\lark\parser.py:159
+                     │                                                        └─ 0.022 Serialization.loads  rogw\tranp\implements\syntax\lark\entry.py:153
+                     │                                                           └─ 0.022 Serialization.__loads  rogw\tranp\implements\syntax\lark\entry.py:164
+                     │                                                              └─ 0.022 Serialization.__loads  rogw\tranp\implements\syntax\lark\entry.py:164
+                     │                                                                 └─ 0.022 Serialization.__loads  rogw\tranp\implements\syntax\lark\entry.py:164
+                     │                                                                    └─ 0.022 Serialization.__loads  rogw\tranp\implements\syntax\lark\entry.py:164
+                     │                                                                       └─ 0.022 Serialization.__loads  rogw\tranp\implements\syntax\lark\entry.py:164
+                     │                                                                          └─ 0.022 Serialization.__loads  rogw\tranp\implements\syntax\lark\entry.py:164
+                     │                                                                             └─ 0.022 Serialization.__loads  rogw\tranp\implements\syntax\lark\entry.py:164
+                     │                                                                                └─ 0.020 Serialization.__loads  rogw\tranp\implements\syntax\lark\entry.py:164
+                     ├─ 0.086 ModuleLoader.preprocess  rogw\tranp\providers\module.py:85
+                     │  └─ 0.086 RestoreSymbols.__call__  rogw\tranp\semantics\processors\restore_symbols.py:21
+                     │     └─ 0.085 SymbolDBPersistor.restore  rogw\tranp\semantics\reflection\persistent.py:89
+                     │        └─ 0.085 SymbolDBPersistor._restore  rogw\tranp\semantics\reflection\persistent.py:164
+                     │           └─ 0.077 SymbolDB.import_json  rogw\tranp\semantics\reflection\db.py:168
+                     │              └─ 0.075 ReflectionSerializer.deserialize  rogw\tranp\semantics\reflection\serializer.py:63
+                     │                 └─ 0.063 Entrypoint.whole_by  rogw\tranp\syntax\node\definition\general.py:50
+                     │                    └─ 0.057 Entrypoint._by  rogw\tranp\syntax\node\node.py:291
+                     │                       └─ 0.056 Nodes.by  rogw\tranp\syntax\node\query.py:52
+                     │                          └─ 0.054 Nodes.__resolve  rogw\tranp\syntax\node\query.py:30
+                     │                             └─ 0.053 NodeResolver.resolve  rogw\tranp\syntax\node\resolver.py:35
+                     │                                └─ 0.025 Method.match_feature  rogw\tranp\syntax\node\definition\statement_compound.py:479
+                     └─ 0.084 Modules.__load_dependencies  rogw\tranp\module\modules.py:91
+                        └─ 0.079 Modules.load  rogw\tranp\module\modules.py:58
+                           ├─ 0.044 ModuleLoader.load  rogw\tranp\providers\module.py:64
+                           │  └─ 0.044 Entrypoints.load  rogw\tranp\syntax\ast\entrypoints.py:50
+                           │     └─ 0.044 handler  rogw\tranp\providers\syntax\entrypoints.py:26
+                           │        └─ 0.044 LazyDI.resolve  rogw\tranp\lang\di.py:359
+                           │           └─ 0.044 LazyDI.resolve  rogw\tranp\lang\di.py:83
+                           │              └─ 0.044 LazyDI.invoke  rogw\tranp\lang\di.py:142
+                           │                 └─ 0.044 LazyDI.resolve  rogw\tranp\lang\di.py:359
+                           │                    └─ 0.044 LazyDI.resolve  rogw\tranp\lang\di.py:83
+                           │                       └─ 0.043 LazyDI.invoke  rogw\tranp\lang\di.py:142
+                           │                          └─ 0.029 Nodes.__init__  rogw\tranp\syntax\node\query.py:16
+                           └─ 0.029 ModuleLoader.preprocess  rogw\tranp\providers\module.py:85
+                              └─ 0.029 RestoreSymbols.__call__  rogw\tranp\semantics\processors\restore_symbols.py:21
+                                 └─ 0.029 SymbolDBPersistor.restore  rogw\tranp\semantics\reflection\persistent.py:89
+                                    └─ 0.029 SymbolDBPersistor._restore  rogw\tranp\semantics\reflection\persistent.py:164
+         0.208 TestLoader.loadTestsFromName  unittest\loader.py:121
+         └─ 0.202 <module>  tests\unit\rogw\tranp\implements\cpp\transpiler\test_py2cpp.py:1
+            ├─ 0.078 <module>  rogw\tranp\implements\cpp\providers\view.py:1
+            │  └─ 0.077 <module>  rogw\tranp\view\helper\helper.py:1
+            │     └─ 0.072 <module>  rogw\tranp\view\render.py:1
+            │        └─ 0.072 <module>  jinja2\__init__.py:1
+            │           └─ 0.058 <module>  jinja2\environment.py:1
+            │              └─ 0.028 compile  <built-in>
+            ├─ 0.053 <module>  rogw\tranp\implements\cpp\transpiler\py2cpp.py:1
+            │  └─ 0.031 <module>  rogw\tranp\implements\cpp\semantics\cvars.py:1
             │     └─ 0.027 <module>  rogw\tranp\semantics\reflection\base.py:1
             │        └─ 0.025 <module>  rogw\tranp\syntax\node\definition\__init__.py:1
-            ├─ 0.032 <module>  rogw\tranp\implements\cpp\providers\view.py:1
-            │  └─ 0.031 <module>  rogw\tranp\view\helper\helper.py:1
-            │     └─ 0.026 <module>  rogw\tranp\view\render.py:1
-            │        └─ 0.026 <module>  jinja2\__init__.py:1
-            │           └─ 0.020 <module>  jinja2\environment.py:1
-            └─ 0.019 compile  <built-in>
+            └─ 0.033 <module>  rogw\tranp\implements\cpp\providers\i18n.py:1
+               └─ 0.030 <module>  yaml\__init__.py:1
 
 To view this report with different options, run:
-    pyinstrument --load-prev 2025-03-30T11-20-43 [options]
+    pyinstrument --load-prev 2025-04-23T19-03-48 [options]
 

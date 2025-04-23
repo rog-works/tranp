@@ -1232,8 +1232,9 @@ class TestRenderer(TestCase):
 		self.assertRender('import', vars, expected)
 
 	@data_provider([
-		('cvar', {'var_type': 'int*'}, 'int*'),
+		('class', {'var_type': 'int*'}, 'int*'),
 		('class', {'var_type': 'int'}, 'int'),
+		('cvar', {'receiver': 'p_arr', 'keys': ['0']}, '(*(p_arr))[0]'),
 		('default', {'receiver': 'n', 'key': '0'}, 'n[0]'),
 		('default', {'receiver': 'n', 'key': '0', 'is_statement': True}, 'n[0];'),
 		('slice_string', {'receiver': 's', 'keys': ['0', '1']}, 's.substr(0, 1)'),

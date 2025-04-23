@@ -734,17 +734,16 @@ class Py2Cpp(ITranspiler):
 		is_statement = node.parent.is_a(defs.Block, defs.Entrypoint)
 		spec, context = self.analyze_indexer_spec(node)
 		vars = {'receiver': receiver, 'keys': keys, 'is_statement': is_statement}
-		if spec == 'slice_string':
+		if spec == 'class':
+			var_type = self.to_accessible_name(cast(IReflection, context))
+			return self.view.render(f'{node.classification}/{spec}', vars={**vars, 'var_type': var_type})
+		elif spec == 'cvar':
 			return self.view.render(f'{node.classification}/{spec}', vars=vars)
 		elif spec == 'slice_array':
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={**vars, 'var_type': var_type})
-		elif spec == 'cvar':
-			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={**vars, 'var_type': var_type})
-		elif spec == 'class':
-			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={**vars, 'var_type': var_type})
+		elif spec == 'slice_string':
+			return self.view.render(f'{node.classification}/{spec}', vars=vars)
 		elif spec == 'tuple':
 			return self.view.render(f'{node.classification}/{spec}', vars={**vars, 'receiver': receiver, 'key': keys[0]})
 		else:
@@ -756,12 +755,12 @@ class Py2Cpp(ITranspiler):
 		if node.sliced:
 			spec = 'slice_string' if receiver_symbol.type_is(str) else 'slice_array'
 			return spec, receiver_symbol
-		elif not CVars.is_entity(CVars.key_from(receiver_symbol)):
-			return 'cvar', symbol.actualize()
-		elif receiver_symbol.type_is(tuple):
-			return 'tuple', None
 		elif symbol.type_is(type):
 			return 'class', symbol.actualize()
+		elif receiver_symbol.type_is(tuple):
+			return 'tuple', None
+		elif not CVars.is_entity(CVars.key_from(receiver_symbol)):
+			return 'cvar', None
 		else:
 			return 'otherwise', None
 

@@ -532,11 +532,12 @@ class ProceduralResolver:
 		return self.reflections.from_standard(None).stack(node)
 
 	def on_func_call(self, node: defs.FuncCall, calls: IReflection, arguments: list[IReflection]) -> IReflection:
-		actual_calls = calls.impl(refs.Object).actualize()
-		# クラス定義ノードである場合、クラスシンボルからコンストラクターに変換
-		# XXX AltClassは名前を持つクラスであるため実体化から除外する
-		if not actual_calls.type_is(Callable) and isinstance(actual_calls.types, defs.DeclClasses):
-			class_calls = calls.impl(refs.Object).actualize('nullable', 'self', 'type', 'template')
+		org_calls = calls.impl(refs.Object)
+		actual_calls = org_calls.actualize()
+		# クラスシンボルはコンストラクターに変換
+		if org_calls.type_is(type):
+			# XXX AltClassは名前を持つクラスであるため実体化から除外する
+			class_calls = org_calls.actualize('nullable', 'self', 'type', 'template')
 			actual_calls = class_calls.to(actual_calls.types, actual_calls.constructor())
 
 		return actual_calls.to(node, actual_calls.impl(refs.Function).returns(*arguments))

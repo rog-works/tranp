@@ -5,7 +5,6 @@ from unittest import TestCase
 import yaml
 
 from rogw.tranp.app.dir import tranp_dir
-from rogw.tranp.compatible.python.embed import Embed
 from rogw.tranp.implements.cpp.providers.view import renderer_helper_provider_cpp
 from rogw.tranp.lang.annotation import duck_typed
 from rogw.tranp.lang.translator import Translator
@@ -16,7 +15,7 @@ from rogw.tranp.view.render import Renderer, RendererSetting
 class Fixture:
 	def __init__(self) -> None:
 		# 効率化のためexampleのマッピングデータを利用
-		trans_mapping = self.__load_trans_mapping(os.path.join(tranp_dir(), 'example/data/i18n.yml'))
+		trans_mapping = self.__load_trans_mapping(os.path.join(tranp_dir(), 'data/i18n.yml'))
 
 		@duck_typed(Translator)
 		def translator(key: str, fallback: str = '') -> str:

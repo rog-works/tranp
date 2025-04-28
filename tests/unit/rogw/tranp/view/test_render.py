@@ -403,13 +403,6 @@ class TestRenderer(TestCase):
 		self.assertRender('dict_type', vars, expected)
 
 	@data_provider([
-		({'items': ['{hoge, 1}','{fuga, 2}']}, '{\n\t{hoge, 1},\n\t{fuga, 2},\n}'),
-		({'items': []}, '{}'),
-	])
-	def test_render_dict(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('dict', vars, expected)
-
-	@data_provider([
 		(
 			{
 				'data': {
@@ -1250,11 +1243,21 @@ class TestRenderer(TestCase):
 		self.assertRender('lambda', vars, expected)
 
 	@data_provider([
-		({'values': ['1234', '2345']}, '{\n\t{1234},\n\t{2345},\n}'),
-		({'values': []}, '{}'),
+		('dict', {'items': ['{hoge, 1}','{fuga, 2}']}, '{\n\t{hoge, 1},\n\t{fuga, 2},\n}'),
+		('dict', {'items': []}, '{}'),
+		('falsy', {}, 'false'),
+		('float', {'value': 1.0}, '1.0'),
+		('integer', {'value': 1}, '1'),
+		('list', {'values': ['1234', '2345']}, '{\n\t{1234},\n\t{2345},\n}'),
+		('list', {'values': []}, '{}'),
+		('null', {}, 'nullptr'),
+		('pair', {'first': '"a"', 'second': '1'}, '{"a", 1}'),
+		('string', {'value': "'a'"}, '"a"'),
+		('string', {'value': '"a"'}, '"a"'),
+		('truthy', {}, 'true'),
 	])
-	def test_render_list(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('list/default', vars, expected)
+	def test_render_literal(self, spec: str, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender(f'literal/{spec}', vars, expected)
 
 	@data_provider([
 		# 明示変換系

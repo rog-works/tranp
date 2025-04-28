@@ -716,12 +716,12 @@ class Py2Cpp(ITranspiler):
 		actual_symbol = Defer.new(lambda: org_symbol.actualize('type'))
 		# クラスの直参照、または引数やローカル変数がクラス参照の場合
 		if org_symbol.type_is(type):
-			return self.to_domain_name_by_class(actual_symbol.types)
+			return self.view.render(node.classification, vars={'symbol': self.to_domain_name_by_class(actual_symbol.types)})
 		# 上記以外のクラス系参照の場合
 		elif isinstance(actual_symbol.decl, defs.ClassDef):
-			return self.to_domain_name_by_class(actual_symbol.types)
+			return self.view.render(node.classification, vars={'symbol': self.to_domain_name_by_class(actual_symbol.types)})
 		else:
-			return node.tokens
+			return self.view.render(node.classification, vars={'symbol': node.tokens})
 
 	def on_class_ref(self, node: defs.ClassRef) -> str:
 		symbol = self.reflections.type_of(node).impl(refs.Object).actualize('self', 'type')
@@ -1193,23 +1193,29 @@ class Py2Cpp(ITranspiler):
 
 	# Literal
 
+	def on_integer(self, node: defs.Integer) -> str:
+		return self.view.render(f'literal/{node.classification}', vars={'value': node.tokens})
+
+	def on_float(self, node: defs.Float) -> str:
+		return self.view.render(f'literal/{node.classification}', vars={'value': node.tokens})
+
 	def on_string(self, node: defs.String) -> str:
-		return f'"{node.tokens[1:-1]}"'
+		return self.view.render(f'literal/{node.classification}', vars={'value': node.tokens})
 
 	def on_doc_string(self, node: defs.DocString) -> str:
-		return self.view.render(node.classification, vars={'data': node.data})
+		return self.view.render(f'literal/{node.classification}', vars={'data': node.data})
 
 	def on_truthy(self, node: defs.Truthy) -> str:
-		return 'true'
+		return self.view.render(f'literal/{node.classification}')
 
 	def on_falsy(self, node: defs.Falsy) -> str:
-		return 'false'
+		return self.view.render(f'literal/{node.classification}')
 
 	def on_pair(self, node: defs.Pair, first: str, second: str) -> str:
-		return '{' f'{first}, {second}' '}'
+		return self.view.render(f'literal/{node.classification}', vars={'first': first, 'second': second})
 
 	def on_list(self, node: defs.List, values: list[str]) -> str:
-		return self.view.render(f'{node.classification}/default', vars={'values': values})
+		return self.view.render(f'literal/{node.classification}', vars={'values': values})
 
 	# XXX あまりにも非効率なため非対応
 	# def proc_list_for_spread(self, node: defs.List, values: list[str], spread_indexs: list[int]) -> str:
@@ -1226,17 +1232,17 @@ class Py2Cpp(ITranspiler):
 
 	# 		before = index + 1
 
-	# 	list_literals = [self.view.render(f'{node.classification}/default', vars={'values': values[begin:end]}) for begin, end in steps]
-	# 	return self.view.render(f'{node.classification}/spread', vars={'list_literals': list_literals})
+	# 	list_literals = [self.view.render(f'literal/{node.classification}', vars={'values': values[begin:end]}) for begin, end in steps]
+	# 	return self.view.render(f'literal/{node.classification}_spread', vars={'list_literals': list_literals})
 
 	def on_dict(self, node: defs.Dict, items: list[str]) -> str:
-		return self.view.render(node.classification, vars={'items': items})
+		return self.view.render(f'literal/{node.classification}', vars={'items': items})
 
 	def on_tuple(self, node: defs.Tuple, values: list[str]) -> str:
-		return self.view.render(node.classification, vars={'values': values})
+		return self.view.render(f'literal/{node.classification}', vars={'values': values})
 
 	def on_null(self, node: defs.Null) -> str:
-		return 'nullptr'
+		return self.view.render(f'literal/{node.classification}')
 
 	# Expression
 

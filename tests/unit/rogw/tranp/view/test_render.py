@@ -1213,7 +1213,7 @@ class TestRenderer(TestCase):
 		('else', {'statements': ['pass;']}, '} else {\n\tpass;'),
 	])
 	def test_render_if_elif_else(self, spec: str, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender(spec, vars, expected)
+		self.assertRender(f'if/{spec}', vars, expected)
 
 	@data_provider([
 		({'module_path': 'module.path.to', 'import_dir': '', 'replace_dir': ''}, '// #include "module/path/to.h"'),

@@ -556,7 +556,7 @@ class Py2Cpp(ITranspiler):
 		return 'continue;'
 
 	def on_comment(self, node: defs.Comment) -> str:
-		return f'//{node.text}'
+		return self.view.render(node.classification, vars={'text': node.text})
 
 	def on_import(self, node: defs.Import, symbols: list[str]) -> str:
 		"""

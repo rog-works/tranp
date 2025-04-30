@@ -490,7 +490,7 @@ class TestRenderer(TestCase):
 		),
 	])
 	def test_render_doc_string(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('doc_string', vars, expected)
+		self.assertRender('literal/doc_string', vars, expected)
 
 	@data_provider([
 		({'statements': ['int x = 0;'], 'meta_header': '@tranp.meta: {"version":"1.0.0"}', 'module_path': 'path.to'}, '// @tranp.meta: {"version":"1.0.0"}\n#pragma once\nint x = 0;\n'),

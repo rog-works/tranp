@@ -1247,7 +1247,7 @@ class Py2Cpp(ITranspiler):
 	# Expression
 
 	def on_group(self, node: defs.Group, expression: str) -> str:
-		return f'({expression})'
+		return self.view.render(node.classification, vars={'expression': expression})
 
 	def on_spread(self, node: defs.Spread, expression: str) -> str:
 		raise NotSupportedError(f'Denied spread expression. node: {node}')

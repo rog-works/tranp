@@ -579,7 +579,7 @@ class Py2Cpp(ITranspiler):
 				import_dir = in_import
 				replace_dir = in_replace
 
-		return self.view.render(node.classification, vars={'module_path': module_path, 'import_dir': import_dir, 'replace_dir': replace_dir})
+		return self.view.render(node.classification, vars={'module_path': module_path, 'import_dir': import_dir, 'replace_dir': replace_dir, 'symbols': symbols})
 
 	# Primary
 

@@ -1113,11 +1113,11 @@ class TestDefinition(TestCase):
 				self.assertEqual(type(element), in_expected)
 
 	@data_provider([
-		('a if b else c', 'file_input.tenary_test', {'primary': defs.Var, 'condition': defs.Var, 'secondary': defs.Var}),
-		('a = 1 if True else 2', 'file_input.assign.tenary_test', {'primary': defs.Integer, 'condition': defs.Truthy, 'secondary': defs.Integer}),
+		('a if b else c', 'file_input.ternary_test', {'primary': defs.Var, 'condition': defs.Var, 'secondary': defs.Var}),
+		('a = 1 if True else 2', 'file_input.assign.ternary_test', {'primary': defs.Integer, 'condition': defs.Truthy, 'secondary': defs.Integer}),
 	])
-	def test_tenary_operator(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
-		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.TenaryOperator)
+	def test_ternary_operator(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.TernaryOperator)
 		self.assertEqual(type(node.primary), expected['primary'])
 		self.assertEqual(type(node.condition), expected['condition'])
 		self.assertEqual(type(node.secondary), expected['secondary'])

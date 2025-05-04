@@ -2,7 +2,7 @@ from collections.abc import Iterator
 
 
 class InvalidOps:
-	def tenary_to_union_types(self) -> None:
+	def ternary_to_union_types(self) -> None:
 		n_or_s = 1 if True else ''
 
 	def yield_return(self) -> Iterator[int]:

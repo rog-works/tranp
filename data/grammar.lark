@@ -207,7 +207,7 @@ comment_stmt: COMMENT
 // @note Lark: test, Offical: expression
 // @lark ?test: or_test ("if" or_test "else" test)? | lambdef | assign_expr
 ?expression: or_test
-	| or_test "if" or_test "else" expression -> tenary_test
+	| or_test "if" or_test "else" expression -> ternary_test
 	| lambdadef
 
 // ## Comparison operators

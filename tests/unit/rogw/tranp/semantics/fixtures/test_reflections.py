@@ -208,7 +208,7 @@ class CalcOps:
 		n_is = 1 is 1
 		n_is_not = 1 is not 1
 
-	def tenary(self) -> None:
+	def ternary(self) -> None:
 		n = 1 if 2 else 3
 		s = 'a' if True else 'b'
 		s_or_null = 'a' if n else None

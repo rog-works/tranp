@@ -76,8 +76,8 @@ class Sum(BinaryOperator): pass
 class Term(BinaryOperator): pass
 
 
-@Meta.embed(Node, accept_tags('tenary_test'))
-class TenaryOperator(Operator):
+@Meta.embed(Node, accept_tags('ternary_test'))
+class TernaryOperator(Operator):
 	@property
 	@Meta.embed(Node, expandable)
 	def primary(self) -> Node:

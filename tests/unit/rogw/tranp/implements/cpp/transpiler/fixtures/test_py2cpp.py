@@ -156,7 +156,7 @@ class CVarOps:
 		is_not_a = a is not ap.raw is not asp.raw is not ar.raw
 		is_null = apn is None and apn is not None
 
-	def tenary_calc(self, a: Sub, ap: CP[Sub], asp: CSP[Sub], ar: CRef[Sub]) -> None:
+	def ternary_calc(self, a: Sub, ap: CP[Sub], asp: CSP[Sub], ar: CRef[Sub]) -> None:
 		a2 = a if True else Sub()
 		a3 = a if True else a
 		ap2 = ap if True else ap

@@ -44,8 +44,8 @@ from rogw.tranp.syntax.node.definition.operator import (
 	# binary - arthmetic
 	Sum,
 	Term,
-	# tenary
-	TenaryOperator,
+	# ternary
+	TernaryOperator,
 )
 from rogw.tranp.syntax.node.definition.primary import (
 	# argument

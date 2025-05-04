@@ -1188,7 +1188,7 @@ class Py2Cpp(ITranspiler):
 
 		return primary
 
-	def on_tenary_operator(self, node: defs.TenaryOperator, primary: str, condition: str, secondary: str) -> str:
+	def on_ternary_operator(self, node: defs.TernaryOperator, primary: str, condition: str, secondary: str) -> str:
 		return self.view.render(node.classification, vars={'primary': primary, 'condition': condition, 'secondary': secondary})
 
 	# Literal

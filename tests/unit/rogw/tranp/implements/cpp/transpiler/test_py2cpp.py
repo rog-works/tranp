@@ -126,12 +126,12 @@ class TestPy2Cpp(TestCase):
 		('CVarOps.binary_calc', 'function_def_raw.block.assign[7]', defs.MoveAssign, 'bool is_not_a = a != (*(ap)) != (*(asp)) != ar;'),
 		('CVarOps.binary_calc', 'function_def_raw.block.assign[8]', defs.MoveAssign, 'bool is_null = apn == nullptr && apn != nullptr;'),
 
-		('CVarOps.tenary_calc', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'Sub a2 = true ? a : Sub();'),
-		('CVarOps.tenary_calc', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'Sub a3 = true ? a : a;'),
-		('CVarOps.tenary_calc', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'Sub* ap2 = true ? ap : ap;'),
-		('CVarOps.tenary_calc', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'std::shared_ptr<Sub> asp2 = true ? asp : asp;'),
-		('CVarOps.tenary_calc', 'function_def_raw.block.assign[4]', defs.MoveAssign, 'Sub& ar2 = true ? ar : ar;'),
-		('CVarOps.tenary_calc', 'function_def_raw.block.assign[5]', defs.MoveAssign, 'Sub* ap_or_null = true ? ap : nullptr;'),
+		('CVarOps.ternary_calc', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'Sub a2 = true ? a : Sub();'),
+		('CVarOps.ternary_calc', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'Sub a3 = true ? a : a;'),
+		('CVarOps.ternary_calc', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'Sub* ap2 = true ? ap : ap;'),
+		('CVarOps.ternary_calc', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'std::shared_ptr<Sub> asp2 = true ? asp : asp;'),
+		('CVarOps.ternary_calc', 'function_def_raw.block.assign[4]', defs.MoveAssign, 'Sub& ar2 = true ? ar : ar;'),
+		('CVarOps.ternary_calc', 'function_def_raw.block.assign[5]', defs.MoveAssign, 'Sub* ap_or_null = true ? ap : nullptr;'),
 
 		('CVarOps.declare', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'std::vector<int>* arr_p = (&(arr));'),
 		('CVarOps.declare', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'std::vector<int>* arr_p2 = new std::vector<int>();'),

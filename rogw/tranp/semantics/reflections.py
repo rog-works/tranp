@@ -630,7 +630,7 @@ class ProceduralResolver:
 
 		return left
 
-	def on_tenary_operator(self, node: defs.TenaryOperator, primary: IReflection, condition: IReflection, secondary: IReflection) -> IReflection:
+	def on_ternary_operator(self, node: defs.TernaryOperator, primary: IReflection, condition: IReflection, secondary: IReflection) -> IReflection:
 		if primary == secondary:
 			return primary.stack(node)
 

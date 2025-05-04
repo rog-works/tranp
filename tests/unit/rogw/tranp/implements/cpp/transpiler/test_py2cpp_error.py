@@ -36,7 +36,7 @@ class TestPy2CppError(TestCase):
 	})
 
 	@data_provider([
-		('InvalidOps.tenary_to_union_types', 'function_def_raw.block.assign', ProcessingError, r'Not allowed assign type.'),
+		('InvalidOps.ternary_to_union_types', 'function_def_raw.block.assign', ProcessingError, r'Not allowed assign type.'),
 		('InvalidOps.yield_return', 'function_def_raw.block.yield_stmt', NotSupportedError, r'Denied yield return.'),
 		('InvalidOps.delete_relay', 'function_def_raw.block.del_stmt', ProcessingError, r'Unexpected delete target.'),
 		('InvalidOps.destruction_assign', 'function_def_raw.block.assign', ProcessingError, r'Not allowed destruction assign.'),

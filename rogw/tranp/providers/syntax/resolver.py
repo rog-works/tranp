@@ -104,7 +104,7 @@ def symbol_mapping() -> SymbolMapping:
 			defs.ShiftBitwise: ['shift_expr'],
 			defs.Sum: ['sum'],
 			defs.Term: ['term'],
-			defs.TenaryOperator: ['tenary_test'],
+			defs.TernaryOperator: ['ternary_test'],
 			# -- Literal --
 			defs.Integer: ['number'],
 			defs.Float: ['number'],

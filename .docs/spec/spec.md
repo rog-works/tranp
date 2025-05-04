@@ -156,7 +156,7 @@ rules:
   # expression
   expression:
     type: string
-  tenary_test:
+  ternary_test:
     type: object
     properties:
       then: $ref: '#/rules/expression' # FIXME -> or_test

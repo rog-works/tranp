@@ -9,7 +9,6 @@ aliases.typing: aliases.typing
 aliases.collections.abc#Callable: std::function
 aliases.typing#Any: void
 aliases.typing#cast: static_cast
-aliases.rogw.tranp.compatible.lang#comment.line: '//'
 aliases.rogw.tranp.compatible.lang#inline: inline
 aliases.rogw.tranp.compatible.lang#accessor.public: public
 aliases.rogw.tranp.compatible.lang#accessor.protected: protected

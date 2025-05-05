@@ -1,5 +1,5 @@
 {%- if decorator_query(decorators).contains('Embed.python') -%}
-{{ i18n('lang', 'comment.line') }} function {{ symbol }}
+// function {{ symbol }}
 {%- else -%}
 {% include('function/_comment.j2') %}
 {%- include('function/_template_types.j2') %}

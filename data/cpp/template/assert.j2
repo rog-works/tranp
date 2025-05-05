@@ -1,1 +1,1 @@
-assert({{ condition }});{% if assert_body %} // {{ assert_body }}{% endif %}
+assert({{ condition }});{% if assert_body %} {{ i18n('lang', 'comment.line') }} {{ assert_body }}{% endif %}

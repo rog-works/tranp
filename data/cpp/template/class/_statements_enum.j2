@@ -1,7 +1,7 @@
 {%- set is_number = '"' not in statements[0] -%}
 {%- filter indent('\t') %}
 {%- for statement in statements %}
-{%- if statement.startswith('//') %}
+{%- if statement.startswith(i18n('lang', 'comment.line')) %}
 {{ statement }}
 {%- elif is_number %}
 {{ statement.split(' ')[1:] | join(' ') | replace(';', ',') }}

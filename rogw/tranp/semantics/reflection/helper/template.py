@@ -267,8 +267,14 @@ class TemplateManipulator:
 					continue
 
 				found_path = cls._find_update_path(schema_path, schema_props, actual_props)
-				if len(found_path) > 0:
-					updates[target_path] = found_path
+				if len(found_path) == 0:
+					continue
+
+				updates[target_path] = found_path
+
+				# 実体型を解決した時点でtarget_pathに対する解析は成功
+				if not actual_props[found_path].types.is_a(defs.TemplateClass):
+					break
 
 		return updates
 

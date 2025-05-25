@@ -628,18 +628,17 @@ class Py2Cpp(ITranspiler):
 		if self.is_relay_literalizer(node, receiver_symbol):
 			org_prop = node.prop.domain_name
 			if org_prop == '__name__':
-				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'literal': self.to_domain_name_by_class(receiver_symbol.types)})
+				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'var_type': str.__name__, 'literal': self.to_domain_name_by_class(receiver_symbol.types)})
 			elif org_prop == '__module__':
-				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'literal': receiver_symbol.types.module_path})
+				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'var_type': str.__name__, 'literal': receiver_symbol.types.module_path})
 			elif org_prop == 'name':
-				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'literal': node.receiver.as_a(defs.Relay).prop.tokens})
+				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'var_type': str.__name__, 'literal': node.receiver.as_a(defs.Relay).prop.tokens})
 			elif org_prop == 'value':
-				# XXX C言語上はEnum.valueを扱う必然性が無いため、文字列として扱う
 				var_name = DSN.right(node.receiver.domain_name, 1)
-				value_str = receiver_symbol.types.as_a(defs.Enum).var_value_of(var_name).as_a(defs.String).as_string
-				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'literal': value_str})
+				var_literal = receiver_symbol.types.as_a(defs.Enum).var_value_of(var_name)
+				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'var_type': var_literal.literal_identifier, 'literal': var_literal.as_string if isinstance(var_literal, defs.String) else var_literal.tokens})
 			else:
-				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'literal': receiver})
+				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'var_type': str.__name__, 'literal': receiver})
 		elif self.is_relay_this(node):
 			prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.Method) else self.to_prop_name(prop_symbol)
 			is_property = isinstance(prop_symbol.decl, defs.Method) and prop_symbol.decl.is_property

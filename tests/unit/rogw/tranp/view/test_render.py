@@ -1314,9 +1314,13 @@ class TestRenderer(TestCase):
 		self.assertRender('relay/default', vars, expected)
 
 	@data_provider([
-		({'prop': '__name__', 'literal': 'A'}, '"A"'),
-		({'prop': '__module_path__', 'literal': 'module.path.to.A'}, '"module.path.to.A"'),
-		({'prop': '__qualname__', 'literal': 'A.func'}, '"A.func"'),
+		# XXX `std::string`にならないのは不統一な印象を受ける
+		({'prop': '__name__', 'var_type': 'str', 'literal': 'A'}, '"A"'),
+		({'prop': '__module_path__', 'var_type': 'str', 'literal': 'module.path.to.A'}, '"module.path.to.A"'),
+		({'prop': '__qualname__', 'var_type': 'str', 'literal': 'A.func'}, '"A.func"'),
+		({'prop': 'E.value', 'var_type': 'int', 'literal': '1'}, '1'),
+		({'prop': 'E.value', 'var_type': 'float', 'literal': '1.0'}, '1.0'),
+		({'prop': 'E.value', 'var_type': 'str', 'literal': 'a'}, '"a"'),
 	])
 	def test_render_relay_literalize(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('relay/literalize', vars, expected)

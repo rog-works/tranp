@@ -1,4 +1,5 @@
 from collections.abc import Callable
+import hashlib
 import re
 from typing import Any
 
@@ -29,6 +30,11 @@ def env_get(setting: RendererSetting) -> Callable[[str, Any], Any]:
 def i18n(setting: RendererSetting) -> Callable[[str, str], str]:
 	"""Note: @see rogw.tranp.lang.translator.Translator"""
 	return lambda module_path, local: setting.translator(ModuleDSN.full_joined(setting.translator(alias_dsn(module_path)), local))
+
+
+def md5(setting: RendererSetting) -> Callable[[str], str]:
+	"""Note: @see rogw.tranp.lang.translator.Translator"""
+	return lambda string: hashlib.md5(string.encode('utf-8')).hexdigest()
 
 
 def reg_fullmatch(setting: RendererSetting) -> Callable[[str, str], re.Match | None]:
@@ -74,6 +80,7 @@ def factories() -> tuple[list[RendererHelperFactory], list[RendererHelperFactory
 			decorator_query,
 			env_get,
 			i18n,
+			md5,
 			reg_fullmatch,
 			reg_match,
 			reg_replace,

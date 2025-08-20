@@ -7,6 +7,7 @@ from rogw.tranp.lang.sequence import flatten, last_index_of
 from rogw.tranp.syntax.ast.path import EntryPath
 from rogw.tranp.syntax.errors import InvalidRelationError
 from rogw.tranp.syntax.node.behavior import IDomain, INamespace, IScope, ITerminal
+from rogw.tranp.syntax.node.definition.expression import Group
 from rogw.tranp.syntax.node.definition.literal import Literal
 from rogw.tranp.syntax.node.definition.terminal import Empty
 from rogw.tranp.syntax.node.embed import Meta, accept_tags, expandable
@@ -230,8 +231,10 @@ class Relay(Reference, IDomain):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def receiver(self) -> 'Reference | FuncCall | Generator | Literal':
-		return self._at(0).one_of(Reference, FuncCall, Generator, Literal)
+	def receiver(self) -> 'Reference | FuncCall | Generator | Literal | Group':
+		# XXX Groupは文法上必須(ノード展開時)だが、式解釈上は不要。一旦利便性を優先して許容するが、式解釈時に除外する方法を検討
+		# XXX Indexer/FuncCallも同様の対応が必要
+		return self._at(0).one_of(Reference, FuncCall, Generator, Literal, Group)
 
 	@property
 	def prop(self) -> 'Var':

@@ -336,6 +336,11 @@ class WithOps:
 			content = cast(dict[str, Any], yaml_safe_load(f))
 
 
+class ForRelay:
+	def group_receiver(self) -> None:
+		s = ('').split('.')
+
+
 class ForFuncCall:
 	@classmethod
 	def cls_call(cls) -> str:

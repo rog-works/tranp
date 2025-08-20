@@ -159,6 +159,8 @@ class TestReflections(TestCase):
 		('WithOps.file_load', 'function_def_raw.block.with_stmt.with_items.with_item', _mod('typing', 'IO'), 'IO'),
 		('WithOps.file_load', 'function_def_raw.block.with_stmt.block.assign', _mod('classes', 'dict'), 'dict<str, Any>'),
 
+		('ForRelay.group_receiver.s', '', _mod('classes', 'list'), 'list<str>'),
+
 		('ForFuncCall.cls_call', 'function_def_raw.block.return_stmt.funccall', _mod('classes', 'str'), 'str'),
 		('ForFuncCall.self_call', 'function_def_raw.block.return_stmt.funccall', _mod('classes', 'int'), 'int'),
 		('ForFuncCall.func_call', 'function_def_raw.block.funccall', _mod('classes', 'bool'), 'bool'),

@@ -242,14 +242,17 @@ class WithEntry(Node, IDeclaration):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def symbol(self) -> DeclLocalVar:
+	def symbol(self) -> DeclLocalVar | Empty:
 		"""Note: XXX Pythonの仕様では分割代入も可能だが実装を簡単にするため単数で実装"""
+		if not self._exists('name'):
+			return self.dirty_child(Empty, '__empty__', tokens='')
+
 		return self._by('name').as_a(DeclLocalVar)
 
 	@property
 	@implements
 	def symbols(self) -> list[Declable]:
-		return [self.symbol] if self._exists('name') else []
+		return [self.symbol.as_a(DeclLocalVar)] if self._exists('name') else []
 
 
 @Meta.embed(Node, accept_tags('with_stmt'))

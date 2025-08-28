@@ -54,6 +54,13 @@ class TestRenderer(TestCase):
 		self.assertRender('argument', vars, expected)
 
 	@data_provider([
+		({'condition': 'n == 1', 'assert_body': ''}, 'assert(n == 1);'),
+		({'condition': 'a.ok', 'assert_body': 'std::exception'}, 'assert(a.ok); // std::exception'),
+	])
+	def test_render_assert(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('assert', vars, expected)
+
+	@data_provider([
 		('move_assign', {'receiver': 'hoge', 'value': '1234'}, 'hoge = 1234;'),
 		('move_assign_dict', {'receiver': 'hoge[0]', 'value': '1234'}, 'hoge[0] = 1234;'),
 		('move_assign_declare', {'receiver': 'hoge', 'value': '1234', 'var_type': 'int'}, 'int hoge = 1234;'),
@@ -1333,11 +1340,10 @@ class TestRenderer(TestCase):
 		self.assertRender('return', vars, expected)
 
 	@data_provider([
-		({'condition': 'n == 1', 'assert_body': ''}, 'assert(n == 1);'),
-		({'condition': 'a.ok', 'assert_body': 'std::exception'}, 'assert(a.ok); // std::exception'),
+		({}, 'this'),
 	])
-	def test_render_assert(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('assert', vars, expected)
+	def test_render_this_ref(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('this_ref', vars, expected)
 
 	@data_provider([
 		({'throws': 'e', 'via': '', 'is_new': False}, 'throw e;'),

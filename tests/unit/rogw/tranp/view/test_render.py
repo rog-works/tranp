@@ -1362,3 +1362,15 @@ class TestRenderer(TestCase):
 	])
 	def test_render_var_of_type(self, template: str, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender(f'var_of_type/{template}', vars, expected)
+
+	@data_provider([
+		({'statements': [], 'entries': []}, 'Not supported for \'with\''),
+	])
+	def test_render_with(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('with', vars, expected)
+
+	@data_provider([
+		({'enter': '', 'symbol': ''}, 'Not supported for \'with_entry\''),
+	])
+	def test_render_with_entry(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('with_entry', vars, expected)

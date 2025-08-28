@@ -330,10 +330,10 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(node.classification, vars={'statements': statements, 'catches': catches})
 
 	def on_with_entry(self, node: defs.WithEntry, enter: str, symbol: str) -> str:
-		raise NotSupportedError(f'Denied with statement. node: {node}')
+		return self.view.render(node.classification, vars={'enter': enter, 'symbol': symbol})
 
 	def on_with(self, node: defs.With, statements: list[str], entries: list[str]) -> str:
-		raise NotSupportedError(f'Denied with statement. node: {node}')
+		return self.view.render(node.classification, vars={'statements': statements, 'entries': entries})
 
 	def on_function(self, node: defs.Function, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		template_types = self.fetch_function_template_names(node)

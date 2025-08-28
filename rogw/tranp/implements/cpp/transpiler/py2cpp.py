@@ -727,7 +727,7 @@ class Py2Cpp(ITranspiler):
 		return self.to_domain_name(symbol)
 
 	def on_this_ref(self, node: defs.ThisRef) -> str:
-		return 'this'
+		return self.view.render(node.classification)
 
 	def on_indexer(self, node: defs.Indexer, receiver: str, keys: list[str]) -> str:
 		is_statement = node.parent.is_a(defs.Block, defs.Entrypoint)

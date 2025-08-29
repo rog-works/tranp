@@ -26,7 +26,8 @@ class MetaHeader:
 			return None
 
 		json_begin = header_begin + len(MetaHeader.Tag) + 1
-		json_end = content.find('\n', json_begin)
+		line_break = content.find('\n', json_begin)
+		json_end = content.rfind('}', json_begin, line_break) + 1
 		return cls.from_json(content[json_begin:json_end])
 
 	@classmethod

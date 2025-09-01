@@ -121,7 +121,7 @@ class Token:
 
 	@property
 	def string_of_unescaped(self) -> str:
-		"""Returns: 文字列(エスケープ解除)"""
+		"""Returns: 文字列(エスケープ解除) Note: 実質的にString専用"""
 		return self._string.encode().decode('unicode_escape') if self._string.find('\\') != -1 else self._string
 
 	@property

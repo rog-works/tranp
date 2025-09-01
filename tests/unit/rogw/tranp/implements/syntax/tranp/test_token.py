@@ -8,6 +8,14 @@ from rogw.tranp.test.helper import data_provider
 
 class TestToken(TestCase):
 	@data_provider([
+		(Token(TokenTypes.String, '"a"'), (TokenTypes.String, '"a"', '"a"')),
+		(Token(TokenTypes.String, '"\\n"'), (TokenTypes.String, '"\\n"', '"\n"')),
+		(Token(TokenTypes.LineBreak, '\n'), (TokenTypes.LineBreak, '\n', '\n')),
+	])
+	def test_props(self, token: Token, expected: tuple[TokenTypes, str, str]) -> None:
+		self.assertEqual((token.type, token.string, token.string_of_unescaped), expected)
+
+	@data_provider([
 		(Token(TokenTypes.WhiteSpace, ''), TokenDomains.WhiteSpace),
 		(Token(TokenTypes.Comment, ''), TokenDomains.Comment),
 		(Token(TokenTypes.String, ''), TokenDomains.Quote),

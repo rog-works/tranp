@@ -16,7 +16,7 @@ def python_rules() -> Rules:
 				('expr_rep', [
 					('terms', [
 						('symbol', 'expr'),
-						('string', '"\n"')
+						('string', '"\\n"')
 					]),
 					('repeat', '+')
 				])
@@ -152,7 +152,7 @@ def python_rules() -> Rules:
 			('rule', [
 				('symbol', 'op_comp_s'),
 				('__empty__', ''),
-				('regexp', r'/<|>|==|<=|>=|!=/')
+				('regexp', '/<|>|==|<=|>=|!=/')
 			]),
 			('rule', [
 				('symbol', 'op_in'),
@@ -172,17 +172,17 @@ def python_rules() -> Rules:
 			('rule', [
 				('symbol', 'op_add'),
 				('__empty__', ''),
-				('regexp', r'/[-+]/')
+				('regexp', '/[-+]/')
 			]),
 			('rule', [
 				('symbol', 'op_mul'),
 				('__empty__', ''),
-				('regexp', r'/[*\/%]/')
+				('regexp', '/[*\\/%]/')
 			]),
 			('rule', [
 				('symbol', 'op_unary'),
 				('__empty__', ''),
-				('regexp', r'/[-+]/')
+				('regexp', '/[-+]/')
 			]),
 			('rule', [
 				('symbol', 'primary'),
@@ -273,7 +273,7 @@ def python_rules() -> Rules:
 			('rule', [
 				('symbol', 'boolean'),
 				('__empty__', ''),
-				('regexp', r'/False|True/')
+				('regexp', '/False|True/')
 			]),
 			('rule', [
 				('symbol', 'none'),
@@ -283,22 +283,22 @@ def python_rules() -> Rules:
 			('rule', [
 				('symbol', 'name'),
 				('__empty__', ''),
-				('regexp', r'/[a-zA-Z_]\w*/')
+				('regexp', '/[a-zA-Z_]\\w*/')
 			]),
 			('rule', [
 				('symbol', 'string'),
 				('__empty__', ''),
-				('regexp', r'/\'[^\']*\'|"[^"]*"/')
+				('regexp', '/\'([^\'\\\\]*(\\\\\')?)*\'|"([^"\\\\]*(\\\\")?)*"/')
 			]),
 			('rule', [
 				('symbol', 'digit'),
 				('__empty__', ''),
-				('regexp', r'/0|[1-9]\d*/')
+				('regexp', '/0|[1-9]\\d*/')
 			]),
 			('rule', [
 				('symbol', 'decimal'),
 				('__empty__', ''),
-				('regexp', r'/(0|[1-9]\d*)[.]\d+/')
+				('regexp', '/(0|[1-9]\\d*)[.]\\d+/')
 			])
 		])
 	)
@@ -334,7 +334,7 @@ def grammar_rules() -> Rules:
 					]),
 					('string', '":="'),
 					('symbol', 'expr'),
-					('string', '"\n"')
+					('string', '"\\n"')
 				])
 			]),
 			('rule', [
@@ -402,27 +402,27 @@ def grammar_rules() -> Rules:
 			('rule', [
 				('symbol', 'symbol'),
 				('__empty__', ''),
-				('regexp', r'/[a-zA-Z_]\w*/')
+				('regexp', '/[a-zA-Z_]\\w*/')
 			]),
 			('rule', [
 				('symbol', 'string'),
 				('__empty__', ''),
-				('regexp', r'/"[^"]+"/')
+				('regexp', '/"[^"]+"/')
 			]),
 			('rule', [
 				('symbol', 'regexp'),
 				('__empty__', ''),
-				('regexp', r'/[\/].+[\/]/')
+				('regexp', '/[\\/].+[\\/]/')
 			]),
 			('rule', [
 				('symbol', 'repeat'),
 				('__empty__', ''),
-				('regexp', r'/[*+?]/')
+				('regexp', '/[*+?]/')
 			]),
 			('rule', [
 				('symbol', 'unwrap'),
 				('__empty__', ''),
-				('regexp', r'/[1*]/')
+				('regexp', '/[1*]/')
 			])
 		])
 	)

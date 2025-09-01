@@ -89,7 +89,8 @@ $ bin/gram.sh -i path/to/grammar.lark
 		"""実行処理(既存ファイルを解析)"""
 		source = self.load_source(self.args.input)
 		tree = self.parser.parse(source, 'entry')
-		print(tree.pretty('\t'))
+		# XXX 制御コードにエスケープを付与
+		print('\\\\'.join(tree.pretty('\t').split('\\')))
 
 	def run_interactive(self) -> None:
 		"""実行処理(インタラクティブモード)"""

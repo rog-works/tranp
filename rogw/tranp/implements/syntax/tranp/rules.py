@@ -288,7 +288,7 @@ def python_rules() -> Rules:
 			('rule', [
 				('symbol', 'string'),
 				('__empty__', ''),
-				('regexp', '/\'[^\']*\'|"[^"]*"/')
+				('regexp', '/\'([^\'\\\\]*(\\\\\')?)*\'|"([^"\\\\]*(\\\\")?)*"/')
 			]),
 			('rule', [
 				('symbol', 'digit'),

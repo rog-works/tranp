@@ -43,7 +43,7 @@ slice[*] := expr (":" expr)*
 boolean := /False|True/
 none := "None"
 name := /[a-zA-Z_]\w*/
-string := /'[^']*'|"[^"]*"/
+string := /'([^'\\]*(\\')?)*'|"([^"\\]*(\\")?)*"/
 digit := /0|[1-9]\d*/
 decimal := /(0|[1-9]\d*)[.]\d+/
 

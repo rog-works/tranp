@@ -476,9 +476,9 @@ class SyntaxParser:
 			True = 一致
 		"""
 		if pattern.comp == Comps.Regexp:
-			return re.fullmatch(pattern.expression[1:-1], token.string) is not None
+			return re.fullmatch(pattern.expression, token.string) is not None
 		else:
-			return pattern.expression[1:-1] == token.string
+			return pattern.expression == token.string
 
 
 class ErrorCollector:

@@ -96,4 +96,5 @@ class TestRules(TestCase):
 	])
 	def test_from_ast(self, tree: TupleTree, expected: str) -> None:
 		rules = Rules.from_ast(tree)
-		self.assertEqual(expected, rules.pretty())
+		actual = rules.pretty()
+		self.assertEqual(expected, actual)

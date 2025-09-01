@@ -1,7 +1,7 @@
 from collections.abc import Mapping, Sequence
 from enum import Enum
 import re
-from typing import Iterator, TypeAlias, ValuesView, cast
+from typing import ClassVar, Iterator, TypeAlias, ValuesView, cast
 
 from rogw.tranp.cache.memo2 import Memoize
 from rogw.tranp.dsn.dsn import DSN
@@ -88,6 +88,8 @@ class Unwraps(Enum):
 class Pattern:
 	"""マッチングパターン"""
 
+	__space_codes: ClassVar[dict[str, str]] = {'t': '\t', 'f': '\f', 'r': '\r', 'n': '\n'}
+
 	@classmethod
 	def make(cls, expression: str) -> 'Pattern':
 		"""インスタンスを生成
@@ -96,12 +98,22 @@ class Pattern:
 			expression: マッチング式
 		Returns:
 			インスタンス
+		Raises:
+			AssetionError: 書式が不正
 		"""
-		assert (expression[0], expression[-1]) in [('"', '"'), ('/', '/')] or re.fullmatch(r'\w[\w\d]*', expression), f'Unexpected expression. from: {expression}'
+		if expression.startswith('"') and expression.endswith('"'):
+			candidate = expression[1:-1]
+			if not candidate.startswith('\\'):
+				return cls(candidate, Roles.Terminal, Comps.Equals)
+			# XXX タブ・改行の制御コードを復元
+			elif len(candidate) == 2 and candidate[1] in cls.__space_codes:
+				return cls(cls.__space_codes[candidate[1]], Roles.Terminal, Comps.Equals)
+		elif expression.startswith('/') and expression.endswith('/'):
+			return cls(expression[1:-1], Roles.Terminal, Comps.Regexp)
+		elif re.fullmatch(r'\w[\w\d]*', expression):
+			return cls(expression, Roles.Symbol, Comps.NoComp)
 
-		role = Roles.Terminal if expression[0] in '/"' else Roles.Symbol
-		comp = Comps.Regexp if expression[0] == '/' else Comps.Equals
-		return cls(expression, role, comp if role == Roles.Terminal else Comps.NoComp)
+		assert False, f'Unexpected expression. from: {expression}'
 
 	def __init__(self, expression: str, role: Roles, comp: Comps) -> None:
 		"""インスタンスを生成
@@ -136,7 +148,13 @@ class Pattern:
 
 	def __repr__(self) -> str:
 		"""Returns: シリアライズ表現"""
-		return f'<{self.__class__.__name__}: {repr(self.expression)}>'
+		if self.comp == Comps.Regexp:
+			return f'<{self.__class__.__name__}: /{self.expression}/>'
+		elif self.comp == Comps.Equals:
+			return f'<{self.__class__.__name__}: "{repr(self.expression)}">'
+		else:
+			return f'<{self.__class__.__name__}: {self.expression}>'
+
 
 
 class Patterns(Sequence['Pattern | Patterns']):
@@ -631,7 +649,12 @@ class Prettier:
 		Returns:
 			フォーマット文字列
 		"""
-		return pattern.expression
+		if pattern.comp == Comps.Regexp:
+			return f'/{pattern.expression}/'
+		elif pattern.comp == Comps.Equals:
+			return f'"{pattern.expression}"'
+		else:
+			return pattern.expression
 
 	@classmethod
 	def _pretty_patterns(cls, patterns: Patterns) -> str:

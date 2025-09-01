@@ -103,11 +103,11 @@ class Pattern:
 		"""
 		if expression.startswith('"') and expression.endswith('"'):
 			candidate = expression[1:-1]
-			if not candidate.startswith('\\'):
-				return cls(candidate, Roles.Terminal, Comps.Equals)
 			# XXX タブ・改行の制御コードを復元
-			elif len(candidate) == 2 and candidate[1] in cls.__space_codes:
+			if candidate.startswith('\\') and len(candidate) == 2 and candidate[1] in cls.__space_codes:
 				return cls(cls.__space_codes[candidate[1]], Roles.Terminal, Comps.Equals)
+			else:
+				return cls(candidate, Roles.Terminal, Comps.Equals)
 		elif expression.startswith('/') and expression.endswith('/'):
 			return cls(expression[1:-1], Roles.Terminal, Comps.Regexp)
 		elif re.fullmatch(r'\w[\w\d]*', expression):

@@ -120,6 +120,11 @@ class Token:
 		return self._string
 
 	@property
+	def string_of_unescaped(self) -> str:
+		"""Returns: 文字列(エスケープ解除)"""
+		return self._string.encode().decode('unicode_escape') if self._string.find('\\') != -1 else self._string
+
+	@property
 	def domain(self) -> TokenDomains:
 		"""Returns: トークンドメイン"""
 		d = self.type.value >> 4 & 0xf

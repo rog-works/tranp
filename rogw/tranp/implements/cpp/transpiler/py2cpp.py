@@ -635,8 +635,10 @@ class Py2Cpp(ITranspiler):
 				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'var_type': str.__name__, 'literal': node.receiver.as_a(defs.Relay).prop.tokens})
 			elif org_prop == 'value':
 				var_name = DSN.right(node.receiver.domain_name, 1)
-				var_literal = receiver_symbol.types.as_a(defs.Enum).var_value_of(var_name)
-				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'var_type': var_literal.literal_identifier, 'literal': var_literal.as_string if isinstance(var_literal, defs.String) else var_literal.tokens})
+				var_value = receiver_symbol.types.as_a(defs.Enum).var_value(var_name)
+				var_symbol = self.reflections.type_of(var_value).impl(refs.Object)
+				var_type = self.to_domain_name(var_symbol)
+				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'var_type': var_type, 'literal': var_value.tokens[1:-1] if var_symbol.type_is(str) else var_value.tokens})
 			else:
 				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'var_type': str.__name__, 'literal': receiver})
 		elif self.is_relay_this(node):

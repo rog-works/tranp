@@ -651,13 +651,13 @@ class Enum(Class):
 		return [var.as_a(DeclLocalVar) for var in vars]
 
 	@property
-	def type_literal(self) -> Literal:
-		"""XXX タイプではなくリテラルである点に注意"""
-		return self.vars[0].declare.as_a(MoveAssign).value.as_a(Literal)
+	def type_literal(self) -> Node:
+		"""XXX TypeではなくLiteralである点に注意。また、符号(Factor)が含まれる場合、直接Literalとして扱えないためNode型で返却"""
+		return self.vars[0].declare.as_a(MoveAssign).value
 
-	def var_value_of(self, var_name: str) -> Literal:
+	def var_value(self, var_name: str) -> Node:
 		var = [var for var in self.vars if var.symbol.domain_name == var_name][0]
-		return var.declare.as_a(MoveAssign).value.as_a(Literal)
+		return var.declare.as_a(MoveAssign).value
 
 
 @Meta.embed(Node, accept_tags('class_assign'))

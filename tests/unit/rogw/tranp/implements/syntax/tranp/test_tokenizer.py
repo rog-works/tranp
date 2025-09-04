@@ -170,6 +170,7 @@ class TestLexer(TestCase):
 		("f'abc'", 0, (6, (TokenTypes.String, "f'abc'"))),
 		('r"abc"', 0, (6, (TokenTypes.String, 'r"abc"'))),
 		('r"""abc"""', 0, (10, (TokenTypes.String, 'r"""abc"""'))),
+		('\\"abc\\"', 0, (7, (TokenTypes.String, '\\"abc\\"'))),
 		('"\\"a\\" \\"b\\"" c', 0, (13, (TokenTypes.String, '"\\"a\\" \\"b\\""'))),
 		# ('/abc/', 0, (5, (TokenTypes.Regexp, '/abc/'))), XXX 一旦保留
 		('"a\nbc"', 0, (6, (TokenTypes.String, '"a\nbc"'))),  # FIXME 文法的にNG

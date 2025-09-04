@@ -9,7 +9,7 @@ from rogw.tranp.test.helper import data_provider
 class TestSyntaxParser(TestCase):
 	@data_provider([
 		(
-			'a.b().c + -1 == d("a" in b).e[0]',
+			'a.b().c + -1 == d("\\"a\\"" in b).e[0]',
 			'python',
 			('entry', [
 				('comp', [
@@ -43,7 +43,7 @@ class TestSyntaxParser(TestCase):
 								]),
 								('args', [
 									('comp', [
-										('string', '"a"'),
+										('string', '"\\"a\\""'),
 										('op_comp', [
 											('op_in', 'in'),
 										]),

@@ -310,9 +310,9 @@ class TokenDefinition:
 			TokenDomains.Number,
 			TokenDomains.Identifier,
 		]
-		self.white_space = '\\ \t\f\n\r'
+		self.white_space = ' \t\f\n\r'
 		self.comment = [self.build_quote_pair('#', '\n')]
-		self.quote = [self.build_quote_pair(f'{prefix}{quote}', quote) for prefix in ['', 'r', 'f'] for quote in ['"""', "'", '"']]
+		self.quote = [self.build_quote_pair(f'{prefix}{quote}', quote) for prefix in ['', 'r', 'f'] for quote in ['"""', "'", '"', "\\'", '\\"']]
 		self.number = '0123456789.'
 		self.identifier = '_0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 		self.symbol = '@#$.,:;(){}[]`=-+*/%&|^~!?<>'

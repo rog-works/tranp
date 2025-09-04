@@ -14,7 +14,7 @@ class TestTokenizer(TestCase):
 		('**a', ['**', 'a', '\n']),
 		('***a', ['**', '*', 'a', '\n']),
 		('a # bc', ['a', '\n']),
-		('if a\\\n\tand b: ...', ['if', 'a', 'and', 'b', ':', '...', '\n']),
+		('if a\n\tand b: ...', ['if', 'a', '\n', '\\INDENT', 'and', 'b', ':', '...', '\n', '\\DEDENT']),
 		('def f() -> None: ...', ['def', 'f', '(', ')', '->', 'None', ':', '...', '\n']),
 		(
 			'\n'.join([
@@ -101,7 +101,7 @@ class TestLexer(TestCase):
 		('a# c\nb# c', [(TokenTypes.Name, 'a'), (TokenTypes.LineBreak, '\n'), (TokenTypes.Name, 'b')]),
 		('# c\na\n# c\nb\n# c', [(TokenTypes.Name, 'a'), (TokenTypes.LineBreak, '\n\n'), (TokenTypes.Name, 'b')]),
 		('a + b', [(TokenTypes.Name, 'a'), (TokenTypes.Plus, '+'), (TokenTypes.Name, 'b')]),
-		('a \\\nand b', [(TokenTypes.Name, 'a'), (TokenTypes.Name, 'and'), (TokenTypes.Name, 'b')]),
+		('a \nand b', [(TokenTypes.Name, 'a'), (TokenTypes.LineBreak, ' \n'), (TokenTypes.Name, 'and'), (TokenTypes.Name, 'b')]),
 		(' \na\nb\n', [(TokenTypes.Name, 'a'), (TokenTypes.LineBreak, '\n'), (TokenTypes.Name, 'b')]),
 	])
 	def test_post_filter(self, source: str, expected: list[Token]) -> None:
@@ -143,7 +143,7 @@ class TestLexer(TestCase):
 		(' abc', 0, (1, (TokenTypes.WhiteSpace, ' '))),
 		('abc ', 3, (4, (TokenTypes.WhiteSpace, ' '))),
 		('ab c', 2, (3, (TokenTypes.WhiteSpace, ' '))),
-		('[ab,\\\n\tc]', 4, (7, (TokenTypes.WhiteSpace, '\t'))),
+		('[ab,\n\tc]', 5, (6, (TokenTypes.WhiteSpace, '\t'))),
 		('a \t\nb\nc', 1, (4, (TokenTypes.LineBreak, ' \t\n'))),
 		('\ta\n\tbc', 2, (4, (TokenTypes.LineBreak, '\n\t'))),
 		(' \t\n\t', 0, (4, (TokenTypes.LineBreak, ' \t\n\t'))),

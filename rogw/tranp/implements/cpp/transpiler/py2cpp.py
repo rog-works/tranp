@@ -570,7 +570,7 @@ class Py2Cpp(ITranspiler):
 		module_path = node.import_path.tokens
 		text = self.i18n.t(import_dsn(module_path), '')
 		if text:
-			return text
+			return self.view.render(f'{node.classification}_i18n', vars={'import_path': text})
 
 		import_dir = ''
 		replace_dir = ''

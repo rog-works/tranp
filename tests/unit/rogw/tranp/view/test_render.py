@@ -1230,6 +1230,12 @@ class TestRenderer(TestCase):
 		self.assertRender('import', vars, expected)
 
 	@data_provider([
+		({'import_path': '#include <functional>'}, '#include <functional>'),
+	])
+	def test_render_import_i18n(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('import_i18n', vars, expected)
+
+	@data_provider([
 		('class', {'var_type': 'int*'}, 'int*'),
 		('class', {'var_type': 'int'}, 'int'),
 		('cvar', {'receiver': 'p_arr', 'keys': ['0']}, '(*(p_arr))[0]'),

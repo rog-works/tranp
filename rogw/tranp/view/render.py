@@ -11,7 +11,7 @@ class RendererSetting(NamedTuple):
 	Attributes:
 		template_dirs: テンプレートファイルのディレクトリーリスト
 		translator: 翻訳関数
-		env: dict[str, Any]: 環境変数
+		env: 環境変数
 	"""
 	template_dirs: list[str]
 	translator: Translator

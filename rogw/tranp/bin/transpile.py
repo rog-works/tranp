@@ -323,26 +323,32 @@ class Runner:
 		extension_map = self.config.output_language.split(':')
 		extension = extension_map[1] if len(extension_map) == 2 else extension_map[0]
 		filepath = module_path_to_filepath(module_path.path, f'.{extension}')
-		output_dir = self.fetch_output_dir(filepath)
-		return os.path.abspath(os.path.join(output_dir, filepath))
+		output_path = self.fetch_output_path(filepath)
+		return os.path.abspath(output_path)
 
-	def fetch_output_dir(self, filepath: str) -> str:
-		"""ファイルパスに応じた出力ディレクトリーを取得
+	def fetch_output_path(self, filepath: str) -> str:
+		"""ファイルパスに応じた出力パスを取得
 
 		Args:
 			filepath: ファイルパス
 		Returns:
-			出力ディレクトリー
+			出力パス
 		"""
 		_filepath = filepath.replace(os.sep, '/')
 		fallback = self.config.output_dirs[-1]
 		for dir_entry in self.config.output_dirs[:-1]:
 			condition, output_dir = dir_entry.split(':')
 			pattern = condition.replace('*', '.+')
-			if re.fullmatch(pattern, _filepath):
-				return output_dir
+			if condition.endswith('*') and re.fullmatch(pattern, _filepath):
+				# globパターン
+				# 設定値: '{入力フォルダー}/*:{出力フォルダー}'
+				return os.path.join(output_dir, filepath)
+			elif _filepath.startswith(condition):
+				# 置換パターン
+				# 設定値: '{入力フォルダー}/:{出力フォルダー}'
+				return os.path.join(output_dir, filepath[len(condition):])
 
-		return fallback
+		return os.path.join(fallback, filepath)
 
 
 class Interactive:

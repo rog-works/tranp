@@ -227,8 +227,8 @@ class CVarOps:
 		return self
 
 	def hex(self, n: int, p: CP[str]) -> None:
-		p.hex()
-		CP(n).hex()
+		p.to_addr_hex()
+		CP(n).to_addr_hex()
 
 	Sub2: TypeAlias = Sub
 

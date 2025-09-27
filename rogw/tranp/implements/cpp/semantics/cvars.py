@@ -11,6 +11,8 @@ class CVars:
 	"""C++型変数の操作ユーティリティー
 
 	Attributes:
+		id_key: 数値変換メソッドの名前
+		hex_key: 16進数変換メソッドの名前
 		relay_key: リレー代替メソッドの名前
 		empty_key: 空のスマートポインター生成代替メソッドの名前
 		allocator_key: メモリ生成メソッドの名前
@@ -18,7 +20,8 @@ class CVars:
 		exchanger_keys: 属性変換メソッドの名前
 	"""
 
-	hex_key: ClassVar[str] = 'hex'
+	id_key: ClassVar[str] = 'to_addr_id'
+	hex_key: ClassVar[str] = 'to_addr_hex'
 	relay_key: ClassVar[str] = 'on'
 	empty_key: ClassVar[str] = 'empty'
 	allocator_key: ClassVar[str] = 'new'

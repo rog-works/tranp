@@ -952,15 +952,20 @@ class Py2Cpp(ITranspiler):
 			# 期待値: CSP[A].empty()
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
-		elif spec == 'cvar_hex':
-			# 期待値: receiver.hex()
-			receiver, _ = PatternParser.break_relay(calls)
-			cvar_key = CVars.key_from(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'is_addr': CVars.is_addr(cvar_key)})
 		elif spec == 'cvar_to':
 			# 期待値: CP(a)
 			cvar_key = CVars.key_from(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'cvar_type': cvar_key})
+		elif spec == 'cvar_to_addr_hex':
+			# 期待値: receiver.to_addr_hex()
+			receiver, _ = PatternParser.break_relay(calls)
+			cvar_key = CVars.key_from(cast(IReflection, context))
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'is_addr': CVars.is_addr(cvar_key)})
+		elif spec == 'cvar_to_addr_id':
+			# 期待値: receiver.to_addr_id()
+			receiver, _ = PatternParser.break_relay(calls)
+			cvar_key = CVars.key_from(cast(IReflection, context))
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'is_addr': CVars.is_addr(cvar_key)})
 		elif spec == 'decl_static':
 			# 期待値: Embed::static({'f': func})
 			return arguments[0]
@@ -1052,7 +1057,12 @@ class Py2Cpp(ITranspiler):
 				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object).actualize()
 				cvar_key = CVars.key_from(receiver_raw)
 				if not CVars.is_entity(cvar_key):
-					return 'cvar_hex', receiver_raw
+					return 'cvar_to_addr_hex', receiver_raw
+			elif prop == CVars.id_key:
+				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object).actualize()
+				cvar_key = CVars.key_from(receiver_raw)
+				if not CVars.is_entity(cvar_key):
+					return 'cvar_to_addr_id', receiver_raw
 			elif prop == Embed.static.__name__ and node.calls.tokens == Embed.static.__qualname__:
 				return 'decl_static', None
 

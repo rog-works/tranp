@@ -622,34 +622,35 @@ class Py2Cpp(ITranspiler):
 		return node.tokens
 
 	def on_relay(self, node: defs.Relay, receiver: str) -> str:
+		is_statement = node.parent.is_a(defs.Block, defs.Entrypoint)
 		org_receiver_symbol = Defer.new(lambda: self.reflections.type_of(node.receiver).impl(refs.Object))
 		receiver_symbol = Defer.new(lambda: org_receiver_symbol.actualize())
 		prop_symbol = Defer.new(lambda: receiver_symbol.prop_of(node.prop))
 		if self.is_relay_literalizer(node, receiver_symbol):
 			org_prop = node.prop.domain_name
 			if org_prop == '__name__':
-				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'var_type': str.__name__, 'literal': self.to_domain_name_by_class(receiver_symbol.types)})
+				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'var_type': str.__name__, 'is_statement': is_statement, 'literal': self.to_domain_name_by_class(receiver_symbol.types)})
 			elif org_prop == '__module__':
-				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'var_type': str.__name__, 'literal': receiver_symbol.types.module_path})
+				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'var_type': str.__name__, 'is_statement': is_statement, 'literal': receiver_symbol.types.module_path})
 			elif org_prop == 'name':
-				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'var_type': str.__name__, 'literal': node.receiver.as_a(defs.Relay).prop.tokens})
+				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'var_type': str.__name__, 'is_statement': is_statement, 'literal': node.receiver.as_a(defs.Relay).prop.tokens})
 			elif org_prop == 'value':
 				var_name = DSN.right(node.receiver.domain_name, 1)
 				var_value = receiver_symbol.types.as_a(defs.Enum).var_value(var_name)
 				var_symbol = self.reflections.type_of(var_value).impl(refs.Object)
 				var_type = self.to_domain_name(var_symbol)
-				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'var_type': var_type, 'literal': var_value.tokens[1:-1] if var_symbol.type_is(str) else var_value.tokens})
+				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'var_type': var_type, 'is_statement': is_statement, 'literal': var_value.tokens[1:-1] if var_symbol.type_is(str) else var_value.tokens})
 			else:
-				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'var_type': str.__name__, 'literal': receiver})
+				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'var_type': str.__name__, 'is_statement': is_statement, 'literal': receiver})
 		elif self.is_relay_this(node):
 			prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.Method) else self.to_prop_name(prop_symbol)
 			is_property = isinstance(prop_symbol.decl, defs.Method) and prop_symbol.decl.is_property
-			return self.view.render(f'{node.classification}/default', vars={'receiver': receiver, 'operator': CVars.RelayOperators.Address.name, 'prop': prop, 'is_property': is_property})
+			return self.view.render(f'{node.classification}/default', vars={'receiver': receiver, 'operator': CVars.RelayOperators.Address.name, 'prop': prop, 'is_statement': is_statement, 'is_property': is_property})
 		elif self.is_relay_cvar(node, receiver_symbol):
 			# 期待値: receiver.on
 			cvar_key = CVars.key_from(receiver_symbol)
 			operator = CVars.to_operator(cvar_key).name
-			return self.view.render(f'{node.classification}/default', vars={'receiver': receiver, 'operator': operator, 'prop': node.prop.domain_name, 'is_property': True})
+			return self.view.render(f'{node.classification}/default', vars={'receiver': receiver, 'operator': operator, 'prop': node.prop.domain_name, 'is_statement': is_statement, 'is_property': True})
 		elif self.is_relay_cvar_link(node, org_receiver_symbol, receiver_symbol):
 			# 期待値: receiver.on().prop
 			cvar_receiver = PatternParser.sub_cvar_relay(receiver)
@@ -658,22 +659,22 @@ class Py2Cpp(ITranspiler):
 			operator = CVars.to_operator(cvar_key).name
 			prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.Method) else self.to_prop_name(prop_symbol)
 			is_property = isinstance(prop_symbol.decl, defs.Method) and prop_symbol.decl.is_property
-			return self.view.render(f'{node.classification}/default', vars={'receiver': cvar_receiver, 'operator': operator, 'prop': prop, 'is_property': is_property})
+			return self.view.render(f'{node.classification}/default', vars={'receiver': cvar_receiver, 'operator': operator, 'prop': prop, 'is_statement': is_statement, 'is_property': is_property})
 		elif self.is_relay_cvar_exchanger(node, receiver_symbol):
 			# 期待値: receiver.raw()
 			cvar_receiver = PatternParser.sub_cvar_to(receiver)
 			cvar_key = CVars.key_from(receiver_symbol)
 			operator = CVars.to_operator(cvar_key).name
 			move = CVars.to_move(cvar_key, node.prop.domain_name)
-			return self.view.render(f'{node.classification}/cvar_to', vars={'receiver': cvar_receiver, 'move': move.name})
+			return self.view.render(f'{node.classification}/cvar_to', vars={'receiver': cvar_receiver, 'move': move.name, 'is_statement': is_statement})
 		elif self.is_relay_type(node, org_receiver_symbol):
 			prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.ClassDef) else self.to_prop_name(prop_symbol)
 			is_property = isinstance(prop_symbol.decl, defs.Method) and prop_symbol.decl.is_property
-			return self.view.render(f'{node.classification}/default', vars={'receiver': receiver, 'operator': CVars.RelayOperators.Static.name, 'prop': prop, 'is_property': is_property})
+			return self.view.render(f'{node.classification}/default', vars={'receiver': receiver, 'operator': CVars.RelayOperators.Static.name, 'prop': prop, 'is_statement': is_statement, 'is_property': is_property})
 		else:
 			prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.Method) else self.to_prop_name(prop_symbol)
 			is_property = isinstance(prop_symbol.decl, defs.Method) and prop_symbol.decl.is_property
-			return self.view.render(f'{node.classification}/default', vars={'receiver': receiver, 'operator': CVars.RelayOperators.Raw.name, 'prop': prop, 'is_property': is_property})
+			return self.view.render(f'{node.classification}/default', vars={'receiver': receiver, 'operator': CVars.RelayOperators.Raw.name, 'prop': prop, 'is_statement': is_statement, 'is_property': is_property})
 
 	def is_relay_literalizer(self, node: defs.Relay, receiver_symbol: IReflection) -> bool:
 		prop = node.prop.tokens

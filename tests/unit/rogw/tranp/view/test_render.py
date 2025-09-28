@@ -1317,11 +1317,11 @@ class TestRenderer(TestCase):
 		self.assertRender('relay/cvar_to', vars, expected)
 
 	@data_provider([
-		({'receiver': 'a', 'operator': 'Raw', 'prop': 'b', 'is_property': False}, 'a.b'),
-		({'receiver': 'a', 'operator': 'Raw', 'prop': 'b', 'is_property': True}, 'a.b()'),
-		({'receiver': 'a', 'operator': 'Address', 'prop': 'b', 'is_property': False}, 'a->b'),
-		({'receiver': 'a', 'operator': 'Address', 'prop': 'b', 'is_property': True}, 'a->b()'),
-		({'receiver': 'A', 'operator': 'Static', 'prop': 'B', 'is_property': False}, 'A::B'),
+		({'receiver': 'a', 'operator': 'Raw', 'prop': 'b', 'is_statement': True, 'is_property': False}, 'a.b;'),
+		({'receiver': 'a', 'operator': 'Raw', 'prop': 'b', 'is_statement': False, 'is_property': True}, 'a.b()'),
+		({'receiver': 'a', 'operator': 'Address', 'prop': 'b', 'is_statement': False, 'is_property': False}, 'a->b'),
+		({'receiver': 'a', 'operator': 'Address', 'prop': 'b', 'is_statement': False, 'is_property': True}, 'a->b()'),
+		({'receiver': 'A', 'operator': 'Static', 'prop': 'B', 'is_statement': False, 'is_property': False}, 'A::B'),
 	])
 	def test_render_relay_default(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('relay/default', vars, expected)

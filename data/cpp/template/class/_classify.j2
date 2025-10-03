@@ -1,1 +1,8 @@
-{{- 'struct' if is_struct else 'class' -}}
+{%- set deco_query = decorator_query(decorators) -%}
+{%- if deco_query.contains('Embed.struct') -%}
+struct
+{%- elif deco_query.contains('Embed.union') -%}
+union
+{%- else -%}
+class
+{%- endif -%}

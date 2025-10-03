@@ -136,16 +136,35 @@ class Embed:
 
 	@classmethod
 	def struct(cls, wrapped: T) -> T:
-		"""クラスを構造体としてマークアップ。暗黙的に`__struct__`と言う属性を付与する
+		"""クラスを構造体としてマークアップ
 
 		Args:
 			wrapped: ラップ対象
 		Returns:
 			デコレート対象
 		"""
-		if not hasattr(wrapped, '__struct__'):
-			setattr(wrapped, '__struct__', True)
+		return wrapped
 
+	@classmethod
+	def union(cls, wrapped: T) -> T:
+		"""クラスをユニオン型としてマークアップ
+
+		Args:
+			wrapped: ラップ対象
+		Returns:
+			デコレート対象
+		"""
+		return wrapped
+
+	@classmethod
+	def inline(cls, wrapped: T) -> T:
+		"""インライン関数としてマークアップ
+
+		Args:
+			wrapped: ラップ対象
+		Returns:
+			デコレート対象
+		"""
 		return wrapped
 
 	@classmethod

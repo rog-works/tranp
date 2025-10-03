@@ -411,9 +411,6 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(f'{node.classification}/protocol', vars=class_vars)
 
 	def proc_class(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], template_types: list[str], comment: str, statements: list[str]) -> str:
-		# XXX 構造体の判定
-		is_struct = len([decorator for decorator in decorators if decorator.startswith(Embed.struct.__qualname__)])
-
 		# XXX クラス配下の変数宣言とそれ以外のステートメントを分離
 		a_statements = statements.copy()
 		class_var_statements: list[tuple[int, str]] = []
@@ -440,7 +437,7 @@ class Py2Cpp(ITranspiler):
 
 		accessor = self.to_accessor(node.accessor) if node.is_internal else ''
 
-		class_vars = {'accessor': accessor, 'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'template_types': template_types, 'comment': comment, 'statements': a_statements, 'module_path': node.module_path, 'is_struct': is_struct}
+		class_vars = {'accessor': accessor, 'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'template_types': template_types, 'comment': comment, 'statements': a_statements, 'module_path': node.module_path}
 		return self.view.render(f'{node.classification}/class', vars=class_vars)
 
 	def on_enum(self, node: defs.Enum, symbol: str, decorators: list[str], inherits: list[str], template_types: list[str], comment: str, statements: list[str]) -> str:

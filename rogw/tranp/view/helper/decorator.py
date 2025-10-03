@@ -26,8 +26,10 @@ class DecoratorHelper:
 			(パス, 引数一覧, 分解前の引数一覧)
 		"""
 		args_begin = decorator.find('(')
-		path = decorator[:args_begin]
+		if args_begin == -1:
+			return decorator, {}, ''
 
+		path = decorator[:args_begin]
 		join_args = decorator[args_begin + 1:len(decorator) - 1]
 		args: dict[str, str] = {}
 		for index, arg in enumerate(BlockParser.break_separator(join_args, ',')):

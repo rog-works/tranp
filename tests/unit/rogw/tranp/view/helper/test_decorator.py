@@ -7,16 +7,16 @@ from rogw.tranp.view.helper.decorator import DecoratorHelper, DecoratorQuery
 
 class TestDecoratorParser(TestCase):
 	@data_provider([
-		('abc()', {'path': 'abc', 'args': {}}),
-		('Embed.prop("a")', {'path': 'Embed.prop', 'args': {'0': '"a"'}}),
-		('Embed.alias("a", prefix=true)', {'path': 'Embed.alias', 'args': {'0': '"a"', 'prefix': 'true'}}),
+		('abc()', {'path': 'abc', 'args': {}, 'join_args': ''}),
+		('Embed.alias("a", prefix=true)', {'path': 'Embed.alias', 'args': {'0': '"a"', 'prefix': 'true'}, 'join_args': '"a", prefix=true'}),
+		('Embed.struct', {'path': 'Embed.struct', 'args': {}, 'join_args': ''}),
 	])
 	def test_schema(self, decorator: str, expected: dict[str, Any]) -> None:
 		instance = DecoratorHelper(decorator)
 		self.assertEqual(instance.decorator, decorator)
 		self.assertEqual(instance.path, expected['path'])
 		self.assertEqual(instance.args, expected['args'])
-		self.assertEqual(instance.join_args, decorator[decorator.find('(') + 1:-1])
+		self.assertEqual(instance.join_args, expected['join_args'])
 		if len(expected['args']) > 0:
 			first_key = list(expected['args'].keys())[0]
 			self.assertEqual(instance.arg, expected['args'][first_key])
@@ -28,7 +28,8 @@ class TestDecoratorParser(TestCase):
 	@data_provider([
 		('abc()', ['abc'], True),
 		('abc()', ['a', 'b', 'c'], False),
-		('Embed.prop("a")', ['Embed.prop'], True),
+		('Embed.alias("a", prefix=true)', ['Embed.alias'], True),
+		('Embed.struct', ['Embed.struct'], True),
 	])
 	def test_any(self, decorator: str, paths: list[str], expected: bool) -> None:
 		actual = DecoratorHelper(decorator).any(*paths)

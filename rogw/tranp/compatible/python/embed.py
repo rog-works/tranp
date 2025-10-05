@@ -168,6 +168,25 @@ class Embed:
 		return wrapped
 
 	@classmethod
+	def ignore(cls, *classes: type[Any]) -> Callable:
+		"""除外情報を埋め込む
+
+		Args:
+			*classes: 除外するクラスリスト
+		Returns:
+			デコレーター
+		Examples:
+			```python
+			@Embed.ignore(B)
+			class A(B, C): ...
+			```
+		"""
+		def decorator(wrapped: T) -> T:
+			return wrapped
+
+		return decorator
+
+	@classmethod
 	def closure_bind(cls, *symbols: Any) -> Callable:
 		"""クロージャーに遅延束縛の情報を埋め込む
 

@@ -176,6 +176,30 @@ class TestRenderer(TestCase):
 			{
 				'symbol': 'Hoge',
 				'accessor': '',
+				'decorators': ['Embed.ignore(A)'],
+				'inherits': ['A', 'AB'],
+				'template_types': [],
+				'comment': '',
+				'statements': [
+					'\n'.join([
+						'public: Hoge() {',
+						'}',
+					]),
+				],
+				'module_path': 'module.path.to',
+			},
+			'\n'.join([
+				'/** Hoge */',
+				'class Hoge : public AB {',
+				'	public: Hoge() {',
+				'	}',
+				'};',
+			]),
+		),
+		(
+			{
+				'symbol': 'Hoge',
+				'accessor': '',
 				'decorators': [],
 				'inherits': [],
 				'template_types': [],

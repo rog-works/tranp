@@ -1,1 +1,13 @@
-{%- if inherits %} : public {{ inherits | join(', public ') }}{% endif -%}
+{%- set _inherits = namespace(at=[]) -%}
+{%- set deco_query = decorator_query(decorators).any('Embed.ignore') -%}
+{%- if not deco_query -%}
+	{%- set _inherits.at = inherits -%}
+{%- else -%}
+	{%- set ignore_classes = deco_query[0].args.values() -%}
+	{%- for inherit in inherits -%}
+		{%- if inherit not in ignore_classes -%}
+			{%- set _inherits.at = _inherits.at + [inherit] -%}
+		{%- endif -%}
+	{%- endfor -%}
+{%- endif -%}
+{%- if (_inherits.at | length) > 0 %} : public {{ _inherits.at | join(', public ') }}{% endif -%}

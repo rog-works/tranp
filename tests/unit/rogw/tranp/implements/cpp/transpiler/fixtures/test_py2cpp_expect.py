@@ -11,7 +11,7 @@ class BlockExpects:
 				f'{access}:',
 				f'/** {name} */',
 				f'template<typename {template}>' if template else '',
-				f'{"static " if static else ""}{"inline " if prop else ""}{return_type} {name}({", ".join(params)}) {"const " if pure else ""}' '{',
+				f'{"static " if static else ""}{return_type} {name}({", ".join(params)}) {"const " if pure else ""}' '{',
 				f'	{"\n\t".join(statements)}',
 				'}',
 			]
@@ -20,7 +20,7 @@ class BlockExpects:
 				f'{access}:',
 				f'/** {name} */',
 				f'template<typename {template}>' if template else '',
-				f'{"static " if static else ""}{"inline " if prop else ""}{return_type} {name}({", ".join(params)}) {"const " if pure else ""}' '{}',
+				f'{"static " if static else ""}{return_type} {name}({", ".join(params)}) {"const " if pure else ""}' '{}',
 			]
 
 		return '\n'.join([line for line in lines if line])
@@ -170,7 +170,7 @@ class DeclOps {
 	}
 	public:
 	/** prop */
-	inline int prop() {
+	int prop() {
 		return 1;
 	}
 };"""

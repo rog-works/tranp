@@ -434,7 +434,7 @@ class Json {
 	 *
 	 * @return True = ルートオブジェクト
 	 */
-	inline bool is_root() {
+	bool is_root() {
 		return this->_root == nullptr;
 	}
 	public:
@@ -442,7 +442,7 @@ class Json {
 	 *
 	 * @return ルートオブジェクト
 	 */
-	inline Json* root() {
+	Json* root() {
 		return this->_root ? this->_root : this;
 	}
 	public:
@@ -450,7 +450,7 @@ class Json {
 	 *
 	 * @return JSONパス
 	 */
-	inline std::string path() {
+	std::string path() {
 		return this->root()->_entries[this->_entry_id].path;
 	}
 	public:
@@ -458,7 +458,7 @@ class Json {
 	 *
 	 * @return シンボル名
 	 */
-	inline std::string symbol() {
+	std::string symbol() {
 		int index = this->path().find_last_of(".");
 		return index != -1 ? this->path().substr(index + 1, this->path().size() - (index + 1)) : this->path();
 	}
@@ -467,7 +467,7 @@ class Json {
 	 *
 	 * @return JSONエントリーの種別
 	 */
-	inline JsonEntryTypes entry_type() {
+	JsonEntryTypes entry_type() {
 		return this->root()->_entries[this->_entry_id].entry_type;
 	}
 	public:
@@ -475,7 +475,7 @@ class Json {
 	 *
 	 * @return 型の名前
 	 */
-	inline std::string type_name() {
+	std::string type_name() {
 		return Json::_to_type_names[this->entry_type()];
 	}
 	public:
@@ -483,7 +483,7 @@ class Json {
 	 *
 	 * @return 実体のアドレス
 	 */
-	inline void* entity_at() {
+	void* entity_at() {
 		if (this->scalar_with(JsonEntryTypes::Boolean)) {
 			return (&(this->root()->_entries[this->_entry_id].entity.as_bool));
 		} else if (this->scalar_with(JsonEntryTypes::Number)) {
@@ -629,7 +629,7 @@ class Json {
 	 * @return 値
 	 * @throw RuntimeError Boolean以外で使用
 	 */
-	inline bool as_bool() {
+	bool as_bool() {
 		if (!this->scalar_with(JsonEntryTypes::Boolean)) {
 			throw new std::runtime_error(std::format("Operation not allowed. type_name: %s", (this->type_name()).c_str()));
 		}
@@ -641,7 +641,7 @@ class Json {
 	 * @return 値
 	 * @throw RuntimeError Number以外で使用
 	 */
-	inline float as_number() {
+	float as_number() {
 		if (!this->scalar_with(JsonEntryTypes::Number)) {
 			throw new std::runtime_error(std::format("Operation not allowed. type_name: %s", (this->type_name()).c_str()));
 		}
@@ -653,7 +653,7 @@ class Json {
 	 * @return 値
 	 * @throw RuntimeError String以外で使用
 	 */
-	inline std::string as_string() {
+	std::string as_string() {
 		if (!this->scalar_with(JsonEntryTypes::String)) {
 			throw new std::runtime_error(std::format("Operation not allowed. type_name: %s", (this->type_name()).c_str()));
 		}

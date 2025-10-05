@@ -1050,7 +1050,7 @@ class TestRenderer(TestCase):
 			'\n'.join([
 				'public:',
 				'/** method */',
-				'inline void method(int value = 1) {',
+				'void method(int value = 1) {',
 				'	this->x = value;',
 				'}',
 			]),

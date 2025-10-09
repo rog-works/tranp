@@ -1261,10 +1261,10 @@ class Py2Cpp(ITranspiler):
 	def on_spread(self, node: defs.Spread, expression: str) -> str:
 		raise NotSupportedError(f'Denied spread expression. node: {node}')
 
-	def on_lambda(self, node: defs.Lambda, expression: str) -> str:
+	def on_lambda(self, node: defs.Lambda, params: str, expression: str) -> str:
 		expression_raw = self.reflections.type_of(node.expression)
 		var_type = self.to_accessible_name(expression_raw)
-		return self.view.render(node.classification, vars={'expression': expression, 'var_type': var_type})
+		return self.view.render(node.classification, vars={'params': params, 'expression': expression, 'var_type': var_type})
 
 	# Terminal
 

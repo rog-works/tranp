@@ -72,7 +72,7 @@ class Declable(Node, IDomain, ISymbol, ITerminal):
 		Raises:
 			InvalidRelationError: 不正な親子関係
 		"""
-		parent_tags = ['assign_namelist', 'for_namelist', 'except_clause', 'with_item', 'typedparam', 'import_as_names']
+		parent_tags = ['assign_namelist', 'for_namelist', 'except_clause', 'with_item', 'typedparam', 'import_as_names', 'lambdaparams']
 		if self._full_path.parent_tag in parent_tags and isinstance(self.parent, IDeclaration):
 			return self.parent
 
@@ -589,6 +589,33 @@ class ListComp(Comprehension):
 @Meta.embed(Node, accept_tags('dict_comp'))
 class DictComp(Comprehension):
 	pass
+
+
+@Meta.embed(Node, accept_tags('lambdadef'))
+class Lambda(Node, IDomain, IScope, INamespace):
+	@property
+	@override
+	def domain_name(self) -> str:
+		# XXX 一意な名称を持たないためIDで代用
+		return ModuleDSN.identify(self.classification, self.id)
+
+	@property
+	@Meta.embed(Node, expandable)
+	def params(self) -> list[Declable]:
+		node = self._at(0)
+		if node.is_a(Empty):
+			return []
+
+		return [child.as_a(Declable) for child in node._children()]
+
+	@property
+	@Meta.embed(Node, expandable)
+	def expression(self) -> Node:
+		return self._at(1)
+
+	@property
+	def decl_vars(self) -> list[Declable]:
+		return self.params
 
 
 class DeclableMatcher:

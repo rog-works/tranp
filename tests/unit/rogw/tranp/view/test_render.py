@@ -1275,6 +1275,30 @@ class TestRenderer(TestCase):
 				'}',
 			]),
 		),
+		(
+			'destructor',
+			{
+				'symbol': '__py_destroy__',
+				'decorators': [],
+				'parameters': [],
+				'return_type': 'void',
+				'comment': '',
+				'statements': [],
+				'template_types': [],
+				# 'is_pure': False,
+				# belongs class only
+				'accessor': 'public',
+				'class_symbol': 'Hoge',
+				'is_abstract': False,
+				'is_override': False,
+				'allow_override': False,
+			},
+			'\n'.join([
+				'public:',
+				'/** __py_destroy__ */',
+				'~Hoge() {}',
+			]),
+		),
 	])
 	def test_render_function(self, template: str, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender(f'function/{template}', vars, expected)

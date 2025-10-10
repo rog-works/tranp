@@ -68,7 +68,8 @@ function_def_raw: "def" name "(" [parameters] ")" "->" typed_expression ":" bloc
 // @lark lambdadef: "lambda" [lambdaparams] ":" test
 // @lark lambdadef_nocond: "lambda" [lambdaparams] ":" test_nocond
 // @note lambdadef_nocondはcomp_ifにのみ利用。Python公式にそのような定義はなく、必然性もあまり無いように感じるため非対応
-lambdadef: "lambda" ":" expression
+lambdadef: "lambda" [lambdaparams] ":" expression
+lambdaparams: name ("," name)*
 
 // ## Function parameters
 

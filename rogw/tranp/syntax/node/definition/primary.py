@@ -72,7 +72,7 @@ class Declable(Node, IDomain, ISymbol, ITerminal):
 		Raises:
 			InvalidRelationError: 不正な親子関係
 		"""
-		parent_tags = ['assign_namelist', 'for_namelist', 'except_clause', 'with_item', 'typedparam', 'import_as_names']
+		parent_tags = ['assign_namelist', 'for_namelist', 'except_clause', 'with_item', 'typedparam', 'import_as_names', 'lambdaparams']
 		if self._full_path.parent_tag in parent_tags and isinstance(self.parent, IDeclaration):
 			return self.parent
 
@@ -591,6 +591,65 @@ class DictComp(Comprehension):
 	pass
 
 
+@Meta.embed(Node, accept_tags('lambdadef'))
+class Lambda(Node, IDeclaration, IDomain, IScope, INamespace):
+	@property
+	@override
+	def domain_name(self) -> str:
+		# XXX 一意な名称を持たないためIDで代用
+		return ModuleDSN.identify(self.classification, self.id)
+
+	@property
+	@implements
+	@Meta.embed(Node, expandable)
+	def symbols(self) -> list[Declable]:
+		node = self._at(0)
+		if node.is_a(Empty):
+			return []
+
+		return [child.as_a(Declable) for child in node._children()]
+
+	@property
+	@Meta.embed(Node, expandable)
+	def expression(self) -> Node:
+		return self._at(1)
+
+	@property
+	@implements
+	def decl_vars(self) -> list[Declable]:
+		return self.symbols
+
+	def ref_vars(self) -> list[Var]:
+		ignore_names = [var.symbol.domain_name for var in self.decl_vars]
+		return [var for var in PluckVars.ref_vars(self) if var.domain_name not in ignore_names]
+
+
+class PluckVars:
+	"""変数抽出ヘルパー"""
+
+	@classmethod
+	def ref_vars(cls, via: Node) -> list[Var]:
+		"""指定のノード配下で参照している変数リストを抽出
+
+		Args:
+			via: ノード
+		Returns:
+			変数リスト
+		"""
+		nodes: list[Var] = []
+		for node in via.procedural():
+			if not isinstance(node, Var):
+				continue
+
+			parent = node.parent
+			if isinstance(parent, Relay) and parent.prop == node:
+				continue
+
+			nodes.append(node)
+
+		return nodes
+
+
 class DeclableMatcher:
 	"""変数宣言ノードのマッチングヘルパー"""
 
@@ -711,9 +770,9 @@ class DeclableMatcher:
 		Returns:
 			True = 対象
 		"""
-		# For/Catch/WithEntry/Comprehension
+		# For/Catch/WithEntry/Comprehension/Lambda
 		via_full_path = EntryPath(via.full_path)
-		is_identified_by_name_only = via_full_path.parent_tag in ['for_namelist', 'except_clause', 'with_item']
+		is_identified_by_name_only = via_full_path.parent_tag in ['for_namelist', 'except_clause', 'with_item', 'lambdaparams']
 		if is_identified_by_name_only and via_full_path.last_tag == 'name':
 			return True
 

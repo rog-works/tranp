@@ -460,8 +460,8 @@ class ForCompound:
 
 	def closure(self) -> None:
 		def bind_ref() -> None: ...
-		@Embed.closure_bind(self)
-		def bind_copy() -> None: ...
+		def bind_copy() -> None:
+			self.closure()
 
 
 class ForClassExpose:
@@ -906,6 +906,11 @@ class ForComp:
 
 
 class ForLambda:
+	def params(self, f: Callable[[CP[int], bool], str]) -> None:
+		func: Callable[[str], int] = lambda s: 1
+		(lambda a: self.expression())(1)
+		self.params(lambda np, b: '')
+
 	def expression(self) -> None:
 		f = lambda: 1
 		n = f()

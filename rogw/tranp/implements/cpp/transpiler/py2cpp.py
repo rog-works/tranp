@@ -262,6 +262,24 @@ class Py2Cpp(ITranspiler):
 		"""
 		return self.i18n.t(ModuleDSN.full_joined(self.i18n.t(alias_dsn('lang')), 'accessor', accessor))
 
+	def make_lambda_binds(self, node: defs.Closure | defs.Lambda) -> list[str]:
+		"""ラムダ用のキャプチャー変数名リストを生成
+
+		Args:
+			node: ノード(Closure/Lambda)
+		Returns:
+			キャプチャー変数名リスト
+		"""
+		vars: list[defs.Var] = []
+		for var in node.ref_vars():
+			var_raw = self.reflections.type_of(var).impl(refs.Object)
+			if var_raw.type_is(type) or var_raw.types.is_a(defs.Function):
+				continue
+
+			vars.append(var)
+
+		return list({var.domain_name if not isinstance(var, defs.ThisRef) else self.view.render('this_ref'): True for var in vars}.keys())
+
 	# General
 
 	def on_entrypoint(self, node: defs.Entrypoint, statements: list[str]) -> str:
@@ -398,7 +416,7 @@ class Py2Cpp(ITranspiler):
 
 	def on_closure(self, node: defs.Closure, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'statements': statements}
-		return self.view.render(f'function/{node.classification}', vars=function_vars)
+		return self.view.render(f'function/{node.classification}', vars={**function_vars, 'binds': self.make_lambda_binds(node)})
 
 	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], template_types: list[str], comment: str, statements: list[str]) -> str:
 		if len(inherits) == 1 and inherits[0] == Protocol.__name__:
@@ -1261,10 +1279,15 @@ class Py2Cpp(ITranspiler):
 	def on_spread(self, node: defs.Spread, expression: str) -> str:
 		raise NotSupportedError(f'Denied spread expression. node: {node}')
 
-	def on_lambda(self, node: defs.Lambda, expression: str) -> str:
+	def on_lambda(self, node: defs.Lambda, symbols: str, expression: str) -> str:
+		params: dict[str, str] = {}
+		for index, param in enumerate(node.symbols):
+			param_raw = self.reflections.type_of(param)
+			params[symbols[index]] = self.to_accessible_name(param_raw)
+
 		expression_raw = self.reflections.type_of(node.expression)
-		var_type = self.to_accessible_name(expression_raw)
-		return self.view.render(node.classification, vars={'expression': expression, 'var_type': var_type})
+		return_type = self.to_accessible_name(expression_raw)
+		return self.view.render(f'{node.classification}/default', vars={'params': params, 'expression': expression, 'return_type': return_type, 'binds': self.make_lambda_binds(node)})
 
 	# Terminal
 

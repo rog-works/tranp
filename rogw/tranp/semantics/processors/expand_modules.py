@@ -138,6 +138,8 @@ class ExpandModules:
 				decl_vars = {**decl_vars, **{var.fullyname: var.full_path for var in node.this_vars}}
 			elif isinstance(node, defs.Generator):
 				decl_vars = {**decl_vars, **{var.fullyname: var.full_path for var in node.decl_vars}}
+			elif isinstance(node, defs.Lambda):
+				decl_vars = {**decl_vars, **{var.fullyname: var.full_path for var in node.decl_vars}}
 
 			if isinstance(node, defs.Import):
 				imports = {**imports, **{symbol.fullyname: symbol.full_path for symbol in node.symbols}}
@@ -191,7 +193,7 @@ class ExpandModules:
 			return var.declare.var_type
 
 		# その他は型指定が無いため全てUnknown
-		# 対象: For, CompFor, WithEntry, MoveAssign(インスタンス変数宣言以外)
+		# 対象: For, CompFor, Lambda, WithEntry, MoveAssign(インスタンス変数宣言以外)
 		return None
 
 	def _fallback_type_symbol(self, db: SymbolDB, decl_type: defs.Type | defs.ClassDef) -> IReflection | None:

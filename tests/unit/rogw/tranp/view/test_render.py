@@ -917,9 +917,10 @@ class TestRenderer(TestCase):
 				# 'template_types': [],
 				# 'is_pure': False,
 				# closure only
+				'binds': [],
 			},
 			'\n'.join([
-				'auto closure = [&](const std::string& text, int value = 1) -> int {',
+				'auto closure = [](const std::string& text, int value = 1) -> int {',
 				'	return value + 1;',
 				'};',
 			]),
@@ -928,7 +929,7 @@ class TestRenderer(TestCase):
 			'closure',
 			{
 				'symbol': 'closure_bind',
-				'decorators': ['Embed.closure_bind(this, a, b)'],
+				'decorators': [],
 				'parameters': ['const std::string& text', 'int value = 1'],
 				'return_type': 'int',
 				# 'comment': '',
@@ -936,6 +937,7 @@ class TestRenderer(TestCase):
 				# 'template_types': [],
 				# 'is_pure': False,
 				# closure only
+				'binds': ['this', 'a', 'b'],
 			},
 			'\n'.join([
 				'auto closure_bind = [this, a, b](const std::string& text, int value = 1) mutable -> int {',
@@ -1342,10 +1344,12 @@ class TestRenderer(TestCase):
 		self.assertRender(f'indexer/{spec}', vars, expected)
 
 	@data_provider([
-		({'expression': '1', 'var_type': 'int'}, '[&]() -> int { return 1; }'),
+		({'params': {}, 'expression': '1', 'return_type': 'int', 'binds': []}, '[]() -> int { return 1; }'),
+		({'params': {'a': 'int'}, 'expression': '', 'return_type': 'void', 'binds': []}, '[](int a) -> void {}'),
+		({'params': {'a': 'int', 's': 'std::string'}, 'expression': 'this->ok()', 'return_type': 'void', 'binds': ['this']}, '[this](int a, const std::string& s) mutable -> void { this->ok(); }'),
 	])
 	def test_render_lambda(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('lambda', vars, expected)
+		self.assertRender('lambda/default', vars, expected)
 
 	@data_provider([
 		('dict', {'items': ['{hoge, 1}','{fuga, 2}']}, '{\n\t{hoge, 1},\n\t{fuga, 2},\n}'),

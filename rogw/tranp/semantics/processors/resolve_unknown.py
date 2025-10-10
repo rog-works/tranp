@@ -116,10 +116,14 @@ class ResolveUnknown:
 			# 期待値: var: Callable[[A, B]: ...] = lambda a, b: ...
 			type_raw = reflections.type_of(parent)
 			return var_raw.declare(var_raw.node.as_a(defs.Declable), type_raw.attrs[index])
-		elif isinstance(parent, defs.FuncCall):
+		elif isinstance(parent, defs.Argument):
 			# 期待値: func(lambda a, b: ...)
-			func_raw = reflections.type_of(parent)
-			return var_raw.declare(var_raw.node.as_a(defs.Declable), func_raw.attrs[index])
+			func_call = parent.parent.as_a(defs.FuncCall)
+			func_raw = reflections.type_of(func_call.calls)
+			is_method = isinstance(func_raw.types, (defs.Constructor, defs.Method, defs.ClassMethod))
+			arg_index = func_call.arguments.index(parent)
+			arg_raw = func_raw.attrs[arg_index + (1 if is_method else 0)]
+			return var_raw.declare(var_raw.node.as_a(defs.Declable), arg_raw.attrs[index])
 		else:
 			# 期待値: (lambda a, b: ...)(a_value, b_value)
 			arg = as_a(defs.Group, parent).parent.as_a(defs.FuncCall).arguments[index]

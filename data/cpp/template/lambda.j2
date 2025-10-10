@@ -1,1 +1,1 @@
-[&]() -> {{ var_type }} { return {{ expression }}; }
+[&]({% for param_name, param_type in params %}{% if loop.index0 > 0 %}, {% endif %}{{ param_type }} {{ param_name }}{% endfor %}) -> {{ var_type }} { return {{ expression }}; }

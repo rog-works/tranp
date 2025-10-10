@@ -1267,7 +1267,7 @@ class Py2Cpp(ITranspiler):
 		params: list[str] = []
 		for index, param in enumerate(node.symbols):
 			param_raw = self.reflections.type_of(param)
-			params.append(f'{symbols[index]} {self.to_accessible_name(param_raw)}')
+			params.append(f'{self.to_accessible_name(param_raw)} {symbols[index]}')
 
 		return self.view.render(node.classification, vars={'params': params, 'expression': expression, 'var_type': var_type})
 

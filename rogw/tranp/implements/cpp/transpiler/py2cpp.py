@@ -1264,10 +1264,10 @@ class Py2Cpp(ITranspiler):
 	def on_lambda(self, node: defs.Lambda, symbols: str, expression: str) -> str:
 		expression_raw = self.reflections.type_of(node.expression)
 		var_type = self.to_accessible_name(expression_raw)
-		params: dict[str, str] = {}
+		params: list[str] = []
 		for index, param in enumerate(node.symbols):
 			param_raw = self.reflections.type_of(param)
-			params[symbols[index]] = self.to_accessible_name(param_raw)
+			params.append(f'{symbols[index]} {self.to_accessible_name(param_raw)}')
 
 		return self.view.render(node.classification, vars={'params': params, 'expression': expression, 'var_type': var_type})
 

@@ -694,8 +694,8 @@ class ProceduralResolver:
 	def on_spread(self, node: defs.Spread, expression: IReflection) -> IReflection:
 		return expression.to(node, expression.attrs[0])
 
-	def on_lambda(self, node: defs.Lambda, params: list[IReflection], expression: IReflection) -> IReflection:
-		return self.reflections.from_standard(Callable).stack(node).extends(*params, expression)
+	def on_lambda(self, node: defs.Lambda, symbols: list[IReflection], expression: IReflection) -> IReflection:
+		return self.reflections.from_standard(Callable).stack(node).extends(*symbols, expression)
 
 	# Terminal
 

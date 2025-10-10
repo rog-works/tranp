@@ -299,9 +299,10 @@ class TemplateManipulator:
 			if actual_path not in actual_props:
 				actual_index += 1
 				schema_index += 1
-				# XXX 未到達時は配列外までインデックスは進まない見込み
-				actual_path = DSN.join(actual_path, schema_elems[actual_index])
-				schema_path = DSN.join(schema_path, schema_elems[schema_index])
+				if schema_index < len(schema_elems):
+					actual_path = DSN.join(actual_path, schema_elems[actual_index])
+					schema_path = DSN.join(schema_path, schema_elems[schema_index])
+
 				continue
 
 			# スキップ(Union/スキーマ)
@@ -317,17 +318,16 @@ class TemplateManipulator:
 			# 検出成功(スキーマより実体を優先)
 			if actual_props[actual_path].types.is_a(defs.TemplateClass):
 				return actual_path
-
 			# 検出成功
-			if schema_props[schema_path].types.is_a(defs.TemplateClass):
+			elif schema_props[schema_path].types.is_a(defs.TemplateClass):
 				return actual_path
-
 			# スキップ(実体とスキーマが同一、または継承関係)
-			actual_index += 1
-			schema_index += 1
-			if schema_index < len(schema_elems):
-				actual_path = DSN.join(actual_path, schema_elems[actual_index])
-				schema_path = DSN.join(schema_path, schema_elems[schema_index])
+			else:
+				actual_index += 1
+				schema_index += 1
+				if schema_index < len(schema_elems):
+					actual_path = DSN.join(actual_path, schema_elems[actual_index])
+					schema_path = DSN.join(schema_path, schema_elems[schema_index])
 
 		return ''
 

@@ -592,7 +592,7 @@ class DictComp(Comprehension):
 
 
 @Meta.embed(Node, accept_tags('lambdadef'))
-class Lambda(Node, IDomain, IScope, INamespace):
+class Lambda(Node, IDeclaration, IDomain, IScope, INamespace):
 	@property
 	@override
 	def domain_name(self) -> str:
@@ -600,8 +600,9 @@ class Lambda(Node, IDomain, IScope, INamespace):
 		return ModuleDSN.identify(self.classification, self.id)
 
 	@property
+	@implements
 	@Meta.embed(Node, expandable)
-	def params(self) -> list[Declable]:
+	def symbols(self) -> list[Declable]:
 		node = self._at(0)
 		if node.is_a(Empty):
 			return []
@@ -615,7 +616,7 @@ class Lambda(Node, IDomain, IScope, INamespace):
 
 	@property
 	def decl_vars(self) -> list[Declable]:
-		return self.params
+		return self.symbols
 
 
 class DeclableMatcher:

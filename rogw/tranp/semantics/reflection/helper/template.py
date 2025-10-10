@@ -279,48 +279,55 @@ class TemplateManipulator:
 		return updates
 
 	@classmethod
-	def _find_update_path(cls, schema_path: str, schema_props: SymbolMap, actual_props: SymbolMap) -> str:
+	def _find_update_path(cls, find_path: str, schema_props: SymbolMap, actual_props: SymbolMap) -> str:
 		"""スキーマと実行時型を突き合わせて解決対象のテンプレートのパスを抽出
 
 		Args:
-			schema_path: スキーマのパス
+			find_path: 対象のスキーマのパス
 			schema_props: シンボルのマップ表(スキーマ)
 			actual_props: シンボルのマップ表(実行時型)
 		Returns:
 			一致したパス
 		"""
-		schema_elems = DSN.elements(schema_path)
-		actual_path = ''
-		schema_path = ''
+		schema_elems = DSN.elements(find_path)
+		actual_path = schema_elems[0]
+		schema_path = schema_elems[0]
 		actual_index = 0
 		schema_index = 0
 		while schema_index < len(schema_elems):
-			actual_path = DSN.join(actual_path, schema_elems[actual_index])
-			schema_path = DSN.join(schema_path, schema_elems[schema_index])
+			# スキップ(データ未到達)
+			if actual_path not in actual_props:
+				actual_index += 1
+				schema_index += 1
+				# XXX 未到達時は配列外までインデックスは進まない見込み
+				actual_path = DSN.join(actual_path, schema_elems[actual_index])
+				schema_path = DSN.join(schema_path, schema_elems[schema_index])
+				continue
+
+			# スキップ(Union/スキーマ)
+			if schema_props[schema_path].impl(refs.Object).type_is(Union):
+				schema_index += 1
+				schema_path = DSN.join(schema_path, schema_elems[schema_index])
+
+			# スキップ(Union/実体)
+			if actual_props[actual_path].impl(refs.Object).type_is(Union):
+				actual_index += 1
+				actual_path = DSN.join(actual_path, schema_elems[actual_index])
+
+			# 検出成功(スキーマより実体を優先)
+			if actual_props[actual_path].types.is_a(defs.TemplateClass):
+				return actual_path
+
+			# 検出成功
+			if schema_props[schema_path].types.is_a(defs.TemplateClass):
+				return actual_path
+
+			# スキップ(実体とスキーマが同一、または継承関係)
 			actual_index += 1
 			schema_index += 1
-			# スキップ(データなし)
-			if actual_path not in actual_props:
-				...
-			# 検出成功(スキーマより実体のテンプレート型を優先)
-			elif actual_props[actual_path].types.is_a(defs.TemplateClass):
-				return actual_path
-			# 検出成功
-			elif schema_props[schema_path].types.is_a(defs.TemplateClass):
-				return schema_path
-			# 検証(Unionのサブクラスにテンプレート型が含まれるか)
-			# XXX Unionを1階層解除すると実行時型と同じ階層を参照すると言う前提。しかし、多重でUnionが重なると誤判定になるのでは？
-			elif schema_props[schema_path].impl(refs.Object).type_is(Union):
-				for attr in schema_props[schema_path].attrs:
-					if attr.types.is_a(defs.TemplateClass):
-						return schema_path
-
-				# 実行時型がUnion以外の場合は階層を1つスキップ
-				if not actual_props[actual_path].impl(refs.Object).type_is(Union):
-					schema_index += 1
-			# スキップ(実体とスキーマが同一、または継承関係)
-			else:
-				...
+			if schema_index < len(schema_elems):
+				actual_path = DSN.join(actual_path, schema_elems[actual_index])
+				schema_path = DSN.join(schema_path, schema_elems[schema_index])
 
 		return ''
 

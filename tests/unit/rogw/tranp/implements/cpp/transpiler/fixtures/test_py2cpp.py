@@ -460,8 +460,8 @@ class ForCompound:
 
 	def closure(self) -> None:
 		def bind_ref() -> None: ...
-		@Embed.closure_bind(self)
-		def bind_copy() -> None: ...
+		def bind_copy() -> None:
+			self.closure()
 
 
 class ForClassExpose:

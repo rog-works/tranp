@@ -1,6 +1,1 @@
-{%- set deco_binds = decorator_query(decorators).any('Embed.closure_bind') -%}
-{%- if deco_binds -%}
-auto {{ symbol }} = [{{ deco_binds[0].join_args }}]({% include('function/_definition_params.j2') %}) mutable -> {{ return_type }} {% include('function/_block.j2') %};
-{%- else -%}
-auto {{ symbol }} = [&]({% include('function/_definition_params.j2') %}) -> {{ return_type }} {% include('function/_block.j2') %};
-{%- endif -%}
+auto {{ symbol }} = [{{ binds | join(', ') }}]({% include('function/_definition_params.j2') %}){% if binds %} mutable{% endif %} -> {{ return_type }} {% include('function/_block.j2') %};

@@ -8,8 +8,8 @@ from rogw.tranp.syntax.node.accessible import ClassOperations
 from rogw.tranp.syntax.node.behavior import IDomain, INamespace, IScope
 from rogw.tranp.syntax.node.definition.accessible import PythonClassOperations, to_accessor
 from rogw.tranp.syntax.node.definition.element import Decorator, Parameter
-from rogw.tranp.syntax.node.definition.literal import Boolean, DocString, Literal, String
-from rogw.tranp.syntax.node.definition.primary import DeclClassVar, DeclLocalVar, DeclThisVarForward, Declable, ForIn, GenericType, InheritArgument, DeclThisParam, DeclThisVar, Type, TypesName, VarOfType
+from rogw.tranp.syntax.node.definition.literal import Boolean, DocString, String
+from rogw.tranp.syntax.node.definition.primary import DeclClassVar, DeclLocalVar, DeclThisVarForward, Declable, ForIn, GenericType, InheritArgument, DeclThisParam, DeclThisVar, PluckVars, Type, TypesName, Var, VarOfType
 from rogw.tranp.syntax.node.definition.statement_simple import AnnoAssign, MoveAssign
 from rogw.tranp.syntax.node.definition.terminal import Empty
 from rogw.tranp.syntax.node.embed import Meta, accept_tags, expandable
@@ -520,6 +520,9 @@ class Closure(Function):
 		expect_function_def_at = max(0, len(elems) - 3)
 		in_decl_function = actual_function_def_at == expect_function_def_at
 		return in_decl_function
+
+	def ref_vars(self) -> list[Var]:
+		return PluckVars.ref_vars(self)
 
 
 @Meta.embed(Node, accept_tags('class_def'))

@@ -1,7 +1,7 @@
-{%- if expression and var_type != 'void' -%}
-[{{ binds | join(', ') }}]({{ params | join(', ') }}){% if binds %} mutable{% endif %} -> {{ var_type }} { return {{ expression }}; }
-{%- elif expression and var_type == 'void' -%}
-[{{ binds | join(', ') }}]({{ params | join(', ') }}){% if binds %} mutable{% endif %} -> {{ var_type }} { {{ expression }}; }
+{%- if expression and return_type != 'void' -%}
+[{{ binds | join(', ') }}]({{ params | join(', ') }}){% if binds %} mutable{% endif %} -> {{ return_type }} { return {{ expression }}; }
+{%- elif expression and return_type == 'void' -%}
+[{{ binds | join(', ') }}]({{ params | join(', ') }}){% if binds %} mutable{% endif %} -> {{ return_type }} { {{ expression }}; }
 {%- else -%}
-[{{ binds | join(', ') }}]({{ params | join(', ') }}){% if binds %} mutable{% endif %} -> {{ var_type }} {}
+[{{ binds | join(', ') }}]({{ params | join(', ') }}){% if binds %} mutable{% endif %} -> {{ return_type }} {}
 {%- endif -%}

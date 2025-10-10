@@ -398,7 +398,10 @@ class Py2Cpp(ITranspiler):
 
 	def on_closure(self, node: defs.Closure, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'statements': statements}
-		return self.view.render(f'function/{node.classification}', vars=function_vars)
+		# @see on_lambda
+		vars = [var for var in node.ref_vars() if not self.reflections.type_of(var).impl(refs.Object).type_is(type)]
+		binds = [var.domain_name if not isinstance(var, defs.ThisRef) else self.view.render('this_ref') for var in vars]
+		return self.view.render(f'function/{node.classification}', vars={**function_vars, 'binds': binds})
 
 	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], template_types: list[str], comment: str, statements: list[str]) -> str:
 		if len(inherits) == 1 and inherits[0] == Protocol.__name__:
@@ -1262,18 +1265,17 @@ class Py2Cpp(ITranspiler):
 		raise NotSupportedError(f'Denied spread expression. node: {node}')
 
 	def on_lambda(self, node: defs.Lambda, symbols: str, expression: str) -> str:
-		expression_raw = self.reflections.type_of(node.expression)
-		var_type = self.to_accessible_name(expression_raw)
 		params: list[str] = []
 		for index, param in enumerate(node.symbols):
 			param_raw = self.reflections.type_of(param)
 			params.append(f'{self.to_accessible_name(param_raw)} {symbols[index]}')
 
-		# クラス参照はキャプチャー不要なので除外
-		# XXX キャプチャー変数がthis_refの場合はテンプレート経由でthisに変換
+		expression_raw = self.reflections.type_of(node.expression)
+		return_type = self.to_accessible_name(expression_raw)
+		# @see on_closure
 		vars = [var for var in node.ref_vars() if not self.reflections.type_of(var).impl(refs.Object).type_is(type)]
 		binds = [var.domain_name if not isinstance(var, defs.ThisRef) else self.view.render('this_ref') for var in vars]
-		return self.view.render(node.classification, vars={'params': params, 'expression': expression, 'var_type': var_type, 'binds': binds})
+		return self.view.render(node.classification, vars={'params': params, 'expression': expression, 'return_type': return_type, 'binds': binds})
 
 	# Terminal
 

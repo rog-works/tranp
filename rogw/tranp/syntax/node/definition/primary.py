@@ -620,9 +620,23 @@ class Lambda(Node, IDeclaration, IDomain, IScope, INamespace):
 		return self.symbols
 
 	def ref_vars(self) -> list[Var]:
-		"""内部で参照している変数リストを抽出"""
+		return PluckVars.ref_vars(self)
+
+
+class PluckVars:
+	"""変数抽出ヘルパー"""
+
+	@classmethod
+	def ref_vars(cls, via: Node) -> list[Var]:
+		"""指定のノード配下で参照している変数リストを抽出
+
+		Args:
+			via: ノード
+		Returns:
+			変数リスト
+		"""
 		nodes: list[Var] = []
-		for node in self.procedural():
+		for node in via.procedural():
 			if not isinstance(node, Var):
 				continue
 

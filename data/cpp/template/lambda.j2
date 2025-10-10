@@ -1,1 +1,7 @@
-[&]({{ params | join(', ') }}) -> {{ var_type }}{% if expression %} { return {{ expression }}; }{% else %} {}{% endif %}
+{%- if expression and var_type != 'void' -%}
+[&]({{ params | join(', ') }}) -> {{ var_type }} { return {{ expression }}; }
+{%- elif expression and var_type == 'void' -%}
+[&]({{ params | join(', ') }}) -> {{ var_type }} { {{ expression }}; }
+{%- else -%}
+[&]({{ params | join(', ') }}) -> {{ var_type }} {}
+{%- endif -%}

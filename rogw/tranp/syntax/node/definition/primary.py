@@ -620,7 +620,8 @@ class Lambda(Node, IDeclaration, IDomain, IScope, INamespace):
 		return self.symbols
 
 	def ref_vars(self) -> list[Var]:
-		return PluckVars.ref_vars(self)
+		ignore_names = [var.symbol.domain_name for var in self.decl_vars]
+		return [var for var in PluckVars.ref_vars(self) if var.domain_name not in ignore_names]
 
 
 class PluckVars:

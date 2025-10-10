@@ -726,7 +726,7 @@ class DeclableMatcher:
 		"""
 		via_full_path = EntryPath(via.full_path)
 		tokens = via.tokens
-		in_decl_param = via_full_path.parent_tag in ['typedparam']
+		in_decl_param = via_full_path.parent_tag == 'typedparam'
 		is_class_or_this = tokens in ['cls', 'self']
 		return in_decl_param and not is_class_or_this
 

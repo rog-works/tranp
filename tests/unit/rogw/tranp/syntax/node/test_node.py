@@ -147,6 +147,8 @@ class TestNode(TestCase):
 		('[a for a in []]', 'file_input.list_comp.comprehension.comp_fors.comp_for.for_namelist.name', defs.DeclLocalVar, 'a', '__main__#list_comp@1.a'),
 		('{a: b for a, b in {}}', 'file_input.dict_comp.comprehension.comp_fors.comp_for.for_namelist.name[0]', defs.DeclLocalVar, 'a', '__main__#dict_comp@1.a'),
 		('{a: b for a, b in {}}', 'file_input.dict_comp.comprehension.comp_fors.comp_for.for_namelist.name[1]', defs.DeclLocalVar, 'b', '__main__#dict_comp@1.b'),
+		('lambda a: None', 'file_input.lambdadef.lambdaparams.name', defs.DeclLocalVar, 'a', '__main__#lambda@1.a'),
+		('lambda a, b: None', 'file_input.lambdadef.lambdaparams.name[1]', defs.DeclLocalVar, 'b', '__main__#lambda@1.b'),
 		# Primary - Name
 		('class A: ...', 'file_input.class_def.class_def_raw.name', defs.TypesName, 'A', '__main__#A.A'),
 		('B: TypeAlias = A', 'file_input.class_assign.assign_namelist.var', defs.AltTypesName, 'B', '__main__#B.B'),
@@ -193,6 +195,8 @@ class TestNode(TestCase):
 		# Primary - Generator
 		('[a for a in []]', 'file_input.list_comp', defs.ListComp, 'list_comp@1', '__main__#list_comp@1'),
 		('{a: b for a, b in {}}', 'file_input.dict_comp', defs.DictComp, 'dict_comp@1', '__main__#dict_comp@1'),
+		# Primary - Lambda
+		('lambda: 1', 'file_input.lambdadef', defs.Lambda, 'lambda@1', '__main__#lambda@1'),
 		# Literal
 		('1', 'file_input.number', defs.Integer, 'int@1', '__main__#int@1'),
 		('1.0', 'file_input.number', defs.Float, 'float@1', '__main__#float@1'),
@@ -204,8 +208,6 @@ class TestNode(TestCase):
 		('{1: 2}', 'file_input.dict', defs.Dict, 'dict@1', '__main__#dict@1'),
 		('(1,)', 'file_input.tuple', defs.Tuple, 'tuple@1', '__main__#tuple@1'),
 		('None', 'file_input.const_none', defs.Null, 'None', '__main__#None'),
-		# Expression
-		('lambda: 1', 'file_input.lambdadef', defs.Lambda, 'lambda@1', '__main__#lambda@1'),
 	])
 	def test_domain(self, source: str, full_path: str, types: type[T_Node], expected_name: bool, expected_fully: str) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path)
@@ -301,10 +303,12 @@ class TestNode(TestCase):
 		('[a for a in []]', 'file_input.list_comp.comprehension.comp_fors.comp_for.for_namelist.name', defs.DeclLocalVar, '__main__#list_comp@1', '__main__#list_comp@1'),
 		('{a: b for a, b in {}}', 'file_input.dict_comp', defs.DictComp, '__main__', '__main__'),
 		('{a: b for a, b in {}}', 'file_input.dict_comp.comprehension.comp_fors.comp_for.for_namelist.name[0]', defs.DeclLocalVar, '__main__#dict_comp@1', '__main__#dict_comp@1'),
+		# Primary - Lambda
+		('lambda: 1', 'file_input.lambdadef', defs.Lambda, '__main__', '__main__'),
+		('lambda a: None', 'file_input.lambdadef.lambdaparams.name', defs.DeclLocalVar, '__main__#lambda@1', '__main__#lambda@1'),
+		('lambda a, b: None', 'file_input.lambdadef.lambdaparams.name[1]', defs.DeclLocalVar, '__main__#lambda@1', '__main__#lambda@1'),
 		# Literal
 		('1', 'file_input.number', defs.Integer, '__main__', '__main__'),
-		# Expression
-		('lambda: 1', 'file_input.lambdadef', defs.Lambda, '__main__', '__main__'),
 	])
 	def test_scope_and_namespace(self, source: str, full_path: str, types: type[Node], expected_scope: str, expected_namespace: str) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(types)

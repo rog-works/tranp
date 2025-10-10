@@ -778,6 +778,8 @@ class TestDefinition(TestCase):
 		('for i in range(1): ...', 'file_input.for_stmt.for_namelist.name', defs.DeclLocalVar),
 		('try: ...\nexcept Exception as e: ...', 'file_input.try_stmt.except_clauses.except_clause.name', defs.DeclLocalVar),
 		('class B(A):\n\ta = 0', 'file_input.class_def.class_def_raw.block.assign.assign_namelist.var', defs.DeclLocalVar),  # XXX MoveAssignはクラス変数の宣言にはならない設計
+		('lambda a: None', 'file_input.lambdadef.lambdaparams.name', defs.DeclLocalVar),
+		('lambda a, b: None', 'file_input.lambdadef.lambdaparams.name[1]', defs.DeclLocalVar),
 		# Class/This
 		('class B(A):\n\tb: ClassVar[int] = a', 'file_input.class_def.class_def_raw.block.class_var_assign.assign_namelist.var', defs.DeclClassVar),
 		('class B(A):\n\tb: int', 'file_input.class_def.class_def_raw.block.anno_assign.assign_namelist.var', defs.DeclThisVarForward),
@@ -1061,6 +1063,16 @@ class TestDefinition(TestCase):
 	def test_elipsis(self, source: str, full_path: str) -> None:
 		self.assertEqual(defs.Elipsis, type(self.fixture.custom_nodes_by(source, full_path)))
 
+	@data_provider([
+		('lambda: 1', 'file_input.lambdadef', {'symbols': [], 'expression': defs.Integer}),
+		('lambda a: None', 'file_input.lambdadef', {'symbols': [defs.DeclLocalVar], 'expression': defs.Null}),
+		('lambda a, b: None', 'file_input.lambdadef', {'symbols': [defs.DeclLocalVar, defs.DeclLocalVar], 'expression': defs.Null}),
+	])
+	def test_lambda(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Lambda)
+		self.assertEqual([type(symbol) for symbol in node.symbols], expected['symbols'])
+		self.assertEqual(type(node.expression), expected['expression'])
+
 	# Operator
 
 	@data_provider([
@@ -1201,12 +1213,3 @@ class TestDefinition(TestCase):
 	])
 	def test_null(self, source: str, full_path: str) -> None:
 		self.assertEqual(defs.Null, type(self.fixture.custom_nodes_by(source, full_path)))
-
-	# Expression
-
-	@data_provider([
-		('lambda: 1', 'file_input.lambdadef', {'expression': defs.Integer}),
-	])
-	def test_lambda(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
-		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Lambda)
-		self.assertEqual(type(node.expression), expected['expression'])

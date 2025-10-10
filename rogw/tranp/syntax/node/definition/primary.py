@@ -726,7 +726,7 @@ class DeclableMatcher:
 		"""
 		via_full_path = EntryPath(via.full_path)
 		tokens = via.tokens
-		in_decl_param = via_full_path.parent_tag == 'typedparam'
+		in_decl_param = via_full_path.parent_tag in ['typedparam']
 		is_class_or_this = tokens in ['cls', 'self']
 		return in_decl_param and not is_class_or_this
 
@@ -739,9 +739,9 @@ class DeclableMatcher:
 		Returns:
 			True = 対象
 		"""
-		# For/Catch/WithEntry/Comprehension
+		# For/Catch/WithEntry/Comprehension/Lambda
 		via_full_path = EntryPath(via.full_path)
-		is_identified_by_name_only = via_full_path.parent_tag in ['for_namelist', 'except_clause', 'with_item']
+		is_identified_by_name_only = via_full_path.parent_tag in ['for_namelist', 'except_clause', 'with_item', 'lambdaparams']
 		if is_identified_by_name_only and via_full_path.last_tag == 'name':
 			return True
 

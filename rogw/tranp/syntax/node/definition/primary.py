@@ -615,8 +615,24 @@ class Lambda(Node, IDeclaration, IDomain, IScope, INamespace):
 		return self._at(1)
 
 	@property
+	@implements
 	def decl_vars(self) -> list[Declable]:
 		return self.symbols
+
+	def ref_vars(self) -> list[Var]:
+		"""内部で参照している変数リストを抽出"""
+		nodes: list[Var] = []
+		for node in self.procedural():
+			if not isinstance(node, Var):
+				continue
+
+			parent = node.parent
+			if isinstance(parent, Relay) and parent.prop == node:
+				continue
+
+			nodes.append(node)
+
+		return nodes
 
 
 class DeclableMatcher:

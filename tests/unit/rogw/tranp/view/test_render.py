@@ -1342,9 +1342,9 @@ class TestRenderer(TestCase):
 		self.assertRender(f'indexer/{spec}', vars, expected)
 
 	@data_provider([
-		({'params': [], 'expression': '1', 'var_type': 'int'}, '[&]() -> int { return 1; }'),
-		({'params': ['int a'], 'expression': '', 'var_type': 'void'}, '[&](int a) -> void {}'),
-		({'params': ['int a', 'bool b'], 'expression': 'ok()', 'var_type': 'void'}, '[&](int a, bool b) -> void { ok(); }'),
+		({'params': [], 'expression': '1', 'var_type': 'int', 'binds': []}, '[]() -> int { return 1; }'),
+		({'params': ['int a'], 'expression': '', 'var_type': 'void', 'binds': []}, '[](int a) -> void {}'),
+		({'params': ['int a', 'bool b'], 'expression': 'this->ok()', 'var_type': 'void', 'binds': ['this']}, '[this](int a, bool b) mutable -> void { this->ok(); }'),
 	])
 	def test_render_lambda(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('lambda', vars, expected)

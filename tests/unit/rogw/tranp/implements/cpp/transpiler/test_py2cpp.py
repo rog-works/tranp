@@ -532,14 +532,14 @@ class TestPy2Cpp(TestCase):
 		('ForComp.dict_comp_from_dict', 'function_def_raw.block.dict_comp[10]', defs.DictComp, BlockExpects.dict_comp(proj_key='vp', proj_value='vp', proj_key_type='int*', proj_value_type='int*', iterates='dpp', proj_symbols='[_, vp]')),
 		('ForComp.dict_comp_from_dict', 'function_def_raw.block.dict_comp[11]', defs.DictComp, BlockExpects.dict_comp(proj_key='kp', proj_value='vp', proj_key_type='int*', proj_value_type='int*', iterates='dpp', proj_symbols='[kp, vp]')),
 
-		('ForLambda.params', 'function_def_raw.block.anno_assign', defs.AnnoAssign, 'std::function<int(std::string)> func = [&](std::string s) -> int { return 1; };'),
-		('ForLambda.params', 'function_def_raw.block.funccall[1]', defs.FuncCall, '([&](int a) -> void { this->expression(); })(1);'),
-		('ForLambda.params', 'function_def_raw.block.funccall[2]', defs.FuncCall, 'this->params([&](int* np, bool b) -> std::string { return ""; });'),
+		('ForLambda.params', 'function_def_raw.block.anno_assign', defs.AnnoAssign, 'std::function<int(std::string)> func = [](std::string s) -> int { return 1; };'),
+		('ForLambda.params', 'function_def_raw.block.funccall[1]', defs.FuncCall, '([this](int a) mutable -> void { this->expression(); })(1);'),
+		('ForLambda.params', 'function_def_raw.block.funccall[2]', defs.FuncCall, 'this->params([](int* np, bool b) -> std::string { return ""; });'),
 
-		('ForLambda.expression', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'std::function<int()> f = [&]() -> int { return 1; };'),
+		('ForLambda.expression', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'std::function<int()> f = []() -> int { return 1; };'),
 		('ForLambda.expression', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'int n = f();'),
-		('ForLambda.expression', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'std::string s = ([&]() -> std::string { return "a"; })();'),
-		('ForLambda.expression', 'function_def_raw.block.if_stmt', defs.If, 'if (([&]() -> bool { return true; })()) {\n\n}'),
+		('ForLambda.expression', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'std::string s = ([]() -> std::string { return "a"; })();'),
+		('ForLambda.expression', 'function_def_raw.block.if_stmt', defs.If, 'if (([]() -> bool { return true; })()) {\n\n}'),
 	])
 	def test_exec(self, local_path: str, offset_path: str, expected_type: type[Node], expected: str) -> None:
 		# local_pathが空の場合はEntrypointを基点ノードとする

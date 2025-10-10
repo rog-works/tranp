@@ -1342,7 +1342,9 @@ class TestRenderer(TestCase):
 		self.assertRender(f'indexer/{spec}', vars, expected)
 
 	@data_provider([
-		({'expression': '1', 'var_type': 'int'}, '[&]() -> int { return 1; }'),
+		({'params': [], 'expression': '1', 'var_type': 'int'}, '[&]() -> int { return 1; }'),
+		({'params': ['int a'], 'expression': '', 'var_type': 'void'}, '[&](int a) -> void {}'),
+		({'params': ['int a', 'bool b'], 'expression': '', 'var_type': 'void'}, '[&](int a, bool b) -> void {}'),
 	])
 	def test_render_lambda(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('lambda', vars, expected)

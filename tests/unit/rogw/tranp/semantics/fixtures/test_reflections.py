@@ -454,6 +454,7 @@ class ForLambda:
 		func: Callable[[str], int] = lambda a: 1
 		(lambda a: None)(1)
 		self.params(lambda b, n: '')
+		ret = (lambda a: a)(1)
 
 	def expression(self) -> None:
 		lambda: 'a'

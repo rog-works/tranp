@@ -1344,12 +1344,12 @@ class TestRenderer(TestCase):
 		self.assertRender(f'indexer/{spec}', vars, expected)
 
 	@data_provider([
-		({'params': [], 'expression': '1', 'return_type': 'int', 'binds': []}, '[]() -> int { return 1; }'),
-		({'params': ['int a'], 'expression': '', 'return_type': 'void', 'binds': []}, '[](int a) -> void {}'),
-		({'params': ['int a', 'bool b'], 'expression': 'this->ok()', 'return_type': 'void', 'binds': ['this']}, '[this](int a, bool b) mutable -> void { this->ok(); }'),
+		({'params': {}, 'expression': '1', 'return_type': 'int', 'binds': []}, '[]() -> int { return 1; }'),
+		({'params': {'a': 'int'}, 'expression': '', 'return_type': 'void', 'binds': []}, '[](int a) -> void {}'),
+		({'params': {'a': 'int', 's': 'std::string'}, 'expression': 'this->ok()', 'return_type': 'void', 'binds': ['this']}, '[this](int a, const std::string& s) mutable -> void { this->ok(); }'),
 	])
 	def test_render_lambda(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('lambda', vars, expected)
+		self.assertRender('lambda/default', vars, expected)
 
 	@data_provider([
 		('dict', {'items': ['{hoge, 1}','{fuga, 2}']}, '{\n\t{hoge, 1},\n\t{fuga, 2},\n}'),

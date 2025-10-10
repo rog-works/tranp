@@ -193,6 +193,10 @@ class TestReflections(TestCase):
 		('ForTemplateClass.G3.v_ref.g2_v', '', _mod('__main__', 'ForTemplateClass.G1'), 'G1<int>'),
 		('ForTemplateClass.G3.v_ref.g3_v', '', _mod('classes', 'int'), 'int'),
 
+		('ForLambda.params', 'function_def_raw.block.anno_assign', _mod('collections', 'Callable'), 'Callable<str, int>'),
+		('ForLambda.params', 'function_def_raw.block.funccall[1].group_expr.lambdadef', _mod('collections', 'Callable'), 'Callable<int, None>'),
+		('ForLambda.params', 'function_def_raw.block.funccall[2].arguments.argvalue.lambdadef', _mod('collections', 'Callable'), 'Callable<bool, int, str>'),
+
 		('ForLambda.expression', 'function_def_raw.block.lambdadef', _mod('collections', 'Callable'), 'Callable<str>'),
 		('ForLambda.expression', 'function_def_raw.block.assign[1]', _mod('collections', 'Callable'), 'Callable<bool>'),
 		('ForLambda.expression', 'function_def_raw.block.assign[2]', _mod('classes', 'bool'), 'bool'),

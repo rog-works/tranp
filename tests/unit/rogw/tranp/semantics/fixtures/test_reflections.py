@@ -450,6 +450,11 @@ class ForTemplateClass:
 
 
 class ForLambda:
+	def params(self, f: Callable[[bool, int], str]) -> None:
+		func: Callable[[str], int] = lambda a: 1
+		(lambda a: None)(1)
+		self.params(lambda b, n: '')
+
 	def expression(self) -> None:
 		lambda: 'a'
 		f = lambda: False

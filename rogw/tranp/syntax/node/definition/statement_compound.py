@@ -516,10 +516,9 @@ class Closure(Function):
 	@override
 	def match_feature(cls, via: Node) -> bool:
 		elems = via._full_path.de_identify().elements
-		actual_function_def_at = last_index_of(elems, 'function_def_raw')
-		expect_function_def_at = max(0, len(elems) - 3)
-		in_decl_function = actual_function_def_at == expect_function_def_at
-		return in_decl_function
+		is_function = 'class_def_raw' not in elems and 'function_def_raw' not in elems
+		is_method = not is_function and elems[-3] == 'class_def_raw'
+		return not is_function and not is_method
 
 	def ref_vars(self) -> list[Var]:
 		ignore_names = [var.symbol.domain_name for var in self.decl_vars]

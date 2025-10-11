@@ -29,6 +29,7 @@ def _ast(before: str) -> str:
 		'Class.class_method': f'{_Class}.class_def_raw.block.function_def[2]',
 		'Class.__init__': f'{_Class}.class_def_raw.block.function_def[3]',
 		'Class.__init__.method_in_closure': f'{_Class}.class_def_raw.block.function_def[3].function_def_raw.block.function_def',
+		'Class.__init__.method_in_closure.for_in_closure': f'{_Class}.class_def_raw.block.function_def[3].function_def_raw.block.function_def.function_def_raw.block.for_stmt.block.function_def',
 		'Class.property_method': f'{_Class}.class_def_raw.block.function_def[4]',
 		'Class.public_method': f'{_Class}.class_def_raw.block.function_def[5]',
 		'Class._protected_method': f'{_Class}.class_def_raw.block.function_def[6]',
@@ -322,6 +323,16 @@ class TestDefinition(TestCase):
 			'decl_vars': [
 				{'symbol': 'i', 'decl_type': defs.DeclLocalVar},
 			],
+			'actual_symbol': None,
+		}),
+		(_ast('Class.__init__.method_in_closure.for_in_closure'), {
+			'type': defs.Closure,
+			'symbol': 'for_in_closure',
+			'accessor': 'public',
+			'decorators': [],
+			'parameters': [],
+			'return': defs.NullType,
+			'decl_vars': [],
 			'actual_symbol': None,
 		}),
 		(_ast('Class.property_method'), {

@@ -82,6 +82,7 @@ def factories() -> tuple[list[RendererHelperFactory], list[RendererHelperFactory
 	return (
 		 [
 			break_last_block,
+			break_separator,
 			decorator_query,
 			env_get,
 			i18n,

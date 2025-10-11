@@ -78,7 +78,7 @@ class TestBlockParser(TestCase):
 		('a[b(c, d)[0]].e[1, 2]', '[]', ('a[b(c, d)[0]].e', '1, 2')),
 		('a().b(1, 2[3]).c({});', '()', ('a().b(1, 2[3]).c', '{}')),
 	])
-	def test_break_block(self, text: str, delimiter: str, expected: tuple[str, str]) -> None:
+	def test_break_last_block(self, text: str, delimiter: str, expected: tuple[str, str]) -> None:
 		actual = BlockParser.break_last_block(text, delimiter)
 		self.assertEqual(actual, expected)
 
@@ -92,6 +92,7 @@ class TestBlockParser(TestCase):
 		('std::map<std::string, int> dsn', ' ', ['std::map<std::string, int>', 'dsn']),
 		('std::map<std::string, int> dsn = {}', '=', ['std::map<std::string, int> dsn', '{}']),
 		('f(a->b().c()), d', ',', ['f(a->b().c())', 'd']),
+		('"a": b, "c": {"d": e, "f": g}', ',', ['"a": b', '"c": {"d": e, "f": g}']),
 	])
 	def test_break_separator(self, text: str, delimiter: str, expected: list[str]) -> None:
 		actual = BlockParser.break_separator(text, delimiter)

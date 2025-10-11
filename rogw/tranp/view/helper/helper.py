@@ -17,6 +17,11 @@ def break_last_block(setting: RendererSetting) -> Callable[[str, str], tuple[str
 	return lambda string, brackets: BlockParser.break_last_block(string, brackets)
 
 
+def break_separator(setting: RendererSetting) -> Callable[[str, str], list[str]]:
+	"""Note: @see rogw.tranp.view.helper.block.BlockParser"""
+	return lambda string, delimiter: BlockParser.break_separator(string, delimiter)
+
+
 def decorator_query(setting: RendererSetting) -> Callable[[list[str]], DecoratorQuery]:
 	"""Note: @see rogw.tranp.view.helper.decorator.DecoratorQuery"""
 	return lambda decorators: DecoratorQuery.parse(decorators)

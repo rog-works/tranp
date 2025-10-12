@@ -55,6 +55,7 @@ class Py2Cpp(ITranspiler):
 		self.module_meta_factory = module_meta_factory
 		self.include_dirs = self.__make_include_dirs(options)
 		self.__procedure = self.__make_procedure(options)
+		# XXX トランスパイラーがステートフルになってしまう上、処理中のモジュールとの結合が曖昧
 		self.__stack_on_depends: list[list[str]] = []
 		emitter.on('depends', self.__on_view_depends)
 
@@ -65,7 +66,7 @@ class Py2Cpp(ITranspiler):
 			path: 依存パス
 		Note:
 			```
-			### 期待値
+			### 依存パスの期待値
 			* "path/to/name.h"
 			* <functional>
 			```

@@ -86,6 +86,7 @@ def factories() -> tuple[list[RendererHelperFactory], list[RendererHelperFactory
 	"""Returns: (ヘルパー一覧, フィルター一覧)"""
 	return (
 		 [
+			emit,
 			break_last_block,
 			break_separator,
 			decorator_query,

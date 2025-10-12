@@ -12,6 +12,11 @@ from rogw.tranp.view.helper.parameter import ParameterHelper
 from rogw.tranp.view.render import RendererHelperFactory, RendererSetting
 
 
+def emit(setting: RendererSetting) -> Callable[[str, dict[str, Any]], None]:
+	"""Note: @see rogw.tranp.lang.eventemitter.EventEmitter"""
+	return lambda action, event: setting.emitter.emit(action, **event)
+
+
 def break_last_block(setting: RendererSetting) -> Callable[[str, str], tuple[str, str]]:
 	"""Note: @see rogw.tranp.view.helper.block.BlockParser"""
 	return lambda string, brackets: BlockParser.break_last_block(string, brackets)

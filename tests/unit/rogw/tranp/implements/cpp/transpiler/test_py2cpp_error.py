@@ -8,20 +8,21 @@ from rogw.tranp.i18n.i18n import I18n
 from rogw.tranp.implements.cpp.providers.semantics import plugin_provider_cpp
 from rogw.tranp.implements.cpp.providers.view import renderer_helper_provider_cpp
 from rogw.tranp.implements.cpp.transpiler.py2cpp import Py2Cpp
+from rogw.tranp.lang.eventemitter import EventEmitter
 from rogw.tranp.lang.module import to_fullyname
 from rogw.tranp.semantics.errors import NotSupportedError, ProcessingError
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.test.helper import data_provider
 from rogw.tranp.transpiler.types import TranspilerOptions
-from rogw.tranp.view.render import Renderer, RendererHelperProvider, RendererSetting
+from rogw.tranp.view.render import Renderer, RendererEmitter, RendererHelperProvider, RendererSetting
 from tests.test.fixture import Fixture
 
 
-def make_renderer_setting(i18n: I18n) -> RendererSetting:
+def make_renderer_setting(i18n: I18n, emitter: RendererEmitter) -> RendererSetting:
 	template_dir = [os.path.join(tranp_dir(), 'data/cpp/template')]
 	env = {'immutable_param_types': ['std::string', 'std::vector', 'std::map', 'std::function']}
-	return RendererSetting(template_dir, i18n.t, env)
+	return RendererSetting(template_dir, i18n.t, emitter, env)
 
 
 class TestPy2CppError(TestCase):
@@ -30,6 +31,7 @@ class TestPy2CppError(TestCase):
 		to_fullyname(Py2Cpp): Py2Cpp,
 		to_fullyname(PluginProvider): plugin_provider_cpp,
 		to_fullyname(Renderer): Renderer,
+		to_fullyname(RendererEmitter): EventEmitter,
 		to_fullyname(RendererHelperProvider): renderer_helper_provider_cpp,
 		to_fullyname(RendererSetting): make_renderer_setting,
 		to_fullyname(TranspilerOptions): lambda: TranspilerOptions(verbose=False, env={}),

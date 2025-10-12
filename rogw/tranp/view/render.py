@@ -2,7 +2,11 @@ from typing import Any, Callable, Literal, NamedTuple, Protocol, TypeAlias
 
 from jinja2 import Environment, FileSystemLoader
 
+from rogw.tranp.lang.eventemitter import EventEmitter
 from rogw.tranp.lang.translator import Translator
+
+
+RendererEmitter: TypeAlias = EventEmitter
 
 
 class RendererSetting(NamedTuple):
@@ -11,10 +15,12 @@ class RendererSetting(NamedTuple):
 	Attributes:
 		template_dirs: テンプレートファイルのディレクトリーリスト
 		translator: 翻訳関数
+		emitter: レンダー用イベントエミッター
 		env: 環境変数
 	"""
 	template_dirs: list[str]
 	translator: Translator
+	emitter: RendererEmitter
 	env: dict[str, Any]
 
 

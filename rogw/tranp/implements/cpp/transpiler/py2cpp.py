@@ -31,20 +31,21 @@ from rogw.tranp.syntax.node.definition.accessible import PythonClassOperations
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.transpiler.types import ITranspiler, TranspilerOptions
 from rogw.tranp.view.helper.block import BlockParser
-from rogw.tranp.view.render import Renderer
+from rogw.tranp.view.render import Renderer, RendererEmitter
 
 
 class Py2Cpp(ITranspiler):
 	"""Python -> C++のトランスパイラー"""
 
 	@injectable
-	def __init__(self, reflections: Reflections, render: Renderer, i18n: I18n, module_meta_factory: ModuleMetaFactory, options: TranspilerOptions) -> None:
+	def __init__(self, reflections: Reflections, render: Renderer, i18n: I18n, emitter: RendererEmitter, module_meta_factory: ModuleMetaFactory, options: TranspilerOptions) -> None:
 		"""インスタンスを生成
 
 		Args:
 			reflections: シンボルリゾルバー @inject
 			render: ソースレンダー @inject
 			i18n: 国際化対応モジュール @inject
+			emitter: レンダー用イベントエミッター @inject
 			module_meta_factory: モジュールのメタ情報ファクトリー @inject
 			options: 実行オプション @inject
 		"""
@@ -54,6 +55,19 @@ class Py2Cpp(ITranspiler):
 		self.module_meta_factory = module_meta_factory
 		self.include_dirs = self.__make_include_dirs(options)
 		self.__procedure = self.__make_procedure(options)
+		self.__add_depends: list[str] = []
+		emitter.on('depends', self.__on_view_depends)
+
+	def __on_view_depends(self, path: str) -> None:
+		"""ビュー由来の依存追加イベントを受信
+
+		Args:
+			path: 依存パス (期待値: 'path.to.module_path')
+		Raises:
+			AssetionError: 依存パスの書式が不正
+		"""
+		assert re.fullmatch(r'[\w\d.]+', path)
+		self.__add_depends.append(path)
 
 	def __make_include_dirs(self, options: TranspilerOptions) -> dict[str, str]:
 		"""インクルードディレクトリー一覧
@@ -284,7 +298,7 @@ class Py2Cpp(ITranspiler):
 
 	def on_entrypoint(self, node: defs.Entrypoint, statements: list[str]) -> str:
 		meta_header = MetaHeader(self.module_meta_factory(node.module_path), self.meta)
-		return self.view.render(node.classification, vars={'statements': statements, 'meta_header': meta_header.to_header_str(), 'module_path': node.module_path})
+		return self.view.render(node.classification, vars={'statements': statements, 'meta_header': meta_header.to_header_str(), 'module_path': node.module_path, 'depends': self.__add_depends})
 
 	# Statement - compound
 

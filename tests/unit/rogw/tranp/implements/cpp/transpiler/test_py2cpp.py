@@ -11,6 +11,7 @@ from rogw.tranp.implements.cpp.providers.view import renderer_helper_provider_cp
 from rogw.tranp.implements.cpp.providers.semantics import plugin_provider_cpp
 from rogw.tranp.implements.cpp.transpiler.py2cpp import Py2Cpp
 from rogw.tranp.file.loader import IDataLoader
+from rogw.tranp.lang.eventemitter import EventEmitter
 from rogw.tranp.lang.module import to_fullyname
 from rogw.tranp.lang.profile import profiler
 from rogw.tranp.semantics.reflections import Reflections
@@ -19,7 +20,7 @@ from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.test.helper import data_provider
 from rogw.tranp.transpiler.types import TranspilerOptions
-from rogw.tranp.view.render import Renderer, RendererHelperProvider, RendererSetting
+from rogw.tranp.view.render import Renderer, RendererEmitter, RendererHelperProvider, RendererSetting
 from tests.test.fixture import Fixture
 from tests.unit.rogw.tranp.implements.cpp.transpiler.fixtures.test_py2cpp_expect import BlockExpects
 
@@ -36,10 +37,10 @@ def fixture_translation_mapping(datums: IDataLoader) -> TranslationMapping:
 	return translation_mapping_cpp_example(datums).merge(fixture_translations)
 
 
-def make_renderer_setting(i18n: I18n) -> RendererSetting:
+def make_renderer_setting(i18n: I18n, emitter: RendererEmitter) -> RendererSetting:
 	template_dirs = [os.path.join(tranp_dir(), 'data/cpp/template')]
 	env = {'immutable_param_types': ['std::string', 'std::vector', 'std::map', 'std::function']}
-	return RendererSetting(template_dirs, i18n.t, env)
+	return RendererSetting(template_dirs, i18n.t, emitter, env)
 
 
 class TestPy2Cpp(TestCase):
@@ -48,6 +49,7 @@ class TestPy2Cpp(TestCase):
 		to_fullyname(Py2Cpp): Py2Cpp,
 		to_fullyname(PluginProvider): plugin_provider_cpp,
 		to_fullyname(Renderer): Renderer,
+		to_fullyname(RendererEmitter): EventEmitter,
 		to_fullyname(RendererHelperProvider): renderer_helper_provider_cpp,
 		to_fullyname(RendererSetting): make_renderer_setting,
 		to_fullyname(TranslationMapping): fixture_translation_mapping,

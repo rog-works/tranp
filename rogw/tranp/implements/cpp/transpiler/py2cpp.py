@@ -62,12 +62,23 @@ class Py2Cpp(ITranspiler):
 		"""ビュー由来の依存追加イベントを受信
 
 		Args:
-			path: 依存パス (期待値: 'path.to.module_path')
+			path: 依存パス
+		Note:
+			```
+			### 期待値
+			* "path/to/name.h"
+			* <functional>
+			```
+		Examples:
+			```jinja2
+			{{- emit('depends', {'path': '"path/to/name.h"'}) or '' -}}
+			```
 		Raises:
 			AssetionError: 依存パスの書式が不正
 		"""
-		assert re.fullmatch(r'[\w\d.]+', path)
-		self.__add_depends.append(path)
+		assert re.fullmatch(r'"[\w\d/]+.h"|<[\w\d/]+>', path)
+		if path not in self.__add_depends:
+			self.__add_depends.append(path)
 
 	def __make_include_dirs(self, options: TranspilerOptions) -> dict[str, str]:
 		"""インクルードディレクトリー一覧

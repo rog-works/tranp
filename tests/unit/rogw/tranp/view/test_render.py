@@ -541,7 +541,34 @@ class TestRenderer(TestCase):
 		self.assertRender('literal/doc_string', vars, expected)
 
 	@data_provider([
-		({'statements': ['int x = 0;'], 'meta_header': '@tranp.meta: {"version":"1.0.0"}', 'module_path': 'path.to'}, '// @tranp.meta: {"version":"1.0.0"}\n#pragma once\nint x = 0;\n'),
+		(
+			{
+				'statements': ['int x = 0;'],
+				'meta_header': '@tranp.meta: {"version":"1.0.0"}',
+				'module_path': 'path.to',
+				'add_depends': [],
+			},
+			'\n'.join([
+				'// @tranp.meta: {"version":"1.0.0"}',
+				'#pragma once',
+				'int x = 0;\n',
+			]),
+		),
+		(
+			{
+				'statements': ['int x = 0;'],
+				'meta_header': '@tranp.meta: {"version":"1.0.0"}',
+				'module_path': 'path.to',
+				'add_depends': ['<functional>', '"path/to/name.h"'],
+			},
+			'\n'.join([
+				'// @tranp.meta: {"version":"1.0.0"}',
+				'#pragma once',
+				'#include <functional>',
+				'#include "path/to/name.h"',
+				'int x = 0;\n',
+			]),
+		),
 	])
 	def test_render_entrypoint(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('entrypoint', vars, expected)

@@ -55,7 +55,7 @@ class Py2Cpp(ITranspiler):
 		self.module_meta_factory = module_meta_factory
 		self.include_dirs = self.__make_include_dirs(options)
 		self.__procedure = self.__make_procedure(options)
-		self.__add_depends: list[str] = []
+		self.__stack_on_depends: list[list[str]] = []
 		emitter.on('depends', self.__on_view_depends)
 
 	def __on_view_depends(self, path: str) -> None:
@@ -77,8 +77,8 @@ class Py2Cpp(ITranspiler):
 			AssetionError: 依存パスの書式が不正
 		"""
 		assert re.fullmatch(r'"[\w\d/]+.h"|<[\w\d/]+>', path)
-		if path not in self.__add_depends:
-			self.__add_depends.append(path)
+		if path not in self.__stack_on_depends[-1]:
+			self.__stack_on_depends[-1].append(path)
 
 	def __make_include_dirs(self, options: TranspilerOptions) -> dict[str, str]:
 		"""インクルードディレクトリー一覧
@@ -143,7 +143,11 @@ class Py2Cpp(ITranspiler):
 		Returns:
 			トランスパイル後のソースコード
 		"""
-		return self.__procedure.exec(root)
+		# XXX トランスパイル毎に依存スタックを生成
+		self.__stack_on_depends.append([])
+		result = self.__procedure.exec(root)
+		self.__stack_on_depends.pop()
+		return result
 
 	def to_accessible_name(self, raw: IReflection) -> str:
 		"""型推論によって補完する際の名前空間上の参照名を取得 (主にMoveAssignで利用)
@@ -309,7 +313,7 @@ class Py2Cpp(ITranspiler):
 
 	def on_entrypoint(self, node: defs.Entrypoint, statements: list[str]) -> str:
 		meta_header = MetaHeader(self.module_meta_factory(node.module_path), self.meta)
-		return self.view.render(node.classification, vars={'statements': statements, 'meta_header': meta_header.to_header_str(), 'module_path': node.module_path, 'depends': self.__add_depends})
+		return self.view.render(node.classification, vars={'statements': statements, 'meta_header': meta_header.to_header_str(), 'module_path': node.module_path, 'depends': self.__stack_on_depends[-1]})
 
 	# Statement - compound
 

@@ -12,9 +12,9 @@ from rogw.tranp.view.helper.parameter import ParameterHelper
 from rogw.tranp.view.render import RendererHelperFactory, RendererSetting
 
 
-def emit(setting: RendererSetting) -> Callable[[str, dict[str, Any]], None]:
+def emit_depends(setting: RendererSetting) -> Callable[[str], str]:
 	"""Note: @see rogw.tranp.lang.eventemitter.EventEmitter"""
-	return lambda action, event: setting.emitter.emit(action, **event)
+	return lambda include_path: setting.emitter.emit('depends', path=include_path) or ''
 
 
 def break_last_block(setting: RendererSetting) -> Callable[[str, str], tuple[str, str]]:
@@ -86,7 +86,7 @@ def factories() -> tuple[list[RendererHelperFactory], list[RendererHelperFactory
 	"""Returns: (ヘルパー一覧, フィルター一覧)"""
 	return (
 		 [
-			emit,
+			emit_depends,
 			break_last_block,
 			break_separator,
 			decorator_query,

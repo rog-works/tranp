@@ -59,28 +59,6 @@ class Py2Cpp(ITranspiler):
 		self.__stack_on_depends: list[list[str]] = []
 		emitter.on('depends', self.__on_view_depends)
 
-	def __on_view_depends(self, path: str) -> None:
-		"""ビュー由来の依存追加イベントを受信
-
-		Args:
-			path: 依存パス
-		Note:
-			```
-			### 依存パスの期待値
-			* "path/to/name.h"
-			* <functional>
-			```
-		Examples:
-			```jinja2
-			{{- emit_depends('"path/to/name.h"') -}}
-			```
-		Raises:
-			AssetionError: 依存パスの書式が不正
-		"""
-		assert re.fullmatch(r'"[\w\d/]+.h"|<[\w\d/]+>', path)
-		if path not in self.__stack_on_depends[-1]:
-			self.__stack_on_depends[-1].append(path)
-
 	def __make_include_dirs(self, options: TranspilerOptions) -> dict[str, str]:
 		"""インクルードディレクトリー一覧
 
@@ -108,6 +86,28 @@ class Py2Cpp(ITranspiler):
 			procedure.on(key, handler)
 
 		return procedure
+
+	def __on_view_depends(self, path: str) -> None:
+		"""ビュー由来の依存追加イベントを受信
+
+		Args:
+			path: 依存パス
+		Note:
+			```
+			### 依存パスの期待値
+			* "path/to/name.h"
+			* <functional>
+			```
+		Examples:
+			```jinja2
+			{{- emit_depends('"path/to/name.h"') -}}
+			```
+		Raises:
+			AssetionError: 依存パスの書式が不正
+		"""
+		assert re.fullmatch(r'"[\w\d/]+.h"|<[\w\d/]+>', path)
+		if path not in self.__stack_on_depends[-1]:
+			self.__stack_on_depends[-1].append(path)
 
 	@duck_typed(Observable)
 	def on(self, action: str, callback: Callback[str]) -> None:
@@ -310,11 +310,35 @@ class Py2Cpp(ITranspiler):
 
 		return list({var.domain_name if not isinstance(var, defs.ThisRef) else self.view.render('this_ref'): True for var in vars}.keys())
 
+	def make_depends(self, statements: list[str]) -> list[str]:
+		"""依存パスリストを生成
+
+		Args:
+			statements: ステートメントリスト
+		Returns:
+			依存パスリスト
+		"""
+		depends = self.__stack_on_depends[-1].copy()
+		in_include = False
+		for statement in statements:
+			if not statement.startswith('#include'):
+				if in_include:
+					break
+				else:
+					continue
+
+			in_include = True
+			include_path = statement.split(' ')[1]
+			if include_path in depends:
+				depends.remove(include_path)
+
+		return depends
+
 	# General
 
 	def on_entrypoint(self, node: defs.Entrypoint, statements: list[str]) -> str:
 		meta_header = MetaHeader(self.module_meta_factory(node.module_path), self.meta)
-		return self.view.render(node.classification, vars={'statements': statements, 'meta_header': meta_header.to_header_str(), 'module_path': node.module_path, 'depends': self.__stack_on_depends[-1]})
+		return self.view.render(node.classification, vars={'statements': statements, 'meta_header': meta_header.to_header_str(), 'module_path': node.module_path, 'depends': self.make_depends(statements)})
 
 	# Statement - compound
 

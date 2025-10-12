@@ -7,6 +7,7 @@ import yaml
 from rogw.tranp.app.dir import tranp_dir
 from rogw.tranp.implements.cpp.providers.view import renderer_helper_provider_cpp
 from rogw.tranp.lang.annotation import duck_typed
+from rogw.tranp.lang.eventemitter import EventEmitter
 from rogw.tranp.lang.translator import Translator
 from rogw.tranp.test.helper import data_provider
 from rogw.tranp.view.render import Renderer, RendererSetting
@@ -23,7 +24,7 @@ class Fixture:
 
 		template_dirs = [os.path.join(tranp_dir(), 'data/cpp/template')]
 		env = {'immutable_param_types': ['std::string', 'std::vector', 'std::map', 'std::function']}
-		setting = RendererSetting(template_dirs, translator, env)
+		setting = RendererSetting(template_dirs, translator, EventEmitter(), env)
 		provider = renderer_helper_provider_cpp(setting)
 		self.renderer = Renderer(setting, provider)
 
@@ -540,7 +541,34 @@ class TestRenderer(TestCase):
 		self.assertRender('literal/doc_string', vars, expected)
 
 	@data_provider([
-		({'statements': ['int x = 0;'], 'meta_header': '@tranp.meta: {"version":"1.0.0"}', 'module_path': 'path.to'}, '// @tranp.meta: {"version":"1.0.0"}\n#pragma once\nint x = 0;\n'),
+		(
+			{
+				'statements': ['int x = 0;'],
+				'meta_header': '@tranp.meta: {"version":"1.0.0"}',
+				'module_path': 'path.to',
+				'depends': [],
+			},
+			'\n'.join([
+				'// @tranp.meta: {"version":"1.0.0"}',
+				'#pragma once',
+				'int x = 0;\n',
+			]),
+		),
+		(
+			{
+				'statements': ['int x = 0;'],
+				'meta_header': '@tranp.meta: {"version":"1.0.0"}',
+				'module_path': 'path.to',
+				'depends': ['<functional>', '"path/to/name.h"'],
+			},
+			'\n'.join([
+				'// @tranp.meta: {"version":"1.0.0"}',
+				'#pragma once',
+				'#include <functional>',
+				'#include "path/to/name.h"',
+				'int x = 0;\n',
+			]),
+		),
 	])
 	def test_render_entrypoint(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('entrypoint', vars, expected)

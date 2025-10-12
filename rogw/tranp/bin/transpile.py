@@ -20,6 +20,7 @@ from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.lang.convertion import as_a
 from rogw.tranp.lang.di import DI, ModuleDefinitions
 from rogw.tranp.lang.error import stacktrace
+from rogw.tranp.lang.eventemitter import EventEmitter
 from rogw.tranp.lang.locator import Invoker, Locator
 from rogw.tranp.lang.module import to_fullyname, module_path_to_filepath
 from rogw.tranp.lang.profile import profiler
@@ -31,7 +32,7 @@ from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.syntax.ast.parser import ParserSetting, SourceProvider
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.transpiler.types import ITranspiler, TranspilerOptions
-from rogw.tranp.view.render import Renderer, RendererHelperProvider, RendererSetting
+from rogw.tranp.view.render import Renderer, RendererEmitter, RendererHelperProvider, RendererSetting
 
 ArgsDict = TypedDict('ArgsDict', {
 	'config': str,
@@ -133,16 +134,17 @@ class TranspileApp:
 
 	@classmethod
 	@injectable
-	def make_renderer_setting(cls, config: Config, i18n: I18n) -> RendererSetting:
+	def make_renderer_setting(cls, config: Config, i18n: I18n, emitter: RendererEmitter) -> RendererSetting:
 		"""テンプレートレンダーを生成
 
 		Args:
 			config: コンフィグ @inject
 			i18n: 国際化対応モジュール @inject
+			emitter: レンダー用イベントエミッター @inject
 		Returns:
 			テンプレートレンダー
 		"""
-		return RendererSetting(config.template_dirs, i18n.t, config.env['view'])
+		return RendererSetting(config.template_dirs, i18n.t, emitter, config.env['view'])
 
 	@classmethod
 	@injectable
@@ -213,6 +215,7 @@ class TranspileApp:
 			to_fullyname(ParserSetting): cls.make_parser_setting,
 			to_fullyname(PluginProvider): plugin_provider_cpp,  # FIXME C++固定
 			to_fullyname(Renderer): Renderer,
+			to_fullyname(RendererEmitter): EventEmitter,
 			to_fullyname(RendererHelperProvider): renderer_helper_provider_cpp,
 			to_fullyname(RendererSetting): cls.make_renderer_setting,
 			to_fullyname(TranslationMapping): cls.make_translation_mapping,

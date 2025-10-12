@@ -31,20 +31,21 @@ from rogw.tranp.syntax.node.definition.accessible import PythonClassOperations
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.transpiler.types import ITranspiler, TranspilerOptions
 from rogw.tranp.view.helper.block import BlockParser
-from rogw.tranp.view.render import Renderer
+from rogw.tranp.view.render import Renderer, RendererEmitter
 
 
 class Py2Cpp(ITranspiler):
 	"""Python -> C++のトランスパイラー"""
 
 	@injectable
-	def __init__(self, reflections: Reflections, render: Renderer, i18n: I18n, module_meta_factory: ModuleMetaFactory, options: TranspilerOptions) -> None:
+	def __init__(self, reflections: Reflections, render: Renderer, i18n: I18n, emitter: RendererEmitter, module_meta_factory: ModuleMetaFactory, options: TranspilerOptions) -> None:
 		"""インスタンスを生成
 
 		Args:
 			reflections: シンボルリゾルバー @inject
 			render: ソースレンダー @inject
 			i18n: 国際化対応モジュール @inject
+			emitter: レンダー用イベントエミッター @inject
 			module_meta_factory: モジュールのメタ情報ファクトリー @inject
 			options: 実行オプション @inject
 		"""
@@ -54,6 +55,9 @@ class Py2Cpp(ITranspiler):
 		self.module_meta_factory = module_meta_factory
 		self.include_dirs = self.__make_include_dirs(options)
 		self.__procedure = self.__make_procedure(options)
+		# XXX トランスパイラーがステートフルになってしまう上、処理中のモジュールとの結合が曖昧
+		self.__stack_on_depends: list[list[str]] = []
+		emitter.on('depends', self.__on_view_depends)
 
 	def __make_include_dirs(self, options: TranspilerOptions) -> dict[str, str]:
 		"""インクルードディレクトリー一覧
@@ -82,6 +86,28 @@ class Py2Cpp(ITranspiler):
 			procedure.on(key, handler)
 
 		return procedure
+
+	def __on_view_depends(self, path: str) -> None:
+		"""ビュー由来の依存追加イベントを受信
+
+		Args:
+			path: 依存パス
+		Note:
+			```
+			### 依存パスの期待値
+			* "path/to/name.h"
+			* <functional>
+			```
+		Examples:
+			```jinja2
+			{{- emit_depends('"path/to/name.h"') -}}
+			```
+		Raises:
+			AssetionError: 依存パスの書式が不正
+		"""
+		assert re.fullmatch(r'"[\w\d/]+.h"|<[\w\d/]+>', path)
+		if path not in self.__stack_on_depends[-1]:
+			self.__stack_on_depends[-1].append(path)
 
 	@duck_typed(Observable)
 	def on(self, action: str, callback: Callback[str]) -> None:
@@ -118,7 +144,11 @@ class Py2Cpp(ITranspiler):
 		Returns:
 			トランスパイル後のソースコード
 		"""
-		return self.__procedure.exec(root)
+		# XXX トランスパイル毎に依存スタックを生成
+		self.__stack_on_depends.append([])
+		result = self.__procedure.exec(root)
+		self.__stack_on_depends.pop()
+		return result
 
 	def to_accessible_name(self, raw: IReflection) -> str:
 		"""型推論によって補完する際の名前空間上の参照名を取得 (主にMoveAssignで利用)
@@ -280,11 +310,35 @@ class Py2Cpp(ITranspiler):
 
 		return list({var.domain_name if not isinstance(var, defs.ThisRef) else self.view.render('this_ref'): True for var in vars}.keys())
 
+	def make_depends(self, statements: list[str]) -> list[str]:
+		"""依存パスリストを生成
+
+		Args:
+			statements: ステートメントリスト
+		Returns:
+			依存パスリスト
+		"""
+		depends = self.__stack_on_depends[-1].copy()
+		in_include = False
+		for statement in statements:
+			if not statement.startswith('#include'):
+				if in_include:
+					break
+				else:
+					continue
+
+			in_include = True
+			include_path = statement.split(' ')[1]
+			if include_path in depends:
+				depends.remove(include_path)
+
+		return depends
+
 	# General
 
 	def on_entrypoint(self, node: defs.Entrypoint, statements: list[str]) -> str:
 		meta_header = MetaHeader(self.module_meta_factory(node.module_path), self.meta)
-		return self.view.render(node.classification, vars={'statements': statements, 'meta_header': meta_header.to_header_str(), 'module_path': node.module_path})
+		return self.view.render(node.classification, vars={'statements': statements, 'meta_header': meta_header.to_header_str(), 'module_path': node.module_path, 'depends': self.make_depends(statements)})
 
 	# Statement - compound
 

@@ -71,7 +71,7 @@ class Py2Cpp(ITranspiler):
 			```
 		Examples:
 			```jinja2
-			{{- emit('depends', {'path': '"path/to/name.h"'}) or '' -}}
+			{{- emit_depends('"path/to/name.h"') -}}
 			```
 		Raises:
 			AssetionError: 依存パスの書式が不正

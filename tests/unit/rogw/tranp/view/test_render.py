@@ -546,7 +546,7 @@ class TestRenderer(TestCase):
 				'statements': ['int x = 0;'],
 				'meta_header': '@tranp.meta: {"version":"1.0.0"}',
 				'module_path': 'path.to',
-				'add_depends': [],
+				'depends': [],
 			},
 			'\n'.join([
 				'// @tranp.meta: {"version":"1.0.0"}',
@@ -559,7 +559,7 @@ class TestRenderer(TestCase):
 				'statements': ['int x = 0;'],
 				'meta_header': '@tranp.meta: {"version":"1.0.0"}',
 				'module_path': 'path.to',
-				'add_depends': ['<functional>', '"path/to/name.h"'],
+				'depends': ['<functional>', '"path/to/name.h"'],
 			},
 			'\n'.join([
 				'// @tranp.meta: {"version":"1.0.0"}',

@@ -1,6 +1,6 @@
 // {{ meta_header }}
 #pragma once
-{%- for include_path in add_depends %}
+{%- for include_path in depends %}
 #include {{ include_path }}
 {%- endfor %}
 {%- for statement in statements %}

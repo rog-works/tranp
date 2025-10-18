@@ -12,6 +12,10 @@ from rogw.tranp.view.helper.parameter import ParameterHelper
 from rogw.tranp.view.render import RendererHelperFactory, RendererSetting
 
 
+def hex_to_int(setting: RendererSetting) -> Callable[[str], int]:
+	return lambda hex_str: int(hex_str, 16)
+
+
 def emit_depends(setting: RendererSetting) -> Callable[[str], str]:
 	"""Note: @see rogw.tranp.lang.eventemitter.EventEmitter"""
 	return lambda include_path: setting.emitter.emit('depends', path=include_path) or ''
@@ -86,6 +90,7 @@ def factories() -> tuple[list[RendererHelperFactory], list[RendererHelperFactory
 	"""Returns: (ヘルパー一覧, フィルター一覧)"""
 	return (
 		 [
+			hex_to_int,
 			emit_depends,
 			break_last_block,
 			break_separator,

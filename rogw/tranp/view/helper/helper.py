@@ -16,6 +16,18 @@ def hex_to_int(setting: RendererSetting) -> Callable[[str], int]:
 	return lambda hex_str: int(hex_str, 16)
 
 
+def int_to_hex(setting: RendererSetting) -> Callable[[int], str]:
+	return lambda hex_str: hex(hex_str)[2:]
+
+
+def bit_shift(setting: RendererSetting) -> Callable[[int, str, int], int]:
+	return lambda left, op, right: (left >> right) if op == '>>' else (left << right)
+
+
+def bitwise(setting: RendererSetting) -> Callable[[int, str, int], int]:
+	return lambda left, op, right: (left & right) if op == '&' else ((left | right) if op == '|' else (left ^ right))
+
+
 def emit_depends(setting: RendererSetting) -> Callable[[str], str]:
 	"""Note: @see rogw.tranp.lang.eventemitter.EventEmitter"""
 	return lambda include_path: setting.emitter.emit('depends', path=include_path) or ''
@@ -91,6 +103,9 @@ def factories() -> tuple[list[RendererHelperFactory], list[RendererHelperFactory
 	return (
 		 [
 			hex_to_int,
+			int_to_hex,
+			bit_shift,
+			bitwise,
 			emit_depends,
 			break_last_block,
 			break_separator,

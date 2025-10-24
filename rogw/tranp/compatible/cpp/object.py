@@ -129,13 +129,13 @@ class CVarNullable(CVar[T_co]):
 
 	_origin: T_co | None
 
-	def __init__(self, origin: T_co | None) -> None:
+	def __init__(self, origin_at: CVarNotNull[T_co] | None) -> None:
 		"""インスタンスを生成
 
 		Args:
-			origin: 実体のインスタンス
+			origin_at: 実体のポインター
 		"""
-		self._origin = origin
+		self._origin = origin_at.raw if origin_at else None
 
 	@property
 	@override
@@ -239,7 +239,7 @@ class CSP(CVarNullable[T_co]):
 		Returns:
 			インスタンス
 		"""
-		return CSP(origin)
+		return CSP(CP(origin))
 
 	@property
 	def ref(self) -> 'CRef[T_co]':

@@ -102,9 +102,11 @@ class Py2Cpp(ITranspiler):
 			{{- emit_depends('"path/to/name.h"') -}}
 			```
 		Raises:
-			AssetionError: 依存パスの書式が不正
+			Errors.InvalidSchema: 依存パスの書式が不正
 		"""
-		assert re.fullmatch(r'"[\w\d/]+.h"|<[\w\d/]+>', path)
+		if not re.fullmatch(r'"[\w\d/]+.h"|<[\w\d/]+>', path):
+			raise Errors.InvalidSchema(path)
+
 		if path not in self.__stack_on_depends[-1]:
 			self.__stack_on_depends[-1].append(path)
 

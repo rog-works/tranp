@@ -207,12 +207,12 @@ class ReflectionBase(IReflection):
 		Returns:
 			インスタンス
 		Raises:
-			MustBeImplementedError: トレイトのメソッドが未実装
+			Errors.Never: トレイトのメソッドが未実装
 		"""
 		if self._traits.implements(expect):
 			return cast(T_Ref, self)
 
-		raise Errors.MustBeImplemented(self.node, self, expect, 'Method not defined')
+		raise Errors.Never(self.node, self, expect, 'Method not defined')
 
 	@override
 	def __eq__(self, other: object) -> bool:

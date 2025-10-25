@@ -410,7 +410,7 @@ class HelperBuilder:
 		Returns:
 			生成したインスタンス
 		Raises:
-			LogicError: ビルド対象が期待する型と不一致 XXX 出力する例外は要件等
+			Errors.Never: ビルド対象が期待する型と不一致
 		"""
 		ctors: dict[type[defs.ClassDef], type[Helper]] = {
 			defs.Function: Function,

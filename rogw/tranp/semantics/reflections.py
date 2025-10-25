@@ -294,7 +294,7 @@ class Reflections:
 		Returns:
 			シンボル
 		Raises:
-			ProcessingError: シンボルの解決に失敗
+			Errors.Error: シンボルの解決に失敗
 		"""
 		return self.__procedural_resolver.resolve(node)
 

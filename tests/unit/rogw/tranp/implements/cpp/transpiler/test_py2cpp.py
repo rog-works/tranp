@@ -409,6 +409,7 @@ class TestPy2Cpp(TestCase):
 		('ForFuncCall.Class.literalize', 'function_def_raw.block.funccall[6]', defs.FuncCall, 'printf("Alias2::Inner2::func");'),
 		('ForFuncCall.Class.literalize', 'function_def_raw.block.funccall[7]', defs.FuncCall, 'printf("Alias2");'),
 		('ForFuncCall.Class.literalize', 'function_def_raw.block.funccall[8]', defs.FuncCall, 'printf("A");'),
+		('ForFuncCall.Class.literalize', 'function_def_raw.block.funccall[9]', defs.FuncCall, 'printf("base_prop");'),
 
 		('ForFuncCall.Cast.cast_binary', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'int f_to_n = static_cast<int>(1.0);'),
 		('ForFuncCall.Cast.cast_binary', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'float n_to_f = static_cast<float>(1);'),

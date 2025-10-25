@@ -20,3 +20,27 @@ def readline(prompt: str = '') -> str:
 	input_filepath = os.path.join(tranp_dir(), 'bin/_input.sh')
 	res = subprocess.run(['bash', input_filepath], stdout=subprocess.PIPE)
 	return res.stdout.decode('utf-8').rstrip()
+
+
+def tty(prompt: str = '') -> list[str]:
+	"""対話モードで入力を受け付け。空行、または`exit`を入力することで終了
+
+	Args:
+		prompt: 確認メッセージ
+	Returns:
+		入力値リスト
+	"""
+	if prompt:
+		print(prompt)
+
+	lines: list[str] = []
+	while True:
+		line = readline()
+		if not line:
+			break
+		elif line == 'exit':
+			return ['exit']
+
+		lines.append(line)
+
+	return lines

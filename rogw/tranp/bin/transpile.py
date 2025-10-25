@@ -1,13 +1,15 @@
+from enum import Enum
 import os
 import re
 import sys
-from typing import Any, Literal, TypedDict, cast
+from typing import Any, TypedDict, cast
 
+from rogw.tranp.errors import Error
 import yaml
 
 from rogw.tranp.app.app import App
 from rogw.tranp.app.dummy import WrapSourceProvider, make_dummy_module_meta_factory
-from rogw.tranp.bin.io import readline
+from rogw.tranp.bin.io import tty
 from rogw.tranp.data.meta.header import MetaHeader
 from rogw.tranp.data.meta.types import ModuleMetaFactory
 from rogw.tranp.file.loader import IDataLoader, ISourceLoader
@@ -38,9 +40,10 @@ ArgsDict = TypedDict('ArgsDict', {
 	'config': str,
 	'input_globs': list[str],
 	'force': bool,
+	'interactive': bool,
+	'help': bool,
 	'profile': bool,
 	'verbose': bool,
-	'interactive': bool,
 })
 EnvDict = TypedDict('EnvDict', {
 	'transpiler': dict[str, Any],
@@ -57,43 +60,28 @@ ConfigDict = TypedDict('ConfigDict', {
 	'di': dict[str, str],
 	'env': EnvDict,
 	'force': bool,
-	'verbose': bool,
 	'profile': bool,
-	'interactive': bool,
+	'verbose': bool,
 })
 
 
-class Config:
-	"""コンフィグ"""
+class Args:
+	"""引数"""
 
-	def __init__(self) -> None:
-		"""インスタンスを生成"""
-		args = self.__parse_argv(sys.argv[1:])
-		config = self.__load_config(args['config'])
-		self.grammar = config['grammar']
-		self.template_dirs = config['template_dirs']
-		self.trans_mapping = config['trans_mapping']
-		self.input_globs = args['input_globs'] if args['input_globs'] else config['input_globs']
-		self.exclude_patterns = config['exclude_patterns']
-		self.output_dirs = config['output_dirs']
-		self.output_language = config['output_language']
-		self.di = config.get('di', {})
-		self.env = config.get('env', {})
-		self.force = config.get('force', args['force'])
-		self.verbose = config.get('verbose', args['verbose'])
-		self.profile = config.get('profile', args['profile'])
-		self.mode: Literal['runner', 'interactive'] = 'interactive' if config.get('interactive', args['interactive']) else 'runner'
-
-	def __load_config(self, filepath: str) -> ConfigDict:
-		"""コマンド引数をパース
+	def __init__(self, argv: list[str]) -> None:
+		"""インスタンスを生成
 
 		Args:
-			filepath: コンフィグファイルのパス
-		Returns:
-			コンフィグデータ
+			argv: コマンド引数リスト
 		"""
-		with open(os.path.join(filepath)) as f:
-			return cast(ConfigDict, yaml.safe_load(f))
+		args = self.__parse_argv(argv)
+		self.config = args['config']
+		self.input_globs = args['input_globs']
+		self.force = args['force']
+		self.interactive = args['interactive']
+		self.help = args['help']
+		self.profile = args['profile']
+		self.verbose = args['verbose']
 
 	def __parse_argv(self, argv: list[str]) -> ArgsDict:
 		"""コマンド引数をパース
@@ -107,9 +95,10 @@ class Config:
 			'config': 'example/config.yml',
 			'input_globs': [],
 			'force': False,
+			'interactive': False,
+			'help': False,
 			'profile': False,
 			'verbose': False,
-			'interactive': False,
 		}
 		while argv:
 			arg = argv.pop(0)
@@ -119,14 +108,58 @@ class Config:
 				args['input_globs'].append(argv.pop(0))
 			elif arg == '-f':
 				args['force'] = True
+			elif arg == '-it':
+				args['interactive'] = True
+			elif arg == '-h':
+				args['help'] = True
 			elif arg == '-p':
 				args['profile'] = True
-			elif arg == '-t':
-				args['interactive'] = True
 			elif arg == '-v':
 				args['verbose'] = True
 
 		return args
+
+
+class Config:
+	"""コンフィグ"""
+
+	class Modes(Enum):
+		"""モード種別"""
+		Interactive = 0
+		Run = 1
+		Help = 2
+
+	def __init__(self, args: Args) -> None:
+		"""インスタンスを生成
+
+		Args:
+			args: 引数
+		"""
+		config = self.__load_config(args.config)
+		self.grammar = config['grammar']
+		self.template_dirs = config['template_dirs']
+		self.trans_mapping = config['trans_mapping']
+		self.input_globs = args.input_globs if args.input_globs else config['input_globs']
+		self.exclude_patterns = config['exclude_patterns']
+		self.output_dirs = config['output_dirs']
+		self.output_language = config['output_language']
+		self.di = config.get('di', {})
+		self.env = config.get('env', {})
+		self.force = config.get('force', args.force)
+		self.profile = config.get('profile', args.profile)
+		self.verbose = config.get('verbose', args.verbose)
+		self.mode = Config.Modes.Help if args.help else (Config.Modes.Interactive if args.interactive else Config.Modes.Run)
+
+	def __load_config(self, filepath: str) -> ConfigDict:
+		"""コマンド引数をパース
+
+		Args:
+			filepath: コンフィグファイルのパス
+		Returns:
+			コンフィグデータ
+		"""
+		with open(os.path.join(filepath)) as f:
+			return cast(ConfigDict, yaml.safe_load(f))
 
 
 class TranspileApp:
@@ -201,13 +234,15 @@ class TranspileApp:
 		return module_paths
 
 	@classmethod
-	def definitions(cls) -> ModuleDefinitions:
+	def definitions(cls, args: Args) -> ModuleDefinitions:
 		"""モジュール定義を生成
 
+		Args:
+			args: 引数
 		Returns:
 			モジュール定義
 		"""
-		config = Config()
+		config = Config(args)
 		definitions = {
 			to_fullyname(Config): lambda: config,
 			to_fullyname(ITranspiler): Py2Cpp,
@@ -233,8 +268,9 @@ class TranspileApp:
 			config: コンフィグ
 		"""
 		modes = {
-			'runner': Runner,
-			'interactive': Interactive,
+			Config.Modes.Run: Runner,
+			Config.Modes.Interactive: Interactive,
+			Config.Modes.Help: Help,
 		}
 		invoker(modes[config.mode]).run()
 
@@ -376,26 +412,19 @@ class Interactive:
 		try:
 			while True:
 				print('===============')
-				print('Python code here. Type `exit()` to quit:')
-
-				lines: list[str] = []
-				while True:
-					line = readline()
-					if not line:
-						break
-
-					lines.append(line)
-
-				if len(lines) == 1 and lines[0] == 'exit()':
+				lines = tty('Python code here. Type `exit` to quit:')
+				if len(lines) == 1 and lines[0] == 'exit':
 					break
 
 				main_module = self.rebuild_module('\n'.join(lines))
-				result = self.transpiler.transpile(main_module.entrypoint)
-
-				print('===============')
-				print('Result:')
-				print('---------------')
-				print(result)
+				try:
+					result = self.transpiler.transpile(main_module.entrypoint)
+					print('===============')
+					print('Result:')
+					print('---------------')
+					print(result)
+				except Error as e:
+					print(''.join(stacktrace(e)))
 		except KeyboardInterrupt:
 			pass
 		finally:
@@ -414,8 +443,36 @@ class Interactive:
 		return self.modules.load(self.source_provider.main_module_path)
 
 
+class Help:
+	"""ランナー(ヘルプ)"""
+
+	def run(self) -> None:
+		print(
+"""### Usage
+$ bin/transpile.sh [-c filepath] [-i filepath] [-f] [-it] [-h] [-p] [-v]
+### Args
+-c: Config YAML filepath. default to './example/config.yml'
+-i: Input source filepath
+-f: Force re-output
+-it: Interactive mode
+-h: Show help
+-p: Show profiling
+-v: Output Detailed logs
+### Example
+$ bin/transpile.sh
+$ bin/transpile.sh -c ./path/to/config.yml
+$ bin/transpile.sh -i ./path/to/source.py
+$ bin/transpile.sh -f
+$ bin/transpile.sh -it
+$ bin/transpile.sh -h
+$ bin/transpile.sh -p
+$ bin/transpile.sh -v
+"""
+		)
+
+
 if __name__ == '__main__':
 	try:
-		App(TranspileApp.definitions()).run(TranspileApp.run)
+		App(TranspileApp.definitions(Args(sys.argv[1:]))).run(TranspileApp.run)
 	except Exception as e:
 		print(''.join(stacktrace(e)))

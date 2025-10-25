@@ -202,20 +202,19 @@ class Null: ...
 
 @__actual__('object')
 class Object:
-	def __init__(self) -> None: ...
+	__name__: str
+	__module__: str
+	__qualname__: str
+	__dict__: dict[str, Any]
+
+	def __init__(self) -> None:
+		self.__name__ = ''
+		self.__module__ = ''
+		self.__qualname__ = ''
+		self.__dict__ = {}
+
 	@property
 	def __class__(self: T) -> type[T]: ...
-	@property
-	def __module__(self) -> str: ...
-	@property
-	def __dict__(self) -> dict[str, Any]: ...
-	# FIXME 本来はtypeで実装するのが正。修正を検討"""
-	@property
-	def __name__(self) -> str: ...
-	# FIXME propertyとして定義するとエラーが発生するので、別名を付けて回避"""
-	@__actual__('__qualname__')
-	@property
-	def __qual_name__(self) -> str: ...
 
 	def mro(self) -> list[type[Any]]: ...
 	def __getattribute__(self, name: str) -> Any: ...

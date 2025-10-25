@@ -492,6 +492,8 @@ class TestPy2Cpp(TestCase):
 		('ForTemplateClass.bind_call', 'function_def_raw.block.assign', defs.MoveAssign, 'ForTemplateClass::Delegate<bool, int> d{};'),
 		('ForTemplateClass.bind_call', 'function_def_raw.block.funccall[1]', defs.FuncCall, 'd.bind(a, &ForTemplateClass::A::func);'),
 		('ForTemplateClass.bind_call', 'function_def_raw.block.funccall[2]', defs.FuncCall, 'd.invoke(true, 1);'),
+		('ForTemplateClass.new_var', 'function_def_raw.block.assign', defs.MoveAssign, 'std::shared_ptr<Base> sp = std::make_shared<T_Base>();'),
+		('ForTemplateClass.new_var', 'function_def_raw.block.return_stmt', defs.Return, 'return new T_Base();'),
 		('ForTemplateClass.boundary_call', '', defs.Method, BlockExpects.method(access='public', name='boundary_call', return_type='T_Base', statements=['return T_Base();'], template='T_Base')),
 		('ForTemplateClass.boundary_cvar', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'T_Base* v = this->new_var<T_Base>();'),
 		('ForTemplateClass.boundary_cvar', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'std::string s = v->base_prop();'),

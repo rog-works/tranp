@@ -711,7 +711,7 @@ def expected_symbols() -> dict[str, tuple[str, str]]:
 		'tests.unit.rogw.tranp.semantics.reflection.fixtures.test_db#Sub.indexer_access.s_slice': ('rogw.tranp.compatible.libralies.classes#str', 'str'),
 		'tests.unit.rogw.tranp.semantics.reflection.fixtures.test_db#Sub.indexer_access.dsn': ('rogw.tranp.compatible.libralies.classes#dict', 'dict<str, int>'),
 		'tests.unit.rogw.tranp.semantics.reflection.fixtures.test_db#Sub.type_props.self': ('tests.unit.rogw.tranp.semantics.reflection.fixtures.test_db#Sub', 'Sub'),
-		'tests.unit.rogw.tranp.semantics.reflection.fixtures.test_db#Sub.type_props.a': ('rogw.tranp.compatible.libralies.classes#str', 'str'),
+		'tests.unit.rogw.tranp.semantics.reflection.fixtures.test_db#Sub.type_props.a': ('rogw.tranp.compatible.libralies.classes#object.__name__', '__name__(object) -> str'),
 		'tests.unit.rogw.tranp.semantics.reflection.fixtures.test_db#Sub.type_props.b': ('rogw.tranp.compatible.libralies.type#type', 'type<Sub>'),
 		'tests.unit.rogw.tranp.semantics.reflection.fixtures.test_db#Sub.type_props.c': ('rogw.tranp.compatible.libralies.classes#str', 'str'),
 		'tests.unit.rogw.tranp.semantics.reflection.fixtures.test_db#Sub.list_expand.self': ('tests.unit.rogw.tranp.semantics.reflection.fixtures.test_db#Sub', 'Sub'),

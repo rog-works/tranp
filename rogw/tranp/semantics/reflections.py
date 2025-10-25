@@ -442,7 +442,8 @@ class ProceduralResolver:
 			return actual_receiver.stack(node)
 		elif isinstance(prop.decl, defs.DeclClasses):
 			return actual_receiver.to(node, self.reflections.from_standard(type)).extends(prop)
-		elif isinstance(prop.decl, defs.Method) and prop.decl.is_property:
+		# XXX インスタンス経由で参照した場合のみ返却型に解決
+		elif isinstance(prop.decl, defs.Method) and prop.decl.is_property and not receiver.impl(refs.Object).type_is(type):
 			return actual_receiver.to(node, actual_receiver.to(node.prop, prop).impl(refs.Function).returns())
 		# XXX Enum.valueを他のクラスと統一的に解釈するのはほぼ不可能なため直接解決 ※EnumがGeneric型でなければならないがその様に実装できない
 		elif isinstance(receiver.types, defs.Enum) and node.prop.domain_name == 'value':

@@ -1014,9 +1014,8 @@ class Py2Cpp(ITranspiler):
 
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type, 'initializer': initializer})
 		elif spec == 'cvar_new_sp':
-			var_type = self.to_accessible_name(cast(IReflection, context))
 			# 期待値: CSP.new(A(a, b, c))
-			initializer = PatternParser.pluck_cvar_new_argument(arguments[0])
+			var_type, initializer = PatternParser.pluck_cvar_new(arguments[0])
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type, 'initializer': initializer})
 		elif spec == 'cvar_sp_empty':
 			# 期待値: CSP[A].empty()
@@ -1120,9 +1119,11 @@ class Py2Cpp(ITranspiler):
 				if CVars.is_addr_p(cvar_key):
 					return 'cvar_new_p', None
 				elif CVars.is_addr_sp(cvar_key):
-					new_type_raw = self.reflections.type_of(node.arguments[0])
-					spec = 'cvar_new_sp_list' if new_type_raw.impl(refs.Object).type_is(list) else 'cvar_new_sp'
-					return spec, new_type_raw
+					new_type_raw = self.reflections.type_of(node.arguments[0]).impl(refs.Object)
+					if new_type_raw.type_is(list):
+						return 'cvar_new_sp_list', new_type_raw
+
+					return 'cvar_new_sp', None
 			elif prop == CVars.hex_key:
 				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object).actualize()
 				cvar_key = CVars.key_from(receiver_raw)
@@ -1562,20 +1563,20 @@ class PatternParser:
 		return BlockParser.break_last_block(indexer, '[]')
 
 	@classmethod
-	def pluck_cvar_new_argument(cls, argument: str) -> str:
-		"""C++型変数のメモリー生成関数コールから引数の部分を抜き出す
+	def pluck_cvar_new(cls, argument: str) -> tuple[str, str]:
+		"""C++型変数のメモリー生成関数コールを分解
 
 		Args:
 			argument: 文字列
 		Returns:
-			引数
+			(レシーバー, 引数)
 		Note:
 			```
 			### 期待値
-			'Class(arguments...)' -> 'arguments...'
+			'Class(arguments...)' -> ('Class', 'arguments...')
 			```
 		"""
-		return BlockParser.break_last_block(argument, '()')[1]
+		return BlockParser.break_last_block(argument, '()')
 
 	@classmethod
 	def sub_cvar_relay(cls, receiver: str) -> str:

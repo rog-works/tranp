@@ -33,7 +33,7 @@ class Query(Generic[T], metaclass=ABCMeta):
 		Returns:
 			エントリー
 		Raises:
-			NotFoundError: エントリーが存在しない
+			Errors.NodeNotFound: エントリーが存在しない
 		"""
 		raise NotImplementedError()
 
@@ -46,7 +46,7 @@ class Query(Generic[T], metaclass=ABCMeta):
 		Returns:
 			データ
 		Raises:
-			NotFoundError: 親が存在しない
+			Errors.NodeNotFound: 親が存在しない
 		"""
 		raise NotImplementedError()
 
@@ -60,7 +60,7 @@ class Query(Generic[T], metaclass=ABCMeta):
 		Returns:
 			ノード
 		Raises:
-			NotFoundError: 指定のエントリータグを持つ親が存在しない
+			Errors.NodeNotFound: 指定のエントリータグを持つ親が存在しない
 		"""
 		raise NotImplementedError()
 
@@ -73,7 +73,7 @@ class Query(Generic[T], metaclass=ABCMeta):
 		Returns:
 			エントリーリスト
 		Raises:
-			NotFoundError: 基点のエントリーが存在しない
+			Errors.NodeNotFound: 基点のエントリーが存在しない
 		"""
 		raise NotImplementedError()
 
@@ -86,7 +86,7 @@ class Query(Generic[T], metaclass=ABCMeta):
 		Returns:
 			エントリーリスト
 		Raises:
-			NotFoundError: 基点のエントリーが存在しない
+			Errors.NodeNotFound: 基点のエントリーが存在しない
 		"""
 		raise NotImplementedError()
 
@@ -99,7 +99,7 @@ class Query(Generic[T], metaclass=ABCMeta):
 		Returns:
 			エントリーリスト
 		Raises:
-			NotFoundError: 基点のエントリーが存在しない
+			Errors.NodeNotFound: 基点のエントリーが存在しない
 		"""
 		raise NotImplementedError()
 

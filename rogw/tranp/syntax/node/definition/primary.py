@@ -2,10 +2,10 @@ from typing import Union, override
 
 from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.dsn.module import ModuleDSN
+from rogw.tranp.errors import Errors
 from rogw.tranp.lang.annotation import implements
 from rogw.tranp.lang.sequence import flatten, last_index_of
 from rogw.tranp.syntax.ast.path import EntryPath
-from rogw.tranp.syntax.errors import InvalidRelationError
 from rogw.tranp.syntax.node.behavior import IDomain, INamespace, IScope, ITerminal
 from rogw.tranp.syntax.node.definition.expression import Group
 from rogw.tranp.syntax.node.definition.literal import Literal
@@ -68,15 +68,12 @@ class Declable(Node, IDomain, ISymbol, ITerminal):
 	@property
 	@implements
 	def declare(self) -> Node:
-		"""
-		Raises:
-			InvalidRelationError: 不正な親子関係
-		"""
+		"""Raises: InvalidRelationError: 不正な親子関係"""
 		parent_tags = ['assign_namelist', 'for_namelist', 'except_clause', 'with_item', 'typedparam', 'import_as_names', 'lambdaparams']
 		if self._full_path.parent_tag in parent_tags and isinstance(self.parent, IDeclaration):
 			return self.parent
 
-		raise InvalidRelationError(f'node: {self}, parent: {self.parent}, parent_tag: {self._full_path.parent_tag}')
+		raise Errors.InvalidRelation(self, self.parent, self._full_path.parent_tag)
 
 
 class DeclVar(Declable): pass

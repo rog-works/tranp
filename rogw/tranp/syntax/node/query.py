@@ -1,11 +1,11 @@
 from rogw.tranp.cache.memo2 import Memoize
+from rogw.tranp.errors import Errors
 from rogw.tranp.lang.annotation import implements, injectable
 from rogw.tranp.syntax.ast.cache import EntryCache
 from rogw.tranp.syntax.ast.entry import Entry, SourceMap
 from rogw.tranp.syntax.ast.finder import ASTFinder
 from rogw.tranp.syntax.ast.path import EntryPath
 from rogw.tranp.syntax.ast.query import Query
-from rogw.tranp.syntax.errors import NodeNotFoundError
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.syntax.node.resolver import NodeResolver
 
@@ -58,7 +58,7 @@ class Nodes(Query[Node]):
 		Returns:
 			ノード
 		Raises:
-			NodeNotFoundError: ノードが存在しない
+			Errors.NodeNotFound: ノードが存在しない
 		"""
 		entry = self.__entries.by(full_path)
 		return self.__resolve(entry, full_path)
@@ -72,7 +72,7 @@ class Nodes(Query[Node]):
 		Returns:
 			ノード
 		Raises:
-			NodeNotFoundError: 親が存在しない
+			Errors.NodeNotFound: 親が存在しない
 		"""
 		def factory() -> Node:
 			forwards = EntryPath(via).shift(-1)
@@ -82,7 +82,7 @@ class Nodes(Query[Node]):
 
 				forwards = forwards.shift(-1)
 
-			raise NodeNotFoundError(via)
+			raise Errors.NodeNotFound(via)
 
 		return self.__memo.get(f'parent.{via}', factory)
 
@@ -96,14 +96,14 @@ class Nodes(Query[Node]):
 		Returns:
 			ノード
 		Raises:
-			NodeNotFoundError: 指定のエントリータグを持つ親が存在しない
+			Errors.NodeNotFound: 指定のエントリータグを持つ親が存在しない
 		"""
 		def factory() -> Node:
 			base = EntryPath(via)
 			elems = list(reversed(base.de_identify().elements))
 			index = elems.index(tag)
 			if index == -1:
-				raise NodeNotFoundError(via, tag)
+				raise Errors.NodeNotFound(via, tag)
 
 			slices = len(elems) - index
 			found_path = EntryPath.join(*base.elements[:slices])
@@ -120,11 +120,11 @@ class Nodes(Query[Node]):
 		Returns:
 			ノードリスト
 		Raises:
-			NodeNotFoundError: 基点のノードが存在しない
+			Errors.NodeNotFound: 基点のノードが存在しない
 		"""
 		uplayer_path = EntryPath(via).shift(-1)
 		if not uplayer_path.valid:
-			raise NodeNotFoundError(via)
+			raise Errors.NodeNotFound(via)
 
 		via_depth = via.count('.')
 		tester = lambda _, path: via_depth == path.count('.')
@@ -140,7 +140,7 @@ class Nodes(Query[Node]):
 		Returns:
 			ノードリスト
 		Raises:
-			NodeNotFoundError: 基点のノードが存在しない
+			Errors.NodeNotFound: 基点のノードが存在しない
 		"""
 		def factory() -> list[Node]:
 			via_depth = via.count('.')
@@ -159,7 +159,7 @@ class Nodes(Query[Node]):
 		Returns:
 			ノードリスト
 		Raises:
-			NodeNotFoundError: 基点のノードが存在しない
+			Errors.NodeNotFound: 基点のノードが存在しない
 		"""
 		def factory() -> list[Node]:
 			record: list[str] = []

@@ -1,6 +1,6 @@
 from collections.abc import Callable
 
-from rogw.tranp.errors import NotFoundError
+from rogw.tranp.errors import Errors
 from rogw.tranp.syntax.ast.entry import Entry
 from rogw.tranp.syntax.ast.path import EntryPath
 
@@ -20,7 +20,7 @@ class ASTFinder:
 		try:
 			self.pluck(root, full_path)
 			return True
-		except NotFoundError:
+		except Errors.NodeNotFound:
 			return False
 
 	def pluck(self, root: Entry, full_path: str) -> Entry:
@@ -32,7 +32,7 @@ class ASTFinder:
 		Returns:
 			エントリー
 		Raise:
-			NotFoundError: エントリーが存在しない
+			Errors.NodeNotFound: エントリーが存在しない
 		"""
 		if root.name == full_path:
 			return root
@@ -50,7 +50,7 @@ class ASTFinder:
 		Note:
 			@see pluck
 		Raise:
-			NotFoundError: エントリーが存在しない
+			Errors.NodeNotFound: エントリーが存在しない
 		"""
 		if entry.has_child and path.valid:
 			tag, index = path.first
@@ -68,7 +68,7 @@ class ASTFinder:
 		elif not path.valid:
 			return entry
 
-		raise NotFoundError(entry, path)
+		raise Errors.NodeNotFound(entry, path)
 
 	def find(self, root: Entry, via: str, tester: Callable[[Entry, str], bool], depth: int = -1) -> dict[str, Entry]:
 		"""基点のパス以下のエントリーを検索
@@ -81,7 +81,7 @@ class ASTFinder:
 		Returns:
 			フルパスとエントリーのマップ
 		Raises:
-			NotFoundError: 基点のエントリーが存在しない
+			Errors.NodeNotFound: 基点のエントリーが存在しない
 		"""
 		entry = self.pluck(root, via)
 		all = self.full_pathfy(entry, via, depth)

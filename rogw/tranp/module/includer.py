@@ -2,7 +2,7 @@ import glob
 import os
 import re
 
-from rogw.tranp.errors import LogicError
+from rogw.tranp.errors import Errors
 from rogw.tranp.module.types import ModulePath, ModulePaths
 
 
@@ -15,7 +15,7 @@ def include_module_paths(input_glob: str, exclude_patterns: list[str]) -> Module
 	Returns:
 		モジュールパスリスト
 	Raises:
-		LogicError: 対象が存在しない
+		Errors.InvalidSchema: 対象が存在しない
 	"""
 	candidate_filepaths = glob.glob(input_glob, recursive=True)
 	exclude_exps = [re.compile(rf'{exclude.replace("*", '.*')}') for exclude in exclude_patterns]
@@ -28,6 +28,6 @@ def include_module_paths(input_glob: str, exclude_patterns: list[str]) -> Module
 			module_paths.append(ModulePath(basepath.replace('/', '.'), language=extention[1:]))
 
 	if len(module_paths) == 0:
-		raise LogicError(f'No target found. input_dir: {input_glob}, excludes: {exclude_patterns}')
+		raise Errors.InvalidSchema(input_glob, exclude_patterns, 'No target found')
 
 	return module_paths

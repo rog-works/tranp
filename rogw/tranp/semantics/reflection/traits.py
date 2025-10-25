@@ -2,9 +2,9 @@ from collections.abc import Iterator
 from typing import Literal, Self, cast, override
 
 from rogw.tranp.compatible.python.types import Standards, Union
+from rogw.tranp.errors import Errors
 from rogw.tranp.lang.annotation import implements
 from rogw.tranp.lang.trait import Trait
-from rogw.tranp.semantics.errors import SemanticsLogicError, UnresolvedSymbolError
 from rogw.tranp.semantics.reflection.base import IReflection
 import rogw.tranp.semantics.reflection.definition as refs
 import rogw.tranp.semantics.reflection.helper.template as templates
@@ -232,7 +232,7 @@ class OperationTrait(TraitImpl, IOperation):
 		"""
 		try:
 			return symbol.to(symbol.types, self.reflections.resolve(symbol.types, method_name)).impl(refs.Function)
-		except UnresolvedSymbolError:
+		except Errors.UnresolvedSymbol:
 			return None
 
 
@@ -277,6 +277,8 @@ class PropertiesTrait(TraitImpl, IProperties):
 			instance: 参照元のクラスシンボル
 		Returns:
 			定義元のクラスシンボル
+		Raises:
+			Errors.Never: プロパティーの解決に失敗 ※未到達の想定
 		"""
 		begin_types = instance.types.as_a(defs.Class)
 		prop_name = prop.domain_name
@@ -292,8 +294,7 @@ class PropertiesTrait(TraitImpl, IProperties):
 
 			inherits.extend(inherit_types.inherits)
 
-		# XXX 未到達コードである想定
-		raise SemanticsLogicError(f'Unresolved prop. instance: {instance}, prop: {prop}')
+		raise Errors.Never(prop, instance, 'Property unresolved')
 
 	@implements
 	def constructor(self, instance: IReflection) -> IReflection:
@@ -336,7 +337,7 @@ class IteratorTrait(TraitImpl, IIterator):
 		"""
 		try:
 			return self.reflections.resolve(symbol.types, symbol.types.operations.iterator)
-		except UnresolvedSymbolError:
+		except Errors.UnresolvedSymbol:
 			return self.reflections.resolve(symbol.types, symbol.types.operations.iterable)
 
 

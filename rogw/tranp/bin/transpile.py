@@ -4,7 +4,6 @@ import re
 import sys
 from typing import Any, TypedDict, cast
 
-from rogw.tranp.errors import Error
 import yaml
 
 from rogw.tranp.app.app import App
@@ -12,6 +11,7 @@ from rogw.tranp.app.dummy import WrapSourceProvider, make_dummy_module_meta_fact
 from rogw.tranp.bin.io import tty
 from rogw.tranp.data.meta.header import MetaHeader
 from rogw.tranp.data.meta.types import ModuleMetaFactory
+from rogw.tranp.errors import Errors
 from rogw.tranp.file.loader import IDataLoader, ISourceLoader
 from rogw.tranp.file.writer import Writer
 from rogw.tranp.i18n.i18n import I18n, TranslationMapping
@@ -426,7 +426,7 @@ class Interactive:
 					print('Result:')
 					print('---------------')
 					print(result)
-				except Error as e:
+				except Errors.Error as e:
 					print(''.join(stacktrace(e)))
 		except KeyboardInterrupt:
 			pass

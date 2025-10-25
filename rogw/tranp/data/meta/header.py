@@ -4,7 +4,7 @@ from typing import Any, ClassVar, Self
 
 from rogw.tranp.data.meta.types import ModuleMeta, TranspilerMeta
 from rogw.tranp.data.version import Versions
-from rogw.tranp.errors import LogicError
+from rogw.tranp.errors import Errors
 
 
 class MetaHeader:
@@ -67,10 +67,10 @@ class MetaHeader:
 		Returns:
 			True = 一致
 		Raises:
-			LogicError: 同種以外のインスタンスを指定
+			Errors.Never: 同種以外と比較
 		"""
 		if type(other) is not MetaHeader:
-			raise LogicError(f'Not allowed comparison. other: {type(other)}')
+			raise Errors.Never(other, 'Not allowed comparison')
 
 		return self.identity == other.identity
 

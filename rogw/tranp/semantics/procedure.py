@@ -1,12 +1,10 @@
 from typing import Generic, TypeVar, cast
 
 from rogw.tranp.dsn.dsn import DSN
-from rogw.tranp.errors import Error, FatalError, LogicError
+from rogw.tranp.errors import Errors
 from rogw.tranp.lang.annotation import duck_typed
-from rogw.tranp.lang.error import Transaction
 from rogw.tranp.lang.eventemitter import Callback, EventEmitter, Observable
 from rogw.tranp.syntax.node.node import Node
-from rogw.tranp.semantics.errors import ProcessingError
 
 T_Ret = TypeVar('T_Ret')
 
@@ -65,16 +63,15 @@ class Procedure(Generic[T_Ret]):
 			root: ルート要素
 		Returns:
 			結果
-		Raises:
-			ProcessingError: 実行エラー
 		Note:
 			実行処理はスタックされるため、このメソッドを再帰的に実行した場合でも順次解決される
+		Raises:
+			Errors.Error: 実行中のエラー
 		"""
-		with Transaction(ProcessingError, LogicError):
-			self.__stacks.append([])
-			result = self.__exec_impl(root)
-			self.__stacks.pop()
-			return result
+		self.__stacks.append([])
+		result = self.__exec_impl(root)
+		self.__stacks.pop()
+		return result
 
 	def __exec_impl(self, root: Node) -> T_Ret:
 		"""指定のルート要素から逐次処理し、結果を出力
@@ -84,15 +81,19 @@ class Procedure(Generic[T_Ret]):
 		Returns:
 			結果
 		Raises:
-			LogicError: 実行エラー
+			Errors.Logic: スタック数が不正(1以外)
+			Errors.Error: 実行中のエラー
 		"""
-		flatted = root.procedural()
-		flatted.append(root)  # XXX 自身が含まれないので末尾に追加
+		try:
+			flatted = root.procedural()
+			flatted.append(root)  # XXX 自身が含まれないので末尾に追加
 
-		for node in flatted:
-			self.__process(node)
+			for node in flatted:
+				self.__process(node)
 
-		return self.__result()
+			return self.__result()
+		except AssertionError:
+			raise Errors.Logic(root, len(self.__stack), 'Invalid number of stacks')
 
 	@property
 	def __stack(self) -> list[T_Ret]:
@@ -105,11 +106,9 @@ class Procedure(Generic[T_Ret]):
 		Returns:
 			結果
 		Raises:
-			LogicError: 結果が1つ以外。実装ミスと見做される
+			AssertionError: 結果が1以外。実装ミス
 		"""
-		if len(self.__stack) != 1:
-			raise LogicError(f'Invalid number of stacks. {len(self.__stack)} != 1')
-
+		assert len(self.__stack) == 1
 		return self.__stack.pop()
 
 	def __process(self, node: Node) -> None:
@@ -128,7 +127,7 @@ class Procedure(Generic[T_Ret]):
 		Args:
 			node: ノード
 		Raises:
-			LogicError: 対象ノードのハンドラーが未定義
+			Errors.MustBeImplemented: 対象ノードのハンドラーが未定義
 		Note:
 			ノード専用のハンドラーが未定義の場合はon_fallbackの呼び出しを試行する
 		"""
@@ -138,7 +137,7 @@ class Procedure(Generic[T_Ret]):
 		elif self.__emitter.observed('on_fallback'):
 			self.__run_action(node, 'on_fallback')
 		else:
-			raise LogicError(f'Handler not defined. node: {node}')
+			raise Errors.MustBeImplemented(node, 'Handler not defined')
 
 	def __enter(self, node: Node) -> None:
 		"""指定のノードのプロセス処理(実行前)
@@ -146,7 +145,7 @@ class Procedure(Generic[T_Ret]):
 		Args:
 			node: ノード
 		Raises:
-			LogicError: 入力と出力が不一致
+			Errors.Logic: 入力と出力が不一致
 		"""
 		handler_name = f'on_enter_{node.classification}'
 		if not self.__emitter.observed(handler_name):
@@ -158,7 +157,7 @@ class Procedure(Generic[T_Ret]):
 		result = self.__emit_proxy(handler_name, node, **event)
 		results = cast(list[T_Ret], result)  # FIXME 公開しているイベントハンドラーの定義と異なる形式を期待
 		if (begin - consumed) != len(results):
-			raise LogicError(f'Result not match. node: {node}, event: {begin - consumed}, results: {len(results)}')
+			raise Errors.Logic(node, begin - consumed, len(results), 'Result not match')
 
 		self.__stack.extend(results)
 
@@ -168,7 +167,7 @@ class Procedure(Generic[T_Ret]):
 		Args:
 			node: ノード
 		Raises:
-			LogicError: 不正な結果(None)
+			Errors.Logic: 結果がNone
 		"""
 		handler_name = f'on_exit_{node.classification}'
 		if not self.__emitter.observed(handler_name):
@@ -177,7 +176,7 @@ class Procedure(Generic[T_Ret]):
 		org_result = self.__stack_pop()
 		new_result = self.__emit_proxy(handler_name, node, result=org_result)
 		if new_result is None:
-			raise LogicError(f'Result is null. node: {node}')
+			raise Errors.Logic(node, 'Result is null')
 
 		self.__stack.append(new_result)
 
@@ -206,18 +205,21 @@ class Procedure(Generic[T_Ret]):
 		Returns:
 			結果
 		Raises:
-			LogicError: イベントデータが不正
-			FatalError: 未ハンドリングの不特定のエラー
+			Errors.InvalidSchema: イベントデータとハンドラーの引数が不一致
+			Errors.Error: イベント内のエラー
+			Errors.Fatal: 未ハンドリングの不特定エラー
 		"""
 		try:
 			return self.__emitter.emit(action, node=node, **event)
-		except Exception as e:
-			if isinstance(e, TypeError):
-				raise LogicError(f'Invalid event schema. node: {node}, props: {node.prop_keys()}, event: {event}') from e
-			elif not isinstance(e, Error):
-				raise FatalError(f'Unhandled error. node: {node}, props: {node.prop_keys()}, event: {event}') from e
+		except TypeError as e:
+			raise Errors.InvalidSchema(node, event) from e
+		except Errors.Error as e:
+			if len(e.args) > 0 and not isinstance(e.args[0], Node):
+				raise e.__class__(node) from e
 
 			raise e
+		except Exception as e:
+			raise Errors.Fatal(node, 'Unhandled error') from e
 
 	def __make_event(self, node: Node) -> dict[str, T_Ret | list[T_Ret]]:
 		"""ノードの展開プロパティーを元にイベントデータを生成
@@ -227,7 +229,7 @@ class Procedure(Generic[T_Ret]):
 		Returns:
 			イベントデータ
 		Raises:
-			LogicError: スタックが不足
+			Errors.Logic: スタックが不足
 		"""
 		try:
 			event: dict[str, T_Ret | list[T_Ret]] = {}
@@ -240,8 +242,8 @@ class Procedure(Generic[T_Ret]):
 					event[prop_key] = self.__stack_pop()
 
 			return event
-		except LogicError as e:
-			raise LogicError(f'{str(e)} node: {node}')
+		except AssertionError:
+			raise Errors.Logic(node, 'Stack is empty')
 
 	def __is_prop_list_by(self, node: Node, prop_key: str) -> bool:
 		"""展開プロパティーがリストか判定
@@ -261,12 +263,10 @@ class Procedure(Generic[T_Ret]):
 		Returns:
 			結果
 		Raises:
-			LogicError: スタックが不足
+			AssertionError: スタックが不足
 		"""
-		if self.__stack:
-			return self.__stack.pop()
-
-		raise LogicError('Stack is empty.')
+		assert self.__stack
+		return self.__stack.pop()
 
 	def __put_log_action(self, node: Node, handler_name: str, stacks: tuple[int, int, int], result: T_Ret | None) -> None:
 		"""プロセス処理のログを出力

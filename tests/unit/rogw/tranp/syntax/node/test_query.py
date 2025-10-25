@@ -2,7 +2,7 @@ from unittest import TestCase
 
 import lark
 
-from rogw.tranp.errors import NotFoundError
+from rogw.tranp.errors import Errors
 from rogw.tranp.implements.syntax.lark.entry import EntryOfLark
 from rogw.tranp.lang.di import DI
 from rogw.tranp.lang.locator import Invoker, Locator
@@ -64,8 +64,8 @@ class Fixture:
 		return EntryOfLark(tree)
 
 	@classmethod
-	def __settings(cls) -> SymbolMapping:
-		return SymbolMapping(
+	def __settings(cls) -> SymbolMapping[Node]:
+		return SymbolMapping[Node](
 			symbols={
 				Root: ['root'],
 				TreeA: ['tree_a'],
@@ -202,7 +202,7 @@ class TestNodes(TestCase):
 		self.assertEqual([type(node) for node in in_nodes], expected)
 
 	@data_provider([
-		('root.__empty__', NotFoundError),
+		('root.__empty__', Errors.NodeNotFound),
 	])
 	def test_expand_error(self, via: str, expected: type[Exception]) -> None:
 		nodes = Fixture.nodes()

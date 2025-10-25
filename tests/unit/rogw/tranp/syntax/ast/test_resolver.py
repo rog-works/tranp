@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from rogw.tranp.errors import LogicError
+from rogw.tranp.errors import Errors
 from rogw.tranp.syntax.ast.resolver import Resolver
 
 
@@ -34,7 +34,7 @@ class TestResolver(TestCase):
 		resolver.register('c', C)
 		self.assertEqual(resolver.accepts, ['a', 'b', 'c'])
 
-		with self.assertRaises(LogicError):
+		with self.assertRaises(Errors.UnresolvedNode):
 			resolver.resolve('d')
 
 	def test_unregister(self) -> None:

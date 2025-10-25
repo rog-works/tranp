@@ -3,7 +3,7 @@ from collections.abc import Callable
 from enum import Enum, EnumType
 from importlib import import_module
 from types import FunctionType, MethodType, NoneType, UnionType
-from typing import Annotated, Any, ClassVar, ForwardRef, TypeAlias, TypeVar, Union, cast, get_origin
+from typing import Annotated, Any, ClassVar, ForwardRef, TypeAlias, TypeVar, Union, get_origin
 
 from rogw.tranp.lang.annotation import implements
 
@@ -34,13 +34,13 @@ class Typehint(metaclass=ABCMeta):
 		...
 
 	@abstractmethod
-	def meta(self, meta_type: type[T_Meta]) -> T_Meta:
+	def meta(self, meta_type: type[T_Meta]) -> T_Meta | None:
 		"""メタ情報を取得
 
 		Args:
 			meta_type: メタ情報のタイプ
 		Returns:
-			メタ情報
+			メタ情報 | None
 		Note:
 			XXX メタ情報が引数の型として本質的に正しいか否かは保証しない
 		"""
@@ -91,17 +91,17 @@ class ScalarTypehint(Typehint):
 		return self._type
 
 	@implements
-	def meta(self, meta_type: type[T_Meta]) -> T_Meta:
+	def meta(self, meta_type: type[T_Meta]) -> T_Meta | None:
 		"""メタ情報を取得
 
 		Args:
 			meta_type: メタ情報のタイプ
 		Returns:
-			メタ情報
+			メタ情報 | None
 		Note:
 			XXX メタ情報が引数の型として本質的に正しいか否かは保証しない
 		"""
-		return cast(meta_type, self._meta)
+		return self._meta
 
 	@property
 	def is_null(self) -> bool:
@@ -184,17 +184,17 @@ class FunctionTypehint(Typehint):
 		return self._func
 
 	@implements
-	def meta(self, meta_type: type[T_Meta]) -> T_Meta:
+	def meta(self, meta_type: type[T_Meta]) -> T_Meta | None:
 		"""メタ情報を取得
 
 		Args:
 			meta_type: メタ情報のタイプ
 		Returns:
-			メタ情報
+			メタ情報 | None
 		Note:
 			XXX メタ情報が引数の型として本質的に正しいか否かは保証しない
 		"""
-		return cast(meta_type, self._meta)
+		return self._meta
 
 	@property
 	def func_class(self) -> FuncClasses:
@@ -280,17 +280,17 @@ class ClassTypehint(Typehint):
 		return self._type
 
 	@implements
-	def meta(self, meta_type: type[T_Meta]) -> T_Meta:
+	def meta(self, meta_type: type[T_Meta]) -> T_Meta | None:
 		"""メタ情報を取得
 
 		Args:
 			meta_type: メタ情報のタイプ
 		Returns:
-			メタ情報
+			メタ情報 | None
 		Note:
 			XXX メタ情報が引数の型として本質的に正しいか否かは保証しない
 		"""
-		return cast(meta_type, self._meta)
+		return self._meta
 
 	@property
 	def is_generic(self) -> bool:

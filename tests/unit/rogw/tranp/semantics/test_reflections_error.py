@@ -2,8 +2,7 @@ import re
 from unittest import TestCase
 
 from rogw.tranp.dsn.module import ModuleDSN
-from rogw.tranp.errors import FatalError
-from rogw.tranp.semantics.errors import UnresolvedSymbolError
+from rogw.tranp.errors import Errors
 from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.test.helper import data_provider
 from tests.test.fixture import Fixture
@@ -14,7 +13,7 @@ class TestReflectionsError(TestCase):
 	fixture = Fixture.make(__file__)
 
 	@data_provider([
-		(ModuleDSN.full_joined(fixture_module_path, 'InvalidOps.tuple_expand.a'), FatalError, r'Unhandled error.'),
+		(ModuleDSN.full_joined(fixture_module_path, 'InvalidOps.tuple_expand.a'), Errors.Fatal, 'Unhandled error'),
 	])
 	def test_from_fullyname(self, fullyname: str, expected_error: type[Exception], expected: re.Pattern[str]) -> None:
 		with self.assertRaisesRegex(expected_error, expected):

@@ -1,7 +1,7 @@
 from typing import Generic, TypeVar
 
 from rogw.tranp.dsn.dsn import DSN
-from rogw.tranp.errors import NotFoundError
+from rogw.tranp.errors import Errors
 
 T = TypeVar('T')
 
@@ -43,10 +43,10 @@ class EntryCache(Generic[T]):
 		Returns:
 			エントリー
 		Raises:
-			NotFoundError: 存在しないパスを指定
+			Errors.NodeNotFound: 存在しないパスを指定
 		"""
 		if not self.exists(full_path):
-			raise NotFoundError(full_path)
+			raise Errors.NodeNotFound(full_path)
 
 		return self.__entries[full_path]
 
@@ -59,10 +59,10 @@ class EntryCache(Generic[T]):
 		Returns:
 			(フルパス, エントリー)
 		Raises:
-			NotFoundError: 存在しないパスを指定
+			Errors.NodeNotFound: 存在しないパスを指定
 		"""
 		if not self.exists(via):
-			raise NotFoundError(via)
+			raise Errors.NodeNotFound(via)
 
 		if depth == 0:
 			return {}

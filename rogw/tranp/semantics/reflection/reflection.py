@@ -1,10 +1,10 @@
 from collections.abc import Callable, Iterator
 from typing import Any, Literal, Self, cast, override
 
+from rogw.tranp.errors import Errors
 from rogw.tranp.lang.annotation import implements
 from rogw.tranp.lang.convertion import safe_cast
 from rogw.tranp.lang.trait import Traits
-from rogw.tranp.semantics.errors import MustBeImplementedError, SemanticsLogicError
 from rogw.tranp.semantics.reflection.helper.naming import ClassShorthandNaming
 from rogw.tranp.semantics.reflection.base import Mods, IReflection, Mod, T_Ref
 import rogw.tranp.syntax.node.definition as defs
@@ -82,9 +82,9 @@ class ReflectionBase(IReflection):
 	@property
 	@implements
 	def context(self) -> IReflection:
-		"""Returns: コンテキストを取得 Raises: SemanticsLogicError: コンテキストが無い状態で使用"""
+		"""Returns: コンテキストを取得 Raises: Errros.Never: コンテキストが無い状態で使用"""
 		if self.node == self.via.node and self == self.via:
-			raise SemanticsLogicError(f'Context is null. symbol: {str(self)}')
+			raise Errors.Never(self.node, self, 'Context is null')
 
 		return self.via
 
@@ -172,10 +172,9 @@ class ReflectionBase(IReflection):
 		Returns:
 			インスタンス
 		Raises:
-			SemanticsLogicError: 実体の無いインスタンスに実行 XXX 出力する例外は要件等
-			SemanticsLogicError: 拡張済みのインスタンスに再度実行 XXX 出力する例外は要件等
+			Errors.Never: 実体の無い/拡張済みインスタンスに実行
 		"""
-		raise SemanticsLogicError(f'Operation not allowed. symbol: {self.types.fullyname}')
+		raise Errors.Never(self.node, self)
 
 	@implements
 	def to_temporary(self) -> IReflection:
@@ -195,8 +194,9 @@ class ReflectionBase(IReflection):
 		Args:
 			key: キー
 			mod: モッド
+		Raises:
 		"""
-		raise SemanticsLogicError(f'Operation not allowed. symbol: {self.types.fullyname}')
+		raise Errors.Never(self.node, self, key)
 
 	@implements
 	def impl(self, expect: type[T_Ref]) -> T_Ref:
@@ -212,7 +212,7 @@ class ReflectionBase(IReflection):
 		if self._traits.implements(expect):
 			return cast(T_Ref, self)
 
-		raise MustBeImplementedError(f'Method not defined. symbol: {self.types.fullyname}, expect: {expect}')
+		raise Errors.MustBeImplemented(self.node, self, expect, 'Method not defined')
 
 	@override
 	def __eq__(self, other: object) -> bool:
@@ -223,13 +223,13 @@ class ReflectionBase(IReflection):
 		Returns:
 			True = 同じ
 		Raises:
-			SemanticsLogicError: 継承関係の無いオブジェクトを指定 XXX 出力する例外は要件等
+			Errors.Never: 継承関係の無いオブジェクトを指定 XXX 出力する例外は要件等
 		"""
 		if other is None:
 			return False
 
 		if not isinstance(other, IReflection):
-			raise SemanticsLogicError(f'Not allowed comparison. other: {type(other)}')
+			raise Errors.Never(self.node, self, other)
 
 		return other._dump == self._dump
 
@@ -413,11 +413,10 @@ class Reflection(ReflectionBase):
 		Returns:
 			インスタンス
 		Raises:
-			SemanticsLogicError: 実体の無いインスタンスに実行
-			SemanticsLogicError: 拡張済みのインスタンスに再度実行
+			Errors.Never: 実体の無い/拡張済みインスタンスに実行
 		"""
 		if self._attrs:
-			raise SemanticsLogicError(f'Already set attibutes. symbol: {self.types.fullyname}')
+			raise Errors.Never(self.node, self, 'Already set attibutes')
 		
 		self._attrs = list(attrs)
 		return self

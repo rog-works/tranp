@@ -1,7 +1,7 @@
 from typing import Any, TypeVar, cast, override
 
 from rogw.tranp.dsn.module import ModuleDSN
-from rogw.tranp.errors import LogicError
+from rogw.tranp.errors import Errors
 from rogw.tranp.cache.memo2 import Memoize
 from rogw.tranp.lang.annotation import deprecated, injectable
 from rogw.tranp.lang.sequence import flatten
@@ -10,7 +10,6 @@ from rogw.tranp.module.types import ModulePath
 from rogw.tranp.syntax.ast.entry import SourceMap
 from rogw.tranp.syntax.ast.path import EntryPath
 from rogw.tranp.syntax.ast.query import Query
-from rogw.tranp.syntax.errors import IllegalConvertionError, NodeNotFoundError
 from rogw.tranp.syntax.node.embed import EmbedKeys, Meta
 from rogw.tranp.syntax.node.behavior import IDomain, INamespace, IScope, ITerminal
 
@@ -71,13 +70,13 @@ class Node:
 		Returns:
 			True = 同じ
 		Raises:
-			LogicError: Node以外のオブジェクトを指定 XXX 出力する例外は要件等
+			Errors.Never: Node以外のオブジェクトを指定
 		"""
 		if other is None:
 			return False
 
 		if not isinstance(other, Node):
-			raise LogicError(f'Not allowed comparison. other: {type(other)}')
+			raise Errors.Never(self, other, 'Not allowed comparison')
 
 		return self.__repr__() == other.__repr__()
 
@@ -294,7 +293,7 @@ class Node:
 		Returns:
 			ノード
 		Raises:
-			NodeNotFoundError: ノードが存在しない
+			Errors.NodeNotFound: ノードが存在しない
 		"""
 		return self.__nodes.by(self._full_path.joined(relative_path))
 
@@ -306,11 +305,11 @@ class Node:
 		Returns:
 			ノード
 		Raises:
-			NodeNotFoundError: ノードが存在しない
+			Errors.NodeNotFound: ノードが存在しない
 		"""
 		children = self._children()
 		if index < 0 or len(children) <= index:
-			raise NodeNotFoundError(str(self), index)
+			raise Errors.NodeNotFound(self, index)
 
 		return children[index]
 
@@ -323,11 +322,11 @@ class Node:
 		Returns:
 			ノード
 		Raises:
-			NodeNotFoundError: 子が存在しない
+			Errors.NodeNotFound: 子が存在しない
 		"""
 		under = self._under_expand()
 		if index < 0 or len(under) <= index:
-			raise NodeNotFoundError(str(self), index)
+			raise Errors.NodeNotFound(self, index)
 
 		return under[index]
 
@@ -341,7 +340,7 @@ class Node:
 		Returns:
 			ノードリスト
 		Raises:
-			NodeNotFoundError: 基点のノードが存在しない
+			Errors.NodeNotFound: 基点のノードが存在しない
 		"""
 		via = self._full_path.joined(relative_path)
 		return [node for node in self.__nodes.siblings(via) if node.full_path != self.full_path]
@@ -355,7 +354,7 @@ class Node:
 		Returns:
 			ノードリスト
 		Raises:
-			NodeNotFoundError: 基点のノードが存在しない
+			Errors.NodeNotFound: 基点のノードが存在しない
 		"""
 		via = self._full_path.joined(relative_path)
 		return self.__nodes.children(via)
@@ -368,7 +367,7 @@ class Node:
 		Returns:
 			ノード
 		Raises:
-			NodeNotFoundError: ノードが存在しない
+			Errors.NodeNotFound: ノードが存在しない
 		"""
 		return self.__nodes.ancestor(self.full_path, tag)
 
@@ -421,12 +420,12 @@ class Node:
 		Returns:
 			インスタンス
 		Raises:
-			IllegalConvertionError: 許可されない変換先を指定
+			Errors.IllegalConvertion: 許可されない変換先を指定
 		"""
 		if isinstance(self, expect):
 			return self
 
-		raise IllegalConvertionError(str(self), expect)
+		raise Errors.IllegalConvertion(self, expect)
 
 	def one_of(self, *expects: type[T_Node]) -> T_Node:
 		"""指定のクラスと同じか派生クラスか判定し、合致すればそのままインスタンスを返す。合致するクラスが1件以外の場合は例外を出力
@@ -436,7 +435,7 @@ class Node:
 		Returns:
 			インスタンス
 		Raises:
-			IllegalConvertionError: 合致するクラスが1件以外
+			Errors.IllegalConvertion: 合致するクラスが1件以外
 		Examples:
 			```python
 			@property
@@ -448,7 +447,7 @@ class Node:
 		if len(inherits) == 1 and isinstance(self, inherits[0]):
 			return self
 
-		raise IllegalConvertionError(str(self), expects)
+		raise Errors.IllegalConvertion(self, expects, inherits)
 
 	@classmethod
 	def match_feature(cls, via: 'Node') -> bool:

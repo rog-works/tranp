@@ -1,17 +1,17 @@
 from collections.abc import Callable
 import os
 import sys
-import traceback
 from typing import TypeAlias, TypedDict
 
 from lark import Lark
 from lark.indenter import PythonIndenter
 
 from rogw.tranp.app.dir import tranp_dir
-from rogw.tranp.bin.io import readline
+from rogw.tranp.bin.io import tty
 from rogw.tranp.implements.syntax.tranp.rule import Rules
 from rogw.tranp.implements.syntax.tranp.rules import grammar_rules, grammar_tokenizer
 from rogw.tranp.implements.syntax.tranp.syntax import SyntaxParser
+from rogw.tranp.lang.error import stacktrace
 
 DictArgs = TypedDict('DictArgs', {'input': str, 'parser': str, 'grammar': str, 'help': bool})
 Parser: TypeAlias = Callable[[str], str]
@@ -122,26 +122,23 @@ $ bin/ast.sh -i path/to/source.py -g path/to/grammar.lark -p other
 			parser: パーサー
 		"""
 		while True:
-			print('==========')
-			print('Code here. Type `exit()` to quit:')
-
-			lines: list[str] = []
-			while True:
-				line = readline()
-				if not line:
-					break
-
-				lines.append(line)
-
-			if len(lines) == 1 and lines[0] == 'exit()':
+			prompt = '\n'.join([
+				'==========',
+				'Code here. Type `exit` to quit:',
+			])
+			lines = tty(prompt)
+			if len(lines) == 1 and lines[0] == 'exit':
 				break
 
-			text = '\n'.join(lines)
-			ast = parser(f'{text}\n')
-			print('==========')
-			print('AST')
-			print('----------')
-			print(ast)
+			try:
+				text = '\n'.join(lines)
+				ast = parser(f'{text}\n')
+				print('==========')
+				print('AST')
+				print('----------')
+				print(ast)
+			except Exception as e:
+				print(''.join(stacktrace(e)))
 
 	def load_file(self, filepath: str) -> str:
 		"""ファイルを読み込み
@@ -182,8 +179,8 @@ if __name__ == '__main__':
 		app.run()
 	except KeyboardInterrupt:
 		pass
-	except Exception:
-		print(traceback.format_exc())
+	except Exception as e:
+		print(''.join(stacktrace(e)))
 	finally:
 		if not app.quiet:
 			print('Quit')

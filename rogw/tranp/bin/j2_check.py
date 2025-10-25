@@ -1,9 +1,9 @@
 import sys
-import traceback
 
 from jinja2 import Environment
 
-from rogw.tranp.bin.io import readline
+from rogw.tranp.bin.io import tty
+from rogw.tranp.lang.error import stacktrace
 
 
 class Args:
@@ -41,25 +41,22 @@ class App:
 	def run(self) -> None:
 		"""実行処理(インタラクティブモード)"""
 		while True:
-			print('==========')
-			print('Jinja2 code here. Type `exit()` to quit:')
-
-			lines: list[str] = []
-			while True:
-				line = readline()
-				if not line:
-					break
-
-				lines.append(line)
-
-			if len(lines) == 1 and lines[0] == 'exit()':
+			prompt = '\n'.join([
+				'==========',
+				'Jinja2 code here. Type `exit` to quit:',
+			])
+			lines = tty(prompt)
+			if len(lines) == 1 and lines[0] == 'exit':
 				break
 
-			source = '\n'.join(lines)
-			print('==========')
-			print('Result')
-			print('----------')
-			print(self.render.from_string(source).render())
+			try:
+				source = '\n'.join(lines)
+				print('==========')
+				print('Result')
+				print('----------')
+				print(self.render.from_string(source).render())
+			except Exception as e:
+				print(''.join(stacktrace(e)))
 
 
 if __name__ == '__main__':
@@ -67,5 +64,7 @@ if __name__ == '__main__':
 		App(Args(sys.argv[1:])).run()
 	except KeyboardInterrupt:
 		pass
-	except Exception:
-		print(traceback.format_exc())
+	except Exception as e:
+		print(''.join(stacktrace(e)))
+	finally:
+		print('Quit')

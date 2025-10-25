@@ -411,8 +411,11 @@ class Interactive:
 		"""対話モードの実行"""
 		try:
 			while True:
-				print('===============')
-				lines = tty('Python code here. Type `exit` to quit:')
+				prompt = '\n'.join([
+					'===============',
+					'Python code here. Type `exit` to quit:',
+				])
+				lines = tty(prompt)
 				if len(lines) == 1 and lines[0] == 'exit':
 					break
 
@@ -448,9 +451,9 @@ class Help:
 
 	def run(self) -> None:
 		print(
-"""### Usage
-$ bin/transpile.sh [-c filepath] [-i filepath] [-f] [-it] [-h] [-p] [-v]
-### Args
+"""# Usage
+$ bin/transpile.sh [-c config_path] [-i source_path] [-f] [-it] [-h] [-p] [-v]
+# Options
 -c: Config YAML filepath. default to './example/config.yml'
 -i: Input source filepath
 -f: Force re-output
@@ -458,7 +461,7 @@ $ bin/transpile.sh [-c filepath] [-i filepath] [-f] [-it] [-h] [-p] [-v]
 -h: Show help
 -p: Show profiling
 -v: Output Detailed logs
-### Example
+# Examples
 $ bin/transpile.sh
 $ bin/transpile.sh -c ./path/to/config.yml
 $ bin/transpile.sh -i ./path/to/source.py

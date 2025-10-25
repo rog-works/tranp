@@ -1,11 +1,11 @@
 import os
 import sys
-import traceback
 from typing import TypedDict
 
-from rogw.tranp.bin.io import readline
+from rogw.tranp.bin.io import tty
 from rogw.tranp.implements.syntax.tranp.rules import grammar_rules, grammar_tokenizer
 from rogw.tranp.implements.syntax.tranp.syntax import SyntaxParser
+from rogw.tranp.lang.error import stacktrace
 
 DictArgs = TypedDict('DictArgs', {'input': str, 'help': bool})
 
@@ -95,26 +95,23 @@ $ bin/gram.sh -i path/to/grammar.lark
 	def run_interactive(self) -> None:
 		"""実行処理(インタラクティブモード)"""
 		while True:
-			print('==========')
-			print('Grammar code here. Type `exit()` to quit:')
-
-			lines: list[str] = []
-			while True:
-				line = readline()
-				if not line:
-					break
-
-				lines.append(line)
-
-			if len(lines) == 1 and lines[0] == 'exit()':
+			prompt = '\n'.join([
+				'==========',
+				'Grammar code here. Type `exit` to quit:',
+			])
+			lines = tty(prompt)
+			if len(lines) == 1 and lines[0] == 'exit':
 				break
 
-			text = '\n'.join(lines)
-			tree = self.parser.parse(f'{text}\n', 'entry')
-			print('==========')
-			print('AST')
-			print('----------')
-			print(tree.pretty())
+			try:
+				text = '\n'.join(lines)
+				tree = self.parser.parse(f'{text}\n', 'entry')
+				print('==========')
+				print('AST')
+				print('----------')
+				print(tree.pretty())
+			except Exception as e:
+				print(''.join(stacktrace(e)))
 
 	def load_source(self, filepath: str) -> str:
 		"""ソースコードを読み込み
@@ -135,8 +132,8 @@ if __name__ == '__main__':
 		app.run()
 	except KeyboardInterrupt:
 		pass
-	except Exception:
-		print(traceback.format_exc())
+	except Exception as e:
+		print(''.join(stacktrace(e)))
 	finally:
 		if not app.quiet:
 			print('Quit')

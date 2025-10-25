@@ -8,10 +8,12 @@ from typing import Any, TypedDict
 from rogw.tranp.app.app import App
 from rogw.tranp.app.dummy import WrapSourceProvider
 from rogw.tranp.app.dir import tranp_dir
-from rogw.tranp.bin.io import readline
+from rogw.tranp.bin.io import readline, tty
+from rogw.tranp.errors import Error
 from rogw.tranp.file.loader import ISourceLoader
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.lang.convertion import as_a
+from rogw.tranp.lang.error import stacktrace
 from rogw.tranp.lang.locator import Locator
 from rogw.tranp.lang.module import filepath_to_module_path, to_fullyname
 from rogw.tranp.module.modules import Modules
@@ -225,24 +227,18 @@ class AnalyzeApp(App):
 			return modules.load(provider.main_module_path).entrypoint.pretty()
 
 		while True:
-			title = '\n'.join([
+			prompt = '\n'.join([
 				'==============',
-				'Python code here. Type `exit()` to Menu:'
+				'Python code here. Type `exit` to Menu:'
 			])
-			print(title)
-
-			lines: list[str] = []
-			while True:
-				line = readline()
-				if not line:
-					break
-
-				lines.append(line)
-
-			if len(lines) == 1 and lines[0] == 'exit()':
+			lines = tty(prompt)
+			if len(lines) == 1 and lines[0] == 'exit':
 				break
 
-			ast = make_result('\n'.join(lines))
+			try:
+				ast = make_result('\n'.join(lines))
+			except Error as e:
+				print(''.join(stacktrace(e)))
 
 			lines = [
 				'==============',
@@ -325,11 +321,10 @@ class AnalyzeApp(App):
 		while True:
 			prompt = '\n'.join([
 				'==============',
-				'Node/Symbol fullyname or full_path or id here. Type `exit()` to Menu:',
+				'Node/Symbol fullyname or full_path or id here. Type `exit` to Menu:',
 			])
 			name = readline(prompt)
-
-			if name == 'exit()':
+			if name == 'exit':
 				break
 
 			entrypoint = self.fetch_entrypoint(module_path)
@@ -385,7 +380,7 @@ class AnalyzeApp(App):
 			'--------------',
 			'@@now',
 			'--------------',
-			'Selection here. Type `exit()` to quit:',
+			'Selection here. Type `exit` to quit:',
 		])
 		actions: dict[str, Callable[..., None]] = {
 			'a': self.task_analyze,
@@ -396,18 +391,13 @@ class AnalyzeApp(App):
 			's': self.task_symbol,
 			'h': self.task_help,
 		}
-		try:
-			while True:
-				input = readline(prompt.replace('@now', self.now))
-				if input == 'exit()':
-					return
+		while True:
+			input = readline(prompt.replace('@now', self.now))
+			if input == 'exit':
+				return
 
-				action = actions.get(input, self.task_help)
-				action()
-		except KeyboardInterrupt:
-			pass
-		finally:
-			print('Quit')
+			action = actions.get(input, self.task_help)
+			action()
 
 	def show_classes(self) -> None:
 		"""表示(クラス一覧)"""
@@ -480,4 +470,11 @@ if __name__ == '__main__':
 		to_fullyname(ParserSetting): AnalyzeApp.make_parser_setting,
 		to_fullyname(SourceProvider): WrapSourceProvider,
 	})
-	app.run(app.main)
+	try:
+		app.run(app.main)
+	except KeyboardInterrupt:
+		pass
+	except Exception as e:
+		print(''.join(stacktrace(e)))
+	finally:
+		print('Quit')

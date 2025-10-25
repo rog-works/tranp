@@ -9,11 +9,10 @@ from rogw.tranp.app.app import App
 from rogw.tranp.app.dummy import WrapSourceProvider
 from rogw.tranp.app.dir import tranp_dir
 from rogw.tranp.bin.io import readline, tty
-from rogw.tranp.errors import Error
+from rogw.tranp.errors import Errors
 from rogw.tranp.file.loader import ISourceLoader
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.lang.convertion import as_a
-from rogw.tranp.lang.error import stacktrace
 from rogw.tranp.lang.locator import Locator
 from rogw.tranp.lang.module import filepath_to_module_path, to_fullyname
 from rogw.tranp.module.modules import Modules
@@ -24,6 +23,7 @@ from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.syntax.ast.parser import ParserSetting, SourceProvider
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
+from rogw.tranp.view.error_render import ErrorRender
 
 ArgsDict = TypedDict('ArgsDict', {'grammar': str, 'input': str, 'command': str, 'options': dict[str, str]})
 
@@ -237,8 +237,8 @@ class AnalyzeApp(App):
 
 			try:
 				ast = make_result('\n'.join(lines))
-			except Error as e:
-				print(''.join(stacktrace(e)))
+			except Errors.Error as e:
+				print(ErrorRender(e))
 
 			lines = [
 				'==============',
@@ -475,6 +475,6 @@ if __name__ == '__main__':
 	except KeyboardInterrupt:
 		pass
 	except Exception as e:
-		print(''.join(stacktrace(e)))
+		print(ErrorRender(e))
 	finally:
 		print('Quit')

@@ -21,7 +21,6 @@ from rogw.tranp.implements.cpp.transpiler.py2cpp import Py2Cpp
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.lang.convertion import as_a
 from rogw.tranp.lang.di import DI, ModuleDefinitions
-from rogw.tranp.lang.error import stacktrace
 from rogw.tranp.lang.eventemitter import EventEmitter
 from rogw.tranp.lang.locator import Invoker, Locator
 from rogw.tranp.lang.module import to_fullyname, module_path_to_filepath
@@ -34,6 +33,7 @@ from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.syntax.ast.parser import ParserSetting, SourceProvider
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.transpiler.types import ITranspiler, TranspilerOptions
+from rogw.tranp.view.error_render import ErrorRender
 from rogw.tranp.view.render import Renderer, RendererEmitter, RendererHelperProvider, RendererSetting
 
 ArgsDict = TypedDict('ArgsDict', {
@@ -427,7 +427,7 @@ class Interactive:
 					print('---------------')
 					print(result)
 				except Errors.Error as e:
-					print(''.join(stacktrace(e)))
+					print(ErrorRender(e))
 		except KeyboardInterrupt:
 			pass
 		finally:
@@ -478,4 +478,4 @@ if __name__ == '__main__':
 	try:
 		App(TranspileApp.definitions(Args(sys.argv[1:]))).run(TranspileApp.run)
 	except Exception as e:
-		print(''.join(stacktrace(e)))
+		print(ErrorRender(e))

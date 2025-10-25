@@ -389,6 +389,13 @@ class ForClass:
 			self.ac = None
 			self.n = int(cast(str, self.sp))
 
+	class Property:
+		@property
+		def prop(self) -> int:
+			ForClass.Property.prop
+			self.prop
+			return 0
+
 
 class ForEnum:
 	class ES(Enum):

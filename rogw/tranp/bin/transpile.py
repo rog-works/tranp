@@ -419,8 +419,8 @@ class Interactive:
 				if len(lines) == 1 and lines[0] == 'exit':
 					break
 
-				main_module = self.rebuild_module('\n'.join(lines))
 				try:
+					main_module = self.rebuild_module('\n'.join(lines))
 					result = self.transpiler.transpile(main_module.entrypoint)
 					print('===============')
 					print('Result:')

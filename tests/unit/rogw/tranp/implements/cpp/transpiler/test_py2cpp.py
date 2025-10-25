@@ -6,7 +6,7 @@ from rogw.tranp.app.dir import tranp_dir
 from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.dsn.translation import alias_dsn
 from rogw.tranp.i18n.i18n import I18n, TranslationMapping
-from rogw.tranp.implements.cpp.providers.i18n import translation_mapping_cpp_example
+from rogw.tranp.implements.cpp.providers.i18n import translation_mapping_cpp
 from rogw.tranp.implements.cpp.providers.view import renderer_helper_provider_cpp
 from rogw.tranp.implements.cpp.providers.semantics import plugin_provider_cpp
 from rogw.tranp.implements.cpp.transpiler.py2cpp import Py2Cpp
@@ -34,7 +34,7 @@ def fixture_translation_mapping(datums: IDataLoader) -> TranslationMapping:
 		alias_dsn(ModuleDSN.full_joined(fixture_module_path, 'Alias.inner')): 'inner_b',
 		alias_dsn(ModuleDSN.full_joined(fixture_module_path, 'Alias.Inner.V')): 'V2',
 	}
-	return translation_mapping_cpp_example(datums).merge(fixture_translations)
+	return translation_mapping_cpp(datums).merge(fixture_translations)
 
 
 def make_renderer_setting(i18n: I18n, emitter: RendererEmitter) -> RendererSetting:

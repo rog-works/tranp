@@ -172,7 +172,7 @@ class ReflectionBase(IReflection):
 		Returns:
 			インスタンス
 		Raises:
-			Errors.Never: 実体の無い/拡張済みインスタンスに実行
+			Errors.Never: 実体の無い/拡張済みのインスタンスに実行
 		"""
 		raise Errors.Never(self.node, self)
 
@@ -223,7 +223,7 @@ class ReflectionBase(IReflection):
 		Returns:
 			True = 同じ
 		Raises:
-			Errors.Never: 継承関係の無いオブジェクトを指定 XXX 出力する例外は要件等
+			Errors.Never: リフレクション以外と比較
 		"""
 		if other is None:
 			return False
@@ -413,7 +413,7 @@ class Reflection(ReflectionBase):
 		Returns:
 			インスタンス
 		Raises:
-			Errors.Never: 実体の無い/拡張済みインスタンスに実行
+			Errors.Never: 実体の無い/拡張済みのインスタンスに実行
 		"""
 		if self._attrs:
 			raise Errors.Never(self.node, self, 'Already set attibutes')

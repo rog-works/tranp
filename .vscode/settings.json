@@ -5,4 +5,10 @@
 	"python.analysis.extraPaths": [
 		"./vendor",
 	],
+	"[python]": {
+		"editor.formatOnSave": true,
+		"editor.codeActionsOnSave": {
+			"source.organizeImports": "explicit",
+		},
+	},
 }

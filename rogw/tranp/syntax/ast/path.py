@@ -1,7 +1,7 @@
 import re
 
 from rogw.tranp.dsn.dsn import DSN
-from rogw.tranp.errors import LogicError
+from rogw.tranp.errors import Errors
 
 
 class EntryPath:
@@ -160,10 +160,10 @@ class EntryPath:
 		Returns:
 			インスタンス
 		Raises:
-			LogicError: 一致しない先頭パスを指定
+			Errors.Logic: 一致しない先頭パスを指定
 		"""
 		if not self.origin.startswith(f'{starts}.'):
-			raise LogicError(self, starts)
+			raise Errors.Logic(self.origin, starts)
 
 		return EntryPath(DSN.relativefy(self.origin, starts))
 

@@ -2,8 +2,8 @@ from abc import ABCMeta, abstractmethod
 from collections.abc import Iterator
 from typing import Literal, Protocol, Self, TypeVar
 
+from rogw.tranp.errors import Errors
 from rogw.tranp.lang.trait import Traits
-from rogw.tranp.semantics.errors import SemanticsLogicError
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 
@@ -56,7 +56,7 @@ class IReflection(metaclass=ABCMeta):
 	@property
 	@abstractmethod
 	def context(self) -> 'IReflection':
-		"""Returns: コンテキストを取得 Raises: SemanticsLogicError: コンテキストが無い状態で使用"""
+		"""Returns: コンテキストを取得 Raises: Errors.Never: コンテキストが無い状態で使用"""
 		...
 
 	@property
@@ -136,8 +136,7 @@ class IReflection(metaclass=ABCMeta):
 		Returns:
 			インスタンス
 		Raises:
-			SemanticsLogicError: 実体の無いインスタンスに実行 XXX 出力する例外は要件等
-			SemanticsLogicError: 拡張済みのインスタンスに再度実行 XXX 出力する例外は要件等
+			Errors.Never: 実体の無い/拡張済みのインスタンスに実行
 		"""
 		...
 
@@ -169,7 +168,7 @@ class IReflection(metaclass=ABCMeta):
 		Returns:
 			インスタンス
 		Raises:
-			MustBeImplementedError: トレイトのメソッドが未実装
+			Errors.MustBeImplemented: トレイトのメソッドが未実装
 		"""
 		...
 
@@ -192,9 +191,9 @@ class Mods:
 
 	@property
 	def origin(self) -> IReflection:
-		"""Returns: 型のシンボル"""
+		"""Returns: 型のシンボル Raises: Errors.Never: モッドが無効"""
 		if not self.active('origin'):
-			raise SemanticsLogicError('Has no origin')
+			raise Errors.Never('No origin')
 
 		if 'origin' not in self._cache:
 			self._cache['origin'] = self._mods['origin']()
@@ -203,9 +202,9 @@ class Mods:
 
 	@property
 	def attrs(self) -> list[IReflection]:
-		"""Returns: 属性シンボルリスト"""
+		"""Returns: 属性シンボルリスト Raises: Errors.Never: モッドが無効"""
 		if not self.active('attrs'):
-			raise SemanticsLogicError('Has no attrs')
+			raise Errors.Never('No attrs')
 
 		if 'attrs' not in self._cache:
 			self._cache['attrs'] = self._mods['attrs']()

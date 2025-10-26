@@ -5,13 +5,13 @@ import lark
 from lark.indenter import PythonIndenter
 
 from rogw.tranp.cache.cache import CacheProvider, Stored
+from rogw.tranp.errors import Errors
 from rogw.tranp.file.loader import IDataLoader, ISourceLoader
 from rogw.tranp.implements.syntax.lark.entry import EntryOfLark, Serialization
 from rogw.tranp.lang.annotation import duck_typed, injectable
 from rogw.tranp.lang.module import module_path_to_filepath
 from rogw.tranp.syntax.ast.entry import Entry
 from rogw.tranp.syntax.ast.parser import ParserSetting, SourceProvider, SyntaxParser
-from rogw.tranp.syntax.errors import SyntaxError
 
 
 class SyntaxParserOfLark:
@@ -79,7 +79,7 @@ class SyntaxParserOfLark:
 		Returns:
 			シンタックスツリーのルートエントリー
 		Raises:
-			SyntaxError: ソースの解析に失敗
+			Errors.Syntax: ソースの解析に失敗
 		"""
 		basepath = module_path_to_filepath(module_path)
 		source_path = f'{basepath}.py'
@@ -92,7 +92,7 @@ class SyntaxParserOfLark:
 			try:
 				return EntryStored(EntryOfLark(parser.parse(self.__source_provider(module_path))))
 			except Exception as e:
-				raise SyntaxError(f'file: {source_path}') from e
+				raise Errors.Syntax(source_path) from e
 
 		identity = {
 			'grammar_mtime': str(self.__datums.mtime(self.__setting.grammar)),

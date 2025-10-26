@@ -3,7 +3,7 @@ from typing import Generic, TypeAlias, TypeVar, override
 
 from rogw.tranp.compatible.python.types import Union
 from rogw.tranp.dsn.dsn import DSN
-from rogw.tranp.errors import LogicError
+from rogw.tranp.errors import Errors
 import rogw.tranp.lang.sequence as seqs
 from rogw.tranp.semantics.reflection.base import IReflection
 import rogw.tranp.semantics.reflection.definition as refs
@@ -35,12 +35,12 @@ class Schema(Generic[T_Schemata]):
 		Returns:
 			シンボル | シンボルリスト
 		Raises:
-			LogicError: 存在しないキーを指定 XXX 出力する例外は要件等
+			Errors.Never: 存在しないキーを指定
 		"""
 		if key in self.__schemata:
 			return self.__schemata[key]
 
-		raise LogicError(f'Schema not defined. key: {key}')
+		raise Errors.Never(key, 'Schema not defined')
 
 
 class Helper:
@@ -410,7 +410,7 @@ class HelperBuilder:
 		Returns:
 			生成したインスタンス
 		Raises:
-			LogicError: ビルド対象が期待する型と不一致 XXX 出力する例外は要件等
+			Errors.Never: ビルド対象が期待する型と不一致
 		"""
 		ctors: dict[type[defs.ClassDef], type[Helper]] = {
 			defs.Function: Function,
@@ -420,7 +420,7 @@ class HelperBuilder:
 		}
 		ctor = ctors.get(self.__symbol.types.__class__, Function)
 		if not issubclass(ctor, expect):
-			raise LogicError(f'Unexpected build class. symbol: {self.__symbol}, resolved: {ctor}, expect: {expect}')
+			raise Errors.Never(self.__symbol.node, self.__symbol, ctor, expect, 'Unmatch build class')
 
 		injector = self.__resolve_injector(ctor)
 		return ctor(self.__symbol, injector())

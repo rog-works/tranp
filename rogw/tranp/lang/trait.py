@@ -2,7 +2,7 @@ from collections.abc import Callable
 from types import FunctionType
 from typing import Any, Generic, Protocol, TypeVar
 
-from rogw.tranp.errors import LogicError
+from rogw.tranp.errors import Errors
 from rogw.tranp.lang.annotation import injectable
 
 T = TypeVar('T')
@@ -125,10 +125,10 @@ class Traits(Generic[T]):
 		Returns:
 			メソッドアダプター
 		Raises:
-			LogicError: トレイトのメソッドが未実装
+			Errors.Never: トレイトのメソッドが未実装
 		"""
 		if name not in self.__method_on_trait:
-			raise LogicError(f'Method not defined. class: {type(instance)}, name: {name}')
+			raise Errors.Never(instance, name, 'Method not defined')
 
 		trait = self.__method_on_trait[name]
 		return lambda *args: getattr(trait, name)(*args, instance=instance)

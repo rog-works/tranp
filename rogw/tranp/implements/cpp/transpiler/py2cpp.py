@@ -13,14 +13,13 @@ from rogw.tranp.data.version import Versions
 from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.dsn.translation import alias_dsn, import_dsn
-from rogw.tranp.errors import LogicError
+from rogw.tranp.errors import Errors
 from rogw.tranp.i18n.i18n import I18n
 from rogw.tranp.implements.cpp.semantics.cvars import CVars
 from rogw.tranp.lang.annotation import duck_typed, implements, injectable
 from rogw.tranp.lang.defer import Defer
 from rogw.tranp.lang.eventemitter import Callback, Observable
 from rogw.tranp.lang.module import to_fullyname
-from rogw.tranp.semantics.errors import NotSupportedError
 from rogw.tranp.semantics.procedure import Procedure
 from rogw.tranp.semantics.reflection.base import IReflection
 import rogw.tranp.semantics.reflection.definition as refs
@@ -103,9 +102,11 @@ class Py2Cpp(ITranspiler):
 			{{- emit_depends('"path/to/name.h"') -}}
 			```
 		Raises:
-			AssetionError: 依存パスの書式が不正
+			Errors.InvalidSchema: 依存パスの書式が不正
 		"""
-		assert re.fullmatch(r'"[\w\d/]+.h"|<[\w\d/]+>', path)
+		if not re.fullmatch(r'"[\w\d/]+.h"|<[\w\d/]+>', path):
+			raise Errors.InvalidSchema(path)
+
 		if path not in self.__stack_on_depends[-1]:
 			self.__stack_on_depends[-1].append(path)
 
@@ -553,7 +554,7 @@ class Py2Cpp(ITranspiler):
 		value_raw = self.reflections.type_of(node.value)
 		declared = receiver_raw.decl.declare == node
 		if not self.allow_move_assign(value_raw, declared):
-			raise LogicError(f'Not allowed assign type. node: {node}, symbol: {value_raw}')
+			raise Errors.OperationNotAllowed(node, value_raw, 'Reject assign. Must be Nullable or Non-Union')
 
 		var_type = self.to_accessible_name(value_raw)
 		assign_vars = {'receiver': receiver, 'var_type': var_type, 'value': value}
@@ -570,7 +571,7 @@ class Py2Cpp(ITranspiler):
 		"""Note: C++で分割代入できるのはtuple/pairのみ。Pythonではいずれもtupleのため、tuple以外は非対応"""
 		value_raw = self.reflections.type_of(node.value).impl(refs.Object).actualize()
 		if not value_raw.type_is(tuple):
-			raise LogicError(f'Not allowed destruction assign. value must be a tuple. node: {node}')
+			raise Errors.OperationNotAllowed(node, 'Reject assign. Must be a tuple')
 
 		return self.view.render(f'assign/{node.classification}_destruction', vars={'receivers': receivers, 'value': value})
 
@@ -589,7 +590,7 @@ class Py2Cpp(ITranspiler):
 		target_types: list[str] = []
 		for target_node in node.targets:
 			if not isinstance(target_node, defs.Indexer):
-				raise LogicError(f'Unexpected delete target. supported type is list or dict. target: {target_node}')
+				raise Errors.OperationNotAllowed(node, target_node, 'Reject delete. Must be list or dict')
 
 			target_symbol = self.reflections.type_of(target_node.receiver)
 			target_types.append('list' if target_symbol.impl(refs.Object).type_is(list) else 'dict')
@@ -606,7 +607,7 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(node.classification, vars={'return_value': return_value})
 
 	def on_yield(self, node: defs.Yield, yield_value: str) -> str:
-		raise NotSupportedError(f'Denied yield return. node: {node}')
+		raise Errors.NotSupported(node, 'Denied yield return')
 
 	def on_assert(self, node: defs.Assert, condition: str, assert_body: str) -> str:
 		return self.view.render(node.classification, vars={'condition': condition, 'assert_body': assert_body})
@@ -1332,7 +1333,7 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(node.classification, vars={'expression': expression})
 
 	def on_spread(self, node: defs.Spread, expression: str) -> str:
-		raise NotSupportedError(f'Denied spread expression. node: {node}')
+		raise Errors.NotSupported(node, 'Denied spread expression')
 
 	def on_lambda(self, node: defs.Lambda, symbols: str, expression: str) -> str:
 		params: dict[str, str] = {}

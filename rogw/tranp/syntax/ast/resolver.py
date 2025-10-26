@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Generic, TypeVar
 
-from rogw.tranp.errors import LogicError
+from rogw.tranp.errors import Errors
 
 T = TypeVar('T')
 
@@ -101,7 +101,7 @@ class Resolver(Generic[T]):
 		Returns:
 			解決した型
 		Raises:
-			LogicError: シンボルの解決に失敗
+			Errors.UnresolvedNode: シンボルの解決に失敗
 		"""
 		if self.can_resolve(symbol):
 			return self.__ctors[symbol]
@@ -109,7 +109,7 @@ class Resolver(Generic[T]):
 		if self.__fallback:
 			return [self.__fallback]
 
-		raise LogicError(symbol)
+		raise Errors.UnresolvedNode(symbol)
 
 	def clear(self) -> None:
 		"""型マッピングを全て解除"""

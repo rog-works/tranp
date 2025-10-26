@@ -1,6 +1,6 @@
+from rogw.tranp.errors import Errors
 from rogw.tranp.lang.annotation import duck_typed, injectable
 from rogw.tranp.module.module import Module
-from rogw.tranp.semantics.errors import SemanticsLogicError
 from rogw.tranp.semantics.processor import Preprocessor
 from rogw.tranp.semantics.reflection.db import SymbolDB
 from rogw.tranp.semantics.reflection.persistent import ISymbolDBPersistor
@@ -28,10 +28,10 @@ class RestoreSymbols:
 		Returns:
 			True = 後続処理を実行
 		Raises:
-			SemanticsLogicError: 実施済みのモジュールに対して再度実行
+			Errors.Never: 実施済みのモジュールに対して再度実行
 		"""
 		if db.has_module(module.path):
-			raise SemanticsLogicError(f'Already processing. module: {module.path}')
+			raise Errors.Never(module, 'Already processing')
 
 		if self.persistor.stored(module):
 			self.persistor.restore(module, db)

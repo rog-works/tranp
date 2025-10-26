@@ -1,6 +1,7 @@
 from collections.abc import Iterator, KeysView, MutableMapping, ValuesView
 
 from rogw.tranp.dsn.module import ModuleDSN
+from rogw.tranp.errors import Errors
 from rogw.tranp.semantics.reflection.base import IReflection
 from rogw.tranp.semantics.reflection.serialization import DictSerialized, IReflectionSerializer
 
@@ -22,12 +23,12 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		Returns:
 			シンボル
 		Raises:
-			KeyError: 存在しないキーを指定
+			Errors.SymbolNotDefined: 存在しないキーを指定
 		"""
 		if key in self.__items:
 			return self.__items[key]
 
-		raise KeyError(f'Key not exists. key: {key}')
+		raise Errors.SymbolNotDefined(key)
 
 	def __setitem__(self, key: str, symbol: IReflection) -> None:
 		"""指定のキーにシンボルを設定
@@ -47,9 +48,9 @@ class SymbolDB(MutableMapping[str, IReflection]):
 		Args:
 			key: キー
 		Raises:
-			NotImplementedError: 非対応
+			Errors.Never: 非対応
 		"""
-		raise NotImplementedError(f'Operation not allowed. key: {key}')
+		raise Errors.Never(key)
 	
 	def __iter__(self) -> Iterator[str]:
 		"""キーのイテレーターを取得

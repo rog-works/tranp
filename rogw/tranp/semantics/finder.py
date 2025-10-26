@@ -2,9 +2,9 @@ from collections.abc import Iterator
 
 from rogw.tranp.compatible.python.types import Standards
 from rogw.tranp.dsn.module import ModuleDSN
+from rogw.tranp.errors import Errors
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.module.types import LibraryPaths
-from rogw.tranp.semantics.errors import MustBeImplementedError, SymbolNotDefinedError
 from rogw.tranp.semantics.reflection.base import IReflection
 from rogw.tranp.semantics.reflection.db import SymbolDB
 import rogw.tranp.syntax.node.definition as defs
@@ -30,7 +30,7 @@ class SymbolFinder:
 		Returns:
 			シンボル
 		Raises:
-			MustBeImplementedError: objectが未実装
+			Errors.MustBeImplemented: objectが未実装
 		Note:
 			必ず存在すると言う前提。見つからない場合は実装ミス
 		"""
@@ -38,7 +38,7 @@ class SymbolFinder:
 		if raw is not None:
 			return raw
 
-		raise MustBeImplementedError('"object" class is required.')
+		raise Errors.MustBeImplemented('"object" class is required.')
 
 	def by(self, db: SymbolDB, fullyname: str) -> IReflection:
 		"""完全参照名からシンボルを取得
@@ -49,12 +49,12 @@ class SymbolFinder:
 		Returns:
 			シンボル
 		Raises:
-			SymbolNotDefinedError: シンボルが見つからない
+			Errors.SymbolNotDefined: シンボルが見つからない
 		"""
 		if fullyname in db:
 			return db[fullyname]
 
-		raise SymbolNotDefinedError(f'fullyname: {fullyname}')
+		raise Errors.SymbolNotDefined(fullyname)
 
 	def by_standard(self, db: SymbolDB, standard_type: type[Standards] | None) -> IReflection:
 		"""標準クラスのシンボルを取得
@@ -65,14 +65,14 @@ class SymbolFinder:
 		Returns:
 			シンボル
 		Raises:
-			MustBeImplementedError: 標準クラスが未実装
+			Errors.MustBeImplemented: 標準クラスが未実装
 		"""
 		domain_name = standard_type.__name__ if standard_type is not None else 'None'
 		raw = self.__find_raw(db, [ModuleDSN(module_path) for module_path in self.__library_paths], domain_name)
 		if raw is not None:
 			return raw
 
-		raise MustBeImplementedError(f'"{domain_name}" class is required.')
+		raise Errors.MustBeImplemented(f'"{domain_name}" class is required.')
 
 	def by_symbolic(self, db: SymbolDB, node: defs.Symbolic) -> IReflection:
 		"""シンボル系ノードからシンボルを取得
@@ -83,13 +83,13 @@ class SymbolFinder:
 		Returns:
 			シンボル
 		Raises:
-			SymbolNotDefinedError: シンボルが見つからない
+			Errors.SymbolNotDefined: シンボルが見つからない
 		"""
 		raw = self.find_by_symbolic(db, node)
 		if raw is not None:
 			return raw
 
-		raise SymbolNotDefinedError(f'fullyname: {node.fullyname}')
+		raise Errors.SymbolNotDefined(node)
 
 	def find_by_symbolic(self, db: SymbolDB, node: defs.Symbolic, prop_name: str = '') -> IReflection | None:
 		"""シンボルを検索。未検出の場合はNoneを返却

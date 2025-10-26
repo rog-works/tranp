@@ -1,9 +1,8 @@
 from collections.abc import Callable
 
 from rogw.tranp.compatible.python.types import Standards, Union, Unknown
+from rogw.tranp.errors import Errors
 from rogw.tranp.lang.annotation import injectable
-from rogw.tranp.lang.error import Transaction
-from rogw.tranp.semantics.errors import OperationNotAllowedError, SemanticsLogicError, UnresolvedSymbolError
 from rogw.tranp.semantics.finder import SymbolFinder
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.semantics.procedure import Procedure
@@ -60,10 +59,9 @@ class Reflections:
 		Return:
 			bool: True = 指定の型と一致
 		Raises:
-			UnresolvedSymbolError: 標準クラスが未実装
+			Errors.MustBeImplemented: 標準クラスが未実装
 		"""
-		with Transaction(UnresolvedSymbolError, SemanticsLogicError):
-			return types == self.from_standard(standard_type).types
+		return types == self.from_standard(standard_type).types
 
 	def get_object(self) -> IReflection:
 		"""objectのシンボルを取得
@@ -71,10 +69,9 @@ class Reflections:
 		Returns:
 			シンボル
 		Raises:
-			UnresolvedSymbolError: objectが未実装
+			Errors.MustBeImplemented: objectが未実装
 		"""
-		with Transaction(UnresolvedSymbolError, SemanticsLogicError):
-			return self.__finder.get_object(self.__db)
+		return self.__finder.get_object(self.__db)
 
 	def from_standard(self, standard_type: type[Standards] | None) -> IReflection:
 		"""標準クラスのシンボルを解決
@@ -84,10 +81,9 @@ class Reflections:
 		Returns:
 			シンボル
 		Raises:
-			UnresolvedSymbolError: 標準クラスが未実装
+			Errors.MustBeImplemented: 標準クラスが未実装
 		"""
-		with Transaction(UnresolvedSymbolError, SemanticsLogicError):
-			return self.__finder.by_standard(self.__db, standard_type)
+		return self.__finder.by_standard(self.__db, standard_type)
 
 	def from_fullyname(self, fullyname: str) -> IReflection:
 		"""完全参照名からシンボルを解決
@@ -97,10 +93,9 @@ class Reflections:
 		Returns:
 			シンボル
 		Raises:
-			UnresolvedSymbolError: シンボルの解決に失敗
+			Errors.SymbolNotDefined: シンボルの解決に失敗
 		"""
-		with Transaction(UnresolvedSymbolError, SemanticsLogicError):
-			return self.__finder.by(self.__db, fullyname)
+		return self.__finder.by(self.__db, fullyname)
 
 	def type_of(self, node: Node) -> IReflection:
 		"""シンボル系/式ノードからシンボルを解決 XXX 万能過ぎるので細分化を検討
@@ -110,25 +105,24 @@ class Reflections:
 		Returns:
 			シンボル
 		Raises:
-			UnresolvedSymbolError: シンボルの解決に失敗
+			Errors.Error: シンボルの解決に失敗
 		"""
-		with Transaction(UnresolvedSymbolError, SemanticsLogicError):
-			if isinstance(node, defs.Declable):
-				return self.__from_declable(node)
-			elif isinstance(node, defs.Reference):
-				return self.__resolve_procedural(node)
-			elif isinstance(node, defs.Type):
-				return self.__resolve_procedural(node)
-			elif isinstance(node, defs.ClassDef):
-				return self.__from_class_def(node)
-			elif isinstance(node, defs.Literal):
-				return self.__resolve_procedural(node)
-			elif isinstance(node, (defs.For, defs.Catch, defs.WithEntry)):
-				return self.__from_flow(node)
-			elif isinstance(node, (defs.Comprehension, defs.CompFor)):
-				return self.__from_comprehension(node)
-			else:
-				return self.__resolve_procedural(node)
+		if isinstance(node, defs.Declable):
+			return self.__from_declable(node)
+		elif isinstance(node, defs.Reference):
+			return self.__resolve_procedural(node)
+		elif isinstance(node, defs.Type):
+			return self.__resolve_procedural(node)
+		elif isinstance(node, defs.ClassDef):
+			return self.__from_class_def(node)
+		elif isinstance(node, defs.Literal):
+			return self.__resolve_procedural(node)
+		elif isinstance(node, (defs.For, defs.Catch, defs.WithEntry)):
+			return self.__from_flow(node)
+		elif isinstance(node, (defs.Comprehension, defs.CompFor)):
+			return self.__from_comprehension(node)
+		else:
+			return self.__resolve_procedural(node)
 
 	def __from_declable(self, node: defs.Declable) -> IReflection:
 		"""シンボル宣言ノードからシンボルを解決
@@ -138,7 +132,7 @@ class Reflections:
 		Returns:
 			シンボル
 		Raises:
-			SemanticsError: シンボルの解決に失敗
+			Errors.Error: シンボルの解決に失敗
 		"""
 		if isinstance(node, defs.DeclClassParam) and isinstance(node.declare.as_a(defs.Parameter).var_type, defs.Empty):
 			return self.from_standard(type).stack(node).extends(self.resolve(node))
@@ -157,7 +151,7 @@ class Reflections:
 		Returns:
 			シンボル
 		Raises:
-			SemanticsError: シンボルの解決に失敗
+			Errors.Error: シンボルの解決に失敗
 		"""
 		if isinstance(node, defs.DeclClasses):
 			return self.from_standard(type).stack(node).extends(self.resolve(node))
@@ -173,7 +167,7 @@ class Reflections:
 		Returns:
 			シンボル
 		Raises:
-			SemanticsError: シンボルの解決に失敗
+			Errors.Error: シンボルの解決に失敗
 		"""
 		if isinstance(node, defs.For):
 			return self.__resolve_procedural(node.for_in)
@@ -191,7 +185,7 @@ class Reflections:
 		Returns:
 			シンボル
 		Raises:
-			SemanticsError: シンボルの解決に失敗
+			Errors.Error: シンボルの解決に失敗
 		"""
 		if isinstance(node, defs.Comprehension):
 			return self.__resolve_procedural(node)
@@ -208,10 +202,9 @@ class Reflections:
 		Returns:
 			シンボル
 		Raises:
-			UnresolvedSymbolError: シンボルの解決に失敗
+			Errors.UnresolvedSymbol: シンボルの解決に失敗
 		"""
-		with Transaction(UnresolvedSymbolError, SemanticsLogicError):
-			return self.resolve(types, prop.tokens)
+		return self.resolve(types, prop.tokens)
 
 	def resolve_constructor(self, types: defs.Class) -> IReflection:
 		"""クラス定義ノードからコンストラクターのシンボルを解決
@@ -221,10 +214,9 @@ class Reflections:
 		Returns:
 			シンボル
 		Raises:
-			UnresolvedSymbolError: コンストラクターの実装ミス
+			Errors.UnresolvedSymbol: コンストラクターの実装ミス
 		"""
-		with Transaction(UnresolvedSymbolError, SemanticsLogicError):
-			return self.resolve(types, types.operations.constructor)
+		return self.resolve(types, types.operations.constructor)
 
 	def resolve(self, symbolic: defs.Symbolic, prop_name: str = '') -> IReflection:
 		"""シンボルテーブルからシンボルを解決
@@ -235,14 +227,13 @@ class Reflections:
 		Returns:
 			シンボル
 		Raises:
-			UnresolvedSymbolError: シンボルの解決に失敗
+			Errors.UnresolvedSymbol: シンボルの解決に失敗
 		"""
-		with Transaction(UnresolvedSymbolError, SemanticsLogicError):
-			found_raw = self.__resolve_raw(symbolic, prop_name)
-			if found_raw is not None:
-				return found_raw
+		found_raw = self.__resolve_raw(symbolic, prop_name)
+		if found_raw is not None:
+			return found_raw
 
-			raise UnresolvedSymbolError(f'symbolic: {symbolic.fullyname}, prop_name: {prop_name}')
+		raise Errors.UnresolvedSymbol(symbolic, prop_name)
 
 	def __resolve_raw(self, symbolic: defs.Symbolic, prop_name: str) -> IReflection | None:
 		"""シンボル系ノードからシンボルを解決。未検出の場合はNoneを返却
@@ -303,7 +294,7 @@ class Reflections:
 		Returns:
 			シンボル
 		Raises:
-			ProcessingError: シンボルの解決に失敗
+			Errors.Error: シンボルの解決に失敗
 		"""
 		return self.__procedural_resolver.resolve(node)
 
@@ -341,7 +332,7 @@ class ProceduralResolver:
 		Returns:
 			シンボル
 		Raises:
-			ProcessingError: 実行エラー
+			Errors.Error: 実行中のエラー
 		"""
 		return self.procedure.exec(node)
 
@@ -625,7 +616,7 @@ class ProceduralResolver:
 			right = elements[right_index]
 			result = left.impl(refs.Object).try_operation(operator, right) or right.impl(refs.Object).try_operation(operator, left)
 			if result is None:
-				raise OperationNotAllowedError(f'Operation not defined. {node}, {str(left)} {operator.tokens} {str(right)}')
+				raise Errors.OperationNotAllowed(node, left, operator, right, 'Operation not defined')
 
 			left = result
 

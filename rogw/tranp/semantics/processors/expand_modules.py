@@ -4,10 +4,10 @@ from typing import IO, NamedTuple
 from rogw.tranp.compatible.python.types import Unknown
 from rogw.tranp.cache.cache import Stored
 from rogw.tranp.dsn.module import ModuleDSN
+from rogw.tranp.errors import Errors
 from rogw.tranp.lang.annotation import duck_typed, injectable
 from rogw.tranp.lang.trait import Traits
 from rogw.tranp.module.modules import Module
-from rogw.tranp.semantics.errors import SymbolNotDefinedError
 from rogw.tranp.semantics.finder import SymbolFinder
 from rogw.tranp.semantics.processor import Preprocessor
 from rogw.tranp.semantics.reflection.base import IReflection
@@ -156,7 +156,7 @@ class ExpandModules:
 		Returns:
 			シンボル
 		Raises:
-			SymbolNotDefinedError: シンボルの解決に失敗
+			Errors.SymbolNotDefined: シンボルの解決に失敗
 		"""
 		decl_type = self.fetch_decl_type(var)
 		if decl_type is not None:
@@ -168,7 +168,7 @@ class ExpandModules:
 			if fallback:
 				return fallback
 
-			raise SymbolNotDefinedError(f'fullyname: {var.fullyname}')
+			raise Errors.SymbolNotDefined(var)
 		else:
 			return self.finder.by_standard(db, Unknown)
 

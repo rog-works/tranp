@@ -158,7 +158,7 @@
 			"module":"rogw.tranp.bin.transpile",
 			"args": [
 				"-c", "example/config.yml",
-				"-i",
+				"-it",
 			],
 			"cwd": "${workspaceFolder}",
 			"windows": {

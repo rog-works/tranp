@@ -4,13 +4,13 @@ from unittest import TestCase
 
 from rogw.tranp.app.dir import tranp_dir
 from rogw.tranp.dsn.module import ModuleDSN
+from rogw.tranp.errors import Errors
 from rogw.tranp.i18n.i18n import I18n
 from rogw.tranp.implements.cpp.providers.semantics import plugin_provider_cpp
 from rogw.tranp.implements.cpp.providers.view import renderer_helper_provider_cpp
 from rogw.tranp.implements.cpp.transpiler.py2cpp import Py2Cpp
 from rogw.tranp.lang.eventemitter import EventEmitter
 from rogw.tranp.lang.module import to_fullyname
-from rogw.tranp.semantics.errors import NotSupportedError, ProcessingError
 from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.test.helper import data_provider
@@ -38,10 +38,10 @@ class TestPy2CppError(TestCase):
 	})
 
 	@data_provider([
-		('InvalidOps.ternary_to_union_types', 'function_def_raw.block.assign', ProcessingError, r'Not allowed assign type.'),
-		('InvalidOps.yield_return', 'function_def_raw.block.yield_stmt', NotSupportedError, r'Denied yield return.'),
-		('InvalidOps.delete_relay', 'function_def_raw.block.del_stmt', ProcessingError, r'Unexpected delete target.'),
-		('InvalidOps.destruction_assign', 'function_def_raw.block.assign', ProcessingError, r'Not allowed destruction assign.'),
+		('InvalidOps.ternary_to_union_types', 'function_def_raw.block.assign', Errors.OperationNotAllowed, 'Must be Nullable or Non-Union'),
+		('InvalidOps.yield_return', 'function_def_raw.block.yield_stmt', Errors.NotSupported, 'Denied yield return'),
+		('InvalidOps.delete_relay', 'function_def_raw.block.del_stmt', Errors.OperationNotAllowed, 'Must be list or dict'),
+		('InvalidOps.destruction_assign', 'function_def_raw.block.assign', Errors.OperationNotAllowed, 'Must be a tuple'),
 	])
 	def test_exec(self, local_path: str, offset_path: str, expected_error: type[Exception], expected: re.Pattern) -> None:
 		with self.assertRaisesRegex(expected_error, expected):

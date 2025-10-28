@@ -991,13 +991,13 @@ class TestRenderer(TestCase):
 				'is_override': False,
 				'allow_override': False,
 				# constructor only
-				'initializers': [{'symbol': 'a', 'value': '1'}, {'symbol': 'b', 'value': ''}],
+				'initializers': [{'symbol': 'a', 'value': '1'}, {'symbol': 'b', 'value': '{2}'}, {'symbol': 'c', 'value': ''}],
 				'super_initializer': {'parent': 'Base', 'arguments': 'base_n'},
 			},
 			'\n'.join([
 				'public:',
 				'/** __init__ */',
-				'Hoge(int base_n = 1, int value = 2) : Base(base_n), a(1), b({}) {',
+				'Hoge(int base_n = 1, int value = 2) : Base(base_n), a(1), b{2}, c{} {',
 				'	this->x = value;',
 				'}',
 			]),

@@ -2,28 +2,27 @@ import os
 import sys
 from unittest import TestCase
 
+import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.app.dir import tranp_dir
 from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.dsn.translation import alias_dsn
+from rogw.tranp.file.loader import IDataLoader
 from rogw.tranp.i18n.i18n import I18n, TranslationMapping
 from rogw.tranp.implements.cpp.providers.i18n import translation_mapping_cpp
-from rogw.tranp.implements.cpp.providers.view import renderer_helper_provider_cpp
 from rogw.tranp.implements.cpp.providers.semantics import plugin_provider_cpp
+from rogw.tranp.implements.cpp.providers.view import renderer_helper_provider_cpp
 from rogw.tranp.implements.cpp.transpiler.py2cpp import Py2Cpp
-from rogw.tranp.file.loader import IDataLoader
 from rogw.tranp.lang.eventemitter import EventEmitter
 from rogw.tranp.lang.module import to_fullyname
 from rogw.tranp.lang.profile import profiler
-from rogw.tranp.semantics.reflections import Reflections
-import rogw.tranp.syntax.node.definition as defs
-from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.semantics.plugin import PluginProvider
+from rogw.tranp.semantics.reflections import Reflections
+from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.test.helper import data_provider
 from rogw.tranp.transpiler.types import TranspilerOptions
 from rogw.tranp.view.render import Renderer, RendererEmitter, RendererHelperProvider, RendererSetting
 from tests.test.fixture import Fixture
 from tests.unit.rogw.tranp.implements.cpp.transpiler.fixtures.test_py2cpp_expect import BlockExpects
-
 
 profiler_on = '--' in sys.argv
 
@@ -223,7 +222,7 @@ class TestPy2Cpp(TestCase):
 		('AccessOps.indexer', 'function_def_raw.block.funccall[2].arguments.argvalue', defs.Argument, 'arr_ar[0]'),
 
 		('Alias.Inner', '', defs.Class, 'public:\n/** Inner2 */\nclass Inner2 {\n\tpublic: inline static int V2 = 0;\n\tpublic:\n\t/** func */\n\tvoid func() {}\n};'),
-		('Alias.__init__', '', defs.Constructor, 'public:\n/** __init__ */\nAlias2() : inner_b({}) {}'),
+		('Alias.__init__', '', defs.Constructor, 'public:\n/** __init__ */\nAlias2() : inner_b{} {}'),
 		('Alias.in_param_return', '', defs.Method, BlockExpects.method(access='public', name='in_param_return', return_type='Alias2', params=['Alias2 a'])),
 		('Alias.in_param_return2', '', defs.Method, BlockExpects.method(access='public', name='in_param_return2', return_type='Alias2::Inner2', params=['Alias2::Inner2 i'])),
 		('Alias.in_local', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'Alias2 a{};'),

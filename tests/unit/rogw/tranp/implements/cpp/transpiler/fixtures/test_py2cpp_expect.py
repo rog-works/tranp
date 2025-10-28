@@ -165,7 +165,7 @@ class DeclOps {
 	public: std::vector<TSII> inst_tsiis;
 	public:
 	/** __init__ */
-	DeclOps() : inst_var0(nullptr), inst_var1({}), inst_arr({}), inst_map({}), inst_tsiis({}) {
+	DeclOps() : inst_var0(nullptr), inst_var1{}, inst_arr{}, inst_map{}, inst_tsiis{} {
 		int n = this->prop();
 	}
 	public:
@@ -182,7 +182,7 @@ class DeclProps : public DeclPropsBase {
 	public: std::map<std::string, int> move_dsn;
 	public:
 	/** __init__ */
-	DeclProps(int n, const std::string& s) : DeclPropsBase(), move_dsn({{s, n}}) {
+	DeclProps(int n, const std::string& s) : DeclPropsBase(), move_dsn{{s, n}} {
 		this->anno_n = std::stoi(s);
 		this->move_s = std::to_string(n);
 	}

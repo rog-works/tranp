@@ -10,6 +10,10 @@ class wchar_t(str): ...
 class digit(int):
 	"""int系統の基底クラス"""
 
+	def __hash__(self) -> int:
+		"""Returns: ハッシュ値"""
+		return id(self)
+
 	def __eq__(self, other: int | Self) -> bool:
 		"""other: 対象 Returns: 演算結果"""
 		return int(self) == other

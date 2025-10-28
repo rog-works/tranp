@@ -11,7 +11,7 @@ def c_pragma(command: str) -> None:
 
 		```cpp
 		// cpp
-		#pragma one
+		#pragma once
 		```
 	"""
 	...

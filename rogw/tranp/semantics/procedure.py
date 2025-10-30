@@ -219,7 +219,7 @@ class Procedure(Generic[T_Ret]):
 
 			raise e
 		except Exception as e:
-			raise Errors.Fatal(node, f'Unhandled error. "{str(e)}"') from e
+			raise Errors.Fatal(node, 'Unhandled error', e) from e
 
 	def __make_event(self, node: Node) -> dict[str, T_Ret | list[T_Ret]]:
 		"""ノードの展開プロパティーを元にイベントデータを生成

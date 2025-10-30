@@ -92,7 +92,7 @@ class SyntaxParserOfLark:
 			try:
 				return EntryStored(EntryOfLark(parser.parse(self.__source_provider(module_path))))
 			except Exception as e:
-				raise Errors.Syntax(source_path) from e
+				raise Errors.Syntax(source_path, e) from e
 
 		identity = {
 			'grammar_mtime': str(self.__datums.mtime(self.__setting.grammar)),

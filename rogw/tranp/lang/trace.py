@@ -26,8 +26,11 @@ class Records:
 
 	def __str__(self) -> str:
 		"""Returns: 文字列表現"""
-		data = {**dict(sorted(self._record.items(), key=lambda entry: entry[0])), 'total': self.total}
-		return str(json.dumps(data, indent=2))
+		return json.dumps(self.summary(), indent=2)
+
+	def summary(self) -> dict[str, int]:
+		"""Returns: サマリー"""
+		return {**dict(sorted(self._record.items(), key=lambda entry: entry[0])), 'total': self.total}
 
 	@property
 	def total(self) -> int:
@@ -39,6 +42,12 @@ class Records:
 
 		Args:
 			back_at: 遡るフレーム数 (default = 2)
+		Note:
+			```
+			### back_atに関して
+			2: putをコールした関数の呼び出し元
+			1: putをコールした関数
+			```
 		"""
 		frame = sys._getframe(back_at)  # type: ignore XXX 利用面に問題はないため警告を抑制
 		matches = re.search(r"file '.+\\(\w+\.py)', line (\d+)", str(frame))

@@ -98,7 +98,7 @@ class ErrorRender:
 			"""
 			with open(filepath, mode='rb') as f:
 				lines = f.readlines()
-				return lines[line_no].decode().replace('\n', '')
+				return lines[line_no].decode().replace('\n', '').replace('\t', ' ')
 
 		def __cause_range(self, source_map: tuple[int, int, int, int]) -> tuple[int, int]:
 			"""該当範囲を算出

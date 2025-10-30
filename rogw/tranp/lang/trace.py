@@ -51,8 +51,7 @@ class Records:
 		"""
 		frame = sys._getframe(back_at)  # type: ignore XXX 利用面に問題はないため警告を抑制
 		matches = re.search(r"file '.+\\(\w+\.py)', line (\d+)", str(frame))
-		if not matches:
-			raise ValueError(f'Unexpected frame format. frame: {str(frame)}')
+		assert matches
 
 		key = f'{matches[1]}:{matches[2]}'
 		if key not in self._record:

@@ -12,7 +12,7 @@ class digit(int):
 
 	def __hash__(self) -> int:
 		"""Returns: ハッシュ値"""
-		return id(self)
+		return self
 
 	def __eq__(self, other: int | Self) -> bool:
 		"""other: 対象 Returns: 演算結果"""

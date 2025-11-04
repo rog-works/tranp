@@ -3,7 +3,9 @@ from typing import Any, Generic, TypeVar
 T = TypeVar('T')
 
 
-class Match(Generic[T]): ...
+class Match(Generic[T]):
+	@property
+	def endpos(self) -> int: ...
 
 
 def findall(pattern: str, string: str, flags: int = 0) -> list[Any]: ...

@@ -110,6 +110,7 @@ typed_slices: typed_slice | typed_slice (("," typed_slice)+ [","] | ",")
 // @custom
 ?typed_atom: name -> typed_var
 	| "Annotated" "[" "'"? name "'"? "," anno_meta "]" -> typed_var
+	| "Literal" "[" (string | number) ("," (string | number))* "]"-> typed_literal
 	| "None" -> typed_none
 	| "..." -> typed_elipsis
 	| "[" _typed_exprlist? "]" -> typed_list

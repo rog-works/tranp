@@ -1397,6 +1397,12 @@ class TestRenderer(TestCase):
 		self.assertRender(f'literal/{spec}', vars, expected)
 
 	@data_provider([
+		({'type_name': 'int'}, 'int'),
+	])
+	def test_render_literal_type(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('literal_type', vars, expected)
+
+	@data_provider([
 		# 明示変換系
 		({'var_type': 'int', 'symbol': 'n', 'default_value': '', 'annotation': ''}, 'int n'),
 		({'var_type': 'int', 'symbol': 'n', 'default_value': '', 'annotation': 'Embed::mutable'}, 'int n'),

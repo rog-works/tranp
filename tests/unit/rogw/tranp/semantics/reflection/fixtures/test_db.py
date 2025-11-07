@@ -1,10 +1,11 @@
 from collections.abc import Callable, Iterator
 from enum import Enum
 from os import path as os_path
-from typing import Annotated, Any, ClassVar, Generic, Self, TypeAlias, TypeVar, TypeVarTuple, cast
+from typing import Annotated, Any, ClassVar, Generic, Literal, Self, TypeAlias, TypeVar, TypeVarTuple, cast
+
 from yaml import safe_load as yaml_safe_load
 
-from tests.unit.rogw.tranp.semantics.reflection.fixtures.test_db_combine import S, C, A
+from tests.unit.rogw.tranp.semantics.reflection.fixtures.test_db_combine import A, C, S
 
 DSI: TypeAlias = dict[str, int]
 DSI2: TypeAlias = dict[str, DSI]
@@ -336,6 +337,17 @@ class WithOps:
 			content = cast(dict[str, Any], yaml_safe_load(f))
 
 
+class ForRelay:
+	def group_receiver(self) -> None:
+		s = ('').split('.')
+
+
+class ForType:
+	def literal_type(self, n01: Literal[0, 1], ab: Literal['a', 'b']) -> None:
+		n = n01
+		s = ab
+
+
 class ForFuncCall:
 	@classmethod
 	def cls_call(cls) -> str:
@@ -445,6 +457,12 @@ class ForTemplateClass:
 
 
 class ForLambda:
+	def params(self, f: Callable[[bool, int], str]) -> None:
+		func: Callable[[str], int] = lambda a: 1
+		(lambda a: None)(1)
+		self.params(lambda b, n: '')
+		ret = (lambda a: a)(1)
+
 	def expression(self) -> None:
 		lambda: 'a'
 		f = lambda: False

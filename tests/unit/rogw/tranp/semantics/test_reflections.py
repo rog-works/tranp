@@ -161,6 +161,9 @@ class TestReflections(TestCase):
 
 		('ForRelay.group_receiver.s', '', _mod('classes', 'list'), 'list<str>'),
 
+		('ForType.literal_type.n', '', _mod('classes', 'int'), 'int'),
+		('ForType.literal_type.s', '', _mod('classes', 'str'), 'str'),
+
 		('ForFuncCall.cls_call', 'function_def_raw.block.return_stmt.funccall', _mod('classes', 'str'), 'str'),
 		('ForFuncCall.self_call', 'function_def_raw.block.return_stmt.funccall', _mod('classes', 'int'), 'int'),
 		('ForFuncCall.func_call', 'function_def_raw.block.funccall', _mod('classes', 'bool'), 'bool'),

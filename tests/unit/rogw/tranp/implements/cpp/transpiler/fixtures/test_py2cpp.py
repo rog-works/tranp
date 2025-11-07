@@ -1,11 +1,11 @@
 from abc import ABCMeta, abstractmethod
 from collections.abc import Callable
 from enum import Enum
-from typing import Annotated, ClassVar, Generic, Protocol, Self, TypeAlias, TypeVar, TypeVarTuple, cast
+from typing import Annotated, ClassVar, Generic, Literal, Protocol, Self, TypeAlias, TypeVar, TypeVarTuple, cast
 
 from rogw.tranp.compatible.cpp.classes import char, void
 from rogw.tranp.compatible.cpp.function import c_func_invoke, c_func_ref
-from rogw.tranp.compatible.cpp.object import CP, CPConst, CRawConst, CRef, CSP, T_co
+from rogw.tranp.compatible.cpp.object import CP, CSP, CPConst, CRawConst, CRef, T_co
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 from rogw.tranp.compatible.python.embed import Embed
 
@@ -642,6 +642,14 @@ class ForIndexer:
 	def string_slice(self, s: str) -> None:
 		s[1:]
 		s[:5]
+
+
+class ForType:
+	def literal_type(self) -> None:
+		n01: Literal[0, 1] = 0
+		ab: Literal['a', 'b'] = 'a'
+		n = n01
+		s = ab
 
 
 class ForFuncCall:

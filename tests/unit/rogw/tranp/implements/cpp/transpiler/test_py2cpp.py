@@ -387,6 +387,11 @@ class TestPy2Cpp(TestCase):
 		('ForIndexer.string_slice', 'function_def_raw.block.getitem[0]', defs.Indexer, 's.substr(1, s.size() - (1));'),
 		('ForIndexer.string_slice', 'function_def_raw.block.getitem[1]', defs.Indexer, 's.substr(0, 5);'),
 
+		('ForType.literal_type', 'function_def_raw.block.anno_assign[0]', defs.AnnoAssign, 'int n01 = 0;'),
+		('ForType.literal_type', 'function_def_raw.block.anno_assign[1]', defs.AnnoAssign, 'std::string ab = "a";'),
+		('ForType.literal_type', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'int n = n01;'),
+		('ForType.literal_type', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'std::string s = ab;'),
+
 		('ForFuncCall.CallableType', '', defs.Class, 'public:\n/** CallableType */\nclass CallableType {\n\tpublic: std::function<bool(int, std::string)> func;\n\tpublic:\n\t/** __init__ */\n\tCallableType(const std::function<bool(int, std::string)>& func) : func(func) {}\n};'),
 		('ForFuncCall.move_assign', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'std::function<bool(int, const std::string&)> func = caller.func;'),
 		('ForFuncCall.move_assign', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'bool b0 = caller.func(0, "");'),

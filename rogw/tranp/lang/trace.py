@@ -50,7 +50,7 @@ class Records:
 			```
 		"""
 		frame = sys._getframe(back_at)  # type: ignore XXX 利用面に問題はないため警告を抑制
-		matches = re.search(r"file '.+\\(\w+\.py)', line (\d+)", str(frame))
+		matches = re.search(r"file '.+[^\w\d]([\w\d]+\.py)', line (\d+)", str(frame))
 		assert matches
 
 		key = f'{matches[1]}:{matches[2]}'

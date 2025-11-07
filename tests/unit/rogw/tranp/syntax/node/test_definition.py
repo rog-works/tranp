@@ -613,6 +613,7 @@ class TestDefinition(TestCase):
 
 	@data_provider([
 		('A: TypeAlias = int', 'file_input.class_assign', {'symbol': 'A', 'actual_type': defs.VarOfType}),
+		('A: TypeAlias = Literal[0]', 'file_input.class_assign', {'symbol': 'A', 'actual_type': defs.LiteralType}),
 		('A: TypeAlias = B.C', 'file_input.class_assign', {'symbol': 'A', 'actual_type': defs.RelayOfType}),
 		('A: TypeAlias = list[str]', 'file_input.class_assign', {'symbol': 'A', 'actual_type': defs.ListType}),
 		('A: TypeAlias = dict[str, int]', 'file_input.class_assign', {'symbol': 'A', 'actual_type': defs.DictType}),
@@ -649,6 +650,8 @@ class TestDefinition(TestCase):
 		('def __init__(self) -> None: self.a: list[str] = []', 'file_input.function_def.function_def_raw.block.anno_assign', {'receiver': 'self.a', 'receiver_type': defs.DeclThisVar, 'var_type': defs.ListType, 'value': defs.List, 'annotation': defs.Empty}),
 		('class A: a: ClassVar[str] = ""', 'file_input.class_def.class_def_raw.block.class_var_assign', {'receiver': 'a', 'receiver_type': defs.DeclClassVar, 'var_type': defs.VarOfType, 'value': defs.String, 'annotation': defs.Empty}),
 		('class A: a: str', 'file_input.class_def.class_def_raw.block.anno_assign', {'receiver': 'a', 'receiver_type': defs.DeclThisVarForward, 'var_type': defs.VarOfType, 'value': defs.Empty, 'annotation': defs.Empty}),
+		('class A: a: ClassVar[Literal[0]] = 0', 'file_input.class_def.class_def_raw.block.class_var_assign', {'receiver': 'a', 'receiver_type': defs.DeclClassVar, 'var_type': defs.LiteralType, 'value': defs.Integer, 'annotation': defs.Empty}),
+		('class A: a: Literal[0]', 'file_input.class_def.class_def_raw.block.anno_assign', {'receiver': 'a', 'receiver_type': defs.DeclThisVarForward, 'var_type': defs.LiteralType, 'value': defs.Empty, 'annotation': defs.Empty}),
 		('a: Annotated[dict[str, int], embed("metadata")] = {}', 'file_input.anno_assign', {'receiver': 'a', 'receiver_type': defs.DeclLocalVar, 'var_type': defs.DictType, 'value': defs.Dict, 'annotation': defs.FuncCall}),
 	])
 	def test_anno_assign(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
@@ -914,7 +917,7 @@ class TestDefinition(TestCase):
 		# General
 		('a: int = 0', 'file_input.anno_assign.typed_var', {'type': defs.VarOfType, 'annotation': defs.Empty}),
 		('a: \'int\' = 0', 'file_input.anno_assign.typed_var', {'type': defs.VarOfType, 'annotation': defs.Empty}),
-		('a: list[int] = []', 'file_input.anno_assign.typed_getitem.typed_var', {'type': defs.VarOfType, 'annotation': defs.Empty}),
+		('a: list[int] = []', 'file_input.anno_assign.typed_getitem.typed_slices.typed_var', {'type': defs.VarOfType, 'annotation': defs.Empty}),
 		('a: dict[str, int] = {}', 'file_input.anno_assign.typed_getitem.typed_slices.typed_var[0]', {'type': defs.VarOfType, 'annotation': defs.Empty}),
 		('a: dict[str, int] = {}', 'file_input.anno_assign.typed_getitem.typed_slices.typed_var[1]', {'type': defs.VarOfType, 'annotation': defs.Empty}),
 		('a: str | None = None', 'file_input.anno_assign.typed_or_expr.typed_var', {'type': defs.VarOfType, 'annotation': defs.Empty}),
@@ -929,6 +932,16 @@ class TestDefinition(TestCase):
 		('a: Annotated[\'int\', 0] = 0', 'file_input.anno_assign.typed_var', {'type': defs.VarOfType, 'annotation': defs.Integer}),
 		('a: Annotated[A.B, 0] = 0', 'file_input.anno_assign.typed_getattr', {'type': defs.RelayOfType, 'annotation': defs.Integer}),
 		('a: Annotated[\'A.B\', 0] = 0', 'file_input.anno_assign.typed_getattr', {'type': defs.RelayOfType, 'annotation': defs.Integer}),
+		('a: Literal[0] = 0', 'file_input.anno_assign.typed_literal', {'type': defs.LiteralType, 'annotation': defs.Empty}),
+		('a: Literal["a", "b"] = "a"', 'file_input.anno_assign.typed_literal', {'type': defs.LiteralType, 'annotation': defs.Empty}),
+		('a: list[Literal[0]] = []', 'file_input.anno_assign.typed_getitem.typed_slices.typed_literal', {'type': defs.LiteralType, 'annotation': defs.Empty}),
+		('a: dict[Literal["a"], int] = {}', 'file_input.anno_assign.typed_getitem.typed_slices.typed_literal', {'type': defs.LiteralType, 'annotation': defs.Empty}),
+		('a: dict[str, Literal[0]] = {}', 'file_input.anno_assign.typed_getitem.typed_slices.typed_literal', {'type': defs.LiteralType, 'annotation': defs.Empty}),
+		('a: Literal[0] | None = None', 'file_input.anno_assign.typed_or_expr.typed_literal', {'type': defs.LiteralType, 'annotation': defs.Empty}),
+		('self.a: Literal[0, 1] = 0', 'file_input.anno_assign.typed_literal', {'type': defs.LiteralType, 'annotation': defs.Empty}),
+		('def func(a: Literal[0]) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue.typedparam.typed_literal', {'type': defs.LiteralType, 'annotation': defs.Empty}),
+		('def func(a: int) -> Literal[0]: ...', 'file_input.function_def.function_def_raw.typed_literal', {'type': defs.LiteralType, 'annotation': defs.Empty}),
+		# ('a: Annotated[Literal[0], 0] = 0', 'file_input.anno_assign.typed_literal', {'type': defs.LiteralType, 'annotation': defs.Integer}), XXX LiteralTypeをAnnotatedで修飾する価値が薄いので非対応
 		# Generic - List/Dict/Callable/Custom
 		('a: list[int] = []', 'file_input.anno_assign.typed_getitem', {'type': defs.ListType, 'annotation': defs.Empty}),
 		('a: \'list[int]\' = []', 'file_input.anno_assign.typed_getitem', {'type': defs.ListType, 'annotation': defs.Empty}),
@@ -991,6 +1004,7 @@ class TestDefinition(TestCase):
 		('a: Callable[[str, int], None] = ...', 'file_input.anno_assign.typed_getitem', {'type_name': 'Callable', 'parameters': [defs.VarOfType, defs.VarOfType], 'return_type': defs.NullType}),
 		('a: Callable[[str, list[int]], None] = ...', 'file_input.anno_assign.typed_getitem', {'type_name': 'Callable', 'parameters': [defs.VarOfType, defs.ListType], 'return_type': defs.NullType}),
 		('a: Callable[[int], None] = ...', 'file_input.anno_assign.typed_getitem', {'type_name': 'Callable', 'parameters': [defs.VarOfType], 'return_type': defs.NullType}),
+		('a: Callable[[Literal[0]], Literal[0]] = ...', 'file_input.anno_assign.typed_getitem', {'type_name': 'Callable', 'parameters': [defs.LiteralType], 'return_type': defs.LiteralType}),
 		# ('a: Callable[[...], None] = ...', 'file_input.anno_assign.typed_getitem', {}), XXX Elipsisは一旦非対応
 	])
 	def test_callable_type(self, source: str, full_path: str, expected: dict[str, Any]) -> None:

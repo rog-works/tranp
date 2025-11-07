@@ -853,6 +853,11 @@ class Py2Cpp(ITranspiler):
 		else:
 			return self.view.render(f'{node.classification}/default', vars={'type_name': type_name})
 
+	def on_literal_type(self, node: defs.LiteralType) -> str:
+		symbol = self.reflections.type_of(node)
+		type_name = self.to_domain_name_by_class(symbol.types)
+		return self.view.render(node.classification, vars={'type_name': type_name})
+
 	def on_list_type(self, node: defs.ListType, type_name: str, value_type: str) -> str:
 		return self.view.render(node.classification, vars={'type_name': type_name, 'value_type': value_type})
 

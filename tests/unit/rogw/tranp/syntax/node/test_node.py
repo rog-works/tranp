@@ -173,6 +173,8 @@ class TestNode(TestCase):
 		('a: A.B = ...', 'file_input.anno_assign.typed_getattr', defs.RelayOfType, 'A.B', '__main__#A.B'),
 		('a: int = 0', 'file_input.anno_assign.typed_var', defs.VarOfType, 'int', '__main__#int'),
 		('if True:\n\ta: int = 0', 'file_input.if_stmt.if_clause.block.anno_assign.typed_var', defs.VarOfType, 'int', '__main__#if@1.if_clause@2.int'),
+		('a: Literal[0] = 0', 'file_input.anno_assign.typed_literal', defs.LiteralType, 'int', '__main__#int'),
+		('a: Literal["a"] = "a"', 'file_input.anno_assign.typed_literal', defs.LiteralType, 'str', '__main__#str'),
 		('a: list[int] = []', 'file_input.anno_assign.typed_getitem', defs.ListType, 'list', '__main__#list'),
 		('a: dict[str, int] = {}', 'file_input.anno_assign.typed_getitem', defs.DictType, 'dict', '__main__#dict'),
 		('a: Callable[[int], None] = ...', 'file_input.anno_assign.typed_getitem', defs.CallableType, 'Callable', '__main__#Callable'),
@@ -286,6 +288,8 @@ class TestNode(TestCase):
 		# Primary - Type
 		('a: A.B = 0', 'file_input.anno_assign.typed_getattr', defs.RelayOfType, '__main__', '__main__'),
 		('a: int = 0', 'file_input.anno_assign.typed_var', defs.VarOfType, '__main__', '__main__'),
+		('a: Literal[0] = 0', 'file_input.anno_assign.typed_literal', defs.LiteralType, '__main__', '__main__'),
+		('a: Literal["a"] = "a"', 'file_input.anno_assign.typed_literal', defs.LiteralType, '__main__', '__main__'),
 		('a: list[int] = []', 'file_input.anno_assign.typed_getitem', defs.ListType, '__main__', '__main__'),
 		('a: dict[str, int] = {}', 'file_input.anno_assign.typed_getitem', defs.DictType, '__main__', '__main__'),
 		('a: Callable[[], None] = {}', 'file_input.anno_assign.typed_getitem', defs.CallableType, '__main__', '__main__'),

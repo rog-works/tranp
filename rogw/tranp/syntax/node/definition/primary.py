@@ -342,6 +342,21 @@ class RelayOfType(GeneralType):
 class VarOfType(GeneralType, ITerminal): pass
 
 
+@Meta.embed(Node, accept_tags('typed_literal'))
+class LiteralType(VarOfType):
+	"""Note: XXX 本来はGenericType相当だが、実用的にはint/strでしか使用しないため簡略化"""
+
+	@property
+	@override
+	def domain_name(self) -> str:
+		return self._at(0).as_a(Literal).literal_identifier
+
+	@property
+	@override
+	def type_name(self) -> 'Type':
+		return self.dirty_child(VarOfType, 'var_of_type', tokens=self.domain_name)
+
+
 @Meta.embed(Node, accept_tags('typed_getitem'))
 class GenericType(Type):
 	@property

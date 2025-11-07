@@ -85,6 +85,7 @@ from rogw.tranp.syntax.node.definition.primary import (
 	GeneralType,
 	RelayOfType,
 	VarOfType,
+	LiteralType,
 	# type - generic
 	GenericType,
 	ListType,

@@ -1,5 +1,5 @@
-from rogw.tranp.syntax.ast.resolver import SymbolMapping
 import rogw.tranp.syntax.node.definition as defs
+from rogw.tranp.syntax.ast.resolver import SymbolMapping
 from rogw.tranp.syntax.node.node import Node
 
 
@@ -78,6 +78,7 @@ def symbol_mapping() -> SymbolMapping:
 			defs.DecoratorPath: ['dotted_name'],
 			defs.RelayOfType: ['typed_getattr'],
 			defs.VarOfType: ['typed_var'],
+			defs.LiteralType: ['typed_literal'],
 			defs.ListType: ['typed_getitem'],
 			defs.DictType: ['typed_getitem'],
 			defs.CallableType: ['typed_getitem'],

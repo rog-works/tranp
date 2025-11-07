@@ -505,6 +505,9 @@ class ProceduralResolver:
 	def on_var_of_type(self, node: defs.VarOfType) -> IReflection:
 		return self.reflections.resolve(node).stack(node)
 
+	def on_literal_type(self, node: defs.LiteralType) -> IReflection:
+		return self.reflections.resolve(node).stack(node)
+
 	def on_list_type(self, node: defs.ListType, type_name: IReflection, value_type: IReflection) -> IReflection:
 		return type_name.stack(node).extends(value_type)
 

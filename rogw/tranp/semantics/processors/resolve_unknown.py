@@ -1,12 +1,13 @@
+import rogw.tranp.semantics.reflection.definition as refs
+import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.lang.annotation import duck_typed, injectable
 from rogw.tranp.lang.convertion import as_a
 from rogw.tranp.lang.locator import Invoker
 from rogw.tranp.module.module import Module
 from rogw.tranp.semantics.processor import Preprocessor
-from rogw.tranp.semantics.reflection.base import Mod, IReflection
+from rogw.tranp.semantics.reflection.base import IReflection, Mod
 from rogw.tranp.semantics.reflection.db import SymbolDB
 from rogw.tranp.semantics.reflections import Reflections
-import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.interface import IDeclaration
 from rogw.tranp.syntax.node.node import Node
 
@@ -119,7 +120,8 @@ class ResolveUnknown:
 		elif isinstance(parent, defs.Argument):
 			# 期待値: func(lambda a, b: ...)
 			func_call = parent.parent.as_a(defs.FuncCall)
-			func_raw = reflections.type_of(func_call.calls)
+			calls_raw = reflections.type_of(func_call.calls).impl(refs.Object)
+			func_raw = calls_raw if not calls_raw.type_is(type) else reflections.resolve_constructor(calls_raw.actualize('type').types.as_a(defs.Class))
 			is_method = isinstance(func_raw.types, (defs.Constructor, defs.Method, defs.ClassMethod))
 			arg_index = func_call.arguments.index(parent)
 			arg_raw = func_raw.attrs[arg_index + (1 if is_method else 0)]

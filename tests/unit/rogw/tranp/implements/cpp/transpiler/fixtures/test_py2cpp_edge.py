@@ -1,16 +1,17 @@
-from typing import TypeVar
+from collections.abc import Callable
+from typing import Generic, TypeVar, TypeVarTuple
 
-from rogw.tranp.compatible.cpp.object import CSP
-
-T = TypeVar('T', bound='A')
-
-class A: ...
-class B(A): ...
+T_Scalar = TypeVar('T_Scalar', bool, int, float, str)
+T_Args = TypeVarTuple('T_Args')
 
 
-def factory(t: type[T]) -> CSP[T]:
-	return CSP.new(t())
+class VDOM: ...
 
 
-def main() -> None:
-	b = factory(B)
+class Action(VDOM, Generic[*T_Args]):
+	def __init__(self, event: str, scope: str, callback: Callable[[*T_Args], None]) -> None: ...
+
+
+class A(VDOM, Generic[T_Scalar]):
+	def __init__(self, defaults: T_Scalar) -> None:
+		Action[T_Scalar](event='hoge', scope='fuga', callback=lambda e: print(e))

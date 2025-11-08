@@ -2,26 +2,25 @@ import os
 import sys
 from unittest import TestCase
 
+import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.app.dir import tranp_dir
 from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.file.loader import IDataLoader
 from rogw.tranp.i18n.i18n import I18n, TranslationMapping
 from rogw.tranp.implements.cpp.providers.i18n import translation_mapping_cpp
-from rogw.tranp.implements.cpp.providers.view import renderer_helper_provider_cpp
 from rogw.tranp.implements.cpp.providers.semantics import plugin_provider_cpp
+from rogw.tranp.implements.cpp.providers.view import renderer_helper_provider_cpp
 from rogw.tranp.implements.cpp.transpiler.py2cpp import Py2Cpp
 from rogw.tranp.lang.eventemitter import EventEmitter
 from rogw.tranp.lang.module import to_fullyname
 from rogw.tranp.lang.profile import profiler
-from rogw.tranp.semantics.reflections import Reflections
-import rogw.tranp.syntax.node.definition as defs
-from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.semantics.plugin import PluginProvider
+from rogw.tranp.semantics.reflections import Reflections
+from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.test.helper import data_provider
 from rogw.tranp.transpiler.types import TranspilerOptions
 from rogw.tranp.view.render import Renderer, RendererEmitter, RendererHelperProvider, RendererSetting
 from tests.test.fixture import Fixture
-
 
 profiler_on = '--' in sys.argv
 
@@ -51,7 +50,7 @@ class TestPy2CppEdge(TestCase):
 
 	@profiler(on=profiler_on)
 	@data_provider([
-		('factory', 'function_def_raw.block.return_stmt', defs.Return, 'return std::make_shared<T>();'),
+		('A.__init__', 'function_def_raw.block.funccall', defs.FuncCall, 'Action<T_Scalar>("hoge", "fuga", [](T_Args e) -> void { printf(e); });'),
 	])
 	def test_exec(self, local_path: str, offset_path: str, expected_type: type[Node], expected: str) -> None:
 		# local_pathが空の場合はEntrypointを基点ノードとする

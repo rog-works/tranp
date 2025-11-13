@@ -16,6 +16,7 @@ class TestErrorRender(TestCase):
 			r'Stacktrace:',
 			r'  [^:]+:\d+ test_usage',
 			r'  [^:]+:\d+ hoge',
+			r'    >>> raise Exception\(\'hoge\'\)',
 			r'builtins.Exception: \("hoge"\)',
 		]),
 	])
@@ -32,13 +33,15 @@ class TestErrorRender(TestCase):
 
 	@data_provider([
 		(__file__, (2, 5, 2, 13), [
-			r'[^:]+:3',
-			'  (3) >>> from unittest import TestCase',
-			'               ^^^^^^^^',
+			r'via Node:',
+			r'.+:3',
+			r'    >>> from unittest import TestCase',
+			r'             ^^^^^^^^',
 		]),
 	])
 	def test_quatation(self, filepath: str, source_map: tuple[int, int, int, int], expected: list[re.Pattern]) -> None:
 		actual = ErrorRender.Quotation(filepath, source_map).build()
-		self.assertRegex(actual[0], expected[0])
-		self.assertEqual(actual[1], expected[1])
+		self.assertEqual(actual[0], expected[0])
+		self.assertRegex(actual[1], expected[1])
 		self.assertEqual(actual[2], expected[2])
+		self.assertEqual(actual[3], expected[3])

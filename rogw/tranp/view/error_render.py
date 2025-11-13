@@ -33,7 +33,8 @@ class ErrorRender:
 		pattern = re.compile(r'File "([^"]+)", line (\d+), in ([\w\d]+)')
 		lines = ['Stacktrace:']
 		root_dir = f'{os.getcwd()}{os.path.sep}'
-		for line in stacktrace(self.e):
+		traces = stacktrace(self.e)
+		for line in traces:
 			matches = pattern.search(line)
 			if not matches:
 				continue
@@ -42,6 +43,8 @@ class ErrorRender:
 			filepath = fullpath.replace(root_dir, '')
 			lines.append(f'  {filepath}:{line_no} {func_name}')
 
+		last = traces[-2].split('\n')[1].strip()
+		lines.append(f'    >>> {last}')
 		return lines
 	
 	def __build_quotation(self) -> list[str]:
@@ -118,12 +121,12 @@ class ErrorRender:
 		def build(self) -> list[str]:
 			"""Returns: 該当行の引用"""
 			line_no = self.begin_line + 1
-			line_ns = ' ' * len(str(line_no))
 			line_mark = self.__build_line_mark()
 			return [
-				f'{self.filepath}:{line_no}',
-				f'  ({line_no}) >>> {self.cause_line}',
-				f'   {line_ns}      {line_mark}',
+				f'via Node:',
+				f'  {self.filepath}:{line_no}',
+				f'    >>> {self.cause_line}',
+				f'        {line_mark}',
 			]
 
 		def __build_line_mark(self) -> str:

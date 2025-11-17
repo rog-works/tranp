@@ -32,12 +32,17 @@ primary[1] := relay | invoke | indexer | atom
 relay := primary "." name
 invoke := primary "(" [args] ")"
 indexer := primary "[" slice "]"
-atom[1] := boolean | none | var | string | digit | decimal | "(" expr ")"
+atom[1] := boolean | none | var | string | digit | decimal | dict | "(" expr ")"
 var := name
 
 // element
 args := (expr ",")* expr
 slice[*] := (expr ":")* expr
+key_values[*] :=  (key_value ",")* key_value
+key_value := string ":" expr
+
+// literal
+dict := "{" [key_values] "}"
 
 // terminal
 boolean := /False|True/

@@ -2,20 +2,28 @@
 entry := (expr "\n")+
 
 // expression
-expr[1] := comp_or
+expr[1] := ternary | assign | comp_or
 
-// operation - comparison
+// operation/ternary
+ternary := comp_or "if" comp_or "else" expr
+
+// operation/assign XXX Python標準: name ":=" expr
+assign := comp_or ":=" expr
+
+// operation/bin/comparison
 comp_or[1] := comp_and (op_or comp_and)*
 comp_and[1] := comp_not (op_and comp_not)*
 comp_not[1] := (op_not)? comp
 comp[1] := calc_sum (op_comp calc_sum)*
 
-// operation - arithmetical
+// operation/bin/arithmetical
 calc_sum[1] := calc_mul (op_add calc_mul)*
-calc_mul[1] := calc_unary (op_mul calc_unary)*
-calc_unary[1] := (op_unary)? primary
+calc_mul[1] := unary (op_mul unary)*
 
-// operation - operator
+// operation/unary
+unary[1] := (op_unary)? primary
+
+// operator
 op_or := "or"
 op_and := "and"
 op_comp := op_comp_s | (op_not)? op_in | op_is (op_not)?
@@ -28,16 +36,22 @@ op_mul := /[*\/%]/
 op_unary := /[-+]/
 
 // atom
-primary[1] := relay | invoke | indexer | atom
+primary[1] := relay | relay_ref | invoke | indexer | atom
 relay := primary "." name
+relay_ref := primary "->" name
 invoke := primary "(" [args] ")"
 indexer := primary "[" slice "]"
-atom[1] := boolean | none | var | string | digit | decimal
+atom[1] := boolean | none | var | string | digit | decimal | dict | "(" expr ")"
 var := name
 
 // element
-args := expr ("," expr)*
+args[*] := expr ("," expr)*
 slice[*] := expr (":" expr)*
+key_values[*] :=  key_value ("," key_value)*
+key_value := string ":" expr
+
+// literal
+dict := "{" [key_values] "}"
 
 // terminal
 boolean := /False|True/
@@ -48,10 +62,9 @@ digit := /0|[1-9]\d*/
 decimal := /(0|[1-9]\d*)[.]\d+/
 
 // FIXME 以下のatom関連は一旦非対応
-// atom[1] := ... | list | dict | group_exp
+// atom[1] := ... | list | dict
 // list := "[" [list_exps] "]"
 // dict := "{" [dict_exps] "}"
-// group_exp := "(" expr ")"
 // list_exps := expr ("," expr)*
 // dict_exps := dict_pair ("," dict_pair)*
 // dict_pair := expr ":" expr

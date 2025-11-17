@@ -2,7 +2,10 @@
 entry := (expr "\n")+
 
 // expression
-expr[1] := comp_or
+expr[1] := assign
+
+// operation/assign XXX Python標準: name ":=" expr
+assign[1] := (expr ":=")? comp_or
 
 // operation - comparison
 comp_or[1] := (comp_and op_or)* comp_and

@@ -30,14 +30,14 @@ def python_rules() -> Rules:
 				('symbol', 'comp_or'),
 				('unwrap', '1'),
 				('terms', [
-					('symbol', 'comp_and'),
 					('expr_rep', [
 						('terms', [
-							('symbol', 'op_or'),
-							('symbol', 'comp_and')
+							('symbol', 'comp_and'),
+							('symbol', 'op_or')
 						]),
 						('repeat', '*')
-					])
+					]),
+					('symbol', 'comp_and')
 				])
 			]),
 			('rule', [
@@ -246,28 +246,28 @@ def python_rules() -> Rules:
 				('symbol', 'args'),
 				('__empty__', ''),
 				('terms', [
-					('symbol', 'expr'),
 					('expr_rep', [
 						('terms', [
-							('string', '","'),
-							('symbol', 'expr')
+							('symbol', 'expr'),
+							('string', '","')
 						]),
 						('repeat', '*')
-					])
+					]),
+					('symbol', 'expr')
 				])
 			]),
 			('rule', [
 				('symbol', 'slice'),
 				('unwrap', '*'),
 				('terms', [
-					('symbol', 'expr'),
 					('expr_rep', [
 						('terms', [
-							('string', '":"'),
-							('symbol', 'expr')
+							('symbol', 'expr'),
+							('string', '":"')
 						]),
 						('repeat', '*')
-					])
+					]),
+					('symbol', 'expr')
 				])
 			]),
 			('rule', [

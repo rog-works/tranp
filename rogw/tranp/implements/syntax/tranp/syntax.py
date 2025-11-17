@@ -224,10 +224,10 @@ class SyntaxParser:
 			if not in_step.steping:
 				return Step.ng(), []
 
-			children.extend(in_children)
+			children = [*in_children, *children]
 			steps += in_step.steps
 
-		return Step.ok(steps), list(reversed(children))
+		return Step.ok(steps), children
 
 	def _match_repeat(self, tokens: list[Token], context: Context, patterns: Patterns, route: str) -> tuple[Step, list[ASTEntry]]:
 		"""パターングループ(リピート)を検証し、子のASTエントリーを生成
@@ -252,7 +252,7 @@ class SyntaxParser:
 
 			found += 1
 			steps += in_step.steps
-			children.extend(in_children)
+			children = [*in_children, *children]
 
 			if patterns.rep in [Repeators.OneOrZero, Repeators.OneOrEmpty]:
 				break

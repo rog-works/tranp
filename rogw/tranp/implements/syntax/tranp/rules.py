@@ -359,12 +359,9 @@ def grammar_rules() -> Rules:
 			('rule', [
 				('symbol', 'terms'),
 				('unwrap', '1'),
-				('terms', [
+				('expr_rep', [
 					('symbol', 'term'),
-					('expr_rep', [
-						('symbol', 'term'),
-						('repeat', '*')
-					])
+					('repeat', '+')
 				])
 			]),
 			('rule', [

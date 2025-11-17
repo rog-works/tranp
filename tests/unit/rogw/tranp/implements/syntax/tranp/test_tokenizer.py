@@ -1,5 +1,6 @@
 from unittest import TestCase
 
+from rogw.tranp.implements.syntax.tranp.token import SpecialSymbols
 from rogw.tranp.implements.syntax.tranp.tokenizer import Lexer, PyTokenizer, Token, TokenDefinition, TokenDomains, Tokenizer, TokenTypes
 from rogw.tranp.test.helper import data_provider
 
@@ -14,7 +15,7 @@ class TestTokenizer(TestCase):
 		('**a', ['**', 'a', '\n']),
 		('***a', ['**', '*', 'a', '\n']),
 		('a # bc', ['a', '\n']),
-		('if a\n\tand b: ...', ['if', 'a', '\n', '\\INDENT', 'and', 'b', ':', '...', '\n', '\\DEDENT']),
+		('if a\n\tand b: ...', ['if', 'a', '\n', SpecialSymbols.Indent.value, 'and', 'b', ':', '...', '\n', SpecialSymbols.Dedent.value]),
 		('def f() -> None: ...', ['def', 'f', '(', ')', '->', 'None', ':', '...', '\n']),
 		(
 			'\n'.join([
@@ -34,13 +35,13 @@ class TestTokenizer(TestCase):
 			]),
 			[
 				'def', 'a', '(', 'arr', ':', 'list', '[', 'int', ']', ')', '->', 'dict', '[', 'str', ',', 'int', ']', ':', '\n',
-					'\\INDENT', 'if', 'arr', ':', '\n',
-						'\\INDENT', 'return', '{',
+					SpecialSymbols.Indent.value, 'if', 'arr', ':', '\n',
+						SpecialSymbols.Indent.value, 'return', '{',
 							'"b"', ':', 'arr', '[', '0', ']', ',',
 						'}', '\n',
-					'\\DEDENT', 'else', ':', '\n',
-						'\\INDENT', 'return', '{', '}', '\n',
-				'\\DEDENT', '\\DEDENT',
+					SpecialSymbols.Dedent.value, 'else', ':', '\n',
+						SpecialSymbols.Indent.value, 'return', '{', '}', '\n',
+				SpecialSymbols.Dedent.value, SpecialSymbols.Dedent.value,
 			],
 		),
 	])
@@ -51,9 +52,9 @@ class TestTokenizer(TestCase):
 
 	@data_provider([
 		('a\nb', 1, {'nest': 0, 'enclosure': 0}, {'nest': 0, 'enclosure': 0}, (2, [(TokenTypes.NewLine, '\n')])),
-		('a\n\tb', 1, {'nest': 0, 'enclosure': 0}, {'nest': 1, 'enclosure': 0}, (2, [(TokenTypes.NewLine, '\n'), (TokenTypes.Indent, '\\INDENT')])),
+		('a\n\tb', 1, {'nest': 0, 'enclosure': 0}, {'nest': 1, 'enclosure': 0}, (2, [(TokenTypes.NewLine, '\n'), (TokenTypes.Indent, SpecialSymbols.Indent.value)])),
 		('\ta\n\n\tb', 1, {'nest': 1, 'enclosure': 0}, {'nest': 1, 'enclosure': 0}, (2, [(TokenTypes.NewLine, '\n')])),
-		('\ta\nb', 1, {'nest': 1, 'enclosure': 0}, {'nest': 0, 'enclosure': 0}, (2, [(TokenTypes.NewLine, '\n'), (TokenTypes.Dedent, '\\DEDENT')])),
+		('\ta\nb', 1, {'nest': 1, 'enclosure': 0}, {'nest': 0, 'enclosure': 0}, (2, [(TokenTypes.NewLine, '\n'), (TokenTypes.Dedent, SpecialSymbols.Dedent.value)])),
 		('a[\nb]', 2, {'nest': 0, 'enclosure': 1}, {'nest': 0, 'enclosure': 1}, (3, [])),
 		('\ta(\nb)', 2, {'nest': 1, 'enclosure': 1}, {'nest': 1, 'enclosure': 1}, (3, [])),
 	])
@@ -86,11 +87,11 @@ class TestTokenizer(TestCase):
 
 class TestLexer(TestCase):
 	@data_provider([
-		('abc', ['abc', '\\EOF']),
-		('a.b("c").d', ['a', '.', 'b', '(', '"c"', ')', '.', 'd', '\\EOF']),
-		('a * 0 - True', ['a', '*', '0', '-', 'True', '\\EOF']),
-		('?a _b', ['?', 'a', '_b', '\\EOF']),
-		("r + r'abc'", ['r', '+', "r'abc'", '\\EOF']),
+		('abc', ['abc', SpecialSymbols.EOF.value]),
+		('a.b("c").d', ['a', '.', 'b', '(', '"c"', ')', '.', 'd', SpecialSymbols.EOF.value]),
+		('a * 0 - True', ['a', '*', '0', '-', 'True', SpecialSymbols.EOF.value]),
+		('?a _b', ['?', 'a', '_b', SpecialSymbols.EOF.value]),
+		("r + r'abc'", ['r', '+', "r'abc'", SpecialSymbols.EOF.value]),
 	])
 	def test_parse(self, source: str, expected: list[str]) -> None:
 		parser = Lexer(TokenDefinition())

@@ -182,7 +182,7 @@ def python_rules() -> Rules:
 			('rule', [
 				('symbol', 'op_unary'),
 				('__empty__', ''),
-				('regexp', '/[-+]/')
+				('string', '"\\UNARY_OP_MINUS"')
 			]),
 			('rule', [
 				('symbol', 'primary'),

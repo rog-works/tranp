@@ -386,6 +386,10 @@ class Lexer(ITokenizer):
 		offset = self._definition.symbol.index(value)
 		token_type = TokenTypes(base + offset)
 		end = begin + 1
+		# XXX 右再帰パーサーの特性上、単項/2項のマイナス演算子を区別できないため、マイナス演算子の右隣が空白以外なら単項演算子と見做して変換
+		if token_type == TokenTypes.Minus and not self.analyze_white_spece(source, begin + 1):
+			return end, Token.unary_op_minus(Token.SourceMap.make(source, begin, end))
+
 		return end, Token(token_type, value, Token.SourceMap.make(source, begin, end))
 
 

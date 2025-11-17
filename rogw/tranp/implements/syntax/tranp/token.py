@@ -94,6 +94,15 @@ class TokenTypes(Enum):
 	Unknown = 0xFF
 
 
+class SpecialSymbols(Enum):
+	"""特殊記号"""
+
+	Indent = '\\INDENT'
+	Dedent = '\\DEDENT'
+	EOF = '\\EOF'
+	UnaryOpMinus = '\\UNARY_OP_MINUS'
+
+
 class Token:
 	"""トークン"""
 
@@ -207,7 +216,7 @@ class Token:
 			```
 		"""
 		assert self.domain == TokenDomains.WhiteSpace, f'Must be WhiteSpace domain. from: {self.type}'
-		return Token(TokenTypes.Indent, '\\INDENT', self.source_map)
+		return Token(TokenTypes.Indent, SpecialSymbols.Indent.value, self.source_map)
 
 	def to_dedent(self) -> 'Token':
 		"""インスタンスを変換
@@ -221,7 +230,16 @@ class Token:
 			```
 		"""
 		assert self.domain == TokenDomains.WhiteSpace, f'Must be WhiteSpace domain. from: {self.type}'
-		return Token(TokenTypes.Dedent, '\\DEDENT', self.source_map)
+		return Token(TokenTypes.Dedent, SpecialSymbols.Dedent.value, self.source_map)
+
+	@classmethod
+	def unary_op_minus(cls, source_map: 'SourceMap') -> 'Token':
+		"""インスタンスを生成
+
+		Returns:
+			インスタンス(単項演算子/マイナス)
+		"""
+		return Token(TokenTypes.Minus, SpecialSymbols.UnaryOpMinus.value, source_map)
 
 	@classmethod
 	def EOF(cls) -> 'Token':
@@ -235,7 +253,7 @@ class Token:
 			* 最終的に改行のトークンに置き換えられる
 			```
 		"""
-		return cls(TokenTypes.EOF, '\\EOF', cls.SourceMap.EOF())
+		return cls(TokenTypes.EOF, SpecialSymbols.EOF.value, cls.SourceMap.EOF())
 
 	@classmethod
 	def empty(cls) -> 'Token':

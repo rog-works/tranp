@@ -2,7 +2,7 @@ from collections.abc import Callable
 from typing import cast
 from unittest import TestCase
 
-from rogw.tranp.implements.syntax.tranp.token import Token, TokenDomains, TokenTypes
+from rogw.tranp.implements.syntax.tranp.token import SpecialSymbols, Token, TokenDomains, TokenTypes
 from rogw.tranp.test.helper import data_provider
 
 
@@ -52,15 +52,15 @@ class TestToken(TestCase):
 
 	@data_provider([
 		(Token(TokenTypes.LineBreak, '\n'), Token.to_new_line.__name__, (TokenTypes.NewLine, '\n')),
-		(Token(TokenTypes.LineBreak, '\n'), Token.to_indent.__name__, (TokenTypes.Indent, '\\INDENT')),
-		(Token(TokenTypes.LineBreak, '\n'), Token.to_dedent.__name__, (TokenTypes.Dedent, '\\DEDENT')),
+		(Token(TokenTypes.LineBreak, '\n'), Token.to_indent.__name__, (TokenTypes.Indent, SpecialSymbols.Indent.value)),
+		(Token(TokenTypes.LineBreak, '\n'), Token.to_dedent.__name__, (TokenTypes.Dedent, SpecialSymbols.Dedent.value)),
 	])
 	def test_convertion(self, token: Token, name: str, expected: tuple[str, str]) -> None:
 		actual = cast(Callable[[], Token], getattr(token, name))()
 		self.assertEqual(expected, actual)
 
 	@data_provider([
-		(Token.EOF.__name__, (TokenTypes.EOF, '\\EOF')),
+		(Token.EOF.__name__, (TokenTypes.EOF, SpecialSymbols.EOF.value)),
 		(Token.empty.__name__, (TokenTypes.Empty, '')),
 	])
 	def test_factory(self, name: str, expected: tuple[str, str]) -> None:

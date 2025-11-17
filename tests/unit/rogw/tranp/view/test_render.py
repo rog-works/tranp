@@ -1403,6 +1403,12 @@ class TestRenderer(TestCase):
 		self.assertRender('literal_type', vars, expected)
 
 	@data_provider([
+		({'type_name': 'dict', 'key_type': 'std::string', 'value_type': 'int'}, 'std::map<std::string, int>'),
+	])
+	def test_render_literal_dict_type(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('literal_dict_type', vars, expected)
+
+	@data_provider([
 		# 明示変換系
 		({'var_type': 'int', 'symbol': 'n', 'default_value': '', 'annotation': ''}, 'int n'),
 		({'var_type': 'int', 'symbol': 'n', 'default_value': '', 'annotation': 'Embed::mutable'}, 'int n'),

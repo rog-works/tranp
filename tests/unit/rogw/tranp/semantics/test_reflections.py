@@ -163,6 +163,7 @@ class TestReflections(TestCase):
 
 		('ForType.literal_type.n', '', _mod('classes', 'int'), 'int'),
 		('ForType.literal_type.s', '', _mod('classes', 'str'), 'str'),
+		('ForType.literal_dict_type', 'function_def_raw.block.getitem', _mod('classes', 'int'), 'int'),
 
 		('ForFuncCall.cls_call', 'function_def_raw.block.return_stmt.funccall', _mod('classes', 'str'), 'str'),
 		('ForFuncCall.self_call', 'function_def_raw.block.return_stmt.funccall', _mod('classes', 'int'), 'int'),

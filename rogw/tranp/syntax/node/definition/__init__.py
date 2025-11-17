@@ -92,6 +92,7 @@ from rogw.tranp.syntax.node.definition.primary import (
 	DictType,
 	CallableType,
 	CustomType,
+	LiteralDictType,
 	# type - other
 	UnionType,
 	NullType,

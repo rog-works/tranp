@@ -122,6 +122,12 @@ anno_meta: expression
 // @custom
 _typed_exprlist: starable_typed_expression ("," starable_typed_expression)* [","]
 
+// @custom
+typed_dict: string "," "{" typed_dict_slices "}"
+typed_dict_slices: _typed_dict_slice ("," _typed_dict_slice)* [","]
+_typed_dict_slice: typed_dict_key ":" typed_expression
+typed_dict_key: string -> typed_literal
+
 // # Function call argumanets
 
 // @lark arguments: argvalue ("," argvalue)* ("," [ starargs | kwargs])? | starargs | kwargs | comprehension{test}
@@ -181,7 +187,9 @@ anno_assign: assign_namelist ":" typed_expression ["=" expression]
 aug_assign: assign_namelist aug_assign_op expression
 // @custom
 class_var_assign: assign_namelist ":" "ClassVar" "[" typed_expression "]" "=" expression
-class_assign: assign_namelist ":" "TypeAlias" "=" typed_expression
+class_assign: assign_namelist (class_assign_type_alias | class_assign_typed_dict)
+?class_assign_type_alias: ":" "TypeAlias" "=" typed_expression
+?class_assign_typed_dict: "=" "TypedDict" "(" typed_dict ")"
 template_assign: assign_namelist "=" template_assign_class "(" string ["," template_assign_argvalue ("," template_assign_argvalue)*] ")"
 ?template_assign_argvalue: typed_expression -> template_assign_constraint
 	| ("bound" "=" typed_expression) -> template_assign_boundary

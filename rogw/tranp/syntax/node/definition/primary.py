@@ -354,7 +354,7 @@ class LiteralType(VarOfType):
 	@property
 	@override
 	def type_name(self) -> 'Type':
-		return self.dirty_child(VarOfType, 'var_of_type', tokens=self.domain_name)
+		return self.dirty_child(VarOfType, 'var_of_type', tokens=self.domain_name, domain_name=self.domain_name)
 
 
 @Meta.embed(Node, accept_tags('typed_getitem'))
@@ -449,6 +449,42 @@ class CustomType(GenericType):
 	@Meta.embed(Node, expandable)
 	def template_types(self) -> list[Type]:
 		return super().template_types
+
+
+@Meta.embed(Node, accept_tags('typed_dict'))
+class LiteralDictType(GenericType):
+	"""Note: XXX 型としてはDictTypeと同等として扱う。typed_dict_slicesの先頭要素のみ評価するため、複数の値型には対応できない"""
+
+	@property
+	@Meta.embed(Node, expandable)
+	def key_type(self) -> Type:
+		return self.template_types[0]
+
+	@property
+	@Meta.embed(Node, expandable)
+	def value_type(self) -> Type:
+		return self.primary_type
+
+	@property
+	@override
+	def domain_name(self) -> str:
+		return dict.__name__
+
+	@property
+	@override
+	def type_name(self) -> 'Type':
+		return self.dirty_child(VarOfType, 'var_of_type', tokens=self.domain_name, domain_name=self.domain_name)
+
+	@property
+	@override
+	def template_types(self) -> list[Type]:
+		return [node.as_a(Type) for node in self._children('typed_dict_slices')]
+
+	@property
+	@override
+	def primary_type(self) -> Type:
+		"""Note: XXX value_typeをprimaryとするためoverride"""
+		return self.template_types[1]
 
 
 @Meta.embed(Node, accept_tags('typed_or_expr'))

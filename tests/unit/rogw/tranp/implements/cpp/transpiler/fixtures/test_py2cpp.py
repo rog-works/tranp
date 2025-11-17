@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from collections.abc import Callable
 from enum import Enum
-from typing import Annotated, ClassVar, Generic, Literal, Protocol, Self, TypeAlias, TypeVar, TypeVarTuple, cast
+from typing import Annotated, ClassVar, Generic, Literal, Protocol, Self, TypeAlias, TypedDict, TypeVar, TypeVarTuple, cast
 
 from rogw.tranp.compatible.cpp.classes import char, void
 from rogw.tranp.compatible.cpp.function import c_func_invoke, c_func_ref
@@ -645,11 +645,16 @@ class ForIndexer:
 
 
 class ForType:
+	LDSN = TypedDict('LDSN', {'s': int})
+
 	def literal_type(self) -> None:
 		n01: Literal[0, 1] = 0
 		ab: Literal['a', 'b'] = 'a'
 		n = n01
 		s = ab
+
+	def literal_dict_type(self, dsn: LDSN) -> None:
+		dsn['s']
 
 
 class ForFuncCall:

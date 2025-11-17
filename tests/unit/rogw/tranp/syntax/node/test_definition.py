@@ -621,6 +621,7 @@ class TestDefinition(TestCase):
 		('A: TypeAlias = Callable[[str], None]', 'file_input.class_assign', {'symbol': 'A', 'actual_type': defs.CallableType}),
 		('A: TypeAlias = str | None', 'file_input.class_assign', {'symbol': 'A', 'actual_type': defs.UnionType}),
 		('A: TypeAlias = None', 'file_input.class_assign', {'symbol': 'A', 'actual_type': defs.NullType}),
+		('A = TypedDict("A", {"s": str})', 'file_input.class_assign', {'symbol': 'A', 'actual_type': defs.LiteralDictType}),
 	])
 	def test_alt_class(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.AltClass)
@@ -959,6 +960,7 @@ class TestDefinition(TestCase):
 		('a: Annotated[\'list[int]\', "a"] = []', 'file_input.anno_assign.typed_getitem', {'type': defs.ListType, 'annotation': defs.String}),
 		('a: Annotated[dict[str, int], True] = {}', 'file_input.anno_assign.typed_getitem', {'type': defs.DictType, 'annotation': defs.Boolean}),
 		('a: Annotated[\'dict[str, int]\', True] = {}', 'file_input.anno_assign.typed_getitem', {'type': defs.DictType, 'annotation': defs.Boolean}),
+		('T = TypedDict("T", {"s": int})', 'file_input.class_assign.typed_dict', {'type': defs.LiteralDictType, 'annotation': defs.Empty}),
 		# Union
 		('a: str | None = None', 'file_input.anno_assign.typed_or_expr', {'type': defs.UnionType, 'annotation': defs.Empty}),
 		('a: A.B | None = None', 'file_input.anno_assign.typed_or_expr', {'type': defs.UnionType, 'annotation': defs.Empty}),
@@ -1020,6 +1022,20 @@ class TestDefinition(TestCase):
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.CustomType)
 		self.assertEqual(node.type_name.tokens, expected['type_name'])
 		self.assertEqual([type(in_type) for in_type in node.template_types], expected['template_types'])
+
+	@data_provider([
+		('T = TypedDict("T", {"s": str})', 'file_input.class_assign.typed_dict', {'type_name': 'dict', 'key_type': defs.LiteralType, 'value_type': defs.VarOfType}),
+		('T = TypedDict("T", {"d": list[str]})', 'file_input.class_assign.typed_dict', {'type_name': 'dict', 'key_type': defs.LiteralType, 'value_type': defs.ListType}),
+		('T = TypedDict("T", {"d": dict[str, int]})', 'file_input.class_assign.typed_dict', {'type_name': 'dict', 'key_type': defs.LiteralType, 'value_type': defs.DictType}),
+		('T = TypedDict("T", {"d": Callable[[], None]})', 'file_input.class_assign.typed_dict', {'type_name': 'dict', 'key_type': defs.LiteralType, 'value_type': defs.CallableType}),
+		('T = TypedDict("T", {"d": A[str, int, bool]})', 'file_input.class_assign.typed_dict', {'type_name': 'dict', 'key_type': defs.LiteralType, 'value_type': defs.CustomType}),
+		('T = TypedDict("T", {"d": str | int})', 'file_input.class_assign.typed_dict', {'type_name': 'dict', 'key_type': defs.LiteralType, 'value_type': defs.UnionType}),
+	])
+	def test_literal_dict_type(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.LiteralDictType)
+		self.assertEqual(node.type_name.tokens, expected['type_name'])
+		self.assertEqual(type(node.key_type), expected['key_type'])
+		self.assertEqual(type(node.value_type), expected['value_type'])
 
 	@data_provider([
 		('a: str | int = {}', 'file_input.anno_assign.typed_or_expr', {'type_name': 'str.int', 'or_types': [defs.VarOfType, defs.VarOfType]}),

@@ -83,6 +83,7 @@ def symbol_mapping() -> SymbolMapping:
 			defs.DictType: ['typed_getitem'],
 			defs.CallableType: ['typed_getitem'],
 			defs.CustomType: ['typed_getitem'],
+			defs.LiteralDictType: ['typed_dict'],
 			defs.UnionType: ['typed_or_expr'],
 			defs.NullType: ['typed_none'],
 			defs.TypeParameters: ['typed_list', 'typed_elipsis'],

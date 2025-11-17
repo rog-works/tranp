@@ -1,5 +1,7 @@
 from collections.abc import Callable
 
+import rogw.tranp.semantics.reflection.definition as refs
+import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.compatible.python.types import Standards, Union, Unknown
 from rogw.tranp.errors import Errors
 from rogw.tranp.lang.annotation import injectable
@@ -8,8 +10,6 @@ from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.semantics.procedure import Procedure
 from rogw.tranp.semantics.reflection.base import IReflection
 from rogw.tranp.semantics.reflection.db import SymbolDB
-import rogw.tranp.semantics.reflection.definition as refs
-import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 
 
@@ -519,6 +519,9 @@ class ProceduralResolver:
 
 	def on_custom_type(self, node: defs.CustomType, type_name: IReflection, template_types: list[IReflection]) -> IReflection:
 		return type_name.stack(node).extends(*template_types)
+
+	def on_literal_dict_type(self, node: defs.LiteralDictType, type_name: IReflection, key_type: IReflection, value_type: IReflection) -> IReflection:
+		return type_name.stack(node).extends(key_type, value_type)
 
 	def on_union_type(self, node: defs.UnionType, or_types: list[IReflection]) -> IReflection:
 		return self.reflections.from_standard(Union).stack(node).extends(*or_types)

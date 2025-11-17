@@ -2,9 +2,10 @@
 entry := (expr "\n")+
 
 // expression
-expr[1] := assign
+expr[1] := ternary
 
 // operation/assign XXX Python標準: name ":=" expr
+ternary[1] := (expr "if" assign "else")? assign
 assign[1] := (expr ":=")? comp_or
 
 // operation - comparison

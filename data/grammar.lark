@@ -123,7 +123,7 @@ anno_meta: expression
 _typed_exprlist: starable_typed_expression ("," starable_typed_expression)* [","]
 
 // @custom
-typed_dict: "'" typed_atom "'" "," "{" typed_dict_slices "}"
+typed_dict: string "," "{" typed_dict_slices "}"
 typed_dict_slices: _typed_dict_slice ("," _typed_dict_slice)* [","]
 _typed_dict_slice: typed_dict_key ":" typed_expression
 typed_dict_key: string -> typed_literal

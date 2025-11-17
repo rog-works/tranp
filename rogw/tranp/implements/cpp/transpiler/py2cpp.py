@@ -1,7 +1,9 @@
-from collections.abc import Callable
 import re
+from collections.abc import Callable
 from typing import Any, ClassVar, Protocol, Self, TypeVarTuple, cast
 
+import rogw.tranp.semantics.reflection.definition as refs
+import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.compatible.cpp.function import c_func_invoke, c_func_ref
 from rogw.tranp.compatible.cpp.object import CP
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
@@ -22,10 +24,8 @@ from rogw.tranp.lang.eventemitter import Callback, Observable
 from rogw.tranp.lang.module import to_fullyname
 from rogw.tranp.semantics.procedure import Procedure
 from rogw.tranp.semantics.reflection.base import IReflection
-import rogw.tranp.semantics.reflection.definition as refs
 from rogw.tranp.semantics.reflection.helper.naming import ClassDomainNaming, ClassShorthandNaming
 from rogw.tranp.semantics.reflections import Reflections
-import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.definition.accessible import PythonClassOperations
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.transpiler.types import ITranspiler, TranspilerOptions
@@ -883,6 +883,9 @@ class Py2Cpp(ITranspiler):
 	def on_custom_type(self, node: defs.CustomType, type_name: str, template_types: list[str]) -> str:
 		# XXX @see semantics.reflection.helper.naming.ClassShorthandNaming.domain_name
 		return self.view.render('type_py2cpp', vars={'var_type': f'{type_name}<{", ".join(template_types)}>'})
+
+	def on_literal_dict_type(self, node: defs.LiteralDictType, type_name: str, key_type: str, value_type: str) -> str:
+		return self.view.render(node.classification, vars={'type_name': type_name, 'key_type': key_type, 'value_type': value_type})
 
 	def on_union_type(self, node: defs.UnionType, or_types: list[str]) -> str:
 		"""Note: XXX C++でUnion型の表現は不可能。期待値を仮定するのであればプライマリー型以外に無いので先頭要素のみ返却"""

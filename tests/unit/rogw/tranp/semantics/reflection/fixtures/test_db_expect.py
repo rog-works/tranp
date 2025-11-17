@@ -15,6 +15,7 @@ def expected_symbols() -> dict[str, tuple[str, str]]:
 		'typing#TypeIs': ('typing#TypeIs', 'TypeIs'),
 		'typing#TypeVar': ('typing#TypeVar', 'TypeVar'),
 		'typing#TypeVarTuple': ('typing#TypeVarTuple', 'TypeVarTuple'),
+		'typing#TypedDict': ('typing#TypedDict', 'TypedDict'),
 		'typing#Union': ('typing#Union', 'Union'),
 		'typing#T': ('typing#T', 'T'),
 		'typing#Self': ('typing#Self', 'Self'),

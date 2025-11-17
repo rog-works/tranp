@@ -1,12 +1,12 @@
-from abc import ABCMeta, abstractmethod
-from dataclasses import dataclass
-from io import BytesIO
 import re
 import token as PyTokenTypes
+from abc import ABCMeta, abstractmethod
+from io import BytesIO
 from tokenize import tokenize
 from typing import override
 
 from rogw.tranp.implements.syntax.tranp.token import Token, TokenDefinition, TokenDomains, TokenTypes
+from rogw.tranp.lang.sequence import index_of
 
 
 class ITokenizer(metaclass=ABCMeta):
@@ -368,6 +368,19 @@ class Lexer(ITokenizer):
 		Returns:
 			(次の読み取り位置, トークン)
 		"""
+		for i in range(2):
+			end = begin + 1 + (2 - i)
+			if end - 1 >= len(source):
+				continue
+
+			value = source[begin:end]
+			offset = index_of(self._definition.combined_symbols, value)
+			if offset == -1:
+				continue
+
+			token_type = TokenTypes(TokenTypes.BeginCombine.value + offset)
+			return end, Token(token_type, value, Token.SourceMap.make(source, begin, end))
+
 		value = source[begin]
 		base = TokenDomains.Symbol.value << 4
 		offset = self._definition.symbol.index(value)
@@ -535,10 +548,7 @@ class Tokenizer(ITokenizer):
 		Returns:
 			(次の読み取り開始位置, トークンリスト)
 		Note:
-			```
-			* 括弧のネストをコンテキストに記録
-			* 記号トークンの合成
-			```
+			括弧のネストをコンテキストに記録
 		"""
 		token = tokens[begin]
 		if token.type in [TokenTypes.ParenL, TokenTypes.BraceL, TokenTypes.BracketL]:
@@ -546,36 +556,4 @@ class Tokenizer(ITokenizer):
 		elif token.type in [TokenTypes.ParenR, TokenTypes.BraceR, TokenTypes.BracketR]:
 			context.enclosure -= 1
 
-		combined = self._try_combine_symbol(tokens, begin)
-		if combined.type == TokenTypes.Empty:
-			return begin + 1, [tokens[begin]]
-		else:
-			return begin + len(combined.string), [combined]
-
-	def _try_combine_symbol(self, tokens: list[Token], begin: int) -> Token:
-		"""複数文字の記号(=トークン)への合成を試行する
-
-		Args:
-			tokens: トークンリスト
-			begin: 読み取り開始位置
-		Returns:
-			トークン
-		"""
-		end = begin + 1
-		while end < len(tokens) and tokens[end].domain == TokenDomains.Symbol:
-			end += 1
-
-		if end - begin == 1:
-			return Token.empty()
-
-		candidate = ''.join([token.string for token in tokens[begin:end]])
-		founds = [index for index, expected in enumerate(self._definition.combined_symbols) if candidate.startswith(expected)]
-		if len(founds) == 0:
-			return Token.empty()
-
-		offset = founds[0]
-		token_type = TokenTypes(TokenTypes.BeginCombine.value + offset)
-		combine = self._definition.combined_symbols[offset]
-		base = tokens[begin]
-		combine_map = Token.SourceMap(base.source_map.begin_line, base.source_map.begin_column, base.source_map.end_line, base.source_map.end_column + len(combine))
-		return Token(token_type, combine, combine_map)
+		return begin + 1, [tokens[begin]]

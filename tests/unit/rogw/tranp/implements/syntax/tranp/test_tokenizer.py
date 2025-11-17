@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from rogw.tranp.implements.syntax.tranp.tokenizer import Token, TokenDefinition, TokenDomains, PyTokenizer, TokenTypes, Lexer, Tokenizer
+from rogw.tranp.implements.syntax.tranp.tokenizer import Lexer, PyTokenizer, Token, TokenDefinition, TokenDomains, Tokenizer, TokenTypes
 from rogw.tranp.test.helper import data_provider
 
 
@@ -70,11 +70,11 @@ class TestTokenizer(TestCase):
 		('(a)', 0, {'nest': 0, 'enclosure': 0}, {'nest': 0, 'enclosure': 1}, (1, [(TokenTypes.ParenL, '(')])),
 		('(a.b)', 2, {'nest': 0, 'enclosure': 1}, {'nest': 0, 'enclosure': 1}, (3, [(TokenTypes.Dot, '.')])),
 		('{"a": 1}', 4, {'nest': 0, 'enclosure': 1}, {'nest': 0, 'enclosure': 0}, (5, [(TokenTypes.BraceR, '}')])),
-		('...', 0, {'nest': 0, 'enclosure': 0}, {'nest': 0, 'enclosure': 0}, (3, [(TokenTypes.Ellipsis, '...')])),
+		('...', 0, {'nest': 0, 'enclosure': 0}, {'nest': 0, 'enclosure': 0}, (1, [(TokenTypes.Ellipsis, '...')])),
 		('a + 1', 1, {'nest': 0, 'enclosure': 0}, {'nest': 0, 'enclosure': 0}, (2, [(TokenTypes.Plus, '+')])),
 		('a +-1', 1, {'nest': 0, 'enclosure': 0}, {'nest': 0, 'enclosure': 0}, (2, [(TokenTypes.Plus, '+')])),
-		('a += 1', 1, {'nest': 0, 'enclosure': 0}, {'nest': 0, 'enclosure': 0}, (3, [(TokenTypes.PlusEqual, '+=')])),
-	])
+		('a += 1', 1, {'nest': 0, 'enclosure': 0}, {'nest': 0, 'enclosure': 0}, (2, [(TokenTypes.PlusEqual, '+=')])),
+	], 4)
 	def test_handle_symbol(self, source: str, begin: int, before_context: dict[str, int], expected_context: dict[str, int], expected: tuple[str, list[Token]]) -> None:
 		context = Tokenizer.Context.make(**before_context)
 		parser = Tokenizer()

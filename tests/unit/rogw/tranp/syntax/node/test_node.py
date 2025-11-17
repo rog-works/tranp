@@ -110,6 +110,7 @@ class TestNode(TestCase):
 		('class A: ...', 'file_input.class_def', defs.Class, 'A', '__main__#A'),
 		('class E(Enum): ...', 'file_input.class_def', defs.Enum, 'E', '__main__#E'),
 		('B: TypeAlias = A', 'file_input.class_assign', defs.AltClass, 'B', '__main__#B'),
+		('T = TypedDict("T", {"s": str})', 'file_input.class_assign', defs.AltClass, 'T', '__main__#T'),
 		('T = TypeVar("T")', 'file_input.template_assign', defs.TemplateClass, 'T', '__main__#T'),
 		# Elements
 		('def func(n: int) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue', defs.Parameter, '', '__main__#func.parameter@7'),
@@ -187,6 +188,7 @@ class TestNode(TestCase):
 		('a: Annotated[Callable[[], None], 0] = ...', 'file_input.anno_assign.typed_getitem', defs.CallableType, 'Callable', '__main__#Callable'),
 		('a: Annotated[int | str, 0] = 0', 'file_input.anno_assign.typed_or_expr', defs.UnionType, 'Union', '__main__#Union'),
 		('def func(n: int) -> Annotated[int, 0]: ...', 'file_input.function_def.function_def_raw.typed_var', defs.VarOfType, 'int', '__main__#func.int'),
+		('T = TypedDict("T", {"s": str})', 'file_input.class_assign.typed_dict', defs.LiteralDictType, 'dict', '__main__#T.dict'),
 		# Primary - FuncCall
 		('a(0)', 'file_input.funccall', defs.FuncCall, 'func_call@1', '__main__#func_call@1'),
 		('a(0)\nfor i in b(): ...', 'file_input.funccall', defs.FuncCall, 'func_call@1', '__main__#func_call@1'),
@@ -240,6 +242,7 @@ class TestNode(TestCase):
 		('class A: ...', 'file_input.class_def', defs.Class, '__main__', '__main__'),
 		('class E(Enum): ...', 'file_input.class_def', defs.Enum, '__main__', '__main__'),
 		('B: TypeAlias = A', 'file_input.class_assign', defs.AltClass, '__main__', '__main__'),
+		('T = TypedDict("T", {"str": int})', 'file_input.class_assign', defs.AltClass, '__main__', '__main__'),
 		('T = TypeVar("T")', 'file_input.template_assign', defs.TemplateClass, '__main__', '__main__'),
 		# Elements
 		('def func(n: int) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue', defs.Parameter, '__main__#func', '__main__#func'),
@@ -297,6 +300,7 @@ class TestNode(TestCase):
 		('a: A | B = A', 'file_input.anno_assign.typed_or_expr', defs.UnionType, '__main__', '__main__'),
 		('a: None = None', 'file_input.anno_assign.typed_none', defs.NullType, '__main__', '__main__'),
 		('def func() -> None: ...', 'file_input.function_def.function_def_raw.typed_none', defs.NullType, '__main__#func', '__main__#func'),
+		('T = TypedDict("T", {"s": str})', 'file_input.class_assign.typed_dict', defs.LiteralDictType, '__main__#T', '__main__#T'),
 		# Primary - FuncCall
 		('a(0)', 'file_input.funccall', defs.FuncCall, '__main__', '__main__'),
 		('super()', 'file_input.funccall', defs.Super, '__main__', '__main__'),

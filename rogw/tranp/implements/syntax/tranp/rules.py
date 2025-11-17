@@ -44,14 +44,14 @@ def python_rules() -> Rules:
 				('symbol', 'comp_and'),
 				('unwrap', '1'),
 				('terms', [
-					('symbol', 'comp_not'),
 					('expr_rep', [
 						('terms', [
-							('symbol', 'op_and'),
-							('symbol', 'comp_not')
+							('symbol', 'comp_not'),
+							('symbol', 'op_and')
 						]),
 						('repeat', '*')
-					])
+					]),
+					('symbol', 'comp_not')
 				])
 			]),
 			('rule', [
@@ -69,14 +69,14 @@ def python_rules() -> Rules:
 				('symbol', 'comp'),
 				('unwrap', '1'),
 				('terms', [
-					('symbol', 'calc_sum'),
 					('expr_rep', [
 						('terms', [
-							('symbol', 'op_comp'),
-							('symbol', 'calc_sum')
+							('symbol', 'calc_sum'),
+							('symbol', 'op_comp')
 						]),
 						('repeat', '*')
-					])
+					]),
+					('symbol', 'calc_sum')
 				])
 			]),
 			('rule', [

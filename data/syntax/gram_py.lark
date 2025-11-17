@@ -6,9 +6,9 @@ expr[1] := comp_or
 
 // operation - comparison
 comp_or[1] := (comp_and op_or)* comp_and
-comp_and[1] := comp_not (op_and comp_not)*
+comp_and[1] := (comp_not op_and)* comp_not
 comp_not[1] := (op_not)? comp
-comp[1] := calc_sum (op_comp calc_sum)*
+comp[1] := (calc_sum op_comp)* calc_sum
 
 // operation - arithmetical
 calc_sum[1] := calc_mul (op_add calc_mul)*

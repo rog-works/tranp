@@ -11,8 +11,8 @@ comp_not[1] := (op_not)? comp
 comp[1] := (calc_sum op_comp)* calc_sum
 
 // operation - arithmetical
-calc_sum[1] := calc_mul (op_add calc_mul)*
-calc_mul[1] := calc_unary (op_mul calc_unary)*
+calc_sum[1] := (calc_mul op_add)* calc_mul
+calc_mul[1] := (calc_unary op_mul)* calc_unary
 calc_unary[1] := (op_unary)? primary
 
 // operation - operator

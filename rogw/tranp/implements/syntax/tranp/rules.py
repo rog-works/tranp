@@ -83,28 +83,28 @@ def python_rules() -> Rules:
 				('symbol', 'calc_sum'),
 				('unwrap', '1'),
 				('terms', [
-					('symbol', 'calc_mul'),
 					('expr_rep', [
 						('terms', [
-							('symbol', 'op_add'),
-							('symbol', 'calc_mul')
+							('symbol', 'calc_mul'),
+							('symbol', 'op_add')
 						]),
 						('repeat', '*')
-					])
+					]),
+					('symbol', 'calc_mul')
 				])
 			]),
 			('rule', [
 				('symbol', 'calc_mul'),
 				('unwrap', '1'),
 				('terms', [
-					('symbol', 'calc_unary'),
 					('expr_rep', [
 						('terms', [
-							('symbol', 'op_mul'),
-							('symbol', 'calc_unary')
+							('symbol', 'calc_unary'),
+							('symbol', 'op_mul')
 						]),
 						('repeat', '*')
-					])
+					]),
+					('symbol', 'calc_unary')
 				])
 			]),
 			('rule', [

@@ -1,7 +1,7 @@
 from collections.abc import Callable, Iterator
 from enum import Enum
 from os import path as os_path
-from typing import Annotated, Any, ClassVar, Generic, Literal, Self, TypeAlias, TypeVar, TypeVarTuple, cast
+from typing import Annotated, Any, ClassVar, Generic, Literal, Self, TypeAlias, TypedDict, TypeVar, TypeVarTuple, cast
 
 from yaml import safe_load as yaml_safe_load
 
@@ -343,9 +343,14 @@ class ForRelay:
 
 
 class ForType:
+	LDSN = TypedDict('LDSN', {'s': int})
+
 	def literal_type(self, n01: Literal[0, 1], ab: Literal['a', 'b']) -> None:
 		n = n01
 		s = ab
+
+	def literal_dict_type(self, dsn: LDSN) -> None:
+		dsn['s']
 
 
 class ForFuncCall:

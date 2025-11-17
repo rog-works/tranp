@@ -453,6 +453,8 @@ class CustomType(GenericType):
 
 @Meta.embed(Node, accept_tags('typed_dict'))
 class LiteralDictType(GenericType):
+	"""Note: XXX 型としてはDictTypeと同等として扱う。typed_dict_slicesの先頭要素のみ評価するため、複数の値型には対応できない"""
+
 	@property
 	@Meta.embed(Node, expandable)
 	def key_type(self) -> Type:

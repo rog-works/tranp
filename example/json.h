@@ -281,7 +281,7 @@ struct JsonEntry {
 	/**
 	 * インスタンスを生成
 	 */
-	JsonEntry() : path(""), entry_type(JsonEntryTypes::Unknown), entity({}) {}
+	JsonEntry() : path(""), entry_type(JsonEntryTypes::Unknown), entity{} {}
 	public:
 	/**
 	 * インスタンスを生成
@@ -317,7 +317,7 @@ class Json {
 	/**
 	 * インスタンスを生成
 	 */
-	Json() : object(), _jsons({}), _entries({}), _root(this), _entry_id(0) {}
+	Json() : object(), _jsons{}, _entries{}, _root(this), _entry_id(0) {}
 	// method __repr__
 	public:
 	/**

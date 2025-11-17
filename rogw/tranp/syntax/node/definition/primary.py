@@ -354,7 +354,7 @@ class LiteralType(VarOfType):
 	@property
 	@override
 	def type_name(self) -> 'Type':
-		return self.dirty_child(VarOfType, 'var_of_type', tokens=self.domain_name)
+		return self.dirty_child(VarOfType, 'var_of_type', tokens=self.domain_name, domain_name=self.domain_name)
 
 
 @Meta.embed(Node, accept_tags('typed_getitem'))
@@ -471,7 +471,7 @@ class LiteralDictType(GenericType):
 	@property
 	@override
 	def type_name(self) -> 'Type':
-		return self.dirty_child(VarOfType, 'var_of_type', tokens=self.domain_name)
+		return self.dirty_child(VarOfType, 'var_of_type', tokens=self.domain_name, domain_name=self.domain_name)
 
 	@property
 	@override

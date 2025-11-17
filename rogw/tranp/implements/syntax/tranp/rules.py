@@ -234,7 +234,12 @@ def python_rules() -> Rules:
 					('symbol', 'var'),
 					('symbol', 'string'),
 					('symbol', 'digit'),
-					('symbol', 'decimal')
+					('symbol', 'decimal'),
+					('terms', [
+						('string', '"("'),
+						('symbol', 'expr'),
+						('string', '")"')
+					])
 				])
 			]),
 			('rule', [

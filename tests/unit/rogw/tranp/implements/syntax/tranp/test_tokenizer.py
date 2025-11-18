@@ -73,9 +73,11 @@ class TestTokenizer(TestCase):
 		('{"a": 1}', 4, {'nest': 0, 'enclosure': 1}, {'nest': 0, 'enclosure': 0}, (5, [(TokenTypes.BraceR, '}')])),
 		('...', 0, {'nest': 0, 'enclosure': 0}, {'nest': 0, 'enclosure': 0}, (1, [(TokenTypes.Ellipsis, '...')])),
 		('a + 1', 1, {'nest': 0, 'enclosure': 0}, {'nest': 0, 'enclosure': 0}, (2, [(TokenTypes.Plus, '+')])),
-		('a +-1', 1, {'nest': 0, 'enclosure': 0}, {'nest': 0, 'enclosure': 0}, (2, [(TokenTypes.Plus, '+')])),
+		('a + -1', 1, {'nest': 0, 'enclosure': 0}, {'nest': 0, 'enclosure': 0}, (2, [(TokenTypes.Plus, '+')])),
 		('a += 1', 1, {'nest': 0, 'enclosure': 0}, {'nest': 0, 'enclosure': 0}, (2, [(TokenTypes.PlusEqual, '+=')])),
-	], 4)
+		('a - -1', 2, {'nest': 0, 'enclosure': 0}, {'nest': 0, 'enclosure': 0}, (3, [(TokenTypes.Minus, SpecialSymbols.OpUnaryMinus.value)])),
+		('a -= -1', 1, {'nest': 0, 'enclosure': 0}, {'nest': 0, 'enclosure': 0}, (2, [(TokenTypes.MinusEqual, '-=')])),
+	])
 	def test_handle_symbol(self, source: str, begin: int, before_context: dict[str, int], expected_context: dict[str, int], expected: tuple[str, list[Token]]) -> None:
 		context = Tokenizer.Context.make(**before_context)
 		parser = Tokenizer()

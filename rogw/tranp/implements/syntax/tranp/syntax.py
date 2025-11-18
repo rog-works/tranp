@@ -2,6 +2,7 @@ import re
 from typing import NamedTuple
 
 from rogw.tranp.dsn.dsn import DSN
+from rogw.tranp.errors import Errors
 from rogw.tranp.implements.syntax.tranp.ast import ASTEntry, ASTToken, ASTTree
 from rogw.tranp.implements.syntax.tranp.rule import Comps, Operators, Pattern, PatternEntry, Patterns, Repeators, Roles, Rules, Unwraps
 from rogw.tranp.implements.syntax.tranp.tokenizer import ITokenizer, Token, Tokenizer
@@ -104,14 +105,14 @@ class SyntaxParser:
 		Returns:
 			ASTツリー
 		Raises:
-			ValueError: パースに失敗(最初のトークンに未到達)
+			Errors.Syntax: パースに失敗(最初のトークンに未到達)
 		"""
 		tokens = self.tokenizer.parse(source)
 		length = len(tokens)
 		step, entry = self._match_symbol(tokens, Context.start(), entrypoint)
 		if step.steps != length:
 			message = ErrorCollector(source, tokens, length - 1 - step.steps).summary()
-			raise ValueError(f'Syntax parse error. First token not reached. {message}')
+			raise Errors.Syntax(message)
 
 		return as_a(ASTTree, entry)
 

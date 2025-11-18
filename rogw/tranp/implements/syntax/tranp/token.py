@@ -225,7 +225,7 @@ class Token:
 			インスタンス(ブロック終了)
 		Note:
 			```
-			* 「ブロック開始」と同仕様 @see indent#Note
+			* 「ブロック開始」と同仕様 @see to_indent#Note
 			* 「ブロック終了」を表す
 			```
 		"""
@@ -238,6 +238,11 @@ class Token:
 
 		Returns:
 			インスタンス(単項演算子/マイナス)
+		Note:
+			```
+			* 右再帰パーサー用のマイナス単項演算子。単項/2項を区別するため特殊化
+			@see rogw.tranp.implements.syntax.tranp.tokenizer.Lexer.parse_symbol
+			```
 		"""
 		return Token(TokenTypes.Minus, SpecialSymbols.OpUnaryMinus.value, source_map)
 

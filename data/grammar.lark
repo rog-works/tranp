@@ -104,7 +104,7 @@ typed_argvalue: typed_expression
 ?starable_typed_expression: "*"? typed_expression
 
 // @custom
-typed_slices: typed_slice | typed_slice (("," typed_slice)+ [","] | ",")
+typed_slices: typed_slice ("," typed_slice)* [","]
 ?typed_slice: starable_typed_expression
 
 // @custom
@@ -281,8 +281,7 @@ comment_stmt: COMMENT
 // @note Lark: subscriptlist, Official: slices
 // @lark ?subscriptlist: subscript | subscript (("," subscript)+ [","] | ",") -> subscript_tuple
 // @lark ?subscript: test | ([test] ":" [test] [sliceop]) -> slice
-slices: slice
-	| slice (("," slice)+ [","] | ",")
+slices: slice ("," slice)* [","]
 	| [slice] ":" [slice] [":" slice] -> slice
 ?slice: expression
 
@@ -309,9 +308,9 @@ group_expr: "(" expression ")"
 
 // @lark ?testlist_star_expr: test_or_star_expr | test_or_star_expr ("," test_or_star_expr)+ ","?  -> tuple | test_or_star_expr ","  -> tuple
 // @note FIXME "*"は末尾にだけ付与され得るので不正確
-assign_namelist: expression | expression (("," ["*"]? expression)+ [","] | ",")
+assign_namelist: expression ("," ["*"]? expression)* [","]
 // @lark ?exprlist: (expr|star_expr) | (expr|star_expr) (("," (expr|star_expr))+ [","] | ",")
-for_namelist: name | name (("," name)+ [","] | ",")
+for_namelist: name ("," name)* [","]
 
 // @lark _tuple_inner: test_or_star_expr (("," test_or_star_expr)+ [","] | ",")
 _tuple_inner: expression (("," expression)+ [","] | ",")

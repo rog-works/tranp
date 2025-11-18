@@ -217,10 +217,7 @@ class SyntaxParser:
 		"""
 		steps = 0
 		children: list[ASTEntry] = []
-		length = len(patterns)
-		for i in range(length):
-			index = length - 1 - i
-			pattern = patterns[index]
+		for pattern in reversed(patterns):
 			in_step, in_children = self._match_entry(tokens, context.step(steps), pattern, route)
 			if not in_step.steping:
 				return Step.ng(), []

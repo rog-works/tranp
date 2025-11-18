@@ -61,5 +61,5 @@ decimal := /(0|[1-9]\d*)[.]\d+/
 
 // FIXME 以下のatom関連は一旦非対応
 // atom[1] := ... | list ...
-// dict := "{" [dict_exps] "}"
+// list := "[" [list_exps] "]"
 // list_exps := expr ("," expr)*

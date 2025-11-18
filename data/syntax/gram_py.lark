@@ -2,23 +2,22 @@
 entry := (expr "\n")+
 
 // expression
-expr[1] := ternary | assign | comp_or
+expr[1] := ternary
 
-// operation/ternary
-ternary := comp_or "if" comp_or "else" expr
-
-// operation/assign XXX Python標準: name ":=" expr
-assign := comp_or ":=" expr
+// operation
+// XXX 公式: assignment_expression: NAME ":=" expression
+ternary[1] := (expr "if" assign "else")? assign
+assign[1] := (expr ":=")? comp_or
 
 // operation/bin/comparison
-comp_or[1] := comp_and (op_or comp_and)*
-comp_and[1] := comp_not (op_and comp_not)*
+comp_or[1] := (comp_and op_or)* comp_and
+comp_and[1] := (comp_not op_and)* comp_not
 comp_not[1] := (op_not)? comp
-comp[1] := calc_sum (op_comp calc_sum)*
+comp[1] := (calc_sum op_comp)* calc_sum
 
 // operation/bin/arithmetical
-calc_sum[1] := calc_mul (op_add calc_mul)*
-calc_mul[1] := unary (op_mul unary)*
+calc_sum[1] := (calc_mul op_add)* calc_mul
+calc_mul[1] := (unary op_mul)* unary
 
 // operation/unary
 unary[1] := (op_unary)? primary
@@ -33,21 +32,20 @@ op_is := "is"
 op_not := "not"
 op_add := /[-+]/
 op_mul := /[*\/%]/
-op_unary := /[-+]/
+op_unary := "\OP_UNARY_MINUS"
 
 // atom
-primary[1] := relay | relay_ref | invoke | indexer | atom
+primary[1] := relay | invoke | indexer | atom
 relay := primary "." name
-relay_ref := primary "->" name
 invoke := primary "(" [args] ")"
 indexer := primary "[" slice "]"
 atom[1] := boolean | none | var | string | digit | decimal | dict | "(" expr ")"
 var := name
 
 // element
-args[*] := expr ("," expr)*
-slice[*] := expr (":" expr)*
-key_values[*] :=  key_value ("," key_value)*
+args[*] := (expr ",")* expr
+slice[*] := (expr ":")* expr
+key_values[*] :=  (key_value ",")* key_value
 key_value := string ":" expr
 
 // literal
@@ -62,9 +60,6 @@ digit := /0|[1-9]\d*/
 decimal := /(0|[1-9]\d*)[.]\d+/
 
 // FIXME 以下のatom関連は一旦非対応
-// atom[1] := ... | list | dict
+// atom[1] := ... | list ...
 // list := "[" [list_exps] "]"
-// dict := "{" [dict_exps] "}"
 // list_exps := expr ("," expr)*
-// dict_exps := dict_pair ("," dict_pair)*
-// dict_pair := expr ":" expr

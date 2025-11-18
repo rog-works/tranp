@@ -24,34 +24,64 @@ def python_rules() -> Rules:
 			('rule', [
 				('symbol', 'expr'),
 				('unwrap', '1'),
-				('symbol', 'comp_or')
+				('symbol', 'ternary')
+			]),
+			('rule', [
+				('symbol', 'ternary'),
+				('unwrap', '1'),
+				('terms', [
+					('expr_rep', [
+						('terms', [
+							('symbol', 'expr'),
+							('string', '"if"'),
+							('symbol', 'assign'),
+							('string', '"else"')
+						]),
+						('repeat', '?')
+					]),
+					('symbol', 'assign')
+				])
+			]),
+			('rule', [
+				('symbol', 'assign'),
+				('unwrap', '1'),
+				('terms', [
+					('expr_rep', [
+						('terms', [
+							('symbol', 'expr'),
+							('string', '":="')
+						]),
+						('repeat', '?')
+					]),
+					('symbol', 'comp_or')
+				])
 			]),
 			('rule', [
 				('symbol', 'comp_or'),
 				('unwrap', '1'),
 				('terms', [
-					('symbol', 'comp_and'),
 					('expr_rep', [
 						('terms', [
-							('symbol', 'op_or'),
-							('symbol', 'comp_and')
+							('symbol', 'comp_and'),
+							('symbol', 'op_or')
 						]),
 						('repeat', '*')
-					])
+					]),
+					('symbol', 'comp_and')
 				])
 			]),
 			('rule', [
 				('symbol', 'comp_and'),
 				('unwrap', '1'),
 				('terms', [
-					('symbol', 'comp_not'),
 					('expr_rep', [
 						('terms', [
-							('symbol', 'op_and'),
-							('symbol', 'comp_not')
+							('symbol', 'comp_not'),
+							('symbol', 'op_and')
 						]),
 						('repeat', '*')
-					])
+					]),
+					('symbol', 'comp_not')
 				])
 			]),
 			('rule', [
@@ -69,46 +99,46 @@ def python_rules() -> Rules:
 				('symbol', 'comp'),
 				('unwrap', '1'),
 				('terms', [
-					('symbol', 'calc_sum'),
 					('expr_rep', [
 						('terms', [
-							('symbol', 'op_comp'),
-							('symbol', 'calc_sum')
+							('symbol', 'calc_sum'),
+							('symbol', 'op_comp')
 						]),
 						('repeat', '*')
-					])
+					]),
+					('symbol', 'calc_sum')
 				])
 			]),
 			('rule', [
 				('symbol', 'calc_sum'),
 				('unwrap', '1'),
 				('terms', [
-					('symbol', 'calc_mul'),
 					('expr_rep', [
 						('terms', [
-							('symbol', 'op_add'),
-							('symbol', 'calc_mul')
+							('symbol', 'calc_mul'),
+							('symbol', 'op_add')
 						]),
 						('repeat', '*')
-					])
+					]),
+					('symbol', 'calc_mul')
 				])
 			]),
 			('rule', [
 				('symbol', 'calc_mul'),
 				('unwrap', '1'),
 				('terms', [
-					('symbol', 'calc_unary'),
 					('expr_rep', [
 						('terms', [
-							('symbol', 'op_mul'),
-							('symbol', 'calc_unary')
+							('symbol', 'unary'),
+							('symbol', 'op_mul')
 						]),
 						('repeat', '*')
-					])
+					]),
+					('symbol', 'unary')
 				])
 			]),
 			('rule', [
-				('symbol', 'calc_unary'),
+				('symbol', 'unary'),
 				('unwrap', '1'),
 				('terms', [
 					('expr_rep', [
@@ -182,7 +212,7 @@ def python_rules() -> Rules:
 			('rule', [
 				('symbol', 'op_unary'),
 				('__empty__', ''),
-				('regexp', '/[-+]/')
+				('string', '"\\OP_UNARY_MINUS"')
 			]),
 			('rule', [
 				('symbol', 'primary'),
@@ -234,7 +264,13 @@ def python_rules() -> Rules:
 					('symbol', 'var'),
 					('symbol', 'string'),
 					('symbol', 'digit'),
-					('symbol', 'decimal')
+					('symbol', 'decimal'),
+					('symbol', 'dict'),
+					('terms', [
+						('string', '"("'),
+						('symbol', 'expr'),
+						('string', '")"')
+					])
 				])
 			]),
 			('rule', [
@@ -244,30 +280,64 @@ def python_rules() -> Rules:
 			]),
 			('rule', [
 				('symbol', 'args'),
-				('__empty__', ''),
+				('unwrap', '*'),
 				('terms', [
-					('symbol', 'expr'),
 					('expr_rep', [
 						('terms', [
-							('string', '","'),
-							('symbol', 'expr')
+							('symbol', 'expr'),
+							('string', '","')
 						]),
 						('repeat', '*')
-					])
+					]),
+					('symbol', 'expr')
 				])
 			]),
 			('rule', [
 				('symbol', 'slice'),
 				('unwrap', '*'),
 				('terms', [
-					('symbol', 'expr'),
 					('expr_rep', [
 						('terms', [
-							('string', '":"'),
-							('symbol', 'expr')
+							('symbol', 'expr'),
+							('string', '":"')
 						]),
 						('repeat', '*')
-					])
+					]),
+					('symbol', 'expr')
+				])
+			]),
+			('rule', [
+				('symbol', 'key_values'),
+				('unwrap', '*'),
+				('terms', [
+					('expr_rep', [
+						('terms', [
+							('symbol', 'key_value'),
+							('string', '","')
+						]),
+						('repeat', '*')
+					]),
+					('symbol', 'key_value')
+				])
+			]),
+			('rule', [
+				('symbol', 'key_value'),
+				('__empty__', ''),
+				('terms', [
+					('symbol', 'string'),
+					('string', '":"'),
+					('symbol', 'expr')
+				])
+			]),
+			('rule', [
+				('symbol', 'dict'),
+				('__empty__', ''),
+				('terms', [
+					('string', '"{"'),
+					('expr_opt', [
+						('symbol', 'key_values')
+					]),
+					('string', '"}"')
 				])
 			]),
 			('rule', [
@@ -359,12 +429,9 @@ def grammar_rules() -> Rules:
 			('rule', [
 				('symbol', 'terms'),
 				('unwrap', '1'),
-				('terms', [
+				('expr_rep', [
 					('symbol', 'term'),
-					('expr_rep', [
-						('symbol', 'term'),
-						('repeat', '*')
-					])
+					('repeat', '+')
 				])
 			]),
 			('rule', [

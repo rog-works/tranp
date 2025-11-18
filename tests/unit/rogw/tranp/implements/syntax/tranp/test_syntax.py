@@ -1,7 +1,7 @@
 from unittest import TestCase
 
-from rogw.tranp.implements.syntax.tranp.syntax import ErrorCollector, SyntaxParser
 from rogw.tranp.implements.syntax.tranp.rules import grammar_rules, grammar_tokenizer, python_rules
+from rogw.tranp.implements.syntax.tranp.syntax import ErrorCollector, SyntaxParser
 from rogw.tranp.implements.syntax.tranp.tokenizer import Tokenizer
 from rogw.tranp.test.helper import data_provider
 
@@ -27,8 +27,8 @@ class TestSyntaxParser(TestCase):
 							('name', 'c'),
 						]),
 						('op_add', '+'),
-						('calc_unary', [
-							('op_unary', '-'),
+						('unary', [
+							('op_unary', '\\OP_UNARY_MINUS'),
 							('digit', '1'),
 						]),
 					]),
@@ -41,15 +41,13 @@ class TestSyntaxParser(TestCase):
 								('var', [
 									('name', 'd'),
 								]),
-								('args', [
-									('comp', [
-										('string', '"\\"a\\""'),
-										('op_comp', [
-											('op_in', 'in'),
-										]),
-										('var', [
-											('name', 'b'),
-										]),
+								('comp', [
+									('string', '"\\"a\\""'),
+									('op_comp', [
+										('op_in', 'in'),
+									]),
+									('var', [
+										('name', 'b'),
 									]),
 								]),
 							]),

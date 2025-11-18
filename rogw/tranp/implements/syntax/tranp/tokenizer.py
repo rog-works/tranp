@@ -5,6 +5,7 @@ from io import BytesIO
 from tokenize import tokenize
 from typing import override
 
+from rogw.tranp.errors import Errors
 from rogw.tranp.implements.syntax.tranp.token import Token, TokenDefinition, TokenDomains, TokenTypes
 from rogw.tranp.lang.sequence import index_of
 
@@ -168,14 +169,14 @@ class Lexer(ITokenizer):
 		Returns:
 			トークンドメイン
 		Raises:
-			ValueError: 未分類の文字種を処理
+			AssertionError: 未分類の文字種を処理
 		"""
 		for token_domain in self._definition.analyze_order:
 			analyzer = self._analyzers[token_domain]
 			if analyzer(source, begin):
 				return token_domain
 
-		raise ValueError(f'Never. Undetermine token domain. with character: {source[begin]}')
+		assert False, Errors.Never(f'Undetermine token domain. {source[begin]}')
 
 	def analyze_white_spece(self, source: str, begin: int) -> bool:
 		"""トークンドメインを解析(空白)
@@ -528,7 +529,7 @@ class Tokenizer(ITokenizer):
 			context.nest = 0
 			return begin + len(token.string), [token.to_new_line(), *dedents]
 
-		assert token.type == TokenTypes.LineBreak, f'Never. token type: {token.type}'
+		assert token.type == TokenTypes.LineBreak, Errors.Never(token.type)
 
 		indent = len(token.string.split('\n')[-1])
 		next_nest = context.to_nest(indent)

@@ -318,7 +318,8 @@ _tuple_inner: expression (("," expression)+ [","] | ",")
 // @lark ?testlist: test | testlist_tuple
 // @lark testlist_tuple: test (("," test)+ [","] | ",")
 // @note XXX 現状はtestlist_star_exprの簡易版
-?testlist: expression | expression (("," expression)+ [","] | ",") -> tuple
+?testlist: expression
+	| expression (("," expression)+ [","] | ",") -> tuple
 
 // @lark _exprlist: test_or_star_expr (","  test_or_star_expr)* [","]
 _exprlist: (expression | star_expr) ("," (expression | star_expr))* [","]

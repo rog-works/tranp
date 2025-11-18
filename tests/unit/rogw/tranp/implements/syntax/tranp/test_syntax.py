@@ -28,7 +28,7 @@ class TestSyntaxParser(TestCase):
 						]),
 						('op_add', '+'),
 						('unary', [
-							('op_unary', '\\UNARY_OP_MINUS'),
+							('op_unary', '\\OP_UNARY_MINUS'),
 							('digit', '1'),
 						]),
 					]),
@@ -41,15 +41,13 @@ class TestSyntaxParser(TestCase):
 								('var', [
 									('name', 'd'),
 								]),
-								('args', [
-									('comp', [
-										('string', '"\\"a\\""'),
-										('op_comp', [
-											('op_in', 'in'),
-										]),
-										('var', [
-											('name', 'b'),
-										]),
+								('comp', [
+									('string', '"\\"a\\""'),
+									('op_comp', [
+										('op_in', 'in'),
+									]),
+									('var', [
+										('name', 'b'),
 									]),
 								]),
 							]),

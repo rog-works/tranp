@@ -32,7 +32,7 @@ op_is := "is"
 op_not := "not"
 op_add := /[-+]/
 op_mul := /[*\/%]/
-op_unary := "\UNARY_OP_MINUS"
+op_unary := "\OP_UNARY_MINUS"
 
 // atom
 primary[1] := relay | invoke | indexer | atom
@@ -43,7 +43,7 @@ atom[1] := boolean | none | var | string | digit | decimal | dict | "(" expr ")"
 var := name
 
 // element
-args := (expr ",")* expr
+args[*] := (expr ",")* expr
 slice[*] := (expr ":")* expr
 key_values[*] :=  (key_value ",")* key_value
 key_value := string ":" expr

@@ -212,7 +212,7 @@ def python_rules() -> Rules:
 			('rule', [
 				('symbol', 'op_unary'),
 				('__empty__', ''),
-				('string', '"\\UNARY_OP_MINUS"')
+				('string', '"\\OP_UNARY_MINUS"')
 			]),
 			('rule', [
 				('symbol', 'primary'),
@@ -280,7 +280,7 @@ def python_rules() -> Rules:
 			]),
 			('rule', [
 				('symbol', 'args'),
-				('__empty__', ''),
+				('unwrap', '*'),
 				('terms', [
 					('expr_rep', [
 						('terms', [

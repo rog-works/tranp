@@ -100,7 +100,7 @@ class SpecialSymbols(Enum):
 	Indent = '\\INDENT'
 	Dedent = '\\DEDENT'
 	EOF = '\\EOF'
-	UnaryOpMinus = '\\UNARY_OP_MINUS'
+	OpUnaryMinus = '\\OP_UNARY_MINUS'
 
 
 class Token:
@@ -233,13 +233,13 @@ class Token:
 		return Token(TokenTypes.Dedent, SpecialSymbols.Dedent.value, self.source_map)
 
 	@classmethod
-	def unary_op_minus(cls, source_map: 'SourceMap') -> 'Token':
+	def op_unary_minus(cls, source_map: 'SourceMap') -> 'Token':
 		"""インスタンスを生成
 
 		Returns:
 			インスタンス(単項演算子/マイナス)
 		"""
-		return Token(TokenTypes.Minus, SpecialSymbols.UnaryOpMinus.value, source_map)
+		return Token(TokenTypes.Minus, SpecialSymbols.OpUnaryMinus.value, source_map)
 
 	@classmethod
 	def EOF(cls) -> 'Token':

@@ -294,10 +294,16 @@ class SyntaxParser:
 		Returns:
 			True = 一致
 		"""
-		if pattern.comp == Comps.Regexp:
-			return re.fullmatch(pattern.expression, token.string) is not None
-		else:
+		assert pattern.comp != Comps.NoComp
+
+		if pattern.comp == Comps.Equals:
 			return pattern.expression == token.string
+
+		# キーワード(=終端記号)はEqualsのパターンとだけマッチするため、正規表現の判定から除外する
+		if token.string in self.rules.keywords:
+			return False
+
+		return re.fullmatch(pattern.expression, token.string) is not None
 
 
 class ErrorCollector:

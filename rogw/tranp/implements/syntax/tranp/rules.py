@@ -24,7 +24,37 @@ def python_rules() -> Rules:
 			('rule', [
 				('symbol', 'expr'),
 				('unwrap', '1'),
-				('symbol', 'comp_or')
+				('symbol', 'ternary')
+			]),
+			('rule', [
+				('symbol', 'ternary'),
+				('unwrap', '1'),
+				('terms', [
+					('expr_rep', [
+						('terms', [
+							('symbol', 'expr'),
+							('string', '"if"'),
+							('symbol', 'assign'),
+							('string', '"else"')
+						]),
+						('repeat', '?')
+					]),
+					('symbol', 'assign')
+				])
+			]),
+			('rule', [
+				('symbol', 'assign'),
+				('unwrap', '1'),
+				('terms', [
+					('expr_rep', [
+						('terms', [
+							('symbol', 'expr'),
+							('string', '":="')
+						]),
+						('repeat', '?')
+					]),
+					('symbol', 'comp_or')
+				])
 			]),
 			('rule', [
 				('symbol', 'comp_or'),
@@ -99,16 +129,16 @@ def python_rules() -> Rules:
 				('terms', [
 					('expr_rep', [
 						('terms', [
-							('symbol', 'calc_unary'),
+							('symbol', 'unary'),
 							('symbol', 'op_mul')
 						]),
 						('repeat', '*')
 					]),
-					('symbol', 'calc_unary')
+					('symbol', 'unary')
 				])
 			]),
 			('rule', [
-				('symbol', 'calc_unary'),
+				('symbol', 'unary'),
 				('unwrap', '1'),
 				('terms', [
 					('expr_rep', [
@@ -235,6 +265,7 @@ def python_rules() -> Rules:
 					('symbol', 'string'),
 					('symbol', 'digit'),
 					('symbol', 'decimal'),
+					('symbol', 'dict'),
 					('terms', [
 						('string', '"("'),
 						('symbol', 'expr'),
@@ -273,6 +304,40 @@ def python_rules() -> Rules:
 						('repeat', '*')
 					]),
 					('symbol', 'expr')
+				])
+			]),
+			('rule', [
+				('symbol', 'key_values'),
+				('unwrap', '*'),
+				('terms', [
+					('expr_rep', [
+						('terms', [
+							('symbol', 'key_value'),
+							('string', '","')
+						]),
+						('repeat', '*')
+					]),
+					('symbol', 'key_value')
+				])
+			]),
+			('rule', [
+				('symbol', 'key_value'),
+				('__empty__', ''),
+				('terms', [
+					('symbol', 'string'),
+					('string', '":"'),
+					('symbol', 'expr')
+				])
+			]),
+			('rule', [
+				('symbol', 'dict'),
+				('__empty__', ''),
+				('terms', [
+					('string', '"{"'),
+					('expr_opt', [
+						('symbol', 'key_values')
+					]),
+					('string', '"}"')
 				])
 			]),
 			('rule', [

@@ -27,7 +27,7 @@ class TestSyntaxParser(TestCase):
 							('name', 'c'),
 						]),
 						('op_add', '+'),
-						('calc_unary', [
+						('unary', [
 							('op_unary', '\\UNARY_OP_MINUS'),
 							('digit', '1'),
 						]),

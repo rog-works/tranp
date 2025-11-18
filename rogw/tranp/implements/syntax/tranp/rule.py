@@ -1,12 +1,14 @@
+import re
 from collections.abc import Mapping, Sequence
 from enum import Enum
-import re
 from typing import ClassVar, Iterator, TypeAlias, ValuesView, cast
 
 from rogw.tranp.cache.memo2 import Memoize
 from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.implements.syntax.tranp.ast import TupleEntry, TupleToken, TupleTree
+from rogw.tranp.lang.annotation import deprecated
 from rogw.tranp.lang.convertion import as_a
+from rogw.tranp.lang.sequence import flatten
 
 
 class Roles(Enum):
@@ -323,6 +325,28 @@ class Rules(Mapping):
 		else:
 			return Unwraps.Always
 
+	@property
+	def keywords(self) -> list[str]:
+		"""Returns: キーワードリスト(=終端記号リスト)"""
+		def factory() -> list[str]:
+			return list(flatten([self._collect_keyword(pattern) for pattern in self.values()]))
+
+		return self._memo.get(Rules.keywords.__name__, factory)
+
+	def _collect_keyword(self, root: PatternEntry) -> Iterator[str]:
+		"""マッチングパターンからキーワードを収集
+
+		Returns:
+			イテレーター(キーワード)
+		"""
+		if isinstance(root, Patterns):
+			for pattern in root:
+				for keyword in self._collect_keyword(pattern):
+					yield keyword
+		elif root.role == Roles.Terminal:
+			yield root.expression
+
+	@deprecated
 	def recursive_of(self, pattern: PatternEntry) -> bool:
 		"""左再帰のマッチングパターンか判定
 
@@ -344,6 +368,7 @@ class Rules(Mapping):
 		assert route != '', f'Never. pattern: {pattern.__repr__()}'
 		return step == 0 and route.find(pattern.expression) > 0
 
+	@deprecated
 	def _step_of(self, target: Pattern, entry: PatternEntry, start_symbol: str, route: str, step: int) -> tuple[str, int]:
 		"""検索対象のマッチングパターンを解決するのに消費するステップ数を計測
 

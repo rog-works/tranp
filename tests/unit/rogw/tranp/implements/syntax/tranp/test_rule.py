@@ -83,18 +83,22 @@ class TestRules(TestCase):
 					]),
 				]),
 			]),
-			'\n'.join([
-				'entry := exp',
-				'exp[1] := primary',
-				'primary[1] := relay | invoke | indexer | atom',
-				'relay := primary "." name',
-				'invoke := primary "(" [args] ")"',
-				'indexer := primary "[" exp "]"',
-				'args := exp (exp)*',
-			]),
+			(
+				'\n'.join([
+					'entry := exp',
+					'exp[1] := primary',
+					'primary[1] := relay | invoke | indexer | atom',
+					'relay := primary "." name',
+					'invoke := primary "(" [args] ")"',
+					'indexer := primary "[" exp "]"',
+					'args := exp (exp)*',
+				]),
+				['.', '(', ')', '[', ']'],
+			),
 		),
 	])
-	def test_from_ast(self, tree: TupleTree, expected: str) -> None:
+	def test_from_ast(self, tree: TupleTree, expected: tuple[str, list[str]]) -> None:
 		rules = Rules.from_ast(tree)
 		actual = rules.pretty()
-		self.assertEqual(expected, actual)
+		self.assertEqual(expected[0], actual)
+		self.assertEqual(expected[1], rules.keywords)

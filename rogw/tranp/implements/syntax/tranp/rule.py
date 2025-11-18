@@ -329,7 +329,11 @@ class Rules(Mapping):
 	def keywords(self) -> list[str]:
 		"""Returns: キーワードリスト(=終端記号リスト)"""
 		def factory() -> list[str]:
-			return list(flatten([self._collect_keyword(pattern) for pattern in self.values()]))
+			_keywords: dict[str, bool] = {}
+			for keyword in flatten([self._collect_keyword(pattern) for pattern in self.values()]):
+				_keywords[keyword] = True
+
+			return list(_keywords.keys())
 
 		return self._memo.get(Rules.keywords.__name__, factory)
 

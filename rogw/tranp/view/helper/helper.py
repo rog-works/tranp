@@ -1,6 +1,6 @@
-from collections.abc import Callable
 import hashlib
 import re
+from collections.abc import Callable
 from typing import Any
 
 from rogw.tranp.dsn.module import ModuleDSN
@@ -50,7 +50,7 @@ def decorator_query(setting: RendererSetting) -> Callable[[list[str]], Decorator
 
 def env_get(setting: RendererSetting) -> Callable[[str, Any], Any]:
 	"""Note: @see rogw.tranp.lang.dict.dict_pluck"""
-	return lambda env_path, fallback: dict_pluck(setting.env, env_path, fallback)
+	return lambda env_path, fallback='': dict_pluck(setting.env, env_path, fallback)
 
 
 def i18n(setting: RendererSetting) -> Callable[[str, str], str]:

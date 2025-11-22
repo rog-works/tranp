@@ -27,6 +27,7 @@ aliases.rogw.tranp.compatible.libralies.classes#list.append: push_back
 aliases.rogw.tranp.compatible.libralies.classes#list.insert: insert
 aliases.rogw.tranp.compatible.libralies.classes#list.extend: insert
 aliases.rogw.tranp.compatible.libralies.classes#list.remove: erase
+aliases.rogw.tranp.compatible.libralies.classes#list.sort: sort # FIXME 暫定対処
 aliases.rogw.tranp.compatible.libralies.classes#list.reverse: reverse # FIXME 暫定対処
 aliases.rogw.tranp.compatible.libralies.classes#list.clear: clear
 aliases.rogw.tranp.compatible.libralies.classes#abs: std::abs

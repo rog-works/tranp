@@ -843,6 +843,7 @@ class ForBinaryOperator:
 
 T_Args = TypeVarTuple('T_Args')
 T_Base = TypeVar('T_Base', bound=Base)
+T_Scalar = TypeVar('T_Scalar', bool, int, float, str)
 
 
 class ForTemplateClass:
@@ -869,6 +870,13 @@ class ForTemplateClass:
 		v = self.new_var(t)
 		s = v.on.base_prop
 		return v
+
+	class Action(Generic[*T_Args]):
+		def __init__(self, a: str, b: str, c: Callable[[*T_Args], None]) -> None: ...
+
+	class B(Generic[T_Scalar]):
+		def __init__(self, defaults: T_Scalar) -> None:
+			ForTemplateClass.Action[T_Scalar](a='a', b='b', c=lambda e: print(e))
 
 
 class ForComp:

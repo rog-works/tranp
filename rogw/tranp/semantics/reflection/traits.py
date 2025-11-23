@@ -305,7 +305,7 @@ class PropertiesTrait(TraitImpl, IProperties):
 		Returns:
 			シンボル
 		"""
-		return self.reflections.resolve_constructor(instance.types.as_a(defs.Class)).impl(refs.Function)
+		return instance.to(instance.node, self.reflections.resolve_constructor(instance.types.as_a(defs.Class)))
 
 
 class IteratorTrait(TraitImpl, IIterator):

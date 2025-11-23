@@ -1,13 +1,13 @@
 from collections.abc import Callable
 from typing import Generic, TypeAlias, TypeVar, override
 
+import rogw.tranp.lang.sequence as seqs
+import rogw.tranp.semantics.reflection.definition as refs
+import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.compatible.python.types import Union
 from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.errors import Errors
-import rogw.tranp.lang.sequence as seqs
 from rogw.tranp.semantics.reflection.base import IReflection
-import rogw.tranp.semantics.reflection.definition as refs
-import rogw.tranp.syntax.node.definition as defs
 
 T_Helper = TypeVar('T_Helper', bound='Helper')
 T_Schemata = TypeVar('T_Schemata', IReflection, list[IReflection])

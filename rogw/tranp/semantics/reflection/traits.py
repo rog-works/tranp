@@ -1,16 +1,16 @@
 from collections.abc import Iterator
 from typing import Literal, Self, cast, override
 
+import rogw.tranp.semantics.reflection.definition as refs
+import rogw.tranp.semantics.reflection.helper.template as templates
+import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.compatible.python.types import Standards, Union
 from rogw.tranp.errors import Errors
 from rogw.tranp.lang.annotation import implements
 from rogw.tranp.lang.trait import Trait
 from rogw.tranp.semantics.reflection.base import IReflection
-import rogw.tranp.semantics.reflection.definition as refs
-import rogw.tranp.semantics.reflection.helper.template as templates
 from rogw.tranp.semantics.reflection.interfaces import IConvertion, IFunction, IIterator, IOperation, IProperties
 from rogw.tranp.semantics.reflections import Reflections
-import rogw.tranp.syntax.node.definition as defs
 
 
 def export_classes() -> list[type[Trait]]:
@@ -305,7 +305,7 @@ class PropertiesTrait(TraitImpl, IProperties):
 		Returns:
 			シンボル
 		"""
-		return self.reflections.resolve_constructor(instance.types.as_a(defs.Class))
+		return self.reflections.resolve_constructor(instance.types.as_a(defs.Class)).impl(refs.Function)
 
 
 class IteratorTrait(TraitImpl, IIterator):
@@ -395,6 +395,48 @@ class FunctionTrait(TraitImpl, IFunction):
 			XXX クラスにも同様の属性があるため、IGenericなどに分離を検討
 		"""
 		return self._build_helper(instance).templates()
+
+	@implements
+	def signature(self, klass: IReflection, instance: IReflection) -> IReflection:
+		"""クラスの実行時型を元にメソッドの実行時型を解決
+
+		Args:
+			klass: クラスの実行時型
+			instance: シンボル ※Traitsから暗黙的に入力される
+		Returns:
+			シンボル
+		Note:
+			### 留意事項
+			XXX * このメソッドは呼び出し時のシグネチャーの検証に使う。必要になるシーンは限定的であり、通常は不要
+			XXX * トランスパイルでは静的なシグネチャーを重視し、動的なシグネチャーはなるべく検証しない様に実装するべき
+		"""
+		class_decl = self.reflections.type_of(klass.types).impl(refs.Object).actualize('type')
+		actual_map: dict[defs.TemplateClass, IReflection] = {}
+		for i, attr in enumerate(class_decl.attrs):
+			if isinstance(attr.types, defs.TemplateClass):
+				actual_map[attr.types] = klass.attrs[i]
+
+		if len(actual_map) == 0:
+			return instance
+
+		return self._actualize_attrs(instance.to_temporary(), actual_map)
+
+	def _actualize_attrs(self, symbol: IReflection, actual_map: dict[defs.TemplateClass, IReflection]) -> IReflection:
+		"""シンボル内のテンプレート型を実体型に再帰的に解決
+
+		Args:
+			symbol: 更新対象のシンボル
+			actual_map: テンプレート型と実体型のマップ表
+		Returns:
+			更新後のシンボル
+		"""
+		for i, attr in enumerate(symbol.attrs):
+			if attr.types in actual_map:
+				symbol.attrs[i] = actual_map[attr.types]
+			else:
+				self._actualize_attrs(attr, actual_map)
+
+		return symbol
 
 	def _build_helper(self, symbol: IReflection) -> templates.Function:
 		"""ヘルパー(ファンクション)を生成

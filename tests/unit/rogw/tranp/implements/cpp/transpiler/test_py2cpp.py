@@ -503,7 +503,7 @@ class TestPy2Cpp(TestCase):
 		('ForTemplateClass.boundary_call', '', defs.Method, BlockExpects.method(access='public', name='boundary_call', return_type='T_Base', statements=['return T_Base();'], template='T_Base')),
 		('ForTemplateClass.boundary_cvar', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'T_Base* v = this->new_var<T_Base>();'),
 		('ForTemplateClass.boundary_cvar', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'std::string s = v->base_prop();'),
-		('ForTemplateClass.B.__init__', 'function_def_raw.block.funccall', defs.FuncCall, 'ForTemplateClass::Action<T_Scalar>("a", "b", [](T_Args e) -> void { printf(e); });'),
+		('ForTemplateClass.B.__init__', 'function_def_raw.block.funccall', defs.FuncCall, 'ForTemplateClass::Action<T_Scalar>("a", "b", [](T_Scalar e) -> void { printf(e); });'),
 
 		('ForComp.list_comp_from_list', 'function_def_raw.block.list_comp[0]', defs.ListComp, BlockExpects.list_comp(proj_value='l[0]', proj_type='int', iterates='{{1}}', proj_symbols='l')),
 		('ForComp.list_comp_from_list', 'function_def_raw.block.list_comp[1]', defs.ListComp, BlockExpects.list_comp(proj_value='n', proj_type='int', iterates='ns')),

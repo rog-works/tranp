@@ -121,12 +121,23 @@ class ResolveUnknown:
 		elif isinstance(parent, defs.Argument):
 			# 期待値: func(lambda a, b: ...)
 			func_call = parent.parent.as_a(defs.FuncCall)
-			calls_raw = reflections.type_of(func_call.calls).impl(refs.Object)
-			func_raw = calls_raw if not calls_raw.type_is(type) else reflections.resolve_constructor(calls_raw.actualize('type').types.as_a(defs.Class))
-			is_method = isinstance(func_raw.types, (defs.Constructor, defs.Method, defs.ClassMethod))
-			arg_index = func_call.arguments.index(parent)
-			arg_raw = func_raw.attrs[arg_index + (1 if is_method else 0)].impl(refs.Object).actualize('alt')
-			return var_raw.declare(var_raw.node.as_a(defs.Declable), arg_raw.attrs[index])
+			org_calls = reflections.type_of(func_call.calls).impl(refs.Object)
+			# クラスシンボルはコンストラクターから解決 @see Reflections.on_func_call
+			if org_calls.type_is(type):
+				actual_calls = org_calls.actualize()
+				class_calls = org_calls.actualize('nullable', 'self', 'type', 'template')
+				method_raw = actual_calls.constructor().impl(refs.Function).signature(class_calls)
+				arg_index = func_call.arguments.index(parent) + 1
+				arg_raw = method_raw.attrs[arg_index].impl(refs.Object).actualize('alt')
+				return var_raw.declare(var_raw.node.as_a(defs.Declable), arg_raw.attrs[index])
+			elif org_calls.types.is_a(defs.Constructor, defs.Method, defs.ClassMethod):
+				arg_index = func_call.arguments.index(parent) + 1
+				arg_raw = org_calls.attrs[arg_index].impl(refs.Object).actualize('alt')
+				return var_raw.declare(var_raw.node.as_a(defs.Declable), arg_raw.attrs[index])
+			else:
+				arg_index = func_call.arguments.index(parent)
+				arg_raw = org_calls.attrs[arg_index].impl(refs.Object).actualize('alt')
+				return var_raw.declare(var_raw.node.as_a(defs.Declable), arg_raw.attrs[index])
 		else:
 			# 期待値: (lambda a, b: ...)(a_value, b_value)
 			arg = as_a(defs.Group, parent).parent.as_a(defs.FuncCall).arguments[index]

@@ -1,8 +1,8 @@
 from typing import Any, Literal, Protocol, Self
 
+import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.compatible.python.types import Standards
 from rogw.tranp.semantics.reflection.base import IReflection
-import rogw.tranp.syntax.node.definition as defs
 
 
 class IExample(Protocol):
@@ -146,6 +146,21 @@ class IFunction:
 			テンプレート型ノードのリスト
 		Note:
 			XXX クラスにも同様の属性があるため、IGenericなどに分離を検討
+		"""
+		...
+
+	def signature(self, klass: IReflection, **reserved: IReflection) -> IReflection:
+		"""クラスの実行時型を元にメソッドの実行時型を解決
+
+		Args:
+			klass: クラスの実行時型
+			**reserved: シンボル入力用の予約枠 ※実引数は指定しない
+		Returns:
+			シンボル
+		Note:
+			### 留意事項
+			XXX * このメソッドは呼び出し時のシグネチャーの検証に使う。必要になるシーンは限定的であり、通常は不要
+			XXX * トランスパイルでは静的なシグネチャーを重視し、動的なシグネチャーはなるべく検証しない様に実装するべき
 		"""
 		...
 

@@ -44,7 +44,7 @@ class CVar(Generic[T_co], metaclass=ABCMeta):
 		"""
 		return hex(self.to_addr_id())[2:]
 
-	def __eq__(self, other: Self) -> bool:
+	def __eq__(self, other: Self | None) -> bool:
 		"""比較演算子(==)のオーバーロード
 
 		Args:
@@ -52,9 +52,9 @@ class CVar(Generic[T_co], metaclass=ABCMeta):
 		Returns:
 			True = 一致
 		"""
-		return self.raw == other.raw
+		return other is not None and self.raw == other.raw
 
-	def __ne__(self, other: Self) -> bool:
+	def __ne__(self, other: Self | None) -> bool:
 		"""比較演算子(!=)のオーバーロード
 
 		Args:
@@ -62,7 +62,7 @@ class CVar(Generic[T_co], metaclass=ABCMeta):
 		Returns:
 			True = 不一致
 		"""
-		return self.raw != other.raw
+		return not self.__eq__(other)
 
 	def __hash__(self) -> int:
 		"""ハッシュ値を取得

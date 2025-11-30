@@ -134,7 +134,7 @@ class ClassDomainNaming:
 			return types.domain_name
 
 		alias_node = embedder.arguments[0].value
-		alias = alias_node.as_string if isinstance(alias_node, defs.String) else alias_transpiler(alias_node)
+		alias = alias_node.as_string if isinstance(alias_node, defs.String) else alias_transpiler(alias_node)[1:-1]
 		is_prefix = len(embedder.arguments) == 2
 		return f'{alias}{types.domain_name}' if is_prefix else alias
 

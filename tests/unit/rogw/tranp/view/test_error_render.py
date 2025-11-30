@@ -7,17 +7,23 @@ from rogw.tranp.view.error_render import ErrorRender
 
 
 def hoge() -> None:
-	raise Exception('hoge')
+	try:
+		'abc'[5]
+	except Exception as e:
+		raise ValueError('hoge') from e
 
 
 class TestErrorRender(TestCase):
 	@data_provider([
 		(hoge, [
 			r'Stacktrace:',
+			r'  [^:]+:\d+ hoge',
+			r'    >>> \'abc\'\[5\]',
+			r'  IndexError: string index out of range',
 			r'  [^:]+:\d+ test_usage',
 			r'  [^:]+:\d+ hoge',
-			r'    >>> raise Exception\(\'hoge\'\)',
-			r'builtins.Exception: \("hoge"\)',
+			r'    >>> raise ValueError\(\'hoge\'\) from e',
+			r'ValueError: \("hoge"\)',
 		]),
 	])
 	def test_usage(self, fail: Callable[[], None], expected: list[re.Pattern]) -> None:

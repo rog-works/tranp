@@ -30,8 +30,8 @@ profiler_on = '--' in sys.argv
 def fixture_translation_mapping(datums: IDataLoader) -> TranslationMapping:
 	fixture_module_path = Fixture.fixture_module_path(__file__)
 	fixture_translations = {
-		alias_dsn(ModuleDSN.full_joined(fixture_module_path, 'Alias.inner')): 'inner_b',
-		alias_dsn(ModuleDSN.full_joined(fixture_module_path, 'Alias.Inner.V')): 'V2',
+		alias_dsn(ModuleDSN.full_joined(fixture_module_path, 'ForClass.Alias.inner')): 'inner_b',
+		alias_dsn(ModuleDSN.full_joined(fixture_module_path, 'ForClass.Alias.Inner.V')): 'V2',
 	}
 	return translation_mapping_cpp(datums).merge(fixture_translations)
 
@@ -221,17 +221,6 @@ class TestPy2Cpp(TestCase):
 		('AccessOps.indexer', 'function_def_raw.block.funccall[1].arguments.argvalue', defs.Argument, '(*(arr_sp))[0]'),
 		('AccessOps.indexer', 'function_def_raw.block.funccall[2].arguments.argvalue', defs.Argument, 'arr_ar[0]'),
 
-		('Alias.Inner', '', defs.Class, 'public:\n/** Inner2 */\nclass Inner2 {\n\tpublic: inline static int V2 = 0;\n\tpublic:\n\t/** func */\n\tvoid func() {}\n};'),
-		('Alias.__init__', '', defs.Constructor, 'public:\n/** __init__ */\nAlias2() : inner_b{} {}'),
-		('Alias.in_param_return', '', defs.Method, BlockExpects.method(access='public', name='in_param_return', return_type='Alias2', params=['Alias2 a'])),
-		('Alias.in_param_return2', '', defs.Method, BlockExpects.method(access='public', name='in_param_return2', return_type='Alias2::Inner2', params=['Alias2::Inner2 i'])),
-		('Alias.in_local', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'Alias2 a{};'),
-		('Alias.in_local', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'Alias2::Inner2 i{};'),
-		('Alias.in_class_method', 'function_def_raw.block.funccall', defs.FuncCall, 'Alias2::in_class_method();'),
-		('Alias.in_class_method', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'Alias2::Values a = Alias2::Values::A;'),
-		('Alias.in_class_method', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'std::map<Alias2::Values, Alias2::Values> d = {\n\t{Alias2::Values::A, Alias2::Values::B},\n\t{Alias2::Values::B, Alias2::Values::A},\n};'),
-		('Alias.InnerB.super_call', 'function_def_raw.block.funccall', defs.FuncCall, 'Alias2::Inner2::func();'),
-
 		('Nullable.params', '', defs.Method, BlockExpects.method(access='public', name='params', params=['Sub* p'])),
 		('Nullable.returns', '', defs.Method, BlockExpects.method(access='public', name='returns', return_type='Sub*')),
 		('Nullable.var_move', 'function_def_raw.block.anno_assign', defs.AnnoAssign, 'Sub* p = nullptr;'),
@@ -247,6 +236,19 @@ class TestPy2Cpp(TestCase):
 
 		('ForClass.Proto', '', defs.Class, '// class Proto'),
 		('ForClass.DeclProps', '', defs.Class, BlockExpects.DeclProps),
+
+		('ForClass.Alias.Inner', '', defs.Class, 'public:\n/** Inner2 */\nclass Inner2 {\n\tpublic: inline static int V2 = 0;\n\tpublic:\n\t/** func */\n\tvoid func() {}\n};'),
+		('ForClass.Alias.__init__', '', defs.Constructor, 'public:\n/** __init__ */\nAlias2() : inner_b{} {}'),
+		('ForClass.Alias.in_param_return', '', defs.Method, BlockExpects.method(access='public', name='in_param_return', return_type='ForClass::Alias2', params=['ForClass::Alias2 a'])),
+		('ForClass.Alias.in_param_return2', '', defs.Method, BlockExpects.method(access='public', name='in_param_return2', return_type='ForClass::Alias2::Inner2', params=['ForClass::Alias2::Inner2 i'])),
+		('ForClass.Alias.in_local', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'ForClass::Alias2 a{};'),
+		('ForClass.Alias.in_local', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'ForClass::Alias2::Inner2 i{};'),
+		('ForClass.Alias.in_class_method', 'function_def_raw.block.funccall', defs.FuncCall, 'Alias2::in_class_method();'),
+		('ForClass.Alias.in_class_method', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'ForClass::Alias2::Values a = Alias2::Values::A;'),
+		('ForClass.Alias.in_class_method', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'std::map<ForClass::Alias2::Values, ForClass::Alias2::Values> d = {\n\t{Alias2::Values::A, Alias2::Values::B},\n\t{Alias2::Values::B, Alias2::Values::A},\n};'),
+		('ForClass.Alias.InnerB.super_call', 'function_def_raw.block.funccall', defs.FuncCall, 'ForClass::Alias2::Inner2::func();'),
+		('ForClass.Alias.a_cpp', '', defs.Method, BlockExpects.method(access='public', name='a')),
+		('ForClass.Alias.b_to_name', '', defs.Method, BlockExpects.method(access='public', name='name')),
 
 		('ForClass.Expose.Class', '', defs.Class, '// class Class'),
 		('ForClass.Expose.Enums', '', defs.Enum, '// enum Enums'),
@@ -423,8 +425,8 @@ class TestPy2Cpp(TestCase):
 		('ForFuncCall.Class.literalize', 'function_def_raw.block.funccall[2]', defs.FuncCall, f'printf("{fixture_module_path}");'),
 		('ForFuncCall.Class.literalize', 'function_def_raw.block.funccall[3]', defs.FuncCall, 'printf("Inner2");'),
 		('ForFuncCall.Class.literalize', 'function_def_raw.block.funccall[4]', defs.FuncCall, 'printf("in_local");'),
-		('ForFuncCall.Class.literalize', 'function_def_raw.block.funccall[5]', defs.FuncCall, 'printf("Alias2::in_local");'),
-		('ForFuncCall.Class.literalize', 'function_def_raw.block.funccall[6]', defs.FuncCall, 'printf("Alias2::Inner2::func");'),
+		('ForFuncCall.Class.literalize', 'function_def_raw.block.funccall[5]', defs.FuncCall, 'printf("ForClass::Alias2::in_local");'),
+		('ForFuncCall.Class.literalize', 'function_def_raw.block.funccall[6]', defs.FuncCall, 'printf("ForClass::Alias2::Inner2::func");'),
 		('ForFuncCall.Class.literalize', 'function_def_raw.block.funccall[7]', defs.FuncCall, 'printf("Alias2");'),
 		('ForFuncCall.Class.literalize', 'function_def_raw.block.funccall[8]', defs.FuncCall, 'printf("A");'),
 		('ForFuncCall.Class.literalize', 'function_def_raw.block.funccall[9]', defs.FuncCall, 'printf("base_prop");'),

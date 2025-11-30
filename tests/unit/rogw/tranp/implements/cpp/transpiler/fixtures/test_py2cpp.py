@@ -288,44 +288,6 @@ class AccessOps(Sub):
 		print(arr_ar.raw[0])
 
 
-@Embed.alias('Alias2')
-class Alias:
-	inner: 'Alias.Inner'
-
-	def __init__(self) -> None:
-		self.inner = Alias.Inner()
-
-	class Values(Enum):
-		A = 1
-		B = 2
-
-	@Embed.alias('Inner2')
-	class Inner:
-		V: ClassVar[int] = 0
-
-		def func(self) -> None: ...
-
-	def in_param_return(self, a: 'Alias') -> 'Alias': ...
-	def in_param_return2(self, i: 'Alias.Inner') -> 'Alias.Inner': ...
-
-	def in_local(self) -> None:
-		a = Alias()
-		i = Alias.Inner()
-
-	@classmethod
-	def in_class_method(cls) -> None:
-		cls.in_class_method()
-		a = cls.Values.A
-		d = {
-			cls.Values.A: cls.Values.B,
-			cls.Values.B: cls.Values.A,
-		}
-
-	class InnerB(Inner):
-		def super_call(self) -> None:
-			super().func()
-
-
 class Nullable:
 	def params(self, p: CP[Sub] | None) -> None: ...
 	def returns(self) -> CP[Sub] | None: ...
@@ -381,6 +343,53 @@ class ForClass:
 			self.anno_n = int(s)
 			self.move_s = str(n)
 			self.move_dsn = {s: n}
+
+	@Embed.alias('Alias2')
+	class Alias:
+		inner: 'ForClass.Alias.Inner'
+
+		def __init__(self) -> None:
+			self.inner = ForClass.Alias.Inner()
+
+		class Values(Enum):
+			A = 1
+			B = 2
+
+		@Embed.alias('Inner2')
+		class Inner:
+			V: ClassVar[int] = 0
+
+			def func(self) -> None: ...
+
+		def in_param_return(self, a: 'ForClass.Alias') -> 'ForClass.Alias': ...
+		def in_param_return2(self, i: 'ForClass.Alias.Inner') -> 'ForClass.Alias.Inner': ...
+
+		def in_local(self) -> None:
+			a = ForClass.Alias()
+			i = ForClass.Alias.Inner()
+
+		@classmethod
+		def in_class_method(cls) -> None:
+			cls.in_class_method()
+			a = cls.Values.A
+			d = {
+				cls.Values.A: cls.Values.B,
+				cls.Values.B: cls.Values.A,
+			}
+
+		class InnerB(Inner):
+			def super_call(self) -> None:
+				super().func()
+
+		class Names(Enum):
+			Name = 'name'
+
+		@Embed.python
+		def a(self) -> None: ...
+		@Embed.alias(a.__name__)
+		def a_cpp(self) -> None: ...
+		@Embed.alias(Names.Name.value)
+		def b_to_name(self) -> None: ...
 
 	class Expose:
 		@Embed.python
@@ -727,14 +736,14 @@ class ForFuncCall:
 
 	@Embed.alias('Class2')
 	class Class:
-		def literalize(self, t: type[Alias]) -> None:
+		def literalize(self, t: type[ForClass.Alias]) -> None:
 			print(self.__class__.__name__)
 			print(self.__module__)
-			print(Alias.__module__)
-			print(Alias.Inner.__name__)
-			print(Alias.in_local.__name__)
-			print(Alias.in_local.__qualname__)
-			print(Alias.Inner.func.__qualname__)
+			print(ForClass.Alias.__module__)
+			print(ForClass.Alias.Inner.__name__)
+			print(ForClass.Alias.in_local.__name__)
+			print(ForClass.Alias.in_local.__qualname__)
+			print(ForClass.Alias.Inner.func.__qualname__)
 			print(t.__name__)
 			print(Values.A.name)
 			print(Base.base_prop.__name__)

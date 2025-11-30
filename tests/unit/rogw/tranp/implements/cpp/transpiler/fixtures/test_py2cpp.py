@@ -361,7 +361,7 @@ class Struct:
 		self.b = b
 
 
-class ForCompound:
+class ForClass:
 	class Proto(Protocol): ...
 
 	class DeclPropsBase:
@@ -382,10 +382,47 @@ class ForCompound:
 			self.move_s = str(n)
 			self.move_dsn = {s: n}
 
-	class AltClass:
-		def assign(self) -> None:
-			sp: CSP2[Sub] = CSP2.new(Sub(0))
+	class Expose:
+		@Embed.python
+		class Class: ...
+		@Embed.python
+		class Enums(Enum): ...
+		@Embed.python
+		def class_method(self) -> None: ...
+		@Embed.python
+		def method(self) -> None: ...
+		@Embed.alias('method')
+		def method_cpp(self) -> None: ...
 
+
+@Embed.python
+def hide_func() -> None: ...
+
+
+class ForAltClass:
+	def assign(self) -> None:
+		sp: CSP2[Sub] = CSP2.new(Sub(0))
+
+
+class ForEnum:
+	class ES(Enum):
+		AS = 'a'
+		BS = 'b'
+
+	class EN(Enum):
+		AN = 0
+		BN = 1
+
+	def literalize(self) -> None:
+		print(ForEnum.ES.AS.name)
+		print(ForEnum.ES.BS.name)
+		print(ForEnum.ES.AS.value)
+		print(ForEnum.ES.BS.value)
+		print(ForEnum.EN.AN.name)
+		print(ForEnum.EN.BN.name)
+
+
+class ForFunction:
 	class ClassMethod:
 		@classmethod
 		def make(cls: type[Self]) -> Self:
@@ -400,31 +437,14 @@ class ForCompound:
 		def immutable_returns(self) -> Annotated[CP[str], Embed.immutable]:
 			...
 
-	class DeclEnum:
-		class ES(Enum):
-			AS = 'a'
-			BS = 'b'
-
-		class EN(Enum):
-			AN = 0
-			BN = 1
-
-		def literalize(self) -> None:
-			print(ForCompound.DeclEnum.ES.AS.name)
-			print(ForCompound.DeclEnum.ES.BS.name)
-			print(ForCompound.DeclEnum.ES.AS.value)
-			print(ForCompound.DeclEnum.ES.BS.value)
-			print(ForCompound.DeclEnum.EN.AN.name)
-			print(ForCompound.DeclEnum.EN.BN.name)
-
 	class Operators:
 		# comparison
-		def __eq__(self, other: Annotated['ForCompound.Operators', Embed.immutable]) -> bool: ...
-		def __ne__(self, other: Annotated['ForCompound.Operators', Embed.immutable]) -> bool: ...
-		def __lt__(self, other: Annotated['ForCompound.Operators', Embed.immutable]) -> bool: ...
-		def __gt__(self, other: Annotated['ForCompound.Operators', Embed.immutable]) -> bool: ...
-		def __le__(self, other: Annotated['ForCompound.Operators', Embed.immutable]) -> bool: ...
-		def __ge__(self, other: Annotated['ForCompound.Operators', Embed.immutable]) -> bool: ...
+		def __eq__(self, other: Annotated['ForFunction.Operators', Embed.immutable]) -> bool: ...
+		def __ne__(self, other: Annotated['ForFunction.Operators', Embed.immutable]) -> bool: ...
+		def __lt__(self, other: Annotated['ForFunction.Operators', Embed.immutable]) -> bool: ...
+		def __gt__(self, other: Annotated['ForFunction.Operators', Embed.immutable]) -> bool: ...
+		def __le__(self, other: Annotated['ForFunction.Operators', Embed.immutable]) -> bool: ...
+		def __ge__(self, other: Annotated['ForFunction.Operators', Embed.immutable]) -> bool: ...
 		# arithmetic
 		def __add__(self, value: Annotated[int, Embed.immutable]) -> int: ...
 		def __sub__(self, value: Annotated[int, Embed.immutable]) -> int: ...
@@ -439,7 +459,7 @@ class ForCompound:
 		# XXX C++では不要なため、出力対象から除外する
 		@Embed.python
 		def __setitem__(self, key: str, value: CRef[Sub]) -> None: ...
-		def usage(self, other: 'ForCompound.Operators', sub: Sub) -> None:
+		def usage(self, other: 'ForFunction.Operators', sub: Sub) -> None:
 			if self is other and self is not other: ...
 			if self < other and self > other and self <= other and self >= other: ...
 			print(self + 1, self - 1, self * 1, self % 1, self / 1)
@@ -462,23 +482,6 @@ class ForCompound:
 		def bind_ref() -> None: ...
 		def bind_copy() -> None:
 			self.closure()
-
-
-class ForClassExpose:
-	@Embed.python
-	class Class: ...
-	@Embed.python
-	class Enums(Enum): ...
-	@Embed.python
-	def class_method(self) -> None: ...
-	@Embed.python
-	def method(self) -> None: ...
-	@Embed.alias('method')
-	def method_cpp(self) -> None: ...
-
-
-@Embed.python
-def func_expose() -> None: ...
 
 
 class ForTemplate:
@@ -504,6 +507,44 @@ def template_unpack_call() -> None:
 
 
 def template_func(v: T) -> T: ...
+
+
+T_Args = TypeVarTuple('T_Args')
+T_Base = TypeVar('T_Base', bound=Base)
+T_Scalar = TypeVar('T_Scalar', bool, int, float, str)
+
+
+class ForTemplateClass:
+	class Delegate(Generic[*T_Args]):
+		def bind(self, obj: CP[T], method: Annotated[Callable[[T, *T_Args], None], Embed.immutable]) -> None: ...
+		def invoke(self, *args: *T_Args) -> None: ...
+
+	class A:
+		def func(self, b: bool, c: int) -> None: ...
+
+	def bind_call(self, a: CP[A]) -> None:
+		d = ForTemplateClass.Delegate[bool, int]()
+		d.bind(a, c_func_ref(ForTemplateClass.A.func))
+		d.invoke(True, 1)
+
+	def boundary_call(self, t: type[T_Base]) -> T_Base:
+		return t()
+
+	def new_var(self, t: type[T_Base]) -> CP[T_Base]:
+		sp = CSP.new(t())
+		return CP.new(t())
+
+	def boundary_cvar(self, t: type[T_Base]) -> CP[T_Base]:
+		v = self.new_var(t)
+		s = v.on.base_prop
+		return v
+
+	class Action(Generic[*T_Args]):
+		def __init__(self, a: str, b: str, c: Callable[[*T_Args], None]) -> None: ...
+
+	class B(Generic[T_Scalar]):
+		def __init__(self, defaults: T_Scalar) -> None:
+			ForTemplateClass.Action[T_Scalar](a='a', b='b', c=lambda e: print(e))
 
 
 class ForFlows:
@@ -839,44 +880,6 @@ class ForBinaryOperator:
 		v_eq = (v1 is v2) and (v1 is not v2) and not v1
 		c_eq = (c1 is c2) and (c1 is not c2) and not c1
 		t_eq = (t1 is t2) and (t1 is not t2) and not t1
-
-
-T_Args = TypeVarTuple('T_Args')
-T_Base = TypeVar('T_Base', bound=Base)
-T_Scalar = TypeVar('T_Scalar', bool, int, float, str)
-
-
-class ForTemplateClass:
-	class Delegate(Generic[*T_Args]):
-		def bind(self, obj: CP[T], method: Annotated[Callable[[T, *T_Args], None], Embed.immutable]) -> None: ...
-		def invoke(self, *args: *T_Args) -> None: ...
-
-	class A:
-		def func(self, b: bool, c: int) -> None: ...
-
-	def bind_call(self, a: CP[A]) -> None:
-		d = ForTemplateClass.Delegate[bool, int]()
-		d.bind(a, c_func_ref(ForTemplateClass.A.func))
-		d.invoke(True, 1)
-
-	def boundary_call(self, t: type[T_Base]) -> T_Base:
-		return t()
-
-	def new_var(self, t: type[T_Base]) -> CP[T_Base]:
-		sp = CSP.new(t())
-		return CP.new(t())
-
-	def boundary_cvar(self, t: type[T_Base]) -> CP[T_Base]:
-		v = self.new_var(t)
-		s = v.on.base_prop
-		return v
-
-	class Action(Generic[*T_Args]):
-		def __init__(self, a: str, b: str, c: Callable[[*T_Args], None]) -> None: ...
-
-	class B(Generic[T_Scalar]):
-		def __init__(self, defaults: T_Scalar) -> None:
-			ForTemplateClass.Action[T_Scalar](a='a', b='b', c=lambda e: print(e))
 
 
 class ForComp:

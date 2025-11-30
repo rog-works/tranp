@@ -51,7 +51,7 @@ class TestPy2CppEdge(TestCase):
 
 	@profiler(on=profiler_on)
 	@data_provider([
-		('A.__init__', 'function_def_raw.block.funccall', defs.FuncCall, 'Action<Payload<T_Scalar>>("a", "b", [](Payload<T_Scalar> e) -> void { printf(e.value); });'),
+		('A.b', '', defs.Method, ''),
 	])
 	def test_exec(self, local_path: str, offset_path: str, expected_type: type[Node], expected: str) -> None:
 		# local_pathが空の場合はEntrypointを基点ノードとする

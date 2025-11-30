@@ -34,7 +34,13 @@ class ErrorRender:
 		lines = ['Stacktrace:']
 		root_dir = f'{os.getcwd()}{os.path.sep}'
 		traces = stacktrace(self.e)
-		for line in traces:
+		for index, line in enumerate(traces):
+			if index > 0 and line.startswith('Traceback'):
+				wrap_last = traces[index - 3].split('\n')[1].strip()
+				lines.append(f'    >>> {wrap_last}')
+				lines.append(f'  {traces[index - 2].strip()}')
+				continue
+
 			matches = pattern.search(line)
 			if not matches:
 				continue

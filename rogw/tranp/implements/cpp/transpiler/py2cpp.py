@@ -460,6 +460,7 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(f'function/{node.classification}', vars={**function_vars, **method_vars, **constructor_vars})
 
 	def on_method(self, node: defs.Method, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
+		raise ValueError()
 		class_name = self.to_domain_name_by_class(node.class_types)
 		template_types = self.fetch_function_template_names(node)
 		return_type_annotation = self.transpile(node.return_type.annotation) if not isinstance(node.return_type.annotation, defs.Empty) else ''

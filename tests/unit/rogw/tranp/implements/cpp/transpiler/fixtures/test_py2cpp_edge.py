@@ -1,21 +1,15 @@
-from collections.abc import Callable
-from typing import Generic, TypeVar, TypeVarTuple
+from enum import Enum
 
-T_Scalar = TypeVar('T_Scalar', bool, int, float, str)
-T_Args = TypeVarTuple('T_Args')
+from rogw.tranp.compatible.python.embed import Embed
 
 
-class Payload(Generic[T_Scalar]):
-	value: T_Scalar
-
-	def __init__(self, value: T_Scalar) -> None:
-		self.value = value
+class E(Enum):
+	Alias = 'name'
 
 
-class Action(Generic[*T_Args]):
-	def __init__(self, a: str, b: str, c: Callable[[*T_Args], None]) -> None: ...
-
-
-class A(Generic[T_Scalar]):
-	def __init__(self, defaults: T_Scalar) -> None:
-		Action[Payload[T_Scalar]](a='a', b='b', c=lambda e: print(e.value))
+class A:
+	def a(self) -> None: ...
+	@Embed.alias(a.__name__)
+	def b_to_a(self) -> None: ...
+	@Embed.alias(E.Alias.value)
+	def c_to_name(self) -> None: ...

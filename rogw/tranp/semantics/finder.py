@@ -1,5 +1,6 @@
 from collections.abc import Iterator
 
+import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.compatible.python.types import Standards
 from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.errors import Errors
@@ -7,7 +8,6 @@ from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.module.types import LibraryPaths
 from rogw.tranp.semantics.reflection.base import IReflection
 from rogw.tranp.semantics.reflection.db import SymbolDB
-import rogw.tranp.syntax.node.definition as defs
 
 
 class SymbolFinder:
@@ -126,7 +126,8 @@ class SymbolFinder:
 			```python
 			class A:
 				class_var = 0
-				def method(self, n: int = class_var) -> None:  # OK メソッドの仮引数内はクラススコープを参照出来る
+				@path.to.deco(class_var)  # OK デコレーターの実引数
+				def method(self, n: int = class_var) -> None:  # OK メソッドの仮引数
 					print(A.class_var)  # OK メソッド内はクラスと同じ参照スコープを持つ XXX が、それでは仮引数やメソッド内のローカル変数を参照できず片手落ち。この件により対応保留
 					print(class_var)  # NG 上記の仕様により参照できない
 					def closure(self, n: int = class_var) -> None: ...  # NG 同上
@@ -135,7 +136,7 @@ class SymbolFinder:
 		if not node.is_a(defs.Var):
 			return False
 
-		if 'paramvalue' in node.full_path:
+		if 'paramvalue' in node.full_path or 'decorator' in node.full_path:
 			return False
 
 		return scope.dsn in db and db[scope.dsn].types.is_a(defs.Class)

@@ -26,11 +26,11 @@ class ITranspiler(metaclass=ABCMeta):
 		...
 
 	@abstractmethod
-	def transpile(self, root: Node) -> str:
+	def transpile(self, node: Node) -> str:
 		"""起点のノードから解析してトランスパイルしたソースコードを返却
 
 		Args:
-			root: 起点のノード
+			node: 起点のノード
 		Returns:
 			トランスパイル後のソースコード
 		"""

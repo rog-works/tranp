@@ -3,13 +3,13 @@ from typing import Generic, TypeVar, override
 from rogw.tranp.compatible.python.embed import Embed, __actual__
 from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.lang.annotation import duck_typed, implements
-from rogw.tranp.lang.sequence import flatten, last_index_of
+from rogw.tranp.lang.sequence import flatten
 from rogw.tranp.syntax.node.accessible import ClassOperations
 from rogw.tranp.syntax.node.behavior import IDomain, INamespace, IScope
 from rogw.tranp.syntax.node.definition.accessible import PythonClassOperations, to_accessor
 from rogw.tranp.syntax.node.definition.element import Decorator, Parameter
 from rogw.tranp.syntax.node.definition.literal import Boolean, DocString, String
-from rogw.tranp.syntax.node.definition.primary import DeclClassVar, DeclLocalVar, DeclThisVarForward, Declable, ForIn, GenericType, InheritArgument, DeclThisParam, DeclThisVar, PluckVars, Type, TypesName, Var, VarOfType
+from rogw.tranp.syntax.node.definition.primary import Declable, DeclClassVar, DeclLocalVar, DeclThisParam, DeclThisVar, DeclThisVarForward, ForIn, GenericType, InheritArgument, PluckVars, Type, TypesName, Var, VarOfType
 from rogw.tranp.syntax.node.definition.statement_simple import AnnoAssign, MoveAssign
 from rogw.tranp.syntax.node.definition.terminal import Empty
 from rogw.tranp.syntax.node.embed import Meta, accept_tags, expandable
@@ -338,14 +338,8 @@ class ClassDef(Node, IDomain, IScope, INamespace, IDeclaration, ISymbol):
 		return embedder.arguments[0].value.as_a(String).as_string if embedder else None
 
 	@property
-	def alias_or_domain_name(self) -> str:
-		"""Note: トランスパイル時のみ使用すること。それ以外の使用はNG"""
-		embedder = self._dig_embedder(Embed.alias.__qualname__)
-		if not embedder:
-			return self.domain_name
-
-		alias = embedder.arguments[0].value.as_a(String).as_string
-		return f'{alias}{self.domain_name}' if len(embedder.arguments) == 2 else alias
+	def alias_embedder(self) -> Decorator | None:
+		return self._dig_embedder(Embed.alias.__qualname__)
 
 	@property
 	def is_internal(self) -> bool:

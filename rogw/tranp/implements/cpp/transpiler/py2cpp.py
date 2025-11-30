@@ -1,6 +1,6 @@
 import re
 from collections.abc import Callable
-from typing import Any, ClassVar, Protocol, Self, TypeVarTuple, cast
+from typing import Any, ClassVar, Protocol, Self, TypeVarTuple, cast, override
 
 import rogw.tranp.semantics.reflection.definition as refs
 import rogw.tranp.syntax.node.definition as defs
@@ -18,7 +18,7 @@ from rogw.tranp.dsn.translation import alias_dsn, import_dsn
 from rogw.tranp.errors import Errors
 from rogw.tranp.i18n.i18n import I18n
 from rogw.tranp.implements.cpp.semantics.cvars import CVars
-from rogw.tranp.lang.annotation import duck_typed, implements, injectable
+from rogw.tranp.lang.annotation import duck_typed, injectable
 from rogw.tranp.lang.defer import Defer
 from rogw.tranp.lang.eventemitter import Callback, Observable
 from rogw.tranp.lang.module import to_fullyname
@@ -131,23 +131,23 @@ class Py2Cpp(ITranspiler):
 		self.__procedure.off(action, callback)
 
 	@property
-	@implements
+	@override
 	def meta(self) -> TranspilerMeta:
 		"""Returns: トランスパイラーのメタ情報"""
 		return {'version': Versions.py2cpp, 'module': to_fullyname(Py2Cpp)}
 
-	@implements
-	def transpile(self, root: Node) -> str:
+	@override
+	def transpile(self, node: Node) -> str:
 		"""起点のノードから解析してトランスパイルしたソースコードを返却
 
 		Args:
-			root: 起点のノード
+			node: 起点のノード
 		Returns:
 			トランスパイル後のソースコード
 		"""
 		# XXX トランスパイル毎に依存スタックを生成
 		self.__stack_on_depends.append([])
-		result = self.__procedure.exec(root)
+		result = self.__procedure.exec(node)
 		self.__stack_on_depends.pop()
 		return result
 
@@ -167,7 +167,7 @@ class Py2Cpp(ITranspiler):
 			```
 		"""
 		actual_raw = raw.impl(refs.Object).actualize('nullable')
-		var_type = ClassDomainNaming.accessible_name(actual_raw.types, alias_handler=self.i18n.t)
+		var_type = ClassDomainNaming.accessible_name(actual_raw.types, alias_handler=self.i18n.t, alias_transpiler=self.transpile)
 		attr_types: list[str] = [self.to_accessible_name(attr) for attr in actual_raw.attrs]
 		if actual_raw.types.is_a(defs.Method):
 			# FIXME アノテーションを考慮しておらず場当たり的な対応
@@ -205,7 +205,7 @@ class Py2Cpp(ITranspiler):
 			```
 		"""
 		actual_type_raw = var_type_raw.impl(refs.Object).actualize('nullable')
-		return ClassShorthandNaming.domain_name(actual_type_raw, alias_handler=self.i18n.t)
+		return ClassShorthandNaming.domain_name(actual_type_raw, alias_handler=self.i18n.t, alias_transpiler=self.transpile)
 
 	def to_domain_name_by_class(self, types: defs.ClassDef) -> str:
 		"""明示された型からドメイン名を取得
@@ -215,7 +215,7 @@ class Py2Cpp(ITranspiler):
 		Returns:
 			型の参照名
 		"""
-		return ClassDomainNaming.domain_name(types, alias_handler=self.i18n.t)
+		return ClassDomainNaming.domain_name(types, alias_handler=self.i18n.t, alias_transpiler=self.transpile)
 
 	def to_prop_name(self, prop_raw: IReflection) -> str:
 		"""プロパティーの名前を取得

@@ -11,5 +11,18 @@
 			"source.organizeImports": "explicit",
 		},
 	},
-	"isort.args": ["--line-length", "10000"],
+	"isort.args": [
+		"--line-length",
+		"10000"
+	],
+	"python.envFile": "${workspaceFolder}/.py-env",
+	"python.testing.unittestArgs": [
+		"-v",
+		"-s",
+		"./tests",
+		"-p",
+		"test_*.py"
+	],
+	"python.testing.pytestEnabled": false,
+	"python.testing.unittestEnabled": true,
 }

@@ -22,9 +22,9 @@ class LiteralEvaluator:
 			プロシージャー
 		"""
 		procedure = Procedure[Value]()
-		for key, attr in self.__dict__.items():
+		for key in LiteralEvaluator.__dict__.keys():
 			if key.startswith('on_'):
-				procedure.on(key, attr)
+				procedure.on(key, getattr(self, key))
 
 		return procedure
 
@@ -37,18 +37,20 @@ class LiteralEvaluator:
 		Returns:
 			値
 		"""
+		index = 1
 		left = elements[0]
-		for i in range(len(elements) - 1):
-			index = i * 2 + 1
-			op = str(elements[index + 0])
+		while index < len(elements):
+			op = str(elements[index])
 			right = elements[index + 1]
+			index += 2
 			try:
 				if isinstance(left, float) or isinstance(right, float) or op == '/':
 					left = self._calc(float(left), op, float(right))
 				elif isinstance(left, int) and isinstance(right, int):
 					left = int(self._calc(left, op, right))
 				elif isinstance(left, str) and isinstance(right, str) and op == '+':
-					left = left + right
+					quote = left[0]
+					left = f'{quote}{left[1:-1]}{right[1:-1]}{quote}'
 				else:
 					assert False
 			except AssertionError:

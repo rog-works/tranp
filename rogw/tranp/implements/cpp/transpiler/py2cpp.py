@@ -709,7 +709,8 @@ class Py2Cpp(ITranspiler):
 				var_value = receiver_symbol.types.as_a(defs.Enum).var_value(var_name)
 				var_symbol = self.reflections.type_of(var_value).impl(refs.Object)
 				var_type = self.to_domain_name(var_symbol)
-				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'var_type': var_type, 'is_statement': is_statement, 'literal': var_value.tokens[1:-1] if var_symbol.type_is(str) else var_value.tokens})
+				literal = var_value.tokens if var_value.is_a(defs.Literal) else LiteralEvaluator.exec(self.transpile(var_value))
+				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'var_type': var_type, 'is_statement': is_statement, 'literal': literal[1:-1] if var_symbol.type_is(str) else literal})
 			else:
 				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'var_type': str.__name__, 'is_statement': is_statement, 'literal': receiver})
 		elif self.is_relay_this(node):
@@ -1444,13 +1445,13 @@ class PatternParser:
 		これらは正規表現を用いないで済む方法へ修正を検討
 	"""
 
-	RelayPattern = re.compile(r'(.+)(->|::|\.)\w+$')
-	DictIteratorPattern = re.compile(r'(.+)(->|\.)(\w+)\(\)$')
-	DeclClassVarNamePattern = re.compile(r'\s+([\w\d_]+)\s+=')
-	MoveDeclRightPattern = re.compile(r'=\s*([^;]+);$')
-	InitDeclRightPattern = re.compile(r'({[^;]*});$')
-	CVarRelaySubPattern = re.compile(rf'(->|::|\.){CVars.relay_key}\(\)$')
-	CVarToSubPattern = re.compile(rf'(->|::|\.)({"|".join(CVars.exchanger_keys)})\(\)$')
+	RelayPattern: ClassVar[re.Pattern] = re.compile(r'(.+)(->|::|\.)\w+$')
+	DictIteratorPattern: ClassVar[re.Pattern] = re.compile(r'(.+)(->|\.)(\w+)\(\)$')
+	DeclClassVarNamePattern: ClassVar[re.Pattern] = re.compile(r'\s+([\w\d_]+)\s+=')
+	MoveDeclRightPattern: ClassVar[re.Pattern] = re.compile(r'=\s*([^;]+);$')
+	InitDeclRightPattern: ClassVar[re.Pattern] = re.compile(r'({[^;]*});$')
+	CVarRelaySubPattern: ClassVar[re.Pattern] = re.compile(rf'(->|::|\.){CVars.relay_key}\(\)$')
+	CVarToSubPattern: ClassVar[re.Pattern] = re.compile(rf'(->|::|\.)({"|".join(CVars.exchanger_keys)})\(\)$')
 
 	@classmethod
 	def break_relay(cls, relay: str) -> tuple[str, str]:
@@ -1618,3 +1619,25 @@ class PatternParser:
 			```
 		"""
 		return cls.CVarToSubPattern.sub('', receiver)
+
+
+class LiteralEvaluator:
+	"""リテラル演算モジュール"""
+
+	CalcPattern: ClassVar[re.Pattern] = re.compile(r'[-\d.]+( [+\-*/%] [-\d.])*')
+	CatPattern: ClassVar[re.Pattern] = re.compile(r'"[^"]+"( \+ "[^"]+")*')
+
+	@classmethod
+	def exec(cls, source: str) -> str:
+		"""リテラル演算の結果を出力
+
+		Args:
+			source: ソース
+		Returns:
+			演算結果
+		Raises:
+			Errors.OperationNotAllowed: 許可されない演算内容
+		"""
+		assert cls.CalcPattern.fullmatch(source), Errors.OperationNotAllowed(source)
+		assert cls.CatPattern.fullmatch(source), Errors.OperationNotAllowed(source)
+		return str(eval(source))

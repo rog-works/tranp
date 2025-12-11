@@ -18,6 +18,7 @@ from rogw.tranp.dsn.translation import alias_dsn, import_dsn
 from rogw.tranp.errors import Errors
 from rogw.tranp.i18n.i18n import I18n
 from rogw.tranp.implements.cpp.semantics.cvars import CVars
+from rogw.tranp.implements.cpp.semantics.evaluator import LiteralEvaluator
 from rogw.tranp.lang.annotation import duck_typed, injectable
 from rogw.tranp.lang.defer import Defer
 from rogw.tranp.lang.eventemitter import Callback, Observable
@@ -52,6 +53,7 @@ class Py2Cpp(ITranspiler):
 		self.view = render
 		self.i18n = i18n
 		self.module_meta_factory = module_meta_factory
+		self.evals = LiteralEvaluator()
 		self.include_dirs = self.__make_include_dirs(options)
 		self.__procedure = self.__make_procedure(options)
 		# XXX トランスパイラーがステートフルになってしまう上、処理中のモジュールとの結合が曖昧
@@ -709,7 +711,7 @@ class Py2Cpp(ITranspiler):
 				var_value = receiver_symbol.types.as_a(defs.Enum).var_value(var_name)
 				var_symbol = self.reflections.type_of(var_value).impl(refs.Object)
 				var_type = self.to_domain_name(var_symbol)
-				literal = var_value.tokens if var_value.is_a(defs.Literal) else LiteralEvaluator.exec(self.transpile(var_value))
+				literal = var_value.tokens if var_value.is_a(defs.Literal) else str(self.evals.exec(var_value))
 				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'var_type': var_type, 'is_statement': is_statement, 'literal': literal[1:-1] if var_symbol.type_is(str) else literal})
 			else:
 				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'var_type': str.__name__, 'is_statement': is_statement, 'literal': receiver})
@@ -1619,25 +1621,3 @@ class PatternParser:
 			```
 		"""
 		return cls.CVarToSubPattern.sub('', receiver)
-
-
-class LiteralEvaluator:
-	"""リテラル演算モジュール"""
-
-	CalcPattern: ClassVar[re.Pattern] = re.compile(r'[-\d.]+( [+\-*/%] [-\d.])*')
-	CatPattern: ClassVar[re.Pattern] = re.compile(r'"[^"]+"( \+ "[^"]+")*')
-
-	@classmethod
-	def exec(cls, source: str) -> str:
-		"""リテラル演算の結果を出力
-
-		Args:
-			source: ソース
-		Returns:
-			演算結果
-		Raises:
-			Errors.OperationNotAllowed: 許可されない演算内容
-		"""
-		assert cls.CalcPattern.fullmatch(source), Errors.OperationNotAllowed(source)
-		assert cls.CatPattern.fullmatch(source), Errors.OperationNotAllowed(source)
-		return str(eval(source))

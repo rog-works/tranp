@@ -102,57 +102,60 @@ class SymbolFinder:
 			シンボル
 		"""
 		domain_name = ModuleDSN.local_joined(node.domain_name, prop_name)
-		scopes = [scope for scope in self.__make_scopes(node.scope) if not self.__is_local_var_with_class_scope(db, node, scope)]
 		if not isinstance(node, defs.Type):
-			return self.__find_raw(db, scopes, domain_name)
+			return self.__find_raw(db, self.__make_scopes(db, node), domain_name)
 		else:
-			return self.__find_raw_for_type(db, scopes, domain_name)
+			return self.__find_raw_for_type(db, self.__make_scopes(db, node), domain_name)
 
-	def __is_local_var_with_class_scope(self, db: SymbolDB, node: defs.Symbolic, scope: ModuleDSN) -> bool:
-		"""ローカル変数の参照、且つクラス直下のスコープ参照の組み合わせか判定
+	def __make_scopes(self, db: SymbolDB, node: defs.Symbolic) -> list[ModuleDSN]:
+		"""探索スコープのリストを生成
 
 		Args:
 			db: シンボルテーブル
 			node: シンボル系ノード
-			scope: 探索スコープ
-		Returns:
-			True = 真
-		Note:
-			```
-			* FIXME メソッド内はクラス直下のスコープを参照出来ない。これを除外する判定にのみ使用
-			* FIXME しかし、現状の判定は不完全であり、本質的にはノードのスコープ自体を是正しなければ期待通りに判定できない
-			```
-		Examples:
-			```python
-			class A:
-				class_var = 0
-				@path.to.deco(class_var)  # OK デコレーターの実引数
-				def method(self, n: int = class_var) -> None:  # OK メソッドの仮引数
-					print(A.class_var)  # OK メソッド内はクラスと同じ参照スコープを持つ XXX が、それでは仮引数やメソッド内のローカル変数を参照できず片手落ち。この件により対応保留
-					print(class_var)  # NG 上記の仕様により参照できない
-					def closure(self, n: int = class_var) -> None: ...  # NG 同上
-			```
-		"""
-		if not node.is_a(defs.Var):
-			return False
-
-		if 'paramvalue' in node.full_path or 'decorator' in node.full_path:
-			return False
-
-		return scope.dsn in db and db[scope.dsn].types.is_a(defs.Class)
-
-	def __make_scopes(self, scope: str) -> list[ModuleDSN]:
-		"""スコープを元に探索スコープのリストを生成
-
-		Args:
-			scope: スコープ
 		Returns:
 			探索スコープリスト
 		"""
-		module_path, elems = ModuleDSN.expanded(scope)
+		module_path, elems = ModuleDSN.expanded(node.scope)
 		module_dsn = ModuleDSN(module_path)
-		scopes_of_node = [module_dsn.join(*elems[:i]) for i in range(len(elems) + 1)]
-		return list(reversed(scopes_of_node))
+		scopes = reversed([module_dsn.join(*elems[:i]) for i in range(len(elems) + 1)])
+		return [scope for scope in scopes if self.__allow_scope(db, node, scope)]
+
+	def __allow_scope(self, db: SymbolDB, node: defs.Symbolic, scope: ModuleDSN) -> bool:
+		"""対象ノードのスコープの参照権を判定
+
+		Args:
+			db: シンボルテーブル
+			node: シンボル系ノード
+			scope: 参照スコープ
+		Returns:
+			True = 参照出来る
+		Note:
+			```
+			### 参照条件
+			1. 自身以降のスコープ ※実装上、配下のスコープと判定することは無い
+			2. Var以外
+			3. シンボルテーブルに存在しない参照スコープ
+			4. Class/Enum以外の参照スコープ
+			5. 参照スコープと同一のクラススコープに所属
+			```
+		"""
+		if len(node.scope) <= len(scope.dsn):
+			return True
+
+		if not node.is_a(defs.Var):
+			return True
+
+		if scope.dsn not in db:
+			return True
+
+		types = db[scope.dsn].types
+		if not types.is_a(defs.Class):
+			return True
+
+		relative_path = node.full_path.replace(f'{types.full_path}.class_def_raw.block.', '')
+		in_alt_class = 'function_def_raw.block' in relative_path or 'class_def_raw.block' in relative_path
+		return not in_alt_class
 
 	def __find_raw(self, db: SymbolDB, scopes: list[ModuleDSN], domain_name: str) -> IReflection | None:
 		"""シンボルを検索。未検出の場合はNoneを返却 (汎用)

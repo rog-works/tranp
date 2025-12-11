@@ -102,13 +102,12 @@ class SymbolFinder:
 			シンボル
 		"""
 		domain_name = ModuleDSN.local_joined(node.domain_name, prop_name)
-		scopes = [scope for scope in self.__make_scopes(node.scope) if self.__allow_scope(db, node, scope)]
 		if not isinstance(node, defs.Type):
-			return self.__find_raw(db, scopes, domain_name)
+			return self.__find_raw(db, self.__make_scopes(db, node), domain_name)
 		else:
-			return self.__find_raw_for_type(db, scopes, domain_name)
+			return self.__find_raw_for_type(db, self.__make_scopes(db, node), domain_name)
 
-	def __make_scopes(self, scope: str) -> list[ModuleDSN]:
+	def __make_scopes(self, db: SymbolDB, node: defs.Symbolic) -> list[ModuleDSN]:
 		"""スコープを元に探索スコープのリストを生成
 
 		Args:
@@ -116,10 +115,10 @@ class SymbolFinder:
 		Returns:
 			探索スコープリスト
 		"""
-		module_path, elems = ModuleDSN.expanded(scope)
+		module_path, elems = ModuleDSN.expanded(node.scope)
 		module_dsn = ModuleDSN(module_path)
-		scopes_of_node = [module_dsn.join(*elems[:i]) for i in range(len(elems) + 1)]
-		return list(reversed(scopes_of_node))
+		scopes = reversed([module_dsn.join(*elems[:i]) for i in range(len(elems) + 1)])
+		return [scope for scope in scopes if self.__allow_scope(db, node, scope)]
 
 	def __allow_scope(self, db: SymbolDB, node: defs.Symbolic, scope: ModuleDSN) -> bool:
 		"""対象ノードのスコープの参照権を判定

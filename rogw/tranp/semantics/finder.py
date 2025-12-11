@@ -108,10 +108,11 @@ class SymbolFinder:
 			return self.__find_raw_for_type(db, self.__make_scopes(db, node), domain_name)
 
 	def __make_scopes(self, db: SymbolDB, node: defs.Symbolic) -> list[ModuleDSN]:
-		"""スコープを元に探索スコープのリストを生成
+		"""探索スコープのリストを生成
 
 		Args:
-			scope: スコープ
+			db: シンボルテーブル
+			node: シンボル系ノード
 		Returns:
 			探索スコープリスト
 		"""

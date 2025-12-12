@@ -1,7 +1,7 @@
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.errors import Errors
-from rogw.tranp.lang.annotation import duck_typed
+from rogw.tranp.lang.annotation import duck_typed, injectable
 from rogw.tranp.semantics.procedure import Procedure
 from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.syntax.node.node import Node
@@ -11,6 +11,7 @@ from rogw.tranp.transpiler.types import Evaluator
 class LiteralEvaluator:
 	"""リテラル演算モジュール。Enum.value内のリテラル演算を対象とする想定"""
 
+	@injectable
 	def __init__(self, reflections: Reflections) -> None:
 		"""インスタンスを生成
 
@@ -32,6 +33,19 @@ class LiteralEvaluator:
 				procedure.on(key, getattr(self, key))
 
 		return procedure
+
+	@duck_typed(Evaluator)
+	def exec(self, node: Node) -> Evaluator.Value:
+		"""リテラル演算の結果を出力
+
+		Args:
+			node: 基点のノード
+		Returns:
+			演算結果
+		Raises:
+			Errors.OperationNotAllowed: 許可されない演算内容
+		"""
+		return self._procedure.exec(node)
 
 	def _op_bin_each(self, node: Node, elements: list[Evaluator.Value]) -> Evaluator.Value:
 		"""2項演算を解決
@@ -108,19 +122,6 @@ class LiteralEvaluator:
 		"""
 		quote = left[0]
 		return f'{quote}{left[1:-1]}{right[1:-1]}{quote}'
-
-	@duck_typed(Evaluator)
-	def exec(self, node: Node) -> Evaluator.Value:
-		"""リテラル演算の結果を出力
-
-		Args:
-			node: 基点のノード
-		Returns:
-			演算結果
-		Raises:
-			Errors.OperationNotAllowed: 許可されない演算内容
-		"""
-		return self._procedure.exec(node)
 
 	def on_var(self, node: defs.Var) -> Evaluator.Value:
 		var_raw = self._reflections.type_of(node)

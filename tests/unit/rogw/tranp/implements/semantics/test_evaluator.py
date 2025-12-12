@@ -6,7 +6,7 @@ from rogw.tranp.test.helper import data_provider
 from tests.test.fixture import Fixture
 
 
-class TestDefinition(TestCase):
+class TestLiteralEvaluator(TestCase):
 	fixture = Fixture.make(__file__)
 
 	@data_provider([

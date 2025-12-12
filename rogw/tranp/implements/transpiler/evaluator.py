@@ -128,16 +128,18 @@ class LiteralEvaluator:
 		if var_raw.decl.is_a(defs.DeclLocalVar):
 			return self.exec(var_raw.decl.parent.as_a(defs.MoveAssign).value)
 
+		# 上記以外は全て無視して良い
 		return ''
 
 	def on_relay(self, node: defs.Relay, receiver: Evaluator.Value) -> Evaluator.Value:
-		# Enum.X.value
+		# Enum.X.value @see Py2cpp.on_relay
 		if node.prop.tokens == 'value':
 			receiver_raw = self._reflections.type_of(node.receiver)
 			var_name = DSN.right(node.receiver.domain_name, 1)
 			var_value = receiver_raw.types.as_a(defs.Enum).var_value(var_name)
 			return self.exec(var_value)
 
+		# 上記以外は全て無視して良い
 		return ''
 
 	def on_integer(self, node: defs.Integer) -> Evaluator.Value:

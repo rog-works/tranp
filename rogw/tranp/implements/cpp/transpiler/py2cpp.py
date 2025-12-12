@@ -53,7 +53,7 @@ class Py2Cpp(ITranspiler):
 		self.view = render
 		self.i18n = i18n
 		self.module_meta_factory = module_meta_factory
-		self.evaluator = LiteralEvaluator()
+		self.evaluator = LiteralEvaluator(reflections)
 		self.include_dirs = self.__make_include_dirs(options)
 		self.__procedure = self.__make_procedure(options)
 		# XXX トランスパイラーがステートフルになってしまう上、処理中のモジュールとの結合が曖昧

@@ -1,8 +1,10 @@
-from typing import TypeAlias
+from typing import Literal, TypeAlias
 
 import rogw.tranp.syntax.node.definition as defs
+from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.errors import Errors
 from rogw.tranp.semantics.procedure import Procedure
+from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.syntax.node.node import Node
 
 Value: TypeAlias = int | float | str
@@ -11,8 +13,13 @@ Value: TypeAlias = int | float | str
 class LiteralEvaluator:
 	"""リテラル演算モジュール"""
 
-	def __init__(self) -> None:
-		"""インスタンスを生成"""
+	def __init__(self, reflections: Reflections) -> None:
+		"""インスタンスを生成
+
+		Args:
+			reflections: リフレクション @inject
+		"""
+		self._reflections = reflections
 		self._procedure = self._build_procedure()
 
 	def _build_procedure(self) -> Procedure[Value]:
@@ -93,6 +100,24 @@ class LiteralEvaluator:
 		"""
 		return self._procedure.exec(node)
 
+	def on_var(self, node: defs.Var) -> Value:
+		var_raw = self._reflections.type_of(node)
+		# Enum.X = DeclLocalVar
+		if var_raw.decl.is_a(defs.DeclLocalVar):
+			return self.exec(var_raw.decl.parent.as_a(defs.MoveAssign).value)
+
+		return ''
+
+	def on_relay(self, node: defs.Relay, receiver: Value) -> Value:
+		# Enum.X.value
+		if node.prop.tokens == 'value':
+			receiver_raw = self._reflections.type_of(node.receiver)
+			var_name = DSN.right(node.receiver.domain_name, 1)
+			var_value = receiver_raw.types.as_a(defs.Enum).var_value(var_name)
+			return self.exec(var_value)
+
+		return ''
+
 	def on_integer(self, node: defs.Integer) -> Value:
 		return int(node.tokens)
 
@@ -119,9 +144,12 @@ class LiteralEvaluator:
 	def on_group(self, node: defs.Group, expression: Value) -> Value:
 		return expression
 
-	def on_fallback(self, node: Node) -> Value:
-		op = node.tokens
-		if op in '+-*/%':
-			return op
+	def on_terminal(self, node: Node) -> Value:
+		token = node.tokens
+		if token in '+-*/%':
+			return token
 
+		raise Errors.OperationNotAllowed(node)
+
+	def on_fallback(self, node: Node) -> Value:
 		raise Errors.OperationNotAllowed(node)

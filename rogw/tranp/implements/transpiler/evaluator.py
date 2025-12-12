@@ -1,5 +1,3 @@
-from typing import TypeAlias
-
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.errors import Errors
@@ -8,8 +6,6 @@ from rogw.tranp.semantics.procedure import Procedure
 from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.transpiler.types import Evaluator
-
-Value: TypeAlias = int | float | str
 
 
 class LiteralEvaluator:
@@ -24,20 +20,20 @@ class LiteralEvaluator:
 		self._reflections = reflections
 		self._procedure = self._build_procedure()
 
-	def _build_procedure(self) -> Procedure[Value]:
+	def _build_procedure(self) -> Procedure[Evaluator.Value]:
 		"""プロシージャーを生成
 
 		Returns:
 			プロシージャー
 		"""
-		procedure = Procedure[Value]()
+		procedure = Procedure[Evaluator.Value]()
 		for key in LiteralEvaluator.__dict__.keys():
 			if key.startswith('on_'):
 				procedure.on(key, getattr(self, key))
 
 		return procedure
 
-	def _op_bin_each(self, node: Node, elements: list[Value]) -> Value:
+	def _op_bin_each(self, node: Node, elements: list[Evaluator.Value]) -> Evaluator.Value:
 		"""2項演算を解決
 
 		Args:
@@ -114,7 +110,7 @@ class LiteralEvaluator:
 		return f'{quote}{left[1:-1]}{right[1:-1]}{quote}'
 
 	@duck_typed(Evaluator)
-	def exec(self, node: Node) -> Value:
+	def exec(self, node: Node) -> Evaluator.Value:
 		"""リテラル演算の結果を出力
 
 		Args:
@@ -126,7 +122,7 @@ class LiteralEvaluator:
 		"""
 		return self._procedure.exec(node)
 
-	def on_var(self, node: defs.Var) -> Value:
+	def on_var(self, node: defs.Var) -> Evaluator.Value:
 		var_raw = self._reflections.type_of(node)
 		# Enum.X = DeclLocalVar
 		if var_raw.decl.is_a(defs.DeclLocalVar):
@@ -134,7 +130,7 @@ class LiteralEvaluator:
 
 		return ''
 
-	def on_relay(self, node: defs.Relay, receiver: Value) -> Value:
+	def on_relay(self, node: defs.Relay, receiver: Evaluator.Value) -> Evaluator.Value:
 		# Enum.X.value
 		if node.prop.tokens == 'value':
 			receiver_raw = self._reflections.type_of(node.receiver)
@@ -144,22 +140,22 @@ class LiteralEvaluator:
 
 		return ''
 
-	def on_integer(self, node: defs.Integer) -> Value:
+	def on_integer(self, node: defs.Integer) -> Evaluator.Value:
 		return int(node.tokens)
 
-	def on_float(self, node: defs.Float) -> Value:
+	def on_float(self, node: defs.Float) -> Evaluator.Value:
 		return float(node.tokens)
 
-	def on_string(self, node: defs.String) -> Value:
+	def on_string(self, node: defs.String) -> Evaluator.Value:
 		return node.tokens
 
-	def on_sum(self, node: defs.Sum, elements: list[Value]) -> Value:
+	def on_sum(self, node: defs.Sum, elements: list[Evaluator.Value]) -> Evaluator.Value:
 		return self._op_bin_each(node, elements)
 
-	def on_term(self, node: defs.Term, elements: list[Value]) -> Value:
+	def on_term(self, node: defs.Term, elements: list[Evaluator.Value]) -> Evaluator.Value:
 		return self._op_bin_each(node, elements)
 
-	def on_factor(self, node: defs.Term, operator: Value, value: Value) -> Value:
+	def on_factor(self, node: defs.Term, operator: Evaluator.Value, value: Evaluator.Value) -> Evaluator.Value:
 		if isinstance(value, int):
 			return -value if operator == '-' else value
 		elif isinstance(value, float):
@@ -167,15 +163,15 @@ class LiteralEvaluator:
 		
 		raise Errors.OperationNotAllowed(node, operator, value)
 
-	def on_group(self, node: defs.Group, expression: Value) -> Value:
+	def on_group(self, node: defs.Group, expression: Evaluator.Value) -> Evaluator.Value:
 		return expression
 
-	def on_terminal(self, node: Node) -> Value:
+	def on_terminal(self, node: Node) -> Evaluator.Value:
 		token = node.tokens
 		if token in '+-*/%':
 			return token
 
 		raise Errors.OperationNotAllowed(node)
 
-	def on_fallback(self, node: Node) -> Value:
+	def on_fallback(self, node: Node) -> Evaluator.Value:
 		raise Errors.OperationNotAllowed(node)

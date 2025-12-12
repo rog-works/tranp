@@ -31,6 +31,7 @@ class TestLiteralEvaluator(TestCase):
 		('file_input.getattr[3]', 1),
 		('file_input.getattr[4]', 2),
 		('file_input.getattr[5]', 3),
+		('file_input.getattr[6]', 6),
 	])
 	def test_exec_enum_value(self, full_path: str, expected: int | float | str) -> None:
 		node = self.fixture.shared_module.entrypoint.whole_by(full_path)

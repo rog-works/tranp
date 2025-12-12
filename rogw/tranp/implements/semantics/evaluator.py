@@ -11,7 +11,7 @@ Value: TypeAlias = int | float | str
 
 
 class LiteralEvaluator:
-	"""リテラル演算モジュール"""
+	"""リテラル演算モジュール。主にEnum.value内のリテラル演算を対象とする"""
 
 	def __init__(self, reflections: Reflections) -> None:
 		"""インスタンスを生成
@@ -56,8 +56,8 @@ class LiteralEvaluator:
 				elif isinstance(left, int) and isinstance(right, int):
 					left = int(self._calc(left, op, right))
 				elif isinstance(left, str) and isinstance(right, str) and op == '+':
-					quote = left[0]
-					left = f'{quote}{left[1:-1]}{right[1:-1]}{quote}'
+					assert self._allow_string(left) and self._allow_string(right)
+					left = self._cat(left, right)
 				else:
 					assert False
 			except AssertionError:
@@ -87,6 +87,29 @@ class LiteralEvaluator:
 			return left % right
 		else:
 			assert False
+	
+	def _allow_string(self, string: str) -> bool:
+		"""文字列の書式を検証
+
+		Args:
+			string: 文字列
+		Returns:
+			True = 正常
+		"""
+		quotes = ['"', "'"]
+		return len(string) >= 2 and string[0] in quotes and string[-1] in quotes
+	
+	def _cat(self, left: str, right: str) -> str:
+		"""文字列結合
+
+		Args:
+			left: 文字列(左)
+			right: 文字列(右)
+		Returns:
+			結合結果
+		"""
+		quote = left[0]
+		return f'{quote}{left[1:-1]}{right[1:-1]}{quote}'
 
 	def exec(self, node: Node) -> Value:
 		"""リテラル演算の結果を出力

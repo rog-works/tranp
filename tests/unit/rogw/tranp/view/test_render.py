@@ -1380,13 +1380,14 @@ class TestRenderer(TestCase):
 		self.assertRender('lambda/default', vars, expected)
 
 	@data_provider([
-		('dict', {'items': ['{hoge, 1}','{fuga, 2}']}, '{\n\t{hoge, 1},\n\t{fuga, 2},\n}'),
 		('dict', {'items': []}, '{}'),
+		('dict', {'items': ['{hoge, 1}','{fuga, 2}']}, '{\n\t{hoge, 1},\n\t{fuga, 2},\n}'),
 		('falsy', {}, 'false'),
 		('float', {'value': 1.0}, '1.0'),
 		('integer', {'value': 1}, '1'),
-		('list', {'values': ['1234', '2345']}, '{\n\t{1234},\n\t{2345},\n}'),
 		('list', {'values': []}, '{}'),
+		('list', {'values': ['1234', '2345']}, '{\n\t{1234},\n\t{2345},\n}'),
+		('list', {'values': ['{1, 2}', '{3, 4}']}, '{\n\t{1, 2},\n\t{3, 4},\n}'),
 		('null', {}, 'nullptr'),
 		('pair', {'first': '"a"', 'second': '1'}, '{"a", 1}'),
 		('string', {'value': "'a'"}, '"a"'),

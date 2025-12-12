@@ -4,7 +4,7 @@ from rogw.tranp.semantics.reflection.db import SymbolDB
 from rogw.tranp.semantics.reflection.helper.naming import ClassShorthandNaming
 from rogw.tranp.semantics.reflection.serialization import IReflectionSerializer
 from tests.test.fixture import Fixture
-from tests.unit.rogw.tranp.semantics.reflection.fixtures.test_db_expect import expected_symbols
+from tests.unit.rogw.tranp.semantics.reflection.fixtures.fixture_db_expect import expected_symbols
 
 
 class TestDB(TestCase):

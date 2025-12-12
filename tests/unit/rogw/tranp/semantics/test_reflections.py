@@ -4,7 +4,6 @@ from unittest import TestCase
 
 from rogw.tranp.compatible.python.types import Standards, Union, Unknown
 from rogw.tranp.dsn.module import ModuleDSN
-from rogw.tranp.semantics.reflection.helper.naming import ClassShorthandNaming
 from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.test.helper import data_provider
 from tests.test.fixture import Fixture
@@ -16,8 +15,8 @@ def _mod(before: str, after: str) -> str:
 		'type': 'rogw.tranp.compatible.libralies.type',
 		'typing': 'typing',
 		'collections': 'collections.abc',
-		'xyz': 'tests.unit.rogw.tranp.semantics.reflection.fixtures.test_db_xyz',
-		'__main__': 'tests.unit.rogw.tranp.semantics.fixtures.test_reflections',
+		'xyz': 'tests.unit.rogw.tranp.semantics.reflection.fixtures.fixture_db_xyz',
+		'__main__': 'tests.unit.rogw.tranp.semantics.fixtures.fixture_reflections',
 	}
 	return ModuleDSN.full_joined(aliases[before], after)
 

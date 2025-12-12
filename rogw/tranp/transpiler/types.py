@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import Any, NamedTuple
+from typing import Any, NamedTuple, Protocol, TypeAlias
 
 from rogw.tranp.data.meta.types import TranspilerMeta
 from rogw.tranp.syntax.node.node import Node
@@ -34,4 +34,22 @@ class ITranspiler(metaclass=ABCMeta):
 		Returns:
 			トランスパイル後のソースコード
 		"""
+		...
+
+
+class Evaluator(Protocol):
+	"""リテラル演算の結果を出力
+
+	Args:
+		node: 基点のノード
+	Returns:
+		演算結果
+	Raises:
+		Errors.OperationNotAllowed: 許可されない演算内容
+	"""
+
+	Value: TypeAlias = int | float | str
+
+	def exec(self, node: Node) -> Value:
+		"""@see Evaluator.Note"""
 		...

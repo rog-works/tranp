@@ -38,6 +38,7 @@ def default_definitions() -> ModuleDefinitions:
 		'rogw.tranp.syntax.ast.parser.ParserSetting': 'rogw.tranp.providers.syntax.ast.parser_setting',
 		'rogw.tranp.syntax.ast.parser.SourceProvider': 'rogw.tranp.providers.syntax.ast.source_provider',
 		'rogw.tranp.syntax.ast.parser.SyntaxParser': 'rogw.tranp.implements.syntax.lark.parser.SyntaxParserOfLark',
+		'rogw.tranp.transpiler.types.Evaluator': 'rogw.tranp.implements.transpiler.evaluator.LiteralEvaluator',
 	}
 
 

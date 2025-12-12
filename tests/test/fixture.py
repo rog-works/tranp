@@ -28,7 +28,8 @@ class Fixture:
 		"""
 		module_path = filepath_to_module_path(filepath, tranp_dir())
 		elems = module_path.split('.')
-		dirpath, filename = '.'.join(elems[:-1]), elems[-1]
+		dirpath, testname = '.'.join(elems[:-1]), elems[-1]
+		filename = testname.replace('test_', 'fixture_')
 		return '.'.join([dirpath, 'fixtures', filename])
 
 	@classmethod

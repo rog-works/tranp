@@ -5,7 +5,7 @@ from typing import Annotated, Any, ClassVar, Generic, Literal, Self, TypeAlias, 
 
 from yaml import safe_load as yaml_safe_load
 
-from tests.unit.rogw.tranp.semantics.reflection.fixtures.test_db_combine import A, C, S
+from tests.unit.rogw.tranp.semantics.reflection.fixtures.fixture_db_combine import A, C, S
 
 DSI: TypeAlias = dict[str, int]
 DSI2: TypeAlias = dict[str, DSI]

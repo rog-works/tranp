@@ -1,6 +1,8 @@
 from unittest import TestCase
 
+from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.implements.semantics.evaluator import LiteralEvaluator
+from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.test.helper import data_provider
 from tests.test.fixture import Fixture
 
@@ -22,6 +24,15 @@ class TestDefinition(TestCase):
 	])
 	def test_exec(self, source_code: str, full_path: str, expected: int | float | str) -> None:
 		node = self.fixture.custom_nodes_by(source_code, full_path)
-		evaluator = LiteralEvaluator()
+		evaluator = LiteralEvaluator(self.fixture.get(Reflections))
+		actual = evaluator.exec(node)
+		self.assertEqual(actual, expected)
+
+	@data_provider([
+		('file_input.getattr', 0),
+	])
+	def test_exec_enum(self, full_path: str, expected: int | float | str) -> None:
+		node = self.fixture.shared_nodes_by(full_path)
+		evaluator = LiteralEvaluator(self.fixture.get(Reflections))
 		actual = evaluator.exec(node)
 		self.assertEqual(actual, expected)

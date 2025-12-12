@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from rogw.tranp.implements.semantics.evaluator import LiteralEvaluator
+from rogw.tranp.implements.transpiler.evaluator import LiteralEvaluator
 from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.test.helper import data_provider
 from tests.test.fixture import Fixture

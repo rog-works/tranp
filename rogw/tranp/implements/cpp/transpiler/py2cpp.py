@@ -18,7 +18,6 @@ from rogw.tranp.dsn.translation import alias_dsn, import_dsn
 from rogw.tranp.errors import Errors
 from rogw.tranp.i18n.i18n import I18n
 from rogw.tranp.implements.cpp.semantics.cvars import CVars
-from rogw.tranp.implements.semantics.evaluator import LiteralEvaluator
 from rogw.tranp.lang.annotation import duck_typed, injectable
 from rogw.tranp.lang.defer import Defer
 from rogw.tranp.lang.eventemitter import Callback, Observable
@@ -29,7 +28,7 @@ from rogw.tranp.semantics.reflection.helper.naming import ClassDomainNaming, Cla
 from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.syntax.node.definition.accessible import PythonClassOperations
 from rogw.tranp.syntax.node.node import Node
-from rogw.tranp.transpiler.types import ITranspiler, TranspilerOptions
+from rogw.tranp.transpiler.types import Evaluator, ITranspiler, TranspilerOptions
 from rogw.tranp.view.helper.block import BlockParser
 from rogw.tranp.view.render import Renderer, RendererEmitter
 
@@ -38,13 +37,14 @@ class Py2Cpp(ITranspiler):
 	"""Python -> C++のトランスパイラー"""
 
 	@injectable
-	def __init__(self, reflections: Reflections, render: Renderer, i18n: I18n, emitter: RendererEmitter, module_meta_factory: ModuleMetaFactory, options: TranspilerOptions) -> None:
+	def __init__(self, reflections: Reflections, render: Renderer, i18n: I18n, evaluator: Evaluator, emitter: RendererEmitter, module_meta_factory: ModuleMetaFactory, options: TranspilerOptions) -> None:
 		"""インスタンスを生成
 
 		Args:
 			reflections: シンボルリゾルバー @inject
 			render: ソースレンダー @inject
 			i18n: 国際化対応モジュール @inject
+			evaluator: リテラル演算モジュール @inject
 			emitter: レンダー用イベントエミッター @inject
 			module_meta_factory: モジュールのメタ情報ファクトリー @inject
 			options: 実行オプション @inject
@@ -52,8 +52,8 @@ class Py2Cpp(ITranspiler):
 		self.reflections = reflections
 		self.view = render
 		self.i18n = i18n
+		self.evaluator = evaluator
 		self.module_meta_factory = module_meta_factory
-		self.evaluator = LiteralEvaluator(reflections)
 		self.include_dirs = self.__make_include_dirs(options)
 		self.__procedure = self.__make_procedure(options)
 		# XXX トランスパイラーがステートフルになってしまう上、処理中のモジュールとの結合が曖昧

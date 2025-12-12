@@ -3,15 +3,17 @@ from typing import TypeAlias
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.errors import Errors
+from rogw.tranp.lang.annotation import duck_typed
 from rogw.tranp.semantics.procedure import Procedure
 from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.syntax.node.node import Node
+from rogw.tranp.transpiler.types import Evaluator
 
 Value: TypeAlias = int | float | str
 
 
 class LiteralEvaluator:
-	"""リテラル演算モジュール。主にEnum.value内のリテラル演算を対象とする"""
+	"""リテラル演算モジュール。Enum.value内のリテラル演算を対象とする想定"""
 
 	def __init__(self, reflections: Reflections) -> None:
 		"""インスタンスを生成
@@ -111,11 +113,12 @@ class LiteralEvaluator:
 		quote = left[0]
 		return f'{quote}{left[1:-1]}{right[1:-1]}{quote}'
 
+	@duck_typed(Evaluator)
 	def exec(self, node: Node) -> Value:
 		"""リテラル演算の結果を出力
 
 		Args:
-			node: ノード
+			node: 基点のノード
 		Returns:
 			演算結果
 		Raises:

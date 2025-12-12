@@ -1,7 +1,14 @@
 from enum import Enum
 
 
-class E(Enum):
-	A = 0
+class E0(Enum):
+	A = 1
+	B = A + 1
 
-E.A.value
+
+class E1(Enum):
+	A = E0.B.value + 1
+
+E0.A.value
+E0.B.value
+E1.A.value

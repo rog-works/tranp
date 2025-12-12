@@ -7,7 +7,6 @@ from tests.test.fixture import Fixture
 
 
 class TestDefinition(TestCase):
-	fixture_module_path = Fixture.fixture_module_path(__file__)
 	fixture = Fixture.make(__file__)
 
 	@data_provider([
@@ -29,9 +28,11 @@ class TestDefinition(TestCase):
 		self.assertEqual(actual, expected)
 
 	@data_provider([
-		('file_input.getattr', 0),
+		('file_input.getattr[3]', 1),
+		('file_input.getattr[4]', 2),
+		('file_input.getattr[5]', 3),
 	])
-	def test_exec_enum(self, full_path: str, expected: int | float | str) -> None:
+	def test_exec_enum_value(self, full_path: str, expected: int | float | str) -> None:
 		node = self.fixture.shared_module.entrypoint.whole_by(full_path)
 		evaluator = LiteralEvaluator(self.fixture.get(Reflections))
 		actual = evaluator.exec(node)

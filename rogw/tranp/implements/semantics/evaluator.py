@@ -1,4 +1,4 @@
-from typing import Literal, TypeAlias
+from typing import TypeAlias
 
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.dsn.dsn import DSN

@@ -3,7 +3,7 @@
 {%- else -%}
 {
 {%- for value in values %}
-	{{ '{' }}{{ value }}{{ '}' }},
+	{{ '' if value[0] == '{' else '{' }}{{ value }}{{ '' if value[-1] == '}' else '}' }},
 {%- endfor %}
 }
 {%- endif %}

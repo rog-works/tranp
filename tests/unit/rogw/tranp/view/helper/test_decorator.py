@@ -48,7 +48,7 @@ class TestDecoratorParser(TestCase):
 		('abc("abc")', 'abc', True),
 		('abc("abc")', '"a"', False),
 	])
-	def test_find_args(self, decorator: str, subject: str, expected: bool) -> None:
+	def test_any_args(self, decorator: str, subject: str, expected: bool) -> None:
 		actual = DecoratorHelper(decorator).any_args(subject)
 		self.assertEqual(actual, expected)
 

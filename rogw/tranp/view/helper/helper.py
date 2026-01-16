@@ -12,26 +12,6 @@ from rogw.tranp.view.helper.parameter import ParameterHelper
 from rogw.tranp.view.render import RendererHelperFactory, RendererSetting
 
 
-def hex_to_int(setting: RendererSetting) -> Callable[[str], int]:
-	"""Args: hex_str: 16進数文字列 Returns: 整数"""
-	return lambda hex_str: int(hex_str, 16)
-
-
-def int_to_hex(setting: RendererSetting) -> Callable[[int], str]:
-	"""Args: value: 整数 Returns: 16進数文字列"""
-	return lambda value: hex(value)[2:]
-
-
-def bit_shift(setting: RendererSetting) -> Callable[[int, str, int], int]:
-	"""Args: left: 整数, op: 演算子(<<, >>), right: シフト数 Returns: シフト演算の結果"""
-	return lambda left, op, right: (left >> right) if op == '>>' else (left << right)
-
-
-def bitwise(setting: RendererSetting) -> Callable[[int, str, int], int]:
-	"""Args: left: 整数(左), op: 演算子(&, |, ^), right: 整数(右) Returns: ビット演算の結果"""
-	return lambda left, op, right: (left & right) if op == '&' else ((left | right) if op == '|' else (left ^ right))
-
-
 def emit_depends(setting: RendererSetting) -> Callable[[str], str]:
 	"""Note: @see rogw.tranp.lang.eventemitter.EventEmitter"""
 	return lambda include_path: setting.emitter.emit('depends', path=include_path) or ''
@@ -106,10 +86,6 @@ def factories() -> tuple[list[RendererHelperFactory], list[RendererHelperFactory
 	"""Returns: (ヘルパー一覧, フィルター一覧)"""
 	return (
 		 [
-			hex_to_int,
-			int_to_hex,
-			bit_shift,
-			bitwise,
 			emit_depends,
 			break_last_block,
 			break_separator,

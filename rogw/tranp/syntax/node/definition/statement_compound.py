@@ -545,7 +545,23 @@ class Class(ClassDef):
 	@override
 	@Meta.embed(Node, expandable)
 	def template_types(self) -> list[Type]:
-		"""Note: 厳密に言うとこのメソッドでテンプレートタイプを取得することはできず、候補のタイプノードである点に注意"""
+		"""Note: whole_template_types"""
+		return list(flatten([inherit.template_types for inherit in self.__org_inherits if isinstance(inherit, GenericType) and inherit.domain_name == Generic.__name__]))
+
+	@property
+	def template_types_with_inherits(self) -> list[Type]:
+		"""Note:
+			```
+			* 厳密に言うとこのメソッドでテンプレートタイプを取得することはできず、候補のタイプノードである点に注意
+			### 前提
+			* テンプレートタイプはクラス自身に直接設定された型のみをシグネチャーとして評価する(`class A(Generic[T])` => `T`は自身の属性)
+			* 親のテンプレートタイプは親クラスのシグネチャーであり、ランタイム上は別コンテキストによって評価される(`class A(B[T])` => `T`は親の属性)
+			* しかし、シンタックス上は全てのテンプレートタイプを一体として評価する必要があるため、型としては自身と親どちらも評価し、トランスパイル時は自身のみ評価する
+			### template_typesとの相違点
+			* template_types: クラス自身のテンプレートタイプ。トランスパイル用
+			* template_types_with_inherits: クラス自身 + 親のテンプレートタイプ。型用
+			```
+		"""
 		def fetch_template_types(t_type: GenericType) -> list[Type]:
 			t_types: list[Type] = []
 			for in_t_type in t_type.template_types:

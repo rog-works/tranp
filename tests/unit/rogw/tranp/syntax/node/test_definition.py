@@ -561,7 +561,7 @@ class TestDefinition(TestCase):
 			'symbol': 'GenSub',
 			'decorators': [],
 			'inherits': ['GenBase'],
-			'template_types': ['T'],
+			'template_types': [],
 			'constructor_exists': False,
 			'class_methods': [],
 			'methods': [],

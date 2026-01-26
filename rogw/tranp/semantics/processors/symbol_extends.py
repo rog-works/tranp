@@ -1,11 +1,11 @@
+import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.lang.annotation import duck_typed, injectable
 from rogw.tranp.lang.locator import Invoker
 from rogw.tranp.module.module import Module
 from rogw.tranp.semantics.processor import Preprocessor
-from rogw.tranp.semantics.reflection.base import Mod, IReflection
+from rogw.tranp.semantics.reflection.base import IReflection, Mod
 from rogw.tranp.semantics.reflection.db import SymbolDB
 from rogw.tranp.semantics.reflections import Reflections
-import rogw.tranp.syntax.node.definition as defs
 
 
 class SymbolExtends:
@@ -136,7 +136,7 @@ class SymbolExtends:
 		"""
 		def fetch_template_attrs(for_types: defs.Class) -> dict[defs.TemplateClass, IReflection]:
 			attrs: dict[defs.TemplateClass, IReflection] = {}
-			for template_type in for_types.template_types:
+			for template_type in for_types.template_types_with_inherits:
 				candidate = reflections.type_of(template_type)
 				if isinstance(candidate.decl, defs.TemplateClass):
 					attrs[candidate.decl] = candidate

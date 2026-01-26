@@ -545,39 +545,8 @@ class Class(ClassDef):
 	@override
 	@Meta.embed(Node, expandable)
 	def template_types(self) -> list[Type]:
-		"""Note: whole_template_types"""
+		"""Note: @see template_types_with_inherits"""
 		return list(flatten([inherit.template_types for inherit in self.__org_inherits if isinstance(inherit, GenericType) and inherit.domain_name == Generic.__name__]))
-
-	@property
-	def template_types_with_inherits(self) -> list[Type]:
-		"""Note:
-			```
-			* 厳密に言うとこのメソッドでテンプレートタイプを取得することはできず、候補のタイプノードである点に注意
-			### 前提
-			* テンプレートタイプはクラス自身に直接設定された型のみをシグネチャーとして評価する(`class A(Generic[T])` => `T`は自身の属性)
-			* 親のテンプレートタイプは親クラスのシグネチャーであり、ランタイム上は別コンテキストによって評価される(`class A(B[T])` => `T`は親の属性)
-			* しかし、シンタックス上は全てのテンプレートタイプを一体として評価する必要があるため、型としては自身と親どちらも評価し、トランスパイル時は自身のみ評価する
-			### template_typesとの相違点
-			* template_types: クラス自身のテンプレートタイプ。トランスパイル用
-			* template_types_with_inherits: クラス自身 + 親のテンプレートタイプ。型用
-			```
-		"""
-		def fetch_template_types(t_type: GenericType) -> list[Type]:
-			t_types: list[Type] = []
-			for in_t_type in t_type.template_types:
-				if isinstance(in_t_type, GenericType):
-					t_types.extend(fetch_template_types(in_t_type))
-				elif isinstance(in_t_type, VarOfType):
-					t_types.append(in_t_type)
-
-			return t_types
-
-		candidate_types: list[Type] = []
-		for inherit in self.__org_inherits:
-			if isinstance(inherit, GenericType):
-				candidate_types.extend(fetch_template_types(inherit))
-
-		return candidate_types
 
 	@property
 	@override
@@ -603,6 +572,37 @@ class Class(ClassDef):
 			return []
 
 		return [node.class_type for node in self._children('class_def_raw.inherit_arguments') if isinstance(node, InheritArgument)]
+
+	@property
+	def template_types_with_inherits(self) -> list[Type]:
+		"""Note:
+			```
+			* 厳密に言うとこのメソッドでテンプレートタイプを取得することはできず、候補のタイプノードである点に注意
+			### テンプレートタイプの型解釈
+			* テンプレートタイプはクラス自身に直接設定された型のみをシグネチャーとして評価する(`class A(Generic[T])` => `T`は自身の属性)
+			* 親のテンプレートタイプは親のシグネチャーであり、ランタイム上は別コンテキストによって評価される(`class A(B[T])` => `T`は親の属性)
+			* しかし、シンタックス上は全てのテンプレートタイプを一つの定義として評価する必要があるため、型としては自身と親の型どちらも評価し、トランスパイル時は自身の型のみ評価する
+			### template_typesとの相違点
+			* template_types: クラス自身のテンプレートタイプ。トランスパイル用
+			* template_types_with_inherits: クラス自身 + 親のテンプレートタイプ。型用
+			```
+		"""
+		def fetch_template_types(t_type: GenericType) -> list[Type]:
+			t_types: list[Type] = []
+			for in_t_type in t_type.template_types:
+				if isinstance(in_t_type, GenericType):
+					t_types.extend(fetch_template_types(in_t_type))
+				elif isinstance(in_t_type, VarOfType):
+					t_types.append(in_t_type)
+
+			return t_types
+
+		candidate_types: list[Type] = []
+		for inherit in self.__org_inherits:
+			if isinstance(inherit, GenericType):
+				candidate_types.extend(fetch_template_types(inherit))
+
+		return candidate_types
 
 	@property
 	def constructor_exists(self) -> bool:

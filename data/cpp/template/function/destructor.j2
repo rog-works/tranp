@@ -2,10 +2,8 @@
 {% include('function/_comment.j2') %}
 {%- include('function/_template_types.j2') %}
 {%- include('function/_decorators.j2') %}
-{%- if is_abstract and symbol == '__py_destroy__' %}
+{%- if is_abstract %}
 virtual ~{{ class_symbol }}() = default;
-{%- elif is_abstract %}
-virtual ~{{ class_symbol }}() = 0;
 {%- elif allow_override %}
 virtual ~{{ class_symbol }}() {% include('function/_block.j2') %}
 {%- else %}

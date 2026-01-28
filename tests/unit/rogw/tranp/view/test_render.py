@@ -13,6 +13,133 @@ from rogw.tranp.test.helper import data_provider
 from rogw.tranp.view.render import Renderer, RendererSetting
 
 
+class Expects:
+	@classmethod
+	def function(cls, symbol: str, return_type: str, parameters: list[str] = [], decorators: list[str] = [], template_types: list[str] = [], statements: list[str] = [], comment: str = '', is_pure: bool = False) -> dict[str, Any]:
+		return {
+			'symbol': symbol,
+			'parameters': parameters,
+			'return_type': return_type,
+			'decorators': decorators,
+			'template_types': template_types,
+			'statements': statements,
+			'comment': comment,
+			'is_pure': is_pure,
+		}
+
+	@classmethod
+	def closure(cls, symbol: str, return_type: str, parameters: list[str] = [], decorators: list[str] = [], statements: list[str] = [], binds: list[str] = []) -> dict[str, Any]:
+		return {
+			'symbol': symbol,
+			'parameters': parameters,
+			'return_type': return_type,
+			'decorators': decorators,
+			'statements': statements,
+			# closure only
+			'binds': binds,
+		}
+
+	@classmethod
+	def constructor(cls, accessor: str, class_symbol: str, parameters: list[str] = [], decorators: list[str] = [], template_types: list[str] = [], statements: list[str] = [], comment: str = '', is_abstract: bool = False, is_override: bool = False, allow_override: bool = False, initializers: list[dict[str, Any]] = [], super_initializer: dict[str, str] = {}) -> dict[str, Any]:
+		return {
+			'symbol': '__init__',
+			'parameters': parameters,
+			'return_type': 'void',
+			'decorators': decorators,
+			'template_types': template_types,
+			'statements': statements,
+			'comment': comment,
+			# belongs class only
+			'accessor': accessor,
+			'class_symbol': class_symbol,
+			'is_abstract': is_abstract,
+			'is_override': is_override,
+			'allow_override': allow_override,
+			# constructor only
+			'initializers': initializers,
+			'super_initializer': super_initializer,
+		}
+
+	@classmethod
+	def destructor(cls, accessor: str, class_symbol: str, decorators: list[str] = [], statements: list[str] = [], comment: str = '', is_abstract: bool = False, is_override: bool = False, allow_override: bool = False) -> dict[str, Any]:
+		return {
+			'symbol': '__py_destroy__',
+			'parameters': [],
+			'return_type': 'void',
+			'decorators': decorators,
+			'template_types': [],
+			'statements': statements,
+			'comment': comment,
+			# belongs class only
+			'accessor': accessor,
+			'class_symbol': class_symbol,
+			'is_abstract': is_abstract,
+			'is_override': is_override,
+			'allow_override': allow_override,
+		}
+
+	@classmethod
+	def copy_constructor(cls, accessor: str, class_symbol: str, parameters: list[str], decorators: list[str] = [], statements: list[str] = [], comment: str = '', is_abstract: bool = False, is_override: bool = False, allow_override: bool = False) -> dict[str, Any]:
+		return {
+			'symbol': '__py_copy__',
+			'parameters': parameters,
+			'return_type': 'void',
+			'decorators': decorators,
+			'template_types': [],
+			'statements': statements,
+			'comment': comment,
+			# belongs class only
+			'accessor': accessor,
+			'class_symbol': class_symbol,
+			'is_abstract': is_abstract,
+			'is_override': is_override,
+			'allow_override': allow_override,
+		}
+
+	@classmethod
+	def class_method(cls, accessor: str, class_symbol: str, symbol: str, return_type: str, parameters: list[str] = [], decorators: list[str] = [], template_types: list[str] = [], statements: list[str] = [], comment: str = '', is_pure: bool = False, is_abstract: bool = False, is_override: bool = False, allow_override: bool = False, return_type_annotation: str = '') -> dict[str, Any]:
+		return {
+			'symbol': symbol,
+			'parameters': parameters,
+			'return_type': return_type,
+			'decorators': decorators,
+			'template_types': template_types,
+			'statements': statements,
+			'comment': comment,
+			'is_pure': is_pure,
+			# belongs class only
+			'accessor': accessor,
+			'class_symbol': class_symbol,
+			'is_abstract': is_abstract,
+			'is_override': is_override,
+			'allow_override': allow_override,
+			# method only
+			'return_type_annotation': return_type_annotation,
+		}
+
+	@classmethod
+	def method(cls, accessor: str, class_symbol: str, symbol: str, return_type: str, parameters: list[str] = [], decorators: list[str] = [], template_types: list[str] = [], statements: list[str] = [], comment: str = '', is_pure: bool = False, is_abstract: bool = False, is_override: bool = False, allow_override: bool = False, is_property: bool = False, return_type_annotation: str = '') -> dict[str, Any]:
+		return {
+			'symbol': symbol,
+			'parameters': parameters,
+			'return_type': return_type,
+			'decorators': decorators,
+			'template_types': template_types,
+			'statements': statements,
+			'comment': comment,
+			'is_pure': is_pure,
+			# belongs class only
+			'accessor': accessor,
+			'class_symbol': class_symbol,
+			'is_abstract': is_abstract,
+			'is_override': is_override,
+			'allow_override': allow_override,
+			# method only
+			'is_property': is_property,
+			'return_type_annotation': return_type_annotation,
+		}
+
+
 class Fixture:
 	def __init__(self) -> None:
 		# 効率化のためexampleのマッピングデータを利用
@@ -915,16 +1042,7 @@ class TestRenderer(TestCase):
 	@data_provider([
 		(
 			'function',
-			{
-				'symbol': 'func',
-				'decorators': ['deco(A, B)'],
-				'parameters': ['const std::string& text', 'int value = 1'],
-				'return_type': 'int',
-				'comment': '',
-				'statements': ['return value + 1;'],
-				'template_types': ['T'],
-				'is_pure': False,
-			},
+			Expects.function(symbol='func', parameters=['const std::string& text', 'int value = 1'], return_type='int', decorators=['deco(A, B)'], template_types=['T'], statements=['return value + 1;']),
 			'\n'.join([
 				'/** func */',
 				'template<typename T>',
@@ -935,18 +1053,7 @@ class TestRenderer(TestCase):
 		),
 		(
 			'closure',
-			{
-				'symbol': 'closure',
-				'decorators': [],
-				'parameters': ['const std::string& text', 'int value = 1'],
-				'return_type': 'int',
-				# 'comment': '',
-				'statements': ['return value + 1;'],
-				# 'template_types': [],
-				# 'is_pure': False,
-				# closure only
-				'binds': [],
-			},
+			Expects.closure(symbol='closure', parameters=['const std::string& text', 'int value = 1'], return_type='int', statements=['return value + 1;']),
 			'\n'.join([
 				'auto closure = [](const std::string& text, int value = 1) -> int {',
 				'	return value + 1;',
@@ -955,18 +1062,7 @@ class TestRenderer(TestCase):
 		),
 		(
 			'closure',
-			{
-				'symbol': 'closure_bind',
-				'decorators': [],
-				'parameters': ['const std::string& text', 'int value = 1'],
-				'return_type': 'int',
-				# 'comment': '',
-				'statements': ['return value + 1;'],
-				# 'template_types': [],
-				# 'is_pure': False,
-				# closure only
-				'binds': ['this', 'a', 'b'],
-			},
+			Expects.closure(symbol='closure_bind', parameters=['const std::string& text', 'int value = 1'], return_type='int', statements=['return value + 1;'], binds=['this', 'a', 'b']),
 			'\n'.join([
 				'auto closure_bind = [this, a, b](const std::string& text, int value = 1) mutable -> int {',
 				'	return value + 1;',
@@ -975,25 +1071,7 @@ class TestRenderer(TestCase):
 		),
 		(
 			'constructor',
-			{
-				'symbol': '__init__',
-				'decorators': [],
-				'parameters': ['int base_n = 1', 'int value = 2'],
-				'return_type': 'void',
-				'comment': '',
-				'statements': ['this->x = value;'],
-				'template_types': [],
-				# 'is_pure': False,
-				# belongs class only
-				'accessor': 'public',
-				'class_symbol': 'Hoge',
-				'is_abstract': False,
-				'is_override': False,
-				'allow_override': False,
-				# constructor only
-				'initializers': [{'symbol': 'a', 'value': '1'}, {'symbol': 'b', 'value': '{2}'}, {'symbol': 'c', 'value': ''}],
-				'super_initializer': {'parent': 'Base', 'arguments': 'base_n'},
-			},
+			Expects.constructor(accessor='public', class_symbol='Hoge', parameters=['int base_n = 1', 'int value = 2'], statements=['this->x = value;'], initializers=[{'symbol': 'a', 'value': '1'}, {'symbol': 'b', 'value': '{2}'}, {'symbol': 'c', 'value': ''}], super_initializer={'parent': 'Base', 'arguments': 'base_n'}),
 			'\n'.join([
 				'public:',
 				'/** __init__ */',
@@ -1004,25 +1082,7 @@ class TestRenderer(TestCase):
 		),
 		(
 			'constructor',
-			{
-				'symbol': '__init__',
-				'decorators': ['deco(A, B)'],
-				'parameters': [],
-				'return_type': 'void',
-				'comment': '',
-				'statements': [],
-				'template_types': ['T'],
-				# 'is_pure': False,
-				# belongs class only
-				'accessor': 'public',
-				'class_symbol': 'Hoge',
-				'is_abstract': True,
-				'is_override': False,
-				'allow_override': False,
-				# constructor only
-				'initializers': [],
-				'super_initializer': {},
-			},
+			Expects.constructor(accessor='public', class_symbol='Hoge', decorators=['deco(A, B)'], template_types=['T'], is_abstract=True),
 			'\n'.join([
 				'public:',
 				'/** __init__ */',
@@ -1032,22 +1092,7 @@ class TestRenderer(TestCase):
 		),
 		(
 			'class_method',
-			{
-				'symbol': 'static_method',
-				'decorators': [],
-				'parameters': [],
-				'return_type': 'int',
-				'comment': '',
-				'statements': ['return 1;'],
-				'template_types': [],
-				'is_pure': False,
-				# belongs class only
-				'accessor': 'public',
-				'class_symbol': 'Hoge',
-				'is_abstract': False,
-				'is_override': False,
-				'allow_override': False,
-			},
+			Expects.class_method(accessor='public', class_symbol='Hoge', symbol='static_method', return_type='int', statements=['return 1;']),
 			'\n'.join([
 				'public:',
 				'/** static_method */',
@@ -1058,22 +1103,7 @@ class TestRenderer(TestCase):
 		),
 		(
 			'class_method',
-			{
-				'symbol': 'static_method',
-				'decorators': ['deco(A, B)'],
-				'parameters': [],
-				'return_type': 'void',
-				'comment': '',
-				'statements': [],
-				'template_types': ['T'],
-				'is_pure': False,
-				# belongs class only
-				'accessor': 'public',
-				'class_symbol': 'Hoge',
-				'is_abstract': False,
-				'is_override': False,
-				'allow_override': False,
-			},
+			Expects.class_method(accessor='public', class_symbol='Hoge', symbol='static_method', return_type='void', decorators=['deco(A, B)'], template_types=['T']),
 			'\n'.join([
 				'public:',
 				'/** static_method */',
@@ -1083,24 +1113,7 @@ class TestRenderer(TestCase):
 		),
 		(
 			'method',
-			{
-				'symbol': 'method',
-				'decorators': [],
-				'parameters': ['int value = 1'],
-				'return_type': 'void',
-				'comment': '',
-				'statements': ['this->x = value;'],
-				'template_types': [],
-				'is_pure': False,
-				# belongs class only
-				'accessor': 'public',
-				'class_symbol': 'Hoge',
-				'is_abstract': False,
-				'is_override': False,
-				'allow_override': False,
-				# method only
-				'is_property': True,
-			},
+			Expects.method(accessor='public', class_symbol='Hoge', symbol='method', return_type='void', parameters=['int value = 1'], statements=['this->x = value;'], is_property=True),
 			'\n'.join([
 				'public:',
 				'/** method */',
@@ -1111,24 +1124,7 @@ class TestRenderer(TestCase):
 		),
 		(
 			'method',
-			{
-				'symbol': 'pure_virtual_method',
-				'decorators': [],
-				'parameters': ['int value = 1'],
-				'return_type': 'void',
-				'comment': '',
-				'statements': [],
-				'template_types': [],
-				'is_pure': False,
-				# belongs class only
-				'accessor': 'public',
-				'class_symbol': 'Hoge',
-				'is_abstract': True,
-				'is_override': False,
-				'allow_override': False,
-				# method only
-				'is_property': False,
-			},
+			Expects.method(accessor='public', class_symbol='Hoge', symbol='pure_virtual_method', return_type='void', parameters=['int value = 1'], is_abstract=True),
 			'\n'.join([
 				'public:',
 				'/** pure_virtual_method */',
@@ -1137,24 +1133,7 @@ class TestRenderer(TestCase):
 		),
 		(
 			'method',
-			{
-				'symbol': 'allow_override_method',
-				'decorators': [],
-				'parameters': ['int value = 1'],
-				'return_type': 'void',
-				'comment': '',
-				'statements': ['this->x = value;'],
-				'template_types': [],
-				'is_pure': False,
-				# belongs class only
-				'accessor': 'public',
-				'class_symbol': 'Hoge',
-				'is_abstract': False,
-				'is_override': False,
-				'allow_override': True,
-				# method only
-				'is_property': False,
-			},
+			Expects.method(accessor='public', class_symbol='Hoge', symbol='allow_override_method', return_type='void', parameters=['int value = 1'], statements=['this->x = value;'], allow_override=True),
 			'\n'.join([
 				'public:',
 				'/** allow_override_method */',
@@ -1165,24 +1144,7 @@ class TestRenderer(TestCase):
 		),
 		(
 			'method',
-			{
-				'symbol': 'overrided_method',
-				'decorators': [],
-				'parameters': ['int value = 1'],
-				'return_type': 'void',
-				'comment': '',
-				'statements': ['this->x = value;'],
-				'template_types': [],
-				'is_pure': False,
-				# belongs class only
-				'accessor': 'public',
-				'class_symbol': 'Hoge',
-				'is_abstract': False,
-				'is_override': True,
-				'allow_override': False,
-				# method only
-				'is_property': False,
-			},
+			Expects.method(accessor='public', class_symbol='Hoge', symbol='overrided_method', return_type='void', parameters=['int value = 1'], statements=['this->x = value;'], is_override=True),
 			'\n'.join([
 				'public:',
 				'/** overrided_method */',
@@ -1193,24 +1155,7 @@ class TestRenderer(TestCase):
 		),
 		(
 			'method',
-			{
-				'symbol': 'template_method',
-				'decorators': [],
-				'parameters': ['int value = 1'],
-				'return_type': 'void',
-				'comment': '',
-				'statements': ['this->x = value;'],
-				'template_types': ['T', 'T2', 'T_Args...'],
-				'is_pure': False,
-				# belongs class only
-				'accessor': 'public',
-				'class_symbol': 'Hoge',
-				'is_abstract': False,
-				'is_override': False,
-				'allow_override': False,
-				# method only
-				'is_property': False,
-			},
+			Expects.method(accessor='public', class_symbol='Hoge', symbol='template_method', return_type='void', parameters=['int value = 1'], template_types=['T', 'T2', 'T_Args...'], statements=['this->x = value;']),
 			'\n'.join([
 				'public:',
 				'/** template_method */',
@@ -1222,53 +1167,18 @@ class TestRenderer(TestCase):
 		),
 		(
 			'method',
-			{
-				'symbol': 'decorated_method',
-				'decorators': ['deco(A, B)', 'Embed.private()', 'Embed.pure()'],
-				'parameters': ['int value = 1'],
-				'return_type': 'void',
-				'comment': '',
-				'statements': ['this->x = value;'],
-				'template_types': [],
-				'is_pure': True,
-				# belongs class only
-				'accessor': 'public',
-				'class_symbol': 'Hoge',
-				'is_abstract': False,
-				'is_override': False,
-				'allow_override': False,
-				# method only
-				'is_property': False,
-			},
+			Expects.method(accessor='public', class_symbol='Hoge', symbol='decorated_method', return_type='void', parameters=['int value = 1'], decorators=['deco(A, B)', 'Embed.private()', 'Embed.pure()'], statements=['this->x = value;']),
 			'\n'.join([
 				'private:',
 				'/** decorated_method */',
-				'void decorated_method(int value = 1) const {',
+				'void decorated_method(int value = 1) {',
 				'	this->x = value;',
 				'}',
 			]),
 		),
 		(
 			'method',
-			{
-				'symbol': 'method_anno_returns',
-				'decorators': [],
-				'parameters': [],
-				'return_type': 'std::string',
-				'comment': '',
-				'statements': ['return this->s;'],
-				'template_types': [],
-				'is_pure': False,
-				# belongs class only
-				'accessor': 'public',
-				'class_symbol': 'Hoge',
-				'is_abstract': False,
-				'is_override': False,
-				'allow_override': False,
-				# method only
-				'is_property': False,
-				'return_type_annotation': 'Embed::immutable',
-			},
+			Expects.method(accessor='public', class_symbol='Hoge', symbol='method_anno_returns', return_type='std::string', statements=['return this->s;'], return_type_annotation='Embed::immutable'),
 			'\n'.join([
 				'public:',
 				'/** method_anno_returns */',
@@ -1279,24 +1189,7 @@ class TestRenderer(TestCase):
 		),
 		(
 			'method',
-			{
-				'symbol': 'method_inline',
-				'decorators': ['Embed.inline'],
-				'parameters': [],
-				'return_type': 'int',
-				'comment': '',
-				'statements': ['return 0;'],
-				'template_types': [],
-				'is_pure': False,
-				# belongs class only
-				'accessor': 'public',
-				'class_symbol': 'Hoge',
-				'is_abstract': False,
-				'is_override': False,
-				'allow_override': False,
-				# method only
-				'is_property': False,
-			},
+			Expects.method(accessor='public', class_symbol='Hoge', symbol='method_inline', return_type='int', decorators=['Embed.inline'], statements=['return 0;']),
 			'\n'.join([
 				'public:',
 				'/** method_inline */',
@@ -1307,26 +1200,31 @@ class TestRenderer(TestCase):
 		),
 		(
 			'destructor',
-			{
-				'symbol': '__py_destroy__',
-				'decorators': [],
-				'parameters': [],
-				'return_type': 'void',
-				'comment': '',
-				'statements': [],
-				'template_types': [],
-				# 'is_pure': False,
-				# belongs class only
-				'accessor': 'public',
-				'class_symbol': 'Hoge',
-				'is_abstract': False,
-				'is_override': False,
-				'allow_override': False,
-			},
+			Expects.destructor(accessor='public', class_symbol='Hoge', statements=['this->release();']),
 			'\n'.join([
 				'public:',
 				'/** __py_destroy__ */',
-				'~Hoge() {}',
+				'~Hoge() {',
+				'	this->release();',
+				'}',
+			]),
+		),
+		(
+			'destructor',
+			Expects.destructor(accessor='public', class_symbol='Hoge', is_abstract=True),
+			'\n'.join([
+				'public:',
+				'/** __py_destroy__ */',
+				'virtual ~Hoge() = default;',
+			]),
+		),
+		(
+			'copy_constructor',
+			Expects.copy_constructor(accessor='public', class_symbol='Hoge', parameters=['const Hoge& other'], decorators=['Embed.ignore']),
+			'\n'.join([
+				'public:',
+				'/** __py_copy__ */',
+				'Hoge(const Hoge& other) = delete;',
 			]),
 		),
 	])

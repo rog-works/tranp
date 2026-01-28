@@ -362,7 +362,7 @@ class ClassTypehint(Typehint):
 				if not lookup_private and key.startswith(f'_{at_type.__name__}__'):
 					continue
 
-				origin, meta = OriginUnpacker.unpack(anno, a_type.__module__)
+				origin, meta = OriginUnpacker.unpack(anno, at_type.__module__)
 				if meta:
 					# XXX メタ情報が含まれる場合はAnnotatedを復元
 					annos[key] = cast(type, Annotated[origin, meta])
@@ -446,7 +446,11 @@ class OriginUnpacker:
 
 		module = import_module(via_module_path)
 		depends = {key: symbol for key, symbol in module.__dict__.items() if not key.startswith('__')}
-		return eval(type_str, depends)
+		try:
+			return eval(type_str, depends)
+		except NameError:
+			print(type_str, via_module_path)
+			raise
 
 
 class Typehints:

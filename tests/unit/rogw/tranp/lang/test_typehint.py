@@ -4,7 +4,7 @@ from types import FunctionType, MethodType, NoneType, UnionType
 from typing import Annotated, Any, ClassVar, Generic, TypeVar, cast
 from unittest import TestCase
 
-from rogw.tranp.lang.typehint import FuncClasses, Typehints, ClassTypehint, FunctionTypehint, ScalarTypehint
+from rogw.tranp.lang.typehint import ClassTypehint, FuncClasses, FunctionTypehint, ScalarTypehint, Typehints
 from rogw.tranp.test.helper import data_provider
 from rogw.tranp.test.validation import validation
 
@@ -48,6 +48,13 @@ class Sub(Base):
 
 	@property
 	def prop(self) -> int: ...
+
+
+class Annos:
+	cls_self: ClassVar[Annotated['Annos | None', 'meta']] = None
+	a_self: Annotated['Annos | None', 'meta']
+	an: Annotated['int', 'meta']
+	ad: Annotated['dict[str, int]', 'meta']
 
 
 def func(n: int, fn: 'int', an: Annotated[int, 'meta'], afn: Annotated['int', 'meta']) -> str: ...
@@ -201,8 +208,8 @@ class TestClassTypehint(TestCase):
 
 	@data_provider([
 		(Sub, {
-			'class_vars': {'cn': int, 'cl': list},
-			'self_vars': {'an': int, 'd': dict, 't': tuple, 'obj': Base, 'p': UnionType},
+			'class_vars': {'cn': (int, None), 'cl': (list, None)},
+			'self_vars': {'an': (int, 'meta'), 'd': (dict, None), 't': (tuple, None), 'obj': (Base, None), 'p': (UnionType, None)},
 			'methods': [Sub.__init__.__name__, Sub.cls_method.__name__, Sub.self_method.__name__, 'prop'],
 		}),
 		(Gen[str], {
@@ -210,11 +217,16 @@ class TestClassTypehint(TestCase):
 			'self_vars': {},
 			'methods': [],
 		}),
+		(Annos, {
+			'class_vars': {'cls_self': (UnionType, 'meta')},
+			'self_vars': {'a_self': (UnionType, 'meta'), 'an': (int, 'meta'), 'ad': (dict, 'meta')},
+			'methods': [],
+		}),
 	])
 	def test_schema(self, origin: type, expected: dict[str, Any]) -> None:
 		hint = ClassTypehint(origin)
-		self.assertEqual({key: var.origin for key, var in hint.class_vars().items()}, expected['class_vars'])
-		self.assertEqual({key: var.origin for key, var in hint.self_vars(lookup_private=False).items()}, expected['self_vars'])
+		self.assertEqual({key: (var.origin, var.meta(str)) for key, var in hint.class_vars().items()}, expected['class_vars'])
+		self.assertEqual({key: (var.origin, var.meta(str)) for key, var in hint.self_vars(lookup_private=False).items()}, expected['self_vars'])
 		self.assertEqual([key for key in hint.methods.keys()], expected['methods'])
 
 

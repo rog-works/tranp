@@ -3,7 +3,7 @@ from collections.abc import Callable
 from enum import Enum, EnumType
 from importlib import import_module
 from types import FunctionType, MethodType, NoneType, UnionType
-from typing import Annotated, Any, ClassVar, ForwardRef, TypeAlias, TypeVar, Union, get_origin
+from typing import Annotated, Any, ClassVar, ForwardRef, TypeAlias, TypeVar, Union, cast, get_origin
 
 from rogw.tranp.lang.annotation import implements
 
@@ -308,22 +308,28 @@ class ClassTypehint(Typehint):
 		"""Returns: コンストラクター"""
 		return FunctionTypehint(self._type.__init__)
 
+	@property
+	def methods(self) -> dict[str, FunctionTypehint]:
+		"""Returns: メソッド一覧"""
+		return {key: FunctionTypehint(prop) for key, prop in self.__recursive_methods(self._type).items()}
+
 	def class_vars(self, lookup_private: bool = True) -> dict[str, Typehint]:
 		"""クラス変数の一覧を取得
 
 		Args:
-			lookup_private: プライベートプロパティー抽出フラグ (default = True)
+			lookup_private: True = プライベート変数を抽出 (default = True)
 		Returns:
 			クラス変数一覧
 		"""
-		annos = {key: anno for key, anno in self.__recursive_annos(self._type, lookup_private).items() if self.__try_get_origin(anno) is ClassVar}
+		# XXX ClassVarは予めアンパック
+		annos = {key: getattr(anno, '__args__')[0] for key, anno in self.__recursive_annos(self._type, lookup_private).items() if self.__try_get_origin(anno) is ClassVar}
 		return {key: Typehints.resolve_internal(attr, self._type.__module__) for key, attr in annos.items()}
 
 	def self_vars(self, lookup_private: bool = True) -> dict[str, Typehint]:
 		"""インスタンス変数の一覧を取得
 
 		Args:
-			lookup_private: プライベートプロパティー抽出フラグ (default = True)
+			lookup_private: True = プライベート変数を抽出 (default = True)
 		Returns:
 			インスタンス変数一覧
 		"""
@@ -340,48 +346,41 @@ class ClassTypehint(Typehint):
 		"""
 		return getattr(anno, '__origin__', anno)
 
-	def __recursive_annos(self, _type: type[Any], lookup_private: bool) -> dict[str, type[Any]]:
-		"""クラス階層を辿ってタイプヒントを収集
+	def __recursive_annos(self, a_type: type[Any], lookup_private: bool) -> dict[str, type[Any]]:
+		"""クラス階層を辿ってアノテーションを収集
 
 		Args:
-			_type: タイプ
-			lookup_private: プライベート変数抽出フラグ (default = False)
+			a_type: タイプ
+			lookup_private: True = プライベート変数を抽出
 		Returns:
-			タイプヒント一覧
+			アノテーション一覧
 		"""
 		annos: dict[str, type[Any]] = {}
-		for at_type in reversed(_type.mro()):
+		for at_type in reversed(a_type.mro()):
 			_annos: dict[str, type[Any]] = getattr(at_type, '__annotations__', {})
 			for key, anno in _annos.items():
 				if not lookup_private and key.startswith(f'_{at_type.__name__}__'):
 					continue
 
-				origin = getattr(anno, '__origin__') if get_origin(anno) is Annotated else anno
-				if isinstance(origin, str):
-					annos[key] = _resolve_type_from_str(origin, at_type.__module__)
-					continue
-				elif type(origin) is ForwardRef:
-					annos[key] = _resolve_type_from_str(origin.__forward_arg__, at_type.__module__)
+				origin, meta = OriginUnpacker.unpack(anno, a_type.__module__)
+				if meta:
+					# XXX メタ情報が含まれる場合はAnnotatedを復元
+					annos[key] = cast(type, Annotated[origin, meta])
 				else:
 					annos[key] = anno
 
 		return annos
 
-	@property
-	def methods(self) -> dict[str, FunctionTypehint]:
-		"""Returns: メソッド一覧"""
-		return {key: FunctionTypehint(prop) for key, prop in self.__recursive_methods(self._type).items()}
-
-	def __recursive_methods(self, _type: type[Any]) -> dict[str, FuncTypes]:
+	def __recursive_methods(self, a_type: type[Any]) -> dict[str, FuncTypes]:
 		"""クラス階層を辿ってメソッドを収集
 
 		Args:
-			_type: タイプ
+			a_type: タイプ
 		Returns:
 			メソッド一覧
 		"""
 		_methods: dict[str, FuncTypes] = {}
-		for at_type in reversed(_type.mro()):
+		for at_type in reversed(a_type.mro()):
 			for key, attr in at_type.__dict__.items():
 				if isinstance(attr, FuncTypes):
 					_methods[key] = attr
@@ -389,28 +388,65 @@ class ClassTypehint(Typehint):
 		return _methods
 
 
-def _resolve_type_from_str(type_str: str, via_module_path: str) -> type[Any]:
-	"""文字列のタイプヒントを解析してタイプを解決
+class OriginUnpacker:
+	"""オリジンアンパッカー"""
 
-	Args:
-		type_str: タイプヒント
-		via_module_path: 由来のモジュールパス
-	Returns:
-		解決したタイプ
-	Raises:
-		ValueError: 由来のモジュールパスが不正
-	Note:
-		```
-		* `eval`を使用して文字列からタイプを強引に解決する
-		* ユーザー定義型は由来のモジュール内によって明示されているシンボルのみ解決が出来る
-		```
-	"""
-	if len(via_module_path) == 0:
-		raise ValueError(f'Unresolved origin type. via module is empty. origin: {type_str}')
+	@classmethod
+	def unpack(cls, origin: type[Any] | FuncTypes | str | ForwardRef, via_module_path: str) -> tuple[type[Any] | FuncTypes, Any | None]:
+		"""オリジンからタイプ・メタ情報をアンパック
 
-	module = import_module(via_module_path)
-	depends = {key: symbol for key, symbol in module.__dict__.items() if not key.startswith('__')}
-	return eval(type_str, depends)
+		Args:
+			origin: オリジン(タイプ/関数オブジェクト/文字列/ForwardRef)
+			via_module_path: 由来のモジュールパス。文字列のタイプヒントの解析に使用
+		Returns:
+			(タイプ, メタ情報)
+		Note:
+			Annotated/ForwardRefは型情報として意味を成さないので暗黙的にアンパック
+		"""
+		if isinstance(origin, str):
+			return OriginUnpacker.forward_to_type(origin, via_module_path), None
+		elif get_origin(origin) is Annotated:
+			_origin = getattr(origin, '__origin__')
+			# FIXME 可変長tupleは扱いにくいため、一旦先頭要素のみ使用
+			meta: Any = getattr(origin, '__metadata__')[0]
+			if type(_origin) is ForwardRef:
+				return OriginUnpacker.forward_to_type(_origin.__forward_arg__, via_module_path), meta
+			else:
+				return _origin, meta
+		elif get_origin(origin) is ClassVar:
+			_origin = getattr(origin, '__args__')[0]
+			if type(_origin) is ForwardRef:
+				return OriginUnpacker.forward_to_type(_origin.__forward_arg__, via_module_path), None
+			else:
+				return _origin, None
+		elif type(origin) is ForwardRef:
+			return OriginUnpacker.forward_to_type(origin.__forward_arg__, via_module_path), None
+		else:
+			return origin, None
+
+	@classmethod
+	def forward_to_type(cls, type_str: str, via_module_path: str) -> type[Any]:
+		"""文字列のタイプヒントを解析してタイプを解決
+
+		Args:
+			type_str: タイプの文字列
+			via_module_path: 由来のモジュールパス
+		Returns:
+			解決したタイプ
+		Raises:
+			ValueError: 由来のモジュールパスが不正
+		Note:
+			```
+			* `eval`を使用して文字列からタイプを強引に解決する
+			* ユーザー定義型は由来のモジュール内によって明示されているシンボルのみ解決が出来る
+			```
+		"""
+		if len(via_module_path) == 0:
+			raise ValueError(f'Unresolved origin type. via module is empty. origin: {type_str}')
+
+		module = import_module(via_module_path)
+		depends = {key: symbol for key, symbol in module.__dict__.items() if not key.startswith('__')}
+		return eval(type_str, depends)
 
 
 class Typehints:
@@ -449,44 +485,13 @@ class Typehints:
 		Returns:
 			タイプヒント
 		"""
-		actual_origin, meta = cls.__unpack_origin(origin, via_module_path)
+		actual_origin, meta = OriginUnpacker.unpack(origin, via_module_path)
 		if isinstance(actual_origin, FuncTypes):
 			return FunctionTypehint(actual_origin, meta)
 		elif cls.__is_scalar(actual_origin):
 			return ScalarTypehint(actual_origin, meta)
 		else:
 			return ClassTypehint(actual_origin, meta)
-
-	@classmethod
-	def __unpack_origin(cls, origin: str | type[Any] | FuncTypes, via_module_path: str) -> tuple[type[Any] | FuncTypes, Any | None]:
-		"""オリジンからタイプ・メタ情報をアンパック
-
-		Args:
-			origin: タイプ、関数オブジェクト、または文字列のタイプヒント
-			via_module_path: 由来のモジュールパス。文字列のタイプヒントの解析に使用
-		Returns:
-			(タイプ, メタ情報)
-		Note:
-			Annotated/ForwardRefは型情報として意味を成さないので暗黙的にアンパック
-		"""
-		if isinstance(origin, str):
-			return _resolve_type_from_str(origin, via_module_path), None
-		elif get_origin(origin) is Annotated:
-			_origin = getattr(origin, '__origin__')
-			# FIXME 可変長tupleは扱いにくいため、一旦先頭要素のみ使用
-			meta: Any = getattr(origin, '__metadata__')[0]
-			if type(_origin) is ForwardRef:
-				return _resolve_type_from_str(_origin.__forward_arg__, via_module_path), meta
-			else:
-				return _origin, meta
-		elif get_origin(origin) is ClassVar:
-			_origin = getattr(origin, '__args__')[0]
-			if type(_origin) is ForwardRef:
-				return _resolve_type_from_str(_origin.__forward_arg__, via_module_path), None
-			else:
-				return _origin, None
-		else:
-			return origin, None
 
 	@classmethod
 	def __is_scalar(cls, origin: type[Any]) -> bool:

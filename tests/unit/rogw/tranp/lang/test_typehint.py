@@ -52,7 +52,7 @@ class Sub(Base):
 
 class Annos:
 	cls_self: ClassVar[Annotated['Annos | None', 'meta']] = None
-	a_self: Annotated['Annos | None', 'meta']
+	a_imported: Annotated['ScalarTypehint', 'meta']
 	an: Annotated['int', 'meta']
 	ad: Annotated['dict[str, int]', 'meta']
 
@@ -219,7 +219,7 @@ class TestClassTypehint(TestCase):
 		}),
 		(Annos, {
 			'class_vars': {'cls_self': (UnionType, 'meta')},
-			'self_vars': {'a_self': (UnionType, 'meta'), 'an': (int, 'meta'), 'ad': (dict, 'meta')},
+			'self_vars': {'a_imported': (ScalarTypehint, 'meta'), 'an': (int, 'meta'), 'ad': (dict, 'meta')},
 			'methods': [],
 		}),
 	])

@@ -446,11 +446,7 @@ class OriginUnpacker:
 
 		module = import_module(via_module_path)
 		depends = {key: symbol for key, symbol in module.__dict__.items() if not key.startswith('__')}
-		try:
-			return eval(type_str, depends)
-		except NameError:
-			print(type_str, via_module_path)
-			raise
+		return eval(type_str, depends)
 
 
 class Typehints:

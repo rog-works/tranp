@@ -321,8 +321,7 @@ class ClassTypehint(Typehint):
 		Returns:
 			クラス変数一覧
 		"""
-		# XXX ClassVarは予めアンパック
-		annos = {key: getattr(anno, '__args__')[0] for key, anno in self.__recursive_annos(self._type, lookup_private).items() if self.__try_get_origin(anno) is ClassVar}
+		annos = {key: anno for key, anno in self.__recursive_annos(self._type, lookup_private, for_class_var=True).items()}
 		return {key: Typehints.resolve_internal(attr, self._type.__module__) for key, attr in annos.items()}
 
 	def self_vars(self, lookup_private: bool = True) -> dict[str, Typehint]:
@@ -333,33 +332,28 @@ class ClassTypehint(Typehint):
 		Returns:
 			インスタンス変数一覧
 		"""
-		annos = {key: anno for key, anno in self.__recursive_annos(self._type, lookup_private).items() if self.__try_get_origin(anno) is not ClassVar}
+		annos = {key: anno for key, anno in self.__recursive_annos(self._type, lookup_private, for_class_var=False).items()}
 		return {key: Typehints.resolve_internal(attr, self._type.__module__) for key, attr in annos.items()}
-	
-	def __try_get_origin(self, anno: type[Any]) -> type[Any]:
-		"""アノテーションから元のタイプ取得を試行
 
-		Args:
-			anno: アノテーション
-		Returns:
-			元のタイプ
-		"""
-		return getattr(anno, '__origin__', anno)
-
-	def __recursive_annos(self, a_type: type[Any], lookup_private: bool) -> dict[str, type[Any]]:
+	def __recursive_annos(self, a_type: type[Any], lookup_private: bool, for_class_var: bool) -> dict[str, type[Any] | FuncTypes]:
 		"""クラス階層を辿ってアノテーションを収集
 
 		Args:
 			a_type: タイプ
 			lookup_private: True = プライベート変数を抽出
+			for_class_var: True = クラス変数のみ抽出, False = インスタンス変数のみ抽出
 		Returns:
 			アノテーション一覧
 		"""
-		annos: dict[str, type[Any]] = {}
+		annos: dict[str, type[Any] | FuncTypes] = {}
 		for at_type in reversed(a_type.mro()):
-			_annos: dict[str, type[Any]] = getattr(at_type, '__annotations__', {})
-			for key, anno in _annos.items():
+			in_annos: dict[str, type[Any]] = getattr(at_type, '__annotations__', {})
+			for key, anno in in_annos.items():
 				if not lookup_private and key.startswith(f'_{at_type.__name__}__'):
+					continue
+
+				is_class_var = getattr(anno, '__origin__', anno) is ClassVar
+				if (for_class_var and not is_class_var) or (not for_class_var and is_class_var):
 					continue
 
 				origin, meta = OriginUnpacker.unpack(anno, at_type.__module__)
@@ -367,7 +361,7 @@ class ClassTypehint(Typehint):
 					# XXX メタ情報が含まれる場合はAnnotatedを復元
 					annos[key] = cast(type, Annotated[origin, meta])
 				else:
-					annos[key] = anno
+					annos[key] = origin
 
 		return annos
 
@@ -446,7 +440,11 @@ class OriginUnpacker:
 
 		module = import_module(via_module_path)
 		depends = {key: symbol for key, symbol in module.__dict__.items() if not key.startswith('__')}
-		return eval(type_str, depends)
+		try:
+			return eval(type_str, depends)
+		except NameError:
+			print(type_str, via_module_path)
+			raise
 
 
 class Typehints:

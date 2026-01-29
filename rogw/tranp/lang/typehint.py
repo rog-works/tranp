@@ -335,7 +335,7 @@ class ClassTypehint(Typehint):
 		annos = {key: anno for key, anno in self.__recursive_annos(self._type, lookup_private, for_class_var=False).items()}
 		return {key: Typehints.resolve_internal(attr, self._type.__module__) for key, attr in annos.items()}
 
-	def __recursive_annos(self, a_type: type[Any], lookup_private: bool, for_class_var: bool) -> dict[str, type[Any] | FuncTypes]:
+	def __recursive_annos(self, a_type: type[Any], lookup_private: bool, for_class_var: bool) -> dict[str, type[Any]]:
 		"""クラス階層を辿ってアノテーションを収集
 
 		Args:
@@ -345,7 +345,7 @@ class ClassTypehint(Typehint):
 		Returns:
 			アノテーション一覧
 		"""
-		annos: dict[str, type[Any] | FuncTypes] = {}
+		annos: dict[str, type[Any]] = {}
 		for at_type in reversed(a_type.mro()):
 			in_annos: dict[str, type[Any]] = getattr(at_type, '__annotations__', {})
 			for key, anno in in_annos.items():
@@ -357,11 +357,12 @@ class ClassTypehint(Typehint):
 					continue
 
 				origin, meta = OriginUnpacker.unpack(anno, at_type.__module__)
+				# FIXME 型の不一致は一旦castで対処
+				# XXX メタ情報が含まれる場合はAnnotatedを復元
 				if meta:
-					# XXX メタ情報が含まれる場合はAnnotatedを復元
 					annos[key] = cast(type, Annotated[origin, meta])
 				else:
-					annos[key] = origin
+					annos[key] = cast(type, origin)
 
 		return annos
 
@@ -440,11 +441,7 @@ class OriginUnpacker:
 
 		module = import_module(via_module_path)
 		depends = {key: symbol for key, symbol in module.__dict__.items() if not key.startswith('__')}
-		try:
-			return eval(type_str, depends)
-		except NameError:
-			print(type_str, via_module_path)
-			raise
+		return eval(type_str, depends)
 
 
 class Typehints:

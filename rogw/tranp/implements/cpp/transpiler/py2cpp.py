@@ -55,6 +55,7 @@ class Py2Cpp(ITranspiler):
 		self.evaluator = evaluator
 		self.module_meta_factory = module_meta_factory
 		self.include_dirs = self.__make_include_dirs(options)
+		self.cvars = CVars(options.env.get('cvars', {}))
 		self.__procedure = self.__make_procedure(options)
 		# XXX トランスパイラーがステートフルになってしまう上、処理中のモジュールとの結合が曖昧
 		self.__stack_on_depends: list[list[str]] = []
@@ -186,7 +187,7 @@ class Py2Cpp(ITranspiler):
 			var_type = f'{var_type}<{attr_types[-1]}({", ".join(param_types)})>'
 		elif not actual_raw.types.is_a(defs.AltClass) and len(attr_types) > 0:
 			var_type = f'{var_type}<{", ".join(attr_types)}>'
-		elif actual_raw.types.is_a(defs.AltClass) and not CVars.is_entity(CVars.key_from(actual_raw.attrs[0])):
+		elif actual_raw.types.is_a(defs.AltClass) and not self.cvars.is_entity(CVars.key_from(actual_raw.attrs[0])):
 			# XXX C++型変数のAltClassの特殊化であり、一般解に程遠いため修正を検討
 			var_type = f'{var_type}<{", ".join([self.to_accessible_name(attr) for attr in actual_raw.attrs[0].attrs])}>'
 
@@ -766,7 +767,7 @@ class Py2Cpp(ITranspiler):
 			return False
 
 		cvar_key = CVars.key_from(receiver_symbol)
-		return not CVars.is_entity(cvar_key)
+		return not self.cvars.is_entity(cvar_key)
 
 	def is_relay_cvar_link(self, node: defs.Relay, org_receiver_symbol: IReflection, receiver_symbol: IReflection) -> bool:
 		if not (isinstance(node.receiver, defs.Relay) and node.receiver.prop.domain_name == CVars.relay_key):
@@ -774,14 +775,14 @@ class Py2Cpp(ITranspiler):
 
 		# XXX contextはactualize前のインスタンスを使う
 		cvar_key = CVars.key_from(org_receiver_symbol.context)
-		return not CVars.is_entity(cvar_key)
+		return not self.cvars.is_entity(cvar_key)
 
 	def is_relay_cvar_exchanger(self, node: defs.Relay, receiver_symbol: IReflection) -> bool:
 		if node.prop.domain_name not in CVars.exchanger_keys:
 			return False
 
 		cvar_key = CVars.key_from(receiver_symbol)
-		return not CVars.is_entity(cvar_key)
+		return not self.cvars.is_entity(cvar_key)
 
 	def is_relay_type(self, node: defs.Relay, org_receiver_symbol: IReflection) -> bool:
 		return org_receiver_symbol.impl(refs.Object).type_is(type) or isinstance(node.receiver, defs.Super)
@@ -834,7 +835,7 @@ class Py2Cpp(ITranspiler):
 			return 'class', symbol.actualize()
 		elif receiver_symbol.type_is(tuple):
 			return 'tuple', None
-		elif not CVars.is_entity(CVars.key_from(receiver_symbol)):
+		elif not self.cvars.is_entity(CVars.key_from(receiver_symbol)):
 			return 'cvar', None
 		else:
 			return 'otherwise', None
@@ -1090,7 +1091,7 @@ class Py2Cpp(ITranspiler):
 					return 'cast_bin_to_str', from_raw
 				else:
 					return 'cast_bin_to_bin', to_raw
-			elif not CVars.is_entity(CVars.key_from(calls_raw)):
+			elif not self.cvars.is_entity(CVars.key_from(calls_raw)):
 				# XXX AltClassを考慮するとRelay側も対応が必要で片手落ち
 				return f'cvar_to', calls_raw
 		elif isinstance(node.calls, defs.Relay):
@@ -1139,12 +1140,12 @@ class Py2Cpp(ITranspiler):
 			elif prop == CVars.hex_key:
 				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object).actualize()
 				cvar_key = CVars.key_from(receiver_raw)
-				if not CVars.is_entity(cvar_key):
+				if not self.cvars.is_entity(cvar_key):
 					return 'cvar_to_addr_hex', receiver_raw
 			elif prop == CVars.id_key:
 				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object).actualize()
 				cvar_key = CVars.key_from(receiver_raw)
-				if not CVars.is_entity(cvar_key):
+				if not self.cvars.is_entity(cvar_key):
 					return 'cvar_to_addr_id', receiver_raw
 			elif prop == Embed.static.__name__ and node.calls.tokens == Embed.static.__qualname__:
 				return 'decl_static', None

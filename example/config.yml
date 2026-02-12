@@ -13,6 +13,15 @@ env:
   transpiler:
     include_dirs:
       - example/
+    cvars:
+      CP: CP
+      CRef: CRef
+      CSP: CSP
+      CWP: CP
+      CRaw: CRaw
+      CPConst: CPConst
+      CRefConst: CRefConst
+      CRawConst: CRawConst
   view:
     immutable_param_types:
       - std::string

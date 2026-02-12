@@ -2,9 +2,9 @@ from enum import Enum
 from typing import ClassVar
 
 import rogw.tranp.compatible.cpp.object as cpp
+import rogw.tranp.semantics.reflection.definition as refs
 from rogw.tranp.lang.annotation import deprecated
 from rogw.tranp.semantics.reflection.base import IReflection
-import rogw.tranp.semantics.reflection.definition as refs
 
 
 class CVars:
@@ -62,8 +62,21 @@ class CVars:
 		Address = 1
 		Static = 2
 
-	@classmethod
-	def is_entity(cls, key: str) -> bool:
+	def __init__(self, options: dict[str, str]) -> None:
+		self._symbol_to_key = {
+			cpp.CP.__name__: cpp.CP.__name__,
+			cpp.CSP.__name__: cpp.CSP.__name__,
+			cpp.CRef.__name__: cpp.CRef.__name__,
+			cpp.CRaw.__name__: cpp.CRaw.__name__,
+			cpp.CPConst.__name__: cpp.CPConst.__name__,
+			cpp.CSPConst.__name__: cpp.CSPConst.__name__,
+			cpp.CRefConst.__name__: cpp.CRefConst.__name__,
+			cpp.CRawConst.__name__: cpp.CRawConst.__name__,
+		}
+		for symbol, key in options.items():
+			self._symbol_to_key[symbol] = key
+
+	def is_entity(self, key: str) -> bool:
 		"""実体か判定(Constは除外)
 
 		Args:
@@ -71,7 +84,7 @@ class CVars:
 		Returns:
 			True = 実体
 		"""
-		return key == cpp.CRaw.__name__
+		return self._symbol_to_key[key] == cpp.CRaw.__name__
 
 	@classmethod
 	def is_raw(cls, key: str) -> bool:

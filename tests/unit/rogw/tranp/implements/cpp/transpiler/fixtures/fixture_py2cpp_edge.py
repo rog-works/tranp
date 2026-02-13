@@ -1,15 +1,6 @@
-from enum import Enum
-
-from rogw.tranp.compatible.python.embed import Embed
+from rogw.tranp.compatible.cpp.object import CP
 
 
-class E(Enum):
-	Alias = 'name'
-
-
-class A:
-	def a(self) -> None: ...
-	@Embed.alias(a.__name__)
-	def b_to_a(self) -> None: ...
-	@Embed.alias(E.Alias.value)
-	def c_to_name(self) -> None: ...
+def a(l: list[CP[int]]) -> None:
+	for i, np in enumerate(l):
+		n = np.raw

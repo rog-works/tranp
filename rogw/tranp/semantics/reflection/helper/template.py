@@ -8,6 +8,7 @@ from rogw.tranp.compatible.python.types import Union
 from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.errors import Errors
 from rogw.tranp.semantics.reflection.base import IReflection
+from rogw.tranp.syntax.node.node import Node
 
 T_Helper = TypeVar('T_Helper', bound='Helper')
 T_Schemata = TypeVar('T_Schemata', IReflection, list[IReflection])
@@ -261,12 +262,14 @@ class TemplateManipulator:
 			一致したパスのマップ表
 		"""
 		updates: UpdateMap = {}
+		normalize_schema_props = cls._normalize_props(schema_props)
+		normalize_actual_props = cls._normalize_props(actual_props)
 		for target_path, target_template in target_templates.items():
 			for schema_path, schema_template in schema_templates.items():
 				if target_template != schema_template:
 					continue
 
-				found_path = cls._find_update_path(schema_path, schema_props, actual_props)
+				found_path = cls._find_actual_path(schema_path, normalize_schema_props[schema_path], normalize_actual_props)
 				if len(found_path) == 0:
 					continue
 
@@ -279,55 +282,63 @@ class TemplateManipulator:
 		return updates
 
 	@classmethod
-	def _find_update_path(cls, find_path: str, schema_props: SymbolMap, actual_props: SymbolMap) -> str:
-		"""スキーマと実行時型を突き合わせて解決対象のテンプレートのパスを抽出
+	def _normalize_props(cls, props: dict[str, IReflection]) -> dict[str, list[str]]:
+		"""シンボルのマップ表を正規化(=単純化)
 
 		Args:
-			find_path: 対象のスキーマのパス
-			schema_props: シンボルのマップ表(スキーマ)
-			actual_props: シンボルのマップ表(実行時型)
+			props: シンボルのマップ表
 		Returns:
-			一致したパス
+			正規化したマップ表
+		Note:
+			@see tests.unit.rogw.tranp.semantics.reflection.test_helper.py
 		"""
-		schema_elems = DSN.elements(find_path)
-		actual_path = schema_elems[0]
-		schema_path = schema_elems[0]
-		actual_index = 0
-		schema_index = 0
-		while schema_index < len(schema_elems):
-			# スキップ(データ未到達)
-			if actual_path not in actual_props:
-				actual_index += 1
-				schema_index += 1
-				if schema_index < len(schema_elems):
-					actual_path = DSN.join(actual_path, schema_elems[actual_index])
-					schema_path = DSN.join(schema_path, schema_elems[schema_index])
+		unique_keys: list[str] = []
+		keys = list(props.keys())
+		for i, key in enumerate(keys):
+			found = False
+			for j in range(i + 1, len(keys)):
+				if keys[j].startswith(key):
+					found = True
+					break
 
+			if not found:
+				unique_keys.append(key)
+
+		normalized: dict[str, list[str]] = {key: [] for key in unique_keys}
+		for key in unique_keys:
+			count = DSN.elem_counts(key)
+			for i in range(2, count):
+				begin = DSN.left(key, i)
+				if begin in props and not props[begin].impl(refs.Object).type_is(Union):
+					normalized[key].append(props[begin].types.domain_name)
+
+			normalized[key].append(props[key].types.domain_name)
+
+		return normalized
+
+	@classmethod
+	def _find_actual_path(cls, schema_path: str, schema_elems: list[str], actual_props: dict[str, list[str]]) -> str:
+		"""テンプレート型に対応する実行時型のシンボルへのパスを探索
+
+		Args:
+			schema_path: 対象のスキーマのパス
+			schema_elems: 正規化したシンボルの階層(スキーマ)
+			actual_props: 正規化したシンボルのマップ表(実行時型)
+		Returns:
+			実行時型のパス
+		Note:
+			@see tests.unit.rogw.tranp.semantics.reflection.test_helper.py
+		"""
+		schema_begin_path = DSN.left(schema_path, 2)
+		schema_begin_elems = schema_elems[:-1]
+		for actual_path, props in actual_props.items():
+			if not actual_path.startswith(schema_begin_path):
 				continue
-
-			# スキップ(Union/スキーマ)
-			if schema_props[schema_path].impl(refs.Object).type_is(Union):
-				schema_index += 1
-				schema_path = DSN.join(schema_path, schema_elems[schema_index])
-
-			# スキップ(Union/実体)
-			if actual_props[actual_path].impl(refs.Object).type_is(Union):
-				actual_index += 1
-				actual_path = DSN.join(actual_path, schema_elems[actual_index])
-
-			# 検出成功(スキーマより実体を優先)
-			if actual_props[actual_path].types.is_a(defs.TemplateClass):
+			elif len(schema_elems) == len(props) and schema_begin_elems == props[:-1]:
 				return actual_path
-			# 検出成功
-			elif schema_props[schema_path].types.is_a(defs.TemplateClass):
-				return actual_path
-			# スキップ(実体とスキーマが同一、または継承関係)
-			else:
-				actual_index += 1
-				schema_index += 1
-				if schema_index < len(schema_elems):
-					actual_path = DSN.join(actual_path, schema_elems[actual_index])
-					schema_path = DSN.join(schema_path, schema_elems[schema_index])
+			elif len(schema_elems) < len(props) and schema_begin_elems == props[:len(schema_begin_elems)]:
+				lacks = len(props) - len(schema_elems)
+				return DSN.left(actual_path, DSN.elem_counts(actual_path) - lacks)
 
 		return ''
 

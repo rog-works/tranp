@@ -1172,7 +1172,7 @@ class Py2Cpp(ITranspiler):
 		# XXX is_const/is_addr_pの対応に一貫性が無い。包括的な対応を検討
 		for_in_symbol = Defer.new(lambda: self.reflections.type_of(node.for_in).impl(refs.Object).actualize())
 		is_const = self.cvars.is_const(self.cvars.var_name_from(for_in_symbol)) if len(symbols) == 1 else False
-		is_addr_p = self.cvars.is_addr(self.cvars.var_name_from(for_in_symbol)) if len(symbols) == 1 else False
+		is_addr_p = self.cvars.is_addr_p(self.cvars.var_name_from(for_in_symbol)) if len(symbols) == 1 else False
 
 		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Var) and node.iterates.calls.tokens in [range.__name__, enumerate.__name__]:
 			spec = node.iterates.calls.tokens

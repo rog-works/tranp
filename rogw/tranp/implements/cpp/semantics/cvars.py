@@ -16,10 +16,10 @@ class CVars:
 		Attributes:
 			Copy: 同種のコピー(実体 = 実体、アドレス = アドレス)
 			New: メモリ確保(生ポインター)
-			MakeSp: メモリ確保(スマートポインター)
+			MakeSp: メモリ確保(共有ポインター)
 			ToActual: アドレス変数を実体参照
 			ToAddress: 実体/参照から生ポインターに変換
-			UnpackSp: スマートポインターから生ポインターに変換
+			UnpackSp: 共有ポインターから生ポインターに変換
 			Deny: 不正な移動操作
 		"""
 		Copy = 0
@@ -35,7 +35,7 @@ class CVars:
 
 		Attributes:
 			Raw: 実体/参照
-			Address: ポインター/スマートポインター
+			Address: ポインター/共有ポインター
 			Static: クラス
 		"""
 		Raw = 0
@@ -145,7 +145,7 @@ class CVars:
 			self._var_name_to_key[symbol] = key
 
 	def is_entity(self, var_name: str) -> bool:
-		"""実体か判定(Constは除外)
+		"""実体か判定(不変性型は除外)
 
 		Args:
 			var_name: 変数型名
@@ -155,7 +155,7 @@ class CVars:
 		return self._var_name_to_key[var_name] == cpp.CRaw.__name__
 
 	def is_raw(self, var_name: str) -> bool:
-		"""実体か判定(Constを含む)
+		"""実体か判定(不変性型を含む)
 
 		Args:
 			var_name: 変数型名
@@ -165,17 +165,17 @@ class CVars:
 		return self._var_name_to_key[var_name] in CVars.RawKeys
 
 	def is_addr(self, var_name: str) -> bool:
-		"""アドレスか判定(Constを含む)
+		"""アドレスか判定(不変性型を含む)
 
 		Args:
 			var_name: 変数型名
 		Returns:
-			True = ポインター/スマートポインター
+			True = ポインター/共有ポインター
 		"""
 		return self._var_name_to_key[var_name] in CVars.AddrKeys
 
 	def is_raw_raw(self, var_name: str) -> bool:
-		"""実体か判定(Constを含む)
+		"""実体か判定(不変性型を含む)
 
 		Args:
 			var_name: 変数型名
@@ -185,7 +185,7 @@ class CVars:
 		return self._var_name_to_key[var_name] in CVars.RawRawKeys
 
 	def is_raw_ref(self, var_name: str) -> bool:
-		"""参照か判定(Constを含む)
+		"""参照か判定(不変性型を含む)
 
 		Args:
 			var_name: 変数型名
@@ -195,7 +195,7 @@ class CVars:
 		return self._var_name_to_key[var_name] in CVars.RawRefKeys
 
 	def is_addr_p(self, var_name: str) -> bool:
-		"""ポインターか判定(Constを含む)
+		"""ポインターか判定(不変性型を含む)
 
 		Args:
 			var_name: 変数型名
@@ -205,22 +205,22 @@ class CVars:
 		return self._var_name_to_key[var_name] in CVars.AddrPKeys
 
 	def is_addr_sp(self, var_name: str) -> bool:
-		"""スマートポインターか判定(Constを含む)
+		"""共有ポインターか判定(不変性型を含む)
 
 		Args:
 			var_name: 変数型名
 		Returns:
-			True = スマートポインター
+			True = 共有ポインター
 		"""
 		return self._var_name_to_key[var_name] in CVars.AddrSPKeys
 
 	def is_const(self, var_name: str) -> bool:
-		"""Constか判定
+		"""不変性型か判定
 
 		Args:
 			var_name: 変数型名
 		Returns:
-			True = Const
+			True = 不変性型
 		"""
 		return self._var_name_to_key[var_name] in CVars.ConstKeys
 

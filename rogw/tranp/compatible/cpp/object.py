@@ -163,7 +163,7 @@ class CP(CVarNotNull[T_co]):
 
 	@classmethod
 	def new(cls, origin: T_New) -> 'CP[T_New]':
-		"""メモリを生成し、CPラップ型を返却するメモリ生成代替メソッド。C++では`new`に相当
+		"""メモリを生成し、ポインター型を返却するメモリ生成代替メソッド。C++では`new`に相当
 
 		Args:
 			origin: 実体のインタンス
@@ -219,11 +219,11 @@ class CP(CVarNotNull[T_co]):
 
 
 class CSP(CVarNullable[T_co]):
-	"""C++型変数の互換クラス(スマートポインター)"""
+	"""C++型変数の互換クラス(共有ポインター)"""
 
 	@classmethod
 	def empty(cls) -> 'CSP[T_co] | None':
-		"""空のスマートポインターの初期化を代替するメソッド。C++では`std::shared_ptr<T>()`に相当
+		"""空の共有ポインターの初期化を代替するメソッド。C++では`std::shared_ptr<T>()`に相当
 
 		Returns:
 			インスタンス
@@ -232,7 +232,7 @@ class CSP(CVarNullable[T_co]):
 
 	@classmethod
 	def new(cls, origin: T_New) -> 'CSP[T_New]':
-		"""メモリを生成し、CPラップ型を返却するメモリ生成代替メソッド。C++では`std::make_shared`に相当
+		"""メモリを生成し、共有ポインター型を返却するメモリ生成代替メソッド。C++では`std::make_shared`に相当
 
 		Args:
 			origin: 実体のインタンス
@@ -290,48 +290,48 @@ class CRef(CVarNotNull[T_co]):
 
 
 class CPConst(CVarNotNull[T_co]):
-	"""C++型変数の互換クラス(Constポインター)"""
+	"""C++型変数の互換クラス(不変性ポインター)"""
 
 	@property
 	def ref(self) -> 'CRefConst[T_co]':
-		"""Returns: Const参照を返却する参照変換代替メソッド。C++では`*`に相当"""
+		"""Returns: 不変性参照を返却する参照変換代替メソッド。C++では`*`に相当"""
 		return CRefConst(self.raw)
 
 
 class CSPConst(CVarNotNull[T_co]):
-	"""C++型変数の互換クラス(Constスマートポインター)"""
+	"""C++型変数の互換クラス(不変性共有ポインター)"""
 
 	@property
 	def ref(self) -> 'CRefConst[T_co]':
-		"""Returns: Const参照を返却する参照変換代替メソッド。C++では`*`に相当"""
+		"""Returns: 不変性参照を返却する参照変換代替メソッド。C++では`*`に相当"""
 		return CRefConst(self.raw)
 
 	@property
 	def addr(self) -> 'CPConst[T_co]':
-		"""Returns: Constポインターを返却する参照変換代替メソッド。C++では`get`に相当"""
+		"""Returns: 不変性ポインターを返却する参照変換代替メソッド。C++では`get`に相当"""
 		return CPConst(self.raw)
 
 
 class CRefConst(CVarNotNull[T_co]):
-	"""C++型変数の互換クラス(Const参照)"""
+	"""C++型変数の互換クラス(不変性参照)"""
 
 	@property
 	def addr(self) -> 'CPConst[T_co]':
-		"""Returns: Constポインターを返却する参照変換代替メソッド。C++では`get`に相当"""
+		"""Returns: 不変性ポインターを返却する参照変換代替メソッド。C++では`get`に相当"""
 		return CPConst(self.raw)
 
 
 class CRawConst(CVarNotNull[T_co]):
-	"""C++型変数の互換クラス(Const)"""
+	"""C++型変数の互換クラス(不変性)"""
 
 	@property
 	def ref(self) -> 'CRefConst[T_co]':
-		"""Returns: Const参照を返却する参照変換代替メソッド。C++では`*`に相当"""
+		"""Returns: 不変性参照を返却する参照変換代替メソッド。C++では`*`に相当"""
 		return CRefConst(self.raw)
 
 	@property
 	def addr(self) -> 'CPConst[T_co]':
-		"""Returns: Constポインターを返却する参照変換代替メソッド。C++では`&`に相当"""
+		"""Returns: 不変性ポインターを返却する参照変換代替メソッド。C++では`&`に相当"""
 		return CPConst(self.raw)
 
 

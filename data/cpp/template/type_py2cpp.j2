@@ -1,5 +1,7 @@
-{%- if var_type.startswith('CP<') or var_type.startswith('CWP<') -%}
+{%- if var_type.startswith('CP<') -%}
 {{ var_type[3:-1] }}*
+{%- elif var_type.startswith('CWP<') -%}
+{{ var_type[4:-1] }}*
 {%- elif var_type.startswith('CSP<') -%}
 {{ i18n('cpp', 'shared_ptr') }}<{{ var_type[4:-1] }}>
 {%- elif var_type.startswith('CRef<') -%}

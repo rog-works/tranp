@@ -5,7 +5,7 @@ from typing import Any, ClassVar, Protocol, Self, TypeVarTuple, cast, override
 import rogw.tranp.semantics.reflection.definition as refs
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.compatible.cpp.function import c_func_invoke, c_func_ref
-from rogw.tranp.compatible.cpp.object import CP
+from rogw.tranp.compatible.cpp.object import CP, CWP
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 from rogw.tranp.compatible.python.embed import Embed
 from rogw.tranp.compatible.python.types import Union
@@ -951,7 +951,7 @@ class Py2Cpp(ITranspiler):
 		elif spec == 'str_format':
 			is_literal = node.calls.as_a(defs.Relay).receiver.is_a(defs.String)
 			receiver, operator = PatternParser.break_relay(calls)
-			to_tags = {int.__name__: '%d', float.__name__: '%f', bool.__name__: '%d', str.__name__: '%s', CP.__name__: '%p'}
+			to_tags = {int.__name__: '%d', float.__name__: '%f', bool.__name__: '%d', str.__name__: '%s', CP.__name__: '%p', CWP.__name__: '%p'}
 			formatters: list[dict[str, Any]] = []
 			for argument in node.arguments:
 				arg_symbol = self.reflections.type_of(argument)

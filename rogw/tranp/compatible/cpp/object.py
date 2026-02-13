@@ -219,6 +219,58 @@ class CP(CVarNotNull[T_co]):
 		return getattr(self.raw, '__getitem__')(key)
 
 
+class CWP(CVar[T_co]):
+	"""C++型変数の互換クラス(弱参照ポインター)"""
+
+	_weak: ReferenceType[T_co]
+
+	def __init__(self, addr: CP[T_co]) -> None:
+		"""インスタンスを生成
+
+		Args:
+			addr: ポインター
+		"""
+		self._weak = ReferenceType(addr.raw)
+		self._hash = id(addr.raw)
+
+	@property
+	@override
+	def on(self) -> T_co:
+		"""Returns: 実体を返却 Note: リレー代替メソッド。C++では`->`に相当"""
+		origin = self._weak()
+		assert origin is not None, 'Origin is Null'
+		return origin
+
+	@property
+	@override
+	def raw(self) -> T_co:
+		"""Returns: 実体を返却 Note: 実体参照代替メソッド。C++では`*`に相当"""
+		origin = self._weak()
+		assert origin is not None, 'Origin is Null'
+		return origin
+
+	@property
+	@override
+	def _origin_raw(self) -> T_co | None:
+		"""Returns: 実体を返却 Note: 派生クラス用。C++としての役割は無い"""
+		return self._weak()
+
+	@override
+	def __hash__(self) -> int:
+		"""ハッシュ値を取得
+
+		Returns:
+			ハッシュ値
+		"""
+		return self._hash
+
+	@property
+	def addr(self) -> CP[T_co] | None:
+		"""Returns: ポインターを返却する参照変換代替メソッド。C++では削除される"""
+		origin = self._weak()
+		return CP(origin) if origin else None
+
+
 class CSP(CVarNullable[T_co]):
 	"""C++型変数の互換クラス(共有ポインター)"""
 
@@ -288,58 +340,6 @@ class CRef(CVarNotNull[T_co]):
 			copy_origin(via)
 		else:
 			self._origin = via._origin
-
-
-class CWP(CVar[T_co]):
-	"""C++型変数の互換クラス(弱参照ポインター)"""
-
-	_weak: ReferenceType[T_co]
-
-	def __init__(self, addr: CP[T_co]) -> None:
-		"""インスタンスを生成
-
-		Args:
-			addr: ポインター
-		"""
-		self._weak = ReferenceType(addr.raw)
-		self._hash = id(addr.raw)
-
-	@property
-	@override
-	def on(self) -> T_co:
-		"""Returns: 実体を返却 Note: リレー代替メソッド。C++では`->`に相当"""
-		origin = self._weak()
-		assert origin is not None, 'Origin is Null'
-		return origin
-
-	@property
-	@override
-	def raw(self) -> T_co:
-		"""Returns: 実体を返却 Note: 実体参照代替メソッド。C++では`*`に相当"""
-		origin = self._weak()
-		assert origin is not None, 'Origin is Null'
-		return origin
-
-	@property
-	@override
-	def _origin_raw(self) -> T_co | None:
-		"""Returns: 実体を返却 Note: 派生クラス用。C++としての役割は無い"""
-		return self._weak()
-
-	@override
-	def __hash__(self) -> int:
-		"""ハッシュ値を取得
-
-		Returns:
-			ハッシュ値
-		"""
-		return self._hash
-
-	@property
-	def addr(self) -> CP[T_co] | None:
-		"""Returns: ポインターを返却する参照変換代替メソッド。C++では削除される"""
-		origin = self._weak()
-		return CP(origin) if origin else None
 
 
 class CRaw(CVarNotNull[T_co]):

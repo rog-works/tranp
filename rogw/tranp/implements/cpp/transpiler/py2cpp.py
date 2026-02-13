@@ -55,7 +55,7 @@ class Py2Cpp(ITranspiler):
 		self.evaluator = evaluator
 		self.module_meta_factory = module_meta_factory
 		self.include_dirs = self.__make_include_dirs(options)
-		self.cvars = CVars(options.env.get('cvars', {}))
+		self.cvars = CVars()
 		self.__procedure = self.__make_procedure(options)
 		# XXX トランスパイラーがステートフルになってしまう上、処理中のモジュールとの結合が曖昧
 		self.__stack_on_depends: list[list[str]] = []

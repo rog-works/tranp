@@ -86,14 +86,15 @@ class CVars:
 	RawKeys: ClassVar[list[str]] = [cpp.CRaw.__name__, cpp.CRef.__name__, cpp.CRawConst.__name__, cpp.CRefConst.__name__]
 	RawRawKeys: ClassVar[list[str]] = [cpp.CRaw.__name__, cpp.CRawConst.__name__]
 	RawRefKeys: ClassVar[list[str]] = [cpp.CRef.__name__, cpp.CRefConst.__name__]
-	AddrKeys: ClassVar[list[str]] = [cpp.CP.__name__, cpp.CSP.__name__, cpp.CPConst.__name__, cpp.CSPConst.__name__]
-	AddrPKeys: ClassVar[list[str]] = [cpp.CP.__name__, cpp.CPConst.__name__]
+	AddrKeys: ClassVar[list[str]] = [cpp.CP.__name__, cpp.CWP.__name__, cpp.CSP.__name__, cpp.CPConst.__name__, cpp.CSPConst.__name__]
+	AddrPKeys: ClassVar[list[str]] = [cpp.CP.__name__, cpp.CWP.__name__, cpp.CPConst.__name__]
 	AddrSPKeys: ClassVar[list[str]] = [cpp.CSP.__name__, cpp.CSPConst.__name__]
 	ConstKeys: ClassVar[list[str]] = [cpp.CPConst.__name__, cpp.CSPConst.__name__, cpp.CRefConst.__name__, cpp.CRawConst.__name__]	
-	Keys: ClassVar[list[str]] = [cpp.CP.__name__, cpp.CSP.__name__, cpp.CRef.__name__, cpp.CRaw.__name__, cpp.CPConst.__name__, cpp.CSPConst.__name__, cpp.CRefConst.__name__, cpp.CRawConst.__name__]
+	Keys: ClassVar[list[str]] = [cpp.CP.__name__, cpp.CWP.__name__, cpp.CSP.__name__, cpp.CRef.__name__, cpp.CRaw.__name__, cpp.CPConst.__name__, cpp.CSPConst.__name__, cpp.CRefConst.__name__, cpp.CRawConst.__name__]
 
 	KeyToOperator: ClassVar[dict[str, RelayOperators]] = {
 		cpp.CP.__name__: RelayOperators.Address,
+		cpp.CWP.__name__: RelayOperators.Address,
 		cpp.CSP.__name__: RelayOperators.Address,
 		cpp.CRef.__name__: RelayOperators.Raw,
 		cpp.CPConst.__name__: RelayOperators.Address,
@@ -106,6 +107,8 @@ class CVars:
 		f'{cpp.CP.__name__}.{Casts.Raw.value}': Moves.ToActual,
 		f'{cpp.CP.__name__}.{Casts.Ref.value}': Moves.ToActual,
 		f'{cpp.CP.__name__}.{Casts.Const.value}': Moves.Copy,
+		f'{cpp.CWP.__name__}.{Casts.Raw.value}': Moves.ToActual,
+		f'{cpp.CWP.__name__}.{Casts.Addr.value}': Moves.Copy,
 		f'{cpp.CSP.__name__}.{Casts.Raw.value}': Moves.ToActual,
 		f'{cpp.CSP.__name__}.{Casts.Ref.value}': Moves.ToActual,
 		f'{cpp.CSP.__name__}.{Casts.Addr.value}': Moves.UnpackSp,
@@ -125,7 +128,7 @@ class CVars:
 		f'{cpp.CRawConst.__name__}.{Casts.Addr.value}': Moves.ToAddress,
 	}
 
-	def __init__(self, var_name_to_key: dict[str, str]) -> None:
+	def __init__(self, var_name_to_key: dict[str, str] = {}) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -133,6 +136,7 @@ class CVars:
 		"""
 		self._var_name_to_key = {
 			cpp.CP.__name__: cpp.CP.__name__,
+			cpp.CWP.__name__: cpp.CWP.__name__,
 			cpp.CSP.__name__: cpp.CSP.__name__,
 			cpp.CRef.__name__: cpp.CRef.__name__,
 			cpp.CRaw.__name__: cpp.CRaw.__name__,

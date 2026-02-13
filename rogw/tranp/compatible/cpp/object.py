@@ -1,6 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from collections.abc import Callable
 from typing import Generic, Self, TypeVar, override
+from weakref import ReferenceType
 
 T = TypeVar('T')
 T_co = TypeVar('T_co', covariant=True)
@@ -34,7 +35,7 @@ class CVar(Generic[T_co], metaclass=ABCMeta):
 		Returns:
 			アドレス値
 		"""
-		return id(self.raw)
+		return self.__hash__()
 
 	def to_addr_hex(self) -> str:
 		"""アドレス値を取得
@@ -42,7 +43,7 @@ class CVar(Generic[T_co], metaclass=ABCMeta):
 		Returns:
 			アドレス値(16進数 ※先頭の'0x'は除外)
 		"""
-		return hex(self.to_addr_id())[2:]
+		return hex(self.__hash__())[2:].upper()
 
 	def __eq__(self, other: Self | None) -> bool:
 		"""比較演算子(==)のオーバーロード
@@ -52,7 +53,7 @@ class CVar(Generic[T_co], metaclass=ABCMeta):
 		Returns:
 			True = 一致
 		"""
-		return other is not None and self.raw == other.raw
+		return other is not None and self.__hash__() == other.__hash__()
 
 	def __ne__(self, other: Self | None) -> bool:
 		"""比較演算子(!=)のオーバーロード
@@ -78,7 +79,7 @@ class CVar(Generic[T_co], metaclass=ABCMeta):
 		Returns:
 			シリアライズ表現
 		"""
-		return f'<{self.__class__.__name__}[{self._origin_raw.__class__.__name__}]: at {hex(id(self._origin_raw)).upper()} with {self._origin_raw}>'
+		return f'<{self.__class__.__name__}[{self._origin_raw.__class__.__name__}]: at 0x{self.to_addr_hex()} with {self._origin_raw}>'
 
 
 class CVarNotNull(CVar[T_co]):
@@ -289,6 +290,63 @@ class CRef(CVarNotNull[T_co]):
 			self._origin = via._origin
 
 
+class CWP(CVar[T_co]):
+	"""C++型変数の互換クラス(弱参照ポインター)"""
+
+	_weak: ReferenceType[T_co]
+
+	def __init__(self, addr: CP[T_co]) -> None:
+		"""インスタンスを生成
+
+		Args:
+			addr: ポインター
+		"""
+		self._weak = ReferenceType(addr.raw)
+		self._hash = id(addr.raw)
+
+	@property
+	@override
+	def on(self) -> T_co:
+		"""Returns: 実体を返却 Note: リレー代替メソッド。C++では実体型は`.`、アドレス型は`->`に相当"""
+		origin = self._weak()
+		assert origin is not None, 'Origin is Null'
+		return origin
+
+	@property
+	@override
+	def raw(self) -> T_co | None:
+		"""Returns: 実体を返却 Note: 実体参照代替メソッド。C++では実体型は削除、アドレス型は`*`に相当"""
+		return self._weak()
+
+	@property
+	@override
+	def _origin_raw(self) -> T_co | None:
+		"""Returns: 実体を返却 Note: 派生クラス用。C++としての役割は無い"""
+		return self._weak()
+
+	def __hash__(self) -> int:
+		"""ハッシュ値を取得
+
+		Returns:
+			ハッシュ値
+		"""
+		return self._hash
+
+
+class CRaw(CVarNotNull[T_co]):
+	"""C++型変数の互換クラス(実体)"""
+
+	@property
+	def ref(self) -> 'CRef[T_co]':
+		"""Returns: 参照を返却する参照変換代替メソッド。C++では削除される"""
+		return CRef(self.raw)
+
+	@property
+	def addr(self) -> 'CP[T_co]':
+		"""Returns: ポインターを返却する参照変換代替メソッド。C++では`&`に相当"""
+		return CP(self.raw)
+
+
 class CPConst(CVarNotNull[T_co]):
 	"""C++型変数の互換クラス(不変性ポインター)"""
 
@@ -333,17 +391,3 @@ class CRawConst(CVarNotNull[T_co]):
 	def addr(self) -> 'CPConst[T_co]':
 		"""Returns: 不変性ポインターを返却する参照変換代替メソッド。C++では`&`に相当"""
 		return CPConst(self.raw)
-
-
-class CRaw(CVarNotNull[T_co]):
-	"""C++型変数の互換クラス(実体)"""
-
-	@property
-	def ref(self) -> 'CRef[T_co]':
-		"""Returns: 参照を返却する参照変換代替メソッド。C++では削除される"""
-		return CRef(self.raw)
-
-	@property
-	def addr(self) -> 'CP[T_co]':
-		"""Returns: ポインターを返却する参照変換代替メソッド。C++では`&`に相当"""
-		return CP(self.raw)

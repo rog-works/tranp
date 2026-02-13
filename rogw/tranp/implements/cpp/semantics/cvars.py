@@ -22,7 +22,6 @@ class CVars:
 			UnpackSp: スマートポインターから生ポインターに変換
 			Deny: 不正な移動操作
 		"""
-
 		Copy = 0
 		New = 1
 		MakeSp = 2
@@ -39,28 +38,50 @@ class CVars:
 			Address: ポインター/スマートポインター
 			Static: クラス
 		"""
-
 		Raw = 0
 		Address = 1
 		Static = 2
 
-	"""
-	Attributes:
-		id_key: 数値変換メソッドの名前
-		hex_key: 16進数変換メソッドの名前
-		relay_key: リレー代替メソッドの名前
-		empty_key: 空のスマートポインター生成代替メソッドの名前
-		allocator_key: メモリ生成メソッドの名前
-		copy_key: 代入コピー代替メソッドの名前
-		exchanger_keys: 属性変換メソッドの名前
-	"""
-	id_key: ClassVar[str] = 'to_addr_id'
-	hex_key: ClassVar[str] = 'to_addr_hex'
-	relay_key: ClassVar[str] = 'on'
-	empty_key: ClassVar[str] = 'empty'
-	allocator_key: ClassVar[str] = 'new'
-	copy_key: ClassVar[str] = 'copy_proxy'
-	exchanger_keys: ClassVar[list[str]] = ['raw', 'ref', 'addr', 'const']
+	class Verbs(Enum):
+		"""操作メソッド Note: @see rogw.tranp.compatible.cpp.object"""
+		ToAddrId = 'to_addr_id'
+		ToAddrHex = 'to_addr_hex'
+		On = 'on'
+		Emtpy = 'empty'
+		New = 'new'
+		CopyProxy = 'copy_proxy'
+
+	class Casts(Enum):
+		"""型変換メソッド Note: @see rogw.tranp.compatible.cpp.object"""
+		Raw = 'raw'
+		Ref = 'ref'
+		Addr = 'addr'
+		Const = 'const'
+
+		@classmethod
+		def in_value(cls, key: str) -> bool:
+			"""型変換メソッド名が存在するか判定
+
+			Args:
+				key: キー
+			Returns:
+				True = 存在
+			"""
+			for value in cls:
+				if value.value == key:
+					return True
+
+			return False
+
+		@classmethod
+		def values(cls) -> Iterator[str]:
+			"""全ての型変換メソッド名を取得
+
+			Returns:
+				型変換メソッドのイテレーター
+			"""
+			for value in cls:
+				yield value.value
 
 	RawKeys: ClassVar[list[str]] = [cpp.CRaw.__name__, cpp.CRef.__name__, cpp.CRawConst.__name__, cpp.CRefConst.__name__]
 	RawRawKeys: ClassVar[list[str]] = [cpp.CRaw.__name__, cpp.CRawConst.__name__]
@@ -81,27 +102,27 @@ class CVars:
 		cpp.CRawConst.__name__: RelayOperators.Raw,
 		cpp.CRaw.__name__: RelayOperators.Raw,
 	}
-	ExchangerToMove: ClassVar[dict[str, Moves]] = {
-		f'{cpp.CP.__name__}.raw': Moves.ToActual,
-		f'{cpp.CP.__name__}.ref': Moves.ToActual,
-		f'{cpp.CP.__name__}.const': Moves.Copy,
-		f'{cpp.CSP.__name__}.raw': Moves.ToActual,
-		f'{cpp.CSP.__name__}.ref': Moves.ToActual,
-		f'{cpp.CSP.__name__}.addr': Moves.UnpackSp,
-		f'{cpp.CSP.__name__}.const': Moves.Copy,
-		f'{cpp.CRef.__name__}.raw': Moves.Copy,
-		f'{cpp.CRef.__name__}.addr': Moves.ToAddress,
-		f'{cpp.CRef.__name__}.const': Moves.Copy,
-		f'{cpp.CPConst.__name__}.raw': Moves.ToActual,
-		f'{cpp.CPConst.__name__}.ref': Moves.ToActual,
-		f'{cpp.CSPConst.__name__}.raw': Moves.ToActual,
-		f'{cpp.CSPConst.__name__}.ref': Moves.ToActual,
-		f'{cpp.CSPConst.__name__}.addr': Moves.UnpackSp,
-		f'{cpp.CRefConst.__name__}.raw': Moves.Copy,
-		f'{cpp.CRefConst.__name__}.addr': Moves.ToAddress,
-		f'{cpp.CRawConst.__name__}.raw': Moves.Copy,
-		f'{cpp.CRawConst.__name__}.ref': Moves.Copy,
-		f'{cpp.CRawConst.__name__}.addr': Moves.ToAddress,
+	CastToMove: ClassVar[dict[str, Moves]] = {
+		f'{cpp.CP.__name__}.{Casts.Raw.value}': Moves.ToActual,
+		f'{cpp.CP.__name__}.{Casts.Ref.value}': Moves.ToActual,
+		f'{cpp.CP.__name__}.{Casts.Const.value}': Moves.Copy,
+		f'{cpp.CSP.__name__}.{Casts.Raw.value}': Moves.ToActual,
+		f'{cpp.CSP.__name__}.{Casts.Ref.value}': Moves.ToActual,
+		f'{cpp.CSP.__name__}.{Casts.Addr.value}': Moves.UnpackSp,
+		f'{cpp.CSP.__name__}.{Casts.Const.value}': Moves.Copy,
+		f'{cpp.CRef.__name__}.{Casts.Raw.value}': Moves.Copy,
+		f'{cpp.CRef.__name__}.{Casts.Addr.value}': Moves.ToAddress,
+		f'{cpp.CRef.__name__}.{Casts.Const.value}': Moves.Copy,
+		f'{cpp.CPConst.__name__}.{Casts.Raw.value}': Moves.ToActual,
+		f'{cpp.CPConst.__name__}.{Casts.Ref.value}': Moves.ToActual,
+		f'{cpp.CSPConst.__name__}.{Casts.Raw.value}': Moves.ToActual,
+		f'{cpp.CSPConst.__name__}.{Casts.Ref.value}': Moves.ToActual,
+		f'{cpp.CSPConst.__name__}.{Casts.Addr.value}': Moves.UnpackSp,
+		f'{cpp.CRefConst.__name__}.{Casts.Raw.value}': Moves.Copy,
+		f'{cpp.CRefConst.__name__}.{Casts.Addr.value}': Moves.ToAddress,
+		f'{cpp.CRawConst.__name__}.{Casts.Raw.value}': Moves.Copy,
+		f'{cpp.CRawConst.__name__}.{Casts.Ref.value}': Moves.Copy,
+		f'{cpp.CRawConst.__name__}.{Casts.Addr.value}': Moves.ToAddress,
 	}
 
 	def __init__(self, var_name_to_key: dict[str, str]) -> None:
@@ -240,17 +261,17 @@ class CVars:
 		key = self._var_name_to_key[var_name]
 		return CVars.KeyToOperator[key]
 
-	def to_move(self, var_name: str, exchanger: str) -> Moves:
+	def to_move(self, var_name: str, cast_key: str) -> Moves:
 		"""変数型名の各メソッドに応じた移動操作の種別に変換
 
 		Args:
 			var_name: 変数型名
-			exchanger: 変換メソッド名
+			cast_key: 型変換メソッド名
 		Returns:
 			移動操作の種別
 		"""
 		key = self._var_name_to_key[var_name]
-		return CVars.ExchangerToMove.get(f'{key}.{exchanger}', CVars.Moves.Deny)
+		return CVars.CastToMove.get(f'{key}.{cast_key}', CVars.Moves.Deny)
 
 	# @classmethod
 	# @deprecated

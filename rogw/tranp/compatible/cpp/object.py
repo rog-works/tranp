@@ -307,16 +307,18 @@ class CWP(CVar[T_co]):
 	@property
 	@override
 	def on(self) -> T_co:
-		"""Returns: 実体を返却 Note: リレー代替メソッド。C++では実体型は`.`、アドレス型は`->`に相当"""
+		"""Returns: 実体を返却 Note: リレー代替メソッド。C++では`->`に相当"""
 		origin = self._weak()
 		assert origin is not None, 'Origin is Null'
 		return origin
 
 	@property
 	@override
-	def raw(self) -> T_co | None:
-		"""Returns: 実体を返却 Note: 実体参照代替メソッド。C++では実体型は削除、アドレス型は`*`に相当"""
-		return self._weak()
+	def raw(self) -> T_co:
+		"""Returns: 実体を返却 Note: 実体参照代替メソッド。C++では`*`に相当"""
+		origin = self._weak()
+		assert origin is not None, 'Origin is Null'
+		return origin
 
 	@property
 	@override
@@ -324,6 +326,7 @@ class CWP(CVar[T_co]):
 		"""Returns: 実体を返却 Note: 派生クラス用。C++としての役割は無い"""
 		return self._weak()
 
+	@override
 	def __hash__(self) -> int:
 		"""ハッシュ値を取得
 
@@ -331,6 +334,12 @@ class CWP(CVar[T_co]):
 			ハッシュ値
 		"""
 		return self._hash
+
+	@property
+	def addr(self) -> CP[T_co] | None:
+		"""Returns: ポインターを返却する参照変換代替メソッド。C++では削除される"""
+		origin = self._weak()
+		return CP(origin) if origin else None
 
 
 class CRaw(CVarNotNull[T_co]):

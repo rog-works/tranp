@@ -41,17 +41,18 @@ class Helper:
 		if DSN.elem_counts(schema_path) == 1:
 			return schema_path
 
+		schema_begin_path = DSN.left(schema_path, 2)
 		schema_elems = schema_props[schema_path]
-		schema_path_begin = DSN.left(schema_path, 2)
 		for actual_path, actual_elems in actual_props.items():
-			if not actual_path.startswith(schema_path_begin):
+			if not actual_path.startswith(schema_begin_path):
 				continue
-			elif actual_elems == schema_elems:
+
+			diff = DSN.elem_counts(actual_elems) - DSN.elem_counts(schema_elems)
+			if diff == 0:
 				return actual_path
-			elif actual_elems.startswith(schema_elems):
+			elif diff > 0:
 				# 正規化後はスキーマより実行時型の方が必ず長い
-				lacks = DSN.elem_counts(actual_elems) - DSN.elem_counts(schema_elems)
-				return DSN.left(actual_path, DSN.elem_counts(actual_path) - lacks)
+				return DSN.left(actual_path, DSN.elem_counts(actual_path) - diff)
 
 		return ''
 
@@ -120,10 +121,7 @@ class TestTemplateManipulator(TestCase):
 				'klass.1.0': 'A',
 				'klass.1.1': 'B',
 			},
-			# FIXME: 期待値はklass.1.0
-			# FIXME: schemaのklass.{1}が、actualのklass.1.{1}とマッピングされており、これは完全に誤り
-			# FIXME: しかし、現状の判定方針のまま修正すると別の判定が期待通りにならないため、対応は一旦保留
-			'klass.1.1',
+			'klass.1.0',
 		),
 		# (Self) => Self
 		(

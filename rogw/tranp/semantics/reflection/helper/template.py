@@ -333,21 +333,22 @@ class TemplateManipulator:
 		Note:
 			@see tests.unit.rogw.tranp.semantics.reflection.test_helper.py
 		"""
-		# 1階層目(klass/returns)は選別が不要なため、そのまま返却
+		# 1階層目(klass/returns)は選別が不要なため除外
 		if DSN.elem_counts(schema_path) == 1:
 			return schema_path
 
+		schema_begin_path = DSN.left(schema_path, 2)
 		schema_elems = schema_props[schema_path]
-		schema_path_begin = DSN.left(schema_path, 2)
 		for actual_path, actual_elems in actual_props.items():
-			if not actual_path.startswith(schema_path_begin):
+			if not actual_path.startswith(schema_begin_path):
 				continue
-			elif actual_elems == schema_elems:
+
+			diff = DSN.elem_counts(actual_elems) - DSN.elem_counts(schema_elems)
+			if diff == 0:
 				return actual_path
-			elif actual_elems.startswith(schema_elems):
+			elif diff > 0:
 				# 正規化後はスキーマより実行時型の方が必ず長い
-				lacks = DSN.elem_counts(actual_elems) - DSN.elem_counts(schema_elems)
-				return DSN.left(actual_path, DSN.elem_counts(actual_path) - lacks)
+				return DSN.left(actual_path, DSN.elem_counts(actual_path) - diff)
 
 		return ''
 

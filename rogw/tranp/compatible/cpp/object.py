@@ -220,7 +220,11 @@ class CP(CVarNotNull[T_co]):
 
 
 class CWP(CVar[T_co]):
-	"""C++型変数の互換クラス(弱参照ポインター)"""
+	"""C++型変数の互換クラス(弱参照ポインター)
+
+	Note:
+		XXX あくまでもPython上で弱参照を扱うための構造であり、C++上はCPとしてトランスパイルされる
+	"""
 
 	_weak: ReferenceType[T_co]
 

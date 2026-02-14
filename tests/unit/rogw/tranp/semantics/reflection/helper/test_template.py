@@ -214,7 +214,7 @@ class TestTemplateManipulator(TestCase):
 			},
 			'parameters.0',
 		),
-		# sequence(Sequence<T_Value>) => Iterator<tuple<int, T_Value>>
+		# enumerate(Sequence<T_Value>) => Iterator<tuple<int, T_Value>>
 		(
 			'parameters.0.0',
 			### schema: Sequence<T_Value>

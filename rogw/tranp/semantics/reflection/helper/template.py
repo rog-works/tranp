@@ -333,7 +333,7 @@ class TemplateManipulator:
 		Note:
 			@see tests.unit.rogw.tranp.semantics.reflection.test_helper.py
 		"""
-		# 1階層目(klass/returns)は選別が不要なため除外
+		# 1階層目(klass/returns)は選別が不要なため、そのまま返却
 		if DSN.elem_counts(schema_path) == 1:
 			return schema_path
 

@@ -269,7 +269,7 @@ class TemplateManipulator:
 				if target_template != schema_template:
 					continue
 
-				found_path = cls._find_actual_path(schema_path, normalize_schema_props[schema_path], normalize_actual_props)
+				found_path = cls._find_actual_path(schema_path, normalize_schema_props, normalize_actual_props)
 				if len(found_path) == 0:
 					continue
 
@@ -301,7 +301,7 @@ class TemplateManipulator:
 					found = True
 					break
 
-			if not found:
+			if not found and DSN.elem_counts(key) > 1:
 				unique_keys.append(key)
 
 		elem_indexs: dict[str, list[int]] = {key: [] for key in unique_keys}
@@ -316,10 +316,10 @@ class TemplateManipulator:
 			index = int(DSN.right(key, 1))
 			elem_indexs[key].append(index)
 
-		return {key: DSN.join(*map(str, indexs))  for key, indexs in elem_indexs.items()}
+		return {key: DSN.join(*map(str, indexs)) for key, indexs in elem_indexs.items()}
 
 	@classmethod
-	def _find_actual_path(cls, schema_path: str, schema_elems: str, actual_props: dict[str, str]) -> str:
+	def _find_actual_path(cls, schema_path: str, schema_props: dict[str, str], actual_props: dict[str, str]) -> str:
 		"""テンプレート型に対応する実行時型のシンボルへのパスを探索
 
 		Args:
@@ -331,6 +331,10 @@ class TemplateManipulator:
 		Note:
 			@see tests.unit.rogw.tranp.semantics.reflection.test_helper.py
 		"""
+		if DSN.elem_counts(schema_path) == 1:
+			return schema_path
+
+		schema_elems = schema_props[schema_path]
 		schema_path_begin = DSN.left(schema_path, 2)
 		for actual_path, actual_elems in actual_props.items():
 			if not actual_path.startswith(schema_path_begin):

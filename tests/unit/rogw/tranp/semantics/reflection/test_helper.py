@@ -16,7 +16,7 @@ class Helper:
 					found = True
 					break
 
-			if not found:
+			if not found and DSN.elem_counts(key) > 1:
 				unique_keys.append(key)
 
 		elem_indexs: dict[str, list[int]] = {key: [] for key in unique_keys}
@@ -31,10 +31,14 @@ class Helper:
 			index = int(DSN.right(key, 1))
 			elem_indexs[key].append(index)
 
-		return {key: DSN.join(*map(str, indexs))  for key, indexs in elem_indexs.items()}
+		return {key: DSN.join(*map(str, indexs)) for key, indexs in elem_indexs.items()}
 
 	@classmethod
-	def find_actual_path(cls, schema_path: str, schema_elems: str, actual_props: dict[str, str]) -> str:
+	def find_actual_path(cls, schema_path: str, schema_props: dict[str, str], actual_props: dict[str, str]) -> str:
+		if DSN.elem_counts(schema_path) == 1:
+			return schema_path
+
+		schema_elems = schema_props[schema_path]
 		schema_path_begin = DSN.left(schema_path, 2)
 		for actual_path, actual_elems in actual_props.items():
 			if not actual_path.startswith(schema_path_begin):
@@ -50,6 +54,14 @@ class Helper:
 
 class TestTemplateManipulator(TestCase):
 	@data_provider([
+		(
+			{
+				'klass': 'Self',
+				'returns': 'Self',
+			},
+			{
+			},
+		),
 		(
 			{
 				'parameters.0': 'Promise',
@@ -88,6 +100,19 @@ class TestTemplateManipulator(TestCase):
 		self.assertEqual(expected, actual)
 
 	@data_provider([
+		(
+			'klass',
+			### schema: Self
+			{
+				'klass': 'Self',
+				'returns': 'Self',
+			},
+			### actual: Promise
+			{
+				'klass': 'Promise',
+			},
+			'klass',
+		),
 		(
 			'parameters.0.0',
 			### schema: CP<T_co>
@@ -188,5 +213,5 @@ class TestTemplateManipulator(TestCase):
 	def test_find_actual_path(self, schema_path: str, schema_props: dict[str, str], actual_props: dict[str, str], expected: str) -> None:
 		normalize_schema_props = Helper.normalize_props(schema_props)
 		normalize_actual_props = Helper.normalize_props(actual_props)
-		actual = Helper.find_actual_path(schema_path, normalize_schema_props[schema_path], normalize_actual_props)
+		actual = Helper.find_actual_path(schema_path, normalize_schema_props, normalize_actual_props)
 		self.assertEqual(expected, actual)

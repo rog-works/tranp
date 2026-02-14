@@ -6,7 +6,7 @@ from rogw.tranp.test.helper import data_provider
 
 class Helper:
 	@classmethod
-	def normalize_props(cls, props: dict[str, str]) -> dict[str, list[str]]:
+	def normalize_props(cls, props: dict[str, str]) -> dict[str, str]:
 		unique_keys: list[str] = []
 		keys = list(props.keys())
 		for i, key in enumerate(keys):
@@ -19,29 +19,30 @@ class Helper:
 			if not found:
 				unique_keys.append(key)
 
-		normalized: dict[str, list[str]] = {key: [] for key in unique_keys}
+		elem_indexs: dict[str, list[int]] = {key: [] for key in unique_keys}
 		for key in unique_keys:
 			count = DSN.elem_counts(key)
 			for i in range(2, count):
 				begin = DSN.left(key, i)
 				if begin in props and props[begin] != 'Union':
-					normalized[key].append(props[begin])
+					index = int(DSN.right(begin, 1))
+					elem_indexs[key].append(index)
 
-			normalized[key].append(props[key])
+			index = int(DSN.right(key, 1))
+			elem_indexs[key].append(index)
 
-		return normalized
+		return {key: DSN.join(*map(str, indexs))  for key, indexs in elem_indexs.items()}
 
 	@classmethod
-	def find_actual_path(cls, schema_path: str, schema_elems: list[str], actual_props: dict[str, list[str]]) -> str:
-		schema_begin_path = DSN.left(schema_path, 2)
-		schema_begin_elems = schema_elems[:-1]
-		for actual_path, props in actual_props.items():
-			if not actual_path.startswith(schema_begin_path):
+	def find_actual_path(cls, schema_path: str, schema_elems: str, actual_props: dict[str, str]) -> str:
+		schema_path_begin = DSN.left(schema_path, 2)
+		for actual_path, actual_elems in actual_props.items():
+			if not actual_path.startswith(schema_path_begin):
 				continue
-			elif len(schema_elems) == len(props) and schema_begin_elems == props[:-1]:
+			elif actual_elems == schema_elems:
 				return actual_path
-			elif len(schema_elems) < len(props) and schema_begin_elems == props[:len(schema_begin_elems)]:
-				lacks = len(props) - len(schema_elems)
+			elif actual_elems.startswith(schema_elems):
+				lacks = DSN.elem_counts(actual_elems) - DSN.elem_counts(schema_elems)
 				return DSN.left(actual_path, DSN.elem_counts(actual_path) - lacks)
 
 		return ''
@@ -54,7 +55,7 @@ class TestTemplateManipulator(TestCase):
 				'parameters.0': 'Promise',
 			},
 			{
-				'parameters.0': ['Promise'],
+				'parameters.0': '0',
 			},
 		),
 		(
@@ -63,19 +64,22 @@ class TestTemplateManipulator(TestCase):
 				'parameters.0.0': 'Promise',
 			},
 			{
-				'parameters.0.0': ['CP', 'Promise'],
+				'parameters.0.0': '0.0',
 			},
 		),
 		(
 			{
+				'klass': 'CWP',
+				'klass.0': 'T_co',
 				'parameters.0': 'Union',
 				'parameters.0.0': 'CP',
 				'parameters.0.0.0': 'Promise',
 				'parameters.0.1': 'None',
 			},
 			{
-				'parameters.0.0.0': ['CP', 'Promise'],
-				'parameters.0.1': ['None'],
+				'klass.0': '0',
+				'parameters.0.0.0': '0.0',
+				'parameters.0.1': '1',
 			},
 		),
 	])
@@ -158,9 +162,31 @@ class TestTemplateManipulator(TestCase):
 			},
 			'parameters.0',
 		),
+		# sequence(Sequence<T_Value>) => Iterator<tuple<int, T_Value>>
+		(
+			'parameters.0.0',
+			### schema: Sequence<T_Value>
+			{
+				'parameters.0': 'Sequence',
+				'parameters.0.0': 'T_Value',
+				'returns.0': 'Iterator',
+				'returns.0.0': 'tuple',
+				'returns.0.0.0': 'int',
+				'returns.0.0.0.0': 'T_Value',
+			},
+			### actual: list<CP<int>>
+			{
+				'klass': 'list',
+				'klass.0': 'T_Value',
+				'parameters.0': 'list',
+				'parameters.0.0': 'CP',
+				'parameters.0.0.0': 'int',
+			},
+			'parameters.0.0',
+		),
 	])
-	def test_find_actual_path(self, target: str, schema_props: dict[str, str], actual_props: dict[str, str], expected: str) -> None:
+	def test_find_actual_path(self, schema_path: str, schema_props: dict[str, str], actual_props: dict[str, str], expected: str) -> None:
 		normalize_schema_props = Helper.normalize_props(schema_props)
 		normalize_actual_props = Helper.normalize_props(actual_props)
-		actual = Helper.find_actual_path(target, normalize_schema_props[target], normalize_actual_props)
+		actual = Helper.find_actual_path(schema_path, normalize_schema_props[schema_path], normalize_actual_props)
 		self.assertEqual(expected, actual)

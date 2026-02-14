@@ -132,7 +132,7 @@ class CVars:
 		"""インスタンスを生成
 
 		Args:
-			var_name_to_key: 変数型名とC++変数型のキーマップ
+			var_name_to_key: 変数型名とC++変数型のキーマップ (default = {})
 		"""
 		self._var_name_to_key = {
 			cpp.CP.__name__: cpp.CP.__name__,
@@ -245,7 +245,10 @@ class CVars:
 		Returns:
 			変数型名
 		Note:
-			nullはポインターとして扱う
+			```
+			* nullはポインターとして扱う
+			* XXX 返却値を既定のC++変数型のキーに変換するべきでは？(テンプレートの型名変換のため)
+			```
 		"""
 		if symbol.types.domain_name in self.var_names():
 			return symbol.types.domain_name

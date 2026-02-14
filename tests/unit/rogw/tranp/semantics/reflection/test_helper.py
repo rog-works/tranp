@@ -25,8 +25,8 @@ class Helper:
 			for i in range(2, count):
 				begin = DSN.left(key, i)
 				if begin in props and props[begin] != 'Union':
-					index = int(DSN.right(begin, 1))
-					elem_indexs[key].append(index)
+					begin_index = int(DSN.right(begin, 1))
+					elem_indexs[key].append(begin_index)
 
 			index = int(DSN.right(key, 1))
 			elem_indexs[key].append(index)

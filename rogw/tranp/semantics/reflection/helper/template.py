@@ -282,7 +282,7 @@ class TemplateManipulator:
 		return updates
 
 	@classmethod
-	def _normalize_props(cls, props: dict[str, IReflection]) -> dict[str, list[str]]:
+	def _normalize_props(cls, props: dict[str, IReflection]) -> dict[str, str]:
 		"""シンボルのマップ表を正規化(=単純化)
 
 		Args:
@@ -304,40 +304,41 @@ class TemplateManipulator:
 			if not found:
 				unique_keys.append(key)
 
-		normalized: dict[str, list[str]] = {key: [] for key in unique_keys}
+		elem_indexs: dict[str, list[int]] = {key: [] for key in unique_keys}
 		for key in unique_keys:
 			count = DSN.elem_counts(key)
 			for i in range(2, count):
 				begin = DSN.left(key, i)
 				if begin in props and not props[begin].impl(refs.Object).type_is(Union):
-					normalized[key].append(props[begin].types.domain_name)
+					begin_index = int(DSN.right(begin, 1))
+					elem_indexs[key].append(begin_index)
 
-			normalized[key].append(props[key].types.domain_name)
+			index = int(DSN.right(key, 1))
+			elem_indexs[key].append(index)
 
-		return normalized
+		return {key: DSN.join(*map(str, indexs))  for key, indexs in elem_indexs.items()}
 
 	@classmethod
-	def _find_actual_path(cls, schema_path: str, schema_elems: list[str], actual_props: dict[str, list[str]]) -> str:
+	def _find_actual_path(cls, schema_path: str, schema_elems: str, actual_props: dict[str, str]) -> str:
 		"""テンプレート型に対応する実行時型のシンボルへのパスを探索
 
 		Args:
 			schema_path: 対象のスキーマのパス
-			schema_elems: 正規化したシンボルの階層(スキーマ)
+			schema_elems: 正規化したシンボルの階層パス(スキーマ)
 			actual_props: 正規化したシンボルのマップ表(実行時型)
 		Returns:
 			実行時型のパス
 		Note:
 			@see tests.unit.rogw.tranp.semantics.reflection.test_helper.py
 		"""
-		schema_begin_path = DSN.left(schema_path, 2)
-		schema_begin_elems = schema_elems[:-1]
-		for actual_path, props in actual_props.items():
-			if not actual_path.startswith(schema_begin_path):
+		schema_path_begin = DSN.left(schema_path, 2)
+		for actual_path, actual_elems in actual_props.items():
+			if not actual_path.startswith(schema_path_begin):
 				continue
-			elif len(schema_elems) == len(props) and schema_begin_elems == props[:-1]:
+			elif actual_elems == schema_elems:
 				return actual_path
-			elif len(schema_elems) < len(props) and schema_begin_elems == props[:len(schema_begin_elems)]:
-				lacks = len(props) - len(schema_elems)
+			elif actual_elems.startswith(schema_elems):
+				lacks = DSN.elem_counts(actual_elems) - DSN.elem_counts(schema_elems)
 				return DSN.left(actual_path, DSN.elem_counts(actual_path) - lacks)
 
 		return ''

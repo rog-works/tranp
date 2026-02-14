@@ -301,6 +301,7 @@ class TemplateManipulator:
 					found = True
 					break
 
+			# 1階層目(klass/returns)は選別が不要なため除外
 			if not found and DSN.elem_counts(key) > 1:
 				unique_keys.append(key)
 
@@ -309,6 +310,7 @@ class TemplateManipulator:
 			count = DSN.elem_counts(key)
 			for i in range(2, count):
 				begin = DSN.left(key, i)
+				# Unionは条件を並列に並べることが目的。seq.expandによって既に展開されており、階層としては不要なので除外
 				if begin in props and not props[begin].impl(refs.Object).type_is(Union):
 					begin_index = int(DSN.right(begin, 1))
 					elem_indexs[key].append(begin_index)
@@ -331,6 +333,7 @@ class TemplateManipulator:
 		Note:
 			@see tests.unit.rogw.tranp.semantics.reflection.test_helper.py
 		"""
+		# 1階層目(klass/returns)は選別が不要なため除外
 		if DSN.elem_counts(schema_path) == 1:
 			return schema_path
 
@@ -342,6 +345,7 @@ class TemplateManipulator:
 			elif actual_elems == schema_elems:
 				return actual_path
 			elif actual_elems.startswith(schema_elems):
+				# 正規化後はスキーマより実行時型の方が必ず長い
 				lacks = DSN.elem_counts(actual_elems) - DSN.elem_counts(schema_elems)
 				return DSN.left(actual_path, DSN.elem_counts(actual_path) - lacks)
 

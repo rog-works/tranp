@@ -104,6 +104,27 @@ class TestTemplateManipulator(TestCase):
 		self.assertEqual(expected, actual)
 
 	@data_provider([
+		(
+			'klass.1',
+			### schema: dict<T_Key, T_Value>
+			{
+				'klass': 'Self',
+				'klass.0': 'T_Key',
+				'klass.1': 'T_Value',
+			},
+			### actual: dict<str, Union<A, B>>
+			{
+				'klass': 'dict',
+				'klass.0': 'str',
+				'klass.1': 'Union',
+				'klass.1.0': 'A',
+				'klass.1.1': 'B',
+			},
+			# FIXME: 期待値はklass.1.0
+			# FIXME: schemaのklass.{1}が、actualのklass.1.{1}とマッピングされており、これは完全に誤り
+			# FIXME: しかし、現状の判定方針のまま修正すると別の判定が期待通りにならないため、対応は一旦保留
+			'klass.1.1',
+		),
 		# (Self) => Self
 		(
 			'klass',

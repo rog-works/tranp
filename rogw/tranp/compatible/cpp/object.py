@@ -203,7 +203,7 @@ class CP(CVarNotNull[T_co]):
 		"""
 		return id(self) - id(other)
 
-	def __getitem__(self, key: str | int) -> 'CP[T_co]':
+	def __getitem__(self, key: str) -> 'CP[T_co]':
 		"""配下要素の取得
 
 		Args:

@@ -838,7 +838,7 @@ class Py2Cpp(ITranspiler):
 			return 'class', symbol.actualize()
 		elif receiver_symbol.type_is(tuple):
 			return 'tuple', None
-		elif not self.cvars.is_entity(self.cvars.var_name_from(receiver_symbol)):
+		elif self.cvars.is_addr_p(self.cvars.var_name_from(receiver_symbol)):
 			return 'cvar', None
 		else:
 			return 'otherwise', None

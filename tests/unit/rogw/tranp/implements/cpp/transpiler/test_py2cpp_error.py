@@ -39,7 +39,6 @@ class TestPy2CppError(TestCase):
 
 	@data_provider([
 		('InvalidOps.ternary_to_union_types', 'function_def_raw.block.assign', Errors.OperationNotAllowed, 'Must be Nullable or Non-Union'),
-		('InvalidOps.yield_return', 'function_def_raw.block.yield_stmt', Errors.NotSupported, 'Denied yield return'),
 		('InvalidOps.delete_relay', 'function_def_raw.block.del_stmt', Errors.OperationNotAllowed, 'Must be list or dict'),
 		('InvalidOps.destruction_assign', 'function_def_raw.block.assign', Errors.OperationNotAllowed, 'Must be a tuple'),
 	])

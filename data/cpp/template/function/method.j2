@@ -5,7 +5,7 @@
 {% include('function/_comment.j2') %}
 {%- include('function/_template_types.j2') %}
 {%- include('function/_decorators.j2') %}
-{%- if return_type.startswith('Iterator') %}
+{%- if symbol == '__iter__' %}
 {% include('function/_iterator_list.j2') %}
 {%- elif return_type.startswith('ItemsView') %}
 {% include('function/_iterator_dict.j2') %}

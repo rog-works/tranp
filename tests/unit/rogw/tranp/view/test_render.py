@@ -1189,10 +1189,10 @@ class TestRenderer(TestCase):
 		),
 		(
 			'method',
-			Expects.method(accessor='public', class_symbol='Hoge', symbol='list_iterator', return_type='Iterator<std::string>', statements=['// XXX', 'for (auto& e : this->_arr) {\n\treturn e;\n}']),
+			Expects.method(accessor='public', class_symbol='Hoge', symbol='__iter__', return_type='Iterator<std::string>', statements=['// XXX', 'for (auto& e : this->_arr) {\n\treturn e;\n}']),
 			'\n'.join([
 				'public:',
-				'/** list_iterator */',
+				'/** __iter__ */',
 				'std::vector<std::string>::iterator begin() { return (this->_arr).begin(); }',
 				'std::vector<std::string>::iterator end() { return (this->_arr).end(); }',
 			]),
@@ -1201,10 +1201,6 @@ class TestRenderer(TestCase):
 			'method',
 			Expects.method(accessor='public', class_symbol='Hoge', symbol='map_iterator', return_type='ItemsView<std::string, int>', statements=['// XXX', 'return this->_map;']),
 			'\n'.join([
-				'public:',
-				'/** map_iterator */',
-				'std::map<std::string, int>::iterator begin() { return (this->_map).begin(); }',
-				'std::map<std::string, int>::iterator end() { return (this->_map).end(); }',
 			]),
 		),
 		(

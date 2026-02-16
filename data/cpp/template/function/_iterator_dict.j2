@@ -1,8 +1,20 @@
 {%- for statement in statements -%}
 {%- if statement.startswith('return ') -%}
 {%- set iterates = statement[('return ' | length):-1] -%}
-{%- set _return_type = i18n('classes', 'dict') + '<' + return_type[('ItemsView<' | length):-1] + '>::' + i18n('cpp', 'map.iterator') -%}
-{{ _return_type }} {{ i18n('cpp', 'map.begin') }}() { return ({{ iterates }}).{{ i18n('cpp', 'map.begin') }}(); }
-{{ _return_type }} {{ i18n('cpp', 'map.end') }}() { return ({{ iterates }}).{{ i18n('cpp', 'map.end') }}(); }
+{%- set dict_class = i18n('classes', 'dict') + return_type[('ItemsView' | length):] -%}
+{%- set iter_class = dict_class + '::' + i18n('cpp', 'map.iterator') -%}
+struct Iterator_{{ symbol }}_i {
+	{{ iter_class }} __iter;
+	bool operator!=(const Iterator_{{ symbol }}_i& other) const { return this->__iter != other->__iter; }
+	void operator++() { this->__iter++; }
+	decltype(auto) operator*() { this->__iter.operator*(); }
+	decltype(auto) operator->() { this->__iter.operator->(); }
+};
+struct Iterator_{{ symbol }} {
+	{{ dict_class }}* __dict;
+	Iterator_{{ symbol }}_i {{ i18n('cpp', 'map.begin') }}() { return {this->__dict.begin()}; }
+	Iterator_{{ symbol }}_i {{ i18n('cpp', 'map.end') }}() { return {this->__dict.end()}; }
+};
+Iterator_{{ symbol }} {{ symbol }}() { return {&({{ iterates  }})}; }
 {%- endif -%}
 {%- endfor -%}

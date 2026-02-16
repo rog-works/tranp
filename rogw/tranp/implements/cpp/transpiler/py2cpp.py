@@ -703,9 +703,11 @@ class Py2Cpp(ITranspiler):
 		if self.is_relay_literalizer(node, receiver_symbol):
 			org_prop = node.prop.domain_name
 			if org_prop == '__name__':
-				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'var_type': str.__name__, 'is_statement': is_statement, 'literal': self.to_domain_name_by_class(receiver_symbol.types)})
+				# XXX 'alt'の実体化を除外
+				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'var_type': str.__name__, 'is_statement': is_statement, 'literal': self.to_domain_name_by_class(org_receiver_symbol.actualize('type').types)})
 			elif org_prop == '__module__':
-				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'var_type': str.__name__, 'is_statement': is_statement, 'literal': receiver_symbol.types.module_path})
+				# XXX 'alt'の実体化を除外
+				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'var_type': str.__name__, 'is_statement': is_statement, 'literal': org_receiver_symbol.actualize('type').types.module_path})
 			elif org_prop == 'name':
 				return self.view.render(f'{node.classification}/literalize', vars={'prop': org_prop, 'var_type': str.__name__, 'is_statement': is_statement, 'literal': node.receiver.as_a(defs.Relay).prop.tokens})
 			elif org_prop == 'value':

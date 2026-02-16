@@ -9,7 +9,6 @@ aliases.typing: aliases.typing
 aliases.collections.abc#Callable: std::function
 aliases.typing#Any: void
 aliases.typing#cast: static_cast
-aliases.rogw.tranp.compatible.lang#inline: inline
 aliases.rogw.tranp.compatible.lang#accessor.public: public
 aliases.rogw.tranp.compatible.lang#accessor.protected: protected
 aliases.rogw.tranp.compatible.lang#accessor.private: private
@@ -20,11 +19,13 @@ aliases.rogw.tranp.compatible.libralies.classes#RuntimeError: std::runtime_error
 aliases.rogw.tranp.compatible.libralies.classes#dict: std::map
 aliases.rogw.tranp.compatible.libralies.classes#dict.in: contains
 aliases.rogw.tranp.compatible.libralies.classes#dict.clear: clear
+aliases.rogw.tranp.compatible.libralies.classes#dict.iterator: iterator
 aliases.rogw.tranp.compatible.libralies.classes#dict.update: update # FIXME 暫定対処
 aliases.rogw.tranp.compatible.libralies.classes#list: std::vector
 aliases.rogw.tranp.compatible.libralies.classes#list.index: find # FIXME 暫定対処
 aliases.rogw.tranp.compatible.libralies.classes#list.append: push_back
 aliases.rogw.tranp.compatible.libralies.classes#list.insert: insert
+aliases.rogw.tranp.compatible.libralies.classes#list.iterator: iterator
 aliases.rogw.tranp.compatible.libralies.classes#list.extend: insert
 aliases.rogw.tranp.compatible.libralies.classes#list.remove: erase
 aliases.rogw.tranp.compatible.libralies.classes#list.sort: sort # FIXME 暫定対処

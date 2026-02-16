@@ -1,3 +1,2 @@
-{%- set is_inline = decorator_query(decorators).contains('Embed.inline') -%}
 {%- set suffix = ['const' if is_pure else '', 'override' if is_override else ''] | select('!=', '') | join(' ') -%}
-{% if is_inline %}{{ i18n('lang', 'inline') }} {% endif %}{% include('function/_return_type.j2') %} {{ symbol }}({% include('function/_definition_params.j2') %}){% if suffix %} {{ suffix }}{% endif %}
+{% include('function/_return_type.j2') %} {{ symbol }}({% include('function/_definition_params.j2') %}){% if suffix %} {{ suffix }}{% endif %}

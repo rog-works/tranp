@@ -1188,17 +1188,6 @@ class TestRenderer(TestCase):
 			]),
 		),
 		(
-			'method',
-			Expects.method(accessor='public', class_symbol='Hoge', symbol='method_inline', return_type='int', decorators=['Embed.inline'], statements=['return 0;']),
-			'\n'.join([
-				'public:',
-				'/** method_inline */',
-				'inline int method_inline() {',
-				'	return 0;',
-				'}',
-			]),
-		),
-		(
 			'destructor',
 			Expects.destructor(accessor='public', class_symbol='Hoge', statements=['this->release();']),
 			'\n'.join([

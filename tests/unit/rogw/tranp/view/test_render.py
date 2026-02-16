@@ -1199,8 +1199,17 @@ class TestRenderer(TestCase):
 		),
 		(
 			'method',
-			Expects.method(accessor='public', class_symbol='Hoge', symbol='map_iterator', return_type='ItemsView<std::string, int>', statements=['// XXX', 'return this->_map;']),
+			Expects.method(accessor='public', class_symbol='Hoge', symbol='items', return_type='ItemsView<std::string, int>', statements=['// XXX', 'return this->_map;']),
 			'\n'.join([
+				'public:',
+				'/** items */',
+				'struct Iterator_items {',
+				'	std::map<std::string, int>* __iterates;',
+				'	Iterator_items(std::map<std::string, int>* iterates) : __iterates(iterates) {}',
+				'	std::map<std::string, int>::iterator begin() { return {this->__iterates->begin()}; }',
+				'	std::map<std::string, int>::iterator end() { return {this->__iterates->end()}; }',
+				'};',
+				'Iterator_items items() { return {&(this->_map)}; }',
 			]),
 		),
 		(

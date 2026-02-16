@@ -5,15 +5,15 @@
 {%- set iter_class = dict_class + '::' + i18n('cpp', 'map.iterator') -%}
 struct Iterator_{{ symbol }}_i {
 	{{ iter_class }} __iter;
-	bool operator!=(const Iterator_{{ symbol }}_i& other) const { return this->__iter != other->__iter; }
-	void operator++() { this->__iter++; }
-	decltype(auto) operator*() { this->__iter.operator*(); }
-	decltype(auto) operator->() { this->__iter.operator->(); }
+	bool operator!=(const Iterator_{{ symbol }}_i& other) const { return this->__iter.operator!=(other.__iter); }
+	void operator++() { ++this->__iter; }
+	decltype(auto) operator*() { return this->__iter.operator*(); }
+	decltype(auto) operator->() { return this->__iter.operator->(); }
 };
 struct Iterator_{{ symbol }} {
 	{{ dict_class }}* __dict;
-	Iterator_{{ symbol }}_i {{ i18n('cpp', 'map.begin') }}() { return {this->__dict.begin()}; }
-	Iterator_{{ symbol }}_i {{ i18n('cpp', 'map.end') }}() { return {this->__dict.end()}; }
+	Iterator_{{ symbol }}_i {{ i18n('cpp', 'map.begin') }}() { return {this->__dict->begin()}; }
+	Iterator_{{ symbol }}_i {{ i18n('cpp', 'map.end') }}() { return {this->__dict->end()}; }
 };
 Iterator_{{ symbol }} {{ symbol }}() { return {&({{ iterates  }})}; }
 {%- endif -%}

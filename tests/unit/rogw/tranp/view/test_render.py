@@ -1188,6 +1188,28 @@ class TestRenderer(TestCase):
 			]),
 		),
 		(
+			'method',
+			Expects.method(accessor='public', class_symbol='Hoge', symbol='list_iterator', return_type='Iterator<std::string>', statements=['return this->_arr.begin();']),
+			'\n'.join([
+				'public:',
+				'/** list_iterator */',
+				'std::vector<std::string>::iterator list_iterator() {',
+				'	return this->_arr.begin();',
+				'}',
+			]),
+		),
+		(
+			'method',
+			Expects.method(accessor='public', class_symbol='Hoge', symbol='map_iterator', return_type='ItemsView<std::string, int>', statements=['return this->_map.begin();']),
+			'\n'.join([
+				'public:',
+				'/** map_iterator */',
+				'std::map<std::string, int>::iterator map_iterator() {',
+				'	return this->_map.begin();',
+				'}',
+			]),
+		),
+		(
 			'destructor',
 			Expects.destructor(accessor='public', class_symbol='Hoge', statements=['this->release();']),
 			'\n'.join([

@@ -365,7 +365,7 @@ class Py2Cpp(ITranspiler):
 		elif isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Var) and node.iterates.calls.tokens == enumerate.__name__:
 			return self.proc_for_enumerate(node, symbols, for_in, statements)
 		elif isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Relay) \
-			and node.iterates.calls.prop.tokens in [dict.items.__name__, dict.keys.__name__, dict.values.__name__] \
+			and node.iterates.calls.prop.tokens in FuncCallMaps.dict_iter_methods \
 			and self.reflections.type_of(node.iterates.calls.receiver).impl(refs.Object).actualize().type_is(dict):
 			return self.proc_for_dict(node, symbols, for_in, statements)
 		else:
@@ -387,7 +387,8 @@ class Py2Cpp(ITranspiler):
 		for_in_symbol = Defer.new(lambda: self.reflections.type_of(node.for_in).impl(refs.Object).actualize())
 		is_const = self.cvars.is_const(self.cvars.var_name_from(for_in_symbol)) if len(symbols) == 1 else False
 		# 期待値: 'iterates.items()'
-		receiver, operator, method_name = PatternParser.break_dict_iterator(for_in)
+		receiver, operator, _ = PatternParser.break_dict_iterator(for_in)
+		method_name = node.iterates.as_a(defs.FuncCall).calls.as_a(defs.Relay).prop.tokens
 		# XXX 参照の変換方法が場当たり的で一貫性が無い。包括的な対応を検討
 		iterates = f'*({receiver})' if operator == '->' else receiver
 		dict_symbols = {dict.items.__name__: symbols, dict.keys.__name__: [symbols[0], '_'], dict.values.__name__: ['_', symbols[0]]}
@@ -1181,10 +1182,11 @@ class Py2Cpp(ITranspiler):
 			spec = node.iterates.calls.tokens
 			return self.view.render(f'comp/{node.classification}_{spec}', vars={'symbols': symbols, 'iterates': for_in, 'is_const': is_const, 'is_addr_p': is_addr_p})
 		elif isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Relay) \
-			and node.iterates.calls.prop.tokens in [dict.items.__name__, dict.keys.__name__, dict.values.__name__] \
+			and node.iterates.calls.prop.tokens in FuncCallMaps.dict_iter_methods \
 			and self.reflections.type_of(node.iterates.calls.receiver).impl(refs.Object).actualize().type_is(dict):
 			# 期待値: 'iterates.items()'
-			receiver, operator, method_name = PatternParser.break_dict_iterator(for_in)
+			receiver, operator, _ = PatternParser.break_dict_iterator(for_in)
+			method_name = node.iterates.calls.prop.tokens
 			# XXX 参照の変換方法が場当たり的で一貫性が無い。包括的な対応を検討
 			iterates = f'*({receiver})' if operator == '->' else receiver
 			dict_symbols = {dict.items.__name__: symbols, dict.keys.__name__: [symbols[0], '_'], dict.values.__name__: ['_', symbols[0]]}
@@ -1417,13 +1419,14 @@ class FuncCallMaps:
 		list.extend.__name__,
 		list.copy.__name__,
 	]
-	list_and_dict_methods: ClassVar[list[str]] = [
-		list.pop.__name__,
-		list.insert.__name__,
-		list.extend.__name__,
+	dict_iter_methods: ClassVar[list[str]] = [
 		dict.items.__name__,
 		dict.keys.__name__,
 		dict.values.__name__,
+	]
+	list_and_dict_methods: ClassVar[list[str]] = [
+		*list_methods,
+		*dict_iter_methods,
 		dict.get.__name__,
 		dict.copy.__name__,
 	]

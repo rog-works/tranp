@@ -1,5 +1,4 @@
-{%- set iterates = namespace(at='') -%}
-{%- for statement in statements[0].split('\n') -%}
+{%- for statement in statements -%}
 {%- if statement.startswith('return ') -%}
 {%- set iterates = statement[('return ' | length):-1] -%}
 {%- set _return_type = i18n('classes', 'dict') + '<' + return_type[('ItemsView<' | length):-1] + '>::' + i18n('cpp', 'map.iterator') -%}

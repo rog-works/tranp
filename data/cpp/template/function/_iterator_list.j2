@@ -1,5 +1,4 @@
-{%- set iterates = namespace(at='') -%}
-{%- for statement in statements[0].split('\n') -%}
+{%- for statement in statements -%}
 {%- if statement.startswith('for (') -%}
 {%- set iterates = reg_match('^for \\(.+ : (.+)\\) {', statement)[1] -%}
 {%- set _return_type = i18n('classes', 'list') + '<' + return_type[('Iterator<' | length):-1] + '>::' + i18n('cpp', 'vector.iterator') -%}

@@ -612,7 +612,7 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(node.classification, vars={'return_value': return_value})
 
 	def on_yield(self, node: defs.Yield, yield_value: str) -> str:
-		raise Errors.NotSupported(node, 'Denied yield return')
+		return self.view.render(node.classification, vars={'yield_value': yield_value})
 
 	def on_assert(self, node: defs.Assert, condition: str, assert_body: str) -> str:
 		return self.view.render(node.classification, vars={'condition': condition, 'assert_body': assert_body})

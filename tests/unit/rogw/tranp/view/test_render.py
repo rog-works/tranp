@@ -1189,7 +1189,7 @@ class TestRenderer(TestCase):
 		),
 		(
 			'method',
-			Expects.method(accessor='public', class_symbol='Hoge', symbol='list_iterator', return_type='Iterator<std::string>', statements=['for (auto& e : this->_arr) {', '\treturn e;', '}']),
+			Expects.method(accessor='public', class_symbol='Hoge', symbol='list_iterator', return_type='Iterator<std::string>', statements=['for (auto& e : this->_arr) {\n\treturn e;\n}']),
 			'\n'.join([
 				'public:',
 				'/** list_iterator */',

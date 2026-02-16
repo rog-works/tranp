@@ -19,13 +19,15 @@ aliases.rogw.tranp.compatible.libralies.classes#RuntimeError: std::runtime_error
 aliases.rogw.tranp.compatible.libralies.classes#dict: std::map
 aliases.rogw.tranp.compatible.libralies.classes#dict.in: contains
 aliases.rogw.tranp.compatible.libralies.classes#dict.clear: clear
-aliases.rogw.tranp.compatible.libralies.classes#dict.iterator: iterator
+aliases.rogw.tranp.compatible.libralies.classes#dict.each: begin
 aliases.rogw.tranp.compatible.libralies.classes#dict.update: update # FIXME 暫定対処
+aliases.rogw.tranp.compatible.libralies.classes#iterator.dict: iterator
+aliases.rogw.tranp.compatible.libralies.classes#iterator.list: iterator
 aliases.rogw.tranp.compatible.libralies.classes#list: std::vector
 aliases.rogw.tranp.compatible.libralies.classes#list.index: find # FIXME 暫定対処
 aliases.rogw.tranp.compatible.libralies.classes#list.append: push_back
 aliases.rogw.tranp.compatible.libralies.classes#list.insert: insert
-aliases.rogw.tranp.compatible.libralies.classes#list.iterator: iterator
+aliases.rogw.tranp.compatible.libralies.classes#list.each: begin
 aliases.rogw.tranp.compatible.libralies.classes#list.extend: insert
 aliases.rogw.tranp.compatible.libralies.classes#list.remove: erase
 aliases.rogw.tranp.compatible.libralies.classes#list.sort: sort # FIXME 暫定対処

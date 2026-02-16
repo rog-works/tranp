@@ -2,10 +2,10 @@
 {%- set add_ref = '&' if return_type[-1] not in ['*', '&'] else '' -%}
 const {{ return_type }}{{ add_ref }}
 {%- elif return_type.startswith('Iterator') -%}
-{{ i18n('classes', 'list') }}<{{ return_type[9:-1] }}>::{{ i18n('classes', 'list.iterator') }}
+{{ i18n('classes', 'list') }}<{{ return_type[9:-1] }}>::{{ i18n('classes', 'iterator.list') }}
 {%- elif return_type.startswith('ItemsView') -%}
 {%- set elems = break_separator(return_type[10:-1], ', ') -%}
-{{ i18n('classes', 'dict') }}<{{ elems[0] }}, {{ elems[1] }}>::{{ i18n('classes', 'dict.iterator') }}
+{{ i18n('classes', 'dict') }}<{{ elems[0] }}, {{ elems[1] }}>::{{ i18n('classes', 'iterator.dict') }}
 {%- else -%}
 {{ return_type }}
 {%- endif -%}

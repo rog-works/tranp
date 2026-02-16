@@ -1,0 +1,4 @@
+{%- set iterates = statements[0][7:-1] -%}
+{%- set _return_type = i18n('classes', 'dict') + '<' + return_type[('ItemsView<' | length):-1] + '>::' + i18n('cpp', 'map.iterator') -%}
+{{ _return_type }} {{ i18n('cpp', 'map.begin') }}() { return ({{ iterates }}).{{ i18n('cpp', 'map.begin') }}(); }
+{{ _return_type }} {{ i18n('cpp', 'map.end') }}() { return ({{ iterates }}).{{ i18n('cpp', 'map.end') }}(); }

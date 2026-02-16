@@ -1189,24 +1189,22 @@ class TestRenderer(TestCase):
 		),
 		(
 			'method',
-			Expects.method(accessor='public', class_symbol='Hoge', symbol='list_iterator', return_type='Iterator<std::string>', statements=['return this->_arr.begin();']),
+			Expects.method(accessor='public', class_symbol='Hoge', symbol='list_iterator', return_type='Iterator<std::string>', statements=['for (auto& e : this->_arr) {', '\treturn e;', '}']),
 			'\n'.join([
 				'public:',
 				'/** list_iterator */',
-				'std::vector<std::string>::iterator list_iterator() {',
-				'	return this->_arr.begin();',
-				'}',
+				'std::vector<std::string>::iterator begin() { return (this->_arr).begin(); }',
+				'std::vector<std::string>::iterator end() { return (this->_arr).end(); }',
 			]),
 		),
 		(
 			'method',
-			Expects.method(accessor='public', class_symbol='Hoge', symbol='map_iterator', return_type='ItemsView<std::string, int>', statements=['return this->_map.begin();']),
+			Expects.method(accessor='public', class_symbol='Hoge', symbol='map_iterator', return_type='ItemsView<std::string, int>', statements=['return this->_map;']),
 			'\n'.join([
 				'public:',
 				'/** map_iterator */',
-				'std::map<std::string, int>::iterator map_iterator() {',
-				'	return this->_map.begin();',
-				'}',
+				'std::map<std::string, int>::iterator begin() { return (this->_map).begin(); }',
+				'std::map<std::string, int>::iterator end() { return (this->_map).end(); }',
 			]),
 		),
 		(

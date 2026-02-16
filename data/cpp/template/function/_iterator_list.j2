@@ -1,4 +1,9 @@
-{%- set iterates = reg_match('^for \\(.+ : (.+)\\) {', statements[0])[1] -%}
+{%- set iterates = namespace(at='') -%}
+{%- for statement in statements[0].split('\n') -%}
+{%- if statement.startswith('for (') -%}
+{%- set iterates = reg_match('^for \\(.+ : (.+)\\) {', statement)[1] -%}
 {%- set _return_type = i18n('classes', 'list') + '<' + return_type[('Iterator<' | length):-1] + '>::' + i18n('cpp', 'vector.iterator') -%}
 {{ _return_type }} {{ i18n('cpp', 'vector.begin') }}() { return ({{ iterates }}).{{ i18n('cpp', 'vector.begin') }}(); }
 {{ _return_type }} {{ i18n('cpp', 'vector.end') }}() { return ({{ iterates }}).{{ i18n('cpp', 'vector.end') }}(); }
+{%- endif -%}
+{%- endfor -%}

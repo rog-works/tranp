@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from collections.abc import Callable
+from collections.abc import Callable, ItemsView, Iterator
 from enum import Enum
 from typing import Annotated, ClassVar, Generic, Literal, Protocol, Self, TypeAlias, TypedDict, TypeVar, TypeVarTuple, cast
 
@@ -443,8 +443,22 @@ class ForFunction:
 			...
 
 	class Method:
+		l: list[str]
+		d: dict[str, int]
+
+		def __init__(self) -> None:
+			self.l = []
+			self.d = {}
+
 		def immutable_returns(self) -> Annotated[CP[str], Embed.immutable]:
 			...
+
+		def __iter__(self) -> Iterator[str]:
+			for v in self.l:
+				yield v
+
+		def items(self) -> ItemsView[str, int]:
+			return self.d.items()
 
 	class Operators:
 		# comparison

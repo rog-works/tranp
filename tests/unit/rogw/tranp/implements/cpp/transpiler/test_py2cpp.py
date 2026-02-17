@@ -267,7 +267,10 @@ class TestPy2Cpp(TestCase):
 
 		('ForFunction.ClassMethod.make', '', defs.ClassMethod, BlockExpects.class_method(access='public', name='make', return_type='ClassMethod', statements=['ForFunction::ClassMethod inst = ClassMethod();', 'return inst;'])),
 		('ForFunction.ClassMethod.immutable_returns', '', defs.ClassMethod, BlockExpects.class_method(access='public', name='immutable_returns', return_type='const std::string&')),
+
 		('ForFunction.Method.immutable_returns', '', defs.Method, BlockExpects.method(access='public', name='immutable_returns', return_type='const std::string*')),
+		('ForFunction.Method.__iter__', '', defs.Method, BlockExpects.ForIteratorList),
+		('ForFunction.Method.items', '', defs.Method, BlockExpects.ForIteratorDict),
 
 		('ForFunction.Operators.__eq__', '', defs.Method, BlockExpects.method(access='public', name='operator==', params=['const ForFunction::Operators& other'], return_type='bool')),
 		('ForFunction.Operators.__ne__', '', defs.Method, BlockExpects.method(access='public', name='operator!=', params=['const ForFunction::Operators& other'], return_type='bool')),

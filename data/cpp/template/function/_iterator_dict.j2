@@ -1,0 +1,15 @@
+{%- for statement in statements -%}
+{%- if statement.startswith('return ') -%}
+{%- set iterates = statement[('return ' | length):-1] -%}
+{%- set dict_class = i18n('classes', 'dict') + return_type[('ItemsView' | length):] -%}
+{%- set dict_iter_class = dict_class + '::' + i18n('cpp', 'map.iterator') -%}
+{%- set iter_struct = 'Iterator_' + symbol -%}
+struct {{ iter_struct }} {
+	{{ dict_class }}* __iterates;
+	{{ iter_struct }}({{ dict_class }}* iterates) : __iterates(iterates) {}
+	{{ dict_iter_class }} begin() { return {this->__iterates->begin()}; }
+	{{ dict_iter_class }} end() { return {this->__iterates->end()}; }
+};
+{{ iter_struct }} {{ symbol }}() { return {&({{ iterates }})}; }
+{%- endif -%}
+{%- endfor -%}

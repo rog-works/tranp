@@ -1189,13 +1189,27 @@ class TestRenderer(TestCase):
 		),
 		(
 			'method',
-			Expects.method(accessor='public', class_symbol='Hoge', symbol='method_inline', return_type='int', decorators=['Embed.inline'], statements=['return 0;']),
+			Expects.method(accessor='public', class_symbol='Hoge', symbol='__iter__', return_type='Iterator<std::string>', statements=['// XXX', 'for (auto& e : this->_arr) {\n\treturn e;\n}']),
 			'\n'.join([
 				'public:',
-				'/** method_inline */',
-				'inline int method_inline() {',
-				'	return 0;',
-				'}',
+				'/** __iter__ */',
+				'std::vector<std::string>::iterator begin() { return (this->_arr).begin(); }',
+				'std::vector<std::string>::iterator end() { return (this->_arr).end(); }',
+			]),
+		),
+		(
+			'method',
+			Expects.method(accessor='public', class_symbol='Hoge', symbol='items', return_type='ItemsView<std::string, int>', statements=['// XXX', 'return this->_map;']),
+			'\n'.join([
+				'public:',
+				'/** items */',
+				'struct Iterator_items {',
+				'	std::map<std::string, int>* __iterates;',
+				'	Iterator_items(std::map<std::string, int>* iterates) : __iterates(iterates) {}',
+				'	std::map<std::string, int>::iterator begin() { return {this->__iterates->begin()}; }',
+				'	std::map<std::string, int>::iterator end() { return {this->__iterates->end()}; }',
+				'};',
+				'Iterator_items items() { return {&(this->_map)}; }',
 			]),
 		),
 		(
@@ -1421,3 +1435,9 @@ class TestRenderer(TestCase):
 	])
 	def test_render_with_entry(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('with_entry', vars, expected)
+
+	@data_provider([
+		({'yield_value': 'entry'}, 'return entry;'),
+	])
+	def test_render_yield(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('yield', vars, expected)

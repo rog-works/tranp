@@ -9,7 +9,6 @@ aliases.typing: aliases.typing
 aliases.collections.abc#Callable: std::function
 aliases.typing#Any: void
 aliases.typing#cast: static_cast
-aliases.rogw.tranp.compatible.lang#inline: inline
 aliases.rogw.tranp.compatible.lang#accessor.public: public
 aliases.rogw.tranp.compatible.lang#accessor.protected: protected
 aliases.rogw.tranp.compatible.lang#accessor.private: private
@@ -50,6 +49,7 @@ aliases.rogw.tranp.compatible.cpp.classes#float.mod: fmod
 aliases.rogw.tranp.compatible.cpp.classes#map.begin: begin
 aliases.rogw.tranp.compatible.cpp.classes#map.end: end
 aliases.rogw.tranp.compatible.cpp.classes#map.erase: erase
+aliases.rogw.tranp.compatible.cpp.classes#map.iterator: iterator
 aliases.rogw.tranp.compatible.cpp.classes#make_shared: std::make_shared
 aliases.rogw.tranp.compatible.cpp.classes#shared_ptr: std::shared_ptr
 aliases.rogw.tranp.compatible.cpp.classes#shared_ptr.get: get
@@ -62,6 +62,7 @@ aliases.rogw.tranp.compatible.cpp.classes#string.size: size
 aliases.rogw.tranp.compatible.cpp.classes#string.slice: substr
 aliases.rogw.tranp.compatible.cpp.classes#vector.begin: begin
 aliases.rogw.tranp.compatible.cpp.classes#vector.end: end
+aliases.rogw.tranp.compatible.cpp.classes#vector.iterator: iterator
 aliases.rogw.tranp.compatible.cpp.classes#wchar_t: wchar_t
 # example
 # @see dsn.translation.import_dsn

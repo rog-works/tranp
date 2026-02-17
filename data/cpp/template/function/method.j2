@@ -5,7 +5,11 @@
 {% include('function/_comment.j2') %}
 {%- include('function/_template_types.j2') %}
 {%- include('function/_decorators.j2') %}
-{%- if is_abstract %}
+{%- if symbol == '__iter__' %}
+{% include('function/_iterator_list.j2') %}
+{%- elif return_type.startswith('ItemsView') %}
+{% include('function/_iterator_dict.j2') %}
+{%- elif is_abstract %}
 virtual {% include('function/_definition.j2') %} = 0;
 {%- elif allow_override %}
 virtual {% include('function/_definition.j2') %} {% include('function/_block.j2') %}

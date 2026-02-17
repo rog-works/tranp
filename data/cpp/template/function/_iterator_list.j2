@@ -1,0 +1,9 @@
+{%- for statement in statements -%}
+{%- if statement.startswith('for (') -%}
+{%- set iterates = reg_match('^for \\(.+ : (.+)\\) {', statement)[1] -%}
+{%- set list_class = i18n('classes', 'list') + return_type[('Iterator' | length):] -%}
+{%- set list_iter_class = list_class + '::' + i18n('cpp', 'vector.iterator') -%}
+{{ list_iter_class }} begin() { return ({{ iterates }}).begin(); }
+{{ list_iter_class }} end() { return ({{ iterates }}).end(); }
+{%- endif -%}
+{%- endfor -%}

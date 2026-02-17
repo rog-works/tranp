@@ -203,17 +203,18 @@ class CP(CVarNotNull[T_co]):
 		"""
 		return id(self) - id(other)
 
-	def __getitem__(self, key: str | int) -> 'CP[T_co]':
+	def __getitem__(self, key: str) -> 'CP[T_co]':
 		"""配下要素の取得
 
 		Args:
-			key: キー
+			key: キー ※1
 		Returns:
 			配下要素
 		Note:
 			```
 			* 自己再帰的な構造を持つコレクション用のインデクサー
 			* XXX このメソッドは利便性のみを着眼点とし、C++の標準仕様と全く関係ない点に注意
+			* XXX ※1: int型に対応すると静的解析では暗黙的にイテレーション可能と判断される。forのイテレーション要素として指定した際、誤りにも拘らず警告されないため非対応とする
 			```
 		"""
 		return getattr(self.raw, '__getitem__')(key)

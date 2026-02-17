@@ -200,3 +200,18 @@ class Delegate {
 	/** invoke */
 	void invoke(T_Args... args) {}
 };"""
+
+	ForIteratorList = """public:
+/** __iter__ */
+std::vector<std::string>::iterator begin() { return (this->l).begin(); }
+std::vector<std::string>::iterator end() { return (this->l).end(); }"""
+
+	ForIteratorDict = """public:
+/** items */
+struct Iterator_items {
+	std::map<std::string, int>* __iterates;
+	Iterator_items(std::map<std::string, int>* iterates) : __iterates(iterates) {}
+	std::map<std::string, int>::iterator begin() { return {this->__iterates->begin()}; }
+	std::map<std::string, int>::iterator end() { return {this->__iterates->end()}; }
+};
+Iterator_items items() { return {&(this->d)}; }"""

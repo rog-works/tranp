@@ -157,17 +157,6 @@ class Embed:
 		return wrapped
 
 	@classmethod
-	def inline(cls, wrapped: T) -> T:
-		"""インライン関数としてマークアップ
-
-		Args:
-			wrapped: ラップ対象
-		Returns:
-			デコレート対象
-		"""
-		return wrapped
-
-	@classmethod
 	def ignore(cls, *classes: type[Any]) -> Callable:
 		"""除外情報を埋め込む
 

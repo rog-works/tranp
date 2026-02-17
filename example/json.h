@@ -579,7 +579,7 @@ class Json {
 	std::vector<Json*> filter(const std::function<bool(Json*)>& query) {
 		return [&]() -> std::vector<Json*> {
 			std::vector<Json*> __ret;
-			for (auto in_json : this->_jsons) {
+			for (auto& in_json : this->_jsons) {
 				if (query((in_json).get())) {
 					__ret.push_back((in_json).get());
 				}

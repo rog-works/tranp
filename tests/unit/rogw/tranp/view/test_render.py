@@ -1435,3 +1435,9 @@ class TestRenderer(TestCase):
 	])
 	def test_render_with_entry(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('with_entry', vars, expected)
+
+	@data_provider([
+		({'yield_value': 'entry'}, 'return entry;'),
+	])
+	def test_render_yield(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('yield', vars, expected)

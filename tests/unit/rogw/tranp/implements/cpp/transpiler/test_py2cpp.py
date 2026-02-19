@@ -554,6 +554,8 @@ class TestPy2Cpp(TestCase):
 		('ForLambda.params', 'function_def_raw.block.anno_assign', defs.AnnoAssign, 'std::function<int(std::string)> func = [](const std::string& s) -> int { return 1; };'),
 		('ForLambda.params', 'function_def_raw.block.funccall[1]', defs.FuncCall, '([this](int a) mutable -> void { this->expression(); })(1);'),
 		('ForLambda.params', 'function_def_raw.block.funccall[2]', defs.FuncCall, 'this->params([](int* np, bool b) -> std::string { return ""; });'),
+		('ForLambda.params', 'function_def_raw.block.assign', defs.MoveAssign, 'ForLambda::A<int> a{[](int e) -> void { printf(e); }};'),
+		('ForLambda.params', 'function_def_raw.block.funccall[4]', defs.FuncCall, 'a.call([](int e) -> void { printf(e); });'),
 
 		('ForLambda.expression', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'std::function<int()> f = []() -> int { return 1; };'),
 		('ForLambda.expression', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'int n = f();'),

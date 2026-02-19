@@ -131,8 +131,9 @@ class ResolveUnknown:
 				arg_raw = method_raw.attrs[arg_index].impl(refs.Object).actualize('alt')
 				return var_raw.declare(var_raw.node.as_a(defs.Declable), arg_raw.attrs[index])
 			elif org_calls.types.is_a(defs.Constructor, defs.Method, defs.ClassMethod):
+				method_raw = org_calls.impl(refs.Function).signature(org_calls.context)
 				arg_index = func_call.arguments.index(parent) + 1
-				arg_raw = org_calls.attrs[arg_index].impl(refs.Object).actualize('alt')
+				arg_raw = method_raw.attrs[arg_index].impl(refs.Object).actualize('alt')
 				return var_raw.declare(var_raw.node.as_a(defs.Declable), arg_raw.attrs[index])
 			else:
 				arg_index = func_call.arguments.index(parent)

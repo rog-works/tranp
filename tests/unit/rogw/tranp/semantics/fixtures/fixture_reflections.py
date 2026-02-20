@@ -337,12 +337,19 @@ class WithOps:
 		with open(os_path.join(dir, 'hoge.yml'), encoding='utf-8') as f:
 			content = cast(dict[str, Any], yaml_safe_load(f))
 
-	class A(Generic[T]):
+	class WithSelf:
+		def __enter__(self: Self) -> Self: ...
+		def __exit__(self, exc_type: type[Exception], exc: BaseException, tb: TracebackType) -> None: ...
+
+	class WithT(Generic[T]):
 		def __enter__(self) -> T: ...
 		def __exit__(self, exc_type: type[Exception], exc: BaseException, tb: TracebackType) -> None: ...
 
 	def enter(self) -> None:
-		with WithOps.A[Base]() as e:
+		with WithOps.WithSelf() as e:
+			that = e
+
+		with WithOps.WithT[Base]() as e:
 			s = e.base_str
 
 

@@ -10,6 +10,8 @@ class ClassOperations(Protocol):
 		destructor: デストラクターメソッドの名称
 		iterator: イテレーターメソッドの名称
 		iterable: イテレータブルメソッドの名称
+		enter: コンテキストマネージャー開始メソッドの名称
+		exit: コンテキストマネージャー終了メソッドの名称
 	"""
 
 	constructor: ClassVar[str]
@@ -17,6 +19,8 @@ class ClassOperations(Protocol):
 	destructor: ClassVar[str]
 	iterator: ClassVar[str]
 	iterable: ClassVar[str]
+	enter: ClassVar[str]
+	exit: ClassVar[str]
 
 	def operation_by(self, operator: str) -> str:
 		"""各種演算に対応するメソッドの名称を取得

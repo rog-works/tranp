@@ -31,6 +31,8 @@ class PythonClassOperations:
 	destructor: ClassVar = '__py_destroy__'  # XXX 独自仕様
 	iterator: ClassVar = '__next__'
 	iterable: ClassVar = '__iter__'
+	enter: ClassVar = '__enter__'
+	exit: ClassVar = '__exit__'
 
 	def operation_by(self, operator: str) -> str:
 		"""各種演算に対応するメソッドの名称を取得

@@ -52,7 +52,7 @@ class ResolveUnknown:
 			elif isinstance(raw.decl.declare, (defs.For, defs.CompFor)):
 				raw.mod_on('origin', self.make_mod_right_to_left(raw, raw.decl.declare.for_in))
 			elif isinstance(raw.decl.declare, defs.WithEntry):
-				raw.mod_on('origin', self.make_mod_right_to_left(raw, raw.decl.declare.enter))
+				raw.mod_on('origin', self.make_mod_with_entry(raw, raw.decl.declare))
 			elif isinstance(raw.decl.declare, defs.Lambda):
 				raw.mod_on('origin', self.make_mod_lambda_param(raw, raw.decl.declare))
 
@@ -68,6 +68,17 @@ class ResolveUnknown:
 			モッド
 		"""
 		return lambda: [self.invoker(self.resolve_right_to_left, var_raw, value_node)]
+
+	def make_mod_with_entry(self, var_raw: IReflection, with_entry: defs.WithEntry) -> Mod:
+		"""モッドを生成(コンテキストマネージャー解決用)
+
+		Args:
+			var_raw: 変数宣言シンボル
+			with_entry: コンテキストマネージャー
+		Returns:
+			モッド
+		"""
+		return lambda: [self.invoker(self.resolve_with_entry, var_raw, with_entry)]
 
 	def make_mod_lambda_param(self, var_raw: IReflection, declare: defs.Lambda) -> Mod:
 		"""モッドを生成(ラムダ引数用)
@@ -99,6 +110,23 @@ class ResolveUnknown:
 		index = decl_vars.index(var_raw.decl)
 		actual_value_raw = value_raw.attrs[0] if value_raw.types.is_a(defs.AltClass) else value_raw
 		return var_raw.declare(var_raw.node.as_a(defs.Declable), actual_value_raw.attrs[index])
+
+	@injectable
+	def resolve_with_entry(self, reflections: Reflections, var_raw: IReflection, with_entry: defs.WithEntry) -> IReflection:
+		"""コンテキストマネージャーの値の型を解決し、変数宣言シンボルを生成
+
+		Args:
+			reflections: シンボルリゾルバー @inject
+			var_raw: 変数宣言シンボル
+			with_entry: コンテキストマネージャー
+		Returns:
+			シンボル
+		"""
+		# FIXME traitで処理するべきでは？
+		enter_raw = reflections.type_of(with_entry.enter)
+		enter_method_raw = reflections.resolve(enter_raw.types, enter_raw.types.operations.enter)
+		method_raw = enter_raw.to(enter_raw.types, enter_method_raw)
+		return method_raw.impl(refs.Function).returns()
 
 	@injectable
 	def resolve_lambda_param(self, reflections: Reflections, var_raw: IReflection, declare: defs.Lambda) -> IReflection:

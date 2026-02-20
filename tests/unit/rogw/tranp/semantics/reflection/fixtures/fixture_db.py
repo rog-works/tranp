@@ -1,6 +1,7 @@
 from collections.abc import Callable, Iterator
 from enum import Enum
 from os import path as os_path
+from types import TracebackType
 from typing import Annotated, Any, ClassVar, Generic, Literal, Self, TypeAlias, TypedDict, TypeVar, TypeVarTuple, cast
 
 from yaml import safe_load as yaml_safe_load
@@ -335,6 +336,14 @@ class WithOps:
 		dir = os_path.dirname(__file__)
 		with open(os_path.join(dir, 'hoge.yml'), encoding='utf-8') as f:
 			content = cast(dict[str, Any], yaml_safe_load(f))
+
+	class A(Generic[T]):
+		def __enter__(self) -> T: ...
+		def __exit__(self, exc_type: type[Exception], exc: BaseException, tb: TracebackType) -> None: ...
+
+	def enter(self) -> None:
+		with WithOps.A[Base]() as e:
+			s = e.base_str
 
 
 class ForRelay:

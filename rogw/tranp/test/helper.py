@@ -30,4 +30,3 @@ def data_provider(args_list: list[tuple], *includes: int) -> Callable:
 
 		return wrapper
 	return decorator
-

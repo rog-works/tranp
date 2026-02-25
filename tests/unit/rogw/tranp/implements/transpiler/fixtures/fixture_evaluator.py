@@ -12,6 +12,7 @@ class E1(Enum):
 	C = int('1') + int('2')
 	D = float('1.1') + float(1)
 	E = str(0) + '.' + str(1)
+	F = str(E0.A.value) + '.' + str(E0.B.value)
 
 
 E0.A.value
@@ -21,3 +22,4 @@ E1.B.value
 E1.C.value
 E1.D.value
 E1.E.value
+E1.F.value

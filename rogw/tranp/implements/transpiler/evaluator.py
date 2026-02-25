@@ -124,10 +124,7 @@ class LiteralEvaluator:
 		return f'{quote}{left[1:-1]}{right[1:-1]}{quote}'
 
 	def on_argument(self, node: defs.Argument, label: Evaluator.Value, value: Evaluator.Value) -> Evaluator.Value:
-		if node.value.is_a(defs.Literal):
-			return value
-		else:
-			return self.exec(node.value)
+		return value
 
 	def on_argument_label(self, node: defs.ArgumentLabel) -> Evaluator.Value:
 		return node.tokens

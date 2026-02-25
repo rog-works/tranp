@@ -123,6 +123,12 @@ class LiteralEvaluator:
 		quote = left[0]
 		return f'{quote}{left[1:-1]}{right[1:-1]}{quote}'
 
+	def on_argument(self, node: defs.Argument, label: Evaluator.Value, value: Evaluator.Value) -> Evaluator.Value:
+		return value
+
+	def on_argument_label(self, node: defs.ArgumentLabel) -> Evaluator.Value:
+		return node.tokens
+
 	def on_var(self, node: defs.Var) -> Evaluator.Value:
 		var_raw = self._reflections.type_of(node)
 		# Enum.X = DeclLocalVar
@@ -142,6 +148,24 @@ class LiteralEvaluator:
 
 		# 上記以外は全て無視して良い
 		return ''
+
+	def on_func_call(self, node: defs.FuncCall, calls: Evaluator.Value, arguments: list[Evaluator.Value]) -> Evaluator.Value:
+		# スカラー型のキャストのみ許可
+		org_calls = node.calls.tokens
+		if org_calls == 'int':
+			if isinstance(arguments[0], str):
+				return int(arguments[0][1:-1])
+			else:
+				return int(arguments[0])
+		elif org_calls == 'float':
+			if isinstance(arguments[0], str):
+				return float(arguments[0][1:-1])
+			else:
+				return float(arguments[0])
+		elif org_calls == 'str':
+			return f'"{str(arguments[0])}"'
+
+		raise Errors.OperationNotAllowed(node, calls, arguments)
 
 	def on_integer(self, node: defs.Integer) -> Evaluator.Value:
 		return int(node.tokens)
@@ -175,6 +199,10 @@ class LiteralEvaluator:
 			return token
 
 		raise Errors.OperationNotAllowed(node)
+
+	def on_empty(self, node: defs.Empty) -> Evaluator.Value:
+		# FuncCallのためEmptyを許容
+		return node.tokens
 
 	def on_fallback(self, node: Node) -> Evaluator.Value:
 		raise Errors.OperationNotAllowed(node)

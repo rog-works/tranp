@@ -8,13 +8,12 @@
 	"[python]": {
 		"editor.formatOnSave": true,
 		"editor.codeActionsOnSave": {
-			"source.organizeImports": "explicit",
+			"source.organizeImports.ruff": "explicit"
 		},
+		"editor.defaultFormatter": null,
 	},
-	"isort.args": [
-		"--line-length",
-		"10000",
-	],
+	"ruff.enable": true,
+	"ruff.lint.enable": false,
 	"python.envFile": "${workspaceFolder}/.py-env",
 	"python.testing.unittestArgs": [
 		"-s", "./tests/unit",

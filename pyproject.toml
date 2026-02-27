@@ -1,0 +1,6 @@
+[tool.ruff.lint]
+select = ["I"]
+ignore = ["ALL"]
+
+[tool.ruff.format]
+exclude = ["**/*.py"]

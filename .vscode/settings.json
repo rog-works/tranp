@@ -6,7 +6,7 @@
 		"./vendor",
 	],
 	"[python]": {
-		"editor.formatOnSave": true,
+		"editor.formatOnSave": false,
 		"editor.codeActionsOnSave": {
 			"source.organizeImports.ruff": "explicit"
 		},

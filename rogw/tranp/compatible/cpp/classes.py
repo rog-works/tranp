@@ -89,7 +89,27 @@ class uint64(digit): ...
 
 # Decimal
 
-class double(float): ...
+class double(float):
+	def __add__(self, other: float | Self) -> Self:
+		"""other: 対象 Returns: 演算結果"""
+		return self.__class__(super().__add__(other))
+
+	def __sub__(self, other: float | Self) -> Self:
+		"""other: 対象 Returns: 演算結果"""
+		return self.__class__(super().__sub__(other))
+
+	def __mul__(self, other: float | Self) -> Self:
+		"""other: 対象 Returns: 演算結果"""
+		return self.__class__(super().__mul__(other))
+
+	def __truediv__(self, other: float | Self) -> Self:
+		"""other: 対象 Returns: 演算結果"""
+		return self.__class__(super().__truediv__(other))
+
+	def __mod__(self, other: float | Self) -> Self:
+		"""other: 対象 Returns: 演算結果"""
+		return self.__class__(super().__mod__(other))
+
 
 # XXX 本質的には正しくないが、void*としてのみ使用するため、これによって無駄なキャストを軽減
 void: TypeAlias = object

@@ -445,9 +445,10 @@ class Py2Cpp(ITranspiler):
 		# 親クラスのコンストラクター呼び出しのデータを生成
 		super_initializer = {}
 		if super_initializer_statement:
-			super_initializer['parent'] = super_initializer_statement.split('::')[-2]
 			# 期待値: `Class::__init__(a, b, c);`
-			super_initializer['arguments'] = PatternParser.pluck_super_arguments(super_initializer_statement)
+			super_class, super_args = PatternParser.break_super_call(super_initializer_statement)
+			super_initializer['parent'] = super_class
+			super_initializer['arguments'] = super_args
 
 		# メンバー変数の宣言用のデータを生成
 		initializers: list[dict[str, str]] = []
@@ -1456,6 +1457,7 @@ class PatternParser:
 
 	RelayPattern: ClassVar[re.Pattern] = re.compile(r'(.+)(->|::|\.)\w+$')
 	DictIteratorPattern: ClassVar[re.Pattern] = re.compile(r'(.+)(->|\.)(\w+)\(\)$')
+	SuperCallPattern: ClassVar[re.Pattern] = re.compile(r'([\w\d]+)::__init__\((.*)\);$')
 	DeclClassVarNamePattern: ClassVar[re.Pattern] = re.compile(r'\s+([\w\d_]+)\s+=')
 	MoveDeclRightPattern: ClassVar[re.Pattern] = re.compile(r'=\s*([^;]+);$')
 	InitDeclRightPattern: ClassVar[re.Pattern] = re.compile(r'({[^;]*});$')
@@ -1511,20 +1513,20 @@ class PatternParser:
 		return cast(re.Match, cls.DictIteratorPattern.fullmatch(func_call)).group(1, 2, 3)
 
 	@classmethod
-	def pluck_super_arguments(cls, func_call: str) -> str:
-		"""関数コール(super)から引数リストの部分を抜き出す
+	def break_super_call(cls, func_call: str) -> tuple[str, str]:
+		"""関数コール(super)から親クラス名と引数リストに分解
 
 		Args:
 			func_call: 文字列
 		Returns:
-			引数リスト
+			(クラス, 引数リスト)
 		Note:
 			```
 			### 期待値
-			'Class::__init__(arguments...);' -> 'arguments...'
+			'NS::Class::__init__(arguments...);' -> ('Class', 'arguments...')
 			```
 		"""
-		return BlockParser.break_last_block(func_call, '()')[1]
+		return cast(re.Match, cls.SuperCallPattern.search(func_call)).group(1, 2)
 
 	@classmethod
 	def pluck_class_var_name(cls, decl_class_var: str) -> str:

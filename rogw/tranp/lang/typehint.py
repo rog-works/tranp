@@ -359,7 +359,7 @@ class ClassTypehint(Typehint):
 				origin, meta = OriginUnpacker.unpack(anno, at_type.__module__)
 				# FIXME 型の不一致は一旦castで対処
 				# XXX メタ情報が含まれる場合はAnnotatedを復元
-				if meta:
+				if meta is not None:
 					annos[key] = cast(type, Annotated[origin, meta])
 				else:
 					annos[key] = cast(type, origin)
@@ -399,23 +399,23 @@ class OriginUnpacker:
 			Annotated/ForwardRefは型情報として意味を成さないので暗黙的にアンパック
 		"""
 		if isinstance(origin, str):
-			return OriginUnpacker.forward_to_type(origin, via_module_path), None
+			return cls.forward_to_type(origin, via_module_path), None
 		elif get_origin(origin) is Annotated:
 			_origin = getattr(origin, '__origin__')
 			# FIXME 可変長tupleは扱いにくいため、一旦先頭要素のみ使用
 			meta: Any = getattr(origin, '__metadata__')[0]
 			if type(_origin) is ForwardRef:
-				return OriginUnpacker.forward_to_type(_origin.__forward_arg__, via_module_path), meta
+				return cls.forward_to_type(_origin.__forward_arg__, via_module_path), meta
 			else:
 				return _origin, meta
 		elif get_origin(origin) is ClassVar:
 			_origin = getattr(origin, '__args__')[0]
 			if type(_origin) is ForwardRef:
-				return OriginUnpacker.forward_to_type(_origin.__forward_arg__, via_module_path), None
+				return cls.forward_to_type(_origin.__forward_arg__, via_module_path), None
 			else:
 				return _origin, None
 		elif type(origin) is ForwardRef:
-			return OriginUnpacker.forward_to_type(origin.__forward_arg__, via_module_path), None
+			return cls.forward_to_type(origin.__forward_arg__, via_module_path), None
 		else:
 			return origin, None
 

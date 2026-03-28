@@ -63,7 +63,13 @@ metaclass_argvalue: "metaclass" "=" typed_expression
 
 // @lark funcdef: "def" name "(" [parameters] ")" ["->" test] ":" suite
 function_def: [decorators] function_def_raw
-function_def_raw: "def" name "(" [parameters] ")" "->" typed_expression ":" block
+function_def_raw: "def" name ["[" inline_template_assigns "]"] "(" [parameters] ")" "->" typed_expression ":" block
+
+// @custom
+inline_template_assigns: inline_template_assign ("," inline_template_assign)*
+inline_template_assign: inline_template_assign_name [":" inline_template_assign_expression] -> template_assign
+inline_template_assign_name: name -> var
+inline_template_assign_expression: typed_expression -> template_assign_boundary
 
 // @lark lambdadef: "lambda" [lambdaparams] ":" test
 // @lark lambdadef_nocond: "lambda" [lambdaparams] ":" test_nocond

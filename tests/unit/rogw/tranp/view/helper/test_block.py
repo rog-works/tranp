@@ -77,6 +77,7 @@ class TestBlockParser(TestCase):
 		('a[0].b[c[1]]', '[]', ('a[0].b', 'c[1]')),
 		('a[b(c, d)[0]].e[1, 2]', '[]', ('a[b(c, d)[0]].e', '1, 2')),
 		('a().b(1, 2[3]).c({});', '()', ('a().b(1, 2[3]).c', '{}')),
+		('A::b.c([]() -> int { return 0; });', '{}', ('A::b.c([]() -> int ', ' return 0; ')),
 	])
 	def test_break_last_block(self, text: str, delimiter: str, expected: tuple[str, str]) -> None:
 		actual = BlockParser.break_last_block(text, delimiter)

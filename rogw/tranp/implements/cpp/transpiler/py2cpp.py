@@ -1053,9 +1053,6 @@ class Py2Cpp(ITranspiler):
 			receiver, _ = PatternParser.break_relay(calls)
 			cvar_key = self.cvars.var_name_from(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'is_addr': self.cvars.is_addr(cvar_key)})
-		elif spec == 'decl_static':
-			# 期待値: Embed::static({'f': func})
-			return arguments[0]
 		else:
 			return self.view.render(f'{node.classification}/default', vars=func_call_vars)
 
@@ -1152,8 +1149,6 @@ class Py2Cpp(ITranspiler):
 				cvar_key = self.cvars.var_name_from(receiver_raw)
 				if not self.cvars.is_entity(cvar_key):
 					return 'cvar_to_addr_id', receiver_raw
-			elif prop == Embed.static.__name__ and node.calls.tokens == Embed.static.__qualname__:
-				return 'decl_static', None
 
 		if isinstance(node.calls, (defs.Relay, defs.Var)):
 			if len(node.arguments) > 0 and node.arguments[0].value.is_a(defs.Reference):

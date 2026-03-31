@@ -13,10 +13,10 @@ class Embed:
 	class _DeclareStatic:
 		"""スタティック変数定義仲介モジュール"""
 
-		holder: FunctionType | MethodType
+		holder: FunctionType | MethodType | property
 		key: str
 
-		def __init__(self, holder: FunctionType | MethodType, key: str) -> None:
+		def __init__(self, holder: FunctionType | MethodType | property, key: str) -> None:
 			"""インスタンスを生成
 
 			Args:
@@ -41,7 +41,7 @@ class Embed:
 			return getattr(self.holder, key)
 
 	@classmethod
-	def static(cls, holder: FunctionType | MethodType, key: str = '') -> _DeclareStatic:
+	def static(cls, holder: FunctionType | MethodType | property, key: str = '') -> _DeclareStatic:
 		"""静的フラグを埋め込み (対象: 関数のローカル変数)
 
 		Args:

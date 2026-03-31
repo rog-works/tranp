@@ -566,7 +566,7 @@ class Py2Cpp(ITranspiler):
 		assign_vars = {'receiver': receiver, 'var_type': var_type, 'value': value}
 		if not declared:
 			return self.view.render(f'assign/{node.classification}', vars=assign_vars)
-		elif isinstance(node.value, defs.FuncCall) and node.value.calls.tokens == Embed.static.__qualname__:
+		elif isinstance(node.value, defs.FuncCall) and node.value.calls.tokens.startswith(Embed.static.__qualname__):
 			return self.view.render(f'assign/{node.classification}_declare', vars={**assign_vars, 'is_static': True})
 		elif isinstance(node.value, defs.FuncCall) and value.startswith(f'{var_type}('):
 			return self.view.render(f'assign/{node.classification}_declare', vars={**assign_vars, 'is_initializer': True})

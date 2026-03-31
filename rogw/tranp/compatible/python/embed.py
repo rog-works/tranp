@@ -11,17 +11,20 @@ class Embed:
 	"""埋め込みモジュール"""
 
 	class _DeclareStatic:
-		"""スタティック変数定義を仲介"""
+		"""スタティック変数定義仲介モジュール"""
 
 		holder: FunctionType | MethodType
+		key: str
 
-		def __init__(self, holder: FunctionType | MethodType) -> None:
+		def __init__(self, holder: FunctionType | MethodType, key: str) -> None:
 			"""インスタンスを生成
 
 			Args:
 				holder: 埋め込み対象の関数
+				key: 競合回避用のキー
 			"""
 			self.holder = holder
+			self.key = key
 
 		def decl(self, factory: Callable[[], T]) -> T:
 			"""スタティック変数の定義・取得
@@ -31,19 +34,21 @@ class Embed:
 			Returns:
 				生成したスタティック変数
 			"""
-			if not hasattr(self.holder, '__tranp_static__'):
-				setattr(self.holder, '__tranp_static__', factory())
+			key = f'__tranp_static_{self.key}__'
+			if not hasattr(self.holder, key):
+				setattr(self.holder, key, factory())
 
-			return getattr(self.holder, '__tranp_static__')
+			return getattr(self.holder, key)
 
 	@classmethod
-	def static(cls, holder: FunctionType | MethodType) -> _DeclareStatic:
+	def static(cls, holder: FunctionType | MethodType, key: str = '') -> _DeclareStatic:
 		"""静的フラグを埋め込み (対象: 関数のローカル変数)
 
 		Args:
-			var: 変数
+			holder: 埋め込み対象の関数
+			key: 競合回避用のキー
 		Returns:
-			変数
+			定義仲介モジュール
 		Examples:
 			```python
 			class A:
@@ -52,7 +57,7 @@ class Embed:
 					static_var = Embed.static(A.func).decl(lambda: {'a': func_a, 'b': func_b}))
 			```
 		"""
-		return cls._DeclareStatic(holder)
+		return cls._DeclareStatic(holder, key)
 
 	@classmethod
 	def mutable(cls) -> None:

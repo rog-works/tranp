@@ -1,7 +1,7 @@
 {%- if is_initializer -%}
 {{ var_type }} {{ receiver }}{{ '{' + value[(var_type | length) + 1:-1] + '}' }};
 {%- elif is_static -%}
-static {{ var_type }} {{ receiver }} = {{ value }};
+static {{ var_type }} {{ receiver }} = {{ (break_last_block(value, '{}')[1].strip() | replace('return ', ''))[:-1] }};
 {%- else -%}
 {{ var_type }} {{ receiver }} = {{ value }};
 {%- endif -%}

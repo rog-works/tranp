@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from types import FunctionType
+from types import FunctionType, MethodType
 from typing import Any, TypeVar
 
 from rogw.tranp.compatible.libralies.classes import __actual__
@@ -13,9 +13,9 @@ class Embed:
 	class _DeclareStatic:
 		"""スタティック変数定義を仲介"""
 
-		holder: FunctionType
+		holder: FunctionType | MethodType
 
-		def __init__(self, holder: FunctionType) -> None:
+		def __init__(self, holder: FunctionType | MethodType) -> None:
 			"""インスタンスを生成
 
 			Args:
@@ -37,7 +37,7 @@ class Embed:
 			return getattr(self.holder, '__tranp_static__')
 
 	@classmethod
-	def static(cls, holder: FunctionType) -> _DeclareStatic:
+	def static(cls, holder: FunctionType | MethodType) -> _DeclareStatic:
 		"""静的フラグを埋め込み (対象: 関数のローカル変数)
 
 		Args:

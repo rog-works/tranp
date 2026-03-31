@@ -13,14 +13,14 @@ class Embed:
 	class _DeclareStatic:
 		"""スタティック変数定義仲介モジュール"""
 
-		holder: FunctionType | MethodType | property
+		holder: Any
 		key: str
 
-		def __init__(self, holder: FunctionType | MethodType | property, key: str) -> None:
+		def __init__(self, holder: Any, key: str) -> None:
 			"""インスタンスを生成
 
 			Args:
-				holder: 埋め込み対象の関数
+				holder: 埋め込み対象
 				key: 競合回避用のキー
 			"""
 			self.holder = holder
@@ -57,7 +57,12 @@ class Embed:
 					static_var = Embed.static(A.func).decl(lambda: {'a': func_a, 'b': func_b}))
 			```
 		"""
-		return cls._DeclareStatic(holder, key)
+		if isinstance(holder, MethodType):
+			return cls._DeclareStatic(holder.__func__, key)
+		elif isinstance(holder, property):
+			return cls._DeclareStatic(holder.fget, key)
+		else:
+			return cls._DeclareStatic(holder, key)
 
 	@classmethod
 	def mutable(cls) -> None:

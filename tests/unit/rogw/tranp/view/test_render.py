@@ -192,7 +192,7 @@ class TestRenderer(TestCase):
 		('move_assign', {'receiver': 'hoge', 'value': '1234'}, 'hoge = 1234;'),
 		('move_assign_dict', {'receiver': 'hoge[0]', 'value': '1234'}, 'hoge[0] = 1234;'),
 		('move_assign_declare', {'receiver': 'hoge', 'value': '1234', 'var_type': 'int'}, 'int hoge = 1234;'),
-		('move_assign_declare', {'receiver': 'hoge', 'value': '1234', 'var_type': 'int', 'is_static': True}, 'static int hoge = 1234;'),
+		('move_assign_declare', {'receiver': 'hoge', 'value': 'Embed::static(A::f).decl([]() -> { return 1234; })', 'var_type': 'int', 'is_static': True}, 'static int hoge = 1234;'),
 		('move_assign_declare', {'receiver': 'hoge', 'value': 'A(1)', 'var_type': 'A', 'is_initializer': True}, 'A hoge{1};'),
 		('move_assign_destruction', {'receivers': ['hoge', 'fuga'], 'value': '{1234, 2345}'}, 'auto [hoge, fuga] = {1234, 2345};'),
 		('anno_assign', {'receiver': 'hoge', 'value': '1234', 'var_type': 'int', 'annotation': ''}, 'int hoge = 1234;'),

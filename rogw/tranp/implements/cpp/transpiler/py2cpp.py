@@ -177,19 +177,19 @@ class Py2Cpp(ITranspiler):
 		if not isinstance(raw.types, defs.Class):
 			return actual_attrs
 
-		# tuple/Callable XXX 要素数は任意のため許容
-		var_raw = raw.impl(refs.Object)
-		if var_raw.type_is(tuple) or var_raw.type_is(Callable) or var_raw.type_is(Union):
+		# tuple/Callable/Union XXX 可変数のため許容
+		raw_obj = raw.impl(refs.Object)
+		if raw_obj.type_is(tuple) or raw_obj.type_is(Callable) or raw_obj.type_is(Union):
 			return actual_attrs
 
-		# TypeVarTuple XXX 要素数は任意のため許容
-		decl_attrs = [self.reflections.type_of(attr_type) for attr_type in raw.types.sub_types]
+		# TypeVarTuple XXX 可変数のため許容
+		decl_attrs = [self.reflections.type_of(sub_type) for sub_type in raw.types.sub_types]
 		tuple_type = len([True for decl_attr in decl_attrs if isinstance(decl_attr.types, defs.TemplateClass) and decl_attr.types.definition_type.type_name.tokens == TypeVarTuple.__name__]) > 0
 		if tuple_type:
 			return actual_attrs
 
 		if len(actual_attrs) != len(decl_attrs):
-			raise Errors.InvalidSchema(raw)
+			raise Errors.Never(raw)
 
 		return [attr for index, attr in enumerate(actual_attrs) if decl_attrs[index].types.is_a(defs.TemplateClass)]
 
@@ -553,19 +553,16 @@ class Py2Cpp(ITranspiler):
 			this_var_vars = {'accessor': self.to_accessor(defs.to_accessor(this_var_name)), 'decl_this_var': this_var_statement, 'annotation': this_var_annotation}
 			a_statements[index] = self.view.render(f'{node.classification}/_decl_this_var', vars=this_var_vars)
 
-		# XXX テンプレートタイプの抽出
-		explicit_template_types = []
-		for t_type in node.sub_types:
-			cantidate = self.reflections.type_of(t_type)
-			if cantidate.types.is_a(defs.TemplateClass):
-				explicit_template_types.append(cantidate.types.domain_name)
-
-		if len(explicit_template_types) != len(sub_types):
-			sub_types = explicit_template_types
+		# XXX サブタイプからテンプレートタイプの抽出
+		template_types = []
+		for sub_type in node.sub_types:
+			sub_type_raw = self.reflections.type_of(sub_type)
+			if sub_type_raw.types.is_a(defs.TemplateClass):
+				template_types.append(self.transpile(sub_type))
 
 		accessor = self.to_accessor(node.accessor) if node.is_internal else ''
 
-		class_vars = {'accessor': accessor, 'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'template_types': sub_types, 'comment': comment, 'statements': a_statements, 'module_path': node.module_path}
+		class_vars = {'accessor': accessor, 'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'template_types': template_types, 'comment': comment, 'statements': a_statements, 'module_path': node.module_path}
 		return self.view.render(f'{node.classification}/class', vars=class_vars)
 
 	def on_enum(self, node: defs.Enum, symbol: str, decorators: list[str], inherits: list[str], sub_types: list[str], comment: str, statements: list[str]) -> str:

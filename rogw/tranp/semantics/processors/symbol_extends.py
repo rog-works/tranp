@@ -134,19 +134,7 @@ class SymbolExtends:
 		Returns:
 			シンボル属性
 		"""
-		def fetch_template_attrs(for_types: defs.Class) -> dict[defs.DeclAll, IReflection]:
-			attrs: dict[defs.DeclAll, IReflection] = {}
-			for template_type in for_types.template_types:
-				candidate = reflections.type_of(template_type)
-				attrs[candidate.decl] = candidate
-				# if isinstance(candidate.decl, defs.TemplateClass):
-				# 	attrs[candidate.decl] = candidate
-
-			return attrs
-
-		types = via.types.as_a(defs.Class)
-		attrs = fetch_template_attrs(types)
-		return list(attrs.values())
+		return [reflections.type_of(template_type) for template_type in via.types.as_a(defs.Class).template_types]
 
 	@injectable
 	def attrs_for_var(self, reflections: Reflections, via: IReflection) -> list[IReflection]:

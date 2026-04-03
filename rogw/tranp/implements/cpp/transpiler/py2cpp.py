@@ -183,7 +183,7 @@ class Py2Cpp(ITranspiler):
 			return actual_attrs
 
 		# TypeVarTuple XXX 要素数は任意のため許容
-		decl_attrs = [self.reflections.type_of(attr_type) for attr_type in raw.types.template_types]
+		decl_attrs = [self.reflections.type_of(attr_type) for attr_type in raw.types.sub_types]
 		tuple_type = len([True for decl_attr in decl_attrs if isinstance(decl_attr.types, defs.TemplateClass) and decl_attr.types.definition_type.type_name.tokens == TypeVarTuple.__name__]) > 0
 		if tuple_type:
 			return actual_attrs
@@ -518,17 +518,17 @@ class Py2Cpp(ITranspiler):
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'statements': statements}
 		return self.view.render(f'function/{node.classification}', vars={**function_vars, 'binds': self.make_lambda_binds(node)})
 
-	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], template_types: list[str], comment: str, statements: list[str]) -> str:
+	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], sub_types: list[str], comment: str, statements: list[str]) -> str:
 		if len(inherits) == 1 and inherits[0] == Protocol.__name__:
-			return self.proc_class_protocol(node, symbol, decorators, inherits, template_types, comment, statements)
+			return self.proc_class_protocol(node, symbol, decorators, inherits, sub_types, comment, statements)
 		else:
-			return self.proc_class(node, symbol, decorators, inherits, template_types, comment, statements)
+			return self.proc_class(node, symbol, decorators, inherits, sub_types, comment, statements)
 
-	def proc_class_protocol(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], template_types: list[str], comment: str, statements: list[str]) -> str:
-		class_vars = {'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'template_types': template_types, 'comment': comment, 'statements': statements, 'module_path': node.module_path}
+	def proc_class_protocol(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], sub_types: list[str], comment: str, statements: list[str]) -> str:
+		class_vars = {'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'template_types': sub_types, 'comment': comment, 'statements': statements, 'module_path': node.module_path}
 		return self.view.render(f'{node.classification}/protocol', vars=class_vars)
 
-	def proc_class(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], template_types: list[str], comment: str, statements: list[str]) -> str:
+	def proc_class(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], sub_types: list[str], comment: str, statements: list[str]) -> str:
 		# XXX クラス配下の変数宣言とそれ以外のステートメントを分離
 		a_statements = statements.copy()
 		class_var_statements: list[tuple[int, str]] = []
@@ -555,20 +555,20 @@ class Py2Cpp(ITranspiler):
 
 		# XXX テンプレートタイプの抽出
 		explicit_template_types = []
-		for t_type in node.template_types:
+		for t_type in node.sub_types:
 			cantidate = self.reflections.type_of(t_type)
 			if cantidate.types.is_a(defs.TemplateClass):
 				explicit_template_types.append(cantidate.types.domain_name)
 
-		if len(explicit_template_types) != len(template_types):
-			template_types = explicit_template_types
+		if len(explicit_template_types) != len(sub_types):
+			sub_types = explicit_template_types
 
 		accessor = self.to_accessor(node.accessor) if node.is_internal else ''
 
-		class_vars = {'accessor': accessor, 'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'template_types': template_types, 'comment': comment, 'statements': a_statements, 'module_path': node.module_path}
+		class_vars = {'accessor': accessor, 'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'template_types': sub_types, 'comment': comment, 'statements': a_statements, 'module_path': node.module_path}
 		return self.view.render(f'{node.classification}/class', vars=class_vars)
 
-	def on_enum(self, node: defs.Enum, symbol: str, decorators: list[str], inherits: list[str], template_types: list[str], comment: str, statements: list[str]) -> str:
+	def on_enum(self, node: defs.Enum, symbol: str, decorators: list[str], inherits: list[str], sub_types: list[str], comment: str, statements: list[str]) -> str:
 		add_vars = {}
 		if not node.parent.is_a(defs.Entrypoint):
 			add_vars = {'accessor': self.to_accessor(node.accessor)}

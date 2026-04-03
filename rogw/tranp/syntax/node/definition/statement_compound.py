@@ -328,7 +328,7 @@ class ClassDef(Node, IDomain, IScope, INamespace, IDeclaration, ISymbol):
 		raise NotImplementedError()
 
 	@property
-	def template_types(self) -> list[Type]:
+	def sub_types(self) -> list[Type]:
 		"""Note: @see Class.template_types"""
 		return []
 
@@ -541,45 +541,26 @@ class Class(ClassDef):
 		"""Note: XXX Genericは継承チェーンを考慮する必要がないため除外する"""
 		return [inherit for inherit in self.__org_inherits if inherit.type_name.tokens != Generic.__name__]
 
-	# @property
-	# @override
-	# @Meta.embed(Node, expandable)
-	# def template_types(self) -> list[Type]:
-	# 	"""Note: @see template_types_with_inherits"""
-	# 	return list(flatten([inherit.template_types for inherit in self.__org_inherits if isinstance(inherit, GenericType) and inherit.domain_name == Generic.__name__]))
-
 	@property
 	@override
 	@Meta.embed(Node, expandable)
-	def template_types(self) -> list[Type]:
-		"""Note:
-			```
-			* 厳密に言うとこのメソッドでテンプレートタイプを取得することはできず、候補のタイプノードである点に注意
-			### テンプレートタイプの型解釈
-			* テンプレートタイプはクラス自身に直接設定された型のみをシグネチャーとして評価する(`class A(Generic[T])` => `T`は自身の属性)
-			* 親のテンプレートタイプは親のシグネチャーであり、ランタイム上は別コンテキストによって評価される(`class A(B[T])` => `T`は親の属性)
-			* しかし、シンタックス上は全てのテンプレートタイプを一つの定義として評価する必要があるため、型としては自身と親の型どちらも評価し、トランスパイル時は自身の型のみ評価する
-			### template_typesとの相違点
-			* template_types: クラス自身のテンプレートタイプ。トランスパイル用
-			* template_types_with_inherits: クラス自身 + 親のテンプレートタイプ。型用
-			```
-		"""
-		def fetch_template_types(t_type: GenericType) -> list[Type]:
-			t_types: list[Type] = []
-			for in_t_type in t_type.template_types:
-				if isinstance(in_t_type, GenericType):
-					t_types.extend(fetch_template_types(in_t_type))
-				elif isinstance(in_t_type, VarOfType):
-					t_types.append(in_t_type)
+	def sub_types(self) -> list[Type]:
+		def expand_sub_types(at_type: GenericType) -> list[Type]:
+			sub_types: list[Type] = []
+			for sub_type in at_type.template_types:
+				if isinstance(sub_type, GenericType):
+					sub_types.extend(expand_sub_types(sub_type))
+				elif isinstance(sub_type, VarOfType):
+					sub_types.append(sub_type)
 
-			return t_types
+			return sub_types
 
-		candidate_types: list[Type] = []
+		sub_types: list[Type] = []
 		for inherit in self.__org_inherits:
 			if isinstance(inherit, GenericType):
-				candidate_types.extend(fetch_template_types(inherit))
+				sub_types.extend(expand_sub_types(inherit))
 
-		return candidate_types
+		return sub_types
 
 	@property
 	@override

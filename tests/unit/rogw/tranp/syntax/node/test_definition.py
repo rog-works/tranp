@@ -575,7 +575,7 @@ class TestDefinition(TestCase):
 		self.assertEqual(node.symbol.tokens, expected['symbol'])
 		self.assertEqual([decorator.path.tokens for decorator in node.decorators], expected['decorators'])
 		self.assertEqual([inherit.type_name.tokens for inherit in node.inherits], expected['inherits'])
-		self.assertEqual([in_type.type_name.tokens for in_type in node.template_types], expected['template_types'])
+		self.assertEqual([in_type.type_name.tokens for in_type in node.sub_types], expected['template_types'])
 		self.assertEqual(node.constructor_exists, expected['constructor_exists'])
 		self.assertEqual([method.symbol.tokens for method in node.methods], expected['methods'])
 		self.assertEqual([var.tokens for var in node.class_vars], expected['class_vars'])
@@ -588,7 +588,7 @@ class TestDefinition(TestCase):
 	])
 	def test_class_template_types(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Class)
-		self.assertEqual([type(in_type) for in_type in node.template_types], expected['template_types'])
+		self.assertEqual([type(in_type) for in_type in node.sub_types], expected['template_types'])
 
 	@data_provider([
 		(_ast('Values'), {

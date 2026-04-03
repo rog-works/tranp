@@ -258,8 +258,9 @@ class PropertiesTrait(TraitImpl, IProperties):
 		if symbol.types.is_a(defs.Function):
 			return symbol
 
-		if not instance.decl.is_a(*defs.DeclVarsTs):
-			return symbol
+		# XXX この判定は必ずしもローカル参照以外を表さないため、一旦コメントアウト
+		# if not instance.decl.is_a(*defs.DeclVarsTs):
+		# 	return symbol
 
 		if not templates.TemplateManipulator.has_templates(symbol) or templates.TemplateManipulator.has_templates(instance):
 			return symbol
@@ -282,8 +283,13 @@ class PropertiesTrait(TraitImpl, IProperties):
 		"""
 		begin_types = instance.types.as_a(defs.Class)
 		prop_name = prop.domain_name
+		# FIXME decl_class_varsも必要なはず
 		if prop_name in begin_types.decl_this_vars:
 			return instance
+
+		for in_types in begin_types.decl_classes:
+			if prop_name == in_types.domain_name:
+				return instance
 
 		inherits = begin_types.inherits
 		while len(inherits) > 0:
@@ -291,6 +297,10 @@ class PropertiesTrait(TraitImpl, IProperties):
 			inherit_types = inherit.types.as_a(defs.Class)
 			if prop_name in inherit_types.decl_this_vars:
 				return inherit
+
+			for in_types in begin_types.decl_classes:
+				if prop_name == in_types.domain_name:
+					return inherit
 
 			inherits.extend(inherit_types.inherits)
 

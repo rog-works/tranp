@@ -1,4 +1,4 @@
-from typing import Generic, TypeVar, override
+from typing import Generic, Iterator, TypeVar, override
 
 from rogw.tranp.compatible.python.embed import Embed, __actual__
 from rogw.tranp.dsn.module import ModuleDSN
@@ -641,6 +641,12 @@ class Class(ClassDef):
 	def decl_this_vars(self) -> dict[str, AnnoAssign]:
 		"""前方宣言内の型/アノテーションを取得"""
 		return {node.receiver.domain_name: node for node in self.statements if isinstance(node, AnnoAssign) and isinstance(node.receiver, DeclThisVarForward)}
+
+	@property
+	def decl_classes(self) -> Iterator[ClassDef]:
+		for node in self.statements:
+			if isinstance(node, ClassDef):
+				yield node
 
 
 @Meta.embed(Node)

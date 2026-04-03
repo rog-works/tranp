@@ -209,7 +209,33 @@ class Py2Cpp(ITranspiler):
 			```
 		"""
 		actual_type_raw = var_type_raw.impl(refs.Object).actualize('nullable')
-		return ClassShorthandNaming.domain_name(actual_type_raw, alias_handler=self.i18n.t, alias_transpiler=self.transpile)
+		return ClassShorthandNaming.domain_name(actual_type_raw, alias_handler=self.i18n.t, alias_transpiler=self.transpile, pluck_attrs=self.explicit_attrs)
+
+	def explicit_attrs(self, raw: IReflection) -> list[IReflection]:
+		"""属性抽出ハンドラー。トランスパイル上不要な属性を除去
+
+		Args:
+			raw: シンボル
+		Returns:
+			属性リスト
+		Note:
+			```
+			* クラス自身が持つテンプレート型の属性を明示するべきシグネチャーとして抽出
+			* クラス以外は何もせずそのまま返却
+			```
+		"""
+		actual_attrs = raw.attrs
+		if len(actual_attrs) == 0:
+			return actual_attrs
+
+		if not isinstance(raw.types, defs.Class):
+			return actual_attrs
+
+		decl_attrs = [self.reflections.type_of(attr_type) for attr_type in raw.types.template_types]
+		if len(actual_attrs) != len(decl_attrs):
+			raise Errors.InvalidSchema(raw)
+
+		return [attr for index, attr in enumerate(actual_attrs) if decl_attrs[index].types.is_a(defs.TemplateClass)]
 
 	def to_domain_name_by_class(self, types: defs.ClassDef) -> str:
 		"""明示された型からドメイン名を取得

@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from enum import Enum
 from typing import Protocol
 
@@ -189,17 +190,18 @@ class ClassShorthandNaming:
 	"""
 
 	@classmethod
-	def domain_name(cls, raw: IReflection, alias_handler: AliasHandler | None, alias_transpiler: AliasTranspiler | None) -> str:
+	def domain_name(cls, raw: IReflection, alias_handler: AliasHandler | None, alias_transpiler: AliasTranspiler | None, pluck_attrs: Callable[[IReflection], list[IReflection]] | None = None) -> str:
 		"""クラスの短縮表記を生成(ドメイン名)
 
 		Args:
 			raw: シンボル
 			alias_handler: エイリアス解決ハンドラー
 			alias_transpiler: エイリアストランスパイラー
+			pluck_attrs: 属性抽出ハンドラー
 		Returns:
 			短縮表記
 		"""
-		return cls.__make_general(raw, alias_handler, alias_transpiler, PathMethods.Domain)
+		return cls.__make_general(raw, alias_handler, alias_transpiler, PathMethods.Domain, pluck_attrs)
 
 	@classmethod
 	def fullyname(cls, raw: IReflection, alias_handler: AliasHandler | None) -> str:
@@ -241,7 +243,7 @@ class ClassShorthandNaming:
 		return cls.__make_decorate(raw, None, None, PathMethods.Domain)
 
 	@classmethod
-	def __make_general(cls, raw: IReflection, alias_handler: AliasHandler | None, alias_transpiler: AliasTranspiler | None, path_method: PathMethods) -> str:
+	def __make_general(cls, raw: IReflection, alias_handler: AliasHandler | None, alias_transpiler: AliasTranspiler | None, path_method: PathMethods, pluck_attrs: Callable[[IReflection], list[IReflection]] | None = None) -> str:
 		"""クラスの短縮表記を生成(一般型)
 
 		Args:
@@ -249,15 +251,17 @@ class ClassShorthandNaming:
 			alias_handler: エイリアス解決ハンドラー
 			alias_transpiler: エイリアストランスパイラー
 			path_method: パス生成方式
+			pluck_attrs: 属性抽出ハンドラー
 		Returns:
 			短縮表記
 		"""
+		attrs = pluck_attrs(raw) if pluck_attrs else raw.attrs
 		symbol_name = ClassDomainNaming.make_manualy(raw.types, alias_handler, alias_transpiler, path_method)
-		if len(raw.attrs) == 0 or raw.types.is_a(defs.AltClass):
+		if len(attrs) == 0 or raw.types.is_a(defs.AltClass):
 			return symbol_name
 
-		attrs = [cls.__make_general(attr, alias_handler, alias_transpiler, path_method) for attr in raw.attrs]
-		return f'{symbol_name}<{", ".join(attrs)}>'
+		attrs_str = [cls.__make_general(attr, alias_handler, alias_transpiler, path_method) for attr in attrs]
+		return f'{symbol_name}<{", ".join(attrs_str)}>'
 
 	@classmethod
 	def __make_decorate(cls, raw: IReflection, alias_handler: AliasHandler | None, alias_transpiler: AliasTranspiler | None, path_method: PathMethods) -> str:

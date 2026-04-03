@@ -134,12 +134,13 @@ class SymbolExtends:
 		Returns:
 			シンボル属性
 		"""
-		def fetch_template_attrs(for_types: defs.Class) -> dict[defs.TemplateClass, IReflection]:
-			attrs: dict[defs.TemplateClass, IReflection] = {}
-			for template_type in for_types.template_types_with_inherits:
+		def fetch_template_attrs(for_types: defs.Class) -> dict[defs.DeclAll, IReflection]:
+			attrs: dict[defs.DeclAll, IReflection] = {}
+			for template_type in for_types.template_types:
 				candidate = reflections.type_of(template_type)
-				if isinstance(candidate.decl, defs.TemplateClass):
-					attrs[candidate.decl] = candidate
+				attrs[candidate.decl] = candidate
+				# if isinstance(candidate.decl, defs.TemplateClass):
+				# 	attrs[candidate.decl] = candidate
 
 			return attrs
 

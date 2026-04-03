@@ -541,40 +541,17 @@ class Class(ClassDef):
 		"""Note: XXX Genericは継承チェーンを考慮する必要がないため除外する"""
 		return [inherit for inherit in self.__org_inherits if inherit.type_name.tokens != Generic.__name__]
 
+	# @property
+	# @override
+	# @Meta.embed(Node, expandable)
+	# def template_types(self) -> list[Type]:
+	# 	"""Note: @see template_types_with_inherits"""
+	# 	return list(flatten([inherit.template_types for inherit in self.__org_inherits if isinstance(inherit, GenericType) and inherit.domain_name == Generic.__name__]))
+
 	@property
 	@override
 	@Meta.embed(Node, expandable)
 	def template_types(self) -> list[Type]:
-		"""Note: @see template_types_with_inherits"""
-		return list(flatten([inherit.template_types for inherit in self.__org_inherits if isinstance(inherit, GenericType) and inherit.domain_name == Generic.__name__]))
-
-	@property
-	@override
-	@Meta.embed(Node, expandable)
-	def comment(self) -> DocString | Empty:
-		return super().comment
-
-	@property
-	@override
-	@duck_typed(StatementBlock)
-	@Meta.embed(Node, expandable)
-	def statements(self) -> list[Node]:
-		return super().statements
-
-	@property
-	@override
-	def block(self) -> Block:
-		return self._by('class_def_raw.block').as_a(Block)
-
-	@property
-	def __org_inherits(self) -> list[Type]:
-		if not self._exists('class_def_raw.inherit_arguments'):
-			return []
-
-		return [node.class_type for node in self._children('class_def_raw.inherit_arguments') if isinstance(node, InheritArgument)]
-
-	@property
-	def template_types_with_inherits(self) -> list[Type]:
 		"""Note:
 			```
 			* 厳密に言うとこのメソッドでテンプレートタイプを取得することはできず、候補のタイプノードである点に注意
@@ -603,6 +580,31 @@ class Class(ClassDef):
 				candidate_types.extend(fetch_template_types(inherit))
 
 		return candidate_types
+
+	@property
+	@override
+	@Meta.embed(Node, expandable)
+	def comment(self) -> DocString | Empty:
+		return super().comment
+
+	@property
+	@override
+	@duck_typed(StatementBlock)
+	@Meta.embed(Node, expandable)
+	def statements(self) -> list[Node]:
+		return super().statements
+
+	@property
+	@override
+	def block(self) -> Block:
+		return self._by('class_def_raw.block').as_a(Block)
+
+	@property
+	def __org_inherits(self) -> list[Type]:
+		if not self._exists('class_def_raw.inherit_arguments'):
+			return []
+
+		return [node.class_type for node in self._children('class_def_raw.inherit_arguments') if isinstance(node, InheritArgument)]
 
 	@property
 	def constructor_exists(self) -> bool:

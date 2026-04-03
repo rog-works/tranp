@@ -443,7 +443,7 @@ class FunctionTrait(TraitImpl, IFunction):
 		"""
 		for i, attr in enumerate(symbol.attrs):
 			if attr.types in actual_map:
-				symbol.attrs[i] = actual_map[attr.types]
+				symbol.attrs[i] = actual_map[attr.types.as_a(defs.TemplateClass)]
 			else:
 				self._actualize_attrs(attr, actual_map)
 

@@ -155,6 +155,44 @@ class Py2Cpp(ITranspiler):
 		self.__stack_on_depends.pop()
 		return result
 
+	def explicit_attrs(self, raw: IReflection) -> list[IReflection]:
+		"""属性抽出ハンドラー。トランスパイル上で明示不要な属性を除去
+
+		Args:
+			raw: シンボル
+		Returns:
+			属性リスト
+		Note:
+			```
+			* クラス自身が持つテンプレート型の属性を明示するべきシグネチャーとして抽出
+			* クラス以外は何もせずそのまま返却
+			```
+		"""
+		# 属性なし
+		actual_attrs = raw.attrs
+		if len(actual_attrs) == 0:
+			return actual_attrs
+
+		# クラス以外
+		if not isinstance(raw.types, defs.Class):
+			return actual_attrs
+
+		# tuple/Callable XXX 要素数は任意のため許容
+		var_raw = raw.impl(refs.Object)
+		if var_raw.type_is(tuple) or var_raw.type_is(Callable):
+			return actual_attrs
+
+		# TypeVarTuple XXX 要素数は任意のため許容
+		decl_attrs = [self.reflections.type_of(attr_type) for attr_type in raw.types.template_types]
+		tuple_type = len([True for decl_attr in decl_attrs if decl_attr.types.as_a(defs.TemplateClass).definition_type.type_name.tokens == TypeVarTuple.__name__]) > 0
+		if tuple_type:
+			return actual_attrs
+
+		if len(actual_attrs) != len(decl_attrs):
+			raise Errors.InvalidSchema(raw)
+
+		return [attr for index, attr in enumerate(actual_attrs) if decl_attrs[index].types.is_a(defs.TemplateClass)]
+
 	def to_accessible_name(self, raw: IReflection) -> str:
 		"""型推論によって補完する際の名前空間上の参照名を取得 (主にMoveAssignで利用)
 
@@ -172,25 +210,26 @@ class Py2Cpp(ITranspiler):
 		"""
 		actual_raw = raw.impl(refs.Object).actualize('nullable')
 		var_type = ClassDomainNaming.accessible_name(actual_raw.types, alias_handler=self.i18n.t, alias_transpiler=self.transpile)
-		attr_types: list[str] = [self.to_accessible_name(attr) for attr in actual_raw.attrs]
+		attrs = self.explicit_attrs(actual_raw)
+		attrs_str: list[str] = [self.to_accessible_name(attr) for attr in attrs]
 		if actual_raw.types.is_a(defs.Method):
 			# FIXME アノテーションを考慮しておらず場当たり的な対応
-			param_types = [self.view.render('param_type_py2cpp', vars={'var_type': attr_type}) for attr_type in attr_types[1:-1]]
-			var_type = f'{attr_types[-1]}({DSN.join(*DSN.elements(var_type)[:-1])}::*)({", ".join(param_types)})'
+			param_types = [self.view.render('param_type_py2cpp', vars={'var_type': attr_type}) for attr_type in attrs_str[1:-1]]
+			var_type = f'{attrs_str[-1]}({DSN.join(*DSN.elements(var_type)[:-1])}::*)({", ".join(param_types)})'
 		elif actual_raw.types.is_a(defs.ClassMethod):
-			param_types = [self.view.render('param_type_py2cpp', vars={'var_type': attr_type}) for attr_type in attr_types[1:-1]]
-			var_type = f'{attr_types[-1]}(*)({", ".join(param_types)})'
+			param_types = [self.view.render('param_type_py2cpp', vars={'var_type': attr_type}) for attr_type in attrs_str[1:-1]]
+			var_type = f'{attrs_str[-1]}(*)({", ".join(param_types)})'
 		elif actual_raw.types.is_a(defs.Function):
-			param_types = [self.view.render('param_type_py2cpp', vars={'var_type': attr_type}) for attr_type in attr_types[:-1]]
-			var_type = f'{attr_types[-1]}(*)({", ".join(param_types)})'
+			param_types = [self.view.render('param_type_py2cpp', vars={'var_type': attr_type}) for attr_type in attrs_str[:-1]]
+			var_type = f'{attrs_str[-1]}(*)({", ".join(param_types)})'
 		elif actual_raw.type_is(Callable):
-			param_types = [self.view.render('param_type_py2cpp', vars={'var_type': attr_type}) for attr_type in attr_types[:-1]]
-			var_type = f'{var_type}<{attr_types[-1]}({", ".join(param_types)})>'
-		elif not actual_raw.types.is_a(defs.AltClass) and len(attr_types) > 0:
-			var_type = f'{var_type}<{", ".join(attr_types)}>'
-		elif actual_raw.types.is_a(defs.AltClass) and not self.cvars.is_entity(self.cvars.var_name_from(actual_raw.attrs[0])):
+			param_types = [self.view.render('param_type_py2cpp', vars={'var_type': attr_type}) for attr_type in attrs_str[:-1]]
+			var_type = f'{var_type}<{attrs_str[-1]}({", ".join(param_types)})>'
+		elif not actual_raw.types.is_a(defs.AltClass) and len(attrs_str) > 0:
+			var_type = f'{var_type}<{", ".join(attrs_str)}>'
+		elif actual_raw.types.is_a(defs.AltClass) and not self.cvars.is_entity(self.cvars.var_name_from(attrs[0])):
 			# XXX C++型変数のAltClassの特殊化であり、一般解に程遠いため修正を検討
-			var_type = f'{var_type}<{", ".join([self.to_accessible_name(attr) for attr in actual_raw.attrs[0].attrs])}>'
+			var_type = f'{var_type}<{", ".join([self.to_accessible_name(attr) for attr in attrs[0].attrs])}>'
 
 		var_type = self.view.render('type_py2cpp', vars={'var_type': var_type})
 		return DSN.join(*DSN.elements(var_type), delimiter='::')
@@ -210,32 +249,6 @@ class Py2Cpp(ITranspiler):
 		"""
 		actual_type_raw = var_type_raw.impl(refs.Object).actualize('nullable')
 		return ClassShorthandNaming.domain_name(actual_type_raw, alias_handler=self.i18n.t, alias_transpiler=self.transpile, pluck_attrs=self.explicit_attrs)
-
-	def explicit_attrs(self, raw: IReflection) -> list[IReflection]:
-		"""属性抽出ハンドラー。トランスパイル上不要な属性を除去
-
-		Args:
-			raw: シンボル
-		Returns:
-			属性リスト
-		Note:
-			```
-			* クラス自身が持つテンプレート型の属性を明示するべきシグネチャーとして抽出
-			* クラス以外は何もせずそのまま返却
-			```
-		"""
-		actual_attrs = raw.attrs
-		if len(actual_attrs) == 0:
-			return actual_attrs
-
-		if not isinstance(raw.types, defs.Class):
-			return actual_attrs
-
-		decl_attrs = [self.reflections.type_of(attr_type) for attr_type in raw.types.template_types]
-		if len(actual_attrs) != len(decl_attrs):
-			raise Errors.InvalidSchema(raw)
-
-		return [attr for index, attr in enumerate(actual_attrs) if decl_attrs[index].types.is_a(defs.TemplateClass)]
 
 	def to_domain_name_by_class(self, types: defs.ClassDef) -> str:
 		"""明示された型からドメイン名を取得

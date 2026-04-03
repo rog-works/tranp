@@ -283,9 +283,10 @@ class PropertiesTrait(TraitImpl, IProperties):
 		"""
 		begin_types = instance.types.as_a(defs.Class)
 		prop_name = prop.domain_name
-		# FIXME decl_class_varsも必要なはず
 		if prop_name in begin_types.decl_this_vars:
 			return instance
+
+		# XXX class_varsはgenericになり得ないため不要である想定
 
 		for in_types in begin_types.decl_classes:
 			if prop_name == in_types.domain_name:

@@ -553,6 +553,16 @@ class Py2Cpp(ITranspiler):
 			this_var_vars = {'accessor': self.to_accessor(defs.to_accessor(this_var_name)), 'decl_this_var': this_var_statement, 'annotation': this_var_annotation}
 			a_statements[index] = self.view.render(f'{node.classification}/_decl_this_var', vars=this_var_vars)
 
+		# XXX テンプレートタイプの抽出
+		explicit_template_types = []
+		for t_type in node.template_types:
+			cantidate = self.reflections.type_of(t_type)
+			if cantidate.types.is_a(defs.TemplateClass):
+				explicit_template_types.append(cantidate.types.domain_name)
+
+		if len(explicit_template_types) != len(template_types):
+			template_types = explicit_template_types
+
 		accessor = self.to_accessor(node.accessor) if node.is_internal else ''
 
 		class_vars = {'accessor': accessor, 'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'template_types': template_types, 'comment': comment, 'statements': a_statements, 'module_path': node.module_path}

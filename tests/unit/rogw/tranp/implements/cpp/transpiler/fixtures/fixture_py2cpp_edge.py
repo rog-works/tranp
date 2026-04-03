@@ -1,12 +1,6 @@
-from typing import Generic, TypeVar
-
-T = TypeVar('T')
-
-class A(Generic[T]):
-	value: T
-
-	def __init__(self, value: T) -> None:
-		self.value = value
+from rogw.tranp.compatible.cpp.object import CP
 
 
-a = A(0)
+def a(l: list[CP[int]]) -> None:
+	for i, np in enumerate(l):
+		n = np.raw

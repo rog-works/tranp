@@ -179,12 +179,12 @@ class Py2Cpp(ITranspiler):
 
 		# tuple/Callable XXX 要素数は任意のため許容
 		var_raw = raw.impl(refs.Object)
-		if var_raw.type_is(tuple) or var_raw.type_is(Callable):
+		if var_raw.type_is(tuple) or var_raw.type_is(Callable) or var_raw.type_is(Union):
 			return actual_attrs
 
 		# TypeVarTuple XXX 要素数は任意のため許容
 		decl_attrs = [self.reflections.type_of(attr_type) for attr_type in raw.types.template_types]
-		tuple_type = len([True for decl_attr in decl_attrs if decl_attr.types.as_a(defs.TemplateClass).definition_type.type_name.tokens == TypeVarTuple.__name__]) > 0
+		tuple_type = len([True for decl_attr in decl_attrs if isinstance(decl_attr.types, defs.TemplateClass) and decl_attr.types.definition_type.type_name.tokens == TypeVarTuple.__name__]) > 0
 		if tuple_type:
 			return actual_attrs
 

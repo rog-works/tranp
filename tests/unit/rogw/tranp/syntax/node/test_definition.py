@@ -513,7 +513,7 @@ class TestDefinition(TestCase):
 			'symbol': 'Base',
 			'decorators': [],
 			'inherits': [],
-			'template_types': [],
+			'sub_types': [],
 			'constructor_exists': True,
 			'class_methods': [],
 			'methods': ['public_method'],
@@ -525,7 +525,7 @@ class TestDefinition(TestCase):
 			'symbol': 'Class',
 			'decorators': [],
 			'inherits': ['Base'],
-			'template_types': [],
+			'sub_types': [],
 			'constructor_exists': True,
 			'class_methods': ['class_method'],
 			'methods': ['property_method', 'public_method', '_protected_method'],
@@ -537,7 +537,7 @@ class TestDefinition(TestCase):
 			'symbol': 'Actual',
 			'decorators': ['__actual__'],
 			'inherits': [],
-			'template_types': [],
+			'sub_types': [],
 			'constructor_exists': False,
 			'class_methods': [],
 			'methods': [],
@@ -549,7 +549,7 @@ class TestDefinition(TestCase):
 			'symbol': 'GenBase',
 			'decorators': [],
 			'inherits': [],
-			'template_types': ['T'],
+			'sub_types': ['T'],
 			'constructor_exists': False,
 			'class_methods': [],
 			'methods': [],
@@ -561,7 +561,7 @@ class TestDefinition(TestCase):
 			'symbol': 'GenSub',
 			'decorators': [],
 			'inherits': ['GenBase'],
-			'template_types': ['T'],
+			'sub_types': ['T'],
 			'constructor_exists': False,
 			'class_methods': [],
 			'methods': [],
@@ -575,7 +575,7 @@ class TestDefinition(TestCase):
 		self.assertEqual(node.symbol.tokens, expected['symbol'])
 		self.assertEqual([decorator.path.tokens for decorator in node.decorators], expected['decorators'])
 		self.assertEqual([inherit.type_name.tokens for inherit in node.inherits], expected['inherits'])
-		self.assertEqual([in_type.type_name.tokens for in_type in node.sub_types], expected['template_types'])
+		self.assertEqual([in_type.type_name.tokens for in_type in node.sub_types], expected['sub_types'])
 		self.assertEqual(node.constructor_exists, expected['constructor_exists'])
 		self.assertEqual([method.symbol.tokens for method in node.methods], expected['methods'])
 		self.assertEqual([var.tokens for var in node.class_vars], expected['class_vars'])
@@ -583,12 +583,12 @@ class TestDefinition(TestCase):
 		self.assertEqual(node.actual_symbol, expected['actual_symbol'])
 
 	@data_provider([
-		('class A(Generic[T]): ...', 'file_input.class_def', {'template_types': [defs.VarOfType]}),
-		('class A(Generic[T1, T2]): ...', 'file_input.class_def', {'template_types': [defs.VarOfType, defs.VarOfType]}),
+		('class A(Generic[T]): ...', 'file_input.class_def', {'sub_types': [defs.VarOfType]}),
+		('class A(Generic[T1, T2]): ...', 'file_input.class_def', {'sub_types': [defs.VarOfType, defs.VarOfType]}),
 	])
 	def test_class_template_types(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Class)
-		self.assertEqual([type(in_type) for in_type in node.sub_types], expected['template_types'])
+		self.assertEqual([type(in_type) for in_type in node.sub_types], expected['sub_types'])
 
 	@data_provider([
 		(_ast('Values'), {
@@ -1016,12 +1016,12 @@ class TestDefinition(TestCase):
 		self.assertEqual(type(node.return_type), expected['return_type'])
 
 	@data_provider([
-		('a: A[str, int] = {}', 'file_input.anno_assign.typed_getitem', {'type_name': 'A', 'template_types': [defs.VarOfType, defs.VarOfType]}),
+		('a: A[str, int] = {}', 'file_input.anno_assign.typed_getitem', {'type_name': 'A', 'sub_types': [defs.VarOfType, defs.VarOfType]}),
 	])
 	def test_custom_type(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.CustomType)
 		self.assertEqual(node.type_name.tokens, expected['type_name'])
-		self.assertEqual([type(in_type) for in_type in node.template_types], expected['template_types'])
+		self.assertEqual([type(in_type) for in_type in node.sub_types], expected['sub_types'])
 
 	@data_provider([
 		('T = TypedDict("T", {"s": str})', 'file_input.class_assign.typed_dict', {'type_name': 'dict', 'key_type': defs.LiteralType, 'value_type': defs.VarOfType}),

@@ -547,7 +547,7 @@ class Class(ClassDef):
 	def sub_types(self) -> list[Type]:
 		def expand_sub_types(at_type: GenericType) -> list[Type]:
 			sub_types: list[Type] = []
-			for sub_type in at_type.template_types:
+			for sub_type in at_type.sub_types:
 				if isinstance(sub_type, GenericType):
 					sub_types.extend(expand_sub_types(sub_type))
 				elif isinstance(sub_type, VarOfType):

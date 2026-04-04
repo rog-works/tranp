@@ -366,12 +366,12 @@ class GenericType(Type):
 		return self._at(0).as_a(Type)
 
 	@property
-	def template_types(self) -> list[Type]:
+	def sub_types(self) -> list[Type]:
 		return [node.as_a(Type) for node in self._children('typed_slices')]
 
 	@property
 	def primary_type(self) -> Type:
-		return self.template_types[0]
+		return self.sub_types[0]
 
 
 @Meta.embed(Node)
@@ -397,7 +397,7 @@ class DictType(GenericType):
 	@property
 	@Meta.embed(Node, expandable)
 	def key_type(self) -> Type:
-		return self.template_types[0]
+		return self.sub_types[0]
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -408,7 +408,7 @@ class DictType(GenericType):
 	@override
 	def primary_type(self) -> Type:
 		"""Note: XXX value_typeをprimaryとするためoverride"""
-		return self.template_types[1]
+		return self.sub_types[1]
 
 
 @Meta.embed(Node)
@@ -423,7 +423,7 @@ class CallableType(GenericType):
 	@property
 	@Meta.embed(Node, expandable)
 	def parameters(self) -> list[Type]:
-		return self.template_types
+		return self.sub_types
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -432,7 +432,7 @@ class CallableType(GenericType):
 
 	@property
 	@override
-	def template_types(self) -> list[Type]:
+	def sub_types(self) -> list[Type]:
 		return self._children('typed_slices')[0].as_a(TypeParameters).type_params
 
 
@@ -447,8 +447,8 @@ class CustomType(GenericType):
 	@property
 	@override
 	@Meta.embed(Node, expandable)
-	def template_types(self) -> list[Type]:
-		return super().template_types
+	def sub_types(self) -> list[Type]:
+		return super().sub_types
 
 
 @Meta.embed(Node, accept_tags('typed_dict'))
@@ -458,7 +458,7 @@ class LiteralDictType(GenericType):
 	@property
 	@Meta.embed(Node, expandable)
 	def key_type(self) -> Type:
-		return self.template_types[0]
+		return self.sub_types[0]
 
 	@property
 	@Meta.embed(Node, expandable)
@@ -477,14 +477,14 @@ class LiteralDictType(GenericType):
 
 	@property
 	@override
-	def template_types(self) -> list[Type]:
+	def sub_types(self) -> list[Type]:
 		return [node.as_a(Type) for node in self._children('typed_dict_slices')]
 
 	@property
 	@override
 	def primary_type(self) -> Type:
 		"""Note: XXX value_typeをprimaryとするためoverride"""
-		return self.template_types[1]
+		return self.sub_types[1]
 
 
 @Meta.embed(Node, accept_tags('typed_or_expr'))

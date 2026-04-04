@@ -53,8 +53,10 @@ class TestPy2CppEdge(TestCase):
 	@data_provider([
 		('run', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'A::B b{};'),
 		('run', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'int bv = b.v();'),
-		('run', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'A::C<std::string> c{};'),
-		('run', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'std::string cv = c.v();'),
+		('run', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'int bv2 = A::B().v();'),
+		('run', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'A::C<std::string> c{};'),
+		('run', 'function_def_raw.block.assign[4]', defs.MoveAssign, 'std::string cv = c.v();'),
+		('run', 'function_def_raw.block.assign[5]', defs.MoveAssign, 'std::string cv2 = A::C<std::string>().v();'),
 		('A.B', '', defs.Class, 'public:\n/** B */\nclass B : public G<int> {\n\n};'),
 		('A.C', '', defs.Class, 'public:\n/** C */\ntemplate<typename T>\nclass C : public G<T> {\n\n};'),
 	])

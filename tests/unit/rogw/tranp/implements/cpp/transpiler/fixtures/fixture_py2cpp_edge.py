@@ -16,5 +16,7 @@ class A:
 def run() -> None:
 	b = A.B()
 	bv = b.v
+	bv2 = A.B().v
 	c = A.C[str]()
 	cv = c.v
+	cv2 = A.C[str]().v

@@ -586,7 +586,7 @@ class TestDefinition(TestCase):
 		('class A(Generic[T]): ...', 'file_input.class_def', {'sub_types': [defs.VarOfType]}),
 		('class A(Generic[T1, T2]): ...', 'file_input.class_def', {'sub_types': [defs.VarOfType, defs.VarOfType]}),
 	])
-	def test_class_template_types(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
+	def test_class_sub_types(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Class)
 		self.assertEqual([type(in_type) for in_type in node.sub_types], expected['sub_types'])
 

@@ -329,7 +329,6 @@ class ClassDef(Node, IDomain, IScope, INamespace, IDeclaration, ISymbol):
 
 	@property
 	def sub_types(self) -> list[Type]:
-		"""Note: @see Class.template_types"""
 		return []
 
 	@property

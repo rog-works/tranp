@@ -416,7 +416,7 @@ class CallableType(GenericType):
 	@classmethod
 	@override
 	def match_feature(cls, via: Node) -> bool:
-		"""Note: XXX TypeParametersはTypeではないため、template_typesは使わないこと"""
+		"""Note: XXX TypeParametersはTypeではないため、sub_typesは使わないこと"""
 		children = via._children('typed_slices')
 		return len(children) == 2 and children[0].is_a(TypeParameters)
 

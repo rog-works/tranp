@@ -51,13 +51,8 @@ class TestPy2CppEdge(TestCase):
 
 	@profiler(on=profiler_on)
 	@data_provider([
-		('a', 'function_def_raw.block.for_stmt', defs.For, '\n'.join([
-			'int i = 0;',
-			'for (auto& np : l) {',
-			'	int n = (*(np));',
-			'	i++;',
-			'}',
-		])),
+		('run', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'A::B b{};'),
+		('run', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'int bn = b.n();'),
 	])
 	def test_exec(self, local_path: str, offset_path: str, expected_type: type[Node], expected: str) -> None:
 		# local_pathが空の場合はEntrypointを基点ノードとする

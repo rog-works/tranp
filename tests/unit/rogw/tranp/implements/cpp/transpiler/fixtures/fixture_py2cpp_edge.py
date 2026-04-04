@@ -1,6 +1,17 @@
-from rogw.tranp.compatible.cpp.object import CP
+from typing import Generic, TypeVar
+
+T = TypeVar('T')
 
 
-def a(l: list[CP[int]]) -> None:
-	for i, np in enumerate(l):
-		n = np.raw
+class G(Generic[T]):
+	@property
+	def n(self) -> T: ...
+
+
+class A:
+	class B(G[int]): ...
+
+
+def run() -> None:
+	b = A.B()
+	bn = b.n

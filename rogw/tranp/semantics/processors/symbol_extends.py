@@ -134,7 +134,7 @@ class SymbolExtends:
 		Returns:
 			シンボル属性
 		"""
-		return [reflections.type_of(template_type) for template_type in via.types.as_a(defs.Class).sub_types]
+		return [reflections.type_of(sub_type) for sub_type in via.types.as_a(defs.Class).sub_types]
 
 	@injectable
 	def attrs_for_var(self, reflections: Reflections, via: IReflection) -> list[IReflection]:

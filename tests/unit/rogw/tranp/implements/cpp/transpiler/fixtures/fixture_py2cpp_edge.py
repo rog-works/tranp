@@ -5,13 +5,16 @@ T = TypeVar('T')
 
 class G(Generic[T]):
 	@property
-	def n(self) -> T: ...
+	def v(self) -> T: ...
 
 
 class A:
 	class B(G[int]): ...
+	class C(G[T]): ...
 
 
 def run() -> None:
 	b = A.B()
-	bn = b.n
+	bv = b.v
+	c = A.C[str]()
+	cv = c.v

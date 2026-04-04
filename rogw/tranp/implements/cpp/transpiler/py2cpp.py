@@ -248,7 +248,7 @@ class Py2Cpp(ITranspiler):
 			```
 		"""
 		actual_type_raw = var_type_raw.impl(refs.Object).actualize('nullable')
-		return ClassShorthandNaming.domain_name(actual_type_raw, alias_handler=self.i18n.t, alias_transpiler=self.transpile, pluck_attrs=self.explicit_attrs)
+		return ClassShorthandNaming.domain_name(actual_type_raw, alias_handler=self.i18n.t, alias_transpiler=self.transpile)
 
 	def to_domain_name_by_class(self, types: defs.ClassDef) -> str:
 		"""明示された型からドメイン名を取得

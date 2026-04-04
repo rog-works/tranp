@@ -51,13 +51,14 @@ class TestPy2CppEdge(TestCase):
 
 	@profiler(on=profiler_on)
 	@data_provider([
-		('a', 'function_def_raw.block.for_stmt', defs.For, '\n'.join([
-			'int i = 0;',
-			'for (auto& np : l) {',
-			'	int n = (*(np));',
-			'	i++;',
-			'}',
-		])),
+		('run', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'A::B b{};'),
+		('run', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'int bv = b.v();'),
+		('run', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'int bv2 = A::B().v();'),
+		('run', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'A::C<std::string> c{};'),
+		('run', 'function_def_raw.block.assign[4]', defs.MoveAssign, 'std::string cv = c.v();'),
+		('run', 'function_def_raw.block.assign[5]', defs.MoveAssign, 'std::string cv2 = A::C<std::string>().v();'),
+		('A.B', '', defs.Class, 'public:\n/** B */\nclass B : public G<int> {\n\n};'),
+		('A.C', '', defs.Class, 'public:\n/** C */\ntemplate<typename T>\nclass C : public G<T> {\n\n};'),
 	])
 	def test_exec(self, local_path: str, offset_path: str, expected_type: type[Node], expected: str) -> None:
 		# local_pathが空の場合はEntrypointを基点ノードとする

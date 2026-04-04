@@ -470,7 +470,7 @@ class A:
 				'    +-symbol: <TypesName: @4 __main__#A.A (2, 7)..(2, 8)>',
 				'    +-decorators:',
 				'    +-inherits:',
-				'    +-template_types:',
+				'    +-sub_types:',
 				'    +-comment: <Proxy: @2 __main__#A.Empty (0, 0)..(0, 0)>',
 				'    +-statements:',
 				'      +-<Constructor: @8 __main__#A.__init__ (3, 2)..(11, 1)>',

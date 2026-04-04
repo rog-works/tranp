@@ -258,8 +258,9 @@ class PropertiesTrait(TraitImpl, IProperties):
 		if symbol.types.is_a(defs.Function):
 			return symbol
 
-		if not instance.decl.is_a(*defs.DeclVarsTs):
-			return symbol
+		# XXX この判定は必ずしもローカル参照以外を表さないため、一旦コメントアウト
+		# if not instance.decl.is_a(*defs.DeclVarsTs):
+		# 	return symbol
 
 		if not templates.TemplateManipulator.has_templates(symbol) or templates.TemplateManipulator.has_templates(instance):
 			return symbol
@@ -285,12 +286,22 @@ class PropertiesTrait(TraitImpl, IProperties):
 		if prop_name in begin_types.decl_this_vars:
 			return instance
 
+		# XXX class_varsはgenericになり得ないため不要である想定
+
+		for in_types in begin_types.decl_classes:
+			if prop_name == in_types.domain_name:
+				return instance
+
 		inherits = begin_types.inherits
 		while len(inherits) > 0:
 			inherit = self.reflections.type_of(inherits.pop(0))
 			inherit_types = inherit.types.as_a(defs.Class)
 			if prop_name in inherit_types.decl_this_vars:
 				return inherit
+
+			for in_types in begin_types.decl_classes:
+				if prop_name == in_types.domain_name:
+					return inherit
 
 			inherits.extend(inherit_types.inherits)
 
@@ -432,7 +443,7 @@ class FunctionTrait(TraitImpl, IFunction):
 		"""
 		for i, attr in enumerate(symbol.attrs):
 			if attr.types in actual_map:
-				symbol.attrs[i] = actual_map[attr.types]
+				symbol.attrs[i] = actual_map[attr.types.as_a(defs.TemplateClass)]
 			else:
 				self._actualize_attrs(attr, actual_map)
 

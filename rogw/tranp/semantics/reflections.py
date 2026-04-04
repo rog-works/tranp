@@ -517,8 +517,8 @@ class ProceduralResolver:
 	def on_callable_type(self, node: defs.CallableType, type_name: IReflection, parameters: list[IReflection], return_type: IReflection) -> IReflection:
 		return type_name.stack(node).extends(*parameters, return_type)
 
-	def on_custom_type(self, node: defs.CustomType, type_name: IReflection, template_types: list[IReflection]) -> IReflection:
-		return type_name.stack(node).extends(*template_types)
+	def on_custom_type(self, node: defs.CustomType, type_name: IReflection, sub_types: list[IReflection]) -> IReflection:
+		return type_name.stack(node).extends(*sub_types)
 
 	def on_literal_dict_type(self, node: defs.LiteralDictType, type_name: IReflection, key_type: IReflection, value_type: IReflection) -> IReflection:
 		return type_name.stack(node).extends(key_type, value_type)

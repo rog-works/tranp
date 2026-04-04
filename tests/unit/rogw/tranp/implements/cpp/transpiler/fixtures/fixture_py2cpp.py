@@ -123,6 +123,10 @@ class CVarOps:
 			# C++ではNG
 			ar = ar
 
+	def iter_move(self, nps: list[CP[int]]) -> None:
+		for i, np in enumerate(nps):
+			n = np.raw
+
 	def param_move(self, a: Sub, ap: CP[Sub], asp: CSP[Sub], ar: CRef[Sub]) -> None:
 		a1 = a
 		a2: Sub = ap.raw

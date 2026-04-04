@@ -102,6 +102,8 @@ class TestPy2Cpp(TestCase):
 		('CVarOps.local_move', 'function_def_raw.block.if_stmt[7].if_clause.block.assign[5]', defs.MoveAssign, 'ar = (*(asp));'),  # 〃
 		('CVarOps.local_move', 'function_def_raw.block.if_stmt[7].if_clause.block.assign[7]', defs.MoveAssign, 'ar = ar;'),  # 〃
 
+		('CVarOps.iter_move', 'function_def_raw.block.for_stmt.block.assign', defs.MoveAssign, 'int n = (*(np));'),
+
 		('CVarOps.param_move', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'Sub a1 = a;'),
 		('CVarOps.param_move', 'function_def_raw.block.anno_assign[1]', defs.AnnoAssign, 'Sub a2 = (*(ap));'),
 		('CVarOps.param_move', 'function_def_raw.block.anno_assign[2]', defs.AnnoAssign, 'Sub a3 = (*(asp));'),

@@ -170,9 +170,9 @@ class Py2Cpp(ITranspiler):
 		if len(actual_attrs) == 0:
 			return actual_attrs
 
-		# tuple/Union XXX 可変長のため許容
+		# tuple/Union/Callable XXX 可変長のため許容 ※TypeVarTupleに対応すれば特殊化せずに済むが、一旦簡易的な実装とする
 		raw_obj = raw.impl(refs.Object)
-		if raw_obj.type_is(tuple) or raw_obj.type_is(Union):
+		if raw_obj.type_is(tuple) or raw_obj.type_is(Union) or raw_obj.type_is(Callable):
 			return actual_attrs
 
 		# TypeVarTuple XXX 可変長のため許容 ※主な対象: Delegate
@@ -574,7 +574,7 @@ class Py2Cpp(ITranspiler):
 			this_var_vars = {'accessor': self.to_accessor(defs.to_accessor(this_var_name)), 'decl_this_var': this_var_statement, 'annotation': this_var_annotation}
 			a_statements[index] = self.view.render(f'{node.classification}/_decl_this_var', vars=this_var_vars)
 
-		# XXX サブタイプからテンプレートタイプの抽出
+		# XXX サブタイプからテンプレートタイプを抽出
 		template_types = []
 		for sub_type in node.sub_types:
 			sub_type_raw = self.reflections.type_of(sub_type)

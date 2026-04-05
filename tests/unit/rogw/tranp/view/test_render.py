@@ -800,7 +800,7 @@ class TestRenderer(TestCase):
 		self.assertRender('func_call/c_pragma', vars, expected)
 
 	@data_provider([
-		({'calls': 'int', 'arguments': ['1.0f'], 'is_statement': True}, 'static_cast<int>(1.0f);'),
+		({'calls': 'int', 'arguments': ['1.0f'], 'is_statement': True}, 'int(1.0f);'),
 	])
 	def test_render_func_call_cast_bin_to_bin(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('func_call/cast_bin_to_bin', vars, expected)

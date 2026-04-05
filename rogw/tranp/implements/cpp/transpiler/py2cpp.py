@@ -1004,7 +1004,8 @@ class Py2Cpp(ITranspiler):
 		elif spec == 'cast_list':
 			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == 'cast_bin_to_bin':
-			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
+			from_type = self.to_accessible_name(cast(IReflection, context))
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'from_type': from_type})
 		elif spec == 'cast_bin_to_str':
 			from_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'from_type': from_type})
@@ -1156,7 +1157,7 @@ class Py2Cpp(ITranspiler):
 				elif to_raw.type_is(str):
 					return 'cast_bin_to_str', from_raw
 				else:
-					return 'cast_bin_to_bin', None
+					return 'cast_bin_to_bin', from_raw
 			elif not self.cvars.is_entity(self.cvars.var_name_from(calls_raw)):
 				# XXX AltClassを考慮するとRelay側も対応が必要で片手落ち
 				return f'cvar_to', calls_raw

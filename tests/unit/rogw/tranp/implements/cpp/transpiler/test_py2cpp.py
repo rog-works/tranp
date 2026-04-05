@@ -438,7 +438,7 @@ class TestPy2Cpp(TestCase):
 
 		('ForFuncCall.Cast.cast_binary', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'int f_to_n{1.0};'),
 		('ForFuncCall.Cast.cast_binary', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'float n_to_f{1};'),
-		('ForFuncCall.Cast.cast_binary', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'bool n_to_b{1};'),
+		('ForFuncCall.Cast.cast_binary', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'bool n_to_b = static_cast<bool>(1);'),
 
 		('ForFuncCall.Cast.cast_string', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'std::string n_to_s = std::to_string(1);'),
 		('ForFuncCall.Cast.cast_string', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'std::string f_to_s = std::to_string(1.0);'),

@@ -616,15 +616,15 @@ class ProceduralResolver:
 		operator_indexs = range(1, len(node_of_elements), 2)
 		right_indexs = range(2, len(node_of_elements), 2)
 
-		left = elements[0]
+		left = elements[0].impl(refs.Object).actualize('alt')
 		for index, right_index in enumerate(right_indexs):
 			operator = node_of_elements[operator_indexs[index]].as_a(defs.Terminal)
-			right = elements[right_index]
-			result = left.impl(refs.Object).try_operation(operator, right) or right.impl(refs.Object).try_operation(operator, left)
+			right = elements[right_index].impl(refs.Object).actualize('alt')
+			result = left.try_operation(operator, right) or right.try_operation(operator, left)
 			if result is None:
 				raise Errors.OperationNotAllowed(node, left, operator, right, 'Operation not defined')
 
-			left = result
+			left = result.impl(refs.Object).actualize('alt')
 
 		return left
 

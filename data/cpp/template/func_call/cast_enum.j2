@@ -1,0 +1,2 @@
+{#- XXX Initializerへの変換を防止するため`()`で囲う -#}
+({{ calls }}({{ arguments[0] }})){% if is_statement %};{% endif %}

@@ -860,6 +860,12 @@ class TestRenderer(TestCase):
 		self.assertRender('func_call/cast_char', vars, expected)
 
 	@data_provider([
+		({'calls': 'A::Values', 'arguments': ['0'], 'is_statement': True}, '(A::Values(0));'),
+	])
+	def test_render_func_call_cast_enum(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cast_enum', vars, expected)
+
+	@data_provider([
 		({'arguments': ['iterates'], 'is_statement': True}, 'iterates;'),
 	])
 	def test_render_func_call_cast_list(self, vars: dict[str, Any], expected: str) -> None:

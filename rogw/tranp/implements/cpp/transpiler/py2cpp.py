@@ -999,8 +999,7 @@ class Py2Cpp(ITranspiler):
 		elif spec == 'cast_char':
 			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == 'cast_enum':
-			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/cast_bin_to_bin', vars={**func_call_vars, 'var_type': var_type})
+			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == 'cast_list':
 			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == 'cast_bin_to_bin':
@@ -1222,7 +1221,7 @@ class Py2Cpp(ITranspiler):
 					return 'generic_call', None
 
 			if calls_raw.types.is_a(defs.Enum):
-				return 'cast_enum', calls_raw
+				return 'cast_enum', None
 
 		return 'otherwise', None
 

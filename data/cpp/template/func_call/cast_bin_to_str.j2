@@ -1,4 +1,4 @@
-{%- if var_type == 'float' -%}
+{%- if from_type in ['float', 'double'] -%}
 {{ i18n('cpp', 'string.ftoa') }}({{ arguments[0] }}){% if is_statement %};{% endif %}
 {%- else -%}
 {{ i18n('cpp', 'string.itoa') }}({{ arguments[0] }}){% if is_statement %};{% endif %}

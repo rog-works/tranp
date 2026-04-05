@@ -999,22 +999,19 @@ class Py2Cpp(ITranspiler):
 		elif spec == 'cast_char':
 			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == 'cast_enum':
-			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/cast_bin_to_bin', vars={**func_call_vars, 'var_type': var_type})
+			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == 'cast_list':
 			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == 'cast_bin_to_bin':
-			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
+			from_type = self.to_accessible_name(cast(IReflection, context))
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'from_type': from_type})
 		elif spec == 'cast_bin_to_str':
-			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
+			from_type = self.to_accessible_name(cast(IReflection, context))
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'from_type': from_type})
 		elif spec == 'cast_str_to_bin':
-			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
+			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == 'cast_str_to_str':
-			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
+			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
 		elif spec == 'len':
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
@@ -1149,18 +1146,17 @@ class Py2Cpp(ITranspiler):
 				return 'cast_char', None
 			elif calls == 'list':
 				return 'cast_list', None
-			elif calls in FuncCallMaps.convertion_scalars:
-				to_type = FuncCallMaps.convertion_scalars[calls]
+			elif len(node.arguments) > 0 and calls in FuncCallMaps.convertion_scalars:
 				from_raw = self.reflections.type_of(node.arguments[0]).impl(refs.Object)
-				to_raw = self.reflections.from_standard(to_type).impl(refs.Object)
+				to_raw = self.reflections.type_of(node.calls).impl(refs.Object).actualize('type')
 				if from_raw.type_is(str) and to_raw.type_is(str):
-					return 'cast_str_to_str', to_raw
+					return 'cast_str_to_str', None
 				elif from_raw.type_is(str):
-					return 'cast_str_to_bin', to_raw
-				elif to_type is str:
+					return 'cast_str_to_bin', None
+				elif to_raw.type_is(str):
 					return 'cast_bin_to_str', from_raw
 				else:
-					return 'cast_bin_to_bin', to_raw
+					return 'cast_bin_to_bin', from_raw
 			elif not self.cvars.is_entity(self.cvars.var_name_from(calls_raw)):
 				# XXX AltClassを考慮するとRelay側も対応が必要で片手落ち
 				return f'cvar_to', calls_raw
@@ -1225,7 +1221,7 @@ class Py2Cpp(ITranspiler):
 					return 'generic_call', None
 
 			if calls_raw.types.is_a(defs.Enum):
-				return 'cast_enum', calls_raw
+				return 'cast_enum', None
 
 		return 'otherwise', None
 
@@ -1471,18 +1467,17 @@ class ClassOperationMaps:
 class FuncCallMaps:
 	"""FuncCall用のマッピングデータ"""
 
-	convertion_scalars: ClassVar[dict[str, type[bool | int | float | str]]] = {
-		bool.__name__: bool,
-		int.__name__: int,
-		float.__name__: float,
-		str.__name__: str,
-		# XXX TypeAliasは__name__が元の型名のため直指定
-		'byte': byte,
-		'uint32': uint32,
-		'int64': int64,
-		'uint64': uint64,
-		'double': double,
-	}
+	convertion_scalars: ClassVar[list[str]] = [
+		bool.__name__,
+		int.__name__,
+		float.__name__,
+		str.__name__,
+		byte.__name__,
+		uint32.__name__,
+		int64.__name__,
+		uint64.__name__,
+		double.__name__,
+	]
 	list_methods: ClassVar[list[str]] = [
 		list.pop.__name__,
 		list.insert.__name__,

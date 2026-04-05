@@ -1,4 +1,4 @@
-{%- if var_type == 'float' -%}
+{%- if calls in ['float', 'double'] -%}
 {{ i18n('cpp', 'string.stod') }}({{ arguments[0] }}){% if is_statement %};{% endif %}
 {%- elif arguments | length == 1 -%}
 {{ i18n('cpp', 'string.stoi') }}({{ arguments[0] }}){% if is_statement %};{% endif %}

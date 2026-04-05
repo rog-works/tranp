@@ -3,7 +3,7 @@ from collections.abc import Callable, ItemsView, Iterator
 from enum import Enum
 from typing import Annotated, ClassVar, Generic, Literal, Protocol, Self, TypeAlias, TypedDict, TypeVar, TypeVarTuple, cast
 
-from rogw.tranp.compatible.cpp.classes import byte, char, double, uint32, uint64, void, wchar_t
+from rogw.tranp.compatible.cpp.classes import byte, char, double, int64, uint32, uint64, void, wchar_t
 from rogw.tranp.compatible.cpp.function import c_func_invoke, c_func_ref
 from rogw.tranp.compatible.cpp.object import CP, CSP, CPConst, CRawConst, CRef, T_co
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
@@ -930,6 +930,13 @@ class ForBinaryOperator:
 		s = c + str('')
 		i = ui64 * 0
 		f = d * 0.0
+
+	def cast_to(self) -> None:
+		b = byte('')
+		ui32  = uint32('')
+		i64 = int64('')
+		ui64 = uint64('')
+		d = double('')
 
 
 class ForComp:

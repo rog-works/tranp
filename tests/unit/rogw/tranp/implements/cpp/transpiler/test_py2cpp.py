@@ -520,6 +520,11 @@ class TestPy2Cpp(TestCase):
 		('ForBinaryOperator.op_to_assign', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'std::string s = c + std::string("");'),
 		('ForBinaryOperator.op_to_assign', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'int i = ui64 * 0;'),
 		('ForBinaryOperator.op_to_assign', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'float f = d * 0.0;'),
+		('ForBinaryOperator.cast_to', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'byte b = std::stoi("");'),
+		('ForBinaryOperator.cast_to', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'uint32 ui32 = std::stoi("");'),
+		('ForBinaryOperator.cast_to', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'int64 i64 = std::stoi("");'),
+		('ForBinaryOperator.cast_to', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'uint64 ui64 = std::stoi("");'),
+		('ForBinaryOperator.cast_to', 'function_def_raw.block.assign[4]', defs.MoveAssign, 'double d = std::stod("");'),
 
 		('ForComp.list_comp_from_list', 'function_def_raw.block.list_comp[0]', defs.ListComp, BlockExpects.list_comp(proj_value='l[0]', proj_type='int', iterates='{{1}}', proj_symbols='l')),
 		('ForComp.list_comp_from_list', 'function_def_raw.block.list_comp[1]', defs.ListComp, BlockExpects.list_comp(proj_value='n', proj_type='int', iterates='ns')),

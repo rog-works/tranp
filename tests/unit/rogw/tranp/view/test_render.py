@@ -800,13 +800,13 @@ class TestRenderer(TestCase):
 		self.assertRender('func_call/c_pragma', vars, expected)
 
 	@data_provider([
-		({'var_type': 'int', 'arguments': ['1.0f'], 'is_statement': True}, 'static_cast<int>(1.0f);'),
+		({'calls': 'int', 'arguments': ['1.0f'], 'is_statement': True}, 'static_cast<int>(1.0f);'),
 	])
 	def test_render_func_call_cast_bin_to_bin(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('func_call/cast_bin_to_bin', vars, expected)
 
 	@data_provider([
-		({'arguments': ['1.0f'], 'is_statement': True}, 'std::to_string(1.0f);'),
+		({'calls': 'int', 'arguments': ['1.0f'], 'is_statement': True, 'from_type': 'float'}, 'std::to_string(1.0f);'),
 	])
 	def test_render_func_call_cast_bin_to_str(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('func_call/cast_bin_to_str', vars, expected)
@@ -825,15 +825,15 @@ class TestRenderer(TestCase):
 		self.assertRender('func_call/cast_list', vars, expected)
 
 	@data_provider([
-		({'var_type': 'int', 'arguments': ['"1"'], 'is_statement': True}, 'std::stoi("1");'),
-		({'var_type': 'int', 'arguments': ['"ff"', '16'], 'is_statement': True}, 'std::stoi("ff", 0, 16);'),
-		({'var_type': 'float', 'arguments': ['"1.0"'], 'is_statement': True}, 'std::stod("1.0");'),
+		({'calls': 'int', 'arguments': ['"1"'], 'is_statement': True}, 'std::stoi("1");'),
+		({'calls': 'int', 'arguments': ['"ff"', '16'], 'is_statement': True}, 'std::stoi("ff", 0, 16);'),
+		({'calls': 'float', 'arguments': ['"1.0"'], 'is_statement': True}, 'std::stod("1.0");'),
 	])
 	def test_render_func_call_cast_str_to_bin(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('func_call/cast_str_to_bin', vars, expected)
 
 	@data_provider([
-		({'var_type': 'std::string', 'arguments': ['"1"'], 'is_statement': True}, 'std::string("1");'),
+		({'calls': 'std::string', 'arguments': ['"1"'], 'is_statement': True}, 'std::string("1");'),
 	])
 	def test_render_func_call_cast_str_to_str(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('func_call/cast_str_to_str', vars, expected)

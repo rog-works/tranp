@@ -3,7 +3,7 @@ from collections.abc import Callable, ItemsView, Iterator
 from enum import Enum
 from typing import Annotated, ClassVar, Generic, Literal, Protocol, Self, TypeAlias, TypedDict, TypeVar, TypeVarTuple, cast
 
-from rogw.tranp.compatible.cpp.classes import byte, char, double, uint32, uint64, void
+from rogw.tranp.compatible.cpp.classes import byte, char, double, uint32, uint64, void, wchar_t
 from rogw.tranp.compatible.cpp.function import c_func_invoke, c_func_ref
 from rogw.tranp.compatible.cpp.object import CP, CSP, CPConst, CRawConst, CRef, T_co
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
@@ -900,18 +900,19 @@ class ForBinaryOperator:
 		b = string[0] <= char('Z')
 		c = char(string[0])
 
-	def ops(self, b: byte, ui32: uint32, ui64: uint64, d: double) -> None:
-		print(b + ui32 + ui64 + d)
-		print(b * ui32 * ui64 * d)
-		print(b / ui32 / ui64 / d)
-		print(b % ui32 % ui64 % d)
-		print(b < ui32 < ui64 < d)
-		print(b > ui32 > ui64 > d)
-		print(b == ui32 == ui64 == d)
-		print(b != ui32 != ui64 != d)
-		print(b & ui32 & ui64)
-		print(b | ui32 | ui64)
-		print(b ^ ui32 ^ ui64)
+	def ops(self, c: char, wc: wchar_t, b: byte, ui32: uint32, ui64: uint64, d: double) -> None:
+		print('' + c + wc)
+		print(0 + b + ui32 + ui64 + d)
+		print(0 * b * ui32 * ui64 * d)
+		print(0 / b / ui32 / ui64 / d)
+		print(0 % b % ui32 % ui64 % d)
+		print(0 < b < ui32 < ui64 < d)
+		print(0 > b > ui32 > ui64 > d)
+		print(0 == b == ui32 == ui64 == d)
+		print(0 != b != ui32 != ui64 != d)
+		print(0 & b & ui32 & ui64)
+		print(0 | b | ui32 | ui64)
+		print(0 ^ b ^ ui32 ^ ui64)
 		print(b << 1)
 		print(ui32 << 1)
 		print(ui64 << 1)

@@ -4,6 +4,7 @@ from typing import Any, ClassVar, Protocol, Self, TypeVarTuple, cast, override
 
 import rogw.tranp.semantics.reflection.definition as refs
 import rogw.tranp.syntax.node.definition as defs
+from rogw.tranp.compatible.cpp.classes import byte, double, int64, uint32, uint64
 from rogw.tranp.compatible.cpp.function import c_func_invoke, c_func_ref
 from rogw.tranp.compatible.cpp.object import CP, CWP
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
@@ -1475,6 +1476,12 @@ class FuncCallMaps:
 		int.__name__: int,
 		float.__name__: float,
 		str.__name__: str,
+		# XXX TypeAliasは__name__が元の型名のため直指定
+		'byte': byte,
+		'uint32': uint32,
+		'int64': int64,
+		'uint64': uint64,
+		'double': double,
 	}
 	list_methods: ClassVar[list[str]] = [
 		list.pop.__name__,

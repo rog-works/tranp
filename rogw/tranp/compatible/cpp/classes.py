@@ -8,6 +8,8 @@ class wchar_t(str): ...
 # Digit
 
 class digit(int):
+	"""Note: XXX タイプヒントで型名を取得するためクラスとして実装"""
+
 	def __hash__(self) -> int:
 		return self
 
@@ -71,6 +73,8 @@ class uint64(digit): ...
 # Decimal
 
 class double(float):
+	"""Note: XXX タイプヒントで型名を取得するためクラスとして実装"""
+
 	def __eq__(self, other: Self | int | float | bool) -> bool:
 		return super().__eq__(other)
 

@@ -2,8 +2,8 @@ from typing import TypeAlias
 
 # String
 
-class char(str): ...
-class wchar_t(str): ...
+char: TypeAlias = str
+wchar_t: TypeAlias = str
 
 # Number
 

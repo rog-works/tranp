@@ -901,7 +901,7 @@ class ForBinaryOperator:
 		c = char(string[0])
 
 	def ops(self, c: char, wc: wchar_t, b: byte, ui32: uint32, ui64: uint64, d: double) -> None:
-		print('' + c + wc)
+		print(str('') + c + wc)
 		print(0 + b + ui32 + ui64 + d)
 		print(0 * b * ui32 * ui64 * d)
 		print(0 / b / ui32 / ui64 / d)

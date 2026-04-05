@@ -4,6 +4,7 @@ from typing import Any, ClassVar, Protocol, Self, TypeVarTuple, cast, override
 
 import rogw.tranp.semantics.reflection.definition as refs
 import rogw.tranp.syntax.node.definition as defs
+from rogw.tranp.compatible.cpp.classes import byte, double, int64, uint32, uint64
 from rogw.tranp.compatible.cpp.function import c_func_invoke, c_func_ref
 from rogw.tranp.compatible.cpp.object import CP, CWP
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
@@ -1145,7 +1146,7 @@ class Py2Cpp(ITranspiler):
 				return 'cast_char', None
 			elif calls == 'list':
 				return 'cast_list', None
-			elif calls in FuncCallMaps.convertion_scalars:
+			elif len(node.arguments) > 0 and calls in FuncCallMaps.convertion_scalars:
 				from_raw = self.reflections.type_of(node.arguments[0]).impl(refs.Object)
 				to_raw = self.reflections.type_of(node.calls).impl(refs.Object).actualize('type')
 				if from_raw.type_is(str) and to_raw.type_is(str):
@@ -1471,12 +1472,11 @@ class FuncCallMaps:
 		int.__name__,
 		float.__name__,
 		str.__name__,
-		# XXX TypeAliasは__name__が元の型名のため直指定
-		'byte',
-		'uint32',
-		'int64',
-		'uint64',
-		'double',
+		byte.__name__,
+		uint32.__name__,
+		int64.__name__,
+		uint64.__name__,
+		double.__name__,
 	]
 	list_methods: ClassVar[list[str]] = [
 		list.pop.__name__,

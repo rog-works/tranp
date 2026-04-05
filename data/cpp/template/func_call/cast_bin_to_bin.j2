@@ -5,5 +5,6 @@ static_cast<{{ calls }}>({{ arguments[0] }}){% if is_statement %};{% endif %}
 {%- elif from_type == 'double' and calls == 'float' -%}
 static_cast<{{ calls }}>({{ arguments[0] }}){% if is_statement %};{% endif %}
 {%- else -%}
-{{ calls }}({{ arguments[0] }}){% if is_statement %};{% endif %}
+{#- XXX Initializerへの変換を防止するため`()`で囲う -#}
+({{ calls }}({{ arguments[0] }})){% if is_statement %};{% endif %}
 {%- endif -%}

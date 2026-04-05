@@ -3,7 +3,7 @@ from collections.abc import Callable, ItemsView, Iterator
 from enum import Enum
 from typing import Annotated, ClassVar, Generic, Literal, Protocol, Self, TypeAlias, TypedDict, TypeVar, TypeVarTuple, cast
 
-from rogw.tranp.compatible.cpp.classes import char, void
+from rogw.tranp.compatible.cpp.classes import byte, char, double, uint32, uint64, void, wchar_t
 from rogw.tranp.compatible.cpp.function import c_func_invoke, c_func_ref
 from rogw.tranp.compatible.cpp.object import CP, CSP, CPConst, CRawConst, CRef, T_co
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
@@ -907,6 +907,29 @@ class ForBinaryOperator:
 		v_eq = (v1 is v2) and (v1 is not v2) and not v1
 		c_eq = (c1 is c2) and (c1 is not c2) and not c1
 		t_eq = (t1 is t2) and (t1 is not t2) and not t1
+
+	def ops(self, c: char, wc: wchar_t, b: byte, ui32: uint32, ui64: uint64, d: double) -> None:
+		print(str('') + c + wc)
+		print(0 + b + ui32 + ui64 + d)
+		print(0 * b * ui32 * ui64 * d)
+		print(0 / b / ui32 / ui64 / d)
+		print(0 % b % ui32 % ui64 % d)
+		print(0 < b < ui32 < ui64 < d)
+		print(0 > b > ui32 > ui64 > d)
+		print(0 == b == ui32 == ui64 == d)
+		print(0 != b != ui32 != ui64 != d)
+		print(0 & b & ui32 & ui64)
+		print(0 | b | ui32 | ui64)
+		print(0 ^ b ^ ui32 ^ ui64)
+		print(b << 1)
+		print(ui32 << 1)
+		print(ui64 << 1)
+
+	def op_to_assign(self, c: char, ui64: uint64, d: double) -> None:
+		# XXX 演算によってAltClassがアンパックされる点に注意
+		s = c + str('')
+		i = ui64 * 0
+		f = d * 0.0
 
 
 class ForComp:

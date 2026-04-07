@@ -5,8 +5,8 @@ from typing import Any, ClassVar, Protocol, Self, TypeVarTuple, cast, override
 import rogw.tranp.semantics.reflection.definition as refs
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.compatible.cpp.classes import byte, double, int64, uint32, uint64
+from rogw.tranp.compatible.cpp.cvar import CP, CWP
 from rogw.tranp.compatible.cpp.function import c_func_invoke, c_func_ref
-from rogw.tranp.compatible.cpp.object import CP, CWP
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 from rogw.tranp.compatible.python.embed import Embed
 from rogw.tranp.compatible.python.types import Union

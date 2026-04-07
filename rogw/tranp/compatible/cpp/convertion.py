@@ -1,7 +1,7 @@
 from typing import Any, Protocol, TypeVar, cast
 
 from rogw.tranp.compatible.cpp.classes import void
-from rogw.tranp.compatible.cpp.object import CP, CPConst
+from rogw.tranp.compatible.cpp.cvar import CP, CPConst
 
 T = TypeVar('T')
 

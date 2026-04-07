@@ -2,7 +2,7 @@ from collections.abc import Iterator
 from enum import Enum
 from typing import ClassVar
 
-import rogw.tranp.compatible.cpp.object as cpp
+import rogw.tranp.compatible.cpp.cvar as cpp
 import rogw.tranp.semantics.reflection.definition as refs
 from rogw.tranp.semantics.reflection.base import IReflection
 

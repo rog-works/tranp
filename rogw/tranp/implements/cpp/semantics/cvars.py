@@ -43,16 +43,17 @@ class CVars:
 		Static = 2
 
 	class Verbs(Enum):
-		"""操作メソッド Note: @see rogw.tranp.compatible.cpp.object"""
+		"""操作メソッド Note: @see rogw.tranp.compatible.cpp.cvar"""
 		ToAddrId = 'to_addr_id'
 		ToAddrHex = 'to_addr_hex'
 		On = 'on'
 		Emtpy = 'empty'
 		New = 'new'
 		CopyProxy = 'copy_proxy'
+		Down = 'down'
 
 	class Casts(Enum):
-		"""型変換メソッド Note: @see rogw.tranp.compatible.cpp.object"""
+		"""参照変換メソッド Note: @see rogw.tranp.compatible.cpp.cvar"""
 		Raw = 'raw'
 		Ref = 'ref'
 		Addr = 'addr'

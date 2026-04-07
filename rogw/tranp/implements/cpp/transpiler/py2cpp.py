@@ -807,7 +807,7 @@ class Py2Cpp(ITranspiler):
 			prop = self.to_domain_name_by_class(prop_symbol.types) if isinstance(prop_symbol.decl, defs.Method) else self.to_prop_name(prop_symbol)
 			is_property = isinstance(prop_symbol.decl, defs.Method) and prop_symbol.decl.is_property
 			return self.view.render(f'{node.classification}/default', vars={'receiver': cvar_receiver, 'operator': operator, 'prop': prop, 'is_statement': is_statement, 'is_property': is_property})
-		elif self.is_relay_cvar_exchanger(node, receiver_symbol):
+		elif self.is_relay_cvar_cast(node, receiver_symbol):
 			# 期待値: receiver.raw()
 			cvar_receiver = PatternParser.sub_cvar_to(receiver)
 			cvar_key = self.cvars.var_name_from(receiver_symbol)
@@ -850,7 +850,7 @@ class Py2Cpp(ITranspiler):
 		cvar_key = self.cvars.var_name_from(org_receiver_symbol.context)
 		return not self.cvars.is_entity(cvar_key)
 
-	def is_relay_cvar_exchanger(self, node: defs.Relay, receiver_symbol: IReflection) -> bool:
+	def is_relay_cvar_cast(self, node: defs.Relay, receiver_symbol: IReflection) -> bool:
 		if  not CVars.Casts.in_value(node.prop.domain_name):
 			return False
 
@@ -1080,6 +1080,11 @@ class Py2Cpp(ITranspiler):
 			# 期待値: cref_to.copy(cref_via)
 			receiver, _ = PatternParser.break_relay(calls)
 			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver})
+		elif spec == 'cvar_down':
+			# 期待値: receiver.down()
+			receiver, _ = PatternParser.break_relay(calls)
+			var_type = self.to_accessible_name(cast(IReflection, context))
+			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
 		elif spec == 'cvar_new_p':
 			# 期待値: CP.new(A(a, b, c))
 			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
@@ -1213,6 +1218,11 @@ class Py2Cpp(ITranspiler):
 				cvar_key = self.cvars.var_name_from(receiver_raw)
 				if not self.cvars.is_entity(cvar_key):
 					return 'cvar_to_addr_id', receiver_raw
+			elif prop == CVars.Verbs.Down.value:
+				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object).actualize()
+				cvar_key = self.cvars.var_name_from(receiver_raw)
+				if self.cvars.is_addr_p(cvar_key):
+					return 'cvar_to_down', self.reflections.type_of(node.arguments[0])
 
 		if isinstance(node.calls, (defs.Relay, defs.Var)):
 			if len(node.arguments) > 0 and node.arguments[0].value.is_a(defs.Reference):

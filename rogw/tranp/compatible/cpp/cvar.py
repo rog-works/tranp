@@ -443,18 +443,19 @@ def can_down_addr(addr: 'CP[Any]', down_type: type[T]) -> 'TypeIs[CP[T]]':
 
 	Args:
 		addr: ポインター
-		down_type: 
+		down_type: 派生クラスの型
 	Returns:
 		True = 同じか派生クラス
 	"""
 	return isinstance(addr.raw, down_type)
+
 
 def can_down_weak(addr: 'CWP[Any]', down_type: type[T]) -> 'TypeIs[CWP[T]]':
 	"""同じか派生クラスか判定
 
 	Args:
 		addr: ポインター
-		down_type: 
+		down_type: 派生クラスの型
 	Returns:
 		True = 同じか派生クラス
 	"""

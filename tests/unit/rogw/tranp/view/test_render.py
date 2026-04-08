@@ -886,6 +886,12 @@ class TestRenderer(TestCase):
 		self.assertRender('func_call/cast_str_to_str', vars, expected)
 
 	@data_provider([
+		({'receiver': 'p', 'var_type': 'int', 'is_statement': True}, 'static_cast<int*>(p);'),
+	])
+	def test_render_func_call_cvar_down(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cvar_down', vars, expected)
+
+	@data_provider([
 		({'arguments': ['A(0)'], 'is_statement': True}, 'new A(0);'),
 	])
 	def test_render_func_call_cvar_new_p(self, vars: dict[str, Any], expected: str) -> None:

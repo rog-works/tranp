@@ -1,10 +1,11 @@
 import re
 from collections.abc import Callable
+from enum import Enum
 from typing import Any, ClassVar, Protocol, Self, TypeVarTuple, cast, override
 
 import rogw.tranp.semantics.reflection.definition as refs
 import rogw.tranp.syntax.node.definition as defs
-from rogw.tranp.compatible.cpp.classes import byte, double, int64, uint32, uint64
+from rogw.tranp.compatible.cpp.classes import byte, char, double, int64, uint32, uint64
 from rogw.tranp.compatible.cpp.cvar import CP, CWP
 from rogw.tranp.compatible.cpp.function import c_func_invoke, c_func_ref
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
@@ -426,7 +427,7 @@ class Py2Cpp(ITranspiler):
 		elif isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Var) and node.iterates.calls.tokens == enumerate.__name__:
 			return self.proc_for_enumerate(node, symbols, for_in, statements)
 		elif isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Relay) \
-			and node.iterates.calls.prop.tokens in FuncCallMaps.dict_iter_methods \
+			and node.iterates.calls.prop.tokens in FuncCallSpec.dict_iter_methods \
 			and self.reflections.type_of(node.iterates.calls.receiver).impl(refs.Object).actualize().type_is(dict):
 			return self.proc_for_dict(node, symbols, for_in, statements)
 		else:
@@ -883,35 +884,37 @@ class Py2Cpp(ITranspiler):
 		is_statement = node.parent.is_a(defs.Block, defs.Entrypoint)
 		spec, context = self.analyze_indexer_spec(node)
 		vars = {'receiver': receiver, 'keys': keys, 'is_statement': is_statement}
-		if spec == 'class':
+		if spec == IndexerSpec.Tags.klass:
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={**vars, 'var_type': var_type})
-		elif spec == 'cvar':
-			return self.view.render(f'{node.classification}/{spec}', vars=vars)
-		elif spec == 'slice_array':
+			return self.view.render(f'{node.classification}/class', vars={**vars, 'var_type': var_type})
+		elif spec == IndexerSpec.Tags.cvar:
+			return self.view.render(f'{node.classification}/{spec.name}', vars=vars)
+		elif spec == IndexerSpec.Tags.slice_array:
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={**vars, 'var_type': var_type})
-		elif spec == 'slice_string':
-			return self.view.render(f'{node.classification}/{spec}', vars=vars)
-		elif spec == 'tuple':
-			return self.view.render(f'{node.classification}/{spec}', vars={**vars, 'receiver': receiver, 'key': keys[0]})
+			return self.view.render(f'{node.classification}/{spec.name}', vars={**vars, 'var_type': var_type})
+		elif spec == IndexerSpec.Tags.slice_string:
+			return self.view.render(f'{node.classification}/{spec.name}', vars=vars)
+		elif spec == IndexerSpec.Tags.tuple:
+			return self.view.render(f'{node.classification}/{spec.name}', vars={**vars, 'receiver': receiver, 'key': keys[0]})
 		else:
 			return self.view.render(f'{node.classification}/default', vars={**vars, 'receiver': receiver, 'key': keys[0]})
 
-	def analyze_indexer_spec(self, node: defs.Indexer) -> tuple[str, IReflection | None]:
+	def analyze_indexer_spec(self, node: defs.Indexer) -> 'tuple[IndexerSpec.Tags, IReflection | None]':
 		receiver_symbol = Defer.new(lambda: self.reflections.type_of(node.receiver).impl(refs.Object).actualize())
 		symbol = Defer.new(lambda: self.reflections.type_of(node).impl(refs.Object))
 		if node.sliced:
-			spec = 'slice_string' if receiver_symbol.type_is(str) else 'slice_array'
-			return spec, receiver_symbol
+			if receiver_symbol.type_is(str):
+				return IndexerSpec.Tags.slice_string, receiver_symbol
+			else:
+				return IndexerSpec.Tags.slice_array, receiver_symbol
 		elif symbol.type_is(type):
-			return 'class', symbol.actualize()
+			return IndexerSpec.Tags.klass, symbol.actualize()
 		elif receiver_symbol.type_is(tuple):
-			return 'tuple', None
+			return IndexerSpec.Tags.tuple, None
 		elif self.cvars.is_addr_p(self.cvars.var_name_from(receiver_symbol)):
-			return 'cvar', None
+			return IndexerSpec.Tags.cvar, None
 		else:
-			return 'otherwise', None
+			return IndexerSpec.Tags.otherwise, None
 
 	def on_relay_of_type(self, node: defs.RelayOfType, receiver: str) -> str:
 		prop_symbol = self.reflections.type_of(node.receiver).impl(refs.Object).prop_of(node.prop)
@@ -973,52 +976,52 @@ class Py2Cpp(ITranspiler):
 
 	def on_func_call(self, node: defs.FuncCall, calls: str, arguments: list[str]) -> str:
 		is_statement = node.parent.is_a(defs.Block, defs.Entrypoint)
-		spec, context = self.analyze_func_call_spec(node)
+		spec, prop, context = self.analyze_func_call_spec(node)
 		func_call_vars = {'calls': calls, 'arguments': arguments, 'is_statement': is_statement}
-		if spec == 'c_include':
-			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
-		elif spec == 'c_macro':
-			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
-		elif spec == 'c_pragma':
-			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
-		elif spec == 'c_func_invoke':
+		if spec == FuncCallSpec.Tags.c_include:
+			return self.view.render(f'{node.classification}/{spec.name}', vars=func_call_vars)
+		elif spec == FuncCallSpec.Tags.c_macro:
+			return self.view.render(f'{node.classification}/{spec.name}', vars=func_call_vars)
+		elif spec == FuncCallSpec.Tags.c_pragma:
+			return self.view.render(f'{node.classification}/{spec.name}', vars=func_call_vars)
+		elif spec == FuncCallSpec.Tags.c_func_invoke:
 			receiver_raw = Defer.new(lambda: self.reflections.type_of(node.arguments[0]).impl(refs.Object).actualize())
 			operator = '->' if node.arguments[0].value.is_a(defs.ThisRef) or self.cvars.is_addr(self.cvars.var_name_from(receiver_raw)) else '.'
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'operator': operator})
-		elif spec == 'c_func_ref':
-			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
-		elif spec == PythonClassOperations.copy_constructor:
+			return self.view.render(f'{node.classification}/{spec.name}', vars={**func_call_vars, 'operator': operator})
+		elif spec == FuncCallSpec.Tags.c_func_ref:
+			return self.view.render(f'{node.classification}/{spec.name}', vars=func_call_vars)
+		elif spec == FuncCallSpec.Tags.c_type_expr:
+			var_type = self.to_accessible_name(cast(IReflection, context))
+			return self.view.render(f'{node.classification}/{spec.name}', vars={**func_call_vars, 'var_type': var_type})
+		elif spec == FuncCallSpec.Tags.copy_constructor:
 			# 期待値: 'receiver.__py_copy__'
 			receiver, _ = PatternParser.break_relay(calls)
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver})
-		elif spec == 'c_type_expr':
-			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
-		elif spec == 'generic_call':
-			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
-		elif spec == 'cast_char':
-			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
-		elif spec == 'cast_enum':
-			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
-		elif spec == 'cast_list':
-			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
-		elif spec == 'cast_bin_to_bin':
+			return self.view.render(f'{node.classification}/{spec.name}', vars={**func_call_vars, 'receiver': receiver})
+		elif spec == FuncCallSpec.Tags.generic_call:
+			return self.view.render(f'{node.classification}/{spec.name}', vars=func_call_vars)
+		elif spec == FuncCallSpec.Tags.cast_char:
+			return self.view.render(f'{node.classification}/{spec.name}', vars=func_call_vars)
+		elif spec == FuncCallSpec.Tags.cast_enum:
+			return self.view.render(f'{node.classification}/{spec.name}', vars=func_call_vars)
+		elif spec == FuncCallSpec.Tags.cast_list:
+			return self.view.render(f'{node.classification}/{spec.name}', vars=func_call_vars)
+		elif spec == FuncCallSpec.Tags.cast_bin_to_bin:
 			from_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'from_type': from_type})
-		elif spec == 'cast_bin_to_str':
+			return self.view.render(f'{node.classification}/{spec.name}', vars={**func_call_vars, 'from_type': from_type})
+		elif spec == FuncCallSpec.Tags.cast_bin_to_str:
 			from_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'from_type': from_type})
-		elif spec == 'cast_str_to_bin':
-			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
-		elif spec == 'cast_str_to_str':
-			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
-		elif spec == 'len':
+			return self.view.render(f'{node.classification}/{spec.name}', vars={**func_call_vars, 'from_type': from_type})
+		elif spec == FuncCallSpec.Tags.cast_str_to_bin:
+			return self.view.render(f'{node.classification}/{spec.name}', vars=func_call_vars)
+		elif spec == FuncCallSpec.Tags.cast_str_to_str:
+			return self.view.render(f'{node.classification}/{spec.name}', vars=func_call_vars)
+		elif spec == FuncCallSpec.Tags.len:
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
-		elif spec == 'print':
+			return self.view.render(f'{node.classification}/{spec.name}', vars={**func_call_vars, 'var_type': var_type})
+		elif spec == FuncCallSpec.Tags.print:
 			# XXX 愚直に対応すると実引数の型推論のコストが高く、その割に出力メッセージの柔軟性が下がりメリットが薄いため、関数名の置き換えのみを行う簡易的な対応とする
-			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
-		elif spec == 'str_format':
+			return self.view.render(f'{node.classification}/{spec.name}', vars=func_call_vars)
+		elif spec == FuncCallSpec.Tags.str and prop == str.format.__name__:
 			is_literal = node.calls.as_a(defs.Relay).receiver.is_a(defs.String)
 			receiver, operator = PatternParser.break_relay(calls)
 			to_tags = {int.__name__: '%d', float.__name__: '%f', bool.__name__: '%d', str.__name__: '%s', CP.__name__: '%p', CWP.__name__: '%p'}
@@ -1027,68 +1030,68 @@ class Py2Cpp(ITranspiler):
 				arg_symbol = self.reflections.type_of(argument)
 				formatters.append({'label': argument.label.tokens, 'tag': to_tags.get(arg_symbol.types.domain_name, '%s'), 'var_type': arg_symbol.types.domain_name, 'is_literal': argument.value.is_a(defs.Literal)})
 
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'is_literal': is_literal, 'formatters': formatters})
-		elif spec.startswith('str_'):
+			return self.view.render(f'{node.classification}/{spec.name}_{prop}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'is_literal': is_literal, 'formatters': formatters})
+		elif spec == FuncCallSpec.Tags.str:
 			receiver, operator = PatternParser.break_relay(calls)
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator})
-		elif spec == 'list_copy':
+			return self.view.render(f'{node.classification}/{spec.name}_{prop}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator})
+		elif spec == FuncCallSpec.Tags.list and prop == list.copy.__name__:
 			# 期待値: 'receiver.copy'
 			receiver, operator = PatternParser.break_relay(calls)
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver})
-		elif spec == 'list_pop':
+			return self.view.render(f'{node.classification}/{spec.name}_{prop}', vars={**func_call_vars, 'receiver': receiver})
+		elif spec == FuncCallSpec.Tags.list and prop == list.pop.__name__:
 			# 期待値: 'receiver.pop'
 			receiver, operator = PatternParser.break_relay(calls)
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'var_type': var_type})
-		elif spec == 'list_insert':
+			return self.view.render(f'{node.classification}/{spec.name}_{prop}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'var_type': var_type})
+		elif spec == FuncCallSpec.Tags.list and prop == list.insert.__name__:
 			# 期待値: 'receiver.insert'
 			receiver, operator = PatternParser.break_relay(calls)
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator})
-		elif spec == 'list_extend':
+			return self.view.render(f'{node.classification}/{spec.name}_{prop}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator})
+		elif spec == FuncCallSpec.Tags.list and prop == list.extend.__name__:
 			# 期待値: 'receiver.extend'
 			receiver, operator = PatternParser.break_relay(calls)
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator})
-		elif spec == 'dict_copy':
+			return self.view.render(f'{node.classification}/{spec.name}_{prop}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator})
+		elif spec == FuncCallSpec.Tags.dict and prop == dict.copy.__name__:
 			# 期待値: 'receiver.copy'
 			receiver, operator = PatternParser.break_relay(calls)
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver})
-		elif spec == 'dict_get':
+			return self.view.render(f'{node.classification}/{spec.name}_{prop}', vars={**func_call_vars, 'receiver': receiver})
+		elif spec == FuncCallSpec.Tags.dict and prop == dict.get.__name__:
 			# 期待値: 'receiver.get'
 			receiver, operator = PatternParser.break_relay(calls)
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator})
-		elif spec == 'dict_keys':
+			return self.view.render(f'{node.classification}/{spec.name}_{prop}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator})
+		elif spec == FuncCallSpec.Tags.dict and prop == dict.keys.__name__:
 			# 期待値: 'receiver.keys'
 			receiver, operator = PatternParser.break_relay(calls)
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'var_type': var_type})
-		elif spec == 'dict_items':
+			return self.view.render(f'{node.classification}/{spec.name}_{prop}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'var_type': var_type})
+		elif spec == FuncCallSpec.Tags.dict and prop == dict.items.__name__:
 			# 期待値: 'receiver.items'
 			receiver, operator = PatternParser.break_relay(calls)
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'var_type': var_type})
-		elif spec == 'dict_pop':
+			return self.view.render(f'{node.classification}/{spec.name}_{prop}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'var_type': var_type})
+		elif spec == FuncCallSpec.Tags.dict and prop == dict.pop.__name__:
 			# 期待値: 'receiver.pop'
 			receiver, operator = PatternParser.break_relay(calls)
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'var_type': var_type})
-		elif spec == 'dict_values':
+			return self.view.render(f'{node.classification}/{spec.name}_{prop}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'var_type': var_type})
+		elif spec == FuncCallSpec.Tags.dict and prop == dict.values.__name__:
 			# 期待値: 'receiver.values'
 			receiver, operator = PatternParser.break_relay(calls)
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'var_type': var_type})
-		elif spec == 'cvar_copy':
+			return self.view.render(f'{node.classification}/{spec.name}_{prop}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'var_type': var_type})
+		elif spec == FuncCallSpec.Tags.cvar_copy:
 			# 期待値: cref_to.copy(cref_via)
 			receiver, _ = PatternParser.break_relay(calls)
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver})
-		elif spec == 'cvar_down':
+			return self.view.render(f'{node.classification}/{spec.name}', vars={**func_call_vars, 'receiver': receiver})
+		elif spec == FuncCallSpec.Tags.cvar_down:
 			# 期待値: receiver.down()
 			receiver, _ = PatternParser.break_relay(calls)
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
-		elif spec == 'cvar_new_p':
+			return self.view.render(f'{node.classification}/{spec.name}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
+		elif spec == FuncCallSpec.Tags.cvar_new_p:
 			# 期待値: CP.new(A(a, b, c))
-			return self.view.render(f'{node.classification}/{spec}', vars=func_call_vars)
-		elif spec == 'cvar_new_sp_list':
+			return self.view.render(f'{node.classification}/{spec.name}', vars=func_call_vars)
+		elif spec == FuncCallSpec.Tags.cvar_new_sp_list:
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			# 期待値1: CSP.new([1, 2, 3])
 			initializer = arguments[0]
@@ -1100,140 +1103,140 @@ class Py2Cpp(ITranspiler):
 			elif isinstance(node.arguments[0].value, defs.Term):
 				initializer = BlockParser.parse_bracket(initializer)[0][1:-1]
 
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type, 'initializer': initializer})
-		elif spec == 'cvar_new_sp':
+			return self.view.render(f'{node.classification}/{spec.name}', vars={**func_call_vars, 'var_type': var_type, 'initializer': initializer})
+		elif spec == FuncCallSpec.Tags.cvar_new_sp:
 			# 期待値: CSP.new(A(a, b, c))
 			var_type, initializer = PatternParser.pluck_cvar_new(arguments[0])
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type, 'initializer': initializer})
-		elif spec == 'cvar_sp_empty':
+			return self.view.render(f'{node.classification}/{spec.name}', vars={**func_call_vars, 'var_type': var_type, 'initializer': initializer})
+		elif spec == FuncCallSpec.Tags.cvar_sp_empty:
 			# 期待値: CSP[A].empty()
 			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'var_type': var_type})
-		elif spec == 'cvar_to':
+			return self.view.render(f'{node.classification}/{spec.name}', vars={**func_call_vars, 'var_type': var_type})
+		elif spec == FuncCallSpec.Tags.cvar_to:
 			# 期待値: CP(a)
 			cvar_key = self.cvars.var_name_from(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'cvar_type': cvar_key})
-		elif spec == 'cvar_to_addr_hex':
+			return self.view.render(f'{node.classification}/{spec.name}', vars={**func_call_vars, 'cvar_type': cvar_key})
+		elif spec == FuncCallSpec.Tags.cvar_to_addr_hex:
 			# 期待値: receiver.to_addr_hex()
 			receiver, _ = PatternParser.break_relay(calls)
 			cvar_key = self.cvars.var_name_from(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'is_addr': self.cvars.is_addr(cvar_key)})
-		elif spec == 'cvar_to_addr_id':
+			return self.view.render(f'{node.classification}/{spec.name}', vars={**func_call_vars, 'receiver': receiver, 'is_addr': self.cvars.is_addr(cvar_key)})
+		elif spec == FuncCallSpec.Tags.cvar_to_addr_id:
 			# 期待値: receiver.to_addr_id()
 			receiver, _ = PatternParser.break_relay(calls)
 			cvar_key = self.cvars.var_name_from(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec}', vars={**func_call_vars, 'receiver': receiver, 'is_addr': self.cvars.is_addr(cvar_key)})
+			return self.view.render(f'{node.classification}/{spec.name}', vars={**func_call_vars, 'receiver': receiver, 'is_addr': self.cvars.is_addr(cvar_key)})
 		else:
 			return self.view.render(f'{node.classification}/default', vars=func_call_vars)
 
-	def analyze_func_call_spec(self, node: defs.FuncCall) -> tuple[str, IReflection | None]:
+	def analyze_func_call_spec(self, node: defs.FuncCall) -> 'tuple[FuncCallSpec.Tags, str, IReflection | None]':
 		"""Note: XXX callsは別名になる可能性があるため、ノードから取得したcallsを使用する"""
 		calls_raw = Defer.new(lambda: self.reflections.type_of(node.calls).impl(refs.Object).actualize())
 		if isinstance(node.calls, defs.Var):
 			calls = node.calls.tokens
 			if calls == c_pragma.__name__:
-				return 'c_pragma', None
+				return FuncCallSpec.Tags.c_pragma, '', None
 			elif calls == c_include.__name__:
-				return 'c_include', None
+				return FuncCallSpec.Tags.c_include, '', None
 			elif calls == c_macro.__name__:
-				return 'c_macro', None
+				return FuncCallSpec.Tags.c_macro, '', None
 			elif calls == c_func_invoke.__name__:
-				return 'c_func_invoke', None
+				return FuncCallSpec.Tags.c_func_invoke, '', None
 			elif calls == c_func_ref.__name__:
-				return 'c_func_ref', None
+				return FuncCallSpec.Tags.c_func_ref, '', None
 			if calls == isinstance.__name__:
-				return 'c_type_expr', self.reflections.type_of(node.arguments[0])
+				return FuncCallSpec.Tags.c_type_expr, '', self.reflections.type_of(node.arguments[0])
 			elif calls == len.__name__:
-				return 'len', self.reflections.type_of(node.arguments[0])
+				return FuncCallSpec.Tags.len, '', self.reflections.type_of(node.arguments[0])
 			elif calls == print.__name__:
-				return 'print', None
-			elif calls == 'char':
-				return 'cast_char', None
-			elif calls == 'list':
-				return 'cast_list', None
-			elif len(node.arguments) > 0 and calls in FuncCallMaps.convertion_scalars:
+				return FuncCallSpec.Tags.print, '', None
+			elif calls == char.__name__:
+				return FuncCallSpec.Tags.cast_char, '', None
+			elif calls == list.__name__:
+				return FuncCallSpec.Tags.cast_list, '', None
+			elif len(node.arguments) > 0 and calls in FuncCallSpec.convertion_scalars:
 				from_raw = self.reflections.type_of(node.arguments[0]).impl(refs.Object)
 				to_raw = self.reflections.type_of(node.calls).impl(refs.Object).actualize('type')
 				if from_raw.type_is(str) and to_raw.type_is(str):
-					return 'cast_str_to_str', None
+					return FuncCallSpec.Tags.cast_str_to_str, '', None
 				elif from_raw.type_is(str):
-					return 'cast_str_to_bin', None
+					return FuncCallSpec.Tags.cast_str_to_bin, '', None
 				elif to_raw.type_is(str):
-					return 'cast_bin_to_str', from_raw
+					return FuncCallSpec.Tags.cast_bin_to_str, '', from_raw
 				else:
-					return 'cast_bin_to_bin', from_raw
+					return FuncCallSpec.Tags.cast_bin_to_bin, '', from_raw
 			elif not self.cvars.is_entity(self.cvars.var_name_from(calls_raw)):
 				# XXX AltClassを考慮するとRelay側も対応が必要で片手落ち
-				return f'cvar_to', calls_raw
+				return FuncCallSpec.Tags.cvar_to, '', calls_raw
 		elif isinstance(node.calls, defs.Relay):
 			prop = node.calls.prop.tokens
-			if prop in FuncCallMaps.list_and_dict_methods:
+			if prop in FuncCallSpec.list_and_dict_methods:
 				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object)
-				if prop in FuncCallMaps.list_methods and receiver_raw.type_is(list):
-					return f'list_{prop}', receiver_raw.attrs[0]
+				if prop in FuncCallSpec.list_methods and receiver_raw.type_is(list):
+					return FuncCallSpec.Tags.list, prop, receiver_raw.attrs[0]
 				elif receiver_raw.type_is(dict) and node.parent.is_a(defs.ForIn):
 					# XXX for/comprehensionにより、レシーバー自体がイテレーターとして評価されるため、通常の関数コールとして処理
-					return 'otherwise', None
+					return FuncCallSpec.Tags.otherwise, '', None
 				elif receiver_raw.type_is(dict):
 					key_attr, value_attr = receiver_raw.attrs
-					prop_to_context = {'pop': value_attr, 'keys': key_attr, 'values': value_attr, 'items': receiver_raw, 'get': value_attr, 'copy': receiver_raw}
-					return f'dict_{prop}', prop_to_context[prop]
-			elif prop == PythonClassOperations.copy_constructor:
-				return prop, None
-			elif prop in FuncCallMaps.str_methods:
+					prop_to_context = {dict.pop.__name__: value_attr, dict.keys.__name__: key_attr, dict.values.__name__: value_attr, dict.items.__name__: receiver_raw, dict.get.__name__: value_attr, dict.copy.__name__: receiver_raw}
+					return FuncCallSpec.Tags.dict, prop, prop_to_context[prop]
+			elif prop in FuncCallSpec.str_methods:
 				if node.calls.receiver.is_a(defs.String):
-					return f'str_{prop}', None
+					return FuncCallSpec.Tags.str, prop, None
 				elif self.reflections.type_of(node.calls.receiver).impl(refs.Object).type_is(str):
-					return f'str_{prop}', None
+					return FuncCallSpec.Tags.str, prop, None
+			elif prop == PythonClassOperations.copy_constructor:
+				return FuncCallSpec.Tags.copy_constructor, '', None
 			elif prop == CVars.Verbs.CopyProxy.value:
 				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object).actualize()
 				cvar_key = self.cvars.var_name_from(receiver_raw)
 				if self.cvars.is_raw_ref(cvar_key):
-					return 'cvar_copy', None
+					return FuncCallSpec.Tags.cvar_copy, '', None
 			elif prop == CVars.Verbs.Emtpy.value and isinstance(node.calls.receiver, defs.Indexer):
 				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object).actualize()
 				cvar_key = self.cvars.var_name_from(receiver_raw)
 				if self.cvars.is_addr_sp(cvar_key):
 					# 期待値: CSP[A] | None
 					entity_raw = self.reflections.type_of(node).attrs[0].attrs[0]
-					return 'cvar_sp_empty', entity_raw
+					return FuncCallSpec.Tags.cvar_sp_empty, '', entity_raw
 			elif prop == CVars.Verbs.New.value and isinstance(node.calls.receiver, defs.Var):
 				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object).actualize()
 				cvar_key = self.cvars.var_name_from(receiver_raw)
 				if self.cvars.is_addr_p(cvar_key):
-					return 'cvar_new_p', None
+					return FuncCallSpec.Tags.cvar_new_p, '', None
 				elif self.cvars.is_addr_sp(cvar_key):
 					new_type_raw = self.reflections.type_of(node.arguments[0]).impl(refs.Object)
 					if new_type_raw.type_is(list):
-						return 'cvar_new_sp_list', new_type_raw
+						return FuncCallSpec.Tags.cvar_new_sp_list, '', new_type_raw
 
-					return 'cvar_new_sp', None
+					return FuncCallSpec.Tags.cvar_new_sp, '', None
 			elif prop == CVars.Verbs.ToAddrHex.value:
 				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object).actualize()
 				cvar_key = self.cvars.var_name_from(receiver_raw)
 				if not self.cvars.is_entity(cvar_key):
-					return 'cvar_to_addr_hex', receiver_raw
+					return FuncCallSpec.Tags.cvar_to_addr_hex, '', receiver_raw
 			elif prop == CVars.Verbs.ToAddrId.value:
 				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object).actualize()
 				cvar_key = self.cvars.var_name_from(receiver_raw)
 				if not self.cvars.is_entity(cvar_key):
-					return 'cvar_to_addr_id', receiver_raw
+					return FuncCallSpec.Tags.cvar_to_addr_id, '', receiver_raw
 			elif prop == CVars.Verbs.Down.value:
 				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object).actualize()
 				cvar_key = self.cvars.var_name_from(receiver_raw)
 				if self.cvars.is_addr_p(cvar_key):
-					return 'cvar_down', self.reflections.type_of(node.arguments[0]).impl(refs.Object).actualize('type')
+					return FuncCallSpec.Tags.cvar_down, '', self.reflections.type_of(node.arguments[0]).impl(refs.Object).actualize('type')
 
 		if isinstance(node.calls, (defs.Relay, defs.Var)):
 			if len(node.arguments) > 0 and node.arguments[0].value.is_a(defs.Reference):
 				primary_arg_raw = self.reflections.type_of(node.arguments[0])
 				if primary_arg_raw.impl(refs.Object).type_is(type):
-					return 'generic_call', None
+					return FuncCallSpec.Tags.generic_call, '', None
 
 			if calls_raw.types.is_a(defs.Enum):
-				return 'cast_enum', None
+				return FuncCallSpec.Tags.cast_enum, '', None
 
-		return 'otherwise', None
+		return FuncCallSpec.Tags.otherwise, '', None
 
 	def on_super(self, node: defs.Super, calls: str, arguments: list[str]) -> str:
 		parent_symbol = self.reflections.type_of(node)
@@ -1252,7 +1255,7 @@ class Py2Cpp(ITranspiler):
 			spec = node.iterates.calls.tokens
 			return self.view.render(f'comp/{node.classification}_{spec}', vars={'symbols': symbols, 'iterates': for_in, 'is_const': is_const, 'is_addr_p': is_addr_p})
 		elif isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Relay) \
-			and node.iterates.calls.prop.tokens in FuncCallMaps.dict_iter_methods \
+			and node.iterates.calls.prop.tokens in FuncCallSpec.dict_iter_methods \
 			and self.reflections.type_of(node.iterates.calls.receiver).impl(refs.Object).actualize().type_is(dict):
 			# 期待値: 'iterates.items()'
 			receiver, operator, _ = PatternParser.break_dict_iterator(for_in)
@@ -1474,8 +1477,59 @@ class ClassOperationMaps:
 	}
 
 
-class FuncCallMaps:
-	"""FuncCall用のマッピングデータ"""
+class IndexerSpec:
+	"""マッピング情報(Indexer)"""
+
+	class Tags(Enum):
+		"""タグ種別"""
+		otherwise = -1
+		klass = 0
+		cvar = 1
+		slice_array = 2
+		slice_string = 3
+		tuple = 4
+
+
+class FuncCallSpec:
+	"""マッピング情報(FuncCall)"""
+
+	class Tags(Enum):
+		"""タグ種別"""
+		otherwise = -1
+		# cpp
+		c_include = 0
+		c_macro = 1
+		c_pragma = 2
+		c_func_invoke = 3
+		c_func_ref = 4
+		c_type_expr = 5
+		copy_constructor = 6
+		# generic
+		generic_call = 100
+		# cast
+		cast_char = 200
+		cast_enum = 201
+		cast_list = 202
+		cast_bin_to_bin = 203
+		cast_bin_to_str = 204
+		cast_str_to_bin = 205
+		cast_str_to_str = 206
+		# stdlib
+		len = 300
+		print = 301
+		str = 302
+		list = 303
+		dict = 304
+		# cvar
+		cvar_copy = 400
+		cvar_down = 401
+		cvar_new_p = 402
+		cvar_new_sp_list = 403
+		cvar_new_sp = 404
+		cvar_sp_empty = 405
+		cvar_to = 406
+		cvar_to_addr_hex = 407
+		cvar_to_addr_id = 408
 
 	convertion_scalars: ClassVar[list[str]] = [
 		bool.__name__,

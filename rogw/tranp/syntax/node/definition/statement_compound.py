@@ -698,11 +698,11 @@ class TemplateClass(ClassDef):
 		return self._at(1).as_a(Type)
 
 	@property
-	def boundary(self) -> Type | Empty:
-		if not self._exists('template_assign_boundary'):
+	def bound(self) -> Type | Empty:
+		if not self._exists('template_assign_bound'):
 			return self.dirty_child(Empty, '__empty__', tokens='')
 
-		return self._by('template_assign_boundary')._at(0).as_a(Type)
+		return self._by('template_assign_bound')._at(0).as_a(Type)
 
 	@property
 	def covariant(self) -> Boolean | Empty:

@@ -162,9 +162,9 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		Note:
 			T -> Boundary
 		"""
-		# XXX constraintsも対応が必要だが、constraintsは候補が複数あり、推論にコンテキストが必要になってコストが激増してしまうため、一旦boundaryのみ対応
-		if isinstance(symbol.types, defs.TemplateClass) and isinstance(symbol.types.boundary, defs.Type):
-			return True, symbol.to(symbol.types, self.reflections.type_of(symbol.types.boundary))
+		# XXX constraintsも対応が必要だが、constraintsは候補が複数あり、推論にコンテキストが必要になってコストが激増してしまうため、一旦boundのみ対応
+		if isinstance(symbol.types, defs.TemplateClass) and isinstance(symbol.types.bound, defs.Type):
+			return True, symbol.to(symbol.types, self.reflections.type_of(symbol.types.bound))
 		else:
 			return False, symbol
 

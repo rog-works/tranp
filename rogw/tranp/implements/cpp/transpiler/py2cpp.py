@@ -1079,12 +1079,17 @@ class Py2Cpp(ITranspiler):
 			receiver, operator = PatternParser.break_relay(calls)
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec.name}_{prop}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator, 'var_type': var_type})
+		elif spec == FuncCallSpec.Tags.cvar_as_a:
+			# 期待値: receiver.as_a(A)
+			receiver, _ = PatternParser.break_relay(calls)
+			var_type = self.to_accessible_name(cast(IReflection, context))
+			return self.view.render(f'{node.classification}/{spec.name}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
 		elif spec == FuncCallSpec.Tags.cvar_copy:
 			# 期待値: cref_to.copy(cref_via)
 			receiver, _ = PatternParser.break_relay(calls)
 			return self.view.render(f'{node.classification}/{spec.name}', vars={**func_call_vars, 'receiver': receiver})
 		elif spec == FuncCallSpec.Tags.cvar_down:
-			# 期待値: receiver.down()
+			# 期待値: receiver.down(A)
 			receiver, _ = PatternParser.break_relay(calls)
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec.name}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
@@ -1193,6 +1198,12 @@ class Py2Cpp(ITranspiler):
 				cvar_key = self.cvars.var_name_from(receiver_raw)
 				if self.cvars.is_raw_ref(cvar_key):
 					return FuncCallSpec.Tags.cvar_copy, '', None
+			elif prop in [CVars.Verbs.Down.value, CVars.Verbs.AsA.value]:
+				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object).actualize()
+				cvar_key = self.cvars.var_name_from(receiver_raw)
+				if self.cvars.is_addr_p(cvar_key):
+					spec = FuncCallSpec.Tags.cvar_down if prop == CVars.Verbs.Down.value else FuncCallSpec.Tags.cvar_as_a
+					return spec, '', self.reflections.type_of(node.arguments[0]).impl(refs.Object).actualize('type')
 			elif prop == CVars.Verbs.Emtpy.value and isinstance(node.calls.receiver, defs.Indexer):
 				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object).actualize()
 				cvar_key = self.cvars.var_name_from(receiver_raw)
@@ -1221,11 +1232,6 @@ class Py2Cpp(ITranspiler):
 				cvar_key = self.cvars.var_name_from(receiver_raw)
 				if not self.cvars.is_entity(cvar_key):
 					return FuncCallSpec.Tags.cvar_to_addr_id, '', receiver_raw
-			elif prop == CVars.Verbs.Down.value:
-				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object).actualize()
-				cvar_key = self.cvars.var_name_from(receiver_raw)
-				if self.cvars.is_addr_p(cvar_key):
-					return FuncCallSpec.Tags.cvar_down, '', self.reflections.type_of(node.arguments[0]).impl(refs.Object).actualize('type')
 
 		if isinstance(node.calls, (defs.Relay, defs.Var)):
 			if len(node.arguments) > 0 and node.arguments[0].value.is_a(defs.Reference):
@@ -1521,15 +1527,16 @@ class FuncCallSpec:
 		list = 303
 		dict = 304
 		# cvar
-		cvar_copy = 400
-		cvar_down = 401
-		cvar_new_p = 402
-		cvar_new_sp_list = 403
-		cvar_new_sp = 404
-		cvar_sp_empty = 405
-		cvar_to = 406
-		cvar_to_addr_hex = 407
-		cvar_to_addr_id = 408
+		cvar_as_a = 400
+		cvar_copy = 401
+		cvar_down = 402
+		cvar_new_p = 403
+		cvar_new_sp_list = 404
+		cvar_new_sp = 405
+		cvar_sp_empty = 406
+		cvar_to = 407
+		cvar_to_addr_hex = 408
+		cvar_to_addr_id = 409
 
 	convertion_scalars: ClassVar[list[str]] = [
 		bool.__name__,

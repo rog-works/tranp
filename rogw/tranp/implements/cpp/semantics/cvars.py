@@ -51,6 +51,7 @@ class CVars:
 		New = 'new'
 		CopyProxy = 'copy_proxy'
 		Down = 'down'
+		AsA = 'as_a'
 
 	class Casts(Enum):
 		"""参照変換メソッド Note: @see rogw.tranp.compatible.cpp.cvar"""

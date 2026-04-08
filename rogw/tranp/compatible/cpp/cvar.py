@@ -185,7 +185,7 @@ class CP(CVarNotNull[T_co]):
 		return CPConst(self.raw)
 
 	def down(self, down_type: type[T]) -> 'CP[T]':
-		"""派生クラスにキャスト
+		"""派生クラスにキャスト。C++ではstatic_castに相当
 
 		Args:
 			down_type: 派生クラスの型
@@ -198,6 +198,18 @@ class CP(CVarNotNull[T_co]):
 			raise Errors.IllegalConvertion(self, down_type)
 
 		return self
+
+	def as_a(self, down_type: type[T]) -> 'CP[T]':
+		"""派生クラスにキャスト。Python上はdownと同じ。プロジェクト固有のキャストと言う位置づけ
+
+		Args:
+			down_type: 派生クラスの型
+		Returns:
+			キャスト後の型
+		Raises:
+			Errors.IllegalConvertion: 互換性の無い型を指定
+		"""
+		return self.down(down_type)
 
 	def __add__(self, offset: int) -> int:
 		"""アドレス演算(加算)
@@ -292,7 +304,7 @@ class CWP(CVar[T_co]):
 		return CP(origin) if origin else None
 
 	def down(self, down_type: type[T]) -> 'CP[T]':
-		"""派生クラスにキャスト
+		"""派生クラスにキャスト。C++ではstatic_castに相当
 
 		Args:
 			down_type: 派生クラスの型
@@ -305,6 +317,18 @@ class CWP(CVar[T_co]):
 			raise Errors.IllegalConvertion(self, down_type)
 
 		return self
+
+	def as_a(self, down_type: type[T]) -> 'CP[T]':
+		"""派生クラスにキャスト。Python上はdownと同じ。プロジェクト固有のキャストと言う位置づけ
+
+		Args:
+			down_type: 派生クラスの型
+		Returns:
+			キャスト後の型
+		Raises:
+			Errors.IllegalConvertion: 互換性の無い型を指定
+		"""
+		return self.down(down_type)
 
 
 class CSP(CVarNullable[T_co]):

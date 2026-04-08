@@ -317,9 +317,9 @@ class TestPy2Cpp(TestCase):
 		('ForTemplateClass.bind_call', 'function_def_raw.block.funccall[2]', defs.FuncCall, 'd.invoke(true, 1);'),
 		('ForTemplateClass.new_var', 'function_def_raw.block.assign', defs.MoveAssign, 'std::shared_ptr<Base> sp = std::make_shared<T_Base>();'),
 		('ForTemplateClass.new_var', 'function_def_raw.block.return_stmt', defs.Return, 'return new T_Base();'),
-		('ForTemplateClass.boundary_call', '', defs.Method, BlockExpects.method(access='public', name='boundary_call', return_type='T_Base', statements=['return T_Base();'], template='T_Base')),
-		('ForTemplateClass.boundary_cvar', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'T_Base* v = this->new_var<T_Base>();'),
-		('ForTemplateClass.boundary_cvar', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'std::string s = v->base_prop();'),
+		('ForTemplateClass.bound_call', '', defs.Method, BlockExpects.method(access='public', name='bound_call', return_type='T_Base', statements=['return T_Base();'], template='T_Base')),
+		('ForTemplateClass.bound_cvar', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'T_Base* v = this->new_var<T_Base>();'),
+		('ForTemplateClass.bound_cvar', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'std::string s = v->base_prop();'),
 		('ForTemplateClass.B.__init__', 'function_def_raw.block.funccall', defs.FuncCall, 'ForTemplateClass::Action<T_Scalar>("a", "b", [](T_Scalar e) -> void { printf(e); });'),
 
 		('ForTemplate.unpack_call', 'function_def_raw.block.assign', defs.MoveAssign, 'ForTemplate a = this->unpack(ForTemplate());'),

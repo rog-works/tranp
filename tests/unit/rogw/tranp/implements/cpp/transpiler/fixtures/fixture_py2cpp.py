@@ -560,14 +560,14 @@ class ForTemplateClass:
 		d.bind(a, c_func_ref(ForTemplateClass.A.func))
 		d.invoke(True, 1)
 
-	def boundary_call(self, t: type[T_Base]) -> T_Base:
+	def bound_call(self, t: type[T_Base]) -> T_Base:
 		return t()
 
 	def new_var(self, t: type[T_Base]) -> CP[T_Base]:
 		sp = CSP.new(t())
 		return CP.new(t())
 
-	def boundary_cvar(self, t: type[T_Base]) -> CP[T_Base]:
+	def bound_cvar(self, t: type[T_Base]) -> CP[T_Base]:
 		v = self.new_var(t)
 		s = v.on.base_prop
 		return v

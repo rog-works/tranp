@@ -1,1 +1,1 @@
-static_cast<{{ arguments[0] }}*>({{ receiver }}){% if is_statement %};{% endif %}
+dynamic_cast<{{ arguments[0] }}*>({{ receiver }}){% if is_statement %};{% endif %}

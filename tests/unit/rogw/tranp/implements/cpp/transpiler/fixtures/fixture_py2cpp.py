@@ -235,10 +235,10 @@ class CVarOps:
 		CP(n).to_addr_hex()
 
 	def down_cast(self, p: CP[void], wp: CWP[void]) -> None:
-		p0 = p.down(int)
-		p1 = p.as_a(int)
-		wp0 = wp.down(int)
-		wp1 = wp.as_a(int)
+		down_p = p.down(int)
+		down_wp = wp.down(int)
+		as_p = p.as_a(int)
+		as_wp = wp.as_a(int)
 
 	Sub2: TypeAlias = Sub
 

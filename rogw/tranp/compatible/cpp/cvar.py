@@ -304,7 +304,7 @@ class CWP(CVar[T_co]):
 		return CP(origin) if origin else None
 
 	def down(self, down_type: type[T]) -> 'CP[T]':
-		"""派生クラスにキャスト。C++ではstatic_castに相当
+		"""派生クラスにキャスト。C++では`static_cast<T>`に相当
 
 		Args:
 			down_type: 派生クラスの型
@@ -319,7 +319,7 @@ class CWP(CVar[T_co]):
 		return self
 
 	def as_a(self, down_type: type[T]) -> 'CP[T]':
-		"""派生クラスにキャスト。Python上はdownと同じ。プロジェクト固有のキャストと言う位置づけ
+		"""派生クラスにキャスト。C++では`dynamic_cast<T>`に相当。Python上はdownと等価
 
 		Args:
 			down_type: 派生クラスの型

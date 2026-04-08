@@ -391,7 +391,7 @@ class Function(ClassDef):
 	@property
 	@Meta.embed(Node, expandable)
 	def return_type(self) -> Type:
-		return self._children('function_def_raw')[2].as_a(Type)
+		return self._children('function_def_raw')[3].as_a(Type)
 
 	@property
 	@override

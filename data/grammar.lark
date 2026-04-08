@@ -69,7 +69,8 @@ function_def_raw: "def" name ["[" inline_template_assigns "]"] "(" [parameters] 
 inline_template_assigns: inline_template_assign ("," inline_template_assign)*
 inline_template_assign: inline_template_assign_name [":" inline_template_assign_expression] -> template_assign
 inline_template_assign_name: name -> var
-inline_template_assign_expression: typed_expression -> template_assign_boundary
+inline_template_assign_expression: name -> template_assign_boundary
+	| "(" typed_slices ")" -> template_assign_constraint
 
 // @lark lambdadef: "lambda" [lambdaparams] ":" test
 // @lark lambdadef_nocond: "lambda" [lambdaparams] ":" test_nocond

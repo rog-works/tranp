@@ -476,6 +476,7 @@ class A:
 				'      +-<Constructor: @8 __main__#A.__init__ (3, 2)..(11, 1)>',
 				'        +-symbol: <TypesName: @11 __main__#A.__init__.__init__ (3, 6)..(3, 14)>',
 				'        +-decorators:',
+				'        +-template_classes:',
 				'        +-parameters:',
 				'        | +-<Parameter: @15 __main__#A.__init__.parameter@15 (3, 15)..(3, 19)>',
 				'        | | +-symbol: <DeclThisParam: @17 __main__#A.__init__.self (3, 15)..(3, 19)>',

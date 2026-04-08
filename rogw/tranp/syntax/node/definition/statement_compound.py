@@ -382,7 +382,7 @@ class Function(ClassDef):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def template_classes(self) -> 'list[TemplateClass]':
+	def template_classes(self) -> list['TemplateClass']:
 		if not self._exists('function_def_raw.inline_template_assigns'):
 			return []
 

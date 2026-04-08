@@ -475,12 +475,12 @@ class Py2Cpp(ITranspiler):
 	def on_with(self, node: defs.With, statements: list[str], entries: list[str]) -> str:
 		return self.view.render(node.classification, vars={'statements': statements, 'entries': entries})
 
-	def on_function(self, node: defs.Function, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
+	def on_function(self, node: defs.Function, symbol: str, decorators: list[str], template_classes: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		template_types = self.fetch_function_template_names(node)
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types, 'is_pure': node.is_pure}
 		return self.view.render(f'function/{node.classification}', vars=function_vars)
 
-	def on_class_method(self, node: defs.ClassMethod, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
+	def on_class_method(self, node: defs.ClassMethod, symbol: str, decorators: list[str], template_classes: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		class_name = self.to_domain_name_by_class(node.class_types)
 		template_types = self.fetch_function_template_names(node)
 		return_type_annotation = self.transpile(node.return_type.annotation) if not isinstance(node.return_type.annotation, defs.Empty) else ''
@@ -488,7 +488,7 @@ class Py2Cpp(ITranspiler):
 		method_vars = {'accessor': self.to_accessor(node.accessor), 'class_symbol': class_name, 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'return_type_annotation': return_type_annotation}
 		return self.view.render(f'function/{node.classification}', vars={**function_vars, **method_vars})
 
-	def on_constructor(self, node: defs.Constructor, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
+	def on_constructor(self, node: defs.Constructor, symbol: str, decorators: list[str], template_classes: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		this_vars = node.class_types.as_a(defs.Class).this_vars
 
 		# クラスの初期化ステートメントとそれ以外を分離
@@ -527,7 +527,7 @@ class Py2Cpp(ITranspiler):
 		constructor_vars = {'initializers': initializers, 'super_initializer': super_initializer}
 		return self.view.render(f'function/{node.classification}', vars={**function_vars, **method_vars, **constructor_vars})
 
-	def on_method(self, node: defs.Method, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
+	def on_method(self, node: defs.Method, symbol: str, decorators: list[str], template_classes: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		class_name = self.to_domain_name_by_class(node.class_types)
 		template_types = self.fetch_function_template_names(node)
 		return_type_annotation = self.transpile(node.return_type.annotation) if not isinstance(node.return_type.annotation, defs.Empty) else ''
@@ -537,7 +537,7 @@ class Py2Cpp(ITranspiler):
 		spec = ClassOperationMaps.ctors.get(symbol, node.classification)
 		return self.view.render(f'function/{spec}', vars={**function_vars, **method_vars})
 
-	def on_closure(self, node: defs.Closure, symbol: str, decorators: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
+	def on_closure(self, node: defs.Closure, symbol: str, decorators: list[str], template_classes: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'statements': statements}
 		return self.view.render(f'function/{node.classification}', vars={**function_vars, 'binds': self.make_lambda_binds(node)})
 

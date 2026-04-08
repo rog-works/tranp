@@ -1222,7 +1222,7 @@ class Py2Cpp(ITranspiler):
 				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object).actualize()
 				cvar_key = self.cvars.var_name_from(receiver_raw)
 				if self.cvars.is_addr_p(cvar_key):
-					return 'cvar_to_down', self.reflections.type_of(node.arguments[0])
+					return 'cvar_down', self.reflections.type_of(node.arguments[0]).impl(refs.Object).actualize('type')
 
 		if isinstance(node.calls, (defs.Relay, defs.Var)):
 			if len(node.arguments) > 0 and node.arguments[0].value.is_a(defs.Reference):

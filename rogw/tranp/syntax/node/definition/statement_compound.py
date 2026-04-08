@@ -364,6 +364,61 @@ class ClassDef(Node, IDomain, IScope, INamespace, IDeclaration, ISymbol):
 		return embeders[0] if len(embeders) > 0 else None
 
 
+
+@Meta.embed(Node, accept_tags('class_assign'))
+class AltClass(ClassDef):
+	@property
+	@override
+	@Meta.embed(Node, expandable)
+	def symbol(self) -> TypesName:
+		return self._by('assign_namelist.var').as_a(TypesName)
+
+	@property
+	@override
+	def block(self) -> Block:
+		return self.dirty_child(Block, 'block', statements=[])
+
+	@property
+	@Meta.embed(Node, expandable)
+	def actual_type(self) -> Type:
+		return self._at(1).as_a(Type)
+
+
+@Meta.embed(Node, accept_tags('template_assign'))
+class TemplateClass(ClassDef):
+	@property
+	@override
+	@Meta.embed(Node, expandable)
+	def symbol(self) -> TypesName:
+		return self._by('assign_namelist.var').as_a(TypesName)
+
+	@property
+	@override
+	def block(self) -> Block:
+		return self.dirty_child(Block, 'block', statements=[])
+
+	@property
+	def definition_type(self) -> Type:
+		if not self._exists('typed_var'):
+			return self.dirty_child(VarOfType, 'var_of_type', tokens='TypeVar', domain_name=self.domain_name)
+
+		return self._by('typed_var').as_a(Type)
+
+	@property
+	def bound(self) -> Type | Empty:
+		if not self._exists('template_assign_bound'):
+			return self.dirty_child(Empty, '__empty__', tokens='')
+
+		return self._by('template_assign_bound')._at(0).as_a(Type)
+
+	@property
+	def covariant(self) -> Boolean | Empty:
+		if not self._exists('template_assign_covariant'):
+			return self.dirty_child(Empty, '__empty__', tokens='')
+
+		return self._by('template_assign_covariant')._at(0).as_a(Boolean)
+
+
 @Meta.embed(Node, accept_tags('function_def'))
 class Function(ClassDef):
 	@property
@@ -382,7 +437,7 @@ class Function(ClassDef):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def template_classes(self) -> list['TemplateClass']:
+	def template_classes(self) -> list[TemplateClass]:
 		if not self._exists('function_def_raw.inline_template_assigns'):
 			return []
 
@@ -667,57 +722,6 @@ class Enum(Class):
 	def var_value(self, var_name: str) -> Node:
 		var = [var for var in self.vars if var.symbol.domain_name == var_name][0]
 		return var.declare.as_a(MoveAssign).value
-
-
-@Meta.embed(Node, accept_tags('class_assign'))
-class AltClass(ClassDef):
-	@property
-	@override
-	@Meta.embed(Node, expandable)
-	def symbol(self) -> TypesName:
-		return self._by('assign_namelist.var').as_a(TypesName)
-
-	@property
-	@override
-	def block(self) -> Block:
-		return self.dirty_child(Block, 'block', statements=[])
-
-	@property
-	@Meta.embed(Node, expandable)
-	def actual_type(self) -> Type:
-		return self._at(1).as_a(Type)
-
-
-@Meta.embed(Node, accept_tags('template_assign'))
-class TemplateClass(ClassDef):
-	@property
-	@override
-	@Meta.embed(Node, expandable)
-	def symbol(self) -> TypesName:
-		return self._by('assign_namelist.var').as_a(TypesName)
-
-	@property
-	@override
-	def block(self) -> Block:
-		return self.dirty_child(Block, 'block', statements=[])
-
-	@property
-	def definition_type(self) -> Type:
-		return self._at(1).as_a(Type)
-
-	@property
-	def bound(self) -> Type | Empty:
-		if not self._exists('template_assign_bound'):
-			return self.dirty_child(Empty, '__empty__', tokens='')
-
-		return self._by('template_assign_bound')._at(0).as_a(Type)
-
-	@property
-	def covariant(self) -> Boolean | Empty:
-		if not self._exists('template_assign_covariant'):
-			return self.dirty_child(Empty, '__empty__', tokens='')
-
-		return self._by('template_assign_covariant')._at(0).as_a(Boolean)
 
 
 class VarsCollector:

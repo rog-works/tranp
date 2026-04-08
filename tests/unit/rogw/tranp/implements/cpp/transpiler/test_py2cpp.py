@@ -187,6 +187,8 @@ class TestPy2Cpp(TestCase):
 		('CVarOps.hex', 'function_def_raw.block.funccall[0]', defs.FuncCall, 'std::format("%p", (p));'),
 		('CVarOps.hex', 'function_def_raw.block.funccall[1]', defs.FuncCall, 'std::format("%p", ((&(n))));'),
 
+		('CVarOps.cast', 'function_def_raw.block.assign', defs.MoveAssign, 'std::string* ps = static_cast<std::string*>(pc);'),
+
 		('CVarOps.alias_call', 'function_def_raw.block.funccall[0]', defs.FuncCall, 'ap->call();'),
 		('CVarOps.alias_call', 'function_def_raw.block.funccall[1]', defs.FuncCall, 'asp->call();'),
 		('CVarOps.alias_call', 'function_def_raw.block.funccall[2]', defs.FuncCall, 'aref.call();'),

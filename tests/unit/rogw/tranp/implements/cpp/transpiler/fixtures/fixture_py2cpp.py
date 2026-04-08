@@ -234,6 +234,9 @@ class CVarOps:
 		p.to_addr_hex()
 		CP(n).to_addr_hex()
 
+	def cast(self, pc: CP[char]) -> None:
+		ps = pc.down(str)
+
 	Sub2: TypeAlias = Sub
 
 	def alias_call(self, ap: CP[Sub2], asp: CSP[Sub2], aref: CRef[Sub2]) -> None:

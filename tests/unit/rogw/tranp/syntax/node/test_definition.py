@@ -629,13 +629,16 @@ class TestDefinition(TestCase):
 		self.assertEqual(type(node.actual_type), expected['actual_type'])
 
 	@data_provider([
-		('A = TypeVar("A")', 'file_input.template_assign', {'symbol': 'A', 'definition_type': 'TypeVar', 'bound': defs.Empty, 'covariant': defs.Empty}),
-		('A = TypeVar("A", bound=X)', 'file_input.template_assign', {'symbol': 'A', 'definition_type': 'TypeVar', 'bound': defs.VarOfType, 'covariant': defs.Empty}),
-		('A = TypeVar("A", bound=X.Y)', 'file_input.template_assign', {'symbol': 'A', 'definition_type': 'TypeVar', 'bound': defs.RelayOfType, 'covariant': defs.Empty}),
-		('A = TypeVar("A", covariant=True)', 'file_input.template_assign', {'symbol': 'A', 'definition_type': 'TypeVar', 'bound': defs.Empty, 'covariant': defs.Truthy}),
-		('A = TypeVar("A", bound=X, covariant=False)', 'file_input.template_assign', {'symbol': 'A', 'definition_type': 'TypeVar', 'bound': defs.VarOfType, 'covariant': defs.Falsy}),
-		('A = TypeVarTuple("A")', 'file_input.template_assign', {'symbol': 'A', 'definition_type': 'TypeVarTuple', 'bound': defs.Empty, 'covariant': defs.Empty}),
-		('A = ParamSpec("A")', 'file_input.template_assign', {'symbol': 'A', 'definition_type': 'ParamSpec', 'bound': defs.Empty, 'covariant': defs.Empty}),
+		('T = TypeVar("T")', 'file_input.template_assign', {'symbol': 'T', 'definition_type': 'TypeVar', 'bound': defs.Empty, 'covariant': defs.Empty}),
+		('T = TypeVar("T", bound=X)', 'file_input.template_assign', {'symbol': 'T', 'definition_type': 'TypeVar', 'bound': defs.VarOfType, 'covariant': defs.Empty}),
+		('T = TypeVar("T", bound=X.Y)', 'file_input.template_assign', {'symbol': 'T', 'definition_type': 'TypeVar', 'bound': defs.RelayOfType, 'covariant': defs.Empty}),
+		('T = TypeVar("T", covariant=True)', 'file_input.template_assign', {'symbol': 'T', 'definition_type': 'TypeVar', 'bound': defs.Empty, 'covariant': defs.Truthy}),
+		('T = TypeVar("T", bound=X, covariant=False)', 'file_input.template_assign', {'symbol': 'T', 'definition_type': 'TypeVar', 'bound': defs.VarOfType, 'covariant': defs.Falsy}),
+		('T = TypeVar("T", int, float)', 'file_input.template_assign', {'symbol': 'T', 'definition_type': 'TypeVar', 'bound': defs.Empty, 'covariant': defs.Empty}),
+		('T = TypeVarTuple("T")', 'file_input.template_assign', {'symbol': 'T', 'definition_type': 'TypeVarTuple', 'bound': defs.Empty, 'covariant': defs.Empty}),
+		('T = ParamSpec("T")', 'file_input.template_assign', {'symbol': 'T', 'definition_type': 'ParamSpec', 'bound': defs.Empty, 'covariant': defs.Empty}),
+		('def f[T: int]() -> None: ...', 'file_input.function_def.function_def_raw.inline_template_assigns.template_assign', {'symbol': 'T', 'definition_type': 'TypeVar', 'bound': defs.VarOfType, 'covariant': defs.Empty}),
+		('def f[T: (int, float)]() -> None: ...', 'file_input.function_def.function_def_raw.inline_template_assigns.template_assign', {'symbol': 'T', 'definition_type': 'TypeVar', 'bound': defs.Empty, 'covariant': defs.Empty}),
 	])
 	def test_template_class(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.TemplateClass)

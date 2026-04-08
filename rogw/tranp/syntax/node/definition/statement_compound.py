@@ -382,6 +382,14 @@ class Function(ClassDef):
 
 	@property
 	@Meta.embed(Node, expandable)
+	def template_classes(self) -> 'list[TemplateClass]':
+		if not self._exists('function_def_raw.inline_template_assigns'):
+			return []
+
+		return [node.as_a(TemplateClass) for node in self._children('function_def_raw.inline_template_assigns')]
+
+	@property
+	@Meta.embed(Node, expandable)
 	def parameters(self) -> list[Parameter]:
 		if not self._exists('function_def_raw.parameters'):
 			return []

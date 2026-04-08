@@ -102,6 +102,8 @@ class TestPy2Cpp(TestCase):
 		('CVarOps.local_move', 'function_def_raw.block.if_stmt[7].if_clause.block.assign[5]', defs.MoveAssign, 'ar = (*(asp));'),  # 〃
 		('CVarOps.local_move', 'function_def_raw.block.if_stmt[7].if_clause.block.assign[7]', defs.MoveAssign, 'ar = ar;'),  # 〃
 
+		('CVarOps.iter_move', 'function_def_raw.block.for_stmt.block.assign', defs.MoveAssign, 'int n = (*(np));'),
+
 		('CVarOps.param_move', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'Sub a1 = a;'),
 		('CVarOps.param_move', 'function_def_raw.block.anno_assign[1]', defs.AnnoAssign, 'Sub a2 = (*(ap));'),
 		('CVarOps.param_move', 'function_def_raw.block.anno_assign[2]', defs.AnnoAssign, 'Sub a3 = (*(asp));'),
@@ -184,6 +186,11 @@ class TestPy2Cpp(TestCase):
 
 		('CVarOps.hex', 'function_def_raw.block.funccall[0]', defs.FuncCall, 'std::format("%p", (p));'),
 		('CVarOps.hex', 'function_def_raw.block.funccall[1]', defs.FuncCall, 'std::format("%p", ((&(n))));'),
+
+		('CVarOps.down_cast', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'int* down_p = static_cast<int*>(p);'),
+		('CVarOps.down_cast', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'int* down_wp = static_cast<int*>(wp);'),
+		('CVarOps.down_cast', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'int* as_p = dynamic_cast<int*>(p);'),
+		('CVarOps.down_cast', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'int* as_wp = dynamic_cast<int*>(wp);'),
 
 		('CVarOps.alias_call', 'function_def_raw.block.funccall[0]', defs.FuncCall, 'ap->call();'),
 		('CVarOps.alias_call', 'function_def_raw.block.funccall[1]', defs.FuncCall, 'asp->call();'),
@@ -434,8 +441,8 @@ class TestPy2Cpp(TestCase):
 		('ForFuncCall.Class.literalize', 'function_def_raw.block.funccall[8]', defs.FuncCall, 'printf("A");'),
 		('ForFuncCall.Class.literalize', 'function_def_raw.block.funccall[9]', defs.FuncCall, 'printf("base_prop");'),
 
-		('ForFuncCall.Cast.cast_binary', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'int f_to_n = static_cast<int>(1.0);'),
-		('ForFuncCall.Cast.cast_binary', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'float n_to_f = static_cast<float>(1);'),
+		('ForFuncCall.Cast.cast_binary', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'int f_to_n = (int(1.0));'),
+		('ForFuncCall.Cast.cast_binary', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'float n_to_f = (float(1));'),
 		('ForFuncCall.Cast.cast_binary', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'bool n_to_b = static_cast<bool>(1);'),
 
 		('ForFuncCall.Cast.cast_string', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'std::string n_to_s = std::to_string(1);'),
@@ -448,7 +455,7 @@ class TestPy2Cpp(TestCase):
 		('ForFuncCall.Cast.cast_class', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'Base* bp = static_cast<Base*>(sub_p);'),
 		('ForFuncCall.Cast.cast_class', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'std::map<std::string, Base*> dsbp = static_cast<std::map<std::string, Base*>>(dssp);'),
 
-		('ForFuncCall.Cast.cast_enum', 'function_def_raw.block.assign', defs.MoveAssign, 'Values e = static_cast<Values>(0);'),
+		('ForFuncCall.Cast.cast_enum', 'function_def_raw.block.assign', defs.MoveAssign, 'Values e = (Values(0));'),
 
 		('ForFuncCall.Copy.__py_copy__', '', defs.Method, 'public:\n/** __py_copy__ */\nCopy(ForFuncCall::Copy& origin) {}'),
 		('ForFuncCall.Copy.move_obj', 'function_def_raw.block.funccall', defs.FuncCall, 'to = via;'),
@@ -511,6 +518,18 @@ class TestPy2Cpp(TestCase):
 		('ForBinaryOperator.decimal_mod', 'function_def_raw.block.funccall', defs.FuncCall, "printf(fmod((fmod(1.0, 1)), (fmod(1, 1.0))));"),
 		('ForBinaryOperator.comparison', 'function_def_raw.block.assign[0]', defs.MoveAssign, "bool v_eq = (v1 == v2) && (v1 != v2) && !v1;"),
 		('ForBinaryOperator.comparison', 'function_def_raw.block.assign[1]', defs.MoveAssign, "bool c_eq = (c1 == c2) && (c1 != c2) && !c1;"),
+		('ForBinaryOperator.ops', 'function_def_raw.block.funccall[0]', defs.FuncCall, 'printf(std::string("") + c + wc);'),
+		('ForBinaryOperator.ops', 'function_def_raw.block.funccall[1]', defs.FuncCall, 'printf(0 + b + ui32 + ui64 + d);'),
+		('ForBinaryOperator.ops', 'function_def_raw.block.funccall[7]', defs.FuncCall, 'printf(0 == b == ui32 == ui64 == d);'),
+		('ForBinaryOperator.ops', 'function_def_raw.block.funccall[12]', defs.FuncCall, 'printf(b << 1);'),
+		('ForBinaryOperator.op_to_assign', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'std::string s = c + std::string("");'),
+		('ForBinaryOperator.op_to_assign', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'int i = ui64 * 0;'),
+		('ForBinaryOperator.op_to_assign', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'float f = d * 0.0;'),
+		('ForBinaryOperator.cast_to', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'byte b = std::stoi("");'),
+		('ForBinaryOperator.cast_to', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'uint32 ui32 = std::stoi("");'),
+		('ForBinaryOperator.cast_to', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'int64 i64 = std::stoi("");'),
+		('ForBinaryOperator.cast_to', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'uint64 ui64 = std::stoi("");'),
+		('ForBinaryOperator.cast_to', 'function_def_raw.block.assign[4]', defs.MoveAssign, 'double d = std::stod("");'),
 
 		('ForComp.list_comp_from_list', 'function_def_raw.block.list_comp[0]', defs.ListComp, BlockExpects.list_comp(proj_value='l[0]', proj_type='int', iterates='{{1}}', proj_symbols='l')),
 		('ForComp.list_comp_from_list', 'function_def_raw.block.list_comp[1]', defs.ListComp, BlockExpects.list_comp(proj_value='n', proj_type='int', iterates='ns')),

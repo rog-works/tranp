@@ -1,1 +1,10 @@
-static_cast<{{ var_type }}>({{ arguments[0] }}){% if is_statement %};{% endif %}
+{%- if from_type in ['int', 'uint32'] and calls not in ['int64', 'uint64', 'float', 'double'] -%}
+static_cast<{{ calls }}>({{ arguments[0] }}){% if is_statement %};{% endif %}
+{%- elif from_type in ['int64', 'uint64'] and calls not in ['float', 'double'] -%}
+static_cast<{{ calls }}>({{ arguments[0] }}){% if is_statement %};{% endif %}
+{%- elif from_type == 'double' and calls == 'float' -%}
+static_cast<{{ calls }}>({{ arguments[0] }}){% if is_statement %};{% endif %}
+{%- else -%}
+{#- XXX Initializerへの変換を防止するため`()`で囲う -#}
+({{ calls }}({{ arguments[0] }})){% if is_statement %};{% endif %}
+{%- endif -%}

@@ -8,75 +8,58 @@ class wchar_t(str): ...
 # Digit
 
 class digit(int):
-	"""int系統の基底クラス"""
+	"""Note: XXX タイプヒントで型名を取得するためクラスとして実装"""
 
 	def __hash__(self) -> int:
-		"""Returns: ハッシュ値"""
 		return self
 
-	def __eq__(self, other: int | Self) -> bool:
-		"""other: 対象 Returns: 演算結果"""
-		return int(self) == other
+	def __eq__(self, other: Self | int | float | bool) -> bool:
+		return super().__eq__(other)
 
-	def __ne__(self, other: int | Self) -> bool:
-		"""other: 対象 Returns: 演算結果"""
-		return int(self) != other
+	def __ne__(self, other: Self | int | float | bool) -> bool:
+		return super().__ne__(other)
 
-	def __lt__(self, other: int | Self) -> bool:
-		"""other: 対象 Returns: 演算結果"""
-		return int(self) < other
+	def __lt__(self, other: Self | int | float | bool) -> bool:
+		return super().__lt__(int(other))
 
-	def __gt__(self, other: int | Self) -> bool:
-		"""other: 対象 Returns: 演算結果"""
-		return int(self) > other
+	def __gt__(self, other: Self | int | float | bool) -> bool:
+		return super().__gt__(int(other))
 
-	def __le__(self, other: int | Self) -> bool:
-		"""other: 対象 Returns: 演算結果"""
-		return int(self) <= other
+	def __le__(self, other: Self | int | float | bool) -> bool:
+		return super().__le__(int(other))
 
-	def __ge__(self, other: int | Self) -> bool:
-		"""other: 対象 Returns: 演算結果"""
-		return int(self) >= other
+	def __ge__(self, other: Self | int | float | bool) -> bool:
+		return super().__ge__(int(other))
 
-	def __or__(self, other: int | Self) -> Self:
-		"""other: 対象 Returns: 演算結果"""
-		return self.__class__(int(self) | other)
+	def __add__(self, other: Self | int | bool) -> Self:
+		return self.__class__(super().__add__(other))
 
-	def __xor__(self, other: int | Self) -> Self:
-		"""other: 対象 Returns: 演算結果"""
-		return self.__class__(int(self) ^ other)
+	def __sub__(self, other: Self | int | bool) -> Self:
+		return self.__class__(super().__sub__(other))
 
-	def __and__(self, other: int | Self) -> Self:
-		"""other: 対象 Returns: 演算結果"""
-		return self.__class__(int(self) & other)
+	def __mul__(self, other: Self | int | bool) -> Self:
+		return self.__class__(super().__mul__(other))
+
+	def __truediv__(self, other: Self | int | bool) -> float:
+		return self.__class__(super().__truediv__(other))
+
+	def __mod__(self, other: Self | int | bool) -> Self:
+		return self.__class__(super().__mod__(other))
+
+	def __and__(self, other: Self | int | bool) -> Self:
+		return self.__class__(super().__and__(other))
+
+	def __or__(self, other: Self | int | bool) -> Self:
+		return self.__class__(super().__or__(other))
+
+	def __xor__(self, other: Self | int | bool) -> Self:
+		return self.__class__(super().__xor__(other))
 
 	def __lshift__(self, n: int) -> Self:
-		"""n: シフト数 Returns: 演算結果"""
-		return self.__class__(int(self) << n)
+		return self.__class__(super().__lshift__(n))
 
 	def __rshift__(self, n: int) -> Self:
-		"""n: シフト数 Returns: 演算結果"""
-		return self.__class__(int(self) >> n)
-
-	def __add__(self, other: int | Self) -> Self:
-		"""other: 対象 Returns: 演算結果"""
-		return self.__class__(int(self) + other)
-
-	def __sub__(self, other: int | Self) -> Self:
-		"""other: 対象 Returns: 演算結果"""
-		return self.__class__(int(self) - other)
-
-	def __mul__(self, other: int | Self) -> Self:
-		"""other: 対象 Returns: 演算結果"""
-		return self.__class__(int(self) * other)
-
-	def __truediv__(self, other: int | Self) -> Self:
-		"""other: 対象 Returns: 演算結果"""
-		return self.__class__(int(self) / other)
-
-	def __mod__(self, other: int | Self) -> Self:
-		"""other: 対象 Returns: 演算結果"""
-		return self.__class__(int(self) % other)
+		return self.__class__(super().__rshift__(n))
 
 
 class byte(digit): ...
@@ -90,26 +73,42 @@ class uint64(digit): ...
 # Decimal
 
 class double(float):
-	def __add__(self, other: float | Self) -> Self:
-		"""other: 対象 Returns: 演算結果"""
+	"""Note: XXX タイプヒントで型名を取得するためクラスとして実装"""
+
+	def __eq__(self, other: Self | int | float | bool) -> bool:
+		return super().__eq__(other)
+
+	def __ne__(self, other: Self | int | float | bool) -> bool:
+		return super().__ne__(other)
+
+	def __lt__(self, other: Self | int | float | bool) -> bool:
+		return super().__lt__(int(other))
+
+	def __gt__(self, other: Self | int | float | bool) -> bool:
+		return super().__gt__(int(other))
+
+	def __le__(self, other: Self | int | float | bool) -> bool:
+		return super().__le__(int(other))
+
+	def __ge__(self, other: Self | int | float | bool) -> bool:
+		return super().__ge__(int(other))
+
+	def __add__(self, other: Self | int | float | bool) -> Self:
 		return self.__class__(super().__add__(other))
 
-	def __sub__(self, other: float | Self) -> Self:
-		"""other: 対象 Returns: 演算結果"""
+	def __sub__(self, other: Self | int | float | bool) -> Self:
 		return self.__class__(super().__sub__(other))
 
-	def __mul__(self, other: float | Self) -> Self:
-		"""other: 対象 Returns: 演算結果"""
+	def __mul__(self, other: Self | int | float | bool) -> Self:
 		return self.__class__(super().__mul__(other))
 
-	def __truediv__(self, other: float | Self) -> Self:
-		"""other: 対象 Returns: 演算結果"""
+	def __truediv__(self, other: Self | float | int | bool) -> float:
 		return self.__class__(super().__truediv__(other))
 
-	def __mod__(self, other: float | Self) -> Self:
-		"""other: 対象 Returns: 演算結果"""
+	def __mod__(self, other: Self | float | int | bool) -> Self:
 		return self.__class__(super().__mod__(other))
 
+# Object
 
 # XXX 本質的には正しくないが、void*としてのみ使用するため、これによって無駄なキャストを軽減
 void: TypeAlias = object

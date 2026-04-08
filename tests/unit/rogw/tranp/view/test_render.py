@@ -192,7 +192,7 @@ class TestRenderer(TestCase):
 		('move_assign', {'receiver': 'hoge', 'value': '1234'}, 'hoge = 1234;'),
 		('move_assign_dict', {'receiver': 'hoge[0]', 'value': '1234'}, 'hoge[0] = 1234;'),
 		('move_assign_declare', {'receiver': 'hoge', 'value': '1234', 'var_type': 'int'}, 'int hoge = 1234;'),
-		('move_assign_declare', {'receiver': 'hoge', 'value': '1234', 'var_type': 'int', 'is_static': True}, 'static int hoge = 1234;'),
+		('move_assign_declare', {'receiver': 'hoge', 'value': 'Embed::static(A::f).decl([]() -> int { return 1234; })', 'var_type': 'int', 'is_static': True}, 'static int hoge = 1234;'),
 		('move_assign_declare', {'receiver': 'hoge', 'value': 'A(1)', 'var_type': 'A', 'is_initializer': True}, 'A hoge{1};'),
 		('move_assign_destruction', {'receivers': ['hoge', 'fuga'], 'value': '{1234, 2345}'}, 'auto [hoge, fuga] = {1234, 2345};'),
 		('anno_assign', {'receiver': 'hoge', 'value': '1234', 'var_type': 'int', 'annotation': ''}, 'int hoge = 1234;'),
@@ -800,13 +800,54 @@ class TestRenderer(TestCase):
 		self.assertRender('func_call/c_pragma', vars, expected)
 
 	@data_provider([
-		({'var_type': 'int', 'arguments': ['1.0f'], 'is_statement': True}, 'static_cast<int>(1.0f);'),
+		({'from_type': 'bool', 'calls': 'byte', 'arguments': ['true'], 'is_statement': True}, '(byte(true));'),
+		({'from_type': 'bool', 'calls': 'int', 'arguments': ['true'], 'is_statement': True}, '(int(true));'),
+		({'from_type': 'bool', 'calls': 'uint32', 'arguments': ['true'], 'is_statement': True}, '(uint32(true));'),
+		({'from_type': 'bool', 'calls': 'int64', 'arguments': ['true'], 'is_statement': True}, '(int64(true));'),
+		({'from_type': 'bool', 'calls': 'uint64', 'arguments': ['true'], 'is_statement': True}, '(uint64(true));'),
+		({'from_type': 'bool', 'calls': 'float', 'arguments': ['true'], 'is_statement': True}, '(float(true));'),
+		({'from_type': 'bool', 'calls': 'double', 'arguments': ['true'], 'is_statement': True}, '(double(true));'),
+		({'from_type': 'byte', 'calls': 'bool', 'arguments': ['1'], 'is_statement': True}, '(bool(1));'),
+		({'from_type': 'byte', 'calls': 'int', 'arguments': ['1'], 'is_statement': True}, '(int(1));'),
+		({'from_type': 'byte', 'calls': 'uint32', 'arguments': ['1'], 'is_statement': True}, '(uint32(1));'),
+		({'from_type': 'byte', 'calls': 'int64', 'arguments': ['1'], 'is_statement': True}, '(int64(1));'),
+		({'from_type': 'byte', 'calls': 'uint64', 'arguments': ['1'], 'is_statement': True}, '(uint64(1));'),
+		({'from_type': 'byte', 'calls': 'float', 'arguments': ['1'], 'is_statement': True}, '(float(1));'),
+		({'from_type': 'byte', 'calls': 'double', 'arguments': ['1'], 'is_statement': True}, '(double(1));'),
+		({'from_type': 'int', 'calls': 'bool', 'arguments': ['1'], 'is_statement': True}, 'static_cast<bool>(1);'),
+		({'from_type': 'int', 'calls': 'byte', 'arguments': ['1'], 'is_statement': True}, 'static_cast<byte>(1);'),
+		({'from_type': 'int', 'calls': 'uint32', 'arguments': ['1'], 'is_statement': True}, 'static_cast<uint32>(1);'),
+		({'from_type': 'int', 'calls': 'int64', 'arguments': ['1'], 'is_statement': True}, '(int64(1));'),
+		({'from_type': 'int', 'calls': 'uint64', 'arguments': ['1'], 'is_statement': True}, '(uint64(1));'),
+		({'from_type': 'int', 'calls': 'float', 'arguments': ['1'], 'is_statement': True}, '(float(1));'),
+		({'from_type': 'int', 'calls': 'double', 'arguments': ['1'], 'is_statement': True}, '(double(1));'),
+		({'from_type': 'uint64', 'calls': 'bool', 'arguments': ['1'], 'is_statement': True}, 'static_cast<bool>(1);'),
+		({'from_type': 'uint64', 'calls': 'byte', 'arguments': ['1'], 'is_statement': True}, 'static_cast<byte>(1);'),
+		({'from_type': 'uint64', 'calls': 'int', 'arguments': ['1'], 'is_statement': True}, 'static_cast<int>(1);'),
+		({'from_type': 'uint64', 'calls': 'uint32', 'arguments': ['1'], 'is_statement': True}, 'static_cast<uint32>(1);'),
+		({'from_type': 'uint64', 'calls': 'int64', 'arguments': ['1'], 'is_statement': True}, 'static_cast<int64>(1);'),
+		({'from_type': 'uint64', 'calls': 'float', 'arguments': ['1'], 'is_statement': True}, '(float(1));'),
+		({'from_type': 'uint64', 'calls': 'double', 'arguments': ['1'], 'is_statement': True}, '(double(1));'),
+		({'from_type': 'float', 'calls': 'bool', 'arguments': ['1.0f'], 'is_statement': True}, '(bool(1.0f));'),
+		({'from_type': 'float', 'calls': 'byte', 'arguments': ['1.0f'], 'is_statement': True}, '(byte(1.0f));'),
+		({'from_type': 'float', 'calls': 'int', 'arguments': ['1.0f'], 'is_statement': True}, '(int(1.0f));'),
+		({'from_type': 'float', 'calls': 'uint32', 'arguments': ['1.0f'], 'is_statement': True}, '(uint32(1.0f));'),
+		({'from_type': 'float', 'calls': 'int64', 'arguments': ['1.0f'], 'is_statement': True}, '(int64(1.0f));'),
+		({'from_type': 'float', 'calls': 'uint64', 'arguments': ['1.0f'], 'is_statement': True}, '(uint64(1.0f));'),
+		({'from_type': 'float', 'calls': 'double', 'arguments': ['1.0f'], 'is_statement': True}, '(double(1.0f));'),
+		({'from_type': 'double', 'calls': 'bool', 'arguments': ['1.0'], 'is_statement': True}, '(bool(1.0));'),
+		({'from_type': 'double', 'calls': 'byte', 'arguments': ['1.0'], 'is_statement': True}, '(byte(1.0));'),
+		({'from_type': 'double', 'calls': 'int', 'arguments': ['1.0'], 'is_statement': True}, '(int(1.0));'),
+		({'from_type': 'double', 'calls': 'uint32', 'arguments': ['1.0'], 'is_statement': True}, '(uint32(1.0));'),
+		({'from_type': 'double', 'calls': 'int64', 'arguments': ['1.0'], 'is_statement': True}, '(int64(1.0));'),
+		({'from_type': 'double', 'calls': 'uint64', 'arguments': ['1.0'], 'is_statement': True}, '(uint64(1.0));'),
+		({'from_type': 'double', 'calls': 'float', 'arguments': ['1.0'], 'is_statement': True}, 'static_cast<float>(1.0);'),
 	])
 	def test_render_func_call_cast_bin_to_bin(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('func_call/cast_bin_to_bin', vars, expected)
 
 	@data_provider([
-		({'arguments': ['1.0f'], 'is_statement': True}, 'std::to_string(1.0f);'),
+		({'calls': 'int', 'arguments': ['1.0f'], 'is_statement': True, 'from_type': 'float'}, 'std::to_string(1.0f);'),
 	])
 	def test_render_func_call_cast_bin_to_str(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('func_call/cast_bin_to_str', vars, expected)
@@ -819,24 +860,42 @@ class TestRenderer(TestCase):
 		self.assertRender('func_call/cast_char', vars, expected)
 
 	@data_provider([
+		({'calls': 'A::Values', 'arguments': ['0'], 'is_statement': True}, '(A::Values(0));'),
+	])
+	def test_render_func_call_cast_enum(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cast_enum', vars, expected)
+
+	@data_provider([
 		({'arguments': ['iterates'], 'is_statement': True}, 'iterates;'),
 	])
 	def test_render_func_call_cast_list(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('func_call/cast_list', vars, expected)
 
 	@data_provider([
-		({'var_type': 'int', 'arguments': ['"1"'], 'is_statement': True}, 'std::stoi("1");'),
-		({'var_type': 'int', 'arguments': ['"ff"', '16'], 'is_statement': True}, 'std::stoi("ff", 0, 16);'),
-		({'var_type': 'float', 'arguments': ['"1.0"'], 'is_statement': True}, 'std::stod("1.0");'),
+		({'calls': 'int', 'arguments': ['"1"'], 'is_statement': True}, 'std::stoi("1");'),
+		({'calls': 'int', 'arguments': ['"ff"', '16'], 'is_statement': True}, 'std::stoi("ff", 0, 16);'),
+		({'calls': 'float', 'arguments': ['"1.0"'], 'is_statement': True}, 'std::stod("1.0");'),
 	])
 	def test_render_func_call_cast_str_to_bin(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('func_call/cast_str_to_bin', vars, expected)
 
 	@data_provider([
-		({'var_type': 'std::string', 'arguments': ['"1"'], 'is_statement': True}, 'std::string("1");'),
+		({'calls': 'std::string', 'arguments': ['"1"'], 'is_statement': True}, 'std::string("1");'),
 	])
 	def test_render_func_call_cast_str_to_str(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('func_call/cast_str_to_str', vars, expected)
+
+	@data_provider([
+		({'receiver': 'p', 'arguments': ['int'], 'is_statement': True}, 'dynamic_cast<int*>(p);'),
+	])
+	def test_render_func_call_cvar_as_a(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cvar_as_a', vars, expected)
+
+	@data_provider([
+		({'receiver': 'p', 'arguments': ['int'], 'is_statement': True}, 'static_cast<int*>(p);'),
+	])
+	def test_render_func_call_cvar_down(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cvar_down', vars, expected)
 
 	@data_provider([
 		({'arguments': ['A(0)'], 'is_statement': True}, 'new A(0);'),

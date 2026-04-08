@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from types import FunctionType, MethodType
 from typing import Any, TypeVar
 
 from rogw.tranp.compatible.libralies.classes import __actual__
@@ -9,6 +10,60 @@ T = TypeVar('T')
 class Embed:
 	"""埋め込みモジュール"""
 
+	class _DeclareStatic:
+		"""スタティック変数定義仲介モジュール"""
+
+		holder: Any
+		key: str
+
+		def __init__(self, holder: Any, key: str) -> None:
+			"""インスタンスを生成
+
+			Args:
+				holder: 埋め込み対象
+				key: 競合回避用のキー
+			"""
+			self.holder = holder
+			self.key = key
+
+		def decl(self, factory: Callable[[], T]) -> T:
+			"""スタティック変数の定義・取得
+
+			Args:
+				factory: ファクトリー関数
+			Returns:
+				生成したスタティック変数
+			"""
+			key = f'__tranp_static_{self.key}__'
+			if not hasattr(self.holder, key):
+				setattr(self.holder, key, factory())
+
+			return getattr(self.holder, key)
+
+	@classmethod
+	def static(cls, holder: FunctionType | MethodType | property, key: str = '') -> _DeclareStatic:
+		"""静的フラグを埋め込み (対象: 関数のローカル変数)
+
+		Args:
+			holder: 埋め込み対象の関数
+			key: 競合回避用のキー
+		Returns:
+			定義仲介モジュール
+		Examples:
+			```python
+			class A:
+				def func(self) -> None:
+					# MoveAssign経由でスタティック変数を定義
+					static_var = Embed.static(A.func).decl(lambda: {'a': func_a, 'b': func_b}))
+			```
+		"""
+		if isinstance(holder, MethodType):
+			return cls._DeclareStatic(holder.__func__, key)
+		elif isinstance(holder, property):
+			return cls._DeclareStatic(holder.fget, key)
+		else:
+			return cls._DeclareStatic(holder, key)
+
 	@classmethod
 	def mutable(cls) -> None:
 		"""変性フラグを埋め込み (対象: 仮引数)"""
@@ -18,22 +73,6 @@ class Embed:
 	def immutable(cls) -> None:
 		"""不変性フラグを埋め込み (対象: 仮引数)"""
 		...
-
-	@classmethod
-	def static(cls, var: T) -> T:
-		"""静的フラグを埋め込み (対象: 関数のローカル変数)
-
-		Args:
-			var: 変数
-		Returns:
-			変数
-		Examples:
-			```python
-			# MoveAssign経由でスタティック変数化
-			static_var = Embed.static({'a': func_a, 'b': func_b})
-			```
-		"""
-		return var
 
 	@classmethod
 	def python(cls, wrapped: T) -> T:

@@ -3,9 +3,9 @@ from collections.abc import Callable, ItemsView, Iterator
 from enum import Enum
 from typing import Annotated, ClassVar, Generic, Literal, Protocol, Self, TypeAlias, TypedDict, TypeVar, TypeVarTuple, cast
 
-from rogw.tranp.compatible.cpp.classes import char, void
+from rogw.tranp.compatible.cpp.classes import byte, char, double, int64, uint32, uint64, void, wchar_t
+from rogw.tranp.compatible.cpp.cvar import CP, CSP, CWP, CPConst, CRawConst, CRef, T_co
 from rogw.tranp.compatible.cpp.function import c_func_invoke, c_func_ref
-from rogw.tranp.compatible.cpp.object import CP, CSP, CPConst, CRawConst, CRef, T_co
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 from rogw.tranp.compatible.python.embed import Embed
 
@@ -123,6 +123,10 @@ class CVarOps:
 			# C++ではNG
 			ar = ar
 
+	def iter_move(self, nps: list[CP[int]]) -> None:
+		for i, np in enumerate(nps):
+			n = np.raw
+
 	def param_move(self, a: Sub, ap: CP[Sub], asp: CSP[Sub], ar: CRef[Sub]) -> None:
 		a1 = a
 		a2: Sub = ap.raw
@@ -229,6 +233,12 @@ class CVarOps:
 	def hex(self, n: int, p: CP[str]) -> None:
 		p.to_addr_hex()
 		CP(n).to_addr_hex()
+
+	def down_cast(self, p: CP[void], wp: CWP[void]) -> None:
+		down_p = p.down(int)
+		down_wp = wp.down(int)
+		as_p = p.as_a(int)
+		as_wp = wp.as_a(int)
 
 	Sub2: TypeAlias = Sub
 
@@ -742,10 +752,10 @@ class ForFuncCall:
 		def func_cls(cls, n: int) -> str: ...
 
 		def c_func(self) -> None:
-			ds = Embed.static({'f': c_func_ref(ForFuncCall.Func.func_self)})
+			ds = Embed.static(ForFuncCall.Func.c_func).decl(lambda: {'f': c_func_ref(ForFuncCall.Func.func_self)})
 			n: int = c_func_invoke(self, ds['f'], 'a')
 
-			dc = Embed.static({'f': c_func_ref(ForFuncCall.Func.func_cls)})
+			dc = Embed.static(ForFuncCall.Func.c_func).decl(lambda: {'f': c_func_ref(ForFuncCall.Func.func_cls)})
 			s: str = dc['f'](1)
 
 	@Embed.alias('Class2')
@@ -903,6 +913,36 @@ class ForBinaryOperator:
 		v_eq = (v1 is v2) and (v1 is not v2) and not v1
 		c_eq = (c1 is c2) and (c1 is not c2) and not c1
 		t_eq = (t1 is t2) and (t1 is not t2) and not t1
+
+	def ops(self, c: char, wc: wchar_t, b: byte, ui32: uint32, ui64: uint64, d: double) -> None:
+		print(str('') + c + wc)
+		print(0 + b + ui32 + ui64 + d)
+		print(0 * b * ui32 * ui64 * d)
+		print(0 / b / ui32 / ui64 / d)
+		print(0 % b % ui32 % ui64 % d)
+		print(0 < b < ui32 < ui64 < d)
+		print(0 > b > ui32 > ui64 > d)
+		print(0 == b == ui32 == ui64 == d)
+		print(0 != b != ui32 != ui64 != d)
+		print(0 & b & ui32 & ui64)
+		print(0 | b | ui32 | ui64)
+		print(0 ^ b ^ ui32 ^ ui64)
+		print(b << 1)
+		print(ui32 << 1)
+		print(ui64 << 1)
+
+	def op_to_assign(self, c: char, ui64: uint64, d: double) -> None:
+		# XXX 演算によってAltClassがアンパックされる点に注意
+		s = c + str('')
+		i = ui64 * 0
+		f = d * 0.0
+
+	def cast_to(self) -> None:
+		b = byte('')
+		ui32  = uint32('')
+		i64 = int64('')
+		ui64 = uint64('')
+		d = double('')
 
 
 class ForComp:

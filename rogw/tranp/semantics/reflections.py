@@ -517,8 +517,8 @@ class ProceduralResolver:
 	def on_callable_type(self, node: defs.CallableType, type_name: IReflection, parameters: list[IReflection], return_type: IReflection) -> IReflection:
 		return type_name.stack(node).extends(*parameters, return_type)
 
-	def on_custom_type(self, node: defs.CustomType, type_name: IReflection, template_types: list[IReflection]) -> IReflection:
-		return type_name.stack(node).extends(*template_types)
+	def on_custom_type(self, node: defs.CustomType, type_name: IReflection, sub_types: list[IReflection]) -> IReflection:
+		return type_name.stack(node).extends(*sub_types)
 
 	def on_literal_dict_type(self, node: defs.LiteralDictType, type_name: IReflection, key_type: IReflection, value_type: IReflection) -> IReflection:
 		return type_name.stack(node).extends(key_type, value_type)
@@ -616,15 +616,15 @@ class ProceduralResolver:
 		operator_indexs = range(1, len(node_of_elements), 2)
 		right_indexs = range(2, len(node_of_elements), 2)
 
-		left = elements[0]
+		left = elements[0].impl(refs.Object).actualize('alt')
 		for index, right_index in enumerate(right_indexs):
 			operator = node_of_elements[operator_indexs[index]].as_a(defs.Terminal)
-			right = elements[right_index]
-			result = left.impl(refs.Object).try_operation(operator, right) or right.impl(refs.Object).try_operation(operator, left)
+			right = elements[right_index].impl(refs.Object).actualize('alt')
+			result = left.try_operation(operator, right) or right.try_operation(operator, left)
 			if result is None:
 				raise Errors.OperationNotAllowed(node, left, operator, right, 'Operation not defined')
 
-			left = result
+			left = result.impl(refs.Object).actualize('alt')
 
 		return left
 

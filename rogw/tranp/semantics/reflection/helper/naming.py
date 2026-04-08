@@ -252,12 +252,13 @@ class ClassShorthandNaming:
 		Returns:
 			短縮表記
 		"""
+		attrs = raw.attrs
 		symbol_name = ClassDomainNaming.make_manualy(raw.types, alias_handler, alias_transpiler, path_method)
-		if len(raw.attrs) == 0 or raw.types.is_a(defs.AltClass):
+		if len(attrs) == 0 or raw.types.is_a(defs.AltClass):
 			return symbol_name
 
-		attrs = [cls.__make_general(attr, alias_handler, alias_transpiler, path_method) for attr in raw.attrs]
-		return f'{symbol_name}<{", ".join(attrs)}>'
+		attrs_str = [cls.__make_general(attr, alias_handler, alias_transpiler, path_method) for attr in attrs]
+		return f'{symbol_name}<{", ".join(attrs_str)}>'
 
 	@classmethod
 	def __make_decorate(cls, raw: IReflection, alias_handler: AliasHandler | None, alias_transpiler: AliasTranspiler | None, path_method: PathMethods) -> str:

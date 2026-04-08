@@ -1,7 +1,9 @@
 from abc import ABCMeta, abstractmethod
 from collections.abc import Callable
-from typing import Generic, Self, TypeVar, override
+from typing import Any, Generic, Self, TypeIs, TypeVar, override
 from weakref import ReferenceType
+
+from rogw.tranp.errors import Errors
 
 T = TypeVar('T')
 T_co = TypeVar('T_co', covariant=True)
@@ -158,7 +160,6 @@ class CVarNullable(CVar[T_co]):
 		"""Returns: 実体を返却 Note: 派生クラス用。C++としての役割は無い"""
 		return self._origin
 
-
 class CP(CVarNotNull[T_co]):
 	"""C++型変数の互換クラス(ポインター)"""
 
@@ -182,6 +183,33 @@ class CP(CVarNotNull[T_co]):
 	def const(self) -> 'CPConst[T_co]':
 		"""Constを返却する参照変換代替メソッド。C++では削除"""
 		return CPConst(self.raw)
+
+	def down(self, down_type: type[T]) -> 'CP[T]':
+		"""派生クラスにキャスト。C++ではstatic_castに相当
+
+		Args:
+			down_type: 派生クラスの型
+		Returns:
+			キャスト後の型
+		Raises:
+			Errors.IllegalConvertion: 互換性の無い型を指定
+		"""
+		if not can_down_addr(self, down_type):
+			raise Errors.IllegalConvertion(self, down_type)
+
+		return self
+
+	def as_a(self, down_type: type[T]) -> 'CP[T]':
+		"""派生クラスにキャスト。Python上はdownと同じ。プロジェクト固有のキャストと言う位置づけ
+
+		Args:
+			down_type: 派生クラスの型
+		Returns:
+			キャスト後の型
+		Raises:
+			Errors.IllegalConvertion: 互換性の無い型を指定
+		"""
+		return self.down(down_type)
 
 	def __add__(self, offset: int) -> int:
 		"""アドレス演算(加算)
@@ -274,6 +302,33 @@ class CWP(CVar[T_co]):
 		"""Returns: ポインターを返却する参照変換代替メソッド。C++では削除される"""
 		origin = self._weak()
 		return CP(origin) if origin else None
+
+	def down(self, down_type: type[T]) -> 'CP[T]':
+		"""派生クラスにキャスト。C++では`static_cast<T>`に相当
+
+		Args:
+			down_type: 派生クラスの型
+		Returns:
+			キャスト後の型
+		Raises:
+			Errors.IllegalConvertion: 互換性の無い型を指定
+		"""
+		if not can_down_weak(self, down_type):
+			raise Errors.IllegalConvertion(self, down_type)
+
+		return self
+
+	def as_a(self, down_type: type[T]) -> 'CP[T]':
+		"""派生クラスにキャスト。C++では`dynamic_cast<T>`に相当。Python上はdownと等価
+
+		Args:
+			down_type: 派生クラスの型
+		Returns:
+			キャスト後の型
+		Raises:
+			Errors.IllegalConvertion: 互換性の無い型を指定
+		"""
+		return self.down(down_type)
 
 
 class CSP(CVarNullable[T_co]):
@@ -405,3 +460,27 @@ class CRawConst(CVarNotNull[T_co]):
 	def addr(self) -> 'CPConst[T_co]':
 		"""Returns: 不変性ポインターを返却する参照変換代替メソッド。C++では`&`に相当"""
 		return CPConst(self.raw)
+
+
+def can_down_addr(addr: 'CP[Any]', down_type: type[T]) -> 'TypeIs[CP[T]]':
+	"""同じか派生クラスか判定
+
+	Args:
+		addr: ポインター
+		down_type: 派生クラスの型
+	Returns:
+		True = 同じか派生クラス
+	"""
+	return isinstance(addr.raw, down_type)
+
+
+def can_down_weak(addr: 'CWP[Any]', down_type: type[T]) -> 'TypeIs[CWP[T]]':
+	"""同じか派生クラスか判定
+
+	Args:
+		addr: ポインター
+		down_type: 派生クラスの型
+	Returns:
+		True = 同じか派生クラス
+	"""
+	return isinstance(addr.raw, down_type)

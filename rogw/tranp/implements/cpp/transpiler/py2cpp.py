@@ -1082,8 +1082,7 @@ class Py2Cpp(ITranspiler):
 		elif spec == FuncCallSpec.Tags.cvar_as_a:
 			# 期待値: receiver.as_a(A)
 			receiver, _ = PatternParser.break_relay(calls)
-			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec.name}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
+			return self.view.render(f'{node.classification}/{spec.name}', vars={**func_call_vars, 'receiver': receiver})
 		elif spec == FuncCallSpec.Tags.cvar_copy:
 			# 期待値: cref_to.copy(cref_via)
 			receiver, _ = PatternParser.break_relay(calls)
@@ -1091,8 +1090,7 @@ class Py2Cpp(ITranspiler):
 		elif spec == FuncCallSpec.Tags.cvar_down:
 			# 期待値: receiver.down(A)
 			receiver, _ = PatternParser.break_relay(calls)
-			var_type = self.to_accessible_name(cast(IReflection, context))
-			return self.view.render(f'{node.classification}/{spec.name}', vars={**func_call_vars, 'receiver': receiver, 'var_type': var_type})
+			return self.view.render(f'{node.classification}/{spec.name}', vars={**func_call_vars, 'receiver': receiver})
 		elif spec == FuncCallSpec.Tags.cvar_new_p:
 			# 期待値: CP.new(A(a, b, c))
 			return self.view.render(f'{node.classification}/{spec.name}', vars=func_call_vars)
@@ -1203,7 +1201,7 @@ class Py2Cpp(ITranspiler):
 				cvar_key = self.cvars.var_name_from(receiver_raw)
 				if self.cvars.is_addr_p(cvar_key):
 					spec = FuncCallSpec.Tags.cvar_down if prop == CVars.Verbs.Down.value else FuncCallSpec.Tags.cvar_as_a
-					return spec, '', self.reflections.type_of(node.arguments[0]).impl(refs.Object).actualize('type')
+					return spec, '', None
 			elif prop == CVars.Verbs.Emtpy.value and isinstance(node.calls.receiver, defs.Indexer):
 				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object).actualize()
 				cvar_key = self.cvars.var_name_from(receiver_raw)

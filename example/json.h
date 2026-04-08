@@ -1,12 +1,12 @@
-// @tranp.meta: {"version":"1.0.0","module":{"hash":"82ee91dbd29c33a464b9b286b531c294","path":"example.json"},"transpiler":{"version":"1.0.0","module":"rogw.tranp.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
+// @tranp.meta: {"version":"1.0.0","module":{"hash":"621ae721096cde7c50927436d83c2b85","path":"example.json"},"transpiler":{"version":"1.0.0","module":"rogw.tranp.implements.cpp.transpiler.py2cpp.Py2Cpp"}}
 #pragma once
 #include <functional>
 // #include "enum.h"
 // #include "typing.h"
-// #include "rogw/tranp/compatible/cpp/classes.h"
-// #include "rogw/tranp/compatible/cpp/object.h"
-// #include "rogw/tranp/compatible/python/embed.h"
 #include "FW/string.h"
+// #include "rogw/tranp/compatible/cpp/classes.h"
+// #include "rogw/tranp/compatible/cpp/cvar.h"
+// #include "rogw/tranp/compatible/python/embed.h"
 /**
  * JSONエントリーの種別
  */

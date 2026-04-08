@@ -2,7 +2,7 @@ from collections.abc import Iterator
 from enum import Enum
 from typing import ClassVar
 
-import rogw.tranp.compatible.cpp.object as cpp
+import rogw.tranp.compatible.cpp.cvar as cpp
 import rogw.tranp.semantics.reflection.definition as refs
 from rogw.tranp.semantics.reflection.base import IReflection
 
@@ -43,16 +43,18 @@ class CVars:
 		Static = 2
 
 	class Verbs(Enum):
-		"""操作メソッド Note: @see rogw.tranp.compatible.cpp.object"""
+		"""操作メソッド Note: @see rogw.tranp.compatible.cpp.cvar"""
 		ToAddrId = 'to_addr_id'
 		ToAddrHex = 'to_addr_hex'
 		On = 'on'
 		Emtpy = 'empty'
 		New = 'new'
 		CopyProxy = 'copy_proxy'
+		Down = 'down'
+		AsA = 'as_a'
 
 	class Casts(Enum):
-		"""型変換メソッド Note: @see rogw.tranp.compatible.cpp.object"""
+		"""参照変換メソッド Note: @see rogw.tranp.compatible.cpp.cvar"""
 		Raw = 'raw'
 		Ref = 'ref'
 		Addr = 'addr'

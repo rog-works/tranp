@@ -4,8 +4,8 @@ from enum import Enum
 from typing import Annotated, ClassVar, Generic, Literal, Protocol, Self, TypeAlias, TypedDict, TypeVar, TypeVarTuple, cast
 
 from rogw.tranp.compatible.cpp.classes import byte, char, double, int64, uint32, uint64, void, wchar_t
+from rogw.tranp.compatible.cpp.cvar import CP, CSP, CWP, CPConst, CRawConst, CRef, T_co
 from rogw.tranp.compatible.cpp.function import c_func_invoke, c_func_ref
-from rogw.tranp.compatible.cpp.object import CP, CSP, CPConst, CRawConst, CRef, T_co
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 from rogw.tranp.compatible.python.embed import Embed
 
@@ -233,6 +233,12 @@ class CVarOps:
 	def hex(self, n: int, p: CP[str]) -> None:
 		p.to_addr_hex()
 		CP(n).to_addr_hex()
+
+	def down_cast(self, p: CP[void], wp: CWP[void]) -> None:
+		down_p = p.down(int)
+		down_wp = wp.down(int)
+		as_p = p.as_a(int)
+		as_wp = wp.as_a(int)
 
 	Sub2: TypeAlias = Sub
 

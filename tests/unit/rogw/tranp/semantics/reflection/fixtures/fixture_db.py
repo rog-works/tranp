@@ -476,6 +476,10 @@ class ForTemplateClass:
 		v = t()
 		return v
 
+	def inline[T](self, v: T) -> T:
+		n = self.inline(0)
+		return v
+
 
 class ForLambda:
 	def params(self, f: Callable[[bool, int], str]) -> None:

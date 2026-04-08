@@ -112,7 +112,7 @@ class TestNode(TestCase):
 		('B: TypeAlias = A', 'file_input.class_assign', defs.AltClass, 'B', '__main__#B'),
 		('T = TypedDict("T", {"s": str})', 'file_input.class_assign', defs.AltClass, 'T', '__main__#T'),
 		('T = TypeVar("T")', 'file_input.template_assign', defs.TemplateClass, 'T', '__main__#T'),
-		('def f[T]() -> None: ...', 'file_input.function_def.function_def_raw.inline_template_assigns.template_assign', defs.TemplateClass, 'T', '__main__#f.T'),
+		('def f[T]() -> None: ...', 'file_input.function_def.function_def_raw.template_params.template_assign', defs.TemplateClass, 'T', '__main__#f.T'),
 		# Elements
 		('def func(n: int) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue', defs.Parameter, '', '__main__#func.parameter@8'),
 		('@deco\ndef func(n: int) -> None: ...', 'file_input.function_def.decorators.decorator', defs.Decorator, '', '__main__#func.decorator@3'),
@@ -190,7 +190,7 @@ class TestNode(TestCase):
 		('a: Annotated[int | str, 0] = 0', 'file_input.anno_assign.typed_or_expr', defs.UnionType, 'Union', '__main__#Union'),
 		('def func(n: int) -> Annotated[int, 0]: ...', 'file_input.function_def.function_def_raw.typed_var', defs.VarOfType, 'int', '__main__#func.int'),
 		('T = TypedDict("T", {"s": str})', 'file_input.class_assign.typed_dict', defs.LiteralDictType, 'dict', '__main__#T.dict'),
-		('def f[T: int]() -> None: ...', 'file_input.function_def.function_def_raw.inline_template_assigns.template_assign.template_assign_bound.typed_var', defs.VarOfType, 'int', '__main__#f.T.int'),
+		('def f[T: int]() -> None: ...', 'file_input.function_def.function_def_raw.template_params.template_assign.template_assign_bound.typed_var', defs.VarOfType, 'int', '__main__#f.T.int'),
 		# Primary - FuncCall
 		('a(0)', 'file_input.funccall', defs.FuncCall, 'func_call@1', '__main__#func_call@1'),
 		('a(0)\nfor i in b(): ...', 'file_input.funccall', defs.FuncCall, 'func_call@1', '__main__#func_call@1'),
@@ -246,7 +246,7 @@ class TestNode(TestCase):
 		('B: TypeAlias = A', 'file_input.class_assign', defs.AltClass, '__main__', '__main__'),
 		('T = TypedDict("T", {"str": int})', 'file_input.class_assign', defs.AltClass, '__main__', '__main__'),
 		('T = TypeVar("T")', 'file_input.template_assign', defs.TemplateClass, '__main__', '__main__'),
-		('def f[T]() -> None: ...', 'file_input.function_def.function_def_raw.inline_template_assigns.template_assign', defs.TemplateClass, '__main__#f', '__main__#f'),
+		('def f[T]() -> None: ...', 'file_input.function_def.function_def_raw.template_params.template_assign', defs.TemplateClass, '__main__#f', '__main__#f'),
 		# Elements
 		('def func(n: int) -> None: ...', 'file_input.function_def.function_def_raw.parameters.paramvalue', defs.Parameter, '__main__#func', '__main__#func'),
 		('@deco\ndef func(n: int) -> None: ...', 'file_input.function_def.decorators.decorator', defs.Decorator, '__main__#func', '__main__#func'),
@@ -304,7 +304,7 @@ class TestNode(TestCase):
 		('a: None = None', 'file_input.anno_assign.typed_none', defs.NullType, '__main__', '__main__'),
 		('def func() -> None: ...', 'file_input.function_def.function_def_raw.typed_none', defs.NullType, '__main__#func', '__main__#func'),
 		('T = TypedDict("T", {"s": str})', 'file_input.class_assign.typed_dict', defs.LiteralDictType, '__main__#T', '__main__#T'),
-		('def f[T: int]() -> None: ...', 'file_input.function_def.function_def_raw.inline_template_assigns.template_assign.template_assign_bound.typed_var', defs.VarOfType, '__main__#f.T', '__main__#f.T'),
+		('def f[T: int]() -> None: ...', 'file_input.function_def.function_def_raw.template_params.template_assign.template_assign_bound.typed_var', defs.VarOfType, '__main__#f.T', '__main__#f.T'),
 		# Primary - FuncCall
 		('a(0)', 'file_input.funccall', defs.FuncCall, '__main__', '__main__'),
 		('super()', 'file_input.funccall', defs.Super, '__main__', '__main__'),

@@ -63,12 +63,13 @@ metaclass_argvalue: "metaclass" "=" typed_expression
 
 // @lark funcdef: "def" name "(" [parameters] ")" ["->" test] ":" suite
 function_def: [decorators] function_def_raw
-function_def_raw: "def" name ["[" inline_template_assigns "]"] "(" [parameters] ")" "->" typed_expression ":" block
+function_def_raw: "def" name ["[" template_params "]"] "(" [parameters] ")" "->" typed_expression ":" block
 
-// @custom
-inline_template_assigns: inline_template_assign ("," inline_template_assign)*
-inline_template_assign: assign_namelist [":" inline_template_assign_expression] -> template_assign
-inline_template_assign_expression: typed_atom -> template_assign_bound
+// @python type_params: type_param
+// @python type_param: name [":" expression] ["=" expression]
+template_params: template_param ("," template_param)*
+template_param: assign_namelist [":" template_param_expression] -> template_assign
+template_param_expression: typed_atom -> template_assign_bound
 	| "(" typed_slices ")" -> template_assign_constraint
 
 // @lark lambdadef: "lambda" [lambdaparams] ":" test
@@ -254,9 +255,9 @@ comment_stmt: COMMENT
 
 // ## Bitwise operators
 
-// @lark: ?or_expr: xor_expr ("|" xor_expr)*
-// @lark: ?xor_expr: and_expr ("^" and_expr)*
-// @lark: ?and_expr: shift_expr ("&" shift_expr)*
+// @lark ?or_expr: xor_expr ("|" xor_expr)*
+// @lark ?xor_expr: and_expr ("^" and_expr)*
+// @lark ?and_expr: shift_expr ("&" shift_expr)*
 ?or_expr: xor_expr (_or_bit_op xor_expr)*
 ?xor_expr: and_expr (_xor_bit_op and_expr)*
 ?and_expr: shift_expr (_and_bit_op shift_expr)*

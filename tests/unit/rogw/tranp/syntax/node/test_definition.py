@@ -637,8 +637,8 @@ class TestDefinition(TestCase):
 		('T = TypeVar("T", int, float)', 'file_input.template_assign', {'symbol': 'T', 'definition_type': 'TypeVar', 'bound': defs.Empty, 'covariant': defs.Empty}),
 		('T = TypeVarTuple("T")', 'file_input.template_assign', {'symbol': 'T', 'definition_type': 'TypeVarTuple', 'bound': defs.Empty, 'covariant': defs.Empty}),
 		('T = ParamSpec("T")', 'file_input.template_assign', {'symbol': 'T', 'definition_type': 'ParamSpec', 'bound': defs.Empty, 'covariant': defs.Empty}),
-		('def f[T: int]() -> None: ...', 'file_input.function_def.function_def_raw.inline_template_assigns.template_assign', {'symbol': 'T', 'definition_type': 'TypeVar', 'bound': defs.VarOfType, 'covariant': defs.Empty}),
-		('def f[T: (int, float)]() -> None: ...', 'file_input.function_def.function_def_raw.inline_template_assigns.template_assign', {'symbol': 'T', 'definition_type': 'TypeVar', 'bound': defs.Empty, 'covariant': defs.Empty}),
+		('def f[T: int]() -> None: ...', 'file_input.function_def.function_def_raw.template_params.template_assign', {'symbol': 'T', 'definition_type': 'TypeVar', 'bound': defs.VarOfType, 'covariant': defs.Empty}),
+		('def f[T: (int, float)]() -> None: ...', 'file_input.function_def.function_def_raw.template_params.template_assign', {'symbol': 'T', 'definition_type': 'TypeVar', 'bound': defs.Empty, 'covariant': defs.Empty}),
 	])
 	def test_template_class(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.TemplateClass)

@@ -46,6 +46,10 @@ class Typehint(metaclass=ABCMeta):
 		"""
 		...
 
+	def __repr__(self) -> str:
+		"""Returns: シリアライズ表現"""
+		return f'<{self.__class__.__name__}[{self.raw.__name__}]: at 0x{hex(id(self))[2:].upper()}>'
+
 
 class ScalarTypehint(Typehint):
 	"""タイプヒント(値)

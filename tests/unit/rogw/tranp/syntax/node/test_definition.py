@@ -637,6 +637,7 @@ class TestDefinition(TestCase):
 		('T = TypeVar("T", int, float)', 'file_input.template_assign', {'symbol': 'T', 'definition_type': 'TypeVar', 'bound': defs.Empty, 'covariant': defs.Empty}),
 		('T = TypeVarTuple("T")', 'file_input.template_assign', {'symbol': 'T', 'definition_type': 'TypeVarTuple', 'bound': defs.Empty, 'covariant': defs.Empty}),
 		('T = ParamSpec("T")', 'file_input.template_assign', {'symbol': 'T', 'definition_type': 'ParamSpec', 'bound': defs.Empty, 'covariant': defs.Empty}),
+		('class A[T]: ...', 'file_input.class_def.class_def_raw.template_params.template_assign', {'symbol': 'T', 'definition_type': 'TypeVar', 'bound': defs.Empty, 'covariant': defs.Empty}),
 		('def f[T: int]() -> None: ...', 'file_input.function_def.function_def_raw.template_params.template_assign', {'symbol': 'T', 'definition_type': 'TypeVar', 'bound': defs.VarOfType, 'covariant': defs.Empty}),
 		('def f[T: (int, float)]() -> None: ...', 'file_input.function_def.function_def_raw.template_params.template_assign', {'symbol': 'T', 'definition_type': 'TypeVar', 'bound': defs.Empty, 'covariant': defs.Empty}),
 	])

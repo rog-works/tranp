@@ -1,5 +1,4 @@
 import os
-import sys
 from unittest import TestCase
 
 import rogw.tranp.syntax.node.definition as defs
@@ -24,7 +23,13 @@ from rogw.tranp.view.render import Renderer, RendererEmitter, RendererHelperProv
 from tests.test.fixture import Fixture
 from tests.unit.rogw.tranp.implements.cpp.transpiler.fixtures.fixture_py2cpp_expect import BlockExpects
 
-profiler_on = '--' in sys.argv
+
+def verbose_on() -> bool:
+	return 'PYVERBOSE' in os.environ
+
+
+def profiler_on() -> bool:
+	return 'PYPROFILE' in os.environ
 
 
 def fixture_translation_mapping(datums: IDataLoader) -> TranslationMapping:
@@ -52,10 +57,10 @@ class TestPy2Cpp(TestCase):
 		to_fullyname(RendererHelperProvider): renderer_helper_provider_cpp,
 		to_fullyname(RendererSetting): make_renderer_setting,
 		to_fullyname(TranslationMapping): fixture_translation_mapping,
-		to_fullyname(TranspilerOptions): lambda: TranspilerOptions(verbose=False, env={}),
+		to_fullyname(TranspilerOptions): lambda: TranspilerOptions(verbose=verbose_on(), env={}),
 	})
 
-	@profiler(on=profiler_on)
+	@profiler(on=profiler_on())
 	@data_provider([
 		('', 'import_stmt[1]', defs.Import, '#include <functional>'),
 

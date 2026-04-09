@@ -475,20 +475,20 @@ class Py2Cpp(ITranspiler):
 	def on_with(self, node: defs.With, statements: list[str], entries: list[str]) -> str:
 		return self.view.render(node.classification, vars={'statements': statements, 'entries': entries})
 
-	def on_function(self, node: defs.Function, symbol: str, decorators: list[str], template_classes: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
-		template_types = [*self.fetch_function_template_names(node), *template_classes]
+	def on_function(self, node: defs.Function, symbol: str, decorators: list[str], template_params: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
+		template_types = [*self.fetch_function_template_names(node), *template_params]
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types, 'is_pure': node.is_pure}
 		return self.view.render(f'function/{node.classification}', vars=function_vars)
 
-	def on_class_method(self, node: defs.ClassMethod, symbol: str, decorators: list[str], template_classes: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
+	def on_class_method(self, node: defs.ClassMethod, symbol: str, decorators: list[str], template_params: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		class_name = self.to_domain_name_by_class(node.class_types)
-		template_types = [*self.fetch_function_template_names(node), *template_classes]
+		template_types = [*self.fetch_function_template_names(node), *template_params]
 		return_type_annotation = self.transpile(node.return_type.annotation) if not isinstance(node.return_type.annotation, defs.Empty) else ''
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types, 'is_pure': node.is_pure}
 		method_vars = {'accessor': self.to_accessor(node.accessor), 'class_symbol': class_name, 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'return_type_annotation': return_type_annotation}
 		return self.view.render(f'function/{node.classification}', vars={**function_vars, **method_vars})
 
-	def on_constructor(self, node: defs.Constructor, symbol: str, decorators: list[str], template_classes: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
+	def on_constructor(self, node: defs.Constructor, symbol: str, decorators: list[str], template_params: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		this_vars = node.class_types.as_a(defs.Class).this_vars
 
 		# クラスの初期化ステートメントとそれ以外を分離
@@ -521,15 +521,15 @@ class Py2Cpp(ITranspiler):
 			initializers.append(initializer)
 
 		class_name = self.to_domain_name_by_class(node.class_types)
-		template_types = [*self.fetch_function_template_names(node), *template_classes]
+		template_types = [*self.fetch_function_template_names(node), *template_params]
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': normal_statements, 'template_types': template_types}
 		method_vars = {'accessor': self.to_accessor(node.accessor), 'class_symbol': class_name, 'is_abstract': node.is_abstract, 'is_override': node.is_override, 'allow_override': self.allow_override_from_method(node)}
 		constructor_vars = {'initializers': initializers, 'super_initializer': super_initializer}
 		return self.view.render(f'function/{node.classification}', vars={**function_vars, **method_vars, **constructor_vars})
 
-	def on_method(self, node: defs.Method, symbol: str, decorators: list[str], template_classes: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
+	def on_method(self, node: defs.Method, symbol: str, decorators: list[str], template_params: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		class_name = self.to_domain_name_by_class(node.class_types)
-		template_types = [*self.fetch_function_template_names(node), *template_classes]
+		template_types = [*self.fetch_function_template_names(node), *template_params]
 		return_type_annotation = self.transpile(node.return_type.annotation) if not isinstance(node.return_type.annotation, defs.Empty) else ''
 		_symbol = ClassOperationMaps.operators.get(symbol, symbol)
 		function_vars = {'symbol': _symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'comment': comment, 'statements': statements, 'template_types': template_types, 'is_pure': node.is_pure}
@@ -537,21 +537,21 @@ class Py2Cpp(ITranspiler):
 		spec = ClassOperationMaps.ctors.get(symbol, node.classification)
 		return self.view.render(f'function/{spec}', vars={**function_vars, **method_vars})
 
-	def on_closure(self, node: defs.Closure, symbol: str, decorators: list[str], template_classes: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
+	def on_closure(self, node: defs.Closure, symbol: str, decorators: list[str], template_params: list[str], parameters: list[str], return_type: str, comment: str, statements: list[str]) -> str:
 		function_vars = {'symbol': symbol, 'decorators': decorators, 'parameters': parameters, 'return_type': return_type, 'statements': statements}
 		return self.view.render(f'function/{node.classification}', vars={**function_vars, 'binds': self.make_lambda_binds(node)})
 
-	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], sub_types: list[str], comment: str, statements: list[str]) -> str:
+	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], template_params: list[str], inherits: list[str], sub_types: list[str], comment: str, statements: list[str]) -> str:
 		if len(inherits) == 1 and inherits[0] == Protocol.__name__:
-			return self.proc_class_protocol(node, symbol, decorators, inherits, sub_types, comment, statements)
+			return self.proc_class_protocol(node, symbol, decorators, template_params, inherits, sub_types, comment, statements)
 		else:
-			return self.proc_class(node, symbol, decorators, inherits, sub_types, comment, statements)
+			return self.proc_class(node, symbol, decorators, template_params, inherits, sub_types, comment, statements)
 
-	def proc_class_protocol(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], sub_types: list[str], comment: str, statements: list[str]) -> str:
+	def proc_class_protocol(self, node: defs.Class, symbol: str, decorators: list[str], template_params: list[str], inherits: list[str], sub_types: list[str], comment: str, statements: list[str]) -> str:
 		class_vars = {'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'template_types': sub_types, 'comment': comment, 'statements': statements, 'module_path': node.module_path}
 		return self.view.render(f'{node.classification}/protocol', vars=class_vars)
 
-	def proc_class(self, node: defs.Class, symbol: str, decorators: list[str], inherits: list[str], sub_types: list[str], comment: str, statements: list[str]) -> str:
+	def proc_class(self, node: defs.Class, symbol: str, decorators: list[str], template_params: list[str], inherits: list[str], sub_types: list[str], comment: str, statements: list[str]) -> str:
 		# XXX クラス配下の変数宣言とそれ以外のステートメントを分離
 		a_statements = statements.copy()
 		class_var_statements: list[tuple[int, str]] = []
@@ -577,7 +577,7 @@ class Py2Cpp(ITranspiler):
 			a_statements[index] = self.view.render(f'{node.classification}/_decl_this_var', vars=this_var_vars)
 
 		# XXX サブタイプからテンプレートタイプを抽出
-		template_types = []
+		template_types = template_params.copy()
 		for sub_type in node.sub_types:
 			sub_type_raw = self.reflections.type_of(sub_type)
 			if sub_type_raw.types.is_a(defs.TemplateClass):
@@ -588,7 +588,7 @@ class Py2Cpp(ITranspiler):
 		class_vars = {'accessor': accessor, 'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'template_types': template_types, 'comment': comment, 'statements': a_statements, 'module_path': node.module_path}
 		return self.view.render(f'{node.classification}/class', vars=class_vars)
 
-	def on_enum(self, node: defs.Enum, symbol: str, decorators: list[str], inherits: list[str], sub_types: list[str], comment: str, statements: list[str]) -> str:
+	def on_enum(self, node: defs.Enum, symbol: str, decorators: list[str], template_params: list[str], inherits: list[str], sub_types: list[str], comment: str, statements: list[str]) -> str:
 		add_vars = {}
 		if not node.parent.is_a(defs.Entrypoint):
 			add_vars = {'accessor': self.to_accessor(node.accessor)}

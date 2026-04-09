@@ -437,7 +437,7 @@ class Function(ClassDef):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def template_classes(self) -> list[TemplateClass]:
+	def template_params(self) -> list[TemplateClass]:
 		if not self._exists('function_def_raw.template_params'):
 			return []
 
@@ -596,6 +596,14 @@ class Class(ClassDef):
 	@Meta.embed(Node, expandable)
 	def decorators(self) -> list[Decorator]:
 		return super().decorators
+
+	@property
+	@Meta.embed(Node, expandable)
+	def template_params(self) -> list[TemplateClass]:
+		if not self._exists('class_def_raw.template_params'):
+			return []
+
+		return [node.as_a(TemplateClass) for node in self._children('class_def_raw.template_params')]
 
 	@property
 	@Meta.embed(Node, expandable)

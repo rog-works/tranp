@@ -53,7 +53,7 @@ decorator: "@" dotted_name ["(" [arguments] ")"] _NEWLINE
 
 // @lark classdef: "class" name ["(" [arguments] ")"] ":" block
 class_def: [decorators] class_def_raw
-class_def_raw: "class" name ["(" [inherit_arguments] ")"] ":" block
+class_def_raw: "class" name ["[" template_params "]"] ["(" [inherit_arguments] ")"] ":" block
 
 // @custom
 inherit_arguments: (typed_argvalue | metaclass_argvalue) ("," (typed_argvalue | metaclass_argvalue))*

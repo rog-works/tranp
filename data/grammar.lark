@@ -308,7 +308,7 @@ slices: slice ("," slice)* [","]
 // @lark "(" comprehension{test_or_star_expr} ")" -> tuple_comprehension
 // @lark string_concat
 // @lark "(" test ")"
-?atom: name -> var
+?atom: var
 	| "True" -> const_true
 	| "False" -> const_false
 	| "None" -> const_none
@@ -322,6 +322,7 @@ slices: slice ("," slice)* [","]
 	| group_expr
 	| "..." -> elipsis
 
+var: name
 group_expr: "(" expression ")"
 
 // @lark _tuple_inner: test_or_star_expr (("," test_or_star_expr)+ [","] | ",")

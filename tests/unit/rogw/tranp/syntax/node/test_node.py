@@ -479,7 +479,7 @@ class A:
 				'    +-decorators:',
 				'    +-template_params:',
 				'    +-inherits:',
-				'    +-sub_types:',
+				'    +-inherit_sub_types:',
 				'    +-comment: <Proxy: @2 __main__#A.Empty (0, 0)..(0, 0)>',
 				'    +-statements:',
 				'      +-<Constructor: @9 __main__#A.__init__ (3, 2)..(11, 1)>',

@@ -596,6 +596,7 @@ class Class(ClassDef):
 	@property
 	@Meta.embed(Node, expandable)
 	def template_params(self) -> list[TemplateClass]:
+		"""Returns: テンプレートリスト"""
 		if not self._exists('class_def_raw.template_params'):
 			return []
 
@@ -609,7 +610,8 @@ class Class(ClassDef):
 
 	@property
 	@Meta.embed(Node, expandable)
-	def sub_types(self) -> list[Type]:
+	def inherit_sub_types(self) -> list[Type]:
+		"""Returns: サブタイプリスト"""
 		def expand_sub_types(at_type: GenericType) -> list[Type]:
 			sub_types: list[Type] = []
 			for sub_type in at_type.sub_types:
@@ -626,6 +628,11 @@ class Class(ClassDef):
 				sub_types.extend(expand_sub_types(inherit))
 
 		return sub_types
+
+	@property
+	def depended_types(self) -> list[TemplateClass | Type]:
+		"""Returns: 依存タイプリスト(テンプレート + サブタイプ)"""
+		return [*self.template_params, *self.inherit_sub_types]
 
 	@property
 	@override

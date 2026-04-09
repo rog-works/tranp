@@ -18,7 +18,8 @@ def _ast(before: str) -> str:
 	_Class2 = f'file_input.class_def[{_class_begin + 4}]'
 	_GenBase = f'file_input.class_def[{_class_begin + 5}]'
 	_GenSub = f'file_input.class_def[{_class_begin + 6}]'
-	_ParamOps = f'file_input.class_def[{_class_begin + 7}]'
+	_GenCompo = f'file_input.class_def[{_class_begin + 7}]'
+	_ParamOps = f'file_input.class_def[{_class_begin + 8}]'
 
 	_map = {
 		'Values': f'{_Values}',
@@ -38,6 +39,7 @@ def _ast(before: str) -> str:
 		'Class2': f'{_Class2}',
 		'GenBase': f'{_GenBase}',
 		'GenSub': f'{_GenSub}',
+		'GenCompo': f'{_GenCompo}',
 		'ParamOps.star_params': f'{_ParamOps}.class_def_raw.block.function_def[0]',
 		'ParamOps.kw_params': f'{_ParamOps}.class_def_raw.block.function_def[1]',
 	}
@@ -63,6 +65,7 @@ class TestDefinition(TestCase):
 				defs.Class,
 				defs.Class,
 				defs.Function,
+				defs.Class,
 				defs.Class,
 				defs.Class,
 				defs.Class,
@@ -562,6 +565,18 @@ class TestDefinition(TestCase):
 			'decorators': [],
 			'inherits': ['GenBase'],
 			'depended_types': ['T'],
+			'constructor_exists': False,
+			'class_methods': [],
+			'methods': [],
+			'class_vars': [],
+			'this_vars': [],
+			'actual_symbol': None,
+		}),
+		(_ast('GenCompo'), {
+			'symbol': 'GenCompo',
+			'decorators': [],
+			'inherits': ['GenBase'],
+			'depended_types': ['T', 'int'],
 			'constructor_exists': False,
 			'class_methods': [],
 			'methods': [],

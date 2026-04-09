@@ -205,9 +205,7 @@ class_assign: assign_namelist (class_assign_type_alias | class_assign_typed_dict
 
 // @custom
 template_assign: assign_namelist "=" template_assign_class "(" string ["," template_assign_argvalue ("," template_assign_argvalue)*] ")"
-!template_assign_class: "TypeVar" -> typed_var
-	| "TypeVarTuple" -> typed_var
-	| "ParamSpec" -> typed_var
+!template_assign_class: ("TypeVar" | "TypeVarTuple" | "ParamSpec") -> typed_var
 ?template_assign_argvalue: typed_expression -> template_assign_constraint
 	| ("bound" "=" typed_expression) -> template_assign_bound
 	| ("covariant" "=" atom) -> template_assign_covariant

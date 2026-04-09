@@ -189,7 +189,7 @@ class TestReflections(TestCase):
 		('ForEnum.ref_props.en_b_name', '', _mod('classes', 'str'), 'str'),
 		('ForEnum.ref_props.en_b_value', '', _mod('classes', 'int'), 'int'),
 
-		('ForTemplateClass.boundary_call', 'function_def_raw.block.return_stmt', _mod('__main__', 'Base'), 'Base'),
+		('ForTemplateClass.bound_call', 'function_def_raw.block.return_stmt', _mod('__main__', 'Base'), 'Base'),
 		('ForTemplateClass.G3.v_ref.g1', '', _mod('__main__', 'ForTemplateClass.G1'), 'G1<int>'),
 		('ForTemplateClass.G3.v_ref.g1_v', '', _mod('classes', 'int'), 'int'),
 		('ForTemplateClass.G3.v_ref.g2', '', _mod('__main__', 'ForTemplateClass.G2'), 'G2<int>'),

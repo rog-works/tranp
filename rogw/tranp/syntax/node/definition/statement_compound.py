@@ -328,10 +328,6 @@ class ClassDef(Node, IDomain, IScope, INamespace, IDeclaration, ISymbol):
 		raise NotImplementedError()
 
 	@property
-	def sub_types(self) -> list[Type]:
-		return []
-
-	@property
 	def actual_symbol(self) -> str | None:
 		embedder = self._dig_embedder(__actual__.__name__)
 		return embedder.arguments[0].value.as_a(String).as_string if embedder else None
@@ -364,6 +360,61 @@ class ClassDef(Node, IDomain, IScope, INamespace, IDeclaration, ISymbol):
 		return embeders[0] if len(embeders) > 0 else None
 
 
+
+@Meta.embed(Node, accept_tags('class_assign'))
+class AltClass(ClassDef):
+	@property
+	@override
+	@Meta.embed(Node, expandable)
+	def symbol(self) -> TypesName:
+		return self._by('assign_namelist.var').as_a(TypesName)
+
+	@property
+	@override
+	def block(self) -> Block:
+		return self.dirty_child(Block, 'block', statements=[])
+
+	@property
+	@Meta.embed(Node, expandable)
+	def actual_type(self) -> Type:
+		return self._at(1).as_a(Type)
+
+
+@Meta.embed(Node, accept_tags('template_assign'))
+class TemplateClass(ClassDef):
+	@property
+	@override
+	@Meta.embed(Node, expandable)
+	def symbol(self) -> TypesName:
+		return self._by('assign_namelist.var').as_a(TypesName)
+
+	@property
+	@override
+	def block(self) -> Block:
+		return self.dirty_child(Block, 'block', statements=[])
+
+	@property
+	def definition_type(self) -> Type:
+		if not self._exists('typed_var'):
+			return self.dirty_child(VarOfType, 'var_of_type', tokens='TypeVar', domain_name=self.domain_name)
+
+		return self._by('typed_var').as_a(Type)
+
+	@property
+	def bound(self) -> Type | Empty:
+		if not self._exists('template_assign_bound'):
+			return self.dirty_child(Empty, '__empty__', tokens='')
+
+		return self._by('template_assign_bound')._at(0).as_a(Type)
+
+	@property
+	def covariant(self) -> Boolean | Empty:
+		if not self._exists('template_assign_covariant'):
+			return self.dirty_child(Empty, '__empty__', tokens='')
+
+		return self._by('template_assign_covariant')._at(0).as_a(Boolean)
+
+
 @Meta.embed(Node, accept_tags('function_def'))
 class Function(ClassDef):
 	@property
@@ -382,6 +433,14 @@ class Function(ClassDef):
 
 	@property
 	@Meta.embed(Node, expandable)
+	def template_params(self) -> list[TemplateClass]:
+		if not self._exists('function_def_raw.template_params'):
+			return []
+
+		return [node.as_a(TemplateClass) for node in self._children('function_def_raw.template_params')]
+
+	@property
+	@Meta.embed(Node, expandable)
 	def parameters(self) -> list[Parameter]:
 		if not self._exists('function_def_raw.parameters'):
 			return []
@@ -391,7 +450,7 @@ class Function(ClassDef):
 	@property
 	@Meta.embed(Node, expandable)
 	def return_type(self) -> Type:
-		return self._children('function_def_raw')[2].as_a(Type)
+		return self._children('function_def_raw')[3].as_a(Type)
 
 	@property
 	@override
@@ -536,14 +595,23 @@ class Class(ClassDef):
 
 	@property
 	@Meta.embed(Node, expandable)
+	def template_params(self) -> list[TemplateClass]:
+		"""Returns: テンプレートリスト"""
+		if not self._exists('class_def_raw.template_params'):
+			return []
+
+		return [node.as_a(TemplateClass) for node in self._children('class_def_raw.template_params')]
+
+	@property
+	@Meta.embed(Node, expandable)
 	def inherits(self) -> list[Type]:
 		"""Note: XXX Genericは継承チェーンを考慮する必要がないため除外する"""
 		return [inherit for inherit in self.__org_inherits if inherit.type_name.tokens != Generic.__name__]
 
 	@property
-	@override
 	@Meta.embed(Node, expandable)
-	def sub_types(self) -> list[Type]:
+	def inherit_sub_types(self) -> list[Type]:
+		"""Returns: サブタイプリスト"""
 		def expand_sub_types(at_type: GenericType) -> list[Type]:
 			sub_types: list[Type] = []
 			for sub_type in at_type.sub_types:
@@ -560,6 +628,17 @@ class Class(ClassDef):
 				sub_types.extend(expand_sub_types(inherit))
 
 		return sub_types
+
+	@property
+	def depended_types(self) -> list[TemplateClass | Type]:
+		"""Returns: 依存タイプリスト(テンプレート + サブタイプ)"""
+		sub_types: dict[str, TemplateClass | Type] = {sub_type.domain_name: sub_type for sub_type in self.template_params}
+		for sub_type in self.inherit_sub_types:
+			type_name = sub_type.domain_name
+			if type_name not in sub_types:
+				sub_types[type_name] = sub_type
+
+		return list(sub_types.values())
 
 	@property
 	@override
@@ -659,57 +738,6 @@ class Enum(Class):
 	def var_value(self, var_name: str) -> Node:
 		var = [var for var in self.vars if var.symbol.domain_name == var_name][0]
 		return var.declare.as_a(MoveAssign).value
-
-
-@Meta.embed(Node, accept_tags('class_assign'))
-class AltClass(ClassDef):
-	@property
-	@override
-	@Meta.embed(Node, expandable)
-	def symbol(self) -> TypesName:
-		return self._by('assign_namelist.var').as_a(TypesName)
-
-	@property
-	@override
-	def block(self) -> Block:
-		return self.dirty_child(Block, 'block', statements=[])
-
-	@property
-	@Meta.embed(Node, expandable)
-	def actual_type(self) -> Type:
-		return self._at(1).as_a(Type)
-
-
-@Meta.embed(Node, accept_tags('template_assign'))
-class TemplateClass(ClassDef):
-	@property
-	@override
-	@Meta.embed(Node, expandable)
-	def symbol(self) -> TypesName:
-		return self._by('assign_namelist.var').as_a(TypesName)
-
-	@property
-	@override
-	def block(self) -> Block:
-		return self.dirty_child(Block, 'block', statements=[])
-
-	@property
-	def definition_type(self) -> Type:
-		return self._at(1).as_a(Type)
-
-	@property
-	def boundary(self) -> Type | Empty:
-		if not self._exists('template_assign_boundary'):
-			return self.dirty_child(Empty, '__empty__', tokens='')
-
-		return self._by('template_assign_boundary')._at(0).as_a(Type)
-
-	@property
-	def covariant(self) -> Boolean | Empty:
-		if not self._exists('template_assign_covariant'):
-			return self.dirty_child(Empty, '__empty__', tokens='')
-
-		return self._by('template_assign_covariant')._at(0).as_a(Boolean)
 
 
 class VarsCollector:

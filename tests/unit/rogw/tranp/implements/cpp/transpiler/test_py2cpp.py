@@ -1,5 +1,4 @@
 import os
-import sys
 from unittest import TestCase
 
 import rogw.tranp.syntax.node.definition as defs
@@ -24,7 +23,13 @@ from rogw.tranp.view.render import Renderer, RendererEmitter, RendererHelperProv
 from tests.test.fixture import Fixture
 from tests.unit.rogw.tranp.implements.cpp.transpiler.fixtures.fixture_py2cpp_expect import BlockExpects
 
-profiler_on = '--' in sys.argv
+
+def verbose_on() -> bool:
+	return 'PYVERBOSE' in os.environ
+
+
+def profiler_on() -> bool:
+	return 'PYPROFILE' in os.environ
 
 
 def fixture_translation_mapping(datums: IDataLoader) -> TranslationMapping:
@@ -52,10 +57,10 @@ class TestPy2Cpp(TestCase):
 		to_fullyname(RendererHelperProvider): renderer_helper_provider_cpp,
 		to_fullyname(RendererSetting): make_renderer_setting,
 		to_fullyname(TranslationMapping): fixture_translation_mapping,
-		to_fullyname(TranspilerOptions): lambda: TranspilerOptions(verbose=False, env={}),
+		to_fullyname(TranspilerOptions): lambda: TranspilerOptions(verbose=verbose_on(), env={}),
 	})
 
-	@profiler(on=profiler_on)
+	@profiler(on=profiler_on())
 	@data_provider([
 		('', 'import_stmt[1]', defs.Import, '#include <functional>'),
 
@@ -307,9 +312,11 @@ class TestPy2Cpp(TestCase):
 		('ForTemplate.TClass.__init__', '', defs.Constructor, 'public:\n/** __init__ */\nTClass(T v) {}'),
 		('ForTemplate.TClass.class_method_t', '', defs.ClassMethod, BlockExpects.class_method(access='public', name='class_method_t', return_type='T2', params=['T2 v2'], template='T2')),
 		('ForTemplate.TClass.class_method_t_and_class_t', '', defs.ClassMethod, BlockExpects.class_method(access='public', name='class_method_t_and_class_t', return_type='T2', params=['T v', 'T2 v2'], template='T2')),
-		('ForTemplate.TClass.method_t', '', defs.Method, BlockExpects.method(access='public', name='method_t', return_type='T2', params=['T2 v2'], template='T2')),
-		('ForTemplate.TClass.method_t_and_class_t', '', defs.Method, BlockExpects.method(access='public', name='method_t_and_class_t', return_type='T2', params=['T v', 'T2 v2'], template='T2')),
+		('ForTemplate.TClass.method_t2', '', defs.Method, BlockExpects.method(access='public', name='method_t2', return_type='T2', params=['T2 v2'], template='T2')),
+		('ForTemplate.TClass.method_t_t2', '', defs.Method, BlockExpects.method(access='public', name='method_t_t2', return_type='T2', params=['T v', 'T2 v2'], template='T2')),
+		('ForTemplate.TClass.method_t_t1', '', defs.Method, BlockExpects.method(access='public', name='method_t_t1', return_type='std::tuple<T, T1>', params=['T v', 'T1 v1'], template='T1')),
 		('ForTemplate.T2Class', '', defs.Class, 'public:\n/** T2Class */\ntemplate<typename T2>\nclass T2Class {\n\n};'),
+		('ForTemplate.T3Class', '', defs.Class, 'public:\n/** T3Class */\ntemplate<typename T1, typename T2>\nclass T3Class : public TClass<T1> {\n\n};'),
 
 		('ForTemplateClass.Delegate', '', defs.Class, BlockExpects.ForTemplateClass_Delegate),
 		('ForTemplateClass.bind_call', 'function_def_raw.block.assign', defs.MoveAssign, 'ForTemplateClass::Delegate<bool, int> d{};'),
@@ -317,9 +324,9 @@ class TestPy2Cpp(TestCase):
 		('ForTemplateClass.bind_call', 'function_def_raw.block.funccall[2]', defs.FuncCall, 'd.invoke(true, 1);'),
 		('ForTemplateClass.new_var', 'function_def_raw.block.assign', defs.MoveAssign, 'std::shared_ptr<Base> sp = std::make_shared<T_Base>();'),
 		('ForTemplateClass.new_var', 'function_def_raw.block.return_stmt', defs.Return, 'return new T_Base();'),
-		('ForTemplateClass.boundary_call', '', defs.Method, BlockExpects.method(access='public', name='boundary_call', return_type='T_Base', statements=['return T_Base();'], template='T_Base')),
-		('ForTemplateClass.boundary_cvar', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'T_Base* v = this->new_var<T_Base>();'),
-		('ForTemplateClass.boundary_cvar', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'std::string s = v->base_prop();'),
+		('ForTemplateClass.bound_call', '', defs.Method, BlockExpects.method(access='public', name='bound_call', return_type='T_Base', statements=['return T_Base();'], template='T_Base')),
+		('ForTemplateClass.bound_cvar', 'function_def_raw.block.assign[0]', defs.MoveAssign, 'T_Base* v = this->new_var<T_Base>();'),
+		('ForTemplateClass.bound_cvar', 'function_def_raw.block.assign[1]', defs.MoveAssign, 'std::string s = v->base_prop();'),
 		('ForTemplateClass.B.__init__', 'function_def_raw.block.funccall', defs.FuncCall, 'ForTemplateClass::Action<T_Scalar>("a", "b", [](T_Scalar e) -> void { printf(e); });'),
 
 		('ForTemplate.unpack_call', 'function_def_raw.block.assign', defs.MoveAssign, 'ForTemplate a = this->unpack(ForTemplate());'),

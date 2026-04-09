@@ -73,12 +73,9 @@ def func(b: bool) -> None:
 
 @__actual__('Actual')
 class Class2: ...
-
-
 class GenBase(Generic[T]): ...
-
-
 class GenSub(GenBase[T]): ...
+class GenCompo[T](GenBase[int]): ...
 
 
 class ParamOps:

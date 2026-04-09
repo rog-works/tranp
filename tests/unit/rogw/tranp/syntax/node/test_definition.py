@@ -18,7 +18,8 @@ def _ast(before: str) -> str:
 	_Class2 = f'file_input.class_def[{_class_begin + 4}]'
 	_GenBase = f'file_input.class_def[{_class_begin + 5}]'
 	_GenSub = f'file_input.class_def[{_class_begin + 6}]'
-	_ParamOps = f'file_input.class_def[{_class_begin + 7}]'
+	_GenCompo = f'file_input.class_def[{_class_begin + 7}]'
+	_ParamOps = f'file_input.class_def[{_class_begin + 8}]'
 
 	_map = {
 		'Values': f'{_Values}',
@@ -38,6 +39,7 @@ def _ast(before: str) -> str:
 		'Class2': f'{_Class2}',
 		'GenBase': f'{_GenBase}',
 		'GenSub': f'{_GenSub}',
+		'GenCompo': f'{_GenCompo}',
 		'ParamOps.star_params': f'{_ParamOps}.class_def_raw.block.function_def[0]',
 		'ParamOps.kw_params': f'{_ParamOps}.class_def_raw.block.function_def[1]',
 	}
@@ -63,6 +65,7 @@ class TestDefinition(TestCase):
 				defs.Class,
 				defs.Class,
 				defs.Function,
+				defs.Class,
 				defs.Class,
 				defs.Class,
 				defs.Class,
@@ -513,7 +516,7 @@ class TestDefinition(TestCase):
 			'symbol': 'Base',
 			'decorators': [],
 			'inherits': [],
-			'sub_types': [],
+			'depended_types': [],
 			'constructor_exists': True,
 			'class_methods': [],
 			'methods': ['public_method'],
@@ -525,7 +528,7 @@ class TestDefinition(TestCase):
 			'symbol': 'Class',
 			'decorators': [],
 			'inherits': ['Base'],
-			'sub_types': [],
+			'depended_types': [],
 			'constructor_exists': True,
 			'class_methods': ['class_method'],
 			'methods': ['property_method', 'public_method', '_protected_method'],
@@ -537,7 +540,7 @@ class TestDefinition(TestCase):
 			'symbol': 'Actual',
 			'decorators': ['__actual__'],
 			'inherits': [],
-			'sub_types': [],
+			'depended_types': [],
 			'constructor_exists': False,
 			'class_methods': [],
 			'methods': [],
@@ -549,7 +552,7 @@ class TestDefinition(TestCase):
 			'symbol': 'GenBase',
 			'decorators': [],
 			'inherits': [],
-			'sub_types': ['T'],
+			'depended_types': ['T'],
 			'constructor_exists': False,
 			'class_methods': [],
 			'methods': [],
@@ -561,7 +564,19 @@ class TestDefinition(TestCase):
 			'symbol': 'GenSub',
 			'decorators': [],
 			'inherits': ['GenBase'],
-			'sub_types': ['T'],
+			'depended_types': ['T'],
+			'constructor_exists': False,
+			'class_methods': [],
+			'methods': [],
+			'class_vars': [],
+			'this_vars': [],
+			'actual_symbol': None,
+		}),
+		(_ast('GenCompo'), {
+			'symbol': 'GenCompo',
+			'decorators': [],
+			'inherits': ['GenBase'],
+			'depended_types': ['T', 'int'],
 			'constructor_exists': False,
 			'class_methods': [],
 			'methods': [],
@@ -575,7 +590,7 @@ class TestDefinition(TestCase):
 		self.assertEqual(node.symbol.tokens, expected['symbol'])
 		self.assertEqual([decorator.path.tokens for decorator in node.decorators], expected['decorators'])
 		self.assertEqual([inherit.type_name.tokens for inherit in node.inherits], expected['inherits'])
-		self.assertEqual([in_type.type_name.tokens for in_type in node.sub_types], expected['sub_types'])
+		self.assertEqual([in_type.tokens for in_type in node.depended_types], expected['depended_types'])
 		self.assertEqual(node.constructor_exists, expected['constructor_exists'])
 		self.assertEqual([method.symbol.tokens for method in node.methods], expected['methods'])
 		self.assertEqual([var.tokens for var in node.class_vars], expected['class_vars'])
@@ -583,12 +598,12 @@ class TestDefinition(TestCase):
 		self.assertEqual(node.actual_symbol, expected['actual_symbol'])
 
 	@data_provider([
-		('class A(Generic[T]): ...', 'file_input.class_def', {'sub_types': [defs.VarOfType]}),
-		('class A(Generic[T1, T2]): ...', 'file_input.class_def', {'sub_types': [defs.VarOfType, defs.VarOfType]}),
+		('class A(Generic[T]): ...', 'file_input.class_def', {'depended_types': [defs.VarOfType]}),
+		('class A(Generic[T1, T2]): ...', 'file_input.class_def', {'depended_types': [defs.VarOfType, defs.VarOfType]}),
 	])
 	def test_class_sub_types(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.Class)
-		self.assertEqual([type(in_type) for in_type in node.sub_types], expected['sub_types'])
+		self.assertEqual([type(in_type) for in_type in node.depended_types], expected['depended_types'])
 
 	@data_provider([
 		(_ast('Values'), {
@@ -629,19 +644,25 @@ class TestDefinition(TestCase):
 		self.assertEqual(type(node.actual_type), expected['actual_type'])
 
 	@data_provider([
-		('A = TypeVar("A")', 'file_input.template_assign', {'symbol': 'A', 'definition_type': 'TypeVar', 'boundary': defs.Empty, 'covariant': defs.Empty}),
-		('A = TypeVar("A", bound=X)', 'file_input.template_assign', {'symbol': 'A', 'definition_type': 'TypeVar', 'boundary': defs.VarOfType, 'covariant': defs.Empty}),
-		('A = TypeVar("A", bound=X.Y)', 'file_input.template_assign', {'symbol': 'A', 'definition_type': 'TypeVar', 'boundary': defs.RelayOfType, 'covariant': defs.Empty}),
-		('A = TypeVar("A", covariant=True)', 'file_input.template_assign', {'symbol': 'A', 'definition_type': 'TypeVar', 'boundary': defs.Empty, 'covariant': defs.Truthy}),
-		('A = TypeVar("A", bound=X, covariant=False)', 'file_input.template_assign', {'symbol': 'A', 'definition_type': 'TypeVar', 'boundary': defs.VarOfType, 'covariant': defs.Falsy}),
-		('A = TypeVarTuple("A")', 'file_input.template_assign', {'symbol': 'A', 'definition_type': 'TypeVarTuple', 'boundary': defs.Empty, 'covariant': defs.Empty}),
-		('A = ParamSpec("A")', 'file_input.template_assign', {'symbol': 'A', 'definition_type': 'ParamSpec', 'boundary': defs.Empty, 'covariant': defs.Empty}),
+		('T = TypeVar("T")', 'file_input.template_assign', {'symbol': 'T', 'definition_type': 'TypeVar', 'bound': defs.Empty, 'covariant': defs.Empty}),
+		('T = TypeVar("T", bound=X)', 'file_input.template_assign', {'symbol': 'T', 'definition_type': 'TypeVar', 'bound': defs.VarOfType, 'covariant': defs.Empty}),
+		('T = TypeVar("T", bound=X.Y)', 'file_input.template_assign', {'symbol': 'T', 'definition_type': 'TypeVar', 'bound': defs.RelayOfType, 'covariant': defs.Empty}),
+		('T = TypeVar("T", covariant=True)', 'file_input.template_assign', {'symbol': 'T', 'definition_type': 'TypeVar', 'bound': defs.Empty, 'covariant': defs.Truthy}),
+		('T = TypeVar("T", bound=X, covariant=False)', 'file_input.template_assign', {'symbol': 'T', 'definition_type': 'TypeVar', 'bound': defs.VarOfType, 'covariant': defs.Falsy}),
+		('T = TypeVar("T", int, float)', 'file_input.template_assign', {'symbol': 'T', 'definition_type': 'TypeVar', 'bound': defs.Empty, 'covariant': defs.Empty}),
+		('T = TypeVarTuple("T")', 'file_input.template_assign', {'symbol': 'T', 'definition_type': 'TypeVarTuple', 'bound': defs.Empty, 'covariant': defs.Empty}),
+		('T = ParamSpec("T")', 'file_input.template_assign', {'symbol': 'T', 'definition_type': 'ParamSpec', 'bound': defs.Empty, 'covariant': defs.Empty}),
+		('class A[T]: ...', 'file_input.class_def.class_def_raw.template_params.template_assign', {'symbol': 'T', 'definition_type': 'TypeVar', 'bound': defs.Empty, 'covariant': defs.Empty}),
+		('class A[T1, T2: int]: ...', 'file_input.class_def.class_def_raw.template_params.template_assign[1]', {'symbol': 'T2', 'definition_type': 'TypeVar', 'bound': defs.VarOfType, 'covariant': defs.Empty}),
+		('def f[T: int]() -> None: ...', 'file_input.function_def.function_def_raw.template_params.template_assign', {'symbol': 'T', 'definition_type': 'TypeVar', 'bound': defs.VarOfType, 'covariant': defs.Empty}),
+		('def f[T: (int, float)]() -> None: ...', 'file_input.function_def.function_def_raw.template_params.template_assign', {'symbol': 'T', 'definition_type': 'TypeVar', 'bound': defs.Empty, 'covariant': defs.Empty}),
+		('def f[T1, T2: int]() -> None: ...', 'file_input.function_def.function_def_raw.template_params.template_assign[1]', {'symbol': 'T2', 'definition_type': 'TypeVar', 'bound': defs.VarOfType, 'covariant': defs.Empty}),
 	])
 	def test_template_class(self, source: str, full_path: str, expected: dict[str, Any]) -> None:
 		node = self.fixture.custom_nodes_by(source, full_path).as_a(defs.TemplateClass)
 		self.assertEqual(node.symbol.tokens, expected['symbol'])
 		self.assertEqual(node.definition_type.type_name.tokens, expected['definition_type'])
-		self.assertTrue(node.boundary.is_a(expected['boundary']))
+		self.assertTrue(node.bound.is_a(expected['bound']))
 		self.assertTrue(node.covariant.is_a(expected['covariant']))
 
 	# Statement simple

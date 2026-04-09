@@ -53,17 +53,25 @@ decorator: "@" dotted_name ["(" [arguments] ")"] _NEWLINE
 
 // @lark classdef: "class" name ["(" [arguments] ")"] ":" block
 class_def: [decorators] class_def_raw
-class_def_raw: "class" name ["(" [inherit_arguments] ")"] ":" block
+class_def_raw: "class" name ["[" template_params "]"] ["(" [inherit_arguments] ")"] ":" block
 
 // @custom
 inherit_arguments: (typed_argvalue | metaclass_argvalue) ("," (typed_argvalue | metaclass_argvalue))*
 metaclass_argvalue: "metaclass" "=" typed_expression
 
+// @python type_params: type_param
+// @python type_param: name [":" expression] ["=" expression]
+template_params: template_param ("," template_param)*
+template_param: template_param_name [":" template_param_expression] -> template_assign
+template_param_name: var -> assign_namelist
+template_param_expression: typed_atom -> template_assign_bound
+	| "(" typed_slices ")" -> template_assign_constraint
+
 // # Function definitions
 
 // @lark funcdef: "def" name "(" [parameters] ")" ["->" test] ":" suite
 function_def: [decorators] function_def_raw
-function_def_raw: "def" name "(" [parameters] ")" "->" typed_expression ":" block
+function_def_raw: "def" name ["[" template_params "]"] "(" [parameters] ")" "->" typed_expression ":" block
 
 // @lark lambdadef: "lambda" [lambdaparams] ":" test
 // @lark lambdadef_nocond: "lambda" [lambdaparams] ":" test_nocond
@@ -185,18 +193,29 @@ with_item: expression ["as" name]
 assign: assign_namelist ("=" testlist)+
 anno_assign: assign_namelist ":" typed_expression ["=" expression]
 aug_assign: assign_namelist aug_assign_op expression
+
+!aug_assign_op: "+=" | "-=" | "*=" | "@=" | "/=" | "%=" | "&=" | "|=" | "^=" | "<<=" | ">>=" | "**=" | "//="
+
 // @custom
 class_var_assign: assign_namelist ":" "ClassVar" "[" typed_expression "]" "=" expression
+
+// @custom
 class_assign: assign_namelist (class_assign_type_alias | class_assign_typed_dict)
 ?class_assign_type_alias: ":" "TypeAlias" "=" typed_expression
 ?class_assign_typed_dict: "=" "TypedDict" "(" typed_dict ")"
-template_assign: assign_namelist "=" template_assign_class "(" string ["," template_assign_argvalue ("," template_assign_argvalue)*] ")"
-?template_assign_argvalue: typed_expression -> template_assign_constraint
-	| ("bound" "=" typed_expression) -> template_assign_boundary
-	| ("covariant" "=" atom) -> template_assign_covariant
-!template_assign_class: "TypeVar" -> typed_var | "TypeVarTuple" -> typed_var | "ParamSpec" -> typed_var
 
-!aug_assign_op: "+=" | "-=" | "*=" | "@=" | "/=" | "%=" | "&=" | "|=" | "^=" | "<<=" | ">>=" | "**=" | "//="
+// @custom
+template_assign: assign_namelist "=" template_assign_class "(" string ["," template_assign_argvalue ("," template_assign_argvalue)*] ")"
+!template_assign_class: ("TypeVar" | "TypeVarTuple" | "ParamSpec") -> typed_var
+?template_assign_argvalue: typed_expression -> template_assign_constraint
+	| ("bound" "=" typed_expression) -> template_assign_bound
+	| ("covariant" "=" atom) -> template_assign_covariant
+
+// @lark ?testlist_star_expr: test_or_star_expr | test_or_star_expr ("," test_or_star_expr)+ ","?  -> tuple | test_or_star_expr ","  -> tuple
+// @note FIXME "*"は末尾にだけ付与され得るので不正確
+assign_namelist: expression ("," ["*"]? expression)* [","]
+// @lark ?exprlist: (expr|star_expr) | (expr|star_expr) (("," (expr|star_expr))+ [","] | ",")
+for_namelist: name ("," name)* [","]
 
 // @lark del_stmt: "del" exprlist
 // @lark yield_stmt: "yield" [testlist] | "yield" "from" test -> yield_from
@@ -243,9 +262,9 @@ comment_stmt: COMMENT
 
 // ## Bitwise operators
 
-// @lark: ?or_expr: xor_expr ("|" xor_expr)*
-// @lark: ?xor_expr: and_expr ("^" and_expr)*
-// @lark: ?and_expr: shift_expr ("&" shift_expr)*
+// @lark ?or_expr: xor_expr ("|" xor_expr)*
+// @lark ?xor_expr: and_expr ("^" and_expr)*
+// @lark ?and_expr: shift_expr ("&" shift_expr)*
 ?or_expr: xor_expr (_or_bit_op xor_expr)*
 ?xor_expr: and_expr (_xor_bit_op and_expr)*
 ?and_expr: shift_expr (_and_bit_op shift_expr)*
@@ -290,7 +309,7 @@ slices: slice ("," slice)* [","]
 // @lark "(" comprehension{test_or_star_expr} ")" -> tuple_comprehension
 // @lark string_concat
 // @lark "(" test ")"
-?atom: name -> var
+?atom: var
 	| "True" -> const_true
 	| "False" -> const_false
 	| "None" -> const_none
@@ -304,13 +323,8 @@ slices: slice ("," slice)* [","]
 	| group_expr
 	| "..." -> elipsis
 
+var: name
 group_expr: "(" expression ")"
-
-// @lark ?testlist_star_expr: test_or_star_expr | test_or_star_expr ("," test_or_star_expr)+ ","?  -> tuple | test_or_star_expr ","  -> tuple
-// @note FIXME "*"は末尾にだけ付与され得るので不正確
-assign_namelist: expression ("," ["*"]? expression)* [","]
-// @lark ?exprlist: (expr|star_expr) | (expr|star_expr) (("," (expr|star_expr))+ [","] | ",")
-for_namelist: name ("," name)* [","]
 
 // @lark _tuple_inner: test_or_star_expr (("," test_or_star_expr)+ [","] | ",")
 _tuple_inner: expression (("," expression)+ [","] | ",")

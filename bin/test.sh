@@ -18,10 +18,13 @@ if [ "$1" == "-l" ]; then
 	target=$(echo "$target" | sed -e 's/\.py$//g')
 fi
 
-profiler=
-if [ "$1" == "-p" ]; then
-	profiler=--
-fi
+for arg in "$@"; do
+	if [ "${arg}" == "-v" ]; then
+		export PYVERBOSE=1
+	elif [ "${arg}" == "-p" ]; then
+		export PYPROFILE=1
+	fi
+done
 
 source ${cwd}/.env.sh
 

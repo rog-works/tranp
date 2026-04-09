@@ -472,8 +472,12 @@ class ForTemplateClass:
 		d.bind(a, ForTemplateClass.A.func)
 		d.invoke(True, 1)
 
-	def boundary_call(self, t: type[T_Base]) -> T_Base:
+	def bound_call(self, t: type[T_Base]) -> T_Base:
 		v = t()
+		return v
+
+	def inline[T](self, v: T) -> T:
+		n = self.inline(0)
 		return v
 
 

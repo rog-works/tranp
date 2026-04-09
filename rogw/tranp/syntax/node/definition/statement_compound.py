@@ -328,10 +328,6 @@ class ClassDef(Node, IDomain, IScope, INamespace, IDeclaration, ISymbol):
 		raise NotImplementedError()
 
 	@property
-	def sub_types(self) -> list[Type]:
-		return []
-
-	@property
 	def actual_symbol(self) -> str | None:
 		embedder = self._dig_embedder(__actual__.__name__)
 		return embedder.arguments[0].value.as_a(String).as_string if embedder else None
@@ -612,7 +608,6 @@ class Class(ClassDef):
 		return [inherit for inherit in self.__org_inherits if inherit.type_name.tokens != Generic.__name__]
 
 	@property
-	@override
 	@Meta.embed(Node, expandable)
 	def sub_types(self) -> list[Type]:
 		def expand_sub_types(at_type: GenericType) -> list[Type]:

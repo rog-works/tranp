@@ -178,7 +178,7 @@ class Py2Cpp(ITranspiler):
 			return actual_attrs
 
 		# TypeVarTuple XXX 可変長のため許容 ※主な対象: Delegate
-		decl_attrs = [self.reflections.type_of(sub_type) for sub_type in raw.types.sub_types]
+		decl_attrs = [self.reflections.type_of(sub_type) for sub_type in raw.types.as_a(defs.Class).sub_types]
 		has_type_var_tuple = len([True for decl_attr in decl_attrs if isinstance(decl_attr.types, defs.TemplateClass) and decl_attr.types.definition_type.type_name.tokens == TypeVarTuple.__name__]) > 0
 		if has_type_var_tuple:
 			return actual_attrs

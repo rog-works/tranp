@@ -601,7 +601,8 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(node.classification, vars={'symbol': symbol, 'actual_type': actual_type})
 
 	def on_template_class(self, node: defs.TemplateClass, symbol: str) -> str:
-		return f'// template<typename {symbol}>'
+		is_statement = node.parent.is_a(defs.Block, defs.Entrypoint)
+		return self.view.render(node.classification, vars={'symbol': symbol, 'is_statement': is_statement})
 
 	# Function/Class Elements
 

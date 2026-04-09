@@ -62,7 +62,8 @@ metaclass_argvalue: "metaclass" "=" typed_expression
 // @python type_params: type_param
 // @python type_param: name [":" expression] ["=" expression]
 template_params: template_param ("," template_param)*
-template_param: assign_namelist [":" template_param_expression] -> template_assign
+template_param: template_param_name [":" template_param_expression] -> template_assign
+template_param_name: var -> assign_namelist
 template_param_expression: typed_atom -> template_assign_bound
 	| "(" typed_slices ")" -> template_assign_constraint
 

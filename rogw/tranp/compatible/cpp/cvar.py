@@ -37,7 +37,7 @@ class CVar(Generic[T_co], metaclass=ABCMeta):
 		Returns:
 			アドレス値
 		"""
-		return self.__hash__()
+		return hash(self)
 
 	def to_addr_hex(self) -> str:
 		"""アドレス値を取得
@@ -45,7 +45,7 @@ class CVar(Generic[T_co], metaclass=ABCMeta):
 		Returns:
 			アドレス値(16進数 ※先頭の'0x'は除外)
 		"""
-		return hex(self.__hash__())[2:].upper()
+		return hex(hash(self))[2:].upper()
 
 	def __eq__(self, other: Self | None) -> bool:
 		"""比較演算子(==)のオーバーロード
@@ -55,7 +55,7 @@ class CVar(Generic[T_co], metaclass=ABCMeta):
 		Returns:
 			True = 一致
 		"""
-		return other is not None and self.__hash__() == other.__hash__()
+		return other is not None and hash(self) == hash(other)
 
 	def __ne__(self, other: Self | None) -> bool:
 		"""比較演算子(!=)のオーバーロード

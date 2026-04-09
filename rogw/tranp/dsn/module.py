@@ -161,4 +161,4 @@ class ModuleDSN:
 	@override
 	def __hash__(self) -> int:
 		"""Returns: オブジェクトのハッシュ値"""
-		return hash(self.__repr__())
+		return hash(self.dsn)

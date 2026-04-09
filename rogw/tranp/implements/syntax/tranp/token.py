@@ -171,7 +171,7 @@ class Token:
 
 	def __hash__(self) -> int:
 		"""Returns: ハッシュ値"""
-		return hash(self.__repr__())
+		return hash(self.simplify())
 
 	def __eq__(self, other: 'Token | tuple[TokenTypes, str]') -> bool:
 		"""Args: other: 比較対象 Returns: True = 一致"""

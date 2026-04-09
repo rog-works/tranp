@@ -1,13 +1,13 @@
 from collections.abc import Callable, Iterator
 from typing import Any, Literal, Self, cast, override
 
+import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.errors import Errors
 from rogw.tranp.lang.annotation import implements
 from rogw.tranp.lang.convertion import safe_cast
 from rogw.tranp.lang.trait import Traits
+from rogw.tranp.semantics.reflection.base import IReflection, Mod, Mods, T_Ref
 from rogw.tranp.semantics.reflection.helper.naming import ClassShorthandNaming
-from rogw.tranp.semantics.reflection.base import Mods, IReflection, Mod, T_Ref
-import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 
 
@@ -137,16 +137,6 @@ class ReflectionBase(IReflection):
 
 	@property
 	@implements
-	def _dump(self) -> str:
-		"""Returns: 比較用の文字列"""
-		data = {
-			'types': self.types.fullyname,
-			'attrs': [attr._dump for attr in self.attrs],
-		}
-		return str(data)
-
-	@property
-	@implements
 	def pretty(self) -> str:
 		"""Returns: オブジェクトの短縮表記(装飾) Note: デバッグ用途のため判定に用いるのはNG"""
 		return ClassShorthandNaming.domain_name_for_debug(self)
@@ -231,7 +221,7 @@ class ReflectionBase(IReflection):
 		if not isinstance(other, IReflection):
 			raise Errors.Never(self.node, self, other)
 
-		return other._dump == self._dump
+		return hash(self) == hash(other)
 
 	def __repr__(self) -> str:
 		"""Returns: オブジェクトのシリアライズ表現"""
@@ -245,7 +235,7 @@ class ReflectionBase(IReflection):
 	@override
 	def __hash__(self) -> int:
 		"""Returns: オブジェクトのハッシュ値"""
-		return hash(self._dump)
+		return hash((self.types, tuple(self.attrs)))
 	
 	def __getattr__(self, name: str) -> Callable[..., Any]:
 		"""トレイトからメソッドを取得

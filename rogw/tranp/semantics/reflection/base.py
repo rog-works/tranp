@@ -2,9 +2,9 @@ from abc import ABCMeta, abstractmethod
 from collections.abc import Iterator
 from typing import Literal, Protocol, Self, TypeVar
 
+import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.errors import Errors
 from rogw.tranp.lang.trait import Traits
-import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.syntax.node.node import Node
 
 T_Ref = TypeVar('T_Ref', bound='IReflection')
@@ -104,12 +104,6 @@ class IReflection(metaclass=ABCMeta):
 		Returns:
 			リフレクション
 		"""
-		...
-
-	@property
-	@abstractmethod
-	def _dump(self) -> str:
-		"""Returns: 比較用の文字列"""
 		...
 
 	@property

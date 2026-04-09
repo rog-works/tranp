@@ -1,8 +1,8 @@
 from typing import Any, TypeVar, cast, override
 
+from rogw.tranp.cache.memo2 import Memoize
 from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.errors import Errors
-from rogw.tranp.cache.memo2 import Memoize
 from rogw.tranp.lang.annotation import deprecated, injectable
 from rogw.tranp.lang.sequence import flatten
 from rogw.tranp.lang.string import snakelize
@@ -10,8 +10,8 @@ from rogw.tranp.module.types import ModulePath
 from rogw.tranp.syntax.ast.entry import SourceMap
 from rogw.tranp.syntax.ast.path import EntryPath
 from rogw.tranp.syntax.ast.query import Query
-from rogw.tranp.syntax.node.embed import EmbedKeys, Meta
 from rogw.tranp.syntax.node.behavior import IDomain, INamespace, IScope, ITerminal
+from rogw.tranp.syntax.node.embed import EmbedKeys, Meta
 
 T_Node = TypeVar('T_Node', bound='Node')
 
@@ -59,7 +59,7 @@ class Node:
 	@override
 	def __hash__(self) -> int:
 		"""Returns: オブジェクトのハッシュ値"""
-		return hash(self.__repr__())
+		return hash((self.module_path, self.full_path))
 
 	@override
 	def __eq__(self, other: Any) -> bool:
@@ -78,7 +78,7 @@ class Node:
 		if not isinstance(other, Node):
 			raise Errors.Never(self, other, 'Not allowed comparison')
 
-		return self.__repr__() == other.__repr__()
+		return (self.module_path, self.full_path) == (other.module_path, other.full_path)
 
 	@property
 	def module_path(self) -> str:

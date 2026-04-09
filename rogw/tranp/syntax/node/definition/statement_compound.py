@@ -632,7 +632,13 @@ class Class(ClassDef):
 	@property
 	def depended_types(self) -> list[TemplateClass | Type]:
 		"""Returns: 依存タイプリスト(テンプレート + サブタイプ)"""
-		return [*self.template_params, *self.inherit_sub_types]
+		sub_types: dict[str, TemplateClass | Type] = {sub_type.domain_name: sub_type for sub_type in self.template_params}
+		for sub_type in self.inherit_sub_types:
+			type_name = sub_type.domain_name
+			if type_name not in sub_types:
+				sub_types[type_name] = sub_type
+
+		return list(sub_types.values())
 
 	@property
 	@override

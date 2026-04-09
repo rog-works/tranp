@@ -578,10 +578,9 @@ class Py2Cpp(ITranspiler):
 
 		# XXX サブタイプからテンプレートタイプを抽出
 		template_types = template_params.copy()
-		for sub_type in node.inherit_sub_types:
-			sub_type_raw = self.reflections.type_of(sub_type)
-			if sub_type_raw.types.is_a(defs.TemplateClass):
-				template_types.append(self.transpile(sub_type))
+		for index, sub_type in enumerate(node.inherit_sub_types):
+			if inherit_sub_types[index] not in template_types and self.reflections.type_of(sub_type).types.is_a(defs.TemplateClass):
+				template_types.append(inherit_sub_types[index])
 
 		accessor = self.to_accessor(node.accessor) if node.is_internal else ''
 

@@ -310,6 +310,7 @@ class TestPy2Cpp(TestCase):
 		('ForTemplate.TClass.method_t', '', defs.Method, BlockExpects.method(access='public', name='method_t', return_type='T2', params=['T2 v2'], template='T2')),
 		('ForTemplate.TClass.method_t_and_class_t', '', defs.Method, BlockExpects.method(access='public', name='method_t_and_class_t', return_type='T2', params=['T v', 'T2 v2'], template='T2')),
 		('ForTemplate.T2Class', '', defs.Class, 'public:\n/** T2Class */\ntemplate<typename T2>\nclass T2Class {\n\n};'),
+		('ForTemplate.T3Class', '', defs.Class, 'public:\n/** T3Class */\ntemplate<typename T>\nclass T3Class : public TClass<int> {\n\n};'),
 
 		('ForTemplateClass.Delegate', '', defs.Class, BlockExpects.ForTemplateClass_Delegate),
 		('ForTemplateClass.bind_call', 'function_def_raw.block.assign', defs.MoveAssign, 'ForTemplateClass::Delegate<bool, int> d{};'),

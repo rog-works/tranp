@@ -59,18 +59,18 @@ class_def_raw: "class" name ["[" template_params "]"] ["(" [inherit_arguments] "
 inherit_arguments: (typed_argvalue | metaclass_argvalue) ("," (typed_argvalue | metaclass_argvalue))*
 metaclass_argvalue: "metaclass" "=" typed_expression
 
-// # Function definitions
-
-// @lark funcdef: "def" name "(" [parameters] ")" ["->" test] ":" suite
-function_def: [decorators] function_def_raw
-function_def_raw: "def" name ["[" template_params "]"] "(" [parameters] ")" "->" typed_expression ":" block
-
 // @python type_params: type_param
 // @python type_param: name [":" expression] ["=" expression]
 template_params: template_param ("," template_param)*
 template_param: assign_namelist [":" template_param_expression] -> template_assign
 template_param_expression: typed_atom -> template_assign_bound
 	| "(" typed_slices ")" -> template_assign_constraint
+
+// # Function definitions
+
+// @lark funcdef: "def" name "(" [parameters] ")" ["->" test] ":" suite
+function_def: [decorators] function_def_raw
+function_def_raw: "def" name ["[" template_params "]"] "(" [parameters] ")" "->" typed_expression ":" block
 
 // @lark lambdadef: "lambda" [lambdaparams] ":" test
 // @lark lambdadef_nocond: "lambda" [lambdaparams] ":" test_nocond
@@ -197,6 +197,8 @@ aug_assign: assign_namelist aug_assign_op expression
 
 // @custom
 class_var_assign: assign_namelist ":" "ClassVar" "[" typed_expression "]" "=" expression
+
+// @custom
 class_assign: assign_namelist (class_assign_type_alias | class_assign_typed_dict)
 ?class_assign_type_alias: ":" "TypeAlias" "=" typed_expression
 ?class_assign_typed_dict: "=" "TypedDict" "(" typed_dict ")"
@@ -209,6 +211,12 @@ template_assign: assign_namelist "=" template_assign_class "(" string ["," templ
 ?template_assign_argvalue: typed_expression -> template_assign_constraint
 	| ("bound" "=" typed_expression) -> template_assign_bound
 	| ("covariant" "=" atom) -> template_assign_covariant
+
+// @lark ?testlist_star_expr: test_or_star_expr | test_or_star_expr ("," test_or_star_expr)+ ","?  -> tuple | test_or_star_expr ","  -> tuple
+// @note FIXME "*"は末尾にだけ付与され得るので不正確
+assign_namelist: expression ("," ["*"]? expression)* [","]
+// @lark ?exprlist: (expr|star_expr) | (expr|star_expr) (("," (expr|star_expr))+ [","] | ",")
+for_namelist: name ("," name)* [","]
 
 // @lark del_stmt: "del" exprlist
 // @lark yield_stmt: "yield" [testlist] | "yield" "from" test -> yield_from
@@ -317,12 +325,6 @@ slices: slice ("," slice)* [","]
 	| "..." -> elipsis
 
 group_expr: "(" expression ")"
-
-// @lark ?testlist_star_expr: test_or_star_expr | test_or_star_expr ("," test_or_star_expr)+ ","?  -> tuple | test_or_star_expr ","  -> tuple
-// @note FIXME "*"は末尾にだけ付与され得るので不正確
-assign_namelist: expression ("," ["*"]? expression)* [","]
-// @lark ?exprlist: (expr|star_expr) | (expr|star_expr) (("," (expr|star_expr))+ [","] | ",")
-for_namelist: name ("," name)* [","]
 
 // @lark _tuple_inner: test_or_star_expr (("," test_or_star_expr)+ [","] | ",")
 _tuple_inner: expression (("," expression)+ [","] | ",")

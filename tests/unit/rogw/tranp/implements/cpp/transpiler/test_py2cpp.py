@@ -312,8 +312,9 @@ class TestPy2Cpp(TestCase):
 		('ForTemplate.TClass.__init__', '', defs.Constructor, 'public:\n/** __init__ */\nTClass(T v) {}'),
 		('ForTemplate.TClass.class_method_t', '', defs.ClassMethod, BlockExpects.class_method(access='public', name='class_method_t', return_type='T2', params=['T2 v2'], template='T2')),
 		('ForTemplate.TClass.class_method_t_and_class_t', '', defs.ClassMethod, BlockExpects.class_method(access='public', name='class_method_t_and_class_t', return_type='T2', params=['T v', 'T2 v2'], template='T2')),
-		('ForTemplate.TClass.method_t', '', defs.Method, BlockExpects.method(access='public', name='method_t', return_type='T2', params=['T2 v2'], template='T2')),
-		('ForTemplate.TClass.method_t_and_class_t', '', defs.Method, BlockExpects.method(access='public', name='method_t_and_class_t', return_type='T2', params=['T v', 'T2 v2'], template='T2')),
+		('ForTemplate.TClass.method_t2', '', defs.Method, BlockExpects.method(access='public', name='method_t2', return_type='T2', params=['T2 v2'], template='T2')),
+		('ForTemplate.TClass.method_t_t2', '', defs.Method, BlockExpects.method(access='public', name='method_t_t2', return_type='T2', params=['T v', 'T2 v2'], template='T2')),
+		('ForTemplate.TClass.method_t_t1', '', defs.Method, BlockExpects.method(access='public', name='method_t_t1', return_type='std::tuple<T, T1>', params=['T v', 'T1 v1'], template='T1')),
 		('ForTemplate.T2Class', '', defs.Class, 'public:\n/** T2Class */\ntemplate<typename T2>\nclass T2Class {\n\n};'),
 		('ForTemplate.T3Class', '', defs.Class, 'public:\n/** T3Class */\ntemplate<typename T1, typename T2>\nclass T3Class : public TClass<int> {\n\n};'),
 

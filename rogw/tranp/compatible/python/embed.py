@@ -1,10 +1,8 @@
 from collections.abc import Callable
 from types import FunctionType, MethodType
-from typing import Any, TypeVar
+from typing import Any
 
 from rogw.tranp.compatible.libralies.classes import __actual__
-
-T = TypeVar('T')
 
 
 class Embed:
@@ -26,7 +24,7 @@ class Embed:
 			self.holder = holder
 			self.key = key
 
-		def decl(self, factory: Callable[[], T]) -> T:
+		def decl[T](self, factory: Callable[[], T]) -> T:
 			"""スタティック変数の定義・取得
 
 			Args:
@@ -75,7 +73,7 @@ class Embed:
 		...
 
 	@classmethod
-	def python(cls, wrapped: T) -> T:
+	def python[T](cls, wrapped: T) -> T:
 		"""Python専用としてマークアップ。Python以外の言語へのトランスパイルは対象外となる
 
 		Args:
@@ -100,13 +98,13 @@ class Embed:
 			* シンボルテーブルに登録する名称を変更する場合は__actual__を使用 @see rogw.tranp.compatible.libralies.classes.__actual__
 			```
 		"""
-		def decorator(wrapped: T) -> T:
+		def decorator[T](wrapped: T) -> T:
 			return wrapped
 
 		return decorator
 
 	@classmethod
-	def allow_override(cls, wrapped: T) -> T:
+	def allow_override[T](cls, wrapped: T) -> T:
 		"""関数を仮想関数としてマークアップ
 
 		Args:
@@ -122,7 +120,7 @@ class Embed:
 		return wrapped
 
 	@classmethod
-	def pure(cls, wrapped: T) -> T:
+	def pure[T](cls, wrapped: T) -> T:
 		"""関数を副作用のない関数としてマークアップ
 
 		Args:
@@ -135,7 +133,7 @@ class Embed:
 		return wrapped
 
 	@classmethod
-	def private(cls, wrapped: T) -> T:
+	def private[T](cls, wrapped: T) -> T:
 		"""関数をprivate関数としてマークアップ
 
 		Args:
@@ -148,7 +146,7 @@ class Embed:
 		return wrapped
 
 	@classmethod
-	def protected(cls, wrapped: T) -> T:
+	def protected[T](cls, wrapped: T) -> T:
 		"""関数をprotected関数としてマークアップ
 
 		Args:
@@ -161,7 +159,7 @@ class Embed:
 		return wrapped
 
 	@classmethod
-	def public(cls, wrapped: T) -> T:
+	def public[T](cls, wrapped: T) -> T:
 		"""関数をpublic関数としてマークアップ
 
 		Args:
@@ -174,7 +172,7 @@ class Embed:
 		return wrapped
 
 	@classmethod
-	def struct(cls, wrapped: T) -> T:
+	def struct[T](cls, wrapped: T) -> T:
 		"""クラスを構造体としてマークアップ
 
 		Args:
@@ -185,7 +183,7 @@ class Embed:
 		return wrapped
 
 	@classmethod
-	def union(cls, wrapped: T) -> T:
+	def union[T](cls, wrapped: T) -> T:
 		"""クラスをユニオン型としてマークアップ
 
 		Args:
@@ -209,7 +207,7 @@ class Embed:
 			class A(B, C): ...
 			```
 		"""
-		def decorator(wrapped: T) -> T:
+		def decorator[T](wrapped: T) -> T:
 			return wrapped
 
 		return decorator
@@ -229,7 +227,7 @@ class Embed:
 			class A: ...
 			```
 		"""
-		def decorator(wrapped: T) -> T:
+		def decorator[T](wrapped: T) -> T:
 			return wrapped
 
 		return decorator

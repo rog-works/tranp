@@ -1,9 +1,9 @@
-from collections.abc import Callable
-from dataclasses import dataclass
 import glob
 import hashlib
 import os
-from typing import Any, Generic, IO, Protocol, Self, TypeVar
+from collections.abc import Callable
+from dataclasses import dataclass
+from typing import IO, Any, Generic, Protocol, Self, TypeVar
 
 from rogw.tranp.lang.annotation import implements
 
@@ -31,10 +31,10 @@ class Stored(Protocol):
 		...
 
 
-T = TypeVar('T', bound=Stored)
+T_Stored = TypeVar('T_Stored', bound=Stored)
 
 
-class Cached(Generic[T]):
+class Cached(Generic[T_Stored]):
 	"""キャッシュの抽象基底クラス"""
 
 	@classmethod
@@ -48,7 +48,7 @@ class Cached(Generic[T]):
 		"""
 		return hashlib.md5(str(identity).encode('utf-8')).hexdigest()
 
-	def __init__(self, stored: T, factory: Callable[[], T], identity: dict[str, str], basedir: str, **options: Any) -> None:
+	def __init__(self, stored: T_Stored, factory: Callable[[], T_Stored], identity: dict[str, str], basedir: str, **options: Any) -> None:
 		"""インスタンスを生成
 
 		Args:
@@ -64,7 +64,7 @@ class Cached(Generic[T]):
 		self._basedir = basedir
 		self._options = options
 
-	def get(self, cache_key: str) -> T:
+	def get(self, cache_key: str) -> T_Stored:
 		"""インスタンスの取得プロクシー
 
 		Args:
@@ -75,7 +75,7 @@ class Cached(Generic[T]):
 		raise NotImplementedError()
 
 
-class CachedProxy(Cached[T]):
+class CachedProxy(Cached[T_Stored]):
 	"""キャッシュ実装。キャッシュを優先してインスタンスを取得するプロクシー
 
 	Note:
@@ -89,7 +89,7 @@ class CachedProxy(Cached[T]):
 	"""
 
 	@implements
-	def get(self, cache_key: str) -> T:
+	def get(self, cache_key: str) -> T_Stored:
 		"""インスタンスの取得プロクシー
 
 		Args:
@@ -130,7 +130,7 @@ class CachedProxy(Cached[T]):
 		"""
 		return os.path.exists(cache_path)
 
-	def save_cache(self, instance: T, cache_path: str) -> None:
+	def save_cache(self, instance: T_Stored, cache_path: str) -> None:
 		"""インスタンスをファイルに保存
 
 		Args:
@@ -164,7 +164,7 @@ class CachedProxy(Cached[T]):
 		glob_pattern = f'{basepath}-*{extention}'
 		return glob.glob(glob_pattern)
 
-	def load_cache(self, cache_path: str) -> T:
+	def load_cache(self, cache_path: str) -> T_Stored:
 		"""インスタンスをファイルから読み込み
 
 		Args:
@@ -175,7 +175,7 @@ class CachedProxy(Cached[T]):
 		with open(cache_path, mode='rb') as f:
 			return self._stored.load(f)
 	
-	def instantiate(self) -> T:
+	def instantiate(self) -> T_Stored:
 		"""インスタンスを生成
 
 		Returns:
@@ -184,11 +184,11 @@ class CachedProxy(Cached[T]):
 		return self._factory()
 
 
-class CachedDummy(Cached[T]):
+class CachedDummy(Cached[T_Stored]):
 	"""キャッシュダミー。このクラスはキャッシュを無効にする以外の機能はない"""
 
 	@implements
-	def get(self, cache_key: str) -> T:
+	def get(self, cache_key: str) -> T_Stored:
 		"""インスタンスの取得プロクシー
 
 		Args:
@@ -224,7 +224,7 @@ class CacheProvider:
 		self.__setting = setting
 		self.__instances: dict[str, Any] = {}
 
-	def get(self, cache_key: str, identity: dict[str, str] = {}, **options: Any) -> Callable[[Callable[[], T]], Callable[[], T]]:
+	def get(self, cache_key: str, identity: dict[str, str] = {}, **options: Any) -> Callable[[Callable[[], T_Stored]], Callable[[], T_Stored]]:
 		"""キャッシュデコレーター。ファクトリー関数をラップしてキャッシュ機能を付与
 
 		Args:
@@ -253,8 +253,8 @@ class CacheProvider:
 				return wrap_factory()
 			```
 		"""
-		def decorator(wrapped: Callable[[], T]) -> Callable[[], T]:
-			def wrapper() -> T:
+		def decorator(wrapped: Callable[[], T_Stored]) -> Callable[[], T_Stored]:
+			def wrapper() -> T_Stored:
 				stored = wrapped.__annotations__['return']
 				ctor = CachedProxy if self.__setting.enabled else CachedDummy
 				identifier = ctor.identifier({'__cache_key__': cache_key, **identity})

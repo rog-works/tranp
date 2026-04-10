@@ -1,10 +1,7 @@
 from collections.abc import Callable
-from typing import Generic, TypeVar
-
-T = TypeVar('T')
 
 
-class Memo(Generic[T]):
+class Memo[T]:
 	"""キャッシュ"""
 
 	def __init__(self, factory: Callable[[], T]) -> None:
@@ -35,7 +32,7 @@ class Memoize:
 		"""インスタンスを生成"""
 		self._memos: dict[object, Memo] = {}
 
-	def get(self, key: object, factory: Callable[[], T]) -> T:
+	def get[T](self, key: object, factory: Callable[[], T]) -> T:
 		"""キャッシュからインタンスを取得
 
 		Args:

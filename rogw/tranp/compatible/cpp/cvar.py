@@ -5,7 +5,6 @@ from weakref import ReferenceType
 
 from rogw.tranp.errors import Errors
 
-T = TypeVar('T')
 T_co = TypeVar('T_co', covariant=True)
 T_New = TypeVar('T_New')
 
@@ -184,7 +183,7 @@ class CP(CVarNotNull[T_co]):
 		"""Constを返却する参照変換代替メソッド。C++では削除"""
 		return CPConst(self.raw)
 
-	def down(self, down_type: type[T]) -> 'CP[T]':
+	def down[T](self, down_type: type[T]) -> 'CP[T]':
 		"""派生クラスにキャスト。C++ではstatic_castに相当
 
 		Args:
@@ -199,7 +198,7 @@ class CP(CVarNotNull[T_co]):
 
 		return self
 
-	def as_a(self, down_type: type[T]) -> 'CP[T]':
+	def as_a[T](self, down_type: type[T]) -> 'CP[T]':
 		"""派生クラスにキャスト。Python上はdownと同じ。プロジェクト固有のキャストと言う位置づけ
 
 		Args:
@@ -303,7 +302,7 @@ class CWP(CVar[T_co]):
 		origin = self._weak()
 		return CP(origin) if origin else None
 
-	def down(self, down_type: type[T]) -> 'CP[T]':
+	def down[T](self, down_type: type[T]) -> 'CP[T]':
 		"""派生クラスにキャスト。C++では`static_cast<T>`に相当
 
 		Args:
@@ -318,7 +317,7 @@ class CWP(CVar[T_co]):
 
 		return self
 
-	def as_a(self, down_type: type[T]) -> 'CP[T]':
+	def as_a[T](self, down_type: type[T]) -> 'CP[T]':
 		"""派生クラスにキャスト。C++では`dynamic_cast<T>`に相当。Python上はdownと等価
 
 		Args:
@@ -360,7 +359,7 @@ class CSP(CVarNullable[T_co]):
 		return CRef(self.raw)
 
 	@property
-	def addr(self) -> 'CP[T_co]':
+	def addr(self) -> CP[T_co]:
 		"""Returns: ポインターを返却する参照変換代替メソッド。C++では`get`に相当"""
 		return CP(self.raw)
 
@@ -374,7 +373,7 @@ class CRef(CVarNotNull[T_co]):
 	"""C++型変数の互換クラス(参照)"""
 
 	@property
-	def addr(self) -> 'CP[T_co]':
+	def addr(self) -> CP[T_co]:
 		"""Returns: ポインターを返却する参照変換代替メソッド。C++では`&`に相当"""
 		return CP(self.raw)
 
@@ -406,12 +405,12 @@ class CRaw(CVarNotNull[T_co]):
 	"""C++型変数の互換クラス(実体)"""
 
 	@property
-	def ref(self) -> 'CRef[T_co]':
+	def ref(self) -> CRef[T_co]:
 		"""Returns: 参照を返却する参照変換代替メソッド。C++では削除される"""
 		return CRef(self.raw)
 
 	@property
-	def addr(self) -> 'CP[T_co]':
+	def addr(self) -> CP[T_co]:
 		"""Returns: ポインターを返却する参照変換代替メソッド。C++では`&`に相当"""
 		return CP(self.raw)
 
@@ -434,7 +433,7 @@ class CSPConst(CVarNotNull[T_co]):
 		return CRefConst(self.raw)
 
 	@property
-	def addr(self) -> 'CPConst[T_co]':
+	def addr(self) -> CPConst[T_co]:
 		"""Returns: 不変性ポインターを返却する参照変換代替メソッド。C++では`get`に相当"""
 		return CPConst(self.raw)
 
@@ -452,17 +451,17 @@ class CRawConst(CVarNotNull[T_co]):
 	"""C++型変数の互換クラス(不変性)"""
 
 	@property
-	def ref(self) -> 'CRefConst[T_co]':
+	def ref(self) -> CRefConst[T_co]:
 		"""Returns: 不変性参照を返却する参照変換代替メソッド。C++では`*`に相当"""
 		return CRefConst(self.raw)
 
 	@property
-	def addr(self) -> 'CPConst[T_co]':
+	def addr(self) -> CPConst[T_co]:
 		"""Returns: 不変性ポインターを返却する参照変換代替メソッド。C++では`&`に相当"""
 		return CPConst(self.raw)
 
 
-def can_down_addr(addr: 'CP[Any]', down_type: type[T]) -> 'TypeIs[CP[T]]':
+def can_down_addr[T](addr: CP[Any], down_type: type[T]) -> TypeIs[CP[T]]:
 	"""同じか派生クラスか判定
 
 	Args:
@@ -474,7 +473,7 @@ def can_down_addr(addr: 'CP[Any]', down_type: type[T]) -> 'TypeIs[CP[T]]':
 	return isinstance(addr.raw, down_type)
 
 
-def can_down_weak(addr: 'CWP[Any]', down_type: type[T]) -> 'TypeIs[CWP[T]]':
+def can_down_weak[T](addr: CWP[Any], down_type: type[T]) -> TypeIs[CWP[T]]:
 	"""同じか派生クラスか判定
 
 	Args:

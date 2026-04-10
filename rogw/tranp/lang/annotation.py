@@ -1,10 +1,8 @@
 from collections.abc import Callable
-from typing import Any, TypeVar
-
-T = TypeVar('T')
+from typing import Any
 
 
-def implements(wrapped: T) -> T:
+def implements[T](wrapped: T) -> T:
 	"""インターフェイスの実装を表すアノテーション。何も変更せずラップ対象を返す
 
 	Args:
@@ -15,7 +13,7 @@ def implements(wrapped: T) -> T:
 	return wrapped
 
 
-def duck_typed(protocol: Any) -> Callable[[T], T]:
+def duck_typed[T](protocol: Any) -> Callable[[T], T]:
 	"""プロトコルへの準拠を表すアノテーション。何も変更せずラップ対象を返す
 
 	Args:
@@ -29,7 +27,7 @@ def duck_typed(protocol: Any) -> Callable[[T], T]:
 	return decorator
 
 
-def deprecated(wrapped: T) -> T:
+def deprecated[T](wrapped: T) -> T:
 	"""非推奨のアノテーション。何も変更せずラップ対象を返す
 
 	Args:
@@ -40,7 +38,7 @@ def deprecated(wrapped: T) -> T:
 	return wrapped
 
 
-def injectable(wrapped: T) -> T:
+def injectable[T](wrapped: T) -> T:
 	"""DIよりインジェクションが可能であることを表すアノテーション。何も変更せずラップ対象を返す
 
 	Args:

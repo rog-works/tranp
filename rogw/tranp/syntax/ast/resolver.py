@@ -1,13 +1,10 @@
 from dataclasses import dataclass, field
-from typing import Generic, TypeVar
 
 from rogw.tranp.errors import Errors
 
-T = TypeVar('T')
-
 
 @dataclass
-class SymbolMapping(Generic[T]):
+class SymbolMapping[T]:
 	"""シンボルマッピングデータ
 
 	Attributes:
@@ -20,7 +17,7 @@ class SymbolMapping(Generic[T]):
 	fallback: type[T] | None = None
 
 
-class Resolver(Generic[T]):
+class Resolver[T]:
 	"""シンボル名と型のマッピング情報を管理。シンボル名から紐づく型を解決
 
 	Attributes:

@@ -1,11 +1,9 @@
 from collections.abc import Callable
 from types import FunctionType
-from typing import Any, Generic, Protocol, TypeVar
+from typing import Any, Generic, Protocol
 
 from rogw.tranp.errors import Errors
 from rogw.tranp.lang.annotation import injectable
-
-T = TypeVar('T')
 
 
 class Trait:
@@ -56,7 +54,7 @@ class TraitProvider(Protocol):
 		...
 
 
-class Traits(Generic[T]):
+class Traits[T]:
 	"""トレイトマネージャー"""
 
 	def __init__(self, provider: TraitProvider) -> None:

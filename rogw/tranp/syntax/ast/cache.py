@@ -1,12 +1,8 @@
-from typing import Generic, TypeVar
-
 from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.errors import Errors
 
-T = TypeVar('T')
 
-
-class EntryCache(Generic[T]):
+class EntryCache[T]:
 	"""エントリーキャッシュ"""
 
 	def __init__(self) -> None:

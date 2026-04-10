@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from collections.abc import Callable, Iterator
+from collections.abc import Callable
 from enum import Enum, EnumType
 from importlib import import_module
 from types import FunctionType, MethodType, NoneType, UnionType
@@ -62,7 +62,7 @@ class ScalarTypehint(Typehint):
 		```
 	"""
 
-	_type: type[Any]
+	_raw: type[Any]
 	_meta: Any | None
 
 	def __init__(self, scalar_type: type[Any], meta: Any | None = None) -> None:
@@ -72,7 +72,7 @@ class ScalarTypehint(Typehint):
 			scalar_type: タイプ
 			meta: メタ情報 (default = None)
 		"""
-		self._type = scalar_type
+		self._raw = scalar_type
 		self._meta = meta
 
 	@property
@@ -83,13 +83,13 @@ class ScalarTypehint(Typehint):
 			# XXX Union型の場合はUnionTypeを返却。UnionTypeはtypeと互換性が無いと判断されるため実装例に倣う @see types.py UnionType
 			return type(int | str)
 		else:
-			return getattr(self._type, '__origin__', self._type)
+			return getattr(self._raw, '__origin__', self._raw)
 
 	@property
 	@override
 	def raw(self) -> type[Any]:
 		"""Returns: 元のタイプ"""
-		return self._type
+		return self._raw
 
 	@override
 	def meta[T](self, meta_type: type[T]) -> T | None:
@@ -107,17 +107,17 @@ class ScalarTypehint(Typehint):
 	@property
 	def is_null(self) -> bool:
 		"""Returns: True = None"""
-		return self._type is None or self._type is NoneType
+		return self._raw is None or self._raw is NoneType
 
 	@property
 	def is_generic(self) -> bool:
 		"""Returns: True = ジェネリック型"""
-		return getattr(self._type, '__origin__', self._type) in [list, dict, tuple, type]
+		return getattr(self._raw, '__origin__', self._raw) in [list, dict, tuple, type]
 
 	@property
 	def is_union(self) -> bool:
 		"""Returns: True = Union型"""
-		return type(self._type) is UnionType or getattr(self._type, '__origin__', self._type) is Union
+		return type(self._raw) is UnionType or getattr(self._raw, '__origin__', self._raw) is Union
 
 	@property
 	def is_nullable(self) -> bool:
@@ -127,7 +127,7 @@ class ScalarTypehint(Typehint):
 	@property
 	def is_enum(self) -> bool:
 		"""Returns: True = Enum型"""
-		return type(self._type) is EnumType
+		return type(self._raw) is EnumType
 
 	@property
 	def sub_types(self) -> list[Typehint]:
@@ -137,7 +137,7 @@ class ScalarTypehint(Typehint):
 	@property
 	def __sub_annos(self) -> list[type[Any]]:
 		"""Returns: ジェネリック/Union型のサブタイプのリスト"""
-		return getattr(self._type, '__args__', [])
+		return getattr(self._raw, '__args__', [])
 
 	@property
 	def enum_members(self) -> list[Enum]:
@@ -158,7 +158,7 @@ class FunctionTypehint(Typehint):
 		```
 	"""
 
-	_func: FuncTypes | Callable
+	_raw: FuncTypes | Callable
 	_meta: Any | None
 
 	def __init__(self, func: FuncTypes | Callable, meta: Any | None = None) -> None:
@@ -167,22 +167,22 @@ class FunctionTypehint(Typehint):
 		Args:
 			func: 関数オブジェクト
 		Note:
-			XXX コンストラクターはFuncTypeに当てはまらないため、Callableとして受け付ける
+			XXX コンストラクターはFuncTypesに当てはまらないため、Callableとして受け付ける
 		"""
-		self._func = func
+		self._raw = func
 		self._meta = meta
 
 	@property
 	@override
 	def origin(self) -> type[Any]:
 		"""Returns: メインタイプ"""
-		return type(self._func)
+		return type(self._raw)
 
 	@property
 	@override
 	def raw(self) -> FuncTypes | Callable:
-		"""Returns: 関数オブジェクト"""
-		return self._func
+		"""Returns: 元のタイプ"""
+		return self._raw
 
 	@override
 	def meta[T](self, meta_type: type[T]) -> T | None:
@@ -198,6 +198,11 @@ class FunctionTypehint(Typehint):
 		return self._meta
 
 	@property
+	def func(self) -> FuncTypes | Callable:
+		"""Returns: 関数オブジェクト"""
+		return getattr(self._raw, 'fget') if self.origin is property else self._raw
+
+	@property
 	def func_class(self) -> FuncClasses:
 		"""関数の種別を取得
 
@@ -206,7 +211,7 @@ class FunctionTypehint(Typehint):
 		Note:
 			XXX Pythonではメソッドはオブジェクトに動的にバインドされるため、タイプから関数オブジェクトを取得した場合、メソッドとして判定する方法がない ※Pythonの仕様
 		"""
-		if self.origin is classmethod or isinstance(getattr(self._func, '__self__', None), type):
+		if self.origin is classmethod or isinstance(getattr(self._raw, '__self__', None), type):
 			return FuncClasses.ClassMethod
 		elif self.origin in [MethodType, property]:
 			return FuncClasses.Method
@@ -226,20 +231,12 @@ class FunctionTypehint(Typehint):
 	@property
 	def __via_module_path(self) -> str:
 		"""Returns: 関数由来のモジュールパス"""
-		if isinstance(self._func, property):
-			# propertyは`__module__`が無いため、元の関数オブジェクトを通して取得する
-			return getattr(self._func, 'fget').__module__
-		else:
-			return self._func.__module__
+		return self.func.__module__
 
 	@property
 	def __annos(self) -> dict[str, type[Any]]:
 		"""Returns: タイプヒントのリスト"""
-		if isinstance(self._func, property):
-			# propertyは`__annotations__`が無いため、元の関数オブジェクトを通して取得する
-			return getattr(self._func, 'fget').__annotations__
-		else:
-			return self._func.__annotations__
+		return self.func.__annotations__
 
 
 class ClassTypehint(Typehint):
@@ -256,7 +253,7 @@ class ClassTypehint(Typehint):
 		```
 	"""
 
-	_type: type[Any]
+	_raw: type[Any]
 	_meta: Any | None
 
 	def __init__(self, class_type: type[Any], meta: Any | None = None) -> None:
@@ -265,20 +262,20 @@ class ClassTypehint(Typehint):
 		Args:
 			class_type: クラス
 		"""
-		self._type = class_type
+		self._raw = class_type
 		self._meta = meta
 
 	@property
 	@override
 	def origin(self) -> type[Any]:
 		"""Returns: メインタイプ"""
-		return getattr(self._type, '__origin__', self._type)
+		return getattr(self._raw, '__origin__', self._raw)
 
 	@property
 	@override
 	def raw(self) -> type[Any]:
 		"""Returns: 元のタイプ"""
-		return self._type
+		return self._raw
 
 	@override
 	def meta[T](self, meta_type: type[T]) -> T | None:
@@ -296,18 +293,18 @@ class ClassTypehint(Typehint):
 	@property
 	def is_generic(self) -> bool:
 		"""Returns: True = ジェネリック型"""
-		return hasattr(self._type, '__origin__')
+		return hasattr(self._raw, '__origin__')
 
 	@property
 	def sub_types(self) -> list[Typehint]:
 		"""Returns: ジェネリック型のサブタイプのリスト"""
-		sub_annos: list[type[Any]] = getattr(self._type, '__args__', [])
-		return [Typehints.resolve_internal(sub_type, self._type.__module__) for sub_type in sub_annos]
+		sub_annos: list[type[Any]] = getattr(self._raw, '__args__', [])
+		return [Typehints.resolve_internal(sub_type, self._raw.__module__) for sub_type in sub_annos]
 
 	@property
 	def constructor(self) -> FunctionTypehint:
 		"""Returns: コンストラクター"""
-		return FunctionTypehint(self._type.__init__)
+		return FunctionTypehint(self._raw.__init__)
 
 	def methods(self, with_inherit: bool = True, with_private: bool = False, with_special: bool = False) -> dict[str, FunctionTypehint]:
 		"""メソッド一覧を取得
@@ -332,7 +329,7 @@ class ClassTypehint(Typehint):
 			クラス変数一覧
 		"""
 		vars = self.__lookup_vars(*self.__var_lookup_info(with_inherit, with_private, for_class_var=True))
-		return {key: Typehints.resolve_internal(attr, self._type.__module__) for key, attr in vars.items()}
+		return {key: Typehints.resolve_internal(attr, self._raw.__module__) for key, attr in vars.items()}
 
 	def self_vars(self, with_inherit: bool = True, with_private: bool = False) -> dict[str, Typehint]:
 		"""インスタンス変数一覧を取得
@@ -344,7 +341,7 @@ class ClassTypehint(Typehint):
 			インスタンス変数一覧
 		"""
 		vars = self.__lookup_vars(*self.__var_lookup_info(with_inherit, with_private, for_class_var=False))
-		return {key: Typehints.resolve_internal(attr, self._type.__module__) for key, attr in vars.items()}
+		return {key: Typehints.resolve_internal(attr, self._raw.__module__) for key, attr in vars.items()}
 
 	def __method_lookup_info(self, with_inherit: bool, with_private: bool, with_special: bool) -> tuple[list[type[Any]], Callable[[type[Any], str, Any], bool]]:
 		"""ルックアップ情報を生成(メソッド用)
@@ -418,11 +415,11 @@ class ClassTypehint(Typehint):
 
 	def __self_types(self) -> list[type[Any]]:
 		"""Returns: タイプリスト(自身のみ)"""
-		return [self._type]
+		return [self._raw]
 
 	def __recursive_types(self) -> list[type[Any]]:
 		"""Returns: タイプリスト(自身 + 継承チェーン)"""
-		return list(reversed(self._type.mro()))
+		return list(reversed(self._raw.mro()))
 
 	def __is_private_attr(self, a_type: type[Any], key: str) -> bool:
 		"""Args: a_type: 保有クラス, key: 属性名 Returns: True = プライベート"""

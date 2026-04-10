@@ -134,7 +134,18 @@ class SymbolExtends:
 		Returns:
 			シンボル属性
 		"""
-		return [reflections.type_of(sub_type) for sub_type in via.types.as_a(defs.Class).depended_types]
+		attrs: list[IReflection] = []
+		for sub_type in via.types.as_a(defs.Class).depended_types:
+			attr = reflections.type_of(sub_type)
+			if sub_type.is_a(defs.TemplateClass):
+				# XXX タイプ参照と形式を合わせるためtypeをアンパック
+				# @see ConvertionTrait._actualize_type
+				# @see Py2Cpp.explicit_class_attrs
+				attrs.append(attr.attrs[0])
+			else:
+				attrs.append(attr)
+
+		return attrs
 
 	@injectable
 	def attrs_for_var(self, reflections: Reflections, via: IReflection) -> list[IReflection]:

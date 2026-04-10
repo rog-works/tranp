@@ -1,9 +1,7 @@
-from typing import Any, TypeVar
-
-T = TypeVar('T')
+from typing import Any
 
 
-def safe_cast(value: T | None) -> T:
+def safe_cast[T](value: T | None) -> T:
 	"""安全にNullable型から実体型にキャスト
 
 	Args:
@@ -16,7 +14,8 @@ def safe_cast(value: T | None) -> T:
 	assert value is not None, 'Not allowed convertion. value is null'
 	return value
 
-def as_a(expect: type[T], value: Any) -> T:
+
+def as_a[T](expect: type[T], value: Any) -> T:
 	"""安全に期待の型へキャスト
 
 	Args:

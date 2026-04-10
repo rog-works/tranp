@@ -177,8 +177,18 @@ class Py2Cpp(ITranspiler):
 		if raw_obj.type_is(tuple) or raw_obj.type_is(Union) or raw_obj.type_is(Callable):
 			return actual_attrs
 
+		decl_attrs: list[IReflection] = []
+		for sub_type in raw.types.as_a(defs.Class).depended_types:
+			attr = self.reflections.type_of(sub_type)
+			if sub_type.is_a(defs.TemplateClass):
+				# XXX タイプ参照と形式を合わせるためtypeをアンパック
+				# @see ConvertionTrait._actualize_type
+				# @see SymbolExtends.attr_for_class
+				decl_attrs.append(attr.attrs[0])
+			else:
+				decl_attrs.append(attr)
+
 		# TypeVarTuple XXX 可変長のため許容 ※主な対象: Delegate
-		decl_attrs = [self.reflections.type_of(sub_type) for sub_type in raw.types.as_a(defs.Class).depended_types]
 		has_type_var_tuple = len([True for decl_attr in decl_attrs if isinstance(decl_attr.types, defs.TemplateClass) and decl_attr.types.definition_type.type_name.tokens == TypeVarTuple.__name__]) > 0
 		if has_type_var_tuple:
 			return actual_attrs

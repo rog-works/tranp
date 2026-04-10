@@ -1,12 +1,9 @@
 from abc import ABCMeta, abstractmethod
-from typing import Generic, TypeVar
 
 from rogw.tranp.syntax.ast.entry import SourceMap
 
-T = TypeVar('T')
 
-
-class Query(Generic[T], metaclass=ABCMeta):
+class Query[T](metaclass=ABCMeta):
 	"""パスベースのクエリーインターフェイス
 
 	Attributes:

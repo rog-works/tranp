@@ -1,14 +1,12 @@
-from typing import Any, TypeVar, cast
+from typing import Any, cast
 
 from rogw.tranp.errors import Errors
 from rogw.tranp.lang.annotation import deprecated
 from rogw.tranp.syntax.node.node import Node
 
-T = TypeVar('T')
-
 
 @deprecated
-def serialize(node: Node, schema: type[T]) -> T:
+def serialize[T](node: Node, schema: type[T]) -> T:
 	"""指定のスキーマを元にノードをdictにシリアライズ
 
 	Args:

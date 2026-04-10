@@ -1,11 +1,9 @@
-from typing import Any, TypeVar
+from typing import Any
 
 from rogw.tranp.compatible.cpp.cvar import CP, CPConst
 
-T = TypeVar('T')
 
-
-def const_cast(entity_type: type[CP[T]], value_at: CPConst[T]) -> CP[T]:
+def const_cast[T](entity_type: type[CP[T]], value_at: CPConst[T]) -> CP[T]:
 	"""アドレス型のconstを解除
 
 	Args:
@@ -19,7 +17,7 @@ def const_cast(entity_type: type[CP[T]], value_at: CPConst[T]) -> CP[T]:
 	return CP(value_at.raw)
 
 
-def immutable_const_cast(value_type: type[T], value: T) -> T:
+def immutable_const_cast[T](value_type: type[T], value: T) -> T:
 	"""暗黙的不変型のconstを解除
 
 	Args:

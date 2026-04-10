@@ -1,14 +1,12 @@
-from typing import Any, Generic, TypeVar
-
-T = TypeVar('T')
+from typing import Any
 
 
-class Match(Generic[T]):
+class Match[T]:
 	@property
 	def endpos(self) -> int: ...
 
 
-class Pattern(Generic[T]): ...
+class Pattern[T]: ...
 
 
 def compile(pattern: str, flags: int = 0) -> Pattern[str]: ...

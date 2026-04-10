@@ -210,7 +210,7 @@ class TestClassTypehint(TestCase):
 		(Sub, {
 			'class_vars': {'cn': (int, None), 'cl': (list, None)},
 			'self_vars': {'an': (int, 'meta'), 'd': (dict, None), 't': (tuple, None), 'obj': (Base, None), 'p': (UnionType, None)},
-			'methods': [Sub.__init__.__name__, Sub.cls_method.__name__, Sub.self_method.__name__, 'prop'],
+			'methods': [Sub.cls_method.__name__, Sub.self_method.__name__, 'prop'],
 		}),
 		(Gen[str], {
 			'class_vars': {},
@@ -225,8 +225,8 @@ class TestClassTypehint(TestCase):
 	])
 	def test_schema(self, origin: type, expected: dict[str, Any]) -> None:
 		hint = ClassTypehint(origin)
-		self.assertEqual({key: (var.origin, var.meta(str)) for key, var in hint.class_vars(lookup_private=True).items()}, expected['class_vars'])
-		self.assertEqual({key: (var.origin, var.meta(str)) for key, var in hint.self_vars(lookup_private=False).items()}, expected['self_vars'])
+		self.assertEqual({key: (var.origin, var.meta(str)) for key, var in hint.class_vars(with_private=True).items()}, expected['class_vars'])
+		self.assertEqual({key: (var.origin, var.meta(str)) for key, var in hint.self_vars(with_private=False).items()}, expected['self_vars'])
 		self.assertEqual([key for key in hint.methods().keys()], expected['methods'])
 
 
@@ -278,8 +278,8 @@ class TestTypehints(TestCase):
 		elif isinstance(hint, ClassTypehint):
 			self.assertEqual({key: type(class_var) for key, class_var in hint.class_vars().items()}, expected['type']['class_vars'])
 			self.assertEqual({key: class_var.meta(str) for key, class_var in hint.class_vars().items()}, expected['meta']['class_vars'])
-			self.assertEqual({key: type(self_var) for key, self_var in hint.self_vars(lookup_private=False).items()}, expected['type']['self_vars'])
-			self.assertEqual({key: self_var.meta(str) for key, self_var in hint.self_vars(lookup_private=False).items()}, expected['meta']['self_vars'])
+			self.assertEqual({key: type(self_var) for key, self_var in hint.self_vars(with_private=False).items()}, expected['type']['self_vars'])
+			self.assertEqual({key: self_var.meta(str) for key, self_var in hint.self_vars(with_private=False).items()}, expected['meta']['self_vars'])
 		else:
 			self.fail()
 

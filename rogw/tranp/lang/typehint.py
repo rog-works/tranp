@@ -309,76 +309,84 @@ class ClassTypehint(Typehint):
 		"""Returns: コンストラクター"""
 		return FunctionTypehint(self._type.__init__)
 
-	def methods(self, recursive: bool = True, lookup_private: bool = False) -> dict[str, FunctionTypehint]:
+	def methods(self, with_inherit: bool = True, with_private: bool = False, with_special: bool = False) -> dict[str, FunctionTypehint]:
 		"""メソッド一覧を取得
 
 		Args:
-			recursive: True = 再帰的に抽出 (default = True)
-			lookup_private: True = プライベート変数を抽出 (default = False)
+			with_inherit: True = 継承チェーンを再帰的に抽出 (default = True)
+			with_private: True = プライベートを抽出 (default = False)
+			with_special: True = 特殊メソッドを抽出 (default = False)
 		Returns:
 			メソッド一覧
 		"""
-		lookup = self.__method_lookup_info(recursive, lookup_private)
-		return {key: FunctionTypehint(prop) for key, prop in self.__lookup_methods(*lookup).items()}
+		methods = self.__lookup_methods(*self.__method_lookup_info(with_inherit, with_private, with_special))
+		return {key: FunctionTypehint(prop) for key, prop in methods.items()}
 
-	def class_vars(self, recursive: bool = True, lookup_private: bool = False) -> dict[str, Typehint]:
+	def class_vars(self, with_inherit: bool = True, with_private: bool = False) -> dict[str, Typehint]:
 		"""クラス変数一覧を取得
 
 		Args:
-			recursive: True = 再帰的に抽出 (default = True)
-			lookup_private: True = プライベート変数を抽出 (default = False)
+			with_inherit: True = 継承チェーンを再帰的に抽出 (default = True)
+			with_private: True = プライベートを抽出 (default = False)
 		Returns:
 			クラス変数一覧
 		"""
-		lookup = self.__var_lookup_info(recursive, lookup_private, for_class_var=True)
-		vars = {key: anno for key, anno in self.__lookup_vars(*lookup).items()}
+		vars = self.__lookup_vars(*self.__var_lookup_info(with_inherit, with_private, for_class_var=True))
 		return {key: Typehints.resolve_internal(attr, self._type.__module__) for key, attr in vars.items()}
 
-	def self_vars(self, recursive: bool = True, lookup_private: bool = False) -> dict[str, Typehint]:
+	def self_vars(self, with_inherit: bool = True, with_private: bool = False) -> dict[str, Typehint]:
 		"""インスタンス変数一覧を取得
 
 		Args:
-			recursive: True = 再帰的に抽出 (default = True)
-			lookup_private: True = プライベート変数を抽出 (default = False)
+			with_inherit: True = 継承チェーンを再帰的に抽出 (default = True)
+			with_private: True = プライベートを抽出 (default = False)
 		Returns:
 			インスタンス変数一覧
 		"""
-		lookup = self.__var_lookup_info(recursive, lookup_private, for_class_var=False)
-		annos = {key: anno for key, anno in self.__lookup_vars(*lookup).items()}
-		return {key: Typehints.resolve_internal(attr, self._type.__module__) for key, attr in annos.items()}
+		vars = self.__lookup_vars(*self.__var_lookup_info(with_inherit, with_private, for_class_var=False))
+		return {key: Typehints.resolve_internal(attr, self._type.__module__) for key, attr in vars.items()}
 
-	def __method_lookup_info(self, recursive: bool, lookup_private: bool) -> tuple[list[type[Any]], Callable[[type[Any], str, Any], bool]]:
-		"""ルックアップを生成(メソッド用)
+	def __method_lookup_info(self, with_inherit: bool, with_private: bool, with_special: bool) -> tuple[list[type[Any]], Callable[[type[Any], str, Any], bool]]:
+		"""ルックアップ情報を生成(メソッド用)
 
 		Args:
-			recursive: True = 再帰的に抽出
-			lookup_private: True = プライベート変数を抽出
+			with_inherit: True = 継承チェーンを再帰的に抽出
+			with_private: True = プライベートを抽出
+			with_special: True = 特殊メソッドを抽出
 		Returns:
 			(タイプリスト, 出力判定関数)
 		"""
-		if recursive and lookup_private:
-			return self.__recursive_types(), self.__allow_method_all
-		elif recursive and not lookup_private:
-			return self.__recursive_types(), self.__allow_method_expose
-		elif not recursive and lookup_private:
-			return self.__self_types(), self.__allow_method_all
-		else:
-			return self.__self_types(), self.__allow_method_expose
+		to_allowed = {
+			(True, True): self.__allow_method_all,
+			(True, False): self.__allow_method_general,
+			(False, True): self.__allow_method_expose,
+			(False, False): self.__allow_method_expose_general,
+		}
+		each_types = self.__recursive_types() if with_inherit else self.__self_types()
+		return each_types, to_allowed[with_private, with_special]
 
 	def __allow_method_all(self, a_type: type[Any], key: str, attr: Any) -> bool:
 		"""Args: a_type: 保有クラス, key: 属性名, attr: 属性 Returns: True = 出力対象"""
 		return isinstance(attr, FuncTypes)
 
+	def __allow_method_general(self, a_type: type[Any], key: str, attr: Any) -> bool:
+		"""Args: a_type: 保有クラス, key: 属性名, attr: 属性 Returns: True = 出力対象"""
+		return isinstance(attr, FuncTypes) and not self.__is_special_method(key)
+
 	def __allow_method_expose(self, a_type: type[Any], key: str, attr: Any) -> bool:
 		"""Args: a_type: 保有クラス, key: 属性名, attr: 属性 Returns: True = 出力対象"""
-		return not self.__is_private_attr(a_type, key) and isinstance(attr, FuncTypes)
+		return isinstance(attr, FuncTypes) and not self.__is_private_attr(a_type, key)
+
+	def __allow_method_expose_general(self, a_type: type[Any], key: str, attr: Any) -> bool:
+		"""Args: a_type: 保有クラス, key: 属性名, attr: 属性 Returns: True = 出力対象"""
+		return isinstance(attr, FuncTypes) and not self.__is_private_attr(a_type, key) and not self.__is_special_method(key)
 	
-	def __var_lookup_info(self, recursive: bool, lookup_private: bool, for_class_var: bool) -> tuple[list[type[Any]], Callable[[type[Any], str, type[Any]], bool]]:
-		"""ルックアップを生成(変数用)
+	def __var_lookup_info(self, with_inherit: bool, with_private: bool, for_class_var: bool) -> tuple[list[type[Any]], Callable[[type[Any], str, type[Any]], bool]]:
+		"""ルックアップ情報を生成(変数用)
 
 		Args:
-			recursive: True = 再帰的に抽出
-			lookup_private: True = プライベート変数を抽出
+			with_inherit: True = 継承チェーンを再帰的に抽出
+			with_private: True = プライベートを抽出
 			for_class_var: True = クラス変数のみ抽出, False = インスタンス変数のみ抽出
 		Returns:
 			(タイプリスト, 出力判定関数)
@@ -389,8 +397,8 @@ class ClassTypehint(Typehint):
 			(False, True): self.__allow_class_var_expose,
 			(False, False): self.__allow_self_var_expose,
 		}
-		each_types = self.__recursive_types() if recursive else self.__self_types()
-		return each_types, to_allowed[(lookup_private, for_class_var)]
+		each_types = self.__recursive_types() if with_inherit else self.__self_types()
+		return each_types, to_allowed[(with_private, for_class_var)]
 	
 	def __allow_class_var_all(self, a_type: type[Any], key: str, anno: type[Any]) -> bool:
 		"""Args: a_type: 保有クラス, key: 属性名, anno: アノテーション Returns: True = 出力対象"""
@@ -419,6 +427,10 @@ class ClassTypehint(Typehint):
 	def __is_private_attr(self, a_type: type[Any], key: str) -> bool:
 		"""Args: a_type: 保有クラス, key: 属性名 Returns: True = プライベート"""
 		return key.startswith(f'_{a_type.__name__}__')
+
+	def __is_special_method(self, key: str) -> bool:
+		"""Args: key: 属性名 Returns: True = 特殊メソッド"""
+		return key.startswith('__') and key.endswith('__')
 
 	def __is_class_var(self, anno: type[Any]) -> bool:
 		"""Args: a_type: 保有クラス, key: 属性名 Returns: True = クラス変数"""

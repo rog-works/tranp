@@ -166,17 +166,17 @@ class TestFunctionTypehint(TestCase):
 		self.assertEqual(hint.func_class, expected)
 
 	@data_provider([
-		(Sub.__init__, {'args': {}, 'returns': None}),
-		(Sub.cls_method, {'args': {'n': int}, 'returns': str}),
-		(Sub.self_method, {'args': {'l': list, 'd': dict}, 'returns': tuple}),
-		(Sub.prop, {'args': {}, 'returns': int}),
-		(_sub.cls_method, {'args': {'n': int}, 'returns': str}),
-		(_sub.self_method, {'args': {'l': list, 'd': dict}, 'returns': tuple}),
-		(func, {'args': {'n': int, 'fn': int, 'an': int, 'afn': int}, 'returns': str}),
+		(Sub.__init__, {'params': {}, 'returns': None}),
+		(Sub.cls_method, {'params': {'n': int}, 'returns': str}),
+		(Sub.self_method, {'params': {'l': list, 'd': dict}, 'returns': tuple}),
+		(Sub.prop, {'params': {}, 'returns': int}),
+		(_sub.cls_method, {'params': {'n': int}, 'returns': str}),
+		(_sub.self_method, {'params': {'l': list, 'd': dict}, 'returns': tuple}),
+		(func, {'params': {'n': int, 'fn': int, 'an': int, 'afn': int}, 'returns': str}),
 	])
 	def test_signature(self, origin: Callable, expected: dict[str, Any]) -> None:
 		hint = FunctionTypehint(origin)
-		self.assertEqual({key: arg.origin for key, arg in hint.args.items()}, expected['args'])
+		self.assertEqual({key: arg.origin for key, arg in hint.params.items()}, expected['params'])
 		self.assertEqual(hint.returns.origin, expected['returns'])
 
 
@@ -275,15 +275,15 @@ class TestTypehints(TestCase):
 			'meta': {'class_vars': {'cn': None, 'cl': None}, 'self_vars': {'an': 'meta', 'd': None, 't': None, 'obj': None, 'p': None}},
 		}),
 		(func, {
-			'type': {'args': {'n': ScalarTypehint, 'fn': ScalarTypehint, 'an': ScalarTypehint, 'afn': ScalarTypehint}, 'returns': ScalarTypehint},
-			'meta': {'args': {'n': None, 'fn': None, 'an': 'meta', 'afn': 'meta'}, 'returns': None},
+			'type': {'params': {'n': ScalarTypehint, 'fn': ScalarTypehint, 'an': ScalarTypehint, 'afn': ScalarTypehint}, 'returns': ScalarTypehint},
+			'meta': {'params': {'n': None, 'fn': None, 'an': 'meta', 'afn': 'meta'}, 'returns': None},
 		}),
 	])
 	def test_resolve_internal(self, origin: type, expected: dict[str, Any]) -> None:
 		hint = Typehints.resolve(origin)
 		if isinstance(hint, FunctionTypehint):
-			self.assertEqual({key: type(arg) for key, arg in hint.args.items()}, expected['type']['args'])
-			self.assertEqual({key: arg.meta(str) for key, arg in hint.args.items()}, expected['meta']['args'])
+			self.assertEqual({key: type(param) for key, param in hint.params.items()}, expected['type']['params'])
+			self.assertEqual({key: param.meta(str) for key, param in hint.params.items()}, expected['meta']['params'])
 			self.assertEqual(type(hint.returns), expected['type']['returns'])
 			self.assertEqual(hint.returns.meta(str), expected['meta']['returns'])
 		elif isinstance(hint, ClassTypehint):

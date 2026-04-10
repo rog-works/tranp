@@ -219,8 +219,8 @@ class FunctionTypehint(Typehint):
 			return FuncClasses.Function
 
 	@property
-	def args(self) -> dict[str, Typehint]:
-		"""Returns: 引数リスト"""
+	def params(self) -> dict[str, Typehint]:
+		"""Returns: 仮引数リスト"""
 		return {key: Typehints.resolve_internal(in_type, self.__via_module_path) for key, in_type in self.__annos.items() if key != 'return'}
 
 	@property

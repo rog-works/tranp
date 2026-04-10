@@ -225,9 +225,9 @@ class TestClassTypehint(TestCase):
 	])
 	def test_schema(self, origin: type, expected: dict[str, Any]) -> None:
 		hint = ClassTypehint(origin)
-		self.assertEqual({key: (var.origin, var.meta(str)) for key, var in hint.class_vars().items()}, expected['class_vars'])
+		self.assertEqual({key: (var.origin, var.meta(str)) for key, var in hint.class_vars(lookup_private=True).items()}, expected['class_vars'])
 		self.assertEqual({key: (var.origin, var.meta(str)) for key, var in hint.self_vars(lookup_private=False).items()}, expected['self_vars'])
-		self.assertEqual([key for key in hint.methods.keys()], expected['methods'])
+		self.assertEqual([key for key in hint.methods().keys()], expected['methods'])
 
 
 class TestTypehints(TestCase):

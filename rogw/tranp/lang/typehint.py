@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from enum import Enum, EnumType
 from importlib import import_module
 from types import FunctionType, MethodType, NoneType, UnionType
@@ -309,34 +309,96 @@ class ClassTypehint(Typehint):
 		"""Returns: コンストラクター"""
 		return FunctionTypehint(self._type.__init__)
 
-	@property
-	def methods(self) -> dict[str, FunctionTypehint]:
-		"""Returns: メソッド一覧"""
-		return {key: FunctionTypehint(prop) for key, prop in self.__recursive_methods(self._type).items()}
-
-	def class_vars(self, lookup_private: bool = True) -> dict[str, Typehint]:
-		"""クラス変数の一覧を取得
+	def methods(self, recursive: bool = True, lookup_private: bool = False) -> dict[str, FunctionTypehint]:
+		"""メソッド一覧を取得
 
 		Args:
-			lookup_private: True = プライベート変数を抽出 (default = True)
+			recursive: True = 再帰的に抽出 (default = True)
+			lookup_private: True = プライベート変数を抽出 (default = False)
+		Returns:
+			メソッド一覧
+		"""
+		return {key: FunctionTypehint(prop) for key, prop in self.__recursive_methods(self._type).items()}
+
+	def class_vars(self, recursive: bool = True, lookup_private: bool = False) -> dict[str, Typehint]:
+		"""クラス変数一覧を取得
+
+		Args:
+			recursive: True = 再帰的に抽出 (default = True)
+			lookup_private: True = プライベート変数を抽出 (default = False)
 		Returns:
 			クラス変数一覧
 		"""
-		annos = {key: anno for key, anno in self.__recursive_annos(self._type, lookup_private, for_class_var=True).items()}
+		lookup = self.__var_lookup(self._type, recursive, lookup_private, for_class_var=True)
+		annos = {key: anno for key, anno in self.__recursive_annos(*lookup).items()}
 		return {key: Typehints.resolve_internal(attr, self._type.__module__) for key, attr in annos.items()}
 
-	def self_vars(self, lookup_private: bool = True) -> dict[str, Typehint]:
-		"""インスタンス変数の一覧を取得
+	def self_vars(self, recursive: bool = True, lookup_private: bool = False) -> dict[str, Typehint]:
+		"""インスタンス変数一覧を取得
 
 		Args:
-			lookup_private: True = プライベート変数を抽出 (default = True)
+			recursive: True = 再帰的に抽出 (default = True)
+			lookup_private: True = プライベート変数を抽出 (default = False)
 		Returns:
 			インスタンス変数一覧
 		"""
-		annos = {key: anno for key, anno in self.__recursive_annos(self._type, lookup_private, for_class_var=False).items()}
+		lookup = self.__var_lookup(self._type, recursive, lookup_private, for_class_var=False)
+		annos = {key: anno for key, anno in self.__recursive_annos(*lookup).items()}
 		return {key: Typehints.resolve_internal(attr, self._type.__module__) for key, attr in annos.items()}
 
-	def __recursive_annos(self, a_type: type[Any], lookup_private: bool, for_class_var: bool) -> dict[str, type[Any]]:
+	def __self_types(self, a_type: type[Any]) -> list[type[Any]]:
+		"""Args: a_type: 基点のタイプ Returns: タイプリスト(自身のみ)"""
+		return [a_type]
+
+	def __recursive_types(self, a_type: type[Any]) -> list[type[Any]]:
+		"""Args: a_type: 基点のタイプ Returns: タイプリスト(自身 + 継承チェーン)"""
+		return list(reversed(a_type.mro()))
+
+	def __is_private_attr(self, a_type: type[Any], key: str) -> bool:
+		"""Args: a_type: 基点のタイプ, key: 属性名 Returns: True = プライベート"""
+		return key.startswith(f'_{a_type.__name__}__')
+
+	def __is_class_var(self, anno: type[Any]) -> bool:
+		"""Args: a_type: 基点のタイプ, key: 属性名 Returns: True = クラス変数"""
+		return getattr(anno, '__origin__', anno) is ClassVar
+	
+	def __var_lookup(self, a_type: type[Any], recursive: bool, lookup_private: bool, for_class_var: bool) -> tuple[list[type[Any]], Callable[[type[Any], str, type[Any]], bool]]:
+		"""ルックアップを生成(変数用)
+
+		Args:
+			a_type: 基点のタイプ
+			recursive: True = 再帰的に抽出
+			lookup_private: True = プライベート変数を抽出
+			for_class_var: True = クラス変数のみ抽出, False = インスタンス変数のみ抽出
+		Returns:
+			(タイプリスト, 属性ルックアップ関数)
+		"""
+		to_lookup = {
+			(True, True): self.__lookup_class_var_all,
+			(True, False): self.__lookup_self_var_all,
+			(False, True): self.__lookup_class_var_expose,
+			(False, False): self.__lookup_self_var_expose,
+		}
+		each_types = self.__recursive_types(a_type) if recursive else self.__self_types(a_type)
+		return each_types, to_lookup[(lookup_private, for_class_var)]
+	
+	def __lookup_class_var_all(self, a_type: type[Any], key: str, anno: type[Any]) -> bool:
+		"""Args: a_type: 基点のタイプ, key: 属性名, anno: アノテーション Returns: True = 出力対象"""
+		return self.__is_class_var(anno)
+
+	def __lookup_self_var_all(self, a_type: type[Any], key: str, anno: type[Any]) -> bool:
+		"""Args: a_type: 基点のタイプ, key: 属性名, anno: アノテーション Returns: True = 出力対象"""
+		return not self.__is_class_var(anno)
+
+	def __lookup_class_var_expose(self, a_type: type[Any], key: str, anno: type[Any]) -> bool:
+		"""Args: a_type: 基点のタイプ, key: 属性名, anno: アノテーション Returns: True = 出力対象"""
+		return not self.__is_private_attr(a_type, key) and self.__is_class_var(anno)
+
+	def __lookup_self_var_expose(self, a_type: type[Any], key: str, anno: type[Any]) -> bool:
+		"""Args: a_type: 基点のタイプ, key: 属性名, anno: アノテーション Returns: True = 出力対象"""
+		return not self.__is_private_attr(a_type, key) and not self.__is_class_var(anno)
+
+	def __recursive_annos(self, each_types: list[type[Any]], lookup: Callable[[type[Any], str, type[Any]], bool]) -> dict[str, type[Any]]:
 		"""クラス階層を辿ってアノテーションを収集
 
 		Args:
@@ -347,14 +409,10 @@ class ClassTypehint(Typehint):
 			アノテーション一覧
 		"""
 		annos: dict[str, type[Any]] = {}
-		for at_type in reversed(a_type.mro()):
+		for at_type in each_types:
 			in_annos: dict[str, type[Any]] = getattr(at_type, '__annotations__', {})
 			for key, anno in in_annos.items():
-				if not lookup_private and key.startswith(f'_{at_type.__name__}__'):
-					continue
-
-				is_class_var = getattr(anno, '__origin__', anno) is ClassVar
-				if (for_class_var and not is_class_var) or (not for_class_var and is_class_var):
+				if not lookup(at_type, key, anno):
 					continue
 
 				origin, meta = OriginUnpacker.unpack(anno, at_type.__module__)

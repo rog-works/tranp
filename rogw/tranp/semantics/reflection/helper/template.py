@@ -8,7 +8,6 @@ from rogw.tranp.compatible.python.types import Union
 from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.errors import Errors
 from rogw.tranp.semantics.reflection.base import IReflection
-from rogw.tranp.syntax.node.node import Node
 
 T_Helper = TypeVar('T_Helper', bound='Helper')
 T_Schemata = TypeVar('T_Schemata', IReflection, list[IReflection])

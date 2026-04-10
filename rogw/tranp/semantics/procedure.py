@@ -1,4 +1,4 @@
-from typing import Generic, TypeVar, cast
+from typing import cast
 
 from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.errors import Errors
@@ -6,10 +6,8 @@ from rogw.tranp.lang.annotation import duck_typed
 from rogw.tranp.lang.eventemitter import Callback, EventEmitter, Observable
 from rogw.tranp.syntax.node.node import Node
 
-T_Ret = TypeVar('T_Ret')
 
-
-class Procedure(Generic[T_Ret]):
+class Procedure[T_Ret]:
 	"""ASTプロシージャー。ASTの階層を辿って各エントリーを逐次処理し、最終的にルート要素のハンドラーで統合した単一の結果を出力する
 	各処理はエントリーのNodeのclassificationに沿った名称でイベントハンドラーとして呼び出される
 

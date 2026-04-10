@@ -1,14 +1,11 @@
 from collections.abc import Sequence
 from itertools import chain
-from typing import Any, TypeVar, cast
-
-T_Seq = TypeVar('T_Seq')
-
+from typing import Any, cast
 
 flatten = chain.from_iterable
 
 
-def index_of(seq: Sequence[T_Seq], elem: T_Seq) -> int:
+def index_of[T](seq: Sequence[T], elem: T) -> int:
 	"""指定の要素を検出した初めのインデックスを返却。未検出の場合は-1を返却
 
 	Args:
@@ -20,7 +17,7 @@ def index_of(seq: Sequence[T_Seq], elem: T_Seq) -> int:
 	return seq.index(elem) if elem in seq else -1
 
 
-def last_index_of(seq: Sequence[T_Seq], elem: T_Seq) -> int:
+def last_index_of[T](seq: Sequence[T], elem: T) -> int:
 	"""指定の要素を検出した最後のインデックスを返却。未検出の場合は-1を返却
 
 	Args:

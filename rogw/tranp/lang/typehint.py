@@ -3,12 +3,9 @@ from collections.abc import Callable
 from enum import Enum, EnumType
 from importlib import import_module
 from types import FunctionType, MethodType, NoneType, UnionType
-from typing import Annotated, Any, ClassVar, ForwardRef, TypeAlias, TypeVar, Union, cast, get_origin
-
-from rogw.tranp.lang.annotation import implements
+from typing import Annotated, Any, ClassVar, ForwardRef, TypeAlias, Union, cast, get_origin, override
 
 FuncTypes: TypeAlias = FunctionType | MethodType | property | classmethod
-T_Meta = TypeVar('T_Meta')
 
 
 class FuncClasses(Enum):
@@ -34,7 +31,7 @@ class Typehint(metaclass=ABCMeta):
 		...
 
 	@abstractmethod
-	def meta(self, meta_type: type[T_Meta]) -> T_Meta | None:
+	def meta[T](self, meta_type: type[T]) -> T | None:
 		"""メタ情報を取得
 
 		Args:
@@ -79,7 +76,7 @@ class ScalarTypehint(Typehint):
 		self._meta = meta
 
 	@property
-	@implements
+	@override
 	def origin(self) -> type[Any]:
 		"""Returns: メインタイプ"""
 		if self.is_union:
@@ -89,13 +86,13 @@ class ScalarTypehint(Typehint):
 			return getattr(self._type, '__origin__', self._type)
 
 	@property
-	@implements
+	@override
 	def raw(self) -> type[Any]:
 		"""Returns: 元のタイプ"""
 		return self._type
 
-	@implements
-	def meta(self, meta_type: type[T_Meta]) -> T_Meta | None:
+	@override
+	def meta[T](self, meta_type: type[T]) -> T | None:
 		"""メタ情報を取得
 
 		Args:
@@ -176,19 +173,19 @@ class FunctionTypehint(Typehint):
 		self._meta = meta
 
 	@property
-	@implements
+	@override
 	def origin(self) -> type[Any]:
 		"""Returns: メインタイプ"""
 		return type(self._func)
 
 	@property
-	@implements
+	@override
 	def raw(self) -> FuncTypes | Callable:
 		"""Returns: 関数オブジェクト"""
 		return self._func
 
-	@implements
-	def meta(self, meta_type: type[T_Meta]) -> T_Meta | None:
+	@override
+	def meta[T](self, meta_type: type[T]) -> T | None:
 		"""メタ情報を取得
 
 		Args:
@@ -272,19 +269,19 @@ class ClassTypehint(Typehint):
 		self._meta = meta
 
 	@property
-	@implements
+	@override
 	def origin(self) -> type[Any]:
 		"""Returns: メインタイプ"""
 		return getattr(self._type, '__origin__', self._type)
 
 	@property
-	@implements
+	@override
 	def raw(self) -> type[Any]:
 		"""Returns: 元のタイプ"""
 		return self._type
 
-	@implements
-	def meta(self, meta_type: type[T_Meta]) -> T_Meta | None:
+	@override
+	def meta[T](self, meta_type: type[T]) -> T | None:
 		"""メタ情報を取得
 
 		Args:

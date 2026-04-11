@@ -233,7 +233,9 @@ class FunctionTypehint(Typehint):
 	def default_params(self) -> dict[str, Any | None]:
 		"""Returns: デフォルト引数一覧"""
 		defaults: dict[str, Any | None] = {}
-		for key, param in inspect_signature(self._raw).parameters.items():
+		# XXX castで警告を抑制
+		parameters = inspect_signature(cast(type, self.func)).parameters
+		for key, param in parameters.items():
 			if getattr(param.default, '__name__', '') != '_empty':
 				defaults[key] = param.default
 

@@ -312,7 +312,8 @@ class ClassTypehint(Typehint):
 	@property
 	def inherits(self) -> list[Typehint]:
 		"""Returns: 継承タイプリスト"""
-		return [Typehints.resolve_internal(inherit, self._raw.__module__) for inherit in self.origin.__bases__]
+		bases: list[type[Any]] = list(self.origin.__bases__)
+		return [Typehints.resolve_internal(inherit, self._raw.__module__) for inherit in bases]
 
 	@property
 	def sub_types(self) -> list[Typehint]:

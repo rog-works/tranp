@@ -57,7 +57,7 @@ class Annos:
 	ad: Annotated['dict[str, int]', 'meta']
 
 
-def func(n: int, fn: 'int', an: Annotated[int, 'meta'], afn: Annotated['int', 'meta']) -> str: ...
+def func(n: int = 0, fn: 'int' = 0, an: Annotated[int, 'meta'] = 0, afn: Annotated['int', 'meta'] = 0) -> str: ...
 
 
 class TestScalarTypehint(TestCase):
@@ -180,7 +180,12 @@ class TestFunctionTypehint(TestCase):
 		self.assertEqual(hint.returns.origin, expected['returns'])
 
 	@data_provider([
+		(Sub.cls_method, {}),
 		(Sub.self_method, {'d': {}}),
+		(Sub.prop, {}),
+		(_sub.cls_method, {}),
+		(_sub.self_method, {'d': {}}),
+		(func, {'n': 0, 'fn': 0, 'an': 0, 'afn': 0}),
 	])
 	def test_default_params(self, origin: Callable, expected: dict[str, Any]) -> None:
 		hint = FunctionTypehint(origin)

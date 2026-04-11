@@ -236,6 +236,7 @@ class FunctionTypehint(Typehint):
 		# XXX castで警告を抑制
 		parameters = inspect_signature(cast(type, self.func)).parameters
 		for key, param in parameters.items():
+			# XXX inspectの内部クラス`_empty`がデフォルト引数無しを表す
 			if getattr(param.default, '__name__', '') != '_empty':
 				defaults[key] = param.default
 

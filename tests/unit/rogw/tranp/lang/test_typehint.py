@@ -189,14 +189,6 @@ class TestFunctionTypehint(TestCase):
 
 class TestClassTypehint(TestCase):
 	@data_provider([
-		(Sub, Sub.__init__),
-		(Gen[str], Gen[str].__init__),
-	])
-	def test_constructor(self, origin: type, expected: Callable) -> None:
-		hint = ClassTypehint(origin)
-		self.assertEqual(hint.constructor.raw, expected)
-
-	@data_provider([
 		(Sub, {'origin': Sub, 'raw': Sub}),
 		(Gen[str], {'origin': Gen, 'raw': Gen[str]}),
 	])
@@ -206,6 +198,17 @@ class TestClassTypehint(TestCase):
 		self.assertEqual(hint.raw, expected['raw'])
 
 	@data_provider([
+		(Sub, [Base]),
+		(Gen[str], [Generic]),
+		(Annos, [object]),  # XXX objectの継承の明示が必要かどうかは要検討
+	])
+	def test_inherits(self, origin: type, expected: list[type[Any]]) -> None:
+		hint = ClassTypehint(origin)
+		inhertis = hint.inherits
+		self.assertEqual([inherit.origin for inherit in inhertis], expected)
+		self.assertEqual([inherit.raw for inherit in inhertis], expected)
+
+	@data_provider([
 		(Sub, {'is_generic': False, 'sub_types': []}),
 		(Gen[str], {'is_generic': True, 'sub_types': [str]}),
 	])
@@ -213,6 +216,14 @@ class TestClassTypehint(TestCase):
 		hint = ClassTypehint(origin)
 		self.assertEqual(hint.is_generic, expected['is_generic'])
 		self.assertEqual([sub_type.origin for sub_type in hint.sub_types], expected['sub_types'])
+
+	@data_provider([
+		(Sub, Sub.__init__),
+		(Gen[str], Gen[str].__init__),
+	])
+	def test_constructor(self, origin: type, expected: Callable) -> None:
+		hint = ClassTypehint(origin)
+		self.assertEqual(hint.constructor.raw, expected)
 
 	@data_provider([
 		(Sub, {'inherit': True, 'private': False}, {'cn': (int, None), 'cl': (list, None)}),

@@ -310,6 +310,11 @@ class ClassTypehint(Typehint):
 		return hasattr(self._raw, '__origin__')
 
 	@property
+	def inherits(self) -> list[Typehint]:
+		"""Returns: 継承タイプリスト"""
+		return [Typehints.resolve_internal(inherit, self._raw.__module__) for inherit in self.origin.__bases__]
+
+	@property
 	def sub_types(self) -> list[Typehint]:
 		"""Returns: ジェネリック型のサブタイプのリスト"""
 		sub_annos: list[type[Any]] = getattr(self._raw, '__args__', [])

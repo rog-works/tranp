@@ -2,6 +2,7 @@ from abc import ABCMeta, abstractmethod
 from collections.abc import Callable
 from enum import Enum, EnumType
 from importlib import import_module
+from inspect import signature as inspect_signature
 from types import FunctionType, MethodType, NoneType, UnionType
 from typing import Annotated, Any, ClassVar, ForwardRef, TypeAlias, Union, cast, get_origin, override
 
@@ -220,13 +221,23 @@ class FunctionTypehint(Typehint):
 
 	@property
 	def params(self) -> dict[str, Typehint]:
-		"""Returns: 仮引数リスト"""
+		"""Returns: 仮引数一覧"""
 		return {key: Typehints.resolve_internal(in_type, self.__via_module_path) for key, in_type in self.__annos.items() if key != 'return'}
 
 	@property
 	def returns(self) -> Typehint:
 		"""Returns: 戻り値"""
 		return Typehints.resolve_internal(self.__annos['return'], self.__via_module_path)
+
+	@property
+	def default_params(self) -> dict[str, Any | None]:
+		"""Returns: デフォルト引数一覧"""
+		defaults: dict[str, Any | None] = {}
+		for key, param in inspect_signature(self._raw).parameters.items():
+			if getattr(param.default, '__name__', '') != '_empty':
+				defaults[key] = param.default
+
+		return defaults
 
 	@property
 	def __via_module_path(self) -> str:

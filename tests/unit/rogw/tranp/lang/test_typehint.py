@@ -44,7 +44,7 @@ class Sub(Base):
 		self.obj = Base()
 		self.p = None
 
-	def self_method(self, l: list[int], d: 'dict[str, int]') -> 'tuple[str, int, bool]': ...
+	def self_method(self, l: list[int], d: 'dict[str, int]' = {}) -> 'tuple[str, int, bool]': ...
 
 	@property
 	def prop(self) -> int: ...
@@ -176,8 +176,15 @@ class TestFunctionTypehint(TestCase):
 	])
 	def test_signature(self, origin: Callable, expected: dict[str, Any]) -> None:
 		hint = FunctionTypehint(origin)
-		self.assertEqual({key: arg.origin for key, arg in hint.params.items()}, expected['params'])
+		self.assertEqual({key: param.origin for key, param in hint.params.items()}, expected['params'])
 		self.assertEqual(hint.returns.origin, expected['returns'])
+
+	@data_provider([
+		(Sub.self_method, {'d': {}}),
+	])
+	def test_default_params(self, origin: Callable, expected: dict[str, Any]) -> None:
+		hint = FunctionTypehint(origin)
+		self.assertEqual(hint.default_params, expected)
 
 
 class TestClassTypehint(TestCase):

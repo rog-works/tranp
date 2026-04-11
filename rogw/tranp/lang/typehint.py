@@ -2,6 +2,7 @@ from abc import ABCMeta, abstractmethod
 from collections.abc import Callable
 from enum import Enum, EnumType
 from importlib import import_module
+from inspect import signature as inspect_signature
 from types import FunctionType, MethodType, NoneType, UnionType
 from typing import Annotated, Any, ClassVar, ForwardRef, TypeAlias, Union, cast, get_origin, override
 
@@ -62,7 +63,7 @@ class ScalarTypehint(Typehint):
 		```
 	"""
 
-	_type: type[Any]
+	_raw: type[Any]
 	_meta: Any | None
 
 	def __init__(self, scalar_type: type[Any], meta: Any | None = None) -> None:
@@ -72,7 +73,7 @@ class ScalarTypehint(Typehint):
 			scalar_type: タイプ
 			meta: メタ情報 (default = None)
 		"""
-		self._type = scalar_type
+		self._raw = scalar_type
 		self._meta = meta
 
 	@property
@@ -83,13 +84,13 @@ class ScalarTypehint(Typehint):
 			# XXX Union型の場合はUnionTypeを返却。UnionTypeはtypeと互換性が無いと判断されるため実装例に倣う @see types.py UnionType
 			return type(int | str)
 		else:
-			return getattr(self._type, '__origin__', self._type)
+			return getattr(self._raw, '__origin__', self._raw)
 
 	@property
 	@override
 	def raw(self) -> type[Any]:
 		"""Returns: 元のタイプ"""
-		return self._type
+		return self._raw
 
 	@override
 	def meta[T](self, meta_type: type[T]) -> T | None:
@@ -107,17 +108,17 @@ class ScalarTypehint(Typehint):
 	@property
 	def is_null(self) -> bool:
 		"""Returns: True = None"""
-		return self._type is None or self._type is NoneType
+		return self._raw is None or self._raw is NoneType
 
 	@property
 	def is_generic(self) -> bool:
 		"""Returns: True = ジェネリック型"""
-		return getattr(self._type, '__origin__', self._type) in [list, dict, tuple, type]
+		return getattr(self._raw, '__origin__', self._raw) in [list, dict, tuple, type]
 
 	@property
 	def is_union(self) -> bool:
 		"""Returns: True = Union型"""
-		return type(self._type) is UnionType or getattr(self._type, '__origin__', self._type) is Union
+		return type(self._raw) is UnionType or getattr(self._raw, '__origin__', self._raw) is Union
 
 	@property
 	def is_nullable(self) -> bool:
@@ -127,7 +128,7 @@ class ScalarTypehint(Typehint):
 	@property
 	def is_enum(self) -> bool:
 		"""Returns: True = Enum型"""
-		return type(self._type) is EnumType
+		return type(self._raw) is EnumType
 
 	@property
 	def sub_types(self) -> list[Typehint]:
@@ -137,7 +138,7 @@ class ScalarTypehint(Typehint):
 	@property
 	def __sub_annos(self) -> list[type[Any]]:
 		"""Returns: ジェネリック/Union型のサブタイプのリスト"""
-		return getattr(self._type, '__args__', [])
+		return getattr(self._raw, '__args__', [])
 
 	@property
 	def enum_members(self) -> list[Enum]:
@@ -158,7 +159,7 @@ class FunctionTypehint(Typehint):
 		```
 	"""
 
-	_func: FuncTypes | Callable
+	_raw: FuncTypes | Callable
 	_meta: Any | None
 
 	def __init__(self, func: FuncTypes | Callable, meta: Any | None = None) -> None:
@@ -167,22 +168,22 @@ class FunctionTypehint(Typehint):
 		Args:
 			func: 関数オブジェクト
 		Note:
-			XXX コンストラクターはFuncTypeに当てはまらないため、Callableとして受け付ける
+			XXX コンストラクターはFuncTypesに当てはまらないため、Callableとして受け付ける
 		"""
-		self._func = func
+		self._raw = func
 		self._meta = meta
 
 	@property
 	@override
 	def origin(self) -> type[Any]:
 		"""Returns: メインタイプ"""
-		return type(self._func)
+		return type(self._raw)
 
 	@property
 	@override
 	def raw(self) -> FuncTypes | Callable:
-		"""Returns: 関数オブジェクト"""
-		return self._func
+		"""Returns: 元のタイプ"""
+		return self._raw
 
 	@override
 	def meta[T](self, meta_type: type[T]) -> T | None:
@@ -198,6 +199,11 @@ class FunctionTypehint(Typehint):
 		return self._meta
 
 	@property
+	def func(self) -> FuncTypes | Callable:
+		"""Returns: 関数オブジェクト"""
+		return getattr(self._raw, 'fget') if self.origin is property else self._raw
+
+	@property
 	def func_class(self) -> FuncClasses:
 		"""関数の種別を取得
 
@@ -206,7 +212,7 @@ class FunctionTypehint(Typehint):
 		Note:
 			XXX Pythonではメソッドはオブジェクトに動的にバインドされるため、タイプから関数オブジェクトを取得した場合、メソッドとして判定する方法がない ※Pythonの仕様
 		"""
-		if self.origin is classmethod or isinstance(getattr(self._func, '__self__', None), type):
+		if self.origin is classmethod or isinstance(getattr(self._raw, '__self__', None), type):
 			return FuncClasses.ClassMethod
 		elif self.origin in [MethodType, property]:
 			return FuncClasses.Method
@@ -214,8 +220,8 @@ class FunctionTypehint(Typehint):
 			return FuncClasses.Function
 
 	@property
-	def args(self) -> dict[str, Typehint]:
-		"""Returns: 引数リスト"""
+	def params(self) -> dict[str, Typehint]:
+		"""Returns: 仮引数一覧"""
 		return {key: Typehints.resolve_internal(in_type, self.__via_module_path) for key, in_type in self.__annos.items() if key != 'return'}
 
 	@property
@@ -224,22 +230,27 @@ class FunctionTypehint(Typehint):
 		return Typehints.resolve_internal(self.__annos['return'], self.__via_module_path)
 
 	@property
+	def default_params(self) -> dict[str, Any | None]:
+		"""Returns: デフォルト引数一覧"""
+		defaults: dict[str, Any | None] = {}
+		# XXX castで警告を抑制
+		parameters = inspect_signature(cast(type, self.func)).parameters
+		for key, param in parameters.items():
+			# XXX inspectの内部クラス`_empty`がデフォルト引数無しを表す
+			if getattr(param.default, '__name__', '') != '_empty':
+				defaults[key] = param.default
+
+		return defaults
+
+	@property
 	def __via_module_path(self) -> str:
 		"""Returns: 関数由来のモジュールパス"""
-		if isinstance(self._func, property):
-			# propertyは`__module__`が無いため、元の関数オブジェクトを通して取得する
-			return getattr(self._func, 'fget').__module__
-		else:
-			return self._func.__module__
+		return self.func.__module__
 
 	@property
 	def __annos(self) -> dict[str, type[Any]]:
 		"""Returns: タイプヒントのリスト"""
-		if isinstance(self._func, property):
-			# propertyは`__annotations__`が無いため、元の関数オブジェクトを通して取得する
-			return getattr(self._func, 'fget').__annotations__
-		else:
-			return self._func.__annotations__
+		return self.func.__annotations__
 
 
 class ClassTypehint(Typehint):
@@ -256,7 +267,7 @@ class ClassTypehint(Typehint):
 		```
 	"""
 
-	_type: type[Any]
+	_raw: type[Any]
 	_meta: Any | None
 
 	def __init__(self, class_type: type[Any], meta: Any | None = None) -> None:
@@ -265,20 +276,20 @@ class ClassTypehint(Typehint):
 		Args:
 			class_type: クラス
 		"""
-		self._type = class_type
+		self._raw = class_type
 		self._meta = meta
 
 	@property
 	@override
 	def origin(self) -> type[Any]:
 		"""Returns: メインタイプ"""
-		return getattr(self._type, '__origin__', self._type)
+		return getattr(self._raw, '__origin__', self._raw)
 
 	@property
 	@override
 	def raw(self) -> type[Any]:
 		"""Returns: 元のタイプ"""
-		return self._type
+		return self._raw
 
 	@override
 	def meta[T](self, meta_type: type[T]) -> T | None:
@@ -296,92 +307,193 @@ class ClassTypehint(Typehint):
 	@property
 	def is_generic(self) -> bool:
 		"""Returns: True = ジェネリック型"""
-		return hasattr(self._type, '__origin__')
+		return hasattr(self._raw, '__origin__')
+
+	@property
+	def inherits(self) -> list[Typehint]:
+		"""Returns: 継承タイプリスト"""
+		return [Typehints.resolve_internal(inherit, self._raw.__module__) for inherit in self.origin.__bases__]
 
 	@property
 	def sub_types(self) -> list[Typehint]:
 		"""Returns: ジェネリック型のサブタイプのリスト"""
-		sub_annos: list[type[Any]] = getattr(self._type, '__args__', [])
-		return [Typehints.resolve_internal(sub_type, self._type.__module__) for sub_type in sub_annos]
+		sub_annos: list[type[Any]] = getattr(self._raw, '__args__', [])
+		return [Typehints.resolve_internal(sub_type, self._raw.__module__) for sub_type in sub_annos]
 
 	@property
 	def constructor(self) -> FunctionTypehint:
 		"""Returns: コンストラクター"""
-		return FunctionTypehint(self._type.__init__)
+		return FunctionTypehint(self._raw.__init__)
 
-	@property
-	def methods(self) -> dict[str, FunctionTypehint]:
-		"""Returns: メソッド一覧"""
-		return {key: FunctionTypehint(prop) for key, prop in self.__recursive_methods(self._type).items()}
-
-	def class_vars(self, lookup_private: bool = True) -> dict[str, Typehint]:
-		"""クラス変数の一覧を取得
+	def methods(self, with_inherit: bool = True, with_private: bool = False, with_special: bool = False) -> dict[str, FunctionTypehint]:
+		"""メソッド一覧を取得
 
 		Args:
-			lookup_private: True = プライベート変数を抽出 (default = True)
+			with_inherit: True = 継承チェーンを再帰的に抽出 (default = True)
+			with_private: True = プライベートを抽出 (default = False)
+			with_special: True = 特殊メソッドを抽出 (default = False)
+		Returns:
+			メソッド一覧
+		"""
+		methods = self.__lookup_methods(*self.__method_lookup_info(with_inherit, with_private, with_special))
+		return {key: FunctionTypehint(prop) for key, prop in methods.items()}
+
+	def class_vars(self, with_inherit: bool = True, with_private: bool = False) -> dict[str, Typehint]:
+		"""クラス変数一覧を取得
+
+		Args:
+			with_inherit: True = 継承チェーンを再帰的に抽出 (default = True)
+			with_private: True = プライベートを抽出 (default = False)
 		Returns:
 			クラス変数一覧
 		"""
-		annos = {key: anno for key, anno in self.__recursive_annos(self._type, lookup_private, for_class_var=True).items()}
-		return {key: Typehints.resolve_internal(attr, self._type.__module__) for key, attr in annos.items()}
+		vars = self.__lookup_vars(*self.__var_lookup_info(with_inherit, with_private, for_class_var=True))
+		return {key: Typehints.resolve_internal(attr, self._raw.__module__) for key, attr in vars.items()}
 
-	def self_vars(self, lookup_private: bool = True) -> dict[str, Typehint]:
-		"""インスタンス変数の一覧を取得
+	def self_vars(self, with_inherit: bool = True, with_private: bool = False) -> dict[str, Typehint]:
+		"""インスタンス変数一覧を取得
 
 		Args:
-			lookup_private: True = プライベート変数を抽出 (default = True)
+			with_inherit: True = 継承チェーンを再帰的に抽出 (default = True)
+			with_private: True = プライベートを抽出 (default = False)
 		Returns:
 			インスタンス変数一覧
 		"""
-		annos = {key: anno for key, anno in self.__recursive_annos(self._type, lookup_private, for_class_var=False).items()}
-		return {key: Typehints.resolve_internal(attr, self._type.__module__) for key, attr in annos.items()}
+		vars = self.__lookup_vars(*self.__var_lookup_info(with_inherit, with_private, for_class_var=False))
+		return {key: Typehints.resolve_internal(attr, self._raw.__module__) for key, attr in vars.items()}
 
-	def __recursive_annos(self, a_type: type[Any], lookup_private: bool, for_class_var: bool) -> dict[str, type[Any]]:
-		"""クラス階層を辿ってアノテーションを収集
+	def __method_lookup_info(self, with_inherit: bool, with_private: bool, with_special: bool) -> tuple[list[type[Any]], Callable[[type[Any], str, Any], bool]]:
+		"""ルックアップ情報を生成(メソッド用)
 
 		Args:
-			a_type: タイプ
-			lookup_private: True = プライベート変数を抽出
+			with_inherit: True = 継承チェーンを再帰的に抽出
+			with_private: True = プライベートを抽出
+			with_special: True = 特殊メソッドを抽出
+		Returns:
+			(タイプリスト, 出力判定関数)
+		"""
+		to_allowed = {
+			(True, True): self.__allow_method_all,
+			(True, False): self.__allow_method_general,
+			(False, True): self.__allow_method_expose,
+			(False, False): self.__allow_method_expose_general,
+		}
+		each_types = self.__recursive_types() if with_inherit else self.__self_types()
+		return each_types, to_allowed[with_private, with_special]
+
+	def __allow_method_all(self, a_type: type[Any], key: str, attr: Any) -> bool:
+		"""Args: a_type: 保有クラス, key: 属性名, attr: 属性 Returns: True = 出力対象"""
+		return isinstance(attr, FuncTypes)
+
+	def __allow_method_general(self, a_type: type[Any], key: str, attr: Any) -> bool:
+		"""Args: a_type: 保有クラス, key: 属性名, attr: 属性 Returns: True = 出力対象"""
+		return isinstance(attr, FuncTypes) and not self.__is_special_method(key)
+
+	def __allow_method_expose(self, a_type: type[Any], key: str, attr: Any) -> bool:
+		"""Args: a_type: 保有クラス, key: 属性名, attr: 属性 Returns: True = 出力対象"""
+		return isinstance(attr, FuncTypes) and not self.__is_private_attr(a_type, key)
+
+	def __allow_method_expose_general(self, a_type: type[Any], key: str, attr: Any) -> bool:
+		"""Args: a_type: 保有クラス, key: 属性名, attr: 属性 Returns: True = 出力対象"""
+		return isinstance(attr, FuncTypes) and not self.__is_private_attr(a_type, key) and not self.__is_special_method(key)
+	
+	def __var_lookup_info(self, with_inherit: bool, with_private: bool, for_class_var: bool) -> tuple[list[type[Any]], Callable[[type[Any], str, type[Any]], bool]]:
+		"""ルックアップ情報を生成(変数用)
+
+		Args:
+			with_inherit: True = 継承チェーンを再帰的に抽出
+			with_private: True = プライベートを抽出
 			for_class_var: True = クラス変数のみ抽出, False = インスタンス変数のみ抽出
 		Returns:
-			アノテーション一覧
+			(タイプリスト, 出力判定関数)
 		"""
-		annos: dict[str, type[Any]] = {}
-		for at_type in reversed(a_type.mro()):
+		to_allowed = {
+			(True, True): self.__allow_class_var_all,
+			(True, False): self.__allow_self_var_all,
+			(False, True): self.__allow_class_var_expose,
+			(False, False): self.__allow_self_var_expose,
+		}
+		each_types = self.__recursive_types() if with_inherit else self.__self_types()
+		return each_types, to_allowed[(with_private, for_class_var)]
+	
+	def __allow_class_var_all(self, a_type: type[Any], key: str, anno: type[Any]) -> bool:
+		"""Args: a_type: 保有クラス, key: 属性名, anno: アノテーション Returns: True = 出力対象"""
+		return self.__is_class_var(anno)
+
+	def __allow_self_var_all(self, a_type: type[Any], key: str, anno: type[Any]) -> bool:
+		"""Args: a_type: 保有クラス, key: 属性名, anno: アノテーション Returns: True = 出力対象"""
+		return not self.__is_class_var(anno)
+
+	def __allow_class_var_expose(self, a_type: type[Any], key: str, anno: type[Any]) -> bool:
+		"""Args: a_type: 保有クラス, key: 属性名, anno: アノテーション Returns: True = 出力対象"""
+		return not self.__is_private_attr(a_type, key) and self.__is_class_var(anno)
+
+	def __allow_self_var_expose(self, a_type: type[Any], key: str, anno: type[Any]) -> bool:
+		"""Args: a_type: 保有クラス, key: 属性名, anno: アノテーション Returns: True = 出力対象"""
+		return not self.__is_private_attr(a_type, key) and not self.__is_class_var(anno)
+
+	def __self_types(self) -> list[type[Any]]:
+		"""Returns: タイプリスト(自身のみ)"""
+		return [self._raw]
+
+	def __recursive_types(self) -> list[type[Any]]:
+		"""Returns: タイプリスト(自身 + 継承チェーン)"""
+		return list(reversed(self._raw.mro()))
+
+	def __is_private_attr(self, a_type: type[Any], key: str) -> bool:
+		"""Args: a_type: 保有クラス, key: 属性名 Returns: True = プライベート"""
+		return key.startswith(f'_{a_type.__name__}__')
+
+	def __is_special_method(self, key: str) -> bool:
+		"""Args: key: 属性名 Returns: True = 特殊メソッド"""
+		return key.startswith('__') and key.endswith('__')
+
+	def __is_class_var(self, anno: type[Any]) -> bool:
+		"""Args: a_type: 保有クラス, key: 属性名 Returns: True = クラス変数"""
+		return getattr(anno, '__origin__', anno) is ClassVar
+
+	def __lookup_methods(self, each_types: list[type[Any]], allowed: Callable[[type[Any], str, Any], bool]) -> dict[str, FuncTypes]:
+		"""クラス階層を辿ってメソッドを収集
+
+		Args:
+			each_types: タイプリスト
+			allowed: 出力判定関数
+		Returns:
+			メソッド一覧
+		"""
+		_methods: dict[str, FuncTypes] = {}
+		for at_type in each_types:
+			for key, attr in at_type.__dict__.items():
+				if allowed(at_type, key, attr):
+					_methods[key] = attr
+
+		return _methods
+
+	def __lookup_vars(self, each_types: list[type[Any]], allowed: Callable[[type[Any], str, type[Any]], bool]) -> dict[str, type[Any]]:
+		"""クラス階層を辿って変数を収集
+
+		Args:
+			each_types: タイプリスト
+			allowed: 出力判定関数
+		Returns:
+			変数一覧
+		"""
+		vars: dict[str, type[Any]] = {}
+		for at_type in each_types:
 			in_annos: dict[str, type[Any]] = getattr(at_type, '__annotations__', {})
 			for key, anno in in_annos.items():
-				if not lookup_private and key.startswith(f'_{at_type.__name__}__'):
-					continue
-
-				is_class_var = getattr(anno, '__origin__', anno) is ClassVar
-				if (for_class_var and not is_class_var) or (not for_class_var and is_class_var):
+				if not allowed(at_type, key, anno):
 					continue
 
 				origin, meta = OriginUnpacker.unpack(anno, at_type.__module__)
 				# FIXME 型の不一致は一旦castで対処
 				# XXX メタ情報が含まれる場合はAnnotatedを復元
 				if meta is not None:
-					annos[key] = cast(type, Annotated[origin, meta])
+					vars[key] = cast(type, Annotated[origin, meta])
 				else:
-					annos[key] = cast(type, origin)
+					vars[key] = cast(type, origin)
 
-		return annos
-
-	def __recursive_methods(self, a_type: type[Any]) -> dict[str, FuncTypes]:
-		"""クラス階層を辿ってメソッドを収集
-
-		Args:
-			a_type: タイプ
-		Returns:
-			メソッド一覧
-		"""
-		_methods: dict[str, FuncTypes] = {}
-		for at_type in reversed(a_type.mro()):
-			for key, attr in at_type.__dict__.items():
-				if isinstance(attr, FuncTypes):
-					_methods[key] = attr
-
-		return _methods
+		return vars
 
 
 class OriginUnpacker:

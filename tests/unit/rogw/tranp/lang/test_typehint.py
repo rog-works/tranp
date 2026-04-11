@@ -44,7 +44,7 @@ class Sub(Base):
 		self.obj = Base()
 		self.p = None
 
-	def self_method(self, l: list[int], d: 'dict[str, int]') -> 'tuple[str, int, bool]': ...
+	def self_method(self, l: list[int], d: 'dict[str, int]' = {}) -> 'tuple[str, int, bool]': ...
 
 	@property
 	def prop(self) -> int: ...
@@ -138,18 +138,19 @@ class TestFunctionTypehint(TestCase):
 	_sub: ClassVar[Sub] = Sub()
 
 	@data_provider([
-		(Sub.__init__, {'origin': FunctionType, 'raw': Sub.__init__}),
-		(Sub.cls_method, {'origin': MethodType, 'raw': Sub.cls_method}),
-		(Sub.self_method, {'origin': FunctionType, 'raw': Sub.self_method}),
-		(Sub.prop, {'origin': property, 'raw': Sub.prop}),
-		(_sub.cls_method, {'origin': MethodType, 'raw': _sub.cls_method}),
-		(_sub.self_method, {'origin': MethodType, 'raw': _sub.self_method}),
-		(func, {'origin': FunctionType, 'raw': func}),
+		(Sub.__init__, {'origin': FunctionType, 'raw': Sub.__init__, 'func': Sub.__init__}),
+		(Sub.cls_method, {'origin': MethodType, 'raw': Sub.cls_method, 'func': Sub.cls_method}),
+		(Sub.self_method, {'origin': FunctionType, 'raw': Sub.self_method, 'func': Sub.self_method}),
+		(Sub.prop, {'origin': property, 'raw': Sub.prop, 'func': getattr(Sub.prop, 'fget')}),
+		(_sub.cls_method, {'origin': MethodType, 'raw': _sub.cls_method, 'func': _sub.cls_method}),
+		(_sub.self_method, {'origin': MethodType, 'raw': _sub.self_method, 'func': _sub.self_method}),
+		(func, {'origin': FunctionType, 'raw': func, 'func': func}),
 	])
 	def test_origins(self, origin: Callable, expected: dict[str, Any]) -> None:
 		hint = FunctionTypehint(origin)
 		self.assertEqual(hint.origin, expected['origin'])
 		self.assertEqual(hint.raw, expected['raw'])
+		self.assertEqual(hint.func, expected['func'])
 
 	@data_provider([
 		(Sub.__init__, FuncClasses.Function),  # XXX タイプから取得した場合、メソッドであるか否かを判別できない ※Pythonの仕様
@@ -160,34 +161,33 @@ class TestFunctionTypehint(TestCase):
 		(_sub.self_method, FuncClasses.Method),
 		(func, FuncClasses.Function),
 	])
-	def test_func_type(self, origin: Callable, expected: FuncClasses) -> None:
+	def test_func_class(self, origin: Callable, expected: FuncClasses) -> None:
 		hint = FunctionTypehint(origin)
 		self.assertEqual(hint.func_class, expected)
 
 	@data_provider([
-		(Sub.__init__, {'args': {}, 'returns': None}),
-		(Sub.cls_method, {'args': {'n': int}, 'returns': str}),
-		(Sub.self_method, {'args': {'l': list, 'd': dict}, 'returns': tuple}),
-		(Sub.prop, {'args': {}, 'returns': int}),
-		(_sub.cls_method, {'args': {'n': int}, 'returns': str}),
-		(_sub.self_method, {'args': {'l': list, 'd': dict}, 'returns': tuple}),
-		(func, {'args': {'n': int, 'fn': int, 'an': int, 'afn': int}, 'returns': str}),
+		(Sub.__init__, {'params': {}, 'returns': None}),
+		(Sub.cls_method, {'params': {'n': int}, 'returns': str}),
+		(Sub.self_method, {'params': {'l': list, 'd': dict}, 'returns': tuple}),
+		(Sub.prop, {'params': {}, 'returns': int}),
+		(_sub.cls_method, {'params': {'n': int}, 'returns': str}),
+		(_sub.self_method, {'params': {'l': list, 'd': dict}, 'returns': tuple}),
+		(func, {'params': {'n': int, 'fn': int, 'an': int, 'afn': int}, 'returns': str}),
 	])
 	def test_signature(self, origin: Callable, expected: dict[str, Any]) -> None:
 		hint = FunctionTypehint(origin)
-		self.assertEqual({key: arg.origin for key, arg in hint.args.items()}, expected['args'])
+		self.assertEqual({key: param.origin for key, param in hint.params.items()}, expected['params'])
 		self.assertEqual(hint.returns.origin, expected['returns'])
+
+	@data_provider([
+		(Sub.self_method, {'d': {}}),
+	])
+	def test_default_params(self, origin: Callable, expected: dict[str, Any]) -> None:
+		hint = FunctionTypehint(origin)
+		self.assertEqual(hint.default_params, expected)
 
 
 class TestClassTypehint(TestCase):
-	@data_provider([
-		(Sub, Sub.__init__),
-		(Gen[str], Gen[str].__init__),
-	])
-	def test_constructor(self, origin: type, expected: Callable) -> None:
-		hint = ClassTypehint(origin)
-		self.assertEqual(hint.constructor.raw, expected)
-
 	@data_provider([
 		(Sub, {'origin': Sub, 'raw': Sub}),
 		(Gen[str], {'origin': Gen, 'raw': Gen[str]}),
@@ -196,6 +196,17 @@ class TestClassTypehint(TestCase):
 		hint = ClassTypehint(origin)
 		self.assertEqual(hint.origin, expected['origin'])
 		self.assertEqual(hint.raw, expected['raw'])
+
+	@data_provider([
+		(Sub, [Base]),
+		(Gen[str], [Generic]),
+		(Annos, [object]),  # XXX objectの継承の明示が必要かどうかは要検討
+	])
+	def test_inherits(self, origin: type, expected: list[type[Any]]) -> None:
+		hint = ClassTypehint(origin)
+		inhertis = hint.inherits
+		self.assertEqual([inherit.origin for inherit in inhertis], expected)
+		self.assertEqual([inherit.raw for inherit in inhertis], expected)
 
 	@data_provider([
 		(Sub, {'is_generic': False, 'sub_types': []}),
@@ -207,27 +218,45 @@ class TestClassTypehint(TestCase):
 		self.assertEqual([sub_type.origin for sub_type in hint.sub_types], expected['sub_types'])
 
 	@data_provider([
-		(Sub, {
-			'class_vars': {'cn': (int, None), 'cl': (list, None)},
-			'self_vars': {'an': (int, 'meta'), 'd': (dict, None), 't': (tuple, None), 'obj': (Base, None), 'p': (UnionType, None)},
-			'methods': [Sub.__init__.__name__, Sub.cls_method.__name__, Sub.self_method.__name__, 'prop'],
-		}),
-		(Gen[str], {
-			'class_vars': {},
-			'self_vars': {},
-			'methods': [],
-		}),
-		(Annos, {
-			'class_vars': {'cls_self': (UnionType, 'meta')},
-			'self_vars': {'a_imported': (ScalarTypehint, 'meta'), 'an': (int, 'meta'), 'ad': (dict, 'meta')},
-			'methods': [],
-		}),
+		(Sub, Sub.__init__),
+		(Gen[str], Gen[str].__init__),
 	])
-	def test_schema(self, origin: type, expected: dict[str, Any]) -> None:
+	def test_constructor(self, origin: type, expected: Callable) -> None:
 		hint = ClassTypehint(origin)
-		self.assertEqual({key: (var.origin, var.meta(str)) for key, var in hint.class_vars().items()}, expected['class_vars'])
-		self.assertEqual({key: (var.origin, var.meta(str)) for key, var in hint.self_vars(lookup_private=False).items()}, expected['self_vars'])
-		self.assertEqual([key for key in hint.methods.keys()], expected['methods'])
+		self.assertEqual(hint.constructor.raw, expected)
+
+	@data_provider([
+		(Sub, {'inherit': True, 'private': False}, {'cn': (int, None), 'cl': (list, None)}),
+		(Sub, {'inherit': False, 'private': False}, {'cl': (list, None)}),
+		(Gen[str], {'inherit': True, 'private': False}, {}),
+		(Annos, {'inherit': True, 'private': False}, {'cls_self': (UnionType, 'meta')}),
+	])
+	def test_class_vars(self, origin: type, flags: dict[str, bool], expected: dict[str, Any]) -> None:
+		hint = ClassTypehint(origin)
+		vars = hint.class_vars(with_inherit=flags['inherit'], with_private=flags['private'])
+		self.assertEqual({key: (var.origin, var.meta(str)) for key, var in vars.items()}, expected)
+
+	@data_provider([
+		(Sub, {'inherit': True, 'private': False}, {'an': (int, 'meta'), 'd': (dict, None), 't': (tuple, None), 'obj': (Base, None), 'p': (UnionType, None)}),
+		(Sub, {'inherit': False, 'private': False}, {'t': (tuple, None), 'obj': (Base, None), 'p': (UnionType, None)}),
+		(Gen[str], {'inherit': True, 'private': False}, {}),
+		(Annos, {'inherit': True, 'private': False}, {'a_imported': (ScalarTypehint, 'meta'), 'an': (int, 'meta'), 'ad': (dict, 'meta')}),
+	])
+	def test_self_vars(self, origin: type, flags: dict[str, bool], expected: dict[str, Any]) -> None:
+		hint = ClassTypehint(origin)
+		vars = hint.self_vars(with_inherit=flags['inherit'], with_private=flags['private'])
+		self.assertEqual({key: (var.origin, var.meta(str)) for key, var in vars.items()}, expected)
+
+	@data_provider([
+		(Sub, {'inherit': True, 'private': False, 'special': False}, [Sub.cls_method.__name__, Sub.self_method.__name__, 'prop']),
+		(Sub, {'inherit': True, 'private': False, 'special': True}, [Sub.__init__.__name__, Sub.cls_method.__name__, Sub.self_method.__name__, 'prop']),
+		(Gen[str], {'inherit': True, 'private': False, 'special': False}, []),
+		(Annos, {'inherit': True, 'private': False, 'special': False}, []),
+	])
+	def test_methods(self, origin: type, flags: dict[str, bool], expected: list[Any]) -> None:
+		hint = ClassTypehint(origin)
+		methods = hint.methods(with_inherit=flags['inherit'], with_private=flags['private'], with_special=flags['special'])
+		self.assertEqual([key for key in methods.keys()], expected)
 
 
 class TestTypehints(TestCase):
@@ -264,22 +293,22 @@ class TestTypehints(TestCase):
 			'meta': {'class_vars': {'cn': None, 'cl': None}, 'self_vars': {'an': 'meta', 'd': None, 't': None, 'obj': None, 'p': None}},
 		}),
 		(func, {
-			'type': {'args': {'n': ScalarTypehint, 'fn': ScalarTypehint, 'an': ScalarTypehint, 'afn': ScalarTypehint}, 'returns': ScalarTypehint},
-			'meta': {'args': {'n': None, 'fn': None, 'an': 'meta', 'afn': 'meta'}, 'returns': None},
+			'type': {'params': {'n': ScalarTypehint, 'fn': ScalarTypehint, 'an': ScalarTypehint, 'afn': ScalarTypehint}, 'returns': ScalarTypehint},
+			'meta': {'params': {'n': None, 'fn': None, 'an': 'meta', 'afn': 'meta'}, 'returns': None},
 		}),
 	])
 	def test_resolve_internal(self, origin: type, expected: dict[str, Any]) -> None:
 		hint = Typehints.resolve(origin)
 		if isinstance(hint, FunctionTypehint):
-			self.assertEqual({key: type(arg) for key, arg in hint.args.items()}, expected['type']['args'])
-			self.assertEqual({key: arg.meta(str) for key, arg in hint.args.items()}, expected['meta']['args'])
+			self.assertEqual({key: type(param) for key, param in hint.params.items()}, expected['type']['params'])
+			self.assertEqual({key: param.meta(str) for key, param in hint.params.items()}, expected['meta']['params'])
 			self.assertEqual(type(hint.returns), expected['type']['returns'])
 			self.assertEqual(hint.returns.meta(str), expected['meta']['returns'])
 		elif isinstance(hint, ClassTypehint):
 			self.assertEqual({key: type(class_var) for key, class_var in hint.class_vars().items()}, expected['type']['class_vars'])
 			self.assertEqual({key: class_var.meta(str) for key, class_var in hint.class_vars().items()}, expected['meta']['class_vars'])
-			self.assertEqual({key: type(self_var) for key, self_var in hint.self_vars(lookup_private=False).items()}, expected['type']['self_vars'])
-			self.assertEqual({key: self_var.meta(str) for key, self_var in hint.self_vars(lookup_private=False).items()}, expected['meta']['self_vars'])
+			self.assertEqual({key: type(self_var) for key, self_var in hint.self_vars(with_private=False).items()}, expected['type']['self_vars'])
+			self.assertEqual({key: self_var.meta(str) for key, self_var in hint.self_vars(with_private=False).items()}, expected['meta']['self_vars'])
 		else:
 			self.fail()
 

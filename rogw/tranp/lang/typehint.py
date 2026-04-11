@@ -465,7 +465,9 @@ class ClassTypehint(Typehint):
 		for at_type in each_types:
 			for key, attr in at_type.__dict__.items():
 				if allowed(at_type, key, attr):
-					_methods[key] = attr
+					# bound_methodを取得するためにクラスの属性から直接取得する
+					bound = at_type if self.__is_private_attr(at_type, key) else self._raw
+					_methods[key] = getattr(bound, key)
 
 		return _methods
 

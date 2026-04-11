@@ -186,6 +186,7 @@ class TestFunctionTypehint(TestCase):
 		(_sub.cls_method, {}),
 		(_sub.self_method, {'d': {}}),
 		(func, {'n': 0, 'fn': 0, 'an': 0, 'afn': 0}),
+		(ClassTypehint(Sub).methods()[Sub.cls_method.__name__].raw, {})
 	])
 	def test_default_params(self, origin: Callable, expected: dict[str, Any]) -> None:
 		hint = FunctionTypehint(origin)

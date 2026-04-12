@@ -197,6 +197,8 @@ class TestPy2Cpp(TestCase):
 		('CVarOps.down_cast', 'function_def_raw.block.assign[2]', defs.MoveAssign, 'int* as_p = dynamic_cast<int*>(p);'),
 		('CVarOps.down_cast', 'function_def_raw.block.assign[3]', defs.MoveAssign, 'int* as_wp = dynamic_cast<int*>(wp);'),
 
+		('CVarOps.Sub2', '', defs.AltClass, 'public: using Sub2 = Sub;'),
+
 		('CVarOps.alias_call', 'function_def_raw.block.funccall[0]', defs.FuncCall, 'ap->call();'),
 		('CVarOps.alias_call', 'function_def_raw.block.funccall[1]', defs.FuncCall, 'asp->call();'),
 		('CVarOps.alias_call', 'function_def_raw.block.funccall[2]', defs.FuncCall, 'aref.call();'),

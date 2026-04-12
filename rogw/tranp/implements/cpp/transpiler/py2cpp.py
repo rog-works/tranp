@@ -1061,6 +1061,10 @@ class Py2Cpp(ITranspiler):
 			# 期待値: 'receiver.extend'
 			receiver, operator = PatternParser.break_relay(calls)
 			return self.view.render(f'{node.classification}/{spec.name}_{prop}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator})
+		elif spec == FuncCallSpec.Tags.list and prop == list.sort.__name__ and len(arguments) > 0:
+			# 期待値: 'receiver.sort([]({entry_type} entry) -> Any { return entry.{entry_prop}; })'
+			entry_type, entry_prop = PatternParser.break_list_sort_key(calls)
+			return self.view.render(f'{node.classification}/{spec.name}_{prop}', vars={**func_call_vars, 'entry_type': entry_type, 'entry_prop': entry_prop})
 		elif spec == FuncCallSpec.Tags.dict and prop == dict.copy.__name__:
 			# 期待値: 'receiver.copy'
 			receiver, operator = PatternParser.break_relay(calls)
@@ -1562,6 +1566,7 @@ class FuncCallSpec:
 		list.insert.__name__,
 		list.extend.__name__,
 		list.copy.__name__,
+		list.sort.__name__,
 	]
 	dict_iter_methods: ClassVar[list[str]] = [
 		dict.items.__name__,
@@ -1638,6 +1643,23 @@ class PatternParser:
 			```
 		"""
 		return BlockParser.break_last_block(func_call, '()')[1]
+
+	@classmethod
+	def break_list_sort_key(cls, func_call: str) -> tuple[str, str]:
+		"""配列のキーソートコールから各要素に分解
+
+		Args:
+			func_call: 文字列
+		Returns:
+			(エントリーの型, 引数名, プロパティー参照)
+		Note:
+			```
+			### 期待値
+			'path.to.calls([](tuple<std::string, int> entry) -> Any { return entry.get<1>(); })' -> ('tuple<std::string, int>', 'get<1>()')
+			```
+		"""
+		pattern = r'\((.+) [\w\d]+\) -> [^{]+\{ return [^.]+\.([^;]+); \}\)$'
+		return cast(re.Match, re.search(pattern, func_call)).group(1, 2)
 
 	@classmethod
 	def break_dict_iterator(cls, func_call: str) -> tuple[str, str, str]:

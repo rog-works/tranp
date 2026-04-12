@@ -1071,6 +1071,12 @@ class TestRenderer(TestCase):
 		self.assertRender('func_call/list_pop', vars, expected)
 
 	@data_provider([
+		({'calls': 'path.to.arr', 'entry_type': 'std::tuple<std::string, int>', 'entry_prop': 'get<1>()', 'arguments': [], 'is_statement': True}, 'path.to.arr([](const std::tuple<std::string, int>& a, const std::tuple<std::string, int>& b) -> bool { return a.get<1>() < b.get<1>(); });'),
+	])
+	def test_render_func_call_list_sort(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/list_sort', vars, expected)
+
+	@data_provider([
 		({'arguments': ['"%d, %f"', '1', '1.0f'], 'is_statement': True}, 'printf("%d, %f", 1, 1.0f);'),
 	])
 	def test_render_func_call_print(self, vars: dict[str, Any], expected: str) -> None:

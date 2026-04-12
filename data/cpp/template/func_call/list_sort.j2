@@ -1,0 +1,1 @@
+{{ calls }}([](const {{ entry_type }}& a, const {{ entry_type }}& b) -> bool { return a.{{ entry_prop }} < b.{{ entry_prop }}; }){% if is_statement %};{% endif %}

@@ -552,16 +552,6 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(f'function/{node.classification}', vars={**function_vars, 'binds': self.make_lambda_binds(node)})
 
 	def on_class(self, node: defs.Class, symbol: str, decorators: list[str], template_params: list[str], inherits: list[str], inherit_sub_types: list[str], comment: str, statements: list[str]) -> str:
-		if len(inherits) == 1 and inherits[0] == Protocol.__name__:
-			return self.proc_class_protocol(node, symbol, decorators, template_params, inherits, inherit_sub_types, comment, statements)
-		else:
-			return self.proc_class(node, symbol, decorators, template_params, inherits, inherit_sub_types, comment, statements)
-
-	def proc_class_protocol(self, node: defs.Class, symbol: str, decorators: list[str], template_params: list[str], inherits: list[str], inherit_sub_types: list[str], comment: str, statements: list[str]) -> str:
-		class_vars = {'symbol': symbol, 'decorators': decorators, 'inherits': inherits, 'template_types': inherit_sub_types, 'comment': comment, 'statements': statements, 'module_path': node.module_path}
-		return self.view.render(f'{node.classification}/protocol', vars=class_vars)
-
-	def proc_class(self, node: defs.Class, symbol: str, decorators: list[str], template_params: list[str], inherits: list[str], inherit_sub_types: list[str], comment: str, statements: list[str]) -> str:
 		# XXX クラス配下の変数宣言とそれ以外のステートメントを分離
 		a_statements = statements.copy()
 		class_var_statements: list[tuple[int, str]] = []

@@ -1,1 +1,16 @@
-{{ calls }}([](const {{ entry_type }}& a, const {{ entry_type }}& b) -> bool { return a.{{ entry_prop }} < b.{{ entry_prop }}; }){% if is_statement %};{% endif %}
+{#- XXX この段階においては単純な置き換え以外、実装が困難なため限定的な変換に留める -#}
+{%- if entry_type.endswith('*') and (entry_name + '->') in entry_value -%}
+	{%- set _entry_type = entry_type[:-1] -%}
+	{%- set a_value = entry_value | replace(entry_name + '->', 'a.') -%}
+	{%- set b_value = entry_value | replace(entry_name + '->', 'b.') -%}
+	{{ calls }}([]({{ _entry_type }}& a, {{ _entry_type }}& b) -> bool { return {{ a_value }} < {{ b_value }}; }){% if is_statement %};{% endif %}
+{%- elif entry_type.endswith('*') and ('(' + entry_name) in entry_value -%}
+	{%- set _entry_type = entry_type[:-1] -%}
+	{%- set a_value = entry_value | replace('(' + entry_name, '(&a') -%}
+	{%- set b_value = entry_value | replace('(' + entry_name, '(&b') -%}
+	{{ calls }}([]({{ _entry_type }}& a, {{ _entry_type }}& b) -> bool { return {{ a_value }} < {{ b_value }}; }){% if is_statement %};{% endif %}
+{%- else -%}
+	{%- set a_value = entry_value | replace(entry_name, 'a') -%}
+	{%- set b_value = entry_value | replace(entry_name, 'b') -%}
+	{{ calls }}([]({{ entry_type }}& a, {{ entry_type }}& b) -> bool { return {{ a_value }} < {{ b_value }}; }){% if is_statement %};{% endif %}
+{%- endif -%}

@@ -1071,7 +1071,14 @@ class TestRenderer(TestCase):
 		self.assertRender('func_call/list_pop', vars, expected)
 
 	@data_provider([
-		({'calls': 'path.to.arr', 'entry_type': 'std::tuple<std::string, int>', 'entry_prop': 'get<1>()', 'arguments': [], 'is_statement': True}, 'path.to.arr([](const std::tuple<std::string, int>& a, const std::tuple<std::string, int>& b) -> bool { return a.get<1>() < b.get<1>(); });'),
+		({'calls': 'path.to.arr', 'entry_type': 'Entry', 'entry_name': 'entry', 'entry_value': 'entry.value', 'arguments': [], 'is_statement': True}, 'path.to.arr([](Entry& a, Entry& b) -> bool { return a.value < b.value; });'),
+		({'calls': 'path.to.arr', 'entry_type': 'Entry', 'entry_name': 'entry', 'entry_value': 'order(entry)', 'arguments': [], 'is_statement': True}, 'path.to.arr([](Entry& a, Entry& b) -> bool { return order(a) < order(b); });'),
+		({'calls': 'path.to.arr', 'entry_type': 'Entry', 'entry_name': 'entry', 'entry_value': 'order(entry.value)', 'arguments': [], 'is_statement': True}, 'path.to.arr([](Entry& a, Entry& b) -> bool { return order(a.value) < order(b.value); });'),
+		({'calls': 'path.to.arr', 'entry_type': 'Entry', 'entry_name': 'entry', 'entry_value': 'order(entry.value, false)', 'arguments': [], 'is_statement': True}, 'path.to.arr([](Entry& a, Entry& b) -> bool { return order(a.value, false) < order(b.value, false); });'),
+		({'calls': 'path.to.arr', 'entry_type': 'Entry*', 'entry_name': 'entry', 'entry_value': 'entry->value', 'arguments': [], 'is_statement': True}, 'path.to.arr([](Entry& a, Entry& b) -> bool { return a.value < b.value; });'),
+		({'calls': 'path.to.arr', 'entry_type': 'Entry*', 'entry_name': 'entry', 'entry_value': 'order(entry)', 'arguments': [], 'is_statement': True}, 'path.to.arr([](Entry& a, Entry& b) -> bool { return order(&a) < order(&b); });'),
+		({'calls': 'path.to.arr', 'entry_type': 'Entry*', 'entry_name': 'entry', 'entry_value': 'order(entry->value)', 'arguments': [], 'is_statement': True}, 'path.to.arr([](Entry& a, Entry& b) -> bool { return order(a.value) < order(b.value); });'),
+		({'calls': 'path.to.arr', 'entry_type': 'Entry*', 'entry_name': 'entry', 'entry_value': 'order(entry, false)', 'arguments': [], 'is_statement': True}, 'path.to.arr([](Entry& a, Entry& b) -> bool { return order(&a, false) < order(&b, false); });'),
 	])
 	def test_render_func_call_list_sort(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('func_call/list_sort', vars, expected)

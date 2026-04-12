@@ -598,16 +598,12 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(f'{node.classification}/class', vars=class_vars)
 
 	def on_enum(self, node: defs.Enum, symbol: str, decorators: list[str], template_params: list[str], inherits: list[str], inherit_sub_types: list[str], comment: str, statements: list[str]) -> str:
-		add_vars = {}
-		if not node.parent.is_a(defs.Entrypoint):
-			add_vars = {'accessor': self.to_accessor(node.accessor)}
-
 		accessor = self.to_accessor(node.accessor) if node.is_internal else ''
-
-		return self.view.render(f'class/{node.classification}', vars={'accessor': accessor, 'symbol': symbol, 'decorators': decorators, 'comment': comment, 'statements': statements, 'module_path': node.module_path, **add_vars})
+		return self.view.render(f'class/{node.classification}', vars={'accessor': accessor, 'symbol': symbol, 'decorators': decorators, 'comment': comment, 'statements': statements, 'module_path': node.module_path})
 
 	def on_alt_class(self, node: defs.AltClass, symbol: str, actual_type: str) -> str:
-		return self.view.render(node.classification, vars={'symbol': symbol, 'actual_type': actual_type})
+		accessor = self.to_accessor(symbol) if node.is_internal else ''
+		return self.view.render(node.classification, vars={'accessor': accessor, 'symbol': symbol, 'actual_type': actual_type})
 
 	def on_template_class(self, node: defs.TemplateClass, symbol: str) -> str:
 		is_declare = node.parent.is_a(defs.Block, defs.Entrypoint)

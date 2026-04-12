@@ -169,7 +169,8 @@ class TestRenderer(TestCase):
 		self.assertEqual(expected, actual)
 
 	@data_provider([
-		({'symbol': 'B', 'actual_type': 'A'}, 'using B = A;'),
+		({'accessor': '', 'symbol': 'B', 'actual_type': 'A'}, 'using B = A;'),
+		({'accessor': 'public', 'symbol': 'B', 'actual_type': 'A'}, 'public: using B = A;'),
 	])
 	def test_render_alt_class(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('alt_class', vars, expected)

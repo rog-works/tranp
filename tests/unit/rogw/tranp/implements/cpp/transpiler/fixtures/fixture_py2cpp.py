@@ -334,6 +334,7 @@ class Struct:
 
 
 class ForClass:
+	@Embed.python
 	class Proto(Protocol): ...
 
 	class DeclPropsBase:

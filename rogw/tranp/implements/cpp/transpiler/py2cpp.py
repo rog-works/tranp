@@ -602,7 +602,7 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(f'class/{node.classification}', vars={'accessor': accessor, 'symbol': symbol, 'decorators': decorators, 'comment': comment, 'statements': statements, 'module_path': node.module_path})
 
 	def on_alt_class(self, node: defs.AltClass, symbol: str, actual_type: str) -> str:
-		accessor = self.to_accessor(symbol) if node.is_internal else ''
+		accessor = self.to_accessor(node.accessor) if node.is_internal else ''
 		return self.view.render(node.classification, vars={'accessor': accessor, 'symbol': symbol, 'actual_type': actual_type})
 
 	def on_template_class(self, node: defs.TemplateClass, symbol: str) -> str:

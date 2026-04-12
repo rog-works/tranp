@@ -833,6 +833,9 @@ class ForFuncCall:
 		def copy(self, ns: list[int]) -> None:
 			new_ns = ns.copy()
 
+		def sort(self, arr: list[Sub]) -> None:
+			arr.sort(key=lambda entry: entry.base_n)
+
 	class Dict:
 		def pop(self, dsn: dict[str, int]) -> None:
 			dsn.pop('a')

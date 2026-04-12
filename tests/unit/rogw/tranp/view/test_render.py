@@ -1460,9 +1460,10 @@ class TestRenderer(TestCase):
 		self.assertRender('relay/literalize', vars, expected)
 
 	@data_provider([
-		({'return_value': '(1 + 2)'}, 'return (1 + 2);'),
-		({'return_value': ''}, 'return;'),
-		({'return_value': 'this'}, 'return *this;'),
+		({'return_value': '(1 + 2)', 'return_self': False}, 'return (1 + 2);'),
+		({'return_value': '', 'return_self': False}, 'return;'),
+		({'return_value': 'this', 'return_self': False}, 'return this;'),
+		({'return_value': 'this', 'return_self': True}, 'return *this;'),
 	])
 	def test_render_return(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('return', vars, expected)

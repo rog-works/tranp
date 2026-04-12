@@ -689,7 +689,7 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(f'{node.classification}/default', vars={'targets': _targets})
 
 	def on_return(self, node: defs.Return, return_value: str) -> str:
-		return self.view.render(node.classification, vars={'return_value': return_value})
+		return self.view.render(node.classification, vars={'return_value': return_value, 'return_self': node.return_value.is_a(defs.ThisRef)})
 
 	def on_yield(self, node: defs.Yield, yield_value: str) -> str:
 		return self.view.render(node.classification, vars={'yield_value': yield_value})

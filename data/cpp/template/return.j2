@@ -1,4 +1,4 @@
-{%- if return_value == 'this' -%}
+{%- if return_self -%}
 return *this;
 {%- else -%}
 return{% if return_value %} {{ return_value }}{% endif %};

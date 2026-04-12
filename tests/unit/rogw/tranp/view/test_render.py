@@ -1449,6 +1449,7 @@ class TestRenderer(TestCase):
 	@data_provider([
 		({'return_value': '(1 + 2)'}, 'return (1 + 2);'),
 		({'return_value': ''}, 'return;'),
+		({'return_value': 'this'}, 'return *this;'),
 	])
 	def test_render_return(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('return', vars, expected)

@@ -5,13 +5,16 @@ aliases.collections.abc: aliases.collections.abc
 aliases.cpp: aliases.rogw.tranp.compatible.cpp.classes
 aliases.lang: aliases.rogw.tranp.compatible.lang
 aliases.typing: aliases.typing
-# lang
+# collection.abc
 aliases.collections.abc#Callable: std::function
+# typing
 aliases.typing#Any: void
 aliases.typing#cast: static_cast
+# lang
 aliases.rogw.tranp.compatible.lang#accessor.public: public
 aliases.rogw.tranp.compatible.lang#accessor.protected: protected
 aliases.rogw.tranp.compatible.lang#accessor.private: private
+aliases.rogw.tranp.compatible.lang#cast.as_a: dynamic_cast
 # classes
 aliases.rogw.tranp.compatible.libralies.classes#Exception: std::exception
 aliases.rogw.tranp.compatible.libralies.classes#None: void

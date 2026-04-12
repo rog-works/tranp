@@ -1071,6 +1071,19 @@ class TestRenderer(TestCase):
 		self.assertRender('func_call/list_pop', vars, expected)
 
 	@data_provider([
+		({'calls': 'path.to.arr', 'entry_type': 'Entry', 'entry_name': 'entry', 'entry_value': 'entry.value', 'arguments': [], 'is_statement': True}, 'path.to.arr([](Entry& a, Entry& b) -> bool { return a.value < b.value; });'),
+		({'calls': 'path.to.arr', 'entry_type': 'Entry', 'entry_name': 'entry', 'entry_value': 'order(entry)', 'arguments': [], 'is_statement': True}, 'path.to.arr([](Entry& a, Entry& b) -> bool { return order(a) < order(b); });'),
+		({'calls': 'path.to.arr', 'entry_type': 'Entry', 'entry_name': 'entry', 'entry_value': 'order(entry.value)', 'arguments': [], 'is_statement': True}, 'path.to.arr([](Entry& a, Entry& b) -> bool { return order(a.value) < order(b.value); });'),
+		({'calls': 'path.to.arr', 'entry_type': 'Entry', 'entry_name': 'entry', 'entry_value': 'order(entry.value, false)', 'arguments': [], 'is_statement': True}, 'path.to.arr([](Entry& a, Entry& b) -> bool { return order(a.value, false) < order(b.value, false); });'),
+		({'calls': 'path.to.arr', 'entry_type': 'Entry*', 'entry_name': 'entry', 'entry_value': 'entry->value', 'arguments': [], 'is_statement': True}, 'path.to.arr([](Entry& a, Entry& b) -> bool { return a.value < b.value; });'),
+		({'calls': 'path.to.arr', 'entry_type': 'Entry*', 'entry_name': 'entry', 'entry_value': 'order(entry)', 'arguments': [], 'is_statement': True}, 'path.to.arr([](Entry& a, Entry& b) -> bool { return order(&a) < order(&b); });'),
+		({'calls': 'path.to.arr', 'entry_type': 'Entry*', 'entry_name': 'entry', 'entry_value': 'order(entry->value)', 'arguments': [], 'is_statement': True}, 'path.to.arr([](Entry& a, Entry& b) -> bool { return order(a.value) < order(b.value); });'),
+		({'calls': 'path.to.arr', 'entry_type': 'Entry*', 'entry_name': 'entry', 'entry_value': 'order(entry, false)', 'arguments': [], 'is_statement': True}, 'path.to.arr([](Entry& a, Entry& b) -> bool { return order(&a, false) < order(&b, false); });'),
+	])
+	def test_render_func_call_list_sort(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/list_sort', vars, expected)
+
+	@data_provider([
 		({'arguments': ['"%d, %f"', '1', '1.0f'], 'is_statement': True}, 'printf("%d, %f", 1, 1.0f);'),
 	])
 	def test_render_func_call_print(self, vars: dict[str, Any], expected: str) -> None:
@@ -1449,6 +1462,7 @@ class TestRenderer(TestCase):
 	@data_provider([
 		({'return_value': '(1 + 2)'}, 'return (1 + 2);'),
 		({'return_value': ''}, 'return;'),
+		({'return_value': 'this'}, 'return *this;'),
 	])
 	def test_render_return(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('return', vars, expected)

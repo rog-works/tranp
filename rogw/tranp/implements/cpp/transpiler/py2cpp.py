@@ -1061,6 +1061,10 @@ class Py2Cpp(ITranspiler):
 			# 期待値: 'receiver.extend'
 			receiver, operator = PatternParser.break_relay(calls)
 			return self.view.render(f'{node.classification}/{spec.name}_{prop}', vars={**func_call_vars, 'receiver': receiver, 'operator': operator})
+		elif spec == FuncCallSpec.Tags.list and prop == list.sort.__name__ and len(arguments) > 0:
+			# 期待値: 'receiver.sort([]({entry_type} entry) -> Any { return entry; })'
+			entry_type, entry_name, entry_value = PatternParser.break_list_sort_key(arguments[0])
+			return self.view.render(f'{node.classification}/{spec.name}_{prop}', vars={**func_call_vars, 'entry_type': entry_type, 'entry_name': entry_name, 'entry_value': entry_value})
 		elif spec == FuncCallSpec.Tags.dict and prop == dict.copy.__name__:
 			# 期待値: 'receiver.copy'
 			receiver, operator = PatternParser.break_relay(calls)
@@ -1562,6 +1566,7 @@ class FuncCallSpec:
 		list.insert.__name__,
 		list.extend.__name__,
 		list.copy.__name__,
+		list.sort.__name__,
 	]
 	dict_iter_methods: ClassVar[list[str]] = [
 		dict.items.__name__,
@@ -1599,6 +1604,7 @@ class PatternParser:
 	"""
 
 	RelayPattern: ClassVar[re.Pattern] = re.compile(r'(.+)(->|::|\.)\w+$')
+	ListSortKeyPattern: ClassVar[re.Pattern[str]] = re.compile(r'\[[^(]*\]\((.+) ([\w\d]+)\)[^{]+\{ return ([^;]+); \}')
 	DictIteratorPattern: ClassVar[re.Pattern] = re.compile(r'(.+)(->|\.)(\w+)\(\)$')
 	SuperCallPattern: ClassVar[re.Pattern] = re.compile(r'([\w\d]+)::__init__\((.*)\);$')
 	DeclClassVarNamePattern: ClassVar[re.Pattern] = re.compile(r'\s+([\w\d_]+)\s+=')
@@ -1638,6 +1644,22 @@ class PatternParser:
 			```
 		"""
 		return BlockParser.break_last_block(func_call, '()')[1]
+
+	@classmethod
+	def break_list_sort_key(cls, arg: str) -> tuple[str, str, str]:
+		"""配列のキーソートコールから各要素に分解
+
+		Args:
+			arg: 文字列
+		Returns:
+			(エントリーの型, 引数の名前, 比較対象の式)
+		Note:
+			```
+			### 期待値
+			'[](Entry entry) -> Any { return entry.value; }' -> ('Entry', 'entry', 'entry.value')
+			```
+		"""
+		return cast(re.Match, re.fullmatch(cls.ListSortKeyPattern, arg)).group(1, 2, 3)
 
 	@classmethod
 	def break_dict_iterator(cls, func_call: str) -> tuple[str, str, str]:

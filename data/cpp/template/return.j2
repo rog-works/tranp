@@ -1,1 +1,5 @@
+{%- if return_value == 'this' -%}
+return *this;
+{%- else -%}
 return{% if return_value %} {{ return_value }}{% endif %};
+{%- endif -%}

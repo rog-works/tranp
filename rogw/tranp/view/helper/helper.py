@@ -27,7 +27,7 @@ def break_separator(setting: RendererSetting) -> Callable[[str, str], list[str]]
 	return lambda string, delimiter: BlockParser.break_separator(string, delimiter)
 
 
-def decorator_query(setting: RendererSetting) -> Callable[[list[str]], DecoratorQuery]:
+def parse_decorators(setting: RendererSetting) -> Callable[[list[str]], DecoratorQuery]:
 	"""Note: @see rogw.tranp.view.helper.decorator.DecoratorQuery"""
 	return lambda decorators: DecoratorQuery.parse(decorators)
 
@@ -89,7 +89,7 @@ def factories() -> tuple[list[RendererHelperFactory], list[RendererHelperFactory
 			emit_depends,
 			break_last_block,
 			break_separator,
-			decorator_query,
+			parse_decorators,
 			env_get,
 			i18n,
 			md5,

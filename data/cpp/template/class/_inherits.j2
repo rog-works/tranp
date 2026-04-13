@@ -1,9 +1,9 @@
 {%- set _inherits = namespace(at=[]) -%}
-{%- set deco_query = decorator_query(decorators).any('Embed.ignore') -%}
-{%- if not deco_query -%}
+{%- set deco_ignore = deco_query.any('Embed.ignore') -%}
+{%- if not deco_ignore -%}
 	{%- set _inherits.at = inherits -%}
 {%- else -%}
-	{%- set ignore_classes = deco_query[0].args.values() -%}
+	{%- set ignore_classes = deco_ignore[0].args.values() -%}
 	{%- for inherit in inherits -%}
 		{%- if inherit not in ignore_classes -%}
 			{%- set _inherits.at = _inherits.at + [inherit] -%}

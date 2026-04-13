@@ -1,4 +1,5 @@
-{%- if decorator_query(decorators).contains('Embed.python') -%}
+{%- set deco_query = parse_decorators(decorators) -%}
+{%- if deco_query.contains('Embed.python') -%}
 // constructor {{ symbol }}
 {%- else -%}
 {% include('function/_accessor.j2') %}:

@@ -1,9 +1,8 @@
-{%- set decos = decorator_query(decorators) -%}
-{%- if decos.contains('Embed.private') -%}
+{%- if deco_query.contains('Embed.private') -%}
 {{ i18n('lang', 'accessor.private') }}
-{%- elif decos.contains('Embed.protected') -%}
+{%- elif deco_query.contains('Embed.protected') -%}
 {{ i18n('lang', 'accessor.protected') }}
-{%- elif decos.contains('Embed.public') -%}
+{%- elif deco_query.contains('Embed.public') -%}
 {{ i18n('lang', 'accessor.public') }}
 {%- else -%}
 {{ accessor }}

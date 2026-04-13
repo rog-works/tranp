@@ -1,9 +1,10 @@
-{%- if decorator_query(decorators).contains('Embed.python') -%}
+{%- set deco_query = parse_decorators(decorators) -%}
+{%- if deco_query.contains('Embed.python') -%}
 // enum {{ symbol }}
 {%- else -%}
 {%- include('class/_comment.j2') %}
 {%- include('class/_decorators.j2') %}
-{% if accessor %}{{ accessor }}: {% endif %}enum class {{ symbol }} {
+{% include('class/_definition_enum.j2') %} {
 {%- include('class/_statements_enum.j2') %}
 };
 {%- endif -%}

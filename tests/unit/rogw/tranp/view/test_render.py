@@ -570,7 +570,7 @@ class TestRenderer(TestCase):
 		({'targets': [{'receiver': 'l', 'key': '1', 'list_or_dict': 'list'}, {'receiver': 'd', 'key': '"a"', 'list_or_dict': 'dict'}]}, 'l.erase(l.begin() + 1);\nd.erase("a");'),
 	])
 	def test_render_delete(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender(f'delete/default', vars, expected)
+		self.assertRender(f'statement/delete', vars, expected)
 
 	@data_provider([
 		({'key_type': 'int', 'value_type': 'float'}, 'std::map<int, float>'),
@@ -1328,13 +1328,13 @@ class TestRenderer(TestCase):
 		({'module_path': 'module.path.to', 'import_dir': 'module/path/', 'replace_dir': 'path/'}, '#include "path/to.h"'),
 	])
 	def test_render_import(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('import', vars, expected)
+		self.assertRender('statement/import', vars, expected)
 
 	@data_provider([
 		({'import_path': '#include <functional>'}, '#include <functional>'),
 	])
 	def test_render_import_i18n(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('import_i18n', vars, expected)
+		self.assertRender('statement/import_i18n', vars, expected)
 
 	@data_provider([
 		('class', {'var_type': 'int*'}, 'int*'),

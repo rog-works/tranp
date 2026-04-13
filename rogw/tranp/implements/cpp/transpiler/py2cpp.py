@@ -672,7 +672,7 @@ class Py2Cpp(ITranspiler):
 			receiver, key = PatternParser.break_indexer(target)
 			_targets.append({'receiver': receiver, 'key': key, 'list_or_dict': target_types[i]})
 
-		return self.view.render(f'{node.classification}/default', vars={'targets': _targets})
+		return self.view.render(f'statement/{node.classification}', vars={'targets': _targets})
 
 	def on_return(self, node: defs.Return, return_value: str) -> str:
 		return self.view.render(f'flow/{node.classification}', vars={'return_value': return_value, 'return_self': node.return_value.is_a(defs.ThisRef)})
@@ -697,7 +697,7 @@ class Py2Cpp(ITranspiler):
 		return 'continue;'
 
 	def on_comment(self, node: defs.Comment) -> str:
-		return self.view.render(node.classification, vars={'text': node.text})
+		return self.view.render(f'statement/{node.classification}', vars={'text': node.text})
 
 	def on_import(self, node: defs.Import, symbols: list[str]) -> str:
 		"""
@@ -711,7 +711,7 @@ class Py2Cpp(ITranspiler):
 		module_path = node.import_path.tokens
 		text = self.i18n.t(import_dsn(module_path), '')
 		if text:
-			return self.view.render(f'{node.classification}_i18n', vars={'import_path': text})
+			return self.view.render(f'statement/{node.classification}_i18n', vars={'import_path': text})
 
 		import_dir = ''
 		replace_dir = ''
@@ -720,7 +720,7 @@ class Py2Cpp(ITranspiler):
 				import_dir = in_import
 				replace_dir = in_replace
 
-		return self.view.render(node.classification, vars={'module_path': module_path, 'import_dir': import_dir, 'replace_dir': replace_dir, 'symbols': symbols})
+		return self.view.render(f'statement/{node.classification}', vars={'module_path': module_path, 'import_dir': import_dir, 'replace_dir': replace_dir, 'symbols': symbols})
 
 	# Primary
 

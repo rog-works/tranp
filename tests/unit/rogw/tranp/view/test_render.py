@@ -748,7 +748,7 @@ class TestRenderer(TestCase):
 		({'symbols': ['key', 'value'], 'iterates': 'items', 'statements': []}, 'for (auto& [key, value] : items) {\n}'),
 	])
 	def test_render_for_dict(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('for/dict', vars, expected)
+		self.assertRender('flow/for/dict', vars, expected)
 
 	@data_provider([
 		(
@@ -766,20 +766,20 @@ class TestRenderer(TestCase):
 		)
 	])
 	def test_render_for_enumerate(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('for/enumerate', vars, expected)
+		self.assertRender('flow/for/enumerate', vars, expected)
 
 	@data_provider([
 		({'symbol': 'index', 'last_index': 'limit', 'statements': ['pass;']}, 'for (auto index = 0; index < limit; index++) {\n\tpass;\n}'),
 	])
 	def test_render_for_range(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('for/range', vars, expected)
+		self.assertRender('flow/for/range', vars, expected)
 
 	@data_provider([
 		({'symbols': ['value'], 'iterates': 'values', 'statements': ['pass;'], 'is_const': False}, 'for (auto& value : values) {\n\tpass;\n}'),
 		({'symbols': ['value'], 'iterates': 'values', 'statements': ['pass;'], 'is_const': True}, 'for (const auto& value : values) {\n\tpass;\n}'),
 	])
 	def test_render_for(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('for/default', vars, expected)
+		self.assertRender('flow/for/default', vars, expected)
 
 	@data_provider([
 		({'arguments': ['"<string>"']}, '#include <string>'),
@@ -1321,7 +1321,7 @@ class TestRenderer(TestCase):
 		('else', {'statements': ['pass;']}, '} else {\n\tpass;'),
 	])
 	def test_render_if_elif_else(self, spec: str, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender(f'if/{spec}', vars, expected)
+		self.assertRender(f'flow/if/{spec}', vars, expected)
 
 	@data_provider([
 		({'module_path': 'module.path.to', 'import_dir': '', 'replace_dir': ''}, '// #include "module/path/to.h"'),

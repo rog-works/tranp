@@ -420,13 +420,13 @@ class Py2Cpp(ITranspiler):
 	# Statement - compound
 
 	def on_else_if(self, node: defs.ElseIf, condition: str, statements: list[str]) -> str:
-		return self.view.render(f'if/{node.classification}', vars={'condition': condition, 'statements': statements})
+		return self.view.render(f'flow/if/{node.classification}', vars={'condition': condition, 'statements': statements})
 
 	def on_else(self, node: defs.Else, statements: list[str]) -> str:
-		return self.view.render(f'if/{node.classification}', vars={'statements': statements})
+		return self.view.render(f'flow/if/{node.classification}', vars={'statements': statements})
 
 	def on_if(self, node: defs.If, condition: str, statements: list[str], else_ifs: list[str], else_clause: str) -> str:
-		return self.view.render(f'if/{node.classification}', vars={'condition': condition, 'statements': statements, 'else_ifs': else_ifs, 'else_clause': else_clause})
+		return self.view.render(f'flow/if/{node.classification}', vars={'condition': condition, 'statements': statements, 'else_ifs': else_ifs, 'else_clause': else_clause})
 
 	def on_while(self, node: defs.While, condition: str, statements: list[str]) -> str:
 		return self.view.render(f'flow/{node.classification}', vars={'condition': condition, 'statements': statements})
@@ -446,13 +446,13 @@ class Py2Cpp(ITranspiler):
 	def proc_for_range(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		# 期待値: 'range(arguments...)'
 		last_index = PatternParser.pluck_func_call_arguments(for_in)
-		return self.view.render(f'{node.classification}/range', vars={'symbol': symbols[0], 'last_index': last_index, 'statements': statements})
+		return self.view.render(f'flow/{node.classification}/range', vars={'symbol': symbols[0], 'last_index': last_index, 'statements': statements})
 
 	def proc_for_enumerate(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		# 期待値: 'enumerate(arguments...)'
 		iterates = PatternParser.pluck_func_call_arguments(for_in)
 		var_type = self.to_accessible_name(self.reflections.type_of(node.for_in).attrs[1])
-		return self.view.render(f'{node.classification}/enumerate', vars={'symbols': symbols, 'iterates': iterates, 'statements': statements, 'var_type': var_type})
+		return self.view.render(f'flow/{node.classification}/enumerate', vars={'symbols': symbols, 'iterates': iterates, 'statements': statements, 'var_type': var_type})
 
 	def proc_for_dict(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		# XXX is_const/is_addr_pの対応に一貫性が無い。包括的な対応を検討
@@ -464,14 +464,14 @@ class Py2Cpp(ITranspiler):
 		# XXX 参照の変換方法が場当たり的で一貫性が無い。包括的な対応を検討
 		iterates = f'*({receiver})' if operator == '->' else receiver
 		dict_symbols = {dict.items.__name__: symbols, dict.keys.__name__: [symbols[0], '_'], dict.values.__name__: ['_', symbols[0]]}
-		return self.view.render(f'{node.classification}/dict', vars={'symbols': dict_symbols[method_name], 'iterates': iterates, 'statements': statements, 'is_const': is_const, 'is_addr_p': False})
+		return self.view.render(f'flow/{node.classification}/dict', vars={'symbols': dict_symbols[method_name], 'iterates': iterates, 'statements': statements, 'is_const': is_const, 'is_addr_p': False})
 
 	def proc_for_each(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		# XXX is_const/is_addr_pの対応に一貫性が無い。包括的な対応を検討
 		for_in_symbol = Defer.new(lambda: self.reflections.type_of(node.for_in).impl(refs.Object).actualize())
 		is_const = self.cvars.is_const(self.cvars.var_name_from(for_in_symbol)) if len(symbols) == 1 else False
 		is_addr_p = self.cvars.is_addr_p(self.cvars.var_name_from(for_in_symbol)) if len(symbols) == 1 else False
-		return self.view.render(f'{node.classification}/default', vars={'symbols': symbols, 'iterates': for_in, 'statements': statements, 'is_const': is_const, 'is_addr_p': is_addr_p})
+		return self.view.render(f'flow/{node.classification}/default', vars={'symbols': symbols, 'iterates': for_in, 'statements': statements, 'is_const': is_const, 'is_addr_p': is_addr_p})
 
 	def on_catch(self, node: defs.Catch, var_type: str, symbol: str, statements: list[str]) -> str:
 		return self.view.render(f'flow/{node.classification}', vars={'var_type': var_type, 'symbol': symbol, 'statements': statements})

@@ -915,7 +915,7 @@ class Py2Cpp(ITranspiler):
 	def on_relay_of_type(self, node: defs.RelayOfType, receiver: str) -> str:
 		prop_symbol = self.reflections.type_of(node.receiver).impl(refs.Object).prop_of(node.prop)
 		type_name = self.to_domain_name_by_class(prop_symbol.types)
-		return self.view.render(node.classification, vars={'receiver': receiver, 'type_name': type_name})
+		return self.view.render(f'type/{node.classification}', vars={'receiver': receiver, 'type_name': type_name})
 
 	def on_var_of_type(self, node: defs.VarOfType) -> str:
 		symbol = self.reflections.type_of(node)
@@ -925,20 +925,20 @@ class Py2Cpp(ITranspiler):
 
 		type_name = self.to_domain_name_by_class(symbol.types)
 		if isinstance(symbol.types, defs.TemplateClass):
-			return self.view.render(f'{node.classification}/template', vars={'type_name': type_name, 'definition_type': symbol.types.definition_type.tokens})
+			return self.view.render(f'type/template', vars={'type_name': type_name, 'definition_type': symbol.types.definition_type.tokens})
 		else:
-			return self.view.render(f'{node.classification}/default', vars={'type_name': type_name})
+			return self.view.render(f'type/{node.classification}', vars={'type_name': type_name})
 
 	def on_literal_type(self, node: defs.LiteralType) -> str:
 		symbol = self.reflections.type_of(node)
 		type_name = self.to_domain_name_by_class(symbol.types)
-		return self.view.render(node.classification, vars={'type_name': type_name})
+		return self.view.render(f'type/{node.classification}', vars={'type_name': type_name})
 
 	def on_list_type(self, node: defs.ListType, type_name: str, value_type: str) -> str:
-		return self.view.render(node.classification, vars={'type_name': type_name, 'value_type': value_type})
+		return self.view.render(f'type/{node.classification}', vars={'type_name': type_name, 'value_type': value_type})
 
 	def on_dict_type(self, node: defs.DictType, type_name: str, key_type: str, value_type: str) -> str:
-		return self.view.render(node.classification, vars={'type_name': type_name, 'key_type': key_type, 'value_type': value_type})
+		return self.view.render(f'type/{node.classification}', vars={'type_name': type_name, 'key_type': key_type, 'value_type': value_type})
 
 	def on_callable_type(self, node: defs.CallableType, type_name: str, parameters: list[str], return_type: str) -> str:
 		"""
@@ -948,20 +948,20 @@ class Py2Cpp(ITranspiler):
 			* `Callable[[T, *T_Args], None]`
 			```
 		"""
-		spec = 'default'
+		spec = node.classification
 		if len(parameters) >= 2:
 			second_type = self.reflections.type_of(node.parameters[1])
 			if isinstance(second_type.types, defs.TemplateClass) and second_type.types.definition_type.type_name.tokens == TypeVarTuple.__name__:
 				spec = 'pluck_method'
 
-		return self.view.render(f'{node.classification}/{spec}', vars={'type_name': type_name, 'parameters': parameters, 'return_type': return_type})
+		return self.view.render(f'type/{spec}', vars={'type_name': type_name, 'parameters': parameters, 'return_type': return_type})
 
 	def on_custom_type(self, node: defs.CustomType, type_name: str, sub_types: list[str]) -> str:
 		# XXX @see semantics.reflection.helper.naming.ClassShorthandNaming.domain_name
 		return self.view.render('type_py2cpp', vars={'var_type': f'{type_name}<{", ".join(sub_types)}>'})
 
 	def on_literal_dict_type(self, node: defs.LiteralDictType, type_name: str, key_type: str, value_type: str) -> str:
-		return self.view.render(node.classification, vars={'type_name': type_name, 'key_type': key_type, 'value_type': value_type})
+		return self.view.render(f'type/{node.classification}', vars={'type_name': type_name, 'key_type': key_type, 'value_type': value_type})
 
 	def on_union_type(self, node: defs.UnionType, or_types: list[str]) -> str:
 		"""Note: XXX C++でUnion型の表現は不可能。期待値を仮定するのであればプライマリー型以外に無いので先頭要素のみ返却"""

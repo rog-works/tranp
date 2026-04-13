@@ -244,11 +244,11 @@ class TestRenderer(TestCase):
 		self.assertRender('block', vars, expected)
 
 	@data_provider([
-		('default', {'type_name': 'Callable', 'parameters': ['int', 'float'], 'return_type': 'bool'}, 'std::function<bool(int, float)>'),
+		('callable_type', {'type_name': 'Callable', 'parameters': ['int', 'float'], 'return_type': 'bool'}, 'std::function<bool(int, float)>'),
 		('pluck_method', {'type_name': 'Callable', 'parameters': ['T', 'T_Args...'], 'return_type': 'void'}, 'typename PluckMethod<T, void, T_Args...>::method'),
 	])
-	def test_render_callable_type(self, template: str, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender(f'callable_type/{template}', vars, expected)
+	def test_render_callable_type(self, spec: str, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender(f'type/{spec}', vars, expected)
 
 	@data_provider([
 		({'var_type': 'Exception', 'symbol': 'e', 'statements': ['pass;']}, '} catch (Exception e) {\n\tpass;'),
@@ -576,7 +576,7 @@ class TestRenderer(TestCase):
 		({'key_type': 'int', 'value_type': 'float'}, 'std::map<int, float>'),
 	])
 	def test_render_dict_type(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('dict_type', vars, expected)
+		self.assertRender('type/dict_type', vars, expected)
 
 	@data_provider([
 		(
@@ -1380,13 +1380,13 @@ class TestRenderer(TestCase):
 		({'type_name': 'int'}, 'int'),
 	])
 	def test_render_literal_type(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('literal_type', vars, expected)
+		self.assertRender('type/literal_type', vars, expected)
 
 	@data_provider([
 		({'type_name': 'dict', 'key_type': 'std::string', 'value_type': 'int'}, 'std::map<std::string, int>'),
 	])
 	def test_render_literal_dict_type(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('literal_dict_type', vars, expected)
+		self.assertRender('type/literal_dict_type', vars, expected)
 
 	@data_provider([
 		# 明示変換系
@@ -1491,14 +1491,14 @@ class TestRenderer(TestCase):
 		self.assertRender('try', vars, expected)
 
 	@data_provider([
-		('default', {'type_name': 'int'}, 'int'),
-		('default', {'type_name': 'str'}, 'std::string'),
+		('var_of_type', {'type_name': 'int'}, 'int'),
+		('var_of_type', {'type_name': 'str'}, 'std::string'),
 		('template', {'type_name': 'T', 'definition_type': 'TypeVar'}, 'T'),
 		('template', {'type_name': 'T_Args', 'definition_type': 'TypeVarTuple'}, 'T_Args...'),
 		('template', {'type_name': 'P', 'definition_type': 'ParamSpec'}, 'P'),
 	])
-	def test_render_var_of_type(self, template: str, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender(f'var_of_type/{template}', vars, expected)
+	def test_render_var_of_type(self, spec: str, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender(f'type/{spec}', vars, expected)
 
 	@data_provider([
 		({'statements': [], 'entries': []}, 'Not supported for \'with\''),

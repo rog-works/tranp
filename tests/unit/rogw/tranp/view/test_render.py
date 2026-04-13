@@ -1103,8 +1103,8 @@ class TestRenderer(TestCase):
 		({'parameters': ['type<A> cls', 'bool b'], 'decorators': []}, 'bool b'),
 		({'parameters': ['bool b', 'int n'], 'decorators': []}, 'bool b, int n'),
 	])
-	def test_render_function_definition_params(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('function/_definition_params', vars, expected)
+	def test_render_function_params(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('function/_params', vars, expected)
 
 	@data_provider([
 		(

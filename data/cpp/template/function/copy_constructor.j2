@@ -4,7 +4,7 @@
 {%- include('function/_template_types.j2') %}
 {%- include('function/_decorators.j2') %}
 {%- if is_abstract %}
-{% include('function/_definition_prefix.j2') %}{% include('function/_definition_signature_constructor.j2') %} = default;
+{% include('function/_signature_prefix.j2') %}{% include('function/_signature_constructor.j2') %} = default;
 {%- else %}
-{% include('function/_definition_prefix.j2') %}{% include('function/_definition_signature_constructor.j2') %} {% include('function/_block.j2') %}
+{% include('function/_signature_prefix.j2') %}{% include('function/_signature_constructor.j2') %} {% include('function/_block.j2') %}
 {%- endif %}

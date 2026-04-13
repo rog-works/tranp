@@ -1,2 +1,2 @@
 {%- set deco_query = parse_decorators(decorators) -%}
-auto {{ symbol }} = [{{ binds | join(', ') }}]({% include('function/_definition_params.j2') %}){% if binds %} mutable{% endif %} -> {{ return_type }} {% include('function/_block.j2') %};
+auto {{ symbol }} = [{{ binds | join(', ') }}]({% include('function/_params.j2') %}){% if binds %} mutable{% endif %} -> {{ return_type }} {% include('function/_block.j2') %};

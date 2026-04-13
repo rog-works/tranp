@@ -254,7 +254,7 @@ class TestRenderer(TestCase):
 		({'var_type': 'Exception', 'symbol': 'e', 'statements': ['pass;']}, '} catch (Exception e) {\n\tpass;'),
 	])
 	def test_render_catch(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('catch', vars, expected)
+		self.assertRender('flow/catch', vars, expected)
 
 	@data_provider([
 		({'accessor': 'public', 'decl_class_var': 'float a;'}, 'public: inline static float a;'),
@@ -1461,7 +1461,7 @@ class TestRenderer(TestCase):
 		({'return_value': 'this', 'return_self': True}, 'return *this;'),
 	])
 	def test_render_return(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('return', vars, expected)
+		self.assertRender('flow/return', vars, expected)
 
 	@data_provider([
 		({'symbol': 'T', 'is_declare': False}, 'T'),
@@ -1481,14 +1481,14 @@ class TestRenderer(TestCase):
 		({'throws': 'std::exception()', 'via': 'e', 'is_new': True}, 'throw new std::exception();'),
 	])
 	def test_render_throw(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('throw', vars, expected)
+		self.assertRender('flow/throw', vars, expected)
 
 	@data_provider([
 		({'statements': ['pass;'], 'catches': []}, 'try {\n\tpass;\n}'),
 		({'statements': ['pass;'], 'catches': ['} catch (std::exception e) {\n\tthrow e;']}, 'try {\n\tpass;\n} catch (std::exception e) {\n\tthrow e;\n}'),
 	])
 	def test_render_try(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('try', vars, expected)
+		self.assertRender('flow/try', vars, expected)
 
 	@data_provider([
 		('var_of_type', {'type_name': 'int'}, 'int'),
@@ -1504,16 +1504,16 @@ class TestRenderer(TestCase):
 		({'statements': [], 'entries': []}, 'Not supported for \'with\''),
 	])
 	def test_render_with(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('with', vars, expected)
+		self.assertRender('flow/with', vars, expected)
 
 	@data_provider([
 		({'enter': '', 'symbol': ''}, 'Not supported for \'with_entry\''),
 	])
 	def test_render_with_entry(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('with_entry', vars, expected)
+		self.assertRender('flow/with_entry', vars, expected)
 
 	@data_provider([
 		({'yield_value': 'entry'}, 'return entry;'),
 	])
 	def test_render_yield(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('yield', vars, expected)
+		self.assertRender('flow/yield', vars, expected)

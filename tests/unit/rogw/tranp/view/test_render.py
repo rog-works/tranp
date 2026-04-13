@@ -173,7 +173,7 @@ class TestRenderer(TestCase):
 		({'accessor': 'public', 'symbol': 'B', 'actual_type': 'A'}, 'public: using B = A;'),
 	])
 	def test_render_alt_class(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('alt_class', vars, expected)
+		self.assertRender('class/alt_class', vars, expected)
 
 	@data_provider([
 		({'label': '', 'value': 1}, '1'),
@@ -1468,7 +1468,7 @@ class TestRenderer(TestCase):
 		({'symbol': 'T', 'is_declare': True}, '// template<typename T>'),
 	])
 	def test_render_template_class(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('template_class', vars, expected)
+		self.assertRender('class/template_class', vars, expected)
 
 	@data_provider([
 		({}, 'this'),

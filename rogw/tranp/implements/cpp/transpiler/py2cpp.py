@@ -593,11 +593,11 @@ class Py2Cpp(ITranspiler):
 
 	def on_alt_class(self, node: defs.AltClass, symbol: str, actual_type: str) -> str:
 		accessor = self.to_accessor(node.accessor) if node.is_internal else ''
-		return self.view.render(node.classification, vars={'accessor': accessor, 'symbol': symbol, 'actual_type': actual_type})
+		return self.view.render(f'class/{node.classification}', vars={'accessor': accessor, 'symbol': symbol, 'actual_type': actual_type})
 
 	def on_template_class(self, node: defs.TemplateClass, symbol: str) -> str:
 		is_declare = node.parent.is_a(defs.Block, defs.Entrypoint)
-		return self.view.render(node.classification, vars={'symbol': symbol, 'is_declare': is_declare})
+		return self.view.render(f'class/{node.classification}', vars={'symbol': symbol, 'is_declare': is_declare})
 
 	# Function/Class Elements
 

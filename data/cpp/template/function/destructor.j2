@@ -4,9 +4,7 @@
 {%- include('function/_template_types.j2') %}
 {%- include('function/_decorators.j2') %}
 {%- if is_abstract %}
-virtual ~{{ class_symbol }}() = default;
-{%- elif allow_override %}
-virtual ~{{ class_symbol }}() {% include('function/_block.j2') %}
+{% include('function/_definition_prefix.j2') %}~{{ class_symbol }}() = default;
 {%- else %}
-~{{ class_symbol }}() {% include('function/_block.j2') %}
+{% include('function/_definition_prefix.j2') %}~{{ class_symbol }}() {% include('function/_block.j2') %}
 {%- endif %}

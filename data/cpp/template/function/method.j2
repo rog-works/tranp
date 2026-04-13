@@ -10,11 +10,7 @@
 {% include('function/_iterator_list.j2') %}
 {%- elif return_type.startswith('ItemsView') %}
 {% include('function/_iterator_dict.j2') %}
-{%- elif is_abstract %}
-virtual {% include('function/_definition.j2') %} = 0;
-{%- elif allow_override %}
-virtual {% include('function/_definition.j2') %} {% include('function/_block.j2') %}
 {%- else %}
-{% include('function/_definition.j2') %} {% include('function/_block.j2') %}
+{% include('function/_definition_prefix.j2') %}{% include('function/_definition_signature.j2') %}{% include('function/_definition_suffix.j2') %} {% include('function/_block.j2') %}
 {%- endif %}
 {%- endif -%}

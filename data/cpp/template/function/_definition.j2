@@ -1,2 +1,0 @@
-{%- set suffix = ['const' if is_pure else '', 'override' if is_override else ''] | select('!=', '') | join(' ') -%}
-{% include('function/_return_type.j2') %} {{ symbol }}({% include('function/_definition_params.j2') %}){% if suffix %} {{ suffix }}{% endif %}

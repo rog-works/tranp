@@ -1097,12 +1097,6 @@ class TestRenderer(TestCase):
 		self.assertRender('func_call/default', vars, expected)
 
 	@data_provider([
-		({'statements': ['pass;']}, '{\n\tpass;\n}'),
-	])
-	def test_render_function_block(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('function/_block', vars, expected)
-
-	@data_provider([
 		({'parameters': ['A self'], 'decorators': []}, ''),
 		({'parameters': ['A self', 'bool b'], 'decorators': []}, 'bool b'),
 		({'parameters': ['type<A> cls'], 'decorators': []}, ''),

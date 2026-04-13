@@ -1288,39 +1288,39 @@ class Py2Cpp(ITranspiler):
 	# Operator
 
 	def on_factor(self, node: defs.Factor, operator: str, value: str) -> str:
-		return self.view.render('unary_operator', vars={'operator': operator, 'value': value})
+		return self.view.render('operation/unary_operator', vars={'operator': operator, 'value': value})
 
 	def on_not_compare(self, node: defs.NotCompare, operator: str, value: str) -> str:
-		return self.view.render('unary_operator', vars={'operator': '!', 'value': value})
+		return self.view.render('operation/unary_operator', vars={'operator': '!', 'value': value})
 
 	def on_or_compare(self, node: defs.OrCompare, elements: list[str]) -> str:
-		return self.proc_binary_operator(node, elements)
+		return self.proc_binary_operation(node, elements)
 
 	def on_and_compare(self, node: defs.AndCompare, elements: list[str]) -> str:
-		return self.proc_binary_operator(node, elements)
+		return self.proc_binary_operation(node, elements)
 
 	def on_comparison(self, node: defs.Comparison, elements: list[str]) -> str:
-		return self.proc_binary_operator(node, elements)
+		return self.proc_binary_operation(node, elements)
 
 	def on_or_bitwise(self, node: defs.OrBitwise, elements: list[str]) -> str:
-		return self.proc_binary_operator(node, elements)
+		return self.proc_binary_operation(node, elements)
 
 	def on_xor_bitwise(self, node: defs.XorBitwise, elements: list[str]) -> str:
-		return self.proc_binary_operator(node, elements)
+		return self.proc_binary_operation(node, elements)
 
 	def on_and_bitwise(self, node: defs.AndBitwise, elements: list[str]) -> str:
-		return self.proc_binary_operator(node, elements)
+		return self.proc_binary_operation(node, elements)
 
 	def on_shift_bitwise(self, node: defs.ShiftBitwise, elements: list[str]) -> str:
-		return self.proc_binary_operator(node, elements)
+		return self.proc_binary_operation(node, elements)
 
 	def on_sum(self, node: defs.Sum, elements: list[str]) -> str:
-		return self.proc_binary_operator(node, elements)
+		return self.proc_binary_operation(node, elements)
 
 	def on_term(self, node: defs.Term, elements: list[str]) -> str:
-		return self.proc_binary_operator(node, elements)
+		return self.proc_binary_operation(node, elements)
 
-	def proc_binary_operator(self, node: defs.BinaryOperator, elements: list[str]) -> str:
+	def proc_binary_operation(self, node: defs.BinaryOperator, elements: list[str]) -> str:
 		node_of_elements = node.elements
 
 		# インデックスを算出
@@ -1341,32 +1341,32 @@ class Py2Cpp(ITranspiler):
 		if list_is_primary != list_is_secondary and operators[0] == '*':
 			default_raw, default = (primary_raw, primary) if list_is_primary else (secondary_raws[0], secondaries[0])
 			size_raw, size = (secondary_raws[0], secondaries[0]) if list_is_primary else (primary_raw, primary)
-			return self.proc_binary_operator_fill_list(node, default_raw, size_raw, default, size)
+			return self.proc_binary_operation_fill_list(node, default_raw, size_raw, default, size)
 		else:
-			return self.proc_binary_operator_expression(node, primary_raw, secondary_raws, primary, operators, secondaries)
+			return self.proc_binary_operation_expression(node, primary_raw, secondary_raws, primary, operators, secondaries)
 
-	def proc_binary_operator_fill_list(self, node: defs.BinaryOperator, default_raw: IReflection, size_raw: IReflection, default: str, size: str) -> str:
+	def proc_binary_operation_fill_list(self, node: defs.BinaryOperator, default_raw: IReflection, size_raw: IReflection, default: str, size: str) -> str:
 		value_type = self.to_accessible_name(default_raw.attrs[0])
 		default_is_list = default_raw.node.is_a(defs.List)
-		return self.view.render('binary_operator/fill_list', vars={'value_type': value_type, 'default': default, 'size': size, 'default_is_list': default_is_list})
+		return self.view.render('operation/binary_fill_list', vars={'value_type': value_type, 'default': default, 'size': size, 'default_is_list': default_is_list})
 
-	def proc_binary_operator_expression(self, node: defs.BinaryOperator, left_raw: IReflection, right_raws: list[IReflection], left: str, operators: list[str], rights: list[str]) -> str:
+	def proc_binary_operation_expression(self, node: defs.BinaryOperator, left_raw: IReflection, right_raws: list[IReflection], left: str, operators: list[str], rights: list[str]) -> str:
 		primary = left
 		primary_raw = left_raw
 		for index, right_raw in enumerate(right_raws):
 			operator = operators[index]
 			secondary = rights[index]
 			if operator in ['in', 'not.in']:
-				primary = self.view.render('binary_operator/in', vars={'left': primary, 'operator': operator, 'right': secondary, 'right_is_dict': right_raw.impl(refs.Object).type_is(dict)})
+				primary = self.view.render('operation/binary_in', vars={'left': primary, 'operator': operator, 'right': secondary, 'right_is_dict': right_raw.impl(refs.Object).type_is(dict)})
 			else:
-				primary = self.view.render('binary_operator/default', vars={'left': primary, 'operator': operator, 'right': secondary, 'left_var_type': self.to_domain_name(primary_raw), 'right_var_type': self.to_domain_name(right_raw)})
+				primary = self.view.render('operation/binary_operator', vars={'left': primary, 'operator': operator, 'right': secondary, 'left_var_type': self.to_domain_name(primary_raw), 'right_var_type': self.to_domain_name(right_raw)})
 
 			primary_raw = right_raw
 
 		return primary
 
 	def on_ternary_operator(self, node: defs.TernaryOperator, primary: str, condition: str, secondary: str) -> str:
-		return self.view.render(node.classification, vars={'primary': primary, 'condition': condition, 'secondary': secondary})
+		return self.view.render(f'operation/{node.classification}', vars={'primary': primary, 'condition': condition, 'secondary': secondary})
 
 	# Literal
 

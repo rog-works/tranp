@@ -210,7 +210,7 @@ class TestRenderer(TestCase):
 		({'value_type': 'float', 'size': '10', 'default': 'std::vector<float>()', 'default_is_list': False}, 'std::vector<float>(10)'),
 	])
 	def test_render_binary_operator_fill_list(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('binary_operator/fill_list', vars, expected)
+		self.assertRender('operation/binary_fill_list', vars, expected)
 
 	@data_provider([
 		({'left': 'key', 'operator': 'in', 'right': 'items', 'right_is_dict': True}, 'items.contains(key)'),
@@ -219,7 +219,7 @@ class TestRenderer(TestCase):
 		({'left': 'value', 'operator': 'not.in', 'right': 'values', 'right_is_dict': False}, '(std::find(values.begin(), values.end(), value) == values.end())'),
 	])
 	def test_render_binary_operator_in(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('binary_operator/in', vars, expected)
+		self.assertRender('operation/binary_in', vars, expected)
 
 	@data_provider([
 		({'left': 'a', 'operator': 'is', 'right': 'b', 'left_var_type': 'int'}, 'a == b'),
@@ -235,7 +235,7 @@ class TestRenderer(TestCase):
 		({'left': 'a', 'operator': '%', 'right': 'b', 'left_var_type': 'double'}, 'fmod(a, b)'),
 	])
 	def test_render_binary_operator(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('binary_operator/default', vars, expected)
+		self.assertRender('operation/binary_operator', vars, expected)
 
 	@data_provider([
 		({'statements': [ 'int x = 0;', 'int y = 0;', 'int z = 0;', ]}, 'int x = 0;\nint y = 0;\nint z = 0;'),

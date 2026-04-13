@@ -562,7 +562,7 @@ class TestRenderer(TestCase):
 		({'path': 'deco', 'arguments': ['a', 'b']}, 'deco(a, b)'),
 	])
 	def test_render_decorator(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('decorator', vars, expected)
+		self.assertRender('element/decorator', vars, expected)
 
 	@data_provider([
 		({'targets': [{'receiver': 'l', 'key': '1', 'list_or_dict': 'list'}]}, 'l.erase(l.begin() + 1);'),
@@ -1421,7 +1421,7 @@ class TestRenderer(TestCase):
 		({'var_type': 'const std::string&', 'symbol': 'p', 'annotation': 'Embed::immutable'}, 'const std::string& p'),
 	])
 	def test_render_parameter(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('parameter', vars, expected)
+		self.assertRender('element/parameter', vars, expected)
 
 	@data_provider([
 		({'receiver': 'raw', 'move': 'ToAddress'}, '(&(raw))'),

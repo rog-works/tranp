@@ -234,22 +234,22 @@ class Py2Cpp(ITranspiler):
 	def to_accessible_name_for_method(self, raw: IReflection, var_type: str, attrs: list[str]) -> str:
 		"""型推論によって補完する際の名前空間上の参照名を取得(Method)"""
 		# FIXME アノテーションを考慮しておらず場当たり的な対応
-		param_types = [self.view.render('param_type_py2cpp', vars={'var_type': attr_type}) for attr_type in attrs[1:-1]]
+		param_types = [self.view.render('element/param_type', vars={'var_type': attr_type}) for attr_type in attrs[1:-1]]
 		return f'{attrs[-1]}({DSN.join(*DSN.elements(var_type)[:-1])}::*)({", ".join(param_types)})'
 
 	def to_accessible_name_for_class_method(self, raw: IReflection, var_type: str, attrs: list[str]) -> str:
 		"""型推論によって補完する際の名前空間上の参照名を取得(ClassMethod)"""
-		param_types = [self.view.render('param_type_py2cpp', vars={'var_type': attr_type}) for attr_type in attrs[1:-1]]
+		param_types = [self.view.render('element/param_type', vars={'var_type': attr_type}) for attr_type in attrs[1:-1]]
 		return f'{attrs[-1]}(*)({", ".join(param_types)})'
 
 	def to_accessible_name_for_function(self, raw: IReflection, var_type: str, attrs: list[str]) -> str:
 		"""型推論によって補完する際の名前空間上の参照名を取得(Function)"""
-		param_types = [self.view.render('param_type_py2cpp', vars={'var_type': attr_type}) for attr_type in attrs[:-1]]
+		param_types = [self.view.render('element/param_type', vars={'var_type': attr_type}) for attr_type in attrs[:-1]]
 		return f'{attrs[-1]}(*)({", ".join(param_types)})'
 
 	def to_accessible_name_for_callable(self, raw: IReflection, var_type: str, attrs: list[str]) -> str:
 		"""型推論によって補完する際の名前空間上の参照名を取得(Callable)"""
-		param_types = [self.view.render('param_type_py2cpp', vars={'var_type': attr_type}) for attr_type in attrs[:-1]]
+		param_types = [self.view.render('element/param_type', vars={'var_type': attr_type}) for attr_type in attrs[:-1]]
 		return f'{var_type}<{attrs[-1]}({", ".join(param_types)})>'
 
 	def to_accessible_name_for_class(self, raw: IReflection, var_type: str, attrs: list[str]) -> str:
@@ -603,10 +603,10 @@ class Py2Cpp(ITranspiler):
 
 	def on_parameter(self, node: defs.Parameter, symbol: str, var_type: str, default_value: str) -> str:
 		annotation = self.transpile(node.var_type.annotation) if isinstance(node.var_type, defs.Type) and not isinstance(node.var_type.annotation, defs.Empty) else ''
-		return self.view.render(node.classification, vars={'symbol': symbol, 'var_type': var_type, 'default_value': default_value, 'annotation': annotation})
+		return self.view.render(f'element/{node.classification}', vars={'symbol': symbol, 'var_type': var_type, 'default_value': default_value, 'annotation': annotation})
 
 	def on_decorator(self, node: defs.Decorator, path: str, arguments: list[str]) -> str:
-		return self.view.render(node.classification, vars={'path': path, 'arguments': arguments})
+		return self.view.render(f'element/{node.classification}', vars={'path': path, 'arguments': arguments})
 
 	# Statement - simple
 

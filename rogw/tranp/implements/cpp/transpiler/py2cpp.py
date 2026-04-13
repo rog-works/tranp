@@ -385,7 +385,7 @@ class Py2Cpp(ITranspiler):
 
 			vars.append(var)
 
-		return list({var.domain_name if not isinstance(var, defs.ThisRef) else self.view.render('this_ref'): True for var in vars}.keys())
+		return list({var.domain_name if not isinstance(var, defs.ThisRef) else self.view.render('reference/this_ref'): True for var in vars}.keys())
 
 	def make_depends(self, statements: list[str]) -> list[str]:
 		"""依存パスリストを生成
@@ -415,7 +415,7 @@ class Py2Cpp(ITranspiler):
 
 	def on_entrypoint(self, node: defs.Entrypoint, statements: list[str]) -> str:
 		meta_header = MetaHeader(self.module_meta_factory(node.module_path), self.meta)
-		return self.view.render(node.classification, vars={'statements': statements, 'meta_header': meta_header.to_header_str(), 'module_path': node.module_path, 'depends': self.make_depends(statements)})
+		return self.view.render(f'block/{node.classification}', vars={'statements': statements, 'meta_header': meta_header.to_header_str(), 'module_path': node.module_path, 'depends': self.make_depends(statements)})
 
 	# Statement - compound
 
@@ -725,7 +725,7 @@ class Py2Cpp(ITranspiler):
 	# Primary
 
 	def on_argument(self, node: defs.Argument, label: str, value: str) -> str:
-		return self.view.render(node.classification, vars={'label': label, 'value': value})
+		return self.view.render(f'expression/{node.classification}', vars={'label': label, 'value': value})
 
 	def on_inherit_argument(self, node: defs.InheritArgument, class_type: str) -> str:
 		return class_type
@@ -862,19 +862,19 @@ class Py2Cpp(ITranspiler):
 		actual_symbol = Defer.new(lambda: org_symbol.actualize('type'))
 		# クラスの直参照、または引数やローカル変数がクラス参照の場合
 		if org_symbol.type_is(type):
-			return self.view.render(node.classification, vars={'symbol': self.to_domain_name_by_class(actual_symbol.types)})
+			return self.view.render(f'reference/{node.classification}', vars={'symbol': self.to_domain_name_by_class(actual_symbol.types)})
 		# 上記以外のクラス系参照の場合
 		elif isinstance(actual_symbol.decl, defs.ClassDef):
-			return self.view.render(node.classification, vars={'symbol': self.to_domain_name_by_class(actual_symbol.types)})
+			return self.view.render(f'reference/{node.classification}', vars={'symbol': self.to_domain_name_by_class(actual_symbol.types)})
 		else:
-			return self.view.render(node.classification, vars={'symbol': node.tokens})
+			return self.view.render(f'reference/{node.classification}', vars={'symbol': node.tokens})
 
 	def on_class_ref(self, node: defs.ClassRef) -> str:
 		symbol = self.reflections.type_of(node).impl(refs.Object).actualize('self', 'type')
 		return self.to_domain_name(symbol)
 
 	def on_this_ref(self, node: defs.ThisRef) -> str:
-		return self.view.render(node.classification)
+		return self.view.render(f'reference/{node.classification}')
 
 	def on_indexer(self, node: defs.Indexer, receiver: str, keys: list[str]) -> str:
 		is_statement = node.parent.is_a(defs.Block, defs.Entrypoint)
@@ -1424,7 +1424,7 @@ class Py2Cpp(ITranspiler):
 	# Expression
 
 	def on_group(self, node: defs.Group, expression: str) -> str:
-		return self.view.render(node.classification, vars={'expression': expression})
+		return self.view.render(f'expression/{node.classification}', vars={'expression': expression})
 
 	def on_spread(self, node: defs.Spread, expression: str) -> str:
 		raise Errors.NotSupported(node, 'Denied spread expression')

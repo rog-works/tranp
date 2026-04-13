@@ -180,7 +180,7 @@ class TestRenderer(TestCase):
 		({'label': 'a', 'value': 1}, '1'),
 	])
 	def test_render_argument(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('argument', vars, expected)
+		self.assertRender('expression/argument', vars, expected)
 
 	@data_provider([
 		({'condition': 'n == 1', 'assert_body': ''}, 'assert(n == 1);'),
@@ -241,7 +241,7 @@ class TestRenderer(TestCase):
 		({'statements': [ 'int x = 0;', 'int y = 0;', 'int z = 0;', ]}, 'int x = 0;\nint y = 0;\nint z = 0;'),
 	])
 	def test_render_block(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('block', vars, expected)
+		self.assertRender('block/block', vars, expected)
 
 	@data_provider([
 		('callable_type', {'type_name': 'Callable', 'parameters': ['int', 'float'], 'return_type': 'bool'}, 'std::function<bool(int, float)>'),
@@ -699,7 +699,7 @@ class TestRenderer(TestCase):
 		),
 	])
 	def test_render_entrypoint(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('entrypoint', vars, expected)
+		self.assertRender('block/entrypoint', vars, expected)
 
 	@data_provider([
 		(
@@ -1474,7 +1474,7 @@ class TestRenderer(TestCase):
 		({}, 'this'),
 	])
 	def test_render_this_ref(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('this_ref', vars, expected)
+		self.assertRender('reference/this_ref', vars, expected)
 
 	@data_provider([
 		({'throws': 'e', 'via': '', 'is_new': False}, 'throw e;'),

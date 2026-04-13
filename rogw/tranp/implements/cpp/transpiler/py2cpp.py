@@ -675,16 +675,16 @@ class Py2Cpp(ITranspiler):
 		return self.view.render(f'statement/{node.classification}', vars={'targets': _targets})
 
 	def on_return(self, node: defs.Return, return_value: str) -> str:
-		return self.view.render(f'flow/{node.classification}', vars={'return_value': return_value, 'return_self': node.return_value.is_a(defs.ThisRef)})
+		return self.view.render(f'statement/{node.classification}', vars={'return_value': return_value, 'return_self': node.return_value.is_a(defs.ThisRef)})
 
 	def on_yield(self, node: defs.Yield, yield_value: str) -> str:
-		return self.view.render(f'flow/{node.classification}', vars={'yield_value': yield_value})
+		return self.view.render(f'statement/{node.classification}', vars={'yield_value': yield_value})
 
 	def on_assert(self, node: defs.Assert, condition: str, assert_body: str) -> str:
-		return self.view.render(node.classification, vars={'condition': condition, 'assert_body': assert_body})
+		return self.view.render(f'statement/{node.classification}', vars={'condition': condition, 'assert_body': assert_body})
 
 	def on_throw(self, node: defs.Throw, throws: str, via: str) -> str:
-		return self.view.render(f'flow/{node.classification}', vars={'throws': throws, 'via': via, 'is_new': node.throws.is_a(defs.FuncCall)})
+		return self.view.render(f'statement/{node.classification}', vars={'throws': throws, 'via': via, 'is_new': node.throws.is_a(defs.FuncCall)})
 
 	def on_pass(self, node: defs.Pass) -> str:
 		# XXX statementsのスタック数が合わなくなるため出力

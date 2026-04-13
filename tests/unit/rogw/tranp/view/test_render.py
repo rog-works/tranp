@@ -187,7 +187,7 @@ class TestRenderer(TestCase):
 		({'condition': 'a.ok', 'assert_body': 'std::exception'}, 'assert(a.ok); // std::exception'),
 	])
 	def test_render_assert(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('assert', vars, expected)
+		self.assertRender('statement/assert', vars, expected)
 
 	@data_provider([
 		('move_assign', {'receiver': 'hoge', 'value': '1234'}, 'hoge = 1234;'),
@@ -1461,7 +1461,7 @@ class TestRenderer(TestCase):
 		({'return_value': 'this', 'return_self': True}, 'return *this;'),
 	])
 	def test_render_return(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('flow/return', vars, expected)
+		self.assertRender('statement/return', vars, expected)
 
 	@data_provider([
 		({'symbol': 'T', 'is_declare': False}, 'T'),
@@ -1481,7 +1481,7 @@ class TestRenderer(TestCase):
 		({'throws': 'std::exception()', 'via': 'e', 'is_new': True}, 'throw new std::exception();'),
 	])
 	def test_render_throw(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('flow/throw', vars, expected)
+		self.assertRender('statement/throw', vars, expected)
 
 	@data_provider([
 		({'statements': ['pass;'], 'catches': []}, 'try {\n\tpass;\n}'),
@@ -1516,4 +1516,4 @@ class TestRenderer(TestCase):
 		({'yield_value': 'entry'}, 'return entry;'),
 	])
 	def test_render_yield(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('flow/yield', vars, expected)
+		self.assertRender('statement/yield', vars, expected)

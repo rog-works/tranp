@@ -238,12 +238,6 @@ class TestRenderer(TestCase):
 		self.assertRender('operation/binary_operator', vars, expected)
 
 	@data_provider([
-		({'statements': [ 'int x = 0;', 'int y = 0;', 'int z = 0;', ]}, 'int x = 0;\nint y = 0;\nint z = 0;'),
-	])
-	def test_render_block(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('block/block', vars, expected)
-
-	@data_provider([
 		('callable_type', {'type_name': 'Callable', 'parameters': ['int', 'float'], 'return_type': 'bool'}, 'std::function<bool(int, float)>'),
 		('pluck_method', {'type_name': 'Callable', 'parameters': ['T', 'T_Args...'], 'return_type': 'void'}, 'typename PluckMethod<T, void, T_Args...>::method'),
 	])

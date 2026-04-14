@@ -8,13 +8,11 @@ from rogw.tranp.dsn.translation import alias_dsn
 from rogw.tranp.file.loader import IDataLoader
 from rogw.tranp.i18n.i18n import I18n, TranslationMapping
 from rogw.tranp.implements.cpp.providers.i18n import translation_mapping_cpp
-from rogw.tranp.implements.cpp.providers.semantics import plugin_provider_cpp
 from rogw.tranp.implements.cpp.providers.view import renderer_helper_provider_cpp
 from rogw.tranp.implements.cpp.transpiler.py2cpp import Py2Cpp
 from rogw.tranp.lang.middleware import Middleware
 from rogw.tranp.lang.module import to_fullyname
 from rogw.tranp.lang.profile import profiler
-from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.semantics.reflections import Reflections
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.test.helper import data_provider
@@ -51,7 +49,6 @@ class TestPy2Cpp(TestCase):
 	fixture_module_path = Fixture.fixture_module_path(__file__)
 	fixture = Fixture.make(__file__, {
 		to_fullyname(Py2Cpp): Py2Cpp,
-		to_fullyname(PluginProvider): plugin_provider_cpp,
 		to_fullyname(Renderer): Renderer,
 		to_fullyname(RendererEmitter): Middleware,
 		to_fullyname(RendererHelperProvider): renderer_helper_provider_cpp,

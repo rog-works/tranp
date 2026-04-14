@@ -15,7 +15,6 @@ from rogw.tranp.errors import Errors
 from rogw.tranp.file.loader import IDataLoader, ISourceLoader
 from rogw.tranp.file.writer import Writer
 from rogw.tranp.i18n.i18n import I18n, TranslationMapping
-from rogw.tranp.implements.cpp.providers.semantics import plugin_provider_cpp
 from rogw.tranp.implements.cpp.providers.view import renderer_helper_provider_cpp
 from rogw.tranp.implements.cpp.transpiler.py2cpp import Py2Cpp
 from rogw.tranp.lang.annotation import injectable
@@ -29,7 +28,6 @@ from rogw.tranp.module.includer import include_module_paths
 from rogw.tranp.module.module import Module
 from rogw.tranp.module.modules import Modules
 from rogw.tranp.module.types import ModulePath, ModulePaths
-from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.syntax.ast.parser import ParserSetting, SourceProvider
 from rogw.tranp.syntax.node.node import Node
 from rogw.tranp.transpiler.types import ITranspiler, TranspilerOptions
@@ -248,7 +246,6 @@ class TranspileApp:
 			to_fullyname(ITranspiler): Py2Cpp,
 			to_fullyname(ModulePaths): cls.make_module_paths,
 			to_fullyname(ParserSetting): cls.make_parser_setting,
-			to_fullyname(PluginProvider): plugin_provider_cpp,  # FIXME C++固定
 			to_fullyname(Renderer): Renderer,
 			to_fullyname(RendererEmitter): Middleware,
 			to_fullyname(RendererHelperProvider): renderer_helper_provider_cpp,

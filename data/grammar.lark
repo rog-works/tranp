@@ -327,7 +327,7 @@ var: name
 group_expr: "(" expression ")"
 
 // @lark _tuple_inner: test_or_star_expr (("," test_or_star_expr)+ [","] | ",")
-_tuple_inner: expression (("," expression)+ [","] | ",")
+_tuple_inner: expression ("," expression)* [","]
 
 // @lark ?testlist: test | testlist_tuple
 // @lark testlist_tuple: test (("," test)+ [","] | ",")

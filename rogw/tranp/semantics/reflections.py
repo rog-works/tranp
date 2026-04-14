@@ -6,7 +6,6 @@ from rogw.tranp.compatible.python.types import Standards, Union, Unknown
 from rogw.tranp.errors import Errors
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.semantics.finder import SymbolFinder
-from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.semantics.procedure import Procedure
 from rogw.tranp.semantics.reflection.base import IReflection
 from rogw.tranp.semantics.reflection.db import SymbolDB
@@ -26,29 +25,16 @@ class Reflections:
 	"""
 
 	@injectable
-	def __init__(self, db: SymbolDB, finder: SymbolFinder, plugins: PluginProvider) -> None:
+	def __init__(self, db: SymbolDB, finder: SymbolFinder) -> None:
 		"""インスタンスを生成
 
 		Args:
 			db: シンボルテーブル @inject
 			finder: シンボル検索 @inject
-			plugins: プラグインプロバイダー @inject
 		"""
 		self.__db = db
 		self.__finder = finder
-		self.__plugins = plugins
-		self.__procedural: ProceduralResolver | None = None
-
-	@property
-	def __procedural_resolver(self) -> 'ProceduralResolver':
-		"""Returns: プロシージャルリゾルバー"""
-		if self.__procedural is None:
-			self.__procedural = ProceduralResolver(self)
-
-			for plugin in self.__plugins():
-				plugin.register(self.__procedural.procedure)
-
-		return self.__procedural
+		self.__resolver = ProceduralResolver(self)
 
 	def type_is(self, types: defs.ClassDef, standard_type: type[Standards] | None) -> bool:
 		"""シンボル定義ノードの型を判定
@@ -296,7 +282,7 @@ class Reflections:
 		Raises:
 			Errors.Error: シンボルの解決に失敗
 		"""
-		return self.__procedural_resolver.resolve(node)
+		return self.__resolver.resolve(node)
 
 
 class ProceduralResolver:

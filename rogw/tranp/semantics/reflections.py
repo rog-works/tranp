@@ -4,7 +4,8 @@ import rogw.tranp.semantics.reflection.definition as refs
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.compatible.python.types import Standards, Union, Unknown
 from rogw.tranp.errors import Errors
-from rogw.tranp.lang.annotation import injectable
+from rogw.tranp.lang.annotation import duck_typed, injectable
+from rogw.tranp.lang.middleware import Observable
 from rogw.tranp.semantics.finder import SymbolFinder
 from rogw.tranp.semantics.procedure import Procedure
 from rogw.tranp.semantics.reflection.base import IReflection
@@ -35,6 +36,26 @@ class Reflections:
 		self.__db = db
 		self.__finder = finder
 		self.__resolver = ProceduralResolver(self)
+
+	@duck_typed(Observable)
+	def on(self, action: str, callback: Callable[..., IReflection]) -> None:
+		"""イベントハンドラーを登録
+
+		Args:
+			action: アクション名
+			callback: ハンドラー
+		"""
+		self.__resolver.procedure.on(action, callback)
+
+	@duck_typed(Observable)
+	def off(self, action: str, callback: Callable[..., IReflection]) -> None:
+		"""イベントハンドラーを解除
+
+		Args:
+			action: アクション名
+			callback: ハンドラー
+		"""
+		self.__resolver.procedure.off(action, callback)
 
 	def type_is(self, types: defs.ClassDef, standard_type: type[Standards] | None) -> bool:
 		"""シンボル定義ノードの型を判定

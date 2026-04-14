@@ -4,9 +4,9 @@ import rogw.tranp.semantics.reflection.definition as refs
 import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.compatible.python.types import Standards, Union, Unknown
 from rogw.tranp.errors import Errors
-from rogw.tranp.lang.annotation import injectable
+from rogw.tranp.lang.annotation import duck_typed, injectable
+from rogw.tranp.lang.middleware import Observable
 from rogw.tranp.semantics.finder import SymbolFinder
-from rogw.tranp.semantics.plugin import PluginProvider
 from rogw.tranp.semantics.procedure import Procedure
 from rogw.tranp.semantics.reflection.base import IReflection
 from rogw.tranp.semantics.reflection.db import SymbolDB
@@ -26,29 +26,36 @@ class Reflections:
 	"""
 
 	@injectable
-	def __init__(self, db: SymbolDB, finder: SymbolFinder, plugins: PluginProvider) -> None:
+	def __init__(self, db: SymbolDB, finder: SymbolFinder) -> None:
 		"""インスタンスを生成
 
 		Args:
 			db: シンボルテーブル @inject
 			finder: シンボル検索 @inject
-			plugins: プラグインプロバイダー @inject
 		"""
 		self.__db = db
 		self.__finder = finder
-		self.__plugins = plugins
-		self.__procedural: ProceduralResolver | None = None
+		self.__resolver = ProceduralResolver(self)
 
-	@property
-	def __procedural_resolver(self) -> 'ProceduralResolver':
-		"""Returns: プロシージャルリゾルバー"""
-		if self.__procedural is None:
-			self.__procedural = ProceduralResolver(self)
+	@duck_typed(Observable)
+	def on(self, action: str, callback: Callable[..., IReflection]) -> None:
+		"""イベントハンドラーを登録
 
-			for plugin in self.__plugins():
-				plugin.register(self.__procedural.procedure)
+		Args:
+			action: アクション名
+			callback: ハンドラー
+		"""
+		self.__resolver.procedure.on(action, callback)
 
-		return self.__procedural
+	@duck_typed(Observable)
+	def off(self, action: str, callback: Callable[..., IReflection]) -> None:
+		"""イベントハンドラーを解除
+
+		Args:
+			action: アクション名
+			callback: ハンドラー
+		"""
+		self.__resolver.procedure.off(action, callback)
 
 	def type_is(self, types: defs.ClassDef, standard_type: type[Standards] | None) -> bool:
 		"""シンボル定義ノードの型を判定
@@ -296,7 +303,7 @@ class Reflections:
 		Raises:
 			Errors.Error: シンボルの解決に失敗
 		"""
-		return self.__procedural_resolver.resolve(node)
+		return self.__resolver.resolve(node)
 
 
 class ProceduralResolver:

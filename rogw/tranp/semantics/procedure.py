@@ -1,9 +1,9 @@
-from typing import cast
+from collections.abc import Callable
 
 from rogw.tranp.dsn.dsn import DSN
 from rogw.tranp.errors import Errors
 from rogw.tranp.lang.annotation import duck_typed
-from rogw.tranp.lang.eventemitter import Callback, EventEmitter, Observable
+from rogw.tranp.lang.middleware import Middleware, Observable
 from rogw.tranp.syntax.node.node import Node
 
 
@@ -14,9 +14,7 @@ class Procedure[T_Ret]:
 	Note:
 		```
 		### イベントハンドラーの命名規則
-		* enter: on_enter_${node.classification} ※未実装
-		* action: on_${node.classification}
-		* exit: on_exit_${node.classification}
+		* on_${node.classification}
 		```
 	"""
 
@@ -28,10 +26,10 @@ class Procedure[T_Ret]:
 		"""
 		self.__stacks: list[list[T_Ret]] = []
 		self.__verbose = verbose
-		self.__emitter = EventEmitter[T_Ret]()
+		self.__emitter = Middleware[T_Ret]()
 
 	@duck_typed(Observable)
-	def on(self, action: str, callback: Callback[T_Ret]) -> None:
+	def on(self, action: str, callback: Callable[..., T_Ret]) -> None:
 		"""イベントハンドラーを登録
 
 		Args:
@@ -41,7 +39,7 @@ class Procedure[T_Ret]:
 		self.__emitter.on(action, callback)
 
 	@duck_typed(Observable)
-	def off(self, action: str, callback: Callback[T_Ret]) -> None:
+	def off(self, action: str, callback: Callable[..., T_Ret]) -> None:
 		"""イベントハンドラーを解除
 
 		Args:
@@ -115,9 +113,7 @@ class Procedure[T_Ret]:
 		Args:
 			node: ノード
 		"""
-		self.__enter(node)
 		self.__action(node)
-		self.__exit(node)
 
 	def __action(self, node: Node) -> None:
 		"""指定のノードのプロセス処理(本体)
@@ -130,53 +126,12 @@ class Procedure[T_Ret]:
 			ノード専用のハンドラーが未定義の場合はon_fallbackの呼び出しを試行する
 		"""
 		handler_name = f'on_{node.classification}'
-		if self.__emitter.observed(handler_name):
+		if self.__emitter.usable(handler_name):
 			self.__run_action(node, handler_name)
-		elif self.__emitter.observed('on_fallback'):
+		elif self.__emitter.usable('on_fallback'):
 			self.__run_action(node, 'on_fallback')
 		else:
 			raise Errors.MustBeImplemented(node, 'Handler not defined')
-
-	def __enter(self, node: Node) -> None:
-		"""指定のノードのプロセス処理(実行前)
-
-		Args:
-			node: ノード
-		Raises:
-			Errors.Logic: 入力と出力が不一致
-		"""
-		handler_name = f'on_enter_{node.classification}'
-		if not self.__emitter.observed(handler_name):
-			return
-
-		begin = len(self.__stack)
-		event = self.__make_event(node)
-		consumed = len(self.__stack)
-		result = self.__emit_proxy(handler_name, node, **event)
-		results = cast(list[T_Ret], result)  # FIXME 公開しているイベントハンドラーの定義と異なる形式を期待
-		if (begin - consumed) != len(results):
-			raise Errors.Logic(node, begin - consumed, len(results), 'Result not match')
-
-		self.__stack.extend(results)
-
-	def __exit(self, node: Node) -> None:
-		"""指定のノードのプロセス処理(実行後)
-
-		Args:
-			node: ノード
-		Raises:
-			Errors.Logic: 結果がNone
-		"""
-		handler_name = f'on_exit_{node.classification}'
-		if not self.__emitter.observed(handler_name):
-			return
-
-		org_result = self.__stack_pop()
-		new_result = self.__emit_proxy(handler_name, node, result=org_result)
-		if new_result is None:
-			raise Errors.Logic(node, 'Result is null')
-
-		self.__stack.append(new_result)
 
 	def __run_action(self, node: Node, handler_name: str) -> None:
 		"""指定のノードのプロセス処理
@@ -186,20 +141,18 @@ class Procedure[T_Ret]:
 			handler_name: ハンドラー名
 		"""
 		before = len(self.__stack)
-		result = self.__emit_proxy(handler_name, node, **self.__make_event(node))
+		result = self.__emit(handler_name, node)
 		consumed = len(self.__stack)
-		if result is not None:
-			self.__stack.append(result)
+		self.__stack.append(result)
 
 		self.__put_log_action(node, handler_name, stacks=(before, consumed, len(self.__stack)), result=result)
 
-	def __emit_proxy(self, action: str, node: Node, **event: T_Ret | list[T_Ret]) -> T_Ret | None:
-		"""イベント発火プロクシー
+	def __emit(self, action: str, node: Node) -> T_Ret:
+		"""イベント発火
 
 		Args:
 			action: イベント名
 			node: ノード
-			**event: イベントデータ
 		Returns:
 			結果
 		Raises:
@@ -207,6 +160,7 @@ class Procedure[T_Ret]:
 			Errors.Error: イベント内のエラー
 			Errors.Fatal: 未ハンドリングの不特定エラー
 		"""
+		event = self.__make_event(node)
 		try:
 			return self.__emitter.emit(action, node=node, **event)
 		except TypeError as e:

@@ -27,7 +27,31 @@ class Observable[T_Ret](Protocol):
 
 
 class Middleware[T_Ret]:
-	"""ミドルウェア"""
+	"""ミドルウェア
+
+	Note:
+		```
+		### ハンドラーの評価順序
+		* 登録順とは逆順に評価される
+		* ミドルウェアからは最後に登録したハンドラーのみ呼び出される
+		* 以降はハンドラー内からnext関数をコールすることでチェーンを実現する
+		### next関数
+		* nextを引数に明示した場合、次のハンドラーを呼び出す関数が自動的に挿入される
+		* nextを省略した場合、残りのハンドラーは無視される
+		* 最初に登録したハンドラーは終端要素になるため、nextは省略するのを推奨
+		```
+	Examples:
+		```python
+		def middle(n: int, next: Callable[[], T_Ret]) -> int:
+			result = next()
+			return result * n
+
+		middleware = Middleware[int]()
+		middleware.on('any', lambda n: n)
+		middleware.on('any', middle)
+		middleware.emit('any', n=1)
+		```
+	"""
 
 	def __init__(self) -> None:
 		"""インスタンスを生成"""

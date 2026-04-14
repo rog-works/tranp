@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from unittest import TestCase
 
 from rogw.tranp.lang.middleware import Middleware
@@ -15,6 +16,22 @@ class TestMiddleware(TestCase):
 		instance.on('hoge', lambda n, s: (n, s))
 		actual = instance.emit('hoge', n=n, s=s)
 		self.assertEqual((n, s), actual)
+
+	@data_provider([
+		(0, 0),
+		(1, 1),
+		(2, 4),
+	])
+	def test_emit_intercept(self, n: int, expected: int) -> None:
+		def middle(n: int, next: Callable[[], int]) -> int:
+			result = next()
+			return n * result
+
+		instance = Middleware[int]()
+		instance.on('hoge', lambda n: n)
+		instance.on('hoge', middle)
+		actual = instance.emit('hoge', n=n)
+		self.assertEqual(expected, actual)
 
 	def test_on(self) -> None:
 		instance = Middleware[str]()

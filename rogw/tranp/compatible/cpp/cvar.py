@@ -31,19 +31,11 @@ class CVar(Generic[T_co], metaclass=ABCMeta):
 		...
 
 	def to_addr_id(self) -> int:
-		"""アドレス値を取得
-
-		Returns:
-			アドレス値
-		"""
+		"""Returns: アドレス値"""
 		return hash(self)
 
 	def to_addr_hex(self) -> str:
-		"""アドレス値を取得
-
-		Returns:
-			アドレス値(16進数 ※先頭の'0x'は除外)
-		"""
+		"""Returns: アドレス値(16進数 ※先頭の'0x'は除外)"""
 		return hex(hash(self))[2:].upper()
 
 	def __eq__(self, other: Self | None) -> bool:
@@ -67,19 +59,15 @@ class CVar(Generic[T_co], metaclass=ABCMeta):
 		return not self.__eq__(other)
 
 	def __hash__(self) -> int:
-		"""ハッシュ値を取得
-
-		Returns:
-			ハッシュ値
-		"""
+		"""Returns: ハッシュ値"""
 		return id(self.raw)
 
-	def __repr__(self) -> str:
-		"""シリアライズ表現を取得
+	def __str__(self) -> str:
+		"""Returns: 文字列表現"""
+		return f'0x{self.to_addr_hex()}'
 
-		Returns:
-			シリアライズ表現
-		"""
+	def __repr__(self) -> str:
+		"""Returns: シリアライズ表現"""
 		return f'<{self.__class__.__name__}[{self._origin_raw.__class__.__name__}]: at 0x{self.to_addr_hex()} with {self._origin_raw}>'
 
 
@@ -289,11 +277,7 @@ class CWP(CVar[T_co]):
 
 	@override
 	def __hash__(self) -> int:
-		"""ハッシュ値を取得
-
-		Returns:
-			ハッシュ値
-		"""
+		"""Returns: ハッシュ値"""
 		return self._hash
 
 	@property
@@ -473,13 +457,13 @@ def can_down_addr[T](addr: CP[Any], down_type: type[T]) -> TypeIs[CP[T]]:
 	return isinstance(addr.raw, down_type)
 
 
-def can_down_weak[T](addr: CWP[Any], down_type: type[T]) -> TypeIs[CWP[T]]:
+def can_down_weak[T](weak: CWP[Any], down_type: type[T]) -> TypeIs[CWP[T]]:
 	"""同じか派生クラスか判定
 
 	Args:
-		addr: ポインター
+		weak: 弱参照
 		down_type: 派生クラスの型
 	Returns:
 		True = 同じか派生クラス
 	"""
-	return isinstance(addr.raw, down_type)
+	return isinstance(weak.raw, down_type)

@@ -2,11 +2,10 @@ from typing import Any, Callable, Literal, NamedTuple, Protocol, TypeAlias
 
 from jinja2 import Environment, FileSystemLoader
 
-from rogw.tranp.lang.eventemitter import EventEmitter
+from rogw.tranp.lang.middleware import Middleware
 from rogw.tranp.lang.translator import Translator
 
-
-RendererEmitter: TypeAlias = EventEmitter
+RendererEmitter: TypeAlias = Middleware
 
 
 class RendererSetting(NamedTuple):

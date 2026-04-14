@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from rogw.tranp.lang.eventemitter import Observable
+from rogw.tranp.lang.middleware import Observable
 
 
 class IPlugin:

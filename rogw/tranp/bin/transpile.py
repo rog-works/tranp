@@ -1,7 +1,7 @@
-from enum import Enum
 import os
 import re
 import sys
+from enum import Enum
 from typing import Any, TypedDict, cast
 
 import yaml
@@ -21,9 +21,9 @@ from rogw.tranp.implements.cpp.transpiler.py2cpp import Py2Cpp
 from rogw.tranp.lang.annotation import injectable
 from rogw.tranp.lang.convertion import as_a
 from rogw.tranp.lang.di import DI, ModuleDefinitions
-from rogw.tranp.lang.eventemitter import EventEmitter
 from rogw.tranp.lang.locator import Invoker, Locator
-from rogw.tranp.lang.module import to_fullyname, module_path_to_filepath
+from rogw.tranp.lang.middleware import Middleware
+from rogw.tranp.lang.module import module_path_to_filepath, to_fullyname
 from rogw.tranp.lang.profile import profiler
 from rogw.tranp.module.includer import include_module_paths
 from rogw.tranp.module.module import Module
@@ -250,7 +250,7 @@ class TranspileApp:
 			to_fullyname(ParserSetting): cls.make_parser_setting,
 			to_fullyname(PluginProvider): plugin_provider_cpp,  # FIXME C++固定
 			to_fullyname(Renderer): Renderer,
-			to_fullyname(RendererEmitter): EventEmitter,
+			to_fullyname(RendererEmitter): Middleware,
 			to_fullyname(RendererHelperProvider): renderer_helper_provider_cpp,
 			to_fullyname(RendererSetting): cls.make_renderer_setting,
 			to_fullyname(TranslationMapping): cls.make_translation_mapping,

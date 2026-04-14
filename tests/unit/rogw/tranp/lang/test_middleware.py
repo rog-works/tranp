@@ -1,10 +1,10 @@
 from unittest import TestCase
 
-from rogw.tranp.lang.eventemitter import EventEmitter
+from rogw.tranp.lang.middleware import Middleware
 from rogw.tranp.test.helper import data_provider
 
 
-class TestEventEmitter(TestCase):
+class TestMiddleware(TestCase):
 	@data_provider([
 		(0, 'hoge'),
 		(1, 'fuga'),
@@ -16,9 +16,9 @@ class TestEventEmitter(TestCase):
 			result['v'] = v
 			result['s'] = s
 
-		emitter = EventEmitter()
-		emitter.on('hoge', handler)
-		emitter.emit('hoge', v=v, s=s)
+		instance = Middleware()
+		instance.on('hoge', handler)
+		instance.emit('hoge', v=v, s=s)
 		self.assertEqual(result['v'], v)
 		self.assertEqual(result['s'], s)
 
@@ -26,30 +26,29 @@ class TestEventEmitter(TestCase):
 		def handler():
 			raise ValueError()
 
-		emitter = EventEmitter()
-		emitter.on('hoge', handler)
+		instance = Middleware()
+		instance.on('hoge', handler)
 		with self.assertRaises(ValueError):
-			emitter.emit('hoge')
+			instance.emit('hoge')
 
 	def test_off(self) -> None:
 		def handler():
 			raise ValueError()
 
-		try:
-			emitter = EventEmitter()
-			emitter.on('hoge', handler)
-			emitter.off('hoge', handler)
-			emitter.emit('hoge')
-		except Exception:
-			self.fail()
+		instance = Middleware()
+		instance.on('hoge', handler)
+		self.assertTrue(instance.usable('hoge'))
+
+		instance.off('hoge', handler)
+		self.assertFalse(instance.usable('hoge'))
 
 	def test_clear(self) -> None:
 		def handler():
 			raise ValueError()
 
 		try:
-			emitter = EventEmitter()
-			emitter.on('hoge', handler)
-			emitter.clear()
+			instance = Middleware()
+			instance.on('hoge', handler)
+			instance.clear()
 		except Exception:
 			self.fail()

@@ -1,7 +1,7 @@
 import re
 from collections.abc import Callable
 from enum import Enum
-from typing import Any, ClassVar, Protocol, Self, TypeVarTuple, cast, override
+from typing import Any, ClassVar, Self, TypeVarTuple, cast, override
 
 import rogw.tranp.semantics.reflection.definition as refs
 import rogw.tranp.syntax.node.definition as defs
@@ -22,7 +22,7 @@ from rogw.tranp.i18n.i18n import I18n
 from rogw.tranp.implements.cpp.semantics.cvars import CVars
 from rogw.tranp.lang.annotation import duck_typed, injectable
 from rogw.tranp.lang.defer import Defer
-from rogw.tranp.lang.eventemitter import Callback, Observable
+from rogw.tranp.lang.middleware import Observable
 from rogw.tranp.lang.module import to_fullyname
 from rogw.tranp.semantics.procedure import Procedure
 from rogw.tranp.semantics.reflection.base import IReflection
@@ -117,7 +117,7 @@ class Py2Cpp(ITranspiler):
 			self.__stack_on_depends[-1].append(path)
 
 	@duck_typed(Observable)
-	def on(self, action: str, callback: Callback[str]) -> None:
+	def on(self, action: str, callback: Callable[..., str]) -> None:
 		"""イベントハンドラーを登録
 
 		Args:
@@ -127,7 +127,7 @@ class Py2Cpp(ITranspiler):
 		self.__procedure.on(action, callback)
 
 	@duck_typed(Observable)
-	def off(self, action: str, callback: Callback[str]) -> None:
+	def off(self, action: str, callback: Callable[..., str]) -> None:
 		"""イベントハンドラーを解除
 
 		Args:

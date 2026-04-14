@@ -1,17 +1,13 @@
 from collections.abc import Callable
-from typing import Any, Generic, Protocol, TypeAlias, TypeVar
+from typing import Any, Protocol
 
 from rogw.tranp.lang.annotation import duck_typed
 
-T_Ret = TypeVar('T_Ret')
 
-Callback: TypeAlias = Callable[..., T_Ret | None]
-
-
-class Observable(Protocol):
+class Observable[T_Ret](Protocol):
 	"""オブザーバープロトコル"""
 
-	def on(self, action: str, callback: Callback) -> None:
+	def on(self, action: str, callback: Callable[..., T_Ret]) -> None:
 		"""イベントハンドラーを登録
 
 		Args:
@@ -20,7 +16,7 @@ class Observable(Protocol):
 		"""
 		...
 
-	def off(self, action: str, callback: Callback) -> None:
+	def off(self, action: str, callback: Callable[..., T_Ret]) -> None:
 		"""イベントハンドラーを解除
 
 		Args:
@@ -30,15 +26,15 @@ class Observable(Protocol):
 		...
 
 
-class EventEmitter(Generic[T_Ret]):
-	"""イベントエミッター"""
+class Middleware[T_Ret]:
+	"""ミドルウェア"""
 
 	def __init__(self) -> None:
 		"""インスタンスを生成"""
-		self.__handlers: dict[str, list[Callback[T_Ret]]] = {}
+		self.__handlers: dict[str, list[Callable[..., T_Ret]]] = {}
 
 	@duck_typed(Observable)
-	def on(self, action: str, callback: Callback[T_Ret]) -> None:
+	def on(self, action: str, callback: Callable[..., T_Ret]) -> None:
 		"""イベントハンドラーを登録
 
 		Args:
@@ -49,10 +45,10 @@ class EventEmitter(Generic[T_Ret]):
 			self.__handlers[action] = []
 
 		if callback not in self.__handlers[action]:
-			self.__handlers[action].append(callback)
+			self.__handlers[action].insert(0, callback)
 
 	@duck_typed(Observable)
-	def off(self, action: str, callback: Callback[T_Ret]) -> None:
+	def off(self, action: str, callback: Callable[..., T_Ret]) -> None:
 		"""イベントハンドラーを解除
 
 		Args:
@@ -63,8 +59,10 @@ class EventEmitter(Generic[T_Ret]):
 			raise ValueError()
 
 		self.__handlers[action].remove(callback)
+		if len(self.__handlers[action]) == 0:
+			del self.__handlers[action]
 
-	def observed(self, action: str) -> bool:
+	def usable(self, action: str) -> bool:
 		"""指定のイベントにハンドラーが登録済みか判定
 
 		Args:
@@ -74,26 +72,32 @@ class EventEmitter(Generic[T_Ret]):
 		"""
 		return action in self.__handlers
 
-	def emit(self, action: str, **event: Any) -> T_Ret | None:
+	def emit(self, action: str, **event: Any) -> T_Ret:
+		"""イベントを発火
+
+		Args:
+			action: イベントタグ
+			**event: イベントデータ
+		Returns:
+			イベントの結果
+		"""
+		return self.__emit(action, event, 0)
+
+	def __emit(self, action: str, event: dict[str, Any], index: int) -> T_Ret:
 		"""イベントを発火
 
 		Args:
 			action: イベントタグ
 			event: イベントデータ
+			index: ハンドラーインデックス
 		Returns:
 			イベントの結果
-		Note:
-			XXX null以外の結果が取得出来た場合は以降のハンドラーを省略する
 		"""
-		if action not in self.__handlers:
-			return None
-
-		for handler in reversed(self.__handlers[action]):
-			result = handler(**event)
-			if result is not None:
-				return result
-
-		return None
+		handler = self.__handlers[action][index]
+		if 'next' in handler.__annotations__:
+			return handler(**event, next=lambda: self.__emit(action, event, index + 1))
+		else:
+			return handler(**event)
 
 	def clear(self) -> None:
 		"""イベントハンドラーを全て解除"""

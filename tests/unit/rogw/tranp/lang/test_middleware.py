@@ -10,32 +10,22 @@ class TestMiddleware(TestCase):
 		(1, 'fuga'),
 		(2, 'piyo'),
 	])
-	def test_emit(self, v: int, s: str) -> None:
-		result = {'v': 0, 'str': ''}
-		def handler(v: int, s: str):
-			result['v'] = v
-			result['s'] = s
-
-		instance = Middleware()
-		instance.on('hoge', handler)
-		instance.emit('hoge', v=v, s=s)
-		self.assertEqual(result['v'], v)
-		self.assertEqual(result['s'], s)
+	def test_emit(self, n: int, s: str) -> None:
+		instance = Middleware[tuple[int, str]]()
+		instance.on('hoge', lambda n, s: (n, s))
+		actual = instance.emit('hoge', n=n, s=s)
+		self.assertEqual((n, s), actual)
 
 	def test_on(self) -> None:
-		def handler():
-			raise ValueError()
-
-		instance = Middleware()
-		instance.on('hoge', handler)
-		with self.assertRaises(ValueError):
-			instance.emit('hoge')
+		instance = Middleware[str]()
+		instance.on('hoge', lambda: 'ok')
+		actual = instance.emit('hoge')
+		self.assertEqual('ok', actual)
 
 	def test_off(self) -> None:
-		def handler():
-			raise ValueError()
+		def handler() -> int: ...
 
-		instance = Middleware()
+		instance = Middleware[int]()
 		instance.on('hoge', handler)
 		self.assertTrue(instance.usable('hoge'))
 
@@ -43,12 +33,9 @@ class TestMiddleware(TestCase):
 		self.assertFalse(instance.usable('hoge'))
 
 	def test_clear(self) -> None:
-		def handler():
-			raise ValueError()
+		instance = Middleware[int]()
+		instance.on('hoge', lambda: 0)
+		self.assertTrue(instance.usable('hoge'))
 
-		try:
-			instance = Middleware()
-			instance.on('hoge', handler)
-			instance.clear()
-		except Exception:
-			self.fail()
+		instance.clear()
+		self.assertFalse(instance.usable('hoge'))

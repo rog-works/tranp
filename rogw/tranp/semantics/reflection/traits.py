@@ -147,7 +147,7 @@ class ConvertionTrait(TraitImpl, IConvertion):
 		Note:
 			type<Class> -> Class
 		"""
-		if isinstance(symbol.decl, (defs.DeclClasses, defs.DeclVars)) and self.reflections.type_is(symbol.types, type):
+		if (isinstance(symbol.decl, defs.DeclClasses) or isinstance(symbol.decl, defs.DeclVars)) and self.reflections.type_is(symbol.types, type):
 			return True, symbol.attrs[0]
 		else:
 			return False, symbol

@@ -214,19 +214,24 @@ class Py2Cpp(ITranspiler):
 			```
 		"""
 		actual_raw = raw.impl(refs.Object).actualize('nullable')
-		var_type = ClassDomainNaming.accessible_name(actual_raw.types, alias_handler=self.i18n.t, alias_transpiler=self.transpile)
+		make_org_var_type = lambda: ClassDomainNaming.accessible_name(actual_raw.types, alias_handler=self.i18n.t, alias_transpiler=self.transpile)
+		var_type = ''
 		if actual_raw.types.is_a(defs.Method):
-			var_type = self.to_accessible_name_for_method(actual_raw, var_type, [self.to_accessible_name(attr) for attr in actual_raw.attrs])
+			var_type = self.to_accessible_name_for_method(actual_raw, make_org_var_type(), [self.to_accessible_name(attr) for attr in actual_raw.attrs])
 		elif actual_raw.types.is_a(defs.ClassMethod):
-			var_type = self.to_accessible_name_for_class_method(actual_raw, var_type, [self.to_accessible_name(attr) for attr in actual_raw.attrs])
+			var_type = self.to_accessible_name_for_class_method(actual_raw, [self.to_accessible_name(attr) for attr in actual_raw.attrs])
 		elif actual_raw.types.is_a(defs.Function):
-			var_type = self.to_accessible_name_for_function(actual_raw, var_type, [self.to_accessible_name(attr) for attr in actual_raw.attrs])
+			var_type = self.to_accessible_name_for_function(actual_raw, [self.to_accessible_name(attr) for attr in actual_raw.attrs])
 		elif actual_raw.type_is(Callable):
-			var_type = self.to_accessible_name_for_callable(actual_raw, var_type, [self.to_accessible_name(attr) for attr in actual_raw.attrs])
+			var_type = self.to_accessible_name_for_callable(actual_raw, make_org_var_type(), [self.to_accessible_name(attr) for attr in actual_raw.attrs])
 		elif actual_raw.types.is_a(defs.Class):
-			var_type = self.to_accessible_name_for_class(actual_raw, var_type, [self.to_accessible_name(attr) for attr in self.explicit_class_attrs(actual_raw)])
+			var_type = self.to_accessible_name_for_class(actual_raw, make_org_var_type(), [self.to_accessible_name(attr) for attr in self.explicit_class_attrs(actual_raw)])
 		elif actual_raw.types.is_a(defs.AltClass):
-			var_type = self.to_accessible_name_for_alt_class(actual_raw, var_type)
+			var_type = self.to_accessible_name_for_alt_class(actual_raw, make_org_var_type())
+		elif actual_raw.types.is_a(defs.TemplateClass):
+			var_type = ClassDomainNaming.domain_name(actual_raw.types, alias_handler=self.i18n.t, alias_transpiler=self.transpile)
+		else:
+			var_type = make_org_var_type()
 
 		var_type = self.view.render('type/custom_type', vars={'var_type': var_type})
 		return DSN.join(*DSN.elements(var_type), delimiter='::')
@@ -237,12 +242,12 @@ class Py2Cpp(ITranspiler):
 		param_types = [self.view.render('element/param_type', vars={'var_type': attr_type}) for attr_type in attrs[1:-1]]
 		return f'{attrs[-1]}({DSN.join(*DSN.elements(var_type)[:-1])}::*)({", ".join(param_types)})'
 
-	def to_accessible_name_for_class_method(self, raw: IReflection, var_type: str, attrs: list[str]) -> str:
+	def to_accessible_name_for_class_method(self, raw: IReflection, attrs: list[str]) -> str:
 		"""型推論によって補完する際の名前空間上の参照名を取得(ClassMethod)"""
 		param_types = [self.view.render('element/param_type', vars={'var_type': attr_type}) for attr_type in attrs[1:-1]]
 		return f'{attrs[-1]}(*)({", ".join(param_types)})'
 
-	def to_accessible_name_for_function(self, raw: IReflection, var_type: str, attrs: list[str]) -> str:
+	def to_accessible_name_for_function(self, raw: IReflection, attrs: list[str]) -> str:
 		"""型推論によって補完する際の名前空間上の参照名を取得(Function)"""
 		param_types = [self.view.render('element/param_type', vars={'var_type': attr_type}) for attr_type in attrs[:-1]]
 		return f'{attrs[-1]}(*)({", ".join(param_types)})'

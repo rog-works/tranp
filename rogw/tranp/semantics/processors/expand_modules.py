@@ -1,8 +1,5 @@
-import json
-from typing import IO, NamedTuple
-
+import rogw.tranp.syntax.node.definition as defs
 from rogw.tranp.compatible.python.types import Unknown
-from rogw.tranp.cache.cache import Stored
 from rogw.tranp.dsn.module import ModuleDSN
 from rogw.tranp.errors import Errors
 from rogw.tranp.lang.annotation import duck_typed, injectable
@@ -13,45 +10,24 @@ from rogw.tranp.semantics.processor import Preprocessor
 from rogw.tranp.semantics.reflection.base import IReflection
 from rogw.tranp.semantics.reflection.db import SymbolDB
 from rogw.tranp.semantics.reflection.reflection import Symbol
-import rogw.tranp.syntax.node.definition as defs
 
 
-class Expanded(NamedTuple):
-	"""展開時のテンポラリーデータ
+class Expanded:
+	"""展開時のテンポラリーデータ"""
 
-	Attributes:
-		classes: クラス定義マップ
-		decl_vars: 変数宣言マップ
-		imports: インポートマップ
-		import_paths: インポートパスリスト
-	"""
-
-	classes: dict[str, str] = {}
-	decl_vars: dict[str, str] = {}
-	imports: dict[str, str] = {}
-	import_paths: list[str] = []
-
-	@classmethod
-	@duck_typed(Stored)
-	def load(cls, stream: IO) -> 'Expanded':
-		""""インスタンスを復元
+	def __init__(self, classes: dict[str, str], decl_vars: dict[str, str], imports: dict[str, str], import_paths: list[str]) -> None:
+		"""インスタンスを生成
 
 		Args:
-			stream: IO
-		Returns:
-			インスタンス
+			classes: クラス定義マップ
+			decl_vars: 変数宣言マップ
+			imports: インポートマップ
+			import_paths: インポートパスリスト
 		"""
-		values = json.load(stream)
-		return Expanded(values[0], values[1], values[2], values[3])
-
-	@duck_typed(Stored)
-	def save(self, stream: IO) -> None:
-		""""インスタンスを保存
-
-		Args:
-			stream: IO
-		"""
-		stream.write(json.dumps(self, separators=(',', ':')).encode('utf-8'))
+		self.classes = classes
+		self.decl_vars = decl_vars
+		self.imports = imports
+		self.import_paths = import_paths
 
 
 class ExpandModules:

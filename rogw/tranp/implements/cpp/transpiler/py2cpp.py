@@ -469,14 +469,14 @@ class Py2Cpp(ITranspiler):
 		# XXX 参照の変換方法が場当たり的で一貫性が無い。包括的な対応を検討
 		iterates = f'*({receiver})' if operator == '->' else receiver
 		dict_symbols = {dict.items.__name__: symbols, dict.keys.__name__: [symbols[0], '_'], dict.values.__name__: ['_', symbols[0]]}
-		return self.view.render(f'flow/{node.classification}/dict', vars={'symbols': dict_symbols[method_name], 'iterates': iterates, 'statements': statements, 'is_const': is_const, 'is_addr_p': False})
+		return self.view.render(f'flow/{node.classification}/dict', vars={'symbols': dict_symbols[method_name], 'iterates': iterates, 'statements': statements, 'is_const': is_const, 'is_addr_raw': False})
 
 	def proc_for_each(self, node: defs.For, symbols: list[str], for_in: str, statements: list[str]) -> str:
 		# XXX is_const/is_addr_pの対応に一貫性が無い。包括的な対応を検討
 		for_in_symbol = Defer.new(lambda: self.reflections.type_of(node.for_in).impl(refs.Object).actualize())
 		is_const = self.cvars.is_const(self.cvars.var_name_from(for_in_symbol)) if len(symbols) == 1 else False
-		is_addr_p = self.cvars.is_addr_p(self.cvars.var_name_from(for_in_symbol)) if len(symbols) == 1 else False
-		return self.view.render(f'flow/{node.classification}/default', vars={'symbols': symbols, 'iterates': for_in, 'statements': statements, 'is_const': is_const, 'is_addr_p': is_addr_p})
+		is_addr_raw = self.cvars.is_addr_raw(self.cvars.var_name_from(for_in_symbol)) if len(symbols) == 1 else False
+		return self.view.render(f'flow/{node.classification}/default', vars={'symbols': symbols, 'iterates': for_in, 'statements': statements, 'is_const': is_const, 'is_addr_raw': is_addr_raw})
 
 	def on_catch(self, node: defs.Catch, var_type: str, symbol: str, statements: list[str]) -> str:
 		return self.view.render(f'flow/{node.classification}', vars={'var_type': var_type, 'symbol': symbol, 'statements': statements})
@@ -912,7 +912,7 @@ class Py2Cpp(ITranspiler):
 			return IndexerSpec.Tags.klass, symbol.actualize()
 		elif receiver_symbol.type_is(tuple):
 			return IndexerSpec.Tags.tuple, None
-		elif self.cvars.is_addr_p(self.cvars.var_name_from(receiver_symbol)):
+		elif self.cvars.is_addr_raw(self.cvars.var_name_from(receiver_symbol)):
 			return IndexerSpec.Tags.cvar, None
 		else:
 			return IndexerSpec.Tags.otherwise, None
@@ -1096,10 +1096,10 @@ class Py2Cpp(ITranspiler):
 			# 期待値: receiver.down(A)
 			receiver, _ = PatternParser.break_relay(calls)
 			return self.view.render(f'{node.classification}/{spec.name}', vars={**func_call_vars, 'receiver': receiver})
-		elif spec == FuncCallSpec.Tags.cvar_new_p:
+		elif spec == FuncCallSpec.Tags.cvar_new_addr:
 			# 期待値: CP.new(A(a, b, c))
 			return self.view.render(f'{node.classification}/{spec.name}', vars=func_call_vars)
-		elif spec == FuncCallSpec.Tags.cvar_new_sp_list:
+		elif spec == FuncCallSpec.Tags.cvar_new_smart_list:
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			# 期待値1: CSP.new([1, 2, 3])
 			initializer = arguments[0]
@@ -1112,11 +1112,11 @@ class Py2Cpp(ITranspiler):
 				initializer = BlockParser.parse_bracket(initializer)[0][1:-1]
 
 			return self.view.render(f'{node.classification}/{spec.name}', vars={**func_call_vars, 'var_type': var_type, 'initializer': initializer})
-		elif spec == FuncCallSpec.Tags.cvar_new_sp:
+		elif spec == FuncCallSpec.Tags.cvar_new_smart:
 			# 期待値: CSP.new(A(a, b, c))
 			var_type, initializer = PatternParser.pluck_cvar_new(arguments[0])
 			return self.view.render(f'{node.classification}/{spec.name}', vars={**func_call_vars, 'var_type': var_type, 'initializer': initializer})
-		elif spec == FuncCallSpec.Tags.cvar_sp_empty:
+		elif spec == FuncCallSpec.Tags.cvar_smart_empty:
 			# 期待値: CSP[A].empty()
 			var_type = self.to_accessible_name(cast(IReflection, context))
 			return self.view.render(f'{node.classification}/{spec.name}', vars={**func_call_vars, 'var_type': var_type})
@@ -1204,27 +1204,27 @@ class Py2Cpp(ITranspiler):
 			elif prop in [CVars.Verbs.Down.value, CVars.Verbs.AsA.value]:
 				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object).actualize()
 				cvar_key = self.cvars.var_name_from(receiver_raw)
-				if self.cvars.is_addr_p(cvar_key):
+				if self.cvars.is_addr_raw(cvar_key):
 					spec = FuncCallSpec.Tags.cvar_down if prop == CVars.Verbs.Down.value else FuncCallSpec.Tags.cvar_as_a
 					return spec, '', None
 			elif prop == CVars.Verbs.Emtpy.value and isinstance(node.calls.receiver, defs.Indexer):
 				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object).actualize()
 				cvar_key = self.cvars.var_name_from(receiver_raw)
-				if self.cvars.is_addr_sp(cvar_key):
+				if self.cvars.is_addr_smart(cvar_key):
 					# 期待値: CSP[A] | None
 					entity_raw = self.reflections.type_of(node).attrs[0].attrs[0]
-					return FuncCallSpec.Tags.cvar_sp_empty, '', entity_raw
+					return FuncCallSpec.Tags.cvar_smart_empty, '', entity_raw
 			elif prop == CVars.Verbs.New.value and isinstance(node.calls.receiver, defs.Var):
 				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object).actualize()
 				cvar_key = self.cvars.var_name_from(receiver_raw)
-				if self.cvars.is_addr_p(cvar_key):
-					return FuncCallSpec.Tags.cvar_new_p, '', None
-				elif self.cvars.is_addr_sp(cvar_key):
+				if self.cvars.is_addr_raw(cvar_key):
+					return FuncCallSpec.Tags.cvar_new_addr, '', None
+				elif self.cvars.is_addr_smart(cvar_key):
 					new_type_raw = self.reflections.type_of(node.arguments[0]).impl(refs.Object)
 					if new_type_raw.type_is(list):
-						return FuncCallSpec.Tags.cvar_new_sp_list, '', new_type_raw
+						return FuncCallSpec.Tags.cvar_new_smart_list, '', new_type_raw
 
-					return FuncCallSpec.Tags.cvar_new_sp, '', None
+					return FuncCallSpec.Tags.cvar_new_smart, '', None
 			elif prop == CVars.Verbs.ToAddrHex.value:
 				receiver_raw = self.reflections.type_of(node.calls.receiver).impl(refs.Object).actualize()
 				cvar_key = self.cvars.var_name_from(receiver_raw)
@@ -1258,11 +1258,11 @@ class Py2Cpp(ITranspiler):
 		# XXX is_const/is_addr_pの対応に一貫性が無い。包括的な対応を検討
 		for_in_symbol = Defer.new(lambda: self.reflections.type_of(node.for_in).impl(refs.Object).actualize())
 		is_const = self.cvars.is_const(self.cvars.var_name_from(for_in_symbol)) if len(symbols) == 1 else False
-		is_addr_p = self.cvars.is_addr_p(self.cvars.var_name_from(for_in_symbol)) if len(symbols) == 1 else False
+		is_addr_raw = self.cvars.is_addr_raw(self.cvars.var_name_from(for_in_symbol)) if len(symbols) == 1 else False
 
 		if isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Var) and node.iterates.calls.tokens in [range.__name__, enumerate.__name__]:
 			spec = node.iterates.calls.tokens
-			return self.view.render(f'comp/{node.classification}_{spec}', vars={'symbols': symbols, 'iterates': for_in, 'is_const': is_const, 'is_addr_p': is_addr_p})
+			return self.view.render(f'comp/{node.classification}_{spec}', vars={'symbols': symbols, 'iterates': for_in, 'is_const': is_const, 'is_addr_raw': is_addr_raw})
 		elif isinstance(node.iterates, defs.FuncCall) and isinstance(node.iterates.calls, defs.Relay) \
 			and node.iterates.calls.prop.tokens in FuncCallSpec.dict_iter_methods \
 			and self.reflections.type_of(node.iterates.calls.receiver).impl(refs.Object).actualize().type_is(dict):
@@ -1272,9 +1272,9 @@ class Py2Cpp(ITranspiler):
 			# XXX 参照の変換方法が場当たり的で一貫性が無い。包括的な対応を検討
 			iterates = f'*({receiver})' if operator == '->' else receiver
 			dict_symbols = {dict.items.__name__: symbols, dict.keys.__name__: [symbols[0], '_'], dict.values.__name__: ['_', symbols[0]]}
-			return self.view.render(f'comp/{node.classification}', vars={'symbols': dict_symbols[method_name], 'iterates': iterates, 'is_const': is_const, 'is_addr_p': False})
+			return self.view.render(f'comp/{node.classification}', vars={'symbols': dict_symbols[method_name], 'iterates': iterates, 'is_const': is_const, 'is_addr_raw': False})
 		else:
-			return self.view.render(f'comp/{node.classification}', vars={'symbols': symbols, 'iterates': for_in, 'is_const': is_const, 'is_addr_p': is_addr_p})
+			return self.view.render(f'comp/{node.classification}', vars={'symbols': symbols, 'iterates': for_in, 'is_const': is_const, 'is_addr_raw': is_addr_raw})
 
 	def on_list_comp(self, node: defs.ListComp, projection: str, fors: list[str], condition: str) -> str:
 		projection_type_raw = self.reflections.type_of(node.projection)
@@ -1533,10 +1533,10 @@ class FuncCallSpec:
 		cvar_as_a = 400
 		cvar_copy = 401
 		cvar_down = 402
-		cvar_new_p = 403
-		cvar_new_sp_list = 404
-		cvar_new_sp = 405
-		cvar_sp_empty = 406
+		cvar_new_addr = 403
+		cvar_new_smart_list = 404
+		cvar_new_smart = 405
+		cvar_smart_empty = 406
 		cvar_to = 407
 		cvar_to_addr_hex = 408
 		cvar_to_addr_id = 409

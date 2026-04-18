@@ -450,7 +450,7 @@ class TestRenderer(TestCase):
 				'condition': '',
 				'projection_types': ['int'],
 				'is_const': False,
-				'is_addr_p': False,
+				'is_addr_raw': False,
 			},
 			'\n'.join([
 				'[&]() -> std::vector<int> {',
@@ -470,7 +470,7 @@ class TestRenderer(TestCase):
 				'condition': 'value == 1',
 				'projection_types': ['int'],
 				'is_const': False,
-				'is_addr_p': False,
+				'is_addr_raw': False,
 			},
 			'\n'.join([
 				'[&]() -> std::vector<int> {',
@@ -493,7 +493,7 @@ class TestRenderer(TestCase):
 				'condition': '',
 				'projection_types': ['int', 'float'],
 				'is_const': False,
-				'is_addr_p': False,
+				'is_addr_raw': False,
 			},
 			'\n'.join([
 				'[&]() -> std::map<int, float> {',
@@ -514,7 +514,7 @@ class TestRenderer(TestCase):
 				'condition': 'key == 1',
 				'projection_types': ['int', 'float'],
 				'is_const': False,
-				'is_addr_p': False,
+				'is_addr_raw': False,
 			},
 			'\n'.join([
 				'[&]() -> std::map<int, float> {',
@@ -533,12 +533,12 @@ class TestRenderer(TestCase):
 		self.assertRender(f'comp/{spec}', vars, expected)
 
 	@data_provider([
-		({'symbols': ['value'], 'iterates': 'values', 'is_const': False, 'is_addr_p': False}, 'auto& value : values'),
-		({'symbols': ['value'], 'iterates': 'values', 'is_const': True, 'is_addr_p': False}, 'const auto& value : values'),
-		({'symbols': ['value'], 'iterates': 'values', 'is_const': False, 'is_addr_p': True}, 'auto value : values'),
-		({'symbols': ['value'], 'iterates': 'values', 'is_const': True, 'is_addr_p': True}, 'const auto value : values'),
-		({'symbols': ['key', 'value'], 'iterates': 'items', 'is_const': False, 'is_addr_p': False}, 'auto& [key, value] : items'),
-		({'symbols': ['key', 'value'], 'iterates': 'items', 'is_const': True, 'is_addr_p': False}, 'const auto& [key, value] : items'),
+		({'symbols': ['value'], 'iterates': 'values', 'is_const': False, 'is_addr_raw': False}, 'auto& value : values'),
+		({'symbols': ['value'], 'iterates': 'values', 'is_const': True, 'is_addr_raw': False}, 'const auto& value : values'),
+		({'symbols': ['value'], 'iterates': 'values', 'is_const': False, 'is_addr_raw': True}, 'auto value : values'),
+		({'symbols': ['value'], 'iterates': 'values', 'is_const': True, 'is_addr_raw': True}, 'const auto value : values'),
+		({'symbols': ['key', 'value'], 'iterates': 'items', 'is_const': False, 'is_addr_raw': False}, 'auto& [key, value] : items'),
+		({'symbols': ['key', 'value'], 'iterates': 'items', 'is_const': True, 'is_addr_raw': False}, 'const auto& [key, value] : items'),
 	])
 	def test_render_comp_for(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('comp/comp_for', vars, expected)
@@ -895,26 +895,27 @@ class TestRenderer(TestCase):
 	@data_provider([
 		({'arguments': ['A(0)'], 'is_statement': True}, 'new A(0);'),
 	])
-	def test_render_func_call_cvar_new_p(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/cvar_new_p', vars, expected)
+	def test_render_func_call_cvar_new_addr(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cvar_new_addr', vars, expected)
 
 	@data_provider([
-		({'var_type': 'std::vector<A>', 'initializer': '{0}, {1}', 'is_statement': True}, 'std::shared_ptr<std::vector<A>>(new std::vector<A>({0}, {1}));'),
+		({'calls': 'CSP::new', 'var_type': 'std::vector<A>', 'initializer': '{0}, {1}', 'is_statement': True}, 'std::shared_ptr<std::vector<A>>(new std::vector<A>({0}, {1}));'),
 	])
-	def test_render_func_call_cvar_new_sp_list(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/cvar_new_sp_list', vars, expected)
+	def test_render_func_call_cvar_new_smart_list(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cvar_new_smart_list', vars, expected)
 
 	@data_provider([
-		({'var_type': 'A', 'initializer': '0', 'is_statement': True}, 'std::make_shared<A>(0);'),
+		({'calls': 'CSP::new', 'var_type': 'A', 'initializer': '0', 'is_statement': True}, 'std::make_shared<A>(0);'),
 	])
-	def test_render_func_call_cvar_new_sp(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/cvar_new_sp', vars, expected)
+	def test_render_func_call_cvar_new_smart(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cvar_new_smart', vars, expected)
 
 	@data_provider([
-		({'var_type': 'int', 'is_statement': True}, 'std::shared_ptr<int>();'),
+		# XXX emptyはcallsがindexerのためC++の型名にトランスパイルされる
+		({'calls': 'std::shared_ptr<int>::empty', 'var_type': 'int', 'is_statement': True}, 'std::shared_ptr<int>();'),
 	])
-	def test_render_func_call_cvar_sp_empty(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/cvar_sp_empty', vars, expected)
+	def test_render_func_call_cvar_smart_empty(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cvar_smart_empty', vars, expected)
 
 	@data_provider([
 		({'cvar_type': 'CP', 'arguments': ['n'], 'is_statement': True}, '(&(n));'),
@@ -1420,7 +1421,7 @@ class TestRenderer(TestCase):
 	@data_provider([
 		({'receiver': 'raw', 'move': 'ToAddress'}, '(&(raw))'),
 		({'receiver': 'addr', 'move': 'ToActual'}, '(*(addr))'),
-		({'receiver': 'sp', 'move': 'UnpackSp'}, '(sp).get()'),
+		({'receiver': 'sp', 'move': 'UnpackSmart'}, '(sp).get()'),
 		({'receiver': 'raw', 'move': 'Copy'}, 'raw'),
 	])
 	def test_render_relay_cvar_to(self, vars: dict[str, Any], expected: str) -> None:

@@ -112,8 +112,8 @@ class CVarOps:
 			ap = asp.addr
 			ap = ar.addr
 		if True:
-			# スマートポインターは等価な代入のみ許可
-			aup = aup
+			# スマートポインター同士の代入のみ許可
+			aup = aup.move()
 			asp = asp
 		if True:
 			# 以下全てC++ではNGだが、エラーは一旦スルー

@@ -101,7 +101,7 @@ class TestPy2Cpp(TestCase):
 		('CVarOps.local_move', 'function_def_raw.block.if_stmt[6].if_clause.block.assign[2]', defs.MoveAssign, 'ap = (aup).get();'),
 		('CVarOps.local_move', 'function_def_raw.block.if_stmt[6].if_clause.block.assign[3]', defs.MoveAssign, 'ap = (asp).get();'),
 		('CVarOps.local_move', 'function_def_raw.block.if_stmt[6].if_clause.block.assign[4]', defs.MoveAssign, 'ap = (&(ar));'),
-		('CVarOps.local_move', 'function_def_raw.block.if_stmt[7].if_clause.block.assign[1]', defs.MoveAssign, 'aup = aup;'),
+		('CVarOps.local_move', 'function_def_raw.block.if_stmt[7].if_clause.block.assign[1]', defs.MoveAssign, 'aup = std::move(aup);'),
 		('CVarOps.local_move', 'function_def_raw.block.if_stmt[7].if_clause.block.assign[2]', defs.MoveAssign, 'asp = asp;'),
 		('CVarOps.local_move', 'function_def_raw.block.if_stmt[8].if_clause.block.assign[1]', defs.MoveAssign, 'ar = a;'),  # XXX C++ではNGだが一旦スルー ※型推論のコストをかけてまでエラー判定は不要という仕切り
 		('CVarOps.local_move', 'function_def_raw.block.if_stmt[8].if_clause.block.assign[2]', defs.MoveAssign, 'ar = (*(ap));'),  # 〃

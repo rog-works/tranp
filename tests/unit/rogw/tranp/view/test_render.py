@@ -899,6 +899,12 @@ class TestRenderer(TestCase):
 		self.assertRender('func_call/cvar_down', vars, expected)
 
 	@data_provider([
+		({'receiver': 'up', 'is_statement': True}, 'std::move(up);'),
+	])
+	def test_render_func_call_cvar_move(self, vars: dict[str, Any], expected: str) -> None:
+		self.assertRender('func_call/cvar_move', vars, expected)
+
+	@data_provider([
 		({'arguments': ['A(0)'], 'is_statement': True}, 'new A(0);'),
 	])
 	def test_render_func_call_cvar_new_addr(self, vars: dict[str, Any], expected: str) -> None:
@@ -915,12 +921,6 @@ class TestRenderer(TestCase):
 	])
 	def test_render_func_call_cvar_new_smart(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('func_call/cvar_new_smart', vars, expected)
-
-	@data_provider([
-		({'arguments': ['to'], 'receiver': 'from', 'is_statement': True}, 'to = std::move(from);'),
-	])
-	def test_render_func_call_cvar_move(self, vars: dict[str, Any], expected: str) -> None:
-		self.assertRender('func_call/cvar_move', vars, expected)
 
 	@data_provider([
 		# XXX emptyはcallsがindexerのためC++の型名にトランスパイルされる

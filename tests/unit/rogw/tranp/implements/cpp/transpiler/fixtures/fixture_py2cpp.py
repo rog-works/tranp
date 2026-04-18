@@ -4,7 +4,7 @@ from enum import Enum
 from typing import Annotated, ClassVar, Generic, Literal, Protocol, Self, TypeAlias, TypedDict, TypeVar, TypeVarTuple, cast
 
 from rogw.tranp.compatible.cpp.classes import byte, char, double, int64, uint32, uint64, void, wchar_t
-from rogw.tranp.compatible.cpp.cvar import CP, CSP, CWP, CPConst, CRawConst, CRef, T_co
+from rogw.tranp.compatible.cpp.cvar import CP, CSP, CUP, CWP, CPConst, CRawConst, CRef, T_co
 from rogw.tranp.compatible.cpp.function import c_func_invoke, c_func_ref
 from rogw.tranp.compatible.cpp.preprocess import c_include, c_macro, c_pragma
 from rogw.tranp.compatible.python.embed import Embed
@@ -96,31 +96,31 @@ class CVarOps:
 	def local_move(self) -> None:
 		a: Sub = Sub(0)
 		ap: CP[Sub] = CP(a)
+		aup: CUP[Sub] = CUP.new(Sub(0))
 		asp: CSP[Sub] = CSP.new(Sub(0))
 		ar: CRef[Sub] = CRef(a)
 		if True:
 			a = a
 			a = ap.raw
+			a = aup.raw
 			a = asp.raw
 			a = ar.raw
 		if True:
 			ap = CP(a)
 			ap = ap
+			ap = aup.addr
 			ap = asp.addr
 			ap = ar.addr
 		if True:
-			# asp = a  # 構文的にNG
-			# asp = ap  # 構文的にNG
+			# スマートポインターは等価な代入のみ許可
+			aup = aup
 			asp = asp
-			# asp = ar  # 構文的にNG
 		if True:
-			# C++ではNG
+			# 以下全てC++ではNGだが、エラーは一旦スルー
 			ar = CRef(a)
-			# C++ではNG
 			ar = ap.ref
-			# C++ではNG
+			ar = aup.ref
 			ar = asp.ref
-			# C++ではNG
 			ar = ar
 
 	def iter_move(self, nps: list[CP[int]]) -> None:

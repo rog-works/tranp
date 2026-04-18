@@ -88,21 +88,26 @@ class TestPy2Cpp(TestCase):
 
 		('CVarOps.local_move', 'function_def_raw.block.anno_assign[0]', defs.AnnoAssign, 'Sub a{0};'),
 		('CVarOps.local_move', 'function_def_raw.block.anno_assign[1]', defs.AnnoAssign, 'Sub* ap = (&(a));'),
-		('CVarOps.local_move', 'function_def_raw.block.anno_assign[2]', defs.AnnoAssign, 'std::shared_ptr<Sub> asp = std::make_shared<Sub>(0);'),
-		('CVarOps.local_move', 'function_def_raw.block.anno_assign[3]', defs.AnnoAssign, 'Sub& ar = a;'),
-		('CVarOps.local_move', 'function_def_raw.block.if_stmt[4].if_clause.block.assign[0]', defs.MoveAssign, 'a = a;'),
-		('CVarOps.local_move', 'function_def_raw.block.if_stmt[4].if_clause.block.assign[1]', defs.MoveAssign, 'a = (*(ap));'),
-		('CVarOps.local_move', 'function_def_raw.block.if_stmt[4].if_clause.block.assign[2]', defs.MoveAssign, 'a = (*(asp));'),
-		('CVarOps.local_move', 'function_def_raw.block.if_stmt[4].if_clause.block.assign[3]', defs.MoveAssign, 'a = ar;'),
-		('CVarOps.local_move', 'function_def_raw.block.if_stmt[5].if_clause.block.assign[0]', defs.MoveAssign, 'ap = (&(a));'),
-		('CVarOps.local_move', 'function_def_raw.block.if_stmt[5].if_clause.block.assign[1]', defs.MoveAssign, 'ap = ap;'),
-		('CVarOps.local_move', 'function_def_raw.block.if_stmt[5].if_clause.block.assign[2]', defs.MoveAssign, 'ap = (asp).get();'),
-		('CVarOps.local_move', 'function_def_raw.block.if_stmt[5].if_clause.block.assign[3]', defs.MoveAssign, 'ap = (&(ar));'),
-		('CVarOps.local_move', 'function_def_raw.block.if_stmt[6].if_clause.block.assign', defs.MoveAssign, 'asp = asp;'),
-		('CVarOps.local_move', 'function_def_raw.block.if_stmt[7].if_clause.block.assign[1]', defs.MoveAssign, 'ar = a;'),  # XXX C++ではNGだが要件等 ※型推論のコストをかけてまでエラー判定が必要なのか微妙
-		('CVarOps.local_move', 'function_def_raw.block.if_stmt[7].if_clause.block.assign[3]', defs.MoveAssign, 'ar = (*(ap));'),  # 〃
-		('CVarOps.local_move', 'function_def_raw.block.if_stmt[7].if_clause.block.assign[5]', defs.MoveAssign, 'ar = (*(asp));'),  # 〃
-		('CVarOps.local_move', 'function_def_raw.block.if_stmt[7].if_clause.block.assign[7]', defs.MoveAssign, 'ar = ar;'),  # 〃
+		('CVarOps.local_move', 'function_def_raw.block.anno_assign[2]', defs.AnnoAssign, 'std::unique_ptr<Sub> aup = std::make_unique<Sub>(0);'),
+		('CVarOps.local_move', 'function_def_raw.block.anno_assign[3]', defs.AnnoAssign, 'std::shared_ptr<Sub> asp = std::make_shared<Sub>(0);'),
+		('CVarOps.local_move', 'function_def_raw.block.anno_assign[4]', defs.AnnoAssign, 'Sub& ar = a;'),
+		('CVarOps.local_move', 'function_def_raw.block.if_stmt[5].if_clause.block.assign[0]', defs.MoveAssign, 'a = a;'),
+		('CVarOps.local_move', 'function_def_raw.block.if_stmt[5].if_clause.block.assign[1]', defs.MoveAssign, 'a = (*(ap));'),
+		('CVarOps.local_move', 'function_def_raw.block.if_stmt[5].if_clause.block.assign[2]', defs.MoveAssign, 'a = (*(aup));'),
+		('CVarOps.local_move', 'function_def_raw.block.if_stmt[5].if_clause.block.assign[3]', defs.MoveAssign, 'a = (*(asp));'),
+		('CVarOps.local_move', 'function_def_raw.block.if_stmt[5].if_clause.block.assign[4]', defs.MoveAssign, 'a = ar;'),
+		('CVarOps.local_move', 'function_def_raw.block.if_stmt[6].if_clause.block.assign[0]', defs.MoveAssign, 'ap = (&(a));'),
+		('CVarOps.local_move', 'function_def_raw.block.if_stmt[6].if_clause.block.assign[1]', defs.MoveAssign, 'ap = ap;'),
+		('CVarOps.local_move', 'function_def_raw.block.if_stmt[6].if_clause.block.assign[2]', defs.MoveAssign, 'ap = (aup).get();'),
+		('CVarOps.local_move', 'function_def_raw.block.if_stmt[6].if_clause.block.assign[3]', defs.MoveAssign, 'ap = (asp).get();'),
+		('CVarOps.local_move', 'function_def_raw.block.if_stmt[6].if_clause.block.assign[4]', defs.MoveAssign, 'ap = (&(ar));'),
+		('CVarOps.local_move', 'function_def_raw.block.if_stmt[7].if_clause.block.assign[1]', defs.MoveAssign, 'aup = aup;'),
+		('CVarOps.local_move', 'function_def_raw.block.if_stmt[7].if_clause.block.assign[2]', defs.MoveAssign, 'asp = asp;'),
+		('CVarOps.local_move', 'function_def_raw.block.if_stmt[8].if_clause.block.assign[1]', defs.MoveAssign, 'ar = a;'),  # XXX C++ではNGだが一旦スルー ※型推論のコストをかけてまでエラー判定は不要という仕切り
+		('CVarOps.local_move', 'function_def_raw.block.if_stmt[8].if_clause.block.assign[2]', defs.MoveAssign, 'ar = (*(ap));'),  # 〃
+		('CVarOps.local_move', 'function_def_raw.block.if_stmt[8].if_clause.block.assign[3]', defs.MoveAssign, 'ar = (*(aup));'),  # 〃
+		('CVarOps.local_move', 'function_def_raw.block.if_stmt[8].if_clause.block.assign[4]', defs.MoveAssign, 'ar = (*(asp));'),  # 〃
+		('CVarOps.local_move', 'function_def_raw.block.if_stmt[8].if_clause.block.assign[5]', defs.MoveAssign, 'ar = ar;'),  # 〃
 
 		('CVarOps.iter_move', 'function_def_raw.block.for_stmt.block.assign', defs.MoveAssign, 'int n = (*(np));'),
 

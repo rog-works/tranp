@@ -1,0 +1,2 @@
+{%- set maker = i18n('cpp', 'make_shared' if calls.startswith('CSP') else 'make_unique') -%}
+{{ maker }}<{{ var_type }}>({{ initializer }}){% if is_statement %};{% endif %}

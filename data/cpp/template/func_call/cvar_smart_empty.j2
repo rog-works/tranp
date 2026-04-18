@@ -1,0 +1,2 @@
+{%- set smart_type = i18n('cpp', 'shared_ptr' if calls.startswith(i18n('cpp', 'shared_ptr')) else 'unique_ptr') -%}
+{{ smart_type }}<{{ var_type }}>(){% if is_statement %};{% endif %}

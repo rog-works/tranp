@@ -54,8 +54,9 @@ aliases.rogw.tranp.compatible.cpp.classes#map.end: end
 aliases.rogw.tranp.compatible.cpp.classes#map.erase: erase
 aliases.rogw.tranp.compatible.cpp.classes#map.iterator: iterator
 aliases.rogw.tranp.compatible.cpp.classes#make_shared: std::make_shared
+aliases.rogw.tranp.compatible.cpp.classes#make_unique: std::make_unique
 aliases.rogw.tranp.compatible.cpp.classes#shared_ptr: std::shared_ptr
-aliases.rogw.tranp.compatible.cpp.classes#shared_ptr.get: get
+aliases.rogw.tranp.compatible.cpp.classes#smart_ptr.get: get
 aliases.rogw.tranp.compatible.cpp.classes#string.stod: std::stod
 aliases.rogw.tranp.compatible.cpp.classes#string.stoi: std::stoi
 aliases.rogw.tranp.compatible.cpp.classes#string.format: std::format
@@ -63,6 +64,7 @@ aliases.rogw.tranp.compatible.cpp.classes#string.ftoa: std::to_string
 aliases.rogw.tranp.compatible.cpp.classes#string.itoa: std::to_string
 aliases.rogw.tranp.compatible.cpp.classes#string.size: size
 aliases.rogw.tranp.compatible.cpp.classes#string.slice: substr
+aliases.rogw.tranp.compatible.cpp.classes#unique_ptr: std::unique_ptr
 aliases.rogw.tranp.compatible.cpp.classes#vector.begin: begin
 aliases.rogw.tranp.compatible.cpp.classes#vector.end: end
 aliases.rogw.tranp.compatible.cpp.classes#vector.iterator: iterator

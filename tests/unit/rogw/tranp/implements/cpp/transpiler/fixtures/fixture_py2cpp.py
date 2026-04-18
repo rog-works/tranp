@@ -90,6 +90,9 @@ class CVarOps:
 	def ret_cp(self) -> CP[Sub]:
 		return CP.new(Sub(0))
 
+	def ret_cup(self) -> CUP[Sub]:
+		return CUP.new(Sub(0))
+
 	def ret_csp(self) -> CSP[Sub]:
 		return CSP.new(Sub(0))
 
@@ -127,13 +130,15 @@ class CVarOps:
 		for i, np in enumerate(nps):
 			n = np.raw
 
-	def param_move(self, a: Sub, ap: CP[Sub], asp: CSP[Sub], ar: CRef[Sub]) -> None:
+	def param_move(self, a: Sub, ap: CP[Sub], aup: CUP[Sub], asp: CSP[Sub], ar: CRef[Sub]) -> None:
 		a1 = a
 		a2: Sub = ap.raw
-		a3: Sub = asp.raw
-		a4: Sub = ar.raw
+		a3: Sub = aup.raw
+		a4: Sub = asp.raw
+		a5: Sub = ar.raw
 		a = a1
 		ap = CP(a2)
+		# aup = a3  # 構文的にNG
 		# asp = a3  # 構文的にNG
 		# C++ではNG
 		ar = CRef(a4)
@@ -143,27 +148,29 @@ class CVarOps:
 		# self.invoke_method(ap.raw, ap, ap)  # 構文的にNG
 		self.invoke_method(asp.raw, asp.addr, asp)
 
-	def unary_calc(self, a: Sub, ap: CP[Sub], asp: CSP[Sub], ar: CRef[Sub]) -> None:
+	def unary_calc(self, a: Sub, ap: CP[Sub], aup: CUP[Sub], asp: CSP[Sub], ar: CRef[Sub]) -> None:
 		neg_a = -a
 		neg_a2 = -ap.raw
-		neg_a3 = -asp.raw
-		neg_a4 = -ar.raw
+		neg_a3 = -aup.raw
+		neg_a4 = -asp.raw
+		neg_a5 = -ar.raw
 
-	def binary_calc(self, a: Sub, ap: CP[Sub], asp: CSP[Sub], ar: CRef[Sub], apn: CP[Sub] | None) -> None:
-		add = a + ap.raw + asp.raw + ar.raw
-		sub = a - ap.raw - asp.raw - ar.raw
-		mul = a * ap.raw * asp.raw * ar.raw
-		div = a / ap.raw / asp.raw / ar.raw
+	def binary_calc(self, a: Sub, ap: CP[Sub], aup: CUP[Sub], asp: CSP[Sub], ar: CRef[Sub], upn: CP[Sub] | None, spn: CP[Sub] | None) -> None:
+		add = a + ap.raw + aup.raw + asp.raw + ar.raw
+		sub = a - ap.raw - aup.raw - asp.raw - ar.raw
+		mul = a * ap.raw * aup.raw * asp.raw * ar.raw
+		div = a / ap.raw / aup.raw / asp.raw / ar.raw
 		mod = 1.0 % 1
-		calc = a + ap.raw * asp.raw - ar.raw / a
-		is_a = a is ap.raw is asp.raw is ar.raw
-		is_not_a = a is not ap.raw is not asp.raw is not ar.raw
-		is_null = apn is None and apn is not None
+		calc = ap.raw + aup.raw * asp.raw - ar.raw / a
+		is_a = a is ap.raw is aup.raw is asp.raw is ar.raw
+		is_not_a = a is not ap.raw is not aup.raw is not asp.raw is not ar.raw
+		is_null = upn is None and upn is not None and spn is None and spn is not None
 
-	def ternary_calc(self, a: Sub, ap: CP[Sub], asp: CSP[Sub], ar: CRef[Sub]) -> None:
+	def ternary_calc(self, a: Sub, ap: CP[Sub], aup: CUP[Sub], asp: CSP[Sub], ar: CRef[Sub]) -> None:
 		a2 = a if True else Sub()
 		a3 = a if True else a
 		ap2 = ap if True else ap
+		aup2 = aup if True else aup
 		asp2 = asp if True else asp
 		ar2 = ar if True else ar
 		ap_or_null = ap if True else None
@@ -177,6 +184,7 @@ class CVarOps:
 		arr_sp3 = CSP.new(list[int]() * 2)
 		arr_sp4 = CSP.new([0] * 2)
 		arr_r = CRef(arr)
+		n_up_empty = CUP[int].empty()
 		n_sp_empty = CSP[int].empty()
 		this_p = CP(self)
 		this_ps = [CP(self)]
@@ -187,7 +195,7 @@ class CVarOps:
 		n2 = self.default_param()
 		return n
 
-	def const_move(self, a: Sub, ap: CP[Sub], asp: CSP[Sub], r: CRef[Sub]) -> None:
+	def const_move(self, a: Sub, ap: CP[Sub], aup: CUP[Sub], asp: CSP[Sub], r: CRef[Sub]) -> None:
 		a_const0 = CRawConst(a)
 		a0 = a_const0.raw
 		r0_const = a_const0.ref
@@ -197,18 +205,24 @@ class CVarOps:
 		a1 = ap_const1.raw
 		r_const1 = ap_const1.ref
 
-		asp_const2 = asp.const
-		a2 = asp_const2.raw
-		r_const2 = asp_const2.ref
-		ap_const2 = asp_const2.addr
+		aup_const2 = aup.const
+		a2 = aup_const2.raw
+		r_const2 = aup_const2.ref
+		ap_const2 = aup_const2.addr
 
-		r_const3 = r.const
-		a3 = r_const3.raw
-		ap_const3 = r_const3.addr
+		asp_const3 = asp.const
+		a3 = asp_const3.raw
+		r_const3 = asp_const3.ref
+		ap_const3 = asp_const3.addr
 
-	def to_void(self, a: Sub, ap: CP[Sub], asp: CSP[Sub], r: CRef[Sub]) -> None:
+		r_const4 = r.const
+		a4 = r_const4.raw
+		ap_const4 = r_const4.addr
+
+	def to_void(self, a: Sub, ap: CP[Sub], aup: CUP[Sub], asp: CSP[Sub], r: CRef[Sub]) -> None:
 		a_to_vp = cast(CP[void], CP(a))
 		ap_to_vp = cast(CP[void], ap)
+		aup_to_vp = cast(CP[void], aup.addr)
 		asp_to_vp = cast(CP[void], asp.addr)
 		r_to_vp = cast(CP[void], r.addr)
 

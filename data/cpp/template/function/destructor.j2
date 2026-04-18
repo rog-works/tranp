@@ -1,4 +1,7 @@
 {%- set deco_query = parse_decorators(decorators) -%}
+{%- if deco_query.contains('Embed.python') -%}
+// destructor {{ symbol }}
+{%- else -%}
 {% include('function/_accessor.j2') %}:
 {% include('function/_comment.j2') %}
 {%- include('function/_template_types.j2') %}
@@ -7,4 +10,5 @@
 {% include('function/_signature_prefix.j2') %}~{{ class_symbol }}() = default;
 {%- else %}
 {% include('function/_signature_prefix.j2') %}~{{ class_symbol }}() {% include('function/_block.j2') %}
+{%- endif %}
 {%- endif %}

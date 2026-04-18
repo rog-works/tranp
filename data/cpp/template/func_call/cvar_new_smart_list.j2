@@ -1,2 +1,2 @@
-{%- set smart_type = i18n('cpp', 'shared_ptr' if calls.startswith('CSP') else 'unique_ptr') -%}
+{%- set smart_type = i18n('cpp', 'unique_ptr' if cvar_type == 'CUP' else 'shared_ptr') -%}
 {{ smart_type }}<{{ var_type }}>(new {{ var_type }}({{ initializer }})){% if is_statement %};{% endif %}

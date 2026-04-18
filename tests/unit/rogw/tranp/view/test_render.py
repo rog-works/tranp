@@ -911,20 +911,19 @@ class TestRenderer(TestCase):
 		self.assertRender('func_call/cvar_new_addr', vars, expected)
 
 	@data_provider([
-		({'calls': 'CSP::new', 'var_type': 'std::vector<A>', 'initializer': '{0}, {1}', 'is_statement': True}, 'std::shared_ptr<std::vector<A>>(new std::vector<A>({0}, {1}));'),
+		({'cvar_type': 'CSP', 'var_type': 'std::vector<A>', 'initializer': '{0}, {1}', 'is_statement': True}, 'std::shared_ptr<std::vector<A>>(new std::vector<A>({0}, {1}));'),
 	])
 	def test_render_func_call_cvar_new_smart_list(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('func_call/cvar_new_smart_list', vars, expected)
 
 	@data_provider([
-		({'calls': 'CSP::new', 'var_type': 'A', 'initializer': '0', 'is_statement': True}, 'std::make_shared<A>(0);'),
+		({'cvar_type': 'CSP', 'var_type': 'A', 'initializer': '0', 'is_statement': True}, 'std::make_shared<A>(0);'),
 	])
 	def test_render_func_call_cvar_new_smart(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('func_call/cvar_new_smart', vars, expected)
 
 	@data_provider([
-		# XXX emptyはcallsがindexerのためC++の型名にトランスパイルされる
-		({'calls': 'std::shared_ptr<int>::empty', 'var_type': 'int', 'is_statement': True}, 'std::shared_ptr<int>();'),
+		({'cvar_type': 'CSP', 'var_type': 'int', 'is_statement': True}, 'std::shared_ptr<int>();'),
 	])
 	def test_render_func_call_cvar_smart_empty(self, vars: dict[str, Any], expected: str) -> None:
 		self.assertRender('func_call/cvar_smart_empty', vars, expected)

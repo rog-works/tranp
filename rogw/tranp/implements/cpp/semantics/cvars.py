@@ -16,18 +16,18 @@ class CVars:
 		Attributes:
 			Copy: 同種のコピー(実体 = 実体、アドレス = アドレス)
 			New: メモリ確保(生ポインター)
-			MakeSp: メモリ確保(共有ポインター)
+			MakeSmart: メモリ確保(スマートポインター)
 			ToActual: アドレス変数を実体参照
 			ToAddress: 実体/参照から生ポインターに変換
-			UnpackSp: 共有ポインターから生ポインターに変換
+			UnpackSmart: スマートポインターから生ポインターに変換
 			Deny: 不正な移動操作
 		"""
 		Copy = 0
 		New = 1
-		MakeSp = 2
+		MakeSmart = 2
 		ToActual = 3
 		ToAddress = 4
-		UnpackSp = 5
+		UnpackSmart = 5
 		Deny = 6
 
 	class RelayOperators(Enum):
@@ -35,7 +35,7 @@ class CVars:
 
 		Attributes:
 			Raw: 実体/参照
-			Address: ポインター/共有ポインター
+			Address: ポインター/スマートポインター
 			Static: クラス
 		"""
 		Raw = 0
@@ -85,21 +85,68 @@ class CVars:
 			for value in cls:
 				yield value.value
 
-	RawKeys: ClassVar[list[str]] = [cpp.CRaw.__name__, cpp.CRef.__name__, cpp.CRawConst.__name__, cpp.CRefConst.__name__]
-	RawRawKeys: ClassVar[list[str]] = [cpp.CRaw.__name__, cpp.CRawConst.__name__]
-	RawRefKeys: ClassVar[list[str]] = [cpp.CRef.__name__, cpp.CRefConst.__name__]
-	AddrKeys: ClassVar[list[str]] = [cpp.CP.__name__, cpp.CWP.__name__, cpp.CSP.__name__, cpp.CPConst.__name__, cpp.CSPConst.__name__]
-	AddrPKeys: ClassVar[list[str]] = [cpp.CP.__name__, cpp.CWP.__name__, cpp.CPConst.__name__]
-	AddrSPKeys: ClassVar[list[str]] = [cpp.CSP.__name__, cpp.CSPConst.__name__]
-	ConstKeys: ClassVar[list[str]] = [cpp.CPConst.__name__, cpp.CSPConst.__name__, cpp.CRefConst.__name__, cpp.CRawConst.__name__]	
-	Keys: ClassVar[list[str]] = [cpp.CP.__name__, cpp.CWP.__name__, cpp.CSP.__name__, cpp.CRef.__name__, cpp.CRaw.__name__, cpp.CPConst.__name__, cpp.CSPConst.__name__, cpp.CRefConst.__name__, cpp.CRawConst.__name__]
-
+	RawKeys: ClassVar[list[str]] = [
+		cpp.CRaw.__name__,
+		cpp.CRef.__name__,
+		cpp.CRawConst.__name__,
+		cpp.CRefConst.__name__,
+	]
+	RawRawKeys: ClassVar[list[str]] = [
+		cpp.CRaw.__name__,
+		cpp.CRawConst.__name__,
+	]
+	RawRefKeys: ClassVar[list[str]] = [
+		cpp.CRef.__name__,
+		cpp.CRefConst.__name__,
+	]
+	AddrKeys: ClassVar[list[str]] = [
+		cpp.CP.__name__,
+		cpp.CWP.__name__,
+		cpp.CUP.__name__,
+		cpp.CSP.__name__,
+		cpp.CPConst.__name__,
+		cpp.CUPConst.__name__,
+		cpp.CSPConst.__name__,
+	]
+	AddrRawKeys: ClassVar[list[str]] = [
+		cpp.CP.__name__,
+		cpp.CWP.__name__,
+		cpp.CPConst.__name__,
+	]
+	AddrSmartKeys: ClassVar[list[str]] = [
+		cpp.CUP.__name__,
+		cpp.CSP.__name__,
+		cpp.CUPConst.__name__,
+		cpp.CSPConst.__name__,
+	]
+	ConstKeys: ClassVar[list[str]] = [
+		cpp.CPConst.__name__,
+		cpp.CUPConst.__name__,
+		cpp.CSPConst.__name__,
+		cpp.CRefConst.__name__,
+		cpp.CRawConst.__name__,
+	]
+	Keys: ClassVar[list[str]] = [
+		cpp.CP.__name__,
+		cpp.CWP.__name__,
+		cpp.CUP.__name__,
+		cpp.CSP.__name__,
+		cpp.CRef.__name__,
+		cpp.CRaw.__name__,
+		cpp.CPConst.__name__,
+		cpp.CUPConst.__name__,
+		cpp.CSPConst.__name__,
+		cpp.CRefConst.__name__,
+		cpp.CRawConst.__name__,
+	]
 	KeyToOperator: ClassVar[dict[str, RelayOperators]] = {
 		cpp.CP.__name__: RelayOperators.Address,
 		cpp.CWP.__name__: RelayOperators.Address,
+		cpp.CUP.__name__: RelayOperators.Address,
 		cpp.CSP.__name__: RelayOperators.Address,
 		cpp.CRef.__name__: RelayOperators.Raw,
 		cpp.CPConst.__name__: RelayOperators.Address,
+		cpp.CUPConst.__name__: RelayOperators.Address,
 		cpp.CSPConst.__name__: RelayOperators.Address,
 		cpp.CRefConst.__name__: RelayOperators.Raw,
 		cpp.CRawConst.__name__: RelayOperators.Raw,
@@ -111,18 +158,25 @@ class CVars:
 		f'{cpp.CP.__name__}.{Casts.Const.value}': Moves.Copy,
 		f'{cpp.CWP.__name__}.{Casts.Raw.value}': Moves.ToActual,
 		f'{cpp.CWP.__name__}.{Casts.Addr.value}': Moves.Copy,
+		f'{cpp.CUP.__name__}.{Casts.Raw.value}': Moves.ToActual,
+		f'{cpp.CUP.__name__}.{Casts.Ref.value}': Moves.ToActual,
+		f'{cpp.CUP.__name__}.{Casts.Addr.value}': Moves.UnpackSmart,
+		f'{cpp.CUP.__name__}.{Casts.Const.value}': Moves.Copy,
 		f'{cpp.CSP.__name__}.{Casts.Raw.value}': Moves.ToActual,
 		f'{cpp.CSP.__name__}.{Casts.Ref.value}': Moves.ToActual,
-		f'{cpp.CSP.__name__}.{Casts.Addr.value}': Moves.UnpackSp,
+		f'{cpp.CSP.__name__}.{Casts.Addr.value}': Moves.UnpackSmart,
 		f'{cpp.CSP.__name__}.{Casts.Const.value}': Moves.Copy,
 		f'{cpp.CRef.__name__}.{Casts.Raw.value}': Moves.Copy,
 		f'{cpp.CRef.__name__}.{Casts.Addr.value}': Moves.ToAddress,
 		f'{cpp.CRef.__name__}.{Casts.Const.value}': Moves.Copy,
 		f'{cpp.CPConst.__name__}.{Casts.Raw.value}': Moves.ToActual,
 		f'{cpp.CPConst.__name__}.{Casts.Ref.value}': Moves.ToActual,
+		f'{cpp.CUPConst.__name__}.{Casts.Raw.value}': Moves.ToActual,
+		f'{cpp.CUPConst.__name__}.{Casts.Ref.value}': Moves.ToActual,
+		f'{cpp.CUPConst.__name__}.{Casts.Addr.value}': Moves.UnpackSmart,
 		f'{cpp.CSPConst.__name__}.{Casts.Raw.value}': Moves.ToActual,
 		f'{cpp.CSPConst.__name__}.{Casts.Ref.value}': Moves.ToActual,
-		f'{cpp.CSPConst.__name__}.{Casts.Addr.value}': Moves.UnpackSp,
+		f'{cpp.CSPConst.__name__}.{Casts.Addr.value}': Moves.UnpackSmart,
 		f'{cpp.CRefConst.__name__}.{Casts.Raw.value}': Moves.Copy,
 		f'{cpp.CRefConst.__name__}.{Casts.Addr.value}': Moves.ToAddress,
 		f'{cpp.CRawConst.__name__}.{Casts.Raw.value}': Moves.Copy,
@@ -139,10 +193,12 @@ class CVars:
 		self._var_name_to_key = {
 			cpp.CP.__name__: cpp.CP.__name__,
 			cpp.CWP.__name__: cpp.CWP.__name__,
+			cpp.CUP.__name__: cpp.CUP.__name__,
 			cpp.CSP.__name__: cpp.CSP.__name__,
 			cpp.CRef.__name__: cpp.CRef.__name__,
 			cpp.CRaw.__name__: cpp.CRaw.__name__,
 			cpp.CPConst.__name__: cpp.CPConst.__name__,
+			cpp.CUPConst.__name__: cpp.CUPConst.__name__,
 			cpp.CSPConst.__name__: cpp.CSPConst.__name__,
 			cpp.CRefConst.__name__: cpp.CRefConst.__name__,
 			cpp.CRawConst.__name__: cpp.CRawConst.__name__,
@@ -176,7 +232,7 @@ class CVars:
 		Args:
 			var_name: 変数型名
 		Returns:
-			True = ポインター/共有ポインター
+			True = ポインター/スマートポインター
 		"""
 		return self._var_name_to_key[var_name] in CVars.AddrKeys
 
@@ -200,7 +256,7 @@ class CVars:
 		"""
 		return self._var_name_to_key[var_name] in CVars.RawRefKeys
 
-	def is_addr_p(self, var_name: str) -> bool:
+	def is_addr_raw(self, var_name: str) -> bool:
 		"""ポインターか判定(不変性型を含む)
 
 		Args:
@@ -208,17 +264,17 @@ class CVars:
 		Returns:
 			True = ポインター
 		"""
-		return self._var_name_to_key[var_name] in CVars.AddrPKeys
+		return self._var_name_to_key[var_name] in CVars.AddrRawKeys
 
-	def is_addr_sp(self, var_name: str) -> bool:
-		"""共有ポインターか判定(不変性型を含む)
+	def is_addr_smart(self, var_name: str) -> bool:
+		"""スマートポインターか判定(不変性型を含む)
 
 		Args:
 			var_name: 変数型名
 		Returns:
-			True = 共有ポインター
+			True = スマートポインター
 		"""
-		return self._var_name_to_key[var_name] in CVars.AddrSPKeys
+		return self._var_name_to_key[var_name] in CVars.AddrSmartKeys
 
 	def is_const(self, var_name: str) -> bool:
 		"""不変性型か判定
@@ -319,19 +375,19 @@ class CVars:
 	# 	if cls.is_raw_ref(accept_key) and not declared:
 	# 		return cls.Moves.Deny
 
-	# 	if cls.is_addr_sp(accept_key) and cls.is_raw(value_key) and value_on_new:
-	# 		return cls.Moves.MakeSp
-	# 	elif cls.is_addr_p(accept_key) and cls.is_raw(value_key) and value_on_new:
+	# 	if cls.is_addr_smart(accept_key) and cls.is_raw(value_key) and value_on_new:
+	# 		return cls.Moves.MakeSmart
+	# 	elif cls.is_addr_raw(accept_key) and cls.is_raw(value_key) and value_on_new:
 	# 		return cls.Moves.New
-	# 	elif cls.is_addr_p(accept_key) and cls.is_raw(value_key):
+	# 	elif cls.is_addr_raw(accept_key) and cls.is_raw(value_key):
 	# 		return cls.Moves.ToAddress
 	# 	elif cls.is_raw(accept_key) and cls.is_addr(value_key):
 	# 		return cls.Moves.ToActual
-	# 	elif cls.is_addr_p(accept_key) and cls.is_addr_sp(value_key):
-	# 		return cls.Moves.UnpackSp
-	# 	elif cls.is_addr_p(accept_key) and cls.is_addr_p(value_key):
+	# 	elif cls.is_addr_raw(accept_key) and cls.is_addr_smart(value_key):
+	# 		return cls.Moves.UnpackSmart
+	# 	elif cls.is_addr_raw(accept_key) and cls.is_addr_raw(value_key):
 	# 		return cls.Moves.Copy
-	# 	elif cls.is_addr_sp(accept_key) and cls.is_addr_sp(value_key):
+	# 	elif cls.is_addr_smart(accept_key) and cls.is_addr_smart(value_key):
 	# 		return cls.Moves.Copy
 	# 	elif cls.is_raw(accept_key) and cls.is_raw(value_key):
 	# 		return cls.Moves.Copy

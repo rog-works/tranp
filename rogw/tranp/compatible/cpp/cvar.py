@@ -352,14 +352,15 @@ class CUP(CVarNullable[T_co]):
 		"""Returns: Constを返却する参照変換代替メソッド。C++では削除"""
 		return CUPConst(self.raw)
 
-	def move(self: Self, other: Self) -> None:
+	def move(self: Self) -> Self:
 		"""所有権をコピー先に移譲。自身は所有権を失う。C++では`std::move`に相当
 
-		Args:
-			other: コピー先
+		Returns:
+			インスタンス
 		"""
-		other._origin = self._origin
+		clone = self.__class__(self.addr)
 		self._origin = None
+		return clone
 
 
 class CSP(CVarNullable[T_co]):
